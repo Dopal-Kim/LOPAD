@@ -11,6 +11,8 @@ import { PassiveSet } from '../systems/passives';
 /** 런 상태의 단일 출처. 런 시작은 startRun(), 층 전환은 nextStage(). */
 class GameState {
   seed = '';
+  /** 일기장에 적은 이름 (23라운드). 비어 있으면 '―' 로 표시 */
+  playerName = '';
   stageIndex = 0;
   savesLeft = RUN.maxSaves;
   hp = PLAYER_DATA.stats.hp;
@@ -63,9 +65,10 @@ class GameState {
   }
 
   /** 새 런. weaponId 는 개성 선택 결과 (없으면 기본 무기) */
-  startRun(seed: string, weaponId: string = PLAYER_DATA.startWeapon): void {
+  startRun(seed: string, weaponId: string = PLAYER_DATA.startWeapon, playerName = ''): void {
     const wid = WEAPONS[weaponId] ? weaponId : PLAYER_DATA.startWeapon;
     this.seed = seed;
+    this.playerName = playerName;
     this.stageIndex = 0;
     this.savesLeft = RUN.maxSaves;
     this.meta = metaBonus(metaStore.read());
@@ -140,6 +143,7 @@ class GameState {
       pointsPending: this.pointsPending,
       bonus: { ...this.bonus },
       passives: { ...this.passives.owned },
+      playerName: this.playerName,
       savedAt: Date.now(),
     };
   }
@@ -160,6 +164,7 @@ class GameState {
     this.pointsPending = d.pointsPending;
     this.bonus = { ...EMPTY_BONUS, ...d.bonus };
     this.passives.restore(d.passives ?? {});
+    this.playerName = d.playerName ?? '';
   }
 }
 

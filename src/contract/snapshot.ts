@@ -1,6 +1,6 @@
 /** 시스템 파트: 계약 스냅샷 생성 (UI 파트는 import 금지). */
 import { gameState } from '../core/GameState';
-import { ECONOMY } from '../data';
+import { ECONOMY, STORY } from '../data';
 import type { FloorLayout } from '../systems/mapgen';
 import type { UiMap, UiMenu, UiSnapshot } from './ui';
 
@@ -71,5 +71,8 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     map: buildUiMap(ctx),
     paused: ctx.paused,
     menu: ctx.menu,
+    playerName: gameState.playerName,
+    floorTitle: STORY.floors[gameState.stageId]?.title ?? gameState.stage.name,
+    names: { potion: STORY.names.potion, gold: STORY.names.gold, shop: STORY.names.shop, souls: STORY.names.souls },
   };
 }

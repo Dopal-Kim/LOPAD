@@ -269,3 +269,33 @@ export interface EconomyData {
   statRewards: StatReward[];
   critDamageMult: number;
 }
+
+/** 스토리 텍스트 (계약 contracts/story-text.md) */
+export interface StoryFloor {
+  title: string;
+  empire: string;
+  bossName: string;
+  enter: string;
+  bossIntro: string;
+  restNote: string;
+}
+
+export interface StoryData {
+  floors: Record<string, StoryFloor>;
+  names: {
+    potion: string;
+    potionDesc: string;
+    gold: string;
+    goldDesc: string;
+    souls: string;
+    soulsDesc: string;
+    sense: string;
+    shop: string;
+    shopDesc: string;
+  };
+  diary: { first: string; beforeFate: string; fate: string };
+  evolution: { generic: string; byName: Record<string, string> };
+  death: string;
+  endings: { destroy: string; understand: string; choice: [string, string] };
+  notices: { trialStart: string; trialClear: string; bossUnlocked: string; saved: string };
+}

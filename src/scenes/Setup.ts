@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, DEPTH, GAME, KEYS, PROTOTYPE, SCENES } from '../core/Constants';
-import { PERSONALITY, WEAPONS } from '../data';
+import { PERSONALITY, STORY, WEAPONS } from '../data';
+import { fill } from '../systems/story';
 import type { Affinity } from '../data/types';
 import { chooseWeapon, rhythmFeatures, strokeFeatures, type RhythmSample, type Stroke } from '../systems/personality';
 import { META_CONFIG, buyUpgrade, metaStore, upgradeCost } from '../systems/meta';
@@ -8,13 +9,15 @@ import { TextMenu } from '../systems/TextMenu';
 import { setMenuSelect } from '../contract/host';
 import { UI_EVENTS, __system } from '../contract/ui';
 
-type Phase = 'meta' | 'strokes' | 'rhythm' | 'fate';
+type Phase = 'meta' | 'name' | 'strokes' | 'rhythm' | 'fate';
 
 /**
  * 개성 선택 (기획 1장): "가장 강한 것"을 3획으로 그리고, 5초간 자유롭게 입력한 리듬을 합쳐
  * 성향 벡터를 만들고 가장 가까운 무기를 '운명'으로 정한다.
  * 화면·연출은 시스템 파트 플레이스홀더이며 UI·아트 파트 산출물로 교체 대상.
  */
+const NAME_MAX = 12;
+
 export class Setup extends Phaser.Scene {
   private phase: Phase = 'strokes';
   private strokes: Stroke[] = [];
@@ -27,6 +30,9 @@ export class Setup extends Phaser.Scene {
   private features?: Affinity;
   private menu: TextMenu;
   private onEnter?: (e: KeyboardEvent) => void;
+  /** 일기장 이름 입력 (26라운드): DOM input, 최대 12자 */
+  private nameInput?: Phaser.GameObjects.DOMElement;
+  private playerName = '';
 
   constructor() {
     super(SCENES.SETUP);
@@ -36,6 +42,7 @@ export class Setup extends Phaser.Scene {
     this.phase = 'meta';
     this.strokes = [];
     this.current = null;
+    this.playerName = '';
     this.rhythm = { frames: 0, movingFrames: 0, attacks: 0, dashes: 0 };
     this.gfx = this.add.graphics().setDepth(DEPTH.ATTACK);
     this.label = this.add
@@ -59,10 +66,13 @@ export class Setup extends Phaser.Scene {
       this.input.off('pointerdown', this.onPointerDown, this);
       this.input.off('pointermove', this.onPointerMove, this);
       this.input.off('pointerup', this.onPointerUp, this);
+      this.nameInput?.destroy();
+      this.nameInput = undefined;
+      this.input.keyboard?.enableGlobalCapture();
     });
     this.menu = new TextMenu(this);
     setMenuSelect((id, key) => {
-      if (id === 'meta' && key === 'enter') this.beginStrokes();
+      if (id === 'meta' && key === 'enter') this.beginName();
       else this.menu.select(key, id);
     });
     this.events.once('shutdown', () => setMenuSelect(null));
@@ -100,11 +110,11 @@ export class Setup extends Phaser.Scene {
           this.openMetaMenu();
         }
       },
-      `도감: ${codex}\n\n[Enter] 개성 선택 시작`,
+      `도감: ${codex}\n\n[Enter] 일기장을 펼친다`,
     );
     if (!this.onEnter) {
       this.onEnter = (e: KeyboardEvent) => {
-        if (e.key === 'Enter' && this.phase === 'meta') this.beginStrokes();
+        if (e.key === 'Enter' && this.phase === 'meta') this.beginName();
       };
       this.input.keyboard?.on('keydown', this.onEnter);
       this.events.once('shutdown', () => {
@@ -113,6 +123,42 @@ export class Setup extends Phaser.Scene {
         this.menu.close();
       });
     }
+  }
+
+  /** 일기장 첫 장: 이름을 적는다. 비우면 '―' 로 기록된다 (26라운드) */
+  private beginName(): void {
+    if (this.phase !== 'meta') return; // 메뉴 선택과 keydown 이 둘 다 Enter 를 전달하므로 한 번만
+    this.menu.close();
+    this.phase = 'name';
+    this.label.setText(`${STORY.diary.first}\n\n이름을 적고 Enter`);
+    const kb = this.input.keyboard!;
+    kb.disableGlobalCapture();
+    this.nameInput = this.add
+      .dom(
+        GAME.WIDTH / 2,
+        GAME.HEIGHT / 2,
+        'input',
+        'width:200px;font:14px monospace;background:#101018;color:#e8e8f0;border:1px solid #777;padding:4px;text-align:center;outline:none',
+      )
+      .setDepth(DEPTH.DEBUG);
+    const node = this.nameInput.node as HTMLInputElement;
+    node.maxLength = NAME_MAX;
+    node.placeholder = '이름';
+    node.id = 'lopad-name';
+    node.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') this.finishName(node.value);
+    });
+    node.focus();
+  }
+
+  private finishName(raw: string): void {
+    if (this.phase !== 'name') return;
+    this.playerName = raw.trim().slice(0, NAME_MAX);
+    this.nameInput?.destroy();
+    this.nameInput = undefined;
+    this.input.keyboard?.enableGlobalCapture();
+    this.beginStrokes();
   }
 
   private beginStrokes(): void {
@@ -166,7 +212,7 @@ export class Setup extends Phaser.Scene {
   private updateLabel(): void {
     if (this.phase === 'strokes') {
       this.label.setText(
-        `당신이 아는 가장 강력한 것을 3획으로 그리세요  (${this.strokes.length}/${PERSONALITY.strokes.count})\n마우스를 누른 채 긋고 떼면 한 획`,
+        `${STORY.diary.beforeFate}  (${this.strokes.length}/${PERSONALITY.strokes.count})\n마우스를 누른 채 긋고 떼면 한 획`,
       );
     }
   }
@@ -179,9 +225,11 @@ export class Setup extends Phaser.Scene {
     const w = WEAPONS[id];
     __system.emit(UI_EVENTS.FATE_DECIDED, { weaponName: w.name, features: f });
     this.label.setText(
-      `운명이 정해졌습니다\n\n${w.name}\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)} · 이동 ${f.keyMove.toFixed(2)} 공격 ${f.keyAttack.toFixed(2)} 대쉬 ${f.keyDash.toFixed(2)})`,
+      `${this.playerName || '―'}\n\n${fill(STORY.diary.fate, { weapon: w.name })}\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)} · 이동 ${f.keyMove.toFixed(2)} 공격 ${f.keyAttack.toFixed(2)} 대쉬 ${f.keyDash.toFixed(2)})`,
     );
-    this.time.delayedCall(PROTOTYPE.FATE_BANNER_MS, () => this.scene.start(SCENES.GAME, { mode: 'new', weapon: id }));
+    this.time.delayedCall(PROTOTYPE.FATE_BANNER_MS, () =>
+      this.scene.start(SCENES.GAME, { mode: 'new', weapon: id, playerName: this.playerName }),
+    );
   }
 
   /** 디버그/테스트용 */

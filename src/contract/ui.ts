@@ -21,7 +21,15 @@ export const UI_EVENTS = {
   FATE_DECIDED: 'ui:fate-decided',
   PAUSED: 'ui:paused',
   RESUMED: 'ui:resumed',
+  /** 스토리 자막 (계약 story-text.md §3) */
+  STORY: 'ui:story',
 } as const;
+
+export type StoryKind = 'floor' | 'boss' | 'rest' | 'notice' | 'evolution' | 'death';
+export interface UiStoryLine {
+  kind: StoryKind;
+  text: string;
+}
 
 export type RoomType = 'start' | 'trial' | 'rest' | 'boss';
 
@@ -83,6 +91,12 @@ export interface UiSnapshot {
   map: UiMap;
   paused: boolean;
   menu: UiMenu | null;
+  /** 일기장에 적은 이름 */
+  playerName: string;
+  /** 층 제목 (예: "1층 · 술독 제국 '잔(盞)'") */
+  floorTitle: string;
+  /** 서사 이름 */
+  names: { potion: string; gold: string; shop: string; souls: string };
 }
 
 export interface UiResult {
@@ -96,6 +110,9 @@ export interface UiResult {
   soulsGained: number;
   soulsTotal: number;
   seed: string;
+  playerName: string;
+  /** 사망·클리어 문장 */
+  line: string;
 }
 
 export interface UiBossInfo {
@@ -144,6 +161,9 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   map: { rooms: [], connections: [], currentRoomId: '', gridW: 0, gridH: 0 },
   paused: false,
   menu: null,
+  playerName: '',
+  floorTitle: '',
+  names: { potion: '물약', gold: 'G', shop: '상점', souls: '영혼' },
 };
 
 export const uiCommands = {

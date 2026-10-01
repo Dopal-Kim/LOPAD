@@ -21,6 +21,7 @@ const sample: SaveData = {
   pointsPending: 0,
   bonus: { attack: 1, maxHp: 10, defense: 0, crit: 3 },
   passives: { sprint: 1 },
+  playerName: '도영',
   savedAt: 0,
 };
 

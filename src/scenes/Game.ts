@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES, TILE } from '../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload, type WeaponEvolvedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
-import { BOSSES, ECONOMY, PLAYER_DATA } from '../data';
+import { BOSSES, ECONOMY, PLAYER_DATA, STORY } from '../data';
+import { deathLine, evolutionLine, fill, floorText } from '../systems/story';
 import type { Mob, ProjectileSpec } from '../objects/Mob';
 import { Player } from '../objects/Player';
 import { Projectile } from '../objects/Projectile';
@@ -17,7 +18,7 @@ import { applyStatReward, findReward, rollCrit, rollGold, shopPrice } from '../s
 import { TextMenu } from '../systems/TextMenu';
 import { metaStore, recordRun } from '../systems/meta';
 import { PASSIVES } from '../systems/passives';
-import { UI_EVENTS, __system } from '../contract/ui';
+import { UI_EVENTS, __system, type StoryKind } from '../contract/ui';
 import { buildSnapshot } from '../contract/snapshot';
 import { setMenuSelect, setSnapshotProvider } from '../contract/host';
 import { UI_SCENES } from '../ui';
@@ -25,7 +26,7 @@ import type { StatKey } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
 import { exposeDebug } from '../debug';
 
-type GameInitData = { mode?: 'new' | 'next'; weapon?: string };
+type GameInitData = { mode?: 'new' | 'next'; weapon?: string; playerName?: string };
 
 export class Game extends Phaser.Scene {
   private player: Player;
@@ -42,6 +43,7 @@ export class Game extends Phaser.Scene {
   private currentCellKey = '';
   private initMode: GameInitData['mode'];
   private initWeapon?: string;
+  private initName?: string;
   private playerShots: Phaser.GameObjects.Group;
   private lastShotAt = -Infinity;
   /** 디버그: 마지막 공격 이벤트 */
@@ -62,6 +64,7 @@ export class Game extends Phaser.Scene {
   init(data?: GameInitData): void {
     this.initMode = data?.mode;
     this.initWeapon = data?.weapon;
+    this.initName = data?.playerName;
     this.transitioning = false;
     this.currentCellKey = '';
   }
@@ -135,7 +138,11 @@ export class Game extends Phaser.Scene {
     setSnapshotProvider(() => this.snapshot());
     setMenuSelect((id, key) => this.menu.select(key, id));
     if (this.scene.manager.keys[UI_SCENES.HUD] && !this.scene.isActive(UI_SCENES.HUD)) this.scene.launch(UI_SCENES.HUD);
-    __system.emit(UI_EVENTS.STAGE_STARTED, { stageIndex: gameState.stageIndex, stageName: gameState.stage.name });
+    __system.emit(UI_EVENTS.STAGE_STARTED, {
+      stageIndex: gameState.stageIndex,
+      stageName: floorText(gameState.stageId)?.title ?? gameState.stage.name,
+    });
+    this.story('floor', floorText(gameState.stageId)?.enter ?? '');
 
     exposeDebug({
       world: this.world,
@@ -373,6 +380,7 @@ export class Game extends Phaser.Scene {
       const payload: WeaponEvolvedPayload = { weapon: weapon.id, stage: evolved, name: weapon.displayName };
       EventBus.emit(Events.WEAPON_EVOLVED, payload);
       if (!__system.rendererRegistered()) this.showEvolutionBanner(weapon.displayName);
+      this.story('evolution', evolutionLine(weapon.evolution?.name ?? ''));
     }
     if (gameState.senses.recordKill(kind)) {
       EventBus.emit(Events.SENSE_GAINED, { kind, sense: gameState.senses.sense });
@@ -487,6 +495,7 @@ export class Game extends Phaser.Scene {
   private onTrialCleared(p: { roomId: string }): void {
     this.clearedRooms.add(p.roomId);
     this.addGold(ECONOMY.gold.trialBonus);
+    this.story('notice', gameState.bossUnlocked ? STORY.notices.bossUnlocked : STORY.notices.trialClear);
   }
 
   // --- 스테이지 보상(감각 → 능력치 포인트) → 출구·상점 ---
@@ -570,11 +579,16 @@ export class Game extends Phaser.Scene {
       const lines = ECONOMY.shop.items.map((it, i) => {
         const price = shopPrice(it, gameState.stageIndex);
         const full = it.id === 'potion' && gameState.potions >= this.potionCarry;
-        return { key: String(i + 1), label: `${it.name}  ${price}G`, enabled: gameState.gold >= price && !full };
+        const name = it.id === 'potion' ? `${STORY.names.potion} +1` : it.name;
+        return {
+          key: String(i + 1),
+          label: `${name}  ${price} ${STORY.names.gold}`,
+          enabled: gameState.gold >= price && !full,
+        };
       });
       this.menu.open(
         'shop',
-        `상점  (보유 ${gameState.gold}G, 물약 ${gameState.potions})`,
+        `${STORY.names.shop}  (${STORY.names.gold} ${gameState.gold}, ${STORY.names.potion} ${gameState.potions})`,
         lines,
         (key) => this.buy(ECONOMY.shop.items[Number(key) - 1].id, render),
         '타일에서 벗어나면 닫힘',
@@ -658,7 +672,7 @@ export class Game extends Phaser.Scene {
   private endRunScene(cleared: boolean): void {
     const result = {
       cleared,
-      stageName: gameState.stage.name,
+      stageName: floorText(gameState.stageId)?.title ?? gameState.stage.name,
       floorReached: gameState.floorReached,
       kills: gameState.kills,
       gold: gameState.gold,
@@ -667,6 +681,8 @@ export class Game extends Phaser.Scene {
       soulsGained: gameState.lastSoulGain,
       soulsTotal: metaStore.read().souls,
       seed: gameState.seed,
+      playerName: gameState.playerName,
+      line: cleared ? STORY.endings.destroy : deathLine(gameState.playerName, gameState.floorReached, gameState.kills),
     };
     __system.emit(UI_EVENTS.RUN_ENDED, result);
     if (__system.rendererRegistered() && this.scene.manager.keys[UI_SCENES.RESULT]) {
@@ -688,9 +704,17 @@ export class Game extends Phaser.Scene {
     });
   }
 
+  /** 스토리 자막 (계약 STORY 이벤트) */
+  private story(kind: StoryKind, text: string): void {
+    if (text) __system.emit(UI_EVENTS.STORY, { kind, text });
+  }
+
   private onRoomEnteredUi(p: { roomId: string; type: string }): void {
+    const firstVisit = !this.visitedRooms.has(p.roomId);
     this.visitedRooms.add(p.roomId);
     __system.emit(UI_EVENTS.ROOM_ENTERED, p);
+    if (firstVisit && p.type === 'rest') this.story('rest', floorText(gameState.stageId)?.restNote ?? '');
+    if (firstVisit && p.type === 'trial') this.story('notice', STORY.notices.trialStart);
   }
 
   private relayDamaged(p: unknown): void {
@@ -711,6 +735,7 @@ export class Game extends Phaser.Scene {
 
   private relayBossStarted(p: { boss: string }): void {
     this.bossName = BOSSES[p.boss]?.name ?? '보스';
+    this.story('boss', floorText(gameState.stageId)?.bossIntro ?? '');
     __system.emit(UI_EVENTS.BOSS_STARTED, {
       name: this.bossName,
       hp: gameState.bossHp,
@@ -759,7 +784,7 @@ export class Game extends Phaser.Scene {
       gameState.nextStage();
       this.saveIfAllowed();
     } else if (this.initMode === 'new') {
-      gameState.startRun(this.pickSeed(), this.initWeapon);
+      gameState.startRun(this.pickSeed(), this.initWeapon, this.initName ?? '');
       this.saveSlot.clear();
     } else {
       const save = params.has('new') || params.has('seed') ? null : this.saveSlot.read();
@@ -779,6 +804,7 @@ export class Game extends Phaser.Scene {
     gameState.savesLeft -= 1;
     this.saveSlot.write(gameState.toSave());
     EventBus.emit(Events.STAGE_SAVED, { stageIndex: gameState.stageIndex, savesLeft: gameState.savesLeft });
+    this.story('notice', fill(STORY.notices.saved, { savesLeft: gameState.savesLeft }));
   }
 
   private pickSeed(): string {

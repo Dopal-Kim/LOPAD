@@ -1,6 +1,6 @@
 {
   "stage1": {
-    "name": "1층 보스 (플레이스홀더)",
+    "name": "양조장주 '취하지 않는 자'",
     "hp": 200,
     "size": [40, 40],
     "color": "#b02060",
@@ -46,7 +46,7 @@
     "gold": 50
   },
   "stage2": {
-    "name": "2층 보스 (변형)",
+    "name": "판돈 백작",
     "hp": 260,
     "size": [40, 40],
     "color": "#b02060",
@@ -92,7 +92,7 @@
     "gold": 60
   },
   "stage3": {
-    "name": "3층 보스 (변형)",
+    "name": "군의관 총재",
     "hp": 330,
     "size": [40, 40],
     "color": "#b02060",
@@ -138,7 +138,7 @@
     "gold": 70
   },
   "stage4": {
-    "name": "4층 보스 (변형)",
+    "name": "용병왕",
     "hp": 400,
     "size": [40, 40],
     "color": "#b02060",
@@ -184,7 +184,7 @@
     "gold": 80
   },
   "stage5": {
-    "name": "5층 보스 (변형)",
+    "name": "감찰 총장",
     "hp": 480,
     "size": [40, 40],
     "color": "#b02060",
@@ -230,7 +230,7 @@
     "gold": 90
   },
   "stage6": {
-    "name": "6층 보스 (변형)",
+    "name": "연회 후작",
     "hp": 560,
     "size": [40, 40],
     "color": "#b02060",
@@ -275,8 +275,54 @@
     "personalityValue": 75,
     "gold": 100
   },
-  "final": {
-    "name": "최종 보스 (플레이스홀더)",
+  "stage7": {
+    "name": "근위 총사령",
+    "hp": 640,
+    "size": [40, 40],
+    "color": "#b02060",
+    "contactAttack": 32,
+    "approachSpeedTiles": 2,
+    "phases": [
+      {
+        "hpFraction": 1,
+        "dash": {
+          "intervalMs": 1800,
+          "telegraphMs": 650,
+          "speedTiles": 20,
+          "durationMs": 600,
+          "attack": 38,
+          "wallStunMs": 1000
+        },
+        "fan": null
+      },
+      {
+        "hpFraction": 0.5,
+        "dash": {
+          "intervalMs": 1530,
+          "telegraphMs": 550,
+          "speedTiles": 22,
+          "durationMs": 600,
+          "attack": 38,
+          "wallStunMs": 1000
+        },
+        "fan": {
+          "intervalMs": 1300,
+          "count": 11,
+          "spreadDeg": 92,
+          "projectileSpeedTiles": 7,
+          "attack": 15,
+          "projectileSize": 6,
+          "projectileLifeMs": 3500,
+          "afterDash": true
+        }
+      }
+    ],
+    "contactIntervalMs": 800,
+    "personalityValue": 80,
+    "gold": 120
+  },
+  "emperor": {
+    "name": "황제 '평(平)'",
     "hp": 800,
     "size": [48, 48],
     "color": "#e03070",

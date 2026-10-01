@@ -5,6 +5,7 @@ import stagesJson from '../../data/stages.json';
 import weaponsJson from '../../data/weapons.json';
 import economyJson from '../../data/economy.json';
 import personalityJson from '../../data/personality.json';
+import storyJson from '../../data/story.json';
 import type {
   BossTable,
   EconomyData,
@@ -14,6 +15,7 @@ import type {
   RunDef,
   StageTable,
   StagesFile,
+  StoryData,
   WeaponTable,
 } from './types';
 
@@ -173,3 +175,20 @@ export function validateEconomy(e: EconomyData): EconomyData {
 export const ECONOMY: EconomyData = validateEconomy(economyJson as unknown as EconomyData);
 
 export const PERSONALITY: PersonalityData = personalityJson as unknown as PersonalityData;
+
+export function validateStory(s: StoryData, run: RunDef): StoryData {
+  for (const id of run.order) {
+    const f = s.floors[id];
+    if (!f) throw new Error(`[data] story.floors.${id} 없음`);
+    for (const k of ['title', 'empire', 'bossName', 'enter', 'bossIntro', 'restNote'] as const) {
+      if (typeof f[k] !== 'string' || !f[k]) throw new Error(`[data] story.floors.${id}.${k} 비어 있음`);
+    }
+  }
+  for (const k of ['trialStart', 'trialClear', 'bossUnlocked', 'saved'] as const) {
+    if (!s.notices[k]) throw new Error(`[data] story.notices.${k} 없음`);
+  }
+  if (!s.death.includes('{name}')) throw new Error('[data] story.death 에 {name} 치환자가 없음');
+  return s;
+}
+
+export const STORY: StoryData = validateStory(storyJson as unknown as StoryData, RUN);
