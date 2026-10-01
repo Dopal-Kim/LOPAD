@@ -9,8 +9,10 @@ import { BASE_FLOOR, buildSwapTable, rampFor, recolorPixels, variantSuffix } fro
 import {
   FACINGS,
   animKey,
+  frameAt,
   frameDurations,
   frameIndices,
+  phaseAnimKey,
   sheetId,
   sheetTextureKey,
   type Facing,
@@ -19,6 +21,8 @@ import {
 
 class SpriteLibrary {
   private readonly sheets = new Map<string, SheetDef>();
+  /** 자기 시트가 없는 이름 → 대신 쓰는 시트 이름 (2~7층 보스 → stage1) */
+  private readonly aliases = new Map<string, string>();
   /** 현재 층 변형 접미 ('' = 1층 원본) */
   private suffix = '';
   private readonly builtVariants = new Set<string>();
@@ -28,12 +32,23 @@ class SpriteLibrary {
     this.sheets.set(sheetId(def.name, def.action), def);
   }
 
+  /** `name` 의 시트가 없을 때 `target` 시트를 대신 쓴다 (키·애니 모두 target 이름) */
+  alias(name: string, target: string): void {
+    if (name !== target) this.aliases.set(name, target);
+  }
+
+  /** 실제로 쓰이는 시트 이름 (자기 시트가 있으면 자기 이름, 아니면 별칭) */
+  resolve(name: string): string {
+    if (this.sheets.has(sheetId(name, 'idle'))) return name;
+    return this.aliases.get(name) ?? name;
+  }
+
   has(name: string, action = 'idle'): boolean {
-    return this.sheets.has(sheetId(name, action));
+    return this.sheets.has(sheetId(this.resolve(name), action));
   }
 
   sheet(name: string, action: string): SheetDef | undefined {
-    return this.sheets.get(sheetId(name, action));
+    return this.sheets.get(sheetId(this.resolve(name), action));
   }
 
   get variant(): string {
@@ -42,12 +57,37 @@ class SpriteLibrary {
 
   /** 현재 층 변형이 적용된 텍스처 키 */
   textureKey(name: string, action: string): string | null {
-    return this.has(name, action) ? sheetTextureKey(name, action, this.suffix) : null;
+    const n = this.resolve(name);
+    return this.has(n, action) ? sheetTextureKey(n, action, this.suffix) : null;
   }
 
   /** 현재 층 변형이 적용된 애니 키. 시트가 없으면 null */
   animKey(name: string, action: string, dir: Facing): string | null {
-    return this.has(name, action) ? animKey(name, action, dir, this.suffix) : null;
+    const n = this.resolve(name);
+    return this.has(n, action) ? animKey(n, action, dir, this.suffix) : null;
+  }
+
+  /**
+   * 특정 열만 반복하는 파생 애니 (보스 돌진 1↔2). 현재 층 변형 텍스처로 1회 생성. 시트가 없으면 null
+   */
+  phaseAnim(
+    scene: Phaser.Scene,
+    name: string,
+    action: string,
+    dir: Facing,
+    columns: number[],
+    frameMs: number,
+  ): string | null {
+    const def = this.sheet(name, action);
+    const base = this.animKey(name, action, dir);
+    const texture = this.textureKey(name, action);
+    if (!def || !base || !texture || columns.length === 0) return null;
+    const key = phaseAnimKey(base, columns);
+    if (!scene.anims.exists(key)) {
+      const frames = columns.map((c) => ({ key: texture, frame: frameAt(def, dir, c), duration: frameMs }));
+      scene.anims.create({ key, frames, frameRate: 1000 / frameMs, repeat: -1 });
+    }
+    return key;
   }
 
   /** 1층 원본 애니 등록 (Preloader) */
@@ -114,15 +154,26 @@ class SpriteLibrary {
   }
 
   /** 디버그 훅용 요약 */
-  summary(scene?: Phaser.Scene): { sheets: string[]; anims: string[]; variant: string } {
+  summary(scene?: Phaser.Scene): {
+    sheets: string[];
+    anims: string[];
+    variant: string;
+    aliases: Record<string, string>;
+  } {
     const anims: string[] = [];
     if (scene) for (const a of scene.anims['anims'].getArray()) anims.push(a.key);
-    return { sheets: [...this.sheets.keys()].sort(), anims: anims.sort(), variant: this.suffix };
+    return {
+      sheets: [...this.sheets.keys()].sort(),
+      anims: anims.sort(),
+      variant: this.suffix,
+      aliases: Object.fromEntries(this.aliases),
+    };
   }
 
   /** 테스트·리셋용 */
   clear(): void {
     this.sheets.clear();
+    this.aliases.clear();
     this.builtVariants.clear();
     this.suffix = '';
   }

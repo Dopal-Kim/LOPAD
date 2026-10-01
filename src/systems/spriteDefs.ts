@@ -43,6 +43,31 @@ export interface SheetJson {
   depth?: Partial<Record<Facing, 'above' | 'below'>>;
   /** §3.1 재생 시점 메모 (코드가 읽지 않음) */
   spawn?: string;
+  /** 보스 attack 국면별 프레임 열 (결정 로그 J): 예고 유지 / 돌진 반복 / 멈춤·벽 경직·부채꼴 */
+  phaseFrames?: PhaseFrames;
+}
+
+export interface PhaseFrames {
+  telegraph?: number[];
+  dash?: number[];
+  recover_or_fan?: number[];
+}
+
+/** 프레임별 시작 시각(ms) 누적. scale 은 재생 배속 (natural / fit) */
+export function frameStarts(def: SheetJson, scale = 1): number[] {
+  const d = frameDurations(def);
+  const out: number[] = [];
+  let acc = 0;
+  for (const ms of d) {
+    out.push(acc / scale);
+    acc += ms;
+  }
+  return out;
+}
+
+/** 파생 애니 키: 특정 열만 반복 (`<애니>#p1-2`) */
+export function phaseAnimKey(base: string, columns: readonly number[]): string {
+  return `${base}#p${columns.join('-')}`;
 }
 
 export interface SheetDef extends SheetJson {

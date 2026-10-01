@@ -7,7 +7,7 @@
 import Phaser from 'phaser';
 import { DEPTH, SPRITES, TEXTURES, entityDepth } from '../core/Constants';
 import { spriteLibrary } from '../systems/sprites';
-import { animDurationMs, frameDurations, type Facing } from '../systems/spriteDefs';
+import { animDurationMs, frameDurations, frameStarts, type Facing } from '../systems/spriteDefs';
 
 type Body = Phaser.Physics.Arcade.Body;
 type Host = Phaser.GameObjects.Sprite & { body: Body };
@@ -46,8 +46,14 @@ export class EntityVisual {
   current: string | null = null;
   /** 마지막 oneShot 의 2번째 프레임 시작까지 ms (재생 속도 반영). 시트가 없으면 0 */
   lastImpactMs = 0;
+  /** 마지막 oneShot 의 프레임별 시작 시각 ms (재생 속도 반영). 시트가 없으면 빈 배열 */
+  lastFrameStarts: number[] = [];
+  /** 실제 시트 이름 (별칭이면 대상 이름, 예: stage2 → stage1) */
+  readonly sheetName: string;
   private busyUntil = 0;
   private dead = false;
+  /** 특정 프레임 유지 중(보스 예고·벽 경직): idle/walk 가 덮어쓰지 않는다 */
+  private holdUntil = -1;
   private shadow: Phaser.GameObjects.Image | null = null;
   private readonly baseTint: number;
 
@@ -60,6 +66,7 @@ export class EntityVisual {
   ) {
     const scene = host.scene;
     this.baseTint = placeholderColor;
+    this.sheetName = spriteLibrary.resolve(name);
     const idle = spriteLibrary.sheet(name, 'idle');
     const texture = spriteLibrary.textureKey(name, 'idle');
     this.animated = Boolean(idle && texture && scene.textures.exists(texture));
@@ -94,13 +101,19 @@ export class EntityVisual {
     return this.dead;
   }
 
-  /** 반복 동작(idle/walk). 일회성 동작이 재생 중이면 무시 */
+  /** 프레임 유지 중인지 */
+  get held(): boolean {
+    return this.holdUntil === Infinity || this.holdUntil > this.hostTime();
+  }
+
+  /** 반복 동작(idle/walk). 일회성 동작이 재생 중이거나 프레임 유지 중이면 무시 */
   loop(action: 'idle' | 'walk', dir: Facing, time: number): void {
     this.facing = dir;
-    if (!this.animated || this.dead || time < this.busyUntil) return;
+    if (this.holdUntil >= 0 && time >= this.holdUntil) this.release();
+    if (!this.animated || this.dead || time < this.busyUntil || this.holdUntil >= 0) return;
     const key = spriteLibrary.animKey(this.name, action, dir);
     if (!key || key === this.current) return;
-    const sameAction = this.current?.startsWith(`${this.name}_${action}_`) ?? false;
+    const sameAction = this.current?.startsWith(`${this.sheetName}_${action}_`) ?? false;
     const cur = this.host.anims.currentFrame;
     const startFrame = SPRITES.KEEP_WALK_FRAME && sameAction && cur ? cur.index - 1 : 0;
     this.host.anims.timeScale = 1;
@@ -115,10 +128,12 @@ export class EntityVisual {
   oneShot(action: string, dir: Facing, time: number, fitMs?: number): number {
     this.facing = dir;
     this.lastImpactMs = 0;
+    this.lastFrameStarts = [];
     if (!this.animated || this.dead) return 0;
     const def = spriteLibrary.sheet(this.name, action);
     const key = spriteLibrary.animKey(this.name, action, dir);
     if (!def || !key) return 0;
+    this.holdUntil = -1;
     const natural = animDurationMs(def);
     const scale = fitMs && fitMs > 0 ? natural / fitMs : 1;
     this.host.anims.timeScale = scale;
@@ -126,9 +141,60 @@ export class EntityVisual {
     this.current = key;
     const ms = natural / scale;
     this.busyUntil = time + ms;
-    if (def.frames >= 2) this.lastImpactMs = frameDurations(def)[0] / scale;
+    this.lastFrameStarts = frameStarts(def, scale);
+    if (def.frames >= 2) this.lastImpactMs = this.lastFrameStarts[1];
     if (action === 'death') this.dead = true;
     return ms;
+  }
+
+  /** 마지막 oneShot 의 `column` 번째 프레임 시작까지 ms (없으면 0) */
+  frameStartMs(column: number): number {
+    return this.lastFrameStarts[column] ?? 0;
+  }
+
+  /**
+   * 한 프레임 유지 (보스 예고 frame 0, 벽 경직·부채꼴 frame 3). `untilMs` 가 Infinity 면 `release()` 까지.
+   * 시트가 없으면 아무것도 하지 않는다 (false)
+   */
+  hold(action: string, dir: Facing, column: number, time: number, durationMs = Infinity): boolean {
+    this.facing = dir;
+    if (!this.animated || this.dead) return false;
+    const def = spriteLibrary.sheet(this.name, action);
+    const texture = spriteLibrary.textureKey(this.name, action);
+    if (!def || !texture) return false;
+    const row = Math.max(0, def.directions.indexOf(dir));
+    const c = Math.max(0, Math.min(def.frames - 1, column));
+    this.host.anims.stop();
+    this.host.setTexture(texture, row * def.frames + c);
+    this.current = `${this.sheetName}_${action}_${dir}#hold${c}`;
+    this.holdUntil = durationMs === Infinity ? Infinity : time + durationMs;
+    this.busyUntil = 0;
+    return true;
+  }
+
+  /** 지정한 열만 반복 (보스 돌진 1↔2). `release()` 까지 유지. 시트가 없으면 false */
+  loopFrames(action: string, dir: Facing, columns: number[], frameMs: number): boolean {
+    this.facing = dir;
+    if (!this.animated || this.dead) return false;
+    const key = spriteLibrary.phaseAnim(this.host.scene, this.name, action, dir, columns, frameMs);
+    if (!key) return false;
+    this.host.anims.timeScale = 1;
+    this.host.play(key, true);
+    this.current = key;
+    this.holdUntil = Infinity;
+    this.busyUntil = 0;
+    return true;
+  }
+
+  /** 유지·반복 해제 → 다음 loop() 에서 idle/walk 로 돌아간다 */
+  release(): void {
+    if (this.holdUntil < 0) return;
+    this.holdUntil = -1;
+    this.current = null;
+  }
+
+  private hostTime(): number {
+    return this.host.scene?.time.now ?? 0;
   }
 
   /** 일회성 동작의 첫 프레임 길이 (적중·발사 타이밍을 2번째 프레임에 맞출 때). 시트가 없으면 0 */

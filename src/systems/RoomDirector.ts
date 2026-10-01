@@ -137,13 +137,14 @@ export class RoomDirector {
       cleared: gameState.trialsCleared,
       total: gameState.trialsTotal,
     };
-    EventBus.emit(Events.TRIAL_CLEARED, payload);
+    // 본영 해금을 먼저 반영해야 TRIAL_CLEARED 구독자(자막·음향)가 bossUnlocked 를 볼 수 있다
     if (gameState.trialsCleared >= gameState.trialsTotal && !gameState.bossUnlocked) {
       gameState.bossUnlocked = true;
       const boss = this.host.world.layout.rooms.find((r) => r.type === 'boss')!;
       this.host.world.setRoomDoors(boss, 'open');
       EventBus.emit(Events.BOSS_UNLOCKED);
     }
+    EventBus.emit(Events.TRIAL_CLEARED, payload);
   }
 
   private startBoss(room: Room): void {

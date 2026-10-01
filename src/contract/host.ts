@@ -3,6 +3,7 @@ import type Phaser from 'phaser';
 import { SCENES } from '../core/Constants';
 import { STORY } from '../data';
 import { SaveSlot, browserStorage } from '../systems/save';
+import { audio } from '../systems/audio';
 import { UI_EVENTS, __system, type UiMenuId, type UiSnapshot } from './ui';
 import { UI_SCENES } from '../ui';
 
@@ -32,22 +33,27 @@ export function installContractHost(game: Phaser.Game): void {
     pause: () => {
       if (game.scene.isActive(SCENES.GAME)) {
         game.scene.pause(SCENES.GAME);
+        audio.setPaused(true);
         __system.emit(UI_EVENTS.PAUSED, {});
       }
     },
     resume: () => {
       if (game.scene.isPaused(SCENES.GAME)) {
         game.scene.resume(SCENES.GAME);
+        audio.setPaused(false);
         __system.emit(UI_EVENTS.RESUMED, {});
       }
     },
     startNewRun: () => {
       saveSlot.clear();
       stopAllUiAndGame();
+      audio.setPaused(false);
+      audio.setState('title');
       game.scene.start(SCENES.SETUP);
     },
     continueRun: () => {
       stopAllUiAndGame();
+      audio.setPaused(false);
       if (saveSlot.read()) game.scene.start(SCENES.GAME);
       else game.scene.start(SCENES.SETUP);
     },
@@ -55,6 +61,9 @@ export function installContractHost(game: Phaser.Game): void {
     getText: () => ({ ...STORY.ui, controls: STORY.controls }),
     toTitle: () => {
       stopAllUiAndGame();
+      audio.setPaused(false);
+      audio.stopAllLoops();
+      audio.setState('title');
       if (game.scene.keys[UI_SCENES.TITLE]) game.scene.start(UI_SCENES.TITLE);
       else game.scene.start(SCENES.SETUP);
     },

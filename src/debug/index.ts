@@ -37,7 +37,7 @@ export interface DebugApi {
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
   player: () => PlayerInfo;
   /** 로드된 스프라이트 시트·애니 키·현재 층 변형 */
-  sprites: () => { sheets: string[]; anims: string[]; variant: string };
+  sprites: () => { sheets: string[]; anims: string[]; variant: string; aliases: Record<string, string> };
   /** 활성 이펙트 스프라이트 */
   fx: () => unknown;
   stunAll: (ms: number) => void;
@@ -57,6 +57,8 @@ export interface DebugApi {
   setPersonality: (value: number) => void;
   weapon: () => unknown;
   playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number };
+  /** 오디오 요약: 로드 수·현재 BGM·최근 효과음·음소거 */
+  audio: () => unknown;
 }
 
 export interface PlayerInfo {
@@ -80,7 +82,7 @@ export function exposeDebug(api: {
   hurt: (m: Mob, amount: number) => void;
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
   playerInfo: () => PlayerInfo;
-  sprites: () => { sheets: string[]; anims: string[]; variant: string };
+  sprites: () => { sheets: string[]; anims: string[]; variant: string; aliases: Record<string, string> };
   fx: () => unknown;
   stunAll: (ms: number) => void;
   now: () => number;
@@ -99,6 +101,7 @@ export function exposeDebug(api: {
   weapon: () => unknown;
   playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number };
   nextStage: () => void;
+  audio: () => unknown;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -150,6 +153,7 @@ export function exposeDebug(api: {
     setPersonality: (v) => api.setPersonality(v),
     weapon: () => api.weapon(),
     playerExtra: () => api.playerExtra(),
+    audio: () => api.audio(),
     killAll: () => {
       const list = api.mobs();
       for (const m of list) api.kill(m);

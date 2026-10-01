@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, PROTOTYPE } from '../core/Constants';
+import { EventBus, Events, type EnemyAttackPayload, type EnemyDamagedPayload } from '../core/EventBus';
 import { facingOf } from '../systems/spriteDefs';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
 
@@ -21,12 +22,20 @@ export interface ProjectileSpec {
   lifeMs: number;
 }
 
+/** 피해의 성격: 치명 여부, 지속 피해 틱(출혈·잔월)인지 — 효과음 분기용 */
+export interface DamageInfo {
+  crit?: boolean;
+  tick?: boolean;
+}
+
 /** 전투 개체 공통부. 시트(`<id>_*`)가 있으면 애니메이션 스프라이트, 없으면 단색 사각형. */
 export abstract class Mob extends Phaser.GameObjects.Sprite {
   declare body: Body;
   hp: number;
   readonly maxHp: number;
   readonly visual: EntityVisual;
+  /** 적·보스 id (= 시트 이름). 이벤트 페이로드에 쓴다 */
+  readonly spriteId: string;
   /** 마지막으로 본 플레이어 위치 (대기 방향용) */
   private targetX = 0;
   private targetY = 0;
@@ -48,6 +57,7 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     hp: number,
   ) {
     super(scene, x, y, placeholderTexture(scene, size[0], size[1]));
+    this.spriteId = spriteName;
     this.hp = hp;
     this.maxHp = hp;
     scene.add.existing(this);
@@ -140,22 +150,34 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     if (this.isStunned(time)) return 0;
     if (time < this.nextContactAt) return 0;
     this.nextContactAt = time + this.contactIntervalMs();
-    this.playAttack(time);
+    // 프레임 유지 중(보스 돌진·예고)에는 접촉 공격 애니로 덮지 않는다
+    if (!this.visual.held) this.playAttack(time);
+    EventBus.emit(Events.ENEMY_ATTACK, { id: this.spriteId, kind: 'contact' } satisfies EnemyAttackPayload);
     return this.currentContactAttack();
   }
 
-  /** 데미지를 받는다. 사망하면 true */
-  takeDamage(amount: number): boolean {
+  /** 데미지를 받는다. 사망하면 true. `info` 는 효과음 분기(치명·틱) */
+  takeDamage(amount: number, info: DamageInfo = {}): boolean {
     if (!this.active) return false;
     this.hp -= amount;
-    if (this.hp <= 0) {
+    const died = this.hp <= 0;
+    const payload: EnemyDamagedPayload = {
+      id: this.spriteId,
+      amount,
+      crit: Boolean(info.crit),
+      died,
+      tick: Boolean(info.tick),
+    };
+    EventBus.emit(Events.ENEMY_DAMAGED, payload);
+    if (died) {
       this.onDeath();
       this.visual.spawnCorpse();
       this.destroy();
       return true;
     }
     this.flash(COLORS.MOB_HURT);
-    this.visual.oneShot('hurt', this.visual.facing, this.scene.time.now);
+    // 보스가 국면 프레임을 유지 중이면 피격 애니 대신 번쩍임만
+    if (!this.visual.held) this.visual.oneShot('hurt', this.visual.facing, this.scene.time.now);
     return false;
   }
 

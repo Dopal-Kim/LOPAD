@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, DEPTH } from '../core/Constants';
+import { EventBus, Events, type MenuEventPayload } from '../core/EventBus';
 import { UI_EVENTS, __system, type UiMenu, type UiMenuId, type UiMenuLine } from '../contract/ui';
 import { UI_SCENES } from '../ui';
 
@@ -12,7 +13,7 @@ export type MenuLine = UiMenuLine;
 export class TextMenu {
   private text?: Phaser.GameObjects.Text;
   private onKey?: (e: KeyboardEvent) => void;
-  private current?: { menu: UiMenu; onSelect: (key: string) => void };
+  private current?: { menu: UiMenu; onSelect: (key: string) => void; selected: boolean };
 
   constructor(private scene: Phaser.Scene) {}
 
@@ -25,9 +26,12 @@ export class TextMenu {
   }
 
   open(id: UiMenuId, title: string, lines: MenuLine[], onSelect: (key: string) => void, footer = ''): void {
-    this.close();
+    // 같은 메뉴를 다시 그리는 것(상점·보상 갱신)은 reopen — 열림 효과음을 내지 않는다
+    const reopen = this.current?.menu.id === id;
+    this.close(reopen);
     const menu: UiMenu = { id, title, footer: footer || undefined, lines };
-    this.current = { menu, onSelect };
+    this.current = { menu, onSelect, selected: false };
+    EventBus.emit(Events.MENU_OPENED, { id, reopen } satisfies MenuEventPayload);
     if (__system.rendererRegistered()) {
       // UI 메뉴 씬이 없으면 띄우고(계약 §5: 씬 키만 사용), 있으면 MENU_OPEN 으로 갱신한다
       const mgr = this.scene.scene.manager;
@@ -61,16 +65,24 @@ export class TextMenu {
     if (!this.current) return;
     if (menuId && this.current.menu.id !== menuId) return;
     const line = this.current.menu.lines.find((l) => l.key === key);
-    if (line && line.enabled) this.current.onSelect(key);
+    if (!line || !line.enabled) return;
+    this.current.selected = true;
+    EventBus.emit(Events.MENU_SELECTED, { id: this.current.menu.id, key } satisfies MenuEventPayload);
+    this.current.onSelect(key);
   }
 
-  close(): void {
+  /** 닫기. `silent` 면(같은 메뉴 다시 그리기) 닫힘 이벤트를 내지 않는다 */
+  close(silent = false): void {
     const was = this.current;
     if (this.onKey) this.scene.input.keyboard?.off('keydown', this.onKey);
     this.onKey = undefined;
     this.text?.destroy();
     this.text = undefined;
     this.current = undefined;
-    if (was) __system.emit(UI_EVENTS.MENU_CLOSE, { id: was.menu.id });
+    if (was) {
+      if (!silent)
+        EventBus.emit(Events.MENU_CLOSED, { id: was.menu.id, selected: was.selected } satisfies MenuEventPayload);
+      __system.emit(UI_EVENTS.MENU_CLOSE, { id: was.menu.id });
+    }
   }
 }

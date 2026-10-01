@@ -88,3 +88,24 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
     expect(facingOf(0, 0, 'left')).toBe('left');
   });
 });
+
+describe('sprite defs: 프레임 시작 시각·국면 애니 키 (결정 로그 J)', () => {
+  it('frameStarts 는 누적 시작 ms, 배속으로 나눈다', async () => {
+    const { frameStarts, phaseAnimKey } = await import('./spriteDefs');
+    const def = {
+      image: 'x.png',
+      action: 'attack',
+      frameWidth: 16,
+      frameHeight: 24,
+      frames: 4,
+      directions: ['down', 'up', 'left', 'right'],
+      fps: 11,
+      frameDurationsMs: [100, 50, 110, 110],
+      loop: false,
+      pivot: { x: 8, y: 23 },
+    };
+    expect(frameStarts(def)).toEqual([0, 100, 150, 260]);
+    expect(frameStarts(def, 2)).toEqual([0, 50, 75, 130]);
+    expect(phaseAnimKey('stage1_attack_right@f2', [1, 2])).toBe('stage1_attack_right@f2#p1-2');
+  });
+});

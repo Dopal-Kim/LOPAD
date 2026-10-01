@@ -6,6 +6,7 @@ import {
   type GuardReleasedPayload,
   type PlayerAttackPayload,
   type PlayerDamagedPayload,
+  type PlayerSecondaryPayload,
   type ShadowStepPayload,
 } from '../core/EventBus';
 import { gameState } from '../core/GameState';
@@ -134,6 +135,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     if (this.action === 'aim') {
       if (!input.secondaryHeld) {
         this.setAction('normal', 0);
+        EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'cancel' } satisfies PlayerSecondaryPayload);
       } else if (S.kind === 'aimedshot' && time - this.aimStartedAt >= S.chargeMs) {
         this.setAction('normal', 0);
         this.secondaryReadyAt = time + S.cooldownMs;
@@ -187,11 +189,16 @@ export class Player extends Phaser.GameObjects.Sprite {
           return;
         case 'guard':
           this.setAction('guard', 0);
+          EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'guard', phase: 'start' } satisfies PlayerSecondaryPayload);
           return;
         case 'aimedshot':
           if (time >= this.secondaryReadyAt) {
             this.aimStartedAt = time;
             this.setAction('aim', 0);
+            EventBus.emit(Events.PLAYER_SECONDARY, {
+              kind: 'aimedshot',
+              phase: 'start',
+            } satisfies PlayerSecondaryPayload);
           }
           return;
         case 'shadowstep':
@@ -266,6 +273,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       kind,
       forceCrit,
       swingDelayMs: this.visual.lastImpactMs,
+      releaseDelayMs: this.visual.frameStartMs(2),
     };
     EventBus.emit(Events.PLAYER_ATTACKED, payload);
   }

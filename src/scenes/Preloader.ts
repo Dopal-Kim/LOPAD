@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
-import { ASSETS, COLORS, SCENES, TEXTURES, TILE } from '../core/Constants';
+import { ASSETS, COLORS, SCENES, SPRITES, TEXTURES, TILE } from '../core/Constants';
 import { TileId } from '../systems/mapgen';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { BOSSES, ENEMIES, RUN, WEAPONS } from '../data';
 import { metaStore } from '../systems/meta';
+import { audio } from '../systems/audio';
+import { audioFileRel, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audioDefs';
 import { spriteLibrary } from '../systems/sprites';
 import {
   fxSheetIds,
@@ -20,15 +22,19 @@ interface Manifest {
   files: string[];
 }
 
+/** 음향 매니페스트 JSON 캐시 키 */
+const AUDIO_MANIFEST_KEY = 'audio_manifest';
+
 /**
- * 아트 산출물 로드 (계약 contracts/art-assets.md).
- * 1) manifest.json → 존재하는 파일만 2) 시트·타일셋 JSON → 3) PNG(spritesheet/image) → 애니 등록.
+ * 아트·음향 산출물 로드 (계약 contracts/art-assets.md, 음향은 assets/audio/manifest.json 계약 초안).
+ * 1) manifest.json → 존재하는 파일만 2) 시트·타일셋·음향 매니페스트 JSON → 3) PNG·WAV → 애니 등록·오디오 등록.
  * 없는 파일은 조용히 건너뛰고(404 는 loaderror 로 무시) 플레이스홀더 텍스처로 폴백한다.
  */
 export class Preloader extends Phaser.Scene {
   private manifest: Set<string> | null = null;
   private pendingSheets: { req: ReturnType<typeof wantedSheets>[number]; jsonKey: string; dir: string }[] = [];
   private pendingTiles: { floor: number; jsonKey: string }[] = [];
+  private audioManifestQueued = false;
 
   constructor() {
     super(SCENES.PRELOADER);
@@ -73,6 +79,25 @@ export class Preloader extends Phaser.Scene {
       this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
       this.pendingTiles.push({ floor, jsonKey });
     }
+    this.audioManifestQueued = exists(audioManifestRel());
+    if (this.audioManifestQueued) this.load.json(AUDIO_MANIFEST_KEY, `${ASSETS.URL}/${audioManifestRel()}`);
+  }
+
+  /** 음향 매니페스트 entries 중 매니페스트(파일 목록)에 있는 WAV 만 로드 큐에 넣는다 */
+  private queueAudio(): { manifest: AudioManifest; keys: string[] } | null {
+    if (!this.audioManifestQueued) return null;
+    const json = this.cache.json.get(AUDIO_MANIFEST_KEY) as unknown;
+    if (!isAudioManifest(json)) return null;
+    const exists = (rel: string) => this.manifest === null || this.manifest.has(rel);
+    const keys: string[] = [];
+    for (const entry of json.entries) {
+      if (!entry || typeof entry.id !== 'string' || typeof entry.file !== 'string') continue;
+      const rel = audioFileRel(entry);
+      if (!exists(rel)) continue;
+      keys.push(entry.id);
+      if (!this.cache.audio.exists(entry.id)) this.load.audio(entry.id, `${ASSETS.URL}/${rel}`);
+    }
+    return { manifest: json, keys };
   }
 
   /** JSON 이 읽힌 것만 PNG 로드 큐에 넣고, 끝나면 애니·타일셋 등록 후 라우팅 */
@@ -97,11 +122,25 @@ export class Preloader extends Phaser.Scene {
       tiles.push({ floor: p.floor, json, key });
       if (!this.textures.exists(key)) this.load.image(key, `${ASSETS.URL}/${ASSETS.TILES_DIR}/${json.image}`);
     }
+    const audioQueue = this.queueAudio();
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
       for (const def of sheets) if (this.textures.exists(def.textureKey)) spriteLibrary.register(def);
+      // 자기 시트가 없는 보스는 폴백 시트를 쓴다 (결정 로그 J: 2~7층 보스 = stage1 시트 + 층 램프 스왑)
+      for (const id of Object.keys(BOSSES)) {
+        if (!spriteLibrary.has(id) && spriteLibrary.has(SPRITES.BOSS_FALLBACK_SHEET))
+          spriteLibrary.alias(id, SPRITES.BOSS_FALLBACK_SHEET);
+      }
       spriteLibrary.createBaseAnims(this);
       for (const t of tiles) if (this.textures.exists(t.key)) tileSkins.set(t.floor, new TileSkin(t.key, t.json, true));
-      this.scene.start(...this.route());
+      if (audioQueue) {
+        audio.register(
+          audioQueue.manifest,
+          audioQueue.keys.filter((k) => this.cache.audio.exists(k)),
+        );
+      }
+      const [key, data] = this.route();
+      if (key === UI_SCENES.TITLE || key === SCENES.SETUP) audio.setState('title');
+      this.scene.start(key, data);
     });
     this.load.start();
   }

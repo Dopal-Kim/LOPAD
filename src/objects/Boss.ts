@@ -1,14 +1,26 @@
 import Phaser from 'phaser';
-import { COLORS, TILE } from '../core/Constants';
-import { EventBus, Events, type BossPhasePayload } from '../core/EventBus';
+import { COLORS, SPRITES, TILE } from '../core/Constants';
+import {
+  EventBus,
+  Events,
+  type BossAttackPayload,
+  type BossPhasePayload,
+  type BossTelegraphPayload,
+} from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { BOSSES } from '../data';
 import type { BossDef, BossPhase } from '../data/types';
+import { spriteLibrary } from '../systems/sprites';
+import { facingOf, frameDurations, type Facing, type PhaseFrames } from '../systems/spriteDefs';
 import { Mob, type MobContext } from './Mob';
 
 type BossState = 'approach' | 'telegraph' | 'dash' | 'stun';
 
-/** 1층 보스 플레이스홀더. 페이즈·패턴 수치는 data/bosses.json. */
+/**
+ * 보스. 페이즈·패턴 수치는 data/bosses.json.
+ * attack 시트에 `phaseFrames` 가 있으면(결정 로그 J) 예고 = frame 0 유지, 돌진 = 1↔2 반복,
+ * 멈춤·벽 경직·부채꼴 = frame 3. 없으면 attack 애니를 통째로 재생한다.
+ */
 export class Boss extends Mob {
   readonly def: BossDef;
   readonly id: string;
@@ -35,6 +47,11 @@ export class Boss extends Mob {
     return this.def.phases[this.phaseIndex];
   }
 
+  /** attack 시트의 국면 프레임 (없으면 null → 기존 attack 재생) */
+  private get phaseFrames(): PhaseFrames | null {
+    return spriteLibrary.sheet(this.id, 'attack')?.phaseFrames ?? null;
+  }
+
   protected think(ctx: MobContext): void {
     if (this.isKnockedBack(ctx.time)) return;
     if (this.nextDashAt === 0) {
@@ -52,11 +69,7 @@ export class Boss extends Mob {
         this.moveToward(ctx.player.x, ctx.player.y, this.def.approachSpeedTiles * TILE);
         if (ctx.time >= this.nextDashAt) {
           this.dashesLeft = (P.dash.repeat ?? 1) - 1;
-          this.bossState = 'telegraph';
-          this.stateUntil = ctx.time + P.dash.telegraphMs;
-          this.body.setVelocity(0, 0);
-          this.paint(COLORS.TELEGRAPH);
-          this.playAttack(ctx.time, P.dash.telegraphMs + P.dash.durationMs);
+          this.beginTelegraph(ctx, P.dash.telegraphMs, true);
         }
         if (P.fan && ctx.time >= this.nextFanAt) {
           this.fireFan(ctx);
@@ -69,6 +82,8 @@ export class Boss extends Mob {
           this.bossState = 'dash';
           this.stateUntil = ctx.time + P.dash.durationMs;
           this.restoreColor();
+          this.showDash();
+          EventBus.emit(Events.BOSS_ATTACK, { id: this.id, attack: 'dash' } satisfies BossAttackPayload);
         }
         break;
       case 'dash': {
@@ -80,17 +95,17 @@ export class Boss extends Mob {
           this.stateUntil = ctx.time + P.dash.wallStunMs;
           this.body.setVelocity(0, 0);
           this.paint(COLORS.STUN);
+          this.showRecover(ctx.time, P.dash.wallStunMs);
           this.scheduleNextDash(ctx.time);
         } else if (ctx.time >= this.stateUntil) {
           this.body.setVelocity(0, 0);
           if (this.dashesLeft > 0) {
             // 연속 돌진: 짧은 예고 후 다시
             this.dashesLeft -= 1;
-            this.bossState = 'telegraph';
-            this.stateUntil = ctx.time + P.dash.telegraphMs * 0.5;
-            this.paint(COLORS.TELEGRAPH);
+            this.beginTelegraph(ctx, P.dash.telegraphMs * 0.5, false);
           } else {
             this.bossState = 'approach';
+            this.showRecover(ctx.time);
             this.scheduleNextDash(ctx.time);
             if (P.fan?.afterDash) this.fireFan(ctx);
           }
@@ -101,6 +116,7 @@ export class Boss extends Mob {
         this.body.setVelocity(0, 0);
         if (ctx.time >= this.stateUntil) {
           this.bossState = 'approach';
+          this.visual.release();
           this.restoreColor();
           if (P.fan?.afterDash) this.fireFan(ctx);
         }
@@ -125,8 +141,8 @@ export class Boss extends Mob {
     return this.def.contactIntervalMs;
   }
 
-  override takeDamage(amount: number): boolean {
-    const died = super.takeDamage(amount);
+  override takeDamage(amount: number, info: Parameters<Mob['takeDamage']>[1] = {}): boolean {
+    const died = super.takeDamage(amount, info);
     if (!died) this.checkPhase();
     gameState.bossHp = Math.max(0, this.hp);
     return died;
@@ -135,12 +151,53 @@ export class Boss extends Mob {
   protected onStunned(): void {
     // 패링 경직은 돌진을 끊는다
     this.bossState = 'approach';
+    this.visual.release();
     this.scheduleNextDash(this.scene.time.now);
   }
 
   protected onDeath(): void {
     gameState.bossHp = 0;
     EventBus.emit(Events.BOSS_DIED, { id: this.id });
+  }
+
+  // --- 연출: 국면 프레임 ---
+
+  private facingTo(x: number, y: number): Facing {
+    return facingOf(x - this.x, y - this.y, this.visual.facing);
+  }
+
+  /** 예고 시작: frame 0 유지 (없으면 attack 전체를 예고+돌진 길이에 맞춰 재생). 첫 예고만 이벤트 */
+  private beginTelegraph(ctx: MobContext, telegraphMs: number, emit: boolean): void {
+    const P = this.phase;
+    this.bossState = 'telegraph';
+    this.stateUntil = ctx.time + telegraphMs;
+    this.body.setVelocity(0, 0);
+    this.paint(COLORS.TELEGRAPH);
+    const pf = this.phaseFrames;
+    const dir = this.facingTo(ctx.player.x, ctx.player.y);
+    if (pf?.telegraph?.length) this.visual.hold('attack', dir, pf.telegraph[0], ctx.time);
+    else if (emit) this.playAttack(ctx.time, telegraphMs + P.dash.durationMs);
+    if (emit) EventBus.emit(Events.BOSS_TELEGRAPH, { id: this.id, attack: 'dash' } satisfies BossTelegraphPayload);
+  }
+
+  /** 돌진 중: frame 1↔2 반복 */
+  private showDash(): void {
+    const pf = this.phaseFrames;
+    if (!pf?.dash?.length) return;
+    const dir = facingOf(this.dashDir.x, this.dashDir.y, this.visual.facing);
+    this.visual.loopFrames('attack', dir, pf.dash, SPRITES.BOSS_DASH_FRAME_MS);
+  }
+
+  /** 멈춤·벽 경직·부채꼴: frame 3 을 `ms`(기본값 = 그 프레임 길이) 동안 유지 */
+  private showRecover(time: number, ms?: number): void {
+    const pf = this.phaseFrames;
+    const def = spriteLibrary.sheet(this.id, 'attack');
+    if (!pf?.recover_or_fan?.length || !def) {
+      this.visual.release();
+      return;
+    }
+    const col = pf.recover_or_fan[0];
+    this.visual.hold('attack', this.visual.facing, col, time, ms ?? frameDurations(def)[col] ?? 0);
   }
 
   private checkPhase(): void {
@@ -163,9 +220,13 @@ export class Boss extends Mob {
   }
 
   private fireFan(ctx: MobContext): void {
-    this.playAttack(ctx.time);
     const F = this.phase.fan;
     if (!F) return;
+    if (this.phaseFrames?.recover_or_fan?.length) {
+      this.visual.facing = this.facingTo(ctx.player.x, ctx.player.y);
+      this.showRecover(ctx.time);
+    } else this.playAttack(ctx.time);
+    EventBus.emit(Events.BOSS_ATTACK, { id: this.id, attack: 'fan' } satisfies BossAttackPayload);
     const base = Math.atan2(ctx.player.y - this.y, ctx.player.x - this.x);
     const spread = Phaser.Math.DegToRad(F.spreadDeg);
     for (let i = 0; i < F.count; i++) {

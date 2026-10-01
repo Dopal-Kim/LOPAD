@@ -3,7 +3,7 @@ import { join, relative, resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 
 /**
- * 아트 산출물 서빙 (계약 contracts/art-assets.md §4).
+ * 아트·음향 산출물 서빙 (계약 contracts/art-assets.md §4, 음향은 assets/audio/manifest.json 계약 초안).
  * `assets/**` 는 Vite 의 publicDir(`public/`) 이 아니므로 별도 플러그인으로
  *  - dev: `/assets-game/<경로>` 요청을 `assets/<경로>` 파일로 응답
  *  - build: `assets/**` 를 `dist/assets-game/**` 로 복사
@@ -18,6 +18,7 @@ const MIME: Record<string, string> = {
   json: 'application/json',
   ogg: 'audio/ogg',
   mp3: 'audio/mpeg',
+  wav: 'audio/wav',
 };
 
 function listFiles(dir: string, base = dir): string[] {

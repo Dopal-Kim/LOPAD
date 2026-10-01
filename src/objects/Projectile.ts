@@ -27,6 +27,8 @@ export class Projectile extends Phaser.GameObjects.Sprite {
   homingTurn = 0;
   /** 적중 시 적 경직 ms (조준 사격 중시) */
   hitStunMs = 0;
+  /** 치명타로 굴려진 플레이어 투사체 (피격음 분기) */
+  crit = false;
   /** 아트 텍스처 사용 중 (틴트 대신 원색, 속도 방향으로 회전) */
   private textured = false;
   private rotateToVelocity = false;
@@ -59,6 +61,7 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     this.pierceLeft = pierce;
     this.homingTurn = 0;
     this.hitStunMs = 0;
+    this.crit = false;
     this.hitSet.clear();
     this.expireAt = time + spec.lifeMs;
     const texture = visual.texture && this.scene.textures.exists(visual.texture) ? visual.texture : null;

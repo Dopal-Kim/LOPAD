@@ -49,6 +49,34 @@ export const ASSETS = {
   TILES_DIR: 'tiles',
   /** 층 타일셋 파일 이름 접두 (`stage1.json`) */
   STAGE_PREFIX: 'stage',
+  /** 음향 산출물 폴더와 매니페스트 (`assets/audio/manifest.json`, 음향↔시스템 계약 초안) */
+  AUDIO_DIR: 'audio',
+  AUDIO_MANIFEST: 'manifest.json',
+  /** 매니페스트 entry.file 이 저장소 루트 기준(`assets/...`)이므로 이 접두를 떼고 서빙 URL 에 붙인다 */
+  AUDIO_FILE_PREFIX: 'assets/',
+};
+
+/** 오디오 재생 규칙 (29라운드 임시값, 결정 로그 K). 버스·크로스페이드 수치는 매니페스트 `mixing` 이 우선 */
+export const AUDIO = {
+  /** 같은 효과음이 이 시간 안에 다시 요청되면 1회만 재생 */
+  DEDUPE_MS: 20,
+  /** swing·hit 류 랜덤 피치 폭 (±비율) */
+  PITCH_VARIANCE: 0.04,
+  /** 피치 변주를 적용하는 효과음 id 접두 */
+  PITCH_VARIANCE_PREFIXES: ['sfx/swing_', 'sfx/hit_enemy', 'sfx/enemy_hurt'],
+  /** 동시 재생 효과음 상한. 넘치면 가장 오래된 것을 끊는다 */
+  MAX_SFX_VOICES: 8,
+  /** 매니페스트에 mixing 이 없을 때의 기본값 */
+  DEFAULT_MIXING: { masterDb: 0, sfxBusDb: 0, bgmBusDb: -8, bgmCrossfadeMs: 1200, bgmBossDuckDb: -3 },
+  /** 일시정지 중 BGM 추가 감쇠 (음향 바이블 §3 '선택') */
+  PAUSE_DUCK_DB: -6,
+  /** 런 종료(사망·엔딩) 시 BGM 페이드아웃 */
+  RUN_END_FADE_MS: 1200,
+  /** 음소거 토글 키 (KeyboardEvent.code) 와 저장 키 */
+  MUTE_KEY_CODE: 'KeyM',
+  MUTE_STORAGE_KEY: 'lopad.mute',
+  /** 디버그 요약에 남기는 최근 효과음 수 */
+  RECENT_SFX: 12,
 };
 
 /** 스프라이트 연출 값 (29라운드 임시값) */
@@ -66,6 +94,10 @@ export const SPRITES = {
   DEATH_EXTRA_MS: 400,
   /** 방향 변경 시 걷기 애니 프레임을 이어 간다 */
   KEEP_WALK_FRAME: true,
+  /** 자기 시트가 없는 보스가 대신 쓰는 시트 이름 (층 램프 스왑은 그대로 적용) — 결정 로그 J */
+  BOSS_FALLBACK_SHEET: 'stage1',
+  /** 보스 attack `phaseFrames.dash` 프레임 반복 간격 */
+  BOSS_DASH_FRAME_MS: 150,
 };
 
 export const DEPTH = {

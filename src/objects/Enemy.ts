@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, TILE } from '../core/Constants';
-import { EventBus, Events } from '../core/EventBus';
+import { EventBus, Events, type EnemyAttackPayload, type EnemyTelegraphPayload } from '../core/EventBus';
 import { ENEMIES } from '../data';
 import type { EnemyDef, EnemyScale } from '../data/types';
 import { Mob, type MobContext } from './Mob';
@@ -104,6 +104,7 @@ export class Enemy extends Mob {
         if (!this.active) return;
         const dir = new Phaser.Math.Vector2(ctx.player.x - this.x, ctx.player.y - this.y).normalize();
         ctx.fire(this.x, this.y, dir.x, dir.y, spec);
+        EventBus.emit(Events.ENEMY_ATTACK, { id: this.id, kind: 'shot' } satisfies EnemyAttackPayload);
       };
       // 시트가 있으면 총구 화염 프레임(2번째)에 맞춰 발사
       const delay = this.visual.impactDelayMs('attack');
@@ -124,6 +125,7 @@ export class Enemy extends Mob {
           this.body.setVelocity(0, 0);
           this.paint(COLORS.TELEGRAPH);
           this.playAttack(ctx.time, C.telegraphMs + C.dashMs);
+          EventBus.emit(Events.ENEMY_TELEGRAPH, { id: this.id, kind: 'dash' } satisfies EnemyTelegraphPayload);
         }
         break;
       case 'telegraph':
@@ -132,6 +134,7 @@ export class Enemy extends Mob {
           this.chargeState = 'dash';
           this.chargeUntil = ctx.time + C.dashMs;
           this.restoreColor();
+          EventBus.emit(Events.ENEMY_ATTACK, { id: this.id, kind: 'dash' } satisfies EnemyAttackPayload);
         }
         break;
       case 'dash':

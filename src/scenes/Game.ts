@@ -5,6 +5,7 @@ import {
   Events,
   type GuardReleasedPayload,
   type PlayerAttackPayload,
+  type RunEndedPayload,
   type ShadowStepPayload,
   type WeaponEvolvedPayload,
   type WeaponReinforcedPayload,
@@ -36,6 +37,7 @@ import { TileSkin, tileSkins } from '../world/tileskin';
 import { spriteLibrary } from '../systems/sprites';
 import { FX_ACTION, arrowFxId, facingOf, slashFxId } from '../systems/spriteDefs';
 import { FxPool, type FxHandle } from '../systems/fx';
+import { audio } from '../systems/audio';
 import { exposeDebug } from '../debug';
 
 type GameInitData = { mode?: 'new' | 'next'; weapon?: string; playerName?: string };
@@ -292,6 +294,7 @@ export class Game extends Phaser.Scene {
         shadowPrimed: this.player.isShadowPrimed(this.time.now),
         aim: this.player.aimProgress(this.time.now),
       }),
+      audio: () => audio.summary(),
     });
 
     EventBus.on(Events.PLAYER_ATTACKED, this.onPlayerAttacked, this);
@@ -424,10 +427,9 @@ export class Game extends Phaser.Scene {
     return { dmg, crit };
   }
 
+  /** 활: 화살은 attack 3프레임(시위 놓음) 시작에 맞춰 생성 (시트가 없으면 즉시). 연사 판정은 입력 시점 */
   private fireArrow(p: PlayerAttackPayload): void {
-    const weapon = gameState.weapon;
-    const R = weapon.def.ranged!;
-    const mods = weapon.mods;
+    const R = gameState.weapon.def.ranged!;
     const now = this.time.now;
     const aimed = p.kind === 'aimed';
     let rapidMult = 1;
@@ -436,7 +438,21 @@ export class Game extends Phaser.Scene {
       this.lastShotAt = now;
       rapidMult = Math.max(R.rapidMin, 1 - R.rapidDecay * this.rapidCount);
     }
-    const { dmg } = this.rollDamage(p.damageMult * rapidMult, p.forceCrit);
+    const release = () => {
+      if (!this.scene.isActive() || this.frozen || gameState.gameOver) return;
+      this.spawnArrows({ ...p, x: this.player.x, y: this.player.y }, rapidMult);
+    };
+    if (p.releaseDelayMs > 0) this.time.delayedCall(p.releaseDelayMs, release);
+    else release();
+  }
+
+  private spawnArrows(p: PlayerAttackPayload, rapidMult: number): void {
+    const weapon = gameState.weapon;
+    const R = weapon.def.ranged!;
+    const mods = weapon.mods;
+    const now = this.time.now;
+    const aimed = p.kind === 'aimed';
+    const { dmg, crit } = this.rollDamage(p.damageMult * rapidMult, p.forceCrit);
     // 조준 사격·섬광: 무한 관통
     const pierce = aimed || mods.pierceInfinite ? Infinity : (mods.pierce ?? 0);
     const size = weapon.hitbox.width * p.sizeMult;
@@ -472,6 +488,7 @@ export class Game extends Phaser.Scene {
         pierce,
         { texture: arrowTexture, rotate: true },
       );
+      shot.crit = crit;
       if (mods.homingTurnDeg) shot.homingTurn = Phaser.Math.DegToRad(mods.homingTurnDeg);
       if (aimed && mods.aimedShotStunMs) shot.hitStunMs = mods.aimedShotStunMs;
       // 관통(·섬광·중시): 화살 뒤에 빛줄 루프, 화살이 사라지면 함께 사라진다
@@ -537,7 +554,7 @@ export class Game extends Phaser.Scene {
     if (!shot.registerHit(mob)) return;
     const now = this.time.now;
     const stunnedByParry = mob.isParryStunned(now);
-    if (mob.takeDamage(shot.attack)) {
+    if (mob.takeDamage(shot.attack, { crit: shot.crit })) {
       this.onKill(mob, stunnedByParry ? 'parry' : 'attack');
       return;
     }
@@ -628,8 +645,8 @@ export class Game extends Phaser.Scene {
     const now = this.time.now;
     const mods = gameState.weapon.mods;
     const stunnedByParry = mob.isParryStunned(now);
-    const { dmg } = this.rollDamage(p.damageMult, p.forceCrit);
-    if (mob.takeDamage(dmg)) {
+    const { dmg, crit } = this.rollDamage(p.damageMult, p.forceCrit);
+    if (mob.takeDamage(dmg, { crit })) {
       this.onKill(mob, stunnedByParry ? 'parry' : p.kind === 'aimed' ? 'attack' : p.kind);
       return;
     }
@@ -667,7 +684,7 @@ export class Game extends Phaser.Scene {
         if (!this.mobs.contains(go as Phaser.GameObjects.GameObject)) continue;
         const mob = go as Mob;
         if (!mob.active) continue;
-        if (mob.takeDamage(z.dmg)) this.onKill(mob, 'attack');
+        if (mob.takeDamage(z.dmg, { tick: true })) this.onKill(mob, 'attack');
       }
     }
     this.dotZones = this.dotZones.filter((z) => time < z.until);
@@ -680,7 +697,7 @@ export class Game extends Phaser.Scene {
       if (!b.mob.active || time < b.nextAt) continue;
       b.nextAt = time + b.tickMs;
       b.ticksLeft -= 1;
-      if (b.mob.takeDamage(b.dmg)) this.onKill(b.mob, 'attack');
+      if (b.mob.takeDamage(b.dmg, { tick: true })) this.onKill(b.mob, 'attack');
       else b.mob.flashColor(COLORS.BLEED);
     }
     this.bleeds = this.bleeds.filter((b) => b.mob.active && b.ticksLeft > 0);
@@ -929,6 +946,7 @@ export class Game extends Phaser.Scene {
     if (gameState.ending) return;
     gameState.ending = choice;
     this.menu.close();
+    EventBus.emit(Events.ENDING_CHOSEN, { choice });
     this.saveSlot.clear();
     this.settleRun(true);
     if (choice === 'understand') metaStore.write(markUnderstood(metaStore.read()));
@@ -1010,6 +1028,7 @@ export class Game extends Phaser.Scene {
     } else if (gameState.potions < this.potionCarry) {
       pk.deactivate();
       gameState.potions += 1;
+      EventBus.emit(Events.ITEM_PICKED, { kind: pk.kind, value: pk.value });
       EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
     }
   }
@@ -1044,6 +1063,7 @@ export class Game extends Phaser.Scene {
   private usePotion(): void {
     if (gameState.potions <= 0 || gameState.hp >= gameState.maxHp) return;
     gameState.potions -= 1;
+    EventBus.emit(Events.POTION_USED, { potions: gameState.potions });
     this.player.heal(ECONOMY.drops.potion.heal);
     EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
   }
@@ -1065,6 +1085,7 @@ export class Game extends Phaser.Scene {
       this.world.placeExit(room);
       this.world.placeShop(room);
       gameState.exitOpen = true;
+      EventBus.emit(Events.EXIT_OPENED, { stageIndex: gameState.stageIndex });
     };
     const passiveStep = () => this.openPassiveChooser(finish);
     if (gameState.pointsPending > 0) this.openStatChooser(passiveStep);
@@ -1248,6 +1269,7 @@ export class Game extends Phaser.Scene {
       ending: cleared ? (gameState.ending ?? 'destroy') : undefined,
     };
     this.debugLastResult = result;
+    EventBus.emit(Events.RUN_ENDED, { cleared } satisfies RunEndedPayload);
     __system.emit(UI_EVENTS.RUN_ENDED, result);
     if (__system.rendererRegistered() && this.scene.manager.keys[UI_SCENES.RESULT]) {
       if (this.scene.isActive(UI_SCENES.HUD)) this.scene.stop(UI_SCENES.HUD);
@@ -1394,6 +1416,7 @@ export class Game extends Phaser.Scene {
     // 엔딩 선택 뒤 정지 상태로 씬이 끝나면 물리 플러그인이 먼저 정리돼 world 가 없을 수 있다
     if (this.frozen && this.physics.world) this.physics.world.resume();
     this.fx.destroy();
+    audio.stopAllLoops();
     setMenuSelect(null);
     setSnapshotProvider(null);
     this.menu.close();

@@ -81,3 +81,12 @@
 ### L. UI 엔딩·아이콘 검수 — Claude 승인
 - 결과 화면 엔딩 부제(다음 전장으로 / 처음으로 내일을 적었다), ending 메뉴(폭 520·detail), HUD 무기 아이콘(`assets/ui/weapons/` 사본, 이름→id UI 상수), 무기 패널 동적 폭, `M 음소거` 힌트 승인.
 - 계약 요청 접수(복귀 후 승인): `UiSnapshot.weapon.id`, `UiSnapshot.mute`. §7 에 `ending` 메뉴 id·`UiResult.ending` 기재.
+
+### K. 시스템 오디오 연동 임시값 (시스템 파트, 복귀 후 검토)
+- 매니페스트 `mixing` 그대로: 마스터 0 dB, SFX 버스 0 dB, BGM 버스 -8 dB, 보스전 BGM 추가 -3 dB(보스·황제 상태 곡에 적용), 크로스페이드 1200ms, entry `gainDb` 가산(양수 허용 — WebAudio 게인). 추가로 **일시정지 중 BGM -6 dB**(바이블 §3 '선택' 채택), **런 종료(사망·엔딩 선택) 시 BGM 1200ms 페이드아웃 후 무음**, 결과 화면은 무음, 타이틀·개성 선택(Setup)·`toTitle`·`startNewRun` 은 `bgm/title`.
+- 효과음 규칙: 같은 id 20ms 내 1회, 동시 보이스 8(초과 시 가장 오래된 것 정지), `sfx/swing_*`·`sfx/hit_enemy*`·`sfx/enemy_hurt` 는 재생마다 ±4% rate.
+- 트리거 확정(매니페스트 제안 대비 바뀐 것): `PLAYER_ATTACK` → 시스템 `PLAYER_ATTACKED`(근접 swing 은 attack 2프레임 시작, 활 bow_shot 은 3프레임 시작에 맞춰 지연; 조준 사격 `kind: 'aimed'` → bow_aimed). `PLAYER_SECONDARY` 신설(aimedshot start → bow_draw, cancel → bow_draw 정지, guard start → guard_hold 루프; guard release 는 기존 `PLAYER_GUARD_RELEASED`). `ENEMY_DAMAGED` 를 `Mob.takeDamage` 가 발행(치명 분기, 출혈·잔월 틱은 enemy_hurt 만). `PLAYER_HEALED` 대신 **`POTION_USED` 신설**(휴식·상점·흡혈 회복에는 소리 없음). `ITEM_PICKUP` → `ITEM_PICKED`(물약). `ROOM_ENTERED type:trial` 대신 `TRIAL_STARTED`(문 잠김), `ROOM_CLEARED` 대신 `TRIAL_CLEARED`(door_open; 마지막 시련은 trial_clear 대신 `BOSS_UNLOCKED` → boss_unlock). `STORY notice exitOpened/saved` 대신 `EXIT_OPENED` 신설 / `STAGE_SAVED`. `RUN_ENDED reason:death` 대신 `PLAYER_DIED` 즉시. `UI_MENU_MOVE/SELECT/CANCEL` 은 시스템 `TextMenu` 의 `MENU_OPENED`(reopen 제외) / `MENU_SELECTED` / `MENU_CLOSED`(선택 없이 닫힘) 로 — UI 커서 이동음은 미연결(계약 추가 필요). **엔딩 선택(`ENDING_CHOSEN`)은 전용 자산이 없어 `fate_decided` 재사용.** 보스 돌진 실행음은 자산 없음(예고·부채꼴·국면·사망만).
+- 보스 국면 프레임: 돌진 1↔2 반복 간격 150ms, 돌진 멈춤·부채꼴은 frame 3 을 그 프레임 길이(stage1 220ms / 황제 240ms)만큼, 벽 경직은 `wallStunMs` 동안 frame 3. 유지 중 피격·접촉 애니는 생략(번쩍임만).
+- 2~7층 보스 폴백 시트 = `stage1`(`SPRITES.BOSS_FALLBACK_SHEET`), 자기 idle 시트가 없는 보스 id 전부에 적용. 황제는 자기 시트.
+- 활 화살 생성 = attack 3프레임 시작(아트 권장 반영). 연사 감쇠 판정은 입력 시점, 화살 위치는 생성 시점의 플레이어 위치.
+- 음소거 키 `M`(`KeyM`), 저장 `localStorage lopad.mute` ('1'/'0'). 디버그 `__lopad.audio()` / `window.__lopadAudio()`.
