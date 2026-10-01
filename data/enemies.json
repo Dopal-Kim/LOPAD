@@ -6,10 +6,7 @@
     "speedTiles": 3,
     "attackIntervalMs": 800,
     "behavior": "chase",
-    "size": [
-      16,
-      16
-    ],
+    "size": [16, 16],
     "color": "#d04040",
     "personalityValue": 8,
     "gold": 3
@@ -21,10 +18,7 @@
     "speedTiles": 2.5,
     "attackIntervalMs": 1500,
     "behavior": "ranged",
-    "size": [
-      14,
-      14
-    ],
+    "size": [14, 14],
     "color": "#c08a30",
     "ranged": {
       "keepMinTiles": 6,
@@ -43,10 +37,7 @@
     "speedTiles": 2,
     "attackIntervalMs": 800,
     "behavior": "charge",
-    "size": [
-      18,
-      18
-    ],
+    "size": [18, 18],
     "color": "#8040c0",
     "charge": {
       "triggerTiles": 7,

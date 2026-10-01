@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES, TILE } from '../core/Constants';
+import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES, SPRITES, TILE } from '../core/Constants';
 import {
   EventBus,
   Events,
@@ -32,6 +32,8 @@ import { setMenuSelect, setSnapshotProvider } from '../contract/host';
 import { UI_SCENES } from '../ui';
 import type { StatKey, WeaponEvolution } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
+import { TileSkin, tileSkins } from '../world/tileskin';
+import { spriteLibrary } from '../systems/sprites';
 import { exposeDebug } from '../debug';
 
 type GameInitData = { mode?: 'new' | 'next'; weapon?: string; playerName?: string };
@@ -103,8 +105,11 @@ export class Game extends Phaser.Scene {
     this.visitedRooms = new Set(['start']);
     this.clearedRooms = new Set();
     this.bossName = null;
-    this.world = new TileWorld(this, layout);
+    const floor = gameState.stageIndex + 1;
+    this.world = new TileWorld(this, layout, tileSkins.get(floor) ?? TileSkin.placeholder(), gameState.floorSeed);
     this.physics.world.setBounds(0, 0, this.world.widthPx, this.world.heightPx);
+    // 층 강조색: 캐릭터 시트의 1층 램프를 현재 층 램프로 치환한 변형 텍스처·애니 (1층은 원본)
+    spriteLibrary.activate(this, floor);
 
     // 플레이어
     const startRoom = layout.rooms.find((r) => r.type === 'start')!;
@@ -132,8 +137,10 @@ export class Game extends Phaser.Scene {
     this.menu = new TextMenu(this);
     this.shopOpen = false;
 
-    this.physics.add.collider(this.player, this.world.layer);
-    this.physics.add.collider(this.mobs, this.world.layer);
+    for (const layer of this.world.collisionLayers) {
+      this.physics.add.collider(this.player, layer);
+      this.physics.add.collider(this.mobs, layer);
+    }
     this.physics.add.collider(this.mobs, this.mobs);
     this.physics.add.overlap(this.player, this.mobs, (_p, m) => this.onMobTouch(m as Mob));
     this.physics.add.overlap(this.player, this.projectiles, (_p, pr) => this.onProjectileHit(pr as Projectile));
@@ -183,7 +190,20 @@ export class Game extends Phaser.Scene {
         const y = this.player.y;
         this.fire(x, y, -1, 0, { speedPx, attack, size: 4, lifeMs: 5000 });
       },
-      playerInfo: () => ({ x: this.player.x, y: this.player.y, action: this.player.action }),
+      playerInfo: () => ({
+        x: this.player.x,
+        y: this.player.y,
+        action: this.player.action,
+        anim: this.player.animKey,
+        dir: this.player.facingDir,
+        animated: this.player.visual.animated,
+      }),
+      sprites: () => spriteLibrary.summary(this),
+      nextStage: () => {
+        if (this.transitioning) return;
+        this.transitioning = true;
+        this.scene.restart({ mode: 'next' } satisfies GameInitData);
+      },
       now: () => this.time.now,
       stage: () => ({
         index: gameState.stageIndex,
@@ -620,7 +640,7 @@ export class Game extends Phaser.Scene {
       const d = Math.hypot(dx, dy) || 1;
       const nx = dx / d;
       const ny = dy / d;
-      const off = Math.max(target.width, target.height) / 2 + half + 2;
+      const off = Math.max(target.body.width, target.body.height) / 2 + half + 2;
       const behind = { x: target.x + nx * off, y: target.y + ny * off };
       const front = { x: target.x - nx * off, y: target.y - ny * off };
       dest = this.world.isWalkableAt(behind.x, behind.y)
@@ -719,7 +739,7 @@ export class Game extends Phaser.Scene {
       const o = options[i] as WeaponEvolution | undefined;
       return {
         key: String(i + 1),
-        label: o ? fill(STORY.ui.evolveMenu.itemFormat, { name: o.name, menu: o.description }) : '변환 (완료)',
+        label: o ? o.name : '변환 (완료)',
         enabled: Boolean(o),
         detail: o?.description,
       };
@@ -1064,7 +1084,11 @@ export class Game extends Phaser.Scene {
     this.saveSlot.clear(); // 영구 사망 (기획 3장)
     this.settleRun(false);
     this.player.body.setVelocity(0, 0);
-    this.endRunScene(false);
+    for (const m of this.mobs.getChildren() as Mob[]) m.body.setVelocity(0, 0);
+    // 사망 애니가 있으면 끝 프레임을 보여준 뒤 결과 화면으로
+    const delay = this.player.deathAnimMs > 0 ? this.player.deathAnimMs + SPRITES.DEATH_EXTRA_MS : 0;
+    if (delay > 0) this.time.delayedCall(delay, () => this.endRunScene(false));
+    else this.endRunScene(false);
   }
 
   /** 결과 화면: UI 렌더러가 있으면 UI 결과 씬, 아니면 시스템 임시 화면 */

@@ -21,7 +21,7 @@ export class Enemy extends Mob {
   constructor(scene: Phaser.Scene, x: number, y: number, id: string, scale: EnemyScale = { hp: 1, attack: 1 }) {
     const def = ENEMIES[id];
     if (!def) throw new Error(`[enemy] 정의 없음: ${id}`);
-    super(scene, x, y, def.size, def.color, Math.round(def.hp * scale.hp));
+    super(scene, x, y, id, def.size, def.color, Math.round(def.hp * scale.hp));
     this.def = def;
     this.id = id;
     this.stageScale = scale;
@@ -32,8 +32,7 @@ export class Enemy extends Mob {
     return Math.round(base * this.stageScale.attack);
   }
 
-  update(ctx: MobContext): void {
-    if (!this.active) return;
+  protected think(ctx: MobContext): void {
     if (this.isKnockedBack(ctx.time)) return;
     if (this.isStunned(ctx.time)) {
       this.body.setVelocity(0, 0);
@@ -94,13 +93,22 @@ export class Enemy extends Mob {
     }
     if (ctx.time >= this.nextShotAt && dist <= R.keepMaxTiles * TILE * 1.5) {
       this.nextShotAt = ctx.time + this.def.attackIntervalMs;
-      const dir = new Phaser.Math.Vector2(ctx.player.x - this.x, ctx.player.y - this.y).normalize();
-      ctx.fire(this.x, this.y, dir.x, dir.y, {
+      this.playAttack(ctx.time);
+      const spec = {
         speedPx: R.projectileSpeedTiles * TILE,
         attack: this.atk(this.def.attack),
         size: R.projectileSize,
         lifeMs: R.projectileLifeMs,
-      });
+      };
+      const shoot = () => {
+        if (!this.active) return;
+        const dir = new Phaser.Math.Vector2(ctx.player.x - this.x, ctx.player.y - this.y).normalize();
+        ctx.fire(this.x, this.y, dir.x, dir.y, spec);
+      };
+      // 시트가 있으면 총구 화염 프레임(2번째)에 맞춰 발사
+      const delay = this.visual.impactDelayMs('attack');
+      if (delay > 0) this.scene.time.delayedCall(delay, shoot);
+      else shoot();
     }
   }
 
@@ -114,7 +122,8 @@ export class Enemy extends Mob {
           this.chargeState = 'telegraph';
           this.chargeUntil = ctx.time + C.telegraphMs;
           this.body.setVelocity(0, 0);
-          this.setFillStyle(COLORS.TELEGRAPH);
+          this.paint(COLORS.TELEGRAPH);
+          this.playAttack(ctx.time, C.telegraphMs + C.dashMs);
         }
         break;
       case 'telegraph':

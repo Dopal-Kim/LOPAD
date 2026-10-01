@@ -1,28 +1,55 @@
 import Phaser from 'phaser';
-import { TEXTURES, TILE } from '../core/Constants';
+import { DEPTH, TILE } from '../core/Constants';
 import { Rng } from '../systems/rng';
 import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } from '../systems/mapgen';
 import { CELL_H, CELL_W } from '../systems/mapgen/types';
+import { TileSkin, isOpenId, planProps } from './tileskin';
 
 export type DoorState = 'open' | 'closed' | 'locked';
 
 const SOLID: TileId[] = [TileId.Wall, TileId.DoorClosed, TileId.DoorLocked];
 
-/** 생성된 층을 Phaser 타일맵으로 올리고 문 상태·좌표 변환을 담당한다. */
+/**
+ * 생성된 층을 Phaser 타일맵으로 올리고 문 상태·좌표 변환을 담당한다.
+ * 타일 인덱스는 `TileSkin` 이 정한다 (아트 타일셋이면 변형·자동타일·소품, 아니면 TileId 그대로).
+ */
 export class TileWorld {
   readonly map: Phaser.Tilemaps.Tilemap;
   readonly layer: Phaser.Tilemaps.TilemapLayer;
+  /** 소품 오버레이 (아트 타일셋에 props 가 있을 때만) */
+  readonly propsLayer: Phaser.Tilemaps.TilemapLayer | null = null;
   private roomById: Map<string, Room>;
+  private readonly solidPropIndices: number[];
 
   constructor(
     scene: Phaser.Scene,
     readonly layout: FloorLayout,
+    readonly skin: TileSkin = TileSkin.placeholder(),
+    /** 소품 배치 시드 (층 시드) */
+    propSeed: number | string = layout.seed,
   ) {
-    this.map = scene.make.tilemap({ data: layout.tiles as number[][], tileWidth: TILE, tileHeight: TILE });
-    const tileset = this.map.addTilesetImage(TEXTURES.TILES, TEXTURES.TILES, TILE, TILE, 0, 0)!;
+    const isOpen = (x: number, y: number) => isOpenId(layout.tiles[y]?.[x]);
+    const data = layout.tiles.map((row, y) => row.map((id, x) => skin.indexFor(id, x, y, isOpen)));
+    this.map = scene.make.tilemap({ data, tileWidth: TILE, tileHeight: TILE });
+    const tileset = this.map.addTilesetImage(skin.textureKey, skin.textureKey, TILE, TILE, 0, 0)!;
     this.layer = this.map.createLayer(0, tileset, 0, 0)!;
-    this.layer.setCollision(SOLID);
+    this.layer.setDepth(DEPTH.TILES);
+    this.layer.setCollision(skin.solidIndices);
     this.roomById = new Map(layout.rooms.map((r) => [r.id, r]));
+    this.solidPropIndices = skin.solidPropIndices;
+
+    if (skin.props.length > 0) {
+      const props = this.map.createBlankLayer('props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
+      props.setDepth(DEPTH.PROPS);
+      for (const p of planProps(layout, skin.props, propSeed)) props.putTileAt(p.index, p.x, p.y);
+      if (this.solidPropIndices.length > 0) props.setCollision(this.solidPropIndices);
+      this.propsLayer = props;
+    }
+  }
+
+  /** 충돌시킬 레이어 목록 (바닥·벽 + 단단한 소품) */
+  get collisionLayers(): Phaser.Tilemaps.TilemapLayer[] {
+    return this.propsLayer ? [this.layer, this.propsLayer] : [this.layer];
   }
 
   get widthPx(): number {
@@ -39,11 +66,28 @@ export class TileWorld {
     return r;
   }
 
-  /** 월드 좌표의 타일이 걸을 수 있는 바닥인지 (벽·닫힌 문·빈 공간이면 false) */
+  /** 타일 좌표의 게임 타일 ID (범위 밖은 void) */
+  tileIdAt(tx: number, ty: number): TileId {
+    const t = this.layer.getTileAt(tx, ty);
+    return t ? this.skin.idOf(t.index) : TileId.Void;
+  }
+
+  /** 월드 좌표의 타일 ID */
+  tileIdAtWorld(worldX: number, worldY: number): TileId {
+    const t = this.layer.getTileAtWorldXY(worldX, worldY);
+    return t ? this.skin.idOf(t.index) : TileId.Void;
+  }
+
+  /** 월드 좌표의 타일이 걸을 수 있는 바닥인지 (벽·닫힌 문·빈 공간·단단한 소품이면 false) */
   isWalkableAt(worldX: number, worldY: number): boolean {
     const t = this.layer.getTileAtWorldXY(worldX, worldY);
     if (!t) return false;
-    return t.index !== TileId.Void && !SOLID.includes(t.index as TileId);
+    if (!isOpenId(this.skin.idOf(t.index))) return false;
+    if (this.propsLayer) {
+      const p = this.propsLayer.getTileAtWorldXY(worldX, worldY);
+      if (p && this.solidPropIndices.includes(p.index)) return false;
+    }
+    return true;
   }
 
   cellAt(worldX: number, worldY: number): Cell {
@@ -79,7 +123,7 @@ export class TileWorld {
     return new Phaser.Geom.Rectangle(x0, y0, x1 - x0, y1 - y0);
   }
 
-  /** 방 내부의 무작위 바닥 지점(타일 중심). from 에서 minDistTiles 이상 떨어진 곳 */
+  /** 방 내부의 무작위 바닥 지점(타일 중심). from 에서 minDistTiles 이상 떨어진 곳. 단단한 소품 위는 피한다 */
   randomPointInRoom(room: Room, rng: Rng, from?: { x: number; y: number }, minDistTiles = 0): Phaser.Math.Vector2 {
     const I = room.interior;
     let best = new Phaser.Math.Vector2((I.x + 1) * TILE + TILE / 2, (I.y + 1) * TILE + TILE / 2);
@@ -87,18 +131,22 @@ export class TileWorld {
       const tx = rng.int(I.x + 1, I.x + I.w - 2);
       const ty = rng.int(I.y + 1, I.y + I.h - 2);
       const p = new Phaser.Math.Vector2(tx * TILE + TILE / 2, ty * TILE + TILE / 2);
+      if (!this.isWalkableAt(p.x, p.y)) continue;
       if (!from || Phaser.Math.Distance.Between(p.x, p.y, from.x, from.y) >= minDistTiles * TILE) return p;
       best = p;
     }
     return best;
   }
 
+  private put(id: TileId, tx: number, ty: number): Phaser.Tilemaps.Tile {
+    const tile = this.layer.putTileAt(this.skin.indexFor(id, tx, ty), tx, ty);
+    tile.setCollision(SOLID.includes(id));
+    return tile;
+  }
+
   setDoor(door: Door, state: DoorState): void {
     const id = state === 'open' ? TileId.DoorOpen : state === 'closed' ? TileId.DoorClosed : TileId.DoorLocked;
-    for (const t of door.tiles) {
-      const tile = this.layer.putTileAt(id, t.x, t.y);
-      tile.setCollision(SOLID.includes(id));
-    }
+    for (const t of door.tiles) this.put(id, t.x, t.y);
   }
 
   /** 보스 방 중앙에 2×2 출구 타일을 놓는다 */
@@ -106,8 +154,7 @@ export class TileWorld {
     const I = room.interior;
     const tx = I.x + Math.floor(I.w / 2) - 1;
     const ty = I.y + Math.floor(I.h / 2) - 1;
-    for (let y = ty; y < ty + 2; y++)
-      for (let x = tx; x < tx + 2; x++) this.layer.putTileAt(TileId.Exit, x, y).setCollision(false);
+    for (let y = ty; y < ty + 2; y++) for (let x = tx; x < tx + 2; x++) this.put(TileId.Exit, x, y);
     return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
   }
 
@@ -116,18 +163,16 @@ export class TileWorld {
     const I = room.interior;
     const tx = I.x + Math.floor(I.w / 2) + 3;
     const ty = I.y + Math.floor(I.h / 2) - 1;
-    for (let y = ty; y < ty + 2; y++)
-      for (let x = tx; x < tx + 2; x++) this.layer.putTileAt(TileId.Shop, x, y).setCollision(false);
+    for (let y = ty; y < ty + 2; y++) for (let x = tx; x < tx + 2; x++) this.put(TileId.Shop, x, y);
     return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
   }
 
   isShopAt(worldX: number, worldY: number): boolean {
-    return this.layer.getTileAtWorldXY(worldX, worldY)?.index === TileId.Shop;
+    return this.tileIdAtWorld(worldX, worldY) === TileId.Shop;
   }
 
   isExitAt(worldX: number, worldY: number): boolean {
-    const t = this.layer.getTileAtWorldXY(worldX, worldY);
-    return t?.index === TileId.Exit;
+    return this.tileIdAtWorld(worldX, worldY) === TileId.Exit;
   }
 
   setRoomDoors(room: Room, state: DoorState): void {

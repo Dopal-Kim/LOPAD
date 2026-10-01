@@ -6,10 +6,12 @@ import weaponsJson from '../../data/weapons.json';
 import economyJson from '../../data/economy.json';
 import personalityJson from '../../data/personality.json';
 import storyJson from '../../data/story.json';
+import paletteJson from '../../data/palette.json';
 import type {
   BossTable,
   EconomyData,
   EnemyTable,
+  PaletteData,
   PersonalityData,
   PlayerData,
   RunDef,
@@ -275,3 +277,20 @@ export function validateStory(s: StoryData, run: RunDef): StoryData {
 }
 
 export const STORY: StoryData = validateStory(storyJson as unknown as StoryData, RUN);
+
+/** 팔레트: 무채색 16 + 층별 강조 램프 12 (계약 art-assets.md §2) */
+export function validatePalette(p: PaletteData): PaletteData {
+  if (!Array.isArray(p.gray) || p.gray.length === 0) throw new Error('[data] palette.gray 없음');
+  const n = p.accent_slots?.count;
+  assertNumber(n, 'palette.accent_slots.count');
+  if (!Array.isArray(p.floors) || p.floors.length === 0) throw new Error('[data] palette.floors 없음');
+  for (const f of p.floors) {
+    assertNumber(f.floor, 'palette.floors[].floor');
+    if (!Array.isArray(f.ramp) || f.ramp.length !== n)
+      throw new Error(`[data] palette.floors[${f.floor}].ramp 는 ${n}칸이어야 합니다`);
+    for (const c of f.ramp) if (!/^#[0-9a-fA-F]{6}$/.test(c)) throw new Error(`[data] palette 색 형식 오류: ${c}`);
+  }
+  return p;
+}
+
+export const PALETTE: PaletteData = validatePalette(paletteJson as unknown as PaletteData);

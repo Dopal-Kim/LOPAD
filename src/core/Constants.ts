@@ -26,18 +26,67 @@ export const SCENES = {
 } as const;
 
 export const TEXTURES = {
+  /** 플레이스홀더 타일 (아트 타일셋이 없는 층) */
   TILES: 'tiles',
+  /** 아트 타일셋 텍스처 키 접두 (`tiles_stage1`) */
+  TILESET_PREFIX: 'tiles_',
+  /** 스프라이트 시트 텍스처 키 접두 (`sheet_player_idle`) */
+  SHEET_PREFIX: 'sheet_',
+  /** 플레이스홀더 사각형 텍스처 키 접두 (`ph_16x16`) */
+  PLACEHOLDER_PREFIX: 'ph_',
+  /** 발밑 그림자 텍스처 키 접두 (`shadow_18`) */
+  SHADOW_PREFIX: 'shadow_',
+  /** 아트 산출물 매니페스트 (JSON 캐시 키) */
+  MANIFEST: 'assets_manifest',
+};
+
+/** 아트 산출물 경로 (계약 contracts/art-assets.md). vite.config.ts 플러그인이 `assets/` 를 이 URL 로 서빙한다 */
+export const ASSETS = {
+  /** 상대 경로 (base './' 배포 호환) */
+  URL: 'assets-game',
+  MANIFEST: 'manifest.json',
+  SPRITES_DIR: 'sprites',
+  TILES_DIR: 'tiles',
+  /** 층 타일셋 파일 이름 접두 (`stage1.json`) */
+  STAGE_PREFIX: 'stage',
+};
+
+/** 스프라이트 연출 값 (29라운드 임시값) */
+export const SPRITES = {
+  /** 발밑 타원 그림자 */
+  SHADOW_ALPHA: 0.35,
+  SHADOW_COLOR: 0x000000,
+  /** 그림자 폭 = 바디 폭 + 여유, 높이 = 폭 × 비율 */
+  SHADOW_PAD: 2,
+  SHADOW_RATIO: 0.4,
+  /** 적 사망 시체: 마지막 프레임 유지 후 사라지는 시간 */
+  CORPSE_HOLD_MS: 500,
+  CORPSE_FADE_MS: 600,
+  /** 플레이어 사망 애니 끝 → 결과 화면까지 추가 대기 */
+  DEATH_EXTRA_MS: 400,
+  /** 방향 변경 시 걷기 애니 프레임을 이어 간다 */
+  KEEP_WALK_FRAME: true,
 };
 
 export const DEPTH = {
   TILES: 0,
-  ENEMY: 1,
-  PLAYER: 2,
+  /** 소품 오버레이 (바닥 위, 개체 아래) */
+  PROPS: 0.5,
+  /** 발밑 그림자 (개체 아래) */
+  SHADOW: 0.9,
+  /** 개체(플레이어·적)는 ENTITY + y × ENTITY_Y_SCALE 로 발 위치 기준 정렬 */
+  ENTITY: 1,
+  ENTITY_Y_SCALE: 1e-5,
   PICKUP: 2.5,
   PROJECTILE: 3,
   ATTACK: 4,
   DEBUG: 100,
 };
+
+/** 발 위치 y 로 깊이를 정한다 (아래쪽이 앞) */
+export function entityDepth(y: number): number {
+  return DEPTH.ENTITY + y * DEPTH.ENTITY_Y_SCALE;
+}
 
 export const COLORS = {
   TILE_VOID: '#0b0b10',

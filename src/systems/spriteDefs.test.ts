@@ -1,0 +1,59 @@
+import { describe, expect, it } from 'vitest';
+import {
+  animDurationMs,
+  animKey,
+  facingOf,
+  frameDurations,
+  frameIndices,
+  sheetJsonPath,
+  wantedSheets,
+  type SheetJson,
+} from './spriteDefs';
+
+const walk: SheetJson = {
+  image: 'player_walk.png',
+  action: 'walk',
+  frameWidth: 16,
+  frameHeight: 24,
+  frames: 8,
+  directions: ['down', 'up', 'left', 'right'],
+  fps: 9,
+  frameDurationsMs: [110, 110, 110, 110, 110, 110, 110, 110],
+  loop: true,
+  pivot: { x: 8, y: 23 },
+};
+
+describe('sprite defs (계약 art-assets.md §1)', () => {
+  it('키 규칙 <이름>_<동작>_<방향> 과 변형 접미', () => {
+    expect(animKey('player', 'walk', 'down')).toBe('player_walk_down');
+    expect(animKey('dummy', 'idle', 'left', '@f2')).toBe('dummy_idle_left@f2');
+    expect(sheetJsonPath({ category: 'enemies', name: 'archer', action: 'hurt' })).toBe(
+      'sprites/enemies/archer_hurt.json',
+    );
+  });
+
+  it('프레임 번호 = row * frames + column (행 = directions 순서)', () => {
+    expect(frameIndices(walk, 'down')).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+    expect(frameIndices(walk, 'left')[0]).toBe(16);
+    expect(frameIndices({ ...walk, directions: ['right', 'left'] }, 'left')[0]).toBe(8);
+  });
+
+  it('frameDurationsMs 가 맞으면 그대로, 아니면 fps 균등', () => {
+    expect(animDurationMs(walk)).toBe(880);
+    const noDur = { ...walk, frameDurationsMs: undefined, fps: 10, frames: 4 };
+    expect(frameDurations(noDur)).toEqual([100, 100, 100, 100]);
+    expect(animDurationMs({ ...walk, frameDurationsMs: [1, 2] })).toBeCloseTo((8 * 1000) / 9, 3);
+  });
+
+  it('로드 대상: 주인공 6동작 + 적·보스 5동작', () => {
+    const list = wantedSheets(['dummy', 'archer'], []);
+    expect(list.filter((r) => r.name === 'player')).toHaveLength(6);
+    expect(list.filter((r) => r.category === 'enemies')).toHaveLength(10);
+  });
+
+  it('지배 축 방향', () => {
+    expect(facingOf(1, 0.5, 'down')).toBe('right');
+    expect(facingOf(-0.2, -1, 'down')).toBe('up');
+    expect(facingOf(0, 0, 'left')).toBe('left');
+  });
+});

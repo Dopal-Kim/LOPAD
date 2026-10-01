@@ -426,3 +426,18 @@ export interface StoryData {
     hud: Record<string, string>;
   };
 }
+
+/** 팔레트 (data/palette.json — parts/art/palette/lopad.json 사본). 런타임 팔레트 스왑에 쓴다 */
+export interface PaletteFloor {
+  floor: number;
+  name: string;
+  label: string;
+  /** 강조 램프 12칸 (#rrggbb) */
+  ramp: string[];
+}
+
+export interface PaletteData {
+  gray: string[];
+  accent_slots: { first_index: number; count: number; roles: string[] };
+  floors: PaletteFloor[];
+}

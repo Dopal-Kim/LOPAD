@@ -31,10 +31,7 @@
         "keyDash": 0.5
       },
       "personality": {
-        "thresholds": [
-          100,
-          200
-        ],
+        "thresholds": [100, 200],
         "branches": [
           {
             "id": "iai",
@@ -138,10 +135,7 @@
         "keyDash": 0.2
       },
       "personality": {
-        "thresholds": [
-          100,
-          200
-        ],
+        "thresholds": [100, 200],
         "branches": [
           {
             "id": "crush",
@@ -247,10 +241,7 @@
         "keyDash": 0.9
       },
       "personality": {
-        "thresholds": [
-          100,
-          200
-        ],
+        "thresholds": [100, 200],
         "branches": [
           {
             "id": "twin",
@@ -362,10 +353,7 @@
         "keyDash": 0.4
       },
       "personality": {
-        "thresholds": [
-          100,
-          200
-        ],
+        "thresholds": [100, 200],
         "branches": [
           {
             "id": "pierce",

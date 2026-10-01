@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, PROTOTYPE, TILE } from '../core/Constants';
+import { COLORS, PROTOTYPE, TILE } from '../core/Constants';
 import {
   EventBus,
   Events,
@@ -13,6 +13,8 @@ import { PLAYER_DATA } from '../data';
 import type { SecondaryDef } from '../data/types';
 import { applyDefense } from '../systems/Combat';
 import type { InputState } from '../systems/InputSystem';
+import { facingOf, type Facing } from '../systems/spriteDefs';
+import { EntityVisual, placeholderTexture } from './EntityVisual';
 
 type Body = Phaser.Physics.Arcade.Body;
 
@@ -20,10 +22,13 @@ type Body = Phaser.Physics.Arcade.Body;
 export type PlayerAction = 'normal' | 'dash' | 'parry' | 'recover' | 'guard' | 'aim';
 export type HitResult = 'hit' | 'dead' | 'parried' | 'ignored';
 
-/** 사각형 플레이스홀더 플레이어. 스프라이트는 아트 파트 산출물이 계약으로 들어올 때 교체. */
-export class Player extends Phaser.GameObjects.Rectangle {
+/** 주인공. 시트(`player_*`)가 있으면 애니메이션 스프라이트, 없으면 단색 사각형 플레이스홀더. */
+export class Player extends Phaser.GameObjects.Sprite {
   declare body: Body;
   action: PlayerAction = 'normal';
+  readonly visual: EntityVisual;
+  /** 사망 애니 길이 (시트가 없으면 0) — Game 이 결과 화면 전환을 이만큼 늦춘다 */
+  deathAnimMs = 0;
   private actionUntil = 0;
   private invulnerableUntil = 0;
   private attackReadyAt = 0;
@@ -42,11 +47,25 @@ export class Player extends Phaser.GameObjects.Rectangle {
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     const [w, h] = PLAYER_DATA.size;
-    super(scene, x, y, w, h, COLORS.PLAYER);
+    super(scene, x, y, placeholderTexture(scene, w, h));
     scene.add.existing(this);
     scene.physics.add.existing(this);
-    this.setDepth(DEPTH.PLAYER);
+    this.visual = new EntityVisual(this, 'player', w, h, COLORS.PLAYER);
     this.body.setCollideWorldBounds(true);
+  }
+
+  protected preUpdate(time: number, delta: number): void {
+    super.preUpdate(time, delta);
+    this.visual.sync();
+  }
+
+  /** 현재 애니 방향 (디버그) */
+  get facingDir(): Facing {
+    return this.visual.facing;
+  }
+
+  get animKey(): string | null {
+    return this.visual.current;
   }
 
   get speedPx(): number {
@@ -129,6 +148,7 @@ export class Player extends Phaser.GameObjects.Rectangle {
       if (this.action === 'aim' && S.kind === 'aimedshot') slow = Math.min(slow, S.moveMult);
       this.body.setVelocity(dir.x * this.speedPx * slow, dir.y * this.speedPx * slow);
     }
+    this.animateLocomotion(input, dir, time);
 
     const canAct = this.action === 'normal';
 
@@ -147,6 +167,7 @@ export class Player extends Phaser.GameObjects.Rectangle {
         this.invulnerableUntil = Math.max(this.invulnerableUntil, time + D.durationMs + (mods.dashInvulnExtraMs ?? 0));
       }
       this.setAction('dash', time + D.durationMs);
+      this.visual.oneShot('dash', facingOf(d.x, d.y, this.visual.facing), time, D.durationMs);
       EventBus.emit(Events.PLAYER_DASHED, { dirX: d.x, dirY: d.y, x: this.x, y: this.y });
       return;
     }
@@ -205,9 +226,18 @@ export class Player extends Phaser.GameObjects.Rectangle {
     }
   }
 
+  /** 이동 중엔 이동 방향, 멈춰 있으면 마우스 조준 방향으로 idle/walk */
+  private animateLocomotion(input: InputState, dir: Phaser.Math.Vector2, time: number): void {
+    const moving = dir.lengthSq() > 0 && this.action !== 'dash';
+    const facing = moving
+      ? facingOf(dir.x, dir.y, this.visual.facing)
+      : facingOf(input.aimX - this.x, input.aimY - this.y, this.visual.facing);
+    this.visual.loop(moving ? 'walk' : 'idle', facing, time);
+  }
+
   private emitAttack(
     input: InputState,
-    _time: number,
+    time: number,
     kind: PlayerAttackPayload['kind'],
     damageMult: number,
     sizeMult: number,
@@ -216,6 +246,8 @@ export class Player extends Phaser.GameObjects.Rectangle {
     const aim = new Phaser.Math.Vector2(input.aimX - this.x, input.aimY - this.y);
     if (aim.lengthSq() > 0) aim.normalize();
     else aim.copy(this.facing);
+    // 공격 애니는 조준 방향으로, 다음 공격 가능 시점(쿨다운)에 맞춰 재생
+    this.visual.oneShot('attack', facingOf(aim.x, aim.y, this.visual.facing), time, gameState.weapon.hitbox.cooldownMs);
     const payload: PlayerAttackPayload = {
       x: this.x,
       y: this.y,
@@ -271,46 +303,49 @@ export class Player extends Phaser.GameObjects.Rectangle {
     EventBus.emit(Events.PLAYER_DAMAGED, payload);
     if (gameState.hp <= 0) {
       gameState.gameOver = true;
+      this.setAction('normal', 0);
+      this.deathAnimMs = this.visual.oneShot('death', this.visual.facing, time);
       EventBus.emit(Events.PLAYER_DIED);
       return 'dead';
     }
+    this.visual.oneShot('hurt', this.visual.facing, time);
     return 'hit';
   }
 
   private setAction(a: PlayerAction, until: number): void {
     this.action = a;
     this.actionUntil = until;
-    switch (a) {
+    this.applyStateColor();
+  }
+
+  /** 상태 표시: 플레이스홀더는 채움색, 시트는 틴트(대쉬는 애니가 있으므로 원색) */
+  private applyStateColor(): void {
+    switch (this.action) {
       case 'dash':
-        this.setFillStyle(COLORS.PLAYER_DASH);
-        this.setStrokeStyle(0);
+        if (this.visual.animated) this.visual.restore();
+        else this.visual.paint(COLORS.PLAYER_DASH);
         break;
       case 'parry':
-        this.setFillStyle(COLORS.PLAYER);
-        this.setStrokeStyle(2, COLORS.PLAYER_PARRY);
+        this.visual.paint(COLORS.PLAYER_PARRY);
         break;
       case 'guard':
-        this.setFillStyle(COLORS.PLAYER_GUARD);
-        this.setStrokeStyle(2, COLORS.GUARD_PUSH);
+        this.visual.paint(COLORS.PLAYER_GUARD);
         break;
       case 'aim':
-        this.setFillStyle(COLORS.PLAYER);
-        this.setStrokeStyle(2, COLORS.PLAYER_AIM);
+        this.visual.paint(COLORS.PLAYER_AIM);
         break;
       case 'recover':
-        this.setFillStyle(COLORS.PLAYER_RECOVER);
-        this.setStrokeStyle(0);
+        this.visual.paint(COLORS.PLAYER_RECOVER);
         break;
       default:
-        this.setFillStyle(COLORS.PLAYER);
-        this.setStrokeStyle(0);
+        this.visual.restore();
     }
   }
 
   private flash(color: number): void {
-    this.setFillStyle(color);
+    this.visual.flash(color);
     this.scene.time.delayedCall(PROTOTYPE.HURT_FLASH_MS, () => {
-      if (this.active && this.action === 'normal') this.setFillStyle(COLORS.PLAYER);
+      if (this.active) this.applyStateColor();
     });
   }
 }

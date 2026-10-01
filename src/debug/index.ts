@@ -1,3 +1,4 @@
+import type Phaser from 'phaser';
 import { gameState } from '../core/GameState';
 import { uiCommands } from '../contract/ui';
 import type { Mob } from '../objects/Mob';
@@ -32,18 +33,35 @@ export interface DebugApi {
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   /** 플레이어를 향해 투사체 1발 (거리 px, 속도 px/s, 공격력) */
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
-  player: () => { x: number; y: number; action: string };
+  player: () => PlayerInfo;
+  /** 로드된 스프라이트 시트·애니 키·현재 층 변형 */
+  sprites: () => { sheets: string[]; anims: string[]; variant: string };
   stunAll: (ms: number) => void;
-  mobs: () => { id: string; hp: number; x: number; y: number; stunned: boolean }[];
+  mobs: () => { id: string; hp: number; x: number; y: number; stunned: boolean; anim: string | null }[];
+  /** 다음 층으로 강제 전환 (팔레트 스왑·타일셋 검증용) */
+  nextStage: () => void;
   camera: () => { scrollX: number; scrollY: number; zoom: number };
   killAll: () => number;
   hurtAll: (amount: number) => void;
+  /** 게임 타일 ID (시트 인덱스가 아님) */
   tileAt: (tx: number, ty: number) => number;
+  /** 소품 레이어의 시트 인덱스 (-1 = 없음) */
+  propAt: (tx: number, ty: number) => number;
+  world: () => { tileset: string; art: boolean; props: number };
   doorsOf: (roomId: string) => { x: number; y: number; id: number }[][];
   /** 개성 게이지를 value 로 두고 임계 판정 (27라운드 검증용) */
   setPersonality: (value: number) => void;
   weapon: () => unknown;
   playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number };
+}
+
+export interface PlayerInfo {
+  x: number;
+  y: number;
+  action: string;
+  anim: string | null;
+  dir: string;
+  animated: boolean;
 }
 
 export function exposeDebug(api: {
@@ -54,7 +72,8 @@ export function exposeDebug(api: {
   kill: (m: Mob) => void;
   hurt: (m: Mob, amount: number) => void;
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
-  playerInfo: () => { x: number; y: number; action: string };
+  playerInfo: () => PlayerInfo;
+  sprites: () => { sheets: string[]; anims: string[]; variant: string };
   stunAll: (ms: number) => void;
   now: () => number;
   stage: () => { index: number; id: string; name: string; savesLeft: number; exitOpen: boolean; isLast: boolean };
@@ -70,6 +89,7 @@ export function exposeDebug(api: {
   setPersonality: (value: number) => void;
   weapon: () => unknown;
   playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number };
+  nextStage: () => void;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -103,6 +123,7 @@ export function exposeDebug(api: {
     pickups: () => api.pickups(),
     fireAtPlayer: (d, s, a) => api.fireAtPlayer(d, s, a),
     player: () => api.playerInfo(),
+    sprites: () => api.sprites(),
     stunAll: (ms) => api.stunAll(ms),
     mobs: () =>
       api.mobs().map((m) => ({
@@ -111,7 +132,9 @@ export function exposeDebug(api: {
         x: m.x,
         y: m.y,
         stunned: m.isStunned(api.now()),
+        anim: m.visual.current,
       })),
+    nextStage: () => api.nextStage(),
     camera: () => api.camera(),
     setPersonality: (v) => api.setPersonality(v),
     weapon: () => api.weapon(),
@@ -124,11 +147,15 @@ export function exposeDebug(api: {
     hurtAll: (amount) => {
       for (const m of api.mobs()) api.hurt(m, amount);
     },
-    tileAt: (tx, ty) => api.world.layer.getTileAt(tx, ty)?.index ?? -1,
+    tileAt: (tx, ty) => api.world.tileIdAt(tx, ty),
+    propAt: (tx, ty) => api.world.propsLayer?.getTileAt(tx, ty)?.index ?? -1,
+    world: () => ({
+      tileset: api.world.skin.textureKey,
+      art: api.world.skin.isArt,
+      props: api.world.propsLayer?.filterTiles((t: Phaser.Tilemaps.Tile) => t.index >= 0).length ?? 0,
+    }),
     doorsOf: (roomId) =>
-      api.world
-        .room(roomId)
-        .doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.layer.getTileAt(t.x, t.y)?.index ?? -1 }))),
+      api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };
   (window as unknown as { __lopad: DebugApi }).__lopad = dbg;
 }

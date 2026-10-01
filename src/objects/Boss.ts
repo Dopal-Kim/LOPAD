@@ -23,7 +23,7 @@ export class Boss extends Mob {
   constructor(scene: Phaser.Scene, x: number, y: number, id: string) {
     const def = BOSSES[id];
     if (!def) throw new Error(`[boss] 정의 없음: ${id}`);
-    super(scene, x, y, def.size, def.color, def.hp);
+    super(scene, x, y, id, def.size, def.color, def.hp);
     this.def = def;
     this.id = id;
     gameState.bossHp = this.hp;
@@ -35,8 +35,7 @@ export class Boss extends Mob {
     return this.def.phases[this.phaseIndex];
   }
 
-  update(ctx: MobContext): void {
-    if (!this.active) return;
+  protected think(ctx: MobContext): void {
     if (this.isKnockedBack(ctx.time)) return;
     if (this.nextDashAt === 0) {
       this.nextDashAt = ctx.time + this.phase.dash.intervalMs;
@@ -56,7 +55,8 @@ export class Boss extends Mob {
           this.bossState = 'telegraph';
           this.stateUntil = ctx.time + P.dash.telegraphMs;
           this.body.setVelocity(0, 0);
-          this.setFillStyle(COLORS.TELEGRAPH);
+          this.paint(COLORS.TELEGRAPH);
+          this.playAttack(ctx.time, P.dash.telegraphMs + P.dash.durationMs);
         }
         if (P.fan && ctx.time >= this.nextFanAt) {
           this.fireFan(ctx);
@@ -79,7 +79,7 @@ export class Boss extends Mob {
           this.bossState = 'stun';
           this.stateUntil = ctx.time + P.dash.wallStunMs;
           this.body.setVelocity(0, 0);
-          this.setFillStyle(COLORS.STUN);
+          this.paint(COLORS.STUN);
           this.scheduleNextDash(ctx.time);
         } else if (ctx.time >= this.stateUntil) {
           this.body.setVelocity(0, 0);
@@ -88,7 +88,7 @@ export class Boss extends Mob {
             this.dashesLeft -= 1;
             this.bossState = 'telegraph';
             this.stateUntil = ctx.time + P.dash.telegraphMs * 0.5;
-            this.setFillStyle(COLORS.TELEGRAPH);
+            this.paint(COLORS.TELEGRAPH);
           } else {
             this.bossState = 'approach';
             this.scheduleNextDash(ctx.time);
@@ -163,6 +163,7 @@ export class Boss extends Mob {
   }
 
   private fireFan(ctx: MobContext): void {
+    this.playAttack(ctx.time);
     const F = this.phase.fan;
     if (!F) return;
     const base = Math.atan2(ctx.player.y - this.y, ctx.player.x - this.x);

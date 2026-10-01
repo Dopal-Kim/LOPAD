@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, PROTOTYPE } from '../core/Constants';
+import { COLORS, PROTOTYPE } from '../core/Constants';
+import { facingOf } from '../systems/spriteDefs';
+import { EntityVisual, placeholderTexture } from './EntityVisual';
 
 type Body = Phaser.Physics.Arcade.Body;
 
@@ -19,12 +21,15 @@ export interface ProjectileSpec {
   lifeMs: number;
 }
 
-/** 사각형 플레이스홀더 전투 개체의 공통부. 스프라이트는 아트 파트 산출물이 계약으로 들어올 때 교체. */
-export abstract class Mob extends Phaser.GameObjects.Rectangle {
+/** 전투 개체 공통부. 시트(`<id>_*`)가 있으면 애니메이션 스프라이트, 없으면 단색 사각형. */
+export abstract class Mob extends Phaser.GameObjects.Sprite {
   declare body: Body;
   hp: number;
   readonly maxHp: number;
-  protected baseColor: number;
+  readonly visual: EntityVisual;
+  /** 마지막으로 본 플레이어 위치 (대기 방향용) */
+  private targetX = 0;
+  private targetY = 0;
   protected nextContactAt = 0;
   protected stunnedUntil = 0;
   /** 경직의 출처: 패링 경직 처치만 '패링 처치'로 센다 */
@@ -32,18 +37,59 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
   /** 밀쳐내기 중 (AI 가 속도를 덮어쓰지 않는다) */
   private knockedUntil = 0;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, size: [number, number], color: string, hp: number) {
-    const c = Phaser.Display.Color.HexStringToColor(color).color;
-    super(scene, x, y, size[0], size[1], c);
-    this.baseColor = c;
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    /** 시트 이름 = 적·보스 id (계약 §1) */
+    spriteName: string,
+    size: [number, number],
+    color: string,
+    hp: number,
+  ) {
+    super(scene, x, y, placeholderTexture(scene, size[0], size[1]));
     this.hp = hp;
     this.maxHp = hp;
     scene.add.existing(this);
     scene.physics.add.existing(this);
-    this.setDepth(DEPTH.ENEMY);
+    this.visual = new EntityVisual(
+      this,
+      spriteName,
+      size[0],
+      size[1],
+      Phaser.Display.Color.HexStringToColor(color).color,
+    );
+    this.targetX = x;
+    this.targetY = y;
   }
 
-  abstract update(ctx: MobContext): void;
+  protected preUpdate(time: number, delta: number): void {
+    super.preUpdate(time, delta);
+    this.visual.sync();
+  }
+
+  /** 행동(think) 뒤 속도·플레이어 위치로 idle/walk 와 방향을 정한다 */
+  update(ctx: MobContext): void {
+    if (!this.active) return;
+    this.targetX = ctx.player.x;
+    this.targetY = ctx.player.y;
+    this.think(ctx);
+    const v = this.body.velocity;
+    const moving = v.lengthSq() > 1;
+    const dir = moving
+      ? facingOf(v.x, v.y, this.visual.facing)
+      : facingOf(this.targetX - this.x, this.targetY - this.y, this.visual.facing);
+    this.visual.loop(moving ? 'walk' : 'idle', dir, ctx.time);
+  }
+
+  /** 행동 결정 (하위 클래스) */
+  protected abstract think(ctx: MobContext): void;
+
+  /** 공격 동작 애니 (시트가 없으면 무시). fitMs 가 있으면 그 시간에 맞춘다 */
+  protected playAttack(time: number, fitMs?: number): void {
+    const dir = facingOf(this.targetX - this.x, this.targetY - this.y, this.visual.facing);
+    this.visual.oneShot('attack', dir, time, fitMs);
+  }
 
   /** 처치 시 플레이어 무기에 쌓이는 개성 수치 */
   abstract get personalityValue(): number;
@@ -80,7 +126,7 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
     if (!this.isStunned(time) || source === 'parry') this.stunSource = source;
     this.stunnedUntil = Math.max(this.stunnedUntil, time + ms);
     this.body.setVelocity(0, 0);
-    this.setFillStyle(COLORS.STUN);
+    this.visual.paint(COLORS.STUN);
     this.onStunned();
     this.scene.time.delayedCall(ms, () => {
       if (this.active && !this.isStunned(this.scene.time.now)) this.restoreColor();
@@ -94,6 +140,7 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
     if (this.isStunned(time)) return 0;
     if (time < this.nextContactAt) return 0;
     this.nextContactAt = time + this.contactIntervalMs();
+    this.playAttack(time);
     return this.currentContactAttack();
   }
 
@@ -103,10 +150,12 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
     this.hp -= amount;
     if (this.hp <= 0) {
       this.onDeath();
+      this.visual.spawnCorpse();
       this.destroy();
       return true;
     }
     this.flash(COLORS.MOB_HURT);
+    this.visual.oneShot('hurt', this.visual.facing, this.scene.time.now);
     return false;
   }
 
@@ -118,14 +167,20 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
   }
 
   protected flash(color: number, ms = PROTOTYPE.HURT_FLASH_MS): void {
-    this.setFillStyle(color);
+    this.visual.flash(color);
     this.scene.time.delayedCall(ms, () => {
       if (this.active) this.restoreColor();
     });
   }
 
+  /** 상태 색 (예고 등). 플레이스홀더는 채움색, 시트는 곱 틴트 */
+  protected paint(color: number): void {
+    this.visual.paint(color);
+  }
+
   protected restoreColor(): void {
-    this.setFillStyle(this.baseColor);
+    if (this.isStunned(this.scene.time.now)) this.visual.paint(COLORS.STUN);
+    else this.visual.restore();
   }
 
   protected moveToward(x: number, y: number, speedPx: number): void {

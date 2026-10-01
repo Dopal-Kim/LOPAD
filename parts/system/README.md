@@ -167,3 +167,16 @@ npm run build
 - 계약: `src/contract/ui.ts` `UiMenuId` 에 `'evolve'` 추가(승인 필요). 스냅샷 `weapon.secondaryName` 은 무기별 이름, `threshold` 는 현 단계 임계.
 - 디버그 훅: `setPersonality(v)`, `weapon()`, `playerExtra()`, `ui().continueRun()/hasSave()`.
 - 검증: 테스트 48개(기존 44 + 변경 반영), lint·typecheck·prettier·build 통과. 헤드리스(`?debug=1&new=1&weapon=`): 패링 상태 진입 / 가드 중 피해 20→5(70% 감소, 비가드 17), 가드 이동 11px vs 29px, 해제 시 적 19px 밀려남 / 그림자 걸음으로 가장 가까운 적 뒤로 이동·다음 타격 5(확정 치명, 비치명 3)·2초 쿨 / 조준 사격 0.6초 차지 후 11 피해·무한 관통, 조기 해제 취소 / 개성 100 → `evolve` 메뉴(정지, 이동 불가) → 거합 → 200 → 잔월 → 강화 ×2(피해 1.56, 범위 43.68) → 잔월 지속 피해 3틱 → 보스 보상 체인 후 2층 세이브 v5(path·reinforce) → 이어하기 복원 → 강화 3회 후 게이지 정지. 폭우 5발, 난무 3타, 중압 경직. 콘솔 오류 0.
+
+## 29라운드 반영: 아트 산출물 연동 (스프라이트·타일셋·팔레트 스왑) (2026-10-01)
+계약: `parts/producer/contracts/art-assets.md`. 임시값은 `decisions/2026-10-01-round-29-autonomous-demo.md` "C. 시스템 스프라이트 연동 임시값".
+- **서빙**: `vite.config.ts` 플러그인 `lopad-game-assets` — dev 는 `/assets-game/<경로>` → `assets/<경로>`, build 는 `assets/**` → `dist/assets-game/**` 복사. 양쪽 다 `assets-game/manifest.json`(존재하는 파일 목록)을 제공해 로더가 **404 없이** 있는 파일만 요청한다. 해시 번들 `dist/assets/` 와 분리, base `./` 유지(상대 경로). `@types/node` devDependency 추가(플러그인 타입).
+- **로더** `src/scenes/Preloader.ts`: manifest → 시트·타일셋 JSON → PNG(`load.spritesheet` / `load.image`) → `anims.create`. 로드 대상은 `src/systems/spriteDefs.ts`(주인공 6동작, 적·보스 id 별 5동작 — id 는 `data/enemies.json`·`bosses.json` 키). 없는 파일은 건너뛰고 `loaderror` 는 무시. 애니 키 `<이름>_<동작>_<방향>`, 프레임별 `frameDurationsMs` 를 Phaser 프레임 `duration` 으로 그대로 사용, `repeat: loop ? -1 : 0`.
+- **엔티티** `src/objects/EntityVisual.ts`(조합): 시트가 있으면 원점 = 피벗(발), 바디는 발밑(가로 중앙·아래 끝 = 피벗 행), 발밑 타원 그림자(알파 0.35, 깊이 0.9), 깊이 = `entityDepth(y)`; 없으면 흰 사각형 텍스처 + 틴트(기존 플레이스홀더). `Player`·`Mob` 은 `Phaser.GameObjects.Sprite` 로 전환(`Rectangle` API 제거: `setFillStyle` → `visual.paint/flash/restore`).
+  - 플레이어: 정지 idle(마우스 조준 방향) / 이동 walk(이동 방향) / 공격 attack(조준 방향, 무기 `cooldownMs` 에 맞춰 재생) / 대쉬 dash(`durationMs` 에 맞춤) / 피격 hurt(2프레임 뒤 복귀) / 사망 death(끝 프레임 유지, `deathAnimMs + 400ms` 뒤 결과 화면).
+  - 적·보스: `Mob.update` 가 `think()` 뒤 속도로 idle/walk·방향을 정한다. 접촉 공격·사수 발사·결사병 예고·보스 예고/부채꼴에 attack. 사수는 attack 시트 2번째 프레임(총구 화염)에 맞춰 투사체 생성(`impactDelayMs`). 사망 시 시체 스프라이트가 death 재생 → 0.5초 유지 → 0.6초 페이드.
+- **팔레트 스왑** `src/systems/palette.ts` + `data/palette.json`(아트 팔레트 사본): 층 진입 시 `spriteLibrary.activate(scene, floor)` 가 1층 램프 12색 → 현재 층 램프로 치환한 캔버스 텍스처(`sheet_<id>@f<n>`)와 애니(`<키>@f<n>`)를 만든다. 1층은 치환 없음.
+- **타일셋** `src/world/tileskin.ts`: `tiles`(ID → 인덱스, 변형은 좌표 해시), `walls`(아래가 열려 있으면 top, 그 외 bottom/left/right/corner), `props`(방당 2~5개, 시드 결정적, 문 반경 2·시작 지점 반경 2·보스 방 출구/상점 자리 제외, 단단한 소품은 벽가 테두리에만) → `TileWorld` 가 바닥 레이어 + 소품 오버레이 레이어(깊이 0.5, 단단한 소품 충돌·스폰 회피). 타일셋이 없는 층은 플레이스홀더 항등 매핑.
+- **디버그**: `__lopad.sprites()`(시트·애니 키·변형), `player()` 에 `anim`·`dir`·`animated`, `mobs()` 에 `anim`, `world()`(타일셋·소품 수), `propAt`, `nextStage()`.
+- 테스트 13개 추가(팔레트 치환, 시트 키·프레임·길이, 타일 변형·자동타일·역매핑, 소품 결정성·제외 규칙). 전체 61개.
+- 검증(헤드리스, `vite preview`): 21시트·84애니 로드, 매니페스트로 요청 45건 전부 200. idle 이 조준 방향(left/up), walk 가 이동 방향(right/down), attack_right, dash_left, hurt → idle 복귀, 1층 아트 타일셋(벽 정면/윗면, 소품 27개, 바닥 ID 1·벽 ID 2), 더미 walk/hurt 애니·시체, 2층 변형 `@f2`(플레이어 크롭 픽셀: 1층 호박 4·녹색 0 → 2층 호박 0·녹색 4), death_right@f2 후 결과 화면. 콘솔 오류·경고 0.
