@@ -43,6 +43,10 @@ export class Enemy extends Mob {
     }
   }
 
+  get personalityValue(): number {
+    return this.def.personalityValue;
+  }
+
   protected currentContactAttack(): number {
     if (this.def.behavior === 'charge' && this.def.charge) {
       return this.chargeState === 'dash' ? this.def.charge.dashAttack : this.def.charge.idleAttack;

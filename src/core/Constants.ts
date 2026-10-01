@@ -71,6 +71,8 @@ export const PROTOTYPE = {
   HURT_FLASH_MS: 80,
   /** 보스 처치 후 결과 화면까지 지연 */
   CLEAR_DELAY_MS: 1200,
+  SLASH_TRAIL_MS: 220,
+  BANNER_MS: 1500,
   /** 투사체 최대 동시 수 */
   PROJECTILE_POOL: 64,
 };

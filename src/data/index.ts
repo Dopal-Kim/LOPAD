@@ -2,7 +2,8 @@ import playerJson from '../../data/player.json';
 import enemiesJson from '../../data/enemies.json';
 import bossesJson from '../../data/bosses.json';
 import stagesJson from '../../data/stages.json';
-import type { BossTable, EnemyTable, PlayerData, StageTable } from './types';
+import weaponsJson from '../../data/weapons.json';
+import type { BossTable, EnemyTable, PlayerData, StageTable, WeaponTable } from './types';
 
 function assertNumber(v: unknown, path: string): void {
   if (typeof v !== 'number' || Number.isNaN(v)) {
@@ -18,11 +19,11 @@ function assertPair(v: unknown, path: string): void {
 
 export function validatePlayer(p: PlayerData): PlayerData {
   for (const [k, v] of Object.entries(p.stats)) assertNumber(v, `player.stats.${k}`);
-  for (const [k, v] of Object.entries(p.attackHitbox)) assertNumber(v, `player.attackHitbox.${k}`);
   assertNumber(p.invulnerableMs, 'player.invulnerableMs');
   assertPair(p.size, 'player.size');
   for (const [k, val] of Object.entries(p.dash)) if (k !== 'invulnerable') assertNumber(val, `player.dash.${k}`);
   for (const [k, val] of Object.entries(p.parry)) assertNumber(val, `player.parry.${k}`);
+  if (typeof p.startWeapon !== 'string') throw new Error('[data] player.startWeapon 없음');
   return p;
 }
 
@@ -32,6 +33,7 @@ export function validateEnemies(t: EnemyTable): EnemyTable {
       assertNumber(e[k], `enemies.${id}.${k}`);
     }
     assertPair(e.size, `enemies.${id}.size`);
+    assertNumber(e.personalityValue, `enemies.${id}.personalityValue`);
     if (e.behavior === 'ranged' && !e.ranged) throw new Error(`[data] enemies.${id}: ranged 파라미터 없음`);
     if (e.behavior === 'charge' && !e.charge) throw new Error(`[data] enemies.${id}: charge 파라미터 없음`);
     if (!['chase', 'ranged', 'charge'].includes(e.behavior)) {
@@ -46,6 +48,7 @@ export function validateBosses(t: BossTable): BossTable {
     assertNumber(b.hp, `bosses.${id}.hp`);
     assertNumber(b.contactAttack, `bosses.${id}.contactAttack`);
     assertNumber(b.contactIntervalMs, `bosses.${id}.contactIntervalMs`);
+    assertNumber(b.personalityValue, `bosses.${id}.personalityValue`);
     assertNumber(b.approachSpeedTiles, `bosses.${id}.approachSpeedTiles`);
     assertPair(b.size, `bosses.${id}.size`);
     if (!Array.isArray(b.phases) || b.phases.length === 0) throw new Error(`[data] bosses.${id}.phases 비어 있음`);
@@ -93,7 +96,25 @@ export function validateStages(t: StageTable, enemies: EnemyTable, bosses: BossT
   return t;
 }
 
+export function validateWeapons(t: WeaponTable): WeaponTable {
+  for (const [id, w] of Object.entries(t)) {
+    assertNumber(w.damageMult, `weapons.${id}.damageMult`);
+    for (const [k, val] of Object.entries(w.hitbox)) assertNumber(val, `weapons.${id}.hitbox.${k}`);
+    assertNumber(w.personality.threshold, `weapons.${id}.personality.threshold`);
+    w.personality.evolutions.forEach((ev, i) => {
+      assertNumber(ev.damageMult, `weapons.${id}.evolutions[${i}].damageMult`);
+      assertNumber(ev.hitboxMult, `weapons.${id}.evolutions[${i}].hitboxMult`);
+      if (ev.effect !== null && ev.effect !== 'slash-trail')
+        throw new Error(`[data] weapons.${id}.evolutions[${i}].effect 알 수 없음`);
+    });
+  }
+  return t;
+}
+
+export const WEAPONS: WeaponTable = validateWeapons(weaponsJson as unknown as WeaponTable);
 export const PLAYER_DATA: PlayerData = validatePlayer(playerJson as unknown as PlayerData);
+if (!WEAPONS[PLAYER_DATA.startWeapon])
+  throw new Error(`[data] player.startWeapon 정의 없음: ${PLAYER_DATA.startWeapon}`);
 export const ENEMIES: EnemyTable = validateEnemies(enemiesJson as unknown as EnemyTable);
 export const BOSSES: BossTable = validateBosses(bossesJson as unknown as BossTable);
 export const STAGES: StageTable = validateStages(stagesJson as unknown as StageTable, ENEMIES, BOSSES);

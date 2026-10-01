@@ -41,6 +41,7 @@
         }
       }
     ],
-    "contactIntervalMs": 800
+    "contactIntervalMs": 800,
+    "personalityValue": 50
   }
 }

@@ -1,4 +1,5 @@
-import { PLAYER_DATA } from '../data';
+import { PLAYER_DATA, WEAPONS } from '../data';
+import { WeaponState } from '../systems/weapons';
 import { SenseTracker } from '../systems/senses';
 
 /** 런 상태의 단일 출처. 런 재시작은 reset()으로. */
@@ -8,6 +9,7 @@ class GameState {
   maxHp = PLAYER_DATA.stats.hp;
   kills = 0;
   readonly senses = new SenseTracker();
+  weapon = new WeaponState(PLAYER_DATA.startWeapon, WEAPONS[PLAYER_DATA.startWeapon]);
   trialsCleared = 0;
   trialsTotal = 0;
   roomId = '';
@@ -25,6 +27,7 @@ class GameState {
     this.maxHp = PLAYER_DATA.stats.hp;
     this.kills = 0;
     this.senses.reset();
+    this.weapon = new WeaponState(PLAYER_DATA.startWeapon, WEAPONS[PLAYER_DATA.startWeapon]); // 사망 시 무기 초기화 (기획 3장)
     this.trialsCleared = 0;
     this.trialsTotal = 0;
     this.roomId = '';

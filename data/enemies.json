@@ -7,7 +7,8 @@
     "attackIntervalMs": 800,
     "behavior": "chase",
     "size": [16, 16],
-    "color": "#d04040"
+    "color": "#d04040",
+    "personalityValue": 8
   },
   "archer": {
     "name": "궁수",
@@ -24,7 +25,8 @@
       "projectileSpeedTiles": 8,
       "projectileSize": 4,
       "projectileLifeMs": 3000
-    }
+    },
+    "personalityValue": 10
   },
   "charger": {
     "name": "돌진병",
@@ -43,6 +45,7 @@
       "cooldownMs": 1200,
       "dashAttack": 15,
       "idleAttack": 6
-    }
+    },
+    "personalityValue": 12
   }
 }

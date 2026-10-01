@@ -12,6 +12,8 @@ export const Events = {
   PLAYER_PARRIED: 'player:parried',
   PLAYER_PARRY_FAILED: 'player:parry-failed',
   SENSE_GAINED: 'sense:gained',
+  PERSONALITY_GAINED: 'weapon:personality',
+  WEAPON_EVOLVED: 'weapon:evolved',
   ENEMY_DAMAGED: 'enemy:damaged',
   ENEMY_DIED: 'enemy:died',
   ROOM_ENTERED: 'room:entered',
@@ -40,3 +42,4 @@ export type EnemyDiedPayload = { id: string; remaining: number };
 export type RoomEnteredPayload = { roomId: string; type: string };
 export type TrialClearedPayload = { roomId: string; cleared: number; total: number };
 export type BossPhasePayload = { phase: number; hp: number; maxHp: number };
+export type WeaponEvolvedPayload = { weapon: string; stage: number; name: string };

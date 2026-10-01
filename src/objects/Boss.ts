@@ -98,6 +98,10 @@ export class Boss extends Mob {
     gameState.bossHp = this.hp;
   }
 
+  get personalityValue(): number {
+    return this.def.personalityValue;
+  }
+
   protected currentContactAttack(): number {
     return this.bossState === 'dash' ? this.phase.dash.attack : this.def.contactAttack;
   }

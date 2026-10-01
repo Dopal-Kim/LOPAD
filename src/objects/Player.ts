@@ -93,7 +93,7 @@ export class Player extends Phaser.GameObjects.Rectangle {
 
     // 공격 (대쉬 직후면 대쉬 공격)
     if (input.attackPressed && canAct && time >= this.attackReadyAt) {
-      this.attackReadyAt = time + PLAYER_DATA.attackHitbox.cooldownMs;
+      this.attackReadyAt = time + gameState.weapon.hitbox.cooldownMs;
       const aim = new Phaser.Math.Vector2(input.aimX - this.x, input.aimY - this.y);
       if (aim.lengthSq() > 0) aim.normalize();
       else aim.copy(this.facing);

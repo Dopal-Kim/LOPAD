@@ -1,0 +1,19 @@
+{
+  "katana": {
+    "name": "사무라이 칼",
+    "damageMult": 1.0,
+    "hitbox": { "width": 24, "height": 16, "reach": 14, "activeMs": 100, "cooldownMs": 350 },
+    "personality": {
+      "threshold": 100,
+      "evolutions": [
+        {
+          "name": "거합 (居合)",
+          "description": "범위가 넓어지고 베기 궤적이 남는다",
+          "damageMult": 1.2,
+          "hitboxMult": 1.4,
+          "effect": "slash-trail"
+        }
+      ]
+    }
+  }
+}

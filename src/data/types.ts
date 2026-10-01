@@ -43,11 +43,12 @@ export interface ParryParams {
 
 export interface PlayerData {
   stats: PlayerStats;
-  attackHitbox: AttackHitbox;
   invulnerableMs: number;
   size: [number, number];
   dash: DashParams;
   parry: ParryParams;
+  /** 시작 무기 id (data/weapons.json). 개성 선택 연출 전까지 고정 */
+  startWeapon: string;
 }
 
 export type EnemyBehavior = 'chase' | 'ranged' | 'charge';
@@ -82,6 +83,8 @@ export interface EnemyDef {
   color: string;
   ranged?: RangedParams;
   charge?: ChargeParams;
+  /** 처치 시 얻는 개성 수치 (임시, 11라운드) */
+  personalityValue: number;
 }
 
 export type EnemyTable = Record<string, EnemyDef>;
@@ -122,6 +125,7 @@ export interface BossDef {
   contactIntervalMs: number;
   approachSpeedTiles: number;
   phases: BossPhase[];
+  personalityValue: number;
 }
 
 export type BossTable = Record<string, BossDef>;
@@ -154,3 +158,26 @@ export interface StageDef {
 }
 
 export type StageTable = Record<string, StageDef>;
+
+export type WeaponEffect = 'slash-trail';
+
+export interface WeaponEvolution {
+  name: string;
+  description: string;
+  damageMult: number;
+  hitboxMult: number;
+  effect: WeaponEffect | null;
+}
+
+export interface WeaponDef {
+  name: string;
+  damageMult: number;
+  hitbox: AttackHitbox;
+  personality: {
+    /** 이 수치에 도달하면 다음 진화, 도달 후 0으로 초기화 (기획 4장) */
+    threshold: number;
+    evolutions: WeaponEvolution[];
+  };
+}
+
+export type WeaponTable = Record<string, WeaponDef>;

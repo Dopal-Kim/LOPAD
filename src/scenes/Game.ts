@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES } from '../core/Constants';
-import { EventBus, Events, type PlayerAttackPayload } from '../core/EventBus';
+import { EventBus, Events, type PlayerAttackPayload, type WeaponEvolvedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { PLAYER_DATA, STAGES } from '../data';
 import type { Mob, ProjectileSpec } from '../objects/Mob';
@@ -83,10 +83,7 @@ export class Game extends Phaser.Scene {
       player: this.player,
       mobs: () => [...(this.mobs.getChildren() as Mob[])],
       hurt: (m, amount) => {
-        if (m.takeDamage(amount)) {
-          gameState.kills += 1;
-          this.director.onMobDied(m);
-        }
+        if (m.takeDamage(amount)) this.onKill(m, 'attack');
       },
       fireAtPlayer: (distPx, speedPx, attack) => {
         const x = this.player.x + distPx;
@@ -100,10 +97,7 @@ export class Game extends Phaser.Scene {
         for (const m of this.mobs.getChildren() as Mob[]) m.stun(this.time.now, ms);
       },
       kill: (m) => {
-        if (m.takeDamage(m.hp)) {
-          gameState.kills += 1;
-          this.director.onMobDied(m);
-        }
+        if (m.takeDamage(m.hp)) this.onKill(m, 'attack');
       },
     });
 
@@ -139,7 +133,7 @@ export class Game extends Phaser.Scene {
       const boss =
         gameState.bossMaxHp > 0 ? `  boss ${gameState.bossHp}/${gameState.bossMaxHp} p${gameState.bossPhase}` : '';
       this.debugText.setText(
-        `[DEBUG] HP ${gameState.hp}/${gameState.maxHp}  ${this.player.action}  sense ${gameState.senses.sense}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
+        `[DEBUG] HP ${gameState.hp}/${gameState.maxHp}  ${this.player.action}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName} ${gameState.weapon.personality}/${gameState.weapon.def.personality.threshold}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
       );
     }
   }
@@ -153,7 +147,8 @@ export class Game extends Phaser.Scene {
   };
 
   private onPlayerAttacked(p: PlayerAttackPayload): void {
-    const hb = PLAYER_DATA.attackHitbox;
+    const weapon = gameState.weapon;
+    const hb = weapon.hitbox;
     const cx = p.x + p.dirX * hb.reach * p.sizeMult;
     const cy = p.y + p.dirY * hb.reach * p.sizeMult;
     // Arcade 바디는 축 정렬 사각형이라 지배적인 축에 맞춰 폭·높이를 바꿔 근사한다.
@@ -161,6 +156,7 @@ export class Game extends Phaser.Scene {
     const w = (horizontal ? hb.width : hb.height) * p.sizeMult;
     const h = (horizontal ? hb.height : hb.width) * p.sizeMult;
     const zone = this.add.rectangle(cx, cy, w, h, COLORS.ATTACK, 0.6).setDepth(DEPTH.ATTACK);
+    if (weapon.evolution?.effect === 'slash-trail') this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
     this.physics.add.existing(zone);
     (zone.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
 
@@ -170,7 +166,7 @@ export class Game extends Phaser.Scene {
       if (hit.has(mob)) return;
       hit.add(mob);
       const stunnedByParry = mob.isStunned(this.time.now);
-      const died = mob.takeDamage(Math.round(PLAYER_DATA.stats.attack * p.damageMult));
+      const died = mob.takeDamage(Math.round(PLAYER_DATA.stats.attack * p.damageMult * weapon.damageMult));
       if (died) this.onKill(mob, stunnedByParry ? 'parry' : p.kind);
     });
 
@@ -182,10 +178,45 @@ export class Game extends Phaser.Scene {
 
   private onKill(mob: Mob, kind: KillKind): void {
     gameState.kills += 1;
+    const weapon = gameState.weapon;
+    const evolved = weapon.gainPersonality(mob.personalityValue);
+    EventBus.emit(Events.PERSONALITY_GAINED, {
+      value: weapon.personality,
+      threshold: weapon.def.personality.threshold,
+    });
+    if (evolved !== null) {
+      const payload: WeaponEvolvedPayload = { weapon: weapon.id, stage: evolved, name: weapon.displayName };
+      EventBus.emit(Events.WEAPON_EVOLVED, payload);
+      this.showEvolutionBanner(weapon.displayName);
+    }
     if (gameState.senses.recordKill(kind)) {
       EventBus.emit(Events.SENSE_GAINED, { kind, sense: gameState.senses.sense });
     }
     this.director.onMobDied(mob);
+  }
+
+  /** 진화 무기의 베기 궤적 (플레이스홀더 연출. 정식 이펙트는 아트 파트) */
+  private drawSlashTrail(cx: number, cy: number, dirX: number, dirY: number, length: number): void {
+    const g = this.add.graphics().setDepth(DEPTH.ATTACK);
+    const angle = Math.atan2(dirY, dirX);
+    g.lineStyle(2, COLORS.ATTACK, 0.9);
+    g.beginPath();
+    g.arc(cx - dirX * length * 0.3, cy - dirY * length * 0.3, length * 0.9, angle - 0.6, angle + 0.6, false);
+    g.strokePath();
+    this.tweens.add({ targets: g, alpha: 0, duration: PROTOTYPE.SLASH_TRAIL_MS, onComplete: () => g.destroy() });
+  }
+
+  /** 개성 변화 알림 (시스템 파트 임시 텍스트. 정식 연출·UI는 UI 파트) */
+  private showEvolutionBanner(name: string): void {
+    const t = this.add
+      .text(this.scale.width / 2, this.scale.height / 2 - 40, `개성 변화: ${name}`, {
+        font: '14px monospace',
+        color: COLORS.GAMEOVER_TEXT,
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(DEPTH.DEBUG);
+    this.tweens.add({ targets: t, alpha: 0, delay: PROTOTYPE.BANNER_MS, duration: 400, onComplete: () => t.destroy() });
   }
 
   private onMobTouch(mob: Mob): void {
