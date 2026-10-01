@@ -1,0 +1,32 @@
+{
+ "image": "iai.png",
+ "action": "iai",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 11,
+ "frameDurationsMs": [
+  50,
+  60,
+  80,
+  100,
+  120,
+  140
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 34
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "player attack 2프레임 시작. 4~6프레임은 남는 궤적(잔월 지속 피해 영역 표시용)"
+}

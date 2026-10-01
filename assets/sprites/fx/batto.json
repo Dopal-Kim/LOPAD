@@ -1,0 +1,30 @@
+{
+ "image": "batto.png",
+ "action": "batto",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 14,
+ "frameDurationsMs": [
+  50,
+  70,
+  80,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 26
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "대쉬 시작 시점, 플레이어 아래(depth) 권장"
+}

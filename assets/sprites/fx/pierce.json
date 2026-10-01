@@ -1,0 +1,29 @@
+{
+ "image": "pierce.png",
+ "action": "pierce",
+ "frameWidth": 16,
+ "frameHeight": 8,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 17,
+ "frameDurationsMs": [
+  60,
+  60,
+  60,
+  60
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 14,
+  "y": 4
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "spawn": "화살 뒤에 붙여 루프 (화살 중심 = 피벗)"
+}

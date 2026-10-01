@@ -1,0 +1,30 @@
+{
+ "image": "gale.png",
+ "action": "gale",
+ "frameWidth": 24,
+ "frameHeight": 24,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 13,
+ "frameDurationsMs": [
+  60,
+  70,
+  80,
+  90
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 12,
+  "y": 22
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "이동·대쉬 중 루프, 플레이어 아래(depth) 권장"
+}

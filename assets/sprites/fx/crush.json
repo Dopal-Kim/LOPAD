@@ -1,0 +1,27 @@
+{
+ "image": "crush.png",
+ "action": "crush",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  50,
+  70,
+  90,
+  110
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 24
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "대검 적중 판정 시작 시점, 플레이어 아래(depth) 권장"
+}

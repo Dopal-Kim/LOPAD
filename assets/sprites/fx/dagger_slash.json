@@ -1,0 +1,30 @@
+{
+ "image": "dagger_slash.png",
+ "action": "slash",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 19,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  60
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 26
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "player attack 2프레임(휘두름) 시작 시점에 재생"
+}

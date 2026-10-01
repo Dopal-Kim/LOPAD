@@ -1,0 +1,28 @@
+{
+ "image": "weight.png",
+ "action": "weight",
+ "frameWidth": 32,
+ "frameHeight": 24,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 11,
+ "frameDurationsMs": [
+  50,
+  80,
+  100,
+  120
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 22
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "pivotNote": "피벗 = 타격 지점 바닥. 히트박스 중심에서 아래로 6px 권장",
+ "spawn": "대검 적중 판정 시작"
+}
