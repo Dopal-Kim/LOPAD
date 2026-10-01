@@ -1,0 +1,854 @@
+{
+  "version": 1,
+  "generatedBy": "parts/sound/work/build.py",
+  "format": {
+    "container": "wav",
+    "bitDepth": 16,
+    "peakDbfs": -6.0,
+    "sfxSampleRate": 44100,
+    "bgmSampleRate": 22050,
+    "channels": 1
+  },
+  "mixing": {
+    "masterDb": 0.0,
+    "sfxBusDb": 0.0,
+    "bgmBusDb": -8.0,
+    "bgmCrossfadeMs": 1200,
+    "bgmBossDuckDb": -3.0,
+    "note": "gainDb 는 버스 기준 상대값(dB). BGM 의 gainDb 는 곡 간 RMS 를 약 -21 dBFS 로 맞추는 보정값. 같은 효과음 20ms 내 중복 재생은 1회로 묶기 권장."
+  },
+  "bgmByFloor": {
+    "1": "bgm/floor_low",
+    "2": "bgm/floor_low",
+    "3": "bgm/floor_mid",
+    "4": "bgm/floor_mid",
+    "5": "bgm/floor_mid",
+    "6": "bgm/floor_high",
+    "7": "bgm/floor_high",
+    "8": "bgm/floor_high"
+  },
+  "bgmByState": {
+    "title": "bgm/title",
+    "boss": "bgm/boss",
+    "emperor": "bgm/emperor"
+  },
+  "entries": [
+    {
+      "id": "sfx/swing_katana",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/swing_katana.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 200,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:katana"
+        ]
+      },
+      "note": "사무라이 칼 휘두름. 얇고 빠른 강철 바람"
+    },
+    {
+      "id": "sfx/swing_greatsword",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/swing_greatsword.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 390,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:greatsword"
+        ]
+      },
+      "note": "대검 휘두름. 무겁고 낮은 바람, 끝에 둔탁한 무게"
+    },
+    {
+      "id": "sfx/swing_dagger",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/swing_dagger.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 110,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:dagger"
+        ]
+      },
+      "note": "단검. 아주 짧고 높은 스침"
+    },
+    {
+      "id": "sfx/bow_shot",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bow_shot.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 300,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:bow"
+        ]
+      },
+      "note": "활 발사. 시위 튕김 + 화살 바람"
+    },
+    {
+      "id": "sfx/bow_aimed",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bow_aimed.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 480,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_SECONDARY",
+        "when": [
+          "kind:aimedshot",
+          "phase:release"
+        ]
+      },
+      "note": "조준 사격 발사. 깊은 시위 + 꿰뚫는 바람"
+    },
+    {
+      "id": "sfx/bow_draw",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bow_draw.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "PLAYER_SECONDARY",
+        "when": [
+          "kind:aimedshot",
+          "phase:start"
+        ]
+      },
+      "note": "조준 사격 시위 당기기(600ms 차지에 맞춤). 삐걱이는 나무·현"
+    },
+    {
+      "id": "sfx/hit_enemy",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_enemy.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 150,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "ENEMY_DAMAGED",
+        "when": []
+      },
+      "note": "적 피격. 날이 박히는 짧은 타격 + 몸통 둔탁음"
+    },
+    {
+      "id": "sfx/hit_enemy_crit",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_enemy_crit.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 250,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "ENEMY_DAMAGED",
+        "when": [
+          "crit:true"
+        ]
+      },
+      "note": "급소 적중. 피격음 위에 밝은 강철 울림"
+    },
+    {
+      "id": "sfx/hit_player",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_player.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 350,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_DAMAGED",
+        "when": []
+      },
+      "note": "주인공 피격. 무거운 충격 + 갑옷 쇳소리 + 저역 울림"
+    },
+    {
+      "id": "sfx/parry",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/parry.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PARRY_SUCCESS",
+        "when": []
+      },
+      "note": "패링 성공. 강철이 맞부딪히는 밝은 울림(오래 남는다)"
+    },
+    {
+      "id": "sfx/guard_hold",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/guard_hold.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 600,
+      "loop": true,
+      "gainDb": -10,
+      "trigger": {
+        "event": "PLAYER_SECONDARY",
+        "when": [
+          "kind:guard",
+          "phase:hold"
+        ]
+      },
+      "note": "가드 유지 루프. 낮은 긴장 울림 + 강철 떨림(누르는 동안 반복)"
+    },
+    {
+      "id": "sfx/guard_push",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/guard_push.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 480,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_SECONDARY",
+        "when": [
+          "kind:guard",
+          "phase:release"
+        ]
+      },
+      "note": "가드 해제 밀치기. 낮은 폭발적 압력 + 바람"
+    },
+    {
+      "id": "sfx/shadowstep",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/shadowstep.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 420,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_SECONDARY",
+        "when": [
+          "kind:shadowstep"
+        ]
+      },
+      "note": "그림자 걸음. 숨 빨려드는 역방향 바람 + 낮은 음이 꺼진다"
+    },
+    {
+      "id": "sfx/dash",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dash.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 230,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "PLAYER_DASH",
+        "when": []
+      },
+      "note": "대쉬. 짧은 상승 바람 + 발 디딤"
+    },
+    {
+      "id": "sfx/pickup_gold",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/pickup_gold.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 270,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "GOLD_CHANGED",
+        "when": [
+          "delta>0"
+        ]
+      },
+      "note": "동전 획득. 작은 금속 두 번 울림"
+    },
+    {
+      "id": "sfx/pickup_potion",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/pickup_potion.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 350,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "ITEM_PICKUP",
+        "when": [
+          "item:potion"
+        ]
+      },
+      "note": "물약 획득. 유리병 맑은 울림 + 액체 흔들림"
+    },
+    {
+      "id": "sfx/potion_use",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/potion_use.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 500,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "PLAYER_HEALED",
+        "when": []
+      },
+      "note": "물약 마심. 병 뚜껑, 꿀꺽 두 번, 짧은 숨"
+    },
+    {
+      "id": "sfx/shop_buy",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/shop_buy.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 450,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "SHOP_PURCHASE",
+        "when": []
+      },
+      "note": "상점 구매. 동전 몇 개 떨어지고 나무 좌판 두드림"
+    },
+    {
+      "id": "sfx/door_close",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/door_close.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 450,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "ROOM_ENTERED",
+        "when": [
+          "type:trial"
+        ]
+      },
+      "note": "시련 방 문 잠김. 두꺼운 나무 문 + 쇠 걸쇠"
+    },
+    {
+      "id": "sfx/door_open",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/door_open.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 700,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "ROOM_CLEARED",
+        "when": []
+      },
+      "note": "방 클리어, 문 열림. 걸쇠 풀림 + 나무 삐걱"
+    },
+    {
+      "id": "sfx/boss_unlock",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/boss_unlock.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1200,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "STORY",
+        "when": [
+          "kind:notice",
+          "bossUnlocked"
+        ]
+      },
+      "note": "본영 문 열림. 쇠사슬 세 번 + 무거운 울림"
+    },
+    {
+      "id": "sfx/exit_open",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/exit_open.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1400,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "STORY",
+        "when": [
+          "kind:notice",
+          "exitOpened"
+        ]
+      },
+      "note": "오르는 길 열림. 돌이 미끄러지는 긴 마찰 + 낮게 울리는 종"
+    },
+    {
+      "id": "sfx/level_enter",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/level_enter.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1800,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "STAGE_STARTED",
+        "when": []
+      },
+      "note": "층 진입. 멀리서 북 한 번, 바람, 낮은 드론이 잠깐 부푼다"
+    },
+    {
+      "id": "sfx/save",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/save.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 550,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "STORY",
+        "when": [
+          "kind:notice",
+          "saved"
+        ]
+      },
+      "note": "기록 저장. 깃펜이 종이를 긁는 짧은 소리 두 번"
+    },
+    {
+      "id": "sfx/menu_move",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/menu_move.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 70,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "UI_MENU_MOVE",
+        "when": []
+      },
+      "note": "메뉴 이동. 나무를 톡 건드리는 작은 소리"
+    },
+    {
+      "id": "sfx/menu_select",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/menu_select.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 150,
+      "loop": false,
+      "gainDb": -6,
+      "trigger": {
+        "event": "UI_MENU_SELECT",
+        "when": []
+      },
+      "note": "메뉴 선택. 도장 찍는 둔탁음 + 짧은 쇠 틱"
+    },
+    {
+      "id": "sfx/menu_cancel",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/menu_cancel.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 140,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "UI_MENU_CANCEL",
+        "when": []
+      },
+      "note": "메뉴 닫기/뒤로. 종이 넘기는 짧은 스침"
+    },
+    {
+      "id": "sfx/evolve",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/evolve.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1600,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "WEAPON_EVOLVED",
+        "when": []
+      },
+      "note": "개성 변화. 낮게 부푸는 드론 위로 종 같은 상승 아르페지오(이질적·신비)"
+    },
+    {
+      "id": "sfx/reinforce",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/reinforce.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "WEAPON_REINFORCED",
+        "when": []
+      },
+      "note": "무기 강화. 모루 위 망치질 한 번 + 쇠 울림"
+    },
+    {
+      "id": "sfx/fate_decided",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/fate_decided.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1300,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "FATE_DECIDED",
+        "when": []
+      },
+      "note": "운명(무기) 결정. 일기장 덮는 둔탁음 + 낮은 종 한 번"
+    },
+    {
+      "id": "sfx/trial_clear",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/trial_clear.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 800,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "STORY",
+        "when": [
+          "kind:notice",
+          "trialClear"
+        ]
+      },
+      "note": "시련 끝. 짧은 북 두 번, 낮은 울림"
+    },
+    {
+      "id": "sfx/boss_start",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss_start.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1600,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_STARTED",
+        "when": []
+      },
+      "note": "보스 등장. 큰 북 한 번 + 낮은 쇠 울림 + 서늘한 고음 한 가닥"
+    },
+    {
+      "id": "sfx/boss_phase",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss_phase.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1300,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_PHASE",
+        "when": []
+      },
+      "note": "보스 국면 전환. 낮은 북 + 불협 쇳소리 부풀기"
+    },
+    {
+      "id": "sfx/boss_telegraph",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss_telegraph.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 650,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_TELEGRAPH",
+        "when": [
+          "attack:dash"
+        ]
+      },
+      "note": "보스 돌진 예고(≈650ms). 낮게 울리며 올라가는 으르렁 + 쇠 긁힘"
+    },
+    {
+      "id": "sfx/boss_fan",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss_fan.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 350,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "attack:fan"
+        ]
+      },
+      "note": "보스 부채꼴 투사체. 짧은 투척음 연속 3개"
+    },
+    {
+      "id": "sfx/boss_die",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss_die.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 2200,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_DIED",
+        "when": []
+      },
+      "note": "군주 쓰러짐. 긴 낮은 추락음 + 금속 조각 흩어짐 + 정적"
+    },
+    {
+      "id": "sfx/enemy_death",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_death.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 450,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "ENEMY_DIED",
+        "when": []
+      },
+      "note": "일반 적 사망. 짧은 신음 비슷한 노이즈 + 몸이 떨어지는 둔탁음"
+    },
+    {
+      "id": "sfx/player_death",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/player_death.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 2400,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "RUN_ENDED",
+        "when": [
+          "reason:death"
+        ]
+      },
+      "note": "주인공 사망. 느리게 꺼지는 저음, 멀어지는 심장 박동 두 번, 바람"
+    },
+    {
+      "id": "sfx/charger_telegraph",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charger_telegraph.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "ENEMY_TELEGRAPH",
+        "when": [
+          "enemy:charger"
+        ]
+      },
+      "note": "결사병 돌진 예고(600ms). 갑옷 덜그럭 + 빨라지는 발 디딤"
+    },
+    {
+      "id": "sfx/charger_dash",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charger_dash.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 430,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:charger"
+        ]
+      },
+      "note": "결사병 돌진. 무거운 바람 + 갑옷 소리"
+    },
+    {
+      "id": "sfx/archer_shot",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/archer_shot.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:archer"
+        ]
+      },
+      "note": "사수 화승총 발사. 날카로운 격발 + 낮은 폭음 + 화약 연기 쉿"
+    },
+    {
+      "id": "sfx/enemy_hurt",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_hurt.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 100,
+      "loop": false,
+      "gainDb": -6,
+      "trigger": {
+        "event": "ENEMY_DAMAGED",
+        "when": [
+          "aux:true"
+        ]
+      },
+      "note": "적이 맞고 내는 짧은 숨(피격음과 겹쳐 쓰는 보조음)"
+    },
+    {
+      "id": "bgm/title",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/title.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationMs": 32000,
+      "loop": true,
+      "gainDb": 1.0,
+      "floors": [],
+      "note": "타이틀. 어둡고 느린 드론, 멀리서 북, 드문 종. A 단조"
+    },
+    {
+      "id": "bgm/floor_low",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/floor_low.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationMs": 30000,
+      "loop": true,
+      "gainDb": -0.5,
+      "floors": [
+        1,
+        2
+      ],
+      "note": "1~2층(술독·도박장). 저음 드론 위에 취한 류트 아르페지오와 손북. A 단조, 96 BPM"
+    },
+    {
+      "id": "bgm/floor_mid",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/floor_mid.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationMs": 28800,
+      "loop": true,
+      "gainDb": 3.5,
+      "floors": [
+        3,
+        4,
+        5
+      ],
+      "note": "3~5층(야전병원·용병·첩보). 행진 스네어, 낮은 북, 반음 긴장 드론, 뿔나팔 스탭, 멀리 포성. D 단조, 100 BPM"
+    },
+    {
+      "id": "bgm/floor_high",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/floor_high.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationMs": 32000,
+      "loop": true,
+      "gainDb": -2.5,
+      "floors": [
+        6,
+        7,
+        8
+      ],
+      "note": "6~8층(연회·근위·수도). 정적, 오르간 풍 지속 화음, 아주 희미한 고음 반짝임. D 단조"
+    },
+    {
+      "id": "bgm/boss",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/boss.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationMs": 27429,
+      "loop": true,
+      "gainDb": 1.5,
+      "floors": [],
+      "note": "보스전. 140 BPM, 낮은 북 연타, 톱니 오스티나토(E), 삼전음 스탭, 쇠 타격. E 단조"
+    },
+    {
+      "id": "bgm/emperor",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/emperor.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationMs": 32000,
+      "loop": true,
+      "gainDb": -3.5,
+      "floors": [],
+      "note": "황제 '평'. 조용하고 정연한 단선율(플루트 풍), 희미한 패드, 시계처럼 규칙적인 틱. D 장조, 60 BPM"
+    }
+  ]
+}
