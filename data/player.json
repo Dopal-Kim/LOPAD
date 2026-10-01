@@ -1,0 +1,15 @@
+{
+  "stats": {
+    "hp": 100,
+    "attack": 5,
+    "speedTiles": 6,
+    "crit": 0,
+    "defense": 3,
+    "personality": 0,
+    "critDamage": 0,
+    "sense": 0
+  },
+  "attackHitbox": { "width": 24, "height": 16, "reach": 14, "activeMs": 100, "cooldownMs": 350 },
+  "invulnerableMs": 500,
+  "size": [16, 16]
+}

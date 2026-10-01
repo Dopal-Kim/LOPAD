@@ -21,7 +21,7 @@ LOPAD는 PC 웹용 2D 탑다운 로그라이크 액션 게임이다. 기술 스�
 | 파트 | 폴더 | 역할 | 소유 경로 |
 |---|---|---|---|
 | 총괄 프로듀서 | `parts/producer/` | 결정 기록·누락 점검·인터뷰 준비. **결정권은 도영 님** (공동 운영) | `parts/producer/**` |
-| 게임 시스템 | `parts/system/` | 전투·로그라이크 루프·무기 개성·맵 생성·데이터 등 게임 코드 | `parts/system/**`, `src/**` (단, `src/ui/**` 제외), `data/**`, 빌드 설정 |
+| 게임 시스템 | `parts/system/` | 전투·로그라이크 루프·무기 개성·맵 생성·데이터 등 게임 코드 | `parts/system/**`, `src/**` (단, `src/ui/**` 제외), `data/**`, `public/**`, 빌드 설정(`package.json`, `vite.config.ts`, `tsconfig.json`, `index.html`) |
 | 게임 UI | `parts/ui/` | 화면 목록·HUD·조작·메뉴 설계와 구현 | `parts/ui/**`, `src/ui/**`, `assets/ui/**` |
 | 아트 디자인 | `parts/art/` | 픽셀아트 스프라이트·타일·팔레트·애니메이션 | `parts/art/**`, `assets/sprites/**`, `assets/tiles/**` |
 | 음향 | `parts/sound/` | BGM·효과음 설계와 제작 | `parts/sound/**`, `assets/audio/**` |

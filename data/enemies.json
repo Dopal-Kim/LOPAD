@@ -1,0 +1,12 @@
+{
+  "dummy": {
+    "name": "더미",
+    "hp": 20,
+    "attack": 10,
+    "speedTiles": 3,
+    "attackIntervalMs": 800,
+    "behavior": "chase",
+    "size": [16, 16],
+    "color": "#d04040"
+  }
+}
