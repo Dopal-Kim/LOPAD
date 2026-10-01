@@ -1,0 +1,63 @@
+{
+  "choices": 3,
+  "maxLevel": 3,
+  "items": [
+    {
+      "id": "lifesteal",
+      "name": "흡혈",
+      "rarity": "common",
+      "description": "처치 시 HP +2",
+      "effects": { "healOnKill": 2 }
+    },
+    {
+      "id": "ironskin",
+      "name": "강철 피부",
+      "rarity": "common",
+      "description": "방어력 +2",
+      "effects": { "defense": 2 }
+    },
+    {
+      "id": "sprint",
+      "name": "질주",
+      "rarity": "common",
+      "description": "이동 속도 +10%",
+      "effects": { "moveSpeedMult": 0.1 }
+    },
+    {
+      "id": "ferocity",
+      "name": "맹공",
+      "rarity": "rare",
+      "description": "공격력 +15%",
+      "effects": { "attackMult": 0.15 }
+    },
+    {
+      "id": "lastStand",
+      "name": "역전의 일격",
+      "rarity": "rare",
+      "description": "HP 30% 이하일 때 공격력 +30%",
+      "effects": { "lowHpAttackMult": 0.3 },
+      "lowHpThreshold": 0.3
+    },
+    {
+      "id": "ironParry",
+      "name": "철벽 패링",
+      "rarity": "epic",
+      "description": "패링 창 +50%, 반사 데미지 +100%",
+      "effects": { "parryWindowMult": 0.5, "reflectMult": 1.0 }
+    },
+    {
+      "id": "afterimage",
+      "name": "잔상",
+      "rarity": "epic",
+      "description": "대쉬 쿨타임 -30%, 대쉬 공격 +25%",
+      "effects": { "dashCooldownMult": -0.3, "dashAttackMult": 0.25 }
+    },
+    {
+      "id": "awakening",
+      "name": "개성 각성",
+      "rarity": "legendary",
+      "description": "개성 획득 2배",
+      "effects": { "personalityMult": 1.0 }
+    }
+  ]
+}

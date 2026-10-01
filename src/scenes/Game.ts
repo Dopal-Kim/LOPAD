@@ -16,6 +16,7 @@ import type { KillKind } from '../systems/senses';
 import { applyStatReward, findReward, rollCrit, rollGold, shopPrice } from '../systems/economy';
 import { TextMenu } from '../systems/TextMenu';
 import { metaStore, recordRun } from '../systems/meta';
+import { PASSIVES } from '../systems/passives';
 import type { StatKey } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
 import { exposeDebug } from '../debug';
@@ -163,7 +164,9 @@ export class Game extends Phaser.Scene {
         rewardPending: gameState.rewardPending,
         shopOpen: this.shopOpen,
         menuOpen: this.menu.isOpen,
+        passives: { ...gameState.passives.owned },
       }),
+      addPassive: (id: string) => gameState.passives.add(id),
       pickups: () =>
         (this.pickups.getChildren() as Pickup[])
           .filter((p) => p.active)
@@ -220,7 +223,7 @@ export class Game extends Phaser.Scene {
       const boss =
         gameState.bossMaxHp > 0 ? `  boss ${gameState.bossHp}/${gameState.bossMaxHp} p${gameState.bossPhase}` : '';
       this.debugText.setText(
-        `[DEBUG] ${gameState.stage.name} save ${gameState.savesLeft}  HP ${gameState.hp}/${gameState.maxHp}  G ${gameState.gold}  potion ${gameState.potions}  pts ${gameState.pointsPending}  atk ${gameState.attack} def ${gameState.defense} crit ${gameState.crit}%  ${this.player.action}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName} ${gameState.weapon.personality}/${gameState.weapon.def.personality.threshold}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
+        `[DEBUG] ${gameState.stage.name} save ${gameState.savesLeft}  P[${gameState.passives.summary() || '-'}]  HP ${gameState.hp}/${gameState.maxHp}  G ${gameState.gold}  potion ${gameState.potions}  pts ${gameState.pointsPending}  atk ${gameState.attack} def ${gameState.defense} crit ${gameState.crit}%  ${this.player.action}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName} ${gameState.weapon.personality}/${gameState.weapon.def.personality.threshold}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
       );
     }
   }
@@ -248,10 +251,15 @@ export class Game extends Phaser.Scene {
     }
   }
 
-  /** 공격력 × 배율 × 치명타. 치명타 확률은 기본 + 보너스 + 무기 */
+  /** 공격력 × 배율 × 치명타 × 패시브. 치명타 확률은 기본 + 보너스 + 무기 */
   private rollDamage(mult: number): { dmg: number; crit: boolean } {
     const crit = rollCrit(gameState.crit, this.rng);
-    const dmg = Math.round(gameState.attack * mult * gameState.weapon.damageMult * (crit ? ECONOMY.critDamageMult : 1));
+    const P = gameState.passives;
+    const lowHp = P.lowHpThreshold() > 0 && gameState.hp / gameState.maxHp <= P.lowHpThreshold();
+    const passiveMult = 1 + P.total('attackMult') + (lowHp ? P.total('lowHpAttackMult') : 0);
+    const dmg = Math.round(
+      gameState.attack * mult * gameState.weapon.damageMult * passiveMult * (crit ? ECONOMY.critDamageMult : 1),
+    );
     return { dmg, crit };
   }
 
@@ -322,7 +330,11 @@ export class Game extends Phaser.Scene {
     gameState.kills += 1;
     this.dropLoot(mob);
     const weapon = gameState.weapon;
-    const evolved = weapon.gainPersonality(mob.personalityValue);
+    const evolved = weapon.gainPersonality(
+      Math.round(mob.personalityValue * (1 + gameState.passives.total('personalityMult'))),
+    );
+    const lifesteal = gameState.passives.total('healOnKill');
+    if (lifesteal > 0) this.player.heal(lifesteal);
     EventBus.emit(Events.PERSONALITY_GAINED, {
       value: weapon.personality,
       threshold: weapon.def.personality.threshold,
@@ -458,8 +470,9 @@ export class Game extends Phaser.Scene {
       this.world.placeShop(room);
       gameState.exitOpen = true;
     };
-    if (gameState.pointsPending > 0) this.openStatChooser(finish);
-    else finish();
+    const passiveStep = () => this.openPassiveChooser(finish);
+    if (gameState.pointsPending > 0) this.openStatChooser(passiveStep);
+    else passiveStep();
   }
 
   /** 능력치 포인트를 모두 쓸 때까지 선택 메뉴를 보여준다 (임시 텍스트) */
@@ -477,6 +490,27 @@ export class Game extends Phaser.Scene {
       });
     };
     show();
+  }
+
+  /** 보스 보상 패시브 3지선다 (임시 텍스트) */
+  private openPassiveChooser(onDone: () => void): void {
+    const choices = gameState.passives.rollChoices(this.rng, ECONOMY.rarity, PASSIVES.choices);
+    if (choices.length === 0) {
+      onDone();
+      return;
+    }
+    const lines = choices.map((p, i) => ({
+      key: String(i + 1),
+      label: `[${p.rarity}] ${p.name}${gameState.passives.level(p.id) > 0 ? ` (Lv${gameState.passives.level(p.id)} → ${gameState.passives.level(p.id) + 1})` : ''} — ${p.description}`,
+      enabled: true,
+    }));
+    this.menu.open('보스 보상: 패시브 선택', lines, (key) => {
+      const pick = choices[Number(key) - 1];
+      gameState.passives.add(pick.id);
+      EventBus.emit(Events.PASSIVE_GAINED, { id: pick.id, level: gameState.passives.level(pick.id) });
+      this.menu.close();
+      onDone();
+    });
   }
 
   private applyReward(id: StatKey): void {
@@ -571,7 +605,7 @@ export class Game extends Phaser.Scene {
   private onProjectileHit(pr: Projectile): void {
     if (!pr.active || pr.reflected) return;
     const result = this.player.takeHit(pr.attack, this.time.now);
-    if (result === 'parried') pr.reflect(PLAYER_DATA.parry.reflectDamageMult);
+    if (result === 'parried') pr.reflect(PLAYER_DATA.parry.reflectDamageMult + gameState.passives.total('reflectMult'));
     else pr.deactivate();
   }
 

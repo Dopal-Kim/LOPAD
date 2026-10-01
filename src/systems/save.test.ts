@@ -20,6 +20,7 @@ const sample: SaveData = {
   potions: 2,
   pointsPending: 0,
   bonus: { attack: 1, maxHp: 10, defense: 0, crit: 3 },
+  passives: { sprint: 1 },
   savedAt: 0,
 };
 

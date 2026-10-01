@@ -35,7 +35,7 @@ export class Player extends Phaser.GameObjects.Rectangle {
   }
 
   get speedPx(): number {
-    return PLAYER_DATA.stats.speedTiles * TILE;
+    return PLAYER_DATA.stats.speedTiles * TILE * (1 + gameState.passives.total('moveSpeedMult'));
   }
 
   get isParrying(): boolean {
@@ -81,7 +81,8 @@ export class Player extends Phaser.GameObjects.Rectangle {
       const d = dir.lengthSq() > 0 ? dir : this.facing;
       const speed = (D.distanceTiles * TILE) / (D.durationMs / 1000);
       this.dashVel.set(d.x * speed, d.y * speed);
-      this.dashReadyAt = time + D.cooldownMs * gameState.meta.dashCooldownMult;
+      this.dashReadyAt =
+        time + D.cooldownMs * gameState.meta.dashCooldownMult * (1 + gameState.passives.total('dashCooldownMult'));
       if (D.invulnerable) this.invulnerableUntil = Math.max(this.invulnerableUntil, time + D.durationMs);
       this.setAction('dash', time + D.durationMs);
       EventBus.emit(Events.PLAYER_DASHED, { dirX: d.x, dirY: d.y });
@@ -90,7 +91,7 @@ export class Player extends Phaser.GameObjects.Rectangle {
 
     // 패링
     if (input.parryPressed && canAct) {
-      this.setAction('parry', time + P.windowMs);
+      this.setAction('parry', time + P.windowMs * (1 + gameState.passives.total('parryWindowMult')));
       return;
     }
 
@@ -107,7 +108,7 @@ export class Player extends Phaser.GameObjects.Rectangle {
         y: this.y,
         dirX: aim.x,
         dirY: aim.y,
-        damageMult: isDashAttack ? D.attackDamageMult : 1,
+        damageMult: isDashAttack ? D.attackDamageMult * (1 + gameState.passives.total('dashAttackMult')) : 1,
         sizeMult: isDashAttack ? D.attackSizeMult : 1,
         kind: isDashAttack ? 'dashAttack' : 'attack',
       };

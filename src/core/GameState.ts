@@ -6,6 +6,7 @@ import { SenseTracker } from '../systems/senses';
 import { WeaponState } from '../systems/weapons';
 import { EMPTY_BONUS, type StatBonus } from '../systems/economy';
 import { metaBonus, metaStore, type MetaBonus } from '../systems/meta';
+import { PassiveSet } from '../systems/passives';
 
 /** 런 상태의 단일 출처. 런 시작은 startRun(), 층 전환은 nextStage(). */
 class GameState {
@@ -21,6 +22,7 @@ class GameState {
   /** 아직 쓰지 않은 능력치 포인트 */
   pointsPending = 0;
   bonus: StatBonus = { ...EMPTY_BONUS };
+  passives = new PassiveSet();
   /** 보상 선택 중 (출구는 끝난 뒤 열림) */
   rewardPending = false;
   /** 런 시작 시 적용된 영구 강화 */
@@ -77,6 +79,7 @@ class GameState {
     this.potions = 0;
     this.pointsPending = 0;
     this.bonus = { ...EMPTY_BONUS };
+    this.passives = new PassiveSet();
     this.weapon = new WeaponState(wid, WEAPONS[wid]); // 사망 시 무기 초기화 (기획 3장)
     this.resetStage();
   }
@@ -109,7 +112,7 @@ class GameState {
   }
 
   get defense(): number {
-    return PLAYER_DATA.stats.defense + this.bonus.defense + this.meta.defense;
+    return PLAYER_DATA.stats.defense + this.bonus.defense + this.meta.defense + this.passives.total('defense');
   }
 
   /** 1부터 세는 도달 층 */
@@ -136,6 +139,7 @@ class GameState {
       potions: this.potions,
       pointsPending: this.pointsPending,
       bonus: { ...this.bonus },
+      passives: { ...this.passives.owned },
       savedAt: Date.now(),
     };
   }
@@ -155,6 +159,7 @@ class GameState {
     this.potions = d.potions;
     this.pointsPending = d.pointsPending;
     this.bonus = { ...EMPTY_BONUS, ...d.bonus };
+    this.passives.restore(d.passives ?? {});
   }
 }
 

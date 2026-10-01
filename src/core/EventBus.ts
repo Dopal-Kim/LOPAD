@@ -27,6 +27,7 @@ export const Events = {
   GOLD_CHANGED: 'gold:changed',
   POTION_CHANGED: 'potion:changed',
   STAT_REWARD: 'stat:reward',
+  PASSIVE_GAINED: 'passive:gained',
   SHOP_OPENED: 'shop:opened',
   SHOP_CLOSED: 'shop:closed',
   SHOP_BOUGHT: 'shop:bought',

@@ -18,6 +18,7 @@ export interface DebugApi {
   lastAttack: () => unknown;
   shots: () => unknown[];
   meta: () => unknown;
+  addPassive: (id: string) => boolean;
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   /** 플레이어를 향해 투사체 1발 (거리 px, 속도 px/s, 공격력) */
@@ -48,6 +49,7 @@ export function exposeDebug(api: {
   lastAttack: () => unknown;
   shots: () => unknown[];
   meta: () => unknown;
+  addPassive: (id: string) => boolean;
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   camera: () => { scrollX: number; scrollY: number; zoom: number };
@@ -70,6 +72,7 @@ export function exposeDebug(api: {
     save: () => api.save(),
     lastAttack: () => api.lastAttack(),
     meta: () => api.meta(),
+    addPassive: (id) => api.addPassive(id),
     shots: () => api.shots(),
     economy: () => api.economy(),
     pickups: () => api.pickups(),
