@@ -1,4 +1,5 @@
 import { gameState } from '../core/GameState';
+import { uiCommands } from '../contract/ui';
 import type { Mob } from '../objects/Mob';
 import type { RoomDirector } from '../systems/RoomDirector';
 import type { TileWorld } from '../world/TileWorld';
@@ -19,6 +20,7 @@ export interface DebugApi {
   shots: () => unknown[];
   meta: () => unknown;
   addPassive: (id: string) => boolean;
+  ui: () => { pause: () => void; resume: () => void; snapshot: () => unknown; scenes: () => string[] };
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   /** 플레이어를 향해 투사체 1발 (거리 px, 속도 px/s, 공격력) */
@@ -50,6 +52,7 @@ export function exposeDebug(api: {
   shots: () => unknown[];
   meta: () => unknown;
   addPassive: (id: string) => boolean;
+  scenes: () => string[];
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   camera: () => { scrollX: number; scrollY: number; zoom: number };
@@ -73,6 +76,12 @@ export function exposeDebug(api: {
     lastAttack: () => api.lastAttack(),
     meta: () => api.meta(),
     addPassive: (id) => api.addPassive(id),
+    ui: () => ({
+      pause: () => uiCommands.pause(),
+      resume: () => uiCommands.resume(),
+      snapshot: () => uiCommands.getUiSnapshot(),
+      scenes: () => api.scenes(),
+    }),
     shots: () => api.shots(),
     economy: () => api.economy(),
     pickups: () => api.pickups(),

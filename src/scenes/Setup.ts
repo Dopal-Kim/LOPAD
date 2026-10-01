@@ -5,6 +5,8 @@ import type { Affinity } from '../data/types';
 import { chooseWeapon, rhythmFeatures, strokeFeatures, type RhythmSample, type Stroke } from '../systems/personality';
 import { META_CONFIG, buyUpgrade, metaStore, upgradeCost } from '../systems/meta';
 import { TextMenu } from '../systems/TextMenu';
+import { setMenuSelect } from '../contract/host';
+import { UI_EVENTS, __system } from '../contract/ui';
 
 type Phase = 'meta' | 'strokes' | 'rhythm' | 'fate';
 
@@ -59,6 +61,11 @@ export class Setup extends Phaser.Scene {
       this.input.off('pointerup', this.onPointerUp, this);
     });
     this.menu = new TextMenu(this);
+    setMenuSelect((id, key) => {
+      if (id === 'meta' && key === 'enter') this.beginStrokes();
+      else this.menu.select(key, id);
+    });
+    this.events.once('shutdown', () => setMenuSelect(null));
     this.openMetaMenu();
   }
 
@@ -82,6 +89,7 @@ export class Setup extends Phaser.Scene {
       })
       .join('  ·  ');
     this.menu.open(
+      'meta',
       `영혼 ${meta.souls}   (런 ${meta.runs}회, 클리어 ${meta.clears}회, 최고 ${meta.bestFloor}층)`,
       lines,
       (key) => {
@@ -169,6 +177,7 @@ export class Setup extends Phaser.Scene {
     this.features = f;
     const { id } = chooseWeapon(f, WEAPONS, PERSONALITY);
     const w = WEAPONS[id];
+    __system.emit(UI_EVENTS.FATE_DECIDED, { weaponName: w.name, features: f });
     this.label.setText(
       `운명이 정해졌습니다\n\n${w.name}\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)} · 이동 ${f.keyMove.toFixed(2)} 공격 ${f.keyAttack.toFixed(2)} 대쉬 ${f.keyDash.toFixed(2)})`,
     );

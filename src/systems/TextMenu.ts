@@ -1,28 +1,40 @@
 import Phaser from 'phaser';
 import { COLORS, DEPTH } from '../core/Constants';
+import { UI_EVENTS, __system, type UiMenu, type UiMenuId, type UiMenuLine } from '../contract/ui';
+import { UI_SCENES } from '../ui';
 
-export interface MenuLine {
-  key: string; // '1'..'9'
-  label: string;
-  enabled: boolean;
-}
+export type MenuLine = UiMenuLine;
 
 /**
- * 시스템 파트 임시 텍스트 메뉴 (숫자 키 선택). HUD/정식 메뉴는 UI 파트 소유이며
- * 이 클래스는 보상·상점 흐름을 검증하기 위한 플레이스홀더다.
+ * 메뉴 브로커. UI 렌더러가 등록돼 있으면 계약 이벤트(MENU_OPEN/CLOSE)로 넘기고,
+ * 아니면 시스템 임시 텍스트로 그린다. 선택은 숫자 키 또는 uiCommands.select 로 들어온다.
  */
 export class TextMenu {
   private text?: Phaser.GameObjects.Text;
   private onKey?: (e: KeyboardEvent) => void;
+  private current?: { menu: UiMenu; onSelect: (key: string) => void };
 
   constructor(private scene: Phaser.Scene) {}
 
   get isOpen(): boolean {
-    return Boolean(this.text);
+    return Boolean(this.current);
   }
 
-  open(title: string, lines: MenuLine[], onSelect: (key: string) => void, footer = ''): void {
+  get menu(): UiMenu | null {
+    return this.current?.menu ?? null;
+  }
+
+  open(id: UiMenuId, title: string, lines: MenuLine[], onSelect: (key: string) => void, footer = ''): void {
     this.close();
+    const menu: UiMenu = { id, title, footer: footer || undefined, lines };
+    this.current = { menu, onSelect };
+    if (__system.rendererRegistered()) {
+      // UI 메뉴 씬이 없으면 띄우고(계약 §5: 씬 키만 사용), 있으면 MENU_OPEN 으로 갱신한다
+      const mgr = this.scene.scene.manager;
+      if (mgr.keys[UI_SCENES.MENU] && !mgr.isActive(UI_SCENES.MENU)) mgr.start(UI_SCENES.MENU, menu);
+      __system.emit(UI_EVENTS.MENU_OPEN, menu);
+      return;
+    }
     const body = lines.map((l) => `[${l.key}] ${l.label}${l.enabled ? '' : '  (불가)'}`).join('\n');
     this.text = this.scene.add
       .text(
@@ -40,17 +52,25 @@ export class TextMenu {
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(DEPTH.DEBUG);
-    this.onKey = (e: KeyboardEvent) => {
-      const line = lines.find((l) => l.key === e.key);
-      if (line && line.enabled) onSelect(line.key);
-    };
+    this.onKey = (e: KeyboardEvent) => this.select(e.key);
     this.scene.input.keyboard?.on('keydown', this.onKey);
   }
 
+  /** 계약 명령 또는 숫자 키에서 호출 */
+  select(key: string, menuId?: UiMenuId): void {
+    if (!this.current) return;
+    if (menuId && this.current.menu.id !== menuId) return;
+    const line = this.current.menu.lines.find((l) => l.key === key);
+    if (line && line.enabled) this.current.onSelect(key);
+  }
+
   close(): void {
+    const was = this.current;
     if (this.onKey) this.scene.input.keyboard?.off('keydown', this.onKey);
     this.onKey = undefined;
     this.text?.destroy();
     this.text = undefined;
+    this.current = undefined;
+    if (was) __system.emit(UI_EVENTS.MENU_CLOSE, { id: was.menu.id });
   }
 }

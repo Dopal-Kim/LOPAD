@@ -22,7 +22,7 @@ LOPAD는 PC 웹용 2D 탑다운 로그라이크 액션 게임이다. 기술 스�
 |---|---|---|---|
 | 총괄 프로듀서 | `parts/producer/` | 결정 기록·누락 점검·인터뷰 준비. **결정권은 도영 님** (공동 운영) | `parts/producer/**` |
 | 게임 시스템 | `parts/system/` | 전투·로그라이크 루프·무기 개성·맵 생성·데이터 등 게임 코드 | `parts/system/**`, `src/**` (단, `src/ui/**` 제외), `data/**`, `public/**`, 빌드 설정(`package.json`, `vite.config.ts`, `tsconfig.json`, `index.html`) |
-| 게임 UI | `parts/ui/` | 화면 목록·HUD·조작·메뉴 설계와 구현 | `parts/ui/**`, `src/ui/**`, `assets/ui/**` |
+| 게임 UI | `parts/ui/` | 화면 목록·HUD·조작·메뉴 설계와 구현 | `parts/ui/**`, `src/ui/**`, `assets/ui/**` (시스템과의 경계는 `parts/producer/contracts/ui-system-interface.md`, 코드상 `src/contract/ui.ts`) |
 | 아트 디자인 | `parts/art/` | 픽셀아트 스프라이트·타일·팔레트·애니메이션 | `parts/art/**`, `assets/sprites/**`, `assets/tiles/**` |
 | 음향 | `parts/sound/` | BGM·효과음 설계와 제작 | `parts/sound/**`, `assets/audio/**` |
 | 스토리 | `parts/story/` | 세계관·캐릭터·대사·스테이지 서사 | `parts/story/**` |
@@ -36,6 +36,7 @@ LOPAD는 PC 웹용 2D 탑다운 로그라이크 액션 게임이다. 기술 스�
 3. 도영 님이 허가하면 `parts/producer/decisions/cross-references.md`에 **승인 항목**(요청 파트, 대상 파트, 대상 경로, 범위, 날짜)을 먼저 기록하고, 기록된 범위 안에서만 참조한다.
 4. 두 파트가 함께 작업해야 하는 경우(예: UI 파트가 시스템 파트의 이벤트를 구독)도 같은 절차를 거친다. 공유가 필요한 인터페이스는 승인 후 `parts/producer/contracts/`에 계약 문서로 두고, 양쪽은 **계약 문서만** 참조한다.
 5. 승인 없는 교차 참조가 발견되면 그 작업은 되돌리고 도영 님에게 보고한다.
+6. 코드 경계는 ESLint `no-restricted-imports` 로도 강제한다 (`eslint.config.js`). 승인된 계약 목록은 `parts/producer/decisions/cross-references.md`.
 
 ### 모든 파트가 읽을 수 있는 공개 자료
 - 이 파일 (`CLAUDE.md`)

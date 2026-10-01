@@ -4,6 +4,7 @@ import { TileId } from '../systems/mapgen';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { WEAPONS } from '../data';
 import { metaStore } from '../systems/meta';
+import { UI_SCENES } from '../ui';
 
 /** 플레이스홀더 타일 텍스처를 코드로 만든다. 아트 파트 타일셋이 계약으로 들어오면 여기서 로드로 교체. */
 export class Preloader extends Phaser.Scene {
@@ -22,6 +23,8 @@ export class Preloader extends Phaser.Scene {
     if (params.has('resetmeta')) metaStore.clear();
     const forcedWeapon = params.get('weapon');
     if (forcedWeapon && WEAPONS[forcedWeapon]) return [SCENES.GAME, { mode: 'new', weapon: forcedWeapon }];
+    const skipTitle = params.has('new') || params.has('seed') || params.has('notitle');
+    if (!skipTitle && this.scene.manager.keys[UI_SCENES.TITLE]) return [UI_SCENES.TITLE];
     const hasSave = !params.has('new') && !params.has('seed') && new SaveSlot(browserStorage()).read() !== null;
     if (hasSave) return [SCENES.GAME];
     return [SCENES.SETUP];

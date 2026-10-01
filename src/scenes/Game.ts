@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES, TILE } from '../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload, type WeaponEvolvedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
-import { ECONOMY, PLAYER_DATA } from '../data';
+import { BOSSES, ECONOMY, PLAYER_DATA } from '../data';
 import type { Mob, ProjectileSpec } from '../objects/Mob';
 import { Player } from '../objects/Player';
 import { Projectile } from '../objects/Projectile';
@@ -17,6 +17,10 @@ import { applyStatReward, findReward, rollCrit, rollGold, shopPrice } from '../s
 import { TextMenu } from '../systems/TextMenu';
 import { metaStore, recordRun } from '../systems/meta';
 import { PASSIVES } from '../systems/passives';
+import { UI_EVENTS, __system } from '../contract/ui';
+import { buildSnapshot } from '../contract/snapshot';
+import { setMenuSelect, setSnapshotProvider } from '../contract/host';
+import { UI_SCENES } from '../ui';
 import type { StatKey } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
 import { exposeDebug } from '../debug';
@@ -45,6 +49,10 @@ export class Game extends Phaser.Scene {
   private rapidCount = 0;
   private readonly saveSlot = new SaveSlot(browserStorage());
   private transitioning = false;
+  private visitedRooms = new Set<string>();
+  private clearedRooms = new Set<string>();
+  private layout?: ReturnType<typeof generateFloor>;
+  private bossName: string | null = null;
   private readonly playerVec = new Phaser.Math.Vector2();
 
   constructor() {
@@ -65,6 +73,10 @@ export class Game extends Phaser.Scene {
 
     // 월드
     const layout = generateFloor(gameState.floorSeed, stage.layout);
+    this.layout = layout;
+    this.visitedRooms = new Set(['start']);
+    this.clearedRooms = new Set();
+    this.bossName = null;
     this.world = new TileWorld(this, layout);
     this.physics.world.setBounds(0, 0, this.world.widthPx, this.world.heightPx);
 
@@ -111,13 +123,19 @@ export class Game extends Phaser.Scene {
       onRunCleared: () => {
         this.saveSlot.clear();
         this.settleRun(true);
-        this.time.delayedCall(PROTOTYPE.CLEAR_DELAY_MS, () => this.scene.start(SCENES.GAME_OVER, { cleared: true }));
+        this.time.delayedCall(PROTOTYPE.CLEAR_DELAY_MS, () => this.endRunScene(true));
       },
       onStageCleared: (room) => this.beginStageReward(room),
       isLastStage: () => gameState.isLastStage,
     });
 
     this.inputSystem = new InputSystem(this);
+
+    // 계약: 스냅샷 제공, 메뉴 선택 라우팅, HUD 병렬 실행
+    setSnapshotProvider(() => this.snapshot());
+    setMenuSelect((id, key) => this.menu.select(key, id));
+    if (this.scene.manager.keys[UI_SCENES.HUD] && !this.scene.isActive(UI_SCENES.HUD)) this.scene.launch(UI_SCENES.HUD);
+    __system.emit(UI_EVENTS.STAGE_STARTED, { stageIndex: gameState.stageIndex, stageName: gameState.stage.name });
 
     exposeDebug({
       world: this.world,
@@ -167,6 +185,7 @@ export class Game extends Phaser.Scene {
         passives: { ...gameState.passives.owned },
       }),
       addPassive: (id: string) => gameState.passives.add(id),
+      scenes: () => this.scene.manager.getScenes(true).map((s) => s.scene.key),
       pickups: () =>
         (this.pickups.getChildren() as Pickup[])
           .filter((p) => p.active)
@@ -183,12 +202,21 @@ export class Game extends Phaser.Scene {
     EventBus.on(Events.PLAYER_ATTACKED, this.onPlayerAttacked, this);
     EventBus.on(Events.PLAYER_DIED, this.onPlayerDied, this);
     EventBus.on(Events.TRIAL_CLEARED, this.onTrialCleared, this);
+    EventBus.on(Events.ROOM_ENTERED, this.onRoomEnteredUi, this);
+    EventBus.on(Events.PLAYER_DAMAGED, this.relayDamaged, this);
+    EventBus.on(Events.PLAYER_HEALED, this.relayHealed, this);
+    EventBus.on(Events.GOLD_CHANGED, this.relayGold, this);
+    EventBus.on(Events.WEAPON_EVOLVED, this.relayEvolved, this);
+    EventBus.on(Events.BOSS_STARTED, this.relayBossStarted, this);
+    EventBus.on(Events.BOSS_PHASE, this.relayBossPhase, this);
+    EventBus.on(Events.BOSS_DIED, this.relayBossDied, this);
     this.events.once('shutdown', this.cleanup, this);
 
     this.cameras.main.setRoundPixels(true);
     this.updateCamera(true);
 
-    if (DEBUG.SHOW_TEXT) {
+    const wantDebugText = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debugtext');
+    if (DEBUG.SHOW_TEXT && wantDebugText) {
       this.debugText = this.add
         .text(4, 4, '', { font: DEBUG.FONT, color: COLORS.DEBUG_TEXT })
         .setScrollFactor(0)
@@ -218,6 +246,8 @@ export class Game extends Phaser.Scene {
     for (const child of this.pickups.getChildren()) (child as Pickup).tick(time);
     for (const child of this.playerShots.getChildren()) (child as Projectile).tick(time);
     this.updateShop();
+
+    __system.emit(UI_EVENTS.STATE, this.snapshot());
 
     if (this.debugText) {
       const boss =
@@ -342,7 +372,7 @@ export class Game extends Phaser.Scene {
     if (evolved !== null) {
       const payload: WeaponEvolvedPayload = { weapon: weapon.id, stage: evolved, name: weapon.displayName };
       EventBus.emit(Events.WEAPON_EVOLVED, payload);
-      this.showEvolutionBanner(weapon.displayName);
+      if (!__system.rendererRegistered()) this.showEvolutionBanner(weapon.displayName);
     }
     if (gameState.senses.recordKill(kind)) {
       EventBus.emit(Events.SENSE_GAINED, { kind, sense: gameState.senses.sense });
@@ -454,7 +484,8 @@ export class Game extends Phaser.Scene {
     EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
   }
 
-  private onTrialCleared(): void {
+  private onTrialCleared(p: { roomId: string }): void {
+    this.clearedRooms.add(p.roomId);
     this.addGold(ECONOMY.gold.trialBonus);
   }
 
@@ -479,7 +510,7 @@ export class Game extends Phaser.Scene {
   private openStatChooser(onDone: () => void): void {
     const lines = ECONOMY.statRewards.map((r, i) => ({ key: String(i + 1), label: r.name, enabled: true }));
     const show = () => {
-      this.menu.open(`감각 보상: 능력치 포인트 ${gameState.pointsPending}`, lines, (key) => {
+      this.menu.open('reward', `감각 보상: 능력치 포인트 ${gameState.pointsPending}`, lines, (key) => {
         const reward = ECONOMY.statRewards[Number(key) - 1];
         this.applyReward(reward.id);
         if (gameState.pointsPending > 0) show();
@@ -504,7 +535,7 @@ export class Game extends Phaser.Scene {
       label: `[${p.rarity}] ${p.name}${gameState.passives.level(p.id) > 0 ? ` (Lv${gameState.passives.level(p.id)} → ${gameState.passives.level(p.id) + 1})` : ''} — ${p.description}`,
       enabled: true,
     }));
-    this.menu.open('보스 보상: 패시브 선택', lines, (key) => {
+    this.menu.open('passive', '보스 보상: 패시브 선택', lines, (key) => {
       const pick = choices[Number(key) - 1];
       gameState.passives.add(pick.id);
       EventBus.emit(Events.PASSIVE_GAINED, { id: pick.id, level: gameState.passives.level(pick.id) });
@@ -542,6 +573,7 @@ export class Game extends Phaser.Scene {
         return { key: String(i + 1), label: `${it.name}  ${price}G`, enabled: gameState.gold >= price && !full };
       });
       this.menu.open(
+        'shop',
         `상점  (보유 ${gameState.gold}G, 물약 ${gameState.potions})`,
         lines,
         (key) => this.buy(ECONOMY.shop.items[Number(key) - 1].id, render),
@@ -619,7 +651,85 @@ export class Game extends Phaser.Scene {
     this.saveSlot.clear(); // 영구 사망 (기획 3장)
     this.settleRun(false);
     this.player.body.setVelocity(0, 0);
-    this.scene.start(SCENES.GAME_OVER, { cleared: false });
+    this.endRunScene(false);
+  }
+
+  /** 결과 화면: UI 렌더러가 있으면 UI 결과 씬, 아니면 시스템 임시 화면 */
+  private endRunScene(cleared: boolean): void {
+    const result = {
+      cleared,
+      stageName: gameState.stage.name,
+      floorReached: gameState.floorReached,
+      kills: gameState.kills,
+      gold: gameState.gold,
+      sense: gameState.senses.sense,
+      weaponName: gameState.weapon.displayName,
+      soulsGained: gameState.lastSoulGain,
+      soulsTotal: metaStore.read().souls,
+      seed: gameState.seed,
+    };
+    __system.emit(UI_EVENTS.RUN_ENDED, result);
+    if (__system.rendererRegistered() && this.scene.manager.keys[UI_SCENES.RESULT]) {
+      if (this.scene.isActive(UI_SCENES.HUD)) this.scene.stop(UI_SCENES.HUD);
+      this.scene.start(UI_SCENES.RESULT, result);
+    } else {
+      this.scene.start(SCENES.GAME_OVER, { cleared });
+    }
+  }
+
+  private snapshot() {
+    return buildSnapshot({
+      layout: this.layout ?? null,
+      visited: this.visitedRooms,
+      cleared: this.clearedRooms,
+      bossName: this.bossName,
+      paused: false,
+      menu: this.menu.menu,
+    });
+  }
+
+  private onRoomEnteredUi(p: { roomId: string; type: string }): void {
+    this.visitedRooms.add(p.roomId);
+    __system.emit(UI_EVENTS.ROOM_ENTERED, p);
+  }
+
+  private relayDamaged(p: unknown): void {
+    __system.emit(UI_EVENTS.PLAYER_DAMAGED, p);
+  }
+
+  private relayHealed(p: unknown): void {
+    __system.emit(UI_EVENTS.PLAYER_HEALED, p);
+  }
+
+  private relayGold(p: unknown): void {
+    __system.emit(UI_EVENTS.GOLD_CHANGED, p);
+  }
+
+  private relayEvolved(p: { name: string }): void {
+    __system.emit(UI_EVENTS.WEAPON_EVOLVED, { name: p.name });
+  }
+
+  private relayBossStarted(p: { boss: string }): void {
+    this.bossName = BOSSES[p.boss]?.name ?? '보스';
+    __system.emit(UI_EVENTS.BOSS_STARTED, {
+      name: this.bossName,
+      hp: gameState.bossHp,
+      maxHp: gameState.bossMaxHp,
+      phase: gameState.bossPhase,
+    });
+  }
+
+  private relayBossPhase(p: { phase: number; hp: number; maxHp: number }): void {
+    __system.emit(UI_EVENTS.BOSS_PHASE, { name: this.bossName ?? '보스', ...p });
+  }
+
+  private relayBossDied(): void {
+    __system.emit(UI_EVENTS.BOSS_DIED, {
+      name: this.bossName ?? '보스',
+      hp: 0,
+      maxHp: gameState.bossMaxHp,
+      phase: gameState.bossPhase,
+    });
   }
 
   // --- 카메라: 방은 고정, 보스 방만 추적 ---
@@ -680,6 +790,16 @@ export class Game extends Phaser.Scene {
     EventBus.off(Events.PLAYER_ATTACKED, this.onPlayerAttacked, this);
     EventBus.off(Events.PLAYER_DIED, this.onPlayerDied, this);
     EventBus.off(Events.TRIAL_CLEARED, this.onTrialCleared, this);
+    EventBus.off(Events.ROOM_ENTERED, this.onRoomEnteredUi, this);
+    EventBus.off(Events.PLAYER_DAMAGED, this.relayDamaged, this);
+    EventBus.off(Events.PLAYER_HEALED, this.relayHealed, this);
+    EventBus.off(Events.GOLD_CHANGED, this.relayGold, this);
+    EventBus.off(Events.WEAPON_EVOLVED, this.relayEvolved, this);
+    EventBus.off(Events.BOSS_STARTED, this.relayBossStarted, this);
+    EventBus.off(Events.BOSS_PHASE, this.relayBossPhase, this);
+    EventBus.off(Events.BOSS_DIED, this.relayBossDied, this);
+    setMenuSelect(null);
+    setSnapshotProvider(null);
     this.menu.close();
     this.inputSystem.destroy();
   }
