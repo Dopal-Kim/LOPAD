@@ -80,15 +80,22 @@ describe('generateFloor', () => {
     }
   });
 
-  it('보스 방은 휴식 방에 붙어 있고 잠긴 문으로만 들어간다', () => {
+  it('보스 방은 시작 방이 아닌 방(시련·휴식)에 붙어 있고 잠긴 문으로만 들어간다', () => {
     for (const s of seeds) {
       const L = generateFloor(s, P);
       const boss = L.rooms.find((r) => r.type === 'boss')!;
-      const rest = L.rooms.find((r) => r.type === 'rest')!;
-      const adjacent = boss.cells.some(
-        (c) => Math.abs(c.cx - rest.cells[0].cx) + Math.abs(c.cy - rest.cells[0].cy) === 1,
-      );
-      expect(adjacent).toBe(true);
+      const start = L.rooms.find((r) => r.type === 'start')!.cells[0];
+      const anchors = L.rooms.filter((r) => r.type === 'trial' || r.type === 'rest').map((r) => r.cells[0]);
+      const adjacentTo = (a: { cx: number; cy: number }) =>
+        boss.cells.some((c) => Math.abs(c.cx - a.cx) + Math.abs(c.cy - a.cy) === 1);
+      expect(anchors.some(adjacentTo)).toBe(true);
+      // 보스 블록과 직접 연결된 셀은 시작 방이 아니다
+      const isBoss = (c: { cx: number; cy: number }) => L.cellRoom.get(cellKey(c)) === 'boss';
+      for (const c of L.connections) {
+        if (!isBoss(c.a) && !isBoss(c.b)) continue;
+        const other = isBoss(c.a) ? c.b : c.a;
+        expect(other.cx === start.cx && other.cy === start.cy).toBe(false);
+      }
       expect(boss.doors.length).toBeGreaterThanOrEqual(1);
       for (const d of boss.doors) {
         expect(d.toBoss).toBe(true);

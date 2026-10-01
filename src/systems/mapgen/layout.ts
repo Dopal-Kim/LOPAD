@@ -76,7 +76,7 @@ export function planCells(rng: Rng, P: LayoutParams): CellPlan | null {
     if (!placed) return null;
   }
 
-  // 휴식 방: 기존 방 옆, 그리고 보스 2×2 블록이 붙을 자리가 있어야 함
+  // 휴식 방: 기존 방 옆 아무 곳 (보스 입구일 필요 없음 — 10라운드)
   for (let i = 0; i < P.restCount; i++) {
     let placed = false;
     for (let tries = 0; tries < 80 && !placed; tries++) {
@@ -84,16 +84,26 @@ export function planCells(rng: Rng, P: LayoutParams): CellPlan | null {
       const d = rng.pick(DIRS);
       const target = step(from, d, 1);
       if (!free(target)) continue;
-      // 보스 블록 후보: target 의 4방향, 각 방향에 2가지 오프셋
-      const bossOptions = bossBlockOptions(target, free, step);
-      if (bossOptions.length === 0) continue;
       addRoom(`rest${i + 1}`, 'rest', [target]);
       connect(from, target);
-      const chosen = rng.pick(bossOptions);
-      addRoom('boss', 'boss', chosen.cells);
-      const bossEntry = chosen.cells.find((c) => manhattan(c, target) === 1)!;
-      connect(target, bossEntry);
       placed = true;
+    }
+    if (!placed) return null;
+  }
+
+  // 보스 2×2 블록: 시작 방을 제외한 아무 방(시련·휴식)에 인접
+  {
+    const candidates = rng.shuffle(rooms.filter((r) => r.type !== 'start' && r.type !== 'boss').map((r) => r.cells[0]));
+    let placed = false;
+    for (const anchor of candidates) {
+      const options = bossBlockOptions(anchor, free, step);
+      if (options.length === 0) continue;
+      const chosen = rng.pick(options);
+      addRoom('boss', 'boss', chosen.cells);
+      const bossEntry = chosen.cells.find((c) => manhattan(c, anchor) === 1)!;
+      connect(anchor, bossEntry);
+      placed = true;
+      break;
     }
     if (!placed) return null;
   }
