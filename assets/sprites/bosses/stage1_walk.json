@@ -1,0 +1,32 @@
+{
+ "image": "stage1_walk.png",
+ "action": "walk",
+ "frameWidth": 32,
+ "frameHeight": 48,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 8,
+ "frameDurationsMs": [
+  130,
+  130,
+  130,
+  130,
+  130,
+  130,
+  130,
+  130
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 16,
+  "y": 47
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots; system swaps slots 16..27 per floor)"
+}

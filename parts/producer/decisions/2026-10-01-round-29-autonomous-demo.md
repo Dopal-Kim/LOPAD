@@ -64,3 +64,6 @@
 - 자율 결정 S1~S9 수용: 파이썬 표준 라이브러리 절차 합성, 효과음 42종, BGM 6곡(타이틀/하·중·상층/보스/황제), WAV(SFX 44.1k, BGM 22.05k, 총 10 MB), 피크 -6 dBFS + manifest gainDb, 단일 파일 루프.
 - 데모는 WAV 그대로 로드. OGG/MP3 변환은 복귀 후 인터뷰(S4).
 - `assets/audio/manifest.json` 을 음향↔시스템 계약 초안으로 승격(`contracts/sound-assets.md` 는 복귀 후). 시스템이 트리거 매핑을 구현하며 신설 이벤트(PLAYER_ATTACK 등)는 시스템 내부 EventBus 로 처리, UI 계약은 바꾸지 않는다.
+
+### J. 아트 5단계 검수 (보스 2종) — Claude 승인, 임시 결정 1~8 수용
+- 양조장주(통나무 망치 공성추, 양눈 호박), 황제(무채 외투, 눈·훈장만 강조) 승인. attack `phaseFrames` 매핑을 시스템에 전달(예고 0 / 돌진 1·2 / 휘두름·부채꼴 3). 바디 발밑 정렬, 2~7층 보스는 stage1 시트 램프 스왑.

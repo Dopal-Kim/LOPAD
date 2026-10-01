@@ -1,0 +1,41 @@
+{
+ "image": "emperor_attack.png",
+ "action": "attack",
+ "frameWidth": 48,
+ "frameHeight": 64,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5,
+ "frameDurationsMs": [
+  300,
+  150,
+  150,
+  240
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 63
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots; system swaps slots 16..27 per floor)",
+ "phaseFrames": {
+  "telegraph": [
+   0
+  ],
+  "dash": [
+   1,
+   2
+  ],
+  "recover_or_fan": [
+   3
+  ]
+ },
+ "note": "frame 0 = hold for phase.dash.telegraphMs; frames 1-2 loop during dash durationMs; frame 3 on stop / wall stun / fan release"
+}
