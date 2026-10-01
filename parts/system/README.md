@@ -39,3 +39,34 @@ npm run build
 - 테스트 러너(vitest) 도입 여부 (데이터 검증·전투 수식 단위 테스트)
 - 2단계 "핵심 루프" 범위: 무작위 맵 1층 + 보스 + 사망/재시작
 - 대쉬·패링 입력과 타이밍
+
+## 2단계 핵심 루프 (2026-10-01)
+기획서 11장 2단계 "무작위 맵 1층 + 보스 + 사망/재시작". 결정은 `decisions/2026-10-01-round-08/09-*.md`.
+
+### 구성
+| 경로 | 내용 |
+|---|---|
+| `src/systems/rng.ts` | 시드 난수 (mulberry32) |
+| `src/systems/mapgen/` | 순수 TS 맵 생성기: `layout.ts`(셀 격자 배치) → `tiles.ts`(타일 래스터화·문) → `index.ts`(`generateFloor(seed, params)`) |
+| `src/world/TileWorld.ts` | Phaser 타일맵 올리기, 벽 충돌, 문 상태(open/closed/locked), 좌표 변환 |
+| `src/systems/RoomDirector.ts` | 방 상태 머신: 시련(잠금→웨이브→해제), 휴식(회복), 보스(해금→전투→클리어) |
+| `src/objects/Mob.ts` | 적·보스 공통부 (접촉 공격 주기, 피격, 플래시) |
+| `src/objects/Enemy.ts` | chase / ranged / charge 행동 |
+| `src/objects/Boss.ts` | 페이즈·돌진·벽 경직·부채꼴 투사체 |
+| `src/objects/Projectile.ts` | 적 투사체 풀 |
+| `src/scenes/Preloader.ts` | 플레이스홀더 타일 텍스처를 코드로 생성 |
+| `src/scenes/Game.ts` | 카메라(방 고정 / 보스 추적), 전투 배선, 디버그 텍스트 |
+| `src/debug/index.ts` | `?debug=1` 검증 훅 (게임 로직 아님) |
+| `data/stages.json`, `data/bosses.json`, `data/enemies.json` | 층 구성·보스·적 3종 |
+
+### 검증 (2026-10-01)
+- `npm run test` 12개 통과 (맵 생성: 방 구성·결정성·도달 가능성·거리 제약·보스 문·벽 밀폐 / 전투 수식 / 데이터 검증)
+- `npm run lint`, `npm run typecheck`, `npm run build` 통과
+- 헤드리스 Chromium + `?debug=1` 훅으로 전체 루프 확인: 시련 4개 진입 시 문 닫힘 → 웨이브 1·2 → 클리어 시 문 열림 → 4개 후 보스 문 해금 → 휴식 → 보스전(문 닫힘, 2페이즈 진입, 플레이어 피격) → 클리어 화면. 콘솔 오류 0.
+
+### 다음 인터뷰 후보 (3단계)
+- 대쉬·패링 입력·타이밍, 대쉬 공격
+- 무기 개성 시스템과 기본 무기 1종 (현재 공격은 범용 히트박스)
+- 스테이지 2 이후 확장, 스테이지 전환 세이브(최대 2회)
+- 감각 수치 획득 규칙, 상점·골드
+- 열린 구조 + 미니맵 → UI 파트 개시 필요 (교차 참조 승인 대상)

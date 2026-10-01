@@ -8,5 +8,41 @@
     "behavior": "chase",
     "size": [16, 16],
     "color": "#d04040"
+  },
+  "archer": {
+    "name": "궁수",
+    "hp": 14,
+    "attack": 8,
+    "speedTiles": 2.5,
+    "attackIntervalMs": 1500,
+    "behavior": "ranged",
+    "size": [14, 14],
+    "color": "#c08a30",
+    "ranged": {
+      "keepMinTiles": 6,
+      "keepMaxTiles": 10,
+      "projectileSpeedTiles": 8,
+      "projectileSize": 4,
+      "projectileLifeMs": 3000
+    }
+  },
+  "charger": {
+    "name": "돌진병",
+    "hp": 30,
+    "attack": 15,
+    "speedTiles": 2,
+    "attackIntervalMs": 800,
+    "behavior": "charge",
+    "size": [18, 18],
+    "color": "#8040c0",
+    "charge": {
+      "triggerTiles": 7,
+      "telegraphMs": 600,
+      "dashSpeedTiles": 14,
+      "dashMs": 400,
+      "cooldownMs": 1200,
+      "dashAttack": 15,
+      "idleAttack": 6
+    }
   }
 }

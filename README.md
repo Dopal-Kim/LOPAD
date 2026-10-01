@@ -13,8 +13,10 @@ PC 웹용 2D 탑다운 로그라이크 액션 게임. Phaser 3 + TypeScript.
 ## 실행
 ```
 npm install
-npm run dev        # http://localhost:8080  (WASD 이동, 좌클릭 공격, R 재시작)
+npm run dev        # http://localhost:8080  (WASD 이동, 좌클릭 공격, R 재시작, ?seed=값 으로 같은 층 재현)
 npm run typecheck
+npm run test       # vitest
+npm run lint       # eslint
 npm run build
 ```
 Claude Code 웹 세션에서는 `.claude/hooks/session-start.sh`가 npm 의존성과 Pillow(아트 스킬용)를 자동 설치한다.

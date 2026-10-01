@@ -1,69 +1,117 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, PROTOTYPE, TILE } from '../core/Constants';
+import { COLORS, TILE } from '../core/Constants';
 import { EventBus, Events } from '../core/EventBus';
 import { ENEMIES } from '../data';
 import type { EnemyDef } from '../data/types';
+import { Mob, type MobContext } from './Mob';
 
-type Body = Phaser.Physics.Arcade.Body;
+type ChargeState = 'approach' | 'telegraph' | 'dash' | 'cooldown';
 
-/** 사각형 플레이스홀더 적. 행동은 data/enemies.json 의 behavior 로 결정. */
-export class Enemy extends Phaser.GameObjects.Rectangle {
-  declare body: Body;
+/** 일반 적. 행동은 data/enemies.json 의 behavior 로 결정. */
+export class Enemy extends Mob {
   readonly def: EnemyDef;
   readonly id: string;
-  private hp: number;
-  private nextAttackAt = 0;
-  private baseColor: number;
+  private nextShotAt = 0;
+  private chargeState: ChargeState = 'approach';
+  private chargeUntil = 0;
+  private dashDir = new Phaser.Math.Vector2(1, 0);
 
   constructor(scene: Phaser.Scene, x: number, y: number, id: string) {
     const def = ENEMIES[id];
     if (!def) throw new Error(`[enemy] 정의 없음: ${id}`);
-    const [w, h] = def.size;
-    const color = Phaser.Display.Color.HexStringToColor(def.color).color;
-    super(scene, x, y, w, h, color);
+    super(scene, x, y, def.size, def.color, def.hp);
     this.def = def;
     this.id = id;
-    this.hp = def.hp;
-    this.baseColor = color;
-    scene.add.existing(this);
-    scene.physics.add.existing(this);
-    this.setDepth(DEPTH.ENEMY);
-    this.body.setCollideWorldBounds(true);
   }
 
-  update(target: Phaser.Math.Vector2): void {
+  update(ctx: MobContext): void {
     if (!this.active) return;
-    if (this.def.behavior === 'chase') {
-      const dir = new Phaser.Math.Vector2(target.x - this.x, target.y - this.y);
-      if (dir.lengthSq() > 1) {
-        dir.normalize().scale(this.def.speedTiles * TILE);
-        this.body.setVelocity(dir.x, dir.y);
-      } else {
-        this.body.setVelocity(0, 0);
-      }
+    switch (this.def.behavior) {
+      case 'chase':
+        this.moveToward(ctx.player.x, ctx.player.y, this.def.speedTiles * TILE);
+        break;
+      case 'ranged':
+        this.updateRanged(ctx);
+        break;
+      case 'charge':
+        this.updateCharge(ctx);
+        break;
     }
   }
 
-  /** 플레이어와 접촉 중일 때 공격 가능하면 공격력을 반환, 아니면 0 */
-  tryAttack(time: number): number {
-    if (time < this.nextAttackAt) return 0;
-    this.nextAttackAt = time + this.def.attackIntervalMs;
+  protected currentContactAttack(): number {
+    if (this.def.behavior === 'charge' && this.def.charge) {
+      return this.chargeState === 'dash' ? this.def.charge.dashAttack : this.def.charge.idleAttack;
+    }
     return this.def.attack;
   }
 
-  /** 데미지를 받는다. 사망하면 true */
-  takeDamage(amount: number): boolean {
-    if (!this.active) return false;
-    this.hp -= amount;
-    EventBus.emit(Events.ENEMY_DAMAGED, { id: this.id, hp: this.hp, amount });
-    if (this.hp <= 0) {
-      this.destroy();
-      return true;
+  protected contactIntervalMs(): number {
+    return this.def.attackIntervalMs;
+  }
+
+  protected onDeath(): void {
+    EventBus.emit(Events.ENEMY_DIED, { id: this.id });
+  }
+
+  private updateRanged(ctx: MobContext): void {
+    const R = this.def.ranged!;
+    const dist = Phaser.Math.Distance.Between(this.x, this.y, ctx.player.x, ctx.player.y);
+    const speed = this.def.speedTiles * TILE;
+    if (dist < R.keepMinTiles * TILE) {
+      // 멀어진다
+      const away = new Phaser.Math.Vector2(this.x - ctx.player.x, this.y - ctx.player.y).normalize().scale(speed);
+      this.body.setVelocity(away.x, away.y);
+    } else if (dist > R.keepMaxTiles * TILE) {
+      this.moveToward(ctx.player.x, ctx.player.y, speed);
+    } else {
+      this.body.setVelocity(0, 0);
     }
-    this.setFillStyle(COLORS.ENEMY_HURT);
-    this.scene.time.delayedCall(PROTOTYPE.HURT_FLASH_MS, () => {
-      if (this.active) this.setFillStyle(this.baseColor);
-    });
-    return false;
+    if (ctx.time >= this.nextShotAt && dist <= R.keepMaxTiles * TILE * 1.5) {
+      this.nextShotAt = ctx.time + this.def.attackIntervalMs;
+      const dir = new Phaser.Math.Vector2(ctx.player.x - this.x, ctx.player.y - this.y).normalize();
+      ctx.fire(this.x, this.y, dir.x, dir.y, {
+        speedPx: R.projectileSpeedTiles * TILE,
+        attack: this.def.attack,
+        size: R.projectileSize,
+        lifeMs: R.projectileLifeMs,
+      });
+    }
+  }
+
+  private updateCharge(ctx: MobContext): void {
+    const C = this.def.charge!;
+    const dist = Phaser.Math.Distance.Between(this.x, this.y, ctx.player.x, ctx.player.y);
+    switch (this.chargeState) {
+      case 'approach':
+        this.moveToward(ctx.player.x, ctx.player.y, this.def.speedTiles * TILE);
+        if (dist <= C.triggerTiles * TILE) {
+          this.chargeState = 'telegraph';
+          this.chargeUntil = ctx.time + C.telegraphMs;
+          this.body.setVelocity(0, 0);
+          this.setFillStyle(COLORS.TELEGRAPH);
+        }
+        break;
+      case 'telegraph':
+        if (ctx.time >= this.chargeUntil) {
+          this.dashDir.set(ctx.player.x - this.x, ctx.player.y - this.y).normalize();
+          this.chargeState = 'dash';
+          this.chargeUntil = ctx.time + C.dashMs;
+          this.restoreColor();
+        }
+        break;
+      case 'dash':
+        this.body.setVelocity(this.dashDir.x * C.dashSpeedTiles * TILE, this.dashDir.y * C.dashSpeedTiles * TILE);
+        if (ctx.time >= this.chargeUntil || this.body.blocked.none === false) {
+          this.chargeState = 'cooldown';
+          this.chargeUntil = ctx.time + C.cooldownMs;
+          this.body.setVelocity(0, 0);
+        }
+        break;
+      case 'cooldown':
+        this.body.setVelocity(0, 0);
+        if (ctx.time >= this.chargeUntil) this.chargeState = 'approach';
+        break;
+    }
   }
 }

@@ -1,11 +1,19 @@
-/** 모든 설정값. 게임 수치(스탯·적)는 data/*.json, 엔진·화면·연출 값은 여기. */
+/** 모든 설정값. 게임 수치(스탯·적·보스·스테이지)는 data/*.json, 엔진·화면·연출 값은 여기. */
+import { CELL_H, CELL_W } from '../systems/mapgen/types';
 
 export const TILE = 16;
+
+export const CELL = {
+  W_TILES: CELL_W,
+  H_TILES: CELL_H,
+  W_PX: CELL_W * TILE,
+  H_PX: CELL_H * TILE,
+};
 
 export const GAME = {
   WIDTH: 640,
   HEIGHT: 360,
-  BACKGROUND_COLOR: '#14141c',
+  BACKGROUND_COLOR: '#0b0b10',
   MIN_ZOOM: 1,
 };
 
@@ -16,30 +24,51 @@ export const SCENES = {
   GAME_OVER: 'GameOver',
 } as const;
 
+export const TEXTURES = {
+  TILES: 'tiles',
+};
+
 export const DEPTH = {
-  GRID: -1,
+  TILES: 0,
   ENEMY: 1,
   PLAYER: 2,
-  ATTACK: 3,
+  PROJECTILE: 3,
+  ATTACK: 4,
   DEBUG: 100,
 };
 
 export const COLORS = {
-  GRID: 0x1e1e2a,
+  TILE_VOID: '#0b0b10',
+  TILE_FLOOR: '#1c1c28',
+  TILE_CORRIDOR: '#17171f',
+  TILE_WALL: '#3a3a52',
+  DOOR_OPEN: '#26503a',
+  DOOR_CLOSED: '#8a4a2a',
+  DOOR_LOCKED: '#8a2a4a',
   PLAYER: 0x4a90e2,
   PLAYER_HURT: 0xffffff,
   ATTACK: 0xf5f5c0,
-  ENEMY_HURT: 0xffffff,
+  MOB_HURT: 0xffffff,
+  TELEGRAPH: 0xfff0a0,
+  STUN: 0x707090,
+  PROJECTILE: 0xf0e060,
   DEBUG_TEXT: '#9ad',
   GAMEOVER_TEXT: '#eee',
 };
 
+export const CAMERA = {
+  /** 셀 높이(352)가 화면(360)보다 8px 작아서 위아래 4px씩 여백을 둔다 */
+  CELL_OFFSET_Y: -4,
+  /** 보스 방 추적 카메라 보간 */
+  FOLLOW_LERP: 0.12,
+};
+
 export const PROTOTYPE = {
-  /** 1단계 프로토타입에서 한 번에 배치하는 적 수. Claude 임시값, 확인 필요 */
-  ENEMY_COUNT: 5,
-  /** 적 스폰 시 플레이어와의 최소 거리(px) */
-  ENEMY_SPAWN_MIN_DIST: 120,
   HURT_FLASH_MS: 80,
+  /** 보스 처치 후 결과 화면까지 지연 */
+  CLEAR_DELAY_MS: 1200,
+  /** 투사체 최대 동시 수 */
+  PROJECTILE_POOL: 64,
 };
 
 export const DEBUG = {

@@ -1,0 +1,46 @@
+{
+  "stage1": {
+    "name": "1층 보스 (플레이스홀더)",
+    "hp": 200,
+    "size": [40, 40],
+    "color": "#b02060",
+    "contactAttack": 20,
+    "approachSpeedTiles": 2,
+    "phases": [
+      {
+        "hpFraction": 1,
+        "dash": {
+          "intervalMs": 2500,
+          "telegraphMs": 700,
+          "speedTiles": 16,
+          "durationMs": 600,
+          "attack": 25,
+          "wallStunMs": 1000
+        },
+        "fan": null
+      },
+      {
+        "hpFraction": 0.5,
+        "dash": {
+          "intervalMs": 2200,
+          "telegraphMs": 600,
+          "speedTiles": 18,
+          "durationMs": 600,
+          "attack": 25,
+          "wallStunMs": 1000
+        },
+        "fan": {
+          "intervalMs": 2000,
+          "count": 5,
+          "spreadDeg": 60,
+          "projectileSpeedTiles": 7,
+          "attack": 10,
+          "projectileSize": 6,
+          "projectileLifeMs": 3500,
+          "afterDash": true
+        }
+      }
+    ],
+    "contactIntervalMs": 800
+  }
+}

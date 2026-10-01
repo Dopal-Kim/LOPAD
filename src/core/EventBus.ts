@@ -5,13 +5,25 @@ export const EventBus = new Phaser.Events.EventEmitter();
 
 export const Events = {
   PLAYER_DAMAGED: 'player:damaged',
+  PLAYER_HEALED: 'player:healed',
   PLAYER_DIED: 'player:died',
   PLAYER_ATTACKED: 'player:attacked',
   ENEMY_DAMAGED: 'enemy:damaged',
   ENEMY_DIED: 'enemy:died',
+  ROOM_ENTERED: 'room:entered',
+  TRIAL_STARTED: 'trial:started',
+  TRIAL_WAVE: 'trial:wave',
+  TRIAL_CLEARED: 'trial:cleared',
+  BOSS_UNLOCKED: 'boss:unlocked',
+  BOSS_STARTED: 'boss:started',
+  BOSS_PHASE: 'boss:phase',
+  BOSS_DIED: 'boss:died',
   RUN_CLEARED: 'run:cleared',
   GAME_RESTART: 'game:restart',
 } as const;
 
 export type PlayerDamagedPayload = { hp: number; maxHp: number; amount: number };
 export type EnemyDiedPayload = { id: string; remaining: number };
+export type RoomEnteredPayload = { roomId: string; type: string };
+export type TrialClearedPayload = { roomId: string; cleared: number; total: number };
+export type BossPhasePayload = { phase: number; hp: number; maxHp: number };

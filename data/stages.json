@@ -1,0 +1,31 @@
+{
+  "stage1": {
+    "name": "1층",
+    "boss": "stage1",
+    "layout": {
+      "gridW": 7,
+      "gridH": 7,
+      "trialCount": 4,
+      "restCount": 1,
+      "roomW": [16, 32],
+      "roomH": [10, 16],
+      "bossRoomW": [56, 64],
+      "bossRoomH": [30, 34],
+      "corridorWidth": 3,
+      "trialMinDistFromStart": 2,
+      "extraLoopChance": 0.3
+    },
+    "trial": {
+      "waves": [
+        [{ "enemy": "dummy", "count": 3 }],
+        [
+          { "enemy": "dummy", "count": 2 },
+          { "enemy": "archer", "count": 1 },
+          { "enemy": "charger", "count": 1 }
+        ]
+      ],
+      "spawnMinDistTiles": 6
+    },
+    "rest": { "healFraction": 0.5 }
+  }
+}

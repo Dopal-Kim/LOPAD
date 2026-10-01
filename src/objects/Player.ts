@@ -45,6 +45,12 @@ export class Player extends Phaser.GameObjects.Rectangle {
     }
   }
 
+  heal(amount: number): void {
+    const before = gameState.hp;
+    gameState.hp = Math.min(gameState.maxHp, gameState.hp + amount);
+    EventBus.emit(Events.PLAYER_HEALED, { hp: gameState.hp, maxHp: gameState.maxHp, amount: gameState.hp - before });
+  }
+
   /** 적의 공격을 받는다. 무적 중이면 무시. 사망 시 true 반환 */
   takeHit(attack: number, time: number): boolean {
     if (time < this.invulnerableUntil || gameState.gameOver) return false;
