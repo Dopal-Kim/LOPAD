@@ -8,6 +8,10 @@ export const Events = {
   PLAYER_HEALED: 'player:healed',
   PLAYER_DIED: 'player:died',
   PLAYER_ATTACKED: 'player:attacked',
+  PLAYER_DASHED: 'player:dashed',
+  PLAYER_PARRIED: 'player:parried',
+  PLAYER_PARRY_FAILED: 'player:parry-failed',
+  SENSE_GAINED: 'sense:gained',
   ENEMY_DAMAGED: 'enemy:damaged',
   ENEMY_DIED: 'enemy:died',
   ROOM_ENTERED: 'room:entered',
@@ -22,6 +26,15 @@ export const Events = {
   GAME_RESTART: 'game:restart',
 } as const;
 
+export type PlayerAttackPayload = {
+  x: number;
+  y: number;
+  dirX: number;
+  dirY: number;
+  damageMult: number;
+  sizeMult: number;
+  kind: 'attack' | 'dashAttack';
+};
 export type PlayerDamagedPayload = { hp: number; maxHp: number; amount: number };
 export type EnemyDiedPayload = { id: string; remaining: number };
 export type RoomEnteredPayload = { roomId: string; type: string };

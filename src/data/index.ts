@@ -21,6 +21,8 @@ export function validatePlayer(p: PlayerData): PlayerData {
   for (const [k, v] of Object.entries(p.attackHitbox)) assertNumber(v, `player.attackHitbox.${k}`);
   assertNumber(p.invulnerableMs, 'player.invulnerableMs');
   assertPair(p.size, 'player.size');
+  for (const [k, val] of Object.entries(p.dash)) if (k !== 'invulnerable') assertNumber(val, `player.dash.${k}`);
+  for (const [k, val] of Object.entries(p.parry)) assertNumber(val, `player.parry.${k}`);
   return p;
 }
 

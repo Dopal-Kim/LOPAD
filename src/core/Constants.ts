@@ -47,6 +47,10 @@ export const COLORS = {
   DOOR_LOCKED: '#8a2a4a',
   PLAYER: 0x4a90e2,
   PLAYER_HURT: 0xffffff,
+  PLAYER_DASH: 0x9ad0ff,
+  PLAYER_PARRY: 0xfff8c0,
+  PLAYER_RECOVER: 0x2f5a8a,
+  PROJECTILE_REFLECTED: 0x80f0ff,
   ATTACK: 0xf5f5c0,
   MOB_HURT: 0xffffff,
   TELEGRAPH: 0xfff0a0,
@@ -83,4 +87,5 @@ export const KEYS = {
   LEFT: 'A',
   RIGHT: 'D',
   RESTART: 'R',
+  DASH: 'SPACE',
 } as const;

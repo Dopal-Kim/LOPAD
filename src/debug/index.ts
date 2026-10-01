@@ -13,7 +13,12 @@ export interface DebugApi {
   teleport: (roomId: string) => void;
   moveTo: (x: number, y: number) => void;
   director: () => { alive: number; wave: number; active: string | undefined };
-  mobs: () => { id: string; hp: number; x: number; y: number }[];
+  /** 플레이어를 향해 투사체 1발 (거리 px, 속도 px/s, 공격력) */
+  fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
+  player: () => { x: number; y: number; action: string };
+  stunAll: (ms: number) => void;
+  mobs: () => { id: string; hp: number; x: number; y: number; stunned: boolean }[];
+  camera: () => { scrollX: number; scrollY: number; zoom: number };
   killAll: () => number;
   hurtAll: (amount: number) => void;
   tileAt: (tx: number, ty: number) => number;
@@ -27,6 +32,11 @@ export function exposeDebug(api: {
   mobs: () => Mob[];
   kill: (m: Mob) => void;
   hurt: (m: Mob, amount: number) => void;
+  fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
+  playerInfo: () => { x: number; y: number; action: string };
+  stunAll: (ms: number) => void;
+  now: () => number;
+  camera: () => { scrollX: number; scrollY: number; zoom: number };
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -42,7 +52,18 @@ export function exposeDebug(api: {
     },
     moveTo: (x, y) => api.player.body.reset(x, y),
     director: () => api.director.debugInfo,
-    mobs: () => api.mobs().map((m) => ({ id: (m as Mob & { id?: string }).id ?? '?', hp: m.hp, x: m.x, y: m.y })),
+    fireAtPlayer: (d, s, a) => api.fireAtPlayer(d, s, a),
+    player: () => api.playerInfo(),
+    stunAll: (ms) => api.stunAll(ms),
+    mobs: () =>
+      api.mobs().map((m) => ({
+        id: (m as Mob & { id?: string }).id ?? '?',
+        hp: m.hp,
+        x: m.x,
+        y: m.y,
+        stunned: m.isStunned(api.now()),
+      })),
+    camera: () => api.camera(),
     killAll: () => {
       const list = api.mobs();
       for (const m of list) api.kill(m);

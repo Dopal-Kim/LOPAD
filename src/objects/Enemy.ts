@@ -26,6 +26,10 @@ export class Enemy extends Mob {
 
   update(ctx: MobContext): void {
     if (!this.active) return;
+    if (this.isStunned(ctx.time)) {
+      this.body.setVelocity(0, 0);
+      return;
+    }
     switch (this.def.behavior) {
       case 'chase':
         this.moveToward(ctx.player.x, ctx.player.y, this.def.speedTiles * TILE);
@@ -52,6 +56,10 @@ export class Enemy extends Mob {
 
   protected onDeath(): void {
     EventBus.emit(Events.ENEMY_DIED, { id: this.id });
+  }
+
+  protected onStunned(): void {
+    if (this.def.behavior === 'charge') this.chargeState = 'approach';
   }
 
   private updateRanged(ctx: MobContext): void {

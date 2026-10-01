@@ -9,7 +9,28 @@
     "critDamage": 0,
     "sense": 0
   },
-  "attackHitbox": { "width": 24, "height": 16, "reach": 14, "activeMs": 100, "cooldownMs": 350 },
+  "attackHitbox": {
+    "width": 24,
+    "height": 16,
+    "reach": 14,
+    "activeMs": 100,
+    "cooldownMs": 350
+  },
   "invulnerableMs": 500,
-  "size": [16, 16]
+  "size": [16, 16],
+  "dash": {
+    "distanceTiles": 3,
+    "durationMs": 180,
+    "cooldownMs": 600,
+    "invulnerable": true,
+    "attackWindowMs": 300,
+    "attackDamageMult": 1.5,
+    "attackSizeMult": 1.5
+  },
+  "parry": {
+    "windowMs": 200,
+    "failRecoveryMs": 400,
+    "stunMs": 1000,
+    "reflectDamageMult": 1
+  }
 }

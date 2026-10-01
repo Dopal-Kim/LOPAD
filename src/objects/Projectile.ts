@@ -8,6 +8,8 @@ type Body = Phaser.Physics.Arcade.Body;
 export class Projectile extends Phaser.GameObjects.Rectangle {
   declare body: Body;
   attack = 0;
+  /** 패링으로 반사됨: 플레이어 대신 적을 맞힌다 */
+  reflected = false;
   private expireAt = 0;
 
   constructor(scene: Phaser.Scene) {
@@ -20,6 +22,8 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
 
   launch(x: number, y: number, dirX: number, dirY: number, spec: ProjectileSpec, time: number): void {
     this.attack = spec.attack;
+    this.reflected = false;
+    this.setFillStyle(COLORS.PROJECTILE);
     this.expireAt = time + spec.lifeMs;
     this.setSize(spec.size, spec.size);
     this.body.setSize(spec.size, spec.size);
@@ -28,6 +32,13 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
     this.body.enable = true;
     this.body.reset(x, y);
     this.body.setVelocity(dirX * spec.speedPx, dirY * spec.speedPx);
+  }
+
+  reflect(mult: number): void {
+    this.reflected = true;
+    this.attack = Math.round(this.attack * mult);
+    this.body.setVelocity(-this.body.velocity.x, -this.body.velocity.y);
+    this.setFillStyle(COLORS.PROJECTILE_REFLECTED);
   }
 
   tick(time: number): void {

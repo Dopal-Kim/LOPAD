@@ -21,11 +21,33 @@ export interface AttackHitbox {
   cooldownMs: number;
 }
 
+export interface DashParams {
+  distanceTiles: number;
+  durationMs: number;
+  cooldownMs: number;
+  invulnerable: boolean;
+  /** 대쉬 종료 후 이 시간 안의 공격은 대쉬 공격 */
+  attackWindowMs: number;
+  attackDamageMult: number;
+  attackSizeMult: number;
+}
+
+export interface ParryParams {
+  windowMs: number;
+  failRecoveryMs: number;
+  /** 패링 성공 시 적 경직 */
+  stunMs: number;
+  /** 반사된 투사체의 데미지 배율 */
+  reflectDamageMult: number;
+}
+
 export interface PlayerData {
   stats: PlayerStats;
   attackHitbox: AttackHitbox;
   invulnerableMs: number;
   size: [number, number];
+  dash: DashParams;
+  parry: ParryParams;
 }
 
 export type EnemyBehavior = 'chase' | 'ranged' | 'charge';

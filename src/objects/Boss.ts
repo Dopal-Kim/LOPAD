@@ -40,6 +40,11 @@ export class Boss extends Mob {
       this.nextDashAt = ctx.time + this.phase.dash.intervalMs;
       this.nextFanAt = ctx.time + (this.phase.fan?.intervalMs ?? 0);
     }
+    if (this.isStunned(ctx.time)) {
+      this.body.setVelocity(0, 0);
+      gameState.bossHp = this.hp;
+      return;
+    }
     const P = this.phase;
     switch (this.bossState) {
       case 'approach':
@@ -106,6 +111,12 @@ export class Boss extends Mob {
     if (!died) this.checkPhase();
     gameState.bossHp = Math.max(0, this.hp);
     return died;
+  }
+
+  protected onStunned(): void {
+    // 패링 경직은 돌진을 끊는다
+    this.bossState = 'approach';
+    this.scheduleNextDash(this.scene.time.now);
   }
 
   protected onDeath(): void {

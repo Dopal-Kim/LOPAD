@@ -26,6 +26,7 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
   readonly maxHp: number;
   protected baseColor: number;
   protected nextContactAt = 0;
+  protected stunnedUntil = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, size: [number, number], color: string, hp: number) {
     const c = Phaser.Display.Color.HexStringToColor(color).color;
@@ -45,8 +46,26 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
 
   protected abstract contactIntervalMs(): number;
 
+  isStunned(time: number): boolean {
+    return time < this.stunnedUntil;
+  }
+
+  /** 패링 등으로 경직. 경직 중엔 움직이지도 공격하지도 않는다 */
+  stun(time: number, ms: number): void {
+    this.stunnedUntil = Math.max(this.stunnedUntil, time + ms);
+    this.body.setVelocity(0, 0);
+    this.setFillStyle(COLORS.STUN);
+    this.onStunned();
+    this.scene.time.delayedCall(ms, () => {
+      if (this.active && !this.isStunned(this.scene.time.now)) this.restoreColor();
+    });
+  }
+
+  protected onStunned(): void {}
+
   /** 플레이어와 접촉 중일 때 호출. 공격 가능하면 공격력, 아니면 0 */
   tryContactAttack(time: number): number {
+    if (this.isStunned(time)) return 0;
     if (time < this.nextContactAt) return 0;
     this.nextContactAt = time + this.contactIntervalMs();
     return this.currentContactAttack();

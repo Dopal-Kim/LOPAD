@@ -70,3 +70,11 @@ npm run build
 - 스테이지 2 이후 확장, 스테이지 전환 세이브(최대 2회)
 - 감각 수치 획득 규칙, 상점·골드
 - 열린 구조 + 미니맵 → UI 파트 개시 필요 (교차 참조 승인 대상)
+
+## 3단계-a 전투 행동 (2026-10-01)
+결정: `decisions/2026-10-01-round-11-stage3-kickoff.md`.
+- `src/objects/Player.ts`: 상태 머신 normal / dash / parry / recover. 대쉬(무적·고정 속도), 패링 창, 실패 후딜, 대쉬 공격 판정.
+- `src/objects/Mob.ts`: `stun()` — 패링 성공 시 경직. 돌진병·보스는 경직 시 패턴 리셋.
+- `src/objects/Projectile.ts`: `reflect()` — 패링된 투사체는 방향 반전 후 적에게 데미지.
+- `src/systems/senses.ts`: 감각 적립 (처치 방식 3분류, 스테이지마다 초기화). 테스트 2개.
+- 검증(헤드리스): 대쉬 48px 이동·dash 상태, 투사체 패링 시 피해 0, 실패 시 recover, 접촉 패링으로 적 경직, 대쉬 공격 8 데미지(5×1.5), 감각 +1. 콘솔 오류 0.

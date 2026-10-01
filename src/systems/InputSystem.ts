@@ -5,8 +5,12 @@ import { KEYS } from '../core/Constants';
 export interface InputState {
   moveX: number; // -1..1
   moveY: number; // -1..1
-  /** 이 프레임에 공격 입력이 시작됨 */
+  /** 이 프레임에 공격 입력이 시작됨 (좌클릭) */
   attackPressed: boolean;
+  /** 이 프레임에 패링 입력이 시작됨 (우클릭) */
+  parryPressed: boolean;
+  /** 이 프레임에 대쉬 입력이 시작됨 (스페이스바) */
+  dashPressed: boolean;
   /** 공격 조준 지점 (월드 좌표) */
   aimX: number;
   aimY: number;
@@ -16,6 +20,7 @@ export interface InputState {
 export class InputSystem {
   private keys: Record<string, Phaser.Input.Keyboard.Key>;
   private attackQueued = false;
+  private parryQueued = false;
   private readonly onPointerDown: (p: Phaser.Input.Pointer) => void;
 
   constructor(private scene: Phaser.Scene) {
@@ -26,9 +31,12 @@ export class InputSystem {
       left: kb.addKey(KEYS.LEFT),
       right: kb.addKey(KEYS.RIGHT),
       restart: kb.addKey(KEYS.RESTART),
+      dash: kb.addKey(KEYS.DASH),
     };
+    scene.input.mouse?.disableContextMenu();
     this.onPointerDown = (p) => {
       if (p.leftButtonDown()) this.attackQueued = true;
+      if (p.rightButtonDown()) this.parryQueued = true;
     };
     scene.input.on('pointerdown', this.onPointerDown);
   }
@@ -41,11 +49,14 @@ export class InputSystem {
       moveX: x,
       moveY: y,
       attackPressed: this.attackQueued,
+      parryPressed: this.parryQueued,
+      dashPressed: Phaser.Input.Keyboard.JustDown(this.keys.dash),
       aimX: pointer.worldX,
       aimY: pointer.worldY,
       restartPressed: Phaser.Input.Keyboard.JustDown(this.keys.restart),
     };
     this.attackQueued = false;
+    this.parryQueued = false;
     return state;
   }
 

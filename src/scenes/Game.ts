@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES } from '../core/Constants';
-import { EventBus, Events } from '../core/EventBus';
+import { EventBus, Events, type PlayerAttackPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { PLAYER_DATA, STAGES } from '../data';
 import type { Mob, ProjectileSpec } from '../objects/Mob';
@@ -10,10 +10,9 @@ import { InputSystem } from '../systems/InputSystem';
 import { generateFloor, cellKey, type Cell } from '../systems/mapgen';
 import { RoomDirector } from '../systems/RoomDirector';
 import { Rng, hashSeed } from '../systems/rng';
+import type { KillKind } from '../systems/senses';
 import { TileWorld } from '../world/TileWorld';
 import { exposeDebug } from '../debug';
-
-type AttackPayload = { x: number; y: number; dirX: number; dirY: number };
 
 const STAGE_ID = 'stage1';
 
@@ -62,6 +61,7 @@ export class Game extends Phaser.Scene {
     this.physics.add.collider(this.mobs, this.mobs);
     this.physics.add.overlap(this.player, this.mobs, (_p, m) => this.onMobTouch(m as Mob));
     this.physics.add.overlap(this.player, this.projectiles, (_p, pr) => this.onProjectileHit(pr as Projectile));
+    this.physics.add.overlap(this.projectiles, this.mobs, (pr, m) => this.onReflectedHit(pr as Projectile, m as Mob));
 
     // 방 상태 머신
     this.director = new RoomDirector({
@@ -87,6 +87,17 @@ export class Game extends Phaser.Scene {
           gameState.kills += 1;
           this.director.onMobDied(m);
         }
+      },
+      fireAtPlayer: (distPx, speedPx, attack) => {
+        const x = this.player.x + distPx;
+        const y = this.player.y;
+        this.fire(x, y, -1, 0, { speedPx, attack, size: 4, lifeMs: 5000 });
+      },
+      playerInfo: () => ({ x: this.player.x, y: this.player.y, action: this.player.action }),
+      now: () => this.time.now,
+      camera: () => ({ scrollX: this.cameras.main.scrollX, scrollY: this.cameras.main.scrollY, zoom: this.scale.zoom }),
+      stunAll: (ms) => {
+        for (const m of this.mobs.getChildren() as Mob[]) m.stun(this.time.now, ms);
       },
       kill: (m) => {
         if (m.takeDamage(m.hp)) {
@@ -128,7 +139,7 @@ export class Game extends Phaser.Scene {
       const boss =
         gameState.bossMaxHp > 0 ? `  boss ${gameState.bossHp}/${gameState.bossMaxHp} p${gameState.bossPhase}` : '';
       this.debugText.setText(
-        `[DEBUG] HP ${gameState.hp}/${gameState.maxHp}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
+        `[DEBUG] HP ${gameState.hp}/${gameState.maxHp}  ${this.player.action}  sense ${gameState.senses.sense}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
       );
     }
   }
@@ -141,14 +152,14 @@ export class Game extends Phaser.Scene {
     p.launch(x, y, dirX, dirY, spec, this.time.now);
   };
 
-  private onPlayerAttacked(p: AttackPayload): void {
+  private onPlayerAttacked(p: PlayerAttackPayload): void {
     const hb = PLAYER_DATA.attackHitbox;
-    const cx = p.x + p.dirX * hb.reach;
-    const cy = p.y + p.dirY * hb.reach;
+    const cx = p.x + p.dirX * hb.reach * p.sizeMult;
+    const cy = p.y + p.dirY * hb.reach * p.sizeMult;
     // Arcade 바디는 축 정렬 사각형이라 지배적인 축에 맞춰 폭·높이를 바꿔 근사한다.
     const horizontal = Math.abs(p.dirX) >= Math.abs(p.dirY);
-    const w = horizontal ? hb.width : hb.height;
-    const h = horizontal ? hb.height : hb.width;
+    const w = (horizontal ? hb.width : hb.height) * p.sizeMult;
+    const h = (horizontal ? hb.height : hb.width) * p.sizeMult;
     const zone = this.add.rectangle(cx, cy, w, h, COLORS.ATTACK, 0.6).setDepth(DEPTH.ATTACK);
     this.physics.add.existing(zone);
     (zone.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
@@ -158,11 +169,9 @@ export class Game extends Phaser.Scene {
       const mob = m as Mob;
       if (hit.has(mob)) return;
       hit.add(mob);
-      const died = mob.takeDamage(PLAYER_DATA.stats.attack);
-      if (died) {
-        gameState.kills += 1;
-        this.director.onMobDied(mob);
-      }
+      const stunnedByParry = mob.isStunned(this.time.now);
+      const died = mob.takeDamage(Math.round(PLAYER_DATA.stats.attack * p.damageMult));
+      if (died) this.onKill(mob, stunnedByParry ? 'parry' : p.kind);
     });
 
     this.time.delayedCall(hb.activeMs, () => {
@@ -171,15 +180,39 @@ export class Game extends Phaser.Scene {
     });
   }
 
+  private onKill(mob: Mob, kind: KillKind): void {
+    gameState.kills += 1;
+    if (gameState.senses.recordKill(kind)) {
+      EventBus.emit(Events.SENSE_GAINED, { kind, sense: gameState.senses.sense });
+    }
+    this.director.onMobDied(mob);
+  }
+
   private onMobTouch(mob: Mob): void {
-    const attack = mob.tryContactAttack(this.time.now);
-    if (attack > 0) this.player.takeHit(attack, this.time.now);
+    const now = this.time.now;
+    // 패링 창이면 접촉 공격 주기와 무관하게 막는다 (돌진 포함)
+    if (this.player.isParrying && !mob.isStunned(now)) {
+      const attack = mob.tryContactAttack(now);
+      if (attack > 0 || mob.body.velocity.lengthSq() > 0) {
+        if (this.player.takeHit(attack || 1, now) === 'parried') mob.stun(now, PLAYER_DATA.parry.stunMs);
+      }
+      return;
+    }
+    const attack = mob.tryContactAttack(now);
+    if (attack > 0) this.player.takeHit(attack, now);
   }
 
   private onProjectileHit(pr: Projectile): void {
-    if (!pr.active) return;
+    if (!pr.active || pr.reflected) return;
+    const result = this.player.takeHit(pr.attack, this.time.now);
+    if (result === 'parried') pr.reflect(PLAYER_DATA.parry.reflectDamageMult);
+    else pr.deactivate();
+  }
+
+  private onReflectedHit(pr: Projectile, mob: Mob): void {
+    if (!pr.active || !pr.reflected) return;
     pr.deactivate();
-    this.player.takeHit(pr.attack, this.time.now);
+    if (mob.takeDamage(pr.attack)) this.onKill(mob, 'parry');
   }
 
   private onPlayerDied(): void {
