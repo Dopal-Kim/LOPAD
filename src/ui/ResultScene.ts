@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { uiCommands, type UiResult } from '../contract/ui';
 import { UI_SCENE_KEYS } from './keys';
 import { THEME } from './theme';
+import { uiText } from './text';
 import { SelectList, label, panel } from './widgets';
 
 /** 런 결과: 사망 / 클리어 */
@@ -48,7 +49,8 @@ export class ResultScene extends Phaser.Scene {
       else uiCommands.toTitle();
     });
     this.list.setLines([
-      { key: '1', label: '다시 (영혼 강화 → 개성 선택)', enabled: true },
+      { key: '1', label: uiText('result', 'retry', '다시 (영혼 강화 → 개성 선택)'), enabled: true },
+      // '타이틀로'·'런 클리어' 는 보류 (round-29 자율 결정 B): 기본 문구 유지
       { key: '2', label: '타이틀로', enabled: true },
     ]);
     this.events.once('shutdown', () => this.list?.destroy());

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { UI_EVENTS, uiBus, uiCommands } from '../contract/ui';
 import { UI_SCENE_KEYS } from './keys';
 import { THEME } from './theme';
+import { controlsLine } from './text';
 import { SelectList, label, panel } from './widgets';
 
 /** 일시정지: 능력치·패시브·감각·조작법, 재개 / 타이틀로 */
@@ -28,7 +29,7 @@ export class PauseScene extends Phaser.Scene {
       `무기: ${s.weapon.name}${s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : ''}  (개성 ${s.weapon.personality}/${s.weapon.threshold})`,
       `패시브: ${s.passives.length ? s.passives.map((p) => `${p.name}${p.level > 1 ? ` Lv${p.level}` : ''}`).join(', ') : '-'}`,
       '',
-      'WASD 이동 · 좌클릭 공격 · 우클릭 ' + s.weapon.secondaryName + ' · 스페이스 대쉬 · Q 물약',
+      controlsLine(s.weapon.secondaryName),
     ];
     lines.forEach((t, i) => label(this, 80, 80 + i * 14, t, THEME.font, i === 5 ? THEME.textDim : THEME.text));
     this.list = new SelectList(this, 80, H - 90, (key) => this.choose(key));

@@ -71,13 +71,26 @@ export function label(
   return scene.add.text(x, y, text, { font, color });
 }
 
+export interface SelectLine {
+  key: string;
+  label: string;
+  enabled: boolean;
+  /** 항목 아래 작은 글씨로 보이는 설명 (evolve 등) */
+  detail?: string;
+}
+
+/** 선택 목록 줄 간격 */
+export const SELECT_ROW = { line: 16, detail: 13, gap: 4 } as const;
+
 /**
  * 선택 목록: 숫자 키 / 위아래 + Enter / 마우스 클릭. 항목이 바뀌면 setLines 로 다시 그린다.
+ * detail 이 있는 항목은 아래에 흐린 작은 글씨로 설명을 붙이고, 비활성 항목은 전체를 흐리게 그린다.
  */
 export class SelectList {
   private items: Phaser.GameObjects.Text[] = [];
+  private details: (Phaser.GameObjects.Text | null)[] = [];
   private cursor = 0;
-  private lines: { key: string; label: string; enabled: boolean }[] = [];
+  private lines: SelectLine[] = [];
   private onKeyDown?: (e: KeyboardEvent) => void;
 
   constructor(
@@ -85,7 +98,7 @@ export class SelectList {
     private x: number,
     private y: number,
     private onSelect: (key: string) => void,
-    private lineHeight = 16,
+    private lineHeight: number = SELECT_ROW.line,
   ) {
     this.onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') this.move(-1);
@@ -99,19 +112,62 @@ export class SelectList {
     scene.input.keyboard?.on('keydown', this.onKeyDown);
   }
 
-  setLines(lines: { key: string; label: string; enabled: boolean }[]): void {
+  /** 항목 높이 합 (패널 크기 계산용). lines 를 주면 그리기 전에 계산할 수 있다 */
+  static measure(lines: SelectLine[], lineHeight: number = SELECT_ROW.line): number {
+    return lines.reduce((h, l) => h + lineHeight + (l.detail ? SELECT_ROW.detail + SELECT_ROW.gap : 0), 0);
+  }
+
+  setLines(lines: SelectLine[]): void {
     this.lines = lines;
     for (const t of this.items) t.destroy();
-    this.items = lines.map((_l, i) => {
+    for (const d of this.details) d?.destroy();
+    this.items = [];
+    this.details = [];
+    let y = this.y;
+    lines.forEach((l, i) => {
       const t = this.scene.add
-        .text(this.x, this.y + i * this.lineHeight, '', { font: THEME.font, color: THEME.text })
+        .text(this.x, y, '', { font: THEME.font, color: THEME.text })
         .setInteractive({ useHandCursor: true });
       t.on('pointerover', () => this.setCursor(i));
       t.on('pointerdown', () => this.choose(i));
-      return t;
+      this.items.push(t);
+      y += this.lineHeight;
+      if (l.detail) {
+        const d = this.scene.add.text(this.x + 26, y - 2, l.detail, { font: THEME.fontSmall, color: THEME.textDim });
+        d.setInteractive({ useHandCursor: true });
+        d.on('pointerover', () => this.setCursor(i));
+        d.on('pointerdown', () => this.choose(i));
+        this.details.push(d);
+        y += SELECT_ROW.detail + SELECT_ROW.gap;
+      } else this.details.push(null);
     });
     this.cursor = Math.min(this.cursor, Math.max(0, lines.length - 1));
     this.render();
+  }
+
+  /** 가장 넓은 항목의 픽셀 폭 (라벨·설명 포함) */
+  maxWidth(): number {
+    let w = 0;
+    for (const t of this.items) w = Math.max(w, t.width);
+    for (const d of this.details) if (d) w = Math.max(w, d.x - this.x + d.width);
+    return w;
+  }
+
+  /** 목록 원점을 옮긴다 (패널 폭을 항목에 맞춘 뒤 재배치할 때) */
+  setPosition(x: number, y: number): this {
+    const dx = x - this.x;
+    const dy = y - this.y;
+    this.x = x;
+    this.y = y;
+    for (const t of this.items) t.setPosition(t.x + dx, t.y + dy);
+    for (const d of this.details) d?.setPosition(d.x + dx, d.y + dy);
+    return this;
+  }
+
+  setDepth(d: number): this {
+    for (const t of this.items) t.setDepth(d);
+    for (const t of this.details) t?.setDepth(d);
+    return this;
   }
 
   private move(d: number): void {
@@ -133,12 +189,19 @@ export class SelectList {
     this.lines.forEach((l, i) => {
       const sel = i === this.cursor;
       const color = !l.enabled ? THEME.textDim : sel ? '#fff0a0' : THEME.text;
-      this.items[i].setText(`${sel ? '▶' : ' '} [${l.key}] ${l.label}${l.enabled ? '' : '  (불가)'}`).setColor(color);
+      this.items[i]
+        .setText(`${sel ? '▶' : ' '} [${l.key}] ${l.label}${l.enabled ? '' : '  (불가)'}`)
+        .setColor(color)
+        .setAlpha(l.enabled ? 1 : THEME.disabledAlpha);
+      this.details[i]?.setAlpha(l.enabled ? (sel ? 1 : 0.8) : THEME.disabledAlpha);
     });
   }
 
   destroy(): void {
     if (this.onKeyDown) this.scene.input.keyboard?.off('keydown', this.onKeyDown);
     for (const t of this.items) t.destroy();
+    for (const d of this.details) d?.destroy();
+    this.items = [];
+    this.details = [];
   }
 }

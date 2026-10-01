@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { UI_EVENTS, uiBus, uiCommands, type UiSnapshot, type UiStoryLine } from '../contract/ui';
 import { UI_SCENE_KEYS } from './keys';
 import { THEME } from './theme';
+import { fill, uiText } from './text';
 import { Bar, label, panel } from './widgets';
 import { Minimap } from './Minimap';
 
@@ -62,7 +63,9 @@ export class HudScene extends Phaser.Scene {
     this.minimap = new Minimap(this, W - P - 110, P, 110, 90);
 
     this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(s));
-    this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) => this.showBanner(`개성 변화: ${p.name}`));
+    this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) =>
+      this.showBanner(fill(uiText('hud', 'evolvedBanner', '개성 변화: {name}'), { name: p.name })),
+    );
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.showBanner(p.stageName));
     this.on(UI_EVENTS.STORY, (l: UiStoryLine) => this.showCaption(l));
     this.on(UI_EVENTS.PAUSED, () => {
@@ -94,8 +97,8 @@ export class HudScene extends Phaser.Scene {
     this.hpText.setText(`HP ${s.hp} / ${s.maxHp}`);
     this.goldText.setText(`◆ ${s.gold} ${s.names.gold}`);
     this.potionText.setText(`${s.names.potion} ${s.potions}/${s.potionMax} [Q]`);
-    const boss = s.bossUnlocked ? '  보스 문 열림' : '';
-    const exit = s.exitOpen ? '  출구 열림' : '';
+    const boss = s.bossUnlocked ? `  ${uiText('hud', 'bossUnlocked', '보스 문 열림')}` : '';
+    const exit = s.exitOpen ? `  ${uiText('hud', 'exitOpen', '출구 열림')}` : '';
     this.stageText.setText(`${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}${boss}${exit}`);
     const evo = s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : '';
     this.weaponText.setText(

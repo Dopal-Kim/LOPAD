@@ -3,6 +3,7 @@ export const THEME = {
   font: '10px monospace',
   fontTitle: '28px monospace',
   fontHeading: '14px monospace',
+  fontSmall: '9px monospace',
   text: '#f0f0f0',
   textDim: '#9a9ab0',
   panel: 0x101018,
@@ -17,6 +18,8 @@ export const THEME = {
   boss: 0xe03070,
   bossBack: 0x3a1020,
   selected: 0xfff0a0,
+  /** 비활성 항목 알파 */
+  disabledAlpha: 0.45,
   minimap: <const>{
     start: 0x4a90e2,
     trial: 0x7a7a90,
