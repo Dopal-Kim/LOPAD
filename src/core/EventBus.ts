@@ -56,6 +56,8 @@ export type PlayerAttackPayload = {
   kind: 'attack' | 'dashAttack' | 'aimed';
   /** 확정 치명타 (그림자 걸음 직후, 대쉬 공격 확정 치명) */
   forceCrit: boolean;
+  /** 공격 애니 2프레임(휘두름) 시작까지 ms — 베기 이펙트 재생 시점 (시트가 없으면 0) */
+  swingDelayMs: number;
 };
 export type GuardReleasedPayload = { x: number; y: number };
 export type ShadowStepPayload = { x: number; y: number; facingX: number; facingY: number };

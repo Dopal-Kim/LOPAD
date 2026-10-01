@@ -4,6 +4,7 @@ import {
   MetaStore,
   buyUpgrade,
   emptyMeta,
+  markUnderstood,
   metaBonus,
   recordRun,
   soulsForRun,
@@ -66,5 +67,13 @@ describe('meta', () => {
     expect(s.read().souls).toBe(5);
     st.setItem('lopad.meta', '{bad');
     expect(s.read()).toEqual(emptyMeta());
+  });
+
+  it('엔딩 이해한다 기록은 영혼·도감을 건드리지 않고 understood 만 켠다', () => {
+    const m = { ...emptyMeta(), souls: 7 };
+    const u = markUnderstood(m);
+    expect(u.understood).toBe(true);
+    expect(u.souls).toBe(7);
+    expect(m.understood).toBeUndefined();
   });
 });

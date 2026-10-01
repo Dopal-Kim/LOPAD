@@ -44,6 +44,8 @@ export class EntityVisual {
   facing: Facing = 'down';
   /** 현재 재생 중인 애니 키 (디버그) */
   current: string | null = null;
+  /** 마지막 oneShot 의 2번째 프레임 시작까지 ms (재생 속도 반영). 시트가 없으면 0 */
+  lastImpactMs = 0;
   private busyUntil = 0;
   private dead = false;
   private shadow: Phaser.GameObjects.Image | null = null;
@@ -112,6 +114,7 @@ export class EntityVisual {
    */
   oneShot(action: string, dir: Facing, time: number, fitMs?: number): number {
     this.facing = dir;
+    this.lastImpactMs = 0;
     if (!this.animated || this.dead) return 0;
     const def = spriteLibrary.sheet(this.name, action);
     const key = spriteLibrary.animKey(this.name, action, dir);
@@ -123,6 +126,7 @@ export class EntityVisual {
     this.current = key;
     const ms = natural / scale;
     this.busyUntil = time + ms;
+    if (def.frames >= 2) this.lastImpactMs = frameDurations(def)[0] / scale;
     if (action === 'death') this.dead = true;
     return ms;
   }

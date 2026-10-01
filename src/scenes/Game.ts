@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES, SPRITES, TILE } from '../core/Constants';
+import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES, SPRITES, TILE, entityDepth } from '../core/Constants';
 import {
   EventBus,
   Events,
@@ -9,7 +9,7 @@ import {
   type WeaponEvolvedPayload,
   type WeaponReinforcedPayload,
 } from '../core/EventBus';
-import { gameState } from '../core/GameState';
+import { gameState, type EndingChoice } from '../core/GameState';
 import { BOSSES, ECONOMY, PLAYER_DATA, STORY, WEAPON_RULES } from '../data';
 import { deathLine, evolutionLine, fill, floorText } from '../systems/story';
 import type { Mob, ProjectileSpec } from '../objects/Mob';
@@ -24,7 +24,7 @@ import { SaveSlot, browserStorage } from '../systems/save';
 import type { KillKind } from '../systems/senses';
 import { applyStatReward, findReward, rollCrit, rollGold, shopPrice } from '../systems/economy';
 import { TextMenu } from '../systems/TextMenu';
-import { metaStore, recordRun } from '../systems/meta';
+import { markUnderstood, metaStore, recordRun } from '../systems/meta';
 import { PASSIVES } from '../systems/passives';
 import { UI_EVENTS, __system, type StoryKind } from '../contract/ui';
 import { buildSnapshot } from '../contract/snapshot';
@@ -34,6 +34,8 @@ import type { StatKey, WeaponEvolution } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
 import { TileSkin, tileSkins } from '../world/tileskin';
 import { spriteLibrary } from '../systems/sprites';
+import { FX_ACTION, arrowFxId, facingOf, slashFxId } from '../systems/spriteDefs';
+import { FxPool, type FxHandle } from '../systems/fx';
 import { exposeDebug } from '../debug';
 
 type GameInitData = { mode?: 'new' | 'next'; weapon?: string; playerName?: string };
@@ -56,8 +58,9 @@ export class Game extends Phaser.Scene {
   private initName?: string;
   private playerShots: Phaser.GameObjects.Group;
   private lastShotAt = -Infinity;
-  /** 디버그: 마지막 공격 이벤트 */
+  /** 디버그: 마지막 공격 이벤트 · 마지막 결과 화면 페이로드 */
   private debugLastAttack: unknown = null;
+  private debugLastResult: unknown = null;
   private rapidCount = 0;
   private readonly saveSlot = new SaveSlot(browserStorage());
   private transitioning = false;
@@ -66,8 +69,12 @@ export class Game extends Phaser.Scene {
   private layout?: ReturnType<typeof generateFloor>;
   private bossName: string | null = null;
   private readonly playerVec = new Phaser.Math.Vector2();
-  /** 개성 3지선다 중: 게임 진행(이동·적·물리) 정지 */
+  /** 개성 3지선다·엔딩 선택 중: 게임 진행(이동·적·물리) 정지 */
   private frozen = false;
+  /** 공격 이펙트 풀 (아트 시트가 있을 때만 재생) */
+  private fx: FxPool;
+  /** 질풍: 이동·대쉬 중 루프 이펙트 */
+  private galeFx: FxHandle | null = null;
   /** 잔월: 남아 있는 베기 궤적 (지속 피해 영역) */
   private dotZones: {
     x: number;
@@ -129,6 +136,8 @@ export class Game extends Phaser.Scene {
       maxSize: PROTOTYPE.PROJECTILE_POOL,
       runChildUpdate: false,
     });
+    this.fx = new FxPool(this);
+    this.galeFx = null;
     this.lastShotAt = -Infinity;
     this.rapidCount = 0;
     this.frozen = false;
@@ -156,11 +165,7 @@ export class Game extends Phaser.Scene {
       player: this.player,
       mobs: this.mobs,
       heal: (f) => this.player.heal(Math.round(gameState.maxHp * f)),
-      onRunCleared: () => {
-        this.saveSlot.clear();
-        this.settleRun(true);
-        this.time.delayedCall(PROTOTYPE.CLEAR_DELAY_MS, () => this.endRunScene(true));
-      },
+      onRunCleared: () => this.beginEnding(),
       onStageCleared: (room) => this.beginStageReward(room),
       isLastStage: () => gameState.isLastStage,
     });
@@ -197,8 +202,11 @@ export class Game extends Phaser.Scene {
         anim: this.player.animKey,
         dir: this.player.facingDir,
         animated: this.player.visual.animated,
+        overlayFrame: this.player.overlay.frame,
+        moving: this.player.moving,
       }),
       sprites: () => spriteLibrary.summary(this),
+      fx: () => this.fx.summary(),
       nextStage: () => {
         if (this.transitioning) return;
         this.transitioning = true;
@@ -215,6 +223,7 @@ export class Game extends Phaser.Scene {
       }),
       save: () => this.saveSlot.read(),
       lastAttack: () => this.debugLastAttack,
+      lastResult: () => this.debugLastResult,
       shots: () =>
         (this.playerShots.getChildren() as Projectile[])
           .filter((p) => p.active)
@@ -225,6 +234,8 @@ export class Game extends Phaser.Scene {
             vy: p.body.velocity.y,
             attack: p.attack,
             pierce: p.pierceLeft,
+            texture: p.texture.key,
+            rotation: p.rotation,
           })),
       meta: () => metaStore.read(),
       economy: () => ({
@@ -318,6 +329,8 @@ export class Game extends Phaser.Scene {
     if (gameState.weapon.choicePending && !this.menu.isOpen && !this.frozen) this.openEvolveMenu();
     if (this.frozen) {
       this.inputSystem.read(); // 큐 비우기
+      this.stopGale();
+      this.fx.update(time);
       __system.emit(UI_EVENTS.STATE, this.snapshot());
       return;
     }
@@ -325,6 +338,7 @@ export class Game extends Phaser.Scene {
     const input = this.inputSystem.read();
     if (input.potionPressed) this.usePotion();
     this.player.update(input, time);
+    this.updateGale();
     this.updateCamera(false);
     this.director.update();
 
@@ -343,6 +357,7 @@ export class Game extends Phaser.Scene {
     this.tickHoming(delta);
     this.tickDotZones(time);
     this.tickBleeds(time);
+    this.fx.update(time);
     this.updateShop();
 
     __system.emit(UI_EVENTS.STATE, this.snapshot());
@@ -372,6 +387,7 @@ export class Game extends Phaser.Scene {
       return;
     }
     const mods = weapon.mods;
+    this.playSwingFx(p);
     this.meleeSwing(p);
     // 쌍격·난무: 추가 타격
     const hits = Math.max(1, mods.hits ?? 1);
@@ -426,8 +442,17 @@ export class Game extends Phaser.Scene {
     const size = weapon.hitbox.width * p.sizeMult;
     const speed = R.projectileSpeedTiles * TILE * (mods.projectileSpeedMult ?? 1);
     const base = Math.atan2(p.dirY, p.dirX);
-    // 산탄·폭우: 부채꼴 (조준 사격은 한 발)
+    // 화살 텍스처 (계약 §3.1 projectile 앵커, 진행 각도 회전). 없으면 사각형
+    const arrowTexture = spriteLibrary.textureKey(arrowFxId(weapon.id, aimed), FX_ACTION);
+    const evoFx = this.evolutionFxId();
+    // 산탄·폭우: 부채꼴 (조준 사격은 한 발). 산탄 이펙트는 발사점에 1회
     const spread = !aimed && mods.spread ? mods.spread : { count: 1, spreadDeg: 0 };
+    if (spread.count > 1 && evoFx === 'scatter') {
+      this.fx.play('scatter', p.x + p.dirX * weapon.hitbox.reach, p.y + p.dirY * weapon.hitbox.reach, {
+        angle: base,
+        depth: DEPTH.PROJECTILE,
+      });
+    }
     const n = Math.max(1, spread.count);
     for (let i = 0; i < n; i++) {
       const t = n === 1 ? 0 : i / (n - 1) - 0.5;
@@ -445,10 +470,66 @@ export class Game extends Phaser.Scene {
         now,
         'player',
         pierce,
+        { texture: arrowTexture, rotate: true },
       );
       if (mods.homingTurnDeg) shot.homingTurn = Phaser.Math.DegToRad(mods.homingTurnDeg);
       if (aimed && mods.aimedShotStunMs) shot.hitStunMs = mods.aimedShotStunMs;
+      // 관통(·섬광·중시): 화살 뒤에 빛줄 루프, 화살이 사라지면 함께 사라진다
+      if (evoFx === 'pierce') {
+        this.fx.play('pierce', shot.x, shot.y, {
+          angle: a,
+          follow: shot,
+          followRotation: true,
+          depth: DEPTH.PROJECTILE - 0.01,
+        });
+      }
     }
+  }
+
+  /** 1차 진화 이펙트 id = 경로의 첫 노드 (2차는 부모 1차 이펙트 재사용). 시트가 없으면 null */
+  private evolutionFxId(): string | null {
+    const first = gameState.weapon.path[0];
+    return first && this.fx.has(first) ? first : null;
+  }
+
+  /**
+   * 근접 베기 이펙트 (계약 §3.1): 플레이어 attack 2프레임(휘두름) 시작에 발 피벗 앵커로 재생.
+   * 거합·쌍격은 기본 베기를 대신하고, 파쇄·중압은 적중 판정 쪽(meleeSwing)에서 따로 나온다.
+   */
+  private playSwingFx(p: PlayerAttackPayload): void {
+    const evo = this.evolutionFxId();
+    const id = evo === 'iai' || evo === 'twin' ? evo : slashFxId(gameState.weapon.id);
+    if (!this.fx.has(id)) return;
+    const dir = facingOf(p.dirX, p.dirY, this.player.facingDir);
+    const play = () => {
+      if (!this.scene.isActive() || this.frozen || gameState.gameOver) return;
+      this.fx.play(id, this.player.x, this.player.y, { dir, follow: this.player, depthOffset: DEPTH.OVERLAY_STEP * 2 });
+    };
+    if (p.swingDelayMs > 0) this.time.delayedCall(p.swingDelayMs, play);
+    else play();
+  }
+
+  /** 질풍: 이동·대쉬 중 플레이어 아래에서 바람 루프, 멈추면 끈다 */
+  private updateGale(): void {
+    const want =
+      this.evolutionFxId() === 'gale' && (this.player.moving || this.player.action === 'dash') && !gameState.gameOver;
+    if (!want) {
+      this.stopGale();
+      return;
+    }
+    const dir = this.player.facingDir;
+    if (this.fx.isActive(this.galeFx)) this.fx.setDir(this.galeFx, 'gale', dir);
+    else
+      this.galeFx = this.fx.play('gale', this.player.x, this.player.y, {
+        dir,
+        follow: this.player,
+        depth: DEPTH.FX_GROUND,
+      });
+  }
+
+  private stopGale(): void {
+    if (this.fx.isActive(this.galeFx)) this.fx.stop(this.galeFx);
+    this.galeFx = null;
   }
 
   private onPlayerShotHit(shot: Projectile, mob: Mob): void {
@@ -473,9 +554,18 @@ export class Game extends Phaser.Scene {
     const horizontal = Math.abs(p.dirX) >= Math.abs(p.dirY);
     const w = (horizontal ? hb.width : hb.height) * p.sizeMult;
     const h = (horizontal ? hb.height : hb.width) * p.sizeMult;
-    const zone = this.add.rectangle(cx, cy, w, h, COLORS.ATTACK, 0.6).setDepth(DEPTH.ATTACK);
-    if (mods.slashTrail) this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
-    if (mods.shockwave) this.drawShockwave(cx, cy, Math.max(w, h));
+    // 베기 시트가 있으면 판정 사각형은 보이지 않게(판정만), 없으면 기존 플레이스홀더 표시
+    const evoFx = this.evolutionFxId();
+    const hasSwingArt = this.fx.has(slashFxId(weapon.id)) || evoFx === 'iai' || evoFx === 'twin';
+    const zone = this.add.rectangle(cx, cy, w, h, COLORS.ATTACK, hasSwingArt ? 0 : 0.6).setDepth(DEPTH.ATTACK);
+    // 궤적·충격파: 시트가 있으면 시트, 없으면 Graphics 플레이스홀더
+    if (mods.slashTrail && evoFx !== 'iai') this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
+    if (mods.shockwave) {
+      if (evoFx === 'crush') this.fx.play('crush', cx, cy, { depth: DEPTH.FX_GROUND });
+      else this.drawShockwave(cx, cy, Math.max(w, h));
+    }
+    // 중압: 적중 판정 시작에 히트박스 중심 아래 6px (피벗 = 바닥 타격점)
+    if (evoFx === 'weight') this.fx.play('weight', cx, cy + PROTOTYPE.WEIGHT_FX_DROP_PX, { depth: DEPTH.ATTACK });
     this.physics.add.existing(zone);
     (zone.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
 
@@ -508,8 +598,22 @@ export class Game extends Phaser.Scene {
         tickMs: mods.trailDot.tickMs,
         dmg,
       });
-      const g = this.add.rectangle(cx, cy, w, h, COLORS.TRAIL_DOT, 0.35).setDepth(DEPTH.ATTACK);
-      this.tweens.add({ targets: g, alpha: 0, duration: mods.trailDot.lingerMs, onComplete: () => g.destroy() });
+      if (evoFx === 'iai') {
+        // 잔월: 거합 이펙트의 꼬리(마지막 3프레임)를 본 재생이 끝난 뒤 남은 시간 동안 반복
+        const start = p.swingDelayMs + this.fx.durationOf('iai');
+        const linger = mods.trailDot.lingerMs - start;
+        if (linger > 0) {
+          const dir = facingOf(p.dirX, p.dirY, this.player.facingDir);
+          const at = { x: p.x, y: p.y, depth: entityDepth(p.y) + DEPTH.OVERLAY_STEP * 2 };
+          this.time.delayedCall(start, () => {
+            if (this.scene.isActive())
+              this.fx.play('iai', at.x, at.y, { dir, depth: at.depth, durationMs: linger, tailFrames: 3 });
+          });
+        }
+      } else {
+        const g = this.add.rectangle(cx, cy, w, h, COLORS.TRAIL_DOT, 0.35).setDepth(DEPTH.ATTACK);
+        this.tweens.add({ targets: g, alpha: 0, duration: mods.trailDot.lingerMs, onComplete: () => g.destroy() });
+      }
     }
 
     this.time.delayedCall(hb.activeMs, () => {
@@ -671,8 +775,15 @@ export class Game extends Phaser.Scene {
     this.player.teleportTo(dest.x, dest.y);
   }
 
-  /** 잔상: 대쉬 경로에 피해 영역 */
+  /** 대쉬 시작: 발도술 이펙트(플레이어 아래, 따라감) · 잔상(대쉬 경로에 피해 영역) */
   private onPlayerDashed(p: { dirX: number; dirY: number; x: number; y: number }): void {
+    if (this.evolutionFxId() === 'batto') {
+      this.fx.play('batto', p.x, p.y, {
+        dir: facingOf(p.dirX, p.dirY, this.player.facingDir),
+        follow: this.player,
+        depth: DEPTH.FX_GROUND,
+      });
+    }
     const mult = gameState.weapon.mods.dashTrailDamageMult;
     if (!mult) return;
     const D = PLAYER_DATA.dash;
@@ -799,7 +910,33 @@ export class Game extends Phaser.Scene {
     );
   }
 
-  /** 3지선다 동안 게임 정지 (물리·적·플레이어). 메뉴는 UI 가 그린다 */
+  // --- 엔딩 (23라운드): 황제 처치 직후 2지선다, 선택 전까지 정지 ---
+
+  private beginEnding(): void {
+    this.setFrozen(true);
+    this.player.body.setVelocity(0, 0);
+    this.stopGale();
+    const E = STORY.endings;
+    const lines = [
+      { key: '1', label: E.choice[0], enabled: true, detail: E.destroy },
+      { key: '2', label: E.choice[1], enabled: true, detail: E.understand },
+    ];
+    this.menu.open('ending', E.title, lines, (key) => this.chooseEnding(key === '2' ? 'understand' : 'destroy'));
+  }
+
+  /** 선택: 세이브 삭제·정산(공통) → '이해한다' 는 도감에 기록 → 자막 → 결과 화면 */
+  private chooseEnding(choice: EndingChoice): void {
+    if (gameState.ending) return;
+    gameState.ending = choice;
+    this.menu.close();
+    this.saveSlot.clear();
+    this.settleRun(true);
+    if (choice === 'understand') metaStore.write(markUnderstood(metaStore.read()));
+    this.story('death', STORY.endings[choice]);
+    this.time.delayedCall(PROTOTYPE.CLEAR_DELAY_MS, () => this.endRunScene(true));
+  }
+
+  /** 3지선다·엔딩 선택 동안 게임 정지 (물리·적·플레이어). 메뉴는 UI 가 그린다 */
   private setFrozen(on: boolean): void {
     if (this.frozen === on) return;
     this.frozen = on;
@@ -1105,8 +1242,12 @@ export class Game extends Phaser.Scene {
       soulsTotal: metaStore.read().souls,
       seed: gameState.seed,
       playerName: gameState.playerName,
-      line: cleared ? STORY.endings.destroy : deathLine(gameState.playerName, gameState.floorReached, gameState.kills),
+      line: cleared
+        ? STORY.endings[gameState.ending ?? 'destroy']
+        : deathLine(gameState.playerName, gameState.floorReached, gameState.kills),
+      ending: cleared ? (gameState.ending ?? 'destroy') : undefined,
     };
+    this.debugLastResult = result;
     __system.emit(UI_EVENTS.RUN_ENDED, result);
     if (__system.rendererRegistered() && this.scene.manager.keys[UI_SCENES.RESULT]) {
       if (this.scene.isActive(UI_SCENES.HUD)) this.scene.stop(UI_SCENES.HUD);
@@ -1250,7 +1391,9 @@ export class Game extends Phaser.Scene {
     EventBus.off(Events.PLAYER_GUARD_RELEASED, this.onGuardReleased, this);
     EventBus.off(Events.PLAYER_SHADOW_STEP, this.onShadowStep, this);
     EventBus.off(Events.PLAYER_DASHED, this.onPlayerDashed, this);
-    if (this.frozen) this.physics.world.resume();
+    // 엔딩 선택 뒤 정지 상태로 씬이 끝나면 물리 플러그인이 먼저 정리돼 world 가 없을 수 있다
+    if (this.frozen && this.physics.world) this.physics.world.resume();
+    this.fx.destroy();
     setMenuSelect(null);
     setSnapshotProvider(null);
     this.menu.close();

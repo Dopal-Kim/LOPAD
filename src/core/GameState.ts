@@ -8,6 +8,8 @@ import { EMPTY_BONUS, type StatBonus } from '../systems/economy';
 import { metaBonus, metaStore, type MetaBonus } from '../systems/meta';
 import { PassiveSet } from '../systems/passives';
 
+export type EndingChoice = 'destroy' | 'understand';
+
 /** 런 상태의 단일 출처. 런 시작은 startRun(), 층 전환은 nextStage(). */
 class GameState {
   seed = '';
@@ -44,6 +46,8 @@ class GameState {
   bossUnlocked = false;
   gameOver = false;
   cleared = false;
+  /** 황제 처치 후 고른 엔딩 (23라운드: 없앤다 / 이해한다). 선택 전·일반 런은 null */
+  ending: EndingChoice | null = null;
   /** 보스 처치 후 출구가 열린 상태 */
   exitOpen = false;
 
@@ -76,6 +80,7 @@ class GameState {
     this.maxHp = PLAYER_DATA.stats.hp + this.meta.maxHp;
     this.lastSoulGain = 0;
     this.runSettled = false;
+    this.ending = null;
     this.kills = 0;
     this.senses.reset();
     this.gold = 0;

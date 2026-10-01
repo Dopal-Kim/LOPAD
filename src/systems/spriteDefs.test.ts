@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
+  FX_ACTION,
   animDurationMs,
   animKey,
+  arrowFxId,
   facingOf,
+  frameAt,
   frameDurations,
   frameIndices,
+  fxSheetIds,
   sheetJsonPath,
+  slashFxId,
   wantedSheets,
   type SheetJson,
 } from './spriteDefs';
@@ -45,10 +50,36 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
     expect(animDurationMs({ ...walk, frameDurationsMs: [1, 2] })).toBeCloseTo((8 * 1000) / 9, 3);
   });
 
-  it('로드 대상: 주인공 6동작 + 적·보스 5동작', () => {
-    const list = wantedSheets(['dummy', 'archer'], []);
+  it('로드 대상: 주인공 6동작 + 적·보스 5동작 + 무기 attack + 이펙트', () => {
+    const list = wantedSheets(['dummy', 'archer'], [], ['katana'], ['katana_slash', 'iai']);
     expect(list.filter((r) => r.name === 'player')).toHaveLength(6);
     expect(list.filter((r) => r.category === 'enemies')).toHaveLength(10);
+    expect(list.filter((r) => r.category === 'weapons')).toEqual([
+      { category: 'weapons', name: 'katana', action: 'attack' },
+    ]);
+    expect(list.filter((r) => r.category === 'fx').map((r) => r.action)).toEqual([FX_ACTION, FX_ACTION]);
+    expect(sheetJsonPath({ category: 'weapons', name: 'bow', action: 'attack' })).toBe(
+      'sprites/weapons/bow_attack.json',
+    );
+    expect(sheetJsonPath({ category: 'fx', name: 'iai', action: FX_ACTION })).toBe('sprites/fx/iai.json');
+  });
+
+  it('이펙트 목록 (계약 §3·§3.1): 근접 slash, 원거리 arrow·arrow_aimed, 1차 진화 id', () => {
+    const ids = fxSheetIds({
+      katana: { kind: 'melee', personality: { branches: [{ id: 'iai' }, { id: 'batto' }] } },
+      bow: { kind: 'ranged', personality: { branches: [{ id: 'pierce' }, { id: 'scatter' }] } },
+    });
+    expect(ids).toEqual(['katana_slash', 'iai', 'batto', 'bow_arrow', 'bow_arrow_aimed', 'pierce', 'scatter']);
+    expect(slashFxId('dagger')).toBe('dagger_slash');
+    expect(arrowFxId('bow', true)).toBe('bow_arrow_aimed');
+  });
+
+  it('무기 오버레이: 같은 열의 프레임 번호, any 시트는 0행', () => {
+    const weapon = { ...walk, frames: 4, directions: ['down', 'up', 'left', 'right'] };
+    expect(frameAt(weapon, 'left', 1)).toBe(9);
+    expect(frameAt(weapon, 'right', 9)).toBe(15);
+    expect(frameAt({ ...weapon, directions: ['any'] }, 'up', 2)).toBe(2);
+    expect(frameIndices({ ...weapon, directions: ['any'] }, 'right')).toEqual([0, 1, 2, 3]);
   });
 
   it('지배 축 방향', () => {

@@ -15,6 +15,7 @@ import { applyDefense } from '../systems/Combat';
 import type { InputState } from '../systems/InputSystem';
 import { facingOf, type Facing } from '../systems/spriteDefs';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
+import { WeaponOverlay } from './WeaponOverlay';
 
 type Body = Phaser.Physics.Arcade.Body;
 
@@ -27,8 +28,12 @@ export class Player extends Phaser.GameObjects.Sprite {
   declare body: Body;
   action: PlayerAction = 'normal';
   readonly visual: EntityVisual;
+  /** 손에 든 무기 오버레이 (계약 §3.1). 공격 애니 중에만 보인다 */
+  readonly overlay: WeaponOverlay;
   /** 사망 애니 길이 (시트가 없으면 0) — Game 이 결과 화면 전환을 이만큼 늦춘다 */
   deathAnimMs = 0;
+  /** 이번 프레임 이동 입력이 있었는지 (질풍 루프 이펙트용) */
+  moving = false;
   private actionUntil = 0;
   private invulnerableUntil = 0;
   private attackReadyAt = 0;
@@ -51,12 +56,14 @@ export class Player extends Phaser.GameObjects.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.visual = new EntityVisual(this, 'player', w, h, COLORS.PLAYER);
+    this.overlay = new WeaponOverlay(this);
     this.body.setCollideWorldBounds(true);
   }
 
   protected preUpdate(time: number, delta: number): void {
     super.preUpdate(time, delta);
     this.visual.sync();
+    this.overlay.update();
   }
 
   /** 현재 애니 방향 (디버그) */
@@ -229,6 +236,7 @@ export class Player extends Phaser.GameObjects.Sprite {
   /** 이동 중엔 이동 방향, 멈춰 있으면 마우스 조준 방향으로 idle/walk */
   private animateLocomotion(input: InputState, dir: Phaser.Math.Vector2, time: number): void {
     const moving = dir.lengthSq() > 0 && this.action !== 'dash';
+    this.moving = moving;
     const facing = moving
       ? facingOf(dir.x, dir.y, this.visual.facing)
       : facingOf(input.aimX - this.x, input.aimY - this.y, this.visual.facing);
@@ -257,6 +265,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       sizeMult,
       kind,
       forceCrit,
+      swingDelayMs: this.visual.lastImpactMs,
     };
     EventBus.emit(Events.PLAYER_ATTACKED, payload);
   }

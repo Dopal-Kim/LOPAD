@@ -410,7 +410,8 @@ export interface StoryData {
   diary: { first: string; beforeFate: string; fate: string };
   evolution: { generic: string; byName: Record<string, string> };
   death: string;
-  endings: { destroy: string; understand: string; choice: [string, string] };
+  /** 엔딩 2지선다 제목(시스템 임시값, 스토리 확정 전)·결과 문장·선택지 */
+  endings: { title: string; destroy: string; understand: string; choice: [string, string] };
   notices: { trialStart: string; trialClear: string; bossUnlocked: string; saved: string };
   /** 강화 1·2·3회 자막 (스토리 2차) */
   reinforce: string[];

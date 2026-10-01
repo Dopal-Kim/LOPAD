@@ -1,12 +1,21 @@
 import Phaser from 'phaser';
 import { COLORS, DEPTH } from '../core/Constants';
+import { placeholderTexture } from './EntityVisual';
 import type { ProjectileSpec } from './Mob';
 
 type Body = Phaser.Physics.Arcade.Body;
 export type ProjectileOwner = 'enemy' | 'player';
 
+/** 투사체 외형: 아트 텍스처(화살)가 있으면 그것을, 없으면 단색 사각형 */
+export interface ProjectileVisual {
+  /** spriteLibrary 텍스처 키 (현재 층 변형). 없으면 플레이스홀더 */
+  texture?: string | null;
+  /** 진행 각도로 회전 (우향으로 그려진 시트, 계약 §3.1 `rotate`) */
+  rotate?: boolean;
+}
+
 /** 투사체. 벽에 닿거나 수명이 끝나면 비활성화되어 풀로 돌아간다. */
-export class Projectile extends Phaser.GameObjects.Rectangle {
+export class Projectile extends Phaser.GameObjects.Sprite {
   declare body: Body;
   attack = 0;
   owner: ProjectileOwner = 'enemy';
@@ -18,12 +27,15 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
   homingTurn = 0;
   /** 적중 시 적 경직 ms (조준 사격 중시) */
   hitStunMs = 0;
+  /** 아트 텍스처 사용 중 (틴트 대신 원색, 속도 방향으로 회전) */
+  private textured = false;
+  private rotateToVelocity = false;
   /** 같은 적을 두 번 맞히지 않기 위한 기록 */
   private hitSet = new Set<unknown>();
   private expireAt = 0;
 
   constructor(scene: Phaser.Scene) {
-    super(scene, 0, 0, 4, 4, COLORS.PROJECTILE);
+    super(scene, 0, 0, placeholderTexture(scene, 4, 4));
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setDepth(DEPTH.PROJECTILE);
@@ -39,6 +51,7 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
     time: number,
     owner: ProjectileOwner = 'enemy',
     pierce = 0,
+    visual: ProjectileVisual = {},
   ): void {
     this.attack = spec.attack;
     this.owner = owner;
@@ -47,15 +60,24 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
     this.homingTurn = 0;
     this.hitStunMs = 0;
     this.hitSet.clear();
-    this.setFillStyle(owner === 'player' ? COLORS.PLAYER_SHOT : COLORS.PROJECTILE);
     this.expireAt = time + spec.lifeMs;
-    this.setSize(spec.size, spec.size);
-    this.body.setSize(spec.size, spec.size);
+    const texture = visual.texture && this.scene.textures.exists(visual.texture) ? visual.texture : null;
+    this.textured = texture !== null;
+    this.rotateToVelocity = this.textured && Boolean(visual.rotate);
+    if (texture) {
+      this.setTexture(texture, 0).setOrigin(0.5, 0.5).clearTint();
+    } else {
+      this.setTexture(placeholderTexture(this.scene, spec.size, spec.size)).setOrigin(0.5, 0.5);
+      this.setTint(owner === 'player' ? COLORS.PLAYER_SHOT : COLORS.PROJECTILE);
+    }
+    // 판정 크기는 외형과 무관하게 spec.size 정사각형, 중심 정렬
+    this.body.setSize(spec.size, spec.size, true);
     this.setPosition(x, y);
     this.setActive(true).setVisible(true);
     this.body.enable = true;
     this.body.reset(x, y);
     this.body.setVelocity(dirX * spec.speedPx, dirY * spec.speedPx);
+    this.setRotation(this.rotateToVelocity ? Math.atan2(dirY, dirX) : 0);
   }
 
   /** 적에게 맞았을 때 호출. 이미 맞힌 적이면 false. 관통이 남으면 계속 날아간다 */
@@ -83,12 +105,20 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
     this.reflected = true;
     this.attack = Math.round(this.attack * mult);
     this.body.setVelocity(-this.body.velocity.x, -this.body.velocity.y);
-    this.setFillStyle(COLORS.PROJECTILE_REFLECTED);
+    if (this.textured) this.setRotation(this.rotation + Math.PI);
+    else this.setTint(COLORS.PROJECTILE_REFLECTED);
   }
 
   tick(time: number): void {
     if (!this.active) return;
-    if (time >= this.expireAt || !this.body.blocked.none) this.deactivate();
+    if (time >= this.expireAt || !this.body.blocked.none) {
+      this.deactivate();
+      return;
+    }
+    if (this.rotateToVelocity) {
+      const v = this.body.velocity;
+      if (v.lengthSq() > 0) this.setRotation(Math.atan2(v.y, v.x));
+    }
   }
 
   deactivate(): void {

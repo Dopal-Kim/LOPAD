@@ -74,9 +74,13 @@ export const DEPTH = {
   PROPS: 0.5,
   /** 발밑 그림자 (개체 아래) */
   SHADOW: 0.9,
+  /** 바닥 이펙트 (그림자 위, 개체 아래): 파쇄 링·발도 속도선·질풍 바람 */
+  FX_GROUND: 0.95,
   /** 개체(플레이어·적)는 ENTITY + y × ENTITY_Y_SCALE 로 발 위치 기준 정렬 */
   ENTITY: 1,
   ENTITY_Y_SCALE: 1e-5,
+  /** 개체에 겹치는 레이어 간격 (무기 오버레이 ±1, 베기 이펙트 +2). 발 y 반 픽셀 차이보다 작다 */
+  OVERLAY_STEP: 2.5e-6,
   PICKUP: 2.5,
   PROJECTILE: 3,
   ATTACK: 4,
@@ -153,6 +157,12 @@ export const PROTOTYPE = {
   PICKUP_POOL: 64,
   /** 투사체 최대 동시 수 */
   PROJECTILE_POOL: 64,
+  /** 이펙트 스프라이트 풀 크기 */
+  FX_POOL: 48,
+  /** 루프 이펙트(잔월 꼬리) 종료 페이드 */
+  FX_FADE_MS: 150,
+  /** 중압 이펙트: 히트박스 중심에서 아래로 (계약 §3.1 pivotNote) */
+  WEIGHT_FX_DROP_PX: 6,
 };
 
 export const DEBUG = {

@@ -61,8 +61,8 @@ export interface UiMenuLine {
   detail?: string;
 }
 
-/** 'evolve' 는 27라운드 개성 3지선다 (계약 추가분, 승인 대기) */
-export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve';
+/** 'evolve' 는 27라운드 개성 3지선다, 'ending' 은 23라운드 엔딩 2지선다 (계약 추가분, 승인 대기) */
+export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending';
 
 export interface UiMenu {
   id: UiMenuId;
@@ -112,8 +112,10 @@ export interface UiResult {
   soulsTotal: number;
   seed: string;
   playerName: string;
-  /** 사망·클리어 문장 */
+  /** 사망·클리어 문장 (클리어 시 고른 엔딩 문장) */
   line: string;
+  /** 클리어 시 고른 엔딩 (23라운드). 사망이면 없음 */
+  ending?: 'destroy' | 'understand';
 }
 
 export interface UiBossInfo {

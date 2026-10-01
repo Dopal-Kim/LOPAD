@@ -4,15 +4,25 @@
  */
 import { ASSETS, TEXTURES } from '../core/Constants';
 
-export type SpriteCategory = 'player' | 'enemies' | 'bosses';
+export type SpriteCategory = 'player' | 'enemies' | 'bosses' | 'weapons' | 'fx';
 export type Facing = 'down' | 'up' | 'left' | 'right';
 export const FACINGS: readonly Facing[] = ['down', 'up', 'left', 'right'];
 
 /** 계약 §1 동작 목록 */
 export const PLAYER_ACTIONS = ['idle', 'walk', 'attack', 'dash', 'hurt', 'death'] as const;
 export const MOB_ACTIONS = ['idle', 'walk', 'attack', 'hurt', 'death'] as const;
+/** 계약 §3.1 손에 든 무기 오버레이 동작 */
+export const WEAPON_ACTIONS = ['attack'] as const;
+/**
+ * 이펙트 시트(`fx/<이름>.json`)는 파일 이름에 동작 접미가 없으므로 내부 동작 이름을 하나로 고정한다.
+ * sheetId = `<이름>_fx`, 애니 키 = `<이름>_fx_<방향>` (directions 가 ["any"] 면 네 방향 모두 0행).
+ */
+export const FX_ACTION = 'fx';
 
-/** 계약 §1 JSON 필드 */
+/** 계약 §3.1 이펙트 앵커 */
+export type FxAnchor = 'player_pivot' | 'hitbox_center' | 'projectile' | 'ui';
+
+/** 계약 §1 JSON 필드 (+ §3.1 보강 필드는 선택) */
 export interface SheetJson {
   image: string;
   action: string;
@@ -24,6 +34,15 @@ export interface SheetJson {
   frameDurationsMs?: number[];
   loop: boolean;
   pivot: { x: number; y: number };
+  /** §3.1 이펙트 앵커 */
+  anchor?: FxAnchor;
+  /** §3.1 투사체 앵커: 진행 각도로 회전 (drawnFacing 기준) */
+  rotate?: boolean;
+  drawnFacing?: 'right' | 'left' | 'up' | 'down';
+  /** §3.1 무기 오버레이 깊이: 방향별 above / below */
+  depth?: Partial<Record<Facing, 'above' | 'below'>>;
+  /** §3.1 재생 시점 메모 (코드가 읽지 않음) */
+  spawn?: string;
 }
 
 export interface SheetDef extends SheetJson {
@@ -41,17 +60,58 @@ export interface SheetRequest {
   action: string;
 }
 
-/** 로드 대상: 주인공 6동작, 이름 목록(적·보스 id)별 5동작 */
-export function wantedSheets(enemyIds: readonly string[], bossIds: readonly string[]): SheetRequest[] {
+/** 로드 대상: 주인공 6동작, 이름 목록(적·보스 id)별 5동작, 무기 id 별 attack 오버레이, 이펙트 id 목록 */
+export function wantedSheets(
+  enemyIds: readonly string[],
+  bossIds: readonly string[],
+  weaponIds: readonly string[] = [],
+  fxIds: readonly string[] = [],
+): SheetRequest[] {
   const out: SheetRequest[] = [];
   for (const action of PLAYER_ACTIONS) out.push({ category: 'player', name: 'player', action });
   for (const name of enemyIds) for (const action of MOB_ACTIONS) out.push({ category: 'enemies', name, action });
   for (const name of bossIds) for (const action of MOB_ACTIONS) out.push({ category: 'bosses', name, action });
+  for (const name of weaponIds) for (const action of WEAPON_ACTIONS) out.push({ category: 'weapons', name, action });
+  for (const name of fxIds) out.push({ category: 'fx', name, action: FX_ACTION });
   return out;
 }
 
-/** `sprites/<분류>/<이름>_<동작>.json` (매니페스트·URL 공통 상대 경로) */
+/** 이펙트 id 를 정하는 데 필요한 무기 데이터 최소 형태 (data/weapons.json) */
+export interface FxWeaponShape {
+  kind: 'melee' | 'ranged';
+  personality: { branches: { id: string }[] };
+}
+
+/** 베기 이펙트 이름 `<무기id>_slash` */
+export function slashFxId(weaponId: string): string {
+  return `${weaponId}_slash`;
+}
+
+/** 화살 텍스처 이름 `<무기id>_arrow` / `<무기id>_arrow_aimed` */
+export function arrowFxId(weaponId: string, aimed: boolean): string {
+  return aimed ? `${weaponId}_arrow_aimed` : `${weaponId}_arrow`;
+}
+
+/**
+ * 계약 §3·§3.1 이펙트 목록: 근접 무기는 `<id>_slash`, 원거리는 `<id>_arrow`·`<id>_arrow_aimed`,
+ * 그리고 1차 진화 노드 id 전부(2차는 부모 1차 이펙트를 재사용). 데이터에서 유도하므로 무기·트리가 바뀌면 자동 반영.
+ */
+export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
+  const out = new Set<string>();
+  for (const [id, w] of Object.entries(weapons)) {
+    if (w.kind === 'melee') out.add(slashFxId(id));
+    else {
+      out.add(arrowFxId(id, false));
+      out.add(arrowFxId(id, true));
+    }
+    for (const b of w.personality.branches) out.add(b.id);
+  }
+  return [...out];
+}
+
+/** `sprites/<분류>/<이름>_<동작>.json` (매니페스트·URL 공통 상대 경로). 이펙트는 `sprites/fx/<이름>.json` */
 export function sheetJsonPath(r: SheetRequest): string {
+  if (r.category === 'fx') return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}.json`;
   return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}_${r.action}.json`;
 }
 
@@ -90,6 +150,12 @@ export function directionRow(def: SheetJson, dir: Facing): number {
 export function frameIndices(def: SheetJson, dir: Facing): number[] {
   const row = directionRow(def, dir);
   return Array.from({ length: def.frames }, (_, c) => row * def.frames + c);
+}
+
+/** 방향별 프레임 번호의 열 → 시트 프레임 번호. 다른 시트(무기 오버레이)가 같은 열을 같은 시각에 보일 때 */
+export function frameAt(def: SheetJson, dir: Facing, column: number): number {
+  const c = Math.max(0, Math.min(def.frames - 1, column));
+  return directionRow(def, dir) * def.frames + c;
 }
 
 /** 지배 축으로 4방향 결정. 0 벡터면 fallback */

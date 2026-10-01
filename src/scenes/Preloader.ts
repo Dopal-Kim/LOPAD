@@ -5,7 +5,14 @@ import { SaveSlot, browserStorage } from '../systems/save';
 import { BOSSES, ENEMIES, RUN, WEAPONS } from '../data';
 import { metaStore } from '../systems/meta';
 import { spriteLibrary } from '../systems/sprites';
-import { sheetJsonPath, sheetTextureKey, wantedSheets, type SheetDef, type SheetJson } from '../systems/spriteDefs';
+import {
+  fxSheetIds,
+  sheetJsonPath,
+  sheetTextureKey,
+  wantedSheets,
+  type SheetDef,
+  type SheetJson,
+} from '../systems/spriteDefs';
 import { TileSkin, tileSkins, tilesetJsonPath, tilesetTextureKey, type TilesetJson } from '../world/tileskin';
 import { UI_SCENES } from '../ui';
 
@@ -46,7 +53,12 @@ export class Preloader extends Phaser.Scene {
   private queueJsons(): void {
     const exists = (rel: string) => this.manifest === null || this.manifest.has(rel);
     this.pendingSheets = [];
-    for (const req of wantedSheets(Object.keys(ENEMIES), Object.keys(BOSSES))) {
+    for (const req of wantedSheets(
+      Object.keys(ENEMIES),
+      Object.keys(BOSSES),
+      Object.keys(WEAPONS),
+      fxSheetIds(WEAPONS),
+    )) {
       const rel = sheetJsonPath(req);
       if (!exists(rel)) continue;
       const jsonKey = `json_${sheetTextureKey(req.name, req.action)}`;
@@ -71,7 +83,8 @@ export class Preloader extends Phaser.Scene {
       if (!json || !json.image || !(json.frameWidth > 0) || !(json.frameHeight > 0) || !(json.frames > 0)) continue;
       const textureKey = sheetTextureKey(p.req.name, p.req.action);
       const imageUrl = `${ASSETS.URL}/${p.dir}${json.image}`;
-      sheets.push({ ...json, category: p.req.category, name: p.req.name, textureKey, imageUrl });
+      // 동작 이름은 요청 기준 (이펙트 시트의 JSON action 은 파일 이름과 같아 내부 동작 'fx' 로 통일)
+      sheets.push({ ...json, action: p.req.action, category: p.req.category, name: p.req.name, textureKey, imageUrl });
       if (!this.textures.exists(textureKey)) {
         this.load.spritesheet(textureKey, imageUrl, { frameWidth: json.frameWidth, frameHeight: json.frameHeight });
       }

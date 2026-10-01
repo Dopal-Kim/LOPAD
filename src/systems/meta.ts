@@ -40,6 +40,8 @@ export interface MetaData {
   bestFloor: number;
   upgrades: Partial<Record<UpgradeId, number>>;
   codex: Record<string, CodexEntry>;
+  /** 엔딩 '이해한다' 를 한 번이라도 골랐는지 (23라운드 엔딩 2종, 도감 기록) */
+  understood?: boolean;
 }
 
 export interface RunSummary {
@@ -118,6 +120,11 @@ export function recordRun(
       codex: { ...meta.codex, [r.weaponId]: entry },
     },
   };
+}
+
+/** 엔딩 '이해한다' 기록 (되돌리지 않음) */
+export function markUnderstood(meta: MetaData): MetaData {
+  return { ...meta, understood: true };
 }
 
 /** 강화 구매. 영혼이 모자라거나 최대면 null */

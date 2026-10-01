@@ -18,6 +18,8 @@ export interface DebugApi {
   stage: () => { index: number; id: string; name: string; savesLeft: number; exitOpen: boolean; isLast: boolean };
   save: () => unknown;
   lastAttack: () => unknown;
+  /** 마지막 RUN_ENDED 페이로드 (엔딩 line·ending 검증용) */
+  lastResult: () => unknown;
   shots: () => unknown[];
   meta: () => unknown;
   addPassive: (id: string) => boolean;
@@ -36,6 +38,8 @@ export interface DebugApi {
   player: () => PlayerInfo;
   /** 로드된 스프라이트 시트·애니 키·현재 층 변형 */
   sprites: () => { sheets: string[]; anims: string[]; variant: string };
+  /** 활성 이펙트 스프라이트 */
+  fx: () => unknown;
   stunAll: (ms: number) => void;
   mobs: () => { id: string; hp: number; x: number; y: number; stunned: boolean; anim: string | null }[];
   /** 다음 층으로 강제 전환 (팔레트 스왑·타일셋 검증용) */
@@ -62,6 +66,9 @@ export interface PlayerInfo {
   anim: string | null;
   dir: string;
   animated: boolean;
+  /** 무기 오버레이가 보이는 프레임 번호 (-1 = 숨김) */
+  overlayFrame: number;
+  moving: boolean;
 }
 
 export function exposeDebug(api: {
@@ -74,11 +81,13 @@ export function exposeDebug(api: {
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
   playerInfo: () => PlayerInfo;
   sprites: () => { sheets: string[]; anims: string[]; variant: string };
+  fx: () => unknown;
   stunAll: (ms: number) => void;
   now: () => number;
   stage: () => { index: number; id: string; name: string; savesLeft: number; exitOpen: boolean; isLast: boolean };
   save: () => unknown;
   lastAttack: () => unknown;
+  lastResult: () => unknown;
   shots: () => unknown[];
   meta: () => unknown;
   addPassive: (id: string) => boolean;
@@ -108,6 +117,7 @@ export function exposeDebug(api: {
     stage: () => api.stage(),
     save: () => api.save(),
     lastAttack: () => api.lastAttack(),
+    lastResult: () => api.lastResult(),
     meta: () => api.meta(),
     addPassive: (id) => api.addPassive(id),
     ui: () => ({
@@ -124,6 +134,7 @@ export function exposeDebug(api: {
     fireAtPlayer: (d, s, a) => api.fireAtPlayer(d, s, a),
     player: () => api.playerInfo(),
     sprites: () => api.sprites(),
+    fx: () => api.fx(),
     stunAll: (ms) => api.stunAll(ms),
     mobs: () =>
       api.mobs().map((m) => ({
