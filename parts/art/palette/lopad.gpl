@@ -1,0 +1,116 @@
+GIMP Palette
+Name: LOPAD
+Columns: 16
+#
+  0   0   0	G00 pure black / selout
+ 20  21  22	G01 coat shadow
+ 33  34  36	G02 coat base
+ 47  48  51	G03 coat fold
+ 62  63  66	G04 boot / iron dark
+ 77  79  82	G05 iron
+ 92  94  98	G06 cloth shadow
+108 111 115	G07 cloth base
+125 128 132	G08 cloth light
+142 145 149	G09 pale skin
+160 162 166	G10 bandage shadow
+178 180 184	G11 bandage base
+197 198 201	G12 bandage light
+216 217 219	G13 bone / paper
+235 236 237	G14 near white
+255 255 255	G15 pure white / glint
+ 26  17  15	F1_zan A00 ink
+ 63  39  29	F1_zan A01 deep
+101  59  36	F1_zan A02 shadow2
+139  77  34	F1_zan A03 shadow1
+176  97  26	F1_zan A04 base_dark
+214 122  17	F1_zan A05 base
+220 142  35	F1_zan A06 base_light
+226 163  60	F1_zan A07 light1
+232 184  88	F1_zan A08 light2
+238 204 120	F1_zan A09 glow
+244 222 155	F1_zan A10 flash
+250 238 192	F1_zan A11 white
+ 17  26  24	F2_pae A00 ink
+ 29  51  46	F2_pae A01 deep
+ 38  77  65	F2_pae A02 shadow2
+ 43 102  80	F2_pae A03 shadow1
+ 45 128  92	F2_pae A04 base_dark
+ 46 153  99	F2_pae A05 base
+ 61 169 110	F2_pae A06 base_light
+ 82 185 123	F2_pae A07 light1
+106 201 140	F2_pae A08 light2
+136 218 160	F2_pae A09 glow
+169 234 185	F2_pae A10 flash
+206 250 215	F2_pae A11 white
+ 17  23  26	F3_bung A00 ink
+ 34  51  55	F3_bung A01 deep
+ 47  81  85	F3_bung A02 shadow2
+ 56 113 114	F3_bung A03 shadow1
+ 61 144 139	F3_bung A04 base_dark
+ 66 173 159	F3_bung A05 base
+ 81 186 166	F3_bung A06 base_light
+100 199 175	F3_bung A07 light1
+123 212 185	F3_bung A08 light2
+149 224 198	F3_bung A09 glow
+179 237 213	F3_bung A10 flash
+211 250 232	F3_bung A11 white
+ 26  21  17	F4_gye A00 ink
+ 56  46  35	F4_gye A01 deep
+ 87  70  48	F4_gye A02 shadow2
+117  95  57	F4_gye A03 shadow1
+148 121  63	F4_gye A04 base_dark
+178 149  68	F4_gye A05 base
+190 165  83	F4_gye A06 base_light
+202 181 102	F4_gye A07 light1
+214 198 125	F4_gye A08 light2
+226 214 151	F4_gye A09 glow
+238 231 179	F4_gye A10 flash
+250 246 211	F4_gye A11 white
+ 20  17  26	F5_gwi A00 ink
+ 39  31  53	F5_gwi A01 deep
+ 57  41  81	F5_gwi A02 shadow2
+ 75  47 108	F5_gwi A03 shadow1
+ 92  50 136	F5_gwi A04 base_dark
+111  52 163	F5_gwi A05 base
+133  67 178	F5_gwi A06 base_light
+156  88 192	F5_gwi A07 light1
+180 112 207	F5_gwi A08 light2
+203 140 221	F5_gwi A09 glow
+225 172 235	F5_gwi A10 flash
+246 207 250	F5_gwi A11 white
+ 26  20  15	F6_yeon A00 ink
+ 65  50  31	F6_yeon A01 deep
+105  81  38	F6_yeon A02 shadow2
+145 113  38	F6_yeon A03 shadow1
+185 149  31	F6_yeon A04 base_dark
+224 191  22	F6_yeon A05 base
+229 202  41	F6_yeon A06 base_light
+233 212  65	F6_yeon A07 light1
+237 223  93	F6_yeon A08 light2
+241 232 124	F6_yeon A09 glow
+246 241 158	F6_yeon A10 flash
+250 248 194	F6_yeon A11 white
+ 26  15  19	F7_jeok A00 ink
+ 56  27  37	F7_jeok A01 deep
+ 87  32  48	F7_jeok A02 shadow2
+117  31  51	F7_jeok A03 shadow1
+148  25  48	F7_jeok A04 base_dark
+178  18  39	F7_jeok A05 base
+190  34  49	F7_jeok A06 base_light
+202  57  65	F7_jeok A07 light1
+214  84  87	F7_jeok A08 light2
+226 119 116	F7_jeok A09 glow
+238 158 153	F7_jeok A10 flash
+250 199 194	F7_jeok A11 white
+ 22  23  26	F8_pyeongsang A00 ink
+ 51  52  58	F8_pyeongsang A01 deep
+ 80  83  91	F8_pyeongsang A02 shadow2
+110 113 123	F8_pyeongsang A03 shadow1
+138 143 156	F8_pyeongsang A04 base_dark
+166 173 189	F8_pyeongsang A05 base
+177 184 199	F8_pyeongsang A06 base_light
+189 196 209	F8_pyeongsang A07 light1
+202 208 219	F8_pyeongsang A08 light2
+215 220 230	F8_pyeongsang A09 glow
+228 233 240	F8_pyeongsang A10 flash
+242 245 250	F8_pyeongsang A11 white
