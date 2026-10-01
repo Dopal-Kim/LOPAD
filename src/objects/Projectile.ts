@@ -12,8 +12,12 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
   owner: ProjectileOwner = 'enemy';
   /** 패링으로 반사됨: 플레이어 대신 적을 맞힌다 */
   reflected = false;
-  /** 남은 관통 횟수 (플레이어 투사체) */
+  /** 남은 관통 횟수 (플레이어 투사체). Infinity = 무한 관통 */
   pierceLeft = 0;
+  /** 유도 선회 속도 (rad/s). 0 이면 유도 없음 */
+  homingTurn = 0;
+  /** 적중 시 적 경직 ms (조준 사격 중시) */
+  hitStunMs = 0;
   /** 같은 적을 두 번 맞히지 않기 위한 기록 */
   private hitSet = new Set<unknown>();
   private expireAt = 0;
@@ -40,6 +44,8 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
     this.owner = owner;
     this.reflected = false;
     this.pierceLeft = pierce;
+    this.homingTurn = 0;
+    this.hitStunMs = 0;
     this.hitSet.clear();
     this.setFillStyle(owner === 'player' ? COLORS.PLAYER_SHOT : COLORS.PROJECTILE);
     this.expireAt = time + spec.lifeMs;
@@ -59,6 +65,18 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
     if (this.pierceLeft > 0) this.pierceLeft -= 1;
     else this.deactivate();
     return true;
+  }
+
+  /** 유도: 목표 방향으로 속도 벡터를 최대 homingTurn × dt 만큼 돌린다 */
+  steerToward(x: number, y: number, deltaMs: number): void {
+    if (this.homingTurn <= 0) return;
+    const v = this.body.velocity;
+    const speed = v.length();
+    if (speed <= 0) return;
+    const want = Math.atan2(y - this.y, x - this.x);
+    const cur = Math.atan2(v.y, v.x);
+    const next = Phaser.Math.Angle.RotateTo(cur, want, this.homingTurn * (deltaMs / 1000));
+    this.body.setVelocity(Math.cos(next) * speed, Math.sin(next) * speed);
   }
 
   reflect(mult: number): void {

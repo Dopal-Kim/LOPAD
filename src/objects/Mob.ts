@@ -27,6 +27,10 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
   protected baseColor: number;
   protected nextContactAt = 0;
   protected stunnedUntil = 0;
+  /** 경직의 출처: 패링 경직 처치만 '패링 처치'로 센다 */
+  private stunSource: 'parry' | 'hit' = 'parry';
+  /** 밀쳐내기 중 (AI 가 속도를 덮어쓰지 않는다) */
+  private knockedUntil = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, size: [number, number], color: string, hp: number) {
     const c = Phaser.Display.Color.HexStringToColor(color).color;
@@ -56,8 +60,24 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
     return time < this.stunnedUntil;
   }
 
-  /** 패링 등으로 경직. 경직 중엔 움직이지도 공격하지도 않는다 */
-  stun(time: number, ms: number): void {
+  /** 패링 경직으로 멈춰 있는지 (감각 '패링 처치' 분류용) */
+  isParryStunned(time: number): boolean {
+    return this.isStunned(time) && this.stunSource === 'parry';
+  }
+
+  isKnockedBack(time: number): boolean {
+    return time < this.knockedUntil;
+  }
+
+  /** 밀쳐내기: ms 동안 속도를 유지하고 AI 를 멈춘다 (가드 해제) */
+  knockback(time: number, dirX: number, dirY: number, speedPx: number, ms: number): void {
+    this.knockedUntil = Math.max(this.knockedUntil, time + ms);
+    this.body.setVelocity(dirX * speedPx, dirY * speedPx);
+  }
+
+  /** 패링·중압 등으로 경직. 경직 중엔 움직이지도 공격하지도 않는다 */
+  stun(time: number, ms: number, source: 'parry' | 'hit' = 'parry'): void {
+    if (!this.isStunned(time) || source === 'parry') this.stunSource = source;
     this.stunnedUntil = Math.max(this.stunnedUntil, time + ms);
     this.body.setVelocity(0, 0);
     this.setFillStyle(COLORS.STUN);
@@ -91,6 +111,11 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
   }
 
   protected onDeath(): void {}
+
+  /** 외부 효과(출혈 등)의 짧은 색 표시 */
+  flashColor(color: number): void {
+    this.flash(color);
+  }
 
   protected flash(color: number, ms = PROTOTYPE.HURT_FLASH_MS): void {
     this.setFillStyle(color);

@@ -137,7 +137,7 @@ class GameState {
       kills: this.kills,
       sense: this.senses.sense,
       savesLeft: this.savesLeft,
-      weapon: { id: this.weapon.id, personality: this.weapon.personality, stage: this.weapon.stage },
+      weapon: { id: this.weapon.id, ...this.weapon.toProgress() },
       gold: this.gold,
       potions: this.potions,
       pointsPending: this.pointsPending,
@@ -158,7 +158,7 @@ class GameState {
     this.savesLeft = d.savesLeft;
     const weaponId = WEAPONS[d.weapon.id] ? d.weapon.id : PLAYER_DATA.startWeapon;
     this.weapon = new WeaponState(weaponId, WEAPONS[weaponId]);
-    this.weapon.restore(d.weapon.personality, d.weapon.stage);
+    this.weapon.restore(d.weapon);
     this.gold = d.gold;
     this.potions = d.potions;
     this.pointsPending = d.pointsPending;

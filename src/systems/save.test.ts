@@ -15,7 +15,7 @@ const sample: SaveData = {
   kills: 20,
   sense: 3,
   savesLeft: 1,
-  weapon: { id: 'katana', personality: 40, stage: 1 },
+  weapon: { id: 'katana', personality: 40, path: ['iai'], reinforce: 1, choicePending: false },
   gold: 120,
   potions: 2,
   pointsPending: 0,

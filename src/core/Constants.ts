@@ -56,6 +56,13 @@ export const COLORS = {
   PLAYER_DASH: 0x9ad0ff,
   PLAYER_PARRY: 0xfff8c0,
   PLAYER_RECOVER: 0x2f5a8a,
+  PLAYER_GUARD: 0x8fa8c8,
+  PLAYER_AIM: 0xd0b0ff,
+  PLAYER_SHADOW: 0x303048,
+  GUARD_PUSH: 0xb0c8e8,
+  TRAIL_DOT: 0xa0a0ff,
+  BLEED: 0xc03030,
+  DASH_TRAIL: 0x80d0ff,
   PROJECTILE_REFLECTED: 0x80f0ff,
   PLAYER_SHOT: 0xc0e8ff,
   SHOCKWAVE: 0xffd080,
@@ -83,6 +90,14 @@ export const PROTOTYPE = {
   SLASH_TRAIL_MS: 220,
   SHOCKWAVE_MS: 260,
   TWIN_DELAY_MS: 80,
+  /** 가드 해제 밀쳐내기 연출 */
+  GUARD_PUSH_MS: 200,
+  /** 그림자 걸음 잔상 연출 */
+  SHADOW_STEP_MS: 180,
+  /** 조준 사격 차지 선 연출 폭 */
+  AIM_LINE_WIDTH: 1,
+  /** 개성 강화 알림 */
+  REINFORCE_BANNER_MS: 1200,
   FATE_BANNER_MS: 1500,
   BANNER_MS: 1500,
   /** 바닥 드랍 최대 동시 수 */

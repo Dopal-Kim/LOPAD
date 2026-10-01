@@ -39,6 +39,13 @@ export class TileWorld {
     return r;
   }
 
+  /** 월드 좌표의 타일이 걸을 수 있는 바닥인지 (벽·닫힌 문·빈 공간이면 false) */
+  isWalkableAt(worldX: number, worldY: number): boolean {
+    const t = this.layer.getTileAtWorldXY(worldX, worldY);
+    if (!t) return false;
+    return t.index !== TileId.Void && !SOLID.includes(t.index as TileId);
+  }
+
   cellAt(worldX: number, worldY: number): Cell {
     return { cx: Math.floor(worldX / (CELL_W * TILE)), cy: Math.floor(worldY / (CELL_H * TILE)) };
   }

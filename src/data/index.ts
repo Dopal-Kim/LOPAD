@@ -15,8 +15,12 @@ import type {
   RunDef,
   StageTable,
   StagesFile,
+  SecondaryDef,
   StoryData,
+  WeaponEvolution,
+  WeaponRules,
   WeaponTable,
+  WeaponsFile,
 } from './types';
 
 function assertNumber(v: unknown, path: string): void {
@@ -115,6 +119,59 @@ export function validateStages(t: StageTable, enemies: EnemyTable, bosses: BossT
   return t;
 }
 
+const MOD_KEYS = new Set([
+  'slashTrail',
+  'trailDot',
+  'dashCooldownMult',
+  'dashAttackMult',
+  'dashInvulnExtraMs',
+  'dashAttackForceCrit',
+  'shockwave',
+  'shockwaveSecond',
+  'shockwaveClearsProjectiles',
+  'hitStunMs',
+  'attackSlowMult',
+  'guardReduction',
+  'guardCounterMult',
+  'superArmorReduction',
+  'hits',
+  'bleed',
+  'moveSpeedMult',
+  'dashTrailDamageMult',
+  'shadowStepMult',
+  'pierce',
+  'pierceInfinite',
+  'projectileSpeedMult',
+  'aimedShotMult',
+  'aimedShotStunMs',
+  'spread',
+  'homingTurnDeg',
+]);
+
+const SECONDARY_NUMERIC: Record<SecondaryDef['kind'], string[]> = {
+  parry: [],
+  guard: ['damageReduction', 'moveMult', 'pushRadiusTiles', 'pushSpeedTiles', 'pushMs'],
+  shadowstep: ['rangeTiles', 'fallbackTiles', 'cooldownMs', 'primeMs'],
+  aimedshot: ['chargeMs', 'damageMult', 'moveMult', 'cooldownMs'],
+};
+
+function validateEvolution(ev: WeaponEvolution, path: string, ids: Set<string>, depth: number, maxDepth: number): void {
+  if (typeof ev.id !== 'string' || !ev.id) throw new Error(`[data] ${path}.id 없음`);
+  if (ids.has(ev.id)) throw new Error(`[data] ${path}.id 중복: ${ev.id}`);
+  ids.add(ev.id);
+  if (typeof ev.name !== 'string' || !ev.name) throw new Error(`[data] ${path}.name 없음`);
+  assertNumber(ev.damageMult, `${path}.damageMult`);
+  assertNumber(ev.hitboxMult, `${path}.hitboxMult`);
+  if (!ev.mods || typeof ev.mods !== 'object') throw new Error(`[data] ${path}.mods 없음`);
+  for (const k of Object.keys(ev.mods)) if (!MOD_KEYS.has(k)) throw new Error(`[data] ${path}.mods.${k} 알 수 없음`);
+  if (depth < maxDepth) {
+    if (!Array.isArray(ev.next) || ev.next.length !== 2) throw new Error(`[data] ${path}.next 는 2개여야 합니다`);
+    ev.next.forEach((n, i) => validateEvolution(n, `${path}.next[${i}]`, ids, depth + 1, maxDepth));
+  } else if (ev.next && ev.next.length > 0) {
+    throw new Error(`[data] ${path}.next: 트리 깊이 초과`);
+  }
+}
+
 export function validateWeapons(t: WeaponTable): WeaponTable {
   for (const [id, w] of Object.entries(t)) {
     assertNumber(w.damageMult, `weapons.${id}.damageMult`);
@@ -127,18 +184,40 @@ export function validateWeapons(t: WeaponTable): WeaponTable {
       if (val < 0 || val > 1) throw new Error(`[data] weapons.${id}.affinity.${k} 는 0..1`);
     }
     for (const [k, val] of Object.entries(w.hitbox)) assertNumber(val, `weapons.${id}.hitbox.${k}`);
-    assertNumber(w.personality.threshold, `weapons.${id}.personality.threshold`);
-    w.personality.evolutions.forEach((ev, i) => {
-      assertNumber(ev.damageMult, `weapons.${id}.evolutions[${i}].damageMult`);
-      assertNumber(ev.hitboxMult, `weapons.${id}.evolutions[${i}].hitboxMult`);
-      if (ev.effect !== null && !['slash-trail', 'shockwave', 'twin', 'pierce'].includes(ev.effect))
-        throw new Error(`[data] weapons.${id}.evolutions[${i}].effect 알 수 없음`);
+    // 우클릭 보조 동작
+    const sec = w.secondary as SecondaryDef | undefined;
+    if (!sec || !(sec.kind in SECONDARY_NUMERIC)) throw new Error(`[data] weapons.${id}.secondary.kind 알 수 없음`);
+    if (typeof sec.name !== 'string' || !sec.name) throw new Error(`[data] weapons.${id}.secondary.name 없음`);
+    for (const k of SECONDARY_NUMERIC[sec.kind])
+      assertNumber((sec as unknown as Record<string, unknown>)[k], `weapons.${id}.secondary.${k}`);
+    // 분기 트리: thresholds 오름차순, 각 단계 선택지 2개
+    const P = w.personality;
+    if (!Array.isArray(P.thresholds) || P.thresholds.length === 0)
+      throw new Error(`[data] weapons.${id}.personality.thresholds 비어 있음`);
+    P.thresholds.forEach((th, i) => {
+      assertNumber(th, `weapons.${id}.personality.thresholds[${i}]`);
+      if (i > 0 && th <= P.thresholds[i - 1])
+        throw new Error(`[data] weapons.${id}.personality.thresholds 는 오름차순이어야 합니다`);
     });
+    if (!Array.isArray(P.branches) || P.branches.length !== 2)
+      throw new Error(`[data] weapons.${id}.personality.branches 는 2개여야 합니다`);
+    const ids = new Set<string>();
+    P.branches.forEach((b, i) =>
+      validateEvolution(b, `weapons.${id}.personality.branches[${i}]`, ids, 1, P.thresholds.length),
+    );
   }
   return t;
 }
 
-export const WEAPONS: WeaponTable = validateWeapons(weaponsJson as unknown as WeaponTable);
+export function validateWeaponRules(r: WeaponRules): WeaponRules {
+  assertNumber(r.reinforceBonus, 'weapons.rules.reinforceBonus');
+  assertNumber(r.reinforceMax, 'weapons.rules.reinforceMax');
+  return r;
+}
+
+const weaponsFile = weaponsJson as unknown as WeaponsFile;
+export const WEAPON_RULES: WeaponRules = validateWeaponRules(weaponsFile.rules);
+export const WEAPONS: WeaponTable = validateWeapons(weaponsFile.weapons);
 export const PLAYER_DATA: PlayerData = validatePlayer(playerJson as unknown as PlayerData);
 if (!WEAPONS[PLAYER_DATA.startWeapon])
   throw new Error(`[data] player.startWeapon 정의 없음: ${PLAYER_DATA.startWeapon}`);

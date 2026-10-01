@@ -19,6 +19,8 @@ describe('buildSnapshot', () => {
     });
     expect(s.gold).toBe(42);
     expect(s.weapon.name).toBe('사무라이 칼');
+    expect(s.weapon.secondaryName).toBe('패링');
+    expect(s.weapon.threshold).toBe(100);
     expect(s.map.rooms.length).toBe(layout.rooms.length);
     expect(s.map.rooms.find((r) => r.id === 'start')?.visited).toBe(true);
     expect(s.boss).toBeNull();

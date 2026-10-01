@@ -34,6 +34,7 @@ export class Enemy extends Mob {
 
   update(ctx: MobContext): void {
     if (!this.active) return;
+    if (this.isKnockedBack(ctx.time)) return;
     if (this.isStunned(ctx.time)) {
       this.body.setVelocity(0, 0);
       return;

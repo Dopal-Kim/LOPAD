@@ -20,7 +20,14 @@ export interface DebugApi {
   shots: () => unknown[];
   meta: () => unknown;
   addPassive: (id: string) => boolean;
-  ui: () => { pause: () => void; resume: () => void; snapshot: () => unknown; scenes: () => string[] };
+  ui: () => {
+    pause: () => void;
+    resume: () => void;
+    snapshot: () => unknown;
+    scenes: () => string[];
+    continueRun: () => void;
+    hasSave: () => boolean;
+  };
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   /** 플레이어를 향해 투사체 1발 (거리 px, 속도 px/s, 공격력) */
@@ -33,6 +40,10 @@ export interface DebugApi {
   hurtAll: (amount: number) => void;
   tileAt: (tx: number, ty: number) => number;
   doorsOf: (roomId: string) => { x: number; y: number; id: number }[][];
+  /** 개성 게이지를 value 로 두고 임계 판정 (27라운드 검증용) */
+  setPersonality: (value: number) => void;
+  weapon: () => unknown;
+  playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number };
 }
 
 export function exposeDebug(api: {
@@ -56,6 +67,9 @@ export function exposeDebug(api: {
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   camera: () => { scrollX: number; scrollY: number; zoom: number };
+  setPersonality: (value: number) => void;
+  weapon: () => unknown;
+  playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number };
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -81,6 +95,8 @@ export function exposeDebug(api: {
       resume: () => uiCommands.resume(),
       snapshot: () => uiCommands.getUiSnapshot(),
       scenes: () => api.scenes(),
+      continueRun: () => uiCommands.continueRun(),
+      hasSave: () => uiCommands.hasSave(),
     }),
     shots: () => api.shots(),
     economy: () => api.economy(),
@@ -97,6 +113,9 @@ export function exposeDebug(api: {
         stunned: m.isStunned(api.now()),
       })),
     camera: () => api.camera(),
+    setPersonality: (v) => api.setPersonality(v),
+    weapon: () => api.weapon(),
+    playerExtra: () => api.playerExtra(),
     killAll: () => {
       const list = api.mobs();
       for (const m of list) api.kill(m);

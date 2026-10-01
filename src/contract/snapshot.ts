@@ -49,8 +49,8 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
       name: w.def.name,
       evolutionName: w.evolution?.name ?? null,
       personality: w.personality,
-      threshold: w.def.personality.threshold,
-      secondaryName: '패링',
+      threshold: w.threshold,
+      secondaryName: w.def.secondary.name,
     },
     boss:
       gameState.bossMaxHp > 0

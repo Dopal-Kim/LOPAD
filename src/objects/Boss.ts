@@ -37,6 +37,7 @@ export class Boss extends Mob {
 
   update(ctx: MobContext): void {
     if (!this.active) return;
+    if (this.isKnockedBack(ctx.time)) return;
     if (this.nextDashAt === 0) {
       this.nextDashAt = ctx.time + this.phase.dash.intervalMs;
       this.nextFanAt = ctx.time + (this.phase.fan?.intervalMs ?? 0);

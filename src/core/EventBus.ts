@@ -11,9 +11,17 @@ export const Events = {
   PLAYER_DASHED: 'player:dashed',
   PLAYER_PARRIED: 'player:parried',
   PLAYER_PARRY_FAILED: 'player:parry-failed',
+  /** 가드 해제 → 주변 밀쳐내기 (대검) */
+  PLAYER_GUARD_RELEASED: 'player:guard-released',
+  /** 그림자 걸음 요청 (단검). Game 이 목표를 찾아 이동시킨다 */
+  PLAYER_SHADOW_STEP: 'player:shadow-step',
   SENSE_GAINED: 'sense:gained',
   PERSONALITY_GAINED: 'weapon:personality',
   WEAPON_EVOLVED: 'weapon:evolved',
+  /** 임계 도달 → 3지선다 대기 */
+  WEAPON_CHOICE_PENDING: 'weapon:choice-pending',
+  /** 강화 선택 */
+  WEAPON_REINFORCED: 'weapon:reinforced',
   ENEMY_DAMAGED: 'enemy:damaged',
   ENEMY_DIED: 'enemy:died',
   ROOM_ENTERED: 'room:entered',
@@ -45,11 +53,16 @@ export type PlayerAttackPayload = {
   dirY: number;
   damageMult: number;
   sizeMult: number;
-  kind: 'attack' | 'dashAttack';
+  kind: 'attack' | 'dashAttack' | 'aimed';
+  /** 확정 치명타 (그림자 걸음 직후, 대쉬 공격 확정 치명) */
+  forceCrit: boolean;
 };
+export type GuardReleasedPayload = { x: number; y: number };
+export type ShadowStepPayload = { x: number; y: number; facingX: number; facingY: number };
 export type PlayerDamagedPayload = { hp: number; maxHp: number; amount: number };
 export type EnemyDiedPayload = { id: string; remaining: number };
 export type RoomEnteredPayload = { roomId: string; type: string };
 export type TrialClearedPayload = { roomId: string; cleared: number; total: number };
 export type BossPhasePayload = { phase: number; hp: number; maxHp: number };
 export type WeaponEvolvedPayload = { weapon: string; stage: number; name: string };
+export type WeaponReinforcedPayload = { weapon: string; reinforce: number; name: string };

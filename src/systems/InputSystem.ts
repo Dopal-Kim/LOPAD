@@ -7,8 +7,12 @@ export interface InputState {
   moveY: number; // -1..1
   /** 이 프레임에 공격 입력이 시작됨 (좌클릭) */
   attackPressed: boolean;
-  /** 이 프레임에 패링 입력이 시작됨 (우클릭) */
-  parryPressed: boolean;
+  /** 이 프레임에 보조 동작 입력이 시작됨 (우클릭: 패링·가드·그림자 걸음·조준 사격) */
+  secondaryPressed: boolean;
+  /** 우클릭을 누르고 있음 (가드·조준 유지) */
+  secondaryHeld: boolean;
+  /** 이 프레임에 우클릭을 뗌 */
+  secondaryReleased: boolean;
   /** 이 프레임에 대쉬 입력이 시작됨 (스페이스바) */
   dashPressed: boolean;
   /** 이 프레임에 물약 사용 (Q) */
@@ -22,8 +26,11 @@ export interface InputState {
 export class InputSystem {
   private keys: Record<string, Phaser.Input.Keyboard.Key>;
   private attackQueued = false;
-  private parryQueued = false;
+  private secondaryQueued = false;
+  private secondaryReleaseQueued = false;
+  private secondaryHeld = false;
   private readonly onPointerDown: (p: Phaser.Input.Pointer) => void;
+  private readonly onPointerUp: (p: Phaser.Input.Pointer) => void;
 
   constructor(private scene: Phaser.Scene) {
     const kb = scene.input.keyboard!;
@@ -39,9 +46,19 @@ export class InputSystem {
     scene.input.mouse?.disableContextMenu();
     this.onPointerDown = (p) => {
       if (p.leftButtonDown()) this.attackQueued = true;
-      if (p.rightButtonDown()) this.parryQueued = true;
+      if (p.rightButtonDown() && !this.secondaryHeld) {
+        this.secondaryQueued = true;
+        this.secondaryHeld = true;
+      }
+    };
+    this.onPointerUp = (p) => {
+      if (!p.rightButtonDown() && this.secondaryHeld) {
+        this.secondaryHeld = false;
+        this.secondaryReleaseQueued = true;
+      }
     };
     scene.input.on('pointerdown', this.onPointerDown);
+    scene.input.on('pointerup', this.onPointerUp);
   }
 
   read(): InputState {
@@ -55,7 +72,9 @@ export class InputSystem {
       moveX: x,
       moveY: y,
       attackPressed: this.attackQueued,
-      parryPressed: this.parryQueued,
+      secondaryPressed: this.secondaryQueued,
+      secondaryHeld: this.secondaryHeld,
+      secondaryReleased: this.secondaryReleaseQueued,
       dashPressed: Phaser.Input.Keyboard.JustDown(this.keys.dash),
       potionPressed: Phaser.Input.Keyboard.JustDown(this.keys.potion),
       aimX: aim.x,
@@ -63,11 +82,13 @@ export class InputSystem {
       restartPressed: Phaser.Input.Keyboard.JustDown(this.keys.restart),
     };
     this.attackQueued = false;
-    this.parryQueued = false;
+    this.secondaryQueued = false;
+    this.secondaryReleaseQueued = false;
     return state;
   }
 
   destroy(): void {
     this.scene.input.off('pointerdown', this.onPointerDown);
+    this.scene.input.off('pointerup', this.onPointerUp);
   }
 }

@@ -61,7 +61,8 @@ export interface UiMenuLine {
   detail?: string;
 }
 
-export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta';
+/** 'evolve' 는 27라운드 개성 3지선다 (계약 추가분, 승인 대기) */
+export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve';
 
 export interface UiMenu {
   id: UiMenuId;

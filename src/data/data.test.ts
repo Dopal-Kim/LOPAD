@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { BOSSES, ENEMIES, PLAYER_DATA, RUN, STAGES, STORY, validateEnemies } from './index';
-import type { EnemyTable } from './types';
+import {
+  BOSSES,
+  ENEMIES,
+  PLAYER_DATA,
+  RUN,
+  STAGES,
+  STORY,
+  WEAPONS,
+  WEAPON_RULES,
+  validateEnemies,
+  validateWeapons,
+} from './index';
+import type { EnemyTable, WeaponTable } from './types';
 
 describe('data/*.json', () => {
   it('플레이어·적·보스·스테이지 데이터가 검증을 통과한다', () => {
@@ -20,5 +31,43 @@ describe('data/*.json', () => {
   it('잘못된 행동 키는 거부한다', () => {
     const bad = { x: { ...ENEMIES.dummy, behavior: 'fly' } } as unknown as EnemyTable;
     expect(() => validateEnemies(bad)).toThrow(/behavior/);
+  });
+
+  it('무기 4종: 우클릭 보조 동작 1종, 1차 2 · 2차 각 2, 임계 오름차순 (27라운드)', () => {
+    const ids = Object.keys(WEAPONS);
+    expect(ids).toEqual(['katana', 'greatsword', 'dagger', 'bow']);
+    const secondaryNames = ids.map((id) => WEAPONS[id].secondary.name);
+    expect(secondaryNames).toEqual(['패링', '가드', '그림자 걸음', '조준 사격']);
+    for (const id of ids) {
+      const P = WEAPONS[id].personality;
+      expect(P.thresholds).toEqual([100, 200]);
+      expect(P.branches).toHaveLength(2);
+      for (const b of P.branches) {
+        expect(b.next).toHaveLength(2);
+        for (const n of b.next!) expect(n.next ?? []).toHaveLength(0);
+      }
+      const names = [...P.branches, ...P.branches.flatMap((b) => b.next!)].map((n) => n.name);
+      expect(new Set(names).size).toBe(6);
+    }
+    expect(WEAPON_RULES).toEqual({ reinforceBonus: 0.15, reinforceMax: 3 });
+  });
+
+  it('무기 데이터 오류를 거부한다: 임계 역순, 선택지 수, 모르는 효과 키', () => {
+    const clone = () => JSON.parse(JSON.stringify(WEAPONS)) as WeaponTable;
+    const a = clone();
+    a.katana.personality.thresholds = [200, 100];
+    expect(() => validateWeapons(a)).toThrow(/오름차순/);
+    const b = clone();
+    b.bow.personality.branches = b.bow.personality.branches.slice(0, 1);
+    expect(() => validateWeapons(b)).toThrow(/2개/);
+    const c = clone();
+    c.dagger.personality.branches[0].next = c.dagger.personality.branches[0].next!.slice(0, 1);
+    expect(() => validateWeapons(c)).toThrow(/next 는 2개/);
+    const d = clone();
+    (d.greatsword.personality.branches[1].mods as Record<string, unknown>).laser = 1;
+    expect(() => validateWeapons(d)).toThrow(/mods.laser/);
+    const e = clone();
+    (e.katana as unknown as { secondary: unknown }).secondary = { kind: 'kick', name: 'x' };
+    expect(() => validateWeapons(e)).toThrow(/secondary.kind/);
   });
 });

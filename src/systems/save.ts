@@ -3,7 +3,7 @@
  * 저장 시점은 "새 층 시작 직전" 상태라서, 이어하면 그 층의 시작 방에서 시작한다.
  * 사망·클리어 시 삭제. 브라우저 localStorage 사용 (StorageLike 로 추상화해 테스트 가능).
  */
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 export const SAVE_KEY = 'lopad.save';
 
 export interface SaveData {
@@ -15,7 +15,8 @@ export interface SaveData {
   kills: number;
   sense: number;
   savesLeft: number;
-  weapon: { id: string; personality: number; stage: number };
+  /** 무기 개성: 트리 선택 경로·강화 횟수 (v5, 27라운드) */
+  weapon: { id: string; personality: number; path: string[]; reinforce: number; choicePending: boolean };
   gold: number;
   potions: number;
   pointsPending: number;

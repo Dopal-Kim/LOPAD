@@ -185,8 +185,6 @@ export interface StagesFile {
   stages: StageTable;
 }
 
-export type WeaponEffect = 'slash-trail' | 'shockwave' | 'twin' | 'pierce';
-
 /** 개성 선택에서 쓰는 성향 축 (전부 0..1) */
 export interface Affinity {
   strokeLength: number;
@@ -212,13 +210,114 @@ export interface PersonalityData {
   weights: Affinity;
 }
 
+/**
+ * 진화 노드가 켜는 효과 (27라운드). 경로를 따라 병합되며, 같은 키는 뒤 노드가 덮어쓴다.
+ * 효과가 없는 키는 undefined. 모든 수치는 data/weapons.json 에.
+ */
+export interface WeaponMods {
+  /** 베기 궤적 연출 (거합) */
+  slashTrail?: boolean;
+  /** 궤적이 남아 지속 피해 (잔월): attack × damageMult 를 tickMs 마다, lingerMs 동안 */
+  trailDot?: { damageMult: number; lingerMs: number; tickMs: number };
+  /** 대쉬 쿨타임 배율 (발도술·질풍) */
+  dashCooldownMult?: number;
+  /** 대쉬 공격 피해 배율 (발도술) — 기본 대쉬 공격 배율에 곱한다 */
+  dashAttackMult?: number;
+  /** 대쉬 무적 연장 ms */
+  dashInvulnExtraMs?: number;
+  /** 대쉬 공격 확정 치명 */
+  dashAttackForceCrit?: boolean;
+  /** 충격파 연출 (파쇄) */
+  shockwave?: boolean;
+  /** 충격파 2단 (지진): delayMs 뒤 sizeMult 크기·damageMult 피해로 한 번 더 */
+  shockwaveSecond?: { delayMs: number; sizeMult: number; damageMult: number };
+  /** 충격파가 적 투사체를 지운다 (분쇄) */
+  shockwaveClearsProjectiles?: boolean;
+  /** 적중 시 경직 ms (중압) */
+  hitStunMs?: number;
+  /** 공격 중 이동 배율 덮어쓰기 (중압: 더 느림) */
+  attackSlowMult?: number;
+  /** 가드 피해 감소 덮어쓰기 (철벽) */
+  guardReduction?: number;
+  /** 가드 해제 밀쳐내기에 반격 피해: attack × 값 (철벽) */
+  guardCounterMult?: number;
+  /** 공격 중 받는 피해 배율 (거인 슈퍼아머 근사: 1 - 값 만큼 감소) */
+  superArmorReduction?: number;
+  /** 한 번 휘두를 때 타격 횟수 (쌍격 2, 난무 3) */
+  hits?: number;
+  /** 적중 시 출혈: attack × damageMult 를 tickMs 마다 ticks 회 */
+  bleed?: { damageMult: number; ticks: number; tickMs: number };
+  /** 이동 속도 배율 (질풍) */
+  moveSpeedMult?: number;
+  /** 대쉬 경로 피해 배율 (잔상) */
+  dashTrailDamageMult?: number;
+  /** 그림자 걸음 직후 공격 배율 (암살) */
+  shadowStepMult?: number;
+  /** 추가 관통 수 (관통) */
+  pierce?: number;
+  /** 무한 관통 (섬광) */
+  pierceInfinite?: boolean;
+  /** 투사체 속도 배율 (섬광) */
+  projectileSpeedMult?: number;
+  /** 조준 사격 피해 추가 배율 (중시) */
+  aimedShotMult?: number;
+  /** 조준 사격 적중 시 경직 ms (중시) */
+  aimedShotStunMs?: number;
+  /** 부채꼴 발사 (산탄 3·폭우 5) */
+  spread?: { count: number; spreadDeg: number };
+  /** 화살 유도 선회 속도 (도/초) (추적) */
+  homingTurnDeg?: number;
+}
+
+/** 분기 트리 노드. 1차 노드는 next 로 2차 노드 2개를 가진다. */
 export interface WeaponEvolution {
+  id: string;
   name: string;
   description: string;
+  /** 경로를 따라 곱해지는 피해 배율 */
   damageMult: number;
+  /** 경로를 따라 곱해지는 히트박스 배율 */
   hitboxMult: number;
-  effect: WeaponEffect | null;
+  mods: WeaponMods;
+  next?: WeaponEvolution[];
 }
+
+/** 우클릭 보조 동작 (27라운드 Q1). 무기마다 1종 */
+export type SecondaryDef =
+  | { kind: 'parry'; name: string }
+  | {
+      kind: 'guard';
+      name: string;
+      /** 누르는 동안 받는 피해 감소 비율 (0.7 = 70% 감소) */
+      damageReduction: number;
+      moveMult: number;
+      /** 떼면 이 반경(칸) 안의 적을 밀쳐낸다 */
+      pushRadiusTiles: number;
+      pushSpeedTiles: number;
+      pushMs: number;
+    }
+  | {
+      kind: 'shadowstep';
+      name: string;
+      /** 이 거리(칸) 안의 가장 가까운 적 뒤로 */
+      rangeTiles: number;
+      /** 적이 없으면 바라보는 방향으로 이 거리(칸) */
+      fallbackTiles: number;
+      cooldownMs: number;
+      /** 이 시간 안의 다음 공격 1회가 확정 치명 */
+      primeMs: number;
+    }
+  | {
+      kind: 'aimedshot';
+      name: string;
+      /** 누른 채 이 시간이 지나면 발사. 먼저 떼면 취소 */
+      chargeMs: number;
+      damageMult: number;
+      moveMult: number;
+      cooldownMs: number;
+    };
+
+export type SecondaryKind = SecondaryDef['kind'];
 
 export interface WeaponDef {
   name: string;
@@ -230,12 +329,27 @@ export interface WeaponDef {
   attackSlowMult: number;
   hitbox: AttackHitbox;
   ranged?: WeaponRanged;
+  secondary: SecondaryDef;
   affinity: Affinity;
   personality: {
-    /** 이 수치에 도달하면 다음 진화, 도달 후 0으로 초기화 (기획 4장) */
-    threshold: number;
-    evolutions: WeaponEvolution[];
+    /** 단계별 임계 (오름차순). thresholds[i] 에 도달하면 i+1 차 선택 */
+    thresholds: number[];
+    /** 1차 선택지 2개 (각각 next 로 2차 선택지 2개) */
+    branches: WeaponEvolution[];
   };
+}
+
+/** 개성 공통 규칙 (강화 선택지) */
+export interface WeaponRules {
+  /** 강화 1회당 피해·범위 배율 증가 (0.15 = +15%) */
+  reinforceBonus: number;
+  /** 강화 최대 누적 횟수 */
+  reinforceMax: number;
+}
+
+export interface WeaponsFile {
+  rules: WeaponRules;
+  weapons: Record<string, WeaponDef>;
 }
 
 export type WeaponTable = Record<string, WeaponDef>;
