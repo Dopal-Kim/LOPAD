@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { UI_EVENTS, uiBus, uiCommands, type UiSnapshot } from '../contract/ui';
+import { UI_EVENTS, uiBus, uiCommands, type UiSnapshot, type UiStoryLine } from '../contract/ui';
 import { UI_SCENE_KEYS } from './keys';
 import { THEME } from './theme';
 import { Bar, label, panel } from './widgets';
@@ -19,6 +19,8 @@ export class HudScene extends Phaser.Scene {
   private bossText: Phaser.GameObjects.Text;
   private minimap: Minimap;
   private banner?: Phaser.GameObjects.Text;
+  private caption?: Phaser.GameObjects.Text;
+  private captionTimer?: Phaser.Time.TimerEvent;
   private handlers: [string, (p: never) => void][] = [];
   private escKey?: Phaser.Input.Keyboard.Key;
 
@@ -62,6 +64,7 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(s));
     this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) => this.showBanner(`개성 변화: ${p.name}`));
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.showBanner(p.stageName));
+    this.on(UI_EVENTS.STORY, (l: UiStoryLine) => this.showCaption(l));
     this.on(UI_EVENTS.PAUSED, () => {
       if (!this.scene.isActive(UI_SCENE_KEYS.PAUSE)) this.scene.launch(UI_SCENE_KEYS.PAUSE);
     });
@@ -89,11 +92,11 @@ export class HudScene extends Phaser.Scene {
     const ratio = s.maxHp > 0 ? s.hp / s.maxHp : 0;
     this.hpBar.set(ratio, ratio <= 0.3 ? THEME.hpLow : THEME.hp);
     this.hpText.setText(`HP ${s.hp} / ${s.maxHp}`);
-    this.goldText.setText(`◆ ${s.gold} G`);
-    this.potionText.setText(`물약 ${s.potions}/${s.potionMax}  [Q]`);
+    this.goldText.setText(`◆ ${s.gold} ${s.names.gold}`);
+    this.potionText.setText(`${s.names.potion} ${s.potions}/${s.potionMax} [Q]`);
     const boss = s.bossUnlocked ? '  보스 문 열림' : '';
     const exit = s.exitOpen ? '  출구 열림' : '';
-    this.stageText.setText(`${s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}${boss}${exit}`);
+    this.stageText.setText(`${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}${boss}${exit}`);
     const evo = s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : '';
     this.weaponText.setText(
       `${s.weapon.name}${evo}   개성 ${s.weapon.personality}/${s.weapon.threshold}   우클릭: ${s.weapon.secondaryName}`,
@@ -109,6 +112,27 @@ export class HudScene extends Phaser.Scene {
       this.bossBar.setVisible(false);
     }
     this.minimap.render(s.map);
+  }
+
+  /** 스토리 자막: 화면 하단 중앙(보스 체력바 위), 종류별로 유지 시간이 다르다 */
+  private showCaption(l: UiStoryLine): void {
+    this.caption?.destroy();
+    this.captionTimer?.remove();
+    const hold = l.kind === 'notice' ? 1800 : 3600;
+    this.caption = this.add
+      .text(this.scale.width / 2, this.scale.height - 88, l.text, {
+        font: THEME.font,
+        color: l.kind === 'boss' ? '#ffb0c8' : l.kind === 'notice' ? THEME.textDim : THEME.text,
+        backgroundColor: '#000000a0',
+        padding: { x: 8, y: 4 },
+        align: 'center',
+        wordWrap: { width: this.scale.width - 240 },
+      })
+      .setOrigin(0.5, 1)
+      .setDepth(50);
+    this.captionTimer = this.time.delayedCall(hold, () => {
+      this.tweens.add({ targets: this.caption, alpha: 0, duration: 300, onComplete: () => this.caption?.destroy() });
+    });
   }
 
   private showBanner(text: string): void {

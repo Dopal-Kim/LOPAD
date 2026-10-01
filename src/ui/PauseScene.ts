@@ -23,7 +23,7 @@ export class PauseScene extends Phaser.Scene {
     panel(this, 60, 40, W - 120, H - 80);
     label(this, W / 2, 50, '일시정지', THEME.fontHeading).setOrigin(0.5, 0);
     const lines = [
-      `${s.stageName}  시련 ${s.trialsCleared}/${s.trialsTotal}   세이브 남음 ${s.savesLeft}   시드 ${s.seed}`,
+      `${s.playerName || '―'}   ${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}   세이브 남음 ${s.savesLeft}   시드 ${s.seed}`,
       `공격 ${s.stats.attack}  방어 ${s.stats.defense}  치명타 ${s.stats.crit}%  감각 ${s.stats.sense}`,
       `무기: ${s.weapon.name}${s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : ''}  (개성 ${s.weapon.personality}/${s.weapon.threshold})`,
       `패시브: ${s.passives.length ? s.passives.map((p) => `${p.name}${p.level > 1 ? ` Lv${p.level}` : ''}`).join(', ') : '-'}`,
