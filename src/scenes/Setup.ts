@@ -20,6 +20,53 @@ type Phase = 'meta' | 'name' | 'strokes' | 'rhythm' | 'fate';
  */
 const NAME_MAX = 12;
 
+/**
+ * 획 예시 (30라운드): "이런 방식으로 그린다"만 보여준다. 어떤 획이 어떤 무기로 이어지는지는 표시하지 않는다.
+ * 각 예시는 정규화 좌표(0~1)의 점 목록이며, durationMs 동안 천천히 그려지는 것을 반복한다.
+ */
+interface StrokeExample {
+  caption: string;
+  points: [number, number][];
+  durationMs: number;
+}
+const STROKE_EXAMPLES: StrokeExample[] = [
+  {
+    caption: '길게, 곧게',
+    points: [
+      [0.05, 0.55],
+      [0.95, 0.45],
+    ],
+    durationMs: 1400,
+  },
+  {
+    caption: '짧게, 빠르게',
+    points: [
+      [0.3, 0.3],
+      [0.45, 0.7],
+      [0.55, 0.3],
+      [0.7, 0.7],
+    ],
+    durationMs: 450,
+  },
+  {
+    caption: '크게, 둥글게',
+    points: Array.from({ length: 13 }, (_, i) => {
+      const a = Math.PI * (1 + i / 12);
+      return [0.5 + 0.42 * Math.cos(a), 0.55 + 0.4 * Math.sin(a) * -1] as [number, number];
+    }),
+    durationMs: 2000,
+  },
+  {
+    caption: '한 번에 내려긋기',
+    points: [
+      [0.5, 0.1],
+      [0.5, 0.9],
+    ],
+    durationMs: 700,
+  },
+];
+const EXAMPLE_PANEL = { y: 262, h: 84, pauseMs: 700, gap: 12 };
+
 export class Setup extends Phaser.Scene {
   private phase: Phase = 'strokes';
   private strokes: Stroke[] = [];
@@ -34,6 +81,9 @@ export class Setup extends Phaser.Scene {
   private onEnter?: (e: KeyboardEvent) => void;
   /** 일기장 이름 입력 (26라운드): DOM input, 최대 12자 */
   private nameInput?: Phaser.GameObjects.DOMElement;
+  /** 획 예시 패널 (strokes 단계에서만) */
+  private exampleGfx?: Phaser.GameObjects.Graphics;
+  private exampleTexts: Phaser.GameObjects.Text[] = [];
   private playerName = '';
 
   constructor() {
@@ -72,6 +122,7 @@ export class Setup extends Phaser.Scene {
       this.nameInput?.destroy();
       this.nameInput = undefined;
       this.input.keyboard?.enableGlobalCapture();
+      this.hideExamples();
     });
     this.menu = new TextMenu(this);
     setMenuSelect((id, key) => {
@@ -168,9 +219,87 @@ export class Setup extends Phaser.Scene {
     this.menu.close();
     this.phase = 'strokes';
     this.updateLabel();
+    this.showExamples();
+  }
+
+  /** 예시 패널: 제목 + 예시별 캡션. 선은 update() 에서 시간에 따라 다시 그린다 */
+  private showExamples(): void {
+    this.exampleGfx = this.add.graphics().setDepth(DEPTH.ATTACK);
+    const { y, h, gap } = EXAMPLE_PANEL;
+    const n = STROKE_EXAMPLES.length;
+    const cellW = (GAME.WIDTH - gap * (n + 1)) / n;
+    const style = { font: '9px monospace', color: '#8a8aa0', align: 'center' as const };
+    this.exampleTexts.push(
+      this.add
+        .text(GAME.WIDTH / 2, y - 12, '예시 — 이런 식으로 그어도 된다 (길게·짧게, 곧게·둥글게, 빠르게·느리게)', style)
+        .setOrigin(0.5, 0)
+        .setDepth(DEPTH.DEBUG),
+    );
+    STROKE_EXAMPLES.forEach((ex, i) => {
+      const cx = gap + cellW * i + cellW / 2;
+      this.exampleTexts.push(
+        this.add
+          .text(cx, y + h + 2, ex.caption, style)
+          .setOrigin(0.5, 0)
+          .setDepth(DEPTH.DEBUG),
+      );
+    });
+  }
+
+  private hideExamples(): void {
+    this.exampleGfx?.destroy();
+    this.exampleGfx = undefined;
+    this.exampleTexts.forEach((t) => t.destroy());
+    this.exampleTexts = [];
+  }
+
+  /** 예시 획을 각자 duration 동안 진행률만큼 그린다 (끝나면 잠시 멈췄다가 반복) */
+  private drawExamples(time: number): void {
+    const g = this.exampleGfx;
+    if (!g) return;
+    g.clear();
+    const { y, h, gap, pauseMs } = EXAMPLE_PANEL;
+    const n = STROKE_EXAMPLES.length;
+    const cellW = (GAME.WIDTH - gap * (n + 1)) / n;
+    STROKE_EXAMPLES.forEach((ex, i) => {
+      const x0 = gap + cellW * i;
+      g.lineStyle(1, 0x3a3a50, 1);
+      g.strokeRect(x0, y, cellW, h);
+      const cycle = ex.durationMs + pauseMs;
+      const progress = Math.min(1, (time % cycle) / ex.durationMs);
+      const pts = ex.points.map(([px, py]) => ({ x: x0 + px * cellW, y: y + py * h }));
+      // 전체 경로 길이의 progress 만큼만 그린다
+      let total = 0;
+      const seg: number[] = [];
+      for (let k = 1; k < pts.length; k++) {
+        const d = Phaser.Math.Distance.BetweenPoints(pts[k - 1], pts[k]);
+        seg.push(d);
+        total += d;
+      }
+      let remain = total * progress;
+      g.lineStyle(2, COLORS.STROKE, 0.55);
+      for (let k = 1; k < pts.length && remain > 0; k++) {
+        const d = seg[k - 1];
+        const t = Math.min(1, remain / d);
+        const ex2 = pts[k - 1].x + (pts[k].x - pts[k - 1].x) * t;
+        const ey2 = pts[k - 1].y + (pts[k].y - pts[k - 1].y) * t;
+        g.lineBetween(pts[k - 1].x, pts[k - 1].y, ex2, ey2);
+        if (t >= 1) remain -= d;
+        else {
+          // 펜 끝 표시
+          g.fillStyle(COLORS.STROKE, 0.9);
+          g.fillCircle(ex2, ey2, 2);
+          remain = 0;
+        }
+      }
+    });
   }
 
   update(time: number): void {
+    if (this.phase === 'strokes') {
+      this.drawExamples(time);
+      return;
+    }
     if (this.phase !== 'rhythm') return;
     this.rhythm.frames += 1;
     if (this.keys.up.isDown || this.keys.down.isDown || this.keys.left.isDown || this.keys.right.isDown)
@@ -206,6 +335,7 @@ export class Setup extends Phaser.Scene {
     if (this.current.length >= PERSONALITY.strokes.minPoints) this.strokes.push(this.current);
     this.current = null;
     if (this.strokes.length >= PERSONALITY.strokes.count) {
+      this.hideExamples();
       this.phase = 'rhythm';
       this.rhythmEndAt = this.time.now + PERSONALITY.rhythm.durationMs;
     }
