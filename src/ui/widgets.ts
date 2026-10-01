@@ -1,6 +1,23 @@
 import Phaser from 'phaser';
 import { THEME } from './theme';
 
+/** 기존 Graphics 에 패널 사각형을 다시 그린다 (크기가 바뀌는 패널용) */
+export function drawPanel(
+  g: Phaser.GameObjects.Graphics,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  alpha = THEME.panelAlpha,
+): Phaser.GameObjects.Graphics {
+  g.clear();
+  g.fillStyle(THEME.panel, alpha);
+  g.fillRect(x, y, w, h);
+  g.lineStyle(1, THEME.border, 1);
+  g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+  return g;
+}
+
 /** 패널 사각형 */
 export function panel(
   scene: Phaser.Scene,
@@ -10,12 +27,7 @@ export function panel(
   h: number,
   alpha = THEME.panelAlpha,
 ): Phaser.GameObjects.Graphics {
-  const g = scene.add.graphics();
-  g.fillStyle(THEME.panel, alpha);
-  g.fillRect(x, y, w, h);
-  g.lineStyle(1, THEME.border, 1);
-  g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-  return g;
+  return drawPanel(scene.add.graphics(), x, y, w, h, alpha);
 }
 
 /** 수평 게이지 (0..1) */

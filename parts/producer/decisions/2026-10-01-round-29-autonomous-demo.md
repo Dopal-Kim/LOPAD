@@ -77,3 +77,7 @@
 - 베기 시트가 있으면 공격 판정 사각형은 **투명**(판정만). 궤적·충격파 Graphics 플레이스홀더는 해당 시트(iai / crush)가 있을 때만 끈다. 이펙트 풀 48, 루프 종료 페이드 150ms, 중압 아래 6px.
 - 화살: `bow_arrow`(8×8) / 조준 `bow_arrow_aimed`(12×6) 텍스처, 진행 각도 회전(유도 중 매 틱, 반사 시 180°). 판정 크기는 기존 `hitbox.width`(6) 그대로. 화살 생성 시점은 기존대로 공격 즉시(아트 권장 3프레임 시작은 미반영).
 - 이펙트 시트 내부 동작 이름 `fx` 고정(`iai_fx_down` 등). 무기 아이콘(`<id>_icon`)은 시스템이 로드하지 않음(UI 메뉴·HUD 몫).
+
+### L. UI 엔딩·아이콘 검수 — Claude 승인
+- 결과 화면 엔딩 부제(다음 전장으로 / 처음으로 내일을 적었다), ending 메뉴(폭 520·detail), HUD 무기 아이콘(`assets/ui/weapons/` 사본, 이름→id UI 상수), 무기 패널 동적 폭, `M 음소거` 힌트 승인.
+- 계약 요청 접수(복귀 후 승인): `UiSnapshot.weapon.id`, `UiSnapshot.mute`. §7 에 `ending` 메뉴 id·`UiResult.ending` 기재.

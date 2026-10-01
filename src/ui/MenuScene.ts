@@ -5,8 +5,9 @@ import { THEME } from './theme';
 import { SelectList, label, panel } from './widgets';
 
 /**
- * 보상·패시브·상점·메타·개성 3지선다(evolve) 공용 오버레이. MENU_OPEN 으로 열리고 MENU_CLOSE 로 닫힌다.
+ * 보상·패시브·상점·메타·개성 3지선다(evolve)·엔딩 2지선다(ending) 공용 오버레이. MENU_OPEN 으로 열리고 MENU_CLOSE 로 닫힌다.
  * 선택지 detail 은 항목 아래 작은 글씨, 비활성은 흐리게, footer 는 패널 하단 (29라운드).
+ * evolve·ending 은 패널 최소 폭 520, ending 은 제목을 강조색으로 (23라운드 엔딩 결과 문장은 detail 로 온다).
  */
 export class MenuScene extends Phaser.Scene {
   private menu?: UiMenu;
@@ -69,13 +70,15 @@ export class MenuScene extends Phaser.Scene {
     const top = (H - h) / 2;
     this.list = new SelectList(this, 0, top + 36, (key) => uiCommands.select(m.id, key));
     this.list.setLines(lines);
-    const titleText = label(this, 0, top + 10, m.title, THEME.fontHeading).setDepth(1);
+    const wide = m.id === 'evolve' || m.id === 'ending';
+    const titleColor = m.id === 'ending' ? '#fff0a0' : THEME.text;
+    const titleText = label(this, 0, top + 10, m.title, THEME.fontHeading, titleColor).setDepth(1);
     const footerText = m.footer
       ? label(this, 0, top + h - 14 * footerLines - 8, m.footer, THEME.font, THEME.textDim)
           .setAlign('center')
           .setDepth(1)
       : null;
-    const minW = m.id === 'evolve' ? 520 : 420;
+    const minW = wide ? 520 : 420;
     const content = Math.max(this.list.maxWidth() + 28, titleText.width + 28, (footerText?.width ?? 0) + 28, minW);
     const w = Math.min(W - 40, content);
     const left = (W - w) / 2;

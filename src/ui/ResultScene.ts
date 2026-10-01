@@ -26,6 +26,17 @@ export class ResultScene extends Phaser.Scene {
       THEME.fontTitle,
       r.cleared ? '#fff0a0' : '#e05050',
     ).setOrigin(0.5, 0);
+    // 클리어 시 고른 엔딩 부제 (23라운드 ending). '런 클리어' 자체는 보류 문구 유지 (round-29 자율 결정 B)
+    const endingKey =
+      r.ending === 'destroy' ? 'clearedDestroy' : r.ending === 'understand' ? 'clearedUnderstand' : null;
+    const endingDefault = r.ending === 'destroy' ? '다음 전장으로' : '처음으로 내일을 적었다';
+    if (r.cleared && endingKey) {
+      label(this, W / 2, 94, uiText('result', endingKey, endingDefault), THEME.fontHeading, '#fff0a0').setOrigin(
+        0.5,
+        0,
+      );
+    }
+    const linesTop = r.cleared && endingKey ? 120 : 112;
     const lines = [
       r.line,
       `${r.playerName || '―'}   ${r.stageName}  (도달 ${r.floorReached}층)`,
@@ -38,7 +49,7 @@ export class ResultScene extends Phaser.Scene {
       label(
         this,
         W / 2,
-        112 + i * 16,
+        linesTop + i * 16,
         t,
         THEME.font,
         i === 4 ? '#9ad0ff' : i === 0 ? THEME.textDim : THEME.text,
