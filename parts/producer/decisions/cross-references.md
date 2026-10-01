@@ -7,3 +7,5 @@
 |---|---|---|---|---|---|---|---|
 | 1 | 2026-10-01 | UI | 시스템 | `src/contract/ui.ts` (시스템이 계약대로 제공) | 계약 문서 `contracts/ui-system-interface.md` 에 정의된 이벤트·스냅샷·명령만. 그 외 `src/**` 읽기·쓰기 금지 | UI 파트 작업 기간 전체. 계약 변경은 재인터뷰 | 도영 님, 16라운드 |
 | 2 | 2026-10-01 | 시스템 | UI | `src/ui/index.ts` (UI 가 계약대로 제공) | UI 씬 목록·씬 키 export 만 import. 그 외 `src/ui/**` 읽기·쓰기 금지 | 〃 | 도영 님, 16라운드 |
+| 3 | 2026-10-01 | 시스템 | 스토리 | `parts/producer/contracts/story-text.md` (프로듀서가 text-pack·층 표에서 정리) | 계약의 이름 표·텍스트 키·문장만. `parts/story/**` 직접 읽기 금지 | 스토리 텍스트 반영 기간. 텍스트 변경은 스토리 파트 재인터뷰 후 계약 갱신 | 도영 님, 26라운드 |
+| 4 | 2026-10-01 | UI | 시스템 | `src/contract/ui.ts` 추가분 (STORY 이벤트, playerName, floorTitle) | 계약 `ui-system-interface.md` §1·§2 추가 항목만 | 〃 | 도영 님, 26라운드 |
