@@ -3,8 +3,10 @@ import { COLORS, DEPTH, GAME, KEYS, PROTOTYPE, SCENES } from '../core/Constants'
 import { PERSONALITY, WEAPONS } from '../data';
 import type { Affinity } from '../data/types';
 import { chooseWeapon, rhythmFeatures, strokeFeatures, type RhythmSample, type Stroke } from '../systems/personality';
+import { META_CONFIG, buyUpgrade, metaStore, upgradeCost } from '../systems/meta';
+import { TextMenu } from '../systems/TextMenu';
 
-type Phase = 'strokes' | 'rhythm' | 'fate';
+type Phase = 'meta' | 'strokes' | 'rhythm' | 'fate';
 
 /**
  * 개성 선택 (기획 1장): "가장 강한 것"을 3획으로 그리고, 5초간 자유롭게 입력한 리듬을 합쳐
@@ -21,13 +23,15 @@ export class Setup extends Phaser.Scene {
   private rhythmEndAt = 0;
   private keys: Record<string, Phaser.Input.Keyboard.Key>;
   private features?: Affinity;
+  private menu: TextMenu;
+  private onEnter?: (e: KeyboardEvent) => void;
 
   constructor() {
     super(SCENES.SETUP);
   }
 
   create(): void {
-    this.phase = 'strokes';
+    this.phase = 'meta';
     this.strokes = [];
     this.current = null;
     this.rhythm = { frames: 0, movingFrames: 0, attacks: 0, dashes: 0 };
@@ -54,6 +58,58 @@ export class Setup extends Phaser.Scene {
       this.input.off('pointermove', this.onPointerMove, this);
       this.input.off('pointerup', this.onPointerUp, this);
     });
+    this.menu = new TextMenu(this);
+    this.openMetaMenu();
+  }
+
+  /** 런 시작 전: 영혼으로 영구 강화 구매, 도감 요약. Enter 로 개성 선택 시작 (임시 텍스트) */
+  private openMetaMenu(): void {
+    const meta = metaStore.read();
+    const lines = META_CONFIG.upgrades.map((u, i) => {
+      const lv = meta.upgrades[u.id] ?? 0;
+      const maxed = lv >= u.maxLevel;
+      const cost = maxed ? 0 : upgradeCost(u, lv);
+      return {
+        key: String(i + 1),
+        label: `${u.name}  Lv ${lv}/${u.maxLevel}${maxed ? '  MAX' : `  ${cost} 영혼`}`,
+        enabled: !maxed && meta.souls >= cost,
+      };
+    });
+    const codex = Object.entries(WEAPONS)
+      .map(([id, w]) => {
+        const c = meta.codex[id];
+        return c ? `${w.name} ★${c.maxStage} 처치 ${c.kills} 최고 ${c.bestFloor}층` : `${w.name} -`;
+      })
+      .join('  ·  ');
+    this.menu.open(
+      `영혼 ${meta.souls}   (런 ${meta.runs}회, 클리어 ${meta.clears}회, 최고 ${meta.bestFloor}층)`,
+      lines,
+      (key) => {
+        const u = META_CONFIG.upgrades[Number(key) - 1];
+        const next = buyUpgrade(metaStore.read(), u.id);
+        if (next) {
+          metaStore.write(next);
+          this.openMetaMenu();
+        }
+      },
+      `도감: ${codex}\n\n[Enter] 개성 선택 시작`,
+    );
+    if (!this.onEnter) {
+      this.onEnter = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' && this.phase === 'meta') this.beginStrokes();
+      };
+      this.input.keyboard?.on('keydown', this.onEnter);
+      this.events.once('shutdown', () => {
+        if (this.onEnter) this.input.keyboard?.off('keydown', this.onEnter);
+        this.onEnter = undefined;
+        this.menu.close();
+      });
+    }
+  }
+
+  private beginStrokes(): void {
+    this.menu.close();
+    this.phase = 'strokes';
     this.updateLabel();
   }
 

@@ -5,6 +5,7 @@ import { SAVE_VERSION } from '../systems/save';
 import { SenseTracker } from '../systems/senses';
 import { WeaponState } from '../systems/weapons';
 import { EMPTY_BONUS, type StatBonus } from '../systems/economy';
+import { metaBonus, metaStore, type MetaBonus } from '../systems/meta';
 
 /** 런 상태의 단일 출처. 런 시작은 startRun(), 층 전환은 nextStage(). */
 class GameState {
@@ -22,6 +23,12 @@ class GameState {
   bonus: StatBonus = { ...EMPTY_BONUS };
   /** 보상 선택 중 (출구는 끝난 뒤 열림) */
   rewardPending = false;
+  /** 런 시작 시 적용된 영구 강화 */
+  meta: MetaBonus = { maxHp: 0, attack: 0, defense: 0, dashCooldownMult: 1, potionCarry: 0 };
+  /** 마지막 런 종료 시 얻은 영혼 (결과 화면용) */
+  lastSoulGain = 0;
+  /** 런 종료 정산이 끝났는지 (중복 정산 방지) */
+  runSettled = false;
   weapon = new WeaponState(PLAYER_DATA.startWeapon, WEAPONS[PLAYER_DATA.startWeapon]);
   trialsCleared = 0;
   trialsTotal = 0;
@@ -59,8 +66,11 @@ class GameState {
     this.seed = seed;
     this.stageIndex = 0;
     this.savesLeft = RUN.maxSaves;
-    this.hp = PLAYER_DATA.stats.hp;
-    this.maxHp = PLAYER_DATA.stats.hp;
+    this.meta = metaBonus(metaStore.read());
+    this.hp = PLAYER_DATA.stats.hp + this.meta.maxHp;
+    this.maxHp = PLAYER_DATA.stats.hp + this.meta.maxHp;
+    this.lastSoulGain = 0;
+    this.runSettled = false;
     this.kills = 0;
     this.senses.reset();
     this.gold = 0;
@@ -95,11 +105,16 @@ class GameState {
 
   /** 기본 스탯 + 런 보너스 */
   get attack(): number {
-    return PLAYER_DATA.stats.attack + this.bonus.attack;
+    return PLAYER_DATA.stats.attack + this.bonus.attack + this.meta.attack;
   }
 
   get defense(): number {
-    return PLAYER_DATA.stats.defense + this.bonus.defense;
+    return PLAYER_DATA.stats.defense + this.bonus.defense + this.meta.defense;
+  }
+
+  /** 1부터 세는 도달 층 */
+  get floorReached(): number {
+    return this.stageIndex + 1;
   }
 
   get crit(): number {

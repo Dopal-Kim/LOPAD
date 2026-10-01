@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, GAME, KEYS, SCENES } from '../core/Constants';
 import { EventBus, Events } from '../core/EventBus';
 import { gameState } from '../core/GameState';
+import { metaStore } from '../systems/meta';
 
 /**
  * 결과 화면 플레이스홀더. 정식 결과 화면은 UI 파트 소유이며,
@@ -20,9 +21,13 @@ export class GameOver extends Phaser.Scene {
 
   create(): void {
     const title = this.cleared ? 'RUN CLEAR' : 'DEAD';
+    const souls = `영혼 +${gameState.lastSoulGain}  (보유 ${metaStore.read().souls})`;
     const sub = `${gameState.stage.name}  kills ${gameState.kills}  gold ${gameState.gold}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName}  seed ${gameState.seed}   -   click or [${KEYS.RESTART}] to restart`;
     this.add
       .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 - 12, title, { font: '24px monospace', color: COLORS.GAMEOVER_TEXT })
+      .setOrigin(0.5);
+    this.add
+      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + 40, souls, { font: '10px monospace', color: COLORS.GAMEOVER_TEXT })
       .setOrigin(0.5);
     this.add
       .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + 16, sub, { font: '10px monospace', color: COLORS.GAMEOVER_TEXT })

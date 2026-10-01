@@ -1,0 +1,10 @@
+{
+  "souls": { "perStage": 10, "perKill": 1, "perEvolution": 20, "clearBonus": 100 },
+  "upgrades": [
+    { "id": "maxHp", "name": "최대 HP +5", "perLevel": 5, "maxLevel": 10, "baseCost": 30, "costStep": 15 },
+    { "id": "attack", "name": "공격력 +1", "perLevel": 1, "maxLevel": 5, "baseCost": 60, "costStep": 30 },
+    { "id": "defense", "name": "방어력 +1", "perLevel": 1, "maxLevel": 5, "baseCost": 60, "costStep": 30 },
+    { "id": "dashCooldown", "name": "대쉬 쿨타임 -5%", "perLevel": 5, "maxLevel": 6, "baseCost": 50, "costStep": 25 },
+    { "id": "potionCarry", "name": "물약 소지 +1", "perLevel": 1, "maxLevel": 2, "baseCost": 80, "costStep": 40 }
+  ]
+}

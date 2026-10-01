@@ -15,6 +15,7 @@ import { SaveSlot, browserStorage } from '../systems/save';
 import type { KillKind } from '../systems/senses';
 import { applyStatReward, findReward, rollCrit, rollGold, shopPrice } from '../systems/economy';
 import { TextMenu } from '../systems/TextMenu';
+import { metaStore, recordRun } from '../systems/meta';
 import type { StatKey } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
 import { exposeDebug } from '../debug';
@@ -108,6 +109,7 @@ export class Game extends Phaser.Scene {
       heal: (f) => this.player.heal(Math.round(gameState.maxHp * f)),
       onRunCleared: () => {
         this.saveSlot.clear();
+        this.settleRun(true);
         this.time.delayedCall(PROTOTYPE.CLEAR_DELAY_MS, () => this.scene.start(SCENES.GAME_OVER, { cleared: true }));
       },
       onStageCleared: (room) => this.beginStageReward(room),
@@ -152,6 +154,7 @@ export class Game extends Phaser.Scene {
             attack: p.attack,
             pierce: p.pierceLeft,
           })),
+      meta: () => metaStore.read(),
       economy: () => ({
         gold: gameState.gold,
         potions: gameState.potions,
@@ -398,11 +401,33 @@ export class Game extends Phaser.Scene {
     if (pk.kind === 'gold') {
       pk.deactivate();
       this.addGold(pk.value);
-    } else if (gameState.potions < ECONOMY.drops.potion.maxCarry) {
+    } else if (gameState.potions < this.potionCarry) {
       pk.deactivate();
       gameState.potions += 1;
       EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
     }
+  }
+
+  /** 물약 최대 소지 = 기본 + 영구 강화 */
+  private get potionCarry(): number {
+    return ECONOMY.drops.potion.maxCarry + gameState.meta.potionCarry;
+  }
+
+  /** 런 종료 정산: 영혼 지급·도감 기록 (사망·클리어 공통, 1회) */
+  private settleRun(cleared: boolean): void {
+    if (gameState.runSettled) return;
+    gameState.runSettled = true;
+    const w = gameState.weapon;
+    const { meta, gained } = recordRun(metaStore.read(), {
+      weaponId: w.id,
+      weaponStage: w.stage,
+      evolutionNames: w.def.personality.evolutions.slice(0, w.stage).map((e) => e.name),
+      floorReached: gameState.floorReached,
+      kills: gameState.kills,
+      cleared,
+    });
+    metaStore.write(meta);
+    gameState.lastSoulGain = gained;
   }
 
   private addGold(amount: number): void {
@@ -479,7 +504,7 @@ export class Game extends Phaser.Scene {
     const render = () => {
       const lines = ECONOMY.shop.items.map((it, i) => {
         const price = shopPrice(it, gameState.stageIndex);
-        const full = it.id === 'potion' && gameState.potions >= ECONOMY.drops.potion.maxCarry;
+        const full = it.id === 'potion' && gameState.potions >= this.potionCarry;
         return { key: String(i + 1), label: `${it.name}  ${price}G`, enabled: gameState.gold >= price && !full };
       });
       this.menu.open(
@@ -511,7 +536,7 @@ export class Game extends Phaser.Scene {
         rerender();
         break;
       case 'potion':
-        gameState.potions = Math.min(ECONOMY.drops.potion.maxCarry, gameState.potions + 1);
+        gameState.potions = Math.min(this.potionCarry, gameState.potions + 1);
         EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
         rerender();
         break;
@@ -558,6 +583,7 @@ export class Game extends Phaser.Scene {
 
   private onPlayerDied(): void {
     this.saveSlot.clear(); // 영구 사망 (기획 3장)
+    this.settleRun(false);
     this.player.body.setVelocity(0, 0);
     this.scene.start(SCENES.GAME_OVER, { cleared: false });
   }

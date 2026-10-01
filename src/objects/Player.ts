@@ -81,7 +81,7 @@ export class Player extends Phaser.GameObjects.Rectangle {
       const d = dir.lengthSq() > 0 ? dir : this.facing;
       const speed = (D.distanceTiles * TILE) / (D.durationMs / 1000);
       this.dashVel.set(d.x * speed, d.y * speed);
-      this.dashReadyAt = time + D.cooldownMs;
+      this.dashReadyAt = time + D.cooldownMs * gameState.meta.dashCooldownMult;
       if (D.invulnerable) this.invulnerableUntil = Math.max(this.invulnerableUntil, time + D.durationMs);
       this.setAction('dash', time + D.durationMs);
       EventBus.emit(Events.PLAYER_DASHED, { dirX: d.x, dirY: d.y });
