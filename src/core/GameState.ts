@@ -53,8 +53,9 @@ class GameState {
     return `${this.seed}:${this.stageIndex}`;
   }
 
-  /** 새 런 */
-  startRun(seed: string): void {
+  /** 새 런. weaponId 는 개성 선택 결과 (없으면 기본 무기) */
+  startRun(seed: string, weaponId: string = PLAYER_DATA.startWeapon): void {
+    const wid = WEAPONS[weaponId] ? weaponId : PLAYER_DATA.startWeapon;
     this.seed = seed;
     this.stageIndex = 0;
     this.savesLeft = RUN.maxSaves;
@@ -66,7 +67,7 @@ class GameState {
     this.potions = 0;
     this.pointsPending = 0;
     this.bonus = { ...EMPTY_BONUS };
-    this.weapon = new WeaponState(PLAYER_DATA.startWeapon, WEAPONS[PLAYER_DATA.startWeapon]); // 사망 시 무기 초기화 (기획 3장)
+    this.weapon = new WeaponState(wid, WEAPONS[wid]); // 사망 시 무기 초기화 (기획 3장)
     this.resetStage();
   }
 
@@ -102,7 +103,7 @@ class GameState {
   }
 
   get crit(): number {
-    return PLAYER_DATA.stats.crit + this.bonus.crit;
+    return PLAYER_DATA.stats.crit + this.bonus.crit + this.weapon.def.critBonus;
   }
 
   toSave(): SaveData {

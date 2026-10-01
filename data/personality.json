@@ -1,0 +1,5 @@
+{
+  "strokes": { "count": 3, "lengthMaxPx": 300, "speedMaxPxPerSec": 1500, "minPoints": 3 },
+  "rhythm": { "durationMs": 5000, "attackSaturation": 15, "dashSaturation": 8 },
+  "weights": { "strokeLength": 1, "strokeSpeed": 1, "straightness": 1, "keyMove": 1, "keyAttack": 1, "keyDash": 1 }
+}

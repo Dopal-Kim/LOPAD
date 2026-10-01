@@ -26,5 +26,6 @@
     "stunMs": 1000,
     "reflectDamageMult": 1
   },
-  "startWeapon": "katana"
+  "startWeapon": "katana",
+  "attackSlowMinMs": 120
 }

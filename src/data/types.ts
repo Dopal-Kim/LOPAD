@@ -47,8 +47,10 @@ export interface PlayerData {
   size: [number, number];
   dash: DashParams;
   parry: ParryParams;
-  /** 시작 무기 id (data/weapons.json). 개성 선택 연출 전까지 고정 */
+  /** 기본 무기 id (개성 선택 결과가 없을 때) */
   startWeapon: string;
+  /** 공격 후 감속이 적용되는 최소 시간 */
+  attackSlowMinMs: number;
 }
 
 export type EnemyBehavior = 'chase' | 'ranged' | 'charge';
@@ -183,7 +185,32 @@ export interface StagesFile {
   stages: StageTable;
 }
 
-export type WeaponEffect = 'slash-trail';
+export type WeaponEffect = 'slash-trail' | 'shockwave' | 'twin' | 'pierce';
+
+/** 개성 선택에서 쓰는 성향 축 (전부 0..1) */
+export interface Affinity {
+  strokeLength: number;
+  strokeSpeed: number;
+  straightness: number;
+  keyMove: number;
+  keyAttack: number;
+  keyDash: number;
+}
+
+export interface WeaponRanged {
+  projectileSpeedTiles: number;
+  projectileLifeMs: number;
+  /** 이 시간 안에 연사하면 위력이 rapidDecay 씩 줄고 rapidMin 까지 */
+  rapidWindowMs: number;
+  rapidDecay: number;
+  rapidMin: number;
+}
+
+export interface PersonalityData {
+  strokes: { count: number; lengthMaxPx: number; speedMaxPxPerSec: number; minPoints: number };
+  rhythm: { durationMs: number; attackSaturation: number; dashSaturation: number };
+  weights: Affinity;
+}
 
 export interface WeaponEvolution {
   name: string;
@@ -195,8 +222,15 @@ export interface WeaponEvolution {
 
 export interface WeaponDef {
   name: string;
+  kind: 'melee' | 'ranged';
   damageMult: number;
+  /** 치명타 확률 보너스 (%p). 예리함 축 */
+  critBonus: number;
+  /** 공격 판정 중 이동 속도 배율. 둔중함 축 */
+  attackSlowMult: number;
   hitbox: AttackHitbox;
+  ranged?: WeaponRanged;
+  affinity: Affinity;
   personality: {
     /** 이 수치에 도달하면 다음 진화, 도달 후 0으로 초기화 (기획 4장) */
     threshold: number;

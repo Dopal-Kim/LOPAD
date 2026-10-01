@@ -15,6 +15,8 @@ export interface DebugApi {
   director: () => { alive: number; wave: number; active: string | undefined };
   stage: () => { index: number; id: string; name: string; savesLeft: number; exitOpen: boolean; isLast: boolean };
   save: () => unknown;
+  lastAttack: () => unknown;
+  shots: () => unknown[];
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   /** 플레이어를 향해 투사체 1발 (거리 px, 속도 px/s, 공격력) */
@@ -42,6 +44,8 @@ export function exposeDebug(api: {
   now: () => number;
   stage: () => { index: number; id: string; name: string; savesLeft: number; exitOpen: boolean; isLast: boolean };
   save: () => unknown;
+  lastAttack: () => unknown;
+  shots: () => unknown[];
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   camera: () => { scrollX: number; scrollY: number; zoom: number };
@@ -62,6 +66,8 @@ export function exposeDebug(api: {
     director: () => api.director.debugInfo,
     stage: () => api.stage(),
     save: () => api.save(),
+    lastAttack: () => api.lastAttack(),
+    shots: () => api.shots(),
     economy: () => api.economy(),
     pickups: () => api.pickups(),
     fireAtPlayer: (d, s, a) => api.fireAtPlayer(d, s, a),

@@ -48,6 +48,9 @@ export class InputSystem {
     const x = (this.keys.right.isDown ? 1 : 0) - (this.keys.left.isDown ? 1 : 0);
     const y = (this.keys.down.isDown ? 1 : 0) - (this.keys.up.isDown ? 1 : 0);
     const pointer = this.scene.input.activePointer;
+    // pointer.worldX 는 포인터 이벤트 시점의 카메라로 계산되어 방 전환 직후 어긋날 수 있다.
+    // 항상 현재 카메라 기준으로 월드 좌표를 다시 구한다.
+    const aim = this.scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
     const state: InputState = {
       moveX: x,
       moveY: y,
@@ -55,8 +58,8 @@ export class InputSystem {
       parryPressed: this.parryQueued,
       dashPressed: Phaser.Input.Keyboard.JustDown(this.keys.dash),
       potionPressed: Phaser.Input.Keyboard.JustDown(this.keys.potion),
-      aimX: pointer.worldX,
-      aimY: pointer.worldY,
+      aimX: aim.x,
+      aimY: aim.y,
       restartPressed: Phaser.Input.Keyboard.JustDown(this.keys.restart),
     };
     this.attackQueued = false;

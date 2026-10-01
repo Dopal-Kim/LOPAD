@@ -111,3 +111,10 @@ npm run build
 - 개성 선택 연출(런 시작 시 무기 결정), 무기 추가, 패시브
 - 메타 진행: 무기 도감, 영혼 토큰 (기획 3장)
 - 경쟁 모드, 치명타 데미지 스탯 연결, 장비 구매
+
+## 3단계-e 무기 4종·개성 선택 (2026-10-01)
+결정·임시값: `decisions/2026-10-01-round-14-weapons-personality-meta.md`.
+- `data/weapons.json`(대검·단검·활 추가, 성향 벡터), `data/personality.json`, `src/systems/personality.ts`(획·리듬 특징 추출, 가중 거리 선택, 테스트 6개)
+- `src/scenes/Setup.ts`: 3획 → 5초 리듬 → '운명' 표시 → Game(new, weapon). Preloader 가 세이브/`?weapon=` 여부로 분기, 사망 후 재시작은 Setup 으로
+- `Game.ts`: 활 투사체(`playerShots`, 연사 감쇠, 관통), 무기 치명타 보너스, 공격 중 감속, 진화 이펙트(충격파·쌍격·관통)
+- 검증(헤드리스): 큰 직선 획 + 공격 위주 리듬 → 대검 선택, 무기별 피해 5/11/3/5, 활 연사 2발째 4, 관통 진화. 콘솔 오류 0.

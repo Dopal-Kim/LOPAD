@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES } from '../core/Constants';
+import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES, TILE } from '../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload, type WeaponEvolvedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { ECONOMY, PLAYER_DATA } from '../data';
@@ -19,7 +19,7 @@ import type { StatKey } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
 import { exposeDebug } from '../debug';
 
-type GameInitData = { mode?: 'new' | 'next' };
+type GameInitData = { mode?: 'new' | 'next'; weapon?: string };
 
 export class Game extends Phaser.Scene {
   private player: Player;
@@ -35,6 +35,12 @@ export class Game extends Phaser.Scene {
   private debugText?: Phaser.GameObjects.Text;
   private currentCellKey = '';
   private initMode: GameInitData['mode'];
+  private initWeapon?: string;
+  private playerShots: Phaser.GameObjects.Group;
+  private lastShotAt = -Infinity;
+  /** 디버그: 마지막 공격 이벤트 */
+  private debugLastAttack: unknown = null;
+  private rapidCount = 0;
   private readonly saveSlot = new SaveSlot(browserStorage());
   private transitioning = false;
   private readonly playerVec = new Phaser.Math.Vector2();
@@ -45,6 +51,7 @@ export class Game extends Phaser.Scene {
 
   init(data?: GameInitData): void {
     this.initMode = data?.mode;
+    this.initWeapon = data?.weapon;
     this.transitioning = false;
     this.currentCellKey = '';
   }
@@ -72,6 +79,13 @@ export class Game extends Phaser.Scene {
       runChildUpdate: false,
     });
     this.pickups = this.add.group({ classType: Pickup, maxSize: PROTOTYPE.PICKUP_POOL, runChildUpdate: false });
+    this.playerShots = this.add.group({
+      classType: Projectile,
+      maxSize: PROTOTYPE.PROJECTILE_POOL,
+      runChildUpdate: false,
+    });
+    this.lastShotAt = -Infinity;
+    this.rapidCount = 0;
     this.menu = new TextMenu(this);
     this.shopOpen = false;
 
@@ -82,6 +96,7 @@ export class Game extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.projectiles, (_p, pr) => this.onProjectileHit(pr as Projectile));
     this.physics.add.overlap(this.projectiles, this.mobs, (pr, m) => this.onReflectedHit(pr as Projectile, m as Mob));
     this.physics.add.overlap(this.player, this.pickups, (_p, pk) => this.onPickup(pk as Pickup));
+    this.physics.add.overlap(this.playerShots, this.mobs, (pr, m) => this.onPlayerShotHit(pr as Projectile, m as Mob));
 
     // 방 상태 머신
     this.director = new RoomDirector({
@@ -125,6 +140,18 @@ export class Game extends Phaser.Scene {
         isLast: gameState.isLastStage,
       }),
       save: () => this.saveSlot.read(),
+      lastAttack: () => this.debugLastAttack,
+      shots: () =>
+        (this.playerShots.getChildren() as Projectile[])
+          .filter((p) => p.active)
+          .map((p) => ({
+            x: p.x,
+            y: p.y,
+            vx: p.body.velocity.x,
+            vy: p.body.velocity.y,
+            attack: p.attack,
+            pierce: p.pierceLeft,
+          })),
       economy: () => ({
         gold: gameState.gold,
         potions: gameState.potions,
@@ -183,6 +210,7 @@ export class Game extends Phaser.Scene {
     for (const child of this.mobs.getChildren()) (child as Mob).update(ctx);
     for (const child of this.projectiles.getChildren()) (child as Projectile).tick(time);
     for (const child of this.pickups.getChildren()) (child as Pickup).tick(time);
+    for (const child of this.playerShots.getChildren()) (child as Projectile).tick(time);
     this.updateShop();
 
     if (this.debugText) {
@@ -203,6 +231,59 @@ export class Game extends Phaser.Scene {
   };
 
   private onPlayerAttacked(p: PlayerAttackPayload): void {
+    this.debugLastAttack = { ...p, time: this.time.now };
+    const weapon = gameState.weapon;
+    if (weapon.def.kind === 'ranged') {
+      this.fireArrow(p);
+      return;
+    }
+    this.meleeSwing(p);
+    if (weapon.evolution?.effect === 'twin') {
+      this.time.delayedCall(PROTOTYPE.TWIN_DELAY_MS, () => {
+        if (this.scene.isActive()) this.meleeSwing({ ...p, x: this.player.x, y: this.player.y });
+      });
+    }
+  }
+
+  /** 공격력 × 배율 × 치명타. 치명타 확률은 기본 + 보너스 + 무기 */
+  private rollDamage(mult: number): { dmg: number; crit: boolean } {
+    const crit = rollCrit(gameState.crit, this.rng);
+    const dmg = Math.round(gameState.attack * mult * gameState.weapon.damageMult * (crit ? ECONOMY.critDamageMult : 1));
+    return { dmg, crit };
+  }
+
+  private fireArrow(p: PlayerAttackPayload): void {
+    const weapon = gameState.weapon;
+    const R = weapon.def.ranged!;
+    const now = this.time.now;
+    this.rapidCount = now - this.lastShotAt <= R.rapidWindowMs ? this.rapidCount + 1 : 0;
+    this.lastShotAt = now;
+    const rapidMult = Math.max(R.rapidMin, 1 - R.rapidDecay * this.rapidCount);
+    const { dmg } = this.rollDamage(p.damageMult * rapidMult);
+    const shot = this.playerShots.get() as Projectile | null;
+    if (!shot) return;
+    const pierce = weapon.evolution?.effect === 'pierce' ? 1 : 0;
+    const size = weapon.hitbox.width * p.sizeMult;
+    shot.launch(
+      p.x + p.dirX * weapon.hitbox.reach,
+      p.y + p.dirY * weapon.hitbox.reach,
+      p.dirX,
+      p.dirY,
+      { speedPx: R.projectileSpeedTiles * TILE, attack: dmg, size, lifeMs: R.projectileLifeMs },
+      now,
+      'player',
+      pierce,
+    );
+  }
+
+  private onPlayerShotHit(shot: Projectile, mob: Mob): void {
+    if (!shot.active || shot.owner !== 'player') return;
+    if (!shot.registerHit(mob)) return;
+    const stunnedByParry = mob.isStunned(this.time.now);
+    if (mob.takeDamage(shot.attack)) this.onKill(mob, stunnedByParry ? 'parry' : 'attack');
+  }
+
+  private meleeSwing(p: PlayerAttackPayload): void {
     const weapon = gameState.weapon;
     const hb = weapon.hitbox;
     const cx = p.x + p.dirX * hb.reach * p.sizeMult;
@@ -213,6 +294,7 @@ export class Game extends Phaser.Scene {
     const h = (horizontal ? hb.height : hb.width) * p.sizeMult;
     const zone = this.add.rectangle(cx, cy, w, h, COLORS.ATTACK, 0.6).setDepth(DEPTH.ATTACK);
     if (weapon.evolution?.effect === 'slash-trail') this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
+    if (weapon.evolution?.effect === 'shockwave') this.drawShockwave(cx, cy, Math.max(w, h));
     this.physics.add.existing(zone);
     (zone.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
 
@@ -222,8 +304,7 @@ export class Game extends Phaser.Scene {
       if (hit.has(mob)) return;
       hit.add(mob);
       const stunnedByParry = mob.isStunned(this.time.now);
-      const crit = rollCrit(gameState.crit, this.rng);
-      const dmg = Math.round(gameState.attack * p.damageMult * weapon.damageMult * (crit ? ECONOMY.critDamageMult : 1));
+      const { dmg } = this.rollDamage(p.damageMult);
       const died = mob.takeDamage(dmg);
       if (died) this.onKill(mob, stunnedByParry ? 'parry' : p.kind);
     });
@@ -263,6 +344,23 @@ export class Game extends Phaser.Scene {
     g.arc(cx - dirX * length * 0.3, cy - dirY * length * 0.3, length * 0.9, angle - 0.6, angle + 0.6, false);
     g.strokePath();
     this.tweens.add({ targets: g, alpha: 0, duration: PROTOTYPE.SLASH_TRAIL_MS, onComplete: () => g.destroy() });
+  }
+
+  /** 대검 진화 충격파 (플레이스홀더 연출) */
+  private drawShockwave(cx: number, cy: number, radius: number): void {
+    const g = this.add.graphics().setDepth(DEPTH.ATTACK);
+    g.lineStyle(2, COLORS.SHOCKWAVE, 0.9);
+    g.strokeCircle(cx, cy, radius * 0.4);
+    this.tweens.add({
+      targets: g,
+      scaleX: 2.2,
+      scaleY: 2.2,
+      alpha: 0,
+      duration: PROTOTYPE.SHOCKWAVE_MS,
+      onComplete: () => g.destroy(),
+    });
+    g.setPosition(cx, cy);
+    g.strokeCircle(0, 0, radius * 0.4);
   }
 
   /** 개성 변화 알림 (시스템 파트 임시 텍스트. 정식 연출·UI는 UI 파트) */
@@ -491,7 +589,7 @@ export class Game extends Phaser.Scene {
       gameState.nextStage();
       this.saveIfAllowed();
     } else if (this.initMode === 'new') {
-      gameState.startRun(this.pickSeed());
+      gameState.startRun(this.pickSeed(), this.initWeapon);
       this.saveSlot.clear();
     } else {
       const save = params.has('new') || params.has('seed') ? null : this.saveSlot.read();

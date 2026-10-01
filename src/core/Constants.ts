@@ -20,6 +20,7 @@ export const GAME = {
 export const SCENES = {
   BOOT: 'Boot',
   PRELOADER: 'Preloader',
+  SETUP: 'Setup',
   GAME: 'Game',
   GAME_OVER: 'GameOver',
 } as const;
@@ -56,6 +57,9 @@ export const COLORS = {
   PLAYER_PARRY: 0xfff8c0,
   PLAYER_RECOVER: 0x2f5a8a,
   PROJECTILE_REFLECTED: 0x80f0ff,
+  PLAYER_SHOT: 0xc0e8ff,
+  SHOCKWAVE: 0xffd080,
+  STROKE: 0xe0e0ff,
   ATTACK: 0xf5f5c0,
   MOB_HURT: 0xffffff,
   TELEGRAPH: 0xfff0a0,
@@ -77,6 +81,9 @@ export const PROTOTYPE = {
   /** 보스 처치 후 결과 화면까지 지연 */
   CLEAR_DELAY_MS: 1200,
   SLASH_TRAIL_MS: 220,
+  SHOCKWAVE_MS: 260,
+  TWIN_DELAY_MS: 80,
+  FATE_BANNER_MS: 1500,
   BANNER_MS: 1500,
   /** 바닥 드랍 최대 동시 수 */
   PICKUP_POOL: 64,

@@ -20,6 +20,8 @@ export class Player extends Phaser.GameObjects.Rectangle {
   private attackReadyAt = 0;
   private dashReadyAt = 0;
   private dashEndedAt = -Infinity;
+  /** 공격 판정 중(둔중한 무기일수록 길다) 이동 감속 */
+  private attackSlowUntil = 0;
   private facing = new Phaser.Math.Vector2(1, 0);
   private dashVel = new Phaser.Math.Vector2();
 
@@ -68,7 +70,8 @@ export class Player extends Phaser.GameObjects.Rectangle {
     if (this.action === 'dash') {
       this.body.setVelocity(this.dashVel.x, this.dashVel.y);
     } else {
-      this.body.setVelocity(dir.x * this.speedPx, dir.y * this.speedPx);
+      const slow = time < this.attackSlowUntil ? gameState.weapon.def.attackSlowMult : 1;
+      this.body.setVelocity(dir.x * this.speedPx * slow, dir.y * this.speedPx * slow);
     }
 
     const canAct = this.action === 'normal';
@@ -94,6 +97,7 @@ export class Player extends Phaser.GameObjects.Rectangle {
     // 공격 (대쉬 직후면 대쉬 공격)
     if (input.attackPressed && canAct && time >= this.attackReadyAt) {
       this.attackReadyAt = time + gameState.weapon.hitbox.cooldownMs;
+      this.attackSlowUntil = time + Math.max(gameState.weapon.hitbox.activeMs, PLAYER_DATA.attackSlowMinMs);
       const aim = new Phaser.Math.Vector2(input.aimX - this.x, input.aimY - this.y);
       if (aim.lengthSq() > 0) aim.normalize();
       else aim.copy(this.facing);

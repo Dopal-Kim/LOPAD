@@ -4,6 +4,7 @@ import { Boot } from './scenes/Boot';
 import { Game } from './scenes/Game';
 import { GameOver } from './scenes/GameOver';
 import { Preloader } from './scenes/Preloader';
+import { Setup } from './scenes/Setup';
 
 /** 내부 해상도 640×360 고정, 정수 배율 확대는 main.ts 에서 처리. */
 export const gameConfig: Phaser.Types.Core.GameConfig = {
@@ -22,5 +23,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     default: 'arcade',
     arcade: { gravity: { x: 0, y: 0 }, debug: false },
   },
-  scene: [Boot, Preloader, Game, GameOver],
+  scene: [Boot, Preloader, Setup, Game, GameOver],
 };

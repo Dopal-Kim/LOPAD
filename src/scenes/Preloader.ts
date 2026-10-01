@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { COLORS, SCENES, TEXTURES, TILE } from '../core/Constants';
 import { TileId } from '../systems/mapgen';
+import { SaveSlot, browserStorage } from '../systems/save';
+import { WEAPONS } from '../data';
 
 /** 플레이스홀더 타일 텍스처를 코드로 만든다. 아트 파트 타일셋이 계약으로 들어오면 여기서 로드로 교체. */
 export class Preloader extends Phaser.Scene {
@@ -10,7 +12,17 @@ export class Preloader extends Phaser.Scene {
 
   create(): void {
     this.buildTileTexture();
-    this.scene.start(SCENES.GAME);
+    this.scene.start(...this.route());
+  }
+
+  /** 세이브가 있으면 이어하기, ?weapon= 이면 선택 생략, 아니면 개성 선택 씬 */
+  private route(): [string, object?] {
+    const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+    const forcedWeapon = params.get('weapon');
+    if (forcedWeapon && WEAPONS[forcedWeapon]) return [SCENES.GAME, { mode: 'new', weapon: forcedWeapon }];
+    const hasSave = !params.has('new') && !params.has('seed') && new SaveSlot(browserStorage()).read() !== null;
+    if (hasSave) return [SCENES.GAME];
+    return [SCENES.SETUP];
   }
 
   private buildTileTexture(): void {

@@ -3,13 +3,19 @@ import { COLORS, DEPTH } from '../core/Constants';
 import type { ProjectileSpec } from './Mob';
 
 type Body = Phaser.Physics.Arcade.Body;
+export type ProjectileOwner = 'enemy' | 'player';
 
-/** 적 투사체. 벽에 닿거나 수명이 끝나면 비활성화되어 풀로 돌아간다. */
+/** 투사체. 벽에 닿거나 수명이 끝나면 비활성화되어 풀로 돌아간다. */
 export class Projectile extends Phaser.GameObjects.Rectangle {
   declare body: Body;
   attack = 0;
+  owner: ProjectileOwner = 'enemy';
   /** 패링으로 반사됨: 플레이어 대신 적을 맞힌다 */
   reflected = false;
+  /** 남은 관통 횟수 (플레이어 투사체) */
+  pierceLeft = 0;
+  /** 같은 적을 두 번 맞히지 않기 위한 기록 */
+  private hitSet = new Set<unknown>();
   private expireAt = 0;
 
   constructor(scene: Phaser.Scene) {
@@ -20,10 +26,22 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
     this.deactivate();
   }
 
-  launch(x: number, y: number, dirX: number, dirY: number, spec: ProjectileSpec, time: number): void {
+  launch(
+    x: number,
+    y: number,
+    dirX: number,
+    dirY: number,
+    spec: ProjectileSpec,
+    time: number,
+    owner: ProjectileOwner = 'enemy',
+    pierce = 0,
+  ): void {
     this.attack = spec.attack;
+    this.owner = owner;
     this.reflected = false;
-    this.setFillStyle(COLORS.PROJECTILE);
+    this.pierceLeft = pierce;
+    this.hitSet.clear();
+    this.setFillStyle(owner === 'player' ? COLORS.PLAYER_SHOT : COLORS.PROJECTILE);
     this.expireAt = time + spec.lifeMs;
     this.setSize(spec.size, spec.size);
     this.body.setSize(spec.size, spec.size);
@@ -32,6 +50,15 @@ export class Projectile extends Phaser.GameObjects.Rectangle {
     this.body.enable = true;
     this.body.reset(x, y);
     this.body.setVelocity(dirX * spec.speedPx, dirY * spec.speedPx);
+  }
+
+  /** 적에게 맞았을 때 호출. 이미 맞힌 적이면 false. 관통이 남으면 계속 날아간다 */
+  registerHit(target: unknown): boolean {
+    if (this.hitSet.has(target)) return false;
+    this.hitSet.add(target);
+    if (this.pierceLeft > 0) this.pierceLeft -= 1;
+    else this.deactivate();
+    return true;
   }
 
   reflect(mult: number): void {

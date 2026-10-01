@@ -4,10 +4,12 @@ import bossesJson from '../../data/bosses.json';
 import stagesJson from '../../data/stages.json';
 import weaponsJson from '../../data/weapons.json';
 import economyJson from '../../data/economy.json';
+import personalityJson from '../../data/personality.json';
 import type {
   BossTable,
   EconomyData,
   EnemyTable,
+  PersonalityData,
   PlayerData,
   RunDef,
   StageTable,
@@ -34,6 +36,7 @@ export function validatePlayer(p: PlayerData): PlayerData {
   for (const [k, val] of Object.entries(p.dash)) if (k !== 'invulnerable') assertNumber(val, `player.dash.${k}`);
   for (const [k, val] of Object.entries(p.parry)) assertNumber(val, `player.parry.${k}`);
   if (typeof p.startWeapon !== 'string') throw new Error('[data] player.startWeapon 없음');
+  assertNumber(p.attackSlowMinMs, 'player.attackSlowMinMs');
   return p;
 }
 
@@ -113,12 +116,20 @@ export function validateStages(t: StageTable, enemies: EnemyTable, bosses: BossT
 export function validateWeapons(t: WeaponTable): WeaponTable {
   for (const [id, w] of Object.entries(t)) {
     assertNumber(w.damageMult, `weapons.${id}.damageMult`);
+    assertNumber(w.critBonus, `weapons.${id}.critBonus`);
+    assertNumber(w.attackSlowMult, `weapons.${id}.attackSlowMult`);
+    if (w.kind !== 'melee' && w.kind !== 'ranged') throw new Error(`[data] weapons.${id}.kind 알 수 없음`);
+    if (w.kind === 'ranged' && !w.ranged) throw new Error(`[data] weapons.${id}: ranged 파라미터 없음`);
+    for (const [k, val] of Object.entries(w.affinity)) {
+      assertNumber(val, `weapons.${id}.affinity.${k}`);
+      if (val < 0 || val > 1) throw new Error(`[data] weapons.${id}.affinity.${k} 는 0..1`);
+    }
     for (const [k, val] of Object.entries(w.hitbox)) assertNumber(val, `weapons.${id}.hitbox.${k}`);
     assertNumber(w.personality.threshold, `weapons.${id}.personality.threshold`);
     w.personality.evolutions.forEach((ev, i) => {
       assertNumber(ev.damageMult, `weapons.${id}.evolutions[${i}].damageMult`);
       assertNumber(ev.hitboxMult, `weapons.${id}.evolutions[${i}].hitboxMult`);
-      if (ev.effect !== null && ev.effect !== 'slash-trail')
+      if (ev.effect !== null && !['slash-trail', 'shockwave', 'twin', 'pierce'].includes(ev.effect))
         throw new Error(`[data] weapons.${id}.evolutions[${i}].effect 알 수 없음`);
     });
   }
@@ -160,3 +171,5 @@ export function validateEconomy(e: EconomyData): EconomyData {
 }
 
 export const ECONOMY: EconomyData = validateEconomy(economyJson as unknown as EconomyData);
+
+export const PERSONALITY: PersonalityData = personalityJson as unknown as PersonalityData;
