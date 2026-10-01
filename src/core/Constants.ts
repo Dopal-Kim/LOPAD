@@ -45,6 +45,7 @@ export const COLORS = {
   DOOR_OPEN: '#26503a',
   DOOR_CLOSED: '#8a4a2a',
   DOOR_LOCKED: '#8a2a4a',
+  EXIT: '#d8c860',
   PLAYER: 0x4a90e2,
   PLAYER_HURT: 0xffffff,
   PLAYER_DASH: 0x9ad0ff,

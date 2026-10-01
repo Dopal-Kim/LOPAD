@@ -18,6 +18,7 @@ export class Boss extends Mob {
   private nextDashAt = 0;
   private nextFanAt = 0;
   private dashDir = new Phaser.Math.Vector2(1, 0);
+  private dashesLeft = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, id: string) {
     const def = BOSSES[id];
@@ -50,6 +51,7 @@ export class Boss extends Mob {
       case 'approach':
         this.moveToward(ctx.player.x, ctx.player.y, this.def.approachSpeedTiles * TILE);
         if (ctx.time >= this.nextDashAt) {
+          this.dashesLeft = (P.dash.repeat ?? 1) - 1;
           this.bossState = 'telegraph';
           this.stateUntil = ctx.time + P.dash.telegraphMs;
           this.body.setVelocity(0, 0);
@@ -79,10 +81,18 @@ export class Boss extends Mob {
           this.setFillStyle(COLORS.STUN);
           this.scheduleNextDash(ctx.time);
         } else if (ctx.time >= this.stateUntil) {
-          this.bossState = 'approach';
           this.body.setVelocity(0, 0);
-          this.scheduleNextDash(ctx.time);
-          if (P.fan?.afterDash) this.fireFan(ctx);
+          if (this.dashesLeft > 0) {
+            // 연속 돌진: 짧은 예고 후 다시
+            this.dashesLeft -= 1;
+            this.bossState = 'telegraph';
+            this.stateUntil = ctx.time + P.dash.telegraphMs * 0.5;
+            this.setFillStyle(COLORS.TELEGRAPH);
+          } else {
+            this.bossState = 'approach';
+            this.scheduleNextDash(ctx.time);
+            if (P.fan?.afterDash) this.fireFan(ctx);
+          }
         }
         break;
       }

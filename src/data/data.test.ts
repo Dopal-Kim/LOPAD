@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOSSES, ENEMIES, PLAYER_DATA, STAGES, validateEnemies } from './index';
+import { BOSSES, ENEMIES, PLAYER_DATA, RUN, STAGES, validateEnemies } from './index';
 import type { EnemyTable } from './types';
 
 describe('data/*.json', () => {
@@ -8,6 +8,10 @@ describe('data/*.json', () => {
     expect(Object.keys(ENEMIES)).toEqual(expect.arrayContaining(['dummy', 'archer', 'charger']));
     expect(BOSSES.stage1.phases[0].hpFraction).toBe(1);
     expect(STAGES.stage1.boss).toBe('stage1');
+    expect(RUN.order).toHaveLength(7);
+    for (const id of RUN.order) expect(BOSSES[STAGES[id].boss]).toBeDefined();
+    expect(BOSSES.final.phases).toHaveLength(3);
+    expect(RUN.maxSaves).toBe(2);
   });
 
   it('잘못된 행동 키는 거부한다', () => {

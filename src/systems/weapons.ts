@@ -41,6 +41,12 @@ export class WeaponState {
     return this.stage < this.def.personality.evolutions.length;
   }
 
+  /** 세이브에서 복원 */
+  restore(personality: number, stage: number): void {
+    this.personality = personality;
+    this.stage = Math.min(stage, this.def.personality.evolutions.length);
+  }
+
   /** 개성 수치를 더하고, 진화가 일어났으면 새 단계 번호를 반환 (아니면 null) */
   gainPersonality(amount: number): number | null {
     if (!this.canEvolve) return null;

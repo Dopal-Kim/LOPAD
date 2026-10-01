@@ -24,6 +24,9 @@ export const Events = {
   BOSS_STARTED: 'boss:started',
   BOSS_PHASE: 'boss:phase',
   BOSS_DIED: 'boss:died',
+  STAGE_STARTED: 'stage:started',
+  STAGE_CLEARED: 'stage:cleared',
+  STAGE_SAVED: 'stage:saved',
   RUN_CLEARED: 'run:cleared',
   GAME_RESTART: 'game:restart',
 } as const;

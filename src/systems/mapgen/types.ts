@@ -60,6 +60,8 @@ export const enum TileId {
   DoorClosed = 4,
   DoorLocked = 5,
   Corridor = 6,
+  /** 보스 처치 후 생기는 다음 층 출구 (런타임에만 놓임) */
+  Exit = 7,
 }
 
 export interface FloorLayout {

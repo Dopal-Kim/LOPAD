@@ -84,3 +84,18 @@ npm run build
 - `data/weapons.json`, `src/systems/weapons.ts` (`WeaponState`: 개성 누적·진화·히트박스/데미지 배율, 테스트 3개)
 - 처치 → `personalityValue` 누적 → 100 달성 시 진화, 베기 궤적 이펙트와 임시 알림 텍스트
 - 검증(헤드리스): 14처치 후 '거합' 진화, 진화 후 1타 6 데미지(5×1.2). 콘솔 오류 0.
+
+## 3단계-c 스테이지 확장 (2026-10-01)
+결정·임시값: `decisions/2026-10-01-round-12-stage-expansion.md`.
+- `data/stages.json`: `run.order` 7개 스테이지, `run.maxSaves`, 스테이지별 `enemyScale`·웨이브·시련 수. `data/bosses.json`: 보스 변형 6종 + `final`(3페이즈, 연속 돌진 `repeat`).
+- `src/core/GameState.ts`: `startRun / nextStage / toSave / applySave`, 층 시드 = 런 시드 + 층 번호.
+- `src/systems/save.ts`: `SaveSlot` (localStorage 추상화, 테스트 3개).
+- `src/scenes/Game.ts`: `init(mode)` new/next/resume, 출구 타일 진입 시 `scene.restart({mode:'next'})`, 전환 세이브, 사망·클리어 시 삭제.
+- 검증(헤드리스): 1→7층 전환, 세이브 2→1→0, 재진입 이어하기(2층 시작, HP 83), 2층 더미 HP 24, 최종 보스 3페이즈 진입, 런 클리어 후 세이브 null. 콘솔 오류 0.
+
+### 다음 인터뷰 후보
+- 감각 → 스테이지 클리어 능력치 보상 규칙 (BLANK)
+- 골드·상점·소모품·패시브 (기획 6장)
+- 개성 선택 연출(런 시작 시 무기 결정), 무기 추가
+- 메타 진행: 무기 도감, 영혼 토큰 (기획 3장)
+- 경쟁 모드

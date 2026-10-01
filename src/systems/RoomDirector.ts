@@ -19,6 +19,9 @@ export interface RoomDirectorHost {
   mobs: Phaser.Physics.Arcade.Group;
   heal(fraction: number): void;
   onRunCleared(): void;
+  /** 마지막 층이 아니면 보스 방에 출구를 연다 */
+  onStageCleared(room: Room): void;
+  isLastStage(): boolean;
 }
 
 /**
@@ -87,10 +90,15 @@ export class RoomDirector {
       }
     } else if (room.type === 'boss') {
       this.states.set(room.id, 'cleared');
-      gameState.cleared = true;
       this.host.world.setRoomDoors(room, 'open');
-      EventBus.emit(Events.RUN_CLEARED);
-      this.host.onRunCleared();
+      if (this.host.isLastStage()) {
+        gameState.cleared = true;
+        EventBus.emit(Events.RUN_CLEARED);
+        this.host.onRunCleared();
+      } else {
+        EventBus.emit(Events.STAGE_CLEARED, { stageIndex: gameState.stageIndex });
+        this.host.onStageCleared(room);
+      }
     }
   }
 
@@ -113,7 +121,7 @@ export class RoomDirector {
           this.host.player,
           this.host.stage.trial.spawnMinDistTiles,
         );
-        const e = new Enemy(this.host.mobs.scene, p.x, p.y, entry.enemy);
+        const e = new Enemy(this.host.mobs.scene, p.x, p.y, entry.enemy, this.host.stage.enemyScale);
         this.host.mobs.add(e);
         this.alive.add(e);
       }

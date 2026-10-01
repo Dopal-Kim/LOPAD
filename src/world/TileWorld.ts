@@ -94,6 +94,21 @@ export class TileWorld {
     }
   }
 
+  /** 보스 방 중앙에 2×2 출구 타일을 놓는다 */
+  placeExit(room: Room): { x: number; y: number } {
+    const I = room.interior;
+    const tx = I.x + Math.floor(I.w / 2) - 1;
+    const ty = I.y + Math.floor(I.h / 2) - 1;
+    for (let y = ty; y < ty + 2; y++)
+      for (let x = tx; x < tx + 2; x++) this.layer.putTileAt(TileId.Exit, x, y).setCollision(false);
+    return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
+  }
+
+  isExitAt(worldX: number, worldY: number): boolean {
+    const t = this.layer.getTileAtWorldXY(worldX, worldY);
+    return t?.index === TileId.Exit;
+  }
+
   setRoomDoors(room: Room, state: DoorState): void {
     for (const d of room.doors) this.setDoor(d, state);
   }

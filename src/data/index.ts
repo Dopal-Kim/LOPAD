@@ -3,7 +3,7 @@ import enemiesJson from '../../data/enemies.json';
 import bossesJson from '../../data/bosses.json';
 import stagesJson from '../../data/stages.json';
 import weaponsJson from '../../data/weapons.json';
-import type { BossTable, EnemyTable, PlayerData, StageTable, WeaponTable } from './types';
+import type { BossTable, EnemyTable, PlayerData, RunDef, StageTable, StagesFile, WeaponTable } from './types';
 
 function assertNumber(v: unknown, path: string): void {
   if (typeof v !== 'number' || Number.isNaN(v)) {
@@ -69,6 +69,8 @@ export function validateBosses(t: BossTable): BossTable {
 export function validateStages(t: StageTable, enemies: EnemyTable, bosses: BossTable): StageTable {
   for (const [id, s] of Object.entries(t)) {
     if (!bosses[s.boss]) throw new Error(`[data] stages.${id}.boss 정의 없음: ${s.boss}`);
+    assertNumber(s.enemyScale?.hp, `stages.${id}.enemyScale.hp`);
+    assertNumber(s.enemyScale?.attack, `stages.${id}.enemyScale.attack`);
     const L = s.layout;
     for (const k of [
       'gridW',
@@ -117,4 +119,13 @@ if (!WEAPONS[PLAYER_DATA.startWeapon])
   throw new Error(`[data] player.startWeapon 정의 없음: ${PLAYER_DATA.startWeapon}`);
 export const ENEMIES: EnemyTable = validateEnemies(enemiesJson as unknown as EnemyTable);
 export const BOSSES: BossTable = validateBosses(bossesJson as unknown as BossTable);
-export const STAGES: StageTable = validateStages(stagesJson as unknown as StageTable, ENEMIES, BOSSES);
+const stagesFile = stagesJson as unknown as StagesFile;
+export const STAGES: StageTable = validateStages(stagesFile.stages, ENEMIES, BOSSES);
+export const RUN: RunDef = validateRun(stagesFile.run, STAGES);
+
+export function validateRun(run: RunDef, stages: StageTable): RunDef {
+  if (!Array.isArray(run.order) || run.order.length === 0) throw new Error('[data] run.order 비어 있음');
+  for (const id of run.order) if (!stages[id]) throw new Error(`[data] run.order 에 없는 스테이지: ${id}`);
+  assertNumber(run.maxSaves, 'run.maxSaves');
+  return run;
+}

@@ -1,10 +1,15 @@
-import { PLAYER_DATA, WEAPONS } from '../data';
-import { WeaponState } from '../systems/weapons';
+import { PLAYER_DATA, RUN, STAGES, WEAPONS } from '../data';
+import type { StageDef } from '../data/types';
+import type { SaveData } from '../systems/save';
+import { SAVE_VERSION } from '../systems/save';
 import { SenseTracker } from '../systems/senses';
+import { WeaponState } from '../systems/weapons';
 
-/** 런 상태의 단일 출처. 런 재시작은 reset()으로. */
+/** 런 상태의 단일 출처. 런 시작은 startRun(), 층 전환은 nextStage(). */
 class GameState {
   seed = '';
+  stageIndex = 0;
+  savesLeft = RUN.maxSaves;
   hp = PLAYER_DATA.stats.hp;
   maxHp = PLAYER_DATA.stats.hp;
   kills = 0;
@@ -20,14 +25,47 @@ class GameState {
   bossUnlocked = false;
   gameOver = false;
   cleared = false;
+  /** 보스 처치 후 출구가 열린 상태 */
+  exitOpen = false;
 
-  reset(seed: string): void {
+  get stageId(): string {
+    return RUN.order[this.stageIndex];
+  }
+
+  get stage(): StageDef {
+    return STAGES[this.stageId];
+  }
+
+  get isLastStage(): boolean {
+    return this.stageIndex >= RUN.order.length - 1;
+  }
+
+  /** 이 층의 맵 시드 (런 시드 + 층 번호) */
+  get floorSeed(): string {
+    return `${this.seed}:${this.stageIndex}`;
+  }
+
+  /** 새 런 */
+  startRun(seed: string): void {
     this.seed = seed;
+    this.stageIndex = 0;
+    this.savesLeft = RUN.maxSaves;
     this.hp = PLAYER_DATA.stats.hp;
     this.maxHp = PLAYER_DATA.stats.hp;
     this.kills = 0;
     this.senses.reset();
     this.weapon = new WeaponState(PLAYER_DATA.startWeapon, WEAPONS[PLAYER_DATA.startWeapon]); // 사망 시 무기 초기화 (기획 3장)
+    this.resetStage();
+  }
+
+  /** 다음 층으로 (HP·무기·감각·처치 수 유지) */
+  nextStage(): void {
+    this.stageIndex += 1;
+    this.senses.nextStage();
+    this.resetStage();
+  }
+
+  private resetStage(): void {
     this.trialsCleared = 0;
     this.trialsTotal = 0;
     this.roomId = '';
@@ -38,6 +76,35 @@ class GameState {
     this.bossUnlocked = false;
     this.gameOver = false;
     this.cleared = false;
+    this.exitOpen = false;
+  }
+
+  toSave(): SaveData {
+    return {
+      version: SAVE_VERSION,
+      seed: this.seed,
+      stageIndex: this.stageIndex,
+      hp: this.hp,
+      maxHp: this.maxHp,
+      kills: this.kills,
+      sense: this.senses.sense,
+      savesLeft: this.savesLeft,
+      weapon: { id: this.weapon.id, personality: this.weapon.personality, stage: this.weapon.stage },
+      savedAt: Date.now(),
+    };
+  }
+
+  applySave(d: SaveData): void {
+    this.startRun(d.seed);
+    this.stageIndex = Math.min(d.stageIndex, RUN.order.length - 1);
+    this.hp = d.hp;
+    this.maxHp = d.maxHp;
+    this.kills = d.kills;
+    this.senses.sense = d.sense;
+    this.savesLeft = d.savesLeft;
+    const weaponId = WEAPONS[d.weapon.id] ? d.weapon.id : PLAYER_DATA.startWeapon;
+    this.weapon = new WeaponState(weaponId, WEAPONS[weaponId]);
+    this.weapon.restore(d.weapon.personality, d.weapon.stage);
   }
 }
 

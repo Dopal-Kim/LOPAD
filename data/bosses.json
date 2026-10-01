@@ -43,5 +43,297 @@
     ],
     "contactIntervalMs": 800,
     "personalityValue": 50
+  },
+  "stage2": {
+    "name": "2층 보스 (변형)",
+    "hp": 260,
+    "size": [40, 40],
+    "color": "#b02060",
+    "contactAttack": 22,
+    "approachSpeedTiles": 2,
+    "phases": [
+      {
+        "hpFraction": 1,
+        "dash": {
+          "intervalMs": 2300,
+          "telegraphMs": 650,
+          "speedTiles": 17,
+          "durationMs": 600,
+          "attack": 28,
+          "wallStunMs": 1000
+        },
+        "fan": null
+      },
+      {
+        "hpFraction": 0.5,
+        "dash": {
+          "intervalMs": 1955,
+          "telegraphMs": 550,
+          "speedTiles": 19,
+          "durationMs": 600,
+          "attack": 28,
+          "wallStunMs": 1000
+        },
+        "fan": {
+          "intervalMs": 1900,
+          "count": 5,
+          "spreadDeg": 60,
+          "projectileSpeedTiles": 7,
+          "attack": 11,
+          "projectileSize": 6,
+          "projectileLifeMs": 3500,
+          "afterDash": true
+        }
+      }
+    ],
+    "contactIntervalMs": 800,
+    "personalityValue": 55
+  },
+  "stage3": {
+    "name": "3층 보스 (변형)",
+    "hp": 330,
+    "size": [40, 40],
+    "color": "#b02060",
+    "contactAttack": 24,
+    "approachSpeedTiles": 2,
+    "phases": [
+      {
+        "hpFraction": 1,
+        "dash": {
+          "intervalMs": 2100,
+          "telegraphMs": 650,
+          "speedTiles": 18,
+          "durationMs": 600,
+          "attack": 30,
+          "wallStunMs": 1000
+        },
+        "fan": null
+      },
+      {
+        "hpFraction": 0.5,
+        "dash": {
+          "intervalMs": 1785,
+          "telegraphMs": 550,
+          "speedTiles": 20,
+          "durationMs": 600,
+          "attack": 30,
+          "wallStunMs": 1000
+        },
+        "fan": {
+          "intervalMs": 1800,
+          "count": 7,
+          "spreadDeg": 76,
+          "projectileSpeedTiles": 7,
+          "attack": 12,
+          "projectileSize": 6,
+          "projectileLifeMs": 3500,
+          "afterDash": true
+        }
+      }
+    ],
+    "contactIntervalMs": 800,
+    "personalityValue": 60
+  },
+  "stage4": {
+    "name": "4층 보스 (변형)",
+    "hp": 400,
+    "size": [40, 40],
+    "color": "#b02060",
+    "contactAttack": 26,
+    "approachSpeedTiles": 2,
+    "phases": [
+      {
+        "hpFraction": 1,
+        "dash": {
+          "intervalMs": 2000,
+          "telegraphMs": 650,
+          "speedTiles": 18,
+          "durationMs": 600,
+          "attack": 33,
+          "wallStunMs": 1000
+        },
+        "fan": null
+      },
+      {
+        "hpFraction": 0.5,
+        "dash": {
+          "intervalMs": 1700,
+          "telegraphMs": 550,
+          "speedTiles": 20,
+          "durationMs": 600,
+          "attack": 33,
+          "wallStunMs": 1000
+        },
+        "fan": {
+          "intervalMs": 1600,
+          "count": 7,
+          "spreadDeg": 76,
+          "projectileSpeedTiles": 7,
+          "attack": 13,
+          "projectileSize": 6,
+          "projectileLifeMs": 3500,
+          "afterDash": true
+        }
+      }
+    ],
+    "contactIntervalMs": 800,
+    "personalityValue": 65
+  },
+  "stage5": {
+    "name": "5층 보스 (변형)",
+    "hp": 480,
+    "size": [40, 40],
+    "color": "#b02060",
+    "contactAttack": 28,
+    "approachSpeedTiles": 2,
+    "phases": [
+      {
+        "hpFraction": 1,
+        "dash": {
+          "intervalMs": 1900,
+          "telegraphMs": 650,
+          "speedTiles": 19,
+          "durationMs": 600,
+          "attack": 35,
+          "wallStunMs": 1000
+        },
+        "fan": null
+      },
+      {
+        "hpFraction": 0.5,
+        "dash": {
+          "intervalMs": 1615,
+          "telegraphMs": 550,
+          "speedTiles": 21,
+          "durationMs": 600,
+          "attack": 35,
+          "wallStunMs": 1000
+        },
+        "fan": {
+          "intervalMs": 1500,
+          "count": 9,
+          "spreadDeg": 92,
+          "projectileSpeedTiles": 7,
+          "attack": 14,
+          "projectileSize": 6,
+          "projectileLifeMs": 3500,
+          "afterDash": true
+        }
+      }
+    ],
+    "contactIntervalMs": 800,
+    "personalityValue": 70
+  },
+  "stage6": {
+    "name": "6층 보스 (변형)",
+    "hp": 560,
+    "size": [40, 40],
+    "color": "#b02060",
+    "contactAttack": 30,
+    "approachSpeedTiles": 2,
+    "phases": [
+      {
+        "hpFraction": 1,
+        "dash": {
+          "intervalMs": 1800,
+          "telegraphMs": 650,
+          "speedTiles": 20,
+          "durationMs": 600,
+          "attack": 38,
+          "wallStunMs": 1000
+        },
+        "fan": null
+      },
+      {
+        "hpFraction": 0.5,
+        "dash": {
+          "intervalMs": 1530,
+          "telegraphMs": 550,
+          "speedTiles": 22,
+          "durationMs": 600,
+          "attack": 38,
+          "wallStunMs": 1000
+        },
+        "fan": {
+          "intervalMs": 1400,
+          "count": 9,
+          "spreadDeg": 92,
+          "projectileSpeedTiles": 7,
+          "attack": 15,
+          "projectileSize": 6,
+          "projectileLifeMs": 3500,
+          "afterDash": true
+        }
+      }
+    ],
+    "contactIntervalMs": 800,
+    "personalityValue": 75
+  },
+  "final": {
+    "name": "최종 보스 (플레이스홀더)",
+    "hp": 800,
+    "size": [48, 48],
+    "color": "#e03070",
+    "contactAttack": 32,
+    "contactIntervalMs": 800,
+    "approachSpeedTiles": 2.5,
+    "personalityValue": 100,
+    "phases": [
+      {
+        "hpFraction": 1,
+        "dash": {
+          "intervalMs": 2000,
+          "telegraphMs": 600,
+          "speedTiles": 18,
+          "durationMs": 600,
+          "attack": 40,
+          "wallStunMs": 900
+        },
+        "fan": null
+      },
+      {
+        "hpFraction": 0.7,
+        "dash": {
+          "intervalMs": 1900,
+          "telegraphMs": 550,
+          "speedTiles": 19,
+          "durationMs": 600,
+          "attack": 40,
+          "wallStunMs": 900
+        },
+        "fan": {
+          "intervalMs": 1500,
+          "count": 9,
+          "spreadDeg": 90,
+          "projectileSpeedTiles": 8,
+          "attack": 14,
+          "projectileSize": 6,
+          "projectileLifeMs": 3500,
+          "afterDash": true
+        }
+      },
+      {
+        "hpFraction": 0.35,
+        "dash": {
+          "intervalMs": 1600,
+          "telegraphMs": 450,
+          "speedTiles": 21,
+          "durationMs": 500,
+          "attack": 45,
+          "wallStunMs": 800,
+          "repeat": 3
+        },
+        "fan": {
+          "intervalMs": 1300,
+          "count": 12,
+          "spreadDeg": 330,
+          "projectileSpeedTiles": 7,
+          "attack": 14,
+          "projectileSize": 6,
+          "projectileLifeMs": 3500,
+          "afterDash": true
+        }
+      }
+    ]
   }
 }

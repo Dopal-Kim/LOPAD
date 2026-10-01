@@ -13,6 +13,8 @@ export interface DebugApi {
   teleport: (roomId: string) => void;
   moveTo: (x: number, y: number) => void;
   director: () => { alive: number; wave: number; active: string | undefined };
+  stage: () => { index: number; id: string; name: string; savesLeft: number; exitOpen: boolean; isLast: boolean };
+  save: () => unknown;
   /** 플레이어를 향해 투사체 1발 (거리 px, 속도 px/s, 공격력) */
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
   player: () => { x: number; y: number; action: string };
@@ -36,6 +38,8 @@ export function exposeDebug(api: {
   playerInfo: () => { x: number; y: number; action: string };
   stunAll: (ms: number) => void;
   now: () => number;
+  stage: () => { index: number; id: string; name: string; savesLeft: number; exitOpen: boolean; isLast: boolean };
+  save: () => unknown;
   camera: () => { scrollX: number; scrollY: number; zoom: number };
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
@@ -52,6 +56,8 @@ export function exposeDebug(api: {
     },
     moveTo: (x, y) => api.player.body.reset(x, y),
     director: () => api.director.debugInfo,
+    stage: () => api.stage(),
+    save: () => api.save(),
     fireAtPlayer: (d, s, a) => api.fireAtPlayer(d, s, a),
     player: () => api.playerInfo(),
     stunAll: (ms) => api.stunAll(ms),

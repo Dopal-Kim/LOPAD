@@ -96,6 +96,8 @@ export interface BossDashParams {
   durationMs: number;
   attack: number;
   wallStunMs: number;
+  /** 연속 돌진 횟수 (기본 1). 2회째부터는 예고 시간 절반 */
+  repeat?: number;
 }
 
 export interface BossFanParams {
@@ -149,15 +151,34 @@ export interface WaveEntry {
   count: number;
 }
 
+export interface EnemyScale {
+  hp: number;
+  attack: number;
+}
+
 export interface StageDef {
   name: string;
   boss: string;
+  /** 일반 적 HP·공격 배율 (보스는 bosses.json 에 개별 수치) */
+  enemyScale: EnemyScale;
   layout: LayoutParams;
   trial: { waves: WaveEntry[][]; spawnMinDistTiles: number };
   rest: { healFraction: number };
 }
 
 export type StageTable = Record<string, StageDef>;
+
+export interface RunDef {
+  /** 스테이지 진행 순서 (stages 의 키) */
+  order: string[];
+  /** 런당 스테이지 전환 세이브 최대 횟수 (기획 3장: 2) */
+  maxSaves: number;
+}
+
+export interface StagesFile {
+  run: RunDef;
+  stages: StageTable;
+}
 
 export type WeaponEffect = 'slash-trail';
 

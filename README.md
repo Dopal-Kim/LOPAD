@@ -13,7 +13,8 @@ PC 웹용 2D 탑다운 로그라이크 액션 게임. Phaser 3 + TypeScript.
 ## 실행
 ```
 npm install
-npm run dev        # http://localhost:8080  (WASD 이동, 좌클릭 공격, R 재시작, ?seed=값 으로 같은 층 재현)
+npm run dev        # http://localhost:8080  (WASD 이동, 좌클릭 공격, 우클릭 패링, 스페이스 대쉬, R 재시작)
+                   # ?seed=값 같은 런 재현, ?new=1 세이브 무시 새 런, ?debug=1 검증 훅
 npm run typecheck
 npm run test       # vitest
 npm run lint       # eslint

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, TILE } from '../core/Constants';
 import { EventBus, Events } from '../core/EventBus';
 import { ENEMIES } from '../data';
-import type { EnemyDef } from '../data/types';
+import type { EnemyDef, EnemyScale } from '../data/types';
 import { Mob, type MobContext } from './Mob';
 
 type ChargeState = 'approach' | 'telegraph' | 'dash' | 'cooldown';
@@ -16,12 +16,20 @@ export class Enemy extends Mob {
   private chargeUntil = 0;
   private dashDir = new Phaser.Math.Vector2(1, 0);
 
-  constructor(scene: Phaser.Scene, x: number, y: number, id: string) {
+  private readonly stageScale: EnemyScale;
+
+  constructor(scene: Phaser.Scene, x: number, y: number, id: string, scale: EnemyScale = { hp: 1, attack: 1 }) {
     const def = ENEMIES[id];
     if (!def) throw new Error(`[enemy] 정의 없음: ${id}`);
-    super(scene, x, y, def.size, def.color, def.hp);
+    super(scene, x, y, def.size, def.color, Math.round(def.hp * scale.hp));
     this.def = def;
     this.id = id;
+    this.stageScale = scale;
+  }
+
+  /** 스테이지 배율이 적용된 공격력 */
+  private atk(base: number): number {
+    return Math.round(base * this.stageScale.attack);
   }
 
   update(ctx: MobContext): void {
@@ -49,9 +57,9 @@ export class Enemy extends Mob {
 
   protected currentContactAttack(): number {
     if (this.def.behavior === 'charge' && this.def.charge) {
-      return this.chargeState === 'dash' ? this.def.charge.dashAttack : this.def.charge.idleAttack;
+      return this.atk(this.chargeState === 'dash' ? this.def.charge.dashAttack : this.def.charge.idleAttack);
     }
-    return this.def.attack;
+    return this.atk(this.def.attack);
   }
 
   protected contactIntervalMs(): number {
@@ -84,7 +92,7 @@ export class Enemy extends Mob {
       const dir = new Phaser.Math.Vector2(ctx.player.x - this.x, ctx.player.y - this.y).normalize();
       ctx.fire(this.x, this.y, dir.x, dir.y, {
         speedPx: R.projectileSpeedTiles * TILE,
-        attack: this.def.attack,
+        attack: this.atk(this.def.attack),
         size: R.projectileSize,
         lifeMs: R.projectileLifeMs,
       });

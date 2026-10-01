@@ -19,8 +19,8 @@ export class GameOver extends Phaser.Scene {
   }
 
   create(): void {
-    const title = this.cleared ? 'CLEAR' : 'DEAD';
-    const sub = `kills ${gameState.kills}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}  seed ${gameState.seed}   -   click or [${KEYS.RESTART}] to restart`;
+    const title = this.cleared ? 'RUN CLEAR' : 'DEAD';
+    const sub = `${gameState.stage.name}  kills ${gameState.kills}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName}  seed ${gameState.seed}   -   click or [${KEYS.RESTART}] to restart`;
     this.add
       .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 - 12, title, { font: '24px monospace', color: COLORS.GAMEOVER_TEXT })
       .setOrigin(0.5);
@@ -30,7 +30,7 @@ export class GameOver extends Phaser.Scene {
 
     const restart = () => {
       EventBus.emit(Events.GAME_RESTART);
-      this.scene.start(SCENES.GAME);
+      this.scene.start(SCENES.GAME, { mode: 'new' });
     };
     this.input.once('pointerdown', restart);
     this.input.keyboard!.once(`keydown-${KEYS.RESTART}`, restart);

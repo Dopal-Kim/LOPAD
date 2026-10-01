@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES } from '../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload, type WeaponEvolvedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
-import { PLAYER_DATA, STAGES } from '../data';
+import { PLAYER_DATA } from '../data';
 import type { Mob, ProjectileSpec } from '../objects/Mob';
 import { Player } from '../objects/Player';
 import { Projectile } from '../objects/Projectile';
@@ -10,11 +10,12 @@ import { InputSystem } from '../systems/InputSystem';
 import { generateFloor, cellKey, type Cell } from '../systems/mapgen';
 import { RoomDirector } from '../systems/RoomDirector';
 import { Rng, hashSeed } from '../systems/rng';
+import { SaveSlot, browserStorage } from '../systems/save';
 import type { KillKind } from '../systems/senses';
 import { TileWorld } from '../world/TileWorld';
 import { exposeDebug } from '../debug';
 
-const STAGE_ID = 'stage1';
+type GameInitData = { mode?: 'new' | 'next' };
 
 export class Game extends Phaser.Scene {
   private player: Player;
@@ -26,20 +27,28 @@ export class Game extends Phaser.Scene {
   private rng: Rng;
   private debugText?: Phaser.GameObjects.Text;
   private currentCellKey = '';
+  private initMode: GameInitData['mode'];
+  private readonly saveSlot = new SaveSlot(browserStorage());
+  private transitioning = false;
   private readonly playerVec = new Phaser.Math.Vector2();
 
   constructor() {
     super(SCENES.GAME);
   }
 
+  init(data?: GameInitData): void {
+    this.initMode = data?.mode;
+    this.transitioning = false;
+    this.currentCellKey = '';
+  }
+
   create(): void {
-    const seed = this.pickSeed();
-    gameState.reset(seed);
-    this.rng = new Rng(hashSeed(seed + ':runtime'));
-    const stage = STAGES[STAGE_ID];
+    this.prepareRun();
+    const stage = gameState.stage;
+    this.rng = new Rng(hashSeed(gameState.floorSeed + ':runtime'));
 
     // 월드
-    const layout = generateFloor(seed, stage.layout);
+    const layout = generateFloor(gameState.floorSeed, stage.layout);
     this.world = new TileWorld(this, layout);
     this.physics.world.setBounds(0, 0, this.world.widthPx, this.world.heightPx);
 
@@ -71,8 +80,15 @@ export class Game extends Phaser.Scene {
       player: this.player,
       mobs: this.mobs,
       heal: (f) => this.player.heal(Math.round(gameState.maxHp * f)),
-      onRunCleared: () =>
-        this.time.delayedCall(PROTOTYPE.CLEAR_DELAY_MS, () => this.scene.start(SCENES.GAME_OVER, { cleared: true })),
+      onRunCleared: () => {
+        this.saveSlot.clear();
+        this.time.delayedCall(PROTOTYPE.CLEAR_DELAY_MS, () => this.scene.start(SCENES.GAME_OVER, { cleared: true }));
+      },
+      onStageCleared: (room) => {
+        this.world.placeExit(room);
+        gameState.exitOpen = true;
+      },
+      isLastStage: () => gameState.isLastStage,
     });
 
     this.inputSystem = new InputSystem(this);
@@ -92,6 +108,15 @@ export class Game extends Phaser.Scene {
       },
       playerInfo: () => ({ x: this.player.x, y: this.player.y, action: this.player.action }),
       now: () => this.time.now,
+      stage: () => ({
+        index: gameState.stageIndex,
+        id: gameState.stageId,
+        name: gameState.stage.name,
+        savesLeft: gameState.savesLeft,
+        exitOpen: gameState.exitOpen,
+        isLast: gameState.isLastStage,
+      }),
+      save: () => this.saveSlot.read(),
       camera: () => ({ scrollX: this.cameras.main.scrollX, scrollY: this.cameras.main.scrollY, zoom: this.scale.zoom }),
       stunAll: (ms) => {
         for (const m of this.mobs.getChildren() as Mob[]) m.stun(this.time.now, ms);
@@ -124,6 +149,12 @@ export class Game extends Phaser.Scene {
     this.updateCamera(false);
     this.director.update();
 
+    if (gameState.exitOpen && !this.transitioning && this.world.isExitAt(this.player.x, this.player.y)) {
+      this.transitioning = true;
+      this.scene.restart({ mode: 'next' } satisfies GameInitData);
+      return;
+    }
+
     this.playerVec.set(this.player.x, this.player.y);
     const ctx = { time, delta, player: this.playerVec, fire: this.fire };
     for (const child of this.mobs.getChildren()) (child as Mob).update(ctx);
@@ -133,7 +164,7 @@ export class Game extends Phaser.Scene {
       const boss =
         gameState.bossMaxHp > 0 ? `  boss ${gameState.bossHp}/${gameState.bossMaxHp} p${gameState.bossPhase}` : '';
       this.debugText.setText(
-        `[DEBUG] HP ${gameState.hp}/${gameState.maxHp}  ${this.player.action}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName} ${gameState.weapon.personality}/${gameState.weapon.def.personality.threshold}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
+        `[DEBUG] ${gameState.stage.name} save ${gameState.savesLeft}  HP ${gameState.hp}/${gameState.maxHp}  ${this.player.action}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName} ${gameState.weapon.personality}/${gameState.weapon.def.personality.threshold}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
       );
     }
   }
@@ -247,6 +278,7 @@ export class Game extends Phaser.Scene {
   }
 
   private onPlayerDied(): void {
+    this.saveSlot.clear(); // 영구 사망 (기획 3장)
     this.player.body.setVelocity(0, 0);
     this.scene.start(SCENES.GAME_OVER, { cleared: false });
   }
@@ -269,6 +301,35 @@ export class Game extends Phaser.Scene {
       cam.removeBounds();
       cam.setScroll(cell.cx * CELL.W_PX, cell.cy * CELL.H_PX + CAMERA.CELL_OFFSET_Y);
     }
+  }
+
+  /** 런 시작 모드 결정: 새 런 / 다음 층 / 세이브 이어하기 */
+  private prepareRun(): void {
+    const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+    if (this.initMode === 'next') {
+      gameState.nextStage();
+      this.saveIfAllowed();
+    } else if (this.initMode === 'new') {
+      gameState.startRun(this.pickSeed());
+      this.saveSlot.clear();
+    } else {
+      const save = params.has('new') || params.has('seed') ? null : this.saveSlot.read();
+      if (save) {
+        gameState.applySave(save);
+      } else {
+        gameState.startRun(this.pickSeed());
+        this.saveSlot.clear();
+      }
+    }
+    EventBus.emit(Events.STAGE_STARTED, { stageIndex: gameState.stageIndex, stageId: gameState.stageId });
+  }
+
+  /** 스테이지 전환 세이브: 런당 최대 maxSaves 회 */
+  private saveIfAllowed(): void {
+    if (gameState.savesLeft <= 0) return;
+    gameState.savesLeft -= 1;
+    this.saveSlot.write(gameState.toSave());
+    EventBus.emit(Events.STAGE_SAVED, { stageIndex: gameState.stageIndex, savesLeft: gameState.savesLeft });
   }
 
   private pickSeed(): string {
