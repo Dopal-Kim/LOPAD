@@ -22,6 +22,7 @@
 | `MENU_CLOSE` | `{ id }` | |
 | `RUN_ENDED` | `UiResult` | 사망·클리어. UI 결과 화면이 그린다 |
 | `FATE_DECIDED` | `{ weaponName, features }` | 개성 선택 결과 (연출용) |
+| `STORY` | `UiStoryLine = { kind: 'floor' \| 'boss' \| 'rest' \| 'notice' \| 'evolution' \| 'death'; text: string }` | 스토리 자막 한 줄 (26라운드). 층 진입·보스 개시·휴식 방 첫 진입·공지·개성 변화. UI 가 하단 자막으로 그린다 |
 | `PAUSED` / `RESUMED` | `{}` | |
 
 ## 2. 스냅샷 — `UiSnapshot` (`getUiSnapshot()` 또는 `STATE` 이벤트)
@@ -37,8 +38,13 @@ interface UiSnapshot {
   map: { rooms: { id: string; type: 'start' | 'trial' | 'rest' | 'boss'; cells: { cx: number; cy: number }[]; visited: boolean; cleared: boolean }[];
          connections: { a: { cx: number; cy: number }; b: { cx: number; cy: number } }[]; currentRoomId: string; gridW: number; gridH: number };
   paused: boolean; menu: UiMenu | null;
+  // 26라운드 추가 (스토리 계약 story-text.md 의 이름을 시스템이 채운다)
+  playerName: string;                       // 일기장에 적은 이름. 비면 ''
+  floorTitle: string;                       // 층 제목 (예: "1층 · 술독 제국 '잔(盞)'"). 비면 stageName 사용
+  names: { potion: string; gold: string; shop: string; souls: string }; // 재화·물약·상점·영혼의 세계관 이름
 }
 ```
+`UiResult` 에도 `playerName` 과 `line`(사망·클리어 문장)이 추가된다 (26라운드). `STAGE_STARTED.stageName` 은 층 제목으로 채워진다.
 `secondaryName` 은 우클릭 보조 동작의 이름(현재 전 무기 "패링"). 무기별로 달라질 예정(16라운드 도영 님 지시).
 
 ## 3. 메뉴 — `UiMenu`
