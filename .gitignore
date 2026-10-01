@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
+__pycache__/
+*.pyc
+# 아트 스킬 미리보기 산출물은 파트 폴더 안에서만 커밋한다
+preview.png
