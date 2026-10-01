@@ -2,16 +2,20 @@ import Phaser from 'phaser';
 import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES } from '../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload, type WeaponEvolvedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
-import { PLAYER_DATA } from '../data';
+import { ECONOMY, PLAYER_DATA } from '../data';
 import type { Mob, ProjectileSpec } from '../objects/Mob';
 import { Player } from '../objects/Player';
 import { Projectile } from '../objects/Projectile';
+import { Pickup } from '../objects/Pickup';
 import { InputSystem } from '../systems/InputSystem';
 import { generateFloor, cellKey, type Cell } from '../systems/mapgen';
 import { RoomDirector } from '../systems/RoomDirector';
 import { Rng, hashSeed } from '../systems/rng';
 import { SaveSlot, browserStorage } from '../systems/save';
 import type { KillKind } from '../systems/senses';
+import { applyStatReward, findReward, rollCrit, rollGold, shopPrice } from '../systems/economy';
+import { TextMenu } from '../systems/TextMenu';
+import type { StatKey } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
 import { exposeDebug } from '../debug';
 
@@ -21,6 +25,9 @@ export class Game extends Phaser.Scene {
   private player: Player;
   private mobs: Phaser.Physics.Arcade.Group;
   private projectiles: Phaser.GameObjects.Group;
+  private pickups: Phaser.GameObjects.Group;
+  private menu: TextMenu;
+  private shopOpen = false;
   private world: TileWorld;
   private director: RoomDirector;
   private inputSystem: InputSystem;
@@ -64,6 +71,9 @@ export class Game extends Phaser.Scene {
       maxSize: PROTOTYPE.PROJECTILE_POOL,
       runChildUpdate: false,
     });
+    this.pickups = this.add.group({ classType: Pickup, maxSize: PROTOTYPE.PICKUP_POOL, runChildUpdate: false });
+    this.menu = new TextMenu(this);
+    this.shopOpen = false;
 
     this.physics.add.collider(this.player, this.world.layer);
     this.physics.add.collider(this.mobs, this.world.layer);
@@ -71,6 +81,7 @@ export class Game extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.mobs, (_p, m) => this.onMobTouch(m as Mob));
     this.physics.add.overlap(this.player, this.projectiles, (_p, pr) => this.onProjectileHit(pr as Projectile));
     this.physics.add.overlap(this.projectiles, this.mobs, (pr, m) => this.onReflectedHit(pr as Projectile, m as Mob));
+    this.physics.add.overlap(this.player, this.pickups, (_p, pk) => this.onPickup(pk as Pickup));
 
     // 방 상태 머신
     this.director = new RoomDirector({
@@ -84,10 +95,7 @@ export class Game extends Phaser.Scene {
         this.saveSlot.clear();
         this.time.delayedCall(PROTOTYPE.CLEAR_DELAY_MS, () => this.scene.start(SCENES.GAME_OVER, { cleared: true }));
       },
-      onStageCleared: (room) => {
-        this.world.placeExit(room);
-        gameState.exitOpen = true;
-      },
+      onStageCleared: (room) => this.beginStageReward(room),
       isLastStage: () => gameState.isLastStage,
     });
 
@@ -117,6 +125,19 @@ export class Game extends Phaser.Scene {
         isLast: gameState.isLastStage,
       }),
       save: () => this.saveSlot.read(),
+      economy: () => ({
+        gold: gameState.gold,
+        potions: gameState.potions,
+        points: gameState.pointsPending,
+        bonus: { ...gameState.bonus },
+        rewardPending: gameState.rewardPending,
+        shopOpen: this.shopOpen,
+        menuOpen: this.menu.isOpen,
+      }),
+      pickups: () =>
+        (this.pickups.getChildren() as Pickup[])
+          .filter((p) => p.active)
+          .map((p) => ({ kind: p.kind, value: p.value, x: p.x, y: p.y })),
       camera: () => ({ scrollX: this.cameras.main.scrollX, scrollY: this.cameras.main.scrollY, zoom: this.scale.zoom }),
       stunAll: (ms) => {
         for (const m of this.mobs.getChildren() as Mob[]) m.stun(this.time.now, ms);
@@ -128,6 +149,7 @@ export class Game extends Phaser.Scene {
 
     EventBus.on(Events.PLAYER_ATTACKED, this.onPlayerAttacked, this);
     EventBus.on(Events.PLAYER_DIED, this.onPlayerDied, this);
+    EventBus.on(Events.TRIAL_CLEARED, this.onTrialCleared, this);
     this.events.once('shutdown', this.cleanup, this);
 
     this.cameras.main.setRoundPixels(true);
@@ -145,6 +167,7 @@ export class Game extends Phaser.Scene {
     if (gameState.gameOver || gameState.cleared) return;
 
     const input = this.inputSystem.read();
+    if (input.potionPressed) this.usePotion();
     this.player.update(input, time);
     this.updateCamera(false);
     this.director.update();
@@ -159,12 +182,14 @@ export class Game extends Phaser.Scene {
     const ctx = { time, delta, player: this.playerVec, fire: this.fire };
     for (const child of this.mobs.getChildren()) (child as Mob).update(ctx);
     for (const child of this.projectiles.getChildren()) (child as Projectile).tick(time);
+    for (const child of this.pickups.getChildren()) (child as Pickup).tick(time);
+    this.updateShop();
 
     if (this.debugText) {
       const boss =
         gameState.bossMaxHp > 0 ? `  boss ${gameState.bossHp}/${gameState.bossMaxHp} p${gameState.bossPhase}` : '';
       this.debugText.setText(
-        `[DEBUG] ${gameState.stage.name} save ${gameState.savesLeft}  HP ${gameState.hp}/${gameState.maxHp}  ${this.player.action}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName} ${gameState.weapon.personality}/${gameState.weapon.def.personality.threshold}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
+        `[DEBUG] ${gameState.stage.name} save ${gameState.savesLeft}  HP ${gameState.hp}/${gameState.maxHp}  G ${gameState.gold}  potion ${gameState.potions}  pts ${gameState.pointsPending}  atk ${gameState.attack} def ${gameState.defense} crit ${gameState.crit}%  ${this.player.action}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName} ${gameState.weapon.personality}/${gameState.weapon.def.personality.threshold}  room ${gameState.roomId || '-'}  trials ${gameState.trialsCleared}/${gameState.trialsTotal}${gameState.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${gameState.seed}`,
       );
     }
   }
@@ -197,7 +222,9 @@ export class Game extends Phaser.Scene {
       if (hit.has(mob)) return;
       hit.add(mob);
       const stunnedByParry = mob.isStunned(this.time.now);
-      const died = mob.takeDamage(Math.round(PLAYER_DATA.stats.attack * p.damageMult * weapon.damageMult));
+      const crit = rollCrit(gameState.crit, this.rng);
+      const dmg = Math.round(gameState.attack * p.damageMult * weapon.damageMult * (crit ? ECONOMY.critDamageMult : 1));
+      const died = mob.takeDamage(dmg);
       if (died) this.onKill(mob, stunnedByParry ? 'parry' : p.kind);
     });
 
@@ -209,6 +236,7 @@ export class Game extends Phaser.Scene {
 
   private onKill(mob: Mob, kind: KillKind): void {
     gameState.kills += 1;
+    this.dropLoot(mob);
     const weapon = gameState.weapon;
     const evolved = weapon.gainPersonality(mob.personalityValue);
     EventBus.emit(Events.PERSONALITY_GAINED, {
@@ -248,6 +276,159 @@ export class Game extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(DEPTH.DEBUG);
     this.tweens.add({ targets: t, alpha: 0, delay: PROTOTYPE.BANNER_MS, duration: 400, onComplete: () => t.destroy() });
+  }
+
+  // --- 경제: 드랍·획득·물약 ---
+
+  private dropLoot(mob: Mob): void {
+    const G = ECONOMY.gold;
+    const gold = rollGold(mob.goldValue, G.variance, this.rng);
+    this.spawnPickup(mob.x, mob.y, 'gold', gold);
+    if (this.rng.chance(ECONOMY.drops.potion.chance)) this.spawnPickup(mob.x + 10, mob.y, 'potion', 1);
+  }
+
+  private spawnPickup(x: number, y: number, kind: 'gold' | 'potion', value: number): void {
+    const pk = this.pickups.get() as Pickup | null;
+    if (!pk) return;
+    const jx = (this.rng.next() - 0.5) * 12;
+    const jy = (this.rng.next() - 0.5) * 12;
+    pk.spawn(x + jx, y + jy, kind, value, ECONOMY.gold.dropLifeMs, this.time.now);
+  }
+
+  private onPickup(pk: Pickup): void {
+    if (!pk.active) return;
+    if (pk.kind === 'gold') {
+      pk.deactivate();
+      this.addGold(pk.value);
+    } else if (gameState.potions < ECONOMY.drops.potion.maxCarry) {
+      pk.deactivate();
+      gameState.potions += 1;
+      EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
+    }
+  }
+
+  private addGold(amount: number): void {
+    gameState.gold += amount;
+    EventBus.emit(Events.GOLD_CHANGED, { gold: gameState.gold, delta: amount });
+  }
+
+  private usePotion(): void {
+    if (gameState.potions <= 0 || gameState.hp >= gameState.maxHp) return;
+    gameState.potions -= 1;
+    this.player.heal(ECONOMY.drops.potion.heal);
+    EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
+  }
+
+  private onTrialCleared(): void {
+    this.addGold(ECONOMY.gold.trialBonus);
+  }
+
+  // --- 스테이지 보상(감각 → 능력치 포인트) → 출구·상점 ---
+
+  private beginStageReward(room: ReturnType<TileWorld['room']>): void {
+    this.addGold(ECONOMY.gold.bossBonus);
+    gameState.pointsPending += gameState.senses.gainedThisStage;
+    gameState.rewardPending = true;
+    const finish = () => {
+      gameState.rewardPending = false;
+      this.world.placeExit(room);
+      this.world.placeShop(room);
+      gameState.exitOpen = true;
+    };
+    if (gameState.pointsPending > 0) this.openStatChooser(finish);
+    else finish();
+  }
+
+  /** 능력치 포인트를 모두 쓸 때까지 선택 메뉴를 보여준다 (임시 텍스트) */
+  private openStatChooser(onDone: () => void): void {
+    const lines = ECONOMY.statRewards.map((r, i) => ({ key: String(i + 1), label: r.name, enabled: true }));
+    const show = () => {
+      this.menu.open(`감각 보상: 능력치 포인트 ${gameState.pointsPending}`, lines, (key) => {
+        const reward = ECONOMY.statRewards[Number(key) - 1];
+        this.applyReward(reward.id);
+        if (gameState.pointsPending > 0) show();
+        else {
+          this.menu.close();
+          onDone();
+        }
+      });
+    };
+    show();
+  }
+
+  private applyReward(id: StatKey): void {
+    const reward = findReward(ECONOMY, id);
+    gameState.bonus = applyStatReward(gameState.bonus, reward);
+    if (reward.maxHp) {
+      gameState.maxHp += reward.maxHp;
+      gameState.hp += reward.maxHp;
+    }
+    gameState.pointsPending -= 1;
+    EventBus.emit(Events.STAT_REWARD, { id, bonus: gameState.bonus, pointsLeft: gameState.pointsPending });
+  }
+
+  /** 상점 타일 위에 서 있으면 메뉴를 열고, 벗어나면 닫는다 */
+  private updateShop(): void {
+    if (!gameState.exitOpen) return;
+    const onTile = this.world.isShopAt(this.player.x, this.player.y);
+    if (onTile && !this.shopOpen && !this.menu.isOpen) this.openShop();
+    else if (!onTile && this.shopOpen) this.closeShop();
+  }
+
+  private openShop(): void {
+    this.shopOpen = true;
+    EventBus.emit(Events.SHOP_OPENED);
+    const render = () => {
+      const lines = ECONOMY.shop.items.map((it, i) => {
+        const price = shopPrice(it, gameState.stageIndex);
+        const full = it.id === 'potion' && gameState.potions >= ECONOMY.drops.potion.maxCarry;
+        return { key: String(i + 1), label: `${it.name}  ${price}G`, enabled: gameState.gold >= price && !full };
+      });
+      this.menu.open(
+        `상점  (보유 ${gameState.gold}G, 물약 ${gameState.potions})`,
+        lines,
+        (key) => this.buy(ECONOMY.shop.items[Number(key) - 1].id, render),
+        '타일에서 벗어나면 닫힘',
+      );
+    };
+    render();
+  }
+
+  private closeShop(): void {
+    this.shopOpen = false;
+    this.menu.close();
+    EventBus.emit(Events.SHOP_CLOSED);
+  }
+
+  private buy(id: 'heal' | 'sense' | 'stat' | 'potion', rerender: () => void): void {
+    const item = ECONOMY.shop.items.find((i) => i.id === id)!;
+    const price = shopPrice(item, gameState.stageIndex);
+    if (gameState.gold < price) return;
+    gameState.gold -= price;
+    EventBus.emit(Events.GOLD_CHANGED, { gold: gameState.gold, delta: -price });
+    EventBus.emit(Events.SHOP_BOUGHT, { id, price });
+    switch (id) {
+      case 'heal':
+        this.player.heal(Math.round(gameState.maxHp * ECONOMY.shop.healFraction));
+        rerender();
+        break;
+      case 'potion':
+        gameState.potions = Math.min(ECONOMY.drops.potion.maxCarry, gameState.potions + 1);
+        EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
+        rerender();
+        break;
+      case 'sense':
+        gameState.senses.sense += 1;
+        gameState.pointsPending += 1;
+        this.closeShop();
+        this.openStatChooser(() => {});
+        break;
+      case 'stat':
+        gameState.pointsPending += 1;
+        this.closeShop();
+        this.openStatChooser(() => {});
+        break;
+    }
   }
 
   private onMobTouch(mob: Mob): void {
@@ -340,6 +521,8 @@ export class Game extends Phaser.Scene {
   private cleanup(): void {
     EventBus.off(Events.PLAYER_ATTACKED, this.onPlayerAttacked, this);
     EventBus.off(Events.PLAYER_DIED, this.onPlayerDied, this);
+    EventBus.off(Events.TRIAL_CLEARED, this.onTrialCleared, this);
+    this.menu.close();
     this.inputSystem.destroy();
   }
 }

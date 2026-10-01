@@ -104,6 +104,20 @@ export class TileWorld {
     return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
   }
 
+  /** 출구 오른쪽에 2×2 상점 타일 */
+  placeShop(room: Room): { x: number; y: number } {
+    const I = room.interior;
+    const tx = I.x + Math.floor(I.w / 2) + 3;
+    const ty = I.y + Math.floor(I.h / 2) - 1;
+    for (let y = ty; y < ty + 2; y++)
+      for (let x = tx; x < tx + 2; x++) this.layer.putTileAt(TileId.Shop, x, y).setCollision(false);
+    return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
+  }
+
+  isShopAt(worldX: number, worldY: number): boolean {
+    return this.layer.getTileAtWorldXY(worldX, worldY)?.index === TileId.Shop;
+  }
+
   isExitAt(worldX: number, worldY: number): boolean {
     const t = this.layer.getTileAtWorldXY(worldX, worldY);
     return t?.index === TileId.Exit;

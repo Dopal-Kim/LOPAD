@@ -24,6 +24,7 @@ export class Preloader extends Phaser.Scene {
       [TileId.DoorLocked]: COLORS.DOOR_LOCKED,
       [TileId.Corridor]: COLORS.TILE_CORRIDOR,
       [TileId.Exit]: COLORS.EXIT,
+      [TileId.Shop]: COLORS.SHOP,
     };
     const count = Object.keys(colors).length;
     const canvas = this.textures.createCanvas(TEXTURES.TILES, TILE * count, TILE)!;

@@ -85,6 +85,8 @@ export interface EnemyDef {
   charge?: ChargeParams;
   /** 처치 시 얻는 개성 수치 (임시, 11라운드) */
   personalityValue: number;
+  /** 처치 시 떨어지는 골드 기준값 (13라운드) */
+  gold: number;
 }
 
 export type EnemyTable = Record<string, EnemyDef>;
@@ -128,6 +130,7 @@ export interface BossDef {
   approachSpeedTiles: number;
   phases: BossPhase[];
   personalityValue: number;
+  gold: number;
 }
 
 export type BossTable = Record<string, BossDef>;
@@ -202,3 +205,33 @@ export interface WeaponDef {
 }
 
 export type WeaponTable = Record<string, WeaponDef>;
+
+export type StatKey = 'attack' | 'maxHp' | 'defense' | 'crit';
+
+export interface StatReward {
+  id: StatKey;
+  name: string;
+  attack?: number;
+  maxHp?: number;
+  defense?: number;
+  crit?: number;
+}
+
+export type ShopItemId = 'heal' | 'sense' | 'stat' | 'potion';
+
+export interface ShopItem {
+  id: ShopItemId;
+  name: string;
+  price: number;
+  /** 층 번호(0부터)마다 더해지는 가격 */
+  pricePerStage: number;
+}
+
+export interface EconomyData {
+  gold: { variance: number; trialBonus: number; bossBonus: number; dropLifeMs: number };
+  drops: { potion: { chance: number; heal: number; maxCarry: number; rarity: string } };
+  rarity: Record<string, number>;
+  shop: { items: ShopItem[]; healFraction: number };
+  statRewards: StatReward[];
+  critDamageMult: number;
+}

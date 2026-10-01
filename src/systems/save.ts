@@ -3,7 +3,7 @@
  * 저장 시점은 "새 층 시작 직전" 상태라서, 이어하면 그 층의 시작 방에서 시작한다.
  * 사망·클리어 시 삭제. 브라우저 localStorage 사용 (StorageLike 로 추상화해 테스트 가능).
  */
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 export const SAVE_KEY = 'lopad.save';
 
 export interface SaveData {
@@ -16,6 +16,10 @@ export interface SaveData {
   sense: number;
   savesLeft: number;
   weapon: { id: string; personality: number; stage: number };
+  gold: number;
+  potions: number;
+  pointsPending: number;
+  bonus: { attack: number; maxHp: number; defense: number; crit: number };
   savedAt: number;
 }
 

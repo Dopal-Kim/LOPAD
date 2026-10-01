@@ -112,6 +112,10 @@ export class Boss extends Mob {
     return this.def.personalityValue;
   }
 
+  get goldValue(): number {
+    return this.def.gold;
+  }
+
   protected currentContactAttack(): number {
     return this.bossState === 'dash' ? this.phase.dash.attack : this.def.contactAttack;
   }

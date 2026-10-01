@@ -133,7 +133,7 @@ export class Player extends Phaser.GameObjects.Rectangle {
     }
     if (time < this.invulnerableUntil) return 'ignored';
     this.invulnerableUntil = time + PLAYER_DATA.invulnerableMs;
-    const amount = applyDefense(attack, PLAYER_DATA.stats.defense);
+    const amount = applyDefense(attack, gameState.defense);
     gameState.hp = Math.max(0, gameState.hp - amount);
     this.flash(COLORS.PLAYER_HURT);
     const payload: PlayerDamagedPayload = { hp: gameState.hp, maxHp: gameState.maxHp, amount };

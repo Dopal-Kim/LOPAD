@@ -16,6 +16,10 @@ const sample: SaveData = {
   sense: 3,
   savesLeft: 1,
   weapon: { id: 'katana', personality: 40, stage: 1 },
+  gold: 120,
+  potions: 2,
+  pointsPending: 0,
+  bonus: { attack: 1, maxHp: 10, defense: 0, crit: 3 },
   savedAt: 0,
 };
 

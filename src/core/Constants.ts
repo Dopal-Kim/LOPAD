@@ -32,6 +32,7 @@ export const DEPTH = {
   TILES: 0,
   ENEMY: 1,
   PLAYER: 2,
+  PICKUP: 2.5,
   PROJECTILE: 3,
   ATTACK: 4,
   DEBUG: 100,
@@ -46,6 +47,9 @@ export const COLORS = {
   DOOR_CLOSED: '#8a4a2a',
   DOOR_LOCKED: '#8a2a4a',
   EXIT: '#d8c860',
+  SHOP: '#60a8d8',
+  GOLD: 0xf0c830,
+  POTION: 0x60e080,
   PLAYER: 0x4a90e2,
   PLAYER_HURT: 0xffffff,
   PLAYER_DASH: 0x9ad0ff,
@@ -74,6 +78,8 @@ export const PROTOTYPE = {
   CLEAR_DELAY_MS: 1200,
   SLASH_TRAIL_MS: 220,
   BANNER_MS: 1500,
+  /** 바닥 드랍 최대 동시 수 */
+  PICKUP_POOL: 64,
   /** 투사체 최대 동시 수 */
   PROJECTILE_POOL: 64,
 };
@@ -91,4 +97,5 @@ export const KEYS = {
   RIGHT: 'D',
   RESTART: 'R',
   DASH: 'SPACE',
+  POTION: 'Q',
 } as const;

@@ -1,0 +1,28 @@
+{
+  "gold": {
+    "variance": 0.3,
+    "trialBonus": 15,
+    "bossBonus": 50,
+    "dropLifeMs": 10000
+  },
+  "drops": {
+    "potion": { "chance": 0.1, "heal": 30, "maxCarry": 3, "rarity": "common" }
+  },
+  "rarity": { "common": 50, "rare": 30, "epic": 15, "legendary": 5 },
+  "shop": {
+    "items": [
+      { "id": "heal", "name": "체력 30% 회복", "price": 30, "pricePerStage": 0 },
+      { "id": "sense", "name": "감각 +1 (능력치 포인트 +1)", "price": 40, "pricePerStage": 10 },
+      { "id": "stat", "name": "능력치 포인트 +1", "price": 60, "pricePerStage": 0 },
+      { "id": "potion", "name": "회복 물약 +1", "price": 25, "pricePerStage": 0 }
+    ],
+    "healFraction": 0.3
+  },
+  "statRewards": [
+    { "id": "attack", "name": "공격력 +1", "attack": 1 },
+    { "id": "maxHp", "name": "최대 HP +10", "maxHp": 10 },
+    { "id": "defense", "name": "방어력 +1", "defense": 1 },
+    { "id": "crit", "name": "치명타 +3%", "crit": 3 }
+  ],
+  "critDamageMult": 1.5
+}

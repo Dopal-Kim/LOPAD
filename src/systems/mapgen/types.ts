@@ -62,6 +62,8 @@ export const enum TileId {
   Corridor = 6,
   /** 보스 처치 후 생기는 다음 층 출구 (런타임에만 놓임) */
   Exit = 7,
+  /** 보스 처치 후 출구 옆 상점 (런타임에만 놓임) */
+  Shop = 8,
 }
 
 export interface FloorLayout {

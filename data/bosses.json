@@ -42,7 +42,8 @@
       }
     ],
     "contactIntervalMs": 800,
-    "personalityValue": 50
+    "personalityValue": 50,
+    "gold": 50
   },
   "stage2": {
     "name": "2층 보스 (변형)",
@@ -87,7 +88,8 @@
       }
     ],
     "contactIntervalMs": 800,
-    "personalityValue": 55
+    "personalityValue": 55,
+    "gold": 60
   },
   "stage3": {
     "name": "3층 보스 (변형)",
@@ -132,7 +134,8 @@
       }
     ],
     "contactIntervalMs": 800,
-    "personalityValue": 60
+    "personalityValue": 60,
+    "gold": 70
   },
   "stage4": {
     "name": "4층 보스 (변형)",
@@ -177,7 +180,8 @@
       }
     ],
     "contactIntervalMs": 800,
-    "personalityValue": 65
+    "personalityValue": 65,
+    "gold": 80
   },
   "stage5": {
     "name": "5층 보스 (변형)",
@@ -222,7 +226,8 @@
       }
     ],
     "contactIntervalMs": 800,
-    "personalityValue": 70
+    "personalityValue": 70,
+    "gold": 90
   },
   "stage6": {
     "name": "6층 보스 (변형)",
@@ -267,7 +272,8 @@
       }
     ],
     "contactIntervalMs": 800,
-    "personalityValue": 75
+    "personalityValue": 75,
+    "gold": 100
   },
   "final": {
     "name": "최종 보스 (플레이스홀더)",
@@ -334,6 +340,7 @@
           "afterDash": true
         }
       }
-    ]
+    ],
+    "gold": 120
   }
 }

@@ -8,7 +8,8 @@
     "behavior": "chase",
     "size": [16, 16],
     "color": "#d04040",
-    "personalityValue": 8
+    "personalityValue": 8,
+    "gold": 3
   },
   "archer": {
     "name": "궁수",
@@ -26,7 +27,8 @@
       "projectileSize": 4,
       "projectileLifeMs": 3000
     },
-    "personalityValue": 10
+    "personalityValue": 10,
+    "gold": 5
   },
   "charger": {
     "name": "돌진병",
@@ -46,6 +48,7 @@
       "dashAttack": 15,
       "idleAttack": 6
     },
-    "personalityValue": 12
+    "personalityValue": 12,
+    "gold": 7
   }
 }

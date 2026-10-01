@@ -4,6 +4,7 @@ import type { SaveData } from '../systems/save';
 import { SAVE_VERSION } from '../systems/save';
 import { SenseTracker } from '../systems/senses';
 import { WeaponState } from '../systems/weapons';
+import { EMPTY_BONUS, type StatBonus } from '../systems/economy';
 
 /** 런 상태의 단일 출처. 런 시작은 startRun(), 층 전환은 nextStage(). */
 class GameState {
@@ -14,6 +15,13 @@ class GameState {
   maxHp = PLAYER_DATA.stats.hp;
   kills = 0;
   readonly senses = new SenseTracker();
+  gold = 0;
+  potions = 0;
+  /** 아직 쓰지 않은 능력치 포인트 */
+  pointsPending = 0;
+  bonus: StatBonus = { ...EMPTY_BONUS };
+  /** 보상 선택 중 (출구는 끝난 뒤 열림) */
+  rewardPending = false;
   weapon = new WeaponState(PLAYER_DATA.startWeapon, WEAPONS[PLAYER_DATA.startWeapon]);
   trialsCleared = 0;
   trialsTotal = 0;
@@ -54,6 +62,10 @@ class GameState {
     this.maxHp = PLAYER_DATA.stats.hp;
     this.kills = 0;
     this.senses.reset();
+    this.gold = 0;
+    this.potions = 0;
+    this.pointsPending = 0;
+    this.bonus = { ...EMPTY_BONUS };
     this.weapon = new WeaponState(PLAYER_DATA.startWeapon, WEAPONS[PLAYER_DATA.startWeapon]); // 사망 시 무기 초기화 (기획 3장)
     this.resetStage();
   }
@@ -77,6 +89,20 @@ class GameState {
     this.gameOver = false;
     this.cleared = false;
     this.exitOpen = false;
+    this.rewardPending = false;
+  }
+
+  /** 기본 스탯 + 런 보너스 */
+  get attack(): number {
+    return PLAYER_DATA.stats.attack + this.bonus.attack;
+  }
+
+  get defense(): number {
+    return PLAYER_DATA.stats.defense + this.bonus.defense;
+  }
+
+  get crit(): number {
+    return PLAYER_DATA.stats.crit + this.bonus.crit;
   }
 
   toSave(): SaveData {
@@ -90,6 +116,10 @@ class GameState {
       sense: this.senses.sense,
       savesLeft: this.savesLeft,
       weapon: { id: this.weapon.id, personality: this.weapon.personality, stage: this.weapon.stage },
+      gold: this.gold,
+      potions: this.potions,
+      pointsPending: this.pointsPending,
+      bonus: { ...this.bonus },
       savedAt: Date.now(),
     };
   }
@@ -105,6 +135,10 @@ class GameState {
     const weaponId = WEAPONS[d.weapon.id] ? d.weapon.id : PLAYER_DATA.startWeapon;
     this.weapon = new WeaponState(weaponId, WEAPONS[weaponId]);
     this.weapon.restore(d.weapon.personality, d.weapon.stage);
+    this.gold = d.gold;
+    this.potions = d.potions;
+    this.pointsPending = d.pointsPending;
+    this.bonus = { ...EMPTY_BONUS, ...d.bonus };
   }
 }
 

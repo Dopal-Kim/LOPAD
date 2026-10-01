@@ -16,6 +16,11 @@ export class SenseTracker {
     return true;
   }
 
+  /** 이 스테이지에서 얻은 감각 (보상 포인트 계산용) */
+  get gainedThisStage(): number {
+    return this.kindsThisStage.size;
+  }
+
   /** 스테이지가 바뀌면 방식 기록을 비운다 (감각 수치는 유지) */
   nextStage(): void {
     this.kindsThisStage.clear();

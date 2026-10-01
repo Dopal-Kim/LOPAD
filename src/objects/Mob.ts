@@ -44,6 +44,9 @@ export abstract class Mob extends Phaser.GameObjects.Rectangle {
   /** 처치 시 플레이어 무기에 쌓이는 개성 수치 */
   abstract get personalityValue(): number;
 
+  /** 처치 시 떨어지는 골드 기준값 */
+  abstract get goldValue(): number;
+
   /** 지금 플레이어와 접촉 중일 때의 공격력 (상태에 따라 다름) */
   protected abstract currentContactAttack(): number;
 

@@ -3,7 +3,17 @@ import enemiesJson from '../../data/enemies.json';
 import bossesJson from '../../data/bosses.json';
 import stagesJson from '../../data/stages.json';
 import weaponsJson from '../../data/weapons.json';
-import type { BossTable, EnemyTable, PlayerData, RunDef, StageTable, StagesFile, WeaponTable } from './types';
+import economyJson from '../../data/economy.json';
+import type {
+  BossTable,
+  EconomyData,
+  EnemyTable,
+  PlayerData,
+  RunDef,
+  StageTable,
+  StagesFile,
+  WeaponTable,
+} from './types';
 
 function assertNumber(v: unknown, path: string): void {
   if (typeof v !== 'number' || Number.isNaN(v)) {
@@ -34,6 +44,7 @@ export function validateEnemies(t: EnemyTable): EnemyTable {
     }
     assertPair(e.size, `enemies.${id}.size`);
     assertNumber(e.personalityValue, `enemies.${id}.personalityValue`);
+    assertNumber(e.gold, `enemies.${id}.gold`);
     if (e.behavior === 'ranged' && !e.ranged) throw new Error(`[data] enemies.${id}: ranged 파라미터 없음`);
     if (e.behavior === 'charge' && !e.charge) throw new Error(`[data] enemies.${id}: charge 파라미터 없음`);
     if (!['chase', 'ranged', 'charge'].includes(e.behavior)) {
@@ -49,6 +60,7 @@ export function validateBosses(t: BossTable): BossTable {
     assertNumber(b.contactAttack, `bosses.${id}.contactAttack`);
     assertNumber(b.contactIntervalMs, `bosses.${id}.contactIntervalMs`);
     assertNumber(b.personalityValue, `bosses.${id}.personalityValue`);
+    assertNumber(b.gold, `bosses.${id}.gold`);
     assertNumber(b.approachSpeedTiles, `bosses.${id}.approachSpeedTiles`);
     assertPair(b.size, `bosses.${id}.size`);
     if (!Array.isArray(b.phases) || b.phases.length === 0) throw new Error(`[data] bosses.${id}.phases 비어 있음`);
@@ -129,3 +141,22 @@ export function validateRun(run: RunDef, stages: StageTable): RunDef {
   assertNumber(run.maxSaves, 'run.maxSaves');
   return run;
 }
+
+export function validateEconomy(e: EconomyData): EconomyData {
+  for (const [k, val] of Object.entries(e.gold)) assertNumber(val, `economy.gold.${k}`);
+  for (const k of ['chance', 'heal', 'maxCarry'] as const) assertNumber(e.drops.potion[k], `economy.drops.potion.${k}`);
+  if (!(e.drops.potion.rarity in e.rarity)) throw new Error('[data] economy.drops.potion.rarity 가 rarity 표에 없음');
+  const raritySum = Object.values(e.rarity).reduce((a, b) => a + b, 0);
+  if (raritySum !== 100) throw new Error(`[data] economy.rarity 합이 100 이어야 합니다 (현재 ${raritySum})`);
+  if (e.shop.items.length === 0) throw new Error('[data] economy.shop.items 비어 있음');
+  for (const it of e.shop.items) {
+    assertNumber(it.price, `economy.shop.${it.id}.price`);
+    assertNumber(it.pricePerStage, `economy.shop.${it.id}.pricePerStage`);
+  }
+  assertNumber(e.shop.healFraction, 'economy.shop.healFraction');
+  if (e.statRewards.length === 0) throw new Error('[data] economy.statRewards 비어 있음');
+  assertNumber(e.critDamageMult, 'economy.critDamageMult');
+  return e;
+}
+
+export const ECONOMY: EconomyData = validateEconomy(economyJson as unknown as EconomyData);

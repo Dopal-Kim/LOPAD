@@ -11,6 +11,8 @@ export interface InputState {
   parryPressed: boolean;
   /** 이 프레임에 대쉬 입력이 시작됨 (스페이스바) */
   dashPressed: boolean;
+  /** 이 프레임에 물약 사용 (Q) */
+  potionPressed: boolean;
   /** 공격 조준 지점 (월드 좌표) */
   aimX: number;
   aimY: number;
@@ -32,6 +34,7 @@ export class InputSystem {
       right: kb.addKey(KEYS.RIGHT),
       restart: kb.addKey(KEYS.RESTART),
       dash: kb.addKey(KEYS.DASH),
+      potion: kb.addKey(KEYS.POTION),
     };
     scene.input.mouse?.disableContextMenu();
     this.onPointerDown = (p) => {
@@ -51,6 +54,7 @@ export class InputSystem {
       attackPressed: this.attackQueued,
       parryPressed: this.parryQueued,
       dashPressed: Phaser.Input.Keyboard.JustDown(this.keys.dash),
+      potionPressed: Phaser.Input.Keyboard.JustDown(this.keys.potion),
       aimX: pointer.worldX,
       aimY: pointer.worldY,
       restartPressed: Phaser.Input.Keyboard.JustDown(this.keys.restart),
