@@ -284,7 +284,7 @@ export interface WeaponEvolution {
 
 /** 우클릭 보조 동작 (27라운드 Q1). 무기마다 1종 */
 export type SecondaryDef =
-  | { kind: 'parry'; name: string }
+  | { kind: 'parry'; name: string; description?: string }
   | {
       kind: 'guard';
       name: string;
@@ -412,4 +412,17 @@ export interface StoryData {
   death: string;
   endings: { destroy: string; understand: string; choice: [string, string] };
   notices: { trialStart: string; trialClear: string; bossUnlocked: string; saved: string };
+  /** 강화 1·2·3회 자막 (스토리 2차) */
+  reinforce: string[];
+  reinforceBanner: string;
+  controls: string;
+  enemies: Record<string, { name: string; codex: string }>;
+  /** UI 파트 문구 (계약 getUiText 로 전달) */
+  ui: {
+    title: Record<string, string>;
+    evolveMenu: Record<string, string>;
+    result: Record<string, string>;
+    pause: Record<string, string>;
+    hud: Record<string, string>;
+  };
 }

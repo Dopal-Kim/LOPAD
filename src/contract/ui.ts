@@ -123,6 +123,17 @@ export interface UiBossInfo {
   phase: number;
 }
 
+/** 세계관 문구 (스토리 파트 텍스트 팩 2차, 29라운드). 키가 없으면 UI 는 기본 문구를 쓴다 */
+export interface UiText {
+  title: Record<string, string>;
+  evolveMenu: Record<string, string>;
+  result: Record<string, string>;
+  pause: Record<string, string>;
+  hud: Record<string, string>;
+  /** 조작법 한 줄 템플릿. {secondary} 치환 */
+  controls: string;
+}
+
 /** UI 가 구독하는 버스 (시스템 내부 버스와 분리) */
 export const uiBus = new Phaser.Events.EventEmitter();
 
@@ -136,6 +147,7 @@ interface SystemImpl {
   continueRun: () => void;
   hasSave: () => boolean;
   toTitle: () => void;
+  getText: () => UiText;
 }
 
 let impl: SystemImpl | null = null;
@@ -194,6 +206,10 @@ export const uiCommands = {
   },
   getUiSnapshot(): UiSnapshot {
     return impl?.getSnapshot() ?? EMPTY_SNAPSHOT;
+  },
+  /** 세계관 문구. 시스템 미등록 시 빈 객체 */
+  getUiText(): UiText {
+    return impl?.getText() ?? { title: {}, evolveMenu: {}, result: {}, pause: {}, hud: {}, controls: '' };
   },
 };
 

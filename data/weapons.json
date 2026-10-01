@@ -10,8 +10,18 @@
       "damageMult": 1.0,
       "critBonus": 5,
       "attackSlowMult": 0.7,
-      "hitbox": { "width": 24, "height": 16, "reach": 14, "activeMs": 100, "cooldownMs": 350 },
-      "secondary": { "kind": "parry", "name": "패링" },
+      "hitbox": {
+        "width": 24,
+        "height": 16,
+        "reach": 14,
+        "activeMs": 100,
+        "cooldownMs": 350
+      },
+      "secondary": {
+        "kind": "parry",
+        "name": "패링",
+        "description": "공격이 닿는 순간 우클릭. 받아치면 빈틈이 생긴다."
+      },
       "affinity": {
         "strokeLength": 0.6,
         "strokeSpeed": 0.7,
@@ -21,20 +31,25 @@
         "keyDash": 0.5
       },
       "personality": {
-        "thresholds": [100, 200],
+        "thresholds": [
+          100,
+          200
+        ],
         "branches": [
           {
             "id": "iai",
             "name": "거합 (居合)",
-            "description": "범위가 넓어지고 베기 궤적이 남는다",
+            "description": "넓게 베고 궤적을 남긴다",
             "damageMult": 1.2,
             "hitboxMult": 1.4,
-            "mods": { "slashTrail": true },
+            "mods": {
+              "slashTrail": true
+            },
             "next": [
               {
                 "id": "wide",
-                "name": "광역 베기",
-                "description": "범위가 한 번 더 넓어진다",
+                "name": "만월 (滿月)",
+                "description": "베기 범위가 한 번 더 넓어진다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.3,
                 "mods": {}
@@ -42,36 +57,49 @@
               {
                 "id": "zangetsu",
                 "name": "잔월 (殘月)",
-                "description": "베기 궤적이 남아 지속 피해를 준다",
+                "description": "남은 궤적이 계속 벤다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "trailDot": { "damageMult": 0.4, "lingerMs": 1000, "tickMs": 300 } }
+                "mods": {
+                  "trailDot": {
+                    "damageMult": 0.4,
+                    "lingerMs": 1000,
+                    "tickMs": 300
+                  }
+                }
               }
             ]
           },
           {
             "id": "batto",
             "name": "발도술 (拔刀術)",
-            "description": "대쉬 쿨 -30%, 대쉬 공격 1.6배",
+            "description": "대쉬 쿨 -30%, 대쉬 베기 1.6배",
             "damageMult": 1.0,
             "hitboxMult": 1.0,
-            "mods": { "dashCooldownMult": 0.7, "dashAttackMult": 1.6 },
+            "mods": {
+              "dashCooldownMult": 0.7,
+              "dashAttackMult": 1.6
+            },
             "next": [
               {
                 "id": "longinvuln",
-                "name": "대쉬 무적 연장",
+                "name": "허보 (虛步)",
                 "description": "대쉬 무적 시간이 길어진다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "dashInvulnExtraMs": 200 }
+                "mods": {
+                  "dashInvulnExtraMs": 200
+                }
               },
               {
                 "id": "dashcrit",
-                "name": "대쉬 공격 확정 치명",
-                "description": "대쉬 공격이 항상 치명타",
+                "name": "급소 (急所)",
+                "description": "대쉬 베기는 항상 급소를 벤다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "dashAttackForceCrit": true }
+                "mods": {
+                  "dashAttackForceCrit": true
+                }
               }
             ]
           }
@@ -84,7 +112,13 @@
       "damageMult": 2.2,
       "critBonus": 0,
       "attackSlowMult": 0.25,
-      "hitbox": { "width": 36, "height": 28, "reach": 20, "activeMs": 200, "cooldownMs": 750 },
+      "hitbox": {
+        "width": 36,
+        "height": 28,
+        "reach": 20,
+        "activeMs": 200,
+        "cooldownMs": 750
+      },
       "secondary": {
         "kind": "guard",
         "name": "가드",
@@ -92,7 +126,8 @@
         "moveMult": 0.35,
         "pushRadiusTiles": 2.5,
         "pushSpeedTiles": 14,
-        "pushMs": 220
+        "pushMs": 220,
+        "description": "누르는 동안 버틴다(피해 -70%, 느려짐). 떼면 밀쳐낸다."
       },
       "affinity": {
         "strokeLength": 0.9,
@@ -103,23 +138,34 @@
         "keyDash": 0.2
       },
       "personality": {
-        "thresholds": [100, 200],
+        "thresholds": [
+          100,
+          200
+        ],
         "branches": [
           {
             "id": "crush",
             "name": "파쇄 (破碎)",
-            "description": "충격파가 퍼지고 더 무겁게 내려친다",
+            "description": "내려치면 충격파가 퍼진다",
             "damageMult": 1.3,
             "hitboxMult": 1.3,
-            "mods": { "shockwave": true },
+            "mods": {
+              "shockwave": true
+            },
             "next": [
               {
                 "id": "quake",
                 "name": "지진 (地震)",
-                "description": "충격파가 2단으로 퍼진다",
+                "description": "충격파가 두 번 퍼진다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "shockwaveSecond": { "delayMs": 220, "sizeMult": 1.6, "damageMult": 0.5 } }
+                "mods": {
+                  "shockwaveSecond": {
+                    "delayMs": 220,
+                    "sizeMult": 1.6,
+                    "damageMult": 0.5
+                  }
+                }
               },
               {
                 "id": "pulverize",
@@ -127,7 +173,9 @@
                 "description": "충격파가 적 투사체를 지운다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "shockwaveClearsProjectiles": true }
+                "mods": {
+                  "shockwaveClearsProjectiles": true
+                }
               }
             ]
           },
@@ -137,23 +185,31 @@
             "description": "적중 시 경직, 피해 1.5배, 더 느림",
             "damageMult": 1.5,
             "hitboxMult": 1.0,
-            "mods": { "hitStunMs": 400, "attackSlowMult": 0.15 },
+            "mods": {
+              "hitStunMs": 400,
+              "attackSlowMult": 0.15
+            },
             "next": [
               {
                 "id": "ironwall",
                 "name": "철벽 (鐵壁)",
-                "description": "가드 피해 90% 감소, 밀쳐낼 때 반격",
+                "description": "가드 피해 -90%, 밀칠 때 반격",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "guardReduction": 0.9, "guardCounterMult": 1.0 }
+                "mods": {
+                  "guardReduction": 0.9,
+                  "guardCounterMult": 1.0
+                }
               },
               {
                 "id": "giant",
                 "name": "거인 (巨人)",
-                "description": "피해 2배, 공격 중 슈퍼아머",
+                "description": "피해 2배, 공격 중 멈추지 않는다",
                 "damageMult": 2.0,
                 "hitboxMult": 1.0,
-                "mods": { "superArmorReduction": 0.5 }
+                "mods": {
+                  "superArmorReduction": 0.5
+                }
               }
             ]
           }
@@ -166,14 +222,21 @@
       "damageMult": 0.6,
       "critBonus": 20,
       "attackSlowMult": 1.0,
-      "hitbox": { "width": 16, "height": 12, "reach": 10, "activeMs": 70, "cooldownMs": 180 },
+      "hitbox": {
+        "width": 16,
+        "height": 12,
+        "reach": 10,
+        "activeMs": 70,
+        "cooldownMs": 180
+      },
       "secondary": {
         "kind": "shadowstep",
         "name": "그림자 걸음",
         "rangeTiles": 6,
         "fallbackTiles": 3,
         "cooldownMs": 2000,
-        "primeMs": 1000
+        "primeMs": 1000,
+        "description": "우클릭으로 가까운 적 뒤로. 직후 한 번은 확정 치명."
       },
       "affinity": {
         "strokeLength": 0.3,
@@ -184,7 +247,10 @@
         "keyDash": 0.9
       },
       "personality": {
-        "thresholds": [100, 200],
+        "thresholds": [
+          100,
+          200
+        ],
         "branches": [
           {
             "id": "twin",
@@ -192,7 +258,9 @@
             "description": "한 번 휘두르면 두 번 벤다",
             "damageMult": 1.0,
             "hitboxMult": 1.1,
-            "mods": { "hits": 2 },
+            "mods": {
+              "hits": 2
+            },
             "next": [
               {
                 "id": "dance",
@@ -200,41 +268,56 @@
                 "description": "한 번 휘두르면 세 번 벤다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "hits": 3 }
+                "mods": {
+                  "hits": 3
+                }
               },
               {
                 "id": "bleed",
                 "name": "출혈 (出血)",
-                "description": "베인 적이 피를 흘려 지속 피해를 받는다",
+                "description": "베인 적은 계속 피를 흘린다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "bleed": { "damageMult": 0.3, "ticks": 3, "tickMs": 500 } }
+                "mods": {
+                  "bleed": {
+                    "damageMult": 0.3,
+                    "ticks": 3,
+                    "tickMs": 500
+                  }
+                }
               }
             ]
           },
           {
             "id": "gale",
             "name": "질풍 (疾風)",
-            "description": "이동 속도 +25%, 대쉬 쿨 -30%",
+            "description": "이동 +25%, 대쉬 쿨 -30%",
             "damageMult": 1.0,
             "hitboxMult": 1.0,
-            "mods": { "moveSpeedMult": 1.25, "dashCooldownMult": 0.7 },
+            "mods": {
+              "moveSpeedMult": 1.25,
+              "dashCooldownMult": 0.7
+            },
             "next": [
               {
                 "id": "afterimage",
                 "name": "잔상 (殘像)",
-                "description": "대쉬 경로에 피해를 남긴다",
+                "description": "대쉬한 길에 피해가 남는다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "dashTrailDamageMult": 0.8 }
+                "mods": {
+                  "dashTrailDamageMult": 0.8
+                }
               },
               {
                 "id": "assassin",
                 "name": "암살 (暗殺)",
-                "description": "그림자 걸음 직후 공격 3배",
+                "description": "그림자 걸음 뒤 공격 3배",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "shadowStepMult": 3.0 }
+                "mods": {
+                  "shadowStepMult": 3.0
+                }
               }
             ]
           }
@@ -247,7 +330,13 @@
       "damageMult": 0.9,
       "critBonus": 10,
       "attackSlowMult": 0.6,
-      "hitbox": { "width": 6, "height": 6, "reach": 12, "activeMs": 0, "cooldownMs": 400 },
+      "hitbox": {
+        "width": 6,
+        "height": 6,
+        "reach": 12,
+        "activeMs": 0,
+        "cooldownMs": 400
+      },
       "ranged": {
         "projectileSpeedTiles": 12,
         "projectileLifeMs": 1500,
@@ -261,7 +350,8 @@
         "chargeMs": 600,
         "damageMult": 2.5,
         "moveMult": 0.5,
-        "cooldownMs": 800
+        "cooldownMs": 800,
+        "description": "누르고 있다가 놓으면 꿰뚫는 한 발. 조준 중엔 느려진다."
       },
       "affinity": {
         "strokeLength": 0.7,
@@ -272,15 +362,20 @@
         "keyDash": 0.4
       },
       "personality": {
-        "thresholds": [100, 200],
+        "thresholds": [
+          100,
+          200
+        ],
         "branches": [
           {
             "id": "pierce",
             "name": "관통 (貫通)",
-            "description": "화살이 적 하나를 더 꿰뚫는다",
+            "description": "화살이 하나를 더 꿰뚫는다",
             "damageMult": 1.15,
             "hitboxMult": 1.0,
-            "mods": { "pierce": 1 },
+            "mods": {
+              "pierce": 1
+            },
             "next": [
               {
                 "id": "flash",
@@ -288,15 +383,21 @@
                 "description": "무한 관통, 화살이 빨라진다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "pierceInfinite": true, "projectileSpeedMult": 1.5 }
+                "mods": {
+                  "pierceInfinite": true,
+                  "projectileSpeedMult": 1.5
+                }
               },
               {
                 "id": "heavyarrow",
                 "name": "중시 (重矢)",
-                "description": "조준 사격 피해 2배, 적중 시 경직",
+                "description": "조준 사격 피해 2배, 경직",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "aimedShotMult": 2.0, "aimedShotStunMs": 600 }
+                "mods": {
+                  "aimedShotMult": 2.0,
+                  "aimedShotStunMs": 600
+                }
               }
             ]
           },
@@ -306,15 +407,25 @@
             "description": "부채꼴 3발, 피해 0.6배",
             "damageMult": 0.6,
             "hitboxMult": 1.0,
-            "mods": { "spread": { "count": 3, "spreadDeg": 30 } },
+            "mods": {
+              "spread": {
+                "count": 3,
+                "spreadDeg": 30
+              }
+            },
             "next": [
               {
                 "id": "rain",
                 "name": "폭우 (暴雨)",
-                "description": "부채꼴 5발",
+                "description": "한 번에 부채꼴 5발",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "spread": { "count": 5, "spreadDeg": 50 } }
+                "mods": {
+                  "spread": {
+                    "count": 5,
+                    "spreadDeg": 50
+                  }
+                }
               },
               {
                 "id": "seek",
@@ -322,7 +433,9 @@
                 "description": "화살이 적을 따라간다",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
-                "mods": { "homingTurnDeg": 240 }
+                "mods": {
+                  "homingTurnDeg": 240
+                }
               }
             ]
           }

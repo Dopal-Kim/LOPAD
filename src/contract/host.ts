@@ -1,6 +1,7 @@
 /** 시스템 파트: 계약 명령 구현 (씬 제어·세이브·메뉴 라우팅). UI 파트는 import 금지. */
 import type Phaser from 'phaser';
 import { SCENES } from '../core/Constants';
+import { STORY } from '../data';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { UI_EVENTS, __system, type UiMenuId, type UiSnapshot } from './ui';
 import { UI_SCENES } from '../ui';
@@ -51,6 +52,7 @@ export function installContractHost(game: Phaser.Game): void {
       else game.scene.start(SCENES.SETUP);
     },
     hasSave: () => saveSlot.read() !== null,
+    getText: () => ({ ...STORY.ui, controls: STORY.controls }),
     toTitle: () => {
       stopAllUiAndGame();
       if (game.scene.keys[UI_SCENES.TITLE]) game.scene.start(UI_SCENES.TITLE);

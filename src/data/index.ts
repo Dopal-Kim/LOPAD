@@ -267,6 +267,10 @@ export function validateStory(s: StoryData, run: RunDef): StoryData {
     if (!s.notices[k]) throw new Error(`[data] story.notices.${k} 없음`);
   }
   if (!s.death.includes('{name}')) throw new Error('[data] story.death 에 {name} 치환자가 없음');
+  if (!Array.isArray(s.reinforce) || s.reinforce.length < 3) throw new Error('[data] story.reinforce 3줄 필요');
+  for (const k of ['title', 'evolveMenu', 'result', 'pause', 'hud'] as const) {
+    if (!s.ui?.[k]) throw new Error(`[data] story.ui.${k} 없음`);
+  }
   return s;
 }
 

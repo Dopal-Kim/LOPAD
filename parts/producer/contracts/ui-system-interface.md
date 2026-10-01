@@ -49,7 +49,7 @@ interface UiSnapshot {
 
 ## 3. 메뉴 — `UiMenu`
 ```ts
-interface UiMenu { id: 'reward' | 'passive' | 'shop' | 'meta'; title: string; footer?: string;
+interface UiMenu { id: 'reward' | 'passive' | 'shop' | 'meta' | 'evolve'; title: string; footer?: string;
   lines: { key: string; label: string; enabled: boolean; detail?: string }[] }
 ```
 UI 는 `uiCommands.select(menuId, key)` 로 답한다. 시스템은 UI 렌더러가 등록되기 전까지 임시 텍스트 메뉴로 그린다 (`uiCommands.registerRenderer()` 호출 시 임시 메뉴 비활성).
@@ -65,6 +65,7 @@ UI 는 `uiCommands.select(menuId, key)` 로 답한다. 시스템은 UI 렌더러
 | `hasSave()` | 세이브 존재 여부 |
 | `toTitle()` | 타이틀 씬으로 (런 중이면 세이브 없이 종료되므로 UI 가 확인창을 띄운다) |
 | `getUiSnapshot()` | 현재 스냅샷 |
+| `getUiText()` | 세계관 문구 `UiText { title, evolveMenu, result, pause, hud, controls }` (스토리 텍스트 팩 2차, 29라운드). UI 는 키가 있으면 그 문구를, 없으면 기본 문구를 쓴다 |
 
 ## 5. 씬 (UI → 시스템) — `src/ui/index.ts`
 ```ts
@@ -76,3 +77,9 @@ export const uiScenes: Phaser.Types.Scenes.SceneType[];
 ## 6. 금지
 - UI 는 `gameState`·`EventBus`·씬 내부에 접근하지 않는다. 스냅샷은 복사본이며 바꿔도 시스템에 영향 없다.
 - 시스템은 UI 씬의 내부 객체에 접근하지 않는다. 씬 키와 배열만 쓴다.
+
+
+## 7. 29라운드 추가분 (자율 승인, 도영 님 검토 대기)
+- 메뉴 id `evolve`: 개성 임계 도달 시 3지선다(변환 A / 변환 B / 강화). 시스템이 게임을 정지하고 UI 메뉴 씬이 그린다. 선택지 `detail` 에 설명.
+- `uiCommands.getUiText()` 추가. `weapon.secondaryName` 은 무기별(패링/가드/그림자 걸음/조준 사격).
+- 아트 연동: UI 는 스프라이트를 직접 다루지 않는다. HUD 아이콘이 필요하면 `assets/ui/**`(UI 소유)에 둔다.

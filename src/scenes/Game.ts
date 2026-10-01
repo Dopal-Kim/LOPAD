@@ -719,7 +719,7 @@ export class Game extends Phaser.Scene {
       const o = options[i] as WeaponEvolution | undefined;
       return {
         key: String(i + 1),
-        label: o ? `변환: ${o.name}` : '변환 (완료)',
+        label: o ? fill(STORY.ui.evolveMenu.itemFormat, { name: o.name, menu: o.description }) : '변환 (완료)',
         enabled: Boolean(o),
         detail: o?.description,
       };
@@ -728,17 +728,23 @@ export class Game extends Phaser.Scene {
     const bonusPct = Math.round(WEAPON_RULES.reinforceBonus * 100);
     lines.push({
       key: '3',
-      label: `강화: ${cur} +${w.reinforce + 1} (피해·범위 +${bonusPct}%)`,
+      label: `${fill(STORY.ui.evolveMenu.reinforceItem, { n: w.reinforce + 1 })} — ${cur}`,
       enabled: w.canReinforce,
-      detail: `강화 ${w.reinforce}/${WEAPON_RULES.reinforceMax}`,
+      detail: `피해·범위 +${bonusPct}% · 강화 ${w.reinforce}/${WEAPON_RULES.reinforceMax}`,
     });
-    this.menu.open('evolve', `개성 ${w.threshold} 도달 — ${w.displayName}`, lines, (key) => {
-      if (key === '3') this.applyReinforce();
-      else {
-        const pick = options[Number(key) - 1];
-        if (pick) this.applyEvolution(pick.id);
-      }
-    });
+    this.menu.open(
+      'evolve',
+      fill(STORY.ui.evolveMenu.title, { weapon: w.def.name, threshold: w.threshold }),
+      lines,
+      (key) => {
+        if (key === '3') this.applyReinforce();
+        else {
+          const pick = options[Number(key) - 1];
+          if (pick) this.applyEvolution(pick.id);
+        }
+      },
+      STORY.ui.evolveMenu.footer,
+    );
   }
 
   private applyEvolution(id: string): void {
@@ -766,7 +772,11 @@ export class Game extends Phaser.Scene {
     EventBus.emit(Events.WEAPON_REINFORCED, payload);
     __system.emit(UI_EVENTS.WEAPON_EVOLVED, { name: weapon.displayName });
     if (!__system.rendererRegistered()) this.showEvolutionBanner(weapon.displayName);
-    this.story('notice', `개성 강화 ${weapon.reinforce}/${WEAPON_RULES.reinforceMax} — ${weapon.displayName}`);
+    this.story(
+      'evolution',
+      STORY.reinforce[weapon.reinforce - 1] ??
+        fill(STORY.reinforceBanner, { evolution: weapon.displayName, n: weapon.reinforce }),
+    );
   }
 
   /** 3지선다 동안 게임 정지 (물리·적·플레이어). 메뉴는 UI 가 그린다 */
@@ -908,7 +918,7 @@ export class Game extends Phaser.Scene {
   private openStatChooser(onDone: () => void): void {
     const lines = ECONOMY.statRewards.map((r, i) => ({ key: String(i + 1), label: r.name, enabled: true }));
     const show = () => {
-      this.menu.open('reward', `감각 보상: 능력치 포인트 ${gameState.pointsPending}`, lines, (key) => {
+      this.menu.open('reward', fill(STORY.ui.hud.rewardTitle, { n: gameState.pointsPending }), lines, (key) => {
         const reward = ECONOMY.statRewards[Number(key) - 1];
         this.applyReward(reward.id);
         if (gameState.pointsPending > 0) show();
@@ -933,7 +943,7 @@ export class Game extends Phaser.Scene {
       label: `[${p.rarity}] ${p.name}${gameState.passives.level(p.id) > 0 ? ` (Lv${gameState.passives.level(p.id)} → ${gameState.passives.level(p.id) + 1})` : ''} — ${p.description}`,
       enabled: true,
     }));
-    this.menu.open('passive', '보스 보상: 패시브 선택', lines, (key) => {
+    this.menu.open('passive', STORY.ui.hud.passiveTitle, lines, (key) => {
       const pick = choices[Number(key) - 1];
       gameState.passives.add(pick.id);
       EventBus.emit(Events.PASSIVE_GAINED, { id: pick.id, level: gameState.passives.level(pick.id) });
@@ -980,7 +990,7 @@ export class Game extends Phaser.Scene {
         `${STORY.names.shop}  (${STORY.names.gold} ${gameState.gold}, ${STORY.names.potion} ${gameState.potions})`,
         lines,
         (key) => this.buy(ECONOMY.shop.items[Number(key) - 1].id, render),
-        '타일에서 벗어나면 닫힘',
+        STORY.ui.hud.shopFooter,
       );
     };
     render();
