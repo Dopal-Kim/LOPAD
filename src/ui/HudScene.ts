@@ -48,9 +48,10 @@ export class HudScene extends Phaser.Scene {
     this.personalityBar = new Bar(this, P + 8, H - P - 12, 174, 6, THEME.personality, THEME.hpBack);
 
     // 보스 바 (중앙 하단, 보스전만)
-    this.bossPanel = panel(this, W / 2 - 150, H - P - 34, 300, 26).setVisible(false);
-    this.bossBar = new Bar(this, W / 2 - 144, H - P - 16, 288, 6, THEME.boss, THEME.bossBack);
-    this.bossText = label(this, W / 2, H - P - 31, '', THEME.font, '#ffb0c8')
+    const bossY = H - P - 30 - 32; // 무기 패널 위
+    this.bossPanel = panel(this, W / 2 - 150, bossY, 300, 26).setVisible(false);
+    this.bossBar = new Bar(this, W / 2 - 144, bossY + 18, 288, 6, THEME.boss, THEME.bossBack);
+    this.bossText = label(this, W / 2, bossY + 3, '', THEME.font, '#ffb0c8')
       .setOrigin(0.5, 0)
       .setVisible(false);
     this.bossBar.set(0).setVisible(false);
