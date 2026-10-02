@@ -37,7 +37,43 @@ export const UI_EVENTS = {
   CHALLENGE_STARTED: 'ui:challenge-started',
   /** 47라운드: 구조물 도전 전투 종료 (`UiChallengeCleared`) */
   CHALLENGE_CLEARED: 'ui:challenge-cleared',
+  /** 48라운드: 다음 노드를 고를 차례 (`UiRoute`, 계약 §10.2) */
+  ROUTE_CHOOSE_OPEN: 'ui:route-choose-open',
+  /** 48라운드: 노드 진입 (`UiRouteEntered`) */
+  ROUTE_NODE_ENTERED: 'ui:route-node-entered',
+  /** 48라운드: 탄생 연출 시작·끝 (계약 §10.3) */
+  BIRTH_STARTED: 'ui:birth-started',
+  BIRTH_DONE: 'ui:birth-done',
 } as const;
+
+/** 48라운드: 노드 지도 (계약 §10.1) */
+export type UiNodeType = 'journey' | 'battle' | 'shop' | 'rest' | 'event' | 'boss';
+export type UiNodeState = 'locked' | 'available' | 'current' | 'cleared' | 'passed';
+export interface UiRouteNode {
+  id: string;
+  type: UiNodeType;
+  /** 자리표시 이름 (스토리 확정 전) */
+  name: string;
+  /** 왼→오 진행 단계 (0부터) */
+  col: number;
+  /** 같은 단계 안 위치 (0부터), 그리기용 */
+  row: number;
+  /** 다음 단계로 이어지는 노드 id */
+  links: string[];
+  state: UiNodeState;
+}
+export interface UiRoute {
+  floor: number;
+  nodes: UiRouteNode[];
+  currentId: string | null;
+  /** true = 다음 노드를 골라야 함 (시스템이 게임 입력 잠금) */
+  choosing: boolean;
+}
+export interface UiRouteEntered {
+  id: string;
+  type: UiNodeType;
+  name: string;
+}
 
 export type StoryKind = 'floor' | 'boss' | 'rest' | 'notice' | 'evolution' | 'death';
 export interface UiStoryLine {
@@ -317,6 +353,8 @@ export interface UiSnapshot {
   interactable: UiInteractable | null;
   /** 47라운드: HUD 상태 목록 (시스템이 그릴 순서로 정렬). 없으면 [] (계약 §9.2) */
   statuses: UiStatus[];
+  /** 48라운드: 노드 지도. 노드 지도를 쓰지 않는 층이면 null (계약 §10.1) */
+  route: UiRoute | null;
 }
 
 export interface UiResult {
@@ -370,6 +408,7 @@ interface SystemImpl {
   toTitle: () => void;
   getText: () => UiText;
   warpTo: (roomId: string) => boolean;
+  chooseNode: (id: string) => boolean;
 }
 
 let impl: SystemImpl | null = null;
@@ -404,6 +443,7 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   warp: { ready: false, blocked: 'busy', targets: [], warping: false },
   interactable: null,
   statuses: [],
+  route: null,
 };
 
 export const uiCommands = {
@@ -448,6 +488,10 @@ export const uiCommands = {
       return false;
     }
     return impl.warpTo(roomId);
+  },
+  /** 48라운드: 다음 노드 선택 (계약 §10.2). available 노드만 true */
+  chooseNode(id: string): boolean {
+    return impl?.chooseNode(id) ?? false;
   },
 };
 

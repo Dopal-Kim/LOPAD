@@ -2,7 +2,7 @@
 import { gameState } from '../core/GameState';
 import { ECONOMY, STORY } from '../data';
 import type { FloorLayout } from '../systems/mapgen';
-import type { UiInteractable, UiMap, UiMenu, UiSnapshot, UiStatus, UiWarpState } from './ui';
+import type { UiInteractable, UiMap, UiMenu, UiRoute, UiSnapshot, UiStatus, UiWarpState } from './ui';
 
 export interface SnapshotContext {
   layout: FloorLayout | null;
@@ -19,6 +19,8 @@ export interface SnapshotContext {
   interactable?: UiInteractable | null;
   statuses?: readonly UiStatus[];
   structureRooms?: ReadonlySet<string>;
+  /** 48라운드 (계약 §10): 노드 지도. 생략 시 null */
+  route?: UiRoute | null;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -97,5 +99,8 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
         }
       : null,
     statuses: (ctx.statuses ?? []).map((st) => ({ ...st })),
+    route: ctx.route
+      ? { ...ctx.route, nodes: ctx.route.nodes.map((n) => ({ ...n, links: [...n.links] })) }
+      : null,
   };
 }

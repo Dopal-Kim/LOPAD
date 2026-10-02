@@ -19,6 +19,9 @@ export interface WarpHandler {
 }
 let warpHandler: WarpHandler | null = null;
 
+/** 48라운드 노드 선택: Game 이 등록 (계약 §10.2) */
+let nodeChooser: ((id: string) => boolean) | null = null;
+
 export function installContractHost(game: Phaser.Game): void {
   const stopAllUiAndGame = () => {
     for (const key of [
@@ -82,6 +85,7 @@ export function installContractHost(game: Phaser.Game): void {
       const reason = warpHandler.run(roomId);
       return reason ? deny(reason) : true;
     },
+    chooseNode: (id) => nodeChooser?.(id) ?? false,
     getText: () => ({ ...STORY.ui, controls: STORY.controls }),
     toTitle: () => {
       stopAllUiAndGame();
@@ -104,4 +108,8 @@ export function setSnapshotProvider(fn: (() => UiSnapshot | null) | null): void 
 
 export function setWarpHandler(h: WarpHandler | null): void {
   warpHandler = h;
+}
+
+export function setNodeChooser(fn: ((id: string) => boolean) | null): void {
+  nodeChooser = fn;
 }
