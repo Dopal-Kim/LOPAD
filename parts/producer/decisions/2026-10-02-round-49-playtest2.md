@@ -5,7 +5,7 @@
 ## Gemini 도입 (아트 이미지 생성 보류 해제)
 ### Q1. 사용 범위
 - 결정: **테마 키아트·지도 일러스트·배경까지, 게임 도트는 직접 (추천)** — 스테이지별 테마 이미지, '잔' 심층부로 가는 펼친 지도 일러스트, 노드 전투장 원경 배경은 Gemini 생성 후 LOPAD 팔레트로 보정. 캐릭터·적·무기·타일·구조물 도트는 직접 찍고 Gemini 이미지는 참고 자료.
-- 키: 도영 님이 Google AI Studio 에서 발급 → 클라우드 환경 설정의 환경 변수 `GEMINI_API_KEY` 로 등록(채팅에 붙이지 않음). `generativelanguage.googleapis.com` 접속은 확인됨. 키가 들어오기 전까지 Gemini 작업은 대기.
+- 키: 도영 님이 Google AI Studio 에서 발급 → 클라우드 환경 편집의 **API 자격 증명**으로 등록(허용 웹사이트 `generativelanguage.googleapis.com`, 헤더 `x-goog-api-key`, 접두사 없음). 프록시가 붙이므로 세션은 키를 보지 않는다. 채팅에 노출된 키는 폐기 권고. `generativelanguage.googleapis.com` 접속은 확인됨. 키가 들어오기 전까지 Gemini 작업은 대기.
 
 ## 피드백 반영
 ### 1. 획 연출
