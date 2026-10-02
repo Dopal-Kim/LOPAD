@@ -1,0 +1,363 @@
+/**
+ * `?debug=1` 검증 훅 연결 (게임 로직 아님). Game 의 상태를 debug/index.ts 의 형식으로 읽기 전용으로 넘긴다.
+ */
+import Phaser from 'phaser';
+import { FEEL, TILE } from '../../core/Constants';
+import { gameState } from '../../core/GameState';
+import type { Boss } from '../../objects/Boss';
+import type { Enemy } from '../../objects/Enemy';
+import type { Mob } from '../../objects/Mob';
+import type { Pickup } from '../../objects/Pickup';
+import type { Projectile } from '../../objects/Projectile';
+import { exposeDebug } from '../../debug';
+import { audio } from '../../systems/audio';
+import { feelSettings, setFeel } from '../../systems/feel';
+import { fontStatus } from '../../systems/fonts';
+import { metaStore } from '../../systems/meta';
+import { spriteLibrary } from '../../systems/sprites';
+import type { Game } from '../Game';
+import type { GameInitData } from './shared';
+
+export function exposeGameDebug(g: Game): void {
+  const activeShots = (group: Phaser.GameObjects.Group) =>
+    (group.getChildren() as Projectile[]).filter((p) => p.active);
+  exposeDebug({
+    world: g.world,
+    director: g.director,
+    player: g.player,
+    mobs: () => [...(g.mobs.getChildren() as Mob[])],
+    hurt: (m, amount, crit) => {
+      if (g.combat.hitMob(m, amount, { crit: Boolean(crit), dirX: 1, dirY: 0 })) g.progress.onKill(m, 'attack');
+    },
+    fireAtPlayer: (distPx, speedPx, attack) => {
+      g.combat.fire(g.player.x + distPx, g.player.y, -1, 0, { speedPx, attack, size: 4, lifeMs: 5000 });
+    },
+    playerInfo: () => ({
+      x: g.player.x,
+      y: g.player.y,
+      action: g.player.action,
+      anim: g.player.animKey,
+      dir: g.player.facingDir,
+      animated: g.player.visual.animated,
+      overlayFrame: g.player.overlay.frame,
+      moving: g.player.moving,
+    }),
+    sprites: () => spriteLibrary.summary(g),
+    fx: () => g.fx.summary(),
+    nextStage: () => {
+      if (g.transitioning) return;
+      g.transitioning = true;
+      g.scene.restart({ mode: 'next' } satisfies GameInitData);
+    },
+    now: () => g.time.now,
+    stage: () => ({
+      index: gameState.stageIndex,
+      id: gameState.stageId,
+      name: gameState.stage.name,
+      savesLeft: gameState.savesLeft,
+      exitOpen: gameState.exitOpen,
+      isLast: gameState.isLastStage,
+    }),
+    save: () => g.saveSlot.read(),
+    lastAttack: () => g.strikes.debugLastAttack,
+    lastResult: () => g.progress.debugLastResult,
+    shots: () =>
+      activeShots(g.playerShots).map((p) => ({
+        x: p.x,
+        y: p.y,
+        vx: p.body.velocity.x,
+        vy: p.body.velocity.y,
+        attack: p.attack,
+        pierce: p.pierceLeft,
+        texture: p.texture.key,
+        rotation: p.rotation,
+      })),
+    meta: () => metaStore.read(),
+    economy: () => ({
+      gold: gameState.gold,
+      potions: gameState.potions,
+      points: gameState.pointsPending,
+      bonus: { ...gameState.bonus },
+      rewardPending: gameState.rewardPending,
+      shopOpen: g.economy.shopOpen,
+      menuOpen: g.menu.isOpen,
+      passives: { ...gameState.passives.owned },
+    }),
+    addPassive: (id: string) => gameState.passives.add(id),
+    scenes: () => g.scene.manager.getScenes(true).map((s) => s.scene.key),
+    pickups: () =>
+      (g.pickups.getChildren() as Pickup[])
+        .filter((p) => p.active)
+        .map((p) => ({ kind: p.kind, value: p.value, x: p.x, y: p.y })),
+    camera: () => {
+      const r = g.world.cameraRegion(g.player.x, g.player.y);
+      const cam = g.cameras.main;
+      return {
+        scrollX: cam.scrollX,
+        scrollY: cam.scrollY,
+        zoom: g.scale.zoom,
+        camZoom: cam.zoom,
+        width: cam.width,
+        height: cam.height,
+        region: { x: r.x, y: r.y, w: r.width, h: r.height },
+      };
+    },
+    stunAll: (ms) => {
+      for (const m of g.mobs.getChildren() as Mob[]) m.stun(g.time.now, ms);
+    },
+    kill: (m) => {
+      if (m.takeDamage(m.hp)) g.progress.onKill(m, 'attack');
+    },
+    setPersonality: (value) => {
+      gameState.weapon.personality = 0;
+      g.progress.gainPersonality(value);
+    },
+    weapon: () => {
+      const w = gameState.weapon;
+      return {
+        id: w.id,
+        displayName: w.displayName,
+        path: [...w.path],
+        stage: w.stage,
+        reinforce: w.reinforce,
+        personality: w.personality,
+        threshold: w.threshold,
+        choicePending: w.choicePending,
+        canEvolve: w.canEvolve,
+        options: w.options.map((o) => ({ id: o.id, name: o.name })),
+        mods: { ...w.mods },
+        damageMult: w.damageMult,
+        hitboxWidth: w.hitbox.width,
+        secondary: w.def.secondary.name,
+        frozen: g.frozen,
+      };
+    },
+    playerExtra: () => ({
+      action: g.player.action,
+      guarding: g.player.isGuarding,
+      shadowPrimed: g.player.isShadowPrimed(g.time.now),
+      aim: g.player.aimProgress(g.time.now),
+      aimReady: g.player.isAimReady,
+      shoved: g.player.isShoved,
+    }),
+    audio: () => audio.summary(),
+    feel: () => ({
+      settings: { ...feelSettings },
+      constants: FEEL,
+      hitstop: {
+        active: g.hitStop.active(g.time.now),
+        remainingMs: g.hitStop.remaining(g.time.now),
+        count: g.hitStop.count,
+        physicsPaused: g.physics.world.isPaused,
+      },
+      shake: {
+        offset: { ...g.shake.offset },
+        active: g.shake.activeCount,
+        count: g.shake.count,
+        last: g.shake.last,
+      },
+      numbers: g.numbers.summary(),
+      numbersCount: g.numbers.count,
+      font: { family: g.numbers.fontFamily, loaded: fontStatus(FEEL.DAMAGE_TEXT.FONT_FAMILY) ?? null },
+      hitFx: g.hitFx.summary(),
+    }),
+    setFeel: (patch) => setFeel(patch),
+    shoved: () => (g.mobs.getChildren() as Mob[]).filter((m) => m.isShoved).length,
+    telegraph: () => ({
+      markers: g.telegraph.summary(),
+      sheets: {
+        line: g.telegraph.has('line'),
+        circle: g.telegraph.has('circle'),
+        cone: g.telegraph.has('cone'),
+        aura: g.telegraph.has('aura'),
+      },
+    }),
+    projectiles: () =>
+      activeShots(g.projectiles).map((p) => ({
+        x: p.x,
+        y: p.y,
+        vx: p.body.velocity.x,
+        vy: p.body.velocity.y,
+        attack: p.attack,
+        texture: p.texture.key,
+        frame: p.frame.name,
+        anim: p.anims.currentAnim?.key ?? null,
+        rotation: p.rotation,
+        reflected: p.reflected,
+      })),
+    behavior: () =>
+      (g.mobs.getChildren() as Mob[])
+        .filter((m) => m.active)
+        .map((m) => {
+          const e = m as unknown as Partial<Enemy> & Partial<Boss>;
+          return {
+            id: m.spriteId,
+            state: e.behaviorState ?? e.patternState ?? '?',
+            shots: e.shotsSinceReload ?? null,
+            pattern: e.pattern ?? null,
+            patternLog: e.patternLog ? [...e.patternLog] : null,
+            summoned: e.summoned ?? null,
+            phase: e.phase ? gameState.bossPhase : null,
+            vx: m.body.velocity.x,
+            vy: m.body.velocity.y,
+            x: m.x,
+            y: m.y,
+          };
+        }),
+    lastSlam: () => g.combat.debugLastSlam,
+    trails: () => ({ active: g.trails.activeCount, count: g.trails.count, list: g.trails.summary() }),
+    screen: () => g.screenFx.summary(),
+    aimFx: () => ({ line: g.aimLine.visible, lineSheet: g.aimLine.sheet, charge: g.motion.aimChargeFrame }),
+    evolveTo: (id) => {
+      if (!gameState.weapon.choicePending) return false;
+      const before = gameState.weapon.path.length;
+      g.progress.applyEvolution(id);
+      return gameState.weapon.path.length > before;
+    },
+    spawnEnemy: (id, x, y) => g.director.spawnExtra(id, x, y),
+    warpInfo: () => ({
+      ...g.ui.warpState(),
+      inCombat: g.director.inCombat,
+      currentRoomId: gameState.roomId,
+      lockedMs: 0,
+      last: null,
+    }),
+    sprintInfo: () => ({
+      allowed: g.player.sprintAllowed,
+      sprinting: g.player.sprinting,
+      mult: g.player.sprintMult,
+      speedPx: g.player.speedPx * g.player.sprintMult,
+      vx: g.player.body.velocity.x,
+      vy: g.player.body.velocity.y,
+      dust: g.motion.sprintDustCount,
+    }),
+    structures: {
+      list: () => g.structures.debugList(),
+      state: () => g.structures.debugState(),
+      standPoint: (id) => g.structures.standPoint(id),
+      pressE: () => g.structures.debugPressE(),
+      hit: (id) => g.structures.debugHit(id),
+      interactable: () => g.structures.interactable(),
+      statuses: () => g.structures.statuses(),
+    },
+    gotoFloor: (n) => {
+      if (g.transitioning) return;
+      g.transitioning = true;
+      g.scene.restart({ mode: 'floor', floor: n - 1 } satisfies GameInitData);
+    },
+    route: () => routeInfo(g),
+    openRouteChooser: () => g.route.openChooser(),
+    chooseNode: (id) => g.route.chooseNode(id),
+    gotoNode: (id) => g.route.gotoNode(id),
+    gotoExit: () => {
+      const e = g.layout?.arena?.exit;
+      if (!e || !g.route.exitOpen) return false;
+      g.player.body.reset((e.x + 1) * TILE, (e.y + 1) * TILE);
+      return true;
+    },
+    combo: () => {
+      const c = g.player.combo;
+      return {
+        weapon: gameState.weapon.id,
+        hasCombo: Boolean(c),
+        lastIndex: c?.lastIndex ?? null,
+        lastStartedAt: c?.lastStartedAt ?? null,
+        readyAt: c ? c.readyAt() : null,
+        nextIndex: c ? c.nextIndex(g.time.now) : null,
+        now: g.time.now,
+        lastSwing: g.strikes.debugLastSwing,
+        overlay: { frame: g.player.overlay.frame, action: g.player.overlay.action },
+        anim: g.player.animKey,
+      };
+    },
+    birth: () => ({
+      active: g.birth.active,
+      pending: gameState.birthPending,
+      ...(g.birth.seq?.state ?? {}),
+      camZoom: g.cameras.main.zoom,
+      playerVisible: g.player.visible,
+      playerAlpha: g.player.alpha,
+    }),
+    skipBirth: () => g.birth.forceSkip(),
+    weaponState: () => g.player.debugWeapon(g.time.now),
+    setResource: (value) => {
+      const r = g.player.resource;
+      if (!r) return false;
+      if (r.kind === 'stamina') {
+        // 소모 경로로 (바닥 판정·회복 지연 포함)
+        r.value = r.max;
+        r.spend(Math.max(0, r.max - value), g.time.now);
+      } else r.value = Phaser.Math.Clamp(value, 0, r.max);
+      return true;
+    },
+    lab: () => ({
+      lab: g.lab,
+      dummies: (g.labMode?.dummies ?? []).map((d) => ({
+        role: d.role,
+        x: d.x,
+        y: d.y,
+        totalDamage: d.totalDamage,
+        hits: d.hits,
+        shots: d.shots,
+      })),
+      menu: g.menu.menu ? { id: g.menu.menu.id, lines: g.menu.menu.lines.map((l) => l.label) } : null,
+      frozen: g.frozen,
+      exitPending: g.labMode?.exitPending ?? false,
+    }),
+    openLabMenu: (which) => {
+      if (!g.labMode) return false;
+      if (which === 'lab') g.labMode.openWeaponMenu();
+      else g.labMode.openBranchMenu();
+      return g.menu.isOpen;
+    },
+    lighting: () => g.lighting?.summary() ?? null,
+    quarter: () => g.world.quarter?.summary ?? null,
+    setBossHp: (hp) => {
+      for (const m of g.mobs.getChildren() as Mob[]) {
+        if (m.isBoss && m.active) {
+          m.takeDamage(Math.max(0, m.hp - hp));
+          return true;
+        }
+      }
+      return false;
+    },
+  });
+}
+
+/** `route()` 디버그: 계약 UiRoute + 종류·클리어·출구·경로·선택지·전투장·지역·세트·튜토리얼·잠금 */
+function routeInfo(g: Game): unknown {
+  const route = gameState.route;
+  if (!route) return null;
+  const arena = g.nodeArena;
+  const sp = arena?.setPiece;
+  return {
+    ...route.toUi(),
+    kind: g.nodeKind,
+    cleared: route.currentCleared,
+    exitOpen: g.route.exitOpen,
+    path: [...route.path],
+    options: route.nextOptions().map((n) => ({ id: n.id, kind: n.kind, name: n.name })),
+    kinds: route.graph.nodes.map((n) => ({ id: n.id, kind: n.kind, col: n.col, row: n.row })),
+    arena: g.layout?.arena ?? null,
+    region: arena ? { id: arena.regionId, tileset: arena.tileset, skin: g.world.skin.textureKey } : null,
+    setPiece: sp
+      ? {
+          template: sp.template,
+          fixed: sp.fixed,
+          cover: sp.cover.length,
+          center: sp.center,
+          signs: sp.signs,
+          dummies: sp.dummies,
+          decor: sp.decor.map((d) => ({ name: d.name, role: d.role, sprites: d.sprites })),
+          view: g.setPieceView?.summary ?? null,
+        }
+      : null,
+    tutorial: g.tutorial
+      ? { step: g.tutorial.machine.stepIndex, done: g.tutorial.done, skip: () => g.tutorial?.skip() }
+      : null,
+    room: g.layout?.rooms[0]
+      ? { id: g.layout.rooms[0].id, type: g.layout.rooms[0].type, floor: g.layout.rooms[0].floor }
+      : null,
+    locked: g.route.locked(g.time.now),
+  };
+}

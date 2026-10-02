@@ -13,6 +13,7 @@ import { CARRY, DEPTH } from '../core/Constants';
 import { gameState } from '../core/GameState';
 import { spriteLibrary } from '../systems/sprites';
 import {
+  artScale,
   carryAction,
   carryActionFor,
   carryDrawnAction,
@@ -144,11 +145,13 @@ export class WeaponOverlay {
     this.frame = frameAt(def, dir, column);
     this.action = action;
     this.sprite.setFrame(this.frame);
+    // 50라운드: 새 2배 도트 무기 시트(pixelScale 1)는 0.5 배 — 몸 시트와 같은 화면 크기
+    const k = artScale(def);
     if (place) {
-      this.sprite.setScale(place.scale).setAngle(place.angle);
+      this.sprite.setScale(place.scale * k).setAngle(place.angle);
       this.sprite.setPosition(this.host.x + place.x, this.host.y + place.y);
     } else {
-      this.sprite.setScale(1).setAngle(0);
+      this.sprite.setScale(k).setAngle(0);
       this.sprite.setPosition(this.host.x, this.host.y);
     }
     this.sprite

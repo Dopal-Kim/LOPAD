@@ -7,11 +7,15 @@ import economyJson from '../../data/economy.json';
 import personalityJson from '../../data/personality.json';
 import storyJson from '../../data/story.json';
 import paletteJson from '../../data/palette.json';
+import lightingJson from '../../data/lighting.json';
 import type {
   BossTable,
   ComboDef,
   EconomyData,
   EnemyTable,
+  LightDefData,
+  LightingAmbient,
+  LightingData,
   PaletteData,
   PersonalityData,
   PlayerData,
@@ -417,3 +421,34 @@ export function validatePalette(p: PaletteData): PaletteData {
 }
 
 export const PALETTE: PaletteData = validatePalette(paletteJson as unknown as PaletteData);
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
+
+function validateLight(l: LightDefData, path: string): void {
+  assertNumber(l.radius, `${path}.radius`);
+  if (!(l.radius > 0)) throw new Error(`[data] ${path}.radius 는 0 보다 커야 합니다`);
+  if (l.color !== undefined && !HEX.test(l.color)) throw new Error(`[data] ${path}.color 형식 오류: ${l.color}`);
+  for (const k of ['intensity', 'flicker', 'offsetY'] as const)
+    if (l[k] !== undefined) assertNumber(l[k], `${path}.${k}`);
+}
+
+/** 50라운드 조명 데이터 */
+export function validateLighting(d: LightingData): LightingData {
+  const amb = (a: LightingAmbient, path: string) => {
+    if (!a || !HEX.test(a.ambient)) throw new Error(`[data] ${path}.ambient 형식 오류`);
+  };
+  for (const [id, a] of Object.entries(d.regions)) amb(a, `lighting.regions.${id}`);
+  amb(d.default, 'lighting.default');
+  validateLight(d.player, 'lighting.player');
+  validateLight(d.weaponFx, 'lighting.weaponFx');
+  validateLight(d.telegraph, 'lighting.telegraph');
+  for (const [id, l] of Object.entries(d.fallback))
+    if (!id.startsWith('_')) validateLight(l, `lighting.fallback.${id}`);
+  for (const k of ['maxLights', 'lightmapScale', 'falloff'] as const) assertNumber(d[k], `lighting.${k}`);
+  if (!(d.lightmapScale > 0 && d.lightmapScale <= 1)) throw new Error('[data] lighting.lightmapScale 는 0~1');
+  if (!Array.isArray(d.flickerHz) || d.flickerHz.length !== 2)
+    throw new Error('[data] lighting.flickerHz 는 [최소, 최대]');
+  return d;
+}
+
+export const LIGHTING: LightingData = validateLighting(lightingJson as unknown as LightingData);

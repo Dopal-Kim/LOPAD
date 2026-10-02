@@ -394,3 +394,77 @@ npm run build
 - **세트 소품 시트 매핑** (아트 이름이 `set_<region>_<name>` 가정과 다름 → `data/route.json` 의 sprite 후보 목록, `{region}` = 지역 id, 튜토리얼 표식 `{step}` = 단계 signName): 휴식 plaza → `set_{region}_plaza`·`set_{region}_fire_ring`(황무지 = set_waste_fire_ring)·`set_outer_plaza` / 상점 stall → `set_{region}_stall`·`set_outer_stall`, lantern → `set_{region}_lantern`·`_lamppost`·`_brazier`(성문 = set_gate_brazier)·`set_outer_lamppost` / 전투 crates·엄폐 barrels → `set_{region}_crates|barrels`·`set_{region}_barrel_stack`(양조 구역) / 보스 table → `set_{region}_table`·`_long_table`·`set_hall_long_table`, banner → `set_{region}_banner`·`battlefield_banner`, **rug 새 소품**(중앙 4×3 바닥) → `set_{region}_rug`·`set_hall_rug` / 전장 flag → `battlefield_flag`·`battlefield_banner` / 표식 → `tutorial_sign_{move,attack,dash,skill(보조 동작 단계 signName),fight}` → `tutorial_sign`. 미사용: `set_outer_stall_side`(측면 노점 자리 없음). 그림 없는 이름(stones·bench·street·scene·wreck·debris·rubble·flag 등)은 도형 폴백.
 - **혼불 탄생**: `player_birth` JSON `fx.ambient` + `underOptional` 이면 흙 소용돌이(birth_dust)를 끄고 혼불(세트 그림 soul_wisp 6개)만.
 - 통합 검증(헤드리스 4192): 탄생 전장(황무지 타일셋, 소품 25 중 시트 23, 혼불 6 시트) → 표식 이동 → 허수아비 2타 → 대쉬 → 패링 → 표식 5 에서 징집병 2(체력 10) → 처치 → 튜토리얼 끝 → 클리어·출구 열림 · 휴식 노드(양조 구역): 모닥불 중앙(−1,0)·숙성 통/묘/카운터 반지름 6 · 상점 노드(외곽 거리): 노점 거리 중앙, 장부대·궤짝 (∓5,−3), 노점·가로등 시트 · 지도 안 void 칸 1054개 전부 시트 인덱스 7(−1 은 지도 밖). 콘솔 오류 0.
+
+## 50라운드 1단계: 최적화 — 책임별 분리 · 죽은 코드 제거 (2026-10-02)
+운영 규칙(루트 CLAUDE.md 6-1 "복잡해지면 최적화 선행"). **기능 변경 없음** — 분리 전 빌드와 분리 후 빌드를 같은 헤드리스 시나리오(탄생·튜토리얼 5단계·연격·노드 선택·시험장 대검 연격/갈래 메뉴/내리찍기 + 구조물 E·상점·활·3층 방+복도·워프 거부)로 돌려 결과가 같음을 확인(시험장 허수아비 맞은 수만 헤드리스 프레임 타이밍에 따라 4/5 — 분리 전 빌드도 같은 흔들림).
+
+### 구조 지도 (파일별 책임)
+| 파일 | 책임 |
+|---|---|
+| `src/scenes/Game.ts` (3195 → 약 650줄) | 씬 생애주기만: create 순서(모듈 생성 → 런 준비 → 노드 진입 → 월드 → 플레이어 → 개체·연출 풀 → 물리 배선 → 방 상태 머신 → 튜토리얼 → 구조물 → 계약 연결 → 디버그 → 이벤트 표) · 매 프레임 순서(탄생 / 정지 / 히트스톱 / 진행) · 정지(frozen·히트스톱 물리 정지) · shutdown 정리. 공유 상태(player·mobs·world·fx…)는 모듈이 읽도록 공개 필드 |
+| `scenes/game/shared.ts` | 씬 시작 데이터 `GameInitData` · 판정 원점(발 위 10px) · 연격 마지막 타 판정 · 개성 경로 이펙트 고르기(`pathFx`·`evolutionFxId`) · 주소 옵션(`urlParams`, 5곳 중복 제거) |
+| `scenes/game/GameCamera.ts` | 플레이어 추종(데드존·lerp·스냅)·영역 클램프·흔들림 오프셋 |
+| `scenes/game/GameCombat.ts` | 피해 계산(`rollDamage`) · 적 피격 공통 경로(`hitMob`: 숫자·섬광·피·히트스톱·흔들림·넉백·방패) · 접촉·투사체·반사·플레이어 화살 겹침 콜백 · 패링 섬광 · 플레이어 피격 연출 · 적이 요청하는 탄·내리찍기·소환 · 플레이스홀더 충격파 |
+| `scenes/game/PlayerStrikes.ts` | PLAYER_ATTACKED: 연격 판정 모양(아트 메모 우선)·휘두름 이펙트·잔상 리본·대검 내리찍기 충격파·쌍격/지진 2단·활(연사·산탄·관통·추적·중시)·잔월·출혈·거인 · 매 프레임 추적 화살·잔월·출혈 |
+| `scenes/game/MotionFx.ts` | 가드 밀쳐내기·그림자 걸음·대쉬 시작(먼지·발도술·허보·잔상·잔상 피해) · 유지형 연출(질풍·조준 점선·차지·대쉬 잔상·달리기 먼지) |
+| `scenes/game/Progression.ts` | 런 시작 모드(새 런·다음 층·이어하기·다음 노드)·세이브 · 처치 → 개성 → 3지선다(변환·강화)·진화 배너 · 스테이지 보상(능력치·패시브) · 엔딩 · 사망·정산·결과 화면 |
+| `scenes/game/Economy.ts` | 드랍·줍기·골드·물약·상점 타일 메뉴·구매 |
+| `scenes/game/RouteFlow.ts` | 노드 진입(밝아짐·잠금)·클리어 → 출구 → 노드 선택(UI·숫자 키)·전환 · 층 출구 · 디버그 gotoNode |
+| `scenes/game/BirthFlow.ts` | 탄생 연출 연결(입력 잠금·카메라 배율·건너뛰기·HUD 알림) |
+| `scenes/game/LabMode.ts` | 무기 시험장(연습 런·아레나·허수아비·L/Esc 메뉴·죽지 않음) |
+| `scenes/game/UiRelay.ts` | 스냅샷 · 스토리 자막 · 내부 이벤트 → UI 중계 · 워프 요청 거부 |
+| `scenes/game/DebugHooks.ts` | `?debug=1` 훅 연결 (`route()` 정보 포함) |
+| `src/objects/Player.ts` (1038 → 약 730줄) | 상태 머신: 이동·달리기·대쉬·보조 동작·연격 입력·대검 무게(내딛기·정지)·피격 |
+| `objects/player/PlayerGear.ts` | 무기 자원(기력·탄창·과열) 진행·이벤트 · 장전 동작 · 휴대(뽑기·넣기·납도) |
+| `objects/player/PlayerPoses.ts` | 무기를 든 자세(특수 자세 구간·가드 반복·조준 진행도·발사 프레임)·이동 애니·판정 구간 길이 |
+| `objects/player/heavyMoves.ts` | 대검 내리찍기·대쉬 공격 (조준 벡터 공용) |
+| `src/systems/structures/StructureSystem.ts` (2232 → 약 430줄) | Game 이 보는 창구: 전투 훅·배율·이벤트 구독·스냅샷·디버그·노드 사이 층 상태 |
+| `structures/core.ts` | 인스턴스·물리 바디·층 상태(빚·취기·판돈·불씨·불붙은 무기·전당·숙성) · 생성·그림 상태·바디 · 결과/사용/부서짐/도전 이벤트 · 메뉴 공통 · 물약 지급·최대 HP 감소 · 룰렛 규칙 |
+| `structures/kinds/strikeKinds.ts` | 타격형·통과형: 짐·독주 술통(구르기·웅덩이·불바다)·증류 화로(불붙은 무기·불화살·화상)·숨은 벽(저장고)·판돈 종 |
+| `structures/kinds/serviceKinds.ts` | 공통·1층 E형: 궤짝·묘·모닥불·장부대·숙성 통·선술집 카운터(취기) |
+| `structures/kinds/gambleKinds.ts` | 2층: 패 탁자·환전대·투견 링·룰렛·전당포 |
+| `structures/interact.ts` | E 안내: 가장 가까운 것·막힌 사유·비용·행동 이름·실행 분기·묘 길게 누르기·화면 위치 |
+| `structures/status.ts` | HUD 상태 줄 |
+
+중복 제거: 주소 옵션 파싱 5곳 → `urlParams()`, 플레이어 시트 조회 헬퍼 → `EntityVisual.sheet()`, 구조물 단단한 발판 생성 2곳 → `core.addSolid`, 숙성 상태 줄 2곳 → `agingStatus`, EventBus 구독/해제 15쌍 → 표 하나(`subs`), 지연 콜백 '진행 중' 확인 → `PlayerStrikes.live`, 잔월 남는 궤적 → `leaveTrailDot`.
+**죽은 코드 제거**: 45라운드 워프 실행 경로(48라운드 §10.2 로 전 층 비활성 — `warpDeny` 가 늘 거부라 도달 불가): `startWarp`·`finishWarp`·워프 연출 상태, `TRAVERSAL.WARP`, `Events.WARP_STARTED/ARRIVED`·`WarpPayload`, `warpTargets`·`warpDenyReason`·`findSafeTile`(+테스트 7), `TileWorld.safePointInRoom`. 계약 `uiCommands.warpTo` 는 그대로(늘 거부 사유만). 짐 부서짐의 쓰이지 않던 `deltas` 변수.
+
+## 50라운드 2단계: 렌더링 기반 — 2배 도트·쿼터뷰 벽·동적 조명 (외곽 거리 시범) (2026-10-02)
+결정: `decisions/2026-10-02-round-50-modern-view.md`. 계약: `art-assets.md` §9.
+
+### 설계 판단 1 — 카메라 '1배' 를 렌더 배율로 (월드 좌표는 그대로)
+- 결정 Q2 의 뜻 = 새 도트 1px 가 화면 1px, 화면상 크기는 지금과 비슷. 두 길 중 **렌더 배율만 바꾸는 쪽**을 택했다: 월드 1단위 = 화면 2px(`RENDER.WORLD_TO_SCREEN`, 게임 카메라 배율 `CAMERA.ZOOM` 이 이 값), 타일 = 월드 16(`TILE`) 그대로.
+  - 새 2배 도트(`pixelScale: 1`)는 스프라이트를 0.5 배로 그린다 → 도트 1px = 화면 1px(= '카메라 1배' 화면). 기존 도트(`pixelScale` 없음 = 2)는 1배(화면 2px) → 섞여 있어도 같은 화면 크기. `artScale(def) = pixelScale / 2`.
+  - 월드 좌표를 2배로 옮기는 길(TILE 32·카메라 1)은 데이터 px(이동·판정·넉백·사거리·바디 크기·아트 메모)를 전부 2배로 바꾸고 Arcade 바디 배율까지 손대야 해 회귀 위험이 커서 버렸다. 지금 길은 **판정·속도·데이터 수치가 한 줄도 안 바뀐다**(체감 동일).
+  - 새 도트 시트 JSON 의 월드 길이 메모(`hitRadiusPx`·`thrust`·`impactOffsetPx`·`impactDistancePx`·`light.radius/offsetY`·`occludeAbove`)는 로드 때 월드 단위로 바꾼다(`sheetToWorldUnits`). 프레임·피벗·프레임 좌표(fireBox·stakes·flagpost)는 텍스처 좌표라 그대로.
+  - 적용: 주인공·적(`EntityVisual` — 동작마다 그 시트의 배율·피벗으로 원점·배율을 맞추고, Arcade 바디는 프레임 단위 × 배율이라 배율로 나눠 넣어 **월드 바디 크기 그대로**), 무기 오버레이, 이펙트 풀, 구조물·세트 그림, 혼불, 탄생 시트. 판정 박스는 데이터 그대로(화면 크기 기준 유지). 데미지 숫자·디버그 글자는 변화 없음.
+- 로드: `sprites/<분류>/v2/<파일>`·`tiles/v2/<이름>.json` 이 매니페스트에 있으면 기존 경로보다 먼저(동작 단위 — v2 가 없는 동작은 기존 시트, 섞여도 같은 크기). 지금 들어온 v2: 주인공 idle·walk·dash·hurt·death·칼 연격, 결사병 5동작, `tiles/v2/stage1_outer`.
+
+### 설계 판단 2 — 쿼터뷰 벽 (`world/QuarterView.ts`)
+- 타일셋 JSON 에 `wallHeightTiles` 가 있으면 쿼터뷰. 충돌·출입·판정은 **기존 16 격자 타일맵**(보이지 않게)이 그대로 맡고, 그림만 새로: 바닥 = 32px 타일맵을 0.5 배로(벽 칸은 원경), 벽 칸마다 **윗면**(위로 wallHeightTiles 칸 올림) + 남쪽이 벽이 아니면 **앞면**(아랫단 = `walls.front`/`tiles["2"]` 변형, 윗단 = `walls.frontUpper`·`wallFrontUpper`·`walls.front` 배열 둘째, 윗면 = `walls.top`, 없으면 인덱스 5·6).
+- 깊이 = 벽 칸 아래변 y (개체와 같은 Y 정렬) → 벽 남쪽 캐릭터는 앞, 북쪽(뒤) 캐릭터는 가려진다. 가려진 주인공 둘레 벽 그림은 반투명(`QUARTER.OCCLUDE_ALPHA 0.55`, 임시). 위쪽 벽 앞면이 보이도록 노드 전투장 카메라 경계를 wallHeightTiles 칸 위로 넓혔다. 출구·상점·저장고처럼 칸이 바뀌면 바닥·벽 그림을 다시 만든다.
+- 구조물·소품 `occludeAbove`: 피벗에서 그 높이까지(받침)는 바닥 깊이(`STRUCTURE_FX.OCCLUDE_BASE_DEPTH`), 그 위는 Y 정렬 — 그 위로만 캐릭터를 가린다(같은 프레임 두 장, 자르기). 없으면 기존처럼 통째로 Y 정렬.
+
+### 설계 판단 3 — 동적 조명 + 어둠: 라이트맵 RenderTexture (`systems/lighting/`)
+- 매 프레임 화면 × `lightmapScale 0.5`(480×270, 선형 필터) 라이트맵을 지역 주변광 색으로 채우고 → 보이는 광원을 방사형 그라데이션으로 **가산** 스탬프 → 비네팅을 같은 라이트맵에 굽고 → `DEPTH.LIGHTMAP 2` 에 **곱하기**로 덮는다. 그 위에 광원마다 가산 그라데이션(빛 번짐, 월드 좌표).
+- 라이트맵 아래(어둠에 잠김): 바닥·벽·개체·구조물·개체 위 이펙트. 위(그대로 읽힘): 드랍·투사체·공격 판정·잔상·피격 이펙트·데미지 숫자·화면 섬광. 바닥 깊이의 적 예고 마커는 붉은 경고광을 달아 어둠에서도 읽힌다.
+- **Light2D(노멀맵 없이) 대신 고른 이유**: Light2D 는 모든 개체(타일맵·Graphics·텍스트)에 파이프라인을 따로 걸어야 하고 광원 수가 셰이더 상수(maxLights)에 묶이며 빛 번짐·비네팅을 따로 만들어야 한다. 라이트맵은 개체 코드를 안 건드리고, 광원 1개 = 1/4 해상도 쿼드 1장 + 번짐 1장, 화면 전체 합성은 1장(곱하기)뿐이라 비용이 예측 가능하다. 광원 상한 `maxLights 24`(주인공 빛 고정 + 화면 중심 가까운 순, 화면에 걸치는 것만).
+- 광원: 주인공 주변 빛(늘) · JSON `light` 를 가진 소품(타일셋 props)·구조물·세트 그림·이펙트 · JSON 이 없으면 `data/lighting.json fallback`(시트 id → 임시 광원: bonfire·still·fire_pool·soul_wisp·set_outer_lamppost/stall/plaza·set_waste_fire_ring·set_gate_brazier) · 무기 이펙트(`weapon` 필드 시트) 순간광(이펙트 길이 동안 감쇠) · 예고 경고광. 깜빡임 = 광원마다 다른 두 사인 합(`flickerFactor`). 부서진·다 쓴 구조물은 꺼진다.
+- **켜는 곳**: `data/lighting.json regions` 에 있는 지역의 노드 전투장만(Q4 시범 = 외곽 거리). `?light=0` 끔, `?light=1` 이면 다른 전투장·시험장에도 default(검증용).
+- 성능(헤드리스 소프트웨어 GL, 참고치): 조명 갱신 CPU 0.4~0.7ms/프레임(광원 11개 상점 노드 포함). GPU 비용은 1/4 해상도 채우기 + 광원 쿼드 + 전체 화면 곱하기 1장 — 실기 60fps 확인 필요(헤드리스는 조명 없이도 15~25fps).
+
+### `?slice=outer` (시범 확인)
+`?slice=<지역 id>`(+`&weapon=`) = 새 런으로 그 지역의 전투 노드에 바로(탄생 생략, 그 뒤 진행은 정상). 디버그 `__lopad.lighting()`(켜짐·주변광·등록/후보/그린 광원·라이트맵·CPU ms) · `__lopad.quarter()`(벽 그림 수·비친 수·타일 px·벽 높이).
+
+### 테스트 · 검증
+- 테스트 +14: `lighting/lighting.test.ts` 6(색·깜빡임 범위·광원 고르기·광원 목록 따라가기/만료/끔·시트 광원 우선순위·데이터 검증) · `world/quarter.test.ts` 5(쿼터뷰 인덱스 표기 3가지·충돌 인덱스·기존 타일셋 호환) · `systems/spriteScale.test.ts` 3(도트 배율·메모 단위 변환·v2 경로).
+- tsc·eslint·vitest(41파일 288개)·vite build 통과(작업 중 다른 에이전트의 회피 시험·획 연출 편집이 한때 tsc/빌드를 깨뜨려, 그동안은 그 파일만 HEAD 판으로 되돌린 사본에서 확인 — 지금은 실제 작업 트리 그대로 통과).
+- 헤드리스(`vite preview --port 4196`, 960×540): 1단계 회귀 시나리오 결과 분리 전과 같음(v2 주인공 시트로도) · `?slice=outer` 외곽 거리 전투(실제 v2 타일셋: 2칸 건물 앞면·윗면, 엄폐 담 앞면, 결사병 v2, 화로 불빛, 주인공 빛, 공격 순간광) · 아래쪽 벽 뒤 가림 비침 · 외곽 상점(가로등 4·노점) / 휴식(모닥불) 광원 · `?light=0`. 콘솔 오류 0. 스크린샷: 스크래치 `r50sys/`(outer_lit_*·outer_shop_*·outer_rest_*·v2_*·s2r_*).
+
+### 임시값 (전부 검수 대상)
+주변광(외곽 #4a4e6e, default #55586e) · 주인공 빛(반경 104·세기 0.72·색 #ffe6c2·깜빡임 0.03) · 광원 상한 24 · 라이트맵 0.5 · 그라데이션 falloff 0.6 · 깜빡임 4~9Hz · 빛 번짐(알파 0.22·반경 ×0.55) · 비네팅(0.5·안쪽 0.5) · 무기 순간광(반경 56·0.55) · 예고 경고광(반경 36·0.45·#ff5a3c) · fallback 광원 표 · 가림 비침 알파 0.55 · occludeAbove 받침 깊이 0.7 · 라이트맵 깊이 2(무엇을 어둠 위로 둘지).
+
+### 남은 일 · 확인 필요
+- 적 탄·화살 시트가 `pixelScale 1` 로 오면 투사체 배율(바디 보정 포함)이 아직 없다(지금 v2 범위 밖).
+- 다른 지역은 시범 검수 뒤 `lighting.json regions` 에 넣으면 켜진다(타일셋은 `tiles/v2/` 가 오면 자동 쿼터뷰).
+- 아래쪽 경계 벽이 바닥 두 줄을 덮는 것(원근상 맞음)·가림 비침 방식은 체감 검수 대상.

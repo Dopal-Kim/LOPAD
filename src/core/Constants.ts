@@ -1,7 +1,20 @@
 /** 모든 설정값. 게임 수치(스탯·적·보스·스테이지)는 data/*.json, 엔진·화면·연출 값은 여기. */
 import { CELL_H, CELL_W } from '../systems/mapgen/types';
 
+/** 월드 타일 크기(월드 단위). 50라운드: 판정·이동·데이터 수치는 이 단위 그대로 (RENDER 참고) */
 export const TILE = 16;
+
+/**
+ * 50라운드 렌더 배율 (결정 round-50 Q2 '캐릭터 32×48·타일 32×32·카메라 확대 1배(화면상 크기 유사)', 계약 art §9).
+ * 설계: 월드 좌표·판정·속도는 그대로 두고 **렌더 배율만** 바꾼다. 월드 1단위 = 화면 WORLD_TO_SCREEN px (= 게임 카메라 배율
+ * CAMERA.ZOOM). 새 2배 도트(pixelScale 1)는 0.5 배로 그려 도트 1px = 화면 1px(= '카메라 1배' 의 화면), 기존 도트(pixelScale 없음 = 2)는
+ * 그대로 1배(= 화면 2px) — 같은 화면 크기. 근거는 parts/system/README.md 50라운드 절
+ */
+export const RENDER = {
+  WORLD_TO_SCREEN: 2,
+  /** JSON pixelScale 이 없는 기존 도트의 배율 */
+  LEGACY_PIXEL_SCALE: 2,
+} as const;
 
 export const CELL = {
   W_TILES: CELL_W,
@@ -50,6 +63,8 @@ export const ASSETS = {
   MANIFEST: 'manifest.json',
   SPRITES_DIR: 'sprites',
   TILES_DIR: 'tiles',
+  /** 50라운드 새 2배 도트 하위 폴더 (`sprites/player/v2/…`, `tiles/v2/…`) — 있으면 기존보다 먼저 */
+  V2_DIR: 'v2',
   /** 층 타일셋 파일 이름 접두 (`stage1.json`) */
   STAGE_PREFIX: 'stage',
   /** 음향 산출물 폴더와 매니페스트 (`assets/audio/manifest.json`, 음향↔시스템 계약 초안) */
@@ -122,12 +137,28 @@ export const DEPTH = {
   TRAIL: 4.2,
   /** 피격 이펙트 (타격 섬광·피·치명 버스트): 개체·공격 판정 위 */
   HIT_FX: 4.5,
+  /**
+   * 50라운드 동적 조명: 라이트맵(곱하기)이 덮는 깊이. 이보다 아래(바닥·벽·개체·구조물·개체 위 이펙트)는 어둠에 잠기고,
+   * 위(드랍·투사체·공격 판정·잔상·피격 이펙트·데미지 숫자·화면 섬광)는 그대로 읽힌다. 빛 번짐·비네팅은 그 바로 위
+   */
+  LIGHTMAP: 2,
+  LIGHT_LAYER_STEP: 0.01,
   /** 데미지 숫자: 월드 요소 중 가장 위 */
   DAMAGE_TEXT: 5,
   /** 화면 섬광·색 오버레이 (42라운드): 월드 최상. UI 는 별도 씬이라 덮지 않는다 */
   SCREEN_FX: 50,
   DEBUG: 100,
 };
+
+/**
+ * 50라운드 쿼터뷰 벽 (계약 art §9: 벽 앞면 세로 wallHeightTiles 칸 + 윗면, 출입·충돌은 바닥 격자 기준). 임시값
+ */
+export const QUARTER = {
+  /** 캐릭터가 벽 뒤에 가려지면 그 벽 그림을 이만큼 비친다 (가려진 채 길을 잃지 않게, 임시) */
+  OCCLUDE_ALPHA: 0.55,
+  /** 가림 판정 여유 (월드 px) */
+  OCCLUDE_PAD_PX: 2,
+} as const;
 
 /** 발 위치 y 로 깊이를 정한다 (아래쪽이 앞) */
 export function entityDepth(y: number): number {
@@ -197,7 +228,7 @@ export const CAMERA = {
    * 48라운드 Q1: 게임 월드 카메라 확대 (내부 960×540 유지 → 한 화면 약 30×17타일). UI 씬은 별도 카메라라 무관.
    * 데드존·흔들림 px 는 화면 px 기준이라 월드 px 로는 ÷ZOOM 해서 쓴다 (흔들림 체감 유지, 임시)
    */
-  ZOOM: 2,
+  ZOOM: RENDER.WORLD_TO_SCREEN,
 };
 
 /**
@@ -636,22 +667,6 @@ export const TRAVERSAL = {
     DOT_MS: 220,
     DOT_COLOR: 0x6c6f73,
   },
-  /**
-   * 워프 (45라운드 Q3): 퇴장 섬광 → OUT_MS 뒤 이동·카메라 즉시 이동·도착 섬광 → IN_LOCK_MS 동안 입력 잠금 유지.
-   * 무적은 시작부터 INVULN_MS. 섬광 색은 코어 X1(기본 섬광과 같은 #fff4dc). `feelSettings.flash` 를 따른다
-   */
-  WARP: {
-    OUT_MS: 140,
-    IN_LOCK_MS: 160,
-    INVULN_MS: 600,
-    FLASH_OUT: { COLOR: 0xfff4dc, MS: 160, ALPHA: 0.55 },
-    FLASH_IN: { COLOR: 0xfff4dc, MS: 220, ALPHA: 0.4 },
-    /** 착지점: 몸 반경(칸, 3×3 바닥) · 출구·상점 타일에서 떨어질 거리(칸) */
-    SAFE_BODY_TILES: 1,
-    SAFE_HAZARD_TILES: 3,
-    /** 출발·도착 지점에 dash_dust 1회 (시트가 있을 때) */
-    DUST_SHEET: 'dash_dust',
-  },
 };
 
 /**
@@ -663,6 +678,8 @@ export const STRUCTURE_FX = {
   SHEET_ACTION: 'st',
   /** 바닥형(링·룰렛) 깊이: 소품 위, 그림자 아래 */
   FLOOR_DEPTH: 0.6,
+  /** 50라운드 occludeAbove 받침(피벗~occludeAbove 높이) 깊이: 바닥형 위, 그림자·개체 아래 */
+  OCCLUDE_BASE_DEPTH: 0.7,
   /** 플레이스홀더: 채움 알파 · 바닥형 채움 알파 · 테두리 · 글자 */
   FILL_ALPHA: 0.9,
   FLOOR_FILL_ALPHA: 0.22,

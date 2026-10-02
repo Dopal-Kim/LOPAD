@@ -2,11 +2,14 @@
  * 구조물 그림 (47라운드, 계약 art-assets §5). 시트가 있으면 상태별 프레임·애니, 없으면 플레이스홀더 도형
  * (데이터 placeholder.color 채움 + 짧은 글자). 층 램프 스왑은 spriteLibrary 의 현재 층 변형(@f<n>)을 그대로 쓴다.
  * 위치 기준 = 발판(footprint) 아래 가운데 (계약 pivot). 시트에 없는 상태는 대체 상태 → idle 첫 프레임.
+ * 50라운드 계약 §9: 새 2배 도트(pixelScale 1)는 0.5 배로 · `occludeAbove` 가 있으면 그 높이 아래(받침)는 바닥 깊이, 위는 Y 정렬
+ * (그 위로만 캐릭터를 가린다) · JSON `light`(없으면 data/lighting.json fallback)가 있으면 광원 — 부서지거나 숨으면 꺼진다.
  */
 import Phaser from 'phaser';
 import { DEPTH, STRUCTURE_FX, entityDepth } from '../core/Constants';
+import { lightFor, lightRegistryOf, type LightSource } from '../systems/lighting/lightRegistry';
 import { spriteLibrary } from '../systems/sprites';
-import { STRUCTURE_ACTION, frameDurations, structureStateFrames, type SheetDef } from '../systems/spriteDefs';
+import { STRUCTURE_ACTION, artScale, frameDurations, structureStateFrames, type SheetDef } from '../systems/spriteDefs';
 
 /** 시트에 그 상태가 없을 때 차례로 볼 대체 상태 */
 export function stateFallbacks(state: string): string[] {
@@ -33,6 +36,8 @@ export interface StructureViewOptions {
   scale?: number;
   /** 눈치챌 수 있을 만큼만 (숨은 벽: 금 1px) */
   subtle?: boolean;
+  /** 광원을 달지 않는다 */
+  unlit?: boolean;
 }
 
 export class StructureView {
@@ -43,15 +48,19 @@ export class StructureView {
   readonly def: SheetDef | undefined;
   private state = 'idle';
   private pulse: Phaser.Tweens.Tween | null = null;
+  /** 시트 배율 × 도트 배율 (월드) */
   private readonly scale: number;
+  /** occludeAbove: 받침(바닥 깊이) 스프라이트 — 본 스프라이트는 그 위만 그린다 */
+  private base: Phaser.GameObjects.Sprite | null = null;
+  private light: LightSource | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly opts: StructureViewOptions,
   ) {
     const r = opts.rect;
-    this.scale = opts.scale ?? 1;
     const def = spriteLibrary.sheet(opts.sheet, STRUCTURE_ACTION);
+    this.scale = (opts.scale ?? 1) * (def ? artScale(def) : 1);
     const texture = spriteLibrary.textureKey(opts.sheet, STRUCTURE_ACTION);
     if (def && texture && scene.textures.exists(texture)) {
       this.def = def;
@@ -59,6 +68,9 @@ export class StructureView {
         .sprite(r.centerX, r.bottom, texture, structureStateFrames(def, 'idle')[0])
         .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
         .setScale(this.scale);
+      this.splitOcclusion(def, texture);
+      const ld = opts.unlit ? null : lightFor(opts.sheet, def);
+      if (ld) this.light = lightRegistryOf(scene).add(ld, { x: r.centerX, y: r.bottom, anchor: this.sprite });
     } else if (opts.subtle) {
       // 숨은 벽: 벽 타일 위 금 간 1px 호박 빛 (40라운드 '문 틈 빛'과 같은 언어)
       const g = scene.add.graphics();
@@ -79,6 +91,35 @@ export class StructureView {
     }
     this.applyDepth();
   }
+
+  /**
+   * occludeAbove (월드 단위로 바뀐 값): 피벗에서 그 높이까지는 받침 스프라이트(바닥 깊이, 캐릭터 아래), 그 위는 본 스프라이트(Y 정렬).
+   * 두 스프라이트는 같은 프레임을 보인다(본 스프라이트 프레임이 바뀔 때마다 받침도)
+   */
+  private splitOcclusion(def: SheetDef, texture: string): void {
+    const sprite = this.sprite!;
+    const h = def.occludeAbove;
+    if (typeof h !== 'number' || !(h > 0) || this.opts.floor || def.depth === 'floor') return;
+    const cut = Math.max(0, Math.min(def.frameHeight, Math.round(def.pivot.y - h / this.scale)));
+    sprite.setCrop(0, 0, def.frameWidth, cut);
+    const base = this.scene.add
+      .sprite(sprite.x, sprite.y, texture, sprite.frame.name)
+      .setOrigin(sprite.originX, sprite.originY)
+      .setScale(this.scale)
+      .setCrop(0, cut, def.frameWidth, def.frameHeight - cut)
+      .setDepth(STRUCTURE_FX.OCCLUDE_BASE_DEPTH);
+    this.base = base;
+    const sync = () => {
+      if (base.active && sprite.active)
+        base.setFrame(sprite.frame.name).setVisible(sprite.visible).setAlpha(sprite.alpha);
+    };
+    sprite.on(Phaser.Animations.Events.ANIMATION_UPDATE, sync);
+    sprite.on(Phaser.Animations.Events.ANIMATION_START, sync);
+    this.syncBase = sync;
+  }
+
+  /** 받침 스프라이트를 본 스프라이트와 맞춘다 (프레임·보임) */
+  private syncBase: () => void = () => {};
 
   private get color(): number {
     return Phaser.Display.Color.HexStringToColor(this.opts.color).color;
@@ -121,6 +162,7 @@ export class StructureView {
     r.x = cx - r.width / 2;
     r.y = bottom - r.height;
     this.sprite?.setPosition(cx, bottom);
+    this.base?.setPosition(cx, bottom);
     this.shape?.setPosition(cx, r.centerY);
     this.label?.setPosition(cx, r.centerY);
     this.applyDepth();
@@ -129,6 +171,7 @@ export class StructureView {
   /** 회전 (구르는 술통: 그려진 방향 기준). 플레이스홀더는 무시 */
   setRotation(rad: number): void {
     this.sprite?.setRotation(rad);
+    this.base?.setRotation(rad);
   }
 
   /** 특정 프레임에 멈춰 보인다 (룰렛 정지 칸) */
@@ -136,6 +179,7 @@ export class StructureView {
     if (!this.sprite || !this.def) return;
     this.sprite.anims.stop();
     this.sprite.setFrame(Math.max(0, Math.min(this.def.frames - 1, frame)));
+    this.syncBase();
   }
 
   setState(state: string): void {
@@ -204,12 +248,17 @@ export class StructureView {
     if (state === 'broken' && !def.states?.broken) {
       this.debris();
       sprite.setVisible(false);
+      this.syncBase();
+      if (this.light) this.light.enabled = false;
       return;
     }
     sprite.setVisible(true).setAlpha(state === 'used' && !def.states?.used ? STRUCTURE_FX.USED_ALPHA : 1);
+    // 광원: 부서지거나 다 쓴(불이 꺼진) 구조물은 끈다
+    if (this.light) this.light.enabled = state !== 'broken' && state !== 'used';
     if (frames.length <= 1) {
       sprite.anims.stop();
       sprite.setFrame(frames[0]);
+      this.syncBase();
       return;
     }
     const loop = def.stateLoop?.[name] ?? (name === 'active' || name === 'ready');
@@ -253,6 +302,8 @@ export class StructureView {
 
   destroy(): void {
     this.pulse?.stop();
+    if (this.light) lightRegistryOf(this.scene).remove(this.light);
+    this.base?.destroy();
     this.sprite?.destroy();
     this.shape?.destroy();
     this.label?.destroy();

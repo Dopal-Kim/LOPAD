@@ -7,7 +7,8 @@ import Phaser from 'phaser';
 import { STRUCTURE_FX, TILE, entityDepth } from '../core/Constants';
 import { ROUTE, type SetPieceViewDef } from '../systems/route';
 import { spriteLibrary } from '../systems/sprites';
-import { FX_ACTION, STRUCTURE_ACTION } from '../systems/spriteDefs';
+import { FX_ACTION, STRUCTURE_ACTION, artScale } from '../systems/spriteDefs';
+import { lightFor, lightRegistryOf } from '../systems/lighting/lightRegistry';
 import type { DecorPlacement, SetPiecePlan } from '../systems/structures/setpiece';
 import { StructureView } from './StructureView';
 
@@ -97,14 +98,18 @@ export class SetPieceView {
     const texture = spriteLibrary.textureKey(V.wispSheet, FX_ACTION);
     const anim = spriteLibrary.animKey(V.wispSheet, FX_ACTION, 'down');
     let obj: Shape;
+    const def = spriteLibrary.sheet(V.wispSheet, FX_ACTION);
     if (texture && anim) {
-      const s = this.scene.add.sprite(x, y, texture, 0);
+      const s = this.scene.add.sprite(x, y, texture, 0).setScale(def ? artScale(def) : 1);
       s.play({ key: anim, repeat: -1, startFrame: i });
       obj = s;
     } else {
       obj = this.scene.add.circle(x, y, V.wispRadiusPx, hex(V.wispColor), V.wispAlpha[1]);
     }
     obj.setDepth(entityDepth(y));
+    // 50라운드 조명: 혼불은 은은한 빛 (시트 JSON light → fallback soul_wisp)
+    const light = lightFor(V.wispSheet, def);
+    if (light) lightRegistryOf(this.scene).add(light, { x, y, anchor: obj });
     this.wisps.push(obj);
     this.tweens.push(
       this.scene.tweens.add({

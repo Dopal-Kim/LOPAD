@@ -158,6 +158,9 @@ export interface DebugApi {
   lab: () => unknown;
   /** 49라운드 무기 시험장: 'lab' 또는 'labBranch' 메뉴 열기 (L 키와 같은 경로) */
   openLabMenu: (which: 'lab' | 'labBranch') => boolean;
+  /** 50라운드: 조명 요약(켜짐·주변광·광원 수) · 쿼터뷰 벽 요약(없으면 null) */
+  lighting: () => unknown;
+  quarter: () => unknown;
 }
 
 export interface StructureDebugInfo {
@@ -306,6 +309,8 @@ export function exposeDebug(api: {
   setResource: (value: number) => boolean;
   lab: () => unknown;
   openLabMenu: (which: 'lab' | 'labBranch') => boolean;
+  lighting: () => unknown;
+  quarter: () => unknown;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -450,6 +455,8 @@ export function exposeDebug(api: {
     setResource: (v) => api.setResource(v),
     lab: () => api.lab(),
     openLabMenu: (which) => api.openLabMenu(which),
+    lighting: () => api.lighting(),
+    quarter: () => api.quarter(),
     doorsOf: (roomId) =>
       api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };

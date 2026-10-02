@@ -4,7 +4,7 @@
  * - walls: 상/하/좌/우/모서리 자동타일 (있으면)
  * - props: 방 바닥 소품 (시드 결정적 배치)
  */
-import { ASSETS, TEXTURES } from '../core/Constants';
+import { ASSETS, TEXTURES, TILE } from '../core/Constants';
 import { TileId, type FloorLayout, type Room } from '../systems/mapgen';
 import type { RoomType } from '../systems/mapgen/types';
 import { Rng, hashSeed } from '../systems/rng';
@@ -13,6 +13,8 @@ export interface PropDef {
   index: number;
   name: string;
   solid: boolean;
+  /** 50라운드 계약 §9: 광원 (반경 = 시트 도트 px) */
+  light?: { color?: string; radius: number; intensity?: number; flicker?: number };
   /** 40라운드: 방당 최대 개수 (없으면 제한 없음) */
   maxPerRoom?: number;
   /** 40라운드: 배치 가중치 (기본 1, 0 이면 놓지 않음) */
@@ -29,7 +31,17 @@ export interface TilesetJson {
   tileWidth?: number;
   tileHeight?: number;
   tiles: Record<string, number[]>;
-  walls?: Partial<Record<WallKey, number>>;
+  /**
+   * 자동타일 벽(기존) — 50라운드 쿼터뷰(wallHeightTiles 가 있을 때)는 의미가 다르다: front = 벽 앞면(아랫단, 배열이면
+   * [아랫단, 윗단]), frontUpper = 앞면 윗단, top = 윗면(벽 꼭대기)
+   */
+  walls?: Partial<Record<WallKey | 'front' | 'frontUpper', number | number[]>>;
+  /** 50라운드 계약 §9: 도트 배율 (새 2배 도트 = 1) */
+  pixelScale?: number;
+  /** 50라운드 계약 §9: 벽 앞면 높이(칸). 있으면 쿼터뷰 벽으로 그린다 */
+  wallHeightTiles?: number;
+  /** 50라운드: 앞면 윗단 인덱스 (walls.frontUpper 와 같은 뜻, 둘 중 하나) */
+  wallFrontUpper?: number;
   props?: PropDef[];
   /** 37라운드: 방 종류별 바닥 인덱스 목록. 키가 없거나 비면 tiles["1"] */
   roomFloors?: Partial<Record<RoomType, number[]>>;
@@ -121,6 +133,8 @@ export class TileSkin {
   readonly roomFloors = new Map<RoomType, number[]>();
   readonly solidIndices: number[];
   readonly props: PropDef[];
+  /** 50라운드 쿼터뷰 벽 (wallHeightTiles 가 있는 타일셋만) */
+  readonly quarter: QuarterWalls | null;
 
   constructor(
     /** 타일셋 텍스처 키 */
@@ -135,7 +149,12 @@ export class TileSkin {
       this.variants.set(id, idx);
       for (const i of idx) if (!this.reverse.has(i)) this.reverse.set(i, id);
     }
-    for (const i of Object.values(def.walls ?? {})) if (typeof i === 'number') this.reverse.set(i, TileId.Wall);
+    for (const v of Object.values(def.walls ?? {}))
+      for (const i of Array.isArray(v) ? v : [v]) if (typeof i === 'number') this.reverse.set(i, TileId.Wall);
+    this.quarter = quarterWallsOf(def);
+    if (this.quarter)
+      for (const i of [...this.quarter.frontLower, this.quarter.frontUpper, this.quarter.top])
+        this.reverse.set(i, TileId.Wall);
     for (const type of ROOM_TYPES) {
       const list = def.roomFloors?.[type];
       if (!Array.isArray(list) || list.length === 0) continue;
@@ -199,6 +218,60 @@ export class TileSkin {
   get stageTextureKey(): string {
     return this.textureKey;
   }
+
+  /** 시트 타일 한 칸 크기 (px). 50라운드 새 타일셋 = 32 */
+  get tilePx(): number {
+    return this.def.tileWidth && this.def.tileWidth > 0 ? this.def.tileWidth : TILE;
+  }
+
+  /** 빈 칸(void) 인덱스 */
+  get voidIndex(): number {
+    return this.variants.get(TileId.Void)![0];
+  }
+}
+
+/** 50라운드 쿼터뷰 벽 인덱스 */
+export interface QuarterWalls {
+  /** 벽 앞면 높이 (칸) */
+  heightTiles: number;
+  /** 앞면 아랫단 (변형 목록 — 좌표 해시로 섞는다) */
+  frontLower: number[];
+  /** 앞면 윗단 (2칸 이상이면 아랫단 위 모든 칸) */
+  frontUpper: number;
+  /** 윗면 (벽 꼭대기) */
+  top: number;
+}
+
+/** 계약 art §9 인덱스 표 v3 의 벽 앞면 · 윗면 기본 자리 */
+const V3_WALL_FRONT = 5;
+const V3_WALL_TOP = 6;
+
+/**
+ * 쿼터뷰 벽 읽기 (계약 art §9: walls.front = 앞면 아랫단(인덱스 5), 윗단 = 새 인덱스(walls.frontUpper · wallFrontUpper ·
+ * walls.front 배열 둘째), walls.top = 윗면(인덱스 6), wallHeightTiles). wallHeightTiles 가 없으면 null (기존 평면 벽)
+ */
+export function quarterWallsOf(def: TilesetJson): QuarterWalls | null {
+  const h = def.wallHeightTiles;
+  if (typeof h !== 'number' || !(h >= 1)) return null;
+  const w = def.walls ?? {};
+  const num = (v: unknown): number | undefined => (typeof v === 'number' ? v : undefined);
+  const front = Array.isArray(w.front)
+    ? w.front.filter((v) => typeof v === 'number')
+    : ([num(w.front)].filter((v) => v !== undefined) as number[]);
+  const lower = front[0] ?? V3_WALL_FRONT;
+  const wallList = def.tiles[String(TileId.Wall)] ?? [];
+  const frontLower = wallList.length > 1 && wallList[0] === lower ? [...wallList] : [lower];
+  const upperRaw =
+    num(w.frontUpper) ??
+    (Array.isArray(w.frontUpper) ? w.frontUpper[0] : undefined) ??
+    num(def.wallFrontUpper) ??
+    front[1];
+  return {
+    heightTiles: Math.max(1, Math.floor(h)),
+    frontLower,
+    frontUpper: upperRaw ?? lower,
+    top: num(w.top) ?? V3_WALL_TOP,
+  };
 }
 
 /** Preloader 가 채우는 층 → 타일셋 (없는 층은 플레이스홀더) */
@@ -215,6 +288,11 @@ export function namedTilesetTextureKey(name: string): string {
 /** 지역 타일셋 JSON 경로 (`tiles/stage1_waste.json`) */
 export function namedTilesetJsonPath(name: string): string {
   return `${ASSETS.TILES_DIR}/${name}.json`;
+}
+
+/** 50라운드 새 2배 도트 지역 타일셋 경로 (`tiles/v2/stage1_outer.json`) — 있으면 기존보다 먼저 */
+export function namedTilesetJsonPathV2(name: string): string {
+  return `${ASSETS.TILES_DIR}/${ASSETS.V2_DIR}/${name}.json`;
 }
 
 /**

@@ -79,9 +79,6 @@ export const Events = {
   MENU_SELECTED: 'menu:selected',
   MENU_CLOSED: 'menu:closed',
   GAME_RESTART: 'game:restart',
-  /** 45라운드 워프: 시작(퇴장 섬광) · 도착 (음향 훅 후보, 현재 매핑 없음) */
-  WARP_STARTED: 'warp:started',
-  WARP_ARRIVED: 'warp:arrived',
   /** 47라운드 구조물 (음향 훅): 맞음 · 부서짐 · 사용 완료 · 불붙음 · 판돈 종 · 룰렛 · 도전 시작/끝 */
   STRUCTURE_HIT: 'structure:hit',
   STRUCTURE_BROKEN: 'structure:broken',
@@ -165,8 +162,6 @@ export type TrialClearedPayload = { roomId: string; cleared: number; total: numb
 export type BossPhasePayload = { phase: number; hp: number; maxHp: number };
 export type WeaponEvolvedPayload = { weapon: string; stage: number; name: string };
 export type WeaponReinforcedPayload = { weapon: string; reinforce: number; name: string };
-/** 45라운드 워프 (시작·도착 공통) */
-export type WarpPayload = { fromRoomId: string; roomId: string; x: number; y: number };
 /** 47라운드 구조물 이벤트 (내부, 음향 훅). kind = 계약 UiStructureKind */
 export type StructureEventPayload = { id: string; kind: string; roomId: string; actionKey?: string };
 export type StructureFirePayload = { target: 'weapon' | 'arrow' | 'pool' | 'burn' };

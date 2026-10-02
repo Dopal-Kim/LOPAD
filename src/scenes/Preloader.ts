@@ -12,6 +12,8 @@ import {
   allFxSheetIds,
   normalizeStructureSheet,
   sheetJsonPath,
+  sheetJsonPathV2,
+  sheetToWorldUnits,
   sheetTextureKey,
   wantedSheets,
   type SheetDef,
@@ -20,6 +22,7 @@ import {
 import {
   TileSkin,
   namedTilesetJsonPath,
+  namedTilesetJsonPathV2,
   namedTilesetTextureKey,
   regionSkins,
   tileSkins,
@@ -47,8 +50,8 @@ export class Preloader extends Phaser.Scene {
   private manifest: Set<string> | null = null;
   private pendingSheets: { req: ReturnType<typeof wantedSheets>[number]; jsonKey: string; dir: string }[] = [];
   private pendingTiles: { floor: number; jsonKey: string }[] = [];
-  /** 49라운드 art §7.3: 지역 타일셋 (tiles/stage1_<region>.json) */
-  private pendingRegionTiles: { name: string; jsonKey: string }[] = [];
+  /** 49라운드 art §7.3: 지역 타일셋 (tiles/stage1_<region>.json, 50라운드: tiles/v2/ 가 있으면 먼저) */
+  private pendingRegionTiles: { name: string; jsonKey: string; dir: string }[] = [];
   private audioManifestQueued = false;
 
   constructor() {
@@ -75,6 +78,9 @@ export class Preloader extends Phaser.Scene {
   /** 매니페스트에 있는(또는 매니페스트가 없으면 전부) 시트·타일셋 JSON 을 큐에 넣는다 */
   private queueJsons(): void {
     const exists = (rel: string) => this.manifest === null || this.manifest.has(rel);
+    // 50라운드 새 2배 도트(`v2/`)는 매니페스트에 있을 때만 (매니페스트가 없으면 기존 경로)
+    const listed = (rel: string) => this.manifest !== null && this.manifest.has(rel);
+    const dirOf = (rel: string) => rel.slice(0, rel.lastIndexOf('/') + 1);
     this.pendingSheets = [];
     for (const req of wantedSheets(
       Object.keys(ENEMIES),
@@ -83,11 +89,12 @@ export class Preloader extends Phaser.Scene {
       allFxSheetIds(WEAPONS),
       allStructureSprites(),
     )) {
-      const rel = sheetJsonPath(req);
+      const v2 = sheetJsonPathV2(req);
+      const rel = listed(v2) ? v2 : sheetJsonPath(req);
       if (!exists(rel)) continue;
       const jsonKey = `json_${sheetTextureKey(req.name, req.action)}`;
       this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
-      this.pendingSheets.push({ req, jsonKey, dir: rel.slice(0, rel.lastIndexOf('/') + 1) });
+      this.pendingSheets.push({ req, jsonKey, dir: dirOf(rel) });
     }
     this.pendingTiles = [];
     for (let floor = 1; floor <= RUN.order.length; floor++) {
@@ -99,11 +106,12 @@ export class Preloader extends Phaser.Scene {
     }
     this.pendingRegionTiles = [];
     for (const name of regionTilesets()) {
-      const rel = namedTilesetJsonPath(name);
+      const v2 = namedTilesetJsonPathV2(name);
+      const rel = listed(v2) ? v2 : namedTilesetJsonPath(name);
       if (!exists(rel)) continue;
       const jsonKey = `json_${namedTilesetTextureKey(name)}`;
       this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
-      this.pendingRegionTiles.push({ name, jsonKey });
+      this.pendingRegionTiles.push({ name, jsonKey, dir: dirOf(rel) });
     }
     this.audioManifestQueued = exists(audioManifestRel());
     if (this.audioManifestQueued) this.load.json(AUDIO_MANIFEST_KEY, `${ASSETS.URL}/${audioManifestRel()}`);
@@ -132,8 +140,8 @@ export class Preloader extends Phaser.Scene {
     for (const p of this.pendingSheets) {
       const raw = this.cache.json.get(p.jsonKey) as SheetJson | undefined;
       if (!raw || !raw.image || !(raw.frameWidth > 0) || !(raw.frameHeight > 0) || !(raw.frames > 0)) continue;
-      // 구조물 시트(계약 §5)는 fps·loop·directions·pivot 을 생략할 수 있다
-      const json = p.req.category === 'structures' ? normalizeStructureSheet(raw) : raw;
+      // 구조물 시트(계약 §5)는 fps·loop·directions·pivot 을 생략할 수 있다. 50라운드: 메모 길이는 월드 단위로 (pixelScale)
+      const json = sheetToWorldUnits(p.req.category === 'structures' ? normalizeStructureSheet(raw) : raw);
       const textureKey = sheetTextureKey(p.req.name, p.req.action);
       const imageUrl = `${ASSETS.URL}/${p.dir}${json.image}`;
       // 동작 이름은 요청 기준 (이펙트 시트의 JSON action 은 파일 이름과 같아 내부 동작 'fx' 로 통일)
@@ -156,7 +164,7 @@ export class Preloader extends Phaser.Scene {
       if (!json || !json.image || !json.tiles) continue;
       const key = namedTilesetTextureKey(p.name);
       regionTiles.push({ name: p.name, json, key });
-      if (!this.textures.exists(key)) this.load.image(key, `${ASSETS.URL}/${ASSETS.TILES_DIR}/${json.image}`);
+      if (!this.textures.exists(key)) this.load.image(key, `${ASSETS.URL}/${p.dir}${json.image}`);
     }
     const audioQueue = this.queueAudio();
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
@@ -191,7 +199,11 @@ export class Preloader extends Phaser.Scene {
     // 49라운드: ?lab 이면 무기 시험장으로 바로 (검증용, ?weapon= 으로 무기)
     if (params.has('lab'))
       return [SCENES.WEAPON_LAB, forcedWeapon && WEAPONS[forcedWeapon] ? { labWeapon: forcedWeapon } : {}];
-    if (forcedWeapon && WEAPONS[forcedWeapon]) return [SCENES.GAME, { mode: 'new', weapon: forcedWeapon }];
+    const weapon = forcedWeapon && WEAPONS[forcedWeapon] ? forcedWeapon : undefined;
+    // 50라운드: ?slice=<지역> 이면 새 런으로 그 지역 전투 노드에 바로 (외곽 거리 시범 확인용)
+    const slice = params.get('slice');
+    if (slice) return [SCENES.GAME, { mode: 'new', weapon, slice }];
+    if (weapon) return [SCENES.GAME, { mode: 'new', weapon }];
     const skipTitle = params.has('new') || params.has('seed') || params.has('notitle');
     if (!skipTitle && this.scene.manager.keys[UI_SCENES.TITLE]) return [UI_SCENES.TITLE];
     const hasSave = !params.has('new') && !params.has('seed') && new SaveSlot(browserStorage()).read() !== null;

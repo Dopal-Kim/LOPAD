@@ -2,7 +2,7 @@
  * 스프라이트 시트 정의 (계약 contracts/art-assets.md §1). Phaser 의존 없음.
  * 로드 대상 목록·키 규칙·재생 시간 계산을 담당하고, 실제 로드·애니 등록은 systems/sprites.ts.
  */
-import { ASSETS, TEXTURES } from '../core/Constants';
+import { ASSETS, RENDER, TEXTURES } from '../core/Constants';
 
 /** structures = 47라운드 상호작용 구조물 시트 (계약 art-assets §5, `sprites/structures/<id>.json`) */
 export type SpriteCategory = 'player' | 'enemies' | 'bosses' | 'weapons' | 'fx' | 'structures';
@@ -133,9 +133,32 @@ export const FX_ACTION = 'fx';
 /** 계약 §3.1 이펙트 앵커 */
 export type FxAnchor = 'player_pivot' | 'hitbox_center' | 'projectile' | 'ui';
 
+/**
+ * 50라운드 계약 art §9 광원: 이 시트(소품·구조물·이펙트)를 그리는 동안 주변을 밝힌다.
+ * color = '#rrggbb' 또는 팔레트 경로, radius = 반경 px(시트 도트 기준 — pixelScale 로 월드 환산), intensity 0..1,
+ * flicker = 깜빡임 세기 0..1 (없으면 고정)
+ */
+export interface LightSpec {
+  color?: string;
+  radius: number;
+  intensity?: number;
+  flicker?: number;
+  /** 광원 중심: 피벗에서 위로 px (시트 도트 기준, 없으면 프레임 세로 중앙) — 시스템 확장 필드 */
+  offsetY?: number;
+}
+
 /** 계약 §1 JSON 필드 (+ §3.1 보강 필드는 선택) */
 export interface SheetJson {
   image: string;
+  /**
+   * 50라운드 계약 §9: 도트 배율. 새 2배 도트(32×48 캐릭터·32px 타일) = 1, 기존 도트 = 없음/2.
+   * 시스템은 기존 도트를 2배로 그려 화면 크기를 맞춘다 (`artScale`)
+   */
+  pixelScale?: number;
+  /** 50라운드 계약 §9: 높이가 있는 구조물·소품 — 피벗(바닥 접점)에서 이 높이(px, 시트 도트) 위로는 캐릭터를 가린다 */
+  occludeAbove?: number;
+  /** 50라운드 계약 §9: 광원 */
+  light?: LightSpec;
   action: string;
   frameWidth: number;
   frameHeight: number;
@@ -287,6 +310,43 @@ export interface PhaseFrames {
   telegraph?: number[];
   dash?: number[];
   recover_or_fan?: number[];
+}
+
+/**
+ * 50라운드 계약 §9: 시트 도트 1px 이 월드 몇 단위인지. 월드 1단위 = 화면 RENDER.WORLD_TO_SCREEN px 이므로
+ * 기존 도트(pixelScale 없음 = 2) → 1, 새 2배 도트(pixelScale 1) → 0.5 (도트 1px = 화면 1px)
+ */
+export function artScale(def: Pick<SheetJson, 'pixelScale'>): number {
+  const ps = typeof def.pixelScale === 'number' && def.pixelScale > 0 ? def.pixelScale : RENDER.LEGACY_PIXEL_SCALE;
+  return ps / RENDER.WORLD_TO_SCREEN;
+}
+
+/**
+ * 시트 메모 중 월드 길이 필드(판정 반경·찌르기·착지 오프셋·광원 반경 등)를 월드 단위로 바꾼 사본.
+ * 프레임 크기·피벗·프레임 좌표 필드(fireBox·stakes·flagpost)는 텍스처 좌표라 그대로 둔다. 기존 도트는 그대로(배율 1)
+ */
+export function sheetToWorldUnits<T extends SheetJson>(json: T): T {
+  const k = artScale(json);
+  if (k === 1) return json;
+  const out: T = { ...json };
+  const px = (v: number | undefined) => (typeof v === 'number' ? v * k : v);
+  if (typeof json.hitRadiusPx === 'number') out.hitRadiusPx = json.hitRadiusPx * k;
+  if (json.thrust)
+    out.thrust = {
+      ...json.thrust,
+      lengthPx: json.thrust.lengthPx * k,
+      widthPx: json.thrust.widthPx * k,
+      fromPx: px(json.thrust.fromPx),
+    };
+  if (json.impactOffsetPx) {
+    const o: Partial<Record<Facing, { x: number; y: number }>> = {};
+    for (const [d, v] of Object.entries(json.impactOffsetPx)) if (v) o[d as Facing] = { x: v.x * k, y: v.y * k };
+    out.impactOffsetPx = o;
+  }
+  if (typeof json.impactDistancePx === 'number') out.impactDistancePx = json.impactDistancePx * k;
+  if (json.light) out.light = { ...json.light, radius: json.light.radius * k, offsetY: px(json.light.offsetY) };
+  if (typeof json.occludeAbove === 'number') out.occludeAbove = json.occludeAbove * k;
+  return out;
 }
 
 /** 프레임별 시작 시각(ms) 누적. scale 은 재생 배속 (natural / fit) */
@@ -548,6 +608,16 @@ export function fxDepthHint(def: Pick<SheetJson, 'depth'>): 'above' | 'below' | 
 export function sheetJsonPath(r: SheetRequest): string {
   if (r.category === 'fx' || r.category === 'structures') return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}.json`;
   return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}_${r.action}.json`;
+}
+
+/**
+ * 50라운드: 새 2배 도트 시트 경로 `sprites/<분류>/v2/<파일>` (예: `sprites/player/v2/player_idle.json`,
+ * `sprites/enemies/v2/charger_walk.json`). 매니페스트에 있으면 기존 경로보다 먼저 쓴다
+ */
+export function sheetJsonPathV2(r: SheetRequest): string {
+  const base = sheetJsonPath(r);
+  const i = base.lastIndexOf('/');
+  return `${base.slice(0, i)}/${ASSETS.V2_DIR}${base.slice(i)}`;
 }
 
 export function sheetId(name: string, action: string): string {

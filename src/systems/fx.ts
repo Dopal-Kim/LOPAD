@@ -10,9 +10,11 @@
 import Phaser from 'phaser';
 import { PROTOTYPE } from '../core/Constants';
 import { spriteLibrary } from './sprites';
+import { lightFor, lightRegistryOf, type LightSource } from './lighting/lightRegistry';
 import {
   FX_ACTION,
   animDurationMs,
+  artScale,
   animKey,
   frameDurations,
   frameIndices,
@@ -114,6 +116,8 @@ interface FxState {
   elapsed: number;
   lastTick: number;
   timed: FxTimed[];
+  /** 50라운드: 이 이펙트의 광원 (시트 JSON light · fallback · 무기 이펙트 순간광) */
+  light?: LightSource;
 }
 
 export class FxPool {
@@ -169,7 +173,8 @@ export class FxPool {
     const token = this.nextToken++;
     sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
     sprite.anims.stop();
-    const scale = sheetScale(def);
+    // 50라운드: 새 2배 도트 이펙트(pixelScale 1)는 0.5 배로 그려 화면 크기를 맞춘다
+    const scale = sheetScale(def) * artScale(def);
     const row = frameIndices(def, opts.dir ?? 'down')[0] ?? 0;
     sprite
       .setTexture(texture, row + Math.max(0, Math.min(def.frames - 1, opts.staticFrame ?? 0)))
@@ -202,6 +207,19 @@ export class FxPool {
       timed: [],
     };
     this.states.set(sprite, state);
+    // 50라운드 조명: 광원이 있는 이펙트는 재생 동안 주변을 밝힌다 (루프가 아니면 수명 동안 서서히 약해지는 순간광)
+    const light = lightFor(id, def);
+    if (light) {
+      const life = def.loop || opts.durationMs ? (opts.durationMs ?? Infinity) : animDurationMs(def);
+      state.light = lightRegistryOf(this.scene).add(light, {
+        x,
+        y,
+        anchor: sprite,
+        now,
+        until: now + life,
+        fade: !def.loop,
+      });
+    }
     if (opts.staticFrame === undefined) {
       const anim = opts.tailFrames ? this.tailAnim(id, key, texture, opts.tailFrames, opts.dir ?? 'down') : key;
       sprite.anims.timeScale = 1;
@@ -400,6 +418,7 @@ export class FxPool {
   private release(sprite: Phaser.GameObjects.Sprite): void {
     const st = this.states.get(sprite);
     st?.stopTrail?.();
+    if (st?.light) lightRegistryOf(this.scene).remove(st.light);
     this.states.delete(sprite);
     sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
     sprite.anims.stop();

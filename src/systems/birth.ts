@@ -9,7 +9,7 @@
 import Phaser from 'phaser';
 import { BIRTH, CAMERA, DEPTH, entityDepth } from '../core/Constants';
 import { spriteLibrary } from './sprites';
-import { BIRTH_ACTION, BIRTH_FX, FX_ACTION, frameDurations, frameStarts, type SheetDef } from './spriteDefs';
+import { BIRTH_ACTION, BIRTH_FX, FX_ACTION, artScale, frameDurations, frameStarts, type SheetDef } from './spriteDefs';
 
 export interface BirthHost {
   scene: Phaser.Scene;
@@ -105,6 +105,7 @@ export class BirthSequence {
       this.body = scene.add
         .sprite(this.host.x, this.host.y, tex, 0)
         .setOrigin(this.sheet.pivot.x / this.sheet.frameWidth, this.sheet.pivot.y / this.sheet.frameHeight)
+        .setScale(artScale(this.sheet))
         .setDepth(entityDepth(this.host.y));
       this.playMs = frameDurations(this.sheet).reduce((a, b) => a + b, 0);
       const bf =
@@ -191,6 +192,7 @@ export class BirthSequence {
           this.dustSheet.pivot.x / this.dustSheet.frameWidth,
           this.dustSheet.pivot.y / this.dustSheet.frameHeight,
         )
+        .setScale(artScale(this.dustSheet))
         .setDepth(DEPTH.FX_GROUND);
       const key = this.segmentAnim('swirl', [0, 1, 2, 3], true);
       if (key) this.dust.play(key);

@@ -677,3 +677,46 @@ export interface PaletteData {
   /** 선택: 없으면 시스템 기본색(코어 흰색, 보조색 = 층 강조색) */
   fx?: PaletteFx;
 }
+
+/**
+ * 50라운드 동적 조명 (data/lighting.json, 결정 round-50 Q3 · 계약 art §9). 반경 = 월드 px. 색 '#rrggbb'.
+ * regions 에 있는 지역의 노드 전투장만 어둡게(시범: 외곽 거리), default 는 ?light=1 검증용
+ */
+export interface LightDefData {
+  color?: string;
+  radius: number;
+  intensity?: number;
+  flicker?: number;
+  /** 피벗에서 위로 (월드 px) */
+  offsetY?: number;
+}
+
+export interface LightingAmbient {
+  /** 어둠 색 (곱하기). 흰색 = 어둠 없음 */
+  ambient: string;
+  note?: string;
+}
+
+export interface LightingData {
+  regions: Record<string, LightingAmbient>;
+  default: LightingAmbient;
+  player: LightDefData;
+  /** 한 프레임에 그리는 광원 상한 (가까운 순) */
+  maxLights: number;
+  /** 라이트맵 해상도 배율 (화면 대비) */
+  lightmapScale: number;
+  /** 광원 그라데이션: 중심에서 이 비율까지 거의 그대로, 그 밖은 0 으로 */
+  falloff: number;
+  /** 깜빡임 주파수 범위 (광원마다 다르게) */
+  flickerHz: [number, number];
+  /** 빛 번짐(가산): 알파 · 반경 배율 · 세기 상한 */
+  glow: { alpha: number; radiusMult: number; maxIntensity: number };
+  /** 비네팅: 가장자리 어둠 알파 · 안쪽 투명 반경 비율 */
+  vignette: { alpha: number; inner: number };
+  /** 무기 이펙트 순간광 (시트 JSON light 가 없고 weapon 필드가 있는 이펙트) */
+  weaponFx: LightDefData;
+  /** 적 예고 마커 경고광 (어둠 속 판독성) */
+  telegraph: LightDefData;
+  /** JSON light 가 없는 시트에 다는 임시 광원 (시트 id → 광원) */
+  fallback: Record<string, LightDefData>;
+}

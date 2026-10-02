@@ -3,11 +3,21 @@
  * - 시트가 있으면 애니메이션 스프라이트 + 발 피벗 원점 + 발밑 바디 + 타원 그림자
  * - 없으면 단색 사각형 플레이스홀더 (기존 동작 유지)
  * - 깊이는 발 위치 y 로 정렬
+ * - 50라운드 계약 §9: 시트마다 도트 배율(`pixelScale`)이 다를 수 있다(새 32×48 = 1, 기존 16×24 = 없음/2).
+ *   동작을 바꿀 때 그 시트의 배율·피벗으로 스프라이트 배율·원점을 맞추고, 물리 바디는 월드 크기가 그대로이도록 다시 맞춘다
  */
 import Phaser from 'phaser';
 import { DEPTH, SPRITES, TEXTURES, entityDepth } from '../core/Constants';
 import { spriteLibrary } from '../systems/sprites';
-import { animDurationMs, frameAt, frameDurations, frameStarts, type Facing } from '../systems/spriteDefs';
+import {
+  animDurationMs,
+  artScale,
+  frameAt,
+  frameDurations,
+  frameStarts,
+  type Facing,
+  type SheetJson,
+} from '../systems/spriteDefs';
 
 type Body = Phaser.Physics.Arcade.Body;
 type Host = Phaser.GameObjects.Sprite & { body: Body };
@@ -58,12 +68,14 @@ export class EntityVisual {
   private holdUntil = -1;
   private shadow: Phaser.GameObjects.Image | null = null;
   private readonly baseTint: number;
+  /** 지금 맞춘 시트 배율·피벗 (바뀔 때만 바디를 다시 맞춘다) */
+  private fitKey = '';
 
   constructor(
     private readonly host: Host,
     readonly name: string,
-    bodyW: number,
-    bodyH: number,
+    private readonly bodyW: number,
+    private readonly bodyH: number,
     placeholderColor: number,
   ) {
     const scene = host.scene;
@@ -74,10 +86,7 @@ export class EntityVisual {
     this.animated = Boolean(idle && texture && scene.textures.exists(texture));
     if (idle && texture && this.animated) {
       host.setTexture(texture, 0);
-      host.setOrigin(idle.pivot.x / idle.frameWidth, idle.pivot.y / idle.frameHeight);
-      // 바디는 발밑: 가로 중앙, 아래 끝이 피벗 행 바로 아래
-      host.body.setSize(bodyW, bodyH, false);
-      host.body.setOffset((idle.frameWidth - bodyW) / 2, idle.pivot.y + 1 - bodyH);
+      this.fit(idle);
       const sw = bodyW + SPRITES.SHADOW_PAD;
       this.shadow = scene.add
         .image(host.x, host.y, shadowTexture(scene, sw))
@@ -91,6 +100,30 @@ export class EntityVisual {
       host.setTint(placeholderColor);
     }
     this.sync();
+  }
+
+  /**
+   * 시트 배율·피벗 맞춤: 원점 = 피벗, 배율 = 도트 배율 → 월드 (`artScale`). 바디는 발밑(가로 중앙, 아래 끝이 피벗 바로 아래)에
+   * 월드 크기 bodyW×bodyH 로 — Arcade 바디 크기·오프셋은 프레임 단위 × 스프라이트 배율이라 배율로 나눠 넣는다
+   */
+  private fit(def: Pick<SheetJson, 'frameWidth' | 'frameHeight' | 'pivot' | 'pixelScale'>): void {
+    const s = artScale(def);
+    const key = `${def.frameWidth},${def.frameHeight},${def.pivot.x},${def.pivot.y},${s}`;
+    if (key === this.fitKey) return;
+    this.fitKey = key;
+    const host = this.host;
+    host.setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight);
+    host.setScale(s);
+    // 바디의 배율 캐시(_sx)를 지금 배율로 맞춘 뒤 크기를 넣는다 (다음 물리 단계를 기다리지 않고 바로 맞는 크기)
+    host.body.updateBounds();
+    host.body.setSize(this.bodyW / s, this.bodyH / s, false);
+    host.body.setOffset((def.frameWidth - this.bodyW / s) / 2, def.pivot.y + (1 - this.bodyH) / s);
+  }
+
+  /** 동작 시트로 배율·원점 맞춤 (시트가 없으면 그대로) */
+  private fitAction(action: string): void {
+    const def = spriteLibrary.sheet(this.name, action);
+    if (def) this.fit(def);
   }
 
   /** 48라운드 탄생 연출: 몸·그림자를 숨긴다 (다른 스프라이트가 대신 그린다) */
@@ -107,6 +140,11 @@ export class EntityVisual {
   /** 이 동작의 시트가 있는지 (애니 시트가 있을 때만) */
   hasAction(action: string): boolean {
     return this.animated && Boolean(spriteLibrary.sheet(this.name, action));
+  }
+
+  /** 이 개체의 동작 시트 정의 (JSON 메모 필드 읽기용). 없으면 undefined */
+  sheet(action: string): ReturnType<typeof spriteLibrary.sheet> {
+    return spriteLibrary.sheet(this.name, action);
   }
 
   /** 매 프레임: 깊이·그림자 위치 */
@@ -131,6 +169,7 @@ export class EntityVisual {
     if (!this.animated || this.dead || time < this.busyUntil || this.holdUntil >= 0) return;
     const key = spriteLibrary.animKey(this.name, action, dir);
     if (!key || key === this.current) return;
+    this.fitAction(action);
     const sameAction = this.current?.startsWith(`${this.sheetName}_${action}_`) ?? false;
     const cur = this.host.anims.currentFrame;
     const startFrame = SPRITES.KEEP_WALK_FRAME && sameAction && cur ? cur.index - 1 : 0;
@@ -152,6 +191,7 @@ export class EntityVisual {
     const def = spriteLibrary.sheet(this.name, action);
     const key = spriteLibrary.animKey(this.name, action, dir);
     if (!def || !key) return 0;
+    this.fit(def);
     this.holdUntil = -1;
     const natural = animDurationMs(def);
     const scale = fitMs && fitMs > 0 ? natural / fitMs : 1;
@@ -184,6 +224,7 @@ export class EntityVisual {
     if (!def || !texture) return false;
     const row = Math.max(0, def.directions.indexOf(dir));
     const c = Math.max(0, Math.min(def.frames - 1, column));
+    this.fit(def);
     this.host.anims.stop();
     this.host.setTexture(texture, row * def.frames + c);
     this.current = `${this.sheetName}_${action}_${dir}#hold${c}`;
@@ -198,6 +239,7 @@ export class EntityVisual {
     if (!this.animated || this.dead) return false;
     const key = spriteLibrary.phaseAnim(this.host.scene, this.name, action, dir, columns, frameMs);
     if (!key) return false;
+    this.fitAction(action);
     this.host.anims.timeScale = 1;
     this.host.play(key, true);
     this.current = key;
@@ -219,6 +261,7 @@ export class EntityVisual {
     if (!def || !base || !texture) return 0;
     const cols = columns.filter((c) => c >= 0 && c < def.frames);
     if (cols.length === 0) return 0;
+    this.fit(def);
     const key = `${base}#s${cols.join('-')}`;
     const d = frameDurations(def);
     if (!this.host.scene.anims.exists(key)) {
@@ -288,7 +331,8 @@ export class EntityVisual {
     if (!def || !key || !texture) return;
     const corpse = scene.add
       .sprite(this.host.x, this.host.y, texture, 0)
-      .setOrigin(this.host.originX, this.host.originY)
+      .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
+      .setScale(artScale(def))
       .setDepth(entityDepth(this.host.y));
     corpse.play(key);
     const shadow = this.shadow;

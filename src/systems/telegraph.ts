@@ -255,6 +255,24 @@ export class TelegraphFx {
     return this.markers.size;
   }
 
+  /**
+   * 50라운드 조명: 예고 마커 자리 (어둠 속에서도 읽히게 경고광을 단다). 선은 가운데·길이 절반, 원·부채꼴은 중심·반경
+   */
+  lightPoints(): { x: number; y: number; radius: number }[] {
+    const out: { x: number; y: number; radius: number }[] = [];
+    for (const m of this.markers) {
+      if (!m.alive) continue;
+      if (m.kind === 'line')
+        out.push({
+          x: m.obj.x + (Math.cos(m.angle) * m.lengthPx) / 2,
+          y: m.obj.y + (Math.sin(m.angle) * m.lengthPx) / 2,
+          radius: m.lengthPx / 2,
+        });
+      else out.push({ x: m.obj.x, y: m.obj.y, radius: m.radiusPx });
+    }
+    return out;
+  }
+
   destroy(): void {
     for (const m of [...this.markers]) this.release(m);
   }

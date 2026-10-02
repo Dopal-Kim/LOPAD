@@ -3,7 +3,7 @@ import { DEPTH, TILE } from '../core/Constants';
 import { Rng } from '../systems/rng';
 import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } from '../systems/mapgen';
 import { CELL_H, CELL_W, type Rect } from '../systems/mapgen/types';
-import { findSafeTile } from '../systems/traversal';
+import { QuarterView } from './QuarterView';
 import { TileSkin, edgeVoidTiles, isOpenId, planProps, roomTypeMap } from './tileskin';
 
 export type DoorState = 'open' | 'closed' | 'locked';
@@ -13,6 +13,7 @@ const SOLID: TileId[] = [TileId.Wall, TileId.DoorClosed, TileId.DoorLocked];
 /**
  * 생성된 층을 Phaser 타일맵으로 올리고 문 상태·좌표 변환을 담당한다.
  * 타일 인덱스는 `TileSkin` 이 정한다 (아트 타일셋이면 변형·자동타일·소품, 아니면 TileId 그대로).
+ * 50라운드: 쿼터뷰 타일셋(wallHeightTiles)이면 이 타일맵은 보이지 않는 충돌·판정 격자로만 쓰고, 그림은 `QuarterView` 가 그린다.
  */
 export class TileWorld {
   readonly map: Phaser.Tilemaps.Tilemap;
@@ -25,6 +26,11 @@ export class TileWorld {
   private readonly blocked = new Set<string>();
   /** 48라운드 노드 전투장: 카메라 경계 (px). 숨은 저장고가 열리면 넓힌다 */
   private arenaCamera: Phaser.Geom.Rectangle | null = null;
+  /** 50라운드 쿼터뷰 그림 (쿼터뷰 타일셋일 때만) */
+  readonly quarter: QuarterView | null = null;
+  /** 여러 칸을 한꺼번에 바꾸는 중 (벽 그림은 끝에 한 번) */
+  private batching = false;
+  private wallsDirty = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -52,15 +58,34 @@ export class TileWorld {
     this.roomById = new Map(layout.rooms.map((r) => [r.id, r]));
     this.solidPropIndices = skin.solidPropIndices;
     const C = layout.arena?.camera;
-    if (C) this.arenaCamera = new Phaser.Geom.Rectangle(C.x * TILE, C.y * TILE, C.w * TILE, C.h * TILE);
+    // 50라운드 쿼터뷰: 위쪽 벽의 앞면·윗면이 벽 칸 위로 올라가므로 카메라 경계를 그만큼 위로 넓힌다
+    const up = skin.quarter ? skin.quarter.heightTiles : 0;
+    if (C) this.arenaCamera = new Phaser.Geom.Rectangle(C.x * TILE, (C.y - up) * TILE, C.w * TILE, (C.h + up) * TILE);
 
+    const placedProps = skin.props.length > 0 ? planProps(layout, skin.props, propSeed, undefined, structureTiles) : [];
     if (skin.props.length > 0) {
       const props = this.map.createBlankLayer('props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
       props.setDepth(DEPTH.PROPS);
-      for (const p of planProps(layout, skin.props, propSeed, undefined, structureTiles))
-        props.putTileAt(p.index, p.x, p.y);
+      for (const p of placedProps) props.putTileAt(p.index, p.x, p.y);
       if (this.solidPropIndices.length > 0) props.setCollision(this.solidPropIndices);
       this.propsLayer = props;
+    }
+    if (skin.quarter) {
+      this.layer.setVisible(false);
+      this.propsLayer?.setVisible(false);
+      this.quarter = new QuarterView(
+        scene,
+        layout,
+        skin,
+        {
+          idAt: (tx, ty) => this.tileIdAt(tx, ty),
+          groundIndex: (tx, ty) => {
+            const t = this.layer.getTileAt(tx, ty);
+            return t ? t.index : skin.voidIndex;
+          },
+        },
+        placedProps,
+      );
     }
   }
 
@@ -123,10 +148,24 @@ export class TileWorld {
     opening: readonly { x: number; y: number }[],
     ring: readonly { x: number; y: number }[],
   ): void {
-    for (const r of ring) this.put(TileId.Wall, r.x, r.y);
-    for (let y = inner.y; y < inner.y + inner.h; y++)
-      for (let x = inner.x; x < inner.x + inner.w; x++) this.put(TileId.Floor, x, y);
-    for (const o of opening) this.put(TileId.Floor, o.x, o.y);
+    this.batch(() => {
+      for (const r of ring) this.put(TileId.Wall, r.x, r.y);
+      for (let y = inner.y; y < inner.y + inner.h; y++)
+        for (let x = inner.x; x < inner.x + inner.w; x++) this.put(TileId.Floor, x, y);
+      for (const o of opening) this.put(TileId.Floor, o.x, o.y);
+    });
+  }
+
+  /** 여러 칸 바꾸기: 쿼터뷰 벽 그림은 끝에 한 번만 다시 만든다 */
+  private batch(fn: () => void): void {
+    this.batching = true;
+    try {
+      fn();
+    } finally {
+      this.batching = false;
+      if (this.wallsDirty) this.quarter?.rebuildWalls();
+      this.wallsDirty = false;
+    }
   }
 
   cellAt(worldX: number, worldY: number): Cell {
@@ -218,24 +257,6 @@ export class TileWorld {
     return new Phaser.Geom.Rectangle(x0, y0, x1 - x0, y1 - y0);
   }
 
-  /**
-   * 워프 착지점 (45라운드): 중앙에서 가장 가까운, 몸 반경 안이 모두 바닥이고 출구·상점 타일에서 hazardTiles 칸 이상 떨어진 타일 중심.
-   * 못 찾으면 방 중앙
-   */
-  safePointInRoom(room: Room, bodyTiles: number, hazardTiles: number): Phaser.Math.Vector2 {
-    const t = findSafeTile(
-      room.interior,
-      (tx, ty) => this.isWalkableAt(tx * TILE + TILE / 2, ty * TILE + TILE / 2),
-      (tx, ty) => {
-        const id = this.tileIdAt(tx, ty);
-        return id === TileId.Exit || id === TileId.Shop;
-      },
-      bodyTiles,
-      hazardTiles,
-    );
-    return t ? new Phaser.Math.Vector2(t.tx * TILE + TILE / 2, t.ty * TILE + TILE / 2) : this.roomCenter(room);
-  }
-
   /** 방 내부의 무작위 바닥 지점(타일 중심). from 에서 minDistTiles 이상 떨어진 곳. 단단한 소품 위는 피한다 */
   randomPointInRoom(room: Room, rng: Rng, from?: { x: number; y: number }, minDistTiles = 0): Phaser.Math.Vector2 {
     const I = room.interior;
@@ -252,8 +273,15 @@ export class TileWorld {
   }
 
   private put(id: TileId, tx: number, ty: number): Phaser.Tilemaps.Tile {
+    const was = this.quarter ? this.tileIdAt(tx, ty) : id;
     const tile = this.layer.putTileAt(this.skin.indexFor(id, tx, ty), tx, ty);
     tile.setCollision(SOLID.includes(id));
+    if (this.quarter) {
+      if (was === TileId.Wall || id === TileId.Wall) {
+        if (this.batching) this.wallsDirty = true;
+        else this.quarter.rebuildWalls();
+      } else this.quarter.refreshGround(tx, ty);
+    }
     return tile;
   }
 
