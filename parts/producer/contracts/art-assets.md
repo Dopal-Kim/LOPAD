@@ -101,3 +101,11 @@
 - **테마 키아트**: `assets/sprites/ui/keyart_<region>.png` (region = waste·gate·outer·brewery·hall, 2층은 후속) — 960×540, 노드 진입 배너·M 지도 위치 정보 패널·로딩 카드용(UI 사용, `assets/ui/` 로 복사).
 - **펼친 지도 일러스트**: `assets/sprites/ui/map_bg_f1.png` — 960×540 이상, '잔' 외곽 황무지에서 심층부 연회장으로 이어지는 펼친 양피지 지도(노드가 놓일 자리는 비워 둔 원근 지형), UI 노드 지도 배경 레이어(`assets/ui/map_bg_<floor>.png` 로 복사).
 - **원경 배경**: `assets/sprites/bg/<region>.png` — 전투장 바깥(void) 너머로 보이는 하늘·건물 실루엣, 가로 1920 이상 반복 가능, 시스템이 시차(parallax) 배경으로 사용(후속 연결).
+
+## 9. 50라운드 쿼터뷰·2배 도트 (시범: 1층 외곽 거리)
+결정: `decisions/2026-10-02-round-50-modern-view.md`. 시각 참조는 GDD + 최근 인기 로그라이크(Dungeon Survivors, 세피리아)만. 80·90·00년대 게임 참조 금지.
+- **배율 표기**: 모든 시트·타일셋 JSON 에 `pixelScale`(정수) 필드. 새 2배 도트 = `1`, 기존 도트 = 없음/`2`(시스템이 2배로 그려 크기를 맞춘다). 게임 카메라 확대는 1배.
+- **캐릭터**: 32×48, 피벗 (16,46) = 발. 행 = down/up/left/right(기존 규약). 시범 범위: 주인공 idle·walk·dash·hurt·death + 칼 3연격(combo1~3)·칼 휴대 오버레이(64×64 피벗 (32,62)), 적 결사병(charger) idle·walk·attack·hurt·death.
+- **타일셋**: `tiles/v2/stage1_outer` — 타일 32×32. 인덱스 표 v3 의 의미(0~3 바닥, 4 복도, 7 void, 8~10 문, 11 출구, 12 상점, 13~20 소품, 21~22 벽 변형, 23~38 roomFloors)는 유지하되, **벽은 쿼터뷰 높이**: `walls.front` = 벽 앞면 세로 2칸(64px, 인덱스 5 = 아랫단, 24~ 이후 새 인덱스 `wallFrontUpper`), `walls.top` = 윗면(인덱스 6). JSON `wallHeightTiles: 2`. 시트 크기 자유(인덱스 표를 JSON 에 명시).
+- **쿼터뷰 구조물·소품**: 높이가 있는 것은 `pivot` = 바닥 접점, `occludeAbove`(px) = 이 높이 위로는 캐릭터를 가림(Y 정렬).
+- **조명**: JSON `light: { color, radius, intensity, flicker? }` 를 가진 소품·구조물·이펙트는 시스템이 광원으로 등록. 바닥·벽 색은 어둠 위에서 빛을 받아 살아나도록 중간 명도로(완전한 검정 금지).

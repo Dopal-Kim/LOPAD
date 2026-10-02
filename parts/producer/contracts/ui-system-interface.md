@@ -335,3 +335,7 @@ interface UiRoute {
 
 ### 11.4 무기 시험장
 - 타이틀에서 `uiCommands.startWeaponLab()` → 시스템 씬 `WeaponLab`. 무기·진화 갈래 고르기는 기존 메뉴 흐름(`MENU_OPEN` id `lab`·`labBranch` → `select`)으로, UI 는 일반 메뉴처럼 그린다. 시험장 안에서 `UiSnapshot.lab = true`(UI 는 노드 지도·층 표시 대신 '무기 시험장' 표시). 시험장 안 열기 키는 시스템이 정해 계약 README 에 적는다(임시 제안: L).
+
+## 12. 50라운드 (Gemini 키아트·지도 배경 적용)
+- UI 는 `assets/sprites/ui/keyart_<region>.png`(960×540)·`map_bg_f1.png` 를 `assets/ui/` 로 복사해 쓴다(승인 #18 연장). 키아트: 노드 진입 시 지역이 바뀌면 짧은 지역 카드(키아트 + 지역 이름), M 지도 위치 패널 배경. 지도 배경: 1층 노드 지도 배경(`MAP_BG_FLOORS`), 노드 배치는 지도 그림의 길(왼쪽 황무지 → 오른쪽 위 연회장)에 맞춘다.
+- 시스템 변경 없음(`UiRouteNode.region` 사용).
