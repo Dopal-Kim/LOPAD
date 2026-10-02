@@ -108,7 +108,8 @@ export class GlowText extends Phaser.GameObjects.Container {
     this.textW = Math.ceil(this.main.width);
     this.textH = Math.ceil(this.main.height);
     this.setSize(this.textW + RING * 2, this.textH + RING * 2);
-    if (this.input) this.input.hitArea.setSize(this.width, this.height);
+    if (this.input)
+      (this.input.hitArea as Phaser.Geom.Rectangle).setTo(this.width / 2, this.height / 2, this.width, this.height);
     this.applyStyle();
     return this;
   }
@@ -130,10 +131,14 @@ export class GlowText extends Phaser.GameObjects.Container {
     return this;
   }
 
-  /** 마우스 입력: 글자 상자(링 포함) 사각형 */
+  /**
+   * 마우스 입력: 글자 상자(링 포함) 사각형.
+   * Container 의 입력 판정은 지역 좌표에 displayOrigin(= 폭·높이의 절반)을 더해 검사하므로
+   * 사각형을 (w/2, h/2) 에서 시작해야 글자 상자와 겹친다 (45라운드 수정: 이전엔 반 칸 왼쪽 위로 밀려 있었다)
+   */
   makeInteractive(): this {
     this.setInteractive(
-      new Phaser.Geom.Rectangle(0, 0, this.width, this.height),
+      new Phaser.Geom.Rectangle(this.width / 2, this.height / 2, this.width, this.height),
       Phaser.Geom.Rectangle.Contains,
       false,
     );

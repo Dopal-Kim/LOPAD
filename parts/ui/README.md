@@ -1,5 +1,57 @@
 # 게임 UI 파트 — 작업 기록
 
+## 45라운드 (2026-10-02) · Tab 워프 지도
+결정: `decisions/2026-10-02-round-45-traversal-structures.md` Q3(비전투 중 어디서든 지도 열고 클리어한 방 선택)·Q9(Tab)·Q10(선택 중 정지). 계약: `contracts/ui-system-interface.md` **§8** (승인 #12) — `UiSnapshot.inCombat/sprinting/warp`, `UiRoom.warpable`, `uiCommands.warpTo`, `WARP_DONE`/`WARP_DENIED`. 그 외 시스템 코드 열람 없음.
+
+### 동작
+- **Tab** (HudScene `keydown-TAB`, `addCapture('TAB')` 로 브라우저 포커스 이동 차단, 길게 눌러 반복 입력은 무시)
+  - 지도가 열려 있으면 닫고 `resume()`.
+  - 메뉴·일시정지·결과 씬이 떠 있거나, 스냅샷 `menu`·`paused`·`warp.warping`·`warp.blocked==='busy'` 면 **조용히 무시**.
+  - `inCombat` 또는 `warp.blocked==='combat'` 이면 열지 않고 자막 자리에 안내 1.8초(공지와 같은 `showCaption(kind:'notice')`).
+  - 그 외(`warp.ready`)면 지도를 만든 뒤 `uiCommands.pause()`. HUD 의 `PAUSED` 처리기는 지도가 있을 때 일시정지 일기장을 띄우지 않는다.
+- **Esc**: 지도가 열려 있으면 닫고 재개(일시정지 일기장으로 가지 않음). 아니면 기존대로 일시정지.
+- **선택**: 마우스(방 위에 올리면 고름, **눌렀다 뗀** 뒤) 또는 Enter/Space(**지도가 열린 뒤 누른 키를 뗀** 뒤) → 한 프레임 늦게 `warpTo(roomId)`.
+  `true` 면 지도를 닫는다(시스템이 재개 후 워프). `false` 면 `WARP_DENIED` 사유를 지도 안 오른쪽에 강조 글로 보인다(지도가 닫혀 있으면 자막 안내).
+- **입력 새는 것 방지**: 선택을 뗄 때(pointerup/keyup) 받고 다음 프레임에 넘긴다 — 같은 프레임에 게임 씬이 재개되면 그 입력이 공격·대쉬로 들어갈 수 있어서. 게임 씬은 정지 중이라 누르는 입력을 받지 않는다. 어두운 바탕 사각형도 인터랙티브로 둬 페이지 밖 클릭을 막는다.
+- `RESUMED`·`MENU_OPEN`·`RUN_ENDED`·`STAGE_STARTED` 가 오면 지도를 닫는다(재개 호출 없이).
+- `WARP_DONE` → 자막 자리 '건너왔다 — {방 이름}' 1.8초 (기존 방 진입 자막이 없어 중복 아님).
+- HUD 미니맵 아래 'M 음소거' 다음 줄에 **'Tab 워프'**(ink_faint, 오른쪽 정렬) — 비전투일 때만. `sprinting` 표시는 하지 않음.
+
+### 화면 (`WarpMap.ts`, HUD 씬 위 depth 100~103)
+- 화면 전체 G00 α0.55 → 일기장 한 페이지(`book`, seed 'warp'): 제목 '지나온 길'(Galmuri14, page_title) + `rule`.
+- 왼쪽 지도: 격자 전체(7×7 기준 칸 40px, 최대 40·최소 16, 영역 최대 520×340), 틀 S2 1px. **방문한 방만** 그린다(미니맵과 같음). 연결선 S1 2px(양 끝 중 하나라도 방문).
+  - 방 칸: 안쪽 여백 3px, 같은 방 이웃 칸은 이어 칠함. 종이가 S3 이라 방은 잉크처럼 어둡게.
+  - 현재 방: S1 + 층 강조 22 테두리 2px + 글리프 22 틴트.
+  - 워프 가능(`warpable`): S1 + S5 테두리 1px. 고른 방: 층 강조 20 테두리 2px + 깜빡이는 `cursor` 촉(방 왼쪽).
+  - 그 외 방문한 방(마치지 않은 시련 등): S2, 글리프 α0.45.
+  - 글리프 `mini_*` 8×8 을 2배(16×16)로 방 가운데.
+- 오른쪽 칸(196px): 범례(글리프 4종 + 이름, 칸 표본 3종) → `rule` → 고른 방 이름(page_selected ×2) + '건너갈 곳을 고른다'(page_faint) + 거부 사유/빈 지도 안내.
+- 아래: 조작 안내 한 줄(page_faint).
+- 방 버튼은 Container → Graphics → 글리프(스킬 버튼 규약), 입력 판정은 방 칸 모양대로(L자 방도 칸 단위).
+- 키보드 이동(`warpNav.ts`, 순수 함수 + 테스트 5개): 방향으로 정면 거리 + 옆 거리×2 가 가장 작은 워프 가능 방. 처음 고른 방 = 현재 방에서 가장 가까운 워프 가능 방.
+
+### 같이 고친 것
+- `GlowText.makeInteractive` 입력 사각형이 글자 상자의 **반 칸 왼쪽 위로 밀려** 있던 문제(Phaser Container 판정은 지역 좌표 + displayOrigin(폭·높이 절반)). 사각형을 (w/2, h/2) 에서 시작하도록 고쳤다 → 선택 목록 항목의 오른쪽 절반도 클릭·호버가 된다.
+
+### 소유 코드 추가·변경
+| 파일 | 내용 |
+|---|---|
+| `WarpMap.ts` (신규) | 워프 지도 오버레이 클래스, 방 이름·거부 사유 문구 매핑(`roomName`, `DENY_KEY`) |
+| `warpNav.ts`, `warpNav.test.ts` (신규) | 키보드 방향 이동 계산 |
+| `HudScene.ts` | Tab/Esc 처리, 지도 열기·닫기, `WARP_DONE`/`WARP_DENIED`/`RESUMED` 구독, 'Tab 워프' 힌트, `toast()` |
+| `text.ts` | `WARP_TEXT`(임시 문구), `warpText()` — 텍스트 팩 `hud.<키>` 가 있으면 우선 |
+| `theme.ts` | `WARP` 수치(임시값) |
+| `glow.ts` | 입력 사각형 수정 |
+
+### 검증 (헤드리스 Playwright 960×540, `vite preview --port 4176`, 스크립트 `scratchpad/r45ui.cjs`, 스크린샷 `scratchpad/r45ui/`)
+Tab(대상 없음) 열림·빈 안내·게임 정지(PauseScene 없음) → Tab 닫힘·재개, Tab `defaultPrevented` true·포커스 BODY 유지 → 휴식·시련 방문 → 시련 전투 중 Tab 거부 자막 → 시련 클리어 → Tab 지도 → 방향키 이동 → Enter 워프(trial1→start, `WARP_DONE` 자막) → Tab → 마우스 클릭 워프(start→trial1) → Esc 로 닫힘(일시정지 없음) → 일시정지 중 Tab 무시 → evolve 메뉴 중 Tab 무시. 워프 선택 전후 `lastAttack` 변화 없음(대조: 평소 클릭은 변함). 일시정지 항목 오른쪽 끝 클릭 동작(입력 사각형 수정 확인). 콘솔 오류·경고 0, HTTP 4xx 0. tsc·eslint·vitest(113)·build 통과.
+
+### 관찰 (요청 후보)
+- 게임이 정지된 동안 `getUiSnapshot().paused` 가 false 로 남는다(일시정지 일기장이 떠 있어도). 스냅샷이 게임 씬 update 에서만 갱신되는 것으로 보인다. UI 는 씬 활성 여부로 보완했다.
+- 텍스트 팩 조작법 한 줄(`controls`)에 Tab 워프·Shift 달리기가 없다(스토리 텍스트 팩 갱신 대상).
+
+---
+
 ## 현재 상태 (2026-10-02, 41라운드 · UI 키트 전폭 적용)
 결정: `decisions/2026-10-02-round-32-redesign-direction.md`(960×540, UI 전폭), `round-33-ui-kit-review.md`(HUD 하단 중앙), `round-34-font.md`·`round-39-font-final-hitfeel.md`(Galmuri 단일, 발광 할로), `round-41-ui-kit-approved.md`(적용 범위), `round-31-return-review.md`(채택 문구).
 계약: `contracts/ui-system-interface.md`(스냅샷·이벤트, 코드 `src/contract/ui.ts`), **`contracts/ui-art-kit.md` v0.4**(키트·9-slice·발광 글자 규칙 표). 열람: #7(팔레트·텍스트 팩), #10(`assets/sprites/ui/**`).

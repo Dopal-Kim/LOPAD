@@ -1,5 +1,13 @@
 import Phaser from 'phaser';
-import { UI_EVENTS, uiBus, uiCommands, type UiSnapshot, type UiStoryLine } from '../contract/ui';
+import {
+  UI_EVENTS,
+  uiBus,
+  uiCommands,
+  type UiSnapshot,
+  type UiStoryLine,
+  type UiWarpDenied,
+  type UiWarpDone,
+} from '../contract/ui';
 import { GlowText } from './glow';
 import {
   Gauge,
@@ -15,8 +23,9 @@ import {
 } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { Minimap } from './Minimap';
-import { fill, uiText } from './text';
+import { fill, uiText, warpText } from './text';
 import { LAYOUT } from './theme';
+import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 
 /** 하단 중앙 묶음 (33라운드 Q3) */
 const HUD_W = 480;
@@ -71,6 +80,9 @@ export class HudScene extends Phaser.Scene {
   private banner?: GlowText;
   private caption?: GlowText;
   private captionTimer?: Phaser.Time.TimerEvent;
+  // 워프 지도 (45라운드)
+  private warpMap?: WarpMap;
+  private warpHint?: GlowText;
 
   constructor() {
     super(UI_SCENE_KEYS.HUD);
@@ -93,13 +105,27 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.showBanner(p.stageName));
     this.on(UI_EVENTS.STORY, (l: UiStoryLine) => this.showCaption(l));
     this.on(UI_EVENTS.PAUSED, () => {
+      // 워프 지도가 연 정지면 일시정지 일기장을 띄우지 않는다
+      if (this.warpMap) return;
       if (!this.scene.isActive(UI_SCENE_KEYS.PAUSE)) this.scene.launch(UI_SCENE_KEYS.PAUSE);
     });
     // Esc 는 Key 폴링(JustDown) 대신 keydown 이벤트로 받는다 — 씬이 바뀌는 프레임에 Key 상태가 눌린 채 남아
     // 다음 Esc 가 '반복 입력' 으로 취급돼 무시되는 문제가 있었다 (41라운드 헤드리스 검증)
     this.input.keyboard?.on('keydown-ESC', this.onEsc);
+    // 45라운드 Q9: Tab 워프 지도. 브라우저 포커스 이동을 막도록 캡처한다
+    this.input.keyboard?.addCapture('TAB');
+    this.input.keyboard?.on('keydown-TAB', this.onTab);
+    this.on(UI_EVENTS.WARP_DENIED, (p: UiWarpDenied) => this.onWarpDenied(p));
+    this.on(UI_EVENTS.WARP_DONE, (p: UiWarpDone) => this.toast(fill(warpText('warpDone'), { room: roomName(p.type) })));
+    this.on(UI_EVENTS.RESUMED, () => this.closeWarp(false));
+    for (const e of [UI_EVENTS.MENU_OPEN, UI_EVENTS.RUN_ENDED, UI_EVENTS.STAGE_STARTED])
+      this.on(e, () => this.closeWarp(false));
     this.events.once('shutdown', () => {
       this.input.keyboard?.off('keydown-ESC', this.onEsc);
+      this.input.keyboard?.off('keydown-TAB', this.onTab);
+      this.input.keyboard?.removeCapture('TAB');
+      this.warpMap?.destroy();
+      this.warpMap = undefined;
       this.alive = false;
       this.built = false;
       for (const [e, h] of this.handlers) uiBus.off(e, h);
@@ -114,8 +140,63 @@ export class HudScene extends Phaser.Scene {
   }
 
   private onEsc = (): void => {
+    if (this.warpMap) {
+      this.closeWarp(true);
+      return;
+    }
     if (!this.scene.isActive(UI_SCENE_KEYS.MENU) && !this.scene.isActive(UI_SCENE_KEYS.PAUSE)) uiCommands.pause();
   };
+
+  /** Tab: 워프 지도 열기·닫기 (45라운드 Q9·Q10, 계약 §8.4) */
+  private onTab = (e?: KeyboardEvent): void => {
+    if (e?.repeat) return;
+    if (this.warpMap) {
+      this.closeWarp(true);
+      return;
+    }
+    if (!this.built) return;
+    const s = uiCommands.getUiSnapshot();
+    const otherUi =
+      this.scene.isActive(UI_SCENE_KEYS.MENU) ||
+      this.scene.isActive(UI_SCENE_KEYS.PAUSE) ||
+      this.scene.isActive(UI_SCENE_KEYS.RESULT);
+    // 메뉴·개성 선택·보상·일시정지·워프 연출 중에는 조용히 무시
+    if (otherUi || s.paused || s.menu || s.warp.warping || s.warp.blocked === 'busy') return;
+    if (s.inCombat || s.warp.blocked === 'combat') {
+      this.toast(warpText('warpDeniedCombat'));
+      return;
+    }
+    if (!s.warp.ready) return;
+    // 정지 → PAUSED 가 오기 전에 지도를 먼저 만들어 둔다 (PAUSED 처리기가 일시정지 일기장을 띄우지 않게)
+    this.warpMap = new WarpMap(this, s, { onChoose: (id) => this.chooseWarp(id) });
+    uiCommands.pause();
+  };
+
+  private chooseWarp(roomId: string): void {
+    if (!this.warpMap) return;
+    // 허용되면 시스템이 재개(RESUMED)한 뒤 워프한다 (계약 §8.2). 거부면 WARP_DENIED 가 먼저 와서 지도 안에 사유를 보인다
+    const ok = uiCommands.warpTo(roomId);
+    if (ok) this.closeWarp(false);
+  }
+
+  /** 지도를 닫는다. resume=true 면 게임을 재개한다 (Tab·Esc 로 닫을 때) */
+  private closeWarp(resume: boolean): void {
+    if (!this.warpMap) return;
+    this.warpMap.destroy();
+    this.warpMap = undefined;
+    if (resume) uiCommands.resume();
+  }
+
+  private onWarpDenied(p: UiWarpDenied): void {
+    const text = warpText(DENY_KEY[p.reason] ?? 'warpDeniedBusy');
+    if (this.warpMap) this.warpMap.showMessage(text);
+    else this.toast(text);
+  }
+
+  /** 짧은 안내 한 줄: 자막 자리(공지와 같은 1.8초) */
+  private toast(text: string): void {
+    this.showCaption({ kind: 'notice', text });
+  }
 
   private on<T>(event: string, handler: (p: T) => void): void {
     uiBus.on(event, handler);
@@ -197,6 +278,9 @@ export class HudScene extends Phaser.Scene {
     const hintY = 12 + this.minimap.h + 6;
     icon(this, W - E - 16, hintY - 2, ICON.sound);
     this.glow(0, hintY, 'M 음소거', 'ink_faint').placeRight(W - E - 20, hintY);
+    // 45라운드: 비전투일 때만 'Tab 워프' ('M 음소거' 아래 줄, 같은 오른쪽 끝)
+    this.warpHint = this.glow(0, hintY + 16, warpText('warpKeyHint'), 'ink_faint').setVisible(false);
+    this.warpHint.placeRight(W - E - 20, hintY + 16);
   }
 
   private render(s: UiSnapshot): void {
@@ -250,6 +334,7 @@ export class HudScene extends Phaser.Scene {
     // 상단
     this.floorText.setText(`${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}`);
     this.minimap.render(s.map, si);
+    this.warpHint?.setVisible(!s.inCombat && s.warp.blocked !== 'combat');
     // 공지: 출구가 열렸으면 출구, 아니면 본영 문
     const kind = s.exitOpen ? 'exit' : s.bossUnlocked ? 'boss' : '';
     if (kind !== this.noticeKind) {

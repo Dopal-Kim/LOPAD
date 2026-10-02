@@ -138,6 +138,28 @@ export const LAYOUT = {
   miniCell: 12,
 } as const;
 
+/** 워프 지도 (45라운드 Q3·Q9·Q10, 임시값) */
+export const WARP = {
+  /** 지도 한 칸 최대·최소 (정수 px) */
+  cellMax: 40,
+  cellMin: 16,
+  /** 지도 영역 최대 크기 */
+  mapMaxW: 520,
+  mapMaxH: 340,
+  /** 방 칸 안쪽 여백 */
+  cellInset: 3,
+  /** 오른쪽 안내 칸 폭 */
+  sideW: 196,
+  /** 페이지 안쪽 여백 */
+  pad: 24,
+  /** 배경 어둡게 (허용 알파 0.55) */
+  dimAlpha: 0.55,
+  /** 갈 수 없는 방 글리프 알파 */
+  dimGlyphAlpha: 0.45,
+  /** 오버레이 depth (HUD 자막 50 보다 위) */
+  depth: 100,
+} as const;
+
 export function hexToNum(hex: string): number {
   return parseInt(hex.replace('#', ''), 16);
 }
