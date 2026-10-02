@@ -136,3 +136,4 @@
 - 새 인덱스는 **40번부터**(roomFloors 23~38 과 겹치지 않게).
 - 신규 `roomFloorMix`: 0~1, 바탕 판석에 방 종류 바닥(`roomFloors.*`)을 섞는 비율. 없으면 0.06.
 - 타일셋 소품 Y 정렬(`pivot`·`occludeAbove`) 여부는 미정 — 다음 인터뷰.
+- (52라운드 Q10) 걷기·달리기 시트 JSON 에 `stride` = `{ "px": <한 주기 이동 도트>, "cycleMs": <한 주기 ms> }`. 시스템은 실제 이동 속도 / (px×pixelScale 환산 / cycleMs) 비율로 재생 속도를 조절한다(이동 속도는 바꾸지 않음).
