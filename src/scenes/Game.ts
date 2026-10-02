@@ -10,6 +10,7 @@ import {
   SCENES,
   SPRITES,
   TILE,
+  TRAVERSAL,
   entityDepth,
 } from '../core/Constants';
 import {
@@ -21,6 +22,7 @@ import {
   type PlayerDamagedPayload,
   type RunEndedPayload,
   type ShadowStepPayload,
+  type WarpPayload,
   type WeaponEvolvedPayload,
   type WeaponReinforcedPayload,
 } from '../core/EventBus';
@@ -31,7 +33,8 @@ import type { Mob, MobContext, ProjectileSpec } from '../objects/Mob';
 import { Player } from '../objects/Player';
 import { Projectile } from '../objects/Projectile';
 import { Pickup } from '../objects/Pickup';
-import { InputSystem } from '../systems/InputSystem';
+import { InputSystem, neutralInput } from '../systems/InputSystem';
+import { warpDenyReason, warpTargets, type WarpDenyReason } from '../systems/traversal';
 import { generateFloor } from '../systems/mapgen';
 import { RoomDirector } from '../systems/RoomDirector';
 import { Rng, hashSeed } from '../systems/rng';
@@ -41,9 +44,9 @@ import { applyStatReward, findReward, rollCrit, rollGold, shopPrice } from '../s
 import { TextMenu } from '../systems/TextMenu';
 import { markUnderstood, metaStore, recordRun } from '../systems/meta';
 import { PASSIVES } from '../systems/passives';
-import { UI_EVENTS, __system, type StoryKind } from '../contract/ui';
+import { UI_EVENTS, __system, type StoryKind, type UiWarpDone, type UiWarpState } from '../contract/ui';
 import { buildSnapshot } from '../contract/snapshot';
-import { setMenuSelect, setSnapshotProvider } from '../contract/host';
+import { setMenuSelect, setSnapshotProvider, setWarpHandler } from '../contract/host';
 import { UI_SCENES } from '../ui';
 import type { StatKey, WeaponEvolution } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
@@ -123,6 +126,13 @@ export class Game extends Phaser.Scene {
   private aimChargeFx: FxHandle | null = null;
   private giantFx: FxHandle | null = null;
   private dashTrailNextAt = 0;
+  /** 45라운드 워프: 연출 중 · 입력 잠금 끝 시각 · 디버그 기록 */
+  private warping = false;
+  private warpLockUntil = 0;
+  private debugLastWarp: unknown = null;
+  /** 45라운드 달리기: 다음 발밑 먼지 시각 · 디버그 횟수 */
+  private sprintDustNextAt = 0;
+  private sprintDustCount = 0;
   /** 잔월: 남아 있는 베기 궤적 (지속 피해 영역) */
   private dotZones: {
     x: number;
@@ -231,6 +241,11 @@ export class Game extends Phaser.Scene {
     this.bleeds = [];
     this.menu = new TextMenu(this);
     this.shopOpen = false;
+    this.warping = false;
+    this.warpLockUntil = 0;
+    this.debugLastWarp = null;
+    this.sprintDustNextAt = 0;
+    this.sprintDustCount = 0;
 
     for (const layer of this.world.collisionLayers) {
       this.physics.add.collider(this.player, layer);
@@ -261,6 +276,7 @@ export class Game extends Phaser.Scene {
     // 계약: 스냅샷 제공, 메뉴 선택 라우팅, HUD 병렬 실행
     setSnapshotProvider(() => this.snapshot());
     setMenuSelect((id, key) => this.menu.select(key, id));
+    setWarpHandler({ check: (id) => this.warpDeny(id), run: (id) => this.startWarp(id) });
     if (this.scene.manager.keys[UI_SCENES.HUD] && !this.scene.isActive(UI_SCENES.HUD)) this.scene.launch(UI_SCENES.HUD);
     __system.emit(UI_EVENTS.STAGE_STARTED, {
       stageIndex: gameState.stageIndex,
@@ -471,6 +487,22 @@ export class Game extends Phaser.Scene {
         return gameState.weapon.path.length > before;
       },
       spawnEnemy: (id, x, y) => this.director.spawnExtra(id, x, y),
+      warpInfo: () => ({
+        ...this.warpState(),
+        inCombat: this.director.inCombat,
+        currentRoomId: gameState.roomId,
+        lockedMs: Math.max(0, this.warpLockUntil - this.time.now),
+        last: this.debugLastWarp,
+      }),
+      sprintInfo: () => ({
+        allowed: this.player.sprintAllowed,
+        sprinting: this.player.sprinting,
+        mult: this.player.sprintMult,
+        speedPx: this.player.speedPx * this.player.sprintMult,
+        vx: this.player.body.velocity.x,
+        vy: this.player.body.velocity.y,
+        dust: this.sprintDustCount,
+      }),
       setBossHp: (hp) => {
         for (const m of this.mobs.getChildren() as Mob[]) {
           if (m.isBoss && m.active) {
@@ -537,9 +569,13 @@ export class Game extends Phaser.Scene {
       return;
     }
 
-    const input = this.inputSystem.read();
+    const raw = this.inputSystem.read();
+    // 워프 연출 동안 입력 잠금 (45라운드)
+    const input = time < this.warpLockUntil ? neutralInput(raw) : raw;
     if (input.potionPressed) this.usePotion();
+    this.player.sprintAllowed = !this.director.inCombat;
     this.player.update(input, time, delta);
+    this.updateSprintDust(time);
     this.updateGale();
     this.updateAimFx(time);
     this.updateDashTrail(time);
@@ -1888,7 +1924,111 @@ export class Game extends Phaser.Scene {
       bossName: this.bossName,
       paused: false,
       menu: this.menu.menu,
+      inCombat: this.director.inCombat,
+      sprinting: this.player.sprinting,
+      warp: this.warpState(),
     });
+  }
+
+  // --- 비전투 이동 (45라운드): 달리기 먼지 · 워프 ---
+
+  /** 달리는 동안 발밑에 dash_dust 를 작게·옅게 주기적으로 (시트가 없으면 작은 회색 점) */
+  private updateSprintDust(time: number): void {
+    if (!this.player.sprinting || time < this.sprintDustNextAt) return;
+    const D = TRAVERSAL.SPRINT_DUST;
+    this.sprintDustNextAt = time + D.INTERVAL_MS;
+    this.sprintDustCount += 1;
+    const v = this.player.body.velocity;
+    const x = this.player.x;
+    const y = this.player.y;
+    if (this.fx.has(D.SHEET)) {
+      this.fx.play(D.SHEET, x, y, {
+        dir: facingOf(v.x, v.y, this.player.facingDir),
+        depth: DEPTH.FX_GROUND,
+        scaleMult: D.SCALE_MULT,
+        alpha: D.ALPHA,
+        hooks: false,
+      });
+      return;
+    }
+    const [, h] = PLAYER_DATA.size;
+    const dot = this.add.circle(x, y + h / 2, D.DOT_RADIUS, D.DOT_COLOR, D.ALPHA).setDepth(DEPTH.FX_GROUND);
+    this.tweens.add({ targets: dot, alpha: 0, duration: D.DOT_MS, onComplete: () => dot.destroy() });
+  }
+
+  /** 씬 상태로 본 공통 거부 사유: 연출·메뉴·전환은 busy, 활성 전투 방이 있으면 combat */
+  private warpBlock(): 'combat' | 'busy' | null {
+    if (!this.director || gameState.gameOver || gameState.cleared || this.transitioning || this.warping) return 'busy';
+    if (this.director.inCombat) return 'combat';
+    if (this.frozen || gameState.rewardPending || (this.menu.isOpen && !this.shopOpen)) return 'busy';
+    return null;
+  }
+
+  private warpState(): UiWarpState {
+    const blocked = this.warpBlock();
+    const rooms = this.layout?.rooms ?? [];
+    return {
+      ready: blocked === null,
+      blocked,
+      targets: this.director ? warpTargets(rooms, this.visitedRooms, this.director.progress, gameState.roomId) : [],
+      warping: this.warping,
+    };
+  }
+
+  private warpDeny(roomId: string): WarpDenyReason | null {
+    return warpDenyReason({
+      roomId,
+      block: this.warpBlock(),
+      rooms: this.layout?.rooms ?? [],
+      visited: this.visitedRooms,
+      progress: this.director?.progress ?? new Map(),
+      currentRoomId: gameState.roomId,
+    });
+  }
+
+  /**
+   * 워프 시작 (계약 §8.2): 퇴장 섬광·먼지 → OUT_MS 뒤 안전 착지점으로 이동·카메라 즉시 이동·도착 섬광.
+   * 시작부터 OUT_MS + IN_LOCK_MS 입력 잠금, INVULN_MS 무적
+   */
+  private startWarp(roomId: string): WarpDenyReason | null {
+    const reason = this.warpDeny(roomId);
+    if (reason) return reason;
+    const W = TRAVERSAL.WARP;
+    const room = this.world.room(roomId);
+    const dest = this.world.safePointInRoom(room, W.SAFE_BODY_TILES, W.SAFE_HAZARD_TILES);
+    const fromRoomId = gameState.roomId;
+    const now = this.time.now;
+    this.warping = true;
+    this.warpLockUntil = now + W.OUT_MS + W.IN_LOCK_MS;
+    this.player.grantInvulnerable(now + W.INVULN_MS);
+    this.player.haltForWarp();
+    this.stopAimFx(false);
+    this.stopGale();
+    if (this.shopOpen) this.closeShop();
+    this.screenFx.flash(W.FLASH_OUT.COLOR, W.FLASH_OUT.MS, W.FLASH_OUT.ALPHA);
+    if (this.fx.has(W.DUST_SHEET))
+      this.fx.play(W.DUST_SHEET, this.player.x, this.player.y, { depth: DEPTH.FX_GROUND, hooks: false });
+    const payload: WarpPayload = { fromRoomId, roomId, x: dest.x, y: dest.y };
+    EventBus.emit(Events.WARP_STARTED, payload);
+    this.debugLastWarp = { ...payload, phase: 'out', startedAt: now };
+    this.time.delayedCall(W.OUT_MS, () => this.finishWarp(payload, room.type));
+    return null;
+  }
+
+  private finishWarp(p: WarpPayload, type: UiWarpDone['type']): void {
+    this.warping = false;
+    if (gameState.gameOver || gameState.cleared || this.transitioning) return;
+    const W = TRAVERSAL.WARP;
+    this.player.haltForWarp();
+    this.player.body.reset(p.x, p.y);
+    this.updateCamera(true);
+    this.screenFx.flash(W.FLASH_IN.COLOR, W.FLASH_IN.MS, W.FLASH_IN.ALPHA);
+    if (this.fx.has(W.DUST_SHEET)) this.fx.play(W.DUST_SHEET, p.x, p.y, { depth: DEPTH.FX_GROUND, hooks: false });
+    // 방 진입(ROOM_ENTERED)을 이번 프레임에 처리해 currentRoomId 를 바로 바꾼다
+    this.director.update();
+    EventBus.emit(Events.WARP_ARRIVED, p);
+    this.debugLastWarp = { ...p, phase: 'done', arrivedAt: this.time.now };
+    __system.emit(UI_EVENTS.WARP_DONE, { fromRoomId: p.fromRoomId, roomId: p.roomId, type } satisfies UiWarpDone);
   }
 
   /** 스토리 자막 (계약 STORY 이벤트) */
@@ -2046,6 +2186,7 @@ export class Game extends Phaser.Scene {
     audio.stopAllLoops();
     setMenuSelect(null);
     setSnapshotProvider(null);
+    setWarpHandler(null);
     this.menu.close();
     this.inputSystem.destroy();
   }

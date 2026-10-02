@@ -41,12 +41,23 @@ export interface ParryParams {
   reflectDamageMult: number;
 }
 
+export interface SprintParams {
+  /** 달리기 이동 속도 배율 (1.8 = 45라운드 결정) */
+  speedMult: number;
+  /** 1 → speedMult 까지 걸리는 시간 */
+  accelMs: number;
+  /** speedMult → 1 까지 걸리는 시간 (Shift 를 떼거나 전투가 시작될 때) */
+  decelMs: number;
+}
+
 export interface PlayerData {
   stats: PlayerStats;
   invulnerableMs: number;
   size: [number, number];
   dash: DashParams;
   parry: ParryParams;
+  /** 45라운드 Q2: 비전투 중 Shift 를 누르는 동안 이동 속도 배율 (가속·감속 시간은 임시값) */
+  sprint: SprintParams;
   /** 기본 무기 id (개성 선택 결과가 없을 때) */
   startWeapon: string;
   /** 공격 후 감속이 적용되는 최소 시간 */

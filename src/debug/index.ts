@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import { gameState } from '../core/GameState';
-import { uiCommands } from '../contract/ui';
+import { UI_EVENTS, uiBus, uiCommands, type UiWarpDenied } from '../contract/ui';
 import type { Mob } from '../objects/Mob';
 import type { RoomDirector } from '../systems/RoomDirector';
 import type { TileWorld } from '../world/TileWorld';
@@ -109,6 +109,33 @@ export interface DebugApi {
   aimFx: () => unknown;
   /** 3지선다가 열린 상태에서 노드 id 로 바로 선택 (검증용) */
   evolveTo: (id: string) => boolean;
+  /** 45라운드: 계약 경로(uiCommands.warpTo)로 워프 요청. ok = 시작, reason = WARP_DENIED 사유 */
+  warp: (roomId: string) => { ok: boolean; reason: string | null };
+  /** 45라운드: 워프 상태(ready·blocked·targets·warping) + 전투 여부·현재 방·잠금 남은 ms·마지막 워프 */
+  warpInfo: () => WarpDebugInfo;
+  /** 45라운드: 달리기 허용·중·배율·속도(px/s)·먼지 횟수 */
+  sprintInfo: () => SprintDebugInfo;
+}
+
+export interface WarpDebugInfo {
+  ready: boolean;
+  blocked: 'combat' | 'busy' | null;
+  targets: string[];
+  warping: boolean;
+  inCombat: boolean;
+  currentRoomId: string;
+  lockedMs: number;
+  last: unknown;
+}
+
+export interface SprintDebugInfo {
+  allowed: boolean;
+  sprinting: boolean;
+  mult: number;
+  speedPx: number;
+  vx: number;
+  vy: number;
+  dust: number;
 }
 
 export type FeelPatch = Partial<{
@@ -191,6 +218,8 @@ export function exposeDebug(api: {
   screen: () => unknown;
   aimFx: () => unknown;
   evolveTo: (id: string) => boolean;
+  warpInfo: () => WarpDebugInfo;
+  sprintInfo: () => SprintDebugInfo;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -265,6 +294,16 @@ export function exposeDebug(api: {
     screen: () => api.screen(),
     aimFx: () => api.aimFx(),
     evolveTo: (id) => api.evolveTo(id),
+    warp: (roomId) => {
+      let reason: string | null = null;
+      const onDenied = (p: UiWarpDenied) => (reason = p.reason);
+      uiBus.on(UI_EVENTS.WARP_DENIED, onDenied);
+      const ok = uiCommands.warpTo(roomId);
+      uiBus.off(UI_EVENTS.WARP_DENIED, onDenied);
+      return { ok, reason };
+    },
+    warpInfo: () => api.warpInfo(),
+    sprintInfo: () => api.sprintInfo(),
     killAll: () => {
       const list = api.mobs();
       for (const m of list) api.kill(m);

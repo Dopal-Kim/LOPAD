@@ -21,6 +21,24 @@ export interface InputState {
   aimX: number;
   aimY: number;
   restartPressed: boolean;
+  /** 달리기 키(Shift)를 누르고 있음 — 45라운드, 비전투에서만 효과 */
+  sprintHeld: boolean;
+}
+
+/** 입력 잠금(워프 연출 등): 조준만 남기고 이동·동작 입력을 비운 사본 */
+export function neutralInput(s: InputState): InputState {
+  return {
+    ...s,
+    moveX: 0,
+    moveY: 0,
+    attackPressed: false,
+    secondaryPressed: false,
+    secondaryReleased: false,
+    dashPressed: false,
+    potionPressed: false,
+    restartPressed: false,
+    sprintHeld: false,
+  };
 }
 
 export class InputSystem {
@@ -42,6 +60,7 @@ export class InputSystem {
       restart: kb.addKey(KEYS.RESTART),
       dash: kb.addKey(KEYS.DASH),
       potion: kb.addKey(KEYS.POTION),
+      sprint: kb.addKey(KEYS.SPRINT),
     };
     scene.input.mouse?.disableContextMenu();
     this.onPointerDown = (p) => {
@@ -80,6 +99,7 @@ export class InputSystem {
       aimX: aim.x,
       aimY: aim.y,
       restartPressed: Phaser.Input.Keyboard.JustDown(this.keys.restart),
+      sprintHeld: this.keys.sprint.isDown,
     };
     this.attackQueued = false;
     this.secondaryQueued = false;

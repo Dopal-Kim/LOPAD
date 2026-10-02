@@ -16,6 +16,7 @@ import { applyDefense } from '../systems/Combat';
 import type { InputState } from '../systems/InputSystem';
 import { facingOf, type Facing } from '../systems/spriteDefs';
 import { knockFactor, knockSpeed } from '../systems/feel';
+import { sprintStep } from '../systems/traversal';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
 import { WeaponOverlay } from './WeaponOverlay';
 
@@ -36,6 +37,12 @@ export class Player extends Phaser.GameObjects.Sprite {
   deathAnimMs = 0;
   /** 이번 프레임 이동 입력이 있었는지 (질풍 루프 이펙트용) */
   moving = false;
+  /** 45라운드: 달리기 허용 (비전투). Game 이 매 프레임 RoomDirector 기준으로 넣는다 */
+  sprintAllowed = false;
+  /** 현재 이동 속도 배율 (1 ~ sprint.speedMult, 가속·감속) */
+  private sprintFactor = 1;
+  /** 이번 프레임 달리기 입력이 유효했는지 (Shift + 허용 + 이동 + 일반 상태) */
+  private sprintingNow = false;
   private actionUntil = 0;
   private invulnerableUntil = 0;
   private attackReadyAt = 0;
@@ -85,6 +92,16 @@ export class Player extends Phaser.GameObjects.Sprite {
   get speedPx(): number {
     const weaponMult = gameState.weapon.mods.moveSpeedMult ?? 1;
     return PLAYER_DATA.stats.speedTiles * TILE * (1 + gameState.passives.total('moveSpeedMult')) * weaponMult;
+  }
+
+  /** 달리는 중 (스냅샷 `sprinting`) */
+  get sprinting(): boolean {
+    return this.sprintingNow;
+  }
+
+  /** 현재 달리기 배율 (디버그) */
+  get sprintMult(): number {
+    return this.sprintFactor;
   }
 
   get isParrying(): boolean {
@@ -184,6 +201,11 @@ export class Player extends Phaser.GameObjects.Sprite {
       dir.normalize();
       this.facing.copy(dir);
     }
+    // 달리기 (45라운드): 일반 상태 이동 중에만 목표 배율. 대쉬 동안은 배율을 유지해 끝나면 이어서 달린다
+    const SP = PLAYER_DATA.sprint;
+    this.sprintingNow = this.sprintAllowed && input.sprintHeld && dir.lengthSq() > 0 && this.action === 'normal';
+    if (this.action !== 'dash')
+      this.sprintFactor = sprintStep(this.sprintFactor, this.sprintingNow ? SP.speedMult : 1, delta, SP);
     const sh = this.shoveState;
     if (this.action === 'dash') {
       this.body.setVelocity(this.dashVel.x, this.dashVel.y);
@@ -197,7 +219,8 @@ export class Player extends Phaser.GameObjects.Sprite {
       let slow = time < this.attackSlowUntil ? gameState.weapon.attackSlowMult : 1;
       if (this.action === 'guard' && S.kind === 'guard') slow = Math.min(slow, S.moveMult);
       if (this.action === 'aim' && S.kind === 'aimedshot') slow = Math.min(slow, S.moveMult);
-      this.body.setVelocity(dir.x * this.speedPx * slow, dir.y * this.speedPx * slow);
+      const speed = this.speedPx * slow * this.sprintFactor;
+      this.body.setVelocity(dir.x * speed, dir.y * speed);
     }
     this.animateLocomotion(input, dir, time);
 
@@ -324,6 +347,20 @@ export class Player extends Phaser.GameObjects.Sprite {
       releaseDelayMs: this.visual.frameStartMs(2),
     };
     EventBus.emit(Events.PLAYER_ATTACKED, payload);
+  }
+
+  /** 워프(45라운드): 진행 중 동작·넉백·달리기를 끊고 멈춘다 */
+  haltForWarp(): void {
+    if (this.action !== 'normal') this.setAction('normal', 0);
+    this.shoveState = null;
+    this.sprintFactor = 1;
+    this.sprintingNow = false;
+    this.body.setVelocity(0, 0);
+  }
+
+  /** 이 시각까지 무적 (기존 무적보다 길 때만) */
+  grantInvulnerable(until: number): void {
+    this.invulnerableUntil = Math.max(this.invulnerableUntil, until);
   }
 
   /** 그림자 걸음 등으로 순간이동 (Game 이 목적지를 정한다) */

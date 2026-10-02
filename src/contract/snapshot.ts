@@ -2,7 +2,7 @@
 import { gameState } from '../core/GameState';
 import { ECONOMY, STORY } from '../data';
 import type { FloorLayout } from '../systems/mapgen';
-import type { UiMap, UiMenu, UiSnapshot } from './ui';
+import type { UiMap, UiMenu, UiSnapshot, UiWarpState } from './ui';
 
 export interface SnapshotContext {
   layout: FloorLayout | null;
@@ -11,11 +11,16 @@ export interface SnapshotContext {
   bossName: string | null;
   paused: boolean;
   menu: UiMenu | null;
+  /** 45라운드: 활성 전투 방 여부 · 달리는 중 · 워프 상태 (targets 는 방 id) */
+  inCombat: boolean;
+  sprinting: boolean;
+  warp: UiWarpState;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
   const L = ctx.layout;
   if (!L) return { rooms: [], connections: [], currentRoomId: '', gridW: 0, gridH: 0 };
+  const warpable = new Set(ctx.warp.targets);
   return {
     rooms: L.rooms.map((r) => ({
       id: r.id,
@@ -23,6 +28,7 @@ export function buildUiMap(ctx: SnapshotContext): UiMap {
       cells: r.cells.map((c) => ({ cx: c.cx, cy: c.cy })),
       visited: ctx.visited.has(r.id),
       cleared: ctx.cleared.has(r.id),
+      warpable: warpable.has(r.id),
     })),
     connections: L.connections.map((c) => ({ a: { cx: c.a.cx, cy: c.a.cy }, b: { cx: c.b.cx, cy: c.b.cy } })),
     currentRoomId: gameState.roomId,
@@ -74,5 +80,8 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     playerName: gameState.playerName,
     floorTitle: STORY.floors[gameState.stageId]?.title ?? gameState.stage.name,
     names: { potion: STORY.names.potion, gold: STORY.names.gold, shop: STORY.names.shop, souls: STORY.names.souls },
+    inCombat: ctx.inCombat,
+    sprinting: ctx.sprinting,
+    warp: { ...ctx.warp, targets: [...ctx.warp.targets] },
   };
 }

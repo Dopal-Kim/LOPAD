@@ -43,6 +43,9 @@ export function validatePlayer(p: PlayerData): PlayerData {
   assertPair(p.size, 'player.size');
   for (const [k, val] of Object.entries(p.dash)) if (k !== 'invulnerable') assertNumber(val, `player.dash.${k}`);
   for (const [k, val] of Object.entries(p.parry)) assertNumber(val, `player.parry.${k}`);
+  if (!p.sprint) throw new Error('[data] player.sprint 없음');
+  for (const [k, val] of Object.entries(p.sprint)) assertNumber(val, `player.sprint.${k}`);
+  if (p.sprint.speedMult < 1) throw new Error('[data] player.sprint.speedMult 는 1 이상');
   if (typeof p.startWeapon !== 'string') throw new Error('[data] player.startWeapon 없음');
   assertNumber(p.attackSlowMinMs, 'player.attackSlowMinMs');
   return p;

@@ -8,8 +8,9 @@ import type { Mob } from '../objects/Mob';
 import type { TileWorld } from '../world/TileWorld';
 import type { Room } from './mapgen';
 import { Rng } from './rng';
+import { isInCombat, type RoomProgress } from './traversal';
 
-type RoomState = 'idle' | 'active' | 'cleared';
+type RoomState = RoomProgress;
 
 export interface RoomDirectorHost {
   world: TileWorld;
@@ -43,6 +44,16 @@ export class RoomDirector {
   /** 디버그용: 현재 활성 방의 남은 적 수와 웨이브 번호 */
   get debugInfo(): { alive: number; wave: number; active: string | undefined } {
     return { alive: this.alive.size, wave: this.waveIndex, active: this.activeRoom?.id };
+  }
+
+  /** 45라운드: 비전투 판정의 단일 기준 — 활성 전투 방(시련 웨이브·보스전 진행 중)이 있으면 true */
+  get inCombat(): boolean {
+    return isInCombat(this.states);
+  }
+
+  /** 방별 진행 상태 (워프 대상 판정용, 읽기 전용) */
+  get progress(): ReadonlyMap<string, RoomProgress> {
+    return this.states;
   }
 
   get activeRoom(): Room | undefined {

@@ -23,6 +23,10 @@ export const UI_EVENTS = {
   RESUMED: 'ui:resumed',
   /** 스토리 자막 (계약 story-text.md §3) */
   STORY: 'ui:story',
+  /** 45라운드: 워프 도착 (`UiWarpDone`) */
+  WARP_DONE: 'ui:warp-done',
+  /** 45라운드: `warpTo` 거부 (`UiWarpDenied`) */
+  WARP_DENIED: 'ui:warp-denied',
 } as const;
 
 export type StoryKind = 'floor' | 'boss' | 'rest' | 'notice' | 'evolution' | 'death';
@@ -44,6 +48,34 @@ export interface UiRoom {
   cells: UiCell[];
   visited: boolean;
   cleared: boolean;
+  /** 45라운드: 워프 목적지 가능 (= `UiSnapshot.warp.targets` 에 있음) */
+  warpable: boolean;
+}
+
+/** 45라운드: 워프 거부 사유 — 전투 중 / 메뉴·연출 중(게임 씬 없음 포함) / 없는 방 / 미방문·미클리어 / 이미 그 방 */
+export type UiWarpDenyReason = 'combat' | 'busy' | 'unknown-room' | 'not-cleared' | 'current-room';
+
+/** 45라운드: 워프 상태 (계약 §8.1) */
+export interface UiWarpState {
+  /** 지금 `warpTo` 를 받을 수 있는지 (blocked === null) */
+  ready: boolean;
+  /** ready=false 의 이유 */
+  blocked: 'combat' | 'busy' | null;
+  /** 워프 가능한 방 id (map.rooms[].id). ready 와 무관하게 방 조건(방문·클리어·현재 방 아님)만으로 채운다 */
+  targets: string[];
+  /** 워프 연출 중 (입력 잠금) */
+  warping: boolean;
+}
+
+export interface UiWarpDone {
+  fromRoomId: string;
+  roomId: string;
+  type: RoomType;
+}
+
+export interface UiWarpDenied {
+  roomId: string;
+  reason: UiWarpDenyReason;
 }
 
 export interface UiMap {
@@ -98,6 +130,12 @@ export interface UiSnapshot {
   floorTitle: string;
   /** 서사 이름 */
   names: { potion: string; gold: string; shop: string; souls: string };
+  /** 45라운드: 활성 전투 방(시련·보스 진행 중)이 있으면 true */
+  inCombat: boolean;
+  /** 45라운드: 달리는 중 (비전투 + Shift + 이동) */
+  sprinting: boolean;
+  /** 45라운드: 워프 상태 */
+  warp: UiWarpState;
 }
 
 export interface UiResult {
@@ -150,6 +188,7 @@ interface SystemImpl {
   hasSave: () => boolean;
   toTitle: () => void;
   getText: () => UiText;
+  warpTo: (roomId: string) => boolean;
 }
 
 let impl: SystemImpl | null = null;
@@ -179,6 +218,9 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   playerName: '',
   floorTitle: '',
   names: { potion: '물약', gold: 'G', shop: '상점', souls: '영혼' },
+  inCombat: false,
+  sprinting: false,
+  warp: { ready: false, blocked: 'busy', targets: [], warping: false },
 };
 
 export const uiCommands = {
@@ -212,6 +254,17 @@ export const uiCommands = {
   /** 세계관 문구. 시스템 미등록 시 빈 객체 */
   getUiText(): UiText {
     return impl?.getText() ?? { title: {}, evolveMenu: {}, result: {}, pause: {}, hud: {}, controls: '' };
+  },
+  /**
+   * 45라운드: 클리어한 방으로 워프 (계약 §8.2). 시작하면 true, 거부면 false + `WARP_DENIED`.
+   * 게임이 pause() 로 멈춰 있으면 허용될 때 시스템이 재개한 뒤 워프한다
+   */
+  warpTo(roomId: string): boolean {
+    if (!impl) {
+      uiBus.emit(UI_EVENTS.WARP_DENIED, { roomId, reason: 'busy' } satisfies UiWarpDenied);
+      return false;
+    }
+    return impl.warpTo(roomId);
   },
 };
 

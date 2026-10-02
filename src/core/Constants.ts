@@ -484,4 +484,40 @@ export const KEYS = {
   RESTART: 'R',
   DASH: 'SPACE',
   POTION: 'Q',
+  /** 45라운드 Q2: 비전투 중 누르는 동안 달리기 (배율은 data/player.json sprint) */
+  SPRINT: 'SHIFT',
 } as const;
+
+/**
+ * 비전투 이동 연출 (45라운드 임시값). 달리기 배율·가속은 data/player.json `sprint`.
+ * 달리기와 대쉬: 대쉬는 거리·속도 그대로(배율 미적용), 대쉬 동안 달리기 배율을 유지해 끝나면 이어서 달린다.
+ */
+export const TRAVERSAL = {
+  /** 달리기 발밑 먼지: dash_dust 시트를 작게·옅게 주기적으로 (시트가 없으면 작은 회색 점) */
+  SPRINT_DUST: {
+    SHEET: 'dash_dust',
+    INTERVAL_MS: 140,
+    SCALE_MULT: 0.5,
+    ALPHA: 0.6,
+    /** 시트 없을 때 점 반지름·지속·색 (넉백 먼지 G7) */
+    DOT_RADIUS: 1.5,
+    DOT_MS: 220,
+    DOT_COLOR: 0x6c6f73,
+  },
+  /**
+   * 워프 (45라운드 Q3): 퇴장 섬광 → OUT_MS 뒤 이동·카메라 즉시 이동·도착 섬광 → IN_LOCK_MS 동안 입력 잠금 유지.
+   * 무적은 시작부터 INVULN_MS. 섬광 색은 코어 X1(기본 섬광과 같은 #fff4dc). `feelSettings.flash` 를 따른다
+   */
+  WARP: {
+    OUT_MS: 140,
+    IN_LOCK_MS: 160,
+    INVULN_MS: 600,
+    FLASH_OUT: { COLOR: 0xfff4dc, MS: 160, ALPHA: 0.55 },
+    FLASH_IN: { COLOR: 0xfff4dc, MS: 220, ALPHA: 0.4 },
+    /** 착지점: 몸 반경(칸, 3×3 바닥) · 출구·상점 타일에서 떨어질 거리(칸) */
+    SAFE_BODY_TILES: 1,
+    SAFE_HAZARD_TILES: 3,
+    /** 출발·도착 지점에 dash_dust 1회 (시트가 있을 때) */
+    DUST_SHEET: 'dash_dust',
+  },
+};

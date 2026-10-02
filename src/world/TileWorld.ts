@@ -3,6 +3,7 @@ import { DEPTH, TILE } from '../core/Constants';
 import { Rng } from '../systems/rng';
 import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } from '../systems/mapgen';
 import { CELL_H, CELL_W } from '../systems/mapgen/types';
+import { findSafeTile } from '../systems/traversal';
 import { TileSkin, isOpenId, planProps, roomTypeMap } from './tileskin';
 
 export type DoorState = 'open' | 'closed' | 'locked';
@@ -162,6 +163,24 @@ export class TileWorld {
     const x1 = (Math.max(...xs) + 1) * CELL_W * TILE;
     const y1 = (Math.max(...ys) + 1) * CELL_H * TILE;
     return new Phaser.Geom.Rectangle(x0, y0, x1 - x0, y1 - y0);
+  }
+
+  /**
+   * 워프 착지점 (45라운드): 중앙에서 가장 가까운, 몸 반경 안이 모두 바닥이고 출구·상점 타일에서 hazardTiles 칸 이상 떨어진 타일 중심.
+   * 못 찾으면 방 중앙
+   */
+  safePointInRoom(room: Room, bodyTiles: number, hazardTiles: number): Phaser.Math.Vector2 {
+    const t = findSafeTile(
+      room.interior,
+      (tx, ty) => this.isWalkableAt(tx * TILE + TILE / 2, ty * TILE + TILE / 2),
+      (tx, ty) => {
+        const id = this.tileIdAt(tx, ty);
+        return id === TileId.Exit || id === TileId.Shop;
+      },
+      bodyTiles,
+      hazardTiles,
+    );
+    return t ? new Phaser.Math.Vector2(t.tx * TILE + TILE / 2, t.ty * TILE + TILE / 2) : this.roomCenter(room);
   }
 
   /** 방 내부의 무작위 바닥 지점(타일 중심). from 에서 minDistTiles 이상 떨어진 곳. 단단한 소품 위는 피한다 */

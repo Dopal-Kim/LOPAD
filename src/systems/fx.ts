@@ -64,6 +64,10 @@ export interface FxPlayOptions {
   trailSource?: () => { x: number; y: number } | null;
   /** false 면 JSON flash·shake·trail 훅을 쓰지 않는다 (보스가 플레이어 시트를 빌려 쓸 때) */
   hooks?: boolean;
+  /** 시트 배율에 곱하는 배율 (45라운드 달리기 먼지: dash_dust 를 작게). 기본 1 */
+  scaleMult?: number;
+  /** 시작 알파 (기본 1) */
+  alpha?: number;
 }
 
 export interface FxHandle {
@@ -172,8 +176,8 @@ export class FxPool {
       .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
       .setPosition(x, y)
       .setRotation(def.rotate ? (opts.angle ?? 0) : 0)
-      .setAlpha(1)
-      .setScale(scale)
+      .setAlpha(opts.alpha ?? 1)
+      .setScale(scale * (opts.scaleMult ?? 1))
       .setActive(true)
       .setVisible(true);
     if (opts.tint !== undefined) {

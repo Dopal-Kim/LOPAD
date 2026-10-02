@@ -26,6 +26,11 @@
     "stunMs": 1000,
     "reflectDamageMult": 1
   },
+  "sprint": {
+    "speedMult": 1.8,
+    "accelMs": 150,
+    "decelMs": 120
+  },
   "startWeapon": "katana",
   "attackSlowMinMs": 120
 }

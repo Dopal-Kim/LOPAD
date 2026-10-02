@@ -74,6 +74,9 @@ export const Events = {
   MENU_SELECTED: 'menu:selected',
   MENU_CLOSED: 'menu:closed',
   GAME_RESTART: 'game:restart',
+  /** 45라운드 워프: 시작(퇴장 섬광) · 도착 (음향 훅 후보, 현재 매핑 없음) */
+  WARP_STARTED: 'warp:started',
+  WARP_ARRIVED: 'warp:arrived',
 } as const;
 
 export type PlayerAttackPayload = {
@@ -125,3 +128,5 @@ export type TrialClearedPayload = { roomId: string; cleared: number; total: numb
 export type BossPhasePayload = { phase: number; hp: number; maxHp: number };
 export type WeaponEvolvedPayload = { weapon: string; stage: number; name: string };
 export type WeaponReinforcedPayload = { weapon: string; reinforce: number; name: string };
+/** 45라운드 워프 (시작·도착 공통) */
+export type WarpPayload = { fromRoomId: string; roomId: string; x: number; y: number };
