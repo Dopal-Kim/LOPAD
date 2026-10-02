@@ -98,6 +98,25 @@ export interface StructureHost {
   isBusy(): boolean;
   openStatChooser(): void;
   story(kind: StoryKind, text: string): void;
+  /**
+   * 48라운드 노드 지도: 층 상태(빚·취기·판돈·불씨·불붙은 무기·전당·궤짝 수·숙성)를 노드 사이에 들고 다닌다.
+   * 불씨는 모닥불이 없는 노드에서도 쌓이고, 숙성 통에 넣은 물약은 노드를 떠나도 익으면 자동으로 받는다
+   */
+  nodeMode?: boolean;
+}
+
+/** 48라운드: 노드 사이에 들고 다니는 층 상태 (Q13 '층 안에서 완결' 을 노드 진행에 맞게) */
+export interface StructureFloorCarry {
+  chestsOpened: number;
+  debt: number;
+  drunk: number;
+  stakeRings: number;
+  embers: number;
+  /** 남은 ms (씬 시각이 노드마다 이어지지만 안전하게 남은 시간으로) */
+  fireWeaponMs: number;
+  pawned: Pawned[];
+  /** 숙성 통에 넣은 시점 (trialsCleared) 목록 */
+  aging: number[];
 }
 
 type InstState = 'idle' | 'used' | 'broken' | 'active';
@@ -184,6 +203,8 @@ export class StructureSystem {
   private embers = 0;
   private fireWeaponUntil = 0;
   private pawned: Pawned[] = [];
+  /** 48라운드: 앞 노드 숙성 통에 넣은 물약 (넣은 시점의 trialsCleared) */
+  private agingCarry: number[] = [];
   private ring: { inst: Inst; until: number; hits: number; max: number; stake: number } | null = null;
   private cardFight: Inst | null = null;
   private roulette: { inst: Inst; roomId: string; ruleIndex: number } | null = null;
@@ -416,10 +437,12 @@ export class StructureSystem {
   onGoldPickup(amount: number): number {
     if (this.debt <= 0) return amount;
     const ledger = this.list.find((i) => i.kind === 'ledger');
-    const ratio = ledger ? num(ledger.def, 'repayRatio') : 0.5;
+    const ld = ledger?.def ?? structureDef('ledger');
+    const ratio = num(ld, 'repayRatio');
     const { kept, repaid } = repaySplit(amount, this.debt, ratio);
     this.debt -= repaid;
-    if (this.debt <= 0 && repaid > 0 && ledger) this.result(ledger, 'gain', txt(ledger.def, 'autoRepaid'), {});
+    if (this.debt <= 0 && repaid > 0)
+      this.resultOf('ledger', ledger?.id ?? 'ledger', 'gain', txt(ld, 'autoRepaid'), {});
     return kept;
   }
 
@@ -1701,7 +1724,18 @@ export class StructureSystem {
   }
 
   private result(s: Inst, tone: UiStructureResult['tone'], text: string, deltas: UiStructureResult['deltas']): void {
-    const r: UiStructureResult = { id: s.id, kind: s.kind, tone, text, deltas };
+    this.resultOf(s.kind, s.id, tone, text, deltas);
+  }
+
+  /** 결과 알림 (48라운드: 인스턴스가 없는 노드에서의 정산·숙성 배달도 같은 경로) */
+  private resultOf(
+    kind: UiStructureKind,
+    id: string,
+    tone: UiStructureResult['tone'],
+    text: string,
+    deltas: UiStructureResult['deltas'],
+  ): void {
+    const r: UiStructureResult = { id, kind, tone, text, deltas };
     this.log.push(r);
     if (this.log.length > 20) this.log.shift();
     __system.emit(UI_EVENTS.STRUCTURE_RESULT, r);
@@ -1765,12 +1799,15 @@ export class StructureSystem {
 
   private onTrialCleared(p: { roomId: string }): void {
     // C5 불씨 (모닥불이 있는 층만)
+    // 48라운드 노드 지도: 모닥불은 휴식 노드에만 있으므로 불씨는 층 상태로 쌓는다
     const fire = this.list.find((i) => i.kind === 'campfire');
-    if (fire) {
+    if (fire || this.host.nodeMode) {
+      const fd = fire?.def ?? structureDef('campfire');
       const before = this.embers;
-      this.embers = Math.min(num(fire.def, 'maxEmbers'), this.embers + num(fire.def, 'emberPerTrial'));
-      if (this.embers > 0 && before === 0) this.setVisual(fire, 'active');
+      this.embers = Math.min(num(fd, 'maxEmbers'), this.embers + num(fd, 'emberPerTrial'));
+      if (fire && this.embers > 0 && before === 0) this.setVisual(fire, 'active');
     }
+    this.deliverCarriedAging();
     // 1-4 숙성 진행
     for (const s of this.list)
       if (s.kind === 'agingBarrel' && s.state === 'active' && this.agingReady(s)) this.setVisual(s, 'ready');
@@ -1794,12 +1831,14 @@ export class StructureSystem {
   /** 보스 처치: 1-3 빚 정산(최대 HP), 취기 해제 */
   private onBossDied(): void {
     const ledger = this.list.find((i) => i.kind === 'ledger');
-    if (this.debt > 0 && ledger) {
-      const hp = debtPenalty(this.debt, num(ledger.def, 'maxHpPer10Debt'));
+    // 48라운드 노드 지도: 장부대는 상점 노드에 있고 보스는 다른 노드 — 정의로 정산한다
+    const ld = ledger?.def ?? (this.host.nodeMode ? structureDef('ledger') : null);
+    if (this.debt > 0 && ld) {
+      const hp = debtPenalty(this.debt, num(ld, 'maxHpPer10Debt'));
       const debt = this.debt;
       this.debt = 0;
       this.loseMaxHp(hp);
-      this.result(ledger, 'loss', txt(ledger.def, 'penalty', { debt, hp }), { maxHp: -hp });
+      this.resultOf('ledger', ledger?.id ?? 'ledger', 'loss', txt(ld, 'penalty', { debt, hp }), { maxHp: -hp });
     }
     this.sober();
   }
@@ -1977,6 +2016,22 @@ export class StructureSystem {
         detail: txt(s.def, 'statusDetail', { n: need }),
       });
     }
+    if (this.agingCarry.length > 0) {
+      const ad = structureDef('agingBarrel');
+      const need = num(ad, 'trialsNeeded');
+      for (const at of this.agingCarry) {
+        const g = agingProgress(at, gameState.trialsCleared, need);
+        out.push({
+          id: 'aging',
+          kind: 'progress',
+          label: txt(ad, 'statusLabel'),
+          value: g.ready ? txt(ad, 'statusDone') : `${g.done}/${need}`,
+          amount: g.done,
+          max: need,
+          detail: txt(ad, 'statusDetail', { n: need }),
+        });
+      }
+    }
     if (this.pawned.length > 0) {
       const p = structureDef('pawn');
       out.push({
@@ -2095,6 +2150,64 @@ export class StructureSystem {
 
   private get now(): number {
     return this.host.scene.time.now;
+  }
+
+  // =====================================================================
+  // 48라운드: 노드 사이 층 상태
+  // =====================================================================
+
+  /** 노드를 떠날 때: 들고 갈 층 상태 */
+  exportFloorState(): StructureFloorCarry {
+    const aging = [...this.agingCarry];
+    for (const s of this.list)
+      if (s.kind === 'agingBarrel' && s.agingAt !== null && s.state === 'active') aging.push(s.agingAt);
+    return {
+      chestsOpened: this.chestsOpened,
+      debt: this.debt,
+      drunk: this.drunk,
+      stakeRings: this.stakeRings,
+      embers: this.embers,
+      fireWeaponMs: Math.max(0, this.fireWeaponUntil - this.now),
+      pawned: this.pawned.map((p) => ({ ...p })),
+      aging,
+    };
+  }
+
+  /** 새 노드에서: 앞 노드의 층 상태를 이어받는다 */
+  importFloorState(c: StructureFloorCarry | null | undefined): void {
+    if (!c) return;
+    this.chestsOpened = c.chestsOpened;
+    this.debt = c.debt;
+    this.stakeRings = c.stakeRings;
+    this.embers = c.embers;
+    this.fireWeaponUntil = c.fireWeaponMs > 0 ? this.now + c.fireWeaponMs : 0;
+    this.pawned = c.pawned.map((p) => ({ ...p }));
+    this.agingCarry = [...c.aging];
+    if (c.drunk > 0) this.setDrunk(c.drunk);
+    const fire = this.list.find((i) => i.kind === 'campfire');
+    if (fire && this.embers > 0) this.setVisual(fire, 'active');
+  }
+
+  /** 앞 노드 숙성 통의 물약이 익으면 바로 받는다 (노드 지도에서는 되돌아갈 수 없으므로) */
+  private deliverCarriedAging(): void {
+    if (this.agingCarry.length === 0) return;
+    const d = structureDef('agingBarrel');
+    const need = num(d, 'trialsNeeded');
+    const keep: number[] = [];
+    for (const at of this.agingCarry) {
+      if (!agingProgress(at, gameState.trialsCleared, need).ready) {
+        keep.push(at);
+        continue;
+      }
+      const out = num(d, 'potionsOut');
+      for (let i = 0; i < out; i++) {
+        if (gameState.potions < this.host.potionCarry()) gameState.potions += 1;
+        else this.host.spawnPickup(this.host.player.x + (i - out / 2) * 8, this.host.player.y + 8, 'potion', 1);
+      }
+      EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
+      this.resultOf('agingBarrel', 'agingBarrel', 'gain', txt(d, 'take', { n: out }), { potions: out });
+    }
+    this.agingCarry = keep;
   }
 
   destroy(): void {

@@ -11,11 +11,43 @@
       "critBonus": 5,
       "attackSlowMult": 0.7,
       "hitbox": {
-        "width": 24,
-        "height": 16,
-        "reach": 14,
+        "width": 36,
+        "height": 24,
+        "reach": 21,
         "activeMs": 100,
         "cooldownMs": 350
+      },
+      "combo": {
+        "_note": "48라운드 임시값: '씽 씽씽' — 1타 뒤 빠른 2연속(2타 역방향). 시간은 아트 시트 timingMs 와 같게. 판정 = 몸 중심(발 위 10px) 부채꼴 반경 radiusPx·arcDeg (아트 JSON hitRadiusPx·arcDeg 가 있으면 그 값)",
+        "shape": "arc",
+        "arcDeg": 140,
+        "bufferMs": 220,
+        "resetMs": 380,
+        "finisherRecoverMs": 160,
+        "hits": [
+          {
+            "damageMult": 1.0,
+            "sizeMult": 1.0,
+            "durationMs": 350,
+            "cancelFromMs": 250,
+            "activeMs": 60
+          },
+          {
+            "damageMult": 0.6,
+            "sizeMult": 1.0,
+            "durationMs": 170,
+            "cancelFromMs": 80,
+            "activeMs": 50
+          },
+          {
+            "damageMult": 0.8,
+            "sizeMult": 1.0,
+            "durationMs": 220,
+            "cancelFromMs": 220,
+            "activeMs": 60
+          }
+        ],
+        "radiusPx": 33
       },
       "secondary": {
         "kind": "parry",
@@ -110,11 +142,43 @@
       "critBonus": 0,
       "attackSlowMult": 0.25,
       "hitbox": {
-        "width": 36,
-        "height": 28,
-        "reach": 20,
+        "width": 54,
+        "height": 42,
+        "reach": 30,
         "activeMs": 200,
         "cooldownMs": 750
+      },
+      "combo": {
+        "_note": "48라운드 임시값: '훙 훙 훙' — 묵직한 3연격, 3타가 가장 크다(270°). 시간은 아트 timingMs, 판정은 아트 hitRadiusPx·arcDeg",
+        "shape": "arc",
+        "arcDeg": 190,
+        "bufferMs": 300,
+        "resetMs": 450,
+        "finisherRecoverMs": 260,
+        "hits": [
+          {
+            "damageMult": 0.75,
+            "sizeMult": 1.0,
+            "durationMs": 480,
+            "cancelFromMs": 340,
+            "activeMs": 80
+          },
+          {
+            "damageMult": 0.75,
+            "sizeMult": 1.0,
+            "durationMs": 460,
+            "cancelFromMs": 320,
+            "activeMs": 80
+          },
+          {
+            "damageMult": 1.1,
+            "sizeMult": 1.0,
+            "durationMs": 650,
+            "cancelFromMs": 650,
+            "activeMs": 130
+          }
+        ],
+        "radiusPx": 51
       },
       "secondary": {
         "kind": "guard",
@@ -217,11 +281,45 @@
       "critBonus": 20,
       "attackSlowMult": 1.0,
       "hitbox": {
-        "width": 16,
-        "height": 12,
-        "reach": 10,
+        "width": 24,
+        "height": 18,
+        "reach": 15,
         "activeMs": 70,
         "cooldownMs": 180
+      },
+      "combo": {
+        "_note": "48라운드 임시값: '슈슈슉' 찌르기 3연타 — 몸 중심에서 앞으로 뻗는 직사각형(길이·폭, 아트 JSON thrust 가 있으면 그 값·비틀림 각도)",
+        "shape": "thrust",
+        "thrust": {
+          "lengthPx": 24,
+          "widthPx": 8
+        },
+        "bufferMs": 200,
+        "resetMs": 300,
+        "finisherRecoverMs": 120,
+        "hits": [
+          {
+            "damageMult": 0.9,
+            "sizeMult": 1.0,
+            "durationMs": 160,
+            "cancelFromMs": 90,
+            "activeMs": 50
+          },
+          {
+            "damageMult": 0.9,
+            "sizeMult": 1.0,
+            "durationMs": 150,
+            "cancelFromMs": 80,
+            "activeMs": 50
+          },
+          {
+            "damageMult": 1.2,
+            "sizeMult": 1.15,
+            "durationMs": 280,
+            "cancelFromMs": 280,
+            "activeMs": 60
+          }
+        ]
       },
       "secondary": {
         "kind": "shadowstep",

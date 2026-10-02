@@ -9,6 +9,7 @@ import storyJson from '../../data/story.json';
 import paletteJson from '../../data/palette.json';
 import type {
   BossTable,
+  ComboDef,
   EconomyData,
   EnemyTable,
   PaletteData,
@@ -232,6 +233,7 @@ export function validateWeapons(t: WeaponTable): WeaponTable {
       if (val < 0 || val > 1) throw new Error(`[data] weapons.${id}.affinity.${k} 는 0..1`);
     }
     for (const [k, val] of Object.entries(w.hitbox)) assertNumber(val, `weapons.${id}.hitbox.${k}`);
+    if (w.combo) validateCombo(w.combo, `weapons.${id}.combo`);
     // 우클릭 보조 동작
     const sec = w.secondary as SecondaryDef | undefined;
     if (!sec || !(sec.kind in SECONDARY_NUMERIC)) throw new Error(`[data] weapons.${id}.secondary.kind 알 수 없음`);
@@ -255,6 +257,25 @@ export function validateWeapons(t: WeaponTable): WeaponTable {
     );
   }
   return t;
+}
+
+/** 48라운드 3연격: 모양·버퍼·타별 수치 (마지막 타의 cancelFromMs 는 durationMs 이상) */
+export function validateCombo(c: ComboDef, path: string): ComboDef {
+  if (c.shape !== 'arc' && c.shape !== 'thrust') throw new Error(`[data] ${path}.shape 는 arc|thrust`);
+  if (c.shape === 'arc') assertNumber(c.arcDeg, `${path}.arcDeg`);
+  if (c.radiusPx !== undefined) assertNumber(c.radiusPx, `${path}.radiusPx`);
+  if (c.shape === 'thrust') {
+    assertNumber(c.thrust?.lengthPx, `${path}.thrust.lengthPx`);
+    assertNumber(c.thrust?.widthPx, `${path}.thrust.widthPx`);
+  }
+  for (const k of ['bufferMs', 'resetMs', 'finisherRecoverMs'] as const) assertNumber(c[k], `${path}.${k}`);
+  if (!Array.isArray(c.hits) || c.hits.length === 0) throw new Error(`[data] ${path}.hits 비어 있음`);
+  c.hits.forEach((h, i) => {
+    for (const k of ['damageMult', 'sizeMult', 'durationMs', 'cancelFromMs', 'activeMs'] as const)
+      assertNumber(h[k], `${path}.hits[${i}].${k}`);
+    if (h.cancelFromMs > h.durationMs) throw new Error(`[data] ${path}.hits[${i}].cancelFromMs 는 durationMs 이하`);
+  });
+  return c;
 }
 
 export function validateWeaponRules(r: WeaponRules): WeaponRules {

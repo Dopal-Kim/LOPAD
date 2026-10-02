@@ -104,6 +104,13 @@ export type PlayerAttackPayload = {
   swingDelayMs: number;
   /** 공격 애니 3프레임 시작까지 ms — 활 화살 생성 시점 (시트가 없으면 0) */
   releaseDelayMs: number;
+  /** 48라운드 3연격: 몇 번째 타(0부터) · 연격 타 수 · 판정 유지 ms · 애니 길이 ms (연격이 없는 무기면 없음) */
+  comboIndex?: number;
+  comboCount?: number;
+  activeMs?: number;
+  durationMs?: number;
+  /** 재생한 주인공 몸 동작 (attack 또는 <무기>_combo<n>) */
+  bodyAction?: string;
 };
 export type PlayerSecondaryPayload = {
   kind: 'parry' | 'guard' | 'shadowstep' | 'aimedshot';

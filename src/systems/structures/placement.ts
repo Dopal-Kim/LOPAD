@@ -49,6 +49,11 @@ export interface PlanOptions {
   rules?: StructureRules;
   /** 데모·검증: 이 층에 나올 수 있는 종류를 확률·예산 없이 전부 놓는다 */
   forceAll?: boolean;
+  /**
+   * 48라운드 노드 전투장 (Q11): 이 노드에 허용된 종류만, 방 종류 가중치·방당 E형 상한 없이 놓는다.
+   * budget = filler 밖 종류 수 [min, max] (forceAll 이면 허용 종류 전부). reserve = 비워 둘 타일 사각형(시작점·출구·상점)
+   */
+  node?: { kinds: readonly UiStructureKind[]; budget: [number, number]; reserve?: readonly Rect[] };
 }
 
 const key = (x: number, y: number) => `${x},${y}`;
@@ -263,6 +268,25 @@ function chooseGroup(
   return out;
 }
 
+/** 노드 전투장 예산: 확률에 걸린 종류를 먼저, 최소 수에 못 미치면 나머지에서 채운다. 개수는 perFloor (방당 상한까지) */
+function chooseNode(
+  rng: Rng,
+  defs: StructureDef[],
+  budget: [number, number],
+  forceAll: boolean,
+): { def: StructureDef; count: number }[] {
+  const count = (d: StructureDef) => Math.min(d.maxPerRoom, Math.max(1, rng.int(d.perFloor![0], d.perFloor![1])));
+  if (forceAll) return defs.map((d) => ({ def: d, count: count(d) }));
+  const target = rng.int(budget[0], budget[1]);
+  const rolled = defs.map((d) => ({ def: d, hit: rng.chance(d.chance) }));
+  const yes = rng.shuffle(rolled.filter((r) => r.hit).map((r) => r.def));
+  const no = rng.shuffle(rolled.filter((r) => !r.hit).map((r) => r.def));
+  const out: { def: StructureDef; count: number }[] = [];
+  for (const d of yes) if (out.length < target) out.push({ def: d, count: count(d) });
+  for (const d of no) if (out.length < budget[0]) out.push({ def: d, count: count(d) });
+  return out;
+}
+
 const PLACE_ORDER: Record<string, number> = { center: 0, cellar: 1 };
 
 /** 한 층의 구조물 배치 */
@@ -273,14 +297,17 @@ export function planStructures(
   opts: PlanOptions = {},
 ): StructurePlacement[] {
   const rules = opts.rules ?? STRUCTURE_RULES;
-  const defs = [...(opts.defs ?? STRUCTURE_DEFS.values())].filter((d) => availableOn(d, stageId));
+  const node = opts.node;
+  const defs = [...(opts.defs ?? STRUCTURE_DEFS.values())].filter(
+    (d) => availableOn(d, stageId) && (!node || node.kinds.includes(d.id)),
+  );
   const rng = new Rng(hashSeed(`${String(seed)}:structures`));
-  const occs = layout.rooms.map<RoomOcc>((room) => ({
-    room,
-    blocked: baseBlocked(room, rules),
-    interact: 0,
-    perKind: new Map(),
-  }));
+  const occs = layout.rooms.map<RoomOcc>((room) => {
+    const blocked = baseBlocked(room, rules);
+    for (const r of node?.reserve ?? [])
+      for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) blocked.add(key(x, y));
+    return { room, blocked, interact: 0, perKind: new Map() };
+  });
   const out: StructurePlacement[] = [];
   const serial = new Map<UiStructureKind, number>();
   const gap = rules.clear.gapTiles;
@@ -344,6 +371,10 @@ export function planStructures(
 
   /** 정의 1개 인스턴스: 조건 맞는 방을 가중치로 고르고, 안 되면 그 방을 빼고 다시 */
   const placeOne = (def: StructureDef): boolean => {
+    if (node) {
+      // 노드 전투장: 방 하나, 허용 목록이 곧 조건 (방 종류 가중치·E형 상한·최소 폭 무시)
+      return occs.some((o) => (o.perKind.get(def.id) ?? 0) < def.maxPerRoom && placeIn(def, o));
+    }
     let candidates = occs.filter(
       (o) =>
         (def.roomTypes[o.room.type] ?? 0) > 0 &&
@@ -360,13 +391,23 @@ export function planStructures(
     return false;
   };
 
-  // 1) 예산 묶음 (공통 → 테마), 중앙·저장고 자리를 먼저 잡는다
+  // 1) 예산 묶음 (공통 → 테마), 중앙·저장고 자리를 먼저 잡는다. 노드 전투장은 노드 예산 하나
   const chosen: { def: StructureDef; count: number }[] = [];
-  for (const group of ['common', 'theme'] as const) {
-    const list = defs.filter((d) => d.group === group);
-    if (list.length === 0) continue;
-    chosen.push(...chooseGroup(rng, list, rules.budget[group], rules.budget.countBy, forceAll));
-  }
+  if (node)
+    chosen.push(
+      ...chooseNode(
+        rng,
+        defs.filter((d) => d.group !== 'filler'),
+        node.budget,
+        forceAll,
+      ),
+    );
+  else
+    for (const group of ['common', 'theme'] as const) {
+      const list = defs.filter((d) => d.group === group);
+      if (list.length === 0) continue;
+      chosen.push(...chooseGroup(rng, list, rules.budget[group], rules.budget.countBy, forceAll));
+    }
   // 중앙·저장고 자리 먼저, 그다음 놓일 수 있는 방이 적은(제약이 큰) 것부터
   const roomKinds = (d: StructureDef) => layout.rooms.filter((r) => (d.roomTypes[r.type] ?? 0) > 0).length;
   const order = (d: StructureDef) => (d.place === 'center' || d.place === 'cellar' ? PLACE_ORDER[d.place] : 2);
@@ -377,7 +418,8 @@ export function planStructures(
   for (const def of defs.filter((d) => d.group === 'filler')) {
     if (!forceAll && !rng.chance(def.chance)) continue;
     for (const occ of occs) {
-      const range = def.perRoom?.[occ.room.type];
+      // 노드 전투장: 방 종류에 범위가 없으면 첫 범위
+      const range = def.perRoom?.[occ.room.type] ?? (node ? Object.values(def.perRoom ?? {})[0] : undefined);
       if (!range) continue;
       const n = Math.min(def.maxPerRoom, rng.int(range[0], range[1]));
       for (let i = 0; i < n; i++) placeIn(def, occ);

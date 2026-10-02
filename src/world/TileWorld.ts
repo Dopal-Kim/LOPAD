@@ -23,6 +23,8 @@ export class TileWorld {
   private readonly solidPropIndices: number[];
   /** 47라운드: 단단한 구조물이 차지한 칸 (`"x,y"`) — 걸을 수 없는 칸으로 본다 (적 생성·워프 착지 회피) */
   private readonly blocked = new Set<string>();
+  /** 48라운드 노드 전투장: 카메라 경계 (px). 숨은 저장고가 열리면 넓힌다 */
+  private arenaCamera: Phaser.Geom.Rectangle | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -46,6 +48,8 @@ export class TileWorld {
     this.layer.setCollision(skin.solidIndices);
     this.roomById = new Map(layout.rooms.map((r) => [r.id, r]));
     this.solidPropIndices = skin.solidPropIndices;
+    const C = layout.arena?.camera;
+    if (C) this.arenaCamera = new Phaser.Geom.Rectangle(C.x * TILE, C.y * TILE, C.w * TILE, C.h * TILE);
 
     if (skin.props.length > 0) {
       const props = this.map.createBlankLayer('props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
@@ -156,6 +160,8 @@ export class TileWorld {
    * 영역은 항상 월드 안으로 잘라낸다.
    */
   cameraRegion(worldX: number, worldY: number): Phaser.Geom.Rectangle {
+    // 48라운드 노드 전투장: 방 내부 + 벽 (+ 열린 저장고)
+    if (this.arenaCamera) return this.arenaCamera;
     const cell = this.cellAt(worldX, worldY);
     const room = this.roomAtCell(cell);
     const base = room ? this.roomCellsRect(room) : this.cellRect(cell);
@@ -179,6 +185,23 @@ export class TileWorld {
     }
     const neighbor = this.cellRect({ cx: cell.cx + dx, cy: cell.cy + dy });
     return Phaser.Geom.Rectangle.Intersection(Phaser.Geom.Rectangle.Union(base, neighbor), world);
+  }
+
+  /** 48라운드: 노드 전투장 카메라 경계에 타일 사각형을 더한다 (숨은 저장고). 방+복도 층이면 무시 */
+  extendCamera(rect: Rect, padTiles = 1): void {
+    if (!this.arenaCamera) return;
+    const r = new Phaser.Geom.Rectangle(
+      (rect.x - padTiles) * TILE,
+      (rect.y - padTiles) * TILE,
+      (rect.w + padTiles * 2) * TILE,
+      (rect.h + padTiles * 2) * TILE,
+    );
+    this.arenaCamera = Phaser.Geom.Rectangle.Union(this.arenaCamera, r);
+  }
+
+  /** 노드 전투장 카메라 경계 (px, 없으면 null) */
+  get arenaBounds(): Phaser.Geom.Rectangle | null {
+    return this.arenaCamera;
   }
 
   /** 방 전체(2×2 보스 블록 포함)의 픽셀 사각형 — 카메라 경계용 */
@@ -250,6 +273,17 @@ export class TileWorld {
     const I = room.interior;
     const tx = I.x + Math.floor(I.w / 2) + 3;
     const ty = I.y + Math.floor(I.h / 2) - 1;
+    for (let y = ty; y < ty + 2; y++) for (let x = tx; x < tx + 2; x++) this.put(TileId.Shop, x, y);
+    return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
+  }
+
+  /** 48라운드: 지정 타일(왼쪽 위)에 2×2 출구 · 상점. 중심 px 반환 */
+  placeExitAt(tx: number, ty: number): { x: number; y: number } {
+    for (let y = ty; y < ty + 2; y++) for (let x = tx; x < tx + 2; x++) this.put(TileId.Exit, x, y);
+    return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
+  }
+
+  placeShopAt(tx: number, ty: number): { x: number; y: number } {
     for (let y = ty; y < ty + 2; y++) for (let x = tx; x < tx + 2; x++) this.put(TileId.Shop, x, y);
     return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
   }

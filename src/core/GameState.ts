@@ -7,6 +7,8 @@ import { WeaponState } from '../systems/weapons';
 import { EMPTY_BONUS, type StatBonus } from '../systems/economy';
 import { metaBonus, metaStore, type MetaBonus } from '../systems/meta';
 import { PassiveSet } from '../systems/passives';
+import type { RouteState } from '../systems/route';
+import type { StructureFloorCarry } from '../systems/structures/StructureSystem';
 
 export type EndingChoice = 'destroy' | 'understand';
 
@@ -57,6 +59,12 @@ class GameState {
    * 적립은 즉시 메타에 쓰므로 세이브 형식은 그대로다 (Q13)
    */
   bonusSouls = 0;
+  /** 48라운드 노드 지도 진행 상태 (노드 지도를 쓰지 않는 층이면 null). 층 전환 시 null */
+  route: RouteState | null = null;
+  /** 48라운드: 노드 사이에 들고 다니는 구조물 층 상태 (빚·취기·판돈 등). 층 전환 시 null */
+  structureCarry: StructureFloorCarry | null = null;
+  /** 48라운드 Q6: 새 런 첫 노드에서 탄생 연출을 아직 보지 않았다 */
+  birthPending = false;
 
   get stageId(): string {
     return RUN.order[this.stageIndex];
@@ -97,6 +105,7 @@ class GameState {
     this.bonus = { ...EMPTY_BONUS };
     this.passives = new PassiveSet();
     this.weapon = new WeaponState(wid, WEAPONS[wid]); // 사망 시 무기 초기화 (기획 3장)
+    this.birthPending = true;
     this.resetStage();
   }
 
@@ -128,6 +137,8 @@ class GameState {
     this.exitOpen = false;
     this.rewardPending = false;
     this.structureDefense = 0;
+    this.route = null;
+    this.structureCarry = null;
   }
 
   /** 기본 스탯 + 런 보너스 */
@@ -177,6 +188,7 @@ class GameState {
 
   applySave(d: SaveData): void {
     this.startRun(d.seed);
+    this.birthPending = false;
     this.stageIndex = Math.min(d.stageIndex, RUN.order.length - 1);
     this.hp = d.hp;
     this.maxHp = d.maxHp;

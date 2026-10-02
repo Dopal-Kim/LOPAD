@@ -259,7 +259,8 @@ export function roomTypeMap(layout: FloorLayout): Map<string, RoomType> {
   const m = new Map<string, RoomType>();
   for (const room of layout.rooms) {
     const I = room.interior;
-    for (let y = I.y; y < I.y + I.h; y++) for (let x = I.x; x < I.x + I.w; x++) m.set(`${x},${y}`, room.type);
+    const t = room.floor ?? room.type;
+    for (let y = I.y; y < I.y + I.h; y++) for (let x = I.x; x < I.x + I.w; x++) m.set(`${x},${y}`, t);
   }
   return m;
 }

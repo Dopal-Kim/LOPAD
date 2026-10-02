@@ -130,6 +130,20 @@ export interface DebugApi {
   statuses: () => unknown;
   /** 47라운드: n층(1부터)으로 바로 이동 (세이브 없음) */
   gotoFloor: (n: number) => void;
+  /** 48라운드 노드 지도: 계약 UiRoute + 현재 노드 세부(종류·클리어·출구·선택 중) */
+  route: () => unknown;
+  /** 48라운드: 다음 노드 선택 열기(출구에 선 것과 같음) · 노드 고르기(uiCommands.chooseNode 와 같은 경로) */
+  openRouteChooser: () => boolean;
+  chooseNode: (id: string) => boolean;
+  /** 48라운드 검증: 링크와 무관하게 이 층의 노드로 바로 (층 상태 유지) */
+  gotoNode: (id: string) => boolean;
+  /** 48라운드: 출구 타일 위로 순간이동 (출구가 열려 있을 때) */
+  gotoExit: () => boolean;
+  /** 48라운드: 3연격 상태(마지막 타·다음 허용 시각) + 마지막 근접 판정(모양·원점·맞은 수) */
+  combo: () => unknown;
+  /** 48라운드: 탄생 연출 상태 · 건너뛰기 */
+  birth: () => unknown;
+  skipBirth: () => void;
 }
 
 export interface StructureDebugInfo {
@@ -194,6 +208,8 @@ export interface CameraInfo {
   scrollX: number;
   scrollY: number;
   zoom: number;
+  /** 48라운드: 게임 월드 카메라 배율 (zoom 은 창 배율) */
+  camZoom?: number;
   width: number;
   height: number;
   region: { x: number; y: number; w: number; h: number };
@@ -264,6 +280,14 @@ export function exposeDebug(api: {
   sprintInfo: () => SprintDebugInfo;
   structures: StructureDebugApi;
   gotoFloor: (n: number) => void;
+  route: () => unknown;
+  openRouteChooser: () => boolean;
+  chooseNode: (id: string) => boolean;
+  gotoNode: (id: string) => boolean;
+  gotoExit: () => boolean;
+  combo: () => unknown;
+  birth: () => unknown;
+  skipBirth: () => void;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -392,6 +416,14 @@ export function exposeDebug(api: {
     interactable: () => api.structures.interactable(),
     statuses: () => api.structures.statuses(),
     gotoFloor: (n) => api.gotoFloor(n),
+    route: () => api.route(),
+    openRouteChooser: () => api.openRouteChooser(),
+    chooseNode: (id) => api.chooseNode(id),
+    gotoNode: (id) => api.gotoNode(id),
+    gotoExit: () => api.gotoExit(),
+    combo: () => api.combo(),
+    birth: () => api.birth(),
+    skipBirth: () => api.skipBirth(),
     doorsOf: (roomId) =>
       api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };

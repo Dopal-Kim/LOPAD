@@ -99,8 +99,6 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
         }
       : null,
     statuses: (ctx.statuses ?? []).map((st) => ({ ...st })),
-    route: ctx.route
-      ? { ...ctx.route, nodes: ctx.route.nodes.map((n) => ({ ...n, links: [...n.links] })) }
-      : null,
+    route: ctx.route ? { ...ctx.route, nodes: ctx.route.nodes.map((n) => ({ ...n, links: [...n.links] })) } : null,
   };
 }

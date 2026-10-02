@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import {
+  BIRTH,
   CAMERA,
   COLORS,
   DEBUG,
@@ -8,6 +9,7 @@ import {
   FEEL,
   PLACEHOLDER_UI,
   PROTOTYPE,
+  ROUTE_FX,
   SCENES,
   SPRITES,
   TILE,
@@ -35,8 +37,21 @@ import { Player } from '../objects/Player';
 import { Projectile } from '../objects/Projectile';
 import { Pickup } from '../objects/Pickup';
 import { InputSystem, neutralInput } from '../systems/InputSystem';
-import { warpDenyReason, warpTargets, type WarpDenyReason } from '../systems/traversal';
-import { generateFloor } from '../systems/mapgen';
+import { warpDenyReason, type WarpDenyReason } from '../systems/traversal';
+import { generateArena, generateFloor, type FloorLayout } from '../systems/mapgen';
+import {
+  RouteState,
+  arenaSize,
+  generateRoute,
+  kindDef,
+  minBattlesOnAnyPath,
+  routeEnabled,
+  ROUTE,
+  type RouteKind,
+  type RouteNode,
+} from '../systems/route';
+import { comboShape, facingAngle, hitShapeBounds, rotateDir, shapeHit, type HitShape } from '../systems/combo';
+import { BirthSequence } from '../systems/birth';
 import { RoomDirector } from '../systems/RoomDirector';
 import { Rng, hashSeed } from '../systems/rng';
 import { SaveSlot, browserStorage } from '../systems/save';
@@ -45,9 +60,16 @@ import { applyStatReward, findReward, rollCrit, rollGold, shopPrice } from '../s
 import { TextMenu } from '../systems/TextMenu';
 import { markUnderstood, metaStore, recordRun } from '../systems/meta';
 import { PASSIVES } from '../systems/passives';
-import { UI_EVENTS, __system, type StoryKind, type UiWarpDone, type UiWarpState } from '../contract/ui';
+import {
+  UI_EVENTS,
+  __system,
+  type StoryKind,
+  type UiRouteEntered,
+  type UiWarpDone,
+  type UiWarpState,
+} from '../contract/ui';
 import { buildSnapshot } from '../contract/snapshot';
-import { setMenuSelect, setSnapshotProvider, setWarpHandler } from '../contract/host';
+import { setMenuSelect, setNodeChooser, setSnapshotProvider, setWarpHandler } from '../contract/host';
 import { UI_SCENES } from '../ui';
 import type { StatKey, WeaponEvolution } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
@@ -56,11 +78,14 @@ import { spriteLibrary } from '../systems/sprites';
 import {
   FX_ACTION,
   arrowFxId,
+  comboAction,
+  comboFxId,
   facingOf,
   hitFrameOffsets,
   progressFrame,
   radiusFitScale,
   slashFxId,
+  type Facing,
 } from '../systems/spriteDefs';
 import { FxPool, type FxHandle } from '../systems/fx';
 import { HitStop, Shake, feelSettings, setFeel } from '../systems/feel';
@@ -81,8 +106,14 @@ import { exposeDebug } from '../debug';
 import { StructureSystem } from '../systems/structures/StructureSystem';
 import { planStructures, structureTiles } from '../systems/structures/placement';
 
-/** mode 'floor' = 디버그·검증용 층 이동 (47라운드, 세이브 없음) */
-type GameInitData = { mode?: 'new' | 'next' | 'floor'; weapon?: string; playerName?: string; floor?: number };
+/** mode 'floor' = 디버그·검증용 층 이동 (47라운드, 세이브 없음) · 'node' = 같은 층 안 다음 노드 (48라운드) */
+type GameInitData = { mode?: 'new' | 'next' | 'floor' | 'node'; weapon?: string; playerName?: string; floor?: number };
+
+/** 48라운드 (계약 §10.2): 45라운드 워프는 비활성 (노드 지도에는 방 간 이동이 없다) */
+const WARP_DISABLED = true;
+
+/** 판정 원점 = 몸 중심 (발 위 10px, 48라운드 아트 메모 hitOrigin) */
+const HIT_ORIGIN_UP_PX = 10;
 
 export class Game extends Phaser.Scene {
   private player: Player;
@@ -159,6 +190,21 @@ export class Game extends Phaser.Scene {
     tickMs: number;
     dmg: number;
   }[] = [];
+  /** 48라운드 노드 지도: 이 씬이 노드 전투장인지 · 현재 노드(층 진입 갈림 선택 대기 중이면 null) · 출구 열림 · 입력 잠금 */
+  private routeMode = false;
+  private node: RouteNode | null = null;
+  private nodeKind: RouteKind | null = null;
+  private nodeExitOpen = false;
+  private nodeExitScheduled = false;
+  private enterLockUntil = 0;
+  /** 출구에서 벗어나야 다시 선택을 연다 (UI 없이 메뉴로 고를 때) */
+  private exitArmed = true;
+  /** 48라운드 Q6 탄생 연출 */
+  private birth: BirthSequence | null = null;
+  private birthStartedAt = 0;
+  private readonly onBirthKey = () => this.skipBirth();
+  /** 디버그: 최근 근접 판정 (모양·원점·맞은 수) */
+  private debugLastSwing: unknown = null;
   /** 출혈: 적별 지속 피해 (+ 적에 붙은 bleed 루프 이펙트) */
   private bleeds: { mob: Mob; dmg: number; ticksLeft: number; nextAt: number; tickMs: number; fx: FxHandle | null }[] =
     [];
@@ -176,38 +222,62 @@ export class Game extends Phaser.Scene {
   }
 
   create(): void {
-    this.prepareRun();
+    const floorStart = this.prepareRun();
     const stage = gameState.stage;
-    this.rng = new Rng(hashSeed(gameState.floorSeed + ':runtime'));
+    const floor = gameState.stageIndex + 1;
+    // 48라운드 노드 지도 (1~2층): 층 그래프는 층 시드로 한 번 만들고 노드마다 씬을 다시 연다
+    this.routeMode = routeEnabled(gameState.stageId);
+    if (this.routeMode && !gameState.route)
+      gameState.route = new RouteState(generateRoute(gameState.stageId, gameState.floorSeed), floor);
+    const route = this.routeMode ? gameState.route : null;
+    // 진입 노드가 하나뿐이면(1층 탄생지) 바로 들어간다. 여럿이면(2층 갈림) 빈 전투장에서 고른다
+    if (route && !route.currentId) {
+      const entries = route.nextOptions();
+      if (entries.length === 1) route.enter(entries[0].id);
+    }
+    this.node = route?.current ?? null;
+    this.nodeKind = this.node?.kind ?? null;
+    const nodeSalt = this.node ? `:${this.node.id}` : route ? ':entry' : '';
+    this.rng = new Rng(hashSeed(gameState.floorSeed + ':runtime' + nodeSalt));
 
-    // 월드
-    const layout = generateFloor(gameState.floorSeed, stage.layout);
+    // 월드 (노드 지도면 노드 전투장 하나, 아니면 방+복도)
+    const layout = route ? this.buildArena(this.node) : generateFloor(gameState.floorSeed, stage.layout);
     this.layout = layout;
     this.visitedRooms = new Set(['start']);
     this.clearedRooms = new Set();
     this.bossName = null;
-    const floor = gameState.stageIndex + 1;
     // 47라운드: 구조물을 소품보다 먼저 배치하고 그 칸은 소품에서 뺀다. ?structures=all 이면 이 층 종류 전부(데모·검증)
     // 데모 배포본은 빌드 시 VITE_DEMO_STRUCTURES=all 로 같은 효과(주소 옵션을 붙일 수 없어서, 47라운드 데모 결정)
+    // 48라운드: 노드 전투장이면 그 노드 종류에 허용된 구조물만 (forceAll = 허용 종류 전부)
     const urlParams = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-    const structurePlan = planStructures(layout, gameState.stageId, gameState.floorSeed, {
-      forceAll: urlParams.get('structures') === 'all' || import.meta.env.VITE_DEMO_STRUCTURES === 'all',
+    const forceAll = urlParams.get('structures') === 'all' || import.meta.env.VITE_DEMO_STRUCTURES === 'all';
+    const kd = this.nodeKind ? kindDef(this.nodeKind) : null;
+    const structurePlan = planStructures(layout, gameState.stageId, gameState.floorSeed + nodeSalt, {
+      forceAll,
+      node: route
+        ? { kinds: kd?.structures ?? [], budget: kd?.budget ?? [0, 0], reserve: this.arenaReserve(layout) }
+        : undefined,
     });
     this.world = new TileWorld(
       this,
       layout,
       tileSkins.get(floor) ?? TileSkin.placeholder(),
-      gameState.floorSeed,
+      gameState.floorSeed + nodeSalt,
       structureTiles(structurePlan),
     );
     this.physics.world.setBounds(0, 0, this.world.widthPx, this.world.heightPx);
     // 층 강조색: 캐릭터 시트의 1층 램프를 현재 층 램프로 치환한 변형 텍스처·애니 (1층은 원본)
     spriteLibrary.activate(this, floor);
+    // 저장고가 있으면 카메라 경계에 넣는다 (부수면 그 안으로 들어간다)
+    for (const p of structurePlan) if (p.cellar) this.world.extendCamera(p.cellar.inner, 1);
+    if (kd?.shopTiles && layout.arena) this.world.placeShopAt(layout.arena.shop.x, layout.arena.shop.y);
 
     // 플레이어
-    const startRoom = layout.rooms.find((r) => r.type === 'start')!;
-    const start = this.world.roomCenter(startRoom);
+    const start = layout.arena
+      ? new Phaser.Math.Vector2((layout.arena.spawn.x + 0.5) * TILE, (layout.arena.spawn.y + 0.5) * TILE)
+      : this.world.roomCenter(layout.rooms.find((r) => r.type === 'start')!);
     this.player = new Player(this, start.x, start.y);
+    this.routeResetFields();
 
     // 적·투사체
     this.mobs = this.physics.add.group({ runChildUpdate: false });
@@ -298,7 +368,9 @@ export class Game extends Phaser.Scene {
       onStageCleared: (room) => this.beginStageReward(room),
       isLastStage: () => gameState.isLastStage,
       waveMods: (room) => this.structures?.waveMods(room) ?? { hpMult: 1, countMult: 1, extra: 0 },
+      waves: kd?.waves,
     });
+    if (route) this.syncRouteProgress();
 
     this.structures = new StructureSystem(
       {
@@ -331,9 +403,12 @@ export class Game extends Phaser.Scene {
           if (gameState.pointsPending > 0) this.openStatChooser(() => {});
         },
         story: (kind, text) => this.story(kind, text),
+        nodeMode: this.routeMode,
       },
       structurePlan,
     );
+    // 48라운드: 앞 노드의 층 상태(빚·취기·판돈·불씨 등)를 이어받는다
+    if (this.routeMode) this.structures.importFloorState(gameState.structureCarry);
 
     this.inputSystem = new InputSystem(this);
 
@@ -341,12 +416,16 @@ export class Game extends Phaser.Scene {
     setSnapshotProvider(() => this.snapshot());
     setMenuSelect((id, key) => this.menu.select(key, id));
     setWarpHandler({ check: (id) => this.warpDeny(id), run: (id) => this.startWarp(id) });
+    setNodeChooser((id) => this.chooseNode(id));
     if (this.scene.manager.keys[UI_SCENES.HUD] && !this.scene.isActive(UI_SCENES.HUD)) this.scene.launch(UI_SCENES.HUD);
-    __system.emit(UI_EVENTS.STAGE_STARTED, {
-      stageIndex: gameState.stageIndex,
-      stageName: floorText(gameState.stageId)?.title ?? gameState.stage.name,
-    });
-    this.story('floor', floorText(gameState.stageId)?.enter ?? '');
+    // 층 시작만 (같은 층의 다음 노드는 ROUTE_NODE_ENTERED)
+    if (floorStart) {
+      __system.emit(UI_EVENTS.STAGE_STARTED, {
+        stageIndex: gameState.stageIndex,
+        stageName: floorText(gameState.stageId)?.title ?? gameState.stage.name,
+      });
+      this.story('floor', floorText(gameState.stageId)?.enter ?? '');
+    }
 
     exposeDebug({
       world: this.world,
@@ -426,6 +505,7 @@ export class Game extends Phaser.Scene {
           scrollX: this.cameras.main.scrollX,
           scrollY: this.cameras.main.scrollY,
           zoom: this.scale.zoom,
+          camZoom: this.cameras.main.zoom,
           width: this.cameras.main.width,
           height: this.cameras.main.height,
           region: { x: r.x, y: r.y, w: r.width, h: r.height },
@@ -581,6 +661,69 @@ export class Game extends Phaser.Scene {
         this.transitioning = true;
         this.scene.restart({ mode: 'floor', floor: n - 1 } satisfies GameInitData);
       },
+      route: () => {
+        const route = gameState.route;
+        if (!route) return null;
+        return {
+          ...route.toUi(),
+          kind: this.nodeKind,
+          cleared: route.currentCleared,
+          exitOpen: this.nodeExitOpen,
+          path: [...route.path],
+          options: route.nextOptions().map((n) => ({ id: n.id, kind: n.kind, name: n.name })),
+          kinds: route.graph.nodes.map((n) => ({ id: n.id, kind: n.kind, col: n.col, row: n.row })),
+          arena: this.layout?.arena ?? null,
+          room: this.layout?.rooms[0]
+            ? { id: this.layout.rooms[0].id, type: this.layout.rooms[0].type, floor: this.layout.rooms[0].floor }
+            : null,
+          locked: this.routeLocked(this.time.now),
+        };
+      },
+      openRouteChooser: () => this.openRouteChooser(),
+      chooseNode: (id) => this.chooseNode(id),
+      gotoNode: (id) => {
+        const route = gameState.route;
+        if (!route || this.transitioning || !route.node(id)) return false;
+        this.transitioning = true;
+        gameState.structureCarry = this.structures.exportFloorState();
+        route.currentId = id;
+        route.path.push(id);
+        route.choosing = false;
+        this.scene.restart({ mode: 'node' } satisfies GameInitData);
+        return true;
+      },
+      gotoExit: () => {
+        const e = this.layout?.arena?.exit;
+        if (!e || !this.nodeExitOpen) return false;
+        this.player.body.reset((e.x + 1) * TILE, (e.y + 1) * TILE);
+        return true;
+      },
+      combo: () => {
+        const c = this.player.combo;
+        return {
+          weapon: gameState.weapon.id,
+          hasCombo: Boolean(c),
+          lastIndex: c?.lastIndex ?? null,
+          lastStartedAt: c?.lastStartedAt ?? null,
+          readyAt: c ? c.readyAt() : null,
+          nextIndex: c ? c.nextIndex(this.time.now) : null,
+          now: this.time.now,
+          lastSwing: this.debugLastSwing,
+          overlay: { frame: this.player.overlay.frame, action: this.player.overlay.action },
+          anim: this.player.animKey,
+        };
+      },
+      birth: () => ({
+        active: Boolean(this.birth?.active),
+        pending: gameState.birthPending,
+        ...(this.birth?.state ?? {}),
+        camZoom: this.cameras.main.zoom,
+        playerVisible: this.player.visible,
+        playerAlpha: this.player.alpha,
+      }),
+      skipBirth: () => {
+        if (this.birth?.active) this.birth.skip();
+      },
       setBossHp: (hp) => {
         for (const m of this.mobs.getChildren() as Mob[]) {
           if (m.isBoss && m.active) {
@@ -609,13 +752,23 @@ export class Game extends Phaser.Scene {
     EventBus.on(Events.PLAYER_DASHED, this.onPlayerDashed, this);
     this.events.once('shutdown', this.cleanup, this);
 
+    // 48라운드 Q1: 게임 월드 카메라 2배 (UI 씬은 자기 카메라라 무관)
     this.cameras.main.setRoundPixels(true);
+    this.cameras.main.setZoom(CAMERA.ZOOM);
     this.updateCamera(true);
+    if (this.routeMode) this.enterNode();
 
     const wantDebugText = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debugtext');
     if (DEBUG.SHOW_TEXT && wantDebugText) {
+      // 카메라 확대(48라운드)는 scrollFactor 0 개체도 화면 가운데 기준으로 키운다 → 역배율·역위치로 화면 (4,4)
+      const cam = this.cameras.main;
+      const z = CAMERA.ZOOM;
       this.debugText = this.add
-        .text(4, 4, '', { font: DEBUG.FONT, color: COLORS.DEBUG_TEXT })
+        .text((4 - cam.width / 2) / z + cam.width / 2, (4 - cam.height / 2) / z + cam.height / 2, '', {
+          font: DEBUG.FONT,
+          color: COLORS.DEBUG_TEXT,
+        })
+        .setScale(1 / z)
         .setScrollFactor(0)
         .setDepth(DEPTH.DEBUG);
     }
@@ -623,6 +776,18 @@ export class Game extends Phaser.Scene {
 
   update(time: number, delta: number): void {
     if (gameState.gameOver || gameState.cleared) return;
+
+    // 48라운드 Q6 탄생 연출: 조작 잠금, 카메라 배율은 연출이 정한다. 아무 키로 건너뛰기 (keydown·pointerdown)
+    if (this.birth?.active) {
+      this.inputSystem.read(); // 큐 비우기
+      this.birth.update(time);
+      this.cameras.main.setZoom(this.birth.zoom);
+      this.updateCamera(true);
+      this.fx.update(time);
+      this.screenFx.update(time);
+      __system.emit(UI_EVENTS.STATE, this.snapshot());
+      return;
+    }
 
     // 개성 임계 도달 → 다른 메뉴(보스 보상 등)가 닫힌 뒤 3지선다 (게임 정지)
     if (gameState.weapon.choicePending && !this.menu.isOpen && !this.frozen) this.openEvolveMenu();
@@ -649,7 +814,9 @@ export class Game extends Phaser.Scene {
 
     const raw = this.inputSystem.read();
     // 워프 연출 동안 입력 잠금 (45라운드) · 구조물 메뉴 동안 입력 잠금 (47라운드 계약 §9.3)
-    let input = time < this.warpLockUntil || this.structures.inputLocked ? neutralInput(raw) : raw;
+    // 48라운드: 노드 진입 직후(밝아지는 동안)·다음 노드 선택 중·전환 중에도 잠금
+    let input =
+      time < this.warpLockUntil || this.structures.inputLocked || this.routeLocked(time) ? neutralInput(raw) : raw;
     if (input.potionPressed) this.usePotion();
     this.structures.update(input, time, delta);
     input = this.structures.adjustAim(input, time);
@@ -660,10 +827,18 @@ export class Game extends Phaser.Scene {
     this.updateAimFx(time);
     this.updateDashTrail(time);
     this.updateCamera(false, delta);
-    this.director.update();
+    // 48라운드: 노드 진입 직후에는 전투를 시작하지 않는다 (밝아지는 동안)
+    if (time >= this.enterLockUntil) this.director.update();
+    if (this.routeMode) this.updateRoute(time);
 
-    if (gameState.exitOpen && !this.transitioning && this.world.isExitAt(this.player.x, this.player.y)) {
+    // 다음 층 출구: 방+복도 층 · 노드 지도의 보스 노드 (그 밖의 노드 출구는 updateRoute 가 노드 선택을 연다)
+    const floorExit = !this.routeMode || this.nodeKind === 'boss';
+    if (floorExit && gameState.exitOpen && !this.transitioning && this.world.isExitAt(this.player.x, this.player.y)) {
       this.transitioning = true;
+      if (this.routeMode) {
+        this.fadeThen(() => this.scene.restart({ mode: 'next' } satisfies GameInitData));
+        return;
+      }
       this.scene.restart({ mode: 'next' } satisfies GameInitData);
       return;
     }
@@ -785,46 +960,74 @@ export class Game extends Phaser.Scene {
       return;
     }
     const mods = weapon.mods;
+    // 48라운드 3연격: 판정은 휘두름 프레임(hitFrames[0]) 시작에, 지진 2단·충격파는 마지막 타에서만
+    const combo = p.comboIndex !== undefined;
+    const finisher = !combo || p.comboIndex === (p.comboCount ?? 1) - 1;
     this.playSwingFx(p);
-    this.playGiantFx();
-    this.meleeSwing(p);
-    // 쌍격·난무: 추가 타격. 시트 hitFrames 가 있으면 그 프레임 시작 간격(43라운드 B), 없으면 TWIN_DELAY_MS 간격
-    const hits = Math.max(1, mods.hits ?? 1);
-    const multiFx = this.pathFx('dance', 'twin');
-    const offsets = FEEL.SYNC_HIT_FRAMES && multiFx ? hitFrameOffsets(this.fx.sheet(multiFx), hits) : null;
-    for (let i = 1; i < hits; i++) {
-      this.time.delayedCall(offsets?.[i] ?? PROTOTYPE.TWIN_DELAY_MS * i, () => {
-        if (this.scene.isActive() && !this.frozen) this.meleeSwing({ ...p, x: this.player.x, y: this.player.y });
-      });
-    }
-    // 지진: 충격파 2단 (quake 시트는 1단에서 한 번만 — 3프레임 시작이 2단 판정 시점)
-    const second = mods.shockwaveSecond;
-    if (mods.shockwave && second) {
-      this.time.delayedCall(second.delayMs, () => {
-        if (this.scene.isActive() && !this.frozen)
-          this.meleeSwing(
-            {
-              ...p,
-              x: this.player.x,
-              y: this.player.y,
-              sizeMult: p.sizeMult * second.sizeMult,
-              damageMult: p.damageMult * second.damageMult,
-            },
-            true,
-          );
-      });
-    }
+    this.playGiantFx(p);
+    const strike = () => {
+      if (!this.scene.isActive() || this.frozen || gameState.gameOver) return;
+      const at = combo ? { ...p, x: this.player.x, y: this.player.y } : p;
+      this.meleeSwing(at);
+      // 쌍격·난무: 추가 타격. 시트 hitFrames 가 있으면 그 프레임 시작 간격(43라운드 B), 없으면 TWIN_DELAY_MS 간격
+      const hits = Math.max(1, mods.hits ?? 1);
+      const multiFx = this.pathFx('dance', 'twin');
+      const offsets = FEEL.SYNC_HIT_FRAMES && multiFx ? hitFrameOffsets(this.fx.sheet(multiFx), hits) : null;
+      for (let i = 1; i < hits; i++) {
+        this.time.delayedCall(offsets?.[i] ?? PROTOTYPE.TWIN_DELAY_MS * i, () => {
+          if (this.scene.isActive() && !this.frozen) this.meleeSwing({ ...at, x: this.player.x, y: this.player.y });
+        });
+      }
+      // 지진: 충격파 2단 (quake 시트는 1단에서 한 번만 — 3프레임 시작이 2단 판정 시점)
+      const second = mods.shockwaveSecond;
+      if (mods.shockwave && second && finisher) {
+        this.time.delayedCall(second.delayMs, () => {
+          if (this.scene.isActive() && !this.frozen)
+            this.meleeSwing(
+              {
+                ...at,
+                x: this.player.x,
+                y: this.player.y,
+                sizeMult: at.sizeMult * second.sizeMult,
+                damageMult: at.damageMult * second.damageMult,
+              },
+              true,
+            );
+        });
+      }
+    };
+    const hitDelay = combo ? p.swingDelayMs : 0;
+    if (hitDelay > 0) this.time.delayedCall(hitDelay, strike);
+    else strike();
+  }
+
+  /** 48라운드: 연격 한 타의 판정 모양 (아트 메모가 있으면 그린 대로 — 타 크기 배율은 빼고 대쉬 배율만). 연격이 아니면 null */
+  private swingShape(p: PlayerAttackPayload): HitShape | null {
+    const w = gameState.weapon;
+    const c = w.def.combo;
+    if (!c || p.comboIndex === undefined) return null;
+    const n = p.comboIndex + 1;
+    const memo = this.fx.sheet(comboFxId(w.id, n)) ?? spriteLibrary.sheet('player', comboAction(w.id, n)) ?? null;
+    const drawn = Boolean(memo && (typeof memo.hitRadiusPx === 'number' || memo.thrust));
+    const hbScale = w.def.hitbox.reach > 0 ? w.hitbox.reach / w.def.hitbox.reach : 1;
+    const hitSize = c.hits[p.comboIndex]?.sizeMult ?? 1;
+    const size = drawn ? p.sizeMult / hitSize : p.sizeMult;
+    const shape = comboShape(c, w.def.hitbox, hbScale * size, drawn ? memo : null);
+    // 아트 메모에 휘두름 방향이 없으면 짝수 번째 타(2타)는 반대로
+    if (shape.kind === 'arc' && !(memo && typeof memo.arcFromDeg === 'number') && p.comboIndex % 2 === 1)
+      return { ...shape, fromDeg: shape.toDeg, toDeg: shape.fromDeg };
+    return shape;
   }
 
   /** 거인(2차): 공격 애니 동안 플레이어 아래에서 슈퍼아머 오라 루프 (공격 애니 = 쿨다운에 맞춤) */
-  private playGiantFx(): void {
+  private playGiantFx(p: PlayerAttackPayload): void {
     const id = this.pathFx('giant');
     if (!id) return;
     if (this.fx.isActive(this.giantFx)) this.fx.stop(this.giantFx, 0, false);
     this.giantFx = this.fx.play(id, this.player.x, this.player.y, {
       follow: this.player,
       depthOffset: -DEPTH.OVERLAY_STEP,
-      durationMs: gameState.weapon.hitbox.cooldownMs,
+      durationMs: p.durationMs ?? gameState.weapon.hitbox.cooldownMs,
     });
   }
 
@@ -953,24 +1156,47 @@ export class Game extends Phaser.Scene {
    * 거합·쌍격은 기본 베기를 대신하고, 파쇄·중압은 적중 판정 쪽(meleeSwing)에서 따로 나온다.
    */
   private playSwingFx(p: PlayerAttackPayload): void {
+    const weapon = gameState.weapon;
     // 2차가 1차를 대신한다: 만월(wide) → 거합(iai), 난무(dance) → 쌍격(twin). 그 외는 기본 베기
-    const id = this.pathFx('wide', 'iai', 'dance', 'twin') ?? slashFxId(gameState.weapon.id);
+    const evo = this.pathFx('wide', 'iai', 'dance', 'twin');
+    // 48라운드 3연격: 연격 시트가 있으면 타마다 그 시트, 진화 베기는 마지막 타에 (연격 시트가 없으면 기존처럼 매 타 진화 베기)
+    const combo = p.comboIndex !== undefined;
+    const finisher = !combo || p.comboIndex === (p.comboCount ?? 1) - 1;
+    const comboId = combo ? comboFxId(weapon.id, p.comboIndex! + 1) : null;
+    const id = comboId && this.fx.has(comboId) ? (finisher && evo ? evo : comboId) : (evo ?? slashFxId(weapon.id));
     const dir = facingOf(p.dirX, p.dirY, this.player.facingDir);
-    const hb = gameState.weapon.hitbox;
+    const hb = weapon.hitbox;
+    const shape = this.swingShape(p);
     // 잔상 궤적(42라운드, fx-design §6.1): 플레이어 중심의 호를 SLASH_SWEEP_MS 동안 훑는다. 첫 샘플 시각부터 잰다
     const T = FEEL.TRAIL;
-    const radius = hb.reach * p.sizeMult * T.SLASH_RADIUS_MULT + hb.width * 0.5;
-    const angle = Math.atan2(p.dirY, p.dirX);
-    const half = T.SLASH_HALF_ANGLE * (dir === 'left' || dir === 'up' ? -1 : 1);
-    const sweep = Math.max(hb.activeMs, T.SLASH_SWEEP_MS);
+    const base = Math.atan2(p.dirY, p.dirX);
+    let radius = hb.reach * p.sizeMult * T.SLASH_RADIUS_MULT + hb.width * 0.5;
+    let mid = base;
+    let half = T.SLASH_HALF_ANGLE * (dir === 'left' || dir === 'up' ? -1 : 1);
+    if (shape?.kind === 'arc') {
+      // 48라운드: 판정 호 그대로 (from→to = 휘두름 방향, left 는 좌우 반전)
+      const from = base + Phaser.Math.DegToRad(facingAngle(shape.fromDeg, dir));
+      const to = base + Phaser.Math.DegToRad(facingAngle(shape.toDeg, dir));
+      radius = shape.radius;
+      mid = (from + to) / 2;
+      half = (to - from) / 2;
+    }
+    const sweep = Math.max(p.activeMs ?? hb.activeMs, T.SLASH_SWEEP_MS);
+    const centerUp = combo ? HIT_ORIGIN_UP_PX : 0;
     const arcSource = () => {
       let t0 = -1;
       return () => {
         if (t0 < 0) t0 = this.time.now;
         const t = (this.time.now - t0) / sweep;
         if (t > 1 || !this.player.active) return null;
-        const c = this.player.getCenter();
-        return arcPoint(c.x, c.y, radius, angle, half, t);
+        const c = combo ? { x: this.player.x, y: this.player.y - centerUp } : this.player.getCenter();
+        if (shape?.kind === 'thrust') {
+          // 찌르기: 몸 중심에서 앞으로 뻗는 직선
+          const d = rotateDir(p.dirX, p.dirY, facingAngle(shape.angleDeg, dir));
+          const r = shape.fromPx + shape.length * Math.min(1, t * 1.5);
+          return { x: c.x + d.x * r, y: c.y + d.y * r };
+        }
+        return arcPoint(c.x, c.y, radius, mid, half, t);
       };
     };
     const play = () => {
@@ -1041,22 +1267,45 @@ export class Game extends Phaser.Scene {
     const weapon = gameState.weapon;
     const mods = weapon.mods;
     const hb = weapon.hitbox;
-    const cx = p.x + p.dirX * hb.reach * p.sizeMult;
-    const cy = p.y + p.dirY * hb.reach * p.sizeMult;
-    // Arcade 바디는 축 정렬 사각형이라 지배적인 축에 맞춰 폭·높이를 바꿔 근사한다.
-    const horizontal = Math.abs(p.dirX) >= Math.abs(p.dirY);
-    const w = (horizontal ? hb.width : hb.height) * p.sizeMult;
-    const h = (horizontal ? hb.height : hb.width) * p.sizeMult;
+    // 48라운드 3연격: 몸 중심(발 위 10px) 부채꼴·찌르기 판정. 물리 영역은 외접 사각형이고 겹친 적을 모양으로 다시 거른다
+    const shape = this.swingShape(p);
+    const facing = facingOf(p.dirX, p.dirY, this.player.facingDir);
+    const ox = p.x;
+    const oy = p.y - HIT_ORIGIN_UP_PX;
+    let cx: number;
+    let cy: number;
+    let w: number;
+    let h: number;
+    if (shape) {
+      const b = hitShapeBounds(ox, oy, p.dirX, p.dirY, shape, facing);
+      cx = b.x + b.w / 2;
+      cy = b.y + b.h / 2;
+      w = Math.max(1, b.w);
+      h = Math.max(1, b.h);
+    } else {
+      cx = p.x + p.dirX * hb.reach * p.sizeMult;
+      cy = p.y + p.dirY * hb.reach * p.sizeMult;
+      // Arcade 바디는 축 정렬 사각형이라 지배적인 축에 맞춰 폭·높이를 바꿔 근사한다.
+      const horizontal = Math.abs(p.dirX) >= Math.abs(p.dirY);
+      w = (horizontal ? hb.width : hb.height) * p.sizeMult;
+      h = (horizontal ? hb.height : hb.width) * p.sizeMult;
+    }
+    const finisher = p.comboIndex === undefined || p.comboIndex === (p.comboCount ?? 1) - 1;
+    const activeMs = p.activeMs ?? hb.activeMs;
     // 47라운드: 타격형 구조물·화로 점화·불붙은 무기의 웅덩이 점화
     this.structures.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
     // 베기 시트가 있으면 판정 사각형은 보이지 않게(판정만), 없으면 기존 플레이스홀더 표시
     const evoFx = this.evolutionFxId();
     const swingFx = this.pathFx('wide', 'iai', 'dance', 'twin');
-    const hasSwingArt = this.fx.has(slashFxId(weapon.id)) || swingFx !== null;
-    const zone = this.add.rectangle(cx, cy, w, h, COLORS.ATTACK, hasSwingArt ? 0 : 0.6).setDepth(DEPTH.ATTACK);
+    const comboFx = p.comboIndex !== undefined ? comboFxId(weapon.id, p.comboIndex + 1) : null;
+    const hasSwingArt =
+      this.fx.has(slashFxId(weapon.id)) || swingFx !== null || (comboFx !== null && this.fx.has(comboFx));
+    // 연격 판정은 모양이라 사각형 플레이스홀더를 그리지 않는다 (시트가 없으면 모양 윤곽)
+    const zone = this.add.rectangle(cx, cy, w, h, COLORS.ATTACK, hasSwingArt || shape ? 0 : 0.6).setDepth(DEPTH.ATTACK);
+    if (shape && !hasSwingArt) this.drawShapeOutline(ox, oy, p.dirX, p.dirY, shape, facing);
     // 궤적·충격파: 시트가 있으면 시트, 없으면 Graphics 플레이스홀더
     if (mods.slashTrail && !swingFx) this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
-    if (mods.shockwave) {
+    if (mods.shockwave && finisher) {
       // 지진(quake)·분쇄(pulverize) 가 파쇄(crush) 대신. quake 는 1단에서 한 번(3프레임 = 2단 시점), 2단은 다시 안 그린다
       const shockFx = this.pathFx('quake', 'pulverize', 'crush');
       if (shockFx === 'quake' && secondWave) {
@@ -1071,15 +1320,33 @@ export class Game extends Phaser.Scene {
     (zone.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
 
     const hit = new Set<Mob>();
+    const swingLog = {
+      shape,
+      origin: { x: ox, y: oy },
+      dir: { x: p.dirX, y: p.dirY },
+      facing,
+      bounds: { cx, cy, w, h },
+      comboIndex: p.comboIndex ?? null,
+      activeMs,
+      hits: 0,
+      time: this.time.now,
+    };
+    this.debugLastSwing = swingLog;
     const overlap = this.physics.add.overlap(zone, this.mobs, (_z, m) => {
       const mob = m as Mob;
       if (hit.has(mob)) return;
+      if (shape) {
+        const b = mob.body;
+        const target = { x: b.center.x, y: b.center.y, r: Math.min(b.halfWidth, b.halfHeight) };
+        if (!shapeHit(ox, oy, p.dirX, p.dirY, shape, target, facing)) return;
+      }
       hit.add(mob);
+      swingLog.hits += 1;
       this.applyMeleeHit(mob, p);
     });
     // 분쇄: 충격파 범위의 적 투사체 소멸
     const clear =
-      mods.shockwave && mods.shockwaveClearsProjectiles
+      mods.shockwave && finisher && mods.shockwaveClearsProjectiles
         ? this.physics.add.overlap(zone, this.projectiles, (_z, pr) => {
             const proj = pr as Projectile;
             if (proj.active && !proj.reflected) proj.deactivate();
@@ -1132,11 +1399,43 @@ export class Game extends Phaser.Scene {
       }
     }
 
-    this.time.delayedCall(hb.activeMs, () => {
+    this.time.delayedCall(activeMs, () => {
       this.physics.world.removeCollider(overlap);
       if (clear) this.physics.world.removeCollider(clear);
       zone.destroy();
     });
+  }
+
+  /** 연격 판정 모양 윤곽 (시트가 없을 때 플레이스홀더) */
+  private drawShapeOutline(ox: number, oy: number, dirX: number, dirY: number, shape: HitShape, facing: Facing): void {
+    const g = this.add.graphics().setDepth(DEPTH.ATTACK);
+    g.lineStyle(1, COLORS.ATTACK, 0.8);
+    g.fillStyle(COLORS.ATTACK, 0.25);
+    if (shape.kind === 'arc') {
+      const c = rotateDir(dirX, dirY, facingAngle(shape.centerDeg, facing));
+      const a = Math.atan2(c.y, c.x);
+      const half = Phaser.Math.DegToRad(shape.arcDeg / 2);
+      g.slice(ox, oy, shape.radius, a - half, a + half, false);
+      g.fillPath();
+      g.strokePath();
+    } else {
+      const d = rotateDir(dirX, dirY, facingAngle(shape.angleDeg, facing));
+      const px = -d.y * (shape.width / 2);
+      const py = d.x * (shape.width / 2);
+      const sx = ox + d.x * shape.fromPx;
+      const sy = oy + d.y * shape.fromPx;
+      const ex = sx + d.x * shape.length;
+      const ey = sy + d.y * shape.length;
+      const pts = [
+        new Phaser.Math.Vector2(sx + px, sy + py),
+        new Phaser.Math.Vector2(ex + px, ey + py),
+        new Phaser.Math.Vector2(ex - px, ey - py),
+        new Phaser.Math.Vector2(sx - px, sy - py),
+      ];
+      g.fillPoints(pts, true);
+      g.strokePoints(pts, true);
+    }
+    this.tweens.add({ targets: g, alpha: 0, duration: PROTOTYPE.SLASH_TRAIL_MS, onComplete: () => g.destroy() });
   }
 
   /** 근접 타격 1회: 피해 → (사망) 또는 중압 경직·출혈 */
@@ -1659,12 +1958,14 @@ export class Game extends Phaser.Scene {
 
   /** 개성 변화 알림 (시스템 파트 임시 텍스트. 정식 연출·UI는 UI 파트) */
   private showEvolutionBanner(name: string): void {
+    const z = this.cameras.main.zoom || 1;
     const t = this.add
-      .text(this.scale.width / 2, this.scale.height / 2 - 40, `개성 변화: ${name}`, {
+      .text(this.scale.width / 2, this.scale.height / 2 - 40 / z, `개성 변화: ${name}`, {
         font: PLACEHOLDER_UI.FONT_BODY,
         color: COLORS.GAMEOVER_TEXT,
       })
       .setOrigin(0.5)
+      .setScale(1 / z)
       .setScrollFactor(0)
       .setDepth(DEPTH.DEBUG);
     this.tweens.add({ targets: t, alpha: 0, delay: PROTOTYPE.BANNER_MS, duration: 400, onComplete: () => t.destroy() });
@@ -1759,6 +2060,7 @@ export class Game extends Phaser.Scene {
     gameState.rewardPending = true;
     const finish = () => {
       gameState.rewardPending = false;
+      gameState.route?.markCleared();
       this.world.placeExit(room);
       this.world.placeShop(room);
       gameState.exitOpen = true;
@@ -1820,7 +2122,10 @@ export class Game extends Phaser.Scene {
 
   /** 상점 타일 위에 서 있으면 메뉴를 열고, 벗어나면 닫는다 */
   private updateShop(): void {
-    if (!gameState.exitOpen) return;
+    // 48라운드: 상점 노드는 들어서면 바로 (보스 뒤 상점은 출구가 열린 뒤)
+    const shopNode = this.nodeKind !== null && Boolean(kindDef(this.nodeKind).shopTiles);
+    if (!gameState.exitOpen && !shopNode) return;
+    if (gameState.route?.choosing) return;
     const onTile = this.world.isShopAt(this.player.x, this.player.y);
     if (onTile && !this.shopOpen && !this.menu.isOpen) this.openShop();
     else if (!onTile && this.shopOpen) this.closeShop();
@@ -2055,7 +2360,224 @@ export class Game extends Phaser.Scene {
       interactable: this.structures?.interactable() ?? null,
       statuses: this.structures?.statuses() ?? [],
       structureRooms: this.structures?.structureRooms(),
+      route: gameState.route?.toUi() ?? null,
     });
+  }
+
+  // --- 48라운드 노드 지도 (계약 §10): 노드 전투장 · 출구 · 다음 노드 선택 · 전환 ---
+
+  /** 노드 전투장 레이아웃. 현재 노드가 없으면(2층 진입 갈림 선택 대기) 비전투 빈 전투장 */
+  private buildArena(node: RouteNode | null): FloorLayout {
+    const kind: RouteKind = node?.kind ?? 'birth';
+    const d = kindDef(kind);
+    const [w, h] = arenaSize(kind);
+    const A = ROUTE.arena;
+    return generateArena({
+      roomId: node?.id ?? 'entry',
+      type: node ? d.room : 'start',
+      floor: node ? d.floor : 'start',
+      w,
+      h,
+      margin: A.voidMarginTiles,
+      spawnInset: A.spawnInsetTiles,
+      exitInset: A.exitInsetTiles,
+      spawnCenter: kind === 'birth' && node !== null,
+    });
+  }
+
+  /** 구조물을 놓지 않을 칸: 시작점·출구 (+ 상점 노드면 상점) 둘레 */
+  private arenaReserve(layout: FloorLayout): { x: number; y: number; w: number; h: number }[] {
+    const A = layout.arena;
+    if (!A) return [];
+    const c = ROUTE.arena.clearTiles;
+    const out = [
+      { x: A.spawn.x - c, y: A.spawn.y - c, w: c * 2 + 1, h: c * 2 + 1 },
+      { x: A.exit.x - c, y: A.exit.y - c, w: c * 2 + 2, h: c * 2 + 2 },
+    ];
+    if (this.nodeKind && kindDef(this.nodeKind).shopTiles)
+      out.push({ x: A.shop.x - c, y: A.shop.y - c, w: c * 2 + 2, h: c * 2 + 2 });
+    return out;
+  }
+
+  /** 노드 씬마다 초기화 */
+  private routeResetFields(): void {
+    this.nodeExitOpen = false;
+    this.nodeExitScheduled = false;
+    this.enterLockUntil = 0;
+    this.exitArmed = true;
+    this.birth?.destroy();
+    this.birth = null;
+    this.debugLastSwing = null;
+    if (this.routeMode) {
+      gameState.exitOpen = false;
+      gameState.rewardPending = false;
+    }
+  }
+
+  /** HUD 진행 표시 재해석 (임시): 시련 총수 = 어느 길로 가도 거치는 최소 전투 수, 보스 해금 = 다음이 보스 */
+  private syncRouteProgress(): void {
+    const route = gameState.route;
+    if (!route) return;
+    gameState.trialsTotal = minBattlesOnAnyPath(route.graph);
+    gameState.bossUnlocked = this.nodeKind === 'boss' || route.nextOptions().some((n) => n.kind === 'boss');
+  }
+
+  /** 노드 진입: 밝아짐 · 입력 잠금 · ROUTE_NODE_ENTERED · 새 런 첫 노드면 탄생 · 진입 갈림이면 바로 선택 */
+  private enterNode(): void {
+    const now = this.time.now;
+    this.cameras.main.fadeIn(ROUTE_FX.FADE_IN_MS, ROUTE_FX.FADE_COLOR.R, ROUTE_FX.FADE_COLOR.G, ROUTE_FX.FADE_COLOR.B);
+    this.enterLockUntil = now + ROUTE_FX.ENTER_LOCK_MS;
+    this.syncRouteProgress();
+    const node = this.node;
+    if (node)
+      __system.emit(UI_EVENTS.ROUTE_NODE_ENTERED, {
+        id: node.id,
+        type: node.type,
+        name: node.name,
+      } satisfies UiRouteEntered);
+    const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+    if (this.nodeKind === 'birth' && gameState.birthPending && !params.has('nobirth')) this.startBirth();
+    else if (this.nodeKind === 'birth') gameState.birthPending = false;
+    if (!node) this.time.delayedCall(ROUTE_FX.ENTER_LOCK_MS, () => this.openRouteChooser());
+  }
+
+  /** 진입 직후 · 선택 중 · 전환 중 입력 잠금 */
+  private routeLocked(time: number): boolean {
+    if (!this.routeMode) return false;
+    return time < this.enterLockUntil || Boolean(gameState.route?.choosing) || this.transitioning;
+  }
+
+  /** 노드 클리어 → (잠시 뒤) 출구. 출구에 서면 다음 노드 선택 */
+  private updateRoute(time: number): void {
+    const route = gameState.route;
+    if (!route || !this.node || this.transitioning || time < this.enterLockUntil) return;
+    const room = this.layout?.rooms[0];
+    if (!room) return;
+    if (
+      !route.currentCleared &&
+      this.nodeKind !== 'boss' &&
+      this.director.stateOf(room.id) === 'cleared' &&
+      !this.director.inCombat
+    ) {
+      route.markCleared();
+      this.clearedRooms.add(room.id);
+      this.syncRouteProgress();
+      if (!this.nodeExitScheduled) {
+        this.nodeExitScheduled = true;
+        this.time.delayedCall(ROUTE_FX.EXIT_DELAY_MS, () => this.openNodeExit());
+      }
+    }
+    if (!this.nodeExitOpen || route.choosing) return;
+    const onExit = this.world.isExitAt(this.player.x, this.player.y);
+    if (onExit && this.exitArmed && !this.director.inCombat && !this.menu.isOpen && !this.frozen) {
+      this.exitArmed = false;
+      this.openRouteChooser();
+    } else if (!onExit) this.exitArmed = true;
+  }
+
+  /** 노드 출구 (오른쪽 2×2) */
+  private openNodeExit(): void {
+    if (!this.scene.isActive() || this.nodeExitOpen || !this.layout?.arena) return;
+    const e = this.layout.arena.exit;
+    this.world.placeExitAt(e.x, e.y);
+    this.nodeExitOpen = true;
+    gameState.exitOpen = true;
+    EventBus.emit(Events.EXIT_OPENED, { stageIndex: gameState.stageIndex });
+  }
+
+  /** 다음 노드 선택 열기 (계약 §10.2): 입력 잠금 + ROUTE_CHOOSE_OPEN. UI 렌더러가 없으면 숫자 키로 고른다 */
+  private openRouteChooser(): boolean {
+    const route = gameState.route;
+    if (!route || route.choosing || this.transitioning || this.director.inCombat) return false;
+    const options = route.nextOptions();
+    if (options.length === 0) return false;
+    route.choosing = true;
+    this.player.haltForWarp();
+    this.stopAimFx(false);
+    this.stopGale();
+    if (this.shopOpen) this.closeShop();
+    __system.emit(UI_EVENTS.ROUTE_CHOOSE_OPEN, route.toUi());
+    if (!__system.rendererRegistered()) {
+      const onKey = (e: KeyboardEvent) => {
+        const n = options[Number(e.key) - 1];
+        if (n && this.chooseNode(n.id)) this.input.keyboard?.off('keydown', onKey);
+      };
+      this.input.keyboard?.on('keydown', onKey);
+    }
+    return true;
+  }
+
+  /** uiCommands.chooseNode (계약 §10.2): available 노드만. 층 상태를 들고 암전 뒤 그 노드 전투장을 연다 */
+  private chooseNode(id: string): boolean {
+    const route = gameState.route;
+    if (!route || !route.choosing || this.transitioning || !route.canChoose(id)) return false;
+    this.transitioning = true;
+    gameState.structureCarry = this.structures.exportFloorState();
+    route.enter(id);
+    this.fadeThen(() => this.scene.restart({ mode: 'node' } satisfies GameInitData));
+    return true;
+  }
+
+  /** 짧은 암전 뒤 실행 */
+  private fadeThen(fn: () => void): void {
+    const C = ROUTE_FX.FADE_COLOR;
+    this.cameras.main.fadeOut(ROUTE_FX.FADE_OUT_MS, C.R, C.G, C.B);
+    this.time.delayedCall(ROUTE_FX.FADE_OUT_MS, () => {
+      if (this.scene.isActive()) fn();
+    });
+  }
+
+  // --- 48라운드 Q6 탄생 연출 (계약 §10.3) ---
+
+  private startBirth(): void {
+    gameState.birthPending = false;
+    const now = this.time.now;
+    this.player.body.setVelocity(0, 0);
+    this.birth = new BirthSequence({
+      scene: this,
+      x: this.player.x,
+      y: this.player.y,
+      hidePlayer: (on) => this.player.visual.setHidden(on),
+      setPlayerAlpha: (a) => this.player.setAlpha(a),
+      burst: () => {
+        const B = BIRTH;
+        this.screenFx.flash(B.BURST_FLASH.COLOR, B.BURST_FLASH.MS, B.BURST_FLASH.ALPHA);
+        this.shake.add(this.time.now, B.BURST_SHAKE.PX, B.BURST_SHAKE.MS);
+      },
+      done: (skipped) => this.finishBirth(skipped),
+    });
+    this.birthStartedAt = now;
+    this.birth.start(now);
+    // HUD 는 같은 create 안에서 launch 되어 아직 구독 전일 수 있다 → HUD 생성이 끝난 뒤에 알린다
+    const hud = this.scene.manager.keys[UI_SCENES.HUD] ? this.scene.get(UI_SCENES.HUD) : null;
+    if (hud && !hud.sys.isActive()) {
+      hud.sys.events.once(Phaser.Scenes.Events.CREATE, () => {
+        if (this.birth?.active) __system.emit(UI_EVENTS.BIRTH_STARTED);
+      });
+    } else {
+      __system.emit(UI_EVENTS.BIRTH_STARTED);
+    }
+    this.input.keyboard?.on('keydown', this.onBirthKey);
+    this.input.on('pointerdown', this.onBirthKey);
+  }
+
+  /** 아무 키: 건너뛰기 (씬 진입 직후 눌려 있던 입력은 무시) */
+  private skipBirth(): void {
+    if (!this.birth?.active) return;
+    if (this.time.now - this.birthStartedAt < BIRTH.SKIP_GRACE_MS) return;
+    this.birth.skip();
+  }
+
+  private finishBirth(skipped: boolean): void {
+    this.input.keyboard?.off('keydown', this.onBirthKey);
+    this.input.off('pointerdown', this.onBirthKey);
+    this.cameras.main.setZoom(CAMERA.ZOOM);
+    this.player.setAlpha(1);
+    this.updateCamera(true);
+    // 조작 해제: 건너뛴 키가 바로 공격·대쉬로 새지 않게 아주 짧게 잠근다
+    this.enterLockUntil = Math.max(this.enterLockUntil, this.time.now + (skipped ? BIRTH.SKIP_GRACE_MS : 0));
+    this.inputSystem.read();
+    __system.emit(UI_EVENTS.BIRTH_DONE);
   }
 
   // --- 비전투 이동 (45라운드): 달리기 먼지 · 워프 ---
@@ -2092,18 +2614,18 @@ export class Game extends Phaser.Scene {
     return null;
   }
 
+  /** 48라운드 (계약 §10.2): 워프 비활성 — targets 는 항상 [], ready=false (Tab 은 노드 지도 보기) */
   private warpState(): UiWarpState {
-    const blocked = this.warpBlock();
-    const rooms = this.layout?.rooms ?? [];
     return {
-      ready: blocked === null,
-      blocked,
-      targets: this.director ? warpTargets(rooms, this.visitedRooms, this.director.progress, gameState.roomId) : [],
+      ready: false,
+      blocked: this.warpBlock() ?? 'busy',
+      targets: [],
       warping: this.warping,
     };
   }
 
   private warpDeny(roomId: string): WarpDenyReason | null {
+    if (WARP_DISABLED) return this.warpBlock() ?? 'busy';
     return warpDenyReason({
       roomId,
       block: this.warpBlock(),
@@ -2213,27 +2735,21 @@ export class Game extends Phaser.Scene {
 
   private updateCamera(force: boolean, deltaMs = 0): void {
     const cam = this.cameras.main;
+    // 48라운드 Q1: 확대 배율만큼 보이는 월드가 작다 → 클램프는 보이는 반폭, 스크롤은 (중심 - 캔버스 반폭)
+    const zoom = cam.zoom || 1;
     const region = this.world.cameraRegion(this.player.x, this.player.y);
-    const halfW = cam.width / 2;
-    const halfH = cam.height / 2;
+    const halfW = cam.width / (2 * zoom);
+    const halfH = cam.height / (2 * zoom);
+    const dzX = CAMERA.DEADZONE_X / zoom;
+    const dzY = CAMERA.DEADZONE_Y / zoom;
     let tx = this.player.x;
     let ty = this.player.y;
     if (!force) {
-      // 데드존: 중심에서 이만큼 벗어나야 따라간다
+      // 데드존: 중심에서 이만큼 벗어나야 따라간다 (화면 px 기준)
       const cx = this.camCenter.x;
       const cy = this.camCenter.y;
-      tx =
-        this.player.x > cx + CAMERA.DEADZONE_X
-          ? this.player.x - CAMERA.DEADZONE_X
-          : this.player.x < cx - CAMERA.DEADZONE_X
-            ? this.player.x + CAMERA.DEADZONE_X
-            : cx;
-      ty =
-        this.player.y > cy + CAMERA.DEADZONE_Y
-          ? this.player.y - CAMERA.DEADZONE_Y
-          : this.player.y < cy - CAMERA.DEADZONE_Y
-            ? this.player.y + CAMERA.DEADZONE_Y
-            : cy;
+      tx = this.player.x > cx + dzX ? this.player.x - dzX : this.player.x < cx - dzX ? this.player.x + dzX : cx;
+      ty = this.player.y > cy + dzY ? this.player.y - dzY : this.player.y < cy - dzY ? this.player.y + dzY : cy;
     }
     tx = clampCenter(tx, region.left, region.right, halfW);
     ty = clampCenter(ty, region.top, region.bottom, halfH);
@@ -2244,18 +2760,27 @@ export class Game extends Phaser.Scene {
       const t = 1 - Math.pow(1 - CAMERA.FOLLOW_LERP, deltaMs / (1000 / 60));
       this.camCenter.x += (tx - this.camCenter.x) * t;
       this.camCenter.y += (ty - this.camCenter.y) * t;
-      if (Math.abs(tx - this.camCenter.x) < CAMERA.SNAP_PX) this.camCenter.x = tx;
-      if (Math.abs(ty - this.camCenter.y) < CAMERA.SNAP_PX) this.camCenter.y = ty;
+      const snap = CAMERA.SNAP_PX / zoom;
+      if (Math.abs(tx - this.camCenter.x) < snap) this.camCenter.x = tx;
+      if (Math.abs(ty - this.camCenter.y) < snap) this.camCenter.y = ty;
     }
-    // 흔들림(35라운드): 추종 보간·반올림이 끝난 스크롤에 정수 오프셋만 더한다 (보간과 섞이지 않아 튀지 않음)
+    // 흔들림(35라운드): 추종 보간·반올림이 끝난 스크롤에 오프셋만 더한다. 진폭은 화면 px → 월드 px 로 ÷zoom (체감 유지)
     const sh = this.shake.sample(this.time.now);
-    cam.setScroll(Math.round(this.camCenter.x - halfW) + sh.x, Math.round(this.camCenter.y - halfH) + sh.y);
+    const snapTo = (v: number) => Math.round(v * zoom) / zoom;
+    cam.setScroll(
+      snapTo(this.camCenter.x - cam.width / 2) + sh.x / zoom,
+      snapTo(this.camCenter.y - cam.height / 2) + sh.y / zoom,
+    );
   }
 
-  /** 런 시작 모드 결정: 새 런 / 다음 층 / 세이브 이어하기 */
-  private prepareRun(): void {
+  /** 런 시작 모드 결정: 새 런 / 다음 층 / 세이브 이어하기 / 같은 층 다음 노드(48라운드). 층 시작이면 true */
+  private prepareRun(): boolean {
     const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-    if (this.initMode === 'next') {
+    if (this.initMode === 'node') {
+      // 같은 층의 다음 노드: 층 상태 유지, 층 시작 이벤트 없음
+      if (gameState.route) return false;
+      gameState.gotoStage(gameState.stageIndex);
+    } else if (this.initMode === 'next') {
       gameState.nextStage();
       this.saveIfAllowed();
     } else if (this.initMode === 'floor') {
@@ -2273,6 +2798,7 @@ export class Game extends Phaser.Scene {
       }
     }
     EventBus.emit(Events.STAGE_STARTED, { stageIndex: gameState.stageIndex, stageId: gameState.stageId });
+    return true;
   }
 
   /** 스테이지 전환 세이브: 런당 최대 maxSaves 회 */
@@ -2318,6 +2844,11 @@ export class Game extends Phaser.Scene {
     setMenuSelect(null);
     setSnapshotProvider(null);
     setWarpHandler(null);
+    setNodeChooser(null);
+    this.input.keyboard?.off('keydown', this.onBirthKey);
+    this.input.off('pointerdown', this.onBirthKey);
+    this.birth?.destroy();
+    this.birth = null;
     this.menu.close();
     this.inputSystem.destroy();
   }

@@ -14,6 +14,78 @@ export const PLAYER_ACTIONS = ['idle', 'walk', 'attack', 'dash', 'hurt', 'death'
 export const MOB_ACTIONS = ['idle', 'walk', 'attack', 'hurt', 'death'] as const;
 /** 계약 §3.1 손에 든 무기 오버레이 동작 */
 export const WEAPON_ACTIONS = ['attack'] as const;
+
+/** 48라운드 계약 art §6: 연격 수 · 탄생 동작 · 탄생 흙 이펙트 */
+export const COMBO_HITS = 3;
+export const BIRTH_ACTION = 'birth';
+export const BIRTH_FX = 'birth_dust';
+
+/** 주인공 몸 연격 시트 동작 `player_<무기>_combo<n>` (n 은 1부터) */
+export function comboAction(weaponId: string, n: number): string {
+  return `${weaponId}_combo${n}`;
+}
+
+/** 손에 든 무기 연격 시트 동작 `weapons/<무기>_combo<n>` */
+export function weaponComboAction(n: number): string {
+  return `combo${n}`;
+}
+
+/** 무기를 든 특수 동작 `player_<무기>_special` / 활 조준 `player_bow_aim` (§6.2) */
+export function specialAction(weaponId: string): string {
+  return `${weaponId}_special`;
+}
+
+export function aimAction(weaponId: string): string {
+  return `${weaponId}_aim`;
+}
+
+/** 연격 베기 이펙트 `fx/<무기>_combo<n>` */
+export function comboFxId(weaponId: string, n: number): string {
+  return `${weaponId}_combo${n}`;
+}
+
+/** 무기별 48라운드 주인공 동작 (연격 3 · 특수 · 조준) */
+export function playerWeaponActions(weaponId: string): string[] {
+  const out: string[] = [];
+  for (let n = 1; n <= COMBO_HITS; n++) out.push(comboAction(weaponId, n));
+  out.push(specialAction(weaponId), aimAction(weaponId));
+  return out;
+}
+
+/** 무기 오버레이 동작 (연격 3 · 특수 · 조준) */
+export const WEAPON_EXTRA_ACTIONS: readonly string[] = [
+  ...Array.from({ length: COMBO_HITS }, (_, i) => weaponComboAction(i + 1)),
+  'special',
+  'aim',
+];
+
+/**
+ * 주인공 애니 동작 → 겹칠 무기 시트 동작 후보 (앞이 우선, 마지막은 기존 attack 폴백).
+ * attack · <무기>_combo<n> · <무기>_special · <무기>_aim 만 무기를 보인다. 그 외(idle·walk·dash·hurt·death·birth) 는 []
+ */
+export function overlayActionsFor(playerAction: string, weaponId: string): string[] {
+  if (playerAction === 'attack') return ['attack'];
+  const prefix = `${weaponId}_`;
+  if (!playerAction.startsWith(prefix)) return [];
+  const rest = playerAction.slice(prefix.length);
+  if (/^combo\d+$/.test(rest)) return [rest, 'attack'];
+  if (rest === 'special' || rest === 'aim') return [rest, 'attack'];
+  return [];
+}
+
+/** 애니 키 `<이름>_<동작>_<방향>[@f<n>][#…]` 에서 동작·방향을 꺼낸다. 형식이 아니면 null */
+export function parseAnimKey(key: string, name: string): { action: string; dir: Facing } | null {
+  if (!key.startsWith(`${name}_`)) return null;
+  const body = key
+    .slice(name.length + 1)
+    .split('#')[0]
+    .split('@')[0];
+  const i = body.lastIndexOf('_');
+  if (i <= 0) return null;
+  const dir = body.slice(i + 1) as Facing;
+  if (!FACINGS.includes(dir)) return null;
+  return { action: body.slice(0, i), dir };
+}
 /**
  * 이펙트 시트(`fx/<이름>.json`)는 파일 이름에 동작 접미가 없으므로 내부 동작 이름을 하나로 고정한다.
  * sheetId = `<이름>_fx`, 애니 키 = `<이름>_fx_<방향>` (directions 가 ["any"] 면 네 방향 모두 0행).
@@ -88,6 +160,28 @@ export interface SheetJson {
   secondStage?: { frame?: number; atMs?: number; flash?: FxFlashSpec; shake?: FxShakeSpec };
   /** 연타 시트(twin·dance): 각 타격이 보이는 프레임 열. 시스템이 추가 타격 판정 간격을 이 프레임 시작 시각에 맞춘다 */
   hitFrames?: number[];
+  // --- 48라운드 계약 art §6 메모 필드 (있으면 시스템이 쓴다) ---
+  /** 연격 번호 (1부터) */
+  comboIndex?: number;
+  /** 다음 타로 넘어갈 수 있는 프레임 (이 프레임 시작 = 다음 타 허용). 마지막 타는 null */
+  cancelFromFrame?: number | null;
+  /** 베기 호 각도(도) — 판정 부채꼴 각도. from→to = 휘두름 방향 (right 기준 화면각, + = 아래) */
+  arcDeg?: number;
+  arcFromDeg?: number;
+  arcToDeg?: number;
+  /** 판정 구간 프레임 (첫 열 시작 ~ 마지막 열 끝) */
+  activeFrames?: number[];
+  /** 찌르기 판정 (단검): 길이·폭, 방향 비틀림(도), 몸에서 떨어진 시작 거리 */
+  thrust?: { lengthPx: number; widthPx: number; angleDeg?: number; fromPx?: number };
+  /** 탄생 시트: 잔불이 터지는 프레임 */
+  burstFrame?: number;
+  /** 특수 자세 구간 (패링 ready/window/riposte/recover · 가드 enter/hold/release/recover · 그림자 걸음 depart/arrive/primed) */
+  phases?: Record<string, number[]>;
+  /** 가드를 누르는 동안 반복할 열 */
+  loopFrames?: number[];
+  /** 활 조준: 진행도 프레임 목록 · 발사 프레임 */
+  progressFrames?: number[];
+  releaseFrame?: number;
   /** 시간 애니가 아닌 상태별 고정 프레임 (aim_line: charging 0 / complete 1) */
   stateFrames?: Record<string, number>;
   /** 시스템 틴트 메모 (dash_trail): method 에 'setTintFill' 이 있으면 평면 틴트 */
@@ -183,9 +277,15 @@ export function wantedSheets(
 ): SheetRequest[] {
   const out: SheetRequest[] = [];
   for (const action of PLAYER_ACTIONS) out.push({ category: 'player', name: 'player', action });
+  // 48라운드 §6: 탄생 · 무기별 연격·특수·조준 (매니페스트에 없으면 로더가 건너뛴다)
+  out.push({ category: 'player', name: 'player', action: BIRTH_ACTION });
+  for (const id of weaponIds)
+    for (const action of playerWeaponActions(id)) out.push({ category: 'player', name: 'player', action });
   for (const name of enemyIds) for (const action of MOB_ACTIONS) out.push({ category: 'enemies', name, action });
   for (const name of bossIds) for (const action of MOB_ACTIONS) out.push({ category: 'bosses', name, action });
   for (const name of weaponIds) for (const action of WEAPON_ACTIONS) out.push({ category: 'weapons', name, action });
+  for (const name of weaponIds)
+    for (const action of WEAPON_EXTRA_ACTIONS) out.push({ category: 'weapons', name, action });
   for (const name of fxIds) out.push({ category: 'fx', name, action: FX_ACTION });
   for (const name of structureIds) out.push({ category: 'structures', name, action: STRUCTURE_ACTION });
   return out;
@@ -242,8 +342,11 @@ export function arrowFxId(weaponId: string, aimed: boolean): string {
 export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
   const out = new Set<string>();
   for (const [id, w] of Object.entries(weapons)) {
-    if (w.kind === 'melee') out.add(slashFxId(id));
-    else {
+    if (w.kind === 'melee') {
+      out.add(slashFxId(id));
+      // 48라운드 §6.1 연격 베기 이펙트
+      for (let n = 1; n <= COMBO_HITS; n++) out.add(comboFxId(id, n));
+    } else {
       out.add(arrowFxId(id, false));
       out.add(arrowFxId(id, true));
     }
@@ -287,8 +390,8 @@ export const SECONDARY_FX_IDS: readonly string[] = [
   'heavyarrow_hit',
 ];
 
-/** 47라운드 구조물 이펙트 (계약 art-assets §5): 1-1 불붙은 독주 웅덩이 루프 */
-export const STRUCTURE_FX_IDS: readonly string[] = ['fire_pool'];
+/** 47라운드 구조물 이펙트 (계약 art-assets §5): 1-1 불붙은 독주 웅덩이 루프. 48라운드 §6.3 탄생 흙 */
+export const STRUCTURE_FX_IDS: readonly string[] = ['fire_pool', BIRTH_FX];
 
 /** 무기 유도 이펙트 + 피격 이펙트 + 적 양상 이펙트 + 보조 연출 + 구조물 이펙트 (중복 제거) */
 export function allFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {

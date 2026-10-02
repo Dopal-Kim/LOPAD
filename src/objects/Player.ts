@@ -14,13 +14,35 @@ import { PLAYER_DATA } from '../data';
 import type { SecondaryDef } from '../data/types';
 import { applyDefense } from '../systems/Combat';
 import type { InputState } from '../systems/InputSystem';
-import { facingOf, type Facing } from '../systems/spriteDefs';
+import {
+  aimAction,
+  comboAction,
+  facingOf,
+  frameDurations,
+  progressFrame,
+  specialAction,
+  type Facing,
+} from '../systems/spriteDefs';
+import { ComboTracker } from '../systems/combo';
+import type { ComboHitDef } from '../data/types';
 import { knockFactor, knockSpeed } from '../systems/feel';
 import { sprintStep } from '../systems/traversal';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
+import { spriteLibrary } from '../systems/sprites';
 import { WeaponOverlay } from './WeaponOverlay';
 
 type Body = Phaser.Physics.Arcade.Body;
+
+/** 48라운드 특수 자세 구간 */
+type SpecialStep = 'parryStart' | 'parrySuccess' | 'parryFail' | 'guardStart' | 'guardRelease' | 'shadowArrive';
+
+/** 유지형 보조 동작 자세를 매 프레임 이만큼 유지 (다음 프레임에 갱신) */
+const SECONDARY_HOLD_MS = 80;
+
+/** 시트 정의 (연격·특수 시트 JSON 메모 필드) */
+function spriteLibrarySheet(visual: EntityVisual, action: string) {
+  return spriteLibrary.sheet(visual.name, action);
+}
 
 /** guard = 대검 가드(유지), aim = 활 조준 사격 차지(유지) */
 export type PlayerAction = 'normal' | 'dash' | 'parry' | 'recover' | 'guard' | 'aim';
@@ -65,6 +87,9 @@ export class Player extends Phaser.GameObjects.Sprite {
   private lastAimAngle = 0;
   /** 피격 넉백(35라운드): 가해자 반대 방향으로 선형 감쇠. 경과는 update 의 시간 차로 누적(히트스톱 중엔 update 가 없다) */
   private shoveState: { vx: number; vy: number; elapsed: number; ms: number } | null = null;
+  /** 48라운드 Q2: 근접 3연격 상태 (무기 데이터에 combo 가 있을 때) */
+  private comboTracker: ComboTracker | null = null;
+  private comboWeapon = '';
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     const [w, h] = PLAYER_DATA.size;
@@ -72,7 +97,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.visual = new EntityVisual(this, 'player', w, h, COLORS.PLAYER);
-    this.overlay = new WeaponOverlay(this);
+    this.overlay = new WeaponOverlay(this, () => this.visual.current);
     this.body.setCollideWorldBounds(true);
   }
 
@@ -140,6 +165,16 @@ export class Player extends Phaser.GameObjects.Sprite {
     return this.lastAimAngle;
   }
 
+  /** 48라운드: 현재 무기의 연격 상태 (연격이 없는 무기면 null) */
+  get combo(): ComboTracker | null {
+    const w = gameState.weapon;
+    if (this.comboWeapon !== w.id) {
+      this.comboWeapon = w.id;
+      this.comboTracker = w.def.kind === 'melee' && w.def.combo ? new ComboTracker(w.def.combo) : null;
+    }
+    return this.comboTracker;
+  }
+
   /** 현재 대쉬 방향 단위벡터 (대쉬 중이 아니면 마지막 값) */
   get dashDir(): { x: number; y: number } {
     const len = this.dashVel.length() || 1;
@@ -164,6 +199,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       } else if (this.action === 'parry') {
         // 창이 닫혔는데 아무것도 못 막음 → 후딜
         EventBus.emit(Events.PLAYER_PARRY_FAILED);
+        this.playSpecial(time, 'parryFail', P.failRecoveryMs);
         this.setAction('recover', time + P.failRecoveryMs);
       } else {
         this.setAction('normal', 0);
@@ -175,6 +211,8 @@ export class Player extends Phaser.GameObjects.Sprite {
       this.setAction('normal', 0);
       const payload: GuardReleasedPayload = { x: this.x, y: this.y };
       EventBus.emit(Events.PLAYER_GUARD_RELEASED, payload);
+      this.visual.release();
+      this.playSpecial(time, 'guardRelease', undefined, input);
     }
     if (this.action === 'aim' && S.kind === 'aimedshot') {
       const charged = time - this.aimStartedAt >= S.chargeMs;
@@ -225,6 +263,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       this.body.setVelocity(dir.x * speed, dir.y * speed);
     }
     this.animateLocomotion(input, dir, time);
+    this.holdSecondaryPose(input, time);
 
     const canAct = this.action === 'normal';
 
@@ -243,6 +282,7 @@ export class Player extends Phaser.GameObjects.Sprite {
         this.invulnerableUntil = Math.max(this.invulnerableUntil, time + D.durationMs + (mods.dashInvulnExtraMs ?? 0));
       }
       this.setAction('dash', time + D.durationMs);
+      this.combo?.reset();
       this.visual.oneShot('dash', facingOf(d.x, d.y, this.visual.facing), time, D.durationMs);
       EventBus.emit(Events.PLAYER_DASHED, { dirX: d.x, dirY: d.y, x: this.x, y: this.y });
       return;
@@ -251,11 +291,15 @@ export class Player extends Phaser.GameObjects.Sprite {
     // 보조 동작 (우클릭): 무기별
     if (input.secondaryPressed && canAct) {
       switch (S.kind) {
-        case 'parry':
-          this.setAction('parry', time + P.windowMs * (1 + gameState.passives.total('parryWindowMult')));
+        case 'parry': {
+          const win = P.windowMs * (1 + gameState.passives.total('parryWindowMult'));
+          this.setAction('parry', time + win);
+          this.playSpecial(time, 'parryStart', win, input);
           return;
+        }
         case 'guard':
           this.setAction('guard', 0);
+          this.playSpecial(time, 'guardStart', undefined, input);
           EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'guard', phase: 'start' } satisfies PlayerSecondaryPayload);
           return;
         case 'aimedshot':
@@ -275,40 +319,123 @@ export class Player extends Phaser.GameObjects.Sprite {
             this.shadowPrimedUntil = time + S.primeMs;
             const payload: ShadowStepPayload = { x: this.x, y: this.y, facingX: this.facing.x, facingY: this.facing.y };
             EventBus.emit(Events.PLAYER_SHADOW_STEP, payload);
+            this.playSpecial(time, 'shadowArrive', undefined, input);
           }
           return;
       }
     }
 
-    // 공격 (대쉬 직후면 대쉬 공격)
+    // 공격 (대쉬 직후면 대쉬 공격). 48라운드: 근접은 3연격 상태 머신(입력 버퍼·다음 타 허용 창·리셋)
+    const combo = this.combo;
+    if (combo) {
+      if (input.attackPressed) combo.press(time);
+      const idx = combo.poll(time, canAct);
+      if (idx !== null) {
+        const hit = combo.hits[idx];
+        this.attackSlowUntil = time + Math.max(hit.activeMs, PLAYER_DATA.attackSlowMinMs);
+        this.fireAttack(input, time, { index: idx, count: combo.hits.length, hit });
+      }
+      return;
+    }
     if (input.attackPressed && canAct && time >= this.attackReadyAt) {
       this.attackReadyAt = time + gameState.weapon.hitbox.cooldownMs;
       this.attackSlowUntil = time + Math.max(gameState.weapon.hitbox.activeMs, PLAYER_DATA.attackSlowMinMs);
-      const isDashAttack = time - this.dashEndedAt <= D.attackWindowMs;
-      let mult = 1;
-      let forceCrit = false;
-      if (isDashAttack) {
-        mult = D.attackDamageMult * (1 + gameState.passives.total('dashAttackMult')) * (mods.dashAttackMult ?? 1);
-        forceCrit = Boolean(mods.dashAttackForceCrit);
-        this.dashEndedAt = -Infinity; // 대쉬 공격은 1회
-      }
-      let primed = false;
-      if (this.isShadowPrimed(time)) {
-        mult *= mods.shadowStepMult ?? 1;
-        forceCrit = true;
-        primed = true;
-        this.shadowPrimedUntil = -Infinity; // 1회
-      }
-      this.emitAttack(
-        input,
-        time,
-        isDashAttack ? 'dashAttack' : 'attack',
-        mult,
-        isDashAttack ? D.attackSizeMult : 1,
-        forceCrit,
-        primed,
-      );
+      this.fireAttack(input, time, null);
     }
+  }
+
+  /** 공격 1회 (대쉬 공격·그림자 걸음 직후 확정 치명 판정 포함). combo 가 있으면 그 타의 배율·길이 */
+  private fireAttack(
+    input: InputState,
+    time: number,
+    combo: { index: number; count: number; hit: ComboHitDef } | null,
+  ): void {
+    const D = PLAYER_DATA.dash;
+    const mods = gameState.weapon.mods;
+    const isDashAttack = time - this.dashEndedAt <= D.attackWindowMs;
+    let mult = combo ? combo.hit.damageMult : 1;
+    let forceCrit = false;
+    if (isDashAttack) {
+      mult *= D.attackDamageMult * (1 + gameState.passives.total('dashAttackMult')) * (mods.dashAttackMult ?? 1);
+      forceCrit = Boolean(mods.dashAttackForceCrit);
+      this.dashEndedAt = -Infinity; // 대쉬 공격은 1회
+    }
+    let primed = false;
+    if (this.isShadowPrimed(time)) {
+      mult *= mods.shadowStepMult ?? 1;
+      forceCrit = true;
+      primed = true;
+      this.shadowPrimedUntil = -Infinity; // 1회
+    }
+    const size = (isDashAttack ? D.attackSizeMult : 1) * (combo ? combo.hit.sizeMult : 1);
+    this.emitAttack(input, time, isDashAttack ? 'dashAttack' : 'attack', mult, size, forceCrit, primed, combo);
+  }
+
+  /**
+   * 48라운드 §6.2: 보조 동작 순간 무기를 든 자세 (`player_<무기>_special`). 시트가 없으면 아무것도 하지 않는다 (기존 틴트만).
+   * 구간은 시트 JSON `phases` (없으면 기본 열): 패링 창 ready+window → 성공 riposte+recover / 실패 recover,
+   * 가드 enter → (누르는 동안 loopFrames 반복) → 떼면 release+recover, 그림자 걸음 arrive+primed
+   */
+  private playSpecial(time: number, step: SpecialStep, fitMs?: number, input?: InputState): void {
+    const action = specialAction(gameState.weapon.id);
+    if (!this.visual.hasAction(action)) return;
+    const def = spriteLibrarySheet(this.visual, action)!;
+    const ph = (name: string, fallback: number[]) => {
+      const v = (def.phases as Record<string, number[]> | undefined)?.[name];
+      return Array.isArray(v) && v.length > 0 ? v : fallback;
+    };
+    const cols: Record<SpecialStep, number[]> = {
+      parryStart: [...ph('ready', [0]), ...ph('window', [1, 2])],
+      parrySuccess: [...ph('riposte', [3]), ...ph('recover', [4])],
+      parryFail: ph('recover', [def.frames - 1]),
+      guardStart: ph('enter', [0]),
+      guardRelease: [...ph('release', [3, 4]), ...ph('recover', [5])],
+      shadowArrive: [...ph('arrive', [2, 3]), ...ph('primed', [4])],
+    };
+    const dir = input ? facingOf(input.aimX - this.x, input.aimY - this.y, this.visual.facing) : this.visual.facing;
+    this.visual.playFrames(action, dir, cols[step], time, fitMs);
+  }
+
+  /** 유지형 보조 동작 자세: 가드 = 특수 자세 loopFrames 반복, 조준 = 활 조준 시트의 진행도 프레임 (min(5, floor(p×5))) */
+  private holdSecondaryPose(input: InputState, time: number): void {
+    const id = gameState.weapon.id;
+    const dir = facingOf(input.aimX - this.x, input.aimY - this.y, this.visual.facing);
+    if (this.action === 'aim') {
+      const action = aimAction(id);
+      if (!this.visual.hasAction(action)) return;
+      const def = spriteLibrarySheet(this.visual, action)!;
+      const prog = def.progressFrames ?? [0, 1, 2, 3, 4, 5];
+      const f = prog[progressFrame(this.aimProgress(time), prog.length, FEEL.SECONDARY.AIM_CHARGE_DIVISOR)] ?? 0;
+      this.visual.hold(action, dir, f, time, SECONDARY_HOLD_MS);
+    } else if (this.action === 'guard') {
+      const action = specialAction(id);
+      if (!this.visual.hasAction(action) || this.visual.isBusy(time)) return;
+      const def = spriteLibrarySheet(this.visual, action)!;
+      const loop = def.loopFrames ?? [1, 2];
+      const d = frameDurations(def);
+      if (!this.visual.current?.includes(`#p${loop.join('-')}`) || this.visual.facing !== dir)
+        this.visual.loopFrames(action, dir, loop, d[loop[0]] ?? 160);
+    }
+  }
+
+  /** 연격 시트 activeFrames 구간 길이 ms (첫 열 시작 ~ 마지막 열 끝, 재생 배속 반영). 없으면 0 */
+  private activeWindowMs(sheet: { activeFrames?: number[]; frames: number } | undefined): number {
+    const af = sheet?.activeFrames;
+    if (!af || af.length === 0) return 0;
+    const first = Math.min(...af);
+    const last = Math.max(...af);
+    const starts = this.visual.lastFrameStarts;
+    const end = last + 1 < sheet.frames ? starts[last + 1] : this.visual.lastDurationMs;
+    return Math.max(0, (end ?? 0) - (starts[first] ?? 0));
+  }
+
+  /** 조준 사격 발사 순간: 활 조준 시트의 발사 프레임(releaseFrame) 1회. 시트가 없으면 false */
+  private playAimRelease(dir: Facing, time: number): boolean {
+    const action = aimAction(gameState.weapon.id);
+    if (!this.visual.hasAction(action)) return false;
+    const def = spriteLibrarySheet(this.visual, action)!;
+    this.visual.release();
+    return this.visual.playFrames(action, dir, [def.releaseFrame ?? def.frames - 1], time) > 0;
   }
 
   /** 이동 중엔 이동 방향, 멈춰 있으면 마우스 조준 방향으로 idle/walk */
@@ -329,12 +456,23 @@ export class Player extends Phaser.GameObjects.Sprite {
     sizeMult: number,
     forceCrit: boolean,
     primed = false,
+    combo: { index: number; count: number; hit: ComboHitDef } | null = null,
   ): void {
     const aim = new Phaser.Math.Vector2(input.aimX - this.x, input.aimY - this.y);
     if (aim.lengthSq() > 0) aim.normalize();
     else aim.copy(this.facing);
-    // 공격 애니는 조준 방향으로, 다음 공격 가능 시점(쿨다운)에 맞춰 재생
-    this.visual.oneShot('attack', facingOf(aim.x, aim.y, this.visual.facing), time, gameState.weapon.hitbox.cooldownMs);
+    // 공격 애니는 조준 방향으로. 연격이면 그 타의 시트(없으면 attack)를 그 타 길이에, 아니면 다음 공격 가능 시점(쿨다운)에 맞춰
+    const comboSheet = combo ? comboAction(gameState.weapon.id, combo.index + 1) : null;
+    const action = comboSheet && this.visual.hasAction(comboSheet) ? comboSheet : 'attack';
+    const fit = combo ? combo.hit.durationMs : gameState.weapon.hitbox.cooldownMs;
+    const aimDir = facingOf(aim.x, aim.y, this.visual.facing);
+    // 조준 사격은 활 조준 시트의 발사 프레임 (없으면 기존 attack)
+    if (!(kind === 'aimed' && this.playAimRelease(aimDir, time))) this.visual.oneShot(action, aimDir, time, fit);
+    // 연격 시트 JSON 메모: hitFrames[0] 시작 = 휘두름 시점, cancelFromFrame 시작 = 다음 타 허용
+    const sheet = action !== 'attack' ? spriteLibrarySheet(this.visual, action) : undefined;
+    const hf = sheet?.hitFrames?.[0];
+    if (typeof sheet?.cancelFromFrame === 'number')
+      this.combo?.overrideCancel(this.visual.frameStartMs(sheet.cancelFromFrame));
     const payload: PlayerAttackPayload = {
       x: this.x,
       y: this.y,
@@ -345,8 +483,13 @@ export class Player extends Phaser.GameObjects.Sprite {
       kind,
       forceCrit,
       primed,
-      swingDelayMs: this.visual.lastImpactMs,
+      swingDelayMs: hf !== undefined ? this.visual.frameStartMs(hf) : this.visual.lastImpactMs,
       releaseDelayMs: this.visual.frameStartMs(2),
+      comboIndex: combo?.index,
+      comboCount: combo?.count,
+      activeMs: combo ? Math.max(combo.hit.activeMs, this.activeWindowMs(sheet)) : undefined,
+      durationMs: combo?.hit.durationMs,
+      bodyAction: action,
     };
     EventBus.emit(Events.PLAYER_ATTACKED, payload);
   }
@@ -354,6 +497,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   /** 워프(45라운드): 진행 중 동작·넉백·달리기를 끊고 멈춘다 */
   haltForWarp(): void {
     if (this.action !== 'normal') this.setAction('normal', 0);
+    this.visual.release();
+    this.combo?.reset();
     this.shoveState = null;
     this.sprintFactor = 1;
     this.sprintingNow = false;
@@ -399,6 +544,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       // 성공: 창을 닫고 즉시 행동 가능
       this.setAction('normal', 0);
       this.flash(COLORS.PLAYER_PARRY);
+      this.playSpecial(time, 'parrySuccess');
       EventBus.emit(Events.PLAYER_PARRIED, { attack });
       return 'parried';
     }

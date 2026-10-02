@@ -50,13 +50,35 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
     expect(animDurationMs({ ...walk, frameDurationsMs: [1, 2] })).toBeCloseTo((8 * 1000) / 9, 3);
   });
 
-  it('로드 대상: 주인공 6동작 + 적·보스 5동작 + 무기 attack + 이펙트', () => {
+  it('로드 대상: 주인공 6동작(+48라운드 탄생·무기별 연격 3·특수·조준) + 적·보스 5동작 + 무기 attack(+연격·특수·조준) + 이펙트', () => {
     const list = wantedSheets(['dummy', 'archer'], [], ['katana'], ['katana_slash', 'iai']);
-    expect(list.filter((r) => r.name === 'player')).toHaveLength(6);
-    expect(list.filter((r) => r.category === 'enemies')).toHaveLength(10);
-    expect(list.filter((r) => r.category === 'weapons')).toEqual([
-      { category: 'weapons', name: 'katana', action: 'attack' },
+    expect(list.filter((r) => r.name === 'player').map((r) => r.action)).toEqual([
+      'idle',
+      'walk',
+      'attack',
+      'dash',
+      'hurt',
+      'death',
+      'birth',
+      'katana_combo1',
+      'katana_combo2',
+      'katana_combo3',
+      'katana_special',
+      'katana_aim',
     ]);
+    expect(list.filter((r) => r.category === 'enemies')).toHaveLength(10);
+    expect(list.filter((r) => r.category === 'weapons').map((r) => r.action)).toEqual([
+      'attack',
+      'combo1',
+      'combo2',
+      'combo3',
+      'special',
+      'aim',
+    ]);
+    expect(sheetJsonPath({ category: 'player', name: 'player', action: 'katana_combo2' })).toBe(
+      'sprites/player/player_katana_combo2.json',
+    );
+    expect(sheetJsonPath({ category: 'weapons', name: 'bow', action: 'aim' })).toBe('sprites/weapons/bow_aim.json');
     expect(list.filter((r) => r.category === 'fx').map((r) => r.action)).toEqual([FX_ACTION, FX_ACTION]);
     expect(sheetJsonPath({ category: 'weapons', name: 'bow', action: 'attack' })).toBe(
       'sprites/weapons/bow_attack.json',
@@ -69,7 +91,18 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       katana: { kind: 'melee', personality: { branches: [{ id: 'iai' }, { id: 'batto' }] } },
       bow: { kind: 'ranged', personality: { branches: [{ id: 'pierce' }, { id: 'scatter' }] } },
     });
-    expect(ids).toEqual(['katana_slash', 'iai', 'batto', 'bow_arrow', 'bow_arrow_aimed', 'pierce', 'scatter']);
+    expect(ids).toEqual([
+      'katana_slash',
+      'katana_combo1',
+      'katana_combo2',
+      'katana_combo3',
+      'iai',
+      'batto',
+      'bow_arrow',
+      'bow_arrow_aimed',
+      'pierce',
+      'scatter',
+    ]);
     expect(slashFxId('dagger')).toBe('dagger_slash');
     expect(arrowFxId('bow', true)).toBe('bow_arrow_aimed');
   });
@@ -83,7 +116,16 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       },
     };
     const ids = fxSheetIds(weapons);
-    expect(ids).toEqual(['katana_slash', 'iai', 'wide', 'zangetsu', 'batto']);
+    expect(ids).toEqual([
+      'katana_slash',
+      'katana_combo1',
+      'katana_combo2',
+      'katana_combo3',
+      'iai',
+      'wide',
+      'zangetsu',
+      'batto',
+    ]);
     const all = allFxSheetIds(weapons);
     for (const id of [...SECONDARY_FX_IDS, 'hit_burst', 'telegraph_aura', 'boss_slam', 'heavyarrow_hit', 'wide'])
       expect(all).toContain(id);
@@ -91,6 +133,20 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
     expect(fxDepthHint({ depth: 'below' })).toBe('below');
     expect(fxDepthHint({ depth: { up: 'below' } })).toBeNull();
     expect(fxDepthHint({})).toBeNull();
+  });
+
+  it('48라운드: 무기 오버레이 동작 후보 · 애니 키 해석', async () => {
+    const { overlayActionsFor, parseAnimKey } = await import('./spriteDefs');
+    expect(overlayActionsFor('attack', 'katana')).toEqual(['attack']);
+    expect(overlayActionsFor('katana_combo2', 'katana')).toEqual(['combo2', 'attack']);
+    expect(overlayActionsFor('greatsword_special', 'greatsword')).toEqual(['special', 'attack']);
+    expect(overlayActionsFor('bow_aim', 'bow')).toEqual(['aim', 'attack']);
+    expect(overlayActionsFor('walk', 'katana')).toEqual([]);
+    expect(overlayActionsFor('dagger_combo1', 'katana')).toEqual([]);
+    expect(parseAnimKey('player_katana_combo1_left@f2', 'player')).toEqual({ action: 'katana_combo1', dir: 'left' });
+    expect(parseAnimKey('player_bow_aim_down#hold3', 'player')).toEqual({ action: 'bow_aim', dir: 'down' });
+    expect(parseAnimKey('player_katana_special_up#s3-4', 'player')).toEqual({ action: 'katana_special', dir: 'up' });
+    expect(parseAnimKey('dummy_walk_down', 'player')).toBeNull();
   });
 
   it('무기 오버레이: 같은 열의 프레임 번호, any 시트는 0행', () => {

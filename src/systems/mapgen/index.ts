@@ -5,6 +5,7 @@ import { rasterize } from './tiles';
 import type { FloorLayout } from './types';
 
 export * from './types';
+export * from './arena';
 
 const MAX_ATTEMPTS = 100;
 

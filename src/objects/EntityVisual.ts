@@ -7,7 +7,7 @@
 import Phaser from 'phaser';
 import { DEPTH, SPRITES, TEXTURES, entityDepth } from '../core/Constants';
 import { spriteLibrary } from '../systems/sprites';
-import { animDurationMs, frameDurations, frameStarts, type Facing } from '../systems/spriteDefs';
+import { animDurationMs, frameAt, frameDurations, frameStarts, type Facing } from '../systems/spriteDefs';
 
 type Body = Phaser.Physics.Arcade.Body;
 type Host = Phaser.GameObjects.Sprite & { body: Body };
@@ -48,6 +48,8 @@ export class EntityVisual {
   lastImpactMs = 0;
   /** 마지막 oneShot 의 프레임별 시작 시각 ms (재생 속도 반영). 시트가 없으면 빈 배열 */
   lastFrameStarts: number[] = [];
+  /** 마지막 oneShot 의 전체 길이 ms (재생 속도 반영) */
+  lastDurationMs = 0;
   /** 실제 시트 이름 (별칭이면 대상 이름, 예: stage2 → stage1) */
   readonly sheetName: string;
   private busyUntil = 0;
@@ -91,6 +93,22 @@ export class EntityVisual {
     this.sync();
   }
 
+  /** 48라운드 탄생 연출: 몸·그림자를 숨긴다 (다른 스프라이트가 대신 그린다) */
+  setHidden(on: boolean): void {
+    this.host.setVisible(!on);
+    this.shadow?.setVisible(!on);
+  }
+
+  /** 일회성 동작 재생 중 (loop 가 덮어쓰지 않는 동안) */
+  isBusy(time: number): boolean {
+    return time < this.busyUntil;
+  }
+
+  /** 이 동작의 시트가 있는지 (애니 시트가 있을 때만) */
+  hasAction(action: string): boolean {
+    return this.animated && Boolean(spriteLibrary.sheet(this.name, action));
+  }
+
   /** 매 프레임: 깊이·그림자 위치 */
   sync(): void {
     this.host.setDepth(entityDepth(this.host.y));
@@ -129,6 +147,7 @@ export class EntityVisual {
     this.facing = dir;
     this.lastImpactMs = 0;
     this.lastFrameStarts = [];
+    this.lastDurationMs = 0;
     if (!this.animated || this.dead) return 0;
     const def = spriteLibrary.sheet(this.name, action);
     const key = spriteLibrary.animKey(this.name, action, dir);
@@ -141,6 +160,7 @@ export class EntityVisual {
     this.current = key;
     const ms = natural / scale;
     this.busyUntil = time + ms;
+    this.lastDurationMs = ms;
     this.lastFrameStarts = frameStarts(def, scale);
     if (def.frames >= 2) this.lastImpactMs = this.lastFrameStarts[1];
     if (action === 'death') this.dead = true;
@@ -184,6 +204,40 @@ export class EntityVisual {
     this.holdUntil = Infinity;
     this.busyUntil = 0;
     return true;
+  }
+
+  /**
+   * 48라운드: 지정한 열만 1회 재생 (특수 자세의 구간 — 패링 창 f0~2, 성공 f3~4 등). fitMs 를 주면 그 시간에 맞춘다.
+   * 반환: 재생 시간 ms (시트가 없으면 0)
+   */
+  playFrames(action: string, dir: Facing, columns: number[], time: number, fitMs?: number): number {
+    this.facing = dir;
+    if (!this.animated || this.dead || columns.length === 0) return 0;
+    const def = spriteLibrary.sheet(this.name, action);
+    const base = spriteLibrary.animKey(this.name, action, dir);
+    const texture = spriteLibrary.textureKey(this.name, action);
+    if (!def || !base || !texture) return 0;
+    const cols = columns.filter((c) => c >= 0 && c < def.frames);
+    if (cols.length === 0) return 0;
+    const key = `${base}#s${cols.join('-')}`;
+    const d = frameDurations(def);
+    if (!this.host.scene.anims.exists(key)) {
+      this.host.scene.anims.create({
+        key,
+        frames: cols.map((c) => ({ key: texture, frame: frameAt(def, dir, c), duration: d[c] })),
+        frameRate: def.fps,
+        repeat: 0,
+      });
+    }
+    const natural = cols.reduce((a, c) => a + d[c], 0);
+    const scale = fitMs && fitMs > 0 ? natural / fitMs : 1;
+    this.holdUntil = -1;
+    this.host.anims.timeScale = scale;
+    this.host.play(key, false);
+    this.current = key;
+    const ms = natural / scale;
+    this.busyUntil = time + ms;
+    return ms;
   }
 
   /** 유지·반복 해제 → 다음 loop() 에서 idle/walk 로 돌아간다 */

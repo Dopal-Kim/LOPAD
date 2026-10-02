@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { TILE } from '../core/Constants';
 import { EventBus, Events, type RoomEnteredPayload, type TrialClearedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
-import type { StageDef } from '../data/types';
+import type { StageDef, WaveEntry } from '../data/types';
 import { Boss } from '../objects/Boss';
 import { Enemy } from '../objects/Enemy';
 import type { Mob } from '../objects/Mob';
@@ -42,6 +42,8 @@ export interface RoomDirectorHost {
   isLastStage(): boolean;
   /** 47라운드: 시련 웨이브 배율 (웨이브를 낼 때마다 묻는다) */
   waveMods?(room: Room): WaveMods;
+  /** 48라운드 노드 전투장: 이 노드 전용 웨이브 (버려진 길 = 쉬운 전투). 없으면 층 trial.waves */
+  waves?: WaveEntry[][];
 }
 
 /**
@@ -60,6 +62,11 @@ export class RoomDirector {
     for (const r of host.world.layout.rooms) this.states.set(r.id, 'idle');
     this.states.set('start', 'cleared');
     gameState.trialsTotal = host.stage.layout.trialCount;
+  }
+
+  /** 시련 웨이브 목록 (48라운드: 노드 전용 웨이브가 있으면 그것) */
+  private get waves(): WaveEntry[][] {
+    return this.host.waves ?? this.host.stage.trial.waves;
   }
 
   /** 디버그용: 현재 활성 방의 남은 적 수와 웨이브 번호 */
@@ -95,6 +102,10 @@ export class RoomDirector {
     EventBus.emit(Events.ROOM_ENTERED, payload);
     if (this.states.get(room.id) !== 'idle') return;
     switch (room.type) {
+      case 'start':
+        // 48라운드 노드 전투장(탄생지·상점·이벤트): 비전투 방은 들어서면 클리어
+        this.states.set(room.id, 'cleared');
+        break;
       case 'trial':
         this.startTrial(room);
         break;
@@ -225,7 +236,7 @@ export class RoomDirector {
     if (this.alive.size > 0) return;
     if (room.type === 'trial') {
       this.waveIndex += 1;
-      if (this.waveIndex < this.host.stage.trial.waves.length) {
+      if (this.waveIndex < this.waves.length) {
         this.spawnWave(room, this.waveIndex);
       } else {
         this.clearTrial(room);
@@ -254,9 +265,9 @@ export class RoomDirector {
 
   private spawnWave(room: Room, index: number): void {
     const mods = this.host.waveMods?.(room) ?? { hpMult: 1, countMult: 1, extra: 0 };
-    const wave = scaleWave(this.host.stage.trial.waves[index], mods.countMult, mods.extra);
+    const wave = scaleWave(this.waves[index], mods.countMult, mods.extra);
     const scale = { hp: this.host.stage.enemyScale.hp * mods.hpMult, attack: this.host.stage.enemyScale.attack };
-    EventBus.emit(Events.TRIAL_WAVE, { roomId: room.id, wave: index + 1, total: this.host.stage.trial.waves.length });
+    EventBus.emit(Events.TRIAL_WAVE, { roomId: room.id, wave: index + 1, total: this.waves.length });
     for (const entry of wave) {
       for (let i = 0; i < entry.count; i++) {
         const p = this.host.world.randomPointInRoom(
@@ -282,9 +293,10 @@ export class RoomDirector {
       total: gameState.trialsTotal,
     };
     // 본영 해금을 먼저 반영해야 TRIAL_CLEARED 구독자(자막·음향)가 bossUnlocked 를 볼 수 있다
-    if (gameState.trialsCleared >= gameState.trialsTotal && !gameState.bossUnlocked) {
+    // 48라운드 노드 전투장에는 보스 방이 없다 (보스 해금은 노드 지도가 정한다)
+    const boss = this.host.world.layout.rooms.find((r) => r.type === 'boss');
+    if (boss && gameState.trialsCleared >= gameState.trialsTotal && !gameState.bossUnlocked) {
       gameState.bossUnlocked = true;
-      const boss = this.host.world.layout.rooms.find((r) => r.type === 'boss')!;
       this.host.world.setRoomDoors(boss, 'open');
       EventBus.emit(Events.BOSS_UNLOCKED);
     }

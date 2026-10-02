@@ -192,6 +192,59 @@ export const CAMERA = {
   DEADZONE_Y: 8,
   /** 보간이 이 거리(px) 안이면 목표에 붙인다 (미세 진동 방지) */
   SNAP_PX: 0.25,
+  /**
+   * 48라운드 Q1: 게임 월드 카메라 확대 (내부 960×540 유지 → 한 화면 약 30×17타일). UI 씬은 별도 카메라라 무관.
+   * 데드존·흔들림 px 는 화면 px 기준이라 월드 px 로는 ÷ZOOM 해서 쓴다 (흔들림 체감 유지, 임시)
+   */
+  ZOOM: 2,
+};
+
+/**
+ * 48라운드 Q6 탄생 연출 (임시값). 새 런 첫 노드(황폐한 탄생지)에서 1회, 아무 키로 건너뛴다.
+ * 카메라를 ZOOM 배로 당겨 player_birth(+fx/birth_dust) 재생 → burstFrame 에 잔불 터짐·약한 흔들림 → 2배로 부드럽게 복귀.
+ * 시트가 없으면 흙 파티클이 모이며 플레이어가 서서히 나타나는 폴백
+ */
+export const BIRTH = {
+  ZOOM: 4,
+  /** 2→4배 확대 (시작) — 시트 3.67초 + 확대·복귀 ≈ 5초 */
+  ZOOM_IN_MS: 450,
+  /** 시트가 없을 때 폴백 길이 · 잔불 터짐 시점 비율 */
+  FALLBACK_MS: 3400,
+  FALLBACK_BURST_AT: 0.72,
+  /** 연출 뒤 4→2배 복귀 */
+  ZOOM_OUT_MS: 750,
+  /** 복귀 전 잠깐 멈춤 */
+  HOLD_MS: 150,
+  /** 잔불 터짐: 섬광 · 흔들림(화면 px) */
+  BURST_FLASH: { COLOR: 0xffb050, MS: 160, ALPHA: 0.35 },
+  BURST_SHAKE: { PX: 2, MS: 180 },
+  /** 폴백 흙 파티클: 수 · 시작 반경(px) · 색(G7 흙 회갈) · 크기 */
+  DUST_COUNT: 22,
+  DUST_RADIUS_PX: 26,
+  DUST_COLOR: 0x6c5a48,
+  DUST_SIZE: 2,
+  /** 폴백 잔불 불티 */
+  EMBER_COUNT: 10,
+  EMBER_COLOR: 0xff9a3c,
+  EMBER_DIST_PX: 18,
+  EMBER_MS: 420,
+  /** 이 시간이 지나기 전 입력은 건너뛰기로 보지 않는다 (씬 진입 직후 눌린 키 무시) */
+  SKIP_GRACE_MS: 250,
+};
+
+/** 48라운드 노드 지도 전환 연출 (임시값) */
+export const ROUTE_FX = {
+  /** 노드를 고른 뒤 암전 · 새 노드에서 밝아짐 */
+  FADE_OUT_MS: 280,
+  FADE_IN_MS: 320,
+  /** 새 노드 진입 직후 입력 잠금·전투 시작 지연 (밝아지는 동안) */
+  ENTER_LOCK_MS: 450,
+  /** 노드를 마친 뒤 출구가 열리기까지 */
+  EXIT_DELAY_MS: 500,
+  /** 출구에서 이만큼 떨어져야(px) 다시 선택을 연다 (UI 없이 메뉴로 고를 때 재진입 방지) */
+  EXIT_REARM_PX: 24,
+  /** 암전 색 */
+  FADE_COLOR: { R: 0, G: 0, B: 0 },
 };
 
 export const PROTOTYPE = {

@@ -40,6 +40,8 @@ export interface Room {
   interior: Rect;
   /** 방향별 문 타일 (방 벽선 위의 corridorWidth 개 타일) */
   doors: Door[];
+  /** 48라운드 노드 전투장: 바닥 타일 종류(roomFloors 키). 없으면 type */
+  floor?: RoomType;
 }
 
 export interface Door {
@@ -87,6 +89,20 @@ export interface FloorLayout {
   heightTiles: number;
   /** 셀 → 방 id (복도 셀은 없음) */
   cellRoom: Map<string, string>;
+  /** 48라운드 노드 전투장이면 시작점·출구·카메라 경계 (타일 좌표). 방+복도 층은 없음 */
+  arena?: ArenaInfo;
+}
+
+/** 48라운드 노드 전투장 부가 정보 (타일 좌표) */
+export interface ArenaInfo {
+  /** 플레이어 시작 타일 (중심) */
+  spawn: { x: number; y: number };
+  /** 출구 2×2 의 왼쪽 위 타일 */
+  exit: { x: number; y: number };
+  /** 상점 2×2 의 왼쪽 위 타일 (상점 노드) */
+  shop: { x: number; y: number };
+  /** 카메라 경계 (방 내부 + 벽 1칸) */
+  camera: Rect;
 }
 
 export function cellKey(c: Cell): string {

@@ -1,0 +1,92 @@
+{
+  "_note": "48라운드 노드 지도 진행 (1~2층 한정). 이름은 전부 자리표시(스토리 후속), 수치는 임시값 — parts/system/README.md 48라운드 절",
+  "floors": {
+    "stage1": {
+      "journey": ["birth", "road", "post"],
+      "lanes": 2,
+      "laneLength": 3,
+      "pool": { "battle": 3, "shop": 1, "rest": 1, "event": 1 },
+      "crossChance": 0.35,
+      "names": {
+        "birth": ["황폐한 탄생지"],
+        "road": ["버려진 길"],
+        "post": ["국경 초소"],
+        "battle": ["주정뱅이 골목", "술통 하역장", "밀주 뒷거리", "깨진 술잔 광장"],
+        "shop": ["외상 장터"],
+        "rest": ["불 꺼진 선술집"],
+        "event": ["낡은 양조 창고"],
+        "boss": ["양조장"]
+      }
+    },
+    "stage2": {
+      "journey": [],
+      "lanes": 2,
+      "laneLength": 3,
+      "pool": { "battle": 3, "shop": 1, "rest": 1, "event": 1 },
+      "crossChance": 0.35,
+      "names": {
+        "battle": ["판돈 골목", "투견장 뒤뜰", "칩 환전 거리", "뒤집힌 탁자 홀"],
+        "shop": ["전당 골목"],
+        "rest": ["문 닫은 도박장"],
+        "event": ["뒷방"],
+        "boss": ["판돈 백작의 도박장"]
+      }
+    }
+  },
+  "arena": {
+    "default": [40, 24],
+    "boss": [44, 26],
+    "voidMarginTiles": 8,
+    "spawnInsetTiles": 3,
+    "exitInsetTiles": 3,
+    "clearTiles": 3
+  },
+  "kinds": {
+    "birth": { "type": "journey", "room": "start", "floor": "start", "structures": [], "budget": [0, 0] },
+    "road": {
+      "type": "journey",
+      "room": "trial",
+      "floor": "start",
+      "structures": ["crate", "cask"],
+      "budget": [0, 0],
+      "waves": [[{ "enemy": "dummy", "count": 3 }]]
+    },
+    "post": {
+      "type": "journey",
+      "room": "rest",
+      "floor": "start",
+      "structures": ["campfire", "grave"],
+      "budget": [1, 2]
+    },
+    "battle": {
+      "type": "battle",
+      "room": "trial",
+      "floor": "trial",
+      "structures": ["crate", "cask", "still", "stakeBell", "roulette", "dogRing"],
+      "budget": [1, 2]
+    },
+    "rest": {
+      "type": "rest",
+      "room": "rest",
+      "floor": "rest",
+      "structures": ["campfire", "agingBarrel", "grave", "counter"],
+      "budget": [2, 3]
+    },
+    "shop": {
+      "type": "shop",
+      "room": "start",
+      "floor": "rest",
+      "structures": ["ledger", "pawn", "exchange", "chest", "cardTable"],
+      "budget": [2, 3],
+      "shopTiles": true
+    },
+    "event": {
+      "type": "event",
+      "room": "start",
+      "floor": "start",
+      "structures": ["hiddenWall", "chest", "crate"],
+      "budget": [1, 2]
+    },
+    "boss": { "type": "boss", "room": "boss", "floor": "boss", "structures": ["cask"], "budget": [0, 0] }
+  }
+}
