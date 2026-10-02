@@ -52,5 +52,8 @@ export function evolutionFxId(fx: FxPool): string | null {
 
 /** 주소 옵션 (`?debug`·`?nobirth` 등). 브라우저 밖(테스트)에서는 빈 값 */
 export function urlParams(): URLSearchParams {
-  return typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+  if (typeof location === 'undefined') return new URLSearchParams();
+  const own = new URLSearchParams(location.search);
+  const demo = import.meta.env?.VITE_DEMO_QUERY;
+  return demo && own.toString() === '' ? new URLSearchParams(demo) : own;
 }

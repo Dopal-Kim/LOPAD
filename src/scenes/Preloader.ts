@@ -33,6 +33,7 @@ import {
 import { regionTilesets } from '../systems/route';
 import { UI_SCENES } from '../ui';
 import { allStructureSprites } from '../systems/structures/data';
+import { urlParams } from './game/shared';
 
 interface Manifest {
   files: string[];
@@ -193,7 +194,7 @@ export class Preloader extends Phaser.Scene {
 
   /** 세이브가 있으면 이어하기, ?weapon= 이면 선택 생략, 아니면 개성 선택 씬 */
   private route(): [string, object?] {
-    const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+    const params = urlParams();
     if (params.has('resetmeta')) metaStore.clear();
     const forcedWeapon = params.get('weapon');
     // 49라운드: ?lab 이면 무기 시험장으로 바로 (검증용, ?weapon= 으로 무기)
