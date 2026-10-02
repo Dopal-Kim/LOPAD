@@ -33,6 +33,8 @@ export interface FxPlayOptions {
   durationMs?: number;
   /** 시트의 마지막 `tailFrames` 프레임만 루프 (잔월: 거합 4~6프레임 반복) */
   tailFrames?: number;
+  /** 일회성 재생이 끝난 뒤 마지막 프레임을 이 시간만큼 유지하고 페이드 (피 바닥 얼룩) */
+  holdLastMs?: number;
 }
 
 export interface FxHandle {
@@ -110,8 +112,13 @@ export class FxPool {
     this.states.set(sprite, state);
     const loop = Boolean(def.loop) || Boolean(opts.tailFrames);
     if (!loop) {
+      const hold = opts.holdLastMs ?? 0;
       sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-        if (this.states.get(sprite)?.token === token) this.release(sprite);
+        const st = this.states.get(sprite);
+        if (st?.token !== token) return;
+        if (hold > 0)
+          st.expireAt = this.scene.time.now + hold; // update() 가 만료 시 페이드
+        else this.release(sprite);
       });
     }
     return { sprite, token };
@@ -149,6 +156,14 @@ export class FxPool {
         if (st.followRotation) sprite.setRotation(f.rotation);
       }
       if (time >= st.expireAt) this.fadeOut(sprite);
+    }
+  }
+
+  /** 히트스톱: 활성 이펙트 애니 일시 정지·재개 (따라가기·만료는 update 를 건너뛰는 호출 쪽이 멈춘다) */
+  setPaused(on: boolean): void {
+    for (const sprite of this.states.keys()) {
+      if (on) sprite.anims.pause();
+      else sprite.anims.resume();
     }
   }
 

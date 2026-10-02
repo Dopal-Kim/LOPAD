@@ -6,6 +6,7 @@ import {
   type BossAttackPayload,
   type BossPhasePayload,
   type BossTelegraphPayload,
+  type BossWallHitPayload,
 } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { BOSSES } from '../data';
@@ -97,6 +98,7 @@ export class Boss extends Mob {
           this.paint(COLORS.STUN);
           this.showRecover(ctx.time, P.dash.wallStunMs);
           this.scheduleNextDash(ctx.time);
+          EventBus.emit(Events.BOSS_WALL_HIT, { id: this.id, x: this.x, y: this.y } satisfies BossWallHitPayload);
         } else if (ctx.time >= this.stateUntil) {
           this.body.setVelocity(0, 0);
           if (this.dashesLeft > 0) {
@@ -123,6 +125,10 @@ export class Boss extends Mob {
         break;
     }
     gameState.bossHp = this.hp;
+  }
+
+  get isBoss(): boolean {
+    return true;
   }
 
   get personalityValue(): number {

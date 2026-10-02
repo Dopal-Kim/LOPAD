@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, PROTOTYPE, TILE } from '../core/Constants';
+import { COLORS, FEEL, PROTOTYPE, TILE } from '../core/Constants';
 import {
   EventBus,
   Events,
@@ -15,6 +15,7 @@ import type { SecondaryDef } from '../data/types';
 import { applyDefense } from '../systems/Combat';
 import type { InputState } from '../systems/InputSystem';
 import { facingOf, type Facing } from '../systems/spriteDefs';
+import { knockFactor, knockSpeed } from '../systems/feel';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
 import { WeaponOverlay } from './WeaponOverlay';
 
@@ -52,6 +53,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   private shadowPrimedUntil = -Infinity;
   private facing = new Phaser.Math.Vector2(1, 0);
   private dashVel = new Phaser.Math.Vector2();
+  /** 피격 넉백(35라운드): 가해자 반대 방향으로 선형 감쇠. 경과는 update 의 시간 차로 누적(히트스톱 중엔 update 가 없다) */
+  private shoveState: { vx: number; vy: number; elapsed: number; ms: number } | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     const [w, h] = PLAYER_DATA.size;
@@ -112,7 +115,8 @@ export class Player extends Phaser.GameObjects.Sprite {
     return this.action === 'aim' && this.aimReady;
   }
 
-  update(input: InputState, time: number): void {
+  /** `delta` 는 이번 프레임 ms (넉백 감쇠 누적 — 히트스톱 동안은 호출되지 않으므로 그만큼 멈춘다) */
+  update(input: InputState, time: number, delta = 0): void {
     const D = PLAYER_DATA.dash;
     const P = PLAYER_DATA.parry;
     const S = this.secondary;
@@ -166,8 +170,15 @@ export class Player extends Phaser.GameObjects.Sprite {
       dir.normalize();
       this.facing.copy(dir);
     }
+    const sh = this.shoveState;
     if (this.action === 'dash') {
       this.body.setVelocity(this.dashVel.x, this.dashVel.y);
+    } else if (sh) {
+      // 피격 넉백: 조작 대신 감쇠 속도 (아주 짧음). 프레임 구간 중점 비율로 적분
+      const f = sh.elapsed >= sh.ms ? 0 : knockFactor(sh.elapsed + delta / 2, sh.ms);
+      sh.elapsed += delta;
+      if (f <= 0) this.shoveState = null;
+      this.body.setVelocity(sh.vx * f, sh.vy * f);
     } else {
       let slow = time < this.attackSlowUntil ? gameState.weapon.attackSlowMult : 1;
       if (this.action === 'guard' && S.kind === 'guard') slow = Math.min(slow, S.moveMult);
@@ -308,11 +319,23 @@ export class Player extends Phaser.GameObjects.Sprite {
     EventBus.emit(Events.PLAYER_HEALED, { hp: gameState.hp, maxHp: gameState.maxHp, amount: gameState.hp - before });
   }
 
+  /** 피격 넉백 중인지 (디버그) */
+  get isShoved(): boolean {
+    return this.shoveState !== null;
+  }
+
+  /** 히트스톱: 애니 정지·재개 */
+  setAnimPaused(on: boolean): void {
+    if (on) this.anims.pause();
+    else this.anims.resume();
+  }
+
   /**
    * 적의 공격을 받는다. 패링 창이면 'parried'(피해 0), 무적이면 'ignored'.
    * 가드 중이면 피해 감소, 공격 중 슈퍼아머(거인)면 추가 감소. 사망하면 'dead'.
+   * `source` 는 가해자 → 플레이어 방향 단위벡터(넉백 방향). 없으면 넉백 없음
    */
-  takeHit(attack: number, time: number): HitResult {
+  takeHit(attack: number, time: number, source?: { dirX: number; dirY: number }): HitResult {
     if (gameState.gameOver) return 'ignored';
     if (this.action === 'parry') {
       // 성공: 창을 닫고 즉시 행동 가능
@@ -334,7 +357,19 @@ export class Player extends Phaser.GameObjects.Sprite {
     }
     gameState.hp = Math.max(0, gameState.hp - amount);
     this.flash(COLORS.PLAYER_HURT);
-    const payload: PlayerDamagedPayload = { hp: gameState.hp, maxHp: gameState.maxHp, amount };
+    if (source && this.action !== 'dash' && (source.dirX !== 0 || source.dirY !== 0)) {
+      const K = FEEL.KNOCKBACK;
+      const speed = knockSpeed(K.PLAYER_PX, K.PLAYER_MS);
+      const len = Math.hypot(source.dirX, source.dirY) || 1;
+      if (speed > 0)
+        this.shoveState = {
+          vx: (source.dirX / len) * speed,
+          vy: (source.dirY / len) * speed,
+          elapsed: 0,
+          ms: K.PLAYER_MS,
+        };
+    }
+    const payload: PlayerDamagedPayload = { hp: gameState.hp, maxHp: gameState.maxHp, amount, source };
     EventBus.emit(Events.PLAYER_DAMAGED, payload);
     if (gameState.hp <= 0) {
       gameState.gameOver = true;

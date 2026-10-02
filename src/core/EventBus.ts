@@ -46,6 +46,8 @@ export const Events = {
   BOSS_TELEGRAPH: 'boss:telegraph',
   /** 보스 공격 실행 (dash / fan) */
   BOSS_ATTACK: 'boss:attack',
+  /** 보스 돌진이 벽에 부딪혀 경직 (화면 흔들림·음향 훅, 35라운드) */
+  BOSS_WALL_HIT: 'boss:wall-hit',
   GOLD_CHANGED: 'gold:changed',
   POTION_CHANGED: 'potion:changed',
   STAT_REWARD: 'stat:reward',
@@ -97,11 +99,18 @@ export type EnemyAttackPayload = { id: string; kind: 'contact' | 'dash' | 'shot'
 export type EnemyTelegraphPayload = { id: string; kind: 'dash' };
 export type BossAttackPayload = { id: string; attack: 'dash' | 'fan' };
 export type BossTelegraphPayload = { id: string; attack: 'dash' };
+export type BossWallHitPayload = { id: string; x: number; y: number };
 export type MenuEventPayload = { id: string; reopen?: boolean; key?: string; selected?: boolean };
 export type RunEndedPayload = { cleared: boolean };
 export type GuardReleasedPayload = { x: number; y: number };
 export type ShadowStepPayload = { x: number; y: number; facingX: number; facingY: number };
-export type PlayerDamagedPayload = { hp: number; maxHp: number; amount: number };
+/** 35라운드: `source` = 가해자 → 플레이어 방향 단위벡터(넉백·연출용, 계약 UI 페이로드에는 없음) */
+export type PlayerDamagedPayload = {
+  hp: number;
+  maxHp: number;
+  amount: number;
+  source?: { dirX: number; dirY: number };
+};
 export type EnemyDiedPayload = { id: string; remaining: number };
 export type RoomEnteredPayload = { roomId: string; type: string };
 export type TrialClearedPayload = { roomId: string; cleared: number; total: number };

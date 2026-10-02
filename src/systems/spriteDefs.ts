@@ -43,6 +43,10 @@ export interface SheetJson {
   depth?: Partial<Record<Facing, 'above' | 'below'>>;
   /** §3.1 재생 시점 메모 (코드가 읽지 않음) */
   spawn?: string;
+  /** 35라운드 피격 시트: 마지막 n 프레임이 잔류(바닥 얼룩) — 시스템이 유지 후 페이드할 수 있다 */
+  tailFrames?: number;
+  /** 35라운드 예고 마커(telegraph_line): 길이 방향으로 타일 반복 (2단계에서 사용) */
+  tile?: boolean;
   /** 보스 attack 국면별 프레임 열 (결정 로그 J): 예고 유지 / 돌진 반복 / 멈춤·벽 경직·부채꼴 */
   phaseFrames?: PhaseFrames;
 }
@@ -132,6 +136,23 @@ export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
     for (const b of w.personality.branches) out.add(b.id);
   }
   return [...out];
+}
+
+/** 피격 이펙트 시트 (35라운드 1단계, 계약 §3 anchor hitbox_center): 타격 섬광·피 튀김·치명타 버스트·넉백 먼지·플레이어 피격 */
+export const HIT_FX_IDS: readonly string[] = ['hit_spark', 'blood', 'crit_burst', 'knock_dust', 'player_hit'];
+/** 적·보스 양상 시트 (35라운드 2단계용 — 지금은 로드만): 예고 마커 3종, 적 탄, 보스 부채꼴 탄, 총구 화염 */
+export const ENEMY_FX_IDS: readonly string[] = [
+  'telegraph_line',
+  'telegraph_circle',
+  'telegraph_cone',
+  'enemy_bullet',
+  'boss_fan_shot',
+  'muzzle_flash',
+];
+
+/** 무기 유도 이펙트 + 피격 이펙트 + 적 양상 이펙트 (중복 제거) */
+export function allFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
+  return [...new Set([...fxSheetIds(weapons), ...HIT_FX_IDS, ...ENEMY_FX_IDS])];
 }
 
 /** `sprites/<분류>/<이름>_<동작>.json` (매니페스트·URL 공통 상대 경로). 이펙트는 `sprites/fx/<이름>.json` */

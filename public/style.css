@@ -1,3 +1,12 @@
+/* 34라운드 글꼴 규칙: Galmuri11 (OFL). 파일은 UI 파트 소유 assets/ui/fonts/ — 여기서는 URL 로만 참조한다.
+   assets/** 는 vite.config.ts 플러그인이 /assets-game/ 으로 서빙(빌드 시 dist/assets-game/ 복사). 시스템은 데미지 숫자에 쓴다. */
+@font-face {
+  font-family: 'Galmuri11';
+  src: url('assets-game/ui/fonts/Galmuri11.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
 html, body {
   margin: 0;
   padding: 0;

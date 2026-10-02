@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, PROTOTYPE } from '../core/Constants';
 import { EventBus, Events, type EnemyAttackPayload, type EnemyDamagedPayload } from '../core/EventBus';
 import { facingOf } from '../systems/spriteDefs';
+import { knockFactor, knockSpeed } from '../systems/feel';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
 
 type Body = Phaser.Physics.Arcade.Body;
@@ -45,6 +46,18 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   private stunSource: 'parry' | 'hit' = 'parry';
   /** 밀쳐내기 중 (AI 가 속도를 덮어쓰지 않는다) */
   private knockedUntil = 0;
+  /**
+   * 피격 넉백(35라운드): 선형 감쇠 속도. 경과는 update 의 delta 로 누적하므로 히트스톱 동안은 멈춘다.
+   * 일반 적은 AI 를 멈추고(짧은 비틀거림), 보스는 AI 속도에 더한다(패턴을 끊지 않음)
+   */
+  private shoveState: {
+    vx: number;
+    vy: number;
+    elapsed: number;
+    ms: number;
+    additive: boolean;
+    onEnd?: (mob: Mob, dirX: number, dirY: number) => void;
+  } | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -83,7 +96,18 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     if (!this.active) return;
     this.targetX = ctx.player.x;
     this.targetY = ctx.player.y;
-    this.think(ctx);
+    const sh = this.shoveState;
+    if (sh && !sh.additive) {
+      // 비틀거림: AI 대신 감쇠 속도
+      const f = this.stepShove(ctx.delta);
+      if (f > 0) this.body.setVelocity(sh.vx * f, sh.vy * f);
+    } else {
+      this.think(ctx);
+      if (sh) {
+        const f = this.stepShove(ctx.delta);
+        if (f > 0) this.body.setVelocity(this.body.velocity.x + sh.vx * f, this.body.velocity.y + sh.vy * f);
+      }
+    }
     const v = this.body.velocity;
     const moving = v.lengthSq() > 1;
     const dir = moving
@@ -100,6 +124,9 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     const dir = facingOf(this.targetX - this.x, this.targetY - this.y, this.visual.facing);
     this.visual.oneShot('attack', dir, time, fitMs);
   }
+
+  /** 보스인지 (히트스톱·넉백 배율 분기) */
+  abstract get isBoss(): boolean;
 
   /** 처치 시 플레이어 무기에 쌓이는 개성 수치 */
   abstract get personalityValue(): number;
@@ -122,7 +149,66 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   }
 
   isKnockedBack(time: number): boolean {
-    return time < this.knockedUntil;
+    return time < this.knockedUntil || (this.shoveState !== null && !this.shoveState.additive);
+  }
+
+  /** 피격 넉백 중인지 (디버그) */
+  get isShoved(): boolean {
+    return this.shoveState !== null;
+  }
+
+  /**
+   * 피격 넉백: `distPx` 를 `ms` 동안 선형 감쇠로 이동 (벽은 Arcade 충돌이 막는다). 새 타격이 오면 덮어쓴다.
+   * `additive` 면 AI 속도에 더하기만 한다(보스). 끝나면 `onEnd`(먼지 이펙트)
+   */
+  shove(
+    dirX: number,
+    dirY: number,
+    distPx: number,
+    ms: number,
+    additive = false,
+    onEnd?: (mob: Mob, dirX: number, dirY: number) => void,
+  ): void {
+    const speed = knockSpeed(distPx, ms);
+    if (speed <= 0) return;
+    const len = Math.hypot(dirX, dirY) || 1;
+    this.shoveState = { vx: (dirX / len) * speed, vy: (dirY / len) * speed, elapsed: 0, ms, additive, onEnd };
+    if (!additive) this.body.setVelocity(this.shoveState.vx, this.shoveState.vy);
+  }
+
+  /**
+   * 넉백 한 프레임: 이번 프레임 구간의 중점 감쇠 비율을 돌려주고 경과를 더한다 (중점 적분 → 프레임 속도와 무관하게 거리 ≈ distPx).
+   * 끝났으면 0 을 돌려주고 정리한다
+   */
+  private stepShove(delta: number): number {
+    const sh = this.shoveState;
+    if (!sh) return 0;
+    if (sh.elapsed >= sh.ms) {
+      this.endShove();
+      return 0;
+    }
+    const f = knockFactor(sh.elapsed + delta / 2, sh.ms);
+    sh.elapsed += delta;
+    if (f <= 0) {
+      this.endShove();
+      return 0;
+    }
+    return f;
+  }
+
+  private endShove(): void {
+    const sh = this.shoveState;
+    this.shoveState = null;
+    if (!sh) return;
+    if (!sh.additive) this.body.setVelocity(0, 0);
+    const len = Math.hypot(sh.vx, sh.vy) || 1;
+    sh.onEnd?.(this, sh.vx / len, sh.vy / len);
+  }
+
+  /** 히트스톱: 애니 정지·재개 */
+  setAnimPaused(on: boolean): void {
+    if (on) this.anims.pause();
+    else this.anims.resume();
   }
 
   /** 밀쳐내기: ms 동안 속도를 유지하고 AI 를 멈춘다 (가드 해제) */
@@ -135,6 +221,7 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   stun(time: number, ms: number, source: 'parry' | 'hit' = 'parry'): void {
     if (!this.isStunned(time) || source === 'parry') this.stunSource = source;
     this.stunnedUntil = Math.max(this.stunnedUntil, time + ms);
+    this.shoveState = null;
     this.body.setVelocity(0, 0);
     this.visual.paint(COLORS.STUN);
     this.onStunned();

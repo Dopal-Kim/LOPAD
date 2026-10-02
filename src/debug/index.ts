@@ -14,6 +14,8 @@ export interface DebugApi {
   rooms: () => { id: string; type: string; x: number; y: number }[];
   teleport: (roomId: string) => void;
   moveTo: (x: number, y: number) => void;
+  /** 적·보스를 옮긴다 (보스 벽 충돌 검증용). index 는 mobs() 순서 */
+  moveMob: (index: number, x: number, y: number) => boolean;
   director: () => { alive: number; wave: number; active: string | undefined };
   stage: () => { index: number; id: string; name: string; savesLeft: number; exitOpen: boolean; isLast: boolean };
   save: () => unknown;
@@ -41,12 +43,23 @@ export interface DebugApi {
   /** 활성 이펙트 스프라이트 */
   fx: () => unknown;
   stunAll: (ms: number) => void;
-  mobs: () => { id: string; hp: number; x: number; y: number; stunned: boolean; anim: string | null }[];
+  mobs: () => {
+    id: string;
+    hp: number;
+    x: number;
+    y: number;
+    stunned: boolean;
+    anim: string | null;
+    shoved: boolean;
+    frame: number;
+    animPaused: boolean;
+  }[];
   /** 다음 층으로 강제 전환 (팔레트 스왑·타일셋 검증용) */
   nextStage: () => void;
   camera: () => CameraInfo;
   killAll: () => number;
-  hurtAll: (amount: number) => void;
+  /** 모든 적에게 피해 (crit 이면 치명타 연출) */
+  hurtAll: (amount: number, crit?: boolean) => void;
   /** 게임 타일 ID (시트 인덱스가 아님) */
   tileAt: (tx: number, ty: number) => number;
   /** 소품 레이어의 시트 인덱스 (-1 = 없음) */
@@ -56,10 +69,25 @@ export interface DebugApi {
   /** 개성 게이지를 value 로 두고 임계 판정 (27라운드 검증용) */
   setPersonality: (value: number) => void;
   weapon: () => unknown;
-  playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number; aimReady: boolean };
+  playerExtra: () => {
+    action: string;
+    guarding: boolean;
+    shadowPrimed: boolean;
+    aim: number;
+    aimReady: boolean;
+    shoved: boolean;
+  };
   /** 오디오 요약: 로드 수·현재 BGM·최근 효과음·음소거 */
   audio: () => unknown;
+  /** 피격 피드백 요약(35라운드): 설정 배율·히트스톱·흔들림 오프셋·데미지 숫자·글꼴·피격 이펙트 시트 유무 */
+  feel: () => unknown;
+  /** 강도 조절 (접근성): `setFeel({ shake: 0, hitstop: 0, knockback: 0, numbers: false })` */
+  setFeel: (patch: FeelPatch) => unknown;
+  /** 넉백 중인 적 수 */
+  shoved: () => number;
 }
+
+export type FeelPatch = Partial<{ shake: number; hitstop: number; knockback: number; numbers: boolean }>;
 
 /** 카메라 스크롤·배율·클램프 영역 (32라운드 추종 검증용) */
 export interface CameraInfo {
@@ -89,7 +117,7 @@ export function exposeDebug(api: {
   player: { setPosition: (x: number, y: number) => unknown; body: { reset: (x: number, y: number) => void } };
   mobs: () => Mob[];
   kill: (m: Mob) => void;
-  hurt: (m: Mob, amount: number) => void;
+  hurt: (m: Mob, amount: number, crit?: boolean) => void;
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
   playerInfo: () => PlayerInfo;
   sprites: () => { sheets: string[]; anims: string[]; variant: string; aliases: Record<string, string> };
@@ -109,9 +137,19 @@ export function exposeDebug(api: {
   camera: () => CameraInfo;
   setPersonality: (value: number) => void;
   weapon: () => unknown;
-  playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number; aimReady: boolean };
+  playerExtra: () => {
+    action: string;
+    guarding: boolean;
+    shadowPrimed: boolean;
+    aim: number;
+    aimReady: boolean;
+    shoved: boolean;
+  };
   nextStage: () => void;
   audio: () => unknown;
+  feel: () => unknown;
+  setFeel: (patch: FeelPatch) => unknown;
+  shoved: () => number;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -126,6 +164,12 @@ export function exposeDebug(api: {
       api.player.body.reset(c.x, c.y);
     },
     moveTo: (x, y) => api.player.body.reset(x, y),
+    moveMob: (index, x, y) => {
+      const m = api.mobs()[index];
+      if (!m || !m.active) return false;
+      m.body.reset(x, y);
+      return true;
+    },
     director: () => api.director.debugInfo,
     stage: () => api.stage(),
     save: () => api.save(),
@@ -157,6 +201,9 @@ export function exposeDebug(api: {
         y: m.y,
         stunned: m.isStunned(api.now()),
         anim: m.visual.current,
+        shoved: m.isShoved,
+        frame: m.anims.currentFrame?.index ?? 0,
+        animPaused: m.anims.isPaused,
       })),
     nextStage: () => api.nextStage(),
     camera: () => api.camera(),
@@ -164,13 +211,16 @@ export function exposeDebug(api: {
     weapon: () => api.weapon(),
     playerExtra: () => api.playerExtra(),
     audio: () => api.audio(),
+    feel: () => api.feel(),
+    setFeel: (patch) => api.setFeel(patch),
+    shoved: () => api.shoved(),
     killAll: () => {
       const list = api.mobs();
       for (const m of list) api.kill(m);
       return list.length;
     },
-    hurtAll: (amount) => {
-      for (const m of api.mobs()) api.hurt(m, amount);
+    hurtAll: (amount, crit) => {
+      for (const m of api.mobs()) api.hurt(m, amount, crit);
     },
     tileAt: (tx, ty) => api.world.tileIdAt(tx, ty),
     propAt: (tx, ty) => api.world.propsLayer?.getTileAt(tx, ty)?.index ?? -1,

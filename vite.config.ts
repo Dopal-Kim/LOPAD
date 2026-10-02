@@ -19,6 +19,8 @@ const MIME: Record<string, string> = {
   ogg: 'audio/ogg',
   mp3: 'audio/mpeg',
   wav: 'audio/wav',
+  woff2: 'font/woff2',
+  woff: 'font/woff',
 };
 
 function listFiles(dir: string, base = dir): string[] {

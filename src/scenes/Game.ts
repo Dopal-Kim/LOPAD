@@ -4,6 +4,7 @@ import {
   COLORS,
   DEBUG,
   DEPTH,
+  FEEL,
   PLACEHOLDER_UI,
   PROTOTYPE,
   SCENES,
@@ -14,8 +15,10 @@ import {
 import {
   EventBus,
   Events,
+  type BossWallHitPayload,
   type GuardReleasedPayload,
   type PlayerAttackPayload,
+  type PlayerDamagedPayload,
   type RunEndedPayload,
   type ShadowStepPayload,
   type WeaponEvolvedPayload,
@@ -48,6 +51,10 @@ import { TileSkin, tileSkins } from '../world/tileskin';
 import { spriteLibrary } from '../systems/sprites';
 import { FX_ACTION, arrowFxId, facingOf, slashFxId } from '../systems/spriteDefs';
 import { FxPool, type FxHandle } from '../systems/fx';
+import { HitStop, Shake, feelSettings, setFeel } from '../systems/feel';
+import { DamageNumberPool } from '../systems/damageNumbers';
+import { HitFx } from '../systems/hitFx';
+import { fontStatus } from '../systems/fonts';
 import { audio } from '../systems/audio';
 import { exposeDebug } from '../debug';
 
@@ -89,6 +96,12 @@ export class Game extends Phaser.Scene {
   private fx: FxPool;
   /** 질풍: 이동·대쉬 중 루프 이펙트 */
   private galeFx: FxHandle | null = null;
+  /** 피격 피드백 (35라운드): 히트스톱·흔들림·데미지 숫자·피격 이펙트 */
+  private readonly hitStop = new HitStop();
+  private readonly shake = new Shake();
+  private hitStopped = false;
+  private numbers: DamageNumberPool;
+  private hitFx: HitFx;
   /** 잔월: 남아 있는 베기 궤적 (지속 피해 영역) */
   private dotZones: {
     x: number;
@@ -150,6 +163,13 @@ export class Game extends Phaser.Scene {
       runChildUpdate: false,
     });
     this.fx = new FxPool(this);
+    this.numbers = new DamageNumberPool(this);
+    this.numbers.setFloor(floor);
+    this.hitFx = new HitFx(this, this.fx);
+    this.hitFx.setFloor(floor);
+    this.hitStop.reset();
+    this.shake.reset();
+    this.hitStopped = false;
     this.galeFx = null;
     this.lastShotAt = -Infinity;
     this.rapidCount = 0;
@@ -200,8 +220,8 @@ export class Game extends Phaser.Scene {
       director: this.director,
       player: this.player,
       mobs: () => [...(this.mobs.getChildren() as Mob[])],
-      hurt: (m, amount) => {
-        if (m.takeDamage(amount)) this.onKill(m, 'attack');
+      hurt: (m, amount, crit) => {
+        if (this.hitMob(m, amount, { crit: Boolean(crit), dirX: 1, dirY: 0 })) this.onKill(m, 'attack');
       },
       fireAtPlayer: (distPx, speedPx, attack) => {
         const x = this.player.x + distPx;
@@ -315,15 +335,39 @@ export class Game extends Phaser.Scene {
         shadowPrimed: this.player.isShadowPrimed(this.time.now),
         aim: this.player.aimProgress(this.time.now),
         aimReady: this.player.isAimReady,
+        shoved: this.player.isShoved,
       }),
       audio: () => audio.summary(),
+      feel: () => ({
+        settings: { ...feelSettings },
+        constants: FEEL,
+        hitstop: {
+          active: this.hitStop.active(this.time.now),
+          remainingMs: this.hitStop.remaining(this.time.now),
+          count: this.hitStop.count,
+          physicsPaused: this.physics.world.isPaused,
+        },
+        shake: {
+          offset: { ...this.shake.offset },
+          active: this.shake.activeCount,
+          count: this.shake.count,
+          last: this.shake.last,
+        },
+        numbers: this.numbers.summary(),
+        numbersCount: this.numbers.count,
+        font: { family: this.numbers.fontFamily, loaded: fontStatus(FEEL.DAMAGE_TEXT.FONT_FAMILY) ?? null },
+        hitFx: this.hitFx.summary(),
+      }),
+      setFeel: (patch) => setFeel(patch),
+      shoved: () => (this.mobs.getChildren() as Mob[]).filter((m) => m.isShoved).length,
     });
 
     EventBus.on(Events.PLAYER_ATTACKED, this.onPlayerAttacked, this);
     EventBus.on(Events.PLAYER_DIED, this.onPlayerDied, this);
     EventBus.on(Events.TRIAL_CLEARED, this.onTrialCleared, this);
     EventBus.on(Events.ROOM_ENTERED, this.onRoomEnteredUi, this);
-    EventBus.on(Events.PLAYER_DAMAGED, this.relayDamaged, this);
+    EventBus.on(Events.PLAYER_DAMAGED, this.onPlayerDamaged, this);
+    EventBus.on(Events.BOSS_WALL_HIT, this.onBossWallHit, this);
     EventBus.on(Events.PLAYER_HEALED, this.relayHealed, this);
     EventBus.on(Events.GOLD_CHANGED, this.relayGold, this);
     EventBus.on(Events.WEAPON_EVOLVED, this.relayEvolved, this);
@@ -360,9 +404,18 @@ export class Game extends Phaser.Scene {
       return;
     }
 
+    // 히트스톱(35라운드): 물리·개체 애니·적 AI·입력 소비를 멈추고 카메라 흔들림·데미지 숫자·UI 만 진행
+    const stopped = this.hitStop.active(time);
+    if (stopped !== this.hitStopped) this.setHitStopped(stopped);
+    if (stopped) {
+      this.updateCamera(false, delta);
+      __system.emit(UI_EVENTS.STATE, this.snapshot());
+      return;
+    }
+
     const input = this.inputSystem.read();
     if (input.potionPressed) this.usePotion();
-    this.player.update(input, time);
+    this.player.update(input, time, delta);
     this.updateGale();
     this.updateCamera(false, delta);
     this.director.update();
@@ -573,10 +626,13 @@ export class Game extends Phaser.Scene {
 
   private onPlayerShotHit(shot: Projectile, mob: Mob): void {
     if (!shot.active || shot.owner !== 'player') return;
+    const v = shot.body.velocity;
+    const dirX = v.x;
+    const dirY = v.y;
     if (!shot.registerHit(mob)) return;
     const now = this.time.now;
     const stunnedByParry = mob.isParryStunned(now);
-    if (mob.takeDamage(shot.attack, { crit: shot.crit })) {
+    if (this.hitMob(mob, shot.attack, { crit: shot.crit, dirX, dirY })) {
       this.onKill(mob, stunnedByParry ? 'parry' : 'attack');
       return;
     }
@@ -602,6 +658,7 @@ export class Game extends Phaser.Scene {
     if (mods.shockwave) {
       if (evoFx === 'crush') this.fx.play('crush', cx, cy, { depth: DEPTH.FX_GROUND });
       else this.drawShockwave(cx, cy, Math.max(w, h));
+      this.shake.add(this.time.now, FEEL.SHAKE.SHOCKWAVE.PX, FEEL.SHAKE.SHOCKWAVE.MS);
     }
     // 중압: 적중 판정 시작에 히트박스 중심 아래 6px (피벗 = 바닥 타격점)
     if (evoFx === 'weight') this.fx.play('weight', cx, cy + PROTOTYPE.WEIGHT_FX_DROP_PX, { depth: DEPTH.ATTACK });
@@ -668,7 +725,7 @@ export class Game extends Phaser.Scene {
     const mods = gameState.weapon.mods;
     const stunnedByParry = mob.isParryStunned(now);
     const { dmg, crit } = this.rollDamage(p.damageMult, p.forceCrit);
-    if (mob.takeDamage(dmg, { crit })) {
+    if (this.hitMob(mob, dmg, { crit, dirX: p.dirX, dirY: p.dirY })) {
       this.onKill(mob, stunnedByParry ? 'parry' : p.kind === 'aimed' ? 'attack' : p.kind);
       return;
     }
@@ -706,7 +763,7 @@ export class Game extends Phaser.Scene {
         if (!this.mobs.contains(go as Phaser.GameObjects.GameObject)) continue;
         const mob = go as Mob;
         if (!mob.active) continue;
-        if (mob.takeDamage(z.dmg, { tick: true })) this.onKill(mob, 'attack');
+        if (this.hitMob(mob, z.dmg, { crit: false, dirX: 0, dirY: 0, tick: true })) this.onKill(mob, 'attack');
       }
     }
     this.dotZones = this.dotZones.filter((z) => time < z.until);
@@ -719,7 +776,7 @@ export class Game extends Phaser.Scene {
       if (!b.mob.active || time < b.nextAt) continue;
       b.nextAt = time + b.tickMs;
       b.ticksLeft -= 1;
-      if (b.mob.takeDamage(b.dmg, { tick: true })) this.onKill(b.mob, 'attack');
+      if (this.hitMob(b.mob, b.dmg, { crit: false, dirX: 0, dirY: 0, tick: true })) this.onKill(b.mob, 'attack');
       else b.mob.flashColor(COLORS.BLEED);
     }
     this.bleeds = this.bleeds.filter((b) => b.mob.active && b.ticksLeft > 0);
@@ -765,7 +822,7 @@ export class Game extends Phaser.Scene {
       if (counter > 0) {
         // 철벽: 밀쳐내며 반격
         const { dmg } = this.rollDamage(counter);
-        if (m.takeDamage(dmg)) this.onKill(m, 'attack');
+        if (this.hitMob(m, dmg, { crit: false, dirX: nx, dirY: ny, knock: false })) this.onKill(m, 'attack');
       }
     }
   }
@@ -842,7 +899,7 @@ export class Game extends Phaser.Scene {
       if (hit.has(mob)) return;
       hit.add(mob);
       const { dmg } = this.rollDamage(mult);
-      if (mob.takeDamage(dmg)) this.onKill(mob, 'dashAttack');
+      if (this.hitMob(mob, dmg, { crit: false, dirX: p.dirX, dirY: p.dirY })) this.onKill(mob, 'dashAttack');
     });
     this.time.delayedCall(D.durationMs, () => {
       this.physics.world.removeCollider(overlap);
@@ -980,8 +1037,91 @@ export class Game extends Phaser.Scene {
   private setFrozen(on: boolean): void {
     if (this.frozen === on) return;
     this.frozen = on;
-    if (on) this.physics.world.pause();
-    else this.physics.world.resume();
+    this.syncPhysicsPause();
+  }
+
+  /** 히트스톱 시작·끝: 물리 정지(frozen 과 합산), 플레이어·적·이펙트 애니 정지 */
+  private setHitStopped(on: boolean): void {
+    this.hitStopped = on;
+    this.syncPhysicsPause();
+    this.player.setAnimPaused(on);
+    for (const m of this.mobs.getChildren() as Mob[]) m.setAnimPaused(on);
+    this.fx.setPaused(on);
+  }
+
+  private syncPhysicsPause(): void {
+    const world = this.physics.world;
+    if (!world) return;
+    if (this.frozen || this.hitStopped) world.pause();
+    else world.resume();
+  }
+
+  // --- 피격 피드백 (35라운드 1단계): 적중점 → 피해 → 숫자·섬광·피·치명 버스트 → 히트스톱·흔들림·넉백 ---
+
+  /**
+   * 적 피격 공통 경로. `dir` 은 공격 진행 방향(넉백 방향). `tick` 이면 작은 숫자만.
+   * `knock: false` 면 넉백 생략(가드 밀쳐내기처럼 이미 밀고 있을 때). 반환: 사망
+   */
+  private hitMob(
+    mob: Mob,
+    dmg: number,
+    opts: { crit: boolean; dirX: number; dirY: number; tick?: boolean; knock?: boolean },
+  ): boolean {
+    const body = mob.body;
+    const c = body.center;
+    const hw = body.halfWidth;
+    const hh = body.halfHeight;
+    const len = Math.hypot(opts.dirX, opts.dirY) || 1;
+    const nx = opts.dirX / len;
+    const ny = opts.dirY / len;
+    // 적중점 = 공격이 들어온 쪽 가장자리, 피는 반대쪽(뒤)으로
+    const hitX = c.x - nx * hw * 0.6;
+    const hitY = c.y - ny * hh * 0.6;
+    const backX = c.x + nx * hw * 0.5;
+    const backY = c.y + ny * hh * 0.5;
+    const isBoss = mob.isBoss;
+    const died = mob.takeDamage(dmg, { crit: opts.crit, tick: opts.tick });
+    if (opts.tick) {
+      this.numbers.show(hitX, hitY, dmg, 'tick');
+      return died;
+    }
+    const now = this.time.now;
+    this.numbers.show(hitX, hitY, dmg, opts.crit ? 'crit' : 'hit');
+    this.hitFx.impact(hitX, hitY, nx, ny, opts.crit);
+    this.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
+    const H = FEEL.HITSTOP;
+    this.hitStop.request(now, Math.max(opts.crit ? H.CRIT_MS : H.HIT_MS, isBoss ? H.BOSS_MS : 0));
+    const S = opts.crit ? FEEL.SHAKE.CRIT : FEEL.SHAKE.HIT;
+    this.shake.add(now, S.PX, S.MS);
+    if (!died && opts.knock !== false) {
+      const K = FEEL.KNOCKBACK;
+      const dist = (opts.crit ? K.CRIT_PX : K.HIT_PX) * (isBoss ? K.BOSS_MULT : 1);
+      mob.shove(nx, ny, dist, K.MS, isBoss, isBoss ? undefined : (m, dx, dy) => this.onShoveEnd(m, dx, dy));
+    }
+    return died;
+  }
+
+  /** 넉백 끝: 발밑 먼지 */
+  private onShoveEnd(mob: Mob, dirX: number, dirY: number): void {
+    if (!this.scene.isActive() || !mob.active) return;
+    this.hitFx.knockDust(mob.x, mob.body.bottom, dirX, dirY);
+  }
+
+  /** 플레이어 피격: 계약 이벤트 중계(source 는 내부용이라 뺀다) + 히트스톱·흔들림·숫자 */
+  private onPlayerDamaged(p: PlayerDamagedPayload): void {
+    __system.emit(UI_EVENTS.PLAYER_DAMAGED, { hp: p.hp, maxHp: p.maxHp, amount: p.amount });
+    const now = this.time.now;
+    this.hitStop.request(now, FEEL.HITSTOP.PLAYER_HURT_MS);
+    this.shake.add(now, FEEL.SHAKE.PLAYER_HURT.PX, FEEL.SHAKE.PLAYER_HURT.MS);
+    const b = this.player.body;
+    this.numbers.show(b.center.x, b.top - 6, p.amount, 'player');
+    const center = this.player.getCenter();
+    this.hitFx.playerHit(center.x, center.y, this.player.y);
+  }
+
+  /** 보스 돌진 벽 충돌: 큰 흔들림 */
+  private onBossWallHit(_p: BossWallHitPayload): void {
+    this.shake.add(this.time.now, FEEL.SHAKE.BOSS_WALL.PX, FEEL.SHAKE.BOSS_WALL.MS);
   }
 
   /** 진화 무기의 베기 궤적 (플레이스홀더 연출. 정식 이펙트는 아트 파트) */
@@ -1235,29 +1375,34 @@ export class Game extends Phaser.Scene {
 
   private onMobTouch(mob: Mob): void {
     const now = this.time.now;
+    // 넉백 방향: 가해자 → 플레이어
+    const source = { dirX: this.player.x - mob.x, dirY: this.player.y - mob.y };
     // 패링 창이면 접촉 공격 주기와 무관하게 막는다 (돌진 포함)
     if (this.player.isParrying && !mob.isStunned(now)) {
       const attack = mob.tryContactAttack(now);
       if (attack > 0 || mob.body.velocity.lengthSq() > 0) {
-        if (this.player.takeHit(attack || 1, now) === 'parried') mob.stun(now, PLAYER_DATA.parry.stunMs);
+        if (this.player.takeHit(attack || 1, now, source) === 'parried') mob.stun(now, PLAYER_DATA.parry.stunMs);
       }
       return;
     }
     const attack = mob.tryContactAttack(now);
-    if (attack > 0) this.player.takeHit(attack, now);
+    if (attack > 0) this.player.takeHit(attack, now, source);
   }
 
   private onProjectileHit(pr: Projectile): void {
     if (!pr.active || pr.reflected) return;
-    const result = this.player.takeHit(pr.attack, this.time.now);
+    const source = { dirX: pr.body.velocity.x, dirY: pr.body.velocity.y };
+    const result = this.player.takeHit(pr.attack, this.time.now, source);
     if (result === 'parried') pr.reflect(PLAYER_DATA.parry.reflectDamageMult + gameState.passives.total('reflectMult'));
     else pr.deactivate();
   }
 
   private onReflectedHit(pr: Projectile, mob: Mob): void {
     if (!pr.active || !pr.reflected) return;
+    const dirX = pr.body.velocity.x;
+    const dirY = pr.body.velocity.y;
     pr.deactivate();
-    if (mob.takeDamage(pr.attack)) this.onKill(mob, 'parry');
+    if (this.hitMob(mob, pr.attack, { crit: false, dirX, dirY })) this.onKill(mob, 'parry');
   }
 
   private onPlayerDied(): void {
@@ -1323,10 +1468,6 @@ export class Game extends Phaser.Scene {
     __system.emit(UI_EVENTS.ROOM_ENTERED, p);
     if (firstVisit && p.type === 'rest') this.story('rest', floorText(gameState.stageId)?.restNote ?? '');
     if (firstVisit && p.type === 'trial') this.story('notice', STORY.notices.trialStart);
-  }
-
-  private relayDamaged(p: unknown): void {
-    __system.emit(UI_EVENTS.PLAYER_DAMAGED, p);
   }
 
   private relayHealed(p: unknown): void {
@@ -1403,7 +1544,9 @@ export class Game extends Phaser.Scene {
       if (Math.abs(tx - this.camCenter.x) < CAMERA.SNAP_PX) this.camCenter.x = tx;
       if (Math.abs(ty - this.camCenter.y) < CAMERA.SNAP_PX) this.camCenter.y = ty;
     }
-    cam.setScroll(Math.round(this.camCenter.x - halfW), Math.round(this.camCenter.y - halfH));
+    // 흔들림(35라운드): 추종 보간·반올림이 끝난 스크롤에 정수 오프셋만 더한다 (보간과 섞이지 않아 튀지 않음)
+    const sh = this.shake.sample(this.time.now);
+    cam.setScroll(Math.round(this.camCenter.x - halfW) + sh.x, Math.round(this.camCenter.y - halfH) + sh.y);
   }
 
   /** 런 시작 모드 결정: 새 런 / 다음 층 / 세이브 이어하기 */
@@ -1446,7 +1589,8 @@ export class Game extends Phaser.Scene {
     EventBus.off(Events.PLAYER_DIED, this.onPlayerDied, this);
     EventBus.off(Events.TRIAL_CLEARED, this.onTrialCleared, this);
     EventBus.off(Events.ROOM_ENTERED, this.onRoomEnteredUi, this);
-    EventBus.off(Events.PLAYER_DAMAGED, this.relayDamaged, this);
+    EventBus.off(Events.PLAYER_DAMAGED, this.onPlayerDamaged, this);
+    EventBus.off(Events.BOSS_WALL_HIT, this.onBossWallHit, this);
     EventBus.off(Events.PLAYER_HEALED, this.relayHealed, this);
     EventBus.off(Events.GOLD_CHANGED, this.relayGold, this);
     EventBus.off(Events.WEAPON_EVOLVED, this.relayEvolved, this);
@@ -1457,7 +1601,8 @@ export class Game extends Phaser.Scene {
     EventBus.off(Events.PLAYER_SHADOW_STEP, this.onShadowStep, this);
     EventBus.off(Events.PLAYER_DASHED, this.onPlayerDashed, this);
     // 엔딩 선택 뒤 정지 상태로 씬이 끝나면 물리 플러그인이 먼저 정리돼 world 가 없을 수 있다
-    if (this.frozen && this.physics.world) this.physics.world.resume();
+    if ((this.frozen || this.hitStopped) && this.physics.world) this.physics.world.resume();
+    this.numbers.destroy();
     this.fx.destroy();
     audio.stopAllLoops();
     setMenuSelect(null);

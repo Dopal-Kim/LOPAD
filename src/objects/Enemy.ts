@@ -51,6 +51,10 @@ export class Enemy extends Mob {
     }
   }
 
+  get isBoss(): boolean {
+    return false;
+  }
+
   get personalityValue(): number {
     return this.def.personalityValue;
   }

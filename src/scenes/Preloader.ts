@@ -1,14 +1,15 @@
 import Phaser from 'phaser';
-import { ASSETS, COLORS, SCENES, SPRITES, TEXTURES, TILE } from '../core/Constants';
+import { ASSETS, COLORS, FEEL, SCENES, SPRITES, TEXTURES, TILE } from '../core/Constants';
 import { TileId } from '../systems/mapgen';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { BOSSES, ENEMIES, RUN, WEAPONS } from '../data';
 import { metaStore } from '../systems/meta';
 import { audio } from '../systems/audio';
+import { ensureFont } from '../systems/fonts';
 import { audioFileRel, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audioDefs';
 import { spriteLibrary } from '../systems/sprites';
 import {
-  fxSheetIds,
+  allFxSheetIds,
   sheetJsonPath,
   sheetTextureKey,
   wantedSheets,
@@ -47,6 +48,8 @@ export class Preloader extends Phaser.Scene {
   }
 
   create(): void {
+    // 데미지 숫자 글꼴(34라운드 규칙 Galmuri11): CSS @font-face 로드를 미리 시작. 실패하면 monospace 폴백
+    void ensureFont(FEEL.DAMAGE_TEXT.FONT_FAMILY);
     this.buildTileTexture();
     const m = this.cache.json.get(TEXTURES.MANIFEST) as Manifest | undefined;
     this.manifest = m && Array.isArray(m.files) ? new Set(m.files) : null;
@@ -63,7 +66,7 @@ export class Preloader extends Phaser.Scene {
       Object.keys(ENEMIES),
       Object.keys(BOSSES),
       Object.keys(WEAPONS),
-      fxSheetIds(WEAPONS),
+      allFxSheetIds(WEAPONS),
     )) {
       const rel = sheetJsonPath(req);
       if (!exists(rel)) continue;

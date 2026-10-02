@@ -117,6 +117,10 @@ export const DEPTH = {
   PICKUP: 2.5,
   PROJECTILE: 3,
   ATTACK: 4,
+  /** 피격 이펙트 (타격 섬광·피·치명 버스트): 개체·공격 판정 위 */
+  HIT_FX: 4.5,
+  /** 데미지 숫자: 월드 요소 중 가장 위 */
+  DAMAGE_TEXT: 5,
   DEBUG: 100,
 };
 
@@ -157,6 +161,15 @@ export const COLORS = {
   MOB_HURT: 0xffffff,
   TELEGRAPH: 0xfff0a0,
   STUN: 0x707090,
+  /** 피격 플레이스홀더 이펙트 (시트가 없을 때): 타격 섬광 흰 원, 넉백 먼지 회색(G7) */
+  HIT_SPARK: 0xffffff,
+  KNOCK_DUST: 0x6c6f73,
+  /** 피 점 폴백 색 (층 램프를 못 찾을 때, 1층 base 호박색) */
+  HIT_BLOOD_FALLBACK: 0xd67a11,
+  /** 데미지 숫자 (34라운드 글꼴 규칙·팔레트 무채색 G13 / G11). 치명타 색은 층 램프 23(light1) 을 런타임에 고른다 */
+  DAMAGE_TEXT: '#d8d9db',
+  DAMAGE_TEXT_PLAYER: '#b2b4b8',
+  DAMAGE_TEXT_FALLBACK_CRIT: '#e2a33c',
   PROJECTILE: 0xf0e060,
   DEBUG_TEXT: '#9ad',
   GAMEOVER_TEXT: '#eee',
@@ -204,6 +217,81 @@ export const PROTOTYPE = {
   FX_FADE_MS: 150,
   /** 중압 이펙트: 히트박스 중심에서 아래로 (계약 §3.1 pivotNote) */
   WEIGHT_FX_DROP_PX: 6,
+};
+
+/**
+ * 피격 피드백 (35라운드 1단계 임시값, 결정 로그 round-35 "시스템 반영 기록").
+ * 강도 배율은 런타임 `feelSettings`(systems/feel.ts) 로 조절 — 디버그 `__lopad.setFeel({ shake: 0 })` (접근성 대비).
+ */
+export const FEEL = {
+  /** 히트스톱: 물리·개체 애니·적 AI 정지 ms (UI·데미지 숫자·흔들림은 계속) */
+  HITSTOP: {
+    HIT_MS: 40,
+    CRIT_MS: 70,
+    BOSS_MS: 60,
+    PLAYER_HURT_MS: 90,
+    /** 연속 적중 중첩 금지: 마지막 시작 뒤 이 시간 안의 요청은 무시 */
+    MIN_GAP_MS: 80,
+  },
+  /** 화면 흔들림: 진폭 px(정수 반올림, 선형 감쇠) · 지속 ms. 스크롤 반올림 뒤에 더한다 */
+  SHAKE: {
+    HIT: { PX: 2, MS: 60 },
+    CRIT: { PX: 4, MS: 100 },
+    PLAYER_HURT: { PX: 5, MS: 140 },
+    BOSS_WALL: { PX: 6, MS: 160 },
+    SHOCKWAVE: { PX: 4, MS: 100 },
+  },
+  /** 넉백: 공격 방향으로 거리 px, 선형 감쇠 ms (벽은 Arcade 충돌이 막는다) */
+  KNOCKBACK: {
+    HIT_PX: 6,
+    CRIT_PX: 10,
+    MS: 100,
+    /** 보스는 1/4 거리, AI 를 멈추지 않고 속도에 더한다 */
+    BOSS_MULT: 0.25,
+    PLAYER_PX: 8,
+    PLAYER_MS: 100,
+  },
+  /** 데미지 숫자 */
+  DAMAGE_TEXT: {
+    POOL: 24,
+    DURATION_MS: 600,
+    RISE_PX: 14,
+    FADE_MS: 200,
+    /** 적중점 위 시작 오프셋 · 겹침 방지 가로 흔들림 */
+    OFFSET_Y: -10,
+    JITTER_X: 4,
+    CRIT_SCALE: 1.5,
+    TICK_SCALE: 0.8,
+    FONT_PX: 11,
+    FONT_FAMILY: 'Galmuri11',
+    FONT_FALLBACK: 'monospace',
+    /** 글꼴 로드 대기 상한 (넘으면 폴백) */
+    FONT_TIMEOUT_MS: 3000,
+    /** 치명타 색: 층 램프 index (accent roles: 7 = light1 → 전체 슬롯 23) */
+    CRIT_RAMP_INDEX: 7,
+  },
+  /** 플레이스홀더 피격 이펙트 (시트가 없을 때) */
+  PLACEHOLDER: {
+    SPARK_RADIUS: 3,
+    SPARK_MS: 120,
+    SPARK_SCALE_TO: 2.2,
+    BLOOD_DOTS: 4,
+    BLOOD_MS: 180,
+    BLOOD_DIST_PX: 14,
+    BLOOD_SPREAD_RAD: 0.7,
+    /** 피 점 색: 현재 층 램프 index (5 = base, 1층 호박색) */
+    BLOOD_RAMP_INDEX: 5,
+    CRIT_RING_FROM: 6,
+    CRIT_RING_TO: 18,
+    CRIT_RING_MS: 160,
+    DUST_DOTS: 3,
+    DUST_MS: 200,
+    DUST_DIST_PX: 8,
+  },
+  /** 피격 이펙트 시트 이름 (계약 §3, anchor hitbox_center). 없으면 플레이스홀더 */
+  FX_IDS: { SPARK: 'hit_spark', BLOOD: 'blood', CRIT: 'crit_burst', DUST: 'knock_dust', PLAYER_HIT: 'player_hit' },
+  /** 피 시트 마지막 프레임(바닥 얼룩) 유지 시간 (아트 권장 300~800ms) 후 페이드 */
+  BLOOD_STAIN_MS: 500,
 };
 
 export const DEBUG = {
