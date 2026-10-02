@@ -164,6 +164,25 @@ export const QUARTER = {
   ROOM_FLOOR_MIX: 0.06,
   /** 52라운드 Q9: 쿼터뷰 타일셋 노드 전투장의 가장자리 깊이 상한 (0~1칸 — 북쪽 집 앞면이 거의 한 줄로) */
   EDGE_MAX_INSET: 1,
+  /**
+   * 52라운드 Q11 큰 소품(bigProps) 배치 (임시값): 가로등 = 북쪽 벽 앞 간격 6칸·최대 4 · 화로 1~2 = 중앙 둘레 고리 4~7칸(가로 1.6배) ·
+   * 우물·좌판 = 구석(안쪽 2칸, 위쪽 구석은 북쪽 3칸 비움) · 상자 더미 = 서·동 벽가 최대 2 · 시작점·출구·상점 둘레 3칸 비움
+   */
+  BIG_PROPS: {
+    CLEAR_TILES: 3,
+    LAMP_SPACING: 6,
+    LAMP_MAX: 4,
+    NORTH_SEARCH_TILES: 3,
+    BRAZIER_COUNT: [1, 2] as [number, number],
+    BRAZIER_RING: [4, 7] as [number, number],
+    BRAZIER_X_STRETCH: 1.6,
+    BRAZIER_TRIES: 16,
+    CORNER_INSET_TILES: 2,
+    NORTH_KEEP_TILES: 3,
+    CORNER_SEARCH_TILES: 8,
+    CRATE_MAX: 2,
+    CRATE_TRIES: 12,
+  },
 } as const;
 
 /** 발 위치 y 로 깊이를 정한다 (아래쪽이 앞) */

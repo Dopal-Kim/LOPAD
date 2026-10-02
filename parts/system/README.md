@@ -481,3 +481,12 @@ npm run build
 - **바닥 변형 비율**: 타일셋 JSON `roomFloorMix`(0~1, 없으면 `QUARTER.ROOM_FLOOR_MIX` 0.06).
 - **§12 키**: `quarter: true`(wallHeightTiles 없으면 2) · `light.offset` = `[x, y]`(구 `{x, y}` 도 읽음, 구조물 시트·타일셋 소품·tileLights) · `flicker` 숫자 = amp. `bigProps`·`emissiveColors` 미사용(예약). 이펙트 시트 light.offset 은 아직 미적용(이펙트 중심).
 - 비교: 스크래치 `r50sys/compare_outer_fix2.png`.
+
+### 52라운드 Q11 반영: 큰 소품 배치 · 북쪽 벽 틈 = 골목 입구 (계약 art §12 bigProps)
+- **배치 규칙** `src/world/bigProps.ts` `planBigProps`(Phaser 없음, 시드 결정적) — 쿼터뷰 타일셋(`bigProps` 중 placement 'floor…' + 타일셋 소품 'brazier')만:
+  가로등 = 북쪽 벽 앞 첫 바닥 줄, 간격 6칸·최대 4 · 화로 1~2 = 중앙 둘레 고리 4~7칸(가로 1.6배) · 우물·좌판 = 아래쪽 구석(안쪽 2칸)부터, 안 되면 위쪽 구석 · 상자 더미 = 서·동 벽가 최대 2. 피하는 칸: 구조물·세트 소품 칸, 시작점·출구·상점 둘레 3칸, 다른 큰 소품 둘레 1칸. 놓을 때마다 바닥 연결을 확인해 길을 끊으면 놓지 않는다. 수치 `QUARTER.BIG_PROPS`(임시값). 빨래줄(벽 윗단 겹침)은 아직 미사용.
+- **충돌·적 생성**: 발자국 칸 = 충돌 레이어 막힘 + `TileWorld.setBlocked`(적 생성·무작위 지점이 피한다). 작은 소품은 그 칸을 피하고, 큰 소품 화로를 놓으면 작은 소품 화로는 무작위로 놓지 않는다.
+- **그림**: 시트 rect 를 프레임으로, 피벗 = 발자국 아래 가운데, `occludeAbove` 아래(받침)는 바닥 깊이·위는 Y 정렬(가려진 주인공 둘레 반투명), JSON `light`(offset = rect 안 도트) → 광원.
+- **골목 입구**: 바닥 바로 북쪽의 빈 칸(벽 틈)과 그 위 앞면 높이만큼의 빈 칸을 아트 이름 `void_gap`(59) 타일로, 그 아래 바닥에 북쪽 그늘. 전용 타일이 없어 기존 어두운 틈 타일로 대신함 — 아트 요청 대상.
+- 밝기(화면 평균 회색값, 960×540 전체 / 위쪽 400줄): 목업 22.5 / 27.5 · 북쪽 벽·골목·가로등 23.5 / 24.7 · 구석 우물·좌판·화로 20.6 / 21.0 · 광장 21.7 / 21.2 · 큰 소품이 먼 진입 구석 12.7 / 12.2. 비교 `r50sys/compare_outer_fix3.png`.
+- 테스트 +2(`world/bigProps.test.ts`: 바닥 위·막힌 칸 밖·겹침 없음·시작점 둘레·가로등 벽 앞·바닥 연결·결정적). 디버그 `quarter().placements`.

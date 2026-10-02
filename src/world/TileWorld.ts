@@ -4,6 +4,7 @@ import { Rng } from '../systems/rng';
 import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } from '../systems/mapgen';
 import { CELL_H, CELL_W, type Rect } from '../systems/mapgen/types';
 import { QuarterView } from './QuarterView';
+import { planBigProps, type BigPropPlacement } from './bigProps';
 import { TileSkin, edgeVoidTiles, isOpenId, planProps, roomTypeMap } from './tileskin';
 
 export type DoorState = 'open' | 'closed' | 'locked';
@@ -28,6 +29,8 @@ export class TileWorld {
   private arenaCamera: Phaser.Geom.Rectangle | null = null;
   /** 50라운드 쿼터뷰 그림 (쿼터뷰 타일셋일 때만) */
   readonly quarter: QuarterView | null = null;
+  /** 52라운드 Q11 큰 소품 배치 (쿼터뷰 타일셋만) */
+  readonly bigProps: BigPropPlacement[] = [];
   /** 여러 칸을 한꺼번에 바꾸는 중 (벽 그림은 끝에 한 번) */
   private batching = false;
   private wallsDirty = false;
@@ -62,7 +65,23 @@ export class TileWorld {
     const up = skin.quarter ? skin.quarter.heightTiles : 0;
     if (C) this.arenaCamera = new Phaser.Geom.Rectangle(C.x * TILE, (C.y - up) * TILE, C.w * TILE, (C.h + up) * TILE);
 
-    const placedProps = skin.props.length > 0 ? planProps(layout, skin.props, propSeed, undefined, structureTiles) : [];
+    // 52라운드 Q11: 쿼터뷰 타일셋 큰 소품(가로등·화로·우물·좌판·상자 더미)을 먼저 — 발자국은 막힌 칸, 작은 소품은 그 칸을 피한다
+    const bigShapes = skin.quarter ? skin.bigProps.map((b) => ({ name: b.name, footprint: b.footprint! })) : [];
+    this.bigProps = bigShapes.length > 0 ? planBigProps(layout, bigShapes, structureTiles, propSeed) : [];
+    const avoid = new Set(structureTiles);
+    for (const b of this.bigProps)
+      for (let y = b.ty; y < b.ty + b.h; y++)
+        for (let x = b.tx; x < b.tx + b.w; x++) {
+          avoid.add(`${x},${y}`);
+          this.setBlocked(x, y, true);
+          this.layer.getTileAt(x, y)?.setCollision(true, true, true, true, false);
+        }
+    if (this.bigProps.length > 0) this.layer.calculateFacesWithin(0, 0, layout.widthTiles, layout.heightTiles);
+    // 화로는 큰 소품 규칙(광장 1~2)으로만 놓는다
+    const smallProps = this.bigProps.some((b) => b.name === 'brazier')
+      ? skin.props.filter((p) => p.name !== 'brazier')
+      : skin.props;
+    const placedProps = smallProps.length > 0 ? planProps(layout, smallProps, propSeed, undefined, avoid) : [];
     if (skin.props.length > 0) {
       const props = this.map.createBlankLayer('props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
       props.setDepth(DEPTH.PROPS);
@@ -86,6 +105,7 @@ export class TileWorld {
         },
         placedProps,
       );
+      this.quarter.addBigProps(this.bigProps);
     }
   }
 

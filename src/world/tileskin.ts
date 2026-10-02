@@ -13,6 +13,18 @@ import { TileId, type FloorLayout, type Room } from '../systems/mapgen';
 import type { RoomType } from '../systems/mapgen/types';
 import { Rng, hashSeed } from '../systems/rng';
 
+/** 52라운드 Q11 큰 소품 JSON (계약 §12, 시트 도트 px) */
+export interface BigPropJson {
+  name: string;
+  rect: { x: number; y: number; w: number; h: number };
+  pivot: { x: number; y: number };
+  footprint?: [number, number];
+  solid?: boolean;
+  occludeAbove?: number;
+  light?: LightSpec & { offset?: LightOffset };
+  placement?: string;
+}
+
 export interface PropDef {
   index: number;
   name: string;
@@ -28,6 +40,12 @@ export interface PropDef {
 export const ROOM_TYPES: readonly RoomType[] = ['start', 'trial', 'rest', 'boss'];
 
 export type WallKey = 'top' | 'bottom' | 'left' | 'right' | 'corner_tl' | 'corner_tr' | 'corner_bl' | 'corner_br';
+
+/** 타일셋 소품의 아트 v2 추가 필드 (pivot·occludeAbove) */
+interface BigPropExtra {
+  pivot?: { x: number; y: number };
+  occludeAbove?: number;
+}
 
 /** 계약 §2 JSON (아트가 추가한 보조 필드는 무시) */
 export interface TilesetJson {
@@ -50,8 +68,14 @@ export interface TilesetJson {
   floorShadows?: { n?: number; w?: number; e?: number; nw?: number; ne?: number };
   /** 50라운드 아트 v2: 벽 앞면 타일의 광원 (창·문틈) — 키 = 시트 인덱스, 반경·offset = 시트 도트 px */
   tileLights?: Record<string, LightSpec & { offset?: LightOffset }>;
+  /** 52라운드 Q11 계약 §12: 큰 소품 (rect 로 자르는 시트 영역 · 발자국 · 피벗 · 가림 · 광원) */
+  bigProps?: BigPropJson[];
+  /** 아트 메모: 인덱스 → 이름 (골목 입구 `void_gap` 찾기) */
+  names?: Record<string, string>;
   /** 52라운드 계약 §12: 쿼터뷰 타일셋 표시 (wallHeightTiles 가 없으면 2칸) */
   quarter?: boolean;
+  /** 시트 열 수 (아트 메모 columns) */
+  columns?: number;
   /** 52라운드 계약 §12: 바탕 판석에 방 종류 바닥(roomFloors.*)을 섞는 비율 0~1 (없으면 QUARTER.ROOM_FLOOR_MIX) */
   roomFloorMix?: number;
   props?: PropDef[];
@@ -246,6 +270,40 @@ export class TileSkin {
   get roomFloorMix(): number {
     const m = this.def.roomFloorMix;
     return typeof m === 'number' && m >= 0 && m <= 1 ? m : QUARTER.ROOM_FLOOR_MIX;
+  }
+
+  /**
+   * 52라운드 Q11: 배치할 큰 소품 — JSON bigProps 중 바닥에 서는 것(placement 'floor…', 발자국 있음) + 타일셋 소품 'brazier'(화로, 1칸).
+   * 벽 윗단에 거는 것(빨래줄 등)은 아직 쓰지 않는다
+   */
+  get bigProps(): BigPropJson[] {
+    const out = (this.def.bigProps ?? []).filter(
+      (b) => b && b.rect && b.pivot && Array.isArray(b.footprint) && (b.placement ?? 'floor').startsWith('floor'),
+    );
+    const brazier = this.props.find((p) => p.name === 'brazier') as (PropDef & BigPropExtra) | undefined;
+    if (brazier && !out.some((b) => b.name === 'brazier')) {
+      const px = this.tilePx;
+      const cols = this.def.columns ?? 8;
+      out.push({
+        name: 'brazier',
+        rect: { x: (brazier.index % cols) * px, y: Math.floor(brazier.index / cols) * px, w: px, h: px },
+        pivot: brazier.pivot ?? { x: px / 2, y: px - 2 },
+        footprint: [1, 1],
+        solid: true,
+        occludeAbove: brazier.occludeAbove,
+        light: brazier.light,
+        placement: 'floor',
+      });
+    }
+    return out;
+  }
+
+  /** 골목 입구(북쪽 벽 틈) 인덱스: 아트 이름 'void_gap' → 없으면 null (호출 쪽이 빈 칸으로) */
+  get alleyIndex(): number | null {
+    const n = this.def.names;
+    if (!n) return null;
+    const hit = Object.entries(n).find(([, v]) => v === 'void_gap');
+    return hit ? Number(hit[0]) : null;
   }
 
   /** 시트 타일 한 칸 크기 (px). 50라운드 새 타일셋 = 32 */

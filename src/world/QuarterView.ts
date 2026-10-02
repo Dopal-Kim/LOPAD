@@ -11,7 +11,8 @@
  * - 소품: 타일셋 props 를 같은 배율로 (JSON light → 광원, offset = 칸 안 좌표) · 앞면 창·문(tileLights) 광원
  */
 import Phaser from 'phaser';
-import { DEPTH, QUARTER, TILE, entityDepth } from '../core/Constants';
+import { DEPTH, QUARTER, STRUCTURE_FX, TILE, entityDepth } from '../core/Constants';
+import type { BigPropPlacement } from './bigProps';
 import { TileId, type FloorLayout } from '../systems/mapgen';
 import { lightRegistryOf } from '../systems/lighting/lightRegistry';
 import { isOpenId, lightOffsetOf, pickVariant, wallKind, type PropPlacement, type TileSkin } from './tileskin';
@@ -39,6 +40,11 @@ export class QuarterView {
   private readonly propsLayer: Phaser.Tilemaps.TilemapLayer | null = null;
   /** 바닥 그늘 겹침 레이어 (floorShadows 가 있을 때) */
   private readonly shadeLayer: Phaser.Tilemaps.TilemapLayer | null = null;
+  /** 큰 소품 그림·가림 판정·광원 (벽을 다시 만들어도 그대로) */
+  private bigImages: Phaser.GameObjects.Image[] = [];
+  private readonly bigByColumn = new Map<number, WallImage[]>();
+  private wallLightsFixed: LightSource[] = [];
+  private bigPlaced = 0;
   /** 앞면 창·문 광원 (벽을 다시 만들면 다시 단다) */
   private wallLights: LightSource[] = [];
   private walls: WallImage[] = [];
@@ -77,9 +83,25 @@ export class QuarterView {
     this.rebuildWalls();
   }
 
-  /** 바닥 레이어 인덱스: 벽 칸은 빈 칸(원경) — 벽 그림이 덮는다 */
+  /** 바닥 레이어 인덱스: 벽 칸은 빈 칸(원경) — 벽 그림이 덮는다. 북쪽 벽 틈은 골목 입구 */
   private groundOf(x: number, y: number): number {
-    return this.src.idAt(x, y) === TileId.Wall ? this.skin.voidIndex : this.src.groundIndex(x, y);
+    const id = this.src.idAt(x, y);
+    if (id === TileId.Wall) return this.skin.voidIndex;
+    if (id === TileId.Void && this.isAlley(x, y)) return this.skin.alleyIndex ?? this.skin.voidIndex;
+    return this.src.groundIndex(x, y);
+  }
+
+  /**
+   * 52라운드 Q11: 북쪽 벽 틈 = 집 사이 골목 입구. 바닥 바로 북쪽의 빈 칸, 그리고 그 위로 앞면 높이만큼 이어진 빈 칸
+   * (양옆 집 앞면과 같은 높이로 어두운 골목이 보인다)
+   */
+  private isAlley(x: number, y: number): boolean {
+    const H = this.skin.quarter?.heightTiles ?? 0;
+    for (let k = 0; k <= H; k++) {
+      const id = this.src.idAt(x, y + k);
+      if (id !== TileId.Void) return k > 0 && isOpenId(id);
+    }
+    return false;
   }
 
   /** 칸 하나가 바뀜 (출구·상점·문) */
@@ -181,7 +203,7 @@ export class QuarterView {
       for (let x = 0; x < W; x++) {
         layer.removeTileAt(x, y);
         if (!this.isOpen(x, y)) continue;
-        const n = this.isWall(x, y - 1);
+        const n = this.isWall(x, y - 1) || (this.src.idAt(x, y - 1) === TileId.Void && this.isAlley(x, y - 1));
         const w = this.isWall(x - 1, y);
         const e = this.isWall(x + 1, y);
         const idx = n && w ? (S.nw ?? S.n) : n && e ? (S.ne ?? S.n) : n ? S.n : w ? S.w : e ? S.e : undefined;
@@ -230,13 +252,71 @@ export class QuarterView {
       const top = t.y - t.h - pad;
       const bottom = t.y + pad;
       for (let cx = Math.floor(left / TILE); cx <= Math.floor(right / TILE); cx++)
-        for (const w of this.byColumn.get(cx) ?? []) {
+        for (const w of [...(this.byColumn.get(cx) ?? []), ...(this.bigByColumn.get(cx) ?? [])]) {
           if (w.img.depth <= t.depth) continue;
           if (w.right <= left || w.left >= right || w.bottom <= top || w.top >= bottom) continue;
           w.img.setAlpha(QUARTER.OCCLUDE_ALPHA);
           this.faded.push(w);
         }
     }
+  }
+
+  /**
+   * 52라운드 Q11 큰 소품 그림: 시트 rect 를 프레임으로, 피벗 = 발자국 아래 가운데. occludeAbove 가 있으면 그 높이 아래(받침)는
+   * 바닥 깊이, 위는 Y 정렬(가려진 주인공 둘레면 반투명) · JSON light → 광원 (offset = rect 안 도트 좌표)
+   */
+  addBigProps(list: readonly BigPropPlacement[]): void {
+    const defs = new Map(this.skin.bigProps.map((b) => [b.name, b]));
+    const tex = this.scene.textures.get(this.skin.textureKey);
+    const k = this.scale;
+    const reg = lightRegistryOf(this.scene);
+    for (const p of list) {
+      const d = defs.get(p.name);
+      if (!d) continue;
+      const frame = `big:${d.name}`;
+      if (!tex.has(frame)) tex.add(frame, 0, d.rect.x, d.rect.y, d.rect.w, d.rect.h);
+      const x = (p.tx + p.w / 2) * TILE;
+      const bottom = (p.ty + p.h) * TILE;
+      const y = bottom - (d.rect.h - d.pivot.y) * k;
+      const make = () =>
+        this.scene.add
+          .image(x, y, this.skin.textureKey, frame)
+          .setOrigin(d.pivot.x / d.rect.w, d.pivot.y / d.rect.h)
+          .setScale(k);
+      const upper = make().setDepth(entityDepth(bottom));
+      const cut = typeof d.occludeAbove === 'number' ? Math.max(0, Math.round(d.pivot.y - d.occludeAbove)) : d.rect.h;
+      if (cut < d.rect.h) {
+        upper.setCrop(0, 0, d.rect.w, cut);
+        this.bigImages.push(
+          make()
+            .setCrop(0, cut, d.rect.w, d.rect.h - cut)
+            .setDepth(STRUCTURE_FX.OCCLUDE_BASE_DEPTH),
+        );
+      }
+      this.bigImages.push(upper);
+      const w: WallImage = {
+        img: upper,
+        left: x - d.pivot.x * k,
+        right: x + (d.rect.w - d.pivot.x) * k,
+        top: y - d.pivot.y * k,
+        bottom: y - (d.pivot.y - cut) * k,
+      };
+      for (let cx = Math.floor(w.left / TILE); cx <= Math.floor((w.right - 1) / TILE); cx++) {
+        const col = this.bigByColumn.get(cx);
+        if (col) col.push(w);
+        else this.bigByColumn.set(cx, [w]);
+      }
+      if (d.light) {
+        const o = lightOffsetOf(d.light.offset);
+        this.wallLightsFixed.push(
+          reg.add(
+            { ...d.light, radius: d.light.radius * k },
+            o ? { x: x + (o.x - d.pivot.x) * k, y: y + (o.y - d.pivot.y) * k } : { x, y: y - d.pivot.y * k * 0.5 },
+          ),
+        );
+      }
+    }
+    this.bigPlaced = list.length;
   }
 
   /** 타일셋 소품 JSON light → 광원 (반경 = 시트 도트 px × 배율) */
@@ -256,8 +336,10 @@ export class QuarterView {
   }
 
   /** 디버그 */
-  get summary(): { walls: number; faded: number; tilePx: number; heightTiles: number } {
+  get summary(): { bigProps: number; walls: number; faded: number; tilePx: number; heightTiles: number } {
     return {
+      bigProps: this.bigPlaced,
+
       walls: this.walls.length,
       faded: this.faded.length,
       tilePx: this.skin.tilePx,
@@ -270,8 +352,11 @@ export class QuarterView {
     this.walls = [];
     this.byColumn.clear();
     const reg = lightRegistryOf(this.scene);
-    for (const l of this.wallLights) reg.remove(l);
+    for (const l of [...this.wallLights, ...this.wallLightsFixed]) reg.remove(l);
     this.wallLights = [];
+    this.wallLightsFixed = [];
+    for (const i of this.bigImages) i.destroy();
+    this.bigImages = [];
     this.ground.destroy();
     this.shadeLayer?.destroy();
     this.propsLayer?.destroy();

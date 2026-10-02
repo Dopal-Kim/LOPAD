@@ -311,7 +311,7 @@ export function exposeGameDebug(g: Game): void {
       return g.menu.isOpen;
     },
     lighting: () => g.lighting?.summary() ?? null,
-    quarter: () => g.world.quarter?.summary ?? null,
+    quarter: () => (g.world.quarter ? { ...g.world.quarter.summary, placements: g.world.bigProps } : null),
     setBossHp: (hp) => {
       for (const m of g.mobs.getChildren() as Mob[]) {
         if (m.isBoss && m.active) {
