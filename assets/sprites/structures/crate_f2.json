@@ -1,0 +1,64 @@
+{
+ "image": "crate_f2.png",
+ "action": "crate_f2",
+ "frameWidth": 16,
+ "frameHeight": 16,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 8.57,
+ "frameDurationsMs": [
+  200,
+  80,
+  50,
+  70,
+  100,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 16
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "hit": [
+   1
+  ],
+  "broken": [
+   2,
+   3,
+   4,
+   5
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "hit": false,
+  "broken": false
+ },
+ "floor": "stage2",
+ "paletteSwap": false,
+ "interact": "hit",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,03,04,05,06,07,08,09,10,13 + accent 19,21,23,25 drawn in stage2 (floor 2 casino green) ramp (not swapped)",
+ "colors": {
+  "gray": 10,
+  "accent": 4,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "C1 부서지는 짐 (2층 외형): 녹색 칩이 넘치는 판자 상자 + 위에 걸친 찢어진 카드. 2층 램프로 그림(2층 전용 외형)."
+}

@@ -1,0 +1,75 @@
+{
+ "image": "barrel.png",
+ "action": "barrel",
+ "frameWidth": 16,
+ "frameHeight": 16,
+ "frames": 9,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 9.28,
+ "frameDurationsMs": [
+  200,
+  80,
+  90,
+  90,
+  90,
+  90,
+  50,
+  80,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 16
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "hit": [
+   1
+  ],
+  "active": [
+   2,
+   3,
+   4,
+   5
+  ],
+  "broken": [
+   6,
+   7,
+   8
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "hit": false,
+  "active": true,
+  "broken": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": "hit",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,04,05,06,07,08,09,11,12 + accent 17,19,21,23,25 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 9,
+  "accent": 5,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "1-1 독주 술통: 밝은 쇠테 2줄 + 마개의 호박 한 점(소품 barrel 과 구분). active = 구르기 4f(누운 통, 아래(+y)로 구름 — 다른 방향은 회전), broken = 터짐→고임→쇠테 고리+파편+웅덩이 시작(유지). 3x3 웅덩이·불바다는 fx/fire_pool.",
+ "rollDrawnFacing": "down",
+ "rollRotate": true
+}

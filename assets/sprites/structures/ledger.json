@@ -1,0 +1,53 @@
+{
+ "image": "ledger.png",
+ "action": "ledger",
+ "frameWidth": 16,
+ "frameHeight": 32,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 32
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "used": [
+   1
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "used": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": "E",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,04,05,06,08,10,11,12,13 + accent 17,19,21,23,25 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 9,
+  "accent": 5,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "1-3 외상 장부대: 처마 달린 판자에 박힌 장부(이름 줄 5) + 못에 걸린 깃펜 + 호박 밀랍 봉인(표지). used = 봉인이 식고(어두움) 맨 아래에 호박 잉크 새 이름 한 줄."
+}

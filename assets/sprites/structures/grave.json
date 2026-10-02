@@ -1,0 +1,63 @@
+{
+ "image": "grave.png",
+ "action": "grave",
+ "frameWidth": 16,
+ "frameHeight": 32,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200,
+  200,
+  200,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 32
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "used": [
+   1
+  ],
+  "idle_f2": [
+   2
+  ],
+  "used_f2": [
+   3
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "used": false,
+  "idle_f2": false,
+  "used_f2": false
+ },
+ "floor": "common",
+ "paletteSwap": true,
+ "interact": "E_hold",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,03,04,05,06,07,08,09,10,12 + accent 19,21,23,25 drawn in stage1 (floor 1 amber) ramp (runtime swap target)",
+ "colors": {
+  "gray": 10,
+  "accent": 4,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "C3 무명 전사의 묘: 흙무덤 + 꽂힌 부러진 무기 + 넋의 불씨(강조 3점). idle/used = 1층 '술통 망치', idle_f2/used_f2 = 2층 '개 목줄 쇠말뚝'(선택 사용). used = 무기 사라진 구멍 + 꺼져 가는 불씨."
+}

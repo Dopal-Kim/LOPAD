@@ -1,0 +1,42 @@
+{
+ "image": "fire_pool.png",
+ "action": "fire_pool",
+ "frameWidth": 48,
+ "frameHeight": 24,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 9,
+ "frameDurationsMs": [
+  110,
+  110,
+  110,
+  110
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 24,
+  "y": 18
+ },
+ "palette": "parts/art/palette/lopad.json (floor 1 accent 17,19,21,23,25,26 runtime swap + fx core X0/X1 fixed; NO gray, NO weapon secondary)",
+ "anchor": "hitbox_center",
+ "spawn": "fire_pool_ignite",
+ "depth": "below",
+ "scale": "allowed",
+ "source": "structure",
+ "areaTiles": [
+  3,
+  3
+ ],
+ "pivotNote": "피벗 (24,18) = 불붙은 웅덩이(독주 웅덩이 3x3 타일) 중심. 웅덩이 타원 48x11 위로 혓바닥 8개가 최대 14px 솟는다. 3x3 타일 영역을 덮으려면 같은 시트를 y-10/+10 두 장(두 번째는 1프레임 어긋나게) 또는 scale 정수 배율.",
+ "note": "1-1 독주 웅덩이 불바다 루프 4f(이음새 없음). 층 램프 17~27 + 백열 코어(혓바닥 밑 심). 웅덩이 17/19/21 → 혓바닥 19 테두리·21 몸·23/25 안·X1 심 → 오르는 불티 23/25. 4초 지속 동안 반복 재생, 끝은 시스템이 알파로 지움.",
+ "colors": {
+  "gray": 0,
+  "accent": 6,
+  "core": 1,
+  "budget": "gray<=2 accent<=8 core<=2"
+ }
+}

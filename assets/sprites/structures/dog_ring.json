@@ -1,0 +1,106 @@
+{
+ "image": "dog_ring.png",
+ "action": "dog_ring",
+ "frameWidth": 64,
+ "frameHeight": 48,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 6.82,
+ "frameDurationsMs": [
+  200,
+  120,
+  120,
+  120,
+  120,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 48
+ },
+ "footprint": [
+  4,
+  3
+ ],
+ "solid": false,
+ "depth": "floor",
+ "states": {
+  "idle": [
+   0
+  ],
+  "active": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "used": [
+   5
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "active": true,
+  "used": false
+ },
+ "floor": "stage2",
+ "paletteSwap": false,
+ "interact": "E",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,03,04,05,06,07,08,09,10 + accent 17,19,21,23,25 drawn in stage2 (floor 2 casino green) ramp (not swapped)",
+ "colors": {
+  "gray": 9,
+  "accent": 5,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "2-3 투견 링: 바닥 타원 밧줄 링 + 말뚝 8 + 북쪽 말뚝 = 판돈 깃대(녹색 깃발, 표지). idle = 남쪽 출입구 열림(밧줄 늘어짐) / active = 밧줄 닫힘 + 밧줄 따라 도는 녹색 불빛 + 깃발 펄럭 / used = 밧줄 끊김·깃발 내려감. 링 안 흙에 긁힌 자국·핏자국.",
+ "stakes": [
+  [
+   32,
+   5
+  ],
+  [
+   52,
+   11
+  ],
+  [
+   60,
+   25
+  ],
+  [
+   52,
+   38
+  ],
+  [
+   32,
+   44
+  ],
+  [
+   11,
+   38
+  ],
+  [
+   3,
+   25
+  ],
+  [
+   11,
+   11
+  ]
+ ],
+ "stakesNote": "말뚝 8개 중심(프레임 좌표, 각 3x5). 말뚝만 단단함 — 시스템이 이 점에 작은 충돌체를 둔다.",
+ "flagpost": {
+  "x": 32,
+  "y": 5,
+  "note": "E 상호작용 기준점(북쪽 말뚝 = 판돈 깃대)"
+ },
+ "scale": "allowed",
+ "scaleNote": "초안 링 9x9 타일(144px)은 64x48 상한을 넘는다. 2배(128x96) 배율 허용, 기본 1배."
+}

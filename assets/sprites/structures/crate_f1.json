@@ -1,0 +1,64 @@
+{
+ "image": "crate_f1.png",
+ "action": "crate_f1",
+ "frameWidth": 16,
+ "frameHeight": 16,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 8.57,
+ "frameDurationsMs": [
+  200,
+  80,
+  50,
+  70,
+  100,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 16
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "hit": [
+   1
+  ],
+  "broken": [
+   2,
+   3,
+   4,
+   5
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "hit": false,
+  "broken": false
+ },
+ "floor": "common",
+ "paletteSwap": true,
+ "interact": "hit",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,01,04,05,06,07,08,09,10,11 + accent 17,19,21,23,25 drawn in stage1 (floor 1 amber) ramp (runtime swap target)",
+ "colors": {
+  "gray": 10,
+  "accent": 5,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "C1 부서지는 짐 (1층 외형): 천 뚜껑을 묶은 금 간 술동이. 금 틈으로 호박 술이 샘(강조 한 점). broken: 터짐→파편 비산→바닥에 고임→밑동+파편+어두운 고임(유지, 통과 가능)."
+}

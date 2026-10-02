@@ -1,0 +1,53 @@
+{
+ "image": "chip_exchange.png",
+ "action": "chip_exchange",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 32
+ },
+ "footprint": [
+  2,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "used": [
+   1
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "used": false
+ },
+ "floor": "stage2",
+ "paletteSwap": false,
+ "interact": "E",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,01,03,04,05,07,08,09,10,12 + accent 19,21,23,25 drawn in stage2 (floor 2 casino green) ramp (not swapped)",
+ "colors": {
+  "gray": 10,
+  "accent": 4,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "2-2 목숨 칩 환전대: 처마 달린 판자 부스 + 세로 쇠창살 창구 + 창살 사이로 내민 뼈 손과 칩 접시(녹색 칩) + 칩 간판. used = 접시가 비고 간판이 식음."
+}

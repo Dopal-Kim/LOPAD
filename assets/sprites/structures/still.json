@@ -1,0 +1,65 @@
+{
+ "image": "still.png",
+ "action": "still",
+ "frameWidth": 16,
+ "frameHeight": 32,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 8.51,
+ "frameDurationsMs": [
+  120,
+  110,
+  130,
+  110
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 32
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "active": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "active": true
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": "pass",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,01,04,05,06,07,08,09,10,12 + accent 19,20,21,23,25 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 10,
+  "accent": 5,
+  "core": 0,
+  "budget": "gray<=10 accent<=8 core<=2"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "1-2 증류 화로: 벽돌 화덕(아궁이 불) + 쇠 단지(구리 대신 무채 + 불빛 반사 19/20) + 백조목 관 + 받이 꼭지 호박 방울. 부서지지 않음.",
+ "fireBox": {
+  "x": 3,
+  "y": 24,
+  "w": 10,
+  "h": 8,
+  "note": "불꽃 영역(프레임 좌표). 무기 궤적 통과 판정용 참고값"
+ }
+}

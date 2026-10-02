@@ -1,0 +1,62 @@
+{
+ "image": "card_table.png",
+ "action": "card_table",
+ "frameWidth": 48,
+ "frameHeight": 32,
+ "frames": 5,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 8.06,
+ "frameDurationsMs": [
+  200,
+  70,
+  60,
+  90,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 32
+ },
+ "footprint": [
+  3,
+  2
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "active": [
+   1,
+   2,
+   3
+  ],
+  "used": [
+   4
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "active": false,
+  "used": false
+ },
+ "floor": "stage2",
+ "paletteSwap": false,
+ "interact": "E",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,03,04,05,06,07,09,11,12,13 + accent 17,18,19,21,25 drawn in stage2 (floor 2 casino green) ramp (not swapped)",
+ "colors": {
+  "gray": 10,
+  "accent": 5,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "2-1 패 탁자: 녹색 펠트(강조 17~19) + 나무 테 + 빈 딜러 의자 + 엎어진 패 3장(가운데 패에 표지). active = 가운데 패 뒤집기 3f(재생 1회, 마지막 뒤 used), used = 앞면 드러난 패(길·흉 중립)."
+}

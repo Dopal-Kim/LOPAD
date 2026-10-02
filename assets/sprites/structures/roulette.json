@@ -1,0 +1,85 @@
+{
+ "image": "roulette.png",
+ "action": "roulette",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 10,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 10.42,
+ "frameDurationsMs": [
+  200,
+  70,
+  70,
+  70,
+  70,
+  70,
+  70,
+  70,
+  70,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 48
+ },
+ "footprint": [
+  3,
+  3
+ ],
+ "solid": false,
+ "depth": "floor",
+ "states": {
+  "idle": [
+   0
+  ],
+  "active": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ],
+  "used": [
+   9
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "active": true,
+  "used": false
+ },
+ "floor": "stage2",
+ "paletteSwap": false,
+ "interact": "auto",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,01,03,04,05,06,07,08,12,13 + accent 17,18,19,21,25 drawn in stage2 (floor 2 casino green) ramp (not swapped)",
+ "colors": {
+  "gray": 10,
+  "accent": 5,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "2-5 룰렛 바닥: 나무 테 원판, 8칸(녹색 18 / 검정 G01 번갈아) + 칸 점 + 가운데 축, 화살표(밝은 쇠 + 강조 25 촉). active = 화살표 8방향 회전 + 가리킨 칸 점등(바닥 문양 맥동), used = 멈춤·어둡게.",
+ "stopFrames": {
+  "0": 1,
+  "1": 2,
+  "2": 3,
+  "3": 4,
+  "4": 5,
+  "5": 6,
+  "6": 7,
+  "7": 8
+ },
+ "stopNote": "active 의 i 번째 프레임(1+i) = 화살표가 i 번 칸(북쪽부터 시계 방향)을 가리킴. 규칙 결정 후 그 프레임에서 멈춰 보여줄 수 있다.",
+ "scale": "allowed",
+ "scaleNote": "초안 5x5 타일(80px)은 64x48 상한을 넘어 48x48(3x3). 정수 배율 허용."
+}

@@ -1,0 +1,97 @@
+{
+ "image": "cellar_wall.png",
+ "action": "cellar_wall",
+ "frameWidth": 16,
+ "frameHeight": 16,
+ "frames": 11,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 6.43,
+ "frameDurationsMs": [
+  200,
+  80,
+  200,
+  200,
+  200,
+  80,
+  200,
+  200,
+  60,
+  90,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 16
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "hit": [
+   1
+  ],
+  "damaged1": [
+   2
+  ],
+  "damaged2": [
+   3
+  ],
+  "idle_top": [
+   4
+  ],
+  "hit_top": [
+   5
+  ],
+  "damaged1_top": [
+   6
+  ],
+  "damaged2_top": [
+   7
+  ],
+  "broken": [
+   8,
+   9,
+   10
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "hit": false,
+  "damaged1": false,
+  "damaged2": false,
+  "idle_top": false,
+  "hit_top": false,
+  "damaged1_top": false,
+  "damaged2_top": false,
+  "broken": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": "hit",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,01,02,03,04,05,06,07,08 + accent 19,21,23 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 9,
+  "accent": 3,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build.py (round 47)",
+ "note": "1-6 밀주 저장고 숨은 벽: 1층 벽 타일(5 정면 / 6 윗면)을 그대로 바탕으로 금 + 틈새 호박 빛 1px. 3번 치면: hit(번쩍) → damaged1 → damaged2 → broken(무너짐 → 먼지 → 잔해, 마지막 프레임은 대부분 투명 = 아래 바닥 타일이 보임). 북쪽 벽이면 idle, 나머지 변이면 *_top.",
+ "wallTileBase": {
+  "front": 5,
+  "top": 6,
+  "tileset": "stage1"
+ }
+}
