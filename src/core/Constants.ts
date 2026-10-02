@@ -158,6 +158,11 @@ export const QUARTER = {
   OCCLUDE_ALPHA: 0.55,
   /** 가림 판정 여유 (월드 px) */
   OCCLUDE_PAD_PX: 2,
+  /**
+   * v2 타일셋 바닥: 방 종류 바닥(roomFloors — 전투 = 배수구·금 등 장식이 있는 변형)을 쓰는 칸 비율(%). 나머지는 판석 tiles["1"].
+   * 아트 목업(바닥 = 0~3 판석)과 맞추려는 임시값
+   */
+  ROOM_FLOOR_PERCENT: 6,
 } as const;
 
 /** 발 위치 y 로 깊이를 정한다 (아래쪽이 앞) */

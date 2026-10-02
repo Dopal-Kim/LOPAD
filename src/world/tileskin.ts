@@ -4,7 +4,11 @@
  * - walls: 상/하/좌/우/모서리 자동타일 (있으면)
  * - props: 방 바닥 소품 (시드 결정적 배치)
  */
-import { ASSETS, TEXTURES, TILE } from '../core/Constants';
+import { ASSETS, QUARTER, TEXTURES, TILE } from '../core/Constants';
+import type { LightSpec } from '../systems/spriteDefs';
+
+/** 방 종류 바닥 섞기 해시 소금 (변형 선택과 다른 해시) */
+const ROOM_FLOOR_SALT = 977;
 import { TileId, type FloorLayout, type Room } from '../systems/mapgen';
 import type { RoomType } from '../systems/mapgen/types';
 import { Rng, hashSeed } from '../systems/rng';
@@ -13,8 +17,8 @@ export interface PropDef {
   index: number;
   name: string;
   solid: boolean;
-  /** 50라운드 계약 §9: 광원 (반경 = 시트 도트 px) */
-  light?: { color?: string; radius: number; intensity?: number; flicker?: number };
+  /** 50라운드 계약 §9: 광원 (반경·offset = 시트 도트 px, offset = 타일 칸 안 좌표) */
+  light?: LightSpec & { offset?: { x: number; y: number } };
   /** 40라운드: 방당 최대 개수 (없으면 제한 없음) */
   maxPerRoom?: number;
   /** 40라운드: 배치 가중치 (기본 1, 0 이면 놓지 않음) */
@@ -42,6 +46,10 @@ export interface TilesetJson {
   wallHeightTiles?: number;
   /** 50라운드: 앞면 윗단 인덱스 (walls.frontUpper 와 같은 뜻, 둘 중 하나) */
   wallFrontUpper?: number;
+  /** 50라운드 아트 v2: 바닥 그늘 겹침 인덱스 (북쪽 벽 발치·서·동·모서리) */
+  floorShadows?: { n?: number; w?: number; e?: number; nw?: number; ne?: number };
+  /** 50라운드 아트 v2: 벽 앞면 타일의 광원 (창·문틈) — 키 = 시트 인덱스, 반경·offset = 시트 도트 px */
+  tileLights?: Record<string, LightSpec & { offset?: { x: number; y: number } }>;
   props?: PropDef[];
   /** 37라운드: 방 종류별 바닥 인덱스 목록. 키가 없거나 비면 tiles["1"] */
   roomFloors?: Partial<Record<RoomType, number[]>>;
@@ -153,7 +161,16 @@ export class TileSkin {
       for (const i of Array.isArray(v) ? v : [v]) if (typeof i === 'number') this.reverse.set(i, TileId.Wall);
     this.quarter = quarterWallsOf(def);
     if (this.quarter)
-      for (const i of [...this.quarter.frontLower, this.quarter.frontUpper, this.quarter.top])
+      for (const i of [
+        ...this.quarter.frontLower,
+        ...this.quarter.frontUpper,
+        this.quarter.top,
+        this.quarter.topAboveFront,
+        ...Object.values(this.quarter.edges),
+        ...(this.quarter.stone
+          ? [...this.quarter.stone.lower, ...this.quarter.stone.upper, this.quarter.stone.top]
+          : []),
+      ])
         this.reverse.set(i, TileId.Wall);
     for (const type of ROOM_TYPES) {
       const list = def.roomFloors?.[type];
@@ -200,7 +217,9 @@ export class TileSkin {
     }
     if (id === TileId.Floor && roomType) {
       const rf = this.roomFloors.get(roomType);
-      if (rf) return rf[pickVariant(x, y, rf.length, id)];
+      // 50라운드 쿼터뷰(v2) 타일셋: 방 종류 바닥(배수구·금 같은 장식 포함)은 가끔만 — 바탕은 판석 tiles["1"] (아트 목업과 같게)
+      const mix = this.quarter ? pickVariant(x, y, 100, ROOM_FLOOR_SALT) < QUARTER.ROOM_FLOOR_PERCENT : true;
+      if (rf && mix) return rf[pickVariant(x, y, rf.length, id)];
     }
     const list = this.variants.get(id)!;
     return list[pickVariant(x, y, list.length, id)];
@@ -230,47 +249,85 @@ export class TileSkin {
   }
 }
 
-/** 50라운드 쿼터뷰 벽 인덱스 */
+/** 50라운드 쿼터뷰 벽 인덱스 (목록 안 중복 = 가중치, 좌표 해시로 고른다) */
 export interface QuarterWalls {
   /** 벽 앞면 높이 (칸) */
   heightTiles: number;
-  /** 앞면 아랫단 (변형 목록 — 좌표 해시로 섞는다) */
+  /** 앞면 아랫단 (바닥과 맞닿은 벽 칸) */
   frontLower: number[];
-  /** 앞면 윗단 (2칸 이상이면 아랫단 위 모든 칸) */
-  frontUpper: number;
-  /** 윗면 (벽 꼭대기) */
+  /** 앞면 윗단 (아랫단 위 heightTiles-1 칸) */
+  frontUpper: number[];
+  /** 윗면 (기본) */
   top: number;
+  /** 앞면 바로 위 칸 (처마). 없으면 top */
+  topAboveFront: number;
+  /** 앞면이 보이지 않는 경계 벽의 윗면 가장자리 (wallKind → 인덱스: 서쪽 경계 left · 동쪽 right · 남쪽 bottom · 모서리) */
+  edges: Partial<Record<WallKey, number>>;
+  /** 돌담 세트 (아트 walls.stoneSet — 구간 전체를 이 세트로): 경계에 닿지 않는 벽 섬(엄폐 담)에 쓴다. 없으면 null */
+  stone: { lower: number[]; upper: number[]; top: number } | null;
+  /** 바닥 그늘 겹침 (북쪽 벽 발치·서·동, 없으면 null) */
+  shadows: { n?: number; w?: number; e?: number; nw?: number; ne?: number } | null;
 }
 
 /** 계약 art §9 인덱스 표 v3 의 벽 앞면 · 윗면 기본 자리 */
 const V3_WALL_FRONT = 5;
 const V3_WALL_TOP = 6;
+const EDGE_KEYS: readonly WallKey[] = ['left', 'right', 'bottom', 'corner_tl', 'corner_tr', 'corner_bl', 'corner_br'];
 
 /**
- * 쿼터뷰 벽 읽기 (계약 art §9: walls.front = 앞면 아랫단(인덱스 5), 윗단 = 새 인덱스(walls.frontUpper · wallFrontUpper ·
- * walls.front 배열 둘째), walls.top = 윗면(인덱스 6), wallHeightTiles). wallHeightTiles 가 없으면 null (기존 평면 벽)
+ * 쿼터뷰 벽 읽기 (계약 art §9 + 아트 JSON walls.stacking 규칙). wallHeightTiles 가 없으면 null (기존 평면 벽).
+ * - 앞면: `walls.front` = 숫자 · 배열 [아랫단, 윗단] · 객체 { lower: [...], upper: [...] } (목록 중복 = 가중치).
+ *   아랫단이 숫자 하나이고 tiles["2"] 첫 항목이면 tiles["2"] 목록을 변형으로. 윗단 = front.upper · walls.frontUpper ·
+ *   wallFrontUpper · front 배열 둘째 · 없으면 아랫단
+ * - 윗면 `walls.top`(기본 6) · 처마 `walls.topAboveFront` · 경계 가장자리 `walls.left/right/bottom/corner_*`
+ * - 바닥 그늘 `floorShadows { n, w, e, nw, ne }`
  */
 export function quarterWallsOf(def: TilesetJson): QuarterWalls | null {
   const h = def.wallHeightTiles;
   if (typeof h !== 'number' || !(h >= 1)) return null;
-  const w = def.walls ?? {};
+  const w = (def.walls ?? {}) as Record<string, unknown>;
   const num = (v: unknown): number | undefined => (typeof v === 'number' ? v : undefined);
-  const front = Array.isArray(w.front)
-    ? w.front.filter((v) => typeof v === 'number')
-    : ([num(w.front)].filter((v) => v !== undefined) as number[]);
-  const lower = front[0] ?? V3_WALL_FRONT;
+  const list = (v: unknown): number[] =>
+    Array.isArray(v) ? v.filter((x): x is number => typeof x === 'number') : typeof v === 'number' ? [v] : [];
+  const fr = w.front;
+  const frObj = fr && typeof fr === 'object' && !Array.isArray(fr) ? (fr as Record<string, unknown>) : null;
+  const frArr = list(fr);
+  let frontLower = frObj ? list(frObj.lower) : frArr.slice(0, 1);
+  if (frontLower.length === 0) frontLower = [V3_WALL_FRONT];
   const wallList = def.tiles[String(TileId.Wall)] ?? [];
-  const frontLower = wallList.length > 1 && wallList[0] === lower ? [...wallList] : [lower];
-  const upperRaw =
-    num(w.frontUpper) ??
-    (Array.isArray(w.frontUpper) ? w.frontUpper[0] : undefined) ??
-    num(def.wallFrontUpper) ??
-    front[1];
+  if (frontLower.length === 1 && wallList.length > 1 && wallList[0] === frontLower[0]) frontLower = [...wallList];
+  let frontUpper = frObj ? list(frObj.upper) : [];
+  if (frontUpper.length === 0) frontUpper = list(w.frontUpper);
+  if (frontUpper.length === 0) frontUpper = list(def.wallFrontUpper);
+  if (frontUpper.length === 0 && frArr.length > 1) frontUpper = [frArr[1]];
+  if (frontUpper.length === 0) frontUpper = [frontLower[0]];
+  const top = num(w.top) ?? V3_WALL_TOP;
+  const edges: Partial<Record<WallKey, number>> = {};
+  for (const k of EDGE_KEYS) {
+    const v = num(w[k]);
+    if (v !== undefined) edges[k] = v;
+  }
+  const st = w.stoneSet && typeof w.stoneSet === 'object' ? (w.stoneSet as Record<string, unknown>) : null;
+  const stoneLower = st ? list(st.lower) : [];
+  const stone =
+    st && stoneLower.length > 0
+      ? {
+          lower: stoneLower,
+          upper: list(st.upper).length > 0 ? list(st.upper) : stoneLower,
+          top: num(st.top) ?? top,
+        }
+      : null;
+  const sh = def.floorShadows;
+  const shadows = sh ? { n: num(sh.n), w: num(sh.w), e: num(sh.e), nw: num(sh.nw), ne: num(sh.ne) } : null;
   return {
     heightTiles: Math.max(1, Math.floor(h)),
     frontLower,
-    frontUpper: upperRaw ?? lower,
-    top: num(w.top) ?? V3_WALL_TOP,
+    frontUpper,
+    top,
+    topAboveFront: num(w.topAboveFront) ?? top,
+    edges,
+    stone,
+    shadows,
   };
 }
 

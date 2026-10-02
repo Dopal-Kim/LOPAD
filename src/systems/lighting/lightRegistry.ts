@@ -56,7 +56,7 @@ export class LightRegistry {
       color: hexColor(def.color, DEFAULT_COLOR),
       radius: def.radius,
       intensity: def.intensity ?? 1,
-      flicker: def.flicker ?? 0,
+      flicker: typeof def.flicker === 'number' ? def.flicker : (def.flicker?.amp ?? 0),
       until: at.until ?? Infinity,
       bornAt: at.now ?? 0,
       fade: Boolean(at.fade),

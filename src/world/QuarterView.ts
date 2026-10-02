@@ -3,15 +3,19 @@
  * 그리고 윗면을 그 위에 얹는다. 출입·충돌은 바닥 격자(TileWorld 의 보이지 않는 충돌 레이어)가 맡고, 여기는 그림만.
  *
  * - 바닥 레이어: 타일셋 원래 크기(32px)의 타일맵을 월드 배율(TILE/32)로 줄여 깐다. 벽 칸 자리는 빈 칸(원경)으로 — 벽 그림이 덮는다
- * - 벽: 벽 칸마다 윗면 1장(위로 wallHeightTiles 칸 올림) + 남쪽이 벽이 아니면 앞면(아랫단·윗단). 깊이 = 벽 칸 아래변 y 로
- *   Y 정렬 → 벽 아래(남쪽)에 선 캐릭터는 앞, 벽 뒤(북쪽) 캐릭터는 가려진다. 가려진 캐릭터 둘레 벽 그림은 반투명(QUARTER.OCCLUDE_ALPHA)
- * - 소품: 타일셋 props 를 같은 배율로 (JSON light 가 있으면 광원)
+ * - 벽 (아트 JSON walls.stacking 규칙): 남쪽이 바닥인 벽(앞면이 보이는 북쪽 벽) = 그 칸 아랫단 → 위 칸 윗단(wallHeightTiles-1 칸)
+ *   → 그 위 처마(topAboveFront). 그 밖의 벽(서·동·남 경계·두꺼운 벽 안쪽) = 앞면 없이 제자리에 윗면 — 경계 쪽은 가장자리 타일
+ *   (left·right·bottom·corner_*), 나머지 top. 깊이 = 벽 칸 아래변 y 로 Y 정렬 → 앞면 아래(남쪽) 캐릭터는 앞, 뒤 캐릭터는 가려진다.
+ *   가려진 주인공 둘레 벽 그림은 반투명(QUARTER.OCCLUDE_ALPHA)
+ * - 바닥 그늘(floorShadows): 북쪽 벽 발치·서·동 경계 옆 바닥에 반투명 겹침
+ * - 소품: 타일셋 props 를 같은 배율로 (JSON light → 광원, offset = 칸 안 좌표) · 앞면 창·문(tileLights) 광원
  */
 import Phaser from 'phaser';
 import { DEPTH, QUARTER, TILE, entityDepth } from '../core/Constants';
 import { TileId, type FloorLayout } from '../systems/mapgen';
 import { lightRegistryOf } from '../systems/lighting/lightRegistry';
-import { pickVariant, type PropPlacement, type TileSkin } from './tileskin';
+import { isOpenId, pickVariant, wallKind, type PropPlacement, type TileSkin } from './tileskin';
+import type { LightSource } from '../systems/lighting/lightRegistry';
 
 interface WallImage {
   img: Phaser.GameObjects.Image;
@@ -33,6 +37,10 @@ export class QuarterView {
   private readonly map: Phaser.Tilemaps.Tilemap;
   private readonly ground: Phaser.Tilemaps.TilemapLayer;
   private readonly propsLayer: Phaser.Tilemaps.TilemapLayer | null = null;
+  /** 바닥 그늘 겹침 레이어 (floorShadows 가 있을 때) */
+  private readonly shadeLayer: Phaser.Tilemaps.TilemapLayer | null = null;
+  /** 앞면 창·문 광원 (벽을 다시 만들면 다시 단다) */
+  private wallLights: LightSource[] = [];
   private walls: WallImage[] = [];
   /** 열(타일 x) → 그 열의 벽 그림 (가림 판정은 캐릭터 둘레 열만 본다) */
   private byColumn = new Map<number, WallImage[]>();
@@ -54,6 +62,11 @@ export class QuarterView {
     const tileset = this.map.addTilesetImage(skin.textureKey, skin.textureKey, px, px, 0, 0)!;
     this.ground = this.map.createLayer(0, tileset, 0, 0)!;
     this.ground.setScale(this.scale).setDepth(DEPTH.TILES);
+    if (skin.quarter?.shadows) {
+      const shade = this.map.createBlankLayer('qv_shade', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
+      shade.setScale(this.scale).setDepth(DEPTH.TILES + DEPTH.LIGHT_LAYER_STEP);
+      this.shadeLayer = shade;
+    }
     if (props.length > 0) {
       const layer = this.map.createBlankLayer('qv_props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
       layer.setScale(this.scale).setDepth(DEPTH.PROPS);
@@ -74,29 +87,120 @@ export class QuarterView {
     this.ground.putTileAt(this.groundOf(tx, ty), tx, ty);
   }
 
-  /** 벽 그림 다시 만들기 (저장고 벽 등 벽 칸이 바뀌면) */
+  private isWall(x: number, y: number): boolean {
+    return this.src.idAt(x, y) === TileId.Wall;
+  }
+
+  private isOpen = (x: number, y: number): boolean => isOpenId(this.src.idAt(x, y));
+
+  /** 벽 그림 다시 만들기 (저장고 벽 등 벽 칸이 바뀌면) — 바닥 그늘·창 광원도 함께 */
   rebuildWalls(): void {
     for (const w of this.walls) w.img.destroy();
     this.walls = [];
     this.byColumn = new Map();
     this.faded = [];
+    const reg = lightRegistryOf(this.scene);
+    for (const l of this.wallLights) reg.remove(l);
+    this.wallLights = [];
     const Q = this.skin.quarter!;
     const H = Q.heightTiles;
+    const pick = (list: readonly number[], x: number, y: number) => list[pickVariant(x, y, list.length, TileId.Wall)];
     const { widthTiles: W, heightTiles: Ht } = this.layout;
+    const islands = Q.stone ? this.wallIslands() : new Set<string>();
     for (let y = 0; y < Ht; y++)
       for (let x = 0; x < W; x++) {
-        if (this.src.idAt(x, y) !== TileId.Wall) continue;
+        if (!this.isWall(x, y)) continue;
         // 바닥 칸도 다시 (벽이 생기거나 사라진 칸)
         this.refreshGround(x, y);
         const depth = entityDepth((y + 1) * TILE);
-        this.place(x, y - H, Q.top, depth);
-        if (this.src.idAt(x, y + 1) === TileId.Wall) continue;
-        // 남쪽이 벽이 아니면 앞면이 보인다: 아랫단(변형) + 윗단
-        for (let k = 0; k < H; k++) {
-          const frame = k === 0 ? Q.frontLower[pickVariant(x, y, Q.frontLower.length, TileId.Wall)] : Q.frontUpper;
-          this.place(x, y - k, frame, depth);
+        const stone = Q.stone && islands.has(`${x},${y}`) ? Q.stone : null;
+        if (stone) {
+          // 엄폐 담(경계에 닿지 않는 벽 섬) = 돌담 세트: 앞면 아랫단 → 윗단 → 윗면, 앞면 없는 칸은 윗면
+          if (this.isOpen(x, y + 1)) {
+            this.place(x, y, pick(stone.lower, x, y), depth);
+            for (let k = 1; k < H; k++) this.place(x, y - k, pick(stone.upper, x, y - k), depth);
+            this.place(x, y - H, stone.top, depth);
+          } else this.place(x, y, stone.top, depth);
+        } else if (this.isOpen(x, y + 1)) {
+          // 앞면이 보이는 벽: 아랫단(제자리) → 윗단 → 처마
+          const lower = pick(Q.frontLower, x, y);
+          this.place(x, y, lower, depth);
+          this.addTileLight(lower, x, y);
+          for (let k = 1; k < H; k++) this.place(x, y - k, pick(Q.frontUpper, x, y - k), depth);
+          this.place(x, y - H, Q.topAboveFront, depth);
+        } else {
+          // 앞면 없는 벽: 제자리 윗면 (경계 가장자리)
+          const kind = wallKind(this.isOpen, x, y);
+          this.place(x, y, (kind && Q.edges[kind]) ?? Q.top, depth);
         }
       }
+    this.rebuildShade();
+  }
+
+  /** 경계(빈 칸 = 바깥)에 닿지 않는 벽 덩어리 칸 (`"x,y"`) — 전투장 안 엄폐 담 */
+  private wallIslands(): Set<string> {
+    const { widthTiles: W, heightTiles: Ht } = this.layout;
+    const seen = new Set<string>();
+    const out = new Set<string>();
+    for (let y = 0; y < Ht; y++)
+      for (let x = 0; x < W; x++) {
+        const key = `${x},${y}`;
+        if (seen.has(key) || !this.isWall(x, y)) continue;
+        const comp: string[] = [];
+        let touchesVoid = false;
+        const stack = [[x, y]];
+        seen.add(key);
+        while (stack.length > 0) {
+          const [cx, cy] = stack.pop()!;
+          comp.push(`${cx},${cy}`);
+          for (let oy = -1; oy <= 1; oy++)
+            for (let ox = -1; ox <= 1; ox++) {
+              const nx = cx + ox;
+              const ny = cy + oy;
+              const id = this.src.idAt(nx, ny);
+              if (id === TileId.Void) touchesVoid = true;
+              const nk = `${nx},${ny}`;
+              if (Math.abs(ox) + Math.abs(oy) === 1 && id === TileId.Wall && !seen.has(nk)) {
+                seen.add(nk);
+                stack.push([nx, ny]);
+              }
+            }
+        }
+        if (!touchesVoid) for (const c of comp) out.add(c);
+      }
+    return out;
+  }
+
+  /** 바닥 그늘: 북쪽이 벽이면 n, 서쪽 경계면 w, 동쪽 경계면 e (북+서 = nw, 북+동 = ne) */
+  private rebuildShade(): void {
+    const layer = this.shadeLayer;
+    const S = this.skin.quarter?.shadows;
+    if (!layer || !S) return;
+    const { widthTiles: W, heightTiles: Ht } = this.layout;
+    for (let y = 0; y < Ht; y++)
+      for (let x = 0; x < W; x++) {
+        layer.removeTileAt(x, y);
+        if (!this.isOpen(x, y)) continue;
+        const n = this.isWall(x, y - 1);
+        const w = this.isWall(x - 1, y);
+        const e = this.isWall(x + 1, y);
+        const idx = n && w ? (S.nw ?? S.n) : n && e ? (S.ne ?? S.n) : n ? S.n : w ? S.w : e ? S.e : undefined;
+        if (idx !== undefined) layer.putTileAt(idx, x, y);
+      }
+  }
+
+  /** 앞면 타일 광원 (JSON tileLights: 창·문틈) — 반경·offset = 시트 도트 px */
+  private addTileLight(index: number, tx: number, ty: number): void {
+    const l = this.skin.def.tileLights?.[String(index)];
+    if (!l) return;
+    const k = this.scale;
+    const o = l.offset ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
+    this.wallLights.push(
+      lightRegistryOf(this.scene).add(
+        { ...l, radius: l.radius * k },
+        { x: tx * TILE + o.x * k, y: ty * TILE + o.y * k },
+      ),
+    );
   }
 
   private place(tx: number, ty: number, frame: number, depth: number): void {
@@ -143,7 +247,11 @@ export class QuarterView {
     for (const p of props) {
       const l = lit.get(p.index);
       if (!l) continue;
-      reg.add({ ...l, radius: l.radius * this.scale }, { x: (p.x + 0.5) * TILE, y: (p.y + 0.5) * TILE });
+      const o = l.offset ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
+      reg.add(
+        { ...l, radius: l.radius * this.scale },
+        { x: p.x * TILE + o.x * this.scale, y: p.y * TILE + o.y * this.scale },
+      );
     }
   }
 
@@ -161,7 +269,11 @@ export class QuarterView {
     for (const w of this.walls) w.img.destroy();
     this.walls = [];
     this.byColumn.clear();
+    const reg = lightRegistryOf(this.scene);
+    for (const l of this.wallLights) reg.remove(l);
+    this.wallLights = [];
     this.ground.destroy();
+    this.shadeLayer?.destroy();
     this.propsLayer?.destroy();
     this.map.destroy();
   }

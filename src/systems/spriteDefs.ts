@@ -142,7 +142,8 @@ export interface LightSpec {
   color?: string;
   radius: number;
   intensity?: number;
-  flicker?: number;
+  /** 깜빡임 세기 0..1 — 아트 v2 는 { amp, hz } 로도 적는다 (amp 를 쓴다) */
+  flicker?: number | { amp: number; hz?: number };
   /** 광원 중심: 피벗에서 위로 px (시트 도트 기준, 없으면 프레임 세로 중앙) — 시스템 확장 필드 */
   offsetY?: number;
 }

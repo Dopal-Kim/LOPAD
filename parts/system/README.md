@@ -468,3 +468,9 @@ npm run build
 - 적 탄·화살 시트가 `pixelScale 1` 로 오면 투사체 배율(바디 보정 포함)이 아직 없다(지금 v2 범위 밖).
 - 다른 지역은 시범 검수 뒤 `lighting.json regions` 에 넣으면 켜진다(타일셋은 `tiles/v2/` 가 오면 자동 쿼터뷰).
 - 아래쪽 경계 벽이 바닥 두 줄을 덮는 것(원근상 맞음)·가림 비침 방식은 체감 검수 대상.
+
+### 50라운드 2단계 보정: v2 외곽 거리를 아트 목업에 맞춤 (2026-10-02)
+코디네이터 비교(헤드리스 `?slice=outer` vs `parts/art/work/v2_outer/preview_mock_lit.png`)로 찾은 원인과 수정. 읽은 아트 파일(허가): `assets/tiles/v2/stage1_outer.json`, `parts/art/work/v2_outer/NOTES.md`·`scene.py`(쌓기 규칙 확인).
+- **바닥**: 전투 노드 바닥이 `roomFloors.trial`(27 배수구·28 금·29·30)로만 깔려 칸마다 배수구가 찍혔다. 목업 바닥은 `tiles["1"]`(0~3 판석)뿐 → 쿼터뷰(v2) 타일셋은 판석이 바탕, 방 종류 바닥은 `QUARTER.ROOM_FLOOR_PERCENT`(6%, 임시) 칸만. 기존 타일셋은 그대로.
+- **벽 쌓기**: 아트 JSON 은 `walls.front = { lower: [...], upper: [...] }`(중복 = 가중치) 객체였는데 숫자·배열만 읽어 윗단이 40 하나로 고정됐고, 모든 벽 칸에 윗면을 2칸 올려 그려 서·동·남 경계와 두꺼운 벽이 조각났다. → `walls.stacking` 규칙대로: 남쪽이 바닥인 벽 = 아랫단(제자리) → 윗단 → 처마 `topAboveFront`(47), 그 밖의 벽 = 제자리 윗면 + 경계 가장자리(`left 48`·`right 49`·`bottom 50`·`corner_bl/br 51/52`), 나머지 `top 6`. 엄폐 담(바깥 빈 칸에 닿지 않는 벽 덩어리)은 `stoneSet`(43·46 / 44 / 45). 바닥 그늘 `floorShadows`(53~57)를 벽 발치에 겹침. 앞면 창·문 `tileLights`(21·22) 광원. 소품 light 의 `flicker {amp,hz}`·`offset`(칸 안 좌표) 지원.
+- 비교 이미지: 스크래치 `r50sys/compare_outer_fix.png`. 남은 차이: 북쪽 경계가 49라운드 들쭉날쭉 가장자리(외곽 maxInset 3)라 목업처럼 일직선이 아니고, 전체 밝기가 목업보다 어둡다(주변광·주인공 빛 임시값) — 인터뷰 대상.
