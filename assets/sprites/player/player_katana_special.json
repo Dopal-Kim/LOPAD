@@ -1,0 +1,59 @@
+{
+ "image": "player_katana_special.png",
+ "action": "katana_special",
+ "frameWidth": 16,
+ "frameHeight": 24,
+ "frames": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 11,
+ "frameDurationsMs": [
+  50,
+  90,
+  120,
+  70,
+  110
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 23
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 21, 23; rim G04)",
+ "source": "parts/art/work/combos/build.py (48라운드 Q2)",
+ "secondaryAction": "parry (우클릭 패링)",
+ "phases": {
+  "ready": [
+   0
+  ],
+  "window": [
+   1,
+   2
+  ],
+  "riposte": [
+   3
+  ],
+  "recover": [
+   4
+  ]
+ },
+ "holdFrame": 2,
+ "holdNote": "패링 창이 프레임 합보다 길면 f2 유지. 성공 = f3·f4, 실패(창 종료) = f4",
+ "overlayFx": [
+  {
+   "id": "parry_flash",
+   "spawn": "parry_success",
+   "atFrame": 3,
+   "anchor": "hitbox_center (접점)"
+  }
+ ],
+ "weapon": "katana",
+ "framesBasis": "player_katana_special 프레임 번호 (몸·무기 공통)",
+ "note": "무기를 든 채 보조 동작을 하는 몸·무기 자세(§6.2). 기존 보조 fx 는 그대로 겹친다(overlayFx)."
+}

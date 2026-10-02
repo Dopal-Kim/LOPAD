@@ -1,0 +1,74 @@
+{
+ "image": "greatsword_combo1.png",
+ "action": "greatsword_combo1",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 13,
+ "frameDurationsMs": [
+  40,
+  60,
+  70,
+  80,
+  100,
+  120
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 64,
+  "y": 74
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+ "source": "parts/art/work/combos/build.py (48라운드 Q2)",
+ "weapon": "greatsword",
+ "comboIndex": 1,
+ "comboLength": 3,
+ "nextCombo": "greatsword_combo2",
+ "hitFrames": [
+  1
+ ],
+ "activeFrames": [
+  1
+ ],
+ "cancelFromFrame": 3,
+ "framesBasis": "player_greatsword_combo1 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 160,
+  "cancelAt": 340,
+  "total": 480
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 10px",
+ "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
+ "hitRadiusPx": 51,
+ "arcDeg": 190,
+ "arcFromDeg": -110,
+ "arcToDeg": 80,
+ "arcAngleNote": "right 방향 화면각(0 = 정면, + = 아래, from→to = 휘두름 방향). down = +90° 회전, up = -90°, left = 좌우 반전(180-θ)",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "impactFrame": 1,
+ "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
+ "depth": "above",
+ "secondary": "fx.weapons.greatsword",
+ "pivotNote": "피벗 (64,74) = 발. 호·찌르기 원점 = 몸 중심 (64,64) (발 위 10px).",
+ "trail": {
+  "color": "#a8321c",
+  "alpha": 0.6,
+  "ms": 160,
+  "fromFrame": 2,
+  "note": "W1 잔상 트레일, 반지름 = hitRadiusPx - 띠 두께/2"
+ },
+ "shake": {
+  "px": 2,
+  "ms": 60
+ },
+ "note": "훙: 두께 10 호 + 안쪽 겹 + 바닥 불티·재. 3타 = 270° 두께 12, f1 섬광, 3겹, 광선 3, 앞-아래 바닥 균열 3줄"
+}
