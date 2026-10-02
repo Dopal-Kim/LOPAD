@@ -126,3 +126,13 @@
 - 주인공 v3: 64×96, 피벗 = 발 중앙(아트가 JSON `pivot` 으로 명시), 색 예산 30. 프레임: idle 6 · walk 8 · run 8 · 연격 타당 6~8 · dash 5 · hurt 3 · death 10(재로 무너지고 일기장만 남음).
 - 보스 v3: 128×192(화면 64×96). 이펙트 v3: 기존 크기 ×2, 같은 생성 스크립트로 재출력.
 - 타일·구조물·세트는 32px(v2) 유지.
+
+## 12. §9 쿼터뷰 타일셋 키 정리 (52라운드 Q9 · 시스템 질문 정리)
+현재 아트 산출물(`tiles/v2/stage1_outer.json`)과 시스템 해석기가 맞춘 형태를 정식으로 한다.
+- `walls.front` = `{ "lower": [..], "upper": [..] }`(가중치는 목록 중복). 숫자·배열 형태와 `walls.frontUpper`·`wallFrontUpper` 는 하위 호환으로만 읽는다.
+- `walls.top` = v2 에서는 **벽 윗면**. 구 자동타일의 북쪽 벽 'top' 과 구분하려고 v2 타일셋은 `quarter: true` 또는 `wallHeightTiles` 가 있을 때 이 뜻으로 읽는다.
+- `walls.stacking`·`topAboveFront`·`left/right/bottom/corner_*`(경계 가장자리)·`stoneSet`(엄폐 담)·`floorShadows`·`tileLights` 는 정식 키. `bigProps`·`emissiveColors` 는 예약(시스템 미사용).
+- `light.flicker` = `{ "amp": 0~1, "hz": n }` (숫자면 amp 로 간주). `light.offset` = `[x, y]` 도트 단위, 정식.
+- 새 인덱스는 **40번부터**(roomFloors 23~38 과 겹치지 않게).
+- 신규 `roomFloorMix`: 0~1, 바탕 판석에 방 종류 바닥(`roomFloors.*`)을 섞는 비율. 없으면 0.06.
+- 타일셋 소품 Y 정렬(`pivot`·`occludeAbove`) 여부는 미정 — 다음 인터뷰.
