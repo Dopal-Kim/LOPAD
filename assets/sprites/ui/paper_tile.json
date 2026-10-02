@@ -4,6 +4,6 @@
  "width": 64,
  "height": 64,
  "seamless": true,
- "colors": "paper G09 base, G08 shade/fibre, G10 lighter patches, stain 19 (2-3px clusters)",
- "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
+ "colors": "sepia page S3 base, S2 shade/fibre, S4 lighter patches (sparse), deep dots S1/S0 (2-3px clusters, no accent)",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
 }

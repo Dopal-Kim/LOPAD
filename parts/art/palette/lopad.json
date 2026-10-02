@@ -246,6 +246,30 @@
  "notes": [
   "무채색 16 은 모든 층에서 고정. 강조 램프 12 는 층 진입 시 그 층의 ramp 로 교체(인덱스 16~27).",
   "피·불꽃·발광 등 모든 유채색은 현재 층의 강조 램프만 쓴다 (고정 포인트색 없음).",
-  "주인공은 무채색 + 강조 램프 2칸 이내(glow, base)만 쓴다."
- ]
+  "주인공은 무채색 + 강조 램프 2칸 이내(glow, base)만 쓴다.",
+  "UI 세피아 램프 6칸(ui.ramp)은 UI 키트 전용. 캐릭터·적·보스·무기·이펙트·바닥 타일에는 금지. 층 램프 스왑과 무관."
+ ],
+ "ui": {
+  "name": "sepia",
+  "scope": "UI only (round 36). Forbidden on characters, enemies, bosses, weapons, fx and floor tiles. Not swapped per floor.",
+  "decision": "2026-10-02 round-36 (도영: '더 어둡고 짙은 색의 일기장, 연갈색의 책')",
+  "ramp": [
+   "#2b221b",
+   "#413227",
+   "#5d4a3b",
+   "#78614f",
+   "#907863",
+   "#a58c77"
+  ],
+  "roles": [
+   "S0 leather shadow (cover shade, gutter)",
+   "S1 leather base (cover, worn edge, deep stain)",
+   "S2 page shadow (stain, fibre, crease)",
+   "S3 page base (sepia paper, L*43)",
+   "S4 page cut edge / lighter patch",
+   "S5 highlight (thread, lit edge, light cursor)"
+  ],
+  "lab": "L* 14 / 22 / 33 / 43 / 52 / 60, chroma 7~16, Lab hue ~62~68deg (low-saturation brown)",
+  "text_on_page": "G00 title/selected, G01 body, G02 unselected, G03 faint. G04 and lighter grays are NOT readable on S3."
+ }
 }

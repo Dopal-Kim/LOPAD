@@ -108,16 +108,16 @@
  "anchor": "ui",
  "notes": {
   "icon_hp": "bandage cross + blood (accent 20/21)",
-  "icon_gold": "voucher slip (names.gold) + amber seal",
+  "icon_gold": "voucher slip (names.gold, sepia paper S4) + amber seal",
   "icon_potion": "bottle of Zan liquor (names.potion)",
   "icon_souls": "battlefield soul wisp (names.souls)",
   "icon_sense": "eye + 3 ticks (stats.sense)",
-  "icon_save": "closed diary (savesLeft)",
+  "icon_save": "closed diary (savesLeft, sepia cover S1/S0, edge S4)",
   "icon_sound": "horn + waves",
   "icon_mute": "horn + cross",
   "icon_boss": "headquarters gate (bossUnlocked)",
   "icon_exit": "ascending stairs (exitOpen)",
   "mini_*": "8x8 single-color G12 room glyphs for minimap (dark map only): start/trial/rest/boss"
  },
- "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
 }

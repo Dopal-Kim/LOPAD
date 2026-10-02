@@ -7,6 +7,6 @@
   "x": 48,
   "y": 32
  },
- "accent": "wax seal 18/19/20/22",
- "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
+ "accent": "wax seal 18/19/20/22; cover sepia S1/S0/S2, page edges S4/S2",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
 }

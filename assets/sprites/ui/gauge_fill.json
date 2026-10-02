@@ -5,5 +5,5 @@
  "height": 8,
  "rows": "22 base_light, 21 base, 20 base_dark x3, 19 shadow1 x2, 18 shadow2 (round 33: one step darker)",
  "usage": "stretch horizontally (NEAREST). Floor-1 amber; system/UI swaps to current floor ramp",
- "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
 }

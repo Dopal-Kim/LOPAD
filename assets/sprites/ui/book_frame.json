@@ -1,0 +1,21 @@
+{
+ "image": "book_frame.png",
+ "kind": "nineslice",
+ "width": 96,
+ "height": 96,
+ "slice": {
+  "left": 32,
+  "right": 32,
+  "top": 32,
+  "bottom": 32
+ },
+ "inner": {
+  "left": 16,
+  "right": 16,
+  "top": 16,
+  "bottom": 16
+ },
+ "colors": "leather cover S1 (shade S0, lit edge S2), K outline, thread S4 + groove S0 at inset 4-5, page block shade S0 at 11, page edges S4/S2/S4 at 12-14, page S3 from 15; metal corner caps G05/G07/G03 + rivet",
+ "usage": "outer size = page size + 32. Put panel_paper (+paper_tile) at (16,16). Two-page spread: paper | spine(16) | paper. Minimum 64x64",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
+}

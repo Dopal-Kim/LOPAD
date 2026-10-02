@@ -5,5 +5,5 @@
  "height": 8,
  "rows": "G14, G13, G12 x3, G10 x2, G09",
  "usage": "luminance strip for multiplicative tint (setTint with ramp 23 light1 ≈ gauge_fill) or as-is for gray gauges (personality)",
- "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
 }
