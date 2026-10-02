@@ -4,6 +4,7 @@ import {
   COLORS,
   DEBUG,
   DEPTH,
+  ENEMY_FX,
   FEEL,
   PLACEHOLDER_UI,
   PROTOTYPE,
@@ -52,7 +53,15 @@ import type { StatKey, WeaponEvolution } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
 import { TileSkin, tileSkins } from '../world/tileskin';
 import { spriteLibrary } from '../systems/sprites';
-import { FX_ACTION, arrowFxId, facingOf, hitFrameOffsets, progressFrame, slashFxId } from '../systems/spriteDefs';
+import {
+  FX_ACTION,
+  arrowFxId,
+  facingOf,
+  hitFrameOffsets,
+  progressFrame,
+  radiusFitScale,
+  slashFxId,
+} from '../systems/spriteDefs';
 import { FxPool, type FxHandle } from '../systems/fx';
 import { HitStop, Shake, feelSettings, setFeel } from '../systems/feel';
 import { TrailRenderer } from '../systems/trail';
@@ -662,17 +671,32 @@ export class Game extends Phaser.Scene {
   };
 
   /**
-   * 보스 내리찍기 범위 피해: 충격파 연출(crush 시트 재사용, 없으면 링) + 흔들림 + 반경 안 플레이어 피해
+   * 보스 내리찍기 범위 피해: 충격파 연출 + 흔들림 + 반경 안 플레이어 피해.
+   * 46라운드 Q2: 보스 전용 `boss_slam` 시트(층 램프 + 코어, 보조색 없음)를 피벗 = 슬램 지점에 바닥 깊이로 재생하고
+   * JSON flash·shake 훅을 쓴다(흔들림은 이것 하나 — BOSS_WALL 은 생략). 시트가 없으면 링 + BOSS_WALL 흔들림
    */
   private areaHit = (x: number, y: number, radiusPx: number, attack: number): void => {
-    // 플레이어 대검 시트를 빌려 쓰므로 무기색 섬광·흔들림 훅은 끈다 (흔들림은 아래 BOSS_WALL)
-    if (this.fx.has('crush')) this.fx.play('crush', x, y, { depth: DEPTH.FX_GROUND, hooks: false });
-    else this.drawShockwave(x, y, radiusPx);
-    this.shake.add(this.time.now, FEEL.SHAKE.BOSS_WALL.PX, FEEL.SHAKE.BOSS_WALL.MS);
+    const id = ENEMY_FX.SLAM_ID;
+    const def = this.fx.sheet(id);
+    const fxScale = radiusFitScale(radiusPx, def?.hitRadiusPx ?? ENEMY_FX.SLAM_BASE_RADIUS_PX);
+    const handle = this.fx.has(id) ? this.fx.play(id, x, y, { depth: DEPTH.FX_GROUND, scaleMult: fxScale }) : null;
+    if (!handle) {
+      this.drawShockwave(x, y, radiusPx);
+      this.shake.add(this.time.now, FEEL.SHAKE.BOSS_WALL.PX, FEEL.SHAKE.BOSS_WALL.MS);
+    }
     const c = this.player.body.center;
     const d = Phaser.Math.Distance.Between(x, y, c.x, c.y);
     const hit = d <= radiusPx + this.player.body.halfWidth;
-    this.debugLastSlam = { x, y, radiusPx, attack, hit, time: this.time.now };
+    this.debugLastSlam = {
+      x,
+      y,
+      radiusPx,
+      attack,
+      hit,
+      time: this.time.now,
+      fx: handle ? handle.sprite.texture.key : 'ring',
+      fxScale: handle ? handle.sprite.scaleX : null,
+    };
     if (!hit) return;
     const source = d > 0 ? { dirX: (c.x - x) / d, dirY: (c.y - y) / d } : undefined;
     this.player.takeHit(attack, this.time.now, source);

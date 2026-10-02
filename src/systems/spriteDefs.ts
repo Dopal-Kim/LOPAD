@@ -81,6 +81,8 @@ export interface SheetJson {
   followsPlayer?: boolean;
   /** 표시 배율 (숫자면 기본 배율, "allowed" 같은 문자열은 '호출 쪽이 배율을 정해도 됨' 메모 → 1) */
   scale?: number | string;
+  /** 시트가 그린 판정 반경 px (boss_slam: 40). `scale: "allowed"` 시트의 배율 기준 */
+  hitRadiusPx?: number;
   pivotNote?: string;
   /**
    * (시스템 제안, 계약 외) 예비 프레임이 앞에 있을 때 이 프레임이 spawn 시점에 오도록 그만큼 먼저 재생한다.
@@ -210,12 +212,13 @@ export const HIT_FX_IDS: readonly string[] = [
   'knock_dust',
   'player_hit',
 ];
-/** 적·보스 양상 시트 (35라운드 2단계): 예고 마커 3종(+43라운드 수렴 오라), 적 탄, 보스 부채꼴 탄, 총구 화염 */
+/** 적·보스 양상 시트 (35라운드 2단계): 예고 마커 3종(+43라운드 수렴 오라), 46라운드 보스 내리찍기 충격파, 적 탄, 보스 부채꼴 탄, 총구 화염 */
 export const ENEMY_FX_IDS: readonly string[] = [
   'telegraph_line',
   'telegraph_circle',
   'telegraph_cone',
   'telegraph_aura',
+  'boss_slam',
   'enemy_bullet',
   'boss_fan_shot',
   'muzzle_flash',
@@ -240,6 +243,17 @@ export function allFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] 
 /** JSON `scale` 이 양수 숫자면 그 값, 아니면 1 ("allowed" 메모 등) */
 export function sheetScale(def: Pick<SheetJson, 'scale'>): number {
   return typeof def.scale === 'number' && def.scale > 0 ? def.scale : 1;
+}
+
+/**
+ * `scale: "allowed"` 시트를 판정 반경에 맞추는 배율 (계약 §3.2 boss_slam: R / 기준 반경, 정수 배율만).
+ * 비율이 정수(1e-6 오차)이고 1 이상이면 그 값, 아니면 1 — 픽셀아트를 비정수로 늘리지 않는다
+ */
+export function radiusFitScale(radiusPx: number, baseRadiusPx: number): number {
+  if (!(radiusPx > 0) || !(baseRadiusPx > 0)) return 1;
+  const r = radiusPx / baseRadiusPx;
+  const n = Math.round(r);
+  return n >= 1 && Math.abs(r - n) < 1e-6 ? n : 1;
 }
 
 /** 이 열 이후 spawn 시점에 맞출 프레임 키 (43라운드: 휘두름 시트 f0 = 40ms 예비 프레임) */

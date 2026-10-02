@@ -465,7 +465,12 @@ export class Boss extends Mob {
     this.slamTarget.set(ctx.player.x, ctx.player.y);
     this.holdFacing(ctx, S.telegraphMs);
     this.clearMarker();
-    this.marker = ctx.telegraph.circle(this.slamTarget.x, this.slamTarget.y, S.radiusTiles * TILE, S.telegraphMs);
+    // 46라운드 Q3: 원은 착지점, 수렴 오라는 보스 히트박스 중심 (보스는 예고 동안 멈춰 있다)
+    const c = this.body.center;
+    this.marker = ctx.telegraph.circle(this.slamTarget.x, this.slamTarget.y, S.radiusTiles * TILE, S.telegraphMs, {
+      aura: true,
+      auraAt: { x: c.x, y: c.y },
+    });
     EventBus.emit(Events.BOSS_TELEGRAPH, { id: this.id, attack: 'slam' } satisfies BossTelegraphPayload);
   }
 

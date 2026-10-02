@@ -5,7 +5,9 @@
  * - `telegraph_circle` 64 진행도 6프레임(`progressDriven`), 피벗 중심, 기준 반지름 22 → scale = R/22.
  *   frame = min(5, floor(progress × 6)) — 바깥 점선 링이 범위 링으로 **닫히는** 그림이 시트에 있다.
  * - `telegraph_cone` 64 4방향 진행도 6프레임, 피벗 = 꼭짓점, 기준 반지름 27 → scale = R/27.
- * - `telegraph_aura` 64 4프레임 루프: 돌진·대기술 예고의 **수렴 오라**. 공격자 히트박스 중심에 붙어 `aim()` 으로 따라간다.
+ * - `telegraph_aura` 64 4프레임 루프: **수렴 오라**. 공격자 히트박스 중심에 붙어 `aim()` 으로 따라간다.
+ *   46라운드 Q3: 보스의 모든 예고(돌진·부채꼴·정렬 사격·내리찍기)에 붙이고, 일반 적은 결사병 돌진만. 내리찍기처럼 마커가
+ *   공격자와 떨어진 곳에 있으면 `auraAt` 으로 오라를 공격자 위치에 따로 두고, `aim()` 이 오라를 옮기지 않는다.
  * - 마감 `BOLD.FINAL_MS` 전에는 깜빡임이 `BOLD.FINAL_BLINK_DIV` 배 빨라진다(선 프레임·오라 애니·진행도 시트 알파·화살촉).
  * 전부 바닥 깊이(`DEPTH.FX_GROUND`), 예고 시간이 끝나면 제거(`durationMs`). 시트가 없으면 Graphics 점선(4px)·원(+ 닫히는 안쪽 원)·
  * 부채꼴·오라 원을 같은 주기로 깜빡인다. 핸들의 `aim()` 으로 예고 중 위치·방향을 따라가게 할 수 있다.
@@ -20,8 +22,10 @@ import { FX_ACTION, facingOf, frameDurations, frameIndices, progressFrame, type 
 export type TelegraphKind = 'line' | 'circle' | 'cone';
 
 export interface TelegraphOptions {
-  /** 공격자 위치(선 시작·부채꼴 꼭짓점)에 수렴 오라 (돌진·대기술) */
+  /** 공격자 위치(선 시작·부채꼴 꼭짓점·원 중심)에 수렴 오라 (46라운드 Q3: 보스 예고 전부 + 결사병 돌진) */
   aura?: boolean;
+  /** 오라를 마커와 다른 곳(공격자)에 둔다 (내리찍기: 원 = 착지점, 오라 = 보스). `aim()` 은 이 오라를 옮기지 않는다 */
+  auraAt?: { x: number; y: number };
 }
 
 export interface TelegraphHandle {
@@ -57,6 +61,8 @@ interface Marker {
   tip?: Phaser.GameObjects.Graphics;
   closing?: Phaser.GameObjects.Graphics;
   aura?: Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics;
+  /** 오라가 마커와 떨어져 있음 (auraAt) → aim() 이 옮기지 않는다 */
+  auraDetached?: boolean;
   /** 마감 직전(가속) 구간 */
   final: boolean;
 }
@@ -116,12 +122,12 @@ export class TelegraphFx {
     m.tip = this.makeTip();
     this.redraw(m);
     this.placeTip(m, x, y);
-    if (opts.aura) m.aura = this.makeAura(x, y);
+    this.attachAura(m, x, y, opts);
     return this.handle(m);
   }
 
   /** 원: 중심 (x, y), 반지름 radiusPx */
-  circle(x: number, y: number, radiusPx: number, durationMs: number): TelegraphHandle {
+  circle(x: number, y: number, radiusPx: number, durationMs: number, opts: TelegraphOptions = {}): TelegraphHandle {
     const m = this.roundMarker('circle', x, y, radiusPx, durationMs, 0, 'down');
     if (!m.progress) {
       // 플레이스홀더 닫히는 원: 남은 시간 비율로 반지름이 줄어드는 안쪽 원 (시트는 그림에 들어 있다)
@@ -131,6 +137,7 @@ export class TelegraphFx {
         .setPosition(x, y);
       this.drawClosing(m, 1);
     }
+    this.attachAura(m, x, y, opts);
     return this.handle(m);
   }
 
@@ -148,12 +155,12 @@ export class TelegraphFx {
     opts: TelegraphOptions = {},
   ): TelegraphHandle {
     if (Phaser.Math.RadToDeg(halfAngleRad) * 2 > ENEMY_FX.CONE_MAX_SPREAD_DEG)
-      return this.circle(x, y, radiusPx, durationMs);
+      return this.circle(x, y, radiusPx, durationMs, opts);
     const dir = facingOf(Math.cos(angle), Math.sin(angle), 'down');
     const m = this.roundMarker('cone', x, y, radiusPx, durationMs, halfAngleRad, dir);
     m.angle = angle;
     if (m.obj instanceof Phaser.GameObjects.Graphics) m.obj.setRotation(angle);
-    if (opts.aura) m.aura = this.makeAura(x, y);
+    this.attachAura(m, x, y, opts);
     return this.handle(m);
   }
 
@@ -325,6 +332,14 @@ export class TelegraphFx {
     return m;
   }
 
+  /** opts.aura 면 수렴 오라를 마커 기준점(x, y) 또는 opts.auraAt 에 붙인다 */
+  private attachAura(m: Marker, x: number, y: number, opts: TelegraphOptions): void {
+    if (!opts.aura) return;
+    const at = opts.auraAt;
+    m.aura = this.makeAura(at?.x ?? x, at?.y ?? y);
+    m.auraDetached = Boolean(at);
+  }
+
   /** 수렴 오라: telegraph_aura 시트(루프, 배율 AURA_SCALE) → 없으면 Graphics 원 */
   private makeAura(x: number, y: number): Marker['aura'] {
     const B = ENEMY_FX.BOLD;
@@ -410,7 +425,7 @@ export class TelegraphFx {
         if (!m.alive) return;
         m.obj.setPosition(x, y);
         m.closing?.setPosition(x, y);
-        m.aura?.setPosition(x, y);
+        if (!m.auraDetached) m.aura?.setPosition(x, y);
         if (angle !== undefined && m.kind !== 'circle') {
           m.angle = angle;
           if (m.kind === 'line') m.obj.setRotation(angle);

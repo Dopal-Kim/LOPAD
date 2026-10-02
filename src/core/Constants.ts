@@ -395,8 +395,15 @@ export const ENEMY_FX = {
   /** 총구 화염 위치: 사수 바디 중심에서 바라보는 방향으로 전방·위 (아트 JSON pivotNote ±8px, -2px) */
   MUZZLE_FORWARD_PX: 8,
   MUZZLE_UP_PX: 2,
-  /** 내리찍기 충격파 플레이스홀더(crush 시트가 없을 때) 링 지속 */
+  /** 내리찍기 충격파 플레이스홀더(boss_slam 시트가 없을 때) 링 지속 */
   SLAM_RING_MS: 260,
+  /**
+   * 보스 내리찍기 충격파 시트 (46라운드 Q2, 계약 §3.2): 96×96 피벗 = 슬램 지점. 층 램프 + 코어만(보조색 없음)이라
+   * JSON flash·shake 훅을 그대로 쓴다(이때 BOSS_WALL 흔들림은 생략). 배율 = 판정 반경 / 기준 반경(JSON hitRadiusPx,
+   * 없으면 SLAM_BASE_RADIUS_PX) 이 정수일 때만, 아니면 1
+   */
+  SLAM_ID: 'boss_slam',
+  SLAM_BASE_RADIUS_PX: 40,
   /** 소환 위치: 보스 바디 반폭 + 이 거리(px) 양옆 */
   SUMMON_GAP_PX: 12,
   /** 수렴 오라 시트 (43라운드 신규, 없으면 Graphics 원) */
@@ -497,8 +504,8 @@ export const TRAVERSAL = {
   SPRINT_DUST: {
     SHEET: 'dash_dust',
     INTERVAL_MS: 140,
-    SCALE_MULT: 0.5,
-    ALPHA: 0.6,
+    SCALE_MULT: 0.75, // 45라운드 Q11 (0.5 → 0.75)
+    ALPHA: 0.85, // 45라운드 Q11 (0.6 → 0.85)
     /** 시트 없을 때 점 반지름·지속·색 (넉백 먼지 G7) */
     DOT_RADIUS: 1.5,
     DOT_MS: 220,

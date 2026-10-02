@@ -62,7 +62,7 @@ export interface FxPlayOptions {
   tintFill?: boolean;
   /** JSON `trail` 이 따라갈 궤적 (베기 호 등). 없으면 스프라이트 위치(앵커가 player_pivot 이면 몸 중심) */
   trailSource?: () => { x: number; y: number } | null;
-  /** false 면 JSON flash·shake·trail 훅을 쓰지 않는다 (보스가 플레이어 시트를 빌려 쓸 때) */
+  /** false 면 JSON flash·shake·trail 훅을 쓰지 않는다 (달리기·워프 먼지처럼 반복·보조 재생) */
   hooks?: boolean;
   /** 시트 배율에 곱하는 배율 (45라운드 달리기 먼지: dash_dust 를 작게). 기본 1 */
   scaleMult?: number;

@@ -85,7 +85,7 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
     const ids = fxSheetIds(weapons);
     expect(ids).toEqual(['katana_slash', 'iai', 'wide', 'zangetsu', 'batto']);
     const all = allFxSheetIds(weapons);
-    for (const id of [...SECONDARY_FX_IDS, 'hit_burst', 'telegraph_aura', 'heavyarrow_hit', 'wide'])
+    for (const id of [...SECONDARY_FX_IDS, 'hit_burst', 'telegraph_aura', 'boss_slam', 'heavyarrow_hit', 'wide'])
       expect(all).toContain(id);
     expect(new Set(all).size).toBe(all.length);
     expect(fxDepthHint({ depth: 'below' })).toBe('below');
@@ -132,6 +132,13 @@ describe('sprite defs: 프레임 시작 시각·국면 애니 키 (결정 로그
     const { sheetScale, fxImpactFrame, hitFrameOffsets, progressFrame } = await import('./spriteDefs');
     expect(sheetScale({ scale: 'allowed' })).toBe(1);
     expect(sheetScale({ scale: 2 })).toBe(2);
+    // 46라운드 boss_slam: 판정 반경 / 기준 반경 40 이 정수일 때만 그 배율
+    const { radiusFitScale } = await import('./spriteDefs');
+    expect(radiusFitScale(40, 40)).toBe(1);
+    expect(radiusFitScale(80, 40)).toBe(2);
+    expect(radiusFitScale(56, 40)).toBe(1);
+    expect(radiusFitScale(20, 40)).toBe(1);
+    expect(radiusFitScale(40, 0)).toBe(1);
     expect(sheetScale({})).toBe(1);
     // 휘두름 시트(attack_frame2): f0 = 40ms 예비 → 타격 프레임 1. 다른 spawn 은 0, impactFrame 이 있으면 우선
     expect(fxImpactFrame({ spawn: 'attack_frame2', frames: 5 })).toBe(1);
