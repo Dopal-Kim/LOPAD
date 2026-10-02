@@ -188,9 +188,10 @@ export class Game extends Phaser.Scene {
     this.bossName = null;
     const floor = gameState.stageIndex + 1;
     // 47라운드: 구조물을 소품보다 먼저 배치하고 그 칸은 소품에서 뺀다. ?structures=all 이면 이 층 종류 전부(데모·검증)
+    // 데모 배포본은 빌드 시 VITE_DEMO_STRUCTURES=all 로 같은 효과(주소 옵션을 붙일 수 없어서, 47라운드 데모 결정)
     const urlParams = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
     const structurePlan = planStructures(layout, gameState.stageId, gameState.floorSeed, {
-      forceAll: urlParams.get('structures') === 'all',
+      forceAll: urlParams.get('structures') === 'all' || import.meta.env.VITE_DEMO_STRUCTURES === 'all',
     });
     this.world = new TileWorld(
       this,
