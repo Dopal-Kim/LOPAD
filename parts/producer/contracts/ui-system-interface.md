@@ -317,3 +317,21 @@ interface UiRoute {
 
 ### 10.4 카메라
 - 게임 월드 카메라 zoom 2(탄생 연출 중 일시 확대). UI 씬은 영향 없음. `UiInteractable.screen` 등 화면 좌표는 계속 캔버스 픽셀(960×540)로 준다.
+
+## 11. 49라운드 추가 (무기 자원·위치 정보·음소거 이동·무기 시험장)
+결정: `decisions/2026-10-02-round-49-playtest2.md`. 타입은 `src/contract/ui.ts` 에 커밋됨.
+
+### 11.1 무기 자원 (`UiSnapshot.resource: UiWeaponResource | null`)
+- 칼·대검 = `stamina`(기력), 활 = `ammo`(화살 탄창, 비면 장전 `reloading` + `progress`), 단검 = `heat`(과열: 연격이 이어질수록 가열·공격속도 상승, 최대에서 `overheat` 후 냉각 `progress`, `stage` = 가열 단계).
+- UI 는 HUD 에 무기 아래 게이지로 그린다(종류별 모양 다르게: 기력 막대 · 화살 칸 · 열 게이지). 시스템은 값만 준다.
+
+### 11.2 위치 정보
+- `UiRouteNode.region`(지역 이름)·`desc`(설명 한두 줄, 자리표시) 추가. 1층 지역 흐름: 여정(황무지·전장) → 성문 → 외곽 거리 → 양조 구역 → 지배자의 연회장.
+
+### 11.3 키 재배정
+- **M = 지도 + 현재 위치·위치 정보** (UI 가 읽음). Tab 은 같은 지도(보조). 시스템은 M 을 더 이상 음소거로 쓰지 않는다.
+- 음소거는 Esc(일시정지) 메뉴의 설정 항목 → `uiCommands.setMuted(bool)`, 상태는 `UiSnapshot.muted`.
+- 노드 선택 확정 전 UI 가 "넘어가시겠습니까?" 확인을 띄우고, 예일 때만 `chooseNode` 를 부른다(시스템 변경 없음).
+
+### 11.4 무기 시험장
+- 타이틀에서 `uiCommands.startWeaponLab()` → 시스템 씬 `WeaponLab`. 무기·진화 갈래 고르기는 기존 메뉴 흐름(`MENU_OPEN` id `lab`·`labBranch` → `select`)으로, UI 는 일반 메뉴처럼 그린다. 시험장 안에서 `UiSnapshot.lab = true`(UI 는 노드 지도·층 표시 대신 '무기 시험장' 표시). 시험장 안 열기 키는 시스템이 정해 계약 README 에 적는다(임시 제안: L).

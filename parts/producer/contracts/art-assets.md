@@ -74,3 +74,24 @@
 
 ### 6.5 노드 지도 아이콘 (UI 가 사용, 승인 #18)
 - `ui/node_icons.png/json`: 아이콘 32×32, 1행 프레임 순서 고정 = `journey, battle, shop, rest, event, boss`(6), 상태는 별도 행 2개 추가(행 0 = 기본, 행 1 = 지나옴(식음), 행 2 = 잠김(흐림)). 색은 UI 세피아 + 현재 층 강조 1점(UI 키트 규칙). JSON 메모 `order`.
+
+## 7. 49라운드 추가 (무기 휴대·동작 강화·전장 탄생·지역 타일·세트 배치)
+범위 1층 우선(2층은 같은 틀을 이어서). 기존 규약(행 = down/up/left/right, 피벗 (8,23), 무기 오버레이 겹침 §3.1·§6.1)을 따른다.
+
+### 7.1 무기 휴대 (상시 표시)
+- 휴대 위치: **칼 = 허리 칼집 · 대검 = 등 · 단검 = 손(역수) · 활 = 손**.
+- 시트: `weapons/<w>_carry_<action>` (action = idle·walk·dash, 몸 시트 `player_<action>` 과 같은 프레임 수·ms, 4방향, 48×48 피벗 (24,39) / 대검 64×64 (32,47)). JSON `depth` 를 방향·프레임별로(`below`/`above`).
+- 뽑기·넣기: 칼 `weapons/katana_draw`·`katana_sheathe` + 몸 `player/player_katana_draw`·`_sheathe`, 대검 `greatsword_draw`·`_sheathe`(두 손으로 등에서 끌어냄). 단검·활은 없음. 시스템은 공격 시작 시 draw, 일정 시간 비전투·무공격이면 sheathe.
+
+### 7.2 동작 강화
+- 대검: 두 손 큰 휘두름으로 `greatsword_combo1~3` 재제작(몸이 크게 비틀리고 무게 중심 이동, 휘두른 뒤 자세 회복 프레임 포함). **내리찍기** `player_greatsword_slam` + `weapons/greatsword_slam` + `fx/greatsword_slam`(머리 위로 들어 → 짧은 도약 → 내려찍음, JSON `leapFrames`·`impactFrame`). **대쉬 공격** `player_greatsword_dashslash`(달려들며 크게 한 번 휘두르고 멈춰 자세 잡음, `recoverFrames`).
+- 칼: 발도(칼집에서 뽑으며 베기) 동작을 1타에, 납도 동작 추가.
+- 단검: 가열 단계별 이펙트 변형 `fx/dagger_combo<n>_heat<k>`(k = 1·2·3, 더 밝고 길게) 또는 JSON 메모로 틴트 지시.
+- 활: 장전 동작 `player_bow_reload`·`weapons/bow_reload`.
+
+### 7.3 지역 타일 (1층) · 세트 배치
+- `tiles/stage1_<region>` (region = `waste`(황무지·전장) · `gate`(성문) · `outer`(외곽 거리) · `brewery`(양조 구역) · `hall`(지배자의 연회장)), **인덱스 표 v3 그대로**. 기존 `tiles/stage1` 은 폴백.
+- 실내 느낌 금지: 하늘이 트인 거리. 인덱스 5·6(벽 정면·윗면)은 지역에 맞게 담·잔해 더미·건물 앞면·술통 더미 등으로, 7(void)는 바깥 원경 색.
+- 세트 배치 소품: `structures/set_<region>_<name>` (§5 규약) — 구조물을 감싸는 주변 장식(노점 천막·광장 바닥 문양·모닥불 둘레 돌·술통 더미 등). 시스템이 노드 중앙 세트 배치에 사용.
+- 전장 탄생: `player/player_birth` 를 **혼불(영혼)이 모여 형체가 되는** 버전으로 재제작(같은 규격 §6.3), `fx/soul_wisp`(떠다니는 혼불 루프), 전장 소품 `structures/battlefield_*`(부러진 무기 꽂힘·찢긴 깃발·쓰러진 병사 흔적·허수아비 `dummy`·튜토리얼 표식 `tutorial_sign`).
+- 노드 아이콘: `ui/node_icons` 의 journey 열을 "앞으로 나아가는 길"(계단 아님)로 교체.

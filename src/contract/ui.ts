@@ -61,6 +61,10 @@ export interface UiRouteNode {
   /** 다음 단계로 이어지는 노드 id */
   links: string[];
   state: UiNodeState;
+  /** 49라운드: 지역 이름 (예: '성문', '외곽 거리') — M 지도 위치 정보 (계약 §11.2) */
+  region?: string;
+  /** 49라운드: 장소 설명 한두 줄 (자리표시) */
+  desc?: string;
 }
 export interface UiRoute {
   floor: number;
@@ -149,7 +153,25 @@ export interface UiMenuLine {
 export type UiStructureMenuId = 'cards' | 'exchange' | 'pawn' | 'grave' | 'ledger' | 'counter';
 
 /** 'evolve' 는 27라운드 개성 3지선다, 'ending' 은 23라운드 엔딩 2지선다 (계약 추가분, 승인 대기) */
-export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending' | UiStructureMenuId;
+/** 49라운드: 무기 시험장 메뉴 (계약 §11.4) */
+export type UiLabMenuId = 'lab' | 'labBranch';
+export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending' | UiStructureMenuId | UiLabMenuId;
+
+/** 49라운드: 무기 자원 게이지 (계약 §11.1) — 칼·대검 기력, 활 탄창, 단검 과열 */
+export type UiResourceKind = 'stamina' | 'ammo' | 'heat';
+export interface UiWeaponResource {
+  kind: UiResourceKind;
+  /** 표시 이름 (자리표시: 기력 / 화살 / 열기) */
+  label: string;
+  value: number;
+  max: number;
+  /** ok · low(부족) · exhausted(기력 바닥) · reloading(장전 중) · overheat(과열) */
+  state: 'ok' | 'low' | 'exhausted' | 'reloading' | 'overheat';
+  /** 장전·과열 냉각 진행도 0..1 (해당 없으면 생략) */
+  progress?: number;
+  /** 단검 과열 단계 등 보조 숫자 (예: 연격 가열 단계 0..3) */
+  stage?: number;
+}
 
 export interface UiMenu {
   id: UiMenuId;
@@ -355,6 +377,12 @@ export interface UiSnapshot {
   statuses: UiStatus[];
   /** 48라운드: 노드 지도. 노드 지도를 쓰지 않는 층이면 null (계약 §10.1) */
   route: UiRoute | null;
+  /** 49라운드: 무기 자원 게이지. 없으면 null (계약 §11.1) */
+  resource: UiWeaponResource | null;
+  /** 49라운드: 음소거 상태 (계약 §11.3) */
+  muted: boolean;
+  /** 49라운드: 무기 시험장 안이면 true (계약 §11.4) */
+  lab: boolean;
 }
 
 export interface UiResult {
@@ -409,6 +437,8 @@ interface SystemImpl {
   getText: () => UiText;
   warpTo: (roomId: string) => boolean;
   chooseNode: (id: string) => boolean;
+  setMuted: (muted: boolean) => void;
+  startWeaponLab: () => void;
 }
 
 let impl: SystemImpl | null = null;
@@ -444,6 +474,9 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   interactable: null,
   statuses: [],
   route: null,
+  resource: null,
+  muted: false,
+  lab: false,
 };
 
 export const uiCommands = {
@@ -492,6 +525,14 @@ export const uiCommands = {
   /** 48라운드: 다음 노드 선택 (계약 §10.2). available 노드만 true */
   chooseNode(id: string): boolean {
     return impl?.chooseNode(id) ?? false;
+  },
+  /** 49라운드: 음소거 (Esc 메뉴 설정에서, 계약 §11.3). M 키는 더 이상 음소거가 아니다 */
+  setMuted(muted: boolean): void {
+    impl?.setMuted(muted);
+  },
+  /** 49라운드: 무기 시험장 진입 (타이틀에서, 계약 §11.4) */
+  startWeaponLab(): void {
+    impl?.startWeaponLab();
   },
 };
 
