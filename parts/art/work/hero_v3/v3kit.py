@@ -55,6 +55,7 @@ class Rig3:
         self.dots = []      # (x, y, color) 셰이딩 뒤 덧칠
         self.spill = []     # (x, y, radius) 혼불 빛 번짐(주변 몸 픽셀을 따뜻한 어둠으로)
         self.spill_cells = []   # 균열 경로 픽셀 — 경로를 따라 1.5px 안 A18, 2.5px 안 A17
+        self.holes = set()      # 강제로 비우는 픽셀 — 재가 부스러져 떨어진 가장자리 결손
 
     # --- 마스크 그리기 ------------------------------------------------------
     def _new(self, part):
@@ -104,6 +105,9 @@ class Rig3:
                 for x in range(W):
                     if m[x, y] > 127:
                         row[x] = i
+        for x, y in self.holes:
+            if 0 <= x < W and 0 <= y < H:
+                owner[y][x] = -1
         level = [[0] * W for _ in range(H)]
         # 1) 법선 셰이딩
         for i, p in enumerate(self.parts):
@@ -217,7 +221,7 @@ class Rig3:
                         po[x, y] = A[17]
         # 7) 덧칠
         for x, y, c in self.dots:
-            if 0 <= x < W and 0 <= y < H:
+            if 0 <= x < W and 0 <= y < H and (x, y) not in self.holes:      # 결손 칸엔 덧칠하지 않음(떠 있는 점 방지)
                 po[x, y] = c
         return out
 

@@ -7,6 +7,7 @@
   preview_idle.gif / preview_walk.gif          실제 크기(64×96 도트 1배 = 1920×1080 내부 렌더에서의 크기), 4방향 나란히
   preview_idle_x3.gif / preview_walk_x3.gif    같은 것 3배(검수 편의)
   preview_mock_lit.png         외곽 v2 바닥(32px 타일 → 2배 표시) 위 1배 합성 + 조명, 기존 v2 32×48(2배 표시)과 비교
+  preview_compare_v1_v2.png    1차본(ref_v1/ = 커밋 2710d7d 출력 사본)과 2차본 비교
   stats.json                   색 수 · 반투명 · 프레임 정보
 사용: python3 parts/art/work/hero_v3/build.py
 """
@@ -71,7 +72,8 @@ def write_sheet(act, frames_by_dir):
         "pixelScale": 0.5,
         "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
         "emissiveColors": [kit.tohex(c) for c in (kit.A[23], kit.A[25], kit.A[26])],
-        "source": "parts/art/work/hero_v3/build.py (52라운드 Q7·Q8 1단계 검수용 초안)",
+        **({"stride": hero.STRIDE[act], "strideNote": "계약 §12(52라운드 Q10): 한 주기(8프레임) 동안 발이 땅을 미는 거리(도트) / 주기 ms. 시스템이 이동 속도에 맞춰 재생 속도 조절"} if act in hero.STRIDE else {}),
+        "source": "parts/art/work/hero_v3/build.py (52라운드 Q10 1단계 2차 검수용 초안)",
         "note": "v3 2배 밀도 — 64×96 도트, 화면상 32×48 (계약 §11). 개념 gemini/concept_char/hero3_b. 검수 전 초안: assets 미반영.",
     }
     with open(os.path.join(SHEETS, "player_%s.json" % act), "w", encoding="utf-8") as f:
@@ -144,6 +146,28 @@ def mock(allf):
     out.save(os.path.join(OUTDIR, "preview_mock_lit.png"))
 
 
+def compare_v1(allf):
+    """1차본(ref_v1/, 커밋 2710d7d 출력 사본)과 2차본을 같은 프레임끼리 나란히 — 대기 0 · 걷기 2 · 걷기 6, 4방향, 2배."""
+    k, pad = 2, 8
+    v1 = {a: Image.open(os.path.join(OUTDIR, "ref_v1", "player_%s_v1.png" % a)) for a in ("idle", "walk")}
+    picks = [("idle", 0), ("walk", 2), ("walk", 6)]
+    W = 70 + len(picks) * 2 * (FW * k + pad) + len(picks) * 12
+    H = 30 + len(hero.DIRS) * (FH * k + pad)
+    out = Image.new("RGBA", (W, H), BG)
+    d = ImageDraw.Draw(out)
+    for j, dname in enumerate(hero.DIRS):
+        y = 30 + j * (FH * k + pad)
+        label(d, 6, y + FH * k // 2 - 8, dname)
+        for i, (act, fi) in enumerate(picks):
+            x = 70 + i * (2 * (FW * k + pad) + 12)
+            if j == 0:
+                label(d, x, 6, "%s %d: 1차 | 2차" % (act, fi))
+            old = v1[act].crop((fi * FW, j * FH, (fi + 1) * FW, (j + 1) * FH))
+            out.alpha_composite(old.resize((FW * k, FH * k), Image.NEAREST), (x, y))
+            out.alpha_composite(allf[act][dname][fi].resize((FW * k, FH * k), Image.NEAREST), (x + FW * k + pad, y))
+    out.save(os.path.join(OUTDIR, "preview_compare_v1_v2.png"))
+
+
 def stats(allf):
     allc = set()
     partial = False
@@ -172,6 +196,7 @@ def main():
         gif(allf, act, 1, "preview_%s.gif" % act)
         gif(allf, act, 3, "preview_%s_x3.gif" % act)
     mock(allf)
+    compare_v1(allf)
     s = stats(allf)
     print("colors", s["colors"], "/ 30 · semiTransparent", s["semiTransparent"], "· frames", s["frames"])
 

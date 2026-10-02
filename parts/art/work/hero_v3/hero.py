@@ -1,13 +1,14 @@
-"""주인공 v3 '혼불이 새는 재 껍데기 망령' — 64×96, 피벗 (32,92) (52라운드 Q6~Q8, 1단계 검수용).
+"""주인공 v3 '혼불이 새는 재 껍데기 망령' — 64×96, 피벗 (32,92) (52라운드 Q6~Q10, 1단계 2차 검수용).
 
 개념: parts/art/work/gemini/concept_char/hero3_b.jpg (확정). 생성 이미지 픽셀은 쓰지 않는다.
+Q10 반영: 매끈한 공 머리 → 금 간 두개골(관자놀이 패임·광대 돌출·턱각·재가 부스러진 가장자리 결손),
+         직립 상자 몸 → 숙인 전투 자세(말린 어깨·앞으로 빠진 목·굽힌 팔꿈치·가슴/허리 비틀림),
+         걷기 = 무게 이동(골반 기울기·디딤발 쪽 몸 쏠림)·앞뒤 깊이 ±2.5·보폭 확대·천/혼불 2차 움직임 확대.
 해부학 좌우(화면 아님):
-  왼쪽  = 분노한 호박 눈빛 · 왼어깨 견갑 + 혼불 · 흉갑 조각(가슴 왼쪽) · 왼팔뚝 완갑 · 왼정강이 붕대
+  왼쪽  = 분노한 호박 눈빛 · 왼어깨 견갑 + 혼불 · 흉갑 조각 · 왼팔뚝 완갑 · 왼정강이 붕대
   오른쪽 = 꺼진 눈 · 오른어깨 뒤 화살 · 오른정강이 정강이받이 · 오른허리 일기장
-  가운데 = 가슴 균열 혼불(앞), 등 균열 혼불(뒤), 정수리 균열(머리 위 왼쪽)
-방향: down = 정면(해부 왼쪽이 화면 오른쪽) / up = 뒷면(해부 왼쪽이 화면 왼쪽) / left·right = 측면.
-빛은 언제나 화면 좌상단 — 측면 좌우는 거울이 아니라 다시 그린다(셰이딩도 다시 계산).
-비율: 머리 약 19px / 키 약 84px (≈1:4.4, 탑다운에서 머리·눈빛이 읽히도록).
+  가운데 = 가슴 균열 혼불(앞), 등 균열 혼불(뒤), 정수리 균열
+방향: down = 정면(해부 왼쪽이 화면 오른쪽) / up = 뒷면 / left·right = 측면(거울 아님, 셰이딩 재계산).
 """
 import math
 
@@ -17,26 +18,25 @@ FW, FH = 64, 96
 PIV = (32, 92)
 
 # ---- 팔레트 (색 예산 30, 52라운드 Q7) -------------------------------------
-ASH = [G[1], G[2], G[3], G[4], G[5], G[6], G[8]]   # 재 껍데기 몸 (본색 3 = G04)
-FACE = [G[1], G[1], G[2], G[3], G[4]]             # 그늘진 얼굴 — 무늬 없는 검정이 아니라 어두운 재(광대·턱이 읽힘)
-IRON = [SL[1], SL[2], SL[4], SL[6]]                # 갑옷 파편(어두운 녹슨 쇠 — 밝은 판금으로 읽히지 않게)
+ASH = [G[1], G[2], G[3], G[4], G[5], G[6], G[8]]   # 재 껍데기 몸 (본색 2~3)
+FACE = [G[1], G[1], G[2], G[3], G[4]]             # 그늘진 얼굴(어두운 재 — 뼈 윤곽은 읽힘)
+IRON = [SL[1], SL[2], SL[4], SL[6]]                # 갑옷 파편(어두운 청회 쇠 — Q10 현행 유지)
 CLOTH = [WD[1], WD[2], WD[3], WD[4]]               # 찢긴 허리천·끈·화살대
-BAND = [PL[0], PL[1], PL[2]]                       # 때 묻은 붕대(어둡게 — 흰 덩어리 방지)
+BAND = [PL[0], PL[1], PL[2]]                       # 때 묻은 붕대
 DIARY = [A[17], A[18], A[19], A[21]]               # 일기장 (층 램프 21 본색 — 바이블 4절)
 FIRE = {".": A[19], "r": A[21], "o": A[23], "O": A[25], "H": A[26]}
 EYE = [A[21], A[23], A[25], A[26]]
+LIMB_BANDS = ((0.93, 2), (0.80, 1), (0.30, 0), (0.0, -1), (-9, -2))
 
-# 골격 (정면 기준, dx = 해부 왼쪽 +)
-HEAD_Y, HEAD_RX, HEAD_RY = 17.0, 7.6, 8.8
-SH_Y = 35.0           # 어깨 관절
-HIP_Y = 58.0
+# 골격 상수 (숙인 전투 자세 — 엉덩이가 낮고 무릎이 굽음)
+HIP_Y = 61.0
 FOOT_Y = 89.0
 THIGH, SHIN = 16.0, 15.6
-UPPER, FORE = 13.6, 13.4
-HAND_Y = 61.0
-LIMB_BANDS = ((0.93, 2), (0.80, 1), (0.30, 0), (0.0, -1), (-9, -2))   # 팔다리: 몸통과 명도를 맞추려 빛 단계를 아낌
+UPPER, FORE = 13.2, 12.8
+STRIDE_A = 9.0          # 측면 발 앞뒤 진폭 → 한 주기 이동 = 4A = 36 도트
+CYCLE_MS = 800
 
-# 어깨 혼불 6모양 (아래가 발원점) — '작게 항상 깜빡임'(52라운드 Q6)
+# 어깨 혼불 6모양 (아래가 발원점)
 FLAMES = [
     ["  .  ", "  o  ", " oO  ", " oOo ", " rHr ", "  r  "],
     ["   . ", "  o  ", "  Oo ", " oOo ", " rHr ", "  r  "],
@@ -46,18 +46,37 @@ FLAMES = [
     [" .   ", "  o  ", " oOo ", " oHo ", " rOr ", "  r  "],
 ]
 
+# 두개골 윤곽 (정면, 머리 중심 기준 dx, dy; dx + = 해부 왼쪽) — 관자놀이 패임 · 광대 돌출 · 턱각 · 좁은 턱
+SKULL_FRONT = [(0, -10), (4, -9.6), (6.8, -7.6), (7.9, -4.4), (7.6, -1.2), (6.5, 0.8), (7.5, 3.0), (7.0, 5.2),
+               (5.9, 7.2), (3.6, 9.4), (1.4, 10.2), (-1.4, 10.2), (-3.6, 9.4), (-5.9, 7.2), (-7.0, 5.2), (-7.5, 3.0),
+               (-6.5, 0.8), (-7.6, -1.2), (-7.9, -4.4), (-6.8, -7.6), (-4, -9.6)]
+SKULL_BACK = [(0, -10), (4.2, -9.6), (7.0, -7.4), (8.0, -4), (7.6, 0), (6.6, 3.0), (5.6, 6.2), (3.8, 8.4), (-3.8, 8.4),
+              (-5.6, 6.2), (-6.6, 3.0), (-7.6, 0), (-8.0, -4), (-7.0, -7.4), (-4.2, -9.6)]
+# 얼굴 그늘 (이마뼈 M자 → 광대 안쪽 → 턱)
+FACE_FRONT = [(-6.4, 1.2), (-5.4, -1.4), (-2.6, -0.4), (0, 1.0), (2.6, -0.4), (5.4, -1.4), (6.4, 1.2), (6.0, 4.6),
+              (4.9, 7.0), (3.0, 9.0), (-3.0, 9.0), (-4.9, 7.0), (-6.0, 4.6)]
+# 옆얼굴 두개 (dx + = 앞) — 뒤통수 · 정수리 · 이마뼈 돌출 · 눈구멍 패임 · 광대 · 윗턱 · 턱 · 턱각
+SKULL_SIDE = [(-3, -9.4), (1.5, -9.8), (5, -7.6), (6.6, -4.2), (7.4, -1.6), (6.4, 0.4), (7.6, 2.4), (7.2, 4.6), (6.4, 6.0),
+              (6.2, 8.6), (4.4, 9.6), (1.6, 9.2), (-0.6, 7.4), (-2.6, 5.0), (-5.6, 2.6), (-7.4, -1.4), (-6.8, -5.6)]
+FACE_SIDE = [(2.6, -0.6), (6.4, -1.2), (7.0, 0.4), (7.4, 2.4), (7.0, 4.6), (6.2, 6.0), (6.0, 8.4), (4.2, 9.2), (2.2, 8.6),
+             (2.0, 5.0)]
+
 
 def P(name, ramp, base, **kw):
     return Part(name, ramp, base, **kw)
 
 
 def pose(**kw):
-    p = dict(bob=0, breath=0, head=0, tilt=0.0,
-             lift=(0, 0), step=(0.0, 0.0),        # 정면: (해부 왼, 오른)
-             hand=((0, 0), (0, 0)),               # 정면: 손 오프셋 (왼, 오른) / 측면: ((먼 손 x, 0), (가까운 손 x, 0))
+    p = dict(bob=0, breath=0, head=0,
+             shift=0.0,                 # 정면: 상체가 디딤발 쪽으로 쏠림(dx, 해부 왼쪽 +)
+             ptilt=0.0,                 # 정면: 골반 기울기(+ = 왼쪽 엉덩이 올라감)
+             stilt=0.0,                 # 정면: 어깨 기울기(+ = 왼어깨 내려감)
+             twist=0.0,                 # 정면: 가슴 비틀림(가슴 중심 dx)
+             lift=(0, 0), step=(0.0, 0.0),
+             hand=((0, 0), (0, 0)),
              sway=0.0, flame=0, lean=0.0, pulse=0,
-             foot=((0.0, 0.0), (0.0, 0.0)),       # 측면: (앞뒤 x, 들림) (먼 다리, 가까운 다리)
-             lean_body=0.0)
+             foot=((0.0, 0.0), (0.0, 0.0)),   # 측면: (앞뒤 x, 들림) (먼, 가까운)
+             lean_body=0.0, crouch=0.0)
     p.update(kw)
     return p
 
@@ -79,16 +98,32 @@ def draw_flame(R, x0, y0, variant, lean, rows=None):
                 R.dot(x0 + (c - 2) + sx, y0 - (h - 1 - r), FIRE[ch])
 
 
-def crack(R, pts, X, pulse=0, thick=(1, 0), spill=4.0):
-    """균열 혼불: 점 경로 → 중심선(23/25/26) + 한쪽 두께(21) + 주변 몸 빛 번짐."""
+def bite(R, cx, cy, r):
+    """재가 떨어져 나간 결손 — 원 안 픽셀을 비운다(셀아웃이 홈 둘레를 다시 감싼다)."""
+    for y in range(int(cy - r) - 1, int(cy + r) + 2):
+        for x in range(int(cx - r) - 1, int(cx + r) + 2):
+            if (x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2 <= r * r:
+                R.holes.add((x, y))
+
+
+def path_cells(pts, F):
+    """F(dx, y) -> (화면 x, 화면 y)."""
     seen = []
     for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
         n = int(max(abs(x1 - x0), abs(y1 - y0)))
         for k in range(n + 1):
             t = k / max(1, n)
-            c = (round(X(x0 + (x1 - x0) * t)), round(y0 + (y1 - y0) * t))
+            dx, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+            q = F(dx, y)
+            c = (round(q[0]), round(q[1]))
             if c not in seen:
                 seen.append(c)
+    return seen
+
+
+def crack(R, pts, F, pulse=0, thick=(1, 0), spill=True):
+    """균열 혼불: 중심선(23/25/26) + 한쪽 두께(21) + 경로를 따라 주변 몸 빛 번짐."""
+    seen = path_cells(pts, F)
     if spill:
         R.spill_cells.extend(seen)
     if thick != (0, 0):
@@ -97,21 +132,15 @@ def crack(R, pts, X, pulse=0, thick=(1, 0), spill=4.0):
     n = len(seen)
     for i, (x, y) in enumerate(seen):
         mid = 0.25 < i / n < 0.75
-        c = A[26] if (mid and pulse and i % 2 == 0) else (A[25] if mid else A[23])
-        R.dot(x, y, c)
+        R.dot(x, y, A[26] if (mid and pulse and i % 2 == 0) else (A[25] if mid else A[23]))
 
 
-def groove(R, pts, X, Y, hi=True):
-    """재 껍데기 금(어두운 홈 G01) + 홈 아래 오른쪽 가장자리 빛(G05) 한 칸씩 걸러."""
-    for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
-        n = int(max(abs(x1 - x0), abs(y1 - y0)))
-        for k in range(n + 1):
-            t = k / max(1, n)
-            dx, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
-            x, yy = round(X(dx)), round(Y(dx, y))
-            R.dot(x, yy, G[1])
-            if hi and k % 2 == 0:
-                R.dot(x + 1, yy + 1, G[5])
+def groove(R, pts, F, hi=True):
+    """재 껍데기 금: 어두운 홈 G01 + 홈 아래 가장자리 빛 G05(한 칸 걸러)."""
+    for k, (x, y) in enumerate(path_cells(pts, F)):
+        R.dot(x, y, G[1])
+        if hi and k % 2 == 0:
+            R.dot(x + 1, y + 1, G[5])
 
 
 # =============================================================================
@@ -119,142 +148,175 @@ def groove(R, pts, X, Y, hi=True):
 # =============================================================================
 def draw_front(p, back=False):
     R = Rig3(FW, FH)
-    m = -1 if back else 1                        # 해부 왼쪽(+dx) 의 화면 방향
+    m = -1 if back else 1
     X = lambda dx: 32 + m * dx                   # noqa: E731
-    b, br, hd, tilt = p["bob"], p["breath"], p["head"], p["tilt"]
+    b, br, hd = p["bob"], p["breath"], p["head"]
+    sh_, pt, st, tw = p["shift"], p["ptilt"], p["stilt"], p["twist"]
+    cr = p["crouch"]
 
-    def sy(dx, y):                               # 어깨 기울기·숨: 가슴 위쪽만
+    # 상체 좌표: 위로 갈수록 shift·twist 가 더 걸림 (허리 0 → 가슴 1) — 비틀림
+    def ux(dx, y):
+        k = max(0.0, min(1.0, (HIP_Y - y) / 24.0))
+        return X(dx + sh_ * (0.4 + 0.6 * k) + tw * k)
+
+    def uy(dx, y):
         t = 0.0
-        if y < 46:
-            t = (tilt if dx > 0 else -tilt) * min(1.0, abs(dx) / 15.0) - br * (46 - y) / 15.0
-        return y + b + t
+        if y < 47:
+            t = (st if dx > 0 else -st) * min(1.0, abs(dx) / 16.0) - br * (47 - y) / 15.0
+        elif y >= 52:
+            t = -(pt if dx > 0 else -pt) * min(1.0, abs(dx) / 10.0)      # 골반 기울기
+        return y + b + cr + t
+
+    U = lambda dx, y: (ux(dx, y), uy(dx, y))     # noqa: E731
 
     # --- 화살 (정면: 오른어깨 뒤에서 위·바깥으로 솟음 — 몸 뒤) -------------------
     if not back:
-        a0, a1 = (X(-11), sy(-11, 33)), (X(-19), sy(-19, 20))
-        R.capsule(P("arrow", CLOTH, 2, flat=True, rim=False, cast=False), [a0, a1], [0.6, 0.6])
-        R.poly(P("fletch", ASH, 5, flat=True, rim=False, cast=False),
-               [(X(-18.5), sy(-18.5, 21)), (X(-22), sy(-22, 15)), (X(-20.5), sy(-20.5, 21.5))])
-    # --- 다리 --------------------------------------------------------------
+        R.capsule(P("arrow", CLOTH, 2, flat=True, rim=False, cast=False), [U(-11, 36), U(-19.5, 23)], [0.6, 0.6])
+        R.poly(P("fletch", ASH, 5, flat=True, rim=False, cast=False), [U(-19, 24), U(-22.5, 18), U(-21, 24.5)])
+    # --- 다리 (벌린 전투 자세: 발 ±8, 무릎이 살짝 바깥으로 굽음) -------------------------
     for side, s in (("L", 1), ("R", -1)):
         li = 0 if side == "L" else 1
-        hip = (X(s * 5.2), HIP_Y + b)
-        fy = FOOT_Y + p["step"][li] - p["lift"][li]
-        foot = (X(s * 6.0), fy)
-        # 정면 무릎은 카메라 쪽으로 굽어 보이지 않는다 — 들림만큼 살짝 바깥·위로(IK 옆꺾임 = O다리 방지)
+        hip = (X(s * 5.4 + sh_ * 0.4), HIP_Y + b + cr - s * pt)
         lift = p["lift"][li]
-        knee = ((hip[0] + foot[0]) / 2 + m * s * 0.35 * lift, (hip[1] + foot[1]) / 2 - 0.3 * lift + 0.5)
+        fy = FOOT_Y + p["step"][li] - lift
+        foot = (X(s * 8.0), fy)
+        knee = ((hip[0] + foot[0]) / 2 + m * s * (1.4 + 0.4 * lift), (hip[1] + foot[1]) / 2 - 0.4 * lift)
         R.capsule(P("leg" + side, ASH, 2, group="leg" + side, soft=2.0, vgrad=0.82, bands=LIMB_BANDS), [hip, knee, foot], [4.4, 3.3, 2.5])
-        R.ellipse(P("foot" + side, ASH, 2, group="foot" + side, soft=1.2), foot[0] + m * s * 0.5, fy + 1.6, 4.2, 2.3)
-        sh, an = lerp(knee, foot, 0.18), lerp(knee, foot, 0.86)
+        R.ellipse(P("foot" + side, ASH, 2, group="foot" + side, soft=1.2), foot[0] + m * s * 0.6, fy + 1.6 + max(0, p["step"][li]) * 0.2, 4.3, 2.3 + max(0, p["step"][li]) * 0.2)
         if side == "R":
-            R.poly(P("greave", IRON, 2, soft=1.4), [(sh[0] - 3.4, sh[1] + 1), (sh[0] + 3.2, sh[1]), (an[0] + 2.6, an[1] - 4), (an[0] - 0.5, an[1] - 1.5), (an[0] - 3.0, an[1] - 4.5)])
+            a0, a1 = lerp(knee, foot, 0.22), lerp(knee, foot, 0.84)
+            R.poly(P("greave", IRON, 2, soft=1.4), [(a0[0] - 3.3, a0[1] + 1), (a0[0] + 3.1, a0[1]), (a1[0] + 2.5, a1[1] - 4), (a1[0] - 0.5, a1[1] - 1.5), (a1[0] - 3.0, a1[1] - 4.5)])
             R.ellipse(P("kneecap", IRON, 2, group="greave", soft=1.0), knee[0], knee[1] - 0.5, 2.6, 2.0)
         else:
-            R.capsule(P("shinband", BAND, 1, soft=1.0, rim=False), [lerp(knee, foot, 0.3), an], [3.2, 2.8])
+            q0, q1 = lerp(knee, foot, 0.3), lerp(knee, foot, 0.86)
+            R.capsule(P("shinband", BAND, 1, soft=1.0, rim=False), [q0, q1], [3.2, 2.8])
             for k in range(3):
-                q = lerp(lerp(knee, foot, 0.3), an, 0.2 + 0.3 * k)
+                q = lerp(q0, q1, 0.2 + 0.3 * k)
                 for ox in (-2, -1, 0):
                     R.dot(round(q[0]) + ox, round(q[1]) + (1 if ox == 0 else 0), PL[0])
-    # --- 몸통 (굽은 등: 승모가 높고 머리가 어깨선에 걸림) ----------------------
-    torso = [(-5.5, 27), (5.5, 27), (13, 31), (16.5, 35), (15.5, 43), (11, 50), (9.6, 57), (-9.6, 57), (-11, 50), (-15.5, 43), (-16.5, 35), (-13, 31)]
-    R.poly(P("torso", ASH, 2, group="body", soft=4.5, vgrad=0.78), [(X(dx), sy(dx, y)) for dx, y in torso])
-    # --- 허리천 (찢긴 천) — 한 박자 늦는 흔들림 sway ----------------------------
+    # --- 몸통: 숙여서 짧아 보이는 가슴 · 말려 올라간 승모 · 비틀린 허리 ------------------
+    torso = [(-5, 31), (5, 31), (11.5, 33.5), (15.6, 38), (15.6, 43), (12.8, 48.5), (9.8, 54), (9.0, 61), (-9.0, 61),
+             (-9.8, 54), (-12.8, 48.5), (-15.6, 43), (-15.6, 38), (-11.5, 33.5)]
+    R.poly(P("torso", ASH, 2, group="body", soft=4.5, vgrad=0.80), [U(dx, y) for dx, y in torso])
+    # --- 허리천 (찢긴 천) — 골반 기울기를 따르고, 단은 한 박자 늦게 흔들림 ----------------
     sw = p["sway"]
-    hem = [(11, 60), (10 + sw, 67), (7.5 + sw, 64.5), (5 + sw, 70), (1.5 + sw, 66), (-2 + sw, 69.5), (-5 + sw, 65), (-8 + sw, 69), (-10.5 + sw, 65), (-11, 60)]
-    R.poly(P("loin", CLOTH, 1, soft=1.8), [(X(-11), 54 + b), (X(11), 54 + b)] + [(X(dx), y + b) for dx, y in hem])
-    R.capsule(P("belt", CLOTH, 2, soft=0.8), [(X(-10.5), 54.5 + b), (X(10.5), 55 + b)], [1.3, 1.3])
-    # --- 일기장 (오른허리) ---------------------------------------------------
-    dx0 = -15.5 - 0.4 * sw
-    R.poly(P("diary", DIARY, 2, soft=1.0), [(X(dx0), 56 + b), (X(dx0 + 5.5), 55.5 + b), (X(dx0 + 5.5), 62.5 + b), (X(dx0), 63 + b)])
+    hem = [(10, 62), (9 + sw, 68.5), (6.5 + sw * 1.1, 66), (4.5 + sw * 1.2, 72), (1.5 + sw * 1.3, 67.5), (-1.5 + sw * 1.3, 71.5),
+           (-4 + sw * 1.2, 66.5), (-6.5 + sw * 1.1, 70.5), (-9 + sw, 66.5), (-10, 62)]
+    R.poly(P("loin", CLOTH, 0, soft=1.8), [U(-10, 57), U(10, 57)] + [(ux(dx, 57), uy(dx, 57) + (y - 57)) for dx, y in hem])
+    R.capsule(P("belt", CLOTH, 2, soft=0.8), [U(-9.8, 57.6), U(9.8, 57.6)], [1.2, 1.2])
+    # --- 일기장 (오른허리) — 천보다 반 박자 늦게 흔들림 -------------------------------------
+    dx0 = -14.6 - 0.6 * sw
+    d0 = U(dx0, 59)
+    R.poly(P("diary", DIARY, 1, soft=1.0), [d0, (d0[0] + m * 4.5, d0[1] - 0.4), (d0[0] + m * 4.5, d0[1] + 5.6), (d0[0], d0[1] + 6)])
     # --- 흉갑 조각(앞) / 등 끈(뒤) -----------------------------------------------
     if not back:
-        R.poly(P("plate", IRON, 2, soft=1.8), [(X(dx), sy(dx, y)) for dx, y in [(2, 34.5), (12.5, 32.5), (14.5, 39.5), (10.5, 47), (3, 45)]])
-        R.capsule(P("strap", CLOTH, 1, soft=0.8, rim=False), [(X(-12.5), sy(-12.5, 31)), (X(3), sy(3, 40))], [1.1, 1.1])
+        R.poly(P("plate", IRON, 2, soft=1.8), [U(dx, y) for dx, y in [(2, 38), (12.5, 36), (14.5, 42.5), (10.5, 49.5), (3, 47.5)]])
+        R.capsule(P("strap", CLOTH, 1, soft=0.8, rim=False), [U(-12.5, 34.5), U(3, 43)], [1.1, 1.1])
     else:
-        R.capsule(P("strap", CLOTH, 1, soft=0.8, rim=False), [(X(13), sy(13, 31)), (X(-8.5), sy(-8.5, 52))], [1.2, 1.2])
-    # --- 팔 ---------------------------------------------------------------
+        R.capsule(P("strap", CLOTH, 1, soft=0.8, rim=False), [U(13, 34.5), U(-8.5, 55)], [1.2, 1.2])
+    # --- 팔: 굽힌 팔꿈치, 주먹은 앞·안쪽(전투 준비) ------------------------------------
     for side, s in (("L", 1), ("R", -1)):
         li = 0 if side == "L" else 1
-        sh_ = (X(s * 15.2), sy(s * 15.2, SH_Y))
-        hd_ = (X(s * 17.6) + m * s * p["hand"][li][0], HAND_Y + b + p["hand"][li][1] - br * 0.5)
-        el = lerp(sh_, hd_, 0.5)                    # 정면 팔은 앞뒤로 흔들려 단축만 보임 — 팔꿈치 옆꺾임 없음
-        el = (el[0] + m * s * 1.2, el[1])
-        R.capsule(P("arm" + side, ASH, 2, group="arm" + side, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [sh_, el, (hd_[0], hd_[1] - 2.2)], [3.5, 2.9, 2.4])
+        shj = U(s * 14.4, 39)
+        hdx, hdy = p["hand"][li]
+        hand = (ux(s * 13.6 + s * hdx, 58), 58.5 + b + cr + hdy - br * 0.5)
+        el = (ux(s * 18.4 + s * 0.3 * hdy, 50), 49.5 + b + cr + hdy * 0.4 - br * 0.5)
+        R.capsule(P("arm" + side, ASH, 2, group="arm" + side, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [shj, el, (hand[0], hand[1] - 2.0)], [3.6, 3.0, 2.5])
         if side == "L":
-            R.capsule(P("vamb", IRON, 2, soft=1.0), [lerp(el, hd_, 0.30), lerp(el, hd_, 0.66)], [3.2, 2.9])
-        R.ellipse(P("hand" + side, BAND, 1, soft=1.0, rim=False), hd_[0], hd_[1] + 0.4, 2.4, 3.0)
-    # --- 목 · 머리 ---------------------------------------------------------
-    hy = HEAD_Y + b + hd
-    R.poly(P("neck", ASH, 2, group="body", soft=1.5), [(X(-3.6), hy + 6), (X(3.6), hy + 6), (X(4.2), sy(4.2, 30)), (X(-4.2), sy(-4.2, 30))])
-    R.ellipse(P("head", ASH, 3, group="head", soft=3.4, vgrad=0.80), 32, hy, HEAD_RX, HEAD_RY)
+            R.capsule(P("vamb", IRON, 2, soft=1.0), [lerp(el, hand, 0.25), lerp(el, hand, 0.66)], [3.2, 2.9])
+        R.ellipse(P("hand" + side, BAND, 1, soft=1.0, rim=False), hand[0], hand[1] + 0.4, 2.6, 2.8)
+    # --- 머리: 숙여서 어깨 사이로 내려온 금 간 두개골 ------------------------------------
+    hx = ux(0, 30)
+    hy = 22.5 + b + cr + hd - br * 0.6
     if not back:
-        R.poly(P("jaw", ASH, 2, group="head", soft=1.8), [(X(-5.6), hy + 4), (X(5.6), hy + 4), (X(4.0), hy + 10), (X(-4.0), hy + 10)])
-        R.poly(P("face", FACE, 2, group="head", soft=1.6, rim=False, cast=False, warm=True, vgrad=0.75),
-               [(X(-6.9), hy + 1.5), (X(-5.5), hy - 0.8), (X(-2.5), hy + 0.2), (X(0), hy + 1.6), (X(2.5), hy + 0.2), (X(5.5), hy - 0.8),
-                (X(6.9), hy + 1.5), (X(6.4), hy + 4.5), (X(4.4), hy + 9.6), (X(-4.4), hy + 9.6), (X(-6.4), hy + 4.5)])
+        R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(hx + m * dx, hy + dy) for dx, dy in SKULL_FRONT])
+        R.poly(P("face", FACE, 3, group="head", soft=1.4, rim=False, cast=False, warm=True, vgrad=0.8),
+               [(hx + m * dx, hy + dy) for dx, dy in FACE_FRONT])
     else:
-        R.poly(P("nape", ASH, 2, group="head", soft=1.8), [(X(-5), hy + 4), (X(5), hy + 4), (X(3.8), hy + 9.5), (X(-3.8), hy + 9.5)])
+        R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(hx + m * dx, hy + dy) for dx, dy in SKULL_BACK])
+    # 재가 부스러진 가장자리 결손 (해부 기준 위치 → 방향 따라 좌우 바뀜)
+    bite(R, hx + m * 3.6, hy - 9.5, 2.3)         # 재가 떨어져 나간 결손: 정수리 균열 옆 홈
+    bite(R, hx + m * 7.9, hy - 4.4, 2.0)          # 해부 왼쪽 옆머리 홈
+    bite(R, hx - m * 8.2, hy - 2.6, 1.3)          # 관자놀이
+    bite(R, hx - m * 6.6, hy + 7.0, 1.2)          # 턱각
     # --- 견갑 (왼어깨) ------------------------------------------------------
-    R.poly(P("pauldron", IRON, 2, soft=1.8), [(X(dx), sy(dx, y)) for dx, y in [(8, 29.5), (15, 29.5), (20, 33.5), (19.5, 39), (13.5, 38.5), (8.5, 34)]])
-    # --- 뒷면 화살 (등에 꽂힘 — 몸 앞으로 그림) -----------------------------------
+    R.poly(P("pauldron", IRON, 2, soft=1.8), [U(dx, y) for dx, y in [(7.5, 32.5), (14, 32.5), (19, 36.5), (18.6, 42), (12.5, 41.6), (8, 37.5)]])
+    # --- 뒷면 화살 -------------------------------------------------------------
     if back:
-        for (bx, by), (tx, ty), fl in (((-8, 38), (-16, 24), -1), ((9, 46), (16, 34), 1)):
-            R.capsule(P("arrowb", CLOTH, 2, flat=True, rim=False, cast=False), [(X(bx), sy(bx, by)), (X(tx), sy(tx, ty))], [0.6, 0.6])
-            R.poly(P("fletchb", ASH, 5, flat=True, rim=False, cast=False),
-                   [(X(tx), sy(tx, ty)), (X(tx + fl * 2.5), sy(tx, ty) - 4.5), (X(tx - fl * 1.0), sy(tx, ty) - 0.5)])
+        for (bx, by), (tx, ty), fl in (((-8, 41), (-16, 27), -1), ((9, 49), (16, 37), 1)):
+            R.capsule(P("arrowb", CLOTH, 2, flat=True, rim=False, cast=False), [U(bx, by), U(tx, ty)], [0.6, 0.6])
+            t0 = U(tx, ty)
+            R.poly(P("fletchb", ASH, 5, flat=True, rim=False, cast=False), [t0, (t0[0] + m * fl * 2.5, t0[1] - 4.5), (t0[0] - m * fl * 1.0, t0[1] - 0.5)])
 
     # ======================= 덧칠 =======================
-    # 정수리 빛(화면 좌상단) + 균열(해부 왼쪽 위)
-    for ddx, dy in ((-4, -7), (-3, -7), (-2, -8), (-5, -6), (-4, -6)):
-        R.dot(32 + ddx, hy + dy, G[8])
-    for dx, dy, c in ((2, -8, A[19]), (3, -7, A[21]), (3, -6, A[23]), (4, -5, A[21]), (5, -4, A[19])):
-        R.dot(X(dx), hy + dy, c)
+    H = lambda dx: hx + m * dx                   # noqa: E731
+    HF = lambda dx, dy: (hx + m * dx, hy + dy)   # noqa: E731
+    # 정수리 빛(화면 좌상단, 방향 무관) + 정수리 균열 혼불 + 두개 금
+    for ddx, dy in ((-4, -8), (-3, -8), (-2, -9), (-5, -7), (-4, -7), (-1, -9), (-5, -6), (-3, -9)):
+        R.dot(round(hx) + ddx, round(hy + dy), G[8])
+    crown = [(1.5, -9, A[21]), (2.5, -8, A[23]), (2.5, -7, A[25]), (3.5, -6, A[23]), (4.5, -5, A[21]), (5.0, -4, A[19])]
+    for dx, dy, c in crown:
+        R.dot(round(H(dx)) + m, round(hy + dy), A[18])                                  # 균열 옆 데워진 재(1px)
+    for dx, dy, c in crown:
+        R.dot(round(H(dx)), round(hy + dy), c)
+    for dx, dy, c in ((5.0, -3.6, A[19]), (5.4, -2.6, A[21]), (5.0, -1.6, A[21]), (5.6, -0.8, A[19])):
+        R.dot(round(H(dx)), round(hy + dy), c)                                           # 균열이 이마를 타고 분노한 눈두덩까지
+    groove(R, [(-2, -9.5), (-3.5, -7), (-3, -5)], HF, hi=not back)
     if not back:
-        # 이마 그늘(분노: 미간 쪽으로 처짐) · 눈빛(왼눈) · 꺼진 눈(오른눈)
+        # 관자놀이 패임(얼굴 옆) · 광대 위 빛(빛 쪽) · 눈두덩 그늘 · 분노한 왼눈 · 꺼진 오른눈 · 닫힌 입
+        for ddx in (-6, 6):
+            R.dot(round(hx) + ddx, round(hy) + 0, G[2]); R.dot(round(hx) + ddx, round(hy) + 1, G[2])
         for dx, dy in ((0, 0), (1, 0), (-1, 0), (2, -1), (3, -1), (4, -2), (-2, -1), (-3, -1), (-4, -2), (5, -2), (-5, -2)):
-            R.dot(X(dx), hy + dy, G[5])                                                    # 이마뼈 윗면 빛(분노: 미간이 낮음)
-        for dx, dy in ((1, 1), (2, 1), (3, 1), (4, 0), (5, 0), (6, 0), (-1, 1), (-2, 1), (-3, 1), (-4, 0), (-5, 0), (-6, 1)):
-            R.dot(X(dx), hy + dy, OUT)                                                     # 이마뼈 아래 깊은 그늘(눈두덩)
-        for dx, dy in ((-5, 6), (-4, 7), (5, 6), (4, 7)):
-            R.dot(X(dx), hy + dy, G[1])                                                    # 광대 아래 패임
-        for dx in (-2, -1, 0, 1, 2):
-            R.dot(X(dx), hy + 8, G[1])                                                     # 닫힌 입(드러내지 않음)
-        R.spill.append((X(4), hy + 2, 2.6))
+            R.dot(round(H(dx)), round(hy + dy), G[5])                                        # 이마뼈 윗면(미간이 낮음)
+        for dx, dy in ((2, 1), (3, 1), (4, 0), (5, 0), (6, 0), (-2, 1), (-3, 1), (-4, 0), (-5, 0), (-6, 1), (-6, 2), (-2, 3), (2, 3)):
+            R.dot(round(H(dx)), round(hy + dy), OUT)                                         # 눈두덩 두 패임(콧등으로 갈라짐)
+        for dy, c in ((1, G[3]), (2, G[3]), (3, G[2]), (4, G[2])):
+            R.dot(round(H(0)), round(hy + dy), c)                                            # 콧등
+        R.dot(round(H(0)), round(hy + 5.4), G[1]); R.dot(round(H(1)), round(hy + 5.4), G[1])   # 코 밑 그늘
+        for ddx, dy, c in ((-6, 4, G[4]), (-5, 4, G[4]), (-4, 4, G[3]), (6, 4, G[3]), (5, 4, G[3])):
+            R.dot(round(hx) + ddx, round(hy + dy), c)                                        # 광대(빛 쪽 더 밝게)
+        for ddx in (-3, -2, -1, 0, 1, 2):
+            R.dot(round(hx) + ddx, round(hy + 9.6), G[3] if ddx < 0 else G[2])                # 턱 끝 윗면
+        R.spill.append((H(4), hy + 2, 2.4))
         for dx, dy, c in ((2, 2, EYE[0]), (3, 2, EYE[1]), (4, 1, EYE[2]), (5, 1, EYE[3] if p["pulse"] else EYE[2]), (6, 0, EYE[1]),
                           (3, 3, EYE[0]), (4, 2, EYE[2]), (5, 2, EYE[1])):
-            R.dot(X(dx), hy + dy, c)
+            R.dot(round(H(dx)), round(hy + dy), c)
         for dx, dy in ((-3, 2), (-4, 2), (-3, 3), (-4, 3), (-5, 2)):
-            R.dot(X(dx), hy + dy, OUT)
-        # 가슴 균열
-        crack(R, [(-3, 35), (-1, 38), (-4.5, 41), (-1.5, 44), (-3.5, 48), (-1, 51)], lambda dx: X(dx), pulse=p["pulse"], thick=(m, 0), spill=5.0)
-        crack(R, [(-1, 38), (2.5, 39)], lambda dx: X(dx), thick=(0, 1), spill=0.0)
-        for dx, y in ((-11, 42), (-10, 42), (-11, 45), (-10, 45), (-9, 45), (-10, 48), (-9, 48), (8, 49), (9, 49), (9, 52), (8, 52)):   # 갈비 그늘
-            R.dot(X(dx), sy(dx, y), G[2])
-        for s_ in (1, -1):                                                                              # 쇄골 아래 그늘
+            R.dot(round(H(dx)), round(hy + dy), OUT)
+        for dx, dy in ((-4.6, 6.4), (-3.8, 7.2), (4.6, 6.4), (3.8, 7.2)):
+            R.dot(round(H(dx)), round(hy + dy), G[1])                                        # 광대 아래 패임
+        for dx in (-2, -1, 0, 1, 2):
+            R.dot(round(H(dx)), round(hy + 8.4), G[1])                                       # 닫힌 입
+        # 가슴 균열 · 갈비 · 쇄골 · 껍데기 금
+        crack(R, [(-3, 37.5), (-1, 40.5), (-4.5, 43.5), (-1.5, 46.5), (-3.5, 50), (-1, 53)], U, pulse=p["pulse"], thick=(m, 0))
+        crack(R, [(-1, 40.5), (2.5, 41.5)], U, thick=(0, 1), spill=False)
+        for dx, y in ((-11, 45), (-10, 45), (-11, 48), (-10, 48), (-9, 48), (-10, 51), (-9, 51), (8, 51), (9, 51), (9, 54), (8, 54)):
+            R.dot(round(ux(dx, y)), round(uy(dx, y)), G[2])
+        for s_ in (1, -1):
             for k in range(7):
                 dx = s_ * (3.5 + k)
-                if not (s_ == 1 and dx > 3):                                                            # 흉갑 아래는 생략
-                    R.dot(X(dx), sy(dx, 31 + k * 0.25), G[1])
-        groove(R, [(-14.5, 37), (-12.5, 39.5), (-13.5, 42.5), (-12, 45)], X, sy)                         # 껍데기 금
-        groove(R, [(6, 49), (7.5, 51.5), (6.5, 54)], X, sy, hi=False)
-        R.dot(X(16), 52 + b, SL[6]); R.dot(X(17), 53 + b, SL[2])          # 팔뚝 위 못머리
+                if not (s_ == 1 and dx > 3):
+                    R.dot(round(ux(dx, 34)), round(uy(dx, 34 + k * 0.25)), G[1])
+        groove(R, [(-15, 40), (-13, 42.5), (-14, 45.5), (-12.5, 48)], U)
+        groove(R, [(6, 51), (7.5, 53.5), (6.5, 56)], U, hi=False)
+        R.dot(round(ux(16.5, 55)), round(uy(16.5, 55)), SL[6]); R.dot(round(ux(17.5, 56)), round(uy(17.5, 56)), SL[2])
     else:
-        crack(R, [(1, 34), (-1.5, 38), (2, 42), (-1, 46), (1.5, 50), (0, 54)], lambda dx: X(dx), pulse=p["pulse"], thick=(m, 0), spill=6.0)
-        crack(R, [(2, 42), (6.5, 40)], lambda dx: X(dx), thick=(0, 1), spill=0.0)
-        for s_ in (1, -1):                                                                              # 견갑골 그늘
+        crack(R, [(1, 36), (-1.5, 40), (2, 44), (-1, 48), (1.5, 52), (0, 56)], U, pulse=p["pulse"], thick=(m, 0))
+        crack(R, [(2, 44), (6.5, 42)], U, thick=(0, 1), spill=False)
+        for s_ in (1, -1):
             for k in range(5):
-                R.dot(X(s_ * (6 + k)), sy(s_ * (6 + k), 40 + k * 0.6), G[1])
-        groove(R, [(-14, 43), (-12, 45.5), (-12.5, 48)], X, sy)
-        groove(R, [(11.5, 37), (13.5, 40), (12.5, 42)], X, sy, hi=False)
-        for dx, y in ((-4, 32), (6, 35), (-11, 44)):                                                   # 못머리
-            R.dot(X(dx), sy(dx, y), SL[6]); R.dot(X(dx) + 1, sy(dx, y) + 1, SL[2])
+                R.dot(round(ux(s_ * (6 + k), 43)), round(uy(s_ * (6 + k), 43 + k * 0.6)), G[1])
+        groove(R, [(-14, 46), (-12, 48.5), (-12.5, 51)], U)
+        groove(R, [(11.5, 40), (13.5, 43), (12.5, 45)], U, hi=False)
+        for dx, y in ((-4, 35), (6, 38), (-11, 47)):
+            R.dot(round(ux(dx, y)), round(uy(dx, y)), SL[6]); R.dot(round(ux(dx, y)) + 1, round(uy(dx, y)) + 1, SL[2])
     # 일기장 걸쇠 · 끈 · 허리끈 매듭
-    R.dot(X(dx0 + 2.75), 59 + b, G[9])
-    R.line([(X(-10), 55 + b), (X(dx0 + 2.75), 56 + b)], WD[3])
-    R.dot(X(-2), 56 + b, WD[4]); R.dot(X(-1), 57 + b, WD[3]); R.dot(X(-2), 58 + b, WD[3])
+    R.dot(round(d0[0] + m * 2.25), round(d0[1] + 2.5), G[9])
+    R.line([U(-10, 58), (d0[0] + m * 2.25, d0[1])], WD[3])
+    kn = U(-2, 58.5)
+    R.dot(kn[0], kn[1] + 1, WD[4]); R.dot(kn[0] + 1, kn[1] + 2, WD[3]); R.dot(kn[0], kn[1] + 3, WD[3])
     # 어깨 혼불 (해부 왼어깨 위)
-    fx, fy = round(X(13)), round(sy(13, 29))
+    fx, fy = round(ux(13, 32)), round(uy(13, 32))
     R.dot(fx, fy + 1, A[19])
     draw_flame(R, fx, fy, p["flame"], p["lean"])
     return R.render()
@@ -264,25 +326,28 @@ def draw_front(p, back=False):
 # 측면 (left / right)
 # =============================================================================
 def draw_side(p, facing):
-    """facing = +1 오른쪽, -1 왼쪽. dx 는 '앞' 이 + 인 몸 좌표."""
+    """facing = +1 오른쪽, -1 왼쪽. dx 는 '앞' 이 + 인 몸 좌표. 상체는 앞으로 숙이고 머리는 앞으로 빠진다."""
     R = Rig3(FW, FH)
     f = facing
     X = lambda dx: 32 + f * dx                   # noqa: E731
-    near = "R" if f == 1 else "L"                # 화면 쪽에 보이는 해부 측
-    b, br, hd, lb = p["bob"], p["breath"], p["head"], p["lean_body"]
+    near = "R" if f == 1 else "L"
+    b, br, hd, lb, cr = p["bob"], p["breath"], p["head"], p["lean_body"], p["crouch"]
 
-    def ux(dx, y):                               # 상체 앞숙임(위로 갈수록 앞으로) + 숨(가슴 앞으로)
-        return X(dx + lb * max(0.0, (HIP_Y - y)) / 28.0 + (br * 0.35 if dx > 0 and y < 46 else 0))
+    def ux(dx, y):                               # 숙임: 위로 갈수록 앞으로 (lean_body 가 클수록 더)
+        k = max(0.0, (HIP_Y - y)) / 26.0
+        return X(dx + lb * k * 3.0 + (br * 0.35 if dx > 0 and y < 48 else 0))
 
-    def uy(y):
-        return y + b - (br * (46 - y) / 15.0 if y < 46 else 0)
+    def uy(dx, y):
+        return y + b + cr - (br * (48 - y) / 15.0 if y < 48 else 0)
+
+    U = lambda dx, y: (ux(dx, y), uy(dx, y))     # noqa: E731
 
     def anat(which):
         return near if which == "near" else ("L" if near == "R" else "R")
 
     def leg(which, shade):
         fxp, lift = p["foot"][0 if which == "far" else 1]
-        hip = (X(-0.5), HIP_Y + b)
+        hip = (X(-1.0), HIP_Y + b + cr)
         foot = (X(fxp), FOOT_Y - lift)
         knee = ik2(hip, foot, THIGH, SHIN, f)
         name = "leg_" + which
@@ -290,90 +355,104 @@ def draw_side(p, facing):
         fy = 92 - lift
         R.poly(P("foot_" + which, ASH, 2 - shade, group="foot_" + which, soft=1.2),
                [(X(fxp - 3), fy - 3.6), (X(fxp + 2), fy - 3.6), (X(fxp + 6), fy - 1.4), (X(fxp + 6), fy), (X(fxp - 3.4), fy)])
-        sh, an = lerp(knee, foot, 0.18), lerp(knee, foot, 0.86)
         if anat(which) == "R":
             R.capsule(P("greave_" + which, IRON, 2 - shade, soft=1.3), [lerp(knee, foot, 0.22), lerp(knee, foot, 0.70)], [3.3, 2.8])
         else:
-            R.capsule(P("band_" + which, BAND, 1 - shade, soft=1.0, rim=False), [lerp(knee, foot, 0.3), an], [3.1, 2.7])
+            R.capsule(P("band_" + which, BAND, 1 - shade, soft=1.0, rim=False), [lerp(knee, foot, 0.3), lerp(knee, foot, 0.86)], [3.1, 2.7])
 
     def arm(which, shade, swing):
-        sh_ = (ux(0.5, SH_Y), uy(SH_Y))
-        hd_ = (X(swing + lb * 0.6), HAND_Y + b - br * 0.5)
-        el = ik2(sh_, hd_, UPPER, FORE, -f)
+        shj = U(3.0, 39)
+        hand = (X(8.5 + swing + lb * 2.0), 56.5 + b + cr - br * 0.5 - abs(swing) * 0.15)
+        el = ik2(shj, hand, UPPER, FORE, -f)
         name = "arm_" + which
-        R.capsule(P(name, ASH, 2 - shade, group=name, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [sh_, el, (hd_[0], hd_[1] - 2.2)], [3.3, 2.8, 2.3])
+        R.capsule(P(name, ASH, 2 - shade, group=name, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [shj, el, (hand[0] - f * 1.2, hand[1] - 1.6)], [3.4, 2.9, 2.4])
         if anat(which) == "L":
-            R.capsule(P("vamb_" + which, IRON, 2 - shade, soft=1.0), [lerp(el, hd_, 0.30), lerp(el, hd_, 0.66)], [3.1, 2.8])
-        R.ellipse(P("hand_" + which, BAND, 1 - shade, soft=1.0, rim=False), hd_[0], hd_[1] + 0.4, 2.4, 2.9)
+            R.capsule(P("vamb_" + which, IRON, 2 - shade, soft=1.0), [lerp(el, hand, 0.25), lerp(el, hand, 0.66)], [3.1, 2.8])
+        R.ellipse(P("hand_" + which, BAND, 1 - shade, soft=1.0, rim=False), hand[0], hand[1] + 0.2, 2.7, 2.7)
 
     swing = p["hand"]
-    # --- 먼 쪽 화살(왼쪽을 볼 때: 오른어깨 화살이 등 위로 솟음) ----------------------
-    if near == "L":
-        R.capsule(P("arrow_far", CLOTH, 1, flat=True, rim=False, cast=False), [(ux(-4, 33), uy(33)), (ux(-12, 19), uy(19))], [0.6, 0.6])
-        R.poly(P("fletch_far", ASH, 4, flat=True, rim=False, cast=False), [(ux(-11.5, 20), uy(20)), (ux(-14.5, 14.5), uy(14.5)), (ux(-12.5, 21), uy(21))])
-    # --- 먼 팔 · 먼 다리 ------------------------------------------------------
+    if near == "L":                                                          # 먼 쪽(오른어깨) 화살이 굽은 등 위로
+        R.capsule(P("arrow_far", CLOTH, 1, flat=True, rim=False, cast=False), [U(-3.5, 37), U(-12, 24)], [0.6, 0.6])
+        R.poly(P("fletch_far", ASH, 4, flat=True, rim=False, cast=False), [U(-11.5, 25), U(-14.5, 19.5), U(-12.5, 26)])
     arm("far", 1, swing[0][0])
     leg("far", 1)
-    # --- 몸통 ---------------------------------------------------------------
-    torso = [(-3, 27.5), (4.5, 27.5), (8, 32), (9, 38), (7.6, 45), (6, 57), (-6, 57), (-7.4, 50), (-8.8, 42), (-8.6, 35), (-6.2, 30)]
-    R.poly(P("torso", ASH, 2, group="body", soft=4.0, vgrad=0.78), [(ux(dx, y), uy(y)) for dx, y in torso])
-    hy = HEAD_Y + 0.5 + b + hd
-    hx = 3.4 + lb * 1.1
-    R.capsule(P("neck", ASH, 2, group="body", soft=1.5), [(ux(0.5, 31), uy(31)), (X(hx - 0.5), hy + 6)], [3.4, 3.0])
-    # --- 머리 (앞으로 숙임) ---------------------------------------------------
-    R.ellipse(P("head", ASH, 3, group="head", soft=3.2, vgrad=0.8), X(hx - 1.2), hy - 1.0, 7.2, 8.0)     # 두개
-    # 옆얼굴: 이마뼈 → 콧등 → 윗입술 → 턱 → 턱각 (어둡게 그늘지되 윤곽은 뼈)
-    prof = [(3.0, -1.0), (5.8, -2.0), (6.6, -0.4), (6.2, 0.8), (7.0, 3.0), (6.2, 4.2), (6.3, 5.4), (5.6, 6.2), (5.4, 8.0), (4.0, 8.9), (2.0, 8.4), (2.4, 4.0)]
-    R.poly(P("face", FACE, 2, group="head", soft=1.6, rim=False, cast=False, warm=True, vgrad=0.75),
-           [(X(hx + dx), hy + dy) for dx, dy in prof])
+    # --- 몸통: 굽은 등(혹처럼 둥근 견갑 사이), 앞으로 말린 가슴 -------------------------
+    torso = [(-7.2, 61), (-7.8, 54), (-6.6, 47), (-4.6, 41), (-2.2, 36.5), (1.5, 33.5), (6.0, 33.0), (9.6, 36.5), (10.4, 42),
+             (8.6, 48), (6.4, 54), (5.6, 61)]
+    R.poly(P("torso", ASH, 2, group="body", soft=4.0, vgrad=0.80), [U(dx, y) for dx, y in torso])
+    hy = 24.0 + b + cr + hd - br * 0.5
+    hx = 7.0 + lb * 2.2
+    R.capsule(P("neck", ASH, 2, group="body", soft=1.5), [U(3.5, 35), (X(hx - 2.5), hy + 5.5)], [3.4, 3.0])
+    # --- 머리: 앞으로 빠진 금 간 두개(옆얼굴) ---------------------------------------------
+    R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(X(hx + dx), hy + dy) for dx, dy in SKULL_SIDE])
+    R.poly(P("face", FACE, 3, group="head", soft=1.4, rim=False, cast=False, warm=True, vgrad=0.8), [(X(hx + dx), hy + dy) for dx, dy in FACE_SIDE])
+    bite(R, X(hx + 1.6), hy - 9.6, 2.3)
+    bite(R, X(hx - 7.2), hy - 3.2, 2.0)
+    bite(R, X(hx + 6.0), hy + 9.0, 1.1)
     # --- 가까운 다리 · 허리천 · 일기장 ---------------------------------------------
     leg("near", 0)
     sw = p["sway"]
-    loin = [(6.6, 54), (-6.6, 54), (-7.6 + sw, 64), (-5.8 + sw, 67.5), (-2.6 + sw * 0.7, 65.5), (0.2 + sw * 0.5, 69.5), (3 + sw * 0.3, 65.5), (5.6, 68), (6.8, 62)]
-    R.poly(P("loin", CLOTH, 1, soft=1.8), [(X(dx), y + b) for dx, y in loin])
-    R.capsule(P("belt", CLOTH, 2, soft=0.8), [(X(-6.6), 54.6 + b), (X(6.6), 54.6 + b)], [1.3, 1.3])
+    loin = [(6.6, 57), (-7.4, 57), (-8.6 + sw, 66), (-7.0 + sw * 1.2, 70), (-3.6 + sw * 1.1, 68), (-0.4 + sw * 0.9, 72.5),
+            (2.6 + sw * 0.6, 68.5), (5.4 + sw * 0.3, 71), (7.0, 65)]
+    R.poly(P("loin", CLOTH, 0, soft=1.8), [(X(dx), y + b + cr) for dx, y in loin])
+    R.capsule(P("belt", CLOTH, 2, soft=0.8), [(X(-7.4), 57.6 + b + cr), (X(6.6), 57.6 + b + cr)], [1.3, 1.3])
     if near == "R":
-        ddx = -4.2 + sw * 0.4
-        R.poly(P("diary", DIARY, 2, soft=1.0), [(X(ddx), 56 + b), (X(ddx + 5.5), 55.5 + b), (X(ddx + 5.5), 62.5 + b), (X(ddx), 63 + b)])
-    # --- 가까운 쪽 화살 (오른쪽을 볼 때: 오른어깨 뒤에서 위·뒤로) ---------------------
-    if near == "R":
-        R.capsule(P("arrow_near", CLOTH, 2, flat=True, rim=False, cast=False), [(ux(-4, 33), uy(33)), (ux(-12.5, 19), uy(19))], [0.6, 0.6])
-        R.poly(P("fletch_near", ASH, 5, flat=True, rim=False, cast=False), [(ux(-12, 20), uy(20)), (ux(-15, 14.5), uy(14.5)), (ux(-13, 21), uy(21))])
-    # --- 가까운 팔 · 견갑 -------------------------------------------------------
+        ddx = -4.4 + sw * 0.6
+        dy0 = 59 + b + cr
+        R.poly(P("diary", DIARY, 1, soft=1.0), [(X(ddx), dy0), (X(ddx + 4.5), dy0 - 0.4), (X(ddx + 4.5), dy0 + 5.6), (X(ddx), dy0 + 6)])
+        R.capsule(P("arrow_near", CLOTH, 2, flat=True, rim=False, cast=False), [U(-3.5, 37), U(-12.5, 24)], [0.6, 0.6])
+        R.poly(P("fletch_near", ASH, 5, flat=True, rim=False, cast=False), [U(-12, 25), U(-15, 19.5), U(-13, 26)])
     arm("near", 0, swing[1][0])
     if near == "L":
-        R.poly(P("pauldron", IRON, 2, soft=1.8), [(ux(dx, y), uy(y)) for dx, y in [(-5.5, 30.5), (3, 29.5), (7, 33), (5.6, 39.5), (-2, 40.5), (-6.5, 37)]])
+        R.poly(P("pauldron", IRON, 2, soft=1.8), [U(dx, y) for dx, y in [(-3.5, 34.5), (4.5, 33.5), (8.5, 37), (7.0, 43), (0, 44), (-4.5, 40)]])
 
     # ======================= 덧칠 =======================
-    for ddx, dy in ((-3, -7), (-2, -8), (-1, -8), (-4, -6)):
-        R.dot(round(X(hx)) + ddx, hy + dy, G[8])                   # 정수리 빛(화면 좌상단)
-    for dx, dy, c in ((-1, -8, A[19]), (0, -7, A[21]), (0, -6, A[23]), (1, -5, A[21]), (2, -4, A[19])):
-        R.dot(X(hx + dx), hy + dy, c)                               # 정수리 균열
-    for dx, dy in ((3, 0), (4, 0), (5, 0), (6, -1)):
-        R.dot(X(hx + dx), hy + dy, OUT)                             # 이마뼈 아래 그늘
+    HX = lambda dx: X(hx + dx)                   # noqa: E731
+    HF = lambda dx, dy: (X(hx + dx), hy + dy)    # noqa: E731
+    for ddx, dy in ((-3, -8), (-2, -9), (-1, -9), (-4, -7), (-3, -7)):
+        R.dot(round(X(hx)) + ddx, round(hy + dy), G[8])                               # 정수리 빛(화면 좌상단)
+    crown = [(-1, -9, A[21]), (0, -8, A[23]), (0, -7, A[25]), (1, -6, A[23]), (2, -5, A[21]), (2.5, -4, A[19])]
+    for dx, dy, c in crown:
+        R.dot(round(HX(dx)) + f, round(hy + dy), A[18])
+    for dx, dy, c in crown:
+        R.dot(round(HX(dx)), round(hy + dy), c)                                       # 정수리 균열 혼불
+    for dx, dy, c in ((3.0, -3.6, A[19]), (3.4, -2.6, A[21]), (3.2, -1.6, A[19])):
+        R.dot(round(HX(dx)), round(hy + dy), c)
+    groove(R, [(-4, -6), (-5.5, -3), (-5, 0)], HF)
+    for dx, dy in ((1.8, -0.4), (1.6, 0.6)):
+        R.dot(round(HX(dx)), round(hy + dy), G[2])                                   # 관자놀이 패임
     for dx, dy in ((3, -1), (4, -1), (5, -2), (6, -2)):
-        R.dot(X(hx + dx), hy + dy, G[5])                            # 이마뼈 윗면 빛
-    R.dot(X(hx + 3), hy + 6, OUT); R.dot(X(hx + 4), hy + 6, G[1])   # 입 그늘(닫힌 입)
-    R.dot(X(hx + 0), hy + 2, G[2]); R.dot(X(hx - 1), hy + 3, G[2])   # 광대 아래 패임
-    if near == "L":                                                 # 왼쪽을 보면 분노한 왼눈
-        R.spill.append((X(hx + 4.5), hy + 1.5, 2.2))
+        R.dot(round(HX(dx)), round(hy + dy), G[5])                                   # 이마뼈 윗면 빛
+    for dx, dy in ((3, 0), (4, 0), (5, 0), (6, -1)):
+        R.dot(round(HX(dx)), round(hy + dy), OUT)                                    # 눈두덩 그늘
+    for dx, dy, c in ((3.5, 3.6, G[3]), (4.5, 3.4, G[4]), (5.5, 3.4, G[4]), (6.5, 3.0, G[3])):
+        R.dot(round(HX(dx)), round(hy + dy), c)                                      # 광대 돌출 윗면 빛
+    for dx, dy in ((7, 1), (7, 2)):
+        R.dot(round(HX(dx)), round(hy + dy), G[3])                                   # 콧등
+    for dx, dy in ((2.5, 8.4), (3.5, 8.8), (4.5, 9.0)):
+        R.dot(round(HX(dx)), round(hy + dy), G[3])                                   # 턱선 빛
+    for dx, dy in ((3, 5), (4, 5.4)):
+        R.dot(round(HX(dx)), round(hy + dy), G[1])                                   # 광대 아래 패임
+    R.dot(round(HX(4)), round(hy + 6.4), OUT); R.dot(round(HX(5)), round(hy + 6.4), G[1])   # 닫힌 입
+    if near == "L":
+        R.spill.append((HX(4.5), hy + 1.5, 2.2))
         for dx, dy, c in ((3, 2, EYE[0]), (4, 1, EYE[2]), (5, 1, EYE[3] if p["pulse"] else EYE[2]), (6, 0, EYE[1]), (4, 2, EYE[1])):
-            R.dot(X(hx + dx), hy + dy, c)
-    else:                                                           # 오른쪽을 보면 꺼진 오른눈
+            R.dot(round(HX(dx)), round(hy + dy), c)
+    else:
         for dx, dy in ((4, 1), (5, 1), (4, 2), (5, 2)):
-            R.dot(X(hx + dx), hy + dy, OUT)
-    # 균열: 보이는 쪽만 — 가슴(앞 가장자리) 짧게, 등(뒤 가장자리) 짧게
-    crack(R, [(5.6, 37), (6.6, 40), (5.2, 43)], lambda dx: ux(dx, 40), pulse=p["pulse"], thick=(0, 0), spill=0)
-    # 등 균열은 측면에서 등 가장자리 불빛 2점만(선으로 그리면 몸 윤곽선처럼 읽힘)
-    R.dot(round(ux(-7.2, 41)), uy(41), A[23]); R.dot(round(ux(-7.0, 42)), uy(42), A[21])
+            R.dot(round(HX(dx)), round(hy + dy), OUT)
+    crack(R, [(7.2, 39), (8.6, 42), (7.0, 45), (7.6, 47)], U, pulse=p["pulse"], thick=(0, 0), spill=False)
+    e1 = U(-6.2, 45)
+    R.dot(round(e1[0]), round(e1[1]), A[23]); R.dot(round(e1[0]), round(e1[1]) + 1, A[21])   # 등 균열 불빛(가장자리 2점)
+    groove(R, [(-3.5, 40), (-5, 44), (-4, 48)], U, hi=False)
     if near == "R":
-        R.dot(X(-1.5 + sw * 0.4), 59 + b, G[9])
-        R.line([(X(-3), 55 + b), (X(-1.5 + sw * 0.4), 56 + b)], WD[3])
-    R.dot(round(ux(-6.5, 50)), uy(50), SL[6]); R.dot(round(ux(-6.5, 50)) + f, uy(50) + 1, SL[2])   # 못머리
-    # 어깨 혼불: 왼쪽을 볼 땐 가까운 어깨(전부), 오른쪽을 볼 땐 먼 어깨에서 등 위로 살짝(아래 4줄)
-    fx, fy = round(ux(-4.5, 29)), round(uy(29))
+        ddx = -4.4 + sw * 0.6
+        R.dot(round(X(ddx + 2.25)), round(61.5 + b + cr), G[9])
+    nh = U(-6.4, 52)
+    R.dot(round(nh[0]), round(nh[1]), SL[6]); R.dot(round(nh[0]) + f, round(nh[1]) + 1, SL[2])
+    fx, fy = round(ux(-2.5, 33)), round(uy(-2.5, 33))
     R.dot(fx, fy + 1, A[19])
-    draw_flame(R, fx, fy, p["flame"], p["lean"] * f, rows=None if near == "L" else 4)   # 기울기 = 진행 반대(뒤)
+    draw_flame(R, fx, fy, p["flame"], p["lean"] * f, rows=None if near == "L" else 4)
     return R.render()
 
 
@@ -386,22 +465,25 @@ def draw(direction, p):
 
 
 # =============================================================================
-# 동작 — 대기 6 · 걷기 8 (52라운드 Q8)
+# 동작 — 대기 6 · 걷기 8 (52라운드 Q8·Q10)
 # =============================================================================
 IDLE_MS = [200, 200, 180, 220, 200, 220]
-WALK_MS = [100] * 8
+WALK_MS = [CYCLE_MS // 8] * 8
 DIRS = ["down", "up", "left", "right"]
 
 
 def act_idle(direction):
+    """전투 대기: 숨(가슴·어깨 0→2px) + 머리 한 박자 늦음 + 무게가 살짝 오가는 흔들림 + 혼불 깜빡임."""
     breath = [0, 1, 2, 2, 1, 0]
+    rock = [0.0, 0.4, 0.8, 0.6, 0.0, -0.4]
     out = []
     for i in range(6):
-        prev = breath[i - 1]
-        kw = dict(breath=breath[i], head=-round(prev * 0.5), flame=i, lean=[0, 1, 0, -1, 0, 1][i] * 0.8,
-                  pulse=1 if i in (2, 3) else 0, sway=[0, 0.4, 0.8, 0.8, 0.4, 0][i])
+        kw = dict(breath=breath[i], head=-round(breath[i - 1] * 0.5), flame=i, lean=[0, 1, 0, -1, 0, 1][i] * 1.0,
+                  pulse=1 if i in (2, 3) else 0, sway=[0, 0.5, 1.0, 1.0, 0.5, 0][i], crouch=1.0)
         if direction in ("left", "right"):
-            kw.update(foot=((-3.0, 0), (3.0, 0)), hand=((-1.5, 0), (1.5, 0)), lean_body=1.0)
+            kw.update(foot=((-4.0, 0), (4.5, 0)), hand=((-1.0, 0), (1.5, 0)), lean_body=1.0 + 0.15 * breath[i])
+        else:
+            kw.update(shift=rock[i], twist=rock[i] * 0.5, stilt=rock[i] * 0.6)
         out.append(pose(**kw))
     return out
 
@@ -412,33 +494,35 @@ def walk_phase(i):
 
 
 def act_walk(direction):
-    bobs = [round(1 - 3 * abs(math.sin(walk_phase(i)[0]))) for i in range(8)]   # 접지 +1 · 교차 -2 (3px)
+    bobs = [round(1 - 3 * abs(math.sin(walk_phase(i)[0]))) for i in range(8)]      # 접지 +1 · 교차 -2
     out = []
     for i in range(8):
         phL, phR = walk_phase(i)
         b, bp = bobs[i], bobs[i - 1]
-        lag = walk_phase(i - 1)[0]                     # 한 박자 늦은 위상(천·혼불)
+        lag = walk_phase(i - 1)[0]
+        lag2 = walk_phase(i - 2)[0]
         if direction in ("down", "up"):
-            liftL = round(max(0.0, -math.sin(phL)) * 4)
-            liftR = round(max(0.0, -math.sin(phR)) * 4)
-            stepL, stepR = 1.5 * math.cos(phL), 1.5 * math.cos(phR)
-            if direction == "up":
-                stepL, stepR = -stepL, -stepR
-            arm = 2.0 * math.cos(phL) * (1 if direction == "down" else -1)
-            out.append(pose(bob=b, head=round((bp - b) * 0.5), tilt=1.6 * math.sin(phL),
+            sgn = 1 if direction == "down" else -1
+            liftL = round(max(0.0, -math.sin(phL)) * 5)
+            liftR = round(max(0.0, -math.sin(phR)) * 5)
+            stepL, stepR = 2.5 * math.cos(phL) * sgn, 2.5 * math.cos(phR) * sgn
+            stance = math.sin(phL)                     # + = 왼발 디딤
+            arm = 2.5 * math.cos(phL) * sgn
+            out.append(pose(bob=b, head=round((bp - b) * 0.6), crouch=1.0,
+                            shift=1.8 * stance, ptilt=1.4 * stance, stilt=1.6 * stance, twist=1.2 * math.cos(phL) * sgn,
                             lift=(liftL, liftR), step=(stepL, stepR),
-                            hand=((0.4 * math.sin(phL), -arm), (-0.4 * math.sin(phL), arm)),
-                            sway=1.6 * math.sin(lag), flame=i % 6, lean=-1.6 * math.sin(lag), pulse=i % 4 == 0))
+                            hand=((0.5 * math.sin(phL), -arm), (-0.5 * math.sin(phL), arm)),
+                            sway=2.6 * math.sin(lag), flame=i % 6, lean=-2.6 * math.sin(lag2), pulse=i % 4 == 0))
         else:
-            A_ = 7.5
-            near_ = (A_ * math.cos(phL), round(max(0.0, -math.sin(phL)) * 4.5))
-            far_ = (A_ * math.cos(phR), round(max(0.0, -math.sin(phR)) * 4.5))
-            out.append(pose(bob=b, head=round((bp - b) * 0.5), foot=(far_, near_),
-                            hand=((-5.5 * math.cos(phR) + 1.0, 0), (-5.5 * math.cos(phL) + 1.0, 0)),
-                            lean_body=1.5 + 0.5 * (b < 0),
-                            sway=-1.5 - 1.3 * math.cos(2 * lag), flame=i % 6, lean=-2.0 - 0.8 * math.cos(2 * lag),
+            near_ = (STRIDE_A * math.cos(phL), round(max(0.0, -math.sin(phL)) * 5.0))
+            far_ = (STRIDE_A * math.cos(phR), round(max(0.0, -math.sin(phR)) * 5.0))
+            out.append(pose(bob=b, head=round((bp - b) * 0.6), crouch=1.0, foot=(far_, near_),
+                            hand=((-5.5 * math.cos(phR), 0), (-5.5 * math.cos(phL), 0)),
+                            lean_body=1.4 + 0.6 * (b < 0),
+                            sway=-2.0 - 1.8 * math.cos(2 * lag), flame=i % 6, lean=-2.6 - 1.0 * math.cos(2 * lag2),
                             pulse=i % 4 == 0))
     return out
 
 
 ACTIONS = {"idle": (act_idle, IDLE_MS, True), "walk": (act_walk, WALK_MS, True)}
+STRIDE = {"walk": {"px": round(4 * STRIDE_A), "cycleMs": CYCLE_MS}}

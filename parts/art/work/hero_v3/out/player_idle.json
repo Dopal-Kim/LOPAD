@@ -33,6 +33,6 @@
   "#eecc78",
   "#f4de9b"
  ],
- "source": "parts/art/work/hero_v3/build.py (52라운드 Q7·Q8 1단계 검수용 초안)",
+ "source": "parts/art/work/hero_v3/build.py (52라운드 Q10 1단계 2차 검수용 초안)",
  "note": "v3 2배 밀도 — 64×96 도트, 화면상 32×48 (계약 §11). 개념 gemini/concept_char/hero3_b. 검수 전 초안: assets 미반영."
 }
