@@ -1,5 +1,60 @@
 # 게임 UI 파트 — 작업 기록
 
+## 49라운드 (2026-10-02) · M 지도(입체·위치 정보)·넘어가기 확인·음소거 이동·무기 자원 게이지·무기 시험장
+결정: `decisions/2026-10-02-round-49-playtest2.md` 5절(무기 자원·시험장 UI 부분)·6절(노드 지도). 계약: `contracts/ui-system-interface.md` **§11** — `UiSnapshot.resource`(`UiWeaponResource`)·`muted`·`lab`, `UiRouteNode.region/desc`, `uiCommands.setMuted`·`startWeaponLab`, 메뉴 id `lab`·`labBranch`. 아이콘: `art-assets.md` §7.3 마지막 줄(여정 = 앞으로 뻗은 길) → `assets/ui/kit/node_icons.*` 사본 갱신(아트 커밋 bc1cdbb, 192×96·순서 그대로). 시스템 코드 열람 없음.
+값이 비어 있으면(null·빈 문자열) 그리지 않는다.
+
+### 화면
+- **M = 지도** (Tab 도 같은 지도, `HudScene` 이 `keydown-M` 을 Tab 과 같은 처리로): 노드 지도 층은 노드 지도 보기(게임 정지), 그 외 층은 워프 지도. 무기 시험장(`lab`)에서는 무시. 보기 모드는 M·Tab·Esc 로 닫는다.
+- **노드 지도 다시 그림** (`RouteMap.ts`, 일기장 한 페이지 864×456 그대로):
+  - 왼쪽 지도 칸(560×약 370) = **펼친 양피지**: 계단식 사다리꼴(아래 폭 552 → 위 60%), 오른쪽 아래로 4px 그림자(S0 α0.55), 바탕 S4, 지평선 격자(가로 = 깊이 6등분, 멀수록 촘촘 / 세로 7줄이 위로 모임, S3 점선), 위 가장자리 밝은 띠(S5 α0.55, 넘어가는 종이)·아래 말린 가장자리(S2 + 윗선 S5 α0.55), 좌우 계단 테두리 S1.
+  - **원근 배치**(`routeView.layoutPerspective`): 진행(col)이 **아래(가까움) → 위(멂)**, 같은 단계 갈래(row)는 좌우. 단계 간격은 멀수록 좁게(곡선 ease 0.55), 좌우 폭은 멀수록 0.62배까지. 가장 먼 간격이 40px 보다 좁아지면 원근을 풀어 고른 간격.
+  - 노드 = **땅에서 들린 표지**: 땅 점에 그림자 타원(S1, 가까울수록 큼 15×4 → 9×2), 2px 기둥, 그 위 아이콘(들림 8 → 4px). 먼 노드부터 그려 가까운 것이 위로 겹친다.
+  - 길 = 땅 위 점선(그림자 가장자리에서 비움): 가까운 쪽(깊이 < 0.34) 3px 점, 그 외 2px, 간격도 멀수록 좁게. 색은 48라운드와 같음(지나온 길 S0, 고를 길 층 강조 22, 그 외 S2).
+  - 이름표는 **지금·갈 수 있는 곳·고른 곳만** 아이콘 오른쪽에(지도 칸을 넘으면 왼쪽). 먼 곳은 아이콘과 오른쪽 칸으로 읽는다. 주인공 표시는 지금 노드 왼쪽(발이 땅에), 커서 촉은 고른 노드 고리 왼쪽(지금 노드면 숨김).
+  - **배경 일러스트 자리**: `theme.MAP_BG_FLOORS` 에 층 번호(`UiRoute.floor`)를 넣으면 `assets/ui/map_bg_<floor>.png` 를 읽어 양피지 대신 사다리꼴 모양으로 잘라(GeometryMask) 깐다(그림자·말린 가장자리·테두리는 그대로). 지금은 빈 목록(없는 파일 404 방지). 그림 크기는 지도 칸 552×약 358 에 늘려 맞춘다.
+  - 오른쪽 칸(232): **지금 있는 곳**(page_faint) → 지역 `region`(page_title ×2) → '이름 · 종류'(page_body) → 설명 `desc`(줄바꿈). 괘선. **고른 곳**(고르기)/**살펴보는 곳**(보기) → 이름(page_selected)·'지역 · 종류 · 상태'·설명(page_faint) — 지금 있는 곳과 같으면 비움. 아래에 범례 2열×3줄(아이콘 32 + 이름). region·desc 가 없으면 그 줄을 건너뛴다.
+- **'넘어가시겠습니까?' 확인** (고르기 모드): available 노드를 Enter·Space(뗀 뒤)·클릭(뗀 뒤)으로 고르면 지도 칸 가운데 `panel_paper` 300×112 창 — '넘어가시겠습니까?'(Galmuri14) / '지역 · 이름'(page_selected) / [예] [아니오] 버튼(Container → Graphics → 글자, 포커스 = 층 강조 20 테두리 2px + page_selected) / 안내 '←→ 고르기 · Enter 정하기 · Esc 아니오'. 뒤 페이지는 G00 α0.5 로 덮고 클릭을 막는다. 기본 포커스 '예'. ←→·A·D 전환, Enter·Space·Y(뗀 뒤) 정하기, Esc·N 아니오. **예일 때만** 한 프레임 뒤 `chooseNode`, 아니오면 지도로 돌아온다.
+  - 확인 창은 자신을 열고 닫은 입력 이벤트 시각(`event.timeStamp`) 이전의 키 이벤트를 무시한다 — 헤드리스에서 프레임이 밀리면 Phaser 가 같은 키 이벤트를 다시 넘겨, 창을 연 Enter 가 곧바로 '예' 가 되는 것을 확인했다.
+- **HUD 우상단**: 'M 음소거' → **'M 지도'**. 음소거 중이면 그 오른쪽에 `icon_mute`. 노드 지도 층은 'Tab 지도' 줄을 없앴고(M·Tab 같은 지도), 그 외 층은 'Tab 워프' 줄 유지. 좌상단 노드 이름은 '지역 · 이름'.
+- **Esc 일기장 소리 설정** (`PauseScene`): 목록 '[1] 더 쓴다 (Esc) / [2] 소리 끄기(음소거 중이면 소리 켜기) / [3] 일기장을 덮는다'. [2] → `setMuted(!muted)`, 처음 상태는 `snapshot.muted`, 누른 뒤에는 화면 상태를 바로 뒤집는다(일시정지 중 스냅샷이 늦을 수 있어). 페이지 높이 264 → 282. 첫 줄 노드 이름도 '지역 · 이름'. UI 쪽에 M 음소거 처리는 원래 없었다(시스템 키였음) — 힌트만 바꿈.
+- **무기 자원 게이지** (`ResourceHud.ts`, 계약 §11.1): 자원이 있으면 하단 묶음 64 → **80**(아래 여백 12 유지, 위로 늘고 보스 게이지·자막도 같이 올라감), 3행(y+59)에 라벨(`resource.label`, ink_faint) + 게이지 + 'n/m'(ink_faint) + 상태 글(ink_accent).
+  - 기력(stamina): `gauge_frame` 150 막대, 채움 = 회색 띠 × 층 강조 23(ok)·20(low), exhausted 는 회색 띠 + '지침' 깜빡임(1 ↔ 0.55, 0.2초).
+  - 화살(ammo): 화살 칸 5×11(촉 층 강조 22·대 G13·깃 G11 / 빈 칸 G04), 간격 3. 16칸이 넘으면 막대. reloading 이면 오른쪽 픽셀 진행 링(반지름 5, 12시부터 시계 방향, 켜짐 강조 22·꺼짐 G04) + '장전'.
+  - 열기(heat): 120 막대 + 1/3·2/3 눈금(G00), 채움 색 = 단계(0 회색, 1·2·3 = 강조 20·22·25 달아오를수록 밝게), 오른쪽 단계 눈금 3칸(6×6). overheat 면 막대 가득 + 맥동(1 ↔ 0.55) + 막대 아래 2px 냉각 진행선(G03 바탕, G11 진행) + '과열'. `stage` 가 없으면 비율로 단계를 나눈다.
+  - 값은 정수로 표시(바닥 0, 조금 남으면 올림).
+- **무기 시험장** (계약 §11.4): 타이틀 목록 끝에 '[3] 무기 시험장' → `startWeaponLab()`. `snapshot.lab` 이면 좌상단 '무기 시험장 · L 무기 고르기 · Esc 나가기', 우상단 미니맵·노드 띠·지도 안내 숨김, M·Tab 무시. Esc 일기장은 제목 '무기 시험장', '[1] 계속한다 (Esc) / [2] 소리 / [3] 시험장을 나간다'(확인 없이 `toTitle()`), 이름·층·세이브·시드 줄과 'Tab 워프' 생략.
+  - `lab`·`labBranch` 메뉴는 기존 일기장 메뉴 틀(넓은 페이지 520). 갈래 깊이는 계약에 필드가 없어 **라벨 앞 공백(2칸 = 1단)·트리 기호(└ ├ ㄴ · - 등)·key 의 '.'·'/'·'>' 구분자**로 추정해(`resourceView.menuIndent`) 14px 씩 들여쓰고 '└ ' 를 붙인다. 그만두기 줄은 들여쓰지 않는다.
+
+### 소유 코드·에셋 추가·변경
+| 파일 | 내용 |
+|---|---|
+| `RouteMap.ts` | 입체 지도(양피지·원근·표지·그림자), 오른쪽 위치 정보·범례, 넘어가기 확인 창, 배경 일러스트 자리 |
+| `ResourceHud.ts` (신규) | 무기 자원 게이지(기력·화살·열기) |
+| `resourceView.ts`, `resourceView.test.ts` (신규) | 순수 계산: 자원 비율·화살 칸·진행 링 점·열기 단계·표시 값, 갈래 들여쓰기, 'M 음소거' 바꾸기 + 원근 배치 테스트 (테스트 11개) |
+| `routeView.ts` | `layoutPerspective`·`perspectiveCurve`·`trapezoidRows`·`ellipseRows` |
+| `HudScene.ts` | M 키, 'M 지도'·음소거 아이콘, 시험장 모드, 하단 묶음 높이 바꾸기·3행 자원 |
+| `PauseScene.ts` | 소리 끄기·켜기, 시험장 일기장 |
+| `TitleScene.ts` | '무기 시험장' 항목 |
+| `MenuScene.ts`, `widgets.ts` | lab·labBranch 넓은 페이지·들여쓰기(`SelectLine.indent`) |
+| `kit.ts` | `mapBgKey`·배경 로드, `Gauge.setPositionY`·`setFillSlot`·`setAlpha` |
+| `text.ts` | `ROUTE_TEXT` 추가 키, `R49_TEXT`·`r49Text()`, `controlsLine` 'M 지도' |
+| `theme.ts` | `MAP3D`·`MAP_BG_FLOORS`·`RES` (임시값) |
+| `debug.ts` | `setMutedCmd`(기록 `muted`), `view.routeMap.confirm` 버튼 좌표 |
+| `assets/ui/kit/node_icons.png/json` | 아트 49라운드 사본으로 갱신 (수정 금지) |
+
+### 임시값 (도영 님 검토 대상)
+- 문구(텍스트 팩 `hud.<키>` 우선): '지금 있는 곳'·'살펴보는 곳'·'고른 곳', '넘어가시겠습니까?'(결정 원문)·'예'·'아니오'·'←→ 고르기 · Enter 정하기 · Esc 아니오', 'M 지도', 보기 안내 '←→↑↓ 둘러보기 · M·Tab·Esc 닫기', '무기 시험장'(타이틀·일기장 제목), '무기 시험장 · L 무기 고르기 · Esc 나가기'(L 은 계약의 임시 제안 키), '계속한다'·'시험장을 나간다', '소리 끄기'·'소리 켜기', 자원 상태 '지침'·'장전'·'과열'.
+- 수치(`theme.ts MAP3D`·`RES`): 오른쪽 칸 232·간격 16, 원근 farScale 0.62·ease 0.55·최소 간격 40·가까운 줄 간격 ≤150, 양피지 위 폭 60%·그림자 4·말림 4·격자 6×7, 들림 8→4·그림자 15×4, 이름표 줄바꿈 96, 확인 창 300×112·버튼 높이 18·최소 폭 64·간격 16·뒤 α0.5 / 하단 묶음 80·3행 y+59, 기력 막대 150, 화살 5×11·간격 3·16칸 상한, 링 반지름 5, 열기 막대 120·눈금 6·간격 3, 맥동 0.2초, 색 슬롯(기력 23·20, 화살 22, 열기 20·22·25, 링 22).
+- 판단: 진행 방향을 왼→오에서 **아래→위**로 바꿨다(위쪽이 멀어 보이고 길이 앞으로 뻗게). HUD 노드 띠는 왼→오 그대로. 먼 노드 이름표를 숨겼다. 확인 창 기본 포커스 '예'. 시험장 나가기는 `toTitle()`(계약에 별도 명령 없음). 음소거 중 HUD 에 `icon_mute` 표시.
+
+### 검증
+`npx tsc --noEmit`·`npx eslint .`·`npx vitest run`(35 파일 257개)·`npx vite build` 작업 트리에서 통과(시스템 작업 중이던 시점엔 시스템 파일 tsc 오류가 있어 **HEAD + UI 변경분** 사본 `scratchpad/iso49` 로도 확인).
+헤드리스(Playwright 960×540, `vite preview --port 4193`, 스크립트 `scratchpad/r49ui.cjs`, 스크린샷 `scratchpad/r49ui/`, `uidebug=1` 가짜 route·resource·lab·메뉴): 타이틀 3항목 → 자원 게이지 10종(+없음) → HUD 'M 지도'·음소거 아이콘·'지역 · 이름' → M 보기(게임 정지·일기장 없음)·방향키·M 닫기·Tab 열기·Esc 닫기(재개) → 고르기: Enter → 확인 창, Esc → 창만 닫힘, →·Enter(아니오) → 선택 없음, Enter·Enter(예) → `chooseNode('b1')`·지도 닫힘, 안전망 재열기 → 클릭 → 확인 → 아니오 클릭 → 다시 클릭 → 예 클릭 → `a1` → 늦은 단계 보기 → Esc 일기장 [2] 두 번 → `setMuted(true)`·`setMuted(false)` → 시험장 HUD·M 무시·lab 메뉴·labBranch 들여쓰기·[3] 선택 기록·시험장 일기장. 콘솔 오류·경고 0, HTTP 4xx 0.
+작업 트리 실게임: 타이틀 '[3] 무기 시험장' 클릭 시 화면 변화 없음(시스템 `startWeaponLab` 구현 대기로 보임 — 시스템 코드 미열람). `setMuted` 뒤 `snapshot.muted` 는 HEAD 시스템에서 false 그대로(시스템 반영 대기).
+
+---
+
 ## 48라운드 (2026-10-02) · 노드 지도·노드 띠·탄생 연출
 결정: `decisions/2026-10-02-round-48-playfeel-route.md` (Q1 카메라 2배, Q3 노드 지도, Q6 탄생, Q9 1층 노드 구성, Q11 워프 비활성 → Tab = 노드 지도 보기). 계약: `contracts/ui-system-interface.md` **§10** (승인 #17) — `UiSnapshot.route`(`UiRoute`·`UiRouteNode`), `uiCommands.chooseNode`, `ROUTE_CHOOSE_OPEN`·`ROUTE_NODE_ENTERED`·`BIRTH_STARTED/DONE`. 아이콘: `contracts/art-assets.md` §6.5 (승인 #18) `assets/sprites/ui/node_icons.*` → `assets/ui/kit/` 사본. 그 외 시스템 코드 열람 없음.
 `route` 가 null(또는 노드 0개)이면 전부 기존 동작(방 미니맵·Tab 워프·'시련 n/m').

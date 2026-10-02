@@ -14,6 +14,8 @@ import { UI_SCENE_KEYS } from './keys';
  *   selects: [menuId, key][]    // 가짜 메뉴에서 고른 기록
  *   fakeChoose(on)              // 48라운드: chooseNode 를 시스템으로 보내지 않고 true 로 (가짜 route 확인용)
  *   chosen: string[]            // 가짜로 고른 노드 id
+ *   muted: boolean[]            // 49라운드: Esc 일기장에서 보낸 setMuted 기록
+ *   view.routeMap.confirm       // 49라운드: '넘어가시겠습니까?' 예·아니오 버튼 화면 좌표
  * }
  */
 type Patch = Partial<UiSnapshot> | ((s: UiSnapshot) => Partial<UiSnapshot>);
@@ -27,6 +29,8 @@ interface DebugApi {
   fakeChoose(on: boolean): void;
   chosen: string[];
   view: Record<string, unknown>;
+  /** 49라운드: Esc 일기장에서 보낸 setMuted 기록 */
+  muted: boolean[];
 }
 
 let enabled: boolean | null = null;
@@ -36,6 +40,13 @@ let scenePlugin: Phaser.Scenes.ScenePlugin | null = null;
 const selects: [string, string][] = [];
 let fakeChoose = false;
 const chosen: string[] = [];
+
+/** 49라운드: 음소거 명령. 디버그가 켜져 있으면 기록(`muted`)도 남긴다 (가짜 값 확인용, 시스템으로도 보낸다) */
+export function setMutedCmd(on: boolean): void {
+  if (uiDebugEnabled()) mutedLog.push(on);
+  uiCommands.setMuted(on);
+}
+const mutedLog: boolean[] = [];
 
 /** 48라운드: 노드 고르기 명령 (디버그 가짜 고르기가 켜져 있으면 기록만 하고 true) */
 export function chooseNodeCmd(id: string): boolean {
@@ -103,6 +114,7 @@ export function installUiDebug(scene: Phaser.Scene): void {
     },
     chosen,
     view: views,
+    muted: mutedLog,
   };
   (window as unknown as { __lopadUi?: DebugApi }).__lopadUi = api;
 }

@@ -1,4 +1,5 @@
 import { uiCommands, type UiText } from '../contract/ui';
+import { replaceMuteHint } from './resourceView';
 import { withControlExtras } from './structView';
 
 /**
@@ -31,19 +32,21 @@ const CONTROL_EXTRAS: { token: RegExp; key: string; fallback: string }[] = [
 
 /**
  * 조작법 한 줄. `{secondary}` 는 스냅샷의 우클릭 보조 동작 이름으로, 비면 '보조 동작'. 47라운드: E·Shift·Tab 이 없으면 덧붙인다.
- * 48라운드: 노드 지도 층(`routeMode`)에서는 Tab 이 워프 대신 지도 보기라 'Tab 지도' 로 덧붙인다.
+ * 49라운드: 'M 지도' 를 덧붙이고(팩의 'M 음소거' 는 바꾼다), 노드 지도 층·무기 시험장(`routeMode`)에서는 'Tab 워프' 를 뺀다
+ * (노드 지도 층은 M·Tab 이 같은 지도).
  */
 export function controlsLine(secondaryName: string, routeMode = false): string {
   const tpl = uiCommands.getUiText().controls || DEFAULT_CONTROLS;
-  const line = fill(tpl, { secondary: secondaryName || '보조 동작' });
-  return withControlExtras(
-    line,
-    CONTROL_EXTRAS.map((e) =>
-      e.key === 'warpKeyHint' && routeMode
-        ? { token: e.token, text: routeText('mapKeyHint') }
-        : { token: e.token, text: uiText('hud', e.key, e.fallback) },
-    ),
-  );
+  // 49라운드: M 은 지도 (음소거는 Esc 일기장). 팩에 'M 음소거' 가 남아 있으면 바꾼다
+  const mapHint = routeText('mapKeyHintM');
+  const line = replaceMuteHint(fill(tpl, { secondary: secondaryName || '보조 동작' }), mapHint);
+  const extras = CONTROL_EXTRAS.filter((e) => !(e.key === 'warpKeyHint' && routeMode)).map((e) => ({
+    token: e.token,
+    text: uiText('hud', e.key, e.fallback),
+  }));
+  // 노드 지도 층은 M·Tab 이 같은 지도라 'M 지도' 하나만, 그 외 층은 'M 지도' + 'Tab 워프'
+  extras.push({ token: /(^|[\s·])M(\s|$)/, text: mapHint });
+  return withControlExtras(line, extras);
 }
 
 /** 45라운드 워프 문구 (임시값, 도영 님 검수 대상). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
@@ -110,7 +113,7 @@ export const ROUTE_TEXT = {
   /** 고르기 모드 안내 */
   chooseHint: '←→↑↓ 고르기 · Enter·클릭 그리로 간다',
   /** 보기 모드 안내 */
-  viewHint: '←→↑↓ 둘러보기 · Tab·Esc 닫기',
+  viewHint: '←→↑↓ 둘러보기 · M·Tab·Esc 닫기',
   /** 고르기 모드 제목 옆 한 줄 */
   choosePrompt: '다음 갈 곳을 고른다',
   /** 노드 상태 설명 */
@@ -130,13 +133,51 @@ export const ROUTE_TEXT = {
   typeBoss: '본영',
   /** HUD */
   mapKeyHint: 'Tab 지도',
+  /** 49라운드: M = 지도 (HUD 우상단·조작법 줄) */
+  mapKeyHintM: 'M 지도',
   stripRemain: '남은 길 {n}',
   stripLast: '마지막',
   /** 탄생 연출 중 건너뛰기 안내 */
   birthSkip: '아무 키나 눌러 건너뛰기',
+  /** 49라운드 위치 정보 칸 머리글 */
+  hereTitle: '지금 있는 곳',
+  lookTitle: '살펴보는 곳',
+  pickTitle: '고른 곳',
+  /** 49라운드 넘어가기 확인 (원문 결정 문구) */
+  confirmTitle: '넘어가시겠습니까?',
+  confirmYes: '예',
+  confirmNo: '아니오',
+  confirmHint: '←→ 고르기 · Enter 정하기 · Esc 아니오',
 } as const;
 export type RouteTextKey = keyof typeof ROUTE_TEXT;
 
 export function routeText(key: RouteTextKey): string {
   return uiText('hud', key, ROUTE_TEXT[key]);
+}
+
+/**
+ * 49라운드 문구 (임시값, 도영 님 검수 대상): 무기 시험장·소리 설정·무기 자원 상태.
+ * 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다.
+ */
+export const R49_TEXT = {
+  /** 타이틀 항목 */
+  titleLab: '무기 시험장',
+  /** 시험장 HUD 좌상단 (L 은 시스템이 정할 열기 키의 임시 제안) */
+  labHud: '무기 시험장 · L 무기 고르기 · Esc 나가기',
+  /** 시험장 일시정지 일기장 */
+  labPauseTitle: '무기 시험장',
+  labContinue: '계속한다',
+  labLeave: '시험장을 나간다',
+  /** Esc 일기장 설정: 소리 */
+  soundOff: '소리 끄기',
+  soundOn: '소리 켜기',
+  /** 무기 자원 상태 (값 옆 짧은 글). low 는 색만 바꾼다 */
+  resExhausted: '지침',
+  resReloading: '장전',
+  resOverheat: '과열',
+} as const;
+export type R49TextKey = keyof typeof R49_TEXT;
+
+export function r49Text(key: R49TextKey): string {
+  return uiText('hud', key, R49_TEXT[key]);
 }

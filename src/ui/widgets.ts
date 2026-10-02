@@ -9,6 +9,8 @@ export interface SelectLine {
   enabled: boolean;
   /** 항목 아래 작은 글씨로 보이는 설명 (evolve 등) */
   detail?: string;
+  /** 49라운드: 들여쓰기 px (무기 시험장 갈래 트리) */
+  indent?: number;
 }
 
 /** 선택 목록 줄 간격 (계약 1.2절: 글꼴 높이 + 4 이상) */
@@ -85,7 +87,8 @@ export class SelectList {
     this.details = [];
     let y = this.y;
     lines.forEach((l, i) => {
-      const t = new GlowText(this.scene, this.x + 14, y, this.itemLabel(l), this.unselStyle(), {
+      const ind = Math.max(0, Math.round(l.indent ?? 0));
+      const t = new GlowText(this.scene, this.x + 14 + ind, y, this.itemLabel(l), this.unselStyle(), {
         stageIndex: this.stageIndex,
       }).makeInteractive();
       t.on('pointerover', () => this.setCursor(i));
@@ -93,7 +96,7 @@ export class SelectList {
       this.items.push(t);
       y += SELECT_ROW.line;
       if (l.detail) {
-        const d = new GlowText(this.scene, this.x + 14 + 26, y - 2, l.detail, 'page_faint', {
+        const d = new GlowText(this.scene, this.x + 14 + ind + 26, y - 2, l.detail, 'page_faint', {
           wrap: this.detailWrap,
         }).makeInteractive();
         d.on('pointerover', () => this.setCursor(i));

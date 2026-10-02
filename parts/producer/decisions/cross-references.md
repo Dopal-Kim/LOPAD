@@ -22,4 +22,4 @@
 | 15 | 2026-10-02 | 아트 | 시스템 | `parts/system/structures-draft.md` | 구조물 외형 메모(아트 요청) 읽기 | 구조물 시트 제작 기간 | 도영 님, 47라운드 |
 | 16 | 2026-10-02 | 시스템·아트 | 스토리 | `parts/story/world-bible.md` | 평화지역→잔 여정 노드 구성·탄생지 분위기 파악(읽기) | 48라운드 작업 기간 | 도영 님, 48라운드 |
 | 17 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (노드 지도 route, chooseNode, 탄생 연출 이벤트) | 계약 `ui-system-interface.md` §10 항목만 | 48라운드 작업 기간. 계약 변경은 재인터뷰 | 도영 님, 48라운드 |
-| 18 | 2026-10-02 | UI | 아트 | `assets/sprites/ui/node_icons.*` (계약 `art-assets.md` §6) | 노드 지도 아이콘 읽기 | 48라운드 작업 기간 | 도영 님, 48라운드 |
+| 18 | 2026-10-02 | UI | 아트 | `assets/sprites/ui/node_icons.*` (계약 `art-assets.md` §6·§7.3), 49라운드부터 `assets/sprites/ui/keyart_*`·`map_bg_*`(§8) | 노드 지도 아이콘·키아트·지도 배경 읽기·`assets/ui/` 로 복사 | 48·49라운드 작업 기간 (49라운드 연장) | 도영 님, 48라운드 (49라운드 Gemini 결정으로 범위 연장) |

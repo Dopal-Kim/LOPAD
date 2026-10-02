@@ -4,6 +4,7 @@ import { debugSelect, isDebugMenu } from './debug';
 import { GlowText } from './glow';
 import { accentHex, book, cursor as makeCursor, fontsReady, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
+import { menuIndent } from './resourceView';
 import { cardFocusMove } from './structView';
 import { structText } from './text';
 import { LAYOUT, SEPIA, STRUCT, hexToNum } from './theme';
@@ -12,6 +13,11 @@ import { SelectList } from './widgets';
 /** 카드 메뉴로 그릴 수 있는 카드 장수 (그 밖이면 일반 목록) */
 const CARD_MIN = 2;
 const CARD_MAX = 4;
+/** 49라운드 무기 시험장 메뉴 (계약 §11.4): 넓은 페이지 + 갈래 들여쓰기 */
+const LAB_MENUS: ReadonlySet<string> = new Set(['lab', 'labBranch']);
+/** 갈래 한 단계 들여쓰기 px · 트리 기호 */
+const LAB_INDENT = 14;
+const LAB_BRANCH_MARK = '└ ';
 
 interface CardView {
   line: UiMenuLine;
@@ -128,18 +134,30 @@ export class MenuScene extends Phaser.Scene {
     const stageIndex = Math.max(0, uiCommands.getUiSnapshot().stageIndex);
     // evolve 의 라벨은 '이름 — 설명' 형식으로 올 수 있고 detail 에 같은 설명이 들어 있다 (시스템 29라운드).
     // 설명을 두 번 보이지 않도록 라벨 끝의 ' — 설명' 을 떼고 아래 줄(detail)로만 보인다.
+    const lab = LAB_MENUS.has(m.id);
     const lines = m.lines.map((l) => {
       const suffix = l.detail ? ` — ${l.detail}` : '';
       const dup = Boolean(suffix) && l.label.endsWith(suffix);
+      let label = dup ? l.label.slice(0, -suffix.length) : l.label;
+      let indent = 0;
+      // 49라운드: 시험장 갈래 트리 — 라벨 앞 공백·트리 기호·key 구분자로 깊이를 추정해 들여쓴다 (그만두기 줄 제외)
+      if (lab && l.key !== m.cancelKey) {
+        const ind = menuIndent({ key: l.key, label });
+        if (ind.depth > 0) {
+          label = `${LAB_BRANCH_MARK}${ind.label}`;
+          indent = (ind.depth - 1) * LAB_INDENT + LAB_INDENT;
+        } else label = ind.label;
+      }
       return {
         key: l.key,
-        label: dup ? l.label.slice(0, -suffix.length) : l.label,
+        label,
         enabled: l.enabled,
         detail: l.detail && (dup || !l.label.includes(l.detail)) ? l.detail : undefined,
+        indent,
       };
     });
 
-    const wide = m.id === 'evolve' || m.id === 'ending';
+    const wide = m.id === 'evolve' || m.id === 'ending' || lab;
     const minW = wide ? 520 : 420;
     const maxW = W - 64;
     const padX = 24;

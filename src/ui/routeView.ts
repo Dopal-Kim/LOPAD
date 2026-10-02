@@ -111,3 +111,117 @@ export function dottedPoints(
 export function hasRoute(route: UiRoute | null | undefined): route is UiRoute {
   return Boolean(route && route.nodes && route.nodes.length > 0);
 }
+
+// ---------------------------------------------------------------------------------------------
+// 49라운드: 입체(원근) 지도 — 진행(col)은 아래(가까움) → 위(멂), 같은 단계의 줄(row)은 좌우로 벌린다.
+
+export interface PerspectiveOptions {
+  /** 가장 가까운 단계의 줄 간격 상한 (px) */
+  rowMax: number;
+  /** 가장 먼 단계의 크기 비 (0..1). 좌우 폭·그림자·높이가 이 비율로 줄어든다 */
+  farScale: number;
+  /** 멀어질수록 단계 간격이 좁아지는 정도 (0 = 고르게) */
+  ease: number;
+  /** 단계 사이 최소 세로 간격. 원근으로 이보다 좁아지면 원근을 풀어 고르게 둔다 */
+  minGap: number;
+  /** 영역 위·아래 안쪽 여백 (노드 높이·이름표 자리) */
+  padTop: number;
+  padBottom: number;
+}
+
+export interface PerspectivePoint {
+  /** 땅에 닿은 점 (노드 그림자 중심, 정수) */
+  x: number;
+  y: number;
+  /** 깊이 0(가까움)..1(멂) */
+  depth: number;
+  /** 크기 비 1(가까움)..farScale(멂) */
+  scale: number;
+}
+
+export interface PerspectiveLayout {
+  pos: Map<string, PerspectivePoint>;
+  /** 실제로 쓴 ease (최소 간격 때문에 0 으로 풀렸을 수 있다) */
+  ease: number;
+  /** 가장 가까운 단계의 줄 간격 */
+  rowStep: number;
+  /** 깊이 → 화면 y (지도 격자선용) */
+  yAt: (depth: number) => number;
+  /** 깊이 → 크기 비 */
+  scaleAt: (depth: number) => number;
+}
+
+/** 0..1 깊이를 원근 곡선으로 (멀수록 촘촘). ease 0 이면 직선 */
+export function perspectiveCurve(t: number, ease: number): number {
+  const c = Math.max(0, Math.min(1, t));
+  if (ease <= 0) return c;
+  return (1 - 1 / (1 + ease * c)) / (1 - 1 / (1 + ease));
+}
+
+/**
+ * 원근 배치. 첫 단계가 영역 아래(가까움), 마지막 단계가 위(멂). 단계 간격은 멀수록 좁고, 좌우 폭은 farScale 까지 줄어든다.
+ * 단계 수가 많아 가장 먼 간격이 minGap 보다 좁아지면 ease 를 0 으로 (고른 간격) 되돌린다.
+ */
+export function layoutPerspective(nodes: UiRouteNode[], area: Area, o: PerspectiveOptions): PerspectiveLayout {
+  const pos = new Map<string, PerspectivePoint>();
+  const top = area.y + o.padTop;
+  const bottom = area.y + area.h - o.padBottom;
+  const usable = Math.max(0, bottom - top);
+  const cx = area.x + area.w / 2;
+  if (!nodes.length) {
+    return { pos, ease: o.ease, rowStep: 0, yAt: () => bottom, scaleAt: () => 1 };
+  }
+  const minCol = Math.min(...nodes.map((n) => n.col));
+  const maxCol = Math.max(...nodes.map((n) => n.col));
+  const cols = maxCol - minCol + 1;
+  const rowsIn = new Map<number, number>();
+  for (const n of nodes) rowsIn.set(n.col, Math.max(rowsIn.get(n.col) ?? 0, n.row + 1));
+  const maxRows = Math.max(...rowsIn.values());
+  let ease = o.ease;
+  if (cols > 1 && ease > 0) {
+    const lastGap = usable * (1 - perspectiveCurve((cols - 2) / (cols - 1), ease));
+    if (lastGap < o.minGap) ease = 0;
+  }
+  const yAt = (depth: number): number => Math.round(bottom - usable * perspectiveCurve(depth, ease));
+  const scaleAt = (depth: number): number => 1 - (1 - o.farScale) * perspectiveCurve(depth, ease);
+  const rowStep = maxRows > 1 ? Math.min(o.rowMax, Math.floor((area.w * 0.9) / maxRows)) : 0;
+  for (const n of nodes) {
+    const depth = cols > 1 ? (n.col - minCol) / (cols - 1) : 0;
+    const scale = scaleAt(depth);
+    const rows = rowsIn.get(n.col) ?? 1;
+    pos.set(n.id, {
+      x: Math.round(cx + (n.row - (rows - 1) / 2) * rowStep * scale),
+      y: yAt(depth),
+      depth,
+      scale,
+    });
+  }
+  return { pos, ease, rowStep, yAt, scaleAt };
+}
+
+/**
+ * 계단식 사다리꼴 (펼친 양피지). 아래 폭 wBottom, 위 폭 wTop, 가운데 cx. 줄마다 [x, y, w] (정수).
+ */
+export function trapezoidRows(cx: number, yTop: number, yBottom: number, wTop: number, wBottom: number) {
+  const rows: { x: number; y: number; w: number }[] = [];
+  const h = Math.max(1, yBottom - yTop);
+  for (let y = yTop; y <= yBottom; y++) {
+    const t = (y - yTop) / h;
+    const w = Math.round(wTop + (wBottom - wTop) * t);
+    rows.push({ x: Math.round(cx - w / 2), y, w });
+  }
+  return rows;
+}
+
+/** 픽셀 타원 줄 (그림자). 중심 cx·cy, 반지름 rx·ry. 줄마다 [x, y, w] (정수) */
+export function ellipseRows(cx: number, cy: number, rx: number, ry: number) {
+  const rows: { x: number; y: number; w: number }[] = [];
+  const R = Math.max(1, Math.round(ry));
+  for (let dy = -R; dy <= R; dy++) {
+    const k = 1 - (dy * dy) / ((R + 0.5) * (R + 0.5));
+    const half = Math.round(rx * Math.sqrt(Math.max(0, k)));
+    if (half <= 0) continue;
+    rows.push({ x: Math.round(cx - half), y: Math.round(cy + dy), w: half * 2 });
+  }
+  return rows;
+}

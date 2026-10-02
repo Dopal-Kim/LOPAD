@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ACCENT_FIRST_SLOT, FLOOR1_RAMP, FONT, FONT_FILES, GRAY, LAYOUT, hexToNum } from './theme';
+import { ACCENT_FIRST_SLOT, FLOOR1_RAMP, FONT, FONT_FILES, GRAY, LAYOUT, MAP_BG_FLOORS, hexToNum } from './theme';
 
 /**
  * UI 키트 로더·조립 헬퍼 (계약 `contracts/ui-art-kit.md` v0.4 §2·§4).
@@ -96,7 +96,13 @@ export const weaponIconKey = (id: string): string => `ui-weapon-${id}`;
  * 키트 글리프 폴백으로 그린다 (없는 파일을 읽어 404 를 내지 않게 플래그로 둔다).
  * 강조 1점(슬롯 20~22)은 1층 램프로 그려져 있다 — 2층부터 `nodeIconKey` 가 그 층 램프로 바꾼 사본을 만든다.
  */
-export const NODE_ICON_SHEET: { key: string; file: string; size: number; order: readonly string[]; available: boolean } = {
+export const NODE_ICON_SHEET: {
+  key: string;
+  file: string;
+  size: number;
+  order: readonly string[];
+  available: boolean;
+} = {
   key: K('node_icons'),
   file: 'node_icons',
   size: 32,
@@ -137,6 +143,9 @@ export function nodeIconKey(scene: Phaser.Scene, stageIndex: number): string {
   return key;
 }
 
+/** 49라운드: 지도 배경 일러스트 텍스처 키 (`assets/ui/map_bg_<floor>.png`, theme `MAP_BG_FLOORS` 에 있는 층만 읽는다) */
+export const mapBgKey = (floor: number): string => `ui-map-bg-${floor}`;
+
 /** 씬 preload 에서 호출. 이미 있는 텍스처는 건너뛴다 (UI 씬 어느 것이 먼저 떠도 된다) */
 export function preloadKit(scene: Phaser.Scene): void {
   const img = (key: string, file: string) => {
@@ -171,6 +180,10 @@ export function preloadKit(scene: Phaser.Scene): void {
       frameHeight: NODE_ICON_SHEET.size,
     });
   if (!scene.cache.json.exists(KIT.palette)) scene.load.json(KIT.palette, `${BASE}palette.json`);
+  for (const f of MAP_BG_FLOORS) {
+    const key = mapBgKey(f);
+    if (!scene.textures.exists(key)) scene.load.image(key, `assets-game/ui/map_bg_${f}.png`);
+  }
   for (const id of Object.values(WEAPON_ICON_IDS)) {
     const key = weaponIconKey(id);
     if (!scene.textures.exists(key)) scene.load.image(key, `assets-game/ui/weapons/${id}_icon.png`);
@@ -505,6 +518,29 @@ export class Gauge {
   setDepth(d: number): this {
     this.frame.setDepth(d);
     this.fill.setDepth(d);
+    return this;
+  }
+
+  /** 49라운드: 하단 묶음 높이가 바뀔 때 세로로 옮긴다 */
+  setPositionY(y: number): this {
+    if (y === this.y) return this;
+    const dy = y - this.y;
+    this.y = y;
+    this.frame.setY(this.frame.y + dy);
+    this.fill.setY(this.fill.y + dy);
+    return this;
+  }
+
+  /** 49라운드: 채움 띠 색을 층 강조 슬롯으로 (null = 회색 띠 그대로). 자원 게이지용 */
+  setFillSlot(scene: Phaser.Scene, stageIndex: number, slot: number | null): this {
+    this.fill.setTexture(KIT.gaugeFillGray);
+    if (slot === null) this.fill.clearTint();
+    else this.fill.setTint(hexToNum(accentHex(scene, stageIndex, slot)));
+    return this;
+  }
+
+  setAlpha(a: number): this {
+    this.fill.setAlpha(a);
     return this;
   }
 

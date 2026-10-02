@@ -205,6 +205,94 @@ export const ROUTE = {
 } as const;
 
 /**
+ * 49라운드 M 지도 (입체 지도 + 위치 정보 + 넘어가기 확인). 임시값, 도영 님 검토 대상.
+ * 페이지(ROUTE.pageW×pageH) 안을 왼쪽 지도 칸 + 오른쪽 위치 정보 칸으로 나눈다.
+ */
+export const MAP3D = {
+  /** 오른쪽 위치 정보 칸 폭·지도 칸과의 간격 */
+  sideW: 232,
+  sideGap: 16,
+  /** 지도 칸: 제목 줄 아래부터 안내 줄 위까지. 아래 안내 줄 높이 */
+  hintH: 22,
+  /** 원근: 가장 먼 단계 크기 비, 멀수록 촘촘한 정도, 원근을 풀 최소 단계 간격, 가까운 줄 간격 상한 */
+  farScale: 0.62,
+  ease: 0.55,
+  minGap: 40,
+  rowMax: 150,
+  /** 노드 자리: 위 여백(아이콘 높이 + 들림), 아래 여백(그림자·이름표) */
+  padTop: 44,
+  padBottom: 26,
+  /** 양피지: 위 폭 비(=farScale 근처), 좌우·위아래 바깥 여백, 말린 가장자리 두께, 그림자 어긋남 */
+  sheetTopRatio: 0.6,
+  sheetInsetX: 4,
+  sheetInsetY: 6,
+  sheetRoll: 4,
+  sheetShadow: 4,
+  /** 지평선 격자: 가로선 개수(깊이 고르게), 세로 수렴선 개수 */
+  gridRows: 6,
+  gridCols: 7,
+  /** 노드 들림(가까움·멂)과 그림자 반지름 (가까울 때) */
+  liftNear: 8,
+  liftFar: 4,
+  shadowRx: 15,
+  shadowRy: 4,
+  /** 길 점: 가까운 쪽 점 크기 3 (깊이 < nearDotDepth), 그 외 2 */
+  nearDotDepth: 0.34,
+  /** 이름표: 아이콘 오른쪽 간격, 줄바꿈 폭 */
+  labelGap: 6,
+  labelWrap: 96,
+  /** 넘어가기 확인 창: 크기, 버튼 높이·최소 폭·간격, 뒤 어둡게(허용 알파 0.5) */
+  confirmW: 300,
+  confirmH: 112,
+  buttonH: 18,
+  buttonMinW: 64,
+  buttonGap: 16,
+  confirmDim: 0.5,
+} as const;
+
+/**
+ * 49라운드 지도 배경 일러스트 (Gemini 키 후 아트가 `assets/ui/map_bg_<floor>.png` 로 넣는 자리).
+ * 파일이 생기면 그 층 번호(UiRoute.floor)를 여기에 넣는다 — 없는 파일을 읽어 404 를 내지 않게 목록으로 둔다.
+ * 그림은 양피지 사다리꼴(지도 칸 560×약 360)에 맞춰 늘려 깔고 사다리꼴 모양으로 자른다.
+ */
+export const MAP_BG_FLOORS: readonly number[] = [];
+
+/**
+ * 49라운드 무기 자원 게이지 (HUD 하단 묶음 3행, 임시값). 색은 팔레트 안 — 유채색은 현재 층 강조 램프 슬롯.
+ */
+export const RES = {
+  /** 자원이 있을 때 하단 묶음 높이 (없으면 64) */
+  bundleH: 80,
+  /** 3행 y (묶음 위에서) */
+  rowY: 59,
+  /** 라벨 시작 x·게이지 시작 x (묶음 왼쪽에서) */
+  labelX: 8,
+  gaugeX: 44,
+  /** 기력 막대 폭 */
+  barW: 150,
+  /** 화살 칸: 한 칸 폭·간격·높이, 칸으로 그릴 최대 개수(넘으면 막대) */
+  arrowW: 5,
+  arrowGap: 3,
+  arrowH: 11,
+  arrowCap: 16,
+  /** 진행 링 반지름 */
+  ringR: 5,
+  /** 열기: 막대 폭, 단계 눈금 수, 눈금 칸 크기·간격 */
+  heatW: 120,
+  heatStages: 3,
+  pip: 6,
+  pipGap: 3,
+  /** 과열 맥동 (1 ↔ 0.55 계단) 주기 */
+  blinkMs: 200,
+  /** 상태별 색 슬롯: 기력 보통·부족, 화살 찬 칸, 열기 단계 1~3(달아오를수록 밝게), 링 */
+  staminaOk: 23,
+  staminaLow: 20,
+  arrowFull: 22,
+  heatSlots: [20, 22, 25],
+  ring: 22,
+} as const;
+
+/**
  * 47라운드 상호작용 구조물 UI (임시값). 색은 팔레트 안에서만 — 유채색은 현재 층 강조 램프 슬롯(16~27),
  * 그 외 무채 G·세피아 S. `slot` 은 강조 램프 슬롯 번호, `gray`/`sepia` 는 고정색 인덱스.
  */

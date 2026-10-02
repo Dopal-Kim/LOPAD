@@ -34,9 +34,10 @@ import { Minimap } from './Minimap';
 import { RouteMap } from './RouteMap';
 import { RouteStrip } from './RouteStrip';
 import { hasRoute } from './routeView';
+import { ResourceGauge } from './ResourceHud';
 import { ChallengePanel, InteractBubble, ResultToasts, StatusChips } from './StructureHud';
-import { fill, routeText, uiText, warpText } from './text';
-import { LAYOUT, ROUTE, STRUCT } from './theme';
+import { fill, r49Text, routeText, uiText, warpText } from './text';
+import { LAYOUT, RES, ROUTE, STRUCT } from './theme';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 
 /** 하단 중앙 묶음 (33라운드 Q3) */
@@ -59,7 +60,9 @@ const STRUCTURE_MENU_IDS: ReadonlySet<string> = new Set<UiStructureMenuId>([
 /**
  * 게임 위에 병렬로 떠 있는 HUD (41라운드 키트 적용). 매 프레임 STATE 스냅샷으로 갱신.
  * 하단 중앙 panel_ink 480×64: 1행 체력 게이지·수치·전표·독주, 2행 무기·개성 게이지·우클릭.
- * 보스 게이지는 묶음 위 8px, 자막은 그 위. 상단 좌 층 제목·시련, 상단 우 미니맵 + M 음소거. 우하단 공지.
+ * 보스 게이지는 묶음 위 8px, 자막은 그 위. 상단 좌 층 제목·시련, 상단 우 미니맵 + 'M 지도'. 우하단 공지.
+ * 49라운드: 무기 자원이 있으면 묶음이 80 으로 커지고 3행에 자원 게이지(계약 §11.1). M = 지도(Tab 과 같음, §11.3).
+ * 무기 시험장(`lab`)에서는 좌상단에 '무기 시험장 · L 무기 고르기 · Esc 나가기', 우상단 지도·안내는 숨긴다.
  */
 export class HudScene extends Phaser.Scene {
   private built = false;
@@ -72,6 +75,13 @@ export class HudScene extends Phaser.Scene {
   // 하단 묶음
   private panelX = 0;
   private panelY = 0;
+  private panel!: NinePanel;
+  private bundleH = HUD_H;
+  /** 하단 묶음과 함께 위아래로 움직이는 것 (보스 게이지 포함) */
+  private bundleObjs: { y: number; setY(y: number): unknown }[] = [];
+  private bundleGauges: Gauge[] = [];
+  private resource?: ResourceGauge;
+  private labMode = false;
   private hpGauge!: Gauge;
   private hpText!: GlowText;
   private goldIcon!: Phaser.GameObjects.Image;
@@ -113,8 +123,9 @@ export class HudScene extends Phaser.Scene {
   private routeMap?: RouteMap;
   private routeStrip?: RouteStrip;
   private routeMode = false;
+  /** 49라운드: 음소거 중이면 'M 지도' 오른쪽에 icon_mute */
   private soundIcon?: Phaser.GameObjects.Image;
-  private muteHint?: GlowText;
+  private mapHint?: GlowText;
   /** chooseNode 가 받아들여진 뒤 스냅샷이 아직 choosing 인 동안 다시 열지 않는다 */
   private chooseSuppressUntil = 0;
   // 탄생 연출 (48라운드): HUD 를 숨기고 건너뛰기 안내만
@@ -142,6 +153,10 @@ export class HudScene extends Phaser.Scene {
     this.built = false;
     this.glows = [];
     this.routeMode = false;
+    this.labMode = false;
+    this.bundleH = HUD_H;
+    this.bundleObjs = [];
+    this.bundleGauges = [];
     this.birthActive = false;
     this.bannerQueue = [];
     this.bannerBusy = false;
@@ -163,6 +178,8 @@ export class HudScene extends Phaser.Scene {
     // 45라운드 Q9: Tab 워프 지도. 브라우저 포커스 이동을 막도록 캡처한다
     this.input.keyboard?.addCapture('TAB');
     this.input.keyboard?.on('keydown-TAB', this.onTab);
+    // 49라운드: M = 지도 + 현재 위치·위치 정보 (Tab 과 같은 지도, 계약 §11.3). 음소거는 Esc 일기장으로 옮겼다
+    this.input.keyboard?.on('keydown-M', this.onTab);
     this.on(UI_EVENTS.WARP_DENIED, (p: UiWarpDenied) => this.onWarpDenied(p));
     this.on(UI_EVENTS.WARP_DONE, (p: UiWarpDone) => this.toast(fill(warpText('warpDone'), { room: roomName(p.type) })));
     this.on(UI_EVENTS.RESUMED, () => {
@@ -195,7 +212,9 @@ export class HudScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       this.input.keyboard?.off('keydown-ESC', this.onEsc);
       this.input.keyboard?.off('keydown-TAB', this.onTab);
+      this.input.keyboard?.off('keydown-M', this.onTab);
       this.input.keyboard?.removeCapture('TAB');
+      this.resource = undefined;
       this.warpMap?.destroy();
       this.warpMap = undefined;
       this.routeMap?.destroy();
@@ -267,7 +286,10 @@ export class HudScene extends Phaser.Scene {
     this.time.delayedCall(1000, go);
   }
 
-  /** Tab: 워프 지도 열기·닫기 (45라운드 Q9·Q10, 계약 §8.4) */
+  /**
+   * Tab·M: 지도 열기·닫기 (45라운드 Q9·Q10 워프 지도, 48라운드 노드 지도, 49라운드 M = 지도 §11.3).
+   * 노드 지도 층은 M·Tab 모두 노드 지도(보기), 그 외 층은 워프 지도. 무기 시험장에서는 무시.
+   */
   private onTab = (e?: KeyboardEvent): void => {
     if (e?.repeat) return;
     if (this.birthActive) return;
@@ -281,6 +303,7 @@ export class HudScene extends Phaser.Scene {
     }
     if (!this.built) return;
     const s = withDebug(uiCommands.getUiSnapshot());
+    if (s.lab) return;
     const otherUi =
       this.scene.isActive(UI_SCENE_KEYS.MENU) ||
       this.scene.isActive(UI_SCENE_KEYS.PAUSE) ||
@@ -471,9 +494,10 @@ export class HudScene extends Phaser.Scene {
     const py = H - HUD_H - 12;
     this.panelX = px;
     this.panelY = py;
-    inkPanel(this, px, py, HUD_W, HUD_H);
+    this.bundleH = HUD_H;
+    this.panel = inkPanel(this, px, py, HUD_W, HUD_H);
     // 1행: 체력
-    icon(this, px + 8, py + 8, ICON.hp);
+    const hpIcon = icon(this, px + 8, py + 8, ICON.hp);
     this.hpGauge = new Gauge(this, px + 28, py + 11, HP_GAUGE_W, 'frame', this.stageIndex);
     this.hpText = this.glow(px + 28 + HP_GAUGE_W + 8, py + 9, '', 'ink_body');
     this.goldIcon = icon(this, 0, py + 8, ICON.gold);
@@ -499,12 +523,31 @@ export class HudScene extends Phaser.Scene {
     );
     this.bossIcon = icon(this, Math.round(W / 2 - BOSS_W / 2) - 22, by - 1, ICON.boss).setVisible(false);
     this.bossName = this.glow(0, by - 18, '', 'ink_accent').setVisible(false);
+    // 49라운드: 3행 무기 자원 (묶음이 커질 때만 보인다)
+    this.resource = new ResourceGauge(this, px + RES.labelX, py + RES.rowY);
+    this.bundleObjs = [
+      hpIcon,
+      this.hpText,
+      this.goldIcon,
+      this.goldText,
+      this.potionIcon,
+      this.potionText,
+      this.potionKey,
+      this.weaponIcon,
+      this.weaponText,
+      this.senseIcon,
+      this.personalityText,
+      this.secondaryText,
+      this.bossIcon,
+      this.bossName,
+    ];
+    this.bundleGauges = [this.hpGauge, this.personalityGauge, this.bossGauge];
 
     // ---- 상단 좌: 층 제목·시련, 그 아래 구조물 상태 칩 (47라운드)
     this.floorText = this.glow(E, 12, '', 'ink_body');
     this.chips = new StatusChips(this, E, STRUCT.chipTop);
 
-    // ---- 상단 우: 미니맵 + M 음소거 (토글은 시스템 M 키, UI 는 힌트만)
+    // ---- 상단 우: 미니맵(노드 띠) + 'M 지도' (49라운드: M 음소거 → Esc 일기장)
     this.buildMinimap(s0.map.gridW, s0.map.gridH);
 
     // ---- 우하단 공지
@@ -529,10 +572,10 @@ export class HudScene extends Phaser.Scene {
     const size = Minimap.size(gridW, gridH);
     this.minimap = new Minimap(this, W - E - size.w, 12, gridW, gridH);
     const hintY = 12 + this.minimap.h + 6;
-    this.soundIcon = icon(this, W - E - 16, hintY - 2, ICON.sound);
-    this.muteHint = this.glow(0, hintY, 'M 음소거', 'ink_faint');
-    this.muteHint.placeRight(W - E - 20, hintY);
-    // 45라운드: 비전투일 때만 'Tab 워프' ('M 음소거' 아래 줄, 같은 오른쪽 끝)
+    this.soundIcon = icon(this, W - E - 16, hintY - 2, ICON.mute).setVisible(false);
+    this.mapHint = this.glow(0, hintY, routeText('mapKeyHintM'), 'ink_faint');
+    this.mapHint.placeRight(W - E - 20, hintY);
+    // 45라운드: 비전투일 때만 'Tab 워프' ('M 지도' 아래 줄, 같은 오른쪽 끝). 노드 지도 층은 M·Tab 이 같은 지도라 숨김
     this.warpHint = this.glow(0, hintY + 16, warpText('warpKeyHint'), 'ink_faint').setVisible(false);
     this.warpHint.placeRight(W - E - 20, hintY + 16);
     // 48라운드: 노드 지도 층이면 방 미니맵 대신 노드 띠 (같은 자리, 오른쪽 끝 고정)
@@ -540,17 +583,30 @@ export class HudScene extends Phaser.Scene {
     this.routeStrip.setVisible(false);
   }
 
-  /** 우상단: 미니맵/노드 띠 아래로 'M 음소거'·'Tab 워프|지도' 줄을 맞춘다 */
+  /** 우상단: 미니맵/노드 띠 아래로 'M 지도'·'Tab 워프' 줄을 맞춘다 */
   private layoutTopRight(): void {
     const W = this.scale.width;
     const E = LAYOUT.edge;
     const h = this.routeMode && this.routeStrip ? this.routeStrip.h : this.minimap.h;
     const hintY = 12 + h + 6;
     this.soundIcon?.setY(hintY - 2);
-    this.muteHint?.placeRight(W - E - 20, hintY);
-    this.warpHint
-      ?.setText(this.routeMode ? routeText('mapKeyHint') : warpText('warpKeyHint'))
-      .placeRight(W - E - 20, hintY + 16);
+    this.mapHint?.placeRight(W - E - 20, hintY);
+    this.warpHint?.setText(warpText('warpKeyHint')).placeRight(W - E - 20, hintY + 16);
+  }
+
+  /**
+   * 49라운드: 하단 묶음 높이 (자원이 있으면 RES.bundleH). 아래 여백 12 를 지키며 위로 늘고, 묶음·보스 게이지를 함께 옮긴다.
+   */
+  private setBundleHeight(h: number): void {
+    if (h === this.bundleH) return;
+    const py = this.scale.height - h - 12;
+    const dy = py - this.panelY;
+    this.bundleH = h;
+    this.panelY = py;
+    this.panel.resize(HUD_W, h).setY(py);
+    for (const o of this.bundleObjs) o.setY(o.y + dy);
+    for (const g of this.bundleGauges) g.setPositionY(g.top + dy);
+    this.resource?.shiftY(dy);
   }
 
   private render(s: UiSnapshot): void {
@@ -588,6 +644,10 @@ export class HudScene extends Phaser.Scene {
     this.personalityText.setText(`${s.weapon.personality}/${s.weapon.threshold}`).setX(gx + PERSONALITY_W + 6);
     this.secondaryText.setText(s.weapon.secondaryName ? `우클릭 ${s.weapon.secondaryName}` : '');
     this.secondaryText.placeRight(px + HUD_W - 10, this.secondaryText.y);
+    // 3행 (49라운드): 무기 자원. 없으면 묶음을 원래 높이로
+    const res = s.resource && s.resource.kind ? s.resource : null;
+    this.setBundleHeight(res ? RES.bundleH : HUD_H);
+    this.resource?.render(res, si, this.time.now);
     // 보스 (처치 뒤 스냅샷에 hp 0 으로 남는 동안은 숨긴다)
     if (s.boss && s.boss.hp > 0) {
       this.bossGauge.setVisible(true).set(s.boss.maxHp > 0 ? s.boss.hp / s.boss.maxHp : 0);
@@ -603,18 +663,28 @@ export class HudScene extends Phaser.Scene {
     }
     // 상단
     // 48라운드: 노드 지도 층이면 층 제목 옆에 지금 노드 이름, 우상단은 노드 띠, 'Tab 지도' 는 늘 보인다
-    const route = hasRoute(s.route) ? s.route : null;
-    if (Boolean(route) !== this.routeMode) {
+    // 49라운드: 무기 시험장은 층 제목·노드 띠·지도 안내 대신 시험장 안내 한 줄
+    const lab = Boolean(s.lab);
+    const route = !lab && hasRoute(s.route) ? s.route : null;
+    if (Boolean(route) !== this.routeMode || lab !== this.labMode) {
       this.routeMode = Boolean(route);
-      this.minimap.setVisible(!this.routeMode);
+      this.labMode = lab;
+      this.minimap.setVisible(!this.routeMode && !lab);
       this.routeStrip?.setVisible(this.routeMode);
+      this.mapHint?.setVisible(!lab);
       this.layoutTopRight();
     }
-    if (route) {
+    this.soundIcon?.setVisible(Boolean(s.muted) && !lab);
+    if (lab) {
+      this.floorText.setText(r49Text('labHud'));
+      this.warpHint?.setVisible(false);
+    } else if (route) {
       const cur = route.nodes.find((n) => n.id === route.currentId);
-      this.floorText.setText(`${s.floorTitle || s.stageName}${cur ? `   ${cur.name}` : ''}`);
+      const where = cur ? [cur.region, cur.name].filter(Boolean).join(' · ') : '';
+      this.floorText.setText(`${s.floorTitle || s.stageName}${where ? `   ${where}` : ''}`);
       if (this.routeStrip?.render(route, si)) this.layoutTopRight();
-      this.warpHint?.setVisible(true);
+      // 노드 지도 층은 M·Tab 이 같은 지도 — 'M 지도' 한 줄만
+      this.warpHint?.setVisible(false);
     } else {
       this.floorText.setText(`${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}`);
       this.minimap.render(s.map, si);

@@ -3,10 +3,12 @@ import { uiCommands } from '../contract/ui';
 import { GlowText } from './glow';
 import { DARK_BG, KIT, fontsReady, preloadKit, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
-import { controlsLine, uiText } from './text';
+import { controlsLine, r49Text, uiText } from './text';
 import { SelectList } from './widgets';
 
-/** 타이틀: 펼친 일기장 장식 + 부제 + 이어 쓴다 / 다시 태어난다 + 조작법 (어두운 바탕, 잉크 글자) */
+/**
+ * 타이틀: 펼친 일기장 장식 + 부제 + 이어 쓴다 / 다시 태어난다 / 무기 시험장(49라운드 §11.4) + 조작법 (어두운 바탕, 잉크 글자)
+ */
 export class TitleScene extends Phaser.Scene {
   private list?: SelectList;
   private alive = false;
@@ -54,6 +56,7 @@ export class TitleScene extends Phaser.Scene {
           if (hasSave) uiCommands.continueRun();
           else uiCommands.startNewRun();
         } else if (key === '2' && hasSave) uiCommands.startNewRun();
+        else if (key === '3') uiCommands.startWeaponLab();
       },
       { surface: 'ink' },
     );
@@ -62,10 +65,12 @@ export class TitleScene extends Phaser.Scene {
         ? [
             { key: '1', label: uiText('title', 'continue', '이어 쓴다'), enabled: true },
             { key: '2', label: uiText('title', 'newRunDeleteSave', '다시 태어난다 (일기장을 찢는다)'), enabled: true },
+            { key: '3', label: r49Text('titleLab'), enabled: true },
           ]
         : [
             { key: '1', label: uiText('title', 'newRun', '다시 태어난다'), enabled: true },
             { key: '2', label: uiText('title', 'continueNoSave', '이어 쓴다 (적힌 것이 없다)'), enabled: false },
+            { key: '3', label: r49Text('titleLab'), enabled: true },
           ],
     );
     // 목록을 가운데에 (항목 폭 기준)
