@@ -19,3 +19,8 @@
 1. 아트: 디자인 구상 문서 + 무기별 모티프 콘셉트 시트 + 팔레트 `fx` 블록 + 목업(칼 기본/1차/2차, 보스 예고) → 도영 님 승인.
 2. 승인 후 아트: 34종 시트 재생성(기존 id·JSON 형식 유지, 크기 확대 허용).
 3. 시스템 3단계: 2차 이펙트·보조 연출 연결 + 잔상 트레일 + 화면 섬광·오버레이 + 굵은 예고. UI: 페이즈 타이틀 카드.
+
+### 콘셉트 검수 (43라운드, 2026-10-02)
+- 결정: **승인, 34종 양산.** 아트 임시 결정 1~10 수용(보조색 hex, 크기 기본 48 / 1차 64 / 2차 96, 이펙트 예산 ≤11, 층색↔보조색 충돌은 '공명'으로 그대로, hit_burst 로 hit_spark 교체, 예고에 보조색 금지·코어 허용, 잔월 번개 토막·만월 고리 제안 포함, dash_trail 은 시스템 틴트, f0 예비 프레임은 시스템 spawn 오프셋 지원 시 유지).
+- 대검 보조색 W2: `#e35c1c` → **`#d8441c`** (더 붉게, 1층 호박과 분리).
+- 계약 §3.1 보강: 양산 JSON 필드 `weapon, secondary, trail{color,alpha,ms,fromFrame}, flash{color,alpha,ms,atFrame}, shake{px,ms}, progressDriven, followsTarget, followsPlayer, tailFrames, tile, scale, depth, pivotNote` 허용. 시스템은 있으면 쓰고 없으면 기본값.
