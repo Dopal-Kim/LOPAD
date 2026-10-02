@@ -15,6 +15,6 @@
   "top": 4,
   "bottom": 4
  },
- "colors": "G00/G01/G03 + G05 corner marks",
+ "colors": "G00/G01/G02 + G04 corner marks",
  "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
 }

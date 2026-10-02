@@ -1,8 +1,9 @@
 {
  "image": "paper_tile.png",
  "kind": "tile",
- "width": 32,
- "height": 32,
+ "width": 64,
+ "height": 64,
  "seamless": true,
+ "colors": "paper G09 base, G08 shade/fibre, G10 lighter patches, stain 19 (2-3px clusters)",
  "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
 }
