@@ -2,7 +2,7 @@
 import { gameState } from '../core/GameState';
 import { ECONOMY, STORY } from '../data';
 import type { FloorLayout } from '../systems/mapgen';
-import type { UiMap, UiMenu, UiSnapshot, UiWarpState } from './ui';
+import type { UiInteractable, UiMap, UiMenu, UiSnapshot, UiStatus, UiWarpState } from './ui';
 
 export interface SnapshotContext {
   layout: FloorLayout | null;
@@ -15,6 +15,10 @@ export interface SnapshotContext {
   inCombat: boolean;
   sprinting: boolean;
   warp: UiWarpState;
+  /** 47라운드 (계약 §9): 가장 가까운 E형 구조물 · HUD 상태 · 사용 가능한 E형 구조물이 남은 방 id. 생략 시 null / [] / 없음 */
+  interactable?: UiInteractable | null;
+  statuses?: readonly UiStatus[];
+  structureRooms?: ReadonlySet<string>;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -29,6 +33,7 @@ export function buildUiMap(ctx: SnapshotContext): UiMap {
       visited: ctx.visited.has(r.id),
       cleared: ctx.cleared.has(r.id),
       warpable: warpable.has(r.id),
+      structureDot: ctx.structureRooms?.has(r.id) ?? false,
     })),
     connections: L.connections.map((c) => ({ a: { cx: c.a.cx, cy: c.a.cy }, b: { cx: c.b.cx, cy: c.b.cy } })),
     currentRoomId: gameState.roomId,
@@ -83,5 +88,14 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     inCombat: ctx.inCombat,
     sprinting: ctx.sprinting,
     warp: { ...ctx.warp, targets: [...ctx.warp.targets] },
+    interactable: ctx.interactable
+      ? {
+          ...ctx.interactable,
+          cost: ctx.interactable.cost ? { ...ctx.interactable.cost } : null,
+          hold: ctx.interactable.hold ? { ...ctx.interactable.hold } : null,
+          screen: { ...ctx.interactable.screen },
+        }
+      : null,
+    statuses: (ctx.statuses ?? []).map((st) => ({ ...st })),
   };
 }

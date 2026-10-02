@@ -27,6 +27,16 @@ export const UI_EVENTS = {
   WARP_DONE: 'ui:warp-done',
   /** 45라운드: `warpTo` 거부 (`UiWarpDenied`) */
   WARP_DENIED: 'ui:warp-denied',
+  /** 47라운드: E형 구조물 사용 완료 (`UiStructureUsed`) */
+  STRUCTURE_USED: 'ui:structure-used',
+  /** 47라운드: 타격형 구조물 부서짐 (`UiStructureBroken`) */
+  STRUCTURE_BROKEN: 'ui:structure-broken',
+  /** 47라운드: 구조물 결과 알림 — 획득·손실·경고 문구 (`UiStructureResult`) */
+  STRUCTURE_RESULT: 'ui:structure-result',
+  /** 47라운드: 구조물 도전 전투 시작 — 투견 링·흉패 (`UiChallengeStarted`) */
+  CHALLENGE_STARTED: 'ui:challenge-started',
+  /** 47라운드: 구조물 도전 전투 종료 (`UiChallengeCleared`) */
+  CHALLENGE_CLEARED: 'ui:challenge-cleared',
 } as const;
 
 export type StoryKind = 'floor' | 'boss' | 'rest' | 'notice' | 'evolution' | 'death';
@@ -50,6 +60,8 @@ export interface UiRoom {
   cleared: boolean;
   /** 45라운드: 워프 목적지 가능 (= `UiSnapshot.warp.targets` 에 있음) */
   warpable: boolean;
+  /** 47라운드: 사용 가능한 E형 구조물이 남은 방 (미니맵 점 1개, 계약 §9.5) */
+  structureDot: boolean;
 }
 
 /** 45라운드: 워프 거부 사유 — 전투 중 / 메뉴·연출 중(게임 씬 없음 포함) / 없는 방 / 미방문·미클리어 / 이미 그 방 */
@@ -93,14 +105,179 @@ export interface UiMenuLine {
   detail?: string;
 }
 
+/**
+ * 47라운드: 구조물 메뉴 id (계약 §9.4).
+ * cards = 2-1 패 탁자 3장 중 1장 · exchange = 2-2 목숨 칩 환전대 · pawn = 2-6 전당포 창구 ·
+ * grave = C3 무명 전사의 묘(영혼↔개성) · ledger = 1-3 외상 장부대(빌리기·갚기) · counter = 1-5 선술집 카운터(잔 고르기)
+ */
+export type UiStructureMenuId = 'cards' | 'exchange' | 'pawn' | 'grave' | 'ledger' | 'counter';
+
 /** 'evolve' 는 27라운드 개성 3지선다, 'ending' 은 23라운드 엔딩 2지선다 (계약 추가분, 승인 대기) */
-export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending';
+export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending' | UiStructureMenuId;
 
 export interface UiMenu {
   id: UiMenuId;
   title: string;
   footer?: string;
   lines: UiMenuLine[];
+  /** 47라운드: 그만두기 줄의 key (구조물 메뉴는 항상 '0'). 있으면 UI 는 ESC·닫기 버튼을 `select(id, cancelKey)` 로 보낸다 */
+  cancelKey?: string;
+  /** 47라운드: 이 메뉴를 연 구조물 인스턴스 id (= `UiInteractable.id`). 구조물 메뉴만 */
+  structureId?: string;
+}
+
+/**
+ * 47라운드: 구조물 종류 (계약 §9.1). 초안 `structures-draft.md` id 대응:
+ * crate C1 · chest C2 · grave C3 · campfire C5 · cask 1-1 · still 1-2 · ledger 1-3 · agingBarrel 1-4 ·
+ * counter 1-5 · hiddenWall 1-6 · cardTable 2-1 · exchange 2-2 · dogRing 2-3 · stakeBell 2-4 · roulette 2-5 · pawn 2-6
+ */
+export type UiStructureKind =
+  | 'crate'
+  | 'chest'
+  | 'grave'
+  | 'campfire'
+  | 'cask'
+  | 'still'
+  | 'ledger'
+  | 'agingBarrel'
+  | 'counter'
+  | 'hiddenWall'
+  | 'cardTable'
+  | 'exchange'
+  | 'dogRing'
+  | 'stakeBell'
+  | 'roulette'
+  | 'pawn';
+
+/** 47라운드: 상호작용 비용 표시 (계약 §9.1) */
+export interface UiCost {
+  /** 무엇을 내는가. none 이면 비용 없음 */
+  kind: 'gold' | 'hp' | 'maxHp' | 'potion' | 'passive' | 'none';
+  /** 수치 (gold=G, hp·maxHp=HP, potion=개, passive=개). 표시가 필요 없으면 0 */
+  amount: number;
+  /** 그대로 그릴 문자열 (자리표시, 예 '35전표', 'HP 25%'). none 이면 '' */
+  label: string;
+  /** 지금 낼 수 있는가 */
+  affordable: boolean;
+}
+
+/**
+ * 47라운드: 상호작용 불가 사유 (계약 §9.1).
+ * combat 전투 중 · busy 메뉴·연출·워프 중 · gold 골드 부족 · hp HP 부족 · potion 물약 없음 ·
+ * notReady 아직 때가 아님(숙성 중 등) · full 더 받을 수 없음(소지 상한·패시브 만렙 등) · limit 사용 횟수 소진
+ */
+export type UiInteractBlockReason = 'combat' | 'busy' | 'gold' | 'hp' | 'potion' | 'notReady' | 'full' | 'limit';
+
+/** 47라운드: 가장 가까운 E형 구조물 안내 (계약 §9.1) */
+export interface UiInteractable {
+  /** 구조물 인스턴스 id (층 안에서 유일) */
+  id: string;
+  kind: UiStructureKind;
+  /** 표시 이름 (자리표시 — 스토리 확정 전) */
+  name: string;
+  /** 구조물이 있는 방 id (map.rooms[].id) */
+  roomId: string;
+  /** 누를 키 이름 (시스템이 읽는 키, 현재 'E') */
+  key: string;
+  /** 행동 문구 키 (예 'chest.open'). 스토리 텍스트 확정 후 UI 가 문구를 바꿔 끼울 때 쓴다 */
+  actionKey: string;
+  /** 행동 문구 값 (자리표시, 예 '연다') */
+  action: string;
+  /** 비용. 없으면 null */
+  cost: UiCost | null;
+  /** 길게 누르기 (C3 묘 2000ms). 누르기 아니면 null. progress 0..1, 이동하면 0 으로 돌아간다 */
+  hold: { durationMs: number; progress: number } | null;
+  /** 지금 E 가 먹히는가 (reason === null) */
+  usable: boolean;
+  reason: UiInteractBlockReason | null;
+  /** 불가 사유 문구 (자리표시). usable 이면 '' */
+  reasonText: string;
+  /** 구조물 윗변 중앙의 화면 좌표 (게임 캔버스 픽셀, 카메라 반영). 안내를 구조물 위에 띄우고 싶을 때 */
+  screen: { x: number; y: number };
+}
+
+/**
+ * 47라운드: HUD 상태 id (계약 §9.2).
+ * debt 1-3 빚 · drunk 1-5 취기 · stakes 2-4 층 배율 · embers C5 불씨 · fireWeapon 1-2 불붙은 무기 ·
+ * ring 2-3 투견 링 · roulette 2-5 판 규칙 · aging 1-4 숙성 · pawn 2-6 맡긴 물건
+ */
+export type UiStatusId = 'debt' | 'drunk' | 'stakes' | 'embers' | 'fireWeapon' | 'ring' | 'roulette' | 'aging' | 'pawn';
+
+/** 47라운드: HUD 상태 한 칸 (계약 §9.2). UI 는 label·value 를 그대로 그린다 */
+export interface UiStatus {
+  id: UiStatusId;
+  /** 표시 분류 — buff 이로움 · debuff 해로움 · resource 쌓인 자원 · timer 제한 시간 · rule 규칙 · progress 진행 */
+  kind: 'buff' | 'debuff' | 'resource' | 'timer' | 'rule' | 'progress';
+  /** 이름 (자리표시, 예 '빚') */
+  label: string;
+  /** 그대로 그릴 값 (예 '90G', '2단', '×1.6', '1/2') */
+  value: string;
+  /** 게이지용 수치·최대치 (선택) */
+  amount?: number;
+  max?: number;
+  /** 남은 시간 ms (타이머가 있는 상태만) */
+  remainMs?: number;
+  /** 전체 시간 ms (remainMs 와 함께) */
+  durationMs?: number;
+  /** 효과 설명 한 줄 (자리표시, 툴팁·아래 줄용) */
+  detail?: string;
+}
+
+/** 47라운드 이벤트 페이로드 (계약 §9.6) */
+export interface UiStructureUsed {
+  id: string;
+  kind: UiStructureKind;
+  roomId: string;
+  /** 수행한 행동 문구 키 (`UiInteractable.actionKey` 또는 메뉴 선택 결과 키) */
+  actionKey: string;
+}
+
+export interface UiStructureBroken {
+  id: string;
+  kind: UiStructureKind;
+  roomId: string;
+}
+
+/** 결과 알림. text 는 그대로 그릴 한 줄(자리표시). deltas 는 바뀐 양(있는 것만) */
+export interface UiStructureResult {
+  id: string;
+  kind: UiStructureKind;
+  /** gain 획득 · loss 손실 · mixed 둘 다 · warn 경고(판돈 종 첫 타격 등) · info 안내 */
+  tone: 'gain' | 'loss' | 'mixed' | 'warn' | 'info';
+  text: string;
+  deltas: {
+    gold?: number;
+    hp?: number;
+    maxHp?: number;
+    potions?: number;
+    souls?: number;
+    personality?: number;
+    points?: number;
+  };
+}
+
+export interface UiChallengeStarted {
+  /** 구조물 인스턴스 id */
+  id: string;
+  /** dogRing 투견 링 · cardTable 흉패 소환 */
+  kind: 'dogRing' | 'cardTable';
+  roomId: string;
+  /** 도전 이름 (자리표시) */
+  label: string;
+  /** 목표 문구 (자리표시, 예 '20초 안에 개 3마리') */
+  goal: string;
+  /** 제한 시간 ms. 없으면 null (흉패) */
+  timeLimitMs: number | null;
+}
+
+export interface UiChallengeCleared {
+  id: string;
+  kind: 'dogRing' | 'cardTable';
+  roomId: string;
+  /** clear 달성 · flawless 무피격 달성 · timeout 시간 초과(판돈 몰수, 사망 아님) */
+  outcome: 'clear' | 'flawless' | 'timeout';
+  /** 결과 문구 (자리표시) */
+  text: string;
 }
 
 export interface UiSnapshot {
@@ -136,6 +313,10 @@ export interface UiSnapshot {
   sprinting: boolean;
   /** 45라운드: 워프 상태 */
   warp: UiWarpState;
+  /** 47라운드: 가장 가까운 E형 구조물 안내. 없으면 null (계약 §9.1) */
+  interactable: UiInteractable | null;
+  /** 47라운드: HUD 상태 목록 (시스템이 그릴 순서로 정렬). 없으면 [] (계약 §9.2) */
+  statuses: UiStatus[];
 }
 
 export interface UiResult {
@@ -221,6 +402,8 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   inCombat: false,
   sprinting: false,
   warp: { ready: false, blocked: 'busy', targets: [], warping: false },
+  interactable: null,
+  statuses: [],
 };
 
 export const uiCommands = {
