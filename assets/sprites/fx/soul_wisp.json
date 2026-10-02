@@ -1,0 +1,43 @@
+{
+ "image": "soul_wisp.png",
+ "action": "soul_wisp",
+ "frameWidth": 16,
+ "frameHeight": 24,
+ "frames": 8,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 9.09,
+ "frameDurationsMs": [
+  110,
+  110,
+  110,
+  110,
+  110,
+  110,
+  110,
+  110
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 8,
+  "y": 23
+ },
+ "anchor": "world",
+ "spawn": "ambient",
+ "depth": "above",
+ "anchorNote": "새 anchor 값 'world': 월드 좌표에 그대로 둔다(플레이어·적과 무관). 피벗 = 혼불 아래 땅 — Y 정렬을 쓰면 피벗 y 로.",
+ "drift": {
+  "pxPerSec": 6,
+  "note": "선택: 시스템이 천천히 떠다니게(랜덤 방향, 초당 약 6px) 옮기면 더 살아 있다. 시트는 제자리 흔들림만."
+ },
+ "weapon": "any",
+ "palette": "parts/art/palette/lopad.json (gray 혼 G04~G15 + floor 1 accent [21, 23] 심, runtime swap; 백열 코어·무기 보조 없음)",
+ "note": "49라운드 3절 — 전장(튜토리얼 지역)에 떠도는 혼불. 창백한 머리(가운데 G15, 호박 심 21/23 깜빡) + 아래로 흔들리며 옅어지는 꼬리, 2px 오르내림. player_birth f0~f4 의 혼불과 같은 모양.",
+ "colors": {
+  "gray": 12,
+  "accent": 2
+ }
+}

@@ -1,0 +1,63 @@
+{
+ "image": "battlefield_dummy.png",
+ "action": "battlefield_dummy",
+ "frameWidth": 16,
+ "frameHeight": 32,
+ "frames": 5,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 7.25,
+ "frameDurationsMs": [
+  200,
+  90,
+  80,
+  120,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 32
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "hit": [
+   1
+  ],
+  "broken": [
+   2,
+   3,
+   4
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "hit": false,
+  "broken": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": "hit",
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,04,05,06,07,08,09 + accent 17,18,19,21 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 7,
+  "accent": 4,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 3절 튜토리얼 허수아비: 짚 몸통 + 낡은 투구 + 천 조끼(과녁 19). hit = 기울며 짚이 튐(밝게), broken = 무너짐 → 장대만(마지막 유지). 적 시트 dummy_idle 과 별개의 '전장 소품' 판.",
+ "region": "waste"
+}

@@ -1,0 +1,60 @@
+{
+ "image": "set_gate_brazier.png",
+ "action": "set_gate_brazier",
+ "frameWidth": 16,
+ "frameHeight": 32,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 8.51,
+ "frameDurationsMs": [
+  110,
+  120,
+  110,
+  130
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 32
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "active": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "active": true
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,03,04,05,06 + accent 19,21,23,25,26 drawn in stage1 (floor 1 amber) ramp (not swapped) + fx core X1",
+ "colors": {
+  "gray": 5,
+  "accent": 5,
+  "core": 1,
+  "budget": "gray<=10 accent<=8 core<=2"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 7절 — 성문 앞 화톳대(세발 쇠 그릇 + 불). 성문 노드 광장 양옆(edge).",
+ "setRole": "edge",
+ "region": "gate"
+}

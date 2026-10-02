@@ -8,8 +8,8 @@
 열 순서 고정: journey, battle, shop, rest, event, boss.  행: 0 기본 / 1 지나옴(식음) / 2 잠김(흐림).
 색: UI 세피아 S0~S5 + 현재 층 강조 1점(슬롯 21 본색, 22 밝은 끝) — 1층 램프로 그리고 UI 가 층 램프로 바꿔 쓴다(다른 UI 키트와 같음).
 모양: 마름모 테(발광 잉크 S5 1px + 안쪽 할로 S4 + 바깥 그늘 S2) 안에 짙은 가죽 바탕 S1, 상징은 S5 선 + 4방향 할로 S4 (글자 발광 규칙 1.2절과 같은 구조).
-  상징 = 여정: 굽은 길(점선) + 이정표 / 전투: 엇갈린 칼 / 상점: 묶은 자루 / 휴식: 모닥불 / 이벤트: 물음표 / 보스: 왕관.
-  강조 1점 = 여정 길 끝 불씨 · 칼끝 · 자루의 동전 · 불꽃 심 · 물음표 점 · 왕관 보석.
+  상징 = 여정: 원근으로 뻗어 나가는 길 + 지평선 불빛(49라운드 교체) / 전투: 엇갈린 칼 / 상점: 묶은 자루 / 휴식: 모닥불 / 이벤트: 물음표 / 보스: 왕관.
+  강조 1점 = 여정 길 끝 너머 불빛 · 칼끝 · 자루의 동전 · 불꽃 심 · 물음표 점 · 왕관 보석.
 """
 import json
 import os
@@ -62,22 +62,21 @@ def glyph(name):
     """returns (ink 픽셀 집합, 면 픽셀 집합(S2), 강조 [(x,y,슬롯)])"""
     ink, fill, acc = set(), set(), []
     if name == "journey":
-        # 아래 왼쪽 탄생지에서 위 오른쪽 이정표로 굽어 가는 점선 길
-        path = [(12, 21), (13, 20), (14, 20), (15, 19), (13, 18), (12, 17), (12, 16), (13, 15), (14, 14), (15, 14), (16, 13)]
-        for k, p in enumerate(path):
-            if k % 3 != 2:
-                ink.add(p)
-        rows(ink, 17, 8, ["#....",
-                          "####.",
-                          "#####",
-                          "####.",
-                          "#....",
-                          "#....",
-                          "#....",
-                          "#...."])
-        fill |= {(18, 10), (19, 10), (20, 10), (18, 11), (19, 11)}
-        ink -= fill
-        acc = [(11, 21, 21), (11, 22, 20)]
+        # 49라운드 6절 — "계단이 놓여져 있는데 이것 보다는 앞으로 나아간다는 느낌": 굽은 점선 길(계단처럼 읽힘)을 버리고
+        # **원근으로 뻗어 나가는 길**: 아래(가까움)는 넓고 지평선 쪽으로 좁아지는 두 가장자리 + 가운데 끊긴 중앙선(멀수록 짧게) +
+        # 지평선 한 줄, 길 끝 너머에 강조 한 점(가야 할 곳의 불빛).
+        # (1회차: 지평선 한 줄을 그었더니 'A' 모양 송전탑으로 읽혔다 → 지평선을 빼고 길 끝을 열어 두었다. 길 끝 너머 불빛만.)
+        line(ink, (11, 21), (15, 10)); line(ink, (21, 21), (17, 10))       # 길 가장자리 (원근, 위로 모임)
+        for y in range(10, 22):                                             # 길 면
+            xl = 11 + (21 - y) * 4 / 11.0
+            xr = 21 - (21 - y) * 4 / 11.0
+            for x in range(int(xl) + 1, int(round(xr))):
+                fill.add((x, y))
+        fill -= ink
+        dash = {(16, 20), (16, 19), (16, 18), (16, 15), (16, 14), (16, 12)}   # 중앙선: 가까울수록 길게
+        ink |= dash
+        fill -= dash
+        acc = [(16, 7, 22), (16, 8, 21)]
     elif name == "battle":
         # 엇갈린 칼 둘 — 마름모 안은 대각선 폭이 ±5 뿐이라 가파르게 세우고, 코등이는 가로 막대로 떨어뜨렸다(1회차: 칼끝이 테에 닿아 X 로만 읽힘)
         line(ink, (12, 9), (18, 18)); line(ink, (20, 9), (14, 18))     # 칼날
@@ -255,7 +254,7 @@ def build():
         "accentSlots": [20, 21, 22],
         "notes": {
             "shape": "diamond node: glowing ink rim S5 + inner halo S4 + outer shade S2, dark leather fill S1; symbol S5 + 4-neighbour halo S4",
-            "journey": "winding dotted road + signpost (평화지역 → 잔 여정 노드)", "battle": "crossed blades",
+            "journey": "road receding in perspective toward a light beyond its end (49라운드: 계단처럼 읽히던 굽은 점선 길 교체 — '앞으로 나아가는 길')", "battle": "crossed blades",
             "shop": "tied sack + coin", "rest": "campfire", "event": "question mark", "boss": "crown",
             "accent": "one accent point per icon (slots 20-22, drawn with floor-1 ramp; UI swaps to current floor ramp like other UI kit files)",
             "visited": "cooled: rim and symbol S4, no glow, no accent",

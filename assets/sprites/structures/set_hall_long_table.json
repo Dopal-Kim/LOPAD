@@ -1,0 +1,50 @@
+{
+ "image": "set_hall_long_table.png",
+ "action": "set_hall_long_table",
+ "frameWidth": 48,
+ "frameHeight": 32,
+ "frames": 1,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 32
+ },
+ "footprint": [
+  3,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ]
+ },
+ "stateLoop": {
+  "idle": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,04,05,07,09,10,11,12,13 + accent 16,17,18,23,25 drawn in stage1 (floor 1 amber) ramp (not swapped) + fx core X1",
+ "colors": {
+  "gray": 9,
+  "accent": 5,
+  "core": 1,
+  "budget": "gray<=10 accent<=8 core<=2"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 7절 — 지배자의 연회장 긴 탁자: 흰 식탁보 + 쟁반·은잔·촛대 + 엎어진 잔에서 흘러내린 포도주. 보스방 양옆·연회 이벤트 가운데.",
+ "setRole": "flank",
+ "region": "hall"
+}

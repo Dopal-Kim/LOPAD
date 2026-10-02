@@ -43,7 +43,7 @@
    0,
    4
   ],
-  "rise": [
+  "merge": [
    5,
    7
   ],
@@ -66,12 +66,16 @@
  "camera": "재생 동안 시스템이 카메라 약 4배 확대 → 끝나면 2배 복귀 (48라운드 Q6). 시트 크기 불변.",
  "fx": {
   "under": "fx/birth_dust",
+  "underOptional": true,
   "swirlUntilFrame": 10,
-  "scatterAtFrame": 10
+  "scatterAtFrame": 10,
+  "ambient": "fx/soul_wisp",
+  "ambientNote": "탄생지 둘레에 soul_wisp 3~6 개를 띄워 두면 f0~f4 에 모여드는 혼불과 이어진다(선택)."
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent [19, 21, 23, 25, 26, 27], runtime swap 대상; 백열 코어·무기 보조 없음)",
+ "version": "49라운드 혼불 판 (48라운드 흙 판은 parts/art/work/birth/build_soil_v1.py 에 보관)",
+ "palette": "parts/art/palette/lopad.json (gray 혼불·인물 + floor 1 accent [19, 21, 23, 25, 26, 27], runtime swap 대상; 백열 코어·무기 보조 없음)",
  "colors": {
-  "gray": 12,
+  "gray": 15,
   "accent": 6
  }
 }

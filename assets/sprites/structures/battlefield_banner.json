@@ -1,0 +1,60 @@
+{
+ "image": "battlefield_banner.png",
+ "action": "battlefield_banner",
+ "frameWidth": 16,
+ "frameHeight": 32,
+ "frames": 5,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 6.58,
+ "frameDurationsMs": [
+  200,
+  140,
+  140,
+  140,
+  140
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 32
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": false,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ],
+  "active": [
+   1,
+   2,
+   3,
+   4
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "active": true
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,04,05,06,07,09 + accent 16,17,19 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 6,
+  "accent": 3,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 3절 — 부러진 깃대에 찢긴 깃발(바랜 문장, 그을린 끝의 잔불 19). active = 바람에 펄럭임 루프.",
+ "region": "waste"
+}

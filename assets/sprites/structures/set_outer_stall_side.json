@@ -1,0 +1,50 @@
+{
+ "image": "set_outer_stall_side.png",
+ "action": "set_outer_stall_side",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 1,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 32
+ },
+ "footprint": [
+  2,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ]
+ },
+ "stateLoop": {
+  "idle": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,02,03,04,05,07,09,10 + accent 17,18 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 8,
+  "accent": 2,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 7절 — 노점 양옆 손수레(궤짝·자루·덮개 천). 상점 노점 거리의 곁(flank).",
+ "setRole": "flank",
+ "region": "outer"
+}

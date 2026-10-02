@@ -1,0 +1,201 @@
+{
+ "image": "stage1_gate.png",
+ "stage": 1,
+ "name": "잔(盞) — 성문",
+ "tileWidth": 16,
+ "tileHeight": 16,
+ "columns": 8,
+ "rows": 5,
+ "indexFormula": "row * columns + column",
+ "tiles": {
+  "0": [
+   7
+  ],
+  "1": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "2": [
+   5,
+   21,
+   22
+  ],
+  "3": [
+   8
+  ],
+  "4": [
+   9
+  ],
+  "5": [
+   10
+  ],
+  "6": [
+   4
+  ],
+  "7": [
+   11
+  ],
+  "8": [
+   12
+  ]
+ },
+ "tileIdNames": {
+  "0": "void",
+  "1": "floor",
+  "2": "wall",
+  "3": "door_open",
+  "4": "door_closed",
+  "5": "door_locked",
+  "6": "corridor",
+  "7": "exit",
+  "8": "shop"
+ },
+ "roomFloors": {
+  "start": [
+   23,
+   24,
+   25,
+   26
+  ],
+  "trial": [
+   27,
+   28,
+   29,
+   30
+  ],
+  "rest": [
+   31,
+   32,
+   33,
+   34
+  ],
+  "boss": [
+   35,
+   36,
+   37,
+   38
+  ]
+ },
+ "roomFloorsNote": "방 종류별 바닥 4변형 (40라운드 v3). 키가 없거나 비면 tiles['1']. 복도 근처·기타 방은 tiles['1']. 좌표 해시로 4개를 균등하게 섞는다.",
+ "walls": {
+  "top": 5,
+  "bottom": 6,
+  "left": 6,
+  "right": 6,
+  "corner_tl": 6,
+  "corner_tr": 6,
+  "corner_bl": 6,
+  "corner_br": 6,
+  "variants": [
+   5,
+   21,
+   22
+  ],
+  "note": "top = 위쪽(북) 경계: 정면이 보인다 (tiles['2'] 의 세 인덱스를 좌표 해시로 섞는다). 나머지 변·모서리는 윗면. 49라운드 지역 타일: 벽은 방의 벽이 아니라 그 지역의 바깥 경계(둔덕·성벽·집 앞면·술통 더미·난간), void(7)는 투명이 아니라 원경 색(불투명)."
+ },
+ "props": [
+  {
+   "index": 13,
+   "name": "barricade_post",
+   "solid": true,
+   "maxPerRoom": 2,
+   "weight": 0.6
+  },
+  {
+   "index": 14,
+   "name": "crate",
+   "solid": true,
+   "maxPerRoom": 2,
+   "weight": 0.8
+  },
+  {
+   "index": 15,
+   "name": "brazier",
+   "solid": true,
+   "maxPerRoom": 1,
+   "weight": 0.6
+  },
+  {
+   "index": 16,
+   "name": "cart_wheel",
+   "solid": false,
+   "maxPerRoom": 2,
+   "weight": 0.7
+  },
+  {
+   "index": 17,
+   "name": "rubble",
+   "solid": false,
+   "maxPerRoom": 3,
+   "weight": 1.0
+  },
+  {
+   "index": 18,
+   "name": "sack",
+   "solid": true,
+   "maxPerRoom": 2,
+   "weight": 0.8
+  },
+  {
+   "index": 19,
+   "name": "puddle",
+   "solid": false,
+   "maxPerRoom": 2,
+   "weight": 0.8
+  },
+  {
+   "index": 20,
+   "name": "notice_board",
+   "solid": true,
+   "maxPerRoom": 1,
+   "weight": 0.4
+  }
+ ],
+ "propsNote": "40라운드: maxPerRoom = 방당 최대 개수, weight = 배치 가중치(기본 1). 시스템 tileskin 이 지원하면 쓰고, 없으면 기존 규칙.",
+ "propsLayer": "overlay — 소품 타일은 배경이 투명하므로 바닥 레이어 위에 겹쳐 그린다",
+ "names": {
+  "0": "floor_0",
+  "1": "floor_1",
+  "2": "floor_2",
+  "3": "floor_3",
+  "4": "corridor",
+  "5": "wall",
+  "6": "wall_top",
+  "7": "void",
+  "8": "door_open",
+  "9": "door_closed",
+  "10": "door_locked",
+  "11": "exit",
+  "12": "shop",
+  "13": "prop_barricade",
+  "14": "prop_crate",
+  "15": "prop_brazier",
+  "16": "prop_wheel",
+  "17": "prop_rubble",
+  "18": "prop_sack",
+  "19": "prop_puddle",
+  "20": "prop_notice",
+  "21": "wall_v1",
+  "22": "wall_v2",
+  "23": "start_0",
+  "24": "start_1",
+  "25": "start_2",
+  "26": "start_3",
+  "27": "trial_0",
+  "28": "trial_1",
+  "29": "trial_2",
+  "30": "trial_3",
+  "31": "rest_0",
+  "32": "rest_1",
+  "33": "rest_2",
+  "34": "rest_3",
+  "35": "boss_0",
+  "36": "boss_1",
+  "37": "boss_2",
+  "38": "boss_3",
+  "39": "reserve"
+ },
+ "palette": "parts/art/palette/lopad.json (gray G00,01,02,03,04,05,06,07,09,12 + floor 1 accent slots 16,17,18,19,21,23,25) — 49라운드 지역 'gate', 기본 stage1 폴백"
+}

@@ -1,0 +1,71 @@
+{
+ "image": "tutorial_sign.png",
+ "action": "tutorial_sign",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 7.14,
+ "frameDurationsMs": [
+  200,
+  110,
+  110,
+  110,
+  110,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 32
+ },
+ "footprint": [
+  2,
+  1
+ ],
+ "solid": false,
+ "depth": "floor",
+ "states": {
+  "idle": [
+   0
+  ],
+  "active": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "used": [
+   5
+  ],
+  "done": [
+   5
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "active": true,
+  "used": false,
+  "done": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G01,03,04,05 + accent 19,21,23,25 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 4,
+  "accent": 4,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 3절 튜토리얼 땅의 표식 (글리프 없음, 범용): 땅에 새긴 고리. idle = 새긴 홈(꺼짐), active = 홈을 따라 도는 잔불 + 오르는 불티(안내 중, 루프), done(=used) = 다 탄 재 고리. 키 안내 글자는 UI 몫.",
+ "glyph": "none",
+ "doneAlias": "used",
+ "region": "waste"
+}

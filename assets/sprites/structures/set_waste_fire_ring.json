@@ -1,0 +1,57 @@
+{
+ "image": "set_waste_fire_ring.png",
+ "action": "set_waste_fire_ring",
+ "frameWidth": 64,
+ "frameHeight": 48,
+ "frames": 1,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 48
+ },
+ "footprint": [
+  4,
+  3
+ ],
+ "solid": false,
+ "depth": "floor",
+ "states": {
+  "idle": [
+   0
+  ]
+ },
+ "stateLoop": {
+  "idle": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G01,02,03,04,05,06,07,08 + accent 16 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 8,
+  "accent": 1,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 7절 세트 배치 — 황무지·전장의 휴식 자리: 밟혀 다져진 흙 고리 + 둘레 돌 + 앉을 통나무 셋 + 담요·냄비. 가운데 setAnchor 에 bonfire.",
+ "setAnchor": {
+  "x": 32,
+  "y": 34
+ },
+ "setFor": [
+  "bonfire"
+ ],
+ "setRole": "ring",
+ "region": "waste"
+}

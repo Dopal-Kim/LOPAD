@@ -1,0 +1,58 @@
+{
+ "image": "set_hall_rug.png",
+ "action": "set_hall_rug",
+ "frameWidth": 64,
+ "frameHeight": 48,
+ "frames": 1,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 48
+ },
+ "footprint": [
+  4,
+  3
+ ],
+ "solid": false,
+ "depth": "floor",
+ "states": {
+  "idle": [
+   0
+  ]
+ },
+ "stateLoop": {
+  "idle": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G07,09 + accent 16,17,18 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 2,
+  "accent": 3,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 7절 — 연회 깔개(포도주빛 + 금실 테 + 가운데 마름모, 흘린 포도주). 보스·연회 탁자 아래 가운데.",
+ "setAnchor": {
+  "x": 32,
+  "y": 40
+ },
+ "setFor": [
+  "set_hall_long_table",
+  "boss"
+ ],
+ "setRole": "center",
+ "region": "hall"
+}

@@ -1,0 +1,57 @@
+{
+ "image": "battlefield_weapon.png",
+ "action": "battlefield_weapon",
+ "frameWidth": 16,
+ "frameHeight": 32,
+ "frames": 3,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200,
+  200,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 32
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": false,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ]
+ },
+ "stateLoop": {
+  "idle": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,01,03,04,05,06,07,09,10 + accent  drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 9,
+  "accent": 0,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 3절 전장 탄생지 — 부러진 무기가 꽂힌 흙 둔덕. 변형 3(variants): 0 칼+기댄 창자루, 1 도끼창 머리, 2 화살 셋+칼자루. 통과 가능(작은 장식).",
+ "variants": [
+  0,
+  1,
+  2
+ ],
+ "variantsNote": "시스템이 variants 를 읽으면 배치마다 하나를 골라 1프레임으로 쓴다(없으면 idle=0).",
+ "region": "waste"
+}

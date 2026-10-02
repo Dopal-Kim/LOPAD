@@ -1,0 +1,60 @@
+{
+ "image": "set_outer_plaza.png",
+ "action": "set_outer_plaza",
+ "frameWidth": 64,
+ "frameHeight": 48,
+ "frames": 1,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 48
+ },
+ "footprint": [
+  4,
+  3
+ ],
+ "solid": false,
+ "depth": "floor",
+ "states": {
+  "idle": [
+   0
+  ]
+ },
+ "stateLoop": {
+  "idle": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G01,02,03,04,05 + accent  drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 5,
+  "accent": 0,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 7절 세트 배치 — 외곽 거리 한가운데 둥근 광장 돌 문양(연석 + 동심원 돌 + 가운데 배수 뚜껑). 휴식(bonfire)·상점(set_outer_stall)·이벤트 구조물을 이 위 가운데에.",
+ "setAnchor": {
+  "x": 32,
+  "y": 32
+ },
+ "setFor": [
+  "bonfire",
+  "set_outer_stall",
+  "chest",
+  "grave"
+ ],
+ "setRole": "center",
+ "region": "outer"
+}

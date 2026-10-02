@@ -1,0 +1,54 @@
+{
+ "image": "battlefield_fallen.png",
+ "action": "battlefield_fallen",
+ "frameWidth": 32,
+ "frameHeight": 16,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 5.0,
+ "frameDurationsMs": [
+  200,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 16
+ },
+ "footprint": [
+  2,
+  1
+ ],
+ "solid": false,
+ "depth": "y",
+ "states": {
+  "idle": [
+   0
+  ]
+ },
+ "stateLoop": {
+  "idle": false
+ },
+ "floor": "stage1",
+ "paletteSwap": false,
+ "interact": null,
+ "pivotNote": "pivot (w/2, h) = 프레임 아래 가장자리 가운데 = footprint 아래 변 가운데. footprint 는 프레임 아래쪽에 붙고 가로 가운데 정렬.",
+ "palette": "parts/art/palette/lopad.json — gray G00,02,03,04,05,06,07,09,10,11 + accent 17 drawn in stage1 (floor 1 amber) ramp (not swapped)",
+ "colors": {
+  "gray": 10,
+  "accent": 1,
+  "core": 0,
+  "budget": "gray<=10 accent<=5"
+ },
+ "source": "parts/art/work/structures/build_sets.py (round 49)",
+ "note": "49라운드 3절 — 쓰러진 병사의 흔적(시신 없음): 펼쳐진 외투·가슴받이·투구·무기. 변형 2(variants): 0 창병, 1 궁수. 통과 가능.",
+ "variants": [
+  0,
+  1
+ ],
+ "region": "waste"
+}
