@@ -1,0 +1,27 @@
+{
+ "image": "enemy_bullet.png",
+ "action": "enemy_bullet",
+ "frameWidth": 8,
+ "frameHeight": 8,
+ "frames": 1,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 0,
+ "frameDurationsMs": [
+  0
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 5,
+  "y": 4
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "pivotNote": "피벗 (5,4) = 구슬 중심(4x4 구슬 x4..7, y2..5). 꼬리는 뒤(왼쪽)로 3px.",
+ "note": "화승총 탄. G01 구슬 + 22 꼬리. 플레이어 위 깊이."
+}

@@ -1,0 +1,26 @@
+{
+ "image": "boss_fan_shot.png",
+ "action": "boss_fan_shot",
+ "frameWidth": 10,
+ "frameHeight": 10,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  80,
+  80
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 5,
+  "y": 5
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "projectile",
+ "rotate": false,
+ "note": "부채꼴 탄. 21 코어 + G13 림, 2프레임 맥동 루프. 회전 불필요(원형)."
+}

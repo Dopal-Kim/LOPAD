@@ -1,0 +1,28 @@
+{
+ "image": "hit_spark.png",
+ "action": "hit_spark",
+ "frameWidth": 16,
+ "frameHeight": 16,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 25,
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  40
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 8
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "note": "피격 판정 즉시 1회. 적중 지점(히트박스 중심 또는 공격 접점)에. 플레이어 위 깊이."
+}

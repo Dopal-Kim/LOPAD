@@ -1,0 +1,33 @@
+{
+ "image": "knock_dust.png",
+ "action": "knock_dust",
+ "frameWidth": 16,
+ "frameHeight": 8,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 17,
+ "frameDurationsMs": [
+  60,
+  60,
+  60,
+  60
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 6
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "knockback_end",
+ "pivotNote": "피벗 (8,6) = 발 접지점. 히트박스 중심에서 아래로 히트박스 반높이(16x24 적이면 약 +10px) 내려 놓는다.",
+ "directionMeaning": "넉백 진행 방향 (밀려간 방향). 먼지는 그 앞쪽으로 밀린다.",
+ "note": "바닥 깊이(캐릭터 아래). 무채만 쓰므로 층 스왑 영향 없음."
+}

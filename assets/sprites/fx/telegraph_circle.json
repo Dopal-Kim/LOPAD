@@ -1,0 +1,28 @@
+{
+ "image": "telegraph_circle.png",
+ "action": "telegraph_circle",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 8,
+ "frameDurationsMs": [
+  120,
+  120
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 16,
+  "y": 16
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "telegraph",
+ "scale": "allowed",
+ "pivotNote": "피벗 (16,16) = 범위 중심. 원 지름 30px 기준, 실제 범위 반지름 R 이면 scale = R/15.",
+ "note": "외곽선만. 2프레임 깜빡 루프. 바닥 깊이. 정수 배가 아니면 선이 고르지 않을 수 있으니 1배·2배 우선."
+}

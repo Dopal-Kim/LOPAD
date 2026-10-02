@@ -1,0 +1,29 @@
+{
+ "image": "crit_burst.png",
+ "action": "crit_burst",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 5,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 22,
+ "frameDurationsMs": [
+  45,
+  45,
+  45,
+  45,
+  45
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 16
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "hit_crit",
+ "note": "치명타 시 hit_spark 대신(또는 hit_spark 위에) 재생. 플레이어 위 깊이."
+}
