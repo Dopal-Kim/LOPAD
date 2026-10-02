@@ -1,61 +1,110 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, uiBus, uiCommands } from '../contract/ui';
+import { GlowText } from './glow';
+import { ICON, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
-import { THEME } from './theme';
-import { controlsLine } from './text';
-import { SelectList, label, panel } from './widgets';
+import { controlsLine, uiText } from './text';
+import { SelectList } from './widgets';
 
-/** 일시정지: 능력치·패시브·감각·조작법, 재개 / 타이틀로 */
+const PAGE_W = 440;
+const PAGE_H = 264;
+const PAD = 24;
+
+/**
+ * 일시정지 = 일기장 한 페이지 (31라운드 채택 문구): 제목 '일기장', 이름·층·시련·세이브, 능력치, 무기, 패시브, 조작법,
+ * '더 쓴다 (Esc)' / '일기장을 덮는다' → 확인 '적지 않은 것은 남지 않는다. 그래도 덮는다 — 예' / '더 쓴다'
+ */
 export class PauseScene extends Phaser.Scene {
   private list?: SelectList;
   private confirm = false;
-  private escKey?: Phaser.Input.Keyboard.Key;
+  private alive = false;
   private onResumed = () => this.scene.stop();
 
   constructor() {
     super(UI_SCENE_KEYS.PAUSE);
   }
 
+  preload(): void {
+    preloadKit(this);
+  }
+
   create(): void {
-    const s = uiCommands.getUiSnapshot();
-    const W = this.scale.width;
-    const H = this.scale.height;
     this.confirm = false;
-    panel(this, 60, 40, W - 120, H - 80);
-    label(this, W / 2, 50, '일시정지', THEME.fontHeading).setOrigin(0.5, 0);
-    const lines = [
-      `${s.playerName || '―'}   ${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}   세이브 남음 ${s.savesLeft}   시드 ${s.seed}`,
-      `공격 ${s.stats.attack}  방어 ${s.stats.defense}  치명타 ${s.stats.crit}%  감각 ${s.stats.sense}`,
-      `무기: ${s.weapon.name}${s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : ''}  (개성 ${s.weapon.personality}/${s.weapon.threshold})`,
-      `패시브: ${s.passives.length ? s.passives.map((p) => `${p.name}${p.level > 1 ? ` Lv${p.level}` : ''}`).join(', ') : '-'}`,
-      '',
-      controlsLine(s.weapon.secondaryName),
-    ];
-    lines.forEach((t, i) => label(this, 80, 80 + i * 14, t, THEME.font, i === 5 ? THEME.textDim : THEME.text));
-    this.list = new SelectList(this, 80, H - 90, (key) => this.choose(key));
-    this.setList();
-    this.escKey = this.input.keyboard?.addKey('ESC');
+    this.alive = true;
+    setupKit(this);
+    // keydown 이벤트로 (HudScene 참조). Key 객체를 만들지 않는다
+    this.input.keyboard?.on('keydown-ESC', this.onEsc);
     uiBus.on(UI_EVENTS.RESUMED, this.onResumed);
     this.events.once('shutdown', () => {
+      this.alive = false;
+      this.input.keyboard?.off('keydown-ESC', this.onEsc);
       uiBus.off(UI_EVENTS.RESUMED, this.onResumed);
       this.list?.destroy();
     });
+    fontsReady().then(() => {
+      if (this.alive) this.build();
+    });
   }
 
-  update(): void {
-    if (this.escKey && Phaser.Input.Keyboard.JustDown(this.escKey)) uiCommands.resume();
+  private onEsc = (): void => {
+    uiCommands.resume();
+  };
+
+  private build(): void {
+    const s = uiCommands.getUiSnapshot();
+    const stageIndex = Math.max(0, s.stageIndex);
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const bk = book(this, Math.round(W / 2), Math.round(H / 2), PAGE_W, PAGE_H, 1, 'pause');
+    const pg = bk.pages[0];
+    const innerW = PAGE_W - PAD * 2;
+    let y = pg.y + 14;
+    const title = new GlowText(this, 0, 0, uiText('pause', 'title', '일기장'), 'page_title', {
+      font: 'title',
+      stageIndex,
+    });
+    title.placeCenter(pg.x + PAGE_W / 2, y);
+    y += title.displayHeight + 6;
+    rule(this, pg.x + PAD, y, innerW);
+    y += 4 + 10;
+    const evo = s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : '';
+    const lines = [
+      `${s.playerName || '―'}   ${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}`,
+      `공격 ${s.stats.attack}   방어 ${s.stats.defense}   치명타 ${s.stats.crit}%   감각 ${s.stats.sense}`,
+      `무기: ${s.weapon.name}${evo}   (개성 ${s.weapon.personality}/${s.weapon.threshold})`,
+      `패시브: ${s.passives.length ? s.passives.map((p) => `${p.name}${p.level > 1 ? ` Lv${p.level}` : ''}`).join(', ') : '―'}`,
+    ];
+    for (const t of lines) {
+      const g = new GlowText(this, pg.x + PAD, y, t, 'page_body', { wrap: innerW, stageIndex });
+      y += g.displayHeight + 2;
+    }
+    // 세이브 남음 (닫힌 일기장 아이콘) + 시드 (흐림)
+    icon(this, pg.x + PAD, y - 1, ICON.save);
+    new GlowText(this, pg.x + PAD + 20, y, `세이브 남음 ${s.savesLeft}`, 'page_body', { stageIndex });
+    new GlowText(this, 0, y, `시드 ${s.seed}`, 'page_faint').placeRight(pg.x + PAGE_W - PAD, y);
+    y += 16 + 6;
+    rule(this, pg.x + PAD, y, innerW);
+    y += 4 + 10;
+    this.list = new SelectList(this, pg.x + PAD, y, (key) => this.choose(key), { stageIndex, detailWrap: innerW - 40 });
+    this.setList();
+    y += 18 * 2 + 10;
+    new GlowText(this, pg.x + PAD, y, controlsLine(s.weapon.secondaryName), 'page_faint', { wrap: innerW });
   }
 
   private setList(): void {
     this.list?.setLines(
       this.confirm
         ? [
-            { key: '1', label: '정말 타이틀로? 저장되지 않은 진행은 사라집니다 — 예', enabled: true },
-            { key: '2', label: '아니오', enabled: true },
+            {
+              key: '1',
+              label: uiText('pause', 'confirmQuit', '적지 않은 것은 남지 않는다. 그래도 덮는다 — 예'),
+              enabled: true,
+            },
+            { key: '2', label: uiText('pause', 'cancelQuit', '더 쓴다'), enabled: true },
           ]
         : [
-            { key: '1', label: '계속하기 (Esc)', enabled: true },
-            { key: '2', label: '타이틀로', enabled: true },
+            { key: '1', label: `${uiText('pause', 'cancelQuit', '더 쓴다')} (Esc)`, enabled: true },
+            { key: '2', label: uiText('pause', 'toTitle', '일기장을 덮는다'), enabled: true },
           ],
     );
   }

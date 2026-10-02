@@ -1,0 +1,18 @@
+{
+ "image": "cursor.png",
+ "kind": "strip",
+ "frameWidth": 8,
+ "frameHeight": 8,
+ "frames": 2,
+ "frameDurationsMs": [
+  420,
+  260
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 4,
+  "y": 4
+ },
+ "colors": "glowing nib S5 + 1px halo S4 (4-neighbour), slit S1, drop 21 (frame 2) — for pages",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
+}

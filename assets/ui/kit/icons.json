@@ -1,0 +1,123 @@
+{
+ "image": "icons.png",
+ "cellWidth": 16,
+ "cellHeight": 16,
+ "columns": 8,
+ "rows": 2,
+ "frameIndex": "row * columns + column (16x16 cell). 8x8 icons sit at (+4,+4) inside their cell; use x/y/w/h for exact crop",
+ "frames": {
+  "icon_hp": {
+   "index": 0,
+   "x": 0,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "icon_gold": {
+   "index": 1,
+   "x": 16,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "icon_potion": {
+   "index": 2,
+   "x": 32,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "icon_souls": {
+   "index": 3,
+   "x": 48,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "icon_sense": {
+   "index": 4,
+   "x": 64,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "icon_save": {
+   "index": 5,
+   "x": 80,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "icon_sound": {
+   "index": 6,
+   "x": 96,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "icon_mute": {
+   "index": 7,
+   "x": 112,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "icon_boss": {
+   "index": 8,
+   "x": 0,
+   "y": 16,
+   "w": 16,
+   "h": 16
+  },
+  "icon_exit": {
+   "index": 9,
+   "x": 16,
+   "y": 16,
+   "w": 16,
+   "h": 16
+  },
+  "mini_start": {
+   "index": 10,
+   "x": 36,
+   "y": 20,
+   "w": 8,
+   "h": 8
+  },
+  "mini_trial": {
+   "index": 11,
+   "x": 52,
+   "y": 20,
+   "w": 8,
+   "h": 8
+  },
+  "mini_rest": {
+   "index": 12,
+   "x": 68,
+   "y": 20,
+   "w": 8,
+   "h": 8
+  },
+  "mini_boss": {
+   "index": 13,
+   "x": 84,
+   "y": 20,
+   "w": 8,
+   "h": 8
+  }
+ },
+ "anchor": "ui",
+ "notes": {
+  "icon_hp": "bandage cross + blood (accent 20/21)",
+  "icon_gold": "voucher slip (names.gold, sepia paper S4) + amber seal",
+  "icon_potion": "bottle of Zan liquor (names.potion)",
+  "icon_souls": "battlefield soul wisp (names.souls)",
+  "icon_sense": "eye + 3 ticks (stats.sense)",
+  "icon_save": "closed diary (savesLeft, sepia cover S1/S0, edge S4)",
+  "icon_sound": "horn + waves",
+  "icon_mute": "horn + cross",
+  "icon_boss": "headquarters gate (bossUnlocked)",
+  "icon_exit": "ascending stairs (exitOpen)",
+  "mini_*": "8x8 single-color G12 room glyphs for minimap (dark map only): start/trial/rest/boss"
+ },
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
+}

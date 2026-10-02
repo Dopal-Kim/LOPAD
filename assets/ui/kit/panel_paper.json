@@ -1,0 +1,23 @@
+{
+ "image": "panel_paper.png",
+ "kind": "nineslice",
+ "width": 80,
+ "height": 80,
+ "slice": {
+  "left": 24,
+  "right": 24,
+  "top": 24,
+  "bottom": 24
+ },
+ "inner": {
+  "left": 12,
+  "right": 12,
+  "top": 12,
+  "bottom": 12
+ },
+ "tile": "paper_tile.png (draw as tileSprite inside `inner` on top of the stretched center)",
+ "colors": "dark sepia page S3 (L*28); hand-grime edge band S0/S1/S1·S2 dither/S2/S2·S3 dither (inset 0-4), glowing frame line S4 at inset 6 (worn) + shade S2 at 7; corner water rings S1/S2, burn S0 (top-right), stains S2/S1",
+ "edges": "corners have 1-4px torn bites (alpha 0, torn edge S0) and a folded dog-ear at bottom-right; stretched middle bands carry only the uniform grime band",
+ "book": "place inside book_frame.png at its `inner` (16) for the open-diary look; two pages = paper + spine + paper",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
+}

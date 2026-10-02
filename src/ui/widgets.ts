@@ -1,87 +1,7 @@
 import Phaser from 'phaser';
-import { THEME } from './theme';
-
-/** 기존 Graphics 에 패널 사각형을 다시 그린다 (크기가 바뀌는 패널용) */
-export function drawPanel(
-  g: Phaser.GameObjects.Graphics,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  alpha = THEME.panelAlpha,
-): Phaser.GameObjects.Graphics {
-  g.clear();
-  g.fillStyle(THEME.panel, alpha);
-  g.fillRect(x, y, w, h);
-  g.lineStyle(1, THEME.border, 1);
-  g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-  return g;
-}
-
-/** 패널 사각형 */
-export function panel(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  alpha = THEME.panelAlpha,
-): Phaser.GameObjects.Graphics {
-  return drawPanel(scene.add.graphics(), x, y, w, h, alpha);
-}
-
-/** 수평 게이지 (0..1) */
-export class Bar {
-  private g: Phaser.GameObjects.Graphics;
-  constructor(
-    scene: Phaser.Scene,
-    private x: number,
-    private y: number,
-    private w: number,
-    private h: number,
-    private color: number,
-    private back: number,
-  ) {
-    this.g = scene.add.graphics();
-  }
-
-  set(ratio: number, color = this.color): this {
-    const r = Math.max(0, Math.min(1, ratio));
-    this.g.clear();
-    this.g.fillStyle(this.back, 1);
-    this.g.fillRect(this.x, this.y, this.w, this.h);
-    this.g.fillStyle(color, 1);
-    this.g.fillRect(this.x, this.y, Math.round(this.w * r), this.h);
-    this.g.lineStyle(1, THEME.border, 1);
-    this.g.strokeRect(this.x + 0.5, this.y + 0.5, this.w - 1, this.h - 1);
-    return this;
-  }
-
-  setDepth(d: number): this {
-    this.g.setDepth(d);
-    return this;
-  }
-
-  setVisible(v: boolean): this {
-    this.g.setVisible(v);
-    return this;
-  }
-
-  destroy(): void {
-    this.g.destroy();
-  }
-}
-
-export function label(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  text: string,
-  font = THEME.font,
-  color: string = THEME.text,
-): Phaser.GameObjects.Text {
-  return scene.add.text(x, y, text, { font, color });
-}
+import { GlowText } from './glow';
+import { cursor as makeCursor } from './kit';
+import { LAYOUT, type TextStyleName } from './theme';
 
 export interface SelectLine {
   key: string;
@@ -91,31 +11,48 @@ export interface SelectLine {
   detail?: string;
 }
 
-/** 선택 목록 줄 간격 */
-export const SELECT_ROW = { line: 16, detail: 13, gap: 4 } as const;
+/** 선택 목록 줄 간격 (계약 1.2절: 글꼴 높이 + 4 이상) */
+export const SELECT_ROW = { line: LAYOUT.row, detail: LAYOUT.detail, gap: LAYOUT.gap } as const;
+
+export interface SelectListOptions {
+  /** 종이(page) 위인지 잉크(ink)·어두운 바탕 위인지 — 글자 스타일·커서가 다르다 */
+  surface?: 'page' | 'ink';
+  stageIndex?: number;
+  /** detail 줄바꿈 폭 (1배 px) */
+  detailWrap?: number;
+}
 
 /**
- * 선택 목록: 숫자 키 / 위아래 + Enter / 마우스 클릭. 항목이 바뀌면 setLines 로 다시 그린다.
- * detail 이 있는 항목은 아래에 흐린 작은 글씨로 설명을 붙이고, 비활성 항목은 전체를 흐리게 그린다.
+ * 선택 목록: 숫자 키 / 위아래(W·S) + Enter / 마우스. 항목이 바뀌면 setLines 로 다시 그린다.
+ * 선택 항목은 `page_selected`(할로 = 층 강조색) + 커서 촉, 비선택 `page_unsel`, 비활성 흐림 + '(불가)', detail 은 `page_faint`.
+ * 잉크 바탕(타이틀)에서는 `ink_body` / `ink_faint` + `cursor_light`.
  */
 export class SelectList {
-  private items: Phaser.GameObjects.Text[] = [];
-  private details: (Phaser.GameObjects.Text | null)[] = [];
-  private cursor = 0;
+  private items: GlowText[] = [];
+  private details: (GlowText | null)[] = [];
+  private cursorIdx = 0;
   private lines: SelectLine[] = [];
+  private cursorSprite: Phaser.GameObjects.Sprite;
   private onKeyDown?: (e: KeyboardEvent) => void;
+  private surface: 'page' | 'ink';
+  private stageIndex: number;
+  private detailWrap?: number;
 
   constructor(
     private scene: Phaser.Scene,
     private x: number,
     private y: number,
     private onSelect: (key: string) => void,
-    private lineHeight: number = SELECT_ROW.line,
+    opts: SelectListOptions = {},
   ) {
+    this.surface = opts.surface ?? 'page';
+    this.stageIndex = opts.stageIndex ?? 0;
+    this.detailWrap = opts.detailWrap;
+    this.cursorSprite = makeCursor(scene, this.surface === 'ink').setVisible(false);
     this.onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') this.move(-1);
       else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') this.move(1);
-      else if (e.key === 'Enter' || e.key === ' ') this.choose(this.cursor);
+      else if (e.key === 'Enter' || e.key === ' ') this.choose(this.cursorIdx);
       else {
         const idx = this.lines.findIndex((l) => l.key === e.key);
         if (idx >= 0) this.choose(idx);
@@ -124,9 +61,20 @@ export class SelectList {
     scene.input.keyboard?.on('keydown', this.onKeyDown);
   }
 
-  /** 항목 높이 합 (패널 크기 계산용). lines 를 주면 그리기 전에 계산할 수 있다 */
-  static measure(lines: SelectLine[], lineHeight: number = SELECT_ROW.line): number {
-    return lines.reduce((h, l) => h + lineHeight + (l.detail ? SELECT_ROW.detail + SELECT_ROW.gap : 0), 0);
+  /** 항목 높이 합 (패널 크기 계산용). detail 줄 수를 모르면 1줄로 센다 */
+  static measure(lines: SelectLine[]): number {
+    return lines.reduce((h, l) => h + SELECT_ROW.line + (l.detail ? SELECT_ROW.detail + SELECT_ROW.gap : 0), 0);
+  }
+
+  /** 실제 그린 높이 (detail 이 여러 줄로 접힌 경우 포함) */
+  height(): number {
+    let h = 0;
+    this.items.forEach((_, i) => {
+      h += SELECT_ROW.line;
+      const d = this.details[i];
+      if (d) h += d.textH + 4 + SELECT_ROW.gap;
+    });
+    return h;
   }
 
   setLines(lines: SelectLine[]): void {
@@ -137,31 +85,32 @@ export class SelectList {
     this.details = [];
     let y = this.y;
     lines.forEach((l, i) => {
-      const t = this.scene.add
-        .text(this.x, y, '', { font: THEME.font, color: THEME.text })
-        .setInteractive({ useHandCursor: true });
+      const t = new GlowText(this.scene, this.x + 14, y, this.itemLabel(l), this.unselStyle(), {
+        stageIndex: this.stageIndex,
+      }).makeInteractive();
       t.on('pointerover', () => this.setCursor(i));
       t.on('pointerdown', () => this.choose(i));
       this.items.push(t);
-      y += this.lineHeight;
+      y += SELECT_ROW.line;
       if (l.detail) {
-        const d = this.scene.add.text(this.x + 26, y - 2, l.detail, { font: THEME.fontSmall, color: THEME.textDim });
-        d.setInteractive({ useHandCursor: true });
+        const d = new GlowText(this.scene, this.x + 14 + 26, y - 2, l.detail, 'page_faint', {
+          wrap: this.detailWrap,
+        }).makeInteractive();
         d.on('pointerover', () => this.setCursor(i));
         d.on('pointerdown', () => this.choose(i));
         this.details.push(d);
-        y += SELECT_ROW.detail + SELECT_ROW.gap;
+        y += d.textH + 4 + SELECT_ROW.gap;
       } else this.details.push(null);
     });
-    this.cursor = Math.min(this.cursor, Math.max(0, lines.length - 1));
+    this.cursorIdx = Math.min(this.cursorIdx, Math.max(0, lines.length - 1));
     this.render();
   }
 
-  /** 가장 넓은 항목의 픽셀 폭 (라벨·설명 포함) */
+  /** 가장 넓은 항목의 픽셀 폭 (커서 자리·라벨·설명 포함) */
   maxWidth(): number {
     let w = 0;
-    for (const t of this.items) w = Math.max(w, t.width);
-    for (const d of this.details) if (d) w = Math.max(w, d.x - this.x + d.width);
+    for (const t of this.items) w = Math.max(w, t.x - this.x + t.textW + 4);
+    for (const d of this.details) if (d) w = Math.max(w, d.x - this.x + d.textW + 4);
     return w;
   }
 
@@ -173,22 +122,34 @@ export class SelectList {
     this.y = y;
     for (const t of this.items) t.setPosition(t.x + dx, t.y + dy);
     for (const d of this.details) d?.setPosition(d.x + dx, d.y + dy);
+    this.render();
     return this;
   }
 
   setDepth(d: number): this {
     for (const t of this.items) t.setDepth(d);
     for (const t of this.details) t?.setDepth(d);
+    this.cursorSprite.setDepth(d + 1);
     return this;
+  }
+
+  private itemLabel(l: SelectLine): string {
+    return `[${l.key}] ${l.label}${l.enabled ? '' : '  (불가)'}`;
+  }
+  private selStyle(): TextStyleName {
+    return this.surface === 'page' ? 'page_selected' : 'ink_body';
+  }
+  private unselStyle(): TextStyleName {
+    return this.surface === 'page' ? 'page_unsel' : 'ink_faint';
   }
 
   private move(d: number): void {
     if (!this.lines.length) return;
-    this.setCursor((this.cursor + d + this.lines.length) % this.lines.length);
+    this.setCursor((this.cursorIdx + d + this.lines.length) % this.lines.length);
   }
 
   private setCursor(i: number): void {
-    this.cursor = i;
+    this.cursorIdx = i;
     this.render();
   }
 
@@ -199,20 +160,24 @@ export class SelectList {
 
   private render(): void {
     this.lines.forEach((l, i) => {
-      const sel = i === this.cursor;
-      const color = !l.enabled ? THEME.textDim : sel ? '#fff0a0' : THEME.text;
-      this.items[i]
-        .setText(`${sel ? '▶' : ' '} [${l.key}] ${l.label}${l.enabled ? '' : '  (불가)'}`)
-        .setColor(color)
-        .setAlpha(l.enabled ? 1 : THEME.disabledAlpha);
-      this.details[i]?.setAlpha(l.enabled ? (sel ? 1 : 0.8) : THEME.disabledAlpha);
+      const sel = i === this.cursorIdx;
+      const t = this.items[i];
+      t.setGlowStyle(!l.enabled ? 'page_faint' : sel ? this.selStyle() : this.unselStyle());
+      t.setAlpha(l.enabled ? 1 : LAYOUT.disabledAlpha);
+      this.details[i]?.setAlpha(l.enabled ? (sel ? 1 : 0.8) : LAYOUT.disabledAlpha);
+      if (sel) {
+        // 커서 피벗 (4,4): 글자 상자 왼쪽에서 10px, 세로 가운데(글자 12px + 링 2)
+        this.cursorSprite.setVisible(true).setPosition(t.x - 6, t.y + 8);
+      }
     });
+    if (!this.lines.length) this.cursorSprite.setVisible(false);
   }
 
   destroy(): void {
     if (this.onKeyDown) this.scene.input.keyboard?.off('keydown', this.onKeyDown);
     for (const t of this.items) t.destroy();
     for (const d of this.details) d?.destroy();
+    this.cursorSprite.destroy();
     this.items = [];
     this.details = [];
   }

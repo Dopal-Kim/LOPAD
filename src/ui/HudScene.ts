@@ -1,214 +1,325 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, uiBus, uiCommands, type UiSnapshot, type UiStoryLine } from '../contract/ui';
+import { GlowText } from './glow';
+import {
+  Gauge,
+  ICON,
+  NinePanel,
+  WEAPON_ICON_IDS,
+  fontsReady,
+  icon,
+  inkPanel,
+  preloadKit,
+  setupKit,
+  weaponIconKey,
+} from './kit';
 import { UI_SCENE_KEYS } from './keys';
-import { THEME } from './theme';
-import { fill, uiText } from './text';
-import { Bar, drawPanel, label, panel } from './widgets';
 import { Minimap } from './Minimap';
+import { fill, uiText } from './text';
+import { LAYOUT } from './theme';
+
+/** 하단 중앙 묶음 (33라운드 Q3) */
+const HUD_W = 480;
+const HUD_H = 64;
+const BOSS_W = 360;
+const HP_GAUGE_W = 170;
+const PERSONALITY_W = 100;
+const CAPTION_DEPTH = 50;
 
 /**
- * 무기 이름 → 아이콘 id. 스냅샷에 `weapon.id` 가 없어 이름으로 매핑한다 (29라운드 자율 결정, 계약에 id 추가 요청).
- * 아이콘 파일은 `assets/ui/weapons/<id>_icon.png` (아트 산출물 사본, README 참조).
+ * 게임 위에 병렬로 떠 있는 HUD (41라운드 키트 적용). 매 프레임 STATE 스냅샷으로 갱신.
+ * 하단 중앙 panel_ink 480×64: 1행 체력 게이지·수치·전표·독주, 2행 무기·개성 게이지·우클릭.
+ * 보스 게이지는 묶음 위 8px, 자막은 그 위. 상단 좌 층 제목·시련, 상단 우 미니맵 + M 음소거. 우하단 공지.
  */
-const WEAPON_ICON_IDS: Record<string, string> = {
-  '사무라이 칼': 'katana',
-  대검: 'greatsword',
-  단검: 'dagger',
-  활: 'bow',
-};
-const WEAPON_ICON_KEY = (id: string): string => `ui-weapon-${id}`;
-const WEAPON_PANEL_H = 34;
-/** 무기 패널 최소 폭. 텍스트가 더 길면 패널을 텍스트에 맞춰 넓힌다 */
-const WEAPON_PANEL_MIN_W = 190;
-
-/** 게임 위에 병렬로 떠 있는 HUD. 매 프레임 STATE 스냅샷으로 갱신. */
 export class HudScene extends Phaser.Scene {
-  private hpBar: Bar;
-  private hpText: Phaser.GameObjects.Text;
-  private goldText: Phaser.GameObjects.Text;
-  private potionText: Phaser.GameObjects.Text;
-  private stageText: Phaser.GameObjects.Text;
-  private weaponText: Phaser.GameObjects.Text;
-  private weaponIcon: Phaser.GameObjects.Image;
-  private weaponTextX = 0;
-  private weaponPanel: Phaser.GameObjects.Graphics;
-  private weaponPanelTop = 0;
-  private weaponPanelW = 0;
-  private personalityBar: Bar;
-  private bossPanel: Phaser.GameObjects.Graphics;
-  private bossBar: Bar;
-  private bossText: Phaser.GameObjects.Text;
-  private minimap: Minimap;
-  private banner?: Phaser.GameObjects.Text;
-  private caption?: Phaser.GameObjects.Text;
-  private captionTimer?: Phaser.Time.TimerEvent;
+  private built = false;
+  private alive = false;
+  private stageIndex = -1;
+  private glows: GlowText[] = [];
   private handlers: [string, (p: never) => void][] = [];
-  private escKey?: Phaser.Input.Keyboard.Key;
+  private pending?: UiSnapshot;
+
+  // 하단 묶음
+  private panelX = 0;
+  private panelY = 0;
+  private hpGauge!: Gauge;
+  private hpText!: GlowText;
+  private goldIcon!: Phaser.GameObjects.Image;
+  private goldText!: GlowText;
+  private potionIcon!: Phaser.GameObjects.Image;
+  private potionText!: GlowText;
+  private potionKey!: GlowText;
+  private weaponIcon!: Phaser.GameObjects.Image;
+  private weaponText!: GlowText;
+  private senseIcon!: Phaser.GameObjects.Image;
+  private personalityGauge!: Gauge;
+  private personalityText!: GlowText;
+  private secondaryText!: GlowText;
+  // 보스
+  private bossGauge!: Gauge;
+  private bossIcon!: Phaser.GameObjects.Image;
+  private bossName!: GlowText;
+  // 상단
+  private floorText!: GlowText;
+  private minimap!: Minimap;
+  // 공지
+  private noticePanel!: NinePanel;
+  private noticeIcon!: Phaser.GameObjects.Image;
+  private noticeText!: GlowText;
+  private noticeKind = '';
+  // 자막·배너
+  private banner?: GlowText;
+  private caption?: GlowText;
+  private captionTimer?: Phaser.Time.TimerEvent;
 
   constructor() {
     super(UI_SCENE_KEYS.HUD);
   }
 
-  /** 무기 아이콘. 파일이 없으면 로드 실패만 나고 (아이콘 없이 이름만 표시) 게임에는 영향 없다 */
   preload(): void {
-    for (const id of Object.values(WEAPON_ICON_IDS)) {
-      const key = WEAPON_ICON_KEY(id);
-      if (!this.textures.exists(key)) this.load.image(key, `assets-game/ui/weapons/${id}_icon.png`);
-    }
+    preloadKit(this);
   }
 
   create(): void {
     uiCommands.registerRenderer();
-    const W = this.scale.width;
-    const P = THEME.pad;
-
-    // 좌상단: 체력·골드·물약
-    panel(this, P, P, 170, 46);
-    this.hpBar = new Bar(this, P + 6, P + 6, 158, 10, THEME.hp, THEME.hpBack);
-    this.hpText = label(this, P + 8, P + 17, '');
-    this.goldText = label(this, P + 8, P + 30, '', THEME.font, '#f0c830');
-    this.potionText = label(this, P + 90, P + 30, '', THEME.font, '#60e080');
-
-    // 중앙 상단: 층·시련
-    this.stageText = label(this, W / 2, P + 4, '', THEME.font, THEME.textDim).setOrigin(0.5, 0);
-
-    // 좌하단: 무기 아이콘(16×16)·무기·개성 게이지
-    const H = this.scale.height;
-    const wpTop = H - P - WEAPON_PANEL_H;
-    this.weaponPanelTop = wpTop;
-    this.weaponPanelW = WEAPON_PANEL_MIN_W;
-    this.weaponPanel = panel(this, P, wpTop, WEAPON_PANEL_MIN_W, WEAPON_PANEL_H);
-    this.weaponIcon = this.add
-      .image(P + 6, wpTop + 3, '__DEFAULT')
-      .setOrigin(0, 0)
-      .setVisible(false);
-    this.weaponTextX = P + 8;
-    this.weaponText = label(this, this.weaponTextX, wpTop + 6, '');
-    this.personalityBar = new Bar(this, P + 8, H - P - 12, 174, 6, THEME.personality, THEME.hpBack);
-
-    // 보스 바 (중앙 하단, 보스전만)
-    const bossY = wpTop - 32; // 무기 패널 위
-    this.bossPanel = panel(this, W / 2 - 150, bossY, 300, 26).setVisible(false);
-    this.bossBar = new Bar(this, W / 2 - 144, bossY + 18, 288, 6, THEME.boss, THEME.bossBack);
-    this.bossText = label(this, W / 2, bossY + 3, '', THEME.font, '#ffb0c8')
-      .setOrigin(0.5, 0)
-      .setVisible(false);
-    this.bossBar.set(0).setVisible(false);
-
-    // 우상단: 미니맵, 그 아래 음소거 힌트 (토글은 시스템이 M 키로 처리, UI 는 힌트만)
-    this.minimap = new Minimap(this, W - P - 110, P, 110, 90);
-    label(this, W - P, P + 94, 'M 음소거', THEME.fontSmall, THEME.textDim).setOrigin(1, 0);
-
+    setupKit(this);
+    this.alive = true;
+    this.built = false;
+    this.glows = [];
     this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(s));
     this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) =>
-      this.showBanner(fill(uiText('hud', 'evolvedBanner', '개성 변화: {name}'), { name: p.name })),
+      this.showBanner(fill(uiText('hud', 'evolvedBanner', '{name}'), { name: p.name })),
     );
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.showBanner(p.stageName));
     this.on(UI_EVENTS.STORY, (l: UiStoryLine) => this.showCaption(l));
     this.on(UI_EVENTS.PAUSED, () => {
       if (!this.scene.isActive(UI_SCENE_KEYS.PAUSE)) this.scene.launch(UI_SCENE_KEYS.PAUSE);
     });
-
-    this.escKey = this.input.keyboard?.addKey('ESC');
-    this.render(uiCommands.getUiSnapshot());
+    // Esc 는 Key 폴링(JustDown) 대신 keydown 이벤트로 받는다 — 씬이 바뀌는 프레임에 Key 상태가 눌린 채 남아
+    // 다음 Esc 가 '반복 입력' 으로 취급돼 무시되는 문제가 있었다 (41라운드 헤드리스 검증)
+    this.input.keyboard?.on('keydown-ESC', this.onEsc);
     this.events.once('shutdown', () => {
+      this.input.keyboard?.off('keydown-ESC', this.onEsc);
+      this.alive = false;
+      this.built = false;
       for (const [e, h] of this.handlers) uiBus.off(e, h);
       this.handlers = [];
+      this.captionTimer?.remove();
+    });
+    fontsReady().then(() => {
+      if (!this.alive) return;
+      this.build();
+      this.render(this.pending ?? uiCommands.getUiSnapshot());
     });
   }
 
-  update(): void {
-    if (this.escKey && Phaser.Input.Keyboard.JustDown(this.escKey)) {
-      if (!this.scene.isActive(UI_SCENE_KEYS.MENU) && !this.scene.isActive(UI_SCENE_KEYS.PAUSE)) uiCommands.pause();
-    }
-  }
+  private onEsc = (): void => {
+    if (!this.scene.isActive(UI_SCENE_KEYS.MENU) && !this.scene.isActive(UI_SCENE_KEYS.PAUSE)) uiCommands.pause();
+  };
 
   private on<T>(event: string, handler: (p: T) => void): void {
     uiBus.on(event, handler);
     this.handlers.push([event, handler as (p: never) => void]);
   }
 
-  private render(s: UiSnapshot): void {
-    const ratio = s.maxHp > 0 ? s.hp / s.maxHp : 0;
-    this.hpBar.set(ratio, ratio <= 0.3 ? THEME.hpLow : THEME.hp);
-    this.hpText.setText(`HP ${s.hp} / ${s.maxHp}`);
-    this.goldText.setText(`◆ ${s.gold} ${s.names.gold}`);
-    this.potionText.setText(`${s.names.potion} ${s.potions}/${s.potionMax} [Q]`);
-    const boss = s.bossUnlocked ? `  ${uiText('hud', 'bossUnlocked', '보스 문 열림')}` : '';
-    const exit = s.exitOpen ? `  ${uiText('hud', 'exitOpen', '출구 열림')}` : '';
-    this.stageText.setText(`${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}${boss}${exit}`);
-    const evo = s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : '';
-    this.renderWeaponIcon(s.weapon.name);
-    this.weaponText.setText(
-      `${s.weapon.name}${evo}   개성 ${s.weapon.personality}/${s.weapon.threshold}   우클릭: ${s.weapon.secondaryName}`,
+  private glow(
+    x: number,
+    y: number,
+    text: string,
+    style: Parameters<GlowText['setGlowStyle']>[0],
+    scale: 1 | 2 = 1,
+  ): GlowText {
+    const t = new GlowText(this, x, y, text, style, { scale, stageIndex: Math.max(0, this.stageIndex) });
+    this.glows.push(t);
+    return t;
+  }
+
+  private build(): void {
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const E = LAYOUT.edge;
+    const s0 = uiCommands.getUiSnapshot();
+    this.stageIndex = Math.max(0, s0.stageIndex);
+
+    // ---- 하단 중앙 묶음
+    const px = Math.round(W / 2 - HUD_W / 2);
+    const py = H - HUD_H - 12;
+    this.panelX = px;
+    this.panelY = py;
+    inkPanel(this, px, py, HUD_W, HUD_H);
+    // 1행: 체력
+    icon(this, px + 8, py + 8, ICON.hp);
+    this.hpGauge = new Gauge(this, px + 28, py + 11, HP_GAUGE_W, 'frame', this.stageIndex);
+    this.hpText = this.glow(px + 28 + HP_GAUGE_W + 8, py + 9, '', 'ink_body');
+    this.goldIcon = icon(this, 0, py + 8, ICON.gold);
+    this.goldText = this.glow(0, py + 9, '', 'ink_body');
+    this.potionIcon = icon(this, 0, py + 8, ICON.potion);
+    this.potionText = this.glow(0, py + 9, '', 'ink_body');
+    this.potionKey = this.glow(0, py + 9, 'Q', 'ink_faint');
+    // 2행: 무기 · 개성
+    this.weaponIcon = this.add
+      .image(px + 8, py + 36, '__DEFAULT')
+      .setOrigin(0, 0)
+      .setVisible(false);
+    this.weaponText = this.glow(px + 28, py + 37, '', 'ink_body');
+    this.senseIcon = icon(this, 0, py + 36, ICON.sense);
+    this.personalityGauge = new Gauge(this, 0, py + 39, PERSONALITY_W, 'gray');
+    this.personalityText = this.glow(0, py + 37, '', 'ink_faint');
+    this.secondaryText = this.glow(0, py + 37, '', 'ink_faint');
+
+    // ---- 보스 게이지 (묶음 위 8px) + 이름
+    const by = py - 8 - 14;
+    this.bossGauge = new Gauge(this, Math.round(W / 2 - BOSS_W / 2), by, BOSS_W, 'boss', this.stageIndex).setVisible(
+      false,
     );
-    this.fitWeaponPanel();
-    this.personalityBar.set(s.weapon.threshold > 0 ? s.weapon.personality / s.weapon.threshold : 0);
-    if (s.boss) {
-      this.bossPanel.setVisible(true);
-      this.bossText.setVisible(true).setText(`${s.boss.name}  ${s.boss.hp}/${s.boss.maxHp}  페이즈 ${s.boss.phase}`);
-      this.bossBar.setVisible(true).set(s.boss.maxHp > 0 ? s.boss.hp / s.boss.maxHp : 0);
-    } else {
-      this.bossPanel.setVisible(false);
-      this.bossText.setVisible(false);
-      this.bossBar.setVisible(false);
+    this.bossIcon = icon(this, Math.round(W / 2 - BOSS_W / 2) - 22, by - 1, ICON.boss).setVisible(false);
+    this.bossName = this.glow(0, by - 18, '', 'ink_accent').setVisible(false);
+
+    // ---- 상단 좌: 층 제목·시련
+    this.floorText = this.glow(E, 12, '', 'ink_body');
+
+    // ---- 상단 우: 미니맵 + M 음소거 (토글은 시스템 M 키, UI 는 힌트만)
+    this.buildMinimap(s0.map.gridW, s0.map.gridH);
+
+    // ---- 우하단 공지
+    this.noticePanel = inkPanel(this, 0, H - 12 - 28, 120, 28).setVisible(false);
+    this.noticeIcon = icon(this, 0, H - 12 - 28 + 6, ICON.exit).setVisible(false);
+    this.noticeText = this.glow(0, H - 12 - 28 + 7, '', 'ink_accent').setVisible(false);
+
+    this.built = true;
+  }
+
+  private buildMinimap(gridW: number, gridH: number): void {
+    const W = this.scale.width;
+    const E = LAYOUT.edge;
+    const size = Minimap.size(gridW, gridH);
+    this.minimap = new Minimap(this, W - E - size.w, 12, gridW, gridH);
+    const hintY = 12 + this.minimap.h + 6;
+    icon(this, W - E - 16, hintY - 2, ICON.sound);
+    this.glow(0, hintY, 'M 음소거', 'ink_faint').placeRight(W - E - 20, hintY);
+  }
+
+  private render(s: UiSnapshot): void {
+    if (!this.built) {
+      this.pending = s;
+      return;
     }
-    this.minimap.render(s.map);
+    const si = Math.max(0, s.stageIndex);
+    if (si !== this.stageIndex) {
+      this.stageIndex = si;
+      for (const t of this.glows) t.setStageIndex(si);
+      this.hpGauge.setStage(this, si);
+      this.bossGauge.setStage(this, si);
+    }
+    const px = this.panelX;
+    // 1행
+    this.hpGauge.set(s.maxHp > 0 ? s.hp / s.maxHp : 0);
+    this.hpText.setText(`${s.hp} / ${s.maxHp}`);
+    let x = Math.max(px + 28 + HP_GAUGE_W + 8 + this.hpText.textW + 16, px + 282);
+    this.goldIcon.setX(x);
+    this.goldText.setText(String(s.gold)).setX(x + 20);
+    x = Math.max(x + 20 + this.goldText.textW + 16, px + 352);
+    this.potionIcon.setX(x);
+    this.potionText.setText(`${s.potions}/${s.potionMax}`).setX(x + 20);
+    this.potionKey.setX(x + 20 + this.potionText.textW + 8);
+    // 2행
+    this.renderWeaponIcon(s.weapon.name);
+    const evo = s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : '';
+    this.weaponText.setText(`${s.weapon.name}${evo}`);
+    x = Math.max(this.weaponText.x + this.weaponText.textW + 14, px + 200);
+    this.senseIcon.setX(x);
+    const gx = x + 22;
+    this.personalityGauge.set(s.weapon.threshold > 0 ? s.weapon.personality / s.weapon.threshold : 0);
+    this.personalityGauge.setPositionX(gx);
+    this.personalityText.setText(`${s.weapon.personality}/${s.weapon.threshold}`).setX(gx + PERSONALITY_W + 6);
+    this.secondaryText.setText(s.weapon.secondaryName ? `우클릭 ${s.weapon.secondaryName}` : '');
+    this.secondaryText.placeRight(px + HUD_W - 10, this.secondaryText.y);
+    // 보스 (처치 뒤 스냅샷에 hp 0 으로 남는 동안은 숨긴다)
+    if (s.boss && s.boss.hp > 0) {
+      this.bossGauge.setVisible(true).set(s.boss.maxHp > 0 ? s.boss.hp / s.boss.maxHp : 0);
+      this.bossIcon.setVisible(true);
+      this.bossName
+        .setVisible(true)
+        .setText(`${s.boss.name}  ${s.boss.hp}/${s.boss.maxHp}  페이즈 ${s.boss.phase}`)
+        .placeCenter(this.scale.width / 2, this.bossName.y);
+    } else {
+      this.bossGauge.setVisible(false);
+      this.bossIcon.setVisible(false);
+      this.bossName.setVisible(false);
+    }
+    // 상단
+    this.floorText.setText(`${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}`);
+    this.minimap.render(s.map, si);
+    // 공지: 출구가 열렸으면 출구, 아니면 본영 문
+    const kind = s.exitOpen ? 'exit' : s.bossUnlocked ? 'boss' : '';
+    if (kind !== this.noticeKind) {
+      this.noticeKind = kind;
+      const show = kind !== '';
+      this.noticePanel.setVisible(show);
+      this.noticeIcon.setVisible(show);
+      this.noticeText.setVisible(show);
+      if (show) {
+        const text =
+          kind === 'exit' ? uiText('hud', 'exitOpen', '오르는 길 열림') : uiText('hud', 'bossUnlocked', '본영 문 열림');
+        this.noticeText.setText(text);
+        this.noticeIcon.setFrame(kind === 'exit' ? ICON.exit : ICON.boss);
+        const w = 8 + 16 + 6 + this.noticeText.textW + 4 + 10;
+        const nx = this.scale.width - LAYOUT.edge - w;
+        this.noticePanel.resize(w, 28).setX(nx);
+        this.noticeIcon.setX(nx + 8);
+        this.noticeText.setX(nx + 8 + 16 + 6);
+      }
+    }
   }
 
   /** 무기 아이콘: 이름 매핑 + 텍스처가 있을 때만 보이고, 이름은 아이콘 오른쪽으로 비킨다 */
   private renderWeaponIcon(weaponName: string): void {
     const id = WEAPON_ICON_IDS[weaponName];
-    const key = id ? WEAPON_ICON_KEY(id) : '';
+    const key = id ? weaponIconKey(id) : '';
     const has = Boolean(key) && this.textures.exists(key);
     if (has && this.weaponIcon.texture.key !== key) this.weaponIcon.setTexture(key);
     this.weaponIcon.setVisible(has);
-    const x = this.weaponTextX + (has ? 20 : 0);
+    const x = this.panelX + (has ? 28 : 8);
     if (this.weaponText.x !== x) this.weaponText.setX(x);
   }
 
-  /** 무기 패널 폭을 이름·개성·보조 동작 텍스트에 맞춘다 (최소 190, 텍스트가 길면 넓힘) */
-  private fitWeaponPanel(): void {
-    const P = THEME.pad;
-    const w = Math.max(WEAPON_PANEL_MIN_W, Math.ceil(this.weaponText.x + this.weaponText.width + 8 - P));
-    if (w === this.weaponPanelW) return;
-    this.weaponPanelW = w;
-    drawPanel(this.weaponPanel, P, this.weaponPanelTop, w, WEAPON_PANEL_H);
-  }
-
-  /** 스토리 자막: 화면 하단 중앙(보스 체력바 위), 종류별로 유지 시간이 다르다 */
+  /** 스토리 자막: 보스 게이지 위(보스전이 아니면 묶음 위) 가운데, 패널 없이 ink_body. 공지 1.8초, 그 외 3.6초 */
   private showCaption(l: UiStoryLine): void {
+    if (!this.built) return;
     this.caption?.destroy();
     this.captionTimer?.remove();
     const hold = l.kind === 'notice' ? 1800 : 3600;
-    this.caption = this.add
-      .text(this.scale.width / 2, this.scale.height - 88, l.text, {
-        font: THEME.font,
-        color: l.kind === 'boss' ? '#ffb0c8' : l.kind === 'notice' ? THEME.textDim : THEME.text,
-        backgroundColor: '#000000a0',
-        padding: { x: 8, y: 4 },
-        align: 'center',
-        wordWrap: { width: this.scale.width - 240 },
-      })
-      .setOrigin(0.5, 1)
-      .setDepth(50);
+    // BOSS_STARTED·STAGE_STARTED 와 같은 프레임에 오므로(STATE 보다 먼저) 스냅샷으로 보스전·층을 본다
+    const snap = uiCommands.getUiSnapshot();
+    const bossOn = Boolean(snap.boss && snap.boss.hp > 0) || this.bossName.visible;
+    const bottom = bossOn ? this.panelY - 8 - 14 - 18 - 4 : this.panelY - 6;
+    const c = new GlowText(this, 0, 0, l.text, 'ink_body', {
+      wrap: this.scale.width - 240,
+      align: 'center',
+      stageIndex: Math.max(0, snap.stageIndex),
+    }).setDepth(CAPTION_DEPTH);
+    c.placeCenter(this.scale.width / 2, bottom - c.displayHeight);
+    this.caption = c;
     this.captionTimer = this.time.delayedCall(hold, () => {
-      this.tweens.add({ targets: this.caption, alpha: 0, duration: 300, onComplete: () => this.caption?.destroy() });
+      this.tweens.add({ targets: c, alpha: 0, duration: 300, onComplete: () => c.destroy() });
     });
   }
 
+  /** 층 시작·개성 변화 배너: 화면 가운데 발광 큰 글자 (Galmuri11 2배 — 한자 포함 가능) */
   private showBanner(text: string): void {
+    if (!this.built) return;
     this.banner?.destroy();
-    this.banner = label(this, this.scale.width / 2, this.scale.height / 2 - 50, text, THEME.fontHeading)
-      .setOrigin(0.5)
-      .setAlpha(0);
+    const stageIndex = Math.max(0, uiCommands.getUiSnapshot().stageIndex);
+    const b = new GlowText(this, 0, 0, text, 'ink_body', { scale: 2, stageIndex }).setDepth(CAPTION_DEPTH).setAlpha(0);
+    b.placeCenter(this.scale.width / 2, Math.round(this.scale.height / 2 - 70));
+    this.banner = b;
     this.tweens.add({
-      targets: this.banner,
+      targets: b,
       alpha: 1,
       duration: 200,
       yoyo: true,
       hold: 1200,
-      onComplete: () => this.banner?.destroy(),
+      onComplete: () => b.destroy(),
     });
   }
 }
