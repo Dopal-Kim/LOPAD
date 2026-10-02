@@ -13,3 +13,4 @@
 | 6 | 2026-10-02 | 아트 | UI | `src/ui/*.ts`, `parts/ui/README.md` | UI 키트 제작을 위한 요소 파악(읽기) | 32라운드 UI 재설계 기간 | 도영 님, 32라운드 |
 | 7 | 2026-10-02 | UI | 아트·스토리 | `parts/art/palette/lopad.json`, `parts/art/art-bible.md`, `assets/ui/**`(키트), `parts/story/text-pack-2.json` | 색·질감·문구 적용(읽기) | 〃 | 도영 님, 32라운드 |
 | 8 | 2026-10-02 | 시스템 | 아트·음향 | `assets/**` 시트 JSON, `assets/audio/manifest.json` | 계약 범위 내 읽기 | 〃 | 도영 님, 32라운드 |
+| 9 | 2026-10-02 | 아트 | 스토리 | `parts/story/world-bible.md`, `parts/story/text-pack.md` | 2~8층 타일셋·보스 시트 제작용 읽기 | 층 시트 제작 기간 | 도영 님, 34라운드 |
