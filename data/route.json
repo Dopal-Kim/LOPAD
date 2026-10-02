@@ -1,12 +1,18 @@
 {
-  "_note": "48라운드 노드 지도 진행 (1~2층 한정). 이름은 전부 자리표시(스토리 후속), 수치는 임시값 — parts/system/README.md 48라운드 절",
+  "_note": "48라운드 노드 지도 진행 (1~2층 한정). 이름은 전부 자리표시(스토리 후속), 수치는 임시값 — parts/system/README.md 48라운드 절. 49라운드: regions(지역 흐름 4-2·지도 6)·setPieces(세트 배치 7)·tutorial(탄생 전장 3) 추가 — README 49라운드 지역·세트 배치 절",
   "floors": {
     "stage1": {
       "journey": ["birth", "road", "post"],
       "lanes": 2,
       "laneLength": 3,
-      "pool": { "battle": 3, "shop": 1, "rest": 1, "event": 1 },
+      "pool": {
+        "battle": 3,
+        "shop": 1,
+        "rest": 1,
+        "event": 1
+      },
       "crossChance": 0.35,
+      "regionByCol": ["waste", "waste", "gate", "outer", "outer", "brewery", "hall"],
       "names": {
         "birth": ["황폐한 탄생지"],
         "road": ["버려진 길"],
@@ -22,8 +28,14 @@
       "journey": [],
       "lanes": 2,
       "laneLength": 3,
-      "pool": { "battle": 3, "shop": 1, "rest": 1, "event": 1 },
+      "pool": {
+        "battle": 3,
+        "shop": 1,
+        "rest": 1,
+        "event": 1
+      },
       "crossChance": 0.35,
+      "regionByCol": ["alley", "alley", "den", "den"],
       "names": {
         "battle": ["판돈 골목", "투견장 뒤뜰", "칩 환전 거리", "뒤집힌 탁자 홀"],
         "shop": ["전당 골목"],
@@ -33,44 +45,583 @@
       }
     }
   },
+  "regions": {
+    "_note": "49라운드 4-2·6: 노드 단계(col) → 지역. name·desc 는 자리표시(스토리 후속). tileset = tiles/<tileset>.json (계약 art §7.3), 없으면 층 타일셋(tiles/stage<n>). edge = 가장자리 들쭉날쭉(임시값, 없으면 arena.edge)",
+    "waste": {
+      "name": "황무지",
+      "tileset": "stage1_waste",
+      "edge": {
+        "maxInset": 4,
+        "gaps": [2, 3]
+      },
+      "desc": {
+        "default": "술의 제국 바깥, 먼지와 잔해만 남은 땅.",
+        "birth": "부러진 무기와 찢긴 깃발 사이로 혼불이 모여든다.",
+        "road": "성문으로 이어지는 버려진 길. 낙오한 징집병이 서성인다."
+      }
+    },
+    "gate": {
+      "name": "성문",
+      "tileset": "stage1_gate",
+      "edge": {
+        "maxInset": 2,
+        "gaps": [0, 1]
+      },
+      "desc": {
+        "default": "제국의 첫 관문. 초소의 불이 아직 꺼지지 않았다.",
+        "post": "국경 초소의 모닥불. 성문 너머로 술 냄새가 넘어온다."
+      }
+    },
+    "outer": {
+      "name": "외곽 거리",
+      "tileset": "stage1_outer",
+      "edge": {
+        "maxInset": 3,
+        "gaps": [1, 2]
+      },
+      "desc": {
+        "default": "취객과 술통이 뒤엉킨 성 밖 거리.",
+        "shop": "외상으로 굴러가는 노점 거리.",
+        "rest": "문 닫은 선술집 앞 광장, 꺼져 가는 모닥불."
+      }
+    },
+    "brewery": {
+      "name": "양조 구역",
+      "tileset": "stage1_brewery",
+      "edge": {
+        "maxInset": 3,
+        "gaps": [0, 1]
+      },
+      "desc": {
+        "default": "증류기 연기가 하늘을 가린 양조장 골목.",
+        "event": "버려진 양조 창고. 무언가 일이 벌어진 흔적."
+      }
+    },
+    "hall": {
+      "name": "지배자의 연회장",
+      "tileset": "stage1_hall",
+      "edge": {
+        "maxInset": 2,
+        "gaps": [0, 0]
+      },
+      "desc": {
+        "default": "'잔'의 지배자가 술에 잠겨 기다리는 연회장."
+      }
+    },
+    "alley": {
+      "name": "도박 골목",
+      "edge": {
+        "maxInset": 3,
+        "gaps": [1, 2]
+      },
+      "desc": {
+        "default": "판돈이 오가는 뒷골목. (2층 임시 지역)"
+      }
+    },
+    "den": {
+      "name": "도박장 안채",
+      "edge": {
+        "maxInset": 2,
+        "gaps": [0, 1]
+      },
+      "desc": {
+        "default": "판돈 백작의 도박장으로 이어지는 안채. (2층 임시 지역)"
+      }
+    }
+  },
   "arena": {
     "default": [40, 24],
     "boss": [44, 26],
     "voidMarginTiles": 8,
     "spawnInsetTiles": 3,
     "exitInsetTiles": 3,
-    "clearTiles": 3
+    "clearTiles": 3,
+    "edge": {
+      "_note": "49라운드 실내 느낌 제거: 사각 벽 대신 안쪽으로 파고드는 담·잔해 (maxInset 칸까지, run 칸마다 깊이 바뀜), 위·아래 벽 일부는 열린 틈(gaps 개, 폭 gapWidth)으로 원경 void. keepClear = 시작점·출구 둘레 보호 반경",
+      "maxInset": 3,
+      "run": [2, 5],
+      "gaps": [1, 2],
+      "gapWidth": [2, 4],
+      "cornerMarginTiles": 3,
+      "keepClearTiles": 2
+    }
+  },
+  "setPieces": {
+    "_note": "49라운드 7·6: 노드 종류별 중앙 세트 배치 템플릿. 좌표는 전투장 중앙 기준 타일 오프셋 [dx, dy] (오른쪽·아래 +), ring = 중앙에서 반지름(타일)·angle(도, 0=오른쪽 90=아래). slots = 구조물(kinds 중 이 층·이 노드에 허용된 첫 종류), decor = 소품 그림(structures/set_<region>_<name>, sprite 가 있으면 그 목록), cover = 엄폐 담(벽 타일 섬). clearRadius = 중앙 기능 둘레 무작위 구조물 금지 반경. 전부 임시값",
+    "rest": {
+      "clearRadius": 3,
+      "jitterDeg": 20,
+      "slots": [
+        {
+          "kinds": ["campfire"],
+          "at": [0, 0],
+          "function": true
+        },
+        {
+          "kinds": ["agingBarrel"],
+          "ring": 6,
+          "angle": 210
+        },
+        {
+          "kinds": ["grave"],
+          "ring": 6,
+          "angle": 330
+        },
+        {
+          "kinds": ["counter"],
+          "ring": 6,
+          "angle": 90
+        }
+      ],
+      "decor": [
+        {
+          "name": "plaza",
+          "at": [0, 0],
+          "size": [7, 5],
+          "floor": true,
+          "color": "#3a332c",
+          "sprite": ["set_{region}_plaza", "set_{region}_fire_ring", "set_outer_plaza"]
+        },
+        {
+          "name": "stones",
+          "ring": 2.5,
+          "count": 8,
+          "size": [1, 1],
+          "color": "#6b6258"
+        },
+        {
+          "name": "bench",
+          "ring": 4,
+          "count": 3,
+          "angle": 30,
+          "size": [2, 1],
+          "color": "#5a4632"
+        }
+      ]
+    },
+    "shop": {
+      "clearRadius": 2,
+      "street": {
+        "halfHeight": 1,
+        "halfWidth": 14
+      },
+      "slots": [
+        {
+          "kinds": ["ledger", "pawn"],
+          "at": [-5, -3]
+        },
+        {
+          "kinds": ["exchange", "chest"],
+          "at": [5, -3]
+        },
+        {
+          "kinds": ["chest", "cardTable"],
+          "at": [-5, 3]
+        },
+        {
+          "kinds": ["cardTable", "exchange", "ledger"],
+          "at": [5, 3]
+        }
+      ],
+      "decor": [
+        {
+          "name": "street",
+          "at": [0, 0],
+          "size": [28, 3],
+          "floor": true,
+          "color": "#33302b"
+        },
+        {
+          "name": "stall",
+          "at": [-5, -5],
+          "size": [3, 1],
+          "color": "#7a4a2a",
+          "sprite": ["set_{region}_stall", "set_outer_stall"]
+        },
+        {
+          "name": "stall",
+          "at": [5, -5],
+          "size": [3, 1],
+          "color": "#7a4a2a",
+          "sprite": ["set_{region}_stall", "set_outer_stall"]
+        },
+        {
+          "name": "stall",
+          "at": [-5, 5],
+          "size": [3, 1],
+          "color": "#7a4a2a",
+          "sprite": ["set_{region}_stall", "set_outer_stall"]
+        },
+        {
+          "name": "stall",
+          "at": [5, 5],
+          "size": [3, 1],
+          "color": "#7a4a2a",
+          "sprite": ["set_{region}_stall", "set_outer_stall"]
+        },
+        {
+          "name": "lantern",
+          "at": [-10, -2],
+          "size": [1, 1],
+          "color": "#a8743a",
+          "sprite": ["set_{region}_lantern", "set_{region}_lamppost", "set_{region}_brazier", "set_outer_lamppost"]
+        },
+        {
+          "name": "lantern",
+          "at": [10, -2],
+          "size": [1, 1],
+          "color": "#a8743a",
+          "sprite": ["set_{region}_lantern", "set_{region}_lamppost", "set_{region}_brazier", "set_outer_lamppost"]
+        },
+        {
+          "name": "lantern",
+          "at": [-10, 2],
+          "size": [1, 1],
+          "color": "#a8743a",
+          "sprite": ["set_{region}_lantern", "set_{region}_lamppost", "set_{region}_brazier", "set_outer_lamppost"]
+        },
+        {
+          "name": "lantern",
+          "at": [10, 2],
+          "size": [1, 1],
+          "color": "#a8743a",
+          "sprite": ["set_{region}_lantern", "set_{region}_lamppost", "set_{region}_brazier", "set_outer_lamppost"]
+        }
+      ]
+    },
+    "event": {
+      "clearRadius": 3,
+      "slots": [
+        {
+          "kinds": ["chest"],
+          "at": [0, 2],
+          "function": true
+        }
+      ],
+      "decor": [
+        {
+          "name": "scene",
+          "at": [0, 0],
+          "size": [5, 3],
+          "floor": true,
+          "color": "#40342a"
+        },
+        {
+          "name": "wreck",
+          "at": [0, -1],
+          "size": [3, 2],
+          "color": "#5c4a36"
+        },
+        {
+          "name": "debris",
+          "ring": 3.5,
+          "count": 6,
+          "size": [1, 1],
+          "color": "#4e463e"
+        }
+      ]
+    },
+    "battle": {
+      "cover": {
+        "count": [2, 3],
+        "anchors": [
+          [-8, -5],
+          [8, 5],
+          [-7, 5],
+          [7, -5],
+          [0, -7],
+          [0, 7]
+        ],
+        "shapes": [
+          [
+            [0, 0],
+            [1, 0]
+          ],
+          [
+            [0, 0],
+            [0, 1]
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [0, 1]
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [0, 1],
+            [1, 1]
+          ]
+        ],
+        "decor": {
+          "name": "barrels",
+          "color": "#6a4a2c",
+          "sprite": ["set_{region}_barrels", "set_{region}_barrel_stack"]
+        }
+      },
+      "fillerNear": {
+        "radius": 3
+      },
+      "slots": [
+        {
+          "kinds": ["still", "stakeBell"],
+          "anchor": 0,
+          "at": [3, 1]
+        }
+      ],
+      "decor": [
+        {
+          "name": "crates",
+          "anchor": 1,
+          "at": [-2, 1],
+          "size": [1, 1],
+          "color": "#6e5434",
+          "sprite": ["set_{region}_crates", "set_{region}_barrel_stack"]
+        }
+      ]
+    },
+    "boss": {
+      "decor": [
+        {
+          "name": "rug",
+          "at": [0, 0],
+          "size": [4, 3],
+          "floor": true,
+          "sprite": ["set_{region}_rug", "set_hall_rug"],
+          "color": "#3a2a26"
+        },
+        {
+          "name": "table",
+          "at": [-12, -10],
+          "size": [3, 1],
+          "color": "#5a3a2a",
+          "sprite": ["set_{region}_table", "set_{region}_long_table", "set_hall_long_table"]
+        },
+        {
+          "name": "table",
+          "at": [12, -10],
+          "size": [3, 1],
+          "color": "#5a3a2a",
+          "sprite": ["set_{region}_table", "set_{region}_long_table", "set_hall_long_table"]
+        },
+        {
+          "name": "table",
+          "at": [-12, 10],
+          "size": [3, 1],
+          "color": "#5a3a2a",
+          "sprite": ["set_{region}_table", "set_{region}_long_table", "set_hall_long_table"]
+        },
+        {
+          "name": "table",
+          "at": [12, 10],
+          "size": [3, 1],
+          "color": "#5a3a2a",
+          "sprite": ["set_{region}_table", "set_{region}_long_table", "set_hall_long_table"]
+        },
+        {
+          "name": "banner",
+          "at": [-6, -12],
+          "size": [1, 1],
+          "color": "#7a2a2a",
+          "sprite": ["set_{region}_banner", "battlefield_banner"]
+        },
+        {
+          "name": "banner",
+          "at": [6, -12],
+          "size": [1, 1],
+          "color": "#7a2a2a",
+          "sprite": ["set_{region}_banner", "battlefield_banner"]
+        }
+      ]
+    },
+    "battlefield": {
+      "clearRadius": 4,
+      "cover": {
+        "count": [2, 2],
+        "anchors": [
+          [-9, -5],
+          [-8, 6],
+          [-13, 0]
+        ],
+        "shapes": [
+          [
+            [0, 0],
+            [1, 0]
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [0, 1]
+          ]
+        ],
+        "decor": {
+          "name": "rubble",
+          "sprite": ["battlefield_rubble"],
+          "color": "#4a4440"
+        }
+      },
+      "wisps": {
+        "ring": 2.5,
+        "count": 6
+      },
+      "decor": [
+        {
+          "name": "weapon",
+          "sprite": ["battlefield_weapon"],
+          "scatter": 7,
+          "size": [1, 1],
+          "color": "#8a8a90"
+        },
+        {
+          "name": "flag",
+          "sprite": ["battlefield_flag", "battlefield_banner"],
+          "scatter": 3,
+          "size": [1, 1],
+          "color": "#7a2a2a"
+        },
+        {
+          "name": "fallen",
+          "sprite": ["battlefield_fallen"],
+          "scatter": 5,
+          "size": [2, 1],
+          "floor": true,
+          "color": "#3e3a36"
+        }
+      ]
+    }
+  },
+  "tutorial": {
+    "_note": "49라운드 3: 첫 노드(황폐한 전장) 조작 안내. 표식(tutorial_sign)에 다가가면 안내 문구(STORY notice), 행동을 마치면 다음 표식. 좌표 = 전장 중앙(탄생 자리) 기준 타일 오프셋. 문구는 자리표시(스토리 후속), 수치 임시값",
+    "signSprite": ["tutorial_sign_{step}", "battlefield_tutorial_sign", "tutorial_sign"],
+    "dummySprite": ["battlefield_dummy", "dummy"],
+    "approachTiles": 2.5,
+    "dummyHitTiles": 2.5,
+    "rangedHitTiles": 14,
+    "rangedConeDeg": 25,
+    "dummies": [
+      [10, -6],
+      [12, -4],
+      [10, -2]
+    ],
+    "steps": [
+      {
+        "id": "move",
+        "action": "arrive",
+        "sign": [5, 0],
+        "promptOnStart": true,
+        "text": "땅의 표식까지 걸어가 보자. (WASD)"
+      },
+      {
+        "id": "attack",
+        "action": "hitDummy",
+        "count": 2,
+        "sign": [8, -4],
+        "text": "허수아비를 베어 보자. (좌클릭)"
+      },
+      {
+        "id": "dash",
+        "action": "dash",
+        "count": 1,
+        "sign": [8, 4],
+        "text": "몸을 던져 피하자. (스페이스)"
+      },
+      {
+        "id": "secondary",
+        "action": "secondary",
+        "count": 1,
+        "sign": [12, 4],
+        "text": "{name} — {description} (우클릭)",
+        "signName": "skill"
+      },
+      {
+        "id": "fight",
+        "action": "fight",
+        "sign": [12, 0],
+        "promptOnStart": true,
+        "text": "낙오한 징집병이 다가온다. 쓰러뜨리자.",
+        "fight": {
+          "at": [13, 0],
+          "radiusTiles": 4,
+          "spawns": [
+            {
+              "enemy": "dummy",
+              "count": 2,
+              "hpMult": 0.5,
+              "attackMult": 0.5
+            }
+          ]
+        }
+      }
+    ],
+    "doneText": "전장을 벗어날 길이 열렸다."
+  },
+  "view": {
+    "_note": "49라운드 세트 배치 그림 (src/world/SetPieceView.ts). 아트 시트가 없을 때의 플레이스홀더 도형·혼불·표식 강조 — 임시값",
+    "decorAlpha": 0.55,
+    "floorDecorAlpha": 0.22,
+    "coverAlpha": 0.35,
+    "signColor": "#c8a050",
+    "signAlpha": 0.45,
+    "signActiveAlpha": 1,
+    "signPulseMs": 520,
+    "dummyPokeDeg": 12,
+    "dummyPokeMs": 90,
+    "wispSheet": "soul_wisp",
+    "wispColor": "#9fd8ff",
+    "wispRadiusPx": 2,
+    "wispAlpha": [0.25, 0.8],
+    "wispBobPx": 3,
+    "wispCycleMs": [1400, 2200]
   },
   "kinds": {
-    "birth": { "type": "journey", "room": "start", "floor": "start", "structures": [], "budget": [0, 0] },
+    "birth": {
+      "type": "journey",
+      "room": "start",
+      "floor": "start",
+      "structures": [],
+      "budget": [0, 0],
+      "setPiece": "battlefield",
+      "tutorial": true
+    },
     "road": {
       "type": "journey",
       "room": "trial",
       "floor": "start",
       "structures": ["crate", "cask"],
       "budget": [0, 0],
-      "waves": [[{ "enemy": "dummy", "count": 3 }]]
+      "setPiece": "battle",
+      "waves": [
+        [
+          {
+            "enemy": "dummy",
+            "count": 3
+          }
+        ]
+      ]
     },
     "post": {
       "type": "journey",
       "room": "rest",
       "floor": "start",
       "structures": ["campfire", "grave"],
-      "budget": [1, 2]
+      "budget": [1, 2],
+      "setPiece": "rest"
     },
     "battle": {
       "type": "battle",
       "room": "trial",
       "floor": "trial",
       "structures": ["crate", "cask", "still", "stakeBell", "roulette", "dogRing"],
-      "budget": [1, 2]
+      "budget": [1, 2],
+      "setPiece": "battle"
     },
     "rest": {
       "type": "rest",
       "room": "rest",
       "floor": "rest",
       "structures": ["campfire", "agingBarrel", "grave", "counter"],
-      "budget": [2, 3]
+      "budget": [2, 3],
+      "setPiece": "rest"
     },
     "shop": {
       "type": "shop",
@@ -78,15 +629,24 @@
       "floor": "rest",
       "structures": ["ledger", "pawn", "exchange", "chest", "cardTable"],
       "budget": [2, 3],
-      "shopTiles": true
+      "shopTiles": true,
+      "setPiece": "shop"
     },
     "event": {
       "type": "event",
       "room": "start",
       "floor": "start",
       "structures": ["hiddenWall", "chest", "crate"],
-      "budget": [1, 2]
+      "budget": [1, 2],
+      "setPiece": "event"
     },
-    "boss": { "type": "boss", "room": "boss", "floor": "boss", "structures": ["cask"], "budget": [0, 0] }
+    "boss": {
+      "type": "boss",
+      "room": "boss",
+      "floor": "boss",
+      "structures": ["cask"],
+      "budget": [0, 0],
+      "setPiece": "boss"
+    }
   }
 }

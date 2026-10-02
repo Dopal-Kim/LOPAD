@@ -56,7 +56,9 @@ export class BirthSequence {
     this.sheet = sheet && tex && scene.textures.exists(tex) ? sheet : undefined;
     const dust = spriteLibrary.sheet(BIRTH_FX, FX_ACTION);
     const dtex = spriteLibrary.textureKey(BIRTH_FX, FX_ACTION);
-    this.dustSheet = dust && dtex && scene.textures.exists(dtex) ? dust : undefined;
+    // 49라운드 혼불 탄생: 시트 메모 fx.ambient(혼불)가 있고 바닥 흙(under)이 선택이면 흙 소용돌이를 끈다 (혼불은 세트 배치 그림이 띄운다)
+    const soulBirth = Boolean(this.sheet?.fx?.ambient && this.sheet.fx.underOptional);
+    this.dustSheet = !soulBirth && dust && dtex && scene.textures.exists(dtex) ? dust : undefined;
   }
 
   /** 시트 연출인지 (false = 폴백) */

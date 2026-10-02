@@ -44,19 +44,54 @@ export function comboFxId(weaponId: string, n: number): string {
   return `${weaponId}_combo${n}`;
 }
 
-/** 무기별 48라운드 주인공 동작 (연격 3 · 특수 · 조준) */
+/**
+ * 49라운드 계약 art §7.1·7.2: 무기를 든 몸 동작 접미 — 뽑기 · 넣기(납도) · 대검 내리찍기 · 대검 대쉬 공격 · 활 장전.
+ * 몸 `player/player_<무기>_<동작>`, 무기 `weapons/<무기>_<동작>` (같은 열·같은 시각, §6.1 겹침 규칙)
+ */
+export const WEAPON_MOTIONS = ['draw', 'sheathe', 'slam', 'dashslash', 'reload'] as const;
+export type WeaponMotion = (typeof WEAPON_MOTIONS)[number];
+
+/** 몸 동작 `<무기>_<motion>` */
+export function motionAction(weaponId: string, motion: WeaponMotion): string {
+  return `${weaponId}_${motion}`;
+}
+
+/** 49라운드 §7.1 휴대 오버레이 동작 `weapons/<무기>_carry_<idle|walk|dash>` */
+export type CarryAction = 'idle' | 'walk' | 'dash';
+export const CARRY_ACTIONS: readonly CarryAction[] = ['idle', 'walk', 'dash'];
+export function carryAction(a: CarryAction): string {
+  return `carry_${a}`;
+}
+
+/** 49라운드 아트 추가(계약 외 임시): 칼·대검을 뽑아 든 채(넣기 전) `weapons/<무기>_carry_drawn_<a>` */
+export function carryDrawnAction(a: CarryAction): string {
+  return `carry_drawn_${a}`;
+}
+
+/** 몸 동작 → 휴대 오버레이 동작 (idle·walk·dash 그대로, 피격·뽑기·넣기는 idle). 사망·탄생은 null(숨김) */
+export function carryActionFor(playerAction: string): CarryAction | null {
+  if (playerAction === 'walk' || playerAction === 'dash' || playerAction === 'idle') return playerAction;
+  if (playerAction === 'death' || playerAction === BIRTH_ACTION) return null;
+  return 'idle';
+}
+
+/** 무기별 48·49라운드 주인공 동작 (연격 3 · 특수 · 조준 · 뽑기·넣기·내리찍기·대쉬 공격·장전) */
 export function playerWeaponActions(weaponId: string): string[] {
   const out: string[] = [];
   for (let n = 1; n <= COMBO_HITS; n++) out.push(comboAction(weaponId, n));
   out.push(specialAction(weaponId), aimAction(weaponId));
+  for (const m of WEAPON_MOTIONS) out.push(motionAction(weaponId, m));
   return out;
 }
 
-/** 무기 오버레이 동작 (연격 3 · 특수 · 조준) */
+/** 무기 오버레이 동작 (연격 3 · 특수 · 조준 · 49라운드 휴대 3 · 뽑기·넣기·내리찍기·대쉬 공격·장전) */
 export const WEAPON_EXTRA_ACTIONS: readonly string[] = [
   ...Array.from({ length: COMBO_HITS }, (_, i) => weaponComboAction(i + 1)),
   'special',
   'aim',
+  ...CARRY_ACTIONS.map(carryAction),
+  ...CARRY_ACTIONS.map(carryDrawnAction),
+  ...WEAPON_MOTIONS,
 ];
 
 /**
@@ -70,6 +105,9 @@ export function overlayActionsFor(playerAction: string, weaponId: string): strin
   const rest = playerAction.slice(prefix.length);
   if (/^combo\d+$/.test(rest)) return [rest, 'attack'];
   if (rest === 'special' || rest === 'aim') return [rest, 'attack'];
+  // 49라운드: 내리찍기·대쉬 공격은 무기 시트가 없으면 3타·attack, 뽑기·넣기·장전은 그 시트만 (없으면 휴대 표시)
+  if (rest === 'slam' || rest === 'dashslash') return [rest, weaponComboAction(COMBO_HITS), 'attack'];
+  if (rest === 'draw' || rest === 'sheathe' || rest === 'reload') return [rest];
   return [];
 }
 
@@ -116,7 +154,7 @@ export interface SheetJson {
    * 깊이. 무기 오버레이(§3.1)는 방향별 above / below, 이펙트(§3.2)는 문자열 above(개체 위) / below(개체 아래·바닥).
    * 이펙트의 기본 깊이를 정할 때 쓴다 (호출 쪽이 깊이를 주면 그쪽이 우선)
    */
-  depth?: 'above' | 'below' | 'floor' | 'y' | Partial<Record<Facing, 'above' | 'below'>>;
+  depth?: 'above' | 'below' | 'floor' | 'y' | Partial<Record<Facing, 'above' | 'below' | ('above' | 'below')[]>>;
   // --- 계약 §5 구조물 시트 (47라운드) ---
   /** 단단한 영역 타일 수 [가로, 세로] */
   footprint?: [number, number];
@@ -175,6 +213,22 @@ export interface SheetJson {
   thrust?: { lengthPx: number; widthPx: number; angleDeg?: number; fromPx?: number };
   /** 탄생 시트: 잔불이 터지는 프레임 */
   burstFrame?: number;
+  /** 49라운드 §7.2 대검 내리찍기: 도약 프레임 열 (첫 열 시작 ~ 마지막 열 끝 = 공중) · 대쉬 공격·내리찍기 회복 프레임 */
+  leapFrames?: number[];
+  recoverFrames?: number[];
+  /** 49라운드: 이펙트 f0 재생 시각 ms (몸 시트 기준, 재생 배속 반영 전) */
+  fxSpawnAtMs?: number;
+  /** 49라운드 내리찍기: 발 피벗에서 착지(충격파 중심)까지 — 방향별 오프셋 px 우선, 없으면 조준 방향 거리 */
+  impactOffsetPx?: Partial<Record<Facing, { x: number; y: number }>>;
+  impactDistancePx?: number;
+  /** 49라운드 내리찍기 도약 프레임별 몸 띄우기 px (제안 메모 — 시스템 미적용) */
+  leapOffsetsPx?: Record<string, number>;
+  /** 49라운드 대쉬 공격: 재사용 이펙트 id · 재생 시각 ms */
+  fxReuse?: { id: string; spawnAtMs?: number };
+  /** 49라운드 활 장전: 탄창이 차는 프레임 */
+  refillFrame?: number;
+  /** 49라운드 탄생(혼불 버전): 바닥 이펙트(under, underOptional = 없어도 됨) · 둘레 혼불(ambient) */
+  fx?: { under?: string; underOptional?: boolean; ambient?: string };
   /** 특수 자세 구간 (패링 ready/window/riposte/recover · 가드 enter/hold/release/recover · 그림자 걸음 depart/arrive/primed) */
   phases?: Record<string, number[]>;
   /** 가드를 누르는 동안 반복할 열 */
@@ -323,6 +377,22 @@ export function structureStateFrames(def: Pick<SheetJson, 'states' | 'frames'>, 
 export interface FxWeaponShape {
   kind: 'melee' | 'ranged';
   personality: { branches: { id: string; next?: { id: string }[] }[] };
+  /** 49라운드: 과열 무기면 가열 단계별 연격 이펙트, 내리찍기가 있으면 내리찍기 이펙트 */
+  resource?: { kind: string };
+  slam?: unknown;
+}
+
+/** 49라운드 §7.2 과열 단계 수 (fx/<무기>_combo<n>_heat<k>, k = 1..3) */
+export const HEAT_STAGES = 3;
+
+/** 과열 단계별 연격 이펙트 `fx/<무기>_combo<n>_heat<k>` */
+export function heatComboFxId(weaponId: string, n: number, k: number): string {
+  return `${comboFxId(weaponId, n)}_heat${k}`;
+}
+
+/** 대검 내리찍기 이펙트 `fx/<무기>_slam` */
+export function slamFxId(weaponId: string): string {
+  return `${weaponId}_slam`;
 }
 
 /** 베기 이펙트 이름 `<무기id>_slash` */
@@ -346,6 +416,10 @@ export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
       out.add(slashFxId(id));
       // 48라운드 §6.1 연격 베기 이펙트
       for (let n = 1; n <= COMBO_HITS; n++) out.add(comboFxId(id, n));
+      // 49라운드 §7.2: 단검 가열 단계 · 대검 내리찍기
+      if (w.resource?.kind === 'heat')
+        for (let n = 1; n <= COMBO_HITS; n++) for (let k = 1; k <= HEAT_STAGES; k++) out.add(heatComboFxId(id, n, k));
+      if (w.slam) out.add(slamFxId(id));
     } else {
       out.add(arrowFxId(id, false));
       out.add(arrowFxId(id, true));
@@ -391,7 +465,7 @@ export const SECONDARY_FX_IDS: readonly string[] = [
 ];
 
 /** 47라운드 구조물 이펙트 (계약 art-assets §5): 1-1 불붙은 독주 웅덩이 루프. 48라운드 §6.3 탄생 흙 */
-export const STRUCTURE_FX_IDS: readonly string[] = ['fire_pool', BIRTH_FX];
+export const STRUCTURE_FX_IDS: readonly string[] = ['fire_pool', BIRTH_FX, 'soul_wisp'];
 
 /** 무기 유도 이펙트 + 피격 이펙트 + 적 양상 이펙트 + 보조 연출 + 구조물 이펙트 (중복 제거) */
 export function allFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
@@ -445,6 +519,24 @@ export function hitFrameOffsets(def: SheetJson | null | undefined, hits: number)
 export function progressFrame(progress: number, frames: number, divisor = frames): number {
   const last = Math.max(0, frames - 1);
   return Math.max(0, Math.min(last, Math.floor(Math.max(0, progress) * divisor)));
+}
+
+/**
+ * 49라운드 §7.1 무기 오버레이 깊이: JSON `depth` 가 문자열이면 그것, 방향별 값이 문자열이면 그것,
+ * 방향별 배열이면 그 열(프레임) 값. 없으면 above (기존 §3.1 처리와 같음)
+ */
+export function overlayDepthAt(def: Pick<SheetJson, 'depth'>, dir: Facing, column: number): 'above' | 'below' {
+  const d = def.depth;
+  if (d === 'above' || d === 'below') return d;
+  if (d && typeof d === 'object') {
+    const v = d[dir];
+    if (v === 'above' || v === 'below') return v;
+    if (Array.isArray(v) && v.length > 0) {
+      const c = v[Math.max(0, Math.min(v.length - 1, column))];
+      if (c === 'above' || c === 'below') return c;
+    }
+  }
+  return 'above';
 }
 
 /** 이펙트 JSON `depth` 문자열 (무기 오버레이의 방향별 표는 무시) */

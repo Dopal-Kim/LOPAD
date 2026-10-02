@@ -53,7 +53,18 @@ export interface PlanOptions {
    * 48라운드 노드 전투장 (Q11): 이 노드에 허용된 종류만, 방 종류 가중치·방당 E형 상한 없이 놓는다.
    * budget = filler 밖 종류 수 [min, max] (forceAll 이면 허용 종류 전부). reserve = 비워 둘 타일 사각형(시작점·출구·상점)
    */
-  node?: { kinds: readonly UiStructureKind[]; budget: [number, number]; reserve?: readonly Rect[] };
+  node?: {
+    kinds: readonly UiStructureKind[];
+    budget: [number, number];
+    reserve?: readonly Rect[];
+    /**
+     * 49라운드 7 세트 배치: 정해진 자리(왼쪽 위 타일)에 먼저 놓는 구조물 (setpiece.ts `fixed`). 놓인 종류(filler 밖)는
+     * 예산에서 빼고 나머지만 무작위로 보충한다 (세트 우선, 무작위는 보조). 예약 칸 검사는 하지 않는다(템플릿이 이미 고름)
+     */
+    fixed?: readonly { kind: UiStructureKind; tx: number; ty: number }[];
+    /** 49라운드: filler(짐·술통)를 이 앵커들 반경 안에 먼저 시도 (엄폐 담 둘레) */
+    fillerNear?: { anchors: readonly { x: number; y: number }[]; radius: number } | null;
+  };
 }
 
 const key = (x: number, y: number) => `${x},${y}`;
@@ -99,13 +110,36 @@ function occupy(occ: RoomOcc, x: number, y: number, w: number, h: number, gap: n
     for (let tx = x - gap; tx < x + w + gap; tx++) occ.blocked.add(key(tx, ty));
 }
 
-/** 벽가 후보: 방 안쪽 테두리에 붙는 사각형 왼쪽 위 */
-function wallSpot(rng: Rng, I: Rect, w: number, h: number): { x: number; y: number } {
+/** 벽가 후보: 방 안쪽 테두리에 붙는 사각형 왼쪽 위 (+ 안쪽 방향 — 49라운드 들쭉날쭉한 가장자리에서 밀어 넣기용) */
+function wallSpot(rng: Rng, I: Rect, w: number, h: number): { x: number; y: number; dx: number; dy: number } {
   const side = rng.int(0, 3);
-  if (side === 0) return { x: rng.int(I.x, I.x + I.w - w), y: I.y };
-  if (side === 1) return { x: rng.int(I.x, I.x + I.w - w), y: I.y + I.h - h };
-  if (side === 2) return { x: I.x, y: rng.int(I.y, I.y + I.h - h) };
-  return { x: I.x + I.w - w, y: rng.int(I.y, I.y + I.h - h) };
+  if (side === 0) return { x: rng.int(I.x, I.x + I.w - w), y: I.y, dx: 0, dy: 1 };
+  if (side === 1) return { x: rng.int(I.x, I.x + I.w - w), y: I.y + I.h - h, dx: 0, dy: -1 };
+  if (side === 2) return { x: I.x, y: rng.int(I.y, I.y + I.h - h), dx: 1, dy: 0 };
+  return { x: I.x + I.w - w, y: rng.int(I.y, I.y + I.h - h), dx: -1, dy: 0 };
+}
+
+/** 49라운드: 벽가 후보가 깎인 가장자리(벽·빈 칸)에 걸리면 안쪽으로 이 칸 수까지 밀어 본다 */
+const WALL_SLIDE_TILES = 5;
+
+/** 벽가 자리: 처음으로 바닥에 닿는 칸까지 안쪽으로 민다 (바닥이 아닌 칸을 지나온 뒤 첫 자리 = 새 벽가) */
+function slideToWall(
+  layout: FloorLayout,
+  s: { x: number; y: number; dx: number; dy: number },
+  w: number,
+  h: number,
+): { x: number; y: number } {
+  const allFloor = (x: number, y: number) => {
+    for (let ty = y; ty < y + h; ty++)
+      for (let tx = x; tx < x + w; tx++) if (layout.tiles[ty]?.[tx] !== TileId.Floor) return false;
+    return true;
+  };
+  for (let i = 0; i <= WALL_SLIDE_TILES; i++) {
+    const x = s.x + s.dx * i;
+    const y = s.y + s.dy * i;
+    if (allFloor(x, y)) return { x, y };
+  }
+  return { x: s.x, y: s.y };
 }
 
 /** 안쪽 후보: 벽에서 1칸 이상 떨어진 사각형 왼쪽 위 */
@@ -289,6 +323,10 @@ function chooseNode(
 
 const PLACE_ORDER: Record<string, number> = { center: 0, cellar: 1 };
 
+function covers(p: StructurePlacement, x: number, y: number): boolean {
+  return x >= p.tx && x < p.tx + p.w && y >= p.ty && y < p.ty + p.h;
+}
+
 /** 한 층의 구조물 배치 */
 export function planStructures(
   layout: FloorLayout,
@@ -360,10 +398,27 @@ export function planStructures(
     }
     for (let t = 0; t < rules.placeTries; t++) {
       const wall = def.place === 'wall' || (def.place === 'wallPrefer' && rng.chance(def.wallBias ?? 0.5));
-      const s = wall ? wallSpot(rng, I, w, h) : anySpot(rng, I, w, h);
+      const s = wall ? slideToWall(layout, wallSpot(rng, I, w, h), w, h) : anySpot(rng, I, w, h);
       if (!rectFits(layout, occ, s.x, s.y, w, h)) continue;
       push(def, occ, s.x, s.y, w, h);
       occupy(occ, s.x, s.y, w, h, gap);
+      return true;
+    }
+    return false;
+  };
+
+  /** 49라운드: filler 를 엄폐 앵커 둘레에 (앵커를 돌아가며). 자리가 없으면 false → 일반 배치 */
+  const placeNear = (def: StructureDef, occ: RoomOcc, i: number): boolean => {
+    const near = node?.fillerNear;
+    if (!near || near.anchors.length === 0) return false;
+    const a = near.anchors[i % near.anchors.length];
+    const [w, h] = def.size;
+    for (let t = 0; t < rules.placeTries / 4; t++) {
+      const x = a.x + rng.int(-near.radius, near.radius);
+      const y = a.y + rng.int(-near.radius, near.radius);
+      if (!rectFits(layout, occ, x, y, w, h)) continue;
+      push(def, occ, x, y, w, h);
+      occupy(occ, x, y, w, h, gap);
       return true;
     }
     return false;
@@ -391,18 +446,39 @@ export function planStructures(
     return false;
   };
 
+  // 0) 49라운드 세트 배치: 템플릿이 정한 자리에 먼저 (예약 칸은 템플릿이 이미 피했다 — 중앙 기능은 예약 안에 놓인다)
+  const fixedKinds = new Set<UiStructureKind>();
+  if (node?.fixed && occs.length > 0) {
+    const occ = occs[0];
+    for (const f of node.fixed) {
+      const def = defs.find((d) => d.id === f.kind);
+      if (!def) continue;
+      const [w, h] = def.size;
+      const I = occ.room.interior;
+      let ok = f.tx >= I.x && f.ty >= I.y && f.tx + w <= I.x + I.w && f.ty + h <= I.y + I.h;
+      for (let ty = f.ty; ty < f.ty + h && ok; ty++)
+        for (let tx = f.tx; tx < f.tx + w; tx++)
+          if (layout.tiles[ty]?.[tx] !== TileId.Floor || out.some((p) => covers(p, tx, ty))) ok = false;
+      if (!ok) continue;
+      push(def, occ, f.tx, f.ty, w, h);
+      occupy(occ, f.tx, f.ty, w, h, gap);
+      if (def.group !== 'filler') fixedKinds.add(def.id);
+    }
+  }
+
   // 1) 예산 묶음 (공통 → 테마), 중앙·저장고 자리를 먼저 잡는다. 노드 전투장은 노드 예산 하나
   const chosen: { def: StructureDef; count: number }[] = [];
-  if (node)
+  if (node) {
+    const n = fixedKinds.size;
     chosen.push(
       ...chooseNode(
         rng,
-        defs.filter((d) => d.group !== 'filler'),
-        node.budget,
+        defs.filter((d) => d.group !== 'filler' && !fixedKinds.has(d.id)),
+        [Math.max(0, node.budget[0] - n), Math.max(0, node.budget[1] - n)],
         forceAll,
       ),
     );
-  else
+  } else
     for (const group of ['common', 'theme'] as const) {
       const list = defs.filter((d) => d.group === group);
       if (list.length === 0) continue;
@@ -422,7 +498,7 @@ export function planStructures(
       const range = def.perRoom?.[occ.room.type] ?? (node ? Object.values(def.perRoom ?? {})[0] : undefined);
       if (!range) continue;
       const n = Math.min(def.maxPerRoom, rng.int(range[0], range[1]));
-      for (let i = 0; i < n; i++) placeIn(def, occ);
+      for (let i = 0; i < n; i++) if (!placeNear(def, occ, i)) placeIn(def, occ);
     }
   }
   return out;

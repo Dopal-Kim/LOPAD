@@ -8,10 +8,12 @@ import {
   type PlayerDamagedPayload,
   type PlayerSecondaryPayload,
   type ShadowStepPayload,
+  type WeaponCarryPayload,
+  type WeaponResourcePayload,
 } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { PLAYER_DATA } from '../data';
-import type { SecondaryDef } from '../data/types';
+import type { SecondaryDef, WeaponCarryDef, WeaponDef, WeaponSlamDef } from '../data/types';
 import { applyDefense } from '../systems/Combat';
 import type { InputState } from '../systems/InputSystem';
 import {
@@ -19,11 +21,13 @@ import {
   comboAction,
   facingOf,
   frameDurations,
+  motionAction,
   progressFrame,
   specialAction,
   type Facing,
 } from '../systems/spriteDefs';
 import { ComboTracker } from '../systems/combo';
+import { WeaponResource } from '../systems/weaponResource';
 import type { ComboHitDef } from '../data/types';
 import { knockFactor, knockSpeed } from '../systems/feel';
 import { sprintStep } from '../systems/traversal';
@@ -44,8 +48,14 @@ function spriteLibrarySheet(visual: EntityVisual, action: string) {
   return spriteLibrary.sheet(visual.name, action);
 }
 
-/** guard = 대검 가드(유지), aim = 활 조준 사격 차지(유지) */
-export type PlayerAction = 'normal' | 'dash' | 'parry' | 'recover' | 'guard' | 'aim';
+/**
+ * guard = 대검 가드(유지), aim = 활 조준 사격 차지(유지).
+ * 49라운드: draw = 대검을 등에서 끌어냄 · slam = 대검 내리찍기(도약 → 착지 → 회복) · dashslash = 대검 대쉬 공격(달려들며 휘두름 → 멈춤)
+ */
+export type PlayerAction = 'normal' | 'dash' | 'parry' | 'recover' | 'guard' | 'aim' | 'draw' | 'slam' | 'dashslash';
+
+/** 연격 한 타 (속도 배율 반영 길이 포함) */
+type ComboStrike = { index: number; count: number; hit: ComboHitDef; durationMs: number };
 export type HitResult = 'hit' | 'dead' | 'parried' | 'ignored';
 
 /** 주인공. 시트(`player_*`)가 있으면 애니메이션 스프라이트, 없으면 단색 사각형 플레이스홀더. */
@@ -90,6 +100,24 @@ export class Player extends Phaser.GameObjects.Sprite {
   /** 48라운드 Q2: 근접 3연격 상태 (무기 데이터에 combo 가 있을 때) */
   private comboTracker: ComboTracker | null = null;
   private comboWeapon = '';
+  /** 49라운드 무기 자원 (기력·탄창·과열) — 무기가 바뀌면 새로 */
+  private resourceTracker: WeaponResource | null = null;
+  private resourceWeapon = '';
+  /** 49라운드 휴대: 칼·대검을 뽑아 든 상태 · 마지막 공격 시각 (sheatheAfterMs 뒤 넣는다) */
+  private drawn = false;
+  private lastAttackAt = -Infinity;
+  /** 49라운드: 앞으로 내딛기·도약 (from ~ until 동안 이 속도) */
+  private lunge: { vx: number; vy: number; from: number; until: number } | null = null;
+  /** 49라운드 대검: 마지막 타 뒤 완전 정지 구간 */
+  private stopFrom = 0;
+  private stopUntil = 0;
+  /** 정지 구간에 공격·대쉬도 막는가 (마지막 타) — 1·2타 회복 구간은 이동만 막고 다음 타는 허용 */
+  private stopBlocksAct = false;
+  /** 디버그 (49라운드): 마지막 휴대·자원 이벤트 */
+  lastCarryEvent: string | null = null;
+  /** 자원 이벤트 경계 검출 (기력 바닥 · 가열 단계) */
+  private prevExhausted = false;
+  private prevStage = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     const [w, h] = PLAYER_DATA.size;
@@ -97,7 +125,11 @@ export class Player extends Phaser.GameObjects.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.visual = new EntityVisual(this, 'player', w, h, COLORS.PLAYER);
-    this.overlay = new WeaponOverlay(this, () => this.visual.current);
+    this.overlay = new WeaponOverlay(
+      this,
+      () => this.visual.current,
+      () => ({ mode: this.carryMode, drawn: this.drawn }),
+    );
     this.body.setCollideWorldBounds(true);
   }
 
@@ -175,6 +207,33 @@ export class Player extends Phaser.GameObjects.Sprite {
     return this.comboTracker;
   }
 
+  /** 49라운드: 현재 무기의 자원 상태 (자원이 없는 무기면 null) */
+  get resource(): WeaponResource | null {
+    const w = gameState.weapon;
+    if (this.resourceWeapon !== w.id) {
+      this.resourceWeapon = w.id;
+      this.resourceTracker = w.def.resource ? new WeaponResource(w.def.resource) : null;
+      this.drawn = false;
+      this.lastAttackAt = -Infinity;
+    }
+    return this.resourceTracker;
+  }
+
+  /** 49라운드 휴대 위치 (데이터 carry 가 없으면 손) */
+  get carryMode(): WeaponCarryDef['mode'] {
+    return gameState.weapon.def.carry?.mode ?? 'hand';
+  }
+
+  /** 칼·대검을 뽑아 든 상태인지 (손 무기는 늘 false) */
+  get weaponDrawn(): boolean {
+    return this.drawn;
+  }
+
+  /** 대검 마지막 타 뒤 정지 중 */
+  isStopped(time: number): boolean {
+    return time >= this.stopFrom && time < this.stopUntil;
+  }
+
   /** 현재 대쉬 방향 단위벡터 (대쉬 중이 아니면 마지막 값) */
   get dashDir(): { x: number; y: number } {
     const len = this.dashVel.length() || 1;
@@ -189,6 +248,10 @@ export class Player extends Phaser.GameObjects.Sprite {
     const P = PLAYER_DATA.parry;
     const S = this.secondary;
     const mods = gameState.weapon.mods;
+    const W = gameState.weapon.def;
+    // 49라운드 무기 자원: 회복·장전·냉각 진행 (상태 변화는 WEAPON_RESOURCE 로 알린다)
+    const res = this.resource;
+    if (res) this.tickResource(res, time, delta);
 
     // 진행 중인 동작 종료 처리
     if (this.action !== 'normal' && this.actionUntil > 0 && time >= this.actionUntil) {
@@ -226,6 +289,8 @@ export class Player extends Phaser.GameObjects.Sprite {
         if (charged) {
           this.secondaryReadyAt = time + S.cooldownMs;
           this.emitAttack(input, time, 'aimed', S.damageMult * (mods.aimedShotMult ?? 1), 1, false);
+          // 49라운드 탄창: 조준 사격도 한 발
+          if (res?.kind === 'ammo' && res.fire(time)) this.onReloadStart(time);
         } else {
           EventBus.emit(Events.PLAYER_SECONDARY, {
             kind: 'aimedshot',
@@ -234,6 +299,10 @@ export class Player extends Phaser.GameObjects.Sprite {
         }
       }
     }
+
+    // 49라운드: 수동 장전 (R) — 탄창이 덜 찼고 장전 중이 아닐 때
+    if (input.reloadPressed && res?.kind === 'ammo' && this.action === 'normal' && res.startReload(time))
+      this.onReloadStart(time);
 
     // 이동 (대쉬 중엔 대쉬 속도 유지)
     const dir = new Phaser.Math.Vector2(input.moveX, input.moveY);
@@ -247,6 +316,10 @@ export class Player extends Phaser.GameObjects.Sprite {
     if (this.action !== 'dash')
       this.sprintFactor = sprintStep(this.sprintFactor, this.sprintingNow ? SP.speedMult : 1, delta, SP);
     const sh = this.shoveState;
+    // 49라운드: 내딛기·도약 (대검 반 걸음 · 내리찍기 도약 · 대쉬 공격 돌진)
+    if (this.lunge && time >= this.lunge.until) this.lunge = null;
+    const lunge = this.lunge && time >= this.lunge.from ? this.lunge : null;
+    const stopped = this.isStopped(time);
     if (this.action === 'dash') {
       this.body.setVelocity(this.dashVel.x, this.dashVel.y);
     } else if (sh) {
@@ -255,17 +328,25 @@ export class Player extends Phaser.GameObjects.Sprite {
       sh.elapsed += delta;
       if (f <= 0) this.shoveState = null;
       this.body.setVelocity(sh.vx * f, sh.vy * f);
+    } else if (lunge) {
+      this.body.setVelocity(lunge.vx, lunge.vy);
+    } else if (this.action === 'slam' || this.action === 'dashslash' || stopped) {
+      // 대검: 내리찍기 착지·대쉬 공격 뒤 멈춤 · 3타 뒤 정지
+      this.body.setVelocity(0, 0);
     } else {
       let slow = time < this.attackSlowUntil ? gameState.weapon.attackSlowMult : 1;
       if (this.action === 'guard' && S.kind === 'guard') slow = Math.min(slow, S.moveMult);
       if (this.action === 'aim' && S.kind === 'aimedshot') slow = Math.min(slow, S.moveMult);
-      const speed = this.speedPx * slow * this.sprintFactor * this.envSpeedMult;
+      // 49라운드: 기력이 바닥나면 감속
+      const tired = res?.moveMult ?? 1;
+      const speed = this.speedPx * slow * this.sprintFactor * this.envSpeedMult * tired;
       this.body.setVelocity(dir.x * speed, dir.y * speed);
     }
     this.animateLocomotion(input, dir, time);
     this.holdSecondaryPose(input, time);
+    this.updateCarry(time);
 
-    const canAct = this.action === 'normal';
+    const canAct = this.action === 'normal' && !(stopped && this.stopBlocksAct);
 
     // 대쉬
     if (input.dashPressed && canAct && time >= this.dashReadyAt) {
@@ -281,6 +362,9 @@ export class Player extends Phaser.GameObjects.Sprite {
       if (D.invulnerable) {
         this.invulnerableUntil = Math.max(this.invulnerableUntil, time + D.durationMs + (mods.dashInvulnExtraMs ?? 0));
       }
+      // 49라운드 기력: 대쉬 소모 (바닥나도 대쉬는 된다 — 회피 수단은 남긴다, 임시)
+      if (res?.def.kind === 'stamina') res.spend(res.def.cost.dash, time);
+      this.lunge = null;
       this.setAction('dash', time + D.durationMs);
       this.combo?.reset();
       this.visual.oneShot('dash', facingOf(d.x, d.y, this.visual.facing), time, D.durationMs);
@@ -288,8 +372,9 @@ export class Player extends Phaser.GameObjects.Sprite {
       return;
     }
 
-    // 보조 동작 (우클릭): 무기별
+    // 보조 동작 (우클릭): 무기별. 49라운드 휴대: 칼·대검은 보조 동작으로도 뽑은 상태가 된다
     if (input.secondaryPressed && canAct) {
+      if (S.kind === 'parry' || S.kind === 'guard') this.markDrawn(time);
       switch (S.kind) {
         case 'parry': {
           const win = P.windowMs * (1 + gameState.passives.total('parryWindowMult'));
@@ -303,7 +388,8 @@ export class Player extends Phaser.GameObjects.Sprite {
           EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'guard', phase: 'start' } satisfies PlayerSecondaryPayload);
           return;
         case 'aimedshot':
-          if (time >= this.secondaryReadyAt) {
+          // 49라운드 탄창: 화살이 있고 장전 중이 아닐 때만 조준
+          if (time >= this.secondaryReadyAt && (!res || res.canFire())) {
             this.aimStartedAt = time;
             this.aimReady = false;
             this.setAction('aim', 0);
@@ -329,31 +415,84 @@ export class Player extends Phaser.GameObjects.Sprite {
     const combo = this.combo;
     if (combo) {
       if (input.attackPressed) combo.press(time);
-      const idx = combo.poll(time, canAct);
-      if (idx !== null) {
-        const hit = combo.hits[idx];
-        this.attackSlowUntil = time + Math.max(hit.activeMs, PLAYER_DATA.attackSlowMinMs);
-        this.fireAttack(input, time, { index: idx, count: combo.hits.length, hit });
+      if (!canAct || !combo.buffered(time)) return;
+      // 49라운드 과열: 냉각 중엔 공격 불가
+      if (res && !res.canAttack()) return;
+      // 49라운드 휴대: 대검은 등에서 두 손으로 끌어낸 뒤 휘두른다 (버퍼는 유지 → 뽑기가 끝나면 1타)
+      const carry = W.carry;
+      if (carry && carry.mode !== 'hand' && !this.drawn && carry.drawMs > 0) {
+        this.startDraw(input, time, carry);
+        return;
+      }
+      // 49라운드 기력: 바닥나면 강한 타(마지막 타·대쉬 공격·내리찍기) 불가
+      const strong = res?.canStrong ?? true;
+      const dashWindow = strong && time - this.dashEndedAt <= D.attackWindowMs;
+      if (W.dashSlash && dashWindow && time >= combo.readyAt()) {
+        this.startDashSlash(input, time, W);
+        return;
+      }
+      combo.setSpeed(res?.speedMult ?? 1);
+      const idx = combo.poll(time, true, strong);
+      if (idx === null) return;
+      const hit = combo.hits[idx];
+      const last = idx === combo.hits.length - 1;
+      const slam = last && W.slam && mods.shockwave ? W.slam : null;
+      if (res?.def.kind === 'stamina') {
+        const C = res.def.cost;
+        res.spend(slam ? C.slam : dashWindow ? C.dashAttack : (C.hits[Math.min(idx, C.hits.length - 1)] ?? 0), time);
+      }
+      if (res?.kind === 'heat') res.heatUp(idx, time);
+      this.markDrawn(time);
+      if (slam) {
+        this.startSlam(input, time, { index: idx, count: combo.hits.length, hit, durationMs: hit.durationMs }, slam);
+        return;
+      }
+      const strike: ComboStrike = { index: idx, count: combo.hits.length, hit, durationMs: combo.durationOf(idx) };
+      const weight = W.weight;
+      this.attackSlowUntil =
+        time + Math.max(hit.activeMs, PLAYER_DATA.attackSlowMinMs, weight ? strike.durationMs + weight.postSlowMs : 0);
+      const payload = this.fireAttack(input, time, strike, dashWindow);
+      // 49라운드 대검 무게감: 타마다 반 걸음 전진. 이동 정지 = 몸 시트 recoverFrames 구간(아트 메모, 마지막 타는 공격·대쉬도),
+      // 시트 메모가 없으면 마지막 타만 타격 순간부터 finisherStopMs
+      if (weight) {
+        this.startLunge(payload.dirX, payload.dirY, weight.stepPx, weight.stepMs, time);
+        this.stopUntil = 0;
+        this.stopBlocksAct = last;
+        const body = payload.bodyAction ? spriteLibrarySheet(this.visual, payload.bodyAction) : undefined;
+        const rf = body?.recoverFrames;
+        if (Array.isArray(rf) && rf.length > 0 && payload.bodyAction !== 'attack') {
+          this.stopFrom = time + this.visual.frameStartMs(Math.min(...rf));
+          this.stopUntil = time + this.visual.lastDurationMs;
+        } else if (last) {
+          this.stopFrom = time + payload.swingDelayMs;
+          this.stopUntil = this.stopFrom + weight.finisherStopMs;
+        }
       }
       return;
     }
     if (input.attackPressed && canAct && time >= this.attackReadyAt) {
+      // 49라운드 탄창: 비었으면 장전 (자동 장전이 이미 돌고 있으면 그대로)
+      if (res && !res.canAttack()) {
+        if (res.kind === 'ammo' && res.startReload(time)) this.onReloadStart(time);
+        return;
+      }
       this.attackReadyAt = time + gameState.weapon.hitbox.cooldownMs;
       this.attackSlowUntil = time + Math.max(gameState.weapon.hitbox.activeMs, PLAYER_DATA.attackSlowMinMs);
-      this.fireAttack(input, time, null);
+      this.fireAttack(input, time, null, true);
+      this.markDrawn(time);
+      if (res?.kind === 'ammo' && res.fire(time)) this.onReloadStart(time);
     }
   }
 
-  /** 공격 1회 (대쉬 공격·그림자 걸음 직후 확정 치명 판정 포함). combo 가 있으면 그 타의 배율·길이 */
-  private fireAttack(
-    input: InputState,
+  /** 대쉬 공격·그림자 걸음 배율 (대쉬 공격·확정 치명은 1회 소비) */
+  private strikeMods(
     time: number,
-    combo: { index: number; count: number; hit: ComboHitDef } | null,
-  ): void {
+    allowDash: boolean,
+  ): { mult: number; forceCrit: boolean; primed: boolean; isDashAttack: boolean } {
     const D = PLAYER_DATA.dash;
     const mods = gameState.weapon.mods;
-    const isDashAttack = time - this.dashEndedAt <= D.attackWindowMs;
-    let mult = combo ? combo.hit.damageMult : 1;
+    const isDashAttack = allowDash && time - this.dashEndedAt <= D.attackWindowMs;
+    let mult = 1;
     let forceCrit = false;
     if (isDashAttack) {
       mult *= D.attackDamageMult * (1 + gameState.passives.total('dashAttackMult')) * (mods.dashAttackMult ?? 1);
@@ -367,8 +506,274 @@ export class Player extends Phaser.GameObjects.Sprite {
       primed = true;
       this.shadowPrimedUntil = -Infinity; // 1회
     }
-    const size = (isDashAttack ? D.attackSizeMult : 1) * (combo ? combo.hit.sizeMult : 1);
-    this.emitAttack(input, time, isDashAttack ? 'dashAttack' : 'attack', mult, size, forceCrit, primed, combo);
+    return { mult, forceCrit, primed, isDashAttack };
+  }
+
+  /**
+   * 공격 1회 (대쉬 공격·그림자 걸음 직후 확정 치명 판정 포함). combo 가 있으면 그 타의 배율·길이.
+   * 49라운드: allowDash 가 false(기력 바닥)면 대쉬 직후라도 일반 공격
+   */
+  private fireAttack(
+    input: InputState,
+    time: number,
+    combo: ComboStrike | null,
+    allowDash = true,
+  ): PlayerAttackPayload {
+    const D = PLAYER_DATA.dash;
+    const m = this.strikeMods(time, allowDash);
+    const mult = (combo ? combo.hit.damageMult : 1) * m.mult;
+    const size = (m.isDashAttack ? D.attackSizeMult : 1) * (combo ? combo.hit.sizeMult : 1);
+    return this.emitAttack(
+      input,
+      time,
+      m.isDashAttack ? 'dashAttack' : 'attack',
+      mult,
+      size,
+      m.forceCrit,
+      m.primed,
+      combo,
+    );
+  }
+
+  // --- 49라운드: 무기 자원 · 휴대 · 대검 무게감 ---
+
+  /** 자원 진행 + 상태 변화 이벤트 (기력 바닥·회복 / 장전 끝 / 과열·냉각 끝 / 가열 단계) */
+  private tickResource(res: WeaponResource, time: number, delta: number): void {
+    const before = { ex: res.isExhausted, rl: res.reloading, oh: res.overheated };
+    res.tick(time, delta);
+    const emit = (event: WeaponResourcePayload['event'], stage?: number) => {
+      this.lastCarryEvent = event;
+      EventBus.emit(Events.WEAPON_RESOURCE, {
+        weapon: gameState.weapon.id,
+        kind: res.kind,
+        event,
+        stage,
+      } satisfies WeaponResourcePayload);
+    };
+    if (before.ex && !res.isExhausted) emit('recovered');
+    if (before.rl && !res.reloading) emit('reloadDone');
+    if (before.oh && !res.overheated) emit('cooled');
+    if (!before.oh && res.overheated) emit('overheat');
+    // 소모·가열(공격 시점)로 생긴 변화는 다음 프레임에 잡는다
+    if (!this.prevExhausted && res.isExhausted) emit('exhausted');
+    this.prevExhausted = res.isExhausted;
+    if (res.kind === 'heat' && res.stage !== this.prevStage) emit('heatStage', res.stage);
+    this.prevStage = res.stage;
+  }
+
+  /** 장전 시작 (자동·수동): 이벤트 + 장전 동작 (`player_bow_reload`, 장전 시간에 맞춤) */
+  private onReloadStart(time: number): void {
+    const res = this.resourceTracker;
+    if (!res || res.def.kind !== 'ammo') return;
+    this.lastCarryEvent = 'reloadStart';
+    EventBus.emit(Events.WEAPON_RESOURCE, {
+      weapon: gameState.weapon.id,
+      kind: 'ammo',
+      event: 'reloadStart',
+    } satisfies WeaponResourcePayload);
+    const act = motionAction(gameState.weapon.id, 'reload');
+    if (!this.visual.hasAction(act) || this.action !== 'normal') return;
+    // 아트 refillFrame(탄창이 차는 프레임) 시작이 장전 완료 순간에 오도록 늘인다. 메모가 없으면 전체를 장전 시간에
+    const def = spriteLibrarySheet(this.visual, act)!;
+    const natural = frameDurations(def).reduce((a, b) => a + b, 0);
+    const refillAt =
+      typeof def.refillFrame === 'number'
+        ? frameDurations(def)
+            .slice(0, def.refillFrame)
+            .reduce((a, b) => a + b, 0)
+        : 0;
+    const fit = refillAt > 0 ? (res.def.reloadMs * natural) / refillAt : res.def.reloadMs;
+    this.visual.oneShot(act, this.visual.facing, time, fit);
+  }
+
+  /** 공격 시작: 칼·대검은 뽑은 상태로 (칼은 1타가 곧 발도) */
+  private markDrawn(time: number): void {
+    this.lastAttackAt = time;
+    if (this.carryMode === 'hand' || this.drawn) return;
+    this.drawn = true;
+    this.emitCarry(Events.PLAYER_WEAPON_DRAWN);
+  }
+
+  /** 대검: 등에서 두 손으로 끌어냄 (`player_greatsword_draw` + `weapons/greatsword_draw`, drawMs 에 맞춤) */
+  private startDraw(input: InputState, time: number, carry: WeaponCarryDef): void {
+    this.drawn = true;
+    this.lastAttackAt = time;
+    this.setAction('draw', time + carry.drawMs);
+    this.attackSlowUntil = Math.max(this.attackSlowUntil, time + carry.drawMs);
+    const act = motionAction(gameState.weapon.id, 'draw');
+    const dir = facingOf(input.aimX - this.x, input.aimY - this.y, this.visual.facing);
+    if (this.visual.hasAction(act)) this.visual.oneShot(act, dir, time, carry.drawMs);
+    this.emitCarry(Events.PLAYER_WEAPON_DRAWN);
+  }
+
+  /** 마지막 공격 뒤 sheatheAfterMs 가 지나면 넣는다 (`<무기>_sheathe` — 칼은 납도) */
+  private updateCarry(time: number): void {
+    const carry = gameState.weapon.def.carry;
+    if (!this.drawn || !carry || carry.mode === 'hand' || this.action !== 'normal') return;
+    if (time - this.lastAttackAt < carry.sheatheAfterMs || this.visual.isBusy(time)) return;
+    this.drawn = false;
+    const act = motionAction(gameState.weapon.id, 'sheathe');
+    if (this.visual.hasAction(act)) this.visual.oneShot(act, this.visual.facing, time);
+    this.emitCarry(Events.PLAYER_WEAPON_SHEATHED);
+  }
+
+  private emitCarry(event: string): void {
+    this.lastCarryEvent = event;
+    EventBus.emit(event, { weapon: gameState.weapon.id, mode: this.carryMode } satisfies WeaponCarryPayload);
+  }
+
+  /** dir 방향으로 distPx 를 ms 동안 내딛는다 (from 은 시작 지연) */
+  private startLunge(dirX: number, dirY: number, distPx: number, ms: number, time: number, fromMs = 0): void {
+    const len = Math.hypot(dirX, dirY) || 1;
+    const v = distPx / (Math.max(1, ms) / 1000);
+    this.lunge = { vx: (dirX / len) * v, vy: (dirY / len) * v, from: time + fromMs, until: time + fromMs + ms };
+  }
+
+  /** 조준 방향 단위벡터 (커서가 몸 위면 바라보는 방향) · 커서까지 거리 */
+  private aimVector(input: InputState): { x: number; y: number; dist: number } {
+    const dx = input.aimX - this.x;
+    const dy = input.aimY - this.y;
+    const d = Math.hypot(dx, dy);
+    if (d > 0) return { x: dx / d, y: dy / d, dist: d };
+    return { x: this.facing.x, y: this.facing.y, dist: 0 };
+  }
+
+  /**
+   * 대검 내리찍기 (49라운드 Q4): 머리 위로 들어 → 마우스 방향으로 짧게 도약 → 내려찍음 → 충격파 → 회복.
+   * 시트 `player_greatsword_slam` 메모(leapFrames·impactFrame)가 있으면 그 시간, 없으면 데이터 leapMs·recoverMs 로
+   * 3타 시트(없으면 attack)를 늘여 재생한다. 판정·충격파는 Game 이 착지 순간(swingDelayMs)에
+   */
+  private startSlam(input: InputState, time: number, strike: ComboStrike, S: WeaponSlamDef): void {
+    const id = gameState.weapon.id;
+    const aim = this.aimVector(input);
+    const dist = Phaser.Math.Clamp(aim.dist, S.leapMinPx, S.leapMaxPx);
+    const dir = facingOf(aim.x, aim.y, this.visual.facing);
+    const act = motionAction(id, 'slam');
+    const sheet = this.visual.hasAction(act) ? spriteLibrarySheet(this.visual, act) : undefined;
+    let leapFrom = 0;
+    let leapTo = S.leapMs;
+    let impact = S.leapMs;
+    let total = S.leapMs + S.recoverMs;
+    let bodyAction: string;
+    if (sheet) {
+      total = this.visual.oneShot(act, dir, time);
+      const st = this.visual.lastFrameStarts;
+      const lf = Array.isArray(sheet.leapFrames) && sheet.leapFrames.length > 0 ? sheet.leapFrames : null;
+      if (lf) {
+        const a = Math.min(...lf);
+        const b = Math.max(...lf);
+        leapFrom = st[a] ?? 0;
+        leapTo = b + 1 < sheet.frames ? (st[b + 1] ?? total) : total;
+      }
+      impact = typeof sheet.impactFrame === 'number' ? (st[sheet.impactFrame] ?? leapTo) : leapTo;
+      bodyAction = act;
+    } else {
+      const c3 = comboAction(id, strike.count);
+      bodyAction = this.visual.hasAction(c3) ? c3 : 'attack';
+      this.visual.oneShot(bodyAction, dir, time, total);
+    }
+    // 착지점(충격파 중심): 시트 방향별 impactOffsetPx → impactDistancePx(조준 방향) → 발 피벗
+    const off = sheet?.impactOffsetPx?.[dir];
+    const reach = typeof sheet?.impactDistancePx === 'number' ? sheet.impactDistancePx : 0;
+    const impactAt = off ? { x: off.x, y: off.y } : { x: aim.x * reach, y: aim.y * reach };
+    this.setAction('slam', time + total);
+    this.attackSlowUntil = Math.max(this.attackSlowUntil, time + total);
+    this.startLunge(aim.x, aim.y, dist, Math.max(1, leapTo - leapFrom), time, leapFrom);
+    const m = this.strikeMods(time, false);
+    const payload: PlayerAttackPayload = {
+      x: this.x,
+      y: this.y,
+      dirX: aim.x,
+      dirY: aim.y,
+      damageMult: strike.hit.damageMult * S.damageMult * m.mult,
+      sizeMult: strike.hit.sizeMult,
+      kind: 'attack',
+      forceCrit: m.forceCrit,
+      primed: m.primed,
+      swingDelayMs: impact,
+      releaseDelayMs: 0,
+      comboIndex: strike.index,
+      comboCount: strike.count,
+      activeMs: strike.hit.activeMs,
+      durationMs: total,
+      bodyAction,
+      slam: { radiusPx: S.radiusPx, offsetX: impactAt.x, offsetY: impactAt.y },
+    };
+    EventBus.emit(Events.PLAYER_ATTACKED, payload);
+  }
+
+  /**
+   * 대검 대쉬 공격 (49라운드 Q4): 달려들며 크게 한 번 휘두르고 잠깐 멈춤. 시트 `player_greatsword_dashslash`
+   * (recoverFrames = 멈춤)가 있으면 그 시간, 없으면 데이터 swingMs·recoverMs 로 3타 시트(없으면 attack)를 재생
+   */
+  private startDashSlash(input: InputState, time: number, W: WeaponDef): void {
+    const DS = W.dashSlash!;
+    const D = PLAYER_DATA.dash;
+    const res = this.resourceTracker;
+    const combo = this.combo!;
+    const id = gameState.weapon.id;
+    const aim = this.aimVector(input);
+    const dir = facingOf(aim.x, aim.y, this.visual.facing);
+    const act = motionAction(id, 'dashslash');
+    const sheet = this.visual.hasAction(act) ? spriteLibrarySheet(this.visual, act) : undefined;
+    let total: number;
+    let bodyAction: string;
+    if (sheet) {
+      total = this.visual.oneShot(act, dir, time);
+      bodyAction = act;
+    } else {
+      const c3 = comboAction(id, combo.hits.length);
+      bodyAction = this.visual.hasAction(c3) ? c3 : 'attack';
+      this.visual.oneShot(bodyAction, dir, time, DS.swingMs);
+      total = DS.swingMs + DS.recoverMs;
+    }
+    const sheetUsed = sheet ?? spriteLibrarySheet(this.visual, bodyAction);
+    const hf = sheetUsed?.hitFrames?.[0];
+    const impact = hf !== undefined ? this.visual.frameStartMs(hf) : this.visual.lastImpactMs;
+    if (res?.def.kind === 'stamina') res.spend(res.def.cost.dashAttack, time);
+    this.markDrawn(time);
+    combo.reset();
+    this.setAction('dashslash', time + total);
+    this.attackSlowUntil = Math.max(this.attackSlowUntil, time + total);
+    this.startLunge(aim.x, aim.y, DS.stepPx, DS.stepMs, time);
+    const m = this.strikeMods(time, true);
+    const last = combo.hits[combo.hits.length - 1];
+    const payload: PlayerAttackPayload = {
+      x: this.x,
+      y: this.y,
+      dirX: aim.x,
+      dirY: aim.y,
+      damageMult: last.damageMult * m.mult,
+      sizeMult: D.attackSizeMult,
+      kind: 'dashAttack',
+      forceCrit: m.forceCrit,
+      primed: m.primed,
+      swingDelayMs: impact,
+      releaseDelayMs: 0,
+      comboIndex: combo.hits.length - 1,
+      comboCount: combo.hits.length,
+      activeMs: last.activeMs,
+      durationMs: total,
+      bodyAction,
+      dashSlash: { arcDeg: DS.arcDeg },
+    };
+    EventBus.emit(Events.PLAYER_ATTACKED, payload);
+  }
+
+  /** 디버그 (49라운드): 자원·휴대·내딛기 상태 */
+  debugWeapon(time: number): Record<string, unknown> {
+    return {
+      weapon: gameState.weapon.id,
+      action: this.action,
+      carry: { mode: this.carryMode, drawn: this.drawn, overlay: this.overlay.carry, lastAttackAt: this.lastAttackAt },
+      resource: this.resource?.debug(time) ?? null,
+      lunge: this.lunge ? { ...this.lunge } : null,
+      stopped: this.isStopped(time),
+      sinceDashMs: Number.isFinite(this.dashEndedAt) ? time - this.dashEndedAt : null,
+      lastEvent: this.lastCarryEvent,
+      vx: this.body.velocity.x,
+      vy: this.body.velocity.y,
+    };
   }
 
   /**
@@ -456,15 +861,15 @@ export class Player extends Phaser.GameObjects.Sprite {
     sizeMult: number,
     forceCrit: boolean,
     primed = false,
-    combo: { index: number; count: number; hit: ComboHitDef } | null = null,
-  ): void {
+    combo: ComboStrike | null = null,
+  ): PlayerAttackPayload {
     const aim = new Phaser.Math.Vector2(input.aimX - this.x, input.aimY - this.y);
     if (aim.lengthSq() > 0) aim.normalize();
     else aim.copy(this.facing);
     // 공격 애니는 조준 방향으로. 연격이면 그 타의 시트(없으면 attack)를 그 타 길이에, 아니면 다음 공격 가능 시점(쿨다운)에 맞춰
     const comboSheet = combo ? comboAction(gameState.weapon.id, combo.index + 1) : null;
     const action = comboSheet && this.visual.hasAction(comboSheet) ? comboSheet : 'attack';
-    const fit = combo ? combo.hit.durationMs : gameState.weapon.hitbox.cooldownMs;
+    const fit = combo ? combo.durationMs : gameState.weapon.hitbox.cooldownMs;
     const aimDir = facingOf(aim.x, aim.y, this.visual.facing);
     // 조준 사격은 활 조준 시트의 발사 프레임 (없으면 기존 attack)
     if (!(kind === 'aimed' && this.playAimRelease(aimDir, time))) this.visual.oneShot(action, aimDir, time, fit);
@@ -488,15 +893,22 @@ export class Player extends Phaser.GameObjects.Sprite {
       comboIndex: combo?.index,
       comboCount: combo?.count,
       activeMs: combo ? Math.max(combo.hit.activeMs, this.activeWindowMs(sheet)) : undefined,
-      durationMs: combo?.hit.durationMs,
+      durationMs: combo?.durationMs,
       bodyAction: action,
     };
+    // 49라운드 과열: 가열 단계 (이펙트 강화)
+    const res = this.resourceTracker;
+    if (res?.kind === 'heat') payload.heatStage = res.stage;
     EventBus.emit(Events.PLAYER_ATTACKED, payload);
+    return payload;
   }
 
   /** 워프(45라운드): 진행 중 동작·넉백·달리기를 끊고 멈춘다 */
   haltForWarp(): void {
     if (this.action !== 'normal') this.setAction('normal', 0);
+    this.lunge = null;
+    this.stopUntil = 0;
+    this.stopBlocksAct = false;
     this.visual.release();
     this.combo?.reset();
     this.shoveState = null;

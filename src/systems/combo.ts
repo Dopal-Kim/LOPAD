@@ -14,6 +14,9 @@ export class ComboTracker {
   private bufferedAt = -Infinity;
   /** 이번 타의 다음 타 허용 시각 덮어쓰기 (아트 JSON cancelFromFrame, 이 타 시작부터 ms) */
   private cancelOverride: number | null = null;
+  /** 49라운드: 공격 속도 배율 (단검 과열 단계). 타 시작 시점의 값을 그 타에 고정한다 */
+  private speed = 1;
+  private hitSpeed = 1;
 
   constructor(private readonly def: ComboDef) {}
 
@@ -39,43 +42,66 @@ export class ComboTracker {
     this.bufferedAt = now;
   }
 
+  /** 49라운드: 다음 타부터 적용할 공격 속도 배율 (1 = 데이터 그대로, 1.3 = 30% 빠름) */
+  setSpeed(mult: number): void {
+    this.speed = mult > 0 ? mult : 1;
+  }
+
+  /** 지금 시작한 타의 속도 배율 (애니·판정 시간을 이 값으로 나눈다) */
+  get currentSpeed(): number {
+    return this.hitSpeed;
+  }
+
+  /** 타 길이 ms (속도 배율 반영) */
+  durationOf(index: number): number {
+    return this.def.hits[index].durationMs / this.hitSpeed;
+  }
+
   /** 다음 타를 시작할 수 있는 시각 */
   readyAt(): number {
     if (this.index < 0) return -Infinity;
     const h = this.def.hits[this.index];
-    if (this.index >= this.def.hits.length - 1) return this.startedAt + h.durationMs + this.def.finisherRecoverMs;
-    return this.startedAt + (this.cancelOverride ?? h.cancelFromMs);
+    const k = this.hitSpeed;
+    if (this.index >= this.def.hits.length - 1)
+      return this.startedAt + h.durationMs / k + this.def.finisherRecoverMs / k;
+    return this.startedAt + (this.cancelOverride ?? h.cancelFromMs / k);
   }
 
   /** 지금 시작하면 몇 번째 타인가 (리셋 시간이 지났거나 마지막 타 뒤면 0) */
   nextIndex(now: number): number {
     if (this.index < 0 || this.index >= this.def.hits.length - 1) return 0;
     const h = this.def.hits[this.index];
-    if (now > this.startedAt + h.durationMs + this.def.resetMs) return 0;
+    if (now > this.startedAt + h.durationMs / this.hitSpeed + this.def.resetMs) return 0;
     return this.index + 1;
   }
 
-  /** 버퍼에 입력이 있고 시작 가능하면 타 번호를 돌려주고 시작 처리. 아니면 null (버퍼는 유효 시간 동안 유지) */
-  poll(now: number, canAct: boolean): number | null {
+  /**
+   * 버퍼에 입력이 있고 시작 가능하면 타 번호를 돌려주고 시작 처리. 아니면 null (버퍼는 유효 시간 동안 유지).
+   * 49라운드: allowFinisher 가 false(기력 바닥)면 마지막 타 대신 1타로 돌아간다
+   */
+  poll(now: number, canAct: boolean, allowFinisher = true): number | null {
     if (!this.buffered(now) || !canAct) return null;
     if (now < this.readyAt()) return null;
-    const next = this.nextIndex(now);
+    let next = this.nextIndex(now);
+    if (!allowFinisher && next === this.def.hits.length - 1) next = 0;
     this.index = next;
     this.startedAt = now;
     this.bufferedAt = -Infinity;
     this.cancelOverride = null;
+    this.hitSpeed = this.speed;
     return next;
   }
 
   /** 방금 시작한 타의 다음 타 허용 시각을 바꾼다 (시트 cancelFromFrame 시작 ms, 이 타 길이 안으로 자름) */
   overrideCancel(ms: number): void {
     if (this.index < 0) return;
-    this.cancelOverride = Math.max(0, Math.min(ms, this.def.hits[this.index].durationMs));
+    this.cancelOverride = Math.max(0, Math.min(ms, this.def.hits[this.index].durationMs / this.hitSpeed));
   }
 
   /** 대쉬·피격 사망 등으로 연격을 끊는다 (버퍼도 비운다) */
   reset(): void {
     this.cancelOverride = null;
+    this.hitSpeed = this.speed;
     this.index = -1;
     this.startedAt = -Infinity;
     this.bufferedAt = -Infinity;

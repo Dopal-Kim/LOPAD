@@ -27,6 +27,8 @@ export interface InputState {
   interactPressed: boolean;
   /** 47라운드: 상호작용 키를 누르고 있음 (묘 2초 누르기) */
   interactHeld: boolean;
+  /** 49라운드: 이 프레임에 수동 장전 키(R)를 누름 — 활 탄창 */
+  reloadPressed: boolean;
 }
 
 /** 입력 잠금(워프 연출 등): 조준만 남기고 이동·동작 입력을 비운 사본 */
@@ -44,6 +46,7 @@ export function neutralInput(s: InputState): InputState {
     sprintHeld: false,
     interactPressed: false,
     interactHeld: false,
+    reloadPressed: false,
   };
 }
 
@@ -63,11 +66,11 @@ export class InputSystem {
       down: kb.addKey(KEYS.DOWN),
       left: kb.addKey(KEYS.LEFT),
       right: kb.addKey(KEYS.RIGHT),
-      restart: kb.addKey(KEYS.RESTART),
       dash: kb.addKey(KEYS.DASH),
       potion: kb.addKey(KEYS.POTION),
       sprint: kb.addKey(KEYS.SPRINT),
       interact: kb.addKey(KEYS.INTERACT),
+      reload: kb.addKey(KEYS.RELOAD),
     };
     scene.input.mouse?.disableContextMenu();
     this.onPointerDown = (p) => {
@@ -94,6 +97,8 @@ export class InputSystem {
     // pointer.worldX 는 포인터 이벤트 시점의 카메라로 계산되어 방 전환 직후 어긋날 수 있다.
     // 항상 현재 카메라 기준으로 월드 좌표를 다시 구한다.
     const aim = this.scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    // 49라운드: 장전(R)은 재시작(KEYS.RESTART, 결과 화면 전용)과 같은 키 — JustDown 은 한 번만 읽고 둘 다에 쓴다
+    const reload = Phaser.Input.Keyboard.JustDown(this.keys.reload);
     const state: InputState = {
       moveX: x,
       moveY: y,
@@ -105,10 +110,11 @@ export class InputSystem {
       potionPressed: Phaser.Input.Keyboard.JustDown(this.keys.potion),
       aimX: aim.x,
       aimY: aim.y,
-      restartPressed: Phaser.Input.Keyboard.JustDown(this.keys.restart),
+      restartPressed: reload,
       sprintHeld: this.keys.sprint.isDown,
       interactPressed: Phaser.Input.Keyboard.JustDown(this.keys.interact),
       interactHeld: this.keys.interact.isDown,
+      reloadPressed: reload,
     };
     this.attackQueued = false;
     this.secondaryQueued = false;

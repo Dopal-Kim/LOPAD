@@ -17,7 +17,17 @@ import {
   type SheetDef,
   type SheetJson,
 } from '../systems/spriteDefs';
-import { TileSkin, tileSkins, tilesetJsonPath, tilesetTextureKey, type TilesetJson } from '../world/tileskin';
+import {
+  TileSkin,
+  namedTilesetJsonPath,
+  namedTilesetTextureKey,
+  regionSkins,
+  tileSkins,
+  tilesetJsonPath,
+  tilesetTextureKey,
+  type TilesetJson,
+} from '../world/tileskin';
+import { regionTilesets } from '../systems/route';
 import { UI_SCENES } from '../ui';
 import { allStructureSprites } from '../systems/structures/data';
 
@@ -37,6 +47,8 @@ export class Preloader extends Phaser.Scene {
   private manifest: Set<string> | null = null;
   private pendingSheets: { req: ReturnType<typeof wantedSheets>[number]; jsonKey: string; dir: string }[] = [];
   private pendingTiles: { floor: number; jsonKey: string }[] = [];
+  /** 49라운드 art §7.3: 지역 타일셋 (tiles/stage1_<region>.json) */
+  private pendingRegionTiles: { name: string; jsonKey: string }[] = [];
   private audioManifestQueued = false;
 
   constructor() {
@@ -85,6 +97,14 @@ export class Preloader extends Phaser.Scene {
       this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
       this.pendingTiles.push({ floor, jsonKey });
     }
+    this.pendingRegionTiles = [];
+    for (const name of regionTilesets()) {
+      const rel = namedTilesetJsonPath(name);
+      if (!exists(rel)) continue;
+      const jsonKey = `json_${namedTilesetTextureKey(name)}`;
+      this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
+      this.pendingRegionTiles.push({ name, jsonKey });
+    }
     this.audioManifestQueued = exists(audioManifestRel());
     if (this.audioManifestQueued) this.load.json(AUDIO_MANIFEST_KEY, `${ASSETS.URL}/${audioManifestRel()}`);
   }
@@ -130,6 +150,14 @@ export class Preloader extends Phaser.Scene {
       tiles.push({ floor: p.floor, json, key });
       if (!this.textures.exists(key)) this.load.image(key, `${ASSETS.URL}/${ASSETS.TILES_DIR}/${json.image}`);
     }
+    const regionTiles: { name: string; json: TilesetJson; key: string }[] = [];
+    for (const p of this.pendingRegionTiles) {
+      const json = this.cache.json.get(p.jsonKey) as TilesetJson | undefined;
+      if (!json || !json.image || !json.tiles) continue;
+      const key = namedTilesetTextureKey(p.name);
+      regionTiles.push({ name: p.name, json, key });
+      if (!this.textures.exists(key)) this.load.image(key, `${ASSETS.URL}/${ASSETS.TILES_DIR}/${json.image}`);
+    }
     const audioQueue = this.queueAudio();
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
       for (const def of sheets) if (this.textures.exists(def.textureKey)) spriteLibrary.register(def);
@@ -140,6 +168,8 @@ export class Preloader extends Phaser.Scene {
       }
       spriteLibrary.createBaseAnims(this);
       for (const t of tiles) if (this.textures.exists(t.key)) tileSkins.set(t.floor, new TileSkin(t.key, t.json, true));
+      for (const t of regionTiles)
+        if (this.textures.exists(t.key)) regionSkins.set(t.name, new TileSkin(t.key, t.json, true));
       if (audioQueue) {
         audio.register(
           audioQueue.manifest,
@@ -158,6 +188,9 @@ export class Preloader extends Phaser.Scene {
     const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
     if (params.has('resetmeta')) metaStore.clear();
     const forcedWeapon = params.get('weapon');
+    // 49라운드: ?lab 이면 무기 시험장으로 바로 (검증용, ?weapon= 으로 무기)
+    if (params.has('lab'))
+      return [SCENES.WEAPON_LAB, forcedWeapon && WEAPONS[forcedWeapon] ? { labWeapon: forcedWeapon } : {}];
     if (forcedWeapon && WEAPONS[forcedWeapon]) return [SCENES.GAME, { mode: 'new', weapon: forcedWeapon }];
     const skipTitle = params.has('new') || params.has('seed') || params.has('notitle');
     if (!skipTitle && this.scene.manager.keys[UI_SCENES.TITLE]) return [UI_SCENES.TITLE];

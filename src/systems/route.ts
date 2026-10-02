@@ -12,6 +12,9 @@ import type { WaveEntry } from '../data/types';
 import type { RoomType } from './mapgen/types';
 import { Rng, hashSeed } from './rng';
 import type { UiStructureKind } from '../contract/ui';
+import type { ArenaEdge } from './mapgen/arena';
+import type { SetPieceDef } from './structures/setpiece';
+import type { TutorialDef } from './tutorial';
 
 /** 노드 세부 종류 (data/route.json kinds) — 여정 3종은 UI 에 journey 로 보인다 */
 export type RouteKind = 'birth' | 'road' | 'post' | 'battle' | 'shop' | 'rest' | 'event' | 'boss';
@@ -32,6 +35,22 @@ export interface RouteKindDef {
   waves?: WaveEntry[][];
   /** 기존 상점 타일(2×2)을 놓는다 */
   shopTiles?: boolean;
+  /** 49라운드 7: 세트 배치 템플릿 id (data/route.json setPieces) */
+  setPiece?: string;
+  /** 49라운드 3: 조작 안내 노드 (탄생 전장) */
+  tutorial?: boolean;
+}
+
+/** 49라운드 4-2·6: 지역 (노드 단계 → 지역, 계약 ui §11.2·art §7.3) */
+export interface RegionDef {
+  /** 표시 이름 (자리표시) — UiRouteNode.region */
+  name: string;
+  /** 타일셋 이름 (`tiles/<tileset>.json`). 없거나 아트가 없으면 층 타일셋 */
+  tileset?: string;
+  /** 가장자리 모양 덮어쓰기 (arena.edge 위에) */
+  edge?: Partial<ArenaEdge>;
+  /** 장소 설명 (자리표시): 노드 종류별, 없으면 default — UiRouteNode.desc */
+  desc: { default: string } & Partial<Record<RouteKind, string>>;
 }
 
 export interface RouteFloorDef {
@@ -41,6 +60,8 @@ export interface RouteFloorDef {
   pool: Record<LaneKind, number>;
   crossChance: number;
   names: Partial<Record<RouteKind, string[]>>;
+  /** 49라운드: 단계(col) → 지역 id. 모자라면 마지막 값 */
+  regionByCol?: string[];
 }
 
 export interface RouteArenaDef {
@@ -50,12 +71,38 @@ export interface RouteArenaDef {
   spawnInsetTiles: number;
   exitInsetTiles: number;
   clearTiles: number;
+  /** 49라운드: 들쭉날쭉한 가장자리 기본값 (없으면 48라운드 사각 벽) */
+  edge?: ArenaEdge;
 }
 
 export interface RouteFile {
   floors: Record<string, RouteFloorDef>;
   arena: RouteArenaDef;
   kinds: Record<RouteKind, RouteKindDef>;
+  /** 49라운드 (키가 `_` 로 시작하면 메모) */
+  regions?: Record<string, RegionDef>;
+  setPieces?: Record<string, SetPieceDef>;
+  tutorial?: TutorialDef;
+  view?: SetPieceViewDef;
+}
+
+/** 49라운드 세트 배치 그림 수치 (src/world/SetPieceView.ts) */
+export interface SetPieceViewDef {
+  decorAlpha: number;
+  floorDecorAlpha: number;
+  coverAlpha: number;
+  signColor: string;
+  signAlpha: number;
+  signActiveAlpha: number;
+  signPulseMs: number;
+  dummyPokeDeg: number;
+  dummyPokeMs: number;
+  wispSheet: string;
+  wispColor: string;
+  wispRadiusPx: number;
+  wispAlpha: [number, number];
+  wispBobPx: number;
+  wispCycleMs: [number, number];
 }
 
 export interface RouteNode {
@@ -100,8 +147,40 @@ export function validateRoute(f: RouteFile): RouteFile {
     const total = LANE_KINDS.reduce((a, k) => a + (fl.pool?.[k] ?? 0), 0);
     if (total !== fl.lanes * fl.laneLength) fail(`floors.${id}.pool 합(${total}) ≠ lanes × laneLength`);
     if (!(fl.crossChance >= 0 && fl.crossChance <= 1)) fail(`floors.${id}.crossChance 는 0..1`);
+    for (const r of fl.regionByCol ?? [])
+      if (!entries(f.regions)[r]) fail(`floors.${id}.regionByCol 알 수 없는 지역: ${r}`);
+  }
+  for (const [id, r] of Object.entries(entries(f.regions))) {
+    if (typeof r.name !== 'string' || !r.name) fail(`regions.${id}.name 없음`);
+    if (typeof r.desc?.default !== 'string') fail(`regions.${id}.desc.default 없음`);
+    if (r.tileset !== undefined && !/^[a-z0-9_]+$/.test(r.tileset)) fail(`regions.${id}.tileset 형식 (소문자·숫자·_)`);
+  }
+  const pieces = entries(f.setPieces);
+  for (const k of KINDS) {
+    const sp = f.kinds[k].setPiece;
+    if (sp !== undefined && !pieces[sp]) fail(`kinds.${k}.setPiece 알 수 없음: ${sp}`);
+  }
+  for (const [id, t] of Object.entries(pieces)) {
+    for (const sl of t.slots ?? [])
+      if (!Array.isArray(sl.kinds) || sl.kinds.length === 0) fail(`setPieces.${id}.slots[].kinds 비어 있음`);
+    for (const d of t.decor ?? []) if (typeof d.name !== 'string' || !d.name) fail(`setPieces.${id}.decor[].name 없음`);
+    if (t.cover && (!Array.isArray(t.cover.anchors) || !Array.isArray(t.cover.shapes) || t.cover.shapes.length === 0))
+      fail(`setPieces.${id}.cover 는 anchors·shapes 목록`);
+  }
+  if (f.tutorial) {
+    const T = f.tutorial;
+    if (!Array.isArray(T.steps) || T.steps.length === 0) fail('tutorial.steps 비어 있음');
+    for (const st of T.steps)
+      if (!Array.isArray(st.sign) || st.sign.length !== 2) fail(`tutorial.steps.${st.id}.sign 는 [dx, dy]`);
   }
   return f;
+}
+
+/** `_` 로 시작하는 메모 키를 뺀 사전 */
+export function entries<T>(rec: Record<string, T> | undefined): Record<string, T> {
+  const out: Record<string, T> = {};
+  for (const [k, v] of Object.entries(rec ?? {})) if (!k.startsWith('_') && v && typeof v === 'object') out[k] = v;
+  return out;
 }
 
 export const ROUTE: RouteFile = validateRoute(routeJson as unknown as RouteFile);
@@ -282,15 +361,20 @@ export class RouteState {
   }
 
   toUi(): UiRoute {
-    const nodes: UiRouteNode[] = this.graph.nodes.map((n) => ({
-      id: n.id,
-      type: n.type,
-      name: n.name,
-      col: n.col,
-      row: n.row,
-      links: [...n.links],
-      state: this.stateOf(n),
-    }));
+    const nodes: UiRouteNode[] = this.graph.nodes.map((n) => {
+      const region = regionOf(this.graph.stageId, n.col);
+      return {
+        id: n.id,
+        type: n.type,
+        name: n.name,
+        col: n.col,
+        row: n.row,
+        links: [...n.links],
+        state: this.stateOf(n),
+        // 49라운드 계약 §11.2: 지역 이름·장소 설명 (지역이 없는 층은 생략)
+        ...(region ? { region: region.name, desc: regionDesc(region, n.kind) } : {}),
+      };
+    });
     return { floor: this.floor, nodes, currentId: this.currentId, choosing: this.choosing };
   }
 }
@@ -303,4 +387,43 @@ export function kindDef(kind: RouteKind, file: RouteFile = ROUTE): RouteKindDef 
 /** 전투장 크기 [w, h] (타일) */
 export function arenaSize(kind: RouteKind, file: RouteFile = ROUTE): [number, number] {
   return kind === 'boss' ? file.arena.boss : file.arena.default;
+}
+
+// --- 49라운드 4-2·6: 지역 흐름 ---
+
+/** 이 층 단계(col)의 지역 id (지역 표가 없으면 null) */
+export function regionIdOf(stageId: string, col: number, file: RouteFile = ROUTE): string | null {
+  const list = file.floors[stageId]?.regionByCol;
+  if (!list || list.length === 0) return null;
+  return list[Math.max(0, Math.min(list.length - 1, col))];
+}
+
+export function regionOf(stageId: string, col: number, file: RouteFile = ROUTE): RegionDef | null {
+  const id = regionIdOf(stageId, col, file);
+  return id ? (entries(file.regions)[id] ?? null) : null;
+}
+
+/** 노드 종류별 장소 설명 (없으면 지역 기본) */
+export function regionDesc(region: RegionDef, kind: RouteKind): string {
+  return region.desc[kind] ?? region.desc.default;
+}
+
+/** 지역 가장자리 = arena.edge 위에 지역 edge 덮어쓰기. arena.edge 가 없으면 null (사각 벽) */
+export function regionEdge(regionId: string | null, file: RouteFile = ROUTE): ArenaEdge | null {
+  const base = file.arena.edge;
+  if (!base) return null;
+  const r = regionId ? entries(file.regions)[regionId] : undefined;
+  return { ...base, ...(r?.edge ?? {}) };
+}
+
+/** 모든 지역 타일셋 이름 (Preloader 로드 대상, 중복 제거·정렬) */
+export function regionTilesets(file: RouteFile = ROUTE): string[] {
+  const out = new Set<string>();
+  for (const r of Object.values(entries(file.regions))) if (r.tileset) out.add(r.tileset);
+  return [...out].sort();
+}
+
+/** 지역 id 전체 (소품 시트 이름 set_<region>_<name> 생성용) */
+export function regionIds(file: RouteFile = ROUTE): string[] {
+  return Object.keys(entries(file.regions)).sort();
 }

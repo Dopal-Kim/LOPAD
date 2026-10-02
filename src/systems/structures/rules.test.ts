@@ -54,7 +54,8 @@ describe('structures 데이터 (47라운드)', () => {
     };
     for (const [kind, sheet] of Object.entries(map))
       expect(spriteFor(structureDef(kind as Parameters<typeof structureDef>[0]), 'stage1')).toBe(sheet);
-    expect(allStructureSprites()).toHaveLength(17);
+    expect(allStructureSprites(STRUCTURES_FILE.structures, [])).toHaveLength(17);
+    expect(allStructureSprites().length).toBeGreaterThan(17);
   });
 
   it('잘못된 정의는 거부한다', () => {

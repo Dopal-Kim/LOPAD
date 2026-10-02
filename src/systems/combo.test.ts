@@ -116,3 +116,28 @@ describe('48라운드 판정 모양', () => {
     expect(shapeHit(0, 0, -1, 0, s2, { x: -10, y: -25, r: 2 }, 'left')).toBe(false);
   });
 });
+
+describe('49라운드 연격 보강 (과열 속도 · 기력 바닥 마지막 타 불가)', () => {
+  it('setSpeed 는 다음 타부터 길이·다음 타 허용을 줄인다', () => {
+    const c = new ComboTracker(def);
+    c.setSpeed(2);
+    c.press(0);
+    expect(c.poll(0, true)).toBe(0);
+    expect(c.currentSpeed).toBe(2);
+    expect(c.durationOf(0)).toBe(def.hits[0].durationMs / 2);
+    expect(c.readyAt()).toBe(def.hits[0].cancelFromMs / 2);
+  });
+
+  it('allowFinisher=false 면 마지막 타 대신 1타', () => {
+    const c = new ComboTracker(def);
+    let t = 0;
+    c.press(t);
+    expect(c.poll(t, true)).toBe(0);
+    t = c.readyAt();
+    c.press(t);
+    expect(c.poll(t, true)).toBe(1);
+    t = c.readyAt();
+    c.press(t);
+    expect(c.poll(t, true, false)).toBe(0);
+  });
+});

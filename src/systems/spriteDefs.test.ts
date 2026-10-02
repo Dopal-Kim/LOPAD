@@ -4,16 +4,22 @@ import {
   animDurationMs,
   animKey,
   arrowFxId,
+  carryActionFor,
   facingOf,
   frameAt,
   frameDurations,
   frameIndices,
   fxSheetIds,
+  heatComboFxId,
+  overlayActionsFor,
+  overlayDepthAt,
   sheetJsonPath,
+  slamFxId,
   slashFxId,
   wantedSheets,
   type SheetJson,
 } from './spriteDefs';
+import { WEAPONS } from '../data';
 
 const walk: SheetJson = {
   image: 'player_walk.png',
@@ -65,6 +71,12 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'katana_combo3',
       'katana_special',
       'katana_aim',
+      // 49라운드 §7.1·7.2: 뽑기·넣기·내리찍기·대쉬 공격·장전
+      'katana_draw',
+      'katana_sheathe',
+      'katana_slam',
+      'katana_dashslash',
+      'katana_reload',
     ]);
     expect(list.filter((r) => r.category === 'enemies')).toHaveLength(10);
     expect(list.filter((r) => r.category === 'weapons').map((r) => r.action)).toEqual([
@@ -74,6 +86,17 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'combo3',
       'special',
       'aim',
+      'carry_idle',
+      'carry_walk',
+      'carry_dash',
+      'carry_drawn_idle',
+      'carry_drawn_walk',
+      'carry_drawn_dash',
+      'draw',
+      'sheathe',
+      'slam',
+      'dashslash',
+      'reload',
     ]);
     expect(sheetJsonPath({ category: 'player', name: 'player', action: 'katana_combo2' })).toBe(
       'sprites/player/player_katana_combo2.json',
@@ -221,5 +244,39 @@ describe('sprite defs: 프레임 시작 시각·국면 애니 키 (결정 로그
     expect(progressFrame(0.99, 6, 5)).toBe(4);
     expect(progressFrame(1, 6, 5)).toBe(5);
     expect(progressFrame(-1, 6)).toBe(0);
+  });
+});
+
+describe('49라운드 무기 휴대·동작 (계약 art §7.1·7.2)', () => {
+  it('휴대 동작: idle·walk·dash 그대로, 피격·뽑기는 idle, 사망·탄생은 숨김', () => {
+    expect(carryActionFor('walk')).toBe('walk');
+    expect(carryActionFor('dash')).toBe('dash');
+    expect(carryActionFor('hurt')).toBe('idle');
+    expect(carryActionFor('greatsword_draw')).toBe('idle');
+    expect(carryActionFor('death')).toBeNull();
+    expect(carryActionFor('birth')).toBeNull();
+  });
+
+  it('무기 오버레이: 내리찍기·대쉬 공격은 3타·attack 폴백, 뽑기·넣기·장전은 그 시트만', () => {
+    expect(overlayActionsFor('greatsword_slam', 'greatsword')).toEqual(['slam', 'combo3', 'attack']);
+    expect(overlayActionsFor('greatsword_dashslash', 'greatsword')).toEqual(['dashslash', 'combo3', 'attack']);
+    expect(overlayActionsFor('katana_sheathe', 'katana')).toEqual(['sheathe']);
+    expect(overlayActionsFor('bow_reload', 'bow')).toEqual(['reload']);
+    expect(overlayActionsFor('walk', 'bow')).toEqual([]);
+  });
+
+  it('깊이: 방향별 문자열 · 방향·프레임별 배열', () => {
+    expect(overlayDepthAt({ depth: { up: 'below' } }, 'up', 0)).toBe('below');
+    expect(overlayDepthAt({ depth: { down: ['above', 'below'] } }, 'down', 1)).toBe('below');
+    expect(overlayDepthAt({ depth: { down: ['above', 'below'] } }, 'down', 5)).toBe('below');
+    expect(overlayDepthAt({}, 'left', 0)).toBe('above');
+  });
+
+  it('이펙트: 단검 가열 단계 3 × 연격 3 · 대검 내리찍기', () => {
+    const ids = fxSheetIds(WEAPONS);
+    expect(ids).toContain(heatComboFxId('dagger', 1, 1));
+    expect(ids).toContain('dagger_combo3_heat3');
+    expect(ids).toContain(slamFxId('greatsword'));
+    expect(ids).not.toContain('katana_combo1_heat1');
   });
 });

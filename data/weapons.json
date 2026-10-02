@@ -7,6 +7,29 @@
     "katana": {
       "name": "사무라이 칼",
       "kind": "melee",
+      "resource": {
+        "_note": "49라운드 임시값: 기력 — 공격·대쉬·대쉬 공격이 소모(칼 보통), 시간 회복. 바닥나면 이동 감속·강한 타(3타·대쉬 공격) 불가. 비전투 달리기는 소모 없음",
+        "kind": "stamina",
+        "label": "기력",
+        "max": 100,
+        "regenPerSec": 38,
+        "regenDelayMs": 500,
+        "lowRatio": 0.3,
+        "recoverRatio": 0.35,
+        "exhaustedMoveMult": 0.65,
+        "cost": {
+          "hits": [7, 6, 12],
+          "dash": 12,
+          "dashAttack": 16,
+          "slam": 0
+        }
+      },
+      "carry": {
+        "_note": "49라운드 임시값: 허리 칼집. 1타가 발도(뽑기 = 첫 타), 마지막 공격 2.5초 뒤 납도",
+        "mode": "sheath",
+        "drawMs": 0,
+        "sheatheAfterMs": 2500
+      },
       "damageMult": 1.0,
       "critBonus": 5,
       "attackSlowMult": 0.7,
@@ -138,6 +161,55 @@
     "greatsword": {
       "name": "대검",
       "kind": "melee",
+      "resource": {
+        "_note": "49라운드 임시값: 기력 — 대검은 크게 소모, 회복 느림. 바닥나면 이동 감속·강한 타(3타·대쉬 공격·내리찍기) 불가",
+        "kind": "stamina",
+        "label": "기력",
+        "max": 100,
+        "regenPerSec": 26,
+        "regenDelayMs": 700,
+        "lowRatio": 0.3,
+        "recoverRatio": 0.35,
+        "exhaustedMoveMult": 0.55,
+        "cost": {
+          "hits": [16, 16, 26],
+          "dash": 15,
+          "dashAttack": 26,
+          "slam": 32
+        }
+      },
+      "carry": {
+        "_note": "49라운드 임시값: 등에 멤. 1타 f0~f1 이 곧 등에서 끌어올리기(아트 메모) → 별도 뽑기 없이 1타(drawMs 0). 마지막 공격 2.5초 뒤 등에 넣음",
+        "mode": "back",
+        "drawMs": 0,
+        "sheatheAfterMs": 2500
+      },
+      "weight": {
+        "_note": "49라운드 임시값: 타마다 반 걸음(8px) 전진, 휘두른 뒤 감속 유지, 3타 타격 후 0.3초 정지",
+        "stepPx": 8,
+        "stepMs": 110,
+        "postSlowMs": 220,
+        "finisherStopMs": 300
+      },
+      "slam": {
+        "_note": "49라운드 임시값: 충격파 계열(파쇄·지진·분쇄) 발현 후 3타 = 마우스 방향 짧은 도약 → 내려찍기 → 충격파. 시트 player_greatsword_slam 메모(leapFrames·impactFrame·impactOffsetPx)가 있으면 시간·착지점은 시트. 반경 40 = fx/greatsword_slam 그림 반경",
+        "leapMs": 260,
+        "recoverMs": 320,
+        "leapMinPx": 8,
+        "leapMaxPx": 40,
+        "radiusPx": 40,
+        "damageMult": 1.3
+      },
+      "dashSlash": {
+        "_note": "49라운드 임시값: 대쉬 공격 = 달려들며(24px) 크게 한 번 휘두르고 잠깐 멈춤. 시트 player_greatsword_dashslash(hitFrames·recoverFrames·hitRadiusPx·arcDeg·fxReuse)가 있으면 시트 값. 이펙트는 2타 이펙트 재사용",
+        "stepPx": 24,
+        "stepMs": 140,
+        "swingMs": 420,
+        "recoverMs": 350,
+        "arcDeg": 210,
+        "fxCombo": 2,
+        "fxSpawnAtMs": 120
+      },
       "damageMult": 2.2,
       "critBonus": 0,
       "attackSlowMult": 0.25,
@@ -149,7 +221,7 @@
         "cooldownMs": 750
       },
       "combo": {
-        "_note": "48라운드 임시값: '훙 훙 훙' — 묵직한 3연격, 3타가 가장 크다(270°). 시간은 아트 timingMs, 판정은 아트 hitRadiusPx·arcDeg",
+        "_note": "48라운드 임시값: '훙 훙 훙' — 묵직한 3연격, 3타가 가장 크다(270°). 49라운드: 시간은 아트 재제작 시트(630/600/820ms, 판정 f2, 취소 f4)와 같게. 판정은 아트 hitRadiusPx·arcDeg",
         "shape": "arc",
         "arcDeg": 190,
         "bufferMs": 300,
@@ -159,22 +231,22 @@
           {
             "damageMult": 0.75,
             "sizeMult": 1.0,
-            "durationMs": 480,
-            "cancelFromMs": 340,
+            "durationMs": 630,
+            "cancelFromMs": 360,
             "activeMs": 80
           },
           {
             "damageMult": 0.75,
             "sizeMult": 1.0,
-            "durationMs": 460,
-            "cancelFromMs": 320,
+            "durationMs": 600,
+            "cancelFromMs": 340,
             "activeMs": 80
           },
           {
             "damageMult": 1.1,
             "sizeMult": 1.0,
-            "durationMs": 650,
-            "cancelFromMs": 650,
+            "durationMs": 820,
+            "cancelFromMs": 820,
             "activeMs": 130
           }
         ],
@@ -277,6 +349,25 @@
     "dagger": {
       "name": "단검",
       "kind": "melee",
+      "resource": {
+        "_note": "49라운드 임시값: 과열 — 연격이 이어질수록 가열(단계 0→3, 공격속도↑·이펙트 강화). 최대 열을 1.5초 유지하면 과열 → 1.6초 냉각(공격 불가)",
+        "kind": "heat",
+        "label": "열기",
+        "max": 100,
+        "gainPerHit": [9, 9, 13],
+        "decayPerSec": 45,
+        "decayDelayMs": 450,
+        "stages": [30, 60, 90],
+        "speedMults": [1.0, 1.15, 1.3, 1.5],
+        "overheatHoldMs": 1500,
+        "cooldownMs": 1600
+      },
+      "carry": {
+        "_note": "49라운드: 손(역수)",
+        "mode": "hand",
+        "drawMs": 0,
+        "sheatheAfterMs": 0
+      },
       "damageMult": 0.6,
       "critBonus": 20,
       "attackSlowMult": 1.0,
@@ -416,6 +507,20 @@
     "bow": {
       "name": "활",
       "kind": "ranged",
+      "resource": {
+        "_note": "49라운드 임시값: 화살 탄창 8발(조준 사격도 1발). 비면 자동 장전 1.3초, R = 수동 장전",
+        "kind": "ammo",
+        "label": "화살",
+        "max": 8,
+        "reloadMs": 1300,
+        "lowCount": 2
+      },
+      "carry": {
+        "_note": "49라운드: 손",
+        "mode": "hand",
+        "drawMs": 0,
+        "sheatheAfterMs": 0
+      },
       "damageMult": 0.9,
       "critBonus": 10,
       "attackSlowMult": 0.6,

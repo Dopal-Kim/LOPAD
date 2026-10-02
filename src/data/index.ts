@@ -20,7 +20,9 @@ import type {
   StagesFile,
   SecondaryDef,
   StoryData,
+  WeaponDef,
   WeaponEvolution,
+  WeaponResourceDef,
   WeaponRules,
   WeaponTable,
   WeaponsFile,
@@ -234,6 +236,7 @@ export function validateWeapons(t: WeaponTable): WeaponTable {
     }
     for (const [k, val] of Object.entries(w.hitbox)) assertNumber(val, `weapons.${id}.hitbox.${k}`);
     if (w.combo) validateCombo(w.combo, `weapons.${id}.combo`);
+    validateWeaponExtras(w, `weapons.${id}`);
     // 우클릭 보조 동작
     const sec = w.secondary as SecondaryDef | undefined;
     if (!sec || !(sec.kind in SECONDARY_NUMERIC)) throw new Error(`[data] weapons.${id}.secondary.kind 알 수 없음`);
@@ -276,6 +279,52 @@ export function validateCombo(c: ComboDef, path: string): ComboDef {
     if (h.cancelFromMs > h.durationMs) throw new Error(`[data] ${path}.hits[${i}].cancelFromMs 는 durationMs 이하`);
   });
   return c;
+}
+
+const RESOURCE_NUMERIC: Record<WeaponResourceDef['kind'], string[]> = {
+  stamina: ['max', 'regenPerSec', 'regenDelayMs', 'lowRatio', 'recoverRatio', 'exhaustedMoveMult'],
+  ammo: ['max', 'reloadMs', 'lowCount'],
+  heat: ['max', 'decayPerSec', 'decayDelayMs', 'overheatHoldMs', 'cooldownMs'],
+};
+
+/** 49라운드: 무기 자원 · 휴대 · 대검 무게감·내리찍기·대쉬 공격 (모두 선택 필드) */
+export function validateWeaponExtras(w: WeaponDef, path: string): void {
+  const r = w.resource;
+  if (r) {
+    if (!(r.kind in RESOURCE_NUMERIC)) throw new Error(`[data] ${path}.resource.kind 알 수 없음`);
+    if (typeof r.label !== 'string' || !r.label) throw new Error(`[data] ${path}.resource.label 없음`);
+    for (const k of RESOURCE_NUMERIC[r.kind])
+      assertNumber((r as unknown as Record<string, unknown>)[k], `${path}.resource.${k}`);
+    if (!(r.max > 0)) throw new Error(`[data] ${path}.resource.max 는 0 보다 커야 합니다`);
+    const nums = (v: unknown, p: string) => {
+      if (!Array.isArray(v) || v.length === 0) throw new Error(`[data] ${p} 는 숫자 배열이어야 합니다`);
+      v.forEach((x, i) => assertNumber(x, `${p}[${i}]`));
+    };
+    if (r.kind === 'stamina') {
+      nums(r.cost?.hits, `${path}.resource.cost.hits`);
+      for (const k of ['dash', 'dashAttack', 'slam'] as const) assertNumber(r.cost[k], `${path}.resource.cost.${k}`);
+    }
+    if (r.kind === 'heat') {
+      nums(r.gainPerHit, `${path}.resource.gainPerHit`);
+      nums(r.stages, `${path}.resource.stages`);
+      nums(r.speedMults, `${path}.resource.speedMults`);
+      if (r.speedMults.length !== r.stages.length + 1)
+        throw new Error(`[data] ${path}.resource.speedMults 길이는 stages + 1`);
+    }
+  }
+  const c = w.carry;
+  if (c) {
+    if (!['sheath', 'back', 'hand'].includes(c.mode)) throw new Error(`[data] ${path}.carry.mode 알 수 없음`);
+    assertNumber(c.drawMs, `${path}.carry.drawMs`);
+    assertNumber(c.sheatheAfterMs, `${path}.carry.sheatheAfterMs`);
+  }
+  const blocks: [string, object | undefined, string[]][] = [
+    ['weight', w.weight, ['stepPx', 'stepMs', 'postSlowMs', 'finisherStopMs']],
+    ['slam', w.slam, ['leapMs', 'recoverMs', 'leapMinPx', 'leapMaxPx', 'radiusPx', 'damageMult']],
+    ['dashSlash', w.dashSlash, ['stepPx', 'stepMs', 'swingMs', 'recoverMs', 'arcDeg', 'fxCombo', 'fxSpawnAtMs']],
+  ];
+  for (const [name, b, keys] of blocks)
+    if (b) for (const k of keys) assertNumber((b as Record<string, unknown>)[k], `${path}.${name}.${k}`);
 }
 
 export function validateWeaponRules(r: WeaponRules): WeaponRules {

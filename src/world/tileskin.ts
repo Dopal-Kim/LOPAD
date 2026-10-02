@@ -75,6 +75,20 @@ export function isOpenId(id: TileId | undefined): boolean {
   return id !== undefined && id !== TileId.Void && !SOLID_IDS.includes(id);
 }
 
+/** 걸을 수 있는 칸에 8방향으로 닿는 빈(void) 칸 — 들쭉날쭉한 전투장의 열린 틈 */
+export function edgeVoidTiles(layout: FloorLayout): { x: number; y: number }[] {
+  const out: { x: number; y: number }[] = [];
+  for (let y = 0; y < layout.heightTiles; y++)
+    for (let x = 0; x < layout.widthTiles; x++) {
+      if (layout.tiles[y][x] !== TileId.Void) continue;
+      let touch = false;
+      for (let oy = -1; oy <= 1 && !touch; oy++)
+        for (let ox = -1; ox <= 1 && !touch; ox++) touch = isOpenId(layout.tiles[y + oy]?.[x + ox]);
+      if (touch) out.push({ x, y });
+    }
+  return out;
+}
+
 /** 좌표 해시 → [0, n) */
 export function pickVariant(x: number, y: number, n: number, salt = 0): number {
   if (n <= 1) return 0;
@@ -190,6 +204,27 @@ export class TileSkin {
 /** Preloader 가 채우는 층 → 타일셋 (없는 층은 플레이스홀더) */
 export const tileSkins = new Map<number, TileSkin>();
 
+/** 49라운드 art §7.3: Preloader 가 채우는 지역 타일셋 이름(`stage1_waste`) → 타일셋 */
+export const regionSkins = new Map<string, TileSkin>();
+
+/** 지역 타일셋 텍스처 키 (`tiles_stage1_waste`) */
+export function namedTilesetTextureKey(name: string): string {
+  return `${TEXTURES.TILESET_PREFIX}${name}`;
+}
+
+/** 지역 타일셋 JSON 경로 (`tiles/stage1_waste.json`) */
+export function namedTilesetJsonPath(name: string): string {
+  return `${ASSETS.TILES_DIR}/${name}.json`;
+}
+
+/**
+ * 노드 전투장 타일셋: 지역 타일셋(로드됐으면) → 층 타일셋 → 플레이스홀더.
+ * 지역 타일셋은 인덱스 표 v3 그대로라(계약 §7.3) 같은 TileSkin 규칙으로 읽는다
+ */
+export function skinFor(floor: number, tileset?: string | null): TileSkin {
+  return (tileset ? regionSkins.get(tileset) : undefined) ?? tileSkins.get(floor) ?? TileSkin.placeholder();
+}
+
 export function tilesetTextureKey(floor: number): string {
   return `${TEXTURES.TILESET_PREFIX}${ASSETS.STAGE_PREFIX}${floor}`;
 }
@@ -232,7 +267,21 @@ export function planProps(
       const key = `${x},${y}`;
       if (used.has(key) || blocked.has(key) || exclude.has(key)) continue;
       if (layout.tiles[y]?.[x] !== TileId.Floor) continue;
-      const onRing = x === I.x || x === I.x + I.w - 1 || y === I.y || y === I.y + I.h - 1;
+      // 벽가: 방 사각형 테두리 또는 (49라운드 들쭉날쭉한 가장자리·엄폐 담) 4방향 이웃에 바닥이 아닌 칸
+      const onRing =
+        x === I.x ||
+        x === I.x + I.w - 1 ||
+        y === I.y ||
+        y === I.y + I.h - 1 ||
+        [
+          [1, 0],
+          [-1, 0],
+          [0, 1],
+          [0, -1],
+        ].some(([dx, dy]) => {
+          const t = layout.tiles[y + dy]?.[x + dx];
+          return t === TileId.Wall || t === TileId.Void;
+        });
       if (prop.solid && !onRing) continue;
       used.add(key);
       perProp.set(prop.index, (perProp.get(prop.index) ?? 0) + 1);

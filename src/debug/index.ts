@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import { gameState } from '../core/GameState';
-import { UI_EVENTS, uiBus, uiCommands, type UiWarpDenied } from '../contract/ui';
+import { UI_EVENTS, uiBus, uiCommands, type UiMenuId, type UiWarpDenied } from '../contract/ui';
 import type { Mob } from '../objects/Mob';
 import type { RoomDirector } from '../systems/RoomDirector';
 import type { TileWorld } from '../world/TileWorld';
@@ -32,6 +32,12 @@ export interface DebugApi {
     scenes: () => string[];
     continueRun: () => void;
     hasSave: () => boolean;
+    /** 49라운드: 계약 경로 메뉴 선택 (uiCommands.select) — 시험장 메뉴 검증용 */
+    select: (menuId: UiMenuId, key: string) => void;
+    /** 49라운드: 계약 경로 무기 시험장 진입 · 음소거 */
+    startWeaponLab: () => void;
+    setMuted: (muted: boolean) => void;
+    toTitle: () => void;
   };
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
@@ -144,6 +150,14 @@ export interface DebugApi {
   /** 48라운드: 탄생 연출 상태 · 건너뛰기 */
   birth: () => unknown;
   skipBirth: () => void;
+  /** 49라운드: 무기 자원(기력·탄창·과열)·휴대(뽑음·오버레이 방식)·내딛기·정지 상태 */
+  weaponState: () => unknown;
+  /** 49라운드: 자원 값을 바로 바꾼다 (기력 바닥·탄창 비우기·최대 열 검증용). 자원이 없으면 false */
+  setResource: (value: number) => boolean;
+  /** 49라운드 무기 시험장: 허수아비 누적 피해·맞은 수·쏜 탄 수 · 메뉴 */
+  lab: () => unknown;
+  /** 49라운드 무기 시험장: 'lab' 또는 'labBranch' 메뉴 열기 (L 키와 같은 경로) */
+  openLabMenu: (which: 'lab' | 'labBranch') => boolean;
 }
 
 export interface StructureDebugInfo {
@@ -288,6 +302,10 @@ export function exposeDebug(api: {
   combo: () => unknown;
   birth: () => unknown;
   skipBirth: () => void;
+  weaponState: () => unknown;
+  setResource: (value: number) => boolean;
+  lab: () => unknown;
+  openLabMenu: (which: 'lab' | 'labBranch') => boolean;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -322,6 +340,10 @@ export function exposeDebug(api: {
       scenes: () => api.scenes(),
       continueRun: () => uiCommands.continueRun(),
       hasSave: () => uiCommands.hasSave(),
+      select: (menuId, key) => uiCommands.select(menuId, key),
+      startWeaponLab: () => uiCommands.startWeaponLab(),
+      setMuted: (muted) => uiCommands.setMuted(muted),
+      toTitle: () => uiCommands.toTitle(),
     }),
     shots: () => api.shots(),
     economy: () => api.economy(),
@@ -424,6 +446,10 @@ export function exposeDebug(api: {
     combo: () => api.combo(),
     birth: () => api.birth(),
     skipBirth: () => api.skipBirth(),
+    weaponState: () => api.weaponState(),
+    setResource: (v) => api.setResource(v),
+    lab: () => api.lab(),
+    openLabMenu: (which) => api.openLabMenu(which),
     doorsOf: (roomId) =>
       api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };

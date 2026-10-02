@@ -5,6 +5,7 @@ import { Game } from './scenes/Game';
 import { GameOver } from './scenes/GameOver';
 import { Preloader } from './scenes/Preloader';
 import { Setup } from './scenes/Setup';
+import { WeaponLab } from './scenes/WeaponLab';
 import { uiScenes } from './ui';
 
 /** 내부 해상도 960×540 고정(32라운드), 정수 배율 확대는 main.ts 에서 처리. */
@@ -25,5 +26,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     default: 'arcade',
     arcade: { gravity: { x: 0, y: 0 }, debug: false },
   },
-  scene: [Boot, Preloader, Setup, Game, GameOver, ...uiScenes],
+  scene: [Boot, Preloader, Setup, Game, WeaponLab, GameOver, ...uiScenes],
 };

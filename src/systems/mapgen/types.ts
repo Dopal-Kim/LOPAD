@@ -101,6 +101,8 @@ export interface ArenaInfo {
   exit: { x: number; y: number };
   /** 상점 2×2 의 왼쪽 위 타일 (상점 노드) */
   shop: { x: number; y: number };
+  /** 49라운드: 전투장 내부 중앙 타일 (세트 배치·탄생 자리 기준) */
+  center?: { x: number; y: number };
   /** 카메라 경계 (방 내부 + 벽 1칸) */
   camera: Rect;
 }

@@ -4,7 +4,8 @@
  * - 효과음은 EventBus 이벤트를 `audioMap.ts` 표로 매핑해 재생한다 (게임 코드는 소리를 직접 호출하지 않는다).
  * - BGM 은 층(`bgmByFloor`)·상태(`bgmByState`: title / boss / emperor)로 정하고 크로스페이드한다.
  * - 버스: SFX 0 dB, BGM -8 dB, 보스전 BGM -3 dB, entry.gainDb 가산. 같은 효과음 20ms 중복 1회, swing·hit 류 ±4% 피치.
- * - 음소거 토글 `M` (localStorage `lopad.mute`). 디버그 요약은 `summary()`.
+ * - 음소거는 `setMute()` (localStorage `lopad.mute`) — 49라운드 계약 §11.3: Esc 메뉴 설정 → uiCommands.setMuted.
+ *   M 키 토글은 없앴다 (M = UI 지도). 디버그 요약은 `summary()`.
  * 게임 수명 동안 하나(main.ts 에서 attach). 씬 재시작과 무관하게 BGM 이 이어진다.
  */
 import Phaser from 'phaser';
@@ -71,7 +72,6 @@ export class AudioSystem {
   private recent: AudioSummary['recent'] = [];
   private muted = false;
   private readonly storage = browserStorage();
-  private onKeyDown?: (e: KeyboardEvent) => void;
   private onGesture?: () => void;
   private readonly triggerHandlers: { event: string; fn: (p: unknown) => void }[] = [];
 
@@ -94,13 +94,6 @@ export class AudioSystem {
     EventBus.on(Events.ENDING_CHOSEN, this.onRunEnding, this);
     EventBus.on(Events.RUN_ENDED, this.onRunEnded, this);
     if (typeof document !== 'undefined') {
-      this.onKeyDown = (e) => {
-        if (e.code !== AUDIO.MUTE_KEY_CODE || e.repeat) return;
-        const target = e.target as HTMLElement | null;
-        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
-        this.toggleMute();
-      };
-      document.addEventListener('keydown', this.onKeyDown);
       // 첫 사용자 입력에서 컨텍스트 재개 (Phaser 의 unlock 과 겹쳐도 무해)
       this.onGesture = () => this.resumeContext();
       document.addEventListener('pointerdown', this.onGesture, { passive: true });
@@ -408,7 +401,6 @@ export class AudioSystem {
     EventBus.off(Events.ENDING_CHOSEN, this.onRunEnding, this);
     EventBus.off(Events.RUN_ENDED, this.onRunEnded, this);
     if (typeof document !== 'undefined') {
-      if (this.onKeyDown) document.removeEventListener('keydown', this.onKeyDown);
       if (this.onGesture) {
         document.removeEventListener('pointerdown', this.onGesture);
         document.removeEventListener('keydown', this.onGesture);

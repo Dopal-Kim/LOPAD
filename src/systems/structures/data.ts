@@ -5,6 +5,7 @@
 import structuresJson from '../../../data/structures.json';
 import type { UiInteractBlockReason, UiStructureKind } from '../../contract/ui';
 import type { RoomType } from '../mapgen/types';
+import { routeSetPieceSprites } from './setpieceSprites';
 
 /** 상호작용 방식: 타격형 · E형 · 통과형 · 자동 */
 export type StructureMode = 'hit' | 'interact' | 'pass' | 'auto';
@@ -204,9 +205,12 @@ export function spriteFor(def: Pick<StructureDef, 'sprite'>, stageId: string): s
   return def.sprite[stageId] ?? def.sprite.default;
 }
 
-/** 모든 시트 id (Preloader 로드 대상) */
-export function allStructureSprites(defs: Iterable<StructureDef> = STRUCTURE_DEFS.values()): string[] {
-  const out = new Set<string>();
+/** 모든 시트 id (Preloader 로드 대상). 49라운드: 기본값으로 세트 배치 소품·전장 소품 시트도 (매니페스트에 없으면 로더가 건너뜀) */
+export function allStructureSprites(
+  defs: Iterable<StructureDef> = STRUCTURE_DEFS.values(),
+  extra: readonly string[] = routeSetPieceSprites(),
+): string[] {
+  const out = new Set<string>(extra);
   for (const d of defs) {
     if (typeof d.sprite === 'string') out.add(d.sprite);
     else for (const v of Object.values(d.sprite)) out.add(v);

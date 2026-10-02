@@ -438,9 +438,115 @@ export type SecondaryDef =
 
 export type SecondaryKind = SecondaryDef['kind'];
 
+/** 49라운드 Q4·Q6: 무기 자원 (임시값). 칼·대검 기력 · 활 화살 탄창 · 단검 과열 */
+export interface StaminaResourceDef {
+  kind: 'stamina';
+  /** 표시 이름 (자리표시) */
+  label: string;
+  max: number;
+  /** 초당 회복량 (마지막 소모 뒤 regenDelayMs 가 지나면) */
+  regenPerSec: number;
+  regenDelayMs: number;
+  /** max × lowRatio 미만이면 low */
+  lowRatio: number;
+  /** 바닥난 뒤 max × recoverRatio 까지 차야 exhausted 가 풀린다 */
+  recoverRatio: number;
+  /** 바닥난 동안 이동 속도 배율 */
+  exhaustedMoveMult: number;
+  /** 소모량: 연격 타별 · 대쉬 · 대쉬 공격 · 내리찍기 */
+  cost: { hits: number[]; dash: number; dashAttack: number; slam: number };
+}
+
+export interface AmmoResourceDef {
+  kind: 'ammo';
+  label: string;
+  /** 탄창 화살 수 */
+  max: number;
+  /** 장전 시간 (자동·수동 공통, 탄창을 다 채운다) */
+  reloadMs: number;
+  /** 이 수 이하면 low */
+  lowCount: number;
+}
+
+export interface HeatResourceDef {
+  kind: 'heat';
+  label: string;
+  max: number;
+  /** 연격 타별 가열량 (공격 시작 시) */
+  gainPerHit: number[];
+  /** 마지막 가열 뒤 decayDelayMs 가 지나면 초당 식는 양 */
+  decayPerSec: number;
+  decayDelayMs: number;
+  /** 가열 단계 경계 (오름차순, 길이 3 → 단계 0..3) */
+  stages: number[];
+  /** 단계별 공격 속도 배율 (길이 = stages + 1) */
+  speedMults: number[];
+  /** 최대 열을 이만큼 유지하면 과열 */
+  overheatHoldMs: number;
+  /** 과열 냉각 시간 (공격 불가, 열이 0 으로 내려간다) */
+  cooldownMs: number;
+}
+
+export type WeaponResourceDef = StaminaResourceDef | AmmoResourceDef | HeatResourceDef;
+
+/** 49라운드 Q3·Q5: 무기 휴대 — sheath 허리 칼집(칼) · back 등(대검) · hand 손(단검·활) */
+export interface WeaponCarryDef {
+  mode: 'sheath' | 'back' | 'hand';
+  /** 칼집·등에서 뽑는 동작 시간 (0 = 첫 타가 곧 뽑기 — 칼 발도) */
+  drawMs: number;
+  /** 마지막 공격 뒤 이만큼 지나면 넣는다 (sheath·back) */
+  sheatheAfterMs: number;
+}
+
+/** 49라운드 Q4: 대검 무게감 (임시값) */
+export interface WeaponWeightDef {
+  /** 타마다 앞으로 내딛는 거리 px · 시간 */
+  stepPx: number;
+  stepMs: number;
+  /** 휘두른 뒤에도 감속이 남는 시간 */
+  postSlowMs: number;
+  /** 마지막 타 타격 순간부터 완전히 멈추는 시간 */
+  finisherStopMs: number;
+}
+
+/** 49라운드 Q4: 대검 내리찍기 (충격파 계열 개성 발현 후 마지막 타). 시트 메모가 있으면 시간은 시트 */
+export interface WeaponSlamDef {
+  /** 시트가 없을 때 도약 시간 · 착지 후 회복 시간 */
+  leapMs: number;
+  recoverMs: number;
+  /** 마우스 방향 도약 거리 범위 px */
+  leapMinPx: number;
+  leapMaxPx: number;
+  /** 착지 원형 판정 반경 px (진화·강화 배율을 곱한다) */
+  radiusPx: number;
+  damageMult: number;
+}
+
+/** 49라운드 Q4: 대검 대쉬 공격 — 달려들며 크게 한 번 휘두르고 잠깐 멈춤 */
+export interface WeaponDashSlashDef {
+  stepPx: number;
+  stepMs: number;
+  /** 시트가 없을 때 휘두름 시간 · 멈춤 시간 */
+  swingMs: number;
+  recoverMs: number;
+  /** 판정 부채꼴 각도 */
+  arcDeg: number;
+  /** 시트 fxReuse 가 없을 때 재사용할 연격 이펙트 번호 · 재생 시각 ms */
+  fxCombo: number;
+  fxSpawnAtMs: number;
+}
+
 export interface WeaponDef {
   name: string;
   kind: 'melee' | 'ranged';
+  /** 49라운드: 무기 자원 (없으면 자원 없음) */
+  resource?: WeaponResourceDef;
+  /** 49라운드: 휴대 위치 (없으면 hand) */
+  carry?: WeaponCarryDef;
+  /** 49라운드: 대검 무게감 · 내리찍기 · 대쉬 공격 */
+  weight?: WeaponWeightDef;
+  slam?: WeaponSlamDef;
+  dashSlash?: WeaponDashSlashDef;
   damageMult: number;
   /** 치명타 확률 보너스 (%p). 예리함 축 */
   critBonus: number;

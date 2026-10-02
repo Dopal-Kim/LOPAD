@@ -26,6 +26,7 @@ export function installContractHost(game: Phaser.Game): void {
   const stopAllUiAndGame = () => {
     for (const key of [
       SCENES.GAME,
+      SCENES.WEAPON_LAB,
       SCENES.SETUP,
       SCENES.GAME_OVER,
       UI_SCENES.HUD,
@@ -88,11 +89,11 @@ export function installContractHost(game: Phaser.Game): void {
     chooseNode: (id) => nodeChooser?.(id) ?? false,
     setMuted: (muted) => audio.setMute(muted),
     startWeaponLab: () => {
-      // 49라운드: 시스템 무기 시험장 씬이 등록되면 그리로 (계약 §11.4). 구현 전에는 아무것도 안 함
-      if (!game.scene.keys['WeaponLab']) return;
+      // 49라운드 계약 §11.4: 시스템 무기 시험장 씬 (scenes/WeaponLab.ts — Game 의 lab 모드). Esc = 타이틀
+      if (!game.scene.keys[SCENES.WEAPON_LAB]) return;
       stopAllUiAndGame();
       audio.setPaused(false);
-      game.scene.start('WeaponLab');
+      game.scene.start(SCENES.WEAPON_LAB);
     },
     getText: () => ({ ...STORY.ui, controls: STORY.controls }),
     toTitle: () => {

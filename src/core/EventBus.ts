@@ -17,6 +17,11 @@ export const Events = {
   PLAYER_SHADOW_STEP: 'player:shadow-step',
   /** 보조 동작 국면 (음향 트리거): guard start / aimedshot start·cancel */
   PLAYER_SECONDARY: 'player:secondary',
+  /** 49라운드 무기 휴대: 칼집·등에서 뽑음 / 넣음(납도) — 음향 훅 후보 (`WeaponCarryPayload`) */
+  PLAYER_WEAPON_DRAWN: 'player:weapon-drawn',
+  PLAYER_WEAPON_SHEATHED: 'player:weapon-sheathed',
+  /** 49라운드 무기 자원 (`WeaponResourcePayload`): 기력 바닥·회복 / 장전 시작·끝 / 과열·냉각 끝 / 가열 단계 변화 */
+  WEAPON_RESOURCE: 'weapon:resource',
   /** 물약 사용 (회복 일반 PLAYER_HEALED 와 구분) */
   POTION_USED: 'potion:used',
   /** 바닥 드랍 획득 (물약 등 골드 이외) */
@@ -111,6 +116,22 @@ export type PlayerAttackPayload = {
   durationMs?: number;
   /** 재생한 주인공 몸 동작 (attack 또는 <무기>_combo<n>) */
   bodyAction?: string;
+  /** 49라운드: 대검 내리찍기 (착지 순간 = swingDelayMs, 원형 판정 반경 px, 착지점 = 그때 발 피벗 + offset) */
+  slam?: { radiusPx: number; offsetX: number; offsetY: number };
+  /** 49라운드: 대검 대쉬 공격 (달려들며 크게 한 번, 판정 부채꼴 각도) */
+  dashSlash?: { arcDeg: number };
+  /** 49라운드: 단검 가열 단계 0..3 (이펙트 강화) */
+  heatStage?: number;
+};
+/** 49라운드: 무기 휴대 뽑기·넣기 */
+export type WeaponCarryPayload = { weapon: string; mode: 'sheath' | 'back' | 'hand' };
+/** 49라운드: 무기 자원 변화 */
+export type WeaponResourcePayload = {
+  weapon: string;
+  kind: 'stamina' | 'ammo' | 'heat';
+  event: 'exhausted' | 'recovered' | 'reloadStart' | 'reloadDone' | 'overheat' | 'cooled' | 'heatStage';
+  /** heatStage 일 때 새 단계 */
+  stage?: number;
 };
 export type PlayerSecondaryPayload = {
   kind: 'parry' | 'guard' | 'shadowstep' | 'aimedshot';

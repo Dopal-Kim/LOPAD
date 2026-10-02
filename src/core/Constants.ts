@@ -24,6 +24,8 @@ export const SCENES = {
   SETUP: 'Setup',
   GAME: 'Game',
   GAME_OVER: 'GameOver',
+  /** 49라운드 계약 §11.4: 무기 시험장 (host.startWeaponLab 이 이 키로 시작) */
+  WEAPON_LAB: 'WeaponLab',
 } as const;
 
 export const TEXTURES = {
@@ -73,8 +75,7 @@ export const AUDIO = {
   PAUSE_DUCK_DB: -6,
   /** 런 종료(사망·엔딩) 시 BGM 페이드아웃 */
   RUN_END_FADE_MS: 1200,
-  /** 음소거 토글 키 (KeyboardEvent.code) 와 저장 키 */
-  MUTE_KEY_CODE: 'KeyM',
+  /** 음소거 저장 키. 49라운드 계약 §11.3: M 키 토글은 없앴다 (M = UI 지도, 음소거는 Esc 메뉴 → uiCommands.setMuted) */
   MUTE_STORAGE_KEY: 'lopad.mute',
   /** 디버그 요약에 남기는 최근 효과음 수 */
   RECENT_SFX: 12,
@@ -548,6 +549,75 @@ export const KEYS = {
   SPRINT: 'SHIFT',
   /** 47라운드 Q5: 구조물 상호작용 (E 누르기, 묘는 2초 누르기). 키 이름은 data/structures.json rules.interactKey 와 같다 */
   INTERACT: 'E',
+  /** 49라운드: 활 수동 장전 (임시). 게임 중 R 은 다른 용도가 없다 — 재시작 R 은 결과 화면(GameOver) 전용 */
+  RELOAD: 'R',
+  /** 49라운드 계약 §11.4: 무기 시험장 메뉴(무기·개성 갈래) 열기 (임시) */
+  LAB_MENU: 'L',
+} as const;
+
+/**
+ * 49라운드 Q3·Q5 무기 휴대 폴백 (임시값): 휴대 시트(weapons/<w>_carry_<동작>)가 없을 때
+ * 기존 attack 무기 시트 0프레임을 휴대 위치에 작게 겹친다. 오프셋은 발 피벗 기준 월드 px, 방향별
+ */
+export const CARRY = {
+  /** 칼집·등에 넣은 무기 축소 배율 · 손에 든 무기(단검·활·뽑은 칼·대검) 배율 */
+  STOWED_SCALE: 0.6,
+  HAND_SCALE: 0.8,
+  /** 허리 칼집 (칼): 오프셋 · 기울기(도) · 몸 뒤(below) 여부 */
+  SHEATH: {
+    down: { x: 5, y: -8, angle: 70, below: false },
+    up: { x: -5, y: -8, angle: 110, below: true },
+    left: { x: 2, y: -8, angle: 160, below: false },
+    right: { x: -2, y: -8, angle: 20, below: false },
+  },
+  /** 등 (대검): 대각선으로 멘 모습 */
+  BACK: {
+    down: { x: 0, y: -14, angle: -45, below: true },
+    up: { x: 0, y: -14, angle: -45, below: false },
+    left: { x: 4, y: -14, angle: -60, below: true },
+    right: { x: -4, y: -14, angle: -120, below: true },
+  },
+  /** 손 (단검·활·뽑아 든 칼·대검) */
+  HAND: {
+    down: { x: 5, y: -6, angle: 0, below: false },
+    up: { x: -5, y: -6, angle: 0, below: true },
+    left: { x: -4, y: -6, angle: 0, below: false },
+    right: { x: 4, y: -6, angle: 0, below: false },
+  },
+} as const;
+
+/**
+ * 49라운드 계약 §11.4 무기 시험장 (임시값). 작은 아레나 · 중앙 허수아비(무한 체력) ·
+ * 일정 방향으로 투사체를 쏘는 허수아비 · 플레이어는 죽지 않는다(HP 자동 회복)
+ */
+export const LAB = {
+  /** 아레나 내부 크기(타일) */
+  ARENA_W: 22,
+  ARENA_H: 14,
+  /** 허수아비 크기 px · 색 */
+  DUMMY_SIZE: [16, 20] as [number, number],
+  DUMMY_COLOR: '#b08850',
+  TURRET_COLOR: '#8a6db0',
+  /** 사수 허수아비: 아레나 중심에서의 위치(타일) · 발사 방향 · 간격 · 탄 */
+  TURRET_OFFSET_TILES: { x: 7, y: -4 },
+  TURRET_DIR: { x: -1, y: 0 },
+  TURRET_INTERVAL_MS: 1400,
+  TURRET_SHOT: { speedPx: 110, attack: 8, size: 5, lifeMs: 3500 },
+  /** 플레이어 HP 가 이 비율 아래로 내려가면 가득 채운다 (시험장은 죽지 않음) */
+  HEAL_BELOW_RATIO: 0.5,
+  /** 시험장 시드 (지도 생성용 고정값) */
+  SEED: 'weapon-lab',
+  /** Esc → 타이틀: UI 가 Esc 로 일시정지 화면을 띄울 수 있어 2 스텝 뒤에 정리한다 */
+  EXIT_DEFER_STEPS: 2,
+  /** 메뉴를 닫은 직후 이 시간 안의 Esc 는 무시 (UI 가 같은 Esc 로 메뉴를 닫은 경우) */
+  ESC_AFTER_CLOSE_MS: 200,
+} as const;
+
+/** 49라운드 무기 동작 연출 (임시값) */
+export const WEAPON_FX = {
+  /** 단검 과열: 가열 단계 시트가 없을 때 연격 이펙트 배율 = 1 + 단계 × 값 · 잔상 리본 폭 = 기본 × (1 + 단계 × 값) */
+  HEAT_SCALE_PER_STAGE: 0.12,
+  HEAT_TRAIL_PER_STAGE: 0.35,
 } as const;
 
 /**

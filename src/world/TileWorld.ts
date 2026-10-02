@@ -4,7 +4,7 @@ import { Rng } from '../systems/rng';
 import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } from '../systems/mapgen';
 import { CELL_H, CELL_W, type Rect } from '../systems/mapgen/types';
 import { findSafeTile } from '../systems/traversal';
-import { TileSkin, isOpenId, planProps, roomTypeMap } from './tileskin';
+import { TileSkin, edgeVoidTiles, isOpenId, planProps, roomTypeMap } from './tileskin';
 
 export type DoorState = 'open' | 'closed' | 'locked';
 
@@ -46,6 +46,9 @@ export class TileWorld {
     this.layer = this.map.createLayer(0, tileset, 0, 0)!;
     this.layer.setDepth(DEPTH.TILES);
     this.layer.setCollision(skin.solidIndices);
+    // 49라운드 열린 틈(원경 void): 바닥에 닿는 빈 칸은 칸 단위로 막는다 (빈 칸 인덱스를 다른 ID 와 나눠 쓸 수 있어 인덱스 충돌로는 안 함)
+    for (const v of edgeVoidTiles(layout)) this.layer.getTileAt(v.x, v.y)?.setCollision(true, true, true, true, false);
+    this.layer.calculateFacesWithin(0, 0, layout.widthTiles, layout.heightTiles);
     this.roomById = new Map(layout.rooms.map((r) => [r.id, r]));
     this.solidPropIndices = skin.solidPropIndices;
     const C = layout.arena?.camera;
