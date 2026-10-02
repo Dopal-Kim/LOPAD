@@ -1,3 +1,5 @@
+import type { MapPathSpec } from './routeView';
+
 /**
  * UI 테마 (41라운드, 계약 `contracts/ui-art-kit.md` v0.4).
  * 색은 팔레트 사본 `assets/ui/kit/palette.json` 의 값만 쓴다 — 무채 G00~G15, 세피아 S0~S5, 층 강조 램프 16~27.
@@ -251,11 +253,87 @@ export const MAP3D = {
 } as const;
 
 /**
- * 49라운드 지도 배경 일러스트 (Gemini 키 후 아트가 `assets/ui/map_bg_<floor>.png` 로 넣는 자리).
- * 파일이 생기면 그 층 번호(UiRoute.floor)를 여기에 넣는다 — 없는 파일을 읽어 404 를 내지 않게 목록으로 둔다.
- * 그림은 양피지 사다리꼴(지도 칸 560×약 360)에 맞춰 늘려 깔고 사다리꼴 모양으로 자른다.
+ * 지도 배경 일러스트 (49라운드 자리, 50라운드 적용 — 계약 §12). `assets/ui/map_bg_<floor>.png` 가 있는 층 번호(UiRoute.floor).
+ * 없는 파일을 읽어 404 를 내지 않게 목록으로 둔다. 그림은 지도 칸에 비율 유지로 맞추고(양피지 사다리꼴·원근 대신
+ * 일러스트 좌표계 우선), 노드는 `MAP_PATHS[floor]` 의 길을 따라 놓는다. 큰 그림이라 그 층 노드 지도가 처음 필요할 때 읽는다.
  */
-export const MAP_BG_FLOORS: readonly number[] = [];
+export const MAP_BG_FLOORS: readonly number[] = [1];
+
+/**
+ * 50라운드: 층별 지도 그림 속 길 (그림 원본 960×540 px 기준, 임시값 — 도영 님 검토 대상).
+ * 1층 `map_bg_1`: 왼쪽 위 황무지 점선 길 → 성문 → 가운데 아래로 처진 밝은 길(외곽 거리 사이) → 양조 구역 → 오른쪽 위 연회장 계단(보스).
+ * 단계(col)는 길이 비율로 고르게, 같은 단계 갈래(row)는 길에 수직으로 rowSpread 간격.
+ */
+export const MAP_PATHS: Readonly<Record<number, MapPathSpec>> = {
+  1: {
+    srcW: 960,
+    srcH: 540,
+    points: [
+      [100, 112],
+      [160, 146],
+      [252, 212],
+      [330, 262],
+      [420, 312],
+      [520, 345],
+      [610, 348],
+      [690, 305],
+      [760, 250],
+      [855, 220],
+    ],
+    rowSpread: 104,
+    margin: 34,
+    farScale: 0.82,
+    tangentSpan: 40,
+  },
+};
+
+/** 50라운드 일러스트 지도: 그림 그림자 어긋남·테두리, 길 점(밝은 점 + 어두운 테두리 1px) */
+export const MAP_ILLUST = {
+  shadow: 4,
+  /** 길 점 테두리 두께 (어두운 그림 위에서 보이게) */
+  dotRim: 1,
+} as const;
+
+/**
+ * 50라운드 지역 키아트 (`assets/ui/keyart/keyart_<key>.png`, 960×540, 아트 §8 사본). 시스템의 `UiRouteNode.region` 은 표시 이름이라
+ * 이름 안의 낱말로 키를 찾는다 (임시 — 계약에 지역 키가 생기면 그것을 쓴다). 위에서부터 처음 맞는 것.
+ */
+export const REGION_ART: readonly { key: string; match: readonly string[] }[] = [
+  { key: 'gate', match: ['성문', 'gate'] },
+  { key: 'outer', match: ['외곽', 'outer'] },
+  { key: 'brewery', match: ['양조', 'brewery'] },
+  { key: 'hall', match: ['연회', '본영', 'hall'] },
+  { key: 'waste', match: ['황무지', '전장', '여정', 'waste'] },
+];
+
+/** 50라운드 지역 카드 (노드 진입 시 지역이 바뀌면 키아트 전면 카드, 임시값) */
+export const REGION_CARD = {
+  /** 나타남 · 머묾 · 사라짐 (합 1.9초) */
+  fadeInMs: 300,
+  holdMs: 1300,
+  fadeOutMs: 300,
+  /** 아무 키로 넘길 때 사라지는 시간, 카드가 뜬 직후 입력을 무시하는 시간 */
+  skipFadeMs: 160,
+  skipGuardMs: 200,
+  /** 글자가 배경보다 늦게 나타나는 비율 (나타남 시간 기준) */
+  textLag: 0.5,
+  /** 키아트를 아직 못 읽었을 때 기다리는 최대 시간 (넘으면 그림 없이) */
+  loadWaitMs: 1200,
+  /** 글자 띠: 가운데 y·높이 (G00 α0.55) */
+  bandY: 400,
+  bandH: 84,
+  /** 이름과 설명 사이 */
+  lineGap: 6,
+  /** HUD 자막(50) 위, 노드 지도(100) 아래 */
+  depth: 90,
+} as const;
+
+/** 50라운드 M 지도 오른쪽 위치 정보 칸의 지역 키아트 배경: 칸 바깥 여백, 어둡게 덮는 횟수(G00 α0.55 씩) */
+export const SIDE_ART = {
+  padX: 8,
+  padY: 6,
+  darken: 2,
+} as const;
 
 /**
  * 49라운드 무기 자원 게이지 (HUD 하단 묶음 3행, 임시값). 색은 팔레트 안 — 유채색은 현재 층 강조 램프 슬롯.

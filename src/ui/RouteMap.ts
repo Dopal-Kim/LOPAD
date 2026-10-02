@@ -11,7 +11,12 @@ import {
   accentHex,
   book,
   cursor,
+  derivedTexture,
+  ensureImage,
+  keyartKey,
+  keyartUrl,
   mapBgKey,
+  mapBgUrl,
   nodeIconKey,
   rule,
 } from './kit';
@@ -19,18 +24,55 @@ import {
   cycle,
   dottedPoints,
   ellipseRows,
+  fitContain,
+  layoutOnPath,
   layoutPerspective,
   linkKind,
   sortNodes,
   trapezoidRows,
+  type Area,
   type LinkKind,
+  type MapPathSpec,
+  type PerspectiveLayout,
 } from './routeView';
+import { regionArtKey } from './regionView';
 import { routeText, type RouteTextKey } from './text';
-import { GRAY, MAP3D, MAP_BG_FLOORS, ROUTE, SEPIA, type TextStyleName, hexToNum } from './theme';
+import {
+  GRAY,
+  MAP3D,
+  MAP_BG_FLOORS,
+  MAP_ILLUST,
+  MAP_PATHS,
+  ROUTE,
+  SEPIA,
+  SIDE_ART,
+  type TextStyleName,
+  hexToNum,
+} from './theme';
+
+import { keyToDir, pickNeighbor, type NavNode } from './warpNav';
 
 /** 양피지 색 (팔레트 세피아 안에서): 바탕·격자 */
 const MAP3D_SHEET = { fill: SEPIA[4], grid: SEPIA[3] } as const;
-import { keyToDir, pickNeighbor, type NavNode } from './warpNav';
+
+/** 50라운드: 이 층에 지도 그림이 있으면 그 그림 속 길 (없으면 그림 가운데 가로 직선) */
+function illustrationPath(floor: number): MapPathSpec | null {
+  if (!MAP_BG_FLOORS.includes(floor)) return null;
+  return (
+    MAP_PATHS[floor] ?? {
+      srcW: 960,
+      srcH: 540,
+      points: [
+        [80, 270],
+        [880, 270],
+      ],
+      rowSpread: 100,
+      margin: 34,
+      farScale: 0.82,
+      tangentSpan: 40,
+    }
+  );
+}
 
 /** 노드 종류 이름 (임시 문구, text.ts ROUTE_TEXT). 상점은 스냅샷 `names.shop` 이 있으면 그 이름 */
 const TYPE_KEY: Record<UiNodeType, RouteTextKey> = {
@@ -214,7 +256,9 @@ const ICON_HALF = 16;
  * 노드 지도 (48라운드 계약 §10, 49라운드 §11 — M 지도 + 위치 정보 + 넘어가기 확인). HUD 씬 위 일기장 한 페이지 (depth 100~).
  * 왼쪽: 펼친 양피지 위 입체 지도 — 진행은 아래(가까움) → 위(멂), 같은 단계의 갈래는 좌우. 멀수록 작고 촘촘하게,
  *   노드는 땅에서 살짝 들린 표지(아이콘 + 기둥 + 그림자), 길은 땅 위 점선(가까울수록 굵게).
- *   `assets/ui/map_bg_<floor>.png` 가 있으면(theme `MAP_BG_FLOORS`) 양피지 대신 그 그림을 사다리꼴로 잘라 깐다.
+ *   50라운드: `assets/ui/map_bg_<floor>.png` 가 있는 층(theme `MAP_BG_FLOORS`)은 **일러스트 좌표계 우선** — 그림을 비율 유지로
+ *   깔고(사다리꼴·원근 대신) 노드를 그림 속 길(`MAP_PATHS`)에 맞춰 놓는다. 깊이(들림·그림자 크기)는 그림 위쪽일수록 멂(약하게).
+ *   오른쪽 위치 정보 칸 뒤에는 지금 지역 키아트를 어둡게 깐다. 큰 그림은 처음 필요할 때 읽고, 늦게 오면 그 자리에 끼운다.
  * 오른쪽: 지금 있는 곳(지역·이름·종류·설명) / 살펴보는(고른) 곳 / 범례.
  * - 'choose': ROUTE_CHOOSE_OPEN. available 노드를 고르면 '넘어가시겠습니까?' 확인 → 예일 때만 onChoose.
  * - 'view': M·Tab 보기 전용. 방향키로 둘러보기만.
@@ -389,21 +433,30 @@ export class RouteMap {
     const sideX = area.x + mapW + MAP3D.sideGap;
 
     const nodes = sortNodes(route.nodes);
-    const L = layoutPerspective(nodes, area, {
-      rowMax: MAP3D.rowMax,
-      farScale: MAP3D.farScale,
-      ease: MAP3D.ease,
-      minGap: MAP3D.minGap,
-      padTop: MAP3D.padTop,
-      padBottom: MAP3D.padBottom,
-    });
-    this.drawSheet(area, route.floor, L.yAt);
+    const illust = illustrationPath(route.floor);
+    let L: PerspectiveLayout;
+    if (illust) {
+      // 50라운드: 일러스트 좌표계 우선 — 그림을 비율 유지로 깔고 그 위 길에 노드를 놓는다
+      const rect = fitContain(area, illust.srcW, illust.srcH);
+      L = layoutOnPath(nodes, rect, illust);
+      this.drawIllustration(rect, route.floor);
+    } else {
+      L = layoutPerspective(nodes, area, {
+        rowMax: MAP3D.rowMax,
+        farScale: MAP3D.farScale,
+        ease: MAP3D.ease,
+        minGap: MAP3D.minGap,
+        padTop: MAP3D.padTop,
+        padBottom: MAP3D.padBottom,
+      });
+      this.drawSheet(area, L.yAt);
+    }
 
     const useSheet = NODE_ICON_SHEET.available && scene.textures.exists(NODE_ICON_SHEET.key);
     const r = useSheet ? ROUTE.iconR : ROUTE.nodeR;
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const liftAt = (scale: number): number =>
-      Math.round(MAP3D.liftFar + (MAP3D.liftNear - MAP3D.liftFar) * ((scale - MAP3D.farScale) / (1 - MAP3D.farScale)));
+      Math.round(MAP3D.liftFar + (MAP3D.liftNear - MAP3D.liftFar) * ((scale - L.farScale) / (1 - L.farScale || 1)));
     const shadowAt = (scale: number) => ({
       rx: Math.max(6, Math.round(MAP3D.shadowRx * scale)),
       ry: Math.max(2, Math.round(MAP3D.shadowRy * scale)),
@@ -431,8 +484,16 @@ export class RouteMap {
         lg.fillStyle(dotColor[kind], 1);
         const trimA = shadowAt(pa.scale).rx + 2;
         const trimB = shadowAt(pb.scale).rx + 2;
-        for (const p of dottedPoints(pa.x, pa.y, pb.x, pb.y, trimA, trimB, Math.max(4, step)))
-          lg.fillRect(p.x - Math.floor(dot / 2), p.y - Math.floor(dot / 2), dot, dot);
+        const pts = dottedPoints(pa.x, pa.y, pb.x, pb.y, trimA, trimB, Math.max(4, step));
+        if (illust) {
+          // 어두운 그림 위: 점마다 S0 테두리 1px 를 먼저 깔고, 지나온 길은 S5(밝게)로
+          const rim = MAP_ILLUST.dotRim;
+          lg.fillStyle(hexToNum(SEPIA[0]), 1);
+          for (const p of pts)
+            lg.fillRect(p.x - Math.floor(dot / 2) - rim, p.y - Math.floor(dot / 2) - rim, dot + rim * 2, dot + rim * 2);
+          lg.fillStyle(kind === 'walked' ? hexToNum(SEPIA[5]) : dotColor[kind], 1);
+        }
+        for (const p of pts) lg.fillRect(p.x - Math.floor(dot / 2), p.y - Math.floor(dot / 2), dot, dot);
       }
     }
 
@@ -537,6 +598,8 @@ export class RouteMap {
       drawFigure(this.figure, scene, si);
       this.figureY = cur.gy - FIGURE_H + 1;
       this.figure.setPosition(cur.x - ICON_HALF - 4 - FIGURE_W, this.figureY);
+      // 이름표가 왼쪽으로 넘어간 지금 노드(지도 오른쪽 끝, 예: 보스)는 주인공 표시 왼쪽으로 더 비킨다
+      if (cur.labelLeft) cur.label.setX(cur.label.x - FIGURE_W - 4);
       let up = false;
       this.bobTimer = scene.time.addEvent({
         delay: ROUTE.bobMs,
@@ -584,11 +647,7 @@ export class RouteMap {
    * 펼친 양피지 (계단식 사다리꼴, 아래가 넓고 위가 좁다 = 멀어짐): 그림자 → 바탕 → 지평선 격자 → 말린 위·아래 가장자리 → 테두리.
    * 지도 배경 일러스트가 있으면 바탕·격자 대신 그 그림을 사다리꼴로 잘라 깐다.
    */
-  private drawSheet(
-    area: { x: number; y: number; w: number; h: number },
-    floor: number,
-    yAt: (d: number) => number,
-  ): void {
+  private drawSheet(area: { x: number; y: number; w: number; h: number }, yAt: (d: number) => number): void {
     const scene = this.scene;
     const cx = area.x + area.w / 2;
     const yTop = area.y + MAP3D.sheetInsetY;
@@ -600,36 +659,22 @@ export class RouteMap {
     // 그림자 (오른쪽 아래로 어긋남, 허용 알파 0.55)
     g.fillStyle(hexToNum(SEPIA[0]), 0.55);
     for (const r of rows) g.fillRect(r.x + MAP3D.sheetShadow, r.y + MAP3D.sheetShadow, r.w, 1);
-    const bgKey = mapBgKey(floor);
-    const hasBg = MAP_BG_FLOORS.includes(floor) && scene.textures.exists(bgKey);
-    if (hasBg) {
-      const img = scene.add
-        .image(Math.round(cx - wBottom / 2), yTop, bgKey)
-        .setOrigin(0, 0)
-        .setDisplaySize(wBottom, yBottom - yTop + 1);
-      const shape = scene.make.graphics({}, false);
-      shape.fillStyle(0xffffff, 1);
-      for (const r of rows) shape.fillRect(r.x, r.y, r.w, 1);
-      img.setMask(shape.createGeometryMask());
-      this.extra.push(shape);
-    } else {
-      g.fillStyle(hexToNum(MAP3D_SHEET.fill), 1);
-      for (const r of rows) g.fillRect(r.x, r.y, r.w, 1);
-      // 지평선 격자: 가로 = 깊이 고르게 (멀수록 촘촘), 세로 = 아래에서 위로 모이는 선
-      g.fillStyle(hexToNum(MAP3D_SHEET.grid), 1);
-      for (let i = 0; i <= MAP3D.gridRows; i++) {
-        const yy = yAt(i / MAP3D.gridRows);
-        const row = rows[yy - yTop];
-        if (!row) continue;
-        for (let x = row.x + 2; x < row.x + row.w - 2; x += 4) g.fillRect(x, yy, 2, 1);
-      }
-      for (let i = 1; i < MAP3D.gridCols; i++) {
-        const t = i / MAP3D.gridCols;
-        const xb = Math.round(cx - wBottom / 2 + wBottom * t);
-        const xt = Math.round(cx - wTop / 2 + wTop * t);
-        for (const p of dottedPoints(xb, yBottom - MAP3D.sheetRoll, xt, yTop + MAP3D.sheetRoll, 2, 2, 5))
-          g.fillRect(p.x, p.y, 1, 2);
-      }
+    g.fillStyle(hexToNum(MAP3D_SHEET.fill), 1);
+    for (const r of rows) g.fillRect(r.x, r.y, r.w, 1);
+    // 지평선 격자: 가로 = 깊이 고르게 (멀수록 촘촘), 세로 = 아래에서 위로 모이는 선
+    g.fillStyle(hexToNum(MAP3D_SHEET.grid), 1);
+    for (let i = 0; i <= MAP3D.gridRows; i++) {
+      const yy = yAt(i / MAP3D.gridRows);
+      const row = rows[yy - yTop];
+      if (!row) continue;
+      for (let x = row.x + 2; x < row.x + row.w - 2; x += 4) g.fillRect(x, yy, 2, 1);
+    }
+    for (let i = 1; i < MAP3D.gridCols; i++) {
+      const t = i / MAP3D.gridCols;
+      const xb = Math.round(cx - wBottom / 2 + wBottom * t);
+      const xt = Math.round(cx - wTop / 2 + wTop * t);
+      for (const p of dottedPoints(xb, yBottom - MAP3D.sheetRoll, xt, yTop + MAP3D.sheetRoll, 2, 2, 5))
+        g.fillRect(p.x, p.y, 1, 2);
     }
     // 말린 가장자리: 위 = 밝은 띠(종이가 넘어감), 아래 = 어두운 둥근 말림 + 윗선 하이라이트
     const roll = MAP3D.sheetRoll;
@@ -649,10 +694,88 @@ export class RouteMap {
     }
   }
 
+  /**
+   * 50라운드: 지도 그림 (비율 유지, 사각형). 그림자 → 바탕(S1, 그림을 읽는 동안) → 그림 → 테두리 S0 1px.
+   * 그림은 표시 크기로 한 번 줄인 텍스처를 1:1 로 깐다. 아직 안 읽었으면 읽기 시작하고, 오면 바탕 바로 위에 끼운다.
+   */
+  private drawIllustration(rect: Area, floor: number): void {
+    const scene = this.scene;
+    const g = scene.add.graphics();
+    g.fillStyle(hexToNum(SEPIA[0]), 0.55).fillRect(
+      rect.x + MAP_ILLUST.shadow,
+      rect.y + MAP_ILLUST.shadow,
+      rect.w,
+      rect.h,
+    );
+    g.fillStyle(hexToNum(SEPIA[1]), 1).fillRect(rect.x, rect.y, rect.w, rect.h);
+    const place = (): void => {
+      if (this.destroyed) return;
+      const key = derivedTexture(scene, mapBgKey(floor), rect.w, rect.h, 'stretch');
+      if (!key) return;
+      const img = scene.add.image(rect.x, rect.y, key).setOrigin(0, 0);
+      this.insertLate(img, g, 'above');
+    };
+    const frame = scene.add.graphics();
+    frame.lineStyle(1, hexToNum(SEPIA[0]), 1).strokeRect(rect.x - 0.5, rect.y - 0.5, rect.w + 1, rect.h + 1);
+    if (scene.textures.exists(mapBgKey(floor))) place();
+    else ensureImage(scene, mapBgKey(floor), mapBgUrl(floor), (ok) => ok && place());
+  }
+
+  /**
+   * 늦게 만든 객체를 기준 객체 바로 위(above)·아래(below)에 끼운다 (같은 depth 안의 표시 순서).
+   * 지도를 만드는 중이면(build 끝에서 depth 를 줄 것이므로) 순서만 맞춘다.
+   */
+  private insertLate(
+    o: Phaser.GameObjects.GameObject & { setDepth(d: number): unknown },
+    anchor: Phaser.GameObjects.GameObject,
+    where: 'above' | 'below',
+  ): void {
+    const list = this.scene.children;
+    if (where === 'above') list.moveAbove(o, anchor);
+    else list.moveBelow(o, anchor);
+    if (this.objs.length) {
+      o.setDepth(ROUTE.depth);
+      this.objs.push(o);
+    }
+  }
+
+  /**
+   * 50라운드: 오른쪽 위치 정보 칸 뒤 지금 지역 키아트 (가운데를 잘라 덮고 G00 α0.55 로 두 번 어둡게) + 테두리 S1.
+   * 키아트가 없는 지역이면 그리지 않는다. 아직 안 읽었으면 읽기 시작하고 오면 테두리 아래에 끼운다.
+   */
+  private drawSideArt(rect: Area, region: string | undefined): void {
+    const art = regionArtKey(region);
+    if (!art) return;
+    const scene = this.scene;
+    const frame = scene.add.graphics();
+    frame.lineStyle(1, hexToNum(SEPIA[1]), 1).strokeRect(rect.x + 0.5, rect.y + 0.5, rect.w - 1, rect.h - 1);
+    const src = keyartKey(art);
+    const place = (): void => {
+      if (this.destroyed) return;
+      const key = derivedTexture(scene, src, rect.w, rect.h, 'cover', SIDE_ART.darken);
+      if (!key) return;
+      this.insertLate(scene.add.image(rect.x, rect.y, key).setOrigin(0, 0), frame, 'below');
+    };
+    if (scene.textures.exists(src)) place();
+    else ensureImage(scene, src, keyartUrl(art), (ok) => ok && place());
+  }
+
   /** 오른쪽 칸: 지금 있는 곳 · 살펴보는(고른) 곳 · 범례 */
   private buildSide(x: number, top: number, w: number, bottom: number, here: UiRouteNode | null): void {
     const scene = this.scene;
     const si = this.stageIndex;
+    const useSheetIcons = NODE_ICON_SHEET.available && scene.textures.exists(NODE_ICON_SHEET.key);
+    const legendTop = bottom - (useSheetIcons ? 34 : 22) * 3 - 8;
+    // 50라운드: 범례 위까지 지금 지역 키아트를 어둡게 (글자보다 먼저 = 아래)
+    this.drawSideArt(
+      {
+        x: x - SIDE_ART.padX,
+        y: top - SIDE_ART.padY,
+        w: w + SIDE_ART.padX * 2,
+        h: legendTop - SIDE_ART.padY - (top - SIDE_ART.padY),
+      },
+      here?.region,
+    );
     let y = top;
     const head = new GlowText(scene, x, y, routeText('hereTitle'), 'page_faint');
     y += head.displayHeight + 2;

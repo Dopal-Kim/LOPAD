@@ -1,4 +1,5 @@
 import { uiCommands, type UiText } from '../contract/ui';
+import { firstSentence } from './regionView';
 import { replaceMuteHint } from './resourceView';
 import { withControlExtras } from './structView';
 
@@ -180,4 +181,21 @@ export type R49TextKey = keyof typeof R49_TEXT;
 
 export function r49Text(key: R49TextKey): string {
   return uiText('hud', key, R49_TEXT[key]);
+}
+
+/**
+ * 50라운드 지역 카드 문구 (임시값, 도영 님·스토리 검수 대상). 지역 키아트 키별 짧은 설명 한 줄.
+ * 텍스트 팩 `hud.region_<키>` 가 있으면 그 문구를 쓴다. 키가 없는 지역은 노드 설명(`desc`)의 첫 문장.
+ */
+export const REGION_TEXT: Record<string, string> = {
+  waste: '부러진 창과 깃발만 남은 옛 싸움터',
+  gate: "술독 제국 '잔'으로 드는 문",
+  outer: '술 냄새가 골목마다 밴 성 밖 거리',
+  brewery: '증류탑이 밤낮없이 끓는 곳',
+  hall: '취한 지배자가 잔치를 벌이는 곳',
+};
+
+export function regionText(key: string | null, fallbackDesc?: string): string {
+  if (key && REGION_TEXT[key]) return uiText('hud', `region_${key}`, REGION_TEXT[key]);
+  return firstSentence(fallbackDesc);
 }

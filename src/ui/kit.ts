@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { ACCENT_FIRST_SLOT, FLOOR1_RAMP, FONT, FONT_FILES, GRAY, LAYOUT, MAP_BG_FLOORS, hexToNum } from './theme';
+import { ACCENT_FIRST_SLOT, FLOOR1_RAMP, FONT, FONT_FILES, GRAY, LAYOUT, hexToNum } from './theme';
+import { coverCrop } from './routeView';
 
 /**
  * UI 키트 로더·조립 헬퍼 (계약 `contracts/ui-art-kit.md` v0.4 §2·§4).
@@ -145,6 +146,98 @@ export function nodeIconKey(scene: Phaser.Scene, stageIndex: number): string {
 
 /** 49라운드: 지도 배경 일러스트 텍스처 키 (`assets/ui/map_bg_<floor>.png`, theme `MAP_BG_FLOORS` 에 있는 층만 읽는다) */
 export const mapBgKey = (floor: number): string => `ui-map-bg-${floor}`;
+export const mapBgUrl = (floor: number): string => `assets-game/ui/map_bg_${floor}.png`;
+/** 50라운드: 지역 키아트 텍스처 키·주소 (`assets/ui/keyart/keyart_<key>.png`, 960×540) */
+export const keyartKey = (key: string): string => `ui-keyart-${key}`;
+export const keyartUrl = (key: string): string => `assets-game/ui/keyart/keyart_${key}.png`;
+
+// ---------------------------------------------------------------------------------------------
+// 50라운드: 큰 그림(키아트·지도 배경)은 preload 에 넣지 않고 필요할 때 한 번만 읽는다. 텍스처는 게임 전체가 공유한다.
+const pendingLoads = new Map<string, { scene: Phaser.Scene; cbs: ((ok: boolean) => void)[] }>();
+const failedLoads = new Set<string>();
+const watchedScenes = new WeakSet<Phaser.Scene>();
+
+/**
+ * 그림을 아직 안 읽었으면 지금 읽는다 (같은 키를 여러 번 불러도 한 번만). 다 읽으면(또는 실패하면) done(ok).
+ * 이미 있으면 done(true) 를 바로 부른다. 실패한 키는 다시 읽지 않는다 (404 반복 방지).
+ * 읽던 씬이 꺼지면 그 대기는 버린다 (다음 호출이 다시 읽는다).
+ */
+export function ensureImage(scene: Phaser.Scene, key: string, url: string, done?: (ok: boolean) => void): void {
+  if (scene.textures.exists(key)) {
+    done?.(true);
+    return;
+  }
+  if (failedLoads.has(key)) {
+    done?.(false);
+    return;
+  }
+  const wait = pendingLoads.get(key);
+  if (wait) {
+    if (done) wait.cbs.push(done);
+    return;
+  }
+  const entry = { scene, cbs: done ? [done] : [] };
+  pendingLoads.set(key, entry);
+  const load = scene.load;
+  const finish = (ok: boolean): void => {
+    load.off(`filecomplete-image-${key}`, onOk);
+    load.off(Phaser.Loader.Events.FILE_LOAD_ERROR, onErr);
+    if (pendingLoads.get(key) !== entry) return;
+    pendingLoads.delete(key);
+    if (!ok) failedLoads.add(key);
+    for (const cb of entry.cbs) cb(ok);
+  };
+  const onOk = (): void => finish(true);
+  const onErr = (file: Phaser.Loader.File): void => {
+    if (file.key === key) finish(false);
+  };
+  load.once(`filecomplete-image-${key}`, onOk);
+  load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, onErr);
+  load.image(key, url);
+  if (!load.isLoading()) load.start();
+  if (!watchedScenes.has(scene)) {
+    watchedScenes.add(scene);
+    scene.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      for (const [k, e] of [...pendingLoads]) if (e.scene === scene) pendingLoads.delete(k);
+    });
+  }
+}
+
+/**
+ * 큰 그림을 표시 크기로 한 번 줄여 둔 캔버스 텍스처 (게임은 pixelArt 최근접 확대라 큰 그림을 그대로 줄이면 깨진다).
+ * 'stretch' = w×h 로 늘려 맞춤, 'cover' = 비율 유지로 덮고 가운데를 자름. darken 번 G00 α0.55 로 덮는다.
+ * 같은 크기·방식이면 다시 만들지 않는다. 원본이 없으면 null.
+ */
+export function derivedTexture(
+  scene: Phaser.Scene,
+  srcKey: string,
+  w: number,
+  h: number,
+  mode: 'stretch' | 'cover',
+  darken = 0,
+): string | null {
+  if (!scene.textures.exists(srcKey) || w <= 0 || h <= 0) return null;
+  const key = `${srcKey}@${w}x${h}${mode === 'cover' ? 'c' : 's'}${darken}`;
+  if (scene.textures.exists(key)) return key;
+  const src = scene.textures.get(srcKey).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+  const tex = scene.textures.createCanvas(key, w, h);
+  if (!tex) return null;
+  const ctx = tex.getContext();
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  if (mode === 'cover') {
+    const c = coverCrop(src.width, src.height, w, h);
+    ctx.drawImage(src, c.sx, c.sy, c.sw, c.sh, 0, 0, w, h);
+  } else ctx.drawImage(src, 0, 0, src.width, src.height, 0, 0, w, h);
+  for (let i = 0; i < darken; i++) {
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = GRAY[0];
+    ctx.fillRect(0, 0, w, h);
+  }
+  ctx.globalAlpha = 1;
+  tex.refresh();
+  return key;
+}
 
 /** 씬 preload 에서 호출. 이미 있는 텍스처는 건너뛴다 (UI 씬 어느 것이 먼저 떠도 된다) */
 export function preloadKit(scene: Phaser.Scene): void {
@@ -180,10 +273,6 @@ export function preloadKit(scene: Phaser.Scene): void {
       frameHeight: NODE_ICON_SHEET.size,
     });
   if (!scene.cache.json.exists(KIT.palette)) scene.load.json(KIT.palette, `${BASE}palette.json`);
-  for (const f of MAP_BG_FLOORS) {
-    const key = mapBgKey(f);
-    if (!scene.textures.exists(key)) scene.load.image(key, `assets-game/ui/map_bg_${f}.png`);
-  }
   for (const id of Object.values(WEAPON_ICON_IDS)) {
     const key = weaponIconKey(id);
     if (!scene.textures.exists(key)) scene.load.image(key, `assets-game/ui/weapons/${id}_icon.png`);

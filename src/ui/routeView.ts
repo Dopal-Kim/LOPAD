@@ -149,6 +149,8 @@ export interface PerspectiveLayout {
   yAt: (depth: number) => number;
   /** 깊이 → 크기 비 */
   scaleAt: (depth: number) => number;
+  /** 가장 먼 곳의 크기 비 (들림·그림자 보간 기준) */
+  farScale: number;
 }
 
 /** 0..1 깊이를 원근 곡선으로 (멀수록 촘촘). ease 0 이면 직선 */
@@ -169,7 +171,7 @@ export function layoutPerspective(nodes: UiRouteNode[], area: Area, o: Perspecti
   const usable = Math.max(0, bottom - top);
   const cx = area.x + area.w / 2;
   if (!nodes.length) {
-    return { pos, ease: o.ease, rowStep: 0, yAt: () => bottom, scaleAt: () => 1 };
+    return { pos, ease: o.ease, rowStep: 0, yAt: () => bottom, scaleAt: () => 1, farScale: o.farScale };
   }
   const minCol = Math.min(...nodes.map((n) => n.col));
   const maxCol = Math.max(...nodes.map((n) => n.col));
@@ -196,7 +198,7 @@ export function layoutPerspective(nodes: UiRouteNode[], area: Area, o: Perspecti
       scale,
     });
   }
-  return { pos, ease, rowStep, yAt, scaleAt };
+  return { pos, ease, rowStep, yAt, scaleAt, farScale: o.farScale };
 }
 
 /**
@@ -224,4 +226,111 @@ export function ellipseRows(cx: number, cy: number, rx: number, ry: number) {
     rows.push({ x: Math.round(cx - half), y: Math.round(cy + dy), w: half * 2 });
   }
   return rows;
+}
+
+// ---------------------------------------------------------------------------------------------
+// 50라운드: 지도 배경 일러스트 위 배치 — 그림 속 길(점 목록)을 따라 col 비율로 놓고, row 는 길에 수직으로 벌린다.
+
+/** 층별 지도 그림 위 길 (그림 원본 px 좌표) */
+export interface MapPathSpec {
+  /** 그림 원본 크기 */
+  srcW: number;
+  srcH: number;
+  /** 길 점 목록: 첫 단계(col 최소) → 마지막 단계(보스). 길이 비율로 보간한다 */
+  points: readonly (readonly [number, number])[];
+  /** 같은 단계 줄 간격 (원본 px, 길에 수직) */
+  rowSpread: number;
+  /** 그림 가장자리에서 띄우는 여백 (원본 px) */
+  margin: number;
+  /** 그림 위쪽(먼 곳)의 크기 비 — 일러스트가 거의 평면이라 원근보다 약하게 */
+  farScale: number;
+  /** 접선을 구할 때 앞뒤로 보는 거리 (원본 px) — 꺾인 점에서 줄이 튀지 않게 */
+  tangentSpan: number;
+}
+
+/** 점 목록을 길이로 매개화한 길. at(s) = 시작에서 길이 s 인 점 */
+export function pathSampler(points: readonly (readonly [number, number])[]) {
+  const pts = points.length ? points : [[0, 0] as const];
+  const acc: number[] = [0];
+  for (let i = 1; i < pts.length; i++)
+    acc.push(acc[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const length = acc[acc.length - 1];
+  const at = (s: number): { x: number; y: number } => {
+    if (pts.length === 1 || length <= 0) return { x: pts[0][0], y: pts[0][1] };
+    const c = Math.max(0, Math.min(length, s));
+    let i = 1;
+    while (i < acc.length - 1 && acc[i] < c) i++;
+    const seg = acc[i] - acc[i - 1];
+    const t = seg > 0 ? (c - acc[i - 1]) / seg : 0;
+    return {
+      x: pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t,
+      y: pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t,
+    };
+  };
+  /** 길이 s 에서의 단위 접선 (앞뒤 span 거리의 두 점으로) */
+  const tangent = (s: number, span: number): { x: number; y: number } => {
+    const a = at(s - span);
+    const b = at(s + span);
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy);
+    return len > 0 ? { x: dx / len, y: dy / len } : { x: 1, y: 0 };
+  };
+  return { length, at, tangent };
+}
+
+/** 그림(srcW×srcH)을 영역 안에 비율 유지로 맞춘 사각형 (가운데, 정수) */
+export function fitContain(area: Area, srcW: number, srcH: number): Area {
+  const s = Math.min(area.w / srcW, area.h / srcH);
+  const w = Math.floor(srcW * s);
+  const h = Math.floor(srcH * s);
+  return { x: Math.round(area.x + (area.w - w) / 2), y: Math.round(area.y + (area.h - h) / 2), w, h };
+}
+
+/** w×h 를 빈틈없이 덮도록 원본(srcW×srcH)에서 잘라 올 영역 (가운데 기준, 정수) */
+export function coverCrop(srcW: number, srcH: number, w: number, h: number) {
+  const s = Math.max(w / srcW, h / srcH);
+  const sw = Math.min(srcW, Math.round(w / s));
+  const sh = Math.min(srcH, Math.round(h / s));
+  return { sx: Math.floor((srcW - sw) / 2), sy: Math.floor((srcH - sh) / 2), sw, sh };
+}
+
+/**
+ * 일러스트 좌표계 배치. 단계(col)는 길 전체 길이를 (단계 수 - 1) 로 나눈 비율 자리, 같은 단계의 줄(row)은 그 자리의
+ * 접선에 수직으로 rowSpread 간격(가운데 정렬, row 0 = 길 진행 방향의 왼쪽 = 화면에서 대개 위). 그림 밖으로 나가지 않게 margin 안으로.
+ * 깊이 = 그림 위쪽일수록 멂(0 가까움..1 멂), 크기 비 = 1..farScale. `rect` 는 그림이 화면에 놓인 사각형.
+ */
+export function layoutOnPath(nodes: UiRouteNode[], rect: Area, spec: MapPathSpec): PerspectiveLayout {
+  const pos = new Map<string, PerspectivePoint>();
+  const kx = rect.w / spec.srcW;
+  const ky = rect.h / spec.srcH;
+  const scaleAt = (depth: number): number => 1 - (1 - spec.farScale) * Math.max(0, Math.min(1, depth));
+  const yAt = (depth: number): number => Math.round(rect.y + rect.h * (1 - depth));
+  const base = { ease: 0, yAt, scaleAt, farScale: spec.farScale };
+  if (!nodes.length) return { pos, rowStep: 0, ...base };
+  const path = pathSampler(spec.points);
+  const minCol = Math.min(...nodes.map((n) => n.col));
+  const maxCol = Math.max(...nodes.map((n) => n.col));
+  const cols = maxCol - minCol + 1;
+  const rowsIn = new Map<number, number>();
+  for (const n of nodes) rowsIn.set(n.col, Math.max(rowsIn.get(n.col) ?? 0, n.row + 1));
+  for (const n of nodes) {
+    const t = cols > 1 ? (n.col - minCol) / (cols - 1) : 0;
+    const s = t * path.length;
+    const p = path.at(s);
+    const tg = path.tangent(s, spec.tangentSpan);
+    const rows = rowsIn.get(n.col) ?? 1;
+    const off = (n.row - (rows - 1) / 2) * spec.rowSpread;
+    // 법선 = 접선을 시계 반대로 90° (화면 좌표: y 아래) → 오른쪽으로 가는 길이면 아래. row 0(음수 쪽)이 위로
+    const qx = Math.max(spec.margin, Math.min(spec.srcW - spec.margin, p.x - tg.y * off));
+    const qy = Math.max(spec.margin, Math.min(spec.srcH - spec.margin, p.y + tg.x * off));
+    const depth = Math.max(0, Math.min(1, 1 - qy / spec.srcH));
+    pos.set(n.id, {
+      x: Math.round(rect.x + qx * kx),
+      y: Math.round(rect.y + qy * ky),
+      depth,
+      scale: scaleAt(depth),
+    });
+  }
+  return { pos, rowStep: Math.round(spec.rowSpread * kx), ...base };
 }
