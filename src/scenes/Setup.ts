@@ -1,9 +1,14 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, GAME, KEYS, PLACEHOLDER_UI, PROTOTYPE, RHYTHM_DOT, SCENES, TILE } from '../core/Constants';
-import { PERSONALITY, PLAYER_DATA, STORY, WEAPONS } from '../data';
+import { COLORS, DEPTH, GAME, KEYS, PLACEHOLDER_UI, PROTOTYPE, SCENES } from '../core/Constants';
+import { PERSONALITY, STORY, WEAPONS } from '../data';
 import { fill } from '../systems/story';
 import type { Affinity } from '../data/types';
-import { chooseWeapon, rhythmFeatures, strokeFeatures, type RhythmSample, type Stroke } from '../systems/personality';
+import { chooseWeapon, strokeFeatures, type Stroke } from '../systems/personality';
+import { DODGE_TRIAL, emptySample, evaluateDodge, type DodgeEvaluation, type DodgeSample } from '../systems/dodgeTrial';
+import { DodgeTrialRunner } from '../systems/dodgeTrialRunner';
+import { StrokeFx } from '../systems/strokeFx';
+import { STROKE_FX } from '../systems/strokeFxMath';
+import { spriteLibrary } from '../systems/sprites';
 import { META_CONFIG, buyUpgrade, metaStore, upgradeCost } from '../systems/meta';
 import { TextMenu } from '../systems/TextMenu';
 import { setMenuSelect } from '../contract/host';
@@ -11,11 +16,12 @@ import { EventBus, Events } from '../core/EventBus';
 import { audio } from '../systems/audio';
 import { UI_EVENTS, __system } from '../contract/ui';
 
-type Phase = 'meta' | 'name' | 'strokes' | 'rhythm' | 'fate';
+type Phase = 'meta' | 'name' | 'strokes' | 'trial' | 'fate';
 
 /**
- * 개성 선택 (기획 1장): "가장 강한 것"을 3획으로 그리고, 5초간 자유롭게 입력한 리듬을 합쳐
- * 성향 벡터를 만들고 가장 가까운 무기를 '운명'으로 정한다.
+ * 개성 선택 (기획 1장): "가장 강한 것"을 3획으로 그리고(48라운드 Q8: 화면이 찢기며 빛이 새는 연출 `StrokeFx`),
+ * 15초 회피 시험(48라운드 Q7, 14라운드 5초 리듬 대체 `DodgeTrialRunner`) 결과를 합쳐
+ * 성향 벡터 + 무기별 가산으로 '운명' 무기를 정한다.
  * 화면·연출은 시스템 파트 플레이스홀더이며 UI·아트 파트 산출물로 교체 대상.
  */
 const NAME_MAX = 12;
@@ -67,14 +73,41 @@ const STROKE_EXAMPLES: StrokeExample[] = [
 ];
 const EXAMPLE_PANEL = PLACEHOLDER_UI.EXAMPLE_PANEL;
 
+/** 디버그 자동 획 (?debug=1, 헤드리스 검증용): 정규화 좌표 경로 3개 · 점 간격 ms · 획 사이 쉼 */
+type AutoPreset = 'fast' | 'slow' | 'round';
+const AUTO_STROKES: Record<AutoPreset, [number, number][][]> = {
+  fast: [0.2, 0.42, 0.64].map((y0) =>
+    Array.from({ length: 9 }, (_, i) => [0.18 + i * 0.07, y0 + (i % 2 === 0 ? 0 : 0.08)] as [number, number]),
+  ),
+  slow: [0.25, 0.45, 0.65].map((y0) =>
+    Array.from({ length: 14 }, (_, i) => [0.15 + i * 0.05, y0 + i * 0.004] as [number, number]),
+  ),
+  round: [0.3, 0.5, 0.7].map((cx) =>
+    Array.from({ length: 16 }, (_, i) => {
+      const a = Math.PI * (1 + i / 10);
+      return [cx + 0.12 * Math.cos(a), 0.4 + 0.2 * Math.sin(a)] as [number, number];
+    }),
+  ),
+};
+const AUTO_STEP_MS: Record<AutoPreset, number> = { fast: 16, slow: 90, round: 40 };
+const AUTO_GAP_MS = 250;
+/** 디버그 회피 시험 강제 집계 프리셋 (평가 검증용) */
+type TrialPreset = 'far' | 'close' | 'dash' | 'tank' | 'fell' | 'clean';
+const TRIAL_FULL = { survivedMs: DODGE_TRIAL.DURATION_MS, frames: 900 };
+const TRIAL_PRESETS: Record<TrialPreset, Partial<DodgeSample>> = {
+  far: { ...TRIAL_FULL, movingFrames: 540, dashes: 2, hits: 1, passes: { close: 1, mid: 3, far: 10 } },
+  close: { ...TRIAL_FULL, movingFrames: 450, dashes: 3, dashDodges: 1, hits: 1, passes: { close: 8, mid: 4, far: 1 } },
+  dash: { ...TRIAL_FULL, movingFrames: 750, dashes: 8, dashDodges: 4, hits: 2, passes: { close: 9, mid: 3, far: 0 } },
+  tank: { ...TRIAL_FULL, movingFrames: 300, dashes: 1, hits: 7, passes: { close: 4, mid: 4, far: 2 } },
+  fell: { survivedMs: 7000, frames: 420, movingFrames: 140, dashes: 1, hits: 3, falls: 1 },
+  clean: { ...TRIAL_FULL, movingFrames: 700, dashes: 3, passes: { close: 0, mid: 2, far: 12 } },
+};
+
 export class Setup extends Phaser.Scene {
   private phase: Phase = 'strokes';
   private strokes: Stroke[] = [];
   private current: Stroke | null = null;
-  private gfx: Phaser.GameObjects.Graphics;
   private label: Phaser.GameObjects.Text;
-  private rhythm: RhythmSample = { frames: 0, movingFrames: 0, attacks: 0, dashes: 0 };
-  private rhythmEndAt = 0;
   private keys: Record<string, Phaser.Input.Keyboard.Key>;
   private features?: Affinity;
   private menu: TextMenu;
@@ -85,11 +118,14 @@ export class Setup extends Phaser.Scene {
   private exampleGfx?: Phaser.GameObjects.Graphics;
   private exampleTexts: Phaser.GameObjects.Text[] = [];
   private playerName = '';
-  /** 리듬 단계 하얀 점 (31라운드 1): WASD 이동·스페이스 대쉬·클릭 번쩍. 집계 로직과는 무관한 표시용 */
-  private dot?: Phaser.GameObjects.Arc;
-  private dotFacing = new Phaser.Math.Vector2(1, 0);
-  private dotLastDashAt = -Infinity;
-  private dotClicks = 0;
+  /** 획 찢기 연출 (strokes 단계에서만) */
+  private strokeFx?: StrokeFx;
+  /** 회피 시험 (trial 단계) · 화면 고정 글자용 카메라 (메인 카메라는 경기장 2배 확대) */
+  private runner?: DodgeTrialRunner;
+  private uiCam?: Phaser.Cameras.Scene2D.Camera;
+  private trialSample?: DodgeSample;
+  private trialEval?: DodgeEvaluation;
+  private weaponId?: string;
 
   constructor() {
     super(SCENES.SETUP);
@@ -101,8 +137,15 @@ export class Setup extends Phaser.Scene {
     this.strokes = [];
     this.current = null;
     this.playerName = '';
-    this.rhythm = { frames: 0, movingFrames: 0, attacks: 0, dashes: 0 };
-    this.gfx = this.add.graphics().setDepth(DEPTH.ATTACK);
+    this.strokeFx = undefined;
+    this.runner = undefined;
+    this.uiCam = undefined;
+    this.trialSample = undefined;
+    this.trialEval = undefined;
+    this.features = undefined;
+    this.weaponId = undefined;
+    // 새 런은 1층: 이전 런이 바꿔 둔 층 변형을 원본으로 (시트·예고 색)
+    spriteLibrary.activate(this, 1);
     this.label = this.add
       .text(GAME.WIDTH / 2, PLACEHOLDER_UI.LABEL_Y, '', {
         font: PLACEHOLDER_UI.FONT_BODY,
@@ -132,8 +175,11 @@ export class Setup extends Phaser.Scene {
       this.nameInput = undefined;
       this.input.keyboard?.enableGlobalCapture();
       this.hideExamples();
-      this.dot?.destroy();
-      this.dot = undefined;
+      this.strokeFx?.destroy();
+      this.strokeFx = undefined;
+      this.runner?.destroy();
+      this.runner = undefined;
+      this.events.off(Phaser.Scenes.Events.ADDED_TO_SCENE, this.hideFromUiCam, this);
       delete (window as unknown as { __lopadSetup?: unknown }).__lopadSetup;
     });
     this.exposeDebug();
@@ -231,6 +277,7 @@ export class Setup extends Phaser.Scene {
   private beginStrokes(): void {
     this.menu.close();
     this.phase = 'strokes';
+    this.strokeFx = new StrokeFx(this);
     this.updateLabel();
     this.showExamples();
   }
@@ -311,103 +358,29 @@ export class Setup extends Phaser.Scene {
   update(time: number, delta: number): void {
     if (this.phase === 'strokes') {
       this.drawExamples(time);
+      this.strokeFx?.update(time);
       return;
     }
-    if (this.phase !== 'rhythm') return;
-    this.rhythm.frames += 1;
+    this.strokeFx?.update(time); // 마지막 획 섬광·사라짐
+    if (this.phase !== 'trial' || !this.runner) return;
     const mx = (this.keys.right.isDown ? 1 : 0) - (this.keys.left.isDown ? 1 : 0);
     const my = (this.keys.down.isDown ? 1 : 0) - (this.keys.up.isDown ? 1 : 0);
-    if (mx !== 0 || my !== 0) this.rhythm.movingFrames += 1;
-    const dashed = Phaser.Input.Keyboard.JustDown(this.keys.dash);
-    if (dashed) this.rhythm.dashes += 1;
-    this.moveDot(mx, my, dashed, delta);
-    const left = Math.max(0, this.rhythmEndAt - time);
-    this.label.setText(
-      `이제 5초 동안 자신답게 움직여 보세요 (WASD · 클릭 · 스페이스)\n남은 시간 ${(left / 1000).toFixed(1)}초`,
-    );
-    if (left <= 0) this.decideFate();
+    const dash = Phaser.Input.Keyboard.JustDown(this.keys.dash);
+    this.runner.update(time, delta, { mx, my, dash });
+    if (this.runner.phase === 'intro') this.label.setText(DODGE_TRIAL.TEXT.INTRO);
+    else if (this.runner.phase === 'run')
+      this.label.setText(
+        fill(DODGE_TRIAL.TEXT.RUN, {
+          sec: (this.runner.timeLeftMs / 1000).toFixed(1),
+          hits: this.runner.sample.hits,
+        }),
+      );
   }
 
   private onPointerDown(p: Phaser.Input.Pointer): void {
-    if (this.phase === 'strokes') {
-      this.current = [{ x: p.x, y: p.y, t: p.downTime }];
-    } else if (this.phase === 'rhythm') {
-      this.rhythm.attacks += 1;
-      this.flashDotRing();
-    }
-  }
-
-  /** 리듬 단계 시작: 화면 중앙에 하얀 점 */
-  private showDot(): void {
-    this.dot?.destroy();
-    this.dot = this.add
-      .circle(GAME.WIDTH / 2, GAME.HEIGHT / 2, RHYTHM_DOT.RADIUS, RHYTHM_DOT.COLOR)
-      .setDepth(DEPTH.ATTACK);
-    this.dotFacing.set(1, 0);
-    this.dotClicks = 0;
-  }
-
-  /** WASD 로 플레이어 이동 속도만큼 움직이고, 스페이스면 대쉬 거리만큼 순간 이동 + 잔상 */
-  private moveDot(mx: number, my: number, dashed: boolean, delta: number): void {
-    const dot = this.dot;
-    if (!dot) return;
-    const dir = new Phaser.Math.Vector2(mx, my);
-    if (dir.lengthSq() > 0) {
-      dir.normalize();
-      this.dotFacing.copy(dir);
-    }
-    const speed = PLAYER_DATA.stats.speedTiles * TILE;
-    let x = dot.x + dir.x * speed * (delta / 1000);
-    let y = dot.y + dir.y * speed * (delta / 1000);
-    if (dashed) {
-      const d = dir.lengthSq() > 0 ? dir : this.dotFacing;
-      const dist = PLAYER_DATA.dash.distanceTiles * TILE;
-      for (let i = 1; i <= RHYTHM_DOT.TRAIL_COUNT; i++) {
-        const t = i / (RHYTHM_DOT.TRAIL_COUNT + 1);
-        const ghost = this.add
-          .circle(x + d.x * dist * t, y + d.y * dist * t, RHYTHM_DOT.RADIUS, RHYTHM_DOT.COLOR, RHYTHM_DOT.TRAIL_ALPHA)
-          .setDepth(DEPTH.ATTACK);
-        this.tweens.add({ targets: ghost, alpha: 0, duration: RHYTHM_DOT.TRAIL_MS, onComplete: () => ghost.destroy() });
-      }
-      x += d.x * dist;
-      y += d.y * dist;
-      this.dotLastDashAt = this.time.now;
-    }
-    const m = RHYTHM_DOT.MARGIN;
-    dot.setPosition(Phaser.Math.Clamp(x, m, GAME.WIDTH - m), Phaser.Math.Clamp(y, m, GAME.HEIGHT - m));
-  }
-
-  /** 클릭: 점 주변에 작은 원이 번쩍 */
-  private flashDotRing(): void {
-    const dot = this.dot;
-    if (!dot) return;
-    this.dotClicks += 1;
-    const ring = this.add
-      .circle(dot.x, dot.y, RHYTHM_DOT.RING_FROM)
-      .setStrokeStyle(RHYTHM_DOT.RING_WIDTH, RHYTHM_DOT.COLOR, 0.9)
-      .setDepth(DEPTH.ATTACK);
-    this.tweens.add({
-      targets: ring,
-      radius: RHYTHM_DOT.RING_TO,
-      alpha: 0,
-      duration: RHYTHM_DOT.RING_MS,
-      onComplete: () => ring.destroy(),
-    });
-  }
-
-  /** 검증 훅 (?debug=1): 단계·점 위치·리듬 집계. 게임 로직이 아니다 */
-  private exposeDebug(): void {
-    if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
-    (window as unknown as { __lopadSetup: unknown }).__lopadSetup = () => ({
-      phase: this.phase,
-      dot: this.dot ? { x: this.dot.x, y: this.dot.y } : null,
-      rhythm: { ...this.rhythm },
-      strokes: this.strokes.length,
-      lastDashAt: this.dotLastDashAt,
-      clicks: this.dotClicks,
-      rings: this.children.list.filter((c) => c instanceof Phaser.GameObjects.Arc && c.isStroked).length,
-      features: this.features ?? null,
-    });
+    if (this.phase !== 'strokes') return;
+    this.current = [{ x: p.x, y: p.y, t: p.downTime }];
+    this.strokeFx?.begin(p.x, p.y, p.downTime);
   }
 
   private onPointerMove(p: Phaser.Input.Pointer): void {
@@ -415,22 +388,29 @@ export class Setup extends Phaser.Scene {
     const last = this.current[this.current.length - 1];
     if (Math.hypot(p.x - last.x, p.y - last.y) < 2) return;
     this.current.push({ x: p.x, y: p.y, t: p.moveTime });
-    this.gfx.lineStyle(2, COLORS.STROKE, 1);
-    this.gfx.lineBetween(last.x, last.y, p.x, p.y);
+    this.strokeFx?.move(p.x, p.y, p.moveTime);
   }
 
   private onPointerUp(p: Phaser.Input.Pointer): void {
     if (this.phase !== 'strokes' || !this.current) return;
     this.current.push({ x: p.x, y: p.y, t: p.upTime });
+    this.strokeFx?.end(p.x, p.y, p.upTime);
     if (this.current.length >= PERSONALITY.strokes.minPoints) this.strokes.push(this.current);
     this.current = null;
+    this.updateLabel();
     if (this.strokes.length >= PERSONALITY.strokes.count) {
       this.hideExamples();
-      this.phase = 'rhythm';
-      this.rhythmEndAt = this.time.now + PERSONALITY.rhythm.durationMs;
-      this.showDot();
+      this.phase = 'trial';
+      // 마지막 획의 섬광·식는 자국을 잠깐 보여 주고 사라진 뒤 회피 시험
+      this.time.delayedCall(STROKE_FX.HOLD_AFTER_LAST_MS, () => {
+        const fx = this.strokeFx;
+        if (!fx) return this.beginTrial();
+        fx.fadeOut(() => {
+          if (this.strokeFx === fx) this.strokeFx = undefined;
+          this.beginTrial();
+        });
+      });
     }
-    this.updateLabel();
   }
 
   private updateLabel(): void {
@@ -441,18 +421,110 @@ export class Setup extends Phaser.Scene {
     }
   }
 
+  /**
+   * 회피 시험 시작: 메인 카메라 = 경기장 중심 2배 확대(게임 카메라와 같은 배율), 글자는 확대 없는 UI 카메라에만.
+   * 이후 씬에 추가되는 오브젝트(투사체·예고·이펙트)는 UI 카메라에서 숨긴다.
+   */
+  private beginTrial(): void {
+    if (this.runner || !this.scene.isActive()) return;
+    this.phase = 'trial';
+    const main = this.cameras.main;
+    this.uiCam = this.cameras.add(0, 0, GAME.WIDTH, GAME.HEIGHT).setName('setup-ui');
+    this.uiCam.ignore(this.children.list.filter((c) => c !== this.label));
+    main.ignore(this.label);
+    this.events.on(Phaser.Scenes.Events.ADDED_TO_SCENE, this.hideFromUiCam, this);
+    main.setZoom(DODGE_TRIAL.ZOOM);
+    main.centerOn(GAME.WIDTH / 2, GAME.HEIGHT / 2 - DODGE_TRIAL.ARENA.OFFSET_Y_PX);
+    this.runner = new DodgeTrialRunner(this, (s) => this.onTrialDone(s));
+    this.runner.start(this.time.now);
+    this.label.setText(DODGE_TRIAL.TEXT.INTRO);
+  }
+
+  private hideFromUiCam(go: Phaser.GameObjects.GameObject): void {
+    if (go !== this.label) this.uiCam?.ignore(go);
+  }
+
+  /** 시험 끝: 결과 한 줄(자리표시) → 잠시 뒤 운명 */
+  private onTrialDone(sample: DodgeSample): void {
+    if (this.trialEval) return;
+    this.trialSample = { ...sample, passes: { ...sample.passes } };
+    this.trialEval = evaluateDodge(this.trialSample, PERSONALITY.rhythm.dashSaturation);
+    this.label.setText(DODGE_TRIAL.TEXT.RESULT[this.trialEval.kind]);
+    this.time.delayedCall(DODGE_TRIAL.RESULT_MS, () => this.decideFate());
+  }
+
+  /** 검증 훅 (?debug=1): 단계·획 연출·회피 시험 상태 + 자동 입력. 게임 로직이 아니다 */
+  private exposeDebug(): void {
+    if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
+    const api = Object.assign(
+      () => ({
+        phase: this.phase,
+        strokes: this.strokes.length,
+        strokeFx: this.strokeFx?.summary() ?? null,
+        trial: this.runner?.snapshot() ?? null,
+        camera: { zoom: this.cameras.main.zoom, uiCam: Boolean(this.uiCam) },
+        evaluation: this.trialEval ?? null,
+        features: this.features ?? null,
+        weapon: this.weaponId ?? null,
+      }),
+      {
+        /** 메타·이름 단계를 건너뛰고 획 단계로 */
+        skipToStrokes: (name = 'debug') => {
+          if (this.phase === 'meta') this.beginName();
+          if (this.phase === 'name') this.finishName(name);
+          return this.phase;
+        },
+        /** 3획 자동 입력 (같은 포인터 처리 경로, 프레임 간격으로 그린다). preset: fast · slow · round */
+        autoStrokes: (preset: AutoPreset = 'fast') => this.autoStrokes(preset),
+        /** 회피 시험 즉시 종료 + 강제 집계: 프리셋 이름 또는 DodgeSample 일부 */
+        skipTrial: (arg: TrialPreset | Partial<DodgeSample> = 'far') => {
+          if (this.phase !== 'trial') return false;
+          if (!this.runner) this.beginTrial();
+          const over = typeof arg === 'string' ? TRIAL_PRESETS[arg] : arg;
+          this.runner!.forceEnd(over);
+          return true;
+        },
+      },
+    );
+    (window as unknown as { __lopadSetup: unknown }).__lopadSetup = api;
+  }
+
+  private autoStrokes(preset: AutoPreset): boolean {
+    if (this.phase !== 'strokes') return false;
+    const paths = AUTO_STROKES[preset];
+    const stepMs = AUTO_STEP_MS[preset];
+    let delay = 0;
+    for (const path of paths) {
+      const pts = path.map(([x, y]) => ({ x: x * GAME.WIDTH, y: y * GAME.HEIGHT }));
+      pts.forEach((pt, i) => {
+        this.time.delayedCall(delay + i * stepMs, () => {
+          const t = this.time.now;
+          const p = { x: pt.x, y: pt.y, downTime: t, moveTime: t, upTime: t, isDown: true } as Phaser.Input.Pointer;
+          if (i === 0) this.onPointerDown(p);
+          else if (i === pts.length - 1) this.onPointerUp(p);
+          else this.onPointerMove(p);
+        });
+      });
+      delay += pts.length * stepMs + AUTO_GAP_MS;
+    }
+    return true;
+  }
+
   private decideFate(): void {
+    if (this.phase === 'fate') return;
     this.phase = 'fate';
-    this.dot?.destroy();
-    this.dot = undefined;
-    const f: Affinity = { ...strokeFeatures(this.strokes, PERSONALITY), ...rhythmFeatures(this.rhythm, PERSONALITY) };
+    this.runner?.dim();
+    const ev = this.trialEval ?? evaluateDodge(emptySample(), PERSONALITY.rhythm.dashSaturation);
+    const f: Affinity = { ...strokeFeatures(this.strokes, PERSONALITY), ...ev.keys };
     this.features = f;
-    const { id } = chooseWeapon(f, WEAPONS, PERSONALITY);
+    const { id } = chooseWeapon(f, WEAPONS, PERSONALITY, ev.bias);
+    this.weaponId = id;
     const w = WEAPONS[id];
     __system.emit(UI_EVENTS.FATE_DECIDED, { weaponName: w.name, features: f });
     EventBus.emit(Events.FATE_DECIDED, { weapon: id });
+    const a = ev.axes;
     this.label.setText(
-      `${this.playerName || '―'}\n\n${fill(STORY.diary.fate, { weapon: w.name })}\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)} · 이동 ${f.keyMove.toFixed(2)} 공격 ${f.keyAttack.toFixed(2)} 대쉬 ${f.keyDash.toFixed(2)})`,
+      `${this.playerName || '―'}\n\n${fill(STORY.diary.fate, { weapon: w.name })}\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)} · 회피 멀리 ${a.far.toFixed(2)} 직전 ${a.close.toFixed(2)} 대쉬 ${a.dashDodge.toFixed(2)} 버팀 ${a.endure.toFixed(2)} 무피격 ${a.clean.toFixed(2)}${ev.rare.flag ? ' · 희귀' : ''})`,
     );
     this.time.delayedCall(PROTOTYPE.FATE_BANNER_MS, () =>
       this.scene.start(SCENES.GAME, { mode: 'new', weapon: id, playerName: this.playerName }),
