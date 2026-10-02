@@ -1,6 +1,6 @@
-# LOPAD 아트 바이블 v0.6 (2026-10-02, 42라운드 FX 콘셉트 + 35~40라운드 보류 노트 통합)
+# LOPAD 아트 바이블 v0.7 (2026-10-02, 43라운드 FX 양산 A·B 반영 + 42라운드 FX 콘셉트 + 35~40라운드 보류 노트 통합)
 
-근거: `parts/producer/decisions/2026-10-01-round-28-art-kickoff.md` (Q1~Q8), 이후 라운드 결정문(32·33·35·36·37·38·40·42). 아래 "임시" 표시는 아직 도영 님 검수를 받지 않은 아트 파트 제안이다.
+근거: `parts/producer/decisions/2026-10-01-round-28-art-kickoff.md` (Q1~Q8), 이후 라운드 결정문(32·33·35·36·37·38·40·42, 43라운드 검수는 42라운드 결정문 안). 아래 "임시" 표시는 아직 도영 님 검수를 받지 않은 아트 파트 제안이다.
 상세 문서: UI 키트 `ui-kit.md`, 무기 이펙트 재디자인 `fx-design.md`. 작업 기록 원본은 `work/<slug>/NOTES*.md`.
 
 ## 1. 기본 사양 (확정)
@@ -38,14 +38,14 @@
 | 보스 | 무채 ≤12 + 강조 ≤6 |
 | 타일셋(한 층) | 무채 ≤10 + 강조 ≤4 (1층: 10 + 4 사용) |
 | 무기 | 무채 ≤4 + 강조 ≤7 |
-| 이펙트 (42라운드 재디자인 후) | 무채 ≤2 + 코어 2 + 층 강조 ≤3 + 무기 보조 4 = ≤11. 적·보스 예고·공통 피격은 보조색 없이 층 램프 ≤8 + 코어 (`fx-design.md` 2절). 재디자인 전 시트는 무채 ≤4 + 강조 ≤8 |
+| 이펙트 (43라운드 양산본) | 무채 ≤2(먼지·잔상 예외 3) + 코어 2 + 층 강조 ≤3 + 무기 보조 4 = ≤11. 적·보스 예고·공통 피격은 보조색 없이 층 램프 ≤8 + 코어 (`fx-design.md` 2절). 양산에서 그림을 유지한 blood·knock_dust·player_hit·dash_dust·dash_trail 은 무채 ≤4 + 강조 ≤8 |
 
 ### 2.4 UI 전용 세피아 램프 6칸 (36·38라운드, `lopad.json` `ui`)
 - S0 `#1f1813` 가죽 그늘 / S1 `#30261e` 가죽·손때 / S2 `#403227` 페이지 그늘 / S3 `#503f32` 페이지 바탕(L*28) / S4 `#6a5645` 페이지 단면·글자 할로 / S5 `#c6a58b` 빛나는 잉크(면 채움 금지).
 - 38라운드 "페이지는 더 더럽고 어둡게, 글씨는 빛나게": 종이 위 글자는 **발광 규칙** — 본문 S5 / 제목·선택 G15 / 비선택 G13 / 흐림 S5 α0.55, 할로 1px(4방향) S4 또는 선택 항목만 층 강조 20 α0.5, 바깥 그늘 링 S2. 잉크 HUD 위는 G14 + 할로 20 α0.5 + 그늘 G00. 어두운 회색 글자(G00~G03)는 세피아 페이지에서 더 이상 읽히지 않는다. UI 키트 외 사용 금지, 층 스왑과 무관. 상세 `ui-kit.md` 1.2절.
 
 ### 2.5 FX 예외 블록 (42라운드 Q2, `lopad.json` `fx`) — 상세 `fx-design.md`
-- 코어 X0 `#ffffff` / X1 `#fff4dc`(백열, 게임의 유일한 따뜻한 흰). 무기 보조 램프 4칸: katana 은빛 `#3a4556 #6f7e97 #a9b8cc #dde6f2` / greatsword 재·용암 `#4a3c38 #a8321c #e35c1c #f9b23c` / dagger 보라 그림자 `#1c1327 #3e2a62 #7a4fb2 #c89cf0` / bow 번개 청백 `#1e3350 #2e71c9 #6cb9f5 #cdefff`.
+- 코어 X0 `#ffffff` / X1 `#fff4dc`(백열, 게임의 유일한 따뜻한 흰). 무기 보조 램프 4칸: katana 은빛 `#3a4556 #6f7e97 #a9b8cc #dde6f2` / greatsword 재·용암 `#4a3c38 #a8321c #d8441c #f9b23c` (W2 는 43라운드 `#e35c1c` → `#d8441c`) / dagger 보라 그림자 `#1c1327 #3e2a62 #7a4fb2 #c89cf0` / bow 번개 청백 `#1e3350 #2e71c9 #6cb9f5 #cdefff`.
 - 3층 구조: 코어 1px → 층 강조 25~27 하이라이트(글린트·불티) → 보조 램프 몸체(W3→W1) → W0 어두운 가장자리. 캐릭터·타일·UI 금지, 한 시트에 한 무기 색만, 보조색 면 채움 금지(단검 그림자 웅덩이만 예외). 고정색(층 스왑 대상 아님).
 - 팔레트 생성기 `work/palette/build.py` 가 `ui`·`fx` 블록을 상수로 들고 있다 — 재생성해도 사라지지 않는다. 블록을 바꿀 때는 생성기에서 바꾼다.
 
@@ -101,82 +101,119 @@
 - 흙 질감은 1~8층 모두 `tc.dirt(ctx, seed, base, dots, pairs)` 한 함수: 공통 바닥 `dots {K 24, G02 14, G03 3~4} pairs {K 3}`, 보스·복도 `base K, dots {G01 22, G02 5}`. 8층은 바탕 한 단 밝은 G02.
 - 어두운 바닥에서 읽히도록 **소품 본체는 G04 이상**. 강조 비율은 12×8 방 기준 0.16%(8층)~2.9%(7층), 한도 5% 안.
 
-## 4.3 무기 4종 · 이펙트 · 1차 진화 8종 (29라운드 4단계, 임시)
+## 4.3 무기 4종 · 이펙트 · 1차 진화 8종 (무기 29라운드 4단계 · 이펙트 43라운드 양산, 임시)
 - 원칙: **무기는 공격 순간에만 나타난다.** 주인공 시트는 맨손 그대로이고, 시스템이 `weapons/<id>_attack` 을 같은 프레임 번호로 얹는다.
-- 색 예산: 무기 무채 4 (G00 날밑 · G05 손잡이/그늘 · G08 쇠 · G13 밝은 쇠) + 강조 ≤7. 이펙트는 무채 0 (먼지만 G06/G09/G12) + 강조 ≤8. 모두 1층 호박 램프로 그리고 런타임 스왑.
+- 이펙트 원칙(43라운드 양산): **무기 이펙트는 W0 가장자리 → 보조 램프 몸체 → 1px 백열 코어, 같은 궤적 2~3겹을 1프레임씩 어긋나게.** 예비(f0 40ms) → 섬광(1차 이상, 40ms) → 광선 → 식음 → 꼬리(점선 + 시스템 트레일). **적·보스 예고와 공통 피격은 층 램프 + 코어만**(보조색 없음). 4방향은 right 기준으로 그려 90° 회전·좌우 반전(픽셀 밀도 유지). 호 각도·반지름 등 세부값의 원본은 `work/fx_prod/build_a.py`·`build_b.py`.
+- 색 예산: 무기 무채 4 (G00 날밑 · G05 손잡이/그늘 · G08 쇠 · G13 밝은 쇠) + 강조 ≤7, 1층 호박 램프로 그리고 런타임 스왑. 이펙트(43라운드 양산본)는 무채 ≤2(먼지·잔상 예외 3) + 코어 X0/X1 2 + 층 강조 ≤3(글린트·불티) + 무기 보조 4 = ≤11, 한 시트에 한 무기 색. 공통 피격·예고·적 투사체는 층 램프 ≤8 + 코어. 층 강조만 런타임 스왑, 코어·보조색은 고정색. 표의 색 열은 `무채 / 코어 / 층 강조 / 보조`.
 - 아이콘 16×16 (`<id>_icon`): 고대비 흑백 4단(G00/G09/G13/G15) + 강조 21 두 픽셀(자루머리·촉). 실루엣으로 구분 — 칼 = 가는 곡선 대각 / 대검 = 넓은 직선 대각 + 긴 십자 날밑 / 단검 = 세로 잎날 / 활 = 세로 활대 + 시위 + 걸린 화살.
 - 손에 든 무기 `<id>_attack` **48×48** (피벗 (24,39) = 주인공 피벗 (8,23); 주인공 16×24 프레임이 캔버스 (16,16) 에 놓인 셈). 16×24 로는 날이 캔버스를 넘기 때문에 오버사이즈 셀을 쓴다 (`pixel-art-studio/references/animation.md` 규칙). 4방향×4프레임, 타이밍은 주인공 attack 과 동일 100·50·110·110.
   - 프레임 연출: 1 실체화(호박 윤곽만: 24/22/19/17) → 2 휘두름(쇠 + 날끝 글로우 25·27) → 3 뻗음(쇠) → 4 흩어지는 불티(2px 쌍 3개). 손 좌표는 `player/build.py poses_attack` 의 hand_pos 그대로, 날 방향은 방향×프레임 표(`BLADE_DIR`).
   - 날 길이·폭: 칼 10×2 / 대검 13×3 / 단검 5×2. 날의 위·왼쪽 줄이 G13(빛 좌상단), 반대 줄 G08, 대검은 G05 세 번째 줄.
   - 활은 손을 따르지 않고 방향별 고정 위치(전방)에 둔다: 1 실체화 → 2 시위 당김 + 화살 → 3 발사(시위 복귀, 1px 전진, 글로우) → 4 불티. 화살 투사체 생성 권장 시점 = 3프레임 시작.
   - **깊이: down/left/right 는 플레이어 위, up 은 플레이어 아래** (JSON `depth`). up 에서 등 뒤 무기가 몸을 가로지르지 않는다.
-- 베기 이펙트 `<id>_slash` 32×32, 피벗 (16,26) = 발 (몸 중심 (16,16)). 호 반지름·두께: 칼 11.5·4.2 / 대검 12·5.4 / 단검 8·2.8. 방향별 호: down −20°→200° (우→하→좌) · up 160°→380° · right −100°→80° · left 280°→100°. 4프레임 = 앞부분 호 → 전체 호(바깥 띠 27/26, 머리 쪽 한 단 밝게) → 꼬리 쪽만 어둡게 → 잔재 + 불티 2쌍. 타이밍 칼 50·60·70·80 / 대검 60·80·90·100 / 단검 40·50·60·60. 재생 시점 = 주인공 attack 2프레임 시작.
-- 화살: `bow_arrow` 8×8 (피벗 중심 (4,4), 깃 21·자루 G13·촉 27), `bow_arrow_aimed` 12×6 (2폭 자루 + 글로우 25 줄, 피벗 (6,3)). 우향으로 그렸고 시스템이 진행 각도로 회전(`rotate: true`).
-- 1차 진화 8종 (`fx/<진화id>`):
-  | id | 크기 | 방향 | 프레임·ms | 앵커·피벗 | 연출 |
-  |---|---|---|---|---|---|
-  | iai 거합 | 48×48 | 4 | 6 · 50/60/80/100/120/140 | player_pivot (24,34) | 반지름 19 넓은 호. 4~6프레임은 남는 궤적(어두운 띠 → 끊김) = 잔월 지속 영역 표시에 재사용 가능 |
-  | batto 발도술 | 32×32 | 4 | 4 · 50/70/80/90 | player_pivot (16,26), 플레이어 아래 권장 | 몸 뒤 속도선 3줄(가운데 가장 밝고 김) + 1·2프레임 전방 짧은 발도 호 |
-  | crush 파쇄 | 48×48 | any | 4 · 50/70/90/110 | hitbox_center (24,24) | 세로 0.75 압축 타원 링 5→11→17→21 확산, 2·3프레임 방사형 금(21/18), 마지막 끊긴 링 + 파편 |
-  | weight 중압 | 32×24 | any | 4 · 50/80/100/120 | hitbox_center, 피벗 (16,22) = 바닥 타격점 | 중심 섬광(27/25) + 양옆 회색 먼지(G06/G09/G12) 퍼짐·상승·소멸 |
-  | twin 쌍격 | 32×32 | 4 | 4 · 40/50/60/70 | player_pivot (16,26) | 안쪽 호(r 7.5) → 바깥 호(r 11.5) 가 한 프레임 늦게 따라옴 = 2타 |
-  | gale 질풍 | 24×24 | 4 | 4 루프 · 60/70/80/90 | player_pivot (12,22), 플레이어 아래 권장 | 몸 뒤 바람 호 3줄이 뒤로 밀리며 어두워짐 |
-  | pierce 관통 | 16×8 | any(회전) | 4 루프 · 60 | projectile, 피벗 (14,4) = 화살 중심 | 화살 뒤 빛줄 3줄(26/24/22) + 21 테두리 |
-  | scatter 산탄 | 16×16 | any(회전) | 4 · 40/50/60/70 | projectile, 피벗 (2,8) = 발사점 | ±24° 3갈래 섬광이 뻗었다 어두워짐 |
-- JSON 추가 필드(계약 §3 보강 제안): `anchor` (player_pivot / hitbox_center / projectile / ui), `rotate`+`drawnFacing` (투사체), `depth` (무기 오버레이), `spawn` (재생 시점 메모), `playerFrameOffset`.
+- 베기 이펙트 `<id>_slash` 와 화살 (43라운드 양산, `work/fx_prod/`). 베기 재생 시점 = 주인공 attack 2프레임 시작(`attack_frame2`). f0(예비 40ms)는 판정 40ms 전 재생(`attack_frame2 - 40ms`)이 이상적, 불가하면 f1 부터(JSON `spawnNote`). 화살은 우향으로 그렸고 시스템이 진행 각도로 회전(`rotate: true`, `drawnFacing: right`).
 
-### 4.3.1 피격 피드백 · 예고 마커 · 적 투사체 11종 (35라운드, `work/combat_fx/`)
-| id | 크기 | 방향 | 프레임 · ms | 앵커 · 피벗 | 색 (무채 / 강조) | 연출 |
+  | id | 크기 | 방향 | 프레임 · ms | 앵커 · 피벗 · 깊이 · spawn | 색 | 연출 |
+  |---|---|---|---|---|---|---|
+  | katana_slash | 48×48 | 4 | 5 · 40/50/60/70/90 | player_pivot (24,34) · 위 · `attack_frame2` | — / X0 X1 / 22 24 27 / 칼 W0~W3 | 콘셉트 승격. 본 띠 + 바깥 잔상(+1f), f0 예비 코어선, f2 광선 2, f4 꼬리. 트레일 W1 0.6 · 120ms · f2~ |
+  | greatsword_slash | 48×48 | 4 | 5 · 40/50/60/70/90 | player_pivot (24,34) · 위 · `attack_frame2` | G06 G09 / X0 X1 / 24 27 / 대검 W0~W3 | 두께 6.5 호 2겹 + 호 아래 바닥 불티 + 재. 트레일 W1 0.6 · 120ms · f2~ |
+  | dagger_slash | 48×48 | 4 | 5 · 40/50/60/70/90 | player_pivot (24,34) · 위 · `attack_frame2` | — / X0 X1 / 22 24 27 / 단검 W0~W3 | 짧고 빠른 호(140°, r11, 3.6px) 2겹 = 본 띠(W0~W3 + 1px 코어) + 바깥 r+3 그림자 잔상(W1/W0, 1프레임 지연). f0 예비 코어 점선 → f1 본 → f2 광선 2 + 식음 → f3 어두운 띠 → f4 점선 꼬리. 트레일 W1 0.6 · 120ms · f2~ |
+  | bow_arrow | 12×6 | any (rotate) | 1 | projectile (6,3) | — / X0 X1 / — / 활 W1 W2 W3 | 코어 자루(X1 + W2 그늘) + 청백 깃·꼬리(W1/W2) + 촉 W3→X0 |
+  | bow_arrow_aimed | 16×8 | any (rotate) | 1 | projectile (8,4) | — / X0 X1 / — / 활 W0~W3 | 3폭 자루(W3 / X1 / W2) + W0 밑 가장자리 + 긴 촉 X0 2px + 깃 2겹 |
+- 1차 진화 8종 (`fx/<진화id>`, 43라운드 양산):
+
+  | id | 크기 | 방향 | 프레임 · ms · 루프 | 앵커 · 피벗 · 깊이 · spawn | 색 | 연출 |
+  |---|---|---|---|---|---|---|
+  | iai 거합 | 64×64 | 4 | 7 · 40/40/60/80/100/120/140 | player_pivot (32,42) · 위 · `attack_frame2` | — / X0 X1 / 22 24 27 / 칼 | 콘셉트 승격. 3겹 + f1 섬광 + f2 광선 3 + 꼬리 3. 섬광 X1 0.18 f1 · 흔들림 2px 60ms · 트레일 0.7 · 180ms · f2~ |
+  | batto 발도술 | 64×64 | 4 | 7 · 40/40/40/50/60/70/80 (임시 A1) | player_pivot (32,42) · **아래** · `dash_start`, followsPlayer | — / X0 X1 / 22 24 27 / 칼 | 몸 뒤 속도선 3줄(W0 테두리·W2/X 코어) + 전방 발도 호 2겹(r14, ±45°). 예비 → 섬광 → 광선 → 식음 → 점선 → 조각. 트레일 0.7 · 180ms · f2~ |
+  | crush 파쇄 | 64×64 | any | 6 · 40/50/70/90/110/130 | hitbox_center (32,40) = 바닥 · 바닥 · `hit_judge` | G06 G09 / X0 X1 / 22 26 27 / 대검 | 콘셉트 quake_bolt 승격: 낙뢰 3겹 + 가지 → 섬광 별 → 링 r8→16→24 + 균열 + 재. 섬광 W3 `#f9b23c` 0.16 f1 · 흔들림 2px 60ms (임시 A9) |
+  | weight 중압 | 64×64 | any | 6 · 40/50/70/90/110/130 | hitbox_center (32,40) = 바닥 · 바닥 · `hit_judge` | G06 G09 / X0 X1 / 22 24 27 / 대검 | 섬광 별 → 양옆 먼지 뭉치(puff) + 링 r7→13→19 + 용암 균열(W2→W1→W0 점) + 불씨 → 재. 섬광 오버레이 없음, 흔들림 2px 60ms (임시 A10) |
+  | twin 쌍격 | 64×64 | 4 | 7 · 40/40/60/80/100/120/140 | player_pivot (32,42) · 위 · `attack_frame2` | — / X0 X1 / 22 24 27 / 단검 | 안쪽 호 r13 **f1 백열 = 1타**, 바깥 호 r19 **f2 백열 = 2타**(1프레임 늦음, 임시 B3), 각자 그림자. f2 광선 3 → f3 식음 → f4 어두운 띠 → f5 점선 → f6 꼬리. `hitFrames`. 섬광 X1 0.18 f1 · 흔들림 2px 60ms · 트레일 0.7 · 180ms · f2~ |
+  | gale 질풍 | 64×64 (임시 B5) | 4 | 4 · 60/70/80/90 · 루프 | player_pivot (32,42) · **아래**, followsPlayer · `loop_move` | — / X1 / — / 단검 W0~W3 | 몸 뒤를 감싸는 호(r10.5, 도는 W3 글린트) + 뒤로 흐르는 곡선 바람 줄 3(2px: 색 + W0 밑줄) + 가운데 줄 X1 코어 토막. 토막 9 on 3 off, 3px/f → 4프레임 = 주기 12 = 이음새 없음. 방향 = 이동 방향 |
+  | pierce 관통 | 32×8 | any (rotate) | 4 · 60×4 · 루프 | projectile (30,4) · 화살 아래 · `loop_move` | — / X1 / — / 활 W0~W3 | 빛줄: 코어 X1(머리 9px) → W3 → W2 → W1, 위아래 W2/W1, 머리 쪽 W0 가장자리, 끝 흔들림 |
+  | scatter 산탄 | 32×32 | any (rotate) | 4 · 40/50/60/70 | projectile (4,16) = 발사점 · `shot` | — / X0 X1 / 24 27 / 활 W0~W3 | ±24° 3갈래 번개 광선(3겹 W0·W2·X0/X1) 짧게 → 전체 → 바깥 토막 점선 → 조각. 발사점 섬광 X0 + W3 링 |
+- JSON 추가 필드: 29라운드 `anchor` (player_pivot / hitbox_center / projectile / ui), `rotate`+`drawnFacing` (투사체), `depth`, `spawn`, `playerFrameOffset` + 43라운드 계약 `art-assets.md` §3.2: `weapon`, `secondary: "fx.weapons.<id>"` (공통은 `weapon: "any"`), `trail {color: W1, alpha, ms, fromFrame(, widthRatio)}`, `flash {color, alpha, ms: 40, atFrame}`, `shake {px, ms}` — 구조화 객체로 기입(임시 A11). 그 밖에 `hitFrames`, `spawnNote`, `secondStage`(quake), `alias`(hit_spark), `stateFrames`(aim_line), `tint`(dash_trail).
+
+### 4.3.1 피격 피드백 · 예고 마커 · 적 투사체 13종 (35라운드 → 43라운드 양산 A 교체, `work/fx_prod/build_a.py`; blood·knock_dust·player_hit 는 `work/combat_fx/` 그대로)
+| id | 크기 | 방향 | 프레임 · ms | 앵커 · 피벗 · 깊이 | 색 (무채 / 코어 / 층 강조) | 연출 |
 |---|---|---|---|---|---|---|
-| hit_spark | 16×16 | any | 4 · 40 | hitbox_center (8,8) | G13 G15 / 21 22 | 압축 코어 → 팔 6 십자 → 끊어진 십자 → 2px 불티 6개 |
-| blood | 24×24 | 4 | 5 · 50, `tailFrames: 1` | hitbox_center (12,12) | — / 17 18 19 20 22 | 진행 방향으로 늘어진 덩어리 → 방울 5개 → 바닥 얼룩 2px (f4 얼룩만, 유지 후 페이드) |
-| crit_burst | 32×32 | any | 5 · 45 | hitbox_center (16,16) | G15 / 19 21 22 23 25 | 흰 코어 + 림 → 8방사선 + 고리 r5.5 → r9.5 → 점선 r12.5 → 잔재 + 불티 |
-| knock_dust | 16×8 | 4 | 4 · 60 | hitbox_center, 피벗 (8,6) = 발 | G06 G09 / — | 넉백 방향 앞으로 밀리는 먼지. down/up 은 같은 그림 |
-| player_hit | 24×24 | any | 3 · 50 | hitbox_center (12,12) | G06 G09 G13 G15 / — | G15 코어 + 6갈래 금 → 금 최대 → 바깥 조각. **주인공 피격만 무채** |
-| telegraph_line | 8×8 | any | 2 · 120 루프, `tile`·`rotate`·`scale` | hitbox_center, 피벗 (0,4) = 선 시작 | — / 18 20 22 | 2px 점선 깜빡 (42라운드 4px 실선으로 재디자인 예정) |
-| telegraph_circle | 32×32 | any | 2 · 120 루프, `scale` | hitbox_center (16,16) | — / 18 20 21 22 | r14.5 외곽선 + 눈금 + 중심 (scale = R/15) (42라운드 닫히는 원으로 재디자인 예정) |
-| telegraph_cone | 32×32 | 4 | 2 · 120 루프, `scale` | hitbox_center (16,16) = 꼭짓점 | — / 18 19 20 22 | 반지름 15, 반각 32° |
-| enemy_bullet | 8×8 | any | 1, `rotate` | projectile (5,4) | G01 G09 / 22 | 4×4 G01 구슬 + G09 글린트 + 22 꼬리 |
-| boss_fan_shot | 10×10 | any | 2 · 80 루프 | projectile (5,5) | G13 / 19 21 22 23 24 | 지름 8 원 맥동, 회전 안 함 |
-| muzzle_flash | 12×12 | 4 | 2 · 40/60 | hitbox_center, 피벗 (6,6) = 총구 | — / 22 23 25 27 | 전방 쐐기 + 대각 광선 + 불티 → 작은 불꽃 |
-- 피격 피드백 이펙트는 1층 램프로 그려 런타임 스왑, 주인공 피격만 무채. 깊이: hit_spark·crit_burst·player_hit 캐릭터 위 / blood·knock_dust·telegraph_* 바닥. blood 색은 적 강조색(21/23)과 구분하려 한 단 어두운 17~20.
+| hit_burst (신규) | 24×24 | any | 4 · 40/40/40/50 | hitbox_center (12,12) · 위 · `hit` | — / X0 X1 / 18 22 26 | 콘셉트 승격. 광선 6 (18·26·X 코어) |
+| hit_spark | 24×24 | any | 4 · 40/40/40/50 (hit_burst 와 같은 그림) | hitbox_center (12,12) · 위, `alias: hit_burst` | — / X0 X1 / 18 22 26 | 호환용. 16→24 로 커짐. 시스템이 hit_burst 로 전환하면 삭제 가능 (임시 A5) |
+| blood | 24×24 | 4 | 5 · 50, `tailFrames: 1` | hitbox_center (12,12) · 바닥 | — / — / 17 18 19 20 22 | 진행 방향으로 늘어진 덩어리 → 방울 5개 → 바닥 얼룩 2px (f4 얼룩만, 유지 후 페이드). 43라운드 변경 없음 |
+| crit_burst | 32×32 | any | 5 · 40/40/50/60/80 | hitbox_center (16,16) · 위 · `hit_crit` | — / X0 X1 / 18 19 21 22 24 26 27 | 광선 8 (3겹) + 고리 r8→12→14.5 + 네 귀 글린트 → 불티 |
+| knock_dust | 16×8 | 4 | 4 · 60 | hitbox_center, 피벗 (8,6) = 발 · 바닥 | G06 G09 / — / — | 넉백 방향 앞으로 밀리는 먼지. down/up 은 같은 그림. 변경 없음 |
+| player_hit | 24×24 | any | 3 · 50 | hitbox_center (12,12) · 위 | G06 G09 G13 G15 / — / — | G15 코어 + 6갈래 금 → 금 최대 → 바깥 조각. **주인공 피격만 무채**. 변경 없음 |
+| telegraph_line | 16×16 | any | 2 · 120 루프, `tile`·`rotate`·`drawnFacing` | hitbox_center (0,8) = 선 시작 · 바닥 | — / — / 18 22 24 25 27 | 콘셉트 승격. 4px 실선(y6~9), 코어 토막이 +x 로 8px/f 흐름 |
+| telegraph_circle | 64×64 | any | 6 · **진행도** (`progressDriven`, `frame = min(5, floor(progress*6))`) | hitbox_center (32,32) · 바닥 | — / X0 / 18 20 21 22 23 24 26 27 | 콘셉트 승격. 범위 링 r22 (`scale` = R/22), 수렴 링 r31→22, f5 백열 |
+| telegraph_cone | 64×64 | 4 | 6 · **진행도** | hitbox_center (32,32) = 꼭짓점 · 바닥 | — / X0 / 18 20 21 22 23 24 26 27 | 선과 같은 4~5px 구조 두 변(코어 토막이 꼭짓점→바깥 흐름) + 범위 호 r27 (`scale` = R/27, 임시 A7) + 수렴 점선 호, f5 백열 |
+| telegraph_aura (신규) | 64×64 | any | 4 · 100×4 루프 | hitbox_center (32,32) · 바닥, followsTarget | — / X0 / 18 20 21 22 23 25 27 | 수렴 오라(돌진·대기술 예고). 토막 안쪽 끝에 안으로 향한 쐐기 2px (정지 화면에서도 수렴) |
+| enemy_bullet | 8×8 | any | 1, `rotate`·`drawnFacing` | projectile (5,4) · 위 | — / X0 / 18 21 22 24 | 18 림 + 22 몸 + X0 코어 + 꼬리 24/21. 기존 G01 구슬 대체 (임시 A6) |
+| boss_fan_shot | 10×10 | any | 2 · 80 루프 | projectile (5,5) · 위 | — / X0 / 18 19 21 22 24 26 27 | 18 림 + 21/22 몸 + 코어 27↔X0 맥동, 회전 안 함 |
+| muzzle_flash | 12×12 | 4 | 2 · 40/60 | hitbox_center, 피벗 (6,6) = 총구 · 위 · `enemy_shoot` | — / X0 / 22 23 25 27 | 쐐기 X0 코어 + 27/25 + 23 + 대각 광선 → 작은 불꽃 |
+- 공통 피격·예고·적 투사체는 보조색 없이 층 램프(1층으로 그려 런타임 스왑) + 코어 X0/X1. 주인공 피격만 무채. 예고 4종은 `scale: "allowed"`. 깊이: hit_burst·hit_spark·crit_burst·player_hit·적 투사체 캐릭터 위 / blood·knock_dust·telegraph_* 바닥. blood 색은 적 강조색(21/23)과 구분하려 한 단 어두운 17~20.
 
-### 4.3.2 2차 진화 16종 + 보조 동작·대쉬 연출 7종 (35라운드, `work/evolution_fx/`)
-- 원칙: **2차 진화 이펙트는 1차와 같은 계열에 한 겹 더**(더 큰 호·남는 띠·두 번째 링·세 번째 호·더 긴 꼬리)로 구분하고, **보조 동작·대쉬 잔상은 무채(G02~G04)** 로 둬 층 스왑과 무관하게 한다. 2차는 1차를 **대체**한다(wide↔iai, dance↔twin, quake·pulverize↔crush, flash↔pierce, rain↔scatter, heavyarrow↔bow_arrow_aimed, dashcrit↔crit_burst). 겹쳐 재생: zangetsu(iai 뒤), longinvuln(batto 위), ironwall(guard_wave 위), giant·bleed·afterimage·assassin·seek(독립).
+### 4.3.2 2차 진화 16종 + 보조 동작·대쉬 연출 7종 (35라운드 → 43라운드 양산 A·B 교체, `work/fx_prod/`)
+- 원칙: **2차 진화 이펙트는 1차와 같은 계열에 한 겹 더**(더 큰 호·남는 띠·두 번째 링·세 번째 호·더 긴 꼬리)로 구분한다. 2차는 1차를 **대체**한다(wide↔iai, dance↔twin, quake·pulverize↔crush, flash↔pierce, rain↔scatter, heavyarrow↔bow_arrow_aimed, dashcrit↔crit_burst). 겹쳐 재생: zangetsu(iai 뒤), longinvuln(batto 위), ironwall(guard_wave 위), giant·bleed·afterimage·assassin·seek(독립).
+- 보조 동작·대쉬는 43라운드에 무기 보조색으로 옮겼다: parry_flash 는 보조색 없음(층 램프 + 코어), guard_wave 대검, shadowstep_ghost 단검(임시 B7), aim_charge·aim_line 활. **dash_dust·dash_trail 만 무채 유지**(층 스왑 무관, dash_trail 은 시스템 틴트).
 
-| id | 크기 | 방향 | 프레임 · ms · 루프 | 앵커 · 피벗 · 깊이 | 연출 · 재생 시점 |
-|---|---|---|---|---|---|
-| wide 만월 | 64×64 | 4 | 6 · 50/60/80/100/120/140 | player_pivot (32,42) · 위 | 거합(r19·220°)보다 큰 r26·280° 호 + 안쪽 r19 달무리. `attack_frame2` |
-| zangetsu 잔월 | 48×48 | 4 | 4 · 75×4 · 루프 | player_pivot (24,34) · 바닥 | 거합 자리에 남는 3px 띠 + 도는 글린트 2 (4f = 틱 300ms, f0 = 틱). `after_iai`, 위치 고정, 1000ms 뒤 제거 |
-| longinvuln 허보 | 32×32 | 4 | 4 · 50/70/90/110 | player_pivot (16,26) · 위, 따라감 | 돌진 실루엣 테두리 + 성긴 격자 + 속도선. `dash_start` |
-| dashcrit 급소 | 24×24 | any | 4 · 40/50/60/70 | hitbox_center (12,12) · 위 | 흰 점 + 고리 → 십자 r8 + 마름모 r6 → 점선 → 조각. `hit` |
-| quake 지진 | 64×64 | any | 6 · 50/70/100/70/100/130 | hitbox_center (32,32) · 바닥 | 1단 링 r6→19 → **f3(220ms) 부터 2단 링** r8→28 + 균열 + 파편 = 시스템 2단 판정 시각. `hit_judge` |
-| pulverize 분쇄 | 48×48 | any | 4 · 40/60/80/100 | hitbox_center (24,24) · 바닥 | 링 r7→22 + 쐐기 8 + X 표(투사체 소멸). `hit_judge` |
-| ironwall 철벽 | 32×32 | 4 | 3 · 40/60/80 | player_pivot **(16,22)** · 위 | 바라보는 쪽 9px 세로 벽 → 물결 → 점선. `guard_release` |
-| giant 거인 | 32×40 | any | 4 · 90×4 · 루프 | player_pivot (16,36) · 바닥, 따라감 | 발밑 고리 + 양옆 2px 기둥(12px 주기). `attack_start`~종료 |
-| dance 난무 | 32×32 | 4 | 6 · 40×6 | player_pivot (16,26) · 위 | 호 r7.5 → r10.5(반대) → r13, 0·2·4f = 1·2·3타. `attack_frame2` |
-| bleed 출혈 | 16×16 | any | 4 · 125×4 · 루프 | hitbox_center (8,8) · 위, 적 따라감 | 핏방울 2줄, 4f = 틱 500ms. 소진 시 제거 |
-| afterimage 잔상 | 24×24 | 4 | 4 · 60/80/100/120 | player_pivot (12,23) · 바닥, 고정 | 돌진 실루엣 분신 + 베기 사선. `dash_start` 출발점 |
-| assassin 암살 | 32×32 | any | 4 · 40/60/80/100 | hitbox_center (16,16) · 위 | 바닥 그림자 웅덩이(G01/G02) + 대각 섬광 베기. `hit` |
-| flash 섬광 | 24×8 | any (rotate) | 4 · 50×4 · 루프 | projectile (22,4) · 화살 아래 | 관통보다 8px 긴 순백 꼬리. `loop_move` |
-| heavyarrow 중시 | 16×8 | any (rotate) | 1 | projectile (8,4) | 무거운 화살 텍스처. `aimed_shot` |
-| heavyarrow_hit | 24×24 | any | 3 · 50/80/110 | hitbox_center (12,12) · 위 | 충격 별 + 먼지 + 점선 고리. `hit` |
-| rain 폭우 | 24×24 | any (rotate) | 4 · 40/50/60/70 | projectile (3,12) = 발사점 | 5갈래 ±50° 섬광. `shot` |
-| seek 추적 | 16×16 | any (rotate) | 4 · 60×4 · 루프 | projectile (13,8) · 화살 아래 | 꼬인 두 가닥 파동(4f = 2π). `loop_move` |
-| parry_flash | 32×32 | any | 4 · 40/60/80/100 | hitbox_center (16,16) = 접점 · 위 | 흰 별 → 동심 고리(시간 정지) → 점선 → 조각. `parry_success` |
-| guard_wave | 48×24 | 4 | 4 · 50/60/70/80 | player_pivot (24,14) = 발 · 바닥 | 반타원 충격파 r8→24 + 먼지. `guard_release` (반경 = 밀쳐내기 40px 의 60%, 필요 시 scale 1.6) |
-| shadowstep_ghost | 16×24 | 4 | 3 · 60/80/100 | player_pivot (8,23) · 바닥, 고정 | idle 실루엣 명도 3단(G02~G04) → 줄무늬 → 조각. `shadowstep_start` |
-| aim_charge | 24×24 | any | 6 · **진행도 기반** | player_pivot (12,12) = 몸 중심 · 위 | 점선 고리 r9 가 72° 씩 참 → f5 완료 발광. `frame = min(5, floor(progress*5))` |
-| aim_line | 8×2 | any (rotate, tile) | 1 | player_pivot (0,1) · 바닥 | 4 on / 4 off 점선. TileSprite 폭 = 사거리 |
-| dash_dust | 16×8 | 4 | 3 · 50/70/90 | player_pivot (8,6) = 발 · 바닥, 고정 | 대쉬 반대쪽 먼지. `dash_start` |
-| dash_trail | 16×24 | 4 | 3 · 40/60/80 | player_pivot (8,23) · 바닥, 고정 | 돌진 실루엣 줄무늬(G02~G04). 대쉬 중 40~50ms 마다 |
-- 실루엣이 필요한 것(허보·잔상·그림자 걸음·대쉬 잔상)은 player PNG 알파를 마스크로 재사용 → 플레이어 시트가 바뀌면 재빌드. 루프 이음새: 잔월 글린트 0.1125/f, 거인 점선 22.5°×4, 추적 2π/4.
-- JSON 메모 필드(계약 §3.1 보강 대상): `tailFrames`, `tile`, `scale`, `depth`, `followsPlayer`, `followsTarget`, `progressDriven`, `pivotNote`, `note`, `directionMeaning`.
+| id | 크기 | 방향 | 프레임 · ms · 루프 | 앵커 · 피벗 · 깊이 | 색 (무채 / 코어 / 층 강조 / 보조) | 연출 · 재생 시점 |
+|---|---|---|---|---|---|---|
+| wide 만월 | 96×96 | 4 | 7 · 40/50/70/90/110/140/160 | player_pivot (48,58) · 위 | — / X0 X1 / 22 24 27 / 칼 | 콘셉트 승격. 3겹 + 보름달 고리(f3 닫힘) + 네 귀 글린트. 섬광 X1 0.22 f1 · 흔들림 3px 80ms · 트레일 0.7 · 220ms · f2~. `attack_frame2` |
+| zangetsu 잔월 | 64×64 | 4 | 4 · 75×4 · 루프 | player_pivot (32,42) · 바닥 | — / X0 X1 / — / 칼 | 콘셉트 승격. 어두운 3띠 + 번개 토막 + 도는 글린트 (4f = 틱 300ms, f0 = 틱). `after_iai`, 위치 고정, 1000ms 뒤 제거 |
+| longinvuln 허보 | 64×64 | 4 | 5 · 40/50/70/90/110 | player_pivot (32,42) · 위, 따라감 | — / X0 X1 / 22 27 / 칼 | 돌진 실루엣(player_dash f1 마스크, (24,19)) 윤곽 W3→W2→W1→W0 점선 + 앞 가장자리 코어 + 성긴 사선(mod 3/4) + 속도선 3. 트레일 0.7 · 180ms · f1~ (임시 A8). `dash_start` |
+| dashcrit 급소 | 64×64 | any | 5 · 40/40/50/60/80 | hitbox_center (32,32) · 위 | — / X0 X1 / 22 24 27 / 칼 | hit_burst 구조 + 광선 8(W0·W2·X0 3겹) + 고리 r8→14→20 + 네 귀 글린트. 적중형이라 트레일 없음. `hit` |
+| quake 지진 | 96×96 (임시 A4) | any | 7 · 40/50/60/70/90/110/140 | hitbox_center (48,56) = 바닥 · 바닥 | G06 G09 / X0 X1 / 22 24 27 / 대검 | **2단 낙뢰**: f1 1단(3겹) → 링 r10→20, **f4(220ms) 2단** 4겹 더 굵은 낙뢰(다른 각도) + 링 r28→36→42 + 균열 10 + 재·불티. 섬광 W3 0.16 f1 · 흔들림 4px 120ms, `secondStage {frame: 4, atMs: 220, flash, shake}`. 회전 없음. `hit_judge` |
+| pulverize 분쇄 | 64×64 | any | 5 · 40/40/60/80/110 | hitbox_center (32,32) · 바닥 | G06 G09 / X0 X1 / 22 24 27 / 대검 | 코어 → 링 r8 + 쐐기 파편 8 분출 + X 표(X1→27, 투사체 소멸) → r15 → r21 점선 → 재. 섬광 W3 0.16 f1 · 흔들림 4px 120ms. `hit_judge` |
+| ironwall 철벽 | 64×64 | 4 | 4 · 40/50/70/90 | player_pivot **(32,42) = 발** · 위 (임시 A2) | G06 G09 / X0 X1 / 22 24 27 / 대검 | 몸 중심 전방 10px 벽 4px(W0·W2/W3·X0, ±12) 섬광 → 벽 뒤 가지 번개 + 전방 물결 + 재 → 점선. `guard_release` |
+| giant 거인 | 64×64 (임시 A3) | any | 4 · 90×4 · 루프 | player_pivot (32,52) = 발 · 바닥, 따라감 | G06 / X1 / 22 / 대검 | 발밑 고리 r20(W0 + 도는 W2 토막 + X1) + 안쪽 W1 점선 + 양옆 고정 용암 기둥(x 14/48, 16px, 밝은 토막이 3px/f 상승, 12px 주기 = 이음새 없음). `attack_start`~종료 |
+| dance 난무 | 96×96 | 4 | 7 · 40/40/50/70/110/140/160 | player_pivot (48,58) · 위 | — / X0 X1 / 22 24 27 / 단검 | 3중 베기 군집: r14 정방향(f1 백열) → r21 **역방향**(f2 백열) → r28 정방향(f3 백열 + 광선 4 + 네 귀 글린트), 각자 그림자 → f4 식음 → f5 점선 셋 → f6 꼬리. `hitFrames [1,2,3]` (임시 B2). 섬광 0.22 · 흔들림 3px 80ms · 트레일 0.7 · 220ms · f2~. `attack_frame2` |
+| bleed 출혈 | 24×24 | any | 4 · 125×4 · 루프 | hitbox_center (12,12) · 위, 적 따라감 | — / X1 / 17 18 20 (피) / 단검 W0 W1 | 핏방울 3줄(위상 0/2/1, 3×4 + 늘어진 꼬리 → 바닥 튐) + W1 그늘·W0 밑 + 발밑 W0 웅덩이. f0 = 틱 글린트 X1, 한 바퀴 500ms = 틱. 소진 시 제거 |
+| afterimage 잔상 | 64×64 (임시 B10) | 4 | 5 · 40/60/80/100/130 | player_pivot (32,42) · 바닥, 고정 | — / X0 X1 / 22 24 27 / 단검 | 대쉬 출발점 분신 군집: 돌진 실루엣(W2, 우·하 림) + 좌우(대쉬에 수직) 11→15→18px 로 벌어지는 분신 W1 → 세로 줄무늬 → 조각, W0 웅덩이 13→15→13→9→5 수축, f1 교차 베기 2줄(W3 + X0/X1). `dash_start` 출발점 |
+| assassin 암살 | 64×64 | any | 5 · 40/50/60/80/110 | hitbox_center (32,32) · 위 | — / X0 X1 / 24 25 27 / 단검 | 콘셉트 승격: 웅덩이 r15~18 + 분신 3(idle 실루엣, W0→W1→W2)이 모여듦 → 교차 섬광 2줄(3겹) → 세로 줄무늬 → 웅덩이 수축. `hit` |
+| flash 섬광 | 32×8 | any (rotate) | 4 · 50×4 · 루프 | projectile (30,4) · 화살 아래 | — / X0 X1 / — / 활 | 코어 X0/X1 거의 전체 + W3 띠 + W0 가장자리 + 꼬리를 뛰는 번개 토막 2(W3/X1, 3px/f 뒤로). `loop_move`, pierce 대체 |
+| heavyarrow 중시 | 16×8 | any (rotate) | 1 | projectile (8,4) | — / X0 X1 / — / 활 | 두꺼운 자루(W0 테두리·W3·X1·W2) + 큰 미늘촉(W3 + X0 2px) + 깃 2겹 (무채 자루 → 보조색). `aimed_shot` |
+| heavyarrow_hit | 64×64 | any | 5 · 40/50/60/80/110 | hitbox_center (32,44) · 위 | — / X0 X1 / 22 26 27 / 활 | 콘셉트 heavyarrow_bolt 승격: 가는 예고선 → 번개 낙하 3겹 + 가지 2 + 적중 십자 X0 → 링 r8 + 가지 번개 3 → 점선 잔광 + 링 r14 → 꼬리 r18. 섬광 W3 `#cdefff` 0.14 f1 · 흔들림 2px 60ms. 회전 없음. `hit` |
+| rain 폭우 | 32×32 | any (rotate) | 4 · 40/50/60/70 | projectile (4,16) = 발사점 | — / X0 X1 / 24 27 / 활 | ±50°/±25°/0° 5갈래, scatter 와 같은 구조. `shot`, scatter 대체 |
+| seek 추적 | 24×24 | any (rotate) | 4 · 60×4 · 루프 | projectile (20,12) · 화살 아래 | — / X0 X1 / — / 활 | 유도 소용돌이: 꼬인 두 가닥(W3/W2 → 뒤로 W1/W0, 진폭 커짐)이 뒤로 흐름(4f = 2π) + 교차점 X0 + 머리 X1. `loop_move` |
+| parry_flash | 48×48 | any | 5 · 40/50/60/80/100 | hitbox_center (24,24) = 접점 · 위 | — / X0 X1 / 18 19 21 22 24 25 27 / **없음** | 시간 정지 섬광: f0 전체 X0 십자 + X1 코어(히트스톱·오버레이 X1 0.25 40ms 동시) → f1 동심 고리 2(24/22, 4px 간격) + 짧은 X0 광선 → f2 고리 확장 + 네 귀 글린트 → f3 점선 → f4 조각. `parry_success` |
+| guard_wave | 64×32 | 4 | 4 · 50/60/70/80 | player_pivot (32,16) = 발 · 바닥 | G06 G09 / X1 / — / 대검 (임시 B6) | 발 앞 반타원(세로 0.5) 3겹(W0 테두리·W2 용암·X1 1px 점선) r10→18→25→29 + 가장자리 재 + 짧은 균열 2(W2 → f3 W0 점). 반경 29 ≈ 밀쳐내기 40px 의 70%. `guard_release` |
+| shadowstep_ghost | 16×24 | 4 | 3 · 60/80/100 | player_pivot (8,23) · 바닥, 고정 | — / — / — / 단검 W0 W1 (임시 B7) | 출발점 실루엣 W0 단색 + W1 림 → 세로 줄무늬 W1(2 on 1 off) → 조각, 발밑 W0 웅덩이 r7→5→3. 암살 분신과 같은 어휘. `shadowstep_start` |
+| aim_charge | 32×32 | any | 6 · **진행도 기반** | player_pivot (16,16) = 몸 중심 · 위 | — / X0 X1 / — / 활 | r10 고리 W1 점선 + 눈금 4 → 진행도만큼 W3(가장자리 W0 2.8px)로 참, 머리 X1 2px → f5 완료 = X0 고리 + W3 점선 고리 r13 + 네 귀 가지 번개(4~5px, W3 + X1 끝) + 중심 X0. `frame = min(5, floor(progress*5))` |
+| aim_line | 8×2 | any (rotate, tile) | 2 (상태) · fps 0 (임시 B4) | player_pivot (0,1) · 바닥 | — / X0 X1 / — / 활 W2 W3 | 코어 점선 4 on / 4 off: f0 차지 중 = X1 코어 + W2 밑줄, f1 완료 = X0 코어 + W3 밑줄. `stateFrames {charging: 0, complete: 1}` — 미지원이면 f0 만. TileSprite 폭 = 사거리 |
+| dash_dust | 16×8 | 4 | 3 · 50/70/90 | player_pivot (8,6) = 발 · 바닥, 고정 | G06 G09 G12 / — / — / — | 대쉬 반대쪽 먼지. 그림 유지(42라운드 결정: 무채), JSON `weapon: any` 추가. `dash_start` |
+| dash_trail | 16×24 | 4 | 3 · 40/60/80 | player_pivot (8,23) · 바닥, 고정 | G02 G03 G04 / — / — / — | 돌진 실루엣 줄무늬, 그림 유지. 대쉬 중 40~50ms 마다. 발도술·허보·잔상 노드일 때 그 무기 W1 로 시스템 `setTintFill` (JSON `tint` 메모, 임시 B8) |
+- 실루엣이 필요한 것(허보 = player_dash f1, 잔상 = 돌진 실루엣, 암살 분신·그림자 걸음 = idle 실루엣, 대쉬 잔상)은 player PNG 알파를 마스크로 재사용 → 플레이어 시트가 바뀌면 `fx_prod/build_a.py`·`build_b.py` 재빌드. 루프 이음새: 거인 기둥 12px 주기, 질풍 토막 주기 12(3px/f), 추적 2π/4, 잔월 f0 = 틱.
+- JSON 메모 필드(계약 §3.1·§3.2): `tailFrames`, `tile`, `scale`, `depth`, `followsPlayer`, `followsTarget`, `progressDriven`, `pivotNote`, `note`, `directionMeaning` + 43라운드 `weapon`, `secondary`, `trail`, `flash`, `shake`, `hitFrames`, `spawnNote`, `secondStage`, `stateFrames`, `tint`.
+- 재생 시점(`spawn` 키)·루프 종료는 35라운드와 같다. 이펙트 크기·피벗이 바뀌었으므로 로드 크기는 JSON 에서 읽는다(시스템 전달 요점은 `work/fx_prod/NOTES-a.md` 5절, `NOTES-b.md` '시스템 전달 요점').
 
-### 4.3.3 무기 이펙트 재디자인 — 인페르노 언어 (42라운드, 콘셉트) — 상세 `fx-design.md`
-- 전 범위(기본 + 1차 + 2차 + 보조 7) 재생성 예정. 핵심: 어두운 가장자리 W0 1px → 보조 램프 몸체 → 1px 백열 코어, **같은 궤적 2~3겹을 1프레임씩 어긋나게**, 예비 코어 점선 → 섬광 프레임(40ms, 화면 오버레이 동시) → 적중 광선 → 긴 꼬리(점선 + 시스템 트레일). 크기 기본 48 / 1차 64 / 2차 96. 예고는 4px 실선·닫히는 원(진행도)·수렴 오라(신규).
+### 4.3.3 무기 이펙트 재디자인 — 인페르노 언어 (42라운드 콘셉트 → 43라운드 양산 완료) — 상세 `fx-design.md`
+- 43라운드 콘셉트 검수: 승인, 아트 임시 결정 1~10 수용, 대검 W2 `#d8441c`. 양산 A(칼 7 · 대검 7 · 공통 10, `work/fx_prod/build_a.py`)·B(단검 7 · 활 9 · 보조 7, `build_b.py`)로 전 범위 재생성 완료 — 4.3·4.3.1·4.3.2 표가 양산본 수치. 크기 기본 48 / 1차 64 / 2차 96. 예고는 4px 실선·닫히는 원(진행도)·수렴 오라(신규).
 - 무기별 모티프: 칼 초승달 잔상 겹침 / 대검 바닥 균열 + 낙뢰 / 단검 그림자 분신 군집 / 활 번개 낙하. 적·보스 예고와 공통 피격에는 보조색 없음.
-- 콘셉트 시트 `assets/sprites/fx/concept_*` 11종(승인 후 삭제·교체), 미리보기 `work/fx_concept/preview_concept.png`, `preview_mock_fight.png`.
+- 콘셉트 시트 `assets/sprites/fx/concept_*` 11종은 **남겨 둔다**(양산본이 우선, 삭제는 결정 대기). 콘셉트 생성기 `work/fx_concept/build.py` 는 `build_a.py` 가 import 하므로 유지. 미리보기: 콘셉트 `work/fx_concept/preview_concept.png`·`preview_mock_fight.png`, 양산 `work/fx_prod/preview_{a,b}.png`·`preview_{a,b}_fight.png`.
+
+### 4.3.4 43라운드 양산 임시 결정 — 임시(검수 대기)
+원본 `work/fx_prod/NOTES-a.md` 4절(A1~A11), `NOTES-b.md` '임시 결정'(B1~B10). 도영 님 검수 전까지 확정이 아니다. 표 안의 "(임시 An/Bn)" 표시가 이 목록을 가리킨다.
+- 임시(검수 대기) A1: batto 7프레임 380ms — 대쉬(240ms)보다 길어 꼬리 140ms 가 대쉬 뒤에 남는다(의도: 긴 잔상). 짧게 원하면 f5·f6 제거(5f 230ms).
+- 임시(검수 대기) A2: ironwall 피벗 (32,42) = 발 로 통일(기존 (16,22) 몸 중심 규약 폐기). 벽은 몸 중심 전방 10px → down 은 발 선 높이 가로 벽, up 은 머리 위 20px.
+- 임시(검수 대기) A3: giant 64×64 피벗 (32,52) (설계 8절 '루프형 ×1.33' = 43×53 대신 64 정사각). 기둥 높이 16px = 몸통 높이.
+- 임시(검수 대기) A4: quake 96 · 7f, 피벗 (48,56) (설계 8절 '적중형 64 · 5~6f' 대신). 2단 판정 220ms(f4 시작) 유지, 회전 없음(any).
+- 임시(검수 대기) A5: hit_spark 를 24×24 hit_burst 와 같은 그림으로 교체(16→24). hit_burst 로 전환되면 hit_spark 파일 삭제 요청.
+- 임시(검수 대기) A6: enemy_bullet 을 발광 탄(18 림 + 22 몸 + X0 코어)으로. 어색하면 코어만 X0, 몸 G04 로 되돌리는 대안.
+- 임시(검수 대기) A7: telegraph_cone 반지름 27 (scale = R/27), 변 두께 5px(선 6px 과 1px 차이). 꼭짓점 = 캔버스 중심.
+- 임시(검수 대기) A8: trail 대상에 longinvuln 포함(fromFrame 1). dashcrit 은 적중형이라 제외.
+- 임시(검수 대기) A9: crush 에도 flash(W3 0.16)·shake 2px 60ms (설계 6.2 표에는 지진·분쇄만).
+- 임시(검수 대기) A10: weight 섬광 없음, shake 2px 60ms 만(내려찍기).
+- 임시(검수 대기) A11: JSON `flash`·`trail`·`shake` 를 구조화 객체로(계약 §3.2 형식), `scale` 은 `"allowed"` 문자열 유지.
+- 임시(검수 대기) B1: 크기·피벗 변경(fx-design 8절 적용, 표의 값). 투사체 피벗은 기존 비율 유지. bleed·seek 16→24, flash 24→32, pierce 16→32 (8절 "pierce/scatter 유지" 문구 대신 지시 목록을 따름).
+- 임시(검수 대기) B2: 난무 타격 시각 f1/f2/f3 시작(0/40/90ms, f0 제외 기준) — 기존 0·2·4프레임(80ms 간격)보다 촘촘. 시스템이 `hitFrames` 로 판정을 맞추거나 그림만 겹쳐도 됨.
+- 임시(검수 대기) B3: 쌍격 2타 = f2 시작(40ms 뒤, f0 제외).
+- 임시(검수 대기) B4: aim_line 2프레임 상태 프레임(`stateFrames`, 계약에 없는 필드 — 미지원이면 f0 만). fx-design 5절의 4px 굵기 대신 8×2 유지.
+- 임시(검수 대기) B5: gale 64 — 바람이 몸 뒤 24~29px. 좁은 방에서 길면 줄 길이 26/29 → 18/22.
+- 임시(검수 대기) B6: guard_wave 는 대검 보조색(W2 `#d8441c`).
+- 임시(검수 대기) B7: shadowstep_ghost 무채 → 단검 보조색(층 스왑 무관은 유지).
+- 임시(검수 대기) B8: dash_trail 틴트 방식 `setTintFill` 권고. 곱셈 `setTint` 를 쓰려면 밝은 무채(G08~G12) 시트가 따로 필요 — 그 경우 재인터뷰.
+- 임시(검수 대기) B9: 예비 프레임 f0(40ms)를 dagger_slash·twin·dance 에 넣음. spawn 오프셋 미지원이면 f1 부터(JSON `spawnNote`).
+- 임시(검수 대기) B10: 2차 적중형 afterimage 64 · 5f (분신 3 + 웅덩이가 들어가야 해서 24→64).
 
 ## 4.4 UI 키트 (32·33·36·38라운드, 임시) — 상세 `parts/art/ui-kit.md`
 - 내부 해상도 960×540, 정수 배율. UI 그림도 1배 기준으로 그리고 창 배율만 정수로 키운다.
@@ -212,8 +249,11 @@
 
 ## 6. 시트·JSON 규칙
 - PNG: 가로 = 프레임, 세로 = 방향 `down / up / left / right` 순. 패딩 없음. 프레임 인덱스 = `row * frames + column`.
-- JSON 필드: `image, action, frameWidth, frameHeight, frames, directions, layout, frameIndex, fps, frameDurationsMs, loop, pivot, palette`. 이펙트 추가 메모 필드는 4.3·4.3.2 참조. 42라운드 양산 시 `weapon, secondary, trail, flash, shake` 추가 제안(`fx-design.md` 8절).
+- JSON 필드: `image, action, frameWidth, frameHeight, frames, directions, layout, frameIndex, fps, frameDurationsMs, loop, pivot, palette`. 이펙트 추가 메모 필드는 4.3·4.3.2 참조. 43라운드 양산본에 `weapon, secondary, trail, flash, shake` 기입(계약 §3.2, 구조화 객체 — 4.3.4 임시 A11).
 - 엔진 연동(로드 방식·애니 키 이름)은 계약 승인 후 `parts/producer/contracts/` 에 두고 그것만 따른다.
 
 ## 7. 제작 절차
 1. 브리프(크기·색 예산·실루엣 한 줄) → 2. `parts/art/work/<slug>/build.py` 작성 (문자 지도 + 파라미터 자세) → 3. 실행 → 4. preview 를 **눈으로** 보고 `.claude/skills/pixel-art-studio/references/validations.md` 체크리스트 대조 → 5. 수정 → 최소 3회 반복 → 6. `assets/` 로 내보내기. PNG 를 손으로 고치지 않는다.
+
+## 8. 변경 이력
+- v0.7 (2026-10-02): 43라운드 FX 양산 A·B(`work/fx_prod/NOTES-a.md`·`NOTES-b.md`) 반영 — 4.3·4.3.1·4.3.2 이펙트 표의 크기·프레임·ms·피벗·색 교체, 4.3.4 임시(검수 대기) 목록 신설, 2.3 이펙트 예산·2.5 대검 W2 `#d8441c`·6절 JSON 필드 갱신.

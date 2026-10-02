@@ -3,7 +3,7 @@
 ## 구조
 ```
 parts/art/
-  art-bible.md            스타일 가이드 (팔레트·윤곽·빛·타이밍·명명). v0.6 = 35~42라운드 보류 노트 통합본
+  art-bible.md            스타일 가이드 (팔레트·윤곽·빛·타이밍·명명). v0.7 = 35~42라운드 보류 노트 + 43라운드 FX 양산 A·B 통합본
   ui-kit.md               UI 키트 v0.4 (세피아 일기장·발광 글자)
   fx-design.md            무기 이펙트 재디자인 구상 (42라운드, 인페르노 언어 번역 · fx 팔레트 · 양산 규격)
   palette/
@@ -13,13 +13,19 @@ parts/art/
     lopad_swatch_1x.png   1px 스와치 (행: 무채, 1~8층)
   work/<slug>/build.py    단일 소스. 재실행하면 assets 와 preview 가 전부 다시 생성된다
   work/<slug>/preview_*.png, gif/   검수용 (배포물 아님)
+  work/fx_prod/           43라운드 인페르노 이펙트 양산
+    build_a.py            A 묶음: 칼 7 · 대검 7 · 공통 피격·예고·적 투사체 10 (hit_burst·telegraph_aura 신규)
+    build_b.py            B 묶음: 단검 7 · 활 9 · 보조 동작/대쉬 7
+    NOTES-a.md, NOTES-b.md   시트 표·see→critique→fix 기록·임시 결정·시스템 전달 요점 (바이블 4.3~4.3.4 의 원본)
+    preview_a.png, preview_a_fight.png, preview_b.png, preview_b_fight.png   3배 블록 + 1배 띠 / 1배 전투 목업 + 3배
 assets/sprites/<분류>/<이름>_<동작>.png + .json   게임이 읽는 최종물
 assets/tiles/stage<n>.png + stage<n>.json        타일셋 (계약 §2: tiles / walls / props)
 assets/sprites/weapons/<id>_{icon,attack}.png    무기 아이콘·공격 중 겹침 무기 (계약 §3)
-assets/sprites/fx/<id>_slash.png, fx/<진화id>.png, fx/bow_arrow*.png   공격·진화 이펙트(1차 8 + 2차 16), 화살
-assets/sprites/fx/{hit_spark,blood,crit_burst,knock_dust,player_hit,telegraph_*,enemy_bullet,boss_fan_shot,muzzle_flash}   피격·예고·적 투사체 (35라운드)
-assets/sprites/fx/{parry_flash,guard_wave,shadowstep_ghost,aim_charge,aim_line,dash_dust,dash_trail}   보조 동작·대쉬 연출 (35라운드)
-assets/sprites/fx/concept_*.png + .json            42라운드 콘셉트 목업 11종 (승인 후 양산 시 교체·삭제)
+assets/sprites/fx/<id>_slash.png, fx/<진화id>.png, fx/bow_arrow*.png   공격·진화 이펙트(1차 8 + 2차 16), 화살 — 43라운드 fx_prod 양산본
+assets/sprites/fx/{hit_burst,hit_spark,crit_burst,telegraph_*,enemy_bullet,boss_fan_shot,muzzle_flash}   피격·예고(line·circle·cone·aura)·적 투사체 — 43라운드 fx_prod A
+assets/sprites/fx/{blood,knock_dust,player_hit}   피격 (35라운드 combat_fx 그대로)
+assets/sprites/fx/{parry_flash,guard_wave,shadowstep_ghost,aim_charge,aim_line,dash_dust,dash_trail}   보조 동작·대쉬 연출 — 43라운드 fx_prod B
+assets/sprites/fx/concept_*.png + .json            42라운드 콘셉트 목업 11종 (양산본이 우선. 삭제는 결정 대기 — 지우지 않는다)
 assets/sprites/bosses/{stage1,emperor}_<동작>.png  보스 2종
 assets/sprites/ui/*.png + .json                    UI 키트 (패널 9-slice·게이지·아이콘·커서·일기장·book_frame·spine·stains·도장). UI 파트가 assets/ui/ 로 복사
 ```
@@ -39,7 +45,10 @@ python3 parts/art/work/evolution_fx/build.py   # 2차 진화 16종 + 보조 동�
 python3 parts/art/work/tiles_stage<n>/build.py # 층별 타일셋 (공통 모듈 tiles_floors/tilecommon2.py), 뒤에 tiles_floors/check_json.py
 python3 parts/art/work/player/preview_rimlight.py   # 림라이트 전후 비교 (선택)
 python3 parts/art/work/fx_concept/build.py     # 42라운드 FX 콘셉트 시트 + 목업 (palette fx 블록, player/weapons/enemies/bosses/tiles png 를 읽는다)
+python3 parts/art/work/fx_prod/build_a.py      # 43라운드 양산 A: 칼 7·대검 7·공통 10 시트 + preview_a*.png (fx_concept/build.py 를 import, player/weapons/enemies/bosses/tiles png 를 읽는다)
+python3 parts/art/work/fx_prod/build_b.py      # 43라운드 양산 B: 단검·활·보조 23 시트 + preview_b*.png (player/enemies/weapons/tiles png 를 읽는다)
 ```
+**이펙트 재빌드 순서 주의 (43라운드)**: `weapons/build.py`·`combat_fx/build.py`·`evolution_fx/build.py` 는 옛 이펙트를 같은 id 로 `assets/sprites/fx/` 에 쓴다. 이 셋을 다시 돌렸다면 반드시 그 뒤에 `fx_prod/build_a.py` → `fx_prod/build_b.py` 를 돌려 양산본으로 덮는다 (blood·knock_dust·player_hit 는 `combat_fx` 만 만든다). 팔레트 `fx` 블록이나 주인공 시트(실루엣 마스크: player_dash·idle)가 바뀌어도 fx_prod 두 스크립트를 다시 돌린다. `fx_prod/build_a.py` 가 `fx_concept/build.py` 를 import 하므로 콘셉트 생성기는 지우지 않는다.
 팔레트 생성기는 `ui`·`fx` 블록을 상수로 들고 있으므로 재생성해도 두 블록이 사라지지 않는다 (38라운드 UI NOTES 의 요청 반영).
 
 ## 기록
@@ -99,3 +108,10 @@ python3 parts/art/work/fx_concept/build.py     # 42라운드 FX 콘셉트 시트
 - 산출: `fx-design.md`(번역 원칙·3층 색·모티프·단계 규칙·보조 7종·예고·시스템/UI 요청·임시 결정·양산 규격), 팔레트 `fx` 블록(코어 X0 `#ffffff` X1 `#fff4dc`, katana 은빛 / greatsword 재·용암 / dagger 보라 그림자 / bow 번개 청백 4칸씩) + gpl + 생성기 반영(`ui` 블록도 생성기로 이관), 콘셉트 시트 `assets/sprites/fx/concept_{katana_slash 48, iai 64, wide 96, zangetsu 64, quake_bolt 64, assassin 48, heavyarrow_bolt 48, hit_burst 24, telegraph_line 16, telegraph_circle 64, telegraph_aura 64}`, 미리보기 `work/fx_concept/preview_concept.png`(3배 + 1배 띠), `preview_mock_fight.png`(1배 stage1 바닥 합성: 거합 베기 중 징집병 피격 + 보스 닫히는 원 + 사수 수렴 오라 + 4px 예고 선, 섬광 오버레이 비교, 3배 확대).
 - see→critique→fix 3회 (`fx-design.md` 9절): 코어가 몸체를 먹는 흰 덩어리 → 코어 1px 분리, 은빛 램프 한 단 어둡게, 암살 해치 노이즈 → 단색 실루엣, 잔월 밴딩 → 점선, 오라·균열 형태 수정. 최종 고립 0 · 반투명 0 · 예산 ALL OK.
 - 임시 결정(검수 대기): 보조색 hex·X1 따뜻한 흰, 크기 48/64/96, 예산 ≤11, 5·7층 층색 충돌 처리, 예비 프레임 재생 시각, dash_trail 틴트, 잔월 번개·만월 보름달 고리, hit_burst 로 hit_spark 대체, 예고에 보조색 금지, right 기준 회전.
+
+## 43라운드 (2026-10-02) — 무기 이펙트 인페르노 양산 A·B (기록 원본 `work/fx_prod/NOTES-a.md`·`NOTES-b.md`, 바이블 v0.7 4.3~4.3.4)
+- 42라운드 결정문의 43라운드 검수: 콘셉트 승인, 아트 임시 결정 1~10 수용, 대검 W2 `#e35c1c` → `#d8441c` (팔레트 생성기·`lopad.json`·`lopad.gpl` 재생성).
+- A 묶음 `build_a.py`: 칼 7(katana_slash 48 · iai 64 · batto 64 · wide 96 · zangetsu 64 · longinvuln 64 · dashcrit 64) · 대검 7(greatsword_slash 48 · crush 64 · weight 64 · quake 96 2단 낙뢰 · pulverize 64 · ironwall 64 · giant 64) · 공통 10(hit_burst 신규 + hit_spark 같은 그림 · crit_burst · telegraph_line 4px · telegraph_circle/cone 6f 진행도 · telegraph_aura 신규 · enemy_bullet 발광 · boss_fan_shot · muzzle_flash). blood 는 변경 없음.
+- B 묶음 `build_b.py`: 단검 7 · 활 9 · 보조 동작/대쉬 7 (dash_dust·dash_trail 은 그림 유지, dash_trail 은 시스템 `setTintFill` 권고).
+- see→critique→fix 각 3회, `color_report` ALL OK (예산 ≤11 · 층 램프 ≤8 + 코어, 고립 0, 반투명 0).
+- 임시 결정(검수 대기): A1~A11 · B1~B10 — 바이블 4.3.4 에 "임시(검수 대기)" 로 옮김. `concept_*` 11종은 삭제 결정 대기.
