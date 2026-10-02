@@ -1,0 +1,33 @@
+{
+ "image": "concept_telegraph_line.png",
+ "action": "concept_telegraph_line",
+ "frameWidth": 16,
+ "frameHeight": 16,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 8,
+ "frameDurationsMs": [
+  120,
+  120
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 0,
+  "y": 8
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+ "concept": "42라운드 콘셉트 목업. 승인 후 양산 시 정식 id(접두어 없는 이름)로 교체·삭제.",
+ "anchor": "hitbox_center",
+ "spawn": "telegraph",
+ "depth": "below",
+ "tile": true,
+ "rotate": true,
+ "drawnFacing": "right",
+ "scale": "allowed",
+ "pivotNote": "피벗 (0,8) = 선 시작(공격자). 두께 4px(5~10행 중 6~9), 코어 2px 가 x 방향으로 흐른다(프레임당 8px). TileSprite 폭 = 사거리.",
+ "note": "굵고 선명한 예고 선. 층 램프 18/22/24/25/27 만 (보조색 없음)."
+}

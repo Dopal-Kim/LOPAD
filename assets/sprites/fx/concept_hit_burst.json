@@ -1,0 +1,31 @@
+{
+ "image": "concept_hit_burst.png",
+ "action": "concept_hit_burst",
+ "frameWidth": 24,
+ "frameHeight": 24,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 24,
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  50
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 12,
+  "y": 12
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+ "concept": "42라운드 콘셉트 목업. 승인 후 양산 시 정식 id(접두어 없는 이름)로 교체·삭제.",
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "depth": "above",
+ "weapon": "any",
+ "note": "공통 적중: 쏟아지는 광선 6갈래(18 테두리 · 26 몸 · X0/X1 코어, 지그재그). 무기 보조색 없음 → 어떤 무기와도 겹친다. hit_spark 대체 후보."
+}

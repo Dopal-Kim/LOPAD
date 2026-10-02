@@ -1,0 +1,35 @@
+{
+ "image": "concept_telegraph_circle.png",
+ "action": "concept_telegraph_circle",
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 10,
+ "frameDurationsMs": [
+  100,
+  100,
+  100,
+  100,
+  100,
+  100
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 32
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+ "concept": "42라운드 콘셉트 목업. 승인 후 양산 시 정식 id(접두어 없는 이름)로 교체·삭제.",
+ "anchor": "hitbox_center",
+ "spawn": "telegraph",
+ "depth": "below",
+ "progressDriven": true,
+ "scale": "allowed",
+ "pivotNote": "피벗 (32,32) = 범위 중심. 범위 링 r22 (지름 44) 기준, 실제 반지름 R 이면 scale = R/22. frame = min(5, floor(progress*6)).",
+ "note": "닫히는 원: 바깥 점선 링이 r31→r22 로 수렴, 범위 링(4px, 18+22→26)이 밝아지다 f5 에서 백열 점선. 중심 십자가 자람. 보조색 없음."
+}

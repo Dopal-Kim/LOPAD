@@ -1,0 +1,33 @@
+{
+ "image": "concept_telegraph_aura.png",
+ "action": "concept_telegraph_aura",
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 10,
+ "frameDurationsMs": [
+  100,
+  100,
+  100,
+  100
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 32,
+  "y": 32
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+ "concept": "42라운드 콘셉트 목업. 승인 후 양산 시 정식 id(접두어 없는 이름)로 교체·삭제.",
+ "anchor": "hitbox_center",
+ "spawn": "telegraph",
+ "depth": "below",
+ "scale": "allowed",
+ "followsTarget": true,
+ "pivotNote": "피벗 (32,32) = 공격자 몸 중심. 적 히트박스 중심에 붙어 따라감.",
+ "note": "수렴 오라: 12줄 토막이 r30→r8 로 흘러들어오며 밝아짐(19→25, 끝 27 점) + 맥동 코어. 4f 루프, 위상 1/4 씩 → 이음새 없음. 돌진·대기술 예고용."
+}

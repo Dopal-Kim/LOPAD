@@ -1,0 +1,35 @@
+{
+ "image": "concept_zangetsu.png",
+ "action": "concept_zangetsu",
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 13,
+ "frameDurationsMs": [
+  75,
+  75,
+  75,
+  75
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 32,
+  "y": 42
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+ "concept": "42라운드 콘셉트 목업. 승인 후 양산 시 정식 id(접두어 없는 이름)로 교체·삭제.",
+ "anchor": "player_pivot",
+ "spawn": "after_iai",
+ "depth": "below",
+ "weapon": "katana",
+ "secondary": "fx.weapons.katana",
+ "note": "잔월: 어두운 3띠 + 띠 사이 번개 토막 + 도는 글린트(X0). 4f = 300ms 틱, f0 = 틱 순간."
+}

@@ -1,0 +1,41 @@
+{
+ "image": "concept_iai.png",
+ "action": "concept_iai",
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  40,
+  40,
+  60,
+  80,
+  100,
+  120,
+  140
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 42
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+ "concept": "42라운드 콘셉트 목업. 승인 후 양산 시 정식 id(접두어 없는 이름)로 교체·삭제.",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "depth": "above",
+ "weapon": "katana",
+ "secondary": "fx.weapons.katana",
+ "flash": "screen flash X1 alpha 0.18 for 40ms at f1",
+ "shake": "2px 60ms at f1",
+ "trail": "W1 @ 0.7 → 0, 180ms, from f2",
+ "note": "거합: 3겹(본·바깥 +1f·안쪽 +2f) + f1 백열 섬광 프레임 + f2 적중 광선 3. f4~f6 는 잔월 띠의 시작 모양."
+}

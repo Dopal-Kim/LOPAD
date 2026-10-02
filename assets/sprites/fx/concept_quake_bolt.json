@@ -1,0 +1,37 @@
+{
+ "image": "concept_quake_bolt.png",
+ "action": "concept_quake_bolt",
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  40,
+  50,
+  70,
+  90,
+  110,
+  130
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 40
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+ "concept": "42라운드 콘셉트 목업. 승인 후 양산 시 정식 id(접두어 없는 이름)로 교체·삭제.",
+ "anchor": "hitbox_center",
+ "spawn": "hit_judge",
+ "depth": "below",
+ "weapon": "greatsword",
+ "secondary": "fx.weapons.greatsword",
+ "flash": "screen flash W3 alpha 0.16 for 40ms at f1",
+ "shake": "4px 120ms at f1",
+ "pivotNote": "피벗 (32,40) = 바닥 타격점. 낙뢰는 캔버스 위 가장자리에서 내려온다 (any — 회전 없음).",
+ "note": "대검 파쇄→지진: 낙뢰(3겹 번개 + 가지) → 타격 섬광 → 세로 0.6 압축 링 r8→16→24 + 방사 균열(용암 W2 → 식어서 W1/W0) + 재 G06/G09. f4 = 2단 판정(220ms)."
+}

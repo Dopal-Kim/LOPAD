@@ -3,10 +3,12 @@
 ## 구조
 ```
 parts/art/
-  art-bible.md            스타일 가이드 (팔레트·윤곽·빛·타이밍·명명)
+  art-bible.md            스타일 가이드 (팔레트·윤곽·빛·타이밍·명명). v0.6 = 35~42라운드 보류 노트 통합본
+  ui-kit.md               UI 키트 v0.4 (세피아 일기장·발광 글자)
+  fx-design.md            무기 이펙트 재디자인 구상 (42라운드, 인페르노 언어 번역 · fx 팔레트 · 양산 규격)
   palette/
-    lopad.json            팔레트 정의 (무채 16 + 8층 강조 램프 12). 빌드 스크립트가 import
-    lopad.gpl             GIMP/Aseprite 팔레트 (무채 16 + 8층×12 = 112색)
+    lopad.json            팔레트 정의 (무채 16 + 8층 강조 램프 12 + `ui` 세피아 6 + `fx` 코어 2·무기 보조 4×4). 빌드 스크립트가 import
+    lopad.gpl             GIMP/Aseprite 팔레트 (무채 16 + 8층×12 + UI 6 + FX 18 = 136색)
     preview.png           검수용 미리보기
     lopad_swatch_1x.png   1px 스와치 (행: 무채, 1~8층)
   work/<slug>/build.py    단일 소스. 재실행하면 assets 와 preview 가 전부 다시 생성된다
@@ -14,9 +16,12 @@ parts/art/
 assets/sprites/<분류>/<이름>_<동작>.png + .json   게임이 읽는 최종물
 assets/tiles/stage<n>.png + stage<n>.json        타일셋 (계약 §2: tiles / walls / props)
 assets/sprites/weapons/<id>_{icon,attack}.png    무기 아이콘·공격 중 겹침 무기 (계약 §3)
-assets/sprites/fx/<id>_slash.png, fx/<진화id>.png, fx/bow_arrow*.png   공격·진화 이펙트, 화살
-assets/sprites/ui/*.png + .json                    UI 키트 (패널 9-slice·게이지·아이콘·커서·일기장·도장). UI 파트가 assets/ui/ 로 복사
-  ui-kit.md               UI 키트 v0.2 목록·9-slice 수치·색 규칙(낡은 용지 G09)·레이아웃 제안 (→ contracts/ui-art-kit.md 승격 대상)
+assets/sprites/fx/<id>_slash.png, fx/<진화id>.png, fx/bow_arrow*.png   공격·진화 이펙트(1차 8 + 2차 16), 화살
+assets/sprites/fx/{hit_spark,blood,crit_burst,knock_dust,player_hit,telegraph_*,enemy_bullet,boss_fan_shot,muzzle_flash}   피격·예고·적 투사체 (35라운드)
+assets/sprites/fx/{parry_flash,guard_wave,shadowstep_ghost,aim_charge,aim_line,dash_dust,dash_trail}   보조 동작·대쉬 연출 (35라운드)
+assets/sprites/fx/concept_*.png + .json            42라운드 콘셉트 목업 11종 (승인 후 양산 시 교체·삭제)
+assets/sprites/bosses/{stage1,emperor}_<동작>.png  보스 2종
+assets/sprites/ui/*.png + .json                    UI 키트 (패널 9-slice·게이지·아이콘·커서·일기장·book_frame·spine·stains·도장). UI 파트가 assets/ui/ 로 복사
 ```
 
 ## 빌드
@@ -29,7 +34,13 @@ python3 parts/art/work/enemies/build.py        # 일반 적 3종 (크기 비교 
 python3 parts/art/work/weapons/build.py        # 무기 4종 아이콘·오버레이·이펙트·진화 8종 (미리보기가 주인공 attack/idle png 를 읽는다)
 python3 parts/art/work/bosses/build.py         # 보스 2종
 python3 parts/art/work/ui/build.py             # UI 키트 (목업이 stage1 타일·주인공·적·무기 아이콘 png 를 읽는다)
+python3 parts/art/work/combat_fx/build.py      # 피격·예고·적 투사체 11종
+python3 parts/art/work/evolution_fx/build.py   # 2차 진화 16종 + 보조 동작 7종 (player/enemies png 를 읽는다)
+python3 parts/art/work/tiles_stage<n>/build.py # 층별 타일셋 (공통 모듈 tiles_floors/tilecommon2.py), 뒤에 tiles_floors/check_json.py
+python3 parts/art/work/player/preview_rimlight.py   # 림라이트 전후 비교 (선택)
+python3 parts/art/work/fx_concept/build.py     # 42라운드 FX 콘셉트 시트 + 목업 (palette fx 블록, player/weapons/enemies/bosses/tiles png 를 읽는다)
 ```
+팔레트 생성기는 `ui`·`fx` 블록을 상수로 들고 있으므로 재생성해도 두 블록이 사라지지 않는다 (38라운드 UI NOTES 의 요청 반영).
 
 ## 기록
 ### 2026-10-01 · 28라운드 1단계: 팔레트 + 주인공 전 동작
@@ -75,3 +86,16 @@ python3 parts/art/work/ui/build.py             # UI 키트 (목업이 stage1 타
 - 미리보기: `work/ui/preview_kit.png`, `preview_mock.png`(33라운드 레이아웃: 상단 좌 층 제목 / 상단 우 미니맵 / 하단 중앙 묶음 + 보스 게이지 + 자막 / 중앙 낡은 종이 일시정지), `preview_mock_result.png`(결과: 종이 전면 + 닫힌 일기장 + 도장), `preview_icons.png`.
 - **33라운드 재작업 (2026-10-02, 도영 님 검수 "A4 가 아니라 낡은 용지, 암울하고 칙칙한 색")**: 종이 G13→**G09** 바탕(G10 덜 바램·G08 얼룩·G07 접힌 자국·해진 가장자리·누런 점 19/18 소량), `panel_paper` 코너에 접힌 자국·찢긴 결손(알파 0)·접힌 귀, `paper_tile` 32→**64**(주기 노이즈 스티플), 잉크 패널 림 G02→G01·꺾쇠 G02, 미니맵·보스 게이지 선 한 단 어둡게, 게이지 채움 상한 23→22(무채 띠도 한 단), 아이콘 종이 G13→G10·옅은 선 G09→G06·하이라이트 23→22, 미니맵 글리프 G14→G12, 커서 홈 G07, `rule` 번짐 G06, 일기장 페이지 낡은 종이 + 잉크 번짐 G04, 봉인·술잔 자국·책갈피 한 단 어둡게, 도장 바랜 잉크 G02. see→critique→fix 3회 기록은 `ui-kit.md` 5절.
 - 임시 결정(검수 대기): `panel_ink` slice 12(종이 24 와 다름), 보스 게이지 채움 높이 8 공용, `gauge_fill_gray` 추가, 커서 2프레임 = 1px 전진 + 잉크 방울(사라지는 깜빡임 아님), `cursor_light`·`rule_light` 추가, 펼친 일기장 160×96 + 닫힌 96×64 둘 다, 도장 문양(사망 X·클리어 계단), 미니맵 글리프(아치문·교차검·잔·왕관), 아이콘 모티프 전부, 목업 레이아웃 수치.
+
+## 35~40라운드 (2026-10-02) — 기록 원본은 각 `work/<slug>/NOTES*.md`, 바이블 v0.6 에 통합
+- 35라운드 `combat_fx`: 피격·예고·적 투사체 11종 (바이블 4.3.1). `evolution_fx`: 2차 진화 16종 + 보조 동작·대쉬 연출 7종 (4.3.2).
+- 36·38라운드 `ui`: 세피아 일기장 v0.3 → 어두운 페이지·발광 글자 v0.4, `stains` 데칼 신규, 팔레트 `ui` 블록 (2.4, 4.4, `ui-kit.md`).
+- 37·40라운드 `tiles_floors` + `tiles_stage1~8`: 인덱스 표 v3 (128×80 5행, 방 종류별 바닥 4변형, 소품 8종 maxPerRoom·weight, 흙 질감 통일) (4.2.1).
+- 40라운드 `player/rimlight.py`: 주인공·적·보스 셀아웃 우·하 1px 림라이트 G04 (3.2).
+- 29라운드 보스 2종은 4.5 로 정리.
+
+## 42라운드 (2026-10-02) — 무기 이펙트 인페르노 기반 재구상 (콘셉트, 승인 대기)
+- 결정문 `decisions/2026-10-02-round-42-infernum-fx.md` (범위 전부 · 백열 코어 + 무기 보조색 · 시스템 연출 전부).
+- 산출: `fx-design.md`(번역 원칙·3층 색·모티프·단계 규칙·보조 7종·예고·시스템/UI 요청·임시 결정·양산 규격), 팔레트 `fx` 블록(코어 X0 `#ffffff` X1 `#fff4dc`, katana 은빛 / greatsword 재·용암 / dagger 보라 그림자 / bow 번개 청백 4칸씩) + gpl + 생성기 반영(`ui` 블록도 생성기로 이관), 콘셉트 시트 `assets/sprites/fx/concept_{katana_slash 48, iai 64, wide 96, zangetsu 64, quake_bolt 64, assassin 48, heavyarrow_bolt 48, hit_burst 24, telegraph_line 16, telegraph_circle 64, telegraph_aura 64}`, 미리보기 `work/fx_concept/preview_concept.png`(3배 + 1배 띠), `preview_mock_fight.png`(1배 stage1 바닥 합성: 거합 베기 중 징집병 피격 + 보스 닫히는 원 + 사수 수렴 오라 + 4px 예고 선, 섬광 오버레이 비교, 3배 확대).
+- see→critique→fix 3회 (`fx-design.md` 9절): 코어가 몸체를 먹는 흰 덩어리 → 코어 1px 분리, 은빛 램프 한 단 어둡게, 암살 해치 노이즈 → 단색 실루엣, 잔월 밴딩 → 점선, 오라·균열 형태 수정. 최종 고립 0 · 반투명 0 · 예산 ALL OK.
+- 임시 결정(검수 대기): 보조색 hex·X1 따뜻한 흰, 크기 48/64/96, 예산 ≤11, 5·7층 층색 충돌 처리, 예비 프레임 재생 시각, dash_trail 틴트, 잔월 번개·만월 보름달 고리, hit_burst 로 hit_spark 대체, 예고에 보조색 금지, right 기준 회전.

@@ -1,0 +1,41 @@
+{
+ "image": "concept_wide.png",
+ "action": "concept_wide",
+ "frameWidth": 96,
+ "frameHeight": 96,
+ "frames": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 11,
+ "frameDurationsMs": [
+  40,
+  50,
+  70,
+  90,
+  110,
+  140,
+  160
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 58
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+ "concept": "42라운드 콘셉트 목업. 승인 후 양산 시 정식 id(접두어 없는 이름)로 교체·삭제.",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "depth": "above",
+ "weapon": "katana",
+ "secondary": "fx.weapons.katana",
+ "flash": "screen flash X1 alpha 0.22 for 40ms at f1",
+ "shake": "3px 80ms at f1",
+ "trail": "W1 @ 0.7 → 0, 220ms, from f2",
+ "note": "만월: 거합 3겹 + 안쪽 r21 달무리가 f3 에서 닫힌 보름달(백열 점선)로. 96 캔버스."
+}

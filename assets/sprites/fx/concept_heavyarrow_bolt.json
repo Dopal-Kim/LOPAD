@@ -1,0 +1,36 @@
+{
+ "image": "concept_heavyarrow_bolt.png",
+ "action": "concept_heavyarrow_bolt",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 5,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 15,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  80,
+  110
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 34
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+ "concept": "42라운드 콘셉트 목업. 승인 후 양산 시 정식 id(접두어 없는 이름)로 교체·삭제.",
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "depth": "above",
+ "weapon": "bow",
+ "secondary": "fx.weapons.bow",
+ "flash": "screen flash W3 alpha 0.14 for 40ms at f1",
+ "shake": "2px 60ms",
+ "pivotNote": "피벗 (24,34) = 적중점. 번개는 캔버스 위 가장자리에서 떨어진다 (any — 회전 없음).",
+ "note": "활 중시: 번개 낙하(3겹 + 가지 2) → 적중 십자(X0) + 링 r6 + 바깥 가지 번개 3 → 점선 잔광 + 링 r11 → 꼬리."
+}

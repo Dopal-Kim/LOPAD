@@ -12,6 +12,10 @@
   - 강조 램프 12칸: 하나의 '틀'. 층마다 hue 만 바꿔 같은 인덱스(16~27)에 교체 로드한다.
     인덱스 16 = 가장 어두운 강조(거의 검정, 그림자용) … 27 = 가장 밝은 강조(거의 흰색, 섬광용).
     그림자 쪽은 hue 를 차갑게(청색 방향), 하이라이트 쪽은 따뜻하게(황색 방향) 돌린다.
+  - `ui` 블록 (36·38라운드): UI 전용 세피아 6칸. 층 스왑과 무관. 캐릭터·타일·무기·이펙트 금지.
+  - `fx` 블록 (42라운드 Q2): 이펙트 전용 예외 — 백열 코어 2칸 + 무기별 보조 램프 4칸(칼·대검·단검·활).
+    층 램프 스왑과 무관(고정색). 캐릭터·타일·UI 금지. 층 강조색은 이펙트에서 '하이라이트' 역할로 계속 쓴다.
+    이 두 블록은 재생성 시 사라지지 않도록 이 파일에 상수로 둔다 (UI/FX 블록을 바꾸면 여기서 바꾼다).
 """
 import colorsys
 import json
@@ -144,6 +148,46 @@ GRAY_ROLES = {
     12: "bandage light", 13: "bone / paper", 14: "near white", 15: "pure white / glint",
 }
 
+# ---------------------------------------------------------------- UI 세피아 (36·38라운드, ui/build.py 가 읽는다)
+UI_BLOCK = {
+    "name": "sepia",
+    "scope": "UI only (round 36). Forbidden on characters, enemies, bosses, weapons, fx and floor tiles. Not swapped per floor.",
+    "decision": "2026-10-02 round-36 (도영: '더 어둡고 짙은 색의 일기장, 연갈색의 책') → round-38 (도영: '페이지가 더 더럽고 어둡되, 글씨가 빛나는 느낌') 한 단 더 어둡게 재조정",
+    "ramp": ["#1f1813", "#30261e", "#403227", "#503f32", "#6a5645", "#c6a58b"],
+    "roles": [
+        "S0 leather shadow (cover shade, gutter, burn core, page torn edge)",
+        "S1 leather base (cover, hand-grime edge band, deep stain, outer shade ring of glowing rules)",
+        "S2 page shadow (stain, fibre, crease, water-ring, text outer shade ring)",
+        "S3 page base (dark sepia paper, L*28)",
+        "S4 page cut edge / lighter patch / text HALO (1px glow ring) / dim glowing frame line",
+        "S5 glowing ink (text body, cursor nib, rule, stamp bright) — never as area fill",
+    ],
+    "lab": "L* 9 / 16 / 22 / 28 / 38 / 70, chroma 5~20, Lab hue ~62~67deg (low-saturation brown). S5 jumps (38→70) on purpose: it is the glowing-ink colour, not a surface step.",
+    "text_on_page": "GLOW rule (round 38): body S5 (#c6a58b) / title·selected G15 / unselected G13 / faint S4 without halo. Halo 1px (4-neighbour) S4 — or current-floor accent slot 20 at alpha 0.5 for emphasis — then 1px outer shade ring S2. Dark grays (G00~G03) are NOT readable on S3 any more.",
+    "text_on_ink": "body G14 + halo accent 20 @ alpha 0.5 + shade G00; faint G11 no halo; boss/notice accent 22 + halo accent 18",
+}
+UI_GPL_ROLES = ["leather shadow", "leather base / grime band", "page shadow", "page base L*28", "page edge / text halo", "glowing ink"]
+
+# ---------------------------------------------------------------- FX 예외 (42라운드 Q2, fx 빌드 스크립트가 읽는다)
+# 3층 색 구조: 백열 코어(core) → 강조색(현재 층 램프 25~27, 하이라이트) → 무기 보조 램프(몸체) → 어두운 가장자리(보조 램프 0 / G00).
+FX_BLOCK = {
+    "name": "incandescent core + weapon secondary",
+    "scope": "FX only (round 42 Q2). Forbidden on characters, enemies, bosses, floor tiles and UI. Not swapped per floor (fixed). Floor accent slots 25~27 stay as the highlight layer inside fx.",
+    "decision": "2026-10-02 round-42 Q2 — 백열 코어 + 무기별 보조색 1종. 보조색 hue 는 아트 임시(검수 대상).",
+    "core": ["#ffffff", "#fff4dc"],
+    "core_roles": ["X0 white-hot core (= G15, the 1px centre line of every stroke / bolt)", "X1 incandescent (warm near-white, 2nd core step; the only warm white in the game)"],
+    "layers": ["1 core: X0 (1px) + X1 (1~2px)", "2 highlight: current floor accent 27/26/25 (head glint, sparks, closing-circle flash)", "3 body: weapon secondary W3→W1 (bright to dark, inside to outside)", "4 edge: W0 (dark rim, 1px) — on very dark floors G00 ink instead"],
+    "weapons": {
+        "katana":     {"label": "cold silver",      "ramp": ["#3a4556", "#6f7e97", "#a9b8cc", "#dde6f2"], "lab": "L* 29/52/74/91, hue ~250 (cool), chroma 8~10. 2차 비평에서 W1·W2 한 단 어둡게 (1배에서 흰 덩어리가 되지 않도록)"},
+        "greatsword": {"label": "ash + lava",       "ramp": ["#4a3c38", "#a8321c", "#e35c1c", "#f9b23c"], "lab": "ash grey-brown → ember red → lava orange → hot yellow; L* 27/40/56/78"},
+        "dagger":     {"label": "violet shadow",    "ramp": ["#1c1327", "#3e2a62", "#7a4fb2", "#c89cf0"], "lab": "L* 8/22/42/70, hue ~290; W0 is darker than floor dirt (G01) on purpose = a hole in the floor"},
+        "bow":        {"label": "lightning blue-white", "ramp": ["#1e3350", "#2e71c9", "#6cb9f5", "#cdefff"], "lab": "L* 21/46/72/92, hue ~215; W3 is the brightest secondary of the four (lightning reads almost white)"},
+    },
+    "weapon_roles": ["W0 dark edge / shadow of the stroke", "W1 body dark (tail, remnants, afterimage)", "W2 body (main band)", "W3 body light (next to the core)"],
+    "budget": "per fx: gray <=2 + core 2 + floor accent <=3 + secondary 4 = <=11 colours. Boss/enemy telegraphs use floor ramp + core only (no weapon secondary).",
+}
+FX_GPL_ROLES = ["dark edge", "body dark", "body", "body light"]
+
 
 def build():
     G = grays()
@@ -158,8 +202,8 @@ def build():
 
     data = {
         "name": "LOPAD",
-        "version": 1,
-        "decision": "2026-10-01 round-28 Q2/Q5/Q6",
+        "version": 2,
+        "decision": "2026-10-01 round-28 Q2/Q5/Q6 · ui: round-36/38 · fx: round-42 Q2",
         "total_slots": GRAY_STEPS + ACCENT_STEPS,
         "gray": G,
         "gray_roles": {str(k): v for k, v in GRAY_ROLES.items()},
@@ -169,7 +213,11 @@ def build():
             "무채색 16 은 모든 층에서 고정. 강조 램프 12 는 층 진입 시 그 층의 ramp 로 교체(인덱스 16~27).",
             "피·불꽃·발광 등 모든 유채색은 현재 층의 강조 램프만 쓴다 (고정 포인트색 없음).",
             "주인공은 무채색 + 강조 램프 2칸 이내(glow, base)만 쓴다.",
+            "UI 세피아 램프 6칸(ui.ramp)은 UI 키트 전용. 캐릭터·적·보스·무기·이펙트·바닥 타일에는 금지. 층 램프 스왑과 무관.",
+            "FX 예외(fx): 백열 코어 2칸 + 무기별 보조 램프 4칸은 이펙트 전용(42라운드 Q2). 캐릭터·타일·UI 금지. 층 램프 스왑과 무관(고정색). 층 강조색 25~27 은 이펙트 안에서 하이라이트 층으로 계속 쓴다.",
         ],
+        "ui": UI_BLOCK,
+        "fx": FX_BLOCK,
     }
     with open(os.path.join(OUT, "lopad.json"), "w", encoding="utf-8") as fp:
         json.dump(data, fp, ensure_ascii=False, indent=1)
@@ -183,13 +231,23 @@ def build():
         for j, h in enumerate(f["ramp"]):
             r, g, b = int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16)
             lines.append("%3d %3d %3d\tF%d_%s A%02d %s" % (r, g, b, f["floor"], f["romaja"], j, ACCENT_ROLES[j]))
+    for j, h in enumerate(UI_BLOCK["ramp"]):
+        r, g, b = int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16)
+        lines.append("%3d %3d %3d\tUI_sepia S%d %s (UI only)" % (r, g, b, j, UI_GPL_ROLES[j]))
+    for j, h in enumerate(FX_BLOCK["core"]):
+        r, g, b = int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16)
+        lines.append("%3d %3d %3d\tFX_core X%d %s (fx only)" % (r, g, b, j, ["white-hot", "incandescent"][j]))
+    for wid, w in FX_BLOCK["weapons"].items():
+        for j, h in enumerate(w["ramp"]):
+            r, g, b = int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16)
+            lines.append("%3d %3d %3d\tFX_%s W%d %s %s (fx only)" % (r, g, b, wid, j, w["label"], FX_GPL_ROLES[j]))
     with open(os.path.join(OUT, "lopad.gpl"), "w", encoding="utf-8") as fp:
         fp.write("\n".join(lines) + "\n")
 
     # ------------------------------------------------------------ preview
     cell, gap, left, top, rowh = 36, 2, 190, 40, 50
     W = left + 16 * (cell + gap) + 20
-    H = top + rowh * (1 + len(floors)) + 70
+    H = top + rowh * (1 + len(floors)) + rowh * 6 + 70
     img = Image.new("RGB", (W, H), (46, 46, 50))
     d = ImageDraw.Draw(img)
     try:
@@ -198,7 +256,7 @@ def build():
         small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 9)
     except OSError:
         font = fontb = small = ImageFont.load_default()
-    d.text((12, 10), "LOPAD palette v1 - 16 grays (fixed) + 12-slot accent ramp x 8 floors", fill=(230, 230, 230), font=fontb)
+    d.text((12, 10), "LOPAD palette v1.2 - 16 grays (fixed) + 12-slot accent ramp x 8 floors + UI sepia 6 + FX core 2 / weapon secondary 4x4", fill=(230, 230, 230), font=fontb)
 
     y = top
     d.text((12, y + 10), "GRAY  G00..G15", fill=(230, 230, 230), font=fontb)
@@ -214,6 +272,30 @@ def build():
             x = left + j * (cell + gap)
             d.rectangle([x, y, x + cell - 1, y + cell - 1], fill=h)
             d.text((x + 1, y + cell + 1), "%02d" % (16 + j), fill=(200, 200, 200), font=small)
+        y += rowh
+    # UI 세피아 행
+    d.text((12, y + 4), "UI  sepia", fill=(230, 230, 230), font=fontb)
+    d.text((12, y + 22), "UI only, no floor swap", fill=(170, 170, 170), font=font)
+    for j, h in enumerate(UI_BLOCK["ramp"]):
+        x = left + j * (cell + gap)
+        d.rectangle([x, y, x + cell - 1, y + cell - 1], fill=h)
+        d.text((x + 1, y + cell + 1), "S%d" % j, fill=(200, 200, 200), font=small)
+    y += rowh
+    # FX 코어 + 무기 보조 4종
+    d.text((12, y + 4), "FX  core", fill=(230, 230, 230), font=fontb)
+    d.text((12, y + 22), "white-hot / incandescent", fill=(170, 170, 170), font=font)
+    for j, h in enumerate(FX_BLOCK["core"]):
+        x = left + j * (cell + gap)
+        d.rectangle([x, y, x + cell - 1, y + cell - 1], fill=h)
+        d.text((x + 1, y + cell + 1), "X%d" % j, fill=(200, 200, 200), font=small)
+    y += rowh
+    for wid, w in FX_BLOCK["weapons"].items():
+        d.text((12, y + 4), "FX  %s" % wid, fill=(230, 230, 230), font=fontb)
+        d.text((12, y + 22), w["label"], fill=(170, 170, 170), font=font)
+        for j, h in enumerate(w["ramp"]):
+            x = left + j * (cell + gap)
+            d.rectangle([x, y, x + cell - 1, y + cell - 1], fill=h)
+            d.text((x + 1, y + cell + 1), "W%d" % j, fill=(200, 200, 200), font=small)
         y += rowh
     # 설명
     y += 6

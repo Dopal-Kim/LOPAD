@@ -1,7 +1,7 @@
 {
  "name": "LOPAD",
- "version": 1,
- "decision": "2026-10-01 round-28 Q2/Q5/Q6",
+ "version": 2,
+ "decision": "2026-10-01 round-28 Q2/Q5/Q6 · ui: round-36/38 · fx: round-42 Q2",
  "total_slots": 28,
  "gray": [
   "#000000",
@@ -247,7 +247,8 @@
   "무채색 16 은 모든 층에서 고정. 강조 램프 12 는 층 진입 시 그 층의 ramp 로 교체(인덱스 16~27).",
   "피·불꽃·발광 등 모든 유채색은 현재 층의 강조 램프만 쓴다 (고정 포인트색 없음).",
   "주인공은 무채색 + 강조 램프 2칸 이내(glow, base)만 쓴다.",
-  "UI 세피아 램프 6칸(ui.ramp)은 UI 키트 전용. 캐릭터·적·보스·무기·이펙트·바닥 타일에는 금지. 층 램프 스왑과 무관."
+  "UI 세피아 램프 6칸(ui.ramp)은 UI 키트 전용. 캐릭터·적·보스·무기·이펙트·바닥 타일에는 금지. 층 램프 스왑과 무관.",
+  "FX 예외(fx): 백열 코어 2칸 + 무기별 보조 램프 4칸은 이펙트 전용(42라운드 Q2). 캐릭터·타일·UI 금지. 층 램프 스왑과 무관(고정색). 층 강조색 25~27 은 이펙트 안에서 하이라이트 층으로 계속 쓴다."
  ],
  "ui": {
   "name": "sepia",
@@ -272,5 +273,73 @@
   "lab": "L* 9 / 16 / 22 / 28 / 38 / 70, chroma 5~20, Lab hue ~62~67deg (low-saturation brown). S5 jumps (38→70) on purpose: it is the glowing-ink colour, not a surface step.",
   "text_on_page": "GLOW rule (round 38): body S5 (#c6a58b) / title·selected G15 / unselected G13 / faint S4 without halo. Halo 1px (4-neighbour) S4 — or current-floor accent slot 20 at alpha 0.5 for emphasis — then 1px outer shade ring S2. Dark grays (G00~G03) are NOT readable on S3 any more.",
   "text_on_ink": "body G14 + halo accent 20 @ alpha 0.5 + shade G00; faint G11 no halo; boss/notice accent 22 + halo accent 18"
+ },
+ "fx": {
+  "name": "incandescent core + weapon secondary",
+  "scope": "FX only (round 42 Q2). Forbidden on characters, enemies, bosses, floor tiles and UI. Not swapped per floor (fixed). Floor accent slots 25~27 stay as the highlight layer inside fx.",
+  "decision": "2026-10-02 round-42 Q2 — 백열 코어 + 무기별 보조색 1종. 보조색 hue 는 아트 임시(검수 대상).",
+  "core": [
+   "#ffffff",
+   "#fff4dc"
+  ],
+  "core_roles": [
+   "X0 white-hot core (= G15, the 1px centre line of every stroke / bolt)",
+   "X1 incandescent (warm near-white, 2nd core step; the only warm white in the game)"
+  ],
+  "layers": [
+   "1 core: X0 (1px) + X1 (1~2px)",
+   "2 highlight: current floor accent 27/26/25 (head glint, sparks, closing-circle flash)",
+   "3 body: weapon secondary W3→W1 (bright to dark, inside to outside)",
+   "4 edge: W0 (dark rim, 1px) — on very dark floors G00 ink instead"
+  ],
+  "weapons": {
+   "katana": {
+    "label": "cold silver",
+    "ramp": [
+     "#3a4556",
+     "#6f7e97",
+     "#a9b8cc",
+     "#dde6f2"
+    ],
+    "lab": "L* 29/52/74/91, hue ~250 (cool), chroma 8~10. 2차 비평에서 W1·W2 한 단 어둡게 (1배에서 흰 덩어리가 되지 않도록)"
+   },
+   "greatsword": {
+    "label": "ash + lava",
+    "ramp": [
+     "#4a3c38",
+     "#a8321c",
+     "#e35c1c",
+     "#f9b23c"
+    ],
+    "lab": "ash grey-brown → ember red → lava orange → hot yellow; L* 27/40/56/78"
+   },
+   "dagger": {
+    "label": "violet shadow",
+    "ramp": [
+     "#1c1327",
+     "#3e2a62",
+     "#7a4fb2",
+     "#c89cf0"
+    ],
+    "lab": "L* 8/22/42/70, hue ~290; W0 is darker than floor dirt (G01) on purpose = a hole in the floor"
+   },
+   "bow": {
+    "label": "lightning blue-white",
+    "ramp": [
+     "#1e3350",
+     "#2e71c9",
+     "#6cb9f5",
+     "#cdefff"
+    ],
+    "lab": "L* 21/46/72/92, hue ~215; W3 is the brightest secondary of the four (lightning reads almost white)"
+   }
+  },
+  "weapon_roles": [
+   "W0 dark edge / shadow of the stroke",
+   "W1 body dark (tail, remnants, afterimage)",
+   "W2 body (main band)",
+   "W3 body light (next to the core)"
+  ],
+  "budget": "per fx: gray <=2 + core 2 + floor accent <=3 + secondary 4 = <=11 colours. Boss/enemy telegraphs use floor ramp + core only (no weapon secondary)."
  }
 }
