@@ -26,6 +26,8 @@ ROOT = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, ".claude", "skills", "pixel-art-studio", "scripts"))
 from pixelstudio import Sprite  # noqa: E402
 from PIL import Image, ImageDraw, ImageFont  # noqa: E402
+sys.path.insert(0, os.path.join(ROOT, "parts", "art", "work", "player"))
+from rimlight import rim_light  # noqa: E402  (공통 후처리, 40라운드 Q1)
 
 OUT_ASSETS = os.path.join(ROOT, "assets", "sprites", "enemies")
 os.makedirs(OUT_ASSETS, exist_ok=True)
@@ -35,6 +37,9 @@ with open(os.path.join(ROOT, "parts", "art", "palette", "lopad.json"), encoding=
     PAL = json.load(fp)
 G = PAL["gray"]
 A = PAL["floors"][0]["ramp"]
+# 40라운드 Q1: 림라이트 — 우·하 윤곽(빛 좌상단의 반대)의 셀아웃 G00 을 G04 로. 어두운 흙바닥(G00~G02) 대비용.
+RIM = G[4]   # G03 은 바닥 G02/G03 잔점에 묻혀 G04 로 (1x 에서 읽히는 첫 단계, G05 부터는 회색 테두리로 보임)
+RIM_SIDE = "rb"
 DIRS = ["down", "up", "left", "right"]
 FONT = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 11)
 
@@ -189,6 +194,8 @@ class Rig:
         k = tuple(int(self.LEGEND["K"][i:i + 2], 16) for i in (1, 3, 5)) + (255,)
         for x, y in todo:
             px[x, y] = k
+        if not p.flash:
+            rim_light(im, RIM, side=RIM_SIDE)   # 림라이트: keep 소지품(비검정)·내부 검정은 자동 제외
         if p.flash:
             im = s._img(); px = im.load()
             for y in range(self.H):

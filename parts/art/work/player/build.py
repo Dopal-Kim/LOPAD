@@ -24,6 +24,7 @@ ROOT = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, ".claude", "skills", "pixel-art-studio", "scripts"))
 from pixelstudio import Sprite  # noqa: E402
 from PIL import Image, ImageDraw, ImageFont  # noqa: E402
+from rimlight import rim_light  # noqa: E402  (parts/art/work/player/rimlight.py, 40라운드 Q1)
 
 OUT_ASSETS = os.path.join(ROOT, "assets", "sprites", "player")
 OUT_WORK = HERE
@@ -57,6 +58,9 @@ LEGEND = {
     "D": A[5],   # 일기장 (A21 base)
 }
 PALETTE = [v for v in LEGEND.values() if v]
+# 40라운드 Q1: 림라이트 — 우·하 윤곽(빛 좌상단의 반대)의 셀아웃 G00 을 G04 로. 어두운 흙바닥(G00~G02) 대비용.
+RIM = G[4]   # G03 은 바닥 G02/G03 잔점에 묻혀 G04 로 (1x 에서 읽히는 첫 단계, G05 부터는 회색 테두리로 보임)
+RIM_SIDE = "rb"
 # 빛 방향 역할 교환용 (좌향 뷰): 하이라이트 <-> 그림자
 LIGHT_SWAP = {"5": "1", "1": "5", "e": "a", "a": "e", "8": "6"}
 
@@ -384,8 +388,10 @@ def draw_heap(s, p, dir_):
 
 
 def finish(s, p):
-    """셀아웃 + 플래시."""
+    """셀아웃 + 림라이트(우·하 윤곽, 플래시 프레임 제외) + 플래시."""
     s.outline(LEGEND["K"], where="inside")
+    if not p.flash:
+        rim_light(s._img(), RIM, side=RIM_SIDE)
     if p.flash:
         im = s._img()
         px = im.load()
