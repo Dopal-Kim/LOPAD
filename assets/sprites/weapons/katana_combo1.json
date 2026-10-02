@@ -45,6 +45,8 @@
  },
  "hitOrigin": "몸 중심 = 피벗(발)에서 위로 10px",
  "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
+ "fxSpawnAtMs": 50,
+ "revision": "49라운드 재제작 (발도 베기 — 허리 칼집에서 뽑으며 벰)",
  "hitRadiusPx": 33,
  "arcDeg": 140,
  "arcFromDeg": -70,
@@ -53,9 +55,9 @@
  "anchor": "player_pivot",
  "depth": {
   "down": "above",
+  "up": "above",
   "left": "above",
-  "right": "above",
-  "up": "below"
+  "right": "above"
  },
  "playerFrameOffset": {
   "x": 16,
@@ -63,10 +65,38 @@
  },
  "overlay": "player_katana_combo1 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 (24,39) = 주인공 피벗 (8,23).",
  "frameStates": [
-  "ghost",
+  "sheathed",
   "glow",
   "steel",
-  "fade"
+  "steel"
  ],
- "stateNote": "ghost 실체화(호박 윤곽) · steel · glow 판정 프레임(날끝 글로우) · fade 흩어짐(다음 타로 넘어가면 보이지 않음) · embers 불티(연격 끝)"
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 날·칼집은 그 프레임 몸 실루엣으로 이미 지워 두었다(49라운드). 방향 안에서 프레임마다 같다.",
+ "stateNote": "sheathed 칼집 안(손잡이를 쥠) · steel 실물 · glow 판정 프레임(날끝 글로우). 49라운드부터 무기는 휴대 실물이라 실체화·흩어짐 없음"
 }

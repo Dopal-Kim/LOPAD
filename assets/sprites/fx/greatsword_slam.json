@@ -1,0 +1,53 @@
+{
+ "image": "greatsword_slam.png",
+ "action": "greatsword_slam",
+ "frameWidth": 96,
+ "frameHeight": 96,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 11,
+ "frameDurationsMs": [
+  50,
+  60,
+  80,
+  100,
+  120,
+  150
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 48
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+ "source": "parts/art/work/combos/build.py (49라운드 4·5절 · art §7.2)",
+ "weapon": "greatsword",
+ "anchor": "hitbox_center",
+ "spawn": "greatsword_slam_impact",
+ "spawnNote": "player_greatsword_slam 의 impactFrame(f4) 시작에 재생. 피벗 (48,48) = 충격파 판정 원 중심.",
+ "depth": "floor",
+ "depthNote": "바닥 깊이(몸 아래). 파편 불티는 바닥 위 2~8px 로 그려 두었다.",
+ "secondary": "fx.weapons.greatsword",
+ "scale": "allowed",
+ "scaleNote": "그림 고리 최대 반경 37~38px(바깥 끝) ≈ 반경 40 기준. 판정 반경 R 이면 scale = R/40 (정수 배율 권장, boss_slam 과 같은 규약)",
+ "drawnRadiusPx": 38,
+ "ringKy": 0.6,
+ "flash": {
+  "color": "#fff4dc",
+  "alpha": 0.16,
+  "ms": 60,
+  "atFrame": 0
+ },
+ "shake": {
+  "px": 4,
+  "ms": 120
+ },
+ "note": "대검 내리찍기 충격파: 백열 섬광 → 납작한 고리(용암) 확산 → 정면 쪽으로 쏠린 균열 부채꼴 → 재·불씨. 층 강조는 26·27(불티)만."
+}

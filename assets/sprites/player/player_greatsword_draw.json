@@ -1,0 +1,47 @@
+{
+ "image": "player_greatsword_draw.png",
+ "action": "greatsword_draw",
+ "frameWidth": 16,
+ "frameHeight": 24,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 10,
+ "frameDurationsMs": [
+  90,
+  110,
+  90,
+  110
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 23
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 21, 23; rim G04)",
+ "source": "parts/art/work/carry/build.py (49라운드 4절 · art §7.1)",
+ "phases": {
+  "grab": [
+   0
+  ],
+  "lift": [
+   1
+  ],
+  "over": [
+   2
+  ],
+  "drawn": [
+   3
+  ]
+ },
+ "note": "두 손으로 어깨 위 손잡이를 잡고(f0) 머리 위로 끌어올려(f1) 앞으로 넘긴 뒤(f2) 한 손으로 끌어 든다(f3 = greatsword_carry_drawn_idle f0).",
+ "usage": "공격이 아닌 동작(가드 등)으로 전투에 들어갈 때. 연격 1타(greatsword_combo1)는 f0~f1 이 '어깨 위에서 끌어내 머리 위로'라 draw 없이 바로 재생.",
+ "weapon": "greatsword",
+ "framesBasis": "player_greatsword_draw 프레임 번호 (몸·무기 공통)"
+}

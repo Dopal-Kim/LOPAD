@@ -1,0 +1,68 @@
+{
+ "image": "dagger_carry_dash.png",
+ "action": "carry_dash",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 3,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  60,
+  90,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 39
+ },
+ "palette": "parts/art/palette/lopad.json (gray G00 G05 G08 G13 + floor 1 accent 16-27, runtime swap)",
+ "source": "parts/art/work/carry/build.py (49라운드 4절 · art §7.1)",
+ "weapon": "dagger",
+ "carry": "hand, reverse grip (손 · 역수)",
+ "bodySheet": "player_dash",
+ "framesBasis": "player_dash 와 같은 프레임 수·같은 frameDurationsMs·같은 방향 행. 몸 프레임 번호와 1:1",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 16,
+  "y": 16
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 부분(먼 허리 칼집·등의 대검 날 등)은 그 프레임 몸 실루엣으로 이미 지워 두었다. above = 몸 위에 그대로 겹침, below = 몸 아래(앞 층이 없는 방향). 방향 안에서 프레임마다 같다.",
+ "overlay": "player_dash 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 (24,39) = 주인공 피벗 (8,23)."
+}

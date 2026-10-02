@@ -1,0 +1,65 @@
+{
+ "image": "dagger_combo1_heat1.png",
+ "action": "dagger_combo1_heat1",
+ "frameWidth": 80,
+ "frameHeight": 80,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 20,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  70
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 40,
+  "y": 50
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+ "source": "parts/art/work/combos/build.py (49라운드 4·5절 · art §7.2)",
+ "weapon": "dagger",
+ "comboIndex": 1,
+ "comboLength": 3,
+ "hitFrames": [
+  1
+ ],
+ "activeFrames": [
+  1
+ ],
+ "cancelFromFrame": 2,
+ "timingMs": {
+  "hitAt": 50,
+  "cancelAt": 90,
+  "total": 160
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 10px",
+ "thrust": {
+  "lengthPx": 24,
+  "widthPx": 8,
+  "angleDeg": -8,
+  "fromPx": 4
+ },
+ "thrustNote": "몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 방향 변환은 호와 같은 규약",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "impactFrame": 1,
+ "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
+ "depth": "above",
+ "secondary": "fx.weapons.dagger",
+ "pivotNote": "피벗 (40,50) = 발. 찌르기 원점 = 몸 중심 (40,40) (발 위 10px). 가열 줄기가 길어 기본(64)보다 큰 80 캔버스.",
+ "heatLevel": 1,
+ "heatOf": "dagger_combo1",
+ "visualLengthPx": 26,
+ "heatNote": "가열(과열 기능) 단계 k 일 때 dagger_combo1 대신 재생. 판정(thrust)은 그대로, 그림만 길고 밝다 (1 = 보라 몸체 + 코어 확장, 2 = 보라→백열 + 잔상 한 겹, 3 = 백열 몸체 + 보라 가장자리만).",
+ "playbackRateHint": 1.15,
+ "playbackRateNote": "임시(아트 제안): '후반 갈수록 공격 속도가 빨라지는 느낌' — 몸·무기·이펙트 재생 배속 제안. 실제 공격 속도 배율은 시스템"
+}

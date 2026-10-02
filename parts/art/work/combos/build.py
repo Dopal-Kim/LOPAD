@@ -15,6 +15,13 @@
   assets/sprites/player/player_bow_aim + weapons/bow_aim (시위 당김, 진행도 프레임 0~5 + 발사 6)
   parts/art/work/combos/preview_<w>.png, preview_specials.png, preview_mock_1x.png / preview_mock_2x.png (카메라 2배), gif/*.gif
 기존 player_attack · weapons/<w>_attack · fx/<w>_slash 는 건드리지 않는다.
+
+49라운드 개정 (decisions/2026-10-02-round-49-playtest2.md 4·5절, art §7.2) — 10절:
+  대검 combo1~3 재제작(두 손 큰 휘두름, 판정 f2, recoverFrames) · 칼 combo1 = 발도 베기(허리 칼집)
+  player_greatsword_slam + weapons/greatsword_slam + fx/greatsword_slam (leapFrames · impactFrame)
+  player_greatsword_dashslash + weapons/greatsword_dashslash (recoverFrames)
+  fx/dagger_combo<n>_heat<k> (k = 1·2·3, 80 캔버스) · player_bow_reload + weapons/bow_reload
+  공용 기하 = combos/gear.py (carry/build.py 와 공유). 미리보기 preview_r49_actions · preview_dagger_heat · preview_mock_r49_*.
 """
 import importlib.util
 import json
@@ -234,20 +241,28 @@ def draw_weapon_state(cv, wid, grip, phi, state):
 # 상태: ghost = 실체화(호박 윤곽) / steel / glow = 휘두름 + 날끝 글로우(판정 프레임) / fade = 흩어지는 호박 윤곽 / embers = 불티만
 COMBOS = {
     "katana": {   # "씽 · 씽씽" — 1타 뒤 쉼(취소 f3 = 250ms), 2·3타는 붙어서(취소 f2 = 80ms)
-        1: dict(frames=[(-115, 5, -1, 0, 0, "ghost"), (-15, 5, 1, 0, 0, "glow"), (60, 5, 1, 1, 0, "steel"), (95, 4, 0, 0, 0, "fade")],
-                ms=[90, 40, 120, 100], hit=[1], cancel=3, arc=(-70, 70)),
+        # 49라운드: 1타 = 발도 베기. f0 = 허리 칼집 손잡이를 쥐고 낮게(칼은 칼집 안), f1 = 뽑으며 벰(판정), 칼집은 빈 채 허리에.
+        1: dict(frames=[(None, 0, 0, 1, 1, "sheathed", {}), (-15, 5, 1, 0, 0, "glow", {}), (60, 5, 1, 1, 0, "steel", {}),
+                        (95, 4, 0, 0, 0, "steel", {"pull": 0.6})],
+                ms=[90, 40, 120, 100], hit=[1], cancel=3, arc=(-70, 70), r49=True),
         2: dict(frames=[(100, 5, 0, 0, 0, "steel"), (10, 5, 1, 0, 0, "glow"), (-85, 5, 0, 0, 0, "fade")],
                 ms=[40, 40, 90], hit=[1], cancel=2, arc=(65, -65)),
         3: dict(frames=[(-125, 5, -1, 0, 0, "steel"), (-5, 5, 1, 0, 0, "glow"), (75, 5, 2, 1, 0, "steel"), (100, 4, 1, 1, 0, "embers")],
                 ms=[40, 40, 100, 140], hit=[1], cancel=None, arc=(-85, 85)),
     },
-    "greatsword": {   # "훙 훙 훙" — 셋 다 무겁고 고른 간격, 3타가 가장 크다(270°). 1·3타 위→아래, 2타 아래→위(교차)
-        1: dict(frames=[(-135, 5, -1, 0, 0, "ghost"), (-35, 5, 0, 0, 0, "glow"), (55, 5, 1, 1, 0, "steel"), (90, 4, 1, 1, 0, "fade")],
-                ms=[160, 60, 120, 140], hit=[1], cancel=3, arc=(-110, 80)),
-        2: dict(frames=[(115, 5, 0, 1, 0, "steel"), (25, 5, 0, 0, 0, "glow"), (-80, 5, 0, 0, 0, "steel"), (-110, 4, -1, 0, 0, "fade")],
-                ms=[140, 60, 120, 140], hit=[1], cancel=3, arc=(100, -100)),
-        3: dict(frames=[(-165, 5, -1, 0, 0, "steel"), (-60, 5, 0, 0, 0, "glow"), (40, 5, 1, 1, 0, "glow"), (95, 5, 1, 2, 1, "steel"), (100, 4, 0, 1, 0, "embers")],
-                ms=[200, 60, 70, 140, 180], hit=[1], active=[1, 2], cancel=None, arc=(-150, 120)),
+    # 49라운드 Q4·Q5 재제작: 두 손 큰 휘두름. 프레임 = (θ, L, fwd, dip, crouch, 상태, opt). 무기는 이제 등에서 꺼내 든 실물(실체화 윤곽 없음).
+    # 2단 예비(끌어올림 → 최대 비틀림, 무게 뒤) → 훙(판정, 무게 앞) → 끝까지 휘두름 → 버팀(회복) → 자세 회복. 판정 = f2.
+    "greatsword": {   # "훙 훙 훙" — 1·3타 위→아래, 2타 아래→위(교차), 3타 270° 가장 큼
+        1: dict(frames=[(-150, 4, -1, 0, 0, "steel", {}), (-172, 3, -1, 1, 1, "steel", {}), (-30, 5, 1, 0, 0, "glow", {}),
+                        (60, 5, 2, 1, 1, "steel", {"pull": 0.5}), (95, 5, 1, 2, 1, "steel", {"pull": 0.7}), (110, 3, 0, 0, 0, "steel", {"pull": 0.7})],
+                ms=[90, 100, 60, 110, 140, 130], hit=[2], cancel=4, recover=[4, 5], arc=(-110, 80)),
+        2: dict(frames=[(110, 4, 0, 1, 1, "steel", {"pull": 0.6}), (165, 3, -1, 1, 1, "steel", {}), (30, 5, 1, 0, 0, "glow", {}),
+                        (-80, 5, 1, -1, 0, "steel", {}), (-120, 4, 0, 0, 0, "steel", {}), (-140, 4, -1, 0, 0, "steel", {})],
+                ms=[80, 90, 60, 110, 140, 120], hit=[2], cancel=4, recover=[4, 5], arc=(100, -100)),
+        3: dict(frames=[(-120, 5, -1, -1, 0, "steel", {}), (-178, 3, -1, 1, 1, "steel", {}), (-60, 5, 1, 0, 0, "glow", {}),
+                        (40, 5, 2, 1, 0, "glow", {"pull": 0.4}), (95, 5, 2, 2, 2, "steel", {"pull": 0.7}),
+                        (100, 4, 1, 1, 1, "steel", {"pull": 0.7}), (110, 3, 0, 0, 0, "steel", {"pull": 0.7})],
+                ms=[100, 120, 60, 70, 150, 160, 160], hit=[2], active=[2, 3], cancel=None, recover=[4, 5, 6], arc=(-150, 120)),
     },
     "dagger": {   # "슈슈슉" — 찌르기 3줄기(위로 8° · 아래로 10° · 정면 길게)
         1: dict(frames=[(-8, 1, -1, 0, 0, "ghost"), (-8, 6, 1, 0, 0, "glow"), (-8, 3, 0, 0, 0, "fade")],
@@ -276,6 +291,14 @@ def combo_memo(wid, n, for_fx=False):
         "hitOrigin": "몸 중심 = 피벗(발)에서 위로 %dpx" % BODY_CENTER_DY,
         "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
     }
+    if wid == "greatsword" or cb.get("r49"):
+        memo["fxSpawnAtMs"] = sum(ms[:cb["hit"][0]]) - 40
+    if "recover" in cb:
+        memo["recoverFrames"] = cb["recover"]
+        memo["recoverNote"] = ("임시(아트 제안): 휘두른 뒤 무게를 버티고 자세를 되찾는 프레임. 이동 제약·기력 소모 구간의 시각 기준 "
+                               "(실제 이동 제약 시간은 시스템). 취소(cancelFromFrame)가 들어오면 생략된다.")
+    if wid == "greatsword" or cb.get("r49"):
+        memo["revision"] = "49라운드 재제작 (%s)" % ("두 손 큰 휘두름 + 몸 비틀림·무게 중심 이동·회복 프레임" if wid == "greatsword" else "발도 베기 — 허리 칼집에서 뽑으며 벰")
     if "arc" in cb:
         a0, a1 = cb["arc"]
         memo.update({"hitRadiusPx": HIT[wid], "arcDeg": abs(a1 - a0), "arcFromDeg": a0, "arcToDeg": a1,
@@ -918,32 +941,40 @@ def build_combo(wid, n):
     cb = COMBOS[wid][n]
     ms = cb["ms"]
     S, poff, wpivot = wcanvas(wid)
-    bodies, weapons, hands = {}, {}, {}
-    for d in DIRS:
-        bodies[d], weapons[d], hands[d] = [], [], []
-        for fr in cb["frames"]:
-            p, hand, phi, state = combo_pose(wid, d, fr, n)
-            bodies[d].append(render_body(d, p))
-            cv = WP.Canvas(S, S)
-            draw_weapon_state(cv, wid, (hand[0] + poff[0], hand[1] + poff[1]), phi, state)
-            weapons[d].append(cv)
-            hands[d].append(hand)
+    r49 = wid == "greatsword" or cb.get("r49")
+    if r49:
+        bodies, weapons, depth = r49_combo_frames(wid, n)
+        wextra = dict(depthByFrame={d: [depth[d]] * len(ms) for d in DIRS}, occlusionBaked=True,
+                      depthNote="몸 뒤로 가는 날·칼집은 그 프레임 몸 실루엣으로 이미 지워 두었다(49라운드). 방향 안에서 프레임마다 같다.",
+                      stateNote="sheathed 칼집 안(손잡이를 쥠) · steel 실물 · glow 판정 프레임(날끝 글로우). 49라운드부터 무기는 휴대 실물이라 실체화·흩어짐 없음")
+    else:
+        bodies, weapons, hands = {}, {}, {}
+        for d in DIRS:
+            bodies[d], weapons[d], hands[d] = [], [], []
+            for fr in cb["frames"]:
+                p, hand, phi, state = combo_pose(wid, d, fr, n)
+                bodies[d].append(render_body(d, p))
+                cv = WP.Canvas(S, S)
+                draw_weapon_state(cv, wid, (hand[0] + poff[0], hand[1] + poff[1]), phi, state)
+                weapons[d].append(cv)
+                hands[d].append(hand)
+        depth = DEPTH
+        wextra = dict(stateNote="ghost 실체화(호박 윤곽) · steel · glow 판정 프레임(날끝 글로우) · fade 흩어짐(다음 타로 넘어가면 보이지 않음) · embers 불티(연격 끝)")
     memo = combo_memo(wid, n)
     name = "%s_combo%d" % (wid, n)
     save_png_json(OUT_P, "player_" + name, bodies, PW, PH, ms, False, (8, 23), PAL_PLAYER,
                   dict(memo, note="무기를 든 연격 몸 동작. weapons/%s 를 같은 프레임 번호·같은 시각에 겹친다(§6.1)." % name), name)
-    save_png_json(OUT_W, name, weapons, S, S, ms, False, wpivot, PAL_WEAPON,
-                  dict(memo, anchor="player_pivot", depth=DEPTH, playerFrameOffset={"x": poff[0], "y": poff[1]},
-                       overlay="player_%s 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 (%d,%d) = 주인공 피벗 (8,23)." % (name, wpivot[0], wpivot[1]),
-                       frameStates=[f[5] for f in cb["frames"]],
-                       stateNote="ghost 실체화(호박 윤곽) · steel · glow 판정 프레임(날끝 글로우) · fade 흩어짐(다음 타로 넘어가면 보이지 않음) · embers 불티(연격 끝)"),
-                  name.split("_", 1)[1])
+    wmeta = dict(memo, anchor="player_pivot", depth=depth, playerFrameOffset={"x": poff[0], "y": poff[1]},
+                 overlay="player_%s 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 (%d,%d) = 주인공 피벗 (8,23)." % (name, wpivot[0], wpivot[1]),
+                 frameStates=[f[5] for f in cb["frames"]])
+    wmeta.update(wextra)
+    save_png_json(OUT_W, name, weapons, S, S, ms, False, wpivot, PAL_WEAPON, wmeta, name.split("_", 1)[1])
     check("player_" + name, "player", bodies)
     check("weapons/" + name, "weapon", weapons)
     # 이펙트
     fbd, fms, FS = FX_BUILDERS[wid](n)
     fpivot = (FS // 2, FS // 2 + BODY_CENTER_DY)
-    extra = dict(memo, anchor="player_pivot", spawn="attack_frame2", impactFrame=1,
+    extra = dict(memo, anchor="player_pivot", spawn="attack_frame%d" % (cb["hit"][0] + 1), impactFrame=1,
                  spawnNote="f0(예비 40ms)는 몸 시트 f%d 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms." % cb["hit"][0],
                  depth="above", secondary="fx.weapons.%s" % wid,
                  pivotNote="피벗 (%d,%d) = 발. 호·찌르기 원점 = 몸 중심 (%d,%d) (발 위 %dpx)." % (fpivot[0], fpivot[1], FS // 2, FS // 2, BODY_CENTER_DY))
@@ -967,7 +998,10 @@ def build_combo(wid, n):
             extra["shake"] = {"px": 1, "ms": 40}
     save_png_json(OUT_FX, name, fbd, FS, FS, fms, False, fpivot, PAL_FX, extra, name)
     check("fx/" + name, "fx", fbd, wid)
-    return dict(bodies=bodies, weapons=weapons, fx=fbd, ms=ms, fms=fms, S=S, poff=poff, FS=FS, fpivot=fpivot, wpivot=wpivot)
+    out = dict(bodies=bodies, weapons=weapons, fx=fbd, ms=ms, fms=fms, S=S, poff=poff, FS=FS, fpivot=fpivot, wpivot=wpivot, hitf=cb["hit"][0])
+    if r49:
+        out["depth"] = depth
+    return out
 
 
 def build_special(wid):
@@ -1021,6 +1055,620 @@ def build_bow_aim():
     return dict(bodies=bodies, weapons=weapons, ms=BOW_MS, S=S, poff=poff)
 
 
+# ============================================================ 10. 49라운드 (decisions/2026-10-02-round-49-playtest2.md 4·5절, art §7.2)
+# 두 손 대검 연격 · 발도 베기 · 내리찍기 · 대쉬 베기 · 단검 가열 이펙트 · 활 장전. 공용 기하 = gear.py (carry/build.py 와 공유).
+sys.path.insert(0, HERE)
+import gear as GR  # noqa: E402
+
+SRC49 = "parts/art/work/combos/build.py (49라운드 4·5절 · art §7.2)"
+
+
+def _gs_pose(d, th, L, fwd, dip, crouch, opt):
+    phi = None
+    if "phi" in opt and d in opt["phi"]:
+        phi = opt["phi"][d]
+    legs = opt.get("legs")
+    if legs is None and d in ("left", "right") and fwd < 0:
+        legs = (1, -2)                      # 예비: 뒷발에 무게
+    return GR.twohand_pose(d, th, L, fwd, dip, crouch, pull=opt.get("pull", 0.0), legs=legs,
+                           extra=opt.get("extra"), phi=phi)
+
+
+def r49_combo_frames(wid, n):
+    """대검 1~3타(두 손) · 칼 1타(발도). 반환 (bodies, baked weapons, depth)."""
+    cb = COMBOS[wid][n]
+    S, poff, wpivot = wcanvas(wid)
+    spec = SPEC[wid]
+    bodies, weapons, depth = {}, {}, {}
+    for d in DIRS:
+        bl, ll = [], []
+        for th, L, fwd, dip, crouch, state, opt in cb["frames"]:
+            ly = GR.Layers(S, poff)
+            if wid == "greatsword":
+                p, under, over, hand, phi = _gs_pose(d, th, L, fwd, dip, crouch, opt)
+                GR.blade(ly, hand, phi, spec, GR.blade_layer(d, phi), tip_glow=(state == "glow"))
+                body = GR.render_body(d, p, under, over)
+            elif state == "sheathed":       # 발도 직전: 칼집 손잡이를 쥐고 낮게
+                p = P.Pose(body_dy=dip, crouch=crouch)
+                if d in ("left", "right"):
+                    p.lean = 1
+                    p.l_dx, p.r_dx = 1, -1
+                g = GR.sheath_geo(d, p)
+                GR.draw_scabbard(ly, g, empty=False)
+                GR.draw_katana_hilt(ly, g)
+                if d == "up":
+                    p.l_arm = "pos"
+                else:
+                    p.r_arm = "pos"
+                p.hand_pos = GR.clamp_hand(*GR.katana_hilt_grip(d, p))
+                body = GR.render_body(d, p)
+            else:
+                p, under, over, hand, phi = GR.twohand_pose(d, th, L, fwd, dip, crouch, pull=opt.get("pull", 0.0),
+                                                            legs=(0, 0), two=False)
+                GR.draw_scabbard(ly, GR.sheath_geo(d, p), empty=True)
+                GR.blade(ly, hand, phi, spec, GR.blade_layer(d, phi), tip_glow=(state == "glow"))
+                body = GR.render_body(d, p)
+            bl.append(body)
+            ll.append(ly)
+        weapons[d], depth[d] = GR.bake_dir(ll, bl)
+        bodies[d] = bl
+    return bodies, weapons, depth
+
+
+# ---------------------------------------------------------------- 대검 내리찍기 / 대쉬 베기 (몸 + 무기)
+GS_TUCK = {"l_sl": 2, "r_sl": 2, "l_lift": 2, "r_lift": 2}
+GS_HALF = {"l_sl": 1, "r_sl": 0, "l_lift": 1, "r_lift": 0}
+SLAM = dict(  # (θ, L, fwd, dip, crouch, 상태, opt), ms
+    frames=[(-125, 4, 0, 0, 1, "steel", {"phi": {"down": -105, "up": -75}}),                                   # 0 웅크려 칼을 등 위로
+            (-95, 6, 0, -1, 0, "steel", {"phi": {"down": -90, "up": -90}}),                                     # 1 머리 위로 높이 듦
+            (-100, 6, 0, -1, 0, "steel", {"extra": GS_TUCK, "phi": {"down": -90, "up": -90}}),                  # 2 도약(다리 접음)
+            (-20, 5, 1, 0, 0, "glow", {"extra": GS_HALF, "phi": {"down": 45, "up": -135}}),                     # 3 떨어지며 내려침
+            (25, 5, 2, 2, 2, "glow", {"phi": {"down": 90, "up": -90}, "flen": {"up": 10}}),                     # 4 착지 + 내려찍음 = 충격
+            (28, 5, 2, 2, 2, "steel", {"phi": {"down": 90, "up": -90}, "flen": {"up": 10}}),                    # 5 박힌 채 버팀
+            (60, 4, 1, 1, 1, "steel", {"pull": 0.5}),                                                           # 6 뽑아 올림
+            (110, 3, 0, 0, 0, "steel", {"pull": 0.7})],                                                         # 7 자세 회복
+    ms=[90, 110, 90, 60, 90, 160, 120, 130], leap=[2, 3], impact=4, recover=[5, 6, 7])
+DASHSLASH = dict(
+    frames=[(165, 3, 1, 0, 1, "steel", {"legs": (2, -2), "extra": {"tail": 2}}),                     # 0 박차고 나감, 칼은 뒤로 낮게
+            (175, 4, 2, 0, 1, "steel", {"legs": (2, -2), "extra": {"tail": 3, "lean": 2}}),          # 1 달려듦
+            (10, 5, 2, 0, 0, "glow", {"legs": (2, -1), "extra": {"tail": 2}}),                       # 2 훙 (판정)
+            (-80, 5, 1, -1, 0, "steel", {"legs": (2, -1), "extra": {"tail": 1}}),                    # 3 끝까지 휘두름
+            (-120, 4, -1, 0, 2, "steel", {"legs": (2, -2), "extra": {"lean": -1}}),                  # 4 미끄러지며 멈춤
+            (-60, 4, 0, 1, 1, "steel", {}),                                                           # 5 자세 잡고 대기
+            (110, 3, 0, 0, 0, "steel", {"pull": 0.7})],                                               # 6 회복
+    ms=[70, 90, 60, 90, 120, 160, 140], hit=[2], recover=[4, 5, 6], arc=(110, -100))
+
+
+def gs_action_frames(table):
+    S, poff, wpivot = wcanvas("greatsword")
+    spec = SPEC["greatsword"]
+    bodies, weapons, depth, tips = {}, {}, {}, {}
+    for d in DIRS:
+        bl, ll, tl = [], [], []
+        for th, L, fwd, dip, crouch, state, opt in table["frames"]:
+            ly = GR.Layers(S, poff)
+            p, under, over, hand, phi = _gs_pose(d, th, L, fwd, dip, crouch, opt)
+            sp = dict(spec, length=opt["flen"][d]) if d in opt.get("flen", {}) else spec   # 원근 단축(멀어지는 칼날)
+            GR.blade(ly, hand, phi, sp, GR.blade_layer(d, phi), tip_glow=(state == "glow"))
+            qx, qy = GR.qdir(phi)
+            tl.append((round(hand[0] + qx * sp["length"]), round(hand[1] + qy * sp["length"])))
+            bl.append(GR.render_body(d, p, under, over))
+            ll.append(ly)
+        weapons[d], depth[d] = GR.bake_dir(ll, bl)
+        bodies[d] = bl
+        tips[d] = tl
+    return dict(bodies=bodies, weapons=weapons, depth=depth, ms=table["ms"], S=S, poff=poff, wpivot=wpivot, tips=tips)
+
+
+def slam_fx(d):
+    """96×96, 피벗 (48,48) = 내려찍은 자리 = 충격파 판정 원 중심. 바닥 원근 ky 0.6. 균열은 정면(d)으로 쏠린 부채꼴."""
+    wid = "greatsword"
+    S = 96
+    cx, cy = 48, 48
+    fwd = {"right": 0, "left": 180, "down": 90, "up": -90}[d]
+    cracks = [(-20, 22), (25, 20), (-60, 15), (65, 14), (0, 26), (-110, 10), (115, 9), (180, 7)]
+
+    def crack_lines(cv, scale, cols, dashed=False):
+        tmp = K.Canvas(S, S)
+        for i, (a, L) in enumerate(cracks):
+            ang = math.radians(fwd + a)
+            L2 = L * scale
+            pts = K.zigzag(cx + 3 * math.cos(ang), cy + 3 * math.sin(ang) * 0.6, cx + L2 * math.cos(ang), cy + L2 * math.sin(ang) * 0.6,
+                           4, 2.0, 90 + i)
+            tmp.bolt(pts, cols)
+        if dashed:
+            tmp.dash_pattern(mod=3, keep=(0, 1), seed=1)
+        merge(cv, tmp)
+
+    def debris(cv, rr, cols, k0=0, n=5, lift=2):
+        for k in range(n):
+            a = math.radians(fwd + (-75 + k * 150 / max(1, n - 1)))
+            cv.pair(cx + rr * math.cos(a), cy + rr * math.sin(a) * 0.6 - lift, cols[(k + k0) % len(cols)], horiz=(k % 2 == 0))
+
+    fr = []
+    cv = K.Canvas(S, S)   # f0 충격 섬광: 백열 원 + 짧은 별빛 + 첫 고리 r5
+    for a in range(0, 360, 45):
+        ang = math.radians(a)
+        L = 7 if a % 90 == 0 else 5
+        cv.line(cx, cy, cx + L * math.cos(ang), cy + L * math.sin(ang) * 0.6, C(27))
+    cv.ring(cx, cy, 5, W(wid, 3), thick=1.6, ky=0.6)
+    cv.disc(cx, cy, 2.6, X0, ky=0.6)
+    fr.append(cv)
+    cv = K.Canvas(S, S)   # f1 고리 r12 + 균열 시작(용암) + 파편
+    cv.ring(cx, cy, 12, W(wid, 0), thick=3.2, ky=0.6)
+    cv.ring(cx, cy, 12, W(wid, 3), thick=1.8, ky=0.6)
+    cv.ring(cx, cy, 12, X1, thick=1.0, ky=0.6, dash=(50, 40), phase=fwd - 25)
+    crack_lines(cv, 0.45, [(1, W(wid, 0)), (0, W(wid, 2))])
+    cv.disc(cx, cy, 2.4, X1, ky=0.6)
+    debris(cv, 15, [C(27), W(wid, 3)], n=4, lift=3)
+    fr.append(cv)
+    cv = K.Canvas(S, S)   # f2 고리 r22 + 균열 전체 + 불티
+    cv.ring(cx, cy, 22, W(wid, 0), thick=3.6, ky=0.6)
+    cv.ring(cx, cy, 22, W(wid, 2), thick=2.0, ky=0.6)
+    cv.ring(cx, cy, 22, X1, thick=1.0, ky=0.6, dash=(30, 60), phase=fwd - 15)
+    crack_lines(cv, 0.85, [(1, W(wid, 0)), (0, W(wid, 2))])
+    cv.disc(cx, cy, 2.6, W(wid, 3), ky=0.6)
+    cv.px(cx, cy, X1)
+    debris(cv, 25, [C(27), W(wid, 3), C(26)], n=5, lift=4)
+    fr.append(cv)
+    cv = K.Canvas(S, S)   # f3 고리 r31(점선) + 균열 식음 + 재
+    cv.ring(cx, cy, 31, W(wid, 0), thick=3.0, ky=0.6)
+    cv.ring(cx, cy, 31, W(wid, 2), thick=1.2, ky=0.6, dash=(30, 12))
+    crack_lines(cv, 1.0, [(1, W(wid, 0)), (0, W(wid, 1))])
+    cv.disc(cx, cy, 2.0, W(wid, 2), ky=0.6)
+    debris(cv, 33, [G(9), C(26), G(6)], n=5, lift=6)
+    fr.append(cv)
+    cv = K.Canvas(S, S)   # f4 고리 r37 흩어짐 + 균열 W0
+    cv.ring(cx, cy, 37, W(wid, 0), thick=1.6, ky=0.6, dash=(14, 12))
+    crack_lines(cv, 1.0, [(0, W(wid, 0))])
+    for k, (a, L) in enumerate(cracks[:5]):
+        ang = math.radians(fwd + a)
+        cv.pair(cx + L * 0.55 * math.cos(ang), cy + L * 0.55 * math.sin(ang) * 0.6, W(wid, 1), horiz=(k % 2 == 0))
+    debris(cv, 38, [G(6), G(9)], n=4, lift=8)
+    fr.append(cv)
+    cv = K.Canvas(S, S)   # f5 남은 균열 점선 + 불씨
+    crack_lines(cv, 1.0, [(0, W(wid, 0))], dashed=True)
+    for k, (a, L) in enumerate(cracks[:4]):
+        ang = math.radians(fwd + a)
+        cv.pair(cx + L * 0.4 * math.cos(ang), cy + L * 0.4 * math.sin(ang) * 0.6, W(wid, 1), horiz=(k % 2 == 1))
+    fr.append(cv)
+    for c_ in fr:
+        c_.despeckle8()
+    return fr, [50, 60, 80, 100, 120, 150], S
+
+
+def build_slam():
+    r = gs_action_frames(SLAM)
+    ms = SLAM["ms"]
+    imp = SLAM["impact"]
+    offs = {d: {"x": r["tips"][d][imp][0] - 8, "y": r["tips"][d][imp][1] - 23} for d in DIRS}
+    dist = round(sum(math.hypot(o["x"], o["y"]) for o in offs.values()) / 4.0)
+    memo = {"weapon": "greatsword", "action": "slam (개성 발현 후 충격파: 마우스 방향으로 짧게 도약해 내려찍기)",
+            "leapFrames": SLAM["leap"], "impactFrame": imp, "recoverFrames": SLAM["recover"],
+            "timingMs": {"leapStart": sum(ms[:SLAM["leap"][0]]), "impactAt": sum(ms[:imp]), "total": sum(ms)},
+            "leapNote": "임시(아트 제안): 도약 프레임 동안 시스템이 마우스 방향으로 이동(거리·속도는 시스템). 스프라이트는 다리를 접은 자세만 — "
+                        "몸을 띄우는 화면 y 오프셋은 시스템이 그린다(제안 leapOffsetsPx).",
+            "leapOffsetsPx": {"2": -3, "3": -2},
+            "impactOffsetPx": offs,
+            "impactDistancePx": dist,
+            "impactNote": "충격파 중심(= fx/greatsword_slam 피벗) = 발 피벗 + 정면(마우스 방향) × impactDistancePx. impactOffsetPx 는 4방향 그림의 칼끝 실제 위치(참고).",
+            "fx": {"id": "greatsword_slam", "spawn": "impactFrame", "anchor": "hitbox_center"},
+            "framesBasis": "player_greatsword_slam 프레임 번호 (몸·무기 공통)"}
+    save_png_json(OUT_P, "player_greatsword_slam", r["bodies"], PW, PH, ms, False, (8, 23), PAL_PLAYER, dict(memo, source=SRC49), "greatsword_slam")
+    save_png_json(OUT_W, "greatsword_slam", r["weapons"], r["S"], r["S"], ms, False, r["wpivot"], PAL_WEAPON,
+                  dict(memo, anchor="player_pivot", depth=r["depth"], depthByFrame={d: [r["depth"][d]] * len(ms) for d in DIRS},
+                       occlusionBaked=True, playerFrameOffset={"x": r["poff"][0], "y": r["poff"][1]},
+                       frameStates=[f[5] for f in SLAM["frames"]], source=SRC49), "slam")
+    check("player_greatsword_slam", "player", r["bodies"])
+    check("weapons/greatsword_slam", "weapon", r["weapons"])
+    fxd, fms = {}, None
+    for d in DIRS:
+        fxd[d], fms, FS = slam_fx(d)
+    fx_memo = {"weapon": "greatsword", "anchor": "hitbox_center", "spawn": "greatsword_slam_impact",
+               "spawnNote": "player_greatsword_slam 의 impactFrame(f%d) 시작에 재생. 피벗 (48,48) = 충격파 판정 원 중심." % imp,
+               "depth": "floor", "depthNote": "바닥 깊이(몸 아래). 파편 불티는 바닥 위 2~8px 로 그려 두었다.",
+               "secondary": "fx.weapons.greatsword",
+               "scale": "allowed", "scaleNote": "그림 고리 최대 반경 37~38px(바깥 끝) ≈ 반경 40 기준. 판정 반경 R 이면 scale = R/40 (정수 배율 권장, boss_slam 과 같은 규약)",
+               "drawnRadiusPx": 38, "ringKy": 0.6,
+               "flash": {"color": K.FX["core"][1], "alpha": 0.16, "ms": 60, "atFrame": 0},
+               "shake": {"px": 4, "ms": 120},
+               "note": "대검 내리찍기 충격파: 백열 섬광 → 납작한 고리(용암) 확산 → 정면 쪽으로 쏠린 균열 부채꼴 → 재·불씨. 층 강조는 26·27(불티)만.",
+               "source": SRC49}
+    save_png_json(OUT_FX, "greatsword_slam", fxd, FS, FS, fms, False, (48, 48), PAL_FX, fx_memo, "greatsword_slam")
+    check("fx/greatsword_slam", "fx", fxd, "greatsword")
+    r.update(fx=fxd, fms=fms, FS=FS, fpivot=(48, 48), offs=offs)
+    return r
+
+
+def build_dashslash():
+    r = gs_action_frames(DASHSLASH)
+    ms = DASHSLASH["ms"]
+    a0, a1 = DASHSLASH["arc"]
+    memo = {"weapon": "greatsword", "action": "dash slash (달려들며 크게 한 번 휘두르고 멈춰 자세 잡음)",
+            "hitFrames": DASHSLASH["hit"], "activeFrames": DASHSLASH["hit"], "recoverFrames": DASHSLASH["recover"],
+            "timingMs": {"hitAt": sum(ms[:2]), "recoverFrom": sum(ms[:4]), "total": sum(ms)},
+            "hitRadiusPx": HIT["greatsword"], "arcDeg": abs(a1 - a0), "arcFromDeg": a0, "arcToDeg": a1,
+            "arcAngleNote": "right 방향 화면각(0 = 정면, + = 아래). down = +90°, up = -90°, left = 180-θ. 아래→위로 크게 쓸어 올림",
+            "moveNote": "임시(아트 제안): f0~f2 는 대쉬 이동 중(박차고 나감·달려듦·훙), f3 에서 감속, f4 미끄러지며 정지, f5 '공격하기 위해 대기'(자세 잡음), f6 회복. "
+                        "이동 거리·정지 시점·대기 시간은 시스템. 대기를 늘리려면 f5 를 유지(holdFrame 5).",
+            "holdFrame": 5,
+            "fxReuse": {"id": "greatsword_combo2", "spawnAtMs": sum(ms[:2]) - 40,
+                        "note": "전용 이펙트 시트는 이번 범위 밖 — 호가 같은 방향(아래→위 100→-100)인 2타 이펙트를 재사용 제안"},
+            "framesBasis": "player_greatsword_dashslash 프레임 번호 (몸·무기 공통)", "source": SRC49}
+    save_png_json(OUT_P, "player_greatsword_dashslash", r["bodies"], PW, PH, ms, False, (8, 23), PAL_PLAYER, memo, "greatsword_dashslash")
+    save_png_json(OUT_W, "greatsword_dashslash", r["weapons"], r["S"], r["S"], ms, False, r["wpivot"], PAL_WEAPON,
+                  dict(memo, anchor="player_pivot", depth=r["depth"], depthByFrame={d: [r["depth"][d]] * len(ms) for d in DIRS},
+                       occlusionBaked=True, playerFrameOffset={"x": r["poff"][0], "y": r["poff"][1]},
+                       frameStates=[f[5] for f in DASHSLASH["frames"]]), "dashslash")
+    check("player_greatsword_dashslash", "player", r["bodies"])
+    check("weapons/greatsword_dashslash", "weapon", r["weapons"])
+    return r
+
+
+# ---------------------------------------------------------------- 단검 가열 (heat 1·2·3: 점점 밝고 길게, 보라 → 백열)
+HEAT_RATE = {1: 1.15, 2: 1.3, 3: 1.5}
+
+
+def dagger_heat_fx(n, k):
+    wid, S = "dagger", 80                    # 가열 줄기·광선이 길어 64 에서 잘린다 → 80 (피벗 (40,50))
+    c = (S - 1) / 2.0
+    t = COMBOS[wid][n]["thrust"]
+    ang = t["angle"]
+    s1 = t["length"] + 2 * k                 # 그림 길이만 늘린다(판정은 thrust 그대로)
+    s0 = 7
+    Wd = [W(wid, i) for i in range(4)]
+    body = {1: [Wd[0], Wd[1], Wd[3], X1], 2: [Wd[0], Wd[2], Wd[3], X1], 3: [Wd[0], Wd[3], X1, X0]}[k]
+    hot = {1: [Wd[0], Wd[2], Wd[3], X1], 2: [Wd[0], Wd[3], X1, X0], 3: [Wd[0], Wd[3], X1, X0]}[k]
+    cool = {1: [Wd[0], Wd[1], Wd[2]], 2: [Wd[0], Wd[2], Wd[3]], 3: [Wd[0], Wd[3], X1]}[k]
+    shadow = {1: [Wd[0], Wd[1]], 2: [Wd[0], Wd[2]], 3: [Wd[1], Wd[3]]}[k]
+    core = {1: ([X1, X0], 0.3), 2: ([X1, X0], 0.15), 3: ([X0, X0], 0.0)}[k]
+    side = 1 if ang <= 0 else -1
+    tipx, tipy = tip_point(c, ang, s1 + 1)
+    wbase = 7.0 if n < 3 else 8.5
+    wmax = wbase + 0.5 * k
+    fr = []
+
+    def echo(cv, back, cols, width, t_to=1.0):
+        """가열 잔상: 같은 줄기를 뒤로 back px 밀어 한 겹 더(열기가 길게 남음)."""
+        tmp = K.Canvas(S, S)
+        spindle(tmp, c, ang, s0 - back, s1 - back, width, cols, t_to=t_to)
+        tmp.dash_pattern(mod=4, keep=(0, 1, 2), seed=k)
+        merge(cv, tmp)
+
+    cv = K.Canvas(S, S)   # f0 예비 코어 줄 (가열될수록 길다)
+    spindle(cv, c, ang, s0, s1, 2.0 + 0.2 * k, [Wd[2] if k < 3 else Wd[3], X1], t_to=0.45 + 0.1 * k)
+    x, y = tip_point(c, ang, s0 + (0.45 + 0.1 * k) * (s1 - s0) + 1)
+    cv.pair(x, y, C(27))
+    fr.append(cv)
+    cv = K.Canvas(S, S)   # f1 본 줄기(판정)
+    if k >= 2:
+        echo(cv, 4, [Wd[0], Wd[1]] if k == 2 else [Wd[1], Wd[2]], wmax * 0.7)
+    if n < 3:
+        spindle(cv, c, ang, s0 + 1, s1 - 2, 4.0, shadow, poff=4.5 * side, t_to=0.5)
+        spindle(cv, c, ang, s0, s1, wmax, body, core=core[0], core_from=core[1])
+    else:
+        spindle(cv, c, ang, s0, s1, wmax + (1.0 if k == 3 else 0.0), hot, core=[X1, X0] if k >= 2 else None, core_from=0.3)
+    cv.pair(tipx, tipy, C(27))
+    if k >= 2:
+        x, y = tip_point(c, ang, s1 + 3)
+        cv.pair(x, y, C(27))
+    fr.append(cv)
+    cv = K.Canvas(S, S)   # f2 식기 시작 + 광선 (가열될수록 많고 길다)
+    if k >= 2:
+        echo(cv, 3, [Wd[0], Wd[1]], wmax * 0.6, t_to=0.8)
+    if n < 3:
+        spindle(cv, c, ang, s0 + 1, s1 - 2, 4.0, shadow, poff=4.5 * side)
+        spindle(cv, c, ang, s0, s1, wmax * 0.9, body, t_from=0.3 - 0.08 * k, core=[core[0][0], X1 if k < 3 else X0])
+    else:
+        for da in (-9, 9):
+            spindle(cv, c, ang + da, s0 + 2, s1 - 3, 4.0 + 0.3 * k, shadow)
+        spindle(cv, c, ang, s0, s1, wmax, body, core=core[0], core_from=core[1])
+    K.spill_rays(cv, c, c, ang, ang, 0.0, s1, wid, n=2 + k, length=4 + min(k, 2), seed=7 + n + 10 * k,
+                 cols=[(1, Wd[0] if k < 3 else Wd[1]), (0, C(27) if k < 3 else X0)])
+    fr.append(cv)
+    cv = K.Canvas(S, S)   # f3 꼬리 (가열될수록 밝게 남는다)
+    spindle(cv, c, ang, s0, s1, 3.0 + 0.4 * k, cool if n < 3 else cool, t_from=0.35 - 0.05 * k)
+    dash_out(cv, mod=4, keep=(0, 1, 2), seed=n + k)
+    tmp = K.Canvas(S, S)
+    spindle(tmp, c, ang, s0 + 1, s1 - 3, 2.6, [shadow[0]], poff=4.5 * side, t_from=0.3)
+    tmp.dash_pattern(mod=5, keep=(0, 1), seed=2)
+    merge(cv, tmp)
+    x, y = tip_point(c, ang + 12 * side, s1 + 2)
+    cv.pair(x, y, C(24) if k < 3 else C(27))
+    if k == 3:
+        x, y = tip_point(c, ang - 14 * side, s1)
+        cv.pair(x, y, C(24), horiz=False)
+    fr.append(cv)
+    if n == 3:
+        cv = K.Canvas(S, S)   # f4 (3타) 남은 열 꼬리
+        spindle(cv, c, ang, s0, s1, 3.0, shadow, t_from=0.4)
+        dash_out(cv, mod=4, keep=(0, 1, 2), seed=3)
+        x, y = tip_point(c, ang + 15, s1 + 3)
+        cv.pair(x, y, C(22) if k < 3 else C(24))
+        fr.append(cv)
+    for cv in fr:
+        cv.despeckle8()
+    ms = [40, 40, 50, 70] if n < 3 else [40, 40, 50, 60, 90]
+    return K.four_dirs_from_right(fr), ms, S
+
+
+def build_dagger_heat():
+    out = {}
+    for n in (1, 2, 3):
+        base = json.load(open(os.path.join(OUT_FX, "dagger_combo%d.json" % n), encoding="utf-8"))
+        for k in (1, 2, 3):
+            fbd, fms, FS = dagger_heat_fx(n, k)
+            assert fms == base["frameDurationsMs"], (n, k)
+            name = "dagger_combo%d_heat%d" % (n, k)
+            meta = {kk: base[kk] for kk in ("weapon", "comboIndex", "comboLength", "hitFrames", "activeFrames", "cancelFromFrame",
+                                            "timingMs", "hitOrigin", "thrust", "thrustNote", "anchor", "spawn", "impactFrame",
+                                            "spawnNote", "depth", "secondary", "pivotNote") if kk in base}
+            meta.update({"heatLevel": k, "heatOf": "dagger_combo%d" % n, "visualLengthPx": COMBOS["dagger"][n]["thrust"]["length"] + 2 * k,
+                         "heatNote": "가열(과열 기능) 단계 k 일 때 dagger_combo%d 대신 재생. 판정(thrust)은 그대로, 그림만 길고 밝다 "
+                                     "(1 = 보라 몸체 + 코어 확장, 2 = 보라→백열 + 잔상 한 겹, 3 = 백열 몸체 + 보라 가장자리만)." % n,
+                         "playbackRateHint": HEAT_RATE[k],
+                         "playbackRateNote": "임시(아트 제안): '후반 갈수록 공격 속도가 빨라지는 느낌' — 몸·무기·이펙트 재생 배속 제안. 실제 공격 속도 배율은 시스템",
+                         "source": SRC49})
+            meta["pivotNote"] = "피벗 (%d,%d) = 발. 찌르기 원점 = 몸 중심 (%d,%d) (발 위 %dpx). 가열 줄기가 길어 기본(64)보다 큰 %d 캔버스." % (
+                FS // 2, FS // 2 + BODY_CENTER_DY, FS // 2, FS // 2, BODY_CENTER_DY, FS)
+            if k == 3:
+                meta["shake"] = {"px": 1, "ms": 40}
+            save_png_json(OUT_FX, name, fbd, FS, FS, fms, False, (FS // 2, FS // 2 + BODY_CENTER_DY), PAL_FX, meta, name)
+            check("fx/" + name, "fx", fbd, "dagger")
+            out[(n, k)] = dict(fx=fbd, fms=fms, FS=FS)
+    return out
+
+
+# ---------------------------------------------------------------- 활 장전 (화살 탄창 채움)
+RELOAD_MS = [90, 100, 120, 100, 90]
+
+
+def arrows(ly, hand, deg, ghost, layer="front", L=6, spread=20, parallel=False):
+    """손에 쥔 화살 묶음. ghost = 실체화 중(호박 윤곽). parallel: 나란한 화살 2개(사이 1px), 아니면 3개 부채."""
+    shaft = C(22) if ghost else G(13)
+    tip = C(25) if ghost else C(27)
+    fl = C(19) if ghost else C(21)
+    hx_, hy_ = hand
+    a0 = math.radians(deg)
+    ca0, sa0 = math.cos(a0), math.sin(a0)
+    if parallel:
+        nx_, ny_ = -sa0, ca0
+        for k in (-1, 1):
+            ox, oy = hx_ + nx_ * k, hy_ + ny_ * k
+            GR.LN(ly, ox, oy, ox + ca0 * (L - 1), oy + sa0 * (L - 1), shaft, layer)
+            GR.P2(ly, ox + ca0 * L, oy + sa0 * L, tip, layer)
+            GR.P2(ly, ox - ca0, oy - sa0, fl, layer)
+        return
+    for da in (-spread, 0, spread):
+        a = math.radians(deg + da)
+        ca, sa = math.cos(a), math.sin(a)
+        LL = L + (1 if da == 0 else 0)
+        GR.LN(ly, hx_, hy_, hx_ + ca * (LL - 1), hy_ + sa * (LL - 1), shaft, layer)
+        GR.P2(ly, hx_ + ca * LL, hy_ + sa * LL, tip, layer)
+    GR.P2(ly, hx_ - ca0, hy_ - sa0, fl, layer)
+
+
+def build_bow_reload():
+    S, poff, wpivot = 48, (16, 16), (24, 39)
+    bodies, weapons, depth = {}, {}, {}
+    for d in DIRS:
+        bl, ll = [], []
+        for f in range(5):
+            p = P.Pose(body_dy=1 if f == 3 else 0)
+            ly = GR.Layers(S, poff)
+            hand = GR.weapon_hand_rest(d, p)
+            under, over = [], []
+            side = d in ("left", "right")
+            m = 1 if d == "right" else -1
+            # 손이 닿는 곳: f0 어깨 뒤로 뻗음 → f1 화살 실체화(머리 옆 위) → f2 가슴 앞으로 → f3 활 그립에 끼움(충전) → f4 내림
+            if d == "down":
+                reach = [(3, 5), (3, 3), (8, 12), (12, 14), None][f]
+            elif d == "up":
+                reach = [(12, 5), (12, 3), (7, 12), (3, 14), None][f]
+            else:
+                reach = [(7 - 3 * m, 4), (7 - 3 * m, 2), (7 + 3 * m, 12), (hand[0] + 2 * m, hand[1] - 1), None][f]
+            if reach is not None:
+                sx, sy = GR.off_shoulder(d, p)
+                arm = (sx, sy, reach[0], reach[1])
+                if side and f <= 1:
+                    under.append(arm)
+                elif side:
+                    over.append(arm)
+                elif d == "down":
+                    p.l_arm = "pos"
+                    p.hand_pos = reach
+                else:
+                    p.r_arm = "pos"
+                    p.hand_pos = reach
+            GR.draw_bow_hand(ly, d, hand)
+            if f == 0:
+                GR.P2(ly, reach[0], reach[1] - 2, C(24), "front")
+                GR.P2(ly, reach[0] + 1, reach[1] - 2, C(22), "front")
+            elif f == 1:
+                arrows(ly, reach, -90, True)
+            elif f == 2:
+                gx = hand[0] + (3 * m if side else (1 if d == "down" else -1))
+                tdeg = math.degrees(math.atan2(hand[1] - 4 - reach[1], gx - reach[0]))
+                arrows(ly, (reach[0] - math.cos(math.radians(tdeg)) * 2, reach[1] - math.sin(math.radians(tdeg)) * 2), tdeg, False, parallel=True)
+            elif f == 3:
+                gx, gy = hand[0] + (3 * m if side else (1 if d == "down" else -1)), hand[1]
+                arrows(ly, (gx + (1 if not side else 0) * (1 if d == "down" else -1), gy - 1), -90, False, L=5, parallel=True)
+                GR.P2(ly, gx - 1, gy - 7, C(27), "front")
+                GR.P2(ly, gx + 1, gy - 7, C(25), "front")
+            elif f == 4:
+                gx = hand[0] + (3 * m if side else (1 if d == "down" else -1))
+                GR.P2(ly, gx, hand[1] - 7, C(27), "front")
+                GR.P2(ly, gx, hand[1] - 6, C(25), "front")
+            bl.append(GR.render_body(d, p, under, over))
+            ll.append(ly)
+        weapons[d], depth[d] = GR.bake_dir(ll, bl)
+        bodies[d] = bl
+    memo = {"weapon": "bow", "action": "reload (화살 탄창 채움)",
+            "phases": {"reach": [0], "materialize": [1], "bring": [2], "refill": [3], "settle": [4]},
+            "refillFrame": 3, "refillNote": "탄창이 다시 차는 시점 = f3 시작 (활 그립에 화살 묶음을 끼우며 글린트)",
+            "progressDriven": "optional",
+            "progressFormula": "장전 시간이 시스템에서 정해지면 frame = min(4, floor(progress*5)) 로 진행도에 맞춰 재생해도 된다",
+            "note": "활은 휴대 자리(손) 그대로, 다른 손이 어깨 뒤로 뻗어 호박빛으로 화살 3개를 실체화(f1) → 가져와(f2) 그립에 끼운다(f3). 화살통은 그리지 않는다(무기 실체화 언어).",
+            "framesBasis": "player_bow_reload 프레임 번호 (몸·무기 공통)", "source": SRC49}
+    save_png_json(OUT_P, "player_bow_reload", bodies, PW, PH, RELOAD_MS, False, (8, 23), PAL_PLAYER, memo, "bow_reload")
+    save_png_json(OUT_W, "bow_reload", weapons, S, S, RELOAD_MS, False, wpivot, PAL_WEAPON,
+                  dict(memo, anchor="player_pivot", depth=depth, depthByFrame={d: [depth[d]] * 5 for d in DIRS}, occlusionBaked=True,
+                       playerFrameOffset={"x": poff[0], "y": poff[1]}), "reload")
+    check("player_bow_reload", "player", bodies)
+    check("weapons/bow_reload", "weapon", weapons)
+    return dict(bodies=bodies, weapons=weapons, depth=depth, ms=RELOAD_MS, S=S, poff=poff, wpivot=wpivot)
+
+
+# ---------------------------------------------------------------- 49라운드 미리보기
+def _body_weapon(img, r, d, f, foot):
+    wim = r["weapons"][d][f].im
+    if dep(r, d) == "below":
+        put(img, wim, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
+    put(img, r["bodies"][d][f], foot[0] - 8, foot[1] - 23)
+    if dep(r, d) == "above":
+        put(img, wim, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
+
+
+def preview_actions(items, path, k=4, cell=64):
+    """items: [(title, res, fx_by_frame or None)] → 블록 = 4행(방향) × 프레임. fx_by_frame: {body frame: (fx res key frames...)}"""
+    blocks = []
+    for title, r, fxmap in items:
+        nf = len(r["ms"])
+        cw = cell * k
+        blk = Image.new("RGB", (60 + nf * (cw + 3), 18 + 4 * (cw + 3)), (34, 34, 38))
+        dr = ImageDraw.Draw(blk)
+        dr.text((4, 2), "%s  %s ms" % (title, r["ms"]), fill=(235, 235, 235), font=FONT)
+        for ri, d in enumerate(DIRS):
+            y = 18 + ri * (cw + 3)
+            dr.text((4, y + cw // 2 - 6), d, fill=(220, 220, 220), font=FONT)
+            for f in range(nf):
+                img = Image.new("RGBA", (cell, cell), FLOOR)
+                foot = (cell // 2, cell // 2 + 14)
+                if fxmap and f in fxmap:
+                    fxr, fi, off = fxmap[f]
+                    o = off(d) if callable(off) else (0, 0)
+                    fxim = fxr["fx"][d][fi].im
+                    put(img, fxim, foot[0] + o[0] - fxr["fpivot"][0], foot[1] + o[1] - fxr["fpivot"][1])
+                _body_weapon(img, r, d, f, foot)
+                blk.paste(scaled(img, k).convert("RGB"), (60 + f * (cw + 3), y))
+        blocks.append(blk)
+    Wd = max(b.width for b in blocks) + 16
+    Hd = sum(b.height + 6 for b in blocks) + 10
+    img = Image.new("RGB", (Wd, Hd), (22, 22, 26))
+    y = 6
+    for b in blocks:
+        img.paste(b, (8, y))
+        y += b.height + 6
+    img.save(path)
+
+
+def preview_heat(heat, k=3):
+    """단검 가열: 행 = 1·2·3타, 열 = heat0(기존)·1·2·3 의 판정 프레임(f1)·f2 (right)."""
+    S = 80
+    img = Image.new("RGB", (70 + 8 * (S * k + 4), 20 + 3 * (S * k + 4)), (22, 22, 26))
+    dr = ImageDraw.Draw(img)
+    for n in (1, 2, 3):
+        base = load_frames(os.path.join(OUT_FX, "dagger_combo%d.png" % n), 64, 64, DIRS)
+        for hk in range(4):
+            for j, fi in enumerate((1, 2)):
+                cell = Image.new("RGBA", (S, S), FLOOR)
+                if hk == 0:
+                    cell.alpha_composite(base["right"][fi], (8, 8))
+                else:
+                    cell.alpha_composite(heat[(n, hk)]["fx"]["right"][fi].im)
+                x = 70 + (hk * 2 + j) * (S * k + 4)
+                img.paste(scaled(cell, k).convert("RGB"), (x, 20 + (n - 1) * (S * k + 4)))
+                if n == 1:
+                    dr.text((x + 4, 4), "heat%d f%d" % (hk, fi), fill=(235, 235, 235), font=FONT)
+        dr.text((4, 20 + (n - 1) * (S * k + 4) + 90), "combo%d" % n, fill=(235, 235, 235), font=FONT)
+    img.save(os.path.join(HERE, "preview_dagger_heat.png"))
+
+
+def preview_mock_r49(res, slam, dash, reload_, heat):
+    """월드 480×270 (카메라 2배 = 960×540): 위 = 대검 내리찍기 충격 순간 · 대쉬 베기 판정 · 칼 발도 판정, 아래 = 단검 3타 heat0→3 · 활 장전 f2/f3."""
+    tiles = floor_tile()
+    dummy = load_frames(os.path.join(SPR, "enemies", "dummy_idle.png"), 16, 24, DIRS)["left"][0]
+    world = scene(480, 270, tiles, seed=21)
+    # 대검 내리찍기 (충격 f4 + fx f2)
+    foot = (70, 110)
+    imp = slam["offs"]["right"]
+    put(world, dummy, foot[0] + 40 - 8, foot[1] - 23 - 4)
+    put(world, slam["fx"]["right"][2].im, foot[0] + imp["x"] - 48, foot[1] + imp["y"] - 48)
+    _body_weapon(world, slam, "right", 4, foot)
+    # 대쉬 베기 판정 f2 + 2타 fx f2
+    foot = (230, 100)
+    r2 = res["greatsword"][2]
+    put(world, dummy, foot[0] + 34 - 8, foot[1] - 23)
+    _body_weapon(world, dash, "right", 2, foot)
+    put(world, r2["fx"]["right"][2].im, foot[0] - r2["fpivot"][0], foot[1] - r2["fpivot"][1])
+    # 칼 발도 판정 f1 + fx f1
+    foot = (390, 100)
+    r1 = res["katana"][1]
+    put(world, dummy, foot[0] + 24 - 8, foot[1] - 23)
+    _body_weapon(world, r1, "right", 1, foot)
+    put(world, r1["fx"]["right"][1].im, foot[0] - r1["fpivot"][0], foot[1] - r1["fpivot"][1])
+    # 단검 3타 heat0..3
+    r3 = res["dagger"][3]
+    base = load_frames(os.path.join(OUT_FX, "dagger_combo3.png"), 64, 64, DIRS)
+    for hk in range(4):
+        foot = (30 + hk * 80, 225)
+        _body_weapon(world, r3, "right", 1, foot)
+        if hk == 0:
+            put(world, base["right"][1], foot[0] - 32, foot[1] - 42)
+        else:
+            put(world, heat[(3, hk)]["fx"]["right"][1].im, foot[0] - 40, foot[1] - 50)
+    # 활 장전
+    for j, f in enumerate((1, 3)):
+        _body_weapon(world, reload_, "down", f, (370 + j * 40, 225))
+    world.save(os.path.join(HERE, "preview_mock_r49_1x.png"))
+    big = scaled(world, 2)
+    dr = ImageDraw.Draw(big)
+    for (x, y, t) in ((20, 20, "greatsword slam (impact f4 + fx f2)"), (360, 20, "greatsword dashslash (hit f2 + combo2 fx)"),
+                      (680, 20, "katana combo1 draw-cut (hit f1)"), (20, 290, "dagger combo3: heat0 / heat1 / heat2 / heat3"),
+                      (700, 290, "bow reload f1 / f3")):
+        dr.text((x, y), t, fill=(235, 235, 235), font=FONT)
+    big.save(os.path.join(HERE, "preview_mock_r49_2x.png"))
+
+
+def timeline_gif(name, r, d="right", fx=None, fx_at=None, fx_off=(0, 0), leap=None, k=3, W_=128, H_=80, travel=None):
+    """몸+무기 시간축 GIF. fx 는 fx_at(ms)부터 겹침. leap = {frame: y오프셋}, travel = {frame: x 누적 이동} (시스템이 할 이동을 흉내)."""
+    tiles = floor_tile()
+    frames, durs = [], []
+    t = 0
+    for f, ms in enumerate(r["ms"]):
+        for sub in range(0, ms, 10):
+            tm = t + sub
+            img = scene(W_, H_, tiles, seed=9)
+            ox = (travel or {}).get(f, 0)
+            foot = (40 + ox, H_ - 22)
+            if fx is not None and fx_at is not None and tm >= fx_at:
+                acc, fi = fx_at, None
+                for j, m in enumerate(fx["fms"]):
+                    if tm < acc + m:
+                        fi = j
+                        break
+                    acc += m
+                if fi is not None:
+                    o = fx_off(d) if callable(fx_off) else fx_off
+                    put(img, fx["fx"][d][fi].im, foot[0] + o[0] - fx["fpivot"][0], foot[1] + o[1] - fx["fpivot"][1])
+            ly_ = (leap or {}).get(f, 0)
+            _body_weapon(img, r, d, f, (foot[0], foot[1] + ly_))
+            frames.append(scaled(img, k).convert("RGB").convert("P", palette=Image.ADAPTIVE))
+            durs.append(10)
+        t += ms
+    # 같은 그림 합치기
+    out, od = [], []
+    for fr_, du in zip(frames, durs):
+        if out and list(fr_.getdata()) == list(out[-1].getdata()):
+            od[-1] += du
+        else:
+            out.append(fr_)
+            od.append(du)
+    od[-1] = max(od[-1], 500)
+    out[0].save(os.path.join(HERE, "gif", "%s_%s.gif" % (name, d)), save_all=True, append_images=out[1:],
+                duration=[max(20, x) for x in od], loop=0, disposal=2)
+
+
 # ============================================================ 9. 미리보기
 FLOOR = (0x21, 0x22, 0x24, 255)
 
@@ -1029,10 +1677,15 @@ def scaled(im, k):
     return im.resize((im.width * k, im.height * k), Image.NEAREST)
 
 
-def compose_cell(d, body, weapon, S, poff, bg=FLOOR):
+def dep(r, d):
+    """시트별 depth (49라운드: 가림을 구운 시트는 res["depth"]), 없으면 기존 규칙."""
+    return r["depth"][d] if isinstance(r, dict) and "depth" in r else DEPTH[d]
+
+
+def compose_cell(d, body, weapon, S, poff, bg=FLOOR, depth=None):
     cell = Image.new("RGBA", (S, S), bg)
     wim = weapon if isinstance(weapon, Image.Image) else weapon.im
-    if DEPTH[d] == "below":
+    if (depth or DEPTH[d]) == "below":
         cell.alpha_composite(wim)
         cell.alpha_composite(body, poff)
     else:
@@ -1069,18 +1722,18 @@ def preview_weapon(wid, res):
             y = 30 + ri * (max(cw, fw) + 4)
             dr.text((4, y + 20), d, fill=(220, 220, 220), font=FONT)
             for c_ in range(nf):
-                cell = compose_cell(d, r["bodies"][d][c_], r["weapons"][d][c_], r["S"], r["poff"])
+                cell = compose_cell(d, r["bodies"][d][c_], r["weapons"][d][c_], r["S"], r["poff"], depth=dep(r, d))
                 blk.paste(scaled(cell, k_body).convert("RGB"), (60 + c_ * (cw + 4), y))
             ox = 60 + nf * (cw + 4) + 20
             # 이펙트 칸: 판정 프레임 몸+무기를 피벗에 맞춰 함께
-            hb = r["bodies"][d][1]
-            hw = r["weapons"][d][1].im
+            hb = r["bodies"][d][r.get("hitf", 1)]
+            hw = r["weapons"][d][r.get("hitf", 1)].im
             for c_ in range(nfx):
                 cell = Image.new("RGBA", (r["FS"], r["FS"]), FLOOR)
                 px0 = r["fpivot"][0] - r["wpivot"][0]
                 py0 = r["fpivot"][1] - r["wpivot"][1]
                 tmp = Image.new("RGBA", (r["S"], r["S"]), (0, 0, 0, 0))
-                if DEPTH[d] == "below":
+                if dep(r, d) == "below":
                     tmp.alpha_composite(hw); tmp.alpha_composite(hb, r["poff"])
                 else:
                     tmp.alpha_composite(hb, r["poff"]); tmp.alpha_composite(hw)
@@ -1119,7 +1772,7 @@ def preview_specials(sres, bres):
             y = 22 + ri * (cw + 4)
             dr.text((4, y + 20), d, fill=(220, 220, 220), font=FONT)
             for c_ in range(nf):
-                base = compose_cell(d, r["bodies"][d][c_], r["weapons"][d][c_], r["S"], r["poff"], bg=(0, 0, 0, 0))
+                base = compose_cell(d, r["bodies"][d][c_], r["weapons"][d][c_], r["S"], r["poff"], bg=(0, 0, 0, 0), depth=dep(r, d))
                 cell = Image.new("RGBA", (S, S), FLOOR)
                 o = (S - r["S"]) // 2
                 cell.alpha_composite(base, (o, o))
@@ -1221,6 +1874,7 @@ def mock_snapshot(wid, n, res, dummy, tiles, fxf=1, bodyf=1, d="right", w=160, h
         ux, uy = unit(a)
         dummies.append((cx + ux * dist, cy + uy * dist + BODY_CENTER_DY))
     dummies.sort(key=lambda p: p[1])
+    bodyf = r.get("hitf", bodyf)
     body = r["bodies"][d][bodyf]
     weap = r["weapons"][d][bodyf].im
     fx = r["fx"][d][fxf].im
@@ -1228,10 +1882,10 @@ def mock_snapshot(wid, n, res, dummy, tiles, fxf=1, bodyf=1, d="right", w=160, h
     for (x, y) in dummies:
         if y <= foot[1]:
             put(img, dummy, x - 8, y - 23)
-    if DEPTH[d] == "below":
+    if dep(r, d) == "below":
         put(img, weap, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
     put(img, body, foot[0] - 8, foot[1] - 23)
-    if DEPTH[d] == "above":
+    if dep(r, d) == "above":
         put(img, weap, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
     for (x, y) in dummies:
         if y > foot[1]:
@@ -1327,10 +1981,10 @@ def chain_gif(wid, res, d="right", k=3):
         if body_state:
             n, fi = body_state
             r = res[n]
-            if DEPTH[d] == "below":
+            if dep(r, d) == "below":
                 put(img, r["weapons"][d][fi].im, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
             put(img, r["bodies"][d][fi], foot[0] - 8, foot[1] - 23)
-            if DEPTH[d] == "above":
+            if dep(r, d) == "above":
                 put(img, r["weapons"][d][fi].im, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
         else:
             idle = load_frames(os.path.join(SPR, "player", "player_idle.png"), 16, 24, DIRS)[d][0]
@@ -1357,11 +2011,12 @@ def preview_strip_1x(allres):
             for di, d in enumerate(DIRS):
                 bg = scene(cell, cell, tiles, seed=di)
                 foot = (64, 74)
-                if DEPTH[d] == "below":
-                    put(bg, r["weapons"][d][1].im, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
-                put(bg, r["bodies"][d][1], foot[0] - 8, foot[1] - 23)
-                if DEPTH[d] == "above":
-                    put(bg, r["weapons"][d][1].im, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
+                hf = r.get("hitf", 1)
+                if dep(r, d) == "below":
+                    put(bg, r["weapons"][d][hf].im, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
+                put(bg, r["bodies"][d][hf], foot[0] - 8, foot[1] - 23)
+                if dep(r, d) == "above":
+                    put(bg, r["weapons"][d][hf].im, foot[0] - r["wpivot"][0], foot[1] - r["wpivot"][1])
                 put(bg, r["fx"][d][1 if wid != "greatsword" else 2].im, foot[0] - r["fpivot"][0], foot[1] - r["fpivot"][1])
                 img.alpha_composite(bg, (((n - 1) * 4 + di) * cell + (n - 1) * 20, ri * cell + ri * 5))
     img.save(os.path.join(HERE, "preview_strip_1x.png"))
@@ -1381,6 +2036,26 @@ def main():
     preview_specials(sres, bres)
     preview_mock(allres)
     preview_strip_1x(allres)
+    # 49라운드
+    slam = build_slam()
+    dash = build_dashslash()
+    heat = build_dagger_heat()
+    rel = build_bow_reload()
+    imp = SLAM["impact"]
+    preview_actions([("player_greatsword_slam + weapons + fx/greatsword_slam (impact f%d)" % imp, slam,
+                      {f: (slam, f - imp, lambda d: (slam["offs"][d]["x"], slam["offs"][d]["y"])) for f in range(imp, imp + 4)}),
+                     ("player_greatsword_dashslash + weapons (fx = greatsword_combo2 reuse)", dash,
+                      {2: (allres["greatsword"][2], 1, None), 3: (allres["greatsword"][2], 2, None)}),
+                     ("player_bow_reload + weapons/bow_reload", rel, None)],
+                    os.path.join(HERE, "preview_r49_actions.png"), cell=80)
+    preview_heat(heat)
+    preview_mock_r49(allres, slam, dash, rel, heat)
+    timeline_gif("greatsword_slam", slam, fx=slam, fx_at=sum(SLAM["ms"][:imp]),
+                 fx_off=lambda d: (slam["offs"][d]["x"], slam["offs"][d]["y"]), leap={2: -3, 3: -2},
+                 travel={2: 6, 3: 12, 4: 14, 5: 14, 6: 14, 7: 14}, W_=150)
+    timeline_gif("greatsword_dashslash", dash, fx=dict(allres["greatsword"][2], fms=allres["greatsword"][2]["fms"]),
+                 fx_at=sum(DASHSLASH["ms"][:2]) - 40, travel={0: 6, 1: 20, 2: 34, 3: 42, 4: 46, 5: 46, 6: 46}, W_=170)
+    timeline_gif("bow_reload", rel, d="down")
     bad = [r for r in REPORT if not r[1]]
     print("\n%d sheets checked, %d CHECK" % (len(REPORT), len(bad)))
 

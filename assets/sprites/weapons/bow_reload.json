@@ -1,0 +1,96 @@
+{
+ "image": "bow_reload.png",
+ "action": "reload (화살 탄창 채움)",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 10,
+ "frameDurationsMs": [
+  90,
+  100,
+  120,
+  100,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 39
+ },
+ "palette": "parts/art/palette/lopad.json (gray G00 G05 G08 G13 + floor 1 accent 16-27, runtime swap)",
+ "source": "parts/art/work/combos/build.py (49라운드 4·5절 · art §7.2)",
+ "weapon": "bow",
+ "phases": {
+  "reach": [
+   0
+  ],
+  "materialize": [
+   1
+  ],
+  "bring": [
+   2
+  ],
+  "refill": [
+   3
+  ],
+  "settle": [
+   4
+  ]
+ },
+ "refillFrame": 3,
+ "refillNote": "탄창이 다시 차는 시점 = f3 시작 (활 그립에 화살 묶음을 끼우며 글린트)",
+ "progressDriven": "optional",
+ "progressFormula": "장전 시간이 시스템에서 정해지면 frame = min(4, floor(progress*5)) 로 진행도에 맞춰 재생해도 된다",
+ "note": "활은 휴대 자리(손) 그대로, 다른 손이 어깨 뒤로 뻗어 호박빛으로 화살 3개를 실체화(f1) → 가져와(f2) 그립에 끼운다(f3). 화살통은 그리지 않는다(무기 실체화 언어).",
+ "framesBasis": "player_bow_reload 프레임 번호 (몸·무기 공통)",
+ "anchor": "player_pivot",
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "playerFrameOffset": {
+  "x": 16,
+  "y": 16
+ }
+}

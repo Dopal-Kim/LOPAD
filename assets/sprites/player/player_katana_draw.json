@@ -1,0 +1,43 @@
+{
+ "image": "player_katana_draw.png",
+ "action": "katana_draw",
+ "frameWidth": 16,
+ "frameHeight": 24,
+ "frames": 3,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 13,
+ "frameDurationsMs": [
+  70,
+  70,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 23
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 21, 23; rim G04)",
+ "source": "parts/art/work/carry/build.py (49라운드 4절 · art §7.1)",
+ "phases": {
+  "grip": [
+   0
+  ],
+  "pull": [
+   1
+  ],
+  "drawn": [
+   2
+  ]
+ },
+ "note": "발도: 무기 손이 허리 칼집 손잡이를 잡고(f0) 뽑아(f1) 앞-아래로 든다(f2 = katana_carry_drawn_idle f0 과 같은 자세).",
+ "usage": "공격이 아닌 동작(보조 동작 등)으로 전투에 들어갈 때. 연격 1타(katana_combo1)는 자체가 발도 베기라 draw 없이 바로 재생.",
+ "weapon": "katana",
+ "framesBasis": "player_katana_draw 프레임 번호 (몸·무기 공통)"
+}
