@@ -14,3 +14,5 @@
 {"time": "2026-10-02T18:30:18", "id": "concept_char", "tag": "hero2_B", "model": "gemini-3.1-flash-image", "aspect": "16:9", "refs": [], "http": 200, "seconds": 8.7, "ok": true, "finishReason": "STOP"}
 {"time": "2026-10-02T18:30:18", "id": "concept_char", "tag": "hero2_A", "model": "gemini-3.1-flash-image", "aspect": "16:9", "refs": [], "http": 200, "seconds": 8.7, "ok": true, "finishReason": "STOP"}
 {"time": "2026-10-02T18:30:18", "id": "concept_char", "tag": "hero2_C", "model": "gemini-3.1-flash-image", "aspect": "16:9", "refs": [], "http": 200, "seconds": 8.9, "ok": true, "finishReason": "STOP"}
+{"time": "2026-10-02T18:36:46", "id": "concept_char", "tag": "hero3_a", "model": "gemini-3.1-flash-image", "aspect": "16:9", "refs": [], "http": 200, "seconds": 9.4, "ok": true, "finishReason": "STOP"}
+{"time": "2026-10-02T18:37:17", "id": "concept_char", "tag": "hero3_b", "model": "gemini-3.1-flash-image", "aspect": "16:9", "refs": [], "http": 200, "seconds": 9.5, "ok": true, "finishReason": "STOP"}

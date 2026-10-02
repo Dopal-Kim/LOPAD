@@ -1,0 +1,30 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "CHARACTER CONCEPT SHEET - reference only, not a game asset. Art direction for the hero of a dark modern 2D pixel-art roguelike action game set on an endless, grim Renaissance-era early-gunpowder battlefield (pikes, longbows, matchlock muskets, mud, ash, corpses). Rendering: crisp high-detail modern pixel art at large scale, clean readable shapes, cel shading with one shadow and one highlight step, dark 1-pixel outlines, light from the upper left. Layout: one row on a flat plain dark slate-gray background with soft floor shadows, evenly spaced, no overlap, no scenery: front view, side view facing right, back view, standing views are EMPTY-HANDED (no weapon), then two combat poses (a vicious overhead slash with a battered, notched battlefield sword, and a low lunging dash leaving a trail of ash and embers). The silhouette must stay readable when shrunk to a tiny 32 by 48 pixel game sprite.\n\nWHO HE IS: a war ghost - a revenant formed out of the soil, ash and gathered soul-fires of a ruined battlefield, born again and again from the dead. He wears NO clothes as an outfit - no hat, no coat, no cloak, no hood, no suit, no shirt, no civilian clothing. Absolutely NO chains and no shackles anywhere.\n\nBODY: a half-collapsed form - a cracked shell of dark ash and scorched battlefield earth, gaunt and hunched forward, coiled with violence. Wide fissures in the chest and in the back reveal a hollow interior full of amber soul-fire that leaks out as faint glowing smoke; a SMALL flicker of soul-fire and smoke rises from a crack on the top of his LEFT shoulder (on the viewer's right in the front view) - this is the only open flame on the body; no flames on the arms or hands. Shards of broken armor cling to him, held by threads of soul-fire and a few torn leather straps: a fractured breastplate plate over part of the chest, a bent iron vambrace on one forearm, a dented greave on one shin. A few broken arrow shafts and rusty iron nails stick out of his shoulders and back. Dirty battle bandages wrap his hands and shins. A ragged scrap of leather hangs at the hips. Tied to his RIGHT hip (on the viewer's left in the front view) by a knotted cord: a small, old, battered leather diary with a dull clasp.\n\nFACE: the head and face are DARK and deep in shadow, like a smooth, blank mask of dark ash: no visible nose hole, no teeth, no lips, no mouth line, no jaw line, no skull features at all - the lower face is one smooth dark shadow. Out of that darkness only his eyes speak: the LEFT eye (on the viewer's right in the front view) burns as a small, fierce amber soul-fire ember under a crushed, furrowed brow, glaring with pure rage and hatred; the RIGHT eye is a dead, dark socket. The furious glare is the only readable expression. In the side view facing right, the visible eye is the DEAD dark socket (no glow on that side); in the back view no eye is visible.\n\nPalette: charcoal, ash and cold soil grays only, plus ONE warm amber/ember accent (#8b4d22, #d67a11, #e8b858, #faeec0) for the soul-fire glow, the burning eye and embers. Rusty iron is dark gray-brown, leather dark umber. No saturated blue, green, purple or red. No text, no letters, no labels, no numbers, no logos, no UI, no watermark, no frame.",
+ "refs": [],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 782,
+   "candidatesTokenCount": 1845,
+   "totalTokenCount": 2627,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 782
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-02T18:37:17"
+}
