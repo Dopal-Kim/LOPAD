@@ -112,6 +112,43 @@ export class TileWorld {
     return new Phaser.Math.Vector2((I.x + I.w / 2) * TILE, (I.y + I.h / 2) * TILE);
   }
 
+  /** 셀 하나의 픽셀 사각형 */
+  cellRect(cell: Cell): Phaser.Geom.Rectangle {
+    return new Phaser.Geom.Rectangle(cell.cx * CELL_W * TILE, cell.cy * CELL_H * TILE, CELL_W * TILE, CELL_H * TILE);
+  }
+
+  /**
+   * 카메라 클램프 영역 (32라운드 카메라 추종):
+   * - 방 내부에 있으면 그 방의 셀 사각형(보스 2×2 블록 포함)
+   * - 복도·문 위(방 내부 밖)면 현재 셀 사각형 + 진행 방향의 이웃 셀 → 방을 나설 때 카메라가 옆 방으로 미끄러진다
+   * 영역은 항상 월드 안으로 잘라낸다.
+   */
+  cameraRegion(worldX: number, worldY: number): Phaser.Geom.Rectangle {
+    const cell = this.cellAt(worldX, worldY);
+    const room = this.roomAtCell(cell);
+    const base = room ? this.roomCellsRect(room) : this.cellRect(cell);
+    const world = new Phaser.Geom.Rectangle(0, 0, this.widthPx, this.heightPx);
+    if (room && this.isInsideRoom(room, worldX, worldY)) return Phaser.Geom.Rectangle.Intersection(base, world);
+    // 방 밖(복도): 방이면 내부 사각형 기준, 복도 셀이면 셀 중심 기준으로 어느 쪽으로 나가는지 정한다
+    let dx = 0;
+    let dy = 0;
+    if (room) {
+      const I = room.interior;
+      if (worldX < I.x * TILE) dx = -1;
+      else if (worldX >= (I.x + I.w) * TILE) dx = 1;
+      else if (worldY < I.y * TILE) dy = -1;
+      else dy = 1;
+    } else {
+      const c = this.cellRect(cell);
+      const ox = worldX - c.centerX;
+      const oy = worldY - c.centerY;
+      if (Math.abs(ox) >= Math.abs(oy)) dx = Math.sign(ox) || 1;
+      else dy = Math.sign(oy) || 1;
+    }
+    const neighbor = this.cellRect({ cx: cell.cx + dx, cy: cell.cy + dy });
+    return Phaser.Geom.Rectangle.Intersection(Phaser.Geom.Rectangle.Union(base, neighbor), world);
+  }
+
   /** 방 전체(2×2 보스 블록 포함)의 픽셀 사각형 — 카메라 경계용 */
   roomCellsRect(room: Room): Phaser.Geom.Rectangle {
     const xs = room.cells.map((c) => c.cx);

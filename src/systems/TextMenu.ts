@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH } from '../core/Constants';
+import { COLORS, DEPTH, PLACEHOLDER_UI } from '../core/Constants';
 import { EventBus, Events, type MenuEventPayload } from '../core/EventBus';
 import { UI_EVENTS, __system, type UiMenu, type UiMenuId, type UiMenuLine } from '../contract/ui';
 import { UI_SCENES } from '../ui';
@@ -46,7 +46,7 @@ export class TextMenu {
         this.scene.scale.height / 2,
         `${title}\n\n${body}${footer ? `\n\n${footer}` : ''}`,
         {
-          font: '11px monospace',
+          font: PLACEHOLDER_UI.FONT_BODY,
           color: COLORS.GAMEOVER_TEXT,
           backgroundColor: '#000000c0',
           padding: { x: 10, y: 8 },

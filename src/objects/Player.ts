@@ -46,6 +46,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   private secondaryReadyAt = 0;
   /** 조준 사격 차지 시작 */
   private aimStartedAt = 0;
+  /** 조준 사격 차지 완료(유지 중). 떼면 발사 */
+  private aimReady = false;
   /** 그림자 걸음 직후: 이 시간까지의 다음 공격 1회가 확정 치명(+암살 배율) */
   private shadowPrimedUntil = -Infinity;
   private facing = new Phaser.Math.Vector2(1, 0);
@@ -98,11 +100,16 @@ export class Player extends Phaser.GameObjects.Sprite {
     return gameState.weapon.def.secondary;
   }
 
-  /** 조준 차지 진행도 0..1 (조준 중이 아니면 0) */
+  /** 조준 차지 진행도 0..1 (조준 중이 아니면 0). 1 이면 차지 완료 상태로 유지 중 */
   aimProgress(time: number): number {
     const S = this.secondary;
     if (this.action !== 'aim' || S.kind !== 'aimedshot') return 0;
     return Phaser.Math.Clamp((time - this.aimStartedAt) / S.chargeMs, 0, 1);
+  }
+
+  /** 조준 사격 차지가 끝나 발사 대기 중인지 */
+  get isAimReady(): boolean {
+    return this.action === 'aim' && this.aimReady;
   }
 
   update(input: InputState, time: number): void {
@@ -126,20 +133,30 @@ export class Player extends Phaser.GameObjects.Sprite {
       }
     }
 
-    // 유지형 보조 동작: 가드(떼면 밀쳐내기) · 조준(차지 완료 시 발사, 먼저 떼면 취소)
+    // 유지형 보조 동작: 가드(떼면 밀쳐내기) · 조준(차지 완료 후에도 유지, 떼면 발사 — 31라운드 2. 차지 전에 떼면 취소)
     if (this.action === 'guard' && !input.secondaryHeld) {
       this.setAction('normal', 0);
       const payload: GuardReleasedPayload = { x: this.x, y: this.y };
       EventBus.emit(Events.PLAYER_GUARD_RELEASED, payload);
     }
-    if (this.action === 'aim') {
+    if (this.action === 'aim' && S.kind === 'aimedshot') {
+      const charged = time - this.aimStartedAt >= S.chargeMs;
+      if (charged && !this.aimReady) {
+        this.aimReady = true;
+        this.flash(COLORS.PLAYER_PARRY); // 차지 완료 신호 (번쩍 뒤 조준 틴트로 복귀)
+        EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'ready' } satisfies PlayerSecondaryPayload);
+      }
       if (!input.secondaryHeld) {
         this.setAction('normal', 0);
-        EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'cancel' } satisfies PlayerSecondaryPayload);
-      } else if (S.kind === 'aimedshot' && time - this.aimStartedAt >= S.chargeMs) {
-        this.setAction('normal', 0);
-        this.secondaryReadyAt = time + S.cooldownMs;
-        this.emitAttack(input, time, 'aimed', S.damageMult * (mods.aimedShotMult ?? 1), 1, false);
+        if (charged) {
+          this.secondaryReadyAt = time + S.cooldownMs;
+          this.emitAttack(input, time, 'aimed', S.damageMult * (mods.aimedShotMult ?? 1), 1, false);
+        } else {
+          EventBus.emit(Events.PLAYER_SECONDARY, {
+            kind: 'aimedshot',
+            phase: 'cancel',
+          } satisfies PlayerSecondaryPayload);
+        }
       }
     }
 
@@ -194,6 +211,7 @@ export class Player extends Phaser.GameObjects.Sprite {
         case 'aimedshot':
           if (time >= this.secondaryReadyAt) {
             this.aimStartedAt = time;
+            this.aimReady = false;
             this.setAction('aim', 0);
             EventBus.emit(Events.PLAYER_SECONDARY, {
               kind: 'aimedshot',

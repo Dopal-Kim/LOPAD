@@ -7,9 +7,17 @@ export const DIRS: Dir[] = ['N', 'S', 'E', 'W'];
 export const DIR_VEC: Record<Dir, [number, number]> = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
 export const DIR_OPP: Record<Dir, Dir> = { N: 'S', S: 'N', E: 'W', W: 'E' };
 
-/** 셀 하나 = 화면 하나 (타일 단위) */
-export const CELL_W = 40;
-export const CELL_H = 22;
+/**
+ * 셀 하나 = 방 한 칸 (타일 단위). 32라운드 Q5: 80×48 (1280×768px) — 화면 960×540 보다 크고 카메라가 따라간다.
+ * 방 내부는 셀 안에 ROOM_MARGIN 이상 여백을 두고 놓이며, 남는 공간을 복도가 지나간다.
+ */
+export const CELL_W = 80;
+export const CELL_H = 48;
+
+/** 방 내부 사각형이 셀 경계에서 떨어지는 최소 타일 수 (벽 1 + 복도 꺾임 공간) */
+export const ROOM_MARGIN = 3;
+/** 문이 방 모서리에서 떨어지는 최소 타일 수 (문 양옆에 벽이 남도록) */
+export const DOOR_MARGIN = 2;
 
 export interface Cell {
   cx: number;

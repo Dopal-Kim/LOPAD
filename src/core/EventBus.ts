@@ -89,7 +89,8 @@ export type PlayerAttackPayload = {
 };
 export type PlayerSecondaryPayload = {
   kind: 'parry' | 'guard' | 'shadowstep' | 'aimedshot';
-  phase: 'start' | 'cancel';
+  /** ready = 조준 사격 차지 완료(유지 중, 떼면 발사 — 31라운드 2) */
+  phase: 'start' | 'ready' | 'cancel';
 };
 export type EnemyDamagedPayload = { id: string; amount: number; crit: boolean; died: boolean; tick: boolean };
 export type EnemyAttackPayload = { id: string; kind: 'contact' | 'dash' | 'shot' };

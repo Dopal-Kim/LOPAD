@@ -21,8 +21,8 @@
     "size": [14, 14],
     "color": "#c08a30",
     "ranged": {
-      "keepMinTiles": 6,
-      "keepMaxTiles": 10,
+      "keepMinTiles": 8,
+      "keepMaxTiles": 14,
       "projectileSpeedTiles": 8,
       "projectileSize": 4,
       "projectileLifeMs": 3000
@@ -40,7 +40,7 @@
     "size": [18, 18],
     "color": "#8040c0",
     "charge": {
-      "triggerTiles": 7,
+      "triggerTiles": 10,
       "telegraphMs": 600,
       "dashSpeedTiles": 14,
       "dashMs": 400,

@@ -7,7 +7,7 @@ import { Preloader } from './scenes/Preloader';
 import { Setup } from './scenes/Setup';
 import { uiScenes } from './ui';
 
-/** 내부 해상도 640×360 고정, 정수 배율 확대는 main.ts 에서 처리. */
+/** 내부 해상도 960×540 고정(32라운드), 정수 배율 확대는 main.ts 에서 처리. */
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: 'game-container',

@@ -1,5 +1,16 @@
 import Phaser from 'phaser';
-import { CAMERA, CELL, COLORS, DEBUG, DEPTH, PROTOTYPE, SCENES, SPRITES, TILE, entityDepth } from '../core/Constants';
+import {
+  CAMERA,
+  COLORS,
+  DEBUG,
+  DEPTH,
+  PLACEHOLDER_UI,
+  PROTOTYPE,
+  SCENES,
+  SPRITES,
+  TILE,
+  entityDepth,
+} from '../core/Constants';
 import {
   EventBus,
   Events,
@@ -18,7 +29,7 @@ import { Player } from '../objects/Player';
 import { Projectile } from '../objects/Projectile';
 import { Pickup } from '../objects/Pickup';
 import { InputSystem } from '../systems/InputSystem';
-import { generateFloor, cellKey, type Cell } from '../systems/mapgen';
+import { generateFloor } from '../systems/mapgen';
 import { RoomDirector } from '../systems/RoomDirector';
 import { Rng, hashSeed } from '../systems/rng';
 import { SaveSlot, browserStorage } from '../systems/save';
@@ -54,7 +65,8 @@ export class Game extends Phaser.Scene {
   private inputSystem: InputSystem;
   private rng: Rng;
   private debugText?: Phaser.GameObjects.Text;
-  private currentCellKey = '';
+  /** 카메라 중심 (반올림 전). 스크롤은 매 프레임 여기서 반올림해 적용 */
+  private readonly camCenter = new Phaser.Math.Vector2();
   private initMode: GameInitData['mode'];
   private initWeapon?: string;
   private initName?: string;
@@ -100,7 +112,6 @@ export class Game extends Phaser.Scene {
     this.initWeapon = data?.weapon;
     this.initName = data?.playerName;
     this.transitioning = false;
-    this.currentCellKey = '';
   }
 
   create(): void {
@@ -256,7 +267,17 @@ export class Game extends Phaser.Scene {
         (this.pickups.getChildren() as Pickup[])
           .filter((p) => p.active)
           .map((p) => ({ kind: p.kind, value: p.value, x: p.x, y: p.y })),
-      camera: () => ({ scrollX: this.cameras.main.scrollX, scrollY: this.cameras.main.scrollY, zoom: this.scale.zoom }),
+      camera: () => {
+        const r = this.world.cameraRegion(this.player.x, this.player.y);
+        return {
+          scrollX: this.cameras.main.scrollX,
+          scrollY: this.cameras.main.scrollY,
+          zoom: this.scale.zoom,
+          width: this.cameras.main.width,
+          height: this.cameras.main.height,
+          region: { x: r.x, y: r.y, w: r.width, h: r.height },
+        };
+      },
       stunAll: (ms) => {
         for (const m of this.mobs.getChildren() as Mob[]) m.stun(this.time.now, ms);
       },
@@ -293,6 +314,7 @@ export class Game extends Phaser.Scene {
         guarding: this.player.isGuarding,
         shadowPrimed: this.player.isShadowPrimed(this.time.now),
         aim: this.player.aimProgress(this.time.now),
+        aimReady: this.player.isAimReady,
       }),
       audio: () => audio.summary(),
     });
@@ -342,7 +364,7 @@ export class Game extends Phaser.Scene {
     if (input.potionPressed) this.usePotion();
     this.player.update(input, time);
     this.updateGale();
-    this.updateCamera(false);
+    this.updateCamera(false, delta);
     this.director.update();
 
     if (gameState.exitOpen && !this.transitioning && this.world.isExitAt(this.player.x, this.player.y)) {
@@ -994,7 +1016,7 @@ export class Game extends Phaser.Scene {
   private showEvolutionBanner(name: string): void {
     const t = this.add
       .text(this.scale.width / 2, this.scale.height / 2 - 40, `개성 변화: ${name}`, {
-        font: '14px monospace',
+        font: PLACEHOLDER_UI.FONT_BODY,
         color: COLORS.GAMEOVER_TEXT,
       })
       .setOrigin(0.5)
@@ -1343,24 +1365,45 @@ export class Game extends Phaser.Scene {
     });
   }
 
-  // --- 카메라: 방은 고정, 보스 방만 추적 ---
+  // --- 카메라: 플레이어 부드러운 추종 (32라운드). 목표만 영역으로 클램프하므로 방 전환 시 미끄러진다 ---
 
-  private updateCamera(force: boolean): void {
-    const cell: Cell = this.world.cellAt(this.player.x, this.player.y);
-    const key = cellKey(cell);
-    if (!force && key === this.currentCellKey) return;
-    this.currentCellKey = key;
+  private updateCamera(force: boolean, deltaMs = 0): void {
     const cam = this.cameras.main;
-    const room = this.world.roomAtCell(cell);
-    if (room?.type === 'boss') {
-      const r = this.world.roomCellsRect(room);
-      cam.setBounds(r.x, r.y, r.width, r.height);
-      cam.startFollow(this.player, true, CAMERA.FOLLOW_LERP, CAMERA.FOLLOW_LERP);
-    } else {
-      cam.stopFollow();
-      cam.removeBounds();
-      cam.setScroll(cell.cx * CELL.W_PX, cell.cy * CELL.H_PX + CAMERA.CELL_OFFSET_Y);
+    const region = this.world.cameraRegion(this.player.x, this.player.y);
+    const halfW = cam.width / 2;
+    const halfH = cam.height / 2;
+    let tx = this.player.x;
+    let ty = this.player.y;
+    if (!force) {
+      // 데드존: 중심에서 이만큼 벗어나야 따라간다
+      const cx = this.camCenter.x;
+      const cy = this.camCenter.y;
+      tx =
+        this.player.x > cx + CAMERA.DEADZONE_X
+          ? this.player.x - CAMERA.DEADZONE_X
+          : this.player.x < cx - CAMERA.DEADZONE_X
+            ? this.player.x + CAMERA.DEADZONE_X
+            : cx;
+      ty =
+        this.player.y > cy + CAMERA.DEADZONE_Y
+          ? this.player.y - CAMERA.DEADZONE_Y
+          : this.player.y < cy - CAMERA.DEADZONE_Y
+            ? this.player.y + CAMERA.DEADZONE_Y
+            : cy;
     }
+    tx = clampCenter(tx, region.left, region.right, halfW);
+    ty = clampCenter(ty, region.top, region.bottom, halfH);
+    if (force) {
+      this.camCenter.set(tx, ty);
+    } else {
+      // 60fps 기준 lerp 비율을 프레임 시간에 맞춰 보정
+      const t = 1 - Math.pow(1 - CAMERA.FOLLOW_LERP, deltaMs / (1000 / 60));
+      this.camCenter.x += (tx - this.camCenter.x) * t;
+      this.camCenter.y += (ty - this.camCenter.y) * t;
+      if (Math.abs(tx - this.camCenter.x) < CAMERA.SNAP_PX) this.camCenter.x = tx;
+      if (Math.abs(ty - this.camCenter.y) < CAMERA.SNAP_PX) this.camCenter.y = ty;
+    }
+    cam.setScroll(Math.round(this.camCenter.x - halfW), Math.round(this.camCenter.y - halfH));
   }
 
   /** 런 시작 모드 결정: 새 런 / 다음 층 / 세이브 이어하기 */
@@ -1422,4 +1465,10 @@ export class Game extends Phaser.Scene {
     this.menu.close();
     this.inputSystem.destroy();
   }
+}
+
+/** 화면 절반(half)을 고려해 중심 좌표를 [lo, hi] 영역 안으로. 영역이 화면보다 작으면 가운데 */
+function clampCenter(center: number, lo: number, hi: number, half: number): number {
+  if (hi - lo <= half * 2) return (lo + hi) / 2;
+  return Phaser.Math.Clamp(center, lo + half, hi - half);
 }

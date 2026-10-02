@@ -44,7 +44,7 @@ export interface DebugApi {
   mobs: () => { id: string; hp: number; x: number; y: number; stunned: boolean; anim: string | null }[];
   /** 다음 층으로 강제 전환 (팔레트 스왑·타일셋 검증용) */
   nextStage: () => void;
-  camera: () => { scrollX: number; scrollY: number; zoom: number };
+  camera: () => CameraInfo;
   killAll: () => number;
   hurtAll: (amount: number) => void;
   /** 게임 타일 ID (시트 인덱스가 아님) */
@@ -56,9 +56,19 @@ export interface DebugApi {
   /** 개성 게이지를 value 로 두고 임계 판정 (27라운드 검증용) */
   setPersonality: (value: number) => void;
   weapon: () => unknown;
-  playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number };
+  playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number; aimReady: boolean };
   /** 오디오 요약: 로드 수·현재 BGM·최근 효과음·음소거 */
   audio: () => unknown;
+}
+
+/** 카메라 스크롤·배율·클램프 영역 (32라운드 추종 검증용) */
+export interface CameraInfo {
+  scrollX: number;
+  scrollY: number;
+  zoom: number;
+  width: number;
+  height: number;
+  region: { x: number; y: number; w: number; h: number };
 }
 
 export interface PlayerInfo {
@@ -96,10 +106,10 @@ export function exposeDebug(api: {
   scenes: () => string[];
   economy: () => unknown;
   pickups: () => { kind: string; value: number; x: number; y: number }[];
-  camera: () => { scrollX: number; scrollY: number; zoom: number };
+  camera: () => CameraInfo;
   setPersonality: (value: number) => void;
   weapon: () => unknown;
-  playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number };
+  playerExtra: () => { action: string; guarding: boolean; shadowPrimed: boolean; aim: number; aimReady: boolean };
   nextStage: () => void;
   audio: () => unknown;
 }): void {

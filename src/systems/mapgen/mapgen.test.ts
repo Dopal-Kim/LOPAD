@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { STAGES } from '../../data';
-import { generateFloor, TileId, cellKey, type FloorLayout } from './index';
+import { CELL_H, CELL_W, ROOM_MARGIN, generateFloor, TileId, cellKey, type FloorLayout } from './index';
 
 const P = STAGES.stage1.layout;
 
@@ -138,5 +138,62 @@ describe('generateFloor', () => {
     const total = L.rooms.reduce((n, r) => n + r.cells.length, 0);
     expect(L.cellRoom.size).toBe(total);
     for (const h of L.hallways) expect(L.cellRoom.has(cellKey(h.cell))).toBe(false);
+  });
+
+  it('방 내부는 80×48 셀 안에 ROOM_MARGIN 여백을 두고 놓인다 (보스는 2×2 블록)', () => {
+    expect([CELL_W, CELL_H]).toEqual([80, 48]);
+    for (const s of seeds) {
+      const L = generateFloor(s, P);
+      for (const r of L.rooms) {
+        const xs = r.cells.map((c) => c.cx);
+        const ys = r.cells.map((c) => c.cy);
+        const x0 = Math.min(...xs) * CELL_W;
+        const y0 = Math.min(...ys) * CELL_H;
+        const x1 = (Math.max(...xs) + 1) * CELL_W;
+        const y1 = (Math.max(...ys) + 1) * CELL_H;
+        const I = r.interior;
+        expect(I.x, `${r.id} seed ${s}`).toBeGreaterThanOrEqual(x0 + ROOM_MARGIN);
+        expect(I.y).toBeGreaterThanOrEqual(y0 + ROOM_MARGIN);
+        expect(I.x + I.w).toBeLessThanOrEqual(x1 - ROOM_MARGIN);
+        expect(I.y + I.h).toBeLessThanOrEqual(y1 - ROOM_MARGIN);
+      }
+    }
+  });
+
+  it('문 양옆(벽선 방향)은 벽이고, 방끼리 직접 이어진 복도는 문이 어긋나 한 번 꺾인다', () => {
+    let bent = 0;
+    let direct = 0;
+    for (const s of seeds) {
+      const L = generateFloor(s, P);
+      const byId = new Map(L.rooms.map((r) => [r.id, r]));
+      for (const r of L.rooms) {
+        for (const d of r.doors) {
+          const horizontal = d.dir === 'E' || d.dir === 'W';
+          const ts = d.tiles;
+          const before = horizontal ? L.tiles[ts[0].y - 1][ts[0].x] : L.tiles[ts[0].y][ts[0].x - 1];
+          const after = horizontal
+            ? L.tiles[ts[ts.length - 1].y + 1][ts[0].x]
+            : L.tiles[ts[0].y][ts[ts.length - 1].x + 1];
+          expect(before, `${r.id} ${d.dir} seed ${s}`).toBe(TileId.Wall);
+          expect(after).toBe(TileId.Wall);
+        }
+      }
+      for (const c of L.connections) {
+        const ra = byId.get(L.cellRoom.get(cellKey(c.a)) ?? '');
+        const rb = byId.get(L.cellRoom.get(cellKey(c.b)) ?? '');
+        if (!ra || !rb) continue;
+        const horizontal = c.a.cy === c.b.cy;
+        const dirA = horizontal ? (c.b.cx > c.a.cx ? 'E' : 'W') : c.b.cy > c.a.cy ? 'S' : 'N';
+        const dirB = { E: 'W', W: 'E', N: 'S', S: 'N' }[dirA];
+        const da = ra.doors.find((d) => d.dir === dirA)!;
+        const db = rb.doors.find((d) => d.dir === dirB)!;
+        const pa = horizontal ? da.tiles[1].y : da.tiles[1].x;
+        const pb = horizontal ? db.tiles[1].y : db.tiles[1].x;
+        direct += 1;
+        if (Math.abs(pa - pb) >= P.corridorWidth + 1) bent += 1;
+      }
+    }
+    expect(direct).toBeGreaterThan(0);
+    expect(bent).toBe(direct);
   });
 });

@@ -7,7 +7,7 @@
 | 경로 | 내용 |
 |---|---|
 | `src/main.ts` | 진입점. 창 크기에 맞는 정수 배율로 캔버스 확대 |
-| `src/config.ts` | Phaser 설정 (640×360, pixelArt, Arcade 물리) |
+| `src/config.ts` | Phaser 설정 (960×540 — 32라운드, 처음엔 640×360; pixelArt, Arcade 물리) |
 | `src/core/Constants.ts` | 엔진·화면·연출 상수 (게임 수치는 data/) |
 | `src/core/EventBus.ts` | 이벤트 버스 + 이벤트 상수 |
 | `src/core/GameState.ts` | 런 상태 + `reset()` |
@@ -211,3 +211,15 @@ npm run build
 - 테스트 8개 추가(dB·경로·버스 음량·BGM 결정·중복 묶기·피치 변주·실제 매니페스트 대조(표의 id 전부 존재, 매니페스트의 효과음 전부 사용)·프레임 시작 시각). 전체 72개. prettier·tsc·eslint·build 통과.
 - 검증(헤드리스 `vite preview --port 4174`, Chromium `--autoplay-policy=no-user-gesture-required`): 음향 매니페스트 + WAV 48 = 요청 49건 전부 200, WebAudio `running`, entries 48 = loaded 48, missing 0. 1층 진입 `level_enter` + `bgm/floor_low`(음량 0.376 = -8.5 dB). 클릭 → `swing_katana`(delay 94.6ms = 1프레임 100ms ÷ 1.057, rate 1.003/0.985), 쿨다운 중 2번째 클릭은 기록 없음, Space → `dash`. 보스 방 → `boss_start`, 상태 `boss`, `bgm/boss` 0.335(-9.5 dB), 보스 애니 `walk_left → attack_left#hold0 → attack_left#p1-2 → attack_left#hold3 → idle_right`(예고·돌진·벽 경직), `boss_telegraph`. 처치 → `boss_die`, 상태 null, `bgm/floor_low` 복귀, `pickup_gold`, 보상 메뉴 `menu_move`. 2층 전환 → `level_enter`·`save`, 2층 보스 `stage2` 의 애니 `stage1_attack_down@f2`, 별칭 stage2~7 → stage1(스크린샷: 녹색 램프). 8층 황제 → 상태 `emperor`, `bgm/emperor` 0.188(-14.5 dB). `M` → mute true / `lopad.mute`=1 → 다시 false / 0. 활: 화살이 클릭 뒤 약 162ms(3프레임 시작)에 생성, `bow_shot` delayMs 162, 우클릭 200ms 뒤 해제 → `bow_draw` 재생 후 정지(voices 0, bow_aimed 없음), 800ms 유지 → `bow_aimed`. 대검 우클릭 유지 → loops `guard_hold`, 해제 → loops 없음 + `guard_push`. 개성 100 → `menu_move`, [1] → `menu_select` + `evolve`. 시련 진입 `door_close`, hurtAll → `hit_enemy` + `enemy_hurt`, 처치 → `enemy_death`, 사수 → `archer_shot`. 타이틀 → `bgm/title` 0.447. 콘솔 오류·경고 0. 스크린샷: 스크래치 `r30audio/audio-*.png`.
 - 후속(범위 밖): UI 메뉴 커서 이동음(`menu_move` 는 현재 열림음으로 사용) — UI 가 소리를 내려면 계약에 재생 명령 추가 필요. 엔딩 전용 효과음·휴식 방·상점 진입음은 자산 없음. OGG 전환은 복귀 후 인터뷰. `TRIAL_CLEARED` 발행 시점에 `bossUnlocked` 가 아직 false 라 Game 의 '본영 문 열림' 자막 분기가 닿지 않는 것으로 보임(기존 동작, 이번 범위 밖 — 확인 필요).
+
+## 32라운드 반영: 해상도 960×540 · 방 80×48 + 카메라 추종 · 리듬 점 · 조준 유지 (2026-10-02)
+결정: `decisions/2026-10-02-round-31-return-review.md`(1·2), `2026-10-02-round-32-redesign-direction.md`(Q1·Q2·Q5). 임시값은 32라운드 로그 끝 "시스템 반영 기록 (임시값)".
+- **해상도** `src/core/Constants.ts` `GAME` 960×540. `main.ts` 정수 배율 로직 그대로(1280×720 창 = 1배 + 레터박스, 1920×1080 = 2배). 시스템 임시 화면 수치는 `PLACEHOLDER_UI`(글꼴·획 예시 패널·결과 화면 간격·이름 입력 폭)로 모아 1.5배. `TextMenu`·`GameOver`·`Setup`·진화 배너가 사용. UI 코드는 손대지 않음.
+- **맵** `src/systems/mapgen/types.ts` `CELL_W/CELL_H` 80×48, `ROOM_MARGIN` 3, `DOOR_MARGIN` 2. `tiles.ts` 래스터화 재작성: 방 내부는 셀 안 무작위 위치(중앙 축 포함 조건 삭제), 연결마다 `portOf`(문 위치 범위·복도 시작 좌표) → 문 2개(또는 복도 셀이면 1개)를 따로 고르고 Z 자 복도(`carveBox` 3구간). 보스 2×2 방의 문은 입구 셀 띠 안에만. `data/stages.json` 방·보스 방 크기, 웨이브, 스폰 거리 / `data/enemies.json` 사수·결사병 거리 / `src/world/tileskin.ts` `PROPS_RULES` 재조정. `layout.ts`(셀 배치)는 변경 없음.
+- **카메라** `src/world/TileWorld.ts` `cellRect`·`cameraRegion(x, y)`(방 안 = 방 셀 사각형, 복도·문 위 = 현재 셀 ∪ 진행 방향 이웃 셀, 월드로 잘라냄). `src/scenes/Game.ts` `updateCamera(force, delta)`: 데드존 → 영역 클램프(`clampCenter`, 영역이 화면보다 작으면 가운데) → 프레임 보정 lerp → 반올림 스크롤. `startFollow/setBounds` 와 `CAMERA.CELL_OFFSET_Y`·`currentCellKey` 제거. 보스전도 같은 추종.
+- **리듬 점** `src/scenes/Setup.ts`: 리듬 단계 진입 시 `showDot`, `update(time, delta)` 에서 `moveDot`(WASD 속도 = 플레이어 이동 속도, 스페이스 = 대쉬 거리 순간 이동 + 잔상 tween), 클릭 `flashDotRing`. 상수 `RHYTHM_DOT`. 집계(`RhythmSample`)는 그대로. 디버그 훅 `window.__lopadSetup()`(`?debug=1`: phase·dot·rhythm·clicks·rings·features).
+- **조준 사격** `src/objects/Player.ts`: `aim` 상태에서 차지 완료 시 `aimReady` + `PLAYER_SECONDARY { phase: 'ready' }` + 번쩍, **떼면** 발사(차지 전이면 cancel). `isAimReady` getter, 디버그 `playerExtra().aimReady`. `EventBus` `PlayerSecondaryPayload.phase` 에 `'ready'`.
+- **디버그** `__lopad.camera()` 에 `width/height/region`.
+- 테스트: mapgen 2개 추가(방 내부가 셀 여백 안 / 문 양옆 벽 + 방끼리 직접 연결은 문이 4타일 이상 어긋남). 전체 74개 통과. prettier·tsc·eslint·build 통과.
+- 검증(헤드리스 `vite preview --port 4174`, Chromium): 1920×1080 → 캔버스 960×540 CSS 1920×1080(배율 2), 1280×720 → CSS 960×540 중앙(배율 1). 시드 `lopad` 1층: 방 7개 전부 시작 방에서 바닥 BFS 도달, 시작 방 영역 1280×768, 1층 아트 타일셋(`tiles_stage1`, 소품 74). D 1.2초 → scrollX 1560→1600(영역 오른쪽 끝에서 클램프), 플레이어 화면 x 563/960. 시련 방 순간 이동 → 스크롤이 8프레임 샘플(120ms 간격)에 걸쳐 2410→919 로 수렴(튀지 않음), 영역 = 그 방 셀. 스폰 4마리 최소 거리 10.4타일, 문 닫힘(4). 남쪽 문 밖 복도에 서면 영역 세로 1536(현재 셀 + 아래 셀). 보스 방 영역 2560×1536, A 0.8초 → scrollX 3356→3313, 보스 HP 200. 1→8층 전환(2~8층은 플레이스홀더 타일셋, 영역 1280×768). 활: 우클릭 800ms 유지 → `aim`·aimReady true·조준 화살 없음 → 떼면 `sheet_bow_arrow_aimed_fx` 피해 11 + `bow_aimed`; 200ms 유지 후 떼면 취소(화살 0). 개성 선택: 3획 → 리듬 점 (480,270), D 0.5초 → x 528(+48 = 96px/s), 스페이스 → x 576(+48)·dashes 1, 클릭 → 원 1·attacks 1, 5초 후 운명. 콘솔 오류·경고 0. 스크린샷: 스크래치 `r32/r32-*.png`.
+- 후속(범위 밖·인터뷰 대상): 적 수·거리 임시값 밸런스 패스, 2~8층 전용 타일셋(아트), 보스 방 크기 체감, 복도에 소품·조명(아트), HUD 가장자리 배치(UI).

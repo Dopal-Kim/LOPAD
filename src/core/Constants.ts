@@ -10,9 +10,10 @@ export const CELL = {
   H_PX: CELL_H * TILE,
 };
 
+/** 내부 해상도 (32라운드 Q1: 960×540). 창 크기에 맞춘 정수 배율은 main.ts (1280×720 창 = 1배, 1920×1080 = 2배) */
 export const GAME = {
-  WIDTH: 640,
-  HEIGHT: 360,
+  WIDTH: 960,
+  HEIGHT: 540,
   BACKGROUND_COLOR: '#0b0b10',
   MIN_ZOOM: 1,
 };
@@ -161,11 +162,19 @@ export const COLORS = {
   GAMEOVER_TEXT: '#eee',
 };
 
+/**
+ * 카메라 (32라운드 Q2: 방 고정이 아니라 플레이어 부드러운 추종).
+ * 목표 스크롤 = 플레이어 중심(데드존 적용) → 현재 영역(방 셀 사각형 + 서 있는 복도의 이웃 셀)으로 클램프 → lerp.
+ * 클램프를 목표에만 적용하므로 영역이 바뀌어도 카메라가 튀지 않고 옆 방으로 미끄러진다.
+ */
 export const CAMERA = {
-  /** 셀 높이(352)가 화면(360)보다 8px 작아서 위아래 4px씩 여백을 둔다 */
-  CELL_OFFSET_Y: -4,
-  /** 보스 방 추적 카메라 보간 */
-  FOLLOW_LERP: 0.12,
+  /** 프레임당 보간 비율 (60fps 기준) */
+  FOLLOW_LERP: 0.1,
+  /** 플레이어가 화면 중심에서 이만큼(px) 벗어나야 카메라가 따라간다 */
+  DEADZONE_X: 12,
+  DEADZONE_Y: 8,
+  /** 보간이 이 거리(px) 안이면 목표에 붙인다 (미세 진동 방지) */
+  SNAP_PX: 0.25,
 };
 
 export const PROTOTYPE = {
@@ -200,7 +209,42 @@ export const PROTOTYPE = {
 export const DEBUG = {
   /** 시스템 파트 임시 디버그 텍스트. HUD는 UI 파트 소유이므로 이것은 HUD가 아니다. */
   SHOW_TEXT: true,
-  FONT: '10px monospace',
+  FONT: '12px monospace',
+};
+
+/** 시스템 임시 화면(개성 선택·결과·임시 메뉴)의 글꼴. 960×540 기준 (32라운드). UI 파트 산출물로 교체 대상 */
+export const PLACEHOLDER_UI = {
+  FONT_TITLE: '32px monospace',
+  FONT_BODY: '14px monospace',
+  FONT_SMALL: '12px monospace',
+  FONT_CAPTION: '11px monospace',
+  /** 개성 선택 라벨 상단 여백 */
+  LABEL_Y: 36,
+  /** 획 예시 패널 (strokes 단계): 상단 y, 높이, 예시 사이 간격, 반복 전 멈춤 */
+  EXAMPLE_PANEL: { y: 392, h: 126, gap: 18, pauseMs: 700 },
+  /** 결과 화면 제목·부제·영혼 줄 간격 */
+  RESULT_TITLE_DY: -18,
+  RESULT_SUB_DY: 24,
+  RESULT_SOULS_DY: 56,
+  /** 이름 입력 DOM input 폭(px, 캔버스 좌표계) */
+  NAME_INPUT_WIDTH: 240,
+};
+
+/** 개성 선택 리듬 단계의 하얀 점 (31라운드 1): 플레이어 표식. 이동 속도·대쉬 거리는 data/player.json 값을 그대로 쓴다 */
+export const RHYTHM_DOT = {
+  RADIUS: 6,
+  COLOR: 0xffffff,
+  /** 화면 가장자리 여백 (점이 라벨·패널을 가리지 않게) */
+  MARGIN: 24,
+  /** 대쉬 잔상: 개수·지속 */
+  TRAIL_COUNT: 3,
+  TRAIL_MS: 220,
+  TRAIL_ALPHA: 0.5,
+  /** 클릭 시 점 주변 원 번쩍: 시작 반지름 → 끝 반지름, 지속 */
+  RING_FROM: 8,
+  RING_TO: 20,
+  RING_MS: 180,
+  RING_WIDTH: 2,
 };
 
 export const KEYS = {

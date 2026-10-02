@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, GAME, KEYS, PROTOTYPE, SCENES } from '../core/Constants';
-import { PERSONALITY, STORY, WEAPONS } from '../data';
+import { COLORS, DEPTH, GAME, KEYS, PLACEHOLDER_UI, PROTOTYPE, RHYTHM_DOT, SCENES, TILE } from '../core/Constants';
+import { PERSONALITY, PLAYER_DATA, STORY, WEAPONS } from '../data';
 import { fill } from '../systems/story';
 import type { Affinity } from '../data/types';
 import { chooseWeapon, rhythmFeatures, strokeFeatures, type RhythmSample, type Stroke } from '../systems/personality';
@@ -65,7 +65,7 @@ const STROKE_EXAMPLES: StrokeExample[] = [
     durationMs: 700,
   },
 ];
-const EXAMPLE_PANEL = { y: 262, h: 84, pauseMs: 700, gap: 12 };
+const EXAMPLE_PANEL = PLACEHOLDER_UI.EXAMPLE_PANEL;
 
 export class Setup extends Phaser.Scene {
   private phase: Phase = 'strokes';
@@ -85,6 +85,11 @@ export class Setup extends Phaser.Scene {
   private exampleGfx?: Phaser.GameObjects.Graphics;
   private exampleTexts: Phaser.GameObjects.Text[] = [];
   private playerName = '';
+  /** 리듬 단계 하얀 점 (31라운드 1): WASD 이동·스페이스 대쉬·클릭 번쩍. 집계 로직과는 무관한 표시용 */
+  private dot?: Phaser.GameObjects.Arc;
+  private dotFacing = new Phaser.Math.Vector2(1, 0);
+  private dotLastDashAt = -Infinity;
+  private dotClicks = 0;
 
   constructor() {
     super(SCENES.SETUP);
@@ -99,7 +104,11 @@ export class Setup extends Phaser.Scene {
     this.rhythm = { frames: 0, movingFrames: 0, attacks: 0, dashes: 0 };
     this.gfx = this.add.graphics().setDepth(DEPTH.ATTACK);
     this.label = this.add
-      .text(GAME.WIDTH / 2, 24, '', { font: '12px monospace', color: COLORS.GAMEOVER_TEXT, align: 'center' })
+      .text(GAME.WIDTH / 2, PLACEHOLDER_UI.LABEL_Y, '', {
+        font: PLACEHOLDER_UI.FONT_BODY,
+        color: COLORS.GAMEOVER_TEXT,
+        align: 'center',
+      })
       .setOrigin(0.5, 0)
       .setDepth(DEPTH.DEBUG);
     const kb = this.input.keyboard!;
@@ -123,7 +132,11 @@ export class Setup extends Phaser.Scene {
       this.nameInput = undefined;
       this.input.keyboard?.enableGlobalCapture();
       this.hideExamples();
+      this.dot?.destroy();
+      this.dot = undefined;
+      delete (window as unknown as { __lopadSetup?: unknown }).__lopadSetup;
     });
+    this.exposeDebug();
     this.menu = new TextMenu(this);
     setMenuSelect((id, key) => {
       if (id === 'meta' && key === 'enter') this.beginName();
@@ -192,7 +205,7 @@ export class Setup extends Phaser.Scene {
         GAME.WIDTH / 2,
         GAME.HEIGHT / 2,
         'input',
-        'width:200px;font:14px monospace;background:#101018;color:#e8e8f0;border:1px solid #777;padding:4px;text-align:center;outline:none',
+        `width:${PLACEHOLDER_UI.NAME_INPUT_WIDTH}px;font:${PLACEHOLDER_UI.FONT_BODY};background:#101018;color:#e8e8f0;border:1px solid #777;padding:4px;text-align:center;outline:none`,
       )
       .setDepth(DEPTH.DEBUG);
     const node = this.nameInput.node as HTMLInputElement;
@@ -228,7 +241,7 @@ export class Setup extends Phaser.Scene {
     const { y, h, gap } = EXAMPLE_PANEL;
     const n = STROKE_EXAMPLES.length;
     const cellW = (GAME.WIDTH - gap * (n + 1)) / n;
-    const style = { font: '9px monospace', color: '#8a8aa0', align: 'center' as const };
+    const style = { font: PLACEHOLDER_UI.FONT_CAPTION, color: '#8a8aa0', align: 'center' as const };
     this.exampleTexts.push(
       this.add
         .text(GAME.WIDTH / 2, y - 12, '예시 — 이런 식으로 그어도 된다 (길게·짧게, 곧게·둥글게, 빠르게·느리게)', style)
@@ -295,16 +308,19 @@ export class Setup extends Phaser.Scene {
     });
   }
 
-  update(time: number): void {
+  update(time: number, delta: number): void {
     if (this.phase === 'strokes') {
       this.drawExamples(time);
       return;
     }
     if (this.phase !== 'rhythm') return;
     this.rhythm.frames += 1;
-    if (this.keys.up.isDown || this.keys.down.isDown || this.keys.left.isDown || this.keys.right.isDown)
-      this.rhythm.movingFrames += 1;
-    if (Phaser.Input.Keyboard.JustDown(this.keys.dash)) this.rhythm.dashes += 1;
+    const mx = (this.keys.right.isDown ? 1 : 0) - (this.keys.left.isDown ? 1 : 0);
+    const my = (this.keys.down.isDown ? 1 : 0) - (this.keys.up.isDown ? 1 : 0);
+    if (mx !== 0 || my !== 0) this.rhythm.movingFrames += 1;
+    const dashed = Phaser.Input.Keyboard.JustDown(this.keys.dash);
+    if (dashed) this.rhythm.dashes += 1;
+    this.moveDot(mx, my, dashed, delta);
     const left = Math.max(0, this.rhythmEndAt - time);
     this.label.setText(
       `이제 5초 동안 자신답게 움직여 보세요 (WASD · 클릭 · 스페이스)\n남은 시간 ${(left / 1000).toFixed(1)}초`,
@@ -317,7 +333,81 @@ export class Setup extends Phaser.Scene {
       this.current = [{ x: p.x, y: p.y, t: p.downTime }];
     } else if (this.phase === 'rhythm') {
       this.rhythm.attacks += 1;
+      this.flashDotRing();
     }
+  }
+
+  /** 리듬 단계 시작: 화면 중앙에 하얀 점 */
+  private showDot(): void {
+    this.dot?.destroy();
+    this.dot = this.add
+      .circle(GAME.WIDTH / 2, GAME.HEIGHT / 2, RHYTHM_DOT.RADIUS, RHYTHM_DOT.COLOR)
+      .setDepth(DEPTH.ATTACK);
+    this.dotFacing.set(1, 0);
+    this.dotClicks = 0;
+  }
+
+  /** WASD 로 플레이어 이동 속도만큼 움직이고, 스페이스면 대쉬 거리만큼 순간 이동 + 잔상 */
+  private moveDot(mx: number, my: number, dashed: boolean, delta: number): void {
+    const dot = this.dot;
+    if (!dot) return;
+    const dir = new Phaser.Math.Vector2(mx, my);
+    if (dir.lengthSq() > 0) {
+      dir.normalize();
+      this.dotFacing.copy(dir);
+    }
+    const speed = PLAYER_DATA.stats.speedTiles * TILE;
+    let x = dot.x + dir.x * speed * (delta / 1000);
+    let y = dot.y + dir.y * speed * (delta / 1000);
+    if (dashed) {
+      const d = dir.lengthSq() > 0 ? dir : this.dotFacing;
+      const dist = PLAYER_DATA.dash.distanceTiles * TILE;
+      for (let i = 1; i <= RHYTHM_DOT.TRAIL_COUNT; i++) {
+        const t = i / (RHYTHM_DOT.TRAIL_COUNT + 1);
+        const ghost = this.add
+          .circle(x + d.x * dist * t, y + d.y * dist * t, RHYTHM_DOT.RADIUS, RHYTHM_DOT.COLOR, RHYTHM_DOT.TRAIL_ALPHA)
+          .setDepth(DEPTH.ATTACK);
+        this.tweens.add({ targets: ghost, alpha: 0, duration: RHYTHM_DOT.TRAIL_MS, onComplete: () => ghost.destroy() });
+      }
+      x += d.x * dist;
+      y += d.y * dist;
+      this.dotLastDashAt = this.time.now;
+    }
+    const m = RHYTHM_DOT.MARGIN;
+    dot.setPosition(Phaser.Math.Clamp(x, m, GAME.WIDTH - m), Phaser.Math.Clamp(y, m, GAME.HEIGHT - m));
+  }
+
+  /** 클릭: 점 주변에 작은 원이 번쩍 */
+  private flashDotRing(): void {
+    const dot = this.dot;
+    if (!dot) return;
+    this.dotClicks += 1;
+    const ring = this.add
+      .circle(dot.x, dot.y, RHYTHM_DOT.RING_FROM)
+      .setStrokeStyle(RHYTHM_DOT.RING_WIDTH, RHYTHM_DOT.COLOR, 0.9)
+      .setDepth(DEPTH.ATTACK);
+    this.tweens.add({
+      targets: ring,
+      radius: RHYTHM_DOT.RING_TO,
+      alpha: 0,
+      duration: RHYTHM_DOT.RING_MS,
+      onComplete: () => ring.destroy(),
+    });
+  }
+
+  /** 검증 훅 (?debug=1): 단계·점 위치·리듬 집계. 게임 로직이 아니다 */
+  private exposeDebug(): void {
+    if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
+    (window as unknown as { __lopadSetup: unknown }).__lopadSetup = () => ({
+      phase: this.phase,
+      dot: this.dot ? { x: this.dot.x, y: this.dot.y } : null,
+      rhythm: { ...this.rhythm },
+      strokes: this.strokes.length,
+      lastDashAt: this.dotLastDashAt,
+      clicks: this.dotClicks,
+      rings: this.children.list.filter((c) => c instanceof Phaser.GameObjects.Arc && c.isStroked).length,
+      features: this.features ?? null,
+    });
   }
 
   private onPointerMove(p: Phaser.Input.Pointer): void {
@@ -338,6 +428,7 @@ export class Setup extends Phaser.Scene {
       this.hideExamples();
       this.phase = 'rhythm';
       this.rhythmEndAt = this.time.now + PERSONALITY.rhythm.durationMs;
+      this.showDot();
     }
     this.updateLabel();
   }
@@ -352,6 +443,8 @@ export class Setup extends Phaser.Scene {
 
   private decideFate(): void {
     this.phase = 'fate';
+    this.dot?.destroy();
+    this.dot = undefined;
     const f: Affinity = { ...strokeFeatures(this.strokes, PERSONALITY), ...rhythmFeatures(this.rhythm, PERSONALITY) };
     this.features = f;
     const { id } = chooseWeapon(f, WEAPONS, PERSONALITY);

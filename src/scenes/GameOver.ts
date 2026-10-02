@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, GAME, KEYS, SCENES } from '../core/Constants';
+import { COLORS, GAME, KEYS, PLACEHOLDER_UI, SCENES } from '../core/Constants';
 import { EventBus, Events } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { metaStore } from '../systems/meta';
@@ -24,13 +24,22 @@ export class GameOver extends Phaser.Scene {
     const souls = `영혼 +${gameState.lastSoulGain}  (보유 ${metaStore.read().souls})`;
     const sub = `${gameState.stage.name}  kills ${gameState.kills}  gold ${gameState.gold}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName}  seed ${gameState.seed}   -   click or [${KEYS.RESTART}] to restart`;
     this.add
-      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 - 12, title, { font: '24px monospace', color: COLORS.GAMEOVER_TEXT })
+      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + PLACEHOLDER_UI.RESULT_TITLE_DY, title, {
+        font: PLACEHOLDER_UI.FONT_TITLE,
+        color: COLORS.GAMEOVER_TEXT,
+      })
       .setOrigin(0.5);
     this.add
-      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + 40, souls, { font: '10px monospace', color: COLORS.GAMEOVER_TEXT })
+      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + PLACEHOLDER_UI.RESULT_SOULS_DY, souls, {
+        font: PLACEHOLDER_UI.FONT_SMALL,
+        color: COLORS.GAMEOVER_TEXT,
+      })
       .setOrigin(0.5);
     this.add
-      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + 16, sub, { font: '10px monospace', color: COLORS.GAMEOVER_TEXT })
+      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + PLACEHOLDER_UI.RESULT_SUB_DY, sub, {
+        font: PLACEHOLDER_UI.FONT_SMALL,
+        color: COLORS.GAMEOVER_TEXT,
+      })
       .setOrigin(0.5);
 
     const restart = () => {

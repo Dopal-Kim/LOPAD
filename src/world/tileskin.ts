@@ -33,18 +33,18 @@ export interface PropPlacement {
   solid: boolean;
 }
 
-/** 소품 배치 규칙 (29라운드 임시값) */
+/** 소품 배치 규칙 (29라운드 임시값 → 32라운드 방 확대에 맞춰 방당 개수·시도 횟수 상향) */
 export const PROPS_RULES = {
-  MIN_PER_ROOM: 2,
-  MAX_PER_ROOM: 5,
+  MIN_PER_ROOM: 6,
+  MAX_PER_ROOM: 14,
   /** 시작 지점(방 중심) 반경 — 체비셰프 거리(타일) */
-  START_CLEAR: 2,
+  START_CLEAR: 3,
   /** 문 타일 주변 반경 */
   DOOR_CLEAR: 2,
   /** 보스 방 중심 기준 출구(2×2, 중심-1..0)·상점(중심+3..+4) 자리 여유 */
   BOSS_CLEAR: { left: 2, right: 5, up: 2, down: 2 },
   /** 배치 시도 횟수 상한 */
-  TRIES: 40,
+  TRIES: 160,
 };
 
 const ALL_IDS: TileId[] = [
