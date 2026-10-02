@@ -1,0 +1,36 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "CONCEPT REFERENCE ONLY (art direction study, not a game asset). Revise the attached gameplay-style mood study of a modern 2D pixel-art roguelike: keep the same steep three-quarter top-down camera, the same scale, the same high-detail pixel-art style and the same layout (brick distillery front with two arched furnace mouths and two big pot stills on top, cask pyramids and a gantry crane at the sides, the horizontal liquor canal with two plank bridges near the bottom), and change only these points:\n1. Make the whole night much darker: the yard floor sits mostly in deep blue-gray shadow and the light comes only from the two furnace mouths, the glowing canal, the hot vat at the bottom left and one hanging lantern, each casting a soft round pool of warm amber light that falls off into darkness; strong vignette at the screen edges.\n2. The canal must read as liquid, not lava: a dark amber liquor surface with ripples, floating foam and bright moving reflections, darker at its edges under the stone banks, glowing brightest near the bridges.\n3. Valve wheels and all metal fittings are dark iron or dull brass - no red anywhere.\n4. Add bright rim highlights on wet flagstones, barrel hoops and pipe edges facing the lights, a few dark liquor stains and small amber puddles on the floor, and amber-lit steam drifting from the vent.\nPalette: charcoal and cool slate grays with subtle blue-gray in the shadows, warm umber wood, dirty pale plaster or stone, and a single warm amber/ember accent for every light source. No saturated blue, green, purple or red. No text, no letters, no logos, no UI, no HUD, no watermark, no frame.",
+ "refs": [
+  "concept_v2_brewery/raw_a.jpg"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 620,
+   "candidatesTokenCount": 1646,
+   "totalTokenCount": 2266,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 362
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 258
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-02T18:21:19"
+}

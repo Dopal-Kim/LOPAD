@@ -1,0 +1,36 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "CHARACTER CONCEPT SHEET - reference only, not a game asset. Art direction for a dark modern 2D pixel-art roguelike action game set in a grim Renaissance-era early-gunpowder world (pikes, longbows, matchlock muskets, mud, oak barrels, timber-and-plaster towns); fantasy appears only as rare eerie touches. Mood: bleak and weary with a dry, sly dark humor, like a gritty frontier western crossed with dark fantasy. Rendering: crisp high-detail modern pixel art at large scale (clean readable shapes, cel shading with one shadow and one highlight step, dark 1-pixel outlines, light from the upper left), every figure shown full body, standing on a flat plain dark slate-gray background with a soft floor shadow, evenly spaced with clear gaps, no overlap, no scenery. Silhouettes must stay readable when shrunk to a tiny 32 by 48 pixel game sprite: big simple head and hat shapes, strong value contrast between body parts. Palette: charcoal and cool slate grays, warm umber wood and leather, dirty pale linen and bandage, and a single warm amber/ember accent (#8b4d22, #d67a11, #e8b858, #faeec0) used sparingly for glowing eyes, lantern light and liquor. No saturated blue, green, purple or red. No text, no letters, no labels, no numbers, no logos, no UI, no watermark, no frame.\n\nSubject: the first-floor boss, the ruler of the liquor empire - a huge, heavy, utterly drunk lord, menacing and grotesque yet darkly comic. Character sheet with three full-body views in one row: front, side (facing right), back; and on the right two action poses. Design (match the drunk ruler in the attached key art): enormous round belly bursting out of an expensive but stained and half-open doublet, a heavy fur-trimmed mantle slipping off one shoulder, a small crown worn askew on a sweaty bald head, a ragged beard, flushed heavy face with half-closed glowing amber eyes and a satisfied, dangerous grin; a giant ornate goblet in one hand sloshing amber liquor down his arm; on his back or belt a heavy cask-tap mallet as a weapon; thick legs in tall boots, swaying, unbalanced stance. He is about two and a half times as tall and three times as wide as a normal man (show a small plain human silhouette next to him for scale). Action poses: (a) a staggering belly-first charge with liquor splashing, (b) hurling his goblet so that a fan of amber liquor droplets sprays outward.",
+ "refs": [
+  "keyart_hall/raw_b.jpg"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 810,
+   "candidatesTokenCount": 1629,
+   "totalTokenCount": 2439,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 552
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 258
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-02T18:19:58"
+}

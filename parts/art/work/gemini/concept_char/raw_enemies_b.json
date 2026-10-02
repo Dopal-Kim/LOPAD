@@ -1,0 +1,36 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "CHARACTER CONCEPT SHEET - reference only, not a game asset. Art direction for a dark modern 2D pixel-art roguelike action game set in a grim Renaissance-era early-gunpowder world (pikes, longbows, matchlock muskets, mud, oak barrels, timber-and-plaster towns); fantasy appears only as rare eerie touches. Mood: bleak and weary with a dry, sly dark humor, like a gritty frontier western crossed with dark fantasy. Rendering: crisp high-detail modern pixel art at large scale (clean readable shapes, cel shading with one shadow and one highlight step, dark 1-pixel outlines, light from the upper left), every figure shown full body, standing on a flat plain dark slate-gray background with a soft floor shadow, evenly spaced with clear gaps, no overlap, no scenery. Silhouettes must stay readable when shrunk to a tiny 32 by 48 pixel game sprite: big simple head and hat shapes, strong value contrast between body parts. Palette: charcoal and cool slate grays, warm umber wood and leather, dirty pale linen and bandage, and a single warm amber/ember accent (#8b4d22, #d67a11, #e8b858, #faeec0) used sparingly for glowing eyes, lantern light and liquor. No saturated blue, green, purple or red. No text, no letters, no labels, no numbers, no logos, no UI, no watermark, no frame.\n\nRevise the attached enemy lineup (five first-floor enemies of the liquor empire's outskirts): keep the same five characters in the same order and poses, the same scale and style, and change only these points:\n1. Skin tones must be muted gray-beige and ashen; no pink or red skin anywhere. The drunk conscript's nose and cheeks are flushed with a warm amber-brown tint instead of red.\n2. The musketeer wears a proper three-cornered tricorne hat (brim turned up on three sides), not a wide round hat.\n3. The armored brute's shield is a tall RECTANGULAR wooden pavise with a vertical center ridge, reaching from his chin to his knees, the amber goblet emblem painted on it; his helmet eye slits stay dark with only a faint amber glint.\n4. The barrel porter's bare arms are ashen and grimy, his face tired and sullen; the cask he rolls is darker oak with iron hoops.\n5. Slightly darker overall values so the figures read as night-time enemies, with the amber accents (liquor, slow-match ember, lit bottle wick, goblet emblem) as the brightest points.",
+ "refs": [
+  "concept_char/raw_enemies_a.jpg"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 821,
+   "candidatesTokenCount": 1560,
+   "totalTokenCount": 2381,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 563
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 258
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-02T18:21:19"
+}

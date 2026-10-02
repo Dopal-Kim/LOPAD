@@ -1,0 +1,36 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "CHARACTER CONCEPT SHEET - reference only, not a game asset. Art direction for a dark modern 2D pixel-art roguelike action game set in a grim Renaissance-era early-gunpowder world (pikes, longbows, matchlock muskets, mud, oak barrels, timber-and-plaster towns); fantasy appears only as rare eerie touches. Mood: bleak and weary with a dry, sly dark humor, like a gritty frontier western crossed with dark fantasy. Rendering: crisp high-detail modern pixel art at large scale (clean readable shapes, cel shading with one shadow and one highlight step, dark 1-pixel outlines, light from the upper left), every figure shown full body, standing on a flat plain dark slate-gray background with a soft floor shadow, evenly spaced with clear gaps, no overlap, no scenery. Silhouettes must stay readable when shrunk to a tiny 32 by 48 pixel game sprite: big simple head and hat shapes, strong value contrast between body parts. Palette: charcoal and cool slate grays, warm umber wood and leather, dirty pale linen and bandage, and a single warm amber/ember accent (#8b4d22, #d67a11, #e8b858, #faeec0) used sparingly for glowing eyes, lantern light and liquor. No saturated blue, green, purple or red. No text, no letters, no labels, no numbers, no logos, no UI, no watermark, no frame.\n\nSubject: the common enemies of the first floor, the liquor empire's lower-class outskirts - a lineup of five different enemy types side by side in one row, all in front three-quarter view, same scale (the armored one slightly bulkier). Keep the first three faithful to the attached in-game sprites (left to right in the attachment: drunk conscript, musketeer, armored shield brute front and side), only at much higher detail.\n1. Drunk conscript (one of a drunken gang): a red-nosed drunk wearing a cut oak barrel as body armor held by rope straps, a floppy cloth cap, legs splayed and swaying, a wooden club in one hand and a liquor bottle with amber liquor in the other.\n2. Musketeer: a thin, gaunt matchlock gunner in a battered tricorne hat, narrow body, bandolier of powder charges across the chest, a long matchlock musket held diagonally with a glowing amber slow-match ember.\n3. Armored zealot brute: a heavy broad-shouldered soldier in a dented barrel-shaped iron helmet with two narrow eye slits, dark padded armor, a tall wooden pavise shield on his left arm painted with an amber goblet emblem, a big war hammer resting on his shoulder.\n4. Poison-liquor peddler: a hunched, grinning street hawker with a wooden tray of stoppered bottles hanging from his neck and a bandolier of more bottles, a lit bottle with a cloth wick in his raised hand ready to throw, a ragged hood.\n5. Barrel porter: a squat, massively strong laborer with a leather apron and bare thick forearms, rolling a huge iron-hooped oak cask in front of him, a coiled rope and a cargo hook on his belt.",
+ "refs": [
+  "concept_char/ref_enemies.png"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 941,
+   "candidatesTokenCount": 1849,
+   "totalTokenCount": 2790,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 683
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 258
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-02T18:19:59"
+}

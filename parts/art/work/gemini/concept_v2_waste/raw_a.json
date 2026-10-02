@@ -1,0 +1,36 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "CONCEPT REFERENCE ONLY (art direction study, not a game asset). A gameplay-style screenshot mood study for a modern 2D pixel-art roguelike action game, same world, same steep three-quarter top-down camera and same modern high-detail pixel-art style as the attached image (crisp pixels, rich mid-tones, painterly light), but a completely different location - do not reuse the attached composition. Camera: orthographic, the floor is seen from above on a square grid; every wall, building and large structure shows its tall FRONT face (about two tiles high) so characters can walk behind them. Scale: the screen shows about 30 by 17 floor tiles and a character is about one and a half tiles tall. The middle of the screen is an open, calm, low-contrast floor that stays readable for combat; height, props and light sources sit around the edges.\n\nScene: the endless battlefield wasteland outside the walled liquor empire, at night. The arena floor is cracked dry earth and churned mud with shallow wheel ruts, a few flat stones and trampled grass tufts, all low contrast. The north edge is a raised earthwork embankment whose front face is a tall wall of packed earth held up by a leaning timber palisade of sharpened stakes, with a ruined stone farmhouse wall (broken window, collapsed corner) set into it; their tops are visible from above. The west and east edges are lower broken field walls of piled stones and sandbags whose tops are visible. Battlefield debris around the edges: broken pikes and swords stuck in the ground at angles, torn banners hanging from leaning poles, half-buried dented helmets and round shields, a toppled supply wagon with a broken wheel and spilled crates, a cold cannon on a wooden carriage, a shallow shell crater.\n\nLighting: very dark blue-gray night, deep shadows, slight vignette. The warm amber light comes from a dying campfire, the burning wreck of the wagon, and several small ember-colored soul flames (will-o'-the-wisps) drifting low over the fallen, each casting a soft round pool of warm light on the mud with bright rim highlights on the edges of stakes, helmets and stones facing the light. One small dark-coated figure with a wide-brimmed hat stands in the open middle with a faint glow around him; two ragged shapes approach from the dark.\n\nPalette: charcoal and cool slate grays with subtle blue-gray in the shadows, warm umber wood, dirty pale plaster or stone, and a single warm amber/ember accent for every light source. No saturated blue, green, purple or red. No text, no letters, no logos, no UI, no HUD, no watermark, no frame.",
+ "refs": [
+  "concept_v2_outer/raw_a.jpg"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 824,
+   "candidatesTokenCount": 1669,
+   "totalTokenCount": 2493,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 566
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 258
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-02T18:19:39"
+}
