@@ -1,0 +1,9 @@
+An old hand-drawn campaign map spread open flat, filling the entire frame edge to edge (no table, no hands, nothing visible around it): a weathered, dark, stained parchment page from a soldier's diary - dark brown-sepia paper with water rings, a burn mark, creases and torn edges, drawn in faded sepia ink. Detailed pixel art with clean readable shapes and flat tones, matching the attached reference map's style and colors.
+LAYOUT (most important): the page must stay SPARSE and calm. The whole middle band of the page (from about 30% to 70% of the page height, full width) is open, plain paper crossed only by a soft, slightly lighter worn road that winds gently from the far left edge to the far right edge with a thin dashed ink line on it - round map markers will be placed all over this band later, so do NOT draw buildings, trees or details inside it. All landmark drawings sit in the top 30% and bottom 30% of the page, small and simple, with lots of empty paper between them.
+Depth: the landmarks are small oblique 3/4-view pictograms that get smaller and the paper gets darker toward the right, as if the road leads deeper and deeper into the empire. Left to right:
+- far left: a cracked wasteland battlefield (a few broken pikes and a torn banner, a crater, two tiny soul flames),
+- then a great walled gate with two towers standing across the road (the gate may touch the band edges),
+- then the outer slums (a few clusters of timber rooftops),
+- then the brewery district (a couple of pot stills, smoke stacks, stacked barrels, a short liquor canal),
+- far right: the deepest heart - a dark palace on a raised terrace with a goblet emblem, the largest single landmark, sitting where the road ends.
+Accent: ONLY a warm ember-orange ink, used very sparingly (the goblet emblem and two or three tiny flames). No other colors. No text, no letters, no labels, no numbers, no compass, no watermark.

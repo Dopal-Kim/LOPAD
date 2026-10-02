@@ -1,0 +1,15 @@
+{
+ "id": "keyart_waste",
+ "src": "raw_a.jpg",
+ "out": "assets/sprites/ui/keyart_waste.png",
+ "size": [
+  960,
+  540
+ ],
+ "mode": "tone (no pixelization, no colour reduction)",
+ "neutral_axis": "gray G00-G15",
+ "accent_axis": "floor-1 ramp 16-27",
+ "pre": null,
+ "dashes": null,
+ "alt_quant": "keyart_waste/alt_quant.png (k=2, palette lock)"
+}

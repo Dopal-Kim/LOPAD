@@ -1,0 +1,36 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "An old hand-drawn campaign map spread open flat, filling the entire frame edge to edge (no table, no hands, no background visible around it) - a weathered, dark, stained parchment page from a soldier's diary: dark brown-sepia paper with water rings, burn marks, creases and torn edges, all drawn in faded, light sepia ink that seems to glow faintly on the dark paper. Rendered as detailed pixel art with clean, readable shapes and flat tones.\nThe map shows the journey into the liquor empire \"Zan\" as an illustrated bird's-eye landscape in oblique perspective (hills, walls and buildings drawn as small 3/4-view pictograms, nearer things slightly larger at the bottom-left, farther things smaller toward the top-right), so the page feels like a deep landscape receding into the empire:\n- far LEFT: a cracked wasteland battlefield - broken pikes stuck in the ground, torn banners, craters, a few tiny soul-flame marks.\n- left-center: a great walled city gate with towers across the road.\n- center: the outer slum districts - clusters of crowded timber rooftops and narrow alleys.\n- right-center: the brewery district - small pot stills, smoke stacks, stacked barrels and a liquor canal.\n- far RIGHT: the deepest heart - a raised palace with a banquet terrace, a large goblet emblem above it, drawn bigger and darker as the final destination.\nA single winding road drawn as a dashed ink line runs from the far left to the far right through all the regions. IMPORTANT: keep a clear, uncluttered open band of plain paper along and around the road (roughly the middle third of the page height) so that round map markers can be placed on it later - put the detailed drawings above and below that band. Accent color: ONLY a warm ember-orange ink used very sparingly (the final goblet emblem, a few tiny flames). No other colors. No text, no letters, no labels, no compass rose text, no numbers, no watermark.",
+ "refs": [
+  "../ui/preview_mock_result.png"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 680,
+   "candidatesTokenCount": 1533,
+   "totalTokenCount": 2213,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 422
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 258
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-02T17:20:58"
+}

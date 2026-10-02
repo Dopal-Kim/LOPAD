@@ -1,0 +1,15 @@
+{
+ "id": "keyart_brewery",
+ "src": "raw_b.jpg",
+ "out": "assets/sprites/ui/keyart_brewery.png",
+ "size": [
+  960,
+  540
+ ],
+ "mode": "tone (no pixelization, no colour reduction)",
+ "neutral_axis": "gray G00-G15",
+ "accent_axis": "floor-1 ramp 16-27",
+ "pre": null,
+ "dashes": null,
+ "alt_quant": "keyart_brewery/alt_quant.png (k=2, palette lock)"
+}
