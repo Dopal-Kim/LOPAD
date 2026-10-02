@@ -41,8 +41,23 @@ export class HitFx {
     this.bloodColor = hex ? Phaser.Display.Color.HexStringToColor(hex).color : COLORS.HIT_BLOOD_FALLBACK;
   }
 
-  /** 적중 연출: 치명타면 crit_burst(시트) 또는 섬광+링(플레이스홀더), 아니면 섬광 */
-  impact(x: number, y: number, dirX: number, dirY: number, crit: boolean): void {
+  /**
+   * 적중 연출: 치명타면 crit_burst(시트) 또는 섬광+링(플레이스홀더), 아니면 섬광.
+   * `critFx` 가 있고 그 시트가 있으면 crit_burst 대신 그것을 (급소 dashcrit·암살 assassin — 2차 적중형, anchor hitbox_center 라
+   * 적중점이 아니라 대상 히트박스 중심 (critFx.x, critFx.y) 에)
+   */
+  impact(
+    x: number,
+    y: number,
+    dirX: number,
+    dirY: number,
+    crit: boolean,
+    critFx?: { id: string; x: number; y: number } | null,
+  ): void {
+    if (crit && critFx && this.fx.has(critFx.id)) {
+      this.fx.play(critFx.id, critFx.x, critFx.y, { dir: this.dirOf(dirX, dirY), depth: DEPTH.HIT_FX + 0.01 });
+      return;
+    }
     if (crit && this.fx.has(FEEL.FX_IDS.CRIT)) {
       this.critBurst(x, y, dirX, dirY);
       return;
@@ -51,9 +66,16 @@ export class HitFx {
     if (crit) this.critBurst(x, y, dirX, dirY);
   }
 
+  /** 섬광 시트 id: hit_spark JSON `alias`(43라운드 hit_burst) → 상수 SPARK_ALT → hit_spark 순으로 로드된 것 */
+  get sparkId(): string {
+    const alias = this.fx.sheet(FEEL.FX_IDS.SPARK)?.alias;
+    if (alias && this.fx.has(alias)) return alias;
+    return this.fx.has(FEEL.FX_IDS.SPARK_ALT) ? FEEL.FX_IDS.SPARK_ALT : FEEL.FX_IDS.SPARK;
+  }
+
   /** 적중점 섬광 */
   spark(x: number, y: number, dirX: number, dirY: number): void {
-    const id = FEEL.FX_IDS.SPARK;
+    const id = this.sparkId;
     if (this.fx.has(id)) {
       this.fx.play(id, x, y, { dir: this.dirOf(dirX, dirY), depth: DEPTH.HIT_FX });
       return;

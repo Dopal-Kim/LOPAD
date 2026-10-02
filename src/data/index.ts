@@ -333,6 +333,13 @@ export function validatePalette(p: PaletteData): PaletteData {
       throw new Error(`[data] palette.floors[${f.floor}].ramp 는 ${n}칸이어야 합니다`);
     for (const c of f.ramp) if (!/^#[0-9a-fA-F]{6}$/.test(c)) throw new Error(`[data] palette 색 형식 오류: ${c}`);
   }
+  if (p.fx) {
+    if (!Array.isArray(p.fx.core) || p.fx.core.length === 0) throw new Error('[data] palette.fx.core 없음');
+    for (const [id, w] of Object.entries(p.fx.weapons ?? {})) {
+      if (!Array.isArray(w.ramp) || w.ramp.length === 0) throw new Error(`[data] palette.fx.weapons.${id}.ramp 없음`);
+      for (const c of w.ramp) if (!/^#[0-9a-fA-F]{6}$/.test(c)) throw new Error(`[data] palette fx 색 형식 오류: ${c}`);
+    }
+  }
   return p;
 }
 

@@ -117,10 +117,14 @@ export const DEPTH = {
   PICKUP: 2.5,
   PROJECTILE: 3,
   ATTACK: 4,
+  /** 잔상 궤적 리본 (42라운드): 공격 판정 위·피격 이펙트 아래 */
+  TRAIL: 4.2,
   /** 피격 이펙트 (타격 섬광·피·치명 버스트): 개체·공격 판정 위 */
   HIT_FX: 4.5,
   /** 데미지 숫자: 월드 요소 중 가장 위 */
   DAMAGE_TEXT: 5,
+  /** 화면 섬광·색 오버레이 (42라운드): 월드 최상. UI 는 별도 씬이라 덮지 않는다 */
+  SCREEN_FX: 50,
   DEBUG: 100,
 };
 
@@ -288,10 +292,87 @@ export const FEEL = {
     DUST_MS: 200,
     DUST_DIST_PX: 8,
   },
-  /** 피격 이펙트 시트 이름 (계약 §3, anchor hitbox_center). 없으면 플레이스홀더 */
-  FX_IDS: { SPARK: 'hit_spark', BLOOD: 'blood', CRIT: 'crit_burst', DUST: 'knock_dust', PLAYER_HIT: 'player_hit' },
+  /** 피격 이펙트 시트 이름 (계약 §3, anchor hitbox_center). 없으면 플레이스홀더. 43라운드: `hit_burst` 가 있으면 `hit_spark` 대신 */
+  FX_IDS: {
+    SPARK: 'hit_spark',
+    SPARK_ALT: 'hit_burst',
+    BLOOD: 'blood',
+    CRIT: 'crit_burst',
+    DUST: 'knock_dust',
+    PLAYER_HIT: 'player_hit',
+  },
+  /**
+   * 43라운드 B: 연타 시트(twin·dance) `hitFrames` 가 있으면 추가 타격 판정 간격을 그 프레임 시작 시각에 맞춘다
+   * (쌍격 2타 40ms, 난무 0/40/90ms). false 면 기존 PROTOTYPE.TWIN_DELAY_MS 간격 + 그림만 겹침. 임시값
+   */
+  SYNC_HIT_FRAMES: true,
   /** 피 시트 마지막 프레임(바닥 얼룩) 유지 시간 (아트 권장 300~800ms) 후 페이드 */
   BLOOD_STAIN_MS: 500,
+  /**
+   * 잔상 궤적 리본 (42라운드 Q3, fx-design §6.1). 시트 JSON `trail` 이 있으면 색·알파·수명·시작 프레임·폭 비율을 거기서 읽고,
+   * 아래는 JSON 이 없을 때(플레이스홀더 베기)의 임시값. 정수 픽셀 폴리라인, 두께 최신 → WIDTH_TO,
+   * 색 = 코어(백열) → 층 강조색 → 몸통(무기 W1) → 투명. `feelSettings.trail` 로 끔
+   */
+  TRAIL: {
+    SLASH: { SAMPLES: 6, LIFE_MS: 120 },
+    WIDTH_FROM: 3,
+    WIDTH_TO: 1,
+    /** 본 띠 두께 px (아트 B 표: 단검 호 3.6px → 4). 시트 리본 폭 = round(BAND_PX × widthRatio) */
+    BAND_PX: 4,
+    /** JSON trail.widthRatio 가 없을 때 (A 묶음 note "폭 = 본 띠 두께의 0.6") */
+    WIDTH_RATIO: 0.6,
+    /** 코어 색 (팔레트 fx.core[0] = G15). 팔레트에 fx 블록이 없으면 이 값 */
+    CORE_COLOR: 0xffffff,
+    /** 강조색 = 층 램프 index (7 = light1) */
+    ACCENT_RAMP_INDEX: 7,
+    /** JSON 색이 없을 때 몸통 = 팔레트 fx.weapons[무기].ramp index (1 = W1, fx-design §6.1) */
+    WEAPON_RAMP_INDEX: 1,
+    /** 베기 호: 반각(rad)·반지름 = reach × sizeMult × 배율, 휘두르는 시간 */
+    SLASH_HALF_ANGLE: 0.75,
+    SLASH_RADIUS_MULT: 1.0,
+    SLASH_SWEEP_MS: 120,
+    /** 샘플 최소 간격 ms (프레임이 빨라도 이보다 촘촘히 찍지 않음) */
+    SAMPLE_MS: 16,
+  },
+  /**
+   * 화면 섬광·색 오버레이 (42라운드 Q3 임시값). 카메라 위 풀스크린 사각형(scrollFactor 0). 채도 감소는 WebGL 이면 camera.postFX
+   * ColorMatrix, 캔버스면 회색 사각형 SATURATION 블렌드. `feelSettings.flash` 로 끔
+   */
+  SCREEN: {
+    /** JSON flash 에 값이 빠졌을 때 기본 (코어 X1 #fff4dc, fx-design §6.2 거합 값) */
+    DEFAULT_FLASH: { COLOR: 0xfff4dc, MS: 40, ALPHA: 0.18 },
+    /** 치명타 섬광: 설계표(§6.2) 밖 추가 연출 → 기본 꺼짐(ALPHA 0). 켜려면 인터뷰 */
+    CRIT: { COLOR: 0xffffff, MS: 40, ALPHA: 0 },
+    /** 진화 선택: 층 강조색(램프 index). 설계표 밖 추가 연출 (드묾) */
+    EVOLVE: { MS: 200, ALPHA: 0.35, RAMP_INDEX: 7 },
+    /** 보스 페이즈 전환: fx-design §6.2 X0 0.35→0 120ms (+ 채도 감소는 설계표 밖 추가) */
+    BOSS_PHASE: { COLOR: 0xffffff, MS: 120, ALPHA: 0.35, DESAT_MS: 400, DESAT: 1 },
+    /** 히트스톱 중 채도 감소 (0~1): 설계표 밖 추가 연출 → 기본 0(꺼짐) */
+    HITSTOP_DESAT: 0,
+    /** 사망: 서서히 어둡게 (지속 = 사망 애니 + 추가 대기) */
+    DEATH: { COLOR: 0x000000, ALPHA: 0.75, MIN_MS: 600 },
+    /** 캔버스 폴백 채도 감소 색 (SATURATION 블렌드) */
+    DESAT_FALLBACK_COLOR: 0x808080,
+  },
+  /** 보조 동작·대쉬 연출 (35라운드 3단계 임시값) */
+  SECONDARY: {
+    /** 패링 성공 히트스톱 (parry_flash 1프레임이 멈춤 동안 보이도록) */
+    PARRY_HITSTOP_MS: 60,
+    /** 조준 점선 길이 (칸) */
+    AIM_LINE_TILES: 8,
+    /** 조준 차지 완료(5프레임) 후 발사되어도 이만큼 유지 */
+    AIM_CHARGE_HOLD_MS: 60,
+    /** 차지 프레임 = min(마지막, floor(progress × AIM_CHARGE_DIVISOR)) — 아트 B 표 `min(5, floor(progress*5))` (6프레임) */
+    AIM_CHARGE_DIVISOR: 5,
+    /** 대쉬 잔상 간격 (아트 권장 40~50) */
+    DASH_TRAIL_INTERVAL_MS: 45,
+    /** 플레이어 몸 중심 = 발 피벗에서 위로 (aim_charge pivotNote) */
+    BODY_CENTER_UP_PX: 11,
+    /** dash_trail 틴트 = 팔레트 fx.weapons[무기].ramp index (1 = W1 body dark). fx 블록이 없으면 틴트 없음 */
+    DASH_TRAIL_RAMP_INDEX: 1,
+    /** dash_trail 을 틴트하는 개성 노드 (JSON tint.when: 발도술·허보·잔상). 경로에 하나라도 있으면 */
+    DASH_TRAIL_TINT_NODES: ['batto', 'longinvuln', 'afterimage'] as readonly string[],
+  },
 };
 
 /**
@@ -318,6 +399,40 @@ export const ENEMY_FX = {
   SLAM_RING_MS: 260,
   /** 소환 위치: 보스 바디 반폭 + 이 거리(px) 양옆 */
   SUMMON_GAP_PX: 12,
+  /** 수렴 오라 시트 (43라운드 신규, 없으면 Graphics 원) */
+  AURA_ID: 'telegraph_aura',
+  /**
+   * 굵은 예고 (42라운드 Q3 · fx-design §6.3). 43라운드 시트는 선 4px(기존 2px 의 2배)·원/부채꼴 진행도 6프레임이라
+   * 시트가 굵기·닫히는 원을 그린다. 시스템은 화살촉·수렴 오라·마감 직전 깜빡임 가속을 더하고, 시트가 없으면 Graphics 로 같은 구조
+   */
+  BOLD: {
+    /** 선 시트 세로 배율 (43라운드 시트는 이미 4px → 1) */
+    LINE_SCALE_Y: 1,
+    /** 화살촉: 선 끝 삼각형 길이·반폭 px. 색 = 층 램프 [몸, 테두리] index (22 → 6, 18 → 2) */
+    TIP_LENGTH: 6,
+    TIP_HALF_WIDTH: 4,
+    TIP_RAMP_INDEX: 6,
+    TIP_EDGE_RAMP_INDEX: 2,
+    /** 플레이스홀더 닫히는 원 (시트가 없을 때만) */
+    CLOSING_FILL_ALPHA: 0.18,
+    CLOSING_LINE_ALPHA: 0.9,
+    CLOSING_LINE_WIDTH: 1,
+    CLOSING_MIN_RATIO: 0.1,
+    /** 진행도 프레임 = min(마지막, floor(progress × PROGRESS_DIVISOR)) — telegraph_circle pivotNote */
+    PROGRESS_DIVISOR: 6,
+    /** 43라운드 시트 기준 반지름 px (pivotNote: 원 r22 → scale R/22, 부채꼴 r27 → scale R/27) */
+    CIRCLE_BASE_RADIUS: 22,
+    CONE_BASE_RADIUS: 27,
+    /** 수렴 오라 배율 (64 시트 r30 → 정수 배율 1 유지, 픽셀 보존) · 플레이스홀더 반지름 */
+    AURA_SCALE: 1,
+    AURA_PLACEHOLDER_RADIUS: 10,
+    /** 마감 직전 구간 ms · 깜빡임 가속 배수 · 깜빡일 때 낮은 알파 */
+    FINAL_MS: 160,
+    FINAL_BLINK_DIV: 3,
+    FINAL_LOW_ALPHA: 0.45,
+    /** 플레이스홀더 선 두께 (기존 2 의 2배) */
+    PLACEHOLDER_LINE_WIDTH: 4,
+  },
 };
 
 export const DEBUG = {

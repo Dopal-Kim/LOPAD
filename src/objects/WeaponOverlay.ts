@@ -45,7 +45,7 @@ export class WeaponOverlay {
     // Phaser 의 currentFrame.index 는 1부터 → 열 = index - 1
     this.frame = frameAt(def, dir, cur.index - 1);
     this.sprite.setFrame(this.frame);
-    const below = def.depth?.[dir] === 'below';
+    const below = typeof def.depth === 'object' && def.depth?.[dir] === 'below';
     this.sprite
       .setPosition(this.host.x, this.host.y)
       .setDepth(this.host.depth + (below ? -DEPTH.OVERLAY_STEP : DEPTH.OVERLAY_STEP))

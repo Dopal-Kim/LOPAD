@@ -34,6 +34,8 @@ export class Projectile extends Phaser.GameObjects.Sprite {
   hitStunMs = 0;
   /** 치명타로 굴려진 플레이어 투사체 (피격음 분기) */
   crit = false;
+  /** 적중 시 히트박스 중심에 1회 재생할 이펙트 시트 (중시 heavyarrow_hit). null 이면 없음 */
+  impactFx: string | null = null;
   /** 아트 텍스처 사용 중 (틴트 대신 원색, 속도 방향으로 회전) */
   private textured = false;
   private rotateToVelocity = false;
@@ -67,6 +69,7 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     this.homingTurn = 0;
     this.hitStunMs = 0;
     this.crit = false;
+    this.impactFx = null;
     this.hitSet.clear();
     this.expireAt = time + spec.lifeMs;
     const texture = visual.texture && this.scene.textures.exists(visual.texture) ? visual.texture : null;

@@ -76,4 +76,12 @@ describe('feel: 넉백 수식', () => {
     expect(feelSettings.hitstop).toBe(2);
     expect(feelSettings.numbers).toBe(false);
   });
+
+  it('42라운드: 잔상 궤적·화면 섬광 스위치 (기본 켜짐)', () => {
+    expect(DEFAULT_FEEL.trail).toBe(true);
+    expect(DEFAULT_FEEL.flash).toBe(true);
+    setFeel({ trail: false, flash: false });
+    expect(feelSettings.trail).toBe(false);
+    expect(feelSettings.flash).toBe(false);
+  });
 });

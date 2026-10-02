@@ -39,16 +39,76 @@ export interface SheetJson {
   /** §3.1 투사체 앵커: 진행 각도로 회전 (drawnFacing 기준) */
   rotate?: boolean;
   drawnFacing?: 'right' | 'left' | 'up' | 'down';
-  /** §3.1 무기 오버레이 깊이: 방향별 above / below */
-  depth?: Partial<Record<Facing, 'above' | 'below'>>;
+  /**
+   * 깊이. 무기 오버레이(§3.1)는 방향별 above / below, 이펙트(§3.2)는 문자열 above(개체 위) / below(개체 아래·바닥).
+   * 이펙트의 기본 깊이를 정할 때 쓴다 (호출 쪽이 깊이를 주면 그쪽이 우선)
+   */
+  depth?: 'above' | 'below' | Partial<Record<Facing, 'above' | 'below'>>;
   /** §3.1 재생 시점 메모 (코드가 읽지 않음) */
   spawn?: string;
   /** 35라운드 피격 시트: 마지막 n 프레임이 잔류(바닥 얼룩) — 시스템이 유지 후 페이드할 수 있다 */
   tailFrames?: number;
-  /** 35라운드 예고 마커(telegraph_line): 길이 방향으로 타일 반복 (2단계에서 사용) */
+  /** 35라운드 예고 마커(telegraph_line)·조준 점선(aim_line): 길이 방향으로 타일 반복 */
   tile?: boolean;
   /** 보스 attack 국면별 프레임 열 (결정 로그 J): 예고 유지 / 돌진 반복 / 멈춤·벽 경직·부채꼴 */
   phaseFrames?: PhaseFrames;
+  // --- §3.2 (42·43라운드 양산 필드). 있으면 시스템이 쓰고 없으면 기본값 ---
+  /** 이 이펙트가 속한 무기 id · 보조 동작 종류 (메모) */
+  weapon?: string;
+  secondary?: string;
+  /** 재생 중 궤적(호·스프라이트 위치)을 잇는 리본 트레일: 색·알파·수명 ms·시작 프레임·폭 비율 */
+  trail?: FxTrailSpec;
+  /** 특정 프레임에 화면 섬광 */
+  flash?: FxFlashSpec;
+  /** 화면 흔들림. 시각 = flash.atFrame (없으면 타격 프레임) 시작 */
+  shake?: FxShakeSpec;
+  /** 2단 판정이 같은 시트 안에 있는 경우 (quake): 그 프레임에 섬광·흔들림을 한 번 더 */
+  secondStage?: { frame?: number; atMs?: number; flash?: FxFlashSpec; shake?: FxShakeSpec };
+  /** 연타 시트(twin·dance): 각 타격이 보이는 프레임 열. 시스템이 추가 타격 판정 간격을 이 프레임 시작 시각에 맞춘다 */
+  hitFrames?: number[];
+  /** 시간 애니가 아닌 상태별 고정 프레임 (aim_line: charging 0 / complete 1) */
+  stateFrames?: Record<string, number>;
+  /** 시스템 틴트 메모 (dash_trail): method 에 'setTintFill' 이 있으면 평면 틴트 */
+  tint?: { when?: string; color?: string; method?: string };
+  /** 같은 그림의 대체 시트 id (hit_spark → hit_burst) */
+  alias?: string;
+  /** 예비 프레임 메모 (코드가 읽지 않음 — 규칙은 `fxImpactFrame`) */
+  spawnNote?: string;
+  /** 시간이 아니라 진행도(0..1)로 프레임을 정한다 (aim_charge·telegraph_circle·telegraph_cone) */
+  progressDriven?: boolean;
+  /** 적중한 대상에 붙어 따라간다 (bleed) / 플레이어를 따라간다 (longinvuln·giant) */
+  followsTarget?: boolean;
+  followsPlayer?: boolean;
+  /** 표시 배율 (숫자면 기본 배율, "allowed" 같은 문자열은 '호출 쪽이 배율을 정해도 됨' 메모 → 1) */
+  scale?: number | string;
+  pivotNote?: string;
+  /**
+   * (시스템 제안, 계약 외) 예비 프레임이 앞에 있을 때 이 프레임이 spawn 시점에 오도록 그만큼 먼저 재생한다.
+   * 없으면 `fxImpactFrame` 규칙 (attack_frame2 시트는 f0 = 예비 → 1)
+   */
+  impactFrame?: number;
+}
+
+export interface FxTrailSpec {
+  /** '#rrggbb' 또는 팔레트 참조 'fx.weapons.<무기>.ramp[i]' · 'fx.core[i]' */
+  color?: string;
+  alpha?: number;
+  ms?: number;
+  fromFrame?: number;
+  /** 리본 폭 = 본 띠 두께 × 비율 (없으면 FEEL.TRAIL.WIDTH_RATIO) */
+  widthRatio?: number;
+}
+
+export interface FxShakeSpec {
+  px: number;
+  ms: number;
+}
+
+export interface FxFlashSpec {
+  color?: string;
+  alpha?: number;
+  ms?: number;
+  atFrame?: number;
 }
 
 export interface PhaseFrames {
@@ -105,10 +165,10 @@ export function wantedSheets(
   return out;
 }
 
-/** 이펙트 id 를 정하는 데 필요한 무기 데이터 최소 형태 (data/weapons.json) */
+/** 이펙트 id 를 정하는 데 필요한 무기 데이터 최소 형태 (data/weapons.json). 2차 노드는 1차의 `next` */
 export interface FxWeaponShape {
   kind: 'melee' | 'ranged';
-  personality: { branches: { id: string }[] };
+  personality: { branches: { id: string; next?: { id: string }[] }[] };
 }
 
 /** 베기 이펙트 이름 `<무기id>_slash` */
@@ -123,7 +183,7 @@ export function arrowFxId(weaponId: string, aimed: boolean): string {
 
 /**
  * 계약 §3·§3.1 이펙트 목록: 근접 무기는 `<id>_slash`, 원거리는 `<id>_arrow`·`<id>_arrow_aimed`,
- * 그리고 1차 진화 노드 id 전부(2차는 부모 1차 이펙트를 재사용). 데이터에서 유도하므로 무기·트리가 바뀌면 자동 반영.
+ * 그리고 1차·2차 진화 노드 id 전부(35라운드 3단계: 2차 전용 시트). 데이터에서 유도하므로 무기·트리가 바뀌면 자동 반영.
  */
 export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
   const out = new Set<string>();
@@ -133,26 +193,89 @@ export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
       out.add(arrowFxId(id, false));
       out.add(arrowFxId(id, true));
     }
-    for (const b of w.personality.branches) out.add(b.id);
+    for (const b of w.personality.branches) {
+      out.add(b.id);
+      for (const n of b.next ?? []) out.add(n.id);
+    }
   }
   return [...out];
 }
 
-/** 피격 이펙트 시트 (35라운드 1단계, 계약 §3 anchor hitbox_center): 타격 섬광·피 튀김·치명타 버스트·넉백 먼지·플레이어 피격 */
-export const HIT_FX_IDS: readonly string[] = ['hit_spark', 'blood', 'crit_burst', 'knock_dust', 'player_hit'];
-/** 적·보스 양상 시트 (35라운드 2단계용 — 지금은 로드만): 예고 마커 3종, 적 탄, 보스 부채꼴 탄, 총구 화염 */
+/** 피격 이펙트 시트 (35라운드 1단계, 계약 §3 anchor hitbox_center): 타격 섬광(43라운드 hit_burst 대체 가능)·피 튀김·치명타 버스트·넉백 먼지·플레이어 피격 */
+export const HIT_FX_IDS: readonly string[] = [
+  'hit_spark',
+  'hit_burst',
+  'blood',
+  'crit_burst',
+  'knock_dust',
+  'player_hit',
+];
+/** 적·보스 양상 시트 (35라운드 2단계): 예고 마커 3종(+43라운드 수렴 오라), 적 탄, 보스 부채꼴 탄, 총구 화염 */
 export const ENEMY_FX_IDS: readonly string[] = [
   'telegraph_line',
   'telegraph_circle',
   'telegraph_cone',
+  'telegraph_aura',
   'enemy_bullet',
   'boss_fan_shot',
   'muzzle_flash',
 ];
+/** 보조 동작·대쉬 연출 시트 (35라운드 3단계, 계약 §3.2) + 2차 진화 부속(중시 적중) */
+export const SECONDARY_FX_IDS: readonly string[] = [
+  'parry_flash',
+  'guard_wave',
+  'shadowstep_ghost',
+  'aim_charge',
+  'aim_line',
+  'dash_dust',
+  'dash_trail',
+  'heavyarrow_hit',
+];
 
-/** 무기 유도 이펙트 + 피격 이펙트 + 적 양상 이펙트 (중복 제거) */
+/** 무기 유도 이펙트 + 피격 이펙트 + 적 양상 이펙트 + 보조 연출 (중복 제거) */
 export function allFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
-  return [...new Set([...fxSheetIds(weapons), ...HIT_FX_IDS, ...ENEMY_FX_IDS])];
+  return [...new Set([...fxSheetIds(weapons), ...HIT_FX_IDS, ...ENEMY_FX_IDS, ...SECONDARY_FX_IDS])];
+}
+
+/** JSON `scale` 이 양수 숫자면 그 값, 아니면 1 ("allowed" 메모 등) */
+export function sheetScale(def: Pick<SheetJson, 'scale'>): number {
+  return typeof def.scale === 'number' && def.scale > 0 ? def.scale : 1;
+}
+
+/** 이 열 이후 spawn 시점에 맞출 프레임 키 (43라운드: 휘두름 시트 f0 = 40ms 예비 프레임) */
+const LEAD_SPAWNS: readonly string[] = ['attack_frame2'];
+
+/**
+ * 타격 프레임 = spawn 시점에 보여야 하는 프레임 열. `impactFrame` 이 있으면 그것,
+ * 없으면 `spawn: attack_frame2` 이고 2프레임 이상이면 1 (f0 예비, fx-design §4·결정 43 임시 5), 그 외 0
+ */
+export function fxImpactFrame(def: Pick<SheetJson, 'impactFrame' | 'spawn' | 'frames'>): number {
+  if (typeof def.impactFrame === 'number') return Math.max(0, Math.min(def.frames - 1, Math.floor(def.impactFrame)));
+  return def.spawn && LEAD_SPAWNS.includes(def.spawn) && def.frames >= 2 ? 1 : 0;
+}
+
+/**
+ * 연타 판정 간격: `hitFrames` 의 각 프레임 시작 시각을 첫 타격 프레임 기준으로 뺀 값 (ms, 길이 = hits).
+ * 시트·hitFrames 가 없거나 짧으면 null → 호출 쪽 기본 간격
+ */
+export function hitFrameOffsets(def: SheetJson | null | undefined, hits: number): number[] | null {
+  const hf = def?.hitFrames;
+  if (!def || !hf || hf.length < hits || hits < 1) return null;
+  const starts = frameStarts(def);
+  const at = (f: number) => starts[Math.max(0, Math.min(def.frames - 1, f))] ?? 0;
+  const base = at(hf[0]);
+  return hf.slice(0, hits).map((f) => Math.max(0, at(f) - base));
+}
+
+/** 진행도 주도 프레임: min(last, floor(progress × divisor)). 예고 원 = (6프레임, ÷6), 조준 차지 = (6프레임, ÷5) */
+export function progressFrame(progress: number, frames: number, divisor = frames): number {
+  const last = Math.max(0, frames - 1);
+  return Math.max(0, Math.min(last, Math.floor(Math.max(0, progress) * divisor)));
+}
+
+/** 이펙트 JSON `depth` 문자열 (무기 오버레이의 방향별 표는 무시) */
+export function fxDepthHint(def: Pick<SheetJson, 'depth'>): 'above' | 'below' | null {
+  return def.depth === 'above' || def.depth === 'below' ? def.depth : null;
 }
 
 /** `sprites/<분류>/<이름>_<동작>.json` (매니페스트·URL 공통 상대 경로). 이펙트는 `sprites/fx/<이름>.json` */

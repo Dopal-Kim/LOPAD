@@ -14,9 +14,20 @@ export interface FeelSettings {
   knockback: number;
   /** 데미지 숫자 표시 */
   numbers: boolean;
+  /** 잔상 궤적 리본 (42라운드) */
+  trail: boolean;
+  /** 화면 섬광·색 오버레이·채도 감소 (42라운드) */
+  flash: boolean;
 }
 
-export const DEFAULT_FEEL: FeelSettings = { shake: 1, hitstop: 1, knockback: 1, numbers: true };
+export const DEFAULT_FEEL: FeelSettings = {
+  shake: 1,
+  hitstop: 1,
+  knockback: 1,
+  numbers: true,
+  trail: true,
+  flash: true,
+};
 
 /** 게임 수명 동안 하나. 씬 재시작과 무관하게 유지 (저장은 하지 않음 — 설정 UI 는 추후 계약) */
 export const feelSettings: FeelSettings = { ...DEFAULT_FEEL };
@@ -26,6 +37,8 @@ export function setFeel(patch: Partial<FeelSettings>): FeelSettings {
   if (typeof patch.hitstop === 'number' && patch.hitstop >= 0) feelSettings.hitstop = patch.hitstop;
   if (typeof patch.knockback === 'number' && patch.knockback >= 0) feelSettings.knockback = patch.knockback;
   if (typeof patch.numbers === 'boolean') feelSettings.numbers = patch.numbers;
+  if (typeof patch.trail === 'boolean') feelSettings.trail = patch.trail;
+  if (typeof patch.flash === 'boolean') feelSettings.flash = patch.flash;
   return { ...feelSettings };
 }
 

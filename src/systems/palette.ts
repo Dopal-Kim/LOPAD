@@ -8,6 +8,41 @@ export function rampFor(palette: PaletteData, floor: number): string[] | null {
   return palette.floors.find((f) => f.floor === floor)?.ramp ?? null;
 }
 
+/** 이펙트 보조 램프 색 (42라운드 Q2 fx 블록). 블록·무기·칸이 없으면 null */
+export function fxWeaponColor(palette: PaletteData, weaponId: string, index: number): string | null {
+  return palette.fx?.weapons?.[weaponId]?.ramp?.[index] ?? null;
+}
+
+/** 이펙트 코어 색 (fx.core[0] = 백열 G15). 없으면 null */
+export function fxCoreColor(palette: PaletteData, index = 0): string | null {
+  return palette.fx?.core?.[index] ?? null;
+}
+
+/**
+ * 이펙트 JSON 색 값 해석 (43라운드 B 묶음): '#rrggbb' · 'fx.weapons.<무기>.ramp[i]' · 'fx.core[i]'.
+ * 형식이 다르거나 팔레트에 없으면 null (호출 쪽 기본색)
+ */
+export function resolveFxColor(palette: PaletteData, ref: string | undefined | null): number | null {
+  if (!ref) return null;
+  if (/^#[0-9a-fA-F]{6}$/.test(ref)) return hexToInt(ref);
+  const w = /^fx\.weapons\.([a-z_]+)\.ramp\[(\d+)\]$/.exec(ref);
+  if (w) {
+    const hex = fxWeaponColor(palette, w[1], Number(w[2]));
+    return hex ? hexToInt(hex) : null;
+  }
+  const c = /^fx\.core\[(\d+)\]$/.exec(ref);
+  if (c) {
+    const hex = fxCoreColor(palette, Number(c[1]));
+    return hex ? hexToInt(hex) : null;
+  }
+  return null;
+}
+
+/** '#rrggbb' → 0xrrggbb */
+export function hexToInt(hex: string): number {
+  return parseInt(hex.slice(1), 16);
+}
+
 export function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
   return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];

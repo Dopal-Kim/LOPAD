@@ -25,7 +25,7 @@ import {
   type WeaponReinforcedPayload,
 } from '../core/EventBus';
 import { gameState, type EndingChoice } from '../core/GameState';
-import { BOSSES, ECONOMY, PLAYER_DATA, STORY, WEAPON_RULES } from '../data';
+import { BOSSES, ECONOMY, PALETTE, PLAYER_DATA, STORY, WEAPON_RULES } from '../data';
 import { deathLine, evolutionLine, fill, floorText } from '../systems/story';
 import type { Mob, MobContext, ProjectileSpec } from '../objects/Mob';
 import { Player } from '../objects/Player';
@@ -49,9 +49,14 @@ import type { StatKey, WeaponEvolution } from '../data/types';
 import { TileWorld } from '../world/TileWorld';
 import { TileSkin, tileSkins } from '../world/tileskin';
 import { spriteLibrary } from '../systems/sprites';
-import { FX_ACTION, arrowFxId, facingOf, slashFxId } from '../systems/spriteDefs';
+import { FX_ACTION, arrowFxId, facingOf, hitFrameOffsets, progressFrame, slashFxId } from '../systems/spriteDefs';
 import { FxPool, type FxHandle } from '../systems/fx';
 import { HitStop, Shake, feelSettings, setFeel } from '../systems/feel';
+import { TrailRenderer } from '../systems/trail';
+import { arcPoint } from '../systems/trailMath';
+import { ScreenFx } from '../systems/screenFx';
+import { AimLine } from '../systems/aimFx';
+import { fxWeaponColor, hexToInt, resolveFxColor } from '../systems/palette';
 import { DamageNumberPool } from '../systems/damageNumbers';
 import { HitFx } from '../systems/hitFx';
 import { TelegraphFx } from '../systems/telegraph';
@@ -111,6 +116,13 @@ export class Game extends Phaser.Scene {
   private readonly pack = new PackCharge();
   /** 디버그: 최근 보스 내리찍기 */
   private debugLastSlam: unknown = null;
+  /** 42라운드 Q3: 잔상 궤적 리본·화면 섬광/오버레이. 35라운드 3단계: 조준 점선·차지 게이지·거인 루프·대쉬 잔상 */
+  private trails: TrailRenderer;
+  private screenFx: ScreenFx;
+  private aimLine: AimLine;
+  private aimChargeFx: FxHandle | null = null;
+  private giantFx: FxHandle | null = null;
+  private dashTrailNextAt = 0;
   /** 잔월: 남아 있는 베기 궤적 (지속 피해 영역) */
   private dotZones: {
     x: number;
@@ -122,8 +134,9 @@ export class Game extends Phaser.Scene {
     tickMs: number;
     dmg: number;
   }[] = [];
-  /** 출혈: 적별 지속 피해 */
-  private bleeds: { mob: Mob; dmg: number; ticksLeft: number; nextAt: number; tickMs: number }[] = [];
+  /** 출혈: 적별 지속 피해 (+ 적에 붙은 bleed 루프 이펙트) */
+  private bleeds: { mob: Mob; dmg: number; ticksLeft: number; nextAt: number; tickMs: number; fx: FxHandle | null }[] =
+    [];
 
   constructor() {
     super(SCENES.GAME);
@@ -177,6 +190,34 @@ export class Game extends Phaser.Scene {
     this.hitFx = new HitFx(this, this.fx);
     this.hitFx.setFloor(floor);
     this.telegraph = new TelegraphFx(this);
+    this.telegraph.setFloor(floor);
+    this.trails = new TrailRenderer(this);
+    this.trails.setContext(floor, gameState.weapon.id);
+    this.screenFx = new ScreenFx(this);
+    this.screenFx.setFloor(floor);
+    this.aimLine = new AimLine(this);
+    this.aimChargeFx = null;
+    this.giantFx = null;
+    this.dashTrailNextAt = 0;
+    // 시트 JSON §3.2 필드(shake·flash·secondStage·trail)를 감각 계층으로 연결. 색은 '#hex' 와 팔레트 경로 둘 다 (resolveFxColor)
+    const SF = FEEL.SCREEN.DEFAULT_FLASH;
+    this.fx.hooks = {
+      shake: (spec) => this.shake.add(this.time.now, spec.px, spec.ms),
+      flash: (spec) =>
+        this.screenFx.flash(resolveFxColor(PALETTE, spec.color) ?? SF.COLOR, spec.ms ?? SF.MS, spec.alpha ?? SF.ALPHA),
+      trail: (req) => {
+        const T = FEEL.TRAIL;
+        const h = this.trails.start('sheet', req.source, {
+          depth: req.depth - DEPTH.OVERLAY_STEP / 2, // 시트 바로 아래(캐릭터 위)
+          color: resolveFxColor(PALETTE, req.spec.color) ?? undefined,
+          alpha: req.spec.alpha,
+          lifeMs: req.spec.ms,
+          width: Math.max(1, Math.round(T.BAND_PX * (req.spec.widthRatio ?? T.WIDTH_RATIO))),
+        });
+        return h ? () => h.stop() : null;
+      },
+      bodyCenterUpPx: FEEL.SECONDARY.BODY_CENTER_UP_PX,
+    };
     this.pack.reset();
     this.debugLastSlam = null;
     this.hitStop.reset();
@@ -378,6 +419,7 @@ export class Game extends Phaser.Scene {
           line: this.telegraph.has('line'),
           circle: this.telegraph.has('circle'),
           cone: this.telegraph.has('cone'),
+          aura: this.telegraph.has('aura'),
         },
       }),
       projectiles: () =>
@@ -415,6 +457,19 @@ export class Game extends Phaser.Scene {
             };
           }),
       lastSlam: () => this.debugLastSlam,
+      trails: () => ({ active: this.trails.activeCount, count: this.trails.count, list: this.trails.summary() }),
+      screen: () => this.screenFx.summary(),
+      aimFx: () => ({
+        line: this.aimLine.visible,
+        lineSheet: this.aimLine.sheet,
+        charge: this.fx.isActive(this.aimChargeFx) ? this.aimChargeFx!.sprite.frame.name : null,
+      }),
+      evolveTo: (id) => {
+        if (!gameState.weapon.choicePending) return false;
+        const before = gameState.weapon.path.length;
+        this.applyEvolution(id);
+        return gameState.weapon.path.length > before;
+      },
       spawnEnemy: (id, x, y) => this.director.spawnExtra(id, x, y),
       setBossHp: (hp) => {
         for (const m of this.mobs.getChildren() as Mob[]) {
@@ -464,7 +519,10 @@ export class Game extends Phaser.Scene {
     if (this.frozen) {
       this.inputSystem.read(); // 큐 비우기
       this.stopGale();
+      this.stopAimFx(false);
       this.fx.update(time);
+      this.trails.update(time);
+      this.screenFx.update(time);
       __system.emit(UI_EVENTS.STATE, this.snapshot());
       return;
     }
@@ -474,6 +532,7 @@ export class Game extends Phaser.Scene {
     if (stopped !== this.hitStopped) this.setHitStopped(stopped);
     if (stopped) {
       this.updateCamera(false, delta);
+      this.screenFx.update(time);
       __system.emit(UI_EVENTS.STATE, this.snapshot());
       return;
     }
@@ -482,6 +541,8 @@ export class Game extends Phaser.Scene {
     if (input.potionPressed) this.usePotion();
     this.player.update(input, time, delta);
     this.updateGale();
+    this.updateAimFx(time);
+    this.updateDashTrail(time);
     this.updateCamera(false, delta);
     this.director.update();
 
@@ -513,6 +574,8 @@ export class Game extends Phaser.Scene {
     this.tickDotZones(time);
     this.tickBleeds(time);
     this.fx.update(time);
+    this.trails.update(time);
+    this.screenFx.update(time);
     this.updateShop();
 
     __system.emit(UI_EVENTS.STATE, this.snapshot());
@@ -566,7 +629,8 @@ export class Game extends Phaser.Scene {
    * 보스 내리찍기 범위 피해: 충격파 연출(crush 시트 재사용, 없으면 링) + 흔들림 + 반경 안 플레이어 피해
    */
   private areaHit = (x: number, y: number, radiusPx: number, attack: number): void => {
-    if (this.fx.has('crush')) this.fx.play('crush', x, y, { depth: DEPTH.FX_GROUND });
+    // 플레이어 대검 시트를 빌려 쓰므로 무기색 섬광·흔들림 훅은 끈다 (흔들림은 아래 BOSS_WALL)
+    if (this.fx.has('crush')) this.fx.play('crush', x, y, { depth: DEPTH.FX_GROUND, hooks: false });
     else this.drawShockwave(x, y, radiusPx);
     this.shake.add(this.time.now, FEEL.SHAKE.BOSS_WALL.PX, FEEL.SHAKE.BOSS_WALL.MS);
     const c = this.player.body.center;
@@ -590,28 +654,46 @@ export class Game extends Phaser.Scene {
     }
     const mods = weapon.mods;
     this.playSwingFx(p);
+    this.playGiantFx();
     this.meleeSwing(p);
-    // 쌍격·난무: 추가 타격
+    // 쌍격·난무: 추가 타격. 시트 hitFrames 가 있으면 그 프레임 시작 간격(43라운드 B), 없으면 TWIN_DELAY_MS 간격
     const hits = Math.max(1, mods.hits ?? 1);
+    const multiFx = this.pathFx('dance', 'twin');
+    const offsets = FEEL.SYNC_HIT_FRAMES && multiFx ? hitFrameOffsets(this.fx.sheet(multiFx), hits) : null;
     for (let i = 1; i < hits; i++) {
-      this.time.delayedCall(PROTOTYPE.TWIN_DELAY_MS * i, () => {
+      this.time.delayedCall(offsets?.[i] ?? PROTOTYPE.TWIN_DELAY_MS * i, () => {
         if (this.scene.isActive() && !this.frozen) this.meleeSwing({ ...p, x: this.player.x, y: this.player.y });
       });
     }
-    // 지진: 충격파 2단
+    // 지진: 충격파 2단 (quake 시트는 1단에서 한 번만 — 3프레임 시작이 2단 판정 시점)
     const second = mods.shockwaveSecond;
     if (mods.shockwave && second) {
       this.time.delayedCall(second.delayMs, () => {
         if (this.scene.isActive() && !this.frozen)
-          this.meleeSwing({
-            ...p,
-            x: this.player.x,
-            y: this.player.y,
-            sizeMult: p.sizeMult * second.sizeMult,
-            damageMult: p.damageMult * second.damageMult,
-          });
+          this.meleeSwing(
+            {
+              ...p,
+              x: this.player.x,
+              y: this.player.y,
+              sizeMult: p.sizeMult * second.sizeMult,
+              damageMult: p.damageMult * second.damageMult,
+            },
+            true,
+          );
       });
     }
+  }
+
+  /** 거인(2차): 공격 애니 동안 플레이어 아래에서 슈퍼아머 오라 루프 (공격 애니 = 쿨다운에 맞춤) */
+  private playGiantFx(): void {
+    const id = this.pathFx('giant');
+    if (!id) return;
+    if (this.fx.isActive(this.giantFx)) this.fx.stop(this.giantFx, 0, false);
+    this.giantFx = this.fx.play(id, this.player.x, this.player.y, {
+      follow: this.player,
+      depthOffset: -DEPTH.OVERLAY_STEP,
+      durationMs: gameState.weapon.hitbox.cooldownMs,
+    });
   }
 
   /** 공격력 × 배율 × 치명타 × 패시브. 치명타 확률은 기본 + 보너스 + 무기. forceCrit 이면 확정 */
@@ -657,13 +739,18 @@ export class Game extends Phaser.Scene {
     const size = weapon.hitbox.width * p.sizeMult;
     const speed = R.projectileSpeedTiles * TILE * (mods.projectileSpeedMult ?? 1);
     const base = Math.atan2(p.dirY, p.dirX);
-    // 화살 텍스처 (계약 §3.1 projectile 앵커, 진행 각도 회전). 없으면 사각형
-    const arrowTexture = spriteLibrary.textureKey(arrowFxId(weapon.id, aimed), FX_ACTION);
-    const evoFx = this.evolutionFxId();
-    // 산탄·폭우: 부채꼴 (조준 사격은 한 발). 산탄 이펙트는 발사점에 1회
+    // 화살 텍스처 (계약 §3.1 projectile 앵커, 진행 각도 회전). 없으면 사각형. 중시(2차)는 조준 화살 대신 heavyarrow
+    const heavy = aimed ? this.pathFx('heavyarrow') : null;
+    const arrowTexture = heavy
+      ? spriteLibrary.textureKey(heavy, FX_ACTION)
+      : spriteLibrary.textureKey(arrowFxId(weapon.id, aimed), FX_ACTION);
+    // 화살 꼬리 루프: 섬광(flash) / 추적(seek) 이 관통(pierce) 대신
+    const tailFx = this.pathFx('flash', 'seek', 'pierce');
+    // 산탄·폭우: 부채꼴 (조준 사격은 한 발). 발사 이펙트는 발사점에 1회 (폭우 rain 이 scatter 대신)
     const spread = !aimed && mods.spread ? mods.spread : { count: 1, spreadDeg: 0 };
-    if (spread.count > 1 && evoFx === 'scatter') {
-      this.fx.play('scatter', p.x + p.dirX * weapon.hitbox.reach, p.y + p.dirY * weapon.hitbox.reach, {
+    const burstFx = this.pathFx('rain', 'scatter');
+    if (spread.count > 1 && burstFx) {
+      this.fx.play(burstFx, p.x + p.dirX * weapon.hitbox.reach, p.y + p.dirY * weapon.hitbox.reach, {
         angle: base,
         depth: DEPTH.PROJECTILE,
       });
@@ -690,9 +777,11 @@ export class Game extends Phaser.Scene {
       shot.crit = crit;
       if (mods.homingTurnDeg) shot.homingTurn = Phaser.Math.DegToRad(mods.homingTurnDeg);
       if (aimed && mods.aimedShotStunMs) shot.hitStunMs = mods.aimedShotStunMs;
-      // 관통(·섬광·중시): 화살 뒤에 빛줄 루프, 화살이 사라지면 함께 사라진다
-      if (evoFx === 'pierce') {
-        this.fx.play('pierce', shot.x, shot.y, {
+      // 중시: 적중 시 번개 낙하(heavyarrow_hit, 섬광·흔들림은 시트 JSON)
+      if (heavy && this.fx.has('heavyarrow_hit')) shot.impactFx = 'heavyarrow_hit';
+      // 관통·섬광·추적: 화살 뒤에 빛줄 루프, 화살이 사라지면 함께 사라진다
+      if (tailFx) {
+        this.fx.play(tailFx, shot.x, shot.y, {
           angle: a,
           follow: shot,
           followRotation: true,
@@ -702,7 +791,17 @@ export class Game extends Phaser.Scene {
     }
   }
 
-  /** 1차 진화 이펙트 id = 경로의 첫 노드 (2차는 부모 1차 이펙트 재사용). 시트가 없으면 null */
+  /**
+   * 현재 개성 경로에 있고 시트가 로드된 첫 후보 id. 2차 노드를 앞에, 그것이 대신하는 1차 노드를 뒤에 적는다
+   * (예: `pathFx('wide', 'iai')` = 만월이 있으면 만월, 아니면 거합). 아무것도 없으면 null → 호출 쪽 플레이스홀더
+   */
+  private pathFx(...candidates: string[]): string | null {
+    const path = gameState.weapon.path;
+    for (const id of candidates) if (path.includes(id) && this.fx.has(id)) return id;
+    return null;
+  }
+
+  /** 1차 진화 이펙트 id = 경로의 첫 노드. 시트가 없으면 null (질풍·발도술 루프 판정용) */
   private evolutionFxId(): string | null {
     const first = gameState.weapon.path[0];
     return first && this.fx.has(first) ? first : null;
@@ -713,15 +812,43 @@ export class Game extends Phaser.Scene {
    * 거합·쌍격은 기본 베기를 대신하고, 파쇄·중압은 적중 판정 쪽(meleeSwing)에서 따로 나온다.
    */
   private playSwingFx(p: PlayerAttackPayload): void {
-    const evo = this.evolutionFxId();
-    const id = evo === 'iai' || evo === 'twin' ? evo : slashFxId(gameState.weapon.id);
-    if (!this.fx.has(id)) return;
+    // 2차가 1차를 대신한다: 만월(wide) → 거합(iai), 난무(dance) → 쌍격(twin). 그 외는 기본 베기
+    const id = this.pathFx('wide', 'iai', 'dance', 'twin') ?? slashFxId(gameState.weapon.id);
     const dir = facingOf(p.dirX, p.dirY, this.player.facingDir);
+    const hb = gameState.weapon.hitbox;
+    // 잔상 궤적(42라운드, fx-design §6.1): 플레이어 중심의 호를 SLASH_SWEEP_MS 동안 훑는다. 첫 샘플 시각부터 잰다
+    const T = FEEL.TRAIL;
+    const radius = hb.reach * p.sizeMult * T.SLASH_RADIUS_MULT + hb.width * 0.5;
+    const angle = Math.atan2(p.dirY, p.dirX);
+    const half = T.SLASH_HALF_ANGLE * (dir === 'left' || dir === 'up' ? -1 : 1);
+    const sweep = Math.max(hb.activeMs, T.SLASH_SWEEP_MS);
+    const arcSource = () => {
+      let t0 = -1;
+      return () => {
+        if (t0 < 0) t0 = this.time.now;
+        const t = (this.time.now - t0) / sweep;
+        if (t > 1 || !this.player.active) return null;
+        const c = this.player.getCenter();
+        return arcPoint(c.x, c.y, radius, angle, half, t);
+      };
+    };
     const play = () => {
       if (!this.scene.isActive() || this.frozen || gameState.gameOver) return;
-      this.fx.play(id, this.player.x, this.player.y, { dir, follow: this.player, depthOffset: DEPTH.OVERLAY_STEP * 2 });
+      // 시트 JSON trail 이 있으면 FxPool 이 fromFrame 에 같은 호로 리본을 시작(색·수명·폭은 JSON). 없으면 기본 리본을 바로
+      const sheetTrail = this.fx.has(id) && Boolean(this.fx.sheet(id)?.trail);
+      if (this.fx.has(id))
+        this.fx.play(id, this.player.x, this.player.y, {
+          dir,
+          follow: this.player,
+          depthOffset: DEPTH.OVERLAY_STEP * 2,
+          trailSource: sheetTrail ? arcSource() : undefined,
+        });
+      if (!sheetTrail)
+        this.trails.start('slash', arcSource(), { depth: entityDepth(this.player.y) + DEPTH.OVERLAY_STEP * 3 });
     };
-    if (p.swingDelayMs > 0) this.time.delayedCall(p.swingDelayMs, play);
+    const lead = this.fx.leadMs(id);
+    const delay = Math.max(0, p.swingDelayMs - lead);
+    if (delay > 0) this.time.delayedCall(delay, play);
     else play();
   }
 
@@ -756,6 +883,11 @@ export class Game extends Phaser.Scene {
     if (!shot.registerHit(mob)) return;
     const now = this.time.now;
     const stunnedByParry = mob.isParryStunned(now);
+    // 중시: 적중 번개 낙하 (히트박스 중심, 개체 위)
+    if (shot.impactFx && this.fx.has(shot.impactFx)) {
+      const c = mob.body.center;
+      this.fx.play(shot.impactFx, c.x, c.y, { depth: DEPTH.HIT_FX + 0.02 });
+    }
     if (this.hitMob(mob, shot.attack, { crit: shot.crit, dirX, dirY })) {
       this.onKill(mob, stunnedByParry ? 'parry' : 'attack');
       return;
@@ -763,7 +895,7 @@ export class Game extends Phaser.Scene {
     if (shot.hitStunMs > 0) mob.stun(now, shot.hitStunMs, 'hit');
   }
 
-  private meleeSwing(p: PlayerAttackPayload): void {
+  private meleeSwing(p: PlayerAttackPayload, secondWave = false): void {
     const weapon = gameState.weapon;
     const mods = weapon.mods;
     const hb = weapon.hitbox;
@@ -775,12 +907,17 @@ export class Game extends Phaser.Scene {
     const h = (horizontal ? hb.height : hb.width) * p.sizeMult;
     // 베기 시트가 있으면 판정 사각형은 보이지 않게(판정만), 없으면 기존 플레이스홀더 표시
     const evoFx = this.evolutionFxId();
-    const hasSwingArt = this.fx.has(slashFxId(weapon.id)) || evoFx === 'iai' || evoFx === 'twin';
+    const swingFx = this.pathFx('wide', 'iai', 'dance', 'twin');
+    const hasSwingArt = this.fx.has(slashFxId(weapon.id)) || swingFx !== null;
     const zone = this.add.rectangle(cx, cy, w, h, COLORS.ATTACK, hasSwingArt ? 0 : 0.6).setDepth(DEPTH.ATTACK);
     // 궤적·충격파: 시트가 있으면 시트, 없으면 Graphics 플레이스홀더
-    if (mods.slashTrail && evoFx !== 'iai') this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
+    if (mods.slashTrail && !swingFx) this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
     if (mods.shockwave) {
-      if (evoFx === 'crush') this.fx.play('crush', cx, cy, { depth: DEPTH.FX_GROUND });
+      // 지진(quake)·분쇄(pulverize) 가 파쇄(crush) 대신. quake 는 1단에서 한 번(3프레임 = 2단 시점), 2단은 다시 안 그린다
+      const shockFx = this.pathFx('quake', 'pulverize', 'crush');
+      if (shockFx === 'quake' && secondWave) {
+        /* 1단에서 재생한 quake 의 3~5프레임이 2단 링 */
+      } else if (shockFx) this.fx.play(shockFx, cx, cy, { depth: DEPTH.FX_GROUND });
       else this.drawShockwave(cx, cy, Math.max(w, h));
       this.shake.add(this.time.now, FEEL.SHAKE.SHOCKWAVE.PX, FEEL.SHAKE.SHOCKWAVE.MS);
     }
@@ -818,8 +955,23 @@ export class Game extends Phaser.Scene {
         tickMs: mods.trailDot.tickMs,
         dmg,
       });
-      if (evoFx === 'iai') {
-        // 잔월: 거합 이펙트의 꼬리(마지막 3프레임)를 본 재생이 끝난 뒤 남은 시간 동안 반복
+      const zangetsu = this.pathFx('zangetsu');
+      const dot = this.dotZones[this.dotZones.length - 1];
+      if (zangetsu && swingFx) {
+        // 잔월(2차 전용 시트): 거합이 끝난 자리(고정)에 루프, 한 바퀴 = 틱 간격이 되도록 틱을 루프 시작에 맞춘다. 바닥 깊이
+        const start = p.swingDelayMs + this.fx.durationOf(swingFx);
+        const linger = mods.trailDot.lingerMs - start;
+        if (linger > 0) {
+          const dir = facingOf(p.dirX, p.dirY, this.player.facingDir);
+          const at = { x: p.x, y: p.y };
+          this.time.delayedCall(start, () => {
+            if (!this.scene.isActive()) return;
+            this.fx.play(zangetsu, at.x, at.y, { dir, depth: DEPTH.FX_GROUND, durationMs: linger });
+            dot.nextAt = this.time.now + dot.tickMs;
+          });
+        }
+      } else if (swingFx === 'iai') {
+        // 잔월(시트 없음): 거합 이펙트의 꼬리(마지막 3프레임)를 본 재생이 끝난 뒤 남은 시간 동안 반복
         const start = p.swingDelayMs + this.fx.durationOf('iai');
         const linger = mods.trailDot.lingerMs - start;
         if (linger > 0) {
@@ -849,7 +1001,9 @@ export class Game extends Phaser.Scene {
     const mods = gameState.weapon.mods;
     const stunnedByParry = mob.isParryStunned(now);
     const { dmg, crit } = this.rollDamage(p.damageMult, p.forceCrit);
-    if (this.hitMob(mob, dmg, { crit, dirX: p.dirX, dirY: p.dirY })) {
+    // 2차 전용 치명 이펙트: 급소(대쉬 베기 적중) → dashcrit, 암살(그림자 걸음 직후) → assassin. 둘 다 crit_burst 대신
+    const critFx = p.primed ? this.pathFx('assassin') : p.kind === 'dashAttack' ? this.pathFx('dashcrit') : null;
+    if (this.hitMob(mob, dmg, { crit, dirX: p.dirX, dirY: p.dirY, critFx })) {
       this.onKill(mob, stunnedByParry ? 'parry' : p.kind === 'aimed' ? 'attack' : p.kind);
       return;
     }
@@ -861,8 +1015,32 @@ export class Game extends Phaser.Scene {
       if (cur) {
         cur.ticksLeft = B.ticks;
         cur.dmg = Math.max(cur.dmg, tick);
-      } else this.bleeds.push({ mob, dmg: tick, ticksLeft: B.ticks, nextAt: now + B.tickMs, tickMs: B.tickMs });
+        // 재적중: 루프를 다시 시작해 0프레임(글린트) = 다음 틱에 맞춘다
+        cur.nextAt = now + B.tickMs;
+        if (this.fx.isActive(cur.fx)) this.fx.stop(cur.fx, 0, false);
+        cur.fx = this.playBleedFx(mob);
+      } else
+        this.bleeds.push({
+          mob,
+          dmg: tick,
+          ticksLeft: B.ticks,
+          nextAt: now + B.tickMs,
+          tickMs: B.tickMs,
+          fx: this.playBleedFx(mob),
+        });
     }
+  }
+
+  /** 출혈(2차): 적 히트박스 중심에 붙어 루프 (한 바퀴 = 틱 간격, 아트 JSON). 시트가 없으면 null */
+  private playBleedFx(mob: Mob): FxHandle | null {
+    const id = this.pathFx('bleed');
+    if (!id) return null;
+    const c = mob.body.center;
+    return this.fx.play(id, c.x, c.y, {
+      follow: mob,
+      followOffset: { x: c.x - mob.x, y: c.y - mob.y },
+      depthOffset: DEPTH.OVERLAY_STEP * 3,
+    });
   }
 
   /** 추적: 플레이어 화살이 가장 가까운 적을 향해 선회 */
@@ -903,6 +1081,10 @@ export class Game extends Phaser.Scene {
       if (this.hitMob(b.mob, b.dmg, { crit: false, dirX: 0, dirY: 0, tick: true })) this.onKill(b.mob, 'attack');
       else b.mob.flashColor(COLORS.BLEED);
     }
+    for (const b of this.bleeds) {
+      if (b.mob.active && b.ticksLeft > 0) continue;
+      if (this.fx.isActive(b.fx)) this.fx.stop(b.fx);
+    }
     this.bleeds = this.bleeds.filter((b) => b.mob.active && b.ticksLeft > 0);
   }
 
@@ -929,10 +1111,17 @@ export class Game extends Phaser.Scene {
     const now = this.time.now;
     const radius = S.pushRadiusTiles * TILE;
     const counter = gameState.weapon.mods.guardCounterMult ?? 0;
-    const g = this.add.graphics().setDepth(DEPTH.ATTACK);
-    g.lineStyle(2, COLORS.GUARD_PUSH, 0.9);
-    g.strokeCircle(p.x, p.y, radius);
-    this.tweens.add({ targets: g, alpha: 0, duration: PROTOTYPE.GUARD_PUSH_MS, onComplete: () => g.destroy() });
+    // 가드 밀쳐내기 충격파(guard_wave, 발 피벗·바라보는 방향·바닥 깊이) + 철벽이면 ironwall 벽 섬광(위) 동시. 시트가 없으면 링
+    const dir = this.player.facingDir;
+    if (this.fx.has('guard_wave')) this.fx.play('guard_wave', p.x, p.y, { dir, depth: DEPTH.FX_GROUND });
+    else {
+      const g = this.add.graphics().setDepth(DEPTH.ATTACK);
+      g.lineStyle(2, COLORS.GUARD_PUSH, 0.9);
+      g.strokeCircle(p.x, p.y, radius);
+      this.tweens.add({ targets: g, alpha: 0, duration: PROTOTYPE.GUARD_PUSH_MS, onComplete: () => g.destroy() });
+    }
+    const ironwall = counter > 0 ? this.pathFx('ironwall') : null;
+    if (ironwall) this.fx.play(ironwall, p.x, p.y, { dir, depth: entityDepth(p.y) + DEPTH.OVERLAY_STEP * 3 });
     for (const child of [...this.mobs.getChildren()]) {
       const m = child as Mob;
       if (!m.active) continue;
@@ -985,25 +1174,42 @@ export class Game extends Phaser.Scene {
       }
     }
     if (!dest) return;
-    const ghost = this.add.rectangle(p.x, p.y, pw, ph, COLORS.PLAYER_SHADOW, 0.6).setDepth(DEPTH.ATTACK);
-    this.tweens.add({
-      targets: ghost,
-      alpha: 0,
-      duration: PROTOTYPE.SHADOW_STEP_MS,
-      onComplete: () => ghost.destroy(),
-    });
+    // 출발 잔상: shadowstep_ghost(출발 위치 고정, 보던 방향, 플레이어 아래). 시트가 없으면 사각형
+    if (this.fx.has('shadowstep_ghost')) {
+      this.fx.play('shadowstep_ghost', p.x, p.y, {
+        dir: facingOf(p.facingX, p.facingY, this.player.facingDir),
+        depth: entityDepth(p.y) - DEPTH.OVERLAY_STEP,
+      });
+    } else {
+      const ghost = this.add.rectangle(p.x, p.y, pw, ph, COLORS.PLAYER_SHADOW, 0.6).setDepth(DEPTH.ATTACK);
+      this.tweens.add({
+        targets: ghost,
+        alpha: 0,
+        duration: PROTOTYPE.SHADOW_STEP_MS,
+        onComplete: () => ghost.destroy(),
+      });
+    }
     this.player.teleportTo(dest.x, dest.y);
   }
 
-  /** 대쉬 시작: 발도술 이펙트(플레이어 아래, 따라감) · 잔상(대쉬 경로에 피해 영역) */
+  /**
+   * 대쉬 시작: 출발 먼지(dash_dust, 고정) · 발도술(플레이어 아래, 따라감, JSON 리본) · 허보(longinvuln, 따라감, 위, JSON 리본) ·
+   * 잔상(afterimage, 출발점 고정 분신) · 잔상 피해 영역(대쉬 경로)
+   */
   private onPlayerDashed(p: { dirX: number; dirY: number; x: number; y: number }): void {
+    const dir = facingOf(p.dirX, p.dirY, this.player.facingDir);
+    const now = this.time.now;
+    if (this.fx.has('dash_dust')) this.fx.play('dash_dust', p.x, p.y, { dir, depth: DEPTH.FX_GROUND });
+    this.dashTrailNextAt = now; // 첫 dash_trail 은 다음 update 에서
+    // 대쉬 베기 리본은 batto·longinvuln 시트 JSON trail 이 그린다(fx-design §6.1: 대쉬 베기만). 허보가 있으면 리본은 허보 쪽 하나만
+    const longinvuln = this.pathFx('longinvuln');
     if (this.evolutionFxId() === 'batto') {
-      this.fx.play('batto', p.x, p.y, {
-        dir: facingOf(p.dirX, p.dirY, this.player.facingDir),
-        follow: this.player,
-        depth: DEPTH.FX_GROUND,
-      });
+      this.fx.play('batto', p.x, p.y, { dir, follow: this.player, depth: DEPTH.FX_GROUND, hooks: !longinvuln });
     }
+    if (longinvuln)
+      this.fx.play(longinvuln, p.x, p.y, { dir, follow: this.player, depthOffset: DEPTH.OVERLAY_STEP * 3 });
+    const afterimage = this.pathFx('afterimage');
+    if (afterimage) this.fx.play(afterimage, p.x, p.y, { dir, depth: entityDepth(p.y) - DEPTH.OVERLAY_STEP });
     const mult = gameState.weapon.mods.dashTrailDamageMult;
     if (!mult) return;
     const D = PLAYER_DATA.dash;
@@ -1104,6 +1310,7 @@ export class Game extends Phaser.Scene {
     if (!node) return;
     this.menu.close();
     this.setFrozen(false);
+    this.screenFx.evolve();
     const payload: WeaponEvolvedPayload = { weapon: weapon.id, stage: weapon.stage, name: weapon.displayName };
     EventBus.emit(Events.WEAPON_EVOLVED, payload);
     if (!__system.rendererRegistered()) this.showEvolutionBanner(weapon.displayName);
@@ -1172,6 +1379,8 @@ export class Game extends Phaser.Scene {
     for (const m of this.mobs.getChildren() as Mob[]) m.setAnimPaused(on);
     this.fx.setPaused(on);
     this.telegraph.setPaused(on);
+    this.trails.setPaused(on);
+    this.screenFx.setHitStopped(on);
     for (const p of this.projectiles.getChildren() as Projectile[]) if (p.active) p.setAnimPaused(on);
   }
 
@@ -1191,7 +1400,15 @@ export class Game extends Phaser.Scene {
   private hitMob(
     mob: Mob,
     dmgIn: number,
-    opts: { crit: boolean; dirX: number; dirY: number; tick?: boolean; knock?: boolean },
+    opts: {
+      crit: boolean;
+      dirX: number;
+      dirY: number;
+      tick?: boolean;
+      knock?: boolean;
+      /** 2차 전용 치명 이펙트 id (대상 히트박스 중심에) */
+      critFx?: string | null;
+    },
   ): boolean {
     let dmg = dmgIn;
     const body = mob.body;
@@ -1223,8 +1440,9 @@ export class Game extends Phaser.Scene {
       this.shake.add(now, FEEL.SHAKE.HIT.PX, FEEL.SHAKE.HIT.MS);
       return died;
     }
-    this.hitFx.impact(hitX, hitY, nx, ny, opts.crit);
+    this.hitFx.impact(hitX, hitY, nx, ny, opts.crit, opts.critFx ? { id: opts.critFx, x: c.x, y: c.y } : null);
     this.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
+    if (opts.crit) this.screenFx.crit();
     const H = FEEL.HITSTOP;
     this.hitStop.request(now, Math.max(opts.crit ? H.CRIT_MS : H.HIT_MS, isBoss ? H.BOSS_MS : 0));
     const S = opts.crit ? FEEL.SHAKE.CRIT : FEEL.SHAKE.HIT;
@@ -1517,7 +1735,13 @@ export class Game extends Phaser.Scene {
     if (this.player.isParrying && !mob.isStunned(now)) {
       const attack = mob.tryContactAttack(now);
       if (attack > 0 || mob.body.velocity.lengthSq() > 0) {
-        if (this.player.takeHit(attack || 1, now, source) === 'parried') mob.stun(now, PLAYER_DATA.parry.stunMs);
+        if (this.player.takeHit(attack || 1, now, source) === 'parried') {
+          mob.stun(now, PLAYER_DATA.parry.stunMs);
+          // 접점 ≈ 플레이어 몸 중심과 적 바디 중심의 중간
+          const pc = this.player.getCenter();
+          const mc = mob.body.center;
+          this.onParried((pc.x + mc.x) / 2, (pc.y + mc.y) / 2);
+        }
       }
       return;
     }
@@ -1529,8 +1753,80 @@ export class Game extends Phaser.Scene {
     if (!pr.active || pr.reflected) return;
     const source = { dirX: pr.body.velocity.x, dirY: pr.body.velocity.y };
     const result = this.player.takeHit(pr.attack, this.time.now, source);
-    if (result === 'parried') pr.reflect(PLAYER_DATA.parry.reflectDamageMult + gameState.passives.total('reflectMult'));
-    else pr.deactivate();
+    if (result === 'parried') {
+      pr.reflect(PLAYER_DATA.parry.reflectDamageMult + gameState.passives.total('reflectMult'));
+      this.onParried(pr.x, pr.y);
+    } else pr.deactivate();
+  }
+
+  /** 패링 성공: 접점에 parry_flash(개체 위) + 짧은 히트스톱 (1프레임이 멈춤 동안 보이도록) */
+  private onParried(x: number, y: number): void {
+    if (this.fx.has('parry_flash')) this.fx.play('parry_flash', x, y, { depth: DEPTH.HIT_FX + 0.02 });
+    this.hitStop.request(this.time.now, FEEL.SECONDARY.PARRY_HITSTOP_MS);
+  }
+
+  // --- 35라운드 3단계: 조준 점선·차지 게이지 (유지형) · 대쉬 잔상 (주기형) ---
+
+  /**
+   * 조준 중: aim_line(몸 중심 → 커서, 길이 AIM_LINE_TILES) + aim_charge(진행도 프레임 = min(5, floor(progress×5))).
+   * 차지 완료 후 발사되면 5프레임을 AIM_CHARGE_HOLD_MS 유지, 취소면 즉시 제거
+   */
+  private updateAimFx(time: number): void {
+    const S = FEEL.SECONDARY;
+    if (this.player.action !== 'aim') {
+      if (this.aimLine.visible || this.aimChargeFx) this.stopAimFx(this.lastAimReady);
+      return;
+    }
+    const progress = this.player.aimProgress(time);
+    this.lastAimReady = progress >= 1;
+    const c = this.player.getCenter();
+    const cx = c.x;
+    const cy = this.player.y - S.BODY_CENTER_UP_PX;
+    const angle = this.player.aimAngle;
+    // aim_line stateFrames: 차지 중 f0 / 완료 f1 (43라운드 B)
+    this.aimLine.show(cx, cy, angle, S.AIM_LINE_TILES * TILE, progress >= 1 ? 'complete' : 'charging');
+    if (!this.fx.has('aim_charge')) return;
+    // aim_charge 진행도 프레임 = min(마지막, floor(progress × 5)) — 6프레임 시트의 f5 = 완료
+    const frame = progressFrame(progress, this.fx.framesOf('aim_charge'), S.AIM_CHARGE_DIVISOR);
+    if (!this.fx.isActive(this.aimChargeFx)) {
+      this.aimChargeFx = this.fx.play('aim_charge', cx, cy, {
+        staticFrame: frame,
+        follow: this.player,
+        followOffset: { x: 0, y: -S.BODY_CENTER_UP_PX },
+        depthOffset: DEPTH.OVERLAY_STEP * 3,
+      });
+    } else this.fx.setFrame(this.aimChargeFx, 'aim_charge', frame);
+  }
+
+  private lastAimReady = false;
+
+  /** 조준 끝: 점선 제거, 차지 게이지는 발사(완료)면 짧게 유지 후 제거, 취소면 즉시 */
+  private stopAimFx(fired: boolean): void {
+    this.aimLine.hide();
+    if (this.fx.isActive(this.aimChargeFx))
+      this.fx.stop(this.aimChargeFx, fired ? FEEL.SECONDARY.AIM_CHARGE_HOLD_MS : 0, false);
+    this.aimChargeFx = null;
+    this.lastAimReady = false;
+  }
+
+  /**
+   * 대쉬 중 DASH_TRAIL_INTERVAL_MS 마다 현재 위치에 dash_trail(고정, 대쉬 방향, 플레이어 아래).
+   * 발도술·허보·잔상 노드일 때만 그 무기 W1 로 틴트 (JSON tint.when). 시트가 어두운 무채라 JSON tint.method 의 setTintFill(평면)
+   */
+  private updateDashTrail(time: number): void {
+    if (this.player.action !== 'dash' || time < this.dashTrailNextAt || !this.fx.has('dash_trail')) return;
+    const S = FEEL.SECONDARY;
+    this.dashTrailNextAt = time + S.DASH_TRAIL_INTERVAL_MS;
+    const d = this.player.dashDir;
+    const tinted = S.DASH_TRAIL_TINT_NODES.some((id) => gameState.weapon.path.includes(id));
+    const hex = tinted ? fxWeaponColor(PALETTE, gameState.weapon.id, S.DASH_TRAIL_RAMP_INDEX) : null;
+    const method = this.fx.sheet('dash_trail')?.tint?.method ?? '';
+    this.fx.play('dash_trail', this.player.x, this.player.y, {
+      dir: facingOf(d.x, d.y, this.player.facingDir),
+      depth: entityDepth(this.player.y) - DEPTH.OVERLAY_STEP,
+      tint: hex ? hexToInt(hex) : undefined,
+      tintFill: method.includes('setTintFill'),
+    });
   }
 
   private onReflectedHit(pr: Projectile, mob: Mob): void {
@@ -1548,6 +1844,8 @@ export class Game extends Phaser.Scene {
     for (const m of this.mobs.getChildren() as Mob[]) m.body.setVelocity(0, 0);
     // 사망 애니가 있으면 끝 프레임을 보여준 뒤 결과 화면으로
     const delay = this.player.deathAnimMs > 0 ? this.player.deathAnimMs + SPRITES.DEATH_EXTRA_MS : 0;
+    this.stopAimFx(false);
+    this.screenFx.death(delay);
     if (delay > 0) this.time.delayedCall(delay, () => this.endRunScene(false));
     else this.endRunScene(false);
   }
@@ -1630,6 +1928,7 @@ export class Game extends Phaser.Scene {
   }
 
   private relayBossPhase(p: { phase: number; hp: number; maxHp: number }): void {
+    this.screenFx.bossPhase();
     __system.emit(UI_EVENTS.BOSS_PHASE, { name: this.bossName ?? '보스', ...p });
   }
 
@@ -1740,6 +2039,9 @@ export class Game extends Phaser.Scene {
     if ((this.frozen || this.hitStopped) && this.physics.world) this.physics.world.resume();
     this.numbers.destroy();
     this.telegraph.destroy();
+    this.trails.destroy();
+    this.screenFx.destroy();
+    this.aimLine.destroy();
     this.fx.destroy();
     audio.stopAllLoops();
     setMenuSelect(null);

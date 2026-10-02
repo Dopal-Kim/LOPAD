@@ -101,9 +101,24 @@ export interface DebugApi {
   spawnEnemy: (id: string, x: number, y: number) => boolean;
   /** 보스 HP 를 내려 페이즈 전환 (피해 처리 경로) */
   setBossHp: (hp: number) => boolean;
+  /** 42라운드: 활성 잔상 궤적(샘플 좌표) */
+  trails: () => unknown;
+  /** 42라운드: 화면 오버레이·채도 감소 상태 */
+  screen: () => unknown;
+  /** 35라운드 3단계: 조준 점선·차지 게이지 상태 */
+  aimFx: () => unknown;
+  /** 3지선다가 열린 상태에서 노드 id 로 바로 선택 (검증용) */
+  evolveTo: (id: string) => boolean;
 }
 
-export type FeelPatch = Partial<{ shake: number; hitstop: number; knockback: number; numbers: boolean }>;
+export type FeelPatch = Partial<{
+  shake: number;
+  hitstop: number;
+  knockback: number;
+  numbers: boolean;
+  trail: boolean;
+  flash: boolean;
+}>;
 
 /** 카메라 스크롤·배율·클램프 영역 (32라운드 추종 검증용) */
 export interface CameraInfo {
@@ -172,6 +187,10 @@ export function exposeDebug(api: {
   lastSlam: () => unknown;
   spawnEnemy: (id: string, x: number, y: number) => boolean;
   setBossHp: (hp: number) => boolean;
+  trails: () => unknown;
+  screen: () => unknown;
+  aimFx: () => unknown;
+  evolveTo: (id: string) => boolean;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -242,6 +261,10 @@ export function exposeDebug(api: {
     lastSlam: () => api.lastSlam(),
     spawnEnemy: (id, x, y) => api.spawnEnemy(id, x, y),
     setBossHp: (hp) => api.setBossHp(hp),
+    trails: () => api.trails(),
+    screen: () => api.screen(),
+    aimFx: () => api.aimFx(),
+    evolveTo: (id) => api.evolveTo(id),
     killAll: () => {
       const list = api.mobs();
       for (const m of list) api.kill(m);

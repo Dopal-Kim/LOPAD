@@ -266,7 +266,7 @@ export class Enemy extends Mob {
           // 돌진 경로 예고선: 길이 = 돌진 거리, 방향은 예고 끝까지 플레이어를 따라간다
           const c = this.body.center;
           const a = Math.atan2(ctx.player.y - this.y, ctx.player.x - this.x);
-          this.marker = ctx.telegraph.line(c.x, c.y, a, this.dashDistancePx(), C.telegraphMs);
+          this.marker = ctx.telegraph.line(c.x, c.y, a, this.dashDistancePx(), C.telegraphMs, { aura: true });
           EventBus.emit(Events.ENEMY_TELEGRAPH, { id: this.id, kind: 'dash' } satisfies EnemyTelegraphPayload);
         }
         break;

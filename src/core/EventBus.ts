@@ -86,6 +86,8 @@ export type PlayerAttackPayload = {
   kind: 'attack' | 'dashAttack' | 'aimed';
   /** 확정 치명타 (그림자 걸음 직후, 대쉬 공격 확정 치명) */
   forceCrit: boolean;
+  /** 그림자 걸음 직후의 공격 (암살 이펙트 분기, 35라운드 3단계) */
+  primed: boolean;
   /** 공격 애니 2프레임(휘두름) 시작까지 ms — 베기 이펙트 재생 시점 (시트가 없으면 0) */
   swingDelayMs: number;
   /** 공격 애니 3프레임 시작까지 ms — 활 화살 생성 시점 (시트가 없으면 0) */

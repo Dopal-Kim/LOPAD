@@ -511,8 +511,16 @@ export interface PaletteFloor {
   ramp: string[];
 }
 
+/** 42라운드 Q2 이펙트 전용 팔레트: 백열 코어 2칸 + 무기별 보조 램프 4칸(W0 edge → W3 light). 층 스왑 대상 아님 */
+export interface PaletteFx {
+  core: string[];
+  weapons: Record<string, { ramp: string[] }>;
+}
+
 export interface PaletteData {
   gray: string[];
   accent_slots: { first_index: number; count: number; roles: string[] };
   floors: PaletteFloor[];
+  /** 선택: 없으면 시스템 기본색(코어 흰색, 보조색 = 층 강조색) */
+  fx?: PaletteFx;
 }

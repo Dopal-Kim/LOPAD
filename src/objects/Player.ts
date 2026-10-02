@@ -53,6 +53,7 @@ export class Player extends Phaser.GameObjects.Sprite {
   private shadowPrimedUntil = -Infinity;
   private facing = new Phaser.Math.Vector2(1, 0);
   private dashVel = new Phaser.Math.Vector2();
+  private lastAimAngle = 0;
   /** 피격 넉백(35라운드): 가해자 반대 방향으로 선형 감쇠. 경과는 update 의 시간 차로 누적(히트스톱 중엔 update 가 없다) */
   private shoveState: { vx: number; vy: number; elapsed: number; ms: number } | null = null;
 
@@ -115,9 +116,22 @@ export class Player extends Phaser.GameObjects.Sprite {
     return this.action === 'aim' && this.aimReady;
   }
 
+  /** 마지막 조준 각도(rad, 커서 방향). 조준 점선·차지 게이지용 */
+  get aimAngle(): number {
+    return this.lastAimAngle;
+  }
+
+  /** 현재 대쉬 방향 단위벡터 (대쉬 중이 아니면 마지막 값) */
+  get dashDir(): { x: number; y: number } {
+    const len = this.dashVel.length() || 1;
+    return { x: this.dashVel.x / len, y: this.dashVel.y / len };
+  }
+
   /** `delta` 는 이번 프레임 ms (넉백 감쇠 누적 — 히트스톱 동안은 호출되지 않으므로 그만큼 멈춘다) */
   update(input: InputState, time: number, delta = 0): void {
     const D = PLAYER_DATA.dash;
+    if (input.aimX !== this.x || input.aimY !== this.y)
+      this.lastAimAngle = Math.atan2(input.aimY - this.y, input.aimX - this.x);
     const P = PLAYER_DATA.parry;
     const S = this.secondary;
     const mods = gameState.weapon.mods;
@@ -253,9 +267,11 @@ export class Player extends Phaser.GameObjects.Sprite {
         forceCrit = Boolean(mods.dashAttackForceCrit);
         this.dashEndedAt = -Infinity; // 대쉬 공격은 1회
       }
+      let primed = false;
       if (this.isShadowPrimed(time)) {
         mult *= mods.shadowStepMult ?? 1;
         forceCrit = true;
+        primed = true;
         this.shadowPrimedUntil = -Infinity; // 1회
       }
       this.emitAttack(
@@ -265,6 +281,7 @@ export class Player extends Phaser.GameObjects.Sprite {
         mult,
         isDashAttack ? D.attackSizeMult : 1,
         forceCrit,
+        primed,
       );
     }
   }
@@ -286,6 +303,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     damageMult: number,
     sizeMult: number,
     forceCrit: boolean,
+    primed = false,
   ): void {
     const aim = new Phaser.Math.Vector2(input.aimX - this.x, input.aimY - this.y);
     if (aim.lengthSq() > 0) aim.normalize();
@@ -301,6 +319,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       sizeMult,
       kind,
       forceCrit,
+      primed,
       swingDelayMs: this.visual.lastImpactMs,
       releaseDelayMs: this.visual.frameStartMs(2),
     };

@@ -371,7 +371,9 @@ export class Boss extends Mob {
     const c = this.body.center;
     const lengthPx = (P.dash.speedTiles * TILE * P.dash.durationMs) / 1000;
     this.clearMarker();
-    this.marker = ctx.telegraph.line(c.x, c.y, this.angleTo(ctx.player.x, ctx.player.y), lengthPx, telegraphMs);
+    this.marker = ctx.telegraph.line(c.x, c.y, this.angleTo(ctx.player.x, ctx.player.y), lengthPx, telegraphMs, {
+      aura: true,
+    });
     if (emit) EventBus.emit(Events.BOSS_TELEGRAPH, { id: this.id, attack: 'dash' } satisfies BossTelegraphPayload);
   }
 
@@ -427,6 +429,7 @@ export class Boss extends Mob {
       half,
       (F.telegraphTiles ?? 5) * TILE,
       tele,
+      { aura: true },
     );
     EventBus.emit(Events.BOSS_TELEGRAPH, { id: this.id, attack: 'fan' } satisfies BossTelegraphPayload);
   }
@@ -505,6 +508,7 @@ export class Boss extends Mob {
       this.angleTo(ctx.player.x, ctx.player.y),
       V.telegraphTiles * TILE,
       V.telegraphMs,
+      { aura: true },
     );
     EventBus.emit(Events.BOSS_TELEGRAPH, { id: this.id, attack: 'volley' } satisfies BossTelegraphPayload);
   }
