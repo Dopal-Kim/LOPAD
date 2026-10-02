@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TILE } from '../core/Constants';
 import { EventBus, Events, type RoomEnteredPayload, type TrialClearedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import type { StageDef } from '../data/types';
@@ -9,8 +10,24 @@ import type { TileWorld } from '../world/TileWorld';
 import type { Room } from './mapgen';
 import { Rng } from './rng';
 import { isInCombat, type RoomProgress } from './traversal';
+import { scaleWave } from './structures/rules';
 
 type RoomState = RoomProgress;
+
+/** 47라운드: 시련 웨이브 배율 (2-4 판돈 종 · 2-5 룰렛). 없으면 1·1·0 */
+export interface WaveMods {
+  hpMult: number;
+  countMult: number;
+  extra: number;
+}
+
+/** 47라운드: 구조물 도전(투견 링·흉패)으로 부르는 적 */
+export interface ChallengeSpawn {
+  enemy: string;
+  count: number;
+  hpMult: number;
+  attackMult: number;
+}
 
 export interface RoomDirectorHost {
   world: TileWorld;
@@ -23,6 +40,8 @@ export interface RoomDirectorHost {
   /** 마지막 층이 아니면 보스 방에 출구를 연다 */
   onStageCleared(room: Room): void;
   isLastStage(): boolean;
+  /** 47라운드: 시련 웨이브 배율 (웨이브를 낼 때마다 묻는다) */
+  waveMods?(room: Room): WaveMods;
 }
 
 /**
@@ -34,6 +53,8 @@ export class RoomDirector {
   private currentRoom?: Room;
   private waveIndex = 0;
   private alive = new Set<Mob>();
+  /** 47라운드: 진행 중인 구조물 도전 (클리어한 방을 다시 active 로 — 45라운드 비전투 판정과 일관) */
+  private challenge: { roomId: string; onDone: () => void } | null = null;
 
   constructor(private host: RoomDirectorHost) {
     for (const r of host.world.layout.rooms) this.states.set(r.id, 'idle');
@@ -105,9 +126,90 @@ export class RoomDirector {
     return true;
   }
 
+  /** 방 진행 상태 */
+  stateOf(roomId: string): RoomProgress | undefined {
+    return this.states.get(roomId);
+  }
+
+  /** 진행 중인 구조물 도전의 방 id (없으면 null) */
+  get challengeRoomId(): string | null {
+    return this.challenge?.roomId ?? null;
+  }
+
+  /**
+   * 47라운드 구조물 도전 시작 (2-3 투견 링 · 2-1 흉패): 클리어한 방을 다시 active 로 만들고 문을 닫은 뒤 적을 부른다.
+   * at 이 있으면 그 지점 반경 radiusTiles 안, 없으면 방 안 무작위(플레이어에게서 4칸 이상). 전멸하면 onDone
+   */
+  startChallenge(
+    roomId: string,
+    spawns: readonly ChallengeSpawn[],
+    onDone: () => void,
+    at?: { x: number; y: number; radiusTiles: number },
+  ): boolean {
+    if (this.inCombat || this.challenge || this.states.get(roomId) !== 'cleared') return false;
+    const room = this.host.world.room(roomId);
+    this.challenge = { roomId, onDone };
+    this.states.set(roomId, 'active');
+    this.currentRoom = room;
+    this.host.world.setRoomDoors(room, 'closed');
+    const S = this.host.stage.enemyScale;
+    for (const sp of spawns) {
+      for (let i = 0; i < sp.count; i++) {
+        let p = this.host.world.randomPointInRoom(room, this.host.rng, this.host.player, 4);
+        if (at) {
+          for (let t = 0; t < 30; t++) {
+            const a = this.host.rng.next() * Math.PI * 2;
+            const r = (0.4 + this.host.rng.next() * 0.6) * at.radiusTiles * TILE;
+            const q = new Phaser.Math.Vector2(at.x + Math.cos(a) * r, at.y + Math.sin(a) * r);
+            if (this.host.world.isWalkableAt(q.x, q.y) && this.host.world.isInsideRoom(room, q.x, q.y)) {
+              p = q;
+              break;
+            }
+          }
+        }
+        const e = new Enemy(this.host.mobs.scene, p.x, p.y, sp.enemy, {
+          hp: S.hp * sp.hpMult,
+          attack: S.attack * sp.attackMult,
+        });
+        this.host.mobs.add(e);
+        this.alive.add(e);
+      }
+    }
+    return true;
+  }
+
+  /** 47라운드: 도전 강제 종료 (투견 링 시간 초과) — 남은 적은 사라지고 방은 다시 클리어. onDone 은 부르지 않는다 */
+  abortChallenge(): number {
+    if (!this.challenge) return 0;
+    let n = 0;
+    for (const m of [...this.alive]) {
+      if (m.active) {
+        m.visual.spawnCorpse();
+        m.destroy();
+        n++;
+      }
+    }
+    this.alive.clear();
+    this.endChallenge();
+    return n;
+  }
+
+  private endChallenge(): { onDone: () => void } | null {
+    const c = this.challenge;
+    if (!c) return null;
+    this.challenge = null;
+    this.states.set(c.roomId, 'cleared');
+    this.host.world.setRoomDoors(this.host.world.room(c.roomId), 'open');
+    return c;
+  }
+
   /** 적 사망 시 호출 */
   onMobDied(mob: Mob): void {
     this.alive.delete(mob);
+    if (this.challenge) {
+      if (this.alive.size === 0) this.endChallenge()?.onDone();
+      return;
+    }
     const room = this.activeRoom;
     if (!room) return;
     // 보스가 죽으면 소환된 부하는 함께 사라진다 (보상 없음)
@@ -151,7 +253,9 @@ export class RoomDirector {
   }
 
   private spawnWave(room: Room, index: number): void {
-    const wave = this.host.stage.trial.waves[index];
+    const mods = this.host.waveMods?.(room) ?? { hpMult: 1, countMult: 1, extra: 0 };
+    const wave = scaleWave(this.host.stage.trial.waves[index], mods.countMult, mods.extra);
+    const scale = { hp: this.host.stage.enemyScale.hp * mods.hpMult, attack: this.host.stage.enemyScale.attack };
     EventBus.emit(Events.TRIAL_WAVE, { roomId: room.id, wave: index + 1, total: this.host.stage.trial.waves.length });
     for (const entry of wave) {
       for (let i = 0; i < entry.count; i++) {
@@ -161,7 +265,7 @@ export class RoomDirector {
           this.host.player,
           this.host.stage.trial.spawnMinDistTiles,
         );
-        const e = new Enemy(this.host.mobs.scene, p.x, p.y, entry.enemy, this.host.stage.enemyScale);
+        const e = new Enemy(this.host.mobs.scene, p.x, p.y, entry.enemy, scale);
         this.host.mobs.add(e);
         this.alive.add(e);
       }

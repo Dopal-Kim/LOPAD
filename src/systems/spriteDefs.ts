@@ -4,7 +4,8 @@
  */
 import { ASSETS, TEXTURES } from '../core/Constants';
 
-export type SpriteCategory = 'player' | 'enemies' | 'bosses' | 'weapons' | 'fx';
+/** structures = 47라운드 상호작용 구조물 시트 (계약 art-assets §5, `sprites/structures/<id>.json`) */
+export type SpriteCategory = 'player' | 'enemies' | 'bosses' | 'weapons' | 'fx' | 'structures';
 export type Facing = 'down' | 'up' | 'left' | 'right';
 export const FACINGS: readonly Facing[] = ['down', 'up', 'left', 'right'];
 
@@ -43,7 +44,28 @@ export interface SheetJson {
    * 깊이. 무기 오버레이(§3.1)는 방향별 above / below, 이펙트(§3.2)는 문자열 above(개체 위) / below(개체 아래·바닥).
    * 이펙트의 기본 깊이를 정할 때 쓴다 (호출 쪽이 깊이를 주면 그쪽이 우선)
    */
-  depth?: 'above' | 'below' | Partial<Record<Facing, 'above' | 'below'>>;
+  depth?: 'above' | 'below' | 'floor' | 'y' | Partial<Record<Facing, 'above' | 'below'>>;
+  // --- 계약 §5 구조물 시트 (47라운드) ---
+  /** 단단한 영역 타일 수 [가로, 세로] */
+  footprint?: [number, number];
+  /** 지나갈 수 없음 */
+  solid?: boolean;
+  /** 상태별 프레임: idle · used · broken(마지막 프레임 유지) · active(루프) · hit(1프레임) + 시트별 추가 상태 */
+  states?: Record<string, number[]>;
+  /** 상태별 반복 여부 (없으면 active·ready 만 반복) */
+  stateLoop?: Record<string, boolean>;
+  /** 1-1 술통 구르기: 그려진 방향 · 다른 방향은 회전 */
+  rollDrawnFacing?: 'down' | 'up' | 'left' | 'right';
+  rollRotate?: boolean;
+  /** 1-2 화로 불꽃 영역 (프레임 좌표) */
+  fireBox?: { x: number; y: number; w: number; h: number };
+  /** 2-3 투견 링 말뚝 중심 (프레임 좌표) · 판돈 깃대 (E 기준점) */
+  stakes?: [number, number][];
+  flagpost?: { x: number; y: number };
+  /** 2-5 룰렛: 칸 i 를 가리키는 프레임 */
+  stopFrames?: Record<string, number>;
+  /** 층 테마 구조물 메모 ('stage1' | 'stage2') */
+  floor?: string;
   /** §3.1 재생 시점 메모 (코드가 읽지 않음) */
   spawn?: string;
   /** 35라운드 피격 시트: 마지막 n 프레임이 잔류(바닥 얼룩) — 시스템이 유지 후 페이드할 수 있다 */
@@ -151,12 +173,13 @@ export interface SheetRequest {
   action: string;
 }
 
-/** 로드 대상: 주인공 6동작, 이름 목록(적·보스 id)별 5동작, 무기 id 별 attack 오버레이, 이펙트 id 목록 */
+/** 로드 대상: 주인공 6동작, 이름 목록(적·보스 id)별 5동작, 무기 id 별 attack 오버레이, 이펙트 id 목록, 구조물 시트 id 목록 */
 export function wantedSheets(
   enemyIds: readonly string[],
   bossIds: readonly string[],
   weaponIds: readonly string[] = [],
   fxIds: readonly string[] = [],
+  structureIds: readonly string[] = [],
 ): SheetRequest[] {
   const out: SheetRequest[] = [];
   for (const action of PLAYER_ACTIONS) out.push({ category: 'player', name: 'player', action });
@@ -164,7 +187,36 @@ export function wantedSheets(
   for (const name of bossIds) for (const action of MOB_ACTIONS) out.push({ category: 'bosses', name, action });
   for (const name of weaponIds) for (const action of WEAPON_ACTIONS) out.push({ category: 'weapons', name, action });
   for (const name of fxIds) out.push({ category: 'fx', name, action: FX_ACTION });
+  for (const name of structureIds) out.push({ category: 'structures', name, action: STRUCTURE_ACTION });
   return out;
+}
+
+/** 구조물 시트 내부 동작 이름 (파일 이름에 동작 접미가 없다 — 이펙트와 같은 방식). sheetId = `<id>_st` */
+export const STRUCTURE_ACTION = 'st';
+
+/**
+ * 구조물 시트 JSON 보정 (계약 §5 는 fps·loop·directions·pivot 을 생략할 수 있다): 없는 값은
+ * frameDurationsMs 평균 fps(없으면 8) · loop false · directions ["any"] · pivot = 발판 아래 가운데
+ */
+export function normalizeStructureSheet(json: SheetJson): SheetJson {
+  const d = json.frameDurationsMs;
+  const avg = d && d.length > 0 ? d.reduce((a, b) => a + b, 0) / d.length : 0;
+  return {
+    ...json,
+    action: json.action ?? STRUCTURE_ACTION,
+    fps: json.fps > 0 ? json.fps : avg > 0 ? 1000 / avg : 8,
+    loop: Boolean(json.loop),
+    directions: Array.isArray(json.directions) && json.directions.length > 0 ? json.directions : ['any'],
+    pivot: json.pivot ?? { x: Math.floor(json.frameWidth / 2), y: json.frameHeight },
+  };
+}
+
+/** 구조물 상태의 프레임 목록. 없는 상태면 idle 첫 프레임 (계약 §5) */
+export function structureStateFrames(def: Pick<SheetJson, 'states' | 'frames'>, state: string): number[] {
+  const list = def.states?.[state];
+  if (Array.isArray(list) && list.length > 0) return list.filter((f) => f >= 0 && f < def.frames);
+  const idle = def.states?.idle;
+  return [Array.isArray(idle) && idle.length > 0 ? idle[0] : 0];
 }
 
 /** 이펙트 id 를 정하는 데 필요한 무기 데이터 최소 형태 (data/weapons.json). 2차 노드는 1차의 `next` */
@@ -235,9 +287,14 @@ export const SECONDARY_FX_IDS: readonly string[] = [
   'heavyarrow_hit',
 ];
 
-/** 무기 유도 이펙트 + 피격 이펙트 + 적 양상 이펙트 + 보조 연출 (중복 제거) */
+/** 47라운드 구조물 이펙트 (계약 art-assets §5): 1-1 불붙은 독주 웅덩이 루프 */
+export const STRUCTURE_FX_IDS: readonly string[] = ['fire_pool'];
+
+/** 무기 유도 이펙트 + 피격 이펙트 + 적 양상 이펙트 + 보조 연출 + 구조물 이펙트 (중복 제거) */
 export function allFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
-  return [...new Set([...fxSheetIds(weapons), ...HIT_FX_IDS, ...ENEMY_FX_IDS, ...SECONDARY_FX_IDS])];
+  return [
+    ...new Set([...fxSheetIds(weapons), ...HIT_FX_IDS, ...ENEMY_FX_IDS, ...SECONDARY_FX_IDS, ...STRUCTURE_FX_IDS]),
+  ];
 }
 
 /** JSON `scale` 이 양수 숫자면 그 값, 아니면 1 ("allowed" 메모 등) */
@@ -294,7 +351,7 @@ export function fxDepthHint(def: Pick<SheetJson, 'depth'>): 'above' | 'below' | 
 
 /** `sprites/<분류>/<이름>_<동작>.json` (매니페스트·URL 공통 상대 경로). 이펙트는 `sprites/fx/<이름>.json` */
 export function sheetJsonPath(r: SheetRequest): string {
-  if (r.category === 'fx') return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}.json`;
+  if (r.category === 'fx' || r.category === 'structures') return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}.json`;
   return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}_${r.action}.json`;
 }
 

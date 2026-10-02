@@ -36,6 +36,8 @@ export class Projectile extends Phaser.GameObjects.Sprite {
   crit = false;
   /** 적중 시 히트박스 중심에 1회 재생할 이펙트 시트 (중시 heavyarrow_hit). null 이면 없음 */
   impactFx: string | null = null;
+  /** 47라운드 1-2: 증류 화로 불꽃을 지난 불화살 (적중 시 화상, 독주 웅덩이 점화) */
+  fire = false;
   /** 아트 텍스처 사용 중 (틴트 대신 원색, 속도 방향으로 회전) */
   private textured = false;
   private rotateToVelocity = false;
@@ -70,6 +72,7 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     this.hitStunMs = 0;
     this.crit = false;
     this.impactFx = null;
+    this.fire = false;
     this.hitSet.clear();
     this.expireAt = time + spec.lifeMs;
     const texture = visual.texture && this.scene.textures.exists(visual.texture) ? visual.texture : null;

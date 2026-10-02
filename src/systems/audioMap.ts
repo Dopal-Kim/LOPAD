@@ -6,6 +6,10 @@
  */
 import {
   Events,
+  type ChallengeEventPayload,
+  type StructureBellPayload,
+  type StructureEventPayload,
+  type StructureFirePayload,
   type BossAttackPayload,
   type BossTelegraphPayload,
   type EnemyAttackPayload,
@@ -80,6 +84,29 @@ export const SFX = {
   menuSelect: 'sfx/menu_select',
   menuCancel: 'sfx/menu_cancel',
 } as const;
+
+/**
+ * 47라운드 구조물 사용음: 새 효과음 없이 기존 효과음에 임시 연결 (음향 파트 후속, 결정 round-47).
+ * 패 탁자는 메뉴 선택음이, 투견 링은 도전 시작음이 대신한다
+ */
+export function structureUseSfx(kind: string): string | null {
+  switch (kind) {
+    case 'chest':
+    case 'ledger':
+    case 'exchange':
+    case 'pawn':
+      return SFX.shopBuy;
+    case 'grave':
+      return SFX.save;
+    case 'campfire':
+    case 'counter':
+      return SFX.potionUse;
+    case 'agingBarrel':
+      return SFX.pickupPotion;
+    default:
+      return null;
+  }
+}
 
 export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   // --- 주인공 공격·보조 동작 ---
@@ -210,6 +237,41 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     sfx: SFX.menuMove,
   }),
   t({ event: Events.MENU_SELECTED, note: '메뉴 선택', sfx: SFX.menuSelect }),
+
+  // --- 47라운드 상호작용 구조물 (전부 기존 효과음 임시 연결) ---
+  t<StructureEventPayload>({
+    event: Events.STRUCTURE_BROKEN,
+    note: '구조물 부서짐: 짐 hit_enemy · 술통 guard_push · 숨은 벽 door_open (임시)',
+    sfx: (p) => (p.kind === 'cask' ? SFX.guardPush : p.kind === 'hiddenWall' ? SFX.doorOpen : SFX.hitEnemy),
+  }),
+  t<StructureEventPayload>({
+    event: Events.STRUCTURE_HIT,
+    note: '부서지지 않는 타격: 숨은 벽 금·술통 굴림 → hit_enemy (임시)',
+    when: (p) => p.kind === 'hiddenWall' || p.kind === 'cask',
+    sfx: SFX.hitEnemy,
+  }),
+  t<StructureEventPayload>({
+    event: Events.STRUCTURE_USED,
+    note: 'E형 구조물 사용 → structureUseSfx (상점·저장·물약 소리 재사용, 임시)',
+    sfx: (p) => structureUseSfx(p.kind),
+  }),
+  t<StructureFirePayload>({
+    event: Events.STRUCTURE_FIRE,
+    note: '불붙음: 독주 웅덩이 boss_fan · 무기·화살 dash (임시)',
+    sfx: (p) => (p.target === 'pool' ? SFX.bossFan : p.target === 'burn' ? null : SFX.dash),
+  }),
+  t<StructureBellPayload>({
+    event: Events.STRUCTURE_BELL,
+    note: '판돈 종: 첫 타격(경고) boss_telegraph · 확정 boss_phase (임시)',
+    sfx: (p) => (p.confirmed ? SFX.bossPhase : SFX.bossTelegraph),
+  }),
+  t({ event: Events.STRUCTURE_ROULETTE, note: '룰렛 회전 → menu_move (임시)', sfx: SFX.menuMove }),
+  t({ event: Events.CHALLENGE_STARTED, note: '투견 링·흉패 도전 시작 → door_close (임시)', sfx: SFX.doorClose }),
+  t<ChallengeEventPayload>({
+    event: Events.CHALLENGE_CLEARED,
+    note: '도전 끝: 시간 초과 menu_cancel · 그 외 trial_clear (임시)',
+    sfx: (p) => (p.outcome === 'timeout' ? SFX.menuCancel : SFX.trialClear),
+  }),
   t<MenuEventPayload>({
     event: Events.MENU_CLOSED,
     note: '선택 없이 닫힘(상점 이탈 등) → menu_cancel',

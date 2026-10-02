@@ -89,6 +89,20 @@ export class PassiveSet {
     return true;
   }
 
+  /** 47라운드 2-6 전당포: 패시브를 통째로 뺀다. 뺀 레벨 (없으면 0) */
+  remove(id: string): number {
+    const lv = this.level(id);
+    if (lv > 0) delete this.owned[id];
+    return lv;
+  }
+
+  /** 47라운드 2-6 전당포 되찾기: 레벨을 그대로 되돌린다 (최대 레벨 제한) */
+  setLevel(id: string, level: number): boolean {
+    if (!this.def(id) || level <= 0) return false;
+    this.owned[id] = Math.min(level, this.cfg.maxLevel);
+    return true;
+  }
+
   /** 희귀도 가중 무작위 후보 (중복 없음, 최대 레벨 제외) */
   rollChoices(rng: Rng, rarityWeights: Record<string, number>, count = this.cfg.choices): PassiveDef[] {
     const pool = this.cfg.items.filter((p) => this.level(p.id) < this.cfg.maxLevel);

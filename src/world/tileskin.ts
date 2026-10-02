@@ -207,6 +207,8 @@ export function planProps(
   props: PropDef[],
   seed: number | string,
   rules = PROPS_RULES,
+  /** 47라운드: 구조물이 먼저 차지한 칸 (`"x,y"`) — 소품을 놓지 않는다 */
+  exclude: ReadonlySet<string> = new Set(),
 ): PropPlacement[] {
   if (props.length === 0) return [];
   const out: PropPlacement[] = [];
@@ -228,7 +230,7 @@ export function planProps(
       const x = rng.int(I.x, I.x + I.w - 1);
       const y = rng.int(I.y, I.y + I.h - 1);
       const key = `${x},${y}`;
-      if (used.has(key) || blocked.has(key)) continue;
+      if (used.has(key) || blocked.has(key) || exclude.has(key)) continue;
       if (layout.tiles[y]?.[x] !== TileId.Floor) continue;
       const onRing = x === I.x || x === I.x + I.w - 1 || y === I.y || y === I.y + I.h - 1;
       if (prop.solid && !onRing) continue;

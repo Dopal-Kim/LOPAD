@@ -493,6 +493,8 @@ export const KEYS = {
   POTION: 'Q',
   /** 45라운드 Q2: 비전투 중 누르는 동안 달리기 (배율은 data/player.json sprint) */
   SPRINT: 'SHIFT',
+  /** 47라운드 Q5: 구조물 상호작용 (E 누르기, 묘는 2초 누르기). 키 이름은 data/structures.json rules.interactKey 와 같다 */
+  INTERACT: 'E',
 } as const;
 
 /**
@@ -528,3 +530,42 @@ export const TRAVERSAL = {
     DUST_SHEET: 'dash_dust',
   },
 };
+
+/**
+ * 47라운드 상호작용 구조물 연출 (임시값). 규칙·수치는 data/structures.json, 여기는 그림·깊이만.
+ * 아트 시트(계약 art-assets §5)가 없으면 플레이스홀더 도형(데이터 placeholder.color + 짧은 글자)으로 그린다.
+ */
+export const STRUCTURE_FX = {
+  /** 시트 이펙트 내부 동작 이름 (`sheet_<id>_st`) */
+  SHEET_ACTION: 'st',
+  /** 바닥형(링·룰렛) 깊이: 소품 위, 그림자 아래 */
+  FLOOR_DEPTH: 0.6,
+  /** 플레이스홀더: 채움 알파 · 바닥형 채움 알파 · 테두리 · 글자 */
+  FILL_ALPHA: 0.9,
+  FLOOR_FILL_ALPHA: 0.22,
+  STROKE_COLOR: 0x101014,
+  STROKE_WIDTH: 1,
+  LABEL_FONT: '10px monospace',
+  LABEL_COLOR: '#f0e8d8',
+  /** 다 쓴 구조물 알파 (시트에 used 상태가 없을 때) */
+  USED_ALPHA: 0.45,
+  /** 맞음 깜빡임 */
+  HIT_FLASH_MS: 80,
+  HIT_FLASH_COLOR: 0xffffff,
+  /** 부서짐 파편 (시트에 broken 이 없을 때) */
+  DEBRIS_COUNT: 4,
+  DEBRIS_MS: 260,
+  DEBRIS_DIST_PX: 10,
+  /** 독주 웅덩이·불바다 (fire_pool 시트가 없을 때) */
+  PUDDLE_COLOR: 0xb06a20,
+  PUDDLE_ALPHA: 0.35,
+  FIRE_COLOR: 0xff7a1a,
+  FIRE_ALPHA: 0.45,
+  /** 화상 표시 (적 깜빡임) · 불붙은 무기(플레이어 틴트 깜빡임 간격) */
+  BURN_COLOR: 0xff8a2a,
+  FIRE_WEAPON_BLINK_MS: 240,
+  /** 숨은 벽 단서: 호박 빛 1px 선 */
+  CRACK_COLOR: 0xe0a040,
+  /** 투견 링 시작: 플레이어를 링 중심에서 아래로 이 칸만큼 (링 안) */
+  RING_ENTER_TILES: 2,
+} as const;

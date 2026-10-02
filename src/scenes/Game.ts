@@ -78,8 +78,11 @@ import type { Boss } from '../objects/Boss';
 import { fontStatus } from '../systems/fonts';
 import { audio } from '../systems/audio';
 import { exposeDebug } from '../debug';
+import { StructureSystem } from '../systems/structures/StructureSystem';
+import { planStructures, structureTiles } from '../systems/structures/placement';
 
-type GameInitData = { mode?: 'new' | 'next'; weapon?: string; playerName?: string };
+/** mode 'floor' = 디버그·검증용 층 이동 (47라운드, 세이브 없음) */
+type GameInitData = { mode?: 'new' | 'next' | 'floor'; weapon?: string; playerName?: string; floor?: number };
 
 export class Game extends Phaser.Scene {
   private player: Player;
@@ -98,6 +101,9 @@ export class Game extends Phaser.Scene {
   private initMode: GameInitData['mode'];
   private initWeapon?: string;
   private initName?: string;
+  private initFloor = 0;
+  /** 47라운드 상호작용 구조물 */
+  private structures: StructureSystem;
   private playerShots: Phaser.GameObjects.Group;
   private lastShotAt = -Infinity;
   /** 디버그: 마지막 공격 이벤트 · 마지막 결과 화면 페이로드 */
@@ -165,6 +171,7 @@ export class Game extends Phaser.Scene {
     this.initMode = data?.mode;
     this.initWeapon = data?.weapon;
     this.initName = data?.playerName;
+    this.initFloor = data?.floor ?? 0;
     this.transitioning = false;
   }
 
@@ -180,7 +187,18 @@ export class Game extends Phaser.Scene {
     this.clearedRooms = new Set();
     this.bossName = null;
     const floor = gameState.stageIndex + 1;
-    this.world = new TileWorld(this, layout, tileSkins.get(floor) ?? TileSkin.placeholder(), gameState.floorSeed);
+    // 47라운드: 구조물을 소품보다 먼저 배치하고 그 칸은 소품에서 뺀다. ?structures=all 이면 이 층 종류 전부(데모·검증)
+    const urlParams = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+    const structurePlan = planStructures(layout, gameState.stageId, gameState.floorSeed, {
+      forceAll: urlParams.get('structures') === 'all',
+    });
+    this.world = new TileWorld(
+      this,
+      layout,
+      tileSkins.get(floor) ?? TileSkin.placeholder(),
+      gameState.floorSeed,
+      structureTiles(structurePlan),
+    );
     this.physics.world.setBounds(0, 0, this.world.widthPx, this.world.heightPx);
     // 층 강조색: 캐릭터 시트의 1층 램프를 현재 층 램프로 치환한 변형 텍스처·애니 (1층은 원본)
     spriteLibrary.activate(this, floor);
@@ -278,7 +296,43 @@ export class Game extends Phaser.Scene {
       onRunCleared: () => this.beginEnding(),
       onStageCleared: (room) => this.beginStageReward(room),
       isLastStage: () => gameState.isLastStage,
+      waveMods: (room) => this.structures?.waveMods(room) ?? { hpMult: 1, countMult: 1, extra: 0 },
     });
+
+    this.structures = new StructureSystem(
+      {
+        scene: this,
+        world: this.world,
+        director: this.director,
+        player: this.player,
+        mobs: this.mobs,
+        menu: this.menu,
+        fx: this.fx,
+        rng: this.rng,
+        stageId: gameState.stageId,
+        addGold: (n) => this.addGold(n),
+        spendGold: (n) => this.spendGold(n),
+        spawnPickup: (x, y, kind, value) => this.spawnPickup(x, y, kind, value),
+        gainPersonality: (n) => this.gainPersonality(n),
+        heal: (n) => this.player.heal(n),
+        hitMob: (m, dmg, o) => this.hitMob(m, dmg, o),
+        onKill: (m, kind) => this.onKill(m, kind),
+        potionCarry: () => this.potionCarry,
+        isBusy: () =>
+          this.frozen ||
+          this.warping ||
+          this.transitioning ||
+          this.menu.isOpen ||
+          gameState.rewardPending ||
+          gameState.gameOver ||
+          gameState.cleared,
+        openStatChooser: () => {
+          if (gameState.pointsPending > 0) this.openStatChooser(() => {});
+        },
+        story: (kind, text) => this.story(kind, text),
+      },
+      structurePlan,
+    );
 
     this.inputSystem = new InputSystem(this);
 
@@ -512,6 +566,20 @@ export class Game extends Phaser.Scene {
         vy: this.player.body.velocity.y,
         dust: this.sprintDustCount,
       }),
+      structures: {
+        list: () => this.structures.debugList(),
+        state: () => this.structures.debugState(),
+        standPoint: (id) => this.structures.standPoint(id),
+        pressE: () => this.structures.debugPressE(),
+        hit: (id) => this.structures.debugHit(id),
+        interactable: () => this.structures.interactable(),
+        statuses: () => this.structures.statuses(),
+      },
+      gotoFloor: (n) => {
+        if (this.transitioning) return;
+        this.transitioning = true;
+        this.scene.restart({ mode: 'floor', floor: n - 1 } satisfies GameInitData);
+      },
       setBossHp: (hp) => {
         for (const m of this.mobs.getChildren() as Mob[]) {
           if (m.isBoss && m.active) {
@@ -579,9 +647,11 @@ export class Game extends Phaser.Scene {
     }
 
     const raw = this.inputSystem.read();
-    // 워프 연출 동안 입력 잠금 (45라운드)
-    const input = time < this.warpLockUntil ? neutralInput(raw) : raw;
+    // 워프 연출 동안 입력 잠금 (45라운드) · 구조물 메뉴 동안 입력 잠금 (47라운드 계약 §9.3)
+    let input = time < this.warpLockUntil || this.structures.inputLocked ? neutralInput(raw) : raw;
     if (input.potionPressed) this.usePotion();
+    this.structures.update(input, time, delta);
+    input = this.structures.adjustAim(input, time);
     this.player.sprintAllowed = !this.director.inCombat;
     this.player.update(input, time, delta);
     this.updateSprintDust(time);
@@ -615,6 +685,7 @@ export class Game extends Phaser.Scene {
     for (const child of this.projectiles.getChildren()) (child as Projectile).tick(time);
     for (const child of this.pickups.getChildren()) (child as Pickup).tick(time);
     for (const child of this.playerShots.getChildren()) (child as Projectile).tick(time);
+    this.structures.tickShots(this.playerShots.getChildren() as Projectile[]);
     this.tickHoming(delta);
     this.tickDotZones(time);
     this.tickBleeds(time);
@@ -757,13 +828,22 @@ export class Game extends Phaser.Scene {
   }
 
   /** 공격력 × 배율 × 치명타 × 패시브. 치명타 확률은 기본 + 보너스 + 무기. forceCrit 이면 확정 */
-  private rollDamage(mult: number, forceCrit = false): { dmg: number; crit: boolean } {
-    const crit = forceCrit || rollCrit(gameState.crit, this.rng);
+  private rollDamage(
+    mult: number,
+    forceCrit = false,
+    kind: 'attack' | 'dashAttack' | 'aimed' | 'other' = 'other',
+  ): { dmg: number; crit: boolean } {
+    const crit = forceCrit || rollCrit(gameState.crit + this.structures.critBonus(), this.rng);
     const P = gameState.passives;
     const lowHp = P.lowHpThreshold() > 0 && gameState.hp / gameState.maxHp <= P.lowHpThreshold();
     const passiveMult = 1 + P.total('attackMult') + (lowHp ? P.total('lowHpAttackMult') : 0);
     const dmg = Math.round(
-      gameState.attack * mult * gameState.weapon.damageMult * passiveMult * (crit ? ECONOMY.critDamageMult : 1),
+      gameState.attack *
+        mult *
+        gameState.weapon.damageMult *
+        passiveMult *
+        (crit ? ECONOMY.critDamageMult : 1) *
+        this.structures.damageMult(kind, crit),
     );
     return { dmg, crit };
   }
@@ -793,7 +873,7 @@ export class Game extends Phaser.Scene {
     const mods = weapon.mods;
     const now = this.time.now;
     const aimed = p.kind === 'aimed';
-    const { dmg, crit } = this.rollDamage(p.damageMult * rapidMult, p.forceCrit);
+    const { dmg, crit } = this.rollDamage(p.damageMult * rapidMult, p.forceCrit, p.kind);
     // 조준 사격·섬광: 무한 관통
     const pierce = aimed || mods.pierceInfinite ? Infinity : (mods.pierce ?? 0);
     const size = weapon.hitbox.width * p.sizeMult;
@@ -952,6 +1032,7 @@ export class Game extends Phaser.Scene {
       this.onKill(mob, stunnedByParry ? 'parry' : 'attack');
       return;
     }
+    this.structures.onMobHit(mob, shot.fire);
     if (shot.hitStunMs > 0) mob.stun(now, shot.hitStunMs, 'hit');
   }
 
@@ -965,6 +1046,8 @@ export class Game extends Phaser.Scene {
     const horizontal = Math.abs(p.dirX) >= Math.abs(p.dirY);
     const w = (horizontal ? hb.width : hb.height) * p.sizeMult;
     const h = (horizontal ? hb.height : hb.width) * p.sizeMult;
+    // 47라운드: 타격형 구조물·화로 점화·불붙은 무기의 웅덩이 점화
+    this.structures.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
     // 베기 시트가 있으면 판정 사각형은 보이지 않게(판정만), 없으면 기존 플레이스홀더 표시
     const evoFx = this.evolutionFxId();
     const swingFx = this.pathFx('wide', 'iai', 'dance', 'twin');
@@ -1060,13 +1143,14 @@ export class Game extends Phaser.Scene {
     const now = this.time.now;
     const mods = gameState.weapon.mods;
     const stunnedByParry = mob.isParryStunned(now);
-    const { dmg, crit } = this.rollDamage(p.damageMult, p.forceCrit);
+    const { dmg, crit } = this.rollDamage(p.damageMult, p.forceCrit, p.kind);
     // 2차 전용 치명 이펙트: 급소(대쉬 베기 적중) → dashcrit, 암살(그림자 걸음 직후) → assassin. 둘 다 crit_burst 대신
     const critFx = p.primed ? this.pathFx('assassin') : p.kind === 'dashAttack' ? this.pathFx('dashcrit') : null;
     if (this.hitMob(mob, dmg, { crit, dirX: p.dirX, dirY: p.dirY, critFx })) {
       this.onKill(mob, stunnedByParry ? 'parry' : p.kind === 'aimed' ? 'attack' : p.kind);
       return;
     }
+    this.structures.onMobHit(mob, false);
     if (mods.hitStunMs) mob.stun(now, mods.hitStunMs, 'hit');
     if (mods.bleed) {
       const B = mods.bleed;
@@ -1180,6 +1264,7 @@ export class Game extends Phaser.Scene {
       g.strokeCircle(p.x, p.y, radius);
       this.tweens.add({ targets: g, alpha: 0, duration: PROTOTYPE.GUARD_PUSH_MS, onComplete: () => g.destroy() });
     }
+    this.structures.onPush(p.x, p.y, radius);
     const ironwall = counter > 0 ? this.pathFx('ironwall') : null;
     if (ironwall) this.fx.play(ironwall, p.x, p.y, { dir, depth: entityDepth(p.y) + DEPTH.OVERLAY_STEP * 3 });
     for (const child of [...this.mobs.getChildren()]) {
@@ -1268,6 +1353,7 @@ export class Game extends Phaser.Scene {
     }
     if (longinvuln)
       this.fx.play(longinvuln, p.x, p.y, { dir, follow: this.player, depthOffset: DEPTH.OVERLAY_STEP * 3 });
+    this.structures.onDash(p.x, p.y, p.dirX, p.dirY, PLAYER_DATA.dash.distanceTiles * TILE);
     const afterimage = this.pathFx('afterimage');
     if (afterimage) this.fx.play(afterimage, p.x, p.y, { dir, depth: entityDepth(p.y) - DEPTH.OVERLAY_STEP });
     const mult = gameState.weapon.mods.dashTrailDamageMult;
@@ -1306,8 +1392,12 @@ export class Game extends Phaser.Scene {
 
   private onKill(mob: Mob, kind: KillKind): void {
     gameState.kills += 1;
-    this.dropLoot(mob);
-    this.gainPersonality(Math.round(mob.personalityValue * (1 + gameState.passives.total('personalityMult'))));
+    // 47라운드: 판돈 종·룰렛 '배수 판' 배율
+    const km = this.structures.killMods();
+    this.dropLoot(mob, km.goldMult);
+    this.gainPersonality(
+      Math.round(mob.personalityValue * (1 + gameState.passives.total('personalityMult')) * km.personalityMult),
+    );
     const lifesteal = gameState.passives.total('healOnKill');
     if (lifesteal > 0) this.player.heal(lifesteal);
     if (gameState.senses.recordKill(kind)) {
@@ -1581,9 +1671,9 @@ export class Game extends Phaser.Scene {
 
   // --- 경제: 드랍·획득·물약 ---
 
-  private dropLoot(mob: Mob): void {
+  private dropLoot(mob: Mob, goldMult = 1): void {
     const G = ECONOMY.gold;
-    const gold = rollGold(mob.goldValue, G.variance, this.rng);
+    const gold = Math.round(rollGold(mob.goldValue, G.variance, this.rng) * goldMult);
     this.spawnPickup(mob.x, mob.y, 'gold', gold);
     if (this.rng.chance(ECONOMY.drops.potion.chance)) this.spawnPickup(mob.x + 10, mob.y, 'potion', 1);
   }
@@ -1600,7 +1690,9 @@ export class Game extends Phaser.Scene {
     if (!pk.active) return;
     if (pk.kind === 'gold') {
       pk.deactivate();
-      this.addGold(pk.value);
+      // 47라운드 1-3: 빚이 있으면 일부 자동 상환
+      const kept = this.structures.onGoldPickup(pk.value);
+      if (kept > 0) this.addGold(kept);
     } else if (gameState.potions < this.potionCarry) {
       pk.deactivate();
       gameState.potions += 1;
@@ -1628,12 +1720,20 @@ export class Game extends Phaser.Scene {
       cleared,
     });
     metaStore.write(meta);
-    gameState.lastSoulGain = gained;
+    // 47라운드 C3 묘 '기록한다' 영혼은 이미 메타에 적립 — 결과 화면에 합산만
+    gameState.lastSoulGain = gained + gameState.bonusSouls;
   }
 
   private addGold(amount: number): void {
     gameState.gold += amount;
     EventBus.emit(Events.GOLD_CHANGED, { gold: gameState.gold, delta: amount });
+  }
+
+  /** 47라운드 구조물 지불 (궤짝·잔·판돈 등) */
+  private spendGold(amount: number): void {
+    if (amount <= 0) return;
+    gameState.gold = Math.max(0, gameState.gold - amount);
+    EventBus.emit(Events.GOLD_CHANGED, { gold: gameState.gold, delta: -amount });
   }
 
   private usePotion(): void {
@@ -1951,6 +2051,9 @@ export class Game extends Phaser.Scene {
       inCombat: this.director.inCombat,
       sprinting: this.player.sprinting,
       warp: this.warpState(),
+      interactable: this.structures?.interactable() ?? null,
+      statuses: this.structures?.statuses() ?? [],
+      structureRooms: this.structures?.structureRooms(),
     });
   }
 
@@ -2154,6 +2257,8 @@ export class Game extends Phaser.Scene {
     if (this.initMode === 'next') {
       gameState.nextStage();
       this.saveIfAllowed();
+    } else if (this.initMode === 'floor') {
+      gameState.gotoStage(this.initFloor);
     } else if (this.initMode === 'new') {
       gameState.startRun(this.pickSeed(), this.initWeapon, this.initName ?? '');
       this.saveSlot.clear();
@@ -2206,6 +2311,7 @@ export class Game extends Phaser.Scene {
     this.trails.destroy();
     this.screenFx.destroy();
     this.aimLine.destroy();
+    this.structures.destroy();
     this.fx.destroy();
     audio.stopAllLoops();
     setMenuSelect(null);

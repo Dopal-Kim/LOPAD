@@ -115,6 +115,48 @@ export interface DebugApi {
   warpInfo: () => WarpDebugInfo;
   /** 45라운드: 달리기 허용·중·배율·속도(px/s)·먼지 횟수 */
   sprintInfo: () => SprintDebugInfo;
+  /** 47라운드: 구조물 목록 (id·종류·방·중심 좌표·타일·상태·아트 여부·다 씀) */
+  structures: () => StructureDebugInfo[];
+  /** 47라운드: 층 구조물 상태 (빚·취기·판돈·불씨·불붙은 무기·전당·링·룰렛·웅덩이·최근 결과) */
+  structureState: () => Record<string, unknown>;
+  /** 47라운드: 구조물 앞으로 순간이동 (id 또는 종류 이름 — 종류면 첫 번째). 이동한 좌표 */
+  gotoStructure: (idOrKind: string) => { id: string; x: number; y: number } | null;
+  /** 47라운드: 다음 프레임에 E 를 누른 것으로 (묘는 2초 누르기 완료로) */
+  pressE: () => void;
+  /** 47라운드: 타격형 구조물을 플레이어 쪽에서 한 번 친다 (id 또는 종류 이름) */
+  hitStructure: (idOrKind: string) => boolean;
+  /** 47라운드: 계약 §9 interactable · statuses */
+  interactable: () => unknown;
+  statuses: () => unknown;
+  /** 47라운드: n층(1부터)으로 바로 이동 (세이브 없음) */
+  gotoFloor: (n: number) => void;
+}
+
+export interface StructureDebugInfo {
+  id: string;
+  kind: string;
+  roomId: string;
+  x: number;
+  y: number;
+  tx: number;
+  ty: number;
+  w: number;
+  h: number;
+  state: string;
+  visual: string;
+  art: boolean;
+  exhausted: boolean;
+  rolling: boolean;
+}
+
+export interface StructureDebugApi {
+  list: () => StructureDebugInfo[];
+  state: () => Record<string, unknown>;
+  standPoint: (id: string) => { x: number; y: number } | null;
+  pressE: () => void;
+  hit: (id: string) => boolean;
+  interactable: () => unknown;
+  statuses: () => unknown;
 }
 
 export interface WarpDebugInfo {
@@ -220,6 +262,8 @@ export function exposeDebug(api: {
   evolveTo: (id: string) => boolean;
   warpInfo: () => WarpDebugInfo;
   sprintInfo: () => SprintDebugInfo;
+  structures: StructureDebugApi;
+  gotoFloor: (n: number) => void;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -326,6 +370,28 @@ export function exposeDebug(api: {
       art: api.world.skin.isArt,
       props: api.world.propsLayer?.filterTiles((t: Phaser.Tilemaps.Tile) => t.index >= 0).length ?? 0,
     }),
+    structures: () => api.structures.list(),
+    structureState: () => api.structures.state(),
+    gotoStructure: (idOrKind) => {
+      const list = api.structures.list();
+      const s =
+        list.find((x) => x.id === idOrKind) ??
+        list.find((x) => x.kind === idOrKind && !x.exhausted && x.state !== 'broken');
+      if (!s) return null;
+      const p = api.structures.standPoint(s.id);
+      if (!p) return null;
+      api.player.body.reset(p.x, p.y);
+      return { id: s.id, x: p.x, y: p.y };
+    },
+    pressE: () => api.structures.pressE(),
+    hitStructure: (idOrKind) => {
+      const list = api.structures.list();
+      const s = list.find((x) => x.id === idOrKind) ?? list.find((x) => x.kind === idOrKind && x.state === 'idle');
+      return s ? api.structures.hit(s.id) : false;
+    },
+    interactable: () => api.structures.interactable(),
+    statuses: () => api.structures.statuses(),
+    gotoFloor: (n) => api.gotoFloor(n),
     doorsOf: (roomId) =>
       api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };

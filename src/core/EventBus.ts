@@ -77,6 +77,15 @@ export const Events = {
   /** 45라운드 워프: 시작(퇴장 섬광) · 도착 (음향 훅 후보, 현재 매핑 없음) */
   WARP_STARTED: 'warp:started',
   WARP_ARRIVED: 'warp:arrived',
+  /** 47라운드 구조물 (음향 훅): 맞음 · 부서짐 · 사용 완료 · 불붙음 · 판돈 종 · 룰렛 · 도전 시작/끝 */
+  STRUCTURE_HIT: 'structure:hit',
+  STRUCTURE_BROKEN: 'structure:broken',
+  STRUCTURE_USED: 'structure:used',
+  STRUCTURE_FIRE: 'structure:fire',
+  STRUCTURE_BELL: 'structure:bell',
+  STRUCTURE_ROULETTE: 'structure:roulette',
+  CHALLENGE_STARTED: 'challenge:started',
+  CHALLENGE_CLEARED: 'challenge:cleared',
 } as const;
 
 export type PlayerAttackPayload = {
@@ -98,8 +107,8 @@ export type PlayerAttackPayload = {
 };
 export type PlayerSecondaryPayload = {
   kind: 'parry' | 'guard' | 'shadowstep' | 'aimedshot';
-  /** ready = 조준 사격 차지 완료(유지 중, 떼면 발사 — 31라운드 2) */
-  phase: 'start' | 'ready' | 'cancel';
+  /** ready = 조준 사격 차지 완료(유지 중, 떼면 발사 — 31라운드 2). block = 가드로 피격을 받아냄(47라운드 룰렛 규칙) */
+  phase: 'start' | 'ready' | 'cancel' | 'block';
 };
 export type EnemyDamagedPayload = { id: string; amount: number; crit: boolean; died: boolean; tick: boolean };
 export type EnemyAttackPayload = { id: string; kind: 'contact' | 'dash' | 'shot' };
@@ -130,3 +139,12 @@ export type WeaponEvolvedPayload = { weapon: string; stage: number; name: string
 export type WeaponReinforcedPayload = { weapon: string; reinforce: number; name: string };
 /** 45라운드 워프 (시작·도착 공통) */
 export type WarpPayload = { fromRoomId: string; roomId: string; x: number; y: number };
+/** 47라운드 구조물 이벤트 (내부, 음향 훅). kind = 계약 UiStructureKind */
+export type StructureEventPayload = { id: string; kind: string; roomId: string; actionKey?: string };
+export type StructureFirePayload = { target: 'weapon' | 'arrow' | 'pool' | 'burn' };
+export type StructureBellPayload = { id: string; confirmed: boolean; rings: number };
+export type ChallengeEventPayload = {
+  id: string;
+  kind: 'dogRing' | 'cardTable';
+  outcome?: 'clear' | 'flawless' | 'timeout';
+};

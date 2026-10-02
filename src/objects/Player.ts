@@ -39,6 +39,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   moving = false;
   /** 45라운드: 달리기 허용 (비전투). Game 이 매 프레임 RoomDirector 기준으로 넣는다 */
   sprintAllowed = false;
+  /** 47라운드: 환경 이동 배율 (독주 웅덩이 -20%). 구조물 시스템이 매 프레임 넣는다 */
+  envSpeedMult = 1;
   /** 현재 이동 속도 배율 (1 ~ sprint.speedMult, 가속·감속) */
   private sprintFactor = 1;
   /** 이번 프레임 달리기 입력이 유효했는지 (Shift + 허용 + 이동 + 일반 상태) */
@@ -219,7 +221,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       let slow = time < this.attackSlowUntil ? gameState.weapon.attackSlowMult : 1;
       if (this.action === 'guard' && S.kind === 'guard') slow = Math.min(slow, S.moveMult);
       if (this.action === 'aim' && S.kind === 'aimedshot') slow = Math.min(slow, S.moveMult);
-      const speed = this.speedPx * slow * this.sprintFactor;
+      const speed = this.speedPx * slow * this.sprintFactor * this.envSpeedMult;
       this.body.setVelocity(dir.x * speed, dir.y * speed);
     }
     this.animateLocomotion(input, dir, time);
@@ -407,6 +409,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     const mods = gameState.weapon.mods;
     if (this.action === 'guard' && S.kind === 'guard') {
       amount = Math.round(amount * (1 - (mods.guardReduction ?? S.damageReduction)));
+      EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'guard', phase: 'block' } satisfies PlayerSecondaryPayload);
     }
     if (mods.superArmorReduction && time < this.attackSlowUntil) {
       amount = Math.round(amount * (1 - mods.superArmorReduction));

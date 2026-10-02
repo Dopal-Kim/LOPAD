@@ -1,8 +1,12 @@
 /**
  * 감각 수치 (기획서 4장): 스테이지마다 "적을 잡는 방식"을 새로 할 때마다 +1.
- * 방식 분류는 임시(11라운드 확인 필요): attack(무기) · dashAttack(대쉬 공격) · parry(패링 경직/반사 처치).
+ * 방식 분류는 임시(11라운드 확인 필요): attack(무기) · dashAttack(대쉬 공격) · parry(패링 경직/반사 처치)
+ * · environment(47라운드 Q11: 1-1 독주 술통 충돌·불바다 처치) → 층당 최대 4.
  */
-export type KillKind = 'attack' | 'dashAttack' | 'parry';
+export type KillKind = 'attack' | 'dashAttack' | 'parry' | 'environment';
+
+/** 처치 방식 전체 (층당 감각 최대치 = 이 개수) */
+export const KILL_KINDS: readonly KillKind[] = ['attack', 'dashAttack', 'parry', 'environment'];
 
 export class SenseTracker {
   private kindsThisStage = new Set<KillKind>();

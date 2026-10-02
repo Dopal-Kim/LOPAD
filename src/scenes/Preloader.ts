@@ -10,6 +10,7 @@ import { audioFileRel, audioManifestRel, isAudioManifest, type AudioManifest } f
 import { spriteLibrary } from '../systems/sprites';
 import {
   allFxSheetIds,
+  normalizeStructureSheet,
   sheetJsonPath,
   sheetTextureKey,
   wantedSheets,
@@ -18,6 +19,7 @@ import {
 } from '../systems/spriteDefs';
 import { TileSkin, tileSkins, tilesetJsonPath, tilesetTextureKey, type TilesetJson } from '../world/tileskin';
 import { UI_SCENES } from '../ui';
+import { allStructureSprites } from '../systems/structures/data';
 
 interface Manifest {
   files: string[];
@@ -67,6 +69,7 @@ export class Preloader extends Phaser.Scene {
       Object.keys(BOSSES),
       Object.keys(WEAPONS),
       allFxSheetIds(WEAPONS),
+      allStructureSprites(),
     )) {
       const rel = sheetJsonPath(req);
       if (!exists(rel)) continue;
@@ -107,8 +110,10 @@ export class Preloader extends Phaser.Scene {
   private queueImages(): void {
     const sheets: SheetDef[] = [];
     for (const p of this.pendingSheets) {
-      const json = this.cache.json.get(p.jsonKey) as SheetJson | undefined;
-      if (!json || !json.image || !(json.frameWidth > 0) || !(json.frameHeight > 0) || !(json.frames > 0)) continue;
+      const raw = this.cache.json.get(p.jsonKey) as SheetJson | undefined;
+      if (!raw || !raw.image || !(raw.frameWidth > 0) || !(raw.frameHeight > 0) || !(raw.frames > 0)) continue;
+      // 구조물 시트(계약 §5)는 fps·loop·directions·pivot 을 생략할 수 있다
+      const json = p.req.category === 'structures' ? normalizeStructureSheet(raw) : raw;
       const textureKey = sheetTextureKey(p.req.name, p.req.action);
       const imageUrl = `${ASSETS.URL}/${p.dir}${json.image}`;
       // 동작 이름은 요청 기준 (이펙트 시트의 JSON action 은 파일 이름과 같아 내부 동작 'fx' 로 통일)

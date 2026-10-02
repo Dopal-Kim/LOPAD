@@ -53,6 +53,8 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   readonly visual: EntityVisual;
   /** 적·보스 id (= 시트 이름). 이벤트 페이로드에 쓴다 */
   readonly spriteId: string;
+  /** 47라운드: 이동 속도 배율 (독주 웅덩이 등 환경). 일반 적만, AI 가 정한 속도에 곱한다 */
+  speedMult = 1;
   /** 마지막으로 본 플레이어 위치 (대기 방향용) */
   private targetX = 0;
   private targetY = 0;
@@ -119,6 +121,7 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
       if (f > 0) this.body.setVelocity(sh.vx * f, sh.vy * f);
     } else {
       this.think(ctx);
+      if (this.speedMult !== 1 && !this.isBoss) this.body.velocity.scale(this.speedMult);
       if (sh) {
         const f = this.stepShove(ctx.delta);
         if (f > 0) this.body.setVelocity(this.body.velocity.x + sh.vx * f, this.body.velocity.y + sh.vy * f);

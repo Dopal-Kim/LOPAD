@@ -50,6 +50,13 @@ class GameState {
   ending: EndingChoice | null = null;
   /** 보스 처치 후 출구가 열린 상태 */
   exitOpen = false;
+  /** 47라운드 구조물: 층 안에서만 유지되는 방어력 가감 (1-5 취기). 층 전환 시 0 */
+  structureDefense = 0;
+  /**
+   * 47라운드 C3 묘 '기록한다'로 이번 런에 이미 메타에 적립한 영혼 (결과 화면 합산 표시용).
+   * 적립은 즉시 메타에 쓰므로 세이브 형식은 그대로다 (Q13)
+   */
+  bonusSouls = 0;
 
   get stageId(): string {
     return RUN.order[this.stageIndex];
@@ -79,6 +86,7 @@ class GameState {
     this.hp = PLAYER_DATA.stats.hp + this.meta.maxHp;
     this.maxHp = PLAYER_DATA.stats.hp + this.meta.maxHp;
     this.lastSoulGain = 0;
+    this.bonusSouls = 0;
     this.runSettled = false;
     this.ending = null;
     this.kills = 0;
@@ -99,6 +107,13 @@ class GameState {
     this.resetStage();
   }
 
+  /** 디버그·검증 전용 (47라운드): 지정 층으로 바로 (세이브 없음, 나머지는 nextStage 와 같음) */
+  gotoStage(index: number): void {
+    this.stageIndex = Math.max(0, Math.min(RUN.order.length - 1, Math.floor(index)));
+    this.senses.nextStage();
+    this.resetStage();
+  }
+
   private resetStage(): void {
     this.trialsCleared = 0;
     this.trialsTotal = 0;
@@ -112,6 +127,7 @@ class GameState {
     this.cleared = false;
     this.exitOpen = false;
     this.rewardPending = false;
+    this.structureDefense = 0;
   }
 
   /** 기본 스탯 + 런 보너스 */
@@ -120,7 +136,13 @@ class GameState {
   }
 
   get defense(): number {
-    return PLAYER_DATA.stats.defense + this.bonus.defense + this.meta.defense + this.passives.total('defense');
+    return (
+      PLAYER_DATA.stats.defense +
+      this.bonus.defense +
+      this.meta.defense +
+      this.passives.total('defense') +
+      this.structureDefense
+    );
   }
 
   /** 1부터 세는 도달 층 */

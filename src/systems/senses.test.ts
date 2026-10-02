@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SenseTracker } from './senses';
+import { KILL_KINDS, SenseTracker } from './senses';
 
 describe('SenseTracker', () => {
   it('같은 스테이지에서 새 방식마다 1씩', () => {
@@ -17,5 +17,12 @@ describe('SenseTracker', () => {
     expect(t.sense).toBe(1);
     expect(t.recordKill('attack')).toBe(true);
     expect(t.sense).toBe(2);
+  });
+  it('47라운드: 환경 처치가 네 번째 방식 → 층당 최대 4', () => {
+    const t = new SenseTracker();
+    for (const k of KILL_KINDS) expect(t.recordKill(k)).toBe(true);
+    expect(t.recordKill('environment')).toBe(false);
+    expect(t.gainedThisStage).toBe(4);
+    expect(KILL_KINDS).toHaveLength(4);
   });
 });

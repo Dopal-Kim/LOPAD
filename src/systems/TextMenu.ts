@@ -25,11 +25,21 @@ export class TextMenu {
     return this.current?.menu ?? null;
   }
 
-  open(id: UiMenuId, title: string, lines: MenuLine[], onSelect: (key: string) => void, footer = ''): void {
+  open(
+    id: UiMenuId,
+    title: string,
+    lines: MenuLine[],
+    onSelect: (key: string) => void,
+    footer = '',
+    /** 47라운드 구조물 메뉴 (계약 §9.4): 그만두기 key('0') · 연 구조물 id */
+    extra: { cancelKey?: string; structureId?: string } = {},
+  ): void {
     // 같은 메뉴를 다시 그리는 것(상점·보상 갱신)은 reopen — 열림 효과음을 내지 않는다
     const reopen = this.current?.menu.id === id;
     this.close(reopen);
     const menu: UiMenu = { id, title, footer: footer || undefined, lines };
+    if (extra.cancelKey !== undefined) menu.cancelKey = extra.cancelKey;
+    if (extra.structureId !== undefined) menu.structureId = extra.structureId;
     this.current = { menu, onSelect, selected: false };
     EventBus.emit(Events.MENU_OPENED, { id, reopen } satisfies MenuEventPayload);
     if (__system.rendererRegistered()) {

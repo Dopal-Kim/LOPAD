@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { DEPTH, TILE } from '../core/Constants';
 import { Rng } from '../systems/rng';
 import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } from '../systems/mapgen';
-import { CELL_H, CELL_W } from '../systems/mapgen/types';
+import { CELL_H, CELL_W, type Rect } from '../systems/mapgen/types';
 import { findSafeTile } from '../systems/traversal';
 import { TileSkin, isOpenId, planProps, roomTypeMap } from './tileskin';
 
@@ -21,6 +21,8 @@ export class TileWorld {
   readonly propsLayer: Phaser.Tilemaps.TilemapLayer | null = null;
   private roomById: Map<string, Room>;
   private readonly solidPropIndices: number[];
+  /** 47라운드: 단단한 구조물이 차지한 칸 (`"x,y"`) — 걸을 수 없는 칸으로 본다 (적 생성·워프 착지 회피) */
+  private readonly blocked = new Set<string>();
 
   constructor(
     scene: Phaser.Scene,
@@ -28,6 +30,8 @@ export class TileWorld {
     readonly skin: TileSkin = TileSkin.placeholder(),
     /** 소품 배치 시드 (층 시드) */
     propSeed: number | string = layout.seed,
+    /** 47라운드: 구조물이 먼저 차지한 칸 (소품 제외) */
+    structureTiles: ReadonlySet<string> = new Set(),
   ) {
     const isOpen = (x: number, y: number) => isOpenId(layout.tiles[y]?.[x]);
     // 방 종류별 바닥(37라운드): 방 내부 바닥은 roomFloors[type], 복도·그 외는 tiles["1"]
@@ -46,7 +50,8 @@ export class TileWorld {
     if (skin.props.length > 0) {
       const props = this.map.createBlankLayer('props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
       props.setDepth(DEPTH.PROPS);
-      for (const p of planProps(layout, skin.props, propSeed)) props.putTileAt(p.index, p.x, p.y);
+      for (const p of planProps(layout, skin.props, propSeed, undefined, structureTiles))
+        props.putTileAt(p.index, p.x, p.y);
       if (this.solidPropIndices.length > 0) props.setCollision(this.solidPropIndices);
       this.propsLayer = props;
     }
@@ -92,7 +97,29 @@ export class TileWorld {
       const p = this.propsLayer.getTileAtWorldXY(worldX, worldY);
       if (p && this.solidPropIndices.includes(p.index)) return false;
     }
+    if (this.blocked.size > 0 && this.blocked.has(`${t.x},${t.y}`)) return false;
     return true;
+  }
+
+  /** 47라운드: 단단한 구조물 칸 표시 (on=false 면 해제 — 술통이 굴러가면) */
+  setBlocked(tx: number, ty: number, on: boolean): void {
+    if (on) this.blocked.add(`${tx},${ty}`);
+    else this.blocked.delete(`${tx},${ty}`);
+  }
+
+  /**
+   * 47라운드 1-6 숨은 벽: 벽선의 입구 칸과 저장고 바닥을 바닥으로, 둘레를 벽으로 바꾼다 (충돌 갱신 포함).
+   * 저장고는 방 내부 밖이라 방 판정·적 생성에는 들어가지 않는다
+   */
+  carveCellar(
+    inner: Rect,
+    opening: readonly { x: number; y: number }[],
+    ring: readonly { x: number; y: number }[],
+  ): void {
+    for (const r of ring) this.put(TileId.Wall, r.x, r.y);
+    for (let y = inner.y; y < inner.y + inner.h; y++)
+      for (let x = inner.x; x < inner.x + inner.w; x++) this.put(TileId.Floor, x, y);
+    for (const o of opening) this.put(TileId.Floor, o.x, o.y);
   }
 
   cellAt(worldX: number, worldY: number): Cell {
