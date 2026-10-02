@@ -10,3 +10,6 @@
 | 3 | 2026-10-01 | 시스템 | 스토리 | `parts/producer/contracts/story-text.md` (프로듀서가 text-pack·층 표에서 정리) | 계약의 이름 표·텍스트 키·문장만. `parts/story/**` 직접 읽기 금지 | 스토리 텍스트 반영 기간. 텍스트 변경은 스토리 파트 재인터뷰 후 계약 갱신 | 도영 님, 26라운드 |
 | 4 | 2026-10-01 | UI | 시스템 | `src/contract/ui.ts` 추가분 (STORY 이벤트, playerName, floorTitle) | 계약 `ui-system-interface.md` §1·§2 추가 항목만 | 〃 | 도영 님, 26라운드 |
 | 5 | 2026-10-01 | 전 파트 | 전 파트 | 저장소 전체 | **읽기 전체 공개** (29라운드 도영 님 지시, 31라운드 유지 확정). 열람 시마다 도영 님께 인터뷰로 알린다. 쓰기는 자기 소유 경로만. 계약 문서는 계속 유지·갱신 | 도영 님이 다르게 정할 때까지 | 도영 님, 29라운드 |
+| 6 | 2026-10-02 | 아트 | UI | `src/ui/*.ts`, `parts/ui/README.md` | UI 키트 제작을 위한 요소 파악(읽기) | 32라운드 UI 재설계 기간 | 도영 님, 32라운드 |
+| 7 | 2026-10-02 | UI | 아트·스토리 | `parts/art/palette/lopad.json`, `parts/art/art-bible.md`, `assets/ui/**`(키트), `parts/story/text-pack-2.json` | 색·질감·문구 적용(읽기) | 〃 | 도영 님, 32라운드 |
+| 8 | 2026-10-02 | 시스템 | 아트·음향 | `assets/**` 시트 JSON, `assets/audio/manifest.json` | 계약 범위 내 읽기 | 〃 | 도영 님, 32라운드 |

@@ -21,3 +21,12 @@
 2. 아트: UI 키트(패널 9-slice·게이지·아이콘·일기장 텍스처) → 계약 `contracts/ui-art-kit.md`.
 3. UI: 새 해상도 레이아웃 + UI 키트 적용 + 31라운드 문구 채택.
 4. 아트: 층별 전용 보스·타일셋(31라운드 3항) — 이후 묶음.
+
+### Q5. 방 한 칸 크기
+- 선택지: 80×48 타일 (추천) / 60×34 / 120×68
+- 결정: **80×48 타일** (1280×768px, 화면 960×540 의 약 1.3×1.4배). 시련 적 수·소품 수는 면적 비례 재조정(시스템 임시값 → 기록).
+
+### 열람 승인 (31라운드 규칙)
+- 아트 → `src/ui/*.ts`, `parts/ui/README.md` (UI 키트 제작용)
+- UI → `parts/art/palette/lopad.json`, `parts/art/art-bible.md`, UI 키트 `assets/ui/**`, `parts/story/text-pack-2.json`
+- 시스템 → 아트 시트 JSON(`assets/**`), 음향 manifest (계약 범위)
