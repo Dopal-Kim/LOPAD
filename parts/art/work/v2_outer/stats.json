@@ -1,0 +1,154 @@
+{
+ "tiles/v2/stage1_outer": {
+  "colors": 47,
+  "isolated": 27,
+  "size": [
+   256,
+   320
+  ]
+ },
+ "player/v2/player_idle": {
+  "colors": 26,
+  "isolated": 12,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "player/v2/player_walk": {
+  "colors": 26,
+  "isolated": 17,
+  "size": [
+   256,
+   192
+  ]
+ },
+ "player/v2/player_dash": {
+  "colors": 25,
+  "isolated": 11,
+  "size": [
+   96,
+   192
+  ]
+ },
+ "player/v2/player_hurt": {
+  "colors": 26,
+  "isolated": 4,
+  "size": [
+   64,
+   192
+  ]
+ },
+ "player/v2/player_death": {
+  "colors": 27,
+  "isolated": 18,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "player/v2/player_katana_combo1": {
+  "colors": 26,
+  "isolated": 9,
+  "size": [
+   128,
+   192
+  ]
+ },
+ "weapons/v2/katana_combo1": {
+  "colors": 19,
+  "isolated": 77,
+  "size": [
+   256,
+   256
+  ]
+ },
+ "player/v2/player_katana_combo2": {
+  "colors": 26,
+  "isolated": 6,
+  "size": [
+   96,
+   192
+  ]
+ },
+ "weapons/v2/katana_combo2": {
+  "colors": 17,
+  "isolated": 135,
+  "size": [
+   192,
+   256
+  ]
+ },
+ "player/v2/player_katana_combo3": {
+  "colors": 26,
+  "isolated": 12,
+  "size": [
+   128,
+   192
+  ]
+ },
+ "weapons/v2/katana_combo3": {
+  "colors": 20,
+  "isolated": 51,
+  "size": [
+   256,
+   256
+  ]
+ },
+ "weapons/v2/katana_carry_idle": {
+  "colors": 8,
+  "isolated": 120,
+  "size": [
+   384,
+   256
+  ]
+ },
+ "weapons/v2/katana_carry_walk": {
+  "colors": 8,
+  "isolated": 141,
+  "size": [
+   512,
+   256
+  ]
+ },
+ "enemies/v2/charger_idle": {
+  "colors": 23,
+  "isolated": 0,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "enemies/v2/charger_walk": {
+  "colors": 23,
+  "isolated": 0,
+  "size": [
+   256,
+   192
+  ]
+ },
+ "enemies/v2/charger_attack": {
+  "colors": 23,
+  "isolated": 0,
+  "size": [
+   128,
+   192
+  ]
+ },
+ "enemies/v2/charger_hurt": {
+  "colors": 24,
+  "isolated": 0,
+  "size": [
+   64,
+   192
+  ]
+ },
+ "enemies/v2/charger_death": {
+  "colors": 23,
+  "isolated": 0,
+  "size": [
+   192,
+   192
+  ]
+ }
+}
