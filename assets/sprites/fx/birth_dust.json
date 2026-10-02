@@ -1,0 +1,67 @@
+{
+ "image": "birth_dust.png",
+ "action": "birth_dust",
+ "frameWidth": 64,
+ "frameHeight": 32,
+ "frames": 9,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 9,
+ "frameDurationsMs": [
+  110,
+  110,
+  110,
+  110,
+  70,
+  90,
+  110,
+  140,
+  170
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 22
+ },
+ "anchor": "player_pivot",
+ "spawn": "birth_start",
+ "depth": "below",
+ "followsPlayer": false,
+ "segments": {
+  "swirl": {
+   "frames": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "loop": true,
+   "from": "player_birth frame 0",
+   "until": "player_birth burstFrame"
+  },
+  "scatter": {
+   "frames": [
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "loop": false,
+   "at": "player_birth burstFrame",
+   "then": "remove"
+  }
+ },
+ "segmentsFallback": "segments 를 읽지 않으면: 0~3 을 loop 로 재생하다가 burstFrame 에 4~8 을 1회 재생하는 것과 같게 처리 요망. 전부 1회 재생해도 깨지지 않는다(약 1초).",
+ "pivotNote": "피벗 (32,22) = 주인공 발(= player_birth 피벗 (16,31)). 소용돌이 타원 반지름 약 15~28 x 6~10, 흩어짐 고리 최대 30.",
+ "weapon": "any",
+ "palette": "parts/art/palette/lopad.json (gray 흙 + floor 1 accent [19, 21, 23, 25, 26] 잔불, runtime swap; 백열 코어·무기 보조 없음)",
+ "note": "48라운드 Q6 탄생 연출 바닥 이펙트. 흙 알갱이 3갈래 나선(바깥쪽, 주인공 시트의 안쪽 나선과 이어짐) 루프 4f(30°/f, 3겹 대칭 이음새 없음) → burstFrame 에 바깥으로 튕겨 흩어짐 + 먼지 피어오름 + 잔불 몇 점.",
+ "colors": {
+  "gray": 8,
+  "accent": 5
+ }
+}
