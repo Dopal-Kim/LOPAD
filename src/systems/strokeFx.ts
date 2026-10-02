@@ -7,14 +7,29 @@
  * 2. 자국 RenderTexture: 지나간 자리마다 즉시 찢긴 틈(검정) + 들뜬 가장자리 + 식은 잔불 선을 굽는다 → 필기처럼 남는다
  * 3. 빛 Graphics (ADD): 최근 조각만 매 프레임 다시 그린다. 백열 코어(fx.core X0/X1) → 층 강조(27/26/25) 순으로 식는다
  * 4. 불티 파티클 (ADD) + 펜 끝 빛 번짐, 빠르게 그을 때 미세 흔들림
+ * 5. 부스러기 파티클 (보통 혼합, 49라운드 1절): 긁힌 화면 조각·검은 재·잔불 조각이 튀었다가 중력으로 떨어진다
  * 속도가 빠를수록 틈이 넓고 밝다. 획을 떼면 그 획 전체가 한 번 더 번쩍(FLARE)하고 COOL_MS 동안 식는다.
+ * 3획을 다 그으면 `burst()` (49라운드 1절): 살짝 흔들림 + 획 맥동 → 백열 섬광이 획을 따라 달림 → 광선이 퍼짐
+ * → 화면이 하얗게 번쩍(이때 onPeak: 다음 장면 시작) → 걷힘(onDone).
  * 판정(strokeFeatures)과 무관한 표시 전용.
  */
 import Phaser from 'phaser';
 import { GAME } from '../core/Constants';
 import { PALETTE } from '../data';
 import { fxCoreColor, hexToInt, hexToRgb, rampFor } from './palette';
-import { STROKE_FX, gapIntensity, gapWidth, heatAt, jaggedPoints, offsetPoints } from './strokeFxMath';
+import {
+  STROKE_FX,
+  burstAt,
+  burstRays,
+  gapIntensity,
+  gapWidth,
+  heatAt,
+  jaggedPoints,
+  offsetPoints,
+  pathPointAt,
+  pathPrefix,
+  type BurstRay,
+} from './strokeFxMath';
 
 interface HotSeg {
   pts: number[];
@@ -33,6 +48,10 @@ export interface StrokeFxSummary {
   lastWidth: number;
   lastSpeed: number;
   shakes: number;
+  debrisAlive: number;
+  debrisEmitted: number;
+  /** 빛 터짐: null = 시작 전, 아니면 경과 ms·단계 */
+  burst: { t: number; trace: number; rays: number; white: number; peaked: boolean } | null;
 }
 
 export class StrokeFx {
@@ -42,6 +61,21 @@ export class StrokeFx {
   private readonly hotG: Phaser.GameObjects.Graphics;
   private readonly sparks: Phaser.GameObjects.Particles.ParticleEmitter;
   private readonly tip: Phaser.GameObjects.Image;
+  private readonly debris: Phaser.GameObjects.Particles.ParticleEmitter;
+  private debrisEmitted = 0;
+  /** 획별 원래 점 [x0,y0,x1,y1,…] (빛 터짐 경로) */
+  private paths: number[][] = [];
+  private burstStart: number | null = null;
+  /** 디버그: 빛 터짐 시계를 이 ms 에 멈춤 (스크린샷용) */
+  private burstHold: number | null = null;
+  private burstG?: Phaser.GameObjects.Graphics;
+  private glow?: Phaser.GameObjects.Image;
+  private white?: Phaser.GameObjects.Rectangle;
+  private rays: BurstRay[] = [];
+  private peakFired = false;
+  private onPeak?: () => void;
+  private onDone?: () => void;
+  private destroyed = false;
   private readonly ramp: number[];
   private readonly x0: number;
   private readonly x1: number;
@@ -86,6 +120,23 @@ export class StrokeFx {
       blendMode: Phaser.BlendModes.ADD,
     });
     this.sparks.setDepth(C.DEPTH_SPARK);
+    const D = C.DEBRIS;
+    this.debris = scene.add.particles(0, 0, D.KEY, {
+      emitting: false,
+      speed: { min: D.SPEED[0], max: D.SPEED[1] },
+      angle: { min: D.ANGLE[0], max: D.ANGLE[1] },
+      lifespan: { min: D.LIFE_MS[0], max: D.LIFE_MS[1] },
+      gravityY: D.GRAVITY,
+      scale: { min: D.SCALE[0], max: D.SCALE[1] },
+      alpha: { start: 1, end: 0, ease: 'Quad.easeIn' },
+      rotate: { min: 0, max: 360 },
+      tint: [
+        ...D.GRAYS.map((i) => this.gray[i] ?? 0x5c5e62),
+        ...Array.from({ length: D.ASH }, () => 0x000000),
+        ...D.EMBER_RAMP.map((i) => this.rampColor(i)),
+      ],
+    });
+    this.debris.setDepth(C.DEPTH_DEBRIS);
     this.tip = scene.add
       .image(0, 0, C.TIP.KEY)
       .setBlendMode(Phaser.BlendModes.ADD)
@@ -105,9 +156,11 @@ export class StrokeFx {
       .setPosition(x, y)
       .setVisible(true)
       .setAlpha(STROKE_FX.TIP.ALPHA * STROKE_FX.INTENSITY.MIN);
-    // 누른 자리에 작은 불티 한 줌 (긁기 시작)
+    // 누른 자리에 작은 불티 한 줌 + 부스러기 (긁기 시작)
     this.sparks.setEmitterAngle({ min: 0, max: 360 });
     this.sparks.emitParticleAt(x, y, Math.ceil(STROKE_FX.SPARKS.MAX_PER_MOVE / 2));
+    this.emitDebris(x, y, STROKE_FX.DEBRIS.ON_BEGIN);
+    this.paths.push([x, y]);
   }
 
   /** 획 진행: 지나간 조각을 찢고 빛을 넣는다 */
@@ -127,6 +180,8 @@ export class StrokeFx {
     this.hot.push({ pts, width: w, intensity: I, born: this.scene.time.now, stroke: this.strokeIndex });
     if (this.hot.length > C.HOT_MAX) this.hot.splice(0, this.hot.length - C.HOT_MAX);
     this.emitSparks(this.last.x, this.last.y, x, y, dist, I);
+    this.emitDebris(x, y, Math.min(C.DEBRIS.MAX_PER_MOVE, Math.round(dist * C.DEBRIS.PER_PX * (0.5 + I))));
+    this.paths[this.paths.length - 1]?.push(x, y);
     this.shake(this.speed);
     const r = (w - C.WIDTH.MIN_PX) / (C.WIDTH.MAX_PX - C.WIDTH.MIN_PX);
     this.tip
@@ -143,9 +198,19 @@ export class StrokeFx {
     this.drawing = false;
     this.flareAt.set(this.strokeIndex, this.scene.time.now);
     this.tip.setVisible(false);
+    // 뗄 때: 그 획을 따라 부스러기가 한 번 더 우수수
+    const path = this.paths[this.paths.length - 1];
+    if (path && path.length >= 4)
+      for (let k = 0; k < STROKE_FX.DEBRIS.ON_END; k++) {
+        const p = pathPointAt(path, this.rnd());
+        this.emitDebris(p.x, p.y, 1);
+      }
   }
 
   update(time: number): void {
+    if (this.destroyed) return;
+    if (this.burstStart !== null) this.updateBurst(time);
+    if (this.destroyed || this.peakFired) return;
     if (this.scarDirty) {
       this.scar.draw(this.scarG);
       this.scarG.clear();
@@ -172,7 +237,58 @@ export class StrokeFx {
     this.hot.length = keep;
   }
 
-  /** 획 단계를 떠날 때: 전부 서서히 사라지고 파괴 */
+  /**
+   * 3획을 다 그은 뒤 빛 터짐 (49라운드 1절). onPeak = 화면이 가장 하얀 순간(뒤에서 다음 장면 시작),
+   * onDone = 하얀 빛이 걷히고 이 연출이 스스로 파괴된 뒤.
+   */
+  burst(onPeak?: () => void, onDone?: () => void): void {
+    if (this.burstStart !== null || this.destroyed) return;
+    const C = STROKE_FX;
+    const B = C.BURST;
+    this.fading = true;
+    this.drawing = false;
+    this.tip.setVisible(false);
+    this.onPeak = onPeak;
+    this.onDone = onDone;
+    this.burstStart = this.scene.time.now;
+    this.rays = burstRays(this.paths, this.rnd);
+    this.burstG = this.scene.add.graphics().setDepth(C.DEPTH_RAYS).setBlendMode(Phaser.BlendModes.ADD);
+    let sx = 0;
+    let sy = 0;
+    let n = 0;
+    for (const p of this.paths)
+      for (let i = 0; i < p.length; i += 2) {
+        sx += p[i];
+        sy += p[i + 1];
+        n += 1;
+      }
+    this.glow = this.scene.add
+      .image(n ? sx / n : GAME.WIDTH / 2, n ? sy / n : GAME.HEIGHT / 2, B.GLOW_KEY)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setDepth(C.DEPTH_RAYS)
+      .setTint(this.x1)
+      .setAlpha(0);
+    this.white = this.scene.add
+      .rectangle(0, 0, GAME.WIDTH, GAME.HEIGHT, this.x0, 1)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(B.DEPTH_WHITE)
+      .setAlpha(0);
+    this.scene.cameras.main.shake(B.CHARGE_MS, B.SHAKE_INTENSITY);
+  }
+
+  /** 디버그: 빛 터짐 시계를 ms 에 멈춘다 (null = 풀고 그 자리부터 계속). 시작 전에 걸어 둘 수도 있다 */
+  holdBurst(ms: number | null): void {
+    if (ms === null && this.burstHold !== null && this.burstStart !== null)
+      this.burstStart = this.scene.time.now - this.burstHold;
+    this.burstHold = ms;
+  }
+
+  private burstT(time: number): number {
+    return this.burstHold ?? time - (this.burstStart ?? time);
+  }
+
+  /** 획 단계를 떠날 때(빛 터짐 없이, 폴백): 전부 서서히 사라지고 파괴 */
   fadeOut(onDone?: () => void): void {
     if (this.fading) return;
     this.fading = true;
@@ -199,20 +315,151 @@ export class StrokeFx {
       lastWidth: +this.lastWidth.toFixed(2),
       lastSpeed: Math.round(this.speed),
       shakes: this.shakes,
+      debrisAlive: this.debris.active ? this.debris.getAliveParticleCount() : 0,
+      debrisEmitted: this.debrisEmitted,
+      burst:
+        this.burstStart === null
+          ? null
+          : (() => {
+              const t = this.burstT(this.scene.time.now);
+              const st = burstAt(t);
+              return {
+                t: Math.round(t),
+                trace: +st.trace.toFixed(2),
+                rays: +st.rays.toFixed(2),
+                white: +st.white.toFixed(2),
+                peaked: st.peaked,
+              };
+            })(),
     };
   }
 
   destroy(): void {
+    if (this.destroyed) return;
+    this.destroyed = true;
     this.hot = [];
     this.surface.destroy();
     this.scar.destroy();
     this.scarG.destroy();
     this.hotG.destroy();
     this.sparks.destroy();
+    this.debris.destroy();
     this.tip.destroy();
+    this.burstG?.destroy();
+    this.glow?.destroy();
+    this.white?.destroy();
   }
 
   // --- 내부 ---
+
+  private emitDebris(x: number, y: number, n: number): void {
+    if (n <= 0) return;
+    this.debris.emitParticleAt(x, y, n);
+    this.debrisEmitted += n;
+  }
+
+  /** 빛 터짐 한 프레임 */
+  private updateBurst(time: number): void {
+    const C = STROKE_FX;
+    const B = C.BURST;
+    const t = this.burstT(time);
+    const st = burstAt(t);
+    const g = this.burstG!;
+    g.clear();
+    if (!st.peaked) {
+      // 1) 모음: 획 전체가 맥동하며 달아오름 + 부스러기
+      const pulse = 1 + 0.18 * Math.sin((t / B.PULSE_MS) * Math.PI * 2);
+      const heat = (B.CHARGE_HEAT[0] + (B.CHARGE_HEAT[1] - B.CHARGE_HEAT[0]) * st.charge) * pulse;
+      const w = (C.WIDTH.MIN_PX + C.WIDTH.MAX_PX) / 2;
+      for (const p of this.paths) if (p.length >= 4) this.glowPath(g, p, heat, w);
+      if (st.shaking)
+        for (let k = 0; k < B.CHARGE_DEBRIS; k++) {
+          const p = this.paths[Math.floor(this.rnd() * this.paths.length)];
+          if (!p || p.length < 4) continue;
+          const q = pathPointAt(p, this.rnd());
+          this.emitDebris(q.x, q.y, 1);
+        }
+      // 2) 백열 섬광이 획을 따라 달린다
+      if (st.trace > 0) {
+        for (const p of this.paths) {
+          if (p.length < 4) continue;
+          const pre = pathPrefix(p, st.trace);
+          this.glowPath(g, pre, B.TRACE_HEAT, C.WIDTH.MAX_PX * 1.4);
+          if (st.trace < 1) {
+            const hx = pre[pre.length - 2];
+            const hy = pre[pre.length - 1];
+            this.sparks.setEmitterAngle({ min: 0, max: 360 });
+            this.sparks.emitParticleAt(hx, hy, 2);
+            g.fillStyle(this.x0, 1);
+            g.fillCircle(hx, hy, C.WIDTH.MAX_PX);
+          }
+        }
+      }
+      // 3) 광선
+      if (st.rays > 0) this.drawRays(g, st.rays);
+      if (this.glow) {
+        const e = 1 - Math.pow(1 - st.rays, 3);
+        this.glow.setAlpha(0.95 * e).setScale(0.2 + (B.GLOW_SCALE - 0.2) * e);
+      }
+    }
+    this.white?.setAlpha(st.white);
+    if (st.peaked && !this.peakFired) {
+      // 가장 하얀 순간: 긁힌 화면을 걷어내고 다음 장면을 뒤에서 시작
+      this.peakFired = true;
+      for (const o of [this.surface, this.scar, this.hotG, this.sparks, this.debris, this.tip, this.glow])
+        o?.setVisible(false);
+      g.clear();
+      this.onPeak?.();
+    }
+    if (st.done) {
+      const done = this.onDone;
+      this.destroy();
+      done?.();
+    }
+  }
+
+  /** 경로 전체를 HOT_LAYERS 로 (열기 heat, 폭 width) */
+  private glowPath(g: Phaser.GameObjects.Graphics, pts: number[], heat: number, width: number): void {
+    for (const L of STROKE_FX.HOT_LAYERS) {
+      const a = L.alpha * Math.pow(Math.min(1, heat), L.pow) * (heat > 1 ? heat : 1);
+      if (a < 0.01) continue;
+      const color = L.color === 'x0' ? this.x0 : L.color === 'x1' ? this.x1 : this.rampColor(L.color);
+      g.lineStyle(Math.max(1, width * L.width), color, Math.min(1, a));
+      this.strokePts(g, pts);
+    }
+  }
+
+  /** 광선: 획 위 점에서 바깥으로 넓어지는 쐐기 3겹 (바깥 층 강조 → X1 → X0 코어) */
+  private drawRays(g: Phaser.GameObjects.Graphics, p: number): void {
+    const layers = [
+      { lf: 1, wf: 1, color: this.rampColor(10), a: 0.2 },
+      { lf: 0.68, wf: 0.55, color: this.x1, a: 0.32 },
+      { lf: 0.38, wf: 0.24, color: this.x0, a: 0.6 },
+    ];
+    for (const r of this.rays) {
+      const q = Math.max(0, Math.min(1, (p - r.delay) / (1 - r.delay)));
+      if (q <= 0) continue;
+      const e = 1 - Math.pow(1 - q, 3);
+      const fade = q < 0.6 ? 1 : 1 - ((q - 0.6) / 0.4) * 0.45;
+      const ca = Math.cos(r.angle);
+      const sa = Math.sin(r.angle);
+      for (const L of layers) {
+        const len = r.len * e * L.lf;
+        const w0 = 1.5;
+        const w1 = (r.width * L.wf) / 2;
+        const tx = r.x + ca * len;
+        const ty = r.y + sa * len;
+        g.fillStyle(L.color, L.a * fade);
+        g.beginPath();
+        g.moveTo(r.x - sa * w0, r.y + ca * w0);
+        g.lineTo(tx - sa * w1, ty + ca * w1);
+        g.lineTo(tx + sa * w1, ty - ca * w1);
+        g.lineTo(r.x + sa * w0, r.y - ca * w0);
+        g.closePath();
+        g.fillPath();
+      }
+    }
+  }
 
   /** 자국: 틈(검정, 끝 둥글게) → 들뜬 가장자리 2줄 → 식은 잔불 → 가는 심 */
   private bakeScar(pts: number[], w: number): void {
@@ -329,9 +576,22 @@ export class StrokeFx {
       g.generateTexture(C.SPARKS.KEY, C.SPARKS.SIZE_PX, C.SPARKS.SIZE_PX);
       g.destroy();
     }
-    if (!tex.exists(C.TIP.KEY)) {
-      const r = C.TIP.RADIUS_PX;
-      const canvas = tex.createCanvas(C.TIP.KEY, r * 2, r * 2)!;
+    if (!tex.exists(C.DEBRIS.KEY)) {
+      // 부스러기: 모서리 한 칸이 빠진 작은 조각 (재·화면 파편)
+      const d = C.DEBRIS.SIZE_PX;
+      const g = this.scene.make.graphics({ x: 0, y: 0 }, false);
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(0, 0, d, d - 1);
+      g.fillRect(1, d - 1, d - 1, 1);
+      g.generateTexture(C.DEBRIS.KEY, d, d);
+      g.destroy();
+    }
+    for (const [key, r] of [
+      [C.TIP.KEY, C.TIP.RADIUS_PX],
+      [C.BURST.GLOW_KEY, C.BURST.GLOW_RADIUS_PX],
+    ] as [string, number][]) {
+      if (tex.exists(key)) continue;
+      const canvas = tex.createCanvas(key, r * 2, r * 2)!;
       const ctx = canvas.context;
       const grad = ctx.createRadialGradient(r, r, 0, r, r, r);
       grad.addColorStop(0, 'rgba(255,255,255,1)');

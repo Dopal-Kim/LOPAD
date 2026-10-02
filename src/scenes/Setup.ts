@@ -2,9 +2,17 @@ import Phaser from 'phaser';
 import { COLORS, DEPTH, GAME, KEYS, PLACEHOLDER_UI, PROTOTYPE, SCENES } from '../core/Constants';
 import { PERSONALITY, STORY, WEAPONS } from '../data';
 import { fill } from '../systems/story';
-import type { Affinity } from '../data/types';
-import { chooseWeapon, strokeFeatures, type Stroke } from '../systems/personality';
-import { DODGE_TRIAL, emptySample, evaluateDodge, type DodgeEvaluation, type DodgeSample } from '../systems/dodgeTrial';
+import { chooseWeapon, strokeFeatures, type Stroke, type StrokeFeatures } from '../systems/personality';
+import {
+  ARENA_SHAPES,
+  DODGE_TRIAL,
+  emptySample,
+  gradeTrial,
+  type ArenaShape,
+  type DodgeSample,
+  type TrialGrade,
+  type TrialResult,
+} from '../systems/dodgeTrial';
 import { DodgeTrialRunner } from '../systems/dodgeTrialRunner';
 import { StrokeFx } from '../systems/strokeFx';
 import { STROKE_FX } from '../systems/strokeFxMath';
@@ -16,12 +24,13 @@ import { EventBus, Events } from '../core/EventBus';
 import { audio } from '../systems/audio';
 import { UI_EVENTS, __system } from '../contract/ui';
 
-type Phase = 'meta' | 'name' | 'strokes' | 'trial' | 'fate';
+type Phase = 'meta' | 'name' | 'strokes' | 'burst' | 'trial' | 'fate';
 
 /**
- * 개성 선택 (기획 1장): "가장 강한 것"을 3획으로 그리고(48라운드 Q8: 화면이 찢기며 빛이 새는 연출 `StrokeFx`),
- * 15초 회피 시험(48라운드 Q7, 14라운드 5초 리듬 대체 `DodgeTrialRunner`) 결과를 합쳐
- * 성향 벡터 + 무기별 가산으로 '운명' 무기를 정한다.
+ * 개성 선택 (기획 1장): "가장 강한 것"을 3획으로 그린다(48라운드 Q8: 화면이 찢기며 빛이 새는 연출 `StrokeFx`,
+ * 49라운드 1절: 부스러기 + 3획 뒤 흔들림 → 획에서 빛이 터짐). **무기는 3획만으로** 정한다(49라운드 2절).
+ * 이어서 15초 회피 시험(`DodgeTrialRunner`, 무작위 경기장이 가장자리부터 갉아먹힘)의 버틴 시간·피격으로
+ * 등급 → 시작 감각 +0~3 (`senseBonus`, Game 씬 시작 데이터로 넘긴다).
  * 화면·연출은 시스템 파트 플레이스홀더이며 UI·아트 파트 산출물로 교체 대상.
  */
 const NAME_MAX = 12;
@@ -91,16 +100,15 @@ const AUTO_STROKES: Record<AutoPreset, [number, number][][]> = {
 };
 const AUTO_STEP_MS: Record<AutoPreset, number> = { fast: 16, slow: 90, round: 40 };
 const AUTO_GAP_MS = 250;
-/** 디버그 회피 시험 강제 집계 프리셋 (평가 검증용) */
-type TrialPreset = 'far' | 'close' | 'dash' | 'tank' | 'fell' | 'clean';
-const TRIAL_FULL = { survivedMs: DODGE_TRIAL.DURATION_MS, frames: 900 };
+/** 디버그 회피 시험 강제 집계 프리셋: 등급 지정(S·A·B·C) + 떨어짐(fell, 12초에 1회 피격 → B) */
+type TrialPreset = TrialGrade | 'fell';
+const TRIAL_FULL = { survivedMs: DODGE_TRIAL.DURATION_MS, frames: 900, movingFrames: 600 };
 const TRIAL_PRESETS: Record<TrialPreset, Partial<DodgeSample>> = {
-  far: { ...TRIAL_FULL, movingFrames: 540, dashes: 2, hits: 1, passes: { close: 1, mid: 3, far: 10 } },
-  close: { ...TRIAL_FULL, movingFrames: 450, dashes: 3, dashDodges: 1, hits: 1, passes: { close: 8, mid: 4, far: 1 } },
-  dash: { ...TRIAL_FULL, movingFrames: 750, dashes: 8, dashDodges: 4, hits: 2, passes: { close: 9, mid: 3, far: 0 } },
-  tank: { ...TRIAL_FULL, movingFrames: 300, dashes: 1, hits: 7, passes: { close: 4, mid: 4, far: 2 } },
-  fell: { survivedMs: 7000, frames: 420, movingFrames: 140, dashes: 1, hits: 3, falls: 1 },
-  clean: { ...TRIAL_FULL, movingFrames: 700, dashes: 3, passes: { close: 0, mid: 2, far: 12 } },
+  S: { ...TRIAL_FULL, hits: 0 },
+  A: { ...TRIAL_FULL, hits: 3 },
+  B: { ...TRIAL_FULL, hits: 7 },
+  C: { survivedMs: 6000, frames: 360, movingFrames: 200, hits: 3, falls: 1 },
+  fell: { survivedMs: 12000, frames: 720, movingFrames: 500, hits: 1, falls: 1 },
 };
 
 export class Setup extends Phaser.Scene {
@@ -109,7 +117,7 @@ export class Setup extends Phaser.Scene {
   private current: Stroke | null = null;
   private label: Phaser.GameObjects.Text;
   private keys: Record<string, Phaser.Input.Keyboard.Key>;
-  private features?: Affinity;
+  private features?: StrokeFeatures;
   private menu: TextMenu;
   private onEnter?: (e: KeyboardEvent) => void;
   /** 일기장 이름 입력 (26라운드): DOM input, 최대 12자 */
@@ -124,8 +132,12 @@ export class Setup extends Phaser.Scene {
   private runner?: DodgeTrialRunner;
   private uiCam?: Phaser.Cameras.Scene2D.Camera;
   private trialSample?: DodgeSample;
-  private trialEval?: DodgeEvaluation;
+  private trialResult?: TrialResult;
   private weaponId?: string;
+  /** Game 씬 시작 데이터 (디버그 표시용) */
+  private startData?: { mode: 'new'; weapon: string; playerName: string; senseBonus: number };
+  /** 디버그: 다음 회피 시험 경기장 모양 고정 */
+  private forcedShape?: ArenaShape;
 
   constructor() {
     super(SCENES.SETUP);
@@ -141,7 +153,9 @@ export class Setup extends Phaser.Scene {
     this.runner = undefined;
     this.uiCam = undefined;
     this.trialSample = undefined;
-    this.trialEval = undefined;
+    this.trialResult = undefined;
+    this.forcedShape = undefined;
+    this.startData = undefined;
     this.features = undefined;
     this.weaponId = undefined;
     // 새 런은 1층: 이전 런이 바꿔 둔 층 변형을 원본으로 (시트·예고 색)
@@ -361,7 +375,7 @@ export class Setup extends Phaser.Scene {
       this.strokeFx?.update(time);
       return;
     }
-    this.strokeFx?.update(time); // 마지막 획 섬광·사라짐
+    this.strokeFx?.update(time); // 마지막 획 섬광 → 빛 터짐 → 하얀 빛이 걷힘 (시험 시작 뒤에도 잠깐)
     if (this.phase !== 'trial' || !this.runner) return;
     const mx = (this.keys.right.isDown ? 1 : 0) - (this.keys.left.isDown ? 1 : 0);
     const my = (this.keys.down.isDown ? 1 : 0) - (this.keys.up.isDown ? 1 : 0);
@@ -398,19 +412,37 @@ export class Setup extends Phaser.Scene {
     if (this.current.length >= PERSONALITY.strokes.minPoints) this.strokes.push(this.current);
     this.current = null;
     this.updateLabel();
-    if (this.strokes.length >= PERSONALITY.strokes.count) {
-      this.hideExamples();
-      this.phase = 'trial';
-      // 마지막 획의 섬광·식는 자국을 잠깐 보여 주고 사라진 뒤 회피 시험
-      this.time.delayedCall(STROKE_FX.HOLD_AFTER_LAST_MS, () => {
-        const fx = this.strokeFx;
-        if (!fx) return this.beginTrial();
-        fx.fadeOut(() => {
+    if (this.strokes.length >= PERSONALITY.strokes.count) this.beginBurst();
+  }
+
+  /**
+   * 3획 완료 (49라운드 1절): 무기는 이 순간 3획만으로 정해 둔다. 마지막 획의 섬광을 잠깐 보여 준 뒤
+   * 화면이 살짝 흔들리고 획에서 빛이 터져 나와 하얗게 번쩍 → 가장 하얀 순간에 회피 시험 시작 → 빛이 걷힌다.
+   */
+  private beginBurst(): void {
+    if (this.phase !== 'strokes') return;
+    this.hideExamples();
+    this.phase = 'burst';
+    this.decideWeapon();
+    this.time.delayedCall(STROKE_FX.HOLD_AFTER_LAST_MS, () => {
+      if (this.phase !== 'burst') return;
+      this.label.setText('');
+      const fx = this.strokeFx;
+      if (!fx) return this.beginTrial();
+      fx.burst(
+        () => this.beginTrial(),
+        () => {
           if (this.strokeFx === fx) this.strokeFx = undefined;
-          this.beginTrial();
-        });
-      });
-    }
+        },
+      );
+    });
+  }
+
+  /** 3획 특징 → 운명 무기 (회피 시험과 무관) */
+  private decideWeapon(): void {
+    const f = strokeFeatures(this.strokes, PERSONALITY);
+    this.features = f;
+    this.weaponId = chooseWeapon(f, WEAPONS, PERSONALITY).id;
   }
 
   private updateLabel(): void {
@@ -426,7 +458,7 @@ export class Setup extends Phaser.Scene {
    * 이후 씬에 추가되는 오브젝트(투사체·예고·이펙트)는 UI 카메라에서 숨긴다.
    */
   private beginTrial(): void {
-    if (this.runner || !this.scene.isActive()) return;
+    if (this.runner || !this.scene.isActive() || (this.phase !== 'burst' && this.phase !== 'trial')) return;
     this.phase = 'trial';
     const main = this.cameras.main;
     this.uiCam = this.cameras.add(0, 0, GAME.WIDTH, GAME.HEIGHT).setName('setup-ui');
@@ -435,7 +467,11 @@ export class Setup extends Phaser.Scene {
     this.events.on(Phaser.Scenes.Events.ADDED_TO_SCENE, this.hideFromUiCam, this);
     main.setZoom(DODGE_TRIAL.ZOOM);
     main.centerOn(GAME.WIDTH / 2, GAME.HEIGHT / 2 - DODGE_TRIAL.ARENA.OFFSET_Y_PX);
-    this.runner = new DodgeTrialRunner(this, (s) => this.onTrialDone(s));
+    this.startRunner();
+  }
+
+  private startRunner(): void {
+    this.runner = new DodgeTrialRunner(this, (s) => this.onTrialDone(s), { shape: this.forcedShape });
     this.runner.start(this.time.now);
     this.label.setText(DODGE_TRIAL.TEXT.INTRO);
   }
@@ -444,12 +480,22 @@ export class Setup extends Phaser.Scene {
     if (go !== this.label) this.uiCam?.ignore(go);
   }
 
-  /** 시험 끝: 결과 한 줄(자리표시) → 잠시 뒤 운명 */
+  /** 시험 끝: 등급·시작 감각 보상(자리표시 문구) → 잠시 뒤 운명 */
   private onTrialDone(sample: DodgeSample): void {
-    if (this.trialEval) return;
+    if (this.trialResult) return;
     this.trialSample = { ...sample, passes: { ...sample.passes } };
-    this.trialEval = evaluateDodge(this.trialSample, PERSONALITY.rhythm.dashSaturation);
-    this.label.setText(DODGE_TRIAL.TEXT.RESULT[this.trialEval.kind]);
+    const r = gradeTrial(this.trialSample);
+    this.trialResult = r;
+    const T = DODGE_TRIAL.TEXT;
+    this.label.setText(
+      fill(T.RESULT, {
+        line: T.LINES[r.fell ? 'fell' : r.grade],
+        grade: r.grade,
+        bonus: r.bonus,
+        sec: (sample.survivedMs / 1000).toFixed(1),
+        hits: sample.hits,
+      }),
+    );
     this.time.delayedCall(DODGE_TRIAL.RESULT_MS, () => this.decideFate());
   }
 
@@ -463,7 +509,10 @@ export class Setup extends Phaser.Scene {
         strokeFx: this.strokeFx?.summary() ?? null,
         trial: this.runner?.snapshot() ?? null,
         camera: { zoom: this.cameras.main.zoom, uiCam: Boolean(this.uiCam) },
-        evaluation: this.trialEval ?? null,
+        result: this.trialResult ?? null,
+        senseBonus: this.trialResult?.bonus ?? null,
+        forcedShape: this.forcedShape ?? null,
+        startData: this.startData ?? null,
         features: this.features ?? null,
         weapon: this.weaponId ?? null,
       }),
@@ -476,12 +525,44 @@ export class Setup extends Phaser.Scene {
         },
         /** 3획 자동 입력 (같은 포인터 처리 경로, 프레임 간격으로 그린다). preset: fast · slow · round */
         autoStrokes: (preset: AutoPreset = 'fast') => this.autoStrokes(preset),
-        /** 회피 시험 즉시 종료 + 강제 집계: 프리셋 이름 또는 DodgeSample 일부 */
-        skipTrial: (arg: TrialPreset | Partial<DodgeSample> = 'far') => {
-          if (this.phase !== 'trial') return false;
+        /**
+         * 회피 시험 즉시 종료 + 강제 집계: 등급 'S'|'A'|'B'|'C'(감각 +3/+2/+1/+0) · 'fell' 또는 DodgeSample 일부.
+         * 빛 터짐 중이면 기다리지 않고 바로 시험을 열어 끝낸다.
+         */
+        skipTrial: (arg: TrialPreset | Partial<DodgeSample> = 'S') => {
+          if (this.phase !== 'trial' && this.phase !== 'burst') return false;
           if (!this.runner) this.beginTrial();
+          if (!this.runner) return false;
           const over = typeof arg === 'string' ? TRIAL_PRESETS[arg] : arg;
-          this.runner!.forceEnd(over);
+          this.runner.forceEnd(over);
+          return true;
+        },
+        /** 경기장 모양 고정 ('circle'|'ellipse'|'polygon'|'islands', 없으면 무작위로 되돌림). 시험 중이면 그 모양으로 다시 시작 */
+        trialShape: (shape?: ArenaShape) => {
+          if (shape && !ARENA_SHAPES.includes(shape)) return false;
+          this.forcedShape = shape;
+          if (this.phase === 'trial' && this.runner && !this.trialResult) {
+            this.runner.destroy();
+            this.startRunner();
+          }
+          return true;
+        },
+        /** 빛 터짐 시계를 ms 에 멈춤 (null = 풀기). 3획 전에 걸어 둘 수 있다 (스크린샷용) */
+        holdBurst: (ms: number | null = null) => {
+          if (!this.strokeFx) return false;
+          this.strokeFx.holdBurst(ms);
+          return true;
+        },
+        /** 회피 시험 시계를 ms 앞당김 (갉아먹힘 확인용, 안내 중이면 바로 시작) */
+        trialWarp: (ms = 5000) => {
+          if (!this.runner) return false;
+          this.runner.warp(ms);
+          return true;
+        },
+        /** 무적 (맞지 않고 떨어지지 않음, 스크린샷용) */
+        trialGod: (on = true) => {
+          if (!this.runner) return false;
+          this.runner.god = on;
           return true;
         },
       },
@@ -510,29 +591,29 @@ export class Setup extends Phaser.Scene {
     return true;
   }
 
+  /** 운명 문구 + 시작 감각 보상 → Game (`senseBonus` 0~3 을 시작 데이터로, 49라운드 2절) */
   private decideFate(): void {
     if (this.phase === 'fate') return;
     this.phase = 'fate';
     this.runner?.dim();
-    const ev = this.trialEval ?? evaluateDodge(emptySample(), PERSONALITY.rhythm.dashSaturation);
-    const f: Affinity = { ...strokeFeatures(this.strokes, PERSONALITY), ...ev.keys };
-    this.features = f;
-    const { id } = chooseWeapon(f, WEAPONS, PERSONALITY, ev.bias);
-    this.weaponId = id;
+    if (!this.weaponId || !this.features) this.decideWeapon();
+    const f = this.features!;
+    const id = this.weaponId!;
+    const r = this.trialResult ?? gradeTrial(emptySample());
+    const senseBonus = r.bonus;
     const w = WEAPONS[id];
     __system.emit(UI_EVENTS.FATE_DECIDED, { weaponName: w.name, features: f });
     EventBus.emit(Events.FATE_DECIDED, { weapon: id });
-    const a = ev.axes;
     this.label.setText(
-      `${this.playerName || '―'}\n\n${fill(STORY.diary.fate, { weapon: w.name })}\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)} · 회피 멀리 ${a.far.toFixed(2)} 직전 ${a.close.toFixed(2)} 대쉬 ${a.dashDodge.toFixed(2)} 버팀 ${a.endure.toFixed(2)} 무피격 ${a.clean.toFixed(2)}${ev.rare.flag ? ' · 희귀' : ''})`,
+      `${this.playerName || '―'}\n\n${fill(STORY.diary.fate, { weapon: w.name })}\n시작 감각 +${senseBonus}  (시험 등급 ${r.grade})\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)})`,
     );
-    this.time.delayedCall(PROTOTYPE.FATE_BANNER_MS, () =>
-      this.scene.start(SCENES.GAME, { mode: 'new', weapon: id, playerName: this.playerName }),
-    );
+    const data = { mode: 'new' as const, weapon: id, playerName: this.playerName, senseBonus };
+    this.startData = data;
+    this.time.delayedCall(PROTOTYPE.FATE_BANNER_MS, () => this.scene.start(SCENES.GAME, data));
   }
 
   /** 디버그/테스트용 */
-  get debugFeatures(): Affinity | undefined {
+  get debugFeatures(): StrokeFeatures | undefined {
     return this.features;
   }
 }

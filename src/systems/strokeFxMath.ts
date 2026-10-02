@@ -1,5 +1,6 @@
 /**
- * 획 찢기 연출 (48라운드 Q8) 의 순수 계산: 수치·속도→폭/세기·식는 곡선·찢긴 가장자리 점. Phaser 의존 없음.
+ * 획 찢기 연출 (48라운드 Q8 + 49라운드 1절) 의 순수 계산: 수치·속도→폭/세기·식는 곡선·찢긴 가장자리 점,
+ * 부스러기(49), 3획 뒤 빛 터짐 타임라인·광선 배치·경로 자르기(49). Phaser 의존 없음.
  * 수치는 전부 시스템 임시값 (이번 작업 범위상 Constants.ts 대신 여기에 — 다음 정리 때 옮긴다).
  */
 
@@ -77,19 +78,78 @@ export const STROKE_FX = {
     /** 색: 팔레트 fx.core 2 + 층 강조 27·26 */
     RAMP_TINTS: [11, 10],
   },
+  /**
+   * 부스러기 (49라운드 1절 "부스러기가 떨어지는 연출"): 긁힌 화면 조각(G05~G08)·검은 재·잔불 조각이 튀어 올랐다가 중력으로 떨어진다.
+   * 보통 혼합(빛이 아니라 물질). 이동 px 당 개수 × (0.5 + 빛 세기), 한 번에 최대. 각도는 Phaser 도(270 = 위).
+   */
+  DEBRIS: {
+    KEY: 'setup_scratch_debris',
+    SIZE_PX: 4,
+    PER_PX: 0.1,
+    MAX_PER_MOVE: 8,
+    /** 누를 때 · 뗄 때 한 줌 */
+    ON_BEGIN: 6,
+    ON_END: 16,
+    SPEED: [12, 80] as [number, number],
+    ANGLE: [205, 335] as [number, number],
+    LIFE_MS: [750, 1500] as [number, number],
+    GRAVITY: 540,
+    SCALE: [0.5, 1.4] as [number, number],
+    /** 색: 팔레트 gray 인덱스(화면 조각) + 검은 재(0x000000, 개수만큼 비중) + 층 램프(잔불 조각) */
+    GRAYS: [5, 6, 7, 8],
+    ASH: 3,
+    EMBER_RAMP: [4],
+  },
+  /**
+   * 3획 뒤 빛 터짐 (49라운드 1절 "획을 다 그은 이후 … 화면이 살짝 흔들린 이후 해당 획에서 빛이 터져나오는 연출"):
+   * 모음(CHARGE: 흔들림 + 획 전체가 맥동하며 달아오름 + 부스러기) → 백열 섬광이 획 경로를 따라 달림(TRACE)
+   * → 획에서 광선이 사방으로 뻗음(RAYS, 트레이스 RAYS_AT 지점부터) → 화면이 하얗게(WHITE_IN) → 유지(HOLD) → 걷힘(WHITE_OUT).
+   * 하얗게 가장 밝은 순간(peak)에 회피 시험이 뒤에서 시작되고, 걷히면서 드러난다.
+   */
+  BURST: {
+    CHARGE_MS: 620,
+    SHAKE_INTENSITY: 0.0045,
+    /** 모음 동안 획 열기 (시작 → 끝) · 맥동 주기 ms */
+    CHARGE_HEAT: [0.35, 1.05] as [number, number],
+    PULSE_MS: 90,
+    /** 모음 동안 프레임당 부스러기 */
+    CHARGE_DEBRIS: 3,
+    TRACE_MS: 420,
+    /** 섬광 머리의 열기 (HOT_LAYERS 기준, 1 이상 = 더 하얗게) */
+    TRACE_HEAT: 1.6,
+    RAYS_AT: 0.7,
+    RAYS_MS: 600,
+    RAY_COUNT: 28,
+    /** 광선 길이·끝 폭(px)·각도 흔들림(rad)·늦게 나오는 정도(0~1) */
+    RAY_LEN: [180, 560] as [number, number],
+    RAY_WIDTH: [10, 34] as [number, number],
+    RAY_JITTER: 0.4,
+    RAY_STAGGER: 0.35,
+    /** 중심 빛 번짐: 전용 방사 그라데이션 텍스처(반지름 px) · 최대 배율 */
+    GLOW_KEY: 'setup_burst_glow',
+    GLOW_RADIUS_PX: 128,
+    GLOW_SCALE: 2.8,
+    WHITE_IN_MS: 190,
+    HOLD_MS: 110,
+    WHITE_OUT_MS: 760,
+    /** 화면 섬광 깊이 (DEPTH.SCREEN_FX 와 같게) */
+    DEPTH_WHITE: 50,
+  },
   /** 펜 끝 빛 번짐 (방사 그라데이션, ADD) */
   TIP: { KEY: 'setup_scratch_tip', RADIUS_PX: 22, ALPHA: 0.55, SCALE_MIN: 0.6, SCALE_MAX: 1.3 },
   /** 미세 흔들림: 이 속도 이상일 때, 간격을 두고 */
   SHAKE: { MIN_SPEED: 650, MS: 70, INTENSITY: [0.0008, 0.0026] as [number, number], THROTTLE_MS: 90 },
-  /** 마지막 획을 뗀 뒤 자국·섬광을 보여 주는 시간 → 그 뒤 FADE_OUT_MS 동안 사라짐 */
-  HOLD_AFTER_LAST_MS: 900,
-  /** 획 단계를 떠날 때 자국이 사라지는 시간 */
+  /** 마지막 획을 뗀 뒤 그 획의 섬광을 보여 주는 시간 → 그 뒤 빛 터짐(BURST) */
+  HOLD_AFTER_LAST_MS: 450,
+  /** 빛 터짐 없이 떠날 때(폴백) 자국이 사라지는 시간 */
   FADE_OUT_MS: 650,
-  /** 깊이: 표면 · 자국 · 빛 (라벨·예시 패널 텍스트는 DEPTH.DEBUG) */
+  /** 깊이: 표면 · 자국 · 부스러기 · 빛 · 불티/광선 (라벨·예시 패널 텍스트는 DEPTH.DEBUG) */
   DEPTH_SURFACE: -2,
   DEPTH_SCAR: -1,
+  DEPTH_DEBRIS: 4.25,
   DEPTH_HOT: 4.3,
   DEPTH_SPARK: 4.4,
+  DEPTH_RAYS: 4.5,
 };
 
 export type StrokeFxConfig = typeof STROKE_FX;
@@ -163,6 +223,141 @@ export function offsetPoints(pts: number[], offset: number): number[] {
     out.push(pts[i * 2] - (dy / len) * offset, pts[i * 2 + 1] + (dx / len) * offset);
   }
   return out;
+}
+
+// --- 49라운드: 빛 터짐 ---
+
+export interface BurstState {
+  /** 흔들림·모음 진행 0~1 */
+  charge: number;
+  shaking: boolean;
+  /** 섬광이 획을 따라 달린 비율 0~1 */
+  trace: number;
+  /** 광선 진행 0~1 */
+  rays: number;
+  /** 화면 하얀 정도 0~1 */
+  white: number;
+  /** 가장 하얀 순간을 지났다 (뒤에서 다음 장면 시작) */
+  peaked: boolean;
+  done: boolean;
+}
+
+/** 빛 터짐 주요 시각 (시작 기준 ms) */
+export function burstTimes(C: StrokeFxConfig = STROKE_FX): {
+  raysAt: number;
+  whiteAt: number;
+  peakAt: number;
+  doneAt: number;
+} {
+  const B = C.BURST;
+  const raysAt = B.CHARGE_MS + B.TRACE_MS * B.RAYS_AT;
+  const whiteAt = raysAt + B.RAYS_MS - B.WHITE_IN_MS;
+  const peakAt = whiteAt + B.WHITE_IN_MS;
+  return { raysAt, whiteAt, peakAt, doneAt: peakAt + B.HOLD_MS + B.WHITE_OUT_MS };
+}
+
+export function burstAt(t: number, C: StrokeFxConfig = STROKE_FX): BurstState {
+  const B = C.BURST;
+  const T = burstTimes(C);
+  let white = 0;
+  if (t >= T.whiteAt && t < T.peakAt) white = (t - T.whiteAt) / B.WHITE_IN_MS;
+  else if (t >= T.peakAt && t < T.peakAt + B.HOLD_MS) white = 1;
+  else if (t >= T.peakAt + B.HOLD_MS) white = 1 - (t - T.peakAt - B.HOLD_MS) / B.WHITE_OUT_MS;
+  return {
+    charge: clamp01(t / B.CHARGE_MS),
+    shaking: t < B.CHARGE_MS,
+    trace: clamp01((t - B.CHARGE_MS) / B.TRACE_MS),
+    rays: clamp01((t - T.raysAt) / B.RAYS_MS),
+    white: clamp01(white),
+    peaked: t >= T.peakAt,
+    done: t >= T.doneAt,
+  };
+}
+
+/** 점 목록 [x0,y0,x1,y1,…] 의 길이 */
+export function pathLength(pts: number[]): number {
+  let L = 0;
+  for (let i = 2; i < pts.length; i += 2) L += Math.hypot(pts[i] - pts[i - 2], pts[i + 1] - pts[i - 1]);
+  return L;
+}
+
+/** 경로 앞쪽 frac(0~1) 만큼 (마지막 점은 보간) */
+export function pathPrefix(pts: number[], frac: number): number[] {
+  if (pts.length < 4 || frac >= 1) return pts.slice();
+  if (frac <= 0) return pts.slice(0, 2);
+  let remain = pathLength(pts) * frac;
+  const out = [pts[0], pts[1]];
+  for (let i = 2; i < pts.length; i += 2) {
+    const d = Math.hypot(pts[i] - pts[i - 2], pts[i + 1] - pts[i - 1]);
+    if (d >= remain) {
+      const t = d > 0 ? remain / d : 0;
+      out.push(pts[i - 2] + (pts[i] - pts[i - 2]) * t, pts[i - 1] + (pts[i + 1] - pts[i - 1]) * t);
+      return out;
+    }
+    out.push(pts[i], pts[i + 1]);
+    remain -= d;
+  }
+  return out;
+}
+
+/** 경로의 frac 지점 좌표 */
+export function pathPointAt(pts: number[], frac: number): { x: number; y: number } {
+  const p = pathPrefix(pts, frac);
+  return { x: p[p.length - 2], y: p[p.length - 1] };
+}
+
+export interface BurstRay {
+  x: number;
+  y: number;
+  angle: number;
+  len: number;
+  width: number;
+  /** 0~RAY_STAGGER: 이 비율만큼 늦게 뻗기 시작 */
+  delay: number;
+}
+
+/**
+ * 광선 배치: 모든 획의 전체 길이를 따라 고르게 count 점을 고르고, 각 점에서 획들의 무게중심 반대쪽(바깥)으로 ± 흔들림.
+ * 무게중심과 거의 같은 점이면 그 자리의 법선 방향.
+ */
+export function burstRays(paths: number[][], rnd: () => number, C: StrokeFxConfig = STROKE_FX): BurstRay[] {
+  const B = C.BURST;
+  const valid = paths.filter((p) => p.length >= 4);
+  if (valid.length === 0) return [];
+  let sx = 0;
+  let sy = 0;
+  let n = 0;
+  for (const p of valid)
+    for (let i = 0; i < p.length; i += 2) {
+      sx += p[i];
+      sy += p[i + 1];
+      n += 1;
+    }
+  const cx = sx / n;
+  const cy = sy / n;
+  const lens = valid.map(pathLength);
+  const total = lens.reduce((a, b) => a + b, 0) || 1;
+  const range = ([a, b]: [number, number]) => a + (b - a) * rnd();
+  const rays: BurstRay[] = [];
+  for (let k = 0; k < B.RAY_COUNT; k++) {
+    let at = ((k + 0.5) / B.RAY_COUNT) * total;
+    let pi = 0;
+    while (pi < valid.length - 1 && at > lens[pi]) at -= lens[pi++];
+    const f = lens[pi] > 0 ? at / lens[pi] : 0;
+    const { x, y } = pathPointAt(valid[pi], f);
+    const ahead = pathPointAt(valid[pi], Math.min(1, f + 0.02));
+    let base = Math.atan2(y - cy, x - cx);
+    if (Math.hypot(x - cx, y - cy) < 4) base = Math.atan2(ahead.y - y, ahead.x - x) + Math.PI / 2;
+    rays.push({
+      x,
+      y,
+      angle: base + (rnd() * 2 - 1) * B.RAY_JITTER,
+      len: range(B.RAY_LEN),
+      width: range(B.RAY_WIDTH),
+      delay: rnd() * B.RAY_STAGGER,
+    });
+  }
+  return rays;
 }
 
 function clamp01(v: number): number {

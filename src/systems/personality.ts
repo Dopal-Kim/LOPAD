@@ -8,7 +8,12 @@ export interface StrokePoint {
 }
 export type Stroke = StrokePoint[];
 
-/** 키 입력 리듬 집계 (14라운드 5초 리듬. 48라운드부터 Setup 은 회피 시험 `dodgeTrial.evaluateDodge` 를 쓴다 — 호환용으로 유지) */
+/** 무기 결정에 쓰는 획 3축 (49라운드 2절: 무기는 3획만으로 결정) */
+export const STROKE_KEYS = ['strokeLength', 'strokeSpeed', 'straightness'] as const;
+export type StrokeKey = (typeof STROKE_KEYS)[number];
+export type StrokeFeatures = Pick<Affinity, StrokeKey>;
+
+/** 키 입력 리듬 집계 (14라운드 5초 리듬 — 49라운드부터 무기 결정에 쓰지 않음, 호환용으로 유지) */
 export interface RhythmSample {
   frames: number;
   movingFrames: number;
@@ -16,10 +21,7 @@ export interface RhythmSample {
   dashes: number;
 }
 
-export function strokeFeatures(
-  strokes: Stroke[],
-  P: PersonalityData,
-): Pick<Affinity, 'strokeLength' | 'strokeSpeed' | 'straightness'> {
+export function strokeFeatures(strokes: Stroke[], P: PersonalityData): StrokeFeatures {
   const valid = strokes.filter((s) => s.length >= P.strokes.minPoints);
   if (valid.length === 0) return { strokeLength: 0, strokeSpeed: 0, straightness: 0 };
   let len = 0;
@@ -54,34 +56,30 @@ export function rhythmFeatures(
 }
 
 /**
- * 운명 무기 결정. 기본은 성향 벡터와 무기 affinity 의 가중 유클리드 거리가 가장 가까운 무기.
- * 48라운드 Q7: 회피 시험 가산 `bias`(무기 id → 0 이상)가 있으면 점수 = 거리 − 가산 이 가장 작은 무기.
- * `distances` 는 순수 거리, `scores` 는 가산을 뺀 값 (bias 가 없으면 같다).
+ * 운명 무기 결정 (49라운드 2절): **3획 특징만으로** — 획 3축(길이·속도·직선성)과 무기 affinity 의 같은 3축 사이
+ * 가중 유클리드 거리(가중치 `personality.json weights` 의 획 3축)가 가장 가까운 무기.
+ * 회피 시험(움직임)은 무기 결정에서 완전히 빠졌다 — 시험은 등급 → 시작 감각 가산만 준다 (`dodgeTrial.gradeTrial`).
+ * features 에 다른 축(key*)이 들어 있어도 무시한다.
  */
 export function chooseWeapon(
-  features: Affinity,
+  features: StrokeFeatures,
   weapons: WeaponTable,
   P: PersonalityData,
-  bias: Record<string, number> = {},
-): { id: string; distances: Record<string, number>; scores: Record<string, number> } {
-  const keys = Object.keys(P.weights) as (keyof Affinity)[];
+): { id: string; distances: Record<string, number> } {
   const distances: Record<string, number> = {};
-  const scores: Record<string, number> = {};
   let best = '';
-  let bestS = Infinity;
+  let bestD = Infinity;
   for (const [id, w] of Object.entries(weapons)) {
     let d = 0;
-    for (const k of keys) d += P.weights[k] * (features[k] - w.affinity[k]) ** 2;
+    for (const k of STROKE_KEYS) d += P.weights[k] * (features[k] - w.affinity[k]) ** 2;
     d = Math.sqrt(d);
     distances[id] = d;
-    const s = d - (bias[id] ?? 0);
-    scores[id] = s;
-    if (s < bestS) {
-      bestS = s;
+    if (d < bestD) {
+      bestD = d;
       best = id;
     }
   }
-  return { id: best, distances, scores };
+  return { id: best, distances };
 }
 
 function clamp01(v: number): number {
