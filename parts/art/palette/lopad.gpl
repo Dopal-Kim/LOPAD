@@ -114,9 +114,9 @@ Columns: 16
 215 220 230	F8_pyeongsang A09 glow
 228 233 240	F8_pyeongsang A10 flash
 242 245 250	F8_pyeongsang A11 white
- 43  34  27	UI_sepia S0 leather shadow (UI only)
- 65  50  39	UI_sepia S1 leather base (UI only)
- 93  74  59	UI_sepia S2 page shadow (UI only)
-120  97  79	UI_sepia S3 page base (UI only)
-144 120  99	UI_sepia S4 page edge (UI only)
-165 140 119	UI_sepia S5 highlight (UI only)
+ 31  24  19	UI_sepia S0 leather shadow (UI only)
+ 48  38  30	UI_sepia S1 leather base / grime band (UI only)
+ 64  50  39	UI_sepia S2 page shadow (UI only)
+ 80  63  50	UI_sepia S3 page base L*28 (UI only)
+106  86  69	UI_sepia S4 page edge / text halo (UI only)
+198 165 139	UI_sepia S5 glowing ink (UI only)

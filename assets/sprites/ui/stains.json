@@ -1,0 +1,41 @@
+{
+ "image": "stains.png",
+ "kind": "sheet",
+ "cellWidth": 32,
+ "cellHeight": 32,
+ "columns": 4,
+ "rows": 1,
+ "frames": {
+  "stain_ring": {
+   "index": 0,
+   "x": 0,
+   "y": 0,
+   "w": 32,
+   "h": 32
+  },
+  "stain_burn": {
+   "index": 1,
+   "x": 32,
+   "y": 0,
+   "w": 32,
+   "h": 32
+  },
+  "stain_blot": {
+   "index": 2,
+   "x": 64,
+   "y": 0,
+   "w": 32,
+   "h": 32
+  },
+  "stain_smudge": {
+   "index": 3,
+   "x": 96,
+   "y": 0,
+   "w": 32,
+   "h": 32
+  }
+ },
+ "colors": "stain_ring S1/S2 water ring, stain_burn S2/S1/S0 (core at bottom-right: place it against a page edge/corner), stain_blot glowing ink S5/S4 + shade S2, stain_smudge S2/S1 low density",
+ "usage": "scatter 3-5 per page inside panel_paper `inner` on top of paper_tile, before text. Flip X/Y allowed, no rotation/scale. Deterministic seed per screen so the page does not change between opens",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
+}

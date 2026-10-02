@@ -252,24 +252,25 @@
  "ui": {
   "name": "sepia",
   "scope": "UI only (round 36). Forbidden on characters, enemies, bosses, weapons, fx and floor tiles. Not swapped per floor.",
-  "decision": "2026-10-02 round-36 (도영: '더 어둡고 짙은 색의 일기장, 연갈색의 책')",
+  "decision": "2026-10-02 round-36 (도영: '더 어둡고 짙은 색의 일기장, 연갈색의 책') → round-38 (도영: '페이지가 더 더럽고 어둡되, 글씨가 빛나는 느낌') 한 단 더 어둡게 재조정",
   "ramp": [
-   "#2b221b",
-   "#413227",
-   "#5d4a3b",
-   "#78614f",
-   "#907863",
-   "#a58c77"
+   "#1f1813",
+   "#30261e",
+   "#403227",
+   "#503f32",
+   "#6a5645",
+   "#c6a58b"
   ],
   "roles": [
-   "S0 leather shadow (cover shade, gutter)",
-   "S1 leather base (cover, worn edge, deep stain)",
-   "S2 page shadow (stain, fibre, crease)",
-   "S3 page base (sepia paper, L*43)",
-   "S4 page cut edge / lighter patch",
-   "S5 highlight (thread, lit edge, light cursor)"
+   "S0 leather shadow (cover shade, gutter, burn core, page torn edge)",
+   "S1 leather base (cover, hand-grime edge band, deep stain, outer shade ring of glowing rules)",
+   "S2 page shadow (stain, fibre, crease, water-ring, text outer shade ring)",
+   "S3 page base (dark sepia paper, L*28)",
+   "S4 page cut edge / lighter patch / text HALO (1px glow ring) / dim glowing frame line",
+   "S5 glowing ink (text body, cursor nib, rule, stamp bright) — never as area fill"
   ],
-  "lab": "L* 14 / 22 / 33 / 43 / 52 / 60, chroma 7~16, Lab hue ~62~68deg (low-saturation brown)",
-  "text_on_page": "G00 title/selected, G01 body, G02 unselected, G03 faint. G04 and lighter grays are NOT readable on S3."
+  "lab": "L* 9 / 16 / 22 / 28 / 38 / 70, chroma 5~20, Lab hue ~62~67deg (low-saturation brown). S5 jumps (38→70) on purpose: it is the glowing-ink colour, not a surface step.",
+  "text_on_page": "GLOW rule (round 38): body S5 (#c6a58b) / title·selected G15 / unselected G13 / faint S4 without halo. Halo 1px (4-neighbour) S4 — or current-floor accent slot 20 at alpha 0.5 for emphasis — then 1px outer shade ring S2. Dark grays (G00~G03) are NOT readable on S3 any more.",
+  "text_on_ink": "body G14 + halo accent 20 @ alpha 0.5 + shade G00; faint G11 no halo; boss/notice accent 22 + halo accent 18"
  }
 }

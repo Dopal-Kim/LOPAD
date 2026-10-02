@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""LOPAD UI 키트 빌드 (32라운드 전폭 재설계 + 33라운드 낡은 용지 + 36라운드 세피아 일기장) — 단일 소스. 재실행 시 전부 재생성.
+"""LOPAD UI 키트 빌드 (32라운드 전폭 재설계 + 33라운드 낡은 용지 + 36라운드 세피아 일기장 + 38라운드 어두운 페이지·발광 글자) — 단일 소스.
+
+38라운드(도영: "잉크로 적으니까 손글씨 같은 폰트가 좋고 페이지가 더 더럽고 어둡되, 글씨가 빛나는 느낌으로 적혀지는 방향"):
+  - 세피아 램프 한 단 더 어둡게: 페이지 S3 L*43 → L*28, 가죽 S1 L*22 → L*16. S5 는 '발광 잉크'(L*70) 로 뛰어오른다.
+  - 페이지: 손때 띠(가장자리 S1→S2 디더), 물자국 고리, 그을림(S0 심), 찢김 더 많이, 타일 스티플 더 짙게 + 얼룩 데칼 시트(stains.png) 신규.
+  - 글자 발광 규칙(GLOW): 본문 S5 / 제목·선택 G15 / 비선택 G13 / 흐림 S4(할로 없음). 바깥 1px 할로 S4(4방향) 또는 강조 20 알파 0.5,
+    그 바깥 1px 그늘 S2. 목업은 glow_text() 로 Unifont 를 실제 이 규칙으로 그린다. 잉크 HUD 글자: G14 + 할로 20 α0.5 + 그늘 G00.
+  - 종이 위 '잉크' 는 모두 발광색: 틀 선 S4, 괘선 S5/S4, 커서 촉 S5 + 할로 S4, 도장 S4/S5. 어두운 G00~G03 은 종이 위에서 더는 쓰지 않는다.
 
 실행: python3 parts/art/work/ui/build.py
 입력: parts/art/palette/lopad.json, assets/tiles/stage1.png, assets/sprites/{player,enemies,weapons}/* (목업용)
@@ -153,15 +160,63 @@ PAPER_SL = {"left": 24, "right": 24, "top": 24, "bottom": 24}
 PAPER_INNER = {"left": 12, "right": 12, "top": 12, "bottom": 12}  # 글·타일 질감을 넣을 안쪽 여백 (안쪽 선 안)
 
 
-PAPER = S[3]         # 세피아 페이지 본색 (36라운드: G09 → S3, L*43 — '너무 밝다')
-PAPER_LIGHT = S[4]   # 덜 바랜 자리·단면
-PAPER_DARK = S[2]    # 얼룩·그늘·섬유·그을림
-PAPER_WORN = S[1]    # 접힌 자국·해진 가장자리·짙은 얼룩
-STAIN = S[1]         # 얼룩 한가운데 짙은 점 (36라운드: 호박 19/18 → 세피아 S1/S0, 종이에서 유채 제거)
-STAIN_DEEP = S[0]
-INK_BLEED = S[0]     # 종이 위 잉크 번짐 (갈변한 잉크) — 33라운드 G03 → S0
+PAPER = S[3]         # 세피아 페이지 본색 (38라운드: L*43 → L*28, '더 더럽고 어둡게')
+PAPER_LIGHT = S[4]   # 덜 바랜 자리·단면 · 글자 할로
+PAPER_DARK = S[2]    # 얼룩·그늘·섬유·물자국 · 글자 바깥 그늘
+PAPER_WORN = S[1]    # 접힌 자국·해진 가장자리·손때 띠·짙은 얼룩
+STAIN = S[1]         # 얼룩 한가운데 짙은 점
+STAIN_DEEP = S[0]    # 그을림 심·찢긴 가장자리
+INK_BLEED = S[0]     # (v0.3 유산) 갈변한 잉크 번짐 — v0.4 에서는 종이 위 잉크가 발광색이라 쓰지 않음
+GLOW = S[5]          # 발광 잉크 (글자 본문·커서 촉·괘선·도장 밝은 자리)
+HALO = S[4]          # 글자 바깥 1px 광륜
 COVER, COVER_D, COVER_L = S[1], S[0], S[2]   # 가죽 표지 본색 / 그늘 / 빛 받은 모서리
 THREAD = S[4]        # 실 제본
+
+
+def dither_band(s, inset, size, c1, c2, phase=0):
+    """inset 띠(사각 테두리 1px)를 c1/c2 체커 디더로 — 손때 띠의 중간 단."""
+    a, b = inset, size - 1 - inset
+    for x in range(a, b + 1):
+        for y in (a, b):
+            s.px(x, y, c1 if (x + y + phase) % 2 == 0 else c2)
+    for y in range(a, b + 1):
+        for x in (a, b):
+            s.px(x, y, c1 if (x + y + phase) % 2 == 0 else c2)
+
+
+def water_ring(s, cx, cy, r, seed, keep=0.7, blank_ok=False):
+    """물자국: 바깥 고리 S1(듬성), 안쪽 고리 S2(더 듬성), 고리 안은 S2 점 드물게. 화면 밖/투명은 건너뜀."""
+    import random
+    rnd = random.Random(seed)
+    ring = new(s.w, s.h)
+    ring.circle(cx, cy, r, PAPER_WORN, fill=False)
+    ring.circle(cx, cy, r - 1, PAPER_DARK, fill=False)
+    img = ring.composite(1)
+    for y in range(max(0, cy - r), min(s.h, cy + r + 1)):
+        for x in range(max(0, cx - r), min(s.w, cx + r + 1)):
+            c = img.getpixel((x, y))
+            ok = blank_ok or s.get(x, y) is not None
+            if c[3] and rnd.random() < keep and ok:
+                s.px(x, y, c)
+            elif not c[3] and (x - cx) ** 2 + (y - cy) ** 2 < (r - 1) ** 2 and rnd.random() < 0.08 and ok:
+                s.px(x, y, PAPER_DARK)
+
+
+def burn(s, cx, cy, rx, ry, seed, blank_ok=False):
+    """그을림: 바깥 S2 → S1 → 심 S0, 가장자리 불규칙."""
+    import random
+    rnd = random.Random(seed)
+    for y in range(cy - ry - 1, cy + ry + 2):
+        for x in range(cx - rx - 1, cx + rx + 2):
+            if not (0 <= x < s.w and 0 <= y < s.h) or (not blank_ok and s.get(x, y) is None):
+                continue
+            d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 + rnd.uniform(-0.12, 0.12)
+            if d < 0.5:                      # 2회차: 심 투명 → S0 단색 (투명이면 밑의 book_frame S3 가 비쳐 도넛처럼 보였다)
+                s.px(x, y, STAIN_DEEP)
+            elif d < 0.8:
+                s.px(x, y, PAPER_WORN)
+            elif d < 1.05 and rnd.random() < 0.7:
+                s.px(x, y, PAPER_DARK)
 
 
 def blob(s, cx, cy, rx, ry, color, seed, density=0.85, stain=0.0):
@@ -209,30 +264,77 @@ def paper_tile():
     s.rect(0, 0, S_ - 1, S_ - 1, PAPER)
     import random
     rnd = random.Random(7)
-    n1, n2 = _periodic_noise(S_, 16, 11), _periodic_noise(S_, 8, 12)
+    n0, n1, n2 = _periodic_noise(S_, 32, 10), _periodic_noise(S_, 16, 11), _periodic_noise(S_, 8, 12)
     for y in range(S_):
         for x in range(S_):
-            v = n1[y][x] * 0.7 + n2[y][x] * 0.3
-            # 2회차: 밝은 점은 글자 밑에서 소금처럼 튀어 상한 0.16·문턱 0.66, 어두운 얼룩 상한 0.42 — 질감은 남기고 글은 살린다
-            p_light = min(0.12, max(0.0, (v - 0.68) / 0.30))   # 3회차: 0.16→0.12 (600px 펼침에서 밝은 군집 반복이 보임)
-            p_dark = min(0.42, max(0.0, (0.42 - v) / 0.30))
+            v = n0[y][x] * 0.10 + n1[y][x] * 0.35 + n2[y][x] * 0.55   # 3회차: 16px 성분도 줄임 (같은 모양 얼룩이 64px 마다 보임)
+            # 38라운드 '더 더럽게': 어두운 스티플 상한 0.42→0.55, 가장 어두운 구역엔 S1 깊은 때(8px 노이즈 기준, 상한 0.14 — 2회차: 32px 성분을 줄여
+            # 64px 반복 얼룩이 두 페이지 펼침에서 안 보이게). 밝은 점은 0.12→0.07 (글자 할로 S4 와 헷갈리지 않게)
+            p_light = min(0.07, max(0.0, (v - 0.70) / 0.30))
+            p_dark = min(0.55, max(0.0, (0.52 - v) / 0.30))
+            p_deep = min(0.14, max(0.0, (0.30 - n2[y][x]) / 0.25))
             r = rnd.random()
             if r < p_light:
                 s.px(x, y, PAPER_LIGHT)
+            elif r < p_deep:
+                s.px(x, y, PAPER_WORN)
             elif r < p_dark:
                 s.px(x, y, PAPER_DARK)
-    for _ in range(14):
+    for _ in range(20):
         x, y = rnd.randrange(1, S_ - 4), rnd.randrange(1, S_ - 4)
-        n = rnd.choice([2, 2, 3])
+        n = rnd.choice([2, 2, 3, 4])
+        c = PAPER_WORN if rnd.random() < 0.3 else PAPER_DARK
         if rnd.random() < 0.35:
-            s.rect(x, y, x, y + n - 1, PAPER_DARK)
+            s.rect(x, y, x, y + n - 1, c)
         else:
-            s.rect(x, y, x + n - 1, y, PAPER_DARK)
-    # 짙은 점: S1(하나는 S0) 2~3px 군집, S2 로 감쌈. 타일당 2개 (4개면 1배에서 격자로 보인다)
-    for (x, y, c) in [(20, 24, STAIN), (51, 47, STAIN_DEEP)]:
+            s.rect(x, y, x + n - 1, y, c)
+    # 짙은 점: S1(하나는 S0) 2~3px 군집, S2 로 감쌈. 타일당 3개 (4개면 1배에서 격자로 보인다)
+    for (x, y, c) in [(20, 24, STAIN), (51, 47, STAIN_DEEP), (40, 9, STAIN)]:
         s.rect(x - 1, y - 1, x + 2, y + 1, PAPER_DARK)
         s.px(x, y, c); s.px(x + 1, y, c); s.px(x, y + 1, c)
     return s
+
+
+STAIN_CELL = 32
+STAIN_ORDER = ["stain_ring", "stain_burn", "stain_blot", "stain_smudge"]
+
+
+def stains():
+    """128x32 얼룩 데칼 시트 (38라운드 신규, 32x32 ×4, 투명 바탕): 물자국 고리 / 그을림(가장자리용, 심 투명) / 잉크 얼룩(발광 S5·S4 — 쏟은 잉크도 빛난다) /
+    손때 번짐(S2·S1 저밀도). UI 가 페이지 안쪽(inner)에 몇 개 흩뿌린다 — 64 타일 반복이 보이지 않게 큰 얼룩은 데칼로."""
+    import random
+    out = {}
+    s = new(32, 32)
+    water_ring(s, 15, 15, 12, seed=81, keep=0.8, blank_ok=True)
+    water_ring(s, 15, 15, 10, seed=82, keep=0.25, blank_ok=True)
+    for (x, y) in [(6, 22), (24, 8), (20, 20), (9, 9), (18, 25)]:
+        s.rect(x, y, x + 1, y, PAPER_DARK)
+    out["stain_ring"] = s
+    s = new(32, 32)
+    burn(s, 26, 26, 10, 9, seed=83, blank_ok=True)          # 심 (26,26): 페이지 모서리에 걸쳐 놓도록 우하단에 치우침
+    out["stain_burn"] = s
+    s = new(32, 32)
+    rnd = random.Random(84)
+    s.circle(14, 15, 5, HALO, fill=True)
+    s.circle(13, 14, 3, GLOW, fill=True)
+    s.rect(11, 20, 18, 21, HALO); s.rect(12, 20, 16, 20, GLOW)
+    s.circle(21, 21, 2, HALO, fill=True); s.px(21, 21, GLOW)
+    for (x, y) in [(20, 9), (21, 8), (22, 8), (7, 12), (6, 12), (18, 25), (18, 26)]:
+        s.px(x, y, HALO)
+    s.outline(PAPER_DARK, where="outside")   # 바깥 1px 그늘 (글자 발광 규칙과 같은 구조)
+    out["stain_blot"] = s
+    s = new(32, 32)
+    rnd = random.Random(85)
+    for y in range(32):
+        for x in range(32):
+            d = ((x - 15) / 14) ** 2 + ((y - 16) / 9) ** 2
+            if d < 1.0 and rnd.random() < (0.55 if d < 0.5 else 0.25):
+                s.px(x, y, PAPER_WORN if (d < 0.3 and rnd.random() < 0.4) else PAPER_DARK)
+    for (x, y) in [(5, 14, ), (26, 17), (15, 7), (14, 25)]:
+        s.rect(x, y, x + 2, y, PAPER_WORN)
+    s.despeckle(min_cluster=2)
+    out["stain_smudge"] = s
+    return out
 
 
 def octagon(s, inset, cham, color, size):
@@ -254,48 +356,44 @@ def _is(s, x, y, color):
 
 
 def panel_paper():
-    """80x80 세피아 일기장 페이지 (36라운드). 바탕 S3, 해진 가장자리(S1/S0 + 코너 결손 알파 0), 얼룩(S2 + S1 점),
-    좌상단 접힌 자국(사선 S1/S4, 잉크선이 닳음), 우하단 접힌 귀(dog-ear, 뒷면 S2). 잉크 번짐 테두리 유지(번짐 S0).
-    늘어나는 가운데 띠(24~56)에는 결손·얼룩을 두지 않는다 (늘리면 줄무늬가 된다).
-    책 표지 틀은 별도 `book_frame` — 이 페이지는 틀 없이도 단독으로 쓴다."""
+    """80x80 어두운 세피아 일기장 페이지 (38라운드 '더 더럽고 어둡게'). 바탕 S3(L*28).
+    가장자리: 0 S0 찢긴 줄 / 1~2 S1 / 3~4 S2 = 손때 띠(단색 계단이라 9-slice 늘림에 안전).
+    틀 선: inset 6 팔각 S4(발광 잉크, 닳아 12% 결손 → S2) + inset 7 그늘 S2. 안쪽 가는 선 없음(어두운 페이지에서 선이 많으면 지저분한 게 아니라 격자로 보임).
+    코너(24 안)에만: 물자국 고리 2, 그을림 1(우상단, 심 투명), 얼룩 블롭, 접힌 자국, 접힌 귀, 찢김(bites) 더 많이.
+    늘어나는 가운데 띠(24~56)에는 결손·얼룩을 두지 않는다. 책 표지 틀은 별도 `book_frame`."""
     size = 80
     s = new(size, size)
     s.rect(0, 0, size - 1, size - 1, PAPER)
-    blob(s, 69, 6, 9, 4, PAPER_DARK, seed=31, density=0.8, stain=0.3)     # 우상단 짙은 얼룩
-    blob(s, 6, 64, 4, 8, PAPER_DARK, seed=32, density=0.75, stain=0.25)   # 좌하단 세로 얼룩
-    blob(s, 16, 5, 6, 3, PAPER_LIGHT, seed=33, density=0.4)               # 좌상단 덜 바랜 자리 (드물게)
-    blob(s, 72, 70, 5, 4, PAPER_DARK, seed=34, density=0.7)               # 우하단 (귀 아래 그늘)
-    # 해진 가장자리: 위·왼쪽 바깥 1줄 S1, 아래·오른쪽 바깥 1줄 S0 + 안쪽 1줄 S1
-    s.rect(0, 0, size - 1, 0, PAPER_WORN); s.rect(0, 0, 0, size - 1, PAPER_WORN)
-    s.rect(0, size - 1, size - 1, size - 1, STAIN_DEEP); s.rect(size - 1, 0, size - 1, size - 1, STAIN_DEEP)
-    s.rect(1, size - 2, size - 1, size - 2, PAPER_WORN); s.rect(size - 2, 1, size - 2, size - 1, PAPER_WORN)
-    # 가장자리 그을림 띠 (inset 1~2) S2
-    s.rect(1, 1, size - 2, 2, PAPER_DARK); s.rect(1, 1, 2, size - 2, PAPER_DARK)
-    s.rect(1, size - 3, size - 2, size - 2, PAPER_DARK); s.rect(size - 3, 1, size - 2, size - 2, PAPER_DARK)
-    # 바깥 잉크 선: 번짐(S0 갈변) 을 안쪽에 먼저 깔고 그 위에 잉크(G01) — 2px 무게, 팔각 모따기 7
-    octagon(s, 4, 6, INK_BLEED, size)
-    octagon(s, 3, 7, G[1], size)
-    # 안쪽 가는 선 — 어두운 페이지라 G06 은 안 보여 S1(가죽색 잉크)
-    octagon(s, 8, 7, S[1], size)
-    # 코너 잉크 닳음: 코너 24 안 잉크선 12% 를 S0/G03 로
+    # 손때 띠 — 단색 계단 (2회차: 체커 디더는 9-slice 로 늘리면 6px 줄무늬가 된다)
+    s.rect(0, 0, size - 1, size - 1, STAIN_DEEP, fill=False)
+    s.rect(1, 1, size - 2, size - 2, PAPER_WORN, fill=False)
+    s.rect(2, 2, size - 3, size - 3, PAPER_WORN, fill=False)
+    s.rect(3, 3, size - 4, size - 4, PAPER_DARK, fill=False)
+    s.rect(4, 4, size - 5, size - 5, PAPER_DARK, fill=False)
+    # 틀 선: 그늘(7) 먼저, 발광 선(6) 위에
+    octagon(s, 7, 6, PAPER_DARK, size)
+    octagon(s, 6, 7, HALO, size)
     import random
     rnd = random.Random(35)
     for y in range(size):
         for x in range(size):
-            corner = (x < 24 or x >= size - 24) and (y < 24 or y >= size - 24)
-            if corner and _is(s, x, y, G[1]) and rnd.random() < 0.12:
-                s.px(x, y, S[0] if rnd.random() < 0.6 else G[3])
-    # 좌상단 접힌 자국: 사선 x+y=18 (S1, 잉크선 위는 닳아서 G03/S1), x+y=19 빛 받은 능선 S4
+            if _is(s, x, y, HALO) and rnd.random() < 0.12:
+                s.px(x, y, PAPER_DARK)
+    # 코너 얼룩 (24 안에만)
+    blob(s, 68, 7, 8, 4, PAPER_DARK, seed=31, density=0.8, stain=0.35)     # 우상단 짙은 얼룩
+    blob(s, 7, 66, 4, 8, PAPER_DARK, seed=32, density=0.8, stain=0.3)      # 좌하단 세로 얼룩
+    blob(s, 14, 8, 6, 3, PAPER_LIGHT, seed=33, density=0.3)                # 좌상단 덜 바랜 자리 (아주 드물게)
+    blob(s, 70, 68, 6, 5, PAPER_DARK, seed=34, density=0.75, stain=0.3)    # 우하단 (귀 아래 그늘)
+    water_ring(s, 8, 12, 9, seed=36, keep=0.7)                             # 좌상단 물자국 (페이지 밖으로 걸침)
+    water_ring(s, 70, 64, 11, seed=37, keep=0.6)                           # 우하단 물자국
+    burn(s, 77, 2, 7, 5, seed=38)                                          # 우상단 그을림 (가장자리에서 타 들어옴)
+    # 좌상단 접힌 자국: 사선 x+y=18 S1 / x+y=19 능선 S4(빛)
     for x in range(0, 19):
         y = 18 - x
-        if _is(s, x, y, G[1]):
-            s.px(x, y, G[3])
-        elif _is(s, x, y, INK_BLEED):
-            s.px(x, y, S[1])
-        else:
+        if s.get(x, y) is not None:
             s.px(x, y, PAPER_WORN)
         y2 = 19 - x
-        if _is(s, x, y2, PAPER) or _is(s, x, y2, PAPER_DARK) or _is(s, x, y2, PAPER_LIGHT):
+        if s.get(x, y2) is not None and not _is(s, x, y2, STAIN_DEEP):
             s.px(x, y2, PAPER_LIGHT)
     # 우하단 접힌 귀: u+v<=7 결손(알파 0), 8 가장자리 S0, 9~14 뒷면 S2, 15 접힌 능선 S1, 16 빛 S4
     for y in range(size - 18, size):
@@ -307,30 +405,33 @@ def panel_paper():
             elif t == 8:
                 s.px(x, y, STAIN_DEEP)
             elif t <= 14:
-                s.px(x, y, PAPER_DARK)
+                s.px(x, y, PAPER_DARK if (u + 2 * v) % 5 else PAPER_WORN)
             elif t == 15:
                 s.px(x, y, PAPER_WORN)
             elif t == 16:
                 s.px(x, y, PAPER_LIGHT)
     bites = [
-        (0, 0), (1, 0), (0, 1), (0, 2),
-        (79, 0), (78, 0), (77, 0), (79, 1), (78, 1), (79, 2), (79, 3), (76, 0),
-        (66, 0), (67, 0), (70, 0), (79, 12), (79, 13), (79, 20), (78, 20),
-        (0, 79), (1, 79), (2, 79), (0, 78), (1, 78), (0, 77), (0, 76), (3, 79),
-        (0, 60), (0, 61), (1, 61), (0, 70), (12, 79), (13, 79), (19, 79),
-        (0, 20), (0, 21), (8, 0), (9, 0),
-        (79, 60), (79, 61), (62, 79), (63, 79), (64, 79),
+        (0, 0), (1, 0), (0, 1), (0, 2), (2, 0), (1, 1),
+        (79, 0), (78, 0), (77, 0), (79, 1), (78, 1), (79, 2), (79, 3), (76, 0), (77, 1), (79, 4),
+        (66, 0), (67, 0), (70, 0), (71, 0), (79, 12), (79, 13), (79, 20), (78, 20), (79, 21), (78, 12),
+        (0, 79), (1, 79), (2, 79), (0, 78), (1, 78), (0, 77), (0, 76), (3, 79), (1, 77), (4, 79), (0, 75),
+        (0, 60), (0, 61), (1, 61), (0, 70), (0, 71), (12, 79), (13, 79), (19, 79), (20, 79), (14, 79), (8, 79),
+        (0, 20), (0, 21), (0, 22), (1, 21), (8, 0), (9, 0), (14, 0), (0, 10), (0, 11),
+        (79, 60), (79, 61), (79, 62), (78, 61), (62, 79), (63, 79), (64, 79), (70, 79), (79, 70),
+        (60, 0), (0, 5), (5, 0), (73, 79), (79, 66),
     ]
     for (x, y) in bites:
         s.px(x, y, (0, 0, 0, 0))
+    # 결손에 닿은 종이 픽셀은 S0 (찢긴 단면이 그늘짐)
+    page_cols = (rgb(PAPER), rgb(PAPER_DARK), rgb(PAPER_LIGHT), rgb(PAPER_WORN))
     for y in range(size):
         for x in range(size):
             if (x < 24 or x >= size - 24) and (y < 24 or y >= size - 24):
                 c = s.get(x, y)
-                if c and c[3] and tuple(c[:3]) in (rgb(PAPER), rgb(PAPER_DARK), rgb(PAPER_LIGHT)):
+                if c and tuple(c[:3]) in page_cols:
                     if any(0 <= x + dx < size and 0 <= y + dy < size and s.get(x + dx, y + dy) is None
                            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
-                        s.px(x, y, PAPER_WORN)
+                        s.px(x, y, STAIN_DEEP)
     return s
 
 
@@ -368,8 +469,22 @@ def book_frame():
         (size - 22, 7, size - 15, 7, COVER_D), (size - 8, 16, size - 8, 22, COVER_L), (size - 9, 19, size - 9, 24, COVER_D),
         (7, size - 24, 7, size - 18, COVER_D), (15, size - 8, 22, size - 8, COVER_L), (18, size - 9, 23, size - 9, COVER_D),
         (size - 26, size - 8, size - 20, size - 8, COVER_D), (size - 8, size - 26, size - 8, size - 20, COVER_D),
+        # 38라운드 '더 닳게': 긁힘 추가 + 문질러져 빛 바랜 자리(S2) 코너마다
+        (9, 14, 12, 14, COVER_D), (10, 15, 13, 15, COVER_L), (size - 14, 9, size - 11, 9, COVER_D), (size - 13, 10, size - 10, 10, COVER_L),
+        (16, size - 12, 19, size - 12, COVER_L), (size - 20, size - 13, size - 16, size - 13, COVER_D),
+        (7, 9, 7, 11, COVER_L), (size - 8, size - 12, size - 8, size - 9, COVER_L),
+        (20, 6, 22, 6, COVER_L), (size - 10, 26, size - 10, 29, COVER_L), (6, size - 30, 6, size - 27, COVER_L),
     ]:
         s.rect(x0, y0, x1, y1, c)
+    # 캡 둘레 가죽이 닳아 빛바램 (S2 체커, 코너 32 안)
+    import random
+    rnd = random.Random(39)
+    for (cx, cy, dx, dy) in [(0, 0, 1, 1), (size - 1, 0, -1, 1), (0, size - 1, 1, -1), (size - 1, size - 1, -1, -1)]:
+        for u in range(13, 24):
+            for v in range(2, 11):
+                if u + v > 22 and u + v < 30 and (u + v) % 2 == 0 and rnd.random() < 0.5:
+                    s.px(cx + dx * u, cy + dy * v, COVER_L)
+                    s.px(cx + dx * v, cy + dy * u, COVER_L)
     # 페이지 블록: 그늘 + 단면 2쌍 + 페이지
     s.rect(11, 11, size - 12, size - 12, COVER_D, fill=False)
     s.rect(12, 12, size - 13, size - 13, PAPER_LIGHT, fill=False)
@@ -740,9 +855,9 @@ ICON_ORDER = ["icon_hp", "icon_gold", "icon_potion", "icon_souls", "icon_sense",
 #   미니맵 글리프 e(G14)→c(G12), 강조 하이라이트 L(23)→M(22)
 ICON_REMAP = str.maketrans("d9cweL", "a68dcM")
 # 36라운드: 종이·책을 그린 아이콘은 세피아 재질 — 전표 종이 d→S4, 글줄 9→S1, 단면 c→S2 / 일기장 표지 3→S1, 책등 1→S0, 끈 9→S2, 단면 d→S4
-ICON_REMAP_SEPIA = {
-    "icon_gold": str.maketrans("d9cweL", "tpqudM"),
-    "icon_save": str.maketrans("d9cweL13", "tqqudMop"),
+ICON_REMAP_SEPIA = {   # 38라운드: 어두운 페이지 위에서 종이 아이콘이 가라앉지 않게 전표 종이 S4→S5, 단면 S2→S4 / 일기장 단면 S4→S5
+    "icon_gold": str.maketrans("d9cweL", "uptudM"),
+    "icon_save": str.maketrans("d9cweL13", "uqqudMop"),
 }
 
 
@@ -817,36 +932,36 @@ def build_icons():
 # ============================================================ 4. 커서·구분선
 def cursor(dark=True):
     """깃펜 촉 ▶ 2프레임: 0 = 정지, 1 = 1px 앞으로 + 촉 끝 잉크 방울.
-    종이용: 잉크 G01 + 홈 S3(페이지색이 비침). 잉크 패널용: 세피아 S5 촉 + 홈 S1 (36라운드: 회색 → 연갈색 책 재질)."""
-    ink, slit = (G[1], S[3]) if dark else (S[5], S[1])
+    38라운드: 종이용(`cursor`) = 발광 세피아 촉 S5 + 홈 S1 + 바깥 1px 할로 S4 (글자 발광 규칙과 같은 구조).
+    잉크 패널용(`cursor_light`) = S5 촉 + 홈 S1, 할로 없음 (G00 위에서는 촉 자체가 충분히 밝다)."""
+    ink, slit = GLOW, S[1]
     s = new(8, 8)
     nib = [
         "........",
+        "........",
         ".1......",
         ".11.....",
-        ".111....",
-        ".1K11...",
-        ".111....",
+        ".1K1....",
         ".11.....",
         ".1......",
+        "........",
     ]
-    for j, row in enumerate(nib):
-        for i, ch in enumerate(row):
-            if ch == "1":
-                s.px(i, j, ink)
-            elif ch == "K":
-                s.px(i, j, slit)
-    s.px(3, 4, slit)
+
+    def draw(ox):
+        for j, row in enumerate(nib):
+            for i, ch in enumerate(row):
+                if ch == "1":
+                    s.px(i + ox, j, ink)
+                elif ch == "K":
+                    s.px(i + ox, j, slit)
+        if dark:
+            s.outline(HALO, where="outside")      # 4방향 1px 할로
+
+    draw(0)
     s.set_duration(420, [1])
     s.add_frame(copy=False)
     s.use(frame=2)
-    for j, row in enumerate(nib):
-        for i, ch in enumerate(row):
-            if ch == "1":
-                s.px(i + 1, j, ink)
-            elif ch == "K":
-                s.px(i + 1, j, slit)
-    s.px(4, 4, slit)
+    draw(1)
     s.px(6, 5, A[5])    # 잉크 방울 (호박 1px: 의도된 고립 픽셀)
     s.set_duration(260, [2])
     s.use(frame=1)
@@ -854,11 +969,13 @@ def cursor(dark=True):
 
 
 def rule(dark=True):
+    """1x4 구분선. 종이용(38라운드): 0 그늘 S2 / 1 발광 S5 / 2 할로 S4 / 3 그늘 S2 — 글자와 같은 발광 구조.
+    잉크 패널용: 1 S4 / 2 S1 (변경 없음)."""
     s = new(1, 4)
     if dark:
-        s.px(0, 1, G[0]); s.px(0, 2, INK_BLEED)    # 종이용: 잉크 G00 + 갈변 번짐 S0
+        s.px(0, 0, PAPER_DARK); s.px(0, 1, GLOW); s.px(0, 2, HALO); s.px(0, 3, PAPER_DARK)
     else:
-        s.px(0, 1, PAPER_LIGHT); s.px(0, 2, COVER)  # 잉크 패널용: 세피아 S4 + S1
+        s.px(0, 1, PAPER_LIGHT); s.px(0, 2, COVER)
     return s
 
 
@@ -875,7 +992,7 @@ def ink_scribble(s, x0, y0, x1, seed, color, step=6):
             break
         s.rect(x, y, x + n - 1, y, color)
         if rnd.random() < 0.3:
-            s.rect(x, y + 1, x + n - 2, y + 1, G[4])   # 번진 잉크 (바랜 종이 위 G04)
+            s.rect(x, y + 1, x + n - 2, y + 1, HALO)   # 번진 잉크 (38라운드: 발광 글줄 아래 할로 S4)
         if rnd.random() < 0.25:
             s.px(x + rnd.randrange(n), y - 1, color)  # 위로 삐친 획 (대시에 붙어 있어 고립 아님)
         x += n + rnd.choice([1, 2, 2, 3])
@@ -884,7 +1001,7 @@ def ink_scribble(s, x0, y0, x1, seed, color, step=6):
 
 def title_diary():
     """160x96 펼친 일기장 (36라운드 세피아): 가죽 표지 S1(그늘 S0·빛 S2, K 윤곽), 페이지 S3(단면 S4/S2, 괘선 S2, 얼룩 S2+S1),
-    제본 홈 S0 + 실 S4, 왼쪽 글이 가득(잉크 G01 + 번짐 G04), 오른쪽 두 줄 + 잉크 얼룩 + 술잔 자국(호박 18/19) + 책갈피(호박) + 가죽 끈."""
+    제본 홈 S0 + 실 S4, 왼쪽 글이 가득(38라운드: 발광 잉크 S5 + 번짐 S4), 오른쪽 두 줄 + 잉크 얼룩 + 술잔 자국(호박 18/19) + 책갈피(호박) + 가죽 끈."""
     W, H = 160, 96
     s = new(W, H)
     s.rect(1, 1, W - 2, H - 2, COVER)
@@ -913,16 +1030,17 @@ def title_diary():
     s.rect(79, 2, 80, H - 3, G[0])
     for y in range(10, H - 8, 9):
         s.rect(78, y, 81, y + 1, THREAD)
-    # 왼쪽 페이지 손글씨 (잉크 G01), 첫 줄 제목 2px
-    s.rect(LX0 + 8, PY0 + 7, LX0 + 30, PY0 + 8, G[1])
+    # 왼쪽 페이지 손글씨 (38라운드: 발광 잉크 S5 + 번짐 S4), 첫 줄 제목 2px (S5 위 / S4 아래)
+    s.rect(LX0 + 8, PY0 + 7, LX0 + 30, PY0 + 7, GLOW); s.rect(LX0 + 8, PY0 + 8, LX0 + 30, PY0 + 8, HALO)
     for k, y in enumerate(range(PY0 + 17, PY1 - 6, 7)):
-        ink_scribble(s, LX0 + 6, y - 2, LX1 - 6 - (k % 3) * 9, seed=11 + k, color=G[1])
+        ink_scribble(s, LX0 + 6, y - 2, LX1 - 6 - (k % 3) * 9, seed=11 + k, color=GLOW)
     for k, y in enumerate(range(PY0 + 17, PY0 + 32, 7)):
-        ink_scribble(s, RX0 + 7, y - 2, RX1 - 20 - k * 14, seed=31 + k, color=G[1])
-    s.circle(RX0 + 50, PY0 + 52, 3, G[1], fill=True)
-    s.rect(RX0 + 47, PY0 + 54, RX0 + 54, PY0 + 55, G[1])
-    s.circle(RX0 + 56, PY0 + 56, 1, G[1], fill=True)
-    s.px(RX0 + 54, PY0 + 50, G[1]); s.px(RX0 + 53, PY0 + 50, G[1]); s.px(RX0 + 53, PY0 + 49, G[1])
+        ink_scribble(s, RX0 + 7, y - 2, RX1 - 20 - k * 14, seed=31 + k, color=GLOW)
+    # 쏟은 잉크 얼룩도 발광 (S4 테 + S5 심)
+    s.circle(RX0 + 50, PY0 + 52, 3, HALO, fill=True); s.circle(RX0 + 50, PY0 + 52, 2, GLOW, fill=True)
+    s.rect(RX0 + 47, PY0 + 54, RX0 + 54, PY0 + 55, HALO); s.rect(RX0 + 48, PY0 + 54, RX0 + 53, PY0 + 54, GLOW)
+    s.circle(RX0 + 56, PY0 + 56, 1, HALO, fill=True)
+    s.px(RX0 + 54, PY0 + 50, HALO); s.px(RX0 + 53, PY0 + 50, HALO); s.px(RX0 + 53, PY0 + 49, HALO)
     # 술잔 자국: 호박 18/19 고리 (유채는 이것과 책갈피·봉인만)
     cx, cy = RX0 + 26, PY0 + 58
     ring = new(W, H)
@@ -1001,7 +1119,7 @@ def stamp(kind):
     S = 48
     s = new(S, S)
     c = 23
-    INK = G[2]   # 33라운드: 바랜 잉크 G02 (닳은 자리 G03/G04)
+    INK = HALO   # 38라운드: 어두운 페이지 위 바랜 '발광' 잉크 — 본색 S4, 진하게 눌린 자리 S5(15%), 닳은 자리 S2(12%), 결손 9%
     s.circle(c, c, 22, INK, fill=False); s.circle(c, c, 21, INK, fill=False)
     s.circle(c, c, 18, INK, fill=False)
     if kind == "dead":
@@ -1025,9 +1143,9 @@ def stamp(kind):
                 if r < 0.09:
                     s.px(x, y, (0, 0, 0, 0))
                 elif r < 0.21:
-                    s.px(x, y, G[4])
-                elif r < 0.33:
-                    s.px(x, y, G[3])
+                    s.px(x, y, PAPER_DARK)
+                elif r < 0.36:
+                    s.px(x, y, GLOW)
     s.despeckle(min_cluster=2)
     return s
 
@@ -1051,13 +1169,62 @@ def text(img, xy, s, color=G[14], size=16, anchor="la", shadow=None):
     d.text(xy, s, fill=rgba(color), font=f, anchor=anchor)
 
 
+from PIL import ImageChops  # noqa: E402
+
+# ---- 글자 발광 규칙 (38라운드) — UI 파트가 Phaser 로 재현할 수치의 원본 ----
+#   층 (아래→위): ① 그늘 ring  ② 할로 ring  ③ 글자 본색
+#   할로 ring = 글자를 4방향(±1,0)(0,±1) 으로 1px 팽창한 것 − 글자.  그늘 ring = 할로를 다시 4방향 1px 팽창한 것 − 할로 (맨해튼 거리 2).
+#   대각선(8방향) 팽창은 쓰지 않는다: 1배 Unifont/Galmuri 의 1px 획 틈이 메워져 글자가 뭉개진다 (1회차 비평).
+TEXT_STYLES = {
+    # name: (fill, fill_alpha, halo, halo_alpha, shade, shade_alpha)
+    "page_body":     (S[5], 1.0, S[4], 1.0, S[2], 1.0),      # 본문: 발광 세피아 S5 + 할로 S4 + 그늘 S2
+    "page_title":    (G[15], 1.0, S[4], 1.0, S[2], 1.0),     # 제목: 흰 G15 + 할로 S4 + 그늘 S2
+    "page_selected": (G[15], 1.0, A[4], 0.5, S[2], 1.0),     # 선택 항목: 흰 G15 + 층 강조 20 할로(저밀도 α0.5) + 그늘 S2
+    "page_unsel":    (G[13], 1.0, S[4], 1.0, S[2], 1.0),     # 비선택: G13 + 할로 S4 + 그늘 S2
+    "page_faint":    (S[5], 0.55, None, 0.0, None, 0.0),     # 흐린 글: S5 α0.55, 할로·그늘 없음 (2회차: S4 는 L*28 페이지에서 안 읽힘)
+    "ink_body":      (G[14], 1.0, A[4], 0.5, G[0], 1.0),     # 잉크 HUD: 흰 G14 + 강조 20 할로 α0.5 + 그늘 G00
+    "ink_faint":     (G[11], 1.0, None, 0.0, G[0], 1.0),     # 잉크 HUD 흐림: G11, 할로 없음, 그늘 G00
+    "ink_accent":    (A[6], 1.0, A[4], 0.5, G[0], 1.0),      # 공지·보스 이름: 22 + 할로 20 α0.5 + 그늘 G00
+}
+
+
+def _dilate4(mask):
+    out = mask
+    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        out = ImageChops.lighter(out, ImageChops.offset(mask, dx, dy))
+    return out
+
+
+def glow_text(img, xy, s, style="page_body", size=16, anchor="la"):
+    """발광 글자: TEXT_STYLES[style] 대로 그늘 ring → 할로 ring → 본색 순서로 그린다. 할로가 None 이면 그늘 ring 이 글자 바로 바깥 1px."""
+    fill, fa, halo, ha, shade, sa = TEXT_STYLES[style]
+    W, H = img.size
+    m = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(m).text(xy, s, fill=255, font=font(size), anchor=anchor)
+    m = m.point(lambda v: 255 if v >= 128 else 0)
+    layers = []
+    if halo is not None:
+        h = _dilate4(m)
+        sh = _dilate4(h)
+        layers.append((ImageChops.subtract(sh, h), shade, sa))
+        layers.append((ImageChops.subtract(h, m), halo, ha))
+    elif shade is not None:
+        sh = _dilate4(m)
+        layers.append((ImageChops.subtract(sh, m), shade, sa))
+    layers.append((m, fill, fa))
+    for ring, col, a in layers:
+        layer = Image.new("RGBA", (W, H), rgba(col))
+        layer.putalpha(ring.point(lambda v, a=a: int(v * a)))
+        img.alpha_composite(layer)
+
+
 def up(img, k):
     return img.resize((img.width * k, img.height * k), Image.NEAREST)
 
 
 def preview_kit(assets, icons, sheet):
     """모든 키트 2배 + 9-slice 늘림 검증 (종이 240x120, 잉크 200x60, 미니맵 110x90, 게이지 120·200)."""
-    W, H = 1400, 1130
+    W, H = 1400, 1500
     img = Image.new("RGBA", (W, H), rgba(G[6]))
     y = 10
 
@@ -1106,8 +1273,8 @@ def preview_kit(assets, icons, sheet):
     put("minimap_frame 32 → 110x90", mm, 240, y + 44)
     # 커서·구분선
     cx = 500
-    put("cursor f1/f2 (ink)", Image.open(os.path.join(OUT, "cursor.png")), cx, y + 44, 4)
-    put("cursor_light", Image.open(os.path.join(OUT, "cursor_light.png")), cx + 90, y + 44, 4)
+    put("cursor (page)", Image.open(os.path.join(OUT, "cursor.png")), cx, y + 44, 4)
+    put("cursor_light (ink)", Image.open(os.path.join(OUT, "cursor_light.png")), cx + 90, y + 44, 4)
     r = assets["rule"].resize((120, 4), Image.NEAREST)
     put("rule 1x4 → 120", r, cx + 180, y + 44, 2)
     r2 = assets["rule_light"].resize((120, 4), Image.NEAREST)
@@ -1128,8 +1295,41 @@ def preview_kit(assets, icons, sheet):
     pap.alpha_composite(up(assets["stamp_dead"], 2), (16, 16))
     pap.alpha_composite(up(assets["stamp_clear"], 2), (124, 16))
     put("stamp_dead / stamp_clear 48 (on paper)", pap, 560, y, 1)
+    y += 290
+    # 5행: 얼룩 데칼 시트 (38라운드 신규) 4배, 페이지색 위
+    sbg = Image.new("RGBA", (8 + 128 * 4 + 8, 8 + 32 * 4 + 8), rgba(PAPER))
+    sbg.alpha_composite(up(Image.open(os.path.join(OUT, "stains.png")).convert("RGBA"), 4), (8, 8))
+    put("stains.png 4x (ring / burn / blot / smudge) on page S3", sbg, 10, y, 1)
+    # 5행 오른쪽: 글자 발광 규칙 견본 — 1배와 3배, 페이지·잉크 두 바탕
+    demo = _glow_demo(assets)
+    put("glow text rule (1x and 3x): style = fill / halo(alpha) / shade", demo, 560, y, 1)
     img.convert("RGB").save(os.path.join(HERE, "preview_kit.png"))
     print("preview -> preview_kit.png")
+
+
+def _glow_demo(assets):
+    """발광 글자 규칙 견본: 왼쪽 페이지(세피아) / 오른쪽 잉크 패널. 각 스타일을 1배로 쓰고, 그 중 본문 한 줄을 3배로 확대."""
+    pw, ph = 300, 150
+    paper = _paper(assets, pw, ph, seed=9)
+    ink = nine(assets["panel_ink"], INK_SL, pw, ph)
+    out = Image.new("RGBA", (pw * 2 + 10, ph + 10 + 16 * 3 * 2 + 20), rgba(G[6]))
+    out.alpha_composite(paper, (0, 0)); out.alpha_composite(ink, (pw + 10, 0))
+    rows_p = [("page_title", "일기장  (G15 / S4 / S2)"), ("page_body", "본문: 발광 S5 / 할로 S4 / 그늘 S2"),
+              ("page_selected", "[1] 선택  (G15 / 20 α.5 / S2)"), ("page_unsel", "[2] 비선택  (G13 / S4 / S2)"),
+              ("page_faint", "흐린 글: S5 α.55, 할로 없음")]
+    rows_i = [("ink_body", "HUD 본문: G14 / 20 α.5 / G00"), ("ink_faint", "HUD 흐림: G11, 할로 없음"),
+              ("ink_accent", "공지·보스: 22 / 20 α.5 / G00")]
+    for i, (st, tx) in enumerate(rows_p):
+        glow_text(out, (16, 14 + i * 24), tx, st)
+    for i, (st, tx) in enumerate(rows_i):
+        glow_text(out, (pw + 10 + 16, 14 + i * 24), tx, st)
+    # 3배 확대 조각: 본문·선택(페이지) / HUD 본문(잉크)
+    z1 = up(out.crop((16, 36, 16 + 196, 36 + 16)), 3)
+    z2 = up(out.crop((16, 60, 16 + 196, 60 + 16)), 3)
+    z3 = up(out.crop((pw + 10 + 16, 12, pw + 10 + 16 + 196, 12 + 16)), 3)
+    out.alpha_composite(z1, (0, ph + 10)); out.alpha_composite(z2, (0, ph + 10 + 52))
+    out.alpha_composite(z3, (pw + 10, ph + 10))
+    return out
 
 
 def preview_icons(icons):
@@ -1189,14 +1389,41 @@ def _mock_scene(W, H):
     return img
 
 
-def _paper(assets, w, h):
+def _paper(assets, w, h, seed=None):
+    """9-slice 페이지 + 타일 질감 + (seed 가 있으면) 얼룩 데칼 3~5개 — UI 파트 조립 순서 ①~③ 과 같다."""
     paper = nine(assets["panel_paper"], PAPER_SL, w, h)
     tile_fill(paper, assets["paper_tile"], PAPER_INNER["left"], PAPER_INNER["top"],
               w - PAPER_INNER["left"] - PAPER_INNER["right"], h - PAPER_INNER["top"] - PAPER_INNER["bottom"])
+    if seed is not None:
+        _dirty(paper, assets, w, h, seed)
     return paper
 
 
-def _book(assets, pages, pw, ph):
+def _dirty(paper, assets, w, h, seed):
+    """얼룩 데칼: 물자국·손때는 안쪽 아무 데나, 그을림은 가장자리(심이 페이지 밖을 향하게), 잉크 얼룩은 1개 이하. 페이지 inner 안에만."""
+    import random
+    rnd = random.Random(seed)
+    iw, ih = w - 24, h - 24
+    n = 3 + (iw * ih) // 40000
+    kinds = ["stain_ring", "stain_smudge", "stain_ring", "stain_smudge", "stain_burn", "stain_blot"]
+    for i in range(min(n, 6)):
+        k = kinds[i]
+        dec = assets["stains"][k]
+        if k == "stain_burn":
+            # 우하단 심을 가장자리에 걸치도록: 오른쪽 아래 코너 또는 왼쪽 아래 코너(좌우 반전)
+            flip = rnd.random() < 0.5
+            dec = dec.transpose(Image.FLIP_LEFT_RIGHT) if flip else dec
+            x = 12 if flip else w - 12 - 32
+            y = h - 12 - 32 - rnd.randrange(0, max(1, ih // 3))
+        else:
+            x = 12 + rnd.randrange(0, max(1, iw - 32))
+            y = 12 + rnd.randrange(0, max(1, ih - 32))
+            if rnd.random() < 0.5:
+                dec = dec.transpose(Image.FLIP_TOP_BOTTOM)
+        paper.alpha_composite(dec, (x, y))
+
+
+def _book(assets, pages, pw, ph, seed=None):
     """책 표지 틀 안에 페이지 1~2장(+제본선). 1배 크기 = (16 + pw*pages + 16*(pages-1) + 16, 16 + ph + 16)."""
     inner_w = pw * pages + SPINE_W * (pages - 1)
     W = BOOK_INNER["left"] + inner_w + BOOK_INNER["right"]
@@ -1204,7 +1431,7 @@ def _book(assets, pages, pw, ph):
     img = nine(assets["book_frame"], BOOK_SL, W, H)
     x = BOOK_INNER["left"]
     for i in range(pages):
-        img.alpha_composite(_paper(assets, pw, ph), (x, BOOK_INNER["top"]))
+        img.alpha_composite(_paper(assets, pw, ph, None if seed is None else seed * 10 + i), (x, BOOK_INNER["top"]))
         x += pw
         if i < pages - 1:
             tile_fill(img, assets["spine"], x, BOOK_INNER["top"], SPINE_W, ph)
@@ -1243,7 +1470,7 @@ def preview_mock(assets, sheet, icon_frames):
 
     P = 8
     # 상단 좌: 층 제목 · 시련 (패널 없이 그림자 글씨)
-    text(img, (P + 4, P + 2), "1층 · 술독 제국 '잔'   시련 2/4", G[11], 16, shadow=G[0])
+    glow_text(img, (P + 4, P + 2), "1층 · 술독 제국 '잔'   시련 2/4", "ink_body")
     # 상단 우: 미니맵 + 음소거
     mw, mh = 118, 98
     img.alpha_composite(nine(assets["minimap_frame"], MINI_SL, mw, mh), (W - P - mw, P))
@@ -1261,55 +1488,55 @@ def preview_mock(assets, sheet, icon_frames):
     x, y = ox + 1 * cell * 2 + 3, oy + 1 * cell * 2 + 3
     d.rectangle([x - 1, y - 1, x + 22, y + 22], outline=rgba(A[6]))
     icon("icon_sound", W - P - 16 - 44, P + mh + 6)
-    text(img, (W - P - 44 + 2, P + mh + 6), "M", G[11], 16)
+    glow_text(img, (W - P - 44 + 2, P + mh + 6), "M", "ink_faint")
     # 하단 중앙 한 묶음: 잉크 패널 480x64
     bw0, bh0 = 480, 64
     x0, y0 = (W - bw0) // 2, H - P - bh0
     img.alpha_composite(nine(assets["panel_ink"], INK_SL, bw0, bh0), (x0, y0))
     icon("icon_hp", x0 + 8, y0 + 8)
     gauge(x0 + 28, y0 + 11, 180, 0.72)
-    text(img, (x0 + 214, y0 + 7), "72 / 100", G[13], 16)
+    glow_text(img, (x0 + 214, y0 + 7), "72 / 100", "ink_body")
     icon("icon_gold", x0 + 292, y0 + 8)
-    text(img, (x0 + 312, y0 + 7), "137", G[13], 16)
+    glow_text(img, (x0 + 312, y0 + 7), "137", "ink_body")
     icon("icon_potion", x0 + 352, y0 + 8)
-    text(img, (x0 + 372, y0 + 7), "2/3  Q", G[13], 16)
+    glow_text(img, (x0 + 372, y0 + 7), "2/3  Q", "ink_body")
     wi = Image.open(os.path.join(ROOT, "assets", "sprites", "weapons", "katana_icon.png")).convert("RGBA")
     img.alpha_composite(wi, (x0 + 8, y0 + 38))
-    text(img, (x0 + 28, y0 + 37), "사무라이 칼 · 거합", G[13], 16)
+    glow_text(img, (x0 + 28, y0 + 37), "사무라이 칼 · 거합", "ink_body")
     icon("icon_sense", x0 + 184, y0 + 38)
     gauge(x0 + 204, y0 + 41, 100, 0.4, gray=True)
-    text(img, (x0 + 310, y0 + 37), "40/100", G[11], 16)
-    text(img, (x0 + 376, y0 + 37), "우클릭 패링", G[11], 16)
+    glow_text(img, (x0 + 310, y0 + 37), "40/100", "ink_faint")
+    glow_text(img, (x0 + 376, y0 + 37), "우클릭 패링", "ink_faint")
     # 그 위: 보스 게이지 360
     gw = 360
     gx, gy = W // 2 - gw // 2, y0 - 8 - 14
     icon("icon_boss", gx - 22, gy - 1)
-    text(img, (W // 2, gy - 20), "양조장주  페이즈 1", A[6], 16, anchor="ma", shadow=G[0])
+    glow_text(img, (W // 2, gy - 20), "양조장주  페이즈 1", "ink_accent", anchor="ma")
     gauge(gx, gy, gw, 0.63, boss=True)
     # 그 위: 자막 (그림자 글씨, 패널 없음)
-    text(img, (W // 2, gy - 44), "양조장주: 「잔을 비우기 전엔 아무도 못 나간다.」", G[13], 16, anchor="ma", shadow=G[0])
+    glow_text(img, (W // 2, gy - 44), "양조장주: 「잔을 비우기 전엔 아무도 못 나간다.」", "ink_body", anchor="ma")
     # 우하단: 출구 열림 공지 (작은 잉크 패널) — 묶음 바깥, 임시
     nw, nh = 150, 30
     img.alpha_composite(nine(assets["panel_ink"], INK_SL, nw, nh), (W - P - nw, H - P - nh))
     icon("icon_exit", W - P - nw + 8, H - P - nh + 7)
-    text(img, (W - P - nw + 30, H - P - nh + 6), "오르는 길 열림", A[6], 16)
+    glow_text(img, (W - P - nw + 30, H - P - nh + 6), "오르는 길 열림", "ink_accent")
     # 중앙: 일시정지 '일기장' — 책 표지 틀(book_frame) 안의 세피아 페이지 한 장 (33라운드 420x236 자리 그대로, 틀 16 씩 바깥으로)
     pw, ph = 420, 236
     px0, py0 = W // 2 - pw // 2, H // 2 - ph // 2 - 10
-    img.alpha_composite(_book(assets, 1, pw, ph), (px0 - BOOK_INNER["left"], py0 - BOOK_INNER["top"]))
-    text(img, (W // 2, py0 + 18), "일기장", G[0], 16, anchor="ma")
+    img.alpha_composite(_book(assets, 1, pw, ph, seed=1), (px0 - BOOK_INNER["left"], py0 - BOOK_INNER["top"]))
+    glow_text(img, (W // 2, py0 + 18), "일기장", "page_title", anchor="ma")
     img.alpha_composite(assets["rule"].resize((pw - 60, 4), Image.NEAREST), (px0 + 30, py0 + 40))
-    text(img, (px0 + 30, py0 + 50), "전장의 망령   1층 · 술독 제국 '잔'   시련 2/4", G[1], 16)
-    text(img, (px0 + 30, py0 + 70), "공격 7  방어 3  치명타 5%  감각 2", G[1], 16)
-    text(img, (px0 + 30, py0 + 90), "무기: 사무라이 칼 · 거합  (개성 40/100)", G[1], 16)
+    glow_text(img, (px0 + 30, py0 + 50), "전장의 망령   1층 · 술독 제국 '잔'   시련 2/4", "page_body")
+    glow_text(img, (px0 + 30, py0 + 70), "공격 7  방어 3  치명타 5%  감각 2", "page_body")
+    glow_text(img, (px0 + 30, py0 + 90), "무기: 사무라이 칼 · 거합  (개성 40/100)", "page_body")
     icon("icon_save", px0 + 30, py0 + 110)
-    text(img, (px0 + 52, py0 + 110), "세이브 남음 2", G[1], 16)
+    glow_text(img, (px0 + 52, py0 + 110), "세이브 남음 2", "page_body")
     img.alpha_composite(assets["rule"].resize((pw - 60, 4), Image.NEAREST), (px0 + 30, py0 + 136))
     cur = Image.open(os.path.join(OUT, "cursor.png")).crop((0, 0, 8, 8))
     img.alpha_composite(cur, (px0 + 32, py0 + 154))
-    text(img, (px0 + 48, py0 + 150), "[1] 더 쓴다 (Esc)", G[0], 16)
-    text(img, (px0 + 48, py0 + 172), "[2] 그래도 덮는다", G[2], 16)          # 비선택 G03→G02 (세피아 위)
-    text(img, (px0 + 30, py0 + 204), "덮으면 이 층의 기록은 지워진다", G[3], 16)   # 흐린 글 G04→G03
+    glow_text(img, (px0 + 48, py0 + 150), "[1] 더 쓴다 (Esc)", "page_selected")
+    glow_text(img, (px0 + 48, py0 + 172), "[2] 그래도 덮는다", "page_unsel")
+    glow_text(img, (px0 + 30, py0 + 204), "덮으면 이 층의 기록은 지워진다", "page_faint")
     img.alpha_composite(_with_alpha(assets["stamp_clear"], 0.85), (px0 + pw - 92, py0 + ph - 92))
     img.convert("RGB").save(os.path.join(HERE, "preview_mock.png"))
     print("preview -> preview_mock.png")
@@ -1327,37 +1554,37 @@ def preview_mock_result(assets, sheet, icon_frames):
         img.alpha_composite(sheet.crop((f["x"], f["y"], f["x"] + f["w"], f["y"] + f["h"])), (x, y))
 
     pw, ph = 292, 400
-    book = _book(assets, 2, pw, ph)
+    book = _book(assets, 2, pw, ph, seed=2)
     bx0, by0 = (W - book.width) // 2, (H - book.height) // 2
     img.alpha_composite(book, (bx0, by0))
     lx0, ly0 = bx0 + BOOK_INNER["left"], by0 + BOOK_INNER["top"]          # 왼쪽 페이지 원점
     rx0 = lx0 + pw + SPINE_W                                               # 오른쪽 페이지 원점
     # 왼쪽 페이지
-    text(img, (lx0 + pw // 2, ly0 + 22), "일기장을 덮는다", G[0], 16, anchor="ma")
+    glow_text(img, (lx0 + pw // 2, ly0 + 22), "일기장을 덮는다", "page_title", anchor="ma")
     img.alpha_composite(assets["rule"].resize((pw - 56, 4), Image.NEAREST), (lx0 + 28, ly0 + 46))
     img.alpha_composite(assets["diary_closed"], (lx0 + (pw - 96) // 2, ly0 + 62))
     ty = ly0 + 142
-    text(img, (lx0 + 28, ty), "전장의 망령은 1층 · 술독 제국", G[1], 16)
-    text(img, (lx0 + 28, ty + 22), "'잔' 에서 쓰러졌다", G[1], 16)
-    text(img, (lx0 + 28, ty + 52), "시련 2/4   방 7", G[1], 16)
-    text(img, (lx0 + 28, ty + 74), "걸린 시간 04:12", G[1], 16)
-    icon("icon_gold", lx0 + 28, ty + 100); text(img, (lx0 + 50, ty + 100), "전표 137", G[1], 16)
-    icon("icon_souls", lx0 + 150, ty + 100); text(img, (lx0 + 172, ty + 100), "영혼 +12", G[1], 16)
+    glow_text(img, (lx0 + 28, ty), "전장의 망령은 1층 · 술독 제국", "page_body")
+    glow_text(img, (lx0 + 28, ty + 22), "'잔' 에서 쓰러졌다", "page_body")
+    glow_text(img, (lx0 + 28, ty + 52), "시련 2/4   방 7", "page_body")
+    glow_text(img, (lx0 + 28, ty + 74), "걸린 시간 04:12", "page_body")
+    icon("icon_gold", lx0 + 28, ty + 100); glow_text(img, (lx0 + 50, ty + 100), "전표 137", "page_body")
+    icon("icon_souls", lx0 + 150, ty + 100); glow_text(img, (lx0 + 172, ty + 100), "영혼 +12", "page_body")
     wi = Image.open(os.path.join(ROOT, "assets", "sprites", "weapons", "katana_icon.png")).convert("RGBA")
-    img.alpha_composite(wi, (lx0 + 28, ty + 124)); text(img, (lx0 + 50, ty + 124), "사무라이 칼 · 거합", G[1], 16)
-    text(img, (lx0 + 50, ty + 146), "(개성 40/100)", G[2], 16)
-    text(img, (lx0 + 28, ty + 176), "쓰러뜨린 적 23", G[3], 16)
-    text(img, (lx0 + 28, ty + 198), "받은 피해 188", G[3], 16)
+    img.alpha_composite(wi, (lx0 + 28, ty + 124)); glow_text(img, (lx0 + 50, ty + 124), "사무라이 칼 · 거합", "page_body")
+    glow_text(img, (lx0 + 50, ty + 146), "(개성 40/100)", "page_unsel")
+    glow_text(img, (lx0 + 28, ty + 176), "쓰러뜨린 적 23", "page_faint")
+    glow_text(img, (lx0 + 28, ty + 198), "받은 피해 188", "page_faint")
     # 오른쪽 페이지
-    text(img, (rx0 + 24, ly0 + 40), "'한 잔만 더' 라는 말을", G[1], 16)
-    text(img, (rx0 + 24, ly0 + 62), "믿지 말 걸 그랬다.", G[1], 16)
-    text(img, (rx0 + 24, ly0 + 92), "다음 장은 비어 있다.", G[3], 16)
+    glow_text(img, (rx0 + 24, ly0 + 40), "'한 잔만 더' 라는 말을", "page_body")
+    glow_text(img, (rx0 + 24, ly0 + 62), "믿지 말 걸 그랬다.", "page_body")
+    glow_text(img, (rx0 + 24, ly0 + 92), "다음 장은 비어 있다.", "page_faint")
     img.alpha_composite(assets["rule"].resize((pw - 48, 4), Image.NEAREST), (rx0 + 24, ly0 + 124))
     cur = Image.open(os.path.join(OUT, "cursor.png")).crop((0, 0, 8, 8))
     img.alpha_composite(cur, (rx0 + 26, ly0 + 148))
-    text(img, (rx0 + 42, ly0 + 144), "[Enter] 다시 쓴다", G[0], 16)
-    text(img, (rx0 + 42, ly0 + 166), "[Esc] 본영으로", G[2], 16)
-    icon("icon_save", rx0 + 26, ly0 + 194); text(img, (rx0 + 48, ly0 + 194), "세이브 남음 1", G[3], 16)
+    glow_text(img, (rx0 + 42, ly0 + 144), "[Enter] 다시 쓴다", "page_selected")
+    glow_text(img, (rx0 + 42, ly0 + 166), "[Esc] 본영으로", "page_unsel")
+    icon("icon_save", rx0 + 26, ly0 + 194); glow_text(img, (rx0 + 48, ly0 + 194), "세이브 남음 1", "page_faint")
     img.alpha_composite(_with_alpha(assets["stamp_dead"], 0.85), (rx0 + pw - 40 - 48, ly0 + ph - 40 - 48))
     img.convert("RGB").save(os.path.join(HERE, "preview_mock_result.png"))
     print("preview -> preview_mock_result.png")
@@ -1371,13 +1598,13 @@ def main():
     assets["panel_paper"] = check("panel_paper", pp)
     export("panel_paper", pp, {"kind": "nineslice", "width": 80, "height": 80, "slice": PAPER_SL,
                                 "inner": PAPER_INNER, "tile": "paper_tile.png (draw as tileSprite inside `inner` on top of the stretched center)",
-                                "colors": "sepia page S3 (S4 light / S2 stain / S1 crease·worn edge·deep stain / S0 edge), ink G01 + bleed S0, inner faint rule S1",
-                                "edges": "corners have 1-3px torn bites (alpha 0) and a folded dog-ear at bottom-right; keep stretched middle bands plain",
+                                "colors": "dark sepia page S3 (L*28); hand-grime edge band S0/S1/S1·S2 dither/S2/S2·S3 dither (inset 0-4), glowing frame line S4 at inset 6 (worn) + shade S2 at 7; corner water rings S1/S2, burn S0 (top-right), stains S2/S1",
+                                "edges": "corners have 1-4px torn bites (alpha 0, torn edge S0) and a folded dog-ear at bottom-right; stretched middle bands carry only the uniform grime band",
                                 "book": "place inside book_frame.png at its `inner` (16) for the open-diary look; two pages = paper + spine + paper"})
     pt = paper_tile()
     assets["paper_tile"] = check("paper_tile", pt)
     export("paper_tile", pt, {"kind": "tile", "width": 64, "height": 64, "seamless": True,
-                               "colors": "sepia page S3 base, S2 shade/fibre, S4 lighter patches (sparse), deep dots S1/S0 (2-3px clusters, no accent)"})
+                               "colors": "dark sepia page S3 base, S2 shade stipple (<=0.58), S1 deep grime (<=0.22 in darkest noise), S4 light specks (<=0.07), deep dots S1/S0 x3 (no accent)"})
     bf = book_frame()
     assets["book_frame"] = check("book_frame", bf)
     export("book_frame", bf, {"kind": "nineslice", "width": 96, "height": 96, "slice": BOOK_SL, "inner": BOOK_INNER,
@@ -1388,6 +1615,20 @@ def main():
     export("spine", sp, {"kind": "tile", "width": SPINE_W, "height": SPINE_H, "seamless": "vertical",
                           "colors": "S3 -> S2 -> S1 -> S0 gutter (6px) with thread S4 (16px period)",
                           "usage": "tileSprite vertically between two panel_paper pages inside book_frame (height = page height)"})
+
+    st_ = stains()
+    assets["stains"] = {}
+    sheet_st = Image.new("RGBA", (STAIN_CELL * len(STAIN_ORDER), STAIN_CELL), (0, 0, 0, 0))
+    st_frames = {}
+    for i, nm in enumerate(STAIN_ORDER):
+        assets["stains"][nm] = check(nm, st_[nm])
+        sheet_st.alpha_composite(assets["stains"][nm], (i * STAIN_CELL, 0))
+        st_frames[nm] = {"index": i, "x": i * STAIN_CELL, "y": 0, "w": STAIN_CELL, "h": STAIN_CELL}
+    sheet_st.save(os.path.join(OUT, "stains.png"))
+    save_json("stains", {"kind": "sheet", "cellWidth": STAIN_CELL, "cellHeight": STAIN_CELL, "columns": len(STAIN_ORDER), "rows": 1,
+                         "frames": st_frames,
+                         "colors": "stain_ring S1/S2 water ring, stain_burn S2/S1/S0 (core at bottom-right: place it against a page edge/corner), stain_blot glowing ink S5/S4 + shade S2, stain_smudge S2/S1 low density",
+                         "usage": "scatter 3-5 per page inside panel_paper `inner` on top of paper_tile, before text. Flip X/Y allowed, no rotation/scale. Deterministic seed per screen so the page does not change between opens"})
 
     pi = panel_ink()
     assets["panel_ink"] = check("panel_ink", pi, allow_semi=1)
@@ -1422,14 +1663,14 @@ def main():
     cu = cursor(True)
     check("cursor", cu, allow_iso=1)
     export("cursor", cu, {"kind": "strip", "frameWidth": 8, "frameHeight": 8, "frames": 2, "frameDurationsMs": [420, 260],
-                           "loop": True, "pivot": {"x": 4, "y": 4}, "colors": "ink G01, slit S3, drop 21 (frame 2)"})
+                           "loop": True, "pivot": {"x": 4, "y": 4}, "colors": "glowing nib S5 + 1px halo S4 (4-neighbour), slit S1, drop 21 (frame 2) — for pages"})
     cl = cursor(False)
     check("cursor_light", cl, allow_iso=1)
     export("cursor_light", cl, {"kind": "strip", "frameWidth": 8, "frameHeight": 8, "frames": 2, "frameDurationsMs": [420, 260],
-                                 "loop": True, "pivot": {"x": 4, "y": 4}, "colors": "sepia S5 nib / S1 slit, drop 21 — for ink panels"})
+                                 "loop": True, "pivot": {"x": 4, "y": 4}, "colors": "sepia S5 nib / S1 slit, no halo, drop 21 — for ink panels"})
     ru = rule(True)
     assets["rule"] = check("rule", ru)
-    export("rule", ru, {"kind": "tile", "width": 1, "height": 4, "usage": "stretch/tile horizontally; row1 ink G00, row2 bleed S0"})
+    export("rule", ru, {"kind": "tile", "width": 1, "height": 4, "usage": "stretch/tile horizontally on pages; row0 shade S2, row1 glowing ink S5, row2 halo S4, row3 shade S2"})
     rl = rule(False)
     assets["rule_light"] = check("rule_light", rl)
     export("rule_light", rl, {"kind": "tile", "width": 1, "height": 4, "usage": "for ink panels; row1 S4, row2 S1"})
@@ -1446,7 +1687,7 @@ def main():
         st = stamp(kind)
         assets["stamp_" + kind] = check("stamp_" + kind, st)
         export("stamp_" + kind, st, {"kind": "image", "width": 48, "height": 48, "pivot": {"x": 24, "y": 24},
-                                     "colors": "faded ink G02 + worn G03/G04 (grayscale; UI may set alpha 0.8-0.9)"})
+                                     "colors": "faded glowing ink: S4 base, pressed-hard S5, worn S2, 9% missing (UI may set alpha 0.8-0.9)"})
 
     preview_icons(icons)
     preview_kit(assets, icons, sheet)

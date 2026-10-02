@@ -7,6 +7,6 @@
   "x": 24,
   "y": 24
  },
- "colors": "faded ink G02 + worn G03/G04 (grayscale; UI may set alpha 0.8-0.9)",
+ "colors": "faded glowing ink: S4 base, pressed-hard S5, worn S2, 9% missing (UI may set alpha 0.8-0.9)",
  "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27 runtime swap/tint + ui.ramp sepia S0-S5 fixed, UI only)"
 }
