@@ -1,0 +1,64 @@
+{
+ "image": "bow_arrow_aimed_rapid.png",
+ "action": "bow_arrow_aimed_rapid",
+ "frameWidth": 20,
+ "frameHeight": 6,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 25,
+ "frameDurationsMs": [
+  40,
+  40
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 16,
+  "y": 3
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+ "source": "parts/art/work/combos/branches.py (51라운드 4절)",
+ "weapon": "bow",
+ "secondary": "fx.weapons.bow",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "depth": "above",
+ "branch": "rapid",
+ "branchLabel": "속사",
+ "replaces": "fx/bow_arrow_aimed (속사 갈래 조준 화살)",
+ "spawn": "loop_move",
+ "secondaryVariants": {
+  "volley": {
+   "label": "연궁",
+   "colorSwap": [
+    {
+     "from": "#2e71c9",
+     "to": "#6cb9f5",
+     "fromSlot": "fx.bow.W1",
+     "toSlot": "fx.bow.W2",
+     "role": "잔상 W1 → W2 (더 밝은 연사)"
+    }
+   ],
+   "note": "연사 폭주: 잔상이 더 밝음 + bow_muzzle_rapid 매 발"
+  },
+  "quiver": {
+   "label": "무한통",
+   "colorSwap": [
+    {
+     "from": "#cdefff",
+     "to": "#eecc78",
+     "fromSlot": "fx.bow.W3",
+     "toSlot": "C25",
+     "role": "촉 옆 깃 W3 → 25 (호박빛 = 장전 실체화 색)"
+    }
+   ],
+   "note": "탄창 대폭: 화살이 호박빛 실체화 색 한 점"
+  }
+ },
+ "pivotNote": "피벗 (16,3) = 화살 몸 중심",
+ "note": "조준 속사 화살 20×6: 같은 8px 화살 + 깃 끝 W3 + 잔상 3개(밝은 것부터). 2프레임 40ms 루프."
+}

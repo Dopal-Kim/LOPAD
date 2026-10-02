@@ -149,3 +149,76 @@ JSON 필드: `comboIndex, comboLength, nextCombo, hitFrames, activeFrames, cance
 7. **칼집 자리 = 캐릭터 왼쪽 허리**(발도 호 시작 쪽). 정면에선 화면 오른쪽 허리라 일기장 바로 아래에 겹쳐 보인다. 옆면은 먼 허리라 손잡이·칼집 끝만 보인다.
 8. **활 장전에 화살통 없음** — 다른 손이 어깨 뒤에서 호박빛 화살 3개를 실체화(무기 실체화 언어 유지). 화살통을 몸에 그리려면 몸 시트 변경이 필요.
 9. **범위 밖(미변경)**: 칼 2·3타·패링(katana_special) 무기 시트에는 빈 칼집이 없고, 48라운드 '흩어짐(fade/embers)' 상태가 남아 있다(무기가 실물 휴대로 바뀐 49라운드와 어긋남). 대검 가드(greatsword_special)도 한 손 그림. 다음 라운드 개정 후보.
+
+---
+
+# 10. 51라운드 — 개성 갈래별 기본 공격 이펙트 · 활 속사/저격 (2026-10-02)
+
+근거: `decisions/2026-10-02-round-51-playtest3.md` 4절 (원문 "개성 발현이 됨으로써 기본 공격에서부터 뭔가 이펙트가 개성이 두드러지도록" · 활 산탄 삭제 → 속사/저격), `fx-design.md`, 계약 `art-assets.md` §3·3.1·3.2·6.1. 시각 참조 = GDD·기존 LOPAD fx 언어만(옛 기기 팔레트·패턴 자료 미사용, 루트 4-1).
+빌드: `python3 parts/art/work/combos/branches.py` (약 6초). `build.py` 를 **모듈로 읽기만** 한다(COMBOS·HIT·Canvas·저장·검사 재사용) — 기존 시트는 다시 쓰지 않는다. 저장 전 `guard()` 가 같은 이름의 기존 파일을 발견하면, 그 JSON `source` 가 branches.py 가 아닌 한 중단한다. 만든 파일 목록 = `combos/branches_created.txt`.
+
+## 10.1 산출물 (27 시트 = PNG 27 + JSON 27, 전부 새 파일)
+- 근접 1차 갈래 × 3타 = 18: `fx/<w>_combo<n>_<branch>` — katana: `iai`(거합)·`batto`(발도술) / greatsword: `crush`(파쇄)·`weight`(중압) / dagger: `twin`(쌍격)·`gale`(질풍).
+- 활 9: `fx/bow_arrow_rapid` · `bow_arrow_aimed_rapid` · `bow_muzzle_rapid` · `bow_arrow_snipe` · `bow_arrow_aimed_snipe` · `bow_arrow_snipe_lv1~3` · `aim_line_snipe`.
+- 2차 갈래 16종(만월·잔월·허보·급소·지진·분쇄·철벽·거인·난무·출혈·잔상·암살·연궁·무한통·관통·필중): **시트 없음** — 1차 시트 JSON `secondaryVariants` 에 색 치환·겹침 지시.
+- 미리보기: `preview_branch_{katana,greatsword,dagger}.png`(타마다 기본/A/B 3행 × 전 프레임 2배, f1 에 몸·무기 겹침, 오른쪽 f1 4방향 1배) · `preview_branch_bow.png`(6배, 회색 이름 = 기존 비교용) · `preview_branch_strip_1x.png`(1배 실픽셀 f2) · `preview_branch_mock_1x.png`/`_2x.png`(월드 480×270 → 카메라 2배 960×540) · `gif/branch_<w>_combo<n>_right.gif`(기본·A·B 나란히, 실제 ms).
+
+## 10.2 규격 표 (시스템 전달용)
+**근접 갈래 시트 = 기본 시트와 규격이 같다.** 크기·피벗·프레임 수·`frameDurationsMs`·`anchor`·`spawn`·`impactFrame`·`hitFrames`·`cancelFromFrame`·`timingMs`·`hitRadiusPx`·`arcDeg/From/To`·`thrust`·`fxSpawnAtMs`·`recoverFrames`·`shake`·`flash` 를 기본 시트 JSON 에서 그대로 복사했다. **판정은 바뀌지 않는다**(그림 = 같은 판정 가장자리). 시스템은 갈래가 확정되면 `fx/<w>_combo<n>` 대신 `fx/<w>_combo<n>_<branch>` 를 재생하면 된다(파일이 없으면 기본으로 폴백).
+
+| 시트 | 크기 | 프레임 · ms | 피벗 | anchor · spawn | hitFrames | 바뀐 필드 |
+|---|---|---|---|---|---|---|
+| katana_combo1_{iai,batto} | 96 | 5 · 40/50/60/70/90 | (48,58) | player_pivot · attack_frame2 | [1] | iai `trail.color` W2 · batto `trail: null` |
+| katana_combo2_{iai,batto} | 96 | 4 · 40/40/50/80 | (48,58) | 〃 | [1] | 〃 |
+| katana_combo3_{iai,batto} | 96 | 6 · 40/40/60/80/100/120 | (48,58) | 〃 | [1] | 〃 (flash·shake 기본과 같음) |
+| greatsword_combo{1,2}_{crush,weight} | 128 | 6 · 40/60/70/80/100/120 | (64,74) | player_pivot · attack_frame3 | [2] | weight `trail.color` W0 |
+| greatsword_combo3_{crush,weight} | 128 | 7 · 40/50/70/90/110/130/160 | (64,74) | 〃 | [2] (active [2,3]) | 〃 |
+| dagger_combo{1,2}_{twin,gale} | 64 | 4 · 40/40/50/70 | (32,42) | player_pivot · attack_frame2 | [1] | `heatVariants` 추가 |
+| dagger_combo3_{twin,gale} | 64 | 5 · 40/40/50/60/90 | (32,42) | 〃 | [1] | 〃 |
+
+| 활 시트 | 크기 | 프레임 · ms · loop | 피벗 | anchor · spawn · depth | 메모 |
+|---|---|---|---|---|---|
+| bow_arrow_rapid | 16×6 | 2 · 40/40 · loop | (12,3) 화살 몸 중심 | projectile(rotate, drawnFacing right) · loop_move · above | `bow_arrow` 대체(속사) |
+| bow_arrow_aimed_rapid | 20×6 | 2 · 40/40 · loop | (16,3) | 〃 | `bow_arrow_aimed` 대체(속사) |
+| bow_muzzle_rapid | 16×16 | 2 · 30/40 · 1회 | (4,8) 화살 생성점 | projectile(rotate) · **`arrow_spawn`(새 spawn 이름)** · above | 발사마다 처음부터 재생 |
+| bow_arrow_snipe | 24×5 | 2 · 50/50 · loop | (18,2) 무게 중심 | projectile · loop_move · above | `bow_arrow` 대체(저격). `tailSheets` |
+| bow_arrow_aimed_snipe | 32×5 | 2 · 50/50 · loop | (24,2) | 〃 | `bow_arrow_aimed` 대체(저격) |
+| bow_arrow_snipe_lv1 / lv2 / lv3 | 24×3 / 40×5 / 56×7 | 3 · 50×3 · loop | (22,1) / (38,2) / (54,3) = 화살 중심 | projectile · loop_move · **below** | `tailLevel`, `levelRuleSuggestion`: 비행 거리/최대 사거리 < 1/3 → lv1, < 2/3 → lv2, 이상 → lv3 |
+| aim_line_snipe | 16×3 tile | 6 · 진행도 | (0,1) 선 시작 | player_pivot(rotate, tile) · aim_charge · below | `progressDriven`, frame = min(4, floor(progress*5)), 완료 = 5. `aim_line` 대체(저격) |
+
+## 10.3 갈래별 디자인 (같은 규격에 성격만)
+51라운드 1절("획이 너무 두껍고 부드럽지 않다")은 **같은 해상도 안에서** 반영했다. 획을 기본보다 가늘게 했고(칼 띠 6→5·4, 단검 줄기 7→3.6~4.4), 끝은 바늘처럼 모이게, 곡선은 표본 거리장으로 그려 계단을 줄였다. 2배 해상도 판은 10.7 임시 결정 1(인터뷰).
+- **거합 iai = 초승달 잔광**: 바깥 가장자리 = 판정 반경의 완전한 원호. 안쪽만 부풀었다가 양 끝이 바늘로 모이는 '달' 모양에 1px 백열 선이 가장자리를 따라간다. 1px 잔광 호(R+2, 3타는 R+4 겹)는 **점선이 아니라 이어진 선**으로 꼬리 프레임까지 남는다. 끝에서 접선으로 새는 바늘 광.
+- **발도 batto = 직선 섬광**: 호 대신 판정 가장자리 안쪽의 곧은 섬광 선(1타 세로 · 2타 아래→위 비스듬히 · 3타 X 두 줄). 판정 범위는 1px W0 점선 호로만 표시. 가운데 가로 섬광 별, 몸 쪽 메아리 선. 호 트레일 없음.
+- **파쇄 crush = 균열 파편**: 기본보다 얇은 호를 비스듬한 틈 5곳으로 끊어 '깨진 띠'로 만든다. 판정 가장자리 밖으로 균열 4줄(백열 → 용암 → 식음 → 점선), 돌 파편 6개(G09 삼각, 앞 모서리 27/W3)가 바깥으로 튀며 떨어진다. 3타는 앞-아래 바닥 균열과 바닥 파편을 더한다.
+- **중압 weight = 무거운 압력 파동**: 어둡고 두꺼운 띠(W0·W1) 가운데에 1px 녹은 선(W3) + 띠 안쪽 짓누름 선. 판정 밖으로 2px 파동 2겹(밝은 안선 + 어두운 바깥선)이 호보다 넓게 퍼지며 밀려난다. 3타는 바닥 눌림 납작 고리(세로 0.45).
+- **쌍격 twin = 이중 궤적**: 나란한 가는 찌르기 두 줄(±2.5px). 둘째 줄은 1프레임 늦게 끝까지 뻗는다. 3타는 두 줄이 촉에서 만나는 가위 찌르기 + 교차 섬광.
+- **질풍 gale = 바람 줄기**: 가는 본 줄기 + 몸 옆에서 출발해 촉 쪽으로 모여드는 1px 바람 줄기(완만한 활 모양, 뒤 W1 → 앞 W3). 다음 프레임에서 앞으로 밀려나고, 촉 너머로 바람 한 줄이 이어진다. 3타는 바람 3→4줄.
+- **속사 rapid**: 8px 짧은 화살 + 뒤로 끊긴 1px 속도선 잔상 2(조준 3)개가 2프레임으로 엇갈려 깜빡인다. 발사점 섬광은 쐐기 + 위아래 광선 → 고리 조각, 70ms.
+- **저격 snipe**: 몸 전체를 관통하는 1px 백열 코어 빛줄기(앞쪽에만 짧은 결)에 꼬리 3단계(가는 쪽 어둡고 화살 쪽 굵고 밝게, lv3 은 W0 가장자리 + X0 맥동 + 불티 27/25). 조준 레이저는 진행도에 따라 점 → 긴 점선 → 실선(W1 → W2 → W3 → X1)으로 차고, 완료 = X0 실선 + 양옆 실선.
+
+## 10.4 2차 갈래 (JSON `secondaryVariants` — 시스템 전달 요점)
+- 형식: `{ <2차 id>: { label, colorSwap: [{from, to, fromSlot, toSlot, role}], overlay?: {sheet, atFrame|loop, at, onHit|onlyOnCrit|minLevel}, holdLastFrameMs?, flashOverride?, shakeOverride?, trailOverride?, scaleHint?, note } }`.
+- `colorSwap` 은 **정확한 색 치환**(층 팔레트 스왑과 같은 캔버스 재채색)이다. **여러 항목은 동시에 적용**한다(순차로 하면 W1 → W2 → W3 로 번진다). C16~C27 칸은 층마다 바뀌므로 `fromSlot/toSlot` 으로 현재 층 색을 찾을 것(hex 는 1층 기준). 어렵다면 Phaser `setTint(to)` 근사도 가능하다(정확도 낮음).
+- overlay 는 **기존 시트만** 쓴다(`fx/crit_burst`·`fx/bleed`·`fx/pierce`).
+- 표: 만월(W1→W2, 22→25, 1·2타도 X1 0.14 섬광) · 잔월(22→W1, 마지막 프레임 +160ms) · 허보(X0→X1, W3→W2) · 급소(24→27 + 치명 시 crit_burst) · 지진(W1→W2, 흔들림 3px/90) · 분쇄(파편 G09→27) · 철벽(W2·W3→G09 쇳빛) · 거인(W3→X1 + scaleHint) · 난무(W1→W2, 24→27) · 출혈(24→18, 22→17 + 적중 시 bleed) · 잔상(X0→W3 + 단검 트레일 W1 0.6/160) · 암살(24→25, W3→25) · 연궁(W1→W2) · 무한통(W3→25) · 관통(pierce 루프 겹침) · 필중(W2→W3, W3→X1 + lv3 적중 시 crit_burst).
+- 단검 가열(heat1~3)을 갈래 시트에 쓸 때는 별도 시트 없이 JSON `heatVariants.colorSwap[k]` + 기존 `playbackRateHint` 1.15/1.3/1.5.
+
+## 10.5 색 예산 · 검사 (마지막 실행 27 시트 ALL OK)
+- 칼·단검 갈래: 보조 4 + 코어 2 + 층 강조 ≤3(22·24·27) = 6~9. 대검: 보조 4 + 코어 ≤2 + 재 G06·G09 + 층 ≤2 = 9. 활: 보조 ≤4 + 코어 ≤2 + 층 ≤2(25·27) = 3~7. 모두 ≤11.
+- 고립 0 · 반투명 0 · 무기색 섞임 0. **캔버스 가장자리 닿음 0**(새 `edge_touch` 검사 — 잘림 방지).
+
+## 10.6 see → critique → fix
+1. 1회차: 발도 예비 1px 선이 반 픽셀 좌표(47.5+29)라 점 2개만 남음 → 선 좌표 정수화. 거합 2타 잔광이 안 보임 → W3/X1 로 한 단 밝게. 파쇄 f1 이 기본과 거의 같음 → **띠를 비스듬한 틈으로 끊는 '깨진 호'** 추가. 중압 파동 e+12 가 128 캔버스 가장자리에서 잘림 → 최대 e+10. 질풍 바람 줄기가 사선에서 2px 로 두꺼워지고 말림 갈고리가 덩어리 → 반폭 0.62, 몸 옆에서 촉으로 모이는 활 모양 줄기. 속사 화살이 가운데 깃 때문에 '+' 로 읽힘 → 깃을 뒤 V 로, 잔상을 1px 속도선으로. 저격 꼬리의 가는 끝이 밝음 → 가는 끝 W1, 굵은 끝 X0/X1. 미리보기 한글 라벨 깨짐 → ASCII.
+2. 2회차: 질풍 촉 너머 바람·말림이 64 캔버스 밖(s1+9)으로 잘림 → 바람 끝 s ≤ 29.5, 말림 제거(1배에서 '[' 괄호로 읽힘). 파쇄 파편·균열이 반경 63 을 넘음 → 단계표 PHASE(최대 +8), 균열 길이 7~8. 쌍격 3타 촉 광선이 가장자리에 닿음 → 길이 2. 목업 칸 높이가 호를 자름 → 줄 높이 76/112/42/40. 저격 화살이 굵은 캡슐처럼 보임 → 결을 앞 35% 로 줄여 1px 빛줄기 위주로.
+3. 3회차(1배 실픽셀 띠): 같은 무기 안에서 기본과 두 갈래가 모양만으로 구분된다. 칼 = 겹 초승달 / 단일 바늘 달 + 잔광 / 직선 섬광. 대검 = 이어진 호 / 깨진 호 + 파편 / 어두운 띠 + 압력 고리. 단검 = 굵은 방추 / 두 줄 / 바람 부채. 단검은 64 캔버스라 1배에서 작다(기본과 같은 규격이라 수용). SHIP.
+
+## 10.7 임시 결정 (도영 님 검수 대상)
+1. **해상도**: 지시대로 기존 연격 fx 와 같은 규격(1배 도트, `pixelScale` 없음 = 시스템 2배)으로 만들었다. 51라운드 1절(픽셀 세분화)과 50라운드 2배 도트(`pixelScale: 1`)를 따르려면 같은 스크립트를 캔버스·반경 2배로 다시 렌더한 v2 판이 필요하다(획 모듈은 해상도 무관). → 인터뷰.
+2. **2차 갈래 = 시트 없이 colorSwap/overlay 메모**: 색 치환 구현은 시스템 몫이다. 불가하면 setTint 근사, 또는 2차 시트 별도 제작(+48 시트)을 재인터뷰.
+3. **갈래 id**: iai·batto·crush·weight·twin·gale(기존 1차 진화 id), 활 rapid·snipe, 2차 volley·quiver·pierce·deadeye 는 메인 세션이 전달한 자리표시 그대로. 시스템 id 가 다르면 파일명만 바꿔 재빌드(상수 `BRANCHES`).
+4. **저격 꼬리 단계 기준**(거리 1/3·2/3)과 피해 배율은 제안이다. 시스템 값이 우선이고, 아트는 시트만 교체한다.
+5. **`bow_muzzle_rapid` spawn = `arrow_spawn`**: 새 spawn 이름이다(계약 §3.1 목록에 없음). 시스템이 화살 생성 시점에 같은 각도로 1회 재생.
+6. **발도 갈래 트레일 없음**(`trail: null`), 거합 트레일 W2, 중압 트레일 W0 — 기본 트레일 색만 바꿈. 잔상(2차)만 단검 트레일을 새로 켬.
+7. **속사 조준 레이저는 만들지 않음**: 속사는 기존 `aim_line` 을 그대로 쓴다고 가정.
+8. **기존 산탄 시트(`scatter`·`rain`·`seek`)는 그대로 둠**: 51라운드 결정이 '화기류 도입 시 재사용'이므로 삭제·수정하지 않았다.

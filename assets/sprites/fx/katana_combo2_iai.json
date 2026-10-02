@@ -1,0 +1,116 @@
+{
+ "image": "katana_combo2_iai.png",
+ "action": "katana_combo2_iai",
+ "frameWidth": 96,
+ "frameHeight": 96,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 19,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  80
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 58
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+ "source": "parts/art/work/combos/branches.py (51라운드 4절)",
+ "weapon": "katana",
+ "comboIndex": 2,
+ "comboLength": 3,
+ "nextCombo": "katana_combo3",
+ "hitFrames": [
+  1
+ ],
+ "activeFrames": [
+  1
+ ],
+ "cancelFromFrame": 2,
+ "framesBasis": "player_katana_combo2 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 40,
+  "cancelAt": 80,
+  "total": 170
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 10px",
+ "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
+ "hitRadiusPx": 33,
+ "arcDeg": 130,
+ "arcFromDeg": 65,
+ "arcToDeg": -65,
+ "arcAngleNote": "right 방향 화면각(0 = 정면, + = 아래, from→to = 휘두름 방향). down = +90° 회전, up = -90°, left = 좌우 반전(180-θ)",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "impactFrame": 1,
+ "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
+ "depth": "above",
+ "secondary": "fx.weapons.katana",
+ "pivotNote": "피벗 (48,58) = 발. 호·찌르기 원점 = 몸 중심 (48,48) (발 위 10px).",
+ "trail": {
+  "color": "#a9b8cc",
+  "alpha": 0.6,
+  "ms": 120,
+  "fromFrame": 2,
+  "note": "거합: 잔광과 같은 W2, 폭 1px 권장(가는 획)"
+ },
+ "branch": "iai",
+ "branchLabel": "거합",
+ "branchTier": 1,
+ "baseSheet": "fx/katana_combo2",
+ "replaces": "fx/katana_combo2 대신 재생 — 크기·피벗·프레임 수·ms·anchor·spawn·impactFrame·hitFrames 등 메모 전부 기본 시트와 같다",
+ "note": "거합 = 초승달 잔광: 바깥 가장자리가 판정 반경의 완전한 원호, 안쪽만 부풀었다 양 끝이 바늘처럼 모이는 초승달(가는 획) + 1px 잔광 호(R+2, 3타는 R+4 겹)가 점선이 아니라 이어진 선으로 오래 남는다. 끝에서 접선으로 새어 나가는 바늘 광.",
+ "secondaryVariants": {
+  "wide": {
+   "label": "만월",
+   "colorSwap": [
+    {
+     "from": "#6f7e97",
+     "to": "#a9b8cc",
+     "fromSlot": "fx.katana.W1",
+     "toSlot": "fx.katana.W2",
+     "role": "잔광·안쪽 달무리 W1 → W2 (한 단 밝은 보름달빛)"
+    },
+    {
+     "from": "#dc8e23",
+     "to": "#eecc78",
+     "fromSlot": "C22",
+     "toSlot": "C25",
+     "role": "꼬리 불티 22 → 25"
+    }
+   ],
+   "flashOverride": {
+    "atFrame": 1,
+    "color": "#fff4dc",
+    "alpha": 0.14,
+    "ms": 40
+   },
+   "note": "3타만이 아니라 1·2타에도 X1 0.14 섬광 — 보름달처럼 환하게"
+  },
+  "zangetsu": {
+   "label": "잔월",
+   "colorSwap": [
+    {
+     "from": "#dc8e23",
+     "to": "#6f7e97",
+     "fromSlot": "C22",
+     "toSlot": "fx.katana.W1",
+     "role": "꼬리 불티 22 → W1 (차가운 잔광만 남김)"
+    }
+   ],
+   "holdLastFrameMs": 160,
+   "note": "마지막(잔광) 프레임을 160ms 더 유지 — 달이 남는다"
+  }
+ },
+ "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음)."
+}

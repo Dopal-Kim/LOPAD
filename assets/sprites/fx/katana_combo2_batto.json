@@ -1,0 +1,110 @@
+{
+ "image": "katana_combo2_batto.png",
+ "action": "katana_combo2_batto",
+ "frameWidth": 96,
+ "frameHeight": 96,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 19,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  80
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 58
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+ "source": "parts/art/work/combos/branches.py (51라운드 4절)",
+ "weapon": "katana",
+ "comboIndex": 2,
+ "comboLength": 3,
+ "nextCombo": "katana_combo3",
+ "hitFrames": [
+  1
+ ],
+ "activeFrames": [
+  1
+ ],
+ "cancelFromFrame": 2,
+ "framesBasis": "player_katana_combo2 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 40,
+  "cancelAt": 80,
+  "total": 170
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 10px",
+ "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
+ "hitRadiusPx": 33,
+ "arcDeg": 130,
+ "arcFromDeg": 65,
+ "arcToDeg": -65,
+ "arcAngleNote": "right 방향 화면각(0 = 정면, + = 아래, from→to = 휘두름 방향). down = +90° 회전, up = -90°, left = 좌우 반전(180-θ)",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "impactFrame": 1,
+ "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
+ "depth": "above",
+ "secondary": "fx.weapons.katana",
+ "pivotNote": "피벗 (48,58) = 발. 호·찌르기 원점 = 몸 중심 (48,48) (발 위 10px).",
+ "trail": null,
+ "branch": "batto",
+ "branchLabel": "발도술",
+ "branchTier": 1,
+ "baseSheet": "fx/katana_combo2",
+ "replaces": "fx/katana_combo2 대신 재생 — 크기·피벗·프레임 수·ms·anchor·spawn·impactFrame·hitFrames 등 메모 전부 기본 시트와 같다",
+ "note": "발도 = 직선 섬광: 호 대신 판정 가장자리 안쪽의 곧은 섬광 선(1타 세로 · 2타 비스듬히 아래→위 · 3타 X 두 줄). 판정 범위는 1px W0 점선 호로만 표시(그림 = 판정). 가운데 가로 섬광 별 + 몸 쪽 메아리 선.",
+ "secondaryVariants": {
+  "longinvuln": {
+   "label": "허보",
+   "colorSwap": [
+    {
+     "from": "#ffffff",
+     "to": "#fff4dc",
+     "fromSlot": "X0",
+     "toSlot": "X1",
+     "role": "코어 X0 → X1 (빛이 비어 보이게)"
+    },
+    {
+     "from": "#dde6f2",
+     "to": "#a9b8cc",
+     "fromSlot": "fx.katana.W3",
+     "toSlot": "fx.katana.W2",
+     "role": "몸 W3 → W2"
+    }
+   ],
+   "note": "섬광이 한 톤 비어 보임 = 허(虛). 분신·무적 연출은 기존 longinvuln 시트 담당"
+  },
+  "dashcrit": {
+   "label": "급소",
+   "colorSwap": [
+    {
+     "from": "#e8b858",
+     "to": "#faeec0",
+     "fromSlot": "C24",
+     "toSlot": "C27",
+     "role": "끝 불티 24 → 27"
+    }
+   ],
+   "overlay": {
+    "sheet": "fx/crit_burst",
+    "atFrame": 2,
+    "at": "직선 섬광 가운데(right 기준 몸 중심 + (R-4, 0))",
+    "onlyOnCrit": true
+   },
+   "note": "치명 판정일 때만 crit_burst 겹침"
+  }
+ },
+ "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음).",
+ "trailNote": "발도(직선 섬광)는 호 트레일을 쓰지 않는다 — 시트만"
+}

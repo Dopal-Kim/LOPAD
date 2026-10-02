@@ -1,0 +1,168 @@
+{
+ "image": "dagger_combo3_gale.png",
+ "action": "dagger_combo3_gale",
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 18,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 42
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+ "source": "parts/art/work/combos/branches.py (51라운드 4절)",
+ "weapon": "dagger",
+ "comboIndex": 3,
+ "comboLength": 3,
+ "nextCombo": null,
+ "hitFrames": [
+  1
+ ],
+ "activeFrames": [
+  1
+ ],
+ "cancelFromFrame": null,
+ "framesBasis": "player_dagger_combo3 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 60,
+  "cancelAt": null,
+  "total": 280
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 10px",
+ "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
+ "thrust": {
+  "lengthPx": 28,
+  "widthPx": 10,
+  "angleDeg": 0,
+  "fromPx": 4
+ },
+ "thrustNote": "몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 방향 변환은 호와 같은 규약",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "impactFrame": 1,
+ "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
+ "depth": "above",
+ "secondary": "fx.weapons.dagger",
+ "pivotNote": "피벗 (32,42) = 발. 호·찌르기 원점 = 몸 중심 (32,32) (발 위 10px).",
+ "shake": {
+  "px": 1,
+  "ms": 40
+ },
+ "branch": "gale",
+ "branchLabel": "질풍",
+ "branchTier": 1,
+ "baseSheet": "fx/dagger_combo3",
+ "replaces": "fx/dagger_combo3 대신 재생 — 크기·피벗·프레임 수·ms·anchor·spawn·impactFrame·hitFrames 등 메모 전부 기본 시트와 같다",
+ "note": "질풍 = 바람 줄기: 가는 본 줄기 + 양옆 1px 바람 줄기(완만한 물결, 뒤 어둡고 앞 밝음)가 앞으로 밀려나며 길어지고, 촉 너머로 이어지는 바람 한 줄. 3타는 바람 3→4줄.",
+ "secondaryVariants": {
+  "afterimage": {
+   "label": "잔상",
+   "colorSwap": [
+    {
+     "from": "#ffffff",
+     "to": "#c89cf0",
+     "fromSlot": "X0",
+     "toSlot": "fx.dagger.W3",
+     "role": "코어 X0 → W3 (보랏빛 잔상)"
+    }
+   ],
+   "trailOverride": {
+    "color": "#3e2a62",
+    "alpha": 0.6,
+    "ms": 160,
+    "fromFrame": 1
+   },
+   "note": "단검에도 시스템 잔상 트레일(기본은 없음)"
+  },
+  "assassin": {
+   "label": "암살",
+   "colorSwap": [
+    {
+     "from": "#e8b858",
+     "to": "#eecc78",
+     "fromSlot": "C24",
+     "toSlot": "C25",
+     "role": "불티 24 → 25"
+    },
+    {
+     "from": "#c89cf0",
+     "to": "#eecc78",
+     "fromSlot": "fx.dagger.W3",
+     "toSlot": "C25",
+     "role": "바람 앞끝 W3 → 25"
+    }
+   ],
+   "note": "바람 끝이 하이라이트 색 — 노림수"
+  }
+ },
+ "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음).",
+ "heatVariants": {
+  "note": "가열 heat1~3 을 갈래 시트에 겹칠 때: 별도 heat 시트 없이 아래 colorSwap + playbackRateHint(기존 1.15/1.3/1.5). 한 단계 안의 여러 치환은 동시 적용(순차로 하면 W1 → W2 → W3 로 번진다)",
+  "colorSwap": {
+   "1": [
+    {
+     "from": "#3e2a62",
+     "to": "#7a4fb2",
+     "fromSlot": "fx.dagger.W1",
+     "toSlot": "fx.dagger.W2",
+     "role": "W1 → W2"
+    }
+   ],
+   "2": [
+    {
+     "from": "#3e2a62",
+     "to": "#7a4fb2",
+     "fromSlot": "fx.dagger.W1",
+     "toSlot": "fx.dagger.W2",
+     "role": "W1 → W2"
+    },
+    {
+     "from": "#7a4fb2",
+     "to": "#c89cf0",
+     "fromSlot": "fx.dagger.W2",
+     "toSlot": "fx.dagger.W3",
+     "role": "W2 → W3"
+    }
+   ],
+   "3": [
+    {
+     "from": "#3e2a62",
+     "to": "#7a4fb2",
+     "fromSlot": "fx.dagger.W1",
+     "toSlot": "fx.dagger.W2",
+     "role": "W1 → W2"
+    },
+    {
+     "from": "#7a4fb2",
+     "to": "#c89cf0",
+     "fromSlot": "fx.dagger.W2",
+     "toSlot": "fx.dagger.W3",
+     "role": "W2 → W3"
+    },
+    {
+     "from": "#c89cf0",
+     "to": "#fff4dc",
+     "fromSlot": "fx.dagger.W3",
+     "toSlot": "X1",
+     "role": "W3 → X1"
+    }
+   ]
+  }
+ }
+}

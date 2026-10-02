@@ -1,0 +1,77 @@
+{
+ "image": "bow_arrow_aimed_snipe.png",
+ "action": "bow_arrow_aimed_snipe",
+ "frameWidth": 32,
+ "frameHeight": 5,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 20,
+ "frameDurationsMs": [
+  50,
+  50
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 24,
+  "y": 2
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+ "source": "parts/art/work/combos/branches.py (51라운드 4절)",
+ "weapon": "bow",
+ "secondary": "fx.weapons.bow",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "depth": "above",
+ "branch": "snipe",
+ "branchLabel": "저격",
+ "spawn": "loop_move",
+ "secondaryVariants": {
+  "pierce": {
+   "label": "관통",
+   "overlay": {
+    "sheet": "fx/pierce",
+    "loop": true,
+    "note": "기존 관통 꼬리를 lv 꼬리 위에 겹침(재활용)"
+   },
+   "note": "관통 재활용"
+  },
+  "deadeye": {
+   "label": "필중",
+   "colorSwap": [
+    {
+     "from": "#6cb9f5",
+     "to": "#cdefff",
+     "fromSlot": "fx.bow.W2",
+     "toSlot": "fx.bow.W3",
+     "role": "lv3 꼬리 몸 W2 → W3"
+    },
+    {
+     "from": "#cdefff",
+     "to": "#fff4dc",
+     "fromSlot": "fx.bow.W3",
+     "toSlot": "X1",
+     "role": "W3 → X1"
+    }
+   ],
+   "overlay": {
+    "sheet": "fx/crit_burst",
+    "onHit": true,
+    "minLevel": 3
+   },
+   "note": "원거리일수록 피해 급증: lv3 에서 꼬리가 백열, 적중 시 crit_burst"
+  }
+ },
+ "tailSheets": [
+  "fx/bow_arrow_snipe_lv1",
+  "fx/bow_arrow_snipe_lv2",
+  "fx/bow_arrow_snipe_lv3"
+ ],
+ "replaces": "fx/bow_arrow_aimed (저격 갈래 조준 화살)",
+ "pivotNote": "피벗 (24,2) = 화살 무게 중심",
+ "note": "조준 저격 화살 32×5: 같은 빛줄기를 더 길게 + W0 가장자리 점 + 깃 2겹. 2프레임 50ms 루프."
+}

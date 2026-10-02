@@ -1,0 +1,35 @@
+{
+ "image": "bow_muzzle_rapid.png",
+ "action": "bow_muzzle_rapid",
+ "frameWidth": 16,
+ "frameHeight": 16,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 29,
+ "frameDurationsMs": [
+  30,
+  40
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 4,
+  "y": 8
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+ "source": "parts/art/work/combos/branches.py (51라운드 4절)",
+ "weapon": "bow",
+ "secondary": "fx.weapons.bow",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "depth": "above",
+ "spawn": "arrow_spawn",
+ "branch": "rapid",
+ "branchLabel": "속사",
+ "pivotNote": "피벗 (4,8) = 화살이 생기는 점(활 시위 앞). 발사 각도로 회전, 1회 재생(70ms)",
+ "note": "속사 발사 섬광: f0 앞으로 뻗는 쐐기(X0/X1 코어 + W3/W2 가장자리) + 위아래 짧은 광선, f1 흩어지는 고리 조각. 연사 간격이 70ms 보다 짧으면 처음부터 다시 재생."
+}
