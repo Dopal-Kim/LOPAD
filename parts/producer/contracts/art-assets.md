@@ -109,3 +109,12 @@
 - **타일셋**: `tiles/v2/stage1_outer` — 타일 32×32. 인덱스 표 v3 의 의미(0~3 바닥, 4 복도, 7 void, 8~10 문, 11 출구, 12 상점, 13~20 소품, 21~22 벽 변형, 23~38 roomFloors)는 유지하되, **벽은 쿼터뷰 높이**: `walls.front` = 벽 앞면 세로 2칸(64px, 인덱스 5 = 아랫단, 24~ 이후 새 인덱스 `wallFrontUpper`), `walls.top` = 윗면(인덱스 6). JSON `wallHeightTiles: 2`. 시트 크기 자유(인덱스 표를 JSON 에 명시).
 - **쿼터뷰 구조물·소품**: 높이가 있는 것은 `pivot` = 바닥 접점, `occludeAbove`(px) = 이 높이 위로는 캐릭터를 가림(Y 정렬).
 - **조명**: JSON `light: { color, radius, intensity, flicker? }` 를 가진 소품·구조물·이펙트는 시스템이 광원으로 등록. 바닥·벽 색은 어둠 위에서 빛을 받아 살아나도록 중간 명도로(완전한 검정 금지).
+
+## 10. 51·52라운드 추가 (갈래별 기본 공격 이펙트 · 활 속사/저격)
+- 근거: 51라운드 §4(개성 발현 시 기본 공격 이펙트 차별화, 활 = 속사·저격), 52라운드 Q5(v2 전환 때 2배 일괄 · 2단 갈래 = 색 교체 + 겹침 · 저격 단계 1/3·2/3). 아트 기록 `parts/art/work/combos/NOTES.md` 10절.
+- **근접 1단 갈래 시트**: `fx/<weapon>_combo<n>_<branch>` — katana `iai`·`batto`, greatsword `crush`·`weight`, dagger `twin`·`gale`. 크기·피벗·프레임·ms·anchor·spawn·impact/hit/cancel 프레임·`hitRadiusPx`·`arcDeg` 는 **기본 시트와 동일**(판정 불변). 추가 필드 `branch`·`branchLabel`·`baseSheet`·`replaces`. 시스템은 갈래가 있으면 이 키로 바꾸고, 파일이 없으면 기본 시트로 대체한다.
+- **2단 갈래**: 시트 없음. 1단 시트 JSON `secondaryVariants[<id>]` = `colorSwap`(from/to hex, `fromSlot`/`toSlot`, 동시 적용) + 선택 `overlays`(기존 `crit_burst`·`bleed`·`pierce`) + 타이밍·이펙트 덮어쓰기. 단검 가열 1~3단은 `heatVariants`(색 교체 + 기존 재생 속도 힌트). 색 교체는 바닥 팔레트와 같은 캔버스 재색칠 방식(정확 교체, `setTint` 아님).
+- **활 속사**: `bow_arrow_rapid`·`bow_arrow_aimed_rapid`(투사체, 회전, loop_move), `bow_muzzle_rapid`(1회 재생, 새 spawn 지점 **`arrow_spawn`** = 화살 발사 위치). 조준선은 기존 `aim_line`.
+- **활 저격**: `bow_arrow_snipe`·`bow_arrow_aimed_snipe`(JSON `tailSheets`), 꼬리 `bow_arrow_snipe_lv1/2/3`(화살 아래 깊이, 피벗 = 화살 중심, `tailLevel`). 단계 = 최대 사거리 **1/3 부터 lv2, 2/3 부터 lv3**(피해 배율도 같은 구간). 조준선 `aim_line_snipe` 16×3 타일 · 6프레임 · 진행도 구동(frame = min(4, floor(progress×5)), 충전 완료 = 5).
+- 산탄 계열(`scatter`·`rain`·`seek`) 시트는 화기류 도입 때 재사용 — 삭제하지 않는다.
+- 해상도: 현 사양으로 연결, 이펙트 v2(2배) 전환 때 같은 스크립트로 일괄 재출력.
