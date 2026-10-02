@@ -1,7 +1,7 @@
 {
- "image": "stage3.png",
- "stage": 3,
- "name": "붕(繃) — 야전병원 제국 전선",
+ "image": "stage8.png",
+ "stage": 8,
+ "name": "평상 — 황제의 수도",
  "tileWidth": 16,
  "tileHeight": 16,
  "columns": 8,
@@ -90,32 +90,32 @@
  "props": [
   {
    "index": 13,
-   "name": "stretcher",
+   "name": "empty_bench",
    "solid": true
   },
   {
    "index": 14,
-   "name": "bandage_pile",
-   "solid": false
+   "name": "dead_lamp",
+   "solid": true
   },
   {
    "index": 15,
-   "name": "vial_crate",
+   "name": "flower_pot",
    "solid": true
   },
   {
    "index": 16,
-   "name": "number_stake",
+   "name": "floor_crack",
    "solid": false
   },
   {
    "index": 17,
-   "name": "shrouded_body",
+   "name": "empty_pedestal",
    "solid": true
   },
   {
    "index": 18,
-   "name": "blood_bucket",
+   "name": "swept_ash",
    "solid": false
   }
  ],
@@ -134,12 +134,12 @@
   "10": "door_locked",
   "11": "exit",
   "12": "shop",
-  "13": "prop_stretcher",
-  "14": "prop_bandages",
-  "15": "prop_vial_crate",
-  "16": "prop_number_stake",
-  "17": "prop_shrouded_body",
-  "18": "prop_bucket",
+  "13": "prop_bench",
+  "14": "prop_dead_lamp",
+  "15": "prop_flower_pot",
+  "16": "prop_floor_crack",
+  "17": "prop_pedestal",
+  "18": "prop_swept_ash",
   "19": "wall_v1",
   "20": "wall_v2",
   "21": "start_0",
@@ -151,5 +151,5 @@
   "27": "boss_0",
   "28": "boss_1"
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 3 accent slots 19, 21, 23, 25)"
+ "palette": "parts/art/palette/lopad.json (gray + floor 8 accent slots 19, 21, 23, 25)"
 }

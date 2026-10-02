@@ -1,193 +1,221 @@
 #!/usr/bin/env python3
-"""LOPAD 1층 '잔(盞)' 타일셋 빌드 (16x16) — 단일 소스. 재실행 시 전부 재생성.
+"""LOPAD 1층 '잔(盞)' 술독 제국 타일셋 (16x16) — 37라운드 재작업. 단일 소스, 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_stage1/build.py
-입력: parts/art/palette/lopad.json (무채 16 + 1층 호박 램프), assets/sprites/player/player_idle.png (샘플 방 미리보기용)
-산출:
-  assets/tiles/stage1.png   8열 x 3행 격자 (24칸, 17칸 사용). 인덱스 = row*8 + col
-  assets/tiles/stage1.json  계약 §2: tiles(게임 TileId -> 인덱스 목록), walls, props
-  parts/art/work/tiles_stage1/preview.png       시트 6배 + 인덱스 라벨
-  parts/art/work/tiles_stage1/preview_room.png  12x8 샘플 방 4배 (주인공 idle 얹음)
-  parts/art/work/tiles_stage1/preview_seam.png  바닥·벽·출구·상점 2x2 이어붙임 검사
+입력: parts/art/palette/lopad.json (무채 16 + 1층 호박 램프), assets/sprites/player/player_idle.png
+산출: assets/tiles/stage1.png (8열x4행 128x64) / stage1.json (tilecommon2.py 인덱스 표)
+      parts/art/work/tiles_stage1/preview.png · preview_room.png · preview_rooms.png · preview_seam.png
 
-근거: 29라운드 자율 결정 A (바닥 G02~G04 기조 + 무늬 G04/G05, 벽 G00~G01, 호박은 등불·웅덩이·술에만, 화면 5% 이하).
-색 예산: 타일셋 무채 <=10 + 강조 <=4.
-
-인덱스 표
-  0..3  바닥 석판 변형 4        4 복도 널빤지        5 벽 정면(벽돌)      6 벽 윗면
-  7     void (완전 투명)        8 문 열림           9 문 닫힘            10 문 잠김(보스)
-  11    출구 계단(2x2 이어붙임)  12 상점 좌판(2x2)    13 소품 술통(solid)  14 소품 깨진 병
-  15    소품 웅덩이              16 소품 등불(solid)  17..23 예비(투명)
+37라운드 지시 (도영 님 원문): "바닥을 더 어둡고 짙게, 소품·벽 디테일 보강, 방 종류별 바닥 구분, 강조색을 더 강조하되,
+  짙은 검은색이 초반부 바닥이면 좋겠음. 더 삭막하고. 처절하게. 도트도 더 잔불 올라오듯이 찍어내서 정돈된 타일을
+  걷는 게 아니라, 버려진 구역의 흙바닥"
+→ 바닥 = G01 흙 바탕 + K/G02 흩뿌림(격자 없음) + 깨진 병 조각(G07/G09 글린트) + 술 얼룩(호박 19) + 잔불(25/23/21).
+  1층은 전 층에서 가장 어둡다 (바닥 평균 ≈ G01). 벽은 바닥과 갈라지도록 돌 G02 + K 이음, 윗면 G03 (text-pack L2: 윗면 밝게, 수직면 짙게).
+색 예산: 무채 10 (K, G01~G07, G09, G12) + 강조 4 (19 shadow1 술·핏자국, 21 base, 23 light1, 25 glow 잔불 심).
 """
-import json
 import os
+import random
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))
-sys.path.insert(0, os.path.join(ROOT, ".claude", "skills", "pixel-art-studio", "scripts"))
-from pixelstudio import Sprite  # noqa: E402
-from PIL import Image, ImageDraw, ImageFont  # noqa: E402
+sys.path.insert(0, os.path.join(HERE, "..", "tiles_floors"))
+import tilecommon2 as tc  # noqa: E402
 
-OUT_ASSETS = os.path.join(ROOT, "assets", "tiles")
-os.makedirs(OUT_ASSETS, exist_ok=True)
+G = tc.G
+A = tc.ramp(1)
+T = tc.T
 
-with open(os.path.join(ROOT, "parts", "art", "palette", "lopad.json"), encoding="utf-8") as fp:
-    PAL = json.load(fp)
-G = PAL["gray"]
-A = PAL["floors"][0]["ramp"]  # 1층 잔(호박)
-
-T = 16
-COLS, ROWS = 8, 3
-
-# 색 예산: 무채 10 (G00~G09) + 강조 4 (A19 shadow1, A21 base, A23 light1, A25 glow)
 C = {
     "K": G[0], "1": G[1], "2": G[2], "3": G[3], "4": G[4],
-    "5": G[5], "6": G[6], "7": G[7], "8": G[8], "9": G[9],
-    "S": A[3],   # 19 shadow1 — 술 그늘·웅덩이 반사 어두운 쪽
-    "B": A[5],   # 21 base   — 술·불꽃 본색
-    "L": A[7],   # 23 light1 — 불빛·반사
-    "W": A[9],   # 25 glow   — 불꽃 심지·강한 반사
+    "5": G[5], "6": G[6], "7": G[7], "9": G[9], "C": G[12],
+    "S": A[3],   # 19 shadow1 — 말라붙은 술·피 얼룩
+    "B": A[5],   # 21 base   — 술·꺼져 가는 불씨
+    "L": A[7],   # 23 light1 — 불티·반사
+    "W": A[9],   # 25 glow   — 잔불 심
 }
-PALETTE = list(dict.fromkeys(C.values()))
+ctx = tc.Ctx(C)
+new = ctx.new
 
 
-def new():
-    return Sprite(T, T, palette=PALETTE)
+# ============================================================ 바닥 (버려진 구역의 흙바닥)
+DOTS = {"K": 26, "2": 14, "3": 3}     # 1층: 전 층 중 가장 짙게 — K 가 G02 보다 많다
+PAIRS = {"K": 3}
 
 
-def blit(s, rows, ox=0, oy=0):
-    for j, row in enumerate(rows):
-        for i, ch in enumerate(row):
-            if ch == ".":
-                continue
-            x, y = ox + i, oy + j
-            if 0 <= x < T and 0 <= y < T:
-                s.px(x, y, C[ch])
+def shard(s, x, y, flip=False):
+    """깨진 병 조각 2px: 유리 G07 + 글린트 G09. 옆에 술 한 방울(S)."""
+    s.px(x, y, C["7"]); s.px(x + 1, y, C["9"])
+    s.px(x + (2 if not flip else -1), y + 1, C["S"])
 
 
-# ============================================================ 바닥 (석판)
-def slab(s, x0, y0, x1, y1, fill="4", hi="5", shade="3"):
-    """석판 하나: 본색 + 좌상단 1px 하이라이트 + 우하단 1px 그늘. 빛 좌상단."""
-    s.rect(x0, y0, x1, y1, C[fill])
-    s.line(x0, y0, x1, y0, C[hi])       # 윗변
-    s.line(x0, y0, x0, y1, C[hi])       # 왼변
-    s.line(x0 + 1, y1, x1, y1, C[shade])  # 아랫변
-    s.line(x1, y0 + 1, x1, y1, C[shade])  # 오른변
-
-
-def floor_tile(slabs, cracks=(), chips=(), dark=()):
-    """줄눈 G02 바탕 위에 석판을 깔고 균열(G02)·조각(G05)·얼룩(G03) 을 찍는다.
-    모든 변형이 x=0 열·y=0 행을 줄눈으로 두어 어떤 조합으로도 이어진다."""
-    s = new()
-    s.rect(0, 0, T - 1, T - 1, C["2"])
-    for sl in slabs:
-        slab(s, *sl)
-    for pts in cracks:
-        for (ax, ay), (bx, by) in zip(pts, pts[1:]):
-            s.line(ax, ay, bx, by, C["2"])
-    for x, y in chips:
-        s.px(x, y, C["5"])
-    for x, y in dark:
-        s.px(x, y, C["3"])
+def common_floor(i):
+    s, rnd = tc.dirt(ctx, seed=100 + i, base="1", dots=DOTS, pairs=PAIRS)
+    if i == 0:
+        shard(s, 4, 9)
+        tc.ember_small(s, C, 11, 4)
+    elif i == 1:
+        tc.stain_small(s, C, rnd, 9, 8, dark="S", n=4)             # 말라붙은 술 얼룩 (작게 — 변형 1이 1/4 확률로 깔린다)
+        shard(s, 3, 3, flip=True)
+    elif i == 2:
+        # 자갈 한 줌 (G02/G03 덩어리) + 풀뿌리 (G02 짧은 사선) + 잔불
+        for x, y in [(3, 10), (4, 10), (5, 11), (3, 11), (6, 12)]:
+            s.px(x, y, C["2"])
+        s.px(4, 11, C["3"]); s.px(5, 10, C["3"])
+        s.px(10, 2, C["2"]); s.px(11, 3, C["2"]); s.px(12, 3, C["2"]); s.px(13, 4, C["2"])
+        tc.ember(s, C, 12, 11, rising=True)
+    else:
+        shard(s, 10, 5); s.px(12, 7, C["7"]); s.px(8, 4, C["7"])      # 조각 여럿 (병 하나가 깨진 자리)
+        s.rect(4, 11, 5, 12, C["K"]); s.px(6, 12, C["K"])              # 파인 구덩이
+        s.px(3, 11, C["2"])
     return s
 
 
-FLOORS = [
-    # 0 기본: 큰 석판 2단, 어긋난 줄눈
-    floor_tile(
-        slabs=[(1, 1, 8, 7), (10, 1, 15, 7), (1, 9, 4, 15), (6, 9, 12, 15), (14, 9, 15, 15)],
-        chips=[(3, 3), (12, 11)],
-        dark=[(7, 6), (11, 5)],
-    ),
-    # 1 균열: 한 석판에 사선 금
-    floor_tile(
-        slabs=[(1, 1, 6, 7), (8, 1, 15, 7), (1, 9, 9, 15), (11, 9, 15, 15)],
-        cracks=[[(10, 2), (12, 4), (12, 6)], [(3, 11), (5, 13), (5, 15)]],
-        dark=[(13, 3), (2, 14)],
-    ),
-    # 2 잔돌: 작은 석판이 섞임
-    floor_tile(
-        slabs=[(1, 1, 5, 4), (7, 1, 15, 4), (1, 6, 9, 11), (11, 6, 15, 11), (1, 13, 3, 15), (5, 13, 11, 15), (13, 13, 15, 15)],
-        chips=[(8, 7)],
-        dark=[(3, 8), (13, 2), (7, 14)],
-    ),
-    # 3 얼룩: 큰 석판 + 술 얼룩(어두운 무채 G03, 색 없음) 과 빠진 조각
-    floor_tile(
-        slabs=[(1, 1, 10, 9), (12, 1, 15, 9), (1, 11, 6, 15), (8, 11, 15, 15)],
-        cracks=[[(4, 9), (4, 6)]],
-        dark=[(5, 3), (6, 3), (5, 4), (6, 4), (7, 4), (6, 5), (13, 13), (14, 13), (13, 14)],
-    ),
-]
-
-
-# ============================================================ 복도 (널빤지)
 def corridor_tile():
-    """가로 널빤지 4장(4px), 끝이음 어긋남. 방 바닥보다 한 단 어둡다 (G03 본색)."""
-    s = new()
-    s.rect(0, 0, T - 1, T - 1, C["3"])
-    ends = [5, 11, 2, 9]
-    for i in range(4):
-        y = i * 4
-        s.line(0, y, T - 1, y, C["2"])            # 널빤지 사이 틈
-        s.line(0, y + 1, T - 1, y + 1, C["4"])    # 윗면 하이라이트
-        e = ends[i]
-        s.px(e, y + 1, C["2"]); s.px(e, y + 2, C["2"]); s.px(e, y + 3, C["2"])  # 끝이음
-    # 옹이·못
-    for x, y in [(3, 7), (12, 14)]:
-        s.px(x, y, C["2"])
-    for x, y in [(8, 2), (14, 10)]:
-        s.px(x, y, C["5"])
+    """복도: 더 밟혀 더 검은 흙. K 가 많고 디테일·강조 없음 (방보다 한 단 어둡게 읽힌다)."""
+    s, rnd = tc.dirt(ctx, seed=140, base="1", dots={"K": 44, "2": 6}, pairs={"K": 4})
     return s
 
 
-# ============================================================ 벽
-def wall_face():
-    """벽 정면: 벽돌 4단(4px), 반 칸 어긋남. 회반죽 G00, 벽돌 G01, 윗변 G02 하이라이트. 거의 검정 덩어리."""
-    s = new()
-    s.rect(0, 0, T - 1, T - 1, C["1"])
-    for i in range(4):
-        y = i * 4
-        s.line(0, y, T - 1, y, C["K"])
-        s.line(0, y + 1, T - 1, y + 1, C["2"])
-        off = 0 if i % 2 == 0 else 4
-        for x in (off, off + 8):
-            s.line(x, y, x, y + 3, C["K"])
-            if x + 8 < T:
-                pass
-    # 벽돌 좌상단 모서리 한 점만 밝게 (한 단 위)
-    for x, y in [(2, 1), (10, 1), (6, 9), (14, 9)]:
-        s.px(x, y, C["3"])
-    # 아랫단 그늘(바닥과 닿는 곳)
+# ---- 방 종류별 바닥
+def start_floor(i):
+    """시작 방: 발자국·야영 흔적. 누군가 머물다 갔다."""
+    s, rnd = tc.dirt(ctx, seed=200 + i, base="1", dots={"K": 20, "2": 14, "3": 3}, pairs={"K": 2})
+    if i == 0:
+        tc.bootprint(s, C, 3, 3, left=True); tc.bootprint(s, C, 7, 6, left=False)
+        tc.bootprint(s, C, 11, 2, left=True)
+        s.px(12, 12, C["3"]); s.px(13, 12, C["3"])                     # 짚 한 줌
+    else:
+        # 야영 흔적: 흩어진 짚(G03 짧은 가닥, 직사각형이면 격자가 보여서 흩뿌림) + 꺼진 불 자리(재 + 불씨 1) + 발자국
+        for x0, y0, dx in [(2, 10, 1), (5, 12, 1), (3, 13, 1), (7, 9, 0), (6, 11, 1)]:
+            s.px(x0, y0, C["3"]); s.px(x0 + dx, y0 + (1 - dx), C["3"])
+        s.px(4, 11, C["2"]); s.px(8, 12, C["2"]); s.px(2, 12, C["2"])
+        tc.ash_patch(s, C, rnd, 11, 4, r=2)
+        tc.ember_small(s, C, 11, 4)
+        tc.bootprint(s, C, 12, 10, left=False)
+    return s
+
+
+def trial_floor(i):
+    """시련 방: 핏자국·탄흔 많음. 가장 처절하다."""
+    s, rnd = tc.dirt(ctx, seed=300 + i, base="1", dots={"K": 28, "2": 12, "3": 2}, pairs={"K": 4})
+    if i == 0:
+        # 핏자국 하나(젖은 가운데 B 1px) + 탄흔 1 + 조각. 두 변형 중 하나만 덩어리를 가져야 물방울 무늬가 안 생긴다.
+        tc.splat(s, C, rnd, 5, 5, r=2, dark="S", wet="B", drops=3)
+        tc.pock(s, C, 11, 10)
+        shard(s, 10, 3)
+    else:
+        # 변형 1 에는 덩어리를 두지 않는다 (둘 다 덩어리면 16px 마다 얼룩 = 물방울 무늬). 탄흔 2 + 튄 방울 3 + 불씨.
+        tc.pock(s, C, 11, 3); tc.pock(s, C, 4, 11)
+        s.px(7, 8, C["S"]); s.px(13, 9, C["S"]); s.px(2, 5, C["S"]); s.px(8, 13, C["S"])
+        tc.ember_small(s, C, 13, 13)
+    return s
+
+
+def rest_floor(i):
+    """휴식 방: 재 식은 모닥불 자국. 조금 덜 처절 — K 점이 적고 재(G03/G04)가 있다."""
+    s, rnd = tc.dirt(ctx, seed=400 + i, base="1", dots={"K": 14, "2": 16, "3": 4}, pairs={"2": 2})
+    if i == 0:
+        tc.ash_patch(s, C, rnd, 8, 8, r=3)
+        s.px(8, 7, C["L"])                                             # 재 속 식은 불씨 하나
+        s.px(3, 12, C["3"]); s.px(4, 12, C["3"])
+    else:
+        tc.ash_patch(s, C, rnd, 4, 4, r=2)
+        s.px(10, 11, C["3"]); s.px(11, 11, C["3"]); s.px(11, 12, C["3"])   # 흩어진 재
+        s.px(12, 5, C["2"]); s.px(13, 6, C["2"])
+    return s
+
+
+GOBLET = [(2, 0), (3, 0), (4, 0), (1, 1), (5, 1), (2, 2), (4, 2), (3, 3), (3, 4), (2, 5), (3, 5), (4, 5)]   # 잔 문양 6x6
+
+
+def boss_floor(i):
+    """보스 방(양조장주 본영): 제국 포석에 새긴 '잔' 문양이 흙에 반쯤 묻혔다."""
+    s, rnd = tc.dirt(ctx, seed=500 + i, base="1", dots={"K": 22, "2": 10, "3": 2}, pairs={"K": 2})
+    # 포석은 타일 가운데에 두지 않고 귀퉁이를 사선으로 깨서 네모가 반복되지 않게 한다. 변형 1 은 잔해만.
+    if i == 0:
+        tc.buried_slab(s, C, rnd, (2, 2, 9, 8), carve=[(x + 3, y + 2) for x, y in GOBLET], bury_from=0.7)
+        for x, y in [(2, 2), (3, 2), (2, 3), (9, 2), (2, 8), (2, 7), (3, 8), (9, 8), (9, 7), (8, 8)]:
+            s.px(x, y, C["1"])                                          # 사선으로 깨진 귀퉁이
+        s.px(12, 11, C["2"]); s.px(13, 11, C["3"]); s.px(13, 12, C["2"])  # 떨어져 나간 조각
+    else:
+        for x, y, ch in [(10, 3, "2"), (11, 3, "3"), (12, 3, "2"), (11, 4, "2"), (4, 10, "2"), (5, 10, "3"), (5, 11, "2"), (4, 11, "K"), (13, 13, "2")]:
+            s.px(x, y, C[ch])                                           # 포석 잔해
+        s.px(7, 7, C["S"]); s.px(8, 7, C["S"]); s.px(8, 8, C["S"])      # 밴 술
+    return s
+
+
+# ============================================================ 벽 (돌 G02 + K 이음, 바닥보다 밝은 덩어리)
+def wall_base(s):
+    """벽 정면: 큰 돌 2단(8px), 반 칸 어긋남. 돌 G02, 이음 K, 윗변 빛 G03, 회반죽 떨어진 자리 G01. 아랫단 K 그늘."""
+    s.rect(0, 0, T - 1, T - 1, C["2"])
+    for i, (y0, off) in enumerate(((0, 0), (8, 5))):
+        s.line(0, y0, T - 1, y0, C["K"])
+        s.line(0, y0 + 1, T - 1, y0 + 1, C["3"])
+        for x in (off, off + 10):
+            if 0 <= x < T:
+                s.line(x, y0, x, y0 + 7, C["K"])
+                if x + 1 < T:
+                    s.line(x + 1, y0 + 2, x + 1, y0 + 6, C["3"], only=C["2"])
+    # 회반죽 떨어진 어두운 자리·갈라진 돌 (조용한 G01 덩어리)
+    for x, y in [(3, 4), (4, 4), (4, 5), (12, 11), (13, 11), (13, 12), (12, 12), (8, 13)]:
+        s.px(x, y, C["1"])
     s.line(0, 15, T - 1, 15, C["K"])
     return s
 
 
-def wall_top():
-    """벽 윗면: 평평한 돌 덮개. G01 바탕, 돌 이음 G00, 윗면 빛 G02 알갱이."""
+def wall_face():
     s = new()
-    s.rect(0, 0, T - 1, T - 1, C["1"])
-    s.line(0, 0, T - 1, 0, C["K"])
-    s.line(0, 8, T - 1, 8, C["K"])
-    s.line(0, 1, T - 1, 1, C["2"])
-    s.line(0, 9, T - 1, 9, C["2"])
-    s.line(7, 0, 7, 7, C["K"])
-    s.line(3, 8, 3, 15, C["K"])
-    s.line(11, 8, 11, 15, C["K"])
-    for x, y in [(2, 4), (3, 4), (12, 3), (6, 12), (7, 12), (14, 11)]:
+    wall_base(s)
+    s.px(7, 3, C["1"]); s.px(7, 4, C["K"])      # 돌 틈 한 점
+    return s
+
+
+def wall_v1():
+    """벽 변형 1: 제국 표식 — 돌 위에 스텐실로 찍은 '잔' 문양(흰 회칠 G06, 닳은 자리 G04). 양조장주의 구역 표시."""
+    s = new()
+    wall_base(s)
+    for x, y in GOBLET:
+        s.px(x + 5, y + 4, C["6"])
+    for x, y in [(6, 5), (8, 9)]:
+        s.px(x, y, C["4"])                           # 닳아 벗겨짐
+    s.px(10, 4, C["4"]); s.px(4, 9, C["4"])         # 튄 회칠
+    return s
+
+
+def wall_v2():
+    """벽 변형 2: 균열 + 못에 걸린 빈 병(G07 유리, 바닥에 술 찌꺼기 S). 걸린 사물."""
+    s = new()
+    wall_base(s)
+    # 균열: 위에서 아래로 지그재그 K, 옆에 G03 빛 받는 모서리
+    for x, y in [(3, 1), (3, 2), (4, 3), (4, 4), (5, 5), (4, 6), (4, 7), (5, 8), (5, 9), (6, 10), (6, 11), (5, 12), (5, 13), (5, 14)]:
+        s.px(x, y, C["K"])
+    for x, y in [(5, 3), (6, 5), (5, 7), (7, 10), (6, 13)]:
+        s.px(x, y, C["3"])
+    # 못 + 끈 + 매달린 병 (목 위, 몸통 아래)
+    s.px(11, 2, C["6"]); s.px(11, 3, C["4"]); s.px(11, 4, C["4"])
+    s.rect(10, 5, 12, 6, C["7"]); s.px(11, 5, C["9"])
+    s.rect(10, 7, 12, 11, C["7"]); s.px(10, 8, C["9"])
+    s.px(11, 10, C["S"]); s.px(12, 10, C["S"]); s.px(11, 11, C["S"]); s.px(12, 11, C["S"])
+    s.line(10, 12, 12, 12, C["1"])
+    return s
+
+
+def wall_top():
+    """벽 윗면: 돌 덮개 G03 (바닥보다 두 단 밝다 — 검은 구덩이를 두르는 돌 테). 이음 K, 빛 G04 알갱이, 때 G02."""
+    s = new()
+    s.rect(0, 0, T - 1, T - 1, C["3"])
+    s.line(0, 0, T - 1, 0, C["K"]); s.line(0, 8, T - 1, 8, C["K"])
+    s.line(7, 0, 7, 7, C["K"]); s.line(3, 8, 3, 15, C["K"]); s.line(11, 8, 11, 15, C["K"])
+    s.line(0, 1, T - 1, 1, C["4"], only=C["3"]); s.line(0, 9, T - 1, 9, C["4"], only=C["3"])
+    for x, y in [(2, 4), (12, 3), (13, 5), (6, 12), (14, 11), (1, 13)]:
         s.px(x, y, C["2"])
+    for x, y in [(4, 3), (10, 5), (8, 11), (13, 13)]:
+        s.px(x, y, C["4"])
     return s
 
 
 # ============================================================ 문 (벽 자리)
-DOOR_FRAME = [
-    "1333........3331",
-    "1343........3431",
-]
-
-
 def door_frame(s):
-    """양쪽 문설주(x0..2, x13..15) + 상인방(y0..1). 벽 톤 안에서 나무 G03/G04."""
     s.rect(0, 0, T - 1, T - 1, C["1"])
     s.rect(0, 0, 2, T - 1, C["3"]); s.line(0, 0, 0, T - 1, C["K"]); s.line(1, 0, 1, T - 1, C["4"])
     s.rect(13, 0, 15, T - 1, C["3"]); s.line(15, 0, 15, T - 1, C["K"]); s.line(13, 0, 13, T - 1, C["2"])
@@ -195,23 +223,21 @@ def door_frame(s):
 
 
 def door_open():
-    """열린 문: 문틀 안으로 복도 널빤지가 그대로 이어진다(통로로 읽힘). 문짝은 왼쪽 문설주에 젖혀져 2px 폭."""
+    """열린 문: 틀 안은 어두운 통로(흙 + K 점). 왼쪽에 젖혀진 문짝 2px, 문틈으로 호박빛 한 줄(L, text-pack L3)."""
     s = new()
     door_frame(s)
-    s.rect(3, 2, 12, 15, C["3"])
-    for y in (2, 6, 10, 14):
-        s.line(3, y, 12, y, C["2"])
-        s.line(3, y + 1, 12, y + 1, C["4"])
-    s.px(8, 7, C["2"]); s.px(8, 8, C["2"]); s.px(8, 9, C["2"])
-    # 젖혀진 문짝 (x3..4): 밝은 널 + 쇠띠 2점
+    s.rect(3, 2, 12, 15, C["1"])
+    rnd = random.Random(9)
+    tc.scatter(s, C, rnd, "K", 14, box=(5, 2, 12, 15))
+    tc.scatter(s, C, rnd, "2", 4, box=(5, 2, 12, 15))
     s.rect(3, 2, 4, 14, C["5"]); s.line(4, 2, 4, 14, C["4"])
     s.px(3, 5, C["7"]); s.px(3, 12, C["7"]); s.px(4, 5, C["6"]); s.px(4, 12, C["6"])
     s.line(3, 15, 4, 15, C["2"])
+    s.line(5, 3, 5, 13, C["L"])                   # 문틈 빛
     return s
 
 
 def door_planks(s, x0=3, x1=12, y0=2, y1=15):
-    """나무 문짝: 세로 널 G04, 틈 G02, 쇠띠 G06 + 리벳 G08."""
     s.rect(x0, y0, x1, y1, C["4"])
     for x in (x0 + 2, x0 + 5, x0 + 8):
         s.line(x, y0, x, y1, C["2"])
@@ -220,161 +246,132 @@ def door_planks(s, x0=3, x1=12, y0=2, y1=15):
         s.line(x0, y, x1, y, C["6"])
         s.line(x0, y + 1, x1, y + 1, C["5"])
         for x in (x0 + 1, x0 + 7):
-            s.px(x, y, C["8"])
+            s.px(x, y, C["9"])
 
 
 def door_closed():
     s = new()
     door_frame(s)
     door_planks(s)
-    s.px(10, 9, C["7"]); s.px(10, 10, C["K"])   # 손잡이 고리
+    s.px(10, 9, C["7"]); s.px(10, 10, C["K"])
     return s
 
 
 def door_locked():
-    """잠긴 문(보스 방): 닫힌 문 + 가로 쇠 빗장 + 자물쇠. 호박 없음."""
     s = new()
     door_frame(s)
     door_planks(s)
     s.rect(2, 7, 13, 8, C["6"]); s.line(2, 7, 13, 7, C["7"]); s.px(2, 8, C["5"]); s.px(13, 8, C["5"])
-    # 자물쇠 (중앙): 몸통 G07, 고리 G08, 열쇠구멍 G00
-    s.rect(6, 9, 9, 12, C["7"]); s.line(6, 9, 9, 9, C["8"])
-    s.px(6, 8, C["8"]); s.px(9, 8, C["8"])
+    s.rect(6, 9, 9, 12, C["7"]); s.line(6, 9, 9, 9, C["9"])
+    s.px(6, 8, C["9"]); s.px(9, 8, C["9"])
     s.px(7, 10, C["K"]); s.px(8, 10, C["K"]); s.px(7, 11, C["K"])
     return s
 
 
-# ============================================================ 출구 · 상점 (2x2 이어붙임)
+# ============================================================ 출구 · 상점 (2x2)
 def exit_stairs():
-    """올라가는 돌계단(스토리: 층이 오를수록 수도에 가까워진다). 4px 단 x4.
-    단 = 챌(그늘 G00 1px) + 디딤 윗변(G07) + 디딤(G05/G04 2px). 위 단일수록 밝다.
-    위에서 비껴 떨어지는 호박빛: 디딤 오른쪽 끝에 L 2px x2 (타일당 4px).
-    가로·세로 모두 이어 붙어 2x2 = 8단 계단으로 읽힌다."""
+    """올라가는 돌계단 4단. 어두운 바닥 위라 한 단 낮춰(G04/G03) 번쩍이지 않게. 위에서 비껴드는 호박빛 2px x2."""
     s = new()
-    body = ["5", "5", "4", "4"]
+    body = ["4", "4", "3", "3"]
     for i in range(4):
         y = i * 4
-        s.line(0, y, T - 1, y, C["K"])              # 챌 그늘
-        s.line(0, y + 1, T - 1, y + 1, C["7"])      # 디딤 윗변(빛)
-        s.rect(0, y + 2, T - 1, y + 3, C[body[i]])  # 디딤
-        s.line(0, y + 3, T - 1, y + 3, C["3"] if i >= 2 else C["4"])
+        s.line(0, y, T - 1, y, C["K"])
+        s.line(0, y + 1, T - 1, y + 1, C["6"])
+        s.rect(0, y + 2, T - 1, y + 3, C[body[i]])
+        s.line(0, y + 3, T - 1, y + 3, C["2"] if i >= 2 else C["3"])
         if i in (0, 2):
             s.px(12, y + 1, C["L"]); s.px(13, y + 1, C["L"])
-    # 마모 자국
     for x, y in [(3, 2), (9, 6), (6, 10), (14, 14)]:
-        s.px(x, y, C["3"])
+        s.px(x, y, C["2"])
     return s
 
 
 def shop_counter():
-    """술 좌판: 가로 널빤지 위 병 2개. 병 안의 술만 호박(B/S), 유리 G07, 글린트 G09.
-    병이 타일 안에 완결되어 2x2 로 깔면 좌판 4칸 = 병 8개."""
+    """술 좌판: 널빤지(G03) 위 병 2개. 병 속 술 B/S, 유리 G07, 글린트 G09."""
     s = new()
-    s.rect(0, 0, T - 1, T - 1, C["4"])
+    s.rect(0, 0, T - 1, T - 1, C["3"])
     for y in (0, 5, 10):
-        s.line(0, y, T - 1, y, C["2"])
-        s.line(0, y + 1, T - 1, y + 1, C["5"])
-    s.line(0, 15, T - 1, 15, C["2"])
+        s.line(0, y, T - 1, y, C["1"])
+        s.line(0, y + 1, T - 1, y + 1, C["4"])
+    s.line(0, 15, T - 1, 15, C["1"])
     for bx in (3, 10):
-        # 병: 목(1폭) + 몸통(3폭), 높이 9. 바닥 그림자 1px
         s.rect(bx, 2, bx + 2, 11, C["7"])
-        s.rect(bx + 1, 2, bx + 1, 3, C["7"])
-        s.rect(bx, 2, bx + 2, 3, C["2"]); s.px(bx + 1, 2, C["7"]); s.px(bx + 1, 3, C["7"])
-        s.rect(bx, 6, bx + 2, 10, C["B"])   # 술
-        s.px(bx + 2, 7, C["S"]); s.px(bx + 2, 8, C["S"]); s.px(bx + 2, 9, C["S"]); s.px(bx + 2, 10, C["S"])
-        s.px(bx, 5, C["9"])                  # 글린트
-        s.line(bx, 11, bx + 2, 11, C["5"])
-        s.line(bx, 12, bx + 2, 12, C["2"])   # 그림자
+        s.rect(bx, 2, bx + 2, 3, C["1"]); s.px(bx + 1, 2, C["7"]); s.px(bx + 1, 3, C["7"])
+        s.rect(bx, 6, bx + 2, 10, C["B"])
+        for y in range(7, 11):
+            s.px(bx + 2, y, C["S"])
+        s.px(bx, 5, C["9"])
+        s.line(bx, 11, bx + 2, 11, C["4"])
+        s.line(bx, 12, bx + 2, 12, C["1"])
     return s
 
 
-# ============================================================ 소품 (투명 배경, 바닥 위에 겹침)
+# ============================================================ 소품 (투명 배경)
 def prop_barrel():
-    """술통(solid): 배부른 통. 세로 널 G04/G03, 쇠테 G06+G08, 윗뚜껑 G05. 주둥이(쇠꼭지)에서 술 방울(B)."""
     s = new()
-    # 행별 반폭 (y2..15): 위·아래가 좁고 가운데가 넓다
     prof = {2: (5, 10), 3: (4, 11), 4: (3, 12), 5: (3, 12), 6: (2, 13), 7: (2, 13), 8: (2, 13), 9: (2, 13),
             10: (2, 13), 11: (3, 12), 12: (3, 12), 13: (3, 12), 14: (4, 11), 15: (5, 10)}
     for y, (x0, x1) in prof.items():
         s.line(x0, y, x1, y, C["4"])
     for x in (6, 9):
-        s.line(x, 3, x, 15, C["3"])      # 널 틈
+        s.line(x, 3, x, 15, C["3"])
     for y, (x0, x1) in prof.items():
-        s.px(x0, y, C["5"])              # 왼쪽(빛) 가장자리
-        s.px(x1, y, C["2"])              # 오른쪽 그늘
-        s.px(x1 - 1, y, C["3"])
-    # 쇠테 2줄
+        s.px(x0, y, C["5"]); s.px(x1, y, C["2"]); s.px(x1 - 1, y, C["3"])
     for y in (5, 12):
         x0, x1 = prof[y]
         s.line(x0, y, x1, y, C["6"])
-        s.px(x0 + 1, y, C["8"]); s.px(x0 + 2, y, C["8"])
+        s.px(x0 + 1, y, C["9"]); s.px(x0 + 2, y, C["9"])
         s.line(x0 + 1, y + 1, x1 - 1, y + 1, C["3"])
-    # 뚜껑 (윗면 G05)
     s.line(5, 2, 10, 2, C["5"]); s.line(4, 3, 11, 3, C["5"]); s.px(5, 3, C["7"]); s.px(6, 3, C["7"])
-    # 쇠꼭지 + 술 방울
     s.px(7, 9, C["1"]); s.px(8, 9, C["1"]); s.px(7, 10, C["K"]); s.px(8, 10, C["K"]); s.px(8, 8, C["7"])
     s.px(8, 11, C["B"]); s.px(8, 14, C["B"]); s.px(8, 15, C["S"]); s.px(9, 15, C["S"])
     s.outline(C["K"], where="inside")
-    s.line(5, 2, 10, 2, C["5"], only=C["K"])  # 윗변은 셀아웃 대신 밝게
+    s.line(5, 2, 10, 2, C["5"], only=C["K"])
     return s
 
 
 def prop_bottle():
-    """깨진 병(통과 가능): 옆으로 누운 병. 목은 왼쪽, 오른쪽 끝이 깨져 들쭉날쭉. 깨진 쪽에서 술(B/S)이 흘러 고인다."""
+    """깨진 병: 옆으로 누운 병, 오른쪽 끝이 깨짐. 흘러나온 술은 S 로 어둡게, 빛 받은 1px 만 B."""
     s = new()
-    # 고인 술 (바닥, 오른쪽 아래)
     s.rect(9, 10, 13, 11, C["S"]); s.rect(10, 9, 12, 9, C["S"]); s.px(14, 11, C["S"]); s.px(11, 12, C["S"])
-    s.px(10, 10, C["B"]); s.px(11, 10, C["B"]); s.px(11, 9, C["B"])
-    # 병 몸통 (x5..11, y5..8) + 목 (x2..4, y6..7)
+    s.px(10, 10, C["B"]); s.px(11, 9, C["B"])
     s.rect(5, 5, 11, 8, C["7"])
     s.rect(2, 6, 4, 7, C["7"])
-    s.px(2, 6, C["8"]); s.line(5, 5, 10, 5, C["8"])      # 윗면 빛
-    s.line(5, 8, 10, 8, C["6"])                          # 아랫면 그늘
-    s.px(8, 6, C["B"]); s.px(9, 6, C["B"]); s.px(8, 7, C["S"]); s.px(9, 7, C["S"])  # 남은 술
-    # 깨진 끝: 들쭉날쭉 (x11..12)
-    s.px(11, 5, C["7"]); s.px(12, 6, C["8"]); s.px(11, 7, C["7"]); s.px(12, 8, C["7"])
+    s.px(2, 6, C["9"]); s.line(5, 5, 10, 5, C["9"])
+    s.line(5, 8, 10, 8, C["6"])
+    s.px(8, 6, C["B"]); s.px(9, 6, C["B"]); s.px(8, 7, C["S"]); s.px(9, 7, C["S"])
+    s.px(11, 5, C["7"]); s.px(12, 6, C["9"]); s.px(11, 7, C["7"]); s.px(12, 8, C["7"])
     s.px(11, 6, C["K"]); s.px(11, 8, C["K"])
-    # 흩어진 조각 2개 (2px 덩어리)
-    s.px(13, 4, C["8"]); s.px(14, 4, C["7"])
-    s.px(6, 11, C["7"]); s.px(7, 11, C["8"])
     s.outline(C["K"], where="inside")
-    s.px(2, 6, C["8"]); s.line(6, 5, 10, 5, C["8"], only=C["K"])
-    s.px(6, 11, C["7"]); s.px(7, 11, C["8"]); s.px(13, 4, C["8"]); s.px(14, 4, C["7"])
+    s.px(2, 6, C["9"]); s.line(6, 5, 10, 5, C["9"], only=C["K"])
+    s.px(13, 4, C["9"]); s.px(14, 4, C["7"])
+    s.px(6, 11, C["7"]); s.px(7, 11, C["9"])
     return s
 
 
 def prop_puddle():
-    """웅덩이(통과 가능): 불규칙한 어두운 액체 G01/G02, 등불 반사(L 3px + W 1px), 먼 쪽 반사 S 2px."""
+    """웅덩이(통과): 검은 물(K) — 흙보다 더 검다. 먼 쪽 테 G02, 등불 반사 L/W, 가까운 쪽 어두운 반사 S."""
     s = new()
     rows = {4: (6, 9), 5: (4, 11), 6: (3, 12), 7: (2, 13), 8: (2, 13), 9: (3, 13), 10: (4, 11), 11: (6, 12), 12: (9, 12), 13: (10, 11)}
     for y, (x0, x1) in rows.items():
-        s.line(x0, y, x1, y, C["1"])
-    s.px(1, 8, C["1"]); s.px(13, 6, C["1"])
-    inner = {6: (5, 10), 7: (4, 11), 8: (4, 11), 9: (5, 11), 10: (6, 10), 11: (8, 11)}
-    for y, (x0, x1) in inner.items():
-        s.line(x0, y, x1, y, C["2"])
-    # 반사 (좌상단 빛)
+        s.line(x0, y, x1, y, C["K"])
+    s.line(6, 4, 9, 4, C["2"]); s.px(4, 5, C["2"]); s.px(5, 5, C["2"]); s.px(3, 6, C["2"]); s.px(2, 7, C["2"]); s.px(10, 5, C["2"])
     s.px(5, 7, C["L"]); s.px(6, 7, C["L"]); s.px(5, 8, C["W"]); s.px(6, 8, C["L"])
     s.px(9, 10, C["S"]); s.px(10, 10, C["S"])
+    s.px(11, 13, C["2"]); s.px(12, 12, C["2"])
     return s
 
 
 def prop_lantern():
-    """세운 등불(solid): 쇠기둥 G05/G06, 유리통 안 불꽃 B/L/W, 바닥 받침. 호박 12px."""
     s = new()
-    # 받침 (바닥에 놓인 삼발이)
     s.rect(5, 14, 10, 14, C["5"]); s.rect(4, 15, 11, 15, C["3"])
-    # 기둥
     s.line(7, 9, 7, 13, C["5"]); s.line(8, 9, 8, 13, C["4"])
-    # 등 (x4..11, y2..8): 틀 G06, 안 B, 심지 W
     s.rect(4, 2, 11, 8, C["6"])
     s.rect(5, 3, 10, 7, C["B"])
     s.rect(6, 4, 9, 6, C["L"])
     s.px(7, 5, C["W"]); s.px(8, 5, C["W"])
     s.line(4, 2, 11, 2, C["7"]); s.px(4, 3, C["7"])
-    # 꼭지
     s.rect(6, 0, 9, 1, C["6"]); s.px(7, 0, C["7"]); s.px(8, 0, C["7"])
-    # 틀의 세로 살
     s.px(7, 3, C["6"]); s.px(8, 7, C["6"])
     s.outline(C["K"], where="inside")
     s.px(7, 0, C["7"]); s.px(8, 0, C["7"])
@@ -382,238 +379,68 @@ def prop_lantern():
     return s
 
 
+def prop_ash_pit():
+    """잔불 더미(통과): 누가 밤새 쬔 자리. 재 G03/G04 덩어리 + 숯 K + 잔불 3점(W/L/B). 호박 ~9px — 이 층에서 가장 또렷한 강조."""
+    s = new()
+    rnd = random.Random(21)
+    prof = {5: (6, 9), 6: (4, 11), 7: (3, 12), 8: (3, 12), 9: (2, 13), 10: (3, 12), 11: (4, 11), 12: (6, 10)}
+    for y, (x0, x1) in prof.items():
+        s.line(x0, y, x1, y, C["3"])
+    for x, y in [(4, 7), (5, 6), (3, 9), (9, 11), (10, 10), (6, 12)]:
+        s.px(x, y, C["4"])
+    for x, y in [(6, 8), (7, 8), (8, 9), (9, 8), (7, 10), (5, 10), (10, 7), (6, 9)]:
+        s.px(x, y, C["K"])
+    s.px(7, 9, C["W"]); s.px(7, 7, C["L"]); s.px(8, 8, C["B"])
+    s.px(10, 9, C["L"]); s.px(10, 8, C["W"]); s.px(11, 10, C["B"])
+    s.px(5, 11, C["B"]); s.px(4, 10, C["L"])
+    s.px(8, 4, C["L"])                             # 오르는 불티 하나
+    for x, y in [(2, 12), (12, 13), (13, 7)]:
+        s.px(x, y, C["2"])                         # 둘레로 흩어진 재
+    return s
+
+
+def prop_bottle_crate():
+    """술 상자(solid): 열린 나무 상자(G04, 틈 G02) 안에 병 목 4개(G07, 마개 G05). 빈 병이 더 많다 — 술은 하나만(B)."""
+    s = new()
+    s.rect(2, 6, 13, 14, C["4"])
+    s.line(2, 6, 13, 6, C["5"]); s.line(2, 6, 2, 14, C["5"])
+    s.line(3, 14, 13, 14, C["3"]); s.line(13, 7, 13, 14, C["3"])
+    s.line(2, 10, 13, 10, C["2"]); s.line(7, 11, 7, 13, C["2"])
+    s.rect(3, 4, 12, 5, C["1"])                     # 상자 안 어둠
+    s.line(3, 15, 13, 15, C["2"])
+    s.outline(C["K"], where="inside")
+    s.line(3, 15, 13, 15, C["2"])
+    s.line(3, 6, 12, 6, C["5"], only=C["K"])
+    # 병 4개 (셀아웃 뒤 = keep)
+    for i, x in enumerate((3, 6, 9, 12)):
+        s.px(x, 2, C["5"]); s.rect(x, 3, x, 5, C["7"])
+        if i == 1:
+            s.px(x, 5, C["B"]); s.px(x, 4, C["B"])
+        if i == 3:
+            s.px(x, 3, C["9"])
+    s.px(5, 4, C["K"]); s.px(8, 4, C["K"]); s.px(11, 4, C["K"]); s.px(10, 5, C["K"])  # 병 사이 어둠
+    return s
+
+
 def void_tile():
     return new()
 
 
-# ============================================================ 시트 조립
-TILES = [
-    ("floor_0", FLOORS[0]), ("floor_1", FLOORS[1]), ("floor_2", FLOORS[2]), ("floor_3", FLOORS[3]),
-    ("corridor", corridor_tile()), ("wall", wall_face()), ("wall_top", wall_top()), ("void", void_tile()),
-    ("door_open", door_open()), ("door_closed", door_closed()), ("door_locked", door_locked()),
-    ("exit", exit_stairs()), ("shop", shop_counter()),
-    ("prop_barrel", prop_barrel()), ("prop_bottle", prop_bottle()), ("prop_puddle", prop_puddle()),
-    ("prop_lantern", prop_lantern()),
-]
-IDX = {name: i for i, (name, _) in enumerate(TILES)}
-
-
-def build_sheet():
-    sheet = Image.new("RGBA", (COLS * T, ROWS * T), (0, 0, 0, 0))
-    for i, (name, s) in enumerate(TILES):
-        r, c = divmod(i, COLS)
-        sheet.alpha_composite(s.composite(1), (c * T, r * T))
-    sheet.save(os.path.join(OUT_ASSETS, "stage1.png"))
-    meta = {
-        "image": "stage1.png",
-        "stage": 1,
-        "name": "잔(盞) — 술독 제국 외곽",
-        "tileWidth": T, "tileHeight": T,
-        "columns": COLS, "rows": ROWS,
-        "indexFormula": "row * columns + column",
-        "tiles": {
-            "0": [IDX["void"]],
-            "1": [IDX["floor_0"], IDX["floor_1"], IDX["floor_2"], IDX["floor_3"]],
-            "2": [IDX["wall"]],
-            "3": [IDX["door_open"]],
-            "4": [IDX["door_closed"]],
-            "5": [IDX["door_locked"]],
-            "6": [IDX["corridor"]],
-            "7": [IDX["exit"]],
-            "8": [IDX["shop"]],
-        },
-        "tileIdNames": {"0": "void", "1": "floor", "2": "wall", "3": "door_open", "4": "door_closed",
-                        "5": "door_locked", "6": "corridor", "7": "exit", "8": "shop"},
-        "walls": {
-            "top": IDX["wall"], "bottom": IDX["wall_top"], "left": IDX["wall_top"], "right": IDX["wall_top"],
-            "corner_tl": IDX["wall_top"], "corner_tr": IDX["wall_top"], "corner_bl": IDX["wall_top"], "corner_br": IDX["wall_top"],
-            "note": "top = 방 위쪽(북) 벽: 정면(벽돌)이 보인다. 나머지 변·모서리는 윗면 덮개. 단일 벽만 쓰면 전부 벽돌 정면이어도 무방."
-        },
-        "props": [
-            {"index": IDX["prop_barrel"], "name": "barrel", "solid": True},
-            {"index": IDX["prop_bottle"], "name": "broken_bottle", "solid": False},
-            {"index": IDX["prop_puddle"], "name": "puddle", "solid": False},
-            {"index": IDX["prop_lantern"], "name": "lantern", "solid": True},
-        ],
-        "propsLayer": "overlay — 소품 타일은 배경이 투명하므로 바닥 레이어 위에 겹쳐 그린다",
-        "names": {str(i): name for i, (name, _) in enumerate(TILES)},
-        "palette": "parts/art/palette/lopad.json (gray 0..9 + floor 1 accent slots 19, 21, 23, 25)",
-    }
-    with open(os.path.join(OUT_ASSETS, "stage1.json"), "w", encoding="utf-8") as fp:
-        json.dump(meta, fp, ensure_ascii=False, indent=1)
-    return sheet, meta
-
-
-# ============================================================ 미리보기
-FONT = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 11)
-
-
-def checker(w, h, sq=8):
-    bg = Image.new("RGB", (w, h), (232, 232, 232))
-    d = ImageDraw.Draw(bg)
-    for y in range(0, h, sq):
-        for x in range(0, w, sq):
-            if (x // sq + y // sq) % 2:
-                d.rectangle([x, y, x + sq - 1, y + sq - 1], fill=(203, 203, 203))
-    return bg
-
-
-def preview_sheet(sheet, scale=6):
-    cw = T * scale
-    gap = 6
-    W = COLS * (cw + gap) + gap
-    H = ROWS * (cw + gap + 14) + gap
-    img = Image.new("RGB", (W, H), (60, 60, 64))
-    d = ImageDraw.Draw(img)
-    for i, (name, s) in enumerate(TILES):
-        r, c = divmod(i, COLS)
-        ox = gap + c * (cw + gap)
-        oy = gap + r * (cw + gap + 14)
-        cell = checker(cw, cw).convert("RGBA")
-        cell.alpha_composite(s.composite(1).resize((cw, cw), Image.NEAREST))
-        img.paste(cell.convert("RGB"), (ox, oy))
-        d.text((ox, oy + cw + 1), "%d %s" % (i, name), fill=(230, 230, 230), font=FONT)
-    img.save(os.path.join(HERE, "preview.png"))
-
-
-def tile_img(name):
-    return TILES[IDX[name]][1].composite(1)
-
-
-def preview_seam(scale=4):
-    """이어붙임 검사: 바닥 4변형 무작위 4x4, 벽 1x4, 벽 윗면 4x1, 출구 2x2, 상점 2x2, 복도 3x1."""
-    blocks = []
-    import random
-    rnd = random.Random(7)
-    fl = Image.new("RGBA", (T * 4, T * 4))
-    for y in range(4):
-        for x in range(4):
-            fl.alpha_composite(tile_img("floor_%d" % rnd.randrange(4)), (x * T, y * T))
-    blocks.append(("floor 4x4", fl))
-    w = Image.new("RGBA", (T * 4, T * 2))
-    for x in range(4):
-        w.alpha_composite(tile_img("wall_top"), (x * T, 0))
-        w.alpha_composite(tile_img("wall"), (x * T, T))
-    blocks.append(("wall_top / wall", w))
-    for nm in ("exit", "shop"):
-        b = Image.new("RGBA", (T * 2, T * 2))
-        for y in range(2):
-            for x in range(2):
-                b.alpha_composite(tile_img(nm), (x * T, y * T))
-        blocks.append((nm + " 2x2", b))
-    c = Image.new("RGBA", (T * 3, T))
-    for x in range(3):
-        c.alpha_composite(tile_img("corridor"), (x * T, 0))
-    blocks.append(("corridor 3x1", c))
-    W = sum(b.width * scale + 12 for _, b in blocks) + 12
-    H = max(b.height for _, b in blocks) * scale + 30
-    img = Image.new("RGB", (W, H), (60, 60, 64))
-    d = ImageDraw.Draw(img)
-    x = 12
-    for label, b in blocks:
-        im = b.resize((b.width * scale, b.height * scale), Image.NEAREST)
-        img.paste(im.convert("RGB"), (x, 20), im)
-        d.text((x, 4), label, fill=(230, 230, 230), font=FONT)
-        x += im.width + 12
-    img.save(os.path.join(HERE, "preview_seam.png"))
-
-
-def preview_room(scale=4):
-    """12x8 방(벽 포함 14x10) + 위쪽 복도. 문 3종, 출구·상점 2x2, 소품 4종, 주인공 idle down."""
-    import random
-    rnd = random.Random(3)
-    IW, IH = 12, 8
-    GW, GH = IW + 2, IH + 2 + 3  # 위에 복도 3칸
-    grid = [[None] * GW for _ in range(GH)]
-    OY = 3
-    for y in range(IH + 2):
-        for x in range(GW):
-            gy = y + OY
-            if y == 0:
-                grid[gy][x] = "wall_top"
-            elif y == IH + 1:
-                grid[gy][x] = "wall_top"
-            elif x == 0 or x == GW - 1:
-                grid[gy][x] = "wall_top"
-            else:
-                grid[gy][x] = "floor_%d" % rnd.randrange(4)
-    # 북벽: 윗면 한 줄 위에 정면(벽돌)을 보여주려면 벽이 2타일이 필요하나 방은 1타일 두께.
-    # → 북벽 = 벽돌 정면(walls.top), 나머지 = 윗면. 모서리는 윗면.
-    for x in range(1, GW - 1):
-        grid[OY][x] = "wall"
-    # 문: 북(열림, 복도로), 서(닫힘), 남(잠김)
-    grid[OY][7] = "door_open"
-    grid[OY + 4][0] = "door_closed"
-    grid[OY + IH + 1][6] = "door_locked"
-    # 복도 (북문 위로 3칸, 양옆 벽)
-    for y in range(3):
-        grid[y][7] = "corridor"
-        grid[y][6] = "wall_top"
-        grid[y][8] = "wall_top"
-    # 출구 2x2 (오른쪽 위), 상점 2x2 (그 왼쪽)
-    for dy in range(2):
-        for dx in range(2):
-            grid[OY + 1 + dy][10 + dx] = "exit"
-            grid[OY + 1 + dy][7 + dx] = "shop"
-    props = {(2, OY + 2): "prop_barrel", (3, OY + 2): "prop_barrel", (10, OY + 6): "prop_lantern",
-             (5, OY + 5): "prop_puddle", (8, OY + 7): "prop_bottle", (2, OY + 7): "prop_lantern",
-             (11, OY + 4): "prop_bottle"}
-    W, H = GW * T, GH * T
-    img = Image.new("RGBA", (W, H), (0, 0, 0, 255))
-    for y in range(GH):
-        for x in range(GW):
-            nm = grid[y][x]
-            if nm:
-                img.alpha_composite(tile_img(nm), (x * T, y * T))
-    for (x, y), nm in props.items():
-        img.alpha_composite(tile_img(nm), (x * T, y * T))
-    # 주인공 idle down 1프레임 (아트 파트 산출물) — 발 피벗 (8,23) 을 타일 (5, OY+4) 중앙 아래에
-    pl = Image.open(os.path.join(ROOT, "assets", "sprites", "player", "player_idle.png")).convert("RGBA")
-    f = pl.crop((0, 0, 16, 24))
-    for (tx, ty) in [(5, OY + 4), (9, OY + 5)]:
-        px, py = tx * T, ty * T + T - 1 - 23 + 4
-        # 시스템이 그릴 발밑 그림자 가정: 타원 G00 반투명 대신 G01 로 흉내
-        sh = ImageDraw.Draw(img)
-        sh.ellipse([px + 3, py + 21, px + 12, py + 24], fill=tuple(int(G[1][i:i + 2], 16) for i in (1, 3, 5)) + (255,))
-        img.alpha_composite(f, (px, py))
-    big = img.resize((W * scale, H * scale), Image.NEAREST).convert("RGB")
-    # 1x 도 같이 붙여 '1x 테스트'
-    out = Image.new("RGB", (big.width + W + 24, big.height + 16), (60, 60, 64))
-    out.paste(big, (8, 8))
-    out.paste(img.convert("RGB"), (big.width + 16, 8))
-    out.save(os.path.join(HERE, "preview_room.png"))
-    # 호박 비율 (방 화면 전체 대비)
-    amber = set(tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) for c in (A[3], A[5], A[7], A[9]))
-    n = sum(1 for p in img.getdata() if p[:3] in amber)
-    print("amber px in sample room: %d / %d = %.2f%%" % (n, W * H, 100.0 * n / (W * H)))
-
-
-def stats():
-    used = set()
-    for name, s in TILES:
-        for (r, g, b), _ in s.used_colors().items():
-            used.add("#%02x%02x%02x" % (r, g, b))
-        info = s.stats(print_=False)
-        iso = info["isolated_px"]
-        if iso and name != "void":
-            print("  isolated %-12s %s" % (name, iso))
-        if info["semi_alpha_px"]:
-            print("  SEMI ALPHA %s %d" % (name, info["semi_alpha_px"]))
-    gray = [c for c in used if c in G]
-    amb = [c for c in used if c in A]
-    print("colors used: gray %d (budget 10), accent %d (budget 4), other %d" % (len(gray), len(amb), len(used) - len(gray) - len(amb)))
-    print("  gray:", sorted(G.index(c) for c in gray))
-    print("  accent slots:", sorted(16 + A.index(c) for c in amb))
-
-
-def main():
-    sheet, meta = build_sheet()
-    preview_sheet(sheet)
-    preview_seam()
-    preview_room()
-    stats()
-    print("index table:", {i: n for i, (n, _) in enumerate(TILES)})
-
+TILES = (
+    [("floor_%d" % i, common_floor(i)) for i in range(4)]
+    + [("corridor", corridor_tile()), ("wall", wall_face()), ("wall_top", wall_top()), ("void", void_tile()),
+       ("door_open", door_open()), ("door_closed", door_closed()), ("door_locked", door_locked()),
+       ("exit", exit_stairs()), ("shop", shop_counter()),
+       ("prop_barrel", prop_barrel()), ("prop_bottle", prop_bottle()), ("prop_puddle", prop_puddle()),
+       ("prop_lantern", prop_lantern()), ("prop_ash_pit", prop_ash_pit()), ("prop_bottle_crate", prop_bottle_crate()),
+       ("wall_v1", wall_v1()), ("wall_v2", wall_v2())]
+    + [("start_%d" % i, start_floor(i)) for i in range(2)]
+    + [("trial_%d" % i, trial_floor(i)) for i in range(2)]
+    + [("rest_%d" % i, rest_floor(i)) for i in range(2)]
+    + [("boss_%d" % i, boss_floor(i)) for i in range(2)]
+)
+PROPS = [("barrel", True), ("broken_bottle", False), ("puddle", False), ("lantern", True),
+         ("ash_pit", False), ("bottle_crate", True)]
 
 if __name__ == "__main__":
-    main()
+    tc.run(1, "잔(盞) — 술독 제국 외곽", TILES, PROPS, [19, 21, 23, 25], HERE)

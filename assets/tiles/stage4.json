@@ -5,7 +5,7 @@
  "tileWidth": 16,
  "tileHeight": 16,
  "columns": 8,
- "rows": 3,
+ "rows": 4,
  "indexFormula": "row * columns + column",
  "tiles": {
   "0": [
@@ -18,7 +18,9 @@
    3
   ],
   "2": [
-   5
+   5,
+   19,
+   20
   ],
   "3": [
    8
@@ -50,6 +52,25 @@
   "7": "exit",
   "8": "shop"
  },
+ "roomFloors": {
+  "start": [
+   21,
+   22
+  ],
+  "trial": [
+   23,
+   24
+  ],
+  "rest": [
+   25,
+   26
+  ],
+  "boss": [
+   27,
+   28
+  ]
+ },
+ "roomFloorsNote": "방 종류별 바닥 (37라운드). 키가 없거나 비면 tiles['1']. 복도 근처·기타 방은 tiles['1'].",
  "walls": {
   "top": 5,
   "bottom": 6,
@@ -59,7 +80,12 @@
   "corner_tr": 6,
   "corner_bl": 6,
   "corner_br": 6,
-  "note": "top = 방 위쪽(북) 벽: 정면이 보인다. 나머지 변·모서리는 윗면. 단일 벽만 쓰면 전부 정면이어도 무방."
+  "variants": [
+   5,
+   19,
+   20
+  ],
+  "note": "top = 방 위쪽(북) 벽: 정면이 보인다 (tiles['2'] 의 세 인덱스를 좌표 해시로 섞는다). 나머지 변·모서리는 윗면. 단일 벽만 쓰면 전부 정면이어도 무방."
  },
  "props": [
   {
@@ -81,6 +107,16 @@
    "index": 16,
    "name": "firepit",
    "solid": false
+  },
+  {
+   "index": 17,
+   "name": "powder_keg",
+   "solid": true
+  },
+  {
+   "index": 18,
+   "name": "broken_pike",
+   "solid": false
   }
  ],
  "propsLayer": "overlay — 소품 타일은 배경이 투명하므로 바닥 레이어 위에 겹쳐 그린다",
@@ -101,7 +137,19 @@
   "13": "prop_musket_rack",
   "14": "prop_contracts",
   "15": "prop_flag",
-  "16": "prop_firepit"
+  "16": "prop_firepit",
+  "17": "prop_powder_keg",
+  "18": "prop_broken_pike",
+  "19": "wall_v1",
+  "20": "wall_v2",
+  "21": "start_0",
+  "22": "start_1",
+  "23": "trial_0",
+  "24": "trial_1",
+  "25": "rest_0",
+  "26": "rest_1",
+  "27": "boss_0",
+  "28": "boss_1"
  },
  "palette": "parts/art/palette/lopad.json (gray + floor 4 accent slots 19, 21, 23, 25)"
 }
