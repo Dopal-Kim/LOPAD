@@ -1,0 +1,8 @@
+{
+ "image": "rule.png",
+ "kind": "tile",
+ "width": 1,
+ "height": 4,
+ "usage": "stretch/tile horizontally; row1 ink G00, row2 bleed G10",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
+}

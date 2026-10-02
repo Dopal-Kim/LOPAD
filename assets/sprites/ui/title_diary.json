@@ -1,0 +1,12 @@
+{
+ "image": "title_diary.png",
+ "kind": "image",
+ "width": 160,
+ "height": 96,
+ "pivot": {
+  "x": 80,
+  "y": 48
+ },
+ "accent": "bookmark ribbon 20/21, wine-cup ring 19/20 (runtime swap ok)",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
+}

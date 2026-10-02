@@ -1,0 +1,18 @@
+{
+ "image": "cursor.png",
+ "kind": "strip",
+ "frameWidth": 8,
+ "frameHeight": 8,
+ "frames": 2,
+ "frameDurationsMs": [
+  420,
+  260
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 4,
+  "y": 4
+ },
+ "colors": "ink G01, slit G00, drop 21 (frame 2)",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
+}

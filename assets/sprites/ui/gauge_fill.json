@@ -1,0 +1,9 @@
+{
+ "image": "gauge_fill.png",
+ "kind": "strip",
+ "width": 1,
+ "height": 8,
+ "rows": "23 light1, 22, 21 base x3, 20 x2, 19 shadow1",
+ "usage": "stretch horizontally (NEAREST). Floor-1 amber; system/UI swaps to current floor ramp",
+ "palette": "parts/art/palette/lopad.json (gray G00-G15 + floor-1 accent 16-27; runtime swap/tint)"
+}
