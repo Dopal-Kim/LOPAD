@@ -61,6 +61,15 @@ export interface RangedParams {
   projectileSpeedTiles: number;
   projectileSize: number;
   projectileLifeMs: number;
+  /** 35라운드 2단계: 사격 예고(조준선) 시간·길이(칸). 없으면 예고 없이 발사 */
+  telegraphMs?: number;
+  telegraphTiles?: number;
+  /** 탄 시트 이름 (`fx/<이름>.json`, anchor projectile). 없으면 플레이스홀더 사각형 */
+  sprite?: string;
+  /** 발사 시 총구 화염 시트 이름 (없으면 생략) */
+  muzzle?: string;
+  /** 재장전: shots 발 연속 뒤 reloadMs 동안 사격 없이 뒤로 물러남 (retreatSpeedMult 배 속도) */
+  reload?: { shots: number; reloadMs: number; retreatSpeedMult: number };
 }
 
 export interface ChargeParams {
@@ -71,6 +80,21 @@ export interface ChargeParams {
   cooldownMs: number;
   dashAttack: number;
   idleAttack: number;
+}
+
+/** 35라운드 2단계: 방패 막기 — 정면 frontDeg(전체 각) 안에서 오는 플레이어 공격·화살 피해를 reduction 만큼 줄인다 */
+export interface ShieldParams {
+  frontDeg: number;
+  reduction: number;
+}
+
+/** 35라운드 2단계: 집단 돌격 — 같은 방에 minCount 마리 이상이고 누군가 rangeTiles 안이면 전원 speedMult 배로 durationMs 동안 */
+export interface PackParams {
+  minCount: number;
+  rangeTiles: number;
+  speedMult: number;
+  durationMs: number;
+  cooldownMs: number;
 }
 
 export interface EnemyDef {
@@ -85,6 +109,9 @@ export interface EnemyDef {
   color: string;
   ranged?: RangedParams;
   charge?: ChargeParams;
+  /** 35라운드 2단계 보조 행동 (행동 종류와 무관하게 선택) */
+  shield?: ShieldParams;
+  pack?: PackParams;
   /** 처치 시 얻는 개성 수치 (임시, 11라운드) */
   personalityValue: number;
   /** 처치 시 떨어지는 골드 기준값 (13라운드) */
@@ -105,6 +132,7 @@ export interface BossDashParams {
 }
 
 export interface BossFanParams {
+  /** 부채꼴 쿨타임 (패턴 선택 시 이 간격 안이면 후보에서 빠진다) */
   intervalMs: number;
   count: number;
   spreadDeg: number;
@@ -113,13 +141,55 @@ export interface BossFanParams {
   projectileSize: number;
   projectileLifeMs: number;
   afterDash: boolean;
+  /** 35라운드 2단계: 발사 전 예고(부채꼴 마커) 시간·마커 반지름(칸). 없으면 즉시 */
+  telegraphMs?: number;
+  telegraphTiles?: number;
+  /** 탄 시트 이름 (anchor projectile). 없으면 플레이스홀더 */
+  sprite?: string;
 }
+
+/** 35라운드 2단계: 내리찍기 — 플레이어 위치에 원 예고 telegraphMs 뒤 radiusTiles 반경 피해 */
+export interface BossSlamParams {
+  telegraphMs: number;
+  radiusTiles: number;
+  attack: number;
+  cooldownMs: number;
+}
+
+/** 35라운드 2단계: 소환 — enemy 를 count 마리 양옆에, 같은 적이 max 마리 이상이면 건너뜀 */
+export interface BossSummonParams {
+  enemy: string;
+  count: number;
+  max: number;
+  cooldownMs: number;
+}
+
+/** 35라운드 2단계: 정렬 사격(황제) — 플레이어 방향 일직선으로 count 발, shotGapMs 간격 */
+export interface BossVolleyParams {
+  telegraphMs: number;
+  telegraphTiles: number;
+  count: number;
+  shotGapMs: number;
+  projectileSpeedTiles: number;
+  attack: number;
+  projectileSize: number;
+  projectileLifeMs: number;
+  cooldownMs: number;
+  sprite?: string;
+}
+
+/** 보스 패턴 이름 (phases[].patterns). 패턴별 수치는 보스 정의의 dash(페이즈별)·fan(페이즈별)·slam·summon·volley */
+export type BossPatternName = 'dash' | 'fan' | 'slam' | 'summon' | 'volley';
 
 export interface BossPhase {
   /** 이 페이즈가 시작되는 HP 비율 (1.0 = 처음부터) */
   hpFraction: number;
   dash: BossDashParams;
   fan: BossFanParams | null;
+  /** 이 페이즈에서 고르는 패턴 목록 (시드 RNG). 없으면 ['dash'] (+ fan 이 있으면 'fan') */
+  patterns?: BossPatternName[];
+  /** 패턴 사이 간격 ms (없으면 dash.intervalMs) */
+  patternIntervalMs?: number;
 }
 
 export interface BossDef {
@@ -131,6 +201,10 @@ export interface BossDef {
   contactIntervalMs: number;
   approachSpeedTiles: number;
   phases: BossPhase[];
+  /** 35라운드 2단계 패턴 수치 (페이즈 공통). patterns 에 적혀 있으면 필수 */
+  slam?: BossSlamParams;
+  summon?: BossSummonParams;
+  volley?: BossVolleyParams;
   personalityValue: number;
   gold: number;
 }

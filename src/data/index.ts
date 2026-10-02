@@ -61,9 +61,27 @@ export function validateEnemies(t: EnemyTable): EnemyTable {
     if (!['chase', 'ranged', 'charge'].includes(e.behavior)) {
       throw new Error(`[data] enemies.${id}.behavior 알 수 없음: ${e.behavior}`);
     }
+    // 35라운드 2단계 보조 행동
+    if (e.ranged?.reload) {
+      for (const k of ['shots', 'reloadMs', 'retreatSpeedMult'] as const)
+        assertNumber(e.ranged.reload[k], `enemies.${id}.ranged.reload.${k}`);
+    }
+    if (e.ranged?.telegraphMs !== undefined) assertNumber(e.ranged.telegraphMs, `enemies.${id}.ranged.telegraphMs`);
+    if (e.shield) {
+      assertNumber(e.shield.frontDeg, `enemies.${id}.shield.frontDeg`);
+      assertNumber(e.shield.reduction, `enemies.${id}.shield.reduction`);
+      if (e.shield.reduction < 0 || e.shield.reduction > 1)
+        throw new Error(`[data] enemies.${id}.shield.reduction 는 0..1`);
+    }
+    if (e.pack) {
+      for (const k of ['minCount', 'rangeTiles', 'speedMult', 'durationMs', 'cooldownMs'] as const)
+        assertNumber(e.pack[k], `enemies.${id}.pack.${k}`);
+    }
   }
   return t;
 }
+
+const BOSS_PATTERNS = new Set(['dash', 'fan', 'slam', 'summon', 'volley']);
 
 export function validateBosses(t: BossTable): BossTable {
   for (const [id, b] of Object.entries(t)) {
@@ -81,15 +99,40 @@ export function validateBosses(t: BossTable): BossTable {
       for (const [k, v] of Object.entries(ph.dash)) assertNumber(v, `bosses.${id}.phases[${i}].dash.${k}`);
       if (ph.fan) {
         for (const [k, v] of Object.entries(ph.fan)) {
-          if (k !== 'afterDash') assertNumber(v, `bosses.${id}.phases[${i}].fan.${k}`);
+          if (k !== 'afterDash' && k !== 'sprite') assertNumber(v, `bosses.${id}.phases[${i}].fan.${k}`);
         }
       }
+      // 35라운드 2단계: 패턴 목록은 알려진 이름이어야 하고, 쓰는 패턴의 수치가 있어야 한다
+      if (ph.patterns) {
+        if (!Array.isArray(ph.patterns) || ph.patterns.length === 0)
+          throw new Error(`[data] bosses.${id}.phases[${i}].patterns 비어 있음`);
+        for (const name of ph.patterns) {
+          if (!BOSS_PATTERNS.has(name))
+            throw new Error(`[data] bosses.${id}.phases[${i}].patterns 알 수 없음: ${name}`);
+          if (name === 'fan' && !ph.fan) throw new Error(`[data] bosses.${id}.phases[${i}]: fan 패턴인데 fan 없음`);
+          if (name !== 'dash' && name !== 'fan' && !b[name])
+            throw new Error(`[data] bosses.${id}: ${name} 패턴인데 ${name} 수치 없음`);
+        }
+      }
+      if (ph.patternIntervalMs !== undefined)
+        assertNumber(ph.patternIntervalMs, `bosses.${id}.phases[${i}].patternIntervalMs`);
     });
+    if (b.slam) for (const [k, v] of Object.entries(b.slam)) assertNumber(v, `bosses.${id}.slam.${k}`);
+    if (b.summon) {
+      if (typeof b.summon.enemy !== 'string') throw new Error(`[data] bosses.${id}.summon.enemy 없음`);
+      for (const k of ['count', 'max', 'cooldownMs'] as const) assertNumber(b.summon[k], `bosses.${id}.summon.${k}`);
+    }
+    if (b.volley) {
+      for (const [k, v] of Object.entries(b.volley)) if (k !== 'sprite') assertNumber(v, `bosses.${id}.volley.${k}`);
+    }
   }
   return t;
 }
 
 export function validateStages(t: StageTable, enemies: EnemyTable, bosses: BossTable): StageTable {
+  for (const [, b] of Object.entries(bosses)) {
+    if (b.summon && !enemies[b.summon.enemy]) throw new Error(`[data] bosses: 소환 적 정의 없음 ${b.summon.enemy}`);
+  }
   for (const [id, s] of Object.entries(t)) {
     if (!bosses[s.boss]) throw new Error(`[data] stages.${id}.boss 정의 없음: ${s.boss}`);
     assertNumber(s.enemyScale?.hp, `stages.${id}.enemyScale.hp`);

@@ -17,7 +17,8 @@
           "attack": 25,
           "wallStunMs": 1000
         },
-        "fan": null
+        "fan": null,
+        "patterns": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
@@ -37,13 +38,29 @@
           "attack": 10,
           "projectileSize": 6,
           "projectileLifeMs": 3500,
-          "afterDash": true
-        }
+          "afterDash": true,
+          "telegraphMs": 400,
+          "telegraphTiles": 5,
+          "sprite": "boss_fan_shot"
+        },
+        "patterns": ["dash", "fan", "slam", "summon"]
       }
     ],
     "contactIntervalMs": 800,
     "personalityValue": 50,
-    "gold": 50
+    "gold": 50,
+    "summon": {
+      "enemy": "dummy",
+      "count": 2,
+      "max": 4,
+      "cooldownMs": 15000
+    },
+    "slam": {
+      "telegraphMs": 800,
+      "radiusTiles": 2.5,
+      "attack": 25,
+      "cooldownMs": 4000
+    }
   },
   "stage2": {
     "name": "판돈 백작",
@@ -63,7 +80,8 @@
           "attack": 28,
           "wallStunMs": 1000
         },
-        "fan": null
+        "fan": null,
+        "patterns": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
@@ -83,13 +101,29 @@
           "attack": 11,
           "projectileSize": 6,
           "projectileLifeMs": 3500,
-          "afterDash": true
-        }
+          "afterDash": true,
+          "telegraphMs": 400,
+          "telegraphTiles": 5,
+          "sprite": "boss_fan_shot"
+        },
+        "patterns": ["dash", "fan", "slam", "summon"]
       }
     ],
     "contactIntervalMs": 800,
     "personalityValue": 55,
-    "gold": 60
+    "gold": 60,
+    "summon": {
+      "enemy": "dummy",
+      "count": 2,
+      "max": 4,
+      "cooldownMs": 15000
+    },
+    "slam": {
+      "telegraphMs": 800,
+      "radiusTiles": 2.5,
+      "attack": 28,
+      "cooldownMs": 4000
+    }
   },
   "stage3": {
     "name": "군의관 총재",
@@ -109,7 +143,8 @@
           "attack": 30,
           "wallStunMs": 1000
         },
-        "fan": null
+        "fan": null,
+        "patterns": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
@@ -129,13 +164,29 @@
           "attack": 12,
           "projectileSize": 6,
           "projectileLifeMs": 3500,
-          "afterDash": true
-        }
+          "afterDash": true,
+          "telegraphMs": 400,
+          "telegraphTiles": 5,
+          "sprite": "boss_fan_shot"
+        },
+        "patterns": ["dash", "fan", "slam", "summon"]
       }
     ],
     "contactIntervalMs": 800,
     "personalityValue": 60,
-    "gold": 70
+    "gold": 70,
+    "summon": {
+      "enemy": "dummy",
+      "count": 2,
+      "max": 4,
+      "cooldownMs": 15000
+    },
+    "slam": {
+      "telegraphMs": 800,
+      "radiusTiles": 2.5,
+      "attack": 30,
+      "cooldownMs": 4000
+    }
   },
   "stage4": {
     "name": "용병왕",
@@ -155,7 +206,8 @@
           "attack": 33,
           "wallStunMs": 1000
         },
-        "fan": null
+        "fan": null,
+        "patterns": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
@@ -175,13 +227,29 @@
           "attack": 13,
           "projectileSize": 6,
           "projectileLifeMs": 3500,
-          "afterDash": true
-        }
+          "afterDash": true,
+          "telegraphMs": 400,
+          "telegraphTiles": 5,
+          "sprite": "boss_fan_shot"
+        },
+        "patterns": ["dash", "fan", "slam", "summon"]
       }
     ],
     "contactIntervalMs": 800,
     "personalityValue": 65,
-    "gold": 80
+    "gold": 80,
+    "summon": {
+      "enemy": "dummy",
+      "count": 2,
+      "max": 4,
+      "cooldownMs": 15000
+    },
+    "slam": {
+      "telegraphMs": 800,
+      "radiusTiles": 2.5,
+      "attack": 33,
+      "cooldownMs": 4000
+    }
   },
   "stage5": {
     "name": "감찰 총장",
@@ -201,7 +269,8 @@
           "attack": 35,
           "wallStunMs": 1000
         },
-        "fan": null
+        "fan": null,
+        "patterns": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
@@ -221,13 +290,29 @@
           "attack": 14,
           "projectileSize": 6,
           "projectileLifeMs": 3500,
-          "afterDash": true
-        }
+          "afterDash": true,
+          "telegraphMs": 400,
+          "telegraphTiles": 5,
+          "sprite": "boss_fan_shot"
+        },
+        "patterns": ["dash", "fan", "slam", "summon"]
       }
     ],
     "contactIntervalMs": 800,
     "personalityValue": 70,
-    "gold": 90
+    "gold": 90,
+    "summon": {
+      "enemy": "dummy",
+      "count": 2,
+      "max": 4,
+      "cooldownMs": 15000
+    },
+    "slam": {
+      "telegraphMs": 800,
+      "radiusTiles": 2.5,
+      "attack": 35,
+      "cooldownMs": 4000
+    }
   },
   "stage6": {
     "name": "연회 후작",
@@ -247,7 +332,8 @@
           "attack": 38,
           "wallStunMs": 1000
         },
-        "fan": null
+        "fan": null,
+        "patterns": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
@@ -267,13 +353,29 @@
           "attack": 15,
           "projectileSize": 6,
           "projectileLifeMs": 3500,
-          "afterDash": true
-        }
+          "afterDash": true,
+          "telegraphMs": 400,
+          "telegraphTiles": 5,
+          "sprite": "boss_fan_shot"
+        },
+        "patterns": ["dash", "fan", "slam", "summon"]
       }
     ],
     "contactIntervalMs": 800,
     "personalityValue": 75,
-    "gold": 100
+    "gold": 100,
+    "summon": {
+      "enemy": "dummy",
+      "count": 2,
+      "max": 4,
+      "cooldownMs": 15000
+    },
+    "slam": {
+      "telegraphMs": 800,
+      "radiusTiles": 2.5,
+      "attack": 38,
+      "cooldownMs": 4000
+    }
   },
   "stage7": {
     "name": "근위 총사령",
@@ -293,7 +395,8 @@
           "attack": 38,
           "wallStunMs": 1000
         },
-        "fan": null
+        "fan": null,
+        "patterns": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
@@ -313,13 +416,29 @@
           "attack": 15,
           "projectileSize": 6,
           "projectileLifeMs": 3500,
-          "afterDash": true
-        }
+          "afterDash": true,
+          "telegraphMs": 400,
+          "telegraphTiles": 5,
+          "sprite": "boss_fan_shot"
+        },
+        "patterns": ["dash", "fan", "slam", "summon"]
       }
     ],
     "contactIntervalMs": 800,
     "personalityValue": 80,
-    "gold": 120
+    "gold": 120,
+    "summon": {
+      "enemy": "dummy",
+      "count": 2,
+      "max": 4,
+      "cooldownMs": 15000
+    },
+    "slam": {
+      "telegraphMs": 800,
+      "radiusTiles": 2.5,
+      "attack": 38,
+      "cooldownMs": 4000
+    }
   },
   "emperor": {
     "name": "황제 '평(平)'",
@@ -341,7 +460,8 @@
           "attack": 40,
           "wallStunMs": 900
         },
-        "fan": null
+        "fan": null,
+        "patterns": ["dash", "slam"]
       },
       {
         "hpFraction": 0.7,
@@ -361,8 +481,12 @@
           "attack": 14,
           "projectileSize": 6,
           "projectileLifeMs": 3500,
-          "afterDash": true
-        }
+          "afterDash": true,
+          "telegraphMs": 400,
+          "telegraphTiles": 5,
+          "sprite": "boss_fan_shot"
+        },
+        "patterns": ["dash", "fan", "slam", "volley"]
       },
       {
         "hpFraction": 0.35,
@@ -383,10 +507,32 @@
           "attack": 14,
           "projectileSize": 6,
           "projectileLifeMs": 3500,
-          "afterDash": true
-        }
+          "afterDash": true,
+          "telegraphMs": 400,
+          "telegraphTiles": 5,
+          "sprite": "boss_fan_shot"
+        },
+        "patterns": ["dash", "fan", "slam", "volley"]
       }
     ],
-    "gold": 120
+    "gold": 120,
+    "volley": {
+      "telegraphMs": 500,
+      "telegraphTiles": 12,
+      "count": 5,
+      "shotGapMs": 120,
+      "projectileSpeedTiles": 9,
+      "attack": 14,
+      "projectileSize": 6,
+      "projectileLifeMs": 3500,
+      "cooldownMs": 5000,
+      "sprite": "boss_fan_shot"
+    },
+    "slam": {
+      "telegraphMs": 800,
+      "radiusTiles": 2.5,
+      "attack": 40,
+      "cooldownMs": 4000
+    }
   }
 }

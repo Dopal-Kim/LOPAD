@@ -27,7 +27,7 @@ import {
 import { gameState, type EndingChoice } from '../core/GameState';
 import { BOSSES, ECONOMY, PLAYER_DATA, STORY, WEAPON_RULES } from '../data';
 import { deathLine, evolutionLine, fill, floorText } from '../systems/story';
-import type { Mob, ProjectileSpec } from '../objects/Mob';
+import type { Mob, MobContext, ProjectileSpec } from '../objects/Mob';
 import { Player } from '../objects/Player';
 import { Projectile } from '../objects/Projectile';
 import { Pickup } from '../objects/Pickup';
@@ -54,6 +54,10 @@ import { FxPool, type FxHandle } from '../systems/fx';
 import { HitStop, Shake, feelSettings, setFeel } from '../systems/feel';
 import { DamageNumberPool } from '../systems/damageNumbers';
 import { HitFx } from '../systems/hitFx';
+import { TelegraphFx } from '../systems/telegraph';
+import { PackCharge } from '../systems/packCharge';
+import type { Enemy } from '../objects/Enemy';
+import type { Boss } from '../objects/Boss';
 import { fontStatus } from '../systems/fonts';
 import { audio } from '../systems/audio';
 import { exposeDebug } from '../debug';
@@ -102,6 +106,11 @@ export class Game extends Phaser.Scene {
   private hitStopped = false;
   private numbers: DamageNumberPool;
   private hitFx: HitFx;
+  /** 적·보스 공격 양상 (35라운드 2단계): 예고 마커·집단 돌격 공유 상태 */
+  private telegraph: TelegraphFx;
+  private readonly pack = new PackCharge();
+  /** 디버그: 최근 보스 내리찍기 */
+  private debugLastSlam: unknown = null;
   /** 잔월: 남아 있는 베기 궤적 (지속 피해 영역) */
   private dotZones: {
     x: number;
@@ -167,6 +176,9 @@ export class Game extends Phaser.Scene {
     this.numbers.setFloor(floor);
     this.hitFx = new HitFx(this, this.fx);
     this.hitFx.setFloor(floor);
+    this.telegraph = new TelegraphFx(this);
+    this.pack.reset();
+    this.debugLastSlam = null;
     this.hitStop.reset();
     this.shake.reset();
     this.hitStopped = false;
@@ -360,6 +372,59 @@ export class Game extends Phaser.Scene {
       }),
       setFeel: (patch) => setFeel(patch),
       shoved: () => (this.mobs.getChildren() as Mob[]).filter((m) => m.isShoved).length,
+      telegraph: () => ({
+        markers: this.telegraph.summary(),
+        sheets: {
+          line: this.telegraph.has('line'),
+          circle: this.telegraph.has('circle'),
+          cone: this.telegraph.has('cone'),
+        },
+      }),
+      projectiles: () =>
+        (this.projectiles.getChildren() as Projectile[])
+          .filter((p) => p.active)
+          .map((p) => ({
+            x: p.x,
+            y: p.y,
+            vx: p.body.velocity.x,
+            vy: p.body.velocity.y,
+            attack: p.attack,
+            texture: p.texture.key,
+            frame: p.frame.name,
+            anim: p.anims.currentAnim?.key ?? null,
+            rotation: p.rotation,
+            reflected: p.reflected,
+          })),
+      behavior: () =>
+        (this.mobs.getChildren() as Mob[])
+          .filter((m) => m.active)
+          .map((m) => {
+            const e = m as unknown as Partial<Enemy> & Partial<Boss>;
+            return {
+              id: m.spriteId,
+              state: e.behaviorState ?? e.patternState ?? '?',
+              shots: e.shotsSinceReload ?? null,
+              pattern: e.pattern ?? null,
+              patternLog: e.patternLog ? [...e.patternLog] : null,
+              summoned: e.summoned ?? null,
+              phase: e.phase ? gameState.bossPhase : null,
+              vx: m.body.velocity.x,
+              vy: m.body.velocity.y,
+              x: m.x,
+              y: m.y,
+            };
+          }),
+      lastSlam: () => this.debugLastSlam,
+      spawnEnemy: (id, x, y) => this.director.spawnExtra(id, x, y),
+      setBossHp: (hp) => {
+        for (const m of this.mobs.getChildren() as Mob[]) {
+          if (m.isBoss && m.active) {
+            m.takeDamage(Math.max(0, m.hp - hp));
+            return true;
+          }
+        }
+        return false;
+      },
     });
 
     EventBus.on(Events.PLAYER_ATTACKED, this.onPlayerAttacked, this);
@@ -427,8 +492,20 @@ export class Game extends Phaser.Scene {
     }
 
     this.playerVec.set(this.player.x, this.player.y);
-    const ctx = { time, delta, player: this.playerVec, fire: this.fire };
-    for (const child of this.mobs.getChildren()) (child as Mob).update(ctx);
+    const ctx = {
+      time,
+      delta,
+      player: this.playerVec,
+      fire: this.fire,
+      telegraph: this.telegraph,
+      playFx: this.playMobFx,
+      countMobs: this.countMobs,
+      areaHit: this.areaHit,
+      summon: this.summon,
+      pack: this.pack,
+    };
+    for (const child of [...this.mobs.getChildren()]) (child as Mob).update(ctx);
+    this.telegraph.update(time);
     for (const child of this.projectiles.getChildren()) (child as Projectile).tick(time);
     for (const child of this.pickups.getChildren()) (child as Pickup).tick(time);
     for (const child of this.playerShots.getChildren()) (child as Projectile).tick(time);
@@ -454,8 +531,55 @@ export class Game extends Phaser.Scene {
   private fire = (x: number, y: number, dirX: number, dirY: number, spec: ProjectileSpec): void => {
     const p = this.projectiles.get() as Projectile | null;
     if (!p) return;
-    p.launch(x, y, dirX, dirY, spec, this.time.now);
+    // 탄 시트 (35라운드 2단계, 계약 §3.1 projectile 앵커): 회전·원점·루프 애니는 시트 JSON 을 따른다
+    const def = spec.sprite ? spriteLibrary.sheet(spec.sprite, FX_ACTION) : undefined;
+    const texture = spec.sprite ? spriteLibrary.textureKey(spec.sprite, FX_ACTION) : null;
+    const visual = def
+      ? {
+          texture,
+          rotate: Boolean(def.rotate),
+          originX: def.pivot.x / def.frameWidth,
+          originY: def.pivot.y / def.frameHeight,
+          anim: def.loop && def.frames > 1 ? spriteLibrary.animKey(spec.sprite!, FX_ACTION, 'down') : null,
+        }
+      : {};
+    p.launch(x, y, dirX, dirY, spec, this.time.now, 'enemy', 0, visual);
   };
+
+  /** 적이 요청하는 시트 이펙트 1회 (총구 화염). 시트가 없으면 무시 */
+  private playMobFx = (id: string, x: number, y: number, opts: Parameters<MobContext['playFx']>[3]): void => {
+    if (!this.fx.has(id)) return;
+    this.fx.play(id, x, y, opts);
+  };
+
+  /** 같은 id 의 살아 있는 적 수 (집단 돌격 머릿수·소환 상한) */
+  private countMobs = (id: string): number => {
+    let n = 0;
+    for (const child of this.mobs.getChildren()) {
+      const m = child as Mob;
+      if (m.active && m.spriteId === id) n++;
+    }
+    return n;
+  };
+
+  /**
+   * 보스 내리찍기 범위 피해: 충격파 연출(crush 시트 재사용, 없으면 링) + 흔들림 + 반경 안 플레이어 피해
+   */
+  private areaHit = (x: number, y: number, radiusPx: number, attack: number): void => {
+    if (this.fx.has('crush')) this.fx.play('crush', x, y, { depth: DEPTH.FX_GROUND });
+    else this.drawShockwave(x, y, radiusPx);
+    this.shake.add(this.time.now, FEEL.SHAKE.BOSS_WALL.PX, FEEL.SHAKE.BOSS_WALL.MS);
+    const c = this.player.body.center;
+    const d = Phaser.Math.Distance.Between(x, y, c.x, c.y);
+    const hit = d <= radiusPx + this.player.body.halfWidth;
+    this.debugLastSlam = { x, y, radiusPx, attack, hit, time: this.time.now };
+    if (!hit) return;
+    const source = d > 0 ? { dirX: (c.x - x) / d, dirY: (c.y - y) / d } : undefined;
+    this.player.takeHit(attack, this.time.now, source);
+  };
+
+  /** 보스 소환 → 방 상태 머신이 적을 추가하고 처치 대기 목록에 넣는다 */
+  private summon = (enemyId: string, x: number, y: number): boolean => this.director.spawnExtra(enemyId, x, y);
 
   private onPlayerAttacked(p: PlayerAttackPayload): void {
     this.debugLastAttack = { ...p, time: this.time.now };
@@ -1047,6 +1171,8 @@ export class Game extends Phaser.Scene {
     this.player.setAnimPaused(on);
     for (const m of this.mobs.getChildren() as Mob[]) m.setAnimPaused(on);
     this.fx.setPaused(on);
+    this.telegraph.setPaused(on);
+    for (const p of this.projectiles.getChildren() as Projectile[]) if (p.active) p.setAnimPaused(on);
   }
 
   private syncPhysicsPause(): void {
@@ -1064,9 +1190,10 @@ export class Game extends Phaser.Scene {
    */
   private hitMob(
     mob: Mob,
-    dmg: number,
+    dmgIn: number,
     opts: { crit: boolean; dirX: number; dirY: number; tick?: boolean; knock?: boolean },
   ): boolean {
+    let dmg = dmgIn;
     const body = mob.body;
     const c = body.center;
     const hw = body.halfWidth;
@@ -1080,13 +1207,22 @@ export class Game extends Phaser.Scene {
     const backX = c.x + nx * hw * 0.5;
     const backY = c.y + ny * hh * 0.5;
     const isBoss = mob.isBoss;
+    const now = this.time.now;
+    // 방패 막기(35라운드 2단계): 정면에서 온 공격은 피해 감소, 섬광만, 넉백·피 없음. 틱 피해는 막지 않는다
+    const block = opts.tick ? 0 : mob.guardReduction(nx, ny, now);
+    if (block > 0) dmg = Math.max(1, Math.round(dmg * (1 - block)));
     const died = mob.takeDamage(dmg, { crit: opts.crit, tick: opts.tick });
     if (opts.tick) {
       this.numbers.show(hitX, hitY, dmg, 'tick');
       return died;
     }
-    const now = this.time.now;
     this.numbers.show(hitX, hitY, dmg, opts.crit ? 'crit' : 'hit');
+    if (block > 0) {
+      this.hitFx.spark(hitX, hitY, nx, ny);
+      this.hitStop.request(now, FEEL.HITSTOP.HIT_MS);
+      this.shake.add(now, FEEL.SHAKE.HIT.PX, FEEL.SHAKE.HIT.MS);
+      return died;
+    }
     this.hitFx.impact(hitX, hitY, nx, ny, opts.crit);
     this.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
     const H = FEEL.HITSTOP;
@@ -1603,6 +1739,7 @@ export class Game extends Phaser.Scene {
     // 엔딩 선택 뒤 정지 상태로 씬이 끝나면 물리 플러그인이 먼저 정리돼 world 가 없을 수 있다
     if ((this.frozen || this.hitStopped) && this.physics.world) this.physics.world.resume();
     this.numbers.destroy();
+    this.telegraph.destroy();
     this.fx.destroy();
     audio.stopAllLoops();
     setMenuSelect(null);

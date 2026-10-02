@@ -3,7 +3,7 @@ import { DEPTH, TILE } from '../core/Constants';
 import { Rng } from '../systems/rng';
 import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } from '../systems/mapgen';
 import { CELL_H, CELL_W } from '../systems/mapgen/types';
-import { TileSkin, isOpenId, planProps } from './tileskin';
+import { TileSkin, isOpenId, planProps, roomTypeMap } from './tileskin';
 
 export type DoorState = 'open' | 'closed' | 'locked';
 
@@ -29,7 +29,11 @@ export class TileWorld {
     propSeed: number | string = layout.seed,
   ) {
     const isOpen = (x: number, y: number) => isOpenId(layout.tiles[y]?.[x]);
-    const data = layout.tiles.map((row, y) => row.map((id, x) => skin.indexFor(id, x, y, isOpen)));
+    // 방 종류별 바닥(37라운드): 방 내부 바닥은 roomFloors[type], 복도·그 외는 tiles["1"]
+    const roomTypes = skin.roomFloors.size > 0 ? roomTypeMap(layout) : null;
+    const data = layout.tiles.map((row, y) =>
+      row.map((id, x) => skin.indexFor(id, x, y, isOpen, roomTypes?.get(`${x},${y}`))),
+    );
     this.map = scene.make.tilemap({ data, tileWidth: TILE, tileHeight: TILE });
     const tileset = this.map.addTilesetImage(skin.textureKey, skin.textureKey, TILE, TILE, 0, 0)!;
     this.layer = this.map.createLayer(0, tileset, 0, 0)!;

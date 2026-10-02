@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
 import { COLORS, PROTOTYPE } from '../core/Constants';
 import { EventBus, Events, type EnemyAttackPayload, type EnemyDamagedPayload } from '../core/EventBus';
-import { facingOf } from '../systems/spriteDefs';
+import { facingOf, type Facing } from '../systems/spriteDefs';
 import { knockFactor, knockSpeed } from '../systems/feel';
+import type { PackCharge } from '../systems/packCharge';
+import type { TelegraphFx } from '../systems/telegraph';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
 
 type Body = Phaser.Physics.Arcade.Body;
@@ -14,6 +16,18 @@ export interface MobContext {
   player: { x: number; y: number };
   /** 투사체 발사 (월드 좌표, 방향 단위벡터) */
   fire: (x: number, y: number, dirX: number, dirY: number, spec: ProjectileSpec) => void;
+  /** 공격 예고 마커 (35라운드 2단계) */
+  telegraph: TelegraphFx;
+  /** 시트 이펙트 1회 재생 (총구 화염 등). 시트가 없으면 무시 */
+  playFx: (id: string, x: number, y: number, opts: { dir?: Facing; depth?: number; angle?: number }) => void;
+  /** 같은 id 의 살아 있는 적 수 (집단 돌격 머릿수·소환 상한) */
+  countMobs: (id: string) => number;
+  /** 범위 피해 + 충격파 연출 (보스 내리찍기): 중심·반경 안의 플레이어에게 attack */
+  areaHit: (x: number, y: number, radiusPx: number, attack: number) => void;
+  /** 소환: 현재 방에 적을 추가한다 (방 상태 머신이 처치 대기 목록에 넣는다). 못 놓으면 false */
+  summon: (enemyId: string, x: number, y: number) => boolean;
+  /** 집단 돌격 공유 상태 */
+  pack: PackCharge;
 }
 
 export interface ProjectileSpec {
@@ -21,6 +35,8 @@ export interface ProjectileSpec {
   attack: number;
   size: number;
   lifeMs: number;
+  /** 탄 시트 이름 (`fx/<이름>.json`, anchor projectile). 없으면 플레이스홀더 사각형 */
+  sprite?: string;
 }
 
 /** 피해의 성격: 치명 여부, 지속 피해 틱(출혈·잔월)인지 — 효과음 분기용 */
@@ -155,6 +171,22 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   /** 피격 넉백 중인지 (디버그) */
   get isShoved(): boolean {
     return this.shoveState !== null;
+  }
+
+  /** 바라보는 쪽(마지막으로 본 플레이어) 방향 단위벡터. 0 벡터면 (1, 0) */
+  protected facingVector(): { x: number; y: number } {
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
+    const len = Math.hypot(dx, dy);
+    return len > 0 ? { x: dx / len, y: dy / len } : { x: 1, y: 0 };
+  }
+
+  /**
+   * 방패 막기(35라운드 2단계): `dirX, dirY` 방향으로 들어오는 공격의 피해 감소 비율(0 = 안 막음).
+   * 기본은 안 막음. 결사병이 정면 범위를 판정한다
+   */
+  guardReduction(_dirX: number, _dirY: number, _time: number): number {
+    return 0;
   }
 
   /**

@@ -12,6 +12,11 @@ export interface ProjectileVisual {
   texture?: string | null;
   /** 진행 각도로 회전 (우향으로 그려진 시트, 계약 §3.1 `rotate`) */
   rotate?: boolean;
+  /** 원점 (시트 pivot ÷ 프레임 크기). 없으면 중심 */
+  originX?: number;
+  originY?: number;
+  /** 루프 애니 키 (보스 부채꼴 탄 2프레임 맥동). 없으면 0번 프레임 고정 */
+  anim?: string | null;
 }
 
 /** 투사체. 벽에 닿거나 수명이 끝나면 비활성화되어 풀로 돌아간다. */
@@ -67,8 +72,12 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     const texture = visual.texture && this.scene.textures.exists(visual.texture) ? visual.texture : null;
     this.textured = texture !== null;
     this.rotateToVelocity = this.textured && Boolean(visual.rotate);
+    this.anims.stop();
     if (texture) {
-      this.setTexture(texture, 0).setOrigin(0.5, 0.5).clearTint();
+      this.setTexture(texture, 0)
+        .setOrigin(visual.originX ?? 0.5, visual.originY ?? 0.5)
+        .clearTint();
+      if (visual.anim && this.scene.anims.exists(visual.anim)) this.play(visual.anim, true);
     } else {
       this.setTexture(placeholderTexture(this.scene, spec.size, spec.size)).setOrigin(0.5, 0.5);
       this.setTint(owner === 'player' ? COLORS.PLAYER_SHOT : COLORS.PROJECTILE);
@@ -124,8 +133,16 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     }
   }
 
+  /** 히트스톱: 루프 애니 정지·재개 */
+  setAnimPaused(on: boolean): void {
+    if (!this.anims.currentAnim) return;
+    if (on) this.anims.pause();
+    else this.anims.resume();
+  }
+
   deactivate(): void {
     this.setActive(false).setVisible(false);
+    this.anims.stop();
     this.body.enable = false;
     this.body.setVelocity(0, 0);
   }

@@ -30,10 +30,12 @@ export const Events = {
   WEAPON_REINFORCED: 'weapon:reinforced',
   ENEMY_DAMAGED: 'enemy:damaged',
   ENEMY_DIED: 'enemy:died',
-  /** 결사병 돌진 예고 */
+  /** 적 공격 예고 (dash = 결사병 돌진, shot = 사수 조준 — 35라운드 2단계) */
   ENEMY_TELEGRAPH: 'enemy:telegraph',
   /** 적 공격 실행 (contact / dash / shot) */
   ENEMY_ATTACK: 'enemy:attack',
+  /** 적 보조 행동 (35라운드 2단계): 사수 재장전 시작 / 결사병 방패 막기 / 징집병 집단 돌격 시작 */
+  ENEMY_BEHAVIOR: 'enemy:behavior',
   ROOM_ENTERED: 'room:entered',
   TRIAL_STARTED: 'trial:started',
   TRIAL_WAVE: 'trial:wave',
@@ -42,9 +44,9 @@ export const Events = {
   BOSS_STARTED: 'boss:started',
   BOSS_PHASE: 'boss:phase',
   BOSS_DIED: 'boss:died',
-  /** 보스 돌진 예고 */
+  /** 보스 공격 예고 (dash / fan / slam / volley — 35라운드 2단계) */
   BOSS_TELEGRAPH: 'boss:telegraph',
-  /** 보스 공격 실행 (dash / fan) */
+  /** 보스 공격 실행 (dash / fan / slam / summon / volley) */
   BOSS_ATTACK: 'boss:attack',
   /** 보스 돌진이 벽에 부딪혀 경직 (화면 흔들림·음향 훅, 35라운드) */
   BOSS_WALL_HIT: 'boss:wall-hit',
@@ -96,9 +98,13 @@ export type PlayerSecondaryPayload = {
 };
 export type EnemyDamagedPayload = { id: string; amount: number; crit: boolean; died: boolean; tick: boolean };
 export type EnemyAttackPayload = { id: string; kind: 'contact' | 'dash' | 'shot' };
-export type EnemyTelegraphPayload = { id: string; kind: 'dash' };
-export type BossAttackPayload = { id: string; attack: 'dash' | 'fan' };
-export type BossTelegraphPayload = { id: string; attack: 'dash' };
+export type EnemyTelegraphPayload = { id: string; kind: 'dash' | 'shot' };
+/** 35라운드 2단계: reload = 사수 재장전 시작, block = 결사병 방패로 막음, pack = 징집병 집단 돌격 시작 */
+export type EnemyBehaviorPayload = { id: string; kind: 'reload' | 'block' | 'pack' };
+/** 보스 패턴 이름 (data/bosses.json phases[].patterns). 음향 매핑은 dash·fan 만 기존 유지 */
+export type BossPattern = 'dash' | 'fan' | 'slam' | 'summon' | 'volley';
+export type BossAttackPayload = { id: string; attack: BossPattern };
+export type BossTelegraphPayload = { id: string; attack: Exclude<BossPattern, 'summon'> };
 export type BossWallHitPayload = { id: string; x: number; y: number };
 export type MenuEventPayload = { id: string; reopen?: boolean; key?: string; selected?: boolean };
 export type RunEndedPayload = { cleared: boolean };

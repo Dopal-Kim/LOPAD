@@ -260,7 +260,7 @@ export const FEEL = {
     /** 적중점 위 시작 오프셋 · 겹침 방지 가로 흔들림 */
     OFFSET_Y: -10,
     JITTER_X: 4,
-    CRIT_SCALE: 1.5,
+    CRIT_SCALE: 2,
     TICK_SCALE: 0.8,
     FONT_PX: 11,
     FONT_FAMILY: 'Galmuri11',
@@ -292,6 +292,32 @@ export const FEEL = {
   FX_IDS: { SPARK: 'hit_spark', BLOOD: 'blood', CRIT: 'crit_burst', DUST: 'knock_dust', PLAYER_HIT: 'player_hit' },
   /** 피 시트 마지막 프레임(바닥 얼룩) 유지 시간 (아트 권장 300~800ms) 후 페이드 */
   BLOOD_STAIN_MS: 500,
+};
+
+/**
+ * 적·보스 공격 양상 (35라운드 2단계 임시값, 결정 로그 round-35 "시스템 반영 기록 2단계").
+ * 수치(예고 시간·사거리·재장전 등)는 data/enemies.json·bosses.json, 여기는 연출·시트 이름만.
+ */
+export const ENEMY_FX = {
+  /** 예고 마커 시트 (계약 §3, anchor hitbox_center). 없으면 Graphics 점선/원 플레이스홀더 */
+  TELEGRAPH_IDS: { LINE: 'telegraph_line', CIRCLE: 'telegraph_circle', CONE: 'telegraph_cone' },
+  /** 적 탄·보스 탄·총구 화염 시트 */
+  BULLET: 'enemy_bullet',
+  FAN_SHOT: 'boss_fan_shot',
+  MUZZLE: 'muzzle_flash',
+  /** telegraph_circle·cone 시트의 기준 반지름(px): 실제 범위 R 이면 scale = R / 15 (아트 JSON pivotNote) */
+  MARKER_BASE_RADIUS: 15,
+  /** 원 마커로 대신 그리는 부채꼴 각도 하한 (cone 시트 반각 32° 를 크게 넘는 광각 부채꼴) */
+  CONE_MAX_SPREAD_DEG: 120,
+  /** 플레이스홀더 마커: 깜빡 주기·선 두께·점선 간격·색(G13 / 층 램프는 안 씀) */
+  PLACEHOLDER: { BLINK_MS: 120, LINE_WIDTH: 2, DASH_PX: 6, GAP_PX: 4, COLOR: 0xd8d9db, ALPHA: 0.85 },
+  /** 총구 화염 위치: 사수 바디 중심에서 바라보는 방향으로 전방·위 (아트 JSON pivotNote ±8px, -2px) */
+  MUZZLE_FORWARD_PX: 8,
+  MUZZLE_UP_PX: 2,
+  /** 내리찍기 충격파 플레이스홀더(crush 시트가 없을 때) 링 지속 */
+  SLAM_RING_MS: 260,
+  /** 소환 위치: 보스 바디 반폭 + 이 거리(px) 양옆 */
+  SUMMON_GAP_PX: 12,
 };
 
 export const DEBUG = {

@@ -6,13 +6,20 @@
  */
 import { ASSETS, TEXTURES } from '../core/Constants';
 import { TileId, type FloorLayout, type Room } from '../systems/mapgen';
+import type { RoomType } from '../systems/mapgen/types';
 import { Rng, hashSeed } from '../systems/rng';
 
 export interface PropDef {
   index: number;
   name: string;
   solid: boolean;
+  /** 40라운드: 방당 최대 개수 (없으면 제한 없음) */
+  maxPerRoom?: number;
+  /** 40라운드: 배치 가중치 (기본 1, 0 이면 놓지 않음) */
+  weight?: number;
 }
+
+export const ROOM_TYPES: readonly RoomType[] = ['start', 'trial', 'rest', 'boss'];
 
 export type WallKey = 'top' | 'bottom' | 'left' | 'right' | 'corner_tl' | 'corner_tr' | 'corner_bl' | 'corner_br';
 
@@ -24,6 +31,8 @@ export interface TilesetJson {
   tiles: Record<string, number[]>;
   walls?: Partial<Record<WallKey, number>>;
   props?: PropDef[];
+  /** 37라운드: 방 종류별 바닥 인덱스 목록. 키가 없거나 비면 tiles["1"] */
+  roomFloors?: Partial<Record<RoomType, number[]>>;
 }
 
 export interface PropPlacement {
@@ -94,6 +103,8 @@ export function wallKind(isOpen: (x: number, y: number) => boolean, x: number, y
 export class TileSkin {
   private readonly variants = new Map<TileId, number[]>();
   private readonly reverse = new Map<number, TileId>();
+  /** 방 종류별 바닥 변형 (비어 있지 않은 것만) */
+  readonly roomFloors = new Map<RoomType, number[]>();
   readonly solidIndices: number[];
   readonly props: PropDef[];
 
@@ -111,6 +122,14 @@ export class TileSkin {
       for (const i of idx) if (!this.reverse.has(i)) this.reverse.set(i, id);
     }
     for (const i of Object.values(def.walls ?? {})) if (typeof i === 'number') this.reverse.set(i, TileId.Wall);
+    for (const type of ROOM_TYPES) {
+      const list = def.roomFloors?.[type];
+      if (!Array.isArray(list) || list.length === 0) continue;
+      const idx = list.filter((i) => typeof i === 'number');
+      if (idx.length === 0) continue;
+      this.roomFloors.set(type, idx);
+      for (const i of idx) if (!this.reverse.has(i)) this.reverse.set(i, TileId.Floor);
+    }
     this.solidIndices = [...this.reverse.entries()].filter(([, id]) => SOLID_IDS.includes(id)).map(([i]) => i);
     this.props = (def.props ?? []).filter((p) => typeof p.index === 'number');
   }
@@ -131,12 +150,24 @@ export class TileSkin {
     return floor?.[0] ?? 0;
   }
 
-  /** 좌표에 놓을 시트 인덱스. 벽은 이웃(isOpen)으로 자동타일 */
-  indexFor(id: TileId, x: number, y: number, isOpen?: (x: number, y: number) => boolean): number {
+  /**
+   * 좌표에 놓을 시트 인덱스. 벽은 이웃(isOpen)으로 자동타일 — 자동타일 인덱스가 `tiles["2"]` 목록의 첫 항목이면
+   * (정면 벽) 그 목록을 좌표 해시로 섞는다(37라운드 벽 변형 19·20). 바닥은 `roomType` 이 있고 `roomFloors` 에
+   * 그 종류가 있으면 그 목록에서 고른다(37라운드 방 종류별 바닥), 아니면 `tiles["1"]`
+   */
+  indexFor(id: TileId, x: number, y: number, isOpen?: (x: number, y: number) => boolean, roomType?: RoomType): number {
     if (id === TileId.Wall && this.def.walls && isOpen) {
       const kind = wallKind(isOpen, x, y);
       const w = kind ? this.def.walls[kind] : undefined;
-      if (typeof w === 'number') return w;
+      if (typeof w === 'number') {
+        const wallList = this.variants.get(TileId.Wall)!;
+        if (wallList.length > 1 && wallList[0] === w) return wallList[pickVariant(x, y, wallList.length, id)];
+        return w;
+      }
+    }
+    if (id === TileId.Floor && roomType) {
+      const rf = this.roomFloors.get(roomType);
+      if (rf) return rf[pickVariant(x, y, rf.length, id)];
     }
     const list = this.variants.get(id)!;
     return list[pickVariant(x, y, list.length, id)];
@@ -179,15 +210,21 @@ export function planProps(
 ): PropPlacement[] {
   if (props.length === 0) return [];
   const out: PropPlacement[] = [];
+  const weighted = props.filter((p) => (p.weight ?? 1) > 0);
+  if (weighted.length === 0) return out;
   for (const room of layout.rooms) {
     const rng = new Rng(hashSeed(`${String(seed)}:props:${room.id}`));
     const blocked = blockedTiles(room, rules);
     const I = room.interior;
     const want = rng.int(rules.MIN_PER_ROOM, rules.MAX_PER_ROOM);
     const used = new Set<string>();
+    const perProp = new Map<number, number>();
     let placed = 0;
     for (let t = 0; t < rules.TRIES && placed < want; t++) {
-      const prop = rng.pick(props);
+      // 40라운드: 방당 상한에 닿은 소품은 후보에서 빼고, 가중치로 고른다
+      const candidates = weighted.filter((p) => (perProp.get(p.index) ?? 0) < (p.maxPerRoom ?? Infinity));
+      if (candidates.length === 0) break;
+      const prop = pickWeighted(rng, candidates);
       const x = rng.int(I.x, I.x + I.w - 1);
       const y = rng.int(I.y, I.y + I.h - 1);
       const key = `${x},${y}`;
@@ -196,11 +233,33 @@ export function planProps(
       const onRing = x === I.x || x === I.x + I.w - 1 || y === I.y || y === I.y + I.h - 1;
       if (prop.solid && !onRing) continue;
       used.add(key);
+      perProp.set(prop.index, (perProp.get(prop.index) ?? 0) + 1);
       out.push({ x, y, index: prop.index, solid: prop.solid });
       placed++;
     }
   }
   return out;
+}
+
+/** 가중치(기본 1) 비례 선택 */
+export function pickWeighted(rng: Rng, props: readonly PropDef[]): PropDef {
+  const total = props.reduce((a, p) => a + (p.weight ?? 1), 0);
+  let r = rng.next() * total;
+  for (const p of props) {
+    r -= p.weight ?? 1;
+    if (r < 0) return p;
+  }
+  return props[props.length - 1];
+}
+
+/** 타일 좌표 → 그 타일이 속한 방의 종류 (방 내부 바닥만, 복도·벽은 undefined) */
+export function roomTypeMap(layout: FloorLayout): Map<string, RoomType> {
+  const m = new Map<string, RoomType>();
+  for (const room of layout.rooms) {
+    const I = room.interior;
+    for (let y = I.y; y < I.y + I.h; y++) for (let x = I.x; x < I.x + I.w; x++) m.set(`${x},${y}`, room.type);
+  }
+  return m;
 }
 
 function blockedTiles(room: Room, rules: typeof PROPS_RULES): Set<string> {

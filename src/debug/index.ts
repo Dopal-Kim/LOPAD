@@ -58,12 +58,16 @@ export interface DebugApi {
   nextStage: () => void;
   camera: () => CameraInfo;
   killAll: () => number;
+  /** 특정 적 처치 (index 는 mobs() 순서) */
+  killMob: (index: number) => boolean;
   /** 모든 적에게 피해 (crit 이면 치명타 연출) */
   hurtAll: (amount: number, crit?: boolean) => void;
   /** 게임 타일 ID (시트 인덱스가 아님) */
   tileAt: (tx: number, ty: number) => number;
   /** 소품 레이어의 시트 인덱스 (-1 = 없음) */
   propAt: (tx: number, ty: number) => number;
+  /** 바닥 레이어의 시트 인덱스 (-1 = 없음) — roomFloors 검증용 */
+  tileIndexAt: (tx: number, ty: number) => number;
   world: () => { tileset: string; art: boolean; props: number };
   doorsOf: (roomId: string) => { x: number; y: number; id: number }[][];
   /** 개성 게이지를 value 로 두고 임계 판정 (27라운드 검증용) */
@@ -85,6 +89,18 @@ export interface DebugApi {
   setFeel: (patch: FeelPatch) => unknown;
   /** 넉백 중인 적 수 */
   shoved: () => number;
+  /** 35라운드 2단계: 활성 예고 마커·시트 유무 */
+  telegraph: () => unknown;
+  /** 활성 적 투사체 (텍스처·애니·회전·반사 여부) */
+  projectiles: () => unknown[];
+  /** 적·보스 행동 상태 (사수 조준/재장전·사격 수, 결사병 상태, 보스 패턴·기록) */
+  behavior: () => unknown[];
+  /** 마지막 보스 내리찍기 */
+  lastSlam: () => unknown;
+  /** 활성 방에 적 추가 (집단 돌격 검증용) */
+  spawnEnemy: (id: string, x: number, y: number) => boolean;
+  /** 보스 HP 를 내려 페이즈 전환 (피해 처리 경로) */
+  setBossHp: (hp: number) => boolean;
 }
 
 export type FeelPatch = Partial<{ shake: number; hitstop: number; knockback: number; numbers: boolean }>;
@@ -150,6 +166,12 @@ export function exposeDebug(api: {
   feel: () => unknown;
   setFeel: (patch: FeelPatch) => unknown;
   shoved: () => number;
+  telegraph: () => unknown;
+  projectiles: () => unknown[];
+  behavior: () => unknown[];
+  lastSlam: () => unknown;
+  spawnEnemy: (id: string, x: number, y: number) => boolean;
+  setBossHp: (hp: number) => boolean;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -214,16 +236,29 @@ export function exposeDebug(api: {
     feel: () => api.feel(),
     setFeel: (patch) => api.setFeel(patch),
     shoved: () => api.shoved(),
+    telegraph: () => api.telegraph(),
+    projectiles: () => api.projectiles(),
+    behavior: () => api.behavior(),
+    lastSlam: () => api.lastSlam(),
+    spawnEnemy: (id, x, y) => api.spawnEnemy(id, x, y),
+    setBossHp: (hp) => api.setBossHp(hp),
     killAll: () => {
       const list = api.mobs();
       for (const m of list) api.kill(m);
       return list.length;
+    },
+    killMob: (index) => {
+      const m = api.mobs()[index];
+      if (!m || !m.active) return false;
+      api.kill(m);
+      return true;
     },
     hurtAll: (amount, crit) => {
       for (const m of api.mobs()) api.hurt(m, amount, crit);
     },
     tileAt: (tx, ty) => api.world.tileIdAt(tx, ty),
     propAt: (tx, ty) => api.world.propsLayer?.getTileAt(tx, ty)?.index ?? -1,
+    tileIndexAt: (tx, ty) => api.world.layer.getTileAt(tx, ty)?.index ?? -1,
     world: () => ({
       tileset: api.world.skin.textureKey,
       art: api.world.skin.isArt,

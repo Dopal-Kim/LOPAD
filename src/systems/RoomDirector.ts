@@ -76,11 +76,40 @@ export class RoomDirector {
     }
   }
 
+  /**
+   * 보스 소환(35라운드 2단계): 활성 방에 적을 추가한다. 걸을 수 없는 자리면 방 안 무작위 지점으로.
+   * 처치 대기 목록에 들어가므로 보스가 죽으면 함께 정리된다
+   */
+  spawnExtra(enemyId: string, x: number, y: number): boolean {
+    const room = this.activeRoom;
+    if (!room) return false;
+    let p = { x, y };
+    if (!this.host.world.isWalkableAt(x, y) || !this.host.world.isInsideRoom(room, x, y)) {
+      const q = this.host.world.randomPointInRoom(room, this.host.rng, this.host.player, 2);
+      p = { x: q.x, y: q.y };
+    }
+    const e = new Enemy(this.host.mobs.scene, p.x, p.y, enemyId, this.host.stage.enemyScale);
+    this.host.mobs.add(e);
+    this.alive.add(e);
+    return true;
+  }
+
   /** 적 사망 시 호출 */
   onMobDied(mob: Mob): void {
     this.alive.delete(mob);
     const room = this.activeRoom;
-    if (!room || this.alive.size > 0) return;
+    if (!room) return;
+    // 보스가 죽으면 소환된 부하는 함께 사라진다 (보상 없음)
+    if (room.type === 'boss' && mob.isBoss) {
+      for (const m of [...this.alive]) {
+        if (m.active) {
+          m.visual.spawnCorpse();
+          m.destroy();
+        }
+      }
+      this.alive.clear();
+    }
+    if (this.alive.size > 0) return;
     if (room.type === 'trial') {
       this.waveIndex += 1;
       if (this.waveIndex < this.host.stage.trial.waves.length) {

@@ -9,7 +9,14 @@
     "size": [16, 16],
     "color": "#d04040",
     "personalityValue": 8,
-    "gold": 3
+    "gold": 3,
+    "pack": {
+      "minCount": 3,
+      "rangeTiles": 6,
+      "speedMult": 1.4,
+      "durationMs": 2000,
+      "cooldownMs": 4000
+    }
   },
   "archer": {
     "name": "사수",
@@ -25,7 +32,16 @@
       "keepMaxTiles": 14,
       "projectileSpeedTiles": 8,
       "projectileSize": 4,
-      "projectileLifeMs": 3000
+      "projectileLifeMs": 3000,
+      "telegraphMs": 300,
+      "telegraphTiles": 3,
+      "sprite": "enemy_bullet",
+      "muzzle": "muzzle_flash",
+      "reload": {
+        "shots": 3,
+        "reloadMs": 2000,
+        "retreatSpeedMult": 1
+      }
     },
     "personalityValue": 10,
     "gold": 5
@@ -49,6 +65,10 @@
       "idleAttack": 6
     },
     "personalityValue": 12,
-    "gold": 7
+    "gold": 7,
+    "shield": {
+      "frontDeg": 60,
+      "reduction": 0.5
+    }
   }
 }
