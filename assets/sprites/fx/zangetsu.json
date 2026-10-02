@@ -1,0 +1,32 @@
+{
+ "image": "zangetsu.png",
+ "action": "zangetsu",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 13,
+ "frameDurationsMs": [
+  75,
+  75,
+  75,
+  75
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 24,
+  "y": 34
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "after_iai",
+ "depth": "below",
+ "note": "잔월. 거합(iai) 재생이 끝난 자리(같은 피벗, 플레이어가 움직여도 그 자리 고정)에 루프. 한 바퀴 300ms = 틱 간격, 0프레임 = 틱 순간 밝음. 궤적 지속(1000ms) 끝나면 제거. 바닥 깊이."
+}

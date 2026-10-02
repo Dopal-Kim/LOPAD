@@ -1,0 +1,31 @@
+{
+ "image": "quake.png",
+ "action": "quake",
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  50,
+  70,
+  100,
+  70,
+  100,
+  130
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 32
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "hit_judge",
+ "depth": "below",
+ "note": "지진. crush 대신 재생. 0~2프레임 = 1단 링(220ms), 3프레임부터 2단 링(1.6배) + 바닥 균열 유지. 시스템 2단 판정(220ms 뒤)과 3프레임 시작이 맞는다."
+}

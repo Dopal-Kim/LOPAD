@@ -1,0 +1,32 @@
+{
+ "image": "ironwall.png",
+ "action": "ironwall",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 3,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 17,
+ "frameDurationsMs": [
+  40,
+  60,
+  80
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 22
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "guard_release",
+ "depth": "above",
+ "pivotNote": "피벗 (16,22): 캔버스 중심이 몸 중심(발에서 위로 6px)에 오도록. 벽은 몸 중심에서 바라보는 쪽 9px",
+ "note": "철벽. 가드 떼는(밀쳐내기+반격) 순간 바라보는 쪽 전방 9px 에 서는 벽 섬광. guard_wave 와 동시 재생(guard_wave 는 아래)."
+}

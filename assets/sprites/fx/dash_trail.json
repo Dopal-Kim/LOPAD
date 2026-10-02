@@ -1,0 +1,32 @@
+{
+ "image": "dash_trail.png",
+ "action": "dash_trail",
+ "frameWidth": 16,
+ "frameHeight": 24,
+ "frames": 3,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 17,
+ "frameDurationsMs": [
+  40,
+  60,
+  80
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 23
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "dash_trail",
+ "depth": "below",
+ "followsPlayer": false,
+ "note": "대쉬 잔상(무채). 대쉬 중 40~50ms 마다 현재 위치에 하나씩 놓고 각자 180ms 뒤 소멸 (2~3개 겹침). 플레이어 아래 깊이. 발도술(batto)·질풍(gale) 과 겹쳐도 무채라 충돌 없음."
+}

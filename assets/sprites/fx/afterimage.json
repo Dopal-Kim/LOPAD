@@ -1,0 +1,33 @@
+{
+ "image": "afterimage.png",
+ "action": "afterimage",
+ "frameWidth": 24,
+ "frameHeight": 24,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 11,
+ "frameDurationsMs": [
+  60,
+  80,
+  100,
+  120
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 12,
+  "y": 23
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "dash_start",
+ "depth": "below",
+ "followsPlayer": false,
+ "note": "잔상. 대쉬 출발 위치(고정)에 분신 1회. 경로가 길면 중간점에도 하나 더 띄울 수 있음. gale 과 동시 재생 가능."
+}

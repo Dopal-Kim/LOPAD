@@ -1,0 +1,29 @@
+{
+ "image": "aim_line.png",
+ "action": "aim_line",
+ "frameWidth": 8,
+ "frameHeight": 2,
+ "frames": 1,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 0,
+ "frameDurationsMs": [
+  0
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 0,
+  "y": 1
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "rotate": true,
+ "drawnFacing": "right",
+ "tile": true,
+ "spawn": "aim_charge",
+ "pivotNote": "피벗 (0,1) = 선 시작(플레이어 몸 중심). TileSprite 폭 = 사거리, 회전 = 커서 각도",
+ "note": "조준 궤적 점선(4 on / 4 off). 차지 중 표시, 발사·취소 시 제거. 깊이 바닥."
+}

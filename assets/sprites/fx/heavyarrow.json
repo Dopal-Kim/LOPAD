@@ -1,0 +1,27 @@
+{
+ "image": "heavyarrow.png",
+ "action": "heavyarrow",
+ "frameWidth": 16,
+ "frameHeight": 8,
+ "frames": 1,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 0,
+ "frameDurationsMs": [
+  0
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 4
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "spawn": "aimed_shot",
+ "note": "중시. 조준 사격 화살(bow_arrow_aimed) 대신 쓰는 무거운 화살 텍스처. 일반 화살은 그대로."
+}

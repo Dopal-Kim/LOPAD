@@ -1,0 +1,29 @@
+{
+ "image": "pulverize.png",
+ "action": "pulverize",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 14,
+ "frameDurationsMs": [
+  40,
+  60,
+  80,
+  100
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 24
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "hit_judge",
+ "depth": "below",
+ "note": "분쇄. crush 대신 재생. 쐐기 파편 + 축 4방향 X 표 = 투사체 소멸 표시. 실제로 지운 투사체 위치에는 hit_spark 를 겹쳐도 됨."
+}

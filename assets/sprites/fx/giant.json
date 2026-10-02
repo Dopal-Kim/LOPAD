@@ -1,0 +1,30 @@
+{
+ "image": "giant.png",
+ "action": "giant",
+ "frameWidth": 32,
+ "frameHeight": 40,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 11,
+ "frameDurationsMs": [
+  90,
+  90,
+  90,
+  90
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 16,
+  "y": 36
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "attack_start",
+ "depth": "below",
+ "followsPlayer": true,
+ "note": "거인. 공격 판정 시작부터 공격 애니 끝까지 플레이어 발 피벗에 루프(슈퍼아머 구간). 종료 조건 = attack 종료. 플레이어 아래 깊이."
+}

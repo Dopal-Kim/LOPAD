@@ -1,0 +1,33 @@
+{
+ "image": "longinvuln.png",
+ "action": "longinvuln",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  50,
+  70,
+  90,
+  110
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 26
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "dash_start",
+ "depth": "above",
+ "followsPlayer": true,
+ "note": "허보. 대쉬 시작에 플레이어를 따라다니며 1회(무적 연장 구간 표시). 실루엣 테두리만 빛나고 속은 성긴 격자 = 몸이 비침. batto 와 동시 재생 가능(batto 는 아래)."
+}

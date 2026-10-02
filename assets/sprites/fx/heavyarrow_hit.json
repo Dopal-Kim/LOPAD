@@ -1,0 +1,28 @@
+{
+ "image": "heavyarrow_hit.png",
+ "action": "heavyarrow_hit",
+ "frameWidth": 24,
+ "frameHeight": 24,
+ "frames": 3,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  50,
+  80,
+  110
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 12,
+  "y": 12
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "depth": "above",
+ "note": "중시 적중 경직 먼지. 중시 화살이 적중한 적의 히트박스 중심에 1회 (경직 600ms 시작)."
+}

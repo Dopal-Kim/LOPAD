@@ -1,0 +1,29 @@
+{
+ "image": "assassin.png",
+ "action": "assassin",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 14,
+ "frameDurationsMs": [
+  40,
+  60,
+  80,
+  100
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 16
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "depth": "above",
+ "note": "암살. 그림자 걸음 직후의 공격(3배)이 적중할 때 적중점에. 바닥 그림자 웅덩이(G01/G02) + 대각선 섬광 베기. crit_burst 와 겹쳐도 됨."
+}

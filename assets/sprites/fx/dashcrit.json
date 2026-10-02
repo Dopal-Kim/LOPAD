@@ -1,0 +1,29 @@
+{
+ "image": "dashcrit.png",
+ "action": "dashcrit",
+ "frameWidth": 24,
+ "frameHeight": 24,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 18,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  70
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 12,
+  "y": 12
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "depth": "above",
+ "note": "급소. 대쉬 베기 적중 시 적중점에 crit_burst 대신(또는 위에) 재생. 점광이라 crit_burst(32, 방사선)보다 작고 날카롭다."
+}

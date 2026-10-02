@@ -1,0 +1,32 @@
+{
+ "image": "shadowstep_ghost.png",
+ "action": "shadowstep_ghost",
+ "frameWidth": 16,
+ "frameHeight": 24,
+ "frames": 3,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  60,
+  80,
+  100
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 23
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "shadowstep_start",
+ "depth": "below",
+ "followsPlayer": false,
+ "note": "그림자 걸음 출발 잔상. 출발 위치(고정)에 플레이어가 보던 방향으로 1회. 무채(G02~G04)라 층 스왑 무관. 플레이어 아래 깊이(도착 직후 겹칠 일 없음)."
+}

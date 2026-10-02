@@ -1,0 +1,30 @@
+{
+ "image": "bleed.png",
+ "action": "bleed",
+ "frameWidth": 16,
+ "frameHeight": 16,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 8,
+ "frameDurationsMs": [
+  125,
+  125,
+  125,
+  125
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 8,
+  "y": 8
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "depth": "above",
+ "followsTarget": true,
+ "note": "출혈. 적중한 적의 히트박스 중심에 붙어 루프. 한 바퀴 500ms = 틱 간격, 0프레임 = 틱 글린트. 출혈 횟수 소진(재적중 시 갱신)되면 제거. 피 색 = 층 램프 17~19."
+}

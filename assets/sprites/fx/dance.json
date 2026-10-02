@@ -1,0 +1,34 @@
+{
+ "image": "dance.png",
+ "action": "dance",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 25,
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  40,
+  40,
+  40
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 16,
+  "y": 26
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "depth": "above",
+ "note": "난무. twin 대신 재생. 0·2·4프레임 시작 = 1·2·3타(간격 80ms). 두 번째 호는 반대 방향으로 긋는다."
+}
