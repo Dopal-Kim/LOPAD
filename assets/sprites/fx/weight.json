@@ -1,28 +1,39 @@
 {
  "image": "weight.png",
  "action": "weight",
- "frameWidth": 32,
- "frameHeight": 24,
- "frames": 4,
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 6,
  "directions": [
   "any"
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 11,
+ "fps": 12,
  "frameDurationsMs": [
+  40,
   50,
-  80,
-  100,
-  120
+  70,
+  90,
+  110,
+  130
  ],
  "loop": false,
  "pivot": {
-  "x": 16,
-  "y": 22
+  "x": 32,
+  "y": 40
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "hitbox_center",
- "pivotNote": "피벗 = 타격 지점 바닥. 히트박스 중심에서 아래로 6px 권장",
- "spawn": "대검 적중 판정 시작"
+ "spawn": "hit_judge",
+ "depth": "below",
+ "weapon": "greatsword",
+ "secondary": "fx.weapons.greatsword",
+ "shake": {
+  "px": 2,
+  "ms": 60
+ },
+ "pivotNote": "피벗 (32,40) = 타격 지점 바닥. 히트박스 중심에서 아래로 6px 권장 (기존 32×24 (16,22) 와 같은 의미).",
+ "note": "중압: 타격 섬광 별(27 + X0) → 양옆으로 퍼지는 먼지(G06/G09) + 압축 링 r7→13→19 + 용암 균열(W2 → W1 → W0 점) + 불씨 → 재."
 }

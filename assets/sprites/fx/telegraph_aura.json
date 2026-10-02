@@ -1,35 +1,33 @@
 {
- "image": "zangetsu.png",
- "action": "zangetsu",
+ "image": "telegraph_aura.png",
+ "action": "telegraph_aura",
  "frameWidth": 64,
  "frameHeight": 64,
  "frames": 4,
  "directions": [
-  "down",
-  "up",
-  "left",
-  "right"
+  "any"
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 13,
+ "fps": 10,
  "frameDurationsMs": [
-  75,
-  75,
-  75,
-  75
+  100,
+  100,
+  100,
+  100
  ],
  "loop": true,
  "pivot": {
   "x": 32,
-  "y": 42
+  "y": 32
  },
  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
  "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
- "anchor": "player_pivot",
- "spawn": "after_iai",
+ "anchor": "hitbox_center",
+ "spawn": "telegraph",
  "depth": "below",
- "weapon": "katana",
- "secondary": "fx.weapons.katana",
- "note": "잔월: 거합 자리의 어두운 3띠 + 띠 사이 번개 토막 + 도는 글린트(X0). 4f = 300ms 틱, f0 = 틱 순간(바깥 점선). 위치 고정, 1000ms 뒤 제거. 바닥 깊이."
+ "scale": "allowed",
+ "followsTarget": true,
+ "pivotNote": "피벗 (32,32) = 공격자 몸 중심. 적 히트박스 중심에 붙어 따라감.",
+ "note": "수렴 오라(신규): 12줄 토막이 r30→r8 로 흘러들며 밝아짐(19→25, 안쪽 끝 쐐기 25/27) + 맥동 코어(18 테두리 + 22 몸 + X0/27). 4f 루프 위상 1/4 → 이음새 없음. 돌진·대기술 예고."
 }

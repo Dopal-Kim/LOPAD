@@ -1,9 +1,9 @@
 {
  "image": "crush.png",
  "action": "crush",
- "frameWidth": 48,
- "frameHeight": 48,
- "frames": 4,
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 6,
  "directions": [
   "any"
  ],
@@ -11,17 +11,35 @@
  "frameIndex": "row * frames + column",
  "fps": 12,
  "frameDurationsMs": [
+  40,
   50,
   70,
   90,
-  110
+  110,
+  130
  ],
  "loop": false,
  "pivot": {
-  "x": 24,
-  "y": 24
+  "x": 32,
+  "y": 40
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "hitbox_center",
- "spawn": "대검 적중 판정 시작 시점, 플레이어 아래(depth) 권장"
+ "spawn": "hit_judge",
+ "depth": "below",
+ "weapon": "greatsword",
+ "secondary": "fx.weapons.greatsword",
+ "flash": {
+  "color": "#f9b23c",
+  "alpha": 0.16,
+  "ms": 40,
+  "atFrame": 1
+ },
+ "shake": {
+  "px": 2,
+  "ms": 60
+ },
+ "pivotNote": "피벗 (32,40) = 바닥 타격점 (히트박스 중심에서 아래로 6px 권장). 낙뢰는 캔버스 위 가장자리에서 내려온다 — 회전 없음.",
+ "note": "파쇄: 낙뢰(3겹 번개 + 가지 2) → 타격 섬광 별 → 세로 0.6 압축 링 r8→16→24 + 방사 균열(용암 W2 → 식어서 W1/W0 점) + 재 G06/G09. 콘셉트 quake_bolt 승격."
 }

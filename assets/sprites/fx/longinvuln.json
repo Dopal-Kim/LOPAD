@@ -1,9 +1,9 @@
 {
  "image": "longinvuln.png",
  "action": "longinvuln",
- "frameWidth": 32,
- "frameHeight": 32,
- "frames": 4,
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 5,
  "directions": [
   "down",
   "up",
@@ -12,8 +12,9 @@
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 12,
+ "fps": 14,
  "frameDurationsMs": [
+  40,
   50,
   70,
   90,
@@ -21,13 +22,24 @@
  ],
  "loop": false,
  "pivot": {
-  "x": 16,
-  "y": 26
+  "x": 32,
+  "y": 42
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "player_pivot",
  "spawn": "dash_start",
  "depth": "above",
+ "weapon": "katana",
+ "secondary": "fx.weapons.katana",
  "followsPlayer": true,
- "note": "허보. 대쉬 시작에 플레이어를 따라다니며 1회(무적 연장 구간 표시). 실루엣 테두리만 빛나고 속은 성긴 격자 = 몸이 비침. batto 와 동시 재생 가능(batto 는 아래)."
+ "trail": {
+  "color": "#6f7e97",
+  "alpha": 0.7,
+  "ms": 180,
+  "fromFrame": 1,
+  "note": "W1 잔상 트레일, 폭 = 본 띠 두께의 0.6, 깊이 = 시트 바로 아래(캐릭터 위)"
+ },
+ "pivotNote": "피벗 (32,42) = 발 (player_dash f1 실루엣을 (24,19) 에 둠). 방향 = 대쉬 방향(실루엣은 회전하지 않음).",
+ "note": "허보: 돌진 실루엣 윤곽 W3→W2→W1→W0(점선) + 앞쪽 가장자리 코어(X0→X1) + 성긴 격자 속 + 몸 뒤 속도선 3줄. 뒤로 1px 씩 처짐. batto 위에 겹침."
 }

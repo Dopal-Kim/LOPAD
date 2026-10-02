@@ -1,8 +1,8 @@
 {
  "image": "telegraph_line.png",
  "action": "telegraph_line",
- "frameWidth": 8,
- "frameHeight": 8,
+ "frameWidth": 16,
+ "frameHeight": 16,
  "frames": 2,
  "directions": [
   "any"
@@ -17,15 +17,17 @@
  "loop": true,
  "pivot": {
   "x": 0,
-  "y": 4
+  "y": 8
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "hitbox_center",
  "spawn": "telegraph",
+ "depth": "below",
  "tile": true,
  "rotate": true,
  "drawnFacing": "right",
  "scale": "allowed",
- "pivotNote": "피벗 (0,4) = 선의 시작점(공격자). 공격자 히트박스 중심에 두고 목표 방향으로 회전, x 방향으로 사거리/8 만큼 타일링(TileSprite) 또는 scaleX.",
- "note": "2프레임 깜빡 120ms 루프. 바닥 깊이. 세로 8 중 3~4행만 쓰므로 두께 2px."
+ "pivotNote": "피벗 (0,8) = 선 시작(공격자). 두께 4px(y 6~9: 18 테두리 + 22 몸 + 2px 코어 27↔25), 코어 토막이 +x(목표) 방향으로 프레임당 8px 흐른다. TileSprite 폭 = 사거리 (타일 주기 16).",
+ "note": "굵은 예고 선. 층 램프 18/22/24/25/27 만 (보조색 없음). 기존 8×8 2px 점선 대체."
 }

@@ -173,13 +173,13 @@ UI_GPL_ROLES = ["leather shadow", "leather base / grime band", "page shadow", "p
 FX_BLOCK = {
     "name": "incandescent core + weapon secondary",
     "scope": "FX only (round 42 Q2). Forbidden on characters, enemies, bosses, floor tiles and UI. Not swapped per floor (fixed). Floor accent slots 25~27 stay as the highlight layer inside fx.",
-    "decision": "2026-10-02 round-42 Q2 — 백열 코어 + 무기별 보조색 1종. 보조색 hue 는 아트 임시(검수 대상).",
+    "decision": "2026-10-02 round-42 Q2 — 백열 코어 + 무기별 보조색 1종 → round-43 검수: 보조색 hex 승인, 대검 W2 #d8441c.",
     "core": ["#ffffff", "#fff4dc"],
     "core_roles": ["X0 white-hot core (= G15, the 1px centre line of every stroke / bolt)", "X1 incandescent (warm near-white, 2nd core step; the only warm white in the game)"],
     "layers": ["1 core: X0 (1px) + X1 (1~2px)", "2 highlight: current floor accent 27/26/25 (head glint, sparks, closing-circle flash)", "3 body: weapon secondary W3→W1 (bright to dark, inside to outside)", "4 edge: W0 (dark rim, 1px) — on very dark floors G00 ink instead"],
     "weapons": {
         "katana":     {"label": "cold silver",      "ramp": ["#3a4556", "#6f7e97", "#a9b8cc", "#dde6f2"], "lab": "L* 29/52/74/91, hue ~250 (cool), chroma 8~10. 2차 비평에서 W1·W2 한 단 어둡게 (1배에서 흰 덩어리가 되지 않도록)"},
-        "greatsword": {"label": "ash + lava",       "ramp": ["#4a3c38", "#a8321c", "#e35c1c", "#f9b23c"], "lab": "ash grey-brown → ember red → lava orange → hot yellow; L* 27/40/56/78"},
+        "greatsword": {"label": "ash + lava",       "ramp": ["#4a3c38", "#a8321c", "#d8441c", "#f9b23c"], "lab": "ash grey-brown → ember red → lava red-orange → hot yellow; L* 27/40/50/78. 43라운드: W2 #e35c1c → #d8441c (더 붉게, 1층 호박 21 #d67a11 과 분리)"},
         "dagger":     {"label": "violet shadow",    "ramp": ["#1c1327", "#3e2a62", "#7a4fb2", "#c89cf0"], "lab": "L* 8/22/42/70, hue ~290; W0 is darker than floor dirt (G01) on purpose = a hole in the floor"},
         "bow":        {"label": "lightning blue-white", "ramp": ["#1e3350", "#2e71c9", "#6cb9f5", "#cdefff"], "lab": "L* 21/46/72/92, hue ~215; W3 is the brightest secondary of the four (lightning reads almost white)"},
     },

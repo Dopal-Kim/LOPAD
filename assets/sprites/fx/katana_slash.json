@@ -1,9 +1,9 @@
 {
  "image": "katana_slash.png",
  "action": "slash",
- "frameWidth": 32,
- "frameHeight": 32,
- "frames": 4,
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 5,
  "directions": [
   "down",
   "up",
@@ -12,19 +12,33 @@
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 15,
+ "fps": 16,
  "frameDurationsMs": [
+  40,
   50,
   60,
   70,
-  80
+  90
  ],
  "loop": false,
  "pivot": {
-  "x": 16,
-  "y": 26
+  "x": 24,
+  "y": 34
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "player_pivot",
- "spawn": "player attack 2프레임(휘두름) 시작 시점에 재생"
+ "spawn": "attack_frame2",
+ "depth": "above",
+ "weapon": "katana",
+ "secondary": "fx.weapons.katana",
+ "trail": {
+  "color": "#6f7e97",
+  "alpha": 0.6,
+  "ms": 120,
+  "fromFrame": 2,
+  "note": "W1 잔상 트레일, 폭 = 본 띠 두께의 0.6, 깊이 = 시트 바로 아래(캐릭터 위)"
+ },
+ "pivotNote": "피벗 (24,34) = 발. 호 중심 (24,24) = 몸 중심(발 위 10px). 기존 32 (16,26) 과 같은 규약.",
+ "note": "기본 베기: 본 띠(W0·W1·W2·W3·X1 코어 1px) + 바깥 잔상 겹(1프레임 지연). f0 예비 코어선(판정 40ms 전), f2 광선 2, f4 꼬리(트레일 인계)."
 }

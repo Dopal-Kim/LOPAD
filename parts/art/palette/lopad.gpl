@@ -128,7 +128,7 @@ Columns: 16
 221 230 242	FX_katana W3 cold silver body light (fx only)
  74  60  56	FX_greatsword W0 ash + lava dark edge (fx only)
 168  50  28	FX_greatsword W1 ash + lava body dark (fx only)
-227  92  28	FX_greatsword W2 ash + lava body (fx only)
+216  68  28	FX_greatsword W2 ash + lava body (fx only)
 249 178  60	FX_greatsword W3 ash + lava body light (fx only)
  28  19  39	FX_dagger W0 violet shadow dark edge (fx only)
  62  42  98	FX_dagger W1 violet shadow body dark (fx only)

@@ -1,9 +1,9 @@
 {
  "image": "telegraph_cone.png",
  "action": "telegraph_cone",
- "frameWidth": 32,
- "frameHeight": 32,
- "frames": 2,
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 6,
  "directions": [
   "down",
   "up",
@@ -12,20 +12,27 @@
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 8,
+ "fps": 10,
  "frameDurationsMs": [
-  120,
-  120
+  100,
+  100,
+  100,
+  100,
+  100,
+  100
  ],
- "loop": true,
+ "loop": false,
  "pivot": {
-  "x": 16,
-  "y": 16
+  "x": 32,
+  "y": 32
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "hitbox_center",
  "spawn": "telegraph",
+ "depth": "below",
+ "progressDriven": true,
  "scale": "allowed",
- "pivotNote": "피벗 (16,16) = 부채꼴 꼭짓점(공격자). 반지름 15px, 반각 32도. 사거리 R 이면 scale = R/15.",
- "note": "외곽선만. 방향 = 공격 방향 4종. 캔버스 절반만 쓰는 대신 꼭짓점이 피벗과 일치한다."
+ "pivotNote": "피벗 (32,32) = 꼭짓점(공격자). 반지름 27, 반각 32°. 사거리 R 이면 scale = R/27. frame = min(5, floor(progress*6)).",
+ "note": "부채꼴 예고: 선과 같은 4px 구조(18 테두리 + 몸 20→26 + 코어 토막이 꼭짓점→바깥으로 흐름) 두 변 + 범위 호, 바깥 점선 호가 수렴해 f5 백열. 방향 = 공격 방향 4종."
 }

@@ -1,9 +1,9 @@
 {
  "image": "batto.png",
  "action": "batto",
- "frameWidth": 32,
- "frameHeight": 32,
- "frames": 4,
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 7,
  "directions": [
   "down",
   "up",
@@ -12,19 +12,36 @@
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 14,
+ "fps": 18,
  "frameDurationsMs": [
+  40,
+  40,
+  40,
   50,
+  60,
   70,
-  80,
-  90
+  80
  ],
  "loop": false,
  "pivot": {
-  "x": 16,
-  "y": 26
+  "x": 32,
+  "y": 42
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "player_pivot",
- "spawn": "대쉬 시작 시점, 플레이어 아래(depth) 권장"
+ "spawn": "dash_start",
+ "depth": "below",
+ "weapon": "katana",
+ "secondary": "fx.weapons.katana",
+ "trail": {
+  "color": "#6f7e97",
+  "alpha": 0.7,
+  "ms": 180,
+  "fromFrame": 2,
+  "note": "W1 잔상 트레일, 폭 = 본 띠 두께의 0.6, 깊이 = 시트 바로 아래(캐릭터 위)"
+ },
+ "followsPlayer": true,
+ "pivotNote": "피벗 (32,42) = 발. 방향 = 대쉬 방향(right 기준 회전). 속도선은 몸 뒤, 발도 호는 전방.",
+ "note": "발도술: 몸 뒤 속도선 3줄(W0 테두리 · W2/X 코어) + 전방 발도 호 2겹. f0 예비 → f1 섬광 → f2 광선 → f3 식음 → f4~f6 점선·조각. 대쉬 240ms 뒤에도 꼬리 140ms 가 남는다. 플레이어 아래 깊이(longinvuln 과 동시 가능)."
 }

@@ -1,9 +1,9 @@
 {
  "image": "quake.png",
  "action": "quake",
- "frameWidth": 64,
- "frameHeight": 64,
- "frames": 6,
+ "frameWidth": 96,
+ "frameHeight": 96,
+ "frames": 7,
  "directions": [
   "any"
  ],
@@ -11,21 +11,51 @@
  "frameIndex": "row * frames + column",
  "fps": 12,
  "frameDurationsMs": [
+  40,
   50,
+  60,
   70,
-  100,
-  70,
-  100,
-  130
+  90,
+  110,
+  140
  ],
  "loop": false,
  "pivot": {
-  "x": 32,
-  "y": 32
+  "x": 48,
+  "y": 56
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "hitbox_center",
  "spawn": "hit_judge",
  "depth": "below",
- "note": "지진. crush 대신 재생. 0~2프레임 = 1단 링(220ms), 3프레임부터 2단 링(1.6배) + 바닥 균열 유지. 시스템 2단 판정(220ms 뒤)과 3프레임 시작이 맞는다."
+ "weapon": "greatsword",
+ "secondary": "fx.weapons.greatsword",
+ "flash": {
+  "color": "#f9b23c",
+  "alpha": 0.16,
+  "ms": 40,
+  "atFrame": 1
+ },
+ "shake": {
+  "px": 4,
+  "ms": 120
+ },
+ "secondStage": {
+  "frame": 4,
+  "atMs": 220,
+  "flash": {
+   "color": "#f9b23c",
+   "alpha": 0.16,
+   "ms": 40,
+   "atFrame": 4
+  },
+  "shake": {
+   "px": 4,
+   "ms": 120
+  },
+  "note": "f4 시작 = 40+50+60+70 = 220ms = 시스템 2단 판정 시각. 판정 타이밍을 바꾸면 ms 배열도 같이."
+ },
+ "pivotNote": "피벗 (48,56) = 바닥 타격점 (히트박스 중심 아래 6px 권장). 낙뢰 2개는 캔버스 위 가장자리에서 — 회전 없음.",
+ "note": "지진 2단 낙뢰: 1단(f1) 낙뢰 → 링 r10→20 + 균열, 2단(f4) 더 굵은 낙뢰(4겹, 다른 각도) + 링 r28→36→42 + 균열 전체 + 재·불티. crush 대신 재생."
 }

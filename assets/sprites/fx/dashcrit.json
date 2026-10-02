@@ -1,29 +1,33 @@
 {
  "image": "dashcrit.png",
  "action": "dashcrit",
- "frameWidth": 24,
- "frameHeight": 24,
- "frames": 4,
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 5,
  "directions": [
   "any"
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 18,
+ "fps": 19,
  "frameDurationsMs": [
+  40,
   40,
   50,
   60,
-  70
+  80
  ],
  "loop": false,
  "pivot": {
-  "x": 12,
-  "y": 12
+  "x": 32,
+  "y": 32
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "hitbox_center",
  "spawn": "hit",
  "depth": "above",
- "note": "급소. 대쉬 베기 적중 시 적중점에 crit_burst 대신(또는 위에) 재생. 점광이라 crit_burst(32, 방사선)보다 작고 날카롭다."
+ "weapon": "katana",
+ "secondary": "fx.weapons.katana",
+ "note": "급소: hit_burst 구조 + 광선 8갈래(W0·W2·X0 3겹) + 고리 r8→14→20 + 네 귀 글린트 27. 대쉬 베기 적중 시 crit_burst 대신. 적중형이라 트레일 없음."
 }

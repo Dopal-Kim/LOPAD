@@ -22,9 +22,11 @@
   "x": 6,
   "y": 6
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "hitbox_center",
  "spawn": "enemy_shoot",
+ "depth": "above",
  "pivotNote": "피벗 (6,6) = 총구. 사수 히트박스 중심에서 총구 오프셋(방향별 약 ±8px 전방, -2px 위)을 더해 놓는다.",
- "note": "사수 발사 프레임 시작과 동시에. 사수 위 깊이. enemy_bullet 생성 시점 = 이 이펙트 시작."
+ "note": "총구 섬광: 전방 쐐기(X0 코어 + 27/25 + 23 가장자리) + 대각 광선 + 불티 → 작은 불꽃. enemy_bullet 생성 시점 = 이 이펙트 시작."
 }

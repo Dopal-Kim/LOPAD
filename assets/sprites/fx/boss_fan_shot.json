@@ -19,8 +19,10 @@
   "x": 5,
   "y": 5
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+ "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "projectile",
  "rotate": false,
- "note": "부채꼴 탄. 21 코어 + G13 림, 2프레임 맥동 루프. 회전 불필요(원형)."
+ "depth": "above",
+ "note": "부채꼴 탄: 18 림 + 21/22 몸 + 코어 27 ↔ X0 맥동(2f). 회전 불필요(원형)."
 }

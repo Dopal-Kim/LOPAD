@@ -1,32 +1,31 @@
 {
- "image": "crit_burst.png",
- "action": "crit_burst",
- "frameWidth": 32,
- "frameHeight": 32,
- "frames": 5,
+ "image": "hit_burst.png",
+ "action": "hit_burst",
+ "frameWidth": 24,
+ "frameHeight": 24,
+ "frames": 4,
  "directions": [
   "any"
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 19,
+ "fps": 24,
  "frameDurationsMs": [
   40,
   40,
-  50,
-  60,
-  80
+  40,
+  50
  ],
  "loop": false,
  "pivot": {
-  "x": 16,
-  "y": 16
+  "x": 12,
+  "y": 12
  },
  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
  "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
  "anchor": "hitbox_center",
- "spawn": "hit_crit",
+ "spawn": "hit",
  "depth": "above",
  "weapon": "any",
- "note": "치명타: 광선 8갈래(18·26·X0/X1 3겹) + 고리 r8→12→14.5 + 네 귀 글린트 27 → 불티. hit_burst 와 같은 구조, 한 겹 더. 보조색 없음."
+ "note": "공통 적중: 쏟아지는 광선 6갈래(18 테두리 · 26 몸 · X0/X1 코어, 지그재그). 무기 보조색 없음 → 어떤 무기와도 겹친다. hit_spark 를 대체(hit_spark 파일은 같은 그림)."
 }
