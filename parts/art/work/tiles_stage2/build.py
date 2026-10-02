@@ -467,4 +467,6 @@ PROPS = [("dice_cup", False, 3, 1.0), ("stake_sack", True, 2, 0.8), ("overturned
          ("debt_ledger", False, 1, 0.6), ("iron_cage", True, 1, 0.4), ("card_table", True, 1, 0.4), ("chip_scatter", False, 3, 1.0)]
 
 if __name__ == "__main__":
+    if "--legacy" not in sys.argv:
+        sys.exit("48라운드: stage2 는 parts/art/work/tiles_v4/build.py (바닥 v4) 로 대체됨. 이 v3 판을 다시 쓰려면 --legacy")
     tc.run(2, "패(牌) — 도박장 제국 외곽", TILES, PROPS, [19, 21, 23, 25], HERE)

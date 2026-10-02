@@ -511,4 +511,6 @@ PROPS = [("barrel", True, 2, 0.8), ("broken_bottle", False, 3, 1.0), ("puddle", 
          ("ash_pit", False, 1, 0.6), ("bottle_crate", True, 1, 0.5), ("wine_jar", True, 1, 0.4), ("cup_pile", False, 3, 1.0)]
 
 if __name__ == "__main__":
+    if "--legacy" not in sys.argv:
+        sys.exit("48라운드: stage1 는 parts/art/work/tiles_v4/build.py (바닥 v4) 로 대체됨. 이 v3 판을 다시 쓰려면 --legacy")
     tc.run(1, "잔(盞) — 술독 제국 외곽", TILES, PROPS, [19, 21, 23, 25], HERE)

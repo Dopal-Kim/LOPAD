@@ -1,0 +1,45 @@
+{
+ "image": "node_icons.png",
+ "frameWidth": 32,
+ "frameHeight": 32,
+ "columns": 6,
+ "rows": 3,
+ "order": [
+  "journey",
+  "battle",
+  "shop",
+  "rest",
+  "event",
+  "boss"
+ ],
+ "states": [
+  "default",
+  "visited",
+  "locked"
+ ],
+ "frameIndex": "row * columns + column  (row = state: 0 default, 1 visited, 2 locked; column = order)",
+ "pivot": {
+  "x": 16,
+  "y": 16
+ },
+ "anchor": "ui",
+ "accentSlots": [
+  20,
+  21,
+  22
+ ],
+ "notes": {
+  "shape": "diamond node: glowing ink rim S5 + inner halo S4 + outer shade S2, dark leather fill S1; symbol S5 + 4-neighbour halo S4",
+  "journey": "winding dotted road + signpost (평화지역 → 잔 여정 노드)",
+  "battle": "crossed blades",
+  "shop": "tied sack + coin",
+  "rest": "campfire",
+  "event": "question mark",
+  "boss": "crown",
+  "accent": "one accent point per icon (slots 20-22, drawn with floor-1 ramp; UI swaps to current floor ramp like other UI kit files)",
+  "visited": "cooled: rim and symbol S4, no glow, no accent",
+  "locked": "no fill (page shows through), broken rim S2 + symbol S2 = faint pressed mark",
+  "scale": "integer only, no rotation (UI kit 4)"
+ },
+ "palette": "parts/art/palette/lopad.json (ui.ramp sepia S0-S5 fixed, UI only + floor accent slots 20-22 runtime swap)"
+}
