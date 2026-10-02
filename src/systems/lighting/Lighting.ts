@@ -14,7 +14,7 @@ import Phaser from 'phaser';
 import { DEPTH } from '../../core/Constants';
 import { LIGHTING } from '../../data';
 import type { LightingAmbient } from '../../data/types';
-import { flickerFactor, hexColor, pickLights, type LightPick } from './lightMath';
+import { flickerFactor, hexColor, lightFalloff, pickLights, type LightPick } from './lightMath';
 import { dropLightRegistry, lightRegistryOf, type LightRegistry, type LightSource } from './lightRegistry';
 
 const TEX_LIGHT = 'light_radial';
@@ -218,13 +218,24 @@ function ensureTextures(scene: Phaser.Scene): void {
     tex.refresh();
     tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
   };
-  const f = Phaser.Math.Clamp(LIGHTING.falloff, 0.05, 0.95);
-  radial(TEX_LIGHT, [
-    [0, 1],
-    [f * 0.5, 0.85],
-    [f, 0.45],
-    [1, 0],
-  ]);
+  // 52라운드 Q9: 감쇠 = 아트 목업과 같은 (1 - d²)² (d = 중심 거리 / 반경)
+  if (!scene.textures.exists(TEX_LIGHT)) {
+    const tex = scene.textures.createCanvas(TEX_LIGHT, LIGHT_TEX, LIGHT_TEX)!;
+    const ctx = tex.context;
+    const img = ctx.createImageData(LIGHT_TEX, LIGHT_TEX);
+    const h = LIGHT_TEX / 2;
+    for (let y = 0; y < LIGHT_TEX; y++)
+      for (let x = 0; x < LIGHT_TEX; x++) {
+        const d2 = ((x + 0.5 - h) ** 2 + (y + 0.5 - h) ** 2) / (h * h);
+        const a = d2 >= 1 ? 0 : lightFalloff(Math.sqrt(d2));
+        const i = (y * LIGHT_TEX + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+        img.data[i + 3] = Math.round(a * 255);
+      }
+    ctx.putImageData(img, 0, 0);
+    tex.refresh();
+    tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
+  }
   radial(TEX_GLOW, [
     [0, 0.9],
     [0.35, 0.35],

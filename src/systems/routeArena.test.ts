@@ -198,3 +198,36 @@ describe('49라운드 세트 배치 (7) · 특수 노드 기능은 중앙 (6)', 
     expect(p.layout.rooms[0].type).toBe('start');
   });
 });
+
+describe('52라운드 Q9: 쿼터뷰 타일셋 전투장 가장자리', () => {
+  it('쿼터뷰면 가장자리 깊이 0~1칸 (북쪽 경계가 거의 한 줄), 아니면 지역 값 그대로', () => {
+    const topFloorRows = (quarter: boolean) => {
+      const n = {
+        id: 'c3r0',
+        kind: 'battle',
+        type: 'battle',
+        name: '',
+        col: 3,
+        row: 0,
+        next: [],
+      } as unknown as RouteNode;
+      const plan = planNodeArena(n, 'stage1', 'edge-q9', ROUTE, { quarterTileset: () => quarter });
+      const L = plan.layout;
+      const I = L.rooms[0].interior;
+      const rows: number[] = [];
+      // 서·동 가장자리 깊이(최대 1칸)가 겹치는 모서리 두 칸은 뺀다
+      for (let x = I.x + 2; x < I.x + I.w - 2; x++) {
+        for (let y = I.y - 2; y < I.y + I.h; y++)
+          if (L.tiles[y][x] === TileId.Floor) {
+            rows.push(y - I.y);
+            break;
+          }
+      }
+      return rows;
+    };
+    const q = topFloorRows(true);
+    expect(Math.max(...q) - Math.min(...q)).toBeLessThanOrEqual(1);
+    const flat = topFloorRows(false);
+    expect(Math.max(...flat)).toBeGreaterThan(1);
+  });
+});

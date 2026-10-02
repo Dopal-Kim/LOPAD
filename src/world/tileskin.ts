@@ -18,7 +18,7 @@ export interface PropDef {
   name: string;
   solid: boolean;
   /** 50라운드 계약 §9: 광원 (반경·offset = 시트 도트 px, offset = 타일 칸 안 좌표) */
-  light?: LightSpec & { offset?: { x: number; y: number } };
+  light?: LightSpec & { offset?: LightOffset };
   /** 40라운드: 방당 최대 개수 (없으면 제한 없음) */
   maxPerRoom?: number;
   /** 40라운드: 배치 가중치 (기본 1, 0 이면 놓지 않음) */
@@ -49,7 +49,11 @@ export interface TilesetJson {
   /** 50라운드 아트 v2: 바닥 그늘 겹침 인덱스 (북쪽 벽 발치·서·동·모서리) */
   floorShadows?: { n?: number; w?: number; e?: number; nw?: number; ne?: number };
   /** 50라운드 아트 v2: 벽 앞면 타일의 광원 (창·문틈) — 키 = 시트 인덱스, 반경·offset = 시트 도트 px */
-  tileLights?: Record<string, LightSpec & { offset?: { x: number; y: number } }>;
+  tileLights?: Record<string, LightSpec & { offset?: LightOffset }>;
+  /** 52라운드 계약 §12: 쿼터뷰 타일셋 표시 (wallHeightTiles 가 없으면 2칸) */
+  quarter?: boolean;
+  /** 52라운드 계약 §12: 바탕 판석에 방 종류 바닥(roomFloors.*)을 섞는 비율 0~1 (없으면 QUARTER.ROOM_FLOOR_MIX) */
+  roomFloorMix?: number;
   props?: PropDef[];
   /** 37라운드: 방 종류별 바닥 인덱스 목록. 키가 없거나 비면 tiles["1"] */
   roomFloors?: Partial<Record<RoomType, number[]>>;
@@ -218,7 +222,7 @@ export class TileSkin {
     if (id === TileId.Floor && roomType) {
       const rf = this.roomFloors.get(roomType);
       // 50라운드 쿼터뷰(v2) 타일셋: 방 종류 바닥(배수구·금 같은 장식 포함)은 가끔만 — 바탕은 판석 tiles["1"] (아트 목업과 같게)
-      const mix = this.quarter ? pickVariant(x, y, 100, ROOM_FLOOR_SALT) < QUARTER.ROOM_FLOOR_PERCENT : true;
+      const mix = this.quarter ? pickVariant(x, y, 1000, ROOM_FLOOR_SALT) < this.roomFloorMix * 1000 : true;
       if (rf && mix) return rf[pickVariant(x, y, rf.length, id)];
     }
     const list = this.variants.get(id)!;
@@ -236,6 +240,12 @@ export class TileSkin {
 
   get stageTextureKey(): string {
     return this.textureKey;
+  }
+
+  /** 52라운드 계약 §12: 쿼터뷰 바닥에 방 종류 바닥을 섞는 비율 (JSON roomFloorMix, 없으면 기본값) */
+  get roomFloorMix(): number {
+    const m = this.def.roomFloorMix;
+    return typeof m === 'number' && m >= 0 && m <= 1 ? m : QUARTER.ROOM_FLOOR_MIX;
   }
 
   /** 시트 타일 한 칸 크기 (px). 50라운드 새 타일셋 = 32 */
@@ -272,6 +282,18 @@ export interface QuarterWalls {
 /** 계약 art §9 인덱스 표 v3 의 벽 앞면 · 윗면 기본 자리 */
 const V3_WALL_FRONT = 5;
 const V3_WALL_TOP = 6;
+/** 계약 §12: quarter: true 인데 wallHeightTiles 가 없을 때 */
+const DEFAULT_WALL_HEIGHT = 2;
+
+/** 광원 offset (계약 §12 정식 = [x, y] 도트, 아트 v2 초기 산출물은 { x, y }) */
+export type LightOffset = [number, number] | { x: number; y: number };
+
+/** offset → { x, y } (없으면 null) */
+export function lightOffsetOf(o: LightOffset | undefined): { x: number; y: number } | null {
+  if (!o) return null;
+  if (Array.isArray(o)) return typeof o[0] === 'number' && typeof o[1] === 'number' ? { x: o[0], y: o[1] } : null;
+  return typeof o.x === 'number' && typeof o.y === 'number' ? { x: o.x, y: o.y } : null;
+}
 const EDGE_KEYS: readonly WallKey[] = ['left', 'right', 'bottom', 'corner_tl', 'corner_tr', 'corner_bl', 'corner_br'];
 
 /**
@@ -283,7 +305,7 @@ const EDGE_KEYS: readonly WallKey[] = ['left', 'right', 'bottom', 'corner_tl', '
  * - 바닥 그늘 `floorShadows { n, w, e, nw, ne }`
  */
 export function quarterWallsOf(def: TilesetJson): QuarterWalls | null {
-  const h = def.wallHeightTiles;
+  const h = def.wallHeightTiles ?? (def.quarter === true ? DEFAULT_WALL_HEIGHT : undefined);
   if (typeof h !== 'number' || !(h >= 1)) return null;
   const w = (def.walls ?? {}) as Record<string, unknown>;
   const num = (v: unknown): number | undefined => (typeof v === 'number' ? v : undefined);

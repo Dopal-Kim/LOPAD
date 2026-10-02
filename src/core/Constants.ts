@@ -159,10 +159,11 @@ export const QUARTER = {
   /** 가림 판정 여유 (월드 px) */
   OCCLUDE_PAD_PX: 2,
   /**
-   * v2 타일셋 바닥: 방 종류 바닥(roomFloors — 전투 = 배수구·금 등 장식이 있는 변형)을 쓰는 칸 비율(%). 나머지는 판석 tiles["1"].
-   * 아트 목업(바닥 = 0~3 판석)과 맞추려는 임시값
+   * v2 타일셋 바닥: 방 종류 바닥(roomFloors)을 섞는 비율 기본값 — 타일셋 JSON roomFloorMix 가 없을 때 (계약 §12: 0.06)
    */
-  ROOM_FLOOR_PERCENT: 6,
+  ROOM_FLOOR_MIX: 0.06,
+  /** 52라운드 Q9: 쿼터뷰 타일셋 노드 전투장의 가장자리 깊이 상한 (0~1칸 — 북쪽 집 앞면이 거의 한 줄로) */
+  EDGE_MAX_INSET: 1,
 } as const;
 
 /** 발 위치 y 로 깊이를 정한다 (아래쪽이 앞) */

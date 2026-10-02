@@ -705,8 +705,6 @@ export interface LightingData {
   maxLights: number;
   /** 라이트맵 해상도 배율 (화면 대비) */
   lightmapScale: number;
-  /** 광원 그라데이션: 중심에서 이 비율까지 거의 그대로, 그 밖은 0 으로 */
-  falloff: number;
   /** 깜빡임 주파수 범위 (광원마다 다르게) */
   flickerHz: [number, number];
   /** 빛 번짐(가산): 알파 · 반경 배율 · 세기 상한 */

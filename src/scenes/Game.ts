@@ -253,7 +253,12 @@ export class Game extends Phaser.Scene {
     this.nodeKind = this.node?.kind ?? null;
     const nodeSalt = this.node ? `:${this.node.id}` : route ? ':entry' : '';
     this.rng = new Rng(hashSeed(gameState.floorSeed + ':runtime' + nodeSalt));
-    this.nodeArena = !this.lab && route ? planNodeArena(this.node, gameState.stageId, gameState.floorSeed) : null;
+    // 52라운드 Q9: 쿼터뷰 지역 타일셋이면 가장자리 깊이 0~1칸 (북쪽 집 앞면이 거의 한 줄)
+    const quarterTileset = (t: string | null) => Boolean(skinFor(floor, t).quarter);
+    this.nodeArena =
+      !this.lab && route
+        ? planNodeArena(this.node, gameState.stageId, gameState.floorSeed, undefined, { quarterTileset })
+        : null;
     return nodeSalt;
   }
 

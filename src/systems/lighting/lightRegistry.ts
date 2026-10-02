@@ -22,6 +22,8 @@ export interface LightSource {
   y: number;
   anchor: LightAnchor | null;
   offsetY: number;
+  /** 대상에서 오른쪽으로 (월드 px) */
+  offsetX: number;
   color: number;
   radius: number;
   intensity: number;
@@ -45,14 +47,25 @@ export class LightRegistry {
   /** 광원 추가. anchor 가 있으면 매 프레임 그 위치(+offsetY 위로)를 따른다. anchor 가 비활성이 되면 자동으로 지운다 */
   add(
     def: LightDefData | LightSpec,
-    at: { x: number; y: number; anchor?: LightAnchor | null; until?: number; now?: number; fade?: boolean },
+    at: {
+      x: number;
+      y: number;
+      anchor?: LightAnchor | null;
+      until?: number;
+      now?: number;
+      fade?: boolean;
+      /** 대상 기준 광원 위치 (월드 px, 있으면 def.offsetY 대신) */
+      dx?: number;
+      dy?: number;
+    },
   ): LightSource {
     const src: LightSource = {
       id: this.serial++,
       x: at.x,
       y: at.y,
       anchor: at.anchor ?? null,
-      offsetY: def.offsetY ?? 0,
+      offsetY: at.dy !== undefined ? -at.dy : (def.offsetY ?? 0),
+      offsetX: at.dx ?? 0,
       color: hexColor(def.color, DEFAULT_COLOR),
       radius: def.radius,
       intensity: def.intensity ?? 1,
@@ -79,7 +92,7 @@ export class LightRegistry {
         continue;
       }
       if (s.anchor) {
-        s.x = s.anchor.x;
+        s.x = s.anchor.x + s.offsetX;
         s.y = s.anchor.y - s.offsetY;
       }
       if (s.enabled && s.anchor?.visible !== false) out.push(s);

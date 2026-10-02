@@ -2,6 +2,7 @@
  * 49라운드 4-2·6·7·3: 노드 전투장 한 판의 설계도 — 지역(타일셋·가장자리) + 들쭉날쭉한 전투장 + 세트 배치 + 튜토리얼 자리.
  * Phaser 의존 없음 · 시드 결정적. Game 은 `planNodeArena` 결과로 TileWorld·구조물·소품 그림·튜토리얼을 만든다.
  */
+import { QUARTER } from '../core/Constants';
 import { hashSeed } from './rng';
 import { generateArena } from './mapgen/arena';
 import type { FloorLayout, Rect } from './mapgen/types';
@@ -47,6 +48,8 @@ export function planNodeArena(
   stageId: string,
   floorSeed: number | string,
   file: RouteFile = ROUTE,
+  /** 52라운드 Q9: 지역 타일셋이 쿼터뷰인지 (그러면 가장자리 깊이를 QUARTER.EDGE_MAX_INSET 칸까지만) */
+  opts: { quarterTileset?: (tileset: string | null) => boolean } = {},
 ): NodeArenaPlan {
   const kind: RouteKind = node?.kind ?? 'birth';
   const d = kindDef(kind, file);
@@ -55,6 +58,11 @@ export function planNodeArena(
   const regionId = regionIdOf(stageId, node?.col ?? 0, file);
   const region = regionId ? (entries(file.regions)[regionId] ?? null) : null;
   const seed = hashSeed(`${String(floorSeed)}:${node?.id ?? 'entry'}:arena`);
+  const baseEdge = regionEdge(regionId, file);
+  const edge =
+    baseEdge && opts.quarterTileset?.(region?.tileset ?? null)
+      ? { ...baseEdge, maxInset: Math.min(baseEdge.maxInset, QUARTER.EDGE_MAX_INSET) }
+      : baseEdge;
   const layout = generateArena({
     roomId: node?.id ?? 'entry',
     type: node ? d.room : 'start',
@@ -66,7 +74,7 @@ export function planNodeArena(
     exitInset: A.exitInsetTiles,
     spawnExactCenter: kind === 'birth' && node !== null,
     shopCenter: Boolean(node && d.shopTiles),
-    edge: regionEdge(regionId, file) ?? undefined,
+    edge: edge ?? undefined,
     seed,
   });
   const arena = layout.arena!;

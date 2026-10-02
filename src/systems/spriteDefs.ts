@@ -146,6 +146,8 @@ export interface LightSpec {
   flicker?: number | { amp: number; hz?: number };
   /** 광원 중심: 피벗에서 위로 px (시트 도트 기준, 없으면 프레임 세로 중앙) — 시스템 확장 필드 */
   offsetY?: number;
+  /** 계약 §12: 광원 중심 = 시트 프레임 안 [x, y] 도트 좌표 (있으면 offsetY 대신) */
+  offset?: [number, number] | { x: number; y: number };
 }
 
 /** 계약 §1 JSON 필드 (+ §3.1 보강 필드는 선택) */

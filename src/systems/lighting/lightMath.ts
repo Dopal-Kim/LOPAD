@@ -8,6 +8,13 @@ export function hexColor(hex: string | undefined, fallback: number): number {
   return parseInt(hex.slice(1), 16);
 }
 
+/** 광원 감쇠 (52라운드 Q9 — 아트 목업과 같은 식): d = 중심 거리 / 반경, (1 - d²)², 반경 밖 0 */
+export function lightFalloff(d: number): number {
+  if (!(d < 1)) return 0;
+  const t = 1 - Math.max(0, d) ** 2;
+  return t * t;
+}
+
 /** 0..1 의 결정적 의사 난수 (광원마다 깜빡임 위상·주파수를 다르게) */
 export function hash01(seed: number): number {
   const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;

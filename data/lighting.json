@@ -1,28 +1,109 @@
 {
-  "_note": "50라운드 동적 조명 + 어둠 (결정 round-50 Q3, 계약 art §9). 수치는 전부 임시값(검수 대상) — parts/system/README.md 50라운드 절. 반경 = 월드 px(타일 16). 색 '#rrggbb'. 지역 조명은 regions 에 있는 지역만 켠다(Q4 시범: 외곽 거리 먼저). ?light=0 끔 · ?light=1 이면 모든 노드 전투장에 default 적용(검증용)",
+  "_note": "50라운드 동적 조명 + 어둠 (결정 round-50 Q3, 계약 art §9). 수치는 전부 임시값(검수 대상) — parts/system/README.md 50라운드 절. 반경 = 월드 px(타일 16). 색 '#rrggbb'. 지역 조명은 regions 에 있는 지역만 켠다(Q4 시범: 외곽 거리 먼저). ?light=0 끔 · ?light=1 이면 모든 노드 전투장에 default 적용(검증용) · 52라운드 Q9: 밝기는 아트 목업(parts/art/work/v2_outer NOTES 3절) 기준 — 주변광 #424a66, 감쇠 (1-d²)², 주인공 빛 #b0611a r85(도트 px = 월드 42.5) 0.55",
   "regions": {
-    "outer": { "ambient": "#4a4e6e", "note": "외곽 거리: 밤거리, 푸른 어둠 위에 가로등·모닥불이 살린다" }
+    "outer": {
+      "ambient": "#424a66",
+      "note": "외곽 거리: 밤거리, 푸른 어둠 위에 가로등·모닥불이 살린다"
+    }
   },
-  "default": { "ambient": "#55586e" },
-  "player": { "color": "#ffe6c2", "radius": 104, "intensity": 0.72, "flicker": 0.03 },
+  "default": {
+    "ambient": "#55586e"
+  },
+  "player": {
+    "color": "#b0611a",
+    "radius": 43,
+    "intensity": 0.55,
+    "flicker": 0.03
+  },
   "maxLights": 24,
   "lightmapScale": 0.5,
-  "falloff": 0.6,
-  "flickerHz": [4, 9],
-  "glow": { "alpha": 0.22, "radiusMult": 0.55, "maxIntensity": 1.0 },
-  "vignette": { "alpha": 0.5, "inner": 0.5 },
-  "weaponFx": { "color": "#ffd8a0", "radius": 56, "intensity": 0.55, "flicker": 0 },
-  "telegraph": { "color": "#ff5a3c", "radius": 36, "intensity": 0.45, "flicker": 0.15 },
+  "flickerHz": [
+    4,
+    9
+  ],
+  "glow": {
+    "alpha": 0.12,
+    "radiusMult": 0.55,
+    "maxIntensity": 1.0
+  },
+  "vignette": {
+    "alpha": 0.5,
+    "inner": 0.5
+  },
+  "weaponFx": {
+    "color": "#ffd8a0",
+    "radius": 56,
+    "intensity": 0.55,
+    "flicker": 0
+  },
+  "telegraph": {
+    "color": "#ff5a3c",
+    "radius": 36,
+    "intensity": 0.45,
+    "flicker": 0.15
+  },
   "fallback": {
     "_note": "JSON light 가 없는 시트에 시스템이 다는 임시 광원 (시트 id 기준). 아트가 시트 JSON light 를 넣으면 그쪽이 우선",
-    "bonfire": { "color": "#ff9a3c", "radius": 120, "intensity": 0.9, "flicker": 0.25, "offsetY": 6 },
-    "still": { "color": "#ff8a2a", "radius": 88, "intensity": 0.75, "flicker": 0.2, "offsetY": 10 },
-    "fire_pool": { "color": "#ff7a1a", "radius": 64, "intensity": 0.7, "flicker": 0.3 },
-    "soul_wisp": { "color": "#9fd4ff", "radius": 40, "intensity": 0.55, "flicker": 0.2 },
-    "set_outer_lamppost": { "color": "#ffcf7a", "radius": 112, "intensity": 0.85, "flicker": 0.08, "offsetY": 30 },
-    "set_outer_stall": { "color": "#ffb866", "radius": 72, "intensity": 0.55, "flicker": 0.06, "offsetY": 14 },
-    "set_outer_plaza": { "color": "#ff9a3c", "radius": 120, "intensity": 0.85, "flicker": 0.25, "offsetY": 4 },
-    "set_waste_fire_ring": { "color": "#ff9a3c", "radius": 120, "intensity": 0.85, "flicker": 0.25, "offsetY": 4 },
-    "set_gate_brazier": { "color": "#ffa040", "radius": 100, "intensity": 0.8, "flicker": 0.22, "offsetY": 16 }
+    "bonfire": {
+      "color": "#ff9a3c",
+      "radius": 120,
+      "intensity": 0.9,
+      "flicker": 0.25,
+      "offsetY": 6
+    },
+    "still": {
+      "color": "#ff8a2a",
+      "radius": 88,
+      "intensity": 0.75,
+      "flicker": 0.2,
+      "offsetY": 10
+    },
+    "fire_pool": {
+      "color": "#ff7a1a",
+      "radius": 64,
+      "intensity": 0.7,
+      "flicker": 0.3
+    },
+    "soul_wisp": {
+      "color": "#9fd4ff",
+      "radius": 40,
+      "intensity": 0.55,
+      "flicker": 0.2
+    },
+    "set_outer_lamppost": {
+      "color": "#e8b858",
+      "radius": 75,
+      "intensity": 1.0,
+      "flicker": 0.06,
+      "offsetY": 30
+    },
+    "set_outer_stall": {
+      "color": "#ffb866",
+      "radius": 72,
+      "intensity": 0.55,
+      "flicker": 0.06,
+      "offsetY": 14
+    },
+    "set_outer_plaza": {
+      "color": "#ff9a3c",
+      "radius": 120,
+      "intensity": 0.85,
+      "flicker": 0.25,
+      "offsetY": 4
+    },
+    "set_waste_fire_ring": {
+      "color": "#ff9a3c",
+      "radius": 120,
+      "intensity": 0.85,
+      "flicker": 0.25,
+      "offsetY": 4
+    },
+    "set_gate_brazier": {
+      "color": "#ffa040",
+      "radius": 100,
+      "intensity": 0.8,
+      "flicker": 0.22,
+      "offsetY": 16
+    }
   }
 }

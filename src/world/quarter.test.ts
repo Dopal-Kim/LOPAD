@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TileId } from '../systems/mapgen';
-import { TileSkin, quarterWallsOf, type TilesetJson } from './tileskin';
+import { TileSkin, lightOffsetOf, quarterWallsOf, type TilesetJson } from './tileskin';
 
 const tiles = { '0': [7], '1': [0, 1, 2, 3], '2': [5, 21, 22], '6': [4], '7': [11], '8': [12] };
 
@@ -80,6 +80,20 @@ describe('쿼터뷰 벽 타일셋 (50라운드 계약 art §9)', () => {
       true,
     );
     expect(old.indexFor(TileId.Floor, 3, 4, undefined, 'trial')).toBeGreaterThanOrEqual(27);
+  });
+
+  it('계약 §12: roomFloorMix(0~1) 를 읽고 없으면 0.06 · quarter: true 면 벽 높이 2 · light.offset [x, y]', () => {
+    const mk = (extra: object) =>
+      new TileSkin('k', { image: '', tiles, wallHeightTiles: 2, ...extra } as TilesetJson, true);
+    expect(mk({}).roomFloorMix).toBe(0.06);
+    expect(mk({ roomFloorMix: 0.3 }).roomFloorMix).toBe(0.3);
+    expect(mk({ roomFloorMix: 5 }).roomFloorMix).toBe(0.06);
+    const none = mk({ roomFloorMix: 0, roomFloors: { trial: [27] } });
+    for (let i = 0; i < 50; i++) expect(none.indexFor(TileId.Floor, i, i * 3, undefined, 'trial')).toBeLessThan(4);
+    expect(quarterWallsOf({ image: '', tiles, quarter: true })?.heightTiles).toBe(2);
+    expect(lightOffsetOf([16, 20])).toEqual({ x: 16, y: 20 });
+    expect(lightOffsetOf({ x: 3, y: 4 })).toEqual({ x: 3, y: 4 });
+    expect(lightOffsetOf(undefined)).toBeNull();
   });
 
   it('TileSkin: 쿼터뷰 인덱스(윗단·윗면)는 벽(충돌)으로, 타일 크기 32', () => {

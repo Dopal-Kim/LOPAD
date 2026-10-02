@@ -444,7 +444,7 @@ export function validateLighting(d: LightingData): LightingData {
   validateLight(d.telegraph, 'lighting.telegraph');
   for (const [id, l] of Object.entries(d.fallback))
     if (!id.startsWith('_')) validateLight(l, `lighting.fallback.${id}`);
-  for (const k of ['maxLights', 'lightmapScale', 'falloff'] as const) assertNumber(d[k], `lighting.${k}`);
+  for (const k of ['maxLights', 'lightmapScale'] as const) assertNumber(d[k], `lighting.${k}`);
   if (!(d.lightmapScale > 0 && d.lightmapScale <= 1)) throw new Error('[data] lighting.lightmapScale 는 0~1');
   if (!Array.isArray(d.flickerHz) || d.flickerHz.length !== 2)
     throw new Error('[data] lighting.flickerHz 는 [최소, 최대]');

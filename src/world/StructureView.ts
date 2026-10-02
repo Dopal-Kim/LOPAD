@@ -8,6 +8,7 @@
 import Phaser from 'phaser';
 import { DEPTH, STRUCTURE_FX, entityDepth } from '../core/Constants';
 import { lightFor, lightRegistryOf, type LightSource } from '../systems/lighting/lightRegistry';
+import { lightOffsetOf } from './tileskin';
 import { spriteLibrary } from '../systems/sprites';
 import { STRUCTURE_ACTION, artScale, frameDurations, structureStateFrames, type SheetDef } from '../systems/spriteDefs';
 
@@ -70,7 +71,10 @@ export class StructureView {
         .setScale(this.scale);
       this.splitOcclusion(def, texture);
       const ld = opts.unlit ? null : lightFor(opts.sheet, def);
-      if (ld) this.light = lightRegistryOf(scene).add(ld, { x: r.centerX, y: r.bottom, anchor: this.sprite });
+      // 계약 §12 light.offset = 프레임 안 [x, y] 도트 → 피벗 기준 월드 위치
+      const off = ld && 'offset' in ld ? lightOffsetOf(ld.offset) : null;
+      const at = off ? { dx: (off.x - def.pivot.x) * this.scale, dy: (off.y - def.pivot.y) * this.scale } : {};
+      if (ld) this.light = lightRegistryOf(scene).add(ld, { x: r.centerX, y: r.bottom, anchor: this.sprite, ...at });
     } else if (opts.subtle) {
       // 숨은 벽: 벽 타일 위 금 간 1px 호박 빛 (40라운드 '문 틈 빛'과 같은 언어)
       const g = scene.add.graphics();

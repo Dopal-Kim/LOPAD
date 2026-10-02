@@ -474,3 +474,10 @@ npm run build
 - **바닥**: 전투 노드 바닥이 `roomFloors.trial`(27 배수구·28 금·29·30)로만 깔려 칸마다 배수구가 찍혔다. 목업 바닥은 `tiles["1"]`(0~3 판석)뿐 → 쿼터뷰(v2) 타일셋은 판석이 바탕, 방 종류 바닥은 `QUARTER.ROOM_FLOOR_PERCENT`(6%, 임시) 칸만. 기존 타일셋은 그대로.
 - **벽 쌓기**: 아트 JSON 은 `walls.front = { lower: [...], upper: [...] }`(중복 = 가중치) 객체였는데 숫자·배열만 읽어 윗단이 40 하나로 고정됐고, 모든 벽 칸에 윗면을 2칸 올려 그려 서·동·남 경계와 두꺼운 벽이 조각났다. → `walls.stacking` 규칙대로: 남쪽이 바닥인 벽 = 아랫단(제자리) → 윗단 → 처마 `topAboveFront`(47), 그 밖의 벽 = 제자리 윗면 + 경계 가장자리(`left 48`·`right 49`·`bottom 50`·`corner_bl/br 51/52`), 나머지 `top 6`. 엄폐 담(바깥 빈 칸에 닿지 않는 벽 덩어리)은 `stoneSet`(43·46 / 44 / 45). 바닥 그늘 `floorShadows`(53~57)를 벽 발치에 겹침. 앞면 창·문 `tileLights`(21·22) 광원. 소품 light 의 `flicker {amp,hz}`·`offset`(칸 안 좌표) 지원.
 - 비교 이미지: 스크래치 `r50sys/compare_outer_fix.png`. 남은 차이: 북쪽 경계가 49라운드 들쭉날쭉 가장자리(외곽 maxInset 3)라 목업처럼 일직선이 아니고, 전체 밝기가 목업보다 어둡다(주변광·주인공 빛 임시값) — 인터뷰 대상.
+
+### 52라운드 Q9 반영 (계약 art §12)
+- **경계 일직선**: 지역 타일셋이 쿼터뷰면 `planNodeArena(…, { quarterTileset })` 가 가장자리 깊이를 `QUARTER.EDGE_MAX_INSET`(1칸)까지만 — 북쪽 집 앞면이 1칸 계단 이내로 이어진다. 열린 틈(원경)은 그대로.
+- **밝기 = 아트 목업 수치**: 외곽 주변광 #424a66, 감쇠 `(1-d²)²`(`lightFalloff`, 방사형 텍스처를 픽셀 단위로 계산), 주인공 빛 #b0611a 반경 43(= 도트 85px)·0.55, 가로등 fallback 75(= 도트 150px)·1.0, 빛 번짐 알파 0.12. 비교 측정: 빛이 닿지 않는 바닥 색이 목업과 같다(목업 (14,17,28) / 게임 (14,18,29)). 목업이 전체로 더 밝은 건 장면 안 큰 소품(가로등·화로, `bigProps` — 시스템 미배치)과 칼 글로우 때문.
+- **바닥 변형 비율**: 타일셋 JSON `roomFloorMix`(0~1, 없으면 `QUARTER.ROOM_FLOOR_MIX` 0.06).
+- **§12 키**: `quarter: true`(wallHeightTiles 없으면 2) · `light.offset` = `[x, y]`(구 `{x, y}` 도 읽음, 구조물 시트·타일셋 소품·tileLights) · `flicker` 숫자 = amp. `bigProps`·`emissiveColors` 미사용(예약). 이펙트 시트 light.offset 은 아직 미적용(이펙트 중심).
+- 비교: 스크래치 `r50sys/compare_outer_fix2.png`.

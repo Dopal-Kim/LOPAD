@@ -14,7 +14,7 @@ import Phaser from 'phaser';
 import { DEPTH, QUARTER, TILE, entityDepth } from '../core/Constants';
 import { TileId, type FloorLayout } from '../systems/mapgen';
 import { lightRegistryOf } from '../systems/lighting/lightRegistry';
-import { isOpenId, pickVariant, wallKind, type PropPlacement, type TileSkin } from './tileskin';
+import { isOpenId, lightOffsetOf, pickVariant, wallKind, type PropPlacement, type TileSkin } from './tileskin';
 import type { LightSource } from '../systems/lighting/lightRegistry';
 
 interface WallImage {
@@ -194,7 +194,7 @@ export class QuarterView {
     const l = this.skin.def.tileLights?.[String(index)];
     if (!l) return;
     const k = this.scale;
-    const o = l.offset ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
+    const o = lightOffsetOf(l.offset) ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
     this.wallLights.push(
       lightRegistryOf(this.scene).add(
         { ...l, radius: l.radius * k },
@@ -247,7 +247,7 @@ export class QuarterView {
     for (const p of props) {
       const l = lit.get(p.index);
       if (!l) continue;
-      const o = l.offset ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
+      const o = lightOffsetOf(l.offset) ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
       reg.add(
         { ...l, radius: l.radius * this.scale },
         { x: p.x * TILE + o.x * this.scale, y: p.y * TILE + o.y * this.scale },
