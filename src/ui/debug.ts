@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { UI_EVENTS, uiBus, type UiMenu, type UiSnapshot } from '../contract/ui';
+import { UI_EVENTS, uiBus, uiCommands, type UiMenu, type UiSnapshot } from '../contract/ui';
 import { UI_SCENE_KEYS } from './keys';
 
 /**
@@ -12,6 +12,8 @@ import { UI_SCENE_KEYS } from './keys';
  *   emit(name, payload)         // UI_EVENTS[name] 를 uiBus 로 (STRUCTURE_RESULT·CHALLENGE_* 등 화면 확인용)
  *   openMenu(menu) / closeMenu()// 가짜 메뉴 열기·닫기
  *   selects: [menuId, key][]    // 가짜 메뉴에서 고른 기록
+ *   fakeChoose(on)              // 48라운드: chooseNode 를 시스템으로 보내지 않고 true 로 (가짜 route 확인용)
+ *   chosen: string[]            // 가짜로 고른 노드 id
  * }
  */
 type Patch = Partial<UiSnapshot> | ((s: UiSnapshot) => Partial<UiSnapshot>);
@@ -22,6 +24,9 @@ interface DebugApi {
   openMenu(menu: UiMenu): void;
   closeMenu(): void;
   selects: [string, string][];
+  fakeChoose(on: boolean): void;
+  chosen: string[];
+  view: Record<string, unknown>;
 }
 
 let enabled: boolean | null = null;
@@ -29,6 +34,17 @@ let patch: Patch | null = null;
 let fakeMenu: UiMenu | null = null;
 let scenePlugin: Phaser.Scenes.ScenePlugin | null = null;
 const selects: [string, string][] = [];
+let fakeChoose = false;
+const chosen: string[] = [];
+
+/** 48라운드: 노드 고르기 명령 (디버그 가짜 고르기가 켜져 있으면 기록만 하고 true) */
+export function chooseNodeCmd(id: string): boolean {
+  if (fakeChoose && uiDebugEnabled()) {
+    chosen.push(id);
+    return true;
+  }
+  return uiCommands.chooseNode(id);
+}
 
 export function uiDebugEnabled(): boolean {
   if (enabled === null) {
@@ -53,6 +69,13 @@ export function debugSelect(m: UiMenu, key: string): void {
   selects.push([m.id, key]);
 }
 
+/** 디버그가 켜져 있을 때만 화면 확인용 값을 `window.__lopadUi.view[name]` 에 둔다 (48라운드: 노드 지도 좌표) */
+export function debugExpose(name: string, value: unknown): void {
+  if (!uiDebugEnabled()) return;
+  views[name] = value;
+}
+const views: Record<string, unknown> = {};
+
 /** HUD 씬 create 에서 호출 */
 export function installUiDebug(scene: Phaser.Scene): void {
   if (!uiDebugEnabled()) return;
@@ -75,6 +98,11 @@ export function installUiDebug(scene: Phaser.Scene): void {
       fakeMenu = null;
     },
     selects,
+    fakeChoose(on) {
+      fakeChoose = on;
+    },
+    chosen,
+    view: views,
   };
   (window as unknown as { __lopadUi?: DebugApi }).__lopadUi = api;
 }

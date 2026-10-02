@@ -1,5 +1,60 @@
 # 게임 UI 파트 — 작업 기록
 
+## 48라운드 (2026-10-02) · 노드 지도·노드 띠·탄생 연출
+결정: `decisions/2026-10-02-round-48-playfeel-route.md` (Q1 카메라 2배, Q3 노드 지도, Q6 탄생, Q9 1층 노드 구성, Q11 워프 비활성 → Tab = 노드 지도 보기). 계약: `contracts/ui-system-interface.md` **§10** (승인 #17) — `UiSnapshot.route`(`UiRoute`·`UiRouteNode`), `uiCommands.chooseNode`, `ROUTE_CHOOSE_OPEN`·`ROUTE_NODE_ENTERED`·`BIRTH_STARTED/DONE`. 아이콘: `contracts/art-assets.md` §6.5 (승인 #18) `assets/sprites/ui/node_icons.*` → `assets/ui/kit/` 사본. 그 외 시스템 코드 열람 없음.
+`route` 가 null(또는 노드 0개)이면 전부 기존 동작(방 미니맵·Tab 워프·'시련 n/m').
+
+### 화면
+- **노드 지도** (`RouteMap.ts`, HUD 씬 위 depth 100): 화면 G00 α0.55 → 일기장 한 페이지 864×456(책 896×488). 제목 줄: 가운데 '가는 길'(Galmuri14), 왼쪽 층 제목(page_faint), 고르기 모드면 오른쪽 '다음 갈 곳을 고른다'(page_selected) + `rule`.
+  - 지도(높이 288): 왼→오 `col`, 단계 간격 = min(128, 폭/단계 수), 단계마다 `row` 수로 세로 가운데 정렬(줄 간격 ≤ 96) → 갈림길이 갈라졌다 합쳐진다. 1층 10노드(7단계) = 단계 간격 115.
+  - 노드: `node_icons` 32×32 (행 0 기본 = current·available, 행 1 지나옴 = cleared, 행 2 잠김 = locked·passed; passed 는 노드·이름표 α0.55 추가). 2층부터 강조 1점을 그 층 램프로 바꾼 사본(`kit.ts nodeIconKey`). 시트가 없으면 계단식 픽셀 마름모(반대각선 18, S1/S2 채움 + S5/S4 테두리) + 키트 글리프(여정 mini_start·전투 mini_trial·쉼터 mini_rest·본영 mini_boss ×2, 상점 icon_gold, 이벤트 '?').
+  - 상태 표시: current = 층 강조 22 마름모 고리 2px + **주인공 표시**(픽셀 사람 16×22: 그늘 S2 → 할로 강조 20 α0.5 → 몸 G14, 0.42초마다 2px 위아래) / available = 강조 20 바깥 고리 맥동(α1↔0.2, 0.64초) / 고른 노드 = 강조 20 고리 2px + `cursor` 촉.
+  - 연결선 점선 2×2: 지나온 길(cleared/current 끼리) S0 6px 간격, 지금 고를 길(current→available) 강조 22 6px, 그 외 S1 9px.
+  - 이름표: 노드 아래 6px, 가운데 정렬, 폭 = 단계 간격 - 12 에서 줄바꿈. current page_title, available page_body, 고른 노드 page_selected, 그 외 page_faint.
+  - 아래: `rule` → 고른 노드 이름(page_selected ×2) + '종류 · 상태'(page_body) / 오른쪽 범례(아이콘 + 종류 이름 6개, 상점은 `names.shop`) / 거부 사유(page_selected, 오른쪽) / 조작 안내(page_faint).
+- **고르기 모드** (`ROUTE_CHOOSE_OPEN`): 게임은 정지하지 않는다(시스템이 입력을 잠금). available 노드만 고를 수 있다 — 마우스(올리면 고름, 눌렀다 **뗀** 뒤) 또는 ←→↑↓·WASD(available 사이를 돌아가며) + Enter·Space(**뗀** 뒤) → 한 프레임 늦게 `chooseNode(id)`. true 면 닫고 1.5초 동안 다시 열지 않음, false 면 '지금은 그리로 갈 수 없다'. Esc·Tab 으로 닫히지 않는다(고를 곳이 0개일 때만 Esc 로 닫힘). 잠긴 노드 클릭은 무시. 어두운 바탕이 클릭을 막는다.
+  안전망: 스냅샷 `route.choosing` 인데 지도·메뉴·일시정지·결과·탄생 연출이 없으면 HUD 가 연다(이벤트를 놓쳤거나 메뉴가 닫힌 뒤). `MENU_OPEN`·`RUN_ENDED`·`STAGE_STARTED` 는 지도를 닫는다.
+- **Tab = 노드 지도 보기** (route 가 있을 때): 메뉴·일시정지·결과·`menu`·`choosing`·탄생 연출 중이면 무시. 열면 `pause()`(일시정지 일기장은 띄우지 않음), ←→↑↓ 로 노드 둘러보기·마우스 올리기(정보만), Tab·Esc 로 닫고 재개. `RESUMED` 가 오면 닫힘.
+- **HUD 우상단 노드 띠** (`RouteStrip.ts`): 방 미니맵 대신 같은 `minimap_frame` 안에 전체 노드를 작은 마름모(반대각선 3, 단계 12px·줄 10px)로: 지금 = 층 강조 22 한 칸 크게, 지나온 곳 G08, 갈 수 있는 곳 G02 + G12 테두리, 먼 곳 G01 + G05 테두리, 지나친 갈래 G03. 연결 1px 점(지나온 G08 2px 간격, 고를 길 G11, 그 외 G04 3px). 아래 '남은 길 N'(현재 → 마지막 단계 수, 마지막이면 '마지막', ink_faint). 틀 크기는 노드에 맞추고(최소 폭 100) 'M 음소거'·'Tab 지도' 줄이 그 아래로 따라 내려간다.
+- **좌상단**: route 가 있으면 '층 제목   지금 노드 이름' ('시련 n/m' 대신). 일시정지 일기장 첫 줄도 같음.
+- **'Tab 지도'**: HUD 힌트(route 가 있으면 늘 보임)·일시정지 조작법 줄 덧붙임(`controlsLine(…, routeMode)`).
+- **노드 진입** (`ROUTE_NODE_ENTERED`): 기존 층 배너와 같은 방식(가운데 Galmuri11 ×2 ink_body, 1.6초)으로 노드 이름. **배너는 이제 차례로** — 층 제목과 노드 이름이 같이 오면 덮어쓰지 않고 이어서(대기 최대 3).
+- **탄생 연출** (`BIRTH_STARTED`~`BIRTH_DONE`): HUD 카메라를 숨기고, 안내만 그리는 카메라 하나로 하단 가운데(아래 24px) '아무 키나 눌러 건너뛰기'(ink_faint, 0.3초 나타남). 그동안 Tab·Esc 무시(건너뛰기 입력은 시스템), 자막은 마지막 한 줄·배너는 끝난 뒤로 미룸, 지도 닫음. `RUN_ENDED` 또는 15초가 지나면 스스로 해제.
+- **카메라 2배 점검**: UI 씬 카메라는 영향 없음. 상호작용 말풍선은 계약대로 `interactable.screen`(캔버스 px)을 그대로 쓴다 — 줌 1 실게임에서 장부대 위 정확(스크린샷 09). 줌 2 실제 확인은 시스템 반영 후(이 빌드엔 아직 줌 1).
+
+### 같이 고친 것
+- **지도를 Esc 로 닫으면 일시정지 일기장이 열리던 문제** (45라운드 워프 지도도 같음): 누르는 프레임에 재개하면 게임 씬이 같은 Esc 를 받아 정지했다. 재개를 **Esc 를 뗀 다음 프레임**으로 미룸(놓쳐도 1초 뒤 재개). `HudScene.resumeAfterRelease`.
+- 일시정지 일기장이 디버그 덮어쓰기(`uidebug`)를 반영하도록 `withDebug` 적용(디버그 꺼지면 영향 없음).
+
+### UI 디버그 경로 추가 (`uidebug=1`)
+`__lopadUi.fakeChoose(true)` → `chooseNode` 를 시스템으로 보내지 않고 true(기록 `chosen`). `__lopadUi.view.routeMap` = 열린 지도의 노드 화면 좌표(헤드리스 클릭용). 가짜 route 는 `patch({ route })` + `emit('ROUTE_CHOOSE_OPEN', route)`.
+
+### 소유 코드·에셋 추가·변경
+| 파일 | 내용 |
+|---|---|
+| `RouteMap.ts` (신규) | 노드 지도 오버레이(고르기·보기), 픽셀 마름모·고리·주인공 그리기, 종류 이름 |
+| `RouteStrip.ts` (신규) | HUD 노드 띠 |
+| `routeView.ts`, `routeView.test.ts` (신규) | 순수 계산: 배치·정렬·돌아가며 고르기·남은 단계·연결선 종류·점선 점 (테스트 6개) |
+| `HudScene.ts` | 노드 지도 열기·닫기·고르기, 안전망, 노드 띠·우상단 배치, 탄생 연출 숨김, 배너 차례, Esc 재개 지연 |
+| `Minimap.ts` | `setVisible` |
+| `PauseScene.ts` | route 층 첫 줄·'Tab 지도', `withDebug` |
+| `kit.ts` | `NODE_ICON_SHEET`(로드), `nodeIconKey`(층 강조 바꾼 사본) |
+| `text.ts` | `ROUTE_TEXT`·`routeText()`, `controlsLine(secondary, routeMode)` |
+| `theme.ts` | `ROUTE` 수치(임시값) |
+| `debug.ts` | `chooseNodeCmd`, `fakeChoose`, `debugExpose`/`view` |
+| `assets/ui/kit/node_icons.png/json` | 아트 사본 (수정 금지) |
+
+### 임시값 (도영 님 검토 대상)
+- 문구(`text.ts ROUTE_TEXT`, 텍스트 팩 `hud.<키>` 우선): 지도 제목 '가는 길', '다음 갈 곳을 고른다', 안내 '←→↑↓ 고르기 · Enter·클릭 그리로 간다' / '←→↑↓ 둘러보기 · Tab·Esc 닫기', 상태 '지금 여기'·'갈 수 있다'·'지나온 곳'·'지나친 갈래'·'아직 멀다', 거부 '지금은 그리로 갈 수 없다', 종류 '여정'·'전투'·'상점'(→ `names.shop`)·'쉼터'·'이벤트'·'본영', 'Tab 지도', '남은 길 {n}'·'마지막', '아무 키나 눌러 건너뛰기'.
+- 수치(`theme.ts ROUTE`): 페이지 864×456·여백 28·지도 높이 288, 단계 간격 ≤128·줄 ≤96, 노드 반대각선 18, 맥동 고리 24·0.64초, 점선 2px·6/9px, 주인공 흔들림 0.42초, 노드 띠(단계 12·줄 10·마름모 3·최소 폭 100), 탄생 안내 아래 24px·안전 해제 15초, 고르기 뒤 재열기 막기 1.5초, Esc 재개 대기 최대 1초.
+- 판단: HUD 노드 띠는 **숨김 대신 전체 노드 축소판 + 남은 길**. 좌상단 '시련 n/m' 자리에 지금 노드 이름. passed 는 잠김 행 + α0.55. 잠김(행 2) 아이콘이 종이 위에서 꽤 흐려 앞길 종류는 이름표로 읽힌다 — 더 진하게 할지 검토.
+
+### 검증 (헤드리스 Playwright 960×540, `vite preview --port 4183`, 스크립트 `scratchpad/r48ui.cjs`, 스크린샷 `scratchpad/r48ui/`)
+시스템 작업 트리가 진행 중(런타임 오류 `this.buildArena is not a function`)이라 **HEAD + UI 변경분** 사본(`scratchpad/iso48`)으로 빌드해 확인. `uidebug=1` 가짜 route(1층 10노드).
+HUD 노드 띠·'Tab 지도'·좌상단 노드 이름 → Tab 보기(게임 정지, 일시정지 일기장 없음, 방향키 둘러보기) → Tab 닫기·재개 → Esc 닫기·재개(일시정지 없음) → Tab `defaultPrevented` → `ROUTE_CHOOSE_OPEN` 고르기(↓ 이동, Esc 무시, Enter → b1, 지도 닫힘) → 안전망 재열기 → 잠긴 노드 클릭 무시 → 마우스 클릭 → b1 → 노드 진입 배너 → 층 배너 → 노드 배너 차례 → 탄생(HUD 숨김·안내만·Tab 무시·자막 미룸) → 끝(HUD 복귀·자막) → 일시정지 첫 줄·'Tab 지도' → 2층 강조색 → route null(방 미니맵·'Tab 워프'·워프 지도). 고르기 Enter·클릭 전후 `lastAttack` 변화 없음(대조: 평소 클릭은 변함). 콘솔 오류·경고 0, HTTP 4xx 0.
+
+---
+
 ## 47라운드 (2026-10-02) · 상호작용 구조물 UI
 결정: `decisions/2026-10-02-round-47-structures-impl.md` (Q5 E·C3 2초 누르기, Q7 안내는 UI, Q16 미니맵 점 1개, Q17 문구 자리표시, Q18 임시값). 계약: `contracts/ui-system-interface.md` **§9** (승인 #14) — `UiSnapshot.interactable/statuses`, `UiRoom.structureDot`, 구조물 메뉴 id 6종·`cancelKey`·`structureId`, `STRUCTURE_RESULT`·`CHALLENGE_STARTED`·`CHALLENGE_CLEARED`. 그 외 시스템 코드 열람 없음.
 문구는 시스템이 준 문자열 그대로 그린다(계약 §9.8). UI 가 만든 것은 키 틀·초 표시·닫기·범례·조작법 덧붙임뿐(`text.ts STRUCT_TEXT`, 텍스트 팩 `hud.<키>` 우선).

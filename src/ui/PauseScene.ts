@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, uiBus, uiCommands } from '../contract/ui';
+import { withDebug } from './debug';
 import { GlowText } from './glow';
 import { ICON, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
+import { hasRoute } from './routeView';
 import { controlsLine, uiText } from './text';
 import { SelectList } from './widgets';
 
@@ -51,7 +53,7 @@ export class PauseScene extends Phaser.Scene {
   };
 
   private build(): void {
-    const s = uiCommands.getUiSnapshot();
+    const s = withDebug(uiCommands.getUiSnapshot());
     const stageIndex = Math.max(0, s.stageIndex);
     const W = this.scale.width;
     const H = this.scale.height;
@@ -69,7 +71,12 @@ export class PauseScene extends Phaser.Scene {
     y += 4 + 10;
     const evo = s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : '';
     const lines = [
-      `${s.playerName || '―'}   ${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}`,
+      // 48라운드: 노드 지도 층이면 시련 수 대신 지금 노드 이름
+      `${s.playerName || '―'}   ${s.floorTitle || s.stageName}   ${
+        hasRoute(s.route)
+          ? (s.route.nodes.find((n) => n.id === s.route?.currentId)?.name ?? '')
+          : `시련 ${s.trialsCleared}/${s.trialsTotal}`
+      }`,
       `공격 ${s.stats.attack}   방어 ${s.stats.defense}   치명타 ${s.stats.crit}%   감각 ${s.stats.sense}`,
       `무기: ${s.weapon.name}${evo}   (개성 ${s.weapon.personality}/${s.weapon.threshold})`,
       `패시브: ${s.passives.length ? s.passives.map((p) => `${p.name}${p.level > 1 ? ` Lv${p.level}` : ''}`).join(', ') : '―'}`,
@@ -88,7 +95,7 @@ export class PauseScene extends Phaser.Scene {
     this.list = new SelectList(this, pg.x + PAD, y, (key) => this.choose(key), { stageIndex, detailWrap: innerW - 40 });
     this.setList();
     y += 18 * 2 + 10;
-    new GlowText(this, pg.x + PAD, y, controlsLine(s.weapon.secondaryName), 'page_faint', { wrap: innerW });
+    new GlowText(this, pg.x + PAD, y, controlsLine(s.weapon.secondaryName, hasRoute(s.route)), 'page_faint', { wrap: innerW });
   }
 
   private setList(): void {

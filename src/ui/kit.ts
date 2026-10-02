@@ -89,6 +89,54 @@ export const WEAPON_ICON_IDS: Record<string, string> = {
 };
 export const weaponIconKey = (id: string): string => `ui-weapon-${id}`;
 
+/**
+ * 48라운드 노드 지도 아이콘 시트 (아트 계약 `art-assets.md` §6.5, 승인 #18): 32×32, 열 = 종류
+ * (journey, battle, shop, rest, event, boss), 행 0 = 기본 · 1 = 지나옴(식음) · 2 = 잠김(흐림).
+ * 아트 산출물 사본 `assets/ui/kit/node_icons.png` (48라운드 복사). `available` 을 false 로 두면 Graphics 마름모 +
+ * 키트 글리프 폴백으로 그린다 (없는 파일을 읽어 404 를 내지 않게 플래그로 둔다).
+ * 강조 1점(슬롯 20~22)은 1층 램프로 그려져 있다 — 2층부터 `nodeIconKey` 가 그 층 램프로 바꾼 사본을 만든다.
+ */
+export const NODE_ICON_SHEET: { key: string; file: string; size: number; order: readonly string[]; available: boolean } = {
+  key: K('node_icons'),
+  file: 'node_icons',
+  size: 32,
+  order: ['journey', 'battle', 'shop', 'rest', 'event', 'boss'],
+  available: true,
+};
+
+/** 노드 아이콘 시트 텍스처 키 (층 강조색 적용). 1층·시트 없음이면 원본 키. 프레임 = 행 × 6 + 열 */
+export function nodeIconKey(scene: Phaser.Scene, stageIndex: number): string {
+  const base = NODE_ICON_SHEET.key;
+  if (stageIndex <= 0 || !scene.textures.exists(base)) return base;
+  const key = `${base}@${stageIndex}`;
+  if (scene.textures.exists(key)) return key;
+  const src = scene.textures.get(base).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+  const tex = scene.textures.createCanvas(key, src.width, src.height);
+  if (!tex) return base;
+  const ctx = tex.getContext();
+  ctx.drawImage(src, 0, 0);
+  const img = ctx.getImageData(0, 0, src.width, src.height);
+  const swap = new Map<number, number>();
+  for (let slot = ACCENT_FIRST_SLOT; slot <= ACCENT_FIRST_SLOT + 11; slot++)
+    swap.set(hexToNum(accentHex(scene, 0, slot)), hexToNum(accentHex(scene, stageIndex, slot)));
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] === 0) continue;
+    const to = swap.get((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
+    if (to === undefined) continue;
+    d[i] = (to >> 16) & 255;
+    d[i + 1] = (to >> 8) & 255;
+    d[i + 2] = to & 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  const n = NODE_ICON_SHEET.size;
+  const cols = Math.floor(src.width / n);
+  const rows = Math.floor(src.height / n);
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) tex.add(r * cols + c, 0, c * n, r * n, n, n);
+  tex.refresh();
+  return key;
+}
+
 /** 씬 preload 에서 호출. 이미 있는 텍스처는 건너뛴다 (UI 씬 어느 것이 먼저 떠도 된다) */
 export function preloadKit(scene: Phaser.Scene): void {
   const img = (key: string, file: string) => {
@@ -117,6 +165,11 @@ export function preloadKit(scene: Phaser.Scene): void {
     scene.load.spritesheet(KIT.cursor, `${BASE}cursor.png`, { frameWidth: 8, frameHeight: 8 });
   if (!scene.textures.exists(KIT.cursorLight))
     scene.load.spritesheet(KIT.cursorLight, `${BASE}cursor_light.png`, { frameWidth: 8, frameHeight: 8 });
+  if (NODE_ICON_SHEET.available && !scene.textures.exists(NODE_ICON_SHEET.key))
+    scene.load.spritesheet(NODE_ICON_SHEET.key, `${BASE}${NODE_ICON_SHEET.file}.png`, {
+      frameWidth: NODE_ICON_SHEET.size,
+      frameHeight: NODE_ICON_SHEET.size,
+    });
   if (!scene.cache.json.exists(KIT.palette)) scene.load.json(KIT.palette, `${BASE}palette.json`);
   for (const id of Object.values(WEAPON_ICON_IDS)) {
     const key = weaponIconKey(id);

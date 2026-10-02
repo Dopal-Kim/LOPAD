@@ -40,6 +40,15 @@ export class Minimap {
     return { w: Math.max(7, gridW) * MINI + pad * 2, h: Math.max(7, gridH) * MINI + pad * 2 };
   }
 
+  /** 48라운드: 노드 지도 층에서는 숨긴다 */
+  setVisible(v: boolean): void {
+    this.frame.setVisible(v);
+    this.g.setVisible(v);
+    this.dotG.setVisible(v);
+    for (const im of this.glyphs) im.setVisible(v);
+    if (!v) this.lastKey = '';
+  }
+
   setDepth(d: number): void {
     this.frame.setDepth(d);
     this.g.setDepth(d + 1);

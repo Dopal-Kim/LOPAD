@@ -6,6 +6,8 @@ import {
   type UiChallengeCleared,
   type UiChallengeStarted,
   type UiMenu,
+  type UiRoute,
+  type UiRouteEntered,
   type UiSnapshot,
   type UiStoryLine,
   type UiStructureMenuId,
@@ -13,7 +15,7 @@ import {
   type UiWarpDenied,
   type UiWarpDone,
 } from '../contract/ui';
-import { installUiDebug, withDebug } from './debug';
+import { chooseNodeCmd, installUiDebug, withDebug } from './debug';
 import { GlowText } from './glow';
 import {
   Gauge,
@@ -29,9 +31,12 @@ import {
 } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { Minimap } from './Minimap';
+import { RouteMap } from './RouteMap';
+import { RouteStrip } from './RouteStrip';
+import { hasRoute } from './routeView';
 import { ChallengePanel, InteractBubble, ResultToasts, StatusChips } from './StructureHud';
-import { fill, uiText, warpText } from './text';
-import { LAYOUT, STRUCT } from './theme';
+import { fill, routeText, uiText, warpText } from './text';
+import { LAYOUT, ROUTE, STRUCT } from './theme';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 
 /** 하단 중앙 묶음 (33라운드 Q3) */
@@ -104,6 +109,23 @@ export class HudScene extends Phaser.Scene {
   private chips?: StatusChips;
   private toasts?: ResultToasts;
   private challenge?: ChallengePanel;
+  // 노드 지도 (48라운드)
+  private routeMap?: RouteMap;
+  private routeStrip?: RouteStrip;
+  private routeMode = false;
+  private soundIcon?: Phaser.GameObjects.Image;
+  private muteHint?: GlowText;
+  /** chooseNode 가 받아들여진 뒤 스냅샷이 아직 choosing 인 동안 다시 열지 않는다 */
+  private chooseSuppressUntil = 0;
+  // 탄생 연출 (48라운드): HUD 를 숨기고 건너뛰기 안내만
+  private birthActive = false;
+  private birthCam?: Phaser.Cameras.Scene2D.Camera;
+  private birthHint?: GlowText;
+  private birthFailsafe?: Phaser.Time.TimerEvent;
+  private deferredCaption?: UiStoryLine;
+  // 배너 차례 (층 제목 → 노드 이름이 겹치지 않게)
+  private bannerQueue: string[] = [];
+  private bannerBusy = false;
 
   constructor() {
     super(UI_SCENE_KEYS.HUD);
@@ -119,6 +141,10 @@ export class HudScene extends Phaser.Scene {
     this.alive = true;
     this.built = false;
     this.glows = [];
+    this.routeMode = false;
+    this.birthActive = false;
+    this.bannerQueue = [];
+    this.bannerBusy = false;
     installUiDebug(this);
     this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(withDebug(s)));
     this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) =>
@@ -127,8 +153,8 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.showBanner(p.stageName));
     this.on(UI_EVENTS.STORY, (l: UiStoryLine) => this.showCaption(l));
     this.on(UI_EVENTS.PAUSED, () => {
-      // 워프 지도가 연 정지면 일시정지 일기장을 띄우지 않는다
-      if (this.warpMap) return;
+      // 워프 지도·노드 지도가 연 정지면 일시정지 일기장을 띄우지 않는다
+      if (this.warpMap || this.routeMap) return;
       if (!this.scene.isActive(UI_SCENE_KEYS.PAUSE)) this.scene.launch(UI_SCENE_KEYS.PAUSE);
     });
     // Esc 는 Key 폴링(JustDown) 대신 keydown 이벤트로 받는다 — 씬이 바뀌는 프레임에 Key 상태가 눌린 채 남아
@@ -139,9 +165,23 @@ export class HudScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-TAB', this.onTab);
     this.on(UI_EVENTS.WARP_DENIED, (p: UiWarpDenied) => this.onWarpDenied(p));
     this.on(UI_EVENTS.WARP_DONE, (p: UiWarpDone) => this.toast(fill(warpText('warpDone'), { room: roomName(p.type) })));
-    this.on(UI_EVENTS.RESUMED, () => this.closeWarp(false));
+    this.on(UI_EVENTS.RESUMED, () => {
+      this.closeWarp(false);
+      if (this.routeMap?.mode === 'view') this.closeRoute(false);
+    });
     for (const e of [UI_EVENTS.MENU_OPEN, UI_EVENTS.RUN_ENDED, UI_EVENTS.STAGE_STARTED])
-      this.on(e, () => this.closeWarp(false));
+      this.on(e, () => {
+        this.closeWarp(false);
+        this.closeRoute(false);
+      });
+    // 48라운드: 노드 지도·노드 진입·탄생 연출 (계약 §10)
+    this.on(UI_EVENTS.ROUTE_CHOOSE_OPEN, (r: UiRoute) => this.openRouteChoose(r));
+    this.on(UI_EVENTS.ROUTE_NODE_ENTERED, (p: UiRouteEntered) => {
+      if (p?.name) this.showBanner(p.name);
+    });
+    this.on(UI_EVENTS.BIRTH_STARTED, () => this.startBirth());
+    this.on(UI_EVENTS.BIRTH_DONE, () => this.endBirth());
+    this.on(UI_EVENTS.RUN_ENDED, () => this.endBirth());
     // 47라운드: 구조물 결과·도전 (계약 §9.6)
     this.on(UI_EVENTS.STRUCTURE_RESULT, (r: UiStructureResult) => this.toasts?.push(r, this.stageIndex));
     this.on(UI_EVENTS.CHALLENGE_STARTED, (c: UiChallengeStarted) => this.challenge?.start(c, this.stageIndex));
@@ -158,6 +198,12 @@ export class HudScene extends Phaser.Scene {
       this.input.keyboard?.removeCapture('TAB');
       this.warpMap?.destroy();
       this.warpMap = undefined;
+      this.routeMap?.destroy();
+      this.routeMap = undefined;
+      this.routeStrip = undefined;
+      this.endBirth();
+      this.bannerQueue = [];
+      this.bannerBusy = false;
       this.bubble = undefined;
       this.chips = undefined;
       this.toasts = undefined;
@@ -176,16 +222,59 @@ export class HudScene extends Phaser.Scene {
   }
 
   private onEsc = (): void => {
+    // 탄생 연출 중에는 Esc 도 '아무 키' (건너뛰기는 시스템이 받는다)
+    if (this.birthActive) return;
+    if (this.routeMap) {
+      // 보기 모드는 닫고 재개. 고르기 모드는 고를 곳이 없을 때만 닫는다 (고르는 동안은 시스템이 입력을 잠근다)
+      if (this.routeMap.mode === 'view') {
+        this.closeRoute(false);
+        this.resumeAfterRelease('Escape');
+      } else if (!this.routeMap.hasChoices) this.closeRoute(false);
+      return;
+    }
     if (this.warpMap) {
-      this.closeWarp(true);
+      this.closeWarp(false);
+      this.resumeAfterRelease('Escape');
       return;
     }
     if (!this.scene.isActive(UI_SCENE_KEYS.MENU) && !this.scene.isActive(UI_SCENE_KEYS.PAUSE)) uiCommands.pause();
   };
 
+  /**
+   * 지도를 Esc 로 닫을 때 재개를 키를 뗀 다음 프레임으로 미룬다. 누르는 프레임에 재개하면 게임 씬이 같은 Esc 를 받아
+   * 일시정지 일기장이 열렸다 (48라운드 헤드리스 확인, 45라운드 워프 지도도 같은 증상).
+   */
+  private resumeAfterRelease(key: string): void {
+    const kb = this.input.keyboard;
+    if (!kb) {
+      uiCommands.resume();
+      return;
+    }
+    let done = false;
+    const go = (): void => {
+      if (done) return;
+      done = true;
+      kb.off('keyup', onUp);
+      this.time.delayedCall(0, () => {
+        if (this.alive && !this.warpMap && !this.routeMap) uiCommands.resume();
+      });
+    };
+    const onUp = (e: KeyboardEvent): void => {
+      if (e.key === key) go();
+    };
+    kb.on('keyup', onUp);
+    // 떼는 입력을 놓쳐도 멈춘 채 남지 않게
+    this.time.delayedCall(1000, go);
+  }
+
   /** Tab: 워프 지도 열기·닫기 (45라운드 Q9·Q10, 계약 §8.4) */
   private onTab = (e?: KeyboardEvent): void => {
     if (e?.repeat) return;
+    if (this.birthActive) return;
+    if (this.routeMap) {
+      if (this.routeMap.mode === 'view') this.closeRoute(true);
+      return;
+    }
     if (this.warpMap) {
       this.closeWarp(true);
       return;
@@ -196,6 +285,13 @@ export class HudScene extends Phaser.Scene {
       this.scene.isActive(UI_SCENE_KEYS.MENU) ||
       this.scene.isActive(UI_SCENE_KEYS.PAUSE) ||
       this.scene.isActive(UI_SCENE_KEYS.RESULT);
+    // 48라운드: 노드 지도 층이면 Tab = 노드 지도 보기 (워프 비활성, 계약 §10.2)
+    if (hasRoute(s.route)) {
+      if (otherUi || s.paused || s.menu || s.route.choosing) return;
+      this.routeMap = new RouteMap(this, s.route, 'view', this.routeOpts(s));
+      uiCommands.pause();
+      return;
+    }
     // 메뉴·개성 선택·보상·일시정지·워프 연출 중에는 조용히 무시
     if (otherUi || s.paused || s.menu || s.warp.warping || s.warp.blocked === 'busy') return;
     if (s.inCombat || s.warp.blocked === 'combat') {
@@ -207,6 +303,102 @@ export class HudScene extends Phaser.Scene {
     this.warpMap = new WarpMap(this, s, { onChoose: (id) => this.chooseWarp(id) });
     uiCommands.pause();
   };
+
+  private routeOpts(s: UiSnapshot): ConstructorParameters<typeof RouteMap>[3] {
+    return {
+      stageIndex: Math.max(0, s.stageIndex),
+      floorTitle: s.floorTitle || s.stageName,
+      shopName: s.names?.shop,
+      onChoose: (id) => this.chooseRoute(id),
+    };
+  }
+
+  /** ROUTE_CHOOSE_OPEN: 노드 지도를 고르기 모드로 연다 (게임 입력은 시스템이 잠근다 — 정지하지 않는다) */
+  private openRouteChoose(r?: UiRoute | null): void {
+    if (!this.built) return;
+    const s = withDebug(uiCommands.getUiSnapshot());
+    const route = hasRoute(r) ? r : s.route;
+    if (!hasRoute(route)) return;
+    if (this.routeMap) this.closeRoute(this.routeMap.mode === 'view');
+    this.closeWarp(true);
+    this.routeMap = new RouteMap(this, route, 'choose', this.routeOpts(s));
+  }
+
+  private chooseRoute(id: string): void {
+    if (!this.routeMap || this.routeMap.mode !== 'choose') return;
+    if (chooseNodeCmd(id)) {
+      this.chooseSuppressUntil = this.time.now + 1500;
+      this.closeRoute(false);
+    } else this.routeMap.showMessage(routeText('chooseDenied'));
+  }
+
+  /** 노드 지도를 닫는다. resume=true 면 게임을 재개한다 (보기 모드를 Tab·Esc 로 닫을 때) */
+  private closeRoute(resume: boolean): void {
+    if (!this.routeMap) return;
+    this.routeMap.destroy();
+    this.routeMap = undefined;
+    if (resume) uiCommands.resume();
+  }
+
+  // ---- 탄생 연출 (48라운드 Q6, 계약 §10.3): HUD 를 숨기고 하단에 건너뛰기 안내만 작게
+  private startBirth(): void {
+    if (!this.birthActive) {
+      this.birthActive = true;
+      this.closeWarp(false);
+      this.closeRoute(false);
+      this.cameras.main.setVisible(false);
+      // BIRTH_DONE 이 오지 않아도 HUD 가 영영 숨지 않게
+      this.birthFailsafe = this.time.delayedCall(ROUTE.birthFailsafeMs, () => this.endBirth());
+    }
+    if (!this.built || this.birthHint) return;
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const hint = new GlowText(this, 0, 0, routeText('birthSkip'), 'ink_faint', {
+      stageIndex: Math.max(0, this.stageIndex),
+    });
+    hint.placeCenter(W / 2, H - ROUTE.birthHintBottom - hint.displayHeight).setAlpha(0);
+    // 지연(delay) 을 준 트윈은 이 이벤트 경로에서 진행되지 않았다 (헤드리스 확인) — 바로 서서히 나타나게
+    this.tweens.add({ targets: hint, alpha: 1, duration: 300 });
+    // 안내만 그리는 카메라: 지금 있는 것과 연출 중 새로 생기는 것은 모두 무시한다
+    const cam = this.cameras.add(0, 0, W, H);
+    cam.ignore(this.children.list.filter((o) => o !== hint));
+    this.events.on(Phaser.Scenes.Events.ADDED_TO_SCENE, this.ignoreInBirthCam);
+    this.birthCam = cam;
+    this.birthHint = hint;
+  }
+
+  private ignoreInBirthCam = (o: Phaser.GameObjects.GameObject): void => {
+    this.birthCam?.ignore(o);
+  };
+
+  private endBirth(): void {
+    if (!this.birthActive) return;
+    this.birthActive = false;
+    this.birthFailsafe?.remove();
+    this.birthFailsafe = undefined;
+    this.events.off(Phaser.Scenes.Events.ADDED_TO_SCENE, this.ignoreInBirthCam);
+    if (this.birthCam) {
+      // 무시 표시를 지운다 (같은 카메라 id 가 나중에 다시 쓰일 수 있다)
+      const bit = this.birthCam.id;
+      const clear = (list: Phaser.GameObjects.GameObject[]) => {
+        for (const o of list) {
+          o.cameraFilter &= ~bit;
+          if (o instanceof Phaser.GameObjects.Container) clear(o.list);
+        }
+      };
+      clear(this.children.list);
+      this.cameras.remove(this.birthCam);
+      this.birthCam = undefined;
+    }
+    this.birthHint?.destroy();
+    this.birthHint = undefined;
+    if (this.sys.isActive()) this.cameras.main.setVisible(true);
+    // 연출 중 미뤄 둔 자막·배너
+    const c = this.deferredCaption;
+    this.deferredCaption = undefined;
+    if (c) this.showCaption(c);
+    this.nextBanner();
+  }
 
   /**
    * 구조물 메뉴 안전망: 시스템이 MENU_OPEN 뒤 메뉴 씬을 띄우는 것이 기본(계약 §5). 잠시 뒤에도 메뉴 씬이 없고
@@ -326,6 +518,9 @@ export class HudScene extends Phaser.Scene {
     this.challenge = new ChallengePanel(this, STRUCT.challengeTop);
 
     this.built = true;
+    // 글꼴을 기다리는 동안 시작된 탄생 연출·미뤄 둔 배너
+    if (this.birthActive) this.startBirth();
+    else this.nextBanner();
   }
 
   private buildMinimap(gridW: number, gridH: number): void {
@@ -334,11 +529,28 @@ export class HudScene extends Phaser.Scene {
     const size = Minimap.size(gridW, gridH);
     this.minimap = new Minimap(this, W - E - size.w, 12, gridW, gridH);
     const hintY = 12 + this.minimap.h + 6;
-    icon(this, W - E - 16, hintY - 2, ICON.sound);
-    this.glow(0, hintY, 'M 음소거', 'ink_faint').placeRight(W - E - 20, hintY);
+    this.soundIcon = icon(this, W - E - 16, hintY - 2, ICON.sound);
+    this.muteHint = this.glow(0, hintY, 'M 음소거', 'ink_faint');
+    this.muteHint.placeRight(W - E - 20, hintY);
     // 45라운드: 비전투일 때만 'Tab 워프' ('M 음소거' 아래 줄, 같은 오른쪽 끝)
     this.warpHint = this.glow(0, hintY + 16, warpText('warpKeyHint'), 'ink_faint').setVisible(false);
     this.warpHint.placeRight(W - E - 20, hintY + 16);
+    // 48라운드: 노드 지도 층이면 방 미니맵 대신 노드 띠 (같은 자리, 오른쪽 끝 고정)
+    this.routeStrip = new RouteStrip(this, W - E, 12);
+    this.routeStrip.setVisible(false);
+  }
+
+  /** 우상단: 미니맵/노드 띠 아래로 'M 음소거'·'Tab 워프|지도' 줄을 맞춘다 */
+  private layoutTopRight(): void {
+    const W = this.scale.width;
+    const E = LAYOUT.edge;
+    const h = this.routeMode && this.routeStrip ? this.routeStrip.h : this.minimap.h;
+    const hintY = 12 + h + 6;
+    this.soundIcon?.setY(hintY - 2);
+    this.muteHint?.placeRight(W - E - 20, hintY);
+    this.warpHint
+      ?.setText(this.routeMode ? routeText('mapKeyHint') : warpText('warpKeyHint'))
+      .placeRight(W - E - 20, hintY + 16);
   }
 
   private render(s: UiSnapshot): void {
@@ -390,12 +602,28 @@ export class HudScene extends Phaser.Scene {
       this.bossName.setVisible(false);
     }
     // 상단
-    this.floorText.setText(`${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}`);
-    this.minimap.render(s.map, si);
-    this.warpHint?.setVisible(!s.inCombat && s.warp.blocked !== 'combat');
+    // 48라운드: 노드 지도 층이면 층 제목 옆에 지금 노드 이름, 우상단은 노드 띠, 'Tab 지도' 는 늘 보인다
+    const route = hasRoute(s.route) ? s.route : null;
+    if (Boolean(route) !== this.routeMode) {
+      this.routeMode = Boolean(route);
+      this.minimap.setVisible(!this.routeMode);
+      this.routeStrip?.setVisible(this.routeMode);
+      this.layoutTopRight();
+    }
+    if (route) {
+      const cur = route.nodes.find((n) => n.id === route.currentId);
+      this.floorText.setText(`${s.floorTitle || s.stageName}${cur ? `   ${cur.name}` : ''}`);
+      if (this.routeStrip?.render(route, si)) this.layoutTopRight();
+      this.warpHint?.setVisible(true);
+    } else {
+      this.floorText.setText(`${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}`);
+      this.minimap.render(s.map, si);
+      this.warpHint?.setVisible(!s.inCombat && s.warp.blocked !== 'combat');
+    }
     // 47라운드: 구조물 안내·상태·도전 시간
     const overlay =
       Boolean(this.warpMap) ||
+      Boolean(this.routeMap) ||
       Boolean(s.menu) ||
       this.scene.isActive(UI_SCENE_KEYS.MENU) ||
       this.scene.isActive(UI_SCENE_KEYS.PAUSE) ||
@@ -403,6 +631,9 @@ export class HudScene extends Phaser.Scene {
     this.bubble?.update(s.interactable ?? null, !overlay, si);
     this.chips?.render(s.statuses ?? [], si);
     this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);
+    // 48라운드 안전망: 고를 차례인데 지도가 없으면 연다 (이벤트를 놓쳤거나 메뉴가 닫힌 뒤)
+    if (route?.choosing && !overlay && !this.birthActive && this.time.now > this.chooseSuppressUntil)
+      this.openRouteChoose(route);
     // 공지: 출구가 열렸으면 출구, 아니면 본영 문
     const kind = s.exitOpen ? 'exit' : s.bossUnlocked ? 'boss' : '';
     if (kind !== this.noticeKind) {
@@ -439,6 +670,11 @@ export class HudScene extends Phaser.Scene {
   /** 스토리 자막: 보스 게이지 위(보스전이 아니면 묶음 위) 가운데, 패널 없이 ink_body. 공지 1.8초, 그 외 3.6초 */
   private showCaption(l: UiStoryLine): void {
     if (!this.built) return;
+    if (this.birthActive) {
+      // 탄생 연출 중 자막은 끝난 뒤 마지막 한 줄만
+      this.deferredCaption = l;
+      return;
+    }
     this.caption?.destroy();
     this.captionTimer?.remove();
     const hold = l.kind === 'notice' ? 1800 : 3600;
@@ -460,7 +696,12 @@ export class HudScene extends Phaser.Scene {
 
   /** 층 시작·개성 변화 배너: 화면 가운데 발광 큰 글자 (Galmuri11 2배 — 한자 포함 가능) */
   private showBanner(text: string): void {
-    if (!this.built) return;
+    // 48라운드: 층 제목 → 노드 이름이 같은 때 오면 차례로 (덮어쓰지 않게). 탄생 연출 중이면 끝난 뒤
+    if (!this.built || this.birthActive || this.bannerBusy) {
+      if (this.bannerQueue.length < 3) this.bannerQueue.push(text);
+      return;
+    }
+    this.bannerBusy = true;
     this.banner?.destroy();
     const stageIndex = Math.max(0, uiCommands.getUiSnapshot().stageIndex);
     const b = new GlowText(this, 0, 0, text, 'ink_body', { scale: 2, stageIndex }).setDepth(CAPTION_DEPTH).setAlpha(0);
@@ -472,7 +713,17 @@ export class HudScene extends Phaser.Scene {
       duration: 200,
       yoyo: true,
       hold: 1200,
-      onComplete: () => b.destroy(),
+      onComplete: () => {
+        b.destroy();
+        this.bannerBusy = false;
+        this.nextBanner();
+      },
     });
+  }
+
+  private nextBanner(): void {
+    if (!this.built || this.birthActive || this.bannerBusy) return;
+    const next = this.bannerQueue.shift();
+    if (next !== undefined) this.showBanner(next);
   }
 }

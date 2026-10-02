@@ -29,13 +29,20 @@ const CONTROL_EXTRAS: { token: RegExp; key: string; fallback: string }[] = [
   { token: /Tab/i, key: 'warpKeyHint', fallback: 'Tab 워프' },
 ];
 
-/** 조작법 한 줄. `{secondary}` 는 스냅샷의 우클릭 보조 동작 이름으로, 비면 '보조 동작'. 47라운드: E·Shift·Tab 이 없으면 덧붙인다 */
-export function controlsLine(secondaryName: string): string {
+/**
+ * 조작법 한 줄. `{secondary}` 는 스냅샷의 우클릭 보조 동작 이름으로, 비면 '보조 동작'. 47라운드: E·Shift·Tab 이 없으면 덧붙인다.
+ * 48라운드: 노드 지도 층(`routeMode`)에서는 Tab 이 워프 대신 지도 보기라 'Tab 지도' 로 덧붙인다.
+ */
+export function controlsLine(secondaryName: string, routeMode = false): string {
   const tpl = uiCommands.getUiText().controls || DEFAULT_CONTROLS;
   const line = fill(tpl, { secondary: secondaryName || '보조 동작' });
   return withControlExtras(
     line,
-    CONTROL_EXTRAS.map((e) => ({ token: e.token, text: uiText('hud', e.key, e.fallback) })),
+    CONTROL_EXTRAS.map((e) =>
+      e.key === 'warpKeyHint' && routeMode
+        ? { token: e.token, text: routeText('mapKeyHint') }
+        : { token: e.token, text: uiText('hud', e.key, e.fallback) },
+    ),
   );
 }
 
@@ -91,4 +98,45 @@ export type StructTextKey = keyof typeof STRUCT_TEXT;
 
 export function structText(key: StructTextKey): string {
   return uiText('hud', key, STRUCT_TEXT[key]);
+}
+
+/**
+ * 48라운드 노드 지도 문구 (임시값, 도영 님 검수 대상). 노드 이름은 시스템이 준 자리표시 그대로.
+ * 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다.
+ */
+export const ROUTE_TEXT = {
+  /** 지도 제목 (Galmuri14 — 한자 없는 고정 제목) */
+  mapTitle: '가는 길',
+  /** 고르기 모드 안내 */
+  chooseHint: '←→↑↓ 고르기 · Enter·클릭 그리로 간다',
+  /** 보기 모드 안내 */
+  viewHint: '←→↑↓ 둘러보기 · Tab·Esc 닫기',
+  /** 고르기 모드 제목 옆 한 줄 */
+  choosePrompt: '다음 갈 곳을 고른다',
+  /** 노드 상태 설명 */
+  stateCurrent: '지금 여기',
+  stateAvailable: '갈 수 있다',
+  stateCleared: '지나온 곳',
+  statePassed: '지나친 갈래',
+  stateLocked: '아직 멀다',
+  /** chooseNode 거부 */
+  chooseDenied: '지금은 그리로 갈 수 없다',
+  /** 노드 종류 이름 (상점은 스냅샷 names.shop 우선) */
+  typeJourney: '여정',
+  typeBattle: '전투',
+  typeShop: '상점',
+  typeRest: '쉼터',
+  typeEvent: '이벤트',
+  typeBoss: '본영',
+  /** HUD */
+  mapKeyHint: 'Tab 지도',
+  stripRemain: '남은 길 {n}',
+  stripLast: '마지막',
+  /** 탄생 연출 중 건너뛰기 안내 */
+  birthSkip: '아무 키나 눌러 건너뛰기',
+} as const;
+export type RouteTextKey = keyof typeof ROUTE_TEXT;
+
+export function routeText(key: RouteTextKey): string {
+  return uiText('hud', key, ROUTE_TEXT[key]);
 }
