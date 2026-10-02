@@ -133,6 +133,18 @@ export class SelectList {
     return this;
   }
 
+  /** 현재 커서 위치 (같은 메뉴를 다시 그릴 때 유지용, 47라운드) */
+  cursorIndex(): number {
+    return this.cursorIdx;
+  }
+
+  /** 커서를 옮긴다 (범위 밖이면 끝으로) */
+  setCursorIndex(i: number): this {
+    if (!this.lines.length) return this;
+    this.setCursor(Math.max(0, Math.min(this.lines.length - 1, i)));
+    return this;
+  }
+
   private itemLabel(l: SelectLine): string {
     return `[${l.key}] ${l.label}${l.enabled ? '' : '  (불가)'}`;
   }

@@ -1,5 +1,47 @@
 # 게임 UI 파트 — 작업 기록
 
+## 47라운드 (2026-10-02) · 상호작용 구조물 UI
+결정: `decisions/2026-10-02-round-47-structures-impl.md` (Q5 E·C3 2초 누르기, Q7 안내는 UI, Q16 미니맵 점 1개, Q17 문구 자리표시, Q18 임시값). 계약: `contracts/ui-system-interface.md` **§9** (승인 #14) — `UiSnapshot.interactable/statuses`, `UiRoom.structureDot`, 구조물 메뉴 id 6종·`cancelKey`·`structureId`, `STRUCTURE_RESULT`·`CHALLENGE_STARTED`·`CHALLENGE_CLEARED`. 그 외 시스템 코드 열람 없음.
+문구는 시스템이 준 문자열 그대로 그린다(계약 §9.8). UI 가 만든 것은 키 틀·초 표시·닫기·범례·조작법 덧붙임뿐(`text.ts STRUCT_TEXT`, 텍스트 팩 `hud.<키>` 우선).
+
+### 화면
+- **상호작용 안내** (`StructureHud.ts InteractBubble`, HUD depth 40 — 자막 50 아래): `interactable` 이 있으면 `screen`(구조물 윗변 중앙) 위 6px 에 작은 `panel_ink` 말풍선, 화면 여백 8px 안으로 자름.
+  1줄 이름(ink_faint) · 2줄 '[E] 행동'(ink_body) + '· 비용'(ink_accent, `affordable=false` 면 ink_faint α0.55) · `usable=false` 면 3줄 `reasonText`(ink_accent)·행동 줄 ink_faint · `hold` 가 있으면 키 틀 '[E 2초]' + 아래 3px 게이지(G03 바탕, 층 강조 22 채움, `progress`).
+  메뉴·일시정지·결과·워프 지도가 떠 있거나 `snapshot.menu` 가 있으면 숨김. 빈 값(null)이면 아무것도 그리지 않음.
+- **HUD 상태 칩** (`StatusChips`, depth 45~47): 좌상단 층 제목 아래(y 34부터) 세로 목록. 칩 = `panel_ink` 높이 24 + 왼쪽 3px 종류 띠 + label(ink_faint) + value(ink_body, debuff 는 ink_accent). `remainMs/durationMs` 가 있으면 칩 아래쪽 2px 바가 줄어든다(매 프레임). 아이콘·detail 없음.
+  종류 색(팔레트 안, 유채색은 현재 층 램프만): buff 강조 23 · debuff 강조 19 · resource S5 · timer 강조 25 · rule G11 · progress S4.
+- **결과 토스트** (`ResultToasts`): `STRUCTURE_RESULT.text` 를 우하단(공지 패널 위 y≤492, 폭 ≤216 — 하단 HUD 묶음 오른쪽 빈 자리)에 아래→위로 쌓음. 2.6초 뒤 0.3초 사라짐, 최대 3개(넘치면 오래된 것부터). tone 별 띠 색: gain 강조 23 · loss 강조 19 · mixed S5 · warn 강조 25(글자 ink_accent) · info G11(글자 ink_faint). `deltas` 는 그리지 않음(골드·HP 는 기존 HUD 수치가 바뀜).
+- **도전 판** (`ChallengePanel`): `CHALLENGE_STARTED` → 상단 가운데(y 34) `panel_ink`: label(ink_accent) / goal(ink_body), `timeLimitMs` 가 있으면 오른쪽 남은 시간 '15.7초'(Galmuri11 ×2) + 아래 줄어드는 바(강조 25). 남은 시간은 `statuses` 의 `ring.remainMs` 가 있으면 그것, 없으면 시작 시각 기준. `CHALLENGE_CLEARED` → 결과 문구(clear·flawless ink_accent, timeout ink_faint) 2.8초 뒤 사라짐. 층 시작·런 종료 때 지움.
+- **구조물 메뉴** (`MenuScene`): 기존 일기장 한 페이지 그대로. `cancelKey` 가 있으면 **Esc** 와 페이지 오른쪽 위 **'Esc 닫기' 버튼**(Container → Graphics → 글자, 호버 시 테두리 층 강조 20)이 `select(id, cancelKey)`. '0' 키는 목록 줄로 그대로 동작.
+  같은 id·structureId 로 `MENU_OPEN` 이 다시 오면 **커서 자리를 지킨 채** 다시 그린다(전당포·카운터 반복 선택). 비활성 줄은 기존 규칙(흐림 + '(불가)', 이유는 detail).
+  **`cards`(패 탁자)**: 그만두기 외 줄이 2~4개면 엎어진 패로 그린다 — 카드 104×140(S1 바탕, S2 45° 격자, S4 안쪽 테, 가운데 '?' ×2, 왼쪽 위 '[1]'), 아래 label/detail. 고른 카드는 층 강조 20 테두리 2px + 4px 들림. 1·2·3 즉시, ←→/A·D 이동, ↓ 그만두기, Enter/Space 확정, 클릭. 아래 '[0] 그만둔다' + 조작 안내(page_faint).
+  안전망: 구조물 메뉴 `MENU_OPEN` 뒤 60ms 에도 메뉴 씬이 없고 스냅샷 `menu` 가 같은 id 면 HUD 가 직접 띄운다(시스템이 띄우는 것이 기본).
+- **미니맵 점** (`Minimap`): `structureDot` 인 **방문한 방**의 가장 위 줄 오른쪽 칸 바깥 모서리에 2×2 점(층 강조 25, 글리프 위). 미방문 방은 기존 규칙대로 그리지 않으므로 점도 없음.
+  **워프 지도** (`WarpMap`): 같은 방 칸 오른쪽 위에 4×4 점 + 범례 한 줄 '쓸 것이 남은 곳'(오른쪽 칸 높이 +18).
+- **조작법 줄** (`text.ts controlsLine`, 일시정지·타이틀): 텍스트 팩(또는 기본) 줄에 'E ', 'Shift', 'Tab' 이 없으면 ' · E 상호작용 · Shift 달리기 · Tab 워프' 를 덧붙인다(팩 `hud.controlInteract`/`hud.controlSprint`/`hud.warpKeyHint` 우선, 팩 줄에 이미 있으면 덧붙이지 않음).
+
+### UI 디버그 경로 (`debug.ts`, 주소에 `uidebug=1` 일 때만)
+`window.__lopadUi.patch(p | s => p)` 로 STATE 스냅샷 위에 가짜 값 덮어쓰기, `emit(이벤트 이름, 페이로드)`, `openMenu(menu)`/`closeMenu()`(가짜 메뉴의 선택은 시스템으로 보내지 않고 `selects` 에 기록). 시스템 값이 비어 있을 때 화면 확인용. 꺼져 있으면 영향 없음.
+
+### 소유 코드 추가·변경
+| 파일 | 내용 |
+|---|---|
+| `StructureHud.ts` (신규) | `InteractBubble`, `StatusChips`, `ResultToasts`, `ChallengePanel`, `swatch()`(팔레트 참조 → 색) |
+| `structView.ts`, `structView.test.ts` (신규) | 순수 계산: 조작법 덧붙임, 말풍선 위치 자르기, 타이머 비율, 초 표시, 카드 포커스 이동 (테스트 8개) |
+| `debug.ts` (신규) | `uidebug=1` 가짜 스냅샷·이벤트·메뉴 |
+| `HudScene.ts` | 위 조각 생성·갱신, 결과·도전 이벤트 구독, 구조물 메뉴 안전망, 디버그 설치 |
+| `MenuScene.ts` | Esc·닫기 버튼 → cancelKey, 커서 유지, `cards` 카드 화면 |
+| `Minimap.ts`, `WarpMap.ts` | 구조물 점 (+ 워프 지도 범례) |
+| `widgets.ts` | `SelectList.cursorIndex()/setCursorIndex()` |
+| `text.ts` | `STRUCT_TEXT`·`structText()`, `controlsLine` 덧붙임 |
+| `theme.ts` | `STRUCT` 수치·색 참조 (임시값) |
+
+### 임시값 (도영 님 검토 대상)
+- 문구: '[E]' / '[E 2초]' 키 틀, 'Esc 닫기', 카드 뒷면 '?', 카드 안내 '1·2·3 또는 ←→ 고르기 · Enter 뒤집기 · 0·Esc 그만두기', 범례 '쓸 것이 남은 곳', 남은 시간 '{sec}초', 조작법 덧붙임 'E 상호작용'·'Shift 달리기'·'Tab 워프'.
+- 수치: `theme.ts STRUCT` 전부 (말풍선 여백 6·간격 6·화면 여백 8, 게이지 3px, 칩 높이 24·간격 2·띠 3·바 2·시작 y 34, 토스트 2600ms·최대 3·폭 216, 도전 판 y 34·결과 2800ms, 미니맵 점 2px·워프 점 4px, 카드 104×140·간격 20, 종류·tone 색).
+
+---
+
 ## 45라운드 (2026-10-02) · Tab 워프 지도
 결정: `decisions/2026-10-02-round-45-traversal-structures.md` Q3(비전투 중 어디서든 지도 열고 클리어한 방 선택)·Q9(Tab)·Q10(선택 중 정지). 계약: `contracts/ui-system-interface.md` **§8** (승인 #12) — `UiSnapshot.inCombat/sprinting/warp`, `UiRoom.warpable`, `uiCommands.warpTo`, `WARP_DONE`/`WARP_DENIED`. 그 외 시스템 코드 열람 없음.
 

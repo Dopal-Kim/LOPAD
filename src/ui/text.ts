@@ -1,4 +1,5 @@
 import { uiCommands, type UiText } from '../contract/ui';
+import { withControlExtras } from './structView';
 
 /**
  * 세계관 문구 조회 (계약 §4 getUiText, 29라운드). 키가 없거나 비면 기본 문구를 쓴다.
@@ -18,10 +19,24 @@ export function fill(template: string, vars: Record<string, string | number>): s
 
 const DEFAULT_CONTROLS = 'WASD 이동 · 좌클릭 공격 · 우클릭 {secondary} · 스페이스 대쉬 · Q 물약 · Esc 일시정지';
 
-/** 조작법 한 줄. `{secondary}` 는 스냅샷의 우클릭 보조 동작 이름으로, 비면 '보조 동작' */
+/**
+ * 47라운드: 조작법 줄에 빠져 있으면 덧붙이는 키 (임시 문구, 텍스트 팩 `hud.<키>` 가 있으면 그 문구).
+ * `token` 이 조작법 줄에 이미 있으면(텍스트 팩이 이미 적었으면) 덧붙이지 않는다.
+ */
+const CONTROL_EXTRAS: { token: RegExp; key: string; fallback: string }[] = [
+  { token: /(^|[\s·])E(\s|$)/, key: 'controlInteract', fallback: 'E 상호작용' },
+  { token: /Shift/i, key: 'controlSprint', fallback: 'Shift 달리기' },
+  { token: /Tab/i, key: 'warpKeyHint', fallback: 'Tab 워프' },
+];
+
+/** 조작법 한 줄. `{secondary}` 는 스냅샷의 우클릭 보조 동작 이름으로, 비면 '보조 동작'. 47라운드: E·Shift·Tab 이 없으면 덧붙인다 */
 export function controlsLine(secondaryName: string): string {
   const tpl = uiCommands.getUiText().controls || DEFAULT_CONTROLS;
-  return fill(tpl, { secondary: secondaryName || '보조 동작' });
+  const line = fill(tpl, { secondary: secondaryName || '보조 동작' });
+  return withControlExtras(
+    line,
+    CONTROL_EXTRAS.map((e) => ({ token: e.token, text: uiText('hud', e.key, e.fallback) })),
+  );
 }
 
 /** 45라운드 워프 문구 (임시값, 도영 님 검수 대상). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
@@ -49,4 +64,31 @@ export type WarpTextKey = keyof typeof WARP_TEXT;
 
 export function warpText(key: WarpTextKey): string {
   return uiText('hud', key, WARP_TEXT[key]);
+}
+
+/**
+ * 47라운드 상호작용 구조물 — UI 가 그리는 조작 틀 문구 (임시값, 도영 님 검수 대상).
+ * 구조물 이름·행동·사유·결과 문장은 시스템이 내려준다(계약 §9.8). 여기는 키 틀·범례·닫기 같은 UI 문구만.
+ * 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다.
+ */
+export const STRUCT_TEXT = {
+  /** 안내 키 틀: 누르기 */
+  keyTap: '[{key}]',
+  /** 안내 키 틀: 길게 누르기 ({sec} = 초) */
+  keyHold: '[{key} {sec}초]',
+  /** 구조물 메뉴 닫기 버튼 */
+  menuClose: 'Esc 닫기',
+  /** 패 탁자 카드 뒷면 */
+  cardBack: '?',
+  /** 패 탁자 조작 안내 */
+  cardHint: '1·2·3 또는 ←→ 고르기 · Enter 뒤집기 · 0·Esc 그만두기',
+  /** 워프 지도 범례: 구조물 점 */
+  legendStructure: '쓸 것이 남은 곳',
+  /** 도전 남은 시간 ({sec} = 초, 소수 1자리) */
+  challengeTime: '{sec}초',
+} as const;
+export type StructTextKey = keyof typeof STRUCT_TEXT;
+
+export function structText(key: StructTextKey): string {
+  return uiText('hud', key, STRUCT_TEXT[key]);
 }

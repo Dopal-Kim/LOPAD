@@ -160,6 +160,63 @@ export const WARP = {
   depth: 100,
 } as const;
 
+/**
+ * 47라운드 상호작용 구조물 UI (임시값). 색은 팔레트 안에서만 — 유채색은 현재 층 강조 램프 슬롯(16~27),
+ * 그 외 무채 G·세피아 S. `slot` 은 강조 램프 슬롯 번호, `gray`/`sepia` 는 고정색 인덱스.
+ */
+export type SwatchRef = { slot: number } | { gray: number } | { sepia: number };
+export const STRUCT = {
+  /** 말풍선: 안쪽 여백·구조물 윗변과의 간격·화면 여백·depth(자막 50 아래) */
+  bubblePad: 6,
+  bubbleGap: 6,
+  bubbleMargin: 8,
+  bubbleDepth: 40,
+  /** 길게 누르기 게이지 높이 */
+  holdBarH: 3,
+  /** 비용 부족·사용 불가 흐림 알파 (허용 알파 0.55) */
+  dimAlpha: 0.55,
+  /** HUD 상태 칩: 층 제목 아래 시작 y, 칩 높이(ink 9-slice 최소 24)·간격, 왼쪽 띠 폭, 타이머 바 높이 */
+  chipTop: 34,
+  chipH: 24,
+  chipGap: 2,
+  chipStripe: 3,
+  chipBarH: 2,
+  /** 결과 토스트: 표시 시간·사라짐·최대 개수·폭 상한 (하단 HUD 묶음 오른쪽 끝 720+8 ~ 화면 여백 944 안에 들도록 216) */
+  toastHoldMs: 2600,
+  toastFadeMs: 300,
+  toastMax: 3,
+  toastMaxW: 216,
+  /** 도전 판: 상단 가운데 y, 결과 표시 시간 */
+  challengeTop: 34,
+  challengeResultMs: 2800,
+  /** HUD 칩·토스트 depth */
+  hudDepth: 45,
+  /** 미니맵 점 크기(px)·워프 지도 점 크기 */
+  miniDot: 2,
+  warpDot: 4,
+  /** 패 탁자 카드 크기·간격 */
+  cardW: 104,
+  cardH: 140,
+  cardGap: 20,
+  /** 상태 종류별 띠·바 색 */
+  statusColor: {
+    buff: { slot: 23 },
+    debuff: { slot: 19 },
+    resource: { sepia: 5 },
+    timer: { slot: 25 },
+    rule: { gray: 11 },
+    progress: { sepia: 4 },
+  } satisfies Record<string, SwatchRef>,
+  /** 결과 토스트 tone 별 띠 색 */
+  toneColor: {
+    gain: { slot: 23 },
+    loss: { slot: 19 },
+    mixed: { sepia: 5 },
+    warn: { slot: 25 },
+    info: { gray: 11 },
+  } satisfies Record<string, SwatchRef>,
+} as const;
+
 export function hexToNum(hex: string): number {
   return parseInt(hex.replace('#', ''), 16);
 }

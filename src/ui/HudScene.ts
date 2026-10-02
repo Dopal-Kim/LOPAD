@@ -3,11 +3,17 @@ import {
   UI_EVENTS,
   uiBus,
   uiCommands,
+  type UiChallengeCleared,
+  type UiChallengeStarted,
+  type UiMenu,
   type UiSnapshot,
   type UiStoryLine,
+  type UiStructureMenuId,
+  type UiStructureResult,
   type UiWarpDenied,
   type UiWarpDone,
 } from '../contract/ui';
+import { installUiDebug, withDebug } from './debug';
 import { GlowText } from './glow';
 import {
   Gauge,
@@ -23,8 +29,9 @@ import {
 } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { Minimap } from './Minimap';
+import { ChallengePanel, InteractBubble, ResultToasts, StatusChips } from './StructureHud';
 import { fill, uiText, warpText } from './text';
-import { LAYOUT } from './theme';
+import { LAYOUT, STRUCT } from './theme';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 
 /** 하단 중앙 묶음 (33라운드 Q3) */
@@ -34,6 +41,15 @@ const BOSS_W = 360;
 const HP_GAUGE_W = 170;
 const PERSONALITY_W = 100;
 const CAPTION_DEPTH = 50;
+/** 47라운드 구조물 메뉴 id (계약 §9.4) — 시스템이 메뉴 씬을 띄우지 않았을 때의 안전망에 쓴다 */
+const STRUCTURE_MENU_IDS: ReadonlySet<string> = new Set<UiStructureMenuId>([
+  'cards',
+  'exchange',
+  'pawn',
+  'grave',
+  'ledger',
+  'counter',
+]);
 
 /**
  * 게임 위에 병렬로 떠 있는 HUD (41라운드 키트 적용). 매 프레임 STATE 스냅샷으로 갱신.
@@ -83,6 +99,11 @@ export class HudScene extends Phaser.Scene {
   // 워프 지도 (45라운드)
   private warpMap?: WarpMap;
   private warpHint?: GlowText;
+  // 상호작용 구조물 (47라운드)
+  private bubble?: InteractBubble;
+  private chips?: StatusChips;
+  private toasts?: ResultToasts;
+  private challenge?: ChallengePanel;
 
   constructor() {
     super(UI_SCENE_KEYS.HUD);
@@ -98,7 +119,8 @@ export class HudScene extends Phaser.Scene {
     this.alive = true;
     this.built = false;
     this.glows = [];
-    this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(s));
+    installUiDebug(this);
+    this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(withDebug(s)));
     this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) =>
       this.showBanner(fill(uiText('hud', 'evolvedBanner', '{name}'), { name: p.name })),
     );
@@ -120,12 +142,26 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.RESUMED, () => this.closeWarp(false));
     for (const e of [UI_EVENTS.MENU_OPEN, UI_EVENTS.RUN_ENDED, UI_EVENTS.STAGE_STARTED])
       this.on(e, () => this.closeWarp(false));
+    // 47라운드: 구조물 결과·도전 (계약 §9.6)
+    this.on(UI_EVENTS.STRUCTURE_RESULT, (r: UiStructureResult) => this.toasts?.push(r, this.stageIndex));
+    this.on(UI_EVENTS.CHALLENGE_STARTED, (c: UiChallengeStarted) => this.challenge?.start(c, this.stageIndex));
+    this.on(UI_EVENTS.CHALLENGE_CLEARED, (c: UiChallengeCleared) => this.challenge?.finish(c, this.stageIndex));
+    for (const e of [UI_EVENTS.RUN_ENDED, UI_EVENTS.STAGE_STARTED])
+      this.on(e, () => {
+        this.challenge?.reset();
+        this.toasts?.clear();
+      });
+    this.on(UI_EVENTS.MENU_OPEN, (m: UiMenu) => this.ensureStructureMenu(m));
     this.events.once('shutdown', () => {
       this.input.keyboard?.off('keydown-ESC', this.onEsc);
       this.input.keyboard?.off('keydown-TAB', this.onTab);
       this.input.keyboard?.removeCapture('TAB');
       this.warpMap?.destroy();
       this.warpMap = undefined;
+      this.bubble = undefined;
+      this.chips = undefined;
+      this.toasts = undefined;
+      this.challenge = undefined;
       this.alive = false;
       this.built = false;
       for (const [e, h] of this.handlers) uiBus.off(e, h);
@@ -135,7 +171,7 @@ export class HudScene extends Phaser.Scene {
     fontsReady().then(() => {
       if (!this.alive) return;
       this.build();
-      this.render(this.pending ?? uiCommands.getUiSnapshot());
+      this.render(withDebug(this.pending ?? uiCommands.getUiSnapshot()));
     });
   }
 
@@ -155,7 +191,7 @@ export class HudScene extends Phaser.Scene {
       return;
     }
     if (!this.built) return;
-    const s = uiCommands.getUiSnapshot();
+    const s = withDebug(uiCommands.getUiSnapshot());
     const otherUi =
       this.scene.isActive(UI_SCENE_KEYS.MENU) ||
       this.scene.isActive(UI_SCENE_KEYS.PAUSE) ||
@@ -171,6 +207,22 @@ export class HudScene extends Phaser.Scene {
     this.warpMap = new WarpMap(this, s, { onChoose: (id) => this.chooseWarp(id) });
     uiCommands.pause();
   };
+
+  /**
+   * 구조물 메뉴 안전망: 시스템이 MENU_OPEN 뒤 메뉴 씬을 띄우는 것이 기본(계약 §5). 잠시 뒤에도 메뉴 씬이 없고
+   * 스냅샷의 열린 메뉴가 같은 id 면 UI 가 직접 띄운다 (구조물 메뉴만).
+   */
+  private ensureStructureMenu(m: UiMenu): void {
+    if (!STRUCTURE_MENU_IDS.has(m.id)) return;
+    this.time.delayedCall(60, () => {
+      if (!this.alive) return;
+      const status = this.scene.get(UI_SCENE_KEYS.MENU).sys.settings.status;
+      const busy = status >= Phaser.Scenes.INIT && status <= Phaser.Scenes.SLEEPING;
+      if (busy) return;
+      const open = withDebug(uiCommands.getUiSnapshot()).menu;
+      if (open && open.id === m.id) this.scene.launch(UI_SCENE_KEYS.MENU, open);
+    });
+  }
 
   private chooseWarp(roomId: string): void {
     if (!this.warpMap) return;
@@ -256,8 +308,9 @@ export class HudScene extends Phaser.Scene {
     this.bossIcon = icon(this, Math.round(W / 2 - BOSS_W / 2) - 22, by - 1, ICON.boss).setVisible(false);
     this.bossName = this.glow(0, by - 18, '', 'ink_accent').setVisible(false);
 
-    // ---- 상단 좌: 층 제목·시련
+    // ---- 상단 좌: 층 제목·시련, 그 아래 구조물 상태 칩 (47라운드)
     this.floorText = this.glow(E, 12, '', 'ink_body');
+    this.chips = new StatusChips(this, E, STRUCT.chipTop);
 
     // ---- 상단 우: 미니맵 + M 음소거 (토글은 시스템 M 키, UI 는 힌트만)
     this.buildMinimap(s0.map.gridW, s0.map.gridH);
@@ -266,6 +319,11 @@ export class HudScene extends Phaser.Scene {
     this.noticePanel = inkPanel(this, 0, H - 12 - 28, 120, 28).setVisible(false);
     this.noticeIcon = icon(this, 0, H - 12 - 28 + 6, ICON.exit).setVisible(false);
     this.noticeText = this.glow(0, H - 12 - 28 + 7, '', 'ink_accent').setVisible(false);
+
+    // ---- 47라운드: 상호작용 안내·결과 토스트(우하단 공지 위)·도전 판(상단 가운데)
+    this.bubble = new InteractBubble(this, this.stageIndex);
+    this.toasts = new ResultToasts(this, W - E, H - 12 - 28 - 8);
+    this.challenge = new ChallengePanel(this, STRUCT.challengeTop);
 
     this.built = true;
   }
@@ -335,6 +393,16 @@ export class HudScene extends Phaser.Scene {
     this.floorText.setText(`${s.floorTitle || s.stageName}   시련 ${s.trialsCleared}/${s.trialsTotal}`);
     this.minimap.render(s.map, si);
     this.warpHint?.setVisible(!s.inCombat && s.warp.blocked !== 'combat');
+    // 47라운드: 구조물 안내·상태·도전 시간
+    const overlay =
+      Boolean(this.warpMap) ||
+      Boolean(s.menu) ||
+      this.scene.isActive(UI_SCENE_KEYS.MENU) ||
+      this.scene.isActive(UI_SCENE_KEYS.PAUSE) ||
+      this.scene.isActive(UI_SCENE_KEYS.RESULT);
+    this.bubble?.update(s.interactable ?? null, !overlay, si);
+    this.chips?.render(s.statuses ?? [], si);
+    this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);
     // 공지: 출구가 열렸으면 출구, 아니면 본영 문
     const kind = s.exitOpen ? 'exit' : s.bossUnlocked ? 'boss' : '';
     if (kind !== this.noticeKind) {

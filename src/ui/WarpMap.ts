@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 import type { RoomType, UiRoom, UiSnapshot, UiWarpDenyReason } from '../contract/ui';
 import { GlowText } from './glow';
 import { ICON, KIT, accentHex, book, cursor, icon, rule } from './kit';
-import { warpText, type WarpTextKey } from './text';
-import { GRAY, SEPIA, WARP, hexToNum } from './theme';
+import { structText, warpText, type WarpTextKey } from './text';
+import { GRAY, SEPIA, STRUCT, WARP, hexToNum } from './theme';
 import { keyToDir, nearest, pickNeighbor, type NavNode } from './warpNav';
 
 /** 방 종류 이름 (임시 문구, text.ts WARP_TEXT) */
@@ -170,7 +170,7 @@ export class WarpMap {
 
     const title = new GlowText(scene, 0, 0, warpText('warpTitle'), 'page_title', { font: 'title', stageIndex: si });
     const hint = new GlowText(scene, 0, 0, warpText('warpHint'), 'page_faint');
-    const sideH = 232;
+    const sideH = 232 + 18;
     const bodyH = Math.max(mapH, sideH);
     const pageW = Math.max(pad + mapW + pad + WARP.sideW + pad, hint.displayWidth + pad * 2);
     const pageH = 14 + title.displayHeight + 6 + 4 + 12 + bodyH + 12 + hint.displayHeight + 14;
@@ -281,6 +281,10 @@ export class WarpMap {
     sy += 18;
     sw.fillStyle(hexToNum(SEPIA[2]), 1).fillRect(sx, sy + 3, 10, 10);
     new GlowText(scene, sx + 14, sy, warpText('warpCannot'), 'page_faint');
+    sy += 18;
+    // 47라운드: 구조물 점 (미니맵과 같은 뜻)
+    sw.fillStyle(hexToNum(accentHex(scene, si, 25)), 1).fillRect(sx + 3, sy + 6, STRUCT.warpDot, STRUCT.warpDot);
+    new GlowText(scene, sx + 14, sy, structText('legendStructure'), 'page_body', { stageIndex: si });
     sy += 18 + 6;
     rule(scene, sx, sy, WARP.sideW - 8);
     sy += 4 + 10;
@@ -355,6 +359,12 @@ export class WarpMap {
         // 고를 수 있는 방: 밝은 세피아 1px 테두리
         g.lineStyle(1, hexToNum(SEPIA[5]), 1);
         g.strokeRect(inset + 0.5, inset + 0.5, v.w - inset * 2 - 1, v.h - inset * 2 - 1);
+      }
+      if (r.structureDot) {
+        // 47라운드: 쓸 수 있는 구조물이 남은 방 — 가장 위 줄 오른쪽 칸의 오른쪽 위에 점
+        const tx = Math.max(...r.cells.filter((c) => c.cy === y0).map((c) => c.cx));
+        g.fillStyle(hexToNum(accentHex(scene, si, 25)), 1);
+        g.fillRect((tx - x0) * cell + cell - inset - 3 - STRUCT.warpDot, inset + 3, STRUCT.warpDot, STRUCT.warpDot);
       }
       v.glyph.clearTint().setAlpha(1);
       if (current) v.glyph.setTint(accentCur);
