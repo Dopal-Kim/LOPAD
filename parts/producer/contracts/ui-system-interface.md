@@ -130,3 +130,154 @@ interface UiRoom {
 - **워프 선택 화면을 여는 키는 UI 가 직접 읽는다.** 시스템은 키를 등록하지 않는다. 임시 제안: **Tab** (브라우저 포커스 이동을 막으려면 키 캡처 필요). 기존 배정과 겹치지 않음: W/A/S/D 이동, Space 대쉬, Q 물약, R 재시작, M 음소거(시스템 오디오), Shift 달리기(시스템), 좌·우클릭 공격·보조. ESC 등 UI 가 이미 쓰는 키와의 관계는 UI 가 정한다.
 - 달리기 키 **Shift** 는 시스템이 읽는다 (`KEYS.SPRINT`).
 - 선택 화면은 `inCombat` 이 true 이거나 `warp.ready` 가 false 면 열지 않거나 회색으로 그리는 것을 권장 (열어도 `warpTo` 가 거부한다).
+
+## 9. 47라운드 추가 (상호작용 구조물, 승인 #14)
+결정: `decisions/2026-10-02-round-47-structures-impl.md` (초안 `parts/system/structures-draft.md` 5.3 Q5~Q18 추천안 적용, 전부 임시값). 시스템은 규칙·판정·키 입력·문자열을, UI 는 안내·메뉴·HUD 상태·미니맵 점을 맡는다.
+코드: `src/contract/ui.ts` (아래 타입 이름 그대로). 모든 새 필드는 시스템이 채우기 전까지 빈 기본값(`null` / `[]` / `false`)이다.
+
+### 9.1 스냅샷 — 상호작용 안내 `UiSnapshot.interactable: UiInteractable | null`
+플레이어에게서 **1.5칸(24px) 안의 가장 가까운 E형 구조물** 하나. 없으면 `null`. 다 쓴 구조물(더 할 수 있는 행동이 없는 것)은 빠진다. 일시적으로 못 쓰면 `usable=false` 와 사유로 내려준다.
+```ts
+type UiStructureKind =            // 초안 id
+  | 'crate'       // C1 부서지는 짐 (타격형)
+  | 'chest'       // C2 종군 상인의 궤짝 (E)
+  | 'grave'       // C3 무명 전사의 묘 (E 2초)
+  | 'campfire'    // C5 모닥불 (E)
+  | 'cask'        // 1-1 독주 술통 (타격·굴림)
+  | 'still'       // 1-2 증류 화로 (통과)
+  | 'ledger'      // 1-3 외상 장부대 (E)
+  | 'agingBarrel' // 1-4 숙성 통 (E)
+  | 'counter'     // 1-5 선술집 카운터 (E)
+  | 'hiddenWall'  // 1-6 밀주 저장고 숨은 벽 (타격)
+  | 'cardTable'   // 2-1 패 탁자 (E + 선택)
+  | 'exchange'    // 2-2 목숨 칩 환전대 (E)
+  | 'dogRing'     // 2-3 투견 링 (E)
+  | 'stakeBell'   // 2-4 판돈 종 (타격)
+  | 'roulette'    // 2-5 룰렛 바닥 (자동)
+  | 'pawn';       // 2-6 전당포 창구 (E)
+
+interface UiCost {
+  kind: 'gold' | 'hp' | 'maxHp' | 'potion' | 'passive' | 'none';
+  amount: number;       // 수치 (표시 불필요면 0)
+  label: string;        // 그대로 그릴 문자열 (예 '35전표'). none 이면 ''
+  affordable: boolean;  // 지금 낼 수 있는가
+}
+
+type UiInteractBlockReason = 'combat' | 'busy' | 'gold' | 'hp' | 'potion' | 'notReady' | 'full' | 'limit';
+// combat 전투 중 · busy 메뉴·연출·워프 중 · gold/hp/potion 부족 · notReady 아직 때가 아님(숙성 중 등) · full 더 받을 수 없음 · limit 횟수 소진
+
+interface UiInteractable {
+  id: string;            // 구조물 인스턴스 id (층 안에서 유일)
+  kind: UiStructureKind;
+  name: string;          // 표시 이름 (자리표시)
+  roomId: string;        // map.rooms[].id
+  key: string;           // 누를 키 이름 (현재 'E')
+  actionKey: string;     // 행동 문구 키 (예 'chest.open')
+  action: string;        // 행동 문구 값 (자리표시, 예 '연다')
+  cost: UiCost | null;   // 비용 없으면 null
+  hold: { durationMs: number; progress: number } | null; // C3 묘: durationMs 2000, progress 0..1 (이동하면 0). 그 외 null
+  usable: boolean;       // = reason === null
+  reason: UiInteractBlockReason | null;
+  reasonText: string;    // 불가 사유 문구 (자리표시). usable 이면 ''
+  screen: { x: number; y: number }; // 구조물 윗변 중앙의 화면 좌표 (게임 캔버스 픽셀, 카메라 반영)
+}
+```
+- `interactable` 이 나오는 종류: `chest`·`grave`·`campfire`·`ledger`·`agingBarrel`·`counter`·`cardTable`·`exchange`·`dogRing`·`pawn`. 타격·통과·자동형(`crate`·`cask`·`still`·`hiddenWall`·`stakeBell`·`roulette`)은 안내가 없고 이벤트(§9.6)로만 알린다.
+- E 를 누르면 바로 실행되는 종류: `chest`(지불·개봉) · `campfire`(불씨 전부 사용) · `agingBarrel`(넣기 / 꺼내기) · `dogRing`(판돈 걸고 도전 시작). 비용은 `cost` 로 미리 보여 준다.
+- E 를 누르면 메뉴(§9.4)가 열리는 종류: `cardTable`·`exchange`·`pawn`·`ledger`·`counter`, 그리고 `grave`(2초 누르기가 끝나면).
+
+### 9.2 스냅샷 — HUD 상태 `UiSnapshot.statuses: UiStatus[]`
+층 안에서 이어지는 구조물 상태. 시스템이 그릴 순서로 정렬해 내려주며, 없으면 `[]`. UI 는 `label`·`value` 를 그대로 그린다.
+```ts
+type UiStatusId = 'debt' | 'drunk' | 'stakes' | 'embers' | 'fireWeapon' | 'ring' | 'roulette' | 'aging' | 'pawn';
+interface UiStatus {
+  id: UiStatusId;
+  kind: 'buff' | 'debuff' | 'resource' | 'timer' | 'rule' | 'progress';
+  label: string;        // 이름 (자리표시)
+  value: string;        // 그대로 그릴 값
+  amount?: number; max?: number;            // 게이지용 (선택)
+  remainMs?: number; durationMs?: number;   // 타이머 상태만
+  detail?: string;      // 효과 설명 한 줄 (자리표시)
+}
+```
+| id | 출처 | kind | value 예 | 타이머 | 사라지는 때 |
+|---|---|---|---|---|---|
+| `debt` | 1-3 외상 장부대 | debuff | '90G' (amount=남은 빚) | — | 다 갚음 / 보스 처치 정산 |
+| `drunk` | 1-5 선술집 카운터 | buff | '2단' (amount 1~3, max 3) | — | 다음 시련 클리어·보스 처치 |
+| `stakes` | 2-4 판돈 종 | debuff | '×1.6' (amount=울린 횟수, max 2) | — | 층 끝 |
+| `embers` | C5 모닥불 | resource | '2' (amount, max 4) | — | 모닥불 사용(0이면 항목 없음) |
+| `fireWeapon` | 1-2 증류 화로 | buff | '불' | remainMs/durationMs 6000 | 시간 끝 |
+| `ring` | 2-3 투견 링 | timer | '2/3' (amount=쓰러뜨린 수, max) | remainMs/durationMs 20000 | 도전 종료 |
+| `roulette` | 2-5 룰렛 바닥 | rule | 규칙 이름 | — | 그 시련 클리어 |
+| `aging` | 1-4 숙성 통 | progress | '1/2' (amount=지난 시련 수, max 2) / 다 익으면 '다 익음' | — | 꺼냄 |
+| `pawn` | 2-6 전당포 창구 | resource | 맡긴 개수 | — | 되찾음 / 층 끝 |
+
+적에게 걸린 화상은 HUD 상태가 아니다(시스템이 월드에 그린다).
+
+### 9.3 키
+- **E 는 시스템이 읽는다** (상호작용, 2초 누르기 포함). UI 는 키를 등록하지 않고 `interactable` 로 안내만 그린다(예: "[E] 연다 · 35전표", 누르기 진행 원·막대, 불가 시 회색 + `reasonText`).
+- E 형 구조물은 **비전투 중에만** 동작한다 (`inCombat === true` 이면 `reason: 'combat'`).
+- 메뉴 조작은 기존 메뉴와 같다 (`select(menuId, key)`). 구조물 메뉴가 열려 있는 동안 시스템이 플레이어 입력(이동·공격·E)을 잠근다. 게임 씬은 멈추지 않는다.
+
+### 9.4 메뉴 — 구조물 메뉴 id 와 선택지
+기존 `MENU_OPEN(UiMenu)` → `uiCommands.select(menuId, key)` → `MENU_CLOSE` 흐름을 그대로 쓴다. `UiMenuId` 에 아래 6개가 추가된다.
+```ts
+type UiStructureMenuId = 'cards' | 'exchange' | 'pawn' | 'grave' | 'ledger' | 'counter';
+type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending' | UiStructureMenuId;
+interface UiMenu {
+  // ...기존 id, title, footer?, lines
+  cancelKey?: string;    // 그만두기 줄의 key. 구조물 메뉴는 항상 '0'. 있으면 UI 는 ESC·닫기 버튼을 select(id, cancelKey) 로 보낸다
+  structureId?: string;  // 이 메뉴를 연 구조물 인스턴스 id (= UiInteractable.id). 구조물 메뉴만
+}
+```
+- 모든 구조물 메뉴의 **마지막 줄은 그만두기**(`key: '0'`, `enabled: true`)이고 `cancelKey: '0'` 이다. 나머지 선택지 key 는 `'1'`, `'2'`, … 순서.
+- 선택지의 `label` 은 이름(비용 포함 가능), `detail` 은 효과·조건 설명, 못 고르면 `enabled: false`(이유는 `detail` 에).
+- 한 선택 뒤 같은 메뉴를 다시 그려야 하면(전당포처럼 여러 번) 시스템이 같은 id 로 `MENU_OPEN` 을 다시 보낸다(기존 상점과 같음). 끝나면 `MENU_CLOSE`.
+
+| id | 구조물 | 선택지 (key: 내용, 전부 자리표시·임시값) |
+|---|---|---|
+| `cards` | 2-1 패 탁자 | '1'·'2'·'3': 엎어진 패 3장 중 하나 (판돈은 `title`/`footer` 에). 고르면 결과는 `STRUCTURE_RESULT`, 흉패면 `CHALLENGE_STARTED` |
+| `exchange` | 2-2 목숨 칩 환전대 | '1': 피를 판다 (HP 25% → 50G, 층당 3회) · '2': 목숨을 건다 (최대 HP -15 → 능력치 포인트 1, 층당 1회) |
+| `pawn` | 2-6 전당포 창구 | 맡기기: 보유 패시브마다 한 줄 + 물약 한 줄 · 되찾기: 맡긴 것마다 한 줄 (label 에 '맡긴다'/'되찾는다' 와 금액). 선택마다 다시 그림 |
+| `grave` | C3 무명 전사의 묘 | '1': 기록한다 (영혼 +10) · '2': 받아들인다 (개성 +25) |
+| `ledger` | 1-3 외상 장부대 | '1': 외상을 긋는다 (+60G, 빚 90G, 층당 1회) · '2': 갚는다 (가진 골드로 빚 상환, 빚 있을 때만) |
+| `counter` | 1-5 선술집 카운터 | '1'~'3': 잔 고르기 (잔당 10G, 취기 +1단, 누적 최대 3 — 이미 마신 잔은 `enabled: false`) |
+
+### 9.5 미니맵 — `UiRoom.structureDot: boolean`
+사용 가능한 E형 구조물(§9.1 의 `interactable` 대상 종류 중 다 쓰지 않은 것)이 남은 방이면 `true`. 미니맵은 그 방에 점 1개를 그린다. 미방문 방의 표시 여부는 기존 미니맵 규칙(방문 방만 그림 등)을 따른다(UI 판단).
+
+### 9.6 이벤트 (시스템 → UI)
+| 이벤트 | 페이로드 | 시점 |
+|---|---|---|
+| `STRUCTURE_USED` | `UiStructureUsed = { id; kind: UiStructureKind; roomId; actionKey }` | E형 구조물 행동 완료 (E 즉시 실행 또는 메뉴 선택 확정) |
+| `STRUCTURE_BROKEN` | `UiStructureBroken = { id; kind; roomId }` | 타격형 구조물 부서짐 (`crate`·`cask`·`hiddenWall`). 연출·음향용, UI 구독은 선택 |
+| `STRUCTURE_RESULT` | `UiStructureResult` (아래) | 결과 알림 한 줄 — 획득·손실·경고. UI 가 토스트·하단 알림으로 그린다 |
+| `CHALLENGE_STARTED` | `UiChallengeStarted` (아래) | 투견 링 시작 · 흉패 소환 (전투 시작 → `inCombat` true) |
+| `CHALLENGE_CLEARED` | `UiChallengeCleared` (아래) | 위 도전 종료 (`inCombat` false 로 돌아옴) |
+```ts
+interface UiStructureResult {
+  id: string; kind: UiStructureKind;
+  tone: 'gain' | 'loss' | 'mixed' | 'warn' | 'info'; // warn = 판돈 종 첫 타격(두 번째 타격에서 확정) 등
+  text: string;                                      // 그대로 그릴 한 줄 (자리표시)
+  deltas: { gold?: number; hp?: number; maxHp?: number; potions?: number; souls?: number; personality?: number; points?: number };
+}
+interface UiChallengeStarted {
+  id: string; kind: 'dogRing' | 'cardTable'; roomId: string;
+  label: string;               // 도전 이름 (자리표시)
+  goal: string;                // 목표 문구 (자리표시, 예 '20초 안에 개 3마리')
+  timeLimitMs: number | null;  // 투견 링 20000, 흉패 null
+}
+interface UiChallengeCleared {
+  id: string; kind: 'dogRing' | 'cardTable'; roomId: string;
+  outcome: 'clear' | 'flawless' | 'timeout'; // timeout = 시간 초과(판돈 몰수, 사망 아님)
+  text: string;                              // 결과 문구 (자리표시)
+}
+```
+- 골드·HP·물약 변화는 기존 `GOLD_CHANGED`·`PLAYER_DAMAGED`/`PLAYER_HEALED` 도 평소처럼 발행된다. `STRUCTURE_RESULT` 는 그 위에 얹는 설명 문구다.
+- 모닥불을 쓰면 기존 `STORY`(kind `'rest'`) 로 휴식 메모가 다시 올 수 있다.
+
+### 9.7 명령
+새 명령은 없다. 구조물 메뉴는 기존 `uiCommands.select(menuId, key)` 로 답한다(그만두기 = `select(id, menu.cancelKey)`).
+
+### 9.8 텍스트
+구조물 이름·행동 문구·사유·결과·메뉴 문장은 전부 **자리표시**이며 시스템이 문자열로 내려준다(Q17). 스토리 파트 확정 후 `contracts/story-text.md` 로 바뀌어도 필드 형태는 그대로다. UI 는 문구를 직접 만들지 않는다(키 이름 'E' 같은 조작 안내 틀은 UI 가 그려도 된다).
