@@ -1,0 +1,232 @@
+{
+ "image": "katana_carry_run.png",
+ "action": "carry_run",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.29,
+ "frameDurationsMs": [
+  70,
+  70,
+  70,
+  70,
+  70,
+  70,
+  70,
+  70
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 64,
+  "y": 124
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (52라운드 Q12 2단계)",
+ "weapon": "katana",
+ "carry": "waist sheath (해부 왼허리 칼집 — 일기장은 오른허리)",
+ "bodySheet": "player_run",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 32,
+  "y": 32
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 칼집·손잡이 픽셀은 몸 실루엣으로 지워 두었다 → 항상 몸 위에 겹친다(above). right 는 칼집이 먼 허리라 몸 밖으로 나온 칼집 끝만 보인다.",
+ "sheathMouthAnchors": {
+  "down": [
+   [
+    75.4,
+    95.2
+   ],
+   [
+    75.5,
+    96.2
+   ],
+   [
+    75.6,
+    94.2
+   ],
+   [
+    74.7,
+    93.8
+   ],
+   [
+    73.7,
+    98.4
+   ],
+   [
+    73.5,
+    99.4
+   ],
+   [
+    73.4,
+    97.4
+   ],
+   [
+    74.3,
+    93.8
+   ]
+  ],
+  "up": [
+   [
+    52.3,
+    93.1
+   ],
+   [
+    52.4,
+    94.1
+   ],
+   [
+    52.5,
+    92.1
+   ],
+   [
+    53.7,
+    91.7
+   ],
+   [
+    54.7,
+    96.3
+   ],
+   [
+    54.6,
+    97.3
+   ],
+   [
+    54.4,
+    95.3
+   ],
+   [
+    53.3,
+    91.7
+   ]
+  ],
+  "left": [
+   [
+    61.0,
+    95.5
+   ],
+   [
+    61.0,
+    96.5
+   ],
+   [
+    61.0,
+    94.5
+   ],
+   [
+    61.0,
+    92.5
+   ],
+   [
+    61.0,
+    95.5
+   ],
+   [
+    61.0,
+    96.5
+   ],
+   [
+    61.0,
+    94.5
+   ],
+   [
+    61.0,
+    92.5
+   ]
+  ],
+  "right": [
+   [
+    67.0,
+    95.5
+   ],
+   [
+    67.0,
+    96.5
+   ],
+   [
+    67.0,
+    94.5
+   ],
+   [
+    67.0,
+    92.5
+   ],
+   [
+    67.0,
+    95.5
+   ],
+   [
+    67.0,
+    96.5
+   ],
+   [
+    67.0,
+    94.5
+   ],
+   [
+    67.0,
+    92.5
+   ]
+  ]
+ },
+ "sheathMouthNote": "칼집 입구(무기 시트 좌표) — 뽑기 이펙트·손 위치 참고용",
+ "overlay": "player_run 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (64,124) = 주인공 피벗 (32,92)."
+}

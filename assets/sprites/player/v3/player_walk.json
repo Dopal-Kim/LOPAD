@@ -1,0 +1,391 @@
+{
+ "image": "player_walk.png",
+ "action": "walk",
+ "frameWidth": 64,
+ "frameHeight": 96,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 10.0,
+ "frameDurationsMs": [
+  100,
+  100,
+  100,
+  100,
+  100,
+  100,
+  100,
+  100
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 32,
+  "y": 92
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (52라운드 Q12 2단계)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "stride": {
+  "px": 36,
+  "cycleMs": 800
+ },
+ "strideNote": "계약 §12(52라운드 Q10): 한 주기(8프레임) 동안 디딤발이 바닥을 미는 거리(도트, pixelScale 0.5 → 논리 px = ×0.5) / 주기 ms. 시스템이 실제 이동 속도에 맞춰 재생 속도를 조절",
+ "v2Timing": {
+  "frames": 8,
+  "frameDurationsMs": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "totalMs": 880
+ },
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     18.6,
+     63.4
+    ],
+    "handL": [
+     45.8,
+     58.4
+    ]
+   },
+   {
+    "handR": [
+     19.5,
+     60.7
+    ],
+    "handL": [
+     46.7,
+     57.1
+    ]
+   },
+   {
+    "handR": [
+     19.8,
+     57.9
+    ],
+    "handL": [
+     47.0,
+     57.9
+    ]
+   },
+   {
+    "handR": [
+     19.3,
+     57.1
+    ],
+    "handL": [
+     46.5,
+     60.7
+    ]
+   },
+   {
+    "handR": [
+     18.2,
+     58.4
+    ],
+    "handL": [
+     45.5,
+     63.4
+    ]
+   },
+   {
+    "handR": [
+     17.3,
+     57.1
+    ],
+    "handL": [
+     44.5,
+     60.7
+    ]
+   },
+   {
+    "handR": [
+     17.0,
+     57.9
+    ],
+    "handL": [
+     44.2,
+     57.9
+    ]
+   },
+   {
+    "handR": [
+     17.5,
+     60.7
+    ],
+    "handL": [
+     44.7,
+     57.1
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     45.8,
+     58.4
+    ],
+    "handL": [
+     18.6,
+     63.4
+    ]
+   },
+   {
+    "handR": [
+     44.7,
+     57.1
+    ],
+    "handL": [
+     17.5,
+     60.7
+    ]
+   },
+   {
+    "handR": [
+     44.2,
+     57.9
+    ],
+    "handL": [
+     17.0,
+     57.9
+    ]
+   },
+   {
+    "handR": [
+     44.5,
+     60.7
+    ],
+    "handL": [
+     17.3,
+     57.1
+    ]
+   },
+   {
+    "handR": [
+     45.5,
+     63.4
+    ],
+    "handL": [
+     18.2,
+     58.4
+    ]
+   },
+   {
+    "handR": [
+     46.5,
+     60.7
+    ],
+    "handL": [
+     19.3,
+     57.1
+    ]
+   },
+   {
+    "handR": [
+     47.0,
+     57.9
+    ],
+    "handL": [
+     19.8,
+     57.9
+    ]
+   },
+   {
+    "handR": [
+     46.7,
+     57.1
+    ],
+    "handL": [
+     19.5,
+     60.7
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     15.2,
+     57.9
+    ],
+    "handL": [
+     26.2,
+     57.9
+    ]
+   },
+   {
+    "handR": [
+     15.6,
+     56.1
+    ],
+    "handL": [
+     23.4,
+     56.1
+    ]
+   },
+   {
+    "handR": [
+     19.5,
+     55.7
+    ],
+    "handL": [
+     19.5,
+     55.7
+    ]
+   },
+   {
+    "handR": [
+     23.4,
+     56.1
+    ],
+    "handL": [
+     15.6,
+     56.1
+    ]
+   },
+   {
+    "handR": [
+     26.2,
+     57.9
+    ],
+    "handL": [
+     15.2,
+     57.9
+    ]
+   },
+   {
+    "handR": [
+     23.4,
+     56.1
+    ],
+    "handL": [
+     15.6,
+     56.1
+    ]
+   },
+   {
+    "handR": [
+     19.5,
+     55.7
+    ],
+    "handL": [
+     19.5,
+     55.7
+    ]
+   },
+   {
+    "handR": [
+     15.6,
+     56.1
+    ],
+    "handL": [
+     23.4,
+     56.1
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     37.8,
+     57.9
+    ],
+    "handL": [
+     48.8,
+     57.9
+    ]
+   },
+   {
+    "handR": [
+     40.6,
+     56.1
+    ],
+    "handL": [
+     48.4,
+     56.1
+    ]
+   },
+   {
+    "handR": [
+     44.5,
+     55.7
+    ],
+    "handL": [
+     44.5,
+     55.7
+    ]
+   },
+   {
+    "handR": [
+     48.4,
+     56.1
+    ],
+    "handL": [
+     40.6,
+     56.1
+    ]
+   },
+   {
+    "handR": [
+     48.8,
+     57.9
+    ],
+    "handL": [
+     37.8,
+     57.9
+    ]
+   },
+   {
+    "handR": [
+     48.4,
+     56.1
+    ],
+    "handL": [
+     40.6,
+     56.1
+    ]
+   },
+   {
+    "handR": [
+     44.5,
+     55.7
+    ],
+    "handL": [
+     44.5,
+     55.7
+    ]
+   },
+   {
+    "handR": [
+     40.6,
+     56.1
+    ],
+    "handL": [
+     48.4,
+     56.1
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 해부 기준 R = 오른손 · L = 왼손). 무기 시트 좌표 = 몸 좌표 + playerFrameOffset(32,32). 칼은 오른손(R)이 쥔다.",
+ "carryOverlay": "weapons/v3/katana_carry_walk",
+ "note": "v3 2배 밀도 — 64×96 도트, 화면상 32×48 (계약 §11). 개념 gemini/concept_char/hero3_b."
+}

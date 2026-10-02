@@ -1,10 +1,18 @@
 {
- "colors": 27,
+ "heroColors": 30,
  "colorBudget": 30,
+ "weaponColors": 19,
  "semiTransparent": false,
  "frames": {
   "idle": 6,
-  "walk": 8
+  "walk": 8,
+  "run": 8,
+  "dash": 5,
+  "hurt": 3,
+  "death": 10,
+  "katana_combo1": 7,
+  "katana_combo2": 6,
+  "katana_combo3": 7
  },
  "size": [
   64,
@@ -15,7 +23,24 @@
   92
  ],
  "pixelScale": 0.5,
- "palette": [
+ "weaponSheet": [
+  128,
+  128
+ ],
+ "weaponPivot": [
+  64,
+  124
+ ],
+ "weaponEdgePixels": {
+  "katana_carry_idle": 0,
+  "katana_carry_walk": 0,
+  "katana_carry_run": 0,
+  "katana_carry_dash": 0,
+  "katana_combo1": 0,
+  "katana_combo2": 0,
+  "katana_combo3": 0
+ },
+ "heroPalette": [
   "#141516",
   "#14161c",
   "#1d2028",
@@ -29,19 +54,43 @@
   "#3f4552",
   "#45403b",
   "#4d4f52",
+  "#4e5563",
   "#4f3828",
   "#5c554e",
   "#5c5e62",
   "#626a78",
   "#653b24",
   "#664a33",
+  "#6c6f73",
   "#756c62",
   "#7d8084",
   "#8b4d22",
   "#8e9195",
+  "#90857a",
   "#d67a11",
   "#e2a33c",
   "#eecc78",
   "#f4de9b"
+ ],
+ "weaponPalette": [
+  "#14161c",
+  "#1d2028",
+  "#2f3033",
+  "#323743",
+  "#3b2a1f",
+  "#3e3f42",
+  "#4d4f52",
+  "#4f3828",
+  "#5c5e62",
+  "#6c6f73",
+  "#7d8084",
+  "#8e9195",
+  "#c5c6c9",
+  "#d67a11",
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b",
+  "#fff4dc",
+  "#ffffff"
  ]
 }

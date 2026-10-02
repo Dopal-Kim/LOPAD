@@ -76,8 +76,20 @@ def pose(**kw):
              hand=((0, 0), (0, 0)),
              sway=0.0, flame=0, lean=0.0, pulse=0,
              foot=((0.0, 0.0), (0.0, 0.0)),   # 측면: (앞뒤 x, 들림) (먼, 가까운)
-             lean_body=0.0, crouch=0.0)
+             lean_body=0.0, crouch=0.0,
+             # --- 2단계 확장(기본값이면 1단계와 픽셀 동일) ---
+             squash=0.0,                # 상체 세로 압축(0~0.3) — 정면/뒷면에서 카메라 쪽·반대쪽으로 숙임
+             hdx=0.0,                   # 머리 화면 x 이동
+             handAt=None,               # {"L": (x, y), "R": (x, y)} 해부 기준 손 목표(화면 좌표, IK)
+             elbow=None,                # {"L": ±1, "R": ±1} 팔꿈치 굽는 쪽(화면 x 부호)
+             armBack=(),                # 정면/뒷면: 몸통 뒤에 그릴 팔("L"/"R")
+             farArmFront=False,         # 측면: 먼 팔을 몸통 앞에 그림(몸 앞을 가로지를 때)
+             footdx=(0.0, 0.0),         # 정면/뒷면: 발 화면 x 이동 (L, R)
+             glow=0,                    # 균열 혼불 2 = 백열(피격·사망 직전)
+             eyeOff=False, flameOff=False, flameRows=None)
     p.update(kw)
+    if p["handAt"] is None:
+        p["handAt"] = {}
     return p
 
 
@@ -121,17 +133,20 @@ def path_cells(pts, F):
     return seen
 
 
-def crack(R, pts, F, pulse=0, thick=(1, 0), spill=True):
-    """균열 혼불: 중심선(23/25/26) + 한쪽 두께(21) + 경로를 따라 주변 몸 빛 번짐."""
+def crack(R, pts, F, pulse=0, thick=(1, 0), spill=True, glow=0):
+    """균열 혼불: 중심선(23/25/26) + 한쪽 두께(21) + 경로를 따라 주변 몸 빛 번짐. glow 2 = 백열."""
     seen = path_cells(pts, F)
     if spill:
         R.spill_cells.extend(seen)
     if thick != (0, 0):
         for x, y in seen:
-            R.dot(x + thick[0], y + thick[1], A[21])
+            R.dot(x + thick[0], y + thick[1], A[23] if glow >= 2 else A[21])
     n = len(seen)
     for i, (x, y) in enumerate(seen):
         mid = 0.25 < i / n < 0.75
+        if glow >= 2:
+            R.dot(x, y, A[26] if (mid or i % 2 == 0) else A[25])
+            continue
         R.dot(x, y, A[26] if (mid and pulse and i % 2 == 0) else (A[25] if mid else A[23]))
 
 
@@ -141,6 +156,22 @@ def groove(R, pts, F, hi=True):
         R.dot(x, y, G[1])
         if hi and k % 2 == 0:
             R.dot(x + 1, y + 1, G[5])
+
+
+def reach(sh, tgt, frac=0.97):
+    """어깨에서 닿지 않는 목표는 팔 길이 안으로 당긴다."""
+    dx, dy = tgt[0] - sh[0], tgt[1] - sh[1]
+    d = math.hypot(dx, dy)
+    L = (UPPER + FORE) * frac
+    if d <= L or d == 0:
+        return tgt
+    return (sh[0] + dx * L / d, sh[1] + dy * L / d)
+
+
+def arm_end(el, hand, k=2.0):
+    dx, dy = hand[0] - el[0], hand[1] - el[1]
+    d = math.hypot(dx, dy) or 1.0
+    return (hand[0] - dx * k / d, hand[1] - dy * k / d)
 
 
 # =============================================================================
@@ -153,6 +184,7 @@ def draw_front(p, back=False):
     b, br, hd = p["bob"], p["breath"], p["head"]
     sh_, pt, st, tw = p["shift"], p["ptilt"], p["stilt"], p["twist"]
     cr = p["crouch"]
+    sq = p["squash"]
 
     # 상체 좌표: 위로 갈수록 shift·twist 가 더 걸림 (허리 0 → 가슴 1) — 비틀림
     def ux(dx, y):
@@ -165,6 +197,8 @@ def draw_front(p, back=False):
             t = (st if dx > 0 else -st) * min(1.0, abs(dx) / 16.0) - br * (47 - y) / 15.0
         elif y >= 52:
             t = -(pt if dx > 0 else -pt) * min(1.0, abs(dx) / 10.0)      # 골반 기울기
+        if sq and y < HIP_Y:
+            y = HIP_Y - (HIP_Y - y) * (1.0 - sq)
         return y + b + cr + t
 
     U = lambda dx, y: (ux(dx, y), uy(dx, y))     # noqa: E731
@@ -179,7 +213,7 @@ def draw_front(p, back=False):
         hip = (X(s * 5.4 + sh_ * 0.4), HIP_Y + b + cr - s * pt)
         lift = p["lift"][li]
         fy = FOOT_Y + p["step"][li] - lift
-        foot = (X(s * 8.0), fy)
+        foot = (X(s * 8.0) + p["footdx"][li], fy)
         knee = ((hip[0] + foot[0]) / 2 + m * s * (1.4 + 0.4 * lift), (hip[1] + foot[1]) / 2 - 0.4 * lift)
         R.capsule(P("leg" + side, ASH, 2, group="leg" + side, soft=2.0, vgrad=0.82, bands=LIMB_BANDS), [hip, knee, foot], [4.4, 3.3, 2.5])
         R.ellipse(P("foot" + side, ASH, 2, group="foot" + side, soft=1.2), foot[0] + m * s * 0.6, fy + 1.6 + max(0, p["step"][li]) * 0.2, 4.3, 2.3 + max(0, p["step"][li]) * 0.2)
@@ -194,6 +228,30 @@ def draw_front(p, back=False):
                 q = lerp(q0, q1, 0.2 + 0.3 * k)
                 for ox in (-2, -1, 0):
                     R.dot(round(q[0]) + ox, round(q[1]) + (1 if ox == 0 else 0), PL[0])
+    def front_arm(side):
+        s = 1 if side == "L" else -1
+        li = 0 if side == "L" else 1
+        shj = U(s * 14.4, 39)
+        tgt = p["handAt"].get(side)
+        if tgt is None:
+            hdx, hdy = p["hand"][li]
+            hand = (ux(s * 13.6 + s * hdx, 58), 58.5 + b + cr + hdy - br * 0.5)
+            el = (ux(s * 18.4 + s * 0.3 * hdy, 50), 49.5 + b + cr + hdy * 0.4 - br * 0.5)
+            end = (hand[0], hand[1] - 2.0)
+        else:
+            hand = reach(shj, tgt)
+            bend = (p["elbow"] or {}).get(side, m * s)
+            el = ik2(shj, hand, UPPER, FORE, bend)
+            end = arm_end(el, hand)
+        R.capsule(P("arm" + side, ASH, 2, group="arm" + side, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [shj, el, end], [3.6, 3.0, 2.5])
+        if side == "L":
+            R.capsule(P("vamb", IRON, 2, soft=1.0), [lerp(el, hand, 0.25), lerp(el, hand, 0.66)], [3.2, 2.9])
+        R.ellipse(P("hand" + side, BAND, 1, soft=1.0, rim=False), hand[0], hand[1] + 0.4, 2.6, 2.8)
+        R.anchors["hand" + side] = (hand[0], hand[1] + 0.4)
+        R.anchors["shoulder" + side] = shj
+
+    for side in p["armBack"]:
+        front_arm(side)
     # --- 몸통: 숙여서 짧아 보이는 가슴 · 말려 올라간 승모 · 비틀린 허리 ------------------
     torso = [(-5, 31), (5, 31), (11.5, 33.5), (15.6, 38), (15.6, 43), (12.8, 48.5), (9.8, 54), (9.0, 61), (-9.0, 61),
              (-9.8, 54), (-12.8, 48.5), (-15.6, 43), (-15.6, 38), (-11.5, 33.5)]
@@ -215,19 +273,13 @@ def draw_front(p, back=False):
     else:
         R.capsule(P("strap", CLOTH, 1, soft=0.8, rim=False), [U(13, 34.5), U(-8.5, 55)], [1.2, 1.2])
     # --- 팔: 굽힌 팔꿈치, 주먹은 앞·안쪽(전투 준비) ------------------------------------
-    for side, s in (("L", 1), ("R", -1)):
-        li = 0 if side == "L" else 1
-        shj = U(s * 14.4, 39)
-        hdx, hdy = p["hand"][li]
-        hand = (ux(s * 13.6 + s * hdx, 58), 58.5 + b + cr + hdy - br * 0.5)
-        el = (ux(s * 18.4 + s * 0.3 * hdy, 50), 49.5 + b + cr + hdy * 0.4 - br * 0.5)
-        R.capsule(P("arm" + side, ASH, 2, group="arm" + side, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [shj, el, (hand[0], hand[1] - 2.0)], [3.6, 3.0, 2.5])
-        if side == "L":
-            R.capsule(P("vamb", IRON, 2, soft=1.0), [lerp(el, hand, 0.25), lerp(el, hand, 0.66)], [3.2, 2.9])
-        R.ellipse(P("hand" + side, BAND, 1, soft=1.0, rim=False), hand[0], hand[1] + 0.4, 2.6, 2.8)
+    for side in ("L", "R"):
+        if side not in p["armBack"]:
+            front_arm(side)
     # --- 머리: 숙여서 어깨 사이로 내려온 금 간 두개골 ------------------------------------
-    hx = ux(0, 30)
-    hy = 22.5 + b + cr + hd - br * 0.6
+    hx = ux(0, 30) + p["hdx"]
+    hy = (22.5 if not sq else HIP_Y - (HIP_Y - 22.5) * (1.0 - sq)) + b + cr + hd - br * 0.6
+    R.anchors.update(head=(hx, hy), chest=U(0, 45), hipL=U(10.5, 58.5), hipR=U(-10.5, 58.5))
     if not back:
         R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(hx + m * dx, hy + dy) for dx, dy in SKULL_FRONT])
         R.poly(P("face", FACE, 3, group="head", soft=1.4, rim=False, cast=False, warm=True, vgrad=0.8),
@@ -277,10 +329,11 @@ def draw_front(p, back=False):
             R.dot(round(hx) + ddx, round(hy + dy), c)                                        # 광대(빛 쪽 더 밝게)
         for ddx in (-3, -2, -1, 0, 1, 2):
             R.dot(round(hx) + ddx, round(hy + 9.6), G[3] if ddx < 0 else G[2])                # 턱 끝 윗면
-        R.spill.append((H(4), hy + 2, 2.4))
+        if not p["eyeOff"]:
+            R.spill.append((H(4), hy + 2, 2.4))
         for dx, dy, c in ((2, 2, EYE[0]), (3, 2, EYE[1]), (4, 1, EYE[2]), (5, 1, EYE[3] if p["pulse"] else EYE[2]), (6, 0, EYE[1]),
                           (3, 3, EYE[0]), (4, 2, EYE[2]), (5, 2, EYE[1])):
-            R.dot(round(H(dx)), round(hy + dy), c)
+            R.dot(round(H(dx)), round(hy + dy), OUT if p["eyeOff"] else c)
         for dx, dy in ((-3, 2), (-4, 2), (-3, 3), (-4, 3), (-5, 2)):
             R.dot(round(H(dx)), round(hy + dy), OUT)
         for dx, dy in ((-4.6, 6.4), (-3.8, 7.2), (4.6, 6.4), (3.8, 7.2)):
@@ -288,8 +341,8 @@ def draw_front(p, back=False):
         for dx in (-2, -1, 0, 1, 2):
             R.dot(round(H(dx)), round(hy + 8.4), G[1])                                       # 닫힌 입
         # 가슴 균열 · 갈비 · 쇄골 · 껍데기 금
-        crack(R, [(-3, 37.5), (-1, 40.5), (-4.5, 43.5), (-1.5, 46.5), (-3.5, 50), (-1, 53)], U, pulse=p["pulse"], thick=(m, 0))
-        crack(R, [(-1, 40.5), (2.5, 41.5)], U, thick=(0, 1), spill=False)
+        crack(R, [(-3, 37.5), (-1, 40.5), (-4.5, 43.5), (-1.5, 46.5), (-3.5, 50), (-1, 53)], U, pulse=p["pulse"], thick=(m, 0), glow=p["glow"])
+        crack(R, [(-1, 40.5), (2.5, 41.5)], U, thick=(0, 1), spill=False, glow=p["glow"])
         for dx, y in ((-11, 45), (-10, 45), (-11, 48), (-10, 48), (-9, 48), (-10, 51), (-9, 51), (8, 51), (9, 51), (9, 54), (8, 54)):
             R.dot(round(ux(dx, y)), round(uy(dx, y)), G[2])
         for s_ in (1, -1):
@@ -301,8 +354,8 @@ def draw_front(p, back=False):
         groove(R, [(6, 51), (7.5, 53.5), (6.5, 56)], U, hi=False)
         R.dot(round(ux(16.5, 55)), round(uy(16.5, 55)), SL[6]); R.dot(round(ux(17.5, 56)), round(uy(17.5, 56)), SL[2])
     else:
-        crack(R, [(1, 36), (-1.5, 40), (2, 44), (-1, 48), (1.5, 52), (0, 56)], U, pulse=p["pulse"], thick=(m, 0))
-        crack(R, [(2, 44), (6.5, 42)], U, thick=(0, 1), spill=False)
+        crack(R, [(1, 36), (-1.5, 40), (2, 44), (-1, 48), (1.5, 52), (0, 56)], U, pulse=p["pulse"], thick=(m, 0), glow=p["glow"])
+        crack(R, [(2, 44), (6.5, 42)], U, thick=(0, 1), spill=False, glow=p["glow"])
         for s_ in (1, -1):
             for k in range(5):
                 R.dot(round(ux(s_ * (6 + k), 43)), round(uy(s_ * (6 + k), 43 + k * 0.6)), G[1])
@@ -317,9 +370,11 @@ def draw_front(p, back=False):
     R.dot(kn[0], kn[1] + 1, WD[4]); R.dot(kn[0] + 1, kn[1] + 2, WD[3]); R.dot(kn[0], kn[1] + 3, WD[3])
     # 어깨 혼불 (해부 왼어깨 위)
     fx, fy = round(ux(13, 32)), round(uy(13, 32))
-    R.dot(fx, fy + 1, A[19])
-    draw_flame(R, fx, fy, p["flame"], p["lean"])
-    return R.render()
+    R.anchors["flame"] = (fx, fy)
+    if not p["flameOff"]:
+        R.dot(fx, fy + 1, A[19])
+        draw_flame(R, fx, fy, p["flame"], p["lean"], rows=p["flameRows"])
+    return R
 
 
 # =============================================================================
@@ -360,28 +415,40 @@ def draw_side(p, facing):
         else:
             R.capsule(P("band_" + which, BAND, 1 - shade, soft=1.0, rim=False), [lerp(knee, foot, 0.3), lerp(knee, foot, 0.86)], [3.1, 2.7])
 
-    def arm(which, shade, swing):
+    def arm(which, shade, swing, dy=0.0):
         shj = U(3.0, 39)
-        hand = (X(8.5 + swing + lb * 2.0), 56.5 + b + cr - br * 0.5 - abs(swing) * 0.15)
-        el = ik2(shj, hand, UPPER, FORE, -f)
+        side = anat(which)
+        tgt = p["handAt"].get(side)
+        if tgt is None:
+            hand = (X(8.5 + swing + lb * 2.0), 56.5 + b + cr - br * 0.5 - abs(swing) * 0.15 + dy)
+            el = ik2(shj, hand, UPPER, FORE, (p["elbow"] or {}).get(side, -f))
+            end = (hand[0] - f * 1.2, hand[1] - 1.6)
+        else:
+            hand = reach(shj, tgt)
+            el = ik2(shj, hand, UPPER, FORE, (p["elbow"] or {}).get(side, -f))
+            end = arm_end(el, hand)
         name = "arm_" + which
-        R.capsule(P(name, ASH, 2 - shade, group=name, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [shj, el, (hand[0] - f * 1.2, hand[1] - 1.6)], [3.4, 2.9, 2.4])
-        if anat(which) == "L":
+        R.capsule(P(name, ASH, 2 - shade, group=name, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [shj, el, end], [3.4, 2.9, 2.4])
+        if side == "L":
             R.capsule(P("vamb_" + which, IRON, 2 - shade, soft=1.0), [lerp(el, hand, 0.25), lerp(el, hand, 0.66)], [3.1, 2.8])
         R.ellipse(P("hand_" + which, BAND, 1 - shade, soft=1.0, rim=False), hand[0], hand[1] + 0.2, 2.7, 2.7)
+        R.anchors["hand" + side] = (hand[0], hand[1] + 0.2)
+        R.anchors["shoulder" + side] = shj
 
     swing = p["hand"]
     if near == "L":                                                          # 먼 쪽(오른어깨) 화살이 굽은 등 위로
         R.capsule(P("arrow_far", CLOTH, 1, flat=True, rim=False, cast=False), [U(-3.5, 37), U(-12, 24)], [0.6, 0.6])
         R.poly(P("fletch_far", ASH, 4, flat=True, rim=False, cast=False), [U(-11.5, 25), U(-14.5, 19.5), U(-12.5, 26)])
-    arm("far", 1, swing[0][0])
+    if not p["farArmFront"]:
+        arm("far", 1, swing[0][0], swing[0][1])
     leg("far", 1)
     # --- 몸통: 굽은 등(혹처럼 둥근 견갑 사이), 앞으로 말린 가슴 -------------------------
     torso = [(-7.2, 61), (-7.8, 54), (-6.6, 47), (-4.6, 41), (-2.2, 36.5), (1.5, 33.5), (6.0, 33.0), (9.6, 36.5), (10.4, 42),
              (8.6, 48), (6.4, 54), (5.6, 61)]
     R.poly(P("torso", ASH, 2, group="body", soft=4.0, vgrad=0.80), [U(dx, y) for dx, y in torso])
     hy = 24.0 + b + cr + hd - br * 0.5
-    hx = 7.0 + lb * 2.2
+    hx = 7.0 + lb * 2.2 + p["hdx"]
+    R.anchors.update(head=(X(hx), hy), chest=U(2, 45), hipL=(X(0.5), 58.5 + b + cr), hipR=(X(0.5), 58.5 + b + cr))
     R.capsule(P("neck", ASH, 2, group="body", soft=1.5), [U(3.5, 35), (X(hx - 2.5), hy + 5.5)], [3.4, 3.0])
     # --- 머리: 앞으로 빠진 금 간 두개(옆얼굴) ---------------------------------------------
     R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(X(hx + dx), hy + dy) for dx, dy in SKULL_SIDE])
@@ -402,7 +469,9 @@ def draw_side(p, facing):
         R.poly(P("diary", DIARY, 1, soft=1.0), [(X(ddx), dy0), (X(ddx + 4.5), dy0 - 0.4), (X(ddx + 4.5), dy0 + 5.6), (X(ddx), dy0 + 6)])
         R.capsule(P("arrow_near", CLOTH, 2, flat=True, rim=False, cast=False), [U(-3.5, 37), U(-12.5, 24)], [0.6, 0.6])
         R.poly(P("fletch_near", ASH, 5, flat=True, rim=False, cast=False), [U(-12, 25), U(-15, 19.5), U(-13, 26)])
-    arm("near", 0, swing[1][0])
+    if p["farArmFront"]:
+        arm("far", 1, swing[0][0], swing[0][1])
+    arm("near", 0, swing[1][0], swing[1][1])
     if near == "L":
         R.poly(P("pauldron", IRON, 2, soft=1.8), [U(dx, y) for dx, y in [(-3.5, 34.5), (4.5, 33.5), (8.5, 37), (7.0, 43), (0, 44), (-4.5, 40)]])
 
@@ -434,16 +503,16 @@ def draw_side(p, facing):
     for dx, dy in ((3, 5), (4, 5.4)):
         R.dot(round(HX(dx)), round(hy + dy), G[1])                                   # 광대 아래 패임
     R.dot(round(HX(4)), round(hy + 6.4), OUT); R.dot(round(HX(5)), round(hy + 6.4), G[1])   # 닫힌 입
-    if near == "L":
+    if near == "L" and not p["eyeOff"]:
         R.spill.append((HX(4.5), hy + 1.5, 2.2))
         for dx, dy, c in ((3, 2, EYE[0]), (4, 1, EYE[2]), (5, 1, EYE[3] if p["pulse"] else EYE[2]), (6, 0, EYE[1]), (4, 2, EYE[1])):
             R.dot(round(HX(dx)), round(hy + dy), c)
     else:
         for dx, dy in ((4, 1), (5, 1), (4, 2), (5, 2)):
             R.dot(round(HX(dx)), round(hy + dy), OUT)
-    crack(R, [(7.2, 39), (8.6, 42), (7.0, 45), (7.6, 47)], U, pulse=p["pulse"], thick=(0, 0), spill=False)
+    crack(R, [(7.2, 39), (8.6, 42), (7.0, 45), (7.6, 47)], U, pulse=p["pulse"], thick=(0, 0), spill=False, glow=p["glow"])
     e1 = U(-6.2, 45)
-    R.dot(round(e1[0]), round(e1[1]), A[23]); R.dot(round(e1[0]), round(e1[1]) + 1, A[21])   # 등 균열 불빛(가장자리 2점)
+    R.dot(round(e1[0]), round(e1[1]), A[25] if p["glow"] >= 2 else A[23]); R.dot(round(e1[0]), round(e1[1]) + 1, A[21])   # 등 균열 불빛(가장자리 2점)
     groove(R, [(-3.5, 40), (-5, 44), (-4, 48)], U, hi=False)
     if near == "R":
         ddx = -4.4 + sw * 0.6
@@ -451,17 +520,33 @@ def draw_side(p, facing):
     nh = U(-6.4, 52)
     R.dot(round(nh[0]), round(nh[1]), SL[6]); R.dot(round(nh[0]) + f, round(nh[1]) + 1, SL[2])
     fx, fy = round(ux(-2.5, 33)), round(uy(-2.5, 33))
-    R.dot(fx, fy + 1, A[19])
-    draw_flame(R, fx, fy, p["flame"], p["lean"] * f, rows=None if near == "L" else 4)
-    return R.render()
+    R.anchors["flame"] = (fx, fy)
+    if not p["flameOff"]:
+        R.dot(fx, fy + 1, A[19])
+        rows = None if near == "L" else 4
+        if p["flameRows"] is not None:
+            rows = min(rows or 6, p["flameRows"])
+        draw_flame(R, fx, fy, p["flame"], p["lean"] * f, rows=rows)
+    return R
 
 
-def draw(direction, p):
+def build(direction, p):
+    """부위·덧칠·기준점까지 만든 Rig3(렌더 전). 2단계는 기준점을 먼저 읽고 손 목표를 정한 뒤 다시 만든다."""
     if direction == "down":
         return draw_front(p, back=False)
     if direction == "up":
         return draw_front(p, back=True)
     return draw_side(p, 1 if direction == "right" else -1)
+
+
+def draw_rig(direction, p):
+    R = build(direction, p)
+    R.render()
+    return R
+
+
+def draw(direction, p):
+    return draw_rig(direction, p).image
 
 
 # =============================================================================

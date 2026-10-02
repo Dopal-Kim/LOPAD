@@ -1,0 +1,177 @@
+{
+ "image": "player_hurt.png",
+ "action": "hurt",
+ "frameWidth": 64,
+ "frameHeight": 96,
+ "frames": 3,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 18.75,
+ "frameDurationsMs": [
+  50,
+  50,
+  60
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 92
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (52라운드 Q12 2단계)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "flashFrame": 0,
+ "note2": "0 균열 백열 + 재 튐 · 1 젖힘(어깨 혼불 눌림) · 2 회복. 재 조각은 시트에 포함(몸 밖 1~2px)",
+ "v2Timing": {
+  "frames": 2,
+  "frameDurationsMs": [
+   70,
+   90
+  ],
+  "totalMs": 160
+ },
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     11.4,
+     50.9
+    ],
+    "handL": [
+     53.1,
+     49.9
+    ]
+   },
+   {
+    "handR": [
+     14.3,
+     56.4
+    ],
+    "handL": [
+     51.0,
+     55.9
+    ]
+   },
+   {
+    "handR": [
+     17.4,
+     60.4
+    ],
+    "handL": [
+     46.6,
+     60.4
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     52.6,
+     50.9
+    ],
+    "handL": [
+     10.9,
+     49.9
+    ]
+   },
+   {
+    "handR": [
+     49.7,
+     56.4
+    ],
+    "handL": [
+     13.0,
+     55.9
+    ]
+   },
+   {
+    "handR": [
+     46.6,
+     60.4
+    ],
+    "handL": [
+     17.4,
+     60.4
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     32.7,
+     51.8
+    ],
+    "handL": [
+     31.7,
+     50.0
+    ]
+   },
+   {
+    "handR": [
+     28.7,
+     56.1
+    ],
+    "handL": [
+     27.7,
+     55.2
+    ]
+   },
+   {
+    "handR": [
+     23.4,
+     57.5
+    ],
+    "handL": [
+     20.9,
+     58.1
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     32.3,
+     50.0
+    ],
+    "handL": [
+     31.3,
+     51.8
+    ]
+   },
+   {
+    "handR": [
+     36.3,
+     55.2
+    ],
+    "handL": [
+     35.3,
+     56.1
+    ]
+   },
+   {
+    "handR": [
+     43.1,
+     58.1
+    ],
+    "handL": [
+     40.6,
+     57.5
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 해부 기준 R = 오른손 · L = 왼손). 무기 시트 좌표 = 몸 좌표 + playerFrameOffset(32,32). 칼은 오른손(R)이 쥔다.",
+ "carryOverlay": null,
+ "note": "v3 2배 밀도 — 64×96 도트, 화면상 32×48 (계약 §11). 개념 gemini/concept_char/hero3_b."
+}

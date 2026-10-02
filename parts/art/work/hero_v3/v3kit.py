@@ -56,6 +56,8 @@ class Rig3:
         self.spill = []     # (x, y, radius) 혼불 빛 번짐(주변 몸 픽셀을 따뜻한 어둠으로)
         self.spill_cells = []   # 균열 경로 픽셀 — 경로를 따라 1.5px 안 A18, 2.5px 안 A17
         self.holes = set()      # 강제로 비우는 픽셀 — 재가 부스러져 떨어진 가장자리 결손
+        self.anchors = {}       # 2단계: 이름 → (x, y) 화면 좌표(손·엉덩이·어깨 등, 무기 오버레이 기준점)
+        self.owner = self.outline = self.image = None
 
     # --- 마스크 그리기 ------------------------------------------------------
     def _new(self, part):
@@ -223,7 +225,16 @@ class Rig3:
         for x, y, c in self.dots:
             if 0 <= x < W and 0 <= y < H and (x, y) not in self.holes:      # 결손 칸엔 덧칠하지 않음(떠 있는 점 방지)
                 po[x, y] = c
+        # 2단계(무기 오버레이·가림 계산)용: 픽셀별 부위 소유 · 셀아웃 판정 · 결과 보관
+        self.owner, self.outline, self.image = owner, outline, out
         return out
+
+    def part_at(self, x, y):
+        """render() 뒤: (x, y) 픽셀을 차지한 부위 이름(없으면 None)."""
+        if not (0 <= x < self.w and 0 <= y < self.h):
+            return None
+        i = self.owner[y][x]
+        return self.parts[i].name if i >= 0 else None
 
 
 def capsule_on(d, pts, radii):

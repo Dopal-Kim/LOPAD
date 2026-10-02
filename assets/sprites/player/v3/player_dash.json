@@ -1,0 +1,274 @@
+{
+ "image": "player_dash.png",
+ "action": "dash",
+ "frameWidth": 64,
+ "frameHeight": 96,
+ "frames": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.83,
+ "frameDurationsMs": [
+  30,
+  40,
+  60,
+  60,
+  50
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 92
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (52라운드 Q12 2단계)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "phases": {
+  "crouch": [
+   0
+  ],
+  "launch": [
+   1
+  ],
+  "glide": [
+   2,
+   3
+  ],
+  "brake": [
+   4
+  ]
+ },
+ "fxNote": "잔상·재 꼬리는 이펙트(fx) 몫 — 이 시트는 몸 동작만",
+ "v2Timing": {
+  "frames": 3,
+  "frameDurationsMs": [
+   60,
+   90,
+   90
+  ],
+  "totalMs": 240
+ },
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     16.4,
+     62.9
+    ],
+    "handL": [
+     47.6,
+     62.9
+    ]
+   },
+   {
+    "handR": [
+     13.4,
+     62.9
+    ],
+    "handL": [
+     50.6,
+     61.9
+    ]
+   },
+   {
+    "handR": [
+     11.5,
+     62.9
+    ],
+    "handL": [
+     51.7,
+     61.9
+    ]
+   },
+   {
+    "handR": [
+     11.8,
+     61.9
+    ],
+    "handL": [
+     52.0,
+     62.4
+    ]
+   },
+   {
+    "handR": [
+     17.4,
+     66.4
+    ],
+    "handL": [
+     46.1,
+     65.9
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     47.6,
+     62.9
+    ],
+    "handL": [
+     16.4,
+     62.9
+    ]
+   },
+   {
+    "handR": [
+     50.6,
+     62.9
+    ],
+    "handL": [
+     13.4,
+     61.9
+    ]
+   },
+   {
+    "handR": [
+     52.5,
+     62.9
+    ],
+    "handL": [
+     12.3,
+     61.9
+    ]
+   },
+   {
+    "handR": [
+     52.2,
+     61.9
+    ],
+    "handL": [
+     12.0,
+     62.4
+    ]
+   },
+   {
+    "handR": [
+     46.6,
+     66.4
+    ],
+    "handL": [
+     17.9,
+     65.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     23.7,
+     60.0
+    ],
+    "handL": [
+     24.7,
+     61.8
+    ]
+   },
+   {
+    "handR": [
+     25.3,
+     58.6
+    ],
+    "handL": [
+     26.3,
+     60.4
+    ]
+   },
+   {
+    "handR": [
+     24.9,
+     56.8
+    ],
+    "handL": [
+     24.4,
+     57.8
+    ]
+   },
+   {
+    "handR": [
+     24.3,
+     57.9
+    ],
+    "handL": [
+     25.3,
+     56.8
+    ]
+   },
+   {
+    "handR": [
+     13.3,
+     55.5
+    ],
+    "handL": [
+     15.3,
+     57.8
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     39.3,
+     61.8
+    ],
+    "handL": [
+     40.3,
+     60.0
+    ]
+   },
+   {
+    "handR": [
+     37.7,
+     60.4
+    ],
+    "handL": [
+     38.7,
+     58.6
+    ]
+   },
+   {
+    "handR": [
+     39.6,
+     57.8
+    ],
+    "handL": [
+     39.1,
+     56.8
+    ]
+   },
+   {
+    "handR": [
+     38.7,
+     56.8
+    ],
+    "handL": [
+     39.7,
+     57.9
+    ]
+   },
+   {
+    "handR": [
+     48.7,
+     57.8
+    ],
+    "handL": [
+     50.7,
+     55.5
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 해부 기준 R = 오른손 · L = 왼손). 무기 시트 좌표 = 몸 좌표 + playerFrameOffset(32,32). 칼은 오른손(R)이 쥔다.",
+ "carryOverlay": "weapons/v3/katana_carry_dash",
+ "note": "v3 2배 밀도 — 64×96 도트, 화면상 32×48 (계약 §11). 개념 gemini/concept_char/hero3_b."
+}

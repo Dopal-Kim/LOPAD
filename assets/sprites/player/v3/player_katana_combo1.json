@@ -1,0 +1,395 @@
+{
+ "image": "player_katana_combo1.png",
+ "action": "katana_combo1",
+ "frameWidth": 64,
+ "frameHeight": 96,
+ "frames": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.0,
+ "frameDurationsMs": [
+  40,
+  50,
+  40,
+  30,
+  40,
+  50,
+  100
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 32,
+  "y": 92
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (52라운드 Q12 2단계)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "weapon": "katana",
+ "comboIndex": 1,
+ "comboLength": 3,
+ "impactFrame": 2,
+ "hitFrames": [
+  2
+ ],
+ "activeFrames": [
+  2
+ ],
+ "cancelFromFrame": 6,
+ "anticipationFrames": [
+  0,
+  1
+ ],
+ "recoverFrames": [
+  3,
+  4,
+  5,
+  6
+ ],
+ "timingMs": {
+  "hitAt": 90,
+  "activeEndAt": 130,
+  "cancelAt": 250,
+  "total": 350
+ },
+ "v2Timing": {
+  "frames": 4,
+  "frameDurationsMs": [
+   90,
+   40,
+   120,
+   100
+  ],
+  "hitFrames": [
+   1
+  ],
+  "cancelFromFrame": 3,
+  "timingMs": {
+   "hitAt": 90,
+   "cancelAt": 250,
+   "total": 350
+  }
+ },
+ "timingNote": "v3 는 프레임이 늘었지만 판정 시작(hitAt)·판정 끝·캔슬 시작(cancelAt)·전체(total) ms 는 v2 와 같다 — 판정 시점 불변.",
+ "arcDeg": 140,
+ "arcFromDeg": -70,
+ "arcToDeg": 70,
+ "nextCombo": "katana_combo2",
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (v3 시트 도트 = v2 20px)",
+ "hitRadiusPx": 132,
+ "hitNote": "임시(아트 메모). v2 66px(pixelScale 1) = v3 132 도트(pixelScale 0.5) — 논리 크기 같음. 시스템 실제 판정값이 우선",
+ "arcAngleNote": "right 방향 화면각(0 = 정면, + = 아래, from→to = 휘두름 방향). down = +90° 회전, up = -90°, left = 좌우 반전(180-θ)",
+ "framesBasis": "player_katana_combo1 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "frameStates": [
+  "sheathed",
+  "steel",
+  "glow",
+  "steel",
+  "steel",
+  "steel",
+  "steel"
+ ],
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     39.7,
+     59.8
+    ],
+    "handL": [
+     42.5,
+     60.5
+    ]
+   },
+   {
+    "handR": [
+     41.6,
+     57.2
+    ],
+    "handL": [
+     42.5,
+     60.5
+    ]
+   },
+   {
+    "handR": [
+     39.2,
+     58.3
+    ],
+    "handL": [
+     42.5,
+     60.5
+    ]
+   },
+   {
+    "handR": [
+     22.0,
+     57.5
+    ],
+    "handL": [
+     47.0,
+     54.0
+    ]
+   },
+   {
+    "handR": [
+     16.1,
+     55.4
+    ],
+    "handL": [
+     47.0,
+     54.0
+    ]
+   },
+   {
+    "handR": [
+     16.6,
+     55.9
+    ],
+    "handL": [
+     47.0,
+     54.0
+    ]
+   },
+   {
+    "handR": [
+     28.0,
+     59.7
+    ],
+    "handL": [
+     38.0,
+     49.5
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     23.6,
+     54.1
+    ],
+    "handL": [
+     21.5,
+     57.3
+    ]
+   },
+   {
+    "handR": [
+     21.6,
+     51.1
+    ],
+    "handL": [
+     21.5,
+     57.3
+    ]
+   },
+   {
+    "handR": [
+     24.8,
+     44.5
+    ],
+    "handL": [
+     21.5,
+     57.3
+    ]
+   },
+   {
+    "handR": [
+     42.0,
+     45.3
+    ],
+    "handL": [
+     17.0,
+     56.8
+    ]
+   },
+   {
+    "handR": [
+     47.9,
+     49.4
+    ],
+    "handL": [
+     17.0,
+     56.8
+    ]
+   },
+   {
+    "handR": [
+     47.4,
+     52.9
+    ],
+    "handL": [
+     17.0,
+     56.8
+    ]
+   },
+   {
+    "handR": [
+     36.0,
+     51.1
+    ],
+    "handL": [
+     26.0,
+     43.2
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     22.9,
+     60.0
+    ],
+    "handL": [
+     27.5,
+     62.4
+    ]
+   },
+   {
+    "handR": [
+     22.6,
+     57.8
+    ],
+    "handL": [
+     27.5,
+     62.4
+    ]
+   },
+   {
+    "handR": [
+     12.3,
+     53.7
+    ],
+    "handL": [
+     27.5,
+     62.4
+    ]
+   },
+   {
+    "handR": [
+     14.7,
+     47.7
+    ],
+    "handL": [
+     36.0,
+     60.5
+    ]
+   },
+   {
+    "handR": [
+     23.5,
+     46.6
+    ],
+    "handL": [
+     36.0,
+     60.5
+    ]
+   },
+   {
+    "handR": [
+     27.6,
+     48.8
+    ],
+    "handL": [
+     36.0,
+     60.5
+    ]
+   },
+   {
+    "handR": [
+     19.6,
+     53.8
+    ],
+    "handL": [
+     23.0,
+     48.3
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     41.1,
+     54.1
+    ],
+    "handL": [
+     36.5,
+     55.0
+    ]
+   },
+   {
+    "handR": [
+     41.4,
+     50.6
+    ],
+    "handL": [
+     36.5,
+     55.0
+    ]
+   },
+   {
+    "handR": [
+     51.7,
+     48.7
+    ],
+    "handL": [
+     36.5,
+     55.0
+    ]
+   },
+   {
+    "handR": [
+     49.3,
+     54.7
+    ],
+    "handL": [
+     28.0,
+     50.0
+    ]
+   },
+   {
+    "handR": [
+     40.5,
+     57.8
+    ],
+    "handL": [
+     28.0,
+     50.0
+    ]
+   },
+   {
+    "handR": [
+     36.4,
+     59.6
+    ],
+    "handL": [
+     28.0,
+     50.0
+    ]
+   },
+   {
+    "handR": [
+     44.4,
+     56.6
+    ],
+    "handL": [
+     41.0,
+     44.1
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 해부 기준 R = 오른손 · L = 왼손). 무기 시트 좌표 = 몸 좌표 + playerFrameOffset(32,32). 칼은 오른손(R)이 쥔다.",
+ "nextComboSheet": "player_katana_combo2",
+ "note": "무기를 든 연격 몸 동작. weapons/v3/katana_combo1 를 같은 프레임 번호·같은 시각에 겹친다(§6.1)."
+}

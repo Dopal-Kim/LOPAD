@@ -1,0 +1,597 @@
+{
+ "image": "katana_combo3.png",
+ "action": "combo3",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "frames": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 21.88,
+ "frameDurationsMs": [
+  20,
+  20,
+  40,
+  30,
+  50,
+  70,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 64,
+  "y": 124
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (52라운드 Q12 2단계)",
+ "weapon": "katana",
+ "comboIndex": 3,
+ "comboLength": 3,
+ "impactFrame": 2,
+ "hitFrames": [
+  2
+ ],
+ "activeFrames": [
+  2
+ ],
+ "cancelFromFrame": null,
+ "anticipationFrames": [
+  0,
+  1
+ ],
+ "recoverFrames": [
+  3,
+  4,
+  5,
+  6
+ ],
+ "timingMs": {
+  "hitAt": 40,
+  "activeEndAt": 80,
+  "cancelAt": null,
+  "total": 320
+ },
+ "v2Timing": {
+  "frames": 4,
+  "frameDurationsMs": [
+   40,
+   40,
+   100,
+   140
+  ],
+  "hitFrames": [
+   1
+  ],
+  "cancelFromFrame": null,
+  "timingMs": {
+   "hitAt": 40,
+   "cancelAt": null,
+   "total": 320
+  }
+ },
+ "timingNote": "v3 는 프레임이 늘었지만 판정 시작(hitAt)·판정 끝·캔슬 시작(cancelAt)·전체(total) ms 는 v2 와 같다 — 판정 시점 불변.",
+ "arcDeg": 170,
+ "arcFromDeg": -85,
+ "arcToDeg": 85,
+ "nextCombo": null,
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (v3 시트 도트 = v2 20px)",
+ "hitRadiusPx": 132,
+ "hitNote": "임시(아트 메모). v2 66px(pixelScale 1) = v3 132 도트(pixelScale 0.5) — 논리 크기 같음. 시스템 실제 판정값이 우선",
+ "arcAngleNote": "right 방향 화면각(0 = 정면, + = 아래, from→to = 휘두름 방향). down = +90° 회전, up = -90°, left = 좌우 반전(180-θ)",
+ "framesBasis": "player_katana_combo3 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "frameStates": [
+  "steel",
+  "steel",
+  "glow",
+  "steel",
+  "steel",
+  "embers",
+  "steel"
+ ],
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 32,
+  "y": 32
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "칼·칼집이 몸 뒤로 가는 부분(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     71.6,
+     74.1
+    ],
+    "handL": [
+     67.3,
+     79.6
+    ]
+   },
+   {
+    "handR": [
+     75.0,
+     79.4
+    ],
+    "handL": [
+     68.2,
+     81.0
+    ]
+   },
+   {
+    "handR": [
+     71.1,
+     88.6
+    ],
+    "handL": [
+     67.6,
+     85.7
+    ]
+   },
+   {
+    "handR": [
+     52.9,
+     88.4
+    ],
+    "handL": [
+     58.0,
+     85.5
+    ]
+   },
+   {
+    "handR": [
+     50.1,
+     87.4
+    ],
+    "handL": [
+     56.7,
+     85.4
+    ]
+   },
+   {
+    "handR": [
+     50.3,
+     87.4
+    ],
+    "handL": [
+     56.1,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     60.6,
+     92.1
+    ],
+    "handL": [
+     63.6,
+     86.6
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     56.4,
+     70.7
+    ],
+    "handL": [
+     60.7,
+     73.9
+    ]
+   },
+   {
+    "handR": [
+     53.0,
+     73.4
+    ],
+    "handL": [
+     59.8,
+     75.2
+    ]
+   },
+   {
+    "handR": [
+     56.9,
+     76.2
+    ],
+    "handL": [
+     60.4,
+     77.6
+    ]
+   },
+   {
+    "handR": [
+     75.1,
+     78.4
+    ],
+    "handL": [
+     70.0,
+     78.8
+    ]
+   },
+   {
+    "handR": [
+     77.9,
+     83.4
+    ],
+    "handL": [
+     71.3,
+     81.0
+    ]
+   },
+   {
+    "handR": [
+     77.7,
+     85.4
+    ],
+    "handL": [
+     71.9,
+     81.5
+    ]
+   },
+   {
+    "handR": [
+     67.4,
+     84.7
+    ],
+    "handL": [
+     64.4,
+     82.8
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     59.2,
+     74.9
+    ],
+    "handL": [
+     55.8,
+     77.7
+    ]
+   },
+   {
+    "handR": [
+     55.4,
+     80.1
+    ],
+    "handL": [
+     55.6,
+     79.4
+    ]
+   },
+   {
+    "handR": [
+     46.4,
+     84.7
+    ],
+    "handL": [
+     52.4,
+     82.7
+    ]
+   },
+   {
+    "handR": [
+     49.8,
+     79.3
+    ],
+    "handL": [
+     54.4,
+     79.9
+    ]
+   },
+   {
+    "handR": [
+     58.4,
+     80.3
+    ],
+    "handL": [
+     57.7,
+     80.5
+    ]
+   },
+   {
+    "handR": [
+     61.1,
+     81.4
+    ],
+    "handL": [
+     58.7,
+     80.4
+    ]
+   },
+   {
+    "handR": [
+     53.5,
+     87.0
+    ],
+    "handL": [
+     58.7,
+     84.3
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     68.8,
+     69.5
+    ],
+    "handL": [
+     72.2,
+     75.4
+    ]
+   },
+   {
+    "handR": [
+     72.6,
+     72.3
+    ],
+    "handL": [
+     72.4,
+     76.4
+    ]
+   },
+   {
+    "handR": [
+     81.6,
+     79.7
+    ],
+    "handL": [
+     75.6,
+     80.2
+    ]
+   },
+   {
+    "handR": [
+     78.2,
+     87.1
+    ],
+    "handL": [
+     73.6,
+     84.1
+    ]
+   },
+   {
+    "handR": [
+     69.6,
+     90.1
+    ],
+    "handL": [
+     70.3,
+     85.6
+    ]
+   },
+   {
+    "handR": [
+     66.9,
+     91.0
+    ],
+    "handL": [
+     69.3,
+     85.9
+    ]
+   },
+   {
+    "handR": [
+     74.5,
+     89.4
+    ],
+    "handL": [
+     69.3,
+     84.6
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    71.6,
+    74.1
+   ],
+   [
+    75.0,
+    79.4
+   ],
+   [
+    71.1,
+    88.6
+   ],
+   [
+    52.9,
+    88.4
+   ],
+   [
+    50.1,
+    87.4
+   ],
+   [
+    50.3,
+    87.4
+   ],
+   [
+    60.6,
+    92.1
+   ]
+  ],
+  "up": [
+   [
+    56.4,
+    70.7
+   ],
+   [
+    53.0,
+    73.4
+   ],
+   [
+    56.9,
+    76.2
+   ],
+   [
+    75.1,
+    78.4
+   ],
+   [
+    77.9,
+    83.4
+   ],
+   [
+    77.7,
+    85.4
+   ],
+   [
+    67.4,
+    84.7
+   ]
+  ],
+  "left": [
+   [
+    59.2,
+    74.9
+   ],
+   [
+    55.4,
+    80.1
+   ],
+   [
+    46.4,
+    84.7
+   ],
+   [
+    49.8,
+    79.3
+   ],
+   [
+    58.4,
+    80.3
+   ],
+   [
+    61.1,
+    81.4
+   ],
+   [
+    53.5,
+    87.0
+   ]
+  ],
+  "right": [
+   [
+    68.8,
+    69.5
+   ],
+   [
+    72.6,
+    72.3
+   ],
+   [
+    81.6,
+    79.7
+   ],
+   [
+    78.2,
+    87.1
+   ],
+   [
+    69.6,
+    90.1
+   ],
+   [
+    66.9,
+    91.0
+   ],
+   [
+    74.5,
+    89.4
+   ]
+  ]
+ },
+ "handAnchorNote": "무기 시트 좌표. gripAnchors = 칼을 쥔 오른손(코등이 바로 뒤). combo3 은 양손(L = 손잡이 끝 쪽).",
+ "bladeLocal": [
+  {
+   "thetaDeg": -128,
+   "elevDeg": 38
+  },
+  {
+   "thetaDeg": -88,
+   "elevDeg": 14
+  },
+  {
+   "thetaDeg": -30,
+   "elevDeg": -6
+  },
+  {
+   "thetaDeg": 48,
+   "elevDeg": -10
+  },
+  {
+   "thetaDeg": 96,
+   "elevDeg": -18
+  },
+  {
+   "thetaDeg": 112,
+   "elevDeg": -26
+  },
+  {
+   "thetaDeg": 30,
+   "elevDeg": -32
+  }
+ ],
+ "bladeLocalNote": "몸 기준 칼 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). sheathed 프레임은 칼집 안(null).",
+ "includesSheath": true,
+ "carryHidden": "연격 시트에 빈 칼집(허리)이 들어 있으므로 연격 동안 katana_carry_* 는 숨긴다.",
+ "overlay": "player_katana_combo3 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 (64,124) = 주인공 피벗 (32,92).",
+ "stateNote": "sheathed 칼집 안(손잡이를 쥠) · steel 실물 · glow 판정 프레임(날 호박 글로우, 끝 1px 백열 코어) · fade 다음 타로 넘어가는 흐림 · embers 불티",
+ "fxNote": "베기 이펙트(fx) v3 는 이번 범위 밖 — 기존 fx/katana_combo<n> 을 쓰거나 2배 재출력(계약 §11)"
+}
