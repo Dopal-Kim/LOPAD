@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""LOPAD 5층 '귀(耳)' 첩보 제국 타일셋 (16x16, 8열×4행) — 단일 소스. 재실행 시 전부 재생성.
+"""LOPAD 5층 '귀(耳)' 첩보 제국 타일셋 (16x16, 8열×5행 — 40라운드 인덱스 표 v3) — 단일 소스. 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_stage5/build.py
 입력: parts/art/palette/lopad.json (무채 16 + 5층 보라 램프), assets/sprites/player/player_idle.png
-산출: assets/tiles/stage5.png / stage5.json (37라운드 인덱스 표, tiles_floors/tilecommon2.py 참조)
+산출: assets/tiles/stage5.png (128x80) / stage5.json (40라운드 인덱스 표 v3, tiles_floors/tilecommon2.py 참조)
       parts/art/work/tiles_stage5/preview.png · preview_room.png · preview_seam.png
 
 컨셉 (story text-pack B5·D5, world-bible 5층 / 37라운드 검수 "버려진 구역의 흙바닥, 삭막하고 처절하게"):
@@ -12,8 +12,9 @@
   벽   = 창문 하나 열린 석벽(안쪽 눈 1px 보라) / 변형 19 = 밀고장 붙은 벽(덧문 닫힘) / 변형 20 = 홈통·물 자국 + 긁힌 耳 표식
   문   = 엿보는 구멍 있는 널문 (닫힘: 구멍 속 눈 / 잠김: 구멍 닫힘 + 사슬)
   소품 = 밀고장 더미(통과) · 기둥 뒤 엿보는 그림자(통과, 보라 눈) · 봉인된 상자(solid) · 가로등(solid, 보라 불, 바닥에 빛 웅덩이)
-         · 엎어진 잉크병(통과, 보라 잉크) · 밀고 게시판(solid)
-  방 바닥 = 시작: 발자국 / 시련: 깨진 등불 유리·끌린 자국 / 휴식: 재와 잔불 / 보스: 더 검은 흙에 눈들
+         · 엎어진 잉크병(통과, 보라 잉크) · 밀고 게시판(solid) + 40라운드: 빗물통(solid, 물에 비친 눈) · 찢긴 가면(통과)
+  방 바닥 = 시작: 발자국 / 시련: 깨진 등불 유리·끌린 자국 / 휴식: 재와 잔불 / 보스: 더 검은 흙에 눈들 — 각 4변형, 특징은 _0·_1 에만
+  40라운드: 흙 바탕은 1~4층과 같은 tilecommon2.dirt() (자체 랜덤워크 dirt 제거 — 흙 질감 통일).
 색 예산: 무채 10 (G00~G07, G09, G12) + 강조 4 (19 shadow1, 21 base, 23 light1, 25 glow). 샘플 방 강조 5% 이하.
 """
 import os
@@ -40,29 +41,10 @@ ctx = tc.Ctx(C)
 new, blit = ctx.new, ctx.blit
 
 
-# ============================================================ 바닥 (젖은 검은 흙)
-def dirt(seed, base="1", clods=18, pits=7, glints=4, clod="2", pit="K", glint="3"):
-    """버려진 거리의 젖은 흙. 격자 없음 — 흙덩이는 짧은 랜덤워크 덩어리(1~4px)로, 패인 곳·번들거림은 점으로.
-    고르게 흩뿌리지 않고 뭉치는 데는 뭉치고 비는 데는 비게('잔불 오르듯'). 같은 seed 면 같은 그림."""
-    s = new()
-    s.rect(0, 0, T - 1, T - 1, C[base])
-    rnd = random.Random(seed)
-    n = 0
-    while n < clods:
-        x, y = rnd.randrange(T), rnd.randrange(T)
-        for _ in range(rnd.choice((1, 1, 2, 3, 4))):
-            s.px(x, y, C[clod]); n += 1
-            x += rnd.choice((-1, 0, 1, 1)); y += rnd.choice((-1, 0, 0, 1))
-            if not (0 <= x < T and 0 <= y < T):
-                break
-    for _ in range(pits):
-        x, y = rnd.randrange(T), rnd.randrange(T)
-        s.px(x, y, C[pit])
-        if rnd.random() < 0.35 and x + 1 < T:
-            s.px(x + 1, y, C[pit])
-    for _ in range(glints):
-        s.px(rnd.randrange(T), rnd.randrange(T), C[glint])
-    return s
+# ============================================================ 바닥 (젖은 검은 흙 — tc.dirt, 1~4층과 같은 흩뿌림)
+DOTS = {"K": 24, "2": 14, "3": 4}     # 5층: 젖은 흙이라 G03 번들거림이 한 점 더
+PAIRS = {"K": 3}
+BOSS_DOTS, BOSS_PAIRS = {"1": 22, "2": 5}, {"1": 2}   # 보스·복도: G00 바탕에 G01 덩어리
 
 
 def puddle(s, pts, refl):
@@ -82,85 +64,106 @@ def scrap(s, x, y, ch="6"):
 
 
 def floor_0():
-    return dirt(501)
+    s, rnd = tc.dirt(ctx, seed=501, base="1", dots=DOTS, pairs=PAIRS)
+    return s
 
 
 def floor_1():
-    s = dirt(502, clods=14)
+    s, rnd = tc.dirt(ctx, seed=502, base="1", dots={"K": 22, "2": 12, "3": 3}, pairs=PAIRS)
     puddle(s, [(5, 8, 8), (3, 10, 9), (2, 11, 10), (4, 9, 11), (6, 7, 12)], refl=[(6, 10), (7, 10)])
     return s
 
 
 def floor_2():
-    s = dirt(503, clods=16)
+    s, rnd = tc.dirt(ctx, seed=503, base="1", dots=DOTS, pairs=PAIRS)
     scrap(s, 9, 3)
     s.px(10, 7, C["3"])
     return s
 
 
 def floor_3():
-    s = dirt(504, clods=15, pits=9)
+    s, rnd = tc.dirt(ctx, seed=504, base="1", dots={"K": 26, "2": 12, "3": 4}, pairs=PAIRS)
     puddle(s, [(11, 13, 3), (9, 14, 4), (8, 14, 5), (10, 12, 6)], refl=[(12, 4), (13, 5)])
     scrap(s, 2, 11)
     return s
 
 
-# ---- 방 종류별
+# ---- 방 종류별 (4변형: _0·_1 특징, _2·_3 은은)
 def floor_start(i):
-    """시작 방: 밀고자들이 다녀간 발자국 (G00 2x3 쌍) + 떨어진 밀고장."""
-    s = dirt(511 + i, clods=14, pits=4)
-    feet = [((3, 3), (6, 5)), ((9, 8), (12, 10))] if i == 0 else [((5, 10), (8, 12))]
-    for (ax, ay), (bx, by) in feet:
-        s.rect(ax, ay, ax + 1, ay + 2, C["K"]); s.px(ax, ay + 3, C["K"])
-        s.rect(bx, by, bx + 1, by + 2, C["K"]); s.px(bx, by + 3, C["K"])
-    if i == 1:
-        scrap(s, 11, 2, ch="7")
+    """시작 방: 밀고자들이 다녀간 발자국 + 떨어진 밀고장."""
+    s, rnd = tc.dirt(ctx, seed=511 + i, base="1", dots={"K": 20, "2": 14, "3": 3}, pairs={"K": 2})
+    if i == 0:
+        tc.bootprint(s, C, 3, 3, left=True); tc.bootprint(s, C, 6, 5, left=False)
+        tc.bootprint(s, C, 10, 9, left=True)
+    elif i == 1:
+        tc.bootprint(s, C, 5, 10, left=True); tc.bootprint(s, C, 8, 11, left=False)
+        s.px(11, 2, C["5"]); s.px(12, 2, C["4"]); s.px(12, 3, C["4"]); s.px(13, 4, C["2"])   # 밟혀 거의 묻힌 밀고장 (G06 2x2 도 밝은 점으로 반복돼 G05/G04)
+    elif i == 2:
+        tc.bootprint(s, C, 9, 4, left=False)
+        s.px(3, 11, C["4"]); s.px(4, 11, C["3"])                       # 거의 묻힌 밀고장 끝 (G06 은 밝은 점 격자로 보여 G04)
+    else:
+        s.px(11, 7, C["3"]); s.px(12, 7, C["3"])
+        s.px(4, 4, C["4"]); s.px(5, 5, C["2"])
     return s
 
 
 def floor_trial(i):
-    """시련 방: 깨진 등불 유리(G05 조각 + 보라 반사 L) 와 끌린 자국(G00 긴 줄)."""
-    s = dirt(521 + i, clods=12, pits=6)
+    """시련 방: 깨진 등불 유리(G05 조각 + 보라 반사 L) 와 끌린 자국(G00 짧은 사선)."""
+    s, rnd = tc.dirt(ctx, seed=521 + i, base="1", dots={"K": 28, "2": 12, "3": 3}, pairs={"K": 4})
     if i == 0:
         s.line(3, 12, 6, 11, C["K"]); s.px(4, 13, C["2"])
         for x, y in [(11, 3), (13, 6)]:
             s.px(x, y, C["5"]); s.px(x + 1, y, C["L"])
-    else:
+        tc.pock(s, C, 8, 7)
+    elif i == 1:
         s.line(9, 5, 11, 7, C["K"]); s.px(12, 8, C["2"])
         for x, y in [(2, 9), (13, 3)]:
             s.px(x, y, C["5"]); s.px(x + 1, y + 1, C["L"]); s.px(x + 1, y, C["4"])
         s.px(13, 2, C["L"])
+    elif i == 2:
+        s.px(5, 4, C["5"]); s.px(6, 4, C["L"])                           # 유리 한 조각
+        s.px(11, 12, C["K"]); s.px(12, 12, C["K"])
+    else:
+        s.line(10, 10, 12, 9, C["K"])                                     # 짧은 끌린 자국
+        s.px(3, 5, C["5"])
     return s
 
 
 def floor_rest(i):
-    """휴식 방: 꺼져 가는 모닥불 자리 — 재(G03/G02) 와 잔불(W/L) 2~3px."""
-    s = dirt(531 + i, clods=12, pits=5, glints=2)
+    """휴식 방: 꺼져 가는 모닥불 자리 — 재(G03/G02) 와 잔불(W/L)."""
+    s, rnd = tc.dirt(ctx, seed=531 + i, base="1", dots={"K": 14, "2": 16, "3": 4}, pairs={"2": 2})
     if i == 0:
-        for x0, x1, y in [(9, 11, 3), (8, 12, 4), (9, 13, 5), (10, 12, 6)]:
-            s.line(x0, y, x1, y, C["3"])
-        for x, y in [(10, 4), (12, 5), (9, 5)]:
-            s.px(x, y, C["2"])
+        tc.ash_patch(s, C, rnd, 10, 5, r=2)
         s.px(11, 4, C["W"]); s.px(11, 5, C["L"]); s.px(3, 11, C["L"])
-    else:
+    elif i == 1:
         for x, y in [(2, 12), (3, 12), (12, 2), (6, 7)]:
             s.px(x, y, C["3"])
         s.px(4, 11, C["L"]); s.px(13, 3, C["W"])
+    elif i == 2:
+        s.px(11, 3, C["3"]); s.px(12, 3, C["3"]); s.px(12, 4, C["4"])
+        s.px(4, 10, C["3"])
+    else:
+        s.px(6, 6, C["3"]); s.px(7, 6, C["4"])
+        s.px(12, 12, C["2"]); s.px(13, 12, C["2"])
     return s
 
 
 def floor_boss(i):
-    """보스 방: 더 검은 흙(G00 기조, 덩어리 G01) — 바닥 어둠 속에서 눈(L) 셋이 본다."""
-    s = dirt(541 + i, base="K", clod="1", pit="1", glint="2", clods=20, pits=0, glints=5)
-    eyes = [(3, 5), (11, 12)] if i == 0 else [(12, 3)]
+    """보스 방: 더 검은 흙(G00 기조, 덩어리 G01) — 바닥 어둠 속에서 눈(L) 이 본다. _2·_3 은 눈 없음(눈이 격자로 늘어서지 않게)."""
+    s, rnd = tc.dirt(ctx, seed=541 + i, base="K", dots=BOSS_DOTS, pairs=BOSS_PAIRS)
+    eyes = {0: [(3, 5), (11, 12)], 1: [(12, 3)], 2: [], 3: []}[i]
     for x, y in eyes:
         s.px(x, y, C["L"]); s.px(x - 1, y, C["1"]); s.px(x + 1, y, C["1"])
+    if i == 2:
+        s.px(7, 9, C["2"]); s.px(8, 9, C["2"])
+    if i == 3:
+        s.px(4, 12, C["2"]); s.px(11, 4, C["2"])
     return s
 
 
 # ============================================================ 복도 (골목: 더 어둡고 가운데 도랑)
 def corridor_tile():
-    s = dirt(505, base="K", clod="1", pit="1", glint="2", clods=16, pits=0, glints=3)
+    s, rnd = tc.dirt(ctx, seed=505, base="K", dots={"1": 20, "2": 4}, pairs={"1": 2})
     s.line(7, 0, 7, T - 1, C["1"]); s.line(8, 0, 8, T - 1, C["2"])   # 빗물 도랑
     s.px(8, 5, C["3"]); s.px(8, 12, C["L"])
     return s
@@ -482,6 +485,45 @@ def prop_notice_board():
     return s
 
 
+def prop_rain_barrel():
+    """빗물통(solid): 처마 밑 나무 물통(G04 널, 쇠테 G06) — 고인 물(K) 에 비친 것은 하늘이 아니라 창의 눈(L 1px). 홈통 끝(G05)이 위에서 떨어진다."""
+    s = new()
+    prof = {4: (4, 11), 5: (3, 12), 6: (3, 12), 7: (3, 12), 8: (3, 12), 9: (3, 12), 10: (3, 12), 11: (3, 12), 12: (4, 11), 13: (4, 11)}
+    for y, (x0, x1) in prof.items():
+        s.line(x0, y, x1, y, C["4"]); s.px(x0, y, C["5"]); s.px(x1, y, C["3"])
+    for x in (6, 9):
+        s.line(x, 5, x, 13, C["3"])                                     # 널 틈
+    for y in (6, 11):
+        s.line(3, y, 12, y, C["6"]); s.px(4, y, C["7"])                 # 쇠테
+    s.rect(4, 3, 11, 4, C["K"]); s.px(5, 3, C["2"]); s.px(10, 4, C["2"])   # 고인 물
+    s.px(8, 3, C["L"])                                                  # 물에 비친 눈
+    s.rect(11, 0, 12, 2, C["5"]); s.px(12, 0, C["6"]); s.px(11, 2, C["4"])  # 홈통 끝
+    s.line(4, 14, 11, 14, C["2"])
+    s.outline(C["K"], where="inside")
+    s.line(4, 14, 11, 14, C["2"]); s.px(8, 3, C["L"]); s.px(12, 0, C["6"]); s.line(4, 3, 11, 3, C["K"])
+    s.px(8, 3, C["L"])
+    return s
+
+
+def prop_torn_mask():
+    """찢긴 가면(통과): 밀고자가 쓰던 흰 가면(G09, 그늘 G07) 이 반으로 찢겨 흙에 떨어졌다 — 눈구멍 K 둘, 끈 G04. 한 쪽 눈구멍 안에 보라 1px(아직 본다)."""
+    s = new()
+    rows = {4: (5, 10), 5: (4, 11), 6: (3, 12), 7: (3, 12), 8: (3, 12), 9: (4, 11), 10: (5, 10), 11: (6, 9)}
+    for y, (x0, x1) in rows.items():
+        s.line(x0, y, x1, y, C["9"])
+    s.px(5, 6, C["K"]); s.px(6, 6, C["K"]); s.px(9, 6, C["K"]); s.px(10, 6, C["K"])    # 눈구멍
+    s.px(10, 6, C["L"])
+    for x, y in [(7, 9), (8, 10), (7, 10), (8, 11)]:
+        s.px(x, y, C["7"])                                              # 코·그늘
+    for x, y in [(8, 4), (8, 5), (7, 7), (8, 8)]:
+        s.px(x, y, C["7"])                                              # 찢긴 금
+    s.px(8, 7, C["1"])
+    s.line(1, 5, 3, 7, C["4"]); s.line(12, 7, 14, 5, C["4"])            # 끈
+    s.outline(C["K"], where="inside")
+    s.px(10, 6, C["L"]); s.px(1, 5, C["4"]); s.px(14, 5, C["4"])
+    return s
+
+
 def void_tile():
     return new()
 
@@ -494,14 +536,13 @@ TILES = [
     ("prop_report_pile", prop_report_pile()), ("prop_peeker", prop_peeker()),
     ("prop_sealed_crate", prop_sealed_crate()), ("prop_street_lamp", prop_street_lamp()),
     ("prop_ink_spill", prop_ink_spill()), ("prop_notice_board", prop_notice_board()),
+    ("prop_rain_barrel", prop_rain_barrel()), ("prop_torn_mask", prop_torn_mask()),
     ("wall_v1", wall_v1()), ("wall_v2", wall_v2()),
-    ("start_0", floor_start(0)), ("start_1", floor_start(1)),
-    ("trial_0", floor_trial(0)), ("trial_1", floor_trial(1)),
-    ("rest_0", floor_rest(0)), ("rest_1", floor_rest(1)),
-    ("boss_0", floor_boss(0)), ("boss_1", floor_boss(1)),
-]
-PROPS = [("report_pile", False), ("peeking_shadow", False), ("sealed_crate", True), ("street_lamp", True),
-         ("ink_spill", False), ("notice_board", True)]
+] + [("%s_%d" % (k, i), fn(i)) for k, fn in (("start", floor_start), ("trial", floor_trial), ("rest", floor_rest), ("boss", floor_boss))
+     for i in range(4)] + [("reserve", void_tile())]
+# (short, solid, maxPerRoom, weight) — 40라운드
+PROPS = [("report_pile", False, 3, 1.0), ("peeking_shadow", False, 1, 0.5), ("sealed_crate", True, 2, 0.7), ("street_lamp", True, 1, 0.6),
+         ("ink_spill", False, 2, 0.8), ("notice_board", True, 1, 0.5), ("rain_barrel", True, 1, 0.5), ("torn_mask", False, 2, 0.8)]
 
 if __name__ == "__main__":
     tc.run(5, "귀(耳) — 첩보 제국 외곽", TILES, PROPS, [19, 21, 23, 25], HERE)

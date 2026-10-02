@@ -2,12 +2,13 @@
 """LOPAD 4층 '계(契)' 용병 제국 타일셋 (16x16) — 37라운드 재작업. 단일 소스, 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_stage4/build.py
-산출: assets/tiles/stage4.png (8x4) / stage4.json — 인덱스 표는 tilecommon2.py
+산출: assets/tiles/stage4.png (8x5 128x80, 40라운드 인덱스 표 v3) / stage4.json — tilecommon2.py
       parts/art/work/tiles_stage4/preview.png · preview_room.png · preview_rooms.png · preview_seam.png
 
 컨셉 (text-pack B4·D4): "화승총 연기 너머로 계약서가 나부낀다." 바닥 = 짙은 진흙(G01 + G02 덩어리 + 박힌 돌 G03)
   + 탄피(G06/G09 2px) + 계약서 조각(G07, 반쯤 묻힘) + 잔불. 벽 = 모래주머니(G02, 틈 K) / 변형 1 = 제국 표식(못 박은 계약서 + 밀랍 봉인 B/S)
-  / 변형 2 = 터진 자루에서 흘러내린 모래 + 걸어 둔 화약 뿔. 소품 6 = 거치대·계약서 뭉치·깃발·모닥불 자국 + 화약통(solid)·부러진 장창(통과).
+  / 변형 2 = 터진 자루에서 흘러내린 모래 + 걸어 둔 화약 뿔. 소품 8 = 거치대·계약서 뭉치·깃발·모닥불 자국 + 화약통(solid)·부러진 장창(통과)
+  + 40라운드: 포탄 더미(solid)·버려진 철모(통과, 주인공과 같은 케틀햇 — 전장에서 주운 것). 방 종류별 바닥 4변형 — 특징은 _0·_1 에만.
 색 예산: 무채 10 (K, G01~G07, G09, G12) + 강조 4 (19 shadow1 피·밀랍 그늘, 21 base 깃발·밀랍·잉걸, 23 light1, 25 glow).
 """
 import os
@@ -84,24 +85,37 @@ def start_floor(i):
     if i == 0:
         tc.bootprint(s, C, 3, 3, left=True); tc.bootprint(s, C, 7, 6, left=False); tc.bootprint(s, C, 11, 2, left=True)
         shell(s, 12, 12)
-    else:
+    elif i == 1:
         for x0, y0, dx in [(2, 10, 1), (5, 12, 1), (3, 13, 1), (7, 9, 0), (6, 11, 1)]:
             s.px(x0, y0, C["3"]); s.px(x0 + dx, y0 + (1 - dx), C["3"])
         tc.ash_patch(s, C, rnd, 11, 4, r=2); tc.ember_small(s, C, 11, 4)
         tc.bootprint(s, C, 12, 10, left=False)
+    elif i == 2:
+        tc.bootprint(s, C, 9, 9, left=False)
+        stone(s, 3, 4)
+    else:
+        s.px(11, 6, C["3"]); s.px(12, 7, C["3"])
+        shell(s, 4, 10)
     return s
 
 
 def trial_floor(i):
     s, rnd = tc.dirt(ctx, seed=300 + i, base="1", dots={"K": 24, "2": 14, "3": 3}, pairs={"2": 2, "K": 3})
     if i == 0:
-        tc.splat(s, C, rnd, 5, 5, r=2, dark="S", wet="B", drops=3)
+        tc.stain_small(s, C, rnd, 5, 5, dark="S", n=5); s.px(5, 5, C["B"])
+        s.px(8, 4, C["S"]); s.px(3, 8, C["S"])
         tc.pock(s, C, 11, 10)
         shell(s, 9, 2); shell(s, 12, 4)
-    else:
+    elif i == 1:
         tc.pock(s, C, 11, 3); tc.pock(s, C, 4, 11)
         s.px(7, 8, C["S"]); s.px(13, 9, C["S"]); s.px(2, 5, C["S"]); s.px(8, 13, C["S"])
         shell(s, 13, 12); shell(s, 3, 7)
+    elif i == 2:
+        s.px(9, 11, C["S"]); s.px(10, 12, C["S"]); s.px(3, 6, C["S"])
+        shell(s, 12, 4)
+    else:
+        tc.pock(s, C, 7, 7)
+        s.px(12, 3, C["S"]); s.px(2, 12, C["K"]); s.px(3, 12, C["K"])
     return s
 
 
@@ -110,9 +124,15 @@ def rest_floor(i):
     if i == 0:
         tc.ash_patch(s, C, rnd, 8, 8, r=3); s.px(8, 7, C["L"])
         s.px(3, 12, C["3"]); s.px(4, 12, C["3"])
-    else:
+    elif i == 1:
         tc.ash_patch(s, C, rnd, 4, 4, r=2)
         stone(s, 10, 10); shell(s, 12, 5)
+    elif i == 2:
+        s.px(11, 3, C["3"]); s.px(12, 3, C["3"]); s.px(12, 4, C["4"])
+        s.px(4, 10, C["3"]); s.px(5, 11, C["3"])
+    else:
+        s.px(6, 6, C["3"]); s.px(7, 6, C["4"])
+        stone(s, 12, 12); s.px(3, 3, C["3"])
     return s
 
 
@@ -122,15 +142,21 @@ SEAL = [(2, 0), (3, 0), (1, 1), (4, 1), (0, 2), (5, 2), (0, 3), (5, 3), (1, 4), 
 def boss_floor(i):
     s, rnd = tc.dirt(ctx, seed=500 + i, base="1", dots={"K": 18, "2": 14, "3": 3}, pairs={"2": 2})
     if i == 0:
-        tc.buried_slab(s, C, rnd, (2, 2, 9, 8), carve=[(x + 3, y + 2) for x, y in SEAL if y < 5], bury_from=0.7)
-        for x, y in [(2, 2), (3, 2), (2, 3), (9, 2), (2, 8), (2, 7), (3, 8), (9, 8), (9, 7), (8, 8)]:
+        tc.buried_slab(s, C, rnd, (2, 2, 8, 8), carve=[(x + 2, y + 2) for x, y in SEAL if y < 5], bury_from=0.55)
+        for x, y in [(2, 2), (3, 2), (2, 3), (8, 2), (2, 8), (2, 7), (3, 8), (8, 8), (8, 7), (7, 8), (8, 3)]:
             s.px(x, y, C["1"])
         s.px(12, 11, C["2"]); s.px(13, 11, C["3"]); s.px(13, 12, C["2"])
-    else:
+    elif i == 1:
         for x, y, ch in [(10, 3, "2"), (11, 3, "3"), (12, 3, "2"), (11, 4, "2"), (4, 10, "2"), (5, 10, "3"), (5, 11, "2"), (4, 11, "K"), (13, 13, "2")]:
             s.px(x, y, C[ch])
-        scrap(s, 6, 6)
+        s.px(6, 6, C["7"]); s.px(7, 6, C["7"]); s.px(7, 7, C["2"])      # 거의 묻힌 계약서 조각
         s.px(8, 7, C["B"]); s.px(8, 8, C["S"])                        # 조각 위 밀랍
+    elif i == 2:
+        s.px(3, 12, C["2"]); s.px(4, 12, C["3"]); s.px(4, 13, C["2"])
+        s.px(11, 5, C["S"])
+    else:
+        s.px(9, 9, C["3"]); s.px(10, 9, C["2"]); s.px(10, 10, C["K"])
+        shell(s, 3, 3)
     return s
 
 
@@ -395,6 +421,39 @@ def prop_broken_pike():
     return s
 
 
+def prop_cannonballs():
+    """포탄 더미(solid): 쇠 포탄 여섯이 피라미드로(아래 3, 가운데 2, 위 1) — 둥근 G04, 빛 G05 1px, 그늘 G02, 나무 받침틀 G03."""
+    s = new()
+    s.rect(2, 13, 13, 14, C["3"]); s.line(2, 14, 13, 14, C["2"])
+    def ball(cx, cy):
+        s.circle(cx, cy, 2, C["5"], fill=True)                          # G04 는 검은 바닥에서 검은 삼각 덩어리로만 읽혀 한 단 올림
+        s.px(cx - 1, cy - 1, C["6"]); s.px(cx + 1, cy + 1, C["3"]); s.px(cx + 2, cy, C["3"]); s.px(cx, cy + 2, C["3"])
+    for cx in (4, 8, 12):
+        ball(cx, 11)
+    for cx in (6, 10):
+        ball(cx, 8)
+    ball(8, 5)
+    s.px(7, 4, C["7"])                                                  # 꼭대기 빛
+    s.outline(C["K"], where="inside")
+    s.line(3, 14, 12, 14, C["2"]); s.px(7, 4, C["7"])
+    return s
+
+
+def prop_helmet():
+    """버려진 철모(통과): 주인공과 같은 하층민 징집병의 케틀햇 — 찌그러진 챙(G05/G06), 위 G04, 안쪽 어둠 K, 탄흔 구멍 하나(K), 옆에 탄피."""
+    s = new()
+    s.rect(4, 6, 11, 8, C["4"]); s.line(5, 5, 10, 5, C["4"]); s.px(6, 4, C["4"]); s.px(7, 4, C["5"]); s.px(8, 4, C["4"]); s.px(9, 4, C["4"])
+    s.line(6, 5, 7, 5, C["5"])                                          # 정수리 빛
+    s.px(9, 6, C["K"]); s.px(10, 6, C["1"])                             # 탄흔 구멍
+    s.rect(2, 9, 13, 10, C["6"]); s.line(2, 9, 13, 9, C["7"])          # 챙
+    s.px(13, 10, C["5"]); s.px(12, 11, C["5"]); s.px(2, 10, C["5"])     # 찌그러진 챙 끝
+    s.line(3, 11, 11, 11, C["2"])
+    shell(s, 12, 13)
+    s.outline(C["K"], where="inside")
+    s.line(3, 9, 12, 9, C["7"]); s.line(3, 11, 11, 11, C["2"]); shell(s, 12, 13)
+    return s
+
+
 def void_tile():
     return new()
 
@@ -406,14 +465,17 @@ TILES = (
        ("exit", exit_stairs()), ("shop", shop_counter()),
        ("prop_musket_rack", prop_musket_rack()), ("prop_contracts", prop_contracts()), ("prop_flag", prop_flag()),
        ("prop_firepit", prop_firepit()), ("prop_powder_keg", prop_powder_keg()), ("prop_broken_pike", prop_broken_pike()),
+       ("prop_cannonballs", prop_cannonballs()), ("prop_helmet", prop_helmet()),
        ("wall_v1", wall_v1()), ("wall_v2", wall_v2())]
-    + [("start_%d" % i, start_floor(i)) for i in range(2)]
-    + [("trial_%d" % i, trial_floor(i)) for i in range(2)]
-    + [("rest_%d" % i, rest_floor(i)) for i in range(2)]
-    + [("boss_%d" % i, boss_floor(i)) for i in range(2)]
+    + [("start_%d" % i, start_floor(i)) for i in range(4)]
+    + [("trial_%d" % i, trial_floor(i)) for i in range(4)]
+    + [("rest_%d" % i, rest_floor(i)) for i in range(4)]
+    + [("boss_%d" % i, boss_floor(i)) for i in range(4)]
+    + [("reserve", void_tile())]
 )
-PROPS = [("musket_rack", True), ("contract_bundle", False), ("flag", True), ("firepit", False),
-         ("powder_keg", True), ("broken_pike", False)]
+# (short, solid, maxPerRoom, weight) — 40라운드. 깃발은 이 층 강조색의 주 공급원이라 가중치를 올렸다.
+PROPS = [("musket_rack", True, 1, 0.6), ("contract_bundle", False, 3, 1.0), ("flag", True, 2, 1.0), ("firepit", False, 1, 0.7),
+         ("powder_keg", True, 2, 0.6), ("broken_pike", False, 2, 0.8), ("cannonballs", True, 1, 0.4), ("helmet", False, 2, 0.8)]
 
 if __name__ == "__main__":
     tc.run(4, "계(契) — 용병 제국 전선", TILES, PROPS, [19, 21, 23, 25], HERE)

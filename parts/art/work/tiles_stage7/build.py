@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""LOPAD 7층 '적(赤)' 붉은 근위 제국 타일셋 (16x16, 8열×4행) — 단일 소스. 재실행 시 전부 재생성.
+"""LOPAD 7층 '적(赤)' 붉은 근위 제국 타일셋 (16x16, 8열×5행 — 40라운드 인덱스 표 v3) — 단일 소스. 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_stage7/build.py
 입력: parts/art/palette/lopad.json (무채 16 + 7층 진홍 램프), assets/sprites/player/player_idle.png
-산출: assets/tiles/stage7.png / stage7.json (37라운드 인덱스 표, tiles_floors/tilecommon2.py 참조)
+산출: assets/tiles/stage7.png (128x80) / stage7.json (40라운드 인덱스 표 v3, tiles_floors/tilecommon2.py 참조)
       parts/art/work/tiles_stage7/preview.png · preview_room.png · preview_rooms.png · preview_seam.png
 
 컨셉 (story text-pack B7·C7·D7, world-bible 7층 / 37라운드 "붉은 피 섞인 흙"):
@@ -13,8 +13,9 @@
   문   = 쇠문 (열림: 쇠문짝 젖힘 / 닫힘: 리벳 철판 + 창살 틈 / 잠김: 가로 쇠빗장 + 자물쇠)
   출구 = 돌계단 + 붉은 빛 / 상점 = 종군 상인 좌판 (창끝·투구·개킨 외투)
   소품 = 걸린 외투(solid) · 창 다발(solid) · 핏자국 웅덩이(통과) · 화로(solid, 진홍 불)
-         · 처형대(solid, 도끼 박힌 나무 토막) · 잔불 더미(통과)
-  방 바닥 = 시작: 줄지어 선 군화 자국 / 시련: 탄흔·핏자국 / 휴식: 식은 재·잔불 / 보스: 더 검은 흙, 바닥이 더 붉다(넓은 핏자국)
+         · 처형대(solid, 도끼 박힌 나무 토막) · 잔불 더미(통과) + 40라운드: 사슬 기둥(solid, 족쇄) · 피 묻은 천(통과)
+  방 바닥 = 시작: 줄지어 선 군화 자국 / 시련: 탄흔·핏자국 / 휴식: 식은 재·잔불 / 보스: 더 검은 흙, 바닥이 더 붉다 — 각 4변형, 특징은 _0·_1 에만
+  40라운드: 흙 바탕은 1~4층과 같은 tilecommon2.dirt() (자체 랜덤워크 dirt 제거 — 흙 질감 통일).
 색 예산: 무채 10 (G00~G07, G09, G12) + 강조 4 (19 shadow1 마른 피, 21 base 외투·젖은 피, 23 light1, 25 glow 불).
 """
 import os
@@ -41,28 +42,10 @@ ctx = tc.Ctx(C)
 new, blit = ctx.new, ctx.blit
 
 
-# ============================================================ 바닥 (피 섞인 검은 흙)
-def dirt(seed, base="1", clods=16, pits=6, glints=3, clod="2", pit="K", glint="3"):
-    s = new()
-    s.rect(0, 0, T - 1, T - 1, C[base])
-    rnd = random.Random(seed)
-    n = 0
-    while n < clods:
-        x, y = rnd.randrange(T), rnd.randrange(T)
-        for _ in range(rnd.choice((1, 1, 2, 3, 4))):
-            s.px(x, y, C[clod]); n += 1
-            x += rnd.choice((-1, 0, 1, 1)); y += rnd.choice((-1, 0, 0, 1))
-            if not (0 <= x < T and 0 <= y < T):
-                break
-    for _ in range(pits):
-        x, y = rnd.randrange(T), rnd.randrange(T)
-        s.px(x, y, C[pit])
-        if rnd.random() < 0.35 and x + 1 < T:
-            s.px(x + 1, y, C[pit])
-    for _ in range(glints):
-        s.px(rnd.randrange(T), rnd.randrange(T), C[glint])
-    return s, rnd
-
+# ============================================================ 바닥 (피 섞인 검은 흙 — tc.dirt, 1~4층과 같은 흩뿌림)
+DOTS = {"K": 24, "2": 14, "3": 3}
+PAIRS = {"K": 3}
+BOSS_DOTS, BOSS_PAIRS = {"1": 22, "2": 5}, {"1": 2}
 
 BLOBS = [
     [(0, 0), (1, 0), (2, 0), (-1, 1), (0, 1), (1, 1), (0, 2)],                       # 비스듬한 덩어리
@@ -93,19 +76,19 @@ def blood(s, rnd, cx, cy, r=1, wet=True, drops=2):
 
 
 def floor_0():
-    s, rnd = dirt(701)
+    s, rnd = tc.dirt(ctx, seed=701, base="1", dots=DOTS, pairs=PAIRS)
     s.px(12, 11, C["S"])
     return s
 
 
 def floor_1():
-    s, rnd = dirt(702, clods=14)
+    s, rnd = tc.dirt(ctx, seed=702, base="1", dots={"K": 22, "2": 12, "3": 3}, pairs=PAIRS)
     blood(s, rnd, 5, 9, r=1)
     return s
 
 
 def floor_2():
-    s, rnd = dirt(703, clods=14)
+    s, rnd = tc.dirt(ctx, seed=703, base="1", dots=DOTS, pairs=PAIRS)
     for x, y in [(9, 3), (10, 4), (10, 6), (11, 7), (11, 9)]:
         s.px(x, y, C["S"])                              # 끌려간 핏줄
     s.px(11, 9, C["B"])
@@ -113,67 +96,85 @@ def floor_2():
 
 
 def floor_3():
-    s, rnd = dirt(704, clods=15, pits=7)
+    s, rnd = tc.dirt(ctx, seed=704, base="1", dots={"K": 26, "2": 12, "3": 3}, pairs=PAIRS)
     blood(s, rnd, 12, 5, r=1, wet=False, drops=3)
     tc.bootprint(s, C, 3, 8, left=True)
     return s
 
 
 def floor_start(i):
-    """시작 방: 줄지어 선 군화 자국 — 근위병이 서 있던 자리. 핏자국은 없다."""
-    s, rnd = dirt(711 + i, clods=12, pits=3)
+    """시작 방: 줄지어 선 군화 자국 — 근위병이 서 있던 자리. 핏자국은 거의 없다."""
+    s, rnd = tc.dirt(ctx, seed=711 + i, base="1", dots={"K": 20, "2": 14, "3": 3}, pairs={"K": 2})
     if i == 0:
         tc.bootprint(s, C, 3, 3, left=True); tc.bootprint(s, C, 6, 3, left=False)
         s.px(12, 11, C["K"]); s.px(13, 11, C["K"])
-    else:
+    elif i == 1:
         tc.bootprint(s, C, 9, 8, left=True); tc.bootprint(s, C, 12, 8, left=False)
         s.px(2, 12, C["S"])
+    elif i == 2:
+        tc.bootprint(s, C, 5, 10, left=False)
+        s.px(11, 4, C["2"]); s.px(12, 4, C["3"])
+    else:
+        s.px(3, 5, C["K"]); s.px(4, 5, C["K"]); s.px(11, 12, C["S"])
     return s
 
 
 def floor_trial(i):
     """시련 방: 탄흔(K 구덩이) 과 핏자국 — 처형 집행관의 자리."""
-    s, rnd = dirt(721 + i, clods=12, pits=5)
+    s, rnd = tc.dirt(ctx, seed=721 + i, base="1", dots={"K": 28, "2": 12, "3": 2}, pairs={"K": 4})
     if i == 0:
         tc.pock(s, C, 4, 4); tc.pock(s, C, 11, 10)
         blood(s, rnd, 8, 12, r=1, drops=2)
-    else:
+    elif i == 1:
         tc.pock(s, C, 12, 3)
         blood(s, rnd, 4, 9, r=1, wet=False, drops=3)
         s.px(9, 6, C["S"]); s.px(10, 6, C["S"])
+    elif i == 2:
+        s.px(9, 11, C["S"]); s.px(10, 12, C["S"]); s.px(3, 6, C["S"])    # 방울 셋
+    else:
+        tc.pock(s, C, 7, 7)
+        s.px(12, 3, C["S"])
     return s
 
 
 def floor_rest(i):
     """휴식 방: 식은 재(G03) 와 잔불(W/L/B) — 근위병이 쬐던 불 자리."""
-    s, rnd = dirt(731 + i, clods=11, pits=4, glints=2)
+    s, rnd = tc.dirt(ctx, seed=731 + i, base="1", dots={"K": 14, "2": 16, "3": 4}, pairs={"2": 2})
     if i == 0:
         tc.ash_patch(s, C, rnd, 10, 5, r=2)
         tc.ember(s, C, 10, 5, rising=True)
         tc.ember_small(s, C, 3, 12)
-    else:
+    elif i == 1:
         for x, y in [(4, 4), (5, 4), (12, 11), (7, 13)]:
             s.px(x, y, C["3"])
         tc.ember_small(s, C, 5, 5)
         s.px(12, 12, C["W"])
+    elif i == 2:
+        s.px(11, 3, C["3"]); s.px(12, 3, C["3"]); s.px(4, 10, C["3"])     # 재만 (_2·_3 에도 불씨를 두면 붉은 점이 격자로 깔린다)
+    else:
+        s.px(6, 6, C["3"]); s.px(7, 6, C["4"]); s.px(12, 12, C["2"])
     return s
 
 
 def floor_boss(i):
-    """보스 방 (근위 총사령): 더 검은 흙(G00) 에 넓은 핏자국 — '바닥이 더 붉다'. 강조 ≤ 5% 는 방 단위로 지킨다."""
-    s, rnd = dirt(741 + i, base="K", clod="1", pit="1", glint="2", clods=18, pits=0, glints=3)
+    """보스 방 (근위 총사령): 더 검은 흙(G00) 에 넓은 핏자국 — '바닥이 더 붉다'. 강조 ≤ 5% 는 방 단위로 지킨다. _2·_3 은 방울만."""
+    s, rnd = tc.dirt(ctx, seed=741 + i, base="K", dots=BOSS_DOTS, pairs=BOSS_PAIRS)
     if i == 0:
         blood(s, rnd, 5, 6, r=2, drops=2)
         s.px(6, 6, C["L"])
-    else:
+    elif i == 1:
         blood(s, rnd, 11, 10, r=1, drops=2)
         s.px(3, 3, C["S"]); s.px(4, 3, C["S"])
+    elif i == 2:
+        s.px(8, 12, C["S"]); s.px(9, 12, C["S"]); s.px(3, 5, C["S"])
+    else:
+        s.px(12, 4, C["S"]); s.px(5, 9, C["B"]); s.px(5, 10, C["S"])
     return s
 
 
 # ============================================================ 복도 (어두운 흙 + 끌려간 핏줄)
 def corridor_tile():
-    s, rnd = dirt(705, base="K", clod="1", pit="1", glint="2", clods=14, pits=0, glints=2)
+    s, rnd = tc.dirt(ctx, seed=705, base="K", dots={"1": 18, "2": 3}, pairs={"1": 2})
     for y in range(T):
         x = 7 + (1 if y % 5 in (2, 3) else 0)
         s.px(x, y, C["S"])
@@ -451,6 +452,41 @@ def prop_ember_pile():
     return s
 
 
+def prop_chain_post():
+    """사슬 기둥(solid): 돌 기둥(G05/G04, 받침 G03) 에 박힌 쇠고리(G07) 와 늘어진 사슬(G06/G07 고리), 끝의 족쇄(G07, 안 K) — 족쇄 안쪽에 마른 피 S."""
+    s = new()
+    s.rect(6, 1, 9, 12, C["5"]); s.line(6, 1, 6, 12, C["6"]); s.line(9, 1, 9, 12, C["4"])
+    s.rect(5, 0, 10, 0, C["6"]); s.rect(5, 13, 10, 13, C["4"]); s.rect(4, 14, 11, 14, C["3"]); s.line(5, 15, 10, 15, C["2"])
+    s.px(7, 4, C["3"]); s.px(8, 8, C["3"])                               # 돌 틈
+    s.px(9, 3, C["7"]); s.px(10, 3, C["7"])                              # 쇠고리
+    for i, (x, y) in enumerate([(11, 4), (12, 5), (12, 6), (13, 7), (13, 8), (12, 9), (12, 10)]):
+        s.px(x, y, C["7"] if i % 2 == 0 else C["6"])                     # 사슬
+    s.rect(11, 11, 14, 13, C["7"]); s.px(12, 12, C["K"]); s.px(13, 12, C["K"]); s.px(12, 13, C["S"])   # 족쇄
+    s.px(14, 14, C["S"]); s.px(13, 14, C["S"])
+    s.outline(C["K"], where="inside")
+    s.line(6, 0, 9, 0, C["6"]); s.line(5, 15, 10, 15, C["2"]); s.px(14, 14, C["S"]); s.px(13, 14, C["S"]); s.px(12, 13, C["S"])
+    s.px(11, 4, C["7"]); s.px(13, 7, C["7"])
+    return s
+
+
+def prop_bloody_rag():
+    """피 묻은 천(통과): 구겨진 천(G07, 주름 G05, 빛 G09) 한 장이 흙에 떨어졌다 — 반은 피(S, 젖은 B)에 잠겼다. 외투의 안감이다."""
+    s = new()
+    rows = {4: (5, 9), 5: (3, 11), 6: (2, 12), 7: (2, 13), 8: (3, 13), 9: (4, 12), 10: (6, 11)}
+    for y, (x0, x1) in rows.items():
+        s.line(x0, y, x1, y, C["7"])
+    for x, y in [(4, 6), (7, 7), (9, 6), (5, 9), (10, 9)]:
+        s.px(x, y, C["5"])                                               # 주름
+    s.px(6, 4, C["9"]); s.px(7, 4, C["9"]); s.px(3, 5, C["9"])           # 빛
+    for x, y in [(8, 8), (9, 8), (10, 8), (11, 8), (12, 8), (9, 9), (10, 9), (11, 9), (10, 10), (11, 10), (13, 9)]:
+        s.px(x, y, C["S"])                                               # 피에 잠긴 쪽
+    s.px(10, 9, C["B"]); s.px(11, 9, C["B"])
+    s.px(13, 11, C["S"]); s.px(14, 12, C["S"]); s.px(2, 11, C["S"])      # 흘러나온 피
+    s.outline(C["K"], where="inside")
+    s.px(6, 4, C["9"]); s.px(7, 4, C["9"]); s.px(13, 11, C["S"]); s.px(14, 12, C["S"]); s.px(2, 11, C["S"]); s.px(13, 9, C["S"])
+    return s
+
+
 def void_tile():
     return new()
 
@@ -463,14 +499,13 @@ TILES = [
     ("prop_hung_coat", prop_hung_coat()), ("prop_spear_bundle", prop_spear_bundle()),
     ("prop_blood_pool", prop_blood_pool()), ("prop_brazier", prop_brazier()),
     ("prop_execution_block", prop_execution_block()), ("prop_ember_pile", prop_ember_pile()),
+    ("prop_chain_post", prop_chain_post()), ("prop_bloody_rag", prop_bloody_rag()),
     ("wall_v1", wall_v1()), ("wall_v2", wall_v2()),
-    ("start_0", floor_start(0)), ("start_1", floor_start(1)),
-    ("trial_0", floor_trial(0)), ("trial_1", floor_trial(1)),
-    ("rest_0", floor_rest(0)), ("rest_1", floor_rest(1)),
-    ("boss_0", floor_boss(0)), ("boss_1", floor_boss(1)),
-]
-PROPS = [("hung_coat", True), ("spear_bundle", True), ("blood_pool", False), ("brazier", True),
-         ("execution_block", True), ("ember_pile", False)]
+] + [("%s_%d" % (k, i), fn(i)) for k, fn in (("start", floor_start), ("trial", floor_trial), ("rest", floor_rest), ("boss", floor_boss))
+     for i in range(4)] + [("reserve", void_tile())]
+# (short, solid, maxPerRoom, weight) — 40라운드. 핏자국 웅덩이(34px)·외투(강조 많음)는 방당 수를 제한해 5% 를 지킨다.
+PROPS = [("hung_coat", True, 2, 0.7), ("spear_bundle", True, 2, 0.7), ("blood_pool", False, 2, 0.8), ("brazier", True, 1, 0.5),
+         ("execution_block", True, 1, 0.4), ("ember_pile", False, 2, 0.8), ("chain_post", True, 1, 0.5), ("bloody_rag", False, 2, 0.8)]
 
 if __name__ == "__main__":
     tc.run(7, "적(赤) — 붉은 근위 제국 외곽", TILES, PROPS, [19, 21, 23, 25], HERE)

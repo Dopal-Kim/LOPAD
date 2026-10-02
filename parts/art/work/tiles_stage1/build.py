@@ -3,7 +3,7 @@
 
 실행: python3 parts/art/work/tiles_stage1/build.py
 입력: parts/art/palette/lopad.json (무채 16 + 1층 호박 램프), assets/sprites/player/player_idle.png
-산출: assets/tiles/stage1.png (8열x4행 128x64) / stage1.json (tilecommon2.py 인덱스 표)
+산출: assets/tiles/stage1.png (8열x5행 128x80, 40라운드 인덱스 표 v3) / stage1.json (tilecommon2.py)
       parts/art/work/tiles_stage1/preview.png · preview_room.png · preview_rooms.png · preview_seam.png
 
 37라운드 지시 (도영 님 원문): "바닥을 더 어둡고 짙게, 소품·벽 디테일 보강, 방 종류별 바닥 구분, 강조색을 더 강조하되,
@@ -11,6 +11,7 @@
   걷는 게 아니라, 버려진 구역의 흙바닥"
 → 바닥 = G01 흙 바탕 + K/G02 흩뿌림(격자 없음) + 깨진 병 조각(G07/G09 글린트) + 술 얼룩(호박 19) + 잔불(25/23/21).
   1층은 전 층에서 가장 어둡다 (바닥 평균 ≈ G01). 벽은 바닥과 갈라지도록 돌 G02 + K 이음, 윗면 G03 (text-pack L2: 윗면 밝게, 수직면 짙게).
+40라운드 (v3): 시트 5행. 방 종류별 바닥 4변형 — 특징 무늬는 _0·_1 에만, _2·_3 은 은은하게(격자 방지). 소품 8종(+ 깨진 술독 solid, 나무잔 더미 통과).
 색 예산: 무채 10 (K, G01~G07, G09, G12) + 강조 4 (19 shadow1 술·핏자국, 21 base, 23 light1, 25 glow 잔불 심).
 """
 import os
@@ -76,7 +77,7 @@ def corridor_tile():
     return s
 
 
-# ---- 방 종류별 바닥
+# ---- 방 종류별 바닥 (4변형: _0·_1 특징, _2·_3 은은)
 def start_floor(i):
     """시작 방: 발자국·야영 흔적. 누군가 머물다 갔다."""
     s, rnd = tc.dirt(ctx, seed=200 + i, base="1", dots={"K": 20, "2": 14, "3": 3}, pairs={"K": 2})
@@ -84,7 +85,7 @@ def start_floor(i):
         tc.bootprint(s, C, 3, 3, left=True); tc.bootprint(s, C, 7, 6, left=False)
         tc.bootprint(s, C, 11, 2, left=True)
         s.px(12, 12, C["3"]); s.px(13, 12, C["3"])                     # 짚 한 줌
-    else:
+    elif i == 1:
         # 야영 흔적: 흩어진 짚(G03 짧은 가닥, 직사각형이면 격자가 보여서 흩뿌림) + 꺼진 불 자리(재 + 불씨 1) + 발자국
         for x0, y0, dx in [(2, 10, 1), (5, 12, 1), (3, 13, 1), (7, 9, 0), (6, 11, 1)]:
             s.px(x0, y0, C["3"]); s.px(x0 + dx, y0 + (1 - dx), C["3"])
@@ -92,6 +93,12 @@ def start_floor(i):
         tc.ash_patch(s, C, rnd, 11, 4, r=2)
         tc.ember_small(s, C, 11, 4)
         tc.bootprint(s, C, 12, 10, left=False)
+    elif i == 2:
+        tc.bootprint(s, C, 9, 9, left=False)                           # 발자국 하나 + 짚 두 가닥
+        s.px(3, 4, C["3"]); s.px(4, 4, C["3"]); s.px(6, 12, C["3"])
+    else:
+        s.px(11, 6, C["3"]); s.px(12, 7, C["3"])                       # 짚 한 가닥 + 자갈
+        s.px(4, 9, C["2"]); s.px(5, 9, C["3"]); s.px(5, 10, C["2"])
     return s
 
 
@@ -99,15 +106,21 @@ def trial_floor(i):
     """시련 방: 핏자국·탄흔 많음. 가장 처절하다."""
     s, rnd = tc.dirt(ctx, seed=300 + i, base="1", dots={"K": 28, "2": 12, "3": 2}, pairs={"K": 4})
     if i == 0:
-        # 핏자국 하나(젖은 가운데 B 1px) + 탄흔 1 + 조각. 두 변형 중 하나만 덩어리를 가져야 물방울 무늬가 안 생긴다.
-        tc.splat(s, C, rnd, 5, 5, r=2, dark="S", wet="B", drops=3)
+        # 핏자국 하나(젖은 가운데 B 1px) + 탄흔 1 + 조각. 4변형 중 _0·_1 만 덩어리를 가져야 물방울 무늬가 안 생긴다.
+        tc.stain_small(s, C, rnd, 5, 5, dark="S", n=5); s.px(5, 5, C["B"])   # r=2 splat 은 25% 타일마다 같은 꼴로 반복돼 보여 5px 불규칙 얼룩으로
+        s.px(8, 4, C["S"]); s.px(3, 8, C["S"])
         tc.pock(s, C, 11, 10)
         shard(s, 10, 3)
-    else:
-        # 변형 1 에는 덩어리를 두지 않는다 (둘 다 덩어리면 16px 마다 얼룩 = 물방울 무늬). 탄흔 2 + 튄 방울 3 + 불씨.
+    elif i == 1:
         tc.pock(s, C, 11, 3); tc.pock(s, C, 4, 11)
         s.px(7, 8, C["S"]); s.px(13, 9, C["S"]); s.px(2, 5, C["S"]); s.px(8, 13, C["S"])
         tc.ember_small(s, C, 13, 13)
+    elif i == 2:
+        s.px(9, 11, C["S"]); s.px(10, 12, C["S"]); s.px(3, 6, C["S"])   # 튄 방울만
+        shard(s, 5, 2, flip=True)
+    else:
+        tc.pock(s, C, 7, 7)                                             # 탄흔 하나 + 방울 하나
+        s.px(12, 3, C["S"]); s.px(2, 12, C["K"]); s.px(3, 12, C["K"])
     return s
 
 
@@ -118,10 +131,16 @@ def rest_floor(i):
         tc.ash_patch(s, C, rnd, 8, 8, r=3)
         s.px(8, 7, C["L"])                                             # 재 속 식은 불씨 하나
         s.px(3, 12, C["3"]); s.px(4, 12, C["3"])
-    else:
+    elif i == 1:
         tc.ash_patch(s, C, rnd, 4, 4, r=2)
         s.px(10, 11, C["3"]); s.px(11, 11, C["3"]); s.px(11, 12, C["3"])   # 흩어진 재
         s.px(12, 5, C["2"]); s.px(13, 6, C["2"])
+    elif i == 2:
+        s.px(11, 3, C["3"]); s.px(12, 3, C["3"]); s.px(12, 4, C["4"])    # 재 세 점
+        s.px(4, 10, C["3"]); s.px(5, 11, C["3"])
+    else:
+        s.px(6, 6, C["3"]); s.px(7, 6, C["4"])                           # 재 두 점 + 자갈
+        s.px(12, 12, C["2"]); s.px(13, 12, C["2"]); s.px(3, 3, C["3"])
     return s
 
 
@@ -131,16 +150,22 @@ GOBLET = [(2, 0), (3, 0), (4, 0), (1, 1), (5, 1), (2, 2), (4, 2), (3, 3), (3, 4)
 def boss_floor(i):
     """보스 방(양조장주 본영): 제국 포석에 새긴 '잔' 문양이 흙에 반쯤 묻혔다."""
     s, rnd = tc.dirt(ctx, seed=500 + i, base="1", dots={"K": 22, "2": 10, "3": 2}, pairs={"K": 2})
-    # 포석은 타일 가운데에 두지 않고 귀퉁이를 사선으로 깨서 네모가 반복되지 않게 한다. 변형 1 은 잔해만.
+    # 포석은 타일 가운데에 두지 않고 귀퉁이를 사선으로 깨서 네모가 반복되지 않게 한다. _1 은 잔해, _2·_3 은 조각 몇 점.
     if i == 0:
-        tc.buried_slab(s, C, rnd, (2, 2, 9, 8), carve=[(x + 3, y + 2) for x, y in GOBLET], bury_from=0.7)
-        for x, y in [(2, 2), (3, 2), (2, 3), (9, 2), (2, 8), (2, 7), (3, 8), (9, 8), (9, 7), (8, 8)]:
-            s.px(x, y, C["1"])                                          # 사선으로 깨진 귀퉁이
+        tc.buried_slab(s, C, rnd, (2, 2, 8, 8), carve=[(x + 2, y + 2) for x, y in GOBLET], bury_from=0.55)
+        for x, y in [(2, 2), (3, 2), (2, 3), (8, 2), (2, 8), (2, 7), (3, 8), (8, 8), (8, 7), (7, 8), (8, 3)]:
+            s.px(x, y, C["1"])                                          # 사선으로 깨진 귀퉁이 (네모가 안 보이게 더 깨고 더 묻음)
         s.px(12, 11, C["2"]); s.px(13, 11, C["3"]); s.px(13, 12, C["2"])  # 떨어져 나간 조각
-    else:
+    elif i == 1:
         for x, y, ch in [(10, 3, "2"), (11, 3, "3"), (12, 3, "2"), (11, 4, "2"), (4, 10, "2"), (5, 10, "3"), (5, 11, "2"), (4, 11, "K"), (13, 13, "2")]:
             s.px(x, y, C[ch])                                           # 포석 잔해
         s.px(7, 7, C["S"]); s.px(8, 7, C["S"]); s.px(8, 8, C["S"])      # 밴 술
+    elif i == 2:
+        s.px(3, 12, C["2"]); s.px(4, 12, C["3"]); s.px(4, 13, C["2"])    # 조각 하나 + 밴 술 1px
+        s.px(11, 5, C["S"])
+    else:
+        s.px(9, 9, C["3"]); s.px(10, 9, C["2"]); s.px(10, 10, C["K"])    # 조각 하나
+        s.px(3, 3, C["2"]); s.px(4, 3, C["2"])
     return s
 
 
@@ -422,6 +447,46 @@ def prop_bottle_crate():
     return s
 
 
+def prop_wine_jar():
+    """깨진 술독(solid): 큰 옹기 항아리(G03 몸, 빛 G04, 그늘 G02), 입이 깨져 나갔고(K 톱니) 옆구리 금 사이로 술(B/S)이 흘러 바닥에 고였다.
+    1층 '잔' 의 가장 큰 사물 — 술통(prop_barrel)과 실루엣 분리: 배가 둥글고 어깨가 좁다."""
+    s = new()
+    prof = {3: (6, 9), 4: (5, 10), 5: (4, 11), 6: (3, 12), 7: (2, 13), 8: (2, 13), 9: (2, 13), 10: (2, 13),
+            11: (3, 12), 12: (3, 12), 13: (4, 11), 14: (5, 10)}
+    for y, (x0, x1) in prof.items():
+        s.line(x0, y, x1, y, C["4"])                                    # 몸 G04 (G03 은 검은 바닥에서 검은 덩어리로만 읽혔다)
+        s.px(x0, y, C["5"]); s.px(x0 + 1, y, C["5"]); s.px(x1, y, C["2"]); s.px(x1 - 1, y, C["3"])
+    s.line(6, 2, 9, 2, C["5"]); s.px(7, 2, C["6"])                      # 입 테
+    s.px(9, 2, C["K"]); s.px(10, 3, C["K"]); s.px(8, 3, C["1"])         # 깨진 입
+    s.line(6, 4, 6, 7, C["6"]); s.px(7, 5, C["6"]); s.px(7, 4, C["6"])  # 빛 받는 어깨
+    s.line(3, 8, 3, 11, C["3"], only=C["4"])                             # 몸 둘레 결
+    for x, y in [(10, 7), (10, 8), (11, 9), (11, 10), (10, 11)]:
+        s.px(x, y, C["K"])                                             # 옆구리 금
+    s.px(11, 11, C["S"]); s.px(11, 12, C["B"]); s.px(12, 13, C["S"])    # 금 사이로 흘러나온 술
+    s.line(5, 15, 10, 15, C["2"]); s.px(12, 14, C["S"]); s.px(13, 14, C["S"]); s.px(12, 15, C["S"])
+    s.outline(C["K"], where="inside")
+    s.line(6, 2, 8, 2, C["5"], only=C["K"]); s.px(7, 2, C["6"])
+    s.line(5, 15, 10, 15, C["2"]); s.px(12, 14, C["S"]); s.px(13, 14, C["S"]); s.px(12, 15, C["S"])
+    return s
+
+
+def prop_cup_pile():
+    """나무잔 더미(통과): 엎어지고 넘어진 나무잔 셋(G04/G05, 테 G06, 속 어둠 K). 하나에 남은 술(B) 한 모금, 바닥에 흘린 자국(S)."""
+    s = new()
+    # 잔 1: 세워진 잔 (왼쪽 위) 입이 보임
+    s.rect(3, 5, 6, 9, C["4"]); s.line(3, 5, 6, 5, C["6"]); s.px(4, 6, C["K"]); s.px(5, 6, C["K"]); s.px(4, 7, C["B"])
+    s.line(3, 10, 6, 10, C["3"])
+    # 잔 2: 옆으로 누운 잔 (오른쪽) 입이 오른쪽
+    s.rect(8, 7, 12, 10, C["4"]); s.line(8, 7, 12, 7, C["5"]); s.rect(12, 7, 13, 10, C["6"]); s.px(13, 8, C["K"]); s.px(13, 9, C["K"])
+    s.line(8, 11, 12, 11, C["3"])
+    # 잔 3: 엎어진 잔 (아래) 바닥면
+    s.rect(4, 11, 7, 13, C["4"]); s.line(4, 11, 7, 11, C["5"]); s.line(4, 13, 7, 13, C["3"])
+    s.px(9, 13, C["S"]); s.px(10, 13, C["S"]); s.px(10, 14, C["S"]); s.px(2, 9, C["S"])   # 흘린 술
+    s.outline(C["K"], where="inside")
+    s.line(4, 5, 5, 5, C["6"], only=C["K"]); s.px(9, 13, C["S"]); s.px(10, 13, C["S"]); s.px(10, 14, C["S"]); s.px(2, 9, C["S"])
+    return s
+
+
 def void_tile():
     return new()
 
@@ -433,14 +498,17 @@ TILES = (
        ("exit", exit_stairs()), ("shop", shop_counter()),
        ("prop_barrel", prop_barrel()), ("prop_bottle", prop_bottle()), ("prop_puddle", prop_puddle()),
        ("prop_lantern", prop_lantern()), ("prop_ash_pit", prop_ash_pit()), ("prop_bottle_crate", prop_bottle_crate()),
+       ("prop_wine_jar", prop_wine_jar()), ("prop_cup_pile", prop_cup_pile()),
        ("wall_v1", wall_v1()), ("wall_v2", wall_v2())]
-    + [("start_%d" % i, start_floor(i)) for i in range(2)]
-    + [("trial_%d" % i, trial_floor(i)) for i in range(2)]
-    + [("rest_%d" % i, rest_floor(i)) for i in range(2)]
-    + [("boss_%d" % i, boss_floor(i)) for i in range(2)]
+    + [("start_%d" % i, start_floor(i)) for i in range(4)]
+    + [("trial_%d" % i, trial_floor(i)) for i in range(4)]
+    + [("rest_%d" % i, rest_floor(i)) for i in range(4)]
+    + [("boss_%d" % i, boss_floor(i)) for i in range(4)]
+    + [("reserve", void_tile())]
 )
-PROPS = [("barrel", True), ("broken_bottle", False), ("puddle", False), ("lantern", True),
-         ("ash_pit", False), ("bottle_crate", True)]
+# (short, solid, maxPerRoom, weight) — 40라운드. 작고 통과하는 것은 많이·자주, 몸통 큰 것은 적게·드물게.
+PROPS = [("barrel", True, 2, 0.8), ("broken_bottle", False, 3, 1.0), ("puddle", False, 2, 0.8), ("lantern", True, 1, 0.6),
+         ("ash_pit", False, 1, 0.6), ("bottle_crate", True, 1, 0.5), ("wine_jar", True, 1, 0.4), ("cup_pile", False, 3, 1.0)]
 
 if __name__ == "__main__":
     tc.run(1, "잔(盞) — 술독 제국 외곽", TILES, PROPS, [19, 21, 23, 25], HERE)

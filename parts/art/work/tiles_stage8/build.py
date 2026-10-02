@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""LOPAD 8층 '평상' 황제의 수도 타일셋 (16x16, 8열×4행) — 단일 소스. 재실행 시 전부 재생성.
+"""LOPAD 8층 '평상' 황제의 수도 타일셋 (16x16, 8열×5행 — 40라운드 인덱스 표 v3) — 단일 소스. 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_stage8/build.py
 입력: parts/art/palette/lopad.json (무채 16 + 8층 은빛 흰 램프), assets/sprites/player/player_idle.png
-산출: assets/tiles/stage8.png / stage8.json (37라운드 인덱스 표, tiles_floors/tilecommon2.py 참조)
+산출: assets/tiles/stage8.png (128x80) / stage8.json (40라운드 인덱스 표 v3, tiles_floors/tilecommon2.py 참조)
       parts/art/work/tiles_stage8/preview.png · preview_room.png · preview_rooms.png · preview_seam.png
 
 컨셉 (story text-pack B8·D8, world-bible 8층 / 37라운드 "수도는 고르지만 생기 없는 잿빛 흙·돌가루"):
@@ -13,8 +13,9 @@
   문   = 흰 문 (열림: 문짝 젖힘 / 닫힘: 판 두 칸 + 손잡이 / 잠김: 쇠 빗장 + 자물쇠)
   출구 = 흰 돌계단 + 은빛 / 상점 = 흰 천 좌판에 똑같은 병 셋·상자 셋 (모두가 평등하다)
   소품 = 빈 벤치(solid) · 꺼진 가로등(solid) · 똑같은 화분(solid, 마른 관목) · 바닥의 작은 균열 하나(통과)
-         · 빈 좌대(solid, 동상은 없다) · 쓸어 모은 재(통과)
-  방 바닥 = 시작: 비질 자국 / 시련: 흐트러진 자갈 몇 알 / 휴식: 쓸어 둔 재 / 보스: 더 어두운 흙(G01) 에 돌가루 반짝임 — 황제의 광장
+         · 빈 좌대(solid, 동상은 없다) · 쓸어 모은 재(통과) + 40라운드: 똑같은 흰 항아리(solid) · 떨어진 공고문(통과, 글줄만)
+  방 바닥 = 시작: 비질 자국 / 시련: 흐트러진 자갈 몇 알 / 휴식: 쓸어 둔 재 / 보스: 더 어두운 흙(G01) 에 돌가루 반짝임 — 각 4변형, 특징은 _0·_1 에만
+  40라운드: 흙 바탕은 1~4층과 같은 tilecommon2.dirt() (자체 dust() 제거). 다만 바탕 G02·점만 성기게 두는 '고른 흙' 은 유지(40라운드 수용된 임시 결정).
   8층은 다른 층과 반대로 벽이 바닥보다 밝다 — 흰 도시가 잿빛 흙 위에 서 있다. 바닥은 G02 기조라 주인공(K 윤곽·G03 외투) 실루엣은 유지.
 색 예산: 무채 10 (G00~G07, G09, G12) + 강조 4 (19 shadow1 유리 반사, 21 base, 23 light1 테, 25 glow 돌가루·빛).
   은빛 램프는 무채와 거의 같은 명도라 '강조' 는 차가운 기운으로만 남는다 — 이 층의 의도(생기 없음).
@@ -43,21 +44,14 @@ ctx = tc.Ctx(C)
 new, blit = ctx.new, ctx.blit
 
 
-# ============================================================ 바닥 (고른 잿빛 흙)
-def dust(seed, base="2", grains=7, pits=4, dark="1", grain="3", pairs=0):
-    """고르게 다져진 잿빛 흙. 덩어리 없이 돌가루(grain) 와 패인 곳(dark) 1px 만 성기게 — '고르지만 생기 없는'."""
-    s = new()
-    s.rect(0, 0, T - 1, T - 1, C[base])
-    rnd = random.Random(seed)
-    for _ in range(grains):
-        s.px(rnd.randrange(T), rnd.randrange(T), C[grain])
-    for _ in range(pits):
-        x, y = rnd.randrange(T), rnd.randrange(T)
-        s.px(x, y, C[dark])
-    for _ in range(pairs):
-        x, y = rnd.randrange(T - 1), rnd.randrange(T)
-        s.px(x, y, C[dark]); s.px(x + 1, y, C[dark])
-    return s, rnd
+# ============================================================ 바닥 (고른 잿빛 흙 — tc.dirt 로 통일, 바탕 G02 + 성긴 점)
+DOTS = {"3": 7, "1": 4}                       # 돌가루 G03, 패인 곳 G01. 덩어리(2px 쌍)는 없다 — '고르지만 생기 없는'
+BOSS_DOTS = {"2": 10, "K": 3}                 # 보스·복도: G01 바탕
+
+
+def dust(seed, grains=7, pits=4):
+    """고른 잿빛 흙: tc.dirt(바탕 G02, 돌가루 G03·패인 곳 G01 흩뿌림, 쌍 없음). 1~4층과 같은 함수·같은 분포, 바탕 한 단만 밝다."""
+    return tc.dirt(ctx, seed, base="2", dots={"3": grains, "1": pits}, pairs=None)
 
 
 def floor_0():
@@ -87,20 +81,27 @@ def floor_3():
 def floor_start(i):
     """시작 방: 비질 자국 — 같은 방향으로 짧은 G01 선 몇 개. 누군가 쓸고 갔다. 발소리는 없었다."""
     s, rnd = dust(811 + i, grains=5, pits=1)
-    lines = [(2, 4, 5), (7, 9, 6), (11, 13, 5), (4, 6, 11), (9, 11, 12)] if i == 0 else [(3, 5, 8), (8, 10, 9), (12, 14, 8), (5, 7, 2)]
+    lines = {0: [(2, 4, 5), (7, 9, 6), (11, 13, 5), (4, 6, 11), (9, 11, 12)],
+             1: [(3, 5, 8), (8, 10, 9), (12, 14, 8), (5, 7, 2)],
+             2: [(6, 8, 4), (10, 12, 12)],
+             3: [(2, 4, 10)]}[i]
     for x0, x1, y in lines:
         s.line(x0, y, x1, y, C["1"])
+    if i == 3:
+        s.px(11, 5, C["3"]); s.px(12, 5, C["3"])
     return s
 
 
 def floor_trial(i):
     """시련 방: 흐트러진 자갈 몇 알(G04) — 이 도시에서 유일하게 정렬되지 않은 것."""
     s, rnd = dust(821 + i, grains=6, pits=3)
-    stones = [(3, 4), (10, 7), (6, 12)] if i == 0 else [(12, 3), (5, 9)]
+    stones = {0: [(3, 4), (10, 7), (6, 12)], 1: [(12, 3), (5, 9)], 2: [(8, 6)], 3: []}[i]
     for x, y in stones:
         s.px(x, y, C["4"]); s.px(x + 1, y, C["4"]); s.px(x + 1, y + 1, C["1"])
     if i == 1:
         s.px(8, 13, C["4"])
+    if i == 3:
+        s.px(4, 11, C["4"]); s.px(12, 4, C["1"])
     return s
 
 
@@ -109,24 +110,32 @@ def floor_rest(i):
     s, rnd = dust(831 + i, grains=5, pits=2)
     if i == 0:
         s.line(9, 5, 11, 5, C["3"]); s.line(8, 6, 12, 6, C["3"]); s.px(10, 4, C["4"]); s.px(9, 6, C["2"])
-    else:
+    elif i == 1:
         s.line(4, 10, 6, 10, C["3"]); s.px(5, 9, C["4"])
         s.px(12, 3, C["3"])
+    elif i == 2:
+        s.px(11, 11, C["3"]); s.px(12, 11, C["3"])
+    else:
+        s.px(5, 4, C["3"]); s.px(6, 4, C["4"])
     return s
 
 
 def floor_boss(i):
-    """보스 방 (황제 '평' 의 광장): 더 어두운 흙(G01) 위에 돌가루가 은빛으로 반짝인다(W/L). 가장 조용한 바닥."""
-    s, rnd = dust(841 + i, base="1", grains=10, pits=3, dark="K", grain="2")
-    pts = [(3, 3), (12, 10)] if i == 0 else [(9, 5)]
+    """보스 방 (황제 '평' 의 광장): 더 어두운 흙(G01) 위에 돌가루가 은빛으로 반짝인다(W/L). 가장 조용한 바닥. _2·_3 은 반짝임 없음."""
+    s, rnd = tc.dirt(ctx, 841 + i, base="1", dots=BOSS_DOTS, pairs=None)
+    pts = {0: [(3, 3), (12, 10)], 1: [(9, 5)], 2: [], 3: []}[i]
     for j, (x, y) in enumerate(pts):
         s.px(x, y, C["W"] if (i + j) % 2 == 0 else C["L"])
+    if i == 2:
+        s.px(6, 11, C["2"]); s.px(7, 11, C["2"])
+    if i == 3:
+        s.px(12, 4, C["3"])
     return s
 
 
 # ============================================================ 복도 (어두운 흙, 고름)
 def corridor_tile():
-    s, rnd = dust(805, base="1", grains=8, pits=3, dark="K", grain="2")
+    s, rnd = tc.dirt(ctx, 805, base="1", dots={"2": 8, "K": 3}, pairs=None)
     s.px(7, 6, C["3"]); s.px(8, 12, C["3"])
     return s
 
@@ -352,6 +361,36 @@ def prop_swept_ash():
     return s
 
 
+def prop_white_urn():
+    """똑같은 흰 항아리(solid): 흰 돌 항아리(G07, 빛 G09, 그늘 G06) — 안은 비었다(K). 테 L 1px. 어느 집 앞에나 하나씩, 전부 같다."""
+    s = new()
+    prof = {3: (6, 9), 4: (5, 10), 5: (4, 11), 6: (3, 12), 7: (3, 12), 8: (3, 12), 9: (3, 12), 10: (4, 11), 11: (4, 11), 12: (5, 10)}
+    for y, (x0, x1) in prof.items():
+        s.line(x0, y, x1, y, C["7"]); s.px(x0, y, C["9"]); s.px(x0 + 1, y, C["9"]); s.px(x1, y, C["6"]); s.px(x1 - 1, y, C["6"])
+    s.rect(5, 2, 10, 2, C["7"]); s.rect(6, 1, 9, 1, C["9"]); s.px(7, 2, C["K"]); s.px(8, 2, C["K"])   # 입 (안은 비었다)
+    s.px(5, 2, C["L"]); s.px(10, 2, C["L"])
+    s.rect(5, 13, 10, 13, C["6"]); s.rect(4, 14, 11, 14, C["7"]); s.line(5, 15, 10, 15, C["3"])      # 받침
+    s.outline(C["K"], where="inside")
+    s.line(6, 1, 9, 1, C["9"]); s.px(5, 2, C["L"]); s.px(10, 2, C["L"]); s.line(5, 15, 10, 15, C["3"])
+    return s
+
+
+def prop_fallen_notice():
+    """떨어진 공고문(통과): 벽에서 떨어진 공고문 한 장(G07, 접힌 귀 G06, 그늘 G05) — 글줄(G04) 만 있고 읽을 내용은 없다. 핀 자국 둘."""
+    s = new()
+    s.polygon([(3, 4), (12, 3), (13, 11), (4, 12)], C["7"])                # 살짝 비스듬히 떨어짐
+    s.line(12, 3, 13, 11, C["5"]); s.line(4, 12, 13, 11, C["5"])
+    s.px(12, 3, C["6"]); s.px(11, 4, C["6"]); s.px(12, 4, C["6"])          # 접힌 귀
+    for y in (6, 8, 10):
+        s.line(5, y, 10, y, C["4"])
+    s.px(5, 5, C["4"]); s.px(6, 5, C["4"])                                 # 제목 줄
+    s.px(4, 4, C["3"]); s.px(12, 10, C["3"])                               # 핀 자국
+    s.line(4, 13, 13, 13, C["1"])
+    s.outline(C["K"], where="inside")
+    s.line(4, 13, 13, 13, C["1"])
+    return s
+
+
 def void_tile():
     return new()
 
@@ -364,14 +403,13 @@ TILES = [
     ("prop_bench", prop_bench()), ("prop_dead_lamp", prop_dead_lamp()),
     ("prop_flower_pot", prop_flower_pot()), ("prop_floor_crack", prop_floor_crack()),
     ("prop_pedestal", prop_pedestal()), ("prop_swept_ash", prop_swept_ash()),
+    ("prop_white_urn", prop_white_urn()), ("prop_fallen_notice", prop_fallen_notice()),
     ("wall_v1", wall_v1()), ("wall_v2", wall_v2()),
-    ("start_0", floor_start(0)), ("start_1", floor_start(1)),
-    ("trial_0", floor_trial(0)), ("trial_1", floor_trial(1)),
-    ("rest_0", floor_rest(0)), ("rest_1", floor_rest(1)),
-    ("boss_0", floor_boss(0)), ("boss_1", floor_boss(1)),
-]
-PROPS = [("empty_bench", True), ("dead_lamp", True), ("flower_pot", True), ("floor_crack", False),
-         ("empty_pedestal", True), ("swept_ash", False)]
+] + [("%s_%d" % (k, i), fn(i)) for k, fn in (("start", floor_start), ("trial", floor_trial), ("rest", floor_rest), ("boss", floor_boss))
+     for i in range(4)] + [("reserve", void_tile())]
+# (short, solid, maxPerRoom, weight) — 40라운드. floor_crack 은 '균열 하나' 가 의도라 maxPerRoom 1 / weight 0.5 (도영 님 예시).
+PROPS = [("empty_bench", True, 1, 0.6), ("dead_lamp", True, 1, 0.6), ("flower_pot", True, 3, 1.0), ("floor_crack", False, 1, 0.5),
+         ("empty_pedestal", True, 1, 0.4), ("swept_ash", False, 2, 0.8), ("white_urn", True, 2, 0.8), ("fallen_notice", False, 2, 0.8)]
 
 if __name__ == "__main__":
     tc.run(8, "평상 — 황제의 수도", TILES, PROPS, [19, 21, 23, 25], HERE)

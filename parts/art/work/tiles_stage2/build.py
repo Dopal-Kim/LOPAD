@@ -2,13 +2,14 @@
 """LOPAD 2층 '패(牌)' 도박장 제국 타일셋 (16x16) — 37라운드 재작업. 단일 소스, 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_stage2/build.py
-산출: assets/tiles/stage2.png (8x4) / stage2.json — 인덱스 표는 tilecommon2.py (1층과 동일)
+산출: assets/tiles/stage2.png (8x5 128x80, 40라운드 인덱스 표 v3) / stage2.json — tilecommon2.py (1층과 동일)
       parts/art/work/tiles_stage2/preview.png · preview_room.png · preview_rooms.png · preview_seam.png
 
 컨셉 (text-pack B2·D2): "길바닥에 깔린 패 사이로 사람이 들려 나간다." 마루널은 없다 — 도박장 뒷골목의 검은 흙바닥에
   버린 패(G06 종이, 반쯤 묻힘)·칩(녹색 B/L)이 밟혀 있다. 1층과 같은 가장 어두운 바닥(평균 ≈ G01).
   벽 = 판자(G02, 틈 K) / 변형 1 = 제국 표식(패 문양 스텐실 G06) / 변형 2 = 긁어 쓴 셈 자국 '한 판만 더' 아홉 번 + 못 박은 패
-  소품 6 = 주사위 통·판돈 자루·뒤집힌 의자·초록 등불 + 빚 장부(통과)·쇠우리(solid)
+  소품 8 = 주사위 통·판돈 자루·뒤집힌 의자·초록 등불 + 빚 장부(통과)·쇠우리(solid) + 40라운드: 엎어진 노름판(solid)·흩어진 칩과 패(통과)
+  40라운드: 방 종류별 바닥 4변형 — 특징 무늬는 _0·_1 에만, _2·_3 은 은은하게(격자 방지).
 색 예산: 무채 10 (K, G01~G07, G09, G12) + 강조 4 (19 shadow1 얼룩·펠트, 21 base 칩·등불, 23 light1, 25 glow 잔불 심).
 """
 import os
@@ -82,24 +83,37 @@ def start_floor(i):
     if i == 0:
         tc.bootprint(s, C, 3, 3, left=True); tc.bootprint(s, C, 7, 6, left=False); tc.bootprint(s, C, 11, 2, left=True)
         s.rect(12, 12, 13, 13, C["7"]); s.px(12, 12, C["K"])            # 떨어진 주사위 (흙 묻은 G07)
-    else:
+    elif i == 1:
         for x0, y0, dx in [(2, 10, 1), (5, 12, 1), (3, 13, 1), (7, 9, 0), (6, 11, 1)]:
             s.px(x0, y0, C["3"]); s.px(x0 + dx, y0 + (1 - dx), C["3"])   # 짚
         tc.ash_patch(s, C, rnd, 11, 4, r=2); tc.ember_small(s, C, 11, 4)
         tc.bootprint(s, C, 12, 10, left=False)
+    elif i == 2:
+        tc.bootprint(s, C, 9, 9, left=False)
+        s.px(3, 4, C["6"]); s.px(4, 4, C["2"])                           # 거의 묻힌 패 끝
+    else:
+        s.px(11, 6, C["3"]); s.px(12, 7, C["3"])
+        s.px(4, 9, C["2"]); s.px(5, 9, C["3"]); s.px(5, 10, C["2"])
     return s
 
 
 def trial_floor(i):
     s, rnd = tc.dirt(ctx, seed=300 + i, base="1", dots={"K": 28, "2": 12, "3": 2}, pairs={"K": 4})
     if i == 0:
-        tc.splat(s, C, rnd, 5, 5, r=2, dark="S", wet="B", drops=3)
+        tc.stain_small(s, C, rnd, 5, 5, dark="S", n=5); s.px(5, 5, C["B"])
+        s.px(8, 4, C["S"]); s.px(3, 8, C["S"])
         tc.pock(s, C, 11, 10)
-        card(s, 9, 2)
-    else:
+        s.px(9, 2, C["6"]); s.px(10, 2, C["6"]); s.px(10, 3, C["2"]); s.px(11, 3, C["K"])   # 거의 묻힌 패 (3x3 패는 밝은 네모로 반복됐다)
+    elif i == 1:
         tc.pock(s, C, 11, 3); tc.pock(s, C, 4, 11)
         s.px(7, 8, C["S"]); s.px(13, 9, C["S"]); s.px(2, 5, C["S"]); s.px(8, 13, C["S"])
         chip(s, 13, 12)
+    elif i == 2:
+        s.px(9, 11, C["S"]); s.px(10, 12, C["S"]); s.px(3, 6, C["S"])
+        s.px(12, 4, C["6"]); s.px(13, 4, C["7"])                         # 밟혀 찢긴 패 조각
+    else:
+        tc.pock(s, C, 7, 7)
+        s.px(12, 3, C["S"]); s.px(2, 12, C["K"]); s.px(3, 12, C["K"])
     return s
 
 
@@ -108,10 +122,16 @@ def rest_floor(i):
     if i == 0:
         tc.ash_patch(s, C, rnd, 8, 8, r=3); s.px(8, 7, C["L"])
         s.px(3, 12, C["3"]); s.px(4, 12, C["3"])
-    else:
+    elif i == 1:
         tc.ash_patch(s, C, rnd, 4, 4, r=2)
-        card(s, 10, 10)
+        s.px(10, 10, C["6"]); s.px(11, 10, C["6"]); s.px(11, 11, C["2"]); s.px(12, 11, C["K"])   # 거의 묻힌 패
         s.px(12, 5, C["2"]); s.px(13, 6, C["2"])
+    elif i == 2:
+        s.px(11, 3, C["3"]); s.px(12, 3, C["3"]); s.px(12, 4, C["4"])
+        s.px(4, 10, C["3"]); s.px(5, 11, C["3"])
+    else:
+        s.px(6, 6, C["3"]); s.px(7, 6, C["4"])
+        s.px(12, 12, C["2"]); s.px(13, 12, C["2"]); s.px(3, 3, C["3"])
     return s
 
 
@@ -121,14 +141,20 @@ DIAMOND = [(3, 0), (2, 1), (3, 1), (4, 1), (1, 2), (2, 2), (3, 2), (4, 2), (5, 2
 def boss_floor(i):
     s, rnd = tc.dirt(ctx, seed=500 + i, base="1", dots={"K": 22, "2": 10, "3": 2}, pairs={"K": 2})
     if i == 0:
-        tc.buried_slab(s, C, rnd, (2, 2, 9, 8), carve=[(x + 3, y + 3) for x, y in DIAMOND], bury_from=0.7)
-        for x, y in [(2, 2), (3, 2), (2, 3), (9, 2), (2, 8), (2, 7), (3, 8), (9, 8), (9, 7), (8, 8)]:
+        tc.buried_slab(s, C, rnd, (2, 2, 8, 8), carve=[(x + 2, y + 3) for x, y in DIAMOND], bury_from=0.55)
+        for x, y in [(2, 2), (3, 2), (2, 3), (8, 2), (2, 8), (2, 7), (3, 8), (8, 8), (8, 7), (7, 8), (8, 3)]:
             s.px(x, y, C["1"])
         s.px(12, 11, C["2"]); s.px(13, 11, C["3"]); s.px(13, 12, C["2"])
-    else:
+    elif i == 1:
         for x, y, ch in [(10, 3, "2"), (11, 3, "3"), (12, 3, "2"), (11, 4, "2"), (4, 10, "2"), (5, 10, "3"), (5, 11, "2"), (4, 11, "K"), (13, 13, "2")]:
             s.px(x, y, C[ch])
         chip(s, 7, 7)
+    elif i == 2:
+        s.px(3, 12, C["2"]); s.px(4, 12, C["3"]); s.px(4, 13, C["2"])
+        s.px(11, 5, C["B"])                                              # 칩 하나 (반쯤 묻힘)
+    else:
+        s.px(9, 9, C["3"]); s.px(10, 9, C["2"]); s.px(10, 10, C["K"])
+        s.px(3, 3, C["2"]); s.px(4, 3, C["2"])
     return s
 
 
@@ -387,6 +413,36 @@ def prop_cage():
     return s
 
 
+def prop_card_table():
+    """엎어진 노름판(solid): 둥근 탁자가 옆으로 넘어져 상판(G04 원, 테 G05, 펠트 자국 S 반원)이 정면으로 보이고 다리 둘(G03)이 뻗었다.
+    '판은 끝나지 않았다' — 상판에 못 박힌 패 한 장(G06)."""
+    s = new()
+    s.circle(7, 8, 6, C["4"], fill=True)
+    s.circle(7, 8, 6, C["5"], fill=False)
+    for y in range(5, 12):
+        half = 4 - abs(y - 8) // 2
+        s.line(7 - half, y, 7 + half, y, C["S"], only=C["4"])             # 펠트 자국
+    s.px(4, 4, C["6"]); s.px(5, 3, C["6"])                                # 윗 테 빛
+    s.rect(6, 6, 8, 8, C["6"]); s.px(7, 7, C["3"]); s.px(6, 6, C["7"])    # 못 박힌 패
+    s.line(13, 5, 15, 3, C["3"]); s.line(13, 11, 15, 13, C["3"])          # 뻗은 다리
+    s.px(14, 4, C["4"]); s.px(14, 12, C["4"])
+    s.line(3, 14, 11, 14, C["2"])
+    s.outline(C["K"], where="inside")
+    s.line(3, 14, 11, 14, C["2"]); s.px(14, 4, C["4"]); s.px(14, 12, C["4"])
+    s.px(5, 3, C["6"], only=C["K"])
+    return s
+
+
+def prop_chip_scatter():
+    """흩어진 칩과 패(통과): 판이 엎어지며 쏟아진 것 — 칩(B/L) 넷, 패(G06, 흙 묻음) 둘, 주사위(G07) 하나. 작은 것들이라 바닥에 묻혀 간다."""
+    s = new()
+    chip(s, 3, 4); chip(s, 11, 3); chip(s, 7, 10); chip(s, 12, 12)
+    s.rect(6, 5, 8, 7, C["6"]); s.px(6, 5, C["7"]); s.px(7, 6, C["3"]); s.px(8, 7, C["2"]); s.px(9, 8, C["K"]); s.px(6, 8, C["K"])
+    s.rect(2, 10, 4, 12, C["6"]); s.px(3, 11, C["3"]); s.px(4, 12, C["1"]); s.px(5, 13, C["K"]); s.px(2, 13, C["K"])
+    s.rect(10, 7, 11, 8, C["7"]); s.px(10, 7, C["K"]); s.px(12, 9, C["2"])
+    return s
+
+
 def void_tile():
     return new()
 
@@ -398,14 +454,17 @@ TILES = (
        ("exit", exit_stairs()), ("shop", shop_counter()),
        ("prop_dice_cup", prop_dice_cup()), ("prop_sack", prop_sack()), ("prop_chair", prop_chair()),
        ("prop_lantern", prop_lantern()), ("prop_ledger", prop_ledger()), ("prop_cage", prop_cage()),
+       ("prop_card_table", prop_card_table()), ("prop_chip_scatter", prop_chip_scatter()),
        ("wall_v1", wall_v1()), ("wall_v2", wall_v2())]
-    + [("start_%d" % i, start_floor(i)) for i in range(2)]
-    + [("trial_%d" % i, trial_floor(i)) for i in range(2)]
-    + [("rest_%d" % i, rest_floor(i)) for i in range(2)]
-    + [("boss_%d" % i, boss_floor(i)) for i in range(2)]
+    + [("start_%d" % i, start_floor(i)) for i in range(4)]
+    + [("trial_%d" % i, trial_floor(i)) for i in range(4)]
+    + [("rest_%d" % i, rest_floor(i)) for i in range(4)]
+    + [("boss_%d" % i, boss_floor(i)) for i in range(4)]
+    + [("reserve", void_tile())]
 )
-PROPS = [("dice_cup", False), ("stake_sack", True), ("overturned_chair", False), ("green_lantern", True),
-         ("debt_ledger", False), ("iron_cage", True)]
+# (short, solid, maxPerRoom, weight) — 40라운드
+PROPS = [("dice_cup", False, 3, 1.0), ("stake_sack", True, 2, 0.8), ("overturned_chair", False, 2, 0.8), ("green_lantern", True, 1, 0.6),
+         ("debt_ledger", False, 1, 0.6), ("iron_cage", True, 1, 0.4), ("card_table", True, 1, 0.4), ("chip_scatter", False, 3, 1.0)]
 
 if __name__ == "__main__":
     tc.run(2, "패(牌) — 도박장 제국 외곽", TILES, PROPS, [19, 21, 23, 25], HERE)

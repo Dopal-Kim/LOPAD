@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-"""LOPAD 층별 타일셋 공통 모듈 **확장판** (37라운드 재작업용). `tilecommon.py` 는 손대지 않고 그 위에 얹는다.
+"""LOPAD 층별 타일셋 공통 모듈 **확장판 v3** (40라운드 시트 5행). `tilecommon.py` 는 손대지 않고 그 위에 얹는다.
 
-바뀐 것 (37라운드 결정 `2026-10-02-round-37-tileset-review.md`, 계약 `art-assets.md` §2):
-  * 시트 8열 x 4행 (128x64). 인덱스 표 (5~8층과 공유, 변경 금지):
+인덱스 표 v3 (40라운드 결정 `2026-10-02-round-40-tileset-final.md`, 계약 `art-assets.md` §2). 1~8층 공유, 변경 금지:
       0..3   공통 바닥 4 (복도 근처·기타)      4  복도            5  벽 정면        6  벽 윗면
       7      void (투명)                      8/9/10 문 열림/닫힘/잠김               11 출구 2x2
-      12     상점 2x2                          13..18 소품 6종    19..20 벽 변형 2   21..28 방 종류별 바닥
-      29..31 예비 (투명)
-  * JSON: tiles["2"] = [5, 19, 20] (좌표 해시 변형), props 6, roomFloors {start:[21,22], trial:[23,24], rest:[25,26], boss:[27,28]}
+      12     상점 2x2                          13..20 소품 8종    21..22 벽 변형 2
+      23..26 시작 방 바닥 4   27..30 시련 방 바닥 4   31..34 휴식 방 바닥 4   35..38 보스 방 바닥 4   39 예비(투명)
+  * 시트 8열 x 5행 (128x80).
+  * JSON: tiles["2"] = [5, 21, 22] (좌표 해시 변형), props 8 (index/name/solid/maxPerRoom/weight),
+          roomFloors {start:[23..26], trial:[27..30], rest:[31..34], boss:[35..38]}, columns 8 / rows 5.
+  * 방 종류별 바닥 4변형 규칙: 특징 무늬(얼룩·포석·발자국 덩어리)는 4개 중 **2개(_0, _1)** 에만, 나머지 2개(_2, _3)는 점 몇 개로 은은하게
+    → 좌표 해시로 섞였을 때 같은 무늬가 16px 마다 반복되는 격자가 안 생긴다.
   * 흙바닥 공용 헬퍼 (dirt / scatter / ember / splat / bootprint / pock / ash_patch / buried_slab):
     '정돈된 타일' 이 아니라 '버려진 구역의 흙바닥' — 균일 바탕 + 정상(stationary) 랜덤 흩뿌림이라 가장자리 규칙 없이도 이어진다.
-    덩어리 디테일은 1..14 안쪽에만 둬서 타일 경계에서 잘리지 않게 한다 (잘리면 격자가 보인다).
-  * 미리보기: preview.png (시트) · preview_room.png (12x8 샘플 방, 소품 6, 벽 변형 섞음) · preview_rooms.png (방 종류 4 비교) · preview_seam.png
+    덩어리 디테일은 1..14 안쪽에만 둬서 타일 경계에서 잘리지 않게 한다 (잘리면 격자가 보인다). 5~8층도 같은 dirt() 를 쓴다(40라운드 통일).
+  * 미리보기: preview.png (시트) · preview_room.png (12x8 샘플 방, 소품 8, 벽 변형 섞음) · preview_rooms.png (방 종류 4, 각 12x8) · preview_seam.png
 
-각 층 build.py: `tc2.run(stage, 이름, TILES, PROPS, 강조슬롯, HERE)`. TILES 는 ORDER2 순 29개 (name, Sprite).
+각 층 build.py: `tc2.run(stage, 이름, TILES, PROPS, 강조슬롯, HERE)`. TILES 는 ORDER2 순 40개 (name, Sprite).
+PROPS 는 8개 (short_name, solid, maxPerRoom, weight).
 """
 import json
 import os
@@ -28,16 +32,21 @@ from PIL import Image, ImageDraw  # noqa: E402
 G, T, ROOT, OUT_ASSETS, FONT = tc.G, tc.T, tc.ROOT, tc.OUT_ASSETS, tc.FONT
 Ctx, ramp, hexrgb, checker = tc.Ctx, tc.ramp, tc.hexrgb, tc.checker
 
-COLS, ROWS = 8, 4
-PROP_N = 6
+COLS, ROWS = 8, 5
+PROP_N = 8
+PROP_FIRST = 13                       # 13..20
+WALL_V_FIRST = PROP_FIRST + PROP_N    # 21, 22
+ROOM_FIRST = WALL_V_FIRST + 2         # 23
 ROOM_KINDS = ["start", "trial", "rest", "boss"]
+ROOM_VARIANTS = 4
 ORDER2 = (["floor_0", "floor_1", "floor_2", "floor_3", "corridor", "wall", "wall_top", "void",
            "door_open", "door_closed", "door_locked", "exit", "shop"]
-          + ["prop_%d" % i for i in range(PROP_N)]          # 13..18 (층마다 실제 이름은 다름 — 접두사 prop_ 만 검사)
-          + ["wall_v1", "wall_v2"]                          # 19, 20
-          + ["%s_%d" % (k, i) for k in ROOM_KINDS for i in range(2)])  # 21..28
-N_TILES = len(ORDER2)  # 29
-assert N_TILES == 29
+          + ["prop_%d" % i for i in range(PROP_N)]          # 13..20 (층마다 실제 이름은 다름 — 접두사 prop_ 만 검사)
+          + ["wall_v1", "wall_v2"]                          # 21, 22
+          + ["%s_%d" % (k, i) for k in ROOM_KINDS for i in range(ROOM_VARIANTS)]  # 23..38
+          + ["reserve"])                                    # 39
+N_TILES = len(ORDER2)  # 40
+assert N_TILES == 40 and N_TILES == COLS * ROWS
 
 
 # ====================================================================== 흙바닥 공용 헬퍼
@@ -168,14 +177,17 @@ class Sheet2:
     def __init__(self, stage, name_kr, tiles, props, accent_slots, here, floor_no):
         names = [n for n, _ in tiles]
         assert len(tiles) == N_TILES, "need %d tiles, got %d" % (N_TILES, len(tiles))
-        assert names[:13] == ORDER2[:13], "index 0..12 must match the shared table"
-        assert all(n.startswith("prop_") for n in names[13:19]), "13..18 must be props"
-        assert names[19:] == ORDER2[19:], "19..28 must be wall_v1, wall_v2, start_0.. boss_1"
-        assert len(props) == PROP_N
+        assert names[:PROP_FIRST] == ORDER2[:PROP_FIRST], "index 0..12 must match the shared table"
+        assert all(n.startswith("prop_") for n in names[PROP_FIRST:WALL_V_FIRST]), "13..20 must be props"
+        assert names[WALL_V_FIRST:] == ORDER2[WALL_V_FIRST:], "21..39 must be wall_v1, wall_v2, start_0.. boss_3, reserve"
+        assert len(props) == PROP_N, "need %d props (short, solid, maxPerRoom, weight)" % PROP_N
+        for pr in props:
+            assert len(pr) == 4, "prop entry must be (short, solid, maxPerRoom, weight): %r" % (pr,)
         self.stage, self.name_kr, self.tiles, self.props = stage, name_kr, tiles, props
         self.accent_slots, self.here, self.floor_no = accent_slots, here, floor_no
         self.idx = {name: i for i, (name, _) in enumerate(tiles)}
         self.A = ramp(floor_no)
+        self.prop_names = [n for n, _ in tiles[PROP_FIRST:WALL_V_FIRST]]
 
     def tile_img(self, name):
         return self.tiles[self.idx[name]][1].composite(1)
@@ -187,7 +199,6 @@ class Sheet2:
             r, c = divmod(i, COLS)
             sheet.alpha_composite(s.composite(1), (c * T, r * T))
         sheet.save(os.path.join(OUT_ASSETS, "stage%d.png" % self.stage))
-        prop_names = [n for n, _ in self.tiles[13:19]]
         meta = {
             "image": "stage%d.png" % self.stage,
             "stage": self.stage,
@@ -208,8 +219,8 @@ class Sheet2:
             },
             "tileIdNames": {"0": "void", "1": "floor", "2": "wall", "3": "door_open", "4": "door_closed",
                             "5": "door_locked", "6": "corridor", "7": "exit", "8": "shop"},
-            "roomFloors": {k: [IDX["%s_0" % k], IDX["%s_1" % k]] for k in ROOM_KINDS},
-            "roomFloorsNote": "방 종류별 바닥 (37라운드). 키가 없거나 비면 tiles['1']. 복도 근처·기타 방은 tiles['1'].",
+            "roomFloors": {k: [IDX["%s_%d" % (k, i)] for i in range(ROOM_VARIANTS)] for k in ROOM_KINDS},
+            "roomFloorsNote": "방 종류별 바닥 4변형 (40라운드 v3). 키가 없거나 비면 tiles['1']. 복도 근처·기타 방은 tiles['1']. 좌표 해시로 4개를 균등하게 섞는다.",
             "walls": {
                 "top": IDX["wall"], "bottom": IDX["wall_top"], "left": IDX["wall_top"], "right": IDX["wall_top"],
                 "corner_tl": IDX["wall_top"], "corner_tr": IDX["wall_top"], "corner_bl": IDX["wall_top"], "corner_br": IDX["wall_top"],
@@ -217,9 +228,10 @@ class Sheet2:
                 "note": "top = 방 위쪽(북) 벽: 정면이 보인다 (tiles['2'] 의 세 인덱스를 좌표 해시로 섞는다). 나머지 변·모서리는 윗면. 단일 벽만 쓰면 전부 정면이어도 무방."
             },
             "props": [
-                {"index": IDX[pn], "name": short, "solid": solid}
-                for pn, (short, solid) in zip(prop_names, self.props)
+                {"index": IDX[pn], "name": short, "solid": bool(solid), "maxPerRoom": int(max_per_room), "weight": float(weight)}
+                for pn, (short, solid, max_per_room, weight) in zip(self.prop_names, self.props)
             ],
+            "propsNote": "40라운드: maxPerRoom = 방당 최대 개수, weight = 배치 가중치(기본 1). 시스템 tileskin 이 지원하면 쓰고, 없으면 기존 규칙.",
             "propsLayer": "overlay — 소품 타일은 배경이 투명하므로 바닥 레이어 위에 겹쳐 그린다",
             "names": {str(i): name for i, (name, _) in enumerate(self.tiles)},
             "palette": "parts/art/palette/lopad.json (gray + floor %d accent slots %s)" % (
@@ -254,11 +266,11 @@ class Sheet2:
                 fl.alpha_composite(self.tile_img("floor_%d" % rnd.randrange(4)), (x * T, y * T))
         blocks.append(("floor 5x4", fl))
         for k in ROOM_KINDS:
-            b = Image.new("RGBA", (T * 3, T * 3))
+            b = Image.new("RGBA", (T * 4, T * 3))
             for y in range(3):
-                for x in range(3):
-                    b.alpha_composite(self.tile_img("%s_%d" % (k, rnd.randrange(2))), (x * T, y * T))
-            blocks.append((k + " 3x3", b))
+                for x in range(4):
+                    b.alpha_composite(self.tile_img("%s_%d" % (k, rnd.randrange(ROOM_VARIANTS))), (x * T, y * T))
+            blocks.append((k + " 4x3", b))
         w = Image.new("RGBA", (T * 5, T * 2))
         for x, nm in enumerate(["wall", "wall_v1", "wall", "wall_v2", "wall"]):
             w.alpha_composite(self.tile_img("wall_top"), (x * T, 0))
@@ -291,8 +303,17 @@ class Sheet2:
         img.save(os.path.join(self.here, "preview_seam.png"))
 
     def _player_frame(self):
-        pl = Image.open(os.path.join(ROOT, "assets", "sprites", "player", "player_idle.png")).convert("RGBA")
-        return pl.crop((0, 0, 16, 24))
+        """주인공 idle 첫 프레임(16x24). 플레이어 시트는 다른 에이전트가 동시에 작업 중이라 못 읽으면 대체 실루엣."""
+        try:
+            pl = Image.open(os.path.join(ROOT, "assets", "sprites", "player", "player_idle.png")).convert("RGBA")
+            return pl.crop((0, 0, 16, 24))
+        except Exception:
+            f = Image.new("RGBA", (16, 24), (0, 0, 0, 0))
+            d = ImageDraw.Draw(f)
+            d.rectangle([5, 2, 10, 7], fill=hexrgb(G[9]) + (255,))
+            d.rectangle([4, 8, 11, 20], fill=hexrgb(G[2]) + (255,))
+            d.rectangle([4, 21, 11, 23], fill=hexrgb(G[7]) + (255,))
+            return f
 
     def _place_player(self, img, tx, ty, f):
         px, py = tx * T, ty * T + T - 1 - 23 + 4
@@ -341,21 +362,21 @@ class Sheet2:
         return n, img.width * img.height
 
     def preview_room(self, scale=4):
-        """12x8 샘플 방 + 위쪽 복도, 문 3종, 출구·상점 2x2, 소품 6종, 주인공 idle 2명. 공통 바닥 0~3."""
+        """12x8 샘플 방 + 위쪽 복도, 문 3종, 출구·상점 2x2, 소품 8종, 주인공 idle 2명. 공통 바닥 0~3."""
         rnd = random.Random(3)
         IW, IH = 12, 8
         grid, OY = self._room(IW, IH, lambda r: "floor_%d" % r.randrange(4), rnd=rnd)
-        GW = IW + 2
         grid[OY + 4][0] = "door_closed"
         grid[OY + IH + 1][6] = "door_locked"
         for dy in range(2):
             for dx in range(2):
                 grid[OY + 1 + dy][10 + dx] = "exit"
                 grid[OY + 1 + dy][7 + dx] = "shop"
-        p = [n for n, _ in self.tiles[13:19]]
+        p = self.prop_names
         props = {(2, OY + 2): p[0], (3, OY + 2): p[0], (10, OY + 6): p[3],
                  (5, OY + 5): p[2], (8, OY + 7): p[1], (2, OY + 7): p[3],
-                 (11, OY + 4): p[1], (4, OY + 8): p[4], (12, OY + 8): p[5], (7, OY + 4): p[5]}
+                 (11, OY + 4): p[1], (4, OY + 8): p[4], (12, OY + 8): p[5], (7, OY + 4): p[5],
+                 (1, OY + 5): p[6], (9, OY + 8): p[7], (12, OY + 3): p[6], (6, OY + 2): p[7]}
         img = self._render(grid, props)
         f = self._player_frame()
         for (tx, ty) in [(5, OY + 4), (9, OY + 5)]:
@@ -370,14 +391,15 @@ class Sheet2:
         print("accent px in sample room: %d / %d = %.2f%%" % (n, tot, 100.0 * n / tot))
 
     def preview_rooms(self, scale=3):
-        """방 종류 4 비교: 8x6 방 네 개 (start / trial / rest / boss), 각각 소품 2 + 주인공 1. 아래 줄에 1x."""
-        IW, IH = 8, 6
-        p = [n for n, _ in self.tiles[13:19]]
+        """방 종류 4 비교: **12x8 방** 네 개 (start / trial / rest / boss, 각 4변형 좌표 해시 섞음), 소품 2 + 주인공 1. 2x2 배치, 아래 1x 줄.
+        격자(같은 무늬가 16px 마다 반복)가 보이는지 확인하는 용도."""
+        IW, IH = 12, 8
+        p = self.prop_names
         f = self._player_frame()
         tiles_imgs, labels, ratios = [], [], []
         for ki, k in enumerate(ROOM_KINDS):
             rnd = random.Random(11 + ki)
-            grid, OY = self._room(IW, IH, lambda r, k=k: "%s_%d" % (k, r.randrange(2)), corridor=False, rnd=rnd)
+            grid, OY = self._room(IW, IH, lambda r, k=k: "%s_%d" % (k, r.randrange(ROOM_VARIANTS)), corridor=False, rnd=rnd)
             grid[OY][IW // 2] = "door_open"
             if k == "boss":
                 grid[OY + IH + 1][IW // 2] = "door_locked"
@@ -390,15 +412,15 @@ class Sheet2:
             ratios.append(100.0 * n / tot)
         W, H = tiles_imgs[0].size
         gap = 12
-        out = Image.new("RGB", (gap + 4 * (W * scale + gap), 20 + H * scale + gap + H + gap), (60, 60, 64))
+        cell_w, cell_h = W * scale + gap, 20 + H * scale + gap
+        out = Image.new("RGB", (gap + 2 * cell_w, 2 * cell_h + H + gap), (60, 60, 64))
         d = ImageDraw.Draw(out)
-        x = gap
-        for img, lab, r in zip(tiles_imgs, labels, ratios):
+        for i, (img, lab, r) in enumerate(zip(tiles_imgs, labels, ratios)):
+            cx, cy = gap + (i % 2) * cell_w, (i // 2) * cell_h
             big = img.resize((W * scale, H * scale), Image.NEAREST).convert("RGB")
-            out.paste(big, (x, 20))
-            out.paste(img.convert("RGB"), (x, 20 + H * scale + gap))
-            d.text((x, 4), "%s  (accent %.2f%%)" % (lab, r), fill=(230, 230, 230), font=FONT)
-            x += W * scale + gap
+            out.paste(big, (cx, cy + 20))
+            out.paste(img.convert("RGB"), (gap + i * (W + gap), 2 * cell_h))
+            d.text((cx, cy + 4), "%s  (accent %.2f%%)" % (lab, r), fill=(230, 230, 230), font=FONT)
         out.save(os.path.join(self.here, "preview_rooms.png"))
         print("room kinds accent %%: " + ", ".join("%s %.2f" % (l, r) for l, r in zip(labels, ratios)))
 

@@ -2,12 +2,13 @@
 """LOPAD 3층 '붕(繃)' 야전병원 제국 타일셋 (16x16) — 37라운드 재작업. 단일 소스, 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_stage3/build.py
-산출: assets/tiles/stage3.png (8x4) / stage3.json — 인덱스 표는 tilecommon2.py
+산출: assets/tiles/stage3.png (8x5 128x80, 40라운드 인덱스 표 v3) / stage3.json — tilecommon2.py
       parts/art/work/tiles_stage3/preview.png · preview_room.png · preview_rooms.png · preview_seam.png
 
 컨셉 (text-pack B3·D3): "붕대가 모자라 진흙으로 묶었다." 바닥 = 짙은 진흙(G01 바탕 + G02 진흙 덩어리, 1·2층보다 K 가 적다)
   + 피(이 층의 피 = 청록 S/B) + 붕대 조각(G12/G09, 반쯤 묻힘). 벽 = 천막 캔버스(G02, 솔기 K) / 변형 1 = 제국 표식(붕대 십자 G06)
-  / 변형 2 = 솔기에서 늘어진 붕대(G12) + 청록 손자국. 소품 6 = 들것·붕대 더미·약병 상자·번호 말뚝 + 천 덮은 시체(solid)·피 양동이(통과).
+  / 변형 2 = 솔기에서 늘어진 붕대(G12) + 청록 손자국. 소품 8 = 들것·붕대 더미·약병 상자·번호 말뚝 + 천 덮은 시체(solid)·피 양동이(통과)
+  + 40라운드: 빈 야전 침상(solid)·버려진 목발(통과). 방 종류별 바닥 4변형 — 특징 무늬는 _0·_1 에만, _2·_3 은 은은하게(격자 방지).
 색 예산: 무채 10 (K, G01~G07, G09, G12) + 강조 4 (19 shadow1 밴 피, 21 base, 23 light1, 25 glow).
 """
 import os
@@ -79,24 +80,37 @@ def start_floor(i):
     if i == 0:
         tc.bootprint(s, C, 3, 3, left=True); tc.bootprint(s, C, 7, 6, left=False); tc.bootprint(s, C, 11, 2, left=True)
         bandage_scrap(s, [(11, 12), (12, 12), (13, 13)])
-    else:
+    elif i == 1:
         for x0, y0, dx in [(2, 10, 1), (5, 12, 1), (3, 13, 1), (7, 9, 0), (6, 11, 1)]:
             s.px(x0, y0, C["3"]); s.px(x0 + dx, y0 + (1 - dx), C["3"])
         tc.ash_patch(s, C, rnd, 11, 4, r=2); tc.ember_small(s, C, 11, 4)
         tc.bootprint(s, C, 12, 10, left=False)
+    elif i == 2:
+        tc.bootprint(s, C, 9, 9, left=False)
+        s.px(3, 4, C["9"]); s.px(4, 5, C["2"])                           # 거의 묻힌 붕대 끝
+    else:
+        s.px(11, 6, C["3"]); s.px(12, 7, C["3"])
+        s.px(4, 9, C["2"]); s.px(5, 9, C["3"]); s.px(5, 10, C["2"])
     return s
 
 
 def trial_floor(i):
     s, rnd = tc.dirt(ctx, seed=300 + i, base="1", dots={"K": 22, "2": 16, "3": 2}, pairs={"2": 3, "K": 2})
     if i == 0:
-        tc.splat(s, C, rnd, 5, 5, r=2, dark="S", wet="B", drops=3)
+        tc.stain_small(s, C, rnd, 5, 5, dark="S", n=5); s.px(5, 5, C["B"])
+        s.px(8, 4, C["S"]); s.px(3, 8, C["S"])
         tc.pock(s, C, 11, 10)
         bandage_scrap(s, [(9, 2), (10, 2), (11, 3)], buried_at=[(11, 3)])
-    else:
+    elif i == 1:
         tc.pock(s, C, 11, 3); tc.pock(s, C, 4, 11)
         s.px(7, 8, C["S"]); s.px(13, 9, C["S"]); s.px(2, 5, C["S"]); s.px(8, 13, C["S"])
         bandage_scrap(s, [(12, 12), (13, 12)]); s.px(13, 13, C["S"])    # 피 밴 붕대
+    elif i == 2:
+        s.px(9, 11, C["S"]); s.px(10, 12, C["S"]); s.px(3, 6, C["S"])
+        s.px(12, 4, C["9"]); s.px(13, 5, C["7"])
+    else:
+        tc.pock(s, C, 7, 7)
+        s.px(12, 3, C["S"]); s.px(2, 12, C["K"]); s.px(3, 12, C["K"])
     return s
 
 
@@ -105,10 +119,16 @@ def rest_floor(i):
     if i == 0:
         tc.ash_patch(s, C, rnd, 8, 8, r=3); s.px(8, 7, C["L"])
         s.px(3, 12, C["3"]); s.px(4, 12, C["3"])
-    else:
+    elif i == 1:
         tc.ash_patch(s, C, rnd, 4, 4, r=2)
-        s.rect(10, 10, 12, 11, C["9"]); s.px(10, 11, C["7"]); s.px(11, 12, C["7"]); s.px(12, 12, C["7"])   # 붕대 두루마리 (더러워진 것)
+        s.px(10, 10, C["9"]); s.px(11, 10, C["9"]); s.px(11, 11, C["7"]); s.px(12, 11, C["2"])   # 더러워진 붕대 끝 (두루마리 네모는 반복돼 보여 줄임)
         s.px(12, 5, C["2"]); s.px(13, 6, C["2"])
+    elif i == 2:
+        s.px(11, 3, C["3"]); s.px(12, 3, C["3"]); s.px(12, 4, C["4"])
+        s.px(4, 10, C["3"]); s.px(5, 11, C["3"])
+    else:
+        s.px(6, 6, C["3"]); s.px(7, 6, C["4"])
+        s.px(12, 12, C["2"]); s.px(13, 12, C["2"]); s.px(3, 3, C["3"])
     return s
 
 
@@ -119,14 +139,20 @@ CROSS = [(2, 0), (3, 0), (2, 1), (3, 1), (0, 2), (1, 2), (2, 2), (3, 2), (4, 2),
 def boss_floor(i):
     s, rnd = tc.dirt(ctx, seed=500 + i, base="1", dots={"K": 18, "2": 14, "3": 2}, pairs={"2": 2})
     if i == 0:
-        tc.buried_slab(s, C, rnd, (2, 2, 9, 8), carve=[(x + 3, y + 2) for x, y in CROSS if y < 5], bury_from=0.7)
-        for x, y in [(2, 2), (3, 2), (2, 3), (9, 2), (2, 8), (2, 7), (3, 8), (9, 8), (9, 7), (8, 8)]:
+        tc.buried_slab(s, C, rnd, (2, 2, 8, 8), carve=[(x + 2, y + 2) for x, y in CROSS if y < 5], bury_from=0.55)
+        for x, y in [(2, 2), (3, 2), (2, 3), (8, 2), (2, 8), (2, 7), (3, 8), (8, 8), (8, 7), (7, 8), (8, 3)]:
             s.px(x, y, C["1"])
         s.px(12, 11, C["2"]); s.px(13, 11, C["3"]); s.px(13, 12, C["2"])
-    else:
+    elif i == 1:
         for x, y, ch in [(10, 3, "2"), (11, 3, "3"), (12, 3, "2"), (11, 4, "2"), (4, 10, "2"), (5, 10, "3"), (5, 11, "2"), (4, 11, "K"), (13, 13, "2")]:
             s.px(x, y, C[ch])
         s.px(7, 7, C["S"]); s.px(8, 7, C["S"]); s.px(8, 8, C["B"])
+    elif i == 2:
+        s.px(3, 12, C["2"]); s.px(4, 12, C["3"]); s.px(4, 13, C["2"])
+        s.px(11, 5, C["S"])
+    else:
+        s.px(9, 9, C["3"]); s.px(10, 9, C["2"]); s.px(10, 10, C["K"])
+        s.px(3, 3, C["2"]); s.px(4, 3, C["2"])
     return s
 
 
@@ -382,6 +408,41 @@ def prop_bucket():
     return s
 
 
+def prop_empty_cot():
+    """빈 야전 침상(solid): 나무 틀(G05/G04) 위에 늘어진 캔버스(G06, 주름 G05), 머리맡에 피 밴 자리(S/B), 번호판은 없다 — D3 '사람에겐 없다'.
+    들것(prop_stretcher, 장대 가로)과 실루엣 분리: 다리가 네 개 서 있고 캔버스가 처진다."""
+    s = new()
+    s.rect(2, 4, 13, 10, C["6"])
+    s.line(2, 4, 13, 4, C["7"]); s.line(2, 10, 13, 10, C["5"])
+    for x, y in [(5, 6), (6, 7), (9, 6), (10, 8), (7, 9)]:
+        s.px(x, y, C["5"])                                             # 처진 주름
+    s.rect(3, 5, 5, 7, C["S"]); s.px(4, 6, C["B"]); s.px(6, 6, C["S"])   # 머리맡 피
+    s.rect(1, 3, 2, 12, C["4"]); s.rect(13, 3, 14, 12, C["4"])          # 틀 세로
+    s.line(1, 3, 14, 3, C["5"])
+    s.rect(1, 11, 2, 13, C["3"]); s.rect(13, 11, 14, 13, C["3"])        # 다리
+    s.px(2, 13, C["4"]); s.px(13, 13, C["4"])
+    s.line(2, 14, 13, 14, C["2"])
+    s.outline(C["K"], where="inside")
+    s.line(2, 14, 13, 14, C["2"]); s.line(2, 3, 13, 3, C["5"], only=C["K"])
+    return s
+
+
+def prop_crutch():
+    """버려진 목발(통과): 사선으로 누운 목발(G05 자루, 겨드랑이 받침 G06, 손잡이 G04) — 쓰던 사람은 전선으로 보내졌다. 붕대 감긴 자리 G09."""
+    s = new()
+    for i in range(10):
+        s.px(3 + i, 12 - i, C["5"]); s.px(4 + i, 12 - i, C["4"])
+    s.rect(11, 1, 14, 2, C["6"]); s.px(11, 2, C["5"]); s.px(14, 2, C["5"])   # 받침
+    s.px(12, 3, C["5"]); s.px(13, 3, C["4"])
+    s.px(7, 8, C["9"]); s.px(8, 8, C["9"]); s.px(8, 7, C["9"])                 # 붕대로 감은 손잡이
+    s.px(2, 13, C["3"]); s.px(3, 14, C["2"])                                   # 흙에 닿은 끝
+    s.outline(C["K"], where="inside")
+    s.line(12, 1, 13, 1, C["6"]); s.px(7, 8, C["9"]); s.px(8, 7, C["9"])
+    for i in range(1, 9):
+        s.px(3 + i, 12 - i, C["5"])
+    return s
+
+
 def void_tile():
     return new()
 
@@ -393,14 +454,17 @@ TILES = (
        ("exit", exit_stairs()), ("shop", shop_counter()),
        ("prop_stretcher", prop_stretcher()), ("prop_bandages", prop_bandages()), ("prop_vial_crate", prop_vial_crate()),
        ("prop_number_stake", prop_number_stake()), ("prop_shrouded_body", prop_shrouded_body()), ("prop_bucket", prop_bucket()),
+       ("prop_empty_cot", prop_empty_cot()), ("prop_crutch", prop_crutch()),
        ("wall_v1", wall_v1()), ("wall_v2", wall_v2())]
-    + [("start_%d" % i, start_floor(i)) for i in range(2)]
-    + [("trial_%d" % i, trial_floor(i)) for i in range(2)]
-    + [("rest_%d" % i, rest_floor(i)) for i in range(2)]
-    + [("boss_%d" % i, boss_floor(i)) for i in range(2)]
+    + [("start_%d" % i, start_floor(i)) for i in range(4)]
+    + [("trial_%d" % i, trial_floor(i)) for i in range(4)]
+    + [("rest_%d" % i, rest_floor(i)) for i in range(4)]
+    + [("boss_%d" % i, boss_floor(i)) for i in range(4)]
+    + [("reserve", void_tile())]
 )
-PROPS = [("stretcher", True), ("bandage_pile", False), ("vial_crate", True), ("number_stake", False),
-         ("shrouded_body", True), ("blood_bucket", False)]
+# (short, solid, maxPerRoom, weight) — 40라운드
+PROPS = [("stretcher", True, 2, 0.7), ("bandage_pile", False, 3, 1.0), ("vial_crate", True, 1, 0.6), ("number_stake", False, 3, 1.0),
+         ("shrouded_body", True, 1, 0.4), ("blood_bucket", False, 2, 0.8), ("empty_cot", True, 1, 0.5), ("crutch", False, 2, 0.8)]
 
 if __name__ == "__main__":
     tc.run(3, "붕(繃) — 야전병원 제국 전선", TILES, PROPS, [19, 21, 23, 25], HERE)

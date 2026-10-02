@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""LOPAD 6층 '연(宴)' 연회 제국 타일셋 (16x16, 8열×4행) — 단일 소스. 재실행 시 전부 재생성.
+"""LOPAD 6층 '연(宴)' 연회 제국 타일셋 (16x16, 8열×5행 — 40라운드 인덱스 표 v3) — 단일 소스. 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_stage6/build.py
 입력: parts/art/palette/lopad.json (무채 16 + 6층 황금 램프), assets/sprites/player/player_idle.png
-산출: assets/tiles/stage6.png / stage6.json (37라운드 인덱스 표, tiles_floors/tilecommon2.py 참조)
+산출: assets/tiles/stage6.png (128x80) / stage6.json (40라운드 인덱스 표 v3, tiles_floors/tilecommon2.py 참조)
       parts/art/work/tiles_stage6/preview.png · preview_room.png · preview_rooms.png · preview_seam.png
 
 컨셉 (story text-pack B6·C6·D6, world-bible 6층 / 37라운드 "연회장도 바닥은 버려진 흙 위에 융단 조각만"):
@@ -13,8 +13,9 @@
   문   = 커튼 (열림: 양옆으로 묶음 / 닫힘: 주름 + 술 장식 / 잠김: 커튼 위 쇠 빗장 + 자물쇠)
   출구 = 융단 깔린 계단 / 상점 = 경매대 (목록·망치·금화)
   소품 = 경매 번호판(통과) · 엎어진 잔(통과) · 샹들리에 그림자(통과, 촛불 반사) · 황금 촛대(solid)
-         · 경매 우리(solid, 품목 7번 '건강한 남자') · 먹다 남은 접시(통과)
-  방 바닥 = 시작: 융단 띠 흔적·꽃잎 / 시련: 깨진 병·술 얼룩 / 휴식: 쓰러진 초의 촛농과 잔불 / 보스: 검은 흙에 황금 꽃잎 비
+         · 경매 우리(solid, 품목 7번 '건강한 남자') · 먹다 남은 접시(통과) + 40라운드: 악보대(solid, 곡을 바꾸던 악단) · 떨어진 꽃다발(통과)
+  방 바닥 = 시작: 융단 띠 흔적·꽃잎 / 시련: 깨진 병·술 얼룩 / 휴식: 쓰러진 초의 촛농과 잔불 / 보스: 검은 흙에 황금 꽃잎 비 — 각 4변형, 특징은 _0·_1 에만
+  40라운드: 흙 바탕은 1~4층과 같은 tilecommon2.dirt() (자체 랜덤워크 dirt 제거 — 흙 질감 통일).
 색 예산: 무채 10 (G00~G07, G09, G12) + 강조 4 (18 shadow2 술·융단 테, 21 base 황금, 23 light1, 25 glow 불꽃·꽃잎).
 """
 import os
@@ -41,28 +42,10 @@ ctx = tc.Ctx(C)
 new, blit = ctx.new, ctx.blit
 
 
-# ============================================================ 바닥 (밟힌 검은 흙)
-def dirt(seed, base="1", clods=16, pits=6, glints=3, clod="2", pit="K", glint="3"):
-    """버려진 연회장의 흙 (5층 dirt 와 같은 규칙: 랜덤워크 덩어리 + 점, 격자 없음)."""
-    s = new()
-    s.rect(0, 0, T - 1, T - 1, C[base])
-    rnd = random.Random(seed)
-    n = 0
-    while n < clods:
-        x, y = rnd.randrange(T), rnd.randrange(T)
-        for _ in range(rnd.choice((1, 1, 2, 3, 4))):
-            s.px(x, y, C[clod]); n += 1
-            x += rnd.choice((-1, 0, 1, 1)); y += rnd.choice((-1, 0, 0, 1))
-            if not (0 <= x < T and 0 <= y < T):
-                break
-    for _ in range(pits):
-        x, y = rnd.randrange(T), rnd.randrange(T)
-        s.px(x, y, C[pit])
-        if rnd.random() < 0.35 and x + 1 < T:
-            s.px(x + 1, y, C[pit])
-    for _ in range(glints):
-        s.px(rnd.randrange(T), rnd.randrange(T), C[glint])
-    return s, rnd
+# ============================================================ 바닥 (밟힌 검은 흙 — tc.dirt, 1~4층과 같은 흩뿌림)
+DOTS = {"K": 24, "2": 14, "3": 3}
+PAIRS = {"K": 3}
+BOSS_DOTS, BOSS_PAIRS = {"1": 22, "2": 5}, {"1": 2}
 
 
 def petals(s, pts):
@@ -80,32 +63,35 @@ def carpet_scrap(s, x0, y0, x1, y1, fray=()):
         s.px(x, y, C["2"])
 
 
-def wine(s, rnd, cx, cy, r=2, drops=2):
-    tc.splat(s, C, rnd, cx, cy, r=r, dark="S", wet="L", drops=drops)
+def wine(s, rnd, cx, cy, wet=True):
+    """흘린 술: 5px 불규칙 얼룩(S) + 젖은 반사 L 1px. (splat r=1 은 '+' 로 반복돼 보여 stain_small 로.)"""
+    tc.stain_small(s, C, rnd, cx, cy, dark="S", n=4)
+    if wet:
+        s.px(cx, cy, C["L"])
 
 
 def floor_0():
-    s, rnd = dirt(601)
+    s, rnd = tc.dirt(ctx, seed=601, base="1", dots=DOTS, pairs=PAIRS)
     petals(s, [(12, 4)])
     return s
 
 
 def floor_1():
-    s, rnd = dirt(602, clods=13)
+    s, rnd = tc.dirt(ctx, seed=602, base="1", dots={"K": 22, "2": 12, "3": 3}, pairs=PAIRS)
     carpet_scrap(s, 3, 8, 9, 12, fray=[(3, 10), (9, 9), (6, 12)])
     s.px(10, 11, C["2"])
     return s
 
 
 def floor_2():
-    s, rnd = dirt(603, clods=14)
-    wine(s, rnd, 10, 5, r=1, drops=2)
+    s, rnd = tc.dirt(ctx, seed=603, base="1", dots=DOTS, pairs=PAIRS)
+    wine(s, rnd, 10, 5)
     petals(s, [(3, 12)])
     return s
 
 
 def floor_3():
-    s, rnd = dirt(604, clods=15, pits=7)
+    s, rnd = tc.dirt(ctx, seed=604, base="1", dots={"K": 26, "2": 12, "3": 3}, pairs=PAIRS)
     s.px(5, 4, C["5"]); s.px(6, 4, C["4"]); s.px(12, 11, C["5"])     # 깨진 유리
     petals(s, [(9, 9)])
     return s
@@ -113,55 +99,76 @@ def floor_3():
 
 def floor_start(i):
     """시작 방: 융단이 깔렸던 띠 자국(길게 남은 조각) + 꽃잎 몇 장 — 손님이 들어오던 길."""
-    s, rnd = dirt(611 + i, clods=12, pits=4)
+    s, rnd = tc.dirt(ctx, seed=611 + i, base="1", dots={"K": 20, "2": 14, "3": 3}, pairs={"K": 2})
     if i == 0:
-        carpet_scrap(s, 2, 6, 9, 9, fray=[(2, 7), (4, 9), (9, 6)])
+        carpet_scrap(s, 3, 6, 8, 8, fray=[(3, 7), (5, 8), (8, 6)])      # 8x4 는 25% 에서도 네모 반복이 보여 6x3 으로
         petals(s, [(12, 12), (11, 3)])
+    elif i == 1:
+        # 융단은 _0 에만 (둘 다 두면 50% 타일에 갈색 네모가 반복된다). 여기는 뜯긴 테 조각 + 꽃잎 하나.
+        s.px(10, 11, C["S"]); s.px(11, 11, C["S"]); s.px(11, 12, C["3"]); s.px(12, 12, C["2"])
+        petals(s, [(4, 5)])
+    elif i == 2:
+        petals(s, [(7, 10)])
+        s.px(3, 4, C["3"]); s.px(4, 4, C["3"])                         # 올 풀린 실오라기
     else:
-        carpet_scrap(s, 10, 10, 14, 13, fray=[(10, 12), (12, 13)])
-        petals(s, [(3, 4), (5, 13)])
+        s.px(11, 6, C["3"]); s.px(12, 6, C["2"])                       # 실오라기
+        s.px(4, 12, C["L"])
     return s
 
 
 def floor_trial(i):
     """시련 방: 깨진 병(G05/G04 조각) 과 술 얼룩 — 연회가 싸움으로."""
-    s, rnd = dirt(621 + i, clods=12, pits=6)
+    s, rnd = tc.dirt(ctx, seed=621 + i, base="1", dots={"K": 28, "2": 12, "3": 2}, pairs={"K": 4})
     if i == 0:
-        wine(s, rnd, 5, 10, r=1, drops=3)
+        wine(s, rnd, 5, 10)
         for x, y in [(11, 3), (12, 4), (13, 3)]:
             s.px(x, y, C["5"])
         s.px(12, 3, C["4"])
-    else:
-        tc.splat(s, C, rnd, 11, 7, r=1, dark="S", wet=None, drops=2)
+    elif i == 1:
+        wine(s, rnd, 11, 7, wet=False)
         s.px(3, 4, C["5"]); s.px(4, 5, C["4"]); s.px(2, 12, C["5"])
         petals(s, [(8, 13)])
+    elif i == 2:
+        s.px(9, 11, C["5"]); s.px(10, 12, C["4"])                       # 유리 한 조각 + 술 방울
+        s.px(3, 6, C["S"]); s.px(12, 3, C["S"])
+    else:
+        s.px(7, 7, C["S"]); s.px(8, 8, C["S"])                           # 방울 둘 + 유리 1px
+        s.px(12, 12, C["5"])
     return s
 
 
 def floor_rest(i):
-    """휴식 방: 쓰러진 초 — 굳은 촛농(G12/G09) 과 꺼져 가는 심지(잔불 W/L)."""
-    s, rnd = dirt(631 + i, clods=11, pits=4, glints=2)
+    """휴식 방: 쓰러진 초 — 굳은 촛농(G07/G09) 과 꺼져 가는 심지(잔불 W/L)."""
+    s, rnd = tc.dirt(ctx, seed=631 + i, base="1", dots={"K": 14, "2": 16, "3": 4}, pairs={"2": 2})
     if i == 0:
-        s.rect(9, 4, 11, 5, C["7"]); s.px(12, 5, C["7"]); s.px(10, 4, C["9"])
+        s.px(9, 5, C["7"]); s.px(10, 5, C["7"]); s.px(11, 5, C["6"]); s.px(10, 4, C["9"])   # 촛농 (3x2 덩어리는 밝은 막대로 반복돼 줄임)
         tc.ember(s, C, 13, 4, rising=True)
         petals(s, [(3, 11)])
-    else:
-        s.px(4, 9, C["7"]); s.px(5, 9, C["9"]); s.px(5, 10, C["7"])
+    elif i == 1:
+        s.px(4, 9, C["7"]); s.px(5, 10, C["6"])
         tc.ember_small(s, C, 13, 12)
+    elif i == 2:
+        s.px(11, 3, C["7"]); s.px(12, 3, C["6"])                         # 촛농 2px
+        s.px(4, 11, C["3"])
+    else:
+        tc.ember_small(s, C, 6, 6)
+        s.px(12, 12, C["3"]); s.px(13, 12, C["3"])
     return s
 
 
 def floor_boss(i):
     """보스 방 (연회 후작의 홀): 더 검은 흙(G00) 위에 황금 꽃잎이 비처럼 — 후작의 건배."""
-    s, rnd = dirt(641 + i, base="K", clod="1", pit="1", glint="2", clods=18, pits=0, glints=4)
-    pts = [(2, 3), (3, 3), (11, 6), (7, 12), (13, 13)] if i == 0 else [(5, 2), (12, 9), (3, 13)]
+    s, rnd = tc.dirt(ctx, seed=641 + i, base="K", dots=BOSS_DOTS, pairs=BOSS_PAIRS)
+    pts = {0: [(2, 3), (3, 3), (11, 6), (7, 12), (13, 13)], 1: [(5, 2), (12, 9), (3, 13)], 2: [(9, 7)], 3: [(4, 10)]}[i]
     petals(s, pts)
+    if i == 3:
+        s.px(11, 4, C["2"]); s.px(12, 4, C["2"])
     return s
 
 
 # ============================================================ 복도 (어두운 흙 + 가운데 융단 띠 잔해)
 def corridor_tile():
-    s, rnd = dirt(605, base="K", clod="1", pit="1", glint="2", clods=14, pits=0, glints=2)
+    s, rnd = tc.dirt(ctx, seed=605, base="K", dots={"1": 18, "2": 3}, pairs={"1": 2})
     s.rect(5, 0, 10, T - 1, C["2"])
     for y in (0, 3, 7, 12):
         s.px(5, y, C["S"]); s.px(10, y + 1, C["S"])        # 끊어진 황금 테
@@ -430,6 +437,37 @@ def prop_plate():
     return s
 
 
+def prop_music_stand():
+    """악보대(solid): 쇠 삼발이(G05/G04) 위에 기울어진 악보판(G06), 악보(G12, 글줄 G03) 한 장 — 악단은 곡을 바꾸다 떠났다. 황금 장식 B 1px."""
+    s = new()
+    s.polygon([(3, 2), (12, 2), (13, 8), (2, 8)], C["6"])              # 기울어진 판 (아래가 넓다)
+    s.line(3, 2, 12, 2, C["7"]); s.line(2, 8, 13, 8, C["5"])
+    s.rect(4, 3, 10, 7, C["C"]); s.px(10, 7, C["9"]); s.px(4, 7, C["9"])  # 악보
+    for y in (4, 6):
+        s.line(5, y, 9, y, C["3"])
+    s.px(6, 4, C["K"]); s.px(8, 6, C["K"])                               # 음표
+    s.px(12, 3, C["B"])                                                  # 황금 장식
+    s.line(7, 9, 7, 12, C["5"]); s.line(8, 9, 8, 12, C["4"])             # 기둥
+    s.line(7, 13, 4, 15, C["4"]); s.line(8, 13, 11, 15, C["4"]); s.px(7, 13, C["5"]); s.px(8, 14, C["5"])  # 삼발이
+    s.outline(C["K"], where="inside")
+    s.line(4, 2, 11, 2, C["7"]); s.px(12, 3, C["B"]); s.px(4, 15, C["4"]); s.px(11, 15, C["4"])
+    return s
+
+
+def prop_fallen_bouquet():
+    """떨어진 꽃다발(통과): 줄기(G03/G02) 묶음이 오른쪽 아래로 눕고, 꽃송이(W/L, 심 B) 셋이 왼쪽 위에 — 리본(S) 은 아직 매여 있다. 밟힌 꽃잎 한 장."""
+    s = new()
+    for i in range(6):
+        s.px(7 + i, 8 + i, C["3"]); s.px(8 + i, 8 + i, C["2"])          # 줄기
+    s.px(6, 9, C["3"]); s.px(7, 10, C["2"]); s.px(9, 7, C["3"])
+    s.px(9, 10, C["S"]); s.px(10, 10, C["S"]); s.px(10, 9, C["S"]); s.px(9, 11, C["S"])   # 리본
+    for cx, cy in [(4, 5), (7, 4), (5, 8)]:
+        s.px(cx, cy, C["B"]); s.px(cx - 1, cy, C["L"]); s.px(cx + 1, cy, C["L"]); s.px(cx, cy - 1, C["W"]); s.px(cx, cy + 1, C["L"])
+    s.px(2, 3, C["3"]); s.px(3, 10, C["3"])                              # 잎
+    s.px(13, 4, C["L"])                                                  # 밟힌 꽃잎
+    return s
+
+
 def void_tile():
     return new()
 
@@ -442,14 +480,14 @@ TILES = [
     ("prop_paddle", prop_paddle()), ("prop_spilled_cup", prop_spilled_cup()),
     ("prop_chandelier_shadow", prop_chandelier_shadow()), ("prop_candelabra", prop_candelabra()),
     ("prop_cage", prop_cage()), ("prop_plate", prop_plate()),
+    ("prop_music_stand", prop_music_stand()), ("prop_fallen_bouquet", prop_fallen_bouquet()),
     ("wall_v1", wall_v1()), ("wall_v2", wall_v2()),
-    ("start_0", floor_start(0)), ("start_1", floor_start(1)),
-    ("trial_0", floor_trial(0)), ("trial_1", floor_trial(1)),
-    ("rest_0", floor_rest(0)), ("rest_1", floor_rest(1)),
-    ("boss_0", floor_boss(0)), ("boss_1", floor_boss(1)),
-]
-PROPS = [("auction_paddle", False), ("spilled_cup", False), ("chandelier_shadow", False),
-         ("gold_candelabra", True), ("auction_cage", True), ("plate_bones", False)]
+] + [("%s_%d" % (k, i), fn(i)) for k, fn in (("start", floor_start), ("trial", floor_trial), ("rest", floor_rest), ("boss", floor_boss))
+     for i in range(4)] + [("reserve", void_tile())]
+# (short, solid, maxPerRoom, weight) — 40라운드. 황금 촛대는 강조 22px 라 방당 1개.
+PROPS = [("auction_paddle", False, 3, 1.0), ("spilled_cup", False, 3, 1.0), ("chandelier_shadow", False, 1, 0.6),
+         ("gold_candelabra", True, 1, 0.5), ("auction_cage", True, 1, 0.4), ("plate_bones", False, 2, 0.8),
+         ("music_stand", True, 1, 0.5), ("fallen_bouquet", False, 2, 0.8)]
 
 if __name__ == "__main__":
     tc.run(6, "연(宴) — 연회 제국 외곽", TILES, PROPS, [18, 21, 23, 25], HERE)
