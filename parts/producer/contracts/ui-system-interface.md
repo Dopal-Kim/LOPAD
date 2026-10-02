@@ -85,3 +85,48 @@ export const uiScenes: Phaser.Types.Scenes.SceneType[];
 - 아트 연동: UI 는 스프라이트를 직접 다루지 않는다. HUD 아이콘이 필요하면 `assets/ui/**`(UI 소유)에 둔다.
 - 메뉴 id `ending`: 황제 처치 후 2지선다(없앤다/이해한다). `UiResult.ending?: 'destroy' | 'understand'`, `line` 은 고른 엔딩 문장. (29라운드 자율 승인)
 - 요청 대기: `UiSnapshot.weapon.id`, `UiSnapshot.mute`.
+
+## 8. 45라운드 추가 (비전투 이동: 달리기·워프, 승인 #12)
+결정: `decisions/2026-10-02-round-45-traversal-structures.md` Q2·Q3. 달리기는 시스템이 전부 처리하고(UI 는 표시만), 워프는 **UI 가 선택 화면**, **시스템이 상태·명령·실행**을 맡는다.
+
+### 8.1 스냅샷 추가 필드 (`UiSnapshot`)
+```ts
+interface UiSnapshot {
+  // ...기존 필드
+  inCombat: boolean;    // 활성 전투 방(시련 웨이브·보스전 진행 중)이 있으면 true. 달리기·워프는 false 일 때만
+  sprinting: boolean;   // 지금 달리는 중 (비전투 + Shift 누름 + 이동 입력). HUD 표시용, 없어도 됨
+  warp: UiWarpState;
+}
+interface UiWarpState {
+  ready: boolean;                       // 지금 warpTo 를 받을 수 있는지 (blocked === null)
+  blocked: 'combat' | 'busy' | null;    // ready=false 의 이유. combat = 전투 중, busy = 메뉴·개성 선택·보상·층 전환·워프 연출·사망
+  targets: string[];                    // 워프 가능한 방 id (map.rooms[].id 와 같은 값, 방 정의 순서). ready 와 무관하게 방 조건만으로 채운다
+  warping: boolean;                     // 워프 연출 중 (입력 잠금)
+}
+interface UiRoom {
+  // ...기존 필드 (id, type, cells, visited, cleared)
+  warpable: boolean;                    // = warp.targets.includes(id). 미니맵이 방마다 바로 쓰도록 같은 값을 중복 제공
+}
+```
+- **워프 가능 방 조건** (`targets`·`warpable`): 방문했고(`visited`) 시스템 기준 클리어 상태이며 현재 방(`map.currentRoomId`)이 아님.
+  시스템 기준 클리어 = 시작 방(처음부터) · 휴식 방(진입 즉시) · 시련 방(웨이브 클리어) · 보스 방(처치 후). 기존 `UiRoom.cleared` 는 시련 클리어 표시용 그대로이므로, 워프 판정에는 `warpable` 을 쓴다.
+- **현재 방**: 기존 `map.currentRoomId` (마지막으로 내부에 들어간 방, 복도에 있어도 유지). `targets` 에서 빠진다.
+
+### 8.2 명령 (UI → 시스템) — `uiCommands.warpTo(roomId: string): boolean`
+- 판정이 통과하면 워프를 시작하고 `true`, 아니면 `false` 를 돌려주고 `WARP_DENIED` 를 발행한다.
+- 게임이 `pause()` 로 멈춰 있으면, 판정이 통과할 때 시스템이 먼저 재개(`RESUMED` 발행)한 뒤 워프한다. 선택 화면 동안 멈출지는 UI 가 정한다 (멈추는 것을 권장 — 선택 클릭이 게임 씬의 공격 입력으로도 들어가지 않게).
+- 실행: 섬광(퇴장) → 약 140ms 뒤 대상 방의 안전한 바닥(중앙에서 가장 가깝고 출구·상점 타일에서 3칸 이상 떨어진 곳)으로 이동, 카메라 즉시 이동, 섬광(도착). 시작부터 약 300ms 입력 잠금, 600ms 무적 (임시값).
+- 도착하면 기존 `ROOM_ENTERED` 가 평소처럼 발행된 뒤 `WARP_DONE` 이 온다.
+
+### 8.3 이벤트 (시스템 → UI)
+| 이벤트 | 페이로드 | 시점 |
+|---|---|---|
+| `WARP_DONE` | `UiWarpDone = { fromRoomId: string; roomId: string; type: RoomType }` | 워프 도착 (위치·카메라 이동 완료) |
+| `WARP_DENIED` | `UiWarpDenied = { roomId: string; reason: UiWarpDenyReason }` | `warpTo` 거부 |
+
+`UiWarpDenyReason = 'combat' | 'busy' | 'unknown-room' | 'not-cleared' | 'current-room'` — 전투 중 / 메뉴·연출 중(또는 게임 씬 없음) / 없는 방 id / 미방문·미클리어 / 이미 그 방.
+
+### 8.4 키 (UI 가 처리)
+- **워프 선택 화면을 여는 키는 UI 가 직접 읽는다.** 시스템은 키를 등록하지 않는다. 임시 제안: **Tab** (브라우저 포커스 이동을 막으려면 키 캡처 필요). 기존 배정과 겹치지 않음: W/A/S/D 이동, Space 대쉬, Q 물약, R 재시작, M 음소거(시스템 오디오), Shift 달리기(시스템), 좌·우클릭 공격·보조. ESC 등 UI 가 이미 쓰는 키와의 관계는 UI 가 정한다.
+- 달리기 키 **Shift** 는 시스템이 읽는다 (`KEYS.SPRINT`).
+- 선택 화면은 `inCombat` 이 true 이거나 `warp.ready` 가 false 면 열지 않거나 회색으로 그리는 것을 권장 (열어도 `warpTo` 가 거부한다).
