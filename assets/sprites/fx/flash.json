@@ -1,7 +1,7 @@
 {
  "image": "flash.png",
  "action": "flash",
- "frameWidth": 24,
+ "frameWidth": 32,
  "frameHeight": 8,
  "frames": 4,
  "directions": [
@@ -18,14 +18,16 @@
  ],
  "loop": true,
  "pivot": {
-  "x": 22,
+  "x": 30,
   "y": 4
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
  "anchor": "projectile",
  "rotate": true,
  "drawnFacing": "right",
+ "weapon": "bow",
+ "secondary": "fx.weapons.bow",
  "spawn": "loop_move",
  "depth": "below",
- "note": "섬광. pierce 대신 화살 뒤에 루프(화살 중심 = 피벗). 24 길이 = 빨라진 화살(x1.5)에 맞춰 관통 꼬리보다 8px 길고 순백 코어."
+ "note": "섬광 꼬리 32×8(기존 24×8, pierce 대체): 코어 X0/X1 거의 전체 + W3 띠 + W0 가장자리 + 꼬리를 뛰어다니는 번개 토막 2(W3/X1, 3px/프레임 뒤로). 피벗 (30,4)."
 }

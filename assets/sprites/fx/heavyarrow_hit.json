@@ -1,28 +1,43 @@
 {
  "image": "heavyarrow_hit.png",
  "action": "heavyarrow_hit",
- "frameWidth": 24,
- "frameHeight": 24,
- "frames": 3,
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "frames": 5,
  "directions": [
   "any"
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 12,
+ "fps": 15,
  "frameDurationsMs": [
+  40,
   50,
+  60,
   80,
   110
  ],
  "loop": false,
  "pivot": {
-  "x": 12,
-  "y": 12
+  "x": 32,
+  "y": 44
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
  "anchor": "hitbox_center",
  "spawn": "hit",
  "depth": "above",
- "note": "중시 적중 경직 먼지. 중시 화살이 적중한 적의 히트박스 중심에 1회 (경직 600ms 시작)."
+ "weapon": "bow",
+ "secondary": "fx.weapons.bow",
+ "flash": {
+  "color": "#cdefff",
+  "alpha": 0.14,
+  "ms": 40,
+  "atFrame": 1
+ },
+ "shake": {
+  "px": 2,
+  "ms": 60
+ },
+ "pivotNote": "피벗 (32,44) = 적중점(히트박스 중심). 번개는 캔버스 위 가장자리에서 떨어진다 (any — 회전 없음).",
+ "note": "중시 적중(콘셉트 승격, 64): f0 가는 예고선 → f1 번개 낙하 3겹(W0·W2·X0) + 가지 2 + 적중 십자 X0 → f2 링 r8 + 바깥 가지 번개 3 → f3 점선 잔광 + 링 r14 → f4 꼬리 r18. 경직 600ms 시작."
 }

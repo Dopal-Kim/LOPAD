@@ -1,9 +1,9 @@
 {
  "image": "dance.png",
  "action": "dance",
- "frameWidth": 32,
- "frameHeight": 32,
- "frames": 6,
+ "frameWidth": 96,
+ "frameHeight": 96,
+ "frames": 7,
  "directions": [
   "down",
   "up",
@@ -12,23 +12,50 @@
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 25,
+ "fps": 11,
  "frameDurationsMs": [
   40,
   40,
-  40,
-  40,
-  40,
-  40
+  50,
+  70,
+  110,
+  140,
+  160
  ],
  "loop": false,
  "pivot": {
-  "x": 16,
-  "y": 26
+  "x": 48,
+  "y": 58
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
  "anchor": "player_pivot",
  "spawn": "attack_frame2",
  "depth": "above",
- "note": "난무. twin 대신 재생. 0·2·4프레임 시작 = 1·2·3타(간격 80ms). 두 번째 호는 반대 방향으로 긋는다."
+ "weapon": "dagger",
+ "secondary": "fx.weapons.dagger",
+ "trail": {
+  "color": "fx.weapons.dagger.ramp[1]",
+  "alpha": 0.7,
+  "ms": 220,
+  "fromFrame": 2,
+  "widthRatio": 0.6
+ },
+ "tailFrames": 3,
+ "flash": {
+  "color": "#fff4dc",
+  "alpha": 0.22,
+  "ms": 40,
+  "atFrame": 1
+ },
+ "shake": {
+  "px": 3,
+  "ms": 80
+ },
+ "hitFrames": [
+  1,
+  2,
+  3
+ ],
+ "spawnNote": "f0 예비(40ms) 는 spawn 오프셋 지원 시 유지, 아니면 f1 부터. 1·2·3타 = f1/f2/f3 시작(0/40/90ms, f0 제외 기준).",
+ "note": "난무(2차, twin 대체): 3중 베기 군집 — r14 정방향 → r21 역방향 → r28 정방향 호가 1프레임씩 이어지며 각자 백열 섬광 + W0 그림자. f3 광선 4 + 네 귀 글린트, f4 식음, f5 점선 셋, f6 꼬리."
 }

@@ -23,10 +23,11 @@
   "x": 8,
   "y": 6
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray only, no swap)",
  "anchor": "player_pivot",
  "spawn": "dash_start",
  "depth": "below",
  "followsPlayer": false,
- "note": "대쉬 출발 먼지. 출발 위치(고정) 발 피벗에, 방향 = 대쉬 방향(먼지는 반대쪽으로 퍼짐). 바닥 깊이. 무채."
+ "weapon": "any",
+ "note": "대쉬 출발 먼지(무채 G06/G09/G12, 42라운드 결정: 유지). 출발 위치(고정) 발 피벗에, 방향 = 대쉬 방향(먼지는 반대쪽). 바닥 깊이. 모든 무기 공통, 보조색 없음."
 }

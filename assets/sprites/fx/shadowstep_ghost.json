@@ -23,10 +23,12 @@
   "x": 8,
   "y": 23
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
  "anchor": "player_pivot",
  "spawn": "shadowstep_start",
  "depth": "below",
  "followsPlayer": false,
- "note": "그림자 걸음 출발 잔상. 출발 위치(고정)에 플레이어가 보던 방향으로 1회. 무채(G02~G04)라 층 스왑 무관. 플레이어 아래 깊이(도착 직후 겹칠 일 없음)."
+ "weapon": "dagger",
+ "secondary": "fx.weapons.dagger",
+ "note": "그림자 걸음 출발 잔상(단검 보조색, 기존 무채): 출발점 실루엣 W0 단색(우·하 림 W1) → 세로 줄무늬 W1 → 조각, 발밑 W0 웅덩이 r7→5→3 수축. 암살 분신과 같은 어휘. 바닥 깊이·고정."
 }

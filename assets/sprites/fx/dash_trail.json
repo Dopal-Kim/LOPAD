@@ -23,10 +23,16 @@
   "x": 8,
   "y": 23
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray only, no swap)",
  "anchor": "player_pivot",
  "spawn": "dash_trail",
  "depth": "below",
  "followsPlayer": false,
- "note": "대쉬 잔상(무채). 대쉬 중 40~50ms 마다 현재 위치에 하나씩 놓고 각자 180ms 뒤 소멸 (2~3개 겹침). 플레이어 아래 깊이. 발도술(batto)·질풍(gale) 과 겹쳐도 무채라 충돌 없음."
+ "weapon": "any",
+ "tint": {
+  "when": "batto / longinvuln / afterimage node",
+  "color": "fx.weapons.<katana|dagger>.ramp[1]",
+  "method": "setTintFill (flat) — sheet is dark gray G02~G04, multiplicative setTint would go black"
+ },
+ "note": "대쉬 잔상(무채 G02~G04, 42라운드 결정: 유지 + 시스템 틴트). 대쉬 중 40~50ms 마다 현재 위치에 하나씩, 각 180ms 뒤 소멸. 발도술·허보·잔상 노드일 때만 그 무기 W1 로 틴트(setTintFill). 바닥 깊이."
 }

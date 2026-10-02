@@ -18,10 +18,12 @@
   "x": 8,
   "y": 4
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
  "anchor": "projectile",
  "rotate": true,
  "drawnFacing": "right",
+ "weapon": "bow",
+ "secondary": "fx.weapons.bow",
  "spawn": "aimed_shot",
- "note": "중시. 조준 사격 화살(bow_arrow_aimed) 대신 쓰는 무거운 화살 텍스처. 일반 화살은 그대로."
+ "note": "중시 화살 16×8: 두꺼운 자루(W0 테두리·W3·X1 코어·W2) + 큰 미늘촉(W3 + X0 2px) + 깃 2겹(W1/W2). bow_arrow_aimed 대신. 피벗 (8,4)."
 }

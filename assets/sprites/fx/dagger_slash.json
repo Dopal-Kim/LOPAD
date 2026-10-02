@@ -1,9 +1,9 @@
 {
  "image": "dagger_slash.png",
- "action": "slash",
- "frameWidth": 32,
- "frameHeight": 32,
- "frames": 4,
+ "action": "dagger_slash",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 5,
  "directions": [
   "down",
   "up",
@@ -12,19 +12,33 @@
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 19,
+ "fps": 16,
  "frameDurationsMs": [
   40,
   50,
   60,
-  60
+  70,
+  90
  ],
  "loop": false,
  "pivot": {
-  "x": 16,
-  "y": 26
+  "x": 24,
+  "y": 34
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
  "anchor": "player_pivot",
- "spawn": "player attack 2프레임(휘두름) 시작 시점에 재생"
+ "spawn": "attack_frame2",
+ "depth": "above",
+ "weapon": "dagger",
+ "secondary": "fx.weapons.dagger",
+ "trail": {
+  "color": "fx.weapons.dagger.ramp[1]",
+  "alpha": 0.6,
+  "ms": 120,
+  "fromFrame": 2,
+  "widthRatio": 0.6
+ },
+ "tailFrames": 1,
+ "spawnNote": "f0(40ms) = 예비 코어 점선. 시스템이 spawn 오프셋(attack_frame2 - 40ms)을 지원하면 유지, 아니면 f0 를 건너뛰고 f1 부터 재생(결정 43: f0 는 지원 시 유지).",
+ "note": "단검 기본 베기: 짧고 빠른 호(140°, r11) 2겹 = 본 띠(W0·W1·W2·W3 + 1px 코어 X1/X0) + 바깥 W0 '그림자 잔상' 1프레임 지연. f2 광선 2, f3 어두운 띠, f4 점선 꼬리(트레일 인계)."
 }

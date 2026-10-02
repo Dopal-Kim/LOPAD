@@ -1,8 +1,8 @@
 {
  "image": "guard_wave.png",
  "action": "guard_wave",
- "frameWidth": 48,
- "frameHeight": 24,
+ "frameWidth": 64,
+ "frameHeight": 32,
  "frames": 4,
  "directions": [
   "down",
@@ -21,12 +21,15 @@
  ],
  "loop": false,
  "pivot": {
-  "x": 24,
-  "y": 14
+  "x": 32,
+  "y": 16
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
  "anchor": "player_pivot",
  "spawn": "guard_release",
  "depth": "below",
- "note": "가드 밀쳐내기. 가드 떼는 순간 발 피벗에, 바라보는 쪽으로 반타원 충격파(반경 24px ≈ 밀쳐내기 2.5칸의 60%, 나머지는 적의 넉백으로 읽힘). 바닥 깊이. 철벽이면 ironwall 과 동시."
+ "weapon": "greatsword",
+ "secondary": "fx.weapons.greatsword",
+ "pivotNote": "피벗 (32,16) = 발(기존 (24,14)). 반타원 반경 29 = 밀쳐내기 40px 의 ~70%.",
+ "note": "가드 밀쳐내기(64×32, 기존 48×24): 발 앞 반타원(세로 0.5) 충격파 3겹(W0 테두리 · W2 용암 몸 · X1 1px 코어 점선) r10→18→25→29 + 가장자리 재 G06/G09 + 짧은 균열 2(용암 W2 → f3 W0 점). 철벽이면 ironwall 과 동시."
 }

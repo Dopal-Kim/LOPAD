@@ -1,8 +1,8 @@
 {
  "image": "seek.png",
  "action": "seek",
- "frameWidth": 16,
- "frameHeight": 16,
+ "frameWidth": 24,
+ "frameHeight": 24,
  "frames": 4,
  "directions": [
   "any"
@@ -18,14 +18,16 @@
  ],
  "loop": true,
  "pivot": {
-  "x": 13,
-  "y": 8
+  "x": 20,
+  "y": 12
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
  "anchor": "projectile",
  "rotate": true,
  "drawnFacing": "right",
+ "weapon": "bow",
+ "secondary": "fx.weapons.bow",
  "spawn": "loop_move",
  "depth": "below",
- "note": "추적. 유도 화살 뒤에 루프(화살 중심 = 피벗). 화살이 선회해도 회전 각도만 따라가면 꼬리가 휘어 보인다."
+ "note": "추적 꼬리 24(기존 16): 유도 소용돌이 — 꼬인 두 가닥(W3/W2 → 뒤로 W1/W0)이 뒤로 흐르고(4f = 2π, 이음새 없음) 교차점 X0, 머리 X1. 피벗 (20,12) = 화살 중심. 화살이 선회해도 각도만 따라가면 됨."
 }

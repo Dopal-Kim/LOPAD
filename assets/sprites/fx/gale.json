@@ -1,8 +1,8 @@
 {
  "image": "gale.png",
  "action": "gale",
- "frameWidth": 24,
- "frameHeight": 24,
+ "frameWidth": 64,
+ "frameHeight": 64,
  "frames": 4,
  "directions": [
   "down",
@@ -21,10 +21,15 @@
  ],
  "loop": true,
  "pivot": {
-  "x": 12,
-  "y": 22
+  "x": 32,
+  "y": 42
  },
- "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 16-27, runtime swap)",
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
  "anchor": "player_pivot",
- "spawn": "이동·대쉬 중 루프, 플레이어 아래(depth) 권장"
+ "spawn": "loop_move",
+ "depth": "below",
+ "weapon": "dagger",
+ "secondary": "fx.weapons.dagger",
+ "followsPlayer": true,
+ "note": "질풍: 몸 뒤로 흐르는 보라 바람 줄 3(W3→W2→W1→W0, 밑줄 W0 그림자) + 가운데 줄 코어 토막 X1. 토막이 2px/프레임 뒤로 흘러 4프레임 = 1주기(이음새 없음). 이동·대쉬 중 루프, 플레이어 아래. 방향 = 이동 방향(바람은 반대쪽)."
 }
