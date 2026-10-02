@@ -281,3 +281,39 @@ interface UiChallengeCleared {
 
 ### 9.8 텍스트
 구조물 이름·행동 문구·사유·결과·메뉴 문장은 전부 **자리표시**이며 시스템이 문자열로 내려준다(Q17). 스토리 파트 확정 후 `contracts/story-text.md` 로 바뀌어도 필드 형태는 그대로다. UI 는 문구를 직접 만들지 않는다(키 이름 'E' 같은 조작 안내 틀은 UI 가 그려도 된다).
+
+## 10. 48라운드 추가 (노드 지도 진행·탄생 연출·워프 비활성, 승인 #17)
+결정: `decisions/2026-10-02-round-48-playfeel-route.md`. 1~2층은 방+복도 대신 **노드 지도 + 노드마다 작은 전투장(약 40×24타일)** 으로 진행한다.
+
+### 10.1 스냅샷 (`UiSnapshot.route`)
+```ts
+type UiNodeType = 'journey' | 'battle' | 'shop' | 'rest' | 'event' | 'boss';
+type UiNodeState = 'locked' | 'available' | 'current' | 'cleared' | 'passed';
+interface UiRouteNode {
+  id: string; type: UiNodeType; name: string;  // name 은 자리표시
+  col: number;            // 왼→오 진행 단계(0부터)
+  row: number;            // 같은 단계 안 위치(0부터), 그리기용
+  links: string[];        // 다음 단계로 이어지는 노드 id
+  state: UiNodeState;
+}
+interface UiRoute {
+  floor: number;
+  nodes: UiRouteNode[];
+  currentId: string | null;
+  choosing: boolean;      // true = 다음 노드를 골라야 함(시스템이 입력 잠금)
+}
+// UiSnapshot.route: UiRoute | null  (노드 지도를 쓰지 않는 층이면 null)
+```
+- `available` = 지금 고를 수 있는 다음 노드(choosing 일 때만 의미), `passed` = 고르지 않고 지나친 갈래.
+
+### 10.2 이벤트·명령
+- `UI_EVENTS.ROUTE_CHOOSE_OPEN` ('ui:route-choose-open', 페이로드 `UiRoute`): 노드를 마치고 출구에 서면 발행. 시스템은 게임 입력을 잠근다. UI 는 노드 지도를 선택 모드로 연다.
+- `uiCommands.chooseNode(id: string): boolean` — available 노드만 true. 시스템이 전환 연출 후 그 노드 전투장을 연다.
+- `UI_EVENTS.ROUTE_NODE_ENTERED` ('ui:route-node-entered', `{ id, type, name }`): 노드 진입(자막·제목 표시용).
+- Tab: 노드 지도 보기 전용(선택 불가, 게임 일시정지). 45라운드 워프는 비활성 — `warp.targets` 는 항상 빈 배열, `ready=false`. UI 는 워프 지도 대신 노드 지도를 띄운다.
+
+### 10.3 탄생 연출
+- `UI_EVENTS.BIRTH_STARTED` ('ui:birth-started') / `BIRTH_DONE` ('ui:birth-done'): 그 사이 UI 는 HUD 를 숨기고 "아무 키나 눌러 건너뛰기" 안내만 작게 표시(선택). 건너뛰기 입력은 시스템이 받는다.
+
+### 10.4 카메라
+- 게임 월드 카메라 zoom 2(탄생 연출 중 일시 확대). UI 씬은 영향 없음. `UiInteractable.screen` 등 화면 좌표는 계속 캔버스 픽셀(960×540)로 준다.
