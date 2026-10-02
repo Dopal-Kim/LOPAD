@@ -156,6 +156,7 @@
    38
   ]
  },
+ "roomFloorMix": 0.02,
  "roomFloorsNote": "v3 의미 유지. start = 그을음·흙·자갈, trial = 배수구·금, rest = 다진 흙·짚, boss = 광장 큰 포석(_0 잔 각인).",
  "props": [
   {

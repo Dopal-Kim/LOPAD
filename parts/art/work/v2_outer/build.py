@@ -137,6 +137,7 @@ def export_tiles():
         "floorFeatures": {"drain": 60, "drainGrate": 61, "gravel": 62,
                           "note": "선택. drain 은 가로로 이어지는 배수로(같은 행에 연속 배치)"},
         "roomFloors": {"start": [23, 24, 25, 26], "trial": [27, 28, 29, 30], "rest": [31, 32, 33, 34], "boss": [35, 36, 37, 38]},
+        "roomFloorMix": TL.ROOM_FLOOR_MIX,
         "roomFloorsNote": "v3 의미 유지. start = 그을음·흙·자갈, trial = 배수구·금, rest = 다진 흙·짚, boss = 광장 큰 포석(_0 잔 각인).",
         "props": props,
         "propsNote": "32×32, 배경 투명, pivot = 바닥 접점(Y 정렬 기준). occludeAbove(px) = 피벗 위 이 높이부터 캐릭터를 가림(§9). light 는 offset(시트 칸 좌표)에서 광원.",
