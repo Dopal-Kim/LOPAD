@@ -95,3 +95,9 @@
 - 세트 배치 소품: `structures/set_<region>_<name>` (§5 규약) — 구조물을 감싸는 주변 장식(노점 천막·광장 바닥 문양·모닥불 둘레 돌·술통 더미 등). 시스템이 노드 중앙 세트 배치에 사용.
 - 전장 탄생: `player/player_birth` 를 **혼불(영혼)이 모여 형체가 되는** 버전으로 재제작(같은 규격 §6.3), `fx/soul_wisp`(떠다니는 혼불 루프), 전장 소품 `structures/battlefield_*`(부러진 무기 꽂힘·찢긴 깃발·쓰러진 병사 흔적·허수아비 `dummy`·튜토리얼 표식 `tutorial_sign`).
 - 노드 아이콘: `ui/node_icons` 의 journey 열을 "앞으로 나아가는 길"(계단 아님)로 교체.
+
+## 8. 49라운드 Gemini 산출물 (테마 키아트·지도 일러스트·원경 배경)
+결정: `decisions/2026-10-02-round-49-playtest2.md` Gemini Q1. 생성 원본·프롬프트는 `parts/art/work/gemini/` 에 보관하고, 게임에 들어가는 파일은 LOPAD 팔레트(lopad.json gray + 층 램프 + UI 세피아)로 색을 보정·감색한다. 키 값은 어디에도 남기지 않는다.
+- **테마 키아트**: `assets/sprites/ui/keyart_<region>.png` (region = waste·gate·outer·brewery·hall, 2층은 후속) — 960×540, 노드 진입 배너·M 지도 위치 정보 패널·로딩 카드용(UI 사용, `assets/ui/` 로 복사).
+- **펼친 지도 일러스트**: `assets/sprites/ui/map_bg_f1.png` — 960×540 이상, '잔' 외곽 황무지에서 심층부 연회장으로 이어지는 펼친 양피지 지도(노드가 놓일 자리는 비워 둔 원근 지형), UI 노드 지도 배경 레이어(`assets/ui/map_bg_<floor>.png` 로 복사).
+- **원경 배경**: `assets/sprites/bg/<region>.png` — 전투장 바깥(void) 너머로 보이는 하늘·건물 실루엣, 가로 1920 이상 반복 가능, 시스템이 시차(parallax) 배경으로 사용(후속 연결).
