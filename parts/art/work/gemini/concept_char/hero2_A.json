@@ -1,0 +1,30 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "CHARACTER CONCEPT SHEET - reference only, not a game asset. Art direction for the hero of a dark modern 2D pixel-art roguelike action game set on an endless, grim Renaissance-era early-gunpowder battlefield (pikes, longbows, matchlock muskets, mud, ash, corpses). Rendering: crisp high-detail modern pixel art at large scale, clean readable shapes, cel shading with one shadow and one highlight step, dark 1-pixel outlines, light from the upper left. Layout: one row on a flat plain dark slate-gray background with soft floor shadows, evenly spaced, no overlap, no scenery: front view, side view facing right, back view, then two combat poses (a vicious overhead slash with a battered, notched battlefield sword, and a low lunging dash leaving a trail of ash and embers). The silhouette must stay readable when shrunk to a tiny 32 by 48 pixel game sprite: strong simple head shape, clear shoulders, value contrast between body parts.\n\nWHO HE IS: a war ghost - a revenant that was formed out of the soil, ash and gathered soul-fires of a ruined battlefield, born again and again from the dead. He is not a person who dresses: he wears NO clothes as an outfit - no hat, no coat, no cloak, no hood, no suit, no shirt, no tailored or civilian clothing of any kind. Everything on him was scavenged from the fallen and exists only for fighting: broken armor pieces, torn leather straps, battle bandages, rusty iron scraps. His face must show raw HATRED and loathing - a furrowed, crushed brow, a glaring eye, a snarl with bared, clenched teeth - an expressive, emotional face, not a blank skull. Only his left eye burns as a small amber soul-fire ember; his right eye is a dead, dark socket. Gaunt, hunched forward, coiled with violence, about the build of a lean soldier.\n\nPalette: charcoal, ash and cold soil grays only, plus ONE warm amber/ember accent (#8b4d22, #d67a11, #e8b858, #faeec0) for the soul-fire glow, the burning eye and embers. Rusty iron is dark gray-brown, leather dark umber. No saturated blue, green, purple or red. No text, no letters, no labels, no numbers, no logos, no UI, no watermark, no frame.\n\nDIRECTION A - body of battlefield earth with armor shards: his body is packed dark battlefield mud and ash, sculpted roughly like a lean warrior, with deep cracks across chest, arms and face through which amber soul-fire glows faintly from inside. Fused into and strapped onto the earthen body are mismatched shards of fallen soldiers' armor: one dented iron pauldron on the left shoulder, a cracked breastplate fragment, a vambrace on one forearm, a scrap of chain mail hanging at the hip, all held by torn, knotted leather straps. Dirty battle bandages wrap his hands and one shin. Bare earthen feet with clods of mud. The face is a mud-formed visage with heavy brow ridges, a deep scowl and a snarling mouth of clenched teeth, cracks around the burning left eye.",
+ "refs": [],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 679,
+   "candidatesTokenCount": 1654,
+   "totalTokenCount": 2333,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 679
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-02T18:30:18"
+}
