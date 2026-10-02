@@ -17,3 +17,6 @@
 | 10 | 2026-10-02 | UI | 아트 | `assets/sprites/ui/**`(키트 원본, `assets/ui/kit/` 로 복사), `contracts/ui-art-kit.md` | UI 키트 적용(읽기·복사) | UI 재설계 기간 | 도영 님, 41라운드 |
 | 11 | 2026-10-02 | 시스템 | 스토리 | `parts/story/world-bible.md` | 1~2층 테마 상호작용 구조물 초안 작성용 읽기 | 구조물 초안 작성 기간 | 도영 님, 45라운드 |
 | 12 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (비전투 여부, 워프 가능 방, 워프 요청) | 계약 `ui-system-interface.md` 의 45라운드 추가 항목만 | 워프 구현 기간. 계약 변경은 재인터뷰 | 도영 님, 45라운드 |
+| 13 | 2026-10-02 | 시스템 | 아트 | `assets/sprites/structures/**` (계약 `art-assets.md` §5) | 구조물 시트 JSON·PNG 읽기·로드 | 구조물 구현 기간 | 도영 님, 47라운드 |
+| 14 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (상호작용 안내, 구조물 메뉴, HUD 상태, 미니맵 점) | 계약 `ui-system-interface.md` §9 항목만 | 구조물 구현 기간. 계약 변경은 재인터뷰 | 도영 님, 47라운드 |
+| 15 | 2026-10-02 | 아트 | 시스템 | `parts/system/structures-draft.md` | 구조물 외형 메모(아트 요청) 읽기 | 구조물 시트 제작 기간 | 도영 님, 47라운드 |
