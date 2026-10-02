@@ -1,0 +1,190 @@
+<title>LOPAD 무기 발현 대장</title>
+<style>
+/* 레이아웃: 좌측 무기 탭 + 우측 장부. 어두운 일기장 기조(세피아 잉크), 라이트는 바랜 종이. */
+:root{
+  --bg:#17130f; --paper:#201a15; --paper2:#2a221b; --ink:#e9dcc8; --ink-dim:#9b8b77; --rule:#4a3c2f;
+  --accent:#e0a040; --accent-dim:#8a5a1e; --mod:#8fd0a0; --danger:#d86a5a;
+  --mono:"Galmuri11","Nanum Gothic Coding",ui-monospace,Menlo,monospace; --body:"Noto Sans KR",system-ui,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){ --bg:#efe6d6; --paper:#f7f0e3; --paper2:#eadfcc; --ink:#2a2118; --ink-dim:#6e6050; --rule:#c9b99f; --accent:#9a5a12; --accent-dim:#c89a5a; --mod:#2f7a4a; --danger:#b23a2a; color-scheme:light } }
+:root[data-theme="light"]{ --bg:#efe6d6; --paper:#f7f0e3; --paper2:#eadfcc; --ink:#2a2118; --ink-dim:#6e6050; --rule:#c9b99f; --accent:#9a5a12; --accent-dim:#c89a5a; --mod:#2f7a4a; --danger:#b23a2a; color-scheme:light }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);padding-block:20px;padding-inline:16px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:14px}
+h1{font-size:22px;margin:0;letter-spacing:.02em;text-wrap:balance}
+.sub{color:var(--ink-dim);font-size:13px}
+.status{font-size:12px;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.status b{color:var(--accent)}
+.layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:16px}
+@media (max-width:760px){.layout{grid-template-columns:1fr}}
+nav.tabs{display:flex;flex-direction:column;gap:6px}
+nav.tabs button{all:unset;cursor:pointer;padding:10px 12px;border:1px solid var(--rule);background:var(--paper);border-radius:4px;display:flex;justify-content:space-between;gap:8px}
+nav.tabs button[aria-selected="true"]{border-color:var(--accent);background:var(--paper2)}
+nav.tabs button:focus-visible{outline:2px solid var(--accent)}
+nav .cnt{color:var(--ink-dim);font-size:12px;font-variant-numeric:tabular-nums}
+main{min-width:0}
+section.card{background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:14px 16px;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 8px;color:var(--accent);letter-spacing:.04em;text-transform:none}
+h3{font-size:13px;margin:12px 0 6px;color:var(--ink-dim);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 14px}
+.field{display:flex;flex-direction:column;gap:3px;min-width:0}
+.field label{font-size:11px;color:var(--ink-dim);letter-spacing:.03em}
+.field .path{font-family:var(--mono);font-size:10px;color:var(--ink-dim);opacity:.7;word-break:break-all}
+.field input,.field textarea{font:inherit;font-variant-numeric:tabular-nums;background:var(--paper2);color:var(--ink);border:1px solid var(--rule);border-radius:3px;padding:5px 7px;min-width:0;width:100%}
+.field textarea{min-height:48px;resize:vertical;font-size:13px}
+.field input:focus,.field textarea:focus{outline:2px solid var(--accent);border-color:transparent}
+.field.changed input,.field.changed textarea{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.field input:disabled,.field textarea:disabled{opacity:.6}
+.tree{display:grid;gap:10px}
+.node{border:1px solid var(--rule);border-radius:4px;padding:10px 12px;background:var(--paper2)}
+.node.t2{margin-left:18px;background:var(--paper)}
+.node .head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin-bottom:6px}
+.node .head .nm{font-weight:700}
+.node .head .id{font-family:var(--mono);font-size:11px;color:var(--ink-dim)}
+.tier{font-size:11px;color:var(--accent);border:1px solid var(--accent-dim);border-radius:3px;padding:1px 6px}
+.mods{font-family:var(--mono);font-size:12px;color:var(--mod);white-space:pre-wrap;word-break:break-word}
+.affin{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+@media (max-width:620px){.affin{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.bar{height:6px;background:var(--rule);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.changes{display:grid;gap:6px}
+.chg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;font-size:12px;border-bottom:1px dashed var(--rule);padding:4px 0}
+.chg .p{font-family:var(--mono);word-break:break-all}
+.chg .v{color:var(--accent)}
+.chg .old{color:var(--ink-dim);text-decoration:line-through;margin-right:6px}
+.chg button{all:unset;cursor:pointer;color:var(--danger);font-size:12px;padding:2px 6px;border:1px solid var(--rule);border-radius:3px}
+.chg button:focus-visible{outline:2px solid var(--accent)}
+.empty{color:var(--ink-dim);font-size:13px}
+.note{font-size:12px;color:var(--ink-dim);border-left:2px solid var(--accent-dim);padding-left:8px;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--paper2);color:var(--ink);border:1px solid var(--accent);padding:8px 14px;border-radius:4px;font-size:13px;opacity:0;transition:opacity .2s}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+<div class="wrap">
+<header>
+  <div><h1>LOPAD 무기 발현 대장</h1><div class="sub">무기 4종의 기본 성능 · 우클릭 보조 동작 · 개성 성향 · 분기 트리(1차→2차) · 강화 규칙. 칸을 고치면 바로 저장되고 아래 변경 목록에 쌓입니다.</div></div>
+  <div class="status" id="status">장부 여는 중…</div>
+</header>
+<div class="layout">
+  <nav class="tabs" id="tabs" aria-label="무기"></nav>
+  <main id="main"></main>
+</div>
+<section class="card" id="changesCard">
+  <h2>변경 목록</h2>
+  <div class="changes" id="changes"><div class="empty">아직 바꾼 값이 없습니다.</div></div>
+  <div class="note">여기 쌓인 값은 저장소의 data/weapons.json 에 아직 반영되지 않은 상태입니다. Claude에게 "무기 대장 적용"이라고 말하면 시스템 파트가 변경 목록을 읽어 데이터·테스트에 반영합니다. '되돌리기'는 기본값으로 복귀합니다.</div>
+</section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const BASE = {"weapons": {"katana": {"name": "사무라이 칼", "kind": "melee", "damageMult": 1.0, "critBonus": 5, "attackSlowMult": 0.7, "hitbox": {"width": 24, "height": 16, "reach": 14, "activeMs": 100, "cooldownMs": 350}, "secondary": {"kind": "parry", "name": "패링", "description": "공격이 닿는 순간 우클릭. 받아치면 빈틈이 생긴다."}, "affinity": {"strokeLength": 0.6, "strokeSpeed": 0.7, "straightness": 0.9, "keyMove": 0.5, "keyAttack": 0.6, "keyDash": 0.5}, "personality": {"thresholds": [100, 200], "branches": [{"id": "iai", "name": "거합 (居合)", "description": "넓게 베고 궤적을 남긴다", "damageMult": 1.2, "hitboxMult": 1.4, "mods": {"slashTrail": true}, "next": [{"id": "wide", "name": "만월 (滿月)", "description": "베기 범위가 한 번 더 넓어진다", "damageMult": 1.0, "hitboxMult": 1.3, "mods": {}}, {"id": "zangetsu", "name": "잔월 (殘月)", "description": "남은 궤적이 계속 벤다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"trailDot": {"damageMult": 0.4, "lingerMs": 1000, "tickMs": 300}}}]}, {"id": "batto", "name": "발도술 (拔刀術)", "description": "대쉬 쿨 -30%, 대쉬 베기 1.6배", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"dashCooldownMult": 0.7, "dashAttackMult": 1.6}, "next": [{"id": "longinvuln", "name": "허보 (虛步)", "description": "대쉬 무적 시간이 길어진다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"dashInvulnExtraMs": 200}}, {"id": "dashcrit", "name": "급소 (急所)", "description": "대쉬 베기는 항상 급소를 벤다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"dashAttackForceCrit": true}}]}]}}, "greatsword": {"name": "대검", "kind": "melee", "damageMult": 2.2, "critBonus": 0, "attackSlowMult": 0.25, "hitbox": {"width": 36, "height": 28, "reach": 20, "activeMs": 200, "cooldownMs": 750}, "secondary": {"kind": "guard", "name": "가드", "damageReduction": 0.7, "moveMult": 0.35, "pushRadiusTiles": 2.5, "pushSpeedTiles": 14, "pushMs": 220, "description": "누르는 동안 버틴다(피해 -70%, 느려짐). 떼면 밀쳐낸다."}, "affinity": {"strokeLength": 0.9, "strokeSpeed": 0.3, "straightness": 0.6, "keyMove": 0.3, "keyAttack": 0.8, "keyDash": 0.2}, "personality": {"thresholds": [100, 200], "branches": [{"id": "crush", "name": "파쇄 (破碎)", "description": "내려치면 충격파가 퍼진다", "damageMult": 1.3, "hitboxMult": 1.3, "mods": {"shockwave": true}, "next": [{"id": "quake", "name": "지진 (地震)", "description": "충격파가 두 번 퍼진다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"shockwaveSecond": {"delayMs": 220, "sizeMult": 1.6, "damageMult": 0.5}}}, {"id": "pulverize", "name": "분쇄 (粉碎)", "description": "충격파가 적 투사체를 지운다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"shockwaveClearsProjectiles": true}}]}, {"id": "weight", "name": "중압 (重壓)", "description": "적중 시 경직, 피해 1.5배, 더 느림", "damageMult": 1.5, "hitboxMult": 1.0, "mods": {"hitStunMs": 400, "attackSlowMult": 0.15}, "next": [{"id": "ironwall", "name": "철벽 (鐵壁)", "description": "가드 피해 -90%, 밀칠 때 반격", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"guardReduction": 0.9, "guardCounterMult": 1.0}}, {"id": "giant", "name": "거인 (巨人)", "description": "피해 2배, 공격 중 멈추지 않는다", "damageMult": 2.0, "hitboxMult": 1.0, "mods": {"superArmorReduction": 0.5}}]}]}}, "dagger": {"name": "단검", "kind": "melee", "damageMult": 0.6, "critBonus": 20, "attackSlowMult": 1.0, "hitbox": {"width": 16, "height": 12, "reach": 10, "activeMs": 70, "cooldownMs": 180}, "secondary": {"kind": "shadowstep", "name": "그림자 걸음", "rangeTiles": 6, "fallbackTiles": 3, "cooldownMs": 2000, "primeMs": 1000, "description": "우클릭으로 가까운 적 뒤로. 직후 한 번은 확정 치명."}, "affinity": {"strokeLength": 0.3, "strokeSpeed": 0.9, "straightness": 0.4, "keyMove": 0.8, "keyAttack": 0.7, "keyDash": 0.9}, "personality": {"thresholds": [100, 200], "branches": [{"id": "twin", "name": "쌍격 (雙擊)", "description": "한 번 휘두르면 두 번 벤다", "damageMult": 1.0, "hitboxMult": 1.1, "mods": {"hits": 2}, "next": [{"id": "dance", "name": "난무 (亂舞)", "description": "한 번 휘두르면 세 번 벤다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"hits": 3}}, {"id": "bleed", "name": "출혈 (出血)", "description": "베인 적은 계속 피를 흘린다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"bleed": {"damageMult": 0.3, "ticks": 3, "tickMs": 500}}}]}, {"id": "gale", "name": "질풍 (疾風)", "description": "이동 +25%, 대쉬 쿨 -30%", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"moveSpeedMult": 1.25, "dashCooldownMult": 0.7}, "next": [{"id": "afterimage", "name": "잔상 (殘像)", "description": "대쉬한 길에 피해가 남는다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"dashTrailDamageMult": 0.8}}, {"id": "assassin", "name": "암살 (暗殺)", "description": "그림자 걸음 뒤 공격 3배", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"shadowStepMult": 3.0}}]}]}}, "bow": {"name": "활", "kind": "ranged", "damageMult": 0.9, "critBonus": 10, "attackSlowMult": 0.6, "hitbox": {"width": 6, "height": 6, "reach": 12, "activeMs": 0, "cooldownMs": 400}, "ranged": {"projectileSpeedTiles": 12, "projectileLifeMs": 1500, "rapidWindowMs": 600, "rapidDecay": 0.15, "rapidMin": 0.5}, "secondary": {"kind": "aimedshot", "name": "조준 사격", "chargeMs": 600, "damageMult": 2.5, "moveMult": 0.5, "cooldownMs": 800, "description": "누르고 있다가 놓으면 꿰뚫는 한 발. 조준 중엔 느려진다."}, "affinity": {"strokeLength": 0.7, "strokeSpeed": 0.5, "straightness": 0.8, "keyMove": 0.6, "keyAttack": 0.3, "keyDash": 0.4}, "personality": {"thresholds": [100, 200], "branches": [{"id": "pierce", "name": "관통 (貫通)", "description": "화살이 하나를 더 꿰뚫는다", "damageMult": 1.15, "hitboxMult": 1.0, "mods": {"pierce": 1}, "next": [{"id": "flash", "name": "섬광 (閃光)", "description": "무한 관통, 화살이 빨라진다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"pierceInfinite": true, "projectileSpeedMult": 1.5}}, {"id": "heavyarrow", "name": "중시 (重矢)", "description": "조준 사격 피해 2배, 경직", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"aimedShotMult": 2.0, "aimedShotStunMs": 600}}]}, {"id": "scatter", "name": "산탄 (散彈)", "description": "부채꼴 3발, 피해 0.6배", "damageMult": 0.6, "hitboxMult": 1.0, "mods": {"spread": {"count": 3, "spreadDeg": 30}}, "next": [{"id": "rain", "name": "폭우 (暴雨)", "description": "한 번에 부채꼴 5발", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"spread": {"count": 5, "spreadDeg": 50}}}, {"id": "seek", "name": "추적 (追跡)", "description": "화살이 적을 따라간다", "damageMult": 1.0, "hitboxMult": 1.0, "mods": {"homingTurnDeg": 240}}]}]}}}, "rules": {"reinforceBonus": 0.15, "reinforceMax": 3}, "personality": {"strokes": {"count": 3, "lengthMaxPx": 300, "speedMaxPxPerSec": 1500, "minPoints": 3}, "rhythm": {"durationMs": 5000, "attackSaturation": 15, "dashSaturation": 8}, "weights": {"strokeLength": 1, "strokeSpeed": 1, "straightness": 1, "keyMove": 1, "keyAttack": 1, "keyDash": 1}}};
+const WEAPON_ORDER = ['katana','greatsword','dagger','bow'];
+const LABELS = {
+  name:'이름', kind:'종류', damageMult:'피해 배율', critBonus:'치명타 보너스(%)', attackSlowMult:'공격 중 이동 배율',
+  width:'히트박스 폭', height:'히트박스 높이', reach:'사거리(px)', activeMs:'판정 지속(ms)', cooldownMs:'쿨다운(ms)',
+  projectileSpeedTiles:'투사체 속도(칸/s)', projectileLifeMs:'투사체 수명(ms)', rapidWindowMs:'연사 창(ms)', rapidDecay:'연사 감쇠', rapidMin:'연사 최소 배율',
+  description:'설명', damageReduction:'피해 감소', moveMult:'이동 배율', pushRadiusTiles:'밀쳐내기 반경(칸)', pushSpeedTiles:'밀쳐내기 속도(칸/s)', pushMs:'밀쳐내기 시간(ms)',
+  rangeTiles:'사거리(칸)', fallbackTiles:'대체 거리(칸)', primeMs:'확정 치명 유효(ms)', chargeMs:'차지(ms)',
+  strokeLength:'획 길이', strokeSpeed:'획 속도', straightness:'직선성', keyMove:'이동', keyAttack:'공격', keyDash:'대쉬',
+  hitboxMult:'범위 배율', reinforceBonus:'강화 1회당 보너스', reinforceMax:'강화 최대 횟수', threshold:'임계',
+  count:'획 수', lengthMaxPx:'길이 상한(px)', speedMaxPxPerSec:'속도 상한(px/s)', minPoints:'최소 점 수', durationMs:'리듬 시간(ms)', attackSaturation:'클릭 포화', dashSaturation:'대쉬 포화'
+};
+const SEC_KIND = {parry:'패링', guard:'가드', shadowstep:'그림자 걸음', aimedshot:'조준 사격'};
+let overrides = {}; // pathId -> {path,value,base}
+let db=null, canWrite=null, current='katana';
+const $=s=>document.querySelector(s);
+const toast=(t)=>{const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1600)};
+function getPath(obj,path){return path.split('.').reduce((o,k)=>o==null?undefined:o[k],obj)}
+function docId(path){return path.replace(/[^A-Za-z0-9_.~:@+-]/g,'_')}
+function effective(path){const o=overrides[docId(path)];return o?o.value:getPath(BASE,path)}
+function field(path,label,opts={}){
+  const base=getPath(BASE,path); const val=effective(path); const changed=docId(path) in overrides;
+  const isNum=typeof base==='number'; const isLong=typeof base==='string'&&base.length>24;
+  const id='f_'+docId(path).replace(/\W/g,'_');
+  const ctl=isLong?`<textarea id="${id}" data-path="${path}" ${canWrite===false?'disabled':''}>${esc(val)}</textarea>`
+    :`<input id="${id}" data-path="${path}" type="${isNum?'number':'text'}" ${isNum?'step="any"':''} value="${esc(val)}" ${canWrite===false?'disabled':''}>`;
+  return `<div class="field ${changed?'changed':''}"><label for="${id}">${label||LABELS[path.split('.').pop()]||path.split('.').pop()}</label>${ctl}<span class="path">${opts.showPath===false?'':path}</span></div>`;
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderTabs(){
+  $('#tabs').innerHTML = WEAPON_ORDER.map(id=>{const w=BASE.weapons[id];const n=Object.keys(overrides).filter(k=>k.startsWith('weapons.'+id+'.')).length;
+    return `<button role="tab" aria-selected="${id===current}" data-w="${id}"><span>${esc(w.name)}</span><span class="cnt">${n?n+' 수정':''}</span></button>`}).join('')
+    + `<button role="tab" aria-selected="${current==='rules'}" data-w="rules"><span>공통 규칙</span><span class="cnt">${Object.keys(overrides).filter(k=>k.startsWith('rules.')||k.startsWith('personality.')).length||''}</span></button>`;
+}
+function renderWeapon(id){
+  const w=BASE.weapons[id]; const P='weapons.'+id; let h='';
+  h+=`<section class="card"><h2>${esc(w.name)} · 기본 성능</h2><div class="grid">`+
+    [field(P+'.name'),field(P+'.damageMult'),field(P+'.critBonus'),field(P+'.attackSlowMult'),
+     field(P+'.hitbox.width'),field(P+'.hitbox.height'),field(P+'.hitbox.reach'),field(P+'.hitbox.activeMs'),field(P+'.hitbox.cooldownMs')].join('')+
+    (w.ranged?Object.keys(w.ranged).map(k=>field(P+'.ranged.'+k)).join(''):'')+`</div></section>`;
+  const s=w.secondary;
+  h+=`<section class="card"><h2>우클릭 보조 동작 · ${esc(SEC_KIND[s.kind]||s.kind)}</h2><div class="grid">`+
+    Object.keys(s).filter(k=>k!=='kind').map(k=>field(P+'.secondary.'+k)).join('')+`</div></section>`;
+  h+=`<section class="card"><h2>개성 성향 (운명 결정 좌표)</h2><p class="sub">3획·5초 리듬에서 뽑은 6축(0~1)과 가장 가까운 무기로 정해진다.</p><div class="affin">`+
+    Object.keys(w.affinity).map(k=>{const v=effective(P+'.affinity.'+k);return `<div>${field(P+'.affinity.'+k,undefined,{showPath:false})}<div class="bar"><i style="width:${Math.max(0,Math.min(1,+v))*100}%"></i></div></div>`}).join('')+`</div></section>`;
+  const th=w.personality.thresholds;
+  h+=`<section class="card"><h2>개성 분기 트리</h2><div class="grid" style="margin-bottom:10px">`+th.map((t,i)=>field(P+'.personality.thresholds.'+i,`${i+1}차 임계`)).join('')+`</div><div class="tree">`;
+  w.personality.branches.forEach((b,i)=>{
+    const BP=P+'.personality.branches.'+i;
+    h+=node(BP,b,'1차',1);
+    (b.next||[]).forEach((n,j)=>{h+=node(BP+'.next.'+j,n,'2차',2)});
+  });
+  h+=`</div></section>`;
+  return h;
+}
+function node(path,b,tier,level){
+  return `<div class="node t${level}"><div class="head"><span class="tier">${tier}</span><span class="nm">${esc(effective(path+'.name'))}</span><span class="id">${esc(b.id)}</span></div>
+  <div class="grid">${field(path+'.name')}${field(path+'.description')}${field(path+'.damageMult')}${field(path+'.hitboxMult')}</div>
+  <h3>효과 키(mods)</h3><div class="mods">${esc(JSON.stringify(b.mods||{}))}</div>${modFields(path+'.mods',b.mods||{})}</div>`;
+}
+function modFields(path,mods){
+  const fs=[];(function walk(p,o){for(const k of Object.keys(o)){const v=o[k];if(typeof v==='number')fs.push(field(p+'.'+k,k));else if(v&&typeof v==='object')walk(p+'.'+k,v)}})(path,mods);
+  return fs.length?`<div class="grid" style="margin-top:6px">${fs.join('')}</div>`:'';
+}
+function renderRules(){
+  const pp=BASE.personality;
+  return `<section class="card"><h2>강화 규칙</h2><div class="grid">${field('rules.reinforceBonus')}${field('rules.reinforceMax')}</div><p class="note">임계 도달 시 3지선다: 변환 A / 변환 B / 현재 개성 강화(피해·범위 +보너스, 최대 횟수까지).</p></section>`+
+  `<section class="card"><h2>개성 선택 입력 파라미터</h2><h3>3획</h3><div class="grid">${Object.keys(pp.strokes).map(k=>field('personality.strokes.'+k)).join('')}</div><h3>5초 리듬</h3><div class="grid">${Object.keys(pp.rhythm).map(k=>field('personality.rhythm.'+k)).join('')}</div><h3>축 가중치</h3><div class="grid">${Object.keys(pp.weights).map(k=>field('personality.weights.'+k)).join('')}</div></section>`;
+}
+function renderChanges(){
+  const keys=Object.keys(overrides).sort();
+  $('#changes').innerHTML = keys.length? keys.map(k=>{const o=overrides[k];return `<div class="chg"><div><div class="p">${esc(o.path)}</div><span class="old">${esc(o.base)}</span><span class="v">${esc(o.value)}</span></div><button data-revert="${k}" ${canWrite===false?'disabled':''}>되돌리기</button></div>`}).join('')
+    :'<div class="empty">아직 바꾼 값이 없습니다.</div>';
+}
+function render(){ renderTabs(); $('#main').innerHTML = current==='rules'?renderRules():renderWeapon(current); renderChanges(); }
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-w]'); if(t){current=t.dataset.w; try{localStorage.setItem('lopad-weapon-tab',current)}catch(_){ } render(); return;}
+  const r=e.target.closest('[data-revert]'); if(r&&db){ db.doc('overrides/'+r.dataset.revert).delete().then(()=>toast('기본값으로 되돌림')).catch(()=>toast('되돌리기 실패')); }
+});
+let pending={};
+document.addEventListener('input',e=>{
+  const el=e.target; if(!el.dataset.path) return;
+  const path=el.dataset.path; clearTimeout(pending[path]);
+  pending[path]=setTimeout(()=>commit(path,el.value),500);
+});
+async function commit(path,raw){
+  const base=getPath(BASE,path); let value=raw;
+  if(typeof base==='number'){ if(raw.trim()===''||isNaN(+raw)) return; value=+raw; }
+  const id=docId(path);
+  if(!db){ toast('저장 불가: 장부 연결 없음'); return; }
+  if(value===base){ if(id in overrides){ try{ await db.doc('overrides/'+id).delete(); }catch(_){} } return; }
+  if(overrides[id]&&overrides[id].value===value) return;
+  try{ await db.doc('overrides/'+id).set({path,value,base,at:new Date().toISOString()}); toast('저장됨: '+path.split('.').slice(-2).join('.')); }
+  catch(err){ if(err&&err.code==='invalid_argument'){ canWrite=false; render(); } toast('저장 실패'); }
+}
+(async()=>{
+  try{ current=localStorage.getItem('lopad-weapon-tab')||current; }catch(_){ }
+  render();
+  const user=await window.claude?.use?.('user'); if(user){ try{ canWrite=await user.can('data.write'); }catch(_){ } }
+  db=await window.claude?.use?.('db');
+  if(!db){ $('#status').textContent='장부 연결 없음 — 읽기 전용'; canWrite=false; render(); return; }
+  db.collection('overrides').onSnapshot(snap=>{
+    overrides={}; snap.docs.forEach(d=>{ if(d.exists){ const b=d.data(); overrides[d.id]={path:b.path,value:b.value,base:b.base}; } });
+    const n=Object.keys(overrides).length; $('#status').innerHTML=`수정 <b>${n}</b>건 · ${canWrite===false?'읽기 전용':'실시간 저장'}`;
+    const active=document.activeElement; const keep=active&&active.dataset&&active.dataset.path;
+    render(); if(keep){ const el=document.querySelector(`[data-path="${CSS.escape(keep)}"]`); if(el) el.focus(); }
+  }, err=>{ $('#status').textContent='장부 오류: '+(err&&err.code||'unknown'); });
+})();
+</script>
