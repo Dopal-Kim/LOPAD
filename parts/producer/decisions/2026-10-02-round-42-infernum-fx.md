@@ -24,3 +24,23 @@
 - 결정: **승인, 34종 양산.** 아트 임시 결정 1~10 수용(보조색 hex, 크기 기본 48 / 1차 64 / 2차 96, 이펙트 예산 ≤11, 층색↔보조색 충돌은 '공명'으로 그대로, hit_burst 로 hit_spark 교체, 예고에 보조색 금지·코어 허용, 잔월 번개 토막·만월 고리 제안 포함, dash_trail 은 시스템 틴트, f0 예비 프레임은 시스템 spawn 오프셋 지원 시 유지).
 - 대검 보조색 W2: `#e35c1c` → **`#d8441c`** (더 붉게, 1층 호박과 분리).
 - 계약 §3.1 보강: 양산 JSON 필드 `weapon, secondary, trail{color,alpha,ms,fromFrame}, flash{color,alpha,ms,atFrame}, shake{px,ms}, progressDriven, followsTarget, followsPlayer, tailFrames, tile, scale, depth, pivotNote` 허용. 시스템은 있으면 쓰고 없으면 기본값.
+
+## 시스템 반영 기록 (임시값)
+2026-10-02 시스템 파트가 3단계(2차 이펙트·보조 동작 연결 + 잔상 트레일 + 화면 섬광·오버레이 + 굵은 예고 + 아트 A·B 묶음 규격)를 코드에 반영하며 둔 임시값. 모두 도영 님 재인터뷰 대상. 구현·검증은 `parts/system/README.md` "42·43라운드 반영 (3단계)". 연출 상수는 `src/core/Constants.ts` `FEEL.TRAIL`·`FEEL.SCREEN`·`FEEL.SECONDARY`·`FEEL.SYNC_HIT_FRAMES`·`ENEMY_FX.BOLD`, 그 밖의 수치(크기·피벗·프레임 ms·섬광·흔들림·트레일)는 아트 JSON 값 그대로.
+
+| 항목 | 임시값 | 근거·메모 |
+|---|---|---|
+| 예비 프레임 f0 | `spawn: attack_frame2` 시트(베기 3종·거합·만월·쌍격·난무)는 f0 = 예비로 보고, f1 시작이 판정 시점(attack 2프레임)에 오도록 f0 길이(40ms)만큼 먼저 재생. JSON `impactFrame` 이 있으면 그 값 우선 | fx-design §4·43라운드 임시 5. 플레이어 시트가 없어 판정 지연이 0 이면 앞당기지 못해 f1 이 40ms 늦다 |
+| 섬광·흔들림 시각 | `flash` 는 `atFrame` 시작, `shake` 는 같은 섬광 프레임(없으면 타격 프레임) 시작. 지진 `secondStage` 는 f4(220ms = 2단 판정)에 섬광·흔들림 한 번 더. 시각은 이펙트 자체 재생 시간(히트스톱 동안 멈춤)으로 잰다 | 기존 대검 충격파 흔들림 4px/100ms 와 겹치면 큰 쪽(합산 없음) |
+| 연타 판정 동기화 | `FEEL.SYNC_HIT_FRAMES = true`: 시트 `hitFrames` 로 추가 타격 간격을 맞춤 — **쌍격 2타 80 → 40ms, 난무 0/80/160 → 0/40/90ms** (게임플레이 타이밍 변경). false 면 기존 `TWIN_DELAY_MS` 80 간격 + 그림만 겹침 | 아트 B 임시 2·3 "판정을 맞추거나 그대로 두거나" 중 맞추는 쪽을 골랐다 — 재인터뷰 1순위 |
+| 잔상 리본 | JSON `trail` 이 있는 시트만: 색 = `trail.color`(#hex 또는 팔레트 경로 `fx.weapons.<무기>.ramp[i]`, `data/palette.json` 기준), 알파·수명 = JSON, 시작 = `fromFrame` 시작, 폭 = round(본 띠 4px × `widthRatio`(없으면 0.6)) = 2px → 끝 1px, 샘플 16ms. 색 흐름 코어 X0 → 층 강조(light1) → 몸통(W1) → 투명. 궤적: 휘두름 시트 = 몸 중심에서 반지름 (reach×크기 + 폭/2) 의 ±0.75rad 호를 max(판정 시간, 120ms) 동안, 발도술·허보 = 플레이어 몸 중심(발 −11px). 깊이 = 시트 바로 아래(캐릭터 위) | fx-design §6.1. 이전 초안의 화살 리본·모든 대쉬 리본은 §6.1("투사체는 꼬리 시트", "대쉬 베기만")에 맞춰 뺐다. 허보 경로에서는 발도술 리본을 꺼 한 줄만 |
+| 화면 섬광 | 전체 화면 사각형 하나(월드 위·UI 아래), 연속 발동 시 남은 알파와 새 알파 중 큰 쪽(합산 없음). JSON 값이 빠지면 X1 `#fff4dc` 0.18 40ms. 보스 페이즈 전환 X0 0.35 → 0 120ms(§6.2) | `feelSettings.flash` 로 끔 |
+| 설계표 밖 추가 연출 | 치명타 흰 섬광·히트스톱 중 채도 감소는 **기본 꺼짐**(`CRIT.ALPHA 0`, `HITSTOP_DESAT 0`, 코드는 남김). 진화 선택 층 강조색 0.35/200ms, 보스 페이즈 채도 감소 1 → 0/400ms(WebGL 카메라 ColorMatrix 를 그동안만 붙임), 사망 검정 0.75 로 서서히(≥600ms)는 켜 둠 | 켜고 끌지 인터뷰 |
+| 굵은 예고 | 선: 43라운드 시트가 이미 4px(기존 2배)라 세로 배율 1 + 끝 **화살촉** 삼각형(길이 6·반폭 4px, 층 램프 22 몸 + 18 테두리). 원 scale = R/22, 부채꼴 R/27, 둘 다 진행도 프레임 `min(5, floor(p×6))`(닫히는 원은 시트 그림, 플레이스홀더만 Graphics 안쪽 원). 마감 직전 160ms: 깜빡임 3배(선 프레임·오라 애니·시트 알파 1 ↔ 0.45·화살촉) | fx-design §6.3. 보조색 없음(층 램프만) |
+| 수렴 오라 | `telegraph_aura` 를 결사병 돌진·보스 돌진·보스 부채꼴·황제 정렬 사격 예고에, 공격자 히트박스 중심(예고 `aim()` 으로 따라감), 배율 1(64px, 정수 배율로 픽셀 보존). 사수 조준선·내리찍기 원은 오라 없음 | "돌진·대기술" 해석. 일반 적에게 64px 가 크면 축소 인터뷰(비정수 배율은 픽셀이 깨짐) |
+| 대쉬 잔상 틴트 | `dash_trail` 은 경로에 발도술·허보·잔상 노드가 있을 때만 그 무기 W1(칼 `#6f7e97`, 단검 `#3e2a62`) 로 `setTintFill`(JSON `tint.method`), 그 외 원색 | 아트 B 임시 8 |
+| 조준 | `aim_charge` 6프레임 `min(5, floor(p×5))`, `aim_line` `stateFrames` 차지 중 f0 / 완료 f1 | 아트 B 표 |
+| 2차 적중형 위치 | 암살 `assassin`·급소 `dashcrit` 는 적중점이 아니라 대상 히트박스 중심(anchor hitbox_center) | |
+| 보스 내리찍기 | 기존대로 `crush` 시트를 빌려 쓰되 JSON 섬광·흔들림 훅은 끔(대검 보조색 섬광이 보스 공격에 나오지 않게) | crush 그림 자체가 대검 보조색이라 "적·보스 보조색 금지"(§3.2)와 어긋남 → 보스 전용 충격파 시트를 아트에 요청할지 인터뷰 |
+| 팔레트 사본 | `data/palette.json` fx 대검 W2 `#e35c1c` → `#d8441c`(43라운드 결정) | 원본 `parts/art/palette/lopad.json` 은 열지 않고 결정 로그 값으로 반영 |
+| JSON 형식 관용 | `scale: "allowed"` 같은 문자열은 배율 1. `hit_spark` 의 `alias`(hit_burst)가 로드돼 있으면 그것을 쓴다. 모르는 필드는 무시 | |
