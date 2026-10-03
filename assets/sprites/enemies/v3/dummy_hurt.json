@@ -1,0 +1,56 @@
+{
+ "image": "dummy_hurt.png",
+ "action": "hurt",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "frames": 3,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 18.75,
+ "frameDurationsMs": [
+  70,
+  45,
+  45
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray G00~15 + 1층 램프 16~27, 런타임 스왑 — 술·문장·불씨·눈빛만) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색). 새 색 없음",
+ "source": "parts/art/work/enemies_v3/build.py (53라운드 Q33 — 적 v3)",
+ "note": "v3 징집병 = 주정뱅이 패거리(52라운드 Q4) · 53라운드 Q33 주인공과 같은 크기 96×144 도트 = 화면 48×72. 개념 gemini/concept_char/raw_enemies_b.jpg",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0"
+ ],
+ "oldTiming": {
+  "sheet": "enemies/dummy_hurt.json",
+  "frames": 2,
+  "frameDurationsMs": [
+   70,
+   90
+  ],
+  "framesMap": [
+   [
+    0
+   ],
+   [
+    1,
+    2
+   ]
+  ],
+  "note": "구 프레임 k 의 시작 ms = 새 프레임 framesMap[k][0] 의 시작 ms (assert). 전체 길이 같음"
+ },
+ "flashFrame": 0
+}

@@ -1,0 +1,28 @@
+{
+ "image": "archer_attack.png",
+ "action": "attack",
+ "frameWidth": 16,
+ "frameHeight": 24,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 9,
+ "frameDurationsMs": [
+  160,
+  50,
+  110,
+  130
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 23
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots; system swaps slots 16..27 per floor)"
+}
