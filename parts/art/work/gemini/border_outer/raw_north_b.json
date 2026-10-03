@@ -1,0 +1,39 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "4:1",
+ "size": "2K",
+ "prompt": "REFERENCE IMAGES: Image 1 is the key art of this game region. It is the PRIMARY reference: match its rendering style exactly - a dark, grim, detailed pixel-art scene painting with chunky, clearly readable shapes and flat shading (no soft airbrush, no photo texture, no film grain), the same leaning half-timbered houses with dark oak beams and grimy grey plaster, overhanging upper floors, sagging dark tile roofs, brick chimneys with thin smoke, wooden shutters, warm amber light leaking from windows, the same night mood and darkness. Image 2 is only a CAMERA reference: it shows the in-game camera - an orthographic top-down three-quarter view looking down from the south at about 40 degrees, no vanishing point, vertical edges stay vertical, every building shows its south-facing front wall and its roof sloping away. Do not copy image 2's composition or its brighter flat look; take only its camera angle.\nPALETTE: near-black charcoal and cold ash greys carry the whole image, dark umber wood; ONE warm accent only - amber / ember orange to pale gold (#8b4d22, #d67a11, #e8b858, #faeec0) - used only for lit windows, door slits, lanterns and their small glow. No other hues: no blue, no green, no purple, no red.\nLIGHTING: dim, even, cold night light on all walls and roofs (this art will be lit again by the game engine). Light sources are small: lit windows, a glowing doorway, hanging lanterns - they glow but do NOT throw big bright pools onto walls or the ground. Keep plaster walls mid-dark grey, never bright white.\nWORLD: grounded Renaissance-era early-gunpowder slum of a liquor empire: oak barrels, crates, laundry lines, a hanging tankard-shaped tavern sign, broken bottles. Desperate, bleak, with a dry sly humor.\nSTRICT: no people, no characters, no animals. No text, no letters, no numbers, no logos, no UI, no watermark, no frame or border line. Fill the whole canvas edge to edge.\nTASK: Image 3 is a strip already painted for this game: the north street front of the arena. Paint the NEXT stretch of the SAME street, as if the camera slid further along it: same pixel density, same building scale (same door and window size, same storey heights), same ground line at the very bottom edge, same thin strip of wet cobbles, same layered hazy roofs and chimney smoke behind, same night sky band at the top, same darkness and amber accent. Do not repeat any house from image 3 - all new buildings.\nCONTENT (left to right): a narrow dark alley gap showing only distant hazy roofs; a tall narrow 3-storey house with an overhanging top floor and a small wooden balcony with hanging rags; a wide two-storey inn with a long shed roof over its ground floor, a row of barrels under it and one lit window; an outside wooden staircase climbing the side of a house to an upper door with a small lantern; a boarded-up house front with broken shutters and a torn awning over a closed liquor stall counter with bottles; a low stone-arched cellar door half below the street with a faint amber glow; laundry lines crossing between upper windows; a dark alley gap at the far right end showing only distant hazy roofs.\nBoth ends of the strip must be such dark alley gaps (only distant roofs and sky) so strips can be joined.\nGROUND LINE: house fronts sit on a perfectly straight horizontal ground line at the very bottom edge; nothing sticks out below it.",
+ "refs": [
+  "keyart_outer/raw_a.jpg",
+  "concept_v2_outer/raw_a.jpg",
+  "border_outer/raw_north_a.jpg"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 1544,
+   "candidatesTokenCount": 2088,
+   "totalTokenCount": 3632,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 770
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 774
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1680
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-03T02:16:28"
+}

@@ -1,0 +1,313 @@
+{
+ "region": "outer",
+ "stage": 1,
+ "version": "53라운드 시범 (Gemini 테두리)",
+ "source": "parts/art/work/gemini/border_outer/build.py (원본·프롬프트 같은 폴더)",
+ "pixelScale": 0.5,
+ "units": "모든 길이·좌표 = 논리 px(960×540 기준). 이미지 픽셀 = 논리 px / pixelScale(=2배). 1920 렌더에서 1:1.",
+ "lighting": "albedo 는 바닥 v2 타일과 같은 조명 공간(곱하기 조명을 받는다). *_emissive.png 는 조명 뒤 가산(알파 = 세기, 어둠에 묻히지 않음). lights[] 는 띠 국소 좌표의 광원 — 반복 띠는 주기마다 반복 등록.",
+ "lightsRule": "lights[] 좌표 = 띠 이미지 왼쪽 위 기준 논리 px. 반복 띠는 주기마다 등록. 서·동 띠 광원 중 바닥 세로 범위(북쪽 기준선 ~ 남쪽 기준선) 밖에 오는 것은 다른 띠에 가려지므로 등록하지 않는다. flicker 는 계약 §12 형식.",
+ "drawOrder": [
+  "floor",
+  "floorDecals+floorShadows",
+  "west",
+  "east",
+  "north",
+  "ySorted(props, characters, fx)",
+  "south",
+  "lighting",
+  "emissive(add)",
+  "ui"
+ ],
+ "bands": {
+  "north": {
+   "image": "north.png",
+   "emissive": "north_emissive.png",
+   "width": 3107.0,
+   "height": 409.0,
+   "repeat": "x",
+   "anchor": "floorTop",
+   "baselineY": 377.0,
+   "apronBelow": 32.0,
+   "place": "띠의 baselineY 줄 = 바닥 북쪽 끝(북쪽 벽 앞면 아랫단의 밑변). x 는 (바닥 왼쪽 - west.width) 부터 반복해 (바닥 오른쪽 + east.width) 까지 덮는다.",
+   "apron": "baselineY 아래 apronBelow 는 포석·술통 밑동이 알파로 사라지는 앞치마 — 바닥 위에 겹쳐 그린다(충돌 없음).",
+   "depth": "background",
+   "lights": [
+    {
+     "x": 358.5,
+     "y": 325.0,
+     "color": "#eeaf5a",
+     "radius": 118,
+     "intensity": 0.77,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 365.5,
+     "y": 198.3,
+     "color": "#eea358",
+     "radius": 107,
+     "intensity": 0.72,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 414.5,
+     "y": 342.4,
+     "color": "#eeaf54",
+     "radius": 150,
+     "intensity": 0.95,
+     "flicker": {
+      "amp": 0.08,
+      "hz": 3
+     },
+     "kind": "door_or_lantern"
+    },
+    {
+     "x": 921.6,
+     "y": 311.5,
+     "color": "#eead64",
+     "radius": 92,
+     "intensity": 0.65,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1036.2,
+     "y": 317.8,
+     "color": "#eea86e",
+     "radius": 89,
+     "intensity": 0.63,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1086.9,
+     "y": 314.6,
+     "color": "#eea876",
+     "radius": 61,
+     "intensity": 0.5,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1135.5,
+     "y": 216.4,
+     "color": "#ee9c54",
+     "radius": 82,
+     "intensity": 0.6,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1517.7,
+     "y": 201.5,
+     "color": "#ee9a4b",
+     "radius": 135,
+     "intensity": 0.85,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1989.1,
+     "y": 178.6,
+     "color": "#eea458",
+     "radius": 98,
+     "intensity": 0.67,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 2282.8,
+     "y": 314.1,
+     "color": "#eeae57",
+     "radius": 104,
+     "intensity": 0.7,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 2551.9,
+     "y": 190.6,
+     "color": "#eea56d",
+     "radius": 78,
+     "intensity": 0.58,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ]
+  },
+  "south": {
+   "image": "south.png",
+   "emissive": "south_emissive.png",
+   "width": 2310.0,
+   "height": 136.0,
+   "repeat": "x",
+   "anchor": "floorBottom",
+   "baselineY": 25.0,
+   "place": "띠의 baselineY 줄 = 바닥 남쪽 끝. 그 위(0~baselineY)는 처마·굴뚝이 바닥을 덮는 겹침(투명 하늘 제외).",
+   "depth": "foreground",
+   "occlusion": {
+    "fadeAlpha": 0.45,
+    "rule": "플레이어 몸 사각형이 띠의 불투명 픽셀과 겹치면 띠 전체(또는 그 구간)를 fadeAlpha 로 반투명"
+   },
+   "lights": [
+    {
+     "x": 563.1,
+     "y": 99.4,
+     "color": "#eeab6f",
+     "radius": 57,
+     "intensity": 0.48,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1076.7,
+     "y": 97.9,
+     "color": "#eeaf77",
+     "radius": 58,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 2154.0,
+     "y": 93.7,
+     "color": "#eeb179",
+     "radius": 53,
+     "intensity": 0.46,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ]
+  },
+  "west": {
+   "image": "west.png",
+   "emissive": "west_emissive.png",
+   "width": 256.0,
+   "height": 1615.0,
+   "repeat": "y",
+   "anchor": "floorLeft",
+   "baselineX": 256.0,
+   "place": "띠의 오른쪽 끝(baselineX) = 바닥 서쪽 끝(서쪽 벽 칸의 동쪽 변). y 는 북쪽 띠 위끝부터 남쪽 띠 아래끝까지 반복(북쪽 띠·남쪽 띠가 위에 덮임).",
+   "depth": "background",
+   "lights": [
+    {
+     "x": 5.5,
+     "y": 168.0,
+     "color": "#eda45a",
+     "radius": 79,
+     "intensity": 0.58,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 39.6,
+     "y": 292.0,
+     "color": "#eead65",
+     "radius": 64,
+     "intensity": 0.52,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ]
+  },
+  "east": {
+   "image": "east.png",
+   "emissive": "east_emissive.png",
+   "width": 256.0,
+   "height": 1615.0,
+   "repeat": "y",
+   "anchor": "floorRight",
+   "baselineX": 0,
+   "place": "띠의 왼쪽 끝 = 바닥 동쪽 끝. 나머지는 west 와 같음.",
+   "depth": "background",
+   "lights": [
+    {
+     "x": 154.8,
+     "y": 1457.6,
+     "color": "#eeb05b",
+     "radius": 110,
+     "intensity": 0.73,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 204.5,
+     "y": 1462.3,
+     "color": "#eea66a",
+     "radius": 94,
+     "intensity": 0.66,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ]
+  }
+ },
+ "corners": "별도 모서리 그림 없음 — north·south 가 좌우 띠 폭까지 덮는다(그리기 순서로 해결).",
+ "collision": "충돌은 기존 격자 그대로(벽 칸 = 막힘). 테두리 그림은 벽 칸 위에 덮는 그림일 뿐이며, 테두리가 있는 지역에서는 벽 타일(앞면·윗면·가장자리)을 그리지 않는다. 문·출구 칸은 아래 미정 항목.",
+ "camera": {
+  "bounds": {
+   "top": -377.0,
+   "bottom": "floorBottom + 111",
+   "left": -200,
+   "right": "floorRight + 200"
+  },
+  "northLookUp": 110,
+  "note": "제안(임시, 인터뷰 대상): 위 = 북쪽 띠 위끝(바닥 북쪽 끝 기준 -baselineY), 아래 = 남쪽 띠 아래끝, 좌우 = 바닥 끝 ± 200(띠 폭 256 중 바깥 56 은 화면 밖). northLookUp: 주인공이 북쪽 끝에서 200 이내면 카메라 중심을 최대 110 위로 끌어 집 위층·지붕이 보이게."
+ },
+ "open": [
+  "문·출구가 벽에 뚫릴 때 테두리 표현(53라운드 시범 NOTES 인터뷰 Q)"
+ ]
+}
