@@ -171,3 +171,4 @@
   - `phase_drink`(페이즈 전환 들이켜기, 선택 — 없으면 `drink` 재사용)
 - 보스방 소품(연회장 `stage1_hall_props` v3 시트 확장 또는 별도 시트): 기둥(solid, 2×2 발자국 권장), 촛대 상태 `lit`/`fallen_unlit`/`relit`(쓰러지면 통과), 굴러가는 술통(회전 프레임), 횃불 투사체, 잔 파편·술 튀김 fx(`fx/v3`, `paletteSwap: "none"`).
 - (54라운드 Q18·Q21) 보스 불타는 오버레이 `fx/v3/boss1_onfire`(루프, 보스 발 기준 피벗, `paletteSwap: "none"`, 광원 포함 권장), 굴러가는 술통 1.25배(지름 약 68도트, `circumferencePx` 갱신).
+- (54라운드 Q23~Q27) `boss1_rolling_barrel` 의 `circumferencePx`·`diameterPx`·`lengthPx` 는 **논리 px** 단위. `boss1_onfire` 는 보스와 같은 프레임·피벗(192×240, (96,220)), 행 = 보스 방향, `phaseFrames {ignite, loop, out}`·`loopRange`·`light`·`lightByPhase`(도트 단위 반경). 누운 동작(fall·death)용 불길 행/시트 추가 예정(키는 아트가 제안, 시스템은 JSON 을 따름).
