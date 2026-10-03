@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import {
   UI_EVENTS,
+  UI_SCREEN,
   uiBus,
   uiCommands,
   type UiChallengeCleared,
@@ -16,6 +17,8 @@ import {
   type UiWarpDenied,
   type UiWarpDone,
 } from '../contract/ui';
+import { CarryChip } from './CarryHud';
+import { carryView } from './carryView';
 import { chooseNodeCmd, debugExpose, installUiDebug, withDebug } from './debug';
 import { GlowText } from './glow';
 import {
@@ -46,6 +49,7 @@ import { ResourceGauge } from './ResourceHud';
 import { ChallengePanel, InteractBubble, ResultToasts, StatusChips } from './StructureHud';
 import { fill, r49Text, regionText, routeText, uiText, warpText } from './text';
 import { LAYOUT, MAP_BG_FLOORS, RES, ROUTE, STRUCT } from './theme';
+import { TutorialGuide } from './TutorialHud';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 
 /** 가운데 배너 차례: 글자 배너(층 제목·노드 이름·진화) 또는 50라운드 지역 카드 */
@@ -94,6 +98,10 @@ export class HudScene extends Phaser.Scene {
   private bundleObjs: { y: number; setY(y: number): unknown }[] = [];
   private bundleGauges: Gauge[] = [];
   private resource?: ResourceGauge;
+  /** 53라운드: F 넣기/뽑기 (3행 오른쪽) */
+  private carry?: CarryChip;
+  /** 53라운드: 튜토리얼 안내 패널·적 등장 경고 */
+  private guide?: TutorialGuide;
   private labMode = false;
   private hpGauge!: Gauge;
   private hpText!: GlowText;
@@ -195,6 +203,7 @@ export class HudScene extends Phaser.Scene {
     // Esc 는 Key 폴링(JustDown) 대신 keydown 이벤트로 받는다 — 씬이 바뀌는 프레임에 Key 상태가 눌린 채 남아
     // 다음 Esc 가 '반복 입력' 으로 취급돼 무시되는 문제가 있었다 (41라운드 헤드리스 검증)
     this.input.keyboard?.on('keydown-ESC', this.onEsc);
+    this.input.keyboard?.on('keydown-ENTER', this.onEnter);
     // 45라운드 Q9: Tab 워프 지도. 브라우저 포커스 이동을 막도록 캡처한다
     this.input.keyboard?.addCapture('TAB');
     this.input.keyboard?.on('keydown-TAB', this.onTab);
@@ -249,10 +258,14 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.MENU_OPEN, (m: UiMenu) => this.ensureStructureMenu(m));
     this.events.once('shutdown', () => {
       this.input.keyboard?.off('keydown-ESC', this.onEsc);
+      this.input.keyboard?.off('keydown-ENTER', this.onEnter);
       this.input.keyboard?.off('keydown-TAB', this.onTab);
       this.input.keyboard?.off('keydown-M', this.onTab);
       this.input.keyboard?.removeCapture('TAB');
       this.resource = undefined;
+      this.carry = undefined;
+      this.guide?.destroy();
+      this.guide = undefined;
       this.warpMap?.destroy();
       this.warpMap = undefined;
       this.routeMap?.destroy();
@@ -281,9 +294,17 @@ export class HudScene extends Phaser.Scene {
     });
   }
 
-  private onEsc = (): void => {
+  /**
+   * 51라운드 §6: Esc = 한 단계 뒤로. 위에 뜬 것부터 하나씩 닫고(지역 카드 → 튜토리얼 안내 → 노드·워프 지도),
+   * 열린 화면이 없으면 일시정지 일기장. 메뉴·일시정지 씬이 떠 있으면 그 씬이 Esc 를 받는다.
+   */
+  private onEsc = (e?: KeyboardEvent): void => {
+    if (e?.repeat) return;
     // 탄생 연출 중에는 Esc 도 '아무 키' (건너뛰기는 시스템이 받는다)
     if (this.birthActive) return;
+    // 지역 카드는 같은 Esc 의 keydown 으로 이미 건너뛰기를 받았다
+    if (this.regionCard) return;
+    if (this.guide?.dismiss()) return;
     if (this.routeMap) {
       // 보기 모드는 닫고 재개. 고르기 모드는 고를 곳이 없을 때만 닫는다 (고르는 동안은 시스템이 입력을 잠근다)
       if (this.routeMap.mode === 'view') {
@@ -298,6 +319,11 @@ export class HudScene extends Phaser.Scene {
       return;
     }
     if (!this.scene.isActive(UI_SCENE_KEYS.MENU) && !this.scene.isActive(UI_SCENE_KEYS.PAUSE)) uiCommands.pause();
+  };
+
+  /** Enter: 튜토리얼 안내 닫기 */
+  private onEnter = (): void => {
+    this.guide?.dismiss();
   };
 
   /**
@@ -423,8 +449,8 @@ export class HudScene extends Phaser.Scene {
       this.birthFailsafe = this.time.delayedCall(ROUTE.birthFailsafeMs, () => this.endBirth());
     }
     if (!this.built || this.birthHint) return;
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const hint = new GlowText(this, 0, 0, routeText('birthSkip'), 'ink_faint', {
       stageIndex: Math.max(0, this.stageIndex),
     });
@@ -432,7 +458,10 @@ export class HudScene extends Phaser.Scene {
     // 지연(delay) 을 준 트윈은 이 이벤트 경로에서 진행되지 않았다 (헤드리스 확인) — 바로 서서히 나타나게
     this.tweens.add({ targets: hint, alpha: 1, duration: 300 });
     // 안내만 그리는 카메라: 지금 있는 것과 연출 중 새로 생기는 것은 모두 무시한다
-    const cam = this.cameras.add(0, 0, W, H);
+    // 53라운드 1920 렌더: main 카메라(시스템이 zoom·원점을 맞춤)와 같은 뷰포트·배율로 (UI 는 main 을 바꾸지 않는다)
+    const main = this.cameras.main;
+    const cam = this.cameras.add(main.x, main.y, main.width, main.height);
+    cam.setZoom(main.zoom).setOrigin(main.originX, main.originY).setScroll(main.scrollX, main.scrollY);
     cam.ignore(this.children.list.filter((o) => o !== hint));
     this.events.on(Phaser.Scenes.Events.ADDED_TO_SCENE, this.ignoreInBirthCam);
     this.birthCam = cam;
@@ -532,8 +561,8 @@ export class HudScene extends Phaser.Scene {
   }
 
   private build(): void {
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const E = LAYOUT.edge;
     const s0 = uiCommands.getUiSnapshot();
     this.stageIndex = Math.max(0, s0.stageIndex);
@@ -574,6 +603,8 @@ export class HudScene extends Phaser.Scene {
     this.bossName = this.glow(0, by - 18, '', 'ink_accent').setVisible(false);
     // 49라운드: 3행 무기 자원 (묶음이 커질 때만 보인다)
     this.resource = new ResourceGauge(this, px + RES.labelX, py + RES.rowY);
+    // 53라운드: F 넣기/뽑기 — 3행 오른쪽 끝 (우클릭 글과 같은 오른쪽 선)
+    this.carry = new CarryChip(this, px + HUD_W - 10, py + RES.rowY - 3, this.stageIndex);
     this.bundleObjs = [
       hpIcon,
       this.hpText,
@@ -589,6 +620,7 @@ export class HudScene extends Phaser.Scene {
       this.secondaryText,
       this.bossIcon,
       this.bossName,
+      this.carry,
     ];
     this.bundleGauges = [this.hpGauge, this.personalityGauge, this.bossGauge];
 
@@ -608,6 +640,7 @@ export class HudScene extends Phaser.Scene {
     this.bubble = new InteractBubble(this, this.stageIndex);
     this.toasts = new ResultToasts(this, W - E, H - 12 - 28 - 8);
     this.challenge = new ChallengePanel(this, STRUCT.challengeTop);
+    this.guide = new TutorialGuide(this);
 
     this.built = true;
     // 글꼴을 기다리는 동안 시작된 탄생 연출·미뤄 둔 배너
@@ -616,7 +649,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   private buildMinimap(gridW: number, gridH: number): void {
-    const W = this.scale.width;
+    const W = UI_SCREEN.WIDTH;
     const E = LAYOUT.edge;
     const size = Minimap.size(gridW, gridH);
     this.minimap = new Minimap(this, W - E - size.w, 12, gridW, gridH);
@@ -634,7 +667,7 @@ export class HudScene extends Phaser.Scene {
 
   /** 우상단: 미니맵/노드 띠 아래로 'M 지도'·'Tab 워프' 줄을 맞춘다 */
   private layoutTopRight(): void {
-    const W = this.scale.width;
+    const W = UI_SCREEN.WIDTH;
     const E = LAYOUT.edge;
     const h = this.routeMode && this.routeStrip ? this.routeStrip.h : this.minimap.h;
     const hintY = 12 + h + 6;
@@ -648,7 +681,7 @@ export class HudScene extends Phaser.Scene {
    */
   private setBundleHeight(h: number): void {
     if (h === this.bundleH) return;
-    const py = this.scale.height - h - 12;
+    const py = UI_SCREEN.HEIGHT - h - 12;
     const dy = py - this.panelY;
     this.bundleH = h;
     this.panelY = py;
@@ -668,6 +701,7 @@ export class HudScene extends Phaser.Scene {
       this.stageIndex = si;
       for (const t of this.glows) t.setStageIndex(si);
       this.hpGauge.setStage(this, si);
+      this.carry?.setStageIndex(si);
       this.bossGauge.setStage(this, si);
     }
     const px = this.panelX;
@@ -693,10 +727,12 @@ export class HudScene extends Phaser.Scene {
     this.personalityText.setText(`${s.weapon.personality}/${s.weapon.threshold}`).setX(gx + PERSONALITY_W + 6);
     this.secondaryText.setText(s.weapon.secondaryName ? `우클릭 ${s.weapon.secondaryName}` : '');
     this.secondaryText.placeRight(px + HUD_W - 10, this.secondaryText.y);
-    // 3행 (49라운드): 무기 자원. 없으면 묶음을 원래 높이로
+    // 3행 (49라운드): 무기 자원 + 53라운드 F 넣기/뽑기. 둘 다 없으면 묶음을 원래 높이로
     const res = s.resource && s.resource.kind ? s.resource : null;
-    this.setBundleHeight(res ? RES.bundleH : HUD_H);
+    const carry = carryView(s.carry);
+    this.setBundleHeight(res || carry ? RES.bundleH : HUD_H);
     this.resource?.render(res, si, this.time.now);
+    this.carry?.render(carry);
     // 보스 (처치 뒤 스냅샷에 hp 0 으로 남는 동안은 숨긴다)
     if (s.boss && s.boss.hp > 0) {
       this.bossGauge.setVisible(true).set(s.boss.maxHp > 0 ? s.boss.hp / s.boss.maxHp : 0);
@@ -704,7 +740,7 @@ export class HudScene extends Phaser.Scene {
       this.bossName
         .setVisible(true)
         .setText(`${s.boss.name}  ${s.boss.hp}/${s.boss.maxHp}  페이즈 ${s.boss.phase}`)
-        .placeCenter(this.scale.width / 2, this.bossName.y);
+        .placeCenter(UI_SCREEN.WIDTH / 2, this.bossName.y);
     } else {
       this.bossGauge.setVisible(false);
       this.bossIcon.setVisible(false);
@@ -751,6 +787,9 @@ export class HudScene extends Phaser.Scene {
     this.bubble?.update(s.interactable ?? null, !overlay, si);
     this.chips?.render(s.statuses ?? [], si);
     this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);
+    // 53라운드: 튜토리얼 안내 — 다른 화면·배너·지역 카드·탄생 연출이 없을 때만 새로 띄운다
+    const bannersIdle = !this.bannerBusy && this.bannerQueue.length === 0 && !this.regionCard;
+    this.guide?.update(s, !overlay && !this.birthActive && bannersIdle, si);
     // 48라운드 안전망: 고를 차례인데 지도가 없으면 연다 (이벤트를 놓쳤거나 메뉴가 닫힌 뒤)
     if (route?.choosing && !overlay && !this.birthActive && this.time.now > this.chooseSuppressUntil)
       this.openRouteChoose(route);
@@ -768,7 +807,7 @@ export class HudScene extends Phaser.Scene {
         this.noticeText.setText(text);
         this.noticeIcon.setFrame(kind === 'exit' ? ICON.exit : ICON.boss);
         const w = 8 + 16 + 6 + this.noticeText.textW + 4 + 10;
-        const nx = this.scale.width - LAYOUT.edge - w;
+        const nx = UI_SCREEN.WIDTH - LAYOUT.edge - w;
         this.noticePanel.resize(w, 28).setX(nx);
         this.noticeIcon.setX(nx + 8);
         this.noticeText.setX(nx + 8 + 16 + 6);
@@ -795,6 +834,8 @@ export class HudScene extends Phaser.Scene {
       this.deferredCaption = l;
       return;
     }
+    // 53라운드: 튜토리얼 노드의 공지는 위쪽 가운데 단계 카드로 (작은 자막 대신)
+    if (this.guide?.takeNotice(l, withDebug(uiCommands.getUiSnapshot()), Math.max(0, this.stageIndex))) return;
     this.caption?.destroy();
     this.captionTimer?.remove();
     const hold = l.kind === 'notice' ? 1800 : 3600;
@@ -803,11 +844,11 @@ export class HudScene extends Phaser.Scene {
     const bossOn = Boolean(snap.boss && snap.boss.hp > 0) || this.bossName.visible;
     const bottom = bossOn ? this.panelY - 8 - 14 - 18 - 4 : this.panelY - 6;
     const c = new GlowText(this, 0, 0, l.text, 'ink_body', {
-      wrap: this.scale.width - 240,
+      wrap: UI_SCREEN.WIDTH - 240,
       align: 'center',
       stageIndex: Math.max(0, snap.stageIndex),
     }).setDepth(CAPTION_DEPTH);
-    c.placeCenter(this.scale.width / 2, bottom - c.displayHeight);
+    c.placeCenter(UI_SCREEN.WIDTH / 2, bottom - c.displayHeight);
     this.caption = c;
     this.captionTimer = this.time.delayedCall(hold, () => {
       this.tweens.add({ targets: c, alpha: 0, duration: 300, onComplete: () => c.destroy() });
@@ -856,7 +897,7 @@ export class HudScene extends Phaser.Scene {
     const b = new GlowText(this, 0, 0, item.text, 'ink_body', { scale: 2, stageIndex })
       .setDepth(CAPTION_DEPTH)
       .setAlpha(0);
-    b.placeCenter(this.scale.width / 2, Math.round(this.scale.height / 2 - 70));
+    b.placeCenter(UI_SCREEN.WIDTH / 2, Math.round(UI_SCREEN.HEIGHT / 2 - 70));
     this.banner = b;
     this.tweens.add({
       targets: b,

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { UI_SCREEN } from '../contract/ui';
 import { debugExpose } from './debug';
 import { GlowText } from './glow';
 import { ensureImage, keyartKey, keyartUrl } from './kit';
@@ -77,8 +78,8 @@ export class RegionCard {
   private show(): void {
     if (this.finished) return;
     const scene = this.scene;
-    const W = scene.scale.width;
-    const H = scene.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const D = REGION_CARD.depth;
     const add = <T extends Phaser.GameObjects.GameObject & { setDepth(d: number): unknown }>(o: T): T => {
       o.setDepth(D);

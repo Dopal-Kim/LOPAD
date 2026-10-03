@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { UI_EVENTS, uiBus, uiCommands } from '../contract/ui';
+import { UI_EVENTS, UI_SCREEN, uiBus, uiCommands } from '../contract/ui';
 import { setMutedCmd, withDebug } from './debug';
 import { GlowText } from './glow';
 import { ICON, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
@@ -52,7 +52,13 @@ export class PauseScene extends Phaser.Scene {
     });
   }
 
+  /** 51라운드 §6: Esc = 한 단계 뒤로. 덮기 확인 중이면 확인만 닫고, 아니면 게임으로 */
   private onEsc = (): void => {
+    if (this.confirm) {
+      this.confirm = false;
+      this.setList();
+      return;
+    }
     uiCommands.resume();
   };
 
@@ -61,8 +67,8 @@ export class PauseScene extends Phaser.Scene {
     const stageIndex = Math.max(0, s.stageIndex);
     this.muted = Boolean(s.muted);
     this.lab = Boolean(s.lab);
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const bk = book(this, Math.round(W / 2), Math.round(H / 2), PAGE_W, PAGE_H, 1, 'pause');
     const pg = bk.pages[0];
     const innerW = PAGE_W - PAD * 2;

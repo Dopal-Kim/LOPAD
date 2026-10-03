@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { RoomType, UiRoom, UiSnapshot, UiWarpDenyReason } from '../contract/ui';
+import { UI_SCREEN, type RoomType, type UiRoom, type UiSnapshot, type UiWarpDenyReason } from '../contract/ui';
 import { GlowText } from './glow';
 import { ICON, KIT, accentHex, book, cursor, icon, rule } from './kit';
 import { structText, warpText, type WarpTextKey } from './text';
@@ -148,8 +148,8 @@ export class WarpMap {
   private build(snap: UiSnapshot): void {
     const scene = this.scene;
     const before = new Set(scene.children.list);
-    const W = scene.scale.width;
-    const H = scene.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const map = snap.map;
     const si = this.stageIndex;
     this.currentId = map.currentRoomId;

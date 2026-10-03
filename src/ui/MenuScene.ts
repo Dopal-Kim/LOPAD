@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
-import { UI_EVENTS, uiBus, uiCommands, type UiMenu, type UiMenuLine } from '../contract/ui';
+import { UI_EVENTS, UI_SCREEN, uiBus, uiCommands, type UiMenu, type UiMenuLine } from '../contract/ui';
 import { debugSelect, isDebugMenu } from './debug';
 import { GlowText } from './glow';
 import { accentHex, book, cursor as makeCursor, fontsReady, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
+import { menuEscAction } from './escNav';
 import { menuIndent } from './resourceView';
 import { cardFocusMove } from './structView';
-import { structText } from './text';
+import { r53Text, structText } from './text';
 import { LAYOUT, SEPIA, STRUCT, hexToNum } from './theme';
 import { SelectList } from './widgets';
 
@@ -18,6 +19,8 @@ const LAB_MENUS: ReadonlySet<string> = new Set(['lab', 'labBranch']);
 /** 갈래 한 단계 들여쓰기 px · 트리 기호 */
 const LAB_INDENT = 14;
 const LAB_BRANCH_MARK = '└ ';
+/** Esc 머무름 안내가 떠 있는 시간 (임시값) */
+const ESC_STAY_HOLD_MS = 1400;
 
 interface CardView {
   line: UiMenuLine;
@@ -56,11 +59,35 @@ export class MenuScene extends Phaser.Scene {
     // 같은 프레임에 다음 메뉴가 열릴 수 있으므로 다음 update 에서 닫는다
     if (this.menu?.id === p.id) this.pendingClose = true;
   };
-  /** Esc: 그만두기 줄이 있는 메뉴(구조물 메뉴)만 */
-  private onEsc = () => {
+  /** 51라운드 §6: Esc = 한 단계 뒤로 (`menuEscAction`). 앞 단계가 없는 메뉴는 머무르고 안내 한 줄 */
+  private onEsc = (e?: KeyboardEvent) => {
     const m = this.menu;
-    if (m?.cancelKey) this.send(m, m.cancelKey);
+    if (!m || e?.repeat) return;
+    const a = menuEscAction(m);
+    if (a.kind === 'select') this.send(m, a.key);
+    else if (a.kind === 'title') uiCommands.toTitle();
+    else this.flashStayHint();
   };
+  /** 페이지 아래 가운데 (Esc 머무름 안내 자리) */
+  private pageBottom = { x: UI_SCREEN.WIDTH / 2, y: UI_SCREEN.HEIGHT - 40 };
+  private stayHint?: GlowText;
+
+  private flashStayHint(): void {
+    this.stayHint?.destroy();
+    const t = new GlowText(this, 0, 0, r53Text('escStay'), 'ink_faint').setDepth(3);
+    t.placeCenter(this.pageBottom.x, this.pageBottom.y + 8);
+    this.stayHint = t;
+    this.tweens.add({
+      targets: t,
+      alpha: 0,
+      delay: ESC_STAY_HOLD_MS,
+      duration: 300,
+      onComplete: () => {
+        t.destroy();
+        if (this.stayHint === t) this.stayHint = undefined;
+      },
+    });
+  }
 
   constructor() {
     super(UI_SCENE_KEYS.MENU);
@@ -114,6 +141,7 @@ export class MenuScene extends Phaser.Scene {
     const keepCursor = same ? (this.list ? this.list.cursorIndex() : this.cardFocus) : 0;
     this.menu = m;
     this.drawn = m;
+    this.stayHint = undefined;
     this.children.removeAll(true);
     this.list?.destroy();
     this.list = undefined;
@@ -129,8 +157,8 @@ export class MenuScene extends Phaser.Scene {
   private drawn?: UiMenu;
 
   private showList(m: UiMenu, keepCursor: number): void {
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const stageIndex = Math.max(0, uiCommands.getUiSnapshot().stageIndex);
     // evolve 의 라벨은 '이름 — 설명' 형식으로 올 수 있고 detail 에 같은 설명이 들어 있다 (시스템 29라운드).
     // 설명을 두 번 보이지 않도록 라벨 끝의 ' — 설명' 을 떼고 아래 줄(detail)로만 보인다.
@@ -191,6 +219,7 @@ export class MenuScene extends Phaser.Scene {
     this.list.setPosition(pg.x + padX, y).setDepth(1);
     y += listH + 10;
     footer?.placeCenter(pg.x + pageW / 2, y);
+    this.pageBottom = { x: pg.x + pageW / 2, y: pg.y + pageH };
     if (m.id === 'meta') this.input.keyboard?.once('keydown-ENTER', () => uiCommands.select('meta', 'enter'));
   }
 
@@ -225,8 +254,8 @@ export class MenuScene extends Phaser.Scene {
   // -------------------------------------------------------------------------------------------
   /** 패 탁자: 엎어진 패 n장(가로) + 아래 그만두기 줄. 1·2·3 / ←→ + Enter / 클릭, 0·Esc 그만두기 */
   private showCards(m: UiMenu, cardLines: UiMenuLine[], keepCursor: number): void {
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const stageIndex = Math.max(0, uiCommands.getUiSnapshot().stageIndex);
     const n = cardLines.length;
     const cw = STRUCT.cardW;

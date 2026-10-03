@@ -26,6 +26,8 @@ const DEFAULT_CONTROLS = 'WASD 이동 · 좌클릭 공격 · 우클릭 {secondar
  * `token` 이 조작법 줄에 이미 있으면(텍스트 팩이 이미 적었으면) 덧붙이지 않는다.
  */
 const CONTROL_EXTRAS: { token: RegExp; key: string; fallback: string }[] = [
+  // 53라운드(51라운드 §4): F = 넣기/뽑기
+  { token: /(^|[\s·])F(\s|$)/, key: 'controlCarry', fallback: 'F 넣기·뽑기' },
   { token: /(^|[\s·])E(\s|$)/, key: 'controlInteract', fallback: 'E 상호작용' },
   { token: /Shift/i, key: 'controlSprint', fallback: 'Shift 달리기' },
   { token: /Tab/i, key: 'warpKeyHint', fallback: 'Tab 워프' },
@@ -198,4 +200,42 @@ export const REGION_TEXT: Record<string, string> = {
 export function regionText(key: string | null, fallbackDesc?: string): string {
   if (key && REGION_TEXT[key]) return uiText('hud', `region_${key}`, REGION_TEXT[key]);
   return firstSentence(fallbackDesc);
+}
+
+/**
+ * 53라운드 문구 (임시값, 도영 님 검수 대상): Esc 한 단계 뒤로(51라운드 §6), F 넣기/뽑기(51라운드 §4),
+ * 튜토리얼 안내 패널·적 등장 경고(51라운드 §3). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다.
+ */
+export const R53_TEXT = {
+  /** 반드시 골라야 하는 메뉴에서 Esc */
+  escStay: '하나를 골라야 덮을 수 있다',
+  /** HUD 넣기/뽑기 (3행 오른쪽) */
+  carrySheathed: '넣음',
+  carryDrawn: '뽑음',
+  /** 넣은 상태 첫 타 준비 — {name} = 발도·끌어내기 */
+  carryReady: '{name} 준비',
+  /** 조작법 줄 */
+  controlCarry: 'F 넣기·뽑기',
+  /** 튜토리얼 안내 패널 */
+  tutTitle: '싸우는 법',
+  tutMove: '이동',
+  tutAttack: '공격 (커서 방향)',
+  tutSecondary: '{secondary}',
+  tutDash: '대쉬 — 대쉬 중엔 맞지 않는다',
+  tutCarry: '넣기·뽑기 — 넣은 채 첫 타는 {name}',
+  tutCarryPlain: '넣기·뽑기 — 넣은 채 첫 타가 세다',
+  tutMore: 'Q 물약 · Shift 달리기 · E 상호작용 · M 지도 · Esc 뒤로·일시정지',
+  tutClose: 'Enter·Esc·클릭 닫기',
+  /** 적 등장 경고 */
+  warnTitle: '주의',
+  warnLine: '적이 다가온다',
+  /** 키 이름 */
+  keyLeftClick: '좌클릭',
+  keyRightClick: '우클릭',
+  keySpace: 'Space',
+} as const;
+export type R53TextKey = keyof typeof R53_TEXT;
+
+export function r53Text(key: R53TextKey): string {
+  return uiText('hud', key, R53_TEXT[key]);
 }

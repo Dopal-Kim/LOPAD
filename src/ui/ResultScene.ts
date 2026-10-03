@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { uiCommands, type UiResult } from '../contract/ui';
+import { UI_SCREEN, uiCommands, type UiResult } from '../contract/ui';
 import { GlowText } from './glow';
 import { DARK_BG, ICON, KIT, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
@@ -32,8 +32,11 @@ export class ResultScene extends Phaser.Scene {
     this.alive = true;
     setupKit(this);
     this.cameras.main.setBackgroundColor(DARK_BG);
+    // 51라운드 §6: Esc = 한 단계 뒤로 (결과 화면의 앞은 타이틀 — '일기장을 덮는다' 와 같다)
+    this.input.keyboard?.on('keydown-ESC', this.onEsc);
     this.events.once('shutdown', () => {
       this.alive = false;
+      this.input.keyboard?.off('keydown-ESC', this.onEsc);
       this.list?.destroy();
     });
     fontsReady().then(() => {
@@ -41,9 +44,14 @@ export class ResultScene extends Phaser.Scene {
     });
   }
 
+  private onEsc = (e?: KeyboardEvent): void => {
+    if (e?.repeat || !this.list) return;
+    uiCommands.toTitle();
+  };
+
   private build(r: UiResult): void {
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const stageIndex = Math.max(0, r.floorReached - 1);
     const bk = book(
       this,

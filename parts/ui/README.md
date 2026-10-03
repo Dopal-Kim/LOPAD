@@ -1,5 +1,20 @@
 # 게임 UI 파트 — 작업 기록
 
+## 53라운드 (2026-10-03) · Esc 한 단계 뒤로 · F 넣기/뽑기 표시 · 튜토리얼 안내 · 1920 렌더 규칙
+결정: `decisions/2026-10-02-round-51-playtest3.md` §3·§4·§6, `decisions/2026-10-03-round-53-playtest4.md` Q14~Q17. 계약: `contracts/ui-system-interface.md` '53라운드 추가'.
+
+### 화면
+- **Esc = 한 단계 뒤로**: HUD(지역 카드 → 튜토리얼 안내 → 노드·워프 지도 → 없으면 일시정지), 일시정지(덮기 확인 → 목록 → 재개), 메뉴(`cancelKey` 있으면 그 줄 · 메타 메뉴는 타이틀 · 반드시 고르는 메뉴는 머무르고 '하나를 골라야 덮을 수 있다' 1.4초), 결과(타이틀). 판단은 `escNav.ts`.
+- **F 넣기/뽑기**: HUD 하단 묶음 3행 오른쪽 끝 `[F] 넣음 · 발도 준비`(첫 타 준비는 층 강조) / `[F] 뽑음`(흐림). `carry` 가 null·없으면 숨김. 조작법 줄에 'F 넣기·뽑기'.
+- **튜토리얼(여정 노드)**: ① 단계 카드 — 시스템 공지(STORY notice)를 위쪽 가운데 2배 카드로(끝 괄호 키는 2배 키 아이콘), 다음 공지까지 최대 20초. ② 안내 패널 — 배너·지역 카드가 끝나면 가운데 '싸우는 법'(키 아이콘 줄: 이동·공격·우클릭·대쉬·F + 기타 키 한 줄), Enter·Esc·클릭·12초. ③ 경고 — 전투 시작(`inCombat` false→true) 때 '주의 / 적이 다가온다' 깜빡임 1.8초, 안내 패널은 닫힘.
+- **1920 렌더**: `scale.width/height` → `UI_SCREEN`. 탄생 연출 안내 카메라는 main 카메라의 뷰포트·zoom·원점을 따른다.
+
+### 소유 코드 추가·변경
+`escNav.ts`(+test), `carryView.ts`(+test), `CarryHud.ts`, `keycap.ts`(Container → Graphics → 글), `tutorialView.ts`(+test), `TutorialHud.ts`, `text.ts`(`R53_TEXT`, 조작법 F), `debug.ts`(`snap()`·`scenes()`·`events`), HudScene·MenuScene·PauseScene·ResultScene·TitleScene 등.
+
+### 임시값 (도영 님 검토 대상)
+`R53_TEXT` 문구 전부, 안내 패널 12초·단계 카드 20초·경고 1.8초, 단계 카드 위치(y 52), 경고는 튜토리얼 노드에서만.
+
 ## 50라운드 (2026-10-02) · 지역 카드(키아트)·일러스트 M 지도·위치 정보 키아트
 계약: `contracts/ui-system-interface.md` **§12** (+§10·§11), 승인 #18(49·50라운드 연장). 에셋: `assets/sprites/ui/keyart_{waste,gate,outer,brewery,hall}.png`·`map_bg_f1.png`(아트 커밋 e3de0b4) → `assets/ui/keyart/keyart_<key>.png`·`assets/ui/map_bg_1.png` 사본(수정 금지). 시스템 변경 없음(`UiRouteNode.region` 사용). 시스템 코드 열람 없음.
 

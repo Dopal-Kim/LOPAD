@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
-import type {
-  UiChallengeCleared,
-  UiChallengeStarted,
-  UiInteractable,
-  UiStatus,
-  UiStructureResult,
+import {
+  UI_SCREEN,
+  type UiChallengeCleared,
+  type UiChallengeStarted,
+  type UiInteractable,
+  type UiStatus,
+  type UiStructureResult,
 } from '../contract/ui';
 import { GlowText } from './glow';
 import { NinePanel, accentHex, inkPanel } from './kit';
@@ -89,8 +90,8 @@ export class InteractBubble {
       this.lastProgress = progress;
       this.drawBar(progress);
     }
-    const W = this.scene.scale.width;
-    const H = this.scene.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const p = bubblePos(it.screen, this.panel.width, this.panel.height, W, H, STRUCT.bubbleMargin, STRUCT.bubbleGap);
     this.box.setPosition(p.x, p.y).setVisible(true);
   }
@@ -391,7 +392,7 @@ export class ChallengePanel {
     this.panel = inkPanel(scene, 0, 0, w, Math.max(24, h));
     this.timeT?.setPosition(w - pad + 2 - this.timeT.displayWidth, Math.round((h - this.timeT.displayHeight) / 2) - 1);
     this.box = scene.add
-      .container(Math.round(scene.scale.width / 2 - w / 2), this.top, [this.panel, ...objs])
+      .container(Math.round(UI_SCREEN.WIDTH / 2 - w / 2), this.top, [this.panel, ...objs])
       .setDepth(STRUCT.hudDepth);
     this.lastShown = '';
     this.tick(null, stageIndex);
@@ -424,14 +425,14 @@ export class ChallengePanel {
     const pad = 8;
     const t = new GlowText(scene, pad - 2, pad - 2, r.text, r.outcome === 'timeout' ? 'ink_faint' : 'ink_accent', {
       stageIndex,
-      wrap: scene.scale.width - 320,
+      wrap: UI_SCREEN.WIDTH - 320,
       align: 'center',
     });
     const w = t.textW + 4 + pad * 2 - 4;
     const h = t.displayHeight + pad * 2 - 4;
     this.panel = inkPanel(scene, 0, 0, w, Math.max(24, h));
     this.box = scene.add
-      .container(Math.round(scene.scale.width / 2 - w / 2), this.top, [this.panel, t])
+      .container(Math.round(UI_SCREEN.WIDTH / 2 - w / 2), this.top, [this.panel, t])
       .setDepth(STRUCT.hudDepth);
     const box = this.box;
     this.hideTimer = scene.time.delayedCall(STRUCT.challengeResultMs, () => {

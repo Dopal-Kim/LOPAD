@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { UiNodeState, UiNodeType, UiRoute, UiRouteNode } from '../contract/ui';
+import { UI_SCREEN, type UiNodeState, type UiNodeType, type UiRoute, type UiRouteNode } from '../contract/ui';
 import { debugExpose } from './debug';
 import { GlowText } from './glow';
 import {
@@ -396,8 +396,8 @@ export class RouteMap {
   private build(route: UiRoute): void {
     const scene = this.scene;
     const before = new Set(scene.children.list);
-    const W = scene.scale.width;
-    const H = scene.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const si = this.stageIndex;
     const pad = ROUTE.pad;
     const pageW = ROUTE.pageW;

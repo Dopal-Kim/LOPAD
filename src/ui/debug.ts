@@ -16,6 +16,9 @@ import { UI_SCENE_KEYS } from './keys';
  *   chosen: string[]            // 가짜로 고른 노드 id
  *   muted: boolean[]            // 49라운드: Esc 일기장에서 보낸 setMuted 기록
  *   view.routeMap.confirm       // 49라운드: '넘어가시겠습니까?' 예·아니오 버튼 화면 좌표
+ *   snap()                      // 53라운드: 지금 스냅샷 (덮어쓰기 적용)
+ *   scenes()                    // 53라운드: 실행 중인 씬 키 (Esc 단계 확인용)
+ *   events: [name, payload][]   // 53라운드: 받은 UI 이벤트 기록 (STATE 제외, 최근 200개)
  * }
  */
 type Patch = Partial<UiSnapshot> | ((s: UiSnapshot) => Partial<UiSnapshot>);
@@ -31,6 +34,12 @@ interface DebugApi {
   view: Record<string, unknown>;
   /** 49라운드: Esc 일기장에서 보낸 setMuted 기록 */
   muted: boolean[];
+  /** 53라운드: 지금 스냅샷 (덮어쓰기 적용) */
+  snap(): UiSnapshot;
+  /** 53라운드: 실행 중인 씬 키 */
+  scenes(): string[];
+  /** 53라운드: 받은 UI 이벤트 기록 (STATE 제외) */
+  events: [string, unknown][];
 }
 
 let enabled: boolean | null = null;
@@ -87,10 +96,23 @@ export function debugExpose(name: string, value: unknown): void {
 }
 const views: Record<string, unknown> = {};
 
+const eventLog: [string, unknown][] = [];
+let eventLogOn = false;
+
 /** HUD 씬 create 에서 호출 */
 export function installUiDebug(scene: Phaser.Scene): void {
   if (!uiDebugEnabled()) return;
   scenePlugin = scene.scene;
+  if (!eventLogOn) {
+    eventLogOn = true;
+    for (const name of Object.values(UI_EVENTS)) {
+      if (name === UI_EVENTS.STATE) continue;
+      uiBus.on(name, (p: unknown) => {
+        eventLog.push([name, p]);
+        if (eventLog.length > 200) eventLog.shift();
+      });
+    }
+  }
   const api: DebugApi = {
     patch(p) {
       patch = p;
@@ -115,6 +137,9 @@ export function installUiDebug(scene: Phaser.Scene): void {
     chosen,
     view: views,
     muted: mutedLog,
+    snap: () => withDebug(uiCommands.getUiSnapshot()),
+    events: eventLog,
+    scenes: () => scenePlugin?.manager.getScenes(true).map((sc) => sc.sys.settings.key) ?? [],
   };
   (window as unknown as { __lopadUi?: DebugApi }).__lopadUi = api;
 }

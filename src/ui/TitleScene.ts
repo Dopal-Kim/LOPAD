@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { uiCommands } from '../contract/ui';
+import { UI_SCREEN, uiCommands } from '../contract/ui';
 import { GlowText } from './glow';
 import { DARK_BG, KIT, fontsReady, preloadKit, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
@@ -36,8 +36,8 @@ export class TitleScene extends Phaser.Scene {
   }
 
   private build(): void {
-    const W = this.scale.width;
-    const H = this.scale.height;
+    const W = UI_SCREEN.WIDTH;
+    const H = UI_SCREEN.HEIGHT;
     const cx = W / 2;
     // 펼친 일기장 (160×96) 2배 정수 확대
     if (this.textures.exists(KIT.titleDiary)) this.add.image(cx, 128, KIT.titleDiary).setScale(2);
@@ -84,7 +84,7 @@ export class TitleScene extends Phaser.Scene {
       controlsLine(uiCommands.getUiSnapshot().weapon.secondaryName),
       'ink_faint',
       {
-        wrap: W - 160,
+        wrap: W - 48,
         align: 'center',
       },
     );
