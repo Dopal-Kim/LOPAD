@@ -1,0 +1,43 @@
+{
+ "image": "boss1_pillar.png",
+ "frameWidth": 160,
+ "frameHeight": 448,
+ "frames": 3,
+ "directions": [
+  "any"
+ ],
+ "frameDurationsMs": [
+  1000,
+  70,
+  120
+ ],
+ "footprint": [
+  2,
+  2
+ ],
+ "solid": true,
+ "pivot": {
+  "x": 80,
+  "y": 440
+ },
+ "occludeAbove": 112,
+ "depth": "y",
+ "pixelScale": 0.5,
+ "version": "v3",
+ "states": {
+  "idle": [
+   0
+  ],
+  "hit": [
+   1,
+   2
+  ]
+ },
+ "stateNote": "hit = 돌진 충돌(보스 경직)·술통 튕김 순간 1회 재생 후 idle. 금은 그림에만(내구도 없음)",
+ "pivotNote": "pivot = 발자국(2×2 = 128×128 도트) 맨 아래 줄 가운데, 바닥 위 4 도트(논리 2px) — 계약 §14 bigProps 와 같은 규칙",
+ "placement": "보스방 기둥 짝 2쌍(54라운드 Q11) — 대칭 배치, 엄폐·술통 튕김. 테두리 북쪽 기둥과 3칸 이상 떨어지게",
+ "floor": "stage1",
+ "palette": "parts/art/palette/lopad.json gray + 1층 램프 16~27 + v2 재질 SL·WD·PL — 새 색 없음. 연회장 소품 v3(tiles/v3/stage1_hall_props)와 같은 재질 램프. floor: stage1(층 테마 구조물 — 1층 램프로 그림)",
+ "source": "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)",
+ "colors": 18
+}

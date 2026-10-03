@@ -9,3 +9,4 @@
 {"time": "2026-10-02T17:22:09", "id": "map_f1", "tag": "b", "model": "gemini-3.1-flash-image", "aspect": "16:9", "refs": ["map_f1/raw_a.jpg"], "http": 200, "seconds": 9.6, "ok": true, "finishReason": "STOP"}
 {"time": "2026-10-02T17:38:42", "id": "concept_v2_outer", "tag": "a", "model": "gemini-3.1-flash-image", "aspect": "16:9", "refs": [], "http": 200, "seconds": 8.7, "ok": true, "finishReason": "STOP"}
 {"time": "2026-10-02T17:39:09", "id": "concept_v2_outer", "tag": "b", "model": "gemini-3.1-flash-image", "aspect": "16:9", "refs": ["concept_v2_outer/raw_a.jpg"], "http": 200, "seconds": 10.7, "ok": true, "finishReason": "STOP"}
+{"time": "2026-10-03T09:36:45", "id": "concept_char", "tag": "boss_c", "model": "gemini-3.1-flash-image", "aspect": "16:9", "refs": [], "http": 200, "seconds": 8.7, "ok": true, "finishReason": "STOP"}

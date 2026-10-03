@@ -1,0 +1,61 @@
+{
+ "image": "boss1_torch.png",
+ "action": "boss1_torch",
+ "frameWidth": 96,
+ "frameHeight": 48,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "1행",
+ "frameIndex": "column",
+ "fps": 16.67,
+ "frameDurationsMs": [
+  60,
+  60,
+  60,
+  60
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 62,
+  "y": 24
+ },
+ "anchor": "projectile",
+ "spawn": "boss_throw_torch_release",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 이펙트: 주인공 재·호박 램프(#3f271d~#f4de9b = 1층 램프 A17~A26) + 백열 X0 #ffffff / X1 #fff4dc + 유리 파편 회색(G10~G13). paletteSwap none",
+ "drawOver": "lightmap",
+ "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
+ "source": "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)",
+ "note": "횃불 투사체(54라운드 '불붙은 술' — 웅덩이 점화). 불 머리 = 진행 방향(drawnFacing right), 꼬리 불꽃이 뒤로 끌림",
+ "colors": 12,
+ "rotate": true,
+ "drawnFacing": "right",
+ "light": {
+  "color": "#e8b858",
+  "radius": 160,
+  "intensity": 0.8,
+  "flicker": {
+   "amp": 0.25,
+   "hz": 9
+  },
+  "offset": {
+   "x": 62,
+   "y": 22
+  }
+ },
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "spawnNote": "보스 stage1_throw_torch releaseFrame 의 handAnchors 점에서 생성. 착지하면 fx/fire_pool(웅덩이 점화)"
+}

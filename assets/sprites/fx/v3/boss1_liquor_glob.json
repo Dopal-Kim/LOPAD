@@ -1,0 +1,42 @@
+{
+ "image": "boss1_liquor_glob.png",
+ "action": "boss1_liquor_glob",
+ "frameWidth": 48,
+ "frameHeight": 32,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "1행",
+ "frameIndex": "column",
+ "fps": 14.29,
+ "frameDurationsMs": [
+  70,
+  70,
+  70,
+  70
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 30,
+  "y": 16
+ },
+ "anchor": "projectile",
+ "spawn": "boss_throw_release",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 이펙트: 주인공 재·호박 램프(#3f271d~#f4de9b = 1층 램프 A17~A26) + 백열 X0 #ffffff / X1 #fff4dc + 유리 파편 회색(G10~G13). paletteSwap none",
+ "drawOver": "lightmap",
+ "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
+ "source": "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)",
+ "note": "뿌린 술 방울 투사체(술 뿌리기). 착지하면 boss1_liquor_splash + 술 웅덩이(불붙은 술 패턴의 연료)",
+ "colors": 5,
+ "rotate": true,
+ "drawnFacing": "right",
+ "emissiveColors": [
+  "#e2a33c"
+ ],
+ "spawnNote": "보스 stage1_throw releaseFrame 의 handAnchors(잔 테) 점에서 부채꼴로 생성"
+}

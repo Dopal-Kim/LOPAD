@@ -1,0 +1,53 @@
+{
+ "image": "boss1_cup_shatter.png",
+ "action": "boss1_cup_shatter",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "frames": 8,
+ "directions": [
+  "any"
+ ],
+ "layout": "1행",
+ "frameIndex": "column",
+ "fps": 13.11,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  70,
+  80,
+  90,
+  100,
+  120
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 64,
+  "y": 60
+ },
+ "anchor": "cup_anchor",
+ "spawn": "drink_break_frame0",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 이펙트: 주인공 재·호박 램프(#3f271d~#f4de9b = 1층 램프 A17~A26) + 백열 X0 #ffffff / X1 #fff4dc + 유리 파편 회색(G10~G13). paletteSwap none",
+ "drawOver": "lightmap",
+ "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
+ "source": "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)",
+ "note": "약점 잔이 깨짐(54라운드 Q6 '한 잔 더'): 0 = 백열 섬광 + 금(판정 프레임), 1~ = 유리 파편이 튀고 술 덩어리가 솟았다 떨어짐",
+ "colors": 13,
+ "anchorNote": "pivot = 잔 중심. 보스 drink 시트 cupAnchors 사각형 가운데(시트 도트 → 보스 피벗 기준 환산)에 놓는다",
+ "glowFrames": [
+  0
+ ],
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ]
+}

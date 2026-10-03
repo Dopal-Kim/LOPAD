@@ -1,0 +1,44 @@
+{
+ "image": "boss1_liquor_splash.png",
+ "action": "boss1_liquor_splash",
+ "frameWidth": 160,
+ "frameHeight": 96,
+ "frames": 7,
+ "directions": [
+  "any"
+ ],
+ "layout": "1행",
+ "frameIndex": "column",
+ "fps": 11.29,
+ "frameDurationsMs": [
+  50,
+  60,
+  70,
+  80,
+  90,
+  110,
+  160
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 80,
+  "y": 76
+ },
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 이펙트: 주인공 재·호박 램프(#3f271d~#f4de9b = 1층 램프 A17~A26) + 백열 X0 #ffffff / X1 #fff4dc + 유리 파편 회색(G10~G13). paletteSwap none",
+ "drawOver": "lightmap",
+ "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
+ "source": "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)",
+ "note": "술 튀김: 솟는 술 왕관 → 바닥 웅덩이로 퍼짐. 술 뿌리기 방울 착지·술통 터짐·뒤집어씀(머리 위 재생 시 scale 0.6 권장)",
+ "colors": 7,
+ "depth": "floor",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858"
+ ]
+}

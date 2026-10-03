@@ -1,0 +1,59 @@
+{
+ "image": "stage1_death.png",
+ "action": "death",
+ "frameWidth": 128,
+ "frameHeight": 192,
+ "frames": 14,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 8.75,
+ "frameDurationsMs": [
+  90,
+  70,
+  80,
+  90,
+  90,
+  90,
+  140,
+  80,
+  70,
+  60,
+  80,
+  100,
+  160,
+  400
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 64,
+  "y": 184
+ },
+ "pixelScale": 0.5,
+ "version": "v3",
+ "palette": "parts/art/palette/lopad.json (gray G00~15 + 1층 램프 16~27, 런타임 스왑 — 술·눈빛·볼·코·놋쇠만) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json). 새 색 없음 — 주인공·적 v3 와 같은 재·호박 계열",
+ "source": "parts/art/work/boss1_v3/build.py (54라운드 — 1층 보스 v3)",
+ "note": "v3 1층 보스 양조장주 '만취(滿醉)'(52라운드 Q2·Q5, 54라운드) · 128×192 도트 = 화면 64×96 · 개념 gemini/concept_char/raw_boss_c.jpg(54라운드 참고 이미지 없이 1회 재생성) — 눈으로 참고만, 도트는 직접",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "emissiveNote": "눈빛(A23~25)·술 표면 반짝임·횃불 불꽃만 자체 발광. 조명 곱하기 뒤 원색으로 다시 그림(적 v3 와 같음)",
+ "unitNote": "모든 좌표(pivot·*Anchors)는 이 시트 한 프레임 안의 도트(왼쪽 위 0,0). 논리 px = (도트 − pivot) × 0.5",
+ "actionNote": "충격 → 비틀 → 잔을 놓쳐 깨짐(3) → 무릎 → 북쪽(화면 위)으로 넘어짐(9 바닥 충격) → 왕관이 굴러 떨어짐 · 술 웅덩이 번짐",
+ "events": {
+  "cupShatterFrame": 3,
+  "groundHitFrame": 9,
+  "crownOffFrame": 8
+ }
+}
