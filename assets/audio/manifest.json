@@ -762,6 +762,362 @@
       "note": "적이 맞고 내는 짧은 숨(피격음과 겹쳐 쓰는 보조음)"
     },
     {
+      "id": "sfx/boss1_drink_lift",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_drink_lift.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 500,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "BOSS_TELEGRAPH",
+        "when": [
+          "boss:1",
+          "attack:drink",
+          "phase:lift"
+        ]
+      },
+      "note": "만취 큰 잔 들기. 옷 스침 + 유리잔 부딪힘 + 잔 속 술 출렁"
+    },
+    {
+      "id": "sfx/boss1_drink_gulp",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_drink_gulp.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 2000,
+      "loop": true,
+      "gainDb": -4,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:drink",
+          "phase:gulp"
+        ]
+      },
+      "note": "만취 꿀꺽꿀꺽 루프(2.0s, 마시는 2초 동안). 0.4초 간격 꿀꺽 5번 + 술 흐름 + 잔 속 거품. 잔이 깨지면 즉시 정지"
+    },
+    {
+      "id": "sfx/boss1_drink_finish",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_drink_finish.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1000,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:drink",
+          "phase:finish"
+        ]
+      },
+      "note": "만취 다 마심. '크아' 숨(노이즈 포먼트, 목소리 아님) + 잔 내려놓는 '탁'"
+    },
+    {
+      "id": "sfx/boss1_cup_shatter",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_cup_shatter.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1200,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:drink",
+          "phase:broken"
+        ]
+      },
+      "note": "약점 적중: 큰 잔 깨짐 + 술을 뒤집어씀(첨벙 + 물방울). 3초 경직 시작"
+    },
+    {
+      "id": "sfx/boss1_spin_start",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_spin_start.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 2200,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:spin",
+          "phase:start"
+        ]
+      },
+      "note": "'세상이 돈다' 시작. 2초 주기로 울렁이며 내려가는 저음 스윕 + 소용돌이 바람 + 희미한 이질 고음"
+    },
+    {
+      "id": "sfx/boss1_reel_telegraph",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_reel_telegraph.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 300,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_TELEGRAPH",
+        "when": [
+          "boss:1",
+          "attack:reel"
+        ]
+      },
+      "note": "3연 취권 돌진 예고(타당 1회, 최단 예고 300ms 에 맞춰 0.30s). 휘청이는 으르렁 + 엇박 발 끌림"
+    },
+    {
+      "id": "sfx/boss1_reel_dash",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_reel_dash.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 440,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:reel"
+        ]
+      },
+      "note": "3연 취권 돌진(타당 1회). 휘는 궤적처럼 흔들리는 무거운 바람 + 쿵 디딤 + 옷 펄럭. 1·2·3타 rate 1.0/1.06/1.12 권장"
+    },
+    {
+      "id": "sfx/boss1_fall",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_fall.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1100,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:reel",
+          "phase:fall"
+        ]
+      },
+      "note": "3연 돌진 뒤 넘어짐 '쿵'(2초 경직 시작). 큰 몸통 충격 + 한 번 튐 + 잔·소품 굴러감 + 먼지"
+    },
+    {
+      "id": "sfx/boss1_barrel_kick",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_barrel_kick.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 550,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:barrel",
+          "phase:kick"
+        ]
+      },
+      "note": "술통 걷어차기. 장화 타격 + 속 빈 나무통 울림 + 쇠테 틱 + 통 속 술 출렁"
+    },
+    {
+      "id": "sfx/boss1_barrel_roll",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_barrel_roll.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1200,
+      "loop": true,
+      "gainDb": -6,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:barrel",
+          "phase:roll"
+        ]
+      },
+      "note": "굴러가는 술통 루프(1.2s). 나무통 덜컹(0.12s 간격) + 낮은 굴림 + 속 술 출렁. 통이 멈추거나 부서지면 정지"
+    },
+    {
+      "id": "sfx/boss1_barrel_bounce",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_barrel_bounce.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 500,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:barrel",
+          "phase:bounce"
+        ]
+      },
+      "note": "술통이 벽·기둥에 튕김. 돌에 부딪히는 나무통 + 속 빈 울림 + 쇠테 덜그럭 + 술 출렁"
+    },
+    {
+      "id": "sfx/boss1_liquor_splash",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_liquor_splash.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 700,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:fire",
+          "phase:splash"
+        ]
+      },
+      "note": "술 뿌리기 '첨벙'. 휙 던지는 바람 + 바닥에 퍼지는 물소리 + 물방울"
+    },
+    {
+      "id": "sfx/boss1_torch_throw",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_torch_throw.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:fire",
+          "phase:throw"
+        ]
+      },
+      "note": "횃불 던지기. 빙글 도는 불 바람(9Hz 맥동) + 타닥"
+    },
+    {
+      "id": "sfx/boss1_ignite",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_ignite.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1100,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:fire",
+          "phase:ignite"
+        ]
+      },
+      "note": "술 웅덩이 점화 '화르륵'. 낮은 펑 + 치솟는 불길 + 타닥"
+    },
+    {
+      "id": "sfx/boss1_fire_loop",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_fire_loop.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 2000,
+      "loop": true,
+      "gainDb": -8,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:fire",
+          "phase:burn"
+        ]
+      },
+      "note": "불 번짐 루프(2.0s). 일렁이는 낮은 불길 + 쉿 + 무작위 타닥. 웅덩이가 꺼지면 정지"
+    },
+    {
+      "id": "sfx/boss1_candle_topple",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_candle_topple.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1000,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:darkness",
+          "phase:topple"
+        ]
+      },
+      "note": "촛대 쓰러짐(불 꺼짐). 쇠 촛대 넘어지는 쨍그랑 + 한 번 튐 + 불꽃 '훅' 꺼짐 + 내려앉는 저음"
+    },
+    {
+      "id": "sfx/boss1_candle_relight",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/boss1_candle_relight.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 700,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:darkness",
+          "phase:relight"
+        ]
+      },
+      "note": "촛대 다시 켜기(타격·E). 쇠 촛대 틱 + 불꽃이 '화륵' 붙음 + 작은 타닥"
+    },
+    {
+      "id": "sfx/boss1_phase_drink",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_phase_drink.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1800,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_PHASE",
+        "when": [
+          "boss:1"
+        ]
+      },
+      "note": "만취 페이즈 전환 들이켜기(선택, boss_phase 대신 또는 뒤에). 잔 출렁 + 빠른 꿀꺽 3번 + 큰 '크아' + 낮은 북"
+    },
+    {
       "id": "bgm/title",
       "kind": "bgm",
       "category": "bgm",

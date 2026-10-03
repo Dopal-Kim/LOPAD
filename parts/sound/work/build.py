@@ -1048,6 +1048,347 @@ def _enemy_hurt(sr, rng):
     return mul(g, env_adsr(sr, 0.1, 0.01, 0.0, 1.0, 0.06))
 
 
+# --- 1층 보스 '만취' 새 패턴 (54라운드) ----------------------------------------------
+# 반드시 기존 효과음 뒤에 둔다: 시드가 SFX 순서(1000 + i)라 앞에 끼우면 기존 파일이 바뀐다.
+# 목소리 금지 원칙(sound-design 1장)에 따라 '크아' 숨도 포먼트 필터 노이즈로만 만든다.
+
+GLASS = [(1, 1.0), (2.4, 0.4), (3.9, 0.15), (5.3, 0.08)]
+
+
+def tone_f(sr, freqs, kind='sine', phase=0.0):
+    """샘플별 주파수 배열을 따라가는 오실레이터(울렁임·흔들림용)."""
+    fn = _wave_fn(kind)
+    out = zeros(len(freqs))
+    p = phase
+    for i, f in enumerate(freqs):
+        out[i] = fn(p)
+        p += f / sr
+    return out
+
+
+def gulp(sr, rng, f0=110, f1=260, dur=0.16):
+    """꿀꺽 한 번: 목 넘김 둔탁음 + 낮게 올라가는 액체 톤 + 젖은 딸깍."""
+    g = mul(tone(sr, dur, f0, f1), env_adsr(sr, dur, 0.02, 0.0, 1.0, dur * 0.55))
+    g = lowpass(g, sr, 700)
+    mix_into(g, thud(sr, 0.08, 95, 50, 0.02), 0, 0.7)
+    mix_into(g, lowpass(click(sr, rng, 0.004, 1400), sr, 2000), sec(sr, dur * 0.5), 0.5)
+    return g
+
+
+def droplets(sr, rng, dur, count, t0, t1, f_lo=500, f_hi=1500, g=0.3):
+    """물방울·거품 블립: 짧게 올라가는 사인을 무작위 시각에 흩뿌린다."""
+    s = zeros(sec(sr, dur))
+    for _ in range(count):
+        f = rng.uniform(f_lo, f_hi)
+        d = rng.uniform(0.02, 0.045)
+        b = mul(tone(sr, d, f, f * rng.uniform(1.3, 1.8)), env_exp(sr, d, d * 0.35))
+        mix_into(s, b, sec(sr, rng.uniform(t0, t1)), g * rng.uniform(0.4, 1.0))
+    return s
+
+
+def slosh(sr, rng, dur, fc0=450, fc1=900):
+    """잔·통 안의 액체 출렁임: 흔들리는 밴드 노이즈 + 거품 몇 개."""
+    n = sec(sr, dur)
+    s = svf(noise(sr, dur, rng), sr, sweep(sr, n, fc0, fc1), 1.6, 'band')
+    am = lowpass([rng.uniform(-1, 1) for _ in range(n)], sr, 12)
+    am = normalize(am, 1.0)
+    s = mul(s, [0.55 + 0.45 * a for a in am])
+    s = mul(s, env_adsr(sr, dur, dur * 0.2, 0.0, 1.0, dur * 0.5))
+    mix_into(s, droplets(sr, rng, dur, 4, 0.0, dur * 0.7, 350, 800, 0.25), 0)
+    return s
+
+
+def kha(sr, rng, dur=0.7, rough=0.3):
+    """'크아' 숨 — 성대음 없이 노이즈만: 목 'ㅋ' 버스트 + 'ㅏ' 포먼트(F1 하강) + 거친 진폭 떨림."""
+    n = sec(sr, dur)
+    s = zeros(n)
+    mix_into(s, burst(sr, 0.035, rng, fc=2800, q=1.0, tau=0.008), 0, 0.8)
+    src = noise(sr, dur, rng)
+    f1 = svf(src, sr, sweep(sr, n, 820, 560), 5.0, 'band')
+    f2 = svf(src, sr, sweep(sr, n, 1250, 1050), 6.0, 'band')
+    f3 = svf(src, sr, 2600, 4.0, 'band')
+    a = [x * 0.22 + y * 0.12 + z * 0.05 for x, y, z in zip(f1, f2, f3)]
+    jit = normalize(lowpass([rng.uniform(-1, 1) for _ in range(n)], sr, 45), 1.0)
+    a = mul(a, [1.0 - rough + rough * j for j in jit])
+    a = mul(a, env_adsr(sr, dur, 0.035, 0.12, 0.6, dur * 0.6, curve=0.6))
+    mix_into(s, a, sec(sr, 0.02), 3.0)
+    chest = svf(noise(sr, dur * 0.6, rng), sr, 160, 0.8, 'low')
+    chest = mul(chest, env_adsr(sr, dur * 0.6, 0.03, 0.0, 1.0, dur * 0.4))
+    mix_into(s, chest, sec(sr, 0.02), 1.0)
+    return s
+
+
+def crackle(sr, rng, dur, count, g=0.4, wrap=False):
+    """불 타닥: 짧은 고역 딸깍 + 가끔 낮은 톡."""
+    s = zeros(sec(sr, dur))
+    for _ in range(count):
+        t = rng.uniform(0, dur)
+        c = burst(sr, 0.008, rng, fc=rng.uniform(1800, 5200), q=0.6, tau=rng.uniform(0.0015, 0.004))
+        mix_into(s, c, sec(sr, t), g * rng.uniform(0.3, 1.0), wrap=wrap)
+        if rng.random() < 0.2:
+            mix_into(s, thud(sr, 0.03, 260, 140, 0.008), sec(sr, t), g * 0.4, wrap=wrap)
+    return s
+
+
+@sfx('boss1_drink_lift', 'BOSS_TELEGRAPH{boss:1,attack:drink,phase:lift}', "만취 큰 잔 들기. 옷 스침 + 유리잔 부딪힘 + 잔 속 술 출렁", -3, category='boss')
+def _boss1_drink_lift(sr, rng):
+    s = zeros(sec(sr, 0.5))
+    mix_into(s, whoosh(sr, 0.3, rng, 400, 1200, q=0.8, a=0.4, r=0.5), 0, 0.3)
+    mix_into(s, metal(sr, 0.25, 1500, rng, partials=GLASS, tau=0.06, jitter=0.004), sec(sr, 0.06), 0.35)
+    mix_into(s, click(sr, rng, 0.003, 4500), sec(sr, 0.06), 0.4)
+    mix_into(s, slosh(sr, rng, 0.38), sec(sr, 0.1), 0.7)
+    return s
+
+
+@sfx('boss1_drink_gulp', 'BOSS_ATTACK{boss:1,attack:drink,phase:gulp}', "만취 꿀꺽꿀꺽 루프(2.0s, 마시는 2초 동안). 0.4초 간격 꿀꺽 5번 + 술 흐름 + 잔 속 거품. 잔이 깨지면 즉시 정지", -4, loop=True, category='boss')
+def _boss1_drink_gulp(sr, rng):
+    dur = 2.0
+    n = sec(sr, dur)
+    s = wrap2(lambda x: svf(x, sr, 520, 0.9, 'band'), noise_loop(sr, n, rng))
+    s = mul(s, lfo_loop(sr, n, 2.5, 0.35, 0.45))
+    s = scale(s, 0.28)
+    for k in range(5):
+        t0 = 0.05 + 0.4 * k + rng.uniform(-0.015, 0.015)
+        f0 = 105 + rng.uniform(-8, 8)
+        mix_into(s, gulp(sr, rng, f0, f0 * 2.35, 0.17), sec(sr, t0), 0.9, wrap=True)
+        bub = mul(tone(sr, 0.045, 320, 560), env_exp(sr, 0.045, 0.014))
+        mix_into(s, bub, sec(sr, t0 + 0.22), 0.18, wrap=True)
+    return s
+
+
+@sfx('boss1_drink_finish', 'BOSS_ATTACK{boss:1,attack:drink,phase:finish}', "만취 다 마심. '크아' 숨(노이즈 포먼트, 목소리 아님) + 잔 내려놓는 '탁'", -2, category='boss')
+def _boss1_drink_finish(sr, rng):
+    s = zeros(sec(sr, 1.0))
+    mix_into(s, kha(sr, rng, 0.7, 0.3), 0, 1.0)
+    mix_into(s, thud(sr, 0.12, 320, 160, 0.025), sec(sr, 0.72), 0.35)
+    mix_into(s, metal(sr, 0.15, 1400, rng, partials=GLASS, tau=0.03, jitter=0.004), sec(sr, 0.72), 0.12)
+    return reverb(s, sr, size=0.7, decay=0.5, wet=0.15)
+
+
+@sfx('boss1_cup_shatter', 'BOSS_ATTACK{boss:1,attack:drink,phase:broken}', "약점 적중: 큰 잔 깨짐 + 술을 뒤집어씀(첨벙 + 물방울). 3초 경직 시작", 0, category='boss')
+def _boss1_cup_shatter(sr, rng):
+    s = zeros(sec(sr, 1.2))
+    mix_into(s, burst(sr, 0.04, rng, fc=4200, q=0.5, tau=0.006), 0, 1.2)
+    mix_into(s, thud(sr, 0.1, 420, 200, 0.02), 0, 0.5)
+    for k in range(14):
+        t0 = rng.expovariate(1 / 0.08)
+        if t0 > 0.4:
+            t0 = rng.uniform(0.0, 0.4)
+        sh = metal(sr, 0.18, rng.uniform(2500, 6500), rng, partials=GLASS, tau=rng.uniform(0.025, 0.06), jitter=0.01)
+        mix_into(s, sh, sec(sr, t0), 0.35 * (1 - 0.04 * k))
+    n = sec(sr, 0.8)
+    sp = svf(noise(sr, 0.8, rng), sr, sweep(sr, n, 3000, 600), 0.7, 'low')
+    sp = mul(sp, env_adsr(sr, 0.8, 0.01, 0.1, 0.5, 0.6))
+    mix_into(s, sp, sec(sr, 0.04), 0.7)
+    mix_into(s, burst(sr, 0.06, rng, fc=900, q=0.7, tau=0.02), sec(sr, 0.05), 0.6)
+    mix_into(s, droplets(sr, rng, 1.0, 12, 0.15, 0.9, 600, 1600, 0.3), 0)
+    return reverb(s, sr, size=0.7, decay=0.5, wet=0.15)
+
+
+@sfx('boss1_spin_start', 'BOSS_ATTACK{boss:1,attack:spin,phase:start}', "'세상이 돈다' 시작. 2초 주기로 울렁이며 내려가는 저음 스윕 + 소용돌이 바람 + 희미한 이질 고음", -2, category='boss')
+def _boss1_spin_start(sr, rng):
+    dur = 2.0
+    n = sec(sr, dur)
+    s = zeros(n)
+    wob = [math.sin(TAU * 0.5 * i / sr) for i in range(n)]
+    base = sweep(sr, n, 72, 46)
+    fa = [b * (1 + 0.06 * w) for b, w in zip(base, wob)]
+    fb = [f * 1.03 for f in fa]
+    lo = add(tone_f(sr, fa, 'saw'), tone_f(sr, fb, 'saw'))
+    cut = [380 + 260 * w for w in wob]
+    lo = svf(lo, sr, cut, 1.4, 'low')
+    lo = mul(lo, env_adsr(sr, dur, 0.5, 0.0, 1.0, 0.7))
+    mix_into(s, lo, 0, 0.6)
+    wind = svf(noise(sr, dur, rng), sr, [700 + 450 * w for w in wob], 1.2, 'band')
+    wind = mul(wind, env_adsr(sr, dur, 0.6, 0.0, 1.0, 0.8))
+    mix_into(s, wind, 0, 0.35)
+    hi = tone_f(sr, [2900 * (1 + 0.012 * w) for w in wob])
+    mix_into(s, mul(hi, env_adsr(sr, dur, 0.7, 0.0, 1.0, 0.9)), 0, 0.03)
+    return reverb(tail(s, sr, 0.2), sr, size=1.2, decay=0.75, wet=0.3)
+
+
+@sfx('boss1_reel_telegraph', 'BOSS_TELEGRAPH{boss:1,attack:reel}', "3연 취권 돌진 예고(타당 1회, 최단 예고 300ms 에 맞춰 0.30s). 휘청이는 으르렁 + 엇박 발 끌림", -2, category='boss')
+def _boss1_reel_telegraph(sr, rng):
+    dur = 0.3
+    n = sec(sr, dur)
+    f = [(60 + 70 * i / n) * (1 + 0.08 * math.sin(TAU * 11 * i / sr)) for i in range(n)]
+    g = svf(tone_f(sr, f, 'saw'), sr, sweep(sr, n, 250, 900), 1.4, 'low')
+    g = mul(g, env_adsr(sr, dur, 0.04, 0.0, 1.0, 0.05))
+    s = scale(g, 0.8)
+    for t0, fq in [(0.0, 200), (0.13, 170)]:
+        mix_into(s, thud(sr, 0.06, fq, fq * 0.55, 0.015), sec(sr, t0), 0.7)
+        sc = mul(svf(noise(sr, 0.08, rng), sr, 1600, 0.8, 'band'), env_adsr(sr, 0.08, 0.01, 0.0, 1.0, 0.05))
+        mix_into(s, sc, sec(sr, t0), 0.3)
+    return s
+
+
+@sfx('boss1_reel_dash', 'BOSS_ATTACK{boss:1,attack:reel}', "3연 취권 돌진(타당 1회). 휘는 궤적처럼 흔들리는 무거운 바람 + 쿵 디딤 + 옷 펄럭. 1·2·3타 rate 1.0/1.06/1.12 권장", -2, category='boss')
+def _boss1_reel_dash(sr, rng):
+    dur = 0.4
+    n = sec(sr, dur)
+    cut = [380 * math.exp(math.log(1400 / 380) * i / n) * (1 + 0.3 * math.sin(TAU * 7 * i / sr)) for i in range(n)]
+    w = svf(noise(sr, dur, rng), sr, cut, 0.9, 'band')
+    w = mul(w, env_adsr(sr, dur, 0.06, 0.0, 1.0, 0.2))
+    mix_into(w, thud(sr, 0.12, 130, 55, 0.035), 0, 0.9)
+    mix_into(w, burst(sr, 0.06, rng, fc=500, q=0.6, tau=0.015, mode='low'), 0, 0.6)
+    flap = svf(noise(sr, 0.25, rng), sr, 2200, 0.8, 'band')
+    flap = mul(mul(flap, [0.5 + 0.5 * math.sin(TAU * 16 * i / sr) for i in range(sec(sr, 0.25))]),
+               env_adsr(sr, 0.25, 0.03, 0.0, 1.0, 0.15))
+    mix_into(w, flap, sec(sr, 0.05), 0.2)
+    return tail(w, sr, 0.04)
+
+
+@sfx('boss1_fall', 'BOSS_ATTACK{boss:1,attack:reel,phase:fall}', "3연 돌진 뒤 넘어짐 '쿵'(2초 경직 시작). 큰 몸통 충격 + 한 번 튐 + 잔·소품 굴러감 + 먼지", 0, category='boss')
+def _boss1_fall(sr, rng):
+    s = zeros(sec(sr, 1.1))
+    mix_into(s, kick(sr, 0.6, 90, 30, 0.16, rng=rng), 0, 1.4)
+    mix_into(s, burst(sr, 0.3, rng, fc=250, q=0.6, tau=0.08, mode='low'), 0, 1.0)
+    mix_into(s, thud(sr, 0.3, 110, 45, 0.06), sec(sr, 0.18), 0.6)
+    for k, t0 in enumerate([0.26, 0.35, 0.41, 0.46]):
+        mix_into(s, thud(sr, 0.06, 420 - 40 * k, 260, 0.015), sec(sr, t0), 0.3 - 0.05 * k)
+    dust = mul(svf(noise(sr, 0.6, rng), sr, 900, 0.7, 'low'), env_adsr(sr, 0.6, 0.05, 0.0, 1.0, 0.45))
+    mix_into(s, dust, sec(sr, 0.03), 0.2)
+    s = softclip(s, 1.4)
+    return reverb(s, sr, size=1.0, decay=0.6, wet=0.22)
+
+
+@sfx('boss1_barrel_kick', 'BOSS_ATTACK{boss:1,attack:barrel,phase:kick}', "술통 걷어차기. 장화 타격 + 속 빈 나무통 울림 + 쇠테 틱 + 통 속 술 출렁", -1, category='boss')
+def _boss1_barrel_kick(sr, rng):
+    s = zeros(sec(sr, 0.55))
+    mix_into(s, burst(sr, 0.03, rng, fc=1500, q=0.6, tau=0.006), 0, 0.8)
+    mix_into(s, thud(sr, 0.25, 160, 110, 0.07), 0, 1.0)
+    for fc, g in [(230, 0.9), (520, 0.5)]:
+        mix_into(s, burst(sr, 0.3, rng, fc=fc, q=6.0, tau=0.08), 0, g)
+    mix_into(s, metal(sr, 0.12, 1100, rng, tau=0.02, jitter=0.03), 0, 0.15)
+    mix_into(s, slosh(sr, rng, 0.4, 350, 700), sec(sr, 0.05), 0.4)
+    return s
+
+
+@sfx('boss1_barrel_roll', 'BOSS_ATTACK{boss:1,attack:barrel,phase:roll}', "굴러가는 술통 루프(1.2s). 나무통 덜컹(0.12s 간격) + 낮은 굴림 + 속 술 출렁. 통이 멈추거나 부서지면 정지", -6, loop=True, category='boss')
+def _boss1_barrel_roll(sr, rng):
+    dur = 1.2
+    n = sec(sr, dur)
+    rum = wrap2(lambda x: svf(x, sr, 180, 0.8, 'low'), noise_loop(sr, n, rng))
+    s = mul(rum, lfo_loop(sr, n, 1 / 0.6, 0.3, 0.7))
+    liq = wrap2(lambda x: svf(x, sr, 600, 1.5, 'band'), noise_loop(sr, n, rng))
+    mix_into(s, mul(liq, lfo_loop(sr, n, 1 / 0.6, 0.5, 0.5, 0.25)), 0, 0.25)
+    for k in range(10):
+        accent = 1.0 if k % 5 == 0 else rng.uniform(0.45, 0.7)
+        t0 = 0.12 * k + rng.uniform(-0.006, 0.006)
+        mix_into(s, thud(sr, 0.06, 150, 95, 0.02), sec(sr, t0), 0.45 * accent, wrap=True)
+        mix_into(s, burst(sr, 0.02, rng, fc=1300, q=0.7, tau=0.004), sec(sr, t0), 0.12 * accent, wrap=True)
+    return s
+
+
+@sfx('boss1_barrel_bounce', 'BOSS_ATTACK{boss:1,attack:barrel,phase:bounce}', "술통이 벽·기둥에 튕김. 돌에 부딪히는 나무통 + 속 빈 울림 + 쇠테 덜그럭 + 술 출렁", -2, category='boss')
+def _boss1_barrel_bounce(sr, rng):
+    s = zeros(sec(sr, 0.5))
+    mix_into(s, thud(sr, 0.3, 130, 60, 0.06), 0, 1.2)
+    for fc, g in [(210, 0.9), (480, 0.5)]:
+        mix_into(s, burst(sr, 0.3, rng, fc=fc, q=6.0, tau=0.07), 0, g)
+    mix_into(s, burst(sr, 0.03, rng, fc=2500, q=0.6, tau=0.01), 0, 0.6)
+    mix_into(s, burst(sr, 0.1, rng, fc=400, q=0.6, tau=0.025, mode='low'), 0, 0.5)
+    mix_into(s, metal(sr, 0.15, 950, rng, tau=0.03, jitter=0.04), sec(sr, 0.01), 0.2)
+    mix_into(s, slosh(sr, rng, 0.35, 350, 700), sec(sr, 0.04), 0.35)
+    return reverb(s, sr, size=0.8, decay=0.5, wet=0.12)
+
+
+@sfx('boss1_liquor_splash', 'BOSS_ATTACK{boss:1,attack:fire,phase:splash}', "술 뿌리기 '첨벙'. 휙 던지는 바람 + 바닥에 퍼지는 물소리 + 물방울", -3, category='boss')
+def _boss1_liquor_splash(sr, rng):
+    s = zeros(sec(sr, 0.7))
+    mix_into(s, whoosh(sr, 0.15, rng, 1200, 500, q=1.0, a=0.3, r=0.5), 0, 0.3)
+    n = sec(sr, 0.55)
+    sp = svf(noise(sr, 0.55, rng), sr, sweep(sr, n, 4000, 700), 0.7, 'low')
+    sp = mul(sp, env_adsr(sr, 0.55, 0.005, 0.08, 0.45, 0.4))
+    mix_into(s, sp, sec(sr, 0.08), 1.0)
+    mix_into(s, burst(sr, 0.05, rng, fc=900, q=0.7, tau=0.02), sec(sr, 0.08), 0.7)
+    mix_into(s, droplets(sr, rng, 0.7, 10, 0.14, 0.6, 600, 1600, 0.28), 0)
+    return s
+
+
+@sfx('boss1_torch_throw', 'BOSS_ATTACK{boss:1,attack:fire,phase:throw}', "횃불 던지기. 빙글 도는 불 바람(9Hz 맥동) + 타닥", -3, category='boss')
+def _boss1_torch_throw(sr, rng):
+    dur = 0.55
+    n = sec(sr, dur)
+    trem = [0.45 + 0.55 * (0.5 + 0.5 * math.sin(TAU * 9 * i / sr)) for i in range(n)]
+    w = svf(noise(sr, dur, rng), sr, sweep(sr, n, 500, 1800), 1.0, 'band')
+    w = mul(mul(w, trem), env_adsr(sr, dur, 0.08, 0.0, 1.0, 0.25))
+    roar = svf(noise(sr, dur, rng), sr, 300, 0.7, 'low')
+    roar = mul(mul(roar, trem), env_adsr(sr, dur, 0.08, 0.0, 1.0, 0.25))
+    mix_into(w, roar, 0, 0.6)
+    mix_into(w, crackle(sr, rng, dur, 6, 0.4), 0)
+    return tail(w, sr, 0.05)
+
+
+@sfx('boss1_ignite', 'BOSS_ATTACK{boss:1,attack:fire,phase:ignite}', "술 웅덩이 점화 '화르륵'. 낮은 펑 + 치솟는 불길 + 타닥", -1, category='boss')
+def _boss1_ignite(sr, rng):
+    dur = 1.1
+    n = sec(sr, dur)
+    s = zeros(n)
+    mix_into(s, thud(sr, 0.3, 80, 40, 0.07), 0, 0.8)
+    roar = svf(noise(sr, dur, rng), sr, sweep(sr, n, 200, 2500), 0.7, 'low')
+    roar = mul(roar, env_adsr(sr, dur, 0.06, 0.15, 0.55, 0.8))
+    mix_into(s, roar, 0, 1.0)
+    mix_into(s, crackle(sr, rng, 0.9, 16, 0.35), sec(sr, 0.15))
+    s = softclip(s, 1.3)
+    return reverb(s, sr, size=0.8, decay=0.5, wet=0.15)
+
+
+@sfx('boss1_fire_loop', 'BOSS_ATTACK{boss:1,attack:fire,phase:burn}', "불 번짐 루프(2.0s). 일렁이는 낮은 불길 + 쉿 + 무작위 타닥. 웅덩이가 꺼지면 정지", -8, loop=True, category='boss')
+def _boss1_fire_loop(sr, rng):
+    dur = 2.0
+    n = sec(sr, dur)
+    s = wrap2(lambda x: svf(x, sr, 400, 0.7, 'low'), noise_loop(sr, n, rng))
+    flick = [a * b for a, b in zip(lfo_loop(sr, n, 0.5, 0.25, 0.75), lfo_loop(sr, n, 1.5, 0.15, 0.85, 0.3))]
+    s = mul(s, flick)
+    hiss = wrap2(lambda x: svf(x, sr, 3000, 0.7, 'high'), noise_loop(sr, n, rng))
+    mix_into(s, hiss, 0, 0.05)
+    mix_into(s, crackle(sr, rng, dur, 22, 0.45, wrap=True), 0)
+    return s
+
+
+@sfx('boss1_candle_topple', 'BOSS_ATTACK{boss:1,attack:darkness,phase:topple}', "촛대 쓰러짐(불 꺼짐). 쇠 촛대 넘어지는 쨍그랑 + 한 번 튐 + 불꽃 '훅' 꺼짐 + 내려앉는 저음", -2, category='boss')
+def _boss1_candle_topple(sr, rng):
+    s = zeros(sec(sr, 1.0))
+    mix_into(s, whoosh(sr, 0.15, rng, 600, 300, q=0.8, a=0.6, r=0.3), 0, 0.2)
+    mix_into(s, metal(sr, 0.6, 520, rng, tau=0.15, jitter=0.02), sec(sr, 0.15), 0.7)
+    mix_into(s, thud(sr, 0.15, 180, 80, 0.03), sec(sr, 0.15), 0.6)
+    mix_into(s, metal(sr, 0.4, 610, rng, tau=0.1, jitter=0.03), sec(sr, 0.32), 0.35)
+    mix_into(s, metal(sr, 0.15, 900, rng, tau=0.03, jitter=0.05), sec(sr, 0.42), 0.15)
+    n = sec(sr, 0.18)
+    puff = svf(noise(sr, 0.18, rng), sr, sweep(sr, n, 800, 300), 0.9, 'band')
+    puff = mul(puff, env_adsr(sr, 0.18, 0.01, 0.0, 1.0, 0.14))
+    mix_into(s, puff, sec(sr, 0.14), 0.5)
+    mix_into(s, mul(tone(sr, 0.6, 120, 60), env_adsr(sr, 0.6, 0.05, 0.0, 1.0, 0.45)), sec(sr, 0.2), 0.2)
+    return reverb(s, sr, size=1.0, decay=0.6, wet=0.2)
+
+
+@sfx('boss1_candle_relight', 'BOSS_ATTACK{boss:1,attack:darkness,phase:relight}', "촛대 다시 켜기(타격·E). 쇠 촛대 틱 + 불꽃이 '화륵' 붙음 + 작은 타닥", -3, category='world')
+def _boss1_candle_relight(sr, rng):
+    s = zeros(sec(sr, 0.7))
+    mix_into(s, metal(sr, 0.1, 2200, rng, tau=0.012, jitter=0.02), 0, 0.3)
+    mix_into(s, click(sr, rng, 0.004, 3500), 0, 0.3)
+    n = sec(sr, 0.25)
+    fw = svf(noise(sr, 0.25, rng), sr, sweep(sr, n, 500, 2500), 0.9, 'band')
+    fw = mul(fw, env_adsr(sr, 0.25, 0.12, 0.0, 1.0, 0.1))
+    mix_into(s, fw, sec(sr, 0.03), 1.2)
+    warm = mul(svf(noise(sr, 0.45, rng), sr, 350, 0.7, 'low'), env_adsr(sr, 0.45, 0.08, 0.0, 1.0, 0.3))
+    mix_into(s, warm, sec(sr, 0.12), 0.5)
+    mix_into(s, crackle(sr, rng, 0.4, 5, 0.25), sec(sr, 0.22))
+    return reverb(s, sr, size=0.7, decay=0.5, wet=0.15)
+
+
+@sfx('boss1_phase_drink', 'BOSS_PHASE{boss:1}', "만취 페이즈 전환 들이켜기(선택, boss_phase 대신 또는 뒤에). 잔 출렁 + 빠른 꿀꺽 3번 + 큰 '크아' + 낮은 북", 0, category='boss')
+def _boss1_phase_drink(sr, rng):
+    s = zeros(sec(sr, 1.8))
+    mix_into(s, slosh(sr, rng, 0.25), 0, 0.5)
+    for k, t0 in enumerate([0.2, 0.42, 0.62]):
+        mix_into(s, gulp(sr, rng, 92 + 6 * k, 220 + 15 * k, 0.18), sec(sr, t0), 1.0)
+    mix_into(s, kha(sr, rng, 0.9, 0.4), sec(sr, 0.85), 1.3)
+    mix_into(s, kick(sr, 0.5, 95, 32, 0.15, rng=rng), sec(sr, 0.85), 0.9)
+    return reverb(s, sr, size=1.2, decay=0.7, wet=0.3)
+
+
 # ---------------------------------------------------------------------------
 # BGM 정의 — 각 함수는 루프 길이에 맞춘 버퍼를 돌려준다 (22.05 kHz).
 # 설계: 모든 음은 wrap=True 로 섞고, 리버브는 loop=True 로 처리해 경계가 이어진다.

@@ -87,6 +87,37 @@
 | boss_phase | 1.30 s | `BOSS_PHASE` | 낮은 북 + 불협(√2 배음) 쇳소리 부풀기 | 0 |
 | boss_die | 2.20 s | `BOSS_DIED` | 160→30 추락 + 북 + 쇠 조각 5개 흩어짐 | 0 |
 
+### 4-3-1. 1층 보스 '만취' 새 패턴 (54라운드, 18종)
+결정 근거: `parts/producer/decisions/2026-10-03-round-54-boss1-patterns.md`. 기존 제작 방식(build.py 절차 합성, 44.1 kHz/16 bit/mono, 피크 -6 dBFS)을 그대로 따랐다. 목소리 금지 원칙에 따라 '크아' 숨은 성대음 없이 노이즈 포먼트(F1 820→560, F2 1250→1050, F3 2600 Hz)와 거친 진폭 떨림으로만 만든다. 새 재료 **유리(잔)·액체(술)·불**은 기존 4재료의 보조로만 쓴다. 트리거는 **제안**(시스템이 실제 이벤트·패턴 이름으로 확정).
+
+| id | 길이 | 루프 | 트리거 제안 | 질감 | gainDb |
+|---|---|---|---|---|---|
+| boss1_drink_lift | 0.50 s | - | `BOSS_TELEGRAPH` attack:drink phase:lift | 옷 스침 + 유리잔 틱 + 잔 속 출렁 | -3 |
+| boss1_drink_gulp | 2.00 s | 루프 | `BOSS_ATTACK` attack:drink phase:gulp | 0.4 s 간격 꿀꺽 5번(105→245 Hz 액체 톤 + 목 둔탁음) + 흐름 노이즈 + 거품 | -4 |
+| boss1_drink_finish | 1.00 s | - | `BOSS_ATTACK` attack:drink phase:finish | '크아'(노이즈 포먼트) + 잔 내려놓는 '탁' | -2 |
+| boss1_cup_shatter | 1.20 s | - | `BOSS_ATTACK` attack:drink phase:broken (약점 적중) | 깨짐 크랙 + 유리 조각 14개 + 뒤집어쓰는 첨벙 + 물방울 | 0 |
+| boss1_spin_start | 2.20 s | - | `BOSS_ATTACK` attack:spin phase:start | 72→46 Hz 톱니 두 겹(3% 디튠 맥놀이), 0.5 Hz(주기 2 s, 화면 기울기와 같음) 피치·컷오프 울렁임 + 소용돌이 바람 + 희미한 2.9 kHz 이질 고음 | -2 |
+| boss1_reel_telegraph | 0.30 s | - | `BOSS_TELEGRAPH` attack:reel (타당 1회) | 11 Hz 휘청이는 60→130 Hz 으르렁 + 엇박 발 끌림 2회. 최단 예고 300 ms 에 맞춤 | -2 |
+| boss1_reel_dash | 0.44 s | - | `BOSS_ATTACK` attack:reel (타당 1회) | 380→1400 Hz 바람, 컷오프 7 Hz 흔들림(휘는 궤적) + 디딤 + 옷 펄럭 | -2 |
+| boss1_fall | 1.10 s | - | `BOSS_ATTACK` attack:reel phase:fall | 큰 몸통 충격 + 한 번 튐 + 소품 구름 4회 + 먼지 | 0 |
+| boss1_barrel_kick | 0.55 s | - | `BOSS_ATTACK` attack:barrel phase:kick | 장화 타격 + 속 빈 통 공명(230·520 Hz) + 쇠테 틱 + 출렁 | -1 |
+| boss1_barrel_roll | 1.20 s | 루프 | `BOSS_ATTACK` attack:barrel phase:roll | 0.12 s 간격 덜컹 10회(0.6 s 마다 강세) + 180 Hz 굴림 + 속 술 출렁 | -6 |
+| boss1_barrel_bounce | 0.50 s | - | `BOSS_ATTACK` attack:barrel phase:bounce | 돌에 부딪는 통 + 공명(210·480 Hz) + 쇠테 덜그럭 + 출렁 | -2 |
+| boss1_liquor_splash | 0.70 s | - | `BOSS_ATTACK` attack:fire phase:splash | 휙 + 4k→700 Hz 첨벙 + 물방울 10개 | -3 |
+| boss1_torch_throw | 0.60 s | - | `BOSS_ATTACK` attack:fire phase:throw | 9 Hz 맥동하는 불 바람(회전) + 타닥 | -3 |
+| boss1_ignite | 1.10 s | - | `BOSS_ATTACK` attack:fire phase:ignite | 낮은 펑 + 200→2.5k 치솟는 불길 + 타닥 16 | -1 |
+| boss1_fire_loop | 2.00 s | 루프 | `BOSS_ATTACK` attack:fire phase:burn | 일렁이는 400 Hz 불길(0.5·1.5 Hz) + 쉿 + 타닥 22 | -8 |
+| boss1_candle_topple | 1.00 s | - | `BOSS_ATTACK` attack:darkness phase:topple | 쇠 촛대 쨍그랑(520 Hz) + 튐 + 불꽃 '훅' + 120→60 Hz 내려앉음 | -2 |
+| boss1_candle_relight | 0.70 s | - | `BOSS_ATTACK` attack:darkness phase:relight | 촛대 틱 + 500→2.5k '화륵' + 따뜻한 저역 + 작은 타닥 | -3 |
+| boss1_phase_drink | 1.80 s | - | `BOSS_PHASE` boss:1 (선택) | 잔 출렁 + 빠른 꿀꺽 3번 + 큰 '크아' + 낮은 북 | 0 |
+
+연결 권장:
+- 마시기 2 s = lift → gulp(루프, 2.0 s 한 바퀴) → finish. 약점 적중 시 gulp 즉시 정지 후 cup_shatter.
+- 3연 취권: 매 돌진마다 reel_telegraph(예고 시작) → reel_dash(실행). 1·2·3타 재생 속도 1.0/1.06/1.12 로 올리면 점점 격해지는 느낌. 세 번째 뒤 fall.
+- 루프 3종(gulp·barrel_roll·fire_loop)은 상태가 끝날 때 80~150 ms 페이드아웃 권장. fire_loop 는 웅덩이 여러 개여도 1개만 재생(가장 가까운 웅덩이 기준 음량) 권장.
+- 촛대 여러 개가 동시에 쓰러지면 20 ms 중복 규칙에 따라 1회 재생되므로, 시차(80~150 ms)를 두면 '연쇄로 꺼지는' 느낌이 난다.
+- phase_drink 는 선택: 기존 `boss_phase` 대신 쓰거나 뒤에 이어 붙인다(1층 보스 한정).
+
 ### 4-4. 획득·소모·상점
 | id | 길이 | 트리거 제안 | 질감 | gainDb |
 |---|---|---|---|---|
