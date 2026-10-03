@@ -842,10 +842,16 @@ export const LAB = {
   /** 아레나 내부 크기(타일) */
   ARENA_W: 22,
   ARENA_H: 14,
-  /** 허수아비 크기 px · 색 */
+  /** 허수아비 크기 px · 색 (색은 시트가 없을 때의 단색 사각형) */
   DUMMY_SIZE: [16, 20] as [number, number],
   DUMMY_COLOR: '#b08850',
   TURRET_COLOR: '#8a6db0',
+  /**
+   * 그림 시트 이름 (= 적 id, v3 전용 SPRITES.V3_ONLY). 허수아비 = dummy, 사수 허수아비 = archer.
+   * 49라운드 이후 'lab_dummy'·'lab_turret' 시트는 없어 늘 단색 사각형이었다 — 53라운드 후속 수정
+   */
+  DUMMY_SHEET: 'dummy',
+  TURRET_SHEET: 'archer',
   /** 사수 허수아비: 아레나 중심에서의 위치(타일) · 발사 방향 · 간격 · 탄 */
   TURRET_OFFSET_TILES: { x: 7, y: -4 },
   TURRET_DIR: { x: -1, y: 0 },

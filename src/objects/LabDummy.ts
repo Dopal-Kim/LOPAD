@@ -1,5 +1,5 @@
 /**
- * 49라운드 계약 §11.4 무기 시험장 허수아비 (임시: 단색 사각형 + 누적 피해 표시).
+ * 49라운드 계약 §11.4 무기 시험장 허수아비 (적 v3 시트 dummy·archer 로 그림 + 누적 피해 표시, 시트가 없으면 단색 사각형).
  * target = 중앙 허수아비(무한 체력, 맞으면 데미지 숫자 — Game.hitMob 공통 경로), turret = 일정 방향으로 투사체를 쏘는 허수아비.
  * 움직이지 않고(넉백·밀쳐내기 무시) 접촉 피해도 없다. 개성·골드를 주지 않는다.
  */
@@ -12,6 +12,9 @@ export type LabDummyRole = 'target' | 'turret';
 
 /** 사실상 무한 체력 (표시용 최대치) */
 const LAB_HP = 1_000_000;
+
+/** 이름표 위치 계산용 (매 프레임 할당 방지) */
+const boundsScratch = new Phaser.Geom.Rectangle();
 
 export class LabDummy extends Mob {
   /** 누적 피해 · 맞은 횟수 · 쏜 탄 수 (디버그·표시) */
@@ -31,7 +34,7 @@ export class LabDummy extends Mob {
       scene,
       x,
       y,
-      role === 'target' ? 'lab_dummy' : 'lab_turret',
+      role === 'target' ? LAB.DUMMY_SHEET : LAB.TURRET_SHEET,
       LAB.DUMMY_SIZE,
       role === 'target' ? LAB.DUMMY_COLOR : LAB.TURRET_COLOR,
       LAB_HP,
@@ -55,7 +58,9 @@ export class LabDummy extends Mob {
     this.think(ctx);
     const facing = this.role === 'turret' ? (LAB.TURRET_DIR.x < 0 ? 'left' : 'right') : 'down';
     this.visual.loop('idle', facing, ctx.time);
-    this.label.setPosition(this.x, this.y - LAB.DUMMY_SIZE[1]).setDepth(this.depth + 1);
+    // 시트가 있으면 그림 위, 없으면 사각형 위 (그림 높이가 사각형보다 커서 머리를 덮지 않게)
+    const top = this.visual.animated ? this.getBounds(boundsScratch).top : this.y - LAB.DUMMY_SIZE[1];
+    this.label.setPosition(this.x, top).setDepth(this.depth + 1);
     this.label.setText(
       this.role === 'target'
         ? `허수아비 · 누적 ${this.totalDamage} (${this.hits}타)`

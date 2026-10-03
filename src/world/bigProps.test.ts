@@ -3,6 +3,8 @@ import { ROUTE, type RouteNode } from '../systems/route';
 import { planNodeArena } from '../systems/routeArena';
 import { TileId } from '../systems/mapgen';
 import { bigPropRules, planBigProps } from './bigProps';
+import { PropGrid, isSolid } from './bigPropGrid';
+import type { FloorLayout } from '../systems/mapgen';
 
 const shapes = [
   { name: 'lamp_post', footprint: [1, 1] as [number, number] },
@@ -164,5 +166,59 @@ describe('53라운드 Q59 placement 힌트 일반 규칙 · avoidNearBorder', ()
       // 북쪽을 피하는 '벽 앞·구석' 은 북쪽 벽 앞이 아니라 구석으로
       for (const o of out.filter((p) => p.name === 'd_front_corner')) expect(o.ty).toBeGreaterThanOrEqual(north + 3);
     }
+  });
+});
+
+/** 벽으로 둘러싸인 5×3 바닥 방 — 가운데 줄 (x=3) 만 1칸짜리 통로 (위·아래 줄의 x=3 은 벽) */
+function corridorRoom(): FloorLayout {
+  const W = TileId.Wall;
+  const F = TileId.Floor;
+  const tiles = [
+    [W, W, W, W, W, W, W],
+    [W, F, F, W, F, F, W],
+    [W, F, F, F, F, F, W],
+    [W, F, F, W, F, F, W],
+    [W, W, W, W, W, W, W],
+  ];
+  return {
+    seed: 0,
+    gridW: 1,
+    gridH: 1,
+    rooms: [],
+    hallways: [],
+    connections: [],
+    tiles,
+    widthTiles: 7,
+    heightTiles: 5,
+    cellRoom: new Map(),
+  };
+}
+
+describe('53라운드 후속: 큰 소품 solid: false = 걷기 통과', () => {
+  const I = { x: 1, y: 1, w: 5, h: 3 };
+  const fp: [number, number] = [1, 1];
+
+  it('solid 가 없거나 true 면 막힘, false 일 때만 통과', () => {
+    expect(isSolid({})).toBe(true);
+    expect(isSolid({ solid: true })).toBe(true);
+    expect(isSolid({ solid: false })).toBe(false);
+  });
+
+  it('막는 소품은 하나뿐인 통로에 못 놓고, 통과 소품은 놓는다 (배치 결과에 solid 표시)', () => {
+    const solidGrid = new PropGrid(corridorRoom(), new Set(), new Set(), I);
+    expect(solidGrid.tryPlace([{ s: { name: 'cart', footprint: fp }, x: 3, y: 2 }])).toBe(false);
+    expect(solidGrid.tryPlace([{ s: { name: 'cart', footprint: fp, solid: true }, x: 3, y: 2 }])).toBe(false);
+    const passGrid = new PropGrid(corridorRoom(), new Set(), new Set(), I);
+    expect(passGrid.tryPlace([{ s: { name: 'weapons_stuck', footprint: fp, solid: false }, x: 3, y: 2 }])).toBe(true);
+    expect(passGrid.out).toEqual([{ name: 'weapons_stuck', tx: 3, ty: 2, w: 1, h: 1, solid: false }]);
+  });
+
+  it('통과 소품도 자리와 둘레 1칸 간격은 차지한다', () => {
+    const grid = new PropGrid(corridorRoom(), new Set(), new Set(), I);
+    expect(grid.tryPlace([{ s: { name: 'weapons_stuck', footprint: fp, solid: false }, x: 1, y: 1 }])).toBe(true);
+    expect(grid.tryPlace([{ s: { name: 'weapons_stuck', footprint: fp, solid: false }, x: 1, y: 1 }])).toBe(false);
+    expect(grid.tryPlace([{ s: { name: 'banner_pole', footprint: fp }, x: 2, y: 2 }])).toBe(false);
+    expect(grid.tryPlace([{ s: { name: 'banner_pole', footprint: fp }, x: 5, y: 3 }])).toBe(true);
+    expect(grid.out.map((o) => o.solid)).toEqual([false, true]);
   });
 });

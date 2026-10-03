@@ -97,12 +97,18 @@ export class TileWorld {
           footprint: b.footprint!,
           placement: b.placement,
           avoidNearBorder: Array.isArray(b.avoidNearBorder) ? b.avoidNearBorder : undefined,
+          solid: b.solid,
         }))
       : [];
     this.bigProps = bigShapes.length > 0 ? planBigProps(layout, bigShapes, avoid, propSeed, bridges) : [];
     for (const k of bridges) avoid.add(k);
+    // 53라운드 후속: 아트 solid: false 큰 소품(황무지 weapons_stuck 등)은 걷기 통과 — 칸은 막지 않고 작은 소품·데칼만 피한다
     for (const b of this.bigProps)
-      for (let y = b.ty; y < b.ty + b.h; y++) for (let x = b.tx; x < b.tx + b.w; x++) blockTile(x, y);
+      for (let y = b.ty; y < b.ty + b.h; y++)
+        for (let x = b.tx; x < b.tx + b.w; x++) {
+          if (b.solid) blockTile(x, y);
+          else avoid.add(`${x},${y}`);
+        }
     // 화로는 큰 소품 규칙(광장 1~2)으로만 놓는다
     const smallProps = this.bigProps.some((b) => b.name === 'brazier')
       ? propSkin.props.filter((p) => p.name !== 'brazier')

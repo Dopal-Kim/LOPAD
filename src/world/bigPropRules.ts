@@ -20,6 +20,8 @@ export interface BigPropShape {
   placement?: string;
   /** 계약 §14: 테두리 그림에 같은 물건이 이미 있는 쪽 (north·south·west·east) */
   avoidNearBorder?: readonly string[];
+  /** 아트 JSON solid: false 면 걷기 통과(53라운드 후속 — 황무지 weapons_stuck 등). 없거나 true 면 막힘 */
+  solid?: boolean;
 }
 
 /** 소품 하나의 규칙 목록 (앞이 우선, 중복 없음) */

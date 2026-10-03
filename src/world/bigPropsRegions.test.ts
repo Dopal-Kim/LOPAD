@@ -60,7 +60,8 @@ const REGIONS: Record<string, { col: number; kind: string; canal?: boolean; shap
     kind: 'road',
     shapes: [
       { name: 'banner_pole', footprint: fp(1, 1), placement: 'floor' },
-      { name: 'weapons_stuck', footprint: fp(1, 1), placement: 'floor', avoidNearBorder: ['north'] },
+      // 53라운드 후속: 아트 JSON solid: false (걷기 통과)
+      { name: 'weapons_stuck', footprint: fp(1, 1), placement: 'floor', avoidNearBorder: ['north'], solid: false },
       { name: 'stakes', footprint: fp(2, 1), placement: 'floor (흙둑 앞·엄폐)', avoidNearBorder: ['north'] },
       {
         name: 'broken_cart',
@@ -193,8 +194,9 @@ describe('53라운드 Q69 큰 소품 힌트별 규칙 · 5지역 8시드', () =>
           if (avoid.includes('west')) expect(p.tx).toBeGreaterThanOrEqual(edge.west + 3);
           if (avoid.includes('east')) expect(p.tx + p.w - 1).toBeLessThanOrEqual(edge.east - 3);
         }
-        // 길 보장: 시작점에서 막힌 칸·소품을 피해 출구 2×2 · 상점 2×2 · 문 앞 칸 · 남은 바닥 전부에 닿는다
-        const closed = new Set([...blocked, ...used]);
+        // 길 보장: 시작점에서 막힌 칸·막는 소품을 피해 출구 2×2 · 상점 2×2 · 문 앞 칸 · 남은 바닥 전부에 닿는다
+        // (통과 소품 solid: false 는 길을 막지 않는다)
+        const closed = new Set([...blocked, ...props.filter((p) => p.solid).flatMap(cells)]);
         const seen = reach(L, closed);
         for (const [x, y] of [
           [0, 0],
@@ -216,6 +218,16 @@ describe('53라운드 Q69 큰 소품 힌트별 규칙 · 5지역 8시드', () =>
         expect(seen.size).toBe(open);
       }
     });
+
+  it('황무지 꽂힌 무기(solid: false)는 통과로 배치되고, 나머지는 막힘', () => {
+    let pass = 0;
+    for (const seed of SEEDS) {
+      const { props } = build('waste', seed);
+      for (const p of props) expect(p.solid).toBe(p.name !== 'weapons_stuck');
+      pass += props.filter((p) => !p.solid).length;
+    }
+    expect(pass).toBeGreaterThan(0);
+  });
 
   it('성문 횃불대: 출구 좌우 한 짝 (같은 줄, 같은 거리) · 징수소는 북쪽 벽 앞이 아니라 서쪽 벽가', () => {
     for (const seed of SEEDS) {

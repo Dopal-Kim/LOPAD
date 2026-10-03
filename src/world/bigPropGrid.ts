@@ -3,6 +3,7 @@
  *
  * 피하는 칸: 이미 막힌 칸(구조물·세트 소품) · 예약 칸(양조 다리) · 시작점·상점 둘레 · 출구 둘레(출구 좌우 규칙만 넘음) ·
  * 문(벽의 열린 틈) 앞 · 다른 큰 소품 둘레 1칸. 놓을 때마다 바닥이 한 덩어리로 이어지는지 확인한다(플레이어 길 보장).
+ * 걷기 통과 소품(solid: false)도 자리·둘레 간격은 똑같이 차지하지만, 길 보장 검사에서는 막힌 칸으로 세지 않는다.
  */
 import { QUARTER } from '../core/Constants';
 import { TileId, type FloorLayout } from '../systems/mapgen';
@@ -16,6 +17,8 @@ export interface BigPropPlacement {
   /** 발자국 크기 (칸) */
   w: number;
   h: number;
+  /** 걷기 막힘 여부 (아트 JSON solid: false 면 false — 통과) */
+  solid: boolean;
 }
 
 export type Side = 'north' | 'south' | 'west' | 'east';
@@ -42,7 +45,10 @@ export class PropGrid {
   private readonly taken: Set<string>;
   /** 출구 둘레 비움 (출구 좌우 규칙만 넘는다) */
   private readonly exitZone = new Set<string>();
-  private readonly solid = new Set<string>();
+  /** 큰 소품이 놓인 칸 (둘레 1칸 간격용 — 통과 소품 포함) */
+  private readonly occupied = new Set<string>();
+  /** 걷기를 막는 큰 소품 칸 (길 보장 검사용) */
+  private readonly walkBlocked = new Set<string>();
 
   constructor(
     readonly layout: FloorLayout,
@@ -69,27 +75,34 @@ export class PropGrid {
   /** 놓아 보고 되면 전부 놓는다 (짝은 둘 다 되거나 둘 다 안 됨) */
   tryPlace(items: readonly PropAt[], opts: { overExitZone?: boolean } = {}): boolean {
     const extra = new Set<string>();
+    const extraBlocked = new Set<string>();
     for (const { s, x, y } of items) {
       const [w, h] = s.footprint;
       if (this.nearAvoided(s, x, y, w, h) || !this.fits(x, y, w, h, opts.overExitZone ?? false)) return false;
       // 같은 묶음끼리도 둘레 1칸
       for (let yy = y - 1; yy <= y + h; yy++)
         for (let xx = x - 1; xx <= x + w; xx++) if (extra.has(tileKey(xx, yy))) return false;
-      for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) extra.add(tileKey(xx, yy));
+      for (let yy = y; yy < y + h; yy++)
+        for (let xx = x; xx < x + w; xx++) {
+          extra.add(tileKey(xx, yy));
+          if (isSolid(s)) extraBlocked.add(tileKey(xx, yy));
+        }
     }
     const isBlocked = (cx: number, cy: number) => {
       const k = tileKey(cx, cy);
-      return this.solid.has(k) || extra.has(k) || this.blocked.has(k);
+      return this.walkBlocked.has(k) || extraBlocked.has(k) || this.blocked.has(k);
     };
-    if (!floorConnected(this.layout, isBlocked)) return false;
+    if (extraBlocked.size > 0 && !floorConnected(this.layout, isBlocked)) return false;
     for (const { s, x, y } of items) {
       const [w, h] = s.footprint;
+      const solid = isSolid(s);
       for (let yy = y; yy < y + h; yy++)
         for (let xx = x; xx < x + w; xx++) {
-          this.solid.add(tileKey(xx, yy));
+          this.occupied.add(tileKey(xx, yy));
           this.taken.add(tileKey(xx, yy));
+          if (solid) this.walkBlocked.add(tileKey(xx, yy));
         }
-      this.out.push({ name: s.name, tx: x, ty: y, w, h });
+      this.out.push({ name: s.name, tx: x, ty: y, w, h, solid });
     }
     return true;
   }
@@ -119,10 +132,13 @@ export class PropGrid {
         if (!this.isFloor(xx, yy) || this.taken.has(k) || (!overExitZone && this.exitZone.has(k))) return false;
       }
     for (let yy = y - 1; yy <= y + h; yy++)
-      for (let xx = x - 1; xx <= x + w; xx++) if (this.solid.has(tileKey(xx, yy))) return false;
+      for (let xx = x - 1; xx <= x + w; xx++) if (this.occupied.has(tileKey(xx, yy))) return false;
     return true;
   }
 }
+
+/** 아트 JSON solid 가 false 일 때만 통과 (없거나 true 면 막힘) */
+export const isSolid = (s: Pick<BigPropShape, 'solid'>): boolean => s.solid !== false;
 
 /** 문 앞 = 4방향으로 빈 칸(벽의 열린 틈 · 원경 void)에 닿는 바닥 칸 */
 export function doorMouths(layout: FloorLayout): { x: number; y: number }[] {
