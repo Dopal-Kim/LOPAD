@@ -1,0 +1,83 @@
+{
+ "image": "bow_arrow_snipe_lv2_deadeye.png",
+ "action": "bow_arrow_snipe_lv2",
+ "frameWidth": 224,
+ "frameHeight": 28,
+ "frames": 3,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 20,
+ "frameDurationsMs": [
+  50,
+  50,
+  50
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 216,
+  "y": 12
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "source": "parts/art/work/fx_weapons_v3/build.py",
+ "weapon": "bow",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "depth": "below",
+ "spawn": "loop_move",
+ "branch": "snipe",
+ "branchLabel": "저격",
+ "tailLevel": 2,
+ "levelOf": "거리 비례 피해 단계",
+ "attachTo": [
+  "fx/bow_arrow_snipe_deadeye",
+  "fx/bow_arrow_aimed_snipe_deadeye"
+ ],
+ "levelRuleSuggestion": "제안: 비행 거리 / 최대 사거리 < 1/3 → lv1, < 2/3 → lv2, 그 이상 → lv3. 단계가 바뀔 때 시트만 교체(같은 피벗). 피해 배율은 시스템 값",
+ "pivotNote": "피벗 (38,2) = 화살 중심(꼬리 오른쪽 끝 2px 앞). 화살 시트 아래(depth below)에 같은 위치·각도로 겹친다",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
+ "colors": 10,
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "활 B 혼불 시위 + 재 화살(Q29) — 재 화살대·타는 촉, 재 연기·불티 꼬리, 조준 = 혼불 실",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다.",
+ "branchTier": 2,
+ "secondary": "deadeye",
+ "secondaryLabel": "필중",
+ "baseSheet": "fx/bow_arrow_snipe_lv2",
+ "tier1Sheet": "fx/bow_arrow_snipe_lv2",
+ "replaces": "2단 갈래 '필중' 획득 시 fx/bow_arrow_snipe_lv2 대신 재생 — 프레임 수·ms·loop·anchor·spawn·impact/hit/active/cancel·판정 필드는 1단과 같다. 틀이 1단보다 넓다(왼쪽·위아래로 넓힘, 촉 쪽 기준 그대로) — JSON frameWidth/Height·pivot 을 읽을 것.",
+ "runtime": {
+  "overlay": {
+   "sheet": "fx/crit_burst",
+   "onHit": true,
+   "minLevel": 3
+  }
+ },
+ "runtimeNote": "1단 secondaryVariants[deadeye] 의 colorSwap 은 이 시트에 이미 그려져 있으므로 적용하지 않는다. runtime 의 나머지(overlay·flashOverride·holdLastFrameMs·shakeOverride·trailOverride·scaleHint)는 그대로 쓴다. (구 메모: 원거리일수록 피해 급증: lv3 에서 꼬리가 백열, 적중 시 crit_burst)",
+ "tierDesign": "투사체(anchor projectile)는 판정 프레임이 없는 시트 — 빛 규칙(판정 밖 A25) 예외(53라운드 Q64 빌드 규칙과 같음).",
+ "tierNote": "55라운드 Q9: 2단 = 1단 모양 + 입자·빛·잔연 + 큰 틀",
+ "note": "v3 (53라운드 Q5): 투사체(anchor projectile)는 판정 프레임이 없는 시트 — 빛 규칙(판정 밖 A25) 예외(53라운드 Q64 빌드 규칙과 같음).",
+ "legacy": {
+  "image": "../bow_arrow_snipe_lv2.png.png",
+  "frameWidth": 40,
+  "frameHeight": 5,
+  "pivot": {
+   "x": 38,
+   "y": 2
+  },
+  "pixelScale": 2,
+  "note": "lv2 40×5: 뒤 0 → 앞 3px 로 굵어지는 꼬리(W1/W2 몸 + 코어 X1/W3 맥동)",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+  "secondary": "fx.weapons.bow",
+  "v3Note": "2단 갈래 시트(55라운드) — 구 시트 없음. legacy 는 1단 구 시트(bow_arrow_snipe_lv2) 기준"
+ }
+}

@@ -78,15 +78,37 @@ HEAT = {"note": "가열 heat1~3 을 갈래 시트에 겹칠 때: 별도 heat 시
         "playbackRateHint": {"1": 1.15, "2": 1.3, "3": 1.5}}
 
 
+def tier2_names():
+    import branches2
+    return branches2.NAMES
+
+
 def for_sheet(name, old):
-    """구 JSON 이 secondaryVariants·heatVariants 를 가졌으면 새 표로 바꾼다."""
+    """구 JSON 이 secondaryVariants·heatVariants 를 가졌으면 새 표로 바꾼다.
+    55라운드 Q9: 2단 전용 시트(<이 시트>_<2단 id>)가 있으면 항목마다 `sheet` 키와 최상위 `secondarySheets` 를 단다 —
+    시스템은 sheet 를 재생하고 colorSwap 은 시트가 없을 때만(대체용) 쓴다."""
+    import copy
     out = {}
     if "secondaryVariants" in old:
         key = old.get("branch")
         if key is None:
             key = "rapid" if "rapid" in name else "snipe" if "snipe" in name else None
         assert key in SECONDARY, (name, key)
-        out["secondaryVariants"] = SECONDARY[key]
+        sv = copy.deepcopy(SECONDARY[key])
+        t2 = tier2_names()
+        sheets = {}
+        for sid, v in sv.items():
+            n2 = "%s_%s" % (name, sid)
+            if n2 in t2:
+                v["sheet"] = "fx/" + n2
+                v["colorSwapUse"] = "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
+                sheets[sid] = "fx/" + n2
+        out["secondaryVariants"] = sv
+        if sheets:
+            out["secondarySheets"] = sheets
+            out["secondarySheetsNote"] = ("55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고"
+                                          "(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. "
+                                          "runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.")
     if "heatVariants" in old:
         out["heatVariants"] = HEAT
     return out

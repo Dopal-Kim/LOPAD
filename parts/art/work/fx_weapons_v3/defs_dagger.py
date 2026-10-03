@@ -121,7 +121,7 @@ def combo(name, heat=0):
     x0 = th["fromPx"] * W.K4
     vis = old.get("visualLengthPx", th["lengthPx"]) * W.K4
     x1 = vis + 6
-    hw = 3.0 + 0.5 * heat
+    hw = 3.6 + 0.5 * heat                         # 55라운드: 데드셀 밀도 — 1배에서 바늘 몸이 읽히게(3.0 → 3.6)
     side = (math.radians(9), math.radians(-9)) if old.get("comboIndex") == 3 else ()
     st = _states(old["frames"], old["impactFrame"])
     seed = 300 + old.get("comboIndex", 1) * 10 + heat

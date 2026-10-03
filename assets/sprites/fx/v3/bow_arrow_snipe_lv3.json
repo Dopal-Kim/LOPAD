@@ -45,7 +45,9 @@
     "sheet": "fx/pierce",
     "loop": true,
     "note": "관통 꼬리를 lv 꼬리 위에 겹침(재활용)"
-   }
+   },
+   "sheet": "fx/bow_arrow_snipe_lv3_pierce",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   },
   "deadeye": {
    "label": "필중",
@@ -70,7 +72,9 @@
     "onHit": true,
     "minLevel": 3
    },
-   "note": "원거리일수록 피해 급증: lv3 에서 꼬리가 백열, 적중 시 crit_burst"
+   "note": "원거리일수록 피해 급증: lv3 에서 꼬리가 백열, 적중 시 crit_burst",
+   "sheet": "fx/bow_arrow_snipe_lv3_deadeye",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   }
  },
  "version": "v3",
@@ -84,7 +88,13 @@
  "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
  "glowFrames": [],
  "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다.",
- "note": "v3 (53라운드 Q5): 활 B 혼불 시위 + 재 화살(Q29) — 재 화살대·타는 촉, 재 연기·불티 꼬리, 조준 = 혼불 실",
+ "branchDesignV3": "저격 snipe  = 긴 재 화살 + 대를 감는 호박 나선 실(2프레임 회전) / 꼬리 lv1~3 = 곧은 심 + 뒤로 퍼지는 음속 고리 ')' 1·2·3개",
+ "secondarySheets": {
+  "pierce": "fx/bow_arrow_snipe_lv3_pierce",
+  "deadeye": "fx/bow_arrow_snipe_lv3_deadeye"
+ },
+ "secondarySheetsNote": "55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.",
+ "note": "v3 (53라운드 Q5): 저격 snipe  = 긴 재 화살 + 대를 감는 호박 나선 실(2프레임 회전) / 꼬리 lv1~3 = 곧은 심 + 뒤로 퍼지는 음속 고리 ')' 1·2·3개",
  "legacy": {
   "image": "../bow_arrow_snipe_lv3.png.png",
   "frameWidth": 56,

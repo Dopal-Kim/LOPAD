@@ -72,10 +72,26 @@
   "frames": 1
  },
  "bow_arrow_aimed_rapid": {
-  "colors": 9,
+  "colors": 10,
   "frame": [
    80,
    24
+  ],
+  "frames": 2
+ },
+ "bow_arrow_aimed_rapid_quiver": {
+  "colors": 10,
+  "frame": [
+   112,
+   32
+  ],
+  "frames": 2
+ },
+ "bow_arrow_aimed_rapid_volley": {
+  "colors": 10,
+  "frame": [
+   112,
+   32
   ],
   "frames": 2
  },
@@ -87,11 +103,43 @@
   ],
   "frames": 2
  },
+ "bow_arrow_aimed_snipe_deadeye": {
+  "colors": 10,
+  "frame": [
+   160,
+   28
+  ],
+  "frames": 2
+ },
+ "bow_arrow_aimed_snipe_pierce": {
+  "colors": 11,
+  "frame": [
+   160,
+   28
+  ],
+  "frames": 2
+ },
  "bow_arrow_rapid": {
-  "colors": 9,
+  "colors": 10,
   "frame": [
    64,
    24
+  ],
+  "frames": 2
+ },
+ "bow_arrow_rapid_quiver": {
+  "colors": 10,
+  "frame": [
+   96,
+   32
+  ],
+  "frames": 2
+ },
+ "bow_arrow_rapid_volley": {
+  "colors": 10,
+  "frame": [
+   96,
+   32
   ],
   "frames": 2
  },
@@ -103,11 +151,35 @@
   ],
   "frames": 2
  },
+ "bow_arrow_snipe_deadeye": {
+  "colors": 10,
+  "frame": [
+   128,
+   28
+  ],
+  "frames": 2
+ },
  "bow_arrow_snipe_lv1": {
-  "colors": 5,
+  "colors": 6,
   "frame": [
    96,
    12
+  ],
+  "frames": 3
+ },
+ "bow_arrow_snipe_lv1_deadeye": {
+  "colors": 9,
+  "frame": [
+   160,
+   20
+  ],
+  "frames": 3
+ },
+ "bow_arrow_snipe_lv1_pierce": {
+  "colors": 9,
+  "frame": [
+   160,
+   20
   ],
   "frames": 3
  },
@@ -119,6 +191,22 @@
   ],
   "frames": 3
  },
+ "bow_arrow_snipe_lv2_deadeye": {
+  "colors": 10,
+  "frame": [
+   224,
+   28
+  ],
+  "frames": 3
+ },
+ "bow_arrow_snipe_lv2_pierce": {
+  "colors": 9,
+  "frame": [
+   224,
+   28
+  ],
+  "frames": 3
+ },
  "bow_arrow_snipe_lv3": {
   "colors": 9,
   "frame": [
@@ -126,6 +214,30 @@
    28
   ],
   "frames": 3
+ },
+ "bow_arrow_snipe_lv3_deadeye": {
+  "colors": 10,
+  "frame": [
+   288,
+   36
+  ],
+  "frames": 3
+ },
+ "bow_arrow_snipe_lv3_pierce": {
+  "colors": 9,
+  "frame": [
+   288,
+   36
+  ],
+  "frames": 3
+ },
+ "bow_arrow_snipe_pierce": {
+  "colors": 11,
+  "frame": [
+   128,
+   28
+  ],
+  "frames": 2
  },
  "bow_muzzle_rapid": {
   "colors": 7,
@@ -152,10 +264,26 @@
   "frames": 4
  },
  "dagger_combo1_gale": {
-  "colors": 11,
+  "colors": 12,
   "frame": [
    256,
    256
+  ],
+  "frames": 4
+ },
+ "dagger_combo1_gale_afterimage": {
+  "colors": 12,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo1_gale_assassin": {
+  "colors": 14,
+  "frame": [
+   320,
+   320
   ],
   "frames": 4
  },
@@ -191,6 +319,22 @@
   ],
   "frames": 4
  },
+ "dagger_combo1_twin_bleed": {
+  "colors": 12,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo1_twin_dance": {
+  "colors": 11,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
  "dagger_combo2": {
   "colors": 12,
   "frame": [
@@ -204,6 +348,22 @@
   "frame": [
    256,
    256
+  ],
+  "frames": 4
+ },
+ "dagger_combo2_gale_afterimage": {
+  "colors": 12,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo2_gale_assassin": {
+  "colors": 14,
+  "frame": [
+   320,
+   320
   ],
   "frames": 4
  },
@@ -239,6 +399,22 @@
   ],
   "frames": 4
  },
+ "dagger_combo2_twin_bleed": {
+  "colors": 13,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo2_twin_dance": {
+  "colors": 12,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
  "dagger_combo3": {
   "colors": 10,
   "frame": [
@@ -252,6 +428,22 @@
   "frame": [
    256,
    256
+  ],
+  "frames": 5
+ },
+ "dagger_combo3_gale_afterimage": {
+  "colors": 10,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 5
+ },
+ "dagger_combo3_gale_assassin": {
+  "colors": 14,
+  "frame": [
+   320,
+   320
   ],
   "frames": 5
  },
@@ -280,10 +472,26 @@
   "frames": 5
  },
  "dagger_combo3_twin": {
-  "colors": 11,
+  "colors": 12,
   "frame": [
    256,
    256
+  ],
+  "frames": 5
+ },
+ "dagger_combo3_twin_bleed": {
+  "colors": 13,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 5
+ },
+ "dagger_combo3_twin_dance": {
+  "colors": 12,
+  "frame": [
+   320,
+   320
   ],
   "frames": 5
  },
@@ -344,18 +552,50 @@
   "frames": 6
  },
  "greatsword_combo1_crush": {
-  "colors": 13,
+  "colors": 14,
   "frame": [
    512,
    512
   ],
   "frames": 6
  },
+ "greatsword_combo1_crush_pulverize": {
+  "colors": 14,
+  "frame": [
+   576,
+   576
+  ],
+  "frames": 6
+ },
+ "greatsword_combo1_crush_quake": {
+  "colors": 14,
+  "frame": [
+   576,
+   576
+  ],
+  "frames": 6
+ },
  "greatsword_combo1_weight": {
-  "colors": 13,
+  "colors": 12,
   "frame": [
    512,
    512
+  ],
+  "frames": 6
+ },
+ "greatsword_combo1_weight_giant": {
+  "colors": 13,
+  "frame": [
+   576,
+   576
+  ],
+  "frames": 6
+ },
+ "greatsword_combo1_weight_ironwall": {
+  "colors": 14,
+  "frame": [
+   576,
+   576
   ],
   "frames": 6
  },
@@ -368,18 +608,50 @@
   "frames": 6
  },
  "greatsword_combo2_crush": {
-  "colors": 13,
+  "colors": 14,
   "frame": [
    512,
    512
   ],
   "frames": 6
  },
+ "greatsword_combo2_crush_pulverize": {
+  "colors": 14,
+  "frame": [
+   576,
+   576
+  ],
+  "frames": 6
+ },
+ "greatsword_combo2_crush_quake": {
+  "colors": 14,
+  "frame": [
+   576,
+   576
+  ],
+  "frames": 6
+ },
  "greatsword_combo2_weight": {
-  "colors": 13,
+  "colors": 12,
   "frame": [
    512,
    512
+  ],
+  "frames": 6
+ },
+ "greatsword_combo2_weight_giant": {
+  "colors": 13,
+  "frame": [
+   576,
+   576
+  ],
+  "frames": 6
+ },
+ "greatsword_combo2_weight_ironwall": {
+  "colors": 14,
+  "frame": [
+   576,
+   576
   ],
   "frames": 6
  },
@@ -392,18 +664,50 @@
   "frames": 7
  },
  "greatsword_combo3_crush": {
-  "colors": 13,
+  "colors": 14,
   "frame": [
    512,
    512
   ],
   "frames": 7
  },
+ "greatsword_combo3_crush_pulverize": {
+  "colors": 14,
+  "frame": [
+   576,
+   576
+  ],
+  "frames": 7
+ },
+ "greatsword_combo3_crush_quake": {
+  "colors": 14,
+  "frame": [
+   576,
+   576
+  ],
+  "frames": 7
+ },
  "greatsword_combo3_weight": {
-  "colors": 13,
+  "colors": 12,
   "frame": [
    512,
    512
+  ],
+  "frames": 7
+ },
+ "greatsword_combo3_weight_giant": {
+  "colors": 12,
+  "frame": [
+   576,
+   576
+  ],
+  "frames": 7
+ },
+ "greatsword_combo3_weight_ironwall": {
+  "colors": 14,
+  "frame": [
+   576,
+   576
   ],
   "frames": 7
  },
@@ -472,18 +776,50 @@
   "frames": 5
  },
  "katana_combo1_batto": {
-  "colors": 10,
+  "colors": 12,
   "frame": [
    384,
    384
   ],
   "frames": 5
  },
- "katana_combo1_iai": {
+ "katana_combo1_batto_dashcrit": {
   "colors": 12,
+  "frame": [
+   448,
+   448
+  ],
+  "frames": 5
+ },
+ "katana_combo1_batto_longinvuln": {
+  "colors": 13,
+  "frame": [
+   448,
+   448
+  ],
+  "frames": 5
+ },
+ "katana_combo1_iai": {
+  "colors": 11,
   "frame": [
    384,
    384
+  ],
+  "frames": 5
+ },
+ "katana_combo1_iai_wide": {
+  "colors": 12,
+  "frame": [
+   448,
+   448
+  ],
+  "frames": 5
+ },
+ "katana_combo1_iai_zangetsu": {
+  "colors": 12,
+  "frame": [
+   448,
+   448
   ],
   "frames": 5
  },
@@ -496,6 +832,30 @@
   "frames": 4
  },
  "katana_combo2_batto": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 4
+ },
+ "katana_combo2_batto_dashcrit": {
+  "colors": 12,
+  "frame": [
+   448,
+   448
+  ],
+  "frames": 4
+ },
+ "katana_combo2_batto_longinvuln": {
+  "colors": 13,
+  "frame": [
+   448,
+   448
+  ],
+  "frames": 4
+ },
+ "katana_combo2_iai": {
   "colors": 11,
   "frame": [
    384,
@@ -503,11 +863,19 @@
   ],
   "frames": 4
  },
- "katana_combo2_iai": {
+ "katana_combo2_iai_wide": {
+  "colors": 13,
+  "frame": [
+   448,
+   448
+  ],
+  "frames": 4
+ },
+ "katana_combo2_iai_zangetsu": {
   "colors": 12,
   "frame": [
-   384,
-   384
+   448,
+   448
   ],
   "frames": 4
  },
@@ -520,18 +888,50 @@
   "frames": 6
  },
  "katana_combo3_batto": {
-  "colors": 12,
+  "colors": 13,
   "frame": [
    384,
    384
   ],
   "frames": 6
  },
+ "katana_combo3_batto_dashcrit": {
+  "colors": 13,
+  "frame": [
+   448,
+   448
+  ],
+  "frames": 6
+ },
+ "katana_combo3_batto_longinvuln": {
+  "colors": 13,
+  "frame": [
+   448,
+   448
+  ],
+  "frames": 6
+ },
  "katana_combo3_iai": {
-  "colors": 12,
+  "colors": 11,
   "frame": [
    384,
    384
+  ],
+  "frames": 6
+ },
+ "katana_combo3_iai_wide": {
+  "colors": 12,
+  "frame": [
+   448,
+   448
+  ],
+  "frames": 6
+ },
+ "katana_combo3_iai_zangetsu": {
+  "colors": 12,
+  "frame": [
+   448,
+   448
   ],
   "frames": 6
  },

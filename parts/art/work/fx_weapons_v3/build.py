@@ -38,7 +38,16 @@ def registry():
         reg["branch"] = branches.SHEETS
     except ImportError:
         pass
+    import branches2                                  # 55라운드 Q9: 2단 갈래 전용 시트
+    reg["tier2"] = branches2.SHEETS
+    for g in reg.values():                            # fx_v3/build_feel.py 가 소유(55라운드 작업 B) — 여기서 빌드하지 않는다
+        for n in OWNED_ELSEWHERE:
+            g.pop(n, None)
     return reg
+
+
+# 55라운드 작업 B(적중·움직임)가 parts/art/work/fx_v3/build_feel.py 로 다시 그려 소유하는 시트 — 이 빌드에서 제외(덮어쓰기 금지)
+OWNED_ELSEWHERE = {"guard_wave", "ironwall", "shadowstep_ghost", "aim_charge"}
 
 
 COOL = {W.hexrgb(W.X0): W.hexrgb(W.A25), W.hexrgb(W.X1): W.hexrgb(W.A25), W.hexrgb(W.A26): W.hexrgb(W.A25)}
@@ -77,7 +86,11 @@ def _job(args):
     opts = res[2] if len(res) > 2 else {}
     old = W.old_json(opts.get("old", name))
     import swaps
-    extra = dict(extra, **swaps.for_sheet(name, old))
+    if opts.get("tier2"):                             # 2단 시트: 2단 표는 tier2_extra 가 채움, 단검 가열 표만 물려받음
+        extra = dict(extra, **{k: v for k, v in swaps.for_sheet(name, old).items() if k == "heatVariants"})
+    else:
+        extra = dict(extra, **swaps.for_sheet(name, old))
+    frames = W.limit_colors(frames, W.COLOR_MAX, name)
     glow = extra.get("glowFrames") or []
     # 53라운드 Q64: 판정(glowFrames) 밖 프레임은 A25 이하. 루프라도 판정 틱 프레임이 정해진 시트(잔월 등)는 틱 사이 프레임을 낮춘다.
     # 예외: 투사체(화살·꼬리 — 시트 전체가 판정체)와 glowFrames 가 없는 지속 루프(거인 오라·질풍 바람 — 질문 중).

@@ -104,7 +104,9 @@
    "shakeOverride": {
     "px": 3,
     "ms": 90
-   }
+   },
+   "sheet": "fx/greatsword_combo3_crush_quake",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   },
   "pulverize": {
    "label": "분쇄",
@@ -124,7 +126,9 @@
      "role": "파편 그늘 → 녹빛"
     }
    ],
-   "note": "튀는 돌 파편이 달아오름"
+   "note": "튀는 돌 파편이 달아오름",
+   "sheet": "fx/greatsword_combo3_crush_pulverize",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   }
  },
  "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음).",
@@ -132,7 +136,7 @@
  "pixelScale": 0.5,
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
- "colors": 13,
+ "colors": 14,
  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
  "design": "대검 A 녹슨 양손검(Q27) — 녹·흙 넓은 띠 + 이 빠진 홈 혼불 한 줄(이 빠진 자리마다 끊김) + 흙먼지·불씨",
@@ -143,7 +147,8 @@
   3
  ],
  "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
- "branchDesignV3": "대검 crush  파쇄 = 깨진 띠: 비스듬한 틈으로 끊긴 녹 띠 + 틈에서 바깥으로 갈라지는 혼불 균열 + 튀어 떨어지는 돌 파편",
+ "branchDesignV3": "대검 crush  파쇄 = 곤봉형 짧고 두꺼운 호 + 바닥 균열: 시작은 실처럼 가늘고 끝 40% 가 두껍게 뭉친 깨진 녹 띠(틈 3곳) + 정면 바닥에 혼불 균열 별 + 튀는 돌덩이(균열은 마지막까지 남음)",
+ "tierNote": "55라운드 Q9: 1단 = 궤적 모양이 갈래별로 다름(색은 재·호박), 2단 = 이 모양 + 입자·빛·잔연 + 큰 틀(secondarySheets)",
  "trailFill": {
   "outerRadiusDots": 204,
   "innerRadiusDots": 92.9,
@@ -155,7 +160,19 @@
   "bladeTipFrom": "weapons/v3/greatsword_combo3.json bladeTipAnchors.right[4]",
   "note": "53라운드 Q63 — 궤적 띠를 판정 가장자리(바깥 R = hitRadiusPx, 불변)에서 칼끝 반경 − 4 도트까지 메움. 반경은 판정 원점(피벗 위 40 도트) 기준, 오른쪽 그림에서 잰 값을 모든 방향에 같이 씀(방향 행은 회전·반전)."
  },
- "note": "v3 (53라운드 Q5): 대검 crush  파쇄 = 깨진 띠: 비스듬한 틈으로 끊긴 녹 띠 + 틈에서 바깥으로 갈라지는 혼불 균열 + 튀어 떨어지는 돌 파편",
+ "floorCrack": {
+  "atLocalDots": [
+   126.5,
+   0
+  ],
+  "note": "그림 메모 — 정면 0.62R 바닥(발 높이)에 균열 별. 판정 아님"
+ },
+ "secondarySheets": {
+  "quake": "fx/greatsword_combo3_crush_quake",
+  "pulverize": "fx/greatsword_combo3_crush_pulverize"
+ },
+ "secondarySheetsNote": "55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.",
+ "note": "v3 (53라운드 Q5): 대검 crush  파쇄 = 곤봉형 짧고 두꺼운 호 + 바닥 균열: 시작은 실처럼 가늘고 끝 40% 가 두껍게 뭉친 깨진 녹 띠(틈 3곳) + 정면 바닥에 혼불 균열 별 + 튀는 돌덩이(균열은 마지막까지 남음)",
  "legacy": {
   "image": "../greatsword_combo3_crush.png.png",
   "frameWidth": 128,

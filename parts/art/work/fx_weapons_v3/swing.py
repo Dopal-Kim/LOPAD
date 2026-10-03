@@ -40,7 +40,8 @@ STYLE = {
 
 
 def swing_frames(style, size, origin, R, a0d, a1d, F, impact, bright=(), wmax=10.0, echoes=(), seed=1, rays=0,
-                 cracks=False, dust=0, sliver=0.3, tail_dash=True, long_glow=False, gaps=(), wscale=1.0, fill_to=None):
+                 cracks=False, dust=0, sliver=0.3, tail_dash=True, long_glow=False, gaps=(), wscale=1.0, fill_to=None,
+                 prof_fn=None):
     """→ {dir: [RGBA]}. echoes = [(dR, delay, wk)] 겹 궤적(반지름 차, 프레임 지연, 폭 비율)."""
     st = STYLE[style]
     a0, a1 = math.radians(a0d), math.radians(a1d)
@@ -115,7 +116,7 @@ def swing_frames(style, size, origin, R, a0d, a1d, F, impact, bright=(), wmax=10
                     b0, b1 = (a1, a0) if flip else (a0, a1)
                     _band(style, fr, Ldust, Lveil, Lbody, Ledge, Lgroove, t, R + dR, b0, b1, wmax * wk, ea, ehot, st,
                           seed + int(dR), last=(i == F - 1), tail_dash=tail_dash, gaps=gaps if delay == 0 else (),
-                          fill_to=fill_to if (delay == 0 and dR == 0) else None, Lfill=Lfill)
+                          fill_to=fill_to if (delay == 0 and dR == 0) else None, Lfill=Lfill, prof_fn=prof_fn)
                 if rays and i == impact + 1:
                     _rays(Ledge, t, R, a1, sgn, rays, rng)
                 if cracks and i >= impact:
@@ -144,11 +145,13 @@ def _pre(L, t, R, a0, a1, frac, style):
 
 
 def _band(style, fr, Ldust, Lveil, Lbody, Ledge, Lgroove, t, R, a0, a1, wmax, age, hot, st, seed, last=False, tail_dash=True, gaps=(),
-          fill_to=None, Lfill=None):
+          fill_to=None, Lfill=None, prof_fn=None):
     W_, H_ = fr.w, fr.h
     pw, pk = st["prof"]
     base0 = FK.tp_both(pw, pk)
-    if fill_to:
+    if prof_fn:                                      # 갈래 전용 폭 윤곽(파쇄 = 끝이 두꺼운 곤봉형)
+        base = prof_fn
+    elif fill_to:
         def base(u):                                 # 가운데를 평평하게(칼끝까지 닿는 구간을 넓힘), 끝은 바늘 그대로
             return min(1.0, 1.55 * base0(u))
     else:

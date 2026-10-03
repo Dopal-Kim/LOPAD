@@ -83,7 +83,9 @@
      "role": "섬광 끝 한 단 흐리게"
     }
    ],
-   "note": "허상: 섬광이 한 단 흐려짐(longinvuln 과 동시)"
+   "note": "허상: 섬광이 한 단 흐려짐(longinvuln 과 동시)",
+   "sheet": "fx/katana_combo1_batto_longinvuln",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   },
   "dashcrit": {
    "label": "급소",
@@ -108,7 +110,9 @@
     "atFrame": 2,
     "at": "직선 섬광 가운데(right 기준 몸 중심 + (R×0.7, 0))",
     "onlyOnCrit": true
-   }
+   },
+   "sheet": "fx/katana_combo1_batto_dashcrit",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   }
  },
  "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음).",
@@ -117,7 +121,7 @@
  "pixelScale": 0.5,
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
- "colors": 10,
+ "colors": 12,
  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
  "design": "칼 B 재 칼날(53라운드 Q26) — 날선 호박 한 줄이 그은 가는 초승달 궤적, 곧 회색 재 장막·불티로 부서짐",
@@ -126,8 +130,23 @@
   1
  ],
  "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
- "branchDesignV3": "batto 발도 = 직선 섬광: 호 대신 판정 안쪽의 곧은 섬광(1타 세로 · 2타 아래→위 · 3타 X) + 판정 범위 1px 재 점선 호",
- "note": "v3 (53라운드 Q5): batto 발도 = 직선 섬광: 호 대신 판정 안쪽의 곧은 섬광(1타 세로 · 2타 아래→위 · 3타 X) + 판정 범위 1px 재 점선 호",
+ "branchDesignV3": "batto  발도 = 칼집에서 뿜는 반달: 바깥 호 + 곧은 현(弦)으로 닫힌 반달(D) 면을 칼집 입(허리 뒤)에서 뿜어 나온 방사 결이 채움, 칼집 입 섬광 → 반달이 바깥으로 깎이며 재로 흩어짐",
+ "tierNote": "55라운드 Q9: 1단 = 궤적 모양이 갈래별로 다름(색은 재·호박), 2단 = 이 모양 + 입자·빛·잔연 + 큰 틀(secondarySheets)",
+ "halfMoon": {
+  "outerRadiusDots": 132,
+  "chordDots": 45.1,
+  "sheathMouthDots": [
+   -8.0,
+   22.0
+  ],
+  "note": "그림 메모 — 반달(D) = 판정 원 안의 현 바깥쪽. 판정은 기본 호(hitRadiusPx·arc) 그대로"
+ },
+ "secondarySheets": {
+  "longinvuln": "fx/katana_combo1_batto_longinvuln",
+  "dashcrit": "fx/katana_combo1_batto_dashcrit"
+ },
+ "secondarySheetsNote": "55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.",
+ "note": "v3 (53라운드 Q5): batto  발도 = 칼집에서 뿜는 반달: 바깥 호 + 곧은 현(弦)으로 닫힌 반달(D) 면을 칼집 입(허리 뒤)에서 뿜어 나온 방사 결이 채움, 칼집 입 섬광 → 반달이 바깥으로 깎이며 재로 흩어짐",
  "legacy": {
   "image": "../katana_combo1_batto.png.png",
   "frameWidth": 96,

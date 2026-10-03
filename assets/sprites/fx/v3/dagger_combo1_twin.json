@@ -82,7 +82,9 @@
      "role": "금 한 단 밝게"
     }
    ],
-   "note": "두 줄이 더 밝게"
+   "note": "두 줄이 더 밝게",
+   "sheet": "fx/dagger_combo1_twin_dance",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   },
   "bleed": {
    "label": "출혈",
@@ -108,7 +110,9 @@
     "at": "둘째 줄 촉(적중 지점)",
     "onHit": true
    },
-   "note": "금이 핏빛으로. 출혈 방울 겹침"
+   "note": "금이 핏빛으로. 출혈 방울 겹침",
+   "sheet": "fx/dagger_combo1_twin_bleed",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   }
  },
  "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음).",
@@ -190,8 +194,21 @@
   1
  ],
  "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
- "branchDesignV3": "단검 twin  쌍격 = 이중 바늘: 나란한 찌르기 두 줄(둘째 1프레임 늦음), 3타는 촉에서 만나는 가위 + 교차 섬광",
- "note": "v3 (53라운드 Q5): 단검 twin  쌍격 = 이중 바늘: 나란한 찌르기 두 줄(둘째 1프레임 늦음), 3타는 촉에서 만나는 가위 + 교차 섬광",
+ "branchDesignV3": "단검 twin   쌍격 = 교차 X 두 줄: 두 바늘이 앞 60% 지점에서 X 로 교차(3타는 가운데서 넓게), 교차점 백열 십자 섬광 → 교차 흉터가 식으며 남음",
+ "tierNote": "55라운드 Q9: 1단 = 궤적 모양이 갈래별로 다름(색은 재·호박), 2단 = 이 모양 + 입자·빛·잔연 + 큰 틀(secondarySheets)",
+ "cross": {
+  "atLocalDots": [
+   66.9,
+   -9.4
+  ],
+  "note": "그림 메모 — X 교차점(판정 원점 기준). 판정은 기본 thrust 그대로"
+ },
+ "secondarySheets": {
+  "dance": "fx/dagger_combo1_twin_dance",
+  "bleed": "fx/dagger_combo1_twin_bleed"
+ },
+ "secondarySheetsNote": "55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.",
+ "note": "v3 (53라운드 Q5): 단검 twin   쌍격 = 교차 X 두 줄: 두 바늘이 앞 60% 지점에서 X 로 교차(3타는 가운데서 넓게), 교차점 백열 십자 섬광 → 교차 흉터가 식으며 남음",
  "legacy": {
   "image": "../dagger_combo1_twin.png.png",
   "frameWidth": 64,

@@ -87,7 +87,9 @@
     "alpha": 0.6,
     "ms": 160,
     "fromFrame": 1
-   }
+   },
+   "sheet": "fx/dagger_combo2_gale_afterimage",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   },
   "assassin": {
    "label": "암살",
@@ -106,7 +108,9 @@
      "toSlot": "hero.A25",
      "role": "섬광 끝 고르게"
     }
-   ]
+   ],
+   "sheet": "fx/dagger_combo2_gale_assassin",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   }
  },
  "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음).",
@@ -188,8 +192,14 @@
   1
  ],
  "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
- "branchDesignV3": "gale  질풍 = 바람 줄기: 가는 본 바늘 + 몸 옆에서 촉으로 모여드는 1px 재 바람 줄기(혼불 결) → 다음 프레임 앞으로 밀려남",
- "note": "v3 (53라운드 Q5): gale  질풍 = 바람 줄기: 가는 본 바늘 + 몸 옆에서 촉으로 모여드는 1px 재 바람 줄기(혼불 결) → 다음 프레임 앞으로 밀려남",
+ "branchDesignV3": "gale   질풍 = 회오리 꼬리: 가는 본 바늘을 두 가닥 나선이 감고(앞면 호박 · 뒷면 재), 몸 뒤에 옆으로 누운 회오리 고리 3겹(원뿔) → 나선이 앞으로 풀리며 끊김",
+ "tierNote": "55라운드 Q9: 1단 = 궤적 모양이 갈래별로 다름(색은 재·호박), 2단 = 이 모양 + 입자·빛·잔연 + 큰 틀(secondarySheets)",
+ "secondarySheets": {
+  "afterimage": "fx/dagger_combo2_gale_afterimage",
+  "assassin": "fx/dagger_combo2_gale_assassin"
+ },
+ "secondarySheetsNote": "55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.",
+ "note": "v3 (53라운드 Q5): gale   질풍 = 회오리 꼬리: 가는 본 바늘을 두 가닥 나선이 감고(앞면 호박 · 뒷면 재), 몸 뒤에 옆으로 누운 회오리 고리 3겹(원뿔) → 나선이 앞으로 풀리며 끊김",
  "legacy": {
   "image": "../dagger_combo2_gale.png.png",
   "frameWidth": 64,

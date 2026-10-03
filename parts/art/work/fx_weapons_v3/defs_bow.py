@@ -106,51 +106,7 @@ def heavyarrow():
     return fr, C.base_extra(old, "bow", {0})
 
 
-def _rapid(name, ln, lines):
-    def draw(f, t, d, i, F, pv):
-        Ls = f.L(W.R_ASHG)
-        for k in range(lines):
-            y = pv[1] + (k - (lines - 1) / 2) * 4
-            x1 = f.w - 4 - ln - 3 - ((i + k) % 2) * 6
-            Ls.stroke([(x1 - 14 - 4 * (k % 2), y), (x1, y)], 0.55, prof=FK.tp_head(0.8), v=0.85)
-        tip = f.w - 4
-        arrow(f, tip - ln, tip, pv[1], thick=0.9, heat=0.75 if i == 0 else 0.85)
-    fr, old = _frames(name, draw)
-    return fr, C.base_extra(old, "bow", set())
-
-
-def _snipe(name, ln):
-    def draw(f, t, d, i, F, pv):
-        Lc = f.L(W.R_EDGE)
-        tip = f.w - 4
-        tail = max(4, tip - ln)
-        arrow(f, tail, tip, pv[1], thick=0.85, heat=1.0)
-        # 대를 꿰뚫는 혼불 실(시위의 빛) — 2프레임 깜빡
-        Lc.stroke([(tail + 8, pv[1] - 1), (tip - 10, pv[1] - 1)], 0.45, prof=FK.tp_head(0.8),
-                  v=0.78 if i == 0 else 0.66)
-    fr, old = _frames(name, draw)
-    return fr, C.base_extra(old, "bow", set())
-
-
-def _tail(name, lv):
-    def draw(f, t, d, i, F, pv):
-        x0 = pv[0] - 4
-        if lv == 1:
-            Lc = f.L(W.R_EDGE)
-            Ls = f.L([W.S0, W.S1, W.S2])
-            Lc.stroke([(x0, pv[1]), (6, pv[1])], 0.6, prof=FK.tp_tail(0.9), v=0.74 - 0.04 * i,
-                      vprof=lambda s: 1.0 - 0.5 * s)
-            for k in range(5):
-                x = x0 - 12 - FK.frac(k / 5 + i / 15) * (x0 - 20)
-                Ls.stamp(x, pv[1] + (1 if k % 2 else -1), 0.6, 0.7, soft=0)
-        elif lv == 2:
-            smoke(f, x0, 6, pv[1], 4.4, 20 + i, phase=i / 3, v=0.85, core=0.8, embers=2)
-        else:
-            smoke(f, x0, 6, pv[1], 6.6, 30 + i, phase=i / 3, v=0.95, core=0.9, core_hot=True, embers=5)
-            Lh = f.L(W.R_HOT)
-            Lh.stroke([(x0, pv[1]), (x0 - 40, pv[1])], 0.6, prof=FK.tp_tail(0.7), v=1.0 if i != 1 else 0.85)
-    fr, old = _frames(name, draw)
-    return fr, C.base_extra(old, "bow", set())
+# 속사·저격 화살·꼬리(1단 갈래)는 bow_tiers.py (55라운드 Q9 — 모양 차별 + 2단 시트)
 
 
 def bow_muzzle_rapid():
@@ -318,9 +274,18 @@ def muzzle_flash():
 
 
 SHEETS = {"bow_arrow": bow_arrow, "bow_arrow_aimed": bow_arrow_aimed, "heavyarrow": heavyarrow,
-          "bow_arrow_rapid": lambda: _rapid("bow_arrow_rapid", 34, 2), "bow_arrow_aimed_rapid": lambda: _rapid("bow_arrow_aimed_rapid", 42, 3),
-          "bow_arrow_snipe": lambda: _snipe("bow_arrow_snipe", 74), "bow_arrow_aimed_snipe": lambda: _snipe("bow_arrow_aimed_snipe", 100),
-          "bow_arrow_snipe_lv1": lambda: _tail("bow_arrow_snipe_lv1", 1), "bow_arrow_snipe_lv2": lambda: _tail("bow_arrow_snipe_lv2", 2),
-          "bow_arrow_snipe_lv3": lambda: _tail("bow_arrow_snipe_lv3", 3), "bow_muzzle_rapid": bow_muzzle_rapid,
+          "bow_muzzle_rapid": bow_muzzle_rapid,
           "aim_charge": aim_charge, "aim_line": aim_line, "aim_line_snipe": aim_line_snipe, "heavyarrow_hit": heavyarrow_hit,
           "flash": flash, "pierce": pierce, "muzzle_flash": muzzle_flash}
+
+
+def _tier1(name):
+    def fn():
+        import bow_tiers
+        return bow_tiers.TIER1[name]()
+    return fn
+
+
+for _n in ("bow_arrow_rapid", "bow_arrow_aimed_rapid", "bow_arrow_snipe", "bow_arrow_aimed_snipe",
+           "bow_arrow_snipe_lv1", "bow_arrow_snipe_lv2", "bow_arrow_snipe_lv3"):
+    SHEETS[_n] = _tier1(_n)

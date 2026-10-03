@@ -95,7 +95,9 @@
     "alpha": 0.14,
     "ms": 40
    },
-   "note": "1·2타에도 X1 0.14 섬광 — 보름달처럼 환하게"
+   "note": "1·2타에도 X1 0.14 섬광 — 보름달처럼 환하게",
+   "sheet": "fx/katana_combo1_iai_wide",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   },
   "zangetsu": {
    "label": "잔월",
@@ -116,7 +118,9 @@
     }
    ],
    "holdLastFrameMs": 160,
-   "note": "마지막(잔광) 프레임을 160ms 더 유지 — 달이 남는다"
+   "note": "마지막(잔광) 프레임을 160ms 더 유지 — 달이 남는다",
+   "sheet": "fx/katana_combo1_iai_zangetsu",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
   }
  },
  "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음).",
@@ -124,7 +128,7 @@
  "pixelScale": 0.5,
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
- "colors": 12,
+ "colors": 11,
  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
  "design": "칼 B 재 칼날(53라운드 Q26) — 날선 호박 한 줄이 그은 가는 초승달 궤적, 곧 회색 재 장막·불티로 부서짐",
@@ -133,7 +137,8 @@
   1
  ],
  "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
- "branchDesignV3": "칼  iai   거합 = 초승달 잔광: 기본보다 가는 초승달 + 판정 가장자리 바깥 1px 이어진 잔광 호(꼬리까지 남음) + 끝에서 접선으로 새는 바늘 빛",
+ "branchDesignV3": "칼  iai    거합 = 빛살 묶음 일섬: 칼끝 반경~판정 가장자리를 가는 호 빛살 5~8줄이 메우고(바깥 줄 = 백열 심), 휘두름 끝에서 접선으로 곧게 뻗는 긴 일섬 + 잔광이 오래 남아 점선으로 끊김",
+ "tierNote": "55라운드 Q9: 1단 = 궤적 모양이 갈래별로 다름(색은 재·호박), 2단 = 이 모양 + 입자·빛·잔연 + 큰 틀(secondarySheets)",
  "trailFill": {
   "outerRadiusDots": 132,
   "innerRadiusDots": 82.4,
@@ -145,7 +150,12 @@
   "bladeTipFrom": "weapons/v3/katana_combo1.png right 열 2 날의 가장 먼 픽셀(bladeLocal θ-30° elev-6°)",
   "note": "53라운드 Q63 — 궤적 띠를 판정 가장자리(바깥 R = hitRadiusPx, 불변)에서 칼끝 반경 − 4 도트까지 메움. 반경은 판정 원점(피벗 위 40 도트) 기준, 오른쪽 그림에서 잰 값을 모든 방향에 같이 씀(방향 행은 회전·반전)."
  },
- "note": "v3 (53라운드 Q5): 칼  iai   거합 = 초승달 잔광: 기본보다 가는 초승달 + 판정 가장자리 바깥 1px 이어진 잔광 호(꼬리까지 남음) + 끝에서 접선으로 새는 바늘 빛",
+ "secondarySheets": {
+  "wide": "fx/katana_combo1_iai_wide",
+  "zangetsu": "fx/katana_combo1_iai_zangetsu"
+ },
+ "secondarySheetsNote": "55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.",
+ "note": "v3 (53라운드 Q5): 칼  iai    거합 = 빛살 묶음 일섬: 칼끝 반경~판정 가장자리를 가는 호 빛살 5~8줄이 메우고(바깥 줄 = 백열 심), 휘두름 끝에서 접선으로 곧게 뻗는 긴 일섬 + 잔광이 오래 남아 점선으로 끊김",
  "legacy": {
   "image": "../katana_combo1_iai.png.png",
   "frameWidth": 96,

@@ -330,8 +330,11 @@ def write_sheet(name, frames, old, extra=None, size=None, pivot=None, legacy_not
     import common
     j = common.remap(j, old.get("weapon"))
     if extra:
+        extra = dict(extra)
+        for k in extra.pop("_drop", ()):           # 2단 시트: 1단 구 JSON 에서 물려받지 않을 키
+            j.pop(k, None)
         j.update(extra)
-    j["note"] = "v3 (53라운드 Q5): " + (j.get("branchDesignV3") or j.get("design") or "무기 이펙트 v3")
+    j["note"] = "v3 (53라운드 Q5): " + (j.get("tierDesign") or j.get("branchDesignV3") or j.get("design") or "무기 이펙트 v3")
     j["legacy"] = legacy
     if legacy_note:
         j["legacy"]["v3Note"] = legacy_note
@@ -357,3 +360,38 @@ def hero_silhouette(sheet, row, col):
     c = im.crop((col * fw, row * fh, (col + 1) * fw, (row + 1) * fh))
     px = c.load()
     return {(x, y) for y in range(fh) for x in range(fw) if px[x, y][3]}, (fw, fh), (j["pivot"]["x"], j["pivot"]["y"])
+
+
+def limit_colors(frames, cap, name=""):
+    """55라운드 2단 시트 안전장치: 시트 전체 색이 cap 을 넘으면 가장 적게 쓰인 색부터 남은 색 중 가장 가까운 색(RGB)으로 합친다.
+    백열 X0/X1 로는 합치지 않는다(빛 규칙). 합친 내역은 stdout note."""
+    from collections import Counter
+    cnt = Counter()
+    for lst in frames.values():
+        for im in lst:
+            for px in im.getdata():
+                if px[3]:
+                    cnt[px[:3]] += 1
+    if len(cnt) <= cap:
+        return frames
+    hot = {hexrgb(X0), hexrgb(X1)}
+    keep = [c for c, _ in cnt.most_common()]
+    m = {}
+    while len(keep) > cap:
+        c = keep.pop()
+        cand = [k for k in keep if k not in hot] or keep
+        m[c] = min(cand, key=lambda k: sum((a - b) ** 2 for a, b in zip(k, c)))
+    for c in list(m):                                  # 사슬 정리
+        while m[c] in m:
+            m[c] = m[m[c]]
+    print("  note limit_colors %s: %d → %d, 합침 %s" % (name, len(cnt), cap,
+          ", ".join("#%02x%02x%02x→#%02x%02x%02x" % (c + m[c]) for c in m)))
+    for lst in frames.values():
+        for im in lst:
+            px = im.load()
+            for y in range(im.height):
+                for x in range(im.width):
+                    p = px[x, y]
+                    if p[3] and p[:3] in m:
+                        px[x, y] = m[p[:3]] + (255,)
+    return frames
