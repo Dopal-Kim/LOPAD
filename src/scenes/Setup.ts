@@ -22,6 +22,7 @@ import { BACK } from '../systems/strokeFxBack';
 import { encodeScar, type ScarData } from '../systems/setup/scar';
 import { gameState } from '../core/GameState';
 import { STROKE_FX } from '../systems/strokeFxMath';
+import { oncePerKeyEvent } from '../systems/keyEvents';
 import { StrokeExamples } from '../systems/setup/strokeExamples';
 import { scheduleAutoStrokes, type AutoPreset } from '../systems/setup/autoStrokes';
 import { TrialHud } from '../systems/setup/trialHud';
@@ -84,6 +85,7 @@ export class Setup extends Phaser.Scene {
    * 놓친다(Phaser Key.onUp 이 _justDown 을 지움) — 회피 시험은 대쉬 박자가 핵심이라 탭을 잃지 않게.
    */
   private dashQueued = false;
+  private readonly onEscKey = oncePerKeyEvent<KeyboardEvent>(() => this.onEsc());
 
   /** 53라운드 UI 요청 B4: 회피 시험에서 Esc → 3획부터 다시 (씬을 다시 열어 시험 카메라·경기장을 깨끗이) */
   private resumeAt: { back: 'strokes'; playerName: string } | null = null;
@@ -164,8 +166,9 @@ export class Setup extends Phaser.Scene {
     });
     this.events.once('shutdown', () => setMenuSelect(null));
     // 53라운드 UI 요청 B4: Esc = 한 단계 앞으로 (회피 시험 → 3획 → 이름 → 메타 메뉴)
-    kb.on('keydown-ESC', this.onEsc, this);
-    this.events.once('shutdown', () => this.input.keyboard?.off('keydown-ESC', this.onEsc, this));
+    // 53라운드: 같은 keydown 객체 재전달(Phaser 3.90 큐 재처리)로 두 단계 물러나지 않게 (keyEvents)
+    kb.on('keydown-ESC', this.onEscKey);
+    this.events.once('shutdown', () => this.input.keyboard?.off('keydown-ESC', this.onEscKey));
     const resume = this.resumeAt;
     this.resumeAt = null;
     if (resume) {
@@ -249,9 +252,9 @@ export class Setup extends Phaser.Scene {
       `도감: ${codex}\n\n[Enter] 일기장을 펼친다`,
     );
     if (!this.onEnter) {
-      this.onEnter = (e: KeyboardEvent) => {
+      this.onEnter = oncePerKeyEvent((e: KeyboardEvent) => {
         if (e.key === 'Enter' && this.phase === 'meta') this.beginName();
-      };
+      });
       this.input.keyboard?.on('keydown', this.onEnter);
       this.events.once('shutdown', () => {
         if (this.onEnter) this.input.keyboard?.off('keydown', this.onEnter);

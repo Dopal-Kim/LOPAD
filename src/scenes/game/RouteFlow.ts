@@ -7,6 +7,7 @@ import { EventBus, Events } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { UI_EVENTS, __system, type UiRouteEntered } from '../../contract/ui';
 import { minBattlesOnAnyPath } from '../../systems/route';
+import { oncePerKeyEvent } from '../../systems/keyEvents';
 import type { Game } from '../Game';
 import { urlParams, type GameInitData } from './shared';
 
@@ -128,10 +129,10 @@ export class RouteFlow {
     if (g.economy.shopOpen) g.economy.closeShop();
     __system.emit(UI_EVENTS.ROUTE_CHOOSE_OPEN, route.toUi());
     if (!__system.rendererRegistered()) {
-      const onKey = (e: KeyboardEvent) => {
+      const onKey = oncePerKeyEvent((e: KeyboardEvent) => {
         const n = options[Number(e.key) - 1];
         if (n && this.chooseNode(n.id)) g.input.keyboard?.off('keydown', onKey);
-      };
+      });
       g.input.keyboard?.on('keydown', onKey);
     }
     return true;

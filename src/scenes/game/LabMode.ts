@@ -9,6 +9,7 @@ import { gameState } from '../../core/GameState';
 import { PLAYER_DATA, WEAPONS, WEAPON_RULES } from '../../data';
 import { LabDummy } from '../../objects/LabDummy';
 import { generateArena, type FloorLayout } from '../../systems/mapgen';
+import { oncePerKeyEvent } from '../../systems/keyEvents';
 import { ROUTE } from '../../systems/route';
 import {
   LAB_CANCEL_KEY,
@@ -24,7 +25,8 @@ import { urlParams, type GameInitData } from './shared';
 export class LabMode {
   dummies: LabDummy[] = [];
   exitPending = false;
-  private readonly onKey = () => this.openWeaponMenu();
+  /** L — 같은 keydown 객체 재전달은 무시 (keyEvents) */
+  private readonly onKey = oncePerKeyEvent<KeyboardEvent>(() => this.openWeaponMenu());
 
   constructor(
     private readonly g: Game,

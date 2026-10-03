@@ -8,6 +8,7 @@ import { worldZoom } from '../../systems/display';
 import { gameState } from '../../core/GameState';
 import { UI_EVENTS, __system } from '../../contract/ui';
 import { BirthSequence } from '../../systems/birth';
+import { oncePerKeyEvent } from '../../systems/keyEvents';
 import { UI_SCENES } from '../../ui';
 import type { Game } from '../Game';
 
@@ -15,6 +16,8 @@ export class BirthFlow {
   seq: BirthSequence | null = null;
   private startedAt = 0;
   private readonly onKey = () => this.skip();
+  /** 키는 같은 keydown 객체 재전달을 무시 (keyEvents). 포인터는 같은 Pointer 객체를 계속 쓰므로 거르지 않는다 */
+  private readonly onKeyDown = oncePerKeyEvent<KeyboardEvent>(this.onKey);
 
   constructor(private readonly g: Game) {}
 
@@ -51,7 +54,7 @@ export class BirthFlow {
     } else {
       __system.emit(UI_EVENTS.BIRTH_STARTED);
     }
-    g.input.keyboard?.on('keydown', this.onKey);
+    g.input.keyboard?.on('keydown', this.onKeyDown);
     g.input.on('pointerdown', this.onKey);
   }
 
@@ -89,7 +92,7 @@ export class BirthFlow {
   }
 
   private unbind(): void {
-    this.g.input.keyboard?.off('keydown', this.onKey);
+    this.g.input.keyboard?.off('keydown', this.onKeyDown);
     this.g.input.off('pointerdown', this.onKey);
   }
 

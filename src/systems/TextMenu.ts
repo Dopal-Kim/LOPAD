@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, DEPTH, GAME, PLACEHOLDER_UI } from '../core/Constants';
 import { screenFixed } from './display';
+import { oncePerKeyEvent } from './keyEvents';
 import { EventBus, Events, type MenuEventPayload } from '../core/EventBus';
 import { UI_EVENTS, __system, type UiMenu, type UiMenuId, type UiMenuLine } from '../contract/ui';
 import { UI_SCENES } from '../ui';
@@ -64,7 +65,8 @@ export class TextMenu {
       .setScale(at.scale)
       .setScrollFactor(0)
       .setDepth(DEPTH.DEBUG);
-    this.onKey = (e: KeyboardEvent) => this.select(e.key);
+    // 53라운드: Phaser 3.90 큐 재처리로 같은 keydown 이 두 번 와도 한 번만 고른다 (keyEvents)
+    this.onKey = oncePerKeyEvent((e: KeyboardEvent) => this.select(e.key));
     this.scene.input.keyboard?.on('keydown', this.onKey);
   }
 

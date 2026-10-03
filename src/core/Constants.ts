@@ -238,13 +238,36 @@ export const QUARTER = {
     CRATE_MAX: 2,
     CRATE_TRIES: 12,
     /**
-     * 53라운드 Q59: 아트 placement 힌트 속 규칙어 → 배치 규칙 ('벽 앞' → 북쪽 벽 앞, '가장자리'·'구석' → 구석, '엄폐' → 서·동 벽가).
-     * 규칙어가 없으면 LEGACY_RULES(52라운드 이름 규칙), 그것도 없으면 놓지 않는다
+     * 53라운드 Q59·Q69: 아트 placement 힌트 속 규칙어 → 배치 규칙 ('벽 앞' → 북쪽 벽 앞, '가장자리'·'구석' → 구석, '엄폐' → 서·동 벽가,
+     * '문·길 양옆' → 출구 좌우, '측면 세로' → 서·동 벽가 세로, '대칭' → 가운데 축 좌우 짝, '탁자 끝'·'단상 양옆' → 탁자 옆).
+     * 규칙어가 없으면 LEGACY_RULES(52라운드 이름 규칙), 그것도 없으면 DEFAULT_RULE(Q69 '그 외 = 벽가')
      */
-    HINTS: { north: ['벽 앞'], corner: ['가장자리', '구석'], cover: ['엄폐'] },
+    HINTS: {
+      north: ['벽 앞'],
+      corner: ['가장자리', '구석'],
+      cover: ['엄폐'],
+      exit: ['문·길 양옆', '문 양옆', '길 양옆'],
+      column: ['측면 세로'],
+      mirror: ['대칭'],
+      table: ['탁자 끝', '탁자 옆', '단상 양옆', '단상 옆'],
+    },
     LEGACY_RULES: { lamp_post: 'north', brazier: 'ring', well: 'corner', stall: 'corner', crate_stack: 'cover' },
+    DEFAULT_RULE: 'cover',
     /** 53라운드 Q57: avoidNearBorder 쪽 바닥 끝에서 이 칸 수 안에 발자국이 걸치지 않게 */
     AVOID_BORDER_TILES: 3,
+    /** Q69 출구 좌우 (임시): 출구 2×2 에서 띄우는 칸 [최소, 최대] — 출구 둘레 비움(CLEAR_TILES)은 이 규칙만 넘는다 */
+    EXIT_SIDE_GAP_TILES: [1, 2] as [number, number],
+    /** Q69 서·동 벽가 세로 (임시): 쪽마다 개수 */
+    COLUMN_PER_SIDE: 1,
+    /** Q69 가운데 축 좌우 짝 (임시): 짝 수 · 축에서 떨어진 거리(내부 폭 비율) · 북·남 바닥 끝에서 비울 칸 · 시도 */
+    MIRROR_PAIRS: 2,
+    MIRROR_DX_FRAC: [0.15, 0.35] as [number, number],
+    MIRROR_EDGE_TILES: 3,
+    MIRROR_TRIES: 24,
+    /** Q69 탁자 옆 (임시): 탁자마다 개수 (끝 남 → 끝 북 → 안쪽 옆 순으로, 다른 큰 소품 둘레 1칸 규칙 때문에 한 칸 띄움) */
+    TABLE_SIDE_PER_ANCHOR: 1,
+    /** 문(벽의 열린 틈) 앞 바닥에서 비울 칸 (임시) */
+    DOOR_CLEAR_TILES: 1,
   },
   /** 53라운드 4지역 바닥 데칼 (art floors_v2 decals[], 임시): 가운데 1장 이름 · 그 밖 이름마다 장 수 · 시도 · 북쪽 비움 */
   DECALS: {

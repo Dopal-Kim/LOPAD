@@ -68,21 +68,49 @@ describe('52라운드 Q11 큰 소품 배치', () => {
     }
   });
 
-  it('모르는 이름·빈 목록이면 아무것도 놓지 않는다', () => {
+  it('빈 목록이면 아무것도 놓지 않고, 규칙어·이름 규칙이 없으면 서·동 벽가 (53라운드 Q69)', () => {
     expect(planBigProps(arena('x'), [], new Set(), 'x')).toEqual([]);
-    expect(planBigProps(arena('x'), [{ name: 'mystery', footprint: [1, 1] }], new Set(), 'x')).toEqual([]);
+    const L = arena('x');
+    const out = planBigProps(L, [{ name: 'mystery', footprint: [1, 1] }], new Set(), 'x');
+    expect(out.length).toBeGreaterThan(0);
+    for (const o of out)
+      expect(L.tiles[o.ty][o.tx - 1] === TileId.Floor && L.tiles[o.ty][o.tx + 1] === TileId.Floor).toBe(false);
   });
 });
 
 describe('53라운드 Q59 placement 힌트 일반 규칙 · avoidNearBorder', () => {
-  it('힌트 규칙어 → 규칙 (적힌 순서), 없으면 이름 규칙, 그것도 없으면 []', () => {
+  it('힌트 규칙어 → 규칙 (적힌 순서), 없으면 이름 규칙, 그것도 없으면 벽가 (Q69)', () => {
     expect(bigPropRules({ name: 'crane_barrel', placement: 'floor (벽 앞)' })).toEqual(['north']);
     expect(bigPropRules({ name: 'steel_vat', placement: 'floor (벽 앞·구석)' })).toEqual(['north', 'corner']);
     expect(bigPropRules({ name: 'barrel_cart', placement: 'floor (가장자리 권장)' })).toEqual(['corner']);
     expect(bigPropRules({ name: 'stakes', placement: 'floor (흙둑 앞·엄폐)' })).toEqual(['cover']);
     expect(bigPropRules({ name: 'well', placement: 'floor' })).toEqual(['corner']);
     expect(bigPropRules({ name: 'crate_stack', placement: 'floor' })).toEqual(['cover']);
-    expect(bigPropRules({ name: 'cannon', placement: 'floor' })).toEqual([]);
+    expect(bigPropRules({ name: 'cannon', placement: 'floor' })).toEqual(['cover']);
+    expect(bigPropRules({ name: 'mystery' })).toEqual(['cover']);
+  });
+
+  it('Q69 힌트별 규칙: 문·길 양옆 · 측면 세로 · 대칭 · 탁자 끝, 북쪽 회피 벽 앞 → 벽가', () => {
+    expect(bigPropRules({ name: 'torch_stand', placement: 'floor (문·길 양옆)' })).toEqual(['exit']);
+    expect(bigPropRules({ name: 'banquet_table', placement: 'floor (측면 세로, 막힘 장애물 — 52라운드)' })).toEqual([
+      'column',
+    ]);
+    expect(bigPropRules({ name: 'pillar', placement: 'floor (내부 장애물, 대칭 배치)' })).toEqual(['mirror']);
+    expect(bigPropRules({ name: 'candelabra_stand', placement: 'floor (탁자 끝·단상 양옆)' })).toEqual(['table']);
+    const north = ['north'];
+    expect(bigPropRules({ name: 'crane_barrel', placement: 'floor (벽 앞)', avoidNearBorder: north })).toEqual([
+      'cover',
+    ]);
+    expect(bigPropRules({ name: 'toll_booth', placement: 'floor (벽 앞 권장)', avoidNearBorder: north })).toEqual([
+      'cover',
+    ]);
+    expect(
+      bigPropRules({ name: 'barrel_pyramid', placement: 'floor (벽 앞·구석)', avoidNearBorder: ['north', 'west'] }),
+    ).toEqual(['cover', 'corner']);
+    expect(bigPropRules({ name: 'steel_vat', placement: 'floor (벽 앞·구석)', avoidNearBorder: ['west'] })).toEqual([
+      'north',
+      'corner',
+    ]);
   });
 
   it('지역 이름 없이 힌트만으로 놓고, 피하는 쪽 바닥 끝 3칸에는 발자국이 걸치지 않는다 · 결정적', () => {
