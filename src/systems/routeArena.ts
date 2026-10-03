@@ -88,7 +88,8 @@ export function planNodeArena(
   ];
   if (node && d.shopTiles) reserve.push({ x: arena.shop.x - c, y: arena.shop.y - c, w: c * 2 + 2, h: c * 2 + 2 });
 
-  const templateId = node && d.setPiece ? d.setPiece : null;
+  // 54라운드 Q11: 지역이 노드 종류별 템플릿을 덮어쓸 수 있다 (연회장 보스방 = boss_hall)
+  const templateId = node ? (region?.setPieces?.[kind] ?? d.setPiece ?? null) : null;
   const template = templateId ? (entries(file.setPieces)[templateId] ?? null) : null;
   const tutorial = node && d.tutorial && file.tutorial ? file.tutorial : null;
   const kinds = border ? d.structures.filter((k) => STRUCTURE_DEFS.get(k)?.place !== 'cellar') : d.structures;

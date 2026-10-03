@@ -9,20 +9,10 @@ import { gameState } from '../../../core/GameState';
 import type { UiStructureResult } from '../../../contract/ui';
 import type { Mob } from '../../../objects/Mob';
 import type { Projectile } from '../../../objects/Projectile';
-import type { FxPool } from '../../fx';
+import type { Pool, PoolSpec } from '../../hazards/LiquorPools';
 import { STRUCTURE_RULES, num, structureDef, txt, type StructureDef } from '../data';
 import { stakeMods } from '../rules';
 import type { Inst, StructureCore } from '../core';
-
-interface Puddle {
-  rect: Phaser.Geom.Rectangle;
-  until: number;
-  fireUntil: number;
-  nextTick: number;
-  gfx: Phaser.GameObjects.Rectangle;
-  fireGfx: Phaser.GameObjects.Rectangle | null;
-  fireFx: ReturnType<FxPool['play']>[];
-}
 
 interface Burn {
   ticks: number;
@@ -31,15 +21,17 @@ interface Burn {
 }
 
 export class StrikeKinds {
-  puddles: Puddle[] = [];
   readonly burns = new Map<Mob, Burn>();
-  private mobsSlowed = false;
 
   constructor(private readonly c: StructureCore) {}
 
+  /** 1-1 술통 웅덩이 (웅덩이·불바다 갱신은 LiquorPools — Game 이 매 프레임) */
+  get puddles(): Pool[] {
+    return this.c.host.pools.of('structure');
+  }
+
   update(time: number, delta: number): void {
     this.updateRolling(time, delta);
-    this.updatePuddles(time);
     this.updateBurns(time);
   }
 
@@ -50,7 +42,7 @@ export class StrikeKinds {
     const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
     this.hitRect(r, dirX, dirY);
     if (this.touchesFlame(r)) this.igniteWeapon('weapon');
-    if (this.c.fireActive) this.ignitePuddlesIn(r);
+    if (this.c.fireActive) this.c.host.pools.igniteIn(r);
   }
 
   /** 대쉬 시작: 대쉬 경로가 불꽃을 지나면 무기에 불 */
@@ -91,8 +83,7 @@ export class StrikeKinds {
         shot.setTint(Phaser.Display.Color.HexStringToColor(this.stillTint).color);
         if (!fireOn) EventBus.emit(Events.STRUCTURE_FIRE, { target: 'arrow' } satisfies StructureFirePayload);
       }
-      if (shot.fire)
-        for (const p of this.puddles) if (p.fireUntil === 0 && p.rect.contains(pt.x, pt.y)) this.ignitePuddle(p);
+      if (shot.fire) this.c.host.pools.igniteAt(pt.x, pt.y);
       for (const s of this.c.list) {
         if (!this.isHittable(s) || !s.rect.contains(pt.x, pt.y)) continue;
         const v = shot.body.velocity;
@@ -250,123 +241,43 @@ export class StrikeKinds {
     this.spawnPuddle(s.def, s.rect.centerX, s.rect.centerY, time);
   }
 
+  /** 47라운드 술통 웅덩이 수치 (structures.json cask) → 공용 웅덩이 형식 */
+  private caskSpec(d: StructureDef): PoolSpec {
+    return {
+      owner: 'structure',
+      lifeMs: num(d, 'puddleMs'),
+      playerSlow: num(d, 'playerSlow'),
+      enemySlow: num(d, 'enemySlow'),
+      slip: 0,
+      fireMs: num(d, 'fireMs'),
+      fireTickMs: num(d, 'fireTickMs'),
+      firePlayerAttack: num(d, 'firePlayerAttack'),
+      fireMobDamage: () => Math.max(1, Math.round(gameState.attack * num(d, 'fireAttackMult'))),
+      fireFx: String(d.params.fireFx ?? 'fire_pool'),
+      spreadMsPerCell: null,
+      linkGapPx: 0,
+      color: STRUCTURE_FX.PUDDLE_COLOR,
+      alpha: STRUCTURE_FX.PUDDLE_ALPHA,
+      onIgnite: () => {
+        EventBus.emit(Events.STRUCTURE_FIRE, { target: 'pool' } satisfies StructureFirePayload);
+        const cask = this.c.find('cask');
+        if (cask) this.c.result(cask, 'info', txt(cask.def, 'ignite'), {});
+      },
+    };
+  }
+
   private spawnPuddle(d: StructureDef, x: number, y: number, time: number): void {
     const size = num(d, 'puddleTiles') * TILE;
     const rect = new Phaser.Geom.Rectangle(x - size / 2, y - size / 2, size, size);
-    const gfx = this.c.host.scene.add
-      .rectangle(rect.centerX, rect.centerY, size, size, STRUCTURE_FX.PUDDLE_COLOR, STRUCTURE_FX.PUDDLE_ALPHA)
-      .setDepth(STRUCTURE_FX.FLOOR_DEPTH);
-    const p: Puddle = {
-      rect,
-      until: time + num(d, 'puddleMs'),
-      fireUntil: 0,
-      nextTick: 0,
-      gfx,
-      fireGfx: null,
-      fireFx: [],
-    };
-    this.puddles.push(p);
+    // 불 수치는 늘 cask 정의 (47라운드 ignitePuddle 과 같게)
+    const p = this.c.host.pools.add(rect, { ...this.caskSpec(structureDef('cask')), lifeMs: num(d, 'puddleMs') }, time);
     // 화로 곁이면 바로 불바다
     if (
       this.c.list.some(
         (s) => s.kind === 'still' && Phaser.Geom.Intersects.RectangleToRectangle(rect, this.flameRect(s)),
       )
     )
-      this.ignitePuddle(p);
-  }
-
-  private ignitePuddlesIn(r: Phaser.Geom.Rectangle): void {
-    for (const p of this.puddles)
-      if (p.fireUntil === 0 && Phaser.Geom.Intersects.RectangleToRectangle(r, p.rect)) this.ignitePuddle(p);
-  }
-
-  private ignitePuddle(p: Puddle): void {
-    const c = this.c;
-    const d = structureDef('cask');
-    const now = c.now;
-    p.fireUntil = now + num(d, 'fireMs');
-    p.until = Math.max(p.until, p.fireUntil);
-    p.nextTick = now + num(d, 'fireTickMs');
-    const fxId = String(d.params.fireFx ?? 'fire_pool');
-    const fx = c.host.fx;
-    if (fx.has(fxId)) {
-      // 48×24 시트로 3×3 타일을 덮기: y-10 / y+10 두 장, 두 번째는 1프레임 어긋나게 (아트 pivotNote)
-      const dur = num(d, 'fireMs');
-      p.fireFx.push(
-        fx.play(fxId, p.rect.centerX, p.rect.centerY - 10, { depth: STRUCTURE_FX.FLOOR_DEPTH + 0.01, durationMs: dur }),
-      );
-      const second = fx.sheet(fxId)?.frameDurationsMs?.[0] ?? 110;
-      c.host.scene.time.delayedCall(second, () => {
-        if (p.fireUntil > c.now)
-          p.fireFx.push(
-            fx.play(fxId, p.rect.centerX, p.rect.centerY + 10, {
-              depth: STRUCTURE_FX.FLOOR_DEPTH + 0.02,
-              durationMs: Math.max(0, p.fireUntil - c.now),
-            }),
-          );
-      });
-    } else {
-      p.fireGfx = c.host.scene.add
-        .rectangle(
-          p.rect.centerX,
-          p.rect.centerY,
-          p.rect.width,
-          p.rect.height,
-          STRUCTURE_FX.FIRE_COLOR,
-          STRUCTURE_FX.FIRE_ALPHA,
-        )
-        .setDepth(STRUCTURE_FX.FLOOR_DEPTH + 0.01);
-    }
-    EventBus.emit(Events.STRUCTURE_FIRE, { target: 'pool' } satisfies StructureFirePayload);
-    const cask = c.find('cask');
-    if (cask) c.result(cask, 'info', txt(cask.def, 'ignite'), {});
-  }
-
-  private updatePuddles(time: number): void {
-    const c = this.c;
-    const P = c.host.player;
-    if (this.puddles.length === 0) {
-      if (this.mobsSlowed) {
-        for (const ch of c.host.mobs.getChildren()) (ch as Mob).speedMult = 1;
-        this.mobsSlowed = false;
-      }
-      P.envSpeedMult = 1;
-      return;
-    }
-    const d = structureDef('cask');
-    const pc = P.body.center;
-    let playerIn: Puddle | null = null;
-    for (const p of this.puddles) if (p.rect.contains(pc.x, pc.y)) playerIn = p;
-    P.envSpeedMult = playerIn ? 1 - num(d, 'playerSlow') : 1;
-    for (const ch of c.host.mobs.getChildren()) {
-      const m = ch as Mob;
-      if (!m.active) continue;
-      const inside = this.puddles.some((p) => p.rect.contains(m.body.center.x, m.body.center.y));
-      m.speedMult = inside ? 1 - num(d, 'enemySlow') : 1;
-    }
-    this.mobsSlowed = true;
-    // 불바다 틱
-    for (const p of this.puddles) {
-      if (p.fireUntil === 0 || time >= p.fireUntil || time < p.nextTick) continue;
-      p.nextTick = time + num(d, 'fireTickMs');
-      const dmg = Math.max(1, Math.round(gameState.attack * num(d, 'fireAttackMult')));
-      for (const ch of [...c.host.mobs.getChildren()]) {
-        const m = ch as Mob;
-        if (!m.active || !p.rect.contains(m.body.center.x, m.body.center.y)) continue;
-        if (c.host.hitMob(m, dmg, { crit: false, dirX: 0, dirY: 0, tick: true })) c.host.onKill(m, 'environment');
-      }
-      if (p.rect.contains(pc.x, pc.y)) P.takeHit(num(d, 'firePlayerAttack'), time);
-    }
-    // 만료
-    const expired = (p: Puddle) => time >= p.until || (p.fireUntil > 0 && time >= p.fireUntil);
-    for (const p of this.puddles) if (expired(p)) this.destroyPuddle(p);
-    this.puddles = this.puddles.filter((p) => !expired(p));
-  }
-
-  private destroyPuddle(p: Puddle): void {
-    p.gfx.destroy();
-    p.fireGfx?.destroy();
-    for (const h of p.fireFx) if (this.c.host.fx.isActive(h)) this.c.host.fx.stop(h);
+      this.c.host.pools.ignite(p);
   }
 
   // --- 1-2 증류 화로 · 화상 ---
@@ -542,11 +453,6 @@ export class StrikeKinds {
   }
 
   destroy(): void {
-    for (const p of this.puddles) {
-      p.gfx.destroy();
-      p.fireGfx?.destroy();
-    }
-    this.puddles = [];
     this.burns.clear();
   }
 }

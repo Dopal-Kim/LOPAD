@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import type { BossPatternName } from '../data/bossPatterns';
 
 /** 씬·시스템 간 유일한 통신 경로. 직접 참조 금지. */
 export const EventBus = new Phaser.Events.EventEmitter();
@@ -51,10 +52,16 @@ export const Events = {
   BOSS_STARTED: 'boss:started',
   BOSS_PHASE: 'boss:phase',
   BOSS_DIED: 'boss:died',
-  /** 보스 공격 예고 (dash / fan / slam / volley — 35라운드 2단계) */
+  /** 보스 공격 예고 (패턴 이름 — data/bossPatterns.ts BOSS_PATTERN_NAMES) */
   BOSS_TELEGRAPH: 'boss:telegraph',
-  /** 보스 공격 실행 (dash / fan / slam / summon / volley) */
+  /** 보스 공격 실행 (패턴 이름) */
   BOSS_ATTACK: 'boss:attack',
+  /** 54라운드: 보스 패턴 안의 국면 (마시기·잔 깨짐·비틀 돌진 n타·넘어짐·술통·횃불·점화·촛대 — 음향 훅, `BossActionPayload`) */
+  BOSS_ACTION: 'boss:action',
+  /** 54라운드: 보스 패턴 루프음 켜기·끄기 (마시는 중·술통 구름·불 웅덩이 — 여러 개여도 하나, `BossLoopPayload`) */
+  BOSS_LOOP: 'boss:loop',
+  /** 54라운드: 화면 패턴 시작·끝 (세상이 돈다 tilt · 등불 끄기 dark, `BossScreenPayload`) */
+  BOSS_SCREEN: 'boss:screen',
   /** 보스 돌진이 벽에 부딪혀 경직 (화면 흔들림·음향 훅, 35라운드) */
   BOSS_WALL_HIT: 'boss:wall-hit',
   GOLD_CHANGED: 'gold:changed',
@@ -145,10 +152,34 @@ export type EnemyAttackPayload = { id: string; kind: 'contact' | 'dash' | 'shot'
 export type EnemyTelegraphPayload = { id: string; kind: 'dash' | 'shot' };
 /** 35라운드 2단계: reload = 사수 재장전 시작, block = 결사병 방패로 막음, pack = 징집병 집단 돌격 시작 */
 export type EnemyBehaviorPayload = { id: string; kind: 'reload' | 'block' | 'pack' };
-/** 보스 패턴 이름 (data/bosses.json phases[].patterns). 음향 매핑은 dash·fan 만 기존 유지 */
-export type BossPattern = 'dash' | 'fan' | 'slam' | 'summon' | 'volley';
+/** 보스 패턴 이름 (54라운드: 단일 출처 data/bossPatterns.ts) */
+export type BossPattern = BossPatternName;
 export type BossAttackPayload = { id: string; attack: BossPattern };
-export type BossTelegraphPayload = { id: string; attack: Exclude<BossPattern, 'summon'> };
+export type BossTelegraphPayload = { id: string; attack: BossPattern };
+/** 54라운드 보스 패턴 국면 (음향 매니페스트 트리거 대응표는 parts/system/README.md 54라운드 절) */
+export type BossActionKind =
+  | 'drinkLift'
+  | 'drinkFinish'
+  | 'cupBreak'
+  | 'reelTelegraph'
+  | 'reelDash'
+  | 'fall'
+  | 'rise'
+  | 'kick'
+  | 'caskBounce'
+  | 'caskBreak'
+  | 'caskRedirect'
+  | 'spill'
+  | 'torchThrow'
+  | 'ignite'
+  | 'candleTopple'
+  | 'candleRelight'
+  | 'phaseDrink';
+/** index = 3연 취권 몇 번째 타(0부터) */
+export type BossActionPayload = { id: string; action: BossActionKind; index?: number };
+export type BossLoopKind = 'gulp' | 'roll' | 'fire';
+export type BossLoopPayload = { loop: BossLoopKind; on: boolean };
+export type BossScreenPayload = { effect: 'tilt' | 'dark'; on: boolean };
 export type BossWallHitPayload = { id: string; x: number; y: number };
 export type MenuEventPayload = { id: string; reopen?: boolean; key?: string; selected?: boolean };
 export type RunEndedPayload = { cleared: boolean };

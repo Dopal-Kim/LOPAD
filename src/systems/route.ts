@@ -51,6 +51,8 @@ export interface RegionDef {
   edge?: Partial<ArenaEdge>;
   /** 장소 설명 (자리표시): 노드 종류별, 없으면 default — UiRouteNode.desc */
   desc: { default: string } & Partial<Record<RouteKind, string>>;
+  /** 54라운드 Q11: 이 지역에서 노드 종류별 세트 배치 템플릿 덮어쓰기 (연회장 보스방 = boss_hall) */
+  setPieces?: Partial<Record<RouteKind, string>>;
 }
 
 export interface RouteFloorDef {
@@ -158,6 +160,9 @@ export function validateRoute(f: RouteFile): RouteFile {
     if (r.tileset !== undefined && !/^[a-z0-9_]+$/.test(r.tileset)) fail(`regions.${id}.tileset 형식 (소문자·숫자·_)`);
   }
   const pieces = entries(f.setPieces);
+  for (const [id, r] of Object.entries(entries(f.regions)))
+    for (const [k, sp] of Object.entries(r.setPieces ?? {}))
+      if (!pieces[sp]) fail(`regions.${id}.setPieces.${k} 알 수 없음: ${sp}`);
   for (const k of KINDS) {
     const sp = f.kinds[k].setPiece;
     if (sp !== undefined && !pieces[sp]) fail(`kinds.${k}.setPiece 알 수 없음: ${sp}`);

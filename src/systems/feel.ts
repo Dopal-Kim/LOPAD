@@ -18,6 +18,8 @@ export interface FeelSettings {
   trail: boolean;
   /** 화면 섬광·색 오버레이·채도 감소 (42라운드) */
   flash: boolean;
+  /** 54라운드 Q7: 화면 기울기 배율 (보스 '세상이 돈다' 카메라 기울기·가장자리 흐림, 0 = 끔 — 흔들림 끄기와 같은 방식) */
+  tilt: number;
 }
 
 export const DEFAULT_FEEL: FeelSettings = {
@@ -27,6 +29,7 @@ export const DEFAULT_FEEL: FeelSettings = {
   numbers: true,
   trail: true,
   flash: true,
+  tilt: 1,
 };
 
 /** 게임 수명 동안 하나. 씬 재시작과 무관하게 유지 (저장은 하지 않음 — 설정 UI 는 추후 계약) */
@@ -39,6 +42,7 @@ export function setFeel(patch: Partial<FeelSettings>): FeelSettings {
   if (typeof patch.numbers === 'boolean') feelSettings.numbers = patch.numbers;
   if (typeof patch.trail === 'boolean') feelSettings.trail = patch.trail;
   if (typeof patch.flash === 'boolean') feelSettings.flash = patch.flash;
+  if (typeof patch.tilt === 'number' && patch.tilt >= 0) feelSettings.tilt = patch.tilt;
   return { ...feelSettings };
 }
 

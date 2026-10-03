@@ -8,6 +8,7 @@ import personalityJson from '../../data/personality.json';
 import storyJson from '../../data/story.json';
 import paletteJson from '../../data/palette.json';
 import lightingJson from '../../data/lighting.json';
+import { checkPatternParams, isBossPatternName, resolvePatternParams, type BossPatternName } from './bossPatterns';
 import type {
   BossTable,
   ComboDef,
@@ -91,8 +92,10 @@ export function validateEnemies(t: EnemyTable): EnemyTable {
   return t;
 }
 
-const BOSS_PATTERNS = new Set(['dash', 'fan', 'slam', 'summon', 'volley']);
-
+/**
+ * 54라운드 Q4: 보스 검증 — 페이즈 pick 은 알려진 패턴 이름이어야 하고, 고르는 패턴은 그 페이즈에서 해석한 수치
+ * (공통 → 페이즈 → 강화)가 형식(BOSS_PATTERN_SCHEMAS)에 맞아야 한다. 패턴이 부르는 다음 패턴(drink.triggers·spin.next 등)도 같은 검사
+ */
 export function validateBosses(t: BossTable): BossTable {
   for (const [id, b] of Object.entries(t)) {
     assertNumber(b.hp, `bosses.${id}.hp`);
@@ -102,46 +105,50 @@ export function validateBosses(t: BossTable): BossTable {
     assertNumber(b.gold, `bosses.${id}.gold`);
     assertNumber(b.approachSpeedTiles, `bosses.${id}.approachSpeedTiles`);
     assertPair(b.size, `bosses.${id}.size`);
+    if (b.bodyFromArt) {
+      assertNumber(b.bodyFromArt.w, `bosses.${id}.bodyFromArt.w`);
+      assertNumber(b.bodyFromArt.h, `bosses.${id}.bodyFromArt.h`);
+    }
+    if (!b.patterns || typeof b.patterns !== 'object') throw new Error(`[data] bosses.${id}.patterns 없음`);
+    for (const name of Object.keys(b.patterns))
+      if (!isBossPatternName(name)) throw new Error(`[data] bosses.${id}.patterns 알 수 없는 패턴: ${name}`);
     if (!Array.isArray(b.phases) || b.phases.length === 0) throw new Error(`[data] bosses.${id}.phases 비어 있음`);
     if (b.phases[0].hpFraction !== 1) throw new Error(`[data] bosses.${id}.phases[0].hpFraction 은 1 이어야 합니다`);
     b.phases.forEach((ph, i) => {
-      assertNumber(ph.hpFraction, `bosses.${id}.phases[${i}].hpFraction`);
-      for (const [k, v] of Object.entries(ph.dash)) assertNumber(v, `bosses.${id}.phases[${i}].dash.${k}`);
-      if (ph.fan) {
-        for (const [k, v] of Object.entries(ph.fan)) {
-          if (k !== 'afterDash' && k !== 'sprite') assertNumber(v, `bosses.${id}.phases[${i}].fan.${k}`);
+      const at = `bosses.${id}.phases[${i}]`;
+      assertNumber(ph.hpFraction, `${at}.hpFraction`);
+      assertNumber(ph.intervalMs, `${at}.intervalMs`);
+      if (!Array.isArray(ph.pick) || ph.pick.length === 0) throw new Error(`[data] ${at}.pick 비어 있음`);
+      for (const name of Object.keys(ph.patterns ?? {}))
+        if (!isBossPatternName(name)) throw new Error(`[data] ${at}.patterns 알 수 없는 패턴: ${name}`);
+      // 고르는 패턴 + 페이즈 진입 연출 + 그 패턴들이 부르는 다음 패턴 (한 단계씩 따라간다)
+      const seen = new Set<BossPatternName>();
+      const queue: unknown[] = [...ph.pick];
+      if (ph.enterPattern !== undefined) queue.push(ph.enterPattern);
+      while (queue.length > 0) {
+        const name = queue.shift();
+        if (!isBossPatternName(name)) throw new Error(`[data] ${at}: 알 수 없는 패턴 ${String(name)}`);
+        if (seen.has(name)) continue;
+        seen.add(name);
+        for (const empowered of [false, true]) {
+          const p = resolvePatternParams(b, i, name, empowered);
+          if (!p) throw new Error(`[data] ${at}: ${name} 패턴인데 ${name} 수치 없음`);
+          const errs = checkPatternParams(name, p, `${at}.${name}${empowered ? '(강화)' : ''}`);
+          if (errs.length > 0) throw new Error(`[data] ${errs[0]}`);
+          if (Array.isArray(p.triggers)) queue.push(...(p.triggers as unknown[]));
+          if (p.next !== undefined) queue.push(p.next);
         }
       }
-      // 35라운드 2단계: 패턴 목록은 알려진 이름이어야 하고, 쓰는 패턴의 수치가 있어야 한다
-      if (ph.patterns) {
-        if (!Array.isArray(ph.patterns) || ph.patterns.length === 0)
-          throw new Error(`[data] bosses.${id}.phases[${i}].patterns 비어 있음`);
-        for (const name of ph.patterns) {
-          if (!BOSS_PATTERNS.has(name))
-            throw new Error(`[data] bosses.${id}.phases[${i}].patterns 알 수 없음: ${name}`);
-          if (name === 'fan' && !ph.fan) throw new Error(`[data] bosses.${id}.phases[${i}]: fan 패턴인데 fan 없음`);
-          if (name !== 'dash' && name !== 'fan' && !b[name])
-            throw new Error(`[data] bosses.${id}: ${name} 패턴인데 ${name} 수치 없음`);
-        }
-      }
-      if (ph.patternIntervalMs !== undefined)
-        assertNumber(ph.patternIntervalMs, `bosses.${id}.phases[${i}].patternIntervalMs`);
+      // 기존 규칙: 부채꼴은 돌진 뒤 연계가 있으므로 fan 을 고르는 페이즈만 fan 수치를 본다 (위 검사로 충분)
     });
-    if (b.slam) for (const [k, v] of Object.entries(b.slam)) assertNumber(v, `bosses.${id}.slam.${k}`);
-    if (b.summon) {
-      if (typeof b.summon.enemy !== 'string') throw new Error(`[data] bosses.${id}.summon.enemy 없음`);
-      for (const k of ['count', 'max', 'cooldownMs'] as const) assertNumber(b.summon[k], `bosses.${id}.summon.${k}`);
-    }
-    if (b.volley) {
-      for (const [k, v] of Object.entries(b.volley)) if (k !== 'sprite') assertNumber(v, `bosses.${id}.volley.${k}`);
-    }
   }
   return t;
 }
 
 export function validateStages(t: StageTable, enemies: EnemyTable, bosses: BossTable): StageTable {
   for (const [, b] of Object.entries(bosses)) {
-    if (b.summon && !enemies[b.summon.enemy]) throw new Error(`[data] bosses: 소환 적 정의 없음 ${b.summon.enemy}`);
+    const summon = b.patterns.summon as { enemy?: string } | undefined;
+    if (summon?.enemy && !enemies[summon.enemy]) throw new Error(`[data] bosses: 소환 적 정의 없음 ${summon.enemy}`);
   }
   for (const [id, s] of Object.entries(t)) {
     if (!bosses[s.boss]) throw new Error(`[data] stages.${id}.boss 정의 없음: ${s.boss}`);

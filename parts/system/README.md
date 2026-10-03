@@ -792,3 +792,61 @@ fx 라이트맵 위 띠 2.02 + d×0.1 · 북쪽 벽 앞 번갈아 합계 4·간�
 
 ### 임시값 (전부 검수 대상)
 출구 좌우 간격 1~2칸 · 벽가 세로 쪽마다 1 · 대칭 짝 2쌍·축 거리 15~35%·북남 끝 3칸 비움 · 탁자 옆 탁자마다 1 · 문 앞 비움 1칸.
+
+## 54라운드: 1층 보스 '만취' 패턴 디벨롭 · 보스 패턴 모듈 분리 (2026-10-03)
+결정: `decisions/2026-10-03-round-54-boss1-patterns.md` Q1~Q12 (+ 메인 세션 전달 Q13~Q16: 보스 그림 192×240 안팎). 계약 art §15. 아트 커밋 090459f 의 키 이름(메인 세션 전달)만 썼고 아트 파일을 직접 열지 않았다.
+
+### 정리 (Q4·6-1)
+- `objects/Boss.ts` 540줄 switch → 얇은 접착부(Phaser 몸·이벤트·경직·무적) + `objects/boss/`: `BossBrain.ts`(페이즈·고르기·쿨타임·연계·강화·페이즈 진입 연출, Phaser 없음) · `registry.ts` · `patterns/*.ts`(dash·fan·slam·summon·volley·drink(+phaseDrink·spin)·drunkDash·caskRoll·fireSpill·lightsOut) · `bossPose.ts`(몸 연출·v3 JSON 키) · `curve.ts`(휘는 경로·튕김 경로) · `types.ts`(BossHost·BossArenaApi).
+- 패턴 이름 단일 출처 `data/bossPatterns.ts`(BOSS_PATTERN_NAMES·형식 BOSS_PATTERN_SCHEMAS·해석 resolvePatternParams). EventBus `BossPattern` = 그 타입.
+- `bosses.json` 형식: `patterns.<이름>`(공통) · `phases[i].{hpFraction, intervalMs, pick, patterns?(덮어쓰기), enterPattern?, name?}` · `patterns.<이름>.empowered`(강화 덮어쓰기). 35라운드 fan.intervalMs → cooldownMs. `validateBosses` 는 pick·enterPattern·다음 패턴(triggers·next)을 따라가며 강화 포함 형식 검사.
+- 2~7층·황제: 수치·동작 그대로. 회귀 테스트 `objects/boss/legacyRegression.test.ts` — 옛 JSON 고정본(`__fixtures__/bosses.legacy.json`)과 수치 비교 + 35라운드 상태 머신을 그대로 옮긴 참조 구현과 새 두뇌를 같은 가짜 세계(벽·페이즈 전환·플레이어 이동)에서 20초 돌려 사건 기록(예고·실행·벽 경직·연계·발사·소환·자세 호출 순서) 완전 일치.
+- 술 웅덩이·불바다(47라운드 독주 술통)를 `systems/hazards/LiquorPools.ts` 로 분리 — 구조물·보스방이 같은 목록. 구조물 웅덩이(번짐 없음)는 47라운드 동작 그대로. 갱신은 Game 이 구조물 갱신 바로 뒤에.
+
+### 1층 '만취' (Q1·Q5·Q6·Q10)
+- HP 300 · 얼큰(100~60%) dash·slam·caskRoll·drink / 만취(60~25%) + drunkDash·fireSpill (세상이 돈다는 drink 로만) / 인사불성(25%~) 같은 목록 + 간격 1500 + 3연 취권 예고 500→300→300 + drink 가 세상이 돈다·등불 끄기 중 하나. 부채꼴·소환 없음.
+- 페이즈 진입: 진행 패턴을 끊고 phaseDrink(1600ms, 무적 — 임시값). 무적 중 피격은 숫자·넉백 없이 불꽃만(GameCombat.hitMob).
+- 한 잔 더: 들기 450 → 들이켜기 2000(잔 약점) → 다 마심 400. 잔을 맞히면 3000ms 경직(drink_break 자세) + 화면 패턴 취소. 얼큰 = 다음 패턴 강화(empowered), 만취·인사불성 = triggers 중 쿨타임 끝난 것.
+- 세상이 돈다: 카메라 ±8°·주기 2000·6000ms(시작·끝 600 부드럽게) → 곧바로 3연 취권. WebGL postFX TiltShift(대비 0)+Vignette, 실제 fps 40 미만 20프레임이면 흐림만 뗌. 라이트맵은 회전 덮개 배율(`lightMath.rotationCover`, 8° ≈ 1.24)로 키워 모서리 안 샘. 타일맵 컬링 여유 4칸. `feelSettings.tilt`(0 = 끔). 화면 섬광 덮개는 카메라 배율로 이미 넉넉.
+- 3연 취권: 휘는 2차 베지어(휘는 정도 0.35, 타마다 좌우 번갈아), 예고선도 곡선(`TelegraphFx.path` 꺾은선 마커 — 선 시트 토막을 마디마다, 경고광 5점). 벽·기둥 = 벽 경직. 세 번째 뒤 2000ms 넘어짐(접촉 피해 없음).
+- 술독 굴리기: 튕김 경로 예고(벽·기둥 bounces 3) → 걷어차기 → 굴러가며 칸마다 웅덩이(감속 30%·미끄러움 0.86) → 플레이어 닿으면 18 피해 후 깨짐(3×3 웅덩이). 플레이어가 치면(근접·화살) 친 방향·속도 ×1.15, 보스에 맞으면 30 피해 + 1500ms 경직.
+- 불붙은 술: 물결 경로 예고 800 → 웅덩이 칸 → 횃불 예고(원) 700 → 450ms 날아감 → 불. 연결 웅덩이(틈 4px)로 칸마다 120ms 늦게, 다음 칸으로 불씨가 달려가 방향·속도가 보인다. 불 3500ms·500ms 마다 10. 보스·적은 이 불에 안 다침(임시값). 기둥은 불을 끊는다.
+- 등불 끄기: 원 예고 900 → 반경 3칸 20 피해 → 촛대 4개 110ms 간격으로 쓰러짐 → 주변광 #1c1c26 (700ms) · 예고 경고광 ×2.2 → 12초 뒤 복구(촛대 다시 섬). 쓰러진 촛대를 치거나(근접·화살) E(1.6칸)로 다시 켬 → 밝은 광원. 불 웅덩이도 광원. 끝나면 어둠 속 3연 취권.
+- 보스방(Q11): `route.json` regions.hall.setPieces.boss = `boss_hall` — 기둥 2×2 네 개(짝 2쌍, TileWorld 고정 큰 소품 = 칸 막힘 → 돌진 벽 경직·술통 튕김·불 끊김) · 촛대 4개(서 있으면 플레이어만 막힘, 쓰러지면 통과) · 무작위 큰 소품에서 기둥·촛대 제외.
+- 판정 크기(Q13~Q16): `bodyFromArt {w 1.0, h 0.6}` × idle 시트 한 프레임 월드 크기 — 지금 128×192 시트 = 32×29 (전 40×40), 192×240 이면 48×36. 프레임 크기·피벗·앵커는 전부 JSON.
+
+### 그림 연결 (계약 §15 · 아트 090459f)
+- 보스 v3 동작 로드: idle·walk·attack·hurt·death + slam·drink·drink_break·stagger_dash·fall·kick·throw·throw_torch·phase_drink. attack phaseFrames 의 `recover` 를 35라운드 `recover_or_fan` 으로 읽고 예고 자세는 `holdFrame`. slam impactFrame·kick impactFrame/footAnchors·throw/throw_torch releaseFrame/handAnchors 를 예고 끝에 맞춰 재생. drink lift/gulp(반복)/finish · drink_break break → stagger 반복 · fall fall → down 반복 → rise · stagger_dash telegraph(예고 길이에 맞춤) → dash 반복 · phase_drink 전환 길이에 맞춰 1회. 시트가 없으면 임시 연출(기울기·눕힘·호박색 틴트).
+- 잔 약점: drink 현재 프레임의 `cupAnchors[dir][frame]` {x,y,w,h}(왼쪽 위 기준으로 읽음), null 이면 머리 위 임시 사각형. 맞힘 판정 = 잔 + 둘레 4px + 아래로 보스 바디 윗변 +14px(머리 높이 잔을 몸 높이 근접 판정이 닿게), 화살은 지난 프레임→지금 선분 + 보스 몸에 맞은 지점.
+- 구조물 v3: boss1_pillar(있으면 그 그림, 없으면 지역 소품 pillar, 없으면 임시) · boss1_candelabra(lit → fall → fallen_unlit · fallen → relight → relit, 서쪽 좌우 뒤집기) · boss1_rolling_barrel(방향 행 × 굴러간 거리/circumferencePx 프레임) · boss1_barrel_break(1회). fx v3: boss1_torch(회전) · boss1_cup_shatter · boss1_liquor_splash · boss1_liquor_glob. 횃불 착지 불 = fire_pool.
+
+### 효과음 대응표 (음향 18종 — 매니페스트 트리거 문자열과 다른 실제 이벤트)
+| 효과음 | 시스템 이벤트 |
+|---|---|
+| boss1_drink_lift | BOSS_ACTION drinkLift |
+| boss1_drink_gulp (루프) | BOSS_LOOP gulp on/off (끌 때 120ms 페이드, 잔 깨짐이면 즉시 정지) |
+| boss1_drink_finish | BOSS_ACTION drinkFinish |
+| boss1_cup_shatter | BOSS_ACTION cupBreak |
+| boss1_spin_start | BOSS_ATTACK spin |
+| boss1_reel_telegraph · boss1_reel_dash | BOSS_ACTION reelTelegraph · reelDash (index 0·1·2 → 재생 속도 1.0·1.06·1.12) |
+| boss1_fall | BOSS_ACTION fall |
+| boss1_barrel_kick | BOSS_ACTION kick · caskRedirect(플레이어가 친 술통, 임시 재사용) |
+| boss1_barrel_roll (루프) | BOSS_LOOP roll (술통이 하나라도 구르면) |
+| boss1_barrel_bounce | BOSS_ACTION caskBounce |
+| boss1_liquor_splash | BOSS_ACTION caskBreak · spill |
+| boss1_torch_throw | BOSS_ACTION torchThrow |
+| boss1_ignite | BOSS_ACTION ignite (횃불이 웅덩이에 떨어져 불붙음) |
+| boss1_fire_loop (루프) | BOSS_LOOP fire (보스 불 웅덩이가 하나라도 타면, 하나만) |
+| boss1_candle_topple | BOSS_ACTION candleTopple (촛대마다 110ms 간격) |
+| boss1_candle_relight | BOSS_ACTION candleRelight |
+| boss1_phase_drink | BOSS_PHASE (1층 보스일 때, 다른 층은 boss_phase) |
+
+### 디버그 (`?debug` 없이도 동작하는 주소 옵션 + `__lopad.boss`)
+- `?boss` = 새 런으로 1층 보스 노드에 바로 · `?bossPhase=2|3` = 그 페이즈 HP 로 시작 · `?bossPattern=drink,spin` = 그 순서로 되풀이(쿨타임 무시). 셋 중 하나만 있어도 보스 노드로 간다.
+- `__lopad.boss.info()` · `.arena()` · `.force(['caskRoll'], true)` · `.phase(3)`(진입 연출 포함) · `.hitCup()` · `.tilt({blur, durationMs, periodMs})`.
+
+### 테스트 · 검증
+- 테스트 +46: legacyRegression(14) · patterns(12) · curve(튕김·물결·연결망·번짐·기울기·덮개·주소 옵션·판정 크기 13) · bossPatterns(4) · audioDefs(보스 18종 매니페스트 대조). tsc·eslint·vitest(59파일)·vite build 통과. 헤드리스 스크린샷(스크래치패드 r54/shots).
+
+### 임시값 (전부 검수 대상 — 보고서 표)
+bosses.json stage1 의 새 수치 전부 · phaseDrink 무적 · 보스 불이 보스·적 무피해 · 다시 켠 촛대는 통과 · 서 있는 촛대는 보스를 막지 않음 · 잔 판정 여유(4px·바디 윗변 +14px) · 판정 크기 비율(1.0·0.6) · 흐림 fps 기준(40·20프레임) · 술통 쳐내기 속도 ×1.15·최소 튕김 1 · 횃불은 뿌린 줄 2칸 지점.

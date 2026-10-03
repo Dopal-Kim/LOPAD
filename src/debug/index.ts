@@ -167,6 +167,21 @@ export interface DebugApi {
   border: () => unknown;
   scar: () => unknown;
   injectScar: (scar?: unknown) => boolean;
+  /** 54라운드 보스: 상태(페이즈·패턴·강화·강제·무적·기록) · 방 환경(촛대·술통·웅덩이·어둠·기울기) · 패턴 강제 · 페이즈 강제 */
+  boss: BossDebugApi;
+}
+
+export interface BossDebugApi {
+  info: () => unknown;
+  arena: () => unknown;
+  /** 패턴을 이 순서로 되풀이 (빈 목록 = 해제). now 면 지금 바로 다음 패턴 */
+  force: (patterns: string[], now?: boolean) => boolean;
+  /** 페이즈 n(1부터)으로 (HP 를 그 페이즈 시작 값으로 — 진입 연출 포함) */
+  phase: (n: number) => boolean;
+  /** 지금 약점 잔을 맞힌 것으로 */
+  hitCup: () => boolean;
+  /** 세상이 돈다 화면 효과만 바로 (1층 spin 수치, opts 로 흐림·길이 덮어쓰기 — 검증용) */
+  tilt: (opts?: { blur?: number; durationMs?: number }) => unknown;
 }
 
 export interface StructureDebugInfo {
@@ -228,6 +243,8 @@ export type FeelPatch = Partial<{
   numbers: boolean;
   trail: boolean;
   flash: boolean;
+  /** 54라운드 Q7 화면 기울기 배율 (0 = 끔) */
+  tilt: number;
 }>;
 
 /** 카메라 스크롤·배율·클램프 영역 (32라운드 추종 검증용) */
@@ -329,6 +346,7 @@ export function exposeDebug(api: {
   border: () => unknown;
   scar: () => unknown;
   injectScar: (scar?: unknown) => boolean;
+  boss: BossDebugApi;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -479,6 +497,7 @@ export function exposeDebug(api: {
     border: () => api.border(),
     scar: () => api.scar(),
     injectScar: (scar) => api.injectScar(scar),
+    boss: api.boss,
     doorsOf: (roomId) =>
       api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };

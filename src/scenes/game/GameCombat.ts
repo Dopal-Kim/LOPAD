@@ -150,6 +150,11 @@ export class GameCombat {
     const backY = c.y + ny * hh * 0.5;
     const isBoss = mob.isBoss;
     const now = g.time.now;
+    // 54라운드: 무적(보스 페이즈 전환 들이켜기) — 피해·숫자·넉백 없이 불꽃만
+    if (mob.isImmune(now)) {
+      if (!opts.tick) g.hitFx.spark(hitX, hitY, nx, ny);
+      return false;
+    }
     // 방패 막기(35라운드 2단계): 정면에서 온 공격은 피해 감소, 섬광만, 넉백·피 없음. 틱 피해는 막지 않는다
     const block = opts.tick ? 0 : mob.guardReduction(nx, ny, now);
     if (block > 0) dmg = Math.max(1, Math.round(dmg * (1 - block)));
@@ -217,6 +222,8 @@ export class GameCombat {
     const dirX = v.x;
     const dirY = v.y;
     if (!shot.registerHit(mob)) return;
+    // 54라운드 Q6: 들이켜는 보스의 잔(약점) — 몸에 맞은 화살이 잔 판정 안이면 잔도 깨진다
+    if (mob.isBoss) g.bossArena?.onShotHitBoss(shot.x, shot.y);
     const now = g.time.now;
     const stunnedByParry = mob.isParryStunned(now);
     // 중시: 적중 번개 낙하 (히트박스 중심, 개체 위)

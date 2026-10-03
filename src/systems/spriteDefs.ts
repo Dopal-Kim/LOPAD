@@ -14,6 +14,18 @@ export const FACINGS: readonly Facing[] = ['down', 'up', 'left', 'right'];
 /** 계약 §1 동작 목록 (+ 52라운드 Q13 달리기 `run` — 없으면 walk) */
 export const PLAYER_ACTIONS = ['idle', 'walk', 'run', 'attack', 'dash', 'hurt', 'death'] as const;
 export const MOB_ACTIONS = ['idle', 'walk', 'attack', 'hurt', 'death'] as const;
+/** 54라운드 계약 §15 보스 v3 추가 동작 (매니페스트에 있을 때만 로드 — 지금은 1층 '만취') */
+export const BOSS_EXTRA_ACTIONS = [
+  'slam',
+  'drink',
+  'drink_break',
+  'stagger_dash',
+  'fall',
+  'kick',
+  'throw',
+  'throw_torch',
+  'phase_drink',
+] as const;
 /** 계약 §3.1 손에 든 무기 오버레이 동작 */
 export const WEAPON_ACTIONS = ['attack'] as const;
 
@@ -265,6 +277,14 @@ export interface SheetJson extends BranchSheetFields {
   tile?: boolean;
   /** 보스 attack 국면별 프레임 열 (결정 로그 J): 예고 유지 / 돌진 반복 / 멈춤·벽 경직·부채꼴 */
   phaseFrames?: PhaseFrames;
+  /** 54라운드 계약 §15 보스 v3 drink: 프레임별 약점 잔 사각형 {x, y, w, h} (시트 도트) — 방향 → 열 목록 또는 열 목록 */
+  cupAnchors?: unknown;
+  /** 54라운드 계약 §15 보스 v3 kick: 프레임별 발 좌표 (술통 시작점) */
+  footAnchors?: unknown;
+  /** 54라운드 아트 v3 보스: 예고 동안 유지할 열 (attack·stagger_dash) */
+  holdFrame?: number;
+  /** 54라운드 아트 v3 술통 회전 시트: 한 바퀴 둘레 (시트 도트) */
+  circumferencePx?: number;
   // --- §3.2 (42·43라운드 양산 필드). 있으면 시스템이 쓰고 없으면 기본값 ---
   /** 이 이펙트가 속한 무기 id · 보조 동작 종류 (메모) */
   weapon?: string;
@@ -337,7 +357,7 @@ export interface SheetJson extends BranchSheetFields {
   pivotNote?: string;
   /**
    * (시스템 제안, 계약 외) 예비 프레임이 앞에 있을 때 이 프레임이 spawn 시점에 오도록 그만큼 먼저 재생한다.
-   * 없으면 `fxImpactFrame` 규칙 (attack_frame2 시트는 f0 = 예비 → 1)
+   * 없으면 `fxImpactFrame` 규칙 (attack_frame2 시트는 f0 = 예비 → 1). 54라운드 계약 §15 보스 v3: 타격 프레임 (slam·kick)
    */
   impactFrame?: number;
 }
@@ -368,6 +388,8 @@ export interface PhaseFrames {
   telegraph?: number[];
   dash?: number[];
   recover_or_fan?: number[];
+  /** 54라운드 계약 §15 보스 v3 동작 국면 (drink lift·gulp·finish · fall fall·down·rise · drink_break break·stagger 등) */
+  [phase: string]: number[] | undefined;
 }
 
 /**
@@ -491,7 +513,8 @@ export function wantedSheets(
   // 53라운드 Q19: 무기별 기본 자세 (`player_idle_free`·`player_walk_bow` 등, 없으면 기본 몸)
   for (const action of bodyVariantActions(weaponIds)) out.push({ category: 'player', name: 'player', action });
   for (const name of enemyIds) for (const action of MOB_ACTIONS) out.push({ category: 'enemies', name, action });
-  for (const name of bossIds) for (const action of MOB_ACTIONS) out.push({ category: 'bosses', name, action });
+  for (const name of bossIds)
+    for (const action of [...MOB_ACTIONS, ...BOSS_EXTRA_ACTIONS]) out.push({ category: 'bosses', name, action });
   for (const name of weaponIds) for (const action of WEAPON_ACTIONS) out.push({ category: 'weapons', name, action });
   for (const name of weaponIds)
     for (const action of WEAPON_EXTRA_ACTIONS) out.push({ category: 'weapons', name, action });

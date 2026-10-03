@@ -32,6 +32,8 @@ export class TileWorld {
   readonly quarter: QuarterView | null = null;
   /** 52라운드 Q11 큰 소품 배치 (쿼터뷰 타일셋만) */
   readonly bigProps: BigPropPlacement[] = [];
+  /** 54라운드: 지역 소품 시트에 그림이 있는 큰 소품 이름 (쿼터뷰일 때만) */
+  private readonly bigPropArt: Set<string>;
   /** 53라운드 양조 수로 · 바닥 데칼 (쿼터뷰 4지역 바닥) */
   readonly canal: CanalPlan | null = null;
   readonly decals: DecalPlacement[] = [];
@@ -51,7 +53,14 @@ export class TileWorld {
      * 53라운드 Q6: Gemini 외벽 테두리가 경계 벽을 대신 그린다 (쿼터뷰 경계 벽 타일 생략).
      * propSkin = v3 바닥 소품 시트 — 쿼터뷰 바닥이면 큰 소품·작은 소품을 이 시트에서 (없으면 바닥 타일셋)
      */
-    opts: { boundaryWalls?: boolean; propSkin?: TileSkin | null } = {},
+    opts: {
+      boundaryWalls?: boolean;
+      propSkin?: TileSkin | null;
+      /** 54라운드 Q11 보스방 기둥: 고정 자리 단단한 큰 소품 (그림은 지역 소품 시트의 같은 이름 — 없으면 BossArena 임시 그림) */
+      fixedBigProps?: { name: string; tx: number; ty: number; w: number; h: number }[];
+      /** 이 방에서 무작위로 놓지 않을 큰 소품 이름 */
+      excludeBigProps?: readonly string[];
+    } = {},
   ) {
     const isOpen = (x: number, y: number) => isOpenId(layout.tiles[y]?.[x]);
     // 방 종류별 바닥(37라운드): 방 내부 바닥은 roomFloors[type], 복도·그 외는 tiles["1"]
@@ -90,17 +99,28 @@ export class TileWorld {
     for (const t of this.canal?.tiles ?? [])
       if (t.kind === 'bridgeL' || t.kind === 'bridgeR') bridges.add(`${t.x},${t.y}`);
       else blockTile(t.x, t.y);
+    // 54라운드 Q11: 고정 큰 소품(보스방 기둥) 칸을 먼저 막는다
+    const fixed = (opts.fixedBigProps ?? []).map((f) => ({ ...f, solid: true }));
+    for (const f of fixed)
+      for (let y = f.ty; y < f.ty + f.h; y++) for (let x = f.tx; x < f.tx + f.w; x++) blockTile(x, y);
+    const exclude = new Set(opts.excludeBigProps ?? []);
+    this.bigPropArt = new Set(skin.quarter ? propSkin.bigProps.map((b) => b.name) : []);
     // 53라운드 Q59: 배치는 아트 placement 힌트 · avoidNearBorder 로 (bigPropRules)
     const bigShapes = skin.quarter
-      ? propSkin.bigProps.map((b) => ({
-          name: b.name,
-          footprint: b.footprint!,
-          placement: b.placement,
-          avoidNearBorder: Array.isArray(b.avoidNearBorder) ? b.avoidNearBorder : undefined,
-          solid: b.solid,
-        }))
+      ? propSkin.bigProps
+          .filter((b) => !exclude.has(b.name))
+          .map((b) => ({
+            name: b.name,
+            footprint: b.footprint!,
+            placement: b.placement,
+            avoidNearBorder: Array.isArray(b.avoidNearBorder) ? b.avoidNearBorder : undefined,
+            solid: b.solid,
+          }))
       : [];
-    this.bigProps = bigShapes.length > 0 ? planBigProps(layout, bigShapes, avoid, propSeed, bridges) : [];
+    this.bigProps = [
+      ...fixed,
+      ...(bigShapes.length > 0 ? planBigProps(layout, bigShapes, avoid, propSeed, bridges) : []),
+    ];
     for (const k of bridges) avoid.add(k);
     // 53라운드 후속: 아트 solid: false 큰 소품(황무지 weapons_stuck 등)은 걷기 통과 — 칸은 막지 않고 작은 소품·데칼만 피한다
     for (const b of this.bigProps)
@@ -148,6 +168,11 @@ export class TileWorld {
       );
       this.quarter.addBigProps(this.bigProps);
     }
+  }
+
+  /** 54라운드: 이 큰 소품을 지역 시트로 그렸는지 (아니면 호출 쪽 임시 그림) */
+  hasBigPropArt(name: string): boolean {
+    return this.bigPropArt.has(name);
   }
 
   /** 충돌시킬 레이어 목록 (바닥·벽 + 단단한 소품) */

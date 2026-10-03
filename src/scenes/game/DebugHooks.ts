@@ -10,6 +10,7 @@ import type { Mob } from '../../objects/Mob';
 import type { Pickup } from '../../objects/Pickup';
 import type { Projectile } from '../../objects/Projectile';
 import { exposeDebug } from '../../debug';
+import { isBossPatternName } from '../../data/bossPatterns';
 import { audio } from '../../systems/audio';
 import { feelSettings, setFeel } from '../../systems/feel';
 import { fontStatus } from '../../systems/fonts';
@@ -359,6 +360,33 @@ export function exposeGameDebug(g: Game): void {
       g.player.scar.refresh();
       return true;
     },
+    boss: {
+      info: () => findBoss(g)?.debugInfo ?? null,
+      arena: () => g.bossArena?.summary() ?? null,
+      force: (patterns, now) => {
+        const b = findBoss(g);
+        if (!b) return false;
+        const list = patterns.filter(isBossPatternName);
+        b.debugForce(list.length > 0 ? list : null, now);
+        return true;
+      },
+      phase: (n) => {
+        const b = findBoss(g);
+        if (!b) return false;
+        b.debugPhase(n);
+        return true;
+      },
+      hitCup: () => g.bossArena?.debugHitCup() ?? false,
+      tilt: (opts) => {
+        const b = findBoss(g);
+        if (!g.bossArena || !b) return null;
+        g.bossArena.startTilt({
+          ...b.params<Parameters<NonNullable<typeof g.bossArena>['startTilt']>[0]>('spin'),
+          ...opts,
+        });
+        return g.bossArena.screen.summary();
+      },
+    },
     setBossHp: (hp) => {
       for (const m of g.mobs.getChildren() as Mob[]) {
         if (m.isBoss && m.active) {
@@ -369,6 +397,11 @@ export function exposeGameDebug(g: Game): void {
       return false;
     },
   });
+}
+
+function findBoss(g: Game): Boss | null {
+  for (const m of g.mobs.getChildren() as Mob[]) if (m.active && m.isBoss) return m as Boss;
+  return null;
 }
 
 /** `route()` 디버그: 계약 UiRoute + 종류·클리어·출구·경로·선택지·전투장·지역·세트·튜토리얼·잠금 */

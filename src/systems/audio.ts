@@ -64,6 +64,8 @@ export class AudioSystem {
   private readonly dedupe = new SfxDedupe();
   private voices: Snd[] = [];
   private readonly loops = new Map<string, Snd>();
+  /** 페이드 아웃 중인 루프 */
+  private fading: { snd: Snd; from: number; at: number; ms: number }[] = [];
   private bgm: BgmTrack | null = null;
   private dying: BgmTrack[] = [];
   private floor: number | null = null;
@@ -132,7 +134,7 @@ export class AudioSystem {
   // --- 효과음 ---
 
   /** 효과음 1회. 매니페스트에 없거나 로드되지 않았으면 무시(missing 기록) */
-  playSfx(id: string, opts: { delayMs?: number } = {}): boolean {
+  playSfx(id: string, opts: { delayMs?: number; rate?: number } = {}): boolean {
     const sm = this.game?.sound;
     const entry = this.entries.get(id);
     if (!sm || !entry) {
@@ -145,7 +147,7 @@ export class AudioSystem {
     }
     const now = this.now();
     if (!this.dedupe.allow(id, now)) return false;
-    const rate = hasPitchVariance(id) ? pitchRate(Math.random()) : 1;
+    const rate = (hasPitchVariance(id) ? pitchRate(Math.random()) : 1) * (opts.rate ?? 1);
     const delayMs = Math.max(0, opts.delayMs ?? 0);
     this.pruneVoices();
     while (this.voices.length >= AUDIO.MAX_SFX_VOICES) {
@@ -174,11 +176,14 @@ export class AudioSystem {
     this.loops.set(id, snd);
   }
 
-  stopLoop(id: string): void {
+  /** 루프 정지. fadeMs 가 있으면 그동안 볼륨을 줄인 뒤 (54라운드 보스 루프) */
+  stopLoop(id: string, fadeMs = 0): void {
     const snd = this.loops.get(id);
     if (!snd) return;
     this.loops.delete(id);
-    this.kill(snd);
+    if (fadeMs > 0 && snd.isPlaying)
+      this.fading.push({ snd, from: (snd as unknown as { volume: number }).volume ?? 1, at: this.now(), ms: fadeMs });
+    else this.kill(snd);
   }
 
   /** 해당 id 의 재생 중인 효과음(일회성·루프) 전부 정지 */
@@ -263,10 +268,16 @@ export class AudioSystem {
 
   private onTrigger(tr: AudioTrigger, payload: unknown): void {
     if (tr.when && !tr.when(payload)) return;
-    for (const id of tr.stop ?? []) this.stopSfx(id);
+    const stops = [...(tr.stop ?? []), ...(tr.stopOf?.(payload) ?? [])];
+    for (const id of stops) {
+      if (tr.stopFadeMs) this.stopLoop(id, tr.stopFadeMs);
+      this.stopSfx(id);
+    }
     if (tr.loop) this.startLoop(tr.loop);
+    const loopId = tr.loopOf?.(payload);
+    if (loopId) this.startLoop(loopId);
     const id = typeof tr.sfx === 'function' ? tr.sfx(payload) : tr.sfx;
-    if (id) this.playSfx(id, { delayMs: tr.delayMs ? tr.delayMs(payload) : 0 });
+    if (id) this.playSfx(id, { delayMs: tr.delayMs ? tr.delayMs(payload) : 0, rate: tr.rate ? tr.rate(payload) : 1 });
   }
 
   private onStageStarted(p: { stageIndex: number }): void {
@@ -339,6 +350,17 @@ export class AudioSystem {
 
   private step(): void {
     const now = this.now();
+    if (this.fading.length > 0) {
+      this.fading = this.fading.filter((f) => {
+        const k = Math.min(1, (now - f.at) / f.ms);
+        if (k >= 1 || f.snd.pendingRemove) {
+          this.kill(f.snd);
+          return false;
+        }
+        f.snd.setVolume(f.from * (1 - k));
+        return true;
+      });
+    }
     if (this.bgm?.fade) this.applyFade(this.bgm, now);
     if (this.dying.length > 0) {
       const keep: BgmTrack[] = [];

@@ -5,6 +5,7 @@ import { facingOf, type Facing } from '../systems/spriteDefs';
 import { knockFactor, knockSpeed } from '../systems/feel';
 import type { PackCharge } from '../systems/packCharge';
 import type { TelegraphFx } from '../systems/telegraph';
+import type { BossArenaApi } from './boss/types';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
 import { LIGHTING } from '../data';
 import { lightRegistryOf } from '../systems/lighting/lightRegistry';
@@ -30,6 +31,8 @@ export interface MobContext {
   summon: (enemyId: string, x: number, y: number) => boolean;
   /** 집단 돌격 공유 상태 */
   pack: PackCharge;
+  /** 54라운드: 보스방 환경 (기둥·촛대·술통·술 웅덩이·화면 효과). 보스방이 아니면 없음 */
+  arena?: BossArenaApi | null;
 }
 
 export interface ProjectileSpec {
@@ -164,6 +167,11 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
 
   isStunned(time: number): boolean {
     return time < this.stunnedUntil;
+  }
+
+  /** 54라운드: 피해를 받지 않는 중 (보스 페이즈 전환 들이켜기). 피격 경로(GameCombat.hitMob)가 숫자·넉백 대신 불꽃만 */
+  isImmune(_time: number): boolean {
+    return false;
   }
 
   /** 패링 경직으로 멈춰 있는지 (감각 '패링 처치' 분류용) */

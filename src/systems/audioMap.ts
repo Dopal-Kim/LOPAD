@@ -10,7 +10,11 @@ import {
   type StructureBellPayload,
   type StructureEventPayload,
   type StructureFirePayload,
+  type BossActionKind,
+  type BossActionPayload,
   type BossAttackPayload,
+  type BossLoopKind,
+  type BossLoopPayload,
   type BossTelegraphPayload,
   type EnemyAttackPayload,
   type EnemyDamagedPayload,
@@ -36,6 +40,13 @@ export interface AudioTrigger<P = unknown> {
   loop?: string;
   /** 정지할 효과음·루프 id */
   stop?: string[];
+  /** 54라운드: 페이로드로 정하는 루프·정지 (보스 루프) */
+  loopOf?: (p: P) => string;
+  stopOf?: (p: P) => string[];
+  /** 54라운드: 정지 페이드 ms (루프 끝 80~150ms 권장 — 음향 파트) */
+  stopFadeMs?: number;
+  /** 54라운드: 재생 속도 (3연 취권 1·2·3타 1.0/1.06/1.12 — 음향 파트 권장) */
+  rate?: (p: P) => number;
 }
 
 function t<P>(def: AudioTrigger<P>): AudioTrigger {
@@ -83,7 +94,77 @@ export const SFX = {
   menuMove: 'sfx/menu_move',
   menuSelect: 'sfx/menu_select',
   menuCancel: 'sfx/menu_cancel',
+  // 54라운드 1층 보스 '만취' (음향 매니페스트 조건 boss:1)
+  boss1: {
+    drinkLift: 'sfx/boss1_drink_lift',
+    drinkGulp: 'sfx/boss1_drink_gulp',
+    drinkFinish: 'sfx/boss1_drink_finish',
+    cupShatter: 'sfx/boss1_cup_shatter',
+    spinStart: 'sfx/boss1_spin_start',
+    reelTelegraph: 'sfx/boss1_reel_telegraph',
+    reelDash: 'sfx/boss1_reel_dash',
+    fall: 'sfx/boss1_fall',
+    barrelKick: 'sfx/boss1_barrel_kick',
+    barrelRoll: 'sfx/boss1_barrel_roll',
+    barrelBounce: 'sfx/boss1_barrel_bounce',
+    liquorSplash: 'sfx/boss1_liquor_splash',
+    torchThrow: 'sfx/boss1_torch_throw',
+    ignite: 'sfx/boss1_ignite',
+    fireLoop: 'sfx/boss1_fire_loop',
+    candleTopple: 'sfx/boss1_candle_topple',
+    candleRelight: 'sfx/boss1_candle_relight',
+    phaseDrink: 'sfx/boss1_phase_drink',
+  },
 } as const;
+
+/** 54라운드: 3연 취권 n타(0부터) 재생 속도 (음향 권장 1.0 / 1.06 / 1.12) */
+export const REEL_RATES = [1, 1.06, 1.12] as const;
+
+/** 54라운드: 보스 패턴 국면 → 효과음 (null = 없음). 대응표는 parts/system/README.md 54라운드 절 */
+export function bossActionSfx(action: BossActionKind): string | null {
+  const B = SFX.boss1;
+  switch (action) {
+    case 'drinkLift':
+      return B.drinkLift;
+    case 'drinkFinish':
+      return B.drinkFinish;
+    case 'cupBreak':
+      return B.cupShatter;
+    case 'reelTelegraph':
+      return B.reelTelegraph;
+    case 'reelDash':
+      return B.reelDash;
+    case 'fall':
+      return B.fall;
+    case 'kick':
+    case 'caskRedirect':
+      return B.barrelKick;
+    case 'caskBounce':
+      return B.barrelBounce;
+    case 'caskBreak':
+    case 'spill':
+      return B.liquorSplash;
+    case 'torchThrow':
+      return B.torchThrow;
+    case 'ignite':
+      return B.ignite;
+    case 'candleTopple':
+      return B.candleTopple;
+    case 'candleRelight':
+      return B.candleRelight;
+    default:
+      return null;
+  }
+}
+
+/** 54라운드 루프 종류 → 루프 효과음 */
+export function bossLoopSfx(loop: BossLoopKind): string {
+  const B = SFX.boss1;
+  return loop === 'gulp' ? B.drinkGulp : loop === 'roll' ? B.barrelRoll : B.fireLoop;
+}
+
+/** 루프 끝 페이드 ms (음향 권장 80~150) */
+const BOSS_LOOP_FADE_MS = 120;
 
 /**
  * 47라운드 구조물 사용음: 새 효과음 없이 기존 효과음에 임시 연결 (음향 파트 후속, 결정 round-47).
@@ -188,7 +269,46 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => p.attack === 'fan',
     sfx: SFX.bossFan,
   }),
-  t({ event: Events.BOSS_PHASE, note: '보스 국면 전환', sfx: SFX.bossPhase }),
+  t({
+    event: Events.BOSS_PHASE,
+    note: '보스 국면 전환 (54라운드: 1층 보스는 들이켜기 boss1_phase_drink)',
+    sfx: () => (gameState.stage?.boss === 'stage1' ? SFX.boss1.phaseDrink : SFX.bossPhase),
+  }),
+  // --- 54라운드 1층 보스 '만취' 새 패턴 ---
+  t<BossAttackPayload>({
+    event: Events.BOSS_ATTACK,
+    note: '세상이 돈다 시작 → boss1_spin_start',
+    when: (p) => p.attack === 'spin',
+    sfx: SFX.boss1.spinStart,
+  }),
+  t<BossActionPayload>({
+    event: Events.BOSS_ACTION,
+    note: '잔 깨짐 → 들이켜기 루프 즉시 정지',
+    when: (p) => p.action === 'cupBreak',
+    stop: [SFX.boss1.drinkGulp],
+  }),
+  t<BossActionPayload>({
+    event: Events.BOSS_ACTION,
+    note: '보스 패턴 국면 → bossActionSfx (3연 취권 n타는 재생 속도 REEL_RATES)',
+    sfx: (p) => bossActionSfx(p.action),
+    rate: (p) =>
+      p.action === 'reelTelegraph' || p.action === 'reelDash'
+        ? REEL_RATES[Math.min(REEL_RATES.length - 1, p.index ?? 0)]
+        : 1,
+  }),
+  t<BossLoopPayload>({
+    event: Events.BOSS_LOOP,
+    note: '보스 루프 켜기: 들이켜기·술통 구름·불 웅덩이(여러 개여도 하나)',
+    when: (p) => p.on,
+    loopOf: (p) => bossLoopSfx(p.loop),
+  }),
+  t<BossLoopPayload>({
+    event: Events.BOSS_LOOP,
+    note: '보스 루프 끄기 (페이드)',
+    when: (p) => !p.on,
+    stopOf: (p) => [bossLoopSfx(p.loop)],
+    stopFadeMs: BOSS_LOOP_FADE_MS,
+  }),
   t({ event: Events.BOSS_DIED, note: '보스 사망', sfx: SFX.bossDie }),
 
   // --- 맵·월드 ---

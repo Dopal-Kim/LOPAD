@@ -130,6 +130,8 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
     expect(idx.has(SFX.enemyTelegraph('charger'))).toBe(true);
     expect(idx.has(SFX.enemyDash('charger'))).toBe(true);
     expect(idx.has(SFX.enemyShot('archer'))).toBe(true);
+    // 54라운드 1층 보스 '만취' 효과음 18종 (페이로드로 고르는 id)
+    for (const id of Object.values(SFX.boss1)) expect(idx.has(id), id).toBe(true);
     // 매니페스트의 모든 효과음이 표 어딘가에서 쓰인다 (누락 자산 점검)
     const used = new Set([
       ...staticSfxIds(),
@@ -143,6 +145,8 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       SFX.bowAimed,
       SFX.hitEnemy,
       SFX.hitEnemyCrit,
+      SFX.bossPhase,
+      ...Object.values(SFX.boss1),
     ]);
     const unused = manifest.entries.filter((e) => e.kind === 'sfx' && !used.has(e.id)).map((e) => e.id);
     expect(unused).toEqual([]);

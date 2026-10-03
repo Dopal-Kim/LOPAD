@@ -171,6 +171,8 @@ export class PlayerStrikes {
     const activeMs = p.activeMs ?? hb.activeMs;
     // 47라운드: 타격형 구조물·화로 점화·불붙은 무기의 웅덩이 점화
     g.structures.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
+    // 54라운드: 보스방 — 약점 잔 · 술통 방향 바꾸기 · 쓰러진 촛대 다시 켜기
+    g.bossArena?.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
     // 베기 시트가 있으면 판정 사각형은 보이지 않게(판정만), 없으면 기존 플레이스홀더 표시
     const evoFx = evolutionFxId(g.fx);
     const swingFx = this.pathFx('wide', 'iai', 'dance', 'twin');

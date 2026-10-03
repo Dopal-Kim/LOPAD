@@ -106,6 +106,9 @@
       },
       "desc": {
         "default": "'잔'의 지배자가 술에 잠겨 기다리는 연회장."
+      },
+      "setPieces": {
+        "boss": "boss_hall"
       }
     },
     "alley": {
@@ -490,6 +493,86 @@
           "color": "#3e3a36"
         }
       ]
+    },
+    "boss_hall": {
+      "_note": "54라운드 Q11 연회장 보스방: 기본 boss 세트 + 기둥 짝 2쌍(2×2, 단단함 — 돌진 충돌 시 벽 경직, 술통 튕김, 엄폐) + 촛대 4개(등불 끄기에서 쓰러뜨리고 다시 켜는 대상). 좌표는 전투장 중앙 기준 [dx, dy] (기둥은 왼쪽 위 칸), 임시값. excludeBigProps = 이 방에서 무작위 큰 소품으로 놓지 않을 그림(기둥·촛대가 고정 배치와 헷갈리지 않게)",
+      "decor": [
+        {
+          "name": "rug",
+          "at": [0, 0],
+          "size": [4, 3],
+          "floor": true,
+          "sprite": ["set_{region}_rug", "set_hall_rug"],
+          "color": "#3a2a26"
+        },
+        {
+          "name": "table",
+          "at": [-12, -10],
+          "size": [3, 1],
+          "color": "#5a3a2a",
+          "sprite": ["set_{region}_table", "set_{region}_long_table", "set_hall_long_table"]
+        },
+        {
+          "name": "table",
+          "at": [12, -10],
+          "size": [3, 1],
+          "color": "#5a3a2a",
+          "sprite": ["set_{region}_table", "set_{region}_long_table", "set_hall_long_table"]
+        },
+        {
+          "name": "table",
+          "at": [-12, 10],
+          "size": [3, 1],
+          "color": "#5a3a2a",
+          "sprite": ["set_{region}_table", "set_{region}_long_table", "set_hall_long_table"]
+        },
+        {
+          "name": "table",
+          "at": [12, 10],
+          "size": [3, 1],
+          "color": "#5a3a2a",
+          "sprite": ["set_{region}_table", "set_{region}_long_table", "set_hall_long_table"]
+        },
+        {
+          "name": "banner",
+          "at": [-6, -12],
+          "size": [1, 1],
+          "color": "#7a2a2a",
+          "sprite": ["set_{region}_banner", "battlefield_banner"]
+        },
+        {
+          "name": "banner",
+          "at": [6, -12],
+          "size": [1, 1],
+          "color": "#7a2a2a",
+          "sprite": ["set_{region}_banner", "battlefield_banner"]
+        }
+      ],
+      "pillars": [
+        {
+          "at": [-7, -5],
+          "size": [2, 2]
+        },
+        {
+          "at": [6, -5],
+          "size": [2, 2]
+        },
+        {
+          "at": [-7, 4],
+          "size": [2, 2]
+        },
+        {
+          "at": [6, 4],
+          "size": [2, 2]
+        }
+      ],
+      "candles": [
+        [0, -8],
+        [0, 8],
+        [-12, 0],
+        [12, 0]
+      ],
+      "excludeBigProps": ["pillar", "candelabra_stand"]
     }
   },
   "tutorial": {

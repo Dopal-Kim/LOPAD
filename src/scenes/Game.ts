@@ -41,6 +41,10 @@ import type { TelegraphFx } from '../systems/telegraph';
 import { PackCharge } from '../systems/packCharge';
 import { audio } from '../systems/audio';
 import { StructureSystem } from '../systems/structures/StructureSystem';
+import { LiquorPools } from '../systems/hazards/LiquorPools';
+import { BossArena } from '../systems/boss/BossArena';
+import { BOSSES } from '../data';
+import { propSkinFor } from '../world/tileskin';
 import type { StructurePlacement } from '../systems/structures/placement';
 import { BirthFlow } from './game/BirthFlow';
 import { exposeGameDebug } from './game/DebugHooks';
@@ -80,6 +84,10 @@ export class Game extends Phaser.Scene {
   director: RoomDirector;
   /** 47라운드 상호작용 구조물 */
   structures: StructureSystem;
+  /** 54라운드: 술 웅덩이·불바다 (구조물·보스방 공용) */
+  pools: LiquorPools;
+  /** 54라운드: 보스방 환경 (보스 정의에 arena 가 있는 보스 노드에서만) */
+  bossArena: BossArena | null = null;
   inputSystem: InputSystem;
   rng: Rng;
   menu: TextMenu;
@@ -128,7 +136,7 @@ export class Game extends Phaser.Scene {
   labMode: LabMode | null = null;
   ui: UiRelay;
 
-  private initData: GameInitData = {};
+  initData: GameInitData = {};
   private senseBonus = 0;
   private debugText?: Phaser.GameObjects.Text;
   /** 52라운드 `?anchors`: v3 손·칼 앵커 표시 */
@@ -200,7 +208,16 @@ export class Game extends Phaser.Scene {
     });
     if (gameState.route && this.routeMode) this.route.syncProgress();
     this.createTutorial();
+    this.pools = new LiquorPools({
+      scene: this,
+      player: this.player,
+      mobs: this.mobs,
+      fx: this.fx,
+      hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, o),
+      onKill: (m, kind) => this.progress.onKill(m, kind),
+    });
     this.createStructures(structurePlan);
+    this.createBossArena();
     this.inputSystem = new InputSystem(this);
 
     // 계약: 스냅샷 제공, 메뉴 선택 라우팅, HUD 병렬 실행
@@ -300,6 +317,7 @@ export class Game extends Phaser.Scene {
         mobs: this.mobs,
         menu: this.menu,
         fx: this.fx,
+        pools: this.pools,
         rng: this.rng,
         stageId: gameState.stageId,
         addGold: (n) => this.economy.addGold(n),
@@ -327,6 +345,34 @@ export class Game extends Phaser.Scene {
     );
     // 48라운드: 앞 노드의 층 상태(빚·취기·판돈·불씨 등)를 이어받는다
     if (this.routeMode) this.structures.importFloorState(gameState.structureCarry);
+  }
+
+  /** 54라운드: 보스 노드 + 보스 정의에 arena 가 있으면 보스방 환경 (기둥·촛대·술통·술·화면 효과) */
+  private createBossArena(): void {
+    this.bossArena?.destroy();
+    this.bossArena = null;
+    const id = gameState.stage.boss;
+    const def = BOSSES[id];
+    if (this.nodeKind !== 'boss' || !def?.arena || !this.nodeArena) return;
+    const sp = this.nodeArena.setPiece;
+    this.bossArena = new BossArena(
+      {
+        scene: this,
+        world: this.world,
+        player: this.player,
+        mobs: this.mobs,
+        fx: this.fx,
+        pools: this.pools,
+        lighting: () => this.lighting ?? null,
+        hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, o),
+        onKill: (m, kind) => this.progress.onKill(m, kind),
+        shake: (px, ms) => this.shake.add(this.time.now, px, ms),
+        propSkin: propSkinFor(this.nodeArena.tileset),
+      },
+      id,
+      def,
+      { pillars: sp.pillars, candles: sp.candles, centerX: (sp.center.x + 0.5) * TILE },
+    );
   }
 
   private bindEvents(): void {
@@ -408,6 +454,8 @@ export class Game extends Phaser.Scene {
     let input = this.structures.inputLocked || this.route.locked(time) ? neutralInput(raw) : raw;
     if (input.potionPressed) this.economy.usePotion();
     this.structures.update(input, time, delta);
+    this.pools.update(time);
+    this.bossArena?.update(input, time, delta);
     input = this.structures.adjustAim(input, time);
     this.player.sprintAllowed = !this.director.inCombat;
     this.player.update(input, time, delta);
@@ -441,6 +489,7 @@ export class Game extends Phaser.Scene {
       areaHit: c.areaHit,
       summon: c.summon,
       pack: this.pack,
+      arena: this.bossArena,
     };
     for (const child of [...this.mobs.getChildren()]) (child as Mob).update(ctx);
     this.telegraph.update(time);
@@ -448,6 +497,7 @@ export class Game extends Phaser.Scene {
     for (const child of this.pickups.getChildren()) (child as Pickup).tick(time);
     for (const child of this.playerShots.getChildren()) (child as Projectile).tick(time);
     this.structures.tickShots(this.playerShots.getChildren() as Projectile[]);
+    this.bossArena?.tickShots(this.playerShots.getChildren() as Projectile[]);
     this.strikes.update(time, delta);
     this.fx.update(time);
     this.trails.update(time);
@@ -515,6 +565,9 @@ export class Game extends Phaser.Scene {
     this.screenFx.destroy();
     this.aimLine.destroy();
     this.structures.destroy();
+    this.bossArena?.destroy();
+    this.bossArena = null;
+    this.pools.destroy();
     this.fx.destroy();
     this.lighting.destroy();
     audio.stopAllLoops();

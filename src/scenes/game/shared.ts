@@ -20,6 +20,8 @@ export type GameInitData = {
   labMenu?: 'lab' | 'labBranch';
   /** 50라운드 시범 확인: 이 지역(route.json regions id, 예: 'outer')의 전투 노드로 바로 (`?slice=outer`, 새 런만) */
   slice?: string;
+  /** 54라운드 `?boss`·`?bossPhase`·`?bossPattern`: 새 런으로 이 층 보스 노드에 바로 (보스 확인용) */
+  bossJump?: boolean;
 };
 
 /** 49라운드 회피 시험 보상 상한 (결정 49 Q2: 시작 감각 +0~3) */

@@ -58,6 +58,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   sprintAllowed = false;
   /** 47라운드: 환경 이동 배율 (독주 웅덩이 -20%). 구조물 시스템이 매 프레임 넣는다 */
   envSpeedMult = 1;
+  /** 54라운드 Q3: 미끄러움 0..1 (보스 술 웅덩이). 0 이면 조작 속도 그대로, 클수록 속도가 목표로 천천히 붙는다 */
+  envSlip = 0;
   /** 53라운드 Q10: 이번 프레임 감속 배율 (조준·가드·공격 뒤·넣기/뽑기·기력 바닥·환경, 달리기 제외) — 낮으면 걷기 그림 */
   moveSlowMult = 1;
   /** 현재 이동 속도 배율 (1 ~ sprint.speedMult, 가속·감속) */
@@ -312,7 +314,12 @@ export class Player extends Phaser.GameObjects.Sprite {
       const tired = res?.moveMult ?? 1;
       this.moveSlowMult = slow * tired * Math.min(1, this.envSpeedMult);
       const speed = this.speedPx * slow * this.sprintFactor * this.envSpeedMult * tired;
-      this.body.setVelocity(dir.x * speed, dir.y * speed);
+      if (this.envSlip > 0) {
+        // 미끄러움: 60fps 한 프레임에 (1 - slip) 만큼만 목표 속도로 붙는다 (프레임 시간 보정)
+        const k = 1 - Math.pow(this.envSlip, delta / (1000 / 60));
+        const v = this.body.velocity;
+        this.body.setVelocity(v.x + (dir.x * speed - v.x) * k, v.y + (dir.y * speed - v.y) * k);
+      } else this.body.setVelocity(dir.x * speed, dir.y * speed);
     }
     this.moving = this.poses.locomotion(input, dir, time);
     this.poses.holdSecondary(input, time);

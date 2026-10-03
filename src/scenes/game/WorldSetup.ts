@@ -5,7 +5,7 @@
  */
 import { TILE } from '../../core/Constants';
 import { gameState } from '../../core/GameState';
-import { LIGHTING } from '../../data';
+import { BOSSES, LIGHTING } from '../../data';
 import type { LightingAmbient } from '../../data/types';
 import { generateFloor, type FloorLayout } from '../../systems/mapgen';
 import { RouteState, generateRoute, kindDef, regionIdOf, routeEnabled } from '../../systems/route';
@@ -18,6 +18,7 @@ import { planStructures, structureTiles, type StructurePlacement } from '../../s
 import { BorderView, releaseBorderTextures } from '../../world/BorderView';
 import { borderFor, borderGaps, floorRectOf, type BorderDef } from '../../world/border';
 import { SetPieceView } from '../../world/SetPieceView';
+import { pillarSheet } from '../../systems/boss/BossArena';
 import { TileSkin, propSkinFor, skinFor, tileSkins } from '../../world/tileskin';
 import { TileWorld } from '../../world/TileWorld';
 import type { Game } from '../Game';
@@ -37,6 +38,8 @@ export class WorldSetup {
       gameState.route = new RouteState(generateRoute(gameState.stageId, gameState.floorSeed), floor);
     const route = g.routeMode ? gameState.route : null;
     if (route && !route.currentId && slice) this.jumpToSlice(route, slice);
+    // 54라운드 디버그: ?boss · ?bossPhase · ?bossPattern = 이 층 보스 노드로 바로 (새 런만)
+    if (route && !route.currentId && this.g.initData.bossJump) this.jumpToBoss(route);
     // 진입 노드가 하나뿐이면(1층 탄생지) 바로 들어간다. 여럿이면(2층 갈림) 빈 전투장에서 고른다
     if (route && !route.currentId) {
       const entries = route.nextOptions();
@@ -56,6 +59,15 @@ export class WorldSetup {
           })
         : null;
     return nodeSalt;
+  }
+
+  /** 54라운드 `?boss`: 보스 노드를 현재 노드로 (탄생 생략) */
+  private jumpToBoss(route: RouteState): void {
+    const node = route.graph.nodes.find((n) => n.kind === 'boss');
+    if (!node) return;
+    route.currentId = node.id;
+    route.path.push(node.id);
+    gameState.birthPending = false;
   }
 
   /** `?slice=<지역>`: 그 지역의 전투 노드(없으면 그 지역 아무 노드)를 현재 노드로 */
@@ -98,7 +110,19 @@ export class WorldSetup {
       gameState.floorSeed + nodeSalt,
       arena ? new Set([...structureTiles(structurePlan), ...setPieceTiles(arena)]) : structureTiles(structurePlan),
       // 53라운드 v3 바닥 소품 (`tiles/v3/<지역 타일셋>_props`) — 있으면 큰 소품·작은 소품을 그 시트에서
-      { boundaryWalls: !borderDef, propSkin: arena ? propSkinFor(arena.tileset) : null },
+      // 54라운드 Q11: 보스방 기둥(고정 단단한 큰 소품) · 무작위로 놓지 않을 큰 소품
+      {
+        boundaryWalls: !borderDef,
+        propSkin: arena ? propSkinFor(arena.tileset) : null,
+        fixedBigProps: (arena?.setPiece.pillars ?? []).map((r) => ({
+          name: pillarPropName(),
+          tx: r.x,
+          ty: r.y,
+          w: r.w,
+          h: r.h,
+        })),
+        excludeBigProps: arena?.setPiece.excludeBigProps ?? [],
+      },
     );
     g.border = this.createBorder(borderDef, layout);
     g.physics.world.setBounds(0, 0, g.world.widthPx, g.world.heightPx);
@@ -161,6 +185,16 @@ export class WorldSetup {
     const hasBorder = (r: string | null | undefined) => Boolean(borderDefFor(r));
     return lightingAmbientFor(g.nodeArena?.regionId, flag, Boolean(g.nodeArena || g.lab), hasBorder, LIGHTING);
   }
+}
+
+/**
+ * 54라운드 보스방 기둥 큰 소품 이름: 기둥 구조물 시트가 있으면 그 이름(지역 소품 시트에 없으니 QuarterView 는 칸만 막고 BossArena 가 그림),
+ * 없으면 지역 소품 시트의 pillar
+ */
+function pillarPropName(): string {
+  const A = BOSSES[gameState.stage.boss]?.arena;
+  if (!A) return 'pillar';
+  return pillarSheet(A) ?? A.pillarProp;
 }
 
 /** 53라운드 Q6: 지역 외벽 테두리 정의 (`?border=0` 이면 끔 — 비교용) */

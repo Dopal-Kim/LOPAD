@@ -15,7 +15,7 @@ import { DEPTH } from '../../core/Constants';
 import { RES } from '../display';
 import { LIGHTING } from '../../data';
 import type { LightingAmbient } from '../../data/types';
-import { flickerFactor, hexColor, lightFalloff, pickLights, type LightPick } from './lightMath';
+import { flickerFactor, hexColor, lightFalloff, pickLights, rotationCover, type LightPick } from './lightMath';
 import { dropLightRegistry, lightRegistryOf, type LightRegistry, type LightSource } from './lightRegistry';
 
 const TEX_LIGHT = 'light_radial';
@@ -49,11 +49,19 @@ interface Drawn extends LightPick {
 }
 
 export class Lighting {
-  readonly enabled: boolean;
   private readonly registry: LightRegistry;
   private rt: Phaser.GameObjects.RenderTexture | null = null;
   private readonly glows: Phaser.GameObjects.Image[] = [];
-  private readonly ambient: number;
+  private ambient: number;
+  /** 54라운드 Q8 주변광 트윈 (등불 끄기): 시작 색·목표 색·시작·길이 */
+  private fade: { from: number; to: number; at: number; ms: number } | null = null;
+  /** 지역 조명이 원래 켜져 있었는지 (꺼진 지역에서 어둠 패턴으로 켜면 비네팅은 굽지 않는다) */
+  private readonly baseEnabled: boolean;
+  private readonly baseAmbient: number;
+  /** 54라운드 Q8: 예고 경고광 배율 (어둠 동안 키운다) */
+  telegraphGain = 1;
+  /** 디버그: 지난 프레임 라이트맵 덮개 배율 (카메라 회전) */
+  cover = 1;
   private readonly playerSeed = 17;
   /** 디버그: 지난 프레임에 그린 광원 수 · 후보 수 */
   drawn = 0;
@@ -66,9 +74,24 @@ export class Lighting {
     private readonly opts: LightingOptions,
   ) {
     this.registry = lightRegistryOf(scene);
-    this.enabled = opts.ambient !== null;
+    this.baseEnabled = opts.ambient !== null;
     this.ambient = hexColor(opts.ambient?.ambient, 0xffffff);
-    if (!this.enabled) return;
+    this.baseAmbient = this.ambient;
+    if (this.baseEnabled) this.createLightmap();
+  }
+
+  get enabled(): boolean {
+    return this.rt !== null;
+  }
+
+  /** 지금 주변광 */
+  get ambientColor(): number {
+    return this.ambient;
+  }
+
+  private createLightmap(): void {
+    if (this.rt) return;
+    const scene = this.scene;
     ensureTextures(scene);
     const cam = scene.cameras.main;
     const k = lightmapK();
@@ -81,21 +104,51 @@ export class Lighting {
     this.rt.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
   }
 
+  /**
+   * 54라운드 Q8: 주변광을 ms 동안 바꾼다 (null = 지역 원래 값). 조명이 꺼진 지역이면 라이트맵을 이때 만든다
+   */
+  setAmbient(hex: string | null, ms: number): void {
+    const to = hex === null ? this.baseAmbient : hexColor(hex, this.baseAmbient);
+    if (!this.rt) {
+      if (to === 0xffffff) return;
+      this.createLightmap();
+    }
+    this.fade = { from: this.ambient, to, at: this.scene.time.now, ms: Math.max(0, ms) };
+  }
+
+  private stepFade(time: number): void {
+    const f = this.fade;
+    if (!f) return;
+    const t = f.ms <= 0 ? 1 : Math.min(1, (time - f.at) / f.ms);
+    const lerp = (sh: number) => {
+      const a = (f.from >> sh) & 0xff;
+      const b = (f.to >> sh) & 0xff;
+      return Math.round(a + (b - a) * t) << sh;
+    };
+    this.ambient = lerp(16) | lerp(8) | lerp(0);
+    if (t >= 1) this.fade = null;
+  }
+
   /** 매 프레임 (카메라 스크롤·배율이 정해진 뒤) */
   update(time: number): void {
-    if (!this.enabled || !this.rt) return;
+    if (!this.rt) return;
     const t0 = performance.now();
+    this.stepFade(time);
     const cam = this.scene.cameras.main;
     const z = cam.zoom || 1;
     const k = lightmapK();
+    // 54라운드 세상이 돈다: 화면 고정 개체도 카메라 회전을 따라 돈다 → 라이트맵을 덮개 배율 c 만큼 키워 모서리가 새지 않게
+    // (라이트맵 한 칸이 화면 c 칸을 덮으므로 광원 좌표·반경을 c 로 나눈다)
+    const c = rotationCover(cam.width, cam.height, (cam as unknown as { rotation: number }).rotation ?? 0);
+    this.cover = c;
     // 화면 고정 개체는 카메라 배율만큼 화면 가운데 기준으로 커진다 → 역배율로 화면을 정확히 덮는다
-    this.rt.setScale(1 / (k * z));
+    this.rt.setScale(c / (k * z));
     const lights = this.collect(time);
     const halfW = cam.width / (2 * z);
     const halfH = cam.height / (2 * z);
     const cx = cam.scrollX + cam.width / 2;
     const cy = cam.scrollY + cam.height / 2;
-    const picked = pickLights(lights, cx, cy, halfW, halfH, LIGHTING.maxLights);
+    const picked = pickLights(lights, cx, cy, halfW * c, halfH * c, LIGHTING.maxLights);
     this.candidates = lights.length;
     this.drawn = picked.length;
     const rt = this.rt;
@@ -104,9 +157,9 @@ export class Lighting {
     for (const i of picked) {
       const l = lights[i];
       // 월드 → 화면 → 라이트맵
-      const sx = ((l.x - cam.scrollX - cam.width / 2) * z + cam.width / 2) * k;
-      const sy = ((l.y - cam.scrollY - cam.height / 2) * z + cam.height / 2) * k;
-      const r = l.radius * z * k;
+      const sx = (l.x - cam.scrollX - cam.width / 2) * z * (k / c) + rt.width / 2;
+      const sy = (l.y - cam.scrollY - cam.height / 2) * z * (k / c) + rt.height / 2;
+      const r = (l.radius * z * k) / c;
       rt.stamp(TEX_LIGHT, undefined, sx, sy, {
         scale: (r * 2) / LIGHT_TEX,
         tint: l.color,
@@ -117,7 +170,7 @@ export class Lighting {
     }
     // 비네팅: 라이트맵 가장자리를 어둡게 (검정 그라데이션을 덮는다 = 곱하기 (1 - a))
     const V = LIGHTING.vignette;
-    if (V.alpha > 0)
+    if (V.alpha > 0 && this.baseEnabled)
       rt.stamp(TEX_VIGNETTE, undefined, rt.width / 2, rt.height / 2, {
         scaleX: rt.width / VIGNETTE_W,
         scaleY: rt.height / VIGNETTE_H,
@@ -179,7 +232,7 @@ export class Lighting {
         y: t.y,
         radius: Math.max(T.radius, t.radius),
         color: tc,
-        intensity: (T.intensity ?? 1) * flickerFactor(time, t.x * 0.37 + t.y, T.flicker ?? 0, hz),
+        intensity: (T.intensity ?? 1) * this.telegraphGain * flickerFactor(time, t.x * 0.37 + t.y, T.flicker ?? 0, hz),
       });
     return out;
   }
@@ -201,6 +254,10 @@ export class Lighting {
     return {
       enabled: this.enabled,
       ambient: '#' + this.ambient.toString(16).padStart(6, '0'),
+      baseAmbient: '#' + this.baseAmbient.toString(16).padStart(6, '0'),
+      fading: this.fade !== null,
+      telegraphGain: this.telegraphGain,
+      cover: +this.cover.toFixed(3),
       registered: this.registry.size,
       candidates: this.candidates,
       drawn: this.drawn,

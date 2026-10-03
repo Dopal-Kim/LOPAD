@@ -21,6 +21,7 @@ import {
 } from '../../contract/ui';
 import type { Mob } from '../../objects/Mob';
 import type { Player } from '../../objects/Player';
+import type { LiquorPools } from '../hazards/LiquorPools';
 import type { FxPool } from '../fx';
 import type { RoomDirector } from '../RoomDirector';
 import type { Rng } from '../rng';
@@ -41,6 +42,8 @@ export interface StructureHost {
   mobs: Phaser.Physics.Arcade.Group;
   menu: TextMenu;
   fx: FxPool;
+  /** 54라운드: 술 웅덩이·불바다 (보스방과 같은 목록, systems/hazards/LiquorPools) */
+  pools: LiquorPools;
   rng: Rng;
   stageId: string;
   addGold(amount: number): void;

@@ -85,3 +85,11 @@ export function lightingAmbientFor(
   if (data.borderRegions && hasBorder(region)) return data.default;
   return flag === '1' && arenaOrLab ? data.default : null;
 }
+
+/** 화면 w×h 를 각도 rad 만큼 돌렸을 때 원래 화면을 다 덮는 배율 (54라운드 세상이 돈다 — 라이트맵 모서리 새는 문제) */
+export function rotationCover(w: number, h: number, rad: number): number {
+  const c = Math.abs(Math.cos(rad));
+  const s = Math.abs(Math.sin(rad));
+  if (s < 1e-6) return 1;
+  return Math.max((w * c + h * s) / w, (w * s + h * c) / h);
+}

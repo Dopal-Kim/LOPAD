@@ -37,12 +37,38 @@ export interface TelegraphOptions {
 }
 
 export interface TelegraphHandle {
-  readonly kind: TelegraphKind;
+  readonly kind: TelegraphKind | 'path';
   /** 위치·방향 갱신 (각도 rad, 선·부채꼴만 의미) */
   aim(x: number, y: number, angle?: number): void;
   /** 조기 종료 (경직·사망) */
   end(): void;
   readonly active: boolean;
+}
+
+/** 54라운드: 꺾은선·곡선 예고 (휘는 돌진·술통 튕김 경로·술 뿌리기). setPoints 로 예고 중 경로를 다시 그린다 */
+export interface TelegraphPathHandle extends TelegraphHandle {
+  setPoints(points: readonly { x: number; y: number }[]): void;
+}
+
+/** 꺾은선 예고: 선 시트 토막을 마디마다 이어 붙인다 (시트가 없으면 Graphics 점선). 끝에 화살촉 */
+interface PathMarker {
+  points: { x: number; y: number }[];
+  segs: Phaser.GameObjects.TileSprite[];
+  gfx: Phaser.GameObjects.Graphics | null;
+  tip: Phaser.GameObjects.Graphics;
+  aura?: Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics;
+  texture?: string;
+  scale: number;
+  originX: number;
+  originY: number;
+  frameH: number;
+  createdAt: number;
+  expireAt: number;
+  blinkMs: number;
+  nextBlinkAt: number;
+  phase: number;
+  final: boolean;
+  alive: boolean;
 }
 
 interface Marker {
@@ -77,6 +103,7 @@ interface Marker {
 
 export class TelegraphFx {
   private readonly markers = new Set<Marker>();
+  private readonly paths = new Set<PathMarker>();
   private paused = false;
   private tipColor: number = ENEMY_FX.PLACEHOLDER.COLOR;
   private tipEdge: number = ENEMY_FX.PLACEHOLDER.COLOR;
@@ -174,9 +201,167 @@ export class TelegraphFx {
     return this.handle(m);
   }
 
+  /** 54라운드: 꺾은선 예고 (points 를 잇는 선, 끝에 화살촉, opts.aura 면 첫 점에 수렴 오라) */
+  path(
+    points: readonly { x: number; y: number }[],
+    durationMs: number,
+    opts: TelegraphOptions = {},
+  ): TelegraphPathHandle {
+    const id = this.idOf('line');
+    const def = spriteLibrary.sheet(id, FX_ACTION);
+    const texture = spriteLibrary.textureKey(id, FX_ACTION);
+    const now = this.scene.time.now;
+    const sheet = Boolean(def && texture && this.scene.textures.exists(texture));
+    const blink = sheet ? frameDurations(def!)[0] || ENEMY_FX.PLACEHOLDER.BLINK_MS : ENEMY_FX.PLACEHOLDER.BLINK_MS;
+    const m: PathMarker = {
+      points: [],
+      segs: [],
+      gfx: sheet ? null : this.scene.add.graphics().setDepth(DEPTH.FX_GROUND),
+      tip: this.makeTip(),
+      texture: sheet ? texture! : undefined,
+      scale: sheet ? fxDrawScale(def!) : 1,
+      originX: sheet ? def!.pivot.x / def!.frameWidth : 0,
+      originY: sheet ? def!.pivot.y / def!.frameHeight : 0,
+      frameH: sheet ? def!.frameHeight : 0,
+      createdAt: now,
+      expireAt: now + durationMs,
+      blinkMs: blink,
+      nextBlinkAt: now + blink,
+      phase: 0,
+      final: false,
+      alive: true,
+    };
+    this.paths.add(m);
+    this.drawPath(m, points);
+    if (opts.aura && points.length > 0)
+      m.aura = this.makeAura(opts.auraAt?.x ?? points[0].x, opts.auraAt?.y ?? points[0].y);
+    return {
+      kind: 'path',
+      aim: (x, y) => {
+        if (!m.alive || m.points.length === 0) return;
+        const dx = x - m.points[0].x;
+        const dy = y - m.points[0].y;
+        this.drawPath(
+          m,
+          m.points.map((p) => ({ x: p.x + dx, y: p.y + dy })),
+        );
+      },
+      setPoints: (pts) => {
+        if (m.alive) this.drawPath(m, pts);
+      },
+      end: () => this.releasePath(m),
+      get active() {
+        return m.alive;
+      },
+    };
+  }
+
+  private drawPath(m: PathMarker, points: readonly { x: number; y: number }[]): void {
+    m.points = points.map((p) => ({ x: p.x, y: p.y }));
+    const n = Math.max(0, m.points.length - 1);
+    if (m.texture) {
+      while (m.segs.length < n)
+        m.segs.push(
+          this.scene.add
+            .tileSprite(0, 0, 1, m.frameH, m.texture, m.phase)
+            .setOrigin(m.originX, m.originY)
+            .setScale(m.scale, ENEMY_FX.BOLD.LINE_SCALE_Y * m.scale)
+            .setDepth(DEPTH.FX_GROUND),
+        );
+      for (let i = 0; i < m.segs.length; i++) {
+        const seg = m.segs[i];
+        if (i >= n) {
+          seg.setVisible(false);
+          continue;
+        }
+        const a = m.points[i];
+        const b = m.points[i + 1];
+        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        // 마디 사이 틈이 보이지 않게 1px 겹친다
+        seg
+          .setVisible(len > 0.01)
+          .setPosition(a.x, a.y)
+          .setRotation(Math.atan2(b.y - a.y, b.x - a.x))
+          .setSize(Math.max(1, Math.round((len + 1) / m.scale)), m.frameH);
+      }
+    } else if (m.gfx) {
+      const g = m.gfx;
+      const P = ENEMY_FX.PLACEHOLDER;
+      g.clear();
+      g.lineStyle(ENEMY_FX.BOLD.PLACEHOLDER_LINE_WIDTH, P.COLOR, 1);
+      // 점선: 누적 거리로 DASH·GAP 을 이어 간다
+      let acc = 0;
+      for (let i = 0; i < n; i++) {
+        const a = m.points[i];
+        const b = m.points[i + 1];
+        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        if (len <= 0) continue;
+        const ux = (b.x - a.x) / len;
+        const uy = (b.y - a.y) / len;
+        for (let t = 0; t < len;) {
+          const cyc = (acc + t) % (P.DASH_PX + P.GAP_PX);
+          if (cyc < P.DASH_PX) {
+            const e = Math.min(len, t + (P.DASH_PX - cyc));
+            g.beginPath();
+            g.moveTo(a.x + ux * t, a.y + uy * t);
+            g.lineTo(a.x + ux * e, a.y + uy * e);
+            g.strokePath();
+            t = e;
+          } else t += P.DASH_PX + P.GAP_PX - cyc;
+        }
+        acc += len;
+      }
+      g.setAlpha(P.ALPHA);
+    }
+    if (n >= 1) {
+      const a = m.points[n - 1];
+      const b = m.points[n];
+      m.tip
+        .setVisible(true)
+        .setPosition(Math.round(b.x), Math.round(b.y))
+        .setRotation(Math.atan2(b.y - a.y, b.x - a.x));
+    } else m.tip.setVisible(false);
+  }
+
+  private updatePath(m: PathMarker, time: number): void {
+    const B = ENEMY_FX.BOLD;
+    if (time >= m.expireAt) {
+      this.releasePath(m);
+      return;
+    }
+    if (!m.final && m.expireAt - time <= B.FINAL_MS) {
+      m.final = true;
+      if (m.aura instanceof Phaser.GameObjects.Sprite) m.aura.anims.timeScale = B.FINAL_BLINK_DIV;
+      m.nextBlinkAt = Math.min(m.nextBlinkAt, time);
+    }
+    if (time < m.nextBlinkAt) return;
+    m.nextBlinkAt = time + (m.final ? m.blinkMs / B.FINAL_BLINK_DIV : m.blinkMs);
+    m.phase = m.phase === 0 ? 1 : 0;
+    const low = m.phase === 1;
+    for (const seg of m.segs) {
+      seg.setFrame(m.phase);
+      if (m.final) seg.setAlpha(low ? B.FINAL_LOW_ALPHA : 1);
+    }
+    m.gfx?.setAlpha(low ? ENEMY_FX.PLACEHOLDER.ALPHA * 0.45 : ENEMY_FX.PLACEHOLDER.ALPHA);
+    if (m.aura instanceof Phaser.GameObjects.Graphics)
+      m.aura.setAlpha(low ? ENEMY_FX.PLACEHOLDER.ALPHA * 0.45 : ENEMY_FX.PLACEHOLDER.ALPHA);
+    m.tip.setAlpha(low ? 0.6 : 1);
+  }
+
+  private releasePath(m: PathMarker): void {
+    if (!m.alive) return;
+    m.alive = false;
+    this.paths.delete(m);
+    for (const s of m.segs) s.destroy();
+    m.gfx?.destroy();
+    m.tip.destroy();
+    m.aura?.destroy();
+  }
+
   /** 매 프레임: 만료·진행도 프레임·깜빡임(마감 직전 가속)·닫히는 원 */
   update(time: number): void {
     if (this.paused) return;
+    for (const p of [...this.paths]) this.updatePath(p, time);
     const B = ENEMY_FX.BOLD;
     for (const m of this.markers) {
       if (time >= m.expireAt) {
@@ -211,6 +396,11 @@ export class TelegraphFx {
   /** 히트스톱: 시트 애니 정지 */
   setPaused(on: boolean): void {
     this.paused = on;
+    for (const p of this.paths)
+      if (p.aura instanceof Phaser.GameObjects.Sprite) {
+        if (on) p.aura.anims.pause();
+        else p.aura.anims.resume();
+      }
     for (const m of this.markers) {
       for (const s of [m.obj, m.aura]) {
         if (!(s instanceof Phaser.GameObjects.Sprite)) continue;
@@ -222,7 +412,7 @@ export class TelegraphFx {
 
   /** 활성 마커 요약 (디버그) */
   summary(): {
-    kind: TelegraphKind;
+    kind: TelegraphKind | 'path';
     x: number;
     y: number;
     angle: number;
@@ -237,32 +427,61 @@ export class TelegraphFx {
     tip: boolean;
     aura: string | null;
     alpha: number;
+    points?: number;
   }[] {
     const now = this.scene.time.now;
-    return [...this.markers].map((m) => {
-      const total = m.expireAt - m.createdAt;
+    const paths = [...this.paths].map((m) => {
+      const first = m.points[0] ?? { x: 0, y: 0 };
+      const last = m.points[m.points.length - 1] ?? first;
+      let length = 0;
+      for (let i = 1; i < m.points.length; i++)
+        length += Math.hypot(m.points[i].x - m.points[i - 1].x, m.points[i].y - m.points[i - 1].y);
       return {
-        kind: m.kind,
-        x: Math.round(m.obj.x),
-        y: Math.round(m.obj.y),
-        angle: +m.angle.toFixed(3),
-        length: Math.round(m.lengthPx),
-        radius: Math.round(m.radiusPx),
-        sheet: !(m.obj instanceof Phaser.GameObjects.Graphics),
+        kind: 'path' as const,
+        x: Math.round(first.x),
+        y: Math.round(first.y),
+        angle: +Math.atan2(last.y - first.y, last.x - first.x).toFixed(3),
+        length: Math.round(length),
+        radius: 0,
+        sheet: m.segs.length > 0,
         remainingMs: Math.max(0, Math.round(m.expireAt - now)),
         final: m.final,
-        frame: m.obj instanceof Phaser.GameObjects.Graphics ? null : Number(m.obj.frame.name),
-        scale: +m.obj.scaleX.toFixed(3),
-        closingRatio: m.closing ? +Math.max(0, Math.min(1, (m.expireAt - now) / total)).toFixed(3) : null,
-        tip: Boolean(m.tip),
+        frame: m.segs.length > 0 ? m.phase : null,
+        scale: m.scale,
+        closingRatio: null,
+        tip: true,
         aura: m.aura ? (m.aura instanceof Phaser.GameObjects.Sprite ? m.aura.texture.key : 'graphics') : null,
-        alpha: +m.obj.alpha.toFixed(2),
+        alpha: 1,
+        points: m.points.length,
       };
     });
+    return [
+      ...paths,
+      ...[...this.markers].map((m) => {
+        const total = m.expireAt - m.createdAt;
+        return {
+          kind: m.kind,
+          x: Math.round(m.obj.x),
+          y: Math.round(m.obj.y),
+          angle: +m.angle.toFixed(3),
+          length: Math.round(m.lengthPx),
+          radius: Math.round(m.radiusPx),
+          sheet: !(m.obj instanceof Phaser.GameObjects.Graphics),
+          remainingMs: Math.max(0, Math.round(m.expireAt - now)),
+          final: m.final,
+          frame: m.obj instanceof Phaser.GameObjects.Graphics ? null : Number(m.obj.frame.name),
+          scale: +m.obj.scaleX.toFixed(3),
+          closingRatio: m.closing ? +Math.max(0, Math.min(1, (m.expireAt - now) / total)).toFixed(3) : null,
+          tip: Boolean(m.tip),
+          aura: m.aura ? (m.aura instanceof Phaser.GameObjects.Sprite ? m.aura.texture.key : 'graphics') : null,
+          alpha: +m.obj.alpha.toFixed(2),
+        };
+      }),
+    ];
   }
 
   get count(): number {
-    return this.markers.size;
+    return this.markers.size + this.paths.size;
   }
 
   /**
@@ -280,11 +499,18 @@ export class TelegraphFx {
         });
       else out.push({ x: m.obj.x, y: m.obj.y, radius: m.radiusPx });
     }
+    // 꺾은선: 마디 몇 군데 (어둠 속에서도 경로 전체가 읽히게)
+    for (const m of this.paths) {
+      if (!m.alive || m.points.length === 0) continue;
+      const step = Math.max(1, Math.floor(m.points.length / ENEMY_FX.PATH_LIGHT_POINTS));
+      for (let i = 0; i < m.points.length; i += step) out.push({ x: m.points[i].x, y: m.points[i].y, radius: 0 });
+    }
     return out;
   }
 
   destroy(): void {
     for (const m of [...this.markers]) this.release(m);
+    for (const m of [...this.paths]) this.releasePath(m);
   }
 
   // --- 내부 ---

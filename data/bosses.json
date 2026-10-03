@@ -1,65 +1,208 @@
 {
   "stage1": {
+    "_note": "54라운드 '만취' 3페이즈 (결정 round-54 Q1·Q5·Q6·Q10). 새 패턴 수치는 전부 임시값(데모로 조정) — parts/system/README.md 54라운드 절 표",
     "name": "양조장주 '만취(滿醉)'",
-    "hp": 200,
+    "hp": 300,
     "size": [40, 40],
+    "bodyFromArt": {
+      "w": 1.0,
+      "h": 0.6
+    },
     "color": "#b02060",
     "contactAttack": 20,
-    "approachSpeedTiles": 2,
-    "phases": [
-      {
-        "hpFraction": 1,
-        "dash": {
-          "intervalMs": 2500,
-          "telegraphMs": 700,
-          "speedTiles": 16,
-          "durationMs": 600,
-          "attack": 25,
-          "wallStunMs": 1000
-        },
-        "fan": null,
-        "patterns": ["dash", "slam"]
-      },
-      {
-        "hpFraction": 0.5,
-        "dash": {
-          "intervalMs": 2200,
-          "telegraphMs": 600,
-          "speedTiles": 18,
-          "durationMs": 600,
-          "attack": 25,
-          "wallStunMs": 1000
-        },
-        "fan": {
-          "intervalMs": 2000,
-          "count": 5,
-          "spreadDeg": 60,
-          "projectileSpeedTiles": 7,
-          "attack": 10,
-          "projectileSize": 6,
-          "projectileLifeMs": 3500,
-          "afterDash": true,
-          "telegraphMs": 400,
-          "telegraphTiles": 5,
-          "sprite": "boss_fan_shot"
-        },
-        "patterns": ["dash", "fan", "slam", "summon"]
-      }
-    ],
     "contactIntervalMs": 800,
+    "approachSpeedTiles": 2,
     "personalityValue": 50,
     "gold": 50,
-    "summon": {
-      "enemy": "dummy",
-      "count": 2,
-      "max": 4,
-      "cooldownMs": 15000
+    "patterns": {
+      "dash": {
+        "telegraphMs": 700,
+        "speedTiles": 16,
+        "durationMs": 600,
+        "attack": 25,
+        "wallStunMs": 1000,
+        "empowered": {
+          "telegraphMs": 550,
+          "speedTiles": 20
+        }
+      },
+      "slam": {
+        "telegraphMs": 800,
+        "radiusTiles": 2.5,
+        "attack": 25,
+        "cooldownMs": 4000,
+        "empowered": {
+          "radiusTiles": 3.5
+        }
+      },
+      "caskRoll": {
+        "telegraphMs": 700,
+        "speedTiles": 9,
+        "bounces": 3,
+        "maxTiles": 40,
+        "attack": 18,
+        "radiusPx": 7,
+        "puddleEveryTiles": 1,
+        "puddleMs": 9000,
+        "bossHitDamage": 30,
+        "bossHitStunMs": 1500,
+        "cooldownMs": 6000,
+        "count": 1,
+        "spreadDeg": 30,
+        "empowered": {
+          "count": 2
+        }
+      },
+      "drink": {
+        "liftMs": 450,
+        "gulpMs": 2000,
+        "finishMs": 400,
+        "breakStunMs": 3000,
+        "cooldownMs": 9000,
+        "cupW": 10,
+        "cupH": 10,
+        "cupLiftPx": 46,
+        "empowerNext": true,
+        "triggers": []
+      },
+      "spin": {
+        "durationMs": 6000,
+        "tiltDeg": 8,
+        "periodMs": 2000,
+        "rampMs": 600,
+        "cooldownMs": 0,
+        "blur": 1,
+        "next": "drunkDash"
+      },
+      "drunkDash": {
+        "telegraphSeqMs": [600, 350, 350],
+        "speedTiles": 17,
+        "durationMs": 550,
+        "attack": 25,
+        "wallStunMs": 1200,
+        "repeat": 3,
+        "bendRatio": 0.35,
+        "fallMs": 2000,
+        "cooldownMs": 5000,
+        "leanDeg": 12
+      },
+      "fireSpill": {
+        "telegraphMs": 800,
+        "lengthTiles": 9,
+        "wobbleTiles": 1.2,
+        "puddleMs": 10000,
+        "torchTelegraphMs": 700,
+        "torchFlightMs": 450,
+        "spreadMsPerCell": 120,
+        "fireMs": 3500,
+        "fireTickMs": 500,
+        "firePlayerAttack": 10,
+        "cooldownMs": 9000,
+        "arms": 1,
+        "armSpreadDeg": 40
+      },
+      "lightsOut": {
+        "telegraphMs": 900,
+        "radiusTiles": 3,
+        "attack": 20,
+        "fadeMs": 700,
+        "durationMs": 12000,
+        "cooldownMs": 20000,
+        "toppleGapMs": 110,
+        "darkAmbient": "#1c1c26",
+        "next": "drunkDash"
+      },
+      "phaseDrink": {
+        "durationMs": 1600,
+        "invulnerable": true
+      }
     },
-    "slam": {
-      "telegraphMs": 800,
-      "radiusTiles": 2.5,
-      "attack": 25,
-      "cooldownMs": 4000
+    "phases": [
+      {
+        "name": "얼큰",
+        "hpFraction": 1,
+        "intervalMs": 2300,
+        "pick": ["dash", "slam", "caskRoll", "drink"]
+      },
+      {
+        "name": "만취",
+        "hpFraction": 0.6,
+        "intervalMs": 2000,
+        "pick": ["dash", "slam", "caskRoll", "drink", "drunkDash", "fireSpill"],
+        "enterPattern": "phaseDrink",
+        "patterns": {
+          "dash": {
+            "telegraphMs": 600,
+            "speedTiles": 18
+          },
+          "drink": {
+            "empowerNext": false,
+            "triggers": ["spin"]
+          }
+        }
+      },
+      {
+        "name": "인사불성",
+        "hpFraction": 0.25,
+        "intervalMs": 1500,
+        "pick": ["dash", "slam", "caskRoll", "drink", "drunkDash", "fireSpill"],
+        "enterPattern": "phaseDrink",
+        "patterns": {
+          "dash": {
+            "telegraphMs": 500,
+            "speedTiles": 19
+          },
+          "drink": {
+            "empowerNext": false,
+            "triggers": ["spin", "lightsOut"]
+          },
+          "drunkDash": {
+            "telegraphSeqMs": [500, 300, 300]
+          },
+          "fireSpill": {
+            "cooldownMs": 7000
+          }
+        }
+      }
+    ],
+    "arena": {
+      "liquor": {
+        "cellTiles": 1,
+        "linkGapPx": 4,
+        "playerSlow": 0.3,
+        "slip": 0.86,
+        "color": "#c07a2a",
+        "alpha": 0.6
+      },
+      "candle": {
+        "light": {
+          "color": "#ffb050",
+          "radius": 110,
+          "intensity": 0.85,
+          "flicker": 0.2,
+          "offsetY": 22
+        },
+        "relitLight": {
+          "color": "#ffc070",
+          "radius": 130,
+          "intensity": 0.95,
+          "flicker": 0.2,
+          "offsetY": 6
+        },
+        "emberLight": {
+          "color": "#ff6a20",
+          "radius": 22,
+          "intensity": 0.6,
+          "flicker": 0.35,
+          "offsetY": 2
+        },
+        "relightRangeTiles": 1.6,
+        "sprite": ["boss1_candelabra"],
+        "propName": "candelabra_stand"
+      },
+      "pillarProp": "pillar",
+      "darkTelegraphLightMult": 2.2,
+      "pillarSprite": ["boss1_pillar"]
     }
   },
   "stage2": {
@@ -68,62 +211,62 @@
     "size": [40, 40],
     "color": "#b02060",
     "contactAttack": 22,
+    "contactIntervalMs": 800,
     "approachSpeedTiles": 2,
+    "personalityValue": 55,
+    "gold": 60,
+    "patterns": {
+      "dash": {
+        "telegraphMs": 650,
+        "speedTiles": 17,
+        "durationMs": 600,
+        "attack": 28,
+        "wallStunMs": 1000
+      },
+      "fan": {
+        "cooldownMs": 1900,
+        "count": 5,
+        "spreadDeg": 60,
+        "projectileSpeedTiles": 7,
+        "attack": 11,
+        "projectileSize": 6,
+        "projectileLifeMs": 3500,
+        "afterDash": true,
+        "telegraphMs": 400,
+        "telegraphTiles": 5,
+        "sprite": "boss_fan_shot"
+      },
+      "slam": {
+        "telegraphMs": 800,
+        "radiusTiles": 2.5,
+        "attack": 28,
+        "cooldownMs": 4000
+      },
+      "summon": {
+        "enemy": "dummy",
+        "count": 2,
+        "max": 4,
+        "cooldownMs": 15000
+      }
+    },
     "phases": [
       {
         "hpFraction": 1,
-        "dash": {
-          "intervalMs": 2300,
-          "telegraphMs": 650,
-          "speedTiles": 17,
-          "durationMs": 600,
-          "attack": 28,
-          "wallStunMs": 1000
-        },
-        "fan": null,
-        "patterns": ["dash", "slam"]
+        "intervalMs": 2300,
+        "pick": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
-        "dash": {
-          "intervalMs": 1955,
-          "telegraphMs": 550,
-          "speedTiles": 19,
-          "durationMs": 600,
-          "attack": 28,
-          "wallStunMs": 1000
-        },
-        "fan": {
-          "intervalMs": 1900,
-          "count": 5,
-          "spreadDeg": 60,
-          "projectileSpeedTiles": 7,
-          "attack": 11,
-          "projectileSize": 6,
-          "projectileLifeMs": 3500,
-          "afterDash": true,
-          "telegraphMs": 400,
-          "telegraphTiles": 5,
-          "sprite": "boss_fan_shot"
-        },
-        "patterns": ["dash", "fan", "slam", "summon"]
+        "intervalMs": 1955,
+        "pick": ["dash", "fan", "slam", "summon"],
+        "patterns": {
+          "dash": {
+            "telegraphMs": 550,
+            "speedTiles": 19
+          }
+        }
       }
-    ],
-    "contactIntervalMs": 800,
-    "personalityValue": 55,
-    "gold": 60,
-    "summon": {
-      "enemy": "dummy",
-      "count": 2,
-      "max": 4,
-      "cooldownMs": 15000
-    },
-    "slam": {
-      "telegraphMs": 800,
-      "radiusTiles": 2.5,
-      "attack": 28,
-      "cooldownMs": 4000
-    }
+    ]
   },
   "stage3": {
     "name": "군의관 총재",
@@ -131,62 +274,62 @@
     "size": [40, 40],
     "color": "#b02060",
     "contactAttack": 24,
+    "contactIntervalMs": 800,
     "approachSpeedTiles": 2,
+    "personalityValue": 60,
+    "gold": 70,
+    "patterns": {
+      "dash": {
+        "telegraphMs": 650,
+        "speedTiles": 18,
+        "durationMs": 600,
+        "attack": 30,
+        "wallStunMs": 1000
+      },
+      "fan": {
+        "cooldownMs": 1800,
+        "count": 7,
+        "spreadDeg": 76,
+        "projectileSpeedTiles": 7,
+        "attack": 12,
+        "projectileSize": 6,
+        "projectileLifeMs": 3500,
+        "afterDash": true,
+        "telegraphMs": 400,
+        "telegraphTiles": 5,
+        "sprite": "boss_fan_shot"
+      },
+      "slam": {
+        "telegraphMs": 800,
+        "radiusTiles": 2.5,
+        "attack": 30,
+        "cooldownMs": 4000
+      },
+      "summon": {
+        "enemy": "dummy",
+        "count": 2,
+        "max": 4,
+        "cooldownMs": 15000
+      }
+    },
     "phases": [
       {
         "hpFraction": 1,
-        "dash": {
-          "intervalMs": 2100,
-          "telegraphMs": 650,
-          "speedTiles": 18,
-          "durationMs": 600,
-          "attack": 30,
-          "wallStunMs": 1000
-        },
-        "fan": null,
-        "patterns": ["dash", "slam"]
+        "intervalMs": 2100,
+        "pick": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
-        "dash": {
-          "intervalMs": 1785,
-          "telegraphMs": 550,
-          "speedTiles": 20,
-          "durationMs": 600,
-          "attack": 30,
-          "wallStunMs": 1000
-        },
-        "fan": {
-          "intervalMs": 1800,
-          "count": 7,
-          "spreadDeg": 76,
-          "projectileSpeedTiles": 7,
-          "attack": 12,
-          "projectileSize": 6,
-          "projectileLifeMs": 3500,
-          "afterDash": true,
-          "telegraphMs": 400,
-          "telegraphTiles": 5,
-          "sprite": "boss_fan_shot"
-        },
-        "patterns": ["dash", "fan", "slam", "summon"]
+        "intervalMs": 1785,
+        "pick": ["dash", "fan", "slam", "summon"],
+        "patterns": {
+          "dash": {
+            "telegraphMs": 550,
+            "speedTiles": 20
+          }
+        }
       }
-    ],
-    "contactIntervalMs": 800,
-    "personalityValue": 60,
-    "gold": 70,
-    "summon": {
-      "enemy": "dummy",
-      "count": 2,
-      "max": 4,
-      "cooldownMs": 15000
-    },
-    "slam": {
-      "telegraphMs": 800,
-      "radiusTiles": 2.5,
-      "attack": 30,
-      "cooldownMs": 4000
-    }
+    ]
   },
   "stage4": {
     "name": "용병왕",
@@ -194,62 +337,62 @@
     "size": [40, 40],
     "color": "#b02060",
     "contactAttack": 26,
+    "contactIntervalMs": 800,
     "approachSpeedTiles": 2,
+    "personalityValue": 65,
+    "gold": 80,
+    "patterns": {
+      "dash": {
+        "telegraphMs": 650,
+        "speedTiles": 18,
+        "durationMs": 600,
+        "attack": 33,
+        "wallStunMs": 1000
+      },
+      "fan": {
+        "cooldownMs": 1600,
+        "count": 7,
+        "spreadDeg": 76,
+        "projectileSpeedTiles": 7,
+        "attack": 13,
+        "projectileSize": 6,
+        "projectileLifeMs": 3500,
+        "afterDash": true,
+        "telegraphMs": 400,
+        "telegraphTiles": 5,
+        "sprite": "boss_fan_shot"
+      },
+      "slam": {
+        "telegraphMs": 800,
+        "radiusTiles": 2.5,
+        "attack": 33,
+        "cooldownMs": 4000
+      },
+      "summon": {
+        "enemy": "dummy",
+        "count": 2,
+        "max": 4,
+        "cooldownMs": 15000
+      }
+    },
     "phases": [
       {
         "hpFraction": 1,
-        "dash": {
-          "intervalMs": 2000,
-          "telegraphMs": 650,
-          "speedTiles": 18,
-          "durationMs": 600,
-          "attack": 33,
-          "wallStunMs": 1000
-        },
-        "fan": null,
-        "patterns": ["dash", "slam"]
+        "intervalMs": 2000,
+        "pick": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
-        "dash": {
-          "intervalMs": 1700,
-          "telegraphMs": 550,
-          "speedTiles": 20,
-          "durationMs": 600,
-          "attack": 33,
-          "wallStunMs": 1000
-        },
-        "fan": {
-          "intervalMs": 1600,
-          "count": 7,
-          "spreadDeg": 76,
-          "projectileSpeedTiles": 7,
-          "attack": 13,
-          "projectileSize": 6,
-          "projectileLifeMs": 3500,
-          "afterDash": true,
-          "telegraphMs": 400,
-          "telegraphTiles": 5,
-          "sprite": "boss_fan_shot"
-        },
-        "patterns": ["dash", "fan", "slam", "summon"]
+        "intervalMs": 1700,
+        "pick": ["dash", "fan", "slam", "summon"],
+        "patterns": {
+          "dash": {
+            "telegraphMs": 550,
+            "speedTiles": 20
+          }
+        }
       }
-    ],
-    "contactIntervalMs": 800,
-    "personalityValue": 65,
-    "gold": 80,
-    "summon": {
-      "enemy": "dummy",
-      "count": 2,
-      "max": 4,
-      "cooldownMs": 15000
-    },
-    "slam": {
-      "telegraphMs": 800,
-      "radiusTiles": 2.5,
-      "attack": 33,
-      "cooldownMs": 4000
-    }
+    ]
   },
   "stage5": {
     "name": "감찰 총장",
@@ -257,62 +400,62 @@
     "size": [40, 40],
     "color": "#b02060",
     "contactAttack": 28,
+    "contactIntervalMs": 800,
     "approachSpeedTiles": 2,
+    "personalityValue": 70,
+    "gold": 90,
+    "patterns": {
+      "dash": {
+        "telegraphMs": 650,
+        "speedTiles": 19,
+        "durationMs": 600,
+        "attack": 35,
+        "wallStunMs": 1000
+      },
+      "fan": {
+        "cooldownMs": 1500,
+        "count": 9,
+        "spreadDeg": 92,
+        "projectileSpeedTiles": 7,
+        "attack": 14,
+        "projectileSize": 6,
+        "projectileLifeMs": 3500,
+        "afterDash": true,
+        "telegraphMs": 400,
+        "telegraphTiles": 5,
+        "sprite": "boss_fan_shot"
+      },
+      "slam": {
+        "telegraphMs": 800,
+        "radiusTiles": 2.5,
+        "attack": 35,
+        "cooldownMs": 4000
+      },
+      "summon": {
+        "enemy": "dummy",
+        "count": 2,
+        "max": 4,
+        "cooldownMs": 15000
+      }
+    },
     "phases": [
       {
         "hpFraction": 1,
-        "dash": {
-          "intervalMs": 1900,
-          "telegraphMs": 650,
-          "speedTiles": 19,
-          "durationMs": 600,
-          "attack": 35,
-          "wallStunMs": 1000
-        },
-        "fan": null,
-        "patterns": ["dash", "slam"]
+        "intervalMs": 1900,
+        "pick": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
-        "dash": {
-          "intervalMs": 1615,
-          "telegraphMs": 550,
-          "speedTiles": 21,
-          "durationMs": 600,
-          "attack": 35,
-          "wallStunMs": 1000
-        },
-        "fan": {
-          "intervalMs": 1500,
-          "count": 9,
-          "spreadDeg": 92,
-          "projectileSpeedTiles": 7,
-          "attack": 14,
-          "projectileSize": 6,
-          "projectileLifeMs": 3500,
-          "afterDash": true,
-          "telegraphMs": 400,
-          "telegraphTiles": 5,
-          "sprite": "boss_fan_shot"
-        },
-        "patterns": ["dash", "fan", "slam", "summon"]
+        "intervalMs": 1615,
+        "pick": ["dash", "fan", "slam", "summon"],
+        "patterns": {
+          "dash": {
+            "telegraphMs": 550,
+            "speedTiles": 21
+          }
+        }
       }
-    ],
-    "contactIntervalMs": 800,
-    "personalityValue": 70,
-    "gold": 90,
-    "summon": {
-      "enemy": "dummy",
-      "count": 2,
-      "max": 4,
-      "cooldownMs": 15000
-    },
-    "slam": {
-      "telegraphMs": 800,
-      "radiusTiles": 2.5,
-      "attack": 35,
-      "cooldownMs": 4000
-    }
+    ]
   },
   "stage6": {
     "name": "연회 후작",
@@ -320,62 +463,62 @@
     "size": [40, 40],
     "color": "#b02060",
     "contactAttack": 30,
+    "contactIntervalMs": 800,
     "approachSpeedTiles": 2,
+    "personalityValue": 75,
+    "gold": 100,
+    "patterns": {
+      "dash": {
+        "telegraphMs": 650,
+        "speedTiles": 20,
+        "durationMs": 600,
+        "attack": 38,
+        "wallStunMs": 1000
+      },
+      "fan": {
+        "cooldownMs": 1400,
+        "count": 9,
+        "spreadDeg": 92,
+        "projectileSpeedTiles": 7,
+        "attack": 15,
+        "projectileSize": 6,
+        "projectileLifeMs": 3500,
+        "afterDash": true,
+        "telegraphMs": 400,
+        "telegraphTiles": 5,
+        "sprite": "boss_fan_shot"
+      },
+      "slam": {
+        "telegraphMs": 800,
+        "radiusTiles": 2.5,
+        "attack": 38,
+        "cooldownMs": 4000
+      },
+      "summon": {
+        "enemy": "dummy",
+        "count": 2,
+        "max": 4,
+        "cooldownMs": 15000
+      }
+    },
     "phases": [
       {
         "hpFraction": 1,
-        "dash": {
-          "intervalMs": 1800,
-          "telegraphMs": 650,
-          "speedTiles": 20,
-          "durationMs": 600,
-          "attack": 38,
-          "wallStunMs": 1000
-        },
-        "fan": null,
-        "patterns": ["dash", "slam"]
+        "intervalMs": 1800,
+        "pick": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
-        "dash": {
-          "intervalMs": 1530,
-          "telegraphMs": 550,
-          "speedTiles": 22,
-          "durationMs": 600,
-          "attack": 38,
-          "wallStunMs": 1000
-        },
-        "fan": {
-          "intervalMs": 1400,
-          "count": 9,
-          "spreadDeg": 92,
-          "projectileSpeedTiles": 7,
-          "attack": 15,
-          "projectileSize": 6,
-          "projectileLifeMs": 3500,
-          "afterDash": true,
-          "telegraphMs": 400,
-          "telegraphTiles": 5,
-          "sprite": "boss_fan_shot"
-        },
-        "patterns": ["dash", "fan", "slam", "summon"]
+        "intervalMs": 1530,
+        "pick": ["dash", "fan", "slam", "summon"],
+        "patterns": {
+          "dash": {
+            "telegraphMs": 550,
+            "speedTiles": 22
+          }
+        }
       }
-    ],
-    "contactIntervalMs": 800,
-    "personalityValue": 75,
-    "gold": 100,
-    "summon": {
-      "enemy": "dummy",
-      "count": 2,
-      "max": 4,
-      "cooldownMs": 15000
-    },
-    "slam": {
-      "telegraphMs": 800,
-      "radiusTiles": 2.5,
-      "attack": 38,
-      "cooldownMs": 4000
-    }
+    ]
   },
   "stage7": {
     "name": "근위 총사령",
@@ -383,62 +526,62 @@
     "size": [40, 40],
     "color": "#b02060",
     "contactAttack": 32,
+    "contactIntervalMs": 800,
     "approachSpeedTiles": 2,
+    "personalityValue": 80,
+    "gold": 120,
+    "patterns": {
+      "dash": {
+        "telegraphMs": 650,
+        "speedTiles": 20,
+        "durationMs": 600,
+        "attack": 38,
+        "wallStunMs": 1000
+      },
+      "fan": {
+        "cooldownMs": 1300,
+        "count": 11,
+        "spreadDeg": 92,
+        "projectileSpeedTiles": 7,
+        "attack": 15,
+        "projectileSize": 6,
+        "projectileLifeMs": 3500,
+        "afterDash": true,
+        "telegraphMs": 400,
+        "telegraphTiles": 5,
+        "sprite": "boss_fan_shot"
+      },
+      "slam": {
+        "telegraphMs": 800,
+        "radiusTiles": 2.5,
+        "attack": 38,
+        "cooldownMs": 4000
+      },
+      "summon": {
+        "enemy": "dummy",
+        "count": 2,
+        "max": 4,
+        "cooldownMs": 15000
+      }
+    },
     "phases": [
       {
         "hpFraction": 1,
-        "dash": {
-          "intervalMs": 1800,
-          "telegraphMs": 650,
-          "speedTiles": 20,
-          "durationMs": 600,
-          "attack": 38,
-          "wallStunMs": 1000
-        },
-        "fan": null,
-        "patterns": ["dash", "slam"]
+        "intervalMs": 1800,
+        "pick": ["dash", "slam"]
       },
       {
         "hpFraction": 0.5,
-        "dash": {
-          "intervalMs": 1530,
-          "telegraphMs": 550,
-          "speedTiles": 22,
-          "durationMs": 600,
-          "attack": 38,
-          "wallStunMs": 1000
-        },
-        "fan": {
-          "intervalMs": 1300,
-          "count": 11,
-          "spreadDeg": 92,
-          "projectileSpeedTiles": 7,
-          "attack": 15,
-          "projectileSize": 6,
-          "projectileLifeMs": 3500,
-          "afterDash": true,
-          "telegraphMs": 400,
-          "telegraphTiles": 5,
-          "sprite": "boss_fan_shot"
-        },
-        "patterns": ["dash", "fan", "slam", "summon"]
+        "intervalMs": 1530,
+        "pick": ["dash", "fan", "slam", "summon"],
+        "patterns": {
+          "dash": {
+            "telegraphMs": 550,
+            "speedTiles": 22
+          }
+        }
       }
-    ],
-    "contactIntervalMs": 800,
-    "personalityValue": 80,
-    "gold": 120,
-    "summon": {
-      "enemy": "dummy",
-      "count": 2,
-      "max": 4,
-      "cooldownMs": 15000
-    },
-    "slam": {
-      "telegraphMs": 800,
-      "radiusTiles": 2.5,
-      "attack": 38,
-      "cooldownMs": 4000
-    }
+    ]
   },
   "emperor": {
     "name": "황제 '평(平)'",
@@ -449,90 +592,85 @@
     "contactIntervalMs": 800,
     "approachSpeedTiles": 2.5,
     "personalityValue": 100,
+    "gold": 120,
+    "patterns": {
+      "dash": {
+        "telegraphMs": 600,
+        "speedTiles": 18,
+        "durationMs": 600,
+        "attack": 40,
+        "wallStunMs": 900
+      },
+      "fan": {
+        "cooldownMs": 1500,
+        "count": 9,
+        "spreadDeg": 90,
+        "projectileSpeedTiles": 8,
+        "attack": 14,
+        "projectileSize": 6,
+        "projectileLifeMs": 3500,
+        "afterDash": true,
+        "telegraphMs": 400,
+        "telegraphTiles": 5,
+        "sprite": "boss_fan_shot"
+      },
+      "slam": {
+        "telegraphMs": 800,
+        "radiusTiles": 2.5,
+        "attack": 40,
+        "cooldownMs": 4000
+      },
+      "volley": {
+        "telegraphMs": 500,
+        "telegraphTiles": 12,
+        "count": 5,
+        "shotGapMs": 120,
+        "projectileSpeedTiles": 9,
+        "attack": 14,
+        "projectileSize": 6,
+        "projectileLifeMs": 3500,
+        "cooldownMs": 5000,
+        "sprite": "boss_fan_shot"
+      }
+    },
     "phases": [
       {
         "hpFraction": 1,
-        "dash": {
-          "intervalMs": 2000,
-          "telegraphMs": 600,
-          "speedTiles": 18,
-          "durationMs": 600,
-          "attack": 40,
-          "wallStunMs": 900
-        },
-        "fan": null,
-        "patterns": ["dash", "slam"]
+        "intervalMs": 2000,
+        "pick": ["dash", "slam"]
       },
       {
         "hpFraction": 0.7,
-        "dash": {
-          "intervalMs": 1900,
-          "telegraphMs": 550,
-          "speedTiles": 19,
-          "durationMs": 600,
-          "attack": 40,
-          "wallStunMs": 900
-        },
-        "fan": {
-          "intervalMs": 1500,
-          "count": 9,
-          "spreadDeg": 90,
-          "projectileSpeedTiles": 8,
-          "attack": 14,
-          "projectileSize": 6,
-          "projectileLifeMs": 3500,
-          "afterDash": true,
-          "telegraphMs": 400,
-          "telegraphTiles": 5,
-          "sprite": "boss_fan_shot"
-        },
-        "patterns": ["dash", "fan", "slam", "volley"]
+        "intervalMs": 1900,
+        "pick": ["dash", "fan", "slam", "volley"],
+        "patterns": {
+          "dash": {
+            "telegraphMs": 550,
+            "speedTiles": 19
+          }
+        }
       },
       {
         "hpFraction": 0.35,
-        "dash": {
-          "intervalMs": 1600,
-          "telegraphMs": 450,
-          "speedTiles": 21,
-          "durationMs": 500,
-          "attack": 45,
-          "wallStunMs": 800,
-          "repeat": 3
-        },
-        "fan": {
-          "intervalMs": 1300,
-          "count": 12,
-          "spreadDeg": 330,
-          "projectileSpeedTiles": 7,
-          "attack": 14,
-          "projectileSize": 6,
-          "projectileLifeMs": 3500,
-          "afterDash": true,
-          "telegraphMs": 400,
-          "telegraphTiles": 5,
-          "sprite": "boss_fan_shot"
-        },
-        "patterns": ["dash", "fan", "slam", "volley"]
+        "intervalMs": 1600,
+        "pick": ["dash", "fan", "slam", "volley"],
+        "patterns": {
+          "dash": {
+            "telegraphMs": 450,
+            "speedTiles": 21,
+            "durationMs": 500,
+            "attack": 45,
+            "wallStunMs": 800,
+            "repeat": 3
+          },
+          "fan": {
+            "cooldownMs": 1300,
+            "count": 12,
+            "spreadDeg": 330,
+            "projectileSpeedTiles": 7
+          }
+        }
       }
-    ],
-    "gold": 120,
-    "volley": {
-      "telegraphMs": 500,
-      "telegraphTiles": 12,
-      "count": 5,
-      "shotGapMs": 120,
-      "projectileSpeedTiles": 9,
-      "attack": 14,
-      "projectileSize": 6,
-      "projectileLifeMs": 3500,
-      "cooldownMs": 5000,
-      "sprite": "boss_fan_shot"
-    },
-    "slam": {
-      "telegraphMs": 800,
-      "radiusTiles": 2.5,
-      "attack": 40,
-      "cooldownMs": 4000
-    }
+    ]
   }
 }

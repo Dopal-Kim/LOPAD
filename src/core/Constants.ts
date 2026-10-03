@@ -409,6 +409,8 @@ export const COLORS = {
   MOB_HURT: 0xffffff,
   TELEGRAPH: 0xfff0a0,
   STUN: 0x707090,
+  /** 54라운드 보스 마시는 중 (호박색 곱 틴트) */
+  BOSS_DRINK: 0xffd8a0,
   /** 피격 플레이스홀더 이펙트 (시트가 없을 때): 타격 섬광 흰 원, 넉백 먼지 회색(G7) */
   HIT_SPARK: 0xffffff,
   KNOCK_DUST: 0x6c6f73,
@@ -690,6 +692,8 @@ export const ENEMY_FX = {
   MARKER_BASE_RADIUS: 15,
   /** 원 마커로 대신 그리는 부채꼴 각도 하한 (cone 시트 반각 32° 를 크게 넘는 광각 부채꼴) */
   CONE_MAX_SPREAD_DEG: 120,
+  /** 54라운드 꺾은선 예고: 경고광을 다는 마디 수 (어둠 속 경로 판독) */
+  PATH_LIGHT_POINTS: 5,
   /** 플레이스홀더 마커: 깜빡 주기·선 두께·점선 간격·색(G13 / 층 램프는 안 씀) */
   PLACEHOLDER: { BLINK_MS: 120, LINE_WIDTH: 2, DASH_PX: 6, GAP_PX: 4, COLOR: 0xd8d9db, ALPHA: 0.85 },
   /** 총구 화염 위치: 사수 바디 중심에서 바라보는 방향으로 전방·위 (아트 JSON pivotNote ±8px, -2px) */
@@ -928,3 +932,5 @@ export const STRUCTURE_FX = {
   /** 투견 링 시작: 플레이어를 링 중심에서 아래로 이 칸만큼 (링 안) */
   RING_ENTER_TILES: 2,
 } as const;
+
+export { BOSS_FX } from './BossConstants';

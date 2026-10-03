@@ -1,3 +1,6 @@
+import type { BossPatternName, PatternParams } from './bossPatterns';
+export type { BossPatternName, PatternParams } from './bossPatterns';
+
 /** data/*.json 의 타입 정의. JSON을 바꾸면 여기와 validate()도 함께 맞춘다. */
 
 export interface PlayerStats {
@@ -170,27 +173,33 @@ export interface EnemyDef {
 
 export type EnemyTable = Record<string, EnemyDef>;
 
+/**
+ * 패턴 수치 형식 (54라운드 Q4: `bosses.json` `patterns.<이름>` — 형식 검증은 data/bossPatterns.ts BOSS_PATTERN_SCHEMAS).
+ * 패턴 모듈은 해석된 수치(공통 → 페이즈 → 강화)를 이 형식으로 읽는다.
+ */
 export interface BossDashParams {
-  intervalMs: number;
   telegraphMs: number;
   speedTiles: number;
   durationMs: number;
   attack: number;
   wallStunMs: number;
-  /** 연속 돌진 횟수 (기본 1). 2회째부터는 예고 시간 절반 */
+  /** 연속 돌진 횟수 (기본 1). 2회째부터는 예고 시간 × repeatTelegraphRatio (기본 0.5) */
   repeat?: number;
+  repeatTelegraphRatio?: number;
+  cooldownMs?: number;
 }
 
 export interface BossFanParams {
-  /** 부채꼴 쿨타임 (패턴 선택 시 이 간격 안이면 후보에서 빠진다) */
-  intervalMs: number;
+  /** 부채꼴 쿨타임 (35라운드 fan.intervalMs → 54라운드 이름 통일) */
+  cooldownMs: number;
   count: number;
   spreadDeg: number;
   projectileSpeedTiles: number;
   attack: number;
   projectileSize: number;
   projectileLifeMs: number;
-  afterDash: boolean;
+  /** 돌진이 끝난 뒤 이어서 (이 페이즈의 pick 에 fan 이 있을 때만) */
+  afterDash?: boolean;
   /** 35라운드 2단계: 발사 전 예고(부채꼴 마커) 시간·마커 반지름(칸). 없으면 즉시 */
   telegraphMs?: number;
   telegraphTiles?: number;
@@ -228,18 +237,52 @@ export interface BossVolleyParams {
   sprite?: string;
 }
 
-/** 보스 패턴 이름 (phases[].patterns). 패턴별 수치는 보스 정의의 dash(페이즈별)·fan(페이즈별)·slam·summon·volley */
-export type BossPatternName = 'dash' | 'fan' | 'slam' | 'summon' | 'volley';
-
 export interface BossPhase {
   /** 이 페이즈가 시작되는 HP 비율 (1.0 = 처음부터) */
   hpFraction: number;
-  dash: BossDashParams;
-  fan: BossFanParams | null;
-  /** 이 페이즈에서 고르는 패턴 목록 (시드 RNG). 없으면 ['dash'] (+ fan 이 있으면 'fan') */
-  patterns?: BossPatternName[];
-  /** 패턴 사이 간격 ms (없으면 dash.intervalMs) */
-  patternIntervalMs?: number;
+  /** 패턴 사이 간격 ms */
+  intervalMs: number;
+  /** 이 페이즈에서 고르는 패턴 목록 (시드 RNG, 쿨타임·조건이 맞는 것 중) */
+  pick: BossPatternName[];
+  /** 이 페이즈에서 바꾸는 패턴 수치 (공통 patterns 위에 덮어쓴다) */
+  patterns?: Partial<Record<BossPatternName, PatternParams>>;
+  /** 54라운드 Q1: 이 페이즈에 들어설 때 진행 중인 패턴을 끊고 바로 시작하는 연출 패턴 (1층 phaseDrink) */
+  enterPattern?: BossPatternName;
+  /** 페이즈 이름 (디버그·추후 HUD 인터뷰용 메모) */
+  name?: string;
+}
+
+/** 54라운드 Q3·Q8·Q11: 보스방 환경 수치 (술 웅덩이·촛대 광원). 없으면 그 보스는 환경 패턴을 쓰지 않는다 */
+export interface BossArenaParams {
+  liquor: {
+    /** 웅덩이 칸 크기 (타일) · 연결 판정 여유 px */
+    cellTiles: number;
+    linkGapPx: number;
+    playerSlow: number;
+    /** 미끄러움 0..1 (속도가 목표로 붙는 데 걸리는 정도) */
+    slip: number;
+    color: string;
+    alpha: number;
+  };
+  candle: {
+    /** 서 있을 때·다시 켰을 때 광원 */
+    light: { color: string; radius: number; intensity: number; flicker: number; offsetY?: number };
+    relitLight: { color: string; radius: number; intensity: number; flicker: number; offsetY?: number };
+    /** 쓰러진 촛대 불씨 (다시 켤 자리 표시) */
+    emberLight: { color: string; radius: number; intensity: number; flicker: number; offsetY?: number };
+    /** E 로 다시 켜는 거리 (타일) */
+    relightRangeTiles: number;
+    /** 시트 후보 (structures/<이름>, 상태 lit·fallen_unlit·relit) */
+    sprite: string[];
+    /** 큰 소품 시트(지역 _props)의 그림 이름 (서 있는 촛대) */
+    propName: string;
+  };
+  /** 기둥 큰 소품 이름 (지역 _props) — pillarSprite 시트가 없을 때 */
+  pillarProp: string;
+  /** 기둥 구조물 시트 후보 (structures/v3/<이름>) — 있으면 이것 */
+  pillarSprite?: string[];
+  /** 어둠 동안 예고 경고광 배율 */
+  darkTelegraphLightMult: number;
 }
 
 export interface BossDef {
@@ -250,11 +293,12 @@ export interface BossDef {
   contactAttack: number;
   contactIntervalMs: number;
   approachSpeedTiles: number;
+  /** 54라운드 Q13~Q16: 판정 크기 = idle 시트 한 프레임 월드 크기 × 이 비율 (시트가 있을 때만, 없으면 size) */
+  bodyFromArt?: { w: number; h: number };
+  /** 54라운드 Q4: 패턴 수치 (공통). 페이즈 patterns 가 덮어쓴다 */
+  patterns: Partial<Record<BossPatternName, PatternParams>>;
   phases: BossPhase[];
-  /** 35라운드 2단계 패턴 수치 (페이즈 공통). patterns 에 적혀 있으면 필수 */
-  slam?: BossSlamParams;
-  summon?: BossSummonParams;
-  volley?: BossVolleyParams;
+  arena?: BossArenaParams;
   personalityValue: number;
   gold: number;
 }

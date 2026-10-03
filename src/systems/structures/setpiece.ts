@@ -67,6 +67,12 @@ export interface SetPieceDef {
   street?: { halfHeight: number; halfWidth: number };
   /** 혼불 자리 (탄생지) */
   wisps?: { ring: number; count: number };
+  /** 54라운드 Q11 보스방 기둥: 중앙 기준 왼쪽 위 칸 [dx, dy] · 크기 (단단한 큰 소품으로 그린다) */
+  pillars?: { at: Vec; size?: Vec }[];
+  /** 54라운드 Q11 보스방 촛대 자리 [dx, dy] (보스방이 상태·그림을 맡는다) */
+  candles?: Vec[];
+  /** 이 방에서 무작위 큰 소품으로 놓지 않을 그림 이름 */
+  excludeBigProps?: string[];
 }
 
 /** 튜토리얼 배치 입력 (data/route.json tutorial 의 좌표 부분) */
@@ -122,6 +128,10 @@ export interface SetPiecePlan {
   wisps: { x: number; y: number }[];
   /** 무작위 구조물·소품 금지 사각형 */
   reserve: Rect[];
+  /** 54라운드 Q11: 기둥 (타일 사각형) · 촛대 (타일) · 무작위 큰 소품 제외 이름 */
+  pillars: Rect[];
+  candles: { x: number; y: number }[];
+  excludeBigProps: string[];
 }
 
 export interface SetPieceInput {
@@ -189,6 +199,9 @@ export function planSetPiece(layout: FloorLayout, input: SetPieceInput): SetPiec
     dummies: [],
     wisps: [],
     reserve: [],
+    pillars: [],
+    candles: [],
+    excludeBigProps: [...(input.template?.excludeBigProps ?? [])],
   };
   const rng = new Rng(hashSeed(`${String(input.seed)}:setpiece`));
   const tiles = layout.tiles;
@@ -210,6 +223,26 @@ export function planSetPiece(layout: FloorLayout, input: SetPieceInput): SetPiec
   };
   const clearR = T?.clearRadius ?? 0;
   const centerClear = clearR > 0 ? squareAround(center, clearR) : null;
+
+  // 0) 54라운드 보스방 기둥·촛대 (고정 자리 — 바닥이고 시작점·출구 예약 밖일 때만)
+  for (const pl of T?.pillars ?? []) {
+    const [w, h] = pl.size ?? [1, 1];
+    const x = center.x + pl.at[0];
+    const y = center.y + pl.at[1];
+    if (!rectFloor(x, y, w, h)) continue;
+    let bad = false;
+    for (let ty = y; ty < y + h; ty++) for (let tx = x; tx < x + w; tx++) if (inRects(baseReserve, tx, ty)) bad = true;
+    if (bad) continue;
+    plan.pillars.push({ x, y, w, h });
+    occupy(x, y, w, h, 1);
+  }
+  for (const [dx, dy] of T?.candles ?? []) {
+    const x = center.x + dx;
+    const y = center.y + dy;
+    if (!isFloor(x, y) || inRects(baseReserve, x, y) || !free(x, y, 1, 1)) continue;
+    plan.candles.push({ x, y });
+    occupy(x, y, 1, 1, 1);
+  }
 
   // 1) 튜토리얼 표식·허수아비 (먼저 자리 확보 — 엄폐·소품이 덮지 않게)
   const tut = input.tutorial ?? null;
@@ -399,6 +432,9 @@ export function planSetPiece(layout: FloorLayout, input: SetPieceInput): SetPiec
       h: T.street.halfHeight * 2 + 1,
     });
   plan.reserve.push(...tutZones);
+  // 기둥·촛대 둘레 한 칸까지 무작위 구조물·소품 금지
+  for (const r of plan.pillars) plan.reserve.push({ x: r.x - 1, y: r.y - 1, w: r.w + 2, h: r.h + 2 });
+  for (const c of plan.candles) plan.reserve.push({ x: c.x - 1, y: c.y - 1, w: 3, h: 3 });
   // 세운 소품(바닥 문양 제외) 칸에도 무작위 구조물이 겹치지 않게
   for (const d of plan.decor)
     if (!d.floor && d.role !== 'cover') plan.reserve.push({ x: d.tx, y: d.ty, w: d.w, h: d.h });

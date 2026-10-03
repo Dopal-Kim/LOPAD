@@ -38,6 +38,8 @@ import { regionIds, regionTilesets } from '../systems/route';
 import { borderDefs, borderJsonRel, parseBorder } from '../world/border';
 import { UI_SCENES } from '../ui';
 import { allStructureSprites } from '../systems/structures/data';
+import { bossFxSheets, bossStructureSheets } from '../systems/boss/bossSheets';
+import { bossQuery } from '../debug/bossQuery';
 import { urlParams } from './game/shared';
 
 interface Manifest {
@@ -94,8 +96,8 @@ export class Preloader extends Phaser.Scene {
       Object.keys(ENEMIES),
       Object.keys(BOSSES),
       Object.keys(WEAPONS),
-      [...allFxSheetIds(WEAPONS), ...branchFxSheetIds(WEAPONS), ...meleeBranchFxSheetIds(WEAPONS)],
-      allStructureSprites(),
+      [...allFxSheetIds(WEAPONS), ...branchFxSheetIds(WEAPONS), ...meleeBranchFxSheetIds(WEAPONS), ...bossFxSheets()],
+      [...allStructureSprites(), ...bossStructureSheets()],
     )) {
       const paths = sheetJsonCandidates(req);
       const legacy = paths[paths.length - 1];
@@ -235,6 +237,8 @@ export class Preloader extends Phaser.Scene {
     // 50라운드: ?slice=<지역> 이면 새 런으로 그 지역 전투 노드에 바로 (외곽 거리 시범 확인용)
     const slice = params.get('slice');
     if (slice) return [SCENES.GAME, { mode: 'new', weapon, slice }];
+    // 54라운드: ?boss · ?bossPhase=n · ?bossPattern=a,b → 새 런으로 1층(또는 ?floor 없이 현재 층) 보스 노드에 바로
+    if (bossQuery().jump) return [SCENES.GAME, { mode: 'new', weapon, bossJump: true }];
     if (weapon) return [SCENES.GAME, { mode: 'new', weapon }];
     const skipTitle = params.has('new') || params.has('seed') || params.has('notitle');
     if (!skipTitle && this.scene.manager.keys[UI_SCENES.TITLE]) return [UI_SCENES.TITLE];
