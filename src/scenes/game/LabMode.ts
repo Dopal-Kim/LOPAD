@@ -135,7 +135,6 @@ export class LabMode {
         else w.restore({ path: a.path, reinforce: w.reinforce });
         w.personality = 0;
         w.choicePending = false;
-        g.trails.setContext(gameState.stageIndex + 1, w.id);
         for (const d of this.dummies) d.resetStats();
         this.openBranchMenu(); // 같은 메뉴를 갱신 (지금 표시)
       },

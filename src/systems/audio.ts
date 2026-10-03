@@ -66,6 +66,8 @@ export class AudioSystem {
   private readonly loops = new Map<string, Snd>();
   /** 페이드 아웃 중인 루프 */
   private fading: { snd: Snd; from: number; at: number; ms: number }[] = [];
+  /** 55라운드 Q14 ②: 지연 효과음 예약기 (게임 씬 시계 — 히트스톱 동안 멈춤). 없으면 WebAudio 지연 */
+  private delayScheduler: ((ms: number, fire: () => void) => unknown) | null = null;
   private bgm: BgmTrack | null = null;
   private dying: BgmTrack[] = [];
   private floor: number | null = null;
@@ -133,8 +135,18 @@ export class AudioSystem {
 
   // --- 효과음 ---
 
+  /** 게임 씬이 지연 효과음을 자기 시계로 예약하게 한다 (씬 종료 때 null) */
+  setDelayScheduler(fn: ((ms: number, fire: () => void) => unknown) | null): void {
+    this.delayScheduler = fn;
+  }
+
   /** 효과음 1회. 매니페스트에 없거나 로드되지 않았으면 무시(missing 기록) */
   playSfx(id: string, opts: { delayMs?: number; rate?: number } = {}): boolean {
+    const sched = this.delayScheduler;
+    if (sched && (opts.delayMs ?? 0) > 0) {
+      sched(opts.delayMs!, () => this.playSfx(id, { rate: opts.rate }));
+      return true;
+    }
     const sm = this.game?.sound;
     const entry = this.entries.get(id);
     if (!sm || !entry) {

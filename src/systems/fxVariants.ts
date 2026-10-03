@@ -111,8 +111,55 @@ export interface VariantSheetFields {
 }
 
 /**
+ * 변주 묶음 하나(`secondaryVariants[<id>]` 또는 2단 시트 JSON `runtime`)를 해석한다. `withSwaps` 가 false 면 colorSwap 을 읽지 않는다
+ * (2단 전용 시트는 색이 이미 그려져 있다 — 계약 §10 55라운드 Q16)
+ */
+function specVariant(sv: Record<string, unknown>, withSwaps: boolean): FxVariant {
+  const v: FxVariant = { swaps: withSwaps ? asSwaps(sv.colorSwap) : [], followOverlays: [], playbackRate: null };
+  const flash = asObj(sv.flashOverride);
+  if (flash) v.flash = flash as FxFlashSpec;
+  const shake = asObj(sv.shakeOverride);
+  if (shake && typeof shake.px === 'number' && typeof shake.ms === 'number') v.shake = shake as unknown as FxShakeSpec;
+  const trail = asObj(sv.trailOverride);
+  if (trail) v.trail = trail as FxTrailSpec;
+  if (typeof sv.holdLastFrameMs === 'number' && sv.holdLastFrameMs > 0) v.holdLastMs = sv.holdLastFrameMs;
+  for (const o of asOverlays(sv))
+    if (o.loop && !o.onHit && !o.onlyOnCrit)
+      v.followOverlays.push(o.sheet.startsWith('fx/') ? o.sheet.slice(3) : o.sheet);
+  return v;
+}
+
+/** 아무것도 바꾸지 않는 변주인지 */
+export function isEmptyVariant(v: FxVariant): boolean {
+  return (
+    v.swaps.length === 0 &&
+    !v.flash &&
+    !v.shake &&
+    !v.trail &&
+    !v.holdLastMs &&
+    v.followOverlays.length === 0 &&
+    v.playbackRate === null
+  );
+}
+
+/** 두 변주 합치기 (색 교체는 a → b 순서로 합성, 나머지는 a 우선). 둘 다 없으면 null */
+export function mergeVariants(a: FxVariant | null, b: FxVariant | null): FxVariant | null {
+  if (!a || isEmptyVariant(a)) return b && !isEmptyVariant(b) ? b : null;
+  if (!b || isEmptyVariant(b)) return a;
+  return {
+    swaps: composeSwaps(a.swaps, b.swaps),
+    flash: a.flash ?? b.flash,
+    shake: a.shake ?? b.shake,
+    trail: a.trail ?? b.trail,
+    holdLastMs: a.holdLastMs ?? b.holdLastMs,
+    followOverlays: [...new Set([...a.followOverlays, ...b.followOverlays])],
+    playbackRate: a.playbackRate ?? b.playbackRate,
+  };
+}
+
+/**
  * 재생 변주 해석: `secondary` = 2단 갈래 노드 id (경로의 두 번째), `heat` = 가열 단계(0 = 없음).
- * 아무 변주도 없으면 null
+ * 아무 변주도 없으면 null. 55라운드: 2단 전용 시트가 있으면 이 함수 대신 `runtimeFxVariant`(fxTier 가 고른다) — 여기는 대체 경로
  */
 export function resolveFxVariant(
   def: VariantSheetFields | null | undefined,
@@ -125,23 +172,19 @@ export function resolveFxVariant(
   const rateRaw = hv ? asObj(hv.playbackRateHint)?.[String(opts.heat)] : undefined;
   const playbackRate = typeof rateRaw === 'number' && rateRaw > 0 ? rateRaw : null;
   if (!sv && heatSwaps.length === 0 && playbackRate === null) return null;
-  const v: FxVariant = {
-    swaps: composeSwaps(sv ? asSwaps(sv.colorSwap) : [], heatSwaps),
-    followOverlays: [],
-    playbackRate,
-  };
-  if (sv) {
-    const flash = asObj(sv.flashOverride);
-    if (flash) v.flash = flash as FxFlashSpec;
-    const shake = asObj(sv.shakeOverride);
-    if (shake && typeof shake.px === 'number' && typeof shake.ms === 'number')
-      v.shake = shake as unknown as FxShakeSpec;
-    const trail = asObj(sv.trailOverride);
-    if (trail) v.trail = trail as FxTrailSpec;
-    if (typeof sv.holdLastFrameMs === 'number' && sv.holdLastFrameMs > 0) v.holdLastMs = sv.holdLastFrameMs;
-    for (const o of asOverlays(sv))
-      if (o.loop && !o.onHit && !o.onlyOnCrit)
-        v.followOverlays.push(o.sheet.startsWith('fx/') ? o.sheet.slice(3) : o.sheet);
-  }
-  return v;
+  const base: FxVariant = sv ? specVariant(sv, true) : { swaps: [], followOverlays: [], playbackRate: null };
+  return { ...base, swaps: composeSwaps(base.swaps, heatSwaps), playbackRate };
+}
+
+/**
+ * 55라운드 Q16 (계약 §10): 2단 전용 시트의 `runtime`(overlay·flashOverride·holdLastFrameMs·shakeOverride·trailOverride) +
+ * 그 시트의 `heatVariants`(단검 가열). colorSwap 은 그림에 이미 반영돼 있어 쓰지 않는다. 아무것도 없으면 null
+ */
+export function runtimeFxVariant(
+  def: (VariantSheetFields & { runtime?: unknown }) | null | undefined,
+  heat = 0,
+): FxVariant | null {
+  if (!def) return null;
+  const rt = asObj(def.runtime);
+  return mergeVariants(rt ? specVariant(rt, false) : null, resolveFxVariant(def, { heat }));
 }

@@ -37,6 +37,11 @@ export function slashFxId(weaponId: string): string {
   return `${weaponId}_slash`;
 }
 
+/** 55라운드 계약 §16 무기별 적중 스파크 `hit_<무기>` · 막타 `hit_<무기>_heavy` */
+export function weaponHitFxIds(weaponId: string): string[] {
+  return [`hit_${weaponId}`, `hit_${weaponId}_heavy`];
+}
+
 /** 화살 텍스처 이름 `<무기id>_arrow` / `<무기id>_arrow_aimed` */
 export function arrowFxId(weaponId: string, aimed: boolean): string {
   return aimed ? `${weaponId}_arrow_aimed` : `${weaponId}_arrow`;
@@ -77,6 +82,10 @@ export const HIT_FX_IDS: readonly string[] = [
   'crit_burst',
   'knock_dust',
   'player_hit',
+  // 55라운드 계약 §16: 재 파편 입자 · 칼끝 잔상 리본
+  'particles_ash',
+  'ribbon_ash',
+  'ribbon_ash_thin',
 ];
 /** 적·보스 양상 시트 (35라운드 2단계): 예고 마커 3종(+43라운드 수렴 오라), 46라운드 보스 내리찍기 충격파, 적 탄, 보스 부채꼴 탄, 총구 화염 */
 export const ENEMY_FX_IDS: readonly string[] = [
@@ -104,9 +113,16 @@ export const SECONDARY_FX_IDS: readonly string[] = [
 /** 47라운드 구조물 이펙트 (계약 art-assets §5): 1-1 불붙은 독주 웅덩이 루프. 48라운드 §6.3 탄생 흙 */
 export const STRUCTURE_FX_IDS: readonly string[] = ['fire_pool', BIRTH_FX, 'soul_wisp'];
 
-/** 무기 유도 이펙트 + 피격 이펙트 + 적 양상 이펙트 + 보조 연출 + 구조물 이펙트 (중복 제거) */
+/** 무기 유도 이펙트 + 무기별 적중 스파크(55라운드) + 피격 이펙트 + 적 양상 이펙트 + 보조 연출 + 구조물 이펙트 (중복 제거) */
 export function allFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
   return [
-    ...new Set([...fxSheetIds(weapons), ...HIT_FX_IDS, ...ENEMY_FX_IDS, ...SECONDARY_FX_IDS, ...STRUCTURE_FX_IDS]),
+    ...new Set([
+      ...fxSheetIds(weapons),
+      ...Object.keys(weapons).flatMap(weaponHitFxIds),
+      ...HIT_FX_IDS,
+      ...ENEMY_FX_IDS,
+      ...SECONDARY_FX_IDS,
+      ...STRUCTURE_FX_IDS,
+    ]),
   ];
 }

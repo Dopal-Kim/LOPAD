@@ -6,13 +6,17 @@
  * - `knock_dust` 16×8 4방향(밀린 방향): 넉백 끝 발 접지점(피벗 8,6), 바닥 깊이.
  * - `player_hit` 24×24 any: 플레이어 hurt 와 동시에 캐릭터 중심, 개체 위 깊이.
  * 없으면 Graphics 로 만든 작은 텍스처(흰 원·점) 플레이스홀더를 트윈으로 보여준다.
+ * 55라운드 Q8·Q10 (계약 §16): 무기 적중이면 공통 hit_burst 대신 `hit_<무기>`(막타·치명타 `_heavy`)를 공격 진행 방향으로 돌려
+ * (flipY 허용) 적중점에 — 히트스톱 동안 `holdFrame` 에 멈춘다 — 그리고 `particles_ash` 의 그 시트 묶음으로 재 파편을 낸다.
  */
 import Phaser from 'phaser';
 import { COLORS, DEPTH, FEEL, entityDepth } from '../core/Constants';
 import { PALETTE } from '../data';
+import type { AshParticles } from './ashParticles';
 import { FxPool } from './fx';
+import { sparkOrientation, weaponHitSheet } from './hitFeel';
 import { rampFor } from './palette';
-import { facingOf, type Facing } from './spriteDefs';
+import { facingOf, fxHoldFrame, type Facing } from './spriteDefs';
 
 const TEX_SPARK = 'fxph_spark';
 const TEX_DOT = 'fxph_dot';
@@ -20,15 +24,30 @@ const TEX_DOT = 'fxph_dot';
 export interface HitFxSummary {
   sheets: Record<string, boolean>;
   placeholders: number;
+  /** 55라운드: 마지막 적중 스파크 시트 · 입자 */
+  lastSpark: string | null;
+  particles: ReturnType<AshParticles['summary']> | null;
+}
+
+/** 55라운드 무기 적중 표시: 무기 id · 막타(연격 마지막 타·대쉬 공격) · 되돌아 휘두름(짝수 번째 타) */
+export interface WeaponHitStyle {
+  weaponId: string;
+  heavy: boolean;
+  backswing?: boolean;
 }
 
 export class HitFx {
   private bloodColor: number = COLORS.HIT_BLOOD_FALLBACK;
   private placeholders = 0;
+  private lastSpark: string | null = null;
+  /** 같은 프레임(씬 시각)의 적중 수 — 동시 다수 적중이면 입자를 줄인다 */
+  private frameHitAt = -1;
+  private frameHits = 0;
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly fx: FxPool,
+    private readonly ash: AshParticles | null = null,
     private readonly random: () => number = Math.random,
   ) {
     this.ensureTextures();
@@ -53,17 +72,57 @@ export class HitFx {
     dirY: number,
     crit: boolean,
     critFx?: { id: string; x: number; y: number } | null,
-  ): void {
+    style?: WeaponHitStyle | null,
+  ): string | null {
+    // 55라운드: 무기 적중 스파크 (치명타도 막타 시트). 2차 전용 치명 이펙트는 그 위에
+    const heavy = Boolean(style?.heavy) || crit;
+    const sheet = style ? weaponHitSheet(style.weaponId, heavy, (id) => this.fx.has(id)) : null;
+    if (sheet) {
+      this.weaponSpark(sheet, x, y, dirX, dirY, Boolean(style?.backswing));
+      if (crit && critFx && this.fx.has(critFx.id))
+        this.fx.play(critFx.id, critFx.x, critFx.y, { dir: this.dirOf(dirX, dirY), depth: DEPTH.HIT_FX + 0.01 });
+      return sheet;
+    }
+    this.lastSpark = null;
     if (crit && critFx && this.fx.has(critFx.id)) {
       this.fx.play(critFx.id, critFx.x, critFx.y, { dir: this.dirOf(dirX, dirY), depth: DEPTH.HIT_FX + 0.01 });
-      return;
+      return null;
     }
     if (crit && this.fx.has(FEEL.FX_IDS.CRIT)) {
       this.critBurst(x, y, dirX, dirY);
-      return;
+      return null;
     }
     this.spark(x, y, dirX, dirY);
     if (crit) this.critBurst(x, y, dirX, dirY);
+    return null;
+  }
+
+  /**
+   * 무기 적중 스파크 (계약 §16): 피벗 = 적중점, 공격 진행 방향으로 회전(drawnFacing 기준), flipY 허용이면 바로 세움·되돌아 휘두름 반전,
+   * 히트스톱 중 holdFrame. 재 파편 = particles_ash recipes.<시트> (같은 프레임 두 번째 적중부터 MULTI_HIT_FACTOR 배)
+   */
+  private weaponSpark(id: string, x: number, y: number, dirX: number, dirY: number, backswing: boolean): void {
+    const def = this.fx.sheet(id);
+    const o = sparkOrientation(dirX, dirY, {
+      drawnFacing: def?.drawnFacing,
+      flipAllowed: def?.flipY === 'allowed' || def?.flipY === true,
+      backswing,
+    });
+    this.fx.play(id, x, y, {
+      angle: o.angle,
+      flipY: o.flipY,
+      depth: DEPTH.HIT_FX,
+      hitstopFrame: def ? fxHoldFrame(def) : 0,
+    });
+    this.lastSpark = id;
+    const now = this.scene.time.now;
+    if (now !== this.frameHitAt) {
+      this.frameHitAt = now;
+      this.frameHits = 0;
+    }
+    this.frameHits += 1;
+    const factor = this.frameHits > 1 ? FEEL.PARTICLES.MULTI_HIT_FACTOR : 1;
+    this.ash?.burst(id, x, y, Math.atan2(dirY, dirX), factor);
   }
 
   /** 섬광 시트 id: hit_spark JSON `alias`(43라운드 hit_burst) → 상수 SPARK_ALT → hit_spark 순으로 로드된 것 */
@@ -204,7 +263,12 @@ export class HitFx {
   summary(): HitFxSummary {
     const sheets: Record<string, boolean> = {};
     for (const id of Object.values(FEEL.FX_IDS)) sheets[id] = this.fx.has(id);
-    return { sheets, placeholders: this.placeholders };
+    return {
+      sheets,
+      placeholders: this.placeholders,
+      lastSpark: this.lastSpark,
+      particles: this.ash?.summary() ?? null,
+    };
   }
 
   private dirOf(dx: number, dy: number): Facing {

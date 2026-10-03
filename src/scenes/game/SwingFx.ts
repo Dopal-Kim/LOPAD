@@ -1,22 +1,33 @@
 /**
- * 근접 휘두름 (53라운드 6-1 정리 — PlayerStrikes 에서 분리): 연격 한 타의 판정 모양 · 휘두름 이펙트 고르기·재생 · 잔상 리본.
- * 이펙트 우선순위: 대쉬 공격 재사용 → 1단 갈래 연격 시트(`<무기>_combo<n>_<갈래>`, 53라운드 계약 §10) → 가열 시트 → 기본 연격(마지막 타는
- * 진화 베기). 2단 갈래·가열 변주(색 교체·덮어쓰기)는 `fxVariants`.
+ * 근접 휘두름 (53라운드 6-1 정리 — PlayerStrikes 에서 분리): 연격 한 타의 판정 모양 · 휘두름 이펙트 고르기·재생 · 칼끝 리본.
+ * 이펙트 고르기는 `swingSelect`(대쉬 공격 재사용 → 2단 전용 시트 → 1단 갈래 → 가열 → 기본 연격·진화 베기, 55라운드 Q16).
+ * 55라운드 Q14: 이펙트 판정(백열) 프레임이 몸 판정 프레임 시작(실제 재생)에 오도록 띄우고, 히트스톱이면 그 프레임에서 멈춘다.
+ * Q15: 갈래 판정 배율(hitboxMult·강화)만큼 그림도 키운다. Q7: 칼끝 리본(`bladeTip` + RibbonRenderer)이 42라운드 흰 리본을 대신한다.
  */
-import Phaser from 'phaser';
-import { DEPTH, FEEL, WEAPON_FX, entityDepth, fxLitDepth } from '../../core/Constants';
+import { DEPTH, fxLitDepth } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import { comboShape, facingAngle, rotateDir, type HitShape } from '../../systems/combo';
-import { comboFxId, heatComboFxId, slashFxId } from '../../systems/fxIds';
-import { branchComboFxId, resolveFxVariant, type FxVariant } from '../../systems/fxVariants';
+import { comboShape, type HitShape } from '../../systems/combo';
+import { comboFxId } from '../../systems/fxIds';
 import { spriteLibrary } from '../../systems/sprites';
-import { animDurationMs, comboAction, facingOf } from '../../systems/spriteDefs';
-import { arcPoint } from '../../systems/trailMath';
+import { pickSwingFx } from '../../systems/swingSelect';
+import {
+  artScale,
+  comboAction,
+  facingOf,
+  frameStarts,
+  fxHoldFrame,
+  swingFxDelayMs,
+  type Facing,
+} from '../../systems/spriteDefs';
 import type { Game } from '../Game';
+import { planBladeTip } from './bladeTip';
 import { HIT_ORIGIN_UP_PX, isFinisher, pathFx } from './shared';
 
 export class SwingFx {
+  /** 디버그: 마지막 휘두름 이펙트 (시트·단계·배율·띄운 시각·리본 방식) */
+  debugLast: unknown = null;
+
   constructor(private readonly g: Game) {}
 
   /** 씬 진행 중(정지·사망 아님)인지 — 지연 실행 콜백 공통 확인 */
@@ -57,121 +68,97 @@ export class SwingFx {
   }
 
   /**
-   * 근접 베기 이펙트 (계약 §3.1): 플레이어 attack 2프레임(휘두름) 시작에 발 피벗 앵커로 재생.
-   * 거합·쌍격은 기본 베기를 대신하고, 파쇄·중압은 적중 판정 쪽(meleeSwing)에서 따로 나온다.
+   * 근접 베기 이펙트: 발 피벗 앵커, 판정(백열) 프레임 = 몸 판정 프레임 시작. 파쇄·중압 충격은 적중 판정 쪽(meleeSwing)
    */
   play(p: PlayerAttackPayload): void {
     const g = this.g;
     const weapon = gameState.weapon;
-    // 2차가 1차를 대신한다: 만월(wide) → 거합(iai), 난무(dance) → 쌍격(twin). 그 외는 기본 베기
-    const evo = pathFx(g.fx, 'wide', 'iai', 'dance', 'twin');
-    // 48라운드 3연격: 연격 시트가 있으면 타마다 그 시트, 진화 베기는 마지막 타에 (연격 시트가 없으면 기존처럼 매 타 진화 베기)
-    const combo = p.comboIndex !== undefined;
-    const finisher = isFinisher(p);
     // 49라운드 대검 내리찍기: 베기 호 없음 — 충격파 이펙트는 착지 순간 meleeSwing 이 착지점에
     if (p.slam) return;
-    // 49라운드 몸 시트 메모: fxSpawnAtMs(이펙트 f0 시각) · 대쉬 공격 fxReuse(재사용 이펙트·시각). 재생 배속(맞춘 길이) 반영
-    const body = p.bodyAction ? spriteLibrary.sheet('player', p.bodyAction) : undefined;
-    const fitScale = body && p.durationMs ? p.durationMs / animDurationMs(body) : 1;
+    const combo = p.comboIndex !== undefined;
     const DS = weapon.def.dashSlash;
-    const reuse = p.dashSlash && DS ? this.branchOr(body?.fxReuse?.id ?? comboFxId(weapon.id, DS.fxCombo)) : null;
-    const spawnAt = p.dashSlash
-      ? (body?.fxReuse?.spawnAtMs ?? DS?.fxSpawnAtMs)
-      : typeof body?.fxSpawnAtMs === 'number'
-        ? body.fxSpawnAtMs
-        : undefined;
-    const comboId = combo ? comboFxId(weapon.id, p.comboIndex! + 1) : null;
-    // 53라운드 계약 §10: 1단 갈래 연격 시트(fx/<무기>_combo<n>_<갈래>)가 있으면 매 타 그것 (진화 베기 대체보다 우선)
-    const branchId = comboId ? this.branchOr(comboId) : null;
-    const branchSheet = branchId !== null && branchId !== comboId;
-    // 49라운드 단검 과열: 가열 단계 시트(fx/<무기>_combo<n>_heat<k>)가 있으면 그것, 없으면 기본 시트를 키운다.
-    // 갈래 시트는 heat 시트 대신 JSON heatVariants(색 교체)
-    const heat = p.heatStage ?? 0;
-    const heatId = comboId && heat > 0 && !branchSheet ? heatComboFxId(weapon.id, p.comboIndex! + 1, heat) : null;
-    const heatSheet = heatId !== null && g.fx.has(heatId);
-    const branchHeat = branchSheet && heat > 0 && resolveFxVariant(g.fx.sheet(branchId!), { heat }) !== null;
-    const heatScale = heat > 0 && !heatSheet && !branchHeat ? 1 + WEAPON_FX.HEAT_SCALE_PER_STAGE * heat : 1;
-    const baseId = comboId && g.fx.has(comboId) ? (finisher && evo ? evo : comboId) : (evo ?? slashFxId(weapon.id));
-    const id =
-      reuse && g.fx.has(reuse) ? reuse : branchSheet ? branchId! : heatSheet && !(finisher && evo) ? heatId! : baseId;
-    // 2단 갈래(경로 두 번째 노드)·가열 변주: 색 교체 + 섬광·흔들림·잔상·마지막 프레임 덮어쓰기
-    const variant = this.swingVariant(id, heat);
-    // 가열 단계로 빨라진 타: 이펙트도 같은 배속으로 (아트 playbackRateHint 와 같은 값)
-    const fxFit = heat > 0 && fitScale > 0 && fitScale < 1 ? g.fx.durationOf(id) * fitScale : undefined;
+    const body = p.bodyAction ? spriteLibrary.sheet('player', p.bodyAction) : undefined;
+    const pick = pickSwingFx(
+      {
+        weaponId: weapon.id,
+        comboN: combo ? p.comboIndex! + 1 : null,
+        finisher: isFinisher(p),
+        path: weapon.path,
+        heat: p.heatStage ?? 0,
+        reuseId: p.dashSlash && DS ? (body?.fxReuse?.id ?? comboFxId(weapon.id, DS.fxCombo)) : null,
+        // 2차가 1차를 대신한다: 만월(wide) → 거합(iai), 난무(dance) → 쌍격(twin)
+        evoId: pathFx(g.fx, 'wide', 'iai', 'dance', 'twin'),
+      },
+      { has: (id) => g.fx.has(id), sheet: (id) => g.fx.sheet(id) },
+    );
+    const id = pick.id;
+    const def = g.fx.sheet(id);
     const dir = facingOf(p.dirX, p.dirY, g.player.facingDir);
-    const hb = weapon.hitbox;
     const shape = this.shape(p);
-    // 잔상 궤적(42라운드, fx-design §6.1): 플레이어 중심의 호를 SLASH_SWEEP_MS 동안 훑는다. 첫 샘플 시각부터 잰다
-    const T = FEEL.TRAIL;
-    const base = Math.atan2(p.dirY, p.dirX);
-    let radius = hb.reach * p.sizeMult * T.SLASH_RADIUS_MULT + hb.width * 0.5;
-    let mid = base;
-    let half = T.SLASH_HALF_ANGLE * (dir === 'left' || dir === 'up' ? -1 : 1);
-    if (shape?.kind === 'arc') {
-      // 48라운드: 판정 호 그대로 (from→to = 휘두름 방향, left 는 좌우 반전)
-      const from = base + Phaser.Math.DegToRad(facingAngle(shape.fromDeg, dir));
-      const to = base + Phaser.Math.DegToRad(facingAngle(shape.toDeg, dir));
-      radius = shape.radius;
-      mid = (from + to) / 2;
-      half = (to - from) / 2;
-    }
-    const sweep = Math.max(p.activeMs ?? hb.activeMs, T.SLASH_SWEEP_MS);
-    const centerUp = combo ? HIT_ORIGIN_UP_PX : 0;
+    // Q15: 갈래·강화 판정 배율만큼 그림도 (가열 배율과 곱). 판정 원점(발 위)이 그대로 있게 내려 붙인다
+    const hb = weapon.def.hitbox.reach > 0 ? weapon.hitbox.reach / weapon.def.hitbox.reach : 1;
+    const scaleMult = pick.heatScale * hb;
+    const holdFrame = def ? fxHoldFrame(def) : 0;
+    const lead = def ? (frameStarts(def)[holdFrame] ?? 0) : 0;
+    const delay = swingFxDelayMs(p.swingDelayMs, lead);
     const player = g.player;
-    const arcSource = () => {
-      let t0 = -1;
-      return () => {
-        if (t0 < 0) t0 = g.time.now;
-        const t = (g.time.now - t0) / sweep;
-        if (t > 1 || !player.active) return null;
-        const c = combo ? { x: player.x, y: player.y - centerUp } : player.getCenter();
-        if (shape?.kind === 'thrust') {
-          // 찌르기: 몸 중심에서 앞으로 뻗는 직선
-          const d = rotateDir(p.dirX, p.dirY, facingAngle(shape.angleDeg, dir));
-          const r = shape.fromPx + shape.length * Math.min(1, t * 1.5);
-          return { x: c.x + d.x * r, y: c.y + d.y * r };
-        }
-        return arcPoint(c.x, c.y, radius, mid, half, t);
-      };
-    };
     const play = () => {
-      if (!this.live) return;
-      // 시트 JSON trail 이 있으면 FxPool 이 fromFrame 에 같은 호로 리본을 시작(색·수명·폭은 JSON). 없으면 기본 리본을 바로
-      const sheetTrail = g.fx.has(id) && Boolean(variant?.trail ?? g.fx.sheet(id)?.trail);
-      if (g.fx.has(id))
-        g.fx.play(id, player.x, player.y, {
-          dir,
-          follow: player,
-          depthOffset: DEPTH.OVERLAY_STEP * 2,
-          trailSource: sheetTrail ? arcSource() : undefined,
-          scaleMult: heatScale,
-          durationMs: fxFit,
-          variant,
-        });
-      if (!sheetTrail)
-        g.trails.start('slash', arcSource(), {
-          // 53라운드 Q64: 휘두름 잔상도 이펙트처럼 라이트맵 위
-          depth: fxLitDepth(entityDepth(player.y) + DEPTH.OVERLAY_STEP * 3),
-          width: heat > 0 ? Math.round(FEEL.TRAIL.BAND_PX * (1 + WEAPON_FX.HEAT_TRAIL_PER_STAGE * heat)) : undefined,
-        });
+      if (!this.live || !g.fx.has(id)) return;
+      g.fx.play(id, player.x, player.y, {
+        dir,
+        follow: player,
+        followOffset: { x: 0, y: (combo ? HIT_ORIGIN_UP_PX : 0) * (scaleMult - 1) },
+        depthOffset: DEPTH.OVERLAY_STEP * 2,
+        scaleMult,
+        variant: pick.variant,
+        hitstopFrame: holdFrame,
+        trail: false,
+      });
     };
-    const lead = g.fx.leadMs(id);
-    const delay = Math.max(0, spawnAt !== undefined ? spawnAt * fitScale : p.swingDelayMs - lead);
     if (delay > 0) g.time.delayedCall(delay, play);
     else play();
+    const ribbon = this.startRibbon(p, dir, shape, id, hb);
+    this.debugLast = { id, tier: pick.tier, scaleMult, delay, holdFrame, hitAt: p.swingDelayMs, ribbon };
   }
 
-  /** 53라운드 계약 §10: 1단 갈래 시트 `<id>_<갈래>` 가 로드돼 있으면 그 id, 아니면 그대로 */
-  private branchOr(id: string): string {
-    const first = gameState.weapon.path[0];
-    if (!first) return id;
-    const n = /_combo(\d+)$/.exec(id);
-    const branch = n ? branchComboFxId(gameState.weapon.id, Number(n[1]), first) : `${id}_${first}`;
-    return this.g.fx.has(branch) ? branch : id;
-  }
-
-  /** 휘두름 이펙트 변주: 2단 갈래 secondaryVariants · 갈래 시트 heatVariants (없으면 null) */
-  private swingVariant(id: string, heat: number): FxVariant | null {
-    return resolveFxVariant(this.g.fx.sheet(id), { secondary: gameState.weapon.path[1] ?? null, heat });
+  /**
+   * Q7 칼끝 리본: 판정 앞 1프레임 ~ 판정 뒤 1프레임 동안 칼끝(무기 bladeTipAnchors, 없으면 판정 호)을 찍는다.
+   * 연격 시트 아래 깊이. 시각은 플레이 시계(히트스톱 동안 멈춤) — 공격 시작부터 잰다
+   */
+  private startRibbon(
+    p: PlayerAttackPayload,
+    dir: Facing,
+    shape: HitShape | null,
+    fxId: string,
+    hb: number,
+  ): string | null {
+    const g = this.g;
+    const weapon = gameState.weapon;
+    const sheet = weapon.def.feel?.ribbon;
+    if (!sheet) return null;
+    const fxDef = g.fx.sheet(fxId) ?? g.fx.sheet(comboFxId(weapon.id, (p.comboIndex ?? 0) + 1));
+    const tipDots = fxDef?.trailFill?.bladeTipRadiusDots;
+    const tipRadius = fxDef && typeof tipDots === 'number' ? tipDots * artScale(fxDef) * hb : null;
+    const plan = planBladeTip(p, weapon.id, dir, shape, tipRadius);
+    if (!plan) return null;
+    const player = g.player;
+    const t0 = g.playNow();
+    let last: { x: number; y: number } | null = null;
+    const begin = () => {
+      if (!this.live) return;
+      g.ribbons.start(
+        (t) => {
+          const e = t - t0;
+          if (e > plan.to || !player.active) return null;
+          const off = plan.at(e);
+          if (off) last = { x: player.x + off.x, y: player.y + off.y };
+          return last;
+        },
+        { sheet, depth: fxLitDepth(player.depth + DEPTH.OVERLAY_STEP * 1.5) },
+      );
+    };
+    if (plan.from > 0) g.time.delayedCall(plan.from, begin);
+    else begin();
+    return plan.mode;
   }
 }

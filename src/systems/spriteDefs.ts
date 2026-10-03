@@ -292,8 +292,26 @@ export interface SheetJson extends BranchSheetFields {
   cupAnchors?: unknown;
   /** 54라운드 계약 §15 보스 v3 kick: 프레임별 발 좌표 (술통 시작점) */
   footAnchors?: unknown;
-  /** 54라운드 아트 v3 보스: 예고 동안 유지할 열 (attack·stagger_dash) */
+  /** 54라운드 아트 v3 보스: 예고 동안 유지할 열 (attack·stagger_dash). 55라운드 적중 스파크: 히트스톱 중 정지 프레임 */
   holdFrame?: number;
+  // --- 55라운드 계약 §16 (타격감·움직임·갈래) ---
+  /** 판정 순간 백열 프레임 (연격·적중 시트) */
+  glowFrames?: number[];
+  /** 적중 시트 흔들림 제안 {px, ms} (아트 임시값 — 시스템 hitFeel 이 읽는다) */
+  shakeHint?: unknown;
+  /** 회전 시트 위아래 뒤집기 허용 ("allowed") */
+  flipY?: string | boolean;
+  /** 방향별 깊이 (ironwall {"up": "below"}) */
+  depthByDirection?: Partial<Record<Facing, 'above' | 'below'>>;
+  /** 재 파편 입자 묶음 (particles_ash — `ashParticleMath` 가 읽는다) */
+  kinds?: unknown;
+  recipes?: unknown;
+  /** 잔상 리본 텍스처 메모 (ribbon_ash — 나이 프레임 ageFrames 등) */
+  ribbon?: { ageFrames?: number[]; widthDots?: number };
+  /** 53라운드 Q63 연격 궤적 메모: 칼끝 반경(도트, 판정 원점 기준) — 칼끝 메모가 없는 무기의 리본 반경 */
+  trailFill?: { bladeTipRadiusDots?: number };
+  /** 55라운드 v3 무기: 프레임별 칼끝 (무기 시트 도트, 방향 → 열 목록) */
+  bladeTipAnchors?: Partial<Record<Facing, AnchorPoint[]>>;
   /** 54라운드 아트 v3 술통 회전 시트: 한 바퀴 굴림 둘레 (**논리 px** = 도트 × 0.5 — 아트 rotationNote, `caskCircumferenceWorld`) */
   circumferencePx?: number;
   /** 54라운드 아트 2차 술통: 그림 지름 · 길이 (논리 px) — 판정 반경 (`caskRadiusFromArt`) */
@@ -625,6 +643,22 @@ export function fxImpactFrame(def: Pick<SheetJson, 'impactFrame' | 'spawn' | 'fr
 }
 
 /**
+ * 55라운드 Q14 ①: 히트스톱 동안 멈출 프레임 = `holdFrame`(적중 스파크) → 타격 프레임(`fxImpactFrame`, 연격 = 판정 백열 시작)
+ */
+export function fxHoldFrame(def: Pick<SheetJson, 'holdFrame' | 'impactFrame' | 'spawn' | 'frames'>): number {
+  if (typeof def.holdFrame === 'number') return Math.max(0, Math.min(def.frames - 1, Math.floor(def.holdFrame)));
+  return fxImpactFrame(def);
+}
+
+/**
+ * 55라운드 Q14 ①③: 휘두름 이펙트를 띄울 시각 = 몸 판정 프레임 시작(실제 재생, `hitAtMs`) − 이펙트 판정 프레임까지(`leadMs`).
+ * 그러면 적중(히트스톱 시작) 순간 이펙트가 판정 백열 프레임에 있다. 몸이 그보다 빨리 치면 즉시(0)
+ */
+export function swingFxDelayMs(hitAtMs: number, leadMs: number): number {
+  return Math.max(0, hitAtMs - Math.max(0, leadMs));
+}
+
+/**
  * 연타 판정 간격: `hitFrames` 의 각 프레임 시작 시각을 첫 타격 프레임 기준으로 뺀 값 (ms, 길이 = hits).
  * 시트·hitFrames 가 없거나 짧으면 null → 호출 쪽 기본 간격
  */
@@ -700,7 +734,8 @@ export function animKey(name: string, action: string, dir: Facing, suffix = ''):
 export function frameDurations(def: SheetJson): number[] {
   const d = def.frameDurationsMs;
   if (d && d.length === def.frames && d.every((v) => v > 0)) return d;
-  const per = 1000 / Math.max(1, def.fps);
+  // 55라운드: 시간 애니가 아닌 시트(입자·리본: frameDurationsMs 전부 0, fps 없음)도 유한한 값으로
+  const per = 1000 / (Number.isFinite(def.fps) && def.fps > 0 ? def.fps : SPRITES.STATIC_SHEET_FPS);
   return Array.from({ length: def.frames }, () => per);
 }
 

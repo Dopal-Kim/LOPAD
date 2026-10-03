@@ -65,7 +65,15 @@ export class MotionFx {
     }
     g.structures.onPush(p.x, p.y, radius);
     const ironwall = counter > 0 ? pathFx(g.fx, 'ironwall') : null;
-    if (ironwall) g.fx.play(ironwall, p.x, p.y, { dir, depth: entityDepth(p.y) + DEPTH.OVERLAY_STEP * 3 });
+    if (ironwall) {
+      // 55라운드 계약 §16: depthByDirection {"up": "below"} — 등 뒤(위 방향)면 주인공 뒤에 (그 깊이는 라이트맵 아래)
+      const below = g.fx.sheet(ironwall)?.depthByDirection?.[dir] === 'below';
+      g.fx.play(ironwall, p.x, p.y, {
+        dir,
+        depth: entityDepth(p.y) + DEPTH.OVERLAY_STEP * (below ? -1 : 3),
+        belowLighting: below,
+      });
+    }
     for (const child of [...g.mobs.getChildren()]) {
       const m = child as Mob;
       if (!m.active) continue;
@@ -249,7 +257,8 @@ export class MotionFx {
     const S = FEEL.SECONDARY;
     this.dashTrailNextAt = time + S.DASH_TRAIL_INTERVAL_MS;
     const d = player.dashDir;
-    const tinted = S.DASH_TRAIL_TINT_NODES.some((id) => gameState.weapon.path.includes(id));
+    // 55라운드 Q13: v3 대쉬 잔상은 따뜻한 재 그대로 (DASH_TRAIL_TINT false 면 노드 틴트 없음)
+    const tinted = S.DASH_TRAIL_TINT && S.DASH_TRAIL_TINT_NODES.some((id) => gameState.weapon.path.includes(id));
     const hex = tinted ? fxWeaponColor(PALETTE, gameState.weapon.id, S.DASH_TRAIL_RAMP_INDEX) : null;
     const method = g.fx.sheet('dash_trail')?.tint?.method ?? '';
     g.fx.play('dash_trail', player.x, player.y, {

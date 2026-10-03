@@ -36,6 +36,8 @@ export class Projectile extends Phaser.GameObjects.Sprite {
   hitStunMs = 0;
   /** 치명타로 굴려진 플레이어 투사체 (피격음 분기) */
   crit = false;
+  /** 55라운드 Q10: 막타 화살 (대쉬 공격으로 쏜 화살) — 큰 적중 스파크·긴 히트스톱 */
+  heavy = false;
   /** 적중 시 히트박스 중심에 1회 재생할 이펙트 시트 (중시 heavyarrow_hit). null 이면 없음 */
   impactFx: string | null = null;
   /** 47라운드 1-2: 증류 화로 불꽃을 지난 불화살 (적중 시 화상, 독주 웅덩이 점화) */
@@ -73,6 +75,7 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     this.homingTurn = 0;
     this.hitStunMs = 0;
     this.crit = false;
+    this.heavy = false;
     this.impactFx = null;
     this.fire = false;
     this.hitSet.clear();

@@ -222,7 +222,7 @@ export function exposeGameDebug(g: Game): void {
           };
         }),
     lastSlam: () => g.combat.debugLastSlam,
-    trails: () => ({ active: g.trails.activeCount, count: g.trails.count, list: g.trails.summary() }),
+    trails: () => ({ active: g.ribbons.activeCount, count: g.ribbons.count, list: g.ribbons.summary() }),
     screen: () => g.screenFx.summary(),
     aimFx: () => ({
       line: g.aimLine.visible,
@@ -293,6 +293,7 @@ export function exposeGameDebug(g: Game): void {
         nextIndex: c ? c.nextIndex(g.time.now) : null,
         now: g.time.now,
         lastSwing: g.strikes.debugLastSwing,
+        swingFx: g.strikes.debugSwingFx,
         // 51라운드: 공격 시각 기록(템포 실측) · 활 마지막 발사·적중
         log: g.strikes.attackLog.slice(),
         bow: { shot: g.strikes.bow.debugLastShot, hit: g.strikes.bow.debugLastHit },

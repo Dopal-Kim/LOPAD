@@ -2,6 +2,8 @@
  * 피격 피드백 "감각" 계층 (35라운드 1단계): 히트스톱·화면 흔들림·넉백 수식. Phaser 의존 없음(테스트 가능).
  * - 수치는 core/Constants `FEEL`, 강도 배율은 `feelSettings`(런타임, 디버그 `__lopad.setFeel` — 접근성 대비 0 으로 끌 수 있다).
  * - 시간은 씬 시계(`scene.time.now`) ms 를 그대로 받는다. 히트스톱 중에도 시계는 흐르므로 지속 시간은 실시간 기준.
+ * - 55라운드 Q14: 히트스톱 동안 멈추는 '플레이 시계'(`PauseClock`) — 휘두름 리본·칼끝 궤적·입자가 이 시계로 잰다.
+ *   흔들림은 방향을 줄 수 있다(Q8: 타격 방향으로 짧게).
  */
 import { FEEL } from '../core/Constants';
 
@@ -81,10 +83,52 @@ export class HitStop {
   }
 }
 
+/**
+ * 55라운드 Q14 ②: 히트스톱 동안 멈추는 시계. `now(real)` = 실시간 − 지금까지 멈춘 시간 (멈춘 동안은 멈춘 순간 값 그대로).
+ * 리본·칼끝 궤적·입자처럼 '정지 = 그대로 굳음'이어야 하는 연출이 쓴다
+ */
+export class PauseClock {
+  private pausedTotal = 0;
+  private pausedAt: number | null = null;
+
+  setPaused(on: boolean, real: number): void {
+    if (on && this.pausedAt === null) this.pausedAt = real;
+    else if (!on && this.pausedAt !== null) {
+      this.pausedTotal += Math.max(0, real - this.pausedAt);
+      this.pausedAt = null;
+    }
+  }
+
+  get paused(): boolean {
+    return this.pausedAt !== null;
+  }
+
+  now(real: number): number {
+    const held = this.pausedAt !== null ? Math.max(0, real - this.pausedAt) : 0;
+    return real - this.pausedTotal - held;
+  }
+
+  reset(): void {
+    this.pausedTotal = 0;
+    this.pausedAt = null;
+  }
+}
+
+/**
+ * 55라운드 Q8 방향성 흔들림의 진동 위상: t(0..1) → cos(2π × cycles × t). 감쇠(1 − t)는 진폭 쪽에 이미 있다 —
+ * 타격 방향으로 밀렸다가 반대로 한 번 튕기고 멎는다
+ */
+export function directionalPhase(t: number, cycles: number = FEEL.SHAKE_DIR.CYCLES): number {
+  const u = Math.max(0, Math.min(1, t));
+  return Math.cos(Math.PI * 2 * cycles * u);
+}
+
 interface ShakeEntry {
   px: number;
   start: number;
   until: number;
+  /** 단위 방향 (있으면 그 축으로만 튕긴다) */
+  dir?: { x: number; y: number };
 }
 
 /**
@@ -101,10 +145,13 @@ export class Shake {
 
   constructor(private readonly random: () => number = Math.random) {}
 
-  add(now: number, px: number, ms: number): void {
+  /** `dir` 를 주면 그 방향(타격 방향)으로 짧게 튕긴다 (55라운드 Q8). 없으면 무작위 방향 */
+  add(now: number, px: number, ms: number, dir?: { x: number; y: number }): void {
     const amp = px * feelSettings.shake;
     if (amp <= 0 || ms <= 0) return;
-    this.entries.push({ px: amp, start: now, until: now + ms });
+    const len = dir ? Math.hypot(dir.x, dir.y) : 0;
+    const unit = dir && len > 0 ? { x: dir.x / len, y: dir.y / len } : undefined;
+    this.entries.push({ px: amp, start: now, until: now + ms, dir: unit });
     this.count += 1;
     this.last = { px, ms, at: now };
   }
@@ -120,7 +167,7 @@ export class Shake {
     return amp;
   }
 
-  /** 이번 프레임 오프셋 (정수). 진폭이 0.5 미만이면 0 */
+  /** 이번 프레임 오프셋 (정수). 진폭이 0.5 미만이면 0. 가장 센 항목에 방향이 있으면 그 축으로 감쇠 진동 */
   sample(now: number): { x: number; y: number } {
     const amp = this.amplitude(now);
     if (amp < 0.5) {
@@ -128,10 +175,31 @@ export class Shake {
       this.offset.y = 0;
       return this.offset;
     }
+    const top = this.strongest(now);
+    if (top?.dir) {
+      const k = directionalPhase((now - top.start) / (top.until - top.start));
+      this.offset.x = Math.round(top.dir.x * amp * k) || 0;
+      this.offset.y = Math.round(top.dir.y * amp * k) || 0;
+      return this.offset;
+    }
     const a = this.random() * Math.PI * 2;
     this.offset.x = Math.round(Math.cos(a) * amp);
     this.offset.y = Math.round(Math.sin(a) * amp);
     return this.offset;
+  }
+
+  /** 지금 진폭이 가장 큰 항목 */
+  private strongest(now: number): ShakeEntry | null {
+    let best: ShakeEntry | null = null;
+    let amp = 0;
+    for (const e of this.entries) {
+      const a = e.px * (1 - (now - e.start) / (e.until - e.start));
+      if (a > amp) {
+        amp = a;
+        best = e;
+      }
+    }
+    return best;
   }
 
   get activeCount(): number {

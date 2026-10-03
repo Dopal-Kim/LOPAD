@@ -13,6 +13,7 @@ import { facingAngle, hitShapeBounds, rotateDir, shapeHit, type HitShape } from 
 import type { FxHandle } from '../../systems/fx';
 import { facingOf, hitFrameOffsets, radiusFitScale, type Facing } from '../../systems/spriteDefs';
 import { comboFxId, slamFxId, slashFxId } from '../../systems/fxIds';
+import { isBackswing, isHeavyStrike } from '../../systems/hitFeel';
 import type { Game } from '../Game';
 import { BowShots } from './BowShots';
 import { StrikeDots } from './StrikeDots';
@@ -28,6 +29,11 @@ export class PlayerStrikes {
   readonly bow: BowShots;
   readonly dots: StrikeDots;
   private readonly swing: SwingFx;
+
+  /** 디버그: 마지막 휘두름 이펙트 (55라운드 — 시트·단계·배율·띄운 시각·리본 방식) */
+  get debugSwingFx(): unknown {
+    return this.swing.debugLast;
+  }
   private giantFx: FxHandle | null = null;
 
   constructor(private readonly g: Game) {
@@ -299,7 +305,11 @@ export class PlayerStrikes {
     const critFx = p.primed ? this.pathFx('assassin') : p.kind === 'dashAttack' ? this.pathFx('dashcrit') : null;
     // 51라운드 Q4: 대검 끌어내기 첫 타 = 크게 밀쳐냄
     const knockMult = p.knockbackMult;
-    if (g.combat.hitMob(mob, dmg, { crit, dirX: p.dirX, dirY: p.dirY, critFx, knockMult })) {
+    // 55라운드 Q10: 막타(연격 마지막 타·대쉬 공격) · 판정 호가 반대로 훑는 타는 되돌아 휘두름(스파크 반전)
+    const heavy = isHeavyStrike(p);
+    const backswing = isBackswing(this.swing.shape(p));
+    const from = { x: g.player.x, y: g.player.y - HIT_ORIGIN_UP_PX };
+    if (g.combat.hitMob(mob, dmg, { crit, dirX: p.dirX, dirY: p.dirY, critFx, knockMult, heavy, backswing, from })) {
       g.progress.onKill(mob, stunnedByParry ? 'parry' : p.kind === 'aimed' ? 'attack' : p.kind);
       return;
     }

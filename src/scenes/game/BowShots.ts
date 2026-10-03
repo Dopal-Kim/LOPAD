@@ -3,8 +3,9 @@
  * 51라운드 Q2: 산탄 계열(산탄·폭우·추적) 갈래는 트리에서 빠졌다 — spread·homingTurnDeg 처리는 화기류 때 재사용하려고 남긴다.
  * 계약 art §10: 속사 `bow_arrow_rapid`·`bow_arrow_aimed_rapid` + 발사 섬광 `bow_muzzle_rapid`(spawn arrow_spawn),
  * 저격 `bow_arrow_snipe`·`bow_arrow_aimed_snipe` + 꼬리 `bow_arrow_snipe_lv1/2/3`(화살 아래 깊이, 비행 거리 1/3·2/3 에서 교체),
- * 조준선 `aim_line_snipe`(MotionFx). 53라운드 무기 이펙트 v3: 2단 갈래 표시 = 화살·꼬리 시트 JSON secondaryVariants
- * (색 교체 · 따라가는 겹침 — 관통 `fx/pierce`). 적중형 겹침(필중 crit_burst)은 기존 치명 연출이 맡는다.
+ * 조준선 `aim_line_snipe`(MotionFx). 55라운드 Q16: 2단 갈래 = 2단 전용 화살 시트(`<1단 화살>_<2단>`, JSON tailSheets 가 2단 꼬리) →
+ * 없으면 53라운드 대체(1단 시트 secondaryVariants 색 교체 · 관통 `fx/pierce` 겹침). Q17: 2단 꼬리가 있으면 구 pierce 겹침 없음.
+ * 적중형 겹침(필중 crit_burst)은 기존 치명 연출이 맡는다.
  */
 import Phaser from 'phaser';
 import { DEPTH, TILE } from '../../core/Constants';
@@ -22,7 +23,9 @@ import {
   tailFxIds,
 } from '../../systems/branchFx';
 import type { FxHandle } from '../../systems/fx';
-import { resolveFxVariant, type FxVariant } from '../../systems/fxVariants';
+import { pickTierSheet } from '../../systems/fxTier';
+import { isHeavyStrike } from '../../systems/hitFeel';
+import { resolveFxVariant, runtimeFxVariant, type FxVariant } from '../../systems/fxVariants';
 import { spriteLibrary } from '../../systems/sprites';
 import { FX_ACTION, fxDrawScale } from '../../systems/spriteDefs';
 import { arrowFxId } from '../../systems/fxIds';
@@ -42,6 +45,8 @@ interface SnipeShot {
   critAttack: number;
   tailIds: string[];
   tail: FxHandle | null;
+  /** 2단 전용 화살이 가리킨 2단 꼬리인지 (그러면 꼬리 변주 = 그 시트 runtime) */
+  tier2: boolean;
 }
 
 export class BowShots {
@@ -88,14 +93,23 @@ export class BowShots {
     else release();
   }
 
-  /** 화살 시트: 1단 갈래 시트가 있으면 그것 → 중시(옛 2차) → 기본 */
-  private arrowSheet(aimed: boolean): { id: string; branch: boolean } {
+  /** 화살 시트: 2단 전용 → 1단 갈래(+ 색 교체 대체) → 중시(옛 2차) → 기본 */
+  private arrowSheet(aimed: boolean): { id: string; branch: boolean; tier2: boolean; variant: FxVariant | null } {
     const fx = this.g.fx;
     const w = gameState.weapon.id;
     const b = this.first;
-    if (b && fx.has(branchArrowFxId(w, aimed, b))) return { id: branchArrowFxId(w, aimed, b), branch: true };
+    const tier1 = b ? branchArrowFxId(w, aimed, b) : null;
+    if (tier1 && fx.has(tier1)) {
+      const pick = pickTierSheet(
+        tier1,
+        true,
+        { secondary: gameState.weapon.path[1] ?? null },
+        { has: (id) => fx.has(id), sheet: (id) => fx.sheet(id) },
+      );
+      return { id: pick.id, branch: true, tier2: pick.tier === 'secondary', variant: pick.variant };
+    }
     const heavy = aimed ? pathFx(fx, 'heavyarrow') : null;
-    return { id: heavy ?? arrowFxId(w, aimed), branch: false };
+    return { id: heavy ?? arrowFxId(w, aimed), branch: false, tier2: false, variant: null };
   }
 
   private spawnArrows(p: PlayerAttackPayload, rapidMult: number): void {
@@ -113,8 +127,8 @@ export class BowShots {
     const base = Math.atan2(p.dirY, p.dirX);
     const arrow = this.arrowSheet(aimed);
     const def = g.fx.sheet(arrow.id);
-    // 2단 갈래: 화살 색 교체 텍스처 (만들 수 없으면 원본)
-    const variant = arrow.branch ? this.variantOf(arrow.id) : null;
+    // 2단 갈래: 2단 전용 시트면 그 runtime, 대체 경로면 화살 색 교체 텍스처 (만들 수 없으면 원본)
+    const variant = arrow.variant;
     const swapped = variant?.swaps.length ? spriteLibrary.recolored(g, arrow.id, FX_ACTION, variant.swaps) : null;
     const texture = swapped?.texture ?? spriteLibrary.textureKey(arrow.id, FX_ACTION);
     const anim = def?.loop
@@ -163,6 +177,7 @@ export class BowShots {
         { texture: texture ?? undefined, rotate: true, anim, ...origin },
       );
       shot.crit = crit;
+      shot.heavy = isHeavyStrike(p);
       if (mods.homingTurnDeg) shot.homingTurn = Phaser.Math.DegToRad(mods.homingTurnDeg);
       if (aimed && mods.aimedShotStunMs) shot.hitStunMs = mods.aimedShotStunMs;
       // 중시: 적중 시 번개 낙하(heavyarrow_hit, 섬광·흔들림은 시트 JSON)
@@ -199,6 +214,7 @@ export class BowShots {
           critAttack: critFromLevel ? g.combat.rollDamage(p.damageMult * rapidMult, true, p.kind).dmg : dmg,
           tailIds: tails,
           tail: null,
+          tier2: arrow.tier2,
         };
         this.snipes.set(shot, entry);
         this.updateTail(shot, entry);
@@ -209,6 +225,7 @@ export class BowShots {
       aimed,
       sheet: arrow.id,
       branchSheet: arrow.branch,
+      tier2: arrow.tier2,
       texture,
       variant: variant ? { swaps: variant.swaps.length, overlays: variant.followOverlays } : null,
       muzzle: muzzle && g.fx.has(muzzle) ? muzzle : null,
@@ -234,7 +251,7 @@ export class BowShots {
       follow: shot,
       followRotation: true,
       depth: DEPTH.PROJECTILE - 0.01,
-      variant: this.variantOf(id),
+      variant: e.tier2 ? runtimeFxVariant(fx.sheet(id)) : this.variantOf(id),
     });
   }
 

@@ -83,6 +83,7 @@ export function startSlam(p: Player, input: InputState, time: number, strike: Co
     activeMs: strike.hit.activeMs,
     durationMs: total,
     bodyAction,
+    bodyFrameStartsMs: [...visual.lastFrameStarts],
     slam: { radiusPx: S.radiusPx, offsetX: impactAt.x, offsetY: impactAt.y },
   };
   EventBus.emit(Events.PLAYER_ATTACKED, payload);
@@ -144,6 +145,7 @@ export function startDashSlash(p: Player, input: InputState, time: number, W: We
     activeMs: last.activeMs,
     durationMs: total,
     bodyAction,
+    bodyFrameStartsMs: [...visual.lastFrameStarts],
     dashSlash: { arcDeg: DS.arcDeg },
     ...(first ? { firstStrike: first.label, knockbackMult: first.knockbackMult } : {}),
   };

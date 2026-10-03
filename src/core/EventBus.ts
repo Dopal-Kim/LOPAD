@@ -122,6 +122,8 @@ export type PlayerAttackPayload = {
   durationMs?: number;
   /** 재생한 주인공 몸 동작 (attack 또는 <무기>_combo<n>) */
   bodyAction?: string;
+  /** 55라운드 Q14: 몸 동작의 실제 프레임 시작 ms (구간별 맞춤·배속 반영) — 칼끝 리본·이펙트 시각 정렬 */
+  bodyFrameStartsMs?: number[];
   /** 49라운드: 대검 내리찍기 (착지 순간 = swingDelayMs, 원형 판정 반경 px, 착지점 = 그때 발 피벗 + offset) */
   slam?: { radiusPx: number; offsetX: number; offsetY: number };
   /** 49라운드: 대검 대쉬 공격 (달려들며 크게 한 번, 판정 부채꼴 각도) */

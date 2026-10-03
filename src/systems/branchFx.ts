@@ -14,6 +14,9 @@ export interface BranchSheetFields {
   tailSheets?: string[];
   secondaryVariants?: unknown;
   heatVariants?: unknown;
+  /** 55라운드 Q16: 1단 시트 → 2단 전용 시트 (`<2단 id>` → `fx/<시트>`) · 2단 시트의 실행 메모 (형식 검사는 `fxTier`·`fxVariants`) */
+  secondarySheets?: unknown;
+  runtime?: unknown;
 }
 
 /** 'fx/<이름>' → '<이름>' */

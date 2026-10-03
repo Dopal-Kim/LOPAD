@@ -157,7 +157,19 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'batto',
     ]);
     const all = allFxSheetIds(weapons);
-    for (const id of [...SECONDARY_FX_IDS, 'hit_burst', 'telegraph_aura', 'boss_slam', 'heavyarrow_hit', 'wide'])
+    for (const id of [
+      ...SECONDARY_FX_IDS,
+      'hit_burst',
+      'telegraph_aura',
+      'boss_slam',
+      'heavyarrow_hit',
+      'wide',
+      // 55라운드 계약 §16
+      'hit_katana',
+      'hit_katana_heavy',
+      'particles_ash',
+      'ribbon_ash',
+    ])
       expect(all).toContain(id);
     expect(new Set(all).size).toBe(all.length);
     expect(fxDepthHint({ depth: 'below' })).toBe('below');

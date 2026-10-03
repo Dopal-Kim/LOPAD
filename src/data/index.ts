@@ -250,6 +250,12 @@ export function validateWeapons(t: WeaponTable): WeaponTable {
       if (val < 0 || val > 1) throw new Error(`[data] weapons.${id}.affinity.${k} 는 0..1`);
     }
     for (const [k, val] of Object.entries(w.hitbox)) assertNumber(val, `weapons.${id}.hitbox.${k}`);
+    // 55라운드 타격감 (선택)
+    if (w.feel) {
+      assertNumber(w.feel.hitstopMs, `weapons.${id}.feel.hitstopMs`);
+      if (w.feel.ribbon !== undefined && typeof w.feel.ribbon !== 'string')
+        throw new Error(`[data] weapons.${id}.feel.ribbon 은 문자열`);
+    }
     if (w.combo) validateCombo(w.combo, `weapons.${id}.combo`);
     validateWeaponExtras(w, `weapons.${id}`);
     // 우클릭 보조 동작

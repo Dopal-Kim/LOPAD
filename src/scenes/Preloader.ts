@@ -11,6 +11,7 @@ import { spriteLibrary } from '../systems/sprites';
 import { sheetJsonCandidates } from '../systems/spriteMeta';
 import { branchFxSheetIds } from '../systems/branchFx';
 import { meleeBranchFxSheetIds } from '../systems/fxVariants';
+import { tier2FxSheetIds } from '../systems/fxTier';
 import {
   normalizeStructureSheet,
   sheetToWorldUnits,
@@ -96,7 +97,13 @@ export class Preloader extends Phaser.Scene {
       Object.keys(ENEMIES),
       Object.keys(BOSSES),
       Object.keys(WEAPONS),
-      [...allFxSheetIds(WEAPONS), ...branchFxSheetIds(WEAPONS), ...meleeBranchFxSheetIds(WEAPONS), ...bossFxSheets()],
+      [
+        ...allFxSheetIds(WEAPONS),
+        ...branchFxSheetIds(WEAPONS),
+        ...meleeBranchFxSheetIds(WEAPONS),
+        ...tier2FxSheetIds(WEAPONS),
+        ...bossFxSheets(),
+      ],
       [...allStructureSprites(), ...bossStructureSheets()],
     )) {
       const paths = sheetJsonCandidates(req);

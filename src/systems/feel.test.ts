@@ -1,6 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { FEEL } from '../core/Constants';
-import { DEFAULT_FEEL, HitStop, Shake, feelSettings, knockFactor, knockSpeed, setFeel } from './feel';
+import {
+  DEFAULT_FEEL,
+  HitStop,
+  PauseClock,
+  Shake,
+  directionalPhase,
+  feelSettings,
+  knockFactor,
+  knockSpeed,
+  setFeel,
+} from './feel';
 
 afterEach(() => setFeel(DEFAULT_FEEL));
 
@@ -83,5 +93,32 @@ describe('feel: 넉백 수식', () => {
     setFeel({ trail: false, flash: false });
     expect(feelSettings.trail).toBe(false);
     expect(feelSettings.flash).toBe(false);
+  });
+});
+
+describe('feel: 55라운드 Q14 플레이 시계 · Q8 방향 흔들림', () => {
+  it('플레이 시계는 히트스톱 동안 멈추고 그만큼 뒤처진다', () => {
+    const c = new PauseClock();
+    expect(c.now(1000)).toBe(1000);
+    c.setPaused(true, 1000);
+    expect(c.paused).toBe(true);
+    expect(c.now(1080)).toBe(1000);
+    c.setPaused(false, 1080);
+    expect(c.now(1100)).toBe(1020);
+    c.setPaused(false, 1200); // 중복 해제 무시
+    expect(c.now(1200)).toBe(1120);
+    c.reset();
+    expect(c.now(1200)).toBe(1200);
+  });
+
+  it('방향 흔들림: 타격 방향 축으로만, 처음엔 밀리고 반대로 한 번 튕긴다', () => {
+    expect(directionalPhase(0)).toBe(1);
+    expect(directionalPhase(1 / 3)).toBeCloseTo(-1);
+    const s = new Shake(() => 0.25);
+    s.add(0, 4, 90, { x: 0, y: 2 });
+    expect(s.sample(0)).toEqual({ x: 0, y: 4 });
+    const mid = s.sample(30);
+    expect(mid.x).toBe(0);
+    expect(mid.y).toBeLessThan(0);
   });
 });

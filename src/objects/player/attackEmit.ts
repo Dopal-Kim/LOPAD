@@ -54,6 +54,7 @@ export function emitPlayerAttack(
     activeMs: combo ? Math.max(combo.hit.activeMs, p.poses.activeWindowMs(sheet)) : undefined,
     durationMs: combo?.durationMs,
     bodyAction: action,
+    bodyFrameStartsMs: [...visual.lastFrameStarts],
   };
   // 49라운드 과열: 가열 단계 (이펙트 강화)
   const res = p.gear.resource;

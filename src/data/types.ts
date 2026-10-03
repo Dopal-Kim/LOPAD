@@ -639,6 +639,15 @@ export interface WeaponDashSlashDef {
   fxSpawnAtMs: number;
 }
 
+/** 55라운드 무기별 타격감: 히트스톱(막타·치명타는 FEEL.HITSTOP.HEAVY_MULT 배) · 칼끝 리본 텍스처 · 모든 적중에 흔들림(대검) */
+export interface WeaponFeelDef {
+  hitstopMs: number;
+  /** `fx/v3/<이름>` 리본 텍스처 (없으면 리본 없음 — 활) */
+  ribbon?: string;
+  /** Q8: 흔들림은 막타·치명타만, 이 무기는 모든 적중에 (대검) */
+  shakeEveryHit?: boolean;
+}
+
 export interface WeaponDef {
   name: string;
   kind: 'melee' | 'ranged';
@@ -655,6 +664,8 @@ export interface WeaponDef {
   critBonus: number;
   /** 공격 판정 중 이동 속도 배율. 둔중함 축 */
   attackSlowMult: number;
+  /** 55라운드 Q6·Q7·Q8 타격감 (없으면 Constants 기본값) */
+  feel?: WeaponFeelDef;
   hitbox: AttackHitbox;
   /** 48라운드: 근접 3연격 (없으면 기존 단일 공격 + cooldownMs) */
   combo?: ComboDef;

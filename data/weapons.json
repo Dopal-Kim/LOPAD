@@ -38,6 +38,7 @@
       "damageMult": 1.0,
       "critBonus": 5,
       "attackSlowMult": 0.7,
+      "feel": { "hitstopMs": 45, "ribbon": "ribbon_ash_thin", "shakeEveryHit": false },
       "hitbox": {
         "width": 36,
         "height": 24,
@@ -226,6 +227,7 @@
       "damageMult": 2.2,
       "critBonus": 0,
       "attackSlowMult": 0.25,
+      "feel": { "hitstopMs": 80, "ribbon": "ribbon_ash", "shakeEveryHit": true },
       "hitbox": {
         "width": 54,
         "height": 42,
@@ -387,6 +389,7 @@
       "damageMult": 0.6,
       "critBonus": 20,
       "attackSlowMult": 1.0,
+      "feel": { "hitstopMs": 30, "ribbon": "ribbon_ash_thin", "shakeEveryHit": false },
       "hitbox": {
         "width": 24,
         "height": 18,
@@ -540,6 +543,7 @@
       "damageMult": 1.1,
       "critBonus": 10,
       "attackSlowMult": 0.6,
+      "feel": { "hitstopMs": 25, "shakeEveryHit": false },
       "hitbox": {
         "width": 6,
         "height": 6,

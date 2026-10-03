@@ -263,7 +263,7 @@ npm run build
 - **시트 필드** `src/systems/spriteDefs.ts` `SheetJson`: `trail{color,alpha,ms,fromFrame,widthRatio}` · `flash{color,alpha,ms,atFrame}` · `shake{px,ms}` · `secondStage{frame,atMs,flash,shake}` · `hitFrames` · `stateFrames` · `tint{when,color,method}` · `alias` · `spawnNote` · `scale: number | string` 등. 순수 함수 `sheetScale`(문자열 → 1) · `fxImpactFrame`(`impactFrame` 우선, `spawn: attack_frame2` 면 1 = f0 예비) · `hitFrameOffsets(def, hits)` · `progressFrame(p, frames, divisor)`. 크기·피벗·프레임 수·ms 는 JSON 에서 자동(코드 수정 없음).
 - **색 해석** `palette.resolveFxColor(palette, ref)`: `#rrggbb`(A 묶음) · `fx.weapons.<무기>.ramp[i]` · `fx.core[i]`(B 묶음) → 정수, 모르면 null. `data/palette.json` fx 블록(대검 W2 `#d8441c`).
 - **FxPool** `src/systems/fx.ts`: §3.2 훅 — `flash` 는 atFrame 시작, `shake` 는 섬광 프레임(없으면 타격 프레임), `secondStage` 는 그 프레임에서 한 번 더, `trail` 은 fromFrame 부터(`opts.trailSource` 궤적, 없으면 스프라이트 위치 — player_pivot 이면 몸 중심). 예약 이벤트는 **이펙트 재생 경과**(update 사이 시간, 히트스톱 중 정지)로 잰다(`schedule`). `leadMs(id)` = 타격 프레임 시작 ms, `sheet(id)`, `framesOf(id)`, 옵션 `tintFill`(setTintFill) · `staticFrame`/`setFrame`(진행도) · `followOffset` · `hooks: false`(보스가 crush 를 빌릴 때) · `stop(h, holdMs, fade)`.
-- **잔상 리본** `src/systems/trail.ts` `TrailRenderer`(Graphics 하나 = 리본 하나, 16ms 샘플 정수 폴리라인, 두께 최신 → 1px, 색 코어 → 층 강조 → 몸통, 히트스톱 시 샘플 시각 이동) + `trailMath.ts`(`segmentStyle`·`arcPoint`·`flashAlphaAt`, 테스트). JSON `trail` 이 있는 휘두름 시트는 플레이어 중심 호를 훑는 궤적으로, 발도술·허보는 플레이어 몸 중심으로. 시트 trail 이 없거나 시트가 없으면 기본 호 리본(`FEEL.TRAIL.SLASH`). 화살·일반 대쉬 리본 없음(fx-design §6.1). `feelSettings.trail`.
+- (55라운드에 칼끝 잔상 리본 `ribbon.ts` 로 대체·삭제) **잔상 리본** `src/systems/trail.ts` `TrailRenderer`(Graphics 하나 = 리본 하나, 16ms 샘플 정수 폴리라인, 두께 최신 → 1px, 색 코어 → 층 강조 → 몸통, 히트스톱 시 샘플 시각 이동) + `trailMath.ts`(`segmentStyle`·`arcPoint`·`flashAlphaAt`, 테스트). JSON `trail` 이 있는 휘두름 시트는 플레이어 중심 호를 훑는 궤적으로, 발도술·허보는 플레이어 몸 중심으로. 시트 trail 이 없거나 시트가 없으면 기본 호 리본(`FEEL.TRAIL.SLASH`). 화살·일반 대쉬 리본 없음(fx-design §6.1). `feelSettings.trail`.
 - **화면 섬광** `src/systems/screenFx.ts` `ScreenFx`: 월드 최상(`DEPTH.SCREEN_FX` 50, scrollFactor 0) 사각형 하나, 큰 알파 유지(합산 없음), update 로 선형 감쇠. 보스 페이즈(X0 0.35/120ms + 채도 감소), 진화 선택(층 light1), 사망 암전. 채도 감소는 WebGL 카메라 `postFX.addColorMatrix()` 를 **필요할 때만** 붙였다 뗀다(캔버스는 SATURATION 회색 사각형). 치명 섬광·히트스톱 채도 감소는 상수 0(꺼짐). `feelSettings.flash`.
 - **연결(Game)**: 휘두름 `pathFx('wide','iai','dance','twin') ?? <무기>_slash` 를 `swingDelayMs − leadMs` 에 재생 · 쌍격·난무 추가 타격 간격 = `hitFrameOffsets`(`FEEL.SYNC_HIT_FRAMES`) · 잔월 `zangetsu` 루프(틱 동기) · 지진 `quake`(1단에서 1회, secondStage) · 분쇄 `pulverize` · 철벽 `ironwall` + `guard_wave` · 거인 `giant`(공격 동안 루프) · 허보 `longinvuln`/발도술 `batto`(따라감, 리본) · 급소 `dashcrit`/암살 `assassin`(대상 히트박스 중심, crit_burst 대신) · 출혈 `bleed`(적에 붙어 루프, 틱과 위상 맞춤) · 잔상 `afterimage`(출발점) · 섬광 `flash`/추적 `seek`/관통 `pierce` 화살 꼬리 · 폭우 `rain`/산탄 `scatter` 발사점 · 중시 `heavyarrow` 화살 + `heavyarrow_hit`(적중) · `parry_flash`(접점 + 히트스톱 60ms) · `shadowstep_ghost` · `aim_charge`(진행도 `min(5, floor(p×5))`) + `aim_line`(`stateFrames` 차지 f0/완료 f1, `src/systems/aimFx.ts`) · `dash_dust` · `dash_trail`(45ms 간격, 발도술·허보·잔상 노드면 무기 W1 setTintFill) · `hit_spark` → `alias` `hit_burst`.
 - **굵은 예고** `src/systems/telegraph.ts`: 선 시트(16×16, 4px) TileSprite + **화살촉**(층 램프 22/18 삼각형) · 원/부채꼴 **진행도 6프레임**(scale R/22·R/27, `progressDriven` 없는 옛 시트는 루프 애니) · **수렴 오라** `telegraph_aura`(`TelegraphOptions.aura` — 결사병 돌진·보스 돌진·부채꼴·정렬 사격, 공격자 중심 추적) · 마감 직전 160ms 깜빡임 3배 · 플레이스홀더(4px 점선·원 + 닫히는 안쪽 원·오라 원). `setFloor(floor)` 로 층 램프.
@@ -879,3 +879,31 @@ bosses.json stage1 의 새 수치 전부 · phaseDrink 무적 · 보스 불이 �
 
 ### 임시값
 onFire 전부(lingerMs 1000 · 발밑 0.5×6px · 접촉 10/500ms · 여유 3px) · 잔 아래 여유 바디 높이 × 0.5 · 술통 radiusFromArt 1 · 임시 불 그림(fire_pool, 발 위 10px, 배율 1, 국면 260/420ms) · 임시 불빛(#e8b858 r57 0.85).
+
+## 55라운드: 무기 이펙트 전면 디벨롭 — 타이밍 교정·타격감·갈래 단계 (2026-10-03)
+결정: `decisions/2026-10-03-round-55-weapon-fx-overhaul.md` Q1~Q17, 계약 `art-assets.md` §10(2단 갈래 갱신)·§13·§16. 아트 4092e33(작업 B: 적중 스파크·입자·리본·움직임 7종) + a70506d(작업 A: 1단 갈래 재작성·2단 전용 시트 50장). 아트 JSON 은 읽기만(승인 대장 #8).
+
+### 타이밍 교정 (Q14)
+- **판정 프레임 정렬**: 휘두름 이펙트를 `몸 판정 프레임 시작(실제 재생 swingDelayMs) − 이펙트 정지 프레임까지의 ms` 에 띄운다(`spriteDefs.swingFxDelayMs`·`fxHoldFrame` = holdFrame → impactFrame). 대검 `fxSpawnAtMs × 선형 배속`(구간별 몸 재생과 어긋나 ~128ms 앞섬)을 버렸다 — 대쉬 공격 재사용도 같은 규칙.
+- **히트스톱 정지 프레임**: `FxPlayOptions.hitstopFrame` — 히트스톱이 걸릴 때 이펙트가 아직 그 프레임 앞이면 그 프레임으로 건너뛰어 멈추고(예약 섬광·흔들림도 그때), 끝나면 그 프레임을 처음부터. 연격 = 판정 백열, 적중 스파크 = holdFrame.
+- **히트스톱 동안 시계 정지**: `Game.setHitStopped` 가 씬 시계(`time.paused` — 지연 판정·추가 타·리본 시작)와 플레이 시계(`feel.PauseClock`, `g.playNow()` — 리본·칼끝·입자)를 멈춘다. 지연 효과음(휘두름 소리)은 `audio.setDelayScheduler` 로 씬 시계에 예약돼 함께 멈춘다.
+- **기본 흰 리본 제거 → 칼끝 리본(Q7)**: `systems/ribbon.ts`(RibbonRenderer, Phaser Rope + `fx/v3/ribbon_ash[_thin]` 가로 늘임, 반투명 없음, 나이 프레임 4단계 100ms) + `ribbonMath.ts`. 칼끝 = 무기 v3 `bladeTipAnchors`(열별, 판정 원점 둘레 극좌표 보간 — `bladeTipMath.ts`, `scenes/game/bladeTip.ts`), 없으면(칼 v3) 판정 호 위(`trailFill.bladeTipRadiusDots` 반경). 판정 첫 프레임 1프레임 전 ~ 판정 끝 1프레임 뒤, 프레임 사이도 4ms 간격 보간. 깊이 = 연격 시트 아래. 시트 JSON `trail`(발도 대쉬 등)도 같은 리본으로 그린다. 텍스처는 `weapons.json feel.ribbon`(칼·단검 thin 2도트, 대검 3도트, 활 없음).
+
+### 적중 반응 (Q6·Q8·Q10·Q11)
+- 히트스톱 무기별 `weapons.json feel.hitstopMs`(단검 30·칼 45·대검 80·활 25) × 막타·치명 `FEEL.HITSTOP.HEAVY_MULT` 1.8. 동시 다수 적중은 HitStop 간격 규칙으로 한 번. 보스 최소 60ms 규칙은 무기별 값으로 대체.
+- 막타 = 연격 마지막 타 · 대쉬 공격(활은 대쉬 공격 화살) · 치명타 (`hitFeel.isHeavyStrike`). 스파크 `hit_<무기>`/`hit_<무기>_heavy`(없으면 hit_burst), 피벗 = 적중점, 회전 = 근접은 공격자(몸 중심) → 적 중심, 활은 화살 진행, flipY 허용 시 왼쪽이면 바로 세움·되돌아 휘두름(판정 호가 반대로 훑는 타, `hitFeel.isBackswing` — 홀짝 규칙 아님: 칼·대검 연격 재설계로 타별 판정 모양이 데이터로 바뀌어도 그대로 따른다) 반전. 치명타는 막타 시트(crit_burst 대신), 2차 전용 치명(dashcrit·assassin)은 그 위에.
+- 재 파편 `systems/ashParticles.ts`(이미지 풀 160) + `ashParticleMath.ts`: `particles_ash` kinds·recipes, 길이(속도·중력·흔들림)는 도트 → pixelScale 환산, 그리는 위치는 도트 격자. 같은 프레임 두 번째 적중부터 개수 × 0.5. 플레이 시계(히트스톱 동안 굳음).
+- 흔들림 = 막타·치명·대검(`feel.shakeEveryHit`)만, 값 = 적중 시트 `shakeHint` → `FEEL.SHAKE.HEAVY_HIT`(3px/90ms), 방향 = 타격 방향으로 밀렸다 튕기는 감쇠 진동(`Shake.add(..., dir)`, `SHAKE_DIR.CYCLES` 1.5). 흰 점멸 유지(히트스톱 동안 유지됨).
+
+### 갈래 (Q15·Q16·Q17)
+- 그림 배율 = 판정 배율(`hitbox.reach / def.hitbox.reach` — 갈래 hitboxMult·강화) × 가열 배율. 판정 원점(발 위 10)이 그대로 있게 내려 붙인다.
+- 2단: `systems/fxTier.ts` — 1단 JSON `secondarySheets`/`secondaryVariants[id].sheet`(→ 이름 규칙 `<1단>_<2단>`) 시트가 로드돼 있으면 그 시트 + JSON `runtime`(+ heatVariants), 없으면 1단 + colorSwap 대체, 갈래 시트가 없으면 기본. 로드 목록 `tier2FxSheetIds`. 활: 2단 화살 JSON `tailSheets` 가 2단 꼬리, 2단 시트가 있으면 구 `fx/pierce` 겹침 없음(Q17). 휘두름 고르기 전체는 `systems/swingSelect.ts`(순수, 테스트).
+
+### 움직임 fx (Q12·Q13)
+- 7종 모두 FxPool 이 JSON `frameDurationsMs` 를 그대로 읽는다(계약 점검 테스트 `fxContract55.test.ts`). ironwall `depthByDirection {"up":"below"}` → 그 방향이면 주인공 뒤(라이트맵 아래 깊이). 대쉬 잔상 노드 틴트 끔(`DASH_TRAIL_TINT` false — 따뜻한 재 그대로).
+- 배포 누락 2종: `fx/v3/flash`·`heavyarrow` 는 옛 활 갈래 노드 id 라 현재 트리에서 쓰이지 않는다(로드 목록에도 없음) — 무시.
+
+### 정리 (6-1)
+- `fx.ts` 옵션·훅 형식 → `fxTypes.ts`(511 → 433줄). SwingFx 는 고르기·타이밍·칼끝을 순수 모듈로 빼 177 → 158줄. `trail.ts` 삭제, `trailMath.ts` 는 섬광 감쇠만.
+- 디버그: `__lopad.combo().swingFx`(시트·단계·배율·띄운 시각·리본 방식), `trails()` = 리본 요약, `feel().hitFx`(lastSpark·particles).
+

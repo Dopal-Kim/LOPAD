@@ -116,6 +116,8 @@ export const AUDIO = {
 
 /** 스프라이트 연출 값 (29라운드 임시값) */
 export const SPRITES = {
+  /** 55라운드: fps·frameDurationsMs 가 없는 정지 시트(입자·리본)의 애니 등록용 fps (재생하지 않음) */
+  STATIC_SHEET_FPS: 10,
   /** 발밑 타원 그림자 */
   /** 53라운드 Q22~25: 바닥이 밝아진 만큼 발밑 대비를 올림 (0.35 → 0.5, 임시) */
   SHADOW_ALPHA: 0.5,
@@ -538,6 +540,13 @@ export const FEEL = {
     PLAYER_HURT_MS: 90,
     /** 연속 적중 중첩 금지: 마지막 시작 뒤 이 시간 안의 요청은 무시 */
     MIN_GAP_MS: 80,
+    /**
+     * 55라운드 Q6: 무기 적중 히트스톱 = data/weapons.json `feel.hitstopMs`(단검 30·칼 45·대검 80·활 25) ×
+     * 막타(연격 마지막 타·대쉬 공격)·치명타 배율. 동시 다수 적중은 한 번만 (MIN_GAP_MS)
+     */
+    HEAVY_MULT: 1.8,
+    /** 무기 데이터에 feel.hitstopMs 가 없을 때 */
+    WEAPON_FALLBACK_MS: 40,
   },
   /** 화면 흔들림: 진폭 px(정수 반올림, 선형 감쇠) · 지속 ms. 스크롤 반올림 뒤에 더한다 */
   SHAKE: {
@@ -546,7 +555,11 @@ export const FEEL = {
     PLAYER_HURT: { PX: 5, MS: 140 },
     BOSS_WALL: { PX: 6, MS: 160 },
     SHOCKWAVE: { PX: 4, MS: 100 },
+    /** 55라운드 Q8: 막타·대검·치명타 적중 흔들림 — 적중 시트 JSON `shakeHint` 가 없을 때 (임시) */
+    HEAVY_HIT: { PX: 3, MS: 90 },
   },
+  /** 55라운드 Q8 방향성 흔들림: 타격 방향으로 밀렸다가 반대로 튕기는 진동 횟수 (임시) */
+  SHAKE_DIR: { CYCLES: 1.5 },
   /** 넉백: 공격 방향으로 거리 px, 선형 감쇠 ms (벽은 Arcade 충돌이 막는다) */
   KNOCKBACK: {
     HIT_PX: 6,
@@ -602,6 +615,11 @@ export const FEEL = {
     CRIT: 'crit_burst',
     DUST: 'knock_dust',
     PLAYER_HIT: 'player_hit',
+    /** 55라운드 Q8·Q10 (계약 §16): 무기별 적중 스파크 `hit_<무기>` · 막타 `hit_<무기>_heavy` (없으면 hit_burst) */
+    WEAPON_HIT_PREFIX: 'hit_',
+    WEAPON_HIT_HEAVY_SUFFIX: '_heavy',
+    /** 재 파편 입자 묶음 (kinds·recipes) */
+    PARTICLES: 'particles_ash',
   },
   /**
    * 43라운드 B: 연타 시트(twin·dance) `hitFrames` 가 있으면 추가 타격 판정 간격을 그 프레임 시작 시각에 맞춘다
@@ -611,30 +629,38 @@ export const FEEL = {
   /** 피 시트 마지막 프레임(바닥 얼룩) 유지 시간 (아트 권장 300~800ms) 후 페이드 */
   BLOOD_STAIN_MS: 500,
   /**
-   * 잔상 궤적 리본 (42라운드 Q3, fx-design §6.1). 시트 JSON `trail` 이 있으면 색·알파·수명·시작 프레임·폭 비율을 거기서 읽고,
-   * 아래는 JSON 이 없을 때(플레이스홀더 베기)의 임시값. 정수 픽셀 폴리라인, 두께 최신 → WIDTH_TO,
-   * 색 = 코어(백열) → 층 강조색 → 몸통(무기 W1) → 투명. `feelSettings.trail` 로 끔
+   * 55라운드 Q7·Q14 ④ 칼끝 잔상 리본 (계약 §16 `fx/v3/ribbon_ash`·`ribbon_ash_thin`): 칼끝(무기 v3 bladeTipAnchors) 궤적을
+   * 텍스처 띠로 잇는다. 가는 호박 선 → LIFE_MS 안에 재색으로 식으며 소멸, 반투명 없음, 도트 궤적(연격 시트) 아래 깊이.
+   * 시간은 플레이 시계(히트스톱 동안 멈춤). `feelSettings.trail` 로 끔
    */
-  TRAIL: {
-    SLASH: { SAMPLES: 6, LIFE_MS: 120 },
-    WIDTH_FROM: 3,
-    WIDTH_TO: 1,
-    /** 본 띠 두께 px (아트 B 표: 단검 호 3.6px → 4). 시트 리본 폭 = round(BAND_PX × widthRatio) */
-    BAND_PX: 4,
-    /** JSON trail.widthRatio 가 없을 때 (A 묶음 note "폭 = 본 띠 두께의 0.6") */
-    WIDTH_RATIO: 0.6,
-    /** 코어 색 (팔레트 fx.core[0] = G15). 팔레트에 fx 블록이 없으면 이 값 */
-    CORE_COLOR: 0xffffff,
-    /** 강조색 = 층 램프 index (7 = light1) */
-    ACCENT_RAMP_INDEX: 7,
-    /** JSON 색이 없을 때 몸통 = 팔레트 fx.weapons[무기].ramp index (1 = W1, fx-design §6.1) */
-    WEAPON_RAMP_INDEX: 1,
-    /** 베기 호: 반각(rad)·반지름 = reach × sizeMult × 배율, 휘두르는 시간 */
-    SLASH_HALF_ANGLE: 0.75,
-    SLASH_RADIUS_MULT: 1.0,
-    SLASH_SWEEP_MS: 120,
-    /** 샘플 최소 간격 ms (프레임이 빨라도 이보다 촘촘히 찍지 않음) */
-    SAMPLE_MS: 16,
+  RIBBON: {
+    /** 리본 수명 (Q7: 100ms 안에 식으며 소멸) */
+    LIFE_MS: 100,
+    /** 기본 텍스처 (3도트) · 가는 텍스처 (2도트). 무기별은 data/weapons.json feel.ribbon */
+    SHEET: 'ribbon_ash',
+    THIN_SHEET: 'ribbon_ash_thin',
+    /** 칼끝 위치를 찍는 간격 (플레이 시계 ms — 프레임 사이도 보간해서 찍는다) */
+    SAMPLE_MS: 4,
+    /** 리본에 남기는 최대 점 수 */
+    MAX_POINTS: 40,
+    /** 판정 첫 프레임 몇 프레임 전부터 · 판정 끝 몇 프레임 뒤까지 칼끝을 찍는다 (임시) */
+    LEAD_FRAMES: 1,
+    TAIL_FRAMES: 1,
+    /** 칼끝 메모가 없는 무기(칼 v3 등): 판정 호 반경 × 이 비율 위를 훑는다 (아트 trailFill.bladeTipRadiusDots 가 있으면 그것) */
+    FALLBACK_RADIUS_RATIO: 0.65,
+    /** 텍스처가 없을 때(캔버스 렌더러 등) 선 색: 머리 호박 A25 · 꼬리 재 S2 */
+    FALLBACK_HEAD: 0xeecc78,
+    FALLBACK_TAIL: 0x756c62,
+  },
+  /**
+   * 55라운드 Q8 재 파편 입자 (계약 §16 `fx/v3/particles_ash` kinds·recipes). 속도·중력·흔들림 길이는 시트 도트 단위 → pixelScale 환산.
+   * 위치는 도트 격자에 맞춘다. 동시 다수 적중이면 적마다 MULTI_HIT_FACTOR 배 (아트 제안 절반)
+   */
+  PARTICLES: {
+    POOL: 160,
+    MULTI_HIT_FACTOR: 0.5,
+    /** 한 프레임 dt 상한 ms (탭 전환 뒤 튐 방지) */
+    MAX_STEP_MS: 50,
   },
   /**
    * 화면 섬광·색 오버레이 (42라운드 Q3 임시값). 카메라 위 풀스크린 사각형(scrollFactor 0). 채도 감소는 WebGL 이면 camera.postFX
@@ -674,6 +700,8 @@ export const FEEL = {
     DASH_TRAIL_RAMP_INDEX: 1,
     /** dash_trail 을 틴트하는 개성 노드 (JSON tint.when: 발도술·허보·잔상). 경로에 하나라도 있으면 */
     DASH_TRAIL_TINT_NODES: ['batto', 'longinvuln', 'afterimage'] as readonly string[],
+    /** 55라운드 Q13: v3 대쉬 잔상은 따뜻한 재 그대로 — 노드 틴트(평면 채움)를 끈다 */
+    DASH_TRAIL_TINT: false,
   },
 };
 
@@ -869,9 +897,8 @@ export const LAB = {
 
 /** 49라운드 무기 동작 연출 (임시값) */
 export const WEAPON_FX = {
-  /** 단검 과열: 가열 단계 시트가 없을 때 연격 이펙트 배율 = 1 + 단계 × 값 · 잔상 리본 폭 = 기본 × (1 + 단계 × 값) */
+  /** 단검 과열: 가열 단계 시트가 없을 때 연격 이펙트 배율 = 1 + 단계 × 값 */
   HEAT_SCALE_PER_STAGE: 0.12,
-  HEAT_TRAIL_PER_STAGE: 0.35,
 } as const;
 
 /**

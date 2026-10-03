@@ -31,8 +31,9 @@ import type { SetPieceView } from '../world/SetPieceView';
 import type { NodeArenaPlan } from '../systems/routeArena';
 import { TutorialDirector } from '../systems/tutorialDirector';
 import type { FxPool } from '../systems/fx';
-import { HitStop, Shake } from '../systems/feel';
-import type { TrailRenderer } from '../systems/trail';
+import { HitStop, PauseClock, Shake } from '../systems/feel';
+import type { RibbonRenderer } from '../systems/ribbon';
+import type { AshParticles } from '../systems/ashParticles';
 import type { ScreenFx } from '../systems/screenFx';
 import type { AimLine } from '../systems/aimFx';
 import type { DamageNumberPool } from '../systems/damageNumbers';
@@ -105,12 +106,16 @@ export class Game extends Phaser.Scene {
   numbers: DamageNumberPool;
   hitFx: HitFx;
   telegraph: TelegraphFx;
-  trails: TrailRenderer;
+  /** 55라운드 Q7 칼끝 잔상 리본 (42라운드 흰 리본 대체) · Q8 재 파편 입자 */
+  ribbons: RibbonRenderer;
+  ash: AshParticles;
   screenFx: ScreenFx;
   aimLine: AimLine;
   /** 50라운드 동적 조명 + 어둠 (지역 조명이 없으면 꺼진 채) */
   lighting: Lighting;
   readonly hitStop = new HitStop();
+  /** 55라운드 Q14 ②: 히트스톱 동안 멈추는 플레이 시계 (리본·칼끝·입자) */
+  readonly playClock = new PauseClock();
   readonly shake = new Shake();
   /** 적 집단 돌격 공유 상태 */
   readonly pack = new PackCharge();
@@ -168,6 +173,8 @@ export class Game extends Phaser.Scene {
     this.labMode = this.lab ? new LabMode(this, this.initData) : null;
     this.frozen = false;
     this.hitStopped = false;
+    this.time.paused = false;
+    this.playClock.reset();
 
     // 49라운드: 무기 시험장은 런·세이브와 무관한 연습 런으로 시작한다
     const floorStart = this.labMode
@@ -188,6 +195,8 @@ export class Game extends Phaser.Scene {
 
     this.createActors();
     createFx(this, floor);
+    // 55라운드 Q14 ②: 지연 효과음(휘두름 소리)도 씬 시계로 — 히트스톱 동안 함께 멈춘다
+    audio.setDelayScheduler((ms, fire) => this.time.delayedCall(ms, fire));
     this.menu = new TextMenu(this);
     this.wirePhysics();
 
@@ -413,6 +422,11 @@ export class Game extends Phaser.Scene {
       .setDepth(DEPTH.DEBUG);
   }
 
+  /** 플레이 시계 ms (히트스톱 동안 멈춘 시간을 뺀 씬 시계) */
+  playNow(): number {
+    return this.playClock.now(this.time.now);
+  }
+
   // --- 매 프레임 ---
 
   update(time: number, delta: number): void {
@@ -422,6 +436,7 @@ export class Game extends Phaser.Scene {
     if (this.birth.active) {
       this.birth.update(time);
       this.fx.update(time);
+      this.ash.update(this.playNow());
       this.screenFx.update(time);
       this.ui.emitState();
       return;
@@ -433,7 +448,8 @@ export class Game extends Phaser.Scene {
       this.inputSystem.read(); // 큐 비우기
       this.motion.stopLoops();
       this.fx.update(time);
-      this.trails.update(time);
+      this.ribbons.update();
+      this.ash.update(this.playNow());
       this.screenFx.update(time);
       this.ui.emitState();
       return;
@@ -500,7 +516,8 @@ export class Game extends Phaser.Scene {
     this.bossArena?.tickShots(this.playerShots.getChildren() as Projectile[]);
     this.strikes.update(time, delta);
     this.fx.update(time);
-    this.trails.update(time);
+    this.ribbons.update();
+    this.ash.update(this.playNow());
     this.screenFx.update(time);
   }
 
@@ -533,15 +550,19 @@ export class Game extends Phaser.Scene {
     this.syncPhysicsPause();
   }
 
-  /** 히트스톱 시작·끝: 물리 정지(frozen 과 합산), 플레이어·적·이펙트 애니 정지 */
+  /**
+   * 히트스톱 시작·끝: 물리 정지(frozen 과 합산), 플레이어·적·이펙트 애니 정지.
+   * 55라운드 Q14 ②: 씬 시계의 예약 호출(판정·추가 타·효과음·리본 시작)과 플레이 시계도 멈춘다 — 끝나면 멈춘 만큼 미뤄져 이어진다
+   */
   private setHitStopped(on: boolean): void {
     this.hitStopped = on;
+    this.time.paused = on;
+    this.playClock.setPaused(on, this.time.now);
     this.syncPhysicsPause();
     this.player.setAnimPaused(on);
     for (const m of this.mobs.getChildren() as Mob[]) m.setAnimPaused(on);
     this.fx.setPaused(on);
     this.telegraph.setPaused(on);
-    this.trails.setPaused(on);
     this.screenFx.setHitStopped(on);
     for (const p of this.projectiles.getChildren() as Projectile[]) if (p.active) p.setAnimPaused(on);
   }
@@ -561,7 +582,10 @@ export class Game extends Phaser.Scene {
     if ((this.frozen || this.hitStopped) && this.physics.world) this.physics.world.resume();
     this.numbers.destroy();
     this.telegraph.destroy();
-    this.trails.destroy();
+    this.ribbons.destroy();
+    this.ash.destroy();
+    this.time.paused = false;
+    audio.setDelayScheduler(null);
     this.screenFx.destroy();
     this.aimLine.destroy();
     this.structures.destroy();

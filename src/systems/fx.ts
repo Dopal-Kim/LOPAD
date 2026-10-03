@@ -8,10 +8,12 @@
  * 위임한다 — 크기·프레임 수·시간은 전부 JSON 에서 읽는다. 시각 이벤트는 이펙트 자체의 재생 시간(히트스톱 동안 멈춤)으로 잰다.
  * 53라운드 Q64: 이펙트는 조명(라이트맵) **위**에 그린다 — 깊이를 `fxLitDepth` 로 라이트맵 위 띠에 옮긴다(이펙트끼리 순서는 유지).
  * 53라운드 계약 §10: `variant`(2단 갈래·가열 변주) = 색 교체 텍스처 + flash·shake·trail·마지막 프레임 유지 덮어쓰기.
+ * 재생 옵션·훅 형식은 `fxTypes`(55라운드 6-1 분리).
+ * 55라운드 Q14 ①: `hitstopFrame` 을 주면 히트스톱이 걸릴 때 그 프레임(판정 백열·적중 holdFrame)에 멈춘다 — 아직 그 앞이면
+ * 그 프레임으로 건너뛰어 멈추고, 끝나면 그 프레임을 처음부터 이어 재생한다.
  */
 import Phaser from 'phaser';
 import { PROTOTYPE, fxLitDepth } from '../core/Constants';
-import type { FxVariant } from './fxVariants';
 import { spriteLibrary } from './sprites';
 import { lightFor, lightRegistryOf, type LightSource } from './lighting/lightRegistry';
 import {
@@ -26,84 +28,11 @@ import {
   type Facing,
   type FxFlashSpec,
   type FxShakeSpec,
-  type FxTrailSpec,
   type SheetJson,
 } from './spriteDefs';
+import type { FxFollowTarget, FxHandle, FxHooks, FxPlayOptions } from './fxTypes';
 
-/** 따라갈 대상 (플레이어·투사체·적). 비활성화되면 이펙트도 멈춘다 */
-export interface FxFollowTarget {
-  x: number;
-  y: number;
-  active: boolean;
-  depth: number;
-  rotation: number;
-}
-
-export interface FxPlayOptions {
-  /** 4방향 시트의 행. `directions: ["any"]` 시트는 무시된다 */
-  dir?: Facing;
-  /** 투사체 앵커(`rotate: true`): 진행 각도(rad). 우향으로 그려졌으므로 그대로 회전 */
-  angle?: number;
-  /** 절대 깊이. follow 가 있고 depthOffset 이 있으면 대상 깊이 + 오프셋을 매 프레임 쓴다 */
-  depth?: number;
-  depthOffset?: number;
-  follow?: FxFollowTarget;
-  /** follow 대상 기준 오프셋 (몸 중심 등) */
-  followOffset?: { x: number; y: number };
-  /** follow 대상의 회전을 따른다 (관통 빛줄) */
-  followRotation?: boolean;
-  /** 루프 시트의 재생 시간. 없으면 follow 대상이 사라질 때까지 */
-  durationMs?: number;
-  /** 시트의 마지막 `tailFrames` 프레임만 루프 (잔월: 거합 4~6프레임 반복) */
-  tailFrames?: number;
-  /** 일회성 재생이 끝난 뒤 마지막 프레임을 이 시간만큼 유지하고 페이드 (피 바닥 얼룩) */
-  holdLastMs?: number;
-  /** 애니 대신 고정 프레임 (진행도 주도 aim_charge). `setFrame` 으로 바꾸고 `stop` 으로 끝낸다 */
-  staticFrame?: number;
-  /** 틴트 (dash_trail 무기 보조색). 없으면 원색 */
-  tint?: number;
-  /** true 면 `setTintFill`(평면 틴트 — 어두운 무채 시트용, JSON tint.method), 아니면 곱셈 `setTint` */
-  tintFill?: boolean;
-  /** JSON `trail` 이 따라갈 궤적 (베기 호 등). 없으면 스프라이트 위치(앵커가 player_pivot 이면 몸 중심) */
-  trailSource?: () => { x: number; y: number } | null;
-  /** false 면 JSON flash·shake·trail 훅을 쓰지 않는다 (달리기·워프 먼지처럼 반복·보조 재생) */
-  hooks?: boolean;
-  /**
-   * true 면 깊이를 라이트맵 위 띠로 옮기지 않는다 (54라운드 Q26 불 웅덩이: `entityDepth(발 y)` 로 개체와 앞뒤 정렬).
-   * 그림은 어둠에 잠기므로 밝기는 시트 광원(라이트맵)이 낸다
-   */
-  belowLighting?: boolean;
-  /** 시트 배율에 곱하는 배율 (45라운드 달리기 먼지: dash_dust 를 작게). 기본 1 */
-  scaleMult?: number;
-  /** 시작 알파 (기본 1) */
-  alpha?: number;
-  /** 53라운드 계약 §10: 2단 갈래·가열 변주 (`resolveFxVariant`). 색 교체 텍스처·훅 덮어쓰기 */
-  variant?: FxVariant | null;
-}
-
-export interface FxHandle {
-  readonly sprite: Phaser.GameObjects.Sprite;
-  readonly token: number;
-}
-
-/** 리본 트레일 요청 (훅 인자) */
-export interface FxTrailRequest {
-  spec: FxTrailSpec;
-  /** 위치 공급. null 이면 끝 */
-  source: () => { x: number; y: number } | null;
-  /** 이펙트 스프라이트 깊이 (리본은 바로 아래) */
-  depth: number;
-}
-
-/** §3.2 필드를 바깥 시스템으로 넘기는 훅 (Game 이 등록) */
-export interface FxHooks {
-  shake?: (spec: FxShakeSpec) => void;
-  flash?: (spec: FxFlashSpec) => void;
-  /** 리본 트레일 시작. 반환: 샘플링 끝내기 */
-  trail?: (req: FxTrailRequest) => (() => void) | null;
-  /** 몸 중심 = 발 피벗에서 위로 px (player_pivot 앵커 트레일 기본 궤적) */
-  bodyCenterUpPx?: number;
-}
+export type { FxFollowTarget, FxHandle, FxHooks, FxPlayOptions, FxTrailRequest } from './fxTypes';
 
 /** 이펙트 재생 시간 기준 예약 이벤트 (atMs = 재생 시작부터) */
 interface FxTimed {
@@ -127,6 +56,10 @@ interface FxState {
   timed: FxTimed[];
   /** 50라운드: 이 이펙트의 광원 (시트 JSON light · fallback · 무기 이펙트 순간광) */
   light?: LightSource;
+  /** 55라운드: 히트스톱 정지 프레임 열 · 그 프레임으로 건너뛰어 멈췄는지 */
+  hitstopFrame?: number;
+  heldAt?: Phaser.Animations.AnimationFrame;
+  def: SheetJson;
 }
 
 export class FxPool {
@@ -196,6 +129,7 @@ export class FxPool {
       .setRotation(def.rotate ? (opts.angle ?? 0) : 0)
       .setAlpha(opts.alpha ?? 1)
       .setScale(scale * (opts.scaleMult ?? 1))
+      .setFlipY(Boolean(opts.flipY))
       .setActive(true)
       .setVisible(true);
     if (opts.tint !== undefined) {
@@ -218,6 +152,8 @@ export class FxPool {
       elapsed: 0,
       lastTick: now,
       timed: [],
+      hitstopFrame: opts.hitstopFrame,
+      def,
     };
     this.states.set(sprite, state);
     // 50라운드 조명: 광원이 있는 이펙트는 재생 동안 주변을 밝힌다 (루프가 아니면 수명 동안 서서히 약해지는 순간광)
@@ -286,7 +222,7 @@ export class FxPool {
       shake(second.shake, frame);
     }
     const trailSpec = v?.trail ?? def.trail;
-    if (trailSpec && h.trail) {
+    if (trailSpec && h.trail && opts.trail !== false) {
       const spec = trailSpec;
       const up = def.anchor === 'player_pivot' ? (h.bodyCenterUpPx ?? 0) : 0;
       const source =
@@ -343,13 +279,7 @@ export class FxPool {
     for (const [sprite, st] of this.states) {
       st.elapsed += Math.max(0, time - st.lastTick);
       st.lastTick = time;
-      if (st.timed.length > 0) {
-        const due = st.timed.filter((e) => e.atMs <= st.elapsed);
-        if (due.length > 0) {
-          st.timed = st.timed.filter((e) => e.atMs > st.elapsed);
-          for (const e of due) e.fire();
-        }
-      }
+      this.fireDue(st);
       if (st.fading) continue;
       const f = st.follow;
       if (f) {
@@ -369,16 +299,56 @@ export class FxPool {
     }
   }
 
-  /** 히트스톱: 활성 이펙트 애니 일시 정지·재개 (따라가기·만료는 update 를 건너뛰는 호출 쪽이 멈춘다) */
+  /** 재생 경과가 지난 예약 이벤트 실행 */
+  private fireDue(st: FxState): void {
+    if (st.timed.length === 0) return;
+    const due = st.timed.filter((e) => e.atMs <= st.elapsed);
+    if (due.length === 0) return;
+    st.timed = st.timed.filter((e) => e.atMs > st.elapsed);
+    for (const e of due) e.fire();
+  }
+
+  /**
+   * 히트스톱: 활성 이펙트 애니 일시 정지·재개 (따라가기·만료는 update 를 건너뛰는 호출 쪽이 멈춘다).
+   * 재생 옵션·훅 형식은 `fxTypes`(55라운드 6-1 분리).
+   * 55라운드 Q14 ①: `hitstopFrame` 이 있고 아직 그 앞이면 그 프레임으로 건너뛰어 멈추고(판정 백열이 보이게), 재개하면 그 프레임부터
+   */
   setPaused(on: boolean): void {
     const now = this.scene.time.now;
     for (const [sprite, st] of this.states) {
-      if (on) sprite.anims.pause();
-      else {
+      if (on) {
+        const jump = this.holdFrameOf(sprite, st);
+        if (jump) {
+          sprite.anims.pause(jump);
+          st.heldAt = jump;
+        } else sprite.anims.pause();
+        // 예약 시계를 보이는 프레임에 맞춘다 (판정 프레임의 섬광·흔들림이 정지 뒤로 밀리지 않게)
+        const col = (sprite.anims.currentFrame?.index ?? 1) - 1;
+        if (st.hitstopFrame !== undefined && sprite.anims.currentAnim) {
+          st.elapsed = Math.max(st.elapsed, frameStarts(st.def)[col] ?? st.elapsed);
+          this.fireDue(st);
+        }
+      } else {
         sprite.anims.resume();
+        if (st.heldAt) {
+          // 건너뛴 프레임을 처음부터 (누적 시간을 비운다)
+          sprite.anims.accumulator = 0;
+          sprite.anims.nextTick = st.heldAt.duration || sprite.anims.msPerFrame;
+          st.heldAt = undefined;
+        }
         st.lastTick = now; // 멈춘 시간은 재생 경과에 넣지 않는다
       }
     }
+  }
+
+  /** 히트스톱에 건너뛸 프레임 (정지 프레임이 아직 오지 않았을 때만) */
+  private holdFrameOf(sprite: Phaser.GameObjects.Sprite, st: FxState): Phaser.Animations.AnimationFrame | null {
+    const hold = st.hitstopFrame;
+    const anim = sprite.anims.currentAnim;
+    const cur = sprite.anims.currentFrame;
+    if (hold === undefined || !anim || !cur || !sprite.anims.isPlaying) return null;
+    const target = anim.frames[hold];
+    return target && cur.index - 1 < hold ? target : null;
   }
 
   /** 활성 이펙트 요약 (디버그) */
@@ -439,7 +409,7 @@ export class FxPool {
     this.states.delete(sprite);
     sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
     sprite.anims.stop();
-    sprite.setActive(false).setVisible(false).setAlpha(1).setRotation(0).setScale(1).clearTint();
+    sprite.setActive(false).setVisible(false).setAlpha(1).setRotation(0).setScale(1).setFlipY(false).clearTint();
   }
 
   /** 마지막 n 프레임만 반복하는 애니 (키 `<애니>#tail<n>`, 텍스처 변형별로 1회 생성) */

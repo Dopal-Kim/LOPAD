@@ -11,6 +11,7 @@ import { UI_EVENTS, __system } from '../../contract/ui';
 import type { Mob, MobContext, ProjectileSpec } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
 import { rollCrit } from '../../systems/economy';
+import { hitShake, shakesOnHit, weaponHitstopMs } from '../../systems/hitFeel';
 import { spriteLibrary } from '../../systems/sprites';
 import { FX_ACTION, fxDrawScale, radiusFitScale } from '../../systems/spriteDefs';
 import type { Game } from '../Game';
@@ -27,6 +28,12 @@ export interface HitOptions {
   critFx?: string | null;
   /** 51라운드 Q4: 넉백 거리 배율 (대검 끌어내기 첫 타) */
   knockMult?: number;
+  /** 55라운드 Q10: 막타(연격 마지막 타·대쉬 공격) — 치명타와 같이 큰 적중 스파크·긴 히트스톱·흔들림 */
+  heavy?: boolean;
+  /** 되돌아 휘두름(판정 호가 반대로 훑는 타) — 적중 스파크 위아래 반전 */
+  backswing?: boolean;
+  /** 근접 공격자 위치 (계약 §16: 근접 스파크 회전 = 공격자 → 적 중심). 없으면 공격 진행 방향 */
+  from?: { x: number; y: number };
 }
 
 export class GameCombat {
@@ -131,6 +138,8 @@ export class GameCombat {
   /**
    * 적 피격 공통 경로 (적중점 → 피해 → 숫자·섬광·피·치명 버스트 → 히트스톱·흔들림·넉백).
    * `dir` 은 공격 진행 방향(넉백 방향). `tick` 이면 작은 숫자만.
+   * 55라운드 Q6·Q8: 히트스톱 = 무기별(막타·치명 ×1.8, 동시 다수 적중은 한 번 — HitStop 간격), 흔들림 = 막타·치명·대검만(타격 방향),
+   * 스파크 = `hit_<무기>`(막타 `_heavy`) + 재 파편.
    * `knock: false` 면 넉백 생략(가드 밀쳐내기처럼 이미 밀고 있을 때). 반환: 사망
    */
   hitMob(mob: Mob, dmgIn: number, opts: HitOptions): boolean {
@@ -164,26 +173,35 @@ export class GameCombat {
       return died;
     }
     g.numbers.show(hitX, hitY, dmg, opts.crit ? 'crit' : 'hit');
+    const weapon = gameState.weapon;
+    const feel = weapon.def.feel;
+    const heavy = Boolean(opts.heavy) || opts.crit;
     if (block > 0) {
       g.hitFx.spark(hitX, hitY, nx, ny);
-      g.hitStop.request(now, FEEL.HITSTOP.HIT_MS);
-      g.shake.add(now, FEEL.SHAKE.HIT.PX, FEEL.SHAKE.HIT.MS);
+      g.hitStop.request(now, weaponHitstopMs(feel, false));
       return died;
     }
-    g.hitFx.impact(
+    const fdx = opts.from ? c.x - opts.from.x : nx;
+    const fdy = opts.from ? c.y - opts.from.y : ny;
+    const flen = Math.hypot(fdx, fdy);
+    const sx = flen > 0 ? fdx / flen : nx;
+    const sy = flen > 0 ? fdy / flen : ny;
+    const sheet = g.hitFx.impact(
       hitX,
       hitY,
-      nx,
-      ny,
+      sx,
+      sy,
       opts.crit,
       opts.critFx ? { id: opts.critFx, x: c.x, y: c.y - mob.visual.hitLiftPx } : null,
+      { weaponId: weapon.id, heavy, backswing: opts.backswing },
     );
     g.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
     if (opts.crit) g.screenFx.crit();
-    const H = FEEL.HITSTOP;
-    g.hitStop.request(now, Math.max(opts.crit ? H.CRIT_MS : H.HIT_MS, isBoss ? H.BOSS_MS : 0));
-    const S = opts.crit ? FEEL.SHAKE.CRIT : FEEL.SHAKE.HIT;
-    g.shake.add(now, S.PX, S.MS);
+    g.hitStop.request(now, weaponHitstopMs(feel, heavy));
+    if (shakesOnHit(feel, heavy)) {
+      const sh = hitShake(sheet ? g.fx.sheet(sheet) : null);
+      g.shake.add(now, sh.px, sh.ms, { x: sx, y: sy });
+    }
     if (!died && opts.knock !== false) {
       const K = FEEL.KNOCKBACK;
       const dist = (opts.crit ? K.CRIT_PX : K.HIT_PX) * (isBoss ? K.BOSS_MULT : 1) * (opts.knockMult ?? 1);
@@ -233,7 +251,7 @@ export class GameCombat {
     }
     // 51라운드 저격: 비행 거리 단계 배율 · 필중 확정 치명 (저격 화살이 아니면 그대로)
     const m = g.strikes.bow.hitMods(shot);
-    if (this.hitMob(mob, m.attack, { crit: m.crit, dirX, dirY })) {
+    if (this.hitMob(mob, m.attack, { crit: m.crit, dirX, dirY, heavy: shot.heavy })) {
       g.progress.onKill(mob, stunnedByParry ? 'parry' : 'attack');
       return;
     }
