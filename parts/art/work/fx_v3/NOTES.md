@@ -105,3 +105,8 @@
 3. **주인공 재 램프 7색을 fx 에 공유**(먼지·재 조각, 고정색): 허용·`lopad.json` fx 블록에 기록(추천) / 무채 16만.
 4. **telegraph_line 흐름 방향**: 2프레임 유지(추천, 판정 불변) / 4프레임(흐름 방향이 보임, 타이밍 120×4 로 변경).
 5. 제외한 무기 관련 공용 이펙트(afterimage·shadowstep_ghost·bleed·guard_wave·ironwall·longinvuln)는 무기 재디자인 라운드에서 함께(추천) / 지금 v3 로.
+
+## 8. 53라운드 Q62 (paletteSwap none)
+
+- `build.py json_for`: 19종 JSON 전부 `"paletteSwap": "none"` + `paletteSwapNote`, palette 문구 'floor 1 accent 16-27 runtime swap' → '… hex, fixed'. `blood` note 의 '런타임 스왑' 문구 정정. PNG 는 바이트 동일(md5 확인, `build()` 만 다시 실행 — 미리보기 재생성 안 함).
+- 결과: 피·예고·적 탄·보스 이펙트도 층마다 색이 바뀌지 않는다(1층 호박 hex 고정). 무기 이펙트 쪽 기록은 `fx_weapons_v3/NOTES.md` 10절.

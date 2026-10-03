@@ -25,7 +25,7 @@
     "y": 192
   },
   "frames": 6,
-  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
   "design": "fx-design.md (round 42/43 infernum language, enemy/boss rule: floor ramp + core only) — produced by parts/art/work/fx_prod/build_boss.py (round 46 Q2)",
   "anchor": "hitbox_center",
   "spawn": "boss_slam_impact",
@@ -46,6 +46,8 @@
   },
   "pivotNote": "피벗 (192,192) = 슬램 지점 = 판정 원 중심. 충격 고리 f3 r156, f4 점선 r160 = hitRadiusPx 160 도트(= 논리 80px, 구 40×2). scale 은 구 시트와 같은 값(판정 반경 / 구 40) — 비율이라 그대로.",
   "note": "v3: f0 압착 섬광 원반 + 점선 고리 → f1 고리 r80 + 균열 9줄(끝이 뾰족, 잔가지) 달아오름 → f2 고리 r124 + 재 먼지 띠 + 불티 → f3 고리 r156(판정 도달) + 먼지 고리 → f4 판정 원 점선 r160 + 균열 식음 → f5 식은 균열 + 먼지 호 + 잔불. 층 램프 + 코어 + 재 회색(보조색 없음).",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). 층 강조 램프 hex 가 들어 있어도 그대로 그린다.",
   "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
   "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
   "shakeNote": "shake.px 는 카메라 흔들림(논리 px)이라 환산하지 않고 그대로 둠.",

@@ -6,6 +6,9 @@ style
            + 꼬리 쪽 흙먼지 구름 + 홈에서 떨어지는 불씨
   dagger : 재 송곳니 · 백열 끝 → 짧고 가는 호 + 바늘 끝 백열 + 공중에 남는 호박 금(균열) → 재로 떨어짐
 빛 규칙(Q27·Q30): 판정 프레임(bright)에서만 백열(X0/X1)·A26 이 나온다. 나머지는 A25 이하.
+칼끝 메움(53라운드 Q63, fill_to): 띠의 바깥 가장자리는 판정 반경 R 그대로, 안쪽을 칼끝 반경(fill_to)까지 메운다.
+  칼 = 호박 몸 안쪽을 '식은 혼불 결'(호를 따라 길쭉한 A18~A21 줄, 칼끝 쪽으로 성기게) + 재 장막으로,
+  대검 = 녹·흙 띠를 칼끝까지 넓히고 안쪽은 흙·녹 결 + 드문 혼불 결로. 폭 윤곽은 가운데를 평평하게(끝은 바늘 그대로).
 """
 import math
 
@@ -37,7 +40,7 @@ STYLE = {
 
 
 def swing_frames(style, size, origin, R, a0d, a1d, F, impact, bright=(), wmax=10.0, echoes=(), seed=1, rays=0,
-                 cracks=False, dust=0, sliver=0.3, tail_dash=True, long_glow=False, gaps=(), wscale=1.0):
+                 cracks=False, dust=0, sliver=0.3, tail_dash=True, long_glow=False, gaps=(), wscale=1.0, fill_to=None):
     """→ {dir: [RGBA]}. echoes = [(dR, delay, wk)] 겹 궤적(반지름 차, 프레임 지연, 폭 비율)."""
     st = STYLE[style]
     a0, a1 = math.radians(a0d), math.radians(a1d)
@@ -58,7 +61,7 @@ def swing_frames(style, size, origin, R, a0d, a1d, F, impact, bright=(), wmax=10
             for j in range(st["flake_n"]):
                 s = rng.uniform(prev_tail, tl + 0.06)
                 a = a0 + (a1 - a0) * s
-                rr = R - wmax * rng.uniform(0.3, 1.5)
+                rr = R - wmax * rng.uniform(0.3, 1.5) if not fill_to or j % 2 else R - (R - fill_to) * rng.uniform(0.15, 0.95)
                 tang = (-math.sin(a) * sgn, math.cos(a) * sgn)
                 sp = rng.uniform(1.0, 3.5)
                 out_v = rng.uniform(-0.8, 1.6)
@@ -90,6 +93,7 @@ def swing_frames(style, size, origin, R, a0d, a1d, F, impact, bright=(), wmax=10
             Ldust = fr.L(W.R_DUST)
             Lveil = fr.L(st["veil"])
             Lbody = fr.L(W.R_RUST if style == "gs" else [W.B0, W.B1, W.B2, W.B3, W.A18]) if style.startswith("gs") else None
+            Lfill = fr.L(W.R_EDGE_SOFT)                 # 칼끝 메움(식은 혼불 결)
             Ledge = fr.L(st["edge"])
             Lgroove = fr.L(W.R_EDGE) if style.startswith("gs") else None
             Lflake = fr.L(W.R_ASHG if not style.startswith("gs") else W.R_ASHB)
@@ -110,7 +114,8 @@ def swing_frames(style, size, origin, R, a0d, a1d, F, impact, bright=(), wmax=10
                     ehot = hot and delay == 0 or (delay > 0 and i - impact == delay and long_glow)
                     b0, b1 = (a1, a0) if flip else (a0, a1)
                     _band(style, fr, Ldust, Lveil, Lbody, Ledge, Lgroove, t, R + dR, b0, b1, wmax * wk, ea, ehot, st,
-                          seed + int(dR), last=(i == F - 1), tail_dash=tail_dash, gaps=gaps if delay == 0 else ())
+                          seed + int(dR), last=(i == F - 1), tail_dash=tail_dash, gaps=gaps if delay == 0 else (),
+                          fill_to=fill_to if (delay == 0 and dR == 0) else None, Lfill=Lfill)
                 if rays and i == impact + 1:
                     _rays(Ledge, t, R, a1, sgn, rays, rng)
                 if cracks and i >= impact:
@@ -121,6 +126,15 @@ def swing_frames(style, size, origin, R, a0d, a1d, F, impact, bright=(), wmax=10
     return out
 
 
+def _streak(s, depth, arclen, seed, lane_w, duty):
+    """칼끝 메움 결: 반지름 방향 lane_w 도트 줄마다 호를 따라 길이가 다른 토막(모션 스미어). → (켜짐?, 줄 해시)."""
+    lane = int(depth / lane_w)
+    ph = W.h2(lane, 0, seed)
+    ln = 18.0 + 30.0 * W.h2(lane, 1, seed)
+    u = FK.frac(s * arclen / ln + ph)
+    return u < duty * (0.7 + 0.6 * W.h2(lane, 3, seed)), W.h2(lane, 2, seed)
+
+
 def _pre(L, t, R, a0, a1, frac, style):
     """예비 프레임: 판정 40ms 전, 시작 쪽 가는 1px 선(바늘 끝)."""
     b = a0 + (a1 - a0) * max(0.08, frac)
@@ -129,10 +143,17 @@ def _pre(L, t, R, a0, a1, frac, style):
              vprof=lambda s: 0.6 + 0.4 * s)
 
 
-def _band(style, fr, Ldust, Lveil, Lbody, Ledge, Lgroove, t, R, a0, a1, wmax, age, hot, st, seed, last=False, tail_dash=True, gaps=()):
+def _band(style, fr, Ldust, Lveil, Lbody, Ledge, Lgroove, t, R, a0, a1, wmax, age, hot, st, seed, last=False, tail_dash=True, gaps=(),
+          fill_to=None, Lfill=None):
     W_, H_ = fr.w, fr.h
     pw, pk = st["prof"]
-    base = FK.tp_both(pw, pk)
+    base0 = FK.tp_both(pw, pk)
+    if fill_to:
+        def base(u):                                 # 가운데를 평평하게(칼끝까지 닿는 구간을 넓힘), 끝은 바늘 그대로
+            return min(1.0, 1.55 * base0(u))
+    else:
+        base = base0
+    arclen = abs(a1 - a0) * R
     tail = 0.0 if hot else min(0.92, 0.12 + 0.8 * age ** 0.85)
     shrink = 1.0 if hot else max(0.25, 1.0 - 0.62 * age)
     heat = 1.0 if hot else max(0.3, 0.80 - 0.5 * age)
@@ -150,6 +171,7 @@ def _band(style, fr, Ldust, Lveil, Lbody, Ledge, Lgroove, t, R, a0, a1, wmax, ag
 
     if style.startswith("gs"):
         notch = 7 if style == "gs" else 0          # gs_dark(중압) = 홈 혼불이 끊기지 않는 녹은 줄
+        pad = max(0.0, (R - fill_to) / wmax - 1.0) if fill_to else 0.0
 
         def cb(x, y, s, d, w):
             for g in gaps:                          # 파쇄: 비스듬한 틈으로 끊긴 '깨진 띠'
@@ -170,12 +192,20 @@ def _band(style, fr, Ldust, Lveil, Lbody, Ledge, Lgroove, t, R, a0, a1, wmax, ag
                 q = FK.frac(s * notch + 0.3) if notch else 0.5
                 if g < (1.3 if hot else 0.9) and (0.12 < q < 0.92 or not notch):
                     Lgroove.put(x, y, heat * (1 - g / 1.6) * (0.65 + 0.35 * s) if hot else min(0.62, heat * 0.8 * (1 - g / 1.6)))
-            elif not hot:
-                pass
-        W.crescent(W_, H_, t, R, a0, a1, wmax, prof, cb)
+            elif pad:
+                # 칼끝 메움(Q63): 녹·흙 결이 칼끝 반경까지 — 호를 따라 길쭉한 줄, 칼끝 쪽·식을수록 성기게
+                q = min(1.0, (d - 1.0) / pad)
+                on, lh = _streak(s, (d - 1.0) * w, arclen, seed + 7, 3.0, 0.9 - 0.4 * q ** 1.6 - 0.45 * age)
+                if on:
+                    if lh > 0.86 and q < 0.75:          # 드문 혼불 결(이 빠진 홈에서 끌려 나온 불씨 줄)
+                        Lgroove.put(x, y, min(0.62, 0.36 * (1 - 0.5 * q) * (0.6 + 0.4 * s)))
+                    else:
+                        Lbody.put(x, y, (0.1 + 0.4 * (1 - q) ** 1.3) * (0.7 + 0.3 * s) * (1.0 if hot else 0.85))
+        W.crescent(W_, H_, t, R, a0, a1, wmax, prof, cb, inner_pad=pad)
     else:
         veil_k = st["veil_k"]
-        arclen = abs(a1 - a0) * R
+        if fill_to:
+            veil_k = max(veil_k, (R - fill_to) / wmax - 1.0)
 
         def cb(x, y, s, d, w):
             if d <= 1.0:
@@ -184,11 +214,20 @@ def _band(style, fr, Ldust, Lveil, Lbody, Ledge, Lgroove, t, R, a0, a1, wmax, ag
                     v = min(v, 0.62)                  # 판정 밖에서는 A25 이하(Q27 · 백열 없음)
                 Ledge.put(x, y, v)
             else:
+                q = (d - 1.0) / veil_k                  # 0 = 호박 몸 바로 안 → 1 = 안쪽 끝(칼끝 메움이면 칼끝 반경)
+                if fill_to:
+                    # 칼끝 메움(Q63): 식은 혼불 결 — 호를 따라 길쭉한 1~2도트 줄, 칼끝 쪽·식을수록 성기게
+                    on, lh = _streak(s, (d - 1.0) * w, arclen, seed + 5, 2.0, 0.82 - 0.4 * q ** 1.6 - 0.5 * age)
+                    if on:
+                        Lfill.put(x, y, (0.6 - 0.42 * q + 0.08 * (lh - 0.5)) * (0.55 + 0.45 * s) * (1.0 if hot else 0.85))
+                        return
+                    if q > 0.25:                        # 칼끝 쪽 빈 자리는 비워 둠(재 장막은 몸 가까이만)
+                        return
                 # 안쪽 재 장막: 3px 덩이로 부서짐, 나이 들수록 더 많이 빠짐
                 n = W.h2(int(s * arclen / 6.0), int((d - 1.0) * w / 2.0), seed)   # 호를 따라 길쭉한 재 결
-                keep = 0.12 + 0.6 * age + 0.5 * ((d - 1.0) / veil_k) ** 1.5
+                keep = 0.12 + 0.6 * age + 0.5 * q ** 1.5
                 if n > keep:
-                    Lveil.put(x, y, 0.3 + 0.62 * (1 - (d - 1.0) / veil_k) ** 1.5 * (0.5 + 0.5 * s))
+                    Lveil.put(x, y, 0.3 + 0.62 * (1 - q) ** 1.5 * (0.5 + 0.5 * s))
         W.crescent(W_, H_, t, R, a0, a1, wmax, prof, cb, inner_pad=veil_k)
 
 

@@ -25,7 +25,7 @@
     "y": 138
   },
   "frames": 3,
-  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
   "anchor": "player_pivot",
   "spawn": "dash_trail",
   "depth": "below",
@@ -38,6 +38,8 @@
   },
   "note": "v3: 주인공 v3 대쉬 2프레임 실루엣(96×144, 피벗 = 주인공 발 (48,138)). 몸 G01~G04 세로 명암 + 대쉬 반대쪽 가장자리만 재빛 테두리 → 가로 줄 사이가 빠지며 재 조각이 뒤·위로 떨어져 나감 → 줄무늬 조각. tint 규칙(setTintFill) 그대로.",
   "source": "parts/art/work/fx_v3/build.py",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). 층 강조 램프 hex 가 들어 있어도 그대로 그린다.",
   "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다 — 단 이 시트는 주인공 v3(1.5배)에 맞춰 1.5배.",
   "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
   "pivotNote": "피벗 (48,138) = 주인공 v3 발 중앙(player/v3/player_dash 와 같음).",

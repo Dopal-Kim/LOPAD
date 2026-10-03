@@ -31,6 +31,11 @@ def _extra(old, weapon, branch, base):
     return ex
 
 
+def _fill(n, weapon, R):
+    """53라운드 Q63: 갈래도 기본 연격과 같은 칼끝 반경까지 메움(무기 오버레이는 갈래와 공용)."""
+    return C.trail_fill("%s_combo%d" % (weapon, n), R)
+
+
 def _over(base, top):
     for d in base:
         for i, im in enumerate(base[d]):
@@ -52,7 +57,7 @@ def iai(n):
     imp = old["impactFrame"]
     fr = swing.swing_frames("katana", size, o, R, old["arcFromDeg"], old["arcToDeg"], old["frames"], imp,
                             bright=C.bright_of(old), wmax=KW[n] * 0.75, seed=400 + n,
-                            echoes=[(-10, 1, 0.5)] if n == 3 else (), tail_dash=False)
+                            echoes=[(-10, 1, 0.5)] if n == 3 else (), tail_dash=False, fill_to=_fill(n, "katana", R)[0])
     sgn = 1 if a1 > a0 else -1
 
     def draw(f, t, d, i, F):
@@ -70,7 +75,7 @@ def iai(n):
                 q = (p[0] + tg[0] * 16, p[1] + tg[1] * 16)
                 L.stroke(t.pts([p, q]), 0.7, prof=FK.tp_tail(0.8), v=v)
     glow = C.frames(old, draw, origin=o)
-    return _over(fr, glow), _extra(old, "katana", "iai", None)
+    return _over(fr, glow), dict(_extra(old, "katana", "iai", None), trailFill=_fill(n, "katana", R)[1])
 
 
 BATTO_LINES = {1: [((0.72, -0.62), (0.72, 0.62))],
@@ -136,7 +141,7 @@ def crush(n):
     imp = old["impactFrame"]
     gaps = (0.18, 0.36, 0.53, 0.7, 0.86)
     fr = swing.swing_frames("gs", size, o, R, old["arcFromDeg"], old["arcToDeg"], old["frames"], imp, bright=C.bright_of(old),
-                            wmax=GW[n] * 0.85, seed=600 + n, dust=3, gaps=gaps, cracks=(n == 3))
+                            wmax=GW[n] * 0.85, seed=600 + n, dust=3, gaps=gaps, cracks=(n == 3), fill_to=_fill(n, "greatsword", R)[0])
 
     def draw(f, t, d, i, F):
         if i < imp:
@@ -161,7 +166,7 @@ def crush(n):
                 if k < 0.4:
                     W.ember(Le, q[0], q[1], *DG._vec(t, aa), 5, v=0.85)
     top = C.frames(old, draw, origin=o)
-    return _over(fr, top), _extra(old, "greatsword", "crush", None)
+    return _over(fr, top), dict(_extra(old, "greatsword", "crush", None), trailFill=_fill(n, "greatsword", R)[1])
 
 
 def weight(n):
@@ -171,7 +176,7 @@ def weight(n):
     a0, a1 = math.radians(old["arcFromDeg"]), math.radians(old["arcToDeg"])
     imp = old["impactFrame"]
     fr = swing.swing_frames("gs_dark", size, o, R, old["arcFromDeg"], old["arcToDeg"], old["frames"], imp, bright=C.bright_of(old),
-                            wmax=GW[n] * 1.05, seed=700 + n, dust=4)
+                            wmax=GW[n] * 1.05, seed=700 + n, dust=4, fill_to=_fill(n, "greatsword", R)[0])
 
     def draw(f, t, d, i, F):
         if i < imp:
@@ -193,7 +198,7 @@ def weight(n):
             Ld.arc(c[0], c[1], rr, rr * 0.4, 0, 2 * math.pi, 2.4 * (1 - 0.5 * k), v=0.75 - 0.3 * k)
             Lc.arc(c[0], c[1], rr * 0.92, rr * 0.36, 0, 2 * math.pi, 0.8, v=0.55 - 0.25 * k, dash=(14, 0.6, 0.0) if k > 0.5 else None)
     top = C.frames(old, draw, origin=o)
-    return _over(fr, top), _extra(old, "greatsword", "weight", None)
+    return _over(fr, top), dict(_extra(old, "greatsword", "weight", None), trailFill=_fill(n, "greatsword", R)[1])
 
 
 # ------------------------------------------------------------------ 단검

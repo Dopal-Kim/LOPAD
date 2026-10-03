@@ -28,7 +28,7 @@
     "y": 128
   },
   "frames": 6,
-  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
   "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
   "anchor": "hitbox_center",
   "spawn": "telegraph",
@@ -38,6 +38,8 @@
   "pivotNote": "피벗 (128,128) = 꼭짓점(공격자). 반지름 108 도트(= 논리 54, 구 27×2), 반각 32°. scale 은 구 시트와 같은 값(R/27) 그대로.",
   "note": "v3: 반지름 108, 반각 32°. 두 변(꼭짓점 쪽이 가늘고 바깥이 굵음) + 범위 호 + 안쪽 안내 호 2겹·가운데 점선 + 바깥 점선 호 r140→114 수렴 + 두 변을 따라 바깥으로 흐르는 백열 토막. f5 호 가운데 백열 점선.",
   "source": "parts/art/work/fx_v3/build.py",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). 층 강조 램프 hex 가 들어 있어도 그대로 그린다.",
   "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
   "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
   "legacy": {

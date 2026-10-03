@@ -278,6 +278,38 @@
   "name": "incandescent core + weapon secondary",
   "scope": "FX only (round 42 Q2). Forbidden on characters, enemies, bosses, floor tiles and UI. Not swapped per floor (fixed). Floor accent slots 25~27 stay as the highlight layer inside fx.",
   "decision": "2026-10-02 round-42 Q2 — 백열 코어 + 무기별 보조색 1종 → round-43 검수: 보조색 hex 승인, 대검 W2 #d8441c.",
+  "decision_r53": "2026-10-03 round-53 Q61·Q62·Q64 — v3 무기 이펙트(sprites/fx/v3)는 주인공 재·호박 램프만(무기별 보조색 없음, 무기 구분은 모양), 2단 갈래 구분은 밝기·형태로. 모든 fx v3 JSON paletteSwap \"none\"(지역·층 바닥 팔레트 교체 제외). 판정(glowFrames) 밖 프레임은 A25(#eecc78) 이하. 아래 weapons W0~W3 은 구 fx 시트(sprites/fx/*.png, v1·v2) 전용으로만 남는다.",
+  "v3_weapon_fx": {
+   "ramps": {
+    "ash_gray S0~S3": [
+     "#45403b",
+     "#5c554e",
+     "#756c62",
+     "#90857a"
+    ],
+    "ash_brown B0~B3": [
+     "#2a1e17",
+     "#3b2a1f",
+     "#4f3828",
+     "#664a33"
+    ],
+    "amber A17~A26": [
+     "#3f271d",
+     "#653b24",
+     "#8b4d22",
+     "#d67a11",
+     "#e2a33c",
+     "#eecc78",
+     "#f4de9b"
+    ]
+   },
+   "core": [
+    "#ffffff",
+    "#fff4dc"
+   ],
+   "coreNote": "백열 X0/X1 은 판정 프레임만(53라운드 Q30·Q64). 무기 v3 이펙트에서 X0/X1 을 계속 쓸지는 53라운드 후속 질문 중(단검 '백열 끝' Q28 승인과 '재·호박만' Q61 의 경계).",
+   "source": "parts/art/work/fx_weapons_v3/wkit.py (ALLOWED = 주인공 v3 30색 + X0/X1, 빌드 assert)"
+  },
   "core": [
    "#ffffff",
    "#fff4dc"
@@ -334,6 +366,7 @@
     "lab": "L* 21/46/72/92, hue ~215; W3 is the brightest secondary of the four (lightning reads almost white)"
    }
   },
+  "weapons_status": "legacy-only — 구 fx 시트 전용(53라운드 Q61). v3 무기 이펙트는 쓰지 않는다(빌드 검사 swaps.stale: JSON 에 남으면 실패).",
   "weapon_roles": [
    "W0 dark edge / shadow of the stroke",
    "W1 body dark (tail, remnants, afterimage)",

@@ -2,7 +2,11 @@
 
 colorSwap 은 정확한 색 치환, 한 항목 안의 여러 치환은 동시 적용(순차 아님). v3 무기 이펙트는 층 램프 스왑이 없으므로(paletteSwap: none)
 fromSlot/toSlot 은 주인공 v3 팔레트 역할 이름(hero.A19 등)이다 — hex 그대로 찾으면 된다.
-overlay 는 기존 시트 이름(fx/crit_burst · fx/bleed · fx/pierce — v3 가 있으면 v3)."""
+overlay 는 기존 시트 이름(fx/crit_burst · fx/bleed · fx/pierce — v3 가 있으면 v3).
+
+53라운드 Q61·Q64 손질: 2단 갈래 구분은 재·호박 램프 안의 밝기(한 단 밝게/식은 재로)와 형태(겹침·유지 시간)로만 한다.
+판정 밖 프레임 A25 상한(Q64)이 치환 뒤에도 지켜지도록, 근접 시트의 치환 결과는 A25 이하(급소 A23→A26 · 거인 A25→X1 을
+한 단 밝게 두 칸 치환으로 바꿈). 필중(투사체 꼬리, 빛 규칙 예외)의 A25→X1 은 그대로(백열 X0/X1 유지 여부는 질문 중)."""
 import wkit as W
 
 NAME = {W.X0: "X0", W.X1: "X1", W.A17: "hero.A17", W.A18: "hero.A18", W.A19: "hero.A19", W.A21: "hero.A21",
@@ -25,7 +29,7 @@ SECONDARY = {
     "batto": {
         "longinvuln": {"label": "허보", "colorSwap": [sw(W.X0, W.X1, "백열 심 한 단 흐리게"), sw(W.A26, W.A25, "섬광 끝 한 단 흐리게")],
                        "note": "허상: 섬광이 한 단 흐려짐(longinvuln 과 동시)"},
-        "dashcrit": {"label": "급소", "colorSwap": [sw(W.A23, W.A26, "섬광 몸 한 단 밝게")],
+        "dashcrit": {"label": "급소", "colorSwap": [sw(W.A21, W.A23, "섬광 몸 한 단 밝게"), sw(W.A23, W.A25, "섬광 심 둘레 한 단 밝게")],
                      "overlay": {"sheet": "fx/crit_burst", "atFrame": 2, "at": "직선 섬광 가운데(right 기준 몸 중심 + (R×0.7, 0))", "onlyOnCrit": True}},
     },
     "crush": {
@@ -35,7 +39,7 @@ SECONDARY = {
     },
     "weight": {
         "ironwall": {"label": "철벽", "colorSwap": [sw(W.A21, W.S2, "띠 혼불 → 쇳빛 재"), sw(W.A23, W.S3, "녹은 홈 → 쇳빛")]},
-        "giant": {"label": "거인", "colorSwap": [sw(W.A25, W.X1, "녹은 홈 백열")],
+        "giant": {"label": "거인", "colorSwap": [sw(W.A21, W.A23, "홈 혼불 한 단 밝게"), sw(W.A23, W.A25, "녹은 홈·날선 한 단 밝게")],
                   "scaleHint": "판정이 커지면 시트를 hitRadiusPx 비율로 그대로 확대(이펙트 한정 허용 제안)"},
     },
     "twin": {

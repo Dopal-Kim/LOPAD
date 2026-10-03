@@ -314,7 +314,8 @@ def write_sheet(name, frames, old, extra=None, size=None, pivot=None, legacy_not
         if k in old:
             legacy[k] = old[k]
     j.update(image=name + ".png", action=old.get("action", name), version="v3", frameWidth=fw, frameHeight=fh, pixelScale=0.5,
-             palette=PALETTE_NOTE, paletteSwap=swap, source="parts/art/work/fx_weapons_v3/build.py", colors=len(cols),
+             palette=PALETTE_NOTE, paletteSwap=swap,
+             paletteSwapNote="53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).", source="parts/art/work/fx_weapons_v3/build.py", colors=len(cols),
              unitNote="모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × "
                       "pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
              timingNote="프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).")

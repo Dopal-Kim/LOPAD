@@ -314,7 +314,7 @@ def muzzle_flash():
                 p = t((8 + 4 * k, (k - 1) * 5))
                 W.ember(L, p[0], p[1], 0, -1, 2, v=0.7)
     fr = C.frames(old, draw)
-    return fr, C.base_extra(old, None, {0}), dict(swap="floor-accent 19~25 (적 총구 섬광 — 구 시트처럼 층 램프 스왑) · 코어 X 고정")
+    return fr, C.base_extra(old, None, {0}), dict(swap="none")  # 53라운드 Q62: fx 는 바닥 팔레트 교체 제외(구: 층 램프 19~25 스왑)
 
 
 SHEETS = {"bow_arrow": bow_arrow, "bow_arrow_aimed": bow_arrow_aimed, "heavyarrow": heavyarrow,

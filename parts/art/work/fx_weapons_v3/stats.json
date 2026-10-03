@@ -368,7 +368,7 @@
   "frames": 6
  },
  "greatsword_combo2_crush": {
-  "colors": 14,
+  "colors": 13,
   "frame": [
    512,
    512
@@ -616,7 +616,7 @@
   "frames": 7
  },
  "zangetsu": {
-  "colors": 11,
+  "colors": 10,
   "frame": [
    256,
    256

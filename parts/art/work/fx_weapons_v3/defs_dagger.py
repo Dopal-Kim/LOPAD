@@ -269,6 +269,9 @@ def shadowstep_ghost():
     old = W.old_json("shadowstep_ghost")
     # 주인공 v3(1.5배) 실루엣에 맞춰 ×6 (dash_trail 과 같은 규칙) — 96×144, 피벗 = 주인공 발 (48,138)
     fw, fh, px, py = 96, 144, 48, 138
+    import json as _j
+    _hj = _j.load(open(W.os.path.join(W.HERO_P, "player_idle_free.json"), encoding="utf-8"))
+    assert (fw, fh, px, py) == (_hj["frameWidth"], _hj["frameHeight"], _hj["pivot"]["x"], _hj["pivot"]["y"]), "주인공 크기와 다름"
 
     def draw(f, t, d, i, F):
         Lp = f.L([W.B0, W.B0])
@@ -290,6 +293,9 @@ def shadowstep_ghost():
         out[d] = lst
     ex = C.base_extra(old, "dagger", set())
     ex["heroSource"] = "player/v3/player_idle_free 열 0(방향 행별) 실루엣"
+    ex["unitNote"] = ("모든 길이 필드는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 이 시트는 주인공 크기(53라운드 Q64): "
+                      "구 16×24 ×6 = 96×144, 피벗 (48,138) — 주인공 v3 몸 시트와 같은 틀·피벗(실루엣 1:1, 화면 48×72).")
+    ex["heroSizeCheck"] = "빌드 assert: 프레임 크기·피벗 = player/v3/player_idle_free 의 frameWidth·frameHeight·pivot"
     return out, ex, dict(pivot=(px, py), legacyNote="주인공 v3(1.5배)에 맞춰 ×6 (구 16×24 → 96×144) — dash_trail 과 같은 규칙. 피벗 = 주인공 발.")
 
 
@@ -297,7 +303,7 @@ def bleed():
     old = W.old_json("bleed")
 
     def draw(f, t, d, i, F):
-        Lb = f.L([W.A17, W.A18, W.A19, W.A21])     # 피 = 층 램프 17~21 (런타임 스왑)
+        Lb = f.L([W.A17, W.A18, W.A19, W.A21])     # 피 = 호박 17~21 (고정, Q62 paletteSwap none)
         Lp = f.L([W.A17, W.A18])
         Lg = f.L(W.R_HOT)
         c = (t.ox, t.oy)
@@ -310,7 +316,7 @@ def bleed():
         if i == 0:
             P.glint(Lg, c[0] + 2, c[1] - 36, 7, v=0.85)
     fr = C.frames(old, draw)
-    return fr, C.base_extra(old, "dagger", {0}), dict(swap="floor-accent 17~21 (피, 구 bleed 와 같이 층 램프 스왑) · 글린트만 고정")
+    return fr, C.base_extra(old, "dagger", {0}), dict(swap="none")  # 53라운드 Q62: fx 는 바닥 팔레트 교체 제외(구: 층 램프 17~21 스왑)
 
 
 SHEETS = {"dagger_combo1": lambda: combo("dagger_combo1"), "dagger_combo2": lambda: combo("dagger_combo2"),

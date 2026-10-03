@@ -1,5 +1,9 @@
 """시트 정의 공용 — 구 JSON 에서 규격(크기 ×4·피벗·판정·프레임) 읽기, 프레임 루프, 색 필드 재매핑."""
+import json
 import math
+import os
+
+from PIL import Image
 
 import swing
 import wkit as W
@@ -53,15 +57,57 @@ def bright_of(old):
     return b
 
 
+WEAPON_V3 = os.path.join(W.ROOT, "assets/sprites/weapons/v3")
+TIP_OVERLAP = 4                                   # 띠 안쪽 끝이 칼끝을 4도트 덮어 '칼끝에서 나온' 궤적으로 이어지게
+
+
+def blade_tip(weapon_sheet, d="right"):
+    """무기 v3 연격 시트의 판정 시작 프레임(frameStates 첫 'glow' = 이펙트 impactFrame 과 같은 시각) 칼끝 →
+    (이펙트 판정 원점 기준 반경, (dx, dy), 프레임, 근거). 대검 = bladeTipAnchors, 칼 = 그 프레임 날의 가장 먼 픽셀
+    (칼은 bladeTipAnchors 가 없고 bladeLocal 각만 있어 그림에서 잰다 — 칼집은 몸 가까이라 가장 먼 픽셀이 칼끝)."""
+    j = json.load(open(os.path.join(WEAPON_V3, weapon_sheet + ".json"), encoding="utf-8"))
+    st = j.get("frameStates") or []
+    gi = st.index("glow") if "glow" in st else j.get("impactFrame", 0)
+    px, py = j["pivot"]["x"], j["pivot"]["y"]
+    if "bladeTipAnchors" in j:
+        tx, ty = j["bladeTipAnchors"][d][gi]
+        how = "weapons/v3/%s.json bladeTipAnchors.%s[%d]" % (weapon_sheet, d, gi)
+    else:
+        im = Image.open(os.path.join(WEAPON_V3, weapon_sheet + ".png")).convert("RGBA")
+        fw, fh = j["frameWidth"], j["frameHeight"]
+        r = j["directions"].index(d)
+        c = im.crop((gi * fw, r * fh, (gi + 1) * fw, (r + 1) * fh))
+        pp = c.load()
+        _, tx, ty = max((math.hypot(x - px, y - py + W.HIT_UP), x, y) for y in range(fh) for x in range(fw) if pp[x, y][3])
+        bl = (j.get("bladeLocal") or [{}] * (gi + 1))[gi]
+        how = "weapons/v3/%s.png %s 열 %d 날의 가장 먼 픽셀(bladeLocal θ%s° elev%s°)" % (weapon_sheet, d, gi, bl.get("thetaDeg"), bl.get("elevDeg"))
+    dx, dy = tx - px, ty - py + W.HIT_UP
+    return math.hypot(dx, dy), (round(dx, 1), round(dy, 1)), gi, how
+
+
+def trail_fill(weapon_sheet, R):
+    """→ (fill_to 도트, JSON 메모). 53라운드 Q63: 궤적을 칼끝 반경까지 메움."""
+    rt, dxy, gi, how = blade_tip(weapon_sheet)
+    fill = round(rt - TIP_OVERLAP, 1)
+    return fill, {"outerRadiusDots": R, "innerRadiusDots": fill, "bladeTipRadiusDots": round(rt, 1), "bladeTipDots": list(dxy),
+                  "bladeTipFrom": how,
+                  "note": "53라운드 Q63 — 궤적 띠를 판정 가장자리(바깥 R = hitRadiusPx, 불변)에서 칼끝 반경 − %d 도트까지 메움. "
+                          "반경은 판정 원점(피벗 위 %d 도트) 기준, 오른쪽 그림에서 잰 값을 모든 방향에 같이 씀(방향 행은 회전·반전)."
+                          % (TIP_OVERLAP, W.HIT_UP)}
+
+
 def combo(name, style, wmax, **kw):
     old = W.old_json(name)
     fw, fh, px, py = W.geom(old)
     origin = (px, py - W.HIT_UP)
     R = old["hitRadiusPx"] * W.K4
     b = bright_of(old)
+    fill, memo = trail_fill(name, R)
     fr = swing.swing_frames(style, (fw, fh), origin, R, old["arcFromDeg"], old["arcToDeg"], old["frames"],
-                            old["impactFrame"], bright=b, wmax=wmax, **kw)
-    return fr, base_extra(old, old.get("weapon"), b)
+                            old["impactFrame"], bright=b, wmax=wmax, fill_to=fill, **kw)
+    ex = base_extra(old, old.get("weapon"), b)
+    ex["trailFill"] = memo
+    return fr, ex
 
 
 def slash(name, style, R_old, a0, a1, wmax, impact=1, **kw):

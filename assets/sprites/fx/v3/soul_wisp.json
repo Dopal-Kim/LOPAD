@@ -36,10 +36,12 @@
     "note": "선택: 시스템이 천천히 떠다니게(랜덤 방향, 초당 약 6px) 옮기면 더 살아 있다. 시트는 제자리 흔들림만."
   },
   "weapon": "any",
-  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
   "note": "v3: 끝이 뾰족하게 흔들리는 창백한 혼불 머리(G06~X0) + 안의 호박 심 깜빡 + 아래로 늘어진 꼬리 2가닥 + 끝에서 떨어져 오르는 불티 1 + 바닥 희미한 점선 고리. 8f 루프, 오르내림 ±3.5도트.",
   "colors": 11,
   "source": "parts/art/work/fx_v3/build.py",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). 층 강조 램프 hex 가 들어 있어도 그대로 그린다.",
   "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
   "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
   "pivotNote": "피벗 (32,92) = 혼불 아래 땅(Y 정렬 기준).",

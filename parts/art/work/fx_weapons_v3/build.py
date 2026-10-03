@@ -79,7 +79,9 @@ def _job(args):
     import swaps
     extra = dict(extra, **swaps.for_sheet(name, old))
     glow = extra.get("glowFrames") or []
-    if glow and not old.get("loop") and old.get("anchor") != "projectile":
+    # 53라운드 Q64: 판정(glowFrames) 밖 프레임은 A25 이하. 루프라도 판정 틱 프레임이 정해진 시트(잔월 등)는 틱 사이 프레임을 낮춘다.
+    # 예외: 투사체(화살·꼬리 — 시트 전체가 판정체)와 glowFrames 가 없는 지속 루프(거인 오라·질풍 바람 — 질문 중).
+    if glow and old.get("anchor") != "projectile":
         frames = clamp_cool(frames, set(glow))
         extra["glowRule"] = extra.get("glowRule", "") + " (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)"
     sheet, j = W.write_sheet(name, frames, old, extra=extra, swap=opts.get("swap", "none"),

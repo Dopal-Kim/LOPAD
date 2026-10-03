@@ -24,7 +24,7 @@
     "y": 96
   },
   "frames": 5,
-  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
   "anchor": "hitbox_center",
   "spawn": "parry_success",
   "depth": "above",
@@ -37,6 +37,8 @@
   },
   "note": "v3: f0 긴 4점 바늘 별(끝 뾰족, 반지름 88) + 대각 짧은 바늘 + 코어 → f1 동심 고리 2 + 짧은 광선 8 → f2 고리 확장 + 네 귀 글린트 → f3 점선 고리 → f4 잔불 조각. 보조색 없음.",
   "source": "parts/art/work/fx_v3/build.py",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). 층 강조 램프 hex 가 들어 있어도 그대로 그린다.",
   "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
   "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
   "pivotNote": "피벗 (96,96) = 중심.",

@@ -121,6 +121,7 @@
  "version": "v3",
  "pixelScale": 0.5,
  "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
  "colors": 12,
  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
@@ -131,6 +132,17 @@
  ],
  "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
  "branchDesignV3": "칼  iai   거합 = 초승달 잔광: 기본보다 가는 초승달 + 판정 가장자리 바깥 1px 이어진 잔광 호(꼬리까지 남음) + 끝에서 접선으로 새는 바늘 빛",
+ "trailFill": {
+  "outerRadiusDots": 132,
+  "innerRadiusDots": 78.2,
+  "bladeTipRadiusDots": 82.2,
+  "bladeTipDots": [
+   82,
+   -6
+  ],
+  "bladeTipFrom": "weapons/v3/katana_combo2.png right 열 2 날의 가장 먼 픽셀(bladeLocal θ28° elev-4°)",
+  "note": "53라운드 Q63 — 궤적 띠를 판정 가장자리(바깥 R = hitRadiusPx, 불변)에서 칼끝 반경 − 4 도트까지 메움. 반경은 판정 원점(피벗 위 40 도트) 기준, 오른쪽 그림에서 잰 값을 모든 방향에 같이 씀(방향 행은 회전·반전)."
+ },
  "note": "v3 (53라운드 Q5): 칼  iai   거합 = 초승달 잔광: 기본보다 가는 초승달 + 판정 가장자리 바깥 1px 이어진 잔광 호(꼬리까지 남음) + 끝에서 접선으로 새는 바늘 빛",
  "legacy": {
   "image": "../katana_combo2_iai.png.png",

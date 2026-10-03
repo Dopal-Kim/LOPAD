@@ -87,9 +87,13 @@ def json_for(name, old, frames_by_dir, fw, fh, k, pivot):
     legacy = {"image": f"../{old['image']}", "frameWidth": old["frameWidth"],
               "frameHeight": old["frameHeight"], "pivot": old["pivot"], "pixelScale": 2}
     if "palette" in j:
-        j["palette"] = ("parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + "
-                        "fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 "
+        j["palette"] = ("parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 "
+                        "paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 "
                         "#45403b #5c554e #756c62, fixed)")
+    # 53라운드 Q62: fx 는 지역·층 바닥 팔레트 교체에서 제외 — 그린 색 그대로(1층 호박 hex 고정)
+    j["paletteSwap"] = "none"
+    j["paletteSwapNote"] = ("53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). "
+                            "층 강조 램프 hex 가 들어 있어도 그대로 그린다.")
     if "pivotNote" in j:
         legacy["pivotNote"] = j["pivotNote"]
     if "note" in j:
@@ -99,6 +103,8 @@ def json_for(name, old, frames_by_dir, fw, fh, k, pivot):
                      "논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다"
                      + ("" if name not in ("dash_trail", "dash_dust") else " — 단 이 시트는 주인공 v3(1.5배)에 맞춰 1.5배") + ".")
     j["timingNote"] = "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일."
+    if name == "blood":
+        j["note"] = j["note"].replace("층 강조 램프 16~22(런타임 스왑)", "1층 강조 램프 16~22 hex(고정, Q62 paletteSwap none)")
     if name == "boss_slam":
         legacy["hitRadiusPx"] = old["hitRadiusPx"]
         j["hitRadiusPx"] = old["hitRadiusPx"] * k

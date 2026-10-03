@@ -60,10 +60,12 @@
   "segmentsFallback": "segments 를 읽지 않으면: 0~3 을 loop 로 재생하다가 burstFrame 에 4~8 을 1회 재생하는 것과 같게 처리 요망. 전부 1회 재생해도 깨지지 않는다(약 1초).",
   "pivotNote": "피벗 (128,88) = 주인공 발(= player_birth v3 피벗). 소용돌이 반지름 약 60~112 × 22~40, 흩어짐 최대 약 126.",
   "weapon": "any",
-  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
   "note": "v3: 소용돌이 = 3갈래 나선 띠(점선, 끝 뾰족) + 재 알갱이 30 + 갈래마다 불씨 1, 4f 루프(30°/f, 3겹 대칭 이음새 없음) → burstFrame 부터 알갱이가 바깥으로 튀고 먼지 덩이 9 → 테두리 호만 남김 + 오르는 불티.",
   "colors": 12,
   "source": "parts/art/work/fx_v3/build.py",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). 층 강조 램프 hex 가 들어 있어도 그대로 그린다.",
   "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
   "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
   "legacy": {
