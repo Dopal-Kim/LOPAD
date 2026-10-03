@@ -9,7 +9,7 @@
 
 ## 사용 가능 스킬
 - `.claude/skills/pixel-art-studio/` — Pillow 기반. `pip install pillow` 필요
-- 이미지 생성 API: **Gemini 사용 가능 (49라운드)** — 테마 키아트·지도 일러스트·원경 배경만. 게임 도트는 직접. 키는 클라우드 환경 API 자격 증명으로 프록시가 붙인다 — 키 없이 `https://generativelanguage.googleapis.com/...` 를 호출하면 된다(403 이면 미등록 → Gemini 작업은 건너뛰고 보고). 키 값을 파일·로그·명령에 남기지 말 것. 생성 원본은 `parts/art/work/gemini/` 에 프롬프트와 함께 보관
+- 이미지 생성 API: **Gemini 사용 가능 (49라운드)** — 테마 키아트·지도 일러스트·원경 배경·맵 외벽(전투장 테두리) 그림(53라운드)만. 게임 도트는 직접. 키는 클라우드 환경 API 자격 증명으로 프록시가 붙인다 — 키 없이 `https://generativelanguage.googleapis.com/...` 를 호출하면 된다(403 이면 미등록 → Gemini 작업은 건너뛰고 보고). 키 값을 파일·로그·명령에 남기지 말 것. 생성 원본은 `parts/art/work/gemini/` 에 프롬프트와 함께 보관
 
 ## 개시 시 인터뷰로 확정할 항목 (기획서 8장 기준, 전부 BLANK)
 - 캐릭터 스프라이트 크기 (한 번 정하면 변경 금지)
