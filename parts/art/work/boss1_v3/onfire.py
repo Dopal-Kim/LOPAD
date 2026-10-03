@@ -310,7 +310,9 @@ def build():
         "anchor": "boss_pivot",
         "anchorNote": ("보스 v3 시트(stage1_*, 192×240, 피벗 (96,220))와 같은 크기·같은 피벗 — 보스 스프라이트 위치에 그대로 겹쳐 "
                        "보스 바로 위 깊이(+0.01)로 그린다. 방향 행은 보스의 현재 방향 행과 같게. 보스 동작(대기·걷기·돌진 등)과 "
-                       "프레임을 맞출 필요 없음(몸 윤곽은 idle·walk 합집합 기준). 쓰러진 동작(fall·death)에서는 숨기거나 down 행 ground 부분만 권장"),
+                       "프레임을 맞출 필요 없음(몸 윤곽은 idle·walk 합집합 기준). 쓰러진 동작(fall·death)의 전 방향 공통 프레임은 누운 불길 "
+                       "boss1_onfire_down 으로 바꿔 낀다(같은 열 번호·같은 시간 — 그 JSON 의 useFor·standFor·frameOffsets, 54라운드 Q23)"),
+        "lyingSheet": "boss1_onfire_down",
         "pixelScale": 0.5, "version": "v3", "paletteSwap": "none",
         "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
         "drawOver": "lightmap", "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
