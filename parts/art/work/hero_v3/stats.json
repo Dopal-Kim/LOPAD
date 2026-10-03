@@ -1,7 +1,7 @@
 {
  "heroColors": 30,
  "colorBudget": 30,
- "weaponColors": 19,
+ "weaponColors": 26,
  "semiTransparent": false,
  "frames": {
   "idle": 6,
@@ -10,35 +10,57 @@
   "dash": 5,
   "hurt": 3,
   "death": 10,
-  "katana_combo1": 7,
-  "katana_combo2": 6,
-  "katana_combo3": 7
+  "player_katana_combo1": 7,
+  "player_katana_combo2": 6,
+  "player_katana_combo3": 7,
+  "player_katana_draw": 6,
+  "player_katana_sheathe": 8,
+  "player_katana_special": 9
  },
  "size": [
-  64,
-  96
+  96,
+  144
  ],
  "pivot": [
-  32,
-  92
+  48,
+  138
  ],
  "pixelScale": 0.5,
  "weaponSheet": [
-  128,
-  128
+  192,
+  192
  ],
  "weaponPivot": [
-  64,
-  124
+  96,
+  186
  ],
  "weaponEdgePixels": {
   "katana_carry_idle": 0,
+  "katana_carry_drawn_idle": 0,
   "katana_carry_walk": 0,
+  "katana_carry_drawn_walk": 0,
   "katana_carry_run": 0,
+  "katana_carry_drawn_run": 0,
   "katana_carry_dash": 0,
+  "katana_carry_drawn_dash": 0,
   "katana_combo1": 0,
   "katana_combo2": 0,
-  "katana_combo3": 0
+  "katana_combo3": 0,
+  "katana_draw": 0,
+  "katana_sheathe": 0,
+  "katana_special": 0
+ },
+ "stride": {
+  "walk": {
+   "px": 72,
+   "cycleMs": 640,
+   "naturalSpeed": 56.2
+  },
+  "run": {
+   "px": 200,
+   "cycleMs": 520,
+   "naturalSpeed": 192.3
+  }
  },
  "heroPalette": [
   "#141516",
@@ -75,18 +97,25 @@
  "weaponPalette": [
   "#14161c",
   "#1d2028",
+  "#212224",
+  "#272b35",
   "#2f3033",
-  "#323743",
-  "#3b2a1f",
   "#3e3f42",
+  "#3f4552",
   "#4d4f52",
-  "#4f3828",
+  "#5c554e",
   "#5c5e62",
+  "#626a78",
   "#6c6f73",
+  "#756c62",
   "#7d8084",
   "#8e9195",
+  "#90857a",
+  "#a0a2a6",
+  "#b2b4b8",
   "#c5c6c9",
   "#d67a11",
+  "#d8d9db",
   "#e2a33c",
   "#eecc78",
   "#f4de9b",

@@ -7,29 +7,29 @@ hero.py 의 Rig(pose 키)만으로 자세를 만들고, 재 파편·재 무덤(�
 import math
 
 import hero
-from hero import pose, A, G, SL, PL, OUT, DIARY
+from hero import pose, A, G, SL, PL, OUT, DIARY, S, to_px
 from v3kit import WD
 
 SIDE = ("left", "right")
 
 # =============================================================================
-# 달리기 8 — 걷기의 1.8배 속도. 더 숙이고(lean·crouch), 팔은 크게(±9), 체공 프레임(양발 뜸) 2개.
+# 달리기 8 (53라운드 재설계) — 접지 2 · 체공 2 의 뛰는 달리기. 디딤발은 한 프레임에 16.7 설계(= 25 도트) 뒤로 밀린다.
+#   한 주기 이동 = 25 × 8 = 200 도트(논리 100px) / 520ms = 논리 192px/s → 시스템 실제 이동 속도(192)와 재생 배속 1.0.
+#   NOTES '보폭' 참고. 숙임 4.2·앞으로 빠진 머리, 차올린 뒤꿈치, 무릎 드라이브.
 # =============================================================================
-RUN_FRAME_MS = 70
+RUN_FRAME_MS = 65
 RUN_MS = [RUN_FRAME_MS] * 8
-# 디딤발이 몸 아래를 지나가는 거리: 한 프레임 5.63 도트 × 8 = 45 (= stride px). 걷기 45 도트/s → 달리기 80.4 도트/s (1.79배)
-RUN_STANCE = [8.5, 2.9, -2.7, -8.4]                 # 디딤 4프레임(0 접지 → 3 발끝 뗌) — 미끄러짐 없이 몸 속도와 같게
-RUN_SWING = [(-10.0, 13.0), (-3.5, 16.0), (5.5, 11.0), (10.5, 4.0)]   # 흔드는 4프레임(뒤로 차올림 → 무릎 앞으로 → 뻗음)
+RUN_TRAVEL = 50.0 / 3.0                              # 설계 단위/프레임 (= 25 도트)
+# 한 다리 위상 0..7: 0 접지(앞) · 1 밀기(뒤) · 2 발끝 뗌 · 3 뒤꿈치 차올림 · 4 무릎 드라이브 · 5 앞으로 · 6 뻗음 · 7 내려옴
+RUN_LEG = [(RUN_TRAVEL / 2, 0), (-RUN_TRAVEL / 2, 0), (-19.0, 5), (-16.5, 15), (-6.0, 18), (6.5, 14), (13.0, 7), (12.0, 2)]
 RUN_BOB = [1, 2, 0, -2]                             # 접지 1 · 흡수 2(가장 낮음) · 밀기 0 · 체공 -2
-STRIDE_RUN = {"px": 45, "cycleMs": sum(RUN_MS)}
+STRIDE_RUN = {"px": round(RUN_TRAVEL * 8 * hero.S), "cycleMs": sum(RUN_MS)}
+RUN_FLIGHT = [2, 3, 6, 7]
 
 
 def _run_leg(i):
     """한 다리의 (앞뒤, 들림) — i 는 그 다리 기준 위상 프레임(0 = 접지)."""
-    i %= 8
-    if i < 4:
-        return (RUN_STANCE[i], 0 if i < 3 else 2)
-    return RUN_SWING[i - 4]
+    return RUN_LEG[i % 8]
 
 
 def act_run(direction):
@@ -38,14 +38,14 @@ def act_run(direction):
         near, far = _run_leg(i), _run_leg(i + 4)
         b = RUN_BOB[i % 4]
         bp = RUN_BOB[(i - 1) % 4]
-        k_near = near[0] / 11.0                      # 가까운 다리 앞(+)/뒤(-) 정도
+        k_near = max(-1.0, min(1.0, near[0] / 13.0))   # 가까운 다리 앞(+)/뒤(-) 정도
         flick = i % 6
         if direction in SIDE:
             # 팔은 반대 다리와 함께: 가까운 다리가 앞이면 가까운 팔은 뒤.  앞 팔은 높이(굽힌 팔꿈치), 뒤 팔은 뒤로 뻗음.
             sn, sf = -9.5 * k_near, 9.5 * k_near
             dyn, dyf = (-7.0 if sn > 0 else -1.5) * abs(k_near), (-7.0 if sf > 0 else -1.5) * abs(k_near)
             out.append(pose(bob=b, head=round((bp - b) * 0.6) + 2, crouch=3.0, foot=(far, near),
-                            hand=((sf, dyf), (sn, dyn)), lean_body=3.8 + 0.3 * (b > 0), hdx=4.5,
+                            hand=((sf, dyf), (sn, dyn)), lean_body=4.2 + 0.3 * (b > 0), hdx=5.0,
                             sway=-3.6 - 1.4 * math.cos(math.pi * i / 2), flame=flick,
                             lean=-4.5 - 1.2 * math.cos(math.pi * (i - 1) / 2), pulse=i % 2 == 0))
         else:
@@ -53,12 +53,12 @@ def act_run(direction):
             # 정면/뒷면: 앞뒤 디딤은 화면 y(원근 0.35), 들림은 그대로. 몸은 디딤발 쪽으로 크게 쏠림.
             fL, fR = near, far                       # 해부 왼다리 = near 위상
             stance = 1.0 if fL[1] == 0 and fR[1] > 0 else (-1.0 if fR[1] == 0 and fL[1] > 0 else 0.0)
-            armL = -fL[0] / 11.0 * sgn               # 왼다리 앞 → 왼팔 뒤
+            armL = -max(-1.0, min(1.0, fL[0] / 13.0)) * sgn   # 왼다리 앞 → 왼팔 뒤
             out.append(pose(bob=b, head=round((bp - b) * 0.6) + 3, crouch=3.0, squash=0.09,
                             shift=2.2 * stance, ptilt=1.6 * stance, stilt=1.8 * stance,
-                            twist=2.0 * (-fL[0] / 11.0) * sgn,
+                            twist=2.0 * armL,
                             lift=(round(fL[1] * 0.8), round(fR[1] * 0.8)),
-                            step=(0.35 * fL[0] * sgn, 0.35 * fR[0] * sgn),
+                            step=(0.3 * fL[0] * sgn, 0.3 * fR[0] * sgn),
                             hand=((-2.6 * armL, 8.0 * armL), (2.6 * armL, -8.0 * armL)),
                             sway=3.0 * math.sin(math.pi * i / 4), flame=flick,
                             lean=-3.0 * math.sin(math.pi * (i - 2) / 4), pulse=i % 2 == 0))
@@ -125,18 +125,20 @@ def _chips(im, origin, back, t, n, seed, spread=0.9, ember=0):
         ang = math.atan2(back[1], back[0]) + (r() - 0.5) * 2 * spread
         ca, sa = math.cos(ang), math.sin(ang)
         e = 0.0                                   # 실루엣 가장자리까지 걸어 나감 → 거기서부터 날아감
-        while e < 44 and 0 <= round(origin[0] + ca * e) < W and 0 <= round(origin[1] + sa * e) < H \
+        while e < 66 and 0 <= round(origin[0] + ca * e) < W and 0 <= round(origin[1] + sa * e) < H \
                 and px[round(origin[0] + ca * e), round(origin[1] + sa * e)][3]:
             e += 1.0
-        sp = 6 + 22 * r()
+        sp = (6 + 22 * r()) * S
         d = e + 1 + sp * t
-        x = origin[0] + ca * d + (r() - 0.5) * 3
-        y = origin[1] + sa * d + (r() - 0.5) * 4 + 16 * t * t        # 떨어짐(중력)
-        big = r() < 0.5
+        x = origin[0] + ca * d + (r() - 0.5) * 4.5
+        y = origin[1] + sa * d + (r() - 0.5) * 6 + 24 * t * t        # 떨어짐(중력)
+        big = r() < 0.55
         c = A[21] if (ember and k < ember) else ASH_CHIP[int(r() * len(ASH_CHIP))]
         pts = [(0, 0)] + ([(1, 0)] if big else [])
         if big and r() < 0.5:
             pts.append((0, 1))
+        if big and r() < 0.3:                     # 1.5배: 3px 비늘 조각(모서리가 깨진 재 껍데기)
+            pts.append((1, 1) if (0, 1) in pts else (-1, 1))
         cells = [(round(x) + dx, round(y) + dy) for dx, dy in pts]
         if all(0 <= cx < W and 0 <= cy < H and px[cx, cy][3] == 0 for cx, cy in cells):
             for cx, cy in cells:
@@ -150,11 +152,11 @@ def _back_vec(direction):
 
 
 def post_chips(im, R, direction, t, n, seed, ember=0):
-    ch = R.anchors.get("chest", (32, 47))
+    ch = to_px(R.anchors.get("chest", (32, 47)))
     b = _back_vec(direction)
     # 정면/뒷면은 위로 튀는 조각이 몸 뒤에 가리므로 양옆으로 퍼뜨린다(넓은 spread)
     spread = 1.35 if direction in ("down", "up") else 0.75
-    return _chips(im, (ch[0], ch[1] - 6), b, t, n, seed, spread=spread, ember=ember)
+    return _chips(im, (ch[0], ch[1] - 6 * S), b, t, round(n * 1.3), seed, spread=spread, ember=ember)
 
 
 # =============================================================================
@@ -239,31 +241,38 @@ def act_death(direction):
 
 
 def _diary_on_ground(px, W, H, cx, gy, flip):
-    """바닥에 누운 일기장(위에서 본 12×7, 표지 + 아래 책등) — 몸에서 떨어져 혼자 남음."""
-    w, h = 12, 7
+    """바닥에 누운 일기장(위에서 본 18×10, 표지 + 아래 종이 단면 2줄 + 그을린 모서리) — 몸에서 떨어져 혼자 남음."""
+    w, h = 18, 10
     for y in range(h):
         for x in range(w):
             sx, sy = cx + x - w // 2 + (y * flip) // 3, gy - h + y
             if not (0 <= sx < W and 0 <= sy < H):
                 continue
+            if (x, y) in ((w - 1, 0), (w - 2, 0), (w - 1, 1)):
+                continue                                  # 타서 떨어진 모서리
             if y == h - 1 or x == w - 1:
                 c = OUT                                   # 그늘 쪽 테두리
             elif y == 0 or x == 0:
                 c = DIARY[0]
-            elif y == h - 2:
-                c = PL[3] if x % 2 else PL[2]             # 낡은 종이 단면(아래)
+            elif y >= h - 3:
+                c = (PL[3] if x % 2 else PL[2]) if y == h - 3 else (PL[2] if x % 3 else PL[1])   # 낡은 종이 단면(두 줄)
             elif y == 1:
                 c = DIARY[2]                              # 표지 윗가장자리 빛
+            elif x == 2:
+                c = DIARY[0]                              # 책등 쪽 접힌 선
             else:
-                c = DIARY[1] if (x + y) % 5 else DIARY[0]
+                c = DIARY[1] if (x * 3 + y * 5) % 11 else DIARY[0]
             px[sx, sy] = c
-    for xx, yy, c in ((cx + 2, gy - 4, G[9]), (cx + 3, gy - 4, G[7])):   # 걸쇠
+    for xx, yy in ((cx + w // 2 - 2, gy - h + 1), (cx + w // 2 - 3, gy - h + 2)):
+        if 0 <= xx < W and 0 <= yy < H:
+            px[xx, yy] = A[19]                            # 그을린 가장자리 불씨 자국
+    for xx, yy, c in ((cx + 3, gy - 6, G[9]), (cx + 4, gy - 6, G[7]), (cx + 3, gy - 5, G[6]), (cx + 4, gy - 5, G[5])):   # 걸쇠
         if 0 <= xx < W and 0 <= yy < H:
             px[xx, yy] = c
-    for k in range(4):                                  # 끊어진 끈
-        xx, yy = cx - w // 2 - 1 - k, gy - 2 + (k % 2)
+    for k in range(6):                                  # 끊어진 끈
+        xx, yy = cx - w // 2 - 1 - k, gy - 3 + (k % 3 == 1)
         if 0 <= xx < W and 0 <= yy < H:
-            px[xx, yy] = WD[3]
+            px[xx, yy] = WD[3] if k < 4 else WD[2]
 
 
 def post_sink(im, R, direction, depth, pile, seed, i):
@@ -273,8 +282,9 @@ def post_sink(im, R, direction, depth, pile, seed, i):
     src = im.load()
     out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     po = out.load()
-    gx, gy = 32, 91                                         # 무덤 중심(발 피벗 근처)
-    pw, ph = pile if pile else (0, 0)
+    gx, gy = round(to_px((32, 91))[0]), round(to_px((32, 91))[1])   # 무덤 중심(발 피벗 근처)
+    pw, ph = (round(pile[0] * S), round(pile[1] * S)) if pile else (0, 0)
+    depth = round(depth * S)
     r = _rng(seed)
 
     def pile_top(x):
@@ -285,15 +295,15 @@ def post_sink(im, R, direction, depth, pile, seed, i):
             return gy + 1
         return gy - ph * math.sqrt(1 - u * u)
 
-    if depth < 90:
+    if depth < 90 * S:
         for y in range(H):
             for x in range(W):
                 sy = y - depth
                 if 0 <= sy < H and src[x, sy][3]:
                     top = pile_top(x)
-                    if y < top - 2 or (y < top and r() < 0.5):
-                        # 가라앉는 경계 바로 위는 재로 바뀌며 듬성듬성(가장자리 3px)
-                        if y > top - 5 and r() < 0.35:
+                    if y < top - 3 or (y < top and r() < 0.5):
+                        # 가라앉는 경계 바로 위는 재로 바뀌며 듬성듬성(가장자리 5px)
+                        if y > top - 7 and r() < 0.35:
                             po[x, y] = G[3] if r() < 0.6 else G[4]
                         else:
                             po[x, y] = src[x, sy]
@@ -301,7 +311,7 @@ def post_sink(im, R, direction, depth, pile, seed, i):
         bb = out.getbbox()
         if bb:
             back = _back_vec(direction)
-            _chips(out, ((bb[0] + bb[2]) / 2, bb[1] + 4), (back[0] * 0.6, -0.8), 0.5 + 0.1 * (i % 3), 6, seed, spread=1.2,
+            _chips(out, ((bb[0] + bb[2]) / 2, bb[1] + 6), (back[0] * 0.6, -0.8), 0.5 + 0.1 * (i % 3), 9, seed, spread=1.2,
                    ember=1 if i < 8 else 0)
     if pile:
         for x in range(gx - pw, gx + pw + 1):
@@ -323,16 +333,16 @@ def post_sink(im, R, direction, depth, pile, seed, i):
                     c = OUT
                 po[x, y] = c
         # 무덤 속 남은 불씨(꺼져 감)
-        n_emb = {4: 4, 5: 4, 6: 3, 7: 3, 8: 2}.get(i, 0)
+        n_emb = {4: 6, 5: 6, 6: 5, 7: 4, 8: 3}.get(i, 0)
         for k in range(n_emb):
             ex = gx + int((r() - 0.5) * pw * 1.2)
-            ey = int(pile_top(ex)) + 2 + int(r() * max(1, ph - 3))
+            ey = int(pile_top(ex)) + 2 + int(r() * max(1, ph - 4))
             if 0 <= ex < W and 0 <= ey < H and po[ex, ey][3]:
                 po[ex, ey] = A[21] if (i < 8 or k == 0) else A[19]
     if i >= 8:
         # 재가 흩어지며 드러난 일기장(해부 오른허리 쪽 바닥) — 마지막 프레임엔 이것만 남는다
-        dx = {"down": -7, "up": 7, "right": -4, "left": 4}[direction]
-        dgy = {"down": 93, "up": 92, "right": 94, "left": 91}[direction]
+        dx = round({"down": -7, "up": 7, "right": -4, "left": 4}[direction] * S)
+        dgy = round(to_px((0, {"down": 93, "up": 92, "right": 94, "left": 91}[direction]))[1])
         _diary_on_ground(po, W, H, gx + dx, dgy, 1 if dx < 0 else -1)
     return out
 

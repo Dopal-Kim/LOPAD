@@ -1,8 +1,9 @@
-"""주인공 v3 동작 목록 + 렌더 (1단계 idle·walk + 2단계 run·dash·hurt·death·칼 연격 3종 · 칼 휴대 오버레이).
+"""주인공 v3 동작 목록 + 렌더 (53라운드 Q1: 96×144).
 
-render_body(act)  → {dir: [Frame]}   Frame = (몸 RGBA, Rig, pose)
-render_combo(n)   → {dir: [ComboFrame]}  (몸 RGBA, 무기 RGBA, 손 기준점, 상태, Rig)
-render_carry(act) → {dir: [무기 RGBA]} + 칼집 입구 기준점
+render_body(act)          → {dir: [Frame]}   Frame = (몸 RGBA, Rig, pose)
+render_carry(act, body)   → {dir: [무기 RGBA]} + 칼집 입구 기준점(도트)   — 칼집에 든 칼
+render_carry_drawn(act, body) → {dir: [무기 RGBA]}                       — 뽑아 든 칼(같은 몸 시트)
+render_move(kind, key)    → {dir: [ComboFrame]}  연격 1~3 · 뽑기 · 넣기 · 특수
 """
 from collections import namedtuple
 
@@ -22,15 +23,17 @@ BODY = {
     "death": (motion.act_death, motion.DEATH_MS, False),
 }
 STRIDE = {"walk": hero.STRIDE["walk"], "run": motion.STRIDE_RUN}
-CARRY = ("idle", "walk", "run", "dash")        # 칼 휴대 오버레이를 만드는 몸 동작
+CARRY = ("idle", "walk", "run", "dash")        # 칼 휴대 오버레이(칼집·뽑아 든)를 만드는 몸 동작
+SAYA_HOLD = ("idle", "walk", "run")            # 왼손이 칼집 입구를 쥐는 몸 동작(53라운드 '무기 든 느낌')
 COMBOS = (1, 2, 3)
+MOVES = ("draw", "sheathe", "special")
 
 Frame = namedtuple("Frame", "image rig pose")
 ComboFrame = namedtuple("ComboFrame", "body weapon hands state rig")
 
 
-def _hands(R):
-    return {k: [round(R.anchors[k][0], 1), round(R.anchors[k][1], 1)] for k in ("handR", "handL") if k in R.anchors}
+def hands_px(R):
+    return {k: [round(c, 1) for c in hero.to_px(R.anchors[k])] for k in ("handR", "handL") if k in R.anchors}
 
 
 def render_body(act):
@@ -39,6 +42,8 @@ def render_body(act):
     for d in DIRS:
         frames = []
         for p in gen(d):
+            if act in SAYA_HOLD:
+                p = K.saya_hold(d, p)
             R = hero.draw_rig(d, p)
             frames.append(Frame(motion.apply_post(R.image, R, d, p), R, p))
         assert len(frames) == len(ms), (act, d)
@@ -51,16 +56,25 @@ def render_carry(act, body):
     out, mouths = {}, {}
     for d in DIRS:
         out[d] = [K.carry_frame(d, f.pose, f.rig) for f in body[d]]
-        mouths[d] = [[round(c, 1) for c in K.mouth_point(d, f.rig)[:2]] for f in body[d]]
+        mouths[d] = [[round(c, 1) for c in hero.to_px(K.mouth_point(d, f.rig)[:2])] for f in body[d]]
     return out, mouths
 
 
-def render_combo(n):
+def render_carry_drawn(act, body):
+    return {d: [K.carry_drawn_frame(d, act, i, f.pose, f.rig) for i, f in enumerate(body[d])] for d in DIRS}
+
+
+def render_move(kind, key):
+    defs = (K.COMBO[key] if kind == "combo" else K.MOVES[key])["frames"]
     out = {}
     for d in DIRS:
         frames = []
-        for i in range(len(K.COMBO[n]["frames"])):
-            R, w, hands, state, p = K.combo_frame(d, n, i)
+        for i in range(len(defs)):
+            R, w, hands, state, p = K.move_frame(d, kind, key, i)
             frames.append(ComboFrame(R.image, w, hands, state, R))
         out[d] = frames
     return out
+
+
+def render_combo(n):
+    return render_move("combo", n)

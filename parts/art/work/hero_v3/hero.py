@@ -1,21 +1,37 @@
-"""주인공 v3 '혼불이 새는 재 껍데기 망령' — 64×96, 피벗 (32,92) (52라운드 Q6~Q10, 1단계 2차 검수용).
+"""주인공 v3 '혼불이 새는 재 껍데기 망령' — 96×144, 피벗 (48,138) (53라운드 Q1: 1.5배. 52라운드 Q6~Q10 디자인 유지).
 
 개념: parts/art/work/gemini/concept_char/hero3_b.jpg (확정). 생성 이미지 픽셀은 쓰지 않는다.
-Q10 반영: 매끈한 공 머리 → 금 간 두개골(관자놀이 패임·광대 돌출·턱각·재가 부스러진 가장자리 결손),
-         직립 상자 몸 → 숙인 전투 자세(말린 어깨·앞으로 빠진 목·굽힌 팔꿈치·가슴/허리 비틀림),
-         걷기 = 무게 이동(골반 기울기·디딤발 쪽 몸 쏠림)·앞뒤 깊이 ±2.5·보폭 확대·천/혼불 2차 움직임 확대.
+골격은 '설계 좌표'(64×96 판 치수, 피벗 (32,92))로 정의하고, Rig3 가 1.5배로 변환해 다시 래스터·셰이딩한다(최근접 확대 아님).
+1.5배 해상도에서 새로 그린 세부(픽셀 좌표): 얼굴(눈두덩·분노한 눈·광대·입) · 정수리 균열 · 갈비 능선 · 쇄골 ·
+  갑옷 파편 리벳·긁힘·가장자리 빛 · 붕대 감긴 결 · 허리천 주름·찢김 · 일기장 걸쇠·끈·종이 단면 · 혼불 10줄 모양.
+Q10 반영: 금 간 두개골(관자놀이 패임·광대 돌출·턱각·재가 부스러진 가장자리 결손),
+         숙인 전투 자세(말린 어깨·앞으로 빠진 목·굽힌 팔꿈치·가슴/허리 비틀림), 걷기 무게 이동.
 해부학 좌우(화면 아님):
-  왼쪽  = 분노한 호박 눈빛 · 왼어깨 견갑 + 혼불 · 흉갑 조각 · 왼팔뚝 완갑 · 왼정강이 붕대
+  왼쪽  = 분노한 호박 눈빛 · 왼어깨 견갑 + 혼불 · 흉갑 조각 · 왼팔뚝 완갑 · 왼정강이 붕대 · 왼허리 칼집
   오른쪽 = 꺼진 눈 · 오른어깨 뒤 화살 · 오른정강이 정강이받이 · 오른허리 일기장
-  가운데 = 가슴 균열 혼불(앞), 등 균열 혼불(뒤), 정수리 균열
+  가운데 = 가슴 균열 혼불(앞), 등 아래 균열 혼불(뒤 — 등 가운데는 상흔 자리, 53라운드 Q4), 정수리 균열
 방향: down = 정면(해부 왼쪽이 화면 오른쪽) / up = 뒷면 / left·right = 측면(거울 아님, 셰이딩 재계산).
 """
 import math
 
-from v3kit import Rig3, Part, G, A, SL, WD, PL, OUT, ik2
+from PIL import Image, ImageDraw
 
-FW, FH = 64, 96
-PIV = (32, 92)
+from v3kit import Rig3, Part, G, A, SL, WD, PL, OUT, ik2, raster_path
+
+S = 1.5                  # 53라운드 Q1 — 설계 좌표 1 = 1.5 도트
+FW, FH = 96, 144
+PIV = (48, 138)
+DPIV = (32, 92)          # 설계 좌표 피벗(64×96 판)
+
+
+def new_rig():
+    return Rig3(FW, FH, S=S, src=DPIV, dst=PIV)
+
+
+def to_px(p):
+    """설계 좌표 → 몸 시트 도트 좌표."""
+    return (PIV[0] + S * (p[0] - DPIV[0]), PIV[1] + S * (p[1] - DPIV[1]))
+
 
 # ---- 팔레트 (색 예산 30, 52라운드 Q7) -------------------------------------
 ASH = [G[1], G[2], G[3], G[4], G[5], G[6], G[8]]   # 재 껍데기 몸 (본색 2~3)
@@ -33,17 +49,17 @@ HIP_Y = 61.0
 FOOT_Y = 89.0
 THIGH, SHIN = 16.0, 15.6
 UPPER, FORE = 13.2, 12.8
-STRIDE_A = 9.0          # 측면 발 앞뒤 진폭 → 한 주기 이동 = 4A = 36 도트
-CYCLE_MS = 800
+STRIDE_A = 12.0         # 측면 발 앞뒤 진폭(설계) → 한 주기 이동 = 4A = 48 설계 = 72 도트 (53라운드: 9 → 12)
+CYCLE_MS = 640          # 80ms × 8 (53라운드: 800 → 640) — NOTES '보폭' 참고
 
-# 어깨 혼불 6모양 (아래가 발원점)
+# 어깨 혼불 6모양 (픽셀, 7×10 — 1.5배 해상도에서 새로 그림. 아래가 발원점, 위 끝 혼불 조각이 떨어져 나감)
 FLAMES = [
-    ["  .  ", "  o  ", " oO  ", " oOo ", " rHr ", "  r  "],
-    ["   . ", "  o  ", "  Oo ", " oOo ", " rHr ", "  r  "],
-    ["     ", " .   ", " oo  ", " oOo ", " rOr ", "  r  "],
-    ["  .  ", "  o. ", " oO  ", " OHo ", " rOr ", "  r  "],
-    ["     ", "   . ", "  oo ", " oOo ", " rHr ", "  r  "],
-    [" .   ", "  o  ", " oOo ", " oHo ", " rOr ", "  r  "],
+    ["    .  ", "   o   ", "   oo  ", "  oOo  ", "  oOo  ", " oOHo  ", " oOHOo ", " rOHOr ", "  rOr  ", "   r   "],
+    ["   .   ", "   .o  ", "    o  ", "   oO  ", "  oOo  ", "  oHOo ", " oOHOo ", " rOHOr ", "  rOr  ", "   r   "],
+    [" .     ", "       ", "  .    ", "  oo   ", "  oOo  ", " oOOo  ", " oOHOo ", " rOHOr ", "  rOr  ", "   r   "],
+    ["   .   ", "   o.  ", "  oO   ", "  oOo  ", " oOHo  ", " oHHOo ", " oOHOo ", " rOHOr ", "  rOr  ", "   r   "],
+    ["       ", "     . ", "    o  ", "   oo  ", "  oOo  ", "  oOHo ", " oOHOo ", " rOHOr ", "  rOr  ", "   r   "],
+    ["  .    ", "   o   ", "  oOo  ", "  oHo  ", " oOHo  ", " oOHOo ", " oOHOo ", " rOOOr ", "  rOr  ", "   r   "],
 ]
 
 # 두개골 윤곽 (정면, 머리 중심 기준 dx, dy; dx + = 해부 왼쪽) — 관자놀이 패임 · 광대 돌출 · 턱각 · 좁은 턱
@@ -98,64 +114,105 @@ def lerp(a, b, t):
 
 
 def draw_flame(R, x0, y0, variant, lean, rows=None):
+    """x0, y0 = 발원점(픽셀). lean = 설계 단위 기울기(1.5배로 환산). rows = 설계 줄 수(6 기준) → 픽셀 줄 수."""
     g = FLAMES[variant % len(FLAMES)]
     if rows:
-        g = g[-rows:]
+        g = g[-max(1, round(rows * len(g) / 6.0)):]
     h = len(g)
     for r, row in enumerate(g):
         k = (h - 1 - r) / max(1, h - 1)
-        sx = round(lean * k)
+        sx = round(lean * S * k)
         for c, ch in enumerate(row):
             if ch != " ":
-                R.dot(x0 + (c - 2) + sx, y0 - (h - 1 - r), FIRE[ch])
+                R.px(x0 + (c - 3) + sx, y0 - (h - 1 - r), FIRE[ch])
 
 
 def bite(R, cx, cy, r):
-    """재가 떨어져 나간 결손 — 원 안 픽셀을 비운다(셀아웃이 홈 둘레를 다시 감싼다)."""
-    for y in range(int(cy - r) - 1, int(cy + r) + 2):
-        for x in range(int(cx - r) - 1, int(cx + r) + 2):
-            if (x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2 <= r * r:
-                R.holes.add((x, y))
+    """재가 떨어져 나간 결손(설계 좌표) — 원 안 픽셀을 비운다(셀아웃이 홈 둘레를 다시 감싼다)."""
+    R.hole(cx, cy, r)
 
 
-def path_cells(pts, F):
-    """F(dx, y) -> (화면 x, 화면 y)."""
-    seen = []
+def path_px(R, pts, F):
+    """설계 꺾은선(F(dx, y) → 설계 화면 좌표) → 끊김 없는 픽셀 목록. 구간을 2등분해 비선형 변형(숙임·비틀림)을 따라간다."""
+    q = []
     for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
-        n = int(max(abs(x1 - x0), abs(y1 - y0)))
-        for k in range(n + 1):
-            t = k / max(1, n)
-            dx, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
-            q = F(dx, y)
-            c = (round(q[0]), round(q[1]))
-            if c not in seen:
-                seen.append(c)
-    return seen
+        for t in (0.0, 0.5):
+            q.append(R.T(F(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t)))
+    q.append(R.T(F(*pts[-1])))
+    return raster_path(q)
 
 
 def crack(R, pts, F, pulse=0, thick=(1, 0), spill=True, glow=0):
-    """균열 혼불: 중심선(23/25/26) + 한쪽 두께(21) + 경로를 따라 주변 몸 빛 번짐. glow 2 = 백열."""
-    seen = path_cells(pts, F)
+    """균열 혼불: 중심선(23/25/26) + 한쪽 두께(21) + 가운데 바깥 1px 잔광(19) + 경로 주변 몸 빛 번짐. glow 2 = 백열."""
+    seen = path_px(R, pts, F)
     if spill:
         R.spill_cells.extend(seen)
-    if thick != (0, 0):
-        for x, y in seen:
-            R.dot(x + thick[0], y + thick[1], A[23] if glow >= 2 else A[21])
     n = len(seen)
+    if thick != (0, 0):
+        for i, (x, y) in enumerate(seen):
+            R.px(x + thick[0], y + thick[1], A[23] if glow >= 2 else A[21])
+            if 0.3 < i / n < 0.7 and i % 2 == 0:
+                R.px(x + 2 * thick[0], y + 2 * thick[1], A[21] if glow >= 2 else A[19])
     for i, (x, y) in enumerate(seen):
         mid = 0.25 < i / n < 0.75
         if glow >= 2:
-            R.dot(x, y, A[26] if (mid or i % 2 == 0) else A[25])
+            R.px(x, y, A[26] if (mid or i % 2 == 0) else A[25])
             continue
-        R.dot(x, y, A[26] if (mid and pulse and i % 2 == 0) else (A[25] if mid else A[23]))
+        R.px(x, y, A[26] if (mid and pulse and i % 3 == 0) else (A[25] if mid else A[23]))
 
 
 def groove(R, pts, F, hi=True):
-    """재 껍데기 금: 어두운 홈 G01 + 홈 아래 가장자리 빛 G05(한 칸 걸러)."""
-    for k, (x, y) in enumerate(path_cells(pts, F)):
-        R.dot(x, y, G[1])
-        if hi and k % 2 == 0:
-            R.dot(x + 1, y + 1, G[5])
+    """재 껍데기 금: 어두운 홈 G01 + 홈 아래 가장자리 빛 G05(두 칸 걸러)."""
+    for k, (x, y) in enumerate(path_px(R, pts, F)):
+        R.px(x, y, G[1])
+        if hi and k % 3 == 0:
+            R.px(x + 1, y + 1, G[5])
+
+
+def fline(R, pts, cols, part=None):
+    """설계 좌표 꺾은선 → 픽셀 선. cols = 색 하나 또는 목록(선을 따라 단계). part 를 주면 그 부위 위에만."""
+    cells = raster_path([R.T(q) for q in pts])
+    n = len(cells)
+    for i, (x, y) in enumerate(cells):
+        c = cols if not isinstance(cols, list) else cols[min(len(cols) - 1, int(i * len(cols) / max(1, n)))]
+        R.cdot(x, y, c, part)
+    return cells
+
+
+def fpoly(R, pts, c, part=None):
+    """설계 좌표 다각형을 픽셀로 채운 덧칠(눈두덩·결손 그늘 등)."""
+    q = [R.T(p) for p in pts]
+    x0, y0 = int(min(p[0] for p in q)) - 1, int(min(p[1] for p in q)) - 1
+    x1, y1 = int(max(p[0] for p in q)) + 2, int(max(p[1] for p in q)) + 2
+    m = Image.new("L", (x1 - x0, y1 - y0), 0)
+    ImageDraw.Draw(m).polygon([(round(x - x0), round(y - y0)) for x, y in q], fill=255)
+    mp = m.load()
+    for y in range(y1 - y0):
+        for x in range(x1 - x0):
+            if mp[x, y]:
+                R.cdot(x + x0, y + y0, c, part)
+
+
+def wraps(R, a, b, r, n, part, col=PL[0], slant=0.9):
+    """붕대 감긴 결: 축 a→b 를 따라 n 개의 비스듬한 선(부위 안에만). 설계 좌표."""
+    ax, ay = a
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    L = math.hypot(dx, dy) or 1.0
+    ux_, uy_ = dx / L, dy / L
+    nx, ny = -uy_, ux_
+    for k in range(n):
+        t = (k + 0.5) / n
+        cx, cy = ax + dx * t, ay + dy * t
+        p0 = (cx - nx * r * 1.3 - ux_ * slant, cy - ny * r * 1.3 - uy_ * slant)
+        p1 = (cx + nx * r * 1.3 + ux_ * slant, cy + ny * r * 1.3 + uy_ * slant)
+        fline(R, [p0, p1], col, part)
+
+
+def rivet(R, x, y):
+    """갑옷 리벳(설계 좌표): 빛 1 + 그늘 1."""
+    p = R.T((x, y))
+    R.px(p[0], p[1], SL[6])
+    R.px(p[0] + 1, p[1] + 1, SL[1])
 
 
 def reach(sh, tgt, frac=0.97):
@@ -178,7 +235,7 @@ def arm_end(el, hand, k=2.0):
 # 정면(down) · 뒷면(up)
 # =============================================================================
 def draw_front(p, back=False):
-    R = Rig3(FW, FH)
+    R = new_rig()
     m = -1 if back else 1
     X = lambda dx: 32 + m * dx                   # noqa: E731
     b, br, hd = p["bob"], p["breath"], p["head"]
@@ -207,6 +264,7 @@ def draw_front(p, back=False):
     if not back:
         R.capsule(P("arrow", CLOTH, 2, flat=True, rim=False, cast=False), [U(-11, 36), U(-19.5, 23)], [0.6, 0.6])
         R.poly(P("fletch", ASH, 5, flat=True, rim=False, cast=False), [U(-19, 24), U(-22.5, 18), U(-21, 24.5)])
+    details = []        # 렌더 순서와 무관한 1.5배 세부(덧칠) — 부위 위치를 모아 두었다가 마지막에 그림
     # --- 다리 (벌린 전투 자세: 발 ±8, 무릎이 살짝 바깥으로 굽음) -------------------------
     for side, s in (("L", 1), ("R", -1)):
         li = 0 if side == "L" else 1
@@ -221,13 +279,11 @@ def draw_front(p, back=False):
             a0, a1 = lerp(knee, foot, 0.22), lerp(knee, foot, 0.84)
             R.poly(P("greave", IRON, 2, soft=1.4), [(a0[0] - 3.3, a0[1] + 1), (a0[0] + 3.1, a0[1]), (a1[0] + 2.5, a1[1] - 4), (a1[0] - 0.5, a1[1] - 1.5), (a1[0] - 3.0, a1[1] - 4.5)])
             R.ellipse(P("kneecap", IRON, 2, group="greave", soft=1.0), knee[0], knee[1] - 0.5, 2.6, 2.0)
+            details.append(("greave", a0, a1, knee))
         else:
             q0, q1 = lerp(knee, foot, 0.3), lerp(knee, foot, 0.86)
             R.capsule(P("shinband", BAND, 1, soft=1.0, rim=False), [q0, q1], [3.2, 2.8])
-            for k in range(3):
-                q = lerp(q0, q1, 0.2 + 0.3 * k)
-                for ox in (-2, -1, 0):
-                    R.dot(round(q[0]) + ox, round(q[1]) + (1 if ox == 0 else 0), PL[0])
+            details.append(("shinband", q0, q1, knee))
     def front_arm(side):
         s = 1 if side == "L" else -1
         li = 0 if side == "L" else 1
@@ -246,7 +302,9 @@ def draw_front(p, back=False):
         R.capsule(P("arm" + side, ASH, 2, group="arm" + side, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [shj, el, end], [3.6, 3.0, 2.5])
         if side == "L":
             R.capsule(P("vamb", IRON, 2, soft=1.0), [lerp(el, hand, 0.25), lerp(el, hand, 0.66)], [3.2, 2.9])
+            details.append(("vamb", lerp(el, hand, 0.25), lerp(el, hand, 0.66), el))
         R.ellipse(P("hand" + side, BAND, 1, soft=1.0, rim=False), hand[0], hand[1] + 0.4, 2.6, 2.8)
+        details.append(("hand" + side, (hand[0], hand[1] - 2.2), (hand[0], hand[1] + 2.8), el))
         R.anchors["hand" + side] = (hand[0], hand[1] + 0.4)
         R.anchors["shoulder" + side] = shj
 
@@ -261,6 +319,7 @@ def draw_front(p, back=False):
     hem = [(10, 62), (9 + sw, 68.5), (6.5 + sw * 1.1, 66), (4.5 + sw * 1.2, 72), (1.5 + sw * 1.3, 67.5), (-1.5 + sw * 1.3, 71.5),
            (-4 + sw * 1.2, 66.5), (-6.5 + sw * 1.1, 70.5), (-9 + sw, 66.5), (-10, 62)]
     R.poly(P("loin", CLOTH, 0, soft=1.8), [U(-10, 57), U(10, 57)] + [(ux(dx, 57), uy(dx, 57) + (y - 57)) for dx, y in hem])
+    details.append(("loin", [(ux(dx, 57), uy(dx, 57) + (y - 57)) for dx, y in hem], U(0, 57.5), None))
     R.capsule(P("belt", CLOTH, 2, soft=0.8), [U(-9.8, 57.6), U(9.8, 57.6)], [1.2, 1.2])
     # --- 일기장 (오른허리) — 천보다 반 박자 늦게 흔들림 -------------------------------------
     dx0 = -14.6 - 0.6 * sw
@@ -280,6 +339,7 @@ def draw_front(p, back=False):
     hx = ux(0, 30) + p["hdx"]
     hy = (22.5 if not sq else HIP_Y - (HIP_Y - 22.5) * (1.0 - sq)) + b + cr + hd - br * 0.6
     R.anchors.update(head=(hx, hy), chest=U(0, 45), hipL=U(10.5, 58.5), hipR=U(-10.5, 58.5))
+    R.scar = scar_rect(U, SCAR_BACK, back)
     if not back:
         R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(hx + m * dx, hy + dy) for dx, dy in SKULL_FRONT])
         R.poly(P("face", FACE, 3, group="head", soft=1.4, rim=False, cast=False, warm=True, vgrad=0.8),
@@ -287,12 +347,13 @@ def draw_front(p, back=False):
     else:
         R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(hx + m * dx, hy + dy) for dx, dy in SKULL_BACK])
     # 재가 부스러진 가장자리 결손 (해부 기준 위치 → 방향 따라 좌우 바뀜)
-    bite(R, hx + m * 3.6, hy - 9.5, 2.3)         # 재가 떨어져 나간 결손: 정수리 균열 옆 홈
-    bite(R, hx + m * 7.9, hy - 4.4, 2.0)          # 해부 왼쪽 옆머리 홈
-    bite(R, hx - m * 8.2, hy - 2.6, 1.3)          # 관자놀이
-    bite(R, hx - m * 6.6, hy + 7.0, 1.2)          # 턱각
+    bite(R, hx + m * 4.4, hy - 10.2, 1.7)        # 재가 떨어져 나간 결손: 정수리 균열 옆 얕은 홈(1.5배에서 뿔처럼 보이지 않게 얕게)
+    bite(R, hx + m * 8.4, hy - 4.4, 1.8)          # 해부 왼쪽 옆머리 홈
+    bite(R, hx - m * 8.4, hy - 2.6, 1.2)          # 관자놀이
+    bite(R, hx - m * 6.8, hy + 7.0, 1.1)          # 턱각
     # --- 견갑 (왼어깨) ------------------------------------------------------
-    R.poly(P("pauldron", IRON, 2, soft=1.8), [U(dx, y) for dx, y in [(7.5, 32.5), (14, 32.5), (19, 36.5), (18.6, 42), (12.5, 41.6), (8, 37.5)]])
+    pd = [U(dx, y) for dx, y in [(7.5, 32.5), (14, 32.5), (19, 36.5), (18.6, 42), (12.5, 41.6), (8, 37.5)]]
+    R.poly(P("pauldron", IRON, 2, soft=1.8), pd)
     # --- 뒷면 화살 -------------------------------------------------------------
     if back:
         for (bx, by), (tx, ty), fl in (((-8, 41), (-16, 27), -1), ((9, 49), (16, 37), 1)):
@@ -300,80 +361,127 @@ def draw_front(p, back=False):
             t0 = U(tx, ty)
             R.poly(P("fletchb", ASH, 5, flat=True, rim=False, cast=False), [t0, (t0[0] + m * fl * 2.5, t0[1] - 4.5), (t0[0] - m * fl * 1.0, t0[1] - 0.5)])
 
-    # ======================= 덧칠 =======================
-    H = lambda dx: hx + m * dx                   # noqa: E731
+    # ======================= 덧칠 (1.5배 해상도 세부) =======================
     HF = lambda dx, dy: (hx + m * dx, hy + dy)   # noqa: E731
-    # 정수리 빛(화면 좌상단, 방향 무관) + 정수리 균열 혼불 + 두개 금
-    for ddx, dy in ((-4, -8), (-3, -8), (-2, -9), (-5, -7), (-4, -7), (-1, -9), (-5, -6), (-3, -9)):
-        R.dot(round(hx) + ddx, round(hy + dy), G[8])
-    crown = [(1.5, -9, A[21]), (2.5, -8, A[23]), (2.5, -7, A[25]), (3.5, -6, A[23]), (4.5, -5, A[21]), (5.0, -4, A[19])]
-    for dx, dy, c in crown:
-        R.dot(round(H(dx)) + m, round(hy + dy), A[18])                                  # 균열 옆 데워진 재(1px)
-    for dx, dy, c in crown:
-        R.dot(round(H(dx)), round(hy + dy), c)
-    for dx, dy, c in ((5.0, -3.6, A[19]), (5.4, -2.6, A[21]), (5.0, -1.6, A[21]), (5.6, -0.8, A[19])):
-        R.dot(round(H(dx)), round(hy + dy), c)                                           # 균열이 이마를 타고 분노한 눈두덩까지
+    HFs = lambda pts: [HF(dx, dy) for dx, dy in pts]   # noqa: E731
+    # 정수리 빛(화면 좌상단, 방향 무관 → 화면 좌표로 고정)
+    fpoly(R, [(hx - 5.6, hy - 6.0), (hx - 4.6, hy - 8.2), (hx - 2.6, hy - 9.5), (hx - 0.8, hy - 9.4), (hx - 2.4, hy - 8.0), (hx - 4.2, hy - 6.4)], G[8], "head")
+    fline(R, [(hx - 6.6, hy - 3.0), (hx - 6.0, hy - 5.6)], G[6], "head")
+    # 정수리 균열 혼불(해부 왼쪽) — 정수리 → 이마 → 분노한 눈두덩
+    crown = HFs([(1.5, -9.6), (2.4, -8.0), (2.6, -6.8), (3.6, -5.8), (4.6, -4.8), (5.0, -3.6), (5.4, -2.4), (5.0, -1.4)])
+    fline(R, [(q[0] + m * 0.7, q[1]) for q in crown[:6]], A[18], "head")       # 균열 옆 데워진 재
+    fline(R, crown, [A[21], A[23], A[25], A[26] if p["pulse"] else A[25], A[25], A[23], A[21], A[19]])
+    fline(R, HFs([(3.6, -5.8), (2.2, -4.6)]), A[21], "head")                     # 잔가지
     groove(R, [(-2, -9.5), (-3.5, -7), (-3, -5)], HF, hi=not back)
+    groove(R, [(-7.2, -0.6), (-6.2, 1.6)], HF, hi=False)                          # 관자놀이 실금
     if not back:
-        # 관자놀이 패임(얼굴 옆) · 광대 위 빛(빛 쪽) · 눈두덩 그늘 · 분노한 왼눈 · 꺼진 오른눈 · 닫힌 입
-        for ddx in (-6, 6):
-            R.dot(round(hx) + ddx, round(hy) + 0, G[2]); R.dot(round(hx) + ddx, round(hy) + 1, G[2])
-        for dx, dy in ((0, 0), (1, 0), (-1, 0), (2, -1), (3, -1), (4, -2), (-2, -1), (-3, -1), (-4, -2), (5, -2), (-5, -2)):
-            R.dot(round(H(dx)), round(hy + dy), G[5])                                        # 이마뼈 윗면(미간이 낮음)
-        for dx, dy in ((2, 1), (3, 1), (4, 0), (5, 0), (6, 0), (-2, 1), (-3, 1), (-4, 0), (-5, 0), (-6, 1), (-6, 2), (-2, 3), (2, 3)):
-            R.dot(round(H(dx)), round(hy + dy), OUT)                                         # 눈두덩 두 패임(콧등으로 갈라짐)
-        for dy, c in ((1, G[3]), (2, G[3]), (3, G[2]), (4, G[2])):
-            R.dot(round(H(0)), round(hy + dy), c)                                            # 콧등
-        R.dot(round(H(0)), round(hy + 5.4), G[1]); R.dot(round(H(1)), round(hy + 5.4), G[1])   # 코 밑 그늘
-        for ddx, dy, c in ((-6, 4, G[4]), (-5, 4, G[4]), (-4, 4, G[3]), (6, 4, G[3]), (5, 4, G[3])):
-            R.dot(round(hx) + ddx, round(hy + dy), c)                                        # 광대(빛 쪽 더 밝게)
-        for ddx in (-3, -2, -1, 0, 1, 2):
-            R.dot(round(hx) + ddx, round(hy + 9.6), G[3] if ddx < 0 else G[2])                # 턱 끝 윗면
+        fline(R, [(hx - 6, hy - 0.2), (hx - 6, hy + 1.6)], G[2], "face")            # 관자놀이 패임
+        fline(R, [(hx + 6, hy - 0.2), (hx + 6, hy + 1.6)], G[2], "face")
+        fline(R, HFs([(-5.6, -2.2), (-4, -2.0), (-2.6, -1.0), (-1, -0.2), (1, -0.2), (2.6, -1.0), (4, -2.0), (5.6, -2.2)]), G[5])   # 이마뼈 윗면
+        # 눈두덩 두 패임(콧등으로 갈라짐) — 분노한 쪽은 안쪽이 눌려 내려온 모양
+        fpoly(R, HFs([(1.4, 1.4), (3.6, -0.6), (6.6, -1.0), (6.9, 1.2), (5.6, 2.9), (3.4, 3.7), (1.6, 3.3)]), OUT)
+        fpoly(R, HFs([(-1.4, 1.2), (-3.8, -0.4), (-6.6, -0.2), (-6.9, 2.4), (-5.0, 3.6), (-2.4, 3.7)]), OUT)
+        fline(R, HFs([(-5.2, 2.2), (-4.0, 2.4)]), G[1])                            # 꺼진 눈: 재 덮인 어둠 속 희미한 결
+        fline(R, HFs([(0, 1.2), (0, 3.0)]), G[3], "face")                          # 콧등
+        fline(R, HFs([(0, 3.6), (0, 4.8)]), G[2], "face")
+        fline(R, HFs([(-0.6, 5.6), (1.0, 5.6)]), G[1], "face")                     # 코 밑 그늘
+        fline(R, HFs([(-6.4, 4.0), (-4.2, 4.2)]), G[4], "face")                    # 광대(해부 오른쪽)
+        fline(R, HFs([(4.4, 4.2), (6.2, 4.0)]), G[3], "face")
+        fline(R, [(hx - 6.2, hy + 4.0), (hx - 5.4, hy + 3.4)], G[5], "face")        # 빛 쪽 광대 끝
+        fline(R, HFs([(-4.8, 6.2), (-3.6, 7.4)]), G[1], "face")                    # 광대 아래 패임
+        fline(R, HFs([(4.8, 6.2), (3.6, 7.4)]), G[1], "face")
+        fline(R, HFs([(-2.4, 8.4), (2.4, 8.4)]), G[1], "face")                     # 닫힌 입
+        fline(R, HFs([(-0.8, 8.4), (0.8, 8.4)]), OUT, "face")
+        fline(R, [(hx - 3, hy + 9.7), (hx - 0.4, hy + 9.7)], G[3], "face")          # 턱 끝 윗면
+        fline(R, [(hx + 0.4, hy + 9.7), (hx + 2, hy + 9.7)], G[2], "face")
         if not p["eyeOff"]:
-            R.spill.append((H(4), hy + 2, 2.4))
-        for dx, dy, c in ((2, 2, EYE[0]), (3, 2, EYE[1]), (4, 1, EYE[2]), (5, 1, EYE[3] if p["pulse"] else EYE[2]), (6, 0, EYE[1]),
-                          (3, 3, EYE[0]), (4, 2, EYE[2]), (5, 2, EYE[1])):
-            R.dot(round(H(dx)), round(hy + dy), OUT if p["eyeOff"] else c)
-        for dx, dy in ((-3, 2), (-4, 2), (-3, 3), (-4, 3), (-5, 2)):
-            R.dot(round(H(dx)), round(hy + dy), OUT)
-        for dx, dy in ((-4.6, 6.4), (-3.8, 7.2), (4.6, 6.4), (3.8, 7.2)):
-            R.dot(round(H(dx)), round(hy + dy), G[1])                                        # 광대 아래 패임
-        for dx in (-2, -1, 0, 1, 2):
-            R.dot(round(H(dx)), round(hy + 8.4), G[1])                                       # 닫힌 입
+            q = R.T(HF(4.2, 1.6))
+            R.spill.append((q[0], q[1], 3.6))
+            # 분노한 왼눈: 안쪽이 낮고 바깥이 치켜 올라간 가는 눈빛 + 아래 두께
+            fline(R, HFs([(2.3, 2.5), (3.6, 1.8), (5.0, 1.0), (6.2, 0.2)]),
+                  [EYE[0], EYE[1], EYE[2], EYE[3] if p["pulse"] else EYE[2], EYE[2], EYE[1]])
+            fline(R, HFs([(3.0, 2.6), (4.6, 1.9)]), [EYE[0], EYE[1], EYE[2]])
+            q = R.T(HF(5.0, 1.0))
+            R.px(q[0], q[1] - 1, EYE[1])                                            # 위로 새는 눈빛 1px
         # 가슴 균열 · 갈비 · 쇄골 · 껍데기 금
         crack(R, [(-3, 37.5), (-1, 40.5), (-4.5, 43.5), (-1.5, 46.5), (-3.5, 50), (-1, 53)], U, pulse=p["pulse"], thick=(m, 0), glow=p["glow"])
         crack(R, [(-1, 40.5), (2.5, 41.5)], U, thick=(0, 1), spill=False, glow=p["glow"])
-        for dx, y in ((-11, 45), (-10, 45), (-11, 48), (-10, 48), (-9, 48), (-10, 51), (-9, 51), (8, 51), (9, 51), (9, 54), (8, 54)):
-            R.dot(round(ux(dx, y)), round(uy(dx, y)), G[2])
-        for s_ in (1, -1):
-            for k in range(7):
-                dx = s_ * (3.5 + k)
-                if not (s_ == 1 and dx > 3):
-                    R.dot(round(ux(dx, 34)), round(uy(dx, 34 + k * 0.25)), G[1])
+        crack(R, [(-3.5, 50), (-6.5, 51.5)], U, thick=(0, 0), spill=False, glow=p["glow"])     # (1.5배 세부) 아래 잔가지
+        for y in (44.6, 47.6, 50.6):                                               # 갈비 능선(해부 오른쪽 — 빛 위, 그늘 아래)
+            fline(R, [U(-12.2, y - 0.8), U(-10, y), U(-7.6, y + 0.5)], G[4], "torso")
+            fline(R, [U(-12.0, y + 0.3), U(-9.8, y + 1.1), U(-7.6, y + 1.5)], G[1], "torso")
+        for y in (51.0, 54.0):
+            fline(R, [U(7.6, y), U(9.8, y + 0.4)], G[2], "torso")
+        for s_ in (1, -1):                                                         # 쇄골
+            if s_ == -1:
+                fline(R, [U(-3.5, 34.0), U(-7, 34.6), U(-10, 34.2)], G[1], "torso")
+                fline(R, [U(-4.0, 33.4), U(-8.5, 33.6)], G[5], "torso")
         groove(R, [(-15, 40), (-13, 42.5), (-14, 45.5), (-12.5, 48)], U)
         groove(R, [(6, 51), (7.5, 53.5), (6.5, 56)], U, hi=False)
-        R.dot(round(ux(16.5, 55)), round(uy(16.5, 55)), SL[6]); R.dot(round(ux(17.5, 56)), round(uy(17.5, 56)), SL[2])
+        groove(R, [(-6, 52.5), (-8, 55.5)], U, hi=False)
+        # 흉갑 조각: 리벳 · 긁힘 · 위 가장자리 빛
+        for dx, y in ((4.0, 39.2), (11.6, 37.4), (6.0, 46.4)):
+            rivet(R, *U(dx, y))
+        fline(R, [U(3, 38.2), U(12, 36.4)], SL[6], "plate")
+        fline(R, [U(7, 41), U(10.5, 45.5)], SL[1], "plate")
+        fline(R, [U(5, 43), U(6.5, 44.5)], SL[1], "plate")
+        rivet(R, *U(16.5, 55))
     else:
-        crack(R, [(1, 36), (-1.5, 40), (2, 44), (-1, 48), (1.5, 52), (0, 56)], U, pulse=p["pulse"], thick=(m, 0), glow=p["glow"])
-        crack(R, [(2, 44), (6.5, 42)], U, thick=(0, 1), spill=False, glow=p["glow"])
-        for s_ in (1, -1):
-            for k in range(5):
-                R.dot(round(ux(s_ * (6 + k), 43)), round(uy(s_ * (6 + k), 43 + k * 0.6)), G[1])
+        # 등: 가운데(상흔 자리)는 비우고, 균열 혼불은 허리 쪽으로 내려 짧게(53라운드 Q4)
+        crack(R, [(1.5, 48), (-1, 51), (1.5, 54), (0, 57)], U, pulse=p["pulse"], thick=(m, 0), glow=p["glow"])
+        crack(R, [(1.5, 54), (5.5, 52.5)], U, thick=(0, 1), spill=False, glow=p["glow"])
+        for s_ in (1, -1):                                                         # 견갑골 능선
+            fline(R, [U(s_ * 5.5, 38.5), U(s_ * 9.5, 41.5), U(s_ * 11, 45)], G[1], "torso")
+            fline(R, [U(s_ * 5.0, 37.6), U(s_ * 9.0, 40.4)], G[5], "torso")
+        fline(R, [U(0, 35.5), U(0.5, 39), U(0, 43), U(0.4, 46)], G[2], "torso")    # 등뼈 골
         groove(R, [(-14, 46), (-12, 48.5), (-12.5, 51)], U)
         groove(R, [(11.5, 40), (13.5, 43), (12.5, 45)], U, hi=False)
         for dx, y in ((-4, 35), (6, 38), (-11, 47)):
-            R.dot(round(ux(dx, y)), round(uy(dx, y)), SL[6]); R.dot(round(ux(dx, y)) + 1, round(uy(dx, y)) + 1, SL[2])
-    # 일기장 걸쇠 · 끈 · 허리끈 매듭
-    R.dot(round(d0[0] + m * 2.25), round(d0[1] + 2.5), G[9])
+            q = R.T(U(dx, y))
+            R.px(q[0], q[1], SL[6]); R.px(q[0] + 1, q[1] + 1, SL[2])
+    # 견갑: 리벳 · 위 가장자리 빛 · 찌그러진 금
+    rivet(R, *U(10.0, 34.6))
+    rivet(R, *U(16.0, 37.2))
+    fline(R, [U(8.5, 33.4), U(13.5, 33.4), U(17.5, 36.4)], SL[6] if not back else SL[4], "pauldron")
+    fline(R, [U(13, 38), U(15.5, 40.5)], SL[1], "pauldron")
+    # 1.5배 세부: 정강이받이 리벳·능선 / 붕대 결 / 완갑 끈 / 허리천 주름
+    for kind, a0, a1, kn in details:
+        if kind == "greave":
+            rivet(R, a0[0] + 1.6, a0[1] + 1.2)
+            rivet(R, a0[0] - 1.8, a0[1] + 1.6)
+            fline(R, [lerp(a0, a1, 0.15), lerp(a0, a1, 0.8)], SL[6], "greave")
+        elif kind == "shinband":
+            wraps(R, a0, a1, 3.0, 4, "shinband")
+        elif kind == "vamb":
+            wraps(R, a0, a1, 3.0, 2, "vamb", col=WD[2], slant=0.5)
+        elif kind.startswith("hand"):
+            wraps(R, a0, a1, 2.6, 2, kind, slant=0.6)
+        elif kind == "loin":
+            top = a1
+            for j in (1, 3, 5, 7):
+                fline(R, [(top[0] + (a0[j][0] - top[0]) * 0.25, top[1] + 1.2), a0[j]], WD[1], "loin")
+            q = R.T(a0[4])
+            R.px(q[0], q[1] - 3, OUT); R.px(q[0] + 1, q[1] - 3, OUT); R.px(q[0], q[1] - 4, WD[3])   # 찢긴 구멍
+    # 일기장: 표지 테 · 종이 단면 · 걸쇠 · 끈 · 그을린 모서리
+    dw = m * 4.5
+    fline(R, [(d0[0] + dw, d0[1] + 0.2), (d0[0] + dw, d0[1] + 5.4)], PL[2], "diary")
+    fline(R, [(d0[0] + 0.4, d0[1] + 5.4), (d0[0] + dw - m * 0.4, d0[1] + 5.2)], PL[1], "diary")
+    fline(R, [(d0[0] + m * 0.6, d0[1] + 0.6), (d0[0] + dw - m * 0.6, d0[1] + 0.4)], DIARY[2], "diary")
+    q = R.T((d0[0] + m * 2.25, d0[1] + 2.5))
+    R.px(q[0], q[1], G[9]); R.px(q[0] + 1, q[1], G[7]); R.px(q[0], q[1] + 1, G[6])
     R.line([U(-10, 58), (d0[0] + m * 2.25, d0[1])], WD[3])
-    kn = U(-2, 58.5)
-    R.dot(kn[0], kn[1] + 1, WD[4]); R.dot(kn[0] + 1, kn[1] + 2, WD[3]); R.dot(kn[0], kn[1] + 3, WD[3])
+    q = R.T((d0[0], d0[1] + 6))
+    R.px(q[0], q[1] - 1, A[19])
+    kn = R.T(U(-2, 58.5))                                                        # 허리끈 매듭 + 늘어진 끝
+    for dx, dy, c in ((0, 1, WD[4]), (1, 1, WD[4]), (1, 2, WD[3]), (0, 3, WD[3]), (2, 3, WD[3]), (0, 4, WD[2]), (2, 5, WD[2])):
+        R.px(kn[0] + dx, kn[1] + dy, c)
     # 어깨 혼불 (해부 왼어깨 위)
-    fx, fy = round(ux(13, 32)), round(uy(13, 32))
+    fx, fy = ux(13, 32), uy(13, 32)
     R.anchors["flame"] = (fx, fy)
     if not p["flameOff"]:
-        R.dot(fx, fy + 1, A[19])
-        draw_flame(R, fx, fy, p["flame"], p["lean"], rows=p["flameRows"])
+        q = R.T((fx, fy))
+        R.px(q[0], q[1] + 1, A[19]); R.px(q[0] - 1, q[1] + 1, A[19])
+        draw_flame(R, round(q[0]), round(q[1]), p["flame"], p["lean"], rows=p["flameRows"])
     return R
 
 
@@ -382,8 +490,9 @@ def draw_front(p, back=False):
 # =============================================================================
 def draw_side(p, facing):
     """facing = +1 오른쪽, -1 왼쪽. dx 는 '앞' 이 + 인 몸 좌표. 상체는 앞으로 숙이고 머리는 앞으로 빠진다."""
-    R = Rig3(FW, FH)
+    R = new_rig()
     f = facing
+    details = []
     X = lambda dx: 32 + f * dx                   # noqa: E731
     near = "R" if f == 1 else "L"
     b, br, hd, lb, cr = p["bob"], p["breath"], p["head"], p["lean_body"], p["crouch"]
@@ -412,8 +521,10 @@ def draw_side(p, facing):
                [(X(fxp - 3), fy - 3.6), (X(fxp + 2), fy - 3.6), (X(fxp + 6), fy - 1.4), (X(fxp + 6), fy), (X(fxp - 3.4), fy)])
         if anat(which) == "R":
             R.capsule(P("greave_" + which, IRON, 2 - shade, soft=1.3), [lerp(knee, foot, 0.22), lerp(knee, foot, 0.70)], [3.3, 2.8])
+            details.append(("greave_" + which, lerp(knee, foot, 0.22), lerp(knee, foot, 0.70)))
         else:
             R.capsule(P("band_" + which, BAND, 1 - shade, soft=1.0, rim=False), [lerp(knee, foot, 0.3), lerp(knee, foot, 0.86)], [3.1, 2.7])
+            details.append(("band_" + which, lerp(knee, foot, 0.3), lerp(knee, foot, 0.86)))
 
     def arm(which, shade, swing, dy=0.0):
         shj = U(3.0, 39)
@@ -431,7 +542,9 @@ def draw_side(p, facing):
         R.capsule(P(name, ASH, 2 - shade, group=name, soft=1.8, vgrad=0.85, bands=LIMB_BANDS), [shj, el, end], [3.4, 2.9, 2.4])
         if side == "L":
             R.capsule(P("vamb_" + which, IRON, 2 - shade, soft=1.0), [lerp(el, hand, 0.25), lerp(el, hand, 0.66)], [3.1, 2.8])
+            details.append(("vamb_" + which, lerp(el, hand, 0.25), lerp(el, hand, 0.66)))
         R.ellipse(P("hand_" + which, BAND, 1 - shade, soft=1.0, rim=False), hand[0], hand[1] + 0.2, 2.7, 2.7)
+        details.append(("hand_" + which, (hand[0] - 2.0, hand[1] - 1.0), (hand[0] + 2.0, hand[1] + 1.6)))
         R.anchors["hand" + side] = (hand[0], hand[1] + 0.2)
         R.anchors["shoulder" + side] = shj
 
@@ -449,11 +562,12 @@ def draw_side(p, facing):
     hy = 24.0 + b + cr + hd - br * 0.5
     hx = 7.0 + lb * 2.2 + p["hdx"]
     R.anchors.update(head=(X(hx), hy), chest=U(2, 45), hipL=(X(0.5), 58.5 + b + cr), hipR=(X(0.5), 58.5 + b + cr))
+    R.scar = scar_rect(U, SCAR_SIDE, True)
     R.capsule(P("neck", ASH, 2, group="body", soft=1.5), [U(3.5, 35), (X(hx - 2.5), hy + 5.5)], [3.4, 3.0])
     # --- 머리: 앞으로 빠진 금 간 두개(옆얼굴) ---------------------------------------------
     R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(X(hx + dx), hy + dy) for dx, dy in SKULL_SIDE])
     R.poly(P("face", FACE, 3, group="head", soft=1.4, rim=False, cast=False, warm=True, vgrad=0.8), [(X(hx + dx), hy + dy) for dx, dy in FACE_SIDE])
-    bite(R, X(hx + 1.6), hy - 9.6, 2.3)
+    bite(R, X(hx + 2.2), hy - 10.2, 1.7)
     bite(R, X(hx - 7.2), hy - 3.2, 2.0)
     bite(R, X(hx + 6.0), hy + 9.0, 1.1)
     # --- 가까운 다리 · 허리천 · 일기장 ---------------------------------------------
@@ -462,6 +576,7 @@ def draw_side(p, facing):
     loin = [(6.6, 57), (-7.4, 57), (-8.6 + sw, 66), (-7.0 + sw * 1.2, 70), (-3.6 + sw * 1.1, 68), (-0.4 + sw * 0.9, 72.5),
             (2.6 + sw * 0.6, 68.5), (5.4 + sw * 0.3, 71), (7.0, 65)]
     R.poly(P("loin", CLOTH, 0, soft=1.8), [(X(dx), y + b + cr) for dx, y in loin])
+    details.append(("loin", [(X(dx), y + b + cr) for dx, y in loin], None))
     R.capsule(P("belt", CLOTH, 2, soft=0.8), [(X(-7.4), 57.6 + b + cr), (X(6.6), 57.6 + b + cr)], [1.3, 1.3])
     if near == "R":
         ddx = -4.4 + sw * 0.6
@@ -474,60 +589,100 @@ def draw_side(p, facing):
     arm("near", 0, swing[1][0], swing[1][1])
     if near == "L":
         R.poly(P("pauldron", IRON, 2, soft=1.8), [U(dx, y) for dx, y in [(-3.5, 34.5), (4.5, 33.5), (8.5, 37), (7.0, 43), (0, 44), (-4.5, 40)]])
+        details.append(("pauldron", None, None))
 
-    # ======================= 덧칠 =======================
-    HX = lambda dx: X(hx + dx)                   # noqa: E731
+    # ======================= 덧칠 (1.5배 해상도 세부) =======================
     HF = lambda dx, dy: (X(hx + dx), hy + dy)    # noqa: E731
-    for ddx, dy in ((-3, -8), (-2, -9), (-1, -9), (-4, -7), (-3, -7)):
-        R.dot(round(X(hx)) + ddx, round(hy + dy), G[8])                               # 정수리 빛(화면 좌상단)
-    crown = [(-1, -9, A[21]), (0, -8, A[23]), (0, -7, A[25]), (1, -6, A[23]), (2, -5, A[21]), (2.5, -4, A[19])]
-    for dx, dy, c in crown:
-        R.dot(round(HX(dx)) + f, round(hy + dy), A[18])
-    for dx, dy, c in crown:
-        R.dot(round(HX(dx)), round(hy + dy), c)                                       # 정수리 균열 혼불
-    for dx, dy, c in ((3.0, -3.6, A[19]), (3.4, -2.6, A[21]), (3.2, -1.6, A[19])):
-        R.dot(round(HX(dx)), round(hy + dy), c)
+    HFs = lambda pts: [HF(dx, dy) for dx, dy in pts]   # noqa: E731
+    X0 = X(hx)
+    fpoly(R, [(X0 - 4.6, hy - 6.4), (X0 - 3.6, hy - 8.4), (X0 - 1.6, hy - 9.6), (X0 - 0.2, hy - 9.4), (X0 - 1.8, hy - 8.0), (X0 - 3.4, hy - 6.6)], G[8], "head")
+    crown = HFs([(-1, -9.6), (0, -8.2), (0.2, -7.0), (1.2, -6.0), (2.0, -4.8), (2.8, -3.8), (3.2, -2.6), (3.0, -1.4)])
+    fline(R, [(q[0] + f * 0.7, q[1]) for q in crown[:6]], A[18], "head")
+    fline(R, crown, [A[21], A[23], A[25], A[26] if p["pulse"] else A[25], A[25], A[23], A[21], A[19]])
+    fline(R, HFs([(1.2, -6.0), (-0.6, -5.0)]), A[21], "head")
     groove(R, [(-4, -6), (-5.5, -3), (-5, 0)], HF)
-    for dx, dy in ((1.8, -0.4), (1.6, 0.6)):
-        R.dot(round(HX(dx)), round(hy + dy), G[2])                                   # 관자놀이 패임
-    for dx, dy in ((3, -1), (4, -1), (5, -2), (6, -2)):
-        R.dot(round(HX(dx)), round(hy + dy), G[5])                                   # 이마뼈 윗면 빛
-    for dx, dy in ((3, 0), (4, 0), (5, 0), (6, -1)):
-        R.dot(round(HX(dx)), round(hy + dy), OUT)                                    # 눈두덩 그늘
-    for dx, dy, c in ((3.5, 3.6, G[3]), (4.5, 3.4, G[4]), (5.5, 3.4, G[4]), (6.5, 3.0, G[3])):
-        R.dot(round(HX(dx)), round(hy + dy), c)                                      # 광대 돌출 윗면 빛
-    for dx, dy in ((7, 1), (7, 2)):
-        R.dot(round(HX(dx)), round(hy + dy), G[3])                                   # 콧등
-    for dx, dy in ((2.5, 8.4), (3.5, 8.8), (4.5, 9.0)):
-        R.dot(round(HX(dx)), round(hy + dy), G[3])                                   # 턱선 빛
-    for dx, dy in ((3, 5), (4, 5.4)):
-        R.dot(round(HX(dx)), round(hy + dy), G[1])                                   # 광대 아래 패임
-    R.dot(round(HX(4)), round(hy + 6.4), OUT); R.dot(round(HX(5)), round(hy + 6.4), G[1])   # 닫힌 입
+    groove(R, [(-6.4, 2.0), (-4.6, 4.6)], HF, hi=False)                             # 뒤통수 아래 실금
+    fline(R, HFs([(1.8, -0.6), (1.6, 1.0)]), G[2], "head")                         # 관자놀이 패임
+    fline(R, HFs([(2.8, -1.4), (4.2, -1.4), (6.2, -2.4)]), G[5])                   # 이마뼈 윗면 빛
+    fpoly(R, HFs([(2.8, -0.4), (6.6, -1.6), (6.8, 0.6), (5.8, 2.8), (3.6, 3.0), (2.6, 1.6)]), OUT)   # 눈두덩 그늘
+    fline(R, HFs([(3.4, 3.8), (4.6, 3.4), (5.8, 3.4), (6.8, 2.8)]), [G[3], G[4], G[4], G[3]], "face")   # 광대 돌출 윗면 빛
+    fline(R, HFs([(7.0, 0.8), (7.2, 2.4)]), G[3], "face")                          # 콧등
+    fline(R, HFs([(2.4, 8.4), (4.6, 9.0)]), G[3], "face")                          # 턱선 빛
+    fline(R, HFs([(3.0, 5.0), (4.2, 5.6)]), G[1], "face")                          # 광대 아래 패임
+    fline(R, HFs([(4.0, 6.6), (5.6, 6.4)]), [OUT, OUT, G[1]], "face")              # 닫힌 입
     if near == "L" and not p["eyeOff"]:
-        R.spill.append((HX(4.5), hy + 1.5, 2.2))
-        for dx, dy, c in ((3, 2, EYE[0]), (4, 1, EYE[2]), (5, 1, EYE[3] if p["pulse"] else EYE[2]), (6, 0, EYE[1]), (4, 2, EYE[1])):
-            R.dot(round(HX(dx)), round(hy + dy), c)
+        q = R.T(HF(4.6, 1.4))
+        R.spill.append((q[0], q[1], 3.3))
+        fline(R, HFs([(3.0, 2.4), (4.2, 1.6), (5.2, 0.9), (6.2, 0.1)]),
+              [EYE[0], EYE[1], EYE[2], EYE[3] if p["pulse"] else EYE[2], EYE[2], EYE[1]])
+        fline(R, HFs([(3.6, 2.6), (4.8, 1.8)]), [EYE[0], EYE[1]])
     else:
-        for dx, dy in ((4, 1), (5, 1), (4, 2), (5, 2)):
-            R.dot(round(HX(dx)), round(hy + dy), OUT)
+        fline(R, HFs([(4.0, 1.6), (5.4, 1.2)]), G[1])                               # 꺼진 눈: 어둠 속 결
     crack(R, [(7.2, 39), (8.6, 42), (7.0, 45), (7.6, 47)], U, pulse=p["pulse"], thick=(0, 0), spill=False, glow=p["glow"])
-    e1 = U(-6.2, 45)
-    R.dot(round(e1[0]), round(e1[1]), A[25] if p["glow"] >= 2 else A[23]); R.dot(round(e1[0]), round(e1[1]) + 1, A[21])   # 등 균열 불빛(가장자리 2점)
+    fline(R, [U(7.6, 40.4), U(6.2, 41.2)], A[21])                                    # 가슴 균열 잔가지
+    for y in (43.0, 46.0):                                                           # 옆구리 갈비 능선
+        fline(R, [U(-1.5, y), U(2.5, y + 0.8), U(5.0, y + 0.6)], G[4], "torso")
+        fline(R, [U(-1.3, y + 1.1), U(2.6, y + 1.9)], G[1], "torso")
+    e1 = R.T(U(-6.2, 49))
+    R.px(e1[0], e1[1], A[25] if p["glow"] >= 2 else A[23]); R.px(e1[0], e1[1] + 1, A[21]); R.px(e1[0], e1[1] + 2, A[19])   # 등 아래 균열 불빛(가장자리)
     groove(R, [(-3.5, 40), (-5, 44), (-4, 48)], U, hi=False)
+    fline(R, [U(-2.4, 37.0), U(-5.0, 40.0)], G[5], "torso")                         # 굽은 등 견갑 능선 빛
+    nh = R.T(U(-6.4, 52))
+    R.px(nh[0], nh[1], SL[6]); R.px(nh[0] + f, nh[1] + 1, SL[2])
+    for kind, a0, a1 in details:
+        if kind.startswith("greave"):
+            rivet(R, a0[0], a0[1] + 0.8)
+            fline(R, [lerp(a0, a1, 0.1), lerp(a0, a1, 0.85)], SL[6] if kind.endswith("near") else SL[4], kind)
+        elif kind.startswith("band"):
+            wraps(R, a0, a1, 2.9, 4, kind)
+        elif kind.startswith("vamb"):
+            wraps(R, a0, a1, 2.9, 2, kind, col=WD[2], slant=0.5)
+        elif kind.startswith("hand"):
+            wraps(R, a0, a1, 2.4, 2, kind, slant=0.5)
+        elif kind == "loin":
+            top = a0[0]
+            for j in (3, 5, 7):
+                fline(R, [(a0[j][0] + (top[0] - a0[j][0]) * 0.1, top[1] + 1.5), a0[j]], WD[1], "loin")
+        elif kind == "pauldron":
+            rivet(R, *U(0.5, 36.0))
+            rivet(R, *U(5.5, 37.6))
+            fline(R, [U(-3, 34.2), U(4.5, 33.6), U(8, 36.6)], SL[6], "pauldron")
+            fline(R, [U(2, 39), U(4.5, 41.5)], SL[1], "pauldron")
     if near == "R":
         ddx = -4.4 + sw * 0.6
-        R.dot(round(X(ddx + 2.25)), round(61.5 + b + cr), G[9])
-    nh = U(-6.4, 52)
-    R.dot(round(nh[0]), round(nh[1]), SL[6]); R.dot(round(nh[0]) + f, round(nh[1]) + 1, SL[2])
-    fx, fy = round(ux(-2.5, 33)), round(uy(-2.5, 33))
+        d0 = (X(ddx), 59 + b + cr)
+        dw = f * 4.5
+        fline(R, [(d0[0] + dw, d0[1] + 0.2), (d0[0] + dw, d0[1] + 5.4)], PL[2], "diary")
+        fline(R, [(d0[0] + 0.4 * f, d0[1] + 5.4), (d0[0] + dw - f * 0.4, d0[1] + 5.2)], PL[1], "diary")
+        fline(R, [(d0[0] + f * 0.6, d0[1] + 0.6), (d0[0] + dw - f * 0.6, d0[1] + 0.4)], DIARY[2], "diary")
+        q = R.T((X(ddx + 2.25), 61.5 + b + cr))
+        R.px(q[0], q[1], G[9]); R.px(q[0] + 1, q[1], G[7]); R.px(q[0], q[1] + 1, G[6])
+    fx, fy = ux(-2.5, 33), uy(-2.5, 33)
     R.anchors["flame"] = (fx, fy)
     if not p["flameOff"]:
-        R.dot(fx, fy + 1, A[19])
+        q = R.T((fx, fy))
+        R.px(q[0], q[1] + 1, A[19])
         rows = None if near == "L" else 4
         if p["flameRows"] is not None:
             rows = min(rows or 6, p["flameRows"])
-        draw_flame(R, fx, fy, p["flame"], p["lean"] * f, rows=rows)
+        draw_flame(R, round(q[0]), round(q[1]), p["flame"], p["lean"] * f, rows=rows)
     return R
+
+
+# 등 상흔 기준점 (53라운드 Q4, 계약 §13) — 설계 좌표 네 모서리 → 도트 좌표 {x, y(중심), w, h, rot, visible}
+SCAR_BACK = (-8.5, 8.5, 36.5, 49.5)     # 뒷모습: 등 가운데(견갑골 사이 ~ 허리 위). 등 균열 혼불은 이 아래로 내림
+SCAR_SIDE = (-6.8, -2.0, 40.5, 48.0)    # 측면: 굽은 등 어깨 아래 작은 사각형(견갑 갑옷 아래 — 갑옷 위에 상흔이 얹히지 않게)
+
+
+def scar_rect(U, box, visible):
+    x0, x1, y0, y1 = box
+    tl, tr, bl, br = (to_px(U(x0, y0)), to_px(U(x1, y0)), to_px(U(x0, y1)), to_px(U(x1, y1)))
+    tc, bc = ((tl[0] + tr[0]) / 2, (tl[1] + tr[1]) / 2), ((bl[0] + br[0]) / 2, (bl[1] + br[1]) / 2)
+    w = (math.hypot(tr[0] - tl[0], tr[1] - tl[1]) + math.hypot(br[0] - bl[0], br[1] - bl[1])) / 2
+    h = math.hypot(tc[0] - bc[0], tc[1] - bc[1])
+    rot = math.degrees(math.atan2(tc[0] - bc[0], bc[1] - tc[1]))       # 위쪽 변이 오른쪽으로 기울면 +(시계 방향)
+    return {"x": round((tc[0] + bc[0]) / 2, 1), "y": round((tc[1] + bc[1]) / 2, 1), "w": round(abs(w), 1), "h": round(h, 1),
+            "rot": round(rot, 1), "visible": visible}
 
 
 def build(direction, p):
@@ -610,4 +765,4 @@ def act_walk(direction):
 
 
 ACTIONS = {"idle": (act_idle, IDLE_MS, True), "walk": (act_walk, WALK_MS, True)}
-STRIDE = {"walk": {"px": round(4 * STRIDE_A), "cycleMs": CYCLE_MS}}
+STRIDE = {"walk": {"px": round(4 * STRIDE_A * S), "cycleMs": CYCLE_MS}}

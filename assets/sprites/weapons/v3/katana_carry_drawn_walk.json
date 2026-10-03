@@ -1,0 +1,99 @@
+{
+ "image": "katana_carry_drawn_walk.png",
+ "action": "carry_drawn_walk",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 12.5,
+ "frameDurationsMs": [
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (53라운드 Q1·Q4 — 96×144 1.5배 재출력)",
+ "weapon": "katana",
+ "carry": "drawn, in right hand (뽑아 든 상태) + 빈 칼집(왼허리)",
+ "state": "drawn",
+ "bodySheet": "player_walk",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "bladeLocal": {
+  "thetaDeg": 30.0,
+  "elevDeg": -40.0
+ },
+ "bladeNote": "대기·걷기 = 앞·아래·바깥으로 낮게 든 칼, 달리기 = 뒤로 끌며 낮게, 대쉬 = 뒤로 곧게. 오른손 = 몸 시트 handAnchors.R",
+ "stateNote": "공격 뒤 납도 전(비전투 타이머 동안) 이동·대기 때 katana_carry_* 대신 사용(구 시트와 같은 쓰임).",
+ "overlay": "player_walk 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138)."
+}

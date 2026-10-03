@@ -1,0 +1,702 @@
+{
+ "image": "katana_special.png",
+ "action": "special",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 9,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.45,
+ "frameDurationsMs": [
+  25,
+  25,
+  50,
+  40,
+  120,
+  35,
+  35,
+  50,
+  60
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (53라운드 Q1·Q4 — 96×144 1.5배 재출력)",
+ "weapon": "katana",
+ "phases": {
+  "ready": [
+   0,
+   1
+  ],
+  "window": [
+   2,
+   3,
+   4
+  ],
+  "riposte": [
+   5,
+   6
+  ],
+  "recover": [
+   7,
+   8
+  ]
+ },
+ "phaseStartMs": {
+  "ready": 0,
+  "window": 50,
+  "riposte": 260,
+  "recover": 330
+ },
+ "oldTiming": {
+  "frames": 5,
+  "frameDurationsMs": [
+   50,
+   90,
+   120,
+   70,
+   110
+  ],
+  "phases": {
+   "ready": [
+    0
+   ],
+   "window": [
+    1,
+    2
+   ],
+   "riposte": [
+    3
+   ],
+   "recover": [
+    4
+   ]
+  }
+ },
+ "timingNote": "구 시트(16×24)와 단계 시작 ms·전체 ms 가 같다(프레임만 늘림).",
+ "frameStates": [
+  "steel",
+  "steel",
+  "steel",
+  "steel",
+  "glow",
+  "glow",
+  "steel",
+  "fade",
+  "steel"
+ ],
+ "framesBasis": "player_katana_special 프레임 번호 (몸·무기 공통)",
+ "secondaryAction": "parry (우클릭 패링)",
+ "holdFrame": 4,
+ "holdNote": "패링 창이 프레임 합보다 길면 f4 유지. 성공 = f5~f8, 실패(창 종료) = f7~f8",
+ "overlayFx": [
+  {
+   "id": "parry_flash",
+   "spawn": "parry_success",
+   "atFrame": 5,
+   "anchor": "hitbox_center (접점)"
+  }
+ ],
+ "windowMs": {
+  "start": 50,
+  "end": 260
+ },
+ "startsFrom": "katana_carry_drawn (뽑아 든 상태에서 시작 — 칼집에 있으면 draw 먼저)",
+ "endsWith": "katana_carry_drawn_idle 0",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     98.5,
+     130.5
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     92.1,
+     122.4
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     86.8,
+     121.8
+    ],
+    "handL": [
+     101.2,
+     115.5
+    ]
+   },
+   {
+    "handR": [
+     85.5,
+     120.6
+    ],
+    "handL": [
+     99.8,
+     112.6
+    ]
+   },
+   {
+    "handR": [
+     85.5,
+     120.6
+    ],
+    "handL": [
+     99.3,
+     111.9
+    ]
+   },
+   {
+    "handR": [
+     103.6,
+     132.8
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     77.5,
+     133.4
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     78.3,
+     131.4
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     75.6,
+     137.8
+    ],
+    "handL": [
+     113.6,
+     141.0
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     93.5,
+     113.7
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   },
+   {
+    "handR": [
+     99.9,
+     106.8
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     105.2,
+     107.4
+    ],
+    "handL": [
+     90.8,
+     93.3
+    ]
+   },
+   {
+    "handR": [
+     106.5,
+     105.6
+    ],
+    "handL": [
+     92.2,
+     90.7
+    ]
+   },
+   {
+    "handR": [
+     106.5,
+     105.6
+    ],
+    "handL": [
+     92.7,
+     90.2
+    ]
+   },
+   {
+    "handR": [
+     88.4,
+     111.4
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     114.5,
+     116.8
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     113.7,
+     121.8
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   },
+   {
+    "handR": [
+     116.4,
+     137.8
+    ],
+    "handL": [
+     78.4,
+     139.7
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     72.1,
+     122.7
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   },
+   {
+    "handR": [
+     73.8,
+     112.9
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     75.4,
+     111.1
+    ],
+    "handL": [
+     64.2,
+     105.9
+    ]
+   },
+   {
+    "handR": [
+     74.4,
+     109.1
+    ],
+    "handL": [
+     64.8,
+     102.7
+    ]
+   },
+   {
+    "handR": [
+     74.4,
+     109.1
+    ],
+    "handL": [
+     65.1,
+     101.9
+    ]
+   },
+   {
+    "handR": [
+     65.4,
+     124.5
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     72.4,
+     118.3
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     82.1,
+     120.1
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   },
+   {
+    "handR": [
+     81.8,
+     134.3
+    ],
+    "handL": [
+     94.1,
+     140.7
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     119.9,
+     120.9
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   },
+   {
+    "handR": [
+     118.2,
+     115.7
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     116.6,
+     117.5
+    ],
+    "handL": [
+     127.8,
+     102.3
+    ]
+   },
+   {
+    "handR": [
+     117.6,
+     116.5
+    ],
+    "handL": [
+     127.2,
+     100.0
+    ]
+   },
+   {
+    "handR": [
+     117.6,
+     116.5
+    ],
+    "handL": [
+     126.9,
+     99.6
+    ]
+   },
+   {
+    "handR": [
+     126.6,
+     119.1
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     119.6,
+     131.3
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     109.9,
+     132.5
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   },
+   {
+    "handR": [
+     114.0,
+     134.2
+    ],
+    "handL": [
+     97.9,
+     139.4
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    98.5,
+    130.5
+   ],
+   [
+    92.1,
+    122.4
+   ],
+   [
+    86.8,
+    121.8
+   ],
+   [
+    85.5,
+    120.6
+   ],
+   [
+    85.5,
+    120.6
+   ],
+   [
+    103.6,
+    132.8
+   ],
+   [
+    77.5,
+    133.4
+   ],
+   [
+    78.3,
+    131.4
+   ],
+   [
+    75.6,
+    137.8
+   ]
+  ],
+  "up": [
+   [
+    93.5,
+    113.7
+   ],
+   [
+    99.9,
+    106.8
+   ],
+   [
+    105.2,
+    107.4
+   ],
+   [
+    106.5,
+    105.6
+   ],
+   [
+    106.5,
+    105.6
+   ],
+   [
+    88.4,
+    111.4
+   ],
+   [
+    114.5,
+    116.8
+   ],
+   [
+    113.7,
+    121.8
+   ],
+   [
+    116.4,
+    137.8
+   ]
+  ],
+  "left": [
+   [
+    72.1,
+    122.7
+   ],
+   [
+    73.8,
+    112.9
+   ],
+   [
+    75.4,
+    111.1
+   ],
+   [
+    74.4,
+    109.1
+   ],
+   [
+    74.4,
+    109.1
+   ],
+   [
+    65.4,
+    124.5
+   ],
+   [
+    72.4,
+    118.3
+   ],
+   [
+    82.1,
+    120.1
+   ],
+   [
+    81.8,
+    134.3
+   ]
+  ],
+  "right": [
+   [
+    119.9,
+    120.9
+   ],
+   [
+    118.2,
+    115.7
+   ],
+   [
+    116.6,
+    117.5
+   ],
+   [
+    117.6,
+    116.5
+   ],
+   [
+    117.6,
+    116.5
+   ],
+   [
+    126.6,
+    119.1
+   ],
+   [
+    119.6,
+    131.3
+   ],
+   [
+    109.9,
+    132.5
+   ],
+   [
+    114.0,
+    134.2
+   ]
+  ]
+ },
+ "includesSheath": true,
+ "carryHidden": "이 시트에 칼집(빈 칼집 또는 칼이 든 칼집)이 들어 있으므로 재생 동안 katana_carry_* 는 숨긴다.",
+ "overlay": "player_katana_special 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
+ "stateNote": "sheathed 칼집 안 · partial 칼집 축을 따라 날 일부만 밖 · steel 실물 · glow 패링 대기/반격(날 호박, 끝 1px 백열) · fade 흐림 · embers 피 털기 불티 · click 넣기 끝 코등이 반짝"
+}

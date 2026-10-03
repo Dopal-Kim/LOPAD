@@ -49,8 +49,13 @@ BANDS = ((0.86, 2), (0.70, 1), (0.40, 0), (0.12, -1), (-9, -2))
 
 
 class Rig3:
-    def __init__(self, w, h):
+    """S·src·dst: 설계 좌표(64×96 골격, 피벗 src) → 픽셀 좌표(피벗 dst) 변환. 53라운드 Q1 = 1.5배(96×144, 피벗 (48,138)).
+    도형(poly·ellipse·capsule)·반지름·흐림은 S 배로 다시 래스터·셰이딩한다(최근접 확대 아님).
+    dot()/line() 은 설계 좌표, px()/pline() 은 픽셀 좌표(1.5배 해상도에서 새로 그린 세부)."""
+
+    def __init__(self, w, h, S=1.0, src=(0.0, 0.0), dst=(0.0, 0.0)):
         self.w, self.h = w, h
+        self.S, self.src, self.dst = S, src, dst
         self.parts = []
         self.dots = []      # (x, y, color) 셰이딩 뒤 덧칠
         self.spill = []     # (x, y, radius) 혼불 빛 번짐(주변 몸 픽셀을 따뜻한 어둠으로)
@@ -59,41 +64,69 @@ class Rig3:
         self.anchors = {}       # 2단계: 이름 → (x, y) 화면 좌표(손·엉덩이·어깨 등, 무기 오버레이 기준점)
         self.owner = self.outline = self.image = None
 
+    # --- 좌표 변환 ----------------------------------------------------------
+    def T(self, p):
+        return (self.dst[0] + self.S * (p[0] - self.src[0]), self.dst[1] + self.S * (p[1] - self.src[1]))
+
     # --- 마스크 그리기 ------------------------------------------------------
     def _new(self, part):
+        part.soft *= self.S
         part.mask = Image.new("L", (self.w, self.h), 0)
         part.z = len(self.parts)
         self.parts.append(part)
         return ImageDraw.Draw(part.mask)
 
     def poly(self, part, pts):
+        pts = [self.T(q) for q in pts]
         self._new(part).polygon([(round(x), round(y)) for x, y in pts], fill=255)
         return part
 
     def ellipse(self, part, cx, cy, rx, ry):
+        cx, cy = self.T((cx, cy))
+        rx, ry = rx * self.S, ry * self.S
         self._new(part).ellipse((round(cx - rx), round(cy - ry), round(cx + rx), round(cy + ry)), fill=255)
         return part
 
     def capsule(self, part, pts, radii):
         """관절 점 목록 + 점별 반지름 → 가늘어지는 팔다리."""
         d = self._new(part)
-        capsule_on(d, pts, radii)
+        capsule_on(d, [self.T(q) for q in pts], [r * self.S for r in radii])
         return part
 
     def shape(self, part, fn):
-        """fn(draw) 로 자유 도형."""
+        """fn(draw) 로 자유 도형(픽셀 좌표)."""
         fn(self._new(part))
         return part
 
     def dot(self, x, y, c):
+        x, y = self.T((x, y))
         self.dots.append((round(x), round(y), c))
 
+    def px(self, x, y, c):
+        self.dots.append((round(x), round(y), c))
+
+    def cdot(self, x, y, c, part=None):
+        """픽셀 덧칠 — part(부위 이름 앞부분)를 주면 그 부위가 차지한 픽셀(셀아웃 제외)에만 칠한다."""
+        if part is None:
+            self.dots.append((round(x), round(y), c))
+        else:
+            self.dots.append((round(x), round(y), c, part))
+
     def line(self, pts, c):
-        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
-            n = int(max(abs(x1 - x0), abs(y1 - y0))) + 1
-            for k in range(n + 1):
-                t = k / max(1, n)
-                self.dot(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, c)
+        self.pline([self.T(q) for q in pts], c)
+
+    def pline(self, pts, c):
+        for x, y in raster_path(pts):
+            self.dots.append((x, y, c))
+
+    def hole(self, cx, cy, r):
+        """설계 좌표 원 결손 → 픽셀."""
+        cx, cy = self.T((cx, cy))
+        r *= self.S
+        for y in range(int(cy - r) - 1, int(cy + r) + 2):
+            for x in range(int(cx - r) - 1, int(cx + r) + 2):
+                if (x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2 <= r * r:
+                    self.holes.add((x, y))
 
     # --- 렌더 ---------------------------------------------------------------
     def render(self, rim=True):
@@ -211,19 +244,25 @@ class Rig3:
                     if d <= r and self.parts[owner[y][x]].warm:
                         po[x, y] = A[18] if d <= r * 0.55 else A[17]
         if self.spill_cells:
-            cs = self.spill_cells
-            for y in range(H):
-                for x in range(W):
-                    if owner[y][x] < 0 or outline[y][x] or not self.parts[owner[y][x]].warm:
-                        continue
-                    d = min((x - cx) ** 2 + (y - cy) ** 2 for cx, cy in cs)
-                    if d <= 2.25:
-                        po[x, y] = A[18]
-                    elif d <= 6.25:
-                        po[x, y] = A[17]
+            best = {}
+            for cx, cy in self.spill_cells:
+                for yy in range(cy - 3, cy + 4):
+                    for xx in range(cx - 3, cx + 4):
+                        d = (xx - cx) ** 2 + (yy - cy) ** 2
+                        if d <= 6.25 and d < best.get((xx, yy), 99):
+                            best[(xx, yy)] = d
+            for (x, y), d in best.items():
+                if not (0 <= x < W and 0 <= y < H) or owner[y][x] < 0 or outline[y][x] or not self.parts[owner[y][x]].warm:
+                    continue
+                po[x, y] = A[18] if d <= 2.25 else A[17]
         # 7) 덧칠
-        for x, y, c in self.dots:
+        for dt in self.dots:
+            x, y, c = dt[0], dt[1], dt[2]
             if 0 <= x < W and 0 <= y < H and (x, y) not in self.holes:      # 결손 칸엔 덧칠하지 않음(떠 있는 점 방지)
+                if len(dt) == 4:
+                    i = owner[y][x]
+                    if i < 0 or outline[y][x] or not self.parts[i].name.startswith(dt[3]):
+                        continue
                 po[x, y] = c
         # 2단계(무기 오버레이·가림 계산)용: 픽셀별 부위 소유 · 셀아웃 판정 · 결과 보관
         self.owner, self.outline, self.image = owner, outline, out
@@ -235,6 +274,22 @@ class Rig3:
             return None
         i = self.owner[y][x]
         return self.parts[i].name if i >= 0 else None
+
+
+def raster_path(pts):
+    """픽셀 좌표 꺾은선 → 끊김 없는 픽셀 목록(중복 없음, 순서 유지)."""
+    seen, out = set(), []
+    for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+        n = int(max(abs(x1 - x0), abs(y1 - y0)) * 1.5) + 1
+        for k in range(n + 1):
+            t = k / n
+            c = (round(x0 + (x1 - x0) * t), round(y0 + (y1 - y0) * t))
+            if c not in seen:
+                seen.add(c)
+                out.append(c)
+    if len(pts) == 1:
+        out = [(round(pts[0][0]), round(pts[0][1]))]
+    return out
 
 
 def capsule_on(d, pts, radii):
