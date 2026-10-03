@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD 35라운드 3단계: 2차 진화 전용 이펙트 16종 + 보조 동작·대쉬 연출 7종 — 단일 소스.
 
 실행: python3 parts/art/work/evolution_fx/build.py

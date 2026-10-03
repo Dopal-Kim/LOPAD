@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드] 미리보기·목업 입력 중 구 시트(assets/sprites/player/player_*, enemies/{dummy,archer,charger}_*, enemies/v2/charger_*, player/v2/*)는 삭제됨 — v3 시트로 바꿀지 결정 대기(아트 보고서 인터뷰 항목). 그 단계는 재실행 시 FileNotFoundError.
 """LOPAD 바닥 타일 v4 (48라운드 Q5, 계약 art-assets §6.4) — 1·2층 단일 소스. 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_v4/build.py

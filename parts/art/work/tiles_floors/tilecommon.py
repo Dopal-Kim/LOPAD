@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD 층별 타일셋 공통 모듈 (2층 이후). 1층 `tiles_stage1/build.py` 의 시트 조립·JSON·미리보기 부분을
 그대로 떼어 낸 것 — 시트 레이아웃(8열×3행, 16×16)과 인덱스 표(0~16)는 1층과 동일하게 고정한다.
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드] 미리보기·목업 입력 중 구 시트(assets/sprites/player/player_*, enemies/{dummy,archer,charger}_*, enemies/v2/charger_*, player/v2/*)는 삭제됨 — v3 시트로 바꿀지 결정 대기(아트 보고서 인터뷰 항목). 그 단계는 재실행 시 FileNotFoundError.
 """53라운드 — 5지역 미리보기: 쿼터뷰 바닥(v2 타일) + Gemini 테두리 + v3 소품 + v3 주인공(1.5배), 조명 합성.
 
 python3 parts/art/work/floors_v2/preview.py [region ...]

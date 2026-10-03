@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD 8층 '평상' 황제의 수도 타일셋 (16x16, 8열×5행 — 40라운드 인덱스 표 v3) — 단일 소스. 재실행 시 전부 재생성.
 
 실행: python3 parts/art/work/tiles_stage8/build.py

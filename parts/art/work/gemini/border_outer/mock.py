@@ -1,3 +1,4 @@
+# [53라운드] 미리보기·목업 입력 중 구 시트(assets/sprites/player/player_*, enemies/{dummy,archer,charger}_*, enemies/v2/charger_*, player/v2/*)는 삭제됨 — v3 시트로 바꿀지 결정 대기(아트 보고서 인터뷰 항목). 그 단계는 재실행 시 FileNotFoundError.
 """53라운드 외벽 테두리 목업 — 1920×1080 렌더(논리 960×540 × 2).
 
 외곽 v2 바닥 도트(assets/tiles/v2/stage1_outer, 32px → 렌더 64px) + Gemini 테두리(assets/tiles/border/outer, 렌더 1:1)

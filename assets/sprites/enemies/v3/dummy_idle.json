@@ -39,6 +39,7 @@
  ],
  "oldTiming": {
   "sheet": "enemies/dummy_idle.json",
+  "sheetDeleted": "53라운드 삭제됨(보관) — 사본 parts/art/work/enemies_v3/old_sheets/dummy_idle.json",
   "frames": 6,
   "frameDurationsMs": [
    220,

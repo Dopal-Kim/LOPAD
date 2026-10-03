@@ -55,6 +55,8 @@ def export(mod, act, res):
         "palette": PALETTE, "source": "parts/art/work/enemies_v3/build.py (53라운드 Q33 — 적 v3)", "note": NOTE[mod.ID],
         "emissiveColors": EMISSIVE,
         "oldTiming": {"sheet": ("enemies/v2/" if mod.ID == "charger" else "enemies/") + "%s_%s.json" % (mod.ID, act),
+                      "sheetDeleted": "53라운드 삭제됨(보관) — 사본 parts/art/work/enemies_v3/old_sheets/%s%s_%s.json"
+                                      % (mod.ID, "_v2" if mod.ID == "charger" else "", act),
                       "frames": old["frames"], "frameDurationsMs": old["frameDurationsMs"], "framesMap": fmap,
                       "note": "구 프레임 k 의 시작 ms = 새 프레임 framesMap[k][0] 의 시작 ms (assert). 전체 길이 같음"},
     }

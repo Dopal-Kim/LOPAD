@@ -86,4 +86,4 @@
 2. **사수 공격 시트 폭**: 96 폭에 맞추려 화승총을 개념도보다 짧게 했다. (추천) 지금처럼 96×144 통일 / 공격 시트만 넓게(예: 160×144, 피벗 (80,138)) — 시스템이 시트별 피벗을 쓰는지 확인 필요.
 3. **적 색 예산**: 주인공은 30색. 적은 25·35·36색이다. (추천) 적별 40 이하 허용 / 30 으로 줄이기.
 4. **추가 JSON 필드**(`phaseFrames`·`impactFrame`·`fireFrame`·`muzzleAnchors`·`hammerFaceAnchors`·`oldTiming`)를 계약 §13 에 적을지 — 시스템 파트 확인 필요(교차 참조).
-5. 구 시트(`enemies/*.png`, `enemies/v2/charger_*`) 정리 시점 — 시스템이 v3 우선 로드(계약 §11)로 바꾼 뒤.
+5. ~~구 시트(`enemies/*.png`, `enemies/v2/charger_*`) 정리 시점 — 시스템이 v3 우선 로드(계약 §11)로 바꾼 뒤.~~ **해결(53라운드)**: 시스템이 더 이상 로드하지 않아(시스템 커밋 050aede 보고) `enemies/{dummy,archer,charger}_*` 30개 · `enemies/v2/charger_*` 10개를 삭제했다. 타이밍 대조는 `old_sheets/` 사본으로 그대로 된다. v3 JSON `oldTiming.sheet` 는 기록으로 남기고 `oldTiming.sheetDeleted`(사본 경로)를 더했다.

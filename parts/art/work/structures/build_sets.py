@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD 49라운드 구조물 추가분 — 세트 배치 소품 · 전장 소품 · 튜토리얼 표식 (계약 art-assets §5 · §7.3).
 
 근거: decisions/2026-10-02-round-49-playtest2.md 3절(전장 탄생·튜토리얼) · 7절(구조물을 노드 중앙에, 맵과 조화롭게 = 세트 배치)

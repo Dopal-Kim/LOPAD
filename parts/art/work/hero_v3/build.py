@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드] 미리보기·목업 입력 중 구 시트(assets/sprites/player/player_*, enemies/{dummy,archer,charger}_*, enemies/v2/charger_*, player/v2/*)는 삭제됨 — v3 시트로 바꿀지 결정 대기(아트 보고서 인터뷰 항목). 그 단계는 재실행 시 FileNotFoundError.
 """주인공 v3 전체 시트 빌드 — 53라운드 Q1(1.5배 96×144)·Q4(등 상흔 기준점) 재출력.
 
 최종 산출(게임이 읽음, 계약 §11·§13 v3 경로):

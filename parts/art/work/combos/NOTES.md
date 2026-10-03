@@ -1,5 +1,7 @@
 # combos — 근접 3연격 · 무기 든 특수 동작 (48라운드 Q2) + 49라운드 무기 휴대·동작 강화 (2026-10-02)
 
+> **[53라운드 보관]** 이 기록의 산출물 중 `assets/sprites/player/player_*` 전부와 `weapons/katana_{combo1..3,special}` 는 삭제됨(도영 님 "옛 주인공은 거의 안 남도록", 시스템이 더 이상 로드하지 않음). `combos/build.py` 는 `--legacy` 없이는 실행되지 않는다. 대체: `player/v3`·`weapons/v3/katana_*`. 대검·단검·활 구 오버레이와 fx 는 남아 있음.
+
 > **49라운드 개정은 아래 6~9절.** 대검 1~3타와 칼 1타는 6절 표가 2절 표를 대체한다(나머지 행은 그대로 유효).
 
 빌드: `python3 parts/art/work/combos/build.py` (약 6초, 재실행 시 전부 재생성). 근거: `decisions/2026-10-02-round-48-playfeel-route.md` Q2, 계약 `contracts/art-assets.md` §6.1·§6.2(+§3·3.1·3.2), `fx-design.md`, `art-bible.md`.

@@ -1,5 +1,7 @@
 # v2 시범 — 1층 '잔' 외곽 거리 (50라운드 · 쿼터뷰 · 2배 도트 · 조명)
 
+> **[53라운드 보관]** 이 기록의 산출물 중 `assets/sprites/{player,weapons,enemies}/v2/*`(주인공·칼·결사병 v2 시트) 는 삭제됨(도영 님 "옛 주인공은 거의 안 남도록", 시스템이 더 이상 로드하지 않음). `v2_outer/build.py` 전체 빌드는 `--legacy` 없이는 실행되지 않는다(`tiles` 모드는 그대로). 대체: `player/v3`·`weapons/v3`·`enemies/v3`.
+
 근거: `decisions/2026-10-02-round-50-modern-view.md`, 계약 `contracts/art-assets.md` §9, 루트 CLAUDE.md 4-1(시각 참조 = GDD + Dungeon Survivors·세피리아만; 80·90·00년대 게임·pixel-art-studio 옛 기기 팔레트·패턴 자료 미사용).
 "임시" 는 아트 파트 제안(도영 님 검수 전). 재현: `python3 parts/art/work/v2_outer/build.py` (Pillow 만, 약 4초).
 

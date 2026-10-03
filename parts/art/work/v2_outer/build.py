@@ -462,5 +462,9 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["tiles"]:
         # 타일셋만 다시 만듦(53라운드 바닥 톤 갱신) — 캐릭터·무기·적 v2 시트는 건드리지 않는다
         preview_tiles(export_tiles()[0])
-    else:
+    elif "--legacy" in sys.argv:
         build()
+    else:
+        # 53라운드: v2 캐릭터·칼·결사병 시트(assets/sprites/{player,weapons,enemies}/v2/*)는 삭제됨 — v3 로 대체.
+        # 전체 빌드는 지운 v2 시트를 다시 만들고, 비교 미리보기가 지운 구 16×24 시트를 읽으므로 --legacy 없이는 멈춘다.
+        sys.exit("v2_outer/build.py 전체 빌드는 보관용(v2 캐릭터 시트 53라운드 삭제)입니다. 타일만: 'tiles' · 전체: --legacy")

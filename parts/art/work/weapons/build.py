@@ -979,4 +979,9 @@ def main():
 
 
 if __name__ == "__main__":
+    import sys
+    # 53라운드: 이 스크립트 산출 중 weapons/katana_attack 은 삭제됨(v3 로 대체), 미리보기 입력 player/player_attack·idle 도 삭제됨.
+    # katana_icon·대검·단검·활 오버레이·fx 는 남아 있으나, 재실행하면 지운 시트를 다시 만들므로 --legacy 없이는 멈춘다.
+    if "--legacy" not in sys.argv:
+        sys.exit("weapons/build.py 는 보관용(katana_attack·구 주인공 53라운드 삭제)입니다. 다시 만들려면 --legacy")
     main()

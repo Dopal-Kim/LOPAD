@@ -1,5 +1,7 @@
 # 탄생 연출 — 49라운드 혼불 판 (2026-10-02)
 
+> **[53라운드 보관]** 이 기록의 산출물 중 구 `assets/sprites/player/player_birth` 는 삭제됨(도영 님 "옛 주인공은 거의 안 남도록", 시스템이 더 이상 로드하지 않음). `birth/build.py` 는 `--legacy` 없이는 실행되지 않는다. 대체: `player/v3/player_birth`(hero_v3/birth3.py). `fx/soul_wisp` 는 이 판 그대로 유지.
+
 근거: `decisions/2026-10-02-round-49-playtest2.md` 3절 — "튜토리얼 지역(황폐화된 전장)에서 영혼이 뭉쳐져 태어나는 느낌", 계약 §6.3(규격 그대로) · §7.3.
 재현: `python3 parts/art/work/birth/build.py` (아래 48라운드 흙 판은 `build_soil_v1.py` 로 보관 — `--legacy` 없이 실행하면 멈춘다. 인물 지도·무릎 자세·터짐 광선은 그 파일에서 불러 쓴다).
 

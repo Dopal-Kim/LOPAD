@@ -122,6 +122,7 @@
 재현: `python3 parts/art/work/hero_v3/build2.py` (전부 약 70초, 결정적) · `build2.py greatsword_slam birth …` (그 동작만). 1차 시트(`player_idle` 등)가 먼저 있어야 한다(탄생 끝 대조).
 모듈: `gear3.py`(동작 정의·구간 보간·자세·무기 안내선·구 무기 겹침) · `birth3.py`(탄생) · `export2.py`(시트·JSON·타이밍 assert) · `build2.py`(실행·미리보기). `hero.py` 에 `tension`(0~1, 활 긴장) 추가 — 기본 0 이면 1차와 픽셀 동일(대기·달리기·연격 재빌드로 확인).
 구 시트 JSON 사본: `old_sheets/`(16×24 구 시트 17개 + v2 칼 연격 3개) — 구 시트를 지워도 assert·재빌드가 된다(`export.py` 칼 연격 v2 대조도 사본으로 대체).
+**53라운드 삭제 완료**: 구 주인공 `assets/sprites/player/*.png|json` 54개 · `player/v2/*` 16개 · 구 칼 `weapons/katana_*`(아이콘 제외) 26개 · `weapons/v2/katana_*` 10개를 지웠다(도영 님 "옛 주인공은 거의 안 남도록"). 이제 `build2.py` 비교 미리보기의 구 시트 칸은 건너뛰고(파일 없음 처리), `build.py` 전체 빌드의 '결사병 v2' 비교 칸은 입력이 없어 멈춘다(교체 결정 대기).
 
 ## 7. 규격·타이밍
 

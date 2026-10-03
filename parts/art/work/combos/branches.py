@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD 51라운드 4절 — 개성 갈래별 기본 공격(3연격) 이펙트 변형 + 활 속사/저격 이펙트.
 
 실행: python3 parts/art/work/combos/branches.py   (combos/build.py 를 모듈로 읽기만 한다 — 기존 시트는 다시 쓰지 않는다)

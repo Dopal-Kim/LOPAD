@@ -656,4 +656,8 @@ def main():
 
 
 if __name__ == "__main__":
+    # 53라운드: 16×24 구 주인공 시트(assets/sprites/player/*.png|json)는 삭제됨 — 주인공은 player/v3(hero_v3).
+    # 실행하면 지운 구 시트를 다시 만들므로 --legacy 없이는 멈춘다. (다른 스크립트의 import 는 그대로 동작)
+    if "--legacy" not in sys.argv:
+        sys.exit("player/build.py 는 구 주인공(16×24, 53라운드 삭제) 보관용입니다. 다시 만들려면 --legacy")
     main()

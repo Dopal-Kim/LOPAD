@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드] 미리보기·목업 입력 중 구 시트(assets/sprites/player/player_*, enemies/{dummy,archer,charger}_*, enemies/v2/charger_*, player/v2/*)는 삭제됨 — v3 시트로 바꿀지 결정 대기(아트 보고서 인터뷰 항목). 그 단계는 재실행 시 FileNotFoundError.
 """53라운드 Q6 — 1층 5지역 테두리 목업 (1920×1080 = 논리 960×540 × 2).
 
 python3 parts/art/work/gemini/border_mock.py [region ...]     # 기본 5지역 전부 + 모음 그림

@@ -418,4 +418,8 @@ def main():
 
 
 if __name__ == "__main__":
+    # 53라운드: 이 스크립트 산출 중 katana_carry_*·katana_carry_drawn_*·katana_{draw,sheathe}·player_{katana,greatsword}_{draw,sheathe}
+    # 는 삭제됨(v3 로 대체). 대검·단검·활 구 오버레이는 대체 경로로 남아 있으나, 재실행하면 지운 시트를 다시 만들므로 --legacy 없이는 멈춘다.
+    if "--legacy" not in sys.argv:
+        sys.exit("carry/build.py 는 보관용(구 칼·주인공 시트 53라운드 삭제)입니다. 다시 만들려면 --legacy")
     main()

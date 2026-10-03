@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """주인공 hero3 도트 초안 — 혼불이 새는 재 껍데기 망령 (52라운드 Q6, 임시 · 검수 전)
 
 근거: 52라운드 Q4(외양 재정의)·Q6(C 형체 유지, 사슬 없음, 얼굴은 어둡게 + 분노한 눈빛만, 일기장 허리, 어깨 혼불 작게 상시 깜빡임).

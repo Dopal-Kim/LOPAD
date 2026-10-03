@@ -20,7 +20,7 @@ parts/art/
     preview_a.png, preview_a_fight.png, preview_b.png, preview_b_fight.png   3배 블록 + 1배 띠 / 1배 전투 목업 + 3배
 assets/sprites/<분류>/<이름>_<동작>.png + .json   게임이 읽는 최종물
 assets/tiles/stage<n>.png + stage<n>.json        타일셋 (계약 §2: tiles / walls / props)
-assets/sprites/weapons/<id>_{icon,attack}.png    무기 아이콘·공격 중 겹침 무기 (계약 §3)
+assets/sprites/weapons/<id>_{icon,attack}.png    무기 아이콘·공격 중 겹침 무기 (계약 §3) — 53라운드: katana_attack 등 구 칼 오버레이는 삭제(katana_icon 만 유지), 대검·단검·활 구 오버레이는 유지
 assets/sprites/fx/<id>_slash.png, fx/<진화id>.png, fx/bow_arrow*.png   공격·진화 이펙트(1차 8 + 2차 16), 화살 — 43라운드 fx_prod 양산본
 assets/sprites/fx/{hit_burst,hit_spark,crit_burst,telegraph_*,enemy_bullet,boss_fan_shot,muzzle_flash}   피격·예고(line·circle·cone·aura)·적 투사체 — 43라운드 fx_prod A
 assets/sprites/fx/{blood,knock_dust,player_hit}   피격 (35라운드 combat_fx 그대로)
@@ -34,10 +34,10 @@ assets/sprites/ui/*.png + .json                    UI 키트 (패널 9-slice·�
 ```
 pip install pillow      # 최초 1회
 python3 parts/art/work/palette/build.py   # 팔레트 먼저
-python3 parts/art/work/player/build.py    # 주인공 (팔레트 json 을 읽는다)
+python3 parts/art/work/player/build.py    # [53라운드 보관 · --legacy 필요] 구 주인공 16×24 — 산출 삭제됨, 주인공은 hero_v3 → player/v3
 python3 parts/art/work/tiles_stage1/build.py   # 1층 타일셋 (+ 샘플 방 미리보기는 주인공 idle png 를 읽는다)
-python3 parts/art/work/enemies/build.py        # 일반 적 3종 (크기 비교 미리보기가 주인공 idle png 를 읽는다)
-python3 parts/art/work/weapons/build.py        # 무기 4종 아이콘·오버레이·이펙트·진화 8종 (미리보기가 주인공 attack/idle png 를 읽는다)
+python3 parts/art/work/enemies/build.py        # [53라운드 보관 · --legacy 필요] 구 일반 적 3종 — 산출 삭제됨, 적은 enemies_v3 → enemies/v3
+python3 parts/art/work/weapons/build.py        # [53라운드 보관 · --legacy 필요] 무기 4종 아이콘·오버레이·이펙트·진화 8종 (katana_attack·미리보기 입력 구 주인공 png 삭제됨)
 python3 parts/art/work/bosses/build.py         # 보스 2종
 python3 parts/art/work/ui/build.py             # UI 키트 (목업이 stage1 타일·주인공·적·무기 아이콘 png 를 읽는다)
 python3 parts/art/work/combat_fx/build.py      # 피격·예고·적 투사체 11종
@@ -115,3 +115,11 @@ python3 parts/art/work/fx_prod/build_b.py      # 43라운드 양산 B: 단검·�
 - B 묶음 `build_b.py`: 단검 7 · 활 9 · 보조 동작/대쉬 7 (dash_dust·dash_trail 은 그림 유지, dash_trail 은 시스템 `setTintFill` 권고).
 - see→critique→fix 각 3회, `color_report` ALL OK (예산 ≤11 · 층 램프 ≤8 + 코어, 고립 0, 반투명 0).
 - 임시 결정(검수 대기): A1~A11 · B1~B10 — 바이블 4.3.4 에 "임시(검수 대기)" 로 옮김. `concept_*` 11종은 삭제 결정 대기.
+
+## 53라운드 (2026-10-03) — 옛 주인공·구 적·구 칼 시트 삭제
+- 근거: 도영 님 53라운드 피드백 "파일 내에 옛 주인공은 거의 안 남도록 해줘" + 시스템 파트 보고(커밋 050aede, 더 이상 로드하지 않음 — 메인 세션 전달).
+- 삭제(`git rm`) 146개: `assets/sprites/player/*.png|json` 54 · `player/v2/*` 16 · `weapons/katana_*`(아이콘 제외: attack, carry_{idle,walk,dash}, carry_drawn_{idle,walk,dash}, combo1~3, draw, sheathe, special) 26 · `weapons/v2/katana_*` 10 · `enemies/{dummy,archer,charger}_*` 30 · `enemies/v2/charger_*` 10. 빈 `player/v2`·`weapons/v2`·`enemies/v2` 폴더도 사라짐.
+- 유지: `player/v3`·`weapons/v3`·`enemies/v3`, `weapons/katana_icon`, 대검·단검·활 구 오버레이(`weapons/{greatsword,dagger,bow}_*`), 구 fx(대체 경로).
+- 다시 만들지 않게: 지운 시트를 쓰던 빌드 스크립트 `player/build.py` · `enemies/build.py` · `weapons/build.py` · `combos/build.py` · `carry/build.py` · `birth/build.py` · `v2_outer/build.py`(전체 빌드, `tiles` 모드 제외)는 `--legacy` 없이 실행하면 멈춘다(`birth/build_soil_v1.py` 와 같은 방식). 모듈 import 는 그대로.
+- 지운 시트를 미리보기·목업 입력으로 읽던 스크립트 26개에는 첫머리에 `[53라운드 보관]`/`[53라운드]` 주석을 달았다(재실행 시 그 단계는 FileNotFoundError). v3 타이밍 assert 는 `hero_v3/old_sheets`·`enemies_v3/old_sheets` JSON 사본으로 그대로 동작.
+- `assets/sprites/enemies/v3/*.json` 15개: `oldTiming.sheet`(기록) 옆에 `oldTiming.sheetDeleted`(사본 경로) 추가 — `enemies_v3/eexport.py` 도 같은 필드를 쓰도록 반영.

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD 상호작용 구조물 시트 (47라운드, 계약 art-assets §5) + fx/fire_pool (§3).
 
 근거: parts/producer/decisions/2026-10-02-round-47-structures-impl.md · contracts/art-assets.md §5

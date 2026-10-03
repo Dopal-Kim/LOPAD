@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD 43라운드 — 인페르노 기반 무기 이펙트 양산 (B 묶음: 단검 7 · 활 9 · 보조 동작/대쉬 7 = 23종).
 
 실행: python3 parts/art/work/fx_prod/build_b.py

@@ -464,4 +464,8 @@ def main():
 
 
 if __name__ == "__main__":
+    # 53라운드: 구 player_birth(32×32)·player_idle 은 삭제됨 — 탄생은 player/v3/player_birth(hero_v3/birth3.py).
+    # 실행하면 지운 구 시트를 다시 만들므로(입력 player_idle.png 도 없음) --legacy 없이는 멈춘다. fx/soul_wisp 는 이 스크립트 산출 그대로 유지.
+    if "--legacy" not in sys.argv:
+        sys.exit("birth/build.py 는 구 탄생(16×24 주인공, 53라운드 삭제) 보관용입니다. 다시 만들려면 --legacy")
     main()

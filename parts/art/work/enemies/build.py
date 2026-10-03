@@ -1290,4 +1290,8 @@ def main():
 
 
 if __name__ == "__main__":
+    # 53라운드: 구 적 시트(assets/sprites/enemies/{dummy,archer,charger}_*)는 삭제됨 — 적은 enemies/v3(enemies_v3).
+    # 실행하면 지운 구 시트를 다시 만들므로 --legacy 없이는 멈춘다.
+    if "--legacy" not in sys.argv:
+        sys.exit("enemies/build.py 는 구 적 3종(53라운드 삭제) 보관용입니다. 다시 만들려면 --legacy")
     main()

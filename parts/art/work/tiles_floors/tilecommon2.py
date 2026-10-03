@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD 층별 타일셋 공통 모듈 **확장판 v3** (40라운드 시트 5행). `tilecommon.py` 는 손대지 않고 그 위에 얹는다.
 
 인덱스 표 v3 (40라운드 결정 `2026-10-02-round-40-tileset-final.md`, 계약 `art-assets.md` §2). 1~8층 공유, 변경 금지:

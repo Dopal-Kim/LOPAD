@@ -41,6 +41,7 @@
  ],
  "oldTiming": {
   "sheet": "enemies/v2/charger_attack.json",
+  "sheetDeleted": "53라운드 삭제됨(보관) — 사본 parts/art/work/enemies_v3/old_sheets/charger_v2_attack.json",
   "frames": 4,
   "frameDurationsMs": [
    180,

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD UI 키트 빌드 (32라운드 전폭 재설계 + 33라운드 낡은 용지 + 36라운드 세피아 일기장 + 38라운드 어두운 페이지·발광 글자) — 단일 소스.
 
 38라운드(도영: "잉크로 적으니까 손글씨 같은 폰트가 좋고 페이지가 더 더럽고 어둡되, 글씨가 빛나는 느낌으로 적혀지는 방향"):

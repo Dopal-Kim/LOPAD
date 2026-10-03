@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [53라운드 보관] 이 스크립트가 미리보기·목업·마스크 입력으로 읽던 구 시트(assets/sprites/player/player_*, player/v2/*, enemies/{dummy,archer,charger}_*, enemies/v2/*, weapons/katana_* 중 아이콘 외, weapons/v2/*)는 삭제됨 — 해당 단계는 재실행 시 FileNotFoundError.
 """LOPAD 46라운드 Q2 — 보스 내리찍기 전용 충격파 `boss_slam` (보스 공용, 층 램프 + 백열 코어 + 무채, 무기 보조색 없음).
 
 실행: python3 parts/art/work/fx_prod/build_boss.py
