@@ -1,6 +1,8 @@
 /**
- * 획 찢기 연출 (48라운드 Q8 + 49라운드 1절) 의 순수 계산: 수치·속도→폭/세기·식는 곡선·찢긴 가장자리 점,
+ * 획 찢기 연출 (48라운드 Q8 + 49라운드 1절 + 51라운드 1절) 의 순수 계산: 수치·속도→폭/세기·식는 곡선,
  * 부스러기(49), 3획 뒤 빛 터짐 타임라인·광선 배치·경로 자르기(49). Phaser 의존 없음.
+ * 51라운드: 획을 가늘게(이전 2~9px → 0.9~3.2px), **빠를수록 가늘고 밝게**(붓), 곡선은 `strokeFxSpline.ts`
+ * (Catmull-Rom + 일정 간격 표본), 그리기는 `strokeFxPaint.ts`(캔버스 2D 안티앨리어싱, 1px 아래 단차).
  * 수치는 전부 시스템 임시값 (이번 작업 범위상 Constants.ts 대신 여기에 — 다음 정리 때 옮긴다).
  */
 
@@ -20,60 +22,86 @@ export const STROKE_FX = {
     /** 가장자리 어둡게 (0 = 없음, 1 = 검정) */
     VIGNETTE: 0.55,
   },
-  /** 속도(px/s) → 틈 폭(px)·빛 세기 */
-  WIDTH: { MIN_PX: 2, MAX_PX: 9, SPEED_REF: 1800 },
+  /**
+   * 속도(px/s) → 틈 폭(px)·빛 세기 (51라운드: 붓처럼 **느리면 굵게(SLOW_PX), 빠르면 가늘게(FAST_PX)**, 빠를수록 밝게).
+   * 비율 = (속도 / SPEED_REF)^CURVE_POW. 이전(48·49라운드) 2~9px 의 약 1/3.
+   */
+  WIDTH: { SLOW_PX: 3.2, FAST_PX: 0.9, SPEED_REF: 1800, CURVE_POW: 0.8 },
   INTENSITY: { MIN: 0.55, MAX: 1 },
+  /**
+   * 곡선 (51라운드): 구심 Catmull-Rom(ALPHA 0.5)으로 입력점을 잇고 STEP_PX 간격으로 다시 찍는다. SUBDIV_PX = 곡선 걷기 세분 간격.
+   * 폭 평활(표본마다 새 값 비중) · 낮은 주파수 흔들림(진폭 비율, 파장 2개 px) · 시작/끝 가늘어짐(길이 px, 최소 비율).
+   * MIN_INPUT_PX 보다 가까운 입력점은 버린다.
+   */
+  SPLINE: {
+    ALPHA: 0.5,
+    STEP_PX: 1,
+    SUBDIV_PX: 0.5,
+    MIN_INPUT_PX: 0.75,
+    WIDTH_SMOOTH: 0.18,
+    NOISE_AMP: 0.12,
+    NOISE_WAVE_PX: [11, 4.3] as [number, number],
+    TAPER_IN_PX: 12,
+    TAPER_OUT_PX: 18,
+    TAPER_MIN: 0.25,
+  },
+  /** 빛 레이어를 이 표본 수씩 끊어 그린다 (조각마다 열기가 다르다) */
+  CHUNK_SAMPLES: 6,
   /** 속도 계산의 최소 시간 간격 (같은 ms 에 몰린 포인터 이벤트가 속도를 튀게 하지 않도록) */
   MIN_DT_MS: 8,
   /** 속도 평활 (새 값 비중) */
   SPEED_SMOOTH: 0.45,
-  /** 찢긴 선: 이 간격(px)마다 꺾고, 꺾임 폭 = 틈 폭 × AMP */
-  JITTER: { STEP_PX: 7, AMP: 0.22 },
   /** 백열 → 식음: 경과/COOL_MS 의 (1-x)^POW. 획을 떼면 FLARE 동안 BOOST 만큼 더 밝게 한 번 */
   COOL_MS: 2600,
   COOL_POW: 1.5,
   FLARE_MS: 300,
   FLARE_BOOST: 0.7,
-  /** 뜨거운 조각 최대 개수 (넘으면 오래된 것부터 버린다) */
-  HOT_MAX: 480,
   /**
    * 빛 레이어 (ADD): 폭 배율·색·알파·식는 지수. 색 'x0'/'x1' = 팔레트 fx.core, 숫자 = 현재 층 램프 인덱스(9~11 = 강조 25~27).
    * 바깥 → 안쪽 순서. 안쪽일수록 빨리 식는다 (백열 → 층 강조색 → 꺼짐)
    */
   HOT_LAYERS: [
-    { width: 3.6, color: 9, alpha: 0.2, pow: 0.6 },
-    { width: 2.0, color: 10, alpha: 0.38, pow: 1 },
-    { width: 1.0, color: 'x1', alpha: 0.85, pow: 1.6 },
-    { width: 0.35, color: 'x0', alpha: 1, pow: 2.2 },
+    { width: 5.5, color: 9, alpha: 0.2, pow: 0.6 },
+    { width: 2.8, color: 10, alpha: 0.4, pow: 1 },
+    { width: 1.25, color: 'x1', alpha: 0.88, pow: 1.6 },
+    { width: 0.5, color: 'x0', alpha: 1, pow: 2.2 },
   ] as { width: number; color: number | 'x0' | 'x1'; alpha: number; pow: number }[],
-  /** 남는 자국 (RenderTexture, 필기처럼): 틈 · 들뜬 가장자리 · 식은 잔불 */
+  /**
+   * 남는 자국 (캔버스, 필기처럼): 틈(폭 + GAP_EXTRA) · 들뜬 가장자리 선(틈 가장자리에서 LIP_OFFSET 밖, 선 굵기 LIP_WIDTH)
+   * · 안쪽 달군 가장자리(LIP_HOT_WIDTH) · 식은 잔불(폭 × EMBER_WIDTH) · 가는 심(CORE_WIDTH px). 폭 단위는 px(1 미만 가능)
+   */
   SCAR: {
     GAP_COLOR: 0x000000,
     GAP_ALPHA: 0.92,
-    GAP_EXTRA_PX: 1.5,
+    GAP_EXTRA_PX: 0.5,
     LIP_GRAY: 6,
     LIP_ALPHA: 0.5,
+    LIP_WIDTH: 0.7,
     LIP_HOT_RAMP: 3,
-    LIP_HOT_ALPHA: 0.4,
-    LIP_OFFSET_PX: 0.8,
+    LIP_HOT_ALPHA: 0.42,
+    LIP_HOT_WIDTH: 0.5,
+    LIP_OFFSET_PX: 0.45,
     EMBER_RAMP: 4,
     EMBER_ALPHA: 0.6,
     EMBER_WIDTH: 0.45,
     CORE_RAMP: 7,
     CORE_ALPHA: 0.35,
-    /** 들뜬 조각(작은 사각형)이 가장자리에 붙을 확률 (꺾임 점마다) */
-    CHIP_CHANCE: 0.18,
-    CHIP_PX: 2,
+    CORE_WIDTH: 0.45,
+    /** 들뜬 조각(작은 사각형)이 가장자리에 붙을 확률 (표본마다 — 표본은 STEP_PX 간격) · 크기 px */
+    CHIP_CHANCE: 0.035,
+    CHIP_PX: [0.7, 1.4] as [number, number],
   },
   /** 불티 (ADD 파티클): 이동 px 당 개수, 한 번에 최대, 진행 반대쪽 ±SPREAD°, 속도·수명·중력 */
   SPARKS: {
-    KEY: 'setup_scratch_spark',
-    SIZE_PX: 2,
-    PER_PX: 0.12,
-    MAX_PER_MOVE: 9,
-    SPREAD_DEG: 65,
-    SPEED: [70, 300] as [number, number],
-    LIFE_MS: [200, 560] as [number, number],
+    /** 51라운드: 부드러운 점 텍스처(LINEAR) 를 작게 — 가는 획에 맞춰 1px 안팎 */
+    KEY: 'setup_scratch_spark_soft',
+    SIZE_PX: 6,
+    SCALE: [0.5, 0.08] as [number, number],
+    PER_PX: 0.07,
+    MAX_PER_MOVE: 6,
+    SPREAD_DEG: 60,
+    SPEED: [50, 230] as [number, number],
+    LIFE_MS: [180, 520] as [number, number],
     GRAVITY: 620,
     /** 색: 팔레트 fx.core 2 + 층 강조 27·26 */
     RAMP_TINTS: [11, 10],
@@ -83,18 +111,19 @@ export const STROKE_FX = {
    * 보통 혼합(빛이 아니라 물질). 이동 px 당 개수 × (0.5 + 빛 세기), 한 번에 최대. 각도는 Phaser 도(270 = 위).
    */
   DEBRIS: {
-    KEY: 'setup_scratch_debris',
-    SIZE_PX: 4,
-    PER_PX: 0.1,
-    MAX_PER_MOVE: 8,
+    /** 51라운드: 텍스처 3px(LINEAR) × 배율 0.35~0.9 — 가는 획에 맞춘 잔 부스러기 */
+    KEY: 'setup_scratch_debris_fine',
+    SIZE_PX: 3,
+    PER_PX: 0.06,
+    MAX_PER_MOVE: 5,
     /** 누를 때 · 뗄 때 한 줌 */
-    ON_BEGIN: 6,
-    ON_END: 16,
-    SPEED: [12, 80] as [number, number],
+    ON_BEGIN: 4,
+    ON_END: 12,
+    SPEED: [10, 70] as [number, number],
     ANGLE: [205, 335] as [number, number],
-    LIFE_MS: [750, 1500] as [number, number],
+    LIFE_MS: [700, 1400] as [number, number],
     GRAVITY: 540,
-    SCALE: [0.5, 1.4] as [number, number],
+    SCALE: [0.35, 0.9] as [number, number],
     /** 색: 팔레트 gray 인덱스(화면 조각) + 검은 재(0x000000, 개수만큼 비중) + 층 램프(잔불 조각) */
     GRAYS: [5, 6, 7, 8],
     ASH: 3,
@@ -122,7 +151,11 @@ export const STROKE_FX = {
     RAY_COUNT: 28,
     /** 광선 길이·끝 폭(px)·각도 흔들림(rad)·늦게 나오는 정도(0~1) */
     RAY_LEN: [180, 560] as [number, number],
-    RAY_WIDTH: [10, 34] as [number, number],
+    RAY_WIDTH: [6, 24] as [number, number],
+    /** 광선 뿌리 반폭 px · 섬광 머리 반지름 px · 섬광 획 폭 배율(느린 폭 기준) */
+    RAY_ROOT_PX: 0.8,
+    TRACE_HEAD_PX: 4,
+    TRACE_WIDTH: 1.4,
     RAY_JITTER: 0.4,
     RAY_STAGGER: 0.35,
     /** 중심 빛 번짐: 전용 방사 그라데이션 텍스처(반지름 px) · 최대 배율 */
@@ -136,13 +169,15 @@ export const STROKE_FX = {
     DEPTH_WHITE: 50,
   },
   /** 펜 끝 빛 번짐 (방사 그라데이션, ADD) */
-  TIP: { KEY: 'setup_scratch_tip', RADIUS_PX: 22, ALPHA: 0.55, SCALE_MIN: 0.6, SCALE_MAX: 1.3 },
+  TIP: { KEY: 'setup_scratch_tip', RADIUS_PX: 22, ALPHA: 0.5, SCALE_MIN: 0.28, SCALE_MAX: 0.62 },
   /** 미세 흔들림: 이 속도 이상일 때, 간격을 두고 */
   SHAKE: { MIN_SPEED: 650, MS: 70, INTENSITY: [0.0008, 0.0026] as [number, number], THROTTLE_MS: 90 },
   /** 마지막 획을 뗀 뒤 그 획의 섬광을 보여 주는 시간 → 그 뒤 빛 터짐(BURST) */
   HOLD_AFTER_LAST_MS: 450,
   /** 빛 터짐 없이 떠날 때(폴백) 자국이 사라지는 시간 */
   FADE_OUT_MS: 650,
+  /** 캔버스 텍스처 키 (연출이 만들고 파괴할 때 지운다) */
+  CANVAS_KEYS: { SCAR: 'setup_stroke_scar', LIGHT: 'setup_stroke_light' },
   /** 깊이: 표면 · 자국 · 부스러기 · 빛 · 불티/광선 (라벨·예시 패널 텍스트는 DEPTH.DEBUG) */
   DEPTH_SURFACE: -2,
   DEPTH_SCAR: -1,
@@ -159,10 +194,15 @@ export function speedRatio(speedPxPerSec: number, C: StrokeFxConfig = STROKE_FX)
   return clamp01(speedPxPerSec / C.WIDTH.SPEED_REF);
 }
 
-/** 빠를수록 넓게 찢기고 밝다 */
+/** 51라운드 붓: 느리면 굵고, 빠를수록 가늘다 (밝기는 `gapIntensity` — 빠를수록 밝다) */
 export function gapWidth(speedPxPerSec: number, C: StrokeFxConfig = STROKE_FX): number {
-  const r = speedRatio(speedPxPerSec, C);
-  return C.WIDTH.MIN_PX + (C.WIDTH.MAX_PX - C.WIDTH.MIN_PX) * r;
+  const r = Math.pow(speedRatio(speedPxPerSec, C), C.WIDTH.CURVE_POW);
+  return C.WIDTH.SLOW_PX + (C.WIDTH.FAST_PX - C.WIDTH.SLOW_PX) * r;
+}
+
+/** 폭 → 0(가장 가늘게)~1(가장 굵게) */
+export function widthRatio(widthPx: number, C: StrokeFxConfig = STROKE_FX): number {
+  return clamp01((widthPx - C.WIDTH.FAST_PX) / (C.WIDTH.SLOW_PX - C.WIDTH.FAST_PX));
 }
 
 export function gapIntensity(speedPxPerSec: number, C: StrokeFxConfig = STROKE_FX): number {
@@ -179,50 +219,6 @@ export function heatAt(ageMs: number, flareAgeMs: number | null, C: StrokeFxConf
       ? C.FLARE_BOOST * (1 - flareAgeMs / C.FLARE_MS)
       : 0;
   return Math.min(1.6, base + (base > 0 ? flare : 0));
-}
-
-/**
- * (x0,y0) → (x1,y1) 를 STEP 간격으로 나누고 안쪽 점을 수직으로 ±AMP×폭 흔든 찢긴 선. 시작점은 그대로(앞 조각과 이어짐),
- * 끝점도 그대로(다음 조각 시작). 반환: [x0,y0, ..., x1,y1]
- */
-export function jaggedPoints(
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-  width: number,
-  rnd: () => number,
-  C: StrokeFxConfig = STROKE_FX,
-): number[] {
-  const dx = x1 - x0;
-  const dy = y1 - y0;
-  const len = Math.hypot(dx, dy);
-  const n = Math.max(1, Math.ceil(len / C.JITTER.STEP_PX));
-  const nx = len > 0 ? -dy / len : 0;
-  const ny = len > 0 ? dx / len : 0;
-  const out = [x0, y0];
-  for (let i = 1; i < n; i++) {
-    const t = i / n;
-    const j = (rnd() * 2 - 1) * C.JITTER.AMP * width;
-    out.push(x0 + dx * t + nx * j, y0 + dy * t + ny * j);
-  }
-  out.push(x1, y1);
-  return out;
-}
-
-/** 점 목록을 수직으로 offset 만큼 민 선 (가장자리 들뜸). 각 점의 법선은 앞뒤 점 방향 */
-export function offsetPoints(pts: number[], offset: number): number[] {
-  const n = pts.length / 2;
-  const out: number[] = [];
-  for (let i = 0; i < n; i++) {
-    const a = Math.max(0, i - 1);
-    const b = Math.min(n - 1, i + 1);
-    const dx = pts[b * 2] - pts[a * 2];
-    const dy = pts[b * 2 + 1] - pts[a * 2 + 1];
-    const len = Math.hypot(dx, dy) || 1;
-    out.push(pts[i * 2] - (dy / len) * offset, pts[i * 2 + 1] + (dx / len) * offset);
-  }
-  return out;
 }
 
 // --- 49라운드: 빛 터짐 ---
