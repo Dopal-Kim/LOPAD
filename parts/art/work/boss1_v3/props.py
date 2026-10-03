@@ -287,12 +287,15 @@ def splash_dust(cv, x, y):
 
 
 # =========================================================================================== 굴러가는 술통
-BW, BH = 128, 112
-BPIV = (64, 104)
+# 54라운드 Q21: 1.25배(지름 54 → 68 도트, 길이 88 → 110). 프레임 128×112 → 160×140, 피벗 (64,104) → (80,130)
+BS = 1.25
+BW, BH = 160, 140
+BPIV = (80, 130)
 
 
 def barrel_side(cv, cx, cy, length, r_, phase):
-    """가로로 누운 술통(축 = 화면 좌우) — 아래·위로 굴러감. phase(0~1) = 회전 각/2π."""
+    """가로로 누운 술통(축 = 화면 좌우) — 아래·위로 굴러감. phase(0~1) = 회전 각/2π. 세부 간격은 r_/25 배."""
+    kk = r_ / 25.0
     x0 = cx - length // 2
     for x in range(x0, x0 + length + 1):
         t = (x - x0) / length
@@ -320,17 +323,22 @@ def barrel_side(cv, cx, cy, length, r_, phase):
     thb = 2 * math.pi * (0.3 + phase)
     if math.cos(thb) > 0.2:
         y = int(round(cy + math.sin(thb) * r_))
-        cv.rect(cx + 6, y - 2, cx + 11, y + 1, WD[0]); cv.hline(cx + 6, cx + 11, y - 2, WD[3])
+        b0, b1, bm = cx + int(6 * kk), cx + int(round(11 * kk)), cx + int(8 * kk)
+        cv.rect(b0, y - 2, b1, y + 1 + (1 if kk > 1.1 else 0), WD[0]); cv.hline(b0, b1, y - 2, WD[3])
         # 새는 술(마개에서)
-        cv.px(cx + 8, y + 2, A[21]); cv.px(cx + 8, y + 3, A[20])
+        cv.px(bm, y + 2, A[21]); cv.px(bm, y + 3, A[20])
+        if kk > 1.1:
+            cv.px(bm, y + 4, A[20]); cv.px(bm, y + 5, A[19])
     # 쇠테(세로)
-    for hx_ in (x0 + 8, x0 + length // 2 - 12, x0 + length // 2 + 12, x0 + length - 8):
+    for hx_ in (x0 + int(8 * kk), x0 + length // 2 - int(12 * kk), x0 + length // 2 + int(12 * kk), x0 + length - int(8 * kk)):
         t = (hx_ - x0) / length
         rr = r_ * (1 + 0.1 * math.sin(math.pi * t))
         for y in range(int(cy - rr), int(cy + rr) + 1):
             v = (y - cy) / rr
             s = 0.5 + 0.5 * (lam(0, v, math.sqrt(max(0, 1 - v * v))) - 0.2)
             cv.px(hx_, y, qcol(R_IRON, s, hx_, y)); cv.px(hx_ + 1, y, qcol(R_IRON, s - 0.15, hx_ + 1, y))
+            if kk > 1.1:
+                cv.px(hx_ + 2, y, qcol(R_IRON, s - 0.3, hx_ + 2, y))
     # 양 끝 뚜껑 가장자리(어둡게)
     for ex, col in ((x0, WD[1]), (x0 + length, WD[0])):
         for y in range(int(cy - r_), int(cy + r_) + 1):
@@ -371,6 +379,8 @@ def barrel_end(cv, cx, cy, r_, length, phase):
             cur = cv.get(x, yy)
             if cur[3]:
                 cv.px(x, yy, R_IRON[3]); cv.px(x, yy + 1, R_IRON[1])
+                if r_ > 30 and cv.get(x, yy + 2)[3]:
+                    cv.px(x, yy + 2, R_IRON[0])
     # 남쪽 뚜껑(원판)
     for y in range(cy - r_, cy + r_ + 1):
         for x in range(cx - r_, cx + r_ + 1):
@@ -389,10 +399,12 @@ def barrel_end(cv, cx, cy, r_, length, phase):
                 cv.px(int(round(x)), int(round(y)), WD[1])
     # 마개(회전)
     bx, by = cx + 0.55 * r_ * math.cos(ang + 1.0), cy + 0.55 * r_ * math.sin(ang + 1.0)
-    cv.rect(int(bx) - 2, int(by) - 2, int(bx) + 2, int(by) + 2, WD[0]); cv.px(int(bx) - 2, int(by) - 2, WD[3])
-    # 쇠테(뚜껑 둘레)
-    for k in range(120):
-        a = 2 * math.pi * k / 120
+    bh_ = int(round(2 * r_ / 26.0))
+    cv.rect(int(bx) - bh_, int(by) - bh_, int(bx) + bh_, int(by) + bh_, WD[0]); cv.px(int(bx) - bh_, int(by) - bh_, WD[3])
+    # 쇠테(뚜껑 둘레) — 둘레에 빈틈 없게 표본 수 = 둘레 × 1.5 이상
+    ns = max(120, int(2 * math.pi * r_ * 1.5))
+    for k in range(ns):
+        a = 2 * math.pi * k / ns
         x, y = cx + (r_ + 0.5) * math.cos(a), cy + (r_ + 0.5) * math.sin(a)
         cv.px(int(round(x)), int(round(y)), R_IRON[4] if (math.cos(a) < 0 and math.sin(a) < 0.3) else R_IRON[2])
     outline(cv, mask_of(cv), R_WOOD, dark=SL[0])
@@ -409,28 +421,33 @@ def rolling_barrel():
         row = []
         for i in range(8):
             cv = Canvas(BW, BH)
-            contact(cv, 64, 102, 44, 6)
+            contact(cv, BPIV[0], BPIV[1] - 2, int(44 * BS), int(round(6 * BS)))
             if d in ("down", "up"):
                 ph = (i / 8) * (1 if d == "down" else -1)
-                barrel_side(cv, 64, 78, 88, 25, ph)
+                barrel_side(cv, BPIV[0], BPIV[1] - 34, 110, 31, ph)          # 지름 = 2 × 31 × 1.1(배부름) ≈ 68
                 # 술 방울 자취(굴러온 쪽 = 반대 방향)
-                ty = 100 if d == "up" else 54
-                drip_trail(cv, [(40 + (i * 7) % 40, ty + (i % 3), A[20]), (70 + (i * 5) % 20, ty + 3, A[21])])
+                ty = BPIV[1] - 5 if d == "up" else BPIV[1] - 62
+                drip_trail(cv, [(50 + int(((i * 7) % 40) * BS), ty + (i % 3), A[20]), (88 + int(((i * 5) % 20) * BS), ty + 3, A[21]),
+                                (89 + int(((i * 5) % 20) * BS), ty + 3, A[20])])
             else:
                 ph = (i / 8) * (1 if d == "right" else -1)
-                barrel_end(cv, 64, 76, 26, 88, ph)
-                tx = 20 if d == "right" else 104
-                drip_trail(cv, [(tx + ((i * 3) % 6) * (1 if d == "right" else -1), 98, A[20]), (tx + 4, 100, A[21])])
+                barrel_end(cv, BPIV[0], BPIV[1] - 35, 33, 110, ph)           # 뚜껑 지름 67 + 쇠테
+                sg = 1 if d == "right" else -1
+                tx = 25 if d == "right" else 135
+                drip_trail(cv, [(tx + ((i * 3) % 8) * sg, BPIV[1] - 8, A[20]), (tx + 5 * sg, BPIV[1] - 5, A[21]), (tx + 6 * sg, BPIV[1] - 5, A[20])])
             row.append(cv.im)
         rows.append(row)
     meta = {
         "image": "boss1_rolling_barrel.png", "frameWidth": BW, "frameHeight": BH, "frames": 8,
         "directions": ["down", "up", "left", "right"], "layout": "rows = 굴러가는 방향(down, up, left, right), columns = 회전 프레임",
         "frameDurationsMs": [60] * 8, "loop": True, "pivot": {"x": BPIV[0], "y": BPIV[1]}, "pixelScale": 0.5, "version": "v3",
-        "footprint": [1, 1], "solid": True, "depth": "y", "occludeAbove": 40,
-        "rotationNote": ("8프레임 = 한 바퀴. 이동 속도에 맞추려면 한 바퀴 = 둘레 약 157 도트(78 논리 px) → 프레임당 약 10 논리 px 이동일 때 60ms. "
+        "footprint": [1, 1], "solid": True, "depth": "y", "occludeAbove": 50,
+        "rotationNote": ("8프레임 = 한 바퀴. 이동 속도에 맞추려면 한 바퀴 = 둘레 약 196 도트(98 논리 px) → 프레임당 약 12 논리 px 이동일 때 60ms. "
                          "시스템이 속도/둘레로 재생 속도를 바꿔도 됨(stride 와 같은 방식: circumferencePx)"),
-        "circumferencePx": 78, "anchor": "projectile_ground",
+        "circumferencePx": 98, "anchor": "projectile_ground",
+        "sizeNote": ("54라운드 Q21 — 1.25배: 지름 약 68 도트(논리 34px, 이전 54 도트), 길이 110 도트(논리 55px, 이전 88), 프레임 128×112 → 160×140, "
+                     "피벗 (64,104) → (80,130). circumferencePx 78 → 98(× 1.25). 시스템 판정 반경 재조정 필요(이전 반경 × 1.25 권장)"),
+        "diameterPx": 34, "lengthPx": 55,
         "anchorNote": "pivot = 술통 바닥 접점 가운데. 대각선 이동은 가까운 축 방향 행을 쓴다. 기둥·벽에 닿으면 boss1_barrel_break 재생",
         "floor": "stage1", "palette": PAL_S, "source": SRC, "colors": ncolors(rows),
     }
@@ -439,50 +456,55 @@ def rolling_barrel():
 
 
 def barrel_break():
+    """굴러가는 술통(1.25배, 54라운드 Q21)과 같은 비율 — 프레임 160×128 → 200×160, 피벗 (80,112) → (100,140), 모든 거리 × BS."""
     frames = []
     r = Rand(5)
     staves = [(r.f() * 2 * math.pi, 0.6 + 0.6 * r.f(), r.i(0, 3)) for _ in range(12)]
+    K = BS
     for i in range(7):
-        cv = Canvas(160, 128)
+        cv = Canvas(200, 160)
         t = i / 6
-        cx, cy = 80, 84
+        cx, cy = 100, 105
         if i == 0:
-            barrel_side(cv, cx, cy - 6, 84, 25, 0.1)
+            barrel_side(cv, cx, cy - 8, 105, 31, 0.1)
             for k in range(10):
-                cv.px(cx - 30 + k * 6, cy - 32 - (k % 2), G[12])
+                cv.px(cx - 38 + int(k * 7.5), cy - 41 - (k % 2), G[12])
         else:
             # 술 터짐(바닥 웅덩이로)
-            splash(cv, cx, cy + 22, int(20 + 40 * min(1, t * 1.6)), int(6 + 9 * min(1, t * 1.6)), seed=3, blobs=6, glint=True)
-            # 날아가는 널
+            splash(cv, cx, cy + 28, int((20 + 40 * min(1, t * 1.6)) * K), int((6 + 9 * min(1, t * 1.6)) * K), seed=3, blobs=6, glint=True)
+            # 날아가는 널(3도트 두께: 밝은 면·본색·그늘)
             for (a, sp, kind) in staves:
-                d = 10 + 70 * sp * t
+                tt = min(t, 0.84)                          # 마지막 프레임은 바닥에 떨어진 자리(가장자리 잘림 0)
+                d = (10 + 70 * sp * tt) * K
                 x = cx + math.cos(a) * d
-                y = cy - 10 + math.sin(a) * d * 0.5 - 40 * sp * t * (1 - t) * 2 + 28 * t * t
-                ln = 12 if kind else 9
+                y = cy - 12 + math.sin(a) * d * 0.5 - 50 * sp * tt * (1 - tt) * 2 + 35 * tt * tt
+                ln = 15 if kind else 11
                 ang = a + t * 6 * sp
                 for j in range(ln):
                     px, py = int(x + math.cos(ang) * (j - ln / 2)), int(y + math.sin(ang) * (j - ln / 2) * 0.6)
-                    cv.px(px, py, R_WOOD[3]); cv.px(px, py + 1, R_WOOD[1])
-                    if kind == 0 and j in (2, ln - 3):
-                        cv.px(px, py, R_IRON[3])
+                    cv.px(px, py - 1, R_WOOD[4]); cv.px(px, py, R_WOOD[3]); cv.px(px, py + 1, R_WOOD[1])
+                    if kind == 0 and j in (2, 3, ln - 4, ln - 3):
+                        cv.px(px, py - 1, R_IRON[4]); cv.px(px, py, R_IRON[3])
             # 쇠테 고리(굴러감)
             if i < 6:
-                for k in range(40):
-                    a = 2 * math.pi * k / 40
-                    cv.px(int(cx + 26 * t * 2 + 16 * math.cos(a)), int(cy + 18 + 6 * math.sin(a)), R_IRON[3] if k < 20 else R_IRON[1])
+                for k in range(64):
+                    a = 2 * math.pi * k / 64
+                    hx, hy = cx + 26 * K * t * 2 + 20 * math.cos(a), cy + 22 + 8 * math.sin(a)
+                    cv.px(int(hx), int(hy), R_IRON[3] if k < 32 else R_IRON[1])
+                    cv.px(int(hx), int(hy) + 1, R_IRON[1] if k < 32 else R_IRON[0])
             # 튀는 술 방울
-            for k in range(18 if i < 4 else 8):
-                a = math.pi * (1.05 + 0.9 * (k / 18))
-                d = 8 + 44 * t * (0.5 + 0.5 * ((k * 7) % 5) / 4)
-                cv.rect(int(cx + math.cos(a) * d), int(cy + math.sin(a) * d * 0.7 + 30 * t * t),
-                        int(cx + math.cos(a) * d) + (1 if k % 3 else 0), int(cy + math.sin(a) * d * 0.7 + 30 * t * t) + 1,
-                        [A[22], A[21], A[20]][k % 3])
+            for k in range(22 if i < 4 else 10):
+                a = math.pi * (1.05 + 0.9 * (k / 22))
+                d = (8 + 44 * t * (0.5 + 0.5 * ((k * 7) % 5) / 4)) * K
+                X_, Y_ = int(cx + math.cos(a) * d), int(cy + math.sin(a) * d * 0.7 + 38 * t * t)
+                cv.rect(X_, Y_, X_ + (1 if k % 3 else 0), Y_ + 1 + (1 if k % 4 == 0 else 0), [A[22], A[21], A[20]][k % 3])
         frames.append(cv.im)
     meta = {
-        "image": "boss1_barrel_break.png", "frameWidth": 160, "frameHeight": 128, "frames": 7, "directions": ["any"],
-        "frameDurationsMs": [40, 50, 60, 70, 90, 110, 400], "loop": False, "pivot": {"x": 80, "y": 112}, "pixelScale": 0.5,
+        "image": "boss1_barrel_break.png", "frameWidth": 200, "frameHeight": 160, "frames": 7, "directions": ["any"],
+        "frameDurationsMs": [40, 50, 60, 70, 90, 110, 400], "loop": False, "pivot": {"x": 100, "y": 140}, "pixelScale": 0.5,
         "version": "v3", "solid": False, "depth": "y", "states": {"break": [0, 1, 2, 3, 4, 5, 6]}, "stateHold": {"break": 6},
         "note": "굴러가던 술통이 기둥·벽·주인공에 부딪혀 터짐 → 술 웅덩이(마지막 프레임 유지 후 시스템이 fire_pool 등 웅덩이로 교체 가능)",
+        "sizeNote": "54라운드 Q21 — 굴러가는 술통 1.25배에 맞춤: 프레임 160×128 → 200×160, 피벗 (80,112) → (100,140)(굴러가는 술통 바닥 접점과 같은 위치에 놓음)",
         "floor": "stage1", "palette": PAL_S, "source": SRC, "colors": ncolors([frames]),
     }
     save(OUT_S, "boss1_barrel_break", [frames], meta)

@@ -1,0 +1,150 @@
+{
+ "image": "boss1_onfire.png",
+ "action": "onfire",
+ "frameWidth": 192,
+ "frameHeight": 240,
+ "frames": 16,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right) — 보스 시트와 같은 방향 행, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 12.12,
+ "frameDurationsMs": [
+  60,
+  60,
+  70,
+  70,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  90,
+  110,
+  140
+ ],
+ "loop": true,
+ "loopRange": [
+  4,
+  11
+ ],
+ "phaseFrames": {
+  "ignite": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "loop": [
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11
+  ],
+  "out": [
+   12,
+   13,
+   14,
+   15
+  ]
+ },
+ "phaseStartMs": {
+  "ignite": 0,
+  "loop": 260,
+  "out": 900
+ },
+ "phaseNote": "불 위에 서면 ignite(0~3, 1회 260ms) → loop(4~11 반복, 한 바퀴 640ms) — 불에서 나와 잠시 뒤(시스템 임시값) out(12~15, 1회 420ms, 위에서부터 꺼지며 재·불티) → 오버레이 제거. loop 중 다시 꺼짐 조건이 풀리면 loop 유지",
+ "pivot": {
+  "x": 96,
+  "y": 220
+ },
+ "anchor": "boss_pivot",
+ "anchorNote": "보스 v3 시트(stage1_*, 192×240, 피벗 (96,220))와 같은 크기·같은 피벗 — 보스 스프라이트 위치에 그대로 겹쳐 보스 바로 위 깊이(+0.01)로 그린다. 방향 행은 보스의 현재 방향 행과 같게. 보스 동작(대기·걷기·돌진 등)과 프레임을 맞출 필요 없음(몸 윤곽은 idle·walk 합집합 기준). 쓰러진 동작(fall·death)에서는 숨기거나 down 행 ground 부분만 권장",
+ "pixelScale": 0.5,
+ "version": "v3",
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "drawOver": "lightmap",
+ "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
+ "light": {
+  "color": "#e8b858",
+  "radius": 230,
+  "intensity": 0.85,
+  "flicker": {
+   "amp": 0.22,
+   "hz": 8
+  },
+  "offset": [
+   96,
+   150
+  ]
+ },
+ "lightByPhase": {
+  "ignite": {
+   "color": "#e2a33c",
+   "radius": 150,
+   "intensity": 0.6,
+   "flicker": {
+    "amp": 0.3,
+    "hz": 10
+   },
+   "offset": [
+    96,
+    190
+   ]
+  },
+  "loop": {
+   "color": "#e8b858",
+   "radius": 230,
+   "intensity": 0.85,
+   "flicker": {
+    "amp": 0.22,
+    "hz": 8
+   },
+   "offset": [
+    96,
+    150
+   ]
+  },
+  "out": {
+   "color": "#d67a11",
+   "radius": 120,
+   "intensity": 0.45,
+   "flicker": {
+    "amp": 0.35,
+    "hz": 10
+   },
+   "offset": [
+    96,
+    200
+   ]
+  }
+ },
+ "lightNote": "radius·offset = 도트(시스템이 pixelScale 로 환산). offset = 프레임 왼쪽 위 기준 [x, y] — 배꼽 높이",
+ "emissiveColors": [
+  "#d67a11",
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "palette": "v3 이펙트: 1층 재·호박 램프 A19~A27 + 백열 X1 #fff4dc + 재(G4·G6·G8, 꺼질 때). 새 색 없음. paletteSwap none",
+ "source": "parts/art/work/boss1_v3/onfire.py (54라운드 Q18 — 보스 불타는 오버레이)",
+ "note": "54라운드 Q18 — 보스가 불붙은 술 위에 서 있으면 발에서 몸통·어깨까지 타고 오르는 불길(보스는 무피해, 오히려 강해짐). 얼굴·가슴 가운데는 비워 둠 — 아무렇지 않은 듯 웃는 표정이 보이게(보스 시트는 그대로)",
+ "colors": 13
+}

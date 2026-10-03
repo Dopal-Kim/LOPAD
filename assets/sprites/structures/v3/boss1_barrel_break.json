@@ -1,7 +1,7 @@
 {
  "image": "boss1_barrel_break.png",
- "frameWidth": 160,
- "frameHeight": 128,
+ "frameWidth": 200,
+ "frameHeight": 160,
  "frames": 7,
  "directions": [
   "any"
@@ -17,8 +17,8 @@
  ],
  "loop": false,
  "pivot": {
-  "x": 80,
-  "y": 112
+  "x": 100,
+  "y": 140
  },
  "pixelScale": 0.5,
  "version": "v3",
@@ -39,6 +39,7 @@
   "break": 6
  },
  "note": "굴러가던 술통이 기둥·벽·주인공에 부딪혀 터짐 → 술 웅덩이(마지막 프레임 유지 후 시스템이 fire_pool 등 웅덩이로 교체 가능)",
+ "sizeNote": "54라운드 Q21 — 굴러가는 술통 1.25배에 맞춤: 프레임 160×128 → 200×160, 피벗 (80,112) → (100,140)(굴러가는 술통 바닥 접점과 같은 위치에 놓음)",
  "floor": "stage1",
  "palette": "parts/art/palette/lopad.json gray + 1층 램프 16~27 + v2 재질 SL·WD·PL — 새 색 없음. 연회장 소품 v3(tiles/v3/stage1_hall_props)와 같은 재질 램프. floor: stage1(층 테마 구조물 — 1층 램프로 그림)",
  "source": "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)",

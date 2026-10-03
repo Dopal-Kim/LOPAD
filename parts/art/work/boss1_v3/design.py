@@ -3,7 +3,7 @@
 
 preview_design.png      시안: 정면·측면·뒷면(대기 0) + drink 핵심 프레임(들기·들이켜기·다 마심) + drink_break 술통 터짐 4방향 · 3배
                         (잔 대안 A~D 시트는 54라운드 Q13 에서 C 술통 잔 확정 → 삭제)
-preview_props.png       보스방 소품·fx 전 프레임 2배
+preview_props.png       보스방 소품·fx 전 프레임 2배(불타는 오버레이 boss1_onfire 만 1배)
 preview_mock_hall.png   연회장 v2 목업(1920×1080 내부 렌더, 1배) 위 보스 + 주인공 v3 크기 비교 + 소품
 preview_mock_hall_x2.png 목업 가운데 2배 확대
 """
@@ -63,13 +63,14 @@ def sheet_frames(path, js):
 
 def props_preview():
     items = [("structures/v3/boss1_pillar", "기둥 2×2 idle·hit"), ("structures/v3/boss1_candelabra", "촛대 lit·fall·fallen_unlit·relight·relit"),
-             ("structures/v3/boss1_rolling_barrel", "굴러가는 술통(행 = down/up/left/right)"), ("structures/v3/boss1_barrel_break", "술통 터짐"),
+             ("structures/v3/boss1_rolling_barrel", "굴러가는 술통 1.25배(지름 68 · 행 = down/up/left/right)"), ("structures/v3/boss1_barrel_break", "술통 터짐(1.25배)"),
              ("fx/v3/boss1_torch", "횃불 투사체"), ("fx/v3/boss1_cup_shatter", "잔 파편"), ("fx/v3/boss1_liquor_splash", "술 튀김"),
-             ("fx/v3/boss1_liquor_glob", "뿌린 술 방울")]
+             ("fx/v3/boss1_liquor_glob", "뿌린 술 방울"), ("fx/v3/boss1_onfire", "보스 불타는 오버레이(1배 · ignite 0~3 · loop 4~11 · out 12~15)")]
     k = 2
     blocks = []
     for path, t in items:
         j, fr = sheet_frames(os.path.join(SPR, path + ".png"), os.path.join(SPR, path + ".json"))
+        k = 1 if path.endswith("onfire") else 2
         fw, fh = j["frameWidth"] * k, j["frameHeight"] * k
         n = len(fr[0])
         w = 20 + n * (fw + 6)
@@ -146,7 +147,7 @@ def mock():
     bp = PIV
     things = [(pfr[0][0], (80, 440), (200, 440)), (pfr[0][1], (80, 440), (1070, 440)),
               (cfr[0][0], (64, 216), (430, 250)), (cfr[0][6], (64, 216), (760, 300)), (cfr[0][9], (64, 216), (900, 560)),
-              (rfr[3][2], (64, 104), (1150, 470)),
+              (rfr[3][2], (rj["pivot"]["x"], rj["pivot"]["y"]), (1150, 470)),
               (boss[("idle", 0, 0)][0], bp, (420, 470)), (hero, hp, (300, 480)),
               (boss[("drink", 2, 6)][0], bp, (640, 420)), (boss[("attack", 3, 6)][0], bp, (880, 400)),
               (boss[("fall", 0, 7)][0], bp, (620, 600)), (boss[("slam", 0, 6)][0], bp, (1110, 610)), (hero_l, hp, (1000, 470))]
