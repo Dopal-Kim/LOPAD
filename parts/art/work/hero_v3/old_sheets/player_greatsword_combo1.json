@@ -1,0 +1,63 @@
+{
+ "image": "player_greatsword_combo1.png",
+ "action": "greatsword_combo1",
+ "frameWidth": 16,
+ "frameHeight": 24,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 10,
+ "frameDurationsMs": [
+  90,
+  100,
+  60,
+  110,
+  140,
+  130
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 23
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 21, 23; rim G04)",
+ "source": "parts/art/work/combos/build.py (48라운드 Q2)",
+ "weapon": "greatsword",
+ "comboIndex": 1,
+ "comboLength": 3,
+ "nextCombo": "greatsword_combo2",
+ "hitFrames": [
+  2
+ ],
+ "activeFrames": [
+  2
+ ],
+ "cancelFromFrame": 4,
+ "framesBasis": "player_greatsword_combo1 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 190,
+  "cancelAt": 360,
+  "total": 630
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 10px",
+ "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
+ "fxSpawnAtMs": 150,
+ "recoverFrames": [
+  4,
+  5
+ ],
+ "recoverNote": "임시(아트 제안): 휘두른 뒤 무게를 버티고 자세를 되찾는 프레임. 이동 제약·기력 소모 구간의 시각 기준 (실제 이동 제약 시간은 시스템). 취소(cancelFromFrame)가 들어오면 생략된다.",
+ "revision": "49라운드 재제작 (두 손 큰 휘두름 + 몸 비틀림·무게 중심 이동·회복 프레임)",
+ "hitRadiusPx": 51,
+ "arcDeg": 190,
+ "arcFromDeg": -110,
+ "arcToDeg": 80,
+ "arcAngleNote": "right 방향 화면각(0 = 정면, + = 아래, from→to = 휘두름 방향). down = +90° 회전, up = -90°, left = 좌우 반전(180-θ)",
+ "note": "무기를 든 연격 몸 동작. weapons/greatsword_combo1 를 같은 프레임 번호·같은 시각에 겹친다(§6.1)."
+}

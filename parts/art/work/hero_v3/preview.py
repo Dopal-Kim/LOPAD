@@ -45,7 +45,7 @@ def compose(body, weapon=None):
 
 def union_box(frames_by_dir, margin=2):
     box = None
-    for d in DIRS:
+    for d in [d for d in DIRS if d in frames_by_dir]:
         for im in frames_by_dir[d]:
             b = im.getbbox()
             if b:
@@ -59,13 +59,14 @@ def frames_x2(name, frames_by_dir, ms, impact=None, active=(), states=None):
     k, pad = 2, 6
     box = union_box(frames_by_dir)
     bw, bh = box[2] - box[0], box[3] - box[1]
-    n = len(frames_by_dir[DIRS[0]])
+    dirs = [d for d in DIRS if d in frames_by_dir]
+    n = len(frames_by_dir[dirs[0]])
     W = 80 + n * (bw * k + pad)
-    H = 50 + len(DIRS) * (bh * k + pad)
+    H = 50 + len(dirs) * (bh * k + pad)
     out = Image.new("RGBA", (W, H), BG)
     dr = ImageDraw.Draw(out)
     label(dr, 6, 6, "%s · %d프레임 · ms %s" % (name, n, ms))
-    for j, d in enumerate(DIRS):
+    for j, d in enumerate(dirs):
         y = 50 + j * (bh * k + pad)
         label(dr, 6, y + bh * k // 2 - 8, d)
         for i, im in enumerate(frames_by_dir[d]):
@@ -85,11 +86,12 @@ def gif_x3(name, frames_by_dir, ms):
     k = 3
     box = union_box(frames_by_dir, margin=4)
     bw, bh = box[2] - box[0], box[3] - box[1]
-    n = len(frames_by_dir[DIRS[0]])
+    dirs = [d for d in DIRS if d in frames_by_dir]
+    n = len(frames_by_dir[dirs[0]])
     frames = []
     for i in range(n):
-        im = Image.new("RGBA", (bw * 4 * k, bh * k), (34, 36, 42, 255))
-        for c, d in enumerate(DIRS):
+        im = Image.new("RGBA", (bw * len(dirs) * k, bh * k), (34, 36, 42, 255))
+        for c, d in enumerate(dirs):
             im.alpha_composite(frames_by_dir[d][i].crop(box).resize((bw * k, bh * k), Image.NEAREST), (c * bw * k, 0))
         frames.append(im.convert("RGB").quantize(colors=128, dither=Image.Dither.NONE))
     frames[0].save(os.path.join(HERE, "preview_%s_x3.gif" % name), save_all=True, append_images=frames[1:],

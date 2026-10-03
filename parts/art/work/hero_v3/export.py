@@ -192,7 +192,10 @@ def combo_meta(n):
     cancelAt = st[can] if can is not None else None
     v2 = K.V2_TIMING[n]
     assert hitAt == v2["hitAt"] and cancelAt == v2["cancelAt"] and sum(ms) == v2["total"], ("v2 timing mismatch", n)
-    o = json.load(open(os.path.join(V2_P, "player_katana_combo%d.json" % n), encoding="utf-8"))
+    p2 = os.path.join(V2_P, "player_katana_combo%d.json" % n)        # v2 시트가 지워지면 old_sheets/ 사본으로 대조
+    if not os.path.exists(p2):
+        p2 = os.path.join(HERE, "old_sheets", "v2_player_katana_combo%d.json" % n)
+    o = json.load(open(p2, encoding="utf-8"))
     v2st = starts(o["frameDurationsMs"])
     v2activeEnd = v2st[o["activeFrames"][-1]] + o["frameDurationsMs"][o["activeFrames"][-1]]
     assert activeEnd == v2activeEnd, ("active window mismatch", n, activeEnd, v2activeEnd)

@@ -1,0 +1,595 @@
+{
+ "image": "player_birth.png",
+ "action": "birth",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 34,
+ "directions": [
+  "down"
+ ],
+ "layout": "1 row (down), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 9.26,
+ "frameDurationsMs": [
+  100,
+  100,
+  100,
+  100,
+  95,
+  95,
+  90,
+  90,
+  90,
+  90,
+  100,
+  100,
+  110,
+  110,
+  120,
+  120,
+  130,
+  130,
+  100,
+  100,
+  120,
+  80,
+  80,
+  120,
+  120,
+  150,
+  150,
+  100,
+  100,
+  85,
+  85,
+  75,
+  75,
+  260
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build2.py (53라운드 4번 — 옛 주인공 시트를 v3 몸으로 교체, 2차)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "totalMs": 3670,
+ "burstFrame": 20,
+ "phases": {
+  "gather": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9
+  ],
+  "merge": [
+   10,
+   11,
+   12,
+   13,
+   14,
+   15
+  ],
+  "form": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "kneel": [
+   21,
+   22,
+   23,
+   24,
+   25,
+   26
+  ],
+  "standUp": [
+   27,
+   28,
+   29,
+   30,
+   31,
+   32,
+   33
+  ]
+ },
+ "eyeOpenFrame": 25,
+ "endsWith": "player_idle_down frame 0 (마지막 프레임의 몸 = v3 player_idle down 0 과 픽셀 동일, assert)",
+ "skippable": "아무 키 → 마지막 프레임(=idle) 으로 건너뛰기 (시스템, 48라운드 Q6)",
+ "camera": "재생 동안 시스템이 카메라 약 4배 확대 → 끝나면 2배 복귀 (48라운드 Q6). 시트 크기 불변.",
+ "fx": {
+  "under": "fx/birth_dust",
+  "underOptional": true,
+  "swirlUntilFrame": 20,
+  "scatterAtFrame": 20,
+  "ambient": "fx/soul_wisp",
+  "ambientNote": "탄생지 둘레에 soul_wisp 3~6 개를 띄워 두면 f0~f9 에 모여드는 혼불과 이어진다(선택)."
+ },
+ "version": "v3 (53라운드 4번) — 혼불 7개 나선 + 바닥 재 소용돌이 → 혼불 덩이·재 무덤 → 흙빛 형체가 아래부터 굳음 → 껍데기 터짐(백열 균열·불티) → 무릎 → 일어섬",
+ "colors": {
+  "gray": 15,
+  "accent": 6
+ },
+ "oldTiming": {
+  "frames": 18,
+  "frameDurationsMs": [
+   200,
+   200,
+   190,
+   180,
+   180,
+   200,
+   220,
+   240,
+   260,
+   200,
+   120,
+   160,
+   240,
+   300,
+   200,
+   170,
+   150,
+   260
+  ],
+  "framesMap": [
+   [
+    0,
+    1
+   ],
+   [
+    2,
+    3
+   ],
+   [
+    4,
+    5
+   ],
+   [
+    6,
+    7
+   ],
+   [
+    8,
+    9
+   ],
+   [
+    10,
+    11
+   ],
+   [
+    12,
+    13
+   ],
+   [
+    14,
+    15
+   ],
+   [
+    16,
+    17
+   ],
+   [
+    18,
+    19
+   ],
+   [
+    20
+   ],
+   [
+    21,
+    22
+   ],
+   [
+    23,
+    24
+   ],
+   [
+    25,
+    26
+   ],
+   [
+    27,
+    28
+   ],
+   [
+    29,
+    30
+   ],
+   [
+    31,
+    32
+   ],
+   [
+    33
+   ]
+  ]
+ },
+ "pivotNote": "피벗 (96,186) = 주인공 발. 몸 96×144 는 (48,48) 에 놓인다(bodyOffset) — player_* v3 피벗 (48,138) 과 같은 점.",
+ "bodyOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "timingNote": "구 시트(32×32, 18프레임) 의 프레임마다 시작 ms·전체 ms 가 같다. burstFrame·eyeOpenFrame 시각 불변.",
+ "handAnchors": {
+  "down": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     114.2,
+     166.4
+    ]
+   },
+   {
+    "handR": [
+     77.8,
+     166.4
+    ],
+    "handL": [
+     113.6,
+     161.3
+    ]
+   },
+   {
+    "handR": [
+     77.7,
+     164.2
+    ],
+    "handL": [
+     113.6,
+     159.8
+    ]
+   },
+   {
+    "handR": [
+     77.3,
+     159.0
+    ],
+    "handL": [
+     113.6,
+     156.0
+    ]
+   },
+   {
+    "handR": [
+     76.7,
+     152.1
+    ],
+    "handL": [
+     113.6,
+     151.1
+    ]
+   },
+   {
+    "handR": [
+     76.2,
+     145.2
+    ],
+    "handL": [
+     113.6,
+     146.3
+    ]
+   },
+   {
+    "handR": [
+     75.8,
+     140.0
+    ],
+    "handL": [
+     113.6,
+     142.5
+    ]
+   },
+   {
+    "handR": [
+     75.6,
+     137.8
+    ],
+    "handL": [
+     113.6,
+     141.0
+    ]
+   }
+  ]
+ },
+ "scarAnchor": {
+  "down": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 138.9,
+    "w": 25.5,
+    "h": 15.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 137.1,
+    "w": 25.5,
+    "h": 15.9,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 132.4,
+    "w": 25.5,
+    "h": 16.6,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 126.5,
+    "w": 25.5,
+    "h": 17.5,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 120.5,
+    "w": 25.5,
+    "h": 18.5,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 115.8,
+    "w": 25.5,
+    "h": 19.2,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 96.0,
+    "y": 114.0,
+    "w": 25.5,
+    "h": 19.5,
+    "rot": 0.0,
+    "visible": false
+   }
+  ]
+ },
+ "scarAnchorNote": "탄생은 정면(down)뿐 — 상흔은 아직 없음(visible false). 좌표는 이 시트(192) 기준.",
+ "anchorNote": "handAnchors 는 이 시트(192×192) 좌표. 형체가 없는 프레임은 null.",
+ "note": "v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b."
+}

@@ -1,0 +1,80 @@
+{
+ "image": "player_greatsword_slam.png",
+ "action": "slam (개성 발현 후 충격파: 마우스 방향으로 짧게 도약해 내려찍기)",
+ "frameWidth": 16,
+ "frameHeight": 24,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 9,
+ "frameDurationsMs": [
+  90,
+  110,
+  90,
+  60,
+  90,
+  160,
+  120,
+  130
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 8,
+  "y": 23
+ },
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent slots 21, 23; rim G04)",
+ "source": "parts/art/work/combos/build.py (49라운드 4·5절 · art §7.2)",
+ "weapon": "greatsword",
+ "leapFrames": [
+  2,
+  3
+ ],
+ "impactFrame": 4,
+ "recoverFrames": [
+  5,
+  6,
+  7
+ ],
+ "timingMs": {
+  "leapStart": 200,
+  "impactAt": 350,
+  "total": 850
+ },
+ "leapNote": "임시(아트 제안): 도약 프레임 동안 시스템이 마우스 방향으로 이동(거리·속도는 시스템). 스프라이트는 다리를 접은 자세만 — 몸을 띄우는 화면 y 오프셋은 시스템이 그린다(제안 leapOffsetsPx).",
+ "leapOffsetsPx": {
+  "2": -3,
+  "3": -2
+ },
+ "impactOffsetPx": {
+  "down": {
+   "x": 3,
+   "y": 13
+  },
+  "up": {
+   "x": -4,
+   "y": -24
+  },
+  "left": {
+   "x": -24,
+   "y": 0
+  },
+  "right": {
+   "x": 23,
+   "y": 0
+  }
+ },
+ "impactDistancePx": 21,
+ "impactNote": "충격파 중심(= fx/greatsword_slam 피벗) = 발 피벗 + 정면(마우스 방향) × impactDistancePx. impactOffsetPx 는 4방향 그림의 칼끝 실제 위치(참고).",
+ "fx": {
+  "id": "greatsword_slam",
+  "spawn": "impactFrame",
+  "anchor": "hitbox_center"
+ },
+ "framesBasis": "player_greatsword_slam 프레임 번호 (몸·무기 공통)"
+}

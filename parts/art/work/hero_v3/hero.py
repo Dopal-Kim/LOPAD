@@ -102,7 +102,8 @@ def pose(**kw):
              farArmFront=False,         # 측면: 먼 팔을 몸통 앞에 그림(몸 앞을 가로지를 때)
              footdx=(0.0, 0.0),         # 정면/뒷면: 발 화면 x 이동 (L, R)
              glow=0,                    # 균열 혼불 2 = 백열(피격·사망 직전)
-             eyeOff=False, flameOff=False, flameRows=None)
+             eyeOff=False, flameOff=False, flameRows=None,
+             tension=0.0)               # 2차(활): 어깨·등 긴장 0~1 — 견갑골이 등뼈 쪽으로 모이고 등 근육 능선 빛(0 이면 1차와 픽셀 동일)
     p.update(kw)
     if p["handAt"] is None:
         p["handAt"] = {}
@@ -423,6 +424,9 @@ def draw_front(p, back=False):
         for dx, y in ((4.0, 39.2), (11.6, 37.4), (6.0, 46.4)):
             rivet(R, *U(dx, y))
         fline(R, [U(3, 38.2), U(12, 36.4)], SL[6], "plate")
+        if p["tension"] > 0.3:                                                       # 2차(활): 승모 능선(목 → 어깨)
+            for s_ in (1, -1):
+                fline(R, [U(s_ * 4.0, 32.6), U(s_ * 9.0, 33.6), U(s_ * 13.0, 36.0)], G[7] if p["tension"] > 0.65 else G[6], "torso")
         fline(R, [U(7, 41), U(10.5, 45.5)], SL[1], "plate")
         fline(R, [U(5, 43), U(6.5, 44.5)], SL[1], "plate")
         rivet(R, *U(16.5, 55))
@@ -430,9 +434,15 @@ def draw_front(p, back=False):
         # 등: 가운데(상흔 자리)는 비우고, 균열 혼불은 허리 쪽으로 내려 짧게(53라운드 Q4)
         crack(R, [(1.5, 48), (-1, 51), (1.5, 54), (0, 57)], U, pulse=p["pulse"], thick=(m, 0), glow=p["glow"])
         crack(R, [(1.5, 54), (5.5, 52.5)], U, thick=(0, 1), spill=False, glow=p["glow"])
-        for s_ in (1, -1):                                                         # 견갑골 능선
-            fline(R, [U(s_ * 5.5, 38.5), U(s_ * 9.5, 41.5), U(s_ * 11, 45)], G[1], "torso")
-            fline(R, [U(s_ * 5.0, 37.6), U(s_ * 9.0, 40.4)], G[5], "torso")
+        tn = p["tension"]
+        for s_ in (1, -1):                                                         # 견갑골 능선(긴장하면 등뼈 쪽으로 모임)
+            fline(R, [U(s_ * (5.5 - 2.2 * tn), 38.5), U(s_ * (9.5 - 2.6 * tn), 41.5), U(s_ * (11 - 1.8 * tn), 45)], G[1], "torso")
+            fline(R, [U(s_ * (5.0 - 2.2 * tn), 37.6), U(s_ * (9.0 - 2.6 * tn), 40.4)], G[5], "torso")
+            if tn > 0.3:                                                           # 긴장: 승모 능선 빛 + 견갑 아래 당겨진 골
+                fline(R, [U(s_ * 2.5, 34.0), U(s_ * 8.0, 34.8), U(s_ * 12.5, 37.0)], G[7] if tn > 0.65 else G[6], "torso")
+                fline(R, [U(s_ * 2.5, 34.8), U(s_ * 8.0, 35.6), U(s_ * 12.0, 37.8)], G[1], "torso")       # 능선 아래 그늘(입체)
+                fline(R, [U(s_ * 1.2, 37.0), U(s_ * 1.6, 41.0), U(s_ * 1.2, 45.0)], G[6], "torso")         # 등뼈 양옆 근육 빛
+                fline(R, [U(s_ * (8.0 - 2.0 * tn), 45.5), U(s_ * (4.5 - 1.5 * tn), 47.0)], G[1], "torso")
         fline(R, [U(0, 35.5), U(0.5, 39), U(0, 43), U(0.4, 46)], G[2], "torso")    # 등뼈 골
         groove(R, [(-14, 46), (-12, 48.5), (-12.5, 51)], U)
         groove(R, [(11.5, 40), (13.5, 43), (12.5, 45)], U, hi=False)
@@ -627,6 +637,9 @@ def draw_side(p, facing):
     R.px(e1[0], e1[1], A[25] if p["glow"] >= 2 else A[23]); R.px(e1[0], e1[1] + 1, A[21]); R.px(e1[0], e1[1] + 2, A[19])   # 등 아래 균열 불빛(가장자리)
     groove(R, [(-3.5, 40), (-5, 44), (-4, 48)], U, hi=False)
     fline(R, [U(-2.4, 37.0), U(-5.0, 40.0)], G[5], "torso")                         # 굽은 등 견갑 능선 빛
+    if p["tension"] > 0.3:                                                           # 2차(활): 긴장한 등·어깨 능선
+        fline(R, [U(-1.0, 35.0), U(-4.4, 37.6), U(-6.2, 41.5)], G[7] if p["tension"] > 0.65 else G[6], "torso")
+        fline(R, [U(-3.0, 38.6), U(-5.4, 42.6)], G[1], "torso")
     nh = R.T(U(-6.4, 52))
     R.px(nh[0], nh[1], SL[6]); R.px(nh[0] + f, nh[1] + 1, SL[2])
     for kind, a0, a1 in details:

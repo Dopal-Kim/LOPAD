@@ -1,0 +1,497 @@
+{
+ "colorsUnion": 30,
+ "outsidePhase1": [],
+ "moves": {
+  "greatsword_combo1": {
+   "frames": 12,
+   "ms": [
+    45,
+    45,
+    50,
+    50,
+    30,
+    30,
+    55,
+    55,
+    70,
+    70,
+    65,
+    65
+   ],
+   "old": [
+    90,
+    100,
+    60,
+    110,
+    140,
+    130
+   ],
+   "timing": {
+    "hitAt": 190,
+    "cancelAt": 360,
+    "total": 630,
+    "activeEndAt": 250
+   },
+   "impact": 4,
+   "cancel": 8,
+   "hold": null
+  },
+  "greatsword_combo2": {
+   "frames": 12,
+   "ms": [
+    40,
+    40,
+    45,
+    45,
+    30,
+    30,
+    55,
+    55,
+    70,
+    70,
+    60,
+    60
+   ],
+   "old": [
+    80,
+    90,
+    60,
+    110,
+    140,
+    120
+   ],
+   "timing": {
+    "hitAt": 170,
+    "cancelAt": 340,
+    "total": 600,
+    "activeEndAt": 230
+   },
+   "impact": 4,
+   "cancel": 8,
+   "hold": null
+  },
+  "greatsword_combo3": {
+   "frames": 14,
+   "ms": [
+    50,
+    50,
+    60,
+    60,
+    30,
+    30,
+    35,
+    35,
+    75,
+    75,
+    80,
+    80,
+    80,
+    80
+   ],
+   "old": [
+    100,
+    120,
+    60,
+    70,
+    150,
+    160,
+    160
+   ],
+   "timing": {
+    "hitAt": 220,
+    "cancelAt": null,
+    "total": 820,
+    "activeEndAt": 350
+   },
+   "impact": 4,
+   "cancel": null,
+   "hold": null
+  },
+  "greatsword_dashslash": {
+   "frames": 13,
+   "ms": [
+    35,
+    35,
+    45,
+    45,
+    30,
+    30,
+    45,
+    45,
+    60,
+    60,
+    160,
+    70,
+    70
+   ],
+   "old": [
+    70,
+    90,
+    60,
+    90,
+    120,
+    160,
+    140
+   ],
+   "timing": {
+    "hitAt": 160,
+    "recoverFrom": 310,
+    "total": 730,
+    "activeEndAt": 220
+   },
+   "impact": 4,
+   "cancel": null,
+   "hold": 10
+  },
+  "greatsword_slam": {
+   "frames": 16,
+   "ms": [
+    45,
+    45,
+    55,
+    55,
+    45,
+    45,
+    30,
+    30,
+    45,
+    45,
+    80,
+    80,
+    60,
+    60,
+    65,
+    65
+   ],
+   "old": [
+    90,
+    110,
+    90,
+    60,
+    90,
+    160,
+    120,
+    130
+   ],
+   "timing": {
+    "leapStart": 200,
+    "impactAt": 350,
+    "total": 850
+   },
+   "impact": 8,
+   "cancel": null,
+   "hold": null
+  },
+  "greatsword_draw": {
+   "frames": 7,
+   "ms": [
+    45,
+    45,
+    55,
+    55,
+    45,
+    45,
+    110
+   ],
+   "old": [
+    90,
+    110,
+    90,
+    110
+   ],
+   "timing": null,
+   "impact": null,
+   "cancel": null,
+   "hold": null
+  },
+  "greatsword_sheathe": {
+   "frames": 7,
+   "ms": [
+    50,
+    50,
+    55,
+    55,
+    55,
+    55,
+    120
+   ],
+   "old": [
+    100,
+    110,
+    110,
+    120
+   ],
+   "timing": null,
+   "impact": null,
+   "cancel": null,
+   "hold": null
+  },
+  "greatsword_special": {
+   "frames": 12,
+   "ms": [
+    40,
+    40,
+    80,
+    80,
+    80,
+    80,
+    30,
+    30,
+    45,
+    45,
+    65,
+    65
+   ],
+   "old": [
+    80,
+    160,
+    160,
+    60,
+    90,
+    130
+   ],
+   "timing": null,
+   "impact": null,
+   "cancel": null,
+   "hold": null
+  },
+  "dagger_combo1": {
+   "frames": 6,
+   "ms": [
+    25,
+    25,
+    20,
+    20,
+    35,
+    35
+   ],
+   "old": [
+    50,
+    40,
+    70
+   ],
+   "timing": {
+    "hitAt": 50,
+    "cancelAt": 90,
+    "total": 160,
+    "activeEndAt": 90
+   },
+   "impact": 2,
+   "cancel": 4,
+   "hold": null
+  },
+  "dagger_combo2": {
+   "frames": 6,
+   "ms": [
+    20,
+    20,
+    20,
+    20,
+    35,
+    35
+   ],
+   "old": [
+    40,
+    40,
+    70
+   ],
+   "timing": {
+    "hitAt": 40,
+    "cancelAt": 80,
+    "total": 150,
+    "activeEndAt": 80
+   },
+   "impact": 2,
+   "cancel": 4,
+   "hold": null
+  },
+  "dagger_combo3": {
+   "frames": 8,
+   "ms": [
+    30,
+    30,
+    20,
+    20,
+    35,
+    35,
+    55,
+    55
+   ],
+   "old": [
+    60,
+    40,
+    70,
+    110
+   ],
+   "timing": {
+    "hitAt": 60,
+    "cancelAt": null,
+    "total": 280,
+    "activeEndAt": 100
+   },
+   "impact": 2,
+   "cancel": null,
+   "hold": null
+  },
+  "dagger_special": {
+   "frames": 9,
+   "ms": [
+    25,
+    25,
+    30,
+    30,
+    35,
+    35,
+    40,
+    40,
+    140
+   ],
+   "old": [
+    50,
+    60,
+    70,
+    80,
+    140
+   ],
+   "timing": null,
+   "impact": null,
+   "cancel": null,
+   "hold": 8
+  },
+  "bow_aim": {
+   "frames": 8,
+   "ms": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    120,
+    40,
+    40
+   ],
+   "old": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    120,
+    80
+   ],
+   "timing": null,
+   "impact": null,
+   "cancel": null,
+   "hold": null
+  },
+  "bow_reload": {
+   "frames": 10,
+   "ms": [
+    45,
+    45,
+    50,
+    50,
+    60,
+    60,
+    50,
+    50,
+    45,
+    45
+   ],
+   "old": [
+    90,
+    100,
+    120,
+    100,
+    90
+   ],
+   "timing": null,
+   "impact": null,
+   "cancel": null,
+   "hold": null
+  },
+  "attack": {
+   "frames": 7,
+   "ms": [
+    50,
+    50,
+    50,
+    55,
+    55,
+    55,
+    55
+   ],
+   "old": [
+    100,
+    50,
+    110,
+    110
+   ],
+   "timing": null,
+   "impact": null,
+   "cancel": null,
+   "hold": null
+  },
+  "birth": {
+   "frames": 34,
+   "ms": [
+    100,
+    100,
+    100,
+    100,
+    95,
+    95,
+    90,
+    90,
+    90,
+    90,
+    100,
+    100,
+    110,
+    110,
+    120,
+    120,
+    130,
+    130,
+    100,
+    100,
+    120,
+    80,
+    80,
+    120,
+    120,
+    150,
+    150,
+    100,
+    100,
+    85,
+    85,
+    75,
+    75,
+    260
+   ],
+   "old": [
+    200,
+    200,
+    190,
+    180,
+    180,
+    200,
+    220,
+    240,
+    260,
+    200,
+    120,
+    160,
+    240,
+    300,
+    200,
+    170,
+    150,
+    260
+   ],
+   "burst": 20,
+   "eyeOpen": 25
+  }
+ }
+}
