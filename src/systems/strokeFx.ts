@@ -11,6 +11,8 @@
  *   3. 빛 캔버스 (ADD): 검정 바탕에 'lighten' 으로 백열 코어(fx.core X0/X1) → 층 강조(27/26/25). 표본마다 생성 시각으로 식는다
  *   4. 불티(부드러운 점, 1px 안팎) + 펜 끝 빛 번짐, 빠르게 그을 때 미세 흔들림
  *   5. 부스러기(보통 혼합): 긁힌 화면 조각·검은 재·잔불 조각이 튀었다가 떨어진다 (49라운드 1절, 51라운드 크기 축소)
+ * 52라운드 Q8: 자국·빛 캔버스는 실제 캔버스 해상도(1920×1080)로 그린다 — 좌표는 논리 px 그대로, 캔버스 변환(× RESOLUTION)으로
+ * 2배 촘촘하게(표본 간격 0.5 논리 px = 실제 1px). 표면 결 텍스처는 논리 해상도(배경이라 충분).
  * 획을 떼면 그 획 전체가 한 번 더 번쩍(FLARE)하고 COOL_MS 동안 식는다.
  * 3획을 다 그으면 `burst()` (49라운드 1절): 살짝 흔들림 + 획 맥동 → 백열 섬광이 획을 따라 달림 → 광선이 퍼짐
  * → 화면이 하얗게 번쩍(이때 onPeak: 다음 장면 시작) → 걷힘(onDone).
@@ -18,6 +20,7 @@
  */
 import Phaser from 'phaser';
 import { GAME } from '../core/Constants';
+import { CANVAS_H, CANVAS_W, RES } from './display';
 import { PALETTE } from '../data';
 import { fxCoreColor, hexToInt, rampFor } from './palette';
 import { STROKE_FX, burstAt, burstRays, heatAt, pathPointAt, widthRatio, type BurstRay } from './strokeFxMath';
@@ -119,17 +122,23 @@ export class StrokeFx {
     this.surface = scene.add.image(0, 0, C.SURFACE.KEY).setOrigin(0, 0).setDepth(C.DEPTH_SURFACE);
     this.scarTex = this.makeCanvas(C.CANVAS_KEYS.SCAR);
     this.lightTex = this.makeCanvas(C.CANVAS_KEYS.LIGHT);
-    this.scarImg = scene.add.image(0, 0, C.CANVAS_KEYS.SCAR).setOrigin(0, 0).setDepth(C.DEPTH_SCAR);
+    this.scarImg = scene.add
+      .image(0, 0, C.CANVAS_KEYS.SCAR)
+      .setOrigin(0, 0)
+      .setScale(1 / RES)
+      .setDepth(C.DEPTH_SCAR);
     this.lightImg = scene.add
       .image(0, 0, C.CANVAS_KEYS.LIGHT)
       .setOrigin(0, 0)
+      .setScale(1 / RES)
       .setDepth(C.DEPTH_HOT)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setVisible(false);
     this.baked = document.createElement('canvas');
-    this.baked.width = GAME.WIDTH;
-    this.baked.height = GAME.HEIGHT;
+    this.baked.width = CANVAS_W;
+    this.baked.height = CANVAS_H;
     this.bakedCtx = this.baked.getContext('2d')!;
+    this.bakedCtx.setTransform(RES, 0, 0, RES, 0, 0);
     const S = C.SPARKS;
     this.sparks = scene.add.particles(0, 0, S.KEY, {
       emitting: false,
@@ -366,7 +375,10 @@ export class StrokeFx {
   private makeCanvas(key: string): Phaser.Textures.CanvasTexture {
     const tex = this.scene.textures;
     if (tex.exists(key)) tex.remove(key);
-    return tex.createCanvas(key, GAME.WIDTH, GAME.HEIGHT)!;
+    const canvas = tex.createCanvas(key, CANVAS_W, CANVAS_H)!;
+    // 그리기 좌표는 논리 px — 캔버스 변환으로 실제 해상도에 그린다
+    canvas.context.setTransform(RES, 0, 0, RES, 0, 0);
+    return canvas;
   }
 
   /** 자국 캔버스 = 보관 캔버스 + 긋는 중인 획 (펜 끝까지) */
@@ -374,7 +386,11 @@ export class StrokeFx {
     const ctx = this.scarTex.context;
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, GAME.WIDTH, GAME.HEIGHT);
+    // 보관 캔버스는 이미 실제 해상도 → 변환 없이 1:1
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(this.baked, 0, 0);
+    ctx.restore();
     const a = this.active;
     if (a) this.paintScar(ctx, this.livePoints(a, time), a.index);
     this.scarTex.refresh();

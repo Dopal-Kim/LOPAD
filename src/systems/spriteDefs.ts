@@ -3,14 +3,15 @@
  * 로드 대상 목록·키 규칙·재생 시간 계산을 담당하고, 실제 로드·애니 등록은 systems/sprites.ts.
  */
 import { ASSETS, RENDER, TEXTURES } from '../core/Constants';
+import type { AnchorPoint, BladeLocal, HandAnchor, StrideSpec } from './spriteMeta';
 
 /** structures = 47라운드 상호작용 구조물 시트 (계약 art-assets §5, `sprites/structures/<id>.json`) */
 export type SpriteCategory = 'player' | 'enemies' | 'bosses' | 'weapons' | 'fx' | 'structures';
 export type Facing = 'down' | 'up' | 'left' | 'right';
 export const FACINGS: readonly Facing[] = ['down', 'up', 'left', 'right'];
 
-/** 계약 §1 동작 목록 */
-export const PLAYER_ACTIONS = ['idle', 'walk', 'attack', 'dash', 'hurt', 'death'] as const;
+/** 계약 §1 동작 목록 (+ 52라운드 Q13 달리기 `run` — 없으면 walk) */
+export const PLAYER_ACTIONS = ['idle', 'walk', 'run', 'attack', 'dash', 'hurt', 'death'] as const;
 export const MOB_ACTIONS = ['idle', 'walk', 'attack', 'hurt', 'death'] as const;
 /** 계약 §3.1 손에 든 무기 오버레이 동작 */
 export const WEAPON_ACTIONS = ['attack'] as const;
@@ -56,9 +57,9 @@ export function motionAction(weaponId: string, motion: WeaponMotion): string {
   return `${weaponId}_${motion}`;
 }
 
-/** 49라운드 §7.1 휴대 오버레이 동작 `weapons/<무기>_carry_<idle|walk|dash>` */
-export type CarryAction = 'idle' | 'walk' | 'dash';
-export const CARRY_ACTIONS: readonly CarryAction[] = ['idle', 'walk', 'dash'];
+/** 49라운드 §7.1 휴대 오버레이 동작 `weapons/<무기>_carry_<idle|walk|dash>` (+ 52라운드 Q13 `run`) */
+export type CarryAction = 'idle' | 'walk' | 'run' | 'dash';
+export const CARRY_ACTIONS: readonly CarryAction[] = ['idle', 'walk', 'run', 'dash'];
 export function carryAction(a: CarryAction): string {
   return `carry_${a}`;
 }
@@ -68,9 +69,10 @@ export function carryDrawnAction(a: CarryAction): string {
   return `carry_drawn_${a}`;
 }
 
-/** 몸 동작 → 휴대 오버레이 동작 (idle·walk·dash 그대로, 피격·뽑기·넣기는 idle). 사망·탄생은 null(숨김) */
+/** 몸 동작 → 휴대 오버레이 동작 (idle·walk·run·dash 그대로, 피격·뽑기·넣기는 idle). 사망·탄생은 null(숨김) */
 export function carryActionFor(playerAction: string): CarryAction | null {
-  if (playerAction === 'walk' || playerAction === 'dash' || playerAction === 'idle') return playerAction;
+  if (playerAction === 'walk' || playerAction === 'run' || playerAction === 'dash' || playerAction === 'idle')
+    return playerAction;
   if (playerAction === 'death' || playerAction === BIRTH_ACTION) return null;
   return 'idle';
 }
@@ -158,6 +160,21 @@ export interface SheetJson {
    * 시스템은 기존 도트를 2배로 그려 화면 크기를 맞춘다 (`artScale`)
    */
   pixelScale?: number;
+  /** 52라운드 Q10 (계약 §12): 걷기·달리기 한 주기 이동 도트·주기 ms — 재생 배속을 실제 속도에 맞춘다 (`spriteMeta.strideRate`) */
+  stride?: StrideSpec;
+  /** 52라운드 Q13 v3 몸: 프레임별 양손 중심 (시트 도트, 방향 → 열 목록) */
+  handAnchors?: Partial<Record<Facing, HandAnchor[]>>;
+  /** 52라운드 Q13 v3 무기: 칼을 쥔 손 (무기 시트 도트, 방향 → 열 목록) · 몸 기준 칼 방향 (열 목록) */
+  gripAnchors?: Partial<Record<Facing, AnchorPoint[]>>;
+  bladeLocal?: BladeLocal[];
+  /** 52라운드 v3 무기: 무기 시트 좌표 = 몸 시트 좌표 + 이 값 (피벗 정렬) */
+  playerFrameOffset?: { x: number; y: number };
+  /** 52라운드 v3 무기: 몸 뒤로 가는 픽셀을 시트에서 지웠다 → 늘 몸 위(above) */
+  occlusionBaked?: boolean;
+  /** 52라운드 v3 칼 연격: 연격 동안 휴대 시트를 숨긴다 (값은 메모 문자열일 수 있다 — 참이면 숨김) */
+  carryHidden?: boolean | string;
+  /** 52라운드 v3 무기: 방향·프레임별 깊이 (있으면 depth 보다 우선) */
+  depthByFrame?: Partial<Record<Facing, ('above' | 'below')[]>>;
   /** 50라운드 계약 §9: 높이가 있는 구조물·소품 — 피벗(바닥 접점)에서 이 높이(px, 시트 도트) 위로는 캐릭터를 가린다 */
   occludeAbove?: number;
   /** 50라운드 계약 §9: 광원 */
@@ -588,7 +605,18 @@ export function progressFrame(progress: number, frames: number, divisor = frames
  * 49라운드 §7.1 무기 오버레이 깊이: JSON `depth` 가 문자열이면 그것, 방향별 값이 문자열이면 그것,
  * 방향별 배열이면 그 열(프레임) 값. 없으면 above (기존 §3.1 처리와 같음)
  */
-export function overlayDepthAt(def: Pick<SheetJson, 'depth'>, dir: Facing, column: number): 'above' | 'below' {
+export function overlayDepthAt(
+  def: Pick<SheetJson, 'depth' | 'depthByFrame' | 'occlusionBaked'>,
+  dir: Facing,
+  column: number,
+): 'above' | 'below' {
+  // 52라운드 v3: 가림을 시트에 구웠으면 늘 위, 프레임별 표가 있으면 그것
+  if (def.occlusionBaked) return 'above';
+  const byFrame = def.depthByFrame?.[dir];
+  if (Array.isArray(byFrame) && byFrame.length > 0) {
+    const c = byFrame[Math.max(0, Math.min(byFrame.length - 1, column))];
+    if (c === 'above' || c === 'below') return c;
+  }
   const d = def.depth;
   if (d === 'above' || d === 'below') return d;
   if (d && typeof d === 'object') {
@@ -611,16 +639,6 @@ export function fxDepthHint(def: Pick<SheetJson, 'depth'>): 'above' | 'below' | 
 export function sheetJsonPath(r: SheetRequest): string {
   if (r.category === 'fx' || r.category === 'structures') return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}.json`;
   return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}_${r.action}.json`;
-}
-
-/**
- * 50라운드: 새 2배 도트 시트 경로 `sprites/<분류>/v2/<파일>` (예: `sprites/player/v2/player_idle.json`,
- * `sprites/enemies/v2/charger_walk.json`). 매니페스트에 있으면 기존 경로보다 먼저 쓴다
- */
-export function sheetJsonPathV2(r: SheetRequest): string {
-  const base = sheetJsonPath(r);
-  const i = base.lastIndexOf('/');
-  return `${base.slice(0, i)}/${ASSETS.V2_DIR}${base.slice(i)}`;
 }
 
 export function sheetId(name: string, action: string): string {

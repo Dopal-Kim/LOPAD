@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, PLACEHOLDER_UI } from '../core/Constants';
+import { COLORS, DEPTH, GAME, PLACEHOLDER_UI } from '../core/Constants';
+import { screenFixed } from './display';
 import { EventBus, Events, type MenuEventPayload } from '../core/EventBus';
 import { UI_EVENTS, __system, type UiMenu, type UiMenuId, type UiMenuLine } from '../contract/ui';
 import { UI_SCENES } from '../ui';
@@ -50,20 +51,17 @@ export class TextMenu {
       return;
     }
     const body = lines.map((l) => `[${l.key}] ${l.label}${l.enabled ? '' : '  (불가)'}`).join('\n');
+    const at = screenFixed(this.scene.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2);
     this.text = this.scene.add
-      .text(
-        this.scene.scale.width / 2,
-        this.scene.scale.height / 2,
-        `${title}\n\n${body}${footer ? `\n\n${footer}` : ''}`,
-        {
-          font: PLACEHOLDER_UI.FONT_BODY,
-          color: COLORS.GAMEOVER_TEXT,
-          backgroundColor: '#000000c0',
-          padding: { x: 10, y: 8 },
-          align: 'left',
-        },
-      )
+      .text(at.x, at.y, `${title}\n\n${body}${footer ? `\n\n${footer}` : ''}`, {
+        font: PLACEHOLDER_UI.FONT_BODY,
+        color: COLORS.GAMEOVER_TEXT,
+        backgroundColor: '#000000c0',
+        padding: { x: 10, y: 8 },
+        align: 'left',
+      })
       .setOrigin(0.5)
+      .setScale(at.scale)
       .setScrollFactor(0)
       .setDepth(DEPTH.DEBUG);
     this.onKey = (e: KeyboardEvent) => this.select(e.key);

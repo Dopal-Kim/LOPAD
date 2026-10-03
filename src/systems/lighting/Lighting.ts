@@ -12,6 +12,7 @@
  */
 import Phaser from 'phaser';
 import { DEPTH } from '../../core/Constants';
+import { RES } from '../display';
 import { LIGHTING } from '../../data';
 import type { LightingAmbient } from '../../data/types';
 import { flickerFactor, hexColor, lightFalloff, pickLights, type LightPick } from './lightMath';
@@ -24,6 +25,14 @@ const TEX_VIGNETTE = 'light_vignette';
 const LIGHT_TEX = 256;
 const VIGNETTE_W = 480;
 const VIGNETTE_H = 270;
+
+/**
+ * 라이트맵 해상도 = 실제 캔버스 px × 이 값. data `lightmapScale` 은 **논리 화면**(960×540) 기준이라 52라운드 1920×1080 캔버스에서도
+ * 라이트맵 크기(480×270)·비용이 그대로다 (선형 필터로 부드럽게 늘어나는 어둠이라 해상도를 올릴 이유가 없다)
+ */
+function lightmapK(): number {
+  return LIGHTING.lightmapScale / RES;
+}
 
 export interface LightingOptions {
   /** 어둠 색 (null = 조명 끔) */
@@ -62,7 +71,7 @@ export class Lighting {
     if (!this.enabled) return;
     ensureTextures(scene);
     const cam = scene.cameras.main;
-    const k = LIGHTING.lightmapScale;
+    const k = lightmapK();
     this.rt = scene.add
       .renderTexture(cam.width / 2, cam.height / 2, Math.ceil(cam.width * k), Math.ceil(cam.height * k))
       .setOrigin(0.5)
@@ -78,7 +87,7 @@ export class Lighting {
     const t0 = performance.now();
     const cam = this.scene.cameras.main;
     const z = cam.zoom || 1;
-    const k = LIGHTING.lightmapScale;
+    const k = lightmapK();
     // 화면 고정 개체는 카메라 배율만큼 화면 가운데 기준으로 커진다 → 역배율로 화면을 정확히 덮는다
     this.rt.setScale(1 / (k * z));
     const lights = this.collect(time);

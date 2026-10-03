@@ -61,6 +61,7 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
     expect(list.filter((r) => r.name === 'player').map((r) => r.action)).toEqual([
       'idle',
       'walk',
+      'run', // 52라운드 Q13 달리기
       'attack',
       'dash',
       'hurt',
@@ -88,9 +89,11 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'aim',
       'carry_idle',
       'carry_walk',
+      'carry_run',
       'carry_dash',
       'carry_drawn_idle',
       'carry_drawn_walk',
+      'carry_drawn_run',
       'carry_drawn_dash',
       'draw',
       'sheathe',
@@ -251,6 +254,7 @@ describe('49라운드 무기 휴대·동작 (계약 art §7.1·7.2)', () => {
   it('휴대 동작: idle·walk·dash 그대로, 피격·뽑기는 idle, 사망·탄생은 숨김', () => {
     expect(carryActionFor('walk')).toBe('walk');
     expect(carryActionFor('dash')).toBe('dash');
+    expect(carryActionFor('run')).toBe('run'); // 52라운드
     expect(carryActionFor('hurt')).toBe('idle');
     expect(carryActionFor('greatsword_draw')).toBe('idle');
     expect(carryActionFor('death')).toBeNull();

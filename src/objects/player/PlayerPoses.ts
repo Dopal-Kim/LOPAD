@@ -17,6 +17,7 @@ import {
   specialAction,
   type Facing,
 } from '../../systems/spriteDefs';
+import { strideRate } from '../../systems/spriteMeta';
 import type { Player } from '../Player';
 
 /** 48라운드 특수 자세 구간 */
@@ -26,6 +27,9 @@ export type SpecialStep = 'parryStart' | 'parrySuccess' | 'parryFail' | 'guardSt
 const SECONDARY_HOLD_MS = 80;
 
 export class PlayerPoses {
+  /** 디버그 (52라운드 Q10): 지난 프레임 걷기·달리기 재생 배속 */
+  strideRate = 1;
+
   constructor(private readonly p: Player) {}
 
   /** 커서 방향 (커서가 없으면 지금 방향) */
@@ -101,12 +105,23 @@ export class PlayerPoses {
     return Math.max(0, (end ?? 0) - (starts[first] ?? 0));
   }
 
-  /** 이동 중엔 이동 방향, 멈춰 있으면 마우스 조준 방향으로 idle/walk. 반환 = 움직이는 중 */
+  /**
+   * 이동 중엔 이동 방향, 멈춰 있으면 마우스 조준 방향으로 idle/walk/run. 반환 = 움직이는 중.
+   * 52라운드 Q13: 달리는 중(Shift)이면 `run` 시트(없으면 walk). Q10: 시트 stride 가 있으면 실제 이동 속도에 맞춘 배속
+   */
   locomotion(input: InputState, dir: Phaser.Math.Vector2, time: number): boolean {
     const p = this.p;
     const moving = dir.lengthSq() > 0 && p.action !== 'dash';
     const facing = moving ? facingOf(dir.x, dir.y, p.visual.facing) : this.aimFacing(input);
-    p.visual.loop(moving ? 'walk' : 'idle', facing, time);
-    return moving;
+    if (!moving) {
+      p.visual.loop('idle', facing, time);
+      return false;
+    }
+    const action = p.sprinting && p.visual.hasAction('run') ? 'run' : 'walk';
+    const def = p.visual.sheet(action);
+    const v = p.body.velocity;
+    this.strideRate = def ? strideRate(def, Math.hypot(v.x, v.y)) : 1;
+    p.visual.loop(action, facing, time, this.strideRate);
+    return true;
   }
 }

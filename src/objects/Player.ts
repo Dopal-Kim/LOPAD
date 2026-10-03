@@ -533,6 +533,14 @@ export class Player extends Phaser.GameObjects.Sprite {
         overlay: this.overlay.carry,
         lastAttackAt: this.gear.lastAttackAt,
       },
+      // 52라운드 v3: 무기 시트·프레임 · 연격 중 휴대 숨김 · 손·칼 앵커(월드) · 걷기·달리기 배속
+      overlay: {
+        action: this.overlay.action,
+        frame: this.overlay.frame,
+        carryHidden: this.overlay.carryHidden,
+        anchors: this.overlay.anchors(),
+      },
+      strideRate: this.poses.strideRate,
       resource: this.resource?.debug(time) ?? null,
       lunge: this.lunge ? { ...this.lunge } : null,
       stopped: this.isStopped(time),

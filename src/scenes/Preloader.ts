@@ -8,11 +8,10 @@ import { audio } from '../systems/audio';
 import { ensureFont } from '../systems/fonts';
 import { audioFileRel, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audioDefs';
 import { spriteLibrary } from '../systems/sprites';
+import { sheetJsonCandidates } from '../systems/spriteMeta';
 import {
   allFxSheetIds,
   normalizeStructureSheet,
-  sheetJsonPath,
-  sheetJsonPathV2,
   sheetToWorldUnits,
   sheetTextureKey,
   wantedSheets,
@@ -79,7 +78,7 @@ export class Preloader extends Phaser.Scene {
   /** 매니페스트에 있는(또는 매니페스트가 없으면 전부) 시트·타일셋 JSON 을 큐에 넣는다 */
   private queueJsons(): void {
     const exists = (rel: string) => this.manifest === null || this.manifest.has(rel);
-    // 50라운드 새 2배 도트(`v2/`)는 매니페스트에 있을 때만 (매니페스트가 없으면 기존 경로)
+    // 50·52라운드 새 도트(`v3/`·`v2/`)는 매니페스트에 있을 때만 (매니페스트가 없으면 기존 경로). v3 → v2 → 기존, 동작 단위
     const listed = (rel: string) => this.manifest !== null && this.manifest.has(rel);
     const dirOf = (rel: string) => rel.slice(0, rel.lastIndexOf('/') + 1);
     this.pendingSheets = [];
@@ -90,8 +89,9 @@ export class Preloader extends Phaser.Scene {
       allFxSheetIds(WEAPONS),
       allStructureSprites(),
     )) {
-      const v2 = sheetJsonPathV2(req);
-      const rel = listed(v2) ? v2 : sheetJsonPath(req);
+      const paths = sheetJsonCandidates(req);
+      const legacy = paths[paths.length - 1];
+      const rel = paths.slice(0, -1).find(listed) ?? legacy;
       if (!exists(rel)) continue;
       const jsonKey = `json_${sheetTextureKey(req.name, req.action)}`;
       this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);

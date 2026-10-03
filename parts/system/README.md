@@ -521,3 +521,37 @@ npm run build
 
 ### 임시값 (전부 검수 대상)
 과제 시간·박자 표(cue) · 카드 1.5/2.6초·정비 1초·결과 0.9/3.6초 · 예고선 예고 680→540ms·탄 12타일/s·2발 · 고리 예고 720ms·R0 92px·틈 80/62/50°·조임 1.45/1.35/1.25초 · 유도탄 4.4타일/s·115°/s·2.2초 · 벽 예고 820ms·8.5타일/s·간격 8px·대쉬 힌트 56px · 밀려남 2.4타일·피격 무적 650ms · 갉아먹힘 끝 바닥 72%/76% · 등급 감점 30·기준 90/70/45 · 획 폭 0.9~3.2px·가늘어짐 12/18px.
+
+## 52라운드 Q8·Q10·Q13: 내부 렌더 1920×1080 · v3 시트 로드 (2026-10-03)
+결정: `decisions/2026-10-02-round-52-gemini-concepts.md` Q8(도트 세분화)·Q10(보폭 맞춤)·Q13(게임에 넣고 화면 검수). 계약 art §11·§12.
+
+### 설계 — 캔버스만 2배, 논리 좌표는 그대로 (`systems/display.ts`)
+- 캔버스 1920×1080 = 논리 960×540 × `RENDER.RESOLUTION 2`. 월드 좌표·판정·속도·데이터 수치·UI 배치 기준은 한 줄도 안 바뀐다.
+- **월드 카메라**(Game·WeaponLab·회피 시험): 원점 가운데 그대로, zoom = 논리 배율 × 2 (`worldZoom`, 게임 2→실제 4, 탄생 4→8). `CAMERA.ZOOM`·`BIRTH.ZOOM`·`DODGE_TRIAL.ZOOM` 은 논리 배율로 의미 유지. 데드존·스냅·흔들림 px 는 논리 배율로 나눈다(체감 동일), 스크롤 반올림은 실제 px(이전보다 2배 촘촘).
+- **논리 카메라**(UI 씬·Setup·GameOver·Boot·Preloader): `installLogicalCameras` 가 씬 READY(create 직전)마다 main 카메라를 zoom 2·원점 (0,0) 으로 → 씬 좌표 = 논리 화면 좌표, scrollFactor 0 도 같은 자리. Phaser worldView·midPoint 는 원점 가운데를 가정하므로 원점 (0,0) 인 동안 preRender 뒤에 바로잡는다(타일맵 컬링 대비).
+- **`this.scale` 호환 층**(`logicalScaleView`): 논리 카메라 씬의 `this.scale.width/height/gameSize/baseSize` 를 960×540 으로 보이게 하는 Proxy (나머지·이벤트는 실제 ScaleManager, Phaser 내부는 `sys.scale`). UI 씬이 `this.scale.width` 로 배치하고 있어(타이틀이 오른쪽으로 밀려 확인) UI 코드를 고치지 않고 맞추려고 넣었다 — UI 가 계약 상수로 옮기면 걷어낸다.
+- 화면 고정 개체(scrollFactor 0)는 `screenFixed(cam, lx, ly)` 로 논리 좌표·논리 크기에 놓는다(디버그 글자·개성 변화 배너·TextMenu 폴백). 계약 `UiInteractable.screen` 은 `worldToLogicalScreen` — 계속 960×540 논리 px.
+- 포인터 `pointer.x/y` 는 실제 캔버스 px → Setup 획은 `toLogical` 로 논리 px(자동 획 `autoStrokes` 는 실제 px 로 만든 가짜 포인터). 조준은 기존대로 `getWorldPoint`(행렬 역변환이라 그대로 맞음).
+- 창 표시 배율 `displayZoom`: 논리 정수 배율 / 2 → 1280×720 창 = 960×540 표시, 1920×1080 = 1920×1080 (52라운드 전과 같은 CSS 크기). 창이 960 보다 작은 쪽은 축소 표시(픽셀 뭉개짐, 이전과 같은 크기).
+- 결과: 구 도트(pixelScale 없음) 1도트 = 실제 4px · v2(1) = 2px · v3(0.5) = 1px, 화면 크기는 셋 다 같다(`artScale = pixelScale/2` 그대로).
+- 조명 라이트맵: data `lightmapScale` 을 **논리 화면** 기준으로 해석(실제 배율 = 0.5/2) → 480×270 그대로(비용 동일, 선형 필터 어둠이라 해상도 이득 없음).
+- 획 연출(`strokeFx`): 자국·빛 캔버스를 1920×1080 으로(캔버스 변환 ×2, 좌표는 논리 px), 이미지 0.5 배 → 캔버스 1px = 실제 1px. 표본 간격 1 → 0.5 논리 px(= 실제 1px), 세분 0.25, 폭 평활 0.18 → 0.095(같은 거리 같은 평활), 조각 확률 0.035 → 0.0175, 빛 조각 6 → 12 표본(같은 길이). 표면 결 텍스처는 논리 해상도 유지.
+- 회피 시험 주인공: 50라운드 v2 부터 도트 배율을 안 맞춰 2배(v3 면 4배)로 그려지던 것을 `artScale`·동작별 피벗으로 바로잡음 → 게임과 같은 32×48 (화면상 이전보다 작아짐 — 질문 목록).
+
+### v3 시트 (`systems/spriteMeta.ts`)
+- 경로 `sprites/<분류>/v3/` → `v2/` → 기존, 매니페스트에 있을 때만, 동작 단위 혼용(`sheetJsonCandidates`). 들어온 v3: 주인공 idle·walk·run·dash·hurt·death·칼 연격 3, 칼 연격 3·휴대 idle·walk·run·dash.
+- `run`: 주인공 동작 목록·휴대 동작에 추가. Shift 달리기(`sprinting`) 중이면 `player_run`(없으면 walk), 휴대 `carry_run`(없으면 carry_walk). 걷기↔달리기 전환 때 프레임 위치를 이어 간다.
+- `stride`(Q10): 재생 배속 = 실제 속도(바디 속도) ÷ (stride.px × artScale / cycleMs), `SPRITES.STRIDE_RATE_MIN 0.5 ~ MAX 2` 로 자름. **v3 값 그대로면 걷기·달리기 모두 약 8.5배**(걷기 36도트 = 논리 18px/800ms vs 실제 192px/s)라 늘 상한 2에 걸린다 — 질문 목록.
+- 무기 오버레이: 원점 = 몸 피벗 + `playerFrameOffset`(배율이 같을 때, `overlayPivot`) · `occlusionBaked` = 늘 위 · `depthByFrame` 이 `depth` 보다 우선 · `carryHidden` 연격 시트가 보이는 동안 휴대 시트 숨김(디버그 `overlay.carryHidden`).
+- 휴대 시트 고르기 임시 규칙: **몸 시트와 도트 배율이 같은 시트 먼저**(뽑아 든 drawn → 넣은 carry → idle), 없을 때만 다른 배율 → v3 몸에 구 '뽑아 든 칼'(4배 도트)이 겹치는 대신 v3 칼집 휴대. 다른 몸 동작(뽑기·넣기·특수·대검·단검·활)은 계약대로 구 시트와 섞인다.
+- 앵커: 몸 `handAnchors`, 무기 `gripAnchors`(없으면 무기 `handAnchors.handR`)·`bladeLocal` 을 월드 좌표로 (`WeaponOverlay.anchors()`, 디버그 `weaponState().overlay.anchors`, `?anchors` = 오른손 초록·왼손 파랑·쥔 손 빨강 점). 판정·연출에는 아직 쓰지 않는다(베기 이펙트 v3 정렬 때 사용 예정).
+- 연격 판정 타이밍은 JSON impact·hit·active·cancel 프레임 그대로(v3 프레임 시작 ms = v2 와 같음, 아트 assert). `hitRadiusPx 132`(v3 도트) → 월드 33 (v2 66 과 같음).
+
+### 테스트 · 검증
+- 테스트 +8: `display.test.ts` 4(캔버스·표시 배율·scrollFactor 0 배치·월드→논리 화면·논리 카메라와 worldView 보정) · `spriteMeta.test.ts` 4(stride·앵커·오버레이 원점·깊이) · `spriteScale` v3 경로·배율 · run 휴대.
+- tsc·eslint·vitest(44파일 304개)·vite build 통과.
+- 헤드리스(vite preview, playwright swiftshader, 게임 시계 고정, 1920×1080·960×540): 타이틀·외곽 거리 진입·HUD·M 지도·Esc 일시정지가 전환 전 빌드와 같은 자리·크기(타이틀·지도 화소 차 0~0.1%) · 탄생·튜토리얼(지역 카드) · Setup 메타 화면(전과 동일)·실제 마우스 획 3개·빛 터짐·회피 시험·대쉬 · `?slice=outer&weapon=katana` 걷기(walk·carry_walk)·Shift 달리기(run·carry_run, 전투 끝난 뒤)·대쉬(dash·carry_dash)·칼 3연격(combo1~3 무기 프레임 = 몸 같은 열, 타격 프레임 2)·연격 뒤 v3 칼집·피격 · 노드 선택 지도 · 무기 시험장. 콘솔 오류 0. 스크린샷 스크래치 `r52hi/`.
+- 성능(헤드리스 소프트웨어 GL — 화소 수에 비례해 느림, 참고치): 외곽 거리 평균 프레임 전 84~85ms → 후 205~211ms(대기), 걷기 82~119 → 219~237ms. 조명 끔도 비슷한 비율 — 비용은 채우기(화소 4배). 실기 GPU 60fps 확인 필요.
+
+### 임시값 (전부 검수 대상)
+`RENDER.RESOLUTION 2` · stride 배속 0.5~2 · 달리기 애니 = Shift 달리기 중(가속 구간 포함) · 휴대 시트 같은 배율 우선 규칙 · 획 표본 0.5px·평활 0.095·조각 0.0175·빛 조각 12 · 표시 배율 규칙(논리 정수 배율 / 2) · `?anchors` 점 크기.

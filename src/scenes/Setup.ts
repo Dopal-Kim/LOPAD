@@ -25,6 +25,7 @@ import { TrialHud } from '../systems/setup/trialHud';
 import { spriteLibrary } from '../systems/sprites';
 import { META_CONFIG, buyUpgrade, metaStore, upgradeCost } from '../systems/meta';
 import { TextMenu } from '../systems/TextMenu';
+import { CANVAS_H, CANVAS_W, makeLogicalCamera, toLogical, worldZoom } from '../systems/display';
 import { setMenuSelect } from '../contract/host';
 import { EventBus, Events } from '../core/EventBus';
 import { audio } from '../systems/audio';
@@ -271,10 +272,13 @@ export class Setup extends Phaser.Scene {
     if (this.phase === 'trial') this.dashQueued = true;
   }
 
+  /** 52라운드: 포인터는 실제 캔버스 px(1920×1080) → 획 판정·연출은 논리 px(960×540) */
   private onPointerDown(p: Phaser.Input.Pointer): void {
     if (this.phase !== 'strokes') return;
-    this.current = [{ x: p.x, y: p.y, t: p.downTime }];
-    this.strokeFx?.begin(p.x, p.y, p.downTime);
+    const x = toLogical(p.x);
+    const y = toLogical(p.y);
+    this.current = [{ x, y, t: p.downTime }];
+    this.strokeFx?.begin(x, y, p.downTime);
   }
 
   private onPointerMove(p: Phaser.Input.Pointer): void {
@@ -284,23 +288,27 @@ export class Setup extends Phaser.Scene {
     const merged = typeof ev?.getCoalescedEvents === 'function' ? ev.getCoalescedEvents() : [];
     for (let k = 0; k < merged.length - 1; k++)
       this.strokeFx?.move(
-        this.scale.transformX(merged[k].pageX),
-        this.scale.transformY(merged[k].pageY),
+        toLogical(this.scale.transformX(merged[k].pageX)),
+        toLogical(this.scale.transformY(merged[k].pageY)),
         merged[k].timeStamp,
       );
+    const x = toLogical(p.x);
+    const y = toLogical(p.y);
     const last = this.current[this.current.length - 1];
-    if (Math.hypot(p.x - last.x, p.y - last.y) < 2) {
-      this.strokeFx?.move(p.x, p.y, p.moveTime);
+    if (Math.hypot(x - last.x, y - last.y) < 2) {
+      this.strokeFx?.move(x, y, p.moveTime);
       return;
     }
-    this.current.push({ x: p.x, y: p.y, t: p.moveTime });
-    this.strokeFx?.move(p.x, p.y, p.moveTime);
+    this.current.push({ x, y, t: p.moveTime });
+    this.strokeFx?.move(x, y, p.moveTime);
   }
 
   private onPointerUp(p: Phaser.Input.Pointer): void {
     if (this.phase !== 'strokes' || !this.current) return;
-    this.current.push({ x: p.x, y: p.y, t: p.upTime });
-    this.strokeFx?.end(p.x, p.y, p.upTime);
+    const x = toLogical(p.x);
+    const y = toLogical(p.y);
+    this.current.push({ x, y, t: p.upTime });
+    this.strokeFx?.end(x, y, p.upTime);
     if (this.current.length >= PERSONALITY.strokes.minPoints) this.strokes.push(this.current);
     this.current = null;
     this.updateLabel();
@@ -355,11 +363,12 @@ export class Setup extends Phaser.Scene {
     const main = this.cameras.main;
     this.hud = new TrialHud(this, this.label);
     this.uiOnly = [this.label, ...this.hud.objects];
-    this.uiCam = this.cameras.add(0, 0, GAME.WIDTH, GAME.HEIGHT).setName('setup-ui');
+    // 52라운드: UI 카메라 = 논리 카메라(캔버스 전체, 960×540 좌표), 시험 카메라 = 월드 카메라(원점 가운데·논리 배율 × RESOLUTION)
+    this.uiCam = makeLogicalCamera(this.cameras.add(0, 0, CANVAS_W, CANVAS_H).setName('setup-ui'));
     this.uiCam.ignore(this.children.list.filter((c) => !this.uiOnly.includes(c)));
     main.ignore(this.uiOnly);
     this.events.on(Phaser.Scenes.Events.ADDED_TO_SCENE, this.hideFromUiCam, this);
-    main.setZoom(DODGE_TRIAL.ZOOM);
+    main.setOrigin(0.5).setZoom(worldZoom(DODGE_TRIAL.ZOOM));
     main.centerOn(GAME.WIDTH / 2, GAME.HEIGHT / 2 - DODGE_TRIAL.ARENA.OFFSET_Y_PX);
     this.startRunner();
   }

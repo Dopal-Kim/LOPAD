@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CAMERA, COLORS, DEBUG, DEPTH, FEEL, PROTOTYPE, SCENES, TILE } from '../core/Constants';
+import { screenFixed, worldZoom } from '../systems/display';
 import { EventBus, Events } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { LIGHTING, PALETTE } from '../data';
@@ -59,6 +60,7 @@ import { Progression } from './game/Progression';
 import { RouteFlow } from './game/RouteFlow';
 import { UiRelay } from './game/UiRelay';
 import { SENSE_BONUS_MAX, urlParams, type GameInitData } from './game/shared';
+import { AnchorDebug } from './game/AnchorDebug';
 
 export type { GameInitData } from './game/shared';
 
@@ -131,6 +133,8 @@ export class Game extends Phaser.Scene {
   private initData: GameInitData = {};
   private senseBonus = 0;
   private debugText?: Phaser.GameObjects.Text;
+  /** 52라운드 `?anchors`: v3 손·칼 앵커 표시 */
+  private anchorDebug: AnchorDebug | null = null;
   private subs: Subscription[] = [];
   private readonly playerVec = new Phaser.Math.Vector2();
 
@@ -222,7 +226,7 @@ export class Game extends Phaser.Scene {
 
     // 48라운드 Q1: 게임 월드 카메라 확대 (UI 씬은 자기 카메라라 무관)
     this.cameras.main.setRoundPixels(true);
-    this.cameras.main.setZoom(CAMERA.ZOOM);
+    this.cameras.main.setZoom(worldZoom(CAMERA.ZOOM));
     this.cam.update(true);
     this.lighting = new Lighting(this, {
       ambient: this.lightingAmbient(),
@@ -232,6 +236,7 @@ export class Game extends Phaser.Scene {
     if (this.routeMode) this.route.enterNode();
     this.labMode?.setup();
     this.createDebugText();
+    this.anchorDebug = urlParams().has('anchors') ? new AnchorDebug(this) : null;
   }
 
   // --- create 단계 ---
@@ -479,15 +484,14 @@ export class Game extends Phaser.Scene {
   private createDebugText(): void {
     this.debugText = undefined;
     if (!DEBUG.SHOW_TEXT || !urlParams().has('debugtext')) return;
-    // 카메라 확대(48라운드)는 scrollFactor 0 개체도 화면 가운데 기준으로 키운다 → 역배율·역위치로 화면 (4,4)
-    const cam = this.cameras.main;
-    const z = CAMERA.ZOOM;
+    // 카메라 확대(48라운드)는 scrollFactor 0 개체도 화면 가운데 기준으로 키운다 → 역배율·역위치로 논리 화면 (4,4)
+    const at = screenFixed(this.cameras.main, 4, 4);
     this.debugText = this.add
-      .text((4 - cam.width / 2) / z + cam.width / 2, (4 - cam.height / 2) / z + cam.height / 2, '', {
+      .text(at.x, at.y, '', {
         font: DEBUG.FONT,
         color: COLORS.DEBUG_TEXT,
       })
-      .setScale(1 / z)
+      .setScale(at.scale)
       .setScrollFactor(0)
       .setDepth(DEPTH.DEBUG);
   }
@@ -593,6 +597,7 @@ export class Game extends Phaser.Scene {
     if (!this.player?.active) return;
     this.lighting?.update(time);
     const p = this.player;
+    this.anchorDebug?.update(p);
     this.world.quarter?.updateOcclusion([{ x: p.x, y: p.y, w: p.displayWidth, h: p.displayHeight, depth: p.depth }]);
   }
 

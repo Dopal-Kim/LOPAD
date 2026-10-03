@@ -225,8 +225,11 @@ export interface CameraInfo {
   scrollX: number;
   scrollY: number;
   zoom: number;
-  /** 48라운드: 게임 월드 카메라 배율 (zoom 은 창 배율) */
+  /** 48라운드: 게임 월드 카메라 배율 (zoom 은 창 배율). 52라운드: 실제 캔버스 배율 (= logicalZoom × resolution) */
   camZoom?: number;
+  /** 52라운드: 논리 px 1개 = 실제 캔버스 px · 월드 → 논리 화면 배율 */
+  resolution?: number;
+  logicalZoom?: number;
   width: number;
   height: number;
   region: { x: number; y: number; w: number; h: number };

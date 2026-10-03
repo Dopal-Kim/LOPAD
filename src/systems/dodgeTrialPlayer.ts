@@ -11,7 +11,7 @@ import { audio } from './audio';
 import { SFX } from './audioMap';
 import { DODGE_TRIAL } from './dodgeTrial';
 import type { FxPool } from './fx';
-import { facingOf, type Facing } from './spriteDefs';
+import { artScale, facingOf, type Facing } from './spriteDefs';
 import { spriteLibrary } from './sprites';
 
 export interface TrialInput {
@@ -50,6 +50,8 @@ export class TrialPlayer {
   private knock: { vx: number; vy: number; startAt: number; until: number } | null = null;
   private movingInput = false;
   private sunk = false;
+  /** 지금 시트의 도트 배율 (artScale) */
+  private baseScale = 1;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -68,7 +70,7 @@ export class TrialPlayer {
     const idle = spriteLibrary.sheet('player', 'idle');
     this.animated = Boolean(idle && tex && scene.textures.exists(tex));
     this.sprite = scene.add.sprite(0, 0, this.animated ? tex! : TEX_PLAYER_PH);
-    if (this.animated && idle) this.sprite.setOrigin(idle.pivot.x / idle.frameWidth, idle.pivot.y / idle.frameHeight);
+    if (this.animated) this.fit('idle');
     else this.sprite.setOrigin(0.5, 1);
     const SH = DODGE_TRIAL.PLAYER.SHADOW;
     this.shadow = scene.add.ellipse(0, 0, SH.W, SH.H, 0x000000, SH.ALPHA).setDepth(DEPTH.SHADOW);
@@ -121,7 +123,7 @@ export class TrialPlayer {
     this.lastDir.set(0, 1);
     if (this.sunk) {
       this.scene.tweens.killTweensOf(this.sprite);
-      this.sprite.setScale(1).setAlpha(1);
+      this.sprite.setScale(this.baseScale).setAlpha(1);
       this.shadow.setVisible(true);
       this.sunk = false;
     }
@@ -210,7 +212,10 @@ export class TrialPlayer {
     this.flashUntil = time + P.FLASH_MS;
     this.facing = facingOf(-dx, -dy, this.facing);
     const hurt = spriteLibrary.animKey('player', 'hurt', this.facing);
-    if (hurt) this.sprite.play(hurt);
+    if (hurt) {
+      this.fit('hurt');
+      this.sprite.play(hurt);
+    }
     this.fx.play(FEEL.FX_IDS.PLAYER_HIT, this.pos.x, this.pos.y, {
       depth: entityDepth(this.pos.y) + DEPTH.OVERLAY_STEP * 3,
     });
@@ -229,8 +234,8 @@ export class TrialPlayer {
     this.scene.tweens.add({
       targets: this.sprite,
       alpha: 0,
-      scaleX: 0.5,
-      scaleY: 0.5,
+      scaleX: this.baseScale * 0.5,
+      scaleY: this.baseScale * 0.5,
       y: `+=${P.FALL_DROP_PX}`,
       duration: P.FALL_MS,
       ease: 'Quad.easeIn',
@@ -250,10 +255,25 @@ export class TrialPlayer {
     else if (this.animated) this.sprite.clearTint();
     else this.sprite.setTint(this.placeholderTint);
     if (!this.animated || time < this.hurtUntil) return;
-    const action = time < this.dashUntil ? 'dash' : moving && this.movingInput ? 'walk' : 'idle';
-    const key =
-      spriteLibrary.animKey('player', action, this.facing) ?? spriteLibrary.animKey('player', 'idle', this.facing);
-    if (key && this.sprite.anims.currentAnim?.key !== key) this.sprite.play(key, true);
+    const want = time < this.dashUntil ? 'dash' : moving && this.movingInput ? 'walk' : 'idle';
+    const action = spriteLibrary.animKey('player', want, this.facing) ? want : 'idle';
+    const key = spriteLibrary.animKey('player', action, this.facing);
+    if (key && this.sprite.anims.currentAnim?.key !== key) {
+      this.fit(action);
+      this.sprite.play(key, true);
+    }
+  }
+
+  /**
+   * 52라운드: 동작 시트의 도트 배율·피벗으로 배율·원점 (게임 EntityVisual 과 같은 규칙 — 화면 32×48).
+   * 50라운드 v2 부터 배율을 안 맞춰 2배(v3 면 4배)로 보이던 것을 바로잡는다
+   */
+  private fit(action: string): void {
+    const def = spriteLibrary.sheet('player', action);
+    if (!def) return;
+    this.baseScale = artScale(def);
+    this.sprite.setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight);
+    if (!this.sunk) this.sprite.setScale(this.baseScale);
   }
 
   get facingDir(): Facing {
@@ -276,6 +296,7 @@ export class TrialPlayer {
         const g = this.scene.add
           .image(this.sprite.x, this.sprite.y, this.sprite.texture.key, this.sprite.frame.name)
           .setOrigin(this.sprite.originX, this.sprite.originY)
+          .setScale(this.sprite.scaleX, this.sprite.scaleY)
           .setAlpha(P.GHOST_ALPHA)
           .setTint(this.ghostTint)
           .setDepth(this.sprite.depth - DEPTH.OVERLAY_STEP);

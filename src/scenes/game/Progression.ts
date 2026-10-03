@@ -2,7 +2,8 @@
  * 런 진행: 처치 → 개성 적립 → 3지선다(변환 A/B · 강화) · 스테이지 보상(감각 → 능력치 포인트 → 패시브) ·
  * 엔딩(23라운드 2지선다) · 사망 · 결과 화면 · 런 시작 모드(새 런 / 다음 층 / 이어하기 / 다음 노드) · 세이브.
  */
-import { COLORS, DEPTH, PLACEHOLDER_UI, PROTOTYPE, SCENES, SPRITES } from '../../core/Constants';
+import { COLORS, DEPTH, GAME, PLACEHOLDER_UI, PROTOTYPE, SCENES, SPRITES } from '../../core/Constants';
+import { screenFixed } from '../../systems/display';
 import {
   EventBus,
   Events,
@@ -184,14 +185,14 @@ export class Progression {
   /** 개성 변화 알림 (시스템 파트 임시 텍스트. 정식 연출·UI는 UI 파트) */
   private showEvolutionBanner(name: string): void {
     const g = this.g;
-    const z = g.cameras.main.zoom || 1;
+    const at = screenFixed(g.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2 - 40);
     const t = g.add
-      .text(g.scale.width / 2, g.scale.height / 2 - 40 / z, `개성 변화: ${name}`, {
+      .text(at.x, at.y, `개성 변화: ${name}`, {
         font: PLACEHOLDER_UI.FONT_BODY,
         color: COLORS.GAMEOVER_TEXT,
       })
       .setOrigin(0.5)
-      .setScale(1 / z)
+      .setScale(at.scale)
       .setScrollFactor(0)
       .setDepth(DEPTH.DEBUG);
     g.tweens.add({ targets: t, alpha: 0, delay: PROTOTYPE.BANNER_MS, duration: 400, onComplete: () => t.destroy() });

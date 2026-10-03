@@ -4,6 +4,7 @@
  */
 import Phaser from 'phaser';
 import { BIRTH, CAMERA } from '../../core/Constants';
+import { worldZoom } from '../../systems/display';
 import { gameState } from '../../core/GameState';
 import { UI_EVENTS, __system } from '../../contract/ui';
 import { BirthSequence } from '../../systems/birth';
@@ -59,7 +60,7 @@ export class BirthFlow {
     const g = this.g;
     g.inputSystem.read(); // 큐 비우기
     this.seq!.update(time);
-    g.cameras.main.setZoom(this.seq!.zoom);
+    g.cameras.main.setZoom(worldZoom(this.seq!.zoom));
     g.cam.update(true);
   }
 
@@ -78,7 +79,7 @@ export class BirthFlow {
   private finish(skipped: boolean): void {
     const g = this.g;
     this.unbind();
-    g.cameras.main.setZoom(CAMERA.ZOOM);
+    g.cameras.main.setZoom(worldZoom(CAMERA.ZOOM));
     g.player.setAlpha(1);
     g.cam.update(true);
     // 조작 해제: 건너뛴 키가 바로 공격·대쉬로 새지 않게 아주 짧게 잠근다

@@ -6,14 +6,19 @@ export const TILE = 16;
 
 /**
  * 50라운드 렌더 배율 (결정 round-50 Q2 '캐릭터 32×48·타일 32×32·카메라 확대 1배(화면상 크기 유사)', 계약 art §9).
- * 설계: 월드 좌표·판정·속도는 그대로 두고 **렌더 배율만** 바꾼다. 월드 1단위 = 화면 WORLD_TO_SCREEN px (= 게임 카메라 배율
- * CAMERA.ZOOM). 새 2배 도트(pixelScale 1)는 0.5 배로 그려 도트 1px = 화면 1px(= '카메라 1배' 의 화면), 기존 도트(pixelScale 없음 = 2)는
- * 그대로 1배(= 화면 2px) — 같은 화면 크기. 근거는 parts/system/README.md 50라운드 절
+ * 설계: 월드 좌표·판정·속도는 그대로 두고 **렌더 배율만** 바꾼다. 월드 1단위 = 논리 화면 WORLD_TO_SCREEN px (= 게임 카메라 논리
+ * 배율 CAMERA.ZOOM). 근거는 parts/system/README.md 50라운드 절.
+ *
+ * 52라운드 Q8 (계약 art §11): 내부 렌더 1920×1080. 논리 화면(UI 배치·좌표 기준)은 960×540 그대로이고 캔버스만 RESOLUTION 배 —
+ * 모든 카메라가 RESOLUTION 배를 더 곱한다(`systems/display.ts`). 도트 1개 = 실제 px: 기존(pixelScale 없음) 4 · v2(1) 2 · v3(0.5) 1.
+ * 화면상 크기는 셋 다 같다 (`artScale = pixelScale / WORLD_TO_SCREEN` 은 그대로, 카메라 실제 배율이 2 → 4)
  */
 export const RENDER = {
   WORLD_TO_SCREEN: 2,
   /** JSON pixelScale 이 없는 기존 도트의 배율 */
   LEGACY_PIXEL_SCALE: 2,
+  /** 52라운드: 논리 px 1개 = 실제 캔버스 px (960×540 → 1920×1080) */
+  RESOLUTION: 2,
 } as const;
 
 export const CELL = {
@@ -23,7 +28,10 @@ export const CELL = {
   H_PX: CELL_H * TILE,
 };
 
-/** 내부 해상도 (32라운드 Q1: 960×540). 창 크기에 맞춘 정수 배율은 main.ts (1280×720 창 = 1배, 1920×1080 = 2배) */
+/**
+ * 논리 해상도 (32라운드 Q1: 960×540 — UI 배치·좌표 기준). 52라운드: 실제 캔버스는 × RENDER.RESOLUTION (1920×1080).
+ * 창 표시 배율은 main.ts (1280×720 창 = 960×540 표시, 1920×1080 창 = 1920×1080 — 52라운드 전과 같은 표시 크기)
+ */
 export const GAME = {
   WIDTH: 960,
   HEIGHT: 540,
@@ -65,6 +73,8 @@ export const ASSETS = {
   TILES_DIR: 'tiles',
   /** 50라운드 새 2배 도트 하위 폴더 (`sprites/player/v2/…`, `tiles/v2/…`) — 있으면 기존보다 먼저 */
   V2_DIR: 'v2',
+  /** 52라운드 도트 세분화 하위 폴더 (`sprites/player/v3/…`) — v3 → v2 → 기존 순 (계약 art §11) */
+  V3_DIR: 'v3',
   /** 층 타일셋 파일 이름 접두 (`stage1.json`) */
   STAGE_PREFIX: 'stage',
   /** 음향 산출물 폴더와 매니페스트 (`assets/audio/manifest.json`, 음향↔시스템 계약 초안) */
@@ -111,6 +121,12 @@ export const SPRITES = {
   DEATH_EXTRA_MS: 400,
   /** 방향 변경 시 걷기 애니 프레임을 이어 간다 */
   KEEP_WALK_FRAME: true,
+  /**
+   * 52라운드 Q10 (계약 art §12) 걷기·달리기 보폭 맞춤: 재생 배속 = 실제 이동 속도 ÷ (stride.px → 월드 / cycleMs) 를 이 범위로 자른다.
+   * 임시값 — v3 stride(걷기 36도트/800ms · 달리기 45도트/560ms)를 그대로 쓰면 실제 속도 대비 약 8.5배라 상한에 걸린다(README 52라운드 절)
+   */
+  STRIDE_RATE_MIN: 0.5,
+  STRIDE_RATE_MAX: 2,
   /** 자기 시트가 없는 보스가 대신 쓰는 시트 이름 (층 램프 스왑은 그대로 적용) — 결정 로그 J */
   BOSS_FALLBACK_SHEET: 'stage1',
   /** 보스 attack `phaseFrames.dash` 프레임 반복 간격 */
@@ -250,8 +266,9 @@ export const CAMERA = {
   /** 보간이 이 거리(px) 안이면 목표에 붙인다 (미세 진동 방지) */
   SNAP_PX: 0.25,
   /**
-   * 48라운드 Q1: 게임 월드 카메라 확대 (내부 960×540 유지 → 한 화면 약 30×17타일). UI 씬은 별도 카메라라 무관.
-   * 데드존·흔들림 px 는 화면 px 기준이라 월드 px 로는 ÷ZOOM 해서 쓴다 (흔들림 체감 유지, 임시)
+   * 48라운드 Q1: 게임 월드 카메라 확대 (논리 960×540 → 한 화면 약 30×17타일). UI 씬은 별도 카메라라 무관.
+   * 데드존·흔들림 px 는 논리 화면 px 기준이라 월드 px 로는 ÷ZOOM 해서 쓴다 (흔들림 체감 유지, 임시).
+   * 52라운드: 이 값은 **논리** 배율 — 실제 카메라 zoom = ZOOM × RENDER.RESOLUTION (`display.worldZoom`)
    */
   ZOOM: RENDER.WORLD_TO_SCREEN,
 };

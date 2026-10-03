@@ -17,6 +17,7 @@ import { metaStore } from '../../systems/meta';
 import { spriteLibrary } from '../../systems/sprites';
 import type { Game } from '../Game';
 import type { GameInitData } from './shared';
+import { RES, logicalZoomOf } from '../../systems/display';
 
 export function exposeGameDebug(g: Game): void {
   const activeShots = (group: Phaser.GameObjects.Group) =>
@@ -97,6 +98,9 @@ export function exposeGameDebug(g: Game): void {
         scrollY: cam.scrollY,
         zoom: g.scale.zoom,
         camZoom: cam.zoom,
+        // 52라운드: 실제 캔버스 = 논리 × resolution, logicalZoom = 월드 → 논리 화면 배율
+        resolution: RES,
+        logicalZoom: logicalZoomOf(cam),
         width: cam.width,
         height: cam.height,
         region: { x: r.x, y: r.y, w: r.width, h: r.height },
@@ -274,7 +278,7 @@ export function exposeGameDebug(g: Game): void {
       active: g.birth.active,
       pending: gameState.birthPending,
       ...(g.birth.seq?.state ?? {}),
-      camZoom: g.cameras.main.zoom,
+      camZoom: logicalZoomOf(g.cameras.main),
       playerVisible: g.player.visible,
       playerAlpha: g.player.alpha,
     }),

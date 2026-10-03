@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { artScale, sheetJsonPath, sheetJsonPathV2, sheetToWorldUnits, type SheetJson } from './spriteDefs';
+import { artScale, sheetJsonPath, sheetToWorldUnits, type SheetJson } from './spriteDefs';
+import { sheetJsonCandidates, sheetJsonPathTier } from './spriteMeta';
 
 const base: SheetJson = {
   image: 'x.png',
@@ -45,7 +46,19 @@ describe('도트 배율 (50라운드 계약 art §9)', () => {
   it('v2 경로: sprites/<분류>/v2/<파일>', () => {
     const r = { category: 'player' as const, name: 'player', action: 'idle' };
     expect(sheetJsonPath(r)).toBe('sprites/player/player_idle.json');
-    expect(sheetJsonPathV2(r)).toBe('sprites/player/v2/player_idle.json');
-    expect(sheetJsonPathV2({ category: 'fx', name: 'slash', action: 'fx' })).toBe('sprites/fx/v2/slash.json');
+    expect(sheetJsonPathTier(r, 'v2')).toBe('sprites/player/v2/player_idle.json');
+    expect(sheetJsonPathTier({ category: 'fx', name: 'slash', action: 'fx' }, 'v2')).toBe('sprites/fx/v2/slash.json');
+  });
+
+  it('52라운드 v3: 후보 경로 v3 → v2 → 기존, v3 도트(0.5) = 월드 0.25 (도트 1 = 실제 1px)', () => {
+    const r = { category: 'weapons' as const, name: 'katana', action: 'carry_run' };
+    expect(sheetJsonCandidates(r)).toEqual([
+      'sprites/weapons/v3/katana_carry_run.json',
+      'sprites/weapons/v2/katana_carry_run.json',
+      'sprites/weapons/katana_carry_run.json',
+    ]);
+    expect(artScale({ pixelScale: 0.5 })).toBe(0.25);
+    // v3 판정 반경 132 도트 = v2 66 = 월드 33 (논리 크기 같음)
+    expect(sheetToWorldUnits({ ...base, pixelScale: 0.5, hitRadiusPx: 132 }).hitRadiusPx).toBe(33);
   });
 });

@@ -3,7 +3,7 @@
  * 실제 포인터 처리 경로(onPointerDown/Move/Up)를 그대로 부른다. 게임 로직이 아니다.
  */
 import Phaser from 'phaser';
-import { GAME } from '../../core/Constants';
+import { CANVAS_H, CANVAS_W } from '../display';
 
 export type AutoPreset = 'fast' | 'slow' | 'round';
 export const AUTO_PRESETS: AutoPreset[] = ['fast', 'slow', 'round'];
@@ -37,7 +37,8 @@ export function scheduleAutoStrokes(scene: Phaser.Scene, preset: AutoPreset, h: 
   const stepMs = AUTO_STEP_MS[preset];
   let delay = 0;
   for (const path of paths) {
-    const pts = path.map(([x, y]) => ({ x: x * GAME.WIDTH, y: y * GAME.HEIGHT }));
+    // 실제 포인터처럼 캔버스 px (52라운드 1920×1080 — 핸들러가 논리 px 로 바꾼다)
+    const pts = path.map(([x, y]) => ({ x: x * CANVAS_W, y: y * CANVAS_H }));
     pts.forEach((pt, i) => {
       scene.time.delayedCall(delay + i * stepMs, () => {
         const t = scene.time.now;

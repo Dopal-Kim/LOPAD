@@ -35,10 +35,12 @@ export const STROKE_FX = {
    */
   SPLINE: {
     ALPHA: 0.5,
-    STEP_PX: 1,
-    SUBDIV_PX: 0.5,
+    /** 52라운드: 1920×1080 캔버스에 맞춰 0.5 논리 px(= 실제 1px) 간격 (이전 1 · 세분 0.5) */
+    STEP_PX: 0.5,
+    SUBDIV_PX: 0.25,
     MIN_INPUT_PX: 0.75,
-    WIDTH_SMOOTH: 0.18,
+    /** 표본마다 새 값 비중 (52라운드 표본 2배 → 1-(1-0.18)^0.5, 같은 거리에서 같은 평활) */
+    WIDTH_SMOOTH: 0.095,
     NOISE_AMP: 0.12,
     NOISE_WAVE_PX: [11, 4.3] as [number, number],
     TAPER_IN_PX: 12,
@@ -46,7 +48,7 @@ export const STROKE_FX = {
     TAPER_MIN: 0.25,
   },
   /** 빛 레이어를 이 표본 수씩 끊어 그린다 (조각마다 열기가 다르다) */
-  CHUNK_SAMPLES: 6,
+  CHUNK_SAMPLES: 12,
   /** 속도 계산의 최소 시간 간격 (같은 ms 에 몰린 포인터 이벤트가 속도를 튀게 하지 않도록) */
   MIN_DT_MS: 8,
   /** 속도 평활 (새 값 비중) */
@@ -88,7 +90,7 @@ export const STROKE_FX = {
     CORE_ALPHA: 0.35,
     CORE_WIDTH: 0.45,
     /** 들뜬 조각(작은 사각형)이 가장자리에 붙을 확률 (표본마다 — 표본은 STEP_PX 간격) · 크기 px */
-    CHIP_CHANCE: 0.035,
+    CHIP_CHANCE: 0.0175,
     CHIP_PX: [0.7, 1.4] as [number, number],
   },
   /** 불티 (ADD 파티클): 이동 px 당 개수, 한 번에 최대, 진행 반대쪽 ±SPREAD°, 속도·수명·중력 */

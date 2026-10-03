@@ -4,6 +4,7 @@
  */
 import Phaser from 'phaser';
 import { CAMERA } from '../../core/Constants';
+import { logicalZoomOf } from '../../systems/display';
 import type { Game } from '../Game';
 
 export class GameCamera {
@@ -16,12 +17,14 @@ export class GameCamera {
     const g = this.g;
     const cam = g.cameras.main;
     // 48라운드 Q1: 확대 배율만큼 보이는 월드가 작다 → 클램프는 보이는 반폭, 스크롤은 (중심 - 캔버스 반폭)
+    // 52라운드: zoom = 실제 배율(캔버스 px), lz = 논리 배율 (데드존·스냅·흔들림 px 는 논리 화면 px)
     const zoom = cam.zoom || 1;
+    const lz = logicalZoomOf(cam);
     const region = g.world.cameraRegion(g.player.x, g.player.y);
     const halfW = cam.width / (2 * zoom);
     const halfH = cam.height / (2 * zoom);
-    const dzX = CAMERA.DEADZONE_X / zoom;
-    const dzY = CAMERA.DEADZONE_Y / zoom;
+    const dzX = CAMERA.DEADZONE_X / lz;
+    const dzY = CAMERA.DEADZONE_Y / lz;
     const px = g.player.x;
     const py = g.player.y;
     let tx = px;
@@ -42,16 +45,17 @@ export class GameCamera {
       const t = 1 - Math.pow(1 - CAMERA.FOLLOW_LERP, deltaMs / (1000 / 60));
       this.center.x += (tx - this.center.x) * t;
       this.center.y += (ty - this.center.y) * t;
-      const snap = CAMERA.SNAP_PX / zoom;
+      const snap = CAMERA.SNAP_PX / lz;
       if (Math.abs(tx - this.center.x) < snap) this.center.x = tx;
       if (Math.abs(ty - this.center.y) < snap) this.center.y = ty;
     }
-    // 흔들림(35라운드): 추종 보간·반올림이 끝난 스크롤에 오프셋만 더한다. 진폭은 화면 px → 월드 px 로 ÷zoom (체감 유지)
+    // 흔들림(35라운드): 추종 보간·반올림이 끝난 스크롤에 오프셋만 더한다. 진폭은 논리 화면 px → 월드 px 로 ÷lz (체감 유지).
+    // 스크롤은 실제 캔버스 px 단위로 반올림 (52라운드: 1920×1080 이라 이전보다 2배 촘촘)
     const sh = g.shake.sample(g.time.now);
     const snapTo = (v: number) => Math.round(v * zoom) / zoom;
     cam.setScroll(
-      snapTo(this.center.x - cam.width / 2) + sh.x / zoom,
-      snapTo(this.center.y - cam.height / 2) + sh.y / zoom,
+      snapTo(this.center.x - cam.width / 2) + sh.x / lz,
+      snapTo(this.center.y - cam.height / 2) + sh.y / lz,
     );
   }
 }

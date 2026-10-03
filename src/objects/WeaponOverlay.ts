@@ -7,9 +7,12 @@
  * 겹친다(칼 = 허리 칼집, 대검 = 등, 단검·활 = 손). 칼·대검을 뽑아 든 동안(공격 뒤 넣기 전)은 `<무기>_carry_drawn_<동작>`.
  * 시트가 없으면 기존 attack 무기 시트 0프레임을 휴대 위치(Constants CARRY)에 작게 겹치는 폴백.
  * 깊이는 JSON `depth`(방향별, 방향·프레임별 배열 허용). 팔레트 스왑 변형(`@f<n>`)은 spriteLibrary 의 현재 텍스처 키를 그대로 쓴다.
+ * 52라운드 v3 (계약 §11, Q13): 원점 = 몸 피벗 + `playerFrameOffset` · `occlusionBaked` 면 늘 몸 위 · `carryHidden` 연격 시트가 보이는
+ * 동안 휴대 시트를 숨긴다 · 달리기 휴대 `carry_run`(없으면 walk). 손·칼 앵커는 `spriteMeta`(디버그 `?anchors`).
  */
 import Phaser from 'phaser';
 import { CARRY, DEPTH } from '../core/Constants';
+import { anchorOffset, bladeAt, gripAt, handAt, overlayPivot, type BladeLocal } from '../systems/spriteMeta';
 import { gameState } from '../core/GameState';
 import { spriteLibrary } from '../systems/sprites';
 import {
@@ -21,6 +24,7 @@ import {
   overlayActionsFor,
   overlayDepthAt,
   parseAnimKey,
+  type CarryAction,
   type Facing,
   type SheetDef,
 } from '../systems/spriteDefs';
@@ -40,6 +44,13 @@ export class WeaponOverlay {
   action: string | null = null;
   /** 디버그 (49라운드): 휴대 표시 방식 — sheet(휴대 시트) · fallback(attack 0프레임) · null(숨김·공격 오버레이) */
   carry: 'sheet' | 'fallback' | null = null;
+  /** 디버그 (52라운드): 지금 보이는 무기 시트가 연격 중 휴대 숨김(carryHidden)인지 */
+  carryHidden = false;
+  /** 현재 몸 시트 (원점 정렬·손 앵커) */
+  private body: SheetDef | undefined;
+  /** 지금 보이는 무기 시트·방향·열 (앵커 조회) */
+  private shown: { def: SheetDef; dir: Facing; column: number; pivot: { x: number; y: number } } | null = null;
+  private bodyAt: { dir: Facing; column: number } | null = null;
 
   constructor(
     private readonly host: Phaser.GameObjects.Sprite,
@@ -68,22 +79,27 @@ export class WeaponOverlay {
       return last ? this.updateCarry('idle', last.dir, 0) : this.hide();
     }
     let column: number;
+    const body = spriteLibrary.sheet('player', parsed.action);
+    this.body = body;
+    this.bodyAt = null;
     if (playing) {
       const cur = this.host.anims.currentFrame;
       if (!cur) return this.hide();
       // 파생 애니(구간 재생·반복)도 맞도록 텍스처 프레임 번호(row × frames + col)에서 열을 꺼낸다
-      const body = spriteLibrary.sheet('player', parsed.action);
       const fi = Number(cur.frame.name);
       column = body && Number.isFinite(fi) ? fi % body.frames : cur.index - 1;
     } else {
       const m = /#hold(\d+)/.exec(key!);
       column = m ? Number(m[1]) : 0;
     }
+    this.bodyAt = { dir: parsed.dir, column };
     const id = gameState.weapon.id;
     for (const a of overlayActionsFor(parsed.action, id)) {
       const def = this.sheetOf(id, a);
       if (def) {
+        // 무기 시트 하나가 휴대 모습을 대신한다 — v3 연격(carryHidden)은 빈 칼집까지 시트에 들어 있다
         this.carry = null;
+        this.carryHidden = Boolean(def.carryHidden);
         this.show(def, a, parsed.dir, column, overlayDepthAt(def, parsed.dir, column) === 'below');
         return;
       }
@@ -100,9 +116,9 @@ export class WeaponOverlay {
     const stowed = info.mode !== 'hand' && !info.drawn;
     // 뽑아 든 칼·대검은 carry_drawn_* (아트 49라운드 임시 추가), 그 밖은 carry_*. 피격 등 휴대 동작이 아닌 몸 동작은 idle 0열
     const drawn = info.mode !== 'hand' && info.drawn;
-    const name = drawn ? carryDrawnAction : carryAction;
     const col0 = ca === 'idle' && bodyAction !== 'idle' ? 0 : column;
-    const def = this.sheetOf(id, name(ca)) ?? this.sheetOf(id, name('idle'));
+    const def = this.pickCarry(id, ca, drawn);
+    this.carryHidden = false;
     if (def) {
       this.carry = 'sheet';
       const col = col0 % def.frames;
@@ -120,6 +136,26 @@ export class WeaponOverlay {
       angle: at.angle,
       scale: stowed ? CARRY.STOWED_SCALE : CARRY.HAND_SCALE,
     });
+  }
+
+  /**
+   * 휴대 시트 고르기: (뽑아 든 상태면 carry_drawn_* 먼저) 동작 → (달리기면 걷기) → idle.
+   * 52라운드 임시 규칙: 먼저 **몸 시트와 도트 배율이 같은 것**만 찾고, 없을 때만 다른 배율 — v3 몸에 구 시트 '뽑아 든 칼'(4배 도트)이
+   * 겹쳐 보이는 대신 v3 칼집 휴대를 보인다 (v3 carry_drawn 이 오면 자동으로 그것)
+   */
+  private pickCarry(id: string, ca: CarryAction, drawn: boolean): SheetDef | undefined {
+    const names = drawn ? [carryDrawnAction, carryAction] : [carryAction];
+    const acts: CarryAction[] = ca === 'run' ? ['run', 'walk', 'idle'] : ca === 'idle' ? ['idle'] : [ca, 'idle'];
+    const tier = this.body ? artScale(this.body) : null;
+    for (const strict of [true, false]) {
+      if (!strict && tier === null) break;
+      for (const name of names)
+        for (const a of acts) {
+          const def = this.sheetOf(id, name(a));
+          if (def && (!strict || tier === null || artScale(def) === tier)) return def;
+        }
+    }
+    return undefined;
   }
 
   private sheetOf(id: string, action: string): SheetDef | undefined {
@@ -141,7 +177,10 @@ export class WeaponOverlay {
       this.sprite.setTexture(texture, 0);
       this.texture = texture;
     }
-    this.sprite.setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight);
+    // 52라운드 v3: 무기 시트 좌표 = 몸 좌표 + playerFrameOffset → 원점 = 몸 피벗 + 오프셋 (휴대 폴백은 자기 피벗)
+    const pv = place ? def.pivot : overlayPivot(def, this.body);
+    this.shown = place ? null : { def, dir, column, pivot: pv };
+    this.sprite.setOrigin(pv.x / def.frameWidth, pv.y / def.frameHeight);
     this.frame = frameAt(def, dir, column);
     this.action = action;
     this.sprite.setFrame(this.frame);
@@ -165,5 +204,31 @@ export class WeaponOverlay {
     this.frame = -1;
     this.action = null;
     this.carry = null;
+    this.carryHidden = false;
+    this.shown = null;
+  }
+
+  /**
+   * 52라운드 v3 앵커 (월드 좌표): 몸 handAnchors 양손 · 무기 gripAnchors(없으면 무기 handAnchors 오른손) · bladeLocal.
+   * 디버그·연출 정렬용 (판정에는 쓰지 않는다). 시트에 메모가 없으면 null
+   */
+  anchors(): {
+    handR: { x: number; y: number } | null;
+    handL: { x: number; y: number } | null;
+    grip: { x: number; y: number } | null;
+    blade: BladeLocal | null;
+  } {
+    const h = this.host;
+    const at = (o: { x: number; y: number } | null) => (o ? { x: h.x + o.x, y: h.y + o.y } : null);
+    const ba = this.bodyAt;
+    const hands = this.body && ba ? handAt(this.body, ba.dir, ba.column) : null;
+    const s = this.shown;
+    const g = s ? gripAt(s.def, s.dir, s.column) : null;
+    return {
+      handR: at(hands && this.body ? anchorOffset(this.body, hands.handR) : null),
+      handL: at(hands && this.body ? anchorOffset(this.body, hands.handL) : null),
+      grip: at(g && s ? anchorOffset(s.def, g, s.pivot) : null),
+      blade: s ? bladeAt(s.def, s.column) : null,
+    };
   }
 }

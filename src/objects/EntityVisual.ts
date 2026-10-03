@@ -162,18 +162,30 @@ export class EntityVisual {
     return this.holdUntil === Infinity || this.holdUntil > this.hostTime();
   }
 
-  /** 반복 동작(idle/walk). 일회성 동작이 재생 중이거나 프레임 유지 중이면 무시 */
-  loop(action: 'idle' | 'walk', dir: Facing, time: number): void {
+  /**
+   * 반복 동작(idle/walk/run). 일회성 동작이 재생 중이거나 프레임 유지 중이면 무시.
+   * rate = 재생 배속 (52라운드 Q10 보폭 맞춤 — 매 프레임 갱신). 걷기↔달리기·방향 전환은 프레임 위치를 이어 간다
+   */
+  loop(action: 'idle' | 'walk' | 'run', dir: Facing, time: number, rate = 1): void {
     this.facing = dir;
     if (this.holdUntil >= 0 && time >= this.holdUntil) this.release();
     if (!this.animated || this.dead || time < this.busyUntil || this.holdUntil >= 0) return;
     const key = spriteLibrary.animKey(this.name, action, dir);
-    if (!key || key === this.current) return;
+    if (!key) return;
+    if (key === this.current) {
+      this.host.anims.timeScale = rate;
+      return;
+    }
     this.fitAction(action);
-    const sameAction = this.current?.startsWith(`${this.sheetName}_${action}_`) ?? false;
+    const prefix = (a: string) => `${this.sheetName}_${a}_`;
+    const stride = (a: string) => a === 'walk' || a === 'run';
+    const sameAction = this.current?.startsWith(prefix(action)) ?? false;
+    const strideSwap =
+      stride(action) && ['walk', 'run'].some((a) => a !== action && (this.current?.startsWith(prefix(a)) ?? false));
     const cur = this.host.anims.currentFrame;
-    const startFrame = SPRITES.KEEP_WALK_FRAME && sameAction && cur ? cur.index - 1 : 0;
-    this.host.anims.timeScale = 1;
+    const frames = spriteLibrary.sheet(this.name, action)?.frames ?? 1;
+    const startFrame = SPRITES.KEEP_WALK_FRAME && (sameAction || strideSwap) && cur ? (cur.index - 1) % frames : 0;
+    this.host.anims.timeScale = rate;
     this.host.play({ key, startFrame }, true);
     this.current = key;
   }

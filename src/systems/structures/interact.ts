@@ -4,6 +4,7 @@
  */
 import Phaser from 'phaser';
 import { TILE } from '../../core/Constants';
+import { worldToLogicalScreen } from '../display';
 import { gameState } from '../../core/GameState';
 import type { UiCost, UiInteractBlockReason, UiInteractable } from '../../contract/ui';
 import type { InputState } from '../InputSystem';
@@ -214,9 +215,8 @@ export class Interaction {
     const ir = this.rectOf(s);
     const wx = ir.centerX;
     const wy = s.kind === 'dogRing' ? ir.top : Math.min(s.views[0].topY, s.rect.top);
-    // 게임 캔버스 픽셀 (카메라 스크롤·배율 반영, 960×540 기준)
-    const sx = (wx - cam.scrollX - cam.width * cam.originX) * cam.zoom + cam.width * cam.originX + cam.x;
-    const sy = (wy - cam.scrollY - cam.height * cam.originY) * cam.zoom + cam.height * cam.originY + cam.y;
+    // 게임 화면 논리 픽셀 (카메라 스크롤·배율 반영, 960×540 기준 — 52라운드 캔버스 1920×1080 이어도 논리 좌표)
+    const { x: sx, y: sy } = worldToLogicalScreen(cam, wx, wy);
     const action = this.actionOf(s);
     const hold = s.kind === 'grave' ? (s.def.holdMs ?? DEFAULT_HOLD_MS) : 0;
     return {
