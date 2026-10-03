@@ -19,7 +19,7 @@ import {
   nextReinforce,
 } from '../../systems/weaponLab';
 import type { Game } from '../Game';
-import type { GameInitData } from './shared';
+import { urlParams, type GameInitData } from './shared';
 
 export class LabMode {
   dummies: LabDummy[] = [];
@@ -39,6 +39,9 @@ export class LabMode {
     const weapon = want && WEAPONS[want] ? want : PLAYER_DATA.startWeapon;
     gameState.startRun(LAB.SEED, weapon, gameState.playerName);
     gameState.birthPending = false;
+    // 51라운드 검증: `?branch=<1단>[,<2단>]` 로 갈래를 바로 (트리에 없는 id 는 restore 가 거른다)
+    const branch = urlParams().get('branch');
+    if (branch) gameState.weapon.restore({ path: branch.split(','), reinforce: 0 });
     EventBus.emit(Events.STAGE_STARTED, { stageIndex: gameState.stageIndex, stageId: gameState.stageId });
     return false;
   }

@@ -14,7 +14,10 @@ import {
   artScale,
   frameAt,
   frameDurations,
+  frameIndices,
   frameStarts,
+  keyedDurations,
+  startsOf,
   type Facing,
   type SheetJson,
 } from '../systems/spriteDefs';
@@ -194,26 +197,46 @@ export class EntityVisual {
    * 일회성 동작(attack/dash/hurt/death). fitMs 를 주면 그 시간에 맞춰 재생 속도를 조정.
    * 반환: 실제 재생 시간 ms (시트가 없으면 0)
    */
-  oneShot(action: string, dir: Facing, time: number, fitMs?: number): number {
+  oneShot(action: string, dir: Facing, time: number, fitMs?: number, key?: { frame: number; atMs: number }): number {
     this.facing = dir;
     this.lastImpactMs = 0;
     this.lastFrameStarts = [];
     this.lastDurationMs = 0;
     if (!this.animated || this.dead) return 0;
     const def = spriteLibrary.sheet(this.name, action);
-    const key = spriteLibrary.animKey(this.name, action, dir);
-    if (!def || !key) return 0;
+    const anim = spriteLibrary.animKey(this.name, action, dir);
+    if (!def || !anim) return 0;
     this.fit(def);
     this.holdUntil = -1;
     const natural = animDurationMs(def);
-    const scale = fitMs && fitMs > 0 ? natural / fitMs : 1;
-    this.host.anims.timeScale = scale;
-    this.host.play(key, false);
-    this.current = key;
-    const ms = natural / scale;
+    // 51라운드 Q3: 예비 동작·휘두름을 따로 늘이는 두 구간 맞춤 (판정 프레임 시작 = key.atMs)
+    const keyed = key ? keyedDurations(frameDurations(def), key.frame, key.atMs, fitMs ?? natural) : null;
+    let ms: number;
+    if (keyed) {
+      const k = `${anim}#k${key!.frame}-${Math.round(key!.atMs)}-${Math.round(fitMs ?? natural)}`;
+      const texture = spriteLibrary.textureKey(this.name, action);
+      if (texture && !this.host.scene.anims.exists(k))
+        this.host.scene.anims.create({
+          key: k,
+          frames: frameIndices(def, dir).map((frame, i) => ({ key: texture, frame, duration: keyed[i] })),
+          frameRate: def.fps,
+          repeat: 0,
+        });
+      this.host.anims.timeScale = 1;
+      this.host.play(k, false);
+      this.current = k;
+      ms = keyed.reduce((a, b) => a + b, 0);
+      this.lastFrameStarts = startsOf(keyed);
+    } else {
+      const scale = fitMs && fitMs > 0 ? natural / fitMs : 1;
+      this.host.anims.timeScale = scale;
+      this.host.play(anim, false);
+      this.current = anim;
+      ms = natural / scale;
+      this.lastFrameStarts = frameStarts(def, scale);
+    }
     this.busyUntil = time + ms;
     this.lastDurationMs = ms;
-    this.lastFrameStarts = frameStarts(def, scale);
     if (def.frames >= 2) this.lastImpactMs = this.lastFrameStarts[1];
     if (action === 'death') this.dead = true;
     return ms;

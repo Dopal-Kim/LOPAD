@@ -9,6 +9,7 @@ import { ensureFont } from '../systems/fonts';
 import { audioFileRel, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audioDefs';
 import { spriteLibrary } from '../systems/sprites';
 import { sheetJsonCandidates } from '../systems/spriteMeta';
+import { branchFxSheetIds } from '../systems/branchFx';
 import {
   allFxSheetIds,
   normalizeStructureSheet,
@@ -86,7 +87,7 @@ export class Preloader extends Phaser.Scene {
       Object.keys(ENEMIES),
       Object.keys(BOSSES),
       Object.keys(WEAPONS),
-      allFxSheetIds(WEAPONS),
+      [...allFxSheetIds(WEAPONS), ...branchFxSheetIds(WEAPONS)],
       allStructureSprites(),
     )) {
       const paths = sheetJsonCandidates(req);

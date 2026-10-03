@@ -64,9 +64,9 @@ describe('WeaponState (27라운드 분기 트리)', () => {
   it('강화 최대 3회, 2차까지 끝나면 게이지가 멈춘다', () => {
     const w = new WeaponState('bow', WEAPONS.bow);
     w.gainPersonality(100);
-    w.choose('scatter');
+    w.choose('rapid');
     w.gainPersonality(200);
-    w.choose('seek');
+    w.choose('quiver');
     for (let i = 0; i < WEAPON_RULES.reinforceMax; i++) {
       expect(w.canEvolve).toBe(true);
       expect(w.gainPersonality(200)).toBe(true);
@@ -78,9 +78,9 @@ describe('WeaponState (27라운드 분기 트리)', () => {
     expect(w.gainPersonality(500)).toBe(false);
     expect(w.personality).toBe(0);
     expect(w.reinforceNow()).toBe(false);
-    expect(w.damageMult).toBeCloseTo(0.9 * 0.6 * 1.45);
-    expect(w.mods.spread?.count).toBe(3);
-    expect(w.mods.homingTurnDeg).toBe(240);
+    expect(w.damageMult).toBeCloseTo(1.1 * 0.9 * 1.45);
+    expect(w.mods.fireRateMult).toBe(1.6);
+    expect(w.mods.magazineBonus).toBe(12);
   });
 
   it('세이브 복원: 경로·강화·선택 대기, 모르는 id 는 잘라낸다', () => {

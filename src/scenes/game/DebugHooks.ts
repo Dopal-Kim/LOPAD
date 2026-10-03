@@ -211,7 +211,13 @@ export function exposeGameDebug(g: Game): void {
     lastSlam: () => g.combat.debugLastSlam,
     trails: () => ({ active: g.trails.activeCount, count: g.trails.count, list: g.trails.summary() }),
     screen: () => g.screenFx.summary(),
-    aimFx: () => ({ line: g.aimLine.visible, lineSheet: g.aimLine.sheet, charge: g.motion.aimChargeFrame }),
+    aimFx: () => ({
+      line: g.aimLine.visible,
+      lineSheet: g.aimLine.sheet,
+      lineId: g.aimLine.id,
+      lineFrame: g.aimLine.frame,
+      charge: g.motion.aimChargeFrame,
+    }),
     evolveTo: (id) => {
       if (!gameState.weapon.choicePending) return false;
       const before = gameState.weapon.path.length;
@@ -270,6 +276,9 @@ export function exposeGameDebug(g: Game): void {
         nextIndex: c ? c.nextIndex(g.time.now) : null,
         now: g.time.now,
         lastSwing: g.strikes.debugLastSwing,
+        // 51라운드: 공격 시각 기록(템포 실측) · 활 마지막 발사·적중
+        log: g.strikes.attackLog.slice(),
+        bow: { shot: g.strikes.bow.debugLastShot, hit: g.strikes.bow.debugLastHit },
         overlay: { frame: g.player.overlay.frame, action: g.player.overlay.action },
         anim: g.player.animKey,
       };

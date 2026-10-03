@@ -119,6 +119,9 @@ export type PlayerAttackPayload = {
   dashSlash?: { arcDeg: number };
   /** 49라운드: 단검 가열 단계 0..3 (이펙트 강화) */
   heatStage?: number;
+  /** 51라운드 Q4: 넣은 채 첫 타 보너스 이름 (발도·끌어내기) · 적중 넉백 배율 */
+  firstStrike?: string;
+  knockbackMult?: number;
 };
 /** 49라운드: 무기 휴대 뽑기·넣기 */
 export type WeaponCarryPayload = { weapon: string; mode: 'sheath' | 'back' | 'hand' };

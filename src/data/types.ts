@@ -33,6 +33,11 @@ export interface ComboHitDef {
   cancelFromMs: number;
   /** 판정이 살아 있는 시간 ms */
   activeMs: number;
+  /**
+   * 51라운드 Q3 템포: 판정 프레임(몸 시트 hitFrames[0]) 시작 ms. 있으면 예비 동작(앞 구간)과 휘두름·여운(뒤 구간)을
+   * 따로 늘여 판정이 이 시각에 오게 한다 (대검 = 예비 동작 길게). 없으면 시트 전체를 durationMs 에 균일 맞춤
+   */
+  hitAtMs?: number;
 }
 
 /** 근접 판정 모양: arc = 몸 중심 부채꼴, thrust = 앞으로 뻗는 직사각형(찌르기) */
@@ -321,6 +326,10 @@ export interface WeaponRanged {
   rapidWindowMs: number;
   rapidDecay: number;
   rapidMin: number;
+  /** 51라운드 Q3: 시위를 당기는 시간 ms (클릭 → 화살이 떠나는 프레임 시작). 공격 시트 releaseFrame 앞 구간을 이만큼 늘인다 */
+  drawMs?: number;
+  /** 화살이 떠나는 몸 시트 프레임 (기본 2 = attack 3프레임) */
+  releaseFrame?: number;
 }
 
 export interface PersonalityData {
@@ -384,8 +393,18 @@ export interface WeaponMods {
   aimedShotStunMs?: number;
   /** 부채꼴 발사 (산탄 3·폭우 5) */
   spread?: { count: number; spreadDeg: number };
-  /** 화살 유도 선회 속도 (도/초) (추적) */
+  /** 화살 유도 선회 속도 (도/초) (추적 — 51라운드 Q2 산탄 계열 삭제, 화기류 때 재사용) */
   homingTurnDeg?: number;
+  /** 51라운드 Q2 속사: 연사 속도 배율 (시위 당김·다음 발 간격을 나눈다) */
+  fireRateMult?: number;
+  /** 속사: 탄창 추가 발 수 · 장전 시간 배율 */
+  magazineBonus?: number;
+  reloadMult?: number;
+  /**
+   * 51라운드 Q2·52라운드 Q5 저격: 비행 거리 / 최대 사거리 단계(bounds 기본 1/3·2/3 → lv1~3)별 피해 배율.
+   * aimedOnly 면 조준 사격만, critFromLevel 이상 단계 적중은 확정 치명 (필중)
+   */
+  snipe?: { levelMults: number[]; bounds?: number[]; aimedOnly?: boolean; critFromLevel?: number };
 }
 
 /** 분기 트리 노드. 1차 노드는 next 로 2차 노드 2개를 가진다. */
@@ -494,8 +513,22 @@ export interface WeaponCarryDef {
   mode: 'sheath' | 'back' | 'hand';
   /** 칼집·등에서 뽑는 동작 시간 (0 = 첫 타가 곧 뽑기 — 칼 발도) */
   drawMs: number;
-  /** 마지막 공격 뒤 이만큼 지나면 넣는다 (sheath·back) */
+  /** 마지막 공격 뒤 이만큼 지나면 넣는다 (sheath·back). 0 = 자동으로 넣지 않음 (51라운드 Q4: F 키로만) */
   sheatheAfterMs: number;
+  /** 51라운드 Q4: 넣은 동안 기력 회복 배율 (없으면 1) */
+  sheathedRegenMult?: number;
+  /** 51라운드 Q4: 넣은 상태에서 첫 타 보너스 — 칼 발도 = 확정 치명, 대검 끌어내기 = 크게 밀쳐냄 */
+  firstStrike?: WeaponFirstStrikeDef;
+}
+
+/** 51라운드 Q4: 넣은 상태 첫 타 보너스 (임시값) */
+export interface WeaponFirstStrikeDef {
+  /** 표시·디버그 이름 (예 '발도') */
+  label: string;
+  forceCrit?: boolean;
+  /** 적중 넉백 거리 배율 */
+  knockbackMult?: number;
+  damageMult?: number;
 }
 
 /** 49라운드 Q4: 대검 무게감 (임시값) */

@@ -1,9 +1,9 @@
 /**
  * 플레이어 공격 (PLAYER_ATTACKED): 근접 3연격 판정 모양·휘두름 이펙트·잔상 리본 (48라운드) · 대검 내리찍기 (49라운드) ·
- * 활 화살 · 진화 부가 효과(쌍격·지진 2단·잔월·출혈·추적). 피해 계산·피격 연출은 GameCombat.
+ * 진화 부가 효과(쌍격·지진 2단). 51라운드 정리: 활 = `BowShots`, 잔월·출혈 = `StrikeDots`. 피해 계산·피격 연출은 GameCombat.
  */
 import Phaser from 'phaser';
-import { COLORS, DEPTH, ENEMY_FX, FEEL, PROTOTYPE, TILE, WEAPON_FX, entityDepth } from '../../core/Constants';
+import { COLORS, DEPTH, ENEMY_FX, FEEL, PROTOTYPE, WEAPON_FX, entityDepth } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
@@ -12,9 +12,7 @@ import { comboShape, facingAngle, hitShapeBounds, rotateDir, shapeHit, type HitS
 import type { FxHandle } from '../../systems/fx';
 import { spriteLibrary } from '../../systems/sprites';
 import {
-  FX_ACTION,
   animDurationMs,
-  arrowFxId,
   comboAction,
   comboFxId,
   facingOf,
@@ -27,41 +25,24 @@ import {
 } from '../../systems/spriteDefs';
 import { arcPoint } from '../../systems/trailMath';
 import type { Game } from '../Game';
+import { BowShots } from './BowShots';
+import { StrikeDots } from './StrikeDots';
 import { HIT_ORIGIN_UP_PX, evolutionFxId, isFinisher, pathFx } from './shared';
-
-/** 잔월: 남아 있는 베기 궤적 (지속 피해 영역) */
-interface DotZone {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  until: number;
-  nextAt: number;
-  tickMs: number;
-  dmg: number;
-}
-
-/** 출혈: 적별 지속 피해 (+ 적에 붙은 bleed 루프 이펙트) */
-interface Bleed {
-  mob: Mob;
-  dmg: number;
-  ticksLeft: number;
-  nextAt: number;
-  tickMs: number;
-  fx: FxHandle | null;
-}
 
 export class PlayerStrikes {
   /** 디버그: 마지막 공격 이벤트 · 최근 근접 판정 (모양·원점·맞은 수) */
   debugLastAttack: unknown = null;
   debugLastSwing: unknown = null;
-  private lastShotAt = -Infinity;
-  private rapidCount = 0;
+  /** 디버그 (51라운드 템포 실측): 최근 공격 시각 (게임 시간 ms) */
+  readonly attackLog: { time: number; kind: string; comboIndex: number | null; firstStrike: string | null }[] = [];
+  readonly bow: BowShots;
+  readonly dots: StrikeDots;
   private giantFx: FxHandle | null = null;
-  private dotZones: DotZone[] = [];
-  private bleeds: Bleed[] = [];
 
-  constructor(private readonly g: Game) {}
+  constructor(private readonly g: Game) {
+    this.bow = new BowShots(g);
+    this.dots = new StrikeDots(g);
+  }
 
   private pathFx(...candidates: string[]): string | null {
     return pathFx(this.g.fx, ...candidates);
@@ -75,9 +56,16 @@ export class PlayerStrikes {
   onPlayerAttacked(p: PlayerAttackPayload): void {
     const g = this.g;
     this.debugLastAttack = { ...p, time: g.time.now };
+    this.attackLog.push({
+      time: g.time.now,
+      kind: p.kind,
+      comboIndex: p.comboIndex ?? null,
+      firstStrike: p.firstStrike ?? null,
+    });
+    if (this.attackLog.length > 40) this.attackLog.shift();
     const weapon = gameState.weapon;
     if (weapon.def.kind === 'ranged') {
-      this.fireArrow(p);
+      this.bow.fire(p);
       return;
     }
     const mods = weapon.mods;
@@ -170,93 +158,6 @@ export class PlayerStrikes {
       depthOffset: -DEPTH.OVERLAY_STEP,
       durationMs: p.durationMs ?? gameState.weapon.hitbox.cooldownMs,
     });
-  }
-
-  // --- 활 ---
-
-  /** 활: 화살은 attack 3프레임(시위 놓음) 시작에 맞춰 생성 (시트가 없으면 즉시). 연사 판정은 입력 시점 */
-  private fireArrow(p: PlayerAttackPayload): void {
-    const g = this.g;
-    const R = gameState.weapon.def.ranged!;
-    const now = g.time.now;
-    const aimed = p.kind === 'aimed';
-    let rapidMult = 1;
-    if (!aimed) {
-      this.rapidCount = now - this.lastShotAt <= R.rapidWindowMs ? this.rapidCount + 1 : 0;
-      this.lastShotAt = now;
-      rapidMult = Math.max(R.rapidMin, 1 - R.rapidDecay * this.rapidCount);
-    }
-    const release = () => {
-      if (!this.live) return;
-      this.spawnArrows({ ...p, x: g.player.x, y: g.player.y }, rapidMult);
-    };
-    if (p.releaseDelayMs > 0) g.time.delayedCall(p.releaseDelayMs, release);
-    else release();
-  }
-
-  private spawnArrows(p: PlayerAttackPayload, rapidMult: number): void {
-    const g = this.g;
-    const weapon = gameState.weapon;
-    const R = weapon.def.ranged!;
-    const mods = weapon.mods;
-    const now = g.time.now;
-    const aimed = p.kind === 'aimed';
-    const { dmg, crit } = g.combat.rollDamage(p.damageMult * rapidMult, p.forceCrit, p.kind);
-    // 조준 사격·섬광: 무한 관통
-    const pierce = aimed || mods.pierceInfinite ? Infinity : (mods.pierce ?? 0);
-    const size = weapon.hitbox.width * p.sizeMult;
-    const speed = R.projectileSpeedTiles * TILE * (mods.projectileSpeedMult ?? 1);
-    const base = Math.atan2(p.dirY, p.dirX);
-    // 화살 텍스처 (계약 §3.1 projectile 앵커, 진행 각도 회전). 없으면 사각형. 중시(2차)는 조준 화살 대신 heavyarrow
-    const heavy = aimed ? this.pathFx('heavyarrow') : null;
-    const arrowTexture = heavy
-      ? spriteLibrary.textureKey(heavy, FX_ACTION)
-      : spriteLibrary.textureKey(arrowFxId(weapon.id, aimed), FX_ACTION);
-    // 화살 꼬리 루프: 섬광(flash) / 추적(seek) 이 관통(pierce) 대신
-    const tailFx = this.pathFx('flash', 'seek', 'pierce');
-    // 산탄·폭우: 부채꼴 (조준 사격은 한 발). 발사 이펙트는 발사점에 1회 (폭우 rain 이 scatter 대신)
-    const spread = !aimed && mods.spread ? mods.spread : { count: 1, spreadDeg: 0 };
-    const burstFx = this.pathFx('rain', 'scatter');
-    if (spread.count > 1 && burstFx) {
-      g.fx.play(burstFx, p.x + p.dirX * weapon.hitbox.reach, p.y + p.dirY * weapon.hitbox.reach, {
-        angle: base,
-        depth: DEPTH.PROJECTILE,
-      });
-    }
-    const n = Math.max(1, spread.count);
-    for (let i = 0; i < n; i++) {
-      const t = n === 1 ? 0 : i / (n - 1) - 0.5;
-      const a = base + Phaser.Math.DegToRad(spread.spreadDeg) * t;
-      const dx = Math.cos(a);
-      const dy = Math.sin(a);
-      const shot = g.playerShots.get() as Projectile | null;
-      if (!shot) return;
-      shot.launch(
-        p.x + dx * weapon.hitbox.reach,
-        p.y + dy * weapon.hitbox.reach,
-        dx,
-        dy,
-        { speedPx: speed, attack: dmg, size, lifeMs: R.projectileLifeMs },
-        now,
-        'player',
-        pierce,
-        { texture: arrowTexture, rotate: true },
-      );
-      shot.crit = crit;
-      if (mods.homingTurnDeg) shot.homingTurn = Phaser.Math.DegToRad(mods.homingTurnDeg);
-      if (aimed && mods.aimedShotStunMs) shot.hitStunMs = mods.aimedShotStunMs;
-      // 중시: 적중 시 번개 낙하(heavyarrow_hit, 섬광·흔들림은 시트 JSON)
-      if (heavy && g.fx.has('heavyarrow_hit')) shot.impactFx = 'heavyarrow_hit';
-      // 관통·섬광·추적: 화살 뒤에 빛줄 루프, 화살이 사라지면 함께 사라진다
-      if (tailFx) {
-        g.fx.play(tailFx, shot.x, shot.y, {
-          angle: a,
-          follow: shot,
-          followRotation: true,
-          depth: DEPTH.PROJECTILE - 0.01,
-        });
-      }
-    }
   }
 
   // --- 근접 이펙트 ---
@@ -468,65 +369,13 @@ export class PlayerStrikes {
           })
         : null;
     // 잔월: 궤적이 남아 지속 피해
-    if (mods.trailDot) this.leaveTrailDot(p, { cx, cy, w, h }, swingFx);
+    if (mods.trailDot) this.dots.leaveTrailDot(p, { cx, cy, w, h }, swingFx);
 
     g.time.delayedCall(activeMs, () => {
       g.physics.world.removeCollider(overlap);
       if (clear) g.physics.world.removeCollider(clear);
       zone.destroy();
     });
-  }
-
-  /** 잔월: 판정 사각형 자리에 지속 피해 영역 + 남는 궤적 그림 (2차 시트 → 거합 꼬리 → 사각형) */
-  private leaveTrailDot(
-    p: PlayerAttackPayload,
-    r: { cx: number; cy: number; w: number; h: number },
-    swingFx: string | null,
-  ): void {
-    const g = this.g;
-    const T = gameState.weapon.mods.trailDot!;
-    const now = g.time.now;
-    const { dmg } = g.combat.rollDamage(p.damageMult * T.damageMult);
-    const dot: DotZone = {
-      x: r.cx,
-      y: r.cy,
-      w: r.w,
-      h: r.h,
-      until: now + T.lingerMs,
-      nextAt: now + T.tickMs,
-      tickMs: T.tickMs,
-      dmg,
-    };
-    this.dotZones.push(dot);
-    const zangetsu = this.pathFx('zangetsu');
-    const dir = facingOf(p.dirX, p.dirY, g.player.facingDir);
-    if (zangetsu && swingFx) {
-      // 잔월(2차 전용 시트): 거합이 끝난 자리(고정)에 루프, 한 바퀴 = 틱 간격이 되도록 틱을 루프 시작에 맞춘다. 바닥 깊이
-      const start = p.swingDelayMs + g.fx.durationOf(swingFx);
-      const linger = T.lingerMs - start;
-      if (linger > 0) {
-        const at = { x: p.x, y: p.y };
-        g.time.delayedCall(start, () => {
-          if (!g.scene.isActive()) return;
-          g.fx.play(zangetsu, at.x, at.y, { dir, depth: DEPTH.FX_GROUND, durationMs: linger });
-          dot.nextAt = g.time.now + dot.tickMs;
-        });
-      }
-    } else if (swingFx === 'iai') {
-      // 잔월(시트 없음): 거합 이펙트의 꼬리(마지막 3프레임)를 본 재생이 끝난 뒤 남은 시간 동안 반복
-      const start = p.swingDelayMs + g.fx.durationOf('iai');
-      const linger = T.lingerMs - start;
-      if (linger > 0) {
-        const at = { x: p.x, y: p.y, depth: entityDepth(p.y) + DEPTH.OVERLAY_STEP * 2 };
-        g.time.delayedCall(start, () => {
-          if (g.scene.isActive())
-            g.fx.play('iai', at.x, at.y, { dir, depth: at.depth, durationMs: linger, tailFrames: 3 });
-        });
-      }
-    } else {
-      const rect = g.add.rectangle(r.cx, r.cy, r.w, r.h, COLORS.TRAIL_DOT, 0.35).setDepth(DEPTH.ATTACK);
-      g.tweens.add({ targets: rect, alpha: 0, duration: T.lingerMs, onComplete: () => rect.destroy() });
-    }
   }
 
   /** 연격 판정 모양 윤곽 (시트가 없을 때 플레이스홀더) */
@@ -581,101 +430,21 @@ export class PlayerStrikes {
     const { dmg, crit } = g.combat.rollDamage(p.damageMult, p.forceCrit, p.kind);
     // 2차 전용 치명 이펙트: 급소(대쉬 베기 적중) → dashcrit, 암살(그림자 걸음 직후) → assassin. 둘 다 crit_burst 대신
     const critFx = p.primed ? this.pathFx('assassin') : p.kind === 'dashAttack' ? this.pathFx('dashcrit') : null;
-    if (g.combat.hitMob(mob, dmg, { crit, dirX: p.dirX, dirY: p.dirY, critFx })) {
+    // 51라운드 Q4: 대검 끌어내기 첫 타 = 크게 밀쳐냄
+    const knockMult = p.knockbackMult;
+    if (g.combat.hitMob(mob, dmg, { crit, dirX: p.dirX, dirY: p.dirY, critFx, knockMult })) {
       g.progress.onKill(mob, stunnedByParry ? 'parry' : p.kind === 'aimed' ? 'attack' : p.kind);
       return;
     }
     g.structures.onMobHit(mob, false);
     if (mods.hitStunMs) mob.stun(now, mods.hitStunMs, 'hit');
-    if (mods.bleed) {
-      const B = mods.bleed;
-      const tick = Math.max(1, Math.round(gameState.attack * gameState.weapon.damageMult * B.damageMult));
-      const cur = this.bleeds.find((b) => b.mob === mob);
-      if (cur) {
-        cur.ticksLeft = B.ticks;
-        cur.dmg = Math.max(cur.dmg, tick);
-        // 재적중: 루프를 다시 시작해 0프레임(글린트) = 다음 틱에 맞춘다
-        cur.nextAt = now + B.tickMs;
-        if (g.fx.isActive(cur.fx)) g.fx.stop(cur.fx, 0, false);
-        cur.fx = this.playBleedFx(mob);
-      } else
-        this.bleeds.push({
-          mob,
-          dmg: tick,
-          ticksLeft: B.ticks,
-          nextAt: now + B.tickMs,
-          tickMs: B.tickMs,
-          fx: this.playBleedFx(mob),
-        });
-    }
+    if (mods.bleed) this.dots.applyBleed(mob);
   }
 
-  /** 출혈(2차): 적 히트박스 중심에 붙어 루프 (한 바퀴 = 틱 간격, 아트 JSON). 시트가 없으면 null */
-  private playBleedFx(mob: Mob): FxHandle | null {
-    const id = this.pathFx('bleed');
-    if (!id) return null;
-    const c = mob.body.center;
-    return this.g.fx.play(id, c.x, c.y, {
-      follow: mob,
-      followOffset: { x: c.x - mob.x, y: c.y - mob.y },
-      depthOffset: DEPTH.OVERLAY_STEP * 3,
-    });
-  }
-
-  // --- 매 프레임: 추적 화살 · 잔월 · 출혈 ---
+  // --- 매 프레임: 추적 화살·저격 꼬리 · 잔월 · 출혈 ---
 
   update(time: number, delta: number): void {
-    this.tickHoming(delta);
-    this.tickDotZones(time);
-    this.tickBleeds(time);
-  }
-
-  /** 추적: 플레이어 화살이 가장 가까운 적을 향해 선회 */
-  private tickHoming(delta: number): void {
-    for (const child of this.g.playerShots.getChildren()) {
-      const shot = child as Projectile;
-      if (!shot.active || shot.homingTurn <= 0) continue;
-      const target = this.g.combat.nearestMob(shot.x, shot.y, Infinity);
-      if (target) shot.steerToward(target.x, target.y, delta);
-    }
-  }
-
-  /** 잔월: 남은 궤적 영역이 주기마다 겹친 적에게 피해 */
-  private tickDotZones(time: number): void {
-    if (this.dotZones.length === 0) return;
-    const g = this.g;
-    for (const z of this.dotZones) {
-      if (time < z.nextAt) continue;
-      z.nextAt = time + z.tickMs;
-      const bodies = g.physics.overlapRect(z.x - z.w / 2, z.y - z.h / 2, z.w, z.h, true, false);
-      for (const b of bodies) {
-        const go = (b as Phaser.Physics.Arcade.Body).gameObject as unknown;
-        if (!g.mobs.contains(go as Phaser.GameObjects.GameObject)) continue;
-        const mob = go as Mob;
-        if (!mob.active) continue;
-        if (g.combat.hitMob(mob, z.dmg, { crit: false, dirX: 0, dirY: 0, tick: true }))
-          g.progress.onKill(mob, 'attack');
-      }
-    }
-    this.dotZones = this.dotZones.filter((z) => time < z.until);
-  }
-
-  /** 출혈: 주기마다 피해, 횟수 소진·적 사망 시 제거 */
-  private tickBleeds(time: number): void {
-    if (this.bleeds.length === 0) return;
-    const g = this.g;
-    for (const b of this.bleeds) {
-      if (!b.mob.active || time < b.nextAt) continue;
-      b.nextAt = time + b.tickMs;
-      b.ticksLeft -= 1;
-      if (g.combat.hitMob(b.mob, b.dmg, { crit: false, dirX: 0, dirY: 0, tick: true }))
-        g.progress.onKill(b.mob, 'attack');
-      else b.mob.flashColor(COLORS.BLEED);
-    }
-    for (const b of this.bleeds) {
-      if (b.mob.active && b.ticksLeft > 0) continue;
-      if (g.fx.isActive(b.fx)) g.fx.stop(b.fx);
-    }
-    this.bleeds = this.bleeds.filter((b) => b.mob.active && b.ticksLeft > 0);
+    this.bow.update(delta);
+    this.dots.update(time);
   }
 }

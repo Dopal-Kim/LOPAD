@@ -7,7 +7,7 @@
  *   단계 +1(공격 속도 배율 speedMults). 최대 열을 overheatHoldMs 동안 유지하면 과열 → cooldownMs 냉각(공격 불가).
  * 계약 §11.1 `UiWeaponResource` 로 내보낸다.
  */
-import type { AmmoResourceDef, HeatResourceDef, StaminaResourceDef, WeaponResourceDef } from '../data/types';
+import type { AmmoResourceDef, HeatResourceDef, StaminaResourceDef, WeaponMods, WeaponResourceDef } from '../data/types';
 import type { UiWeaponResource } from '../contract/ui';
 
 export class WeaponResource {
@@ -23,6 +23,8 @@ export class WeaponResource {
   private overheatStart = -1;
   /** 과열 시작 순간의 열 (냉각 동안 선형으로 0 까지) */
   private overheatFrom = 0;
+  /** 51라운드 Q4: 기력 회복 배율 (무기를 넣은 동안 > 1). 호출 쪽이 매 프레임 넣는다 */
+  regenMult = 1;
 
   constructor(readonly def: WeaponResourceDef) {
     this.value = def.kind === 'heat' ? 0 : def.max;
@@ -42,7 +44,7 @@ export class WeaponResource {
     const dt = Math.max(0, dtMs);
     if (d.kind === 'stamina') {
       if (now - this.lastUseAt >= d.regenDelayMs && this.value < d.max)
-        this.value = Math.min(d.max, this.value + (d.regenPerSec * dt) / 1000);
+        this.value = Math.min(d.max, this.value + (d.regenPerSec * this.regenMult * dt) / 1000);
       if (this.exhausted && this.value >= d.max * d.recoverRatio) this.exhausted = false;
     } else if (d.kind === 'ammo') {
       if (this.reloadStart >= 0 && now - this.reloadStart >= d.reloadMs) {
@@ -227,4 +229,14 @@ function round1(v: number): number {
 /** 타입 좁히기 도우미 (테스트·호출 쪽) */
 export function isAmmo(d: WeaponResourceDef): d is AmmoResourceDef {
   return d.kind === 'ammo';
+}
+
+/** 51라운드 속사: 갈래가 바꾼 탄창 수·장전 시간 (탄창이 아니면 그대로) */
+export function effectiveResource(def: WeaponResourceDef, mods: WeaponMods): WeaponResourceDef {
+  if (def.kind !== 'ammo' || (!mods.magazineBonus && !mods.reloadMult)) return def;
+  return {
+    ...def,
+    max: Math.max(1, Math.round(def.max + (mods.magazineBonus ?? 0))),
+    reloadMs: def.reloadMs * (mods.reloadMult ?? 1),
+  };
 }

@@ -2,6 +2,7 @@
  * 스프라이트 시트 정의 (계약 contracts/art-assets.md §1). Phaser 의존 없음.
  * 로드 대상 목록·키 규칙·재생 시간 계산을 담당하고, 실제 로드·애니 등록은 systems/sprites.ts.
  */
+import type { BranchSheetFields } from './branchFx';
 import { ASSETS, RENDER, TEXTURES } from '../core/Constants';
 import type { AnchorPoint, BladeLocal, HandAnchor, StrideSpec } from './spriteMeta';
 
@@ -152,8 +153,8 @@ export interface LightSpec {
   offset?: [number, number] | { x: number; y: number };
 }
 
-/** 계약 §1 JSON 필드 (+ §3.1 보강 필드는 선택) */
-export interface SheetJson {
+/** 계약 §1 JSON 필드 (+ §3.1 보강 필드는 선택). 51·52라운드 갈래 메모(secondaryVariants·heatVariants·tailSheets)는 `branchFx` */
+export interface SheetJson extends BranchSheetFields {
   image: string;
   /**
    * 50라운드 계약 §9: 도트 배율. 새 2배 도트(32×48 캐릭터·32px 타일) = 1, 기존 도트 = 없음/2.
@@ -280,7 +281,7 @@ export interface SheetJson {
   progressFrames?: number[];
   releaseFrame?: number;
   /** 시간 애니가 아닌 상태별 고정 프레임 (aim_line: charging 0 / complete 1) */
-  stateFrames?: Record<string, number>;
+  stateFrames?: Record<string, number | number[]>;
   /** 시스템 틴트 메모 (dash_trail): method 에 'setTintFill' 이 있으면 평면 틴트 */
   tint?: { when?: string; color?: string; method?: string };
   /** 같은 그림의 대체 시트 id (hit_spark → hit_burst) */
@@ -376,6 +377,31 @@ export function frameStarts(def: SheetJson, scale = 1): number[] {
   let acc = 0;
   for (const ms of d) {
     out.push(acc / scale);
+    acc += ms;
+  }
+  return out;
+}
+
+/**
+ * 51라운드 Q3 템포: 두 구간 맞춤 — `keyFrame` 시작이 `keyAtMs` 에, 전체가 `totalMs` 에 오도록 앞 구간(예비 동작)과
+ * 뒤 구간(휘두름·여운)을 따로 늘인다. 값이 맞지 않으면(구간이 비거나 범위 밖) null → 호출 쪽은 균일 맞춤
+ */
+export function keyedDurations(durations: readonly number[], keyFrame: number, keyAtMs: number, totalMs: number): number[] | null {
+  if (!(keyFrame > 0 && keyFrame < durations.length) || !(keyAtMs > 0 && keyAtMs < totalMs)) return null;
+  const pre = durations.slice(0, keyFrame).reduce((a, b) => a + b, 0);
+  const post = durations.slice(keyFrame).reduce((a, b) => a + b, 0);
+  if (pre <= 0 || post <= 0) return null;
+  const a = keyAtMs / pre;
+  const b = (totalMs - keyAtMs) / post;
+  return durations.map((d, i) => d * (i < keyFrame ? a : b));
+}
+
+/** 프레임 길이 목록 → 프레임별 시작 ms */
+export function startsOf(durations: readonly number[]): number[] {
+  const out: number[] = [];
+  let acc = 0;
+  for (const ms of durations) {
+    out.push(acc);
     acc += ms;
   }
   return out;

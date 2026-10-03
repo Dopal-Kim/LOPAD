@@ -93,6 +93,27 @@ export class PlayerPoses {
     return visual.playFrames(action, dir, [def.releaseFrame ?? def.frames - 1], time) > 0;
   }
 
+  /**
+   * 51라운드 Q3 템포: 두 구간 맞춤 기준 프레임. 연격 = 몸 시트 hitFrames[0] 시작을 hitAtMs(가열 배속 반영)에,
+   * 활 = releaseFrame 시작을 drawMs(시위 당김)에. 맞출 값이 없으면 null (균일 맞춤)
+   */
+  keyFrame(
+    action: string,
+    combo: { hit: { hitAtMs?: number; durationMs: number }; durationMs: number } | null,
+    shot: { drawMs: number; releaseFrame: number } | null,
+  ): { frame: number; atMs: number } | null {
+    const def = this.p.visual.sheet(action);
+    if (!def) return null;
+    if (combo) {
+      const at = combo.hit.hitAtMs;
+      const hf = def.hitFrames?.[0];
+      if (!at || hf === undefined || combo.durationMs <= 0) return null;
+      return { frame: hf, atMs: (at * combo.durationMs) / combo.hit.durationMs };
+    }
+    if (shot && shot.drawMs > 0 && shot.releaseFrame < def.frames) return { frame: shot.releaseFrame, atMs: shot.drawMs };
+    return null;
+  }
+
   /** 연격 시트 activeFrames 구간 길이 ms (첫 열 시작 ~ 마지막 열 끝, 재생 배속 반영). 없으면 0 */
   activeWindowMs(sheet: { activeFrames?: number[]; frames: number } | undefined): number {
     const visual = this.p.visual;

@@ -11,10 +11,10 @@ import {
 } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { PLAYER_DATA } from '../data';
-import type { SecondaryDef, WeaponCarryDef } from '../data/types';
+import type { SecondaryDef, WeaponCarryDef, WeaponFirstStrikeDef } from '../data/types';
 import { applyDefense } from '../systems/Combat';
 import type { InputState } from '../systems/InputSystem';
-import { comboAction, facingOf, motionAction, type Facing } from '../systems/spriteDefs';
+import { facingOf, motionAction, type Facing } from '../systems/spriteDefs';
 import { ComboTracker } from '../systems/combo';
 import type { WeaponResource } from '../systems/weaponResource';
 import { knockFactor, knockSpeed } from '../systems/feel';
@@ -24,6 +24,7 @@ import { WeaponOverlay } from './WeaponOverlay';
 import { PlayerGear } from './player/PlayerGear';
 import { PlayerPoses } from './player/PlayerPoses';
 import { startDashSlash, startSlam, type ComboStrike } from './player/heavyMoves';
+import { emitPlayerAttack, type AttackExtra } from './player/attackEmit';
 
 type Body = Phaser.Physics.Arcade.Body;
 
@@ -311,6 +312,20 @@ export class Player extends Phaser.GameObjects.Sprite {
 
     const canAct = this.action === 'normal' && !(stopped && this.stopBlocksAct);
 
+    // 51라운드 Q4: F = 넣기/뽑기 (칼·대검). 동작 동안 다른 행동은 잠그고 느리게 걷는다
+    if (input.carryPressed && canAct) {
+      const r = this.gear.toggle(time);
+      if (r) {
+        this.combo?.reset();
+        this.lunge = null;
+        if (r.ms > 0) {
+          this.setAction('draw', time + r.ms);
+          this.slowUntil(time + r.ms);
+        }
+        return;
+      }
+    }
+
     // 대쉬
     if (input.dashPressed && canAct && time >= this.dashReadyAt) {
       const d = dir.lengthSq() > 0 ? dir : this.facing;
@@ -405,6 +420,8 @@ export class Player extends Phaser.GameObjects.Sprite {
         res.spend(slam ? C.slam : dashWindow ? C.dashAttack : (C.hits[Math.min(idx, C.hits.length - 1)] ?? 0), time);
       }
       if (res?.kind === 'heat') res.heatUp(idx, time);
+      // 51라운드 Q4: 넣은 채 첫 타 보너스 (칼 발도 = 확정 치명, 대검 끌어내기 = 크게 밀쳐냄)
+      const first = this.gear.firstStrike;
       this.gear.markDrawn(time);
       if (slam) {
         startSlam(this, input, time, { index: idx, count: combo.hits.length, hit, durationMs: hit.durationMs }, slam);
@@ -414,11 +431,12 @@ export class Player extends Phaser.GameObjects.Sprite {
       const weight = W.weight;
       this.attackSlowUntil =
         time + Math.max(hit.activeMs, PLAYER_DATA.attackSlowMinMs, weight ? strike.durationMs + weight.postSlowMs : 0);
-      const payload = this.fireAttack(input, time, strike, dashWindow);
-      // 49라운드 대검 무게감: 타마다 반 걸음 전진. 이동 정지 = 몸 시트 recoverFrames 구간(아트 메모, 마지막 타는 공격·대쉬도),
+      const payload = this.fireAttack(input, time, strike, dashWindow, first);
+      // 49라운드 대검 무게감: 타마다 반 걸음 전진 (51라운드: 예비 동작이 길어져 휘두르는 순간에 맞춰 내딛는다). 이동 정지 = 몸 시트 recoverFrames 구간(아트 메모, 마지막 타는 공격·대쉬도),
       // 시트 메모가 없으면 마지막 타만 타격 순간부터 finisherStopMs
       if (weight) {
-        this.startLunge(payload.dirX, payload.dirY, weight.stepPx, weight.stepMs, time);
+        const stepFrom = Math.max(0, payload.swingDelayMs - weight.stepMs);
+        this.startLunge(payload.dirX, payload.dirY, weight.stepPx, weight.stepMs, time, stepFrom);
         this.stopUntil = 0;
         this.stopBlocksAct = last;
         const body = payload.bodyAction ? this.visual.sheet(payload.bodyAction) : undefined;
@@ -439,8 +457,11 @@ export class Player extends Phaser.GameObjects.Sprite {
         if (res.kind === 'ammo' && res.startReload(time)) this.gear.onReloadStart(time);
         return;
       }
-      this.attackReadyAt = time + gameState.weapon.hitbox.cooldownMs;
-      this.attackSlowUntil = time + Math.max(gameState.weapon.hitbox.activeMs, PLAYER_DATA.attackSlowMinMs);
+      // 51라운드 Q2·Q3: 시위 당김(drawMs)이 보이게 · 다음 발 간격 (속사 배율 반영)
+      const T = gameState.weapon.shotTiming;
+      this.attackReadyAt = time + T.cooldownMs;
+      this.attackSlowUntil =
+        time + Math.max(gameState.weapon.hitbox.activeMs, PLAYER_DATA.attackSlowMinMs, T.drawMs);
       this.fireAttack(input, time, null, true);
       this.gear.markDrawn(time);
       if (res?.kind === 'ammo' && res.fire(time)) this.gear.onReloadStart(time);
@@ -481,10 +502,11 @@ export class Player extends Phaser.GameObjects.Sprite {
     time: number,
     combo: ComboStrike | null,
     allowDash = true,
+    first: WeaponFirstStrikeDef | null = null,
   ): PlayerAttackPayload {
     const D = PLAYER_DATA.dash;
     const m = this.strikeMods(time, allowDash);
-    const mult = (combo ? combo.hit.damageMult : 1) * m.mult;
+    const mult = (combo ? combo.hit.damageMult : 1) * m.mult * (first?.damageMult ?? 1);
     const size = (m.isDashAttack ? D.attackSizeMult : 1) * (combo ? combo.hit.sizeMult : 1);
     return this.emitAttack(
       input,
@@ -492,9 +514,10 @@ export class Player extends Phaser.GameObjects.Sprite {
       m.isDashAttack ? 'dashAttack' : 'attack',
       mult,
       size,
-      m.forceCrit,
+      m.forceCrit || Boolean(first?.forceCrit),
       m.primed,
       combo,
+      first ? { firstStrike: first.label, knockbackMult: first.knockbackMult } : undefined,
     );
   }
 
@@ -530,6 +553,9 @@ export class Player extends Phaser.GameObjects.Sprite {
       carry: {
         mode: this.gear.carryMode,
         drawn: this.gear.drawn,
+        sheathed: this.gear.sheathed,
+        firstStrike: this.gear.firstStrike?.label ?? null,
+        regenMult: this.resource?.regenMult ?? 1,
         overlay: this.overlay.carry,
         lastAttackAt: this.gear.lastAttackAt,
       },
@@ -551,6 +577,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     };
   }
 
+  /** 공격 1회 알림 (애니·판정 시각·페이로드) — 51라운드 정리로 `player/attackEmit` */
   private emitAttack(
     input: InputState,
     time: number,
@@ -560,46 +587,11 @@ export class Player extends Phaser.GameObjects.Sprite {
     forceCrit: boolean,
     primed = false,
     combo: ComboStrike | null = null,
+    extra?: AttackExtra,
   ): PlayerAttackPayload {
-    const aim = new Phaser.Math.Vector2(input.aimX - this.x, input.aimY - this.y);
-    if (aim.lengthSq() > 0) aim.normalize();
-    else aim.copy(this.facing);
-    // 공격 애니는 조준 방향으로. 연격이면 그 타의 시트(없으면 attack)를 그 타 길이에, 아니면 다음 공격 가능 시점(쿨다운)에 맞춰
-    const comboSheet = combo ? comboAction(gameState.weapon.id, combo.index + 1) : null;
-    const action = comboSheet && this.visual.hasAction(comboSheet) ? comboSheet : 'attack';
-    const fit = combo ? combo.durationMs : gameState.weapon.hitbox.cooldownMs;
-    const aimDir = facingOf(aim.x, aim.y, this.visual.facing);
-    // 조준 사격은 활 조준 시트의 발사 프레임 (없으면 기존 attack)
-    if (!(kind === 'aimed' && this.poses.playAimRelease(aimDir, time))) this.visual.oneShot(action, aimDir, time, fit);
-    // 연격 시트 JSON 메모: hitFrames[0] 시작 = 휘두름 시점, cancelFromFrame 시작 = 다음 타 허용
-    const sheet = action !== 'attack' ? this.visual.sheet(action) : undefined;
-    const hf = sheet?.hitFrames?.[0];
-    if (typeof sheet?.cancelFromFrame === 'number')
-      this.combo?.overrideCancel(this.visual.frameStartMs(sheet.cancelFromFrame));
-    const payload: PlayerAttackPayload = {
-      x: this.x,
-      y: this.y,
-      dirX: aim.x,
-      dirY: aim.y,
-      damageMult,
-      sizeMult,
-      kind,
-      forceCrit,
-      primed,
-      swingDelayMs: hf !== undefined ? this.visual.frameStartMs(hf) : this.visual.lastImpactMs,
-      releaseDelayMs: this.visual.frameStartMs(2),
-      comboIndex: combo?.index,
-      comboCount: combo?.count,
-      activeMs: combo ? Math.max(combo.hit.activeMs, this.poses.activeWindowMs(sheet)) : undefined,
-      durationMs: combo?.durationMs,
-      bodyAction: action,
-    };
-    // 49라운드 과열: 가열 단계 (이펙트 강화)
-    const res = this.gear.resource;
-    if (res?.kind === 'heat') payload.heatStage = res.stage;
-    EventBus.emit(Events.PLAYER_ATTACKED, payload);
-    return payload;
+    return emitPlayerAttack(this, input, time, { kind, damageMult, sizeMult, forceCrit, primed }, combo, extra);
   }
+
 
   /** 워프(45라운드): 진행 중 동작·넉백·달리기를 끊고 멈춘다 */
   haltForWarp(): void {

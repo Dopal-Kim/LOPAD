@@ -113,6 +113,20 @@ export class WeaponState {
     };
   }
 
+  /**
+   * 51라운드 Q2·Q3 활 템포: 다음 발 간격 · 시위 당김(클릭 → 화살이 떠나는 프레임) · 그 프레임. 속사 fireRateMult 로 나눈다.
+   * 원거리가 아니면 drawMs 0
+   */
+  get shotTiming(): { cooldownMs: number; drawMs: number; releaseFrame: number } {
+    const k = Math.max(0.1, this.mods.fireRateMult ?? 1);
+    const R = this.def.ranged;
+    return {
+      cooldownMs: this.def.hitbox.cooldownMs / k,
+      drawMs: (R?.drawMs ?? 0) / k,
+      releaseFrame: R?.releaseFrame ?? 2,
+    };
+  }
+
   /** 공격 중 이동 배율 (중압은 덮어쓴다) */
   get attackSlowMult(): number {
     return this.mods.attackSlowMult ?? this.def.attackSlowMult;

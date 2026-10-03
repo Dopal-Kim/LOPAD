@@ -25,6 +25,8 @@ export interface HitOptions {
   knock?: boolean;
   /** 2차 전용 치명 이펙트 id (대상 히트박스 중심에) */
   critFx?: string | null;
+  /** 51라운드 Q4: 넉백 거리 배율 (대검 끌어내기 첫 타) */
+  knockMult?: number;
 }
 
 export class GameCombat {
@@ -171,7 +173,7 @@ export class GameCombat {
     g.shake.add(now, S.PX, S.MS);
     if (!died && opts.knock !== false) {
       const K = FEEL.KNOCKBACK;
-      const dist = (opts.crit ? K.CRIT_PX : K.HIT_PX) * (isBoss ? K.BOSS_MULT : 1);
+      const dist = (opts.crit ? K.CRIT_PX : K.HIT_PX) * (isBoss ? K.BOSS_MULT : 1) * (opts.knockMult ?? 1);
       mob.shove(nx, ny, dist, K.MS, isBoss, isBoss ? undefined : (m, dx, dy) => this.onShoveEnd(m, dx, dy));
     }
     return died;
@@ -214,7 +216,9 @@ export class GameCombat {
       const c = mob.body.center;
       g.fx.play(shot.impactFx, c.x, c.y, { depth: DEPTH.HIT_FX + 0.02 });
     }
-    if (this.hitMob(mob, shot.attack, { crit: shot.crit, dirX, dirY })) {
+    // 51라운드 저격: 비행 거리 단계 배율 · 필중 확정 치명 (저격 화살이 아니면 그대로)
+    const m = g.strikes.bow.hitMods(shot);
+    if (this.hitMob(mob, m.attack, { crit: m.crit, dirX, dirY })) {
       g.progress.onKill(mob, stunnedByParry ? 'parry' : 'attack');
       return;
     }

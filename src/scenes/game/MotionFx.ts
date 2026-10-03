@@ -212,8 +212,9 @@ export class MotionFx {
     const c = player.getCenter();
     const cx = c.x;
     const cy = player.y - S.BODY_CENTER_UP_PX;
-    // aim_line stateFrames: 차지 중 f0 / 완료 f1 (43라운드 B)
-    g.aimLine.show(cx, cy, player.aimAngle, S.AIM_LINE_TILES * TILE, progress >= 1 ? 'complete' : 'charging');
+    // aim_line stateFrames: 차지 중 f0 / 완료 f1 (43라운드 B) · 갈래 조준선은 진행도 프레임
+    // 51라운드 저격: 갈래 조준선(aim_line_snipe, 진행도 구동)이 있으면 그것
+    g.aimLine.show(cx, cy, player.aimAngle, S.AIM_LINE_TILES * TILE, progress, g.strikes.bow.aimLineId);
     if (!g.fx.has('aim_charge')) return;
     // aim_charge 진행도 프레임 = min(마지막, floor(progress × 5)) — 6프레임 시트의 f5 = 완료
     const frame = progressFrame(progress, g.fx.framesOf('aim_charge'), S.AIM_CHARGE_DIVISOR);

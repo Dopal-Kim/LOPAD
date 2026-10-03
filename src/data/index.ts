@@ -201,6 +201,10 @@ const MOD_KEYS = new Set([
   'aimedShotStunMs',
   'spread',
   'homingTurnDeg',
+  'fireRateMult',
+  'magazineBonus',
+  'reloadMult',
+  'snipe',
 ]);
 
 const SECONDARY_NUMERIC: Record<SecondaryDef['kind'], string[]> = {
@@ -281,6 +285,8 @@ export function validateCombo(c: ComboDef, path: string): ComboDef {
     for (const k of ['damageMult', 'sizeMult', 'durationMs', 'cancelFromMs', 'activeMs'] as const)
       assertNumber(h[k], `${path}.hits[${i}].${k}`);
     if (h.cancelFromMs > h.durationMs) throw new Error(`[data] ${path}.hits[${i}].cancelFromMs 는 durationMs 이하`);
+    if (h.hitAtMs !== undefined && !(h.hitAtMs > 0 && h.hitAtMs < h.durationMs))
+      throw new Error(`[data] ${path}.hits[${i}].hitAtMs 는 0 과 durationMs 사이`);
   });
   return c;
 }
@@ -321,6 +327,9 @@ export function validateWeaponExtras(w: WeaponDef, path: string): void {
     if (!['sheath', 'back', 'hand'].includes(c.mode)) throw new Error(`[data] ${path}.carry.mode 알 수 없음`);
     assertNumber(c.drawMs, `${path}.carry.drawMs`);
     assertNumber(c.sheatheAfterMs, `${path}.carry.sheatheAfterMs`);
+    if (c.sheathedRegenMult !== undefined) assertNumber(c.sheathedRegenMult, `${path}.carry.sheathedRegenMult`);
+    if (c.firstStrike && (typeof c.firstStrike.label !== 'string' || !c.firstStrike.label))
+      throw new Error(`[data] ${path}.carry.firstStrike.label 없음`);
   }
   const blocks: [string, object | undefined, string[]][] = [
     ['weight', w.weight, ['stepPx', 'stepMs', 'postSlowMs', 'finisherStopMs']],
