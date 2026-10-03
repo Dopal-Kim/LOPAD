@@ -42,6 +42,7 @@ export class UiRelay {
       resource: g.player?.resource?.toUi(now) ?? null,
       muted: audio.isMuted,
       lab: g.lab,
+      carry: g.player?.carryUi() ?? null,
     });
   }
 

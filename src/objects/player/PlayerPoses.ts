@@ -6,7 +6,7 @@
  * - 이동: 이동 중엔 이동 방향, 멈춰 있으면 마우스 조준 방향으로 idle/walk
  */
 import type Phaser from 'phaser';
-import { FEEL } from '../../core/Constants';
+import { FEEL, SPRITES } from '../../core/Constants';
 import { gameState } from '../../core/GameState';
 import type { InputState } from '../../systems/InputSystem';
 import {
@@ -110,7 +110,8 @@ export class PlayerPoses {
       if (!at || hf === undefined || combo.durationMs <= 0) return null;
       return { frame: hf, atMs: (at * combo.durationMs) / combo.hit.durationMs };
     }
-    if (shot && shot.drawMs > 0 && shot.releaseFrame < def.frames) return { frame: shot.releaseFrame, atMs: shot.drawMs };
+    if (shot && shot.drawMs > 0 && shot.releaseFrame < def.frames)
+      return { frame: shot.releaseFrame, atMs: shot.drawMs };
     return null;
   }
 
@@ -138,10 +139,13 @@ export class PlayerPoses {
       p.visual.loop('idle', facing, time);
       return false;
     }
-    const action = p.sprinting && p.visual.hasAction('run') ? 'run' : 'walk';
+    // 53라운드 Q10: 기본 이동 = run 그림, 감속 상태(조준·충전·당김·가드·기력 바닥 등)만 walk. Shift 달리기 = run 을 더 빠르게
+    const slow = p.moveSlowMult < SPRITES.WALK_BELOW_MULT;
+    const action = !slow && p.visual.hasAction('run') ? 'run' : 'walk';
     const def = p.visual.sheet(action);
     const v = p.body.velocity;
-    this.strideRate = def ? strideRate(def, Math.hypot(v.x, v.y)) : 1;
+    const speed = Math.hypot(v.x, v.y);
+    this.strideRate = def ? strideRate(def, speed, action === 'run' ? p.speedPx : undefined) : 1;
     p.visual.loop(action, facing, time, this.strideRate);
     return true;
   }

@@ -191,6 +191,11 @@ export class Lighting {
     return { x: s.x, y: s.y, radius: s.radius, color: s.color, intensity };
   }
 
+  /** 주변광 '#rrggbb' */
+  get ambientHex(): string {
+    return '#' + this.ambient.toString(16).padStart(6, '0');
+  }
+
   /** 디버그 요약 */
   summary(): Record<string, unknown> {
     return {

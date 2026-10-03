@@ -615,16 +615,17 @@
           {
             "id": "snipe",
             "name": "저격 (狙擊)",
-            "description": "조준 사격이 멀리 날수록 강해지고, 화살이 꿰뚫는다",
+            "description": "화살이 멀리 날수록 강해지고(조준 사격은 더 크게), 화살이 꿰뚫는다",
             "_note": "51라운드 Q2·52라운드 Q5 (임시값): 조준 사격 피해 = 비행 거리 / 최대 사거리 단계(1/3·2/3 경계) lv1~3 배율. 일반 화살 관통 1",
             "damageMult": 1.1,
             "hitboxMult": 1.0,
             "mods": {
               "pierce": 1,
               "snipe": {
-                "levelMults": [1.0, 1.5, 2.2],
-                "bounds": [0.3333, 0.6667],
-                "aimedOnly": true
+                "_note": "53라운드 Q16: 거리 배율을 모든 화살에(levelMults), 조준 사격은 더 높게(aimedLevelMults) — 임시값",
+                "levelMults": [1.0, 1.25, 1.6],
+                "aimedLevelMults": [1.0, 1.5, 2.2],
+                "bounds": [0.3333, 0.6667]
               }
             },
             "next": [
@@ -646,9 +647,10 @@
                 "hitboxMult": 1.0,
                 "mods": {
                   "snipe": {
-                    "levelMults": [1.0, 1.8, 3.0],
+                    "_note": "53라운드 Q16: 모든 화살 levelMults · 조준 사격 aimedLevelMults · 최장 거리(lv3) 확정 치명은 모든 화살 — 임시값",
+                    "levelMults": [1.0, 1.4, 2.0],
+                    "aimedLevelMults": [1.0, 1.8, 3.0],
                     "bounds": [0.3333, 0.6667],
-                    "aimedOnly": true,
                     "critFromLevel": 3
                   }
                 }

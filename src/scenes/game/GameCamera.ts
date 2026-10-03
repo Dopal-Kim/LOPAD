@@ -3,13 +3,15 @@
  * 목표만 영역으로 클램프하므로 방 전환 시 미끄러진다. 확대 배율(월드 → 화면)만큼 보이는 월드가 작다.
  */
 import Phaser from 'phaser';
-import { CAMERA } from '../../core/Constants';
+import { BORDER, CAMERA } from '../../core/Constants';
 import { logicalZoomOf } from '../../systems/display';
 import type { Game } from '../Game';
 
 export class GameCamera {
   /** 카메라 중심 (반올림 전). 스크롤은 매 프레임 여기서 반올림해 적용 */
   private readonly center = new Phaser.Math.Vector2();
+  /** 53라운드 Q8: 북쪽 끝에서 카메라를 위로 올린 양 (월드, 보간 중) */
+  private lookUp = 0;
 
   constructor(private readonly g: Game) {}
 
@@ -49,14 +51,22 @@ export class GameCamera {
       if (Math.abs(tx - this.center.x) < snap) this.center.x = tx;
       if (Math.abs(ty - this.center.y) < snap) this.center.y = ty;
     }
+    // 53라운드 Q8: 외벽 테두리 지역에서 북쪽 끝에 다가가면 카메라를 위로 (집 위층·지붕이 보이게), 부드럽게
+    const look = g.border?.lookUpAt(py) ?? 0;
+    if (force) this.lookUp = look;
+    else this.lookUp += (look - this.lookUp) * (1 - Math.pow(1 - BORDER.LOOKUP_LERP, deltaMs / (1000 / 60)));
+    const viewY =
+      this.lookUp > 0 ? clampCenter(this.center.y - this.lookUp, region.top, region.bottom, halfH) : this.center.y;
     // 흔들림(35라운드): 추종 보간·반올림이 끝난 스크롤에 오프셋만 더한다. 진폭은 논리 화면 px → 월드 px 로 ÷lz (체감 유지).
     // 스크롤은 실제 캔버스 px 단위로 반올림 (52라운드: 1920×1080 이라 이전보다 2배 촘촘)
     const sh = g.shake.sample(g.time.now);
     const snapTo = (v: number) => Math.round(v * zoom) / zoom;
-    cam.setScroll(
-      snapTo(this.center.x - cam.width / 2) + sh.x / lz,
-      snapTo(this.center.y - cam.height / 2) + sh.y / lz,
-    );
+    cam.setScroll(snapTo(this.center.x - cam.width / 2) + sh.x / lz, snapTo(viewY - cam.height / 2) + sh.y / lz);
+  }
+
+  /** 디버그: 북쪽 치우침 (월드) */
+  get lookUpPx(): number {
+    return this.lookUp;
   }
 }
 

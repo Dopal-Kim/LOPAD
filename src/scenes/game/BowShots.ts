@@ -109,8 +109,9 @@ export class BowShots {
     const origin = def ? { originX: def.pivot.x / def.frameWidth, originY: def.pivot.y / def.frameHeight } : {};
     // 옛 갈래 꼬리 (섬광·추적·관통 루프) — 갈래 화살 시트가 없을 때만
     const legacyTail = arrow.branch ? null : pathFx(g.fx, 'flash', 'seek', 'pierce');
-    // 저격: 거리 단계 (aimedOnly 면 조준 사격만)
+    // 저격: 거리 단계 (aimedOnly 면 조준 사격만). 53라운드 Q16: 모든 화살 levelMults, 조준 사격은 aimedLevelMults
     const S = mods.snipe && (!mods.snipe.aimedOnly || aimed) ? mods.snipe : null;
+    const snipeMults = S ? (aimed && S.aimedLevelMults ? S.aimedLevelMults : S.levelMults) : null;
     // 산탄·폭우(화기류 때 재사용): 부채꼴 (조준 사격은 한 발). 발사 이펙트는 발사점에 1회
     const spread = !aimed && mods.spread ? mods.spread : { count: 1, spreadDeg: 0 };
     const burstFx = pathFx(g.fx, 'rain', 'scatter');
@@ -157,13 +158,15 @@ export class BowShots {
           depth: DEPTH.PROJECTILE - 0.01,
         });
       if (S) {
-        const tails = (def?.tailSheets ?? tailFxIds(branchArrowFxId(weapon.id, false, this.first ?? ''))).map(stripFxPrefix);
+        const tails = (def?.tailSheets ?? tailFxIds(branchArrowFxId(weapon.id, false, this.first ?? ''))).map(
+          stripFxPrefix,
+        );
         const entry: SnipeShot = {
           ox: sx,
           oy: sy,
           rangePx: speed * (R.projectileLifeMs / 1000),
           level: 0,
-          mults: S.levelMults,
+          mults: snipeMults!,
           bounds: S.bounds,
           critFromLevel: S.critFromLevel,
           critAttack: S.critFromLevel ? g.combat.rollDamage(p.damageMult * rapidMult, true, p.kind).dmg : dmg,
@@ -182,7 +185,7 @@ export class BowShots {
       texture,
       muzzle: muzzle && g.fx.has(muzzle) ? muzzle : null,
       pierce,
-      snipe: S ? { mults: S.levelMults, critFromLevel: S.critFromLevel ?? null } : null,
+      snipe: S ? { mults: snipeMults, critFromLevel: S.critFromLevel ?? null } : null,
       dmg,
       crit,
     };

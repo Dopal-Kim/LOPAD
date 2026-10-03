@@ -2,7 +2,17 @@
 import { gameState } from '../core/GameState';
 import { ECONOMY, STORY } from '../data';
 import type { FloorLayout } from '../systems/mapgen';
-import type { UiInteractable, UiMap, UiMenu, UiRoute, UiSnapshot, UiStatus, UiWarpState, UiWeaponResource } from './ui';
+import type {
+  UiCarry,
+  UiInteractable,
+  UiMap,
+  UiMenu,
+  UiRoute,
+  UiSnapshot,
+  UiStatus,
+  UiWarpState,
+  UiWeaponResource,
+} from './ui';
 
 export interface SnapshotContext {
   layout: FloorLayout | null;
@@ -25,6 +35,8 @@ export interface SnapshotContext {
   resource?: UiWeaponResource | null;
   muted?: boolean;
   lab?: boolean;
+  /** 53라운드: 넣기/뽑기 (칼·대검만). 생략 시 null */
+  carry?: UiCarry | null;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -107,5 +119,6 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     resource: ctx.resource ? { ...ctx.resource } : null,
     muted: ctx.muted ?? false,
     lab: ctx.lab ?? false,
+    carry: ctx.carry ? { ...ctx.carry } : null,
   };
 }

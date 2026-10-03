@@ -14,10 +14,22 @@ import { audio } from '../../systems/audio';
 import { feelSettings, setFeel } from '../../systems/feel';
 import { fontStatus } from '../../systems/fonts';
 import { metaStore } from '../../systems/meta';
+import { sanitizeScar } from '../../systems/setup/scar';
 import { spriteLibrary } from '../../systems/sprites';
 import type { Game } from '../Game';
 import type { GameInitData } from './shared';
 import { RES, logicalZoomOf } from '../../systems/display';
+
+/** 53라운드 Q4 검증용 견본 상흔 (정규화 3획: 긴 사선 · 갈래 · 짧은 가로) */
+const DEBUG_SCAR = {
+  v: 1,
+  aspect: 460 / 420,
+  strokes: [
+    [0.22, 0.12, 0.38, 0.34, 0.5, 0.52, 0.63, 0.74, 0.78, 0.9],
+    [0.5, 0.52, 0.36, 0.66, 0.28, 0.84],
+    [0.56, 0.3, 0.7, 0.26, 0.84, 0.32],
+  ],
+};
 
 export function exposeGameDebug(g: Game): void {
   const activeShots = (group: Phaser.GameObjects.Group) =>
@@ -240,6 +252,9 @@ export function exposeGameDebug(g: Game): void {
       vx: g.player.body.velocity.x,
       vy: g.player.body.velocity.y,
       dust: g.motion.sprintDustCount,
+      anim: g.player.animKey,
+      strideRate: +g.player.poses.strideRate.toFixed(2),
+      slowMult: +g.player.moveSlowMult.toFixed(2),
     }),
     structures: {
       list: () => g.structures.debugList(),
@@ -325,6 +340,21 @@ export function exposeGameDebug(g: Game): void {
     },
     lighting: () => g.lighting?.summary() ?? null,
     quarter: () => (g.world.quarter ? { ...g.world.quarter.summary, placements: g.world.bigProps } : null),
+    border: () => (g.border ? { ...g.border.summary(), lookUp: +g.cam.lookUpPx.toFixed(1) } : null),
+    scar: () => ({
+      view: (({ x, y, width, height }) => ({ x, y, width, height }))(g.cameras.main.worldView),
+      data: gameState.scar,
+      state: g.player.scar.state,
+      anchor: g.player.scar.lastAnchor,
+      aboveLight: g.player.scar.aboveLight,
+    }),
+    injectScar: (scar) => {
+      const s = sanitizeScar(scar ?? DEBUG_SCAR);
+      if (!s) return false;
+      gameState.scar = s;
+      g.player.scar.refresh();
+      return true;
+    },
     setBossHp: (hp) => {
       for (const m of g.mobs.getChildren() as Mob[]) {
         if (m.isBoss && m.active) {

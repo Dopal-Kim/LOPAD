@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, FEEL, PROTOTYPE, TILE } from '../core/Constants';
+import { COLORS, FEEL, KEYS, PROTOTYPE, TILE } from '../core/Constants';
 import {
   EventBus,
   Events,
@@ -21,6 +21,7 @@ import { knockFactor, knockSpeed } from '../systems/feel';
 import { sprintStep } from '../systems/traversal';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
 import { WeaponOverlay } from './WeaponOverlay';
+import { ScarOverlay } from './player/ScarOverlay';
 import { PlayerGear } from './player/PlayerGear';
 import { PlayerPoses } from './player/PlayerPoses';
 import { startDashSlash, startSlam, type ComboStrike } from './player/heavyMoves';
@@ -47,6 +48,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   readonly visual: EntityVisual;
   /** 손에 든 무기 오버레이 (계약 §3.1). 공격 애니 중에만 보인다 */
   readonly overlay: WeaponOverlay;
+  /** 53라운드 Q4: 등 상흔 (몸 위·무기 아래) */
+  readonly scar: ScarOverlay;
   /** 사망 애니 길이 (시트가 없으면 0) — Game 이 결과 화면 전환을 이만큼 늦춘다 */
   deathAnimMs = 0;
   /** 이번 프레임 이동 입력이 있었는지 (질풍 루프 이펙트용) */
@@ -55,6 +58,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   sprintAllowed = false;
   /** 47라운드: 환경 이동 배율 (독주 웅덩이 -20%). 구조물 시스템이 매 프레임 넣는다 */
   envSpeedMult = 1;
+  /** 53라운드 Q10: 이번 프레임 감속 배율 (조준·가드·공격 뒤·넣기/뽑기·기력 바닥·환경, 달리기 제외) — 낮으면 걷기 그림 */
+  moveSlowMult = 1;
   /** 현재 이동 속도 배율 (1 ~ sprint.speedMult, 가속·감속) */
   private sprintFactor = 1;
   /** 이번 프레임 달리기 입력이 유효했는지 (Shift + 허용 + 이동 + 일반 상태) */
@@ -106,6 +111,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       () => this.visual.current,
       () => ({ mode: this.gear.carryMode, drawn: this.gear.drawn }),
     );
+    this.scar = new ScarOverlay(this, () => this.visual.current);
     this.body.setCollideWorldBounds(true);
   }
 
@@ -113,6 +119,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     super.preUpdate(time, delta);
     this.visual.sync();
     this.overlay.update();
+    this.scar.update(time);
   }
 
   /** 현재 애니 방향 (디버그) */
@@ -303,6 +310,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       if (this.action === 'aim' && S.kind === 'aimedshot') slow = Math.min(slow, S.moveMult);
       // 49라운드: 기력이 바닥나면 감속
       const tired = res?.moveMult ?? 1;
+      this.moveSlowMult = slow * tired * Math.min(1, this.envSpeedMult);
       const speed = this.speedPx * slow * this.sprintFactor * this.envSpeedMult * tired;
       this.body.setVelocity(dir.x * speed, dir.y * speed);
     }
@@ -460,8 +468,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       // 51라운드 Q2·Q3: 시위 당김(drawMs)이 보이게 · 다음 발 간격 (속사 배율 반영)
       const T = gameState.weapon.shotTiming;
       this.attackReadyAt = time + T.cooldownMs;
-      this.attackSlowUntil =
-        time + Math.max(gameState.weapon.hitbox.activeMs, PLAYER_DATA.attackSlowMinMs, T.drawMs);
+      this.attackSlowUntil = time + Math.max(gameState.weapon.hitbox.activeMs, PLAYER_DATA.attackSlowMinMs, T.drawMs);
       this.fireAttack(input, time, null, true);
       this.gear.markDrawn(time);
       if (res?.kind === 'ammo' && res.fire(time)) this.gear.onReloadStart(time);
@@ -545,6 +552,12 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.lunge = { vx: (dirX / len) * v, vy: (dirY / len) * v, from: time + fromMs, until: time + fromMs + ms };
   }
 
+  /** 53라운드 계약 `UiSnapshot.carry`: 넣고 뽑는 무기(칼·대검)만, 손에 드는 무기는 null */
+  carryUi(): { drawn: boolean; firstStrike: string | null; key: 'F' } | null {
+    if (this.gear.carryMode === 'hand') return null;
+    return { drawn: this.gear.drawn, firstStrike: this.gear.firstStrike?.label ?? null, key: KEYS.CARRY };
+  }
+
   /** 디버그 (49라운드): 자원·휴대·내딛기 상태 */
   debugWeapon(time: number): Record<string, unknown> {
     return {
@@ -591,7 +604,6 @@ export class Player extends Phaser.GameObjects.Sprite {
   ): PlayerAttackPayload {
     return emitPlayerAttack(this, input, time, { kind, damageMult, sizeMult, forceCrit, primed }, combo, extra);
   }
-
 
   /** 워프(45라운드): 진행 중 동작·넉백·달리기를 끊고 멈춘다 */
   haltForWarp(): void {

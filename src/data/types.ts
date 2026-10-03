@@ -402,9 +402,17 @@ export interface WeaponMods {
   reloadMult?: number;
   /**
    * 51라운드 Q2·52라운드 Q5 저격: 비행 거리 / 최대 사거리 단계(bounds 기본 1/3·2/3 → lv1~3)별 피해 배율.
-   * aimedOnly 면 조준 사격만, critFromLevel 이상 단계 적중은 확정 치명 (필중)
+   * aimedOnly 면 조준 사격만, critFromLevel 이상 단계 적중은 확정 치명 (필중).
+   * 53라운드 Q16: 모든 화살에 levelMults, 조준 사격은 aimedLevelMults(있으면 — 더 높게 차이 유지)
    */
-  snipe?: { levelMults: number[]; bounds?: number[]; aimedOnly?: boolean; critFromLevel?: number };
+  snipe?: {
+    levelMults: number[];
+    aimedLevelMults?: number[];
+    bounds?: number[];
+    aimedOnly?: boolean;
+    critFromLevel?: number;
+    _note?: string;
+  };
 }
 
 /** 분기 트리 노드. 1차 노드는 next 로 2차 노드 2개를 가진다. */
@@ -734,8 +742,15 @@ export interface LightingData {
   regions: Record<string, LightingAmbient>;
   default: LightingAmbient;
   player: LightDefData;
+  /** 53라운드 Q22~25: 적마다 다는 약한 판독 빛 (없으면 안 단다) */
+  mob?: LightDefData;
   /** 한 프레임에 그리는 광원 상한 (가까운 순) */
   maxLights: number;
+  /**
+   * 53라운드: 외벽 테두리(border.json)가 있는 지역은 regions 에 없어도 조명을 켜고 border.json ambient(없으면 default)를 주변광으로.
+   * 기본 false (지역 조명 확대는 인터뷰 대상 — README 53라운드 절)
+   */
+  borderRegions?: boolean;
   /** 라이트맵 해상도 배율 (화면 대비) */
   lightmapScale: number;
   /** 깜빡임 주파수 범위 (광원마다 다르게) */

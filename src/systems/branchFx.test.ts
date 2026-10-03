@@ -78,6 +78,18 @@ describe('51라운드 Q2 활 갈래 = 속사·저격 (산탄 계열 삭제)', ()
     w.restore({ path: ['snipe', 'deadeye'] });
     expect(w.mods.snipe?.critFromLevel).toBe(3);
   });
+
+  it('53라운드 Q16: 저격 거리 배율은 모든 화살, 조준 사격은 단계마다 더 높다', () => {
+    const w = new WeaponState('bow', WEAPONS.bow);
+    for (const path of [['snipe'], ['snipe', 'deadeye']]) {
+      w.restore({ path });
+      const S = w.mods.snipe!;
+      expect(S.aimedOnly).toBeFalsy();
+      expect(S.aimedLevelMults).toHaveLength(S.levelMults.length);
+      expect(S.levelMults[S.levelMults.length - 1]).toBeGreaterThan(1);
+      for (let i = 1; i < S.levelMults.length; i++) expect(S.aimedLevelMults![i]).toBeGreaterThan(S.levelMults[i]);
+    }
+  });
 });
 
 describe('51라운드 Q3 템포 · Q4 넣기/뽑기', () => {

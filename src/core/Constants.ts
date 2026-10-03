@@ -109,7 +109,8 @@ export const AUDIO = {
 /** 스프라이트 연출 값 (29라운드 임시값) */
 export const SPRITES = {
   /** 발밑 타원 그림자 */
-  SHADOW_ALPHA: 0.35,
+  /** 53라운드 Q22~25: 바닥이 밝아진 만큼 발밑 대비를 올림 (0.35 → 0.5, 임시) */
+  SHADOW_ALPHA: 0.5,
   SHADOW_COLOR: 0x000000,
   /** 그림자 폭 = 바디 폭 + 여유, 높이 = 폭 × 비율 */
   SHADOW_PAD: 2,
@@ -127,6 +128,10 @@ export const SPRITES = {
    */
   STRIDE_RATE_MIN: 0.5,
   STRIDE_RATE_MAX: 2,
+  /** 53라운드 Q10: Shift 달리기는 run 을 기준 배속 × (실제/평소 속도)로 — 그 상한 = STRIDE_RATE_MAX × 이 값 */
+  SPRINT_RATE_HEADROOM: 2,
+  /** 53라운드 Q10: 감속 배율(Player.moveSlowMult)이 이보다 낮으면 걷기(walk) 그림, 아니면 달리기(run) 그림 */
+  WALK_BELOW_MULT: 0.85,
   /** 자기 시트가 없는 보스가 대신 쓰는 시트 이름 (층 램프 스왑은 그대로 적용) — 결정 로그 J */
   BOSS_FALLBACK_SHEET: 'stage1',
   /** 보스 attack `phaseFrames.dash` 프레임 반복 간격 */
@@ -199,6 +204,88 @@ export const QUARTER = {
     CRATE_MAX: 2,
     CRATE_TRIES: 12,
   },
+} as const;
+
+/**
+ * 53라운드 Q6~Q8 Gemini 외벽 테두리 (`assets/tiles/border/<지역>/border.json`, 계약 art §13). 길이는 **논리 px**(960×540 기준,
+ * 월드 = 논리 ÷ RENDER.WORLD_TO_SCREEN). 깊이: 서·동·북 띠 = 바닥 위·소품 아래 배경, 남 띠 = Y 정렬 층 위(라이트맵 아래 — 조명을 받는다),
+ * 발광 = 라이트맵 위 가산. 전부 임시값(README 53라운드 절)
+ */
+export const BORDER = {
+  DIR: 'tiles/border',
+  JSON: 'border.json',
+  DEPTH_SIDE: 0.2,
+  DEPTH_NORTH: 0.25,
+  /** 문·출구 자리 어둠 조각 · 골목 입구 그림 (북 띠 위) */
+  DEPTH_DOOR: 0.27,
+  /** 남 띠(전경): 개체(1 + y·1e-5) 위, 라이트맵(2) 아래 */
+  DEPTH_SOUTH: 1.9,
+  DEPTH_SOUTH_DOOR: 1.91,
+  /** 발광(가산): 라이트맵 바로 위 · 빛 번짐(+0.01) 아래 */
+  DEPTH_EMISSIVE: DEPTH.LIGHTMAP + 0.005,
+  /** 남 띠가 주인공과 겹칠 때 알파 (border.json south.occlusion.fadeAlpha 가 우선) · 바뀌는 빠르기 (60fps 프레임당) */
+  SOUTH_FADE_ALPHA: 0.45,
+  SOUTH_FADE_LERP: 0.25,
+  /** 남 띠 하늘 판정: 이 알파(0~255) 이상이면 불투명 */
+  SOUTH_OPAQUE_ALPHA: 24,
+  /** 카메라 좌우 한계 = 바닥 끝 ± (border.json camera.bounds.left 가 없을 때) */
+  CAMERA_SIDE_PX: 200,
+  /** Q8: 주인공이 바닥 북쪽 끝에서 ZONE 안이면 카메라 중심을 최대 LOOKUP 위로 (선형), 보간 비율 (60fps 프레임당) */
+  LOOKUP_ZONE_PX: 200,
+  LOOKUP_PX: 110,
+  LOOKUP_LERP: 0.06,
+  /** 문 조각이 없을 때 문 자리 어둠: 높이(바닥 끝에서 위로) · 색 · 위쪽 흐림 비율 */
+  DOOR_DARK_HEIGHT_PX: 150,
+  DOOR_DARK_COLOR: 0x07070a,
+  DOOR_DARK_FADE: 0.35,
+  /** 53라운드 Q22~25: 지역별 북쪽 치우침 덮어쓰기 (논리 px) — 연회장(보스 방)만 160, 나머지는 border.json northLookUp(110) */
+  LOOKUP_BY_REGION: { hall: 160 } as Record<string, number>,
+  /**
+   * 53라운드 Q22~25 황무지: 북 띠 둑 위 혼불 (soul_wisp 시트·빛). 개수 [min,max] · 바닥 북쪽 끝 위 높이 [min,max] 논리 px ·
+   * 가로 자리 = 바닥 폭 비율 + 흔들림 논리 px
+   */
+  WISPS: {
+    waste: { COUNT: [2, 3], ABOVE_PX: [96, 150], X_FRACS: [0.2, 0.5, 0.8], JITTER_PX: 60 },
+  } as Record<string, { COUNT: [number, number]; ABOVE_PX: [number, number]; X_FRACS: number[]; JITTER_PX: number }>,
+  /** 테두리 기준 주변광 (border.json ambient 가 없을 때) — 53라운드 Q9 중립 숯빛. 실제 주변광이 더 밝으면 테두리를 이만큼 눌러 명도 유지 */
+  REF_AMBIENT: '#575761',
+  /** 성문 북 띠(repeat 'sides'): 바닥 가운데 ± 이만큼(논리 px)에 걸친 북쪽 문 칸은 띠에 그려진 성문이 곧 출구 */
+  GATE_CENTER_TOL_PX: 48,
+  /** 혼불 깊이 (북 띠·문 조각 위, 개체 아래) */
+  DEPTH_WISP: 0.28,
+} as const;
+
+/**
+ * 53라운드 Q4 등 상흔 (계약 §13 scarAnchor): 런 시작 때 획을 작은 텍스처 2장(균열 = 보통 합성 · 빛 = 가산)으로 굽고,
+ * 몸 바로 위·무기 아래에 겹친다. 빛은 조명 영향을 받지 않도록 라이트맵 위(조명이 켜진 지역). 전부 임시값
+ */
+export const SCAR_FX = {
+  /** 구울 때 기준 사각형 높이 (캔버스 px) · 여백 */
+  TEX_H: 96,
+  PAD: 10,
+  /** 균열: 어두운 틈 + 호박 심 */
+  CRACK_COLOR: '#140b07',
+  CRACK_ALPHA: 0.85,
+  CRACK_WIDTH: 5,
+  CORE_COLOR: '#c8641e',
+  CORE_WIDTH: 1.6,
+  /** 빛: 번진 호박빛 + 뜨거운 심 */
+  GLOW_COLOR: 'rgba(255,140,50,0.85)',
+  GLOW_BLUR: 7,
+  GLOW_WIDTH: 2.4,
+  GLOW_HOT: '#ffcf86',
+  GLOW_HOT_WIDTH: 0.9,
+  /** 깜빡임: 알파 = ALPHA × (1 − PULSE_AMP·(0.5 − 0.5 sin) − FLICKER_AMP·잡음) */
+  ALPHA: 0.9,
+  PULSE_AMP: 0.25,
+  PULSE_HZ: 0.55,
+  FLICKER_AMP: 0.08,
+  /** 측면: 어깨 쪽 빛 점만 (앵커 사각형 짧은 변 × SIDE_SIZE, 알파 × SIDE_ALPHA) */
+  SIDE_SIZE: 1.2,
+  SIDE_ALPHA: 0.6,
+  /** 깊이: 몸 위 (OVERLAY_STEP × 이 값 — 앞 무기 +1 보다 아래) · 빛 = 라이트맵 위 */
+  DEPTH_STEP: 0.4,
+  GLOW_DEPTH: DEPTH.LIGHTMAP + 0.004,
 } as const;
 
 /** 발 위치 y 로 깊이를 정한다 (아래쪽이 앞) */
@@ -493,8 +580,8 @@ export const FEEL = {
     AIM_CHARGE_DIVISOR: 5,
     /** 대쉬 잔상 간격 (아트 권장 40~50) */
     DASH_TRAIL_INTERVAL_MS: 45,
-    /** 플레이어 몸 중심 = 발 피벗에서 위로 (aim_charge pivotNote) */
-    BODY_CENTER_UP_PX: 11,
+    /** 플레이어 몸 중심 = 발 피벗에서 위로 (aim_charge pivotNote). 53라운드 Q1: 주인공 화면 1.5배(48×72) → 11 × 1.5 (임시) */
+    BODY_CENTER_UP_PX: 17,
     /** dash_trail 틴트 = 팔레트 fx.weapons[무기].ramp index (1 = W1 body dark). fx 블록이 없으면 틴트 없음 */
     DASH_TRAIL_RAMP_INDEX: 1,
     /** dash_trail 을 틴트하는 개성 노드 (JSON tint.when: 발도술·허보·잔상). 경로에 하나라도 있으면 */

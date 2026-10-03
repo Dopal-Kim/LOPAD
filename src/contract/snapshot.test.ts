@@ -37,6 +37,23 @@ describe('buildSnapshot', () => {
     expect(s.interactable).toBeNull();
     expect(s.statuses).toEqual([]);
     expect(s.map.rooms.every((r) => r.structureDot === false)).toBe(true);
+    // 53라운드: 넣기/뽑기 (생략 시 null, 주면 복사본)
+    expect(s.carry).toBeNull();
+    const carry = { drawn: false, firstStrike: '발도', key: 'F' as const };
+    const s2 = buildSnapshot({
+      layout,
+      visited: new Set(),
+      cleared: new Set(),
+      bossName: null,
+      paused: false,
+      menu: null,
+      inCombat: false,
+      sprinting: false,
+      warp: { ready: false, blocked: 'busy', targets: [], warping: false },
+      carry,
+    });
+    expect(s2.carry).toEqual(carry);
+    expect(s2.carry).not.toBe(carry);
     s.gold = 0; // 복사본 수정은 상태에 영향 없음
     expect(gameState.gold).toBe(42);
   });

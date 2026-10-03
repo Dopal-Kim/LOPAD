@@ -449,6 +449,7 @@ export function validateLighting(d: LightingData): LightingData {
   for (const [id, a] of Object.entries(d.regions)) amb(a, `lighting.regions.${id}`);
   amb(d.default, 'lighting.default');
   validateLight(d.player, 'lighting.player');
+  if (d.mob) validateLight(d.mob, 'lighting.mob');
   validateLight(d.weaponFx, 'lighting.weaponFx');
   validateLight(d.telegraph, 'lighting.telegraph');
   for (const [id, l] of Object.entries(d.fallback))

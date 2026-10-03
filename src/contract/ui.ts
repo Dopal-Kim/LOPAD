@@ -4,6 +4,12 @@
  */
 import Phaser from 'phaser';
 
+/**
+ * 53라운드 계약 추가: 화면 기준. 실제 캔버스 1920×1080 = 논리 960×540 × RESOLUTION. UI 씬은 논리 좌표로 그린다
+ * (main 카메라 zoom·origin 은 시스템이 READY 때 맞춘다 — UI 는 바꾸지 않는다)
+ */
+export const UI_SCREEN = { WIDTH: 960, HEIGHT: 540, RESOLUTION: 2 } as const;
+
 export const UI_EVENTS = {
   STATE: 'ui:state',
   STAGE_STARTED: 'ui:stage-started',
@@ -156,6 +162,16 @@ export type UiStructureMenuId = 'cards' | 'exchange' | 'pawn' | 'grave' | 'ledge
 /** 49라운드: 무기 시험장 메뉴 (계약 §11.4) */
 export type UiLabMenuId = 'lab' | 'labBranch';
 export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending' | UiStructureMenuId | UiLabMenuId;
+
+/**
+ * 53라운드 계약 추가 (51라운드 Q4 넣기/뽑기): 칼·대검처럼 넣고 뽑는 무기만 (단검·활은 스냅샷 carry = null).
+ * firstStrike = 넣은 상태에서 준비된 첫 타 보너스 이름(예: '발도', '끌어내기'), 뽑았거나 없으면 null
+ */
+export interface UiCarry {
+  drawn: boolean;
+  firstStrike: string | null;
+  key: 'F';
+}
 
 /** 49라운드: 무기 자원 게이지 (계약 §11.1) — 칼·대검 기력, 활 탄창, 단검 과열 */
 export type UiResourceKind = 'stamina' | 'ammo' | 'heat';
@@ -383,6 +399,8 @@ export interface UiSnapshot {
   muted: boolean;
   /** 49라운드: 무기 시험장 안이면 true (계약 §11.4) */
   lab: boolean;
+  /** 53라운드: 넣기/뽑기 상태 (F). 손에 드는 무기면 null */
+  carry: UiCarry | null;
 }
 
 export interface UiResult {
@@ -477,6 +495,7 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   resource: null,
   muted: false,
   lab: false,
+  carry: null,
 };
 
 export const uiCommands = {

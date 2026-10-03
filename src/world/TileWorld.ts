@@ -43,6 +43,8 @@ export class TileWorld {
     propSeed: number | string = layout.seed,
     /** 47라운드: 구조물이 먼저 차지한 칸 (소품 제외) */
     structureTiles: ReadonlySet<string> = new Set(),
+    /** 53라운드 Q6: Gemini 외벽 테두리가 경계 벽을 대신 그린다 (쿼터뷰 경계 벽 타일 생략) */
+    opts: { boundaryWalls?: boolean } = {},
   ) {
     const isOpen = (x: number, y: number) => isOpenId(layout.tiles[y]?.[x]);
     // 방 종류별 바닥(37라운드): 방 내부 바닥은 roomFloors[type], 복도·그 외는 tiles["1"]
@@ -104,6 +106,7 @@ export class TileWorld {
           },
         },
         placedProps,
+        opts.boundaryWalls ?? true,
       );
       this.quarter.addBigProps(this.bigProps);
     }
@@ -259,6 +262,11 @@ export class TileWorld {
       (rect.h + padTiles * 2) * TILE,
     );
     this.arenaCamera = Phaser.Geom.Rectangle.Union(this.arenaCamera, r);
+  }
+
+  /** 53라운드 Q6: 노드 전투장 카메라 경계를 바꾼다 (외벽 테두리 — 북 띠 위끝·남 띠 아래끝·바닥 좌우 ± 여유) */
+  setArenaCamera(x: number, y: number, w: number, h: number): void {
+    if (this.arenaCamera) this.arenaCamera.setTo(x, y, w, h);
   }
 
   /** 노드 전투장 카메라 경계 (px, 없으면 null) */

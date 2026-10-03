@@ -30,7 +30,8 @@ import {
   tilesetTextureKey,
   type TilesetJson,
 } from '../world/tileskin';
-import { regionTilesets } from '../systems/route';
+import { regionIds, regionTilesets } from '../systems/route';
+import { borderDefs, borderJsonRel, parseBorder } from '../world/border';
 import { UI_SCENES } from '../ui';
 import { allStructureSprites } from '../systems/structures/data';
 import { urlParams } from './game/shared';
@@ -54,6 +55,8 @@ export class Preloader extends Phaser.Scene {
   /** 49라운드 art §7.3: 지역 타일셋 (tiles/stage1_<region>.json, 50라운드: tiles/v2/ 가 있으면 먼저) */
   private pendingRegionTiles: { name: string; jsonKey: string; dir: string }[] = [];
   private audioManifestQueued = false;
+  /** 53라운드 Q6: 외벽 테두리 border.json 이 있는 지역 (그림은 그 지역 노드에 들어갈 때 지연 로드 — BorderView) */
+  private pendingBorders: { region: string; jsonKey: string }[] = [];
 
   constructor() {
     super(SCENES.PRELOADER);
@@ -115,6 +118,14 @@ export class Preloader extends Phaser.Scene {
       this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
       this.pendingRegionTiles.push({ name, jsonKey, dir: dirOf(rel) });
     }
+    this.pendingBorders = [];
+    for (const region of regionIds()) {
+      const rel = borderJsonRel(region);
+      if (!listed(rel)) continue;
+      const jsonKey = `json_border_${region}`;
+      this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
+      this.pendingBorders.push({ region, jsonKey });
+    }
     this.audioManifestQueued = exists(audioManifestRel());
     if (this.audioManifestQueued) this.load.json(AUDIO_MANIFEST_KEY, `${ASSETS.URL}/${audioManifestRel()}`);
   }
@@ -167,6 +178,11 @@ export class Preloader extends Phaser.Scene {
       const key = namedTilesetTextureKey(p.name);
       regionTiles.push({ name: p.name, json, key });
       if (!this.textures.exists(key)) this.load.image(key, `${ASSETS.URL}/${p.dir}${json.image}`);
+    }
+    borderDefs.clear();
+    for (const b of this.pendingBorders) {
+      const def = parseBorder(this.cache.json.get(b.jsonKey), b.region);
+      if (def) borderDefs.set(b.region, def);
     }
     const audioQueue = this.queueAudio();
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {

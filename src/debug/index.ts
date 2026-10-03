@@ -161,6 +161,10 @@ export interface DebugApi {
   /** 50라운드: 조명 요약(켜짐·주변광·광원 수) · 쿼터뷰 벽 요약(없으면 null) */
   lighting: () => unknown;
   quarter: () => unknown;
+  /** 53라운드 Q6·Q8: 외벽 테두리 요약(없으면 null) · 카메라 북쪽 치우침 · Q4 상흔 상태 · 상흔 주입(없으면 견본 3획) */
+  border: () => unknown;
+  scar: () => unknown;
+  injectScar: (scar?: unknown) => boolean;
 }
 
 export interface StructureDebugInfo {
@@ -209,6 +213,10 @@ export interface SprintDebugInfo {
   vx: number;
   vy: number;
   dust: number;
+  /** 53라운드 Q10: 현재 애니 키 · 걷기/달리기 재생 배속 · 감속 배율 (낮으면 walk) */
+  anim: string | null;
+  strideRate: number;
+  slowMult: number;
 }
 
 export type FeelPatch = Partial<{
@@ -314,6 +322,9 @@ export function exposeDebug(api: {
   openLabMenu: (which: 'lab' | 'labBranch') => boolean;
   lighting: () => unknown;
   quarter: () => unknown;
+  border: () => unknown;
+  scar: () => unknown;
+  injectScar: (scar?: unknown) => boolean;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -460,6 +471,9 @@ export function exposeDebug(api: {
     openLabMenu: (which) => api.openLabMenu(which),
     lighting: () => api.lighting(),
     quarter: () => api.quarter(),
+    border: () => api.border(),
+    scar: () => api.scar(),
+    injectScar: (scar) => api.injectScar(scar),
     doorsOf: (roomId) =>
       api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };

@@ -52,6 +52,11 @@ export class QuarterView {
   private byColumn = new Map<number, WallImage[]>();
   private faded: WallImage[] = [];
   private readonly scale: number;
+  /**
+   * 53라운드 Q6: 경계 벽(바깥 빈 칸에 닿는 벽)을 그릴지. Gemini 외벽 테두리가 있는 지역은 false — 테두리 그림이 덮고,
+   * 전투장 안 엄폐 담(벽 섬)만 그린다. 테두리 로드가 실패하면 `setBoundaryWalls(true)` 로 되돌린다
+   */
+  private boundaryWalls: boolean;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -59,7 +64,9 @@ export class QuarterView {
     private readonly skin: TileSkin,
     private readonly src: QuarterViewSource,
     props: readonly PropPlacement[] = [],
+    boundaryWalls = true,
   ) {
+    this.boundaryWalls = boundaryWalls;
     const px = skin.tilePx;
     this.scale = TILE / px;
     ensureTileFrames(scene, skin.textureKey, px);
@@ -128,14 +135,16 @@ export class QuarterView {
     const H = Q.heightTiles;
     const pick = (list: readonly number[], x: number, y: number) => list[pickVariant(x, y, list.length, TileId.Wall)];
     const { widthTiles: W, heightTiles: Ht } = this.layout;
-    const islands = Q.stone ? this.wallIslands() : new Set<string>();
+    const islands = Q.stone || !this.boundaryWalls ? this.wallIslands() : new Set<string>();
     for (let y = 0; y < Ht; y++)
       for (let x = 0; x < W; x++) {
         if (!this.isWall(x, y)) continue;
         // 바닥 칸도 다시 (벽이 생기거나 사라진 칸)
         this.refreshGround(x, y);
         const depth = entityDepth((y + 1) * TILE);
-        const stone = Q.stone && islands.has(`${x},${y}`) ? Q.stone : null;
+        const island = islands.has(`${x},${y}`);
+        if (!this.boundaryWalls && !island) continue;
+        const stone = Q.stone && island ? Q.stone : null;
         if (stone) {
           // 엄폐 담(경계에 닿지 않는 벽 섬) = 돌담 세트: 앞면 아랫단 → 윗단 → 윗면, 앞면 없는 칸은 윗면
           if (this.isOpen(x, y + 1)) {
@@ -157,6 +166,13 @@ export class QuarterView {
         }
       }
     this.rebuildShade();
+  }
+
+  /** 53라운드 Q6: 테두리 그림을 못 쓰게 되면 경계 벽 타일로 되돌린다 */
+  setBoundaryWalls(on: boolean): void {
+    if (this.boundaryWalls === on) return;
+    this.boundaryWalls = on;
+    this.rebuildWalls();
   }
 
   /** 경계(빈 칸 = 바깥)에 닿지 않는 벽 덩어리 칸 (`"x,y"`) — 전투장 안 엄폐 담 */

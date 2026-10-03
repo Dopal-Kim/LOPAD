@@ -48,8 +48,12 @@ export function planNodeArena(
   stageId: string,
   floorSeed: number | string,
   file: RouteFile = ROUTE,
-  /** 52라운드 Q9: 지역 타일셋이 쿼터뷰인지 (그러면 가장자리 깊이를 QUARTER.EDGE_MAX_INSET 칸까지만) */
-  opts: { quarterTileset?: (tileset: string | null) => boolean } = {},
+  /**
+   * 52라운드 Q9: 지역 타일셋이 쿼터뷰인지 (그러면 가장자리 깊이를 QUARTER.EDGE_MAX_INSET 칸까지만).
+   * 53라운드 Q6: 지역에 Gemini 외벽 테두리가 있는지 — 있으면 가장자리 일직선(깊이 0, 테두리 기준선과 맞춤)·숨은 저장고 없음
+   * (저장고는 벽 바깥 여백을 파는데 그 자리를 테두리 그림이 덮는다)
+   */
+  opts: { quarterTileset?: (tileset: string | null) => boolean; border?: (regionId: string | null) => boolean } = {},
 ): NodeArenaPlan {
   const kind: RouteKind = node?.kind ?? 'birth';
   const d = kindDef(kind, file);
@@ -59,10 +63,9 @@ export function planNodeArena(
   const region = regionId ? (entries(file.regions)[regionId] ?? null) : null;
   const seed = hashSeed(`${String(floorSeed)}:${node?.id ?? 'entry'}:arena`);
   const baseEdge = regionEdge(regionId, file);
-  const edge =
-    baseEdge && opts.quarterTileset?.(region?.tileset ?? null)
-      ? { ...baseEdge, maxInset: Math.min(baseEdge.maxInset, QUARTER.EDGE_MAX_INSET) }
-      : baseEdge;
+  const border = Boolean(opts.border?.(regionId));
+  const maxInset = border ? 0 : opts.quarterTileset?.(region?.tileset ?? null) ? QUARTER.EDGE_MAX_INSET : Infinity;
+  const edge = baseEdge ? { ...baseEdge, maxInset: Math.min(baseEdge.maxInset, maxInset) } : baseEdge;
   const layout = generateArena({
     roomId: node?.id ?? 'entry',
     type: node ? d.room : 'start',
@@ -88,7 +91,8 @@ export function planNodeArena(
   const templateId = node && d.setPiece ? d.setPiece : null;
   const template = templateId ? (entries(file.setPieces)[templateId] ?? null) : null;
   const tutorial = node && d.tutorial && file.tutorial ? file.tutorial : null;
-  const allowed = new Set(d.structures);
+  const kinds = border ? d.structures.filter((k) => STRUCTURE_DEFS.get(k)?.place !== 'cellar') : d.structures;
+  const allowed = new Set(kinds);
   const setPiece = planSetPiece(layout, {
     templateId,
     template,
@@ -116,7 +120,7 @@ export function planNodeArena(
     setPiece,
     reserve: all,
     structureNode: {
-      kinds: node ? d.structures : [],
+      kinds: node ? kinds : [],
       budget: node ? d.budget : [0, 0],
       reserve: all,
       fixed: setPiece.fixed,

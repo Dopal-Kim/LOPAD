@@ -30,6 +30,8 @@ import { UI_EVENTS, __system } from '../contract/ui';
 import { setMenuSelect, setNodeChooser, setSnapshotProvider, setWarpHandler } from '../contract/host';
 import { UI_SCENES } from '../ui';
 import { TileWorld } from '../world/TileWorld';
+import { BorderView, releaseBorderTextures } from '../world/BorderView';
+import { borderFor, borderGaps, floorRectOf, type BorderDef } from '../world/border';
 import { TileSkin, skinFor, tileSkins } from '../world/tileskin';
 import { SetPieceView } from '../world/SetPieceView';
 import { planNodeArena, setPieceTiles, type NodeArenaPlan } from '../systems/routeArena';
@@ -93,6 +95,8 @@ export class Game extends Phaser.Scene {
   nodeKind: RouteKind | null = null;
   nodeArena: NodeArenaPlan | null = null;
   setPieceView: SetPieceView | null = null;
+  /** 53라운드 Q6: Gemini 외벽 테두리 (그 지역에 border.json 이 있을 때) */
+  border: BorderView | null = null;
   tutorial: TutorialDirector | null = null;
   // --- 연출 (35·42라운드) ---
   fx: FxPool;
@@ -233,6 +237,10 @@ export class Game extends Phaser.Scene {
       player: this.player,
       telegraphs: () => this.telegraph.lightPoints(),
     });
+    // 53라운드 Q4: 상흔 빛은 조명 영향을 받지 않는다 (조명이 켜진 지역이면 라이트맵 위)
+    this.player.scar.aboveLight = this.lighting.enabled;
+    // 53라운드 Q22~25: 바닥을 밝혀도 테두리 명도는 그대로 (주변광 보정 틴트)
+    this.border?.matchAmbient(this.lighting.enabled ? this.lighting.ambientHex : null);
     if (this.routeMode) this.route.enterNode();
     this.labMode?.setup();
     this.createDebugText();
@@ -262,9 +270,17 @@ export class Game extends Phaser.Scene {
     const quarterTileset = (t: string | null) => Boolean(skinFor(floor, t).quarter);
     this.nodeArena =
       !this.lab && route
-        ? planNodeArena(this.node, gameState.stageId, gameState.floorSeed, undefined, { quarterTileset })
+        ? planNodeArena(this.node, gameState.stageId, gameState.floorSeed, undefined, {
+            quarterTileset,
+            border: (r) => Boolean(this.borderDefFor(r)),
+          })
         : null;
     return nodeSalt;
+  }
+
+  /** 53라운드 Q6: 지역 외벽 테두리 정의 (`?border=0` 이면 끔 — 비교용) */
+  private borderDefFor(region: string | null | undefined): BorderDef | null {
+    return urlParams().get('border') === '0' ? null : borderFor(region);
   }
 
   /** `?slice=<지역>`: 그 지역의 전투 노드(없으면 그 지역 아무 노드)를 현재 노드로 */
@@ -287,6 +303,9 @@ export class Game extends Phaser.Scene {
     const region = this.nodeArena?.regionId;
     const own = region ? LIGHTING.regions[region] : undefined;
     if (own) return own;
+    // 53라운드: 외벽 테두리 지역 조명 (data borderRegions — 기본 끔)
+    const border = LIGHTING.borderRegions ? this.borderDefFor(region) : null;
+    if (border) return { ambient: border.ambient ?? LIGHTING.default.ambient };
     return flag === '1' && (this.nodeArena || this.lab) ? LIGHTING.default : null;
   }
 
@@ -310,6 +329,7 @@ export class Game extends Phaser.Scene {
           forceAll,
           node: this.nodeArena ? this.nodeArena.structureNode : undefined,
         });
+    const borderDef = this.nodeArena ? this.borderDefFor(this.nodeArena.regionId) : null;
     this.world = new TileWorld(
       this,
       layout,
@@ -318,7 +338,9 @@ export class Game extends Phaser.Scene {
       this.nodeArena
         ? new Set([...structureTiles(structurePlan), ...setPieceTiles(this.nodeArena)])
         : structureTiles(structurePlan),
+      { boundaryWalls: !borderDef },
     );
+    this.border = this.createBorder(borderDef, layout);
     this.physics.world.setBounds(0, 0, this.world.widthPx, this.world.heightPx);
     // 층 강조색: 캐릭터 시트의 1층 램프를 현재 층 램프로 치환한 변형 텍스처·애니 (1층은 원본)
     spriteLibrary.activate(this, floor);
@@ -330,6 +352,24 @@ export class Game extends Phaser.Scene {
     const kd = this.nodeKind ? kindDef(this.nodeKind) : null;
     if (kd?.shopTiles && layout.arena) this.world.placeShopAt(layout.arena.shop.x, layout.arena.shop.y);
     return structurePlan;
+  }
+
+  /** 53라운드 Q6: 외벽 테두리 그림 (그림은 지연 로드, 실패하면 경계 벽 타일로) + 카메라 한계 = 테두리 범위 */
+  private createBorder(def: BorderDef | null, layout: FloorLayout): BorderView | null {
+    releaseBorderTextures(this, def?.region ?? null);
+    const floorRect = def ? floorRectOf(layout, TILE) : null;
+    if (!def || !floorRect) return null;
+    const view = new BorderView(
+      this,
+      def,
+      floorRect,
+      borderGaps(layout, TILE),
+      () => this.world.quarter?.setBoundaryWalls(true),
+      hashSeed(`${gameState.floorSeed}:${this.node?.id ?? 'entry'}:border`),
+    );
+    const c = view.plan.camera;
+    this.world.setArenaCamera(c.x0, c.y0, c.x1 - c.x0, c.y1 - c.y0);
+    return view;
   }
 
   /** 적·투사체·드랍 풀 */
@@ -593,12 +633,14 @@ export class Game extends Phaser.Scene {
   }
 
   /** 매 프레임 마지막 (카메라 스크롤이 정해진 뒤): 조명 · 쿼터뷰 벽 가림 비침 */
-  private renderLate(time: number): void {
+  private renderLate(time: number, delta: number): void {
     if (!this.player?.active) return;
     this.lighting?.update(time);
     const p = this.player;
     this.anchorDebug?.update(p);
-    this.world.quarter?.updateOcclusion([{ x: p.x, y: p.y, w: p.displayWidth, h: p.displayHeight, depth: p.depth }]);
+    const target = { x: p.x, y: p.y, w: p.displayWidth, h: p.displayHeight, depth: p.depth };
+    this.world.quarter?.updateOcclusion([target]);
+    this.border?.update(target, delta);
   }
 
   // --- 정지 ---
@@ -655,6 +697,8 @@ export class Game extends Phaser.Scene {
     this.tutorial = null;
     this.setPieceView?.destroy();
     this.setPieceView = null;
+    this.border?.destroy();
+    this.border = null;
     this.menu.close();
     this.inputSystem.destroy();
   }

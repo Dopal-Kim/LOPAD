@@ -51,7 +51,7 @@
       "name": "황무지",
       "tileset": "stage1_waste",
       "edge": {
-        "maxInset": 4,
+        "maxInset": 3,
         "gaps": [2, 3]
       },
       "desc": {
@@ -130,7 +130,7 @@
     }
   },
   "arena": {
-    "default": [40, 24],
+    "default": [32, 20],
     "boss": [44, 26],
     "voidMarginTiles": 8,
     "spawnInsetTiles": 3,
@@ -203,7 +203,7 @@
       "clearRadius": 2,
       "street": {
         "halfHeight": 1,
-        "halfWidth": 14
+        "halfWidth": 12
       },
       "slots": [
         {
@@ -227,7 +227,7 @@
         {
           "name": "street",
           "at": [0, 0],
-          "size": [28, 3],
+          "size": [24, 3],
           "floor": true,
           "color": "#33302b"
         },
@@ -325,12 +325,12 @@
       "cover": {
         "count": [2, 3],
         "anchors": [
-          [-8, -5],
-          [8, 5],
-          [-7, 5],
-          [7, -5],
-          [0, -7],
-          [0, 7]
+          [-7, -4],
+          [7, 4],
+          [-6, 4],
+          [6, -4],
+          [0, -6],
+          [0, 6]
         ],
         "shapes": [
           [
@@ -440,8 +440,8 @@
         "count": [2, 2],
         "anchors": [
           [-9, -5],
-          [-8, 6],
-          [-13, 0]
+          [-8, 5],
+          [-11, 0]
         ],
         "shapes": [
           [
@@ -499,15 +499,15 @@
     "rangedHitTiles": 14,
     "rangedConeDeg": 25,
     "dummies": [
-      [10, -6],
-      [12, -4],
-      [10, -2]
+      [8, -6],
+      [10, -4],
+      [8, -2]
     ],
     "steps": [
       {
         "id": "move",
         "action": "arrive",
-        "sign": [5, 0],
+        "sign": [3, 0],
         "promptOnStart": true,
         "text": "땅의 표식까지 걸어가 보자. (WASD)"
       },
@@ -515,28 +515,28 @@
         "id": "attack",
         "action": "hitDummy",
         "count": 2,
-        "sign": [8, -4],
+        "sign": [6, -4],
         "text": "허수아비를 베어 보자. (좌클릭)"
       },
       {
         "id": "dash",
         "action": "dash",
         "count": 1,
-        "sign": [8, 4],
+        "sign": [6, 4],
         "text": "몸을 던져 피하자. (스페이스)"
       },
       {
         "id": "secondary",
         "action": "secondary",
         "count": 1,
-        "sign": [12, 4],
+        "sign": [9, 4],
         "text": "{name} — {description} (우클릭)",
         "signName": "skill"
       },
       {
         "id": "fight",
         "action": "fight",
-        "sign": [12, 0],
+        "sign": [9, 0],
         "promptOnStart": true,
         "text": "낙오한 징집병이 다가온다. 쓰러뜨리자.",
         "fight": {

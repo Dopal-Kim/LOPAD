@@ -42,10 +42,21 @@ export function strideSpeed(def: Pick<SheetJson, 'stride' | 'pixelScale'>): numb
  * 재생 배속 = 실제 이동 속도 / stride 속도, [STRIDE_RATE_MIN, STRIDE_RATE_MAX] 로 자른다 (임시 범위).
  * stride 가 없거나 멈춰 있으면 1
  */
-export function strideRate(def: Pick<SheetJson, 'stride' | 'pixelScale'>, speedWorld: number): number {
+export function strideRate(
+  def: Pick<SheetJson, 'stride' | 'pixelScale'>,
+  speedWorld: number,
+  /**
+   * 53라운드 Q10: 기준 속도(평소 이동). 주면 기준 속도의 배속을 범위로 자른 뒤 실제/기준 비율을 곱한다 —
+   * 상한에 걸려도 Shift 달리기(×sprint)는 그만큼 더 빨리 재생 (상한 STRIDE_RATE_MAX × SPRINT_RATE_HEADROOM)
+   */
+  refSpeed?: number,
+): number {
   const natural = strideSpeed(def);
   if (natural === null || !(speedWorld > 0)) return 1;
-  return Math.min(SPRITES.STRIDE_RATE_MAX, Math.max(SPRITES.STRIDE_RATE_MIN, speedWorld / natural));
+  const clamp = (v: number, hi: number) => Math.min(hi, Math.max(SPRITES.STRIDE_RATE_MIN, v));
+  if (!(refSpeed && refSpeed > 0)) return clamp(speedWorld / natural, SPRITES.STRIDE_RATE_MAX);
+  const base = clamp(refSpeed / natural, SPRITES.STRIDE_RATE_MAX);
+  return clamp(base * (speedWorld / refSpeed), SPRITES.STRIDE_RATE_MAX * SPRITES.SPRINT_RATE_HEADROOM);
 }
 
 // --- 손·칼 앵커 (52라운드 Q13) ---
@@ -120,4 +131,56 @@ export function overlayPivot(
   const o = weapon.playerFrameOffset;
   if (o && body && artScale(body) === artScale(weapon)) return { x: body.pivot.x + o.x, y: body.pivot.y + o.y };
   return weapon.pivot;
+}
+
+// --- 등 상흔 기준점 (53라운드 Q4, 계약 §13) ---
+
+/** 프레임의 상흔 사각형 (시트 도트, x·y = 중심, rot = 도) */
+export interface ScarAnchor {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rot: number;
+  visible: boolean;
+}
+
+function scarOf(v: unknown): ScarAnchor | null {
+  const a = v as Record<string, unknown> | null;
+  if (!a || typeof a !== 'object') return null;
+  const n = (k: string) => (typeof a[k] === 'number' && Number.isFinite(a[k]) ? (a[k] as number) : null);
+  const x = n('x');
+  const y = n('y');
+  const w = n('w');
+  const h = n('h');
+  if (x === null || y === null || w === null || h === null) return null;
+  return { x, y, w, h, rot: n('rot') ?? 0, visible: a.visible !== false && w > 0 && h > 0 };
+}
+
+/**
+ * 프레임의 상흔 사각형. scarAnchor 형식: 방향 → 열 목록(handAnchors 와 같음) 또는 시트 프레임 순서 배열(행 = 방향).
+ * 없거나 틀리면 null (그 프레임은 상흔을 숨긴다)
+ */
+export function scarAt(
+  def: Pick<SheetJson, 'scarAnchor' | 'frames' | 'directions'>,
+  dir: Facing,
+  column: number,
+): ScarAnchor | null {
+  const raw = def.scarAnchor;
+  if (Array.isArray(raw)) {
+    const row = Math.max(0, def.directions.indexOf(dir));
+    const i = raw.length >= def.frames * def.directions.length ? row * def.frames + column : column;
+    return scarOf(raw[Math.max(0, Math.min(raw.length - 1, i))]);
+  }
+  if (raw && typeof raw === 'object') return scarOf(pick(raw as Partial<Record<Facing, unknown[]>>, dir, column));
+  return null;
+}
+
+/**
+ * 상흔 그림 맞춤: 기준 사각형 가로/세로 비(aspect)를 지켜 앵커 사각형(w×h)에 들어가는 크기 (남는 쪽은 가운데).
+ * 반환 = 그림 폭·높이 (앵커와 같은 단위)
+ */
+export function scarFit(anchor: Pick<ScarAnchor, 'w' | 'h'>, aspect: number): { w: number; h: number } {
+  const a = aspect > 0 ? aspect : 1;
+  return anchor.w / anchor.h > a ? { w: anchor.h * a, h: anchor.h } : { w: anchor.w, h: anchor.w / a };
 }

@@ -168,6 +168,11 @@ export interface SheetJson extends BranchSheetFields {
   /** 52라운드 Q13 v3 무기: 칼을 쥔 손 (무기 시트 도트, 방향 → 열 목록) · 몸 기준 칼 방향 (열 목록) */
   gripAnchors?: Partial<Record<Facing, AnchorPoint[]>>;
   bladeLocal?: BladeLocal[];
+  /**
+   * 53라운드 Q4 (계약 §13) v3 몸: 프레임별 등 상흔 사각형 {x, y, w, h, rot, visible} (도트, x·y = 중심). 형식은 handAnchors 처럼
+   * 방향 → 열 목록 (또는 시트 프레임 순서 배열) — `spriteMeta.scarAt` 이 읽는다
+   */
+  scarAnchor?: unknown;
   /** 52라운드 v3 무기: 무기 시트 좌표 = 몸 시트 좌표 + 이 값 (피벗 정렬) */
   playerFrameOffset?: { x: number; y: number };
   /** 52라운드 v3 무기: 몸 뒤로 가는 픽셀을 시트에서 지웠다 → 늘 몸 위(above) */
@@ -386,7 +391,12 @@ export function frameStarts(def: SheetJson, scale = 1): number[] {
  * 51라운드 Q3 템포: 두 구간 맞춤 — `keyFrame` 시작이 `keyAtMs` 에, 전체가 `totalMs` 에 오도록 앞 구간(예비 동작)과
  * 뒤 구간(휘두름·여운)을 따로 늘인다. 값이 맞지 않으면(구간이 비거나 범위 밖) null → 호출 쪽은 균일 맞춤
  */
-export function keyedDurations(durations: readonly number[], keyFrame: number, keyAtMs: number, totalMs: number): number[] | null {
+export function keyedDurations(
+  durations: readonly number[],
+  keyFrame: number,
+  keyAtMs: number,
+  totalMs: number,
+): number[] | null {
   if (!(keyFrame > 0 && keyFrame < durations.length) || !(keyAtMs > 0 && keyAtMs < totalMs)) return null;
   const pre = durations.slice(0, keyFrame).reduce((a, b) => a + b, 0);
   const post = durations.slice(keyFrame).reduce((a, b) => a + b, 0);

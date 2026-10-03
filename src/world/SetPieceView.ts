@@ -92,37 +92,9 @@ export class SetPieceView {
   }
 
   private makeWisp(x: number, y: number, i: number, n: number): void {
-    const V = this.V;
-    const t = n > 1 ? i / (n - 1) : 0;
-    const cycle = V.wispCycleMs[0] + (V.wispCycleMs[1] - V.wispCycleMs[0]) * t;
-    const texture = spriteLibrary.textureKey(V.wispSheet, FX_ACTION);
-    const anim = spriteLibrary.animKey(V.wispSheet, FX_ACTION, 'down');
-    let obj: Shape;
-    const def = spriteLibrary.sheet(V.wispSheet, FX_ACTION);
-    if (texture && anim) {
-      const s = this.scene.add.sprite(x, y, texture, 0).setScale(def ? artScale(def) : 1);
-      s.play({ key: anim, repeat: -1, startFrame: i });
-      obj = s;
-    } else {
-      obj = this.scene.add.circle(x, y, V.wispRadiusPx, hex(V.wispColor), V.wispAlpha[1]);
-    }
-    obj.setDepth(entityDepth(y));
-    // 50라운드 조명: 혼불은 은은한 빛 (시트 JSON light → fallback soul_wisp)
-    const light = lightFor(V.wispSheet, def);
-    if (light) lightRegistryOf(this.scene).add(light, { x, y, anchor: obj });
-    this.wisps.push(obj);
-    this.tweens.push(
-      this.scene.tweens.add({
-        targets: obj,
-        y: y - V.wispBobPx,
-        alpha: { from: V.wispAlpha[1], to: V.wispAlpha[0] },
-        duration: cycle,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut',
-        delay: (cycle / Math.max(1, n)) * i,
-      }),
-    );
+    const w = spawnWisp(this.scene, this.V, x, y, i, n);
+    this.wisps.push(w.obj);
+    this.tweens.push(w.tween);
   }
 
   /** 지금 단계 표식만 밝게 깜빡인다 (null = 전부 옅게) */
@@ -173,4 +145,47 @@ export class SetPieceView {
     this.items.length = 0;
     this.wisps.length = 0;
   }
+}
+
+/**
+ * 혼불 하나 (fx/soul_wisp 시트, 없으면 옅은 원) + 은은한 빛(시트 JSON light → fallback soul_wisp) + 위아래 일렁임.
+ * 세트 배치(탄생 전장)와 53라운드 황무지 둑 위 혼불(BorderView)이 같이 쓴다. depth 를 주면 그 깊이, 아니면 Y 정렬
+ */
+export function spawnWisp(
+  scene: Phaser.Scene,
+  V: SetPieceViewDef,
+  x: number,
+  y: number,
+  i: number,
+  n: number,
+  depth?: number,
+): { obj: Shape; tween: Phaser.Tweens.Tween } {
+  const t = n > 1 ? i / (n - 1) : 0;
+  const cycle = V.wispCycleMs[0] + (V.wispCycleMs[1] - V.wispCycleMs[0]) * t;
+  const texture = spriteLibrary.textureKey(V.wispSheet, FX_ACTION);
+  const anim = spriteLibrary.animKey(V.wispSheet, FX_ACTION, 'down');
+  let obj: Shape;
+  const def = spriteLibrary.sheet(V.wispSheet, FX_ACTION);
+  if (texture && anim) {
+    const s = scene.add.sprite(x, y, texture, 0).setScale(def ? artScale(def) : 1);
+    s.play({ key: anim, repeat: -1, startFrame: i });
+    obj = s;
+  } else {
+    obj = scene.add.circle(x, y, V.wispRadiusPx, hex(V.wispColor), V.wispAlpha[1]);
+  }
+  obj.setDepth(depth ?? entityDepth(y));
+  // 50라운드 조명: 혼불은 은은한 빛
+  const light = lightFor(V.wispSheet, def);
+  if (light) lightRegistryOf(scene).add(light, { x, y, anchor: obj });
+  const tween = scene.tweens.add({
+    targets: obj,
+    y: y - V.wispBobPx,
+    alpha: { from: V.wispAlpha[1], to: V.wispAlpha[0] },
+    duration: cycle,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+    delay: (cycle / Math.max(1, n)) * i,
+  });
+  return { obj, tween };
 }

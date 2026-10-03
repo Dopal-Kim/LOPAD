@@ -6,6 +6,8 @@ import { knockFactor, knockSpeed } from '../systems/feel';
 import type { PackCharge } from '../systems/packCharge';
 import type { TelegraphFx } from '../systems/telegraph';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
+import { LIGHTING } from '../data';
+import { lightRegistryOf } from '../systems/lighting/lightRegistry';
 
 type Body = Phaser.Physics.Arcade.Body;
 
@@ -102,6 +104,8 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     );
     this.targetX = x;
     this.targetY = y;
+    // 53라운드 Q22~25 적 판독성: 몸 중심의 약한 빛 (조명이 꺼진 씬에서는 무해, 개체가 사라지면 자동 해제)
+    if (LIGHTING.mob) lightRegistryOf(scene).add(LIGHTING.mob, { x, y, anchor: this });
   }
 
   protected preUpdate(time: number, delta: number): void {

@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { SPRITES } from '../core/Constants';
 import { overlayDepthAt, type SheetJson } from './spriteDefs';
-import { anchorOffset, bladeAt, gripAt, handAt, overlayPivot, strideRate, strideSpeed } from './spriteMeta';
+import {
+  anchorOffset,
+  bladeAt,
+  gripAt,
+  handAt,
+  overlayPivot,
+  scarAt,
+  scarFit,
+  strideRate,
+  strideSpeed,
+} from './spriteMeta';
 
 const body = { pivot: { x: 32, y: 92 }, pixelScale: 0.5 } as const;
 
@@ -55,5 +65,39 @@ describe('52라운드 v3 시트 메모 (spriteMeta)', () => {
     expect(overlayDepthAt({ depth: { up: 'below' }, occlusionBaked: true }, 'up', 0)).toBe('above');
     expect(overlayDepthAt({ depth: { up: 'above' }, depthByFrame: { up: ['above', 'below'] } }, 'up', 1)).toBe('below');
     expect(overlayDepthAt({ depth: { up: 'below' } }, 'up', 0)).toBe('below');
+  });
+});
+
+describe('53라운드 Q10 달리기 배속 · Q4 상흔 기준점', () => {
+  it('기준 속도를 주면 상한에 걸려도 Shift 달리기는 그만큼 더 빨리 재생', () => {
+    const run = { stride: { px: 45, cycleMs: 560 }, pixelScale: 0.5 };
+    const base = strideRate(run, 96, 96);
+    expect(base).toBe(SPRITES.STRIDE_RATE_MAX);
+    expect(strideRate(run, 96 * 1.8, 96)).toBeCloseTo(base * 1.8);
+    expect(strideRate(run, 96 * 1.8, 96)).toBeLessThanOrEqual(SPRITES.STRIDE_RATE_MAX * SPRITES.SPRINT_RATE_HEADROOM);
+    // 기준 속도가 stride 와 맞으면 평소 1배
+    const fit = { stride: { px: 384, cycleMs: 1000 }, pixelScale: 0.5 };
+    expect(strideRate(fit, 96, 96)).toBeCloseTo(1);
+  });
+
+  it('scarAnchor: 방향 → 열 목록 · 시트 프레임 순서 배열 · visible:false · 형식 틀림', () => {
+    const a = { x: 48, y: 50, w: 24, h: 30, rot: 0, visible: true };
+    const byDir = {
+      frames: 2,
+      directions: ['down', 'up', 'left', 'right'],
+      scarAnchor: { up: [a, { ...a, x: 50 }], down: [{ ...a, visible: false }] },
+    };
+    expect(scarAt(byDir, 'up', 1)?.x).toBe(50);
+    expect(scarAt(byDir, 'down', 0)?.visible).toBe(false);
+    expect(scarAt(byDir, 'left', 0)).toBeNull();
+    const flat = { frames: 2, directions: ['down', 'up'], scarAnchor: [null, null, a, { ...a, y: 60 }] };
+    expect(scarAt(flat, 'up', 1)?.y).toBe(60);
+    expect(scarAt(flat, 'down', 0)).toBeNull();
+    expect(scarAt({ frames: 1, directions: ['down'] }, 'down', 0)).toBeNull();
+  });
+
+  it('상흔 맞춤: 기준 비율을 지켜 앵커 안에 (남는 쪽 가운데)', () => {
+    expect(scarFit({ w: 30, h: 30 }, 2)).toEqual({ w: 30, h: 15 });
+    expect(scarFit({ w: 40, h: 20 }, 1)).toEqual({ w: 20, h: 20 });
   });
 });
