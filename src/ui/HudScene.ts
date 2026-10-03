@@ -19,7 +19,7 @@ import {
 } from '../contract/ui';
 import { CarryChip } from './CarryHud';
 import { carryView } from './carryView';
-import { chooseNodeCmd, debugExpose, installUiDebug, withDebug } from './debug';
+import { cancelChooseCmd, chooseNodeCmd, debugExpose, installUiDebug, withDebug } from './debug';
 import { GlowText } from './glow';
 import {
   Gauge,
@@ -51,12 +51,15 @@ import { ChallengePanel, InteractBubble, ResultToasts, StatusChips } from './Str
 import { fill, r49Text, regionText, routeText, uiText, warpText } from './text';
 import { LAYOUT, MAP_BG_FLOORS, RES, ROUTE, STRUCT } from './theme';
 import { TutorialGuide } from './TutorialHud';
+import { sameStepText } from './tutorialView';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 
 /** 가운데 배너 차례: 글자 배너(층 제목·노드 이름·진화) 또는 50라운드 지역 카드 */
 type BannerItem = { kind: 'text'; text: string } | { kind: 'region'; region: string; art: string | null; desc: string };
 /** 글자 배너 대기 상한 (지역 카드는 상한과 관계없이 넣는다) */
 const BANNER_QUEUE_MAX = 3;
+/** 노드를 고르거나 고르기를 취소한 뒤 '고를 차례인데 지도가 없음' 안전망을 쉬는 시간 (ms) — 스냅샷이 따라올 때까지 */
+const ROUTE_CANCEL_SUPPRESS_MS = 1500;
 
 /** 하단 중앙 묶음 (33라운드 Q3) */
 const HUD_W = 480;
@@ -80,7 +83,7 @@ const STRUCTURE_MENU_IDS: ReadonlySet<string> = new Set<UiStructureMenuId>([
  * 하단 중앙 panel_ink 480×64: 1행 체력 게이지·수치·전표·독주, 2행 무기·개성 게이지·우클릭.
  * 보스 게이지는 묶음 위 8px, 자막은 그 위. 상단 좌 층 제목·시련, 상단 우 미니맵 + 'M 지도'. 우하단 공지.
  * 49라운드: 무기 자원이 있으면 묶음이 80 으로 커지고 3행에 자원 게이지(계약 §11.1). M = 지도(Tab 과 같음, §11.3).
- * 무기 시험장(`lab`)에서는 좌상단에 '무기 시험장 · L 무기 고르기 · Esc 나가기', 우상단 지도·안내는 숨긴다.
+ * 무기 시험장(`lab`)에서는 좌상단에 '무기 시험장 · L 무기 고르기 · Esc 일기장', 우상단 지도·안내는 숨긴다.
  */
 export class HudScene extends Phaser.Scene {
   private built = false;
@@ -132,6 +135,8 @@ export class HudScene extends Phaser.Scene {
   // 자막·배너
   private banner?: GlowText;
   private caption?: GlowText;
+  /** 지금 자막 문구 (튜토리얼 단계 카드와 같은 문구면 거둔다) */
+  private captionLine = '';
   private captionTimer?: Phaser.Time.TimerEvent;
   // 워프 지도 (45라운드)
   private warpMap?: WarpMap;
@@ -196,6 +201,9 @@ export class HudScene extends Phaser.Scene {
     );
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.showBanner(p.stageName));
     this.on(UI_EVENTS.STORY, (l: UiStoryLine) => this.showCaption(l));
+    // 53라운드 계약: 튜토리얼 단계 카드 · 적 등장 예고('주의' 경고, Q49·Q60)
+    this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
+    this.on(UI_EVENTS.ENEMY_INCOMING, (p: unknown) => this.guide?.enemyIncoming(p, Math.max(0, this.stageIndex)));
     this.on(UI_EVENTS.PAUSED, () => {
       // 워프 지도·노드 지도가 연 정지면 일시정지 일기장을 띄우지 않는다
       if (this.warpMap || this.routeMap) return;
@@ -237,6 +245,7 @@ export class HudScene extends Phaser.Scene {
       this.endBirth();
     });
     this.on(UI_EVENTS.RUN_ENDED, () => {
+      this.guide?.reset();
       this.lastRegion = null;
       this.bannerQueue = this.bannerQueue.filter((b) => b.kind === 'text');
       if (this.regionCard) {
@@ -313,15 +322,16 @@ export class HudScene extends Phaser.Scene {
       return;
     }
     if (this.routeMap) {
-      // 보기 모드는 닫고 재개. 고르기 모드는 고를 곳이 없을 때만 닫는다 (고르는 동안은 시스템이 입력을 잠근다)
       if (this.routeMap.mode === 'view') {
+        // 보기 모드는 닫고 재개
         takeKey(e);
         this.closeRoute(false);
         this.resumeAfterRelease('Escape');
-      } else if (!this.routeMap.hasChoices) {
+      } else if (this.routeMap.confirmOpen) {
+        // '넘어가시겠습니까?' 확인 창은 같은 Esc 를 '아니오'로 받는다 (RouteMap 이 이 처리기 다음에 받는다).
+        // 확인 창이 닫힌 뒤 같은 Esc 가 다시 넘어와 고르기까지 취소하지 않게 여기서 소비한다 (keyGate.ts)
         takeKey(e);
-        this.closeRoute(false);
-      }
+      } else if (takeKey(e)) this.cancelRouteChoose();
       return;
     }
     if (this.warpMap) {
@@ -346,9 +356,29 @@ export class HudScene extends Phaser.Scene {
    * 일시정지 일기장이 열렸다 (48라운드 헤드리스 확인, 45라운드 워프 지도도 같은 증상).
    */
   private resumeAfterRelease(key: string): void {
+    this.afterRelease(key, () => uiCommands.resume());
+  }
+
+  /**
+   * 53라운드 Q47: 노드 고르기 중 Esc — 지도를 닫고 `cancelChoose()` (주인공이 출구에서 한 걸음 물러나는 것은 시스템 몫).
+   * 취소는 재개와 같은 까닭으로 Esc 를 뗀 다음 프레임에 보낸다(취소로 풀린 게임 입력이 누르고 있는 Esc 를 받지 않게).
+   * 그 사이 스냅샷의 `route.choosing` 이 아직 true 라도 안전망이 지도를 다시 열지 않게 잠깐 막는다.
+   * 취소가 거부되면(이미 고르는 중이 아님) 그대로 둔다 — 다시 출구에 들어서면 ROUTE_CHOOSE_OPEN 이 다시 온다.
+   */
+  private cancelRouteChoose(): void {
+    this.closeRoute(false);
+    this.chooseSuppressUntil = this.time.now + ROUTE_CANCEL_SUPPRESS_MS;
+    this.afterRelease('Escape', () => {
+      const ok = cancelChooseCmd();
+      debugExpose('routeCancel', { ok, at: this.time.now });
+    });
+  }
+
+  /** 키를 뗀 다음 프레임에 `fn` (떼는 입력을 놓쳐도 1초 뒤). 그때 워프·노드 지도가 다시 떠 있거나 씬이 꺼졌으면 하지 않는다 */
+  private afterRelease(key: string, fn: () => void): void {
     const kb = this.input.keyboard;
     if (!kb) {
-      uiCommands.resume();
+      fn();
       return;
     }
     let done = false;
@@ -357,7 +387,7 @@ export class HudScene extends Phaser.Scene {
       done = true;
       kb.off('keyup', onUp);
       this.time.delayedCall(0, () => {
-        if (this.alive && !this.warpMap && !this.routeMap) uiCommands.resume();
+        if (this.alive && !this.warpMap && !this.routeMap) fn();
       });
     };
     const onUp = (e: KeyboardEvent): void => {
@@ -434,7 +464,7 @@ export class HudScene extends Phaser.Scene {
   private chooseRoute(id: string): void {
     if (!this.routeMap || this.routeMap.mode !== 'choose') return;
     if (chooseNodeCmd(id)) {
-      this.chooseSuppressUntil = this.time.now + 1500;
+      this.chooseSuppressUntil = this.time.now + ROUTE_CANCEL_SUPPRESS_MS;
       this.closeRoute(false);
     } else this.routeMap.showMessage(routeText('chooseDenied'));
   }
@@ -867,9 +897,27 @@ export class HudScene extends Phaser.Scene {
     }).setDepth(CAPTION_DEPTH);
     c.placeCenter(UI_SCREEN.WIDTH / 2, bottom - c.displayHeight);
     this.caption = c;
+    this.captionLine = l.text;
     this.captionTimer = this.time.delayedCall(hold, () => {
       this.tweens.add({ targets: c, alpha: 0, duration: 300, onComplete: () => c.destroy() });
     });
+  }
+
+  /**
+   * 53라운드 TUTORIAL_STEP: 단계 카드 (TutorialHud). 같은 문구의 STORY 공지가 먼저 와서 작은 자막으로 떠 있으면 거둔다
+   * (시스템이 두 가지를 함께 보내도 한 번만 보이게)
+   */
+  private onTutorialStep(p: unknown): void {
+    if (!this.guide) return;
+    const text = this.guide.takeStep(p, withDebug(uiCommands.getUiSnapshot()), Math.max(0, this.stageIndex));
+    if (text === null) return;
+    if (this.caption && sameStepText(this.captionLine, text)) {
+      this.caption.destroy();
+      this.caption = undefined;
+      this.captionTimer?.remove();
+      this.captionLine = '';
+    }
+    if (this.deferredCaption && sameStepText(this.deferredCaption.text, text)) this.deferredCaption = undefined;
   }
 
   /** 층 시작·개성 변화 배너: 화면 가운데 발광 큰 글자 (Galmuri11 2배 — 한자 포함 가능) */

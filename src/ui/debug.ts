@@ -14,6 +14,7 @@ import { UI_SCENE_KEYS } from './keys';
  *   selects: [menuId, key][]    // 가짜 메뉴에서 고른 기록
  *   fakeChoose(on)              // 48라운드: chooseNode 를 시스템으로 보내지 않고 true 로 (가짜 route 확인용)
  *   chosen: string[]            // 가짜로 고른 노드 id
+ *   cancels: number[]           // 53라운드 Q47: 가짜 고르기 중 보낸 cancelChoose 시각 (fakeChoose 가 켜져 있으면 시스템으로 보내지 않는다)
  *   muted: boolean[]            // 49라운드: Esc 일기장에서 보낸 setMuted 기록
  *   view.routeMap.confirm       // 49라운드: '넘어가시겠습니까?' 예·아니오 버튼 화면 좌표
  *   snap()                      // 53라운드: 지금 스냅샷 (덮어쓰기 적용)
@@ -31,6 +32,8 @@ interface DebugApi {
   selects: [string, string][];
   fakeChoose(on: boolean): void;
   chosen: string[];
+  /** 53라운드 Q47: 가짜 고르기 중 보낸 cancelChoose 시각 */
+  cancels: number[];
   view: Record<string, unknown>;
   /** 49라운드: Esc 일기장에서 보낸 setMuted 기록 */
   muted: boolean[];
@@ -65,6 +68,16 @@ export function chooseNodeCmd(id: string): boolean {
   }
   return uiCommands.chooseNode(id);
 }
+
+/** 53라운드 Q47: 노드 고르기 취소 명령 (디버그 가짜 고르기가 켜져 있으면 기록만 하고 true) */
+export function cancelChooseCmd(): boolean {
+  if (fakeChoose && uiDebugEnabled()) {
+    cancels.push(Date.now());
+    return true;
+  }
+  return uiCommands.cancelChoose();
+}
+const cancels: number[] = [];
 
 export function uiDebugEnabled(): boolean {
   if (enabled === null) {
@@ -135,6 +148,7 @@ export function installUiDebug(scene: Phaser.Scene): void {
       fakeChoose = on;
     },
     chosen,
+    cancels,
     view: views,
     muted: mutedLog,
     snap: () => withDebug(uiCommands.getUiSnapshot()),

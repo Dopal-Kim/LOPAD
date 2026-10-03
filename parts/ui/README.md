@@ -1,5 +1,26 @@
 # 게임 UI 파트 — 작업 기록
 
+## 53라운드 후속 2 (2026-10-03) · 노드 고르기 Esc(Q47) · 적 등장 예고(Q49·Q60) · TUTORIAL_STEP · 시험장 문구
+결정: `decisions/2026-10-03-round-53-playtest4.md` Q47·Q49·Q60. 계약: `contracts/ui-system-interface.md` '53라운드 추가'(`ENEMY_INCOMING`·`TUTORIAL_STEP`·`cancelChoose()`), `src/contract/ui.ts`. 시스템 코드 열람 없음.
+
+### 화면
+- **노드 고르기 Esc (Q47)**: 고르기 모드 지도에서 Esc → 지도를 닫고 `uiCommands.cancelChoose()` (물러나기는 시스템 몫). 48라운드 '고를 곳이 0개일 때만 닫기'를 대체. 취소 명령은 Esc 를 **뗀 다음 프레임**에 보낸다(재개와 같은 까닭 — 풀린 게임 입력이 누르고 있는 Esc 를 받지 않게, 못 떼도 1초 뒤). 그 사이 안전망('고를 차례인데 지도가 없음')은 1.5초 쉰다. 취소가 먹지 않아 `route.choosing` 이 남으면 안전망이 지도를 다시 연다.
+  - '넘어가시겠습니까?' 확인 창이 떠 있으면 Esc 는 확인 창의 '아니오'만 (HUD 가 같은 이벤트를 `takeKey` 로 소비 — 확인 창이 닫힌 뒤 다시 넘어온 같은 Esc 가 고르기까지 취소하지 않게).
+  - 고르기 안내 문구에 '· Esc 물러나기'.
+- **적 등장 예고 (Q49·Q60)**: '주의 / 적이 다가온다' 경고를 `inCombat` 전환이 아니라 `ENEMY_INCOMING` 의 `delayMs > 0` 일 때 띄운다(일반 전투는 delayMs 0 — 튜토리얼 판별은 시스템 몫). 머무는 시간 = max(1.8초, delayMs). 떠 있는 동안 같은 방의 예고가 또 오면 다시 시작하지 않는다. 안내 패널은 닫는다. 기존 `inCombat` 기반 경고(`shouldWarn`)는 지웠다.
+- **TUTORIAL_STEP**: 단계 카드(위쪽 가운데 2배 카드)를 이 이벤트로 — `keys` 는 2배 키 아이콘, 문구 끝 괄호 키는 뗀다(keys 가 비면 괄호에서 키를 뽑는다), 오른쪽 끝에 진행 `index+1/total`(흐림). 다음 단계까지 최대 20초, 노드(또는 시험장 여부)가 바뀌면 거둔다, 런이 끝나면 거둔다.
+  - **대체 경로**: 이 이벤트를 아직 한 번도 받지 않았으면 예전처럼 여정 노드의 STORY 공지를 카드로. 받은 뒤로는 공지는 보통 자막이고, 지금 카드와 같은 문구의 공지만 삼킨다(공지가 먼저 와서 자막이 떠 있으면 카드가 올 때 거둔다 — 두 가지를 함께 보내도 한 번만 보이게).
+- **시험장 HUD 좌상단**: '무기 시험장 · L 무기 고르기 · Esc 나가기' → '… · **Esc 일기장**' (오기 수정 — Esc 는 일시정지 일기장을 연다).
+
+### 소유 코드 변경
+`HudScene.ts`(TUTORIAL_STEP·ENEMY_INCOMING 구독, 고르기 Esc → `cancelRouteChoose`, `afterRelease` 로 뗀 뒤 실행 일반화, 자막 문구 기억), `TutorialHud.ts`(`takeStep`·`enemyIncoming`·`reset`, 카드 출처·위치 기억), `tutorialView.ts`(+test: `incomingWarns`·`stepFromEvent`·`stepFromNotice`·`sameStepText`, `shouldWarn` 삭제), `RouteMap.ts`(쓰지 않게 된 `hasChoices` 삭제), `debug.ts`(`cancelChooseCmd`, `__lopadUi.cancels`), `text.ts`(`labHud`·`chooseHint`·`tutStep`).
+
+### 검증
+tsc·eslint 통과, vitest 375 통과. 헤드리스(Playwright, 빌드본, `uidebug=1`, 시험장에서 가짜 route·이벤트): 시험장 문구 확인 → 여정 노드 공지 → 대체 카드 → TUTORIAL_STEP(2/5) 카드로 교체 → 같은 문구 공지 삼킴·다른 공지는 자막 → ENEMY_INCOMING delay 0 무시·900 경고·같은 방 재예고 재시작 없음 → 고르기 지도 Enter(확인 창) → W·Esc 누름·뗌 한 묶음 = 확인 창만 닫힘(취소 0) → Esc = 지도 닫힘 + 뗀 뒤 취소 1회 → choosing false 면 다시 열리지 않음 / true 로 남으면 1.5초 뒤 다시 열림.
+
+### 임시값 (도영 님 검토 대상)
+'Esc 물러나기'·'Esc 일기장' 문구, 단계 카드 진행 표시 `n/total`(흐림, 문구 오른쪽), 경고 머묾 max(1.8초, delayMs).
+
 ## 53라운드 후속 (2026-10-03) · 시험장 갈래 첫 Esc 버그 · '싸우는 법' 다시 보기 (Q50)
 결정: `decisions/2026-10-03-round-53-playtest4.md` Q47~Q50. 계약: `contracts/ui-system-interface.md` '53라운드 추가'(cancelKey: 상점·구조물·lab '0', labBranch '9', 필수 메뉴 없음). 시스템 코드 열람 없음(계약 + `src/contract/ui.ts` 만).
 

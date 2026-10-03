@@ -114,7 +114,7 @@ export const ROUTE_TEXT = {
   /** 지도 제목 (Galmuri14 — 한자 없는 고정 제목) */
   mapTitle: '가는 길',
   /** 고르기 모드 안내 */
-  chooseHint: '←→↑↓ 고르기 · Enter·클릭 그리로 간다',
+  chooseHint: '←→↑↓ 고르기 · Enter·클릭 그리로 간다 · Esc 물러나기',
   /** 보기 모드 안내 */
   viewHint: '←→↑↓ 둘러보기 · M·Tab·Esc 닫기',
   /** 고르기 모드 제목 옆 한 줄 */
@@ -166,7 +166,7 @@ export const R49_TEXT = {
   /** 타이틀 항목 */
   titleLab: '무기 시험장',
   /** 시험장 HUD 좌상단 (L 은 시스템이 정할 열기 키의 임시 제안) */
-  labHud: '무기 시험장 · L 무기 고르기 · Esc 나가기',
+  labHud: '무기 시험장 · L 무기 고르기 · Esc 일기장',
   /** 시험장 일시정지 일기장 */
   labPauseTitle: '무기 시험장',
   labContinue: '계속한다',
@@ -226,6 +226,8 @@ export const R53_TEXT = {
   tutCarryPlain: '넣기·뽑기 — 넣은 채 첫 타가 세다',
   tutMore: 'Q 물약 · Shift 달리기 · E 상호작용 · M 지도 · Esc 뒤로·일시정지',
   tutClose: 'Enter·Esc·클릭 닫기',
+  /** 튜토리얼 단계 카드 진행 (TUTORIAL_STEP index+1 / total) */
+  tutStep: '{n}/{total}',
   /** 일시정지 일기장 항목 — '싸우는 법' 패널 다시 보기 (53라운드 Q50) */
   pauseHowTo: '싸우는 법',
   /** 적 등장 경고 */

@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { UiSnapshot } from '../contract/ui';
-import { isTutorialNode, parseNoticeKeys, shouldWarn, tutorialKey, tutorialRows } from './tutorialView';
+import {
+  incomingWarns,
+  isTutorialNode,
+  parseNoticeKeys,
+  sameStepText,
+  stepFromEvent,
+  stepFromNotice,
+  tutorialKey,
+  tutorialRows,
+} from './tutorialView';
 
 const route = (type: string) =>
   ({
@@ -32,11 +41,41 @@ describe('tutorialView (53라운드 튜토리얼 안내)', () => {
     expect(withF[4].text).toContain('끌어내기');
     expect(tutorialRows({ weapon, carry: null }, T).some((r) => r.keys[0] === 'F')).toBe(false);
   });
-  it('경고: 튜토리얼에서 전투가 막 시작될 때만', () => {
-    const s = { inCombat: true, route: route('journey'), lab: false };
-    expect(shouldWarn(false, s)).toBe(true);
-    expect(shouldWarn(true, s)).toBe(false);
-    expect(shouldWarn(false, { ...s, route: route('battle') })).toBe(false);
+  it('경고: ENEMY_INCOMING delayMs > 0 일 때만 (Q49·Q60, 일반 전투는 0)', () => {
+    expect(incomingWarns({ roomId: 'r1', delayMs: 900, count: 3 })).toBe(true);
+    expect(incomingWarns({ roomId: 'r1', delayMs: 0, count: 3 })).toBe(false);
+    expect(incomingWarns({ roomId: 'r1' })).toBe(false);
+    expect(incomingWarns({ roomId: 'r1', delayMs: Number.NaN })).toBe(false);
+    expect(incomingWarns(null)).toBe(false);
+  });
+  it('TUTORIAL_STEP → 단계 카드', () => {
+    expect(
+      stepFromEvent({ index: 0, total: 5, text: '땅의 표식까지 걸어가 보자.', keys: ['W', 'A', 'S', 'D'] }),
+    ).toEqual({
+      text: '땅의 표식까지 걸어가 보자.',
+      keys: ['W', 'A', 'S', 'D'],
+      progress: { n: 1, total: 5 },
+    });
+    // keys 가 비면 끝 괄호에서, 있으면 괄호는 문구에서만 뗀다
+    expect(stepFromEvent({ index: 1, total: 5, text: '베어 보자 (좌클릭)', keys: [] })).toMatchObject({
+      text: '베어 보자',
+      keys: ['좌클릭'],
+    });
+    expect(stepFromEvent({ index: 1, total: 5, text: '베어 보자 (좌클릭)', keys: [' 좌클릭 ', ''] })).toMatchObject({
+      text: '베어 보자',
+      keys: ['좌클릭'],
+    });
+    // 단계 수가 이상하면 진행 표시 없음, 문구가 비면 카드 없음
+    expect(stepFromEvent({ index: 5, total: 5, text: '끝', keys: [] })?.progress).toBeNull();
+    expect(stepFromEvent({ text: '끝' })?.progress).toBeNull();
+    expect(stepFromEvent({ index: 0, total: 1, text: '  ', keys: [] })).toBeNull();
+    expect(stepFromEvent(undefined)).toBeNull();
+    expect(stepFromNotice('대쉬로 피하자 (Space)')).toEqual({ text: '대쉬로 피하자', keys: ['Space'], progress: null });
+  });
+  it('같은 단계 문구 (공지·이벤트 겹침 방지)', () => {
+    expect(sameStepText('땅의 표식까지 걸어가 보자. (WASD)', '땅의 표식까지 걸어가 보자.')).toBe(true);
+    expect(sameStepText('허수아비를 베어 보자', '땅의 표식까지 걸어가 보자.')).toBe(false);
+    expect(sameStepText('', '')).toBe(false);
   });
   it('공지 끝 괄호의 키', () => {
     expect(parseNoticeKeys('땅의 표식까지 걸어가 보자. (WASD)')).toEqual({

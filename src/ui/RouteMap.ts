@@ -261,6 +261,7 @@ const ICON_HALF = 16;
  *   오른쪽 위치 정보 칸 뒤에는 지금 지역 키아트를 어둡게 깐다. 큰 그림은 처음 필요할 때 읽고, 늦게 오면 그 자리에 끼운다.
  * 오른쪽: 지금 있는 곳(지역·이름·종류·설명) / 살펴보는(고른) 곳 / 범례.
  * - 'choose': ROUTE_CHOOSE_OPEN. available 노드를 고르면 '넘어가시겠습니까?' 확인 → 예일 때만 onChoose.
+ *   Esc(확인 창이 없을 때)는 HUD 가 받아 지도를 닫고 `cancelChoose()` (53라운드 Q47).
  * - 'view': M·Tab 보기 전용. 방향키로 둘러보기만.
  */
 export class RouteMap {
@@ -307,11 +308,6 @@ export class RouteMap {
     this.build(route);
     scene.input.keyboard?.on('keydown', this.onKeyDown);
     scene.input.keyboard?.on('keyup', this.onKeyUp);
-  }
-
-  /** 고를 수 있는 노드가 있는가 (고르기 모드에서 없으면 Esc 로 닫을 수 있게) */
-  get hasChoices(): boolean {
-    return this.choices.length > 0;
   }
 
   /** '넘어가시겠습니까?' 확인 창이 떠 있는가 */

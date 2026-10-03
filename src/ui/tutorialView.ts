@@ -1,4 +1,4 @@
-import type { UiSnapshot } from '../contract/ui';
+import type { UiEnemyIncoming, UiSnapshot, UiTutorialStep } from '../contract/ui';
 import { carryView } from './carryView';
 import type { R53TextKey } from './text';
 
@@ -7,7 +7,9 @@ export type TutorialText = (key: R53TextKey, vars?: Record<string, string>) => s
 
 /**
  * 53라운드 튜토리얼 안내 (51라운드 §3) — 순수 판단. 화면은 `TutorialHud.ts`.
- * 계약에 튜토리얼 단계 이벤트가 없어서, 노드 지도의 지금 노드가 '여정'(journey = 탄생 전장·튜토리얼)일 때를 튜토리얼로 본다.
+ * '싸우는 법' 패널은 노드 지도의 지금 노드가 '여정'(journey = 탄생 전장·튜토리얼)일 때 띄운다.
+ * 단계 카드는 `TUTORIAL_STEP` 이벤트가 기준이고, 그 이벤트를 아직 한 번도 받지 않았으면 여정 노드의 STORY 공지로 대신한다.
+ * '주의' 경고는 `ENEMY_INCOMING` 의 delayMs > 0 일 때 (53라운드 Q49·Q60 — 튜토리얼에서만 지연이 온다. 판별은 시스템 몫).
  */
 export interface TutorialRow {
   keys: string[];
@@ -48,9 +50,55 @@ export function tutorialRows(s: Pick<UiSnapshot, 'weapon' | 'carry'>, t: Tutoria
   return rows;
 }
 
-/** 적 등장 경고: 전투가 막 시작됐고(false → true) 튜토리얼 노드일 때 */
-export function shouldWarn(prevInCombat: boolean, s: Pick<UiSnapshot, 'inCombat' | 'route' | 'lab'>): boolean {
-  return !prevInCombat && Boolean(s.inCombat) && isTutorialNode(s);
+/**
+ * 적 등장 예고(`ENEMY_INCOMING`)에 '주의' 경고를 띄우는가: 소환까지 시간이 있을 때(delayMs > 0)만.
+ * 일반 전투는 delayMs 0 이라 띄우지 않는다 (53라운드 Q60 튜토리얼만 — 지연은 시스템이 튜토리얼에서만 준다).
+ */
+export function incomingWarns(p: unknown): p is UiEnemyIncoming {
+  if (!p || typeof p !== 'object') return false;
+  const d = (p as Partial<UiEnemyIncoming>).delayMs;
+  return typeof d === 'number' && Number.isFinite(d) && d > 0;
+}
+
+/** 단계 카드 한 장 (이벤트·공지 공통) */
+export interface StepCard {
+  text: string;
+  keys: string[];
+  /** '2/5' 처럼 그릴 진행 (1부터). 이벤트에 단계 수가 없거나 공지에서 온 카드면 null */
+  progress: { n: number; total: number } | null;
+}
+
+/**
+ * `TUTORIAL_STEP` 페이로드를 카드로. 문구가 비면 null. keys 가 비었으면 문구 끝 괄호의 키를 쓰고,
+ * 끝 괄호 키는 문구에서 뗀다 (예전 공지 형식 '…보자. (WASD)' 가 그대로 와도 키 아이콘 한 벌로). index 는 0부터.
+ */
+export function stepFromEvent(p: unknown): StepCard | null {
+  if (!p || typeof p !== 'object') return null;
+  const e = p as Partial<UiTutorialStep>;
+  if (typeof e.text !== 'string' || !e.text.trim()) return null;
+  const given = Array.isArray(e.keys)
+    ? e.keys.filter((k): k is string => typeof k === 'string' && k.trim() !== '')
+    : [];
+  const parsed = parseNoticeKeys(e.text);
+  // 문구 끝 괄호의 키는 키 아이콘과 겹치므로 뗀다. 이벤트 keys 가 있으면 그것을 쓴다
+  const card = { text: parsed.text, keys: given.length ? given.map((k) => k.trim()) : parsed.keys };
+  const ok =
+    typeof e.index === 'number' && typeof e.total === 'number' && e.total > 0 && e.index >= 0 && e.index < e.total;
+  return {
+    ...card,
+    progress: ok ? { n: Math.floor(e.index as number) + 1, total: Math.floor(e.total as number) } : null,
+  };
+}
+
+/** 공지 한 줄을 카드로 (이벤트를 받기 전의 대체 경로) */
+export function stepFromNotice(text: string): StepCard {
+  return { ...parseNoticeKeys(text), progress: null };
+}
+
+/** 두 안내 문구가 같은 단계인가 (끝 괄호 키·앞뒤 공백 무시). 시스템이 STORY 공지와 TUTORIAL_STEP 을 함께 보낼 때 겹침 방지 */
+export function sameStepText(a: string, b: string): boolean {
+  const x = parseNoticeKeys(a).text;
+  return x !== '' && x === parseNoticeKeys(b).text;
 }
 
 /**
