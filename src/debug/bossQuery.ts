@@ -27,5 +27,8 @@ export function parseBossQuery(search: string): BossQuery {
 }
 
 export function bossQuery(): BossQuery {
-  return parseBossQuery(typeof location === 'undefined' ? '' : location.search);
+  if (typeof location === 'undefined') return parseBossQuery('');
+  // 데모 빌드 기본 주소 옵션(VITE_DEMO_QUERY) — 주소에 옵션이 없을 때만 (scenes/game/shared.ts urlParams 와 같은 규칙)
+  const demo = import.meta.env?.VITE_DEMO_QUERY;
+  return parseBossQuery(demo && location.search === '' ? demo : location.search);
 }
