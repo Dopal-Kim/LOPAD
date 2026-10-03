@@ -1,0 +1,61 @@
+{
+ "north": {
+  "baselineY": 398.0,
+  "apronBelow": 11.0,
+  "seamBefore": [
+   23.6,
+   9.5
+  ],
+  "seamAfter": [
+   6.7,
+   9.5
+  ],
+  "size": [
+   3246,
+   818
+  ]
+ },
+ "west": {
+  "seamBefore": [
+   49.2,
+   8.3
+  ],
+  "seamAfter": [
+   2.1,
+   9.5
+  ],
+  "size": [
+   512,
+   3230
+  ]
+ },
+ "east": {
+  "seamBefore": [
+   35.2,
+   6.9
+  ],
+  "seamAfter": [
+   3.7,
+   7.0
+  ],
+  "size": [
+   512,
+   3102
+  ]
+ },
+ "south": {
+  "baselineY": 84.0,
+  "seamBefore": [
+   29.1,
+   5.7
+  ],
+  "seamAfter": [
+   4.6,
+   6.7
+  ],
+  "size": [
+   4612,
+   416
+  ]
+ }
+}

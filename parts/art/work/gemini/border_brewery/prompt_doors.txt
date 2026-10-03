@@ -1,0 +1,6 @@
+TASK: paint a sheet of THREE SEPARATE PANELS side by side on a flat pure black background, separated by wide pure black gaps (each gap at least one tenth of the image width); nothing crosses the gaps. These are overlay pieces for doorways of the same top-down arena: Image 3 is its north distillery strip, image 4 its west side seen from the in-game camera. Match their pixel density, object scale (doorway and barrel size), darkness and amber accent exactly.
+
+PANEL 1 (left, tall, about one third of the width, full height): a CART ENTRANCE in the north brick distillery wall: a big brick arch with heavy wooden double doors swung open, a dim warm glow and casks inside, a hanging lantern, pipes running over the arch; the wall foot sits on a straight ground line at the bottom of the panel.
+PANEL 2 (middle): a GAP in the west cask yard, in the in-game camera: the low brick kerb wall is interrupted; a narrow lane leads away to the LEFT into darkness between tall stacks of casks; a lantern on a post at the corner.
+PANEL 3 (right): a SOUTH EXIT in the foreground shed roofs seen from above and behind: a gap in the roofs where an iron grated stair goes DOWN toward the camera between two vats, pipes on both sides.
+Each panel's outer area fades to pure black at its left and right sides. Keep the openings dark (they lead away into darkness); only small lights glow.

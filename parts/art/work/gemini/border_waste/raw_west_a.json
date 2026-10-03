@@ -1,0 +1,39 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "1:4",
+ "size": "2K",
+ "prompt": "REFERENCE IMAGES: Image 1 is the key art of this game region. It is the PRIMARY reference: match its rendering style exactly - a dark, grim, detailed pixel-art scene painting with chunky, clearly readable shapes and flat shading (no soft airbrush, no photo texture, no film grain), the same cracked dry earth and churned dark mud, broken pikes and swords stuck in the ground at angles, torn banners hanging from leaning poles, dented helmets and round shields half buried, broken wooden carts, small ember-coloured soul flames drifting over the fallen gear, a heavy overcast sky, the same night mood and darkness. Image 2 is only a CAMERA reference: it shows the in-game camera - an orthographic top-down three-quarter view looking down from the south at about 40 degrees, no vanishing point, vertical edges stay vertical, every structure shows its south-facing front and its top surface or roof sloping away. Do not copy image 2's composition or its brighter flat look; take only its camera angle.\nPALETTE: near-black charcoal and cold ash greys carry the whole image, dark umber wood and earth; ONE warm accent only - amber / ember orange to pale gold (#8b4d22, #d67a11, #e8b858, #faeec0) - used only for soul flames (will-o'-the-wisps), a campfire, a burning cart wreck and tiny distant windows and their small glow. No other hues: no blue, no green, no purple, no red, no copper-orange metal (metal is dark iron grey).\nLIGHTING: dim, even, cold night light on all surfaces (this art will be lit again by the game engine). Light sources (small pale-amber soul flames, one campfire, a smouldering cart) glow, but do NOT throw big bright pools onto walls or the ground. Keep stone, plaster and earth mid-dark grey, never bright white.\nWORLD: grounded early-gunpowder battlefield wasteland outside the walled liquor empire \"Zan\": abandoned siege earthworks, palisades of sharpened stakes, a ruined farmhouse, scattered weapons. Desolate and bleak.\nSTRICT: no people, no characters, no animals, no corpses. No text, no letters, no numbers, no logos, no UI, no watermark, no frame or border line. Fill the whole canvas edge to edge.\n\nTASK: Image 3 is the north border strip already painted for THIS arena: match its pixel density, object scale (doorway and barrel size), darkness and amber accent exactly. Now paint ONE tall vertical strip that is the WEST (left) BORDER of the same top-down arena on the battlefield wasteland. The open cracked-earth arena floor lies just to the RIGHT of this image and is not painted here.\nCAMERA: the in-game three-quarter top-down view from the south (image 2): every structure shows its FRONT face facing DOWN toward the bottom of the image, with its top or roof above it sloping away (up the image). Things further north appear higher in the strip, and a nearer (lower) object overlaps the bottom of the next one. No vanishing point.\nCONTENT (top to bottom): abandoned siege works seen this way - a muddy trench line with timber revetments; rows of sharpened stake palisades; a burnt-out shell of a small hut (front wall with an empty doorway, broken roof beams); a cold cannon on a broken carriage; heaps of broken weapons, dented helmets and round shields; tattered banners on leaning poles; puddles of dark mud; two or three small pale-amber soul flames hovering over helmets; one small campfire.\nRIGHT EDGE: a low wall of stacked SANDBAGS and rough stones runs perfectly straight and vertical along the full right edge (its top surface visible as a narrow strip), separating this strip from the arena floor. Nothing crosses it.\nTILING: the strip will repeat vertically - make the top end and the bottom end similar.",
+ "refs": [
+  "keyart_waste/raw_a.jpg",
+  "concept_v2_waste/raw_b.jpg",
+  "border_waste/raw_north_b.jpg"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 1616,
+   "candidatesTokenCount": 2135,
+   "totalTokenCount": 3751,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 842
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 774
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1680
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-03T03:07:08"
+}

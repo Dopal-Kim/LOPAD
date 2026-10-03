@@ -1,0 +1,486 @@
+{
+ "region": "hall",
+ "stage": 1,
+ "version": "53라운드 (Gemini 테두리)",
+ "source": "parts/art/work/gemini/border_hall/build.py (원본·프롬프트 같은 폴더)",
+ "pixelScale": 0.5,
+ "units": "모든 길이·좌표 = 논리 px(960×540 기준). 이미지 픽셀 = 논리 px / pixelScale(=2배). 1920 렌더에서 1:1.",
+ "lighting": "albedo 는 바닥 v2 타일과 같은 조명 공간(곱하기 조명을 받는다). *_emissive.png 는 조명 뒤 가산(알파 = 세기, 어둠에 묻히지 않음). lights[] 는 띠 국소 좌표의 광원 — 반복 띠는 주기마다 반복 등록.",
+ "lightsRule": "lights[] 좌표 = 띠 이미지 왼쪽 위 기준 논리 px. 반복 띠는 주기마다 등록. 서·동 띠 광원 중 바닥 세로 범위(북쪽 기준선 ~ 남쪽 기준선) 밖에 오는 것은 다른 띠에 가려지므로 등록하지 않는다. flicker 는 계약 §12 형식.",
+ "drawOrder": [
+  "floor",
+  "floorDecals+floorShadows",
+  "west",
+  "east",
+  "north",
+  "doors(west,east,north)",
+  "ySorted(props, characters, fx)",
+  "south",
+  "doors(south)",
+  "lighting",
+  "emissive(add)",
+  "ui"
+ ],
+ "bands": {
+  "north": {
+   "image": "north.png",
+   "emissive": "north_emissive.png",
+   "width": 1623.0,
+   "height": 409.0,
+   "repeat": "x",
+   "anchor": "floorTop",
+   "baselineY": 380.0,
+   "apronBelow": 29.0,
+   "place": "띠의 baselineY 줄 = 바닥 북쪽 끝(북쪽 벽 앞면 아랫단의 밑변). x 는 (바닥 왼쪽 - west.width) 부터 반복해 (바닥 오른쪽 + east.width) 까지 덮는다.",
+   "apron": "baselineY 아래 apronBelow 는 땅·소품 밑동이 알파로 사라지는 앞치마 — 바닥 위에 겹쳐 그린다(충돌 없음).",
+   "depth": "background",
+   "lights": [
+    {
+     "x": 280.0,
+     "y": 266.4,
+     "color": "#eeb57c",
+     "radius": 59,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 453.4,
+     "y": 193.1,
+     "color": "#eec283",
+     "radius": 68,
+     "intensity": 0.54,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 482.5,
+     "y": 187.8,
+     "color": "#eebe7c",
+     "radius": 102,
+     "intensity": 0.69,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 549.0,
+     "y": 188.4,
+     "color": "#eec382",
+     "radius": 101,
+     "intensity": 0.69,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 688.4,
+     "y": 264.0,
+     "color": "#eea263",
+     "radius": 56,
+     "intensity": 0.48,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 712.6,
+     "y": 138.0,
+     "color": "#ee9f65",
+     "radius": 61,
+     "intensity": 0.5,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 753.1,
+     "y": 177.2,
+     "color": "#ee9f62",
+     "radius": 60,
+     "intensity": 0.5,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 819.3,
+     "y": 92.8,
+     "color": "#eeab48",
+     "radius": 150,
+     "intensity": 0.95,
+     "flicker": {
+      "amp": 0.08,
+      "hz": 3
+     },
+     "kind": "door_or_lantern"
+    },
+    {
+     "x": 878.1,
+     "y": 177.1,
+     "color": "#ee9f60",
+     "radius": 62,
+     "intensity": 0.5,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 922.8,
+     "y": 138.0,
+     "color": "#eea067",
+     "radius": 61,
+     "intensity": 0.5,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1068.0,
+     "y": 190.7,
+     "color": "#edc07b",
+     "radius": 72,
+     "intensity": 0.55,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1093.5,
+     "y": 188.2,
+     "color": "#eec281",
+     "radius": 90,
+     "intensity": 0.64,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1151.7,
+     "y": 188.0,
+     "color": "#eec27e",
+     "radius": 101,
+     "intensity": 0.69,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1182.1,
+     "y": 192.7,
+     "color": "#eec07d",
+     "radius": 69,
+     "intensity": 0.54,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "focusX": 821.3,
+   "focusNote": "술통 왕좌·화로 가운데(띠 국소 논리 x). 바닥 가운데 x 에 맞춰 반복 위상을 정한다(보스 시작 위치 = 왕좌 바로 앞 바닥)."
+  },
+  "south": {
+   "image": "south.png",
+   "emissive": "south_emissive.png",
+   "width": 589.0,
+   "height": 192.0,
+   "repeat": "x",
+   "anchor": "floorBottom",
+   "baselineY": 120.0,
+   "place": "띠의 baselineY 줄 = 바닥 남쪽 끝. 그 위(0~baselineY)는 전경이 바닥을 덮는 겹침(투명 하늘 제외).",
+   "depth": "foreground",
+   "occlusion": {
+    "fadeAlpha": 0.45,
+    "rule": "플레이어 몸 사각형이 띠의 불투명 픽셀과 겹치면 띠 전체(또는 그 구간)를 fadeAlpha 로 반투명"
+   },
+   "lights": []
+  },
+  "west": {
+   "image": "west.png",
+   "emissive": "west_emissive.png",
+   "width": 256.0,
+   "height": 1615.0,
+   "repeat": "y",
+   "anchor": "floorLeft",
+   "baselineX": 256.0,
+   "place": "띠의 오른쪽 끝(baselineX) = 바닥 서쪽 끝(서쪽 벽 칸의 동쪽 변). y 는 북쪽 띠 위끝부터 남쪽 띠 아래끝까지 반복(북쪽 띠·남쪽 띠가 위에 덮임).",
+   "depth": "background",
+   "lights": [
+    {
+     "x": 99.3,
+     "y": 148.9,
+     "color": "#eec591",
+     "radius": 68,
+     "intensity": 0.53,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 121.7,
+     "y": 145.4,
+     "color": "#eec38b",
+     "radius": 78,
+     "intensity": 0.58,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 133.1,
+     "y": 1423.3,
+     "color": "#eec893",
+     "radius": 88,
+     "intensity": 0.63,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 169.1,
+     "y": 634.6,
+     "color": "#eec590",
+     "radius": 86,
+     "intensity": 0.62,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 172.9,
+     "y": 145.9,
+     "color": "#eec68f",
+     "radius": 82,
+     "intensity": 0.6,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 223.7,
+     "y": 634.7,
+     "color": "#edc185",
+     "radius": 87,
+     "intensity": 0.62,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ]
+  },
+  "east": {
+   "image": "east.png",
+   "emissive": "east_emissive.png",
+   "width": 256.0,
+   "height": 1615.0,
+   "repeat": "y",
+   "anchor": "floorRight",
+   "baselineX": 0,
+   "place": "띠의 왼쪽 끝 = 바닥 동쪽 끝. 나머지는 west 와 같음.",
+   "depth": "background",
+   "lights": [
+    {
+     "x": 28.6,
+     "y": 459.6,
+     "color": "#eea359",
+     "radius": 67,
+     "intensity": 0.53,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 51.4,
+     "y": 1346.0,
+     "color": "#eeb878",
+     "radius": 58,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 86.2,
+     "y": 1331.6,
+     "color": "#eeb371",
+     "radius": 63,
+     "intensity": 0.51,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 119.9,
+     "y": 487.7,
+     "color": "#eec47f",
+     "radius": 88,
+     "intensity": 0.63,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 183.7,
+     "y": 489.5,
+     "color": "#eec582",
+     "radius": 96,
+     "intensity": 0.67,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 190.2,
+     "y": 455.6,
+     "color": "#eec580",
+     "radius": 105,
+     "intensity": 0.71,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ]
+  }
+ },
+ "corners": "별도 모서리 그림 없음 — north·south 가 좌우 띠 폭까지 덮는다(그리기 순서로 해결).",
+ "collision": "충돌은 기존 격자 그대로(벽 칸 = 막힘). 테두리 그림은 벽 칸 위에 덮는 그림일 뿐이며, 테두리가 있는 지역에서는 벽 타일(앞면·윗면·가장자리)을 그리지 않는다. 문·출구 칸은 doors 조각을 덧그린다(통행은 격자대로).",
+ "camera": {
+  "bounds": {
+   "top": -380.0,
+   "bottom": "floorBottom + 72",
+   "left": -200,
+   "right": "floorRight + 200"
+  },
+  "northLookUp": 110,
+  "note": "53라운드 Q8 결정: 북쪽 끝 200 안에서 최대 110 위로. 위 = 북쪽 띠 위끝(바닥 북쪽 끝 기준 -baselineY), 아래 = 남쪽 띠 아래끝, 좌우 = 바닥 끝 ± 200."
+ },
+ "ambient": {
+  "rgb": [
+   0.34,
+   0.34,
+   0.38
+  ],
+  "note": "53라운드 Q9 결정(중립 숯빛)"
+ },
+ "doors": {
+  "north": {
+   "w": 211.0,
+   "h": 242.0,
+   "baselineY": 235.0,
+   "openingX": 106.0,
+   "openingW": 101.2,
+   "lights": [
+    {
+     "x": 28.0,
+     "y": 169.9,
+     "color": "#eebd81",
+     "radius": 53,
+     "intensity": 0.46,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 180.4,
+     "y": 169.5,
+     "color": "#edbc7e",
+     "radius": 53,
+     "intensity": 0.46,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "file": "door_north.png",
+   "emissive": "door_north_emissive.png"
+  },
+  "south": {
+   "w": 150.0,
+   "h": 163.0,
+   "baselineY": 12,
+   "openingX": 87.1,
+   "openingW": 72.5,
+   "lights": [],
+   "file": "door_south.png",
+   "emissive": "door_south_emissive.png"
+  },
+  "west": {
+   "w": 256.0,
+   "h": 291.0,
+   "baselineX": 256.0,
+   "openingY": 198.0,
+   "openingH": 96.0,
+   "lights": [],
+   "file": "door_west.png",
+   "emissive": "door_west_emissive.png"
+  },
+  "east": {
+   "w": 256.0,
+   "h": 291.0,
+   "baselineX": 0,
+   "openingY": 198.0,
+   "openingH": 96.0,
+   "lights": [],
+   "file": "door_east.png",
+   "emissive": "door_east_emissive.png",
+   "mirrorOf": "door_west.png"
+  },
+  "doc": "골목 입구 조각(53라운드 Q13, 키 이름은 시스템과 확정 대상). 문·출구 칸 위에 띠 다음에 덧그린다(같은 depth·조명·발광 규칙). north: baselineY 줄 = 바닥 북쪽 끝, openingX(조각 국소 x) = 문 칸들의 가운데 x 에 맞춤, openingW = 그림 속 통로 폭(참고). south: baselineY 줄 = 바닥 남쪽 끝, openingX 를 문 칸 가운데에. 남 띠와 같은 전경(foreground)·가림 규칙. west: 오른쪽 끝(baselineX) = 바닥 서쪽 끝, openingY(조각 국소 y) = 문 칸들의 가운데 y, openingH = 그림 속 골목 폭. east: west 의 좌우 반전(baselineX 0 = 바닥 동쪽 끝). lights[] = 조각 국소 좌표, 띠 광원 중 조각에 가려지는 것은 빼지 않아도 된다(약함)."
+ }
+}

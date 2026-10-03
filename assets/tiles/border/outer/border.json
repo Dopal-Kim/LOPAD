@@ -1,7 +1,7 @@
 {
  "region": "outer",
  "stage": 1,
- "version": "53라운드 시범 (Gemini 테두리)",
+ "version": "53라운드 시범 확정(Q6) + 골목 입구 조각(Q13)",
  "source": "parts/art/work/gemini/border_outer/build.py (원본·프롬프트 같은 폴더)",
  "pixelScale": 0.5,
  "units": "모든 길이·좌표 = 논리 px(960×540 기준). 이미지 픽셀 = 논리 px / pixelScale(=2배). 1920 렌더에서 1:1.",
@@ -13,8 +13,10 @@
   "west",
   "east",
   "north",
+  "doors(west,east,north)",
   "ySorted(props, characters, fx)",
   "south",
+  "doors(south)",
   "lighting",
   "emissive(add)",
   "ui"
@@ -30,7 +32,7 @@
    "baselineY": 377.0,
    "apronBelow": 32.0,
    "place": "띠의 baselineY 줄 = 바닥 북쪽 끝(북쪽 벽 앞면 아랫단의 밑변). x 는 (바닥 왼쪽 - west.width) 부터 반복해 (바닥 오른쪽 + east.width) 까지 덮는다.",
-   "apron": "baselineY 아래 apronBelow 는 포석·술통 밑동이 알파로 사라지는 앞치마 — 바닥 위에 겹쳐 그린다(충돌 없음).",
+   "apron": "baselineY 아래 apronBelow 는 땅·소품 밑동이 알파로 사라지는 앞치마 — 바닥 위에 겹쳐 그린다(충돌 없음).",
    "depth": "background",
    "lights": [
     {
@@ -175,7 +177,7 @@
    "repeat": "x",
    "anchor": "floorBottom",
    "baselineY": 25.0,
-   "place": "띠의 baselineY 줄 = 바닥 남쪽 끝. 그 위(0~baselineY)는 처마·굴뚝이 바닥을 덮는 겹침(투명 하늘 제외).",
+   "place": "띠의 baselineY 줄 = 바닥 남쪽 끝. 그 위(0~baselineY)는 전경이 바닥을 덮는 겹침(투명 하늘 제외).",
    "depth": "foreground",
    "occlusion": {
     "fadeAlpha": 0.45,
@@ -296,7 +298,7 @@
   }
  },
  "corners": "별도 모서리 그림 없음 — north·south 가 좌우 띠 폭까지 덮는다(그리기 순서로 해결).",
- "collision": "충돌은 기존 격자 그대로(벽 칸 = 막힘). 테두리 그림은 벽 칸 위에 덮는 그림일 뿐이며, 테두리가 있는 지역에서는 벽 타일(앞면·윗면·가장자리)을 그리지 않는다. 문·출구 칸은 아래 미정 항목.",
+ "collision": "충돌은 기존 격자 그대로(벽 칸 = 막힘). 테두리 그림은 벽 칸 위에 덮는 그림일 뿐이며, 테두리가 있는 지역에서는 벽 타일(앞면·윗면·가장자리)을 그리지 않는다. 문·출구 칸은 doors 조각을 덧그린다(통행은 격자대로).",
  "camera": {
   "bounds": {
    "top": -377.0,
@@ -305,9 +307,134 @@
    "right": "floorRight + 200"
   },
   "northLookUp": 110,
-  "note": "제안(임시, 인터뷰 대상): 위 = 북쪽 띠 위끝(바닥 북쪽 끝 기준 -baselineY), 아래 = 남쪽 띠 아래끝, 좌우 = 바닥 끝 ± 200(띠 폭 256 중 바깥 56 은 화면 밖). northLookUp: 주인공이 북쪽 끝에서 200 이내면 카메라 중심을 최대 110 위로 끌어 집 위층·지붕이 보이게."
+  "note": "53라운드 Q8 결정: 북쪽 끝 200 안에서 최대 110 위로. 위 = 북쪽 띠 위끝(바닥 북쪽 끝 기준 -baselineY), 아래 = 남쪽 띠 아래끝, 좌우 = 바닥 끝 ± 200."
  },
- "open": [
-  "문·출구가 벽에 뚫릴 때 테두리 표현(53라운드 시범 NOTES 인터뷰 Q)"
- ]
+ "ambient": {
+  "rgb": [
+   0.34,
+   0.34,
+   0.38
+  ],
+  "note": "53라운드 Q9 결정(중립 숯빛)"
+ },
+ "doors": {
+  "north": {
+   "w": 314.0,
+   "h": 402.0,
+   "baselineY": 377.0,
+   "openingX": 159.4,
+   "openingW": 63.6,
+   "lights": [
+    {
+     "x": 155.5,
+     "y": 74.9,
+     "color": "#eea04b",
+     "radius": 119,
+     "intensity": 0.77,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 155.8,
+     "y": 279.2,
+     "color": "#eeb771",
+     "radius": 59,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 210.0,
+     "y": 88.1,
+     "color": "#eea676",
+     "radius": 50,
+     "intensity": 0.44,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "file": "door_north.png",
+   "emissive": "door_north_emissive.png"
+  },
+  "south": {
+   "w": 201.0,
+   "h": 228.0,
+   "baselineY": 12,
+   "openingX": 102.1,
+   "openingW": 97.7,
+   "lights": [
+    {
+     "x": 127.4,
+     "y": 20.3,
+     "color": "#ee9f4b",
+     "radius": 56,
+     "intensity": 0.48,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "file": "door_south.png",
+   "emissive": "door_south_emissive.png"
+  },
+  "west": {
+   "w": 256.0,
+   "h": 291.0,
+   "baselineX": 256.0,
+   "openingY": 198.0,
+   "openingH": 96.0,
+   "lights": [
+    {
+     "x": 137.9,
+     "y": 88.7,
+     "color": "#eeab73",
+     "radius": 59,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "file": "door_west.png",
+   "emissive": "door_west_emissive.png"
+  },
+  "east": {
+   "w": 256.0,
+   "h": 291.0,
+   "baselineX": 0,
+   "openingY": 198.0,
+   "openingH": 96.0,
+   "lights": [
+    {
+     "x": 118.1,
+     "y": 88.7,
+     "color": "#eeab73",
+     "radius": 59,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "file": "door_east.png",
+   "emissive": "door_east_emissive.png",
+   "mirrorOf": "door_west.png"
+  },
+  "doc": "골목 입구 조각(53라운드 Q13, 키 이름은 시스템과 확정 대상). 문·출구 칸 위에 띠 다음에 덧그린다(같은 depth·조명·발광 규칙). north: baselineY 줄 = 바닥 북쪽 끝, openingX(조각 국소 x) = 문 칸들의 가운데 x 에 맞춤, openingW = 그림 속 통로 폭(참고). south: baselineY 줄 = 바닥 남쪽 끝, openingX 를 문 칸 가운데에. 남 띠와 같은 전경(foreground)·가림 규칙. west: 오른쪽 끝(baselineX) = 바닥 서쪽 끝, openingY(조각 국소 y) = 문 칸들의 가운데 y, openingH = 그림 속 골목 폭. east: west 의 좌우 반전(baselineX 0 = 바닥 동쪽 끝). lights[] = 조각 국소 좌표, 띠 광원 중 조각에 가려지는 것은 빼지 않아도 된다(약함)."
+ }
 }

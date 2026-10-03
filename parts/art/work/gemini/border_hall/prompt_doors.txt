@@ -1,0 +1,6 @@
+TASK: paint a sheet of THREE SEPARATE PANELS side by side on a flat pure black background, separated by wide pure black gaps (each gap at least one tenth of the image width); nothing crosses the gaps. These are overlay pieces for doorways of the same top-down arena: Image 3 is its north dais strip, image 4 its west side seen from the in-game camera. Match their pixel density, object scale (doorway and barrel size), darkness and amber accent exactly.
+
+PANEL 1 (left, tall, about one third of the width, full height): an ARCHED DOORWAY between two stone pillars of the terrace: heavy dark drapes pulled aside, a dark corridor with a faint warm glow, a candelabra on each side; the pillar bases sit on a straight ground line at the bottom of the panel.
+PANEL 2 (middle): a GAP in the west balustrade, in the in-game camera: the balustrade is interrupted by two square stone posts with urns, and a wide stone STAIR goes DOWN to the LEFT out of view.
+PANEL 3 (right): the SOUTH ENTRANCE STAIR seen from above and behind: a gap in the stone balustrade between two square posts with urns, a wide stone STAIR going DOWN toward the camera into darkness.
+Each panel's outer area fades to pure black at its left and right sides. Keep the openings dark (they lead away into darkness); only small lights glow.

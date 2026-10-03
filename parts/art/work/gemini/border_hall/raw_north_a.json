@@ -1,0 +1,39 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "4:1",
+ "size": "2K",
+ "prompt": "REFERENCE IMAGES: Image 1 is the key art of this game region. It is the PRIMARY reference: match its rendering style exactly - a dark, grim, detailed pixel-art scene painting with chunky, clearly readable shapes and flat shading (no soft airbrush, no photo texture, no film grain), the same open-air banquet terrace of the ruler at night: dark polished stone, a stone balustrade with the city rooftops far below, heavy dark drapes with a simple goblet emblem, a tall throne built from stacked oak casks, a big brazier fire behind it as back light, guttering candelabras, spilled liquor, a dark smoky sky, the same night mood and darkness. Image 2 is only a CAMERA reference: it shows the in-game camera - an orthographic top-down three-quarter view looking down from the south at about 40 degrees, no vanishing point, vertical edges stay vertical, every structure shows its south-facing front and its top surface or roof sloping away. Do not copy image 2's composition or its brighter flat look; take only its camera angle.\nPALETTE: near-black charcoal and cold ash greys carry the whole image, dark umber wood and earth; ONE warm accent only - amber / ember orange to pale gold (#8b4d22, #d67a11, #e8b858, #faeec0) - used only for the brazier fire, candle flames, tiny distant city windows and spilled liquor glints and their small glow. No other hues: no blue, no green, no purple, no red, no copper-orange metal (metal is dark iron grey).\nLIGHTING: dim, even, cold night light on all surfaces (this art will be lit again by the game engine). Light sources (the brazier fire - the brightest - candelabras and tiny far city windows) glow, but do NOT throw big bright pools onto walls or the ground. Keep stone, plaster and earth mid-dark grey, never bright white.\nWORLD: grounded early-gunpowder palace terrace of the drunken ruler of the liquor empire \"Zan\": decadent, wrecked after an endless feast, menacing and grotesque yet darkly comic.\nSTRICT: no people, no characters, no animals, no corpses. No text, no letters, no numbers, no logos, no UI, no watermark, no frame or border line. Fill the whole canvas edge to edge.\n\nTASK: paint ONE very wide horizontal strip that is the NORTH BORDER of a top-down action-game boss arena: the open-air banquet terrace of the drunken ruler of the liquor city \"Zan\" at night. The arena floor (big polished dark stone slabs) lies just BELOW this image and is not painted here.\nCONTENT (strictly symmetric, centered): in the exact CENTER of the strip a wide stepped stone DAIS, its three front steps fully visible; on it a tall THRONE built from stacked oak casks, EMPTY - nobody sits on it; right behind the throne a big iron BRAZIER with a roaring fire (the brightest spot, back-lighting the throne); spilled liquor running down the dais steps, a few overturned goblets and a tipped cask on the steps. On both sides of the dais: tall dark stone PILLARS with heavy dark DRAPES bearing a simple goblet emblem hanging between them; tall candelabras with guttering candles; then, toward both ends, a stone BALUSTRADE with the CITY rooftops far below and beyond it (tiny amber windows, thin smoke).\nDEPTH: behind the dais and pillars, the night city far below and far away in hazy layers; a dark smoky sky in the top fifth.\nGROUND LINE: the bottom of the front structures sits on a perfectly straight, horizontal ground line at the very bottom edge of the image (a thin strip of ground at most). Nothing sticks out below it.\nTILING: the strip will repeat horizontally - make the far left and far right ends similar and at the same height so they can be joined.\nSCALE: Image 3 is a strip from another arena of this same game, given ONLY for scale and pixel density: match its pixel density and object scale exactly (same doorway height, same barrel size, same storey height) but take none of its content or buildings.",
+ "refs": [
+  "keyart_hall/raw_b.jpg",
+  "concept_v2_hall/raw_b.jpg",
+  "border_outer/raw_north_a.jpg"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 1668,
+   "candidatesTokenCount": 2274,
+   "totalTokenCount": 3942,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 894
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 774
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1680
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-03T03:05:59"
+}
