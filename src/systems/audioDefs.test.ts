@@ -19,7 +19,8 @@ import {
   sfxGain,
   type AudioManifest,
 } from './audioDefs';
-import { AUDIO_TRIGGERS, SFX, staticSfxIds } from './audioMap';
+import { AUDIO_TRIGGERS, SFX, bossActionSfx, bossLoopSfx, staticSfxIds } from './audioMap';
+import type { BossActionKind } from '../core/EventBus';
 
 // audioMap → EventBus 가 Phaser 를 import 하므로(window 필요) 이벤트 이미터만 node 것으로 대체한다
 vi.mock('phaser', () => ({ default: { Events: { EventEmitter } } }));
@@ -151,5 +152,39 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
     const unused = manifest.entries.filter((e) => e.kind === 'sfx' && !used.has(e.id)).map((e) => e.id);
     expect(unused).toEqual([]);
     expect(AUDIO_TRIGGERS.length).toBeGreaterThan(30);
+  });
+
+  it('54라운드 보스 18종이 전부 시스템 이벤트로 닿는다 (매니페스트 trigger 문자열과 무관 — audioMap 대응표)', () => {
+    const actions: BossActionKind[] = [
+      'drinkLift',
+      'drinkFinish',
+      'cupBreak',
+      'reelTelegraph',
+      'reelDash',
+      'fall',
+      'rise',
+      'kick',
+      'caskBounce',
+      'caskBreak',
+      'caskRedirect',
+      'spill',
+      'torchThrow',
+      'ignite',
+      'bossIgnite',
+      'candleTopple',
+      'candleRelight',
+      'phaseDrink',
+    ];
+    const reached = new Set<string>();
+    for (const a of actions) {
+      const id = bossActionSfx(a);
+      if (id) reached.add(id);
+    }
+    for (const l of ['gulp', 'roll', 'fire'] as const) reached.add(bossLoopSfx(l));
+    // BOSS_ATTACK spin · BOSS_PHASE(1층) 은 트리거 표에서 직접
+    reached.add(SFX.boss1.spinStart);
+    reached.add(SFX.boss1.phaseDrink);
+    expect([...reached].sort()).toEqual(Object.values(SFX.boss1).sort());
+    expect(bossActionSfx('bossIgnite')).toBe(SFX.boss1.ignite);
   });
 });

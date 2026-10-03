@@ -100,6 +100,7 @@ export const BOSS_PATTERN_SCHEMAS: Record<BossPatternName, PatternSchema> = {
       'count',
       'spreadDeg',
     ],
+    optNum: ['radiusFromArt'],
   },
   fireSpill: {
     num: [

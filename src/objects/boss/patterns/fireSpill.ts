@@ -75,9 +75,14 @@ class FireSpillRun implements PatternRun {
     return this.host.params<FireSpillParams>('fireSpill');
   }
 
+  /** 횃불 출발점: throw_torch releaseFrame 의 횃불 끝(놓는 프레임은 null → 바로 앞 점) → throw 손 → 바디 중심 */
   private origin(): Vec {
     const h = this.host;
-    return h.pose.anchor('throw_torch', 'handAnchors') ?? h.pose.anchor('throw', 'handAnchors') ?? h.center;
+    return (
+      h.pose.anchor('throw_torch', 'handAnchors', 'releaseFrame') ??
+      h.pose.anchor('throw', 'handAnchors', 'releaseFrame') ??
+      h.center
+    );
   }
 
   private plan(ctx: MobContext): void {
@@ -94,7 +99,9 @@ class FireSpillRun implements PatternRun {
       this.lines.forEach((l, i) => this.markers[i]?.setPoints(l));
       if (ctx.time < this.until) return null;
       this.clear();
-      for (const l of this.lines) this.arena.spill(l, P);
+      // 술 방울은 잔 마구리(throw releaseFrame 의 handAnchors)에서 날아간다 (웅덩이 줄은 그대로)
+      const cup = h.pose.anchor('throw', 'handAnchors', 'releaseFrame');
+      for (const l of this.lines) this.arena.spill(l, P, cup ?? undefined);
       h.emitAction('spill');
       const first = this.lines[0];
       this.torchAt = first[Math.min(TORCH_INDEX, first.length - 1)];

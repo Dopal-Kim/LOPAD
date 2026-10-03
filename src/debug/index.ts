@@ -180,6 +180,8 @@ export interface BossDebugApi {
   phase: (n: number) => boolean;
   /** 지금 약점 잔을 맞힌 것으로 */
   hitCup: () => boolean;
+  /** 보스 판정·그림 기하 (바디·스프라이트·그림자·약점 잔) */
+  geom: () => unknown;
   /** 세상이 돈다 화면 효과만 바로 (1층 spin 수치, opts 로 흐림·길이 덮어쓰기 — 검증용) */
   tilt: (opts?: { blur?: number; durationMs?: number }) => unknown;
 }

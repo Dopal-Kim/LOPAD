@@ -144,6 +144,12 @@ export class EntityVisual {
     return this.fitDef ? v3HitLift(this.fitDef, this.bodyH) : 0;
   }
 
+  /** 디버그: 발밑 그림자 자리·크기 (없으면 null) */
+  get shadowInfo(): { x: number; y: number; w: number; h: number } | null {
+    const s = this.shadow;
+    return s ? { x: s.x, y: s.y, w: s.displayWidth, h: s.displayHeight } : null;
+  }
+
   /** 48라운드 탄생 연출: 몸·그림자를 숨긴다 (다른 스프라이트가 대신 그린다) */
   setHidden(on: boolean): void {
     this.host.setVisible(!on);

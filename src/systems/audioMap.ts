@@ -147,6 +147,7 @@ export function bossActionSfx(action: BossActionKind): string | null {
     case 'torchThrow':
       return B.torchThrow;
     case 'ignite':
+    case 'bossIgnite':
       return B.ignite;
     case 'candleTopple':
       return B.candleTopple;

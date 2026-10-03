@@ -14,6 +14,20 @@ export const BOSS_FX = {
     CUP_SHATTER: 'boss1_cup_shatter',
     SPLASH: 'boss1_liquor_splash',
     GLOB: 'boss1_liquor_glob',
+    /** 54라운드 Q18 보스 불타기 오버레이 (phaseFrames ignite·loop·out, light·lightByPhase) */
+    ONFIRE: 'boss1_onfire',
+  },
+  /**
+   * 54라운드 Q18 보스 불타기: 오버레이 시트가 없을 때 임시 — 기존 불 이펙트(fire_pool)를 발 위 LIFT_PX 에 배율 SCALE 로 얹고,
+   * 국면 길이(ms)는 아래 값. 시트 light 가 없을 때 불빛 (월드 px, offsetY = 발에서 위로)
+   */
+  ONFIRE: {
+    FALLBACK_FX: 'fire_pool',
+    FALLBACK_LIFT_PX: 10,
+    FALLBACK_SCALE: 1,
+    FALLBACK_IGNITE_MS: 260,
+    FALLBACK_OUT_MS: 420,
+    LIGHT: { color: '#e8b858', radius: 57, intensity: 0.85, flicker: 0.22, offsetY: 17 },
   },
   /** 술통 깨짐 시트 마지막 프레임 유지·사라짐 ms */
   BREAK_HOLD_MS: 600,
@@ -22,13 +36,13 @@ export const BOSS_FX = {
   GLOBS: { COUNT: 4, FLIGHT_MS: 260 },
   /** 쓰러짐 임시 연출: 회전·색 */
   LIE_ROTATION: Math.PI / 2,
-  /** 약점 잔: 임시 잔 색 · 테두리 강조(깜빡임) */
   /**
-   * 약점 잔: 임시 잔 색 · 테두리 강조(깜빡임) · 맞힘 판정 여유 (둘레 HIT_PAD_PX, 아래로는 보스 바디 윗변 + HIT_DOWN_PX 까지 — 임시값)
+   * 약점 잔: 임시 잔 색 · 테두리 강조(깜빡임) · 맞힘 판정 여유 (둘레 HIT_PAD_PX, 아래로는 보스 바디 윗변 + 바디 높이 × HIT_DOWN_RATIO
+   * 까지 — 임시값. 54라운드 2차: 192×240 그림(바디 36)에 맞춰 고정 14px(바디 29 의 약 절반) → 바디 높이 비례 0.5)
    */
   CUP: {
     HIT_PAD_PX: 4,
-    HIT_DOWN_PX: 14,
+    HIT_DOWN_RATIO: 0.5,
     FILL: 0xe0a830,
     LIQUOR: 0x8a3a10,
     EDGE: 0xfff2c0,

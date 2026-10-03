@@ -13,5 +13,5 @@ export function bossStructureSheets(): string[] {
 
 export function bossFxSheets(): string[] {
   const S = BOSS_FX.SHEETS;
-  return [S.TORCH, S.CUP_SHATTER, S.SPLASH, S.GLOB];
+  return [S.TORCH, S.CUP_SHATTER, S.SPLASH, S.GLOB, S.ONFIRE];
 }

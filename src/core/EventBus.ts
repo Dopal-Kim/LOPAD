@@ -172,6 +172,7 @@ export type BossActionKind =
   | 'spill'
   | 'torchThrow'
   | 'ignite'
+  | 'bossIgnite'
   | 'candleTopple'
   | 'candleRelight'
   | 'phaseDrink';

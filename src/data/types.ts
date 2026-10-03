@@ -283,6 +283,22 @@ export interface BossArenaParams {
   pillarSprite?: string[];
   /** 어둠 동안 예고 경고광 배율 */
   darkTelegraphLightMult: number;
+  /** 54라운드 Q18 보스 불타기 (없으면 불타지 않음) */
+  onFire?: BossOnFireParams;
+}
+
+/**
+ * 54라운드 Q18: 보스가 불붙은 술 웅덩이 위에 서 있으면 피해 없이 '불타는' 상태 (몸 불길 오버레이·불빛).
+ * 발밑 = 바디 아래 끝 footHeightPx 높이 × 바디 폭 footWidthRatio 사각형이 불 칸에 닿으면 불붙고, 벗어나면 lingerMs 뒤 꺼짐.
+ * 타는 동안 플레이어가 보스 바디(+ touchPadPx)에 닿으면 touchTickMs 마다 touchAttack 불 피해 (접촉 공격과 별개). 전부 임시값
+ */
+export interface BossOnFireParams {
+  lingerMs: number;
+  footWidthRatio: number;
+  footHeightPx: number;
+  touchAttack: number;
+  touchTickMs: number;
+  touchPadPx: number;
 }
 
 export interface BossDef {

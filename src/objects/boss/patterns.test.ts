@@ -36,6 +36,7 @@ function harness(opts: { phase?: number; force?: BossPatternName[] } = {}) {
     traceCask: (from) => [from, { x: from.x + 10, y: from.y }],
     kickCask: (_f, dx, dy) => ev(`kick:${dx.toFixed(2)},${dy.toFixed(2)}`),
     spill: (pts) => ev(`spill:${pts.length}`),
+    caskRadiusPx: (fallback) => fallback,
     throwTorch: (_f, _t, ms) => ev(`torch:${ms}`),
     setWeakPoint: (wp) => {
       weak = wp;

@@ -205,11 +205,23 @@ export class BossPose implements BossPoseApi {
     };
   }
 
-  anchor(action: string, key: 'footAnchors' | 'handAnchors'): Vec | null {
+  anchor(action: string, key: 'footAnchors' | 'handAnchors', at?: 'impactFrame' | 'releaseFrame'): Vec | null {
     const f = this.frameOf(action);
-    if (!f) return null;
-    const r = asRect(anchorAt(f.def[key], f.dir, f.col, f.def.frames, f.row));
-    if (!r) return null;
-    return this.toWorld(f.def, r.x + r.w / 2, r.y + r.h / 2);
+    if (!at) {
+      if (!f) return null;
+      const r = asRect(anchorAt(f.def[key], f.dir, f.col, f.def.frames, f.row));
+      return r ? this.toWorld(f.def, r.x + r.w / 2, r.y + r.h / 2) : null;
+    }
+    // 이벤트 프레임의 점 (재생 전 예고 동안에도 같은 자리). 그 프레임이 null 이면(횃불을 놓은 프레임) 바로 앞의 점 — 아트 54라운드 2차
+    const def = this.sheet(action);
+    const kf = def?.[at];
+    if (!def || typeof kf !== 'number') return null;
+    const dir = f?.dir ?? this.visual.facing;
+    const row = f?.row ?? Math.max(0, def.directions.indexOf(dir));
+    for (let col = Math.min(kf, def.frames - 1); col >= 0; col--) {
+      const r = asRect(anchorAt(def[key], dir, col, def.frames, row));
+      if (r) return this.toWorld(def, r.x + r.w / 2, r.y + r.h / 2);
+    }
+    return null;
   }
 }

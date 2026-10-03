@@ -7,6 +7,7 @@ import Phaser from 'phaser';
 import { BOSS_FX, TILE, entityDepth } from '../../core/Constants';
 import { spriteLibrary } from '../sprites';
 import { STRUCTURE_ACTION, artScale, facingOf, structureStateFrames } from '../spriteDefs';
+import { caskCircumferenceWorld } from './caskMath';
 
 export interface CaskParams {
   speedTiles: number;
@@ -200,7 +201,7 @@ export class RollingCasks {
     ) {
       const dir = facingOf(c.dx, c.dy, 'down');
       const row = Math.max(0, def.directions.indexOf(dir));
-      const circ = (def.circumferencePx ?? def.frameWidth) * artScale(def);
+      const circ = caskCircumferenceWorld(def) ?? def.frameWidth * artScale(def);
       const col = Math.floor((c.rolled / Math.max(1, circ)) * def.frames) % def.frames;
       c.view.setFrame(row * def.frames + col);
       return;

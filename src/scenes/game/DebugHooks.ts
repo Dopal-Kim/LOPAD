@@ -377,6 +377,10 @@ export function exposeGameDebug(g: Game): void {
         return true;
       },
       hitCup: () => g.bossArena?.debugHitCup() ?? false,
+      geom: () => {
+        const b = findBoss(g);
+        return b ? { ...b.debugGeom, cup: g.bossArena?.debugCup() ?? null } : null;
+      },
       tilt: (opts) => {
         const b = findBoss(g);
         if (!g.bossArena || !b) return null;

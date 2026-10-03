@@ -78,8 +78,11 @@ export interface BossPoseApi {
   lie(on: boolean): void;
   /** 잔 약점 사각형 (월드). drink 시트 cupAnchors 가 있으면 현재 프레임, 없으면 머리 위 임시 사각형 */
   cupRect(fallback: { w: number; h: number; lift: number }): { x: number; y: number; w: number; h: number };
-  /** 시트 앵커 (footAnchors·handAnchors) 현재 프레임 월드 좌표. 없으면 null */
-  anchor(action: string, key: 'footAnchors' | 'handAnchors'): Vec | null;
+  /**
+   * 시트 앵커 (footAnchors·handAnchors) 월드 좌표. `at` 이 없으면 현재 프레임, 있으면 그 이벤트 프레임(impactFrame·releaseFrame —
+   * 그 프레임 점이 null 이면 바로 앞 점, 방향은 재생 중인 행 또는 지금 방향). 없으면 null
+   */
+  anchor(action: string, key: 'footAnchors' | 'handAnchors', at?: 'impactFrame' | 'releaseFrame'): Vec | null;
   /** drink 시트에 cupAnchors 가 있는지 (없으면 방이 임시 잔을 그린다) */
   readonly cupArt: boolean;
   /** 35라운드 소환 뒤 멈춤: attack frame 3 길이 (없으면 0) */
@@ -152,11 +155,14 @@ export interface BossArenaApi {
       bossHitStunMs: number;
     },
   ): void;
-  /** 술 뿌리기: 점 목록을 따라 웅덩이 칸 */
+  /** 술 뿌리기: 점 목록을 따라 웅덩이 칸 (술 방울 그림은 from 에서 — 없으면 첫 점) */
   spill(
     points: readonly Vec[],
     p: { puddleMs: number; fireMs: number; fireTickMs: number; firePlayerAttack: number; spreadMsPerCell: number },
+    from?: Vec,
   ): void;
+  /** 54라운드 Q21: 굴러가는 술통 판정 반경 = 그림 굴림 둘레 / 2π × ratio (그림이 없으면 fallbackPx) */
+  caskRadiusPx(fallbackPx: number, ratio: number): number;
   /** 횃불 던지기: flightMs 뒤 to 에 떨어져 그 자리 웅덩이에 불 (웅덩이가 없으면 꺼짐) */
   throwTorch(from: Vec, to: Vec, flightMs: number): void;
   /** 약점(잔) 등록: 근접 판정·화살이 rect() 에 닿으면 onHit 한 번. null 이면 해제 */

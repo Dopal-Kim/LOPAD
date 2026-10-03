@@ -229,6 +229,8 @@ export interface SheetJson extends BranchSheetFields {
   occludeAbove?: number;
   /** 50라운드 계약 §9: 광원 */
   light?: LightSpec;
+  /** 54라운드 아트 boss1_onfire: 국면별 광원 (phaseFrames 이름 → light 형식) */
+  lightByPhase?: Record<string, LightSpec>;
   action: string;
   frameWidth: number;
   frameHeight: number;
@@ -283,8 +285,11 @@ export interface SheetJson extends BranchSheetFields {
   footAnchors?: unknown;
   /** 54라운드 아트 v3 보스: 예고 동안 유지할 열 (attack·stagger_dash) */
   holdFrame?: number;
-  /** 54라운드 아트 v3 술통 회전 시트: 한 바퀴 둘레 (시트 도트) */
+  /** 54라운드 아트 v3 술통 회전 시트: 한 바퀴 굴림 둘레 (**논리 px** = 도트 × 0.5 — 아트 rotationNote, `caskCircumferenceWorld`) */
   circumferencePx?: number;
+  /** 54라운드 아트 2차 술통: 그림 지름 · 길이 (논리 px) — 판정 반경 (`caskRadiusFromArt`) */
+  diameterPx?: number;
+  lengthPx?: number;
   // --- §3.2 (42·43라운드 양산 필드). 있으면 시스템이 쓰고 없으면 기본값 ---
   /** 이 이펙트가 속한 무기 id · 보조 동작 종류 (메모) */
   weapon?: string;
@@ -425,6 +430,12 @@ export function sheetToWorldUnits<T extends SheetJson>(json: T): T {
   }
   if (typeof json.impactDistancePx === 'number') out.impactDistancePx = json.impactDistancePx * k;
   if (json.light) out.light = { ...json.light, radius: json.light.radius * k, offsetY: px(json.light.offsetY) };
+  if (json.lightByPhase) {
+    const byPhase: Record<string, LightSpec> = {};
+    for (const [ph, l] of Object.entries(json.lightByPhase))
+      if (l) byPhase[ph] = { ...l, radius: l.radius * k, offsetY: px(l.offsetY) };
+    out.lightByPhase = byPhase;
+  }
   if (typeof json.occludeAbove === 'number') out.occludeAbove = json.occludeAbove * k;
   return out;
 }

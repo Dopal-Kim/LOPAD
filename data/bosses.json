@@ -42,6 +42,7 @@
         "maxTiles": 40,
         "attack": 18,
         "radiusPx": 7,
+        "radiusFromArt": 1,
         "puddleEveryTiles": 1,
         "puddleMs": 9000,
         "bossHitDamage": 30,
@@ -202,6 +203,15 @@
       },
       "pillarProp": "pillar",
       "darkTelegraphLightMult": 2.2,
+      "onFire": {
+        "_note": "54라운드 Q18 보스 불타기 (임시값): 불에서 나오면 lingerMs 뒤 꺼짐 · 발밑 판정 = 바디 폭 × footWidthRatio, 아래 footHeightPx · 타는 동안 몸에 닿으면 touchTickMs 마다 touchAttack (불 웅덩이 틱과 같은 값)",
+        "lingerMs": 1000,
+        "footWidthRatio": 0.5,
+        "footHeightPx": 6,
+        "touchAttack": 10,
+        "touchTickMs": 500,
+        "touchPadPx": 3
+      },
       "pillarSprite": ["boss1_pillar"]
     }
   },

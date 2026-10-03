@@ -850,3 +850,32 @@ fx 라이트맵 위 띠 2.02 + d×0.1 · 북쪽 벽 앞 번갈아 합계 4·간�
 
 ### 임시값 (전부 검수 대상 — 보고서 표)
 bosses.json stage1 의 새 수치 전부 · phaseDrink 무적 · 보스 불이 보스·적 무피해 · 다시 켠 촛대는 통과 · 서 있는 촛대는 보스를 막지 않음 · 잔 판정 여유(4px·바디 윗변 +14px) · 판정 크기 비율(1.0·0.6) · 흐림 fps 기준(40·20프레임) · 술통 쳐내기 속도 ×1.15·최소 튕김 1 · 횃불은 뿌린 줄 2칸 지점.
+
+## 54라운드 2차: 보스 192×240 확인 · 보스 불타기(Q18) · 굴러가는 술통 1.25배(Q21) · 음향 대응 확인 (2026-10-03)
+결정: `decisions/2026-10-03-round-54-boss1-patterns.md` Q17~Q22. 아트 1545d9c(보스 v3 192×240·피벗 96,220) + 아트 2차(boss1_onfire, 술통 160×140·diameterPx 34, 술통 깨짐 200×160 — 메인 세션 전달). 아트 JSON 은 게임이 읽는 값을 헤드리스·dev 서버로만 확인했다(파일 수정 없음).
+
+### 192×240 확인 (헤드리스 실측)
+- 판정 바디 48×36 (= 192×0.25 × 1.0, 240×0.25 × 0.6) · 그림 48×60 월드(화면 96×120) · 원점 (0.5, 0.9167 = 220/240) · 그림자 피벗 자리 폭 50 · 피격 연출 올림 9.5. 돌진·접촉·술통 맞힘은 이 바디 그대로.
+- **잔 판정 버그 수정**: 근접 판정이 잔 사각형만 봐서 '상체 윗변까지' 여유(화살만 쓰던 `cupHitRect`)가 근접에는 없었다 → 근접도 같은 사각형. 아래 여유를 고정 14px(바디 29 기준) → **바디 높이 × 0.5**(192×240 에서 18px, `BOSS_FX.CUP.HIT_DOWN_RATIO`). 실측: 아래·위·오른쪽에서 칼 1타로 잔 깨짐, 왼쪽 몸 맞닿음 거리는 첫 타 부채꼴 모양 때문에 닿지 않음(질문).
+- 앵커: `pose.anchor(action, key, at?)` — `at` = impactFrame·releaseFrame 의 점(예고 동안에도 같은 자리, 그 프레임이 null 이면 바로 앞 점). 술통 출발 = kick impactFrame footAnchors, 횃불 출발 = throw_torch releaseFrame(7 = null → 6 의 횃불 끝), 술 방울 = throw releaseFrame handAnchors(잔 마구리). 전에는 throw_torch 놓는 프레임이 null 이라 바디 중심에서 날아갔다.
+- 시트 각 동작(drink·drink_break·stagger_dash·fall·kick·throw·throw_torch·phase_drink·slam·attack) 로드·재생 확인. 헤드리스는 프레임이 느려 애니·delayedCall 이 실제 시간보다 늦다(잔 깨짐 비틀 루프가 짧게 보임 — 실기 확인 필요).
+
+### 보스 불타기 (Q18)
+- `systems/boss/bossBurn.ts`(그림·빛·피해) + `burnMath.ts`(상태, 테스트). 보스 발밑(바디 아래 6px × 바디 폭 0.5)이 불붙은 웅덩이에 닿으면 ignite → loop, 벗어나면 1000ms 뒤 out → off. 보스 피해 없음.
+- 그림 `fx/v3/boss1_onfire`(phaseFrames ignite·loop·out, 보스와 같은 피벗·방향 행, 깊이 = 보스 + OVERLAY_STEP 의 조명 위 띠, fall·death 그림 동안 숨김). 시트가 없으면 fire_pool 을 몸에 얹는다(임시). 불빛 = JSON lightByPhase(국면별, offset 도트 → 피벗 기준) → light → `BOSS_FX.ONFIRE.LIGHT`. `sheetToWorldUnits` 가 lightByPhase 반경도 월드로 바꾼다.
+- 타는 동안 플레이어가 보스 바디 + 3px 에 닿으면 500ms 마다 10 불 피해(접촉 공격과 별개, 넉백 방향 = 보스 → 플레이어). 수치 `bosses.json` stage1 `arena.onFire`.
+- 효과음: 불붙는 순간 `BOSS_ACTION bossIgnite` → boss1_ignite 재사용, 불 루프는 보스가 타는 동안에도 유지.
+
+### 굴러가는 술통 (Q21)
+- 판정 반경 = JSON `diameterPx`(논리 px) / 2 / 2 → 없으면 `circumferencePx`/π → 없으면 `radiusPx`. × `caskRoll.radiusFromArt`(1). 2차 그림 34 → **8.5 월드**(전 7). `systems/boss/caskMath.ts`.
+- `circumferencePx` 는 **논리 px**(아트 rotationNote "196 도트(98 논리 px)") — 회전 프레임 계산이 도트로 읽어 2배 빨리 돌던 것을 고침.
+
+### 정리
+- 횃불 비행을 `systems/boss/torches.ts`(TorchFlights)로 분리 — BossArena 713 → 659줄.
+- 디버그 `__lopad.boss.geom()`(바디·그림·그림자·잔 사각형·애니) · `arena()` 에 burn·fireCells·lastSwing·술통 r.
+
+### 음향 18종 실측
+- 헤드리스에서 한 판에 18종 전부 재생 확인(일회성 15 + 루프 3: gulp·roll·fire). 매니페스트 trigger 문자열은 시스템이 읽지 않는다(대응표 `audioMap`) — 매니페스트 수정 없이 동작. 테스트 `audioDefs.test` 에 도달 검사 추가.
+
+### 임시값
+onFire 전부(lingerMs 1000 · 발밑 0.5×6px · 접촉 10/500ms · 여유 3px) · 잔 아래 여유 바디 높이 × 0.5 · 술통 radiusFromArt 1 · 임시 불 그림(fire_pool, 발 위 10px, 배율 1, 국면 260/420ms) · 임시 불빛(#e8b858 r57 0.85).

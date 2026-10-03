@@ -112,6 +112,36 @@ export class Boss extends Mob implements BossHost, BossBody {
     };
   }
 
+  /** 디버그: 판정·그림 기하 (54라운드 보스 v3 192×240·피벗 확인) */
+  get debugGeom(): Record<string, unknown> {
+    const b = this.body;
+    return {
+      now: this.scene.time.now,
+      pos: { x: this.x, y: this.y },
+      body: { x: b.x, y: b.y, w: b.width, h: b.height, cx: b.center.x, cy: b.center.y },
+      sprite: {
+        texture: this.texture.key,
+        frame: this.frame.name,
+        originX: this.originX,
+        originY: this.originY,
+        scale: this.scaleX,
+        w: this.displayWidth,
+        h: this.displayHeight,
+        top: this.y - this.displayOriginY * this.scaleY,
+        rotation: this.rotation,
+      },
+      anim: {
+        key: this.anims.currentAnim?.key ?? null,
+        playing: this.anims.isPlaying,
+        timeScale: this.anims.timeScale,
+        held: this.visual.held,
+        busy: this.visual.isBusy(this.scene.time.now),
+      },
+      shadow: this.visual.shadowInfo,
+      hitLift: this.visual.hitLiftPx,
+    };
+  }
+
   /** 디버그: 다음 패턴 강제 (목록 순서대로 되풀이, null 이면 해제) · 지금 바로 시작 */
   debugForce(list: BossPatternName[] | null, now = false): void {
     this.brain.force(list);
