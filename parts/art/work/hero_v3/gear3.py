@@ -157,13 +157,19 @@ GEAR = {
                     keys=[bow_draw(i / 5.0) for i in range(6)] + [bow_draw(1.0, R=(-7.0, 9.5, 62.0), tension=0.7, state="release")],
                     subs={6: [bow_draw(1.0, R=(-7.0, 9.5, 62.0), tension=0.7, state="release", lean=-0.4),
                               bow_draw(1.0, R=(-4.0, 11.0, 55.0), tension=0.35, state="release", lean=-0.1)]}),
+    # 장전(53라운드 Q29): 오른손이 오른어깨 뒤에 꽂힌 화살을 쥐고(1) 뽑아(3) 앞으로 가져와(4·5) 시위에 대면 재로 부서져 시위에 스민다(6 = refill).
+    # 뽑은 동안 몸의 그 화살은 그리지 않고(arrowOut), 마지막(9)에 재가 메워 다시 돋는다. 구 5프레임 × 2, 시작 ms 그대로.
     "bow_reload": dict(weapon="bow", split=[2, 2, 2, 2, 2], keys=[
-        K_(0, 0, R=(-4.0, 8.0, 63.0), L=(17.0, -4.0, 45.0), crouch=2, tw=-0.3, tension=0.2),
-        K_(0, 0, R=(-5.0, 8.5, 66.0), L=(17.0, -4.0, 45.0), crouch=2, tw=-0.35, tension=0.45, state="materialize"),
-        K_(0, 0, R=(6.0, 3.0, 52.0), L=(17.0, -4.0, 45.0), crouch=2.5, tw=-0.1, lean=0.3),
-        K_(0, 0, R=(14.5, -2.0, 46.0), L=(16.0, -4.0, 45.0), crouch=3, lean=0.6, state="refill"),
-        K_(0, 0, R=(4.0, 10.5, 37.0), L=(16.0, -4.0, 46.0), crouch=2, lean=0.3),
-        K_(0, 0, R=(3.5, 11.0, 35.0), L=(16.0, -4.0, 46.0), crouch=1.5, lean=0.2)]),
+        K_(0, 0, R=(2.0, 12.0, 58.0), L=(17.0, -4.0, 45.0), crouch=2, tw=-0.2, tension=0.15, state="reach"),
+        K_(0, 0, R=(-4.5, 13.0, 63.0), L=(17.0, -4.0, 45.0), crouch=2, tw=-0.35, tension=0.4, state="grab"),
+        K_(0, 0, R=(4.0, 8.0, 58.0), L=(17.0, -4.0, 45.0), crouch=2.5, tw=-0.1, lean=0.2, state="bring", arrowOut=True),
+        K_(0, 0, R=(14.5, -2.0, 46.0), L=(16.0, -4.0, 45.0), crouch=3, lean=0.6, state="refill", arrowOut=True),
+        K_(0, 0, R=(4.0, 10.5, 37.0), L=(16.0, -4.0, 46.0), crouch=2, lean=0.3, state="settle", arrowOut=True),
+        K_(0, 0, R=(3.5, 11.0, 35.0), L=(16.0, -4.0, 46.0), crouch=1.5, lean=0.2, state="regrow")],
+        subs={1: [K_(0, 0, R=(-4.5, 13.0, 63.0), L=(17.0, -4.0, 45.0), crouch=2, tw=-0.35, tension=0.4, state="grab"),
+                  K_(0, 0, R=(-8.0, 17.0, 70.0), L=(17.0, -4.0, 45.0), crouch=1.8, tw=-0.4, tension=0.55, lean=-0.2, state="pull", arrowOut=True)],
+              4: [K_(0, 0, R=(4.0, 10.5, 37.0), L=(16.0, -4.0, 46.0), crouch=2, lean=0.3, state="settle", arrowOut=True),
+                  K_(0, 0, R=(3.6, 10.8, 36.0), L=(16.0, -4.0, 46.0), crouch=1.7, lean=0.25, state="regrow")]}),
     # 기본 공격(player_attack): 활 빠른 사격 — 들어 올림 → 당김 → 놓음(화살 생성) → 내림
     "attack": dict(weapon="bow", split=[2, 1, 2, 2], keys=[
         K_(0, 0, R=(9.0, 7.0, 44.0), L=(14.0, -4.0, 48.0), crouch=2),

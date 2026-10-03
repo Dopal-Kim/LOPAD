@@ -194,3 +194,4 @@ gather(혼불 7개 나선 + 바닥 재 44알 소용돌이) → merge(혼불 덩�
 - `export2.py`: v3 무기 시트가 있으면 `weaponOverlayV3` 연결 + `oldWeapon: null`, 끝 프레임 설명 `player_idle_free`.
 - 칼 넣기 피 털기 불티: crc32 seed(Q21)로 재출력.
 - 남은 약점 §6-8(칼 색 26) 해소 → 16.
+- (Q44~Q46 2차) `katana3.py`: 칼 폭 +1(5차선)·날 몸 G6~G3, `fill_blade`(넓은 날 픽셀 래스터, 휨 `off_fn`)를 여기 두고 대검·단검도 공용. `hero.py`: `pose(arrowOut)` — 활 장전 중 오른어깨 화살을 그리지 않음(기본 False, 다른 시트 바이트 동일). `gear3.py`: `bow_reload` = 몸에 꽂힌 화살 뽑기 키(구 5프레임 시작 ms·refill f6·진행도 식 그대로).

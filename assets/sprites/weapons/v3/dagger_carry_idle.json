@@ -456,6 +456,7 @@
   "bow": "player_idle_free"
  },
  "bodySheetRuleNote": "무기별 이동 몸 시트 선택 규칙(아트 제안): bodySheetByWeapon[무기][동작]. 칼만 칼집을 쥔 player_<동작>, 나머지는 왼손이 빈 player_<동작>_free. 대쉬는 모든 무기가 player_dash. 오버레이는 <무기>_carry_<동작>(대검·칼은 뽑아 든 상태면 <무기>_carry_drawn_<동작>).",
+ "overlay": "player_idle_free 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
  "bladeTipAnchors": {
   "down": [
    [
@@ -562,5 +563,5 @@
    ]
   ]
  },
- "overlay": "player_idle_free 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138)."
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고"
 }

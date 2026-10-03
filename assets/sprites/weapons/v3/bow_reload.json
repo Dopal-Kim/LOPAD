@@ -1,0 +1,914 @@
+{
+ "image": "bow_reload.png",
+ "action": "reload (화살 탄창 채움)",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.0,
+ "frameDurationsMs": [
+  45,
+  45,
+  50,
+  50,
+  60,
+  60,
+  50,
+  50,
+  45,
+  45
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/weapons_v3/build.py (53라운드 Q26~Q32 무기 재디자인 — v3 도트 오버레이)",
+ "weapon": "bow",
+ "phases": {
+  "reach": [
+   0,
+   1
+  ],
+  "materialize": [
+   2,
+   3
+  ],
+  "bring": [
+   4,
+   5
+  ],
+  "refill": [
+   6,
+   7
+  ],
+  "settle": [
+   8,
+   9
+  ]
+ },
+ "refillFrame": 6,
+ "refillNote": "탄창이 다시 차는 시점 = f3 시작 (활 그립에 화살 묶음을 끼우며 글린트)",
+ "progressDriven": "optional",
+ "progressFormula": "frame = min(9, floor(progress*10)) — 구 5프레임 → 10프레임(refillFrame 시각 동일)",
+ "framesBasis": "player_bow_reload 프레임 번호 (몸·무기 공통)",
+ "oldTiming": {
+  "frames": 5,
+  "frameDurationsMs": [
+   90,
+   100,
+   120,
+   100,
+   90
+  ],
+  "framesMap": [
+   [
+    0,
+    1
+   ],
+   [
+    2,
+    3
+   ],
+   [
+    4,
+    5
+   ],
+   [
+    6,
+    7
+   ],
+   [
+    8,
+    9
+   ]
+  ]
+ },
+ "timingNote": "구 시트(16×24)의 프레임마다 시작 ms·전체 ms 가 같다 — 한 구 프레임을 oldTiming.framesMap 의 새 프레임들로 나눠 보간.",
+ "frameStates": [
+  "reach",
+  "reach",
+  "grab",
+  "pull",
+  "bring",
+  "bring",
+  "refill",
+  "refill",
+  "settle",
+  "regrow"
+ ],
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     78.0,
+     100.7
+    ],
+    "handL": [
+     102.0,
+     128.0
+    ]
+   },
+   {
+    "handR": [
+     77.2,
+     95.2
+    ],
+    "handL": [
+     102.0,
+     128.0
+    ]
+   },
+   {
+    "handR": [
+     76.5,
+     89.7
+    ],
+    "handL": [
+     102.0,
+     128.0
+    ]
+   },
+   {
+    "handR": [
+     70.5,
+     77.4
+    ],
+    "handL": [
+     102.0,
+     128.0
+    ]
+   },
+   {
+    "handR": [
+     84.0,
+     101.7
+    ],
+    "handL": [
+     102.0,
+     128.0
+    ]
+   },
+   {
+    "handR": [
+     91.5,
+     113.5
+    ],
+    "handL": [
+     102.0,
+     127.8
+    ]
+   },
+   {
+    "handR": [
+     99.0,
+     125.2
+    ],
+    "handL": [
+     102.0,
+     127.5
+    ]
+   },
+   {
+    "handR": [
+     89.6,
+     129.2
+    ],
+    "handL": [
+     102.0,
+     126.8
+    ]
+   },
+   {
+    "handR": [
+     80.2,
+     133.2
+    ],
+    "handL": [
+     102.0,
+     126.0
+    ]
+   },
+   {
+    "handR": [
+     79.8,
+     134.5
+    ],
+    "handL": [
+     102.0,
+     126.0
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     114.0,
+     98.5
+    ],
+    "handL": [
+     90.0,
+     110.2
+    ]
+   },
+   {
+    "handR": [
+     114.8,
+     96.5
+    ],
+    "handL": [
+     90.0,
+     110.2
+    ]
+   },
+   {
+    "handR": [
+     115.5,
+     94.5
+    ],
+    "handL": [
+     90.0,
+     110.2
+    ]
+   },
+   {
+    "handR": [
+     121.5,
+     85.8
+    ],
+    "handL": [
+     90.0,
+     110.2
+    ]
+   },
+   {
+    "handR": [
+     108.0,
+     97.5
+    ],
+    "handL": [
+     90.0,
+     110.2
+    ]
+   },
+   {
+    "handR": [
+     100.5,
+     103.7
+    ],
+    "handL": [
+     90.0,
+     110.4
+    ]
+   },
+   {
+    "handR": [
+     93.0,
+     110.0
+    ],
+    "handL": [
+     90.0,
+     110.7
+    ]
+   },
+   {
+    "handR": [
+     102.4,
+     119.5
+    ],
+    "handL": [
+     90.0,
+     109.9
+    ]
+   },
+   {
+    "handR": [
+     111.8,
+     129.0
+    ],
+    "handL": [
+     90.0,
+     109.2
+    ]
+   },
+   {
+    "handR": [
+     112.2,
+     130.7
+    ],
+    "handL": [
+     90.0,
+     109.2
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     93.0,
+     93.0
+    ],
+    "handL": [
+     70.5,
+     120.9
+    ]
+   },
+   {
+    "handR": [
+     97.9,
+     89.0
+    ],
+    "handL": [
+     70.5,
+     120.9
+    ]
+   },
+   {
+    "handR": [
+     102.8,
+     85.0
+    ],
+    "handL": [
+     70.5,
+     120.9
+    ]
+   },
+   {
+    "handR": [
+     106.2,
+     75.9
+    ],
+    "handL": [
+     70.5,
+     120.9
+    ]
+   },
+   {
+    "handR": [
+     90.0,
+     95.1
+    ],
+    "handL": [
+     70.5,
+     120.9
+    ]
+   },
+   {
+    "handR": [
+     82.1,
+     106.7
+    ],
+    "handL": [
+     71.2,
+     120.9
+    ]
+   },
+   {
+    "handR": [
+     74.2,
+     118.4
+    ],
+    "handL": [
+     72.0,
+     120.9
+    ]
+   },
+   {
+    "handR": [
+     82.1,
+     121.8
+    ],
+    "handL": [
+     72.0,
+     120.2
+    ]
+   },
+   {
+    "handR": [
+     90.0,
+     125.3
+    ],
+    "handL": [
+     72.0,
+     119.4
+    ]
+   },
+   {
+    "handR": [
+     90.6,
+     126.6
+    ],
+    "handL": [
+     72.0,
+     119.4
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     99.0,
+     105.6
+    ],
+    "handL": [
+     121.5,
+     116.7
+    ]
+   },
+   {
+    "handR": [
+     94.1,
+     102.1
+    ],
+    "handL": [
+     121.5,
+     116.7
+    ]
+   },
+   {
+    "handR": [
+     89.2,
+     98.6
+    ],
+    "handL": [
+     121.5,
+     116.7
+    ]
+   },
+   {
+    "handR": [
+     84.0,
+     90.2
+    ],
+    "handL": [
+     121.5,
+     116.7
+    ]
+   },
+   {
+    "handR": [
+     102.0,
+     103.5
+    ],
+    "handL": [
+     121.5,
+     116.7
+    ]
+   },
+   {
+    "handR": [
+     109.9,
+     109.9
+    ],
+    "handL": [
+     120.8,
+     116.7
+    ]
+   },
+   {
+    "handR": [
+     117.8,
+     116.2
+    ],
+    "handL": [
+     120.0,
+     116.7
+    ]
+   },
+   {
+    "handR": [
+     109.9,
+     126.3
+    ],
+    "handL": [
+     120.0,
+     116.0
+    ]
+   },
+   {
+    "handR": [
+     102.0,
+     136.3
+    ],
+    "handL": [
+     120.0,
+     115.2
+    ]
+   },
+   {
+    "handR": [
+     101.4,
+     138.0
+    ],
+    "handL": [
+     120.0,
+     115.2
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    102.0,
+    128.0
+   ],
+   [
+    102.0,
+    128.0
+   ],
+   [
+    102.0,
+    128.0
+   ],
+   [
+    102.0,
+    128.0
+   ],
+   [
+    102.0,
+    128.0
+   ],
+   [
+    102.0,
+    127.8
+   ],
+   [
+    102.0,
+    127.5
+   ],
+   [
+    102.0,
+    126.8
+   ],
+   [
+    102.0,
+    126.0
+   ],
+   [
+    102.0,
+    126.0
+   ]
+  ],
+  "up": [
+   [
+    90.0,
+    110.2
+   ],
+   [
+    90.0,
+    110.2
+   ],
+   [
+    90.0,
+    110.2
+   ],
+   [
+    90.0,
+    110.2
+   ],
+   [
+    90.0,
+    110.2
+   ],
+   [
+    90.0,
+    110.4
+   ],
+   [
+    90.0,
+    110.7
+   ],
+   [
+    90.0,
+    109.9
+   ],
+   [
+    90.0,
+    109.2
+   ],
+   [
+    90.0,
+    109.2
+   ]
+  ],
+  "left": [
+   [
+    70.5,
+    120.9
+   ],
+   [
+    70.5,
+    120.9
+   ],
+   [
+    70.5,
+    120.9
+   ],
+   [
+    70.5,
+    120.9
+   ],
+   [
+    70.5,
+    120.9
+   ],
+   [
+    71.2,
+    120.9
+   ],
+   [
+    72.0,
+    120.9
+   ],
+   [
+    72.0,
+    120.2
+   ],
+   [
+    72.0,
+    119.4
+   ],
+   [
+    72.0,
+    119.4
+   ]
+  ],
+  "right": [
+   [
+    121.5,
+    116.7
+   ],
+   [
+    121.5,
+    116.7
+   ],
+   [
+    121.5,
+    116.7
+   ],
+   [
+    121.5,
+    116.7
+   ],
+   [
+    121.5,
+    116.7
+   ],
+   [
+    120.8,
+    116.7
+   ],
+   [
+    120.0,
+    116.7
+   ],
+   [
+    120.0,
+    116.0
+   ],
+   [
+    120.0,
+    115.2
+   ],
+   [
+    120.0,
+    115.2
+   ]
+  ]
+ },
+ "gripHand": "handL",
+ "design": "B + 몸에 꽂힌 화살 뽑기 (53라운드 Q29) — 재·흙 활대 + 호박 균열 · 양 끝 갑옷 조각 · 혼불 시위(유일하게 빛나는 선) · 재 화살",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_bow_B.jpg (+ 장전 연출 raw_bow_A2, 참고만)",
+ "glowRule": "53라운드 Q30: 시위 평소 A21 · 당김 A23 · 가득 A25 · 놓는 순간 A26 번쩍. 활대 균열 1px A21, 화살촉 A21→A25",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G · 흙 WD · 호박 A · 갑옷 SL · 붕대 PL, Q32)",
+ "bowLengthDots": 60,
+ "arrowLengthDots": 36,
+ "bladeLocal": [
+  {
+   "thetaDeg": 0,
+   "elevDeg": 0
+  },
+  {
+   "thetaDeg": 0.0,
+   "elevDeg": 0.0
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": 0
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": 0
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": 0
+  },
+  {
+   "thetaDeg": 0.0,
+   "elevDeg": 0.0
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": 0
+  },
+  {
+   "thetaDeg": 0.0,
+   "elevDeg": 0.0
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": 0
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": 0
+  }
+ ],
+ "bladeLocalNote": "몸 기준 무기 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). null = 대기 0 그림(휴대).",
+ "bodySheet": "player_bow_reload",
+ "timingCheck": {
+  "checked": [
+   "frameStarts",
+   "total"
+  ]
+ },
+ "includesSheath": false,
+ "carryHidden": "이 시트 동안 bow_carry_* 는 숨긴다(이 시트가 손의 활·화살을 그림).",
+ "overlay": "player_bow_reload 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
+ "stateNote": "steel 평소(균열·홈·시위 1px 은은) · glow/full/release 판정·발사(밝게) · fade 흐림 · embers 불티 · idle 대기 0 그림",
+ "reloadNote": "오른어깨 뒤에 꽂힌 자기 화살을 뽑아(f2 쥠 · f3 뽑음) 앞으로 가져와(f4·f5) 시위에 대면 재로 부서져 시위에 스민다(f6 refill · 시위 A25) → f8 시위 A23 → f9 뽑힌 자리에서 재가 메워 화살이 다시 돋음(불티). 몸 시트 f3~f8 은 그 화살을 그리지 않는다(arrowOut).",
+ "bladeTipAnchors": {
+  "down": [
+   null,
+   null,
+   [
+    94.1,
+    124.0
+   ],
+   [
+    87.4,
+    110.3
+   ],
+   [
+    96.3,
+    131.5
+   ],
+   [
+    99.9,
+    139.1
+   ],
+   null,
+   null,
+   null,
+   null
+  ],
+  "up": [
+   null,
+   null,
+   [
+    97.9,
+    116.4
+   ],
+   [
+    104.6,
+    106.8
+   ],
+   [
+    95.7,
+    108.3
+   ],
+   [
+    92.1,
+    107.1
+   ],
+   null,
+   null,
+   null,
+   null
+  ],
+  "left": [
+   null,
+   null,
+   [
+    85.2,
+    119.2
+   ],
+   [
+    89.3,
+    108.7
+   ],
+   [
+    62.9,
+    119.7
+   ],
+   [
+    50.3,
+    124.2
+   ],
+   null,
+   null,
+   null,
+   null
+  ],
+  "right": [
+   null,
+   null,
+   [
+    106.8,
+    120.5
+   ],
+   [
+    100.9,
+    111.3
+   ],
+   [
+    129.1,
+    119.5
+   ],
+   [
+    141.7,
+    121.4
+   ],
+   null,
+   null,
+   null,
+   null
+  ]
+ },
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고"
+}

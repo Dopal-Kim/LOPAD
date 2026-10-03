@@ -529,6 +529,20 @@
   }
  ],
  "bladeLocalNote": "몸 기준 무기 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). null = 대기 0 그림(휴대).",
+ "bodySheet": "player_dagger_combo2",
+ "timingCheck": {
+  "checked": [
+   "cancelAt",
+   "hitAt",
+   "total",
+   "frameStarts",
+   "activeEnd"
+  ]
+ },
+ "includesSheath": false,
+ "carryHidden": "이 시트 동안 dagger_carry_* 는 숨긴다(이 시트가 손의 단검을 그림).",
+ "overlay": "player_dagger_combo2 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
+ "stateNote": "steel 평소(균열·홈·시위 1px 은은) · glow/full/release 판정·발사(밝게) · fade 흐림 · embers 불티 · idle 대기 0 그림",
  "bladeTipAnchors": {
   "down": [
    [
@@ -635,19 +649,5 @@
    ]
   ]
  },
- "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고",
- "bodySheet": "player_dagger_combo2",
- "timingCheck": {
-  "checked": [
-   "cancelAt",
-   "hitAt",
-   "total",
-   "frameStarts",
-   "activeEnd"
-  ]
- },
- "includesSheath": false,
- "carryHidden": "이 시트 동안 dagger_carry_* 는 숨긴다(이 시트가 손의 단검을 그림).",
- "overlay": "player_dagger_combo2 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
- "stateNote": "steel 평소(균열·홈 1px 은은) · glow 판정 프레임(밝게) · fade 흐림 · embers 불티 · idle 대기 0 그림"
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고"
 }

@@ -33,10 +33,10 @@ SAYA_LEN = 38
 
 # 53라운드 Q26 칼 B '재 칼날' — 무기 16색, 전부 주인공 30색 팔레트 안(Q32 재·호박 램프 공유). 백열 코어 X 는 쓰지 않는다.
 # 날 = 검은 재(G2~G4) + 날선 1px 호박 균열(평소 A21/A19 은은 · 판정 A23/A25/A26) + 등 쪽 셀아웃(SL0)
-ASHB = [G[2], G[3], G[4], G[5]]                   # 등 그늘 · 그늘 · 본색 · 빛 쪽 재(몸보다 한 단 밝게 — 어두운 바닥·몸 위에서 날 폭이 읽히게)
+ASHB = [G[3], G[4], G[5], G[6]]                   # 등 그늘 · 그늘 · 본색 · 빛 쪽 재(53라운드 Q44: 한 단 더 밝게 · 폭 +1)
 EDGE = {"steel": (A[21], A[19]), "fade": (A[19], A[19]), "glow": (A[23], A[25]), "embers": (A[21], A[19])}
-FADE = [G[1], G[2], G[3], G[4]]
-SAYA = [OUT, G[1], G[2], G[3], G[4]]              # 금 간 재·흙 칼집: 셀아웃 · 그늘 · 본색 · 중간 · 빛 테
+FADE = [G[2], G[3], G[4], G[5]]
+SAYA = [OUT, G[2], G[3], G[4], G[5]]              # 금 간 재·흙 칼집: 셀아웃 · 그늘 · 본색 · 중간 · 빛 테(Q44 한 단 밝게)
 SEAM = [A[19], A[21]]                             # 칼집 이음매(빛나는 금, 1px)
 TSUBA = [OUT, SL[2], SL[4], SL[6]]                # 흉갑 조각 코등이(주인공 흉갑 IRON 램프)
 WRAP = [G[2], PL[1], PL[2]]                       # 붕대 감은 손잡이(어두운 틈 · 붕대 · 붕대 빛)
@@ -110,6 +110,42 @@ class Layer:
         return (nx, ny)
 
 
+def fill_blade(L, d, p0, v, length, col, width, kind, prio=0, off_fn=None):
+    """넓은 날용(53라운드 Q44 — 칼·대검·단검 공용) 래스터(줄 긋기 대신 픽셀마다 축 거리 u·법선 거리 w 를 재서 차선을 고름) — 기울어진 넓은 날에서 차선이
+    엇갈려 생기는 잔무늬(사다리·톱니)가 없다. 인자 규약은 K.Layer.stroke 와 같다(width(t) → 차선 튜플, col(t, lane, k))."""
+    dx, dy, dg = project(d, v)
+    dx, dy = dx * S, dy * S
+    Ls = math.hypot(dx, dy)
+    P0 = to_px(p0[:2])
+    if Ls * length < 1.0:                              # 카메라를 똑바로 향함 — 단면만
+        for lane in width(0.0):
+            c = col(0.0, lane, 0)
+            if c is not None:
+                L.put(P0[0], P0[1] + lane * 0.5, c, p0[2], kind, prio)
+        return
+    ax, ay = dx / Ls, dy / Ls
+    nx, ny = -ay, ax
+    if ny < 0 or (abs(ny) < 1e-6 and nx < 0):
+        nx, ny = -nx, -ny
+    span = Ls * length
+    wmax = max(max(abs(x) for x in width(t / 8.0)) for t in range(9)) + 3
+    xs = [P0[0], P0[0] + dx * length]
+    ys = [P0[1], P0[1] + dy * length]
+    for Y in range(int(min(ys) - wmax) - 1, int(max(ys) + wmax) + 2):
+        for X in range(int(min(xs) - wmax) - 1, int(max(xs) + wmax) + 2):
+            u = (X - P0[0]) * ax + (Y - P0[1]) * ay
+            if u < -0.5 or u > span + 0.5:
+                continue
+            t = max(0.0, min(1.0, u / span))
+            o = off_fn(t, Ls) if off_fn else 0.0
+            lane = int(round((X - P0[0]) * nx + (Y - P0[1]) * ny - o))
+            if lane not in width(t):
+                continue
+            c = col(t, lane, int(u))
+            if c is not None:
+                L.put(X, Y, c, p0[2] + dg * length * t, kind, prio)
+
+
 def _normal(d, v):
     dx, dy, _ = project(d, v)
     l2 = math.hypot(dx, dy) or 1e-6
@@ -174,10 +210,10 @@ def draw_katana(L, d, grip, v, state, seed=0, visible=None):
         tt = t * blen / BLADE_LEN
         if full and tt > 0.97:
             return (A[26] if state == "glow" else e0) if lane == -1 else None   # 칼끝: 날선만
-        if full and tt > 0.91 and lane >= 1:
+        if full and tt > 0.91 and lane >= 1 + int((0.97 - tt) / 0.03):
             return None                             # 칼끝 기울기(등이 날선 쪽으로 내려옴)
         if tt < 0.035:
-            return {-1: TSUBA[3], 0: TSUBA[2], 1: TSUBA[1], 2: TSUBA[0]}[lane]   # 하바키(쇠 깃)
+            return {-1: TSUBA[3], 0: TSUBA[2], 1: TSUBA[2], 2: TSUBA[1], 3: TSUBA[0]}[lane]   # 하바키(쇠 깃)
         if lane == -1:
             if state == "glow":
                 return A[26] if tt > 0.8 else (e1 if k % 2 else e0)
@@ -188,8 +224,10 @@ def draw_katana(L, d, grip, v, state, seed=0, visible=None):
             return cols[2] if k % 6 == 2 else cols[3]
         if lane == 1:
             if state == "glow":
-                return G[4]
+                return G[5]
             return cols[2] if k % 5 else cols[1]
+        if lane == 2:
+            return cols[1]
         return None if k in CHIPS else cols[0]       # 등 그늘 + 재 결손
 
     def sori(t, l2):
@@ -197,7 +235,7 @@ def draw_katana(L, d, grip, v, state, seed=0, visible=None):
         return -SORI * math.sin(math.pi * min(1.0, tt)) * min(1.0, l2 / S)
 
     if blen > 0:
-        L.stroke(d, tsuba, v, blen, blade_col, lambda t: (-1, 0, 1, 2), "blade", prio=1, off_fn=sori)
+        fill_blade(L, d, tsuba, v, blen, blade_col, lambda t: (-1, 0, 1, 2, 3), "blade", prio=1, off_fn=sori)
     draw_hilt(L, d, tsuba, (-v[0], -v[1], -v[2]))
     draw_tsuba(L, d, tsuba, v, glint=(state == "click"))
     if state == "embers" and blen > 0:

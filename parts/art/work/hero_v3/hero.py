@@ -103,6 +103,7 @@ def pose(**kw):
              footdx=(0.0, 0.0),         # 정면/뒷면: 발 화면 x 이동 (L, R)
              glow=0,                    # 균열 혼불 2 = 백열(피격·사망 직전)
              eyeOff=False, flameOff=False, flameRows=None,
+             arrowOut=False,            # 3차(활 장전): 오른어깨에 꽂힌 화살을 뽑아 든 동안 몸의 그 화살을 그리지 않음(기본 False = 이전과 픽셀 동일)
              tension=0.0)               # 2차(활): 어깨·등 긴장 0~1 — 견갑골이 등뼈 쪽으로 모이고 등 근육 능선 빛(0 이면 1차와 픽셀 동일)
     p.update(kw)
     if p["handAt"] is None:
@@ -262,7 +263,7 @@ def draw_front(p, back=False):
     U = lambda dx, y: (ux(dx, y), uy(dx, y))     # noqa: E731
 
     # --- 화살 (정면: 오른어깨 뒤에서 위·바깥으로 솟음 — 몸 뒤) -------------------
-    if not back:
+    if not back and not p["arrowOut"]:
         R.capsule(P("arrow", CLOTH, 2, flat=True, rim=False, cast=False), [U(-11, 36), U(-19.5, 23)], [0.6, 0.6])
         R.poly(P("fletch", ASH, 5, flat=True, rim=False, cast=False), [U(-19, 24), U(-22.5, 18), U(-21, 24.5)])
     details = []        # 렌더 순서와 무관한 1.5배 세부(덧칠) — 부위 위치를 모아 두었다가 마지막에 그림
@@ -357,7 +358,7 @@ def draw_front(p, back=False):
     R.poly(P("pauldron", IRON, 2, soft=1.8), pd)
     # --- 뒷면 화살 -------------------------------------------------------------
     if back:
-        for (bx, by), (tx, ty), fl in (((-8, 41), (-16, 27), -1), ((9, 49), (16, 37), 1)):
+        for (bx, by), (tx, ty), fl in (((-8, 41), (-16, 27), -1), ((9, 49), (16, 37), 1))[1 if p["arrowOut"] else 0:]:
             R.capsule(P("arrowb", CLOTH, 2, flat=True, rim=False, cast=False), [U(bx, by), U(tx, ty)], [0.6, 0.6])
             t0 = U(tx, ty)
             R.poly(P("fletchb", ASH, 5, flat=True, rim=False, cast=False), [t0, (t0[0] + m * fl * 2.5, t0[1] - 4.5), (t0[0] - m * fl * 1.0, t0[1] - 0.5)])
@@ -559,7 +560,7 @@ def draw_side(p, facing):
         R.anchors["shoulder" + side] = shj
 
     swing = p["hand"]
-    if near == "L":                                                          # 먼 쪽(오른어깨) 화살이 굽은 등 위로
+    if near == "L" and not p["arrowOut"]:                                    # 먼 쪽(오른어깨) 화살이 굽은 등 위로
         R.capsule(P("arrow_far", CLOTH, 1, flat=True, rim=False, cast=False), [U(-3.5, 37), U(-12, 24)], [0.6, 0.6])
         R.poly(P("fletch_far", ASH, 4, flat=True, rim=False, cast=False), [U(-11.5, 25), U(-14.5, 19.5), U(-12.5, 26)])
     if not p["farArmFront"]:
@@ -592,6 +593,7 @@ def draw_side(p, facing):
         ddx = -4.4 + sw * 0.6
         dy0 = 59 + b + cr
         R.poly(P("diary", DIARY, 1, soft=1.0), [(X(ddx), dy0), (X(ddx + 4.5), dy0 - 0.4), (X(ddx + 4.5), dy0 + 5.6), (X(ddx), dy0 + 6)])
+    if near == "R" and not p["arrowOut"]:
         R.capsule(P("arrow_near", CLOTH, 2, flat=True, rim=False, cast=False), [U(-3.5, 37), U(-12.5, 24)], [0.6, 0.6])
         R.poly(P("fletch_near", ASH, 5, flat=True, rim=False, cast=False), [U(-12, 25), U(-15, 19.5), U(-13, 26)])
     if p["farArmFront"]:

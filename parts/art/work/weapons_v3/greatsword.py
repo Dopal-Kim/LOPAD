@@ -1,6 +1,7 @@
 """대검 v3 — 53라운드 Q27 'A 녹슨 양손검': 갈고리(파리어하켄)가 달린 녹슨 츠바이헨더, 박힌 화살촉, 이 빠진 홈에서 새는 혼불.
 휴대(Q31): 가죽끈으로 등에 비스듬히 — 손잡이가 오른어깨 위, 날이 왼허리 뒤로. 두 손으로 쥔다(오른손 = 코등이 쪽, 왼손 = 손잡이 끝).
-치수(설계 ×1.5 = 도트): 날 44(66 도트, 리카소 7 포함) + 손잡이 10(15 도트) — 2차 몸 시트 안내선(weaponTipDots)과 같은 길이.
+치수(설계 ×1.5 = 도트): 날 60(90 도트, 리카소 9 포함, 폭 9) + 손잡이 14(21 도트) — 53라운드 Q44 '몸만한 칼'(이전 44+10).
+틀(Q45): 대검 시트만 확대 — 큰 캔버스(CANVAS)에 그린 뒤 전 시트 합집합 상자로 잘라 한 틀로 맞춘다(build.py). 피벗 = 몸 피벗 + playerFrameOffset.
 색(Q32): 16색 이하, 전부 주인공 팔레트 — 강철 G4~G8 · 녹 A18/A19 · 혼불 A21~A26 · 가죽 WD2/WD3 · 셀아웃 SL0.
 빛(Q30): 평소 홈 혼불 1px(A21) 은은, glow(판정) 프레임만 날 가장자리 A25/A23 + 홈 A26.
 """
@@ -9,13 +10,15 @@ import math
 import wv3
 from wv3 import K, Q, hero, G, A, WD, OUT, add
 
-BLADE = 44.0
-HILT = 10.0
-RIC = 7.0 / 44.0                                     # 리카소(가죽 감은 날 밑동) 비율
-NOTCH_EDGE = {(-3, 27), (-3, 28), (3, 18), (3, 19), (3, 20), (2, 19), (3, 47), (-3, 52)}   # 이 빠짐(설계 도트 칸 = t × 66)
-SOUL = {(-2, 39): 1, (-3, 38): 0, (-3, 39): 0, (-3, 40): 0, (-2, 38): 2, (-2, 40): 2, (-3, 41): 0}   # 가장 깊은 홈: 혼불(1) · 결손(0) · 데워진 쇠(2)
-STEEL = {-3: G[8], -2: G[7], -1: G[6], 0: G[5], 1: G[6], 2: G[5], 3: G[4]}   # 빛 쪽 날 · 빗면 · 면 · 홈(풀러) · 면 · 빗면 · 그늘 날
-FADE = {-3: G[6], -2: G[5], -1: G[5], 0: G[4], 1: G[5], 2: G[4], 3: G[4]}
+BLADE = 60.0
+HILT = 14.0
+RIC = 9.0 / 60.0                                     # 리카소(가죽 감은 날 밑동) 비율
+CANVAS = (448, 448)                                  # 그리는 캔버스(잘리기 전) — 몸 (96×144) 은 CANVAS_OFF 에
+CANVAS_OFF = (176, 176)
+NOTCH_EDGE = {(-4, 27), (-4, 28), (4, 18), (4, 19), (4, 20), (3, 19), (4, 47), (-4, 52), (-4, 53)}   # 이 빠짐(정규 칸 = t × 66)
+SOUL = {(-3, 39): 1, (-4, 38): 0, (-4, 39): 0, (-4, 40): 0, (-3, 38): 2, (-3, 40): 2, (-4, 41): 0}   # 가장 깊은 홈: 혼불(1) · 결손(0) · 데워진 쇠(2)
+STEEL = {-4: G[8], -3: G[7], -2: G[6], -1: G[6], 0: G[5], 1: G[6], 2: G[6], 3: G[5], 4: G[4]}   # 빛 날 · 빗면 · 면 · 면 · 홈 · 면 · 면 · 빗면 · 그늘 날
+FADE = {-4: G[6], -3: G[5], -2: G[5], -1: G[5], 0: G[4], 1: G[5], 2: G[5], 3: G[4], 4: G[4]}
 
 
 RUST = [((9, 13), (-1, 1)), ((22, 24), (0, 2)), ((33, 37), (-2, 0)), ((45, 47), (1, 2)), ((55, 58), (-1, 1))]   # 녹 얼룩(칸 구간, 차선 구간)
@@ -37,24 +40,26 @@ def draw_greatsword(L, d, grip, v, state, carry=False):
 
     def width(t):
         if t < RIC:
-            return (-1, 0, 1)
-        if t < RIC + 0.025:
-            return tuple(range(-5, 6))                 # 갈고리(파리어하켄)
-        if t < 0.84:
-            return (-3, -2, -1, 0, 1, 2, 3)
-        if t < 0.9:
             return (-2, -1, 0, 1, 2)
+        if t < RIC + 0.022:
+            return tuple(range(-7, 8))                 # 갈고리(파리어하켄)
+        if t < 0.84:
+            return tuple(range(-4, 5))
+        if t < 0.9:
+            return (-3, -2, -1, 0, 1, 2, 3)
         if t < 0.95:
+            return (-2, -1, 0, 1, 2)
+        if t < 0.98:
             return (-1, 0, 1)
         return (0,)
 
     def col(t, lane, k):
         kk = int(t * 66)
         if t < RIC:                                    # 가죽 감은 리카소
-            if lane == -1:
+            if lane == -2:
                 return WD[3] if kk % 3 else G[6]
             return WD[2] if (kk + lane) % 3 else WD[3]
-        if abs(lane) >= 4:                             # 갈고리
+        if abs(lane) >= 5:                             # 갈고리
             return G[7] if lane < 0 else G[4]
         if (lane, kk) in NOTCH_EDGE:
             return None
@@ -65,14 +70,14 @@ def draw_greatsword(L, d, grip, v, state, carry=False):
             if s == 1:
                 return A[26] if glow else A[21]
             return A[23] if glow else A[19]
-        if t >= 0.95:
+        if t >= 0.98:
             return A[26] if glow else G[7]
         if t >= 0.84 and abs(lane) == max(abs(x) for x in width(t)):
             return (A[25] if glow else G[8]) if lane < 0 else (A[21] if glow else G[4])   # 칼끝 쪽 날
         if glow:                                       # 판정: 양 날 달아오름 + 홈(풀러)에 불줄 한 줄
-            if lane == -3:
+            if lane == -4:
                 return A[25]
-            if lane == 3:
+            if lane == 4:
                 return A[23]
             if lane == 0:
                 return A[21]
@@ -86,19 +91,21 @@ def draw_greatsword(L, d, grip, v, state, carry=False):
     # 박힌 화살촉(날 그늘 쪽 가장자리, 날 길이 0.55) — 촉 2 + 부러진 화살대 + 깃
     P = hero.to_px(add(tsuba, K.project(d, v), BLADE * 0.55)[:2])
     g = tsuba[2]
-    for lane, c in ((4, G[6]), (5, G[5])):
+    for lane, c in ((5, G[6]), (6, G[5]), (5.6, G[6])):
         L.put(P[0] + nx * lane, P[1] + ny * lane, c, g, "blade", prio=2)
-    for j in range(5):
-        L.put(P[0] + nx * (6 + j) - ax * j * 0.45, P[1] + ny * (6 + j) - ay * j * 0.45, WD[3] if j % 2 == 0 else WD[2], g, "blade", prio=2)
-    for j, c in ((10, G[7]), (11, G[6])):
+    for j in range(7):
+        for w_ in (0, 0.6):
+            L.put(P[0] + nx * (7 + j + w_) - ax * j * 0.45, P[1] + ny * (7 + j + w_) - ay * j * 0.45, WD[3] if j % 2 == 0 else WD[2], g, "blade", prio=2)
+    for j, c in ((13, G[7]), (14, G[6]), (13.5, G[6])):
         L.put(P[0] + nx * j - ax * (j * 0.45 - 1.2), P[1] + ny * j - ay * (j * 0.45 - 1.2), c, g, "blade", prio=2)
     # 십자 코등이: 긴 막대(±6) + 끝이 날 쪽으로 굽음
     T = hero.to_px(tsuba[:2])
-    for lane in range(-7, 8):
+    for lane in range(-10, 11):
         top = G[8] if abs(lane) <= 1 else (G[7] if lane < 0 else G[5])
         L.put(T[0] + nx * lane, T[1] + ny * lane, top, g, "tsuba", prio=3)
         L.put(T[0] + nx * lane - ax, T[1] + ny * lane - ay, G[5] if lane < 2 else G[4], g, "tsuba", prio=3)
-    for lane in (-7, 7):
+        L.put(T[0] + nx * lane - 2 * ax, T[1] + ny * lane - 2 * ay, G[4], g, "tsuba", prio=3)
+    for lane in (-10, 10):
         L.put(T[0] + nx * lane + ax, T[1] + ny * lane + ay, G[6], g, "tsuba", prio=3)
         L.put(T[0] + nx * lane + 2 * ax, T[1] + ny * lane + 2 * ay, G[5], g, "tsuba", prio=3)
 
@@ -106,19 +113,19 @@ def draw_greatsword(L, d, grip, v, state, carry=False):
     hv = (-v[0], -v[1], -v[2])
 
     def hcol(t, lane, k):
-        if t > 0.84:
-            return {-2: G[7], -1: G[8], 0: G[6], 1: G[5], 2: G[4]}.get(lane) if (abs(lane) < 2 or 0.88 < t < 0.97) else None
+        if t > 0.86:
+            return {-3: G[7], -2: G[7], -1: G[8], 0: G[6], 1: G[5], 2: G[4], 3: G[4]}.get(lane) if (abs(lane) < 3 or 0.9 < t < 0.97) else None
         if 0.46 < t < 0.54:
             return G[6] if lane <= 0 else G[4]
         if (k + lane) % 3 == 0:
             return WD[2]
         return WD[3] if lane <= 0 else WD[2]
-    L.stroke(d, add(tsuba, K.project(d, hv), 1.5), hv, HILT, hcol,
-             lambda t: (-2, -1, 0, 1, 2) if t > 0.84 else (-1, 0, 1), "hilt", prio=2)
+    wv3.fill_blade(L, d, add(tsuba, K.project(d, hv), 1.5), hv, HILT, hcol,
+                   lambda t: (-3, -2, -1, 0, 1, 2, 3) if t > 0.86 else (-2, -1, 0, 1, 2), "hilt", prio=2)
     if carry:                                          # 등에 멘 가죽끈 고리 2개(날 위·리카소)
         for tt in (0.08, 0.6):
             C = hero.to_px(add(tsuba, K.project(d, v), BLADE * tt)[:2])
-            for lane in range(-4, 5):
+            for lane in range(-5, 6):
                 L.put(C[0] + nx * lane + ax * 0.4 * lane / 3, C[1] + ny * lane + ay * 0.4 * lane / 3,
                       WD[3] if lane < 0 else WD[2], g + 0.3, "strap", prio=4)
                 L.put(C[0] + nx * lane + ax * (1 + 0.4 * lane / 3), C[1] + ny * lane + ay * (1 + 0.4 * lane / 3),
@@ -158,7 +165,7 @@ def back_frame(d, R):
     tsuba = (c[0] + sx, c[1] + sy, gy)
     grip = add(tsuba, K.project(d, v), -2.5)
     tip = draw_greatsword(L, d, grip, v, "steel", carry=True)
-    return K.rasterize(L, R), tip
+    return wv3.rasterize(L, R, off=CANVAS_OFF, size=CANVAS), tip
 
 
 _REST = {}
@@ -188,7 +195,7 @@ def drawn_frame(d, act, i, R):
     gR = R.anchors["handR"]
     g = {"down": 2.0, "up": -2.0, "right": 6.0, "left": -6.0}[d]
     tip = draw_greatsword(L, d, (gR[0], gR[1], g), v, "steel")
-    return K.rasterize(L, R, hold_hands=("handR",)), tip
+    return wv3.rasterize(L, R, ("handR",), off=CANVAS_OFF, size=CANVAS), tip
 
 
 # =============================================================================
@@ -206,11 +213,11 @@ def gear_frame(d, name, k, R):
     grip = (gR[0], gR[1], K.to_screen(d, k["R"])[2])
     tip = draw_greatsword(L, d, grip, v, k["state"])
     hold = ("handR", "handL") if k["off"] == "two" else ("handR",)
-    return K.rasterize(L, R, hold_hands=hold), tip
+    return wv3.rasterize(L, R, hold, off=CANVAS_OFF, size=CANVAS), tip
 
 
 DESIGN = dict(design="A 녹슨 양손검 (53라운드 Q27) — 갈고리 달린 녹슨 츠바이헨더 · 박힌 화살촉 · 이 빠진 홈에서 새는 혼불 · 가죽 리카소",
               designRef="parts/art/work/gemini/concept_weapons/raw_greatsword_A2.jpg (참고만, 도트는 직접)",
               glowRule="53라운드 Q30: 평소 가장 깊은 홈 혼불 1px(A21) 은은, 판정(glow) 프레임만 날 가장자리 A25/A23 + 홈·끝 A26",
               colorBudget=16, colorNote="무기 16색 이하, 전부 주인공 30색 팔레트 안(강철 G · 녹 A18/A19 · 혼불 A · 가죽 WD, Q32)",
-              twoHanded=True, bladeLengthDots=66, hiltLengthDots=15)
+              twoHanded=True, bladeLengthDots=90, hiltLengthDots=21, sizeNote="53라운드 Q44 '몸만한 칼'(날 90 + 손잡이 21 도트, 폭 9) · Q45 대검 시트만 틀 확대 — frameWidth/frameHeight·pivot·playerFrameOffset 을 JSON 에서 읽을 것")

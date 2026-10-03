@@ -42,39 +42,28 @@ def norm3(v):
     return tuple(c / n for c in v)
 
 
-def fill_blade(L, d, p0, v, length, col, width, kind, prio=0):
-    """넓은 날용 래스터(줄 긋기 대신 픽셀마다 축 거리 u·법선 거리 w 를 재서 차선을 고름) — 기울어진 넓은 날에서 차선이
-    엇갈려 생기는 잔무늬(사다리·톱니)가 없다. 인자 규약은 K.Layer.stroke 와 같다(width(t) → 차선 튜플, col(t, lane, k))."""
-    dx, dy, dg = K.project(d, v)
-    dx, dy = dx * hero.S, dy * hero.S
-    Ls = math.hypot(dx, dy)
-    P0 = hero.to_px(p0[:2])
-    if Ls * length < 1.0:                              # 카메라를 똑바로 향함 — 단면만
-        for lane in width(0.0):
-            c = col(0.0, lane, 0)
-            if c is not None:
-                L.put(P0[0], P0[1] + lane * 0.5, c, p0[2], kind, prio)
-        return
-    ax, ay = dx / Ls, dy / Ls
-    nx, ny = -ay, ax
-    if ny < 0 or (abs(ny) < 1e-6 and nx < 0):
-        nx, ny = -nx, -ny
-    span = Ls * length
-    wmax = max(max(abs(x) for x in width(t / 8.0)) for t in range(9)) + 1
-    xs = [P0[0], P0[0] + dx * length]
-    ys = [P0[1], P0[1] + dy * length]
-    for Y in range(int(min(ys) - wmax) - 1, int(max(ys) + wmax) + 2):
-        for X in range(int(min(xs) - wmax) - 1, int(max(xs) + wmax) + 2):
-            u = (X - P0[0]) * ax + (Y - P0[1]) * ay
-            if u < -0.5 or u > span + 0.5:
+def rasterize(L, R, hold_hands=(), off=(K.OFF, K.OFF), size=(K.WF, K.WF)):
+    """K.rasterize 와 같은 규칙(몸 뒤 픽셀은 실루엣으로 지움 · 쥔 손 위 손잡이 지움)을 임의 크기 캔버스에(대검 확대 틀)."""
+    from PIL import Image
+    im = Image.new("RGBA", size, (0, 0, 0, 0))
+    po = im.load()
+    body = R.image.load()
+    hands = [hero.to_px(R.anchors[n]) for n in hold_hands if R.anchors.get(n)]
+    for (x, y), (c, gy, kind, prio) in L.px.items():
+        inside = 0 <= x < hero.FW and 0 <= y < hero.FH and body[x, y][3] > 0
+        if inside and gy < 0 and kind != "glint":
+            continue
+        if inside and kind in K.HIDE_UNDER_HAND and hands:
+            part = R.part_at(x, y) or ""
+            if part.startswith("hand") and any(math.hypot(x - hx_, y - hy) < 6.5 for hx_, hy in hands):
                 continue
-            t = max(0.0, min(1.0, u / span))
-            lane = int(round((X - P0[0]) * nx + (Y - P0[1]) * ny))
-            if lane not in width(t):
-                continue
-            c = col(t, lane, int(u))
-            if c is not None:
-                L.put(X, Y, c, p0[2] + dg * length * t, kind, prio)
+        wx, wy = x + off[0], y + off[1]
+        if 0 <= wx < size[0] and 0 <= wy < size[1]:
+            po[wx, wy] = c
+    return im
+
+
+fill_blade = K.fill_blade                         # 넓은 날 래스터(hero_v3/katana3.py — 칼·대검·단검 공용)
 
 
 # =============================================================================
@@ -135,19 +124,25 @@ BODY_ONLY = {"image", "frameWidth", "frameHeight", "pivot", "handAnchors", "anch
              "source", "weaponLocal", "weaponLocalNote", "impactOffsetPx", "unitNote", "timingCheck"}
 
 
-def to_w(pt):
-    return [round(pt[0] + K.OFF, 1), round(pt[1] + K.OFF, 1)]
+def to_w(pt, off=(K.OFF, K.OFF)):
+    return [round(pt[0] + off[0], 1), round(pt[1] + off[1], 1)]
 
 
-def write_overlay(name, imgs, ms, loop, action, weapon, hands, grip_hand, design, extra=None, body_meta=None):
-    """imgs: {dir: [RGBA 192]} · hands: {dir: [{handR, handL} 몸 도트]} → 시트·JSON. body_meta = 몸 JSON(타이밍 필드를 옮김)."""
-    im = EX.sheet(imgs, K.WF, K.WF)
+STD_FRAME = (K.WF, K.WF, K.OFF, K.OFF)             # (폭, 높이, 몸 x 오프셋, 몸 y 오프셋) — 칼·단검·활
+
+
+def write_overlay(name, imgs, ms, loop, action, weapon, hands, grip_hand, design, extra=None, body_meta=None, frame=STD_FRAME):
+    """imgs: {dir: [RGBA 틀 크기]} · hands: {dir: [{handR, handL} 몸 도트]} → 시트·JSON. body_meta = 몸 JSON(타이밍 필드를 옮김).
+    frame = (W, H, ox, oy): 피벗 = (ox + 48, oy + 138), playerFrameOffset = (ox, oy)."""
+    fw, fh, ox, oy = frame
+    piv = (ox + hero.PIV[0], oy + hero.PIV[1])
+    im = EX.sheet(imgs, fw, fh)
     im.save(os.path.join(EX.OUT_W, name + ".png"))
     n = len(ms)
     meta = {k: v for k, v in (body_meta or {}).items() if k not in BODY_ONLY and k not in EX.base("", "", 0, 0, ms, loop, (0, 0))}
-    whands = {d: [{k: to_w(v) for k, v in h.items()} for h in hands[d]] for d in DIRS}
-    data = EX.base(name + ".png", action, K.WF, K.WF, ms, loop, K.WPIV, **meta)
-    data.update(weapon=weapon, anchor="player_pivot", playerFrameOffset={"x": K.OFF, "y": K.OFF},
+    whands = {d: [{k: to_w(v, (ox, oy)) for k, v in h.items()} for h in hands[d]] for d in DIRS}
+    data = EX.base(name + ".png", action, fw, fh, ms, loop, piv, **meta)
+    data.update(weapon=weapon, anchor="player_pivot", playerFrameOffset={"x": ox, "y": oy},
                 depth={d: "above" for d in DIRS}, depthByFrame={d: ["above"] * n for d in DIRS}, occlusionBaked=True,
                 depthNote="몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
                 handAnchors=whands, gripAnchors={d: [h.get(grip_hand) for h in whands[d]] for d in DIRS},
@@ -168,12 +163,43 @@ def check_gear_timing(name, ms, body_json):
 # =============================================================================
 # 미리보기
 # =============================================================================
-def previews(name, bodies, weapons, ms, states=None, active=(), impact=None, gif=True):
-    comp = {d: [PV.compose(b, w) for b, w in zip(bodies[d], weapons[d])] for d in DIRS}
-    PV.frames_x2(name, comp, ms, impact=impact, active=active, states=states)
-    if gif:
-        PV.gif_x3(name, comp, ms)
+def compose(body, weapon, frame=STD_FRAME):
+    from PIL import Image
+    c = Image.new("RGBA", frame[:2], (0, 0, 0, 0))
+    c.alpha_composite(body, frame[2:])
+    if weapon is not None:
+        c.alpha_composite(weapon)
+    return c
+
+
+def previews(name, bodies, weapons, ms, states=None, active=(), impact=None, gif=True, frame=STD_FRAME):
+    """hero_v3/preview 의 2배·3배 미리보기를 틀 크기에 맞춰 부른다(틀 상수를 잠시 바꿈 — 칼·단검·활은 192 그대로)."""
+    comp = {d: [compose(b, w, frame) for b, w in zip(bodies[d], weapons[d])] for d in DIRS}
+    saved = (K.WF, K.OFF, PV.PIV)
+    K.WF, K.OFF = max(frame[:2]), frame[2]
+    PV.PIV = (hero.PIV[0], hero.PIV[1] + frame[3] - frame[2])
+    try:
+        PV.frames_x2(name, comp, ms, impact=impact, active=active, states=states)
+        if gif:
+            PV.gif_x3(name, comp, ms)
+    finally:
+        K.WF, K.OFF, PV.PIV = saved
     return comp
+
+
+def fit_frame(all_imgs, canvas_off, margin=2, step=8):
+    """큰 캔버스 그림들의 합집합 상자(+ 몸 사각형) → (W, H, ox, oy, 자르기 상자). W·H 는 step 배수."""
+    box = [canvas_off[0], canvas_off[1], canvas_off[0] + hero.FW, canvas_off[1] + hero.FH]
+    for imgs in all_imgs:
+        for d in DIRS:
+            for im in imgs[d]:
+                b = im.getbbox()
+                if b:
+                    box = [min(box[0], b[0]), min(box[1], b[1]), max(box[2], b[2]), max(box[3], b[3])]
+    x0, y0 = box[0] - margin, box[1] - margin
+    W = -(-(box[2] + margin - x0) // step) * step
+    H = -(-(box[3] + margin - y0) // step) * step
+    return (W, H, canvas_off[0] - x0, canvas_off[1] - y0), (x0, y0, x0 + W, y0 + H)
 
 
 def edge_px(imgs):
