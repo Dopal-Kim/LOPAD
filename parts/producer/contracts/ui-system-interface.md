@@ -339,3 +339,7 @@ interface UiRoute {
 ## 12. 50라운드 (Gemini 키아트·지도 배경 적용)
 - UI 는 `assets/sprites/ui/keyart_<region>.png`(960×540)·`map_bg_f1.png` 를 `assets/ui/` 로 복사해 쓴다(승인 #18 연장). 키아트: 노드 진입 시 지역이 바뀌면 짧은 지역 카드(키아트 + 지역 이름), M 지도 위치 패널 배경. 지도 배경: 1층 노드 지도 배경(`MAP_BG_FLOORS`), 노드 배치는 지도 그림의 길(왼쪽 황무지 → 오른쪽 위 연회장)에 맞춘다.
 - 시스템 변경 없음(`UiRouteNode.region` 사용).
+
+## 53라운드 추가 (1920 렌더 · F 넣기/뽑기)
+- **화면(52라운드 Q8)**: 실제 캔버스 1920×1080, 논리 화면 960×540. UI 씬의 main 카메라는 시스템이 씬 시작(READY) 때 zoom 2·원점 (0,0)으로 맞추므로 UI는 960×540 좌표로 그린다. 씬의 `this.scale.width/height`는 960×540으로 보인다(호환 층, 임시 — UI가 `UI_SCREEN` 상수로 옮긴 뒤 제거). `pointer.x/y`는 실제 캔버스 px — 논리 좌표는 `pointer.worldX/worldY`. `UiInteractable.screen` 등 화면 좌표는 논리 960×540 px. UI 씬은 main 카메라 zoom·origin·centerOn을 바꾸지 않는다. 코드 상수 `UI_SCREEN = { WIDTH: 960, HEIGHT: 540, RESOLUTION: 2 }`(`src/contract/ui.ts`).
+- **넣기/뽑기(51라운드 Q4)**: `UiSnapshot.carry: { drawn: boolean; firstStrike: string | null; key: 'F' } | null` — 칼·대검처럼 넣고 뽑는 무기일 때만, 손에 드는 무기(단검·활)는 null. `firstStrike` = 넣은 상태에서 준비된 첫 타 보너스 이름(예: '발도', '끌어내기'), 뽑았거나 없으면 null. 조작 안내에 F(넣기/뽑기) 추가.
