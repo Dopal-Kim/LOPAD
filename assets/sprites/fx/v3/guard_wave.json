@@ -1,61 +1,70 @@
 {
- "image": "guard_wave.png",
- "action": "guard_wave",
- "frameWidth": 256,
- "frameHeight": 128,
- "frames": 4,
- "directions": [
-  "down",
-  "up",
-  "left",
-  "right"
- ],
- "layout": "row = direction (directions order), column = frame index",
- "frameIndex": "row * frames + column",
- "fps": 15,
- "frameDurationsMs": [
-  50,
-  60,
-  70,
-  80
- ],
- "loop": false,
- "pivot": {
-  "x": 128,
-  "y": 64
- },
- "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
- "anchor": "player_pivot",
- "spawn": "guard_release",
- "depth": "below",
- "weapon": "greatsword",
- "pivotNote": "피벗 (32,16) = 발(기존 (24,14)). 반타원 반경 29 = 밀쳐내기 40px 의 ~70%.",
- "version": "v3",
- "pixelScale": 0.5,
- "paletteSwap": "none",
- "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
- "source": "parts/art/work/fx_weapons_v3/build.py",
- "colors": 13,
- "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
- "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
- "design": "대검 A 녹슨 양손검(Q27) — 녹·흙 넓은 띠 + 이 빠진 홈 혼불 한 줄(이 빠진 자리마다 끊김) + 흙먼지·불씨",
- "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
- "glowFrames": [
-  0
- ],
- "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
- "note": "v3 (53라운드 Q5): 대검 A 녹슨 양손검(Q27) — 녹·흙 넓은 띠 + 이 빠진 홈 혼불 한 줄(이 빠진 자리마다 끊김) + 흙먼지·불씨",
- "legacy": {
-  "image": "../guard_wave.png.png",
-  "frameWidth": 64,
-  "frameHeight": 32,
-  "pivot": {
-   "x": 32,
-   "y": 16
+  "image": "guard_wave.png",
+  "action": "guard_wave",
+  "version": "v3",
+  "frameWidth": 256,
+  "frameHeight": 128,
+  "pixelScale": 0.5,
+  "directions": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "layout": "row = direction (directions order), column = frame index",
+  "frames": 5,
+  "frameDurationsMs": [
+    40,
+    50,
+    60,
+    70,
+    90
+  ],
+  "loop": false,
+  "anchor": "player_pivot",
+  "spawn": "guard_release",
+  "depth": "below",
+  "weapon": "greatsword",
+  "design": "대검 A 녹슨 양손검(Q27) — 녹·흙 넓은 띠 + 이 빠진 홈 혼불 한 줄(이 빠진 자리마다 끊김) + 흙먼지·불씨",
+  "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+  "legacy": {
+    "image": "../guard_wave.png.png",
+    "frameWidth": 64,
+    "frameHeight": 32,
+    "pivot": {
+      "x": 32,
+      "y": 16
+    },
+    "pixelScale": 2,
+    "note": "가드 밀쳐내기(64×32, 기존 48×24): 발 앞 반타원(세로 0.5) 충격파 3겹(W0 테두리 · W2 용암 몸 · X1 1px 코어 점선) r10→18→25→29 + 가장자리 재 G06/G09 + 짧은 균열 2(용암 W2 → f3 W0 점). 철벽이면 ironwall 과 동시.",
+    "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+    "secondary": "fx.weapons.greatsword"
   },
-  "pixelScale": 2,
-  "note": "가드 밀쳐내기(64×32, 기존 48×24): 발 앞 반타원(세로 0.5) 충격파 3겹(W0 테두리 · W2 용암 몸 · X1 1px 코어 점선) r10→18→25→29 + 가장자리 재 G06/G09 + 짧은 균열 2(용암 W2 → f3 W0 점). 철벽이면 ironwall 과 동시.",
-  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
-  "secondary": "fx.weapons.greatsword"
- }
+  "pivotNote": "피벗 (128,64) = 발. 띠 바깥 반경 112 도트(= 논리 56) 안팎, 세로 0.5(바닥).",
+  "previous": {
+    "frames": 4,
+    "frameDurationsMs": [
+      50,
+      60,
+      70,
+      80
+    ],
+    "totalMs": 260,
+    "source": "parts/art/work/fx_weapons_v3/build.py"
+  },
+  "note": "v3 55R: 대검 A 녹슨 양손검 — 발 앞 바닥(세로 0.5)을 쓸고 나가는 녹·흙 띠 r42→112(구 판정 29×4 안팎) + 바깥 가장자리 혼불 선(이 빠진 자리 3곳에서 끊김, f0 백열 → 호박 → 점선) + 띠 끝·뒤에서 피는 재 먼지 + 앞으로 튀는 재 조각·불씨 → f4 먼지만 남아 꺼짐.",
+  "pivot": {
+    "x": 128,
+    "y": 64
+  },
+  "glowFrames": [
+    0
+  ],
+  "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
+  "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
+  "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
+  "source": "parts/art/work/fx_v3/build_feel.py",
+  "colors": 14
 }

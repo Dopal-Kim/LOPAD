@@ -1,0 +1,50 @@
+{
+  "image": "ribbon_ash.png",
+  "action": "ribbon",
+  "version": "v3",
+  "frameWidth": 64,
+  "frameHeight": 3,
+  "pixelScale": 0.5,
+  "directions": [
+    "any"
+  ],
+  "layout": "row = direction (directions order), column = frame index",
+  "frames": 4,
+  "frameDurationsMs": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "loop": false,
+  "pivot": {
+    "x": 0,
+    "y": 1
+  },
+  "anchor": "ribbon",
+  "spawn": "weapon_swing",
+  "depth": "above",
+  "ribbon": {
+    "axis": "x = 꼬리(0) → 머리(63, 칼끝 쪽)",
+    "widthDots": 3,
+    "ageFrames": [
+      0,
+      33,
+      66,
+      100
+    ],
+    "ageNote": "프레임 = 나이: 0 갓 그려짐(머리 A25) → 1 한 단 식음 → 2 두 단 → 3 재만 남음. 리본 전체 수명 100ms(55라운드 Q7) 안에서 시스템이 나이에 맞춰 프레임을 바꾸거나, 리본 점마다 나이를 다르게 (머리 쪽 점은 frame 0, 꼬리 쪽 점은 frame 3) 써도 된다.",
+    "uMode": "stretch",
+    "uNote": "Phaser Rope 등으로 칼끝 궤적 점들에 가로 방향을 늘여 붙인다(최근접 필터, 반투명 없음). 칼끝 2~3도트 폭(Q7) — 세로는 늘이지 않는다. 도트 궤적(연격 시트)을 가리지 않게 연격 시트 아래 깊이 권장.",
+    "noAlpha": "반투명 금지 — 끝 소멸은 체크 디더 구멍과 색 단계로 표현(알파 페이드 쓰지 않음)."
+  },
+  "note": "55라운드 Q7 칼끝 잔상 리본 텍스처(3도트 폭) — 가는 호박 선이 100ms 안에 재색으로 식으며 소멸. 가로 그라데이션(꼬리 재 → 머리 호박 A25), 가장자리 줄은 꼬리 쪽이 짧아 끝이 뾰족, 꼬리 끝은 체크 디더 구멍. 반투명 0.",
+  "glowFrames": [],
+  "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
+  "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
+  "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
+  "source": "parts/art/work/fx_v3/build_feel.py",
+  "colors": 8
+}

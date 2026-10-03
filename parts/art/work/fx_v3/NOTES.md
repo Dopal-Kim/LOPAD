@@ -110,3 +110,70 @@
 
 - `build.py json_for`: 19종 JSON 전부 `"paletteSwap": "none"` + `paletteSwapNote`, palette 문구 'floor 1 accent 16-27 runtime swap' → '… hex, fixed'. `blood` note 의 '런타임 스왑' 문구 정정. PNG 는 바이트 동일(md5 확인, `build()` 만 다시 실행 — 미리보기 재생성 안 함).
 - 결과: 피·예고·적 탄·보스 이펙트도 층마다 색이 바뀌지 않는다(1층 호박 hex 고정). 무기 이펙트 쪽 기록은 `fx_weapons_v3/NOTES.md` 10절.
+
+## 9. 55라운드 작업 B — 타격감·움직임 이펙트 (Q1·Q7·Q8, 데드셀 참조)
+
+재현: `python3 parts/art/work/fx_v3/build_feel.py` (18장, 약 7초, 결정적 — 두 번 빌드해 PNG md5 같음) · `build_feel.py hit_katana …`(그 시트만).
+미리보기: `python3 parts/art/work/fx_v3/feel_preview.py [hits|particles|ribbon|mock|motion]` → `feel/`.
+모듈: `feel_kit.py`(팔레트·검사·JSON) · `feel_hits.py`(적중 스파크 8) · `feel_particles.py`(재 입자·리본) · `feel_motion.py`(움직임 7) · `build_feel.py` · `feel_preview.py`.
+- 팔레트: `lopad.json fx.v3_weapon_fx`(재 S0~S3·B0~B3 + 호박 A17~A26 + X0/X1)만. 빌드 assert: 이 밖의 색 0, 시트당 14색 이하, 반투명 0, **glowFrames 밖 프레임에 X0·X1·A26 없음**(Q65·Q66).
+- `dash_trail`·`dash_dust`·`parry_flash` 는 이 빌드로 옮겼다 — `build.py` SPECS 에서 뺌(다시 돌려도 55R 판을 덮어쓰지 않음, 옛 그림 함수는 `MOVED_55` 로 보관).
+- 움직임 7장은 의미 필드(anchor·spawn·depth·tint·flash·progressDriven·weapon·legacy…)를 **`feel/before/` 스냅숏 JSON** 에서 옮긴다(스냅숏 = 55R 직전 판). 스냅숏을 지우지 말 것.
+- **주의(작업 A 와의 경계)**: `guard_wave`·`ironwall`·`shadowstep_ghost`·`aim_charge` 는 `fx_weapons_v3/build.py` 도 만든다. 그쪽 전체 빌드를 다시 돌리면 이 판이 덮인다 → 그쪽 SPECS 에서 빼거나 이 빌드를 마지막에 다시 돌린다(메인 조정 필요).
+
+### 9.1 적중 스파크 `hit_<weapon>` / `hit_<weapon>_heavy`
+로컬 좌표: 원점 = 적중점(피벗), +x = 공격 방향(`rotate: true`, `drawnFacing: "right"`, `flipY: "allowed"`). 중력 표현 없음(어느 각도로 돌려도 됨) — 떨어지는 재는 입자가 맡는다. f0~f1 = 백열, f2~ = 재·호박(A25 이하).
+
+| 시트 | 크기 | 피벗 | 프레임 ms | 색 | 모양 |
+|---|---|---|---|---|---|
+| hit_katana | 128×112 | (48,56) | 30·40·50·60·70 | 12 | 가는 사선 섬광(62°) + 앞 바늘 → 선이 갈라져 미끄러짐 + 좁은 원뿔 불티 |
+| hit_katana_heavy | 192×160 | (72,80) | 30·40·50·60·70·90 | 12 | X 베기 + 앞쪽 초승달 충격 호 + 불티 12 |
+| hit_greatsword | 128×128 | (52,64) | 40·50·60·70·90 | 14 | 쐐기 광선 → 앞이 굵은 타원 충격 고리 + 먼지 덩이 + 큰 재 조각 |
+| hit_greatsword_heavy | 192×192 | (76,96) | 40·50·60·70·90·110 | 14 | 광선 11 → 굵은 고리 + 바깥 쐐기 + 먼지 띠 7 + 재 조각 12 |
+| hit_dagger | 104×80 | (30,40) | 30·40·40·50 | 9 | 8점 별이 공격 방향으로 하나씩 이어 터짐(45° 회전해도 별) |
+| hit_dagger_heavy | 128×96 | (36,48) | 30·40·40·50·60 | 9 | 큰 별 + 관통 바늘 → 별 부채 3 → 바깥 별 4 |
+| hit_bow | 128×80 | (44,40) | 30·40·50·60 | 12 | 뒤에서 들어온 화살 줄기 → 앞이 볼록한 파열 호 + 재 화살대 파편 |
+| hit_bow_heavy | 192×112 | (60,56) | 30·40·50·60·80 | 13 | 긴 줄기 + 두 겹 파열 호 + 관통 구멍 고리 + 파편 10 |
+
+크기 근거: 일반 = 구 hit_burst 24 / crit_burst 32 의 ×4(96~128) 안, 막타 = ×4 의 1.5배 안팎(192). JSON: `hitstopMs`(Q6 값, 막타 ×1.8)·`holdFrame: 0`(히트스톱 동안 멈출 프레임)·`shakeHint`(대검·막타만, 임시)·`useFor`·`replaces: hit_burst`·`particles`(입자 묶음 참조).
+
+### 9.2 재 파편 입자 `particles_ash` (16×16 칸 23개 한 줄)
+| kind | 프레임 | 구동 | 수명 ms | 중력(논리 px/s²) |
+|---|---|---|---|---|
+| ash_s | 0–1 | loop 80ms | 500–900 | 120 |
+| ash_m | 2–5 | loop 90ms | 600–1100 | 90 |
+| ash_l | 6–9 | loop 110ms (+흔들림 6px·2Hz) | 800–1400 | 50 |
+| ash_curl | 10–13 | loop 70ms (호박 테두리 깜빡) | 700–1200 | −15(살짝 오름) |
+| ember_s | 14–16 | life(식음) | 180–380 | 260 |
+| ember_m | 17–19 | life | 250–450 | 200 |
+| ember_streak | 20–22 | life, rotate(진행 방향) | 120–260 | 300 |
+JSON `kinds`(frames·frameMode·lifeMs·speedPxPerSec·gravityPxPerSec2·dragPerSec·frameMs) + `recipes`(적중 시트별 개수·coneDeg). 값은 아트 임시 제안.
+
+### 9.3 칼끝 잔상 리본 `ribbon_ash`(64×3) · `ribbon_ash_thin`(64×2), 4프레임 = 나이 0·33·66·100ms
+가로 = 꼬리(재 B1) → 머리(호박 A25). 가장자리 줄은 꼬리 쪽이 짧아 끝이 뾰족, 꼬리 끝은 체크 디더 구멍(반투명 대신). 나이마다 한 단 식고 꼬리가 짧아짐 → f3 재만. 시스템은 Rope 등으로 가로만 늘여 붙인다(최근접, 세로 그대로). 연격 시트 아래 깊이 권장.
+
+### 9.4 움직임·행동 이펙트 개선 (프레임·ms 변경 표)
+| 시트 | 이전 | 55R | 크기·피벗 | 바뀐 점 |
+|---|---|---|---|---|
+| dash_trail | 3f 40·60·80 | **4f 30·40·50·70** | 96×144 (48,138) 그대로 | 어두운 재 몸 + 호박 균열 자리 유지 → 이동 줄 빠짐·뒤로 끌리는 재 꼬리 → 재 조각·불씨만. tint 규칙 그대로 |
+| dash_dust | 3f 50·70·90 | **4f 40·50·60·80** | 96×48 (48,36) 그대로 | 바닥 긁힘 2줄 + 뒤로 작아지는 먼지 5 + 낮게 튀는 알갱이 → 어두운 덩이로 꺼짐 |
+| parry_flash | 5f 40·50·60·80·100 | **6f 30·40·50·60·80·100** | 192×192 (96,96) 그대로 | 가로 렌즈 줄 + 백열 코어 → 두꺼운 충격 고리 + 휘어 나가는 불티 → 고리 세 토막 + 글린트 → 점선 → 불씨·재. flash 필드 그대로 |
+| guard_wave | 4f 50·60·70·80 | **5f 40·50·60·70·90** | 256×128 (128,64) 그대로 | 녹·흙 띠 + 이 빠진 혼불 선(3곳 끊김) + 먼지 + 재 조각 |
+| ironwall | 4f 40·50·70·90 | **5f 40·50·60·80·100** | 256×256 (128,168) 그대로 | 녹슨 칼판 6장(끝 뾰족·녹 반점, 좌우는 비스듬히) + 혼불 균열 + 바닥 물결 → 톱니로 부서짐. **`depthByDirection: {up: below}` 새 필드** |
+| shadowstep_ghost | 3f 60·80·100 | **4f 50·60·80·100** | 96×144 (48,138) 그대로 | 재 껍데기 + 호박 금 → 발부터 비며 떠오름, 금은 공중에 남음 → 금 토막·재 |
+| aim_charge | 6f 100×6 | 6f 100×6 (그대로) | 128×128 (64,64) 그대로 | 혼불 실 고리 + 머리 불씨 + 빨려 드는 불씨 줄기 + 재 알갱이 → f5 백열 고리·별·불티. 진행도 공식 그대로 |
+각 JSON `previous` 에 이전 프레임·ms·총 시간. 총 시간 변화: dash_trail 180→190, dash_dust 210→230, parry 330→360, guard 260→310, ironwall 250→330, shadowstep 240→290ms.
+
+### 9.5 자기 비평 (see → critique → fix)
+1회차(×2 나열·8각 회전 시험·1배 목업): 칼 선이 프레임 위아래에서 잘림 → 칼 112·막타 160 으로 높임 / 대검 f1 이 '점 찍힌 O', 막타는 '눈알' → 앞이 굵은 타원 초승달 + 바깥 쐐기, 안쪽 고리 삭제 / 대검 f4 먼지 테두리 호가 '새' 모양 → 작은 어두운 덩이 / 단검 4점 별이 45° 회전에서 X 로 바뀌고 1배에서 너무 작음 → 8점 별·1.3배 / 활 f1 피벗의 네모 도장 삭제.
+2회차(움직임 전후 비교): 대쉬 잔상이 갈색 판지 → 몸 B0/B1 로 어둡게, 상하 대쉬 끌림 줄이 머리카락 → 1/3 만·짧게 / 철벽이 납작한 '옷장'·띠 무늬·측면 막대 → 칼판 6장(뾰족·녹 반점)·체크 디더 경계·좌우 비스듬히·톱니 붕괴 / 대쉬 먼지 알갱이가 세로 막대라 '버섯' → 낮게 튀는 2~3도트 조각 / 조준 불씨가 긴 바늘처럼 흩어짐 → 짧게 휜 어두운→밝은 줄기 / 재 입자 대비 부족 → 윗모서리 S3.
+3회차(1배 장면 목업 `feel/scene_mock_1x.png`): 크기·판독 확인, 철벽 밑동 먼지가 기울인 벽을 따르지 않음 → 벽 밑선을 따라 배치.
+
+### 9.6 남은 약점
+1. 회전형 시트는 최근접 회전이라 비스듬한 각도에서 선 가장자리가 계단진다(Phaser pixelArt 와 같음).
+2. 대쉬 잔상은 따뜻한 재(갈색)라 차가운 회색 주인공과 색온도가 다르다 — tint 노드 때는 덮인다.
+3. 철벽 위(up) 방향은 depth 를 방향별로 나눠야 자연스럽다(`depthByDirection` 을 시스템이 읽어야 함).
+4. 입자 권장값은 미리보기 시뮬레이션(`feel/particles_burst_sim_x2.png`)으로만 확인 — 게임에서 조정 필요.
+
+### 9.7 미리보기
+`feel/hits_compare_x2.png`(4무기 일반·막타) · `feel/hits_rotated_x1.png`(8각 회전) · `feel/hits_mock_1x.png` · `feel/gif/hits_4weapons_1x.gif` · `feel/gif/hit_*_x2.gif` · `feel/particles_ash_x8.png` · `feel/particles_burst_sim_x2.png` · `feel/ribbon_ash_x12.png`(확대 + 휘두름 호 위 목업) · `feel/scene_mock_1x.png` · `feel/motion/cmp_<name>_x{1,2}.png`(전 위 / 후 아래) · `feel/motion/ba_<name>_<dir>_x{1,2}.gif`(전 | 후, 실제 ms).

@@ -12,32 +12,19 @@
     "right"
   ],
   "layout": "row = direction (directions order), column = frame index",
-  "frameIndex": "row * frames + column",
-  "fps": 14,
+  "frames": 4,
   "frameDurationsMs": [
+    40,
     50,
-    70,
-    90
+    60,
+    80
   ],
   "loop": false,
-  "pivot": {
-    "x": 48,
-    "y": 36
-  },
-  "frames": 3,
-  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
   "anchor": "player_pivot",
   "spawn": "dash_start",
   "depth": "below",
   "followsPlayer": false,
   "weapon": "any",
-  "note": "v3: 재 먼지(주인공 재 회색 램프) 덩이 4개 — 발 뒤로 퍼지며 윗면만 밝은 둥근 덩이 → 테두리 호만 남고 사라짐 + 끝이 뾰족한 흙 알갱이 줄기 5. 보조색·강조색 없음.",
-  "source": "parts/art/work/fx_v3/build.py",
-  "paletteSwap": "none",
-  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). 층 강조 램프 hex 가 들어 있어도 그대로 그린다.",
-  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다 — 단 이 시트는 주인공 v3(1.5배)에 맞춰 1.5배.",
-  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
-  "pivotNote": "피벗 (48,36) = 주인공 발 접지점(구 (8,6)×6 — 주인공 1.5배에 맞춤).",
   "legacy": {
     "image": "../dash_dust.png",
     "frameWidth": 16,
@@ -49,5 +36,28 @@
     "pixelScale": 2,
     "note": "대쉬 출발 먼지(무채 G06/G09/G12, 42라운드 결정: 유지). 출발 위치(고정) 발 피벗에, 방향 = 대쉬 방향(먼지는 반대쪽). 바닥 깊이. 모든 무기 공통, 보조색 없음."
   },
+  "pivotNote": "피벗 (48,36) = 주인공 발 접지점(구 (8,6)×6 — 주인공 1.5배에 맞춤).",
+  "previous": {
+    "frames": 3,
+    "frameDurationsMs": [
+      50,
+      70,
+      90
+    ],
+    "totalMs": 210,
+    "source": "parts/art/work/fx_v3/build.py"
+  },
+  "note": "v3 55R: 주인공 1.5배(×6). f0 발 뒤 바닥 긁힘 2줄 + 작은 먼지 3덩이 + 알갱이 → f1~f2 뒤로 작아지는 재 먼지 5덩이(윗면 밝게, 상하 대쉬는 V 자) + 뒤·위로 튀는 알갱이 → f3 어두운 작은 덩이로 꺼짐.",
+  "pivot": {
+    "x": 48,
+    "y": 36
+  },
+  "glowFrames": [],
+  "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
+  "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
+  "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
+  "source": "parts/art/work/fx_v3/build_feel.py",
   "colors": 6
 }

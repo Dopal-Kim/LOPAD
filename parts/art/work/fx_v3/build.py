@@ -31,8 +31,8 @@ K = 4  # old pixelScale 2 -> v3 0.5 : dots x4 (same on-screen size)
 
 # name -> (builder, dot scale vs old, extra JSON edits)
 SPECS = {
-    "dash_dust": (D.dash_dust, 6),                           # hero-attached: x6
-    "dash_trail": (lambda: D.dash_trail(HERO_DASH), None),   # hero v3 body
+    # dash_dust · dash_trail · parry_flash → 55라운드 build_feel.py 로 옮김(프레임 수 변경, NOTES 9절).
+    # 여기서 다시 만들면 55R 판을 덮어쓰므로 SPECS 에서 뺐다(옛 그림 재현은 fx_defs 함수 그대로 남김).
     "knock_dust": (D.knock_dust, K),
     "hit_burst": (D.hit_burst, K),
     "hit_spark": (None, K),                                  # alias of hit_burst
@@ -49,8 +49,8 @@ SPECS = {
     "soul_wisp": (D.soul_wisp, K),
     "birth_dust": (D.birth_dust, K),
     "fire_pool": (D.fire_pool, K),
-    "parry_flash": (D.parry_flash, K),
 }
+MOVED_55 = {"dash_dust": D.dash_dust, "dash_trail": D.dash_trail, "parry_flash": D.parry_flash}
 
 # per-sheet notes / length-field edits (dots of the v3 sheet)
 NOTES = {
@@ -321,7 +321,7 @@ def preview_gif(name, d=0, size=None, pad=8):
 
 
 GIFS = ["hit_burst", "crit_burst", "boss_slam", "fire_pool", "soul_wisp",
-        "telegraph_aura", "parry_flash", "blood"]
+        "telegraph_aura", "blood"]
 
 
 if __name__ == "__main__":

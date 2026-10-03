@@ -1,0 +1,58 @@
+{
+  "image": "hit_greatsword_heavy.png",
+  "action": "hit_heavy",
+  "version": "v3",
+  "frameWidth": 192,
+  "frameHeight": 192,
+  "pixelScale": 0.5,
+  "directions": [
+    "any"
+  ],
+  "layout": "row = direction (directions order), column = frame index",
+  "frames": 6,
+  "frameDurationsMs": [
+    40,
+    50,
+    60,
+    70,
+    90,
+    110
+  ],
+  "loop": false,
+  "pivot": {
+    "x": 76,
+    "y": 96
+  },
+  "anchor": "hitbox_center",
+  "spawn": "hit",
+  "depth": "above",
+  "rotate": true,
+  "drawnFacing": "right",
+  "flipY": "allowed",
+  "weapon": "greatsword",
+  "variant": "heavy",
+  "useFor": "막타(연격 마지막 타)·치명타 — 같은 무기의 hit_<weapon> 대신",
+  "replaces": "hit_burst (무기별로 바꿔 씀, 파일이 없으면 hit_burst)",
+  "design": "두 겹 충격 고리 + 큰 먼지 띠 — 쐐기 광선 11 → 굵은 고리 + 안쪽 고리 + 먼지 덩이 7 + 큰 재 조각 12",
+  "hitstopMs": 144,
+  "hitstopNote": "55라운드 Q6 무기별 히트스톱(막타·치명타 ×1.8) 참고값. 히트스톱 동안 이 시트는 holdFrame 에 멈춰 두기를 권장(판정 순간 백열이 보이도록).",
+  "holdFrame": 0,
+  "pivotNote": "피벗 (76,96) = 적중점. 시스템은 공격 방향 각도(근접 = 주인공→적 중심, 활 = 화살 진행 각)으로 회전한다. flipY 는 위아래 뒤집기 허용(칼은 연격 홀·짝 휘두름 방향에 맞추면 자연스럽다). 중력 표현이 없어 어느 각도로 돌려도 된다.",
+  "particles": "particles_ash recipes.hit_greatsword_heavy 참고(시스템 입자 발생기).",
+  "shakeHint": {
+    "px": 4,
+    "ms": 90,
+    "note": "55라운드 Q8 화면 흔들림(막타·대검·치명타만 짧게) — 값은 아트 임시 제안, 시스템 판단."
+  },
+  "glowFrames": [
+    0,
+    1
+  ],
+  "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
+  "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
+  "paletteSwap": "none",
+  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
+  "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
+  "source": "parts/art/work/fx_v3/build_feel.py",
+  "colors": 14
+}
