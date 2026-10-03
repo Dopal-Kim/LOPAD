@@ -155,3 +155,18 @@
 - 지역 타일셋 `tiles/v2/stage1_<waste|gate|brewery|hall>` 은 §9·§12 키 그대로 + `decals[]`(바닥 위·소품 아래, 통과)·`border`(테두리 경로)·양조 `canal`.
 - `canal`: `frames` 를 `frameMs` 로 순환, 다리(`bridge.left/right`)만 걷기 가능, 수로 칸은 걷기 막힘·**투사체 통과**(53라운드 Q51), 다리 좌우 `litNearBridge` 칸은 `framesLit`.
 - 적 v3: `sprites/enemies/v3/<id>_<동작>`, `pixelScale 0.5`, 크기는 적마다 다를 수 있음(결사병 128×176, 피벗 (64,170)). 추가 필드 `phaseFrames`·`phaseStartMs`·`impactFrame`·`fireFrame`·`muzzleAnchors`·`hammerFaceAnchors`·`flashFrame`·`emissiveColors`(판정은 기존 data 기준, 참고용).
+
+## 15. 54라운드 1층 보스 '만취' v3 시트 · 보스방 소품
+- 근거: `decisions/2026-10-03-round-54-boss1-patterns.md`.
+- 경로 `sprites/bosses/v3/stage1_<동작>.png/.json`, 128×192 도트, `pixelScale: 0.5`(화면 64×96), 피벗 = 발 중앙(JSON `pivot`), 4방향(기존 보스 시트 방향 규칙). 우선순위 v3 → 구 `bosses/stage1_*`(동작 단위 대체). 색: 주인공·적 v3 규칙(시트당 40색 이하 권장), 술은 호박 계열.
+- 동작과 JSON 이벤트 키(시스템이 읽음, 없으면 시스템 임시 타이밍):
+  - `idle`·`walk`·`hurt`·`death`(기존과 같은 의미)
+  - `attack`(돌진 준비·돌진, `phaseFrames`), `slam`(`impactFrame`)
+  - `drink`(큰 잔 들기→들이켜기 루프→다 마심, `phaseFrames: {lift, gulp, finish}`, 프레임별 `cupAnchors {x,y,w,h}` = 약점 잔 판정 사각형)
+  - `drink_break`(잔이 깨지고 술을 뒤집어씀 → 비틀 경직 루프)
+  - `stagger_dash`(비틀 돌진 몸 기울기, 예고·돌진 프레임 `phaseFrames`)
+  - `fall`(넘어짐→누워 있음 루프→일어남, `phaseFrames: {fall, down, rise}`)
+  - `kick`(술통 걷어차기, `impactFrame`, `footAnchors`)
+  - `throw`(술 뿌리기·횃불 던지기, `releaseFrame`, `handAnchors`)
+  - `phase_drink`(페이즈 전환 들이켜기, 선택 — 없으면 `drink` 재사용)
+- 보스방 소품(연회장 `stage1_hall_props` v3 시트 확장 또는 별도 시트): 기둥(solid, 2×2 발자국 권장), 촛대 상태 `lit`/`fallen_unlit`/`relit`(쓰러지면 통과), 굴러가는 술통(회전 프레임), 횃불 투사체, 잔 파편·술 튀김 fx(`fx/v3`, `paletteSwap: "none"`).
