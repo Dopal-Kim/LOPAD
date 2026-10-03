@@ -1,0 +1,216 @@
+{
+ "image": "dagger_combo3_gale.png",
+ "action": "dagger_combo3_gale",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "frames": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 18,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 128,
+  "y": 168
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "source": "parts/art/work/fx_weapons_v3/build.py",
+ "weapon": "dagger",
+ "comboIndex": 3,
+ "comboLength": 3,
+ "nextCombo": null,
+ "hitFrames": [
+  1
+ ],
+ "activeFrames": [
+  1
+ ],
+ "cancelFromFrame": null,
+ "framesBasis": "player_dagger_combo3 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 60,
+  "cancelAt": null,
+  "total": 280
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트(구 10px ×4)",
+ "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
+ "thrust": {
+  "lengthPx": 112,
+  "widthPx": 40,
+  "angleDeg": 0,
+  "fromPx": 16
+ },
+ "thrustNote": "몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 방향 변환은 호와 같은 규약",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "impactFrame": 1,
+ "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
+ "depth": "above",
+ "pivotNote": "피벗 (32,42) = 발. 호·찌르기 원점 = 몸 중심 (32,32) (발 위 10px).",
+ "shake": {
+  "px": 1,
+  "ms": 40
+ },
+ "branch": "gale",
+ "branchLabel": "질풍",
+ "branchTier": 1,
+ "baseSheet": "fx/dagger_combo3",
+ "replaces": "fx/dagger_combo3 대신 재생 — 크기·피벗·프레임 수·ms·anchor·spawn·impactFrame·hitFrames 등 메모 전부 기본 시트와 같다",
+ "secondaryVariants": {
+  "afterimage": {
+   "label": "잔상",
+   "colorSwap": [
+    {
+     "from": "#ffffff",
+     "to": "#eecc78",
+     "fromSlot": "X0",
+     "toSlot": "hero.A25",
+     "role": "백열 끝 → 호박(잔상 쪽으로 빛이 옮겨감)"
+    },
+    {
+     "from": "#fff4dc",
+     "to": "#eecc78",
+     "fromSlot": "X1",
+     "toSlot": "hero.A25",
+     "role": "백열 둘레 → 호박"
+    }
+   ],
+   "trailOverride": {
+    "color": "#8b4d22",
+    "alpha": 0.6,
+    "ms": 160,
+    "fromFrame": 1
+   }
+  },
+  "assassin": {
+   "label": "암살",
+   "colorSwap": [
+    {
+     "from": "#e2a33c",
+     "to": "#eecc78",
+     "fromSlot": "hero.A23",
+     "toSlot": "hero.A25",
+     "role": "바람 줄기 한 단 밝게"
+    },
+    {
+     "from": "#f4de9b",
+     "to": "#eecc78",
+     "fromSlot": "hero.A26",
+     "toSlot": "hero.A25",
+     "role": "섬광 끝 고르게"
+    }
+   ]
+  }
+ },
+ "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음).",
+ "heatVariants": {
+  "note": "가열 heat1~3 을 갈래 시트에 겹칠 때: 별도 heat 시트 없이 아래 colorSwap + playbackRateHint(기존 1.15/1.3/1.5). 한 단계 안의 여러 치환은 동시 적용(순차 아님).",
+  "colorSwap": {
+   "1": [
+    {
+     "from": "#8b4d22",
+     "to": "#d67a11",
+     "fromSlot": "hero.A19",
+     "toSlot": "hero.A21",
+     "role": "식은 금 → 혼불"
+    }
+   ],
+   "2": [
+    {
+     "from": "#8b4d22",
+     "to": "#d67a11",
+     "fromSlot": "hero.A19",
+     "toSlot": "hero.A21",
+     "role": "식은 금 → 혼불"
+    },
+    {
+     "from": "#d67a11",
+     "to": "#e2a33c",
+     "fromSlot": "hero.A21",
+     "toSlot": "hero.A23",
+     "role": "심 한 단 밝게"
+    }
+   ],
+   "3": [
+    {
+     "from": "#8b4d22",
+     "to": "#d67a11",
+     "fromSlot": "hero.A19",
+     "toSlot": "hero.A21",
+     "role": "식은 금 → 혼불"
+    },
+    {
+     "from": "#d67a11",
+     "to": "#e2a33c",
+     "fromSlot": "hero.A21",
+     "toSlot": "hero.A23",
+     "role": "심 한 단 밝게"
+    },
+    {
+     "from": "#e2a33c",
+     "to": "#eecc78",
+     "fromSlot": "hero.A23",
+     "toSlot": "hero.A25",
+     "role": "금 → 밝은 혼불"
+    },
+    {
+     "from": "#5c554e",
+     "to": "#d67a11",
+     "fromSlot": "hero.ash.S1",
+     "toSlot": "hero.A21",
+     "role": "재 몸 → 달군 몸"
+    }
+   ]
+  },
+  "playbackRateHint": {
+   "1": 1.15,
+   "2": 1.3,
+   "3": 1.5
+  }
+ },
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "colors": 10,
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "단검 B 재 송곳니(Q28) — 백열 끝 바늘 찌르기 + 공중에 남는 호박 금 → 재로 떨어짐",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
+ "branchDesignV3": "gale  질풍 = 바람 줄기: 가는 본 바늘 + 몸 옆에서 촉으로 모여드는 1px 재 바람 줄기(혼불 결) → 다음 프레임 앞으로 밀려남",
+ "note": "v3 (53라운드 Q5): gale  질풍 = 바람 줄기: 가는 본 바늘 + 몸 옆에서 촉으로 모여드는 1px 재 바람 줄기(혼불 결) → 다음 프레임 앞으로 밀려남",
+ "legacy": {
+  "image": "../dagger_combo3_gale.png.png",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "pivot": {
+   "x": 32,
+   "y": 42
+  },
+  "pixelScale": 2,
+  "thrust": {
+   "lengthPx": 28,
+   "widthPx": 10,
+   "angleDeg": 0,
+   "fromPx": 4
+  },
+  "note": "질풍 = 바람 줄기: 가는 본 줄기 + 양옆 1px 바람 줄기(완만한 물결, 뒤 어둡고 앞 밝음)가 앞으로 밀려나며 길어지고, 촉 너머로 이어지는 바람 한 줄. 3타는 바람 3→4줄.",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+  "secondary": "fx.weapons.dagger"
+ }
+}

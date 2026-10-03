@@ -76,6 +76,10 @@ def gear_jobs(weapon, mod, names, carry_hidden):
             pairs = [mod.gear_frame(d, name, f[4], f[1]) for f in r["frames"][d]]
             imgs[d] = [p[0] for p in pairs]
             tips[d] = [None if p[1] is None else hero.to_px(p[1]) for p in pairs]
+        if weapon == "greatsword":                  # 53라운드 Q55: 칼끝이 바닥 아래로 들어가지 않음(내리찍기 박힘 구간 제외)
+            planted = {4, 5} if name == "greatsword_slam" else set()
+            for k, _, oi in Q.expand(name)[0]:
+                assert k == Q.IDLE or oi in planted or Q.gs_tip_z(k) >= 0, (name, oi, round(Q.gs_tip_z(k), 1))
         wname = Q.OLD_WEAPON[name]
         imgs[DIRS[0]][0].save(os.path.join(EX.OUT_W, wname + ".png"))   # 자리표(몸 JSON 이 weaponOverlayV3 를 걸게) — flush 가 덮어씀
         _, data = wv3.E2.export_gear(name, r)
@@ -118,6 +122,21 @@ def flush(weapon, mod, jobs):
     return frame
 
 
+GS_END_JUMP_MAX = 11.0                              # 도트 — 연격 끝 칼끝 ↔ 뽑아 든 휴대 대기 0 칼끝 (Q55, 측면·정면 공통)
+
+
+def check_gs_end(jobs):
+    """53라운드 Q55: 연격·특수 끝 프레임 칼끝이 greatsword_carry_drawn_idle 0 칼끝과 가까워 휴대로 넘어갈 때 날이 튀지 않음."""
+    by = {j["name"]: j for j in jobs}
+    ref = by["greatsword_carry_drawn_idle"]["tips"]
+    for n in ("greatsword_combo1", "greatsword_combo3", "greatsword_dashslash", "greatsword_slam", "greatsword_special"):
+        for d in DIRS:
+            a, b = by[n]["tips"][d][-1], ref[d][0]
+            dist = ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+            print("  Q55 end tip", n, d, round(dist, 1))
+            assert dist <= GS_END_JUMP_MAX, (n, d, round(dist, 1))
+
+
 DG_NAMES = ["dagger_combo1", "dagger_combo2", "dagger_combo3", "dagger_special"]
 GS_NAMES = ["greatsword_combo1", "greatsword_combo2", "greatsword_combo3", "greatsword_dashslash", "greatsword_slam",
             "greatsword_draw", "greatsword_sheathe", "greatsword_special"]
@@ -140,6 +159,7 @@ def main(only=None):
         jobs += gear_jobs("greatsword", GS, GS_NAMES,
                           "이 시트 동안 greatsword_carry_* 는 숨긴다(등의 대검이 손으로 옮겨짐 — draw 첫 프레임·sheathe 끝 프레임은 이 시트가 등의 대검을 그림).")
         flush("greatsword", GS, jobs)
+        check_gs_end(jobs)
     if want("dagger"):
         jobs = carry_jobs("dagger", bodies, [
             ("", lambda d, act, i, R: DG.carry_frame(d, act, i, R),

@@ -43,7 +43,15 @@ IDLE = "idle"                                     # 마지막 프레임 = player
 IDLE_APPROX = K_(th=30, el=-45, R=(3.0, 11.5, 34.0), L=None, off="saya")   # 보간 목표용 근사(대기 0 손 자리)
 READY_DG = K_(th=150, el=-30, hth=30, hr=9, hz=45, lunge=0.2, crouch=3, tw=0.4, lean=0.8, off="guard")
 IDLE_FREE_APPROX = K_(th=40, el=-40, R=(3.0, 11.5, 34.0), L=(3.0, -11.5, 34.0), off="hip")   # 왼손이 빈 대기 0(player_idle_free) 근사
-DRAWN_GS = K_(th=40, el=-40, hth=20, hr=12, hz=38, lunge=0.2, crouch=2.5, tw=0.2, lean=0.4, off="hip")
+# 53라운드 Q55: 대검 회복 키 elev -40 → -30 안팎(휴대 각 greatsword_carry_drawn_idle (58°, -30°)과 맞춤, 칼끝이 바닥 위)
+DRAWN_GS = K_(th=58, el=-30, R=(4.0, 12.0, 34.0), lunge=0.2, crouch=2.5, tw=0.2, lean=0.4, off="hip")
+GS_END = K_(58, -30, R=(6.0, 10.0, 35.0), lunge=0.2, crouch=3, tw=0.3, lean=0.5, off="two")   # 연격 1·3타 끝(두 손) — 휴대 각과 같음
+GS_BLADE_REACH = 62.5                             # 손(코등이 쪽) → 칼끝 설계 길이(코등이 2.5 + 날 60, weapons_v3/greatsword.py)
+
+
+def gs_tip_z(k):
+    """대검 칼끝 높이(설계, 바닥 = 0) — Q55 assert 용."""
+    return k["R"][2] + GS_BLADE_REACH * math.sin(math.radians(k["el"]))
 
 
 def bow_draw(p, **kw):
@@ -66,9 +74,9 @@ GEAR = {
         K_(-155, 62, -82, 7, 58, lunge=-0.15, crouch=5, tw=-1.05, lean=-0.1, off="two"),
         K_(-20, -8, -15, 20, 42, lunge=1.0, crouch=7, tw=-0.1, lean=1.8, off="two", state="glow"),
         K_(60, -22, 45, 18, 38, lunge=1.0, crouch=7.5, tw=0.8, lean=1.8, off="two"),
-        K_(95, -40, 70, 14, 35, lunge=0.9, crouch=8.5, tw=1.0, lean=1.5, off="two"),
-        K_(60, -36, 40, 12, 37, lunge=0.4, crouch=4.5, tw=0.5, lean=0.8, off="two"),
-        K_(45, -40, 25, 11, 38, lunge=0.2, crouch=3, tw=0.3, lean=0.5, off="two")]),
+        K_(95, -32, 70, 14, 35, lunge=0.9, crouch=8.5, tw=1.0, lean=1.5, off="two"),
+        K_(60, -31, 40, 12, 37, lunge=0.4, crouch=4.5, tw=0.5, lean=0.8, off="two"),
+        GS_END]),
     "greatsword_combo2": dict(weapon="greatsword", split=[2, 2, 2, 2, 2, 2], keys=[
         K_(110, -32, 70, 14, 36, lunge=0.5, crouch=6, tw=0.9, lean=1.0, off="two"),
         K_(150, -22, 95, 10, 36, lunge=0.15, crouch=7.5, tw=1.15, lean=0.6, off="two"),
@@ -82,10 +90,10 @@ GEAR = {
         K_(-175, 70, -92, 6, 60, lunge=-0.25, crouch=6, tw=-1.25, lean=-0.3, off="two"),
         K_(-60, 5, -40, 19, 44, lunge=1.0, crouch=8, tw=-0.4, lean=1.9, off="two", state="glow"),
         K_(40, -15, 30, 21, 40, lunge=1.1, crouch=9, tw=0.6, lean=2.1, off="two", state="glow"),
-        K_(100, -42, 70, 15, 35, lunge=1.1, crouch=10.5, tw=1.15, lean=1.9, off="two", state="embers"),
-        K_(105, -44, 72, 14, 35, lunge=1.0, crouch=9.5, tw=1.15, lean=1.7, off="two"),
-        K_(70, -38, 45, 12, 37, lunge=0.5, crouch=5, tw=0.6, lean=0.9, off="two"),
-        K_(45, -40, 25, 11, 38, lunge=0.2, crouch=3, tw=0.3, lean=0.5, off="two")]),
+        K_(100, -32, 70, 15, 35, lunge=1.1, crouch=10.5, tw=1.15, lean=1.9, off="two", state="embers"),
+        K_(105, -33, 72, 14, 35, lunge=1.0, crouch=9.5, tw=1.15, lean=1.7, off="two"),
+        K_(62, -31, 40, 12, 37, lunge=0.4, crouch=4.5, tw=0.5, lean=0.8, off="two"),
+        GS_END]),
     "greatsword_dashslash": dict(weapon="greatsword", split=[2, 2, 2, 2, 2, 1, 2], keys=[
         K_(165, -22, 125, 10, 36, lunge=0.9, crouch=7, tw=1.0, lean=2.3, off="hip"),
         K_(175, -15, 135, 9, 37, lunge=1.2, crouch=8, tw=1.1, lean=2.7, off="back"),
@@ -93,7 +101,7 @@ GEAR = {
         K_(-80, 35, -50, 17, 50, lunge=1.1, crouch=5, tw=-0.9, lean=1.2, off="two"),
         K_(-115, 30, -65, 12, 48, lunge=1.3, crouch=9.5, tw=-1.0, lean=-0.4, off="two"),
         K_(-40, 25, -20, 14, 46, lunge=0.6, crouch=6, tw=-0.4, lean=0.6, off="two"),
-        K_(40, -35, 25, 12, 38, lunge=0.3, crouch=3, tw=0.3, lean=0.5, off="two"),
+        K_(50, -32, R=(5.0, 11.0, 36.0), lunge=0.3, crouch=3, tw=0.3, lean=0.5, off="two"),
         DRAWN_GS]),
     "greatsword_slam": dict(weapon="greatsword", split=[2, 2, 2, 2, 2, 2, 2, 2], keys=[
         K_(-150, 45, -70, 8, 50, crouch=8, tw=-0.9, lean=0.8, off="two"),
@@ -103,7 +111,7 @@ GEAR = {
         K_(0, -60, 0, 19, 36, lunge=0.8, crouch=11, lean=2.3, off="two", state="glow"),
         K_(0, -63, 0, 19, 34, lunge=0.8, crouch=12, lean=2.5, off="two"),
         K_(20, -30, 10, 15, 42, lunge=0.5, crouch=6, lean=1.2, off="two"),
-        K_(40, -40, 20, 12, 38, lunge=0.2, crouch=3, lean=0.5, off="two"),
+        K_(50, -32, R=(5.0, 11.0, 36.0), lunge=0.2, crouch=3, lean=0.5, off="two"),
         DRAWN_GS]),
     # 대검 뽑기·넣기 끝 = 왼손이 빈 대기(player_idle_free 0) — 53라운드 Q19(무기별 기본 자세)
     # 등 손잡이를 쥔 키(-100, -56) = 등에 멘 대검 방향(weapons_v3/greatsword.py BACK_TH·BACK_EL, 53라운드 Q31)
@@ -124,7 +132,7 @@ GEAR = {
         K_(-56, 53, 15, 13, 44.5, lunge=-0.25, crouch=6.8, lean=0.75, off="blade"),
         K_(-42, 46, 8, 19, 46, lunge=1.0, crouch=5, lean=1.8, off="blade"),
         K_(-38, 44, 5, 22, 46, lunge=1.3, crouch=5.5, lean=2.3, off="blade", state="glow"),
-        K_(40, -40, 20, 12, 38, crouch=3, lean=0.6, off="hip", state="fade"),
+        K_(50, -32, R=(5.0, 11.0, 36.0), crouch=3, lean=0.6, off="hip", state="fade"),
         DRAWN_GS]),
     # ---------------- 단검: 역수로 쥐고(날이 새끼손가락 쪽) 빠르게 찌름. 장전 = 날을 팔뚝에 붙여 숨김 ----------------
     "dagger_combo1": dict(weapon="dagger", split=[2, 2, 2], keys=[

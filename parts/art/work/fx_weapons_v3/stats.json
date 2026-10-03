@@ -1,0 +1,626 @@
+{
+ "afterimage": {
+  "colors": 13,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 5
+ },
+ "aim_charge": {
+  "colors": 11,
+  "frame": [
+   128,
+   128
+  ],
+  "frames": 6
+ },
+ "aim_line": {
+  "colors": 5,
+  "frame": [
+   32,
+   8
+  ],
+  "frames": 2
+ },
+ "aim_line_snipe": {
+  "colors": 7,
+  "frame": [
+   64,
+   12
+  ],
+  "frames": 6
+ },
+ "assassin": {
+  "colors": 13,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 5
+ },
+ "batto": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 7
+ },
+ "bleed": {
+  "colors": 6,
+  "frame": [
+   96,
+   96
+  ],
+  "frames": 4
+ },
+ "bow_arrow": {
+  "colors": 9,
+  "frame": [
+   48,
+   24
+  ],
+  "frames": 1
+ },
+ "bow_arrow_aimed": {
+  "colors": 10,
+  "frame": [
+   64,
+   32
+  ],
+  "frames": 1
+ },
+ "bow_arrow_aimed_rapid": {
+  "colors": 9,
+  "frame": [
+   80,
+   24
+  ],
+  "frames": 2
+ },
+ "bow_arrow_aimed_snipe": {
+  "colors": 10,
+  "frame": [
+   128,
+   20
+  ],
+  "frames": 2
+ },
+ "bow_arrow_rapid": {
+  "colors": 9,
+  "frame": [
+   64,
+   24
+  ],
+  "frames": 2
+ },
+ "bow_arrow_snipe": {
+  "colors": 10,
+  "frame": [
+   96,
+   20
+  ],
+  "frames": 2
+ },
+ "bow_arrow_snipe_lv1": {
+  "colors": 5,
+  "frame": [
+   96,
+   12
+  ],
+  "frames": 3
+ },
+ "bow_arrow_snipe_lv2": {
+  "colors": 8,
+  "frame": [
+   160,
+   20
+  ],
+  "frames": 3
+ },
+ "bow_arrow_snipe_lv3": {
+  "colors": 9,
+  "frame": [
+   224,
+   28
+  ],
+  "frames": 3
+ },
+ "bow_muzzle_rapid": {
+  "colors": 7,
+  "frame": [
+   64,
+   64
+  ],
+  "frames": 2
+ },
+ "crush": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 6
+ },
+ "dagger_combo1": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ },
+ "dagger_combo1_gale": {
+  "colors": 11,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ },
+ "dagger_combo1_heat1": {
+  "colors": 12,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo1_heat2": {
+  "colors": 12,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo1_heat3": {
+  "colors": 11,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo1_twin": {
+  "colors": 11,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ },
+ "dagger_combo2": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ },
+ "dagger_combo2_gale": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ },
+ "dagger_combo2_heat1": {
+  "colors": 12,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo2_heat2": {
+  "colors": 12,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo2_heat3": {
+  "colors": 11,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 4
+ },
+ "dagger_combo2_twin": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ },
+ "dagger_combo3": {
+  "colors": 10,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 5
+ },
+ "dagger_combo3_gale": {
+  "colors": 10,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 5
+ },
+ "dagger_combo3_heat1": {
+  "colors": 10,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 5
+ },
+ "dagger_combo3_heat2": {
+  "colors": 10,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 5
+ },
+ "dagger_combo3_heat3": {
+  "colors": 9,
+  "frame": [
+   320,
+   320
+  ],
+  "frames": 5
+ },
+ "dagger_combo3_twin": {
+  "colors": 11,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 5
+ },
+ "dagger_slash": {
+  "colors": 12,
+  "frame": [
+   192,
+   192
+  ],
+  "frames": 5
+ },
+ "dance": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 7
+ },
+ "dashcrit": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 5
+ },
+ "flash": {
+  "colors": 8,
+  "frame": [
+   128,
+   32
+  ],
+  "frames": 4
+ },
+ "gale": {
+  "colors": 10,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ },
+ "giant": {
+  "colors": 11,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ },
+ "greatsword_combo1": {
+  "colors": 14,
+  "frame": [
+   512,
+   512
+  ],
+  "frames": 6
+ },
+ "greatsword_combo1_crush": {
+  "colors": 13,
+  "frame": [
+   512,
+   512
+  ],
+  "frames": 6
+ },
+ "greatsword_combo1_weight": {
+  "colors": 13,
+  "frame": [
+   512,
+   512
+  ],
+  "frames": 6
+ },
+ "greatsword_combo2": {
+  "colors": 14,
+  "frame": [
+   512,
+   512
+  ],
+  "frames": 6
+ },
+ "greatsword_combo2_crush": {
+  "colors": 14,
+  "frame": [
+   512,
+   512
+  ],
+  "frames": 6
+ },
+ "greatsword_combo2_weight": {
+  "colors": 13,
+  "frame": [
+   512,
+   512
+  ],
+  "frames": 6
+ },
+ "greatsword_combo3": {
+  "colors": 13,
+  "frame": [
+   512,
+   512
+  ],
+  "frames": 7
+ },
+ "greatsword_combo3_crush": {
+  "colors": 13,
+  "frame": [
+   512,
+   512
+  ],
+  "frames": 7
+ },
+ "greatsword_combo3_weight": {
+  "colors": 13,
+  "frame": [
+   512,
+   512
+  ],
+  "frames": 7
+ },
+ "greatsword_slam": {
+  "colors": 13,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 6
+ },
+ "greatsword_slash": {
+  "colors": 13,
+  "frame": [
+   192,
+   192
+  ],
+  "frames": 5
+ },
+ "guard_wave": {
+  "colors": 13,
+  "frame": [
+   256,
+   128
+  ],
+  "frames": 4
+ },
+ "heavyarrow": {
+  "colors": 11,
+  "frame": [
+   64,
+   32
+  ],
+  "frames": 1
+ },
+ "heavyarrow_hit": {
+  "colors": 11,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 5
+ },
+ "iai": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 7
+ },
+ "ironwall": {
+  "colors": 11,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ },
+ "katana_combo1": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 5
+ },
+ "katana_combo1_batto": {
+  "colors": 10,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 5
+ },
+ "katana_combo1_iai": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 5
+ },
+ "katana_combo2": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 4
+ },
+ "katana_combo2_batto": {
+  "colors": 11,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 4
+ },
+ "katana_combo2_iai": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 4
+ },
+ "katana_combo3": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 6
+ },
+ "katana_combo3_batto": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 6
+ },
+ "katana_combo3_iai": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 6
+ },
+ "katana_slash": {
+  "colors": 12,
+  "frame": [
+   192,
+   192
+  ],
+  "frames": 5
+ },
+ "longinvuln": {
+  "colors": 7,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 5
+ },
+ "muzzle_flash": {
+  "colors": 6,
+  "frame": [
+   48,
+   48
+  ],
+  "frames": 2
+ },
+ "pierce": {
+  "colors": 8,
+  "frame": [
+   128,
+   32
+  ],
+  "frames": 4
+ },
+ "pulverize": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 5
+ },
+ "quake": {
+  "colors": 13,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 7
+ },
+ "shadowstep_ghost": {
+  "colors": 5,
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 3
+ },
+ "twin": {
+  "colors": 12,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 7
+ },
+ "weight": {
+  "colors": 13,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 6
+ },
+ "wide": {
+  "colors": 12,
+  "frame": [
+   384,
+   384
+  ],
+  "frames": 7
+ },
+ "zangetsu": {
+  "colors": 11,
+  "frame": [
+   256,
+   256
+  ],
+  "frames": 4
+ }
+}

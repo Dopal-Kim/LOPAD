@@ -1,0 +1,57 @@
+{
+ "image": "muzzle_flash.png",
+ "action": "muzzle_flash",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "frames": 2,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 20,
+ "frameDurationsMs": [
+  40,
+  60
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 24,
+  "y": 24
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "anchor": "hitbox_center",
+ "spawn": "enemy_shoot",
+ "depth": "above",
+ "pivotNote": "피벗 (6,6) = 총구. 사수 히트박스 중심에서 총구 오프셋(방향별 약 ±8px 전방, -2px 위)을 더해 놓는다.",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "floor-accent 19~25 (적 총구 섬광 — 구 시트처럼 층 램프 스왑) · 코어 X 고정",
+ "source": "parts/art/work/fx_weapons_v3/build.py",
+ "colors": 6,
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
+ "note": "v3 (53라운드 Q5): 무기 이펙트 v3",
+ "legacy": {
+  "image": "../muzzle_flash.png.png",
+  "frameWidth": 12,
+  "frameHeight": 12,
+  "pivot": {
+   "x": 6,
+   "y": 6
+  },
+  "pixelScale": 2,
+  "note": "총구 섬광: 전방 쐐기(X0 코어 + 27/25 + 23 가장자리) + 대각 광선 + 불티 → 작은 불꽃. enemy_bullet 생성 시점 = 이 이펙트 시작.",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+  "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py"
+ }
+}
