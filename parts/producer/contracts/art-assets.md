@@ -158,7 +158,7 @@
 
 ## 15. 54라운드 1층 보스 '만취' v3 시트 · 보스방 소품
 - 근거: `decisions/2026-10-03-round-54-boss1-patterns.md`.
-- 경로 `sprites/bosses/v3/stage1_<동작>.png/.json`, 128×192 도트, `pixelScale: 0.5`(화면 64×96), 피벗 = 발 중앙(JSON `pivot`), 4방향(기존 보스 시트 방향 규칙). 우선순위 v3 → 구 `bosses/stage1_*`(동작 단위 대체). 색: 주인공·적 v3 규칙(시트당 40색 이하 권장), 술은 호박 계열.
+- 경로 `sprites/bosses/v3/stage1_<동작>.png/.json`, ~~128×192~~ → **192×240 안팎 도트(54라운드 Q14)**, `pixelScale: 0.5`(화면 약 96×120) — 시스템은 JSON `frameWidth/frameHeight/pivot` 을 읽는다, 피벗 = 발 중앙(JSON `pivot`), 4방향(기존 보스 시트 방향 규칙). 우선순위 v3 → 구 `bosses/stage1_*`(동작 단위 대체). 색: 주인공·적 v3 규칙(시트당 40색 이하 권장), 술은 호박 계열.
 - 동작과 JSON 이벤트 키(시스템이 읽음, 없으면 시스템 임시 타이밍):
   - `idle`·`walk`·`hurt`·`death`(기존과 같은 의미)
   - `attack`(돌진 준비·돌진, `phaseFrames`), `slam`(`impactFrame`)
@@ -167,6 +167,6 @@
   - `stagger_dash`(비틀 돌진 몸 기울기, 예고·돌진 프레임 `phaseFrames`)
   - `fall`(넘어짐→누워 있음 루프→일어남, `phaseFrames: {fall, down, rise}`)
   - `kick`(술통 걷어차기, `impactFrame`, `footAnchors`)
-  - `throw`(술 뿌리기·횃불 던지기, `releaseFrame`, `handAnchors`)
+  - `throw`(술 뿌리기, `releaseFrame`, `handAnchors`), `throw_torch`(횃불 던지기, `releaseFrame`, `handAnchors`) — Q16 분리
   - `phase_drink`(페이즈 전환 들이켜기, 선택 — 없으면 `drink` 재사용)
 - 보스방 소품(연회장 `stage1_hall_props` v3 시트 확장 또는 별도 시트): 기둥(solid, 2×2 발자국 권장), 촛대 상태 `lit`/`fallen_unlit`/`relit`(쓰러지면 통과), 굴러가는 술통(회전 프레임), 횃불 투사체, 잔 파편·술 튀김 fx(`fx/v3`, `paletteSwap: "none"`).
