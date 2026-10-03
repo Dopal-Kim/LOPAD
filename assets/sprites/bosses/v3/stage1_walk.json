@@ -1,8 +1,8 @@
 {
  "image": "stage1_walk.png",
  "action": "walk",
- "frameWidth": 128,
- "frameHeight": 192,
+ "frameWidth": 192,
+ "frameHeight": 240,
  "frames": 8,
  "directions": [
   "down",
@@ -25,14 +25,14 @@
  ],
  "loop": true,
  "pivot": {
-  "x": 64,
-  "y": 184
+  "x": 96,
+  "y": 220
  },
  "pixelScale": 0.5,
  "version": "v3",
  "palette": "parts/art/palette/lopad.json (gray G00~15 + 1층 램프 16~27, 런타임 스왑 — 술·눈빛·볼·코·놋쇠만) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json). 새 색 없음 — 주인공·적 v3 와 같은 재·호박 계열",
  "source": "parts/art/work/boss1_v3/build.py (54라운드 — 1층 보스 v3)",
- "note": "v3 1층 보스 양조장주 '만취(滿醉)'(52라운드 Q2·Q5, 54라운드) · 128×192 도트 = 화면 64×96 · 개념 gemini/concept_char/raw_boss_c.jpg(54라운드 참고 이미지 없이 1회 재생성) — 눈으로 참고만, 도트는 직접",
+ "note": "v3 1층 보스 양조장주 '만취(滿醉)'(52라운드 Q2·Q5, 54라운드) · 192×240 도트 = 화면 96×120(54라운드 Q14 확대 — 같은 밀도로 다시 그림) · 약점 잔 = 작은 술통 잔(54라운드 Q13) · 개념 gemini/concept_char/raw_boss_c.jpg(54라운드 참고 이미지 없이 1회 재생성) — 눈으로 참고만, 도트는 직접",
  "emissiveColors": [
   "#e2a33c",
   "#e8b858",
@@ -46,7 +46,7 @@
  "unitNote": "모든 좌표(pivot·*Anchors)는 이 시트 한 프레임 안의 도트(왼쪽 위 0,0). 논리 px = (도트 − pivot) × 0.5",
  "actionNote": "무거운 뒤뚱 걸음 · 배·망토·잔 출렁임",
  "stride": {
-  "px": 44,
+  "px": 57,
   "cycleMs": 1040
  }
 }

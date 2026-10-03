@@ -6,7 +6,7 @@
   assets/sprites/structures/v3/boss1_rolling_barrel  굴러가는 술통 · 행 = down/up/left/right(굴러가는 방향) · 8프레임 회전 루프
   assets/sprites/structures/v3/boss1_barrel_break    술통이 기둥·벽에 부딪혀 터짐(1행)
   assets/sprites/fx/v3/boss1_torch                   횃불 투사체(회전, drawnFacing right, 루프)
-  assets/sprites/fx/v3/boss1_cup_shatter             잔 파편(약점 잔이 깨질 때, cupAnchors 중심)
+  assets/sprites/fx/v3/boss1_cup_shatter             술통 잔 부서짐(약점 잔이 깨질 때, cupAnchors 중심 — 54라운드 Q13 널·쇠테 조각)
   assets/sprites/fx/v3/boss1_liquor_splash           술 튀김(머리 위로 뒤집어씀·바닥 착지)
   assets/sprites/fx/v3/boss1_liquor_glob             뿌린 술 방울 투사체(회전, 루프)
 도구: props_v3/pk·common·hall 을 import 만(고치지 않음). 접지 그림자(반투명)는 props_v3 와 같은 규칙(구조물만, fx 는 반투명 0).
@@ -31,7 +31,7 @@ EMISSIVE = ["#e2a33c", "#e8b858", "#eecc78", "#f4de9b", "#faeec0", "#ffffff", "#
 SRC = "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)"
 PAL_S = ("parts/art/palette/lopad.json gray + 1층 램프 16~27 + v2 재질 SL·WD·PL — 새 색 없음. 연회장 소품 v3(tiles/v3/stage1_hall_props)와 같은 재질 램프. "
          "floor: stage1(층 테마 구조물 — 1층 램프로 그림)")
-PAL_F = ("v3 이펙트: 주인공 재·호박 램프(#3f271d~#f4de9b = 1층 램프 A17~A26) + 백열 X0 #ffffff / X1 #fff4dc + 유리 파편 회색(G10~G13). "
+PAL_F = ("v3 이펙트: 주인공 재·호박 램프(#3f271d~#f4de9b = 1층 램프 A17~A26) + 백열 X0 #ffffff / X1 #fff4dc + 술통 널(WD)·쇠테(G). "
          "paletteSwap none")
 
 
@@ -543,54 +543,98 @@ def torch_fx():
 
 
 def cup_shatter():
+    """술통 잔이 부서짐(54라운드 Q13): 0 = 백열 섬광 + 통에 금(판정 프레임) → 널 조각이 회전하며 솟았다 떨어짐 ·
+    쇠테 2개가 기울어 벌어지며 떨어짐 · 나뭇조각 · 술 덩어리. 보스 192×240 시트의 술통 잔(약 29×27 도트)에 맞춘 크기."""
     frames = []
     r = Rand(3)
-    shards = [(r.f() * 2 * math.pi, 0.5 + r.f(), r.i(0, 3)) for _ in range(22)]
-    drops = [(math.pi * (1.0 + r.f()), 0.4 + r.f() * 0.8) for _ in range(26)]
+    staves = [((k + r.f() * 0.5) * 2 * math.pi / 10, 0.55 + 0.6 * r.f(), 9 + r.i(0, 5), r.f() * 3.0, k % 3 == 0) for k in range(10)]
+    chips = [(r.f() * 2 * math.pi, 0.4 + r.f() * 0.8) for _ in range(14)]
+    drops = [(math.pi * (1.0 + r.f()), 0.4 + r.f() * 0.8) for _ in range(24)]
+    W_ = [R_WOOD[1], R_WOOD[3], R_WOOD[4]]
     for i in range(8):
         cv = Canvas(128, 128)
         cx, cy = 64, 60
         t = i / 7
         if i == 0:
-            # 금이 번쩍(판정 프레임) — 백열 섬광 십자 + 잔 윤곽 금
-            for k in range(-14, 15):
-                cv.px(cx + k, cy, X[0] if abs(k) < 5 else A[26])
-                cv.px(cx, cy + k, X[0] if abs(k) < 5 else A[26])
-            for k in range(-8, 9):
+            # 통 윤곽 위로 금이 번쩍 — 백열 섬광 십자 + 널 사이 갈라짐
+            for y in range(-13, 14):
+                for x in range(-14, 15):
+                    if (x / 14.5) ** 2 + (y / 13.5) ** 2 <= 1 and ((x / 14.5) ** 2 + (y / 13.5) ** 2 > 0.82):
+                        cv.px(cx + x, cy + y, R_WOOD[1])
+            for k in range(-18, 19):
+                cv.px(cx + k, cy, X[0] if abs(k) < 6 else A[26])
+                cv.px(cx, cy + k, X[0] if abs(k) < 6 else A[26])
+            for k in range(-9, 10):
                 cv.px(cx + k, cy + k, A[25]); cv.px(cx + k, cy - k, A[25])
+            for x0 in (-9, -4, 5, 10):
+                for y in range(-11, 12, 2):
+                    cv.px(cx + x0 + (y // 5) % 2, cy + y, A[24])
         else:
             # 술 덩어리 터짐(위로 솟았다 떨어짐)
             for (a, sp) in drops:
-                d = 6 + 46 * sp * min(1.0, t * 1.4)
+                d = 6 + 48 * sp * min(1.0, t * 1.4)
                 x = cx + math.cos(a) * d
                 y = cy + math.sin(a) * d * 0.9 + 70 * t * t
                 sz = 2 if sp > 0.8 and t < 0.6 else 1
                 col = A[24] if t < 0.3 else (A[22] if t < 0.6 else A[20])
                 cv.rect(int(x), int(y), int(x) + sz, int(y) + sz, col)
-            if i < 4:
-                rad = int(10 + 14 * t)
-                for k in range(60):
-                    a = 2 * math.pi * k / 60
-                    cv.px(int(cx + rad * math.cos(a)), int(cy + rad * 0.8 * math.sin(a)), A[23] if i < 3 else A[21])
-            # 유리 파편(삼각 반짝임)
-            for (a, sp, kind) in shards:
-                d = 8 + 52 * sp * t
+            if i < 3:
+                rad = int(12 + 14 * t)
+                for k in range(80):
+                    a = 2 * math.pi * k / 80
+                    cv.px(int(cx + rad * math.cos(a)), int(cy + rad * 0.8 * math.sin(a)), A[23] if i < 2 else A[21])
+            # 쇠테 2개(기울어 벌어지며 떨어짐, 한쪽 끊김)
+            for j, (ox, rot0, sq) in enumerate(((-6, 0.4, 0.4), (7, -0.6, 0.5))):
+                if i >= 6 and j == 1:
+                    continue
+                hx, hy = cx + ox * (1 + 2 * t), cy + (-4 + 10 * j) * t + 52 * t * t
+                rr = 15 + 5 * t
+                rot_ = rot0 + (1.2 if j else -1.0) * t
+                cr, sr = math.cos(rot_), math.sin(rot_)
+                for k in range(120):
+                    a = 2 * math.pi * k / 120
+                    if (0.15 + 0.45 * j) <= k / 120 < (0.27 + 0.45 * j):
+                        continue
+                    ex, ey = math.cos(a) * rr, math.sin(a) * rr * sq
+                    cv.px(int(round(hx + ex * cr - ey * sr)), int(round(hy + ex * sr + ey * cr)), R_IRON[5] if math.sin(a) > 0 else R_IRON[3])
+            # 널 조각: 3도트 폭 휜 판(밝은 면·본색·그늘), 일부는 쇠테 조각이 붙음
+            for (a, sp, ln, spin, iron) in staves:
+                d = 8 + 46 * sp * t
                 x = cx + math.cos(a) * d
-                y = cy + math.sin(a) * d * 0.8 + 50 * t * t
-                spin = int(t * 8 * sp + kind) % 3
-                cols = [G[13], G[12], G[10]] if i < 5 else [G[10], G[10], SL[6]]
-                pts = [(0, 0), (1, 0), (0, 1)] if spin == 0 else ([(0, 0), (0, 1), (0, 2)] if spin == 1 else [(0, 0), (1, 1), (2, 1)])
-                for j, (dx, dy) in enumerate(pts):
-                    cv.px(int(x) + dx, int(y) + dy, cols[j % 3])
-                if i < 3 and kind == 0:
-                    cv.px(int(x), int(y) - 1, X[1])
+                y = cy + math.sin(a) * d * 0.75 - 30 * sp * t * (1 - t) * 2 + 48 * t * t
+                ang = a + math.pi / 2 + t * (4 + spin)
+                ca, sa = math.cos(ang), math.sin(ang)
+                for jj in range(ln):
+                    u = jj - ln / 2
+                    bend = 0.05 * u * u
+                    X_, Y_ = x + ca * u - sa * bend, y + sa * u + ca * bend
+                    end = jj in (0, ln - 1)
+                    cv.px(int(round(X_ + sa)), int(round(Y_ - ca)), R_WOOD[2] if end else R_WOOD[4])
+                    cv.px(int(round(X_)), int(round(Y_)), R_WOOD[2] if end else R_WOOD[3])
+                    cv.px(int(round(X_ - sa)), int(round(Y_ + ca)), R_WOOD[0] if end else R_WOOD[1])
+                if iron:
+                    for jj in (ln // 3, ln // 3 + 1):
+                        u = jj - ln / 2
+                        X_, Y_ = x + ca * u, y + sa * u
+                        cv.px(int(round(X_ + sa)), int(round(Y_ - ca)), R_IRON[5])
+                        cv.px(int(round(X_)), int(round(Y_)), R_IRON[4])
+                        cv.px(int(round(X_ - sa)), int(round(Y_ + ca)), R_IRON[2])
+            # 나뭇조각
+            for (a, sp) in chips:
+                d = 6 + 50 * sp * t
+                x = cx + math.cos(a) * d
+                y = cy + math.sin(a) * d * 0.8 + 56 * t * t
+                cv.px(int(x), int(y), W_[int(sp * 10) % 3])
+                if sp > 0.8:
+                    cv.px(int(x) + 1, int(y), W_[(int(sp * 10) + 1) % 3])
         frames.append(cv.im)
     fr = [frames]
     no_partial(fr)
     meta = fx_meta("boss1_cup_shatter", 128, 128, 8, [40, 50, 60, 70, 80, 90, 100, 120], (64, 60), "cup_anchor",
                    "drink_break_frame0", False,
-                   "약점 잔이 깨짐(54라운드 Q6 '한 잔 더'): 0 = 백열 섬광 + 금(판정 프레임), 1~ = 유리 파편이 튀고 술 덩어리가 솟았다 떨어짐",
-                   {"anchorNote": "pivot = 잔 중심. 보스 drink 시트 cupAnchors 사각형 가운데(시트 도트 → 보스 피벗 기준 환산)에 놓는다",
+                   "약점 술통 잔이 부서짐(54라운드 Q6 '한 잔 더' · Q13 술통 잔): 0 = 백열 섬광 + 통에 금(판정 프레임), "
+                   "1~ = 널 조각이 회전하며 튀고 쇠테 2개가 벌어져 떨어짐 · 나뭇조각 · 술 덩어리가 솟았다 떨어짐",
+                   {"anchorNote": "pivot = 술통 잔 중심. 보스 drink 시트 cupAnchors 사각형(왼쪽 위 x,y + w,h) 가운데(x + w/2, y + h/2 — 시트 도트 → 보스 피벗 기준 환산)에 놓는다",
                     "glowFrames": [0], "emissiveColors": EMISSIVE}, fr)
     save(OUT_F, "boss1_cup_shatter", fr, meta)
     return fr

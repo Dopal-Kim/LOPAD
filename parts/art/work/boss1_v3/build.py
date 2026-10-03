@@ -1,7 +1,7 @@
-"""1층 보스 '만취' v3 빌드 (54라운드 Q12 · 계약 §15) — python3 parts/art/work/boss1_v3/build.py [동작 ...]
+"""1층 보스 '만취' v3 빌드 (54라운드 Q12·Q13·Q14 · 계약 §15) — python3 parts/art/work/boss1_v3/build.py [동작 ...]
 
 산출:
-  assets/sprites/bosses/v3/stage1_<동작>.png/.json   (128×192 · pixelScale 0.5 · 피벗 (64,184) · 행 = down/up/left/right)
+  assets/sprites/bosses/v3/stage1_<동작>.png/.json   (192×240 · pixelScale 0.5 · 피벗 (96,220) · 행 = down/up/left/right)
   이 폴더: preview_<동작>_x2.png · preview_<동작>_x3.gif · stats.json
 소품·fx 는 props.py, 시안·목업은 design.py. 결정적(난수 없음).
 """
@@ -24,7 +24,8 @@ ORDER = ["idle", "walk", "hurt", "death", "attack", "slam", "drink", "drink_brea
          "throw_torch", "phase_drink"]
 PALETTE = ("parts/art/palette/lopad.json (gray G00~15 + 1층 램프 16~27, 런타임 스왑 — 술·눈빛·볼·코·놋쇠만) + v2 재질 블록 SL·WD·PL "
            "(parts/art/work/v2_outer/palette_v2_proposal.json). 새 색 없음 — 주인공·적 v3 와 같은 재·호박 계열")
-NOTE = ("v3 1층 보스 양조장주 '만취(滿醉)'(52라운드 Q2·Q5, 54라운드) · 128×192 도트 = 화면 64×96 · "
+NOTE = ("v3 1층 보스 양조장주 '만취(滿醉)'(52라운드 Q2·Q5, 54라운드) · 192×240 도트 = 화면 96×120(54라운드 Q14 확대 — 같은 밀도로 다시 그림) · "
+        "약점 잔 = 작은 술통 잔(54라운드 Q13) · "
         "개념 gemini/concept_char/raw_boss_c.jpg(54라운드 참고 이미지 없이 1회 재생성) — 눈으로 참고만, 도트는 직접")
 
 
@@ -84,14 +85,15 @@ def export(act, res):
         j["durationMs"] = sum(ms)
     if act in ("drink", "phase_drink", "drink_break"):
         j["cupAnchors"] = anchors(infos, "cup")
-        j["cupAnchorsNote"] = ("프레임별 약점 잔 판정 사각형 {x, y, w, h}(시트 도트, 왼쪽 위 기준) — 잔 몸통(유리+술) 전체, 몸에 가려진 부분 포함. "
-                               "visible = 화면에 12도트 이상 보임(뒷모습에서 머리에 가려지면 false — 판정은 유지 권장). 잔이 없는 프레임은 null")
+        j["cupAnchorsNote"] = ("프레임별 약점 잔 판정 사각형 {x, y, w, h}(시트 도트, 왼쪽 위 기준) — 술통 잔 몸통(널·쇠테·마구리 술면) 전체, 손잡이·꼭지 제외, "
+                               "몸에 가려진 부분 포함. visible = 화면에 20도트 이상 보임(뒷모습에서 머리·몸에 가려지면 false — 판정은 유지 권장). "
+                               "잔이 없는 프레임은 null")
     if act == "kick":
         j["footAnchors"] = anchors(infos, "foot")
         j["footAnchorsNote"] = "프레임별 차는 발(왼발) 발끝 [x, y] 시트 도트 — impactFrame 의 점이 술통에 힘이 들어가는 자리"
     if act == "throw":
         j["handAnchors"] = anchors(infos, None, lambda inf: [round(v, 1) for v in inf["cupTop"]] if inf.get("cupTop") else None)
-        j["handAnchorsNote"] = "프레임별 잔 테 가운데 [x, y] 시트 도트 — releaseFrame 의 점이 술(투사체·웅덩이) 생성점. 오른손은 handR"
+        j["handAnchorsNote"] = "프레임별 술통 잔 마구리(윗면) 가운데 [x, y] 시트 도트 — releaseFrame 의 점이 술(투사체·웅덩이) 생성점. 오른손은 handR"
         j["handR"] = anchors(infos, "handR")
     if act == "throw_torch":
         j["handAnchors"] = anchors(infos, "torchTip")

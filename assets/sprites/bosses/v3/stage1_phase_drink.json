@@ -1,8 +1,8 @@
 {
  "image": "stage1_phase_drink.png",
  "action": "phase_drink",
- "frameWidth": 128,
- "frameHeight": 192,
+ "frameWidth": 192,
+ "frameHeight": 240,
  "frames": 16,
  "directions": [
   "down",
@@ -33,14 +33,14 @@
  ],
  "loop": false,
  "pivot": {
-  "x": 64,
-  "y": 184
+  "x": 96,
+  "y": 220
  },
  "pixelScale": 0.5,
  "version": "v3",
  "palette": "parts/art/palette/lopad.json (gray G00~15 + 1층 램프 16~27, 런타임 스왑 — 술·눈빛·볼·코·놋쇠만) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json). 새 색 없음 — 주인공·적 v3 와 같은 재·호박 계열",
  "source": "parts/art/work/boss1_v3/build.py (54라운드 — 1층 보스 v3)",
- "note": "v3 1층 보스 양조장주 '만취(滿醉)'(52라운드 Q2·Q5, 54라운드) · 128×192 도트 = 화면 64×96 · 개념 gemini/concept_char/raw_boss_c.jpg(54라운드 참고 이미지 없이 1회 재생성) — 눈으로 참고만, 도트는 직접",
+ "note": "v3 1층 보스 양조장주 '만취(滿醉)'(52라운드 Q2·Q5, 54라운드) · 192×240 도트 = 화면 96×120(54라운드 Q14 확대 — 같은 밀도로 다시 그림) · 약점 잔 = 작은 술통 잔(54라운드 Q13) · 개념 gemini/concept_char/raw_boss_c.jpg(54라운드 참고 이미지 없이 1회 재생성) — 눈으로 참고만, 도트는 직접",
  "emissiveColors": [
   "#e2a33c",
   "#e8b858",
@@ -87,524 +87,524 @@
  "cupAnchors": {
   "down": [
    {
-    "x": 31,
-    "y": 81,
-    "w": 23,
-    "h": 28,
+    "x": 35,
+    "y": 106,
+    "w": 29,
+    "h": 37,
     "visible": true,
-    "visiblePx": 542
+    "visiblePx": 903
    },
    {
-    "x": 40,
-    "y": 66,
-    "w": 23,
-    "h": 30,
+    "x": 53,
+    "y": 98,
+    "w": 30,
+    "h": 33,
     "visible": true,
-    "visiblePx": 564
+    "visiblePx": 880
    },
    {
-    "x": 46,
-    "y": 55,
-    "w": 23,
-    "h": 29,
-    "visible": true,
-    "visiblePx": 492
-   },
-   {
-    "x": 47,
-    "y": 54,
-    "w": 23,
-    "h": 29,
-    "visible": true,
-    "visiblePx": 430
-   },
-   {
-    "x": 50,
-    "y": 58,
-    "w": 23,
-    "h": 25,
-    "visible": true,
-    "visiblePx": 199
-   },
-   {
-    "x": 50,
-    "y": 57,
-    "w": 23,
-    "h": 25,
-    "visible": true,
-    "visiblePx": 149
-   },
-   {
-    "x": 50,
-    "y": 57,
-    "w": 23,
-    "h": 25,
-    "visible": true,
-    "visiblePx": 150
-   },
-   {
-    "x": 50,
-    "y": 59,
-    "w": 23,
-    "h": 25,
-    "visible": true,
-    "visiblePx": 145
-   },
-   {
-    "x": 50,
-    "y": 60,
-    "w": 23,
-    "h": 25,
-    "visible": true,
-    "visiblePx": 138
-   },
-   {
-    "x": 50,
-    "y": 60,
-    "w": 23,
-    "h": 25,
-    "visible": true,
-    "visiblePx": 142
-   },
-   {
-    "x": 45,
-    "y": 56,
-    "w": 23,
-    "h": 28,
-    "visible": true,
-    "visiblePx": 484
-   },
-   {
-    "x": 22,
+    "x": 79,
     "y": 50,
-    "w": 24,
-    "h": 29,
+    "w": 30,
+    "h": 38,
     "visible": true,
-    "visiblePx": 545
+    "visiblePx": 934
    },
    {
-    "x": 0,
-    "y": 48,
-    "w": 26,
-    "h": 27,
+    "x": 80,
+    "y": 38,
+    "w": 30,
+    "h": 34,
     "visible": true,
-    "visiblePx": 493
+    "visiblePx": 769
    },
    {
-    "x": 0,
-    "y": 48,
-    "w": 26,
-    "h": 27,
+    "x": 80,
+    "y": 10,
+    "w": 30,
+    "h": 39,
     "visible": true,
-    "visiblePx": 493
+    "visiblePx": 919
    },
    {
-    "x": 11,
-    "y": 69,
-    "w": 24,
-    "h": 27,
+    "x": 80,
+    "y": 11,
+    "w": 30,
+    "h": 39,
     "visible": true,
-    "visiblePx": 511
+    "visiblePx": 913
    },
    {
-    "x": 19,
-    "y": 83,
-    "w": 22,
-    "h": 29,
+    "x": 80,
+    "y": 12,
+    "w": 29,
+    "h": 39,
     "visible": true,
-    "visiblePx": 529
+    "visiblePx": 908
+   },
+   {
+    "x": 79,
+    "y": 12,
+    "w": 30,
+    "h": 39,
+    "visible": true,
+    "visiblePx": 919
+   },
+   {
+    "x": 80,
+    "y": 10,
+    "w": 30,
+    "h": 39,
+    "visible": true,
+    "visiblePx": 926
+   },
+   {
+    "x": 80,
+    "y": 9,
+    "w": 30,
+    "h": 39,
+    "visible": true,
+    "visiblePx": 928
+   },
+   {
+    "x": 79,
+    "y": 50,
+    "w": 30,
+    "h": 38,
+    "visible": true,
+    "visiblePx": 934
+   },
+   {
+    "x": 59,
+    "y": 54,
+    "w": 31,
+    "h": 35,
+    "visible": true,
+    "visiblePx": 837
+   },
+   {
+    "x": 5,
+    "y": 66,
+    "w": 34,
+    "h": 40,
+    "visible": true,
+    "visiblePx": 867
+   },
+   {
+    "x": 5,
+    "y": 66,
+    "w": 34,
+    "h": 40,
+    "visible": true,
+    "visiblePx": 867
+   },
+   {
+    "x": 15,
+    "y": 93,
+    "w": 30,
+    "h": 38,
+    "visible": true,
+    "visiblePx": 852
+   },
+   {
+    "x": 21,
+    "y": 111,
+    "w": 29,
+    "h": 37,
+    "visible": true,
+    "visiblePx": 897
    }
   ],
   "up": [
    {
-    "x": 75,
-    "y": 68,
-    "w": 23,
-    "h": 28,
+    "x": 129,
+    "y": 90,
+    "w": 29,
+    "h": 37,
     "visible": true,
-    "visiblePx": 158
+    "visiblePx": 207
    },
    {
-    "x": 66,
-    "y": 55,
-    "w": 23,
-    "h": 26,
+    "x": 110,
+    "y": 60,
+    "w": 30,
+    "h": 39,
     "visible": true,
-    "visiblePx": 180
+    "visiblePx": 488
    },
    {
-    "x": 60,
-    "y": 44,
-    "w": 23,
-    "h": 27,
-    "visible": true,
-    "visiblePx": 157
-   },
-   {
-    "x": 59,
-    "y": 50,
-    "w": 23,
-    "h": 24,
-    "visible": true,
-    "visiblePx": 70
-   },
-   {
-    "x": 56,
-    "y": 50,
-    "w": 23,
-    "h": 30,
-    "visible": true,
-    "visiblePx": 122
-   },
-   {
-    "x": 56,
-    "y": 49,
-    "w": 23,
-    "h": 30,
-    "visible": true,
-    "visiblePx": 124
-   },
-   {
-    "x": 56,
-    "y": 49,
-    "w": 23,
-    "h": 30,
-    "visible": true,
-    "visiblePx": 131
-   },
-   {
-    "x": 56,
-    "y": 51,
-    "w": 23,
-    "h": 29,
-    "visible": true,
-    "visiblePx": 134
-   },
-   {
-    "x": 56,
-    "y": 52,
-    "w": 23,
-    "h": 30,
-    "visible": true,
-    "visiblePx": 134
-   },
-   {
-    "x": 56,
-    "y": 51,
-    "w": 23,
-    "h": 30,
-    "visible": true,
-    "visiblePx": 123
-   },
-   {
-    "x": 61,
-    "y": 42,
-    "w": 23,
-    "h": 28,
-    "visible": true,
-    "visiblePx": 210
+    "x": 84,
+    "y": 43,
+    "w": 30,
+    "h": 37,
+    "visible": false,
+    "visiblePx": 2
    },
    {
     "x": 83,
-    "y": 42,
-    "w": 24,
-    "h": 25,
+    "y": 35,
+    "w": 30,
+    "h": 36,
     "visible": true,
-    "visiblePx": 475
+    "visiblePx": 228
+   },
+   {
+    "x": 83,
+    "y": 25,
+    "w": 30,
+    "h": 36,
+    "visible": true,
+    "visiblePx": 787
+   },
+   {
+    "x": 83,
+    "y": 24,
+    "w": 30,
+    "h": 36,
+    "visible": true,
+    "visiblePx": 742
+   },
+   {
+    "x": 84,
+    "y": 25,
+    "w": 29,
+    "h": 36,
+    "visible": true,
+    "visiblePx": 741
+   },
+   {
+    "x": 84,
+    "y": 27,
+    "w": 30,
+    "h": 36,
+    "visible": true,
+    "visiblePx": 781
+   },
+   {
+    "x": 83,
+    "y": 28,
+    "w": 30,
+    "h": 36,
+    "visible": true,
+    "visiblePx": 788
+   },
+   {
+    "x": 83,
+    "y": 27,
+    "w": 30,
+    "h": 36,
+    "visible": true,
+    "visiblePx": 788
+   },
+   {
+    "x": 84,
+    "y": 43,
+    "w": 30,
+    "h": 37,
+    "visible": false,
+    "visiblePx": 2
    },
    {
     "x": 103,
-    "y": 40,
-    "w": 25,
-    "h": 27,
+    "y": 41,
+    "w": 31,
+    "h": 40,
     "visible": true,
-    "visiblePx": 483
+    "visiblePx": 601
    },
    {
-    "x": 103,
-    "y": 40,
-    "w": 25,
-    "h": 27,
-    "visible": true,
-    "visiblePx": 515
-   },
-   {
-    "x": 94,
+    "x": 154,
     "y": 58,
-    "w": 24,
-    "h": 29,
+    "w": 34,
+    "h": 38,
     "visible": true,
-    "visiblePx": 499
+    "visiblePx": 592
    },
    {
-    "x": 88,
-    "y": 72,
-    "w": 22,
-    "h": 29,
+    "x": 154,
+    "y": 58,
+    "w": 34,
+    "h": 38,
     "visible": true,
-    "visiblePx": 265
+    "visiblePx": 596
+   },
+   {
+    "x": 148,
+    "y": 81,
+    "w": 30,
+    "h": 37,
+    "visible": true,
+    "visiblePx": 469
+   },
+   {
+    "x": 143,
+    "y": 97,
+    "w": 29,
+    "h": 37,
+    "visible": true,
+    "visiblePx": 382
    }
   ],
   "left": [
    {
-    "x": 35,
-    "y": 66,
-    "w": 23,
-    "h": 29,
+    "x": 59,
+    "y": 81,
+    "w": 29,
+    "h": 37,
     "visible": true,
-    "visiblePx": 230
+    "visiblePx": 98
    },
    {
-    "x": 35,
-    "y": 56,
-    "w": 25,
-    "h": 28,
+    "x": 33,
+    "y": 68,
+    "w": 31,
+    "h": 38,
     "visible": true,
-    "visiblePx": 418
+    "visiblePx": 845
    },
    {
-    "x": 37,
-    "y": 46,
-    "w": 28,
-    "h": 29,
-    "visible": true,
-    "visiblePx": 500
-   },
-   {
-    "x": 40,
-    "y": 49,
-    "w": 27,
-    "h": 26,
-    "visible": true,
-    "visiblePx": 471
-   },
-   {
-    "x": 43,
-    "y": 53,
-    "w": 28,
-    "h": 28,
-    "visible": true,
-    "visiblePx": 457
-   },
-   {
-    "x": 43,
-    "y": 52,
-    "w": 28,
-    "h": 28,
-    "visible": true,
-    "visiblePx": 449
-   },
-   {
-    "x": 44,
-    "y": 52,
-    "w": 27,
-    "h": 28,
-    "visible": true,
-    "visiblePx": 445
-   },
-   {
-    "x": 44,
-    "y": 54,
-    "w": 28,
-    "h": 28,
-    "visible": true,
-    "visiblePx": 453
-   },
-   {
-    "x": 44,
-    "y": 55,
-    "w": 27,
-    "h": 28,
-    "visible": true,
-    "visiblePx": 451
-   },
-   {
-    "x": 43,
-    "y": 55,
-    "w": 28,
-    "h": 28,
-    "visible": true,
-    "visiblePx": 449
-   },
-   {
-    "x": 36,
+    "x": 67,
     "y": 45,
-    "w": 27,
-    "h": 29,
+    "w": 38,
+    "h": 39,
     "visible": true,
-    "visiblePx": 521
+    "visiblePx": 809
    },
    {
-    "x": 40,
-    "y": 34,
-    "w": 25,
-    "h": 29,
+    "x": 77,
+    "y": 38,
+    "w": 32,
+    "h": 31,
     "visible": true,
-    "visiblePx": 541
+    "visiblePx": 784
    },
    {
-    "x": 41,
-    "y": 25,
-    "w": 23,
-    "h": 29,
+    "x": 97,
+    "y": 16,
+    "w": 37,
+    "h": 39,
     "visible": true,
-    "visiblePx": 535
+    "visiblePx": 865
    },
    {
-    "x": 41,
-    "y": 25,
-    "w": 23,
-    "h": 29,
+    "x": 94,
+    "y": 16,
+    "w": 36,
+    "h": 40,
     "visible": true,
-    "visiblePx": 535
+    "visiblePx": 864
    },
    {
-    "x": 39,
-    "y": 48,
-    "w": 23,
-    "h": 30,
+    "x": 94,
+    "y": 17,
+    "w": 36,
+    "h": 39,
     "visible": true,
-    "visiblePx": 364
+    "visiblePx": 862
    },
    {
-    "x": 38,
+    "x": 97,
+    "y": 17,
+    "w": 37,
+    "h": 40,
+    "visible": true,
+    "visiblePx": 867
+   },
+   {
+    "x": 101,
+    "y": 17,
+    "w": 36,
+    "h": 40,
+    "visible": true,
+    "visiblePx": 873
+   },
+   {
+    "x": 101,
+    "y": 17,
+    "w": 36,
+    "h": 39,
+    "visible": true,
+    "visiblePx": 879
+   },
+   {
+    "x": 67,
+    "y": 45,
+    "w": 38,
+    "h": 39,
+    "visible": true,
+    "visiblePx": 809
+   },
+   {
+    "x": 66,
+    "y": 40,
+    "w": 31,
+    "h": 37,
+    "visible": true,
+    "visiblePx": 722
+   },
+   {
+    "x": 69,
+    "y": 39,
+    "w": 30,
+    "h": 32,
+    "visible": true,
+    "visiblePx": 378
+   },
+   {
+    "x": 69,
+    "y": 39,
+    "w": 30,
+    "h": 32,
+    "visible": true,
+    "visiblePx": 388
+   },
+   {
+    "x": 65,
     "y": 65,
-    "w": 23,
-    "h": 29,
+    "w": 29,
+    "h": 34,
     "visible": true,
-    "visiblePx": 200
+    "visiblePx": 236
+   },
+   {
+    "x": 62,
+    "y": 82,
+    "w": 29,
+    "h": 37,
+    "visible": true,
+    "visiblePx": 97
    }
   ],
   "right": [
    {
-    "x": 71,
-    "y": 82,
-    "w": 23,
-    "h": 28,
+    "x": 105,
+    "y": 115,
+    "w": 29,
+    "h": 37,
     "visible": true,
-    "visiblePx": 514
+    "visiblePx": 846
    },
    {
-    "x": 69,
-    "y": 65,
-    "w": 25,
-    "h": 29,
+    "x": 129,
+    "y": 89,
+    "w": 31,
+    "h": 37,
     "visible": true,
-    "visiblePx": 504
+    "visiblePx": 839
    },
    {
-    "x": 64,
-    "y": 51,
-    "w": 28,
-    "h": 30,
+    "x": 88,
+    "y": 46,
+    "w": 38,
+    "h": 40,
     "visible": true,
-    "visiblePx": 490
+    "visiblePx": 606
    },
    {
-    "x": 62,
-    "y": 53,
-    "w": 27,
-    "h": 27,
+    "x": 84,
+    "y": 39,
+    "w": 32,
+    "h": 31,
     "visible": true,
-    "visiblePx": 444
+    "visiblePx": 573
    },
    {
-    "x": 58,
-    "y": 56,
-    "w": 28,
-    "h": 27,
+    "x": 59,
+    "y": 17,
+    "w": 37,
+    "h": 39,
     "visible": true,
-    "visiblePx": 184
+    "visiblePx": 634
    },
    {
-    "x": 58,
-    "y": 55,
-    "w": 28,
-    "h": 27,
+    "x": 63,
+    "y": 17,
+    "w": 36,
+    "h": 40,
     "visible": true,
-    "visiblePx": 184
+    "visiblePx": 631
    },
    {
-    "x": 58,
-    "y": 55,
-    "w": 27,
-    "h": 28,
+    "x": 63,
+    "y": 18,
+    "w": 36,
+    "h": 40,
     "visible": true,
-    "visiblePx": 182
+    "visiblePx": 637
    },
    {
-    "x": 57,
-    "y": 56,
-    "w": 28,
-    "h": 28,
+    "x": 59,
+    "y": 19,
+    "w": 37,
+    "h": 40,
     "visible": true,
-    "visiblePx": 184
+    "visiblePx": 633
    },
    {
-    "x": 58,
-    "y": 57,
-    "w": 27,
-    "h": 28,
+    "x": 56,
+    "y": 19,
+    "w": 36,
+    "h": 39,
     "visible": true,
-    "visiblePx": 179
+    "visiblePx": 623
    },
    {
-    "x": 58,
-    "y": 57,
-    "w": 28,
-    "h": 28,
+    "x": 56,
+    "y": 18,
+    "w": 36,
+    "h": 39,
     "visible": true,
-    "visiblePx": 185
+    "visiblePx": 626
    },
    {
-    "x": 66,
-    "y": 50,
-    "w": 27,
-    "h": 30,
+    "x": 88,
+    "y": 46,
+    "w": 38,
+    "h": 40,
     "visible": true,
-    "visiblePx": 495
+    "visiblePx": 606
    },
    {
-    "x": 64,
-    "y": 57,
-    "w": 25,
-    "h": 25,
+    "x": 96,
+    "y": 54,
+    "w": 31,
+    "h": 40,
     "visible": true,
-    "visiblePx": 481
+    "visiblePx": 726
    },
    {
-    "x": 65,
-    "y": 63,
-    "w": 23,
-    "h": 24,
+    "x": 94,
+    "y": 88,
+    "w": 30,
+    "h": 40,
     "visible": true,
-    "visiblePx": 446
+    "visiblePx": 952
    },
    {
-    "x": 65,
-    "y": 63,
-    "w": 23,
-    "h": 24,
+    "x": 94,
+    "y": 88,
+    "w": 30,
+    "h": 40,
     "visible": true,
-    "visiblePx": 446
+    "visiblePx": 952
    },
    {
-    "x": 67,
-    "y": 79,
-    "w": 23,
-    "h": 26,
+    "x": 99,
+    "y": 110,
+    "w": 29,
+    "h": 39,
     "visible": true,
-    "visiblePx": 502
+    "visiblePx": 953
    },
    {
-    "x": 68,
-    "y": 90,
-    "w": 23,
-    "h": 28,
+    "x": 102,
+    "y": 125,
+    "w": 29,
+    "h": 38,
     "visible": true,
-    "visiblePx": 475
+    "visiblePx": 934
    }
   ]
  },
- "cupAnchorsNote": "프레임별 약점 잔 판정 사각형 {x, y, w, h}(시트 도트, 왼쪽 위 기준) — 잔 몸통(유리+술) 전체, 몸에 가려진 부분 포함. visible = 화면에 12도트 이상 보임(뒷모습에서 머리에 가려지면 false — 판정은 유지 권장). 잔이 없는 프레임은 null"
+ "cupAnchorsNote": "프레임별 약점 잔 판정 사각형 {x, y, w, h}(시트 도트, 왼쪽 위 기준) — 술통 잔 몸통(널·쇠테·마구리 술면) 전체, 손잡이·꼭지 제외, 몸에 가려진 부분 포함. visible = 화면에 20도트 이상 보임(뒷모습에서 머리·몸에 가려지면 false — 판정은 유지 권장). 잔이 없는 프레임은 null"
 }

@@ -9,10 +9,10 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "enemies_v3"))
-from erig import pose  # noqa: E402
+from erig import pose, Skel, add, sub, mul, norm, dot  # noqa: E402
 from eanim import lerp_pose  # noqa: E402
 sys.path.insert(0, HERE)
-from b1body import render_full, ID, FW, FH, PIV  # noqa: E402,F401
+from b1body import render_full, ID, FW, FH, PIV, PROP, mouth_target, CASK_HL, CASK_OFF  # noqa: E402,F401
 
 BASE = dict(root=(0.0, 0.0, -2.0), lean=-4.0, roll=0.0, twist=0.0, head=(-4.0, 0.0, 4.0),
             footL=(1.0, -17.0, 0.0), footR=(-1.0, 17.0, 0.0),
@@ -172,62 +172,76 @@ def act_slam(d):
 
 
 # ============================================================ 마시기(drink): lift · gulp(루프) · finish
-def mouth_pt(lean, headp):
-    """대략 입 위치(지역) — 잔 테를 입에 대기 위한 기준."""
-    lr = math.radians(lean)
-    u_neck = 63.0 - 2.0 + 53.0 * math.cos(lr)
-    f_neck = 53.0 * math.sin(lr)
-    return (f_neck + 16.0, 6.0, u_neck + 8.0)
+def cask_pose(p, ax, side=(0.0, -1.0, 0.0), gap=0.5, **fxcup):
+    """술통 잔 윗면(마구리)이 입에 닿도록 오른손 위치를 거꾸로 구함 → (자세, 통 중심 지역 3D).
+    ax = 통 축(바닥 → 마구리, 입 쪽), side = 손잡이(손) → 통 중심 방향. 오른손으로 쥐고 입 오른쪽에서 기울여 마심."""
+    S = Skel(PROP, p)
+    m = mouth_target(S)
+    axn = norm(ax)
+    c = sub(m, mul(axn, CASK_HL + gap))
+    sd = sub(side, mul(axn, dot(side, axn)))
+    sd = norm(sd)
+    hand = sub(c, mul(sd, CASK_OFF))
+    q = W(p, handR=hand, fx={"cup": dict(axis=ax, side=side, **fxcup)})
+    return q, c
 
 
 def act_drink(d):
+    return drink_frames(d)[0]
+
+
+def drink_frames(d):
+    """→ (프레임, 들이켜기 첫 프레임의 술통 중심). 술통 잔을 입 오른쪽에서 기울여 마심 — 마구리가 입에 닿음."""
     base = P_()
-    # 들기: 잔을 가슴 앞으로 → 입으로, 왼손이 잔 아래를 받침
+    # 들기: 잔을 가슴 앞으로 → 입으로, 왼손이 통 바닥을 받침
     l0 = P_(root=(-1.0, 0.0, -2.0), lean=-6.0, head=(-6.0, 0.0, 2.0), handR=(18.0, 22.0, 80.0), handL=(10.0, -30.0, 60.0),
-            eye="half", fx={"cup": {"axis": (0.0, 0.0, 1.0), "fill": 0.85}, "mouth": "grin"})
-    l1 = W(l0, lean=-9.0, head=(-12.0, 0.0, 0.0), handR=(22.0, 14.0, 94.0), handL=(18.0, -18.0, 76.0),
-           fx={"cup": {"axis": (-0.25, -0.05, 1.0)}, "mouth": "open"})
-    l2 = W(l0, lean=-13.0, head=(-22.0, 0.0, 0.0), handR=(26.0, 8.0, 108.0), handL=(22.0, -10.0, 90.0),
-           fx={"cup": {"axis": (-0.7, -0.05, 0.75)}, "mouth": "open"})
-    gulp = []
+            eye="half", fx={"cup": {"axis": (0.0, 0.0, 1.0), "fill": 0.85, "side": (0.0, 1.0, 0.0)}, "mouth": "grin"})
+    l1 = W(l0, lean=-9.0, head=(-12.0, 0.0, 0.0), handR=(24.0, 18.0, 92.0), handL=(18.0, -18.0, 76.0),
+           fx={"cup": {"axis": (-0.2, -0.05, 1.0), "side": (1.0, 0.3, 0.0)}, "mouth": "open"})
+    l2, _ = cask_pose(W(l0, lean=-13.0, head=(-22.0, 0.0, 0.0), handL=(20.0, -8.0, 92.0), fx={"mouth": "open"}),
+                      (-0.55, -0.1, 0.55), side=(0.4, -1.0, 0.0), gap=5.0)
+    gulp, cc = [], None
     for i in range(4):
         a = TAU * i / 4
         s, c = math.sin(a), math.cos(a)
-        g = W(l0, root=(-2.0, 0.0, -2.0 + 0.6 * c), lean=-16.0 + 1.0 * s, head=(-34.0 + 3.0 * s, 0.0, 2.0 * c),
-              handR=(26.0 + 0.6 * c, 6.0, 118.0 + 1.2 * s), handL=(24.0, -8.0, 104.0 + 1.0 * s), eye="shut",
-              fx={"cup": {"axis": (-0.95, -0.05, -0.15 + 0.06 * s), "fill": 0.55 + 0.05 * c, "pour": True},
-                  "mouth": "gulp", "drip": 4 + (i % 2) * 2, "jig": 0.5 * c, "cape": (0.0, 0.0)})
+        g0 = W(l0, root=(-2.0, 0.0, -2.0 + 0.6 * c), lean=-16.0 + 1.0 * s, head=(-34.0 + 3.0 * s, 0.0, 2.0 * c),
+               handL=(22.0, -6.0, 104.0 + 1.0 * s), eye="shut",
+               fx={"mouth": "gulp", "drip": 4 + (i % 2) * 2, "jig": 0.5 * c, "cape": (0.0, 0.0)})
+        g, cpos = cask_pose(g0, (-0.72, -0.12, -0.62 + 0.06 * s), gap=0.4 + 0.4 * c, fill=0.55 + 0.05 * c, pour=True)
+        cc = cc or cpos
         gulp.append(g)
-    l3 = W(gulp[0], fx={"drip": 2, "cup": {"pour": False}})
     lift = [L(base, l0, 0.5), l0, l1, l2, L(l2, gulp[0], 0.5)]
     lift[-1]["fx"]["cup"]["pour"] = False
     # 다 마심: 잔을 내리고(빈 잔) 왼팔로 입 닦고 트림, 비틀
-    f0 = W(l2, fx={"cup": {"fill": 0.0, "axis": (-0.6, 0.0, 0.8)}, "drip": 5, "mouth": "open"}, eye="half")
+    f0 = W(l2, fx={"cup": {"fill": 0.0}, "drip": 5, "mouth": "open"}, eye="half")
     f1 = P_(root=(-1.0, -2.0, -3.0), lean=-8.0, roll=-5.0, head=(-10.0, 0.0, -6.0), handR=(20.0, 26.0, 78.0),
-            handL=(18.0, 4.0, 108.0), elbowL=(0.2, -1.0, 0.0), eye="half", fx={"cup": {"fill": 0.0, "axis": (0.1, 0.1, 1.0)}, "drip": 3})
+            handL=(18.0, 4.0, 108.0), elbowL=(0.2, -1.0, 0.0), eye="half",
+            fx={"cup": {"fill": 0.0, "axis": (0.1, 0.1, 1.0), "side": (0.6, 0.8, 0.0)}, "drip": 3})
     f2 = W(f1, head=(-6.0, 0.0, 6.0), handL=(18.0, 18.0, 110.0), roll=-2.0)
     f3 = P_(root=(0.0, 2.0, -1.0), lean=-12.0, roll=4.0, head=(-20.0, 0.0, 8.0), handR=(18.0, 30.0, 76.0), handL=(6.0, -34.0, 60.0),
             eye="shut", fx={"cup": {"fill": 0.0}, "mouth": "o", "jig": 2.0})
     f4 = W(f3, root=(0.0, 3.0, -3.0), lean=-4.0, roll=6.0, head=(-2.0, 0.0, 10.0), eye="half", fx={"jig": -0.8, "mouth": "grin"})
     fin = [f0, f1, f2, f3, f4, L(f4, W(base, fx={"cup": {"fill": 0.0}}), 0.6)]
-    return lift + gulp + fin
+    return lift + gulp + fin, cc
 
 
 # ============================================================ 잔이 깨짐(drink_break): break · stagger(루프) · recover
 def act_drink_break(d):
-    g = act_drink(d)[5]
-    b0 = W(g, eye="wide", fx={"cup": {"hide": True}, "mouth": "open", "splash": {"c": (24.0, 4.0, 128.0), "k": 0.4, "n": 18,
+    fr, cc = drink_frames(d)
+    g = fr[5]
+    b0 = W(g, eye="wide", fx={"cup": {"hide": True}, "mouth": "open", "splash": {"c": cc, "k": 0.4, "n": 18,
                                                                                  "dirv": (0.0, -1.0), "spread": 3.0, "seed": 3},
-                              "wet": True, "drip": 6})
+                              "wet": True, "drip": 6, "burst": {"c": cc, "k": 0.12}})
     b1 = P_(root=(-4.0, 0.0, -4.0), lean=-14.0, head=(-26.0, 0.0, -12.0), handR=(20.0, 30.0, 104.0), handL=(18.0, -30.0, 104.0),
             elbowR=(0.0, 1.0, 0.2), elbowL=(0.0, -1.0, 0.2), eye="shut",
             fx={"cup": {"hide": True}, "mouth": "open", "wet": True, "drip": 8,
                 "splash": {"c": (16.0, 0.0, 140.0), "k": 0.9, "n": 22, "dirv": (0.0, 1.0), "spread": 3.4, "seed": 5},
-                "shards": 0.6, "shardsAt": (14.0, 6.0), "puddle": 3.0, "puddleAt": (10.0, 8.0)})
+                "shards": 0.6, "shardsAt": (24.0, 12.0), "puddle": 3.0, "puddleAt": (10.0, 8.0), "burst": {"c": cc, "k": 0.45}})
     b2 = W(b1, root=(-2.0, 3.0, -5.0), roll=8.0, head=(-10.0, 0.0, 16.0), handR=(14.0, 34.0, 80.0), handL=(10.0, -34.0, 86.0),
            fx={"splash": {"c": (12.0, 0.0, 120.0), "k": 1.0, "n": 14, "dirv": (0.0, 1.0), "spread": 3.4, "seed": 7}, "puddle": 5.0,
-               "shards": 1.0})
-    b3 = W(b2, root=(-1.0, -3.0, -6.0), roll=-8.0, head=(-8.0, 0.0, -16.0), eye="swirl", fx={"splash": None, "puddle": 6.0})
+               "shards": 1.0, "burst": {"c": cc, "k": 0.8}})
+    b3 = W(b2, root=(-1.0, -3.0, -6.0), roll=-8.0, head=(-8.0, 0.0, -16.0), eye="swirl", fx={"splash": None, "puddle": 6.0,
+                                                                                             "burst": None})
     stag = []
     for i in range(6):
         a = TAU * i / 6
@@ -237,7 +251,7 @@ def act_drink_break(d):
                        footR=(-2.0 - 3.0 * s, 18.0, max(0.0, -s) * 3.0),
                        handR=(8.0 + 4.0 * c, 38.0, 60.0 + 4.0 * s), handL=(8.0 - 4.0 * c, -38.0, 60.0 - 4.0 * s), eye="swirl",
                        fx={"cup": {"hide": True}, "mouth": "open" if i % 3 == 0 else "o", "wet": True, "drip": 3 + (i % 2) * 3,
-                           "puddle": 7.0, "puddleAt": (10.0, 8.0), "shards": 1.0, "shardsAt": (14.0, 6.0), "jig": 0.8 * s}))
+                           "puddle": 7.0, "puddleAt": (10.0, 8.0), "shards": 1.0, "shardsAt": (24.0, 12.0), "jig": 0.8 * s}))
     # 회복: 고개를 털고 → 망토 뒤에서 새 잔을 꺼냄
     r0 = P_(root=(0.0, 0.0, -3.0), lean=-4.0, head=(-2.0, 0.0, 18.0), handR=(-14.0, 22.0, 70.0), handL=(6.0, -36.0, 54.0),
             elbowR=(-0.2, 1.0, 0.0), eye="shut", fx={"cup": {"hide": True}, "wet": True, "puddle": 7.0, "puddleAt": (10.0, 8.0),
@@ -380,10 +394,9 @@ def act_phase_drink(d):
     for i in range(6):
         a = TAU * i / 6
         s, c = math.sin(a), math.cos(a)
-        g = W(dr[5], root=(-3.0, 0.0, -1.0 + 0.8 * c), lean=-20.0 + 1.5 * s, head=(-44.0 + 3.0 * s, 0.0, 3.0 * c),
-              handR=(22.0, 4.0, 126.0 + 1.5 * s), handL=(22.0, -6.0, 112.0),
-              fx={"cup": {"axis": (-0.85, -0.05, -0.5), "fill": 0.6 - 0.09 * i, "pour": True}, "drip": 6 + (i % 2) * 3,
-                  "jig": 1.0 + 0.25 * i + 0.6 * c, "mouth": "gulp"})
+        g0 = W(dr[5], root=(-3.0, 0.0, -1.0 + 0.8 * c), lean=-20.0 + 1.5 * s, head=(-44.0 + 3.0 * s, 0.0, 3.0 * c),
+               handL=(22.0, -6.0, 112.0), fx={"drip": 6 + (i % 2) * 3, "jig": 1.0 + 0.25 * i + 0.6 * c, "mouth": "gulp"})
+        g, _ = cask_pose(g0, (-0.55, -0.12, -0.82 + 0.05 * s), gap=0.4, fill=0.6 - 0.09 * i, pour=True)    # 통을 거의 거꾸로 세워 다 비움
         chug.append(g)
     roar = P_(root=(0.0, 0.0, -7.0), lean=-10.0, head=(-16.0, 0.0, 0.0), handR=(10.0, 44.0, 112.0), handL=(10.0, -46.0, 108.0),
               elbowR=(-0.2, 1.0, 0.0), elbowL=(-0.2, -1.0, 0.0), footL=(2.0, -22.0, 0.0), footR=(-2.0, 22.0, 0.0), eye="wide",
@@ -403,11 +416,11 @@ ACTIONS = {"idle": act_idle, "walk": act_walk, "hurt": act_hurt, "death": act_de
 # ============================================================ 타이밍 · 단계 (frameDurationsMs · phaseFrames)
 META = {
     "idle": dict(ms=[170, 170, 170, 170, 130, 150, 170, 170], loop=True, note="취해 흔들림 · 4 = 딸꾹(눈 감고 어깨 들썩)"),
-    "walk": dict(ms=[130] * 8, loop=True, stride={"px": 44, "cycleMs": 1040}, note="무거운 뒤뚱 걸음 · 배·망토·잔 출렁임"),
+    "walk": dict(ms=[130] * 8, loop=True, stride={"px": 57, "cycleMs": 1040}, note="무거운 뒤뚱 걸음 · 배·망토·잔 출렁임"),
     "hurt": dict(ms=[70, 45, 45], loop=False, flashFrame=0),
-    "death": dict(ms=[90, 70, 80, 90, 90, 90, 140, 80, 70, 60, 80, 100, 160, 400], loop=False,
+    "death": dict(ms=[90, 70, 80, 90, 90, 90, 140, 80, 70, 60, 80, 100, 160, 390], loop=False,
                   events={"cupShatterFrame": 3, "groundHitFrame": 9, "crownOffFrame": 8},
-                  note="충격 → 비틀 → 잔을 놓쳐 깨짐(3) → 무릎 → 북쪽(화면 위)으로 넘어짐(9 바닥 충격) → 왕관이 굴러 떨어짐 · 술 웅덩이 번짐"),
+                  note="1.59초(54라운드 Q16). 충격 → 비틀 → 술통 잔을 놓쳐 부서짐(3) → 무릎 → 북쪽(화면 위)으로 넘어짐(9 바닥 충격) → 왕관이 굴러 떨어짐 · 술 웅덩이 번짐"),
     "attack": dict(ms=[90, 90, 90, 200, 70, 70, 70, 70, 70, 70, 90, 100, 120], loop=False,
                    phaseFrames={"telegraph": [0, 1, 2, 3], "dash": [4, 5, 6, 7, 8, 9], "recover": [10, 11, 12]},
                    holdFrame=3, dashLoop=[4, 9],
@@ -418,11 +431,11 @@ META = {
     "drink": dict(ms=[80, 80, 90, 90, 110, 120, 120, 120, 120, 90, 90, 100, 110, 140, 160], loop=False,
                   phaseFrames={"lift": [0, 1, 2, 3, 4], "gulp": [5, 6, 7, 8], "finish": [9, 10, 11, 12, 13, 14]},
                   gulpLoop=[5, 8],
-                  note="큰 잔 들기 → 들이켜기(5~8 루프, 시스템이 2초 채움) → 빈 잔 내리고 입 닦고 트림(12)"),
+                  note="술통 잔 들기 → 입 오른쪽에서 기울여 들이켜기(5~8 루프, 시스템이 2초 채움) → 빈 잔 내리고 입 닦고 트림(12)"),
     "drink_break": dict(ms=[60, 80, 80, 90, 100, 130, 130, 130, 130, 130, 130, 90, 90, 100, 110], loop=False,
                         phaseFrames={"break": [0, 1, 2, 3, 4], "stagger": [5, 6, 7, 8, 9, 10], "recover": [11, 12, 13, 14]},
                         staggerLoop=[5, 10],
-                        note="잔이 깨지고(0, fx boss1_cup_shatter) 술을 뒤집어씀(1~2) → 비틀 경직 루프(5~10, 3초) → 고개 털고 새 잔을 꺼냄(13)"),
+                        note="술통 잔이 터지고(0, fx boss1_cup_shatter — 널·쇠테가 흩어짐) 술을 뒤집어씀(1~2) → 비틀 경직 루프(5~10, 3초) → 고개 털고 새 잔을 꺼냄(13)"),
     "stagger_dash": dict(ms=[80, 80, 90, 150, 60, 60, 60, 60, 60, 60, 70, 80, 90, 100], loop=False,
                          phaseFrames={"telegraph": [0, 1, 2, 3], "dash": [4, 5, 6, 7, 8, 9], "stop": [10, 11, 12, 13]},
                          holdFrame=3, dashLoop=[4, 9],
@@ -436,7 +449,7 @@ META = {
                  note="왼발로 술통 걷어차기(3 = 술통 출발) · footAnchors = 차는 발끝"),
     "throw": dict(ms=[80, 80, 90, 140, 50, 60, 80, 100, 100, 110], loop=False, releaseFrame=4,
                   phaseFrames={"windup": [0, 1, 2, 3], "release": [4, 5], "recover": [6, 7, 8, 9]},
-                  note="잔을 뒤로 젖혔다 앞으로 휘둘러 술을 뿌림(4 = 술 발사) · handAnchors = 잔 테(술 생성점)"),
+                  note="술통 잔을 뒤로 젖혔다 앞으로 휘둘러 술을 뿌림(4 = 술 발사) · handAnchors = 술통 마구리 가운데(술 생성점)"),
     "throw_torch": dict(ms=[80, 80, 90, 90, 90, 150, 50, 70, 90, 100, 110], loop=False, releaseFrame=7,
                         phaseFrames={"grab": [0, 1, 2, 3], "windup": [4, 5, 6], "release": [7, 8], "recover": [9, 10]},
                         note="등 뒤에서 횃불을 꺼내(2) 머리 위로 젖혔다 던짐(7 = 횃불 발사, fx boss1_torch) · handAnchors = 횃불 끝"),
