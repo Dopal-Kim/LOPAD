@@ -1,0 +1,85 @@
+{
+ "image": "greatsword_charge_ring.png",
+ "action": "greatsword_charge_ring",
+ "version": "v3-r55",
+ "frameWidth": 432,
+ "frameHeight": 368,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.0,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  50,
+  60,
+  60
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 12,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo55/build.py (55라운드 Q18~Q25 · 계약 §17 새 연격 이펙트)",
+ "weapon": "greatsword",
+ "design": "3단 충격파 링 — 끝점에서 0.35R → 1.0R 로 퍼지는 백열→호박 고리 + 고리 따라 먼지",
+ "bodySheet": "player_greatsword_charge_slam",
+ "weaponSheet": "weapons/v3/greatsword_charge_slam",
+ "comboSet": "G-C 관성 순환",
+ "dirTransform": "rotate",
+ "dirTransformNote": "§17 각도(조준 0°, 화면 시계 +)를 모든 방향에 회전으로 적용 — left = right 를 180° 회전(구 fx 의 좌우 반전 아님). 몸 시트의 휘두름 방향과 같다",
+ "effectRule": "55라운드: 원 전체가 아니라 판정 호를 따라 2~3프레임에 그려 나가는 부분 초승달, 80~120ms 소멸, 재·호박만, 판정 순간만 백열",
+ "anchor": "hitbox_center",
+ "pivot": {
+  "x": 219,
+  "y": 180
+ },
+ "rotate": false,
+ "pivotNote": "pivot = 판정 원(충격원·충격파 링) 중심. 방향 무관(any) — 시스템이 끝점(판정 원점 + 조준 방향 × 쐐기 길이)에 놓는다",
+ "spawn": "impact",
+ "spawnNote": "차지 3단 내려찍기 impactFrame 시작(=hitAt)에 끝점에서 1회",
+ "impactFrame": 0,
+ "ringRadiusPxByFrame": [
+  80,
+  110,
+  140,
+  170,
+  195,
+  204
+ ],
+ "groundKy": 0.85,
+ "hitShape": {
+  "type": "ring",
+  "centerAt": "wedge end (impact circle center)",
+  "radiusPxByFrame": [
+   80,
+   110,
+   140,
+   170,
+   195,
+   204
+  ],
+  "fromR": 0.35,
+  "toR": 1.0,
+  "R": {
+   "world": 51,
+   "dots": 204
+  },
+  "note": "충격파 링 판정 참고값 — 프레임별 반지름(도트), 두께는 시스템 데이터"
+ },
+ "shakeHint": {
+  "px": 6,
+  "ms": 140
+ },
+ "glowFrames": [
+  0,
+  1
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

@@ -1,0 +1,111 @@
+{
+ "image": "greatsword_charge_slam_lv2.png",
+ "action": "greatsword_charge_slam_lv2",
+ "version": "v3-r55",
+ "frameWidth": 624,
+ "frameHeight": 624,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 22.22,
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  40,
+  50,
+  60
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 13,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo55/build.py (55라운드 Q18~Q25 · 계약 §17 새 연격 이펙트)",
+ "weapon": "greatsword",
+ "design": "차지 2단 내려찍기 — 쐐기 ×1.5, 더 굵은 호·금",
+ "bodySheet": "player_greatsword_charge_slam",
+ "weaponSheet": "weapons/v3/greatsword_charge_slam",
+ "comboSet": "G-C 관성 순환",
+ "dirTransform": "rotate",
+ "dirTransformNote": "§17 각도(조준 0°, 화면 시계 +)를 모든 방향에 회전으로 적용 — left = right 를 180° 회전(구 fx 의 좌우 반전 아님). 몸 시트의 휘두름 방향과 같다",
+ "effectRule": "55라운드: 원 전체가 아니라 판정 호를 따라 2~3프레임에 그려 나가는 부분 초승달, 80~120ms 소멸, 재·호박만, 판정 순간만 백열",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 309,
+  "y": 349
+ },
+ "hitOriginInFrame": {
+  "x": 309,
+  "y": 309
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗)에 맞춘다. 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "spawn": "body_frame",
+ "spawnBodyFrame": 1,
+ "spawnAtMs": 40,
+ "impactAtBodyMs": 120,
+ "impactFrame": 2,
+ "timingNote": "spawnAtMs = 몸 시트 시작 기준 이 시트를 띄우는 시각. impactFrame 시작 = 몸 hitAt(판정). 관성 공속은 몸·fx 를 같은 배율로 재생",
+ "drawnArc": {
+  "wedgeLengthDots": 306.0,
+  "verticalRadiusDots": 165,
+  "note": "세로 호(머리 위 → 칼이 닿는 앞 지면 Rv) + Rv → 쐐기 끝(L) 충격 선 + 바닥 금"
+ },
+ "frameRoles": [
+  "pre",
+  "draw(내려옴)",
+  "impact(백열 — 판정)",
+  "decay",
+  "decay",
+  "decay"
+ ],
+ "impactSheet": "greatsword_cleave_impact",
+ "impactSheetAt": "impactFrame 시작, 쐐기 끝점(hitbox_center)",
+ "chargeStage": 2,
+ "wedgeLengthR": 1.5,
+ "hitShape": {
+  "type": "wedge",
+  "angleDeg": 40,
+  "lengthRByStage": [
+   1.3,
+   1.5,
+   1.8
+  ],
+  "impactCircle": {
+   "radiusR": 0.35,
+   "atWedgeEnd": true,
+   "radiusPx": 71.4
+  },
+  "ringStage3": {
+   "sheet": "greatsword_charge_ring"
+  },
+  "note": "§17 차지: 쐐기 길이 ×1.3/1.5/1.8, 3단은 충격파 링",
+  "R": {
+   "world": 51,
+   "dots": 204
+  },
+  "lengthPxByStage": [
+   265.2,
+   306.0,
+   367.2
+  ],
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준",
+  "lengthPx": 306.0,
+  "stage": 2
+ },
+ "impactSheetScale": 1.15,
+ "impactSheetScaleNote": "끝점 충격 시트 scale 참고값(충격원 반경도 키울지는 시스템 데이터)",
+ "glowFrames": [
+  2
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

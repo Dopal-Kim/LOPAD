@@ -1,0 +1,827 @@
+{
+ "image": "greatsword_sweep_ccw.png",
+ "action": "greatsword_sweep_ccw",
+ "frameWidth": 240,
+ "frameHeight": 264,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.33,
+ "frameDurationsMs": [
+  70,
+  70,
+  40,
+  50,
+  40,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 117,
+  "y": 200
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/combo55/build.py (55라운드 Q18~Q25 · 계약 §17 새 연격)",
+ "weapon": "greatsword",
+ "version": "v3-r55",
+ "comboSet": "G-C 관성 순환",
+ "label": "H2 수평 반시계",
+ "timingMs": {
+  "total": 490,
+  "hitAt": 180,
+  "activeEndAt": 270,
+  "cancelAt": 330
+ },
+ "frameStates": [
+  "steel",
+  "steel",
+  "steel",
+  "glow",
+  "glow",
+  "steel",
+  "steel",
+  "steel"
+ ],
+ "framesBasis": "player_greatsword_sweep_ccw 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "msNote": "ms 는 아트 제안값. 시스템이 데이터로 바꿔도 impactFrame 시작 = hitAt 이 맞으면 그림은 맞는다(관성 공속은 재생 속도로).",
+ "comboIndex": 3,
+ "impactFrame": 3,
+ "hitFrames": [
+  3,
+  4
+ ],
+ "activeFrames": [
+  3,
+  4
+ ],
+ "glowFrames": [
+  3,
+  4
+ ],
+ "cancelFromFrame": 6,
+ "anticipationFrames": [
+  0,
+  1,
+  2
+ ],
+ "recoverFrames": [
+  5,
+  6,
+  7
+ ],
+ "hitShape": {
+  "type": "arc",
+  "startDeg": 75,
+  "endDeg": -75,
+  "radiusR": 1.0,
+  "innerR": 0.35,
+  "note": "수평 초승달 150° (§17, H1 역방향)",
+  "R": {
+   "world": 51,
+   "dots": 204
+  },
+  "outerRadiusPx": 204.0,
+  "innerRadiusPx": 71.4,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
+ "arcFromDeg": 75,
+ "arcToDeg": -75,
+ "arcDeg": 150,
+ "arcNote": "그림의 휘두름 방향(from → to). 화면각(조준 0°, 시계 +). 모든 방향 = 조준 방향 기준 회전(left 도 회전, 좌우 반전 아님)",
+ "stepPx": {
+  "world": 5,
+  "dots": 20,
+  "frames": [
+   2,
+   3
+  ],
+  "note": "내딛기 참고값(§17, 월드 px) — 방향키를 누를 때만. frames = 몸이 앞으로 나가는 프레임(그림은 제자리, 이동은 시스템)"
+ },
+ "stepStartMs": 140,
+ "nextMove": "greatsword_cleave",
+ "startsFrom": "greatsword_cleave 끝(가운데)",
+ "endsWith": "LINK_L (왼쪽 — V 의 들어 올림으로 이어짐)",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 69,
+  "y": 62
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     102.7,
+     134.5
+    ],
+    "handL": [
+     112.2,
+     136.8
+    ]
+   },
+   {
+    "handR": [
+     105.0,
+     126.0
+    ],
+    "handL": [
+     111.6,
+     131.3
+    ]
+   },
+   {
+    "handR": [
+     99.3,
+     139.4
+    ],
+    "handL": [
+     108.9,
+     139.2
+    ]
+   },
+   {
+    "handR": [
+     107.7,
+     147.6
+    ],
+    "handL": [
+     111.4,
+     143.4
+    ]
+   },
+   {
+    "handR": [
+     131.2,
+     146.2
+    ],
+    "handL": [
+     125.1,
+     142.0
+    ]
+   },
+   {
+    "handR": [
+     135.2,
+     142.8
+    ],
+    "handL": [
+     125.8,
+     140.0
+    ]
+   },
+   {
+    "handR": [
+     133.4,
+     140.2
+    ],
+    "handL": [
+     124.1,
+     138.4
+    ]
+   },
+   {
+    "handR": [
+     130.8,
+     135.6
+    ],
+    "handL": [
+     121.3,
+     134.9
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     131.3,
+     128.7
+    ],
+    "handL": [
+     121.8,
+     130.4
+    ]
+   },
+   {
+    "handR": [
+     129.0,
+     125.2
+    ],
+    "handL": [
+     122.4,
+     126.0
+    ]
+   },
+   {
+    "handR": [
+     134.7,
+     129.8
+    ],
+    "handL": [
+     125.1,
+     130.7
+    ]
+   },
+   {
+    "handR": [
+     126.3,
+     127.6
+    ],
+    "handL": [
+     122.6,
+     129.7
+    ]
+   },
+   {
+    "handR": [
+     102.8,
+     129.0
+    ],
+    "handL": [
+     108.9,
+     129.8
+    ]
+   },
+   {
+    "handR": [
+     98.8,
+     135.4
+    ],
+    "handL": [
+     108.2,
+     132.9
+    ]
+   },
+   {
+    "handR": [
+     100.6,
+     135.0
+    ],
+    "handL": [
+     109.9,
+     132.1
+    ]
+   },
+   {
+    "handR": [
+     103.2,
+     127.6
+    ],
+    "handL": [
+     112.7,
+     128.3
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     108.8,
+     126.3
+    ],
+    "handL": [
+     107.9,
+     131.7
+    ]
+   },
+   {
+    "handR": [
+     116.0,
+     121.1
+    ],
+    "handL": [
+     109.4,
+     126.4
+    ]
+   },
+   {
+    "handR": [
+     103.1,
+     128.1
+    ],
+    "handL": [
+     104.8,
+     131.8
+    ]
+   },
+   {
+    "handR": [
+     88.5,
+     134.1
+    ],
+    "handL": [
+     97.5,
+     134.3
+    ]
+   },
+   {
+    "handR": [
+     92.3,
+     142.3
+    ],
+    "handL": [
+     99.7,
+     138.4
+    ]
+   },
+   {
+    "handR": [
+     106.5,
+     145.2
+    ],
+    "handL": [
+     106.8,
+     139.2
+    ]
+   },
+   {
+    "handR": [
+     109.7,
+     143.1
+    ],
+    "handL": [
+     108.0,
+     137.4
+    ]
+   },
+   {
+    "handR": [
+     105.4,
+     136.1
+    ],
+    "handL": [
+     107.5,
+     132.8
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     125.2,
+     136.3
+    ],
+    "handL": [
+     126.1,
+     135.0
+    ]
+   },
+   {
+    "handR": [
+     118.0,
+     129.5
+    ],
+    "handL": [
+     124.6,
+     130.2
+    ]
+   },
+   {
+    "handR": [
+     130.9,
+     140.5
+    ],
+    "handL": [
+     129.2,
+     137.5
+    ]
+   },
+   {
+    "handR": [
+     145.5,
+     140.5
+    ],
+    "handL": [
+     136.5,
+     138.3
+    ]
+   },
+   {
+    "handR": [
+     141.7,
+     132.3
+    ],
+    "handL": [
+     134.3,
+     132.8
+    ]
+   },
+   {
+    "handR": [
+     127.5,
+     132.4
+    ],
+    "handL": [
+     127.2,
+     133.0
+    ]
+   },
+   {
+    "handR": [
+     124.3,
+     131.5
+    ],
+    "handL": [
+     126.0,
+     132.4
+    ]
+   },
+   {
+    "handR": [
+     128.6,
+     126.5
+    ],
+    "handL": [
+     126.5,
+     129.8
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    102.7,
+    134.5
+   ],
+   [
+    105.0,
+    126.0
+   ],
+   [
+    99.3,
+    139.4
+   ],
+   [
+    107.7,
+    147.6
+   ],
+   [
+    131.2,
+    146.2
+   ],
+   [
+    135.2,
+    142.8
+   ],
+   [
+    133.4,
+    140.2
+   ],
+   [
+    130.8,
+    135.6
+   ]
+  ],
+  "up": [
+   [
+    131.3,
+    128.7
+   ],
+   [
+    129.0,
+    125.2
+   ],
+   [
+    134.7,
+    129.8
+   ],
+   [
+    126.3,
+    127.6
+   ],
+   [
+    102.8,
+    129.0
+   ],
+   [
+    98.8,
+    135.4
+   ],
+   [
+    100.6,
+    135.0
+   ],
+   [
+    103.2,
+    127.6
+   ]
+  ],
+  "left": [
+   [
+    108.8,
+    126.3
+   ],
+   [
+    116.0,
+    121.1
+   ],
+   [
+    103.1,
+    128.1
+   ],
+   [
+    88.5,
+    134.1
+   ],
+   [
+    92.3,
+    142.3
+   ],
+   [
+    106.5,
+    145.2
+   ],
+   [
+    109.7,
+    143.1
+   ],
+   [
+    105.4,
+    136.1
+   ]
+  ],
+  "right": [
+   [
+    125.2,
+    136.3
+   ],
+   [
+    118.0,
+    129.5
+   ],
+   [
+    130.9,
+    140.5
+   ],
+   [
+    145.5,
+    140.5
+   ],
+   [
+    141.7,
+    132.3
+   ],
+   [
+    127.5,
+    132.4
+   ],
+   [
+    124.3,
+    131.5
+   ],
+   [
+    128.6,
+    126.5
+   ]
+  ]
+ },
+ "gripHand": "handR",
+ "design": "A 녹슨 양손검 (53라운드 Q27) — 갈고리 달린 녹슨 츠바이헨더 · 박힌 화살촉 · 이 빠진 홈에서 새는 혼불 · 가죽 리카소",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_greatsword_A2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 가장 깊은 홈 혼불 1px(A21) 은은, 판정(glow) 프레임만 날 가장자리 A25/A23 + 홈·끝 A26",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(강철 G · 녹 A18/A19 · 혼불 A · 가죽 WD, Q32)",
+ "includesSheath": false,
+ "carryHidden": "이 시트 동안 greatsword_carry_* 는 숨긴다(이 시트가 손의 대검을 그림).",
+ "stateNote": "steel 평소(홈 혼불 1px 은은) · glow 판정(날 가장자리 A25/A23 + 홈 A26) · charge 홀드(평소 그림 — 단계 번쩍임은 fx)",
+ "twoHanded": true,
+ "bladeLengthDots": 90,
+ "hiltLengthDots": 21,
+ "sizeNote": "53라운드 Q44 '몸만한 칼'(날 90 + 손잡이 21 도트, 폭 9) · Q45 대검 시트만 틀 확대 — frameWidth/frameHeight·pivot·playerFrameOffset 을 JSON 에서 읽을 것",
+ "bladeLocal": [
+  {
+   "thetaDeg": 95,
+   "elevDeg": 12
+  },
+  {
+   "thetaDeg": 135,
+   "elevDeg": 18
+  },
+  {
+   "thetaDeg": 80,
+   "elevDeg": 2
+  },
+  {
+   "thetaDeg": 22,
+   "elevDeg": -6
+  },
+  {
+   "thetaDeg": -40,
+   "elevDeg": -10
+  },
+  {
+   "thetaDeg": -88,
+   "elevDeg": -16
+  },
+  {
+   "thetaDeg": -100,
+   "elevDeg": -14
+  },
+  {
+   "thetaDeg": -78,
+   "elevDeg": 0
+  }
+ ],
+ "bladeLocalNote": "몸 기준 무기 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). null = 칼집 안",
+ "bladeTipAnchors": {
+  "down": [
+   [
+    11.4,
+    112.2
+   ],
+   [
+    42.0,
+    74.9
+   ],
+   [
+    7.0,
+    141.9
+   ],
+   [
+    72.8,
+    187.6
+   ],
+   [
+    190.6,
+    187.3
+   ],
+   [
+    225.2,
+    169.7
+   ],
+   [
+    223.0,
+    157.3
+   ],
+   [
+    222.5,
+    142.5
+   ]
+  ],
+  "up": [
+   [
+    222.6,
+    112.0
+   ],
+   [
+    192.0,
+    118.3
+   ],
+   [
+    227.0,
+    120.8
+   ],
+   [
+    161.2,
+    107.2
+   ],
+   [
+    43.4,
+    120.5
+   ],
+   [
+    8.8,
+    160.2
+   ],
+   [
+    11.0,
+    163.2
+   ],
+   [
+    11.5,
+    120.7
+   ]
+  ],
+  "left": [
+   [
+    116.7,
+    74.8
+   ],
+   [
+    179.0,
+    70.1
+   ],
+   [
+    86.9,
+    92.5
+   ],
+   [
+    2.0,
+    131.6
+   ],
+   [
+    21.6,
+    179.3
+   ],
+   [
+    103.4,
+    202.5
+   ],
+   [
+    125.5,
+    197.1
+   ],
+   [
+    85.9,
+    168.2
+   ]
+  ],
+  "right": [
+   [
+    117.3,
+    148.8
+   ],
+   [
+    55.0,
+    122.6
+   ],
+   [
+    147.1,
+    169.5
+   ],
+   [
+    232.0,
+    162.6
+   ],
+   [
+    212.4,
+    127.8
+   ],
+   [
+    130.6,
+    126.8
+   ],
+   [
+    108.5,
+    122.9
+   ],
+   [
+    148.1,
+    94.4
+   ]
+  ]
+ },
+ "bladeTipNote": "칼끝(무기 시트 좌표, 55라운드 시스템 요청 — 칼 포함). null = 날이 칼집 안. 칼끝 리본(§16 ribbon_ash)의 머리 위치로 쓸 수 있다",
+ "bodySheet": "player_greatsword_sweep_ccw",
+ "overlay": "player_greatsword_sweep_ccw 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset."
+}

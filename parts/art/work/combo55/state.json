@@ -1,0 +1,92 @@
+{
+ "chargeBlade": {
+  "down": [
+   [
+    48.0,
+    43.0
+   ],
+   [
+    48.0,
+    -53.1
+   ]
+  ],
+  "up": [
+   [
+    48.0,
+    37.7
+   ],
+   [
+    48.0,
+    -21.6
+   ]
+  ],
+  "left": [
+   [
+    40.5,
+    40.1
+   ],
+   [
+    92.9,
+    -37.7
+   ]
+  ],
+  "right": [
+   [
+    55.5,
+    40.1
+   ],
+   [
+    3.1,
+    -37.7
+   ]
+  ]
+ },
+ "gsFrame": [
+  240,
+  264,
+  69,
+  62
+ ],
+ "weaponStats": {
+  "katana_rise": {
+   "weaponColors": 16,
+   "bodyColors": 28,
+   "edgePixels": 0
+  },
+  "katana_fall": {
+   "weaponColors": 16,
+   "bodyColors": 28,
+   "edgePixels": 0
+  },
+  "katana_crescent": {
+   "weaponColors": 16,
+   "bodyColors": 28,
+   "edgePixels": 0
+  },
+  "greatsword_sweep_cw": {
+   "weaponColors": 13,
+   "bodyColors": 28,
+   "edgePixels": 0
+  },
+  "greatsword_cleave": {
+   "weaponColors": 13,
+   "bodyColors": 28,
+   "edgePixels": 0
+  },
+  "greatsword_sweep_ccw": {
+   "weaponColors": 13,
+   "bodyColors": 28,
+   "edgePixels": 0
+  },
+  "greatsword_charge": {
+   "weaponColors": 10,
+   "bodyColors": 28,
+   "edgePixels": 0
+  },
+  "greatsword_charge_slam": {
+   "weaponColors": 13,
+   "bodyColors": 28,
+   "edgePixels": 0
+  }
+ }
+}

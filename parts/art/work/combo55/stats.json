@@ -1,0 +1,105 @@
+{
+ "greatsword_charge": {
+  "weaponColors": 10,
+  "bodyColors": 28,
+  "edgePixels": 0
+ },
+ "greatsword_charge_flash_lv1": {
+  "frame": [
+   120,
+   208
+  ],
+  "colors": 4
+ },
+ "greatsword_charge_flash_lv2": {
+  "frame": [
+   136,
+   216
+  ],
+  "colors": 5
+ },
+ "greatsword_charge_flash_lv3": {
+  "frame": [
+   200,
+   248
+  ],
+  "colors": 5
+ },
+ "greatsword_charge_ring": {
+  "frame": [
+   432,
+   368
+  ],
+  "colors": 12
+ },
+ "greatsword_charge_slam": {
+  "weaponColors": 13,
+  "bodyColors": 28,
+  "edgePixels": 0
+ },
+ "greatsword_charge_slam_lv1": {
+  "frame": [
+   544,
+   552
+  ],
+  "colors": 13
+ },
+ "greatsword_charge_slam_lv2": {
+  "frame": [
+   624,
+   624
+  ],
+  "colors": 13
+ },
+ "greatsword_charge_slam_lv3": {
+  "frame": [
+   744,
+   744
+  ],
+  "colors": 13
+ },
+ "greatsword_cleave": {
+  "weaponColors": 13,
+  "bodyColors": 28,
+  "edgePixels": 0
+ },
+ "greatsword_cleave_impact": {
+  "frame": [
+   176,
+   144
+  ],
+  "colors": 13
+ },
+ "greatsword_sweep_ccw": {
+  "weaponColors": 13,
+  "bodyColors": 28,
+  "edgePixels": 0
+ },
+ "greatsword_sweep_cw": {
+  "weaponColors": 13,
+  "bodyColors": 28,
+  "edgePixels": 0
+ },
+ "katana_crescent": {
+  "weaponColors": 16,
+  "bodyColors": 28,
+  "edgePixels": 0
+ },
+ "katana_crescent_echo": {
+  "frame": [
+   328,
+   328
+  ],
+  "colors": 12
+ },
+ "katana_fall": {
+  "weaponColors": 16,
+  "bodyColors": 28,
+  "edgePixels": 0
+ },
+ "katana_rise": {
+  "weaponColors": 16,
+  "bodyColors": 28,
+  "edgePixels": 0
+ }
+}

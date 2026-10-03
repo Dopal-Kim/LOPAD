@@ -1,0 +1,720 @@
+{
+ "image": "player_greatsword_sweep_ccw.png",
+ "action": "greatsword_sweep_ccw",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.33,
+ "frameDurationsMs": [
+  70,
+  70,
+  40,
+  50,
+  40,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/combo55/build.py (55라운드 Q18~Q25 · 계약 §17 새 연격)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "weapon": "greatsword",
+ "version": "v3-r55",
+ "comboSet": "G-C 관성 순환",
+ "label": "H2 수평 반시계",
+ "timingMs": {
+  "total": 490,
+  "hitAt": 180,
+  "activeEndAt": 270,
+  "cancelAt": 330
+ },
+ "frameStates": [
+  "steel",
+  "steel",
+  "steel",
+  "glow",
+  "glow",
+  "steel",
+  "steel",
+  "steel"
+ ],
+ "framesBasis": "player_greatsword_sweep_ccw 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "msNote": "ms 는 아트 제안값. 시스템이 데이터로 바꿔도 impactFrame 시작 = hitAt 이 맞으면 그림은 맞는다(관성 공속은 재생 속도로).",
+ "comboIndex": 3,
+ "impactFrame": 3,
+ "hitFrames": [
+  3,
+  4
+ ],
+ "activeFrames": [
+  3,
+  4
+ ],
+ "glowFrames": [
+  3,
+  4
+ ],
+ "cancelFromFrame": 6,
+ "anticipationFrames": [
+  0,
+  1,
+  2
+ ],
+ "recoverFrames": [
+  5,
+  6,
+  7
+ ],
+ "hitShape": {
+  "type": "arc",
+  "startDeg": 75,
+  "endDeg": -75,
+  "radiusR": 1.0,
+  "innerR": 0.35,
+  "note": "수평 초승달 150° (§17, H1 역방향)",
+  "R": {
+   "world": 51,
+   "dots": 204
+  },
+  "outerRadiusPx": 204.0,
+  "innerRadiusPx": 71.4,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
+ "arcFromDeg": 75,
+ "arcToDeg": -75,
+ "arcDeg": 150,
+ "arcNote": "그림의 휘두름 방향(from → to). 화면각(조준 0°, 시계 +). 모든 방향 = 조준 방향 기준 회전(left 도 회전, 좌우 반전 아님)",
+ "stepPx": {
+  "world": 5,
+  "dots": 20,
+  "frames": [
+   2,
+   3
+  ],
+  "note": "내딛기 참고값(§17, 월드 px) — 방향키를 누를 때만. frames = 몸이 앞으로 나가는 프레임(그림은 제자리, 이동은 시스템)"
+ },
+ "stepStartMs": 140,
+ "nextMove": "greatsword_cleave",
+ "startsFrom": "greatsword_cleave 끝(가운데)",
+ "endsWith": "LINK_L (왼쪽 — V 의 들어 올림으로 이어짐)",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     33.7,
+     72.5
+    ],
+    "handL": [
+     43.2,
+     74.8
+    ]
+   },
+   {
+    "handR": [
+     36.0,
+     64.0
+    ],
+    "handL": [
+     42.6,
+     69.3
+    ]
+   },
+   {
+    "handR": [
+     30.3,
+     77.4
+    ],
+    "handL": [
+     39.9,
+     77.2
+    ]
+   },
+   {
+    "handR": [
+     38.7,
+     85.6
+    ],
+    "handL": [
+     42.4,
+     81.4
+    ]
+   },
+   {
+    "handR": [
+     62.2,
+     84.2
+    ],
+    "handL": [
+     56.1,
+     80.0
+    ]
+   },
+   {
+    "handR": [
+     66.2,
+     80.8
+    ],
+    "handL": [
+     56.8,
+     78.0
+    ]
+   },
+   {
+    "handR": [
+     64.4,
+     78.2
+    ],
+    "handL": [
+     55.1,
+     76.4
+    ]
+   },
+   {
+    "handR": [
+     61.8,
+     73.6
+    ],
+    "handL": [
+     52.3,
+     72.9
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     62.3,
+     66.7
+    ],
+    "handL": [
+     52.8,
+     68.4
+    ]
+   },
+   {
+    "handR": [
+     60.0,
+     63.2
+    ],
+    "handL": [
+     53.4,
+     64.0
+    ]
+   },
+   {
+    "handR": [
+     65.7,
+     67.8
+    ],
+    "handL": [
+     56.1,
+     68.7
+    ]
+   },
+   {
+    "handR": [
+     57.3,
+     65.6
+    ],
+    "handL": [
+     53.6,
+     67.7
+    ]
+   },
+   {
+    "handR": [
+     33.8,
+     67.0
+    ],
+    "handL": [
+     39.9,
+     67.8
+    ]
+   },
+   {
+    "handR": [
+     29.8,
+     73.4
+    ],
+    "handL": [
+     39.2,
+     70.9
+    ]
+   },
+   {
+    "handR": [
+     31.6,
+     73.0
+    ],
+    "handL": [
+     40.9,
+     70.1
+    ]
+   },
+   {
+    "handR": [
+     34.2,
+     65.6
+    ],
+    "handL": [
+     43.7,
+     66.3
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     39.8,
+     64.3
+    ],
+    "handL": [
+     38.9,
+     69.7
+    ]
+   },
+   {
+    "handR": [
+     47.0,
+     59.1
+    ],
+    "handL": [
+     40.4,
+     64.4
+    ]
+   },
+   {
+    "handR": [
+     34.1,
+     66.1
+    ],
+    "handL": [
+     35.8,
+     69.8
+    ]
+   },
+   {
+    "handR": [
+     19.5,
+     72.1
+    ],
+    "handL": [
+     28.5,
+     72.3
+    ]
+   },
+   {
+    "handR": [
+     23.3,
+     80.3
+    ],
+    "handL": [
+     30.7,
+     76.4
+    ]
+   },
+   {
+    "handR": [
+     37.5,
+     83.2
+    ],
+    "handL": [
+     37.8,
+     77.2
+    ]
+   },
+   {
+    "handR": [
+     40.7,
+     81.1
+    ],
+    "handL": [
+     39.0,
+     75.4
+    ]
+   },
+   {
+    "handR": [
+     36.4,
+     74.1
+    ],
+    "handL": [
+     38.5,
+     70.8
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     56.2,
+     74.3
+    ],
+    "handL": [
+     57.1,
+     73.0
+    ]
+   },
+   {
+    "handR": [
+     49.0,
+     67.5
+    ],
+    "handL": [
+     55.6,
+     68.2
+    ]
+   },
+   {
+    "handR": [
+     61.9,
+     78.5
+    ],
+    "handL": [
+     60.2,
+     75.5
+    ]
+   },
+   {
+    "handR": [
+     76.5,
+     78.5
+    ],
+    "handL": [
+     67.5,
+     76.3
+    ]
+   },
+   {
+    "handR": [
+     72.7,
+     70.3
+    ],
+    "handL": [
+     65.3,
+     70.8
+    ]
+   },
+   {
+    "handR": [
+     58.5,
+     70.4
+    ],
+    "handL": [
+     58.2,
+     71.0
+    ]
+   },
+   {
+    "handR": [
+     55.3,
+     69.5
+    ],
+    "handL": [
+     57.0,
+     70.4
+    ]
+   },
+   {
+    "handR": [
+     59.6,
+     64.5
+    ],
+    "handL": [
+     57.5,
+     67.8
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 해부 기준 R = 오른손 · L = 왼손). 무기 시트 좌표 = 몸 좌표 + playerFrameOffset(48,48). 칼은 오른손(R)이 쥔다. ",
+ "scarAnchor": {
+  "down": [
+   {
+    "x": 44.1,
+    "y": 72.7,
+    "w": 25.5,
+    "h": 19.2,
+    "rot": -7.1,
+    "visible": false
+   },
+   {
+    "x": 42.7,
+    "y": 73.8,
+    "w": 25.5,
+    "h": 19.6,
+    "rot": -9.6,
+    "visible": false
+   },
+   {
+    "x": 44.6,
+    "y": 74.9,
+    "w": 25.5,
+    "h": 18.6,
+    "rot": -6.4,
+    "visible": false
+   },
+   {
+    "x": 47.5,
+    "y": 77.4,
+    "w": 25.5,
+    "h": 17.7,
+    "rot": -1.0,
+    "visible": false
+   },
+   {
+    "x": 50.9,
+    "y": 77.3,
+    "w": 25.5,
+    "h": 17.9,
+    "rot": 5.7,
+    "visible": false
+   },
+   {
+    "x": 52.8,
+    "y": 77.6,
+    "w": 25.5,
+    "h": 18.4,
+    "rot": 9.3,
+    "visible": false
+   },
+   {
+    "x": 53.1,
+    "y": 75.7,
+    "w": 25.5,
+    "h": 18.7,
+    "rot": 9.6,
+    "visible": false
+   },
+   {
+    "x": 51.9,
+    "y": 73.1,
+    "w": 25.5,
+    "h": 18.9,
+    "rot": 7.2,
+    "visible": false
+   }
+  ],
+  "up": [
+   {
+    "x": 51.9,
+    "y": 72.7,
+    "w": 25.5,
+    "h": 19.2,
+    "rot": 7.1,
+    "visible": true
+   },
+   {
+    "x": 53.3,
+    "y": 73.8,
+    "w": 25.5,
+    "h": 19.6,
+    "rot": 9.6,
+    "visible": true
+   },
+   {
+    "x": 51.4,
+    "y": 74.9,
+    "w": 25.5,
+    "h": 18.6,
+    "rot": 6.4,
+    "visible": true
+   },
+   {
+    "x": 48.5,
+    "y": 77.4,
+    "w": 25.5,
+    "h": 17.7,
+    "rot": 1.0,
+    "visible": true
+   },
+   {
+    "x": 45.1,
+    "y": 77.3,
+    "w": 25.5,
+    "h": 17.9,
+    "rot": -5.7,
+    "visible": true
+   },
+   {
+    "x": 43.2,
+    "y": 77.6,
+    "w": 25.5,
+    "h": 18.4,
+    "rot": -9.3,
+    "visible": true
+   },
+   {
+    "x": 42.9,
+    "y": 75.7,
+    "w": 25.5,
+    "h": 18.7,
+    "rot": -9.6,
+    "visible": true
+   },
+   {
+    "x": 44.1,
+    "y": 73.1,
+    "w": 25.5,
+    "h": 18.9,
+    "rot": -7.2,
+    "visible": true
+   }
+  ],
+  "left": [
+   {
+    "x": 49.4,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": -11.7,
+    "visible": true
+   },
+   {
+    "x": 50.8,
+    "y": 75.4,
+    "w": 7.2,
+    "h": 11.4,
+    "rot": -8.7,
+    "visible": true
+   },
+   {
+    "x": 47.1,
+    "y": 75.4,
+    "w": 7.2,
+    "h": 11.7,
+    "rot": -16.7,
+    "visible": true
+   },
+   {
+    "x": 43.4,
+    "y": 76.9,
+    "w": 7.2,
+    "h": 12.3,
+    "rot": -24.1,
+    "visible": true
+   },
+   {
+    "x": 43.8,
+    "y": 76.9,
+    "w": 7.2,
+    "h": 12.2,
+    "rot": -23.2,
+    "visible": true
+   },
+   {
+    "x": 45.2,
+    "y": 77.6,
+    "w": 7.2,
+    "h": 12.0,
+    "rot": -20.5,
+    "visible": true
+   },
+   {
+    "x": 46.6,
+    "y": 76.1,
+    "w": 7.2,
+    "h": 11.8,
+    "rot": -17.7,
+    "visible": true
+   },
+   {
+    "x": 48.0,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": -14.7,
+    "visible": true
+   }
+  ],
+  "right": [
+   {
+    "x": 46.6,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": 11.7,
+    "visible": true
+   },
+   {
+    "x": 45.2,
+    "y": 75.4,
+    "w": 7.2,
+    "h": 11.4,
+    "rot": 8.7,
+    "visible": true
+   },
+   {
+    "x": 48.9,
+    "y": 75.4,
+    "w": 7.2,
+    "h": 11.7,
+    "rot": 16.7,
+    "visible": true
+   },
+   {
+    "x": 52.6,
+    "y": 76.9,
+    "w": 7.2,
+    "h": 12.3,
+    "rot": 24.1,
+    "visible": true
+   },
+   {
+    "x": 52.2,
+    "y": 76.9,
+    "w": 7.2,
+    "h": 12.2,
+    "rot": 23.2,
+    "visible": true
+   },
+   {
+    "x": 50.8,
+    "y": 77.6,
+    "w": 7.2,
+    "h": 12.0,
+    "rot": 20.5,
+    "visible": true
+   },
+   {
+    "x": 49.4,
+    "y": 76.1,
+    "w": 7.2,
+    "h": 11.8,
+    "rot": 17.7,
+    "visible": true
+   },
+   {
+    "x": 48.0,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": 14.7,
+    "visible": true
+   }
+  ]
+ },
+ "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
+ "weaponOverlayV3": "weapons/v3/greatsword_sweep_ccw",
+ "note": "55라운드 새 연격(§17) 몸. weapons/v3/greatsword_sweep_ccw 를 같은 프레임 번호·같은 시각에 겹친다. v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b."
+}
