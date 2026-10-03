@@ -113,7 +113,7 @@
 ## 10. 51·52라운드 추가 (갈래별 기본 공격 이펙트 · 활 속사/저격)
 - 근거: 51라운드 §4(개성 발현 시 기본 공격 이펙트 차별화, 활 = 속사·저격), 52라운드 Q5(v2 전환 때 2배 일괄 · 2단 갈래 = 색 교체 + 겹침 · 저격 단계 1/3·2/3). 아트 기록 `parts/art/work/combos/NOTES.md` 10절.
 - **근접 1단 갈래 시트**: `fx/<weapon>_combo<n>_<branch>` — katana `iai`·`batto`, greatsword `crush`·`weight`, dagger `twin`·`gale`. 크기·피벗·프레임·ms·anchor·spawn·impact/hit/cancel 프레임·`hitRadiusPx`·`arcDeg` 는 **기본 시트와 동일**(판정 불변). 추가 필드 `branch`·`branchLabel`·`baseSheet`·`replaces`. 시스템은 갈래가 있으면 이 키로 바꾸고, 파일이 없으면 기본 시트로 대체한다.
-- **2단 갈래**: 시트 없음. 1단 시트 JSON `secondaryVariants[<id>]` = `colorSwap`(from/to hex, `fromSlot`/`toSlot`, 동시 적용) + 선택 `overlays`(기존 `crit_burst`·`bleed`·`pierce`) + 타이밍·이펙트 덮어쓰기. 단검 가열 1~3단은 `heatVariants`(색 교체 + 기존 재생 속도 힌트). 색 교체는 바닥 팔레트와 같은 캔버스 재색칠 방식(정확 교체, `setTint` 아님).
+- **2단 갈래**: ~~시트 없음~~ → **55라운드 Q16: 2단 전용 시트** `fx/v3/<1단 시트>_<2단 id>`(1단보다 큰 틀·피벗 — JSON 값을 읽음, 판정 필드는 1단과 동일). 1단 JSON `secondarySheets`·`secondaryVariants[id].sheet` 로 연결, 2단 JSON `runtime`(overlay·flashOverride·holdLastFrameMs·shakeOverride·trailOverride 등) 실행, `colorSwap` 은 시트 파일이 없을 때만 대체. 활 2단 저격은 `tailSheets`. 아래 52라운드 문구는 대체 경로로만 유효: 1단 시트 JSON `secondaryVariants[<id>]` = `colorSwap`(from/to hex, `fromSlot`/`toSlot`, 동시 적용) + 선택 `overlays`(기존 `crit_burst`·`bleed`·`pierce`) + 타이밍·이펙트 덮어쓰기. 단검 가열 1~3단은 `heatVariants`(색 교체 + 기존 재생 속도 힌트). 색 교체는 바닥 팔레트와 같은 캔버스 재색칠 방식(정확 교체, `setTint` 아님).
 - **활 속사**: `bow_arrow_rapid`·`bow_arrow_aimed_rapid`(투사체, 회전, loop_move), `bow_muzzle_rapid`(1회 재생, 새 spawn 지점 **`arrow_spawn`** = 화살 발사 위치). 조준선은 기존 `aim_line`.
 - **활 저격**: `bow_arrow_snipe`·`bow_arrow_aimed_snipe`(JSON `tailSheets`), 꼬리 `bow_arrow_snipe_lv1/2/3`(화살 아래 깊이, 피벗 = 화살 중심, `tailLevel`). 단계 = 최대 사거리 **1/3 부터 lv2, 2/3 부터 lv3**(피해 배율도 같은 구간). 조준선 `aim_line_snipe` 16×3 타일 · 6프레임 · 진행도 구동(frame = min(4, floor(progress×5)), 충전 완료 = 5).
 - 산탄 계열(`scatter`·`rain`·`seek`) 시트는 화기류 도입 때 재사용 — 삭제하지 않는다.
@@ -173,3 +173,11 @@
 - (54라운드 Q18·Q21) 보스 불타는 오버레이 `fx/v3/boss1_onfire`(루프, 보스 발 기준 피벗, `paletteSwap: "none"`, 광원 포함 권장), 굴러가는 술통 1.25배(지름 약 68도트, `circumferencePx` 갱신).
 - (54라운드 Q23~Q27) `boss1_rolling_barrel` 의 `circumferencePx`·`diameterPx`·`lengthPx` 는 **논리 px** 단위. `boss1_onfire` 는 보스와 같은 프레임·피벗(192×240, (96,220)), 행 = 보스 방향, `phaseFrames {ignite, loop, out}`·`loopRange`·`light`·`lightByPhase`(도트 단위 반경). 누운 동작(fall·death)용 불길 행/시트 추가 예정(키는 아트가 제안, 시스템은 JSON 을 따름).
 - (54라운드 Q28) `fx/v3/boss1_onfire_down`: 1행(any) 16열, `useFor`/`standFor` 로 보스 동작 프레임별 누운/서 있는 불길 선택, `frameOffsets` [dx,dy] 도트(빛도 함께 이동), 두 시트 `phaseFrames`·타이밍 동일 — 전환 시 열 번호 이어 씀. 죽음은 마지막 프레임에서 out.
+
+## 16. 55라운드 무기 이펙트 전면 디벨롭 (타격감·움직임·갈래)
+- 근거: `decisions/2026-10-03-round-55-weapon-fx-overhaul.md`.
+- 적중 스파크 `fx/v3/hit_<weapon>`·`hit_<weapon>_heavy`(막타 = 연격 마지막 타·대쉬 공격 마무리·치명타): `anchor: hitbox_center`, `rotate: true`·`drawnFacing`(공격/화살 진행 방향으로 회전), `flipY: "allowed"`, `glowFrames`, `holdFrame`(히트스톱 중 정지 프레임), `hitstopMs`(참고값 — 시스템 Q6 표가 기준), `shakeHint`(참고), `replaces: "hit_burst"`.
+- 재 파편 입자 `fx/v3/particles_ash`: `kinds.<이름>{frames, frameMode loop|life, lifeMs, speedPxPerSec, gravityPxPerSec2, dragPerSec, frameMs, …}`, `recipes.<hit 시트>`(kind별 개수·`coneDeg`). 길이는 도트(pixelScale 0.5).
+- 칼끝 잔상 리본 `fx/v3/ribbon_ash`·`ribbon_ash_thin`: 가로 x=0 꼬리(재)→끝 머리(호박), 프레임 = 나이 단계, `ribbon.uMode: "stretch"`, 반투명 대신 색 단계·디더.
+- 움직임 fx(dash_trail·dash_dust·parry_flash·guard_wave·ironwall·shadowstep_ghost·aim_charge): 프레임 수·ms 변경 가능 — 시스템은 JSON `frameDurationsMs` 를 읽는다. `previous`(이전 값 기록), ironwall `depthByDirection {"up": "below"}`.
+- 소유: `guard_wave`·`ironwall`·`shadowstep_ghost`·`aim_charge` 빌드는 `parts/art/work/fx_v3/build_feel.py`(작업 B).
