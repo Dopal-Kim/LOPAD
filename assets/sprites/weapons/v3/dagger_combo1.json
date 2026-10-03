@@ -1,0 +1,653 @@
+{
+ "image": "dagger_combo1.png",
+ "action": "dagger_combo1",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 37.5,
+ "frameDurationsMs": [
+  25,
+  25,
+  20,
+  20,
+  35,
+  35
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/weapons_v3/build.py (53라운드 Q26~Q32 무기 재디자인 — v3 도트 오버레이)",
+ "weapon": "dagger",
+ "comboIndex": 1,
+ "comboLength": 3,
+ "nextCombo": "dagger_combo2",
+ "hitFrames": [
+  2,
+  3
+ ],
+ "activeFrames": [
+  2,
+  3
+ ],
+ "cancelFromFrame": 4,
+ "framesBasis": "player_dagger_combo1 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 50,
+  "cancelAt": 90,
+  "total": 160,
+  "activeEndAt": 90
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 60 도트 (96×144 몸 기준)",
+ "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
+ "thrust": {
+  "lengthPx": 96,
+  "widthPx": 32,
+  "angleDeg": -8,
+  "fromPx": 16
+ },
+ "thrustNote": "몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 방향 변환은 호와 같은 규약",
+ "impactFrame": 2,
+ "oldTiming": {
+  "frames": 3,
+  "frameDurationsMs": [
+   50,
+   40,
+   70
+  ],
+  "framesMap": [
+   [
+    0,
+    1
+   ],
+   [
+    2,
+    3
+   ],
+   [
+    4,
+    5
+   ]
+  ]
+ },
+ "timingNote": "구 시트(16×24)의 프레임마다 시작 ms·전체 ms 가 같다 — 한 구 프레임을 oldTiming.framesMap 의 새 프레임들로 나눠 보간.",
+ "frameStates": [
+  "steel",
+  "steel",
+  "glow",
+  "glow",
+  "fade",
+  "fade"
+ ],
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     88.0,
+     120.0
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     94.4,
+     124.0
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     100.8,
+     128.1
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     96.1,
+     125.9
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     91.3,
+     123.7
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     90.3,
+     123.4
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     104.0,
+     115.2
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     97.6,
+     109.7
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     91.2,
+     104.1
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     95.9,
+     107.8
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     100.7,
+     111.5
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     101.7,
+     113.3
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     89.3,
+     114.5
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     75.5,
+     116.0
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     61.8,
+     117.5
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     70.2,
+     116.6
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     78.6,
+     115.7
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     81.5,
+     116.1
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     102.7,
+     120.1
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     116.5,
+     117.1
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     130.2,
+     114.1
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     121.8,
+     116.5
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     113.4,
+     118.9
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     110.5,
+     120.0
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    88.0,
+    120.0
+   ],
+   [
+    94.4,
+    124.0
+   ],
+   [
+    100.8,
+    128.1
+   ],
+   [
+    96.1,
+    125.9
+   ],
+   [
+    91.3,
+    123.7
+   ],
+   [
+    90.3,
+    123.4
+   ]
+  ],
+  "up": [
+   [
+    104.0,
+    115.2
+   ],
+   [
+    97.6,
+    109.7
+   ],
+   [
+    91.2,
+    104.1
+   ],
+   [
+    95.9,
+    107.8
+   ],
+   [
+    100.7,
+    111.5
+   ],
+   [
+    101.7,
+    113.3
+   ]
+  ],
+  "left": [
+   [
+    89.3,
+    114.5
+   ],
+   [
+    75.5,
+    116.0
+   ],
+   [
+    61.8,
+    117.5
+   ],
+   [
+    70.2,
+    116.6
+   ],
+   [
+    78.6,
+    115.7
+   ],
+   [
+    81.5,
+    116.1
+   ]
+  ],
+  "right": [
+   [
+    102.7,
+    120.1
+   ],
+   [
+    116.5,
+    117.1
+   ],
+   [
+    130.2,
+    114.1
+   ],
+   [
+    121.8,
+    116.5
+   ],
+   [
+    113.4,
+    118.9
+   ],
+   [
+    110.5,
+    120.0
+   ]
+  ]
+ },
+ "gripHand": "handR",
+ "design": "B 재 껍데기 송곳니 (53라운드 Q28) — 자기 재 껍데기에서 부러낸 송곳니 조각 · 균열 혼불 · 백열 끝 · 붕대 손잡이 + 녹슨 못 · 역수",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_dagger_B.jpg (참고만 — 시안은 정수, 도트는 역수)",
+ "glowRule": "53라운드 Q30: 평소 균열 1px(A21/A19) + 끝 A23 은은, 판정(glow) 프레임만 균열 A23 · 끝 A26",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G · 호박 A · 붕대 PL, Q32)",
+ "reverseGrip": true,
+ "bladeLengthDots": 19,
+ "hiltLengthDots": 7,
+ "bladeLocal": [
+  {
+   "thetaDeg": 170,
+   "elevDeg": -20
+  },
+  {
+   "thetaDeg": 81.0,
+   "elevDeg": -32.5
+  },
+  {
+   "thetaDeg": -8,
+   "elevDeg": -45
+  },
+  {
+   "thetaDeg": 26.0,
+   "elevDeg": -42.5
+  },
+  {
+   "thetaDeg": 60,
+   "elevDeg": -40
+  },
+  {
+   "thetaDeg": 105.0,
+   "elevDeg": -35.0
+  }
+ ],
+ "bladeLocalNote": "몸 기준 무기 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). null = 대기 0 그림(휴대).",
+ "bladeTipAnchors": {
+  "down": [
+   [
+    83.7,
+    120.4
+   ],
+   [
+    72.5,
+    139.3
+   ],
+   [
+    103.4,
+    153.1
+   ],
+   [
+    87.6,
+    149.7
+   ],
+   [
+    73.9,
+    144.1
+   ],
+   [
+    69.5,
+    136.5
+   ]
+  ],
+  "up": [
+   [
+    108.3,
+    132.7
+   ],
+   [
+    119.5,
+    122.6
+   ],
+   [
+    88.6,
+    116.3
+   ],
+   [
+    104.4,
+    119.5
+   ],
+   [
+    118.1,
+    124.9
+   ],
+   [
+    122.5,
+    130.3
+   ]
+  ],
+  "left": [
+   [
+    113.5,
+    122.0
+   ],
+   [
+    72.1,
+    122.4
+   ],
+   [
+    43.5,
+    136.9
+   ],
+   [
+    52.8,
+    131.3
+   ],
+   [
+    68.6,
+    126.4
+   ],
+   [
+    87.0,
+    123.8
+   ]
+  ],
+  "right": [
+   [
+    78.5,
+    130.6
+   ],
+   [
+    119.9,
+    138.9
+   ],
+   [
+    148.5,
+    131.8
+   ],
+   [
+    139.2,
+    137.2
+   ],
+   [
+    123.4,
+    141.9
+   ],
+   [
+    105.0,
+    142.4
+   ]
+  ]
+ },
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고",
+ "bodySheet": "player_dagger_combo1",
+ "timingCheck": {
+  "checked": [
+   "cancelAt",
+   "hitAt",
+   "total",
+   "frameStarts",
+   "activeEnd"
+  ]
+ },
+ "includesSheath": false,
+ "carryHidden": "이 시트 동안 dagger_carry_* 는 숨긴다(이 시트가 손의 단검을 그림).",
+ "overlay": "player_dagger_combo1 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
+ "stateNote": "steel 평소(균열·홈 1px 은은) · glow 판정 프레임(밝게) · fade 흐림 · embers 불티 · idle 대기 0 그림"
+}

@@ -1,0 +1,429 @@
+{
+ "image": "greatsword_carry_dash.png",
+ "action": "carry_dash",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.83,
+ "frameDurationsMs": [
+  30,
+  40,
+  60,
+  60,
+  50
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/weapons_v3/build.py (53라운드 Q26~Q32 무기 재디자인 — v3 도트 오버레이)",
+ "weapon": "greatsword",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     72.6,
+     142.3
+    ],
+    "handL": [
+     119.4,
+     142.3
+    ]
+   },
+   {
+    "handR": [
+     68.1,
+     142.3
+    ],
+    "handL": [
+     123.9,
+     140.8
+    ]
+   },
+   {
+    "handR": [
+     65.3,
+     142.3
+    ],
+    "handL": [
+     125.6,
+     140.8
+    ]
+   },
+   {
+    "handR": [
+     65.7,
+     140.8
+    ],
+    "handL": [
+     126.0,
+     141.6
+    ]
+   },
+   {
+    "handR": [
+     74.1,
+     147.6
+    ],
+    "handL": [
+     117.2,
+     146.9
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     119.4,
+     142.3
+    ],
+    "handL": [
+     72.6,
+     142.3
+    ]
+   },
+   {
+    "handR": [
+     123.9,
+     142.3
+    ],
+    "handL": [
+     68.1,
+     140.8
+    ]
+   },
+   {
+    "handR": [
+     126.7,
+     142.3
+    ],
+    "handL": [
+     66.4,
+     140.8
+    ]
+   },
+   {
+    "handR": [
+     126.3,
+     140.8
+    ],
+    "handL": [
+     66.0,
+     141.6
+    ]
+   },
+   {
+    "handR": [
+     117.9,
+     147.6
+    ],
+    "handL": [
+     74.8,
+     146.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     83.5,
+     137.9
+    ],
+    "handL": [
+     85.0,
+     140.7
+    ]
+   },
+   {
+    "handR": [
+     86.0,
+     135.8
+    ],
+    "handL": [
+     87.5,
+     138.6
+    ]
+   },
+   {
+    "handR": [
+     85.3,
+     133.1
+    ],
+    "handL": [
+     84.6,
+     134.7
+    ]
+   },
+   {
+    "handR": [
+     84.5,
+     134.9
+    ],
+    "handL": [
+     86.0,
+     133.1
+    ]
+   },
+   {
+    "handR": [
+     68.0,
+     131.2
+    ],
+    "handL": [
+     71.0,
+     134.6
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     106.9,
+     140.7
+    ],
+    "handL": [
+     108.4,
+     137.9
+    ]
+   },
+   {
+    "handR": [
+     104.6,
+     138.6
+    ],
+    "handL": [
+     106.1,
+     135.8
+    ]
+   },
+   {
+    "handR": [
+     107.4,
+     134.7
+    ],
+    "handL": [
+     106.7,
+     133.1
+    ]
+   },
+   {
+    "handR": [
+     106.1,
+     133.1
+    ],
+    "handL": [
+     107.6,
+     134.9
+    ]
+   },
+   {
+    "handR": [
+     121.1,
+     134.6
+    ],
+    "handL": [
+     124.1,
+     131.2
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "up": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "left": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "right": [
+   null,
+   null,
+   null,
+   null,
+   null
+  ]
+ },
+ "gripHand": null,
+ "design": "A 녹슨 양손검 (53라운드 Q27) — 갈고리 달린 녹슨 츠바이헨더 · 박힌 화살촉 · 이 빠진 홈에서 새는 혼불 · 가죽 리카소",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_greatsword_A2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 가장 깊은 홈 혼불 1px(A21) 은은, 판정(glow) 프레임만 날 가장자리 A25/A23 + 홈·끝 A26",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(강철 G · 녹 A18/A19 · 혼불 A · 가죽 WD, Q32)",
+ "twoHanded": true,
+ "bladeLengthDots": 66,
+ "hiltLengthDots": 15,
+ "carry": "back, leather strap (등에 비스듬히 — 손잡이 오른어깨 위, 날 왼허리 뒤)",
+ "state": "sheathed",
+ "bladeLocal": {
+  "thetaDeg": -100.0,
+  "elevDeg": -56.0
+ },
+ "bodySheet": "player_dash",
+ "bodySheetByWeapon": {
+  "katana": "player_dash",
+  "greatsword": "player_dash",
+  "dagger": "player_dash",
+  "bow": "player_dash"
+ },
+ "bodySheetRuleNote": "무기별 이동 몸 시트 선택 규칙(아트 제안): bodySheetByWeapon[무기][동작]. 칼만 칼집을 쥔 player_<동작>, 나머지는 왼손이 빈 player_<동작>_free. 대쉬는 모든 무기가 player_dash. 오버레이는 <무기>_carry_<동작>(대검·칼은 뽑아 든 상태면 <무기>_carry_drawn_<동작>).",
+ "bladeTipAnchors": {
+  "down": [
+   [
+    123.9,
+    151.0
+   ],
+   [
+    123.9,
+    158.4
+   ],
+   [
+    123.0,
+    162.9
+   ],
+   [
+    124.9,
+    162.9
+   ],
+   [
+    123.9,
+    153.5
+   ]
+  ],
+  "up": [
+   [
+    68.1,
+    160.2
+   ],
+   [
+    68.1,
+    167.6
+   ],
+   [
+    69.0,
+    172.1
+   ],
+   [
+    67.1,
+    172.1
+   ],
+   [
+    68.1,
+    162.7
+   ]
+  ],
+  "left": [
+   [
+    107.9,
+    160.0
+   ],
+   [
+    107.9,
+    156.1
+   ],
+   [
+    106.7,
+    153.6
+   ],
+   [
+    107.0,
+    154.1
+   ],
+   [
+    108.0,
+    160.2
+   ]
+  ],
+  "right": [
+   [
+    84.1,
+    140.5
+   ],
+   [
+    84.1,
+    136.5
+   ],
+   [
+    85.3,
+    134.0
+   ],
+   [
+    85.0,
+    134.5
+   ],
+   [
+    84.0,
+    140.7
+   ]
+  ]
+ },
+ "overlay": "player_dash 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138)."
+}

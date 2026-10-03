@@ -1,0 +1,668 @@
+{
+ "image": "player_run_free.png",
+ "action": "run_free",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.38,
+ "frameDurationsMs": [
+  65,
+  65,
+  65,
+  65,
+  65,
+  65,
+  65,
+  65
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/weapons_v3/build.py (53라운드 Q26~Q32 무기 재디자인 — v3 도트 오버레이)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "stride": {
+  "px": 200,
+  "cycleMs": 520
+ },
+ "strideNaturalSpeed": 192.3,
+ "strideNote": "계약 §12(52라운드 Q10): 한 주기(8프레임) 동안 디딤발이 바닥을 미는 거리(도트, pixelScale 0.5 → 논리 px = ×0.5) / 주기 ms. 시스템이 실제 이동 속도에 맞춰 재생 속도를 조절. strideNaturalSpeed = 배속 1 일 때 발이 미끄러지지 않는 논리 px/s",
+ "speedVsWalk": 3.42,
+ "flightFrames": [
+  2,
+  3,
+  6,
+  7
+ ],
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     31.4,
+     102.0
+    ],
+    "handL": [
+     72.2,
+     86.7
+    ]
+   },
+   {
+    "handR": [
+     26.9,
+     88.2
+    ],
+    "handL": [
+     67.7,
+     103.5
+    ]
+   },
+   {
+    "handR": [
+     24.1,
+     80.8
+    ],
+    "handL": [
+     64.9,
+     104.9
+    ]
+   },
+   {
+    "handR": [
+     24.1,
+     77.8
+    ],
+    "handL": [
+     64.9,
+     101.9
+    ]
+   },
+   {
+    "handR": [
+     24.4,
+     88.8
+    ],
+    "handL": [
+     65.2,
+     99.9
+    ]
+   },
+   {
+    "handR": [
+     27.8,
+     101.9
+    ],
+    "handL": [
+     68.6,
+     89.8
+    ]
+   },
+   {
+    "handR": [
+     31.1,
+     104.9
+    ],
+    "handL": [
+     71.9,
+     80.8
+    ]
+   },
+   {
+    "handR": [
+     30.9,
+     100.9
+    ],
+    "handL": [
+     71.7,
+     78.8
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     69.1,
+     86.7
+    ],
+    "handL": [
+     28.3,
+     102.0
+    ]
+   },
+   {
+    "handR": [
+     64.6,
+     103.5
+    ],
+    "handL": [
+     23.8,
+     88.2
+    ]
+   },
+   {
+    "handR": [
+     64.9,
+     104.9
+    ],
+    "handL": [
+     24.1,
+     80.8
+    ]
+   },
+   {
+    "handR": [
+     64.9,
+     101.9
+    ],
+    "handL": [
+     24.1,
+     77.8
+    ]
+   },
+   {
+    "handR": [
+     68.3,
+     99.9
+    ],
+    "handL": [
+     27.5,
+     88.8
+    ]
+   },
+   {
+    "handR": [
+     71.7,
+     89.8
+    ],
+    "handL": [
+     30.9,
+     101.9
+    ]
+   },
+   {
+    "handR": [
+     71.9,
+     80.8
+    ],
+    "handL": [
+     31.1,
+     104.9
+    ]
+   },
+   {
+    "handR": [
+     71.7,
+     78.8
+    ],
+    "handL": [
+     30.9,
+     100.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     12.6,
+     82.9
+    ],
+    "handL": [
+     30.9,
+     88.2
+    ]
+   },
+   {
+    "handR": [
+     30.9,
+     89.7
+    ],
+    "handL": [
+     12.6,
+     84.4
+    ]
+   },
+   {
+    "handR": [
+     36.9,
+     85.2
+    ],
+    "handL": [
+     8.4,
+     76.9
+    ]
+   },
+   {
+    "handR": [
+     36.9,
+     82.2
+    ],
+    "handL": [
+     8.4,
+     73.9
+    ]
+   },
+   {
+    "handR": [
+     28.3,
+     89.0
+    ],
+    "handL": [
+     15.2,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     14.6,
+     86.2
+    ],
+    "handL": [
+     28.9,
+     90.4
+    ]
+   },
+   {
+    "handR": [
+     8.4,
+     76.9
+    ],
+    "handL": [
+     36.9,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     9.5,
+     74.9
+    ],
+    "handL": [
+     35.8,
+     82.5
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     65.1,
+     88.2
+    ],
+    "handL": [
+     83.4,
+     82.9
+    ]
+   },
+   {
+    "handR": [
+     83.4,
+     84.4
+    ],
+    "handL": [
+     65.1,
+     89.7
+    ]
+   },
+   {
+    "handR": [
+     87.6,
+     76.9
+    ],
+    "handL": [
+     59.1,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     87.6,
+     73.9
+    ],
+    "handL": [
+     59.1,
+     82.2
+    ]
+   },
+   {
+    "handR": [
+     80.8,
+     85.2
+    ],
+    "handL": [
+     67.7,
+     89.0
+    ]
+   },
+   {
+    "handR": [
+     67.1,
+     90.4
+    ],
+    "handL": [
+     81.4,
+     86.2
+    ]
+   },
+   {
+    "handR": [
+     59.1,
+     85.2
+    ],
+    "handL": [
+     87.6,
+     76.9
+    ]
+   },
+   {
+    "handR": [
+     60.2,
+     82.5
+    ],
+    "handL": [
+     86.5,
+     74.9
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트, 해부 기준 R 오른손 · L 왼손). 무기 시트 좌표 = 몸 + (48,48).",
+ "scarAnchor": {
+  "down": [
+   {
+    "x": 49.4,
+    "y": 72.9,
+    "w": 25.6,
+    "h": 17.7,
+    "rot": 0.1,
+    "visible": false
+   },
+   {
+    "x": 52.2,
+    "y": 74.4,
+    "w": 25.6,
+    "h": 17.9,
+    "rot": 6.5,
+    "visible": false
+   },
+   {
+    "x": 50.2,
+    "y": 71.4,
+    "w": 25.5,
+    "h": 17.8,
+    "rot": 5.0,
+    "visible": false
+   },
+   {
+    "x": 50.2,
+    "y": 68.4,
+    "w": 25.5,
+    "h": 17.8,
+    "rot": 5.0,
+    "visible": false
+   },
+   {
+    "x": 46.2,
+    "y": 72.9,
+    "w": 25.6,
+    "h": 17.7,
+    "rot": -1.0,
+    "visible": false
+   },
+   {
+    "x": 44.1,
+    "y": 74.4,
+    "w": 25.6,
+    "h": 17.8,
+    "rot": -5.8,
+    "visible": false
+   },
+   {
+    "x": 45.8,
+    "y": 71.4,
+    "w": 25.5,
+    "h": 17.8,
+    "rot": -5.0,
+    "visible": false
+   },
+   {
+    "x": 46.0,
+    "y": 68.4,
+    "w": 25.5,
+    "h": 17.8,
+    "rot": -4.6,
+    "visible": false
+   }
+  ],
+  "up": [
+   {
+    "x": 43.8,
+    "y": 72.9,
+    "w": 25.6,
+    "h": 17.9,
+    "rot": -6.5,
+    "visible": true
+   },
+   {
+    "x": 46.6,
+    "y": 74.4,
+    "w": 25.6,
+    "h": 17.7,
+    "rot": -0.1,
+    "visible": true
+   },
+   {
+    "x": 50.2,
+    "y": 71.4,
+    "w": 25.5,
+    "h": 17.8,
+    "rot": 5.0,
+    "visible": true
+   },
+   {
+    "x": 50.2,
+    "y": 68.4,
+    "w": 25.5,
+    "h": 17.8,
+    "rot": 5.0,
+    "visible": true
+   },
+   {
+    "x": 51.8,
+    "y": 72.9,
+    "w": 25.6,
+    "h": 17.8,
+    "rot": 5.6,
+    "visible": true
+   },
+   {
+    "x": 49.7,
+    "y": 74.4,
+    "w": 25.6,
+    "h": 17.7,
+    "rot": 0.8,
+    "visible": true
+   },
+   {
+    "x": 45.8,
+    "y": 71.4,
+    "w": 25.5,
+    "h": 17.8,
+    "rot": -5.0,
+    "visible": true
+   },
+   {
+    "x": 46.0,
+    "y": 68.4,
+    "w": 25.5,
+    "h": 17.8,
+    "rot": -4.6,
+    "visible": true
+   }
+  ],
+  "left": [
+   {
+    "x": 41.6,
+    "y": 72.4,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": -27.4,
+    "visible": true
+   },
+   {
+    "x": 41.6,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": -27.4,
+    "visible": true
+   },
+   {
+    "x": 42.4,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": -25.9,
+    "visible": true
+   },
+   {
+    "x": 42.4,
+    "y": 67.9,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": -25.9,
+    "visible": true
+   },
+   {
+    "x": 41.6,
+    "y": 72.4,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": -27.4,
+    "visible": true
+   },
+   {
+    "x": 41.6,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": -27.4,
+    "visible": true
+   },
+   {
+    "x": 42.4,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": -25.9,
+    "visible": true
+   },
+   {
+    "x": 42.4,
+    "y": 67.9,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": -25.9,
+    "visible": true
+   }
+  ],
+  "right": [
+   {
+    "x": 54.4,
+    "y": 72.4,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": 27.4,
+    "visible": true
+   },
+   {
+    "x": 54.4,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": 27.4,
+    "visible": true
+   },
+   {
+    "x": 53.6,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": 25.9,
+    "visible": true
+   },
+   {
+    "x": 53.6,
+    "y": 67.9,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": 25.9,
+    "visible": true
+   },
+   {
+    "x": 54.4,
+    "y": 72.4,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": 27.4,
+    "visible": true
+   },
+   {
+    "x": 54.4,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": 27.4,
+    "visible": true
+   },
+   {
+    "x": 53.6,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": 25.9,
+    "visible": true
+   },
+   {
+    "x": 53.6,
+    "y": 67.9,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": 25.9,
+    "visible": true
+   }
+  ]
+ },
+ "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
+ "variantOf": "player_run",
+ "freeLeftHand": true,
+ "carryOverlays": {
+  "greatsword": "weapons/v3/greatsword_carry_run",
+  "dagger": "weapons/v3/dagger_carry_run",
+  "bow": "weapons/v3/bow_carry_run"
+ },
+ "carryDrawnOverlays": {
+  "greatsword": "weapons/v3/greatsword_carry_drawn_run"
+ },
+ "bodySheetByWeapon": {
+  "katana": "player_run",
+  "greatsword": "player_run_free",
+  "dagger": "player_run_free",
+  "bow": "player_run_free"
+ },
+ "bodySheetRuleNote": "무기별 이동 몸 시트 선택 규칙(아트 제안): bodySheetByWeapon[무기][동작]. 칼만 칼집을 쥔 player_<동작>, 나머지는 왼손이 빈 player_<동작>_free. 대쉬는 모든 무기가 player_dash. 오버레이는 <무기>_carry_<동작>(대검·칼은 뽑아 든 상태면 <무기>_carry_drawn_<동작>).",
+ "note": "왼손이 빈 기본 자세(53라운드 Q19). player_<동작> 과 같은 골격·프레임·ms·보폭이며, 왼손만 칼집을 쥐지 않고 자연스럽게 내리거나(대기) 흔든다(걷기·달리기). 칼 외 무기(대검·단검·활)의 휴대 오버레이를 이 시트 위에 겹친다. v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b."
+}

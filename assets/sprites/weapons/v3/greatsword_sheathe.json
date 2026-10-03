@@ -1,0 +1,724 @@
+{
+ "image": "greatsword_sheathe.png",
+ "action": "greatsword_sheathe",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.91,
+ "frameDurationsMs": [
+  50,
+  50,
+  55,
+  55,
+  55,
+  55,
+  120
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/weapons_v3/build.py (53라운드 Q26~Q32 무기 재디자인 — v3 도트 오버레이)",
+ "phases": {
+  "lift": [
+   0,
+   1
+  ],
+  "behind": [
+   2,
+   3
+  ],
+  "seat": [
+   4,
+   5
+  ],
+  "release": [
+   6
+  ]
+ },
+ "usage": "공격 뒤 비전투·무공격 시간이 지나면 재생(시간은 시스템).",
+ "weapon": "greatsword",
+ "framesBasis": "player_greatsword_sheathe 프레임 번호 (몸·무기 공통)",
+ "oldTiming": {
+  "frames": 4,
+  "frameDurationsMs": [
+   100,
+   110,
+   110,
+   120
+  ],
+  "framesMap": [
+   [
+    0,
+    1
+   ],
+   [
+    2,
+    3
+   ],
+   [
+    4,
+    5
+   ],
+   [
+    6
+   ]
+  ]
+ },
+ "timingNote": "구 시트(16×24)의 프레임마다 시작 ms·전체 ms 가 같다 — 한 구 프레임을 oldTiming.framesMap 의 새 프레임들로 나눠 보간.",
+ "frameStates": [
+  "steel",
+  "steel",
+  "steel",
+  "steel",
+  "steel",
+  "steel",
+  "idle"
+ ],
+ "endsWith": "player_idle_free + greatsword_carry_idle down/up/left/right 0 (마지막 프레임 = 왼손이 빈 대기 0 과 같은 몸, 53라운드 Q19)",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     90.0,
+     84.8
+    ],
+    "handL": [
+     90.0,
+     92.7
+    ]
+   },
+   {
+    "handR": [
+     88.5,
+     82.2
+    ],
+    "handL": [
+     85.0,
+     89.2
+    ]
+   },
+   {
+    "handR": [
+     87.0,
+     79.6
+    ],
+    "handL": [
+     89.4,
+     83.0
+    ]
+   },
+   {
+    "handR": [
+     86.2,
+     83.3
+    ],
+    "handL": [
+     87.5,
+     84.8
+    ]
+   },
+   {
+    "handR": [
+     85.5,
+     87.0
+    ],
+    "handL": [
+     86.8,
+     85.1
+    ]
+   },
+   {
+    "handR": [
+     82.1,
+     112.1
+    ],
+    "handL": [
+     96.7,
+     108.2
+    ]
+   },
+   {
+    "handR": [
+     75.6,
+     137.8
+    ],
+    "handL": [
+     116.4,
+     137.8
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     102.0,
+     78.5
+    ],
+    "handL": [
+     102.0,
+     88.8
+    ]
+   },
+   {
+    "handR": [
+     103.5,
+     79.5
+    ],
+    "handL": [
+     106.2,
+     87.9
+    ]
+   },
+   {
+    "handR": [
+     105.0,
+     80.6
+    ],
+    "handL": [
+     100.4,
+     80.7
+    ]
+   },
+   {
+    "handR": [
+     105.8,
+     85.9
+    ],
+    "handL": [
+     104.0,
+     84.3
+    ]
+   },
+   {
+    "handR": [
+     106.5,
+     91.2
+    ],
+    "handL": [
+     106.6,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     109.9,
+     112.6
+    ],
+    "handL": [
+     95.3,
+     108.4
+    ]
+   },
+   {
+    "handR": [
+     116.4,
+     137.8
+    ],
+    "handL": [
+     75.6,
+     137.8
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     87.0,
+     79.2
+    ],
+    "handL": [
+     90.3,
+     88.4
+    ]
+   },
+   {
+    "handR": [
+     92.2,
+     77.9
+    ],
+    "handL": [
+     93.0,
+     79.0
+    ]
+   },
+   {
+    "handR": [
+     97.5,
+     76.7
+    ],
+    "handL": [
+     88.5,
+     72.8
+    ]
+   },
+   {
+    "handR": [
+     99.8,
+     80.9
+    ],
+    "handL": [
+     94.3,
+     73.0
+    ]
+   },
+   {
+    "handR": [
+     102.0,
+     85.1
+    ],
+    "handL": [
+     101.0,
+     75.4
+    ]
+   },
+   {
+    "handR": [
+     96.8,
+     107.2
+    ],
+    "handL": [
+     96.3,
+     108.3
+    ]
+   },
+   {
+    "handR": [
+     81.8,
+     134.3
+    ],
+    "handL": [
+     78.0,
+     134.2
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     105.0,
+     83.4
+    ],
+    "handL": [
+     101.7,
+     92.6
+    ]
+   },
+   {
+    "handR": [
+     99.8,
+     83.2
+    ],
+    "handL": [
+     99.0,
+     90.4
+    ]
+   },
+   {
+    "handR": [
+     94.5,
+     82.9
+    ],
+    "handL": [
+     103.5,
+     80.2
+    ]
+   },
+   {
+    "handR": [
+     92.2,
+     87.7
+    ],
+    "handL": [
+     97.7,
+     83.6
+    ]
+   },
+   {
+    "handR": [
+     90.0,
+     92.5
+    ],
+    "handL": [
+     90.9,
+     86.3
+    ]
+   },
+   {
+    "handR": [
+     95.2,
+     116.9
+    ],
+    "handL": [
+     95.7,
+     107.8
+    ]
+   },
+   {
+    "handR": [
+     114.0,
+     134.2
+    ],
+    "handL": [
+     110.2,
+     134.3
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    90.0,
+    84.8
+   ],
+   [
+    88.5,
+    82.2
+   ],
+   [
+    87.0,
+    79.6
+   ],
+   [
+    86.2,
+    83.3
+   ],
+   [
+    85.5,
+    87.0
+   ],
+   [
+    82.1,
+    112.1
+   ],
+   [
+    75.6,
+    137.8
+   ]
+  ],
+  "up": [
+   [
+    102.0,
+    78.5
+   ],
+   [
+    103.5,
+    79.5
+   ],
+   [
+    105.0,
+    80.6
+   ],
+   [
+    105.8,
+    85.9
+   ],
+   [
+    106.5,
+    91.2
+   ],
+   [
+    109.9,
+    112.6
+   ],
+   [
+    116.4,
+    137.8
+   ]
+  ],
+  "left": [
+   [
+    87.0,
+    79.2
+   ],
+   [
+    92.2,
+    77.9
+   ],
+   [
+    97.5,
+    76.7
+   ],
+   [
+    99.8,
+    80.9
+   ],
+   [
+    102.0,
+    85.1
+   ],
+   [
+    96.8,
+    107.2
+   ],
+   [
+    81.8,
+    134.3
+   ]
+  ],
+  "right": [
+   [
+    105.0,
+    83.4
+   ],
+   [
+    99.8,
+    83.2
+   ],
+   [
+    94.5,
+    82.9
+   ],
+   [
+    92.2,
+    87.7
+   ],
+   [
+    90.0,
+    92.5
+   ],
+   [
+    95.2,
+    116.9
+   ],
+   [
+    114.0,
+    134.2
+   ]
+  ]
+ },
+ "gripHand": "handR",
+ "design": "A 녹슨 양손검 (53라운드 Q27) — 갈고리 달린 녹슨 츠바이헨더 · 박힌 화살촉 · 이 빠진 홈에서 새는 혼불 · 가죽 리카소",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_greatsword_A2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 가장 깊은 홈 혼불 1px(A21) 은은, 판정(glow) 프레임만 날 가장자리 A25/A23 + 홈·끝 A26",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(강철 G · 녹 A18/A19 · 혼불 A · 가죽 WD, Q32)",
+ "twoHanded": true,
+ "bladeLengthDots": 66,
+ "hiltLengthDots": 15,
+ "bladeLocal": [
+  {
+   "thetaDeg": 0,
+   "elevDeg": 70
+  },
+  {
+   "thetaDeg": -85.0,
+   "elevDeg": 25.0
+  },
+  {
+   "thetaDeg": -170,
+   "elevDeg": -20
+  },
+  {
+   "thetaDeg": -135.0,
+   "elevDeg": -38.0
+  },
+  {
+   "thetaDeg": -100,
+   "elevDeg": -56
+  },
+  {
+   "thetaDeg": -30.0,
+   "elevDeg": -48.0
+  },
+  null
+ ],
+ "bladeLocalNote": "몸 기준 무기 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). null = 대기 0 그림(휴대).",
+ "bladeTipAnchors": {
+  "down": [
+   [
+    90.0,
+    27.6
+   ],
+   [
+    151.5,
+    54.6
+   ],
+   [
+    98.4,
+    80.8
+   ],
+   [
+    125.1,
+    112.6
+   ],
+   [
+    123.9,
+    142.5
+   ],
+   [
+    105.5,
+    178.1
+   ],
+   [
+    123.9,
+    143.1
+   ]
+  ],
+  "up": [
+   [
+    102.0,
+    4.6
+   ],
+   [
+    40.5,
+    48.1
+   ],
+   [
+    93.6,
+    127.1
+   ],
+   [
+    66.9,
+    142.5
+   ],
+   [
+    68.1,
+    151.4
+   ],
+   [
+    86.5,
+    150.3
+   ],
+   [
+    68.1,
+    152.3
+   ]
+  ],
+  "left": [
+   [
+    63.1,
+    13.7
+   ],
+   [
+    86.7,
+    70.5
+   ],
+   [
+    162.0,
+    104.5
+   ],
+   [
+    138.6,
+    137.4
+   ],
+   [
+    108.8,
+    156.4
+   ],
+   [
+    56.3,
+    167.2
+   ],
+   [
+    106.4,
+    157.5
+   ]
+  ],
+  "right": [
+   [
+    128.9,
+    17.9
+   ],
+   [
+    105.3,
+    31.7
+   ],
+   [
+    30.0,
+    102.8
+   ],
+   [
+    53.4,
+    117.1
+   ],
+   [
+    83.2,
+    136.9
+   ],
+   [
+    135.7,
+    160.6
+   ],
+   [
+    85.6,
+    137.9
+   ]
+  ]
+ },
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고",
+ "bodySheet": "player_greatsword_sheathe",
+ "timingCheck": {
+  "checked": [
+   "frameStarts",
+   "total"
+  ]
+ },
+ "includesSheath": false,
+ "carryHidden": "이 시트 동안 greatsword_carry_* 는 숨긴다(등의 대검이 손으로 옮겨짐 — draw 첫 프레임·sheathe 끝 프레임은 이 시트가 등의 대검을 그림).",
+ "overlay": "player_greatsword_sheathe 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
+ "stateNote": "steel 평소(균열·홈 1px 은은) · glow 판정 프레임(밝게) · fade 흐림 · embers 불티 · idle 대기 0 그림"
+}

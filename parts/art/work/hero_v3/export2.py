@@ -114,6 +114,7 @@ def export_gear(name, r):
                       "oldGripEstimate 는 구 몸 중심에 가장 가까운 무기 픽셀(자동 추정, ±1px)."}
     hands = {d: [anim.hands_px(f[1]) for f in fr[d]] for d in hero.DIRS}
     scars = {d: [dict(f[1].scar) for f in fr[d]] for d in hero.DIRS}
+    v3w = "weapons/v3/%s" % Q.OLD_WEAPON[name] if os.path.exists(os.path.join(EX.OUT_W, Q.OLD_WEAPON[name] + ".png")) else None
     wl = [None if k == Q.IDLE else {"thetaDeg": round(k["th"], 1), "elevDeg": round(k["el"], 1)} for (_, _, _, _, k, _) in fr["right"]]
     tips = {d: [None if f[3] is None else [round(f[3][0], 1), round(f[3][1], 1)] for f in fr[d]] for d in hero.DIRS}
     states = ["idle" if k == Q.IDLE else k["state"] for (_, _, _, _, k, _) in fr["right"]]
@@ -127,8 +128,9 @@ def export_gear(name, r):
                 scarAnchor=scars, scarAnchorNote=EX.SCAR_NOTE,
                 weaponLocal=wl, weaponLocalNote="프레임별 무기 방향(몸 기준 θ: 0 = 앞, + = 해부 오른쪽 · elev + = 위). 무기 재디자인 때 이 방향으로 그린다. idle = 대기 0 그림.",
                 weaponTipDots=tips, weaponTipNote="안내선(미리보기용 임시 무기 길이) 끝 위치(몸 시트 도트) — 이펙트 위치 참고",
-                weapon=r["weapon"], oldWeapon=ow, weaponOverlayV3=None,
-                weaponOverlayNote="v3 무기 오버레이 없음 — 53라운드 번외(키아트 기준 무기 재디자인) 때 새로 그림. 그때까지 oldWeapon 방식 임시.",
+                weapon=r["weapon"], oldWeapon=ow if not v3w else None, weaponOverlayV3=v3w,
+                weaponOverlayNote=("weapons/v3/%s 를 같은 프레임 번호·같은 시각에 겹친다(53라운드 무기 재디자인, weapons_v3). oldWeapon 은 더 쓰지 않는다." % Q.OLD_WEAPON[name])
+                if v3w else "v3 무기 오버레이 없음 — 53라운드 번외(키아트 기준 무기 재디자인) 때 새로 그림. 그때까지 oldWeapon 방식 임시.",
                 note=BODY2_NOTE.get(r["weapon"], "") + " " + EX.BODY_NOTE)
     if name == "bow_reload":
         data["progressFormula"] = "frame = min(%d, floor(progress*%d)) — 구 5프레임 → %d프레임(refillFrame 시각 동일)" % (n - 1, n, n)
@@ -138,7 +140,8 @@ def export_gear(name, r):
                     attackNote="구 기본 공격은 무기 공통 4프레임이었다. 지금 연격이 없는 무기는 활뿐이라 활 빠른 사격 몸으로 그렸다(질문 올림). "
                                "근접 무기가 이 시트를 쓰면 왼손 줌통 자세가 어색하다.")
     if name in ("greatsword_draw", "greatsword_sheathe"):
-        data["endsWith"] = "player_idle down/up/left/right 0 (마지막 프레임 = 대기 0 과 같은 몸)"
+        data["endsWith"] = ("player_idle_free down/up/left/right 0 (마지막 프레임 = 왼손이 빈 대기 0 과 같은 몸, 53라운드 Q19)"
+                            if Q.GEAR[name].get("idleBody") == "free" else "player_idle down/up/left/right 0 (마지막 프레임 = 대기 0 과 같은 몸)")
     EX.write_json(os.path.join(EX.OUT_P, bname + ".json"), data)
     return im, data
 

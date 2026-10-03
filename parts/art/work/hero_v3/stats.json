@@ -1,7 +1,7 @@
 {
  "heroColors": 30,
  "colorBudget": 30,
- "weaponColors": 26,
+ "weaponColors": 16,
  "semiTransparent": false,
  "frames": {
   "idle": 6,
@@ -95,8 +95,8 @@
   "#f4de9b"
  ],
  "weaponPalette": [
+  "#141516",
   "#14161c",
-  "#1d2028",
   "#212224",
   "#272b35",
   "#2f3033",
@@ -104,22 +104,12 @@
   "#3f4552",
   "#4d4f52",
   "#5c554e",
-  "#5c5e62",
   "#626a78",
-  "#6c6f73",
   "#756c62",
-  "#7d8084",
-  "#8e9195",
-  "#90857a",
-  "#a0a2a6",
-  "#b2b4b8",
-  "#c5c6c9",
+  "#8b4d22",
   "#d67a11",
-  "#d8d9db",
   "#e2a33c",
   "#eecc78",
-  "#f4de9b",
-  "#fff4dc",
-  "#ffffff"
+  "#f4de9b"
  ]
 }

@@ -19,7 +19,6 @@ import hero
 from hero import pose, G, A, SL, PL, OUT, S, to_px
 from v3kit import WD, kit, raster_path
 
-X = kit.X                                         # 백열 코어 (이펙트 규칙: 판정 프레임 날 끝 1px 만)
 KY = 0.35
 OFF = 48
 WF = 192
@@ -32,14 +31,16 @@ BLADE_LEN = 37
 HILT_LEN = 12
 SAYA_LEN = 38
 
-STEEL = [G[6], G[9], G[12], G[10]]                # 등 · 몸 · 날 선 · 칼날 몸 반사(보오히 쪽)
-FADE = [G[4], G[6], G[8], G[7]]
-GLOW = [A[23], A[25], A[26], A[25]]
-SAYA = [SL[0], SL[1], SL[2], SL[4], SL[6]]        # 검은 옻칠: 그늘 · 본색 · 중간 · 빛 · 옻칠 반사(53라운드: 폭 3→5, 반사 띠로 대비 강화)
-TSUBA = [SL[1], G[6], G[8], G[10]]
-WRAP = [G[4], PL[3]]                              # 손잡이 감은 끈 · 마름모 사이 상어가죽
-CORD = [PL[1], PL[2], PL[3]]                      # 칼집 끈(사게오) — 어두운 칼집 위 밝은 감김(대비)
-
+# 53라운드 Q26 칼 B '재 칼날' — 무기 16색, 전부 주인공 30색 팔레트 안(Q32 재·호박 램프 공유). 백열 코어 X 는 쓰지 않는다.
+# 날 = 검은 재(G2~G4) + 날선 1px 호박 균열(평소 A21/A19 은은 · 판정 A23/A25/A26) + 등 쪽 셀아웃(SL0)
+ASHB = [G[2], G[3], G[4], G[5]]                   # 등 그늘 · 그늘 · 본색 · 빛 쪽 재(몸보다 한 단 밝게 — 어두운 바닥·몸 위에서 날 폭이 읽히게)
+EDGE = {"steel": (A[21], A[19]), "fade": (A[19], A[19]), "glow": (A[23], A[25]), "embers": (A[21], A[19])}
+FADE = [G[1], G[2], G[3], G[4]]
+SAYA = [OUT, G[1], G[2], G[3], G[4]]              # 금 간 재·흙 칼집: 셀아웃 · 그늘 · 본색 · 중간 · 빛 테
+SEAM = [A[19], A[21]]                             # 칼집 이음매(빛나는 금, 1px)
+TSUBA = [OUT, SL[2], SL[4], SL[6]]                # 흉갑 조각 코등이(주인공 흉갑 IRON 램프)
+WRAP = [G[2], PL[1], PL[2]]                       # 붕대 감은 손잡이(어두운 틈 · 붕대 · 붕대 빛)
+CORD = [PL[1], PL[1], PL[2]]                      # 칼집을 묶은 붕대 끈
 
 def ground(d, f, r):
     F, Rv = FACING[d]
@@ -86,7 +87,7 @@ class Layer:
         q = to_px((x, y))
         self.put(q[0], q[1], c, gy, kind, prio)
 
-    def stroke(self, d, p0, v, length, cols_fn, width_fn, kind, prio=0, step=0.5):
+    def stroke(self, d, p0, v, length, cols_fn, width_fn, kind, prio=0, step=0.5, off_fn=None):
         """p0 = 시작점(설계 화면 좌표 + 깊이), v = 로컬 단위 벡터, length = 설계 길이.
         cols_fn(t, lane, k) → 색(k = 도트 단위 진행 칸), width_fn(t) → 도트 차선 목록(법선 + = 화면 아래 = 그늘 쪽)."""
         dx, dy, dg = project(d, v)
@@ -101,10 +102,11 @@ class Layer:
             t = k / n
             x, y, g = P0[0] + dx * length * t, P0[1] + dy * length * t, p0[2] + dg * length * t
             kk = int(length * L2 * t)
+            o = off_fn(t, L2) if off_fn else 0.0
             for lane in width_fn(t):
                 c = cols_fn(t, lane, kk)
                 if c is not None:
-                    self.put(x + nx * lane, y + ny * lane, c, g, kind, prio)
+                    self.put(x + nx * (lane + o), y + ny * (lane + o), c, g, kind, prio)
         return (nx, ny)
 
 
@@ -117,66 +119,87 @@ def _normal(d, v):
     return nx, ny, dx / l2, dy / l2
 
 
+# 흉갑 조각 코등이: 날에 수직, 한쪽 모서리가 깨진 비대칭 판(설계 행 0 = 날 쪽, -1 = 손잡이 쪽)
+TSUBA_SHAPE = {-4: (0,), -3: (0, -1), -2: (0, -1), -1: (0, -1), 0: (0, -1), 1: (0, -1), 2: (0, -1), 3: (-1,)}
+
+
 def draw_tsuba(L, d, tsuba, v, glint=False):
-    """코등이: 날에 수직 7 도트 × 두께 2 (+ 날 쪽 하바키 1)."""
+    """코등이 = 흉갑 조각(8 도트 × 두께 2, 깨진 모서리) + 날 쪽 쇠 깃 1."""
     nx, ny, ax, ay = _normal(d, v)
     P = to_px(tsuba[:2])
     g = tsuba[2]
-    cols = {-3: TSUBA[0], -2: TSUBA[2], -1: TSUBA[3], 0: TSUBA[2], 1: TSUBA[1], 2: TSUBA[1], 3: TSUBA[0]}
-    for k, c in cols.items():
-        for a_ in (0, -1):
-            L.put(P[0] + nx * k + ax * a_, P[1] + ny * k + ay * a_, c if a_ == 0 else (TSUBA[1] if k < 0 else TSUBA[0]), g, "tsuba", prio=3)
+    for k, rows in TSUBA_SHAPE.items():
+        for a_ in rows:
+            if a_ == 0:
+                c = TSUBA[3] if k == -2 else (TSUBA[2] if k < 0 else TSUBA[1])
+            else:
+                c = TSUBA[2] if k < -1 else (TSUBA[1] if k < 2 else TSUBA[0])
+            L.put(P[0] + nx * k + ax * a_, P[1] + ny * k + ay * a_, c, g, "tsuba", prio=3)
     for k in (-1, 0):
-        L.put(P[0] + nx * k + ax * 1.2, P[1] + ny * k + ay * 1.2, G[10] if k < 0 else G[8], g, "tsuba", prio=3)   # 하바키
-    if glint:
-        for ox, oy, c in ((0, 0, X[1]), (1, -1, G[13]), (-1, -1, G[12]), (0, -2, G[12]), (2, -2, G[11])):
+        L.put(P[0] + nx * k + ax * 1.2, P[1] + ny * k + ay * 1.2, TSUBA[2] if k < 0 else TSUBA[1], g, "tsuba", prio=3)
+    if glint:                                       # 넣기 끝 '딸깍' — 코등이 위 호박 반짝(주인공 팔레트 안)
+        for ox, oy, c in ((0, 0, A[26]), (1, -1, A[25]), (-1, -1, A[25]), (0, -2, A[25]), (2, -2, A[23]), (-2, 0, A[23])):
             L.put(P[0] + nx * -2 + ox, P[1] + ny * -2 + oy - 1, c, g + 0.1, "glint", prio=7)
 
 
 def draw_hilt(L, d, tsuba, hv, length=HILT_LEN):
-    """손잡이: tsuba 에서 hv(로컬, 손잡이 끝 쪽)로. 감은 끈 마름모(3칸 주기) + 끝 쇠(카시라)."""
+    """붕대 감은 손잡이: 사선 붕대 띠(4칸 주기, 어두운 틈) + 끝 재 덩이."""
     def col(t, lane, k):
         if t > 0.9:
-            return G[8] if lane <= 0 else G[6]
-        if lane == 0:
-            return WRAP[1] if k % 3 == 1 else WRAP[0]
+            return G[4] if lane <= 0 else G[3]
+        if (k + lane) % 4 == 0:
+            return WRAP[0]
         if lane < 0:
-            return G[5] if k % 3 == 0 else WRAP[0]
-        return G[2] if k % 3 == 2 else G[3]
+            return WRAP[2]
+        return WRAP[1] if lane == 0 or k % 2 else WRAP[0]
     p0 = add(tsuba, project(d, hv), 1.0)
     L.stroke(d, p0, hv, length - 1.0, col, lambda t: (-1, 0, 1), "hilt", prio=2)
 
 
+SORI = 1.6                                         # 날 휨(도트, 화면 길이에 비례해 줄어듦)
+CHIPS = (14, 15, 33)                               # 등 쪽 재 결손(도트 진행 칸)
+
+
 def draw_katana(L, d, grip, v, state, seed=0, visible=None):
     """grip = 오른손 위치(설계 화면 3튜플). 손잡이는 grip 에서 뒤로, 코등이는 grip 앞 3.
-    visible = 칼집 밖으로 나온 날 길이(설계, None = 전부) — 뽑기·넣기."""
+    visible = 칼집 밖으로 나온 날 길이(설계, None = 전부) — 뽑기·넣기.
+    날(53라운드 Q26 B): 검은 재 몸 + 날선 1px 호박 균열(평소 은은, glow = 판정 프레임만 밝게) + 등 셀아웃 + 휨."""
     tsuba = add(grip, project(d, v), 3.0)
-    cols = {"glow": GLOW, "fade": FADE}.get(state, STEEL)
+    cols = FADE if state == "fade" else ASHB
+    e0, e1 = EDGE.get(state, EDGE["steel"])
     blen = BLADE_LEN if visible is None else max(0.0, min(BLADE_LEN, visible))
     full = visible is None or visible >= BLADE_LEN
 
     def blade_col(t, lane, k):
         tt = t * blen / BLADE_LEN
-        if full and tt > 0.95:
-            return cols[2] if lane == 0 else None   # 칼끝(kissaki)
-        if full and tt > 0.88 and lane == 1:
-            return None
+        if full and tt > 0.97:
+            return (A[26] if state == "glow" else e0) if lane == -1 else None   # 칼끝: 날선만
+        if full and tt > 0.91 and lane >= 1:
+            return None                             # 칼끝 기울기(등이 날선 쪽으로 내려옴)
+        if tt < 0.035:
+            return {-1: TSUBA[3], 0: TSUBA[2], 1: TSUBA[1], 2: TSUBA[0]}[lane]   # 하바키(쇠 깃)
         if lane == -1:
-            return cols[2]                          # 날 선(빛 쪽 = 화면 위)
+            if state == "glow":
+                return A[26] if tt > 0.8 else (e1 if k % 2 else e0)
+            return e1 if k % 7 == 3 else e0         # 끊긴 균열처럼 한 칸씩 어둡게
         if lane == 0:
-            return cols[3] if 0.12 < tt < 0.7 and k % 5 != 4 else cols[1]
-        return cols[0]                              # 등(그늘 쪽)
+            if state == "glow":
+                return A[21] if k % 3 else A[19]    # 판정: 날 몸까지 달아오름
+            return cols[2] if k % 6 == 2 else cols[3]
+        if lane == 1:
+            if state == "glow":
+                return G[4]
+            return cols[2] if k % 5 else cols[1]
+        return None if k in CHIPS else cols[0]       # 등 그늘 + 재 결손
+
+    def sori(t, l2):
+        tt = t * blen / BLADE_LEN
+        return -SORI * math.sin(math.pi * min(1.0, tt)) * min(1.0, l2 / S)
 
     if blen > 0:
-        L.stroke(d, tsuba, v, blen, blade_col, lambda t: (-1, 0, 1), "blade", prio=1)
+        L.stroke(d, tsuba, v, blen, blade_col, lambda t: (-1, 0, 1, 2), "blade", prio=1, off_fn=sori)
     draw_hilt(L, d, tsuba, (-v[0], -v[1], -v[2]))
     draw_tsuba(L, d, tsuba, v, glint=(state == "click"))
-    if state == "glow":
-        tip = to_px(add(tsuba, project(d, v), BLADE_LEN)[:2])
-        g = tsuba[2]
-        L.put(tip[0], tip[1], X[0], g, "blade", prio=6)
-        mid = to_px(add(tsuba, project(d, v), BLADE_LEN - 1.5)[:2])
-        L.put(mid[0], mid[1], X[1], g, "blade", prio=6)
     if state == "embers" and blen > 0:
         nx, ny, _, _ = _normal(d, v)
         r = seed * 7 + 3
@@ -186,29 +209,36 @@ def draw_katana(L, d, grip, v, state, seed=0, visible=None):
             q = add(tsuba, project(d, v), BLADE_LEN * t)
             P = to_px(q[:2])
             off = 3 + (r // 1000) % 4
-            L.put(P[0] + nx * off * (1 if k % 2 else -1), P[1] - 1 - (k % 4), A[23] if k % 2 else A[21], q[2], "ember", prio=4)
+            c = (A[23], A[21], G[4], A[19])[k % 4]   # 불티 + 재 부스러기
+            L.put(P[0] + nx * off * (1 if k % 2 else -1), P[1] - 1 - (k % 4), c, q[2], "ember", prio=4)
+
+
+SEAMS = {9: 1, 10: 0, 11: -1, 26: -1, 27: 0, 28: 1, 29: 1, 41: 0, 42: -1}   # 칼집 금(도트 진행 칸 → 차선) — 빛나는 이음매
 
 
 def draw_saya(L, d, mouth, v, with_hilt, slide=0.0):
     """칼집 입구 mouth(설계 화면 3튜플)에서 v(로컬, 칼집 끝 쪽)로. slide = 왼손이 칼집을 뒤로 당긴 거리(설계, 뽑기·넣기).
-    with_hilt = 칼이 들어 있음(손잡이가 반대쪽으로). → 입구(설계 화면 3튜플)"""
+    with_hilt = 칼이 들어 있음(손잡이가 반대쪽으로). → 입구(설계 화면 3튜플)
+    칼집(53라운드 Q26 B): 몸처럼 금 간 재·흙 — 빛 테 G4 · 1px 호박 이음매 · 쇠 입구테 · 붕대 끈."""
     mouth = add(mouth, project(d, v), slide)
 
     def col(t, lane, k):
-        if t > 0.94:                                # 칼집 끝 쇠(코지리)
-            return {-1: G[8], 0: G[7], 1: G[5], 2: G[3]}.get(lane)
-        if t < 0.035:                               # 입구 쇠테(코이구치)
-            return {-2: G[10], -1: G[8], 0: G[7], 1: G[6], 2: G[4]}.get(lane)
+        if t > 0.94:                                # 칼집 끝(재 덩이)
+            return {-1: G[4], 0: G[3], 1: G[2], 2: OUT}.get(lane)
+        if t < 0.035:                               # 입구 쇠테(흉갑과 같은 쇠)
+            return {-2: TSUBA[3], -1: TSUBA[2], 0: TSUBA[2], 1: TSUBA[1], 2: TSUBA[0]}.get(lane)
+        if SEAMS.get(k) == lane:
+            return SEAM[1] if lane == 0 else SEAM[0]
         if lane == -2:
-            return SAYA[4] if (k % 9 < 5 and 0.08 < t < 0.85) else SAYA[3]   # 옻칠 반사 띠(끊김)
+            return SAYA[3] if k % 9 in (4, 5) else SAYA[4]    # 빛 테(닳은 곳 끊김)
         return {-1: SAYA[3], 0: SAYA[2], 1: SAYA[1], 2: SAYA[0]}[lane]
     L.stroke(d, mouth, v, SAYA_LEN, col, lambda t: (-2, -1, 0, 1, 2) if t < 0.72 else (-1, 0, 1, 2), "saya", prio=1)
     nx, ny, ax, ay = _normal(d, v)
-    # 쿠리카타(끈 고리 혹) + 사게오(밝은 끈): 칼집을 두 번 감고 아래로 늘어진 고리
+    # 끈 고리 혹 + 붕대 끈: 칼집을 두 번 감고 아래로 늘어진 고리
     q = to_px(add(mouth, project(d, v), 6.0)[:2])
     g = mouth[2] + 0.2
-    L.put(q[0] + nx * 3, q[1] + ny * 3, SL[4], g, "saya", prio=2)
-    L.put(q[0] + nx * 3 + ax, q[1] + ny * 3 + ay, SL[2], g, "saya", prio=2)
+    L.put(q[0] + nx * 3, q[1] + ny * 3, TSUBA[2], g, "saya", prio=2)
+    L.put(q[0] + nx * 3 + ax, q[1] + ny * 3 + ay, TSUBA[1], g, "saya", prio=2)
     for w_ in (3.6, 6.4):
         c0 = to_px(add(mouth, project(d, v), w_)[:2])
         for k in range(-2, 3):
@@ -219,7 +249,7 @@ def draw_saya(L, d, mouth, v, with_hilt, slide=0.0):
         c0 = to_px(add(mouth, project(d, v), a_ + 3.0)[:2])
         pts.append((c0[0] + nx * (b_ + 2.5), c0[1] + ny * (b_ + 2.5) + b_ * 0.4))
     for i, (x, y) in enumerate(raster_path(pts)):
-        L.put(x, y, CORD[1] if i % 4 else CORD[0], g, "cord", prio=3)
+        L.put(x, y, CORD[2] if i % 4 else CORD[0], g, "cord", prio=3)
     if with_hilt:
         hv = (-v[0], -v[1], -v[2])
         tsuba = add(mouth, project(d, hv), 1.0)

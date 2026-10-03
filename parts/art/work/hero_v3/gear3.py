@@ -42,6 +42,7 @@ def K_(th=0.0, el=0.0, hth=None, hr=None, hz=None, R=None, L=None, off="hip", st
 IDLE = "idle"                                     # 마지막 프레임 = player_idle 0 (다음 시트로 이어짐)
 IDLE_APPROX = K_(th=30, el=-45, R=(3.0, 11.5, 34.0), L=None, off="saya")   # 보간 목표용 근사(대기 0 손 자리)
 READY_DG = K_(th=150, el=-30, hth=30, hr=9, hz=45, lunge=0.2, crouch=3, tw=0.4, lean=0.8, off="guard")
+IDLE_FREE_APPROX = K_(th=40, el=-40, R=(3.0, 11.5, 34.0), L=(3.0, -11.5, 34.0), off="hip")   # 왼손이 빈 대기 0(player_idle_free) 근사
 DRAWN_GS = K_(th=40, el=-40, hth=20, hr=12, hz=38, lunge=0.2, crouch=2.5, tw=0.2, lean=0.4, off="hip")
 
 
@@ -104,15 +105,17 @@ GEAR = {
         K_(20, -30, 10, 15, 42, lunge=0.5, crouch=6, lean=1.2, off="two"),
         K_(40, -40, 20, 12, 38, lunge=0.2, crouch=3, lean=0.5, off="two"),
         DRAWN_GS]),
-    "greatsword_draw": dict(weapon="greatsword", split=[2, 2, 2, 1], keys=[
-        K_(-160, -60, R=(-4.0, 7.0, 62.0), off="two", crouch=2, lean=0.5, tw=0.4),
+    # 대검 뽑기·넣기 끝 = 왼손이 빈 대기(player_idle_free 0) — 53라운드 Q19(무기별 기본 자세)
+    # 등 손잡이를 쥔 키(-100, -56) = 등에 멘 대검 방향(weapons_v3/greatsword.py BACK_TH·BACK_EL, 53라운드 Q31)
+    "greatsword_draw": dict(weapon="greatsword", idleBody="free", split=[2, 2, 2, 1], keys=[
+        K_(-100, -56, R=(-4.0, 7.0, 65.0), off="two", crouch=2, lean=0.5, tw=0.4),
         K_(180, 10, R=(0.0, 4.0, 72.0), off="two", crouch=1, lean=-0.3),
         K_(0, 35, R=(8.0, 2.0, 64.0), off="two", crouch=3, lean=0.6, lunge=0.3),
         IDLE]),
-    "greatsword_sheathe": dict(weapon="greatsword", split=[2, 2, 2, 1], keys=[
+    "greatsword_sheathe": dict(weapon="greatsword", idleBody="free", split=[2, 2, 2, 1], keys=[
         K_(0, 70, R=(6.0, 4.0, 70.0), off="two", crouch=1),
         K_(-170, -20, R=(-1.0, 6.0, 71.0), off="two", crouch=1, lean=-0.2),
-        K_(-160, -60, R=(-4.0, 7.0, 62.0), off="two", crouch=2, lean=0.4, tw=0.4),
+        K_(-100, -56, R=(-4.0, 7.0, 65.0), off="two", crouch=2, lean=0.4, tw=0.4),
         IDLE]),
     # 가드: 날을 몸 앞에 비스듬히 세워 막고(왼손바닥이 날 면을 받침) → 떼면 밀쳐냄. 구 루프 f1↔f2 → 새 2·3·4·5 루프
     "greatsword_special": dict(weapon="greatsword", split=[2, 2, 2, 2, 2, 2], to={2: 1}, keys=[
@@ -203,10 +206,10 @@ def starts(ms):
     return s
 
 
-def norm(k):
-    """키 → 손 로컬 좌표까지 계산한 정규 자세."""
+def norm(k, free=False):
+    """키 → 손 로컬 좌표까지 계산한 정규 자세. free = 끝 대기가 왼손 빈 대기(player_idle_free)."""
     if k == IDLE:
-        k = IDLE_APPROX
+        k = IDLE_FREE_APPROX if free else IDLE_APPROX
     k = dict(k)
     v = K.dir3(k["th"], k["el"])
     R = k["R"] if k["R"] is not None else K.hand_local(dict(hth=k["hth"], hr=k["hr"], hz=k["hz"]))
@@ -255,6 +258,7 @@ def expand(name):
     oms = old["frameDurationsMs"]
     assert len(oms) == len(g["split"]), (name, len(oms), len(g["split"]))
     keys = g["keys"]
+    free = g.get("idleBody") == "free"
     frames, first, groups = [], [], []
     for i, (ms, n) in enumerate(zip(oms, g["split"])):
         first.append(len(frames))
@@ -266,12 +270,12 @@ def expand(name):
             groups.append([len(frames) - 1])
             continue
         if i in g.get("subs", {}):
-            seq = [norm(k) for k in g["subs"][i]]
+            seq = [norm(k, free) for k in g["subs"][i]]
             assert len(seq) == n
         else:
-            a = norm(keys[i])
+            a = norm(keys[i], free)
             j = g.get("to", {}).get(i, i + 1)
-            b = norm(keys[j]) if j < len(keys) else a
+            b = norm(keys[j], free) if j < len(keys) else a
             seq = [lerp_key(a, b, s / n) for s in range(n)]
         for s, k in enumerate(seq):
             grp.append(len(frames))
@@ -311,8 +315,11 @@ def body_pose(d, k, i):
     return pose(**kw)
 
 
-def idle_rig(d):
-    p = K.saya_hold(d, hero.act_idle(d)[0])
+def idle_rig(d, free=False):
+    """대기 0 몸 — free = 왼손이 빈 기본 자세(player_idle_free 0), 아니면 칼집을 쥔 player_idle 0."""
+    p = hero.act_idle(d)[0]
+    if not free:
+        p = K.saya_hold(d, p)
     return hero.draw_rig(d, p), p
 
 
@@ -393,7 +400,7 @@ def render(name):
         lst = []
         for i, (k, ms, oi) in enumerate(seq):
             if k == IDLE:
-                R, p = idle_rig(d)
+                R, p = idle_rig(d, g.get("idleBody") == "free")
             else:
                 p = body_pose(d, k, i)
                 R = hero.draw_rig(d, p)

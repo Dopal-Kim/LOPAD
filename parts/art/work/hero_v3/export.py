@@ -34,6 +34,10 @@ ANCHOR_NOTE = ("handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 
                "무기 시트 좌표 = 몸 좌표 + playerFrameOffset(48,48). 칼은 오른손(R)이 쥔다. "
                "대기·걷기·달리기에서 왼손(L)은 칼집 입구를 쥔다(53라운드).")
 BODY_NOTE = "v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b."
+WDESIGN = dict(design="B 재 칼날 (53라운드 Q26) — 검은 재 칼날 + 날선 호박 균열 1줄 + 흉갑 조각 코등이 + 붕대 손잡이 + 금 간 재·흙 칼집",
+               designRef="parts/art/work/gemini/concept_weapons/raw_katana_B2.jpg (참고만, 도트는 직접)",
+               glowRule="53라운드 Q30: 평소 날선·칼집 금만 1px 은은(A21/A19), 판정(glow) 프레임만 날선 A25/A26 + 날 몸 A21",
+               colorBudget=16, colorNote="무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G·호박 A·흉갑 SL·붕대 PL 램프 공유, Q32). 백열 코어 X 미사용")
 ARC_NOTE = "right 방향 화면각(0 = 정면, + = 아래, from→to = 휘두름 방향). down = +90° 회전, up = -90°, left = 좌우 반전(180-θ)"
 
 
@@ -148,7 +152,7 @@ def export_carry(act, frames):
     write_json(os.path.join(OUT_W, name + ".json"),
                base(name + ".png", "carry_%s" % act, K.WF, K.WF, ms, loop, K.WPIV, weapon="katana",
                     carry="waist sheath (해부 왼허리 칼집 — 일기장은 오른허리)", bodySheet="player_%s" % act,
-                    anchor="player_pivot", playerFrameOffset={"x": K.OFF, "y": K.OFF},
+                    anchor="player_pivot", **WDESIGN, playerFrameOffset={"x": K.OFF, "y": K.OFF},
                     depth={d: "above" for d in DIRS}, depthByFrame={d: ["above"] * n for d in DIRS}, occlusionBaked=True,
                     depthNote="몸 뒤로 가는 칼집·손잡이 픽셀은 몸 실루엣으로 지워 두었다 → 항상 몸 위에 겹친다(above). "
                               "right 는 칼집이 먼 허리라 몸 밖으로 나온 칼집 끝만 보인다.",
@@ -170,7 +174,7 @@ def export_carry_drawn(act, frames):
     write_json(os.path.join(OUT_W, name + ".json"),
                base(name + ".png", "carry_drawn_%s" % act, K.WF, K.WF, ms, loop, K.WPIV, weapon="katana",
                     carry="drawn, in right hand (뽑아 든 상태) + 빈 칼집(왼허리)", state="drawn", bodySheet="player_%s" % act,
-                    anchor="player_pivot", playerFrameOffset={"x": K.OFF, "y": K.OFF},
+                    anchor="player_pivot", **WDESIGN, playerFrameOffset={"x": K.OFF, "y": K.OFF},
                     depth={d: "above" for d in DIRS}, depthByFrame={d: ["above"] * n for d in DIRS}, occlusionBaked=True,
                     bladeLocal={"thetaDeg": K.DRAWN[act][0], "elevDeg": K.DRAWN[act][1]},
                     bladeNote="대기·걷기 = 앞·아래·바깥으로 낮게 든 칼, 달리기 = 뒤로 끌며 낮게, 대쉬 = 뒤로 곧게. 오른손 = 몸 시트 handAnchors.R",
@@ -232,7 +236,7 @@ def export_combo(n, frames):
     whands = {d: [{k: [v[0] + K.OFF, v[1] + K.OFF] for k, v in h.items()} for h in hands[d]] for d in DIRS}
     write_json(os.path.join(OUT_W, wname + ".json"),
                base(wname + ".png", "combo%d" % n, K.WF, K.WF, ms, False, K.WPIV, **meta,
-                    anchor="player_pivot", playerFrameOffset={"x": K.OFF, "y": K.OFF},
+                    anchor="player_pivot", **WDESIGN, playerFrameOffset={"x": K.OFF, "y": K.OFF},
                     depth={d: "above" for d in DIRS}, depthByFrame={d: ["above"] * nf for d in DIRS}, occlusionBaked=True,
                     depthNote="칼·칼집이 몸 뒤로 가는 부분(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
                     handAnchors=whands, gripAnchors={d: [h["handR"] for h in whands[d]] for d in DIRS},
@@ -300,7 +304,7 @@ def export_move(key, frames):
     whands = {d: [{k: [v[0] + K.OFF, v[1] + K.OFF] for k, v in h.items()} for h in hands[d]] for d in DIRS}
     write_json(os.path.join(OUT_W, wname + ".json"),
                base(wname + ".png", key, K.WF, K.WF, ms, False, K.WPIV, **meta,
-                    anchor="player_pivot", playerFrameOffset={"x": K.OFF, "y": K.OFF},
+                    anchor="player_pivot", **WDESIGN, playerFrameOffset={"x": K.OFF, "y": K.OFF},
                     depth={d: "above" for d in DIRS}, depthByFrame={d: ["above"] * nf for d in DIRS}, occlusionBaked=True,
                     handAnchors=whands, gripAnchors={d: [h["handR"] for h in whands[d]] for d in DIRS},
                     includesSheath=True, carryHidden="이 시트에 칼집(빈 칼집 또는 칼이 든 칼집)이 들어 있으므로 재생 동안 katana_carry_* 는 숨긴다.",

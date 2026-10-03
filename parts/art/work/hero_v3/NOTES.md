@@ -17,7 +17,7 @@
 | 몸 시트 | **96×144** 도트 · 화면 48×72 · `pixelScale: 0.5` · 피벗 **(48,138)** = 발 중앙 |
 | 무기 시트 | **192×192** · 피벗 **(96,186)** = 몸 피벗 · `playerFrameOffset` **(48,48)** · `depth` 항상 `above` + `occlusionBaked` |
 | 행·열 | 행 = down, up, left, right / 열 = 프레임 (계약 §1). 측면은 거울 반전 없이 따로 그림 |
-| 색 | 몸 **30 / 30** (전 동작 합계) · 칼 26(예산 없음, 칼집 반사·사게오·하바키 추가) · 반투명 0 |
+| 색 | 몸 **30 / 30** (전 동작 합계) · 칼 **16**(53라운드 Q26 칼 B, 주인공 팔레트 안 — 이전 강철 칼 26) · 반투명 0 |
 | 손 기준점 | 모든 몸 JSON `handAnchors`(몸 도트) · 무기 JSON `handAnchors`·`gripAnchors`(무기 도트) · 휴대 `sheathMouthAnchors` |
 | 등 상흔 | 모든 몸 JSON `scarAnchor` = 방향별 프레임별 `{x, y, w, h, rot, visible}` — **x·y = 사각형 중심**, w·h = 회전 전 크기, rot = 도(시계 +). up = 등 가운데 약 25×19(visible), 측면 = 어깨 아래 등 약 7×11(visible), down = false, 사망 4프레임부터 false |
 | 보폭 | walk `stride {px 72, cycleMs 640}` (자연 속도 논리 56 px/s) · run `stride {px 200, cycleMs 520}` (**192 px/s**) — 아래 '보폭' |
@@ -182,3 +182,15 @@ gather(혼불 7개 나선 + 바닥 재 44알 소용돌이) → merge(혼불 덩�
 3. `player_attack` 을 활 빠른 사격으로 그렸다(연격 없는 무기가 활뿐) — 다른 무기가 쓰면 어색(질문).
 4. 대검·단검·활을 든 상태의 대기·걷기·달리기 몸은 1차 시트(왼손이 칼집 입구를 쥠)를 그대로 쓴다 — 칼 외 무기에서는 왼손이 빈 허리를 쥔 모양(질문).
 5. 1차 `katana3.move_frame` 의 불티 seed 가 `hash((kind, str(key)))`(파이썬 문자열 해시, 실행마다 다름)라 `katana_combo3` 무기 시트 불티 위치가 빌드마다 바뀐다 — 고치면 커밋된 무기 시트가 바뀌므로 보류(이번 작업 범위 밖 경로).
+
+---
+
+# 3차 (53라운드 Q19·Q26~Q32) — 무기 재디자인 연결
+
+상세·규격·비평은 `parts/art/work/weapons_v3/NOTES.md`. 이 폴더에서 바뀐 것만:
+- `katana3.py`: 칼 B '재 칼날' — 팔레트(`ASHB`·`EDGE`·`SAYA`·`SEAM`·`TSUBA`·`WRAP`·`CORD`)와 `draw_tsuba`·`draw_hilt`·`draw_katana`·`draw_saya` 만 다시 그림. 자세·프레임·ms·칼 치수·칼집 방향은 그대로 → 몸 시트 바이트 동일, 판정 assert 그대로 통과. `Layer.stroke` 에 `off_fn`(날 휨) 추가(기본 없음 = 이전과 같음). 백열 코어 X 를 더는 쓰지 않음.
+- `export.py`: 칼 무기 JSON 에 `design`·`designRef`·`glowRule`·`colorBudget`·`colorNote`.
+- `gear3.py`: `idleBody="free"`(대검 뽑기·넣기 끝 = `player_idle_free 0`), `IDLE_FREE_APPROX`, 등 손잡이 키 (-160°,-60°, z62) → (-100°,-56°, z65)(등에 멘 대검 방향).
+- `export2.py`: v3 무기 시트가 있으면 `weaponOverlayV3` 연결 + `oldWeapon: null`, 끝 프레임 설명 `player_idle_free`.
+- 칼 넣기 피 털기 불티: crc32 seed(Q21)로 재출력.
+- 남은 약점 §6-8(칼 색 26) 해소 → 16.
