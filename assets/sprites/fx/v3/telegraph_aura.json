@@ -1,0 +1,51 @@
+{
+  "image": "telegraph_aura.png",
+  "action": "telegraph_aura",
+  "version": "v3",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "pixelScale": 0.5,
+  "directions": [
+    "any"
+  ],
+  "layout": "row = direction (directions order), column = frame index",
+  "frameIndex": "row * frames + column",
+  "fps": 10,
+  "frameDurationsMs": [
+    100,
+    100,
+    100,
+    100
+  ],
+  "loop": true,
+  "pivot": {
+    "x": 128,
+    "y": 128
+  },
+  "frames": 4,
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
+  "anchor": "hitbox_center",
+  "spawn": "telegraph",
+  "depth": "below",
+  "scale": "allowed",
+  "followsTarget": true,
+  "pivotNote": "피벗 (128,128) = 공격자 몸 중심. 적 히트박스 중심에 붙어 따라감.",
+  "note": "v3: 12줄 토막(바깥이 어둡고 안쪽 끝이 뾰족·밝게)이 r118→r32 로 살짝 휘며 흘러듦(4f 위상 1/4, 이음새 없음) + 맥동 코어 원반 + 점선 고리.",
+  "source": "parts/art/work/fx_v3/build.py",
+  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
+  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
+  "legacy": {
+    "image": "../telegraph_aura.png",
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "pivot": {
+      "x": 32,
+      "y": 32
+    },
+    "pixelScale": 2,
+    "pivotNote": "피벗 (32,32) = 공격자 몸 중심. 적 히트박스 중심에 붙어 따라감.",
+    "note": "수렴 오라(신규): 12줄 토막이 r30→r8 로 흘러들며 밝아짐(19→25, 안쪽 끝 쐐기 25/27) + 맥동 코어(18 테두리 + 22 몸 + X0/27). 4f 루프 위상 1/4 → 이음새 없음. 돌진·대기술 예고."
+  },
+  "colors": 12
+}

@@ -1,0 +1,66 @@
+{
+  "image": "boss_slam.png",
+  "action": "boss_slam",
+  "version": "v3",
+  "frameWidth": 384,
+  "frameHeight": 384,
+  "pixelScale": 0.5,
+  "directions": [
+    "any"
+  ],
+  "layout": "row = direction (directions order), column = frame index",
+  "frameIndex": "row * frames + column",
+  "fps": 12,
+  "frameDurationsMs": [
+    40,
+    50,
+    60,
+    80,
+    110,
+    140
+  ],
+  "loop": false,
+  "pivot": {
+    "x": 192,
+    "y": 192
+  },
+  "frames": 6,
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "design": "fx-design.md (round 42/43 infernum language, enemy/boss rule: floor ramp + core only) — produced by parts/art/work/fx_prod/build_boss.py (round 46 Q2)",
+  "anchor": "hitbox_center",
+  "spawn": "boss_slam_impact",
+  "depth": "below",
+  "scale": "allowed",
+  "source": "parts/art/work/fx_v3/build.py",
+  "hitRadiusPx": 160,
+  "flash": {
+    "color": "#fff4dc",
+    "alpha": 0.2,
+    "ms": 40,
+    "atFrame": 0,
+    "note": "코어 X1(고정색). 층 강조로 바꾸려면 그 층 ramp[11](27) 을 시스템이 골라 쓰면 된다 — 아트 기본값은 X1."
+  },
+  "shake": {
+    "px": 4,
+    "ms": 120
+  },
+  "pivotNote": "피벗 (192,192) = 슬램 지점 = 판정 원 중심. 충격 고리 f3 r156, f4 점선 r160 = hitRadiusPx 160 도트(= 논리 80px, 구 40×2). scale 은 구 시트와 같은 값(판정 반경 / 구 40) — 비율이라 그대로.",
+  "note": "v3: f0 압착 섬광 원반 + 점선 고리 → f1 고리 r80 + 균열 9줄(끝이 뾰족, 잔가지) 달아오름 → f2 고리 r124 + 재 먼지 띠 + 불티 → f3 고리 r156(판정 도달) + 먼지 고리 → f4 판정 원 점선 r160 + 균열 식음 → f5 식은 균열 + 먼지 호 + 잔불. 층 램프 + 코어 + 재 회색(보조색 없음).",
+  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
+  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
+  "shakeNote": "shake.px 는 카메라 흔들림(논리 px)이라 환산하지 않고 그대로 둠.",
+  "legacy": {
+    "image": "../boss_slam.png",
+    "frameWidth": 96,
+    "frameHeight": 96,
+    "pivot": {
+      "x": 48,
+      "y": 48
+    },
+    "pixelScale": 2,
+    "pivotNote": "피벗 (48,48) = 슬램 지점 = 내리찍기 판정 원 중심 (보스 발 위치 기준이면 그 점). 충격 고리가 f3 에 r39, f4 에 점선 r40.5 = 판정 반경 40px(2.5타일)과 1배로 맞음. 반경 R 이 40 이 아니면 scale = R/40 (정수 배율 권장, 아니면 1 유지). 회전 없음(정원).",
+    "note": "보스 내리찍기 충격파(보스 공용, 46라운드 Q2). 층 강조 램프(16~27, 1층 호박으로 그림 → 런타임 스왑) + 백열 코어 X0/X1 + 무채 G06/G09(먼지)만 — 무기 보조색 없음. f0 압착 섬광 원반 → f1 고리 r20 + 균열 달아오름 → f2 고리 r31 + 균열 8 + 짧은 금 4(가지 4) + 먼지 일어남 → f3 고리 r39(판정 도달) + 먼지 고리 → f4 판정 원(r40.5) 점선 잔상 + 먼지 굵게 → f5 식은 균열 점선 + 흩어지는 먼지. 대검 crush 대신 재생(crush 차용 중단).",
+    "hitRadiusPx": 40
+  },
+  "colors": 14
+}

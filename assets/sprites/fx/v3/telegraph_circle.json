@@ -1,0 +1,53 @@
+{
+  "image": "telegraph_circle.png",
+  "action": "telegraph_circle",
+  "version": "v3",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "pixelScale": 0.5,
+  "directions": [
+    "any"
+  ],
+  "layout": "row = direction (directions order), column = frame index",
+  "frameIndex": "row * frames + column",
+  "fps": 10,
+  "frameDurationsMs": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+  ],
+  "loop": false,
+  "pivot": {
+    "x": 128,
+    "y": 128
+  },
+  "frames": 6,
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
+  "anchor": "hitbox_center",
+  "spawn": "telegraph",
+  "depth": "below",
+  "progressDriven": true,
+  "scale": "allowed",
+  "pivotNote": "피벗 (128,128) = 범위 중심. 범위 링 r88 도트(= 논리 44, 구 r22×2). scale 은 구 시트와 같은 값(R/22, 비율) 그대로.",
+  "note": "v3: 범위 링 r88(도트, 화면 44) 굵기 약 7도트(바깥 어둡고 가운데 1줄 밝게) + 안쪽 희미한 안내 점선 2겹 + 바깥 점선 링 r124→94 수렴(끝이 뾰족한 토막) + 눈금 8 + 가운데 4점 별. f5 링 가운데 백열 점선.",
+  "source": "parts/art/work/fx_v3/build.py",
+  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
+  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
+  "legacy": {
+    "image": "../telegraph_circle.png",
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "pivot": {
+      "x": 32,
+      "y": 32
+    },
+    "pixelScale": 2,
+    "pivotNote": "피벗 (32,32) = 범위 중심. 범위 링 r22 (지름 44) 기준, 실제 반지름 R 이면 scale = R/22. frame = min(5, floor(progress*6)).",
+    "note": "닫히는 원: 바깥 점선 링이 r31→r22 로 수렴, 범위 링(4px, 18 + 20→26)이 밝아지다 f5 에서 백열 점선(X0). 중심 십자가 자람. 보조색 없음. 진행도 기반(ms 는 참고값)."
+  },
+  "colors": 13
+}

@@ -1,0 +1,50 @@
+{
+  "image": "hit_spark.png",
+  "action": "hit_spark",
+  "version": "v3",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "pixelScale": 0.5,
+  "directions": [
+    "any"
+  ],
+  "layout": "row = direction (directions order), column = frame index",
+  "frameIndex": "row * frames + column",
+  "fps": 24,
+  "frameDurationsMs": [
+    40,
+    40,
+    40,
+    50
+  ],
+  "loop": false,
+  "pivot": {
+    "x": 48,
+    "y": 48
+  },
+  "frames": 4,
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+  "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py",
+  "anchor": "hitbox_center",
+  "spawn": "hit",
+  "depth": "above",
+  "weapon": "any",
+  "alias": "hit_burst",
+  "note": "호환용: hit_burst v3 와 같은 그림.",
+  "source": "parts/art/work/fx_v3/build.py",
+  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
+  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
+  "pivotNote": "피벗 (48,48) = 중심.",
+  "legacy": {
+    "image": "../hit_spark.png",
+    "frameWidth": 24,
+    "frameHeight": 24,
+    "pivot": {
+      "x": 12,
+      "y": 12
+    },
+    "pixelScale": 2,
+    "note": "호환용: hit_burst 와 같은 그림(24×24, 기존 16×16 에서 확대). 시스템이 hit_burst 로 바꾸면 이 파일은 삭제 가능."
+  },
+  "colors": 11
+}
