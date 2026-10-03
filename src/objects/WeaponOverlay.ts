@@ -17,6 +17,7 @@ import { gameState } from '../core/GameState';
 import { spriteLibrary } from '../systems/sprites';
 import {
   artScale,
+  bodyBaseAction,
   carryAction,
   carryActionFor,
   carryDrawnAction,
@@ -116,7 +117,7 @@ export class WeaponOverlay {
     const stowed = info.mode !== 'hand' && !info.drawn;
     // 뽑아 든 칼·대검은 carry_drawn_* (아트 49라운드 임시 추가), 그 밖은 carry_*. 피격 등 휴대 동작이 아닌 몸 동작은 idle 0열
     const drawn = info.mode !== 'hand' && info.drawn;
-    const col0 = ca === 'idle' && bodyAction !== 'idle' ? 0 : column;
+    const col0 = ca === 'idle' && bodyBaseAction(bodyAction) !== 'idle' ? 0 : column;
     const def = this.pickCarry(id, ca, drawn);
     this.carryHidden = false;
     if (def) {

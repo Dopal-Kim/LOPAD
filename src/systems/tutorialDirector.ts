@@ -20,6 +20,8 @@ export interface TutorialHost {
   highlightSign?(index: number | null): void;
   /** 허수아비 흔들림 */
   pokeDummy?(index: number): void;
+  /** 53라운드: 단계 안내 (UI_EVENTS.TUTORIAL_STEP) — 안내 문구가 뜰 때 */
+  step?(info: { index: number; total: number; text: string; keys: string[] }): void;
   /** 모든 단계 끝 (출구 열기 허용) */
   onDone?(): void;
 }
@@ -46,6 +48,8 @@ export class TutorialDirector {
   private player: Pt = { x: 0, y: 0 };
   private pendingFight: TutorialFightDef | null = null;
   private destroyed = false;
+  /** 단계별 안내 키 (TUTORIAL_STEP) */
+  private readonly stepKeys: string[][];
 
   private readonly onAttack = (p: PlayerAttackPayload) => {
     if (!this.machine.started) return;
@@ -63,6 +67,7 @@ export class TutorialDirector {
     private readonly host: TutorialHost,
     private readonly opts: TutorialOptions,
   ) {
+    this.stepKeys = def.steps.map((s) => s.keys ?? []);
     this.machine = new TutorialMachine(
       def,
       layout.signs.map(tileCenter),
@@ -120,6 +125,12 @@ export class TutorialDirector {
           break;
         case 'prompt':
           this.host.notice(e.text);
+          this.host.step?.({
+            index: e.step,
+            total: this.stepKeys.length,
+            text: e.text,
+            keys: [...(this.stepKeys[e.step] ?? [])],
+          });
           break;
         case 'fight':
           this.tryFight(e.fight);

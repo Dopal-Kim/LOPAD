@@ -85,8 +85,15 @@ export class Setup extends Phaser.Scene {
    */
   private dashQueued = false;
 
+  /** 53라운드 UI 요청 B4: 회피 시험에서 Esc → 3획부터 다시 (씬을 다시 열어 시험 카메라·경기장을 깨끗이) */
+  private resumeAt: { back: 'strokes'; playerName: string } | null = null;
+
   constructor() {
     super(SCENES.SETUP);
+  }
+
+  init(data?: { back?: 'strokes'; playerName?: string }): void {
+    this.resumeAt = data?.back === 'strokes' ? { back: 'strokes', playerName: data.playerName ?? '' } : null;
   }
 
   create(): void {
@@ -156,7 +163,56 @@ export class Setup extends Phaser.Scene {
       else this.menu.select(key, id);
     });
     this.events.once('shutdown', () => setMenuSelect(null));
+    // 53라운드 UI 요청 B4: Esc = 한 단계 앞으로 (회피 시험 → 3획 → 이름 → 메타 메뉴)
+    kb.on('keydown-ESC', this.onEsc, this);
+    this.events.once('shutdown', () => this.input.keyboard?.off('keydown-ESC', this.onEsc, this));
+    const resume = this.resumeAt;
+    this.resumeAt = null;
+    if (resume) {
+      this.playerName = resume.playerName;
+      this.beginStrokes();
+    } else this.openMetaMenu();
+  }
+
+  /** Esc: 한 단계 앞으로. 메타 메뉴·운명 단계는 그대로 */
+  private onEsc(): void {
+    switch (this.phase) {
+      case 'name':
+        return this.backToMeta();
+      case 'strokes':
+        return this.backToName();
+      case 'sear':
+      case 'trial':
+        this.scene.restart({ back: 'strokes', playerName: this.playerName });
+        return;
+      default:
+        return;
+    }
+  }
+
+  /** 이름 → 메타 메뉴 */
+  private backToMeta(): void {
+    if (this.phase !== 'name') return;
+    this.nameInput?.destroy();
+    this.nameInput = undefined;
+    this.input.keyboard?.enableGlobalCapture();
+    this.label.setText('');
+    this.phase = 'meta';
     this.openMetaMenu();
+  }
+
+  /** 3획 → 이름 (그은 획은 버린다, 적어 둔 이름은 입력란에 남긴다) */
+  private backToName(): void {
+    if (this.phase !== 'strokes') return;
+    this.hideExamples();
+    this.strokeFx?.destroy();
+    this.strokeFx = undefined;
+    this.strokes = [];
+    this.current = null;
+    this.phase = 'meta';
+    this.beginName();
+    const node = this.nameInput?.node as HTMLInputElement | undefined;
+    if (node) node.value = this.playerName;
   }
 
   /** 런 시작 전: 영혼으로 영구 강화 구매, 도감 요약. Enter 로 개성 선택 시작 (임시 텍스트) */
@@ -228,6 +284,7 @@ export class Setup extends Phaser.Scene {
     node.addEventListener('keydown', (e) => {
       e.stopPropagation();
       if (e.key === 'Enter') this.finishName(node.value);
+      else if (e.key === 'Escape') this.backToMeta();
     });
     node.focus();
   }

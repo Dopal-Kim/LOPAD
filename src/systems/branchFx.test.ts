@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { WEAPONS } from '../data';
-import { aimLineFrame, branchFxSheetIds, levelMult, snipeLevel, stripFxPrefix } from './branchFx';
+import { aimLineFrame, branchFxSheetIds, levelMult, snipeCritFromLevel, snipeLevel, stripFxPrefix } from './branchFx';
 import { keyedDurations, startsOf } from './spriteDefs';
 import { WeaponResource, effectiveResource } from './weaponResource';
 import { WeaponState } from './weapons';
@@ -77,6 +77,19 @@ describe('51라운드 Q2 활 갈래 = 속사·저격 (산탄 계열 삭제)', ()
     expect(w.mods.pierce).toBeGreaterThan(0);
     w.restore({ path: ['snipe', 'deadeye'] });
     expect(w.mods.snipe?.critFromLevel).toBe(3);
+  });
+
+  it('53라운드 Q40: 필중 최장 거리 확정 치명은 조준 사격만 (거리 배율은 그대로 모든 화살)', () => {
+    const w = new WeaponState('bow', WEAPONS.bow);
+    w.restore({ path: ['snipe', 'deadeye'] });
+    const S = w.mods.snipe;
+    expect(S?.critAimedOnly).toBe(true);
+    expect(snipeCritFromLevel(S, true)).toBe(3);
+    expect(snipeCritFromLevel(S, false)).toBeUndefined();
+    expect(S?.levelMults[2]).toBeGreaterThan(1);
+    // 플래그가 없으면 예전처럼 모든 화살
+    expect(snipeCritFromLevel({ critFromLevel: 3 }, false)).toBe(3);
+    expect(snipeCritFromLevel(null, true)).toBeUndefined();
   });
 
   it('53라운드 Q16: 저격 거리 배율은 모든 화살, 조준 사격은 단계마다 더 높다', () => {

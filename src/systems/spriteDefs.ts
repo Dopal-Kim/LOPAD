@@ -3,7 +3,7 @@
  * 로드 대상 목록·키 규칙·재생 시간 계산을 담당하고, 실제 로드·애니 등록은 systems/sprites.ts.
  */
 import type { BranchSheetFields } from './branchFx';
-import { ASSETS, RENDER, TEXTURES } from '../core/Constants';
+import { ASSETS, RENDER, SPRITES, TEXTURES } from '../core/Constants';
 import type { AnchorPoint, BladeLocal, HandAnchor, StrideSpec } from './spriteMeta';
 
 /** structures = 47라운드 상호작용 구조물 시트 (계약 art-assets §5, `sprites/structures/<id>.json`) */
@@ -70,8 +70,32 @@ export function carryDrawnAction(a: CarryAction): string {
   return `carry_drawn_${a}`;
 }
 
-/** 몸 동작 → 휴대 오버레이 동작 (idle·walk·run·dash 그대로, 피격·뽑기·넣기는 idle). 사망·탄생은 null(숨김) */
-export function carryActionFor(playerAction: string): CarryAction | null {
+/**
+ * 53라운드 Q19 무기별 기본 자세: 몸 이동 시트 변형 `player_<기본>_<접미>` (접미 = free(왼손이 빈 기본 자세) 또는 무기 id).
+ * 고르는 규칙은 spriteMeta `bodyActionFor`
+ */
+/** 53라운드 Q46 확정: 대쉬는 모든 무기 공통 `player_dash` — 변형은 대기·걷기·달리기만 */
+export const BODY_VARIANT_BASES: readonly CarryAction[] = ['idle', 'walk', 'run'];
+export const FREE_POSE = 'free';
+
+/** 로드할 몸 변형 동작: 기본 동작마다 `_free` + 무기 id 접미 */
+export function bodyVariantActions(weaponIds: readonly string[]): string[] {
+  const out: string[] = [];
+  for (const base of BODY_VARIANT_BASES) for (const s of [FREE_POSE, ...weaponIds]) out.push(`${base}_${s}`);
+  return out;
+}
+
+/** 몸 변형의 기본 동작 (`idle_free` → idle, `walk_bow` → walk). 변형이 아니면 그대로 */
+export function bodyBaseAction(action: string): string {
+  const i = action.indexOf('_');
+  if (i <= 0) return action;
+  const base = action.slice(0, i);
+  return (BODY_VARIANT_BASES as readonly string[]).includes(base) ? base : action;
+}
+
+/** 몸 동작 → 휴대 오버레이 동작 (idle·walk·run·dash 그대로 — 무기별 자세 변형 포함, 피격·뽑기·넣기는 idle). 사망·탄생은 null(숨김) */
+export function carryActionFor(bodyAction: string): CarryAction | null {
+  const playerAction = bodyBaseAction(bodyAction);
   if (playerAction === 'walk' || playerAction === 'run' || playerAction === 'dash' || playerAction === 'idle')
     return playerAction;
   if (playerAction === 'death' || playerAction === BIRTH_ACTION) return null;
@@ -173,6 +197,14 @@ export interface SheetJson extends BranchSheetFields {
    * 방향 → 열 목록 (또는 시트 프레임 순서 배열) — `spriteMeta.scarAt` 이 읽는다
    */
   scarAnchor?: unknown;
+  /**
+   * 53라운드 Q19 (아트 제안, v3 몸 변형·휴대 시트): 무기별 이동 몸 시트 — 무기 id → `player_<동작>[_free]`
+   * (값이 객체면 기본 동작 → 시트). `spriteMeta.bodyActionFor` 가 읽는다
+   */
+  bodySheetByWeapon?: Record<string, string | Record<string, string>>;
+  /** 53라운드 적 v3 (사수): 발사 프레임 · 프레임별 총구 도트 좌표 (총을 놓친 프레임은 null) */
+  fireFrame?: number;
+  muzzleAnchors?: Partial<Record<Facing, (AnchorPoint | null)[]>>;
   /** 52라운드 v3 무기: 무기 시트 좌표 = 몸 시트 좌표 + 이 값 (피벗 정렬) */
   playerFrameOffset?: { x: number; y: number };
   /** 52라운드 v3 무기: 몸 뒤로 가는 픽셀을 시트에서 지웠다 → 늘 몸 위(above) */
@@ -451,6 +483,8 @@ export function wantedSheets(
   out.push({ category: 'player', name: 'player', action: BIRTH_ACTION });
   for (const id of weaponIds)
     for (const action of playerWeaponActions(id)) out.push({ category: 'player', name: 'player', action });
+  // 53라운드 Q19: 무기별 기본 자세 (`player_idle_free`·`player_walk_bow` 등, 없으면 기본 몸)
+  for (const action of bodyVariantActions(weaponIds)) out.push({ category: 'player', name: 'player', action });
   for (const name of enemyIds) for (const action of MOB_ACTIONS) out.push({ category: 'enemies', name, action });
   for (const name of bossIds) for (const action of MOB_ACTIONS) out.push({ category: 'bosses', name, action });
   for (const name of weaponIds) for (const action of WEAPON_ACTIONS) out.push({ category: 'weapons', name, action });
@@ -593,6 +627,31 @@ export function allFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] 
 /** JSON `scale` 이 양수 숫자면 그 값, 아니면 1 ("allowed" 메모 등) */
 export function sheetScale(def: Pick<SheetJson, 'scale'>): number {
   return typeof def.scale === 'number' && def.scale > 0 ? def.scale : 1;
+}
+
+/** 발사 프레임 시작 ms: `fireFrame`(53라운드 적 v3) 시작, 없으면 첫 프레임 길이 (구 시트의 2번째 프레임 시작) */
+export function fireDelayMs(def: SheetJson): number {
+  const d = frameDurations(def);
+  const f = def.fireFrame;
+  if (typeof f === 'number' && f > 0 && f < d.length) return d.slice(0, f).reduce((a, b) => a + b, 0);
+  return d[0] ?? 0;
+}
+
+/**
+ * 53라운드 v3 적(주인공과 같은 1.5배 그림): 피격 연출(섬광·숫자)을 바디 중심에서 그림 중심(피벗 높이의 절반)으로 올리는
+ * 거리(월드). 판정·바디는 그대로. v3 가 아니면 0 (구 시트·v2 는 기존 자리)
+ */
+export function v3HitLift(def: Pick<SheetJson, 'pivot' | 'pixelScale'>, bodyH: number): number {
+  if (!(typeof def.pixelScale === 'number' && def.pixelScale <= SPRITES.V3_PIXEL_SCALE)) return 0;
+  return Math.max(0, (def.pivot.y * artScale(def)) / 2 - bodyH / 2);
+}
+
+/**
+ * 이펙트·투사체 시트를 그리는 배율 = JSON scale × 도트 배율(`artScale`). 53라운드 이펙트 v3(`fx/v3/<이름>`, pixelScale 0.5)는
+ * 기존 크기 ×2 도트라 0.25 배로 그려 화면 크기·판정 자리를 기존과 같게 한다 (구 시트 = 1)
+ */
+export function fxDrawScale(def: Pick<SheetJson, 'scale' | 'pixelScale'>): number {
+  return sheetScale(def) * artScale(def);
 }
 
 /**

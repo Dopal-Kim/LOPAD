@@ -10,8 +10,13 @@ import { rollGold, shopPrice } from '../../systems/economy';
 import { kindDef } from '../../systems/route';
 import type { Game } from '../Game';
 
+/** 53라운드 UI 요청 B1: 상점 메뉴 그만두기 key (UI 가 Esc·닫기를 select('shop', '0') 으로 보낸다) */
+export const SHOP_CANCEL_KEY = '0';
+
 export class Economy {
   shopOpen = false;
+  /** Esc 로 닫은 뒤 상점 칸을 벗어날 때까지 다시 열지 않는다 */
+  private shopDismissed = false;
 
   constructor(private readonly g: Game) {}
 
@@ -81,7 +86,9 @@ export class Economy {
     if (!gameState.exitOpen && !shopNode) return;
     if (gameState.route?.choosing) return;
     const onTile = g.world.isShopAt(g.player.x, g.player.y);
-    if (onTile && !this.shopOpen && !g.menu.isOpen) this.openShop();
+    // 53라운드 UI 요청 B1: Esc(cancelKey)로 닫았으면 상점 칸을 벗어났다 다시 들어설 때 연다
+    if (!onTile) this.shopDismissed = false;
+    if (onTile && !this.shopOpen && !this.shopDismissed && !g.menu.isOpen) this.openShop();
     else if (!onTile && this.shopOpen) this.closeShop();
   }
 
@@ -103,8 +110,16 @@ export class Economy {
         'shop',
         `${STORY.names.shop}  (${STORY.names.gold} ${gameState.gold}, ${STORY.names.potion} ${gameState.potions})`,
         lines,
-        (key) => this.buy(ECONOMY.shop.items[Number(key) - 1].id, render),
+        (key) => {
+          if (key === SHOP_CANCEL_KEY) {
+            this.shopDismissed = true;
+            return this.closeShop();
+          }
+          const item = ECONOMY.shop.items[Number(key) - 1];
+          if (item) this.buy(item.id, render);
+        },
         STORY.ui.hud.shopFooter,
+        { cancelKey: SHOP_CANCEL_KEY },
       );
     };
     render();

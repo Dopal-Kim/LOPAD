@@ -693,3 +693,42 @@ npm run build
 
 ### 임시값 (전부 검수 대상)
 전투장 32×20 · 엄폐/튜토리얼/상점 거리/황무지 깊이 조정값 · 남 띠 가림 판정 알파 24·보간 0.25 · 문 어둠 150 논리 px·흐림 0.35 · 성문 가운데 판정 ±48 · 치우침 보간 0.06·연회장 160 · 혼불 2~3개·높이 96~150·자리 0.2/0.5/0.8±60 · 주변광 #6b6b75 · 주인공 빛 58/0.72 · 적 빛 r24/0.34 · 그림자 0.5 · walk 기준 0.85 · 달리기 배속 상한 ×2 · 몸 중심 17 · 상흔 텍스처 높이 96·균열 폭 5·심 1.6·빛 번짐 7·맥동 0.55Hz 0.25·측면 점 1.2배 0.6 · 저격 일반 1.0/1.25/1.6(필중 1.0/1.4/2.0)·조준 1.0/1.5/2.2(필중 1.0/1.8/3.0).
+
+## 53라운드 후속: 정리 · Q38~Q41 · v3 경로 일반화 · 구 주인공 정리 · 4지역 바닥 · 적 v3 · UI 요청 Q47~Q50 (2026-10-03)
+결정: `decisions/2026-10-03-round-53-playtest4.md` Q38~Q41·Q42~Q50, 4번 피드백. 계약 art §11·§13(무기별 이동 몸·fx v3). 읽은 아트 문서(메인 세션 고지): `parts/art/work/{props_v3,floors_v2,enemies_v3}/NOTES.md`, 작업 트리의 v3 JSON.
+
+### 정리 (6-1)
+- `Game.ts` 705 → 537줄: 노드 진입·전투장·타일 월드·외벽 테두리·조명 연결 → `scenes/game/WorldSetup.ts`, 연출 풀·감각 훅 → `scenes/game/FxWiring.ts`. 지역 주변광 고르기는 순수 함수 `lighting/lightMath.lightingAmbientFor`.
+
+### Q38~Q41
+- 5지역 조명: `lighting.json borderRegions: true` — 테두리 지역은 `regions` 에 자기 값이 없으면 `default`(외곽과 같은 상향 밝기). border.json `ambient` 는 테두리 명도 보정 기준으로만. 지역 보정: 황무지만 `#787882`(광원 없이 흙바닥이 평평 — 임시). 성문·양조·연회장은 default.
+- 필중: `snipe.critAimedOnly: true` — 최장 거리 확정 치명은 조준 사격만(`branchFx.snipeCritFromLevel`), 거리 배율은 모든 화살 그대로.
+- 숨은 저장고 제외·적 약한 빛: 그대로.
+
+### v3 경로 일반화
+- 이펙트 v3(`fx/v3`): 로드는 기존 v3 → v2 → 구 계층. 그리는 배율 `fxDrawScale = scale × artScale`(v3 0.25)을 FxPool 밖의 소비자에도 — 조준선·예고선(타일 폭은 도트 단위, `setSize(len / scaleX)`)·원/부채꼴·수렴 오라·적 탄·화살(`Projectile` 배율 + 바디 = spec.size ÷ 배율, 판정 그대로)·회피 시험 탄(사그라듦 트윈도 상대 배율).
+- 적 v3(`enemies/v3`, 결사병 128×176): 히트박스·이동 그대로, 동작마다 피벗 맞춤(EntityVisual.fit). 피격 섬광·숫자·치명 이펙트를 그림 중심 높이로(`v3HitLift` = 피벗 높이/2 − 바디/2, v3 만). 사수 발사 시각 = `fireFrame` 시작(구 시트 2번째 프레임과 같은 160ms — `fireDelayMs`), 총구 화염은 `muzzleAnchors` 자리(탄 생성점·판정은 그대로). 그림자·적 빛은 그대로(화면 확인).
+- 바닥 소품 v3(`tiles/v3/<지역 타일셋>_props`, 쿼터뷰 바닥일 때): 큰 소품·작은 소품을 이 시트에서 먼저. 아트 anchorRule 그대로 — 작은 소품 피벗 = 칸의 논리 (16,30), 큰 소품 = 발자국 아래 바닥 위 2 논리 px, `occludeAbove` Y 정렬, `depth:"floor"` 데칼형, `light`/`lights[]`, `cell` 64. 단단한 작은 소품은 칸 막기. 큰 소품 배치 규칙은 기존 5종(lamp_post·brazier·well·stall·crate_stack)만 — 새 이름은 질문.
+- 4지역 쿼터뷰 바닥(`tiles/v2/stage1_<waste|gate|brewery|hall>`): 기존 v2 우선 로드로 자동 연결(테두리와 함께). 새 키 `decals[]`(바닥 위·소품 아래·통과, `world/floorFeatures.planDecals` — `cup_inlay` 는 가운데, 그 밖 1~2장) · 양조 `canal`(가로 한 줄, 막힌 칸이 가장 적은 줄, 다리 = 가운데에 가장 가까운 걸을 수 있는 2칸, 다리 좌우 `litNearBridge` 밝은 판, 물결 `frameMs` 순환, 다리 `tileLights`). 수로 칸 = 걷기 막힘, 투사체 통과(투사체는 타일 충돌 없음 — 인터뷰 중 임시).
+- 무기별 이동 몸(Q19·Q46 확정): `spriteMeta.bodyActionFor` — 아트 `bodySheetByWeapon` → `<동작>_<무기>` → 기본. idle·walk·run 만(대쉬 공통). 칼 = `player_<동작>`, 대검·단검·활 = `_free`. 휴대 오버레이·상흔·보폭은 기본 동작(`bodyBaseAction`)으로.
+- 대검·단검·활 v3 오버레이: 칼 v3 와 같은 규약(기존 코드 그대로, v3 → v2 → 구).
+
+### 4번: 구 주인공 정리
+- `SPRITES.V3_ONLY` = 주인공 전부·칼 오버레이 → v3 만 로드(`sheetJsonCandidates`). 헤드리스 요청 기록: 구 `sprites/player/*`·`player/v2`·`weapons/(v2/)katana_*` 요청 0.
+
+### UI 요청 (Q47~Q50)
+- B1 Esc 로 닫는 메뉴: 상점 `cancelKey '0'`(줄 없음 — `TextMenu.select` 가 cancelKey 는 줄 없이도 받음, 닫으면 상점 칸을 벗어날 때까지 다시 안 염). 구조물 '0'·시험장 그대로. 필수 메뉴(보상·패시브·개성·엔딩)는 없음.
+- B2 `labBranch` cancelKey '9'(무기 목록). B3 시험장은 Esc 를 읽지 않음 — `pause/resume` 이 WeaponLab 도 멈춤(UI 일시정지에서 타이틀).
+- B4 Setup Esc: 회피 시험(·타오름) → 3획(씬 재시작, 이름 유지) · 3획 → 이름(입력란에 이름 유지) · 이름 → 메타 메뉴.
+- B5 `UI_EVENTS.ENEMY_INCOMING {roomId, delayMs, count}` — 모든 소환에서(`RoomDirector.announce`). 튜토리얼 전투만 `ENEMY_INCOMING.TUTORIAL_DELAY_MS 900` 뒤 소환, 일반 웨이브 0(예고와 동시).
+- B6 `UI_EVENTS.TUTORIAL_STEP {index,total,text,keys}` — 안내 문구가 뜰 때, keys 는 route.json 단계 `keys`.
+- B7 `uiCommands.cancelChoose()` — 지도를 닫고 출구 가운데에서 1.5칸+출구 반폭 물러남(막히면 전투장 가운데 쪽), 출구를 벗어났다 들어서면 다시 열림.
+- B8 튜토리얼 전장 `arena.tutorial` 40×24(탄생 노드만).
+
+### 테스트 · 검증
+- 테스트 +13: `v3Paths.test.ts`(몸 규칙·변형·v3 전용·fx 배율·적 피격 높이·소품 시트·5지역 조명·튜토리얼 전장) · `world/floorFeatures.test.ts`(수로·다리·연결·데칼) · `branchFx.test.ts`(Q40) · 기존 로드 목록·후보 경로 갱신. tsc·eslint·vitest(52파일 357개)·vite build 통과.
+- 헤드리스(1920×1080, 별도 outDir): 5지역 조명(화면 평균 외곽 27.6·황무지 30→33·성문 34·양조 52·연회장 49) · 4무기 대기/달리기/대쉬/공격(대검·단검·활 `_free` 몸, 칼 기본 몸) · 탄생·튜토리얼(40×24) · 양조 수로(물 칸 6초 막힘, 다리 통과) · 상점 Esc · 시험장 Esc(일시정지, 타이틀 아님)·갈래 메뉴 cancelKey · Setup Esc 순서 · 적 v3 3종 피격. 콘솔 오류 0. 스크린샷 스크래치 `r53sys2/`.
+- 노드 고르기 취소: 출구에서 고르기 열림 → `cancelChoose()` → 닫힘·주인공 40px(2.5칸) 물러남. ENEMY_INCOMING·TUTORIAL_STEP 발행은 헤드리스에서 이벤트를 직접 보지 못했다(UI 패널 표시로만 — 데모 확인 목록).
+
+### 임시값 (전부 검수 대상)
+황무지 주변광 #787882 · 튜토리얼 적 예고 900ms·일반 0 · 고르기 취소 1.5칸 · 튜토리얼 전장 40×24 · 데칼 1~2장·북쪽 2칸 비움·cup_inlay 가운데 · 수로 북쪽 8칸부터·남쪽 3줄·앵커 둘레 1줄 · 큰 소품 피벗 바닥 위 2 논리 px(아트 규칙).

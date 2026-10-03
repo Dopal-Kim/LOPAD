@@ -17,7 +17,15 @@ import { DEPTH, ENEMY_FX } from '../core/Constants';
 import { PALETTE } from '../data';
 import { hexToInt, rampFor } from './palette';
 import { spriteLibrary } from './sprites';
-import { FX_ACTION, facingOf, frameDurations, frameIndices, progressFrame, type Facing } from './spriteDefs';
+import {
+  FX_ACTION,
+  facingOf,
+  frameDurations,
+  frameIndices,
+  fxDrawScale,
+  progressFrame,
+  type Facing,
+} from './spriteDefs';
 
 export type TelegraphKind = 'line' | 'circle' | 'cone';
 
@@ -105,10 +113,12 @@ export class TelegraphFx {
     const texture = spriteLibrary.textureKey(id, FX_ACTION);
     let m: Marker;
     if (def && texture && this.scene.textures.exists(texture)) {
+      // 53라운드 v3: 도트 배율 k — 타일 폭은 도트 단위, 화면 굵기는 기존과 같게
+      const k = fxDrawScale(def);
       const ts = this.scene.add
-        .tileSprite(x, y, Math.max(1, Math.round(lengthPx)), def.frameHeight, texture, 0)
+        .tileSprite(x, y, Math.max(1, Math.round(lengthPx / k)), def.frameHeight, texture, 0)
         .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-        .setScale(1, ENEMY_FX.BOLD.LINE_SCALE_Y)
+        .setScale(k, ENEMY_FX.BOLD.LINE_SCALE_Y * k)
         .setRotation(angle)
         .setDepth(DEPTH.FX_GROUND);
       m = this.make('line', ts, durationMs, frameDurations(def)[0], texture);
@@ -327,7 +337,7 @@ export class TelegraphFx {
       const s = this.scene.add
         .sprite(x, y, texture, frameIndices(def, dir)[0] ?? 0)
         .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-        .setScale(radiusPx / base)
+        .setScale((radiusPx / base) * fxDrawScale(def))
         .setDepth(DEPTH.FX_GROUND);
       m = this.make(kind, s, durationMs, ENEMY_FX.PLACEHOLDER.BLINK_MS, texture);
       if (def.progressDriven) m.progress = { id, frames: def.frames, dir };
@@ -369,7 +379,7 @@ export class TelegraphFx {
       const s = this.scene.add
         .sprite(x, y, texture, 0)
         .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-        .setScale(B.AURA_SCALE)
+        .setScale(B.AURA_SCALE * fxDrawScale(def))
         .setDepth(DEPTH.FX_GROUND + 0.002);
       s.play(anim, true);
       return s;
@@ -432,7 +442,7 @@ export class TelegraphFx {
       m.draw(m.obj);
       m.obj.setAlpha(ENEMY_FX.PLACEHOLDER.ALPHA);
     } else if (m.obj instanceof Phaser.GameObjects.TileSprite) {
-      m.obj.setSize(Math.max(1, Math.round(m.lengthPx)), m.obj.height);
+      m.obj.setSize(Math.max(1, Math.round(m.lengthPx / m.obj.scaleX)), m.obj.height);
     }
   }
 

@@ -12,7 +12,7 @@ import type { Mob, MobContext, ProjectileSpec } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
 import { rollCrit } from '../../systems/economy';
 import { spriteLibrary } from '../../systems/sprites';
-import { FX_ACTION, radiusFitScale } from '../../systems/spriteDefs';
+import { FX_ACTION, fxDrawScale, radiusFitScale } from '../../systems/spriteDefs';
 import type { Game } from '../Game';
 
 export type DamageKind = 'attack' | 'dashAttack' | 'aimed' | 'other';
@@ -50,6 +50,7 @@ export class GameCombat {
           originX: def.pivot.x / def.frameWidth,
           originY: def.pivot.y / def.frameHeight,
           anim: def.loop && def.frames > 1 ? spriteLibrary.animKey(spec.sprite!, FX_ACTION, 'down') : null,
+          scale: fxDrawScale(def),
         }
       : {};
     p.launch(x, y, dirX, dirY, spec, this.g.time.now, 'enemy', 0, visual);
@@ -142,9 +143,9 @@ export class GameCombat {
     const len = Math.hypot(opts.dirX, opts.dirY) || 1;
     const nx = opts.dirX / len;
     const ny = opts.dirY / len;
-    // 적중점 = 공격이 들어온 쪽 가장자리, 피는 반대쪽(뒤)으로
+    // 적중점 = 공격이 들어온 쪽 가장자리, 피는 반대쪽(뒤)으로. 53라운드 v3 적: 섬광·숫자는 그림 중심 높이로 (판정 그대로)
     const hitX = c.x - nx * hw * 0.6;
-    const hitY = c.y - ny * hh * 0.6;
+    const hitY = c.y - ny * hh * 0.6 - mob.visual.hitLiftPx;
     const backX = c.x + nx * hw * 0.5;
     const backY = c.y + ny * hh * 0.5;
     const isBoss = mob.isBoss;
@@ -164,7 +165,14 @@ export class GameCombat {
       g.shake.add(now, FEEL.SHAKE.HIT.PX, FEEL.SHAKE.HIT.MS);
       return died;
     }
-    g.hitFx.impact(hitX, hitY, nx, ny, opts.crit, opts.critFx ? { id: opts.critFx, x: c.x, y: c.y } : null);
+    g.hitFx.impact(
+      hitX,
+      hitY,
+      nx,
+      ny,
+      opts.crit,
+      opts.critFx ? { id: opts.critFx, x: c.x, y: c.y - mob.visual.hitLiftPx } : null,
+    );
     g.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
     if (opts.crit) g.screenFx.crit();
     const H = FEEL.HITSTOP;

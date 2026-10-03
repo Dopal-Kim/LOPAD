@@ -5,7 +5,15 @@
  * - 손·칼 앵커: 몸 `handAnchors`, 무기 `gripAnchors`·`handAnchors`·`bladeLocal`·`playerFrameOffset` — 시트 도트 좌표 → 월드
  */
 import { ASSETS, SPRITES } from '../core/Constants';
-import { artScale, sheetJsonPath, type Facing, type SheetJson, type SheetRequest } from './spriteDefs';
+import {
+  BODY_VARIANT_BASES,
+  FREE_POSE,
+  artScale,
+  sheetJsonPath,
+  type Facing,
+  type SheetJson,
+  type SheetRequest,
+} from './spriteDefs';
 
 /** 새 도트 하위 폴더 (앞이 우선) */
 export const SHEET_TIERS: readonly string[] = [ASSETS.V3_DIR, ASSETS.V2_DIR];
@@ -17,9 +25,49 @@ export function sheetJsonPathTier(r: SheetRequest, tier: string): string {
   return `${base.slice(0, i)}/${tier}${base.slice(i)}`;
 }
 
-/** 로드 후보 경로: v3 → v2 → 기존. 새 도트 폴더는 매니페스트에 있을 때만 쓴다(호출 쪽) */
+/**
+ * 53라운드 4번 피드백: v3 만 쓰는 묶음 (구 시트·v2 를 더 이상 로드하지 않는다). 주인공 전부 · 칼 오버레이.
+ * 대검·단검·활 오버레이는 v3 가 생길 때까지 v3 → v2 → 기존 (동작 단위)
+ */
+export function v3Only(r: Pick<SheetRequest, 'category' | 'name'>): boolean {
+  return SPRITES.V3_ONLY.some((o) => o.category === r.category && (!o.name || o.name === r.name));
+}
+
+/**
+ * 로드 후보 경로: v3 → v2 → 기존 (마지막이 기존). 새 도트 폴더는 매니페스트에 있을 때만 쓴다(호출 쪽).
+ * v3 만 쓰는 묶음(`v3Only`)은 v3 하나 — 호출 쪽은 마지막 후보를 '있으면 로드'로 다루므로 v3 가 없으면 아무것도 안 읽는다
+ */
 export function sheetJsonCandidates(r: SheetRequest): string[] {
+  if (v3Only(r)) return [sheetJsonPathTier(r, ASSETS.V3_DIR)];
   return [...SHEET_TIERS.map((t) => sheetJsonPathTier(r, t)), sheetJsonPath(r)];
+}
+
+// --- 무기별 기본 자세 (53라운드 Q19) ---
+
+/** 시트 이름 접두 (`player_idle_free` → `idle_free`) */
+const PLAYER_SHEET_PREFIX = 'player_';
+
+/**
+ * 무기별 이동 몸 동작 고르기 (기본 동작 idle·walk·run·dash). `has` = 그 동작 시트가 로드됐는지, `sheet` = JSON.
+ * 1) 아트 규칙: 로드된 변형·기본 시트 JSON `bodySheetByWeapon[무기]` (문자열 = 이 기본 동작의 시트, 객체 = 동작 → 시트)
+ * 2) 이름 규칙: `<기본>_<무기 id>` 3) 기본 몸. 고른 시트가 로드되지 않았으면 다음 단계로
+ */
+export function bodyActionFor(
+  base: string,
+  weaponId: string,
+  sheet: (action: string) => Pick<SheetJson, 'bodySheetByWeapon'> | undefined,
+): string {
+  if (!(BODY_VARIANT_BASES as readonly string[]).includes(base)) return base;
+  const strip = (v: string) => (v.startsWith(PLAYER_SHEET_PREFIX) ? v.slice(PLAYER_SHEET_PREFIX.length) : v);
+  for (const src of [`${base}_${FREE_POSE}`, `${base}_${weaponId}`, base]) {
+    const rule = sheet(src)?.bodySheetByWeapon?.[weaponId];
+    const pickName = typeof rule === 'string' ? rule : rule && typeof rule === 'object' ? rule[base] : undefined;
+    if (typeof pickName !== 'string') continue;
+    const action = strip(pickName);
+    if (action === base || sheet(action)) return action;
+  }
+  const named = `${base}_${weaponId}`;
+  return sheet(named) ? named : base;
 }
 
 // --- 보폭 (52라운드 Q10, 계약 §12) ---

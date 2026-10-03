@@ -2,7 +2,7 @@
  * 48라운드 노드 지도 (계약 §10): 노드 진입(밝아짐·입력 잠금) · 클리어 → 출구 · 다음 노드 선택 · 전환,
  * 그리고 층 출구(방+복도 층·보스 노드 → 다음 층).
  */
-import { ROUTE_FX } from '../../core/Constants';
+import { ROUTE_FX, TILE } from '../../core/Constants';
 import { EventBus, Events } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { UI_EVENTS, __system, type UiRouteEntered } from '../../contract/ui';
@@ -146,6 +146,33 @@ export class RouteFlow {
     gameState.structureCarry = g.structures.exportFloorState();
     route.enter(id);
     this.fadeThen(() => g.scene.restart({ mode: 'node' } satisfies GameInitData));
+    return true;
+  }
+
+  /**
+   * 53라운드 Q47 uiCommands.cancelChoose: 고르기를 닫고 출구에서 한 걸음 물러난다 (출구 가운데 → 주인공 방향, 막혀 있으면
+   * 전투장 가운데 쪽). 출구를 벗어났다 다시 들어서면 다시 연다. 고르는 중이 아니거나 진입 갈림(현재 노드 없음)이면 false
+   */
+  cancelChoose(): boolean {
+    const g = this.g;
+    const route = gameState.route;
+    if (!route || !route.choosing || g.transitioning || !g.node || !g.layout?.arena) return false;
+    route.choosing = false;
+    this.exitArmed = false;
+    const e = g.layout.arena.exit;
+    const ex = (e.x + 1) * TILE;
+    const ey = (e.y + 1) * TILE;
+    const c = g.layout.arena.center ?? g.layout.arena.spawn;
+    const step = ROUTE_FX.CANCEL_STEP_TILES * TILE + TILE; // 2×2 출구 반폭 + 한 걸음
+    const away = (tx: number, ty: number) => {
+      const dx = tx - ex;
+      const dy = ty - ey;
+      const len = Math.hypot(dx, dy) || 1;
+      return { x: ex + (dx / len) * step, y: ey + (dy / len) * step };
+    };
+    const tries = [away(g.player.x, g.player.y), away((c.x + 0.5) * TILE, (c.y + 0.5) * TILE)];
+    const to = tries.find((p) => g.world.isWalkableAt(p.x, p.y) && !g.world.isExitAt(p.x, p.y));
+    if (to) g.player.body.reset(to.x, to.y);
     return true;
   }
 

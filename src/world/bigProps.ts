@@ -40,6 +40,8 @@ export function planBigProps(
   shapes: readonly BigPropShape[],
   blocked: ReadonlySet<string>,
   seed: number | string,
+  /** 53라운드: 소품을 두지 않지만 걸을 수 있는 칸 (양조 수로 다리) */
+  reserved: ReadonlySet<string> = new Set(),
 ): BigPropPlacement[] {
   const B = QUARTER.BIG_PROPS;
   const room = layout.rooms[0];
@@ -47,7 +49,7 @@ export function planBigProps(
   const rng = new Rng(hashSeed(`${String(seed)}:bigprops`));
   const shape = new Map(shapes.map((s) => [s.name, s]));
   const I = room.interior;
-  const taken = new Set(blocked);
+  const taken = new Set([...blocked, ...reserved]);
   // 시작점·출구·상점 둘레 비움
   const A = layout.arena;
   const clear = (cx: number, cy: number, w: number, h: number) => {

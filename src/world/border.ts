@@ -82,7 +82,7 @@ export interface BorderDef {
   pixelScale: number;
   bands: Record<BandSide, BorderBand>;
   doors: Partial<Record<BandSide, BorderDoor>>;
-  /** border.json ambient.rgb (0~1) → '#rrggbb'. 없으면 null — 쓸지는 data/lighting.json borderRegions */
+  /** border.json ambient.rgb (0~1) → '#rrggbb'. 없으면 null — 53라운드 Q38: 주변광은 data/lighting.json 기준 (테두리 명도 보정 기준값으로만 쓴다) */
   ambient: string | null;
   /** 카메라 좌우 여유 (논리 px) · 북쪽 치우침 최대 (논리 px) */
   cameraSide: number;

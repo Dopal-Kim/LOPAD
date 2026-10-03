@@ -19,8 +19,12 @@ export interface WarpHandler {
 }
 let warpHandler: WarpHandler | null = null;
 
-/** 48라운드 노드 선택: Game 이 등록 (계약 §10.2) */
+/** 48라운드 노드 선택: Game 이 등록 (계약 §10.2) · 53라운드 Q47 고르기 취소 */
 let nodeChooser: ((id: string) => boolean) | null = null;
+let chooseCanceler: (() => boolean) | null = null;
+
+/** 일시정지 대상 게임 씬 (일반 게임 · 무기 시험장) — 53라운드 UI 요청 B3: 시험장 Esc 도 UI 일시정지가 받는다 */
+const PAUSABLE = [SCENES.GAME, SCENES.WEAPON_LAB];
 
 export function installContractHost(game: Phaser.Game): void {
   const stopAllUiAndGame = () => {
@@ -42,15 +46,17 @@ export function installContractHost(game: Phaser.Game): void {
     getSnapshot: () => null,
     select: (menuId, key) => menuSelect?.(menuId, key),
     pause: () => {
-      if (game.scene.isActive(SCENES.GAME)) {
-        game.scene.pause(SCENES.GAME);
+      const key = PAUSABLE.find((k) => game.scene.keys[k] && game.scene.isActive(k));
+      if (key) {
+        game.scene.pause(key);
         audio.setPaused(true);
         __system.emit(UI_EVENTS.PAUSED, {});
       }
     },
     resume: () => {
-      if (game.scene.isPaused(SCENES.GAME)) {
-        game.scene.resume(SCENES.GAME);
+      const key = PAUSABLE.find((k) => game.scene.keys[k] && game.scene.isPaused(k));
+      if (key) {
+        game.scene.resume(key);
         audio.setPaused(false);
         __system.emit(UI_EVENTS.RESUMED, {});
       }
@@ -87,6 +93,7 @@ export function installContractHost(game: Phaser.Game): void {
       return reason ? deny(reason) : true;
     },
     chooseNode: (id) => nodeChooser?.(id) ?? false,
+    cancelChoose: () => chooseCanceler?.() ?? false,
     setMuted: (muted) => audio.setMute(muted),
     startWeaponLab: () => {
       // 49라운드 계약 §11.4: 시스템 무기 시험장 씬 (scenes/WeaponLab.ts — Game 의 lab 모드). Esc = 타이틀
@@ -121,4 +128,8 @@ export function setWarpHandler(h: WarpHandler | null): void {
 
 export function setNodeChooser(fn: ((id: string) => boolean) | null): void {
   nodeChooser = fn;
+}
+
+export function setChooseCanceler(fn: (() => boolean) | null): void {
+  chooseCanceler = fn;
 }

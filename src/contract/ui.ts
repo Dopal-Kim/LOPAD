@@ -50,7 +50,26 @@ export const UI_EVENTS = {
   /** 48라운드: 탄생 연출 시작·끝 (계약 §10.3) */
   BIRTH_STARTED: 'ui:birth-started',
   BIRTH_DONE: 'ui:birth-done',
+  /** 53라운드 Q49: 적 소환 예고 (`UiEnemyIncoming`) — 소환 delayMs 전에 모든 전투에서. UI 경고는 튜토리얼만 */
+  ENEMY_INCOMING: 'ui:enemy-incoming',
+  /** 53라운드: 튜토리얼 단계 안내 (`UiTutorialStep`) — 안내 문구가 뜰 때 */
+  TUTORIAL_STEP: 'ui:tutorial-step',
 } as const;
+
+/** 53라운드 Q49: 적 소환 예고. delayMs = 소환까지 남은 ms (0 = 바로) · count = 마리 수 */
+export interface UiEnemyIncoming {
+  roomId: string;
+  delayMs: number;
+  count?: number;
+}
+
+/** 53라운드: 튜토리얼 단계 (index 0부터 · total 단계 수 · text 안내 문구 · keys 키 표시 — 예 ['W','A','S','D'], ['좌클릭']) */
+export interface UiTutorialStep {
+  index: number;
+  total: number;
+  text: string;
+  keys: string[];
+}
 
 /** 48라운드: 노드 지도 (계약 §10.1) */
 export type UiNodeType = 'journey' | 'battle' | 'shop' | 'rest' | 'event' | 'boss';
@@ -455,6 +474,7 @@ interface SystemImpl {
   getText: () => UiText;
   warpTo: (roomId: string) => boolean;
   chooseNode: (id: string) => boolean;
+  cancelChoose: () => boolean;
   setMuted: (muted: boolean) => void;
   startWeaponLab: () => void;
 }
@@ -544,6 +564,13 @@ export const uiCommands = {
   /** 48라운드: 다음 노드 선택 (계약 §10.2). available 노드만 true */
   chooseNode(id: string): boolean {
     return impl?.chooseNode(id) ?? false;
+  },
+  /**
+   * 53라운드 Q47: 노드 고르기 취소 (지도에서 Esc) — 지도를 닫고 주인공이 출구에서 한 걸음 물러난다.
+   * 고르는 중이 아니면 false. 다시 출구에 들어서면 ROUTE_CHOOSE_OPEN 이 다시 온다
+   */
+  cancelChoose(): boolean {
+    return impl?.cancelChoose() ?? false;
   },
   /** 49라운드: 음소거 (Esc 메뉴 설정에서, 계약 §11.3). M 키는 더 이상 음소거가 아니다 */
   setMuted(muted: boolean): void {

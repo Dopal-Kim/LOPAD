@@ -14,13 +14,12 @@ import { lightFor, lightRegistryOf, type LightSource } from './lighting/lightReg
 import {
   FX_ACTION,
   animDurationMs,
-  artScale,
+  fxDrawScale,
   animKey,
   frameDurations,
   frameIndices,
   frameStarts,
   fxImpactFrame,
-  sheetScale,
   type Facing,
   type FxFlashSpec,
   type FxShakeSpec,
@@ -174,7 +173,7 @@ export class FxPool {
     sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
     sprite.anims.stop();
     // 50라운드: 새 2배 도트 이펙트(pixelScale 1)는 0.5 배로 그려 화면 크기를 맞춘다
-    const scale = sheetScale(def) * artScale(def);
+    const scale = fxDrawScale(def);
     const row = frameIndices(def, opts.dir ?? 'down')[0] ?? 0;
     sprite
       .setTexture(texture, row + Math.max(0, Math.min(def.frames - 1, opts.staticFrame ?? 0)))

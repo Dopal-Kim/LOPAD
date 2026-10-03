@@ -1,6 +1,12 @@
 import Phaser from 'phaser';
-import { TILE } from '../core/Constants';
-import { EventBus, Events, type RoomEnteredPayload, type TrialClearedPayload } from '../core/EventBus';
+import { ENEMY_INCOMING, TILE } from '../core/Constants';
+import {
+  EventBus,
+  Events,
+  type EnemyIncomingPayload,
+  type RoomEnteredPayload,
+  type TrialClearedPayload,
+} from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import type { StageDef, WaveEntry } from '../data/types';
 import { Boss } from '../objects/Boss';
@@ -57,6 +63,8 @@ export class RoomDirector {
   private alive = new Set<Mob>();
   /** 47라운드: 진행 중인 구조물 도전 (클리어한 방을 다시 active 로 — 45라운드 비전투 판정과 일관) */
   private challenge: { roomId: string; onDone: () => void } | null = null;
+  /** 53라운드 Q49: 예고 뒤 소환 대기 (도전 중단·씬 정리 때 취소) */
+  private pendingSpawn: Phaser.Time.TimerEvent | null = null;
 
   constructor(private host: RoomDirectorHost) {
     for (const r of host.world.layout.rooms) this.states.set(r.id, 'idle');
@@ -156,6 +164,8 @@ export class RoomDirector {
     spawns: readonly ChallengeSpawn[],
     onDone: () => void,
     at?: { x: number; y: number; radiusTiles: number },
+    /** 53라운드 Q49: 예고(ENEMY_INCOMING) 뒤 소환까지 ms (튜토리얼 — 0 이면 바로) */
+    delayMs = 0,
   ): boolean {
     if (this.inCombat || this.challenge || this.states.get(roomId) !== 'cleared') return false;
     const room = this.host.world.room(roomId);
@@ -163,6 +173,28 @@ export class RoomDirector {
     this.states.set(roomId, 'active');
     this.currentRoom = room;
     this.host.world.setRoomDoors(room, 'closed');
+    const count = spawns.reduce((a, s) => a + s.count, 0);
+    this.announce(roomId, delayMs, count, () => this.spawnChallenge(room, spawns, at));
+    return true;
+  }
+
+  /** 53라운드 Q49: 소환 예고 이벤트 → delayMs 뒤 소환 (0 이면 바로) */
+  private announce(roomId: string, delayMs: number, count: number, spawn: () => void): void {
+    EventBus.emit(Events.ENEMY_INCOMING, { roomId, delayMs, count } satisfies EnemyIncomingPayload);
+    this.pendingSpawn?.remove();
+    this.pendingSpawn = null;
+    if (delayMs <= 0) return spawn();
+    this.pendingSpawn = this.host.mobs.scene.time.delayedCall(delayMs, () => {
+      this.pendingSpawn = null;
+      spawn();
+    });
+  }
+
+  private spawnChallenge(
+    room: Room,
+    spawns: readonly ChallengeSpawn[],
+    at?: { x: number; y: number; radiusTiles: number },
+  ): void {
     const S = this.host.stage.enemyScale;
     for (const sp of spawns) {
       for (let i = 0; i < sp.count; i++) {
@@ -186,12 +218,13 @@ export class RoomDirector {
         this.alive.add(e);
       }
     }
-    return true;
   }
 
   /** 47라운드: 도전 강제 종료 (투견 링 시간 초과) — 남은 적은 사라지고 방은 다시 클리어. onDone 은 부르지 않는다 */
   abortChallenge(): number {
     if (!this.challenge) return 0;
+    this.pendingSpawn?.remove();
+    this.pendingSpawn = null;
     let n = 0;
     for (const m of [...this.alive]) {
       if (m.active) {
@@ -268,6 +301,11 @@ export class RoomDirector {
     const wave = scaleWave(this.waves[index], mods.countMult, mods.extra);
     const scale = { hp: this.host.stage.enemyScale.hp * mods.hpMult, attack: this.host.stage.enemyScale.attack };
     EventBus.emit(Events.TRIAL_WAVE, { roomId: room.id, wave: index + 1, total: this.waves.length });
+    const count = wave.reduce((a, w) => a + w.count, 0);
+    this.announce(room.id, ENEMY_INCOMING.WAVE_DELAY_MS, count, () => this.spawnEntries(room, wave, scale));
+  }
+
+  private spawnEntries(room: Room, wave: readonly WaveEntry[], scale: { hp: number; attack: number }): void {
     for (const entry of wave) {
       for (let i = 0; i < entry.count; i++) {
         const p = this.host.world.randomPointInRoom(

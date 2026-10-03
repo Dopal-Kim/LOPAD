@@ -10,6 +10,8 @@ import {
 import { ENEMIES } from '../data';
 import type { EnemyDef, EnemyScale } from '../data/types';
 import type { TelegraphHandle } from '../systems/telegraph';
+import { anchorOffset } from '../systems/spriteMeta';
+import type { Facing } from '../systems/spriteDefs';
 import { Mob, type MobContext } from './Mob';
 
 type ChargeState = 'approach' | 'telegraph' | 'dash' | 'cooldown';
@@ -233,7 +235,10 @@ export class Enemy extends Mob {
       const fy = facing === 'up' ? -1 : facing === 'down' ? 1 : 0;
       const mx = c.x + fx * ENEMY_FX.MUZZLE_FORWARD_PX;
       const my = c.y + fy * ENEMY_FX.MUZZLE_FORWARD_PX - ENEMY_FX.MUZZLE_UP_PX;
-      if (R.muzzle) ctx.playFx(R.muzzle, mx, my, { dir: facing, depth: entityDepth(this.y) + DEPTH.OVERLAY_STEP * 3 });
+      // 53라운드 적 v3: 총구 화염은 시트 총구 자리(muzzleAnchors, 발사 프레임)에 — 탄 생성점(판정)은 그대로
+      const flash = this.muzzleAt(facing) ?? { x: mx, y: my };
+      if (R.muzzle)
+        ctx.playFx(R.muzzle, flash.x, flash.y, { dir: facing, depth: entityDepth(this.y) + DEPTH.OVERLAY_STEP * 3 });
       ctx.fire(mx, my, dir.x, dir.y, spec);
       EventBus.emit(Events.ENEMY_ATTACK, { id: this.id, kind: 'shot' } satisfies EnemyAttackPayload);
     };
@@ -247,6 +252,16 @@ export class Enemy extends Mob {
       this.rangedUntil = ctx.time + Math.max(delay, 0) + RL.reloadMs;
       EventBus.emit(Events.ENEMY_BEHAVIOR, { id: this.id, kind: 'reload' } satisfies EnemyBehaviorPayload);
     }
+  }
+
+  /** 53라운드 적 v3: 발사 프레임의 총구 월드 좌표 (시트에 muzzleAnchors 가 없으면 null) */
+  private muzzleAt(facing: Facing): { x: number; y: number } | null {
+    const def = this.visual.sheet('attack');
+    const f = def?.fireFrame;
+    const p = def && typeof f === 'number' ? def.muzzleAnchors?.[facing]?.[f] : null;
+    if (!def || !p) return null;
+    const o = anchorOffset(def, p);
+    return { x: this.x + o.x, y: this.y + o.y };
   }
 
   // --- 결사병: 접근 → 예고(경로선) → 돌진 → 재정비 ---

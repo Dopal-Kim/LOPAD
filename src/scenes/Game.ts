@@ -1,58 +1,51 @@
 import Phaser from 'phaser';
-import { CAMERA, COLORS, DEBUG, DEPTH, FEEL, PROTOTYPE, SCENES, TILE } from '../core/Constants';
+import { CAMERA, COLORS, DEBUG, DEPTH, ENEMY_INCOMING, PROTOTYPE, SCENES, TILE } from '../core/Constants';
 import { screenFixed, worldZoom } from '../systems/display';
 import { EventBus, Events } from '../core/EventBus';
 import { gameState } from '../core/GameState';
-import { LIGHTING, PALETTE } from '../data';
-import type { LightingAmbient } from '../data/types';
 import { floorText } from '../systems/story';
 import type { Mob } from '../objects/Mob';
 import { Player } from '../objects/Player';
 import { Projectile } from '../objects/Projectile';
 import { Pickup } from '../objects/Pickup';
 import { InputSystem, neutralInput } from '../systems/InputSystem';
-import { generateFloor, type FloorLayout } from '../systems/mapgen';
-import {
-  RouteState,
-  generateRoute,
-  kindDef,
-  regionIdOf,
-  routeEnabled,
-  type RouteKind,
-  type RouteNode,
-} from '../systems/route';
-import { Lighting } from '../systems/lighting/Lighting';
+import type { FloorLayout } from '../systems/mapgen';
+import { kindDef, type RouteKind, type RouteNode } from '../systems/route';
+import type { Lighting } from '../systems/lighting/Lighting';
 import { RoomDirector } from '../systems/RoomDirector';
-import { Rng, hashSeed } from '../systems/rng';
+import type { Rng } from '../systems/rng';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { TextMenu } from '../systems/TextMenu';
 import { UI_EVENTS, __system } from '../contract/ui';
-import { setMenuSelect, setNodeChooser, setSnapshotProvider, setWarpHandler } from '../contract/host';
+import {
+  setChooseCanceler,
+  setMenuSelect,
+  setNodeChooser,
+  setSnapshotProvider,
+  setWarpHandler,
+} from '../contract/host';
 import { UI_SCENES } from '../ui';
-import { TileWorld } from '../world/TileWorld';
-import { BorderView, releaseBorderTextures } from '../world/BorderView';
-import { borderFor, borderGaps, floorRectOf, type BorderDef } from '../world/border';
-import { TileSkin, skinFor, tileSkins } from '../world/tileskin';
-import { SetPieceView } from '../world/SetPieceView';
-import { planNodeArena, setPieceTiles, type NodeArenaPlan } from '../systems/routeArena';
+import type { TileWorld } from '../world/TileWorld';
+import type { BorderView } from '../world/BorderView';
+import type { SetPieceView } from '../world/SetPieceView';
+import type { NodeArenaPlan } from '../systems/routeArena';
 import { TutorialDirector } from '../systems/tutorialDirector';
-import { spriteLibrary } from '../systems/sprites';
-import { FxPool } from '../systems/fx';
+import type { FxPool } from '../systems/fx';
 import { HitStop, Shake } from '../systems/feel';
-import { TrailRenderer } from '../systems/trail';
-import { ScreenFx } from '../systems/screenFx';
-import { AimLine } from '../systems/aimFx';
-import { resolveFxColor } from '../systems/palette';
-import { DamageNumberPool } from '../systems/damageNumbers';
-import { HitFx } from '../systems/hitFx';
-import { TelegraphFx } from '../systems/telegraph';
+import type { TrailRenderer } from '../systems/trail';
+import type { ScreenFx } from '../systems/screenFx';
+import type { AimLine } from '../systems/aimFx';
+import type { DamageNumberPool } from '../systems/damageNumbers';
+import type { HitFx } from '../systems/hitFx';
+import type { TelegraphFx } from '../systems/telegraph';
 import { PackCharge } from '../systems/packCharge';
 import { audio } from '../systems/audio';
 import { StructureSystem } from '../systems/structures/StructureSystem';
-import { planStructures, structureTiles, type StructurePlacement } from '../systems/structures/placement';
+import type { StructurePlacement } from '../systems/structures/placement';
 import { BirthFlow } from './game/BirthFlow';
 import { exposeGameDebug } from './game/DebugHooks';
 import { Economy } from './game/Economy';
+import { createFx } from './game/FxWiring';
 import { GameCamera } from './game/GameCamera';
 import { GameCombat } from './game/GameCombat';
 import { LabMode } from './game/LabMode';
@@ -61,6 +54,7 @@ import { PlayerStrikes } from './game/PlayerStrikes';
 import { Progression } from './game/Progression';
 import { RouteFlow } from './game/RouteFlow';
 import { UiRelay } from './game/UiRelay';
+import { WorldSetup } from './game/WorldSetup';
 import { SENSE_BONUS_MAX, urlParams, type GameInitData } from './game/shared';
 import { AnchorDebug } from './game/AnchorDebug';
 
@@ -172,8 +166,9 @@ export class Game extends Phaser.Scene {
       ? this.labMode.prepareRun()
       : this.progress.prepareRun(this.initData, this.senseBonus);
     const floor = gameState.stageIndex + 1;
-    const nodeSalt = this.enterRoute(floor);
-    const structurePlan = this.buildWorld(floor, nodeSalt);
+    const worldSetup = new WorldSetup(this);
+    const nodeSalt = worldSetup.enterRoute(floor, this.initData.slice);
+    const structurePlan = worldSetup.buildWorld(floor, nodeSalt);
 
     // 플레이어 (노드 진행 상태는 플레이어 뒤 — 48라운드 노드 씬 초기화 순서)
     const layout = this.layout!;
@@ -184,7 +179,7 @@ export class Game extends Phaser.Scene {
     this.route = new RouteFlow(this);
 
     this.createActors();
-    this.createFx(floor);
+    createFx(this, floor);
     this.menu = new TextMenu(this);
     this.wirePhysics();
 
@@ -213,6 +208,7 @@ export class Game extends Phaser.Scene {
     setMenuSelect((id, key) => this.menu.select(key, id));
     setWarpHandler({ check: () => this.ui.warpDeny(), run: () => this.ui.warpDeny() });
     setNodeChooser((id) => this.route.chooseNode(id));
+    setChooseCanceler(() => this.route.cancelChoose());
     if (this.scene.manager.keys[UI_SCENES.HUD] && !this.scene.isActive(UI_SCENES.HUD)) this.scene.launch(UI_SCENES.HUD);
     // 층 시작만 (같은 층의 다음 노드는 ROUTE_NODE_ENTERED)
     if (floorStart) {
@@ -232,15 +228,7 @@ export class Game extends Phaser.Scene {
     this.cameras.main.setRoundPixels(true);
     this.cameras.main.setZoom(worldZoom(CAMERA.ZOOM));
     this.cam.update(true);
-    this.lighting = new Lighting(this, {
-      ambient: this.lightingAmbient(),
-      player: this.player,
-      telegraphs: () => this.telegraph.lightPoints(),
-    });
-    // 53라운드 Q4: 상흔 빛은 조명 영향을 받지 않는다 (조명이 켜진 지역이면 라이트맵 위)
-    this.player.scar.aboveLight = this.lighting.enabled;
-    // 53라운드 Q22~25: 바닥을 밝혀도 테두리 명도는 그대로 (주변광 보정 틴트)
-    this.border?.matchAmbient(this.lighting.enabled ? this.lighting.ambientHex : null);
+    this.lighting = worldSetup.createLighting();
     if (this.routeMode) this.route.enterNode();
     this.labMode?.setup();
     this.createDebugText();
@@ -248,129 +236,6 @@ export class Game extends Phaser.Scene {
   }
 
   // --- create 단계 ---
-
-  /** 48라운드 노드 지도 (1~2층): 층 그래프는 층 시드로 한 번 만들고 노드마다 씬을 다시 연다. 반환 = 노드 시드 접미 */
-  private enterRoute(floor: number): string {
-    this.routeMode = !this.lab && routeEnabled(gameState.stageId);
-    if (this.routeMode && !gameState.route)
-      gameState.route = new RouteState(generateRoute(gameState.stageId, gameState.floorSeed), floor);
-    const route = this.routeMode ? gameState.route : null;
-    // 50라운드 시범 확인 (?slice=<지역>): 새 런에서 그 지역의 전투 노드로 바로 (탄생 생략)
-    if (route && !route.currentId && this.initData.slice) this.jumpToSlice(route, this.initData.slice);
-    // 진입 노드가 하나뿐이면(1층 탄생지) 바로 들어간다. 여럿이면(2층 갈림) 빈 전투장에서 고른다
-    if (route && !route.currentId) {
-      const entries = route.nextOptions();
-      if (entries.length === 1) route.enter(entries[0].id);
-    }
-    this.node = route?.current ?? null;
-    this.nodeKind = this.node?.kind ?? null;
-    const nodeSalt = this.node ? `:${this.node.id}` : route ? ':entry' : '';
-    this.rng = new Rng(hashSeed(gameState.floorSeed + ':runtime' + nodeSalt));
-    // 52라운드 Q9: 쿼터뷰 지역 타일셋이면 가장자리 깊이 0~1칸 (북쪽 집 앞면이 거의 한 줄)
-    const quarterTileset = (t: string | null) => Boolean(skinFor(floor, t).quarter);
-    this.nodeArena =
-      !this.lab && route
-        ? planNodeArena(this.node, gameState.stageId, gameState.floorSeed, undefined, {
-            quarterTileset,
-            border: (r) => Boolean(this.borderDefFor(r)),
-          })
-        : null;
-    return nodeSalt;
-  }
-
-  /** 53라운드 Q6: 지역 외벽 테두리 정의 (`?border=0` 이면 끔 — 비교용) */
-  private borderDefFor(region: string | null | undefined): BorderDef | null {
-    return urlParams().get('border') === '0' ? null : borderFor(region);
-  }
-
-  /** `?slice=<지역>`: 그 지역의 전투 노드(없으면 그 지역 아무 노드)를 현재 노드로 */
-  private jumpToSlice(route: RouteState, region: string): void {
-    const inRegion = route.graph.nodes.filter((n) => regionIdOf(gameState.stageId, n.col) === region);
-    const node = inRegion.find((n) => n.kind === 'battle') ?? inRegion[0];
-    if (!node) return;
-    route.currentId = node.id;
-    route.path.push(node.id);
-    gameState.birthPending = false;
-  }
-
-  /**
-   * 50라운드 지역 조명: data/lighting.json regions 에 있는 지역의 노드 전투장만 어둡게 (시범: 외곽 거리).
-   * `?light=0` 끔 · `?light=1` 이면 그 밖의 전투장·시험장에도 default (검증용)
-   */
-  private lightingAmbient(): LightingAmbient | null {
-    const flag = urlParams().get('light');
-    if (flag === '0') return null;
-    const region = this.nodeArena?.regionId;
-    const own = region ? LIGHTING.regions[region] : undefined;
-    if (own) return own;
-    // 53라운드: 외벽 테두리 지역 조명 (data borderRegions — 기본 끔)
-    const border = LIGHTING.borderRegions ? this.borderDefFor(region) : null;
-    if (border) return { ambient: border.ambient ?? LIGHTING.default.ambient };
-    return flag === '1' && (this.nodeArena || this.lab) ? LIGHTING.default : null;
-  }
-
-  /** 월드 (노드 지도면 노드 전투장 하나, 시험장이면 작은 아레나, 아니면 방+복도) · 구조물 배치 · 세트 그림 */
-  private buildWorld(floor: number, nodeSalt: string): StructurePlacement[] {
-    const layout = this.labMode
-      ? this.labMode.buildArena()
-      : this.nodeArena
-        ? this.nodeArena.layout
-        : generateFloor(gameState.floorSeed, gameState.stage.layout);
-    this.layout = layout;
-    this.visitedRooms = new Set(['start']);
-    this.clearedRooms = new Set();
-    // 47라운드: 구조물을 소품보다 먼저 배치하고 그 칸은 소품에서 뺀다. ?structures=all 이면 이 층 종류 전부(데모·검증)
-    // 데모 배포본은 빌드 시 VITE_DEMO_STRUCTURES=all 로 같은 효과(주소 옵션을 붙일 수 없어서, 47라운드 데모 결정)
-    // 48라운드: 노드 전투장이면 그 노드 종류에 허용된 구조물만 (forceAll = 허용 종류 전부)
-    const forceAll = urlParams().get('structures') === 'all' || import.meta.env.VITE_DEMO_STRUCTURES === 'all';
-    const structurePlan = this.lab
-      ? []
-      : planStructures(layout, gameState.stageId, gameState.floorSeed + nodeSalt, {
-          forceAll,
-          node: this.nodeArena ? this.nodeArena.structureNode : undefined,
-        });
-    const borderDef = this.nodeArena ? this.borderDefFor(this.nodeArena.regionId) : null;
-    this.world = new TileWorld(
-      this,
-      layout,
-      this.nodeArena ? skinFor(floor, this.nodeArena.tileset) : (tileSkins.get(floor) ?? TileSkin.placeholder()),
-      gameState.floorSeed + nodeSalt,
-      this.nodeArena
-        ? new Set([...structureTiles(structurePlan), ...setPieceTiles(this.nodeArena)])
-        : structureTiles(structurePlan),
-      { boundaryWalls: !borderDef },
-    );
-    this.border = this.createBorder(borderDef, layout);
-    this.physics.world.setBounds(0, 0, this.world.widthPx, this.world.heightPx);
-    // 층 강조색: 캐릭터 시트의 1층 램프를 현재 층 램프로 치환한 변형 텍스처·애니 (1층은 원본)
-    spriteLibrary.activate(this, floor);
-    // 49라운드 세트 배치 그림 (층 램프 변형 시트를 쓰므로 activate 뒤)
-    this.setPieceView?.destroy();
-    this.setPieceView = this.nodeArena ? new SetPieceView(this, this.nodeArena.setPiece) : null;
-    // 저장고가 있으면 카메라 경계에 넣는다 (부수면 그 안으로 들어간다)
-    for (const p of structurePlan) if (p.cellar) this.world.extendCamera(p.cellar.inner, 1);
-    const kd = this.nodeKind ? kindDef(this.nodeKind) : null;
-    if (kd?.shopTiles && layout.arena) this.world.placeShopAt(layout.arena.shop.x, layout.arena.shop.y);
-    return structurePlan;
-  }
-
-  /** 53라운드 Q6: 외벽 테두리 그림 (그림은 지연 로드, 실패하면 경계 벽 타일로) + 카메라 한계 = 테두리 범위 */
-  private createBorder(def: BorderDef | null, layout: FloorLayout): BorderView | null {
-    releaseBorderTextures(this, def?.region ?? null);
-    const floorRect = def ? floorRectOf(layout, TILE) : null;
-    if (!def || !floorRect) return null;
-    const view = new BorderView(
-      this,
-      def,
-      floorRect,
-      borderGaps(layout, TILE),
-      () => this.world.quarter?.setBoundaryWalls(true),
-      hashSeed(`${gameState.floorSeed}:${this.node?.id ?? 'entry'}:border`),
-    );
-    const c = view.plan.camera;
-    this.world.setArenaCamera(c.x0, c.y0, c.x1 - c.x0, c.y1 - c.y0);
-    return view;
-  }
 
   /** 적·투사체·드랍 풀 */
   private createActors(): void {
@@ -380,44 +245,6 @@ export class Game extends Phaser.Scene {
     this.projectiles = pool(Projectile, PROTOTYPE.PROJECTILE_POOL);
     this.pickups = pool(Pickup, PROTOTYPE.PICKUP_POOL);
     this.playerShots = pool(Projectile, PROTOTYPE.PROJECTILE_POOL);
-  }
-
-  /** 연출 풀·렌더러 (층 램프) + 시트 JSON §3.2 필드(shake·flash·secondStage·trail)를 감각 계층으로 연결 */
-  private createFx(floor: number): void {
-    this.fx = new FxPool(this);
-    this.numbers = new DamageNumberPool(this);
-    this.numbers.setFloor(floor);
-    this.hitFx = new HitFx(this, this.fx);
-    this.hitFx.setFloor(floor);
-    this.telegraph = new TelegraphFx(this);
-    this.telegraph.setFloor(floor);
-    this.trails = new TrailRenderer(this);
-    this.trails.setContext(floor, gameState.weapon.id);
-    this.screenFx = new ScreenFx(this);
-    this.screenFx.setFloor(floor);
-    this.aimLine = new AimLine(this);
-    // 색은 '#hex' 와 팔레트 경로 둘 다 (resolveFxColor)
-    const SF = FEEL.SCREEN.DEFAULT_FLASH;
-    this.fx.hooks = {
-      shake: (spec) => this.shake.add(this.time.now, spec.px, spec.ms),
-      flash: (spec) =>
-        this.screenFx.flash(resolveFxColor(PALETTE, spec.color) ?? SF.COLOR, spec.ms ?? SF.MS, spec.alpha ?? SF.ALPHA),
-      trail: (req) => {
-        const T = FEEL.TRAIL;
-        const h = this.trails.start('sheet', req.source, {
-          depth: req.depth - DEPTH.OVERLAY_STEP / 2, // 시트 바로 아래(캐릭터 위)
-          color: resolveFxColor(PALETTE, req.spec.color) ?? undefined,
-          alpha: req.spec.alpha,
-          lifeMs: req.spec.ms,
-          width: Math.max(1, Math.round(T.BAND_PX * (req.spec.widthRatio ?? T.WIDTH_RATIO))),
-        });
-        return h ? () => h.stop() : null;
-      },
-      bodyCenterUpPx: FEEL.SECONDARY.BODY_CENTER_UP_PX,
-    };
-    this.pack.reset();
-    this.hitStop.reset();
-    this.shake.reset();
   }
 
   private wirePhysics(): void {
@@ -448,7 +275,10 @@ export class Game extends Phaser.Scene {
       { center: sp.center, signs: sp.signs, dummies: sp.dummies },
       {
         notice: (text) => this.ui.story('notice', text),
-        startFight: (spawns, at, onDone) => this.director.startChallenge(roomId, spawns, onDone, at),
+        // 53라운드 Q49: 튜토리얼 적은 예고(ENEMY_INCOMING) 뒤 잠시 있다가 나온다
+        startFight: (spawns, at, onDone) =>
+          this.director.startChallenge(roomId, spawns, onDone, at, ENEMY_INCOMING.TUTORIAL_DELAY_MS),
+        step: (info) => this.ui.tutorialStep(info),
         highlightSign: (i) => this.setPieceView?.highlightSign(i),
         pokeDummy: (i) => this.setPieceView?.pokeDummy(i),
       },
@@ -517,6 +347,7 @@ export class Game extends Phaser.Scene {
       [Events.PLAYER_GUARD_RELEASED, m.onGuardReleased, m],
       [Events.PLAYER_SHADOW_STEP, m.onShadowStep, m],
       [Events.PLAYER_DASHED, m.onPlayerDashed, m],
+      [Events.ENEMY_INCOMING, ui.relayEnemyIncoming, ui],
     ];
     for (const [event, fn, ctx] of this.subs) EventBus.on(event, fn, ctx);
   }
@@ -691,6 +522,7 @@ export class Game extends Phaser.Scene {
     setSnapshotProvider(null);
     setWarpHandler(null);
     setNodeChooser(null);
+    setChooseCanceler(null);
     this.birth.destroy();
     this.labMode?.destroy();
     this.tutorial?.destroy();

@@ -1,19 +1,19 @@
 /**
  * 49라운드 계약 §11.4 무기 시험장 (씬 키 WeaponLab, 같은 전투 코드를 lab 플래그로 재사용):
- * 연습 런 준비 · 작은 아레나 · 허수아비 · L(무기·개성 갈래 메뉴) · Esc(타이틀) · 죽지 않음.
+ * 연습 런 준비 · 작은 아레나 · 허수아비 · L(무기·개성 갈래 메뉴) · 죽지 않음.
+ * 53라운드 UI 요청 B3: Esc 를 직접 읽지 않는다 — 메뉴는 cancelKey(UI 가 Esc 로 보냄), 메뉴가 없으면 UI 일시정지(타이틀은 거기서)
  */
-import Phaser from 'phaser';
 import { KEYS, LAB, TILE } from '../../core/Constants';
 import { EventBus, Events } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { PLAYER_DATA, WEAPONS, WEAPON_RULES } from '../../data';
-import { __system, uiCommands } from '../../contract/ui';
 import { LabDummy } from '../../objects/LabDummy';
 import { generateArena, type FloorLayout } from '../../systems/mapgen';
 import { ROUTE } from '../../systems/route';
 import {
   LAB_CANCEL_KEY,
   LAB_TO_BRANCH_KEY,
+  LAB_TO_WEAPONS_KEY,
   labBranchMenu,
   labWeaponMenu,
   nextReinforce,
@@ -24,9 +24,7 @@ import { urlParams, type GameInitData } from './shared';
 export class LabMode {
   dummies: LabDummy[] = [];
   exitPending = false;
-  private menuClosedAt = -Infinity;
   private readonly onKey = () => this.openWeaponMenu();
-  private readonly onEsc = () => this.onEscape();
 
   constructor(
     private readonly g: Game,
@@ -73,7 +71,6 @@ export class LabMode {
     this.dummies = [target, turret];
     for (const d of this.dummies) g.mobs.add(d);
     g.input.keyboard?.on(`keydown-${KEYS.LAB_MENU}`, this.onKey);
-    g.input.keyboard?.on('keydown-ESC', this.onEsc);
     const open = this.init.labMenu;
     if (open === 'lab') this.openWeaponMenu();
     else if (open === 'labBranch') this.openBranchMenu();
@@ -85,10 +82,6 @@ export class LabMode {
       gameState.hp = gameState.maxHp;
       EventBus.emit(Events.PLAYER_HEALED, { hp: gameState.hp, maxHp: gameState.maxHp, amount: 0 });
     }
-  }
-
-  private get busy(): boolean {
-    return this.g.menu.isOpen || this.g.transitioning || this.exitPending;
   }
 
   /** L: 무기 고르기 (MENU_OPEN id 'lab'). 게임은 메뉴 동안 멈춘다 */
@@ -113,7 +106,7 @@ export class LabMode {
         g.transitioning = true;
         g.scene.restart({ labWeapon: pick.weaponId, labMenu: 'labBranch' } satisfies GameInitData);
       },
-      `L 열기 · Esc 타이틀`,
+      `L 열기 · Esc 닫기`,
       { cancelKey: LAB_CANCEL_KEY },
     );
   }
@@ -144,52 +137,21 @@ export class LabMode {
         for (const d of this.dummies) d.resetStats();
         this.openBranchMenu(); // 같은 메뉴를 갱신 (지금 표시)
       },
-      `골라서 바로 적용 · 0 닫기`,
-      { cancelKey: LAB_CANCEL_KEY },
+      `골라서 바로 적용 · 0 닫기 · Esc 무기 목록`,
+      // 53라운드 UI 요청 B2: Esc = 무기 목록으로 돌아감
+      { cancelKey: LAB_TO_WEAPONS_KEY },
     );
   }
 
   private closeMenu(): void {
     const g = this.g;
-    this.menuClosedAt = g.time.now;
     g.menu.close();
     g.setFrozen(false);
     g.inputSystem.read(); // 메뉴를 닫은 클릭·키가 공격으로 새지 않게
   }
 
-  /** Esc: 메뉴가 열려 있으면 닫기(UI 렌더러가 있으면 UI 가 cancelKey 로 닫는다), 아니면 타이틀로 */
-  private onEscape(): void {
-    if (this.g.menu.isOpen) {
-      if (!__system.rendererRegistered()) this.closeMenu();
-      return;
-    }
-    // UI 가 같은 Esc 로 메뉴를 먼저 닫았으면(cancelKey) 타이틀로 가지 않는다
-    if (this.g.time.now - this.menuClosedAt < LAB.ESC_AFTER_CLOSE_MS) return;
-    this.requestExit();
-  }
-
-  /**
-   * 타이틀 복귀. UI 가 같은 Esc 로 일시정지 화면을 띄울 수 있어(시험장에서는 pause() 가 아무것도 하지 않는다)
-   * LAB.EXIT_DEFER_STEPS 스텝 뒤에 uiCommands.toTitle() — 그 사이 뜬 UI 씬까지 함께 정리된다
-   */
-  private requestExit(): void {
-    if (this.exitPending || this.busy) return;
-    this.exitPending = true;
-    const g = this.g;
-    const events = g.game.events;
-    let left = LAB.EXIT_DEFER_STEPS;
-    const step = () => {
-      left -= 1;
-      if (left > 0) events.once(Phaser.Core.Events.POST_STEP, step);
-      // UI 가 같은 Esc 로 이미 toTitle() 을 불렀으면(시험장 씬이 멈춤) 다시 부르지 않는다
-      else if (g.sys.isActive() || g.sys.isPaused()) uiCommands.toTitle();
-    };
-    events.once(Phaser.Core.Events.POST_STEP, step);
-  }
-
   destroy(): void {
     this.g.input.keyboard?.off(`keydown-${KEYS.LAB_MENU}`, this.onKey);
-    this.g.input.keyboard?.off('keydown-ESC', this.onEsc);
     this.dummies = [];
   }
 }

@@ -64,6 +64,12 @@ export const TEXTURES = {
   MANIFEST: 'assets_manifest',
 };
 
+/**
+ * 53라운드 Q49 적 소환 예고 (UI 는 튜토리얼에서만 '주의' 경고): 예고 뒤 소환까지 ms. 임시값 —
+ * 튜토리얼 전투(탄생 전장)만 기다리고, 일반 시련 웨이브는 0(예고와 동시에 소환 — 전투 박자 그대로)
+ */
+export const ENEMY_INCOMING = { TUTORIAL_DELAY_MS: 900, WAVE_DELAY_MS: 0 };
+
 /** 아트 산출물 경로 (계약 contracts/art-assets.md). vite.config.ts 플러그인이 `assets/` 를 이 URL 로 서빙한다 */
 export const ASSETS = {
   /** 상대 경로 (base './' 배포 호환) */
@@ -75,6 +81,8 @@ export const ASSETS = {
   V2_DIR: 'v2',
   /** 52라운드 도트 세분화 하위 폴더 (`sprites/player/v3/…`) — v3 → v2 → 기존 순 (계약 art §11) */
   V3_DIR: 'v3',
+  /** 53라운드 v3 바닥 소품 시트 접미 (`tiles/v3/stage1_outer_props.json`) */
+  PROPS_SUFFIX: '_props',
   /** 층 타일셋 파일 이름 접두 (`stage1.json`) */
   STAGE_PREFIX: 'stage',
   /** 음향 산출물 폴더와 매니페스트 (`assets/audio/manifest.json`, 음향↔시스템 계약 초안) */
@@ -132,6 +140,16 @@ export const SPRITES = {
   SPRINT_RATE_HEADROOM: 2,
   /** 53라운드 Q10: 감속 배율(Player.moveSlowMult)이 이보다 낮으면 걷기(walk) 그림, 아니면 달리기(run) 그림 */
   WALK_BELOW_MULT: 0.85,
+  /**
+   * 53라운드 4번 피드백: v3 만 로드하는 시트 묶음 (name 이 없으면 분류 전체). 구 주인공(sprites/player/*, player/v2)과
+   * 구 칼 오버레이(weapons/katana_*, weapons/v2/katana_*)는 더 이상 읽지 않는다
+   */
+  V3_ONLY: [{ category: 'player' }, { category: 'weapons', name: 'katana' }] as readonly {
+    category: string;
+    name?: string;
+  }[],
+  /** 53라운드 v3 시트 판별: JSON pixelScale 이 이 값 이하 (계약 §11 v3 = 0.5) */
+  V3_PIXEL_SCALE: 0.5,
   /** 자기 시트가 없는 보스가 대신 쓰는 시트 이름 (층 램프 스왑은 그대로 적용) — 결정 로그 J */
   BOSS_FALLBACK_SHEET: 'stage1',
   /** 보스 attack `phaseFrames.dash` 프레임 반복 간격 */
@@ -183,6 +201,9 @@ export const QUARTER = {
    * v2 타일셋 바닥: 방 종류 바닥(roomFloors)을 섞는 비율 기본값 — 타일셋 JSON roomFloorMix 가 없을 때 (계약 §12: 0.06)
    */
   ROOM_FLOOR_MIX: 0.06,
+  /** 53라운드 v3 소품 시트 (아트 anchorRule): 작은 소품 피벗 = 놓일 칸의 논리 (16, 30) · 큰 소품 피벗 = 발자국 아래 바닥 위 2 논리 px */
+  V3_PROP_ANCHOR_LOGICAL: { x: 16, y: 30 },
+  V3_PIVOT_LIFT_LOGICAL: 2,
   /** 52라운드 Q9: 쿼터뷰 타일셋 노드 전투장의 가장자리 깊이 상한 (0~1칸 — 북쪽 집 앞면이 거의 한 줄로) */
   EDGE_MAX_INSET: 1,
   /**
@@ -204,6 +225,17 @@ export const QUARTER = {
     CRATE_MAX: 2,
     CRATE_TRIES: 12,
   },
+  /** 53라운드 4지역 바닥 데칼 (art floors_v2 decals[], 임시): 가운데 1장 이름 · 그 밖 이름마다 장 수 · 시도 · 북쪽 비움 */
+  DECALS: {
+    CENTER: ['cup_inlay'] as readonly string[],
+    COUNT: [1, 2] as [number, number],
+    TRIES: 40,
+    NORTH_KEEP_TILES: 2,
+  },
+  /** 53라운드 양조 수로 (art floors_v2 canal, 임시): 북쪽 끝에서 몇 칸 아래 줄부터 · 남쪽 남길 줄 · 시작점·출구·상점 둘레 피할 줄 */
+  CANAL: { ROW_FROM_NORTH: 8, SOUTH_KEEP_ROWS: 3, ANCHOR_CLEAR_ROWS: 1 },
+  /** 바닥 데칼 깊이 (바닥·그늘 위, 테두리·소품 아래) */
+  DECAL_DEPTH: 0.02,
 } as const;
 
 /**
@@ -395,6 +427,8 @@ export const BIRTH = {
 
 /** 48라운드 노드 지도 전환 연출 (임시값) */
 export const ROUTE_FX = {
+  /** 53라운드 Q47: 노드 고르기 취소(Esc) 때 출구에서 물러나는 거리 (타일, 임시) */
+  CANCEL_STEP_TILES: 1.5,
   /** 노드를 고른 뒤 암전 · 새 노드에서 밝아짐 */
   FADE_OUT_MS: 280,
   FADE_IN_MS: 320,
@@ -769,10 +803,6 @@ export const LAB = {
   HEAL_BELOW_RATIO: 0.5,
   /** 시험장 시드 (지도 생성용 고정값) */
   SEED: 'weapon-lab',
-  /** Esc → 타이틀: UI 가 Esc 로 일시정지 화면을 띄울 수 있어 2 스텝 뒤에 정리한다 */
-  EXIT_DEFER_STEPS: 2,
-  /** 메뉴를 닫은 직후 이 시간 안의 Esc 는 무시 (UI 가 같은 Esc 로 메뉴를 닫은 경우) */
-  ESC_AFTER_CLOSE_MS: 200,
 } as const;
 
 /** 49라운드 무기 동작 연출 (임시값) */

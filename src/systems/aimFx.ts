@@ -8,7 +8,7 @@ import Phaser from 'phaser';
 import { COLORS, DEPTH, ENEMY_FX } from '../core/Constants';
 import { spriteLibrary } from './sprites';
 import { aimLineFrame } from './branchFx';
-import { FX_ACTION } from './spriteDefs';
+import { FX_ACTION, fxDrawScale } from './spriteDefs';
 
 const BASE_ID = 'aim_line';
 
@@ -45,7 +45,9 @@ export class AimLine {
     this.obj.setPosition(Math.round(x), Math.round(y)).setRotation(angle);
     if (len !== this.lengthPx) {
       this.lengthPx = len;
-      if (this.obj instanceof Phaser.GameObjects.TileSprite) this.obj.setSize(len, this.obj.height);
+      // 53라운드 v3: 타일 폭은 시트 도트 단위 (화면 길이 = 폭 × 배율)
+      if (this.obj instanceof Phaser.GameObjects.TileSprite)
+        this.obj.setSize(Math.max(1, Math.round(len / this.obj.scaleX)), this.obj.height);
       else this.redraw(this.obj);
     }
   }
@@ -88,9 +90,11 @@ export class AimLine {
     if (def && texture && this.scene.textures.exists(texture)) {
       this.sheet = true;
       this.lengthPx = len;
+      const k = fxDrawScale(def);
       return this.scene.add
-        .tileSprite(x, y, len, def.frameHeight, texture, 0)
+        .tileSprite(x, y, Math.max(1, Math.round(len / k)), def.frameHeight, texture, 0)
         .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
+        .setScale(k)
         .setDepth(DEPTH.FX_GROUND);
     }
     this.sheet = false;

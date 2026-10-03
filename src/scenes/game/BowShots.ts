@@ -15,13 +15,14 @@ import {
   branchArrowFxId,
   levelMult,
   muzzleFxId,
+  snipeCritFromLevel,
   snipeLevel,
   stripFxPrefix,
   tailFxIds,
 } from '../../systems/branchFx';
 import type { FxHandle } from '../../systems/fx';
 import { spriteLibrary } from '../../systems/sprites';
-import { FX_ACTION, arrowFxId } from '../../systems/spriteDefs';
+import { FX_ACTION, arrowFxId, fxDrawScale } from '../../systems/spriteDefs';
 import type { Game } from '../Game';
 import { pathFx } from './shared';
 
@@ -106,12 +107,16 @@ export class BowShots {
     const def = g.fx.sheet(arrow.id);
     const texture = spriteLibrary.textureKey(arrow.id, FX_ACTION);
     const anim = def?.loop ? (spriteLibrary.animKey(arrow.id, FX_ACTION, 'down') ?? undefined) : undefined;
-    const origin = def ? { originX: def.pivot.x / def.frameWidth, originY: def.pivot.y / def.frameHeight } : {};
+    const origin = def
+      ? { originX: def.pivot.x / def.frameWidth, originY: def.pivot.y / def.frameHeight, scale: fxDrawScale(def) }
+      : {};
     // 옛 갈래 꼬리 (섬광·추적·관통 루프) — 갈래 화살 시트가 없을 때만
     const legacyTail = arrow.branch ? null : pathFx(g.fx, 'flash', 'seek', 'pierce');
     // 저격: 거리 단계 (aimedOnly 면 조준 사격만). 53라운드 Q16: 모든 화살 levelMults, 조준 사격은 aimedLevelMults
     const S = mods.snipe && (!mods.snipe.aimedOnly || aimed) ? mods.snipe : null;
     const snipeMults = S ? (aimed && S.aimedLevelMults ? S.aimedLevelMults : S.levelMults) : null;
+    // 53라운드 Q40: 필중 최장 거리 확정 치명은 조준 사격만 (critAimedOnly) — 거리 배율은 모든 화살
+    const critFromLevel = snipeCritFromLevel(S, aimed);
     // 산탄·폭우(화기류 때 재사용): 부채꼴 (조준 사격은 한 발). 발사 이펙트는 발사점에 1회
     const spread = !aimed && mods.spread ? mods.spread : { count: 1, spreadDeg: 0 };
     const burstFx = pathFx(g.fx, 'rain', 'scatter');
@@ -168,8 +173,8 @@ export class BowShots {
           level: 0,
           mults: snipeMults!,
           bounds: S.bounds,
-          critFromLevel: S.critFromLevel,
-          critAttack: S.critFromLevel ? g.combat.rollDamage(p.damageMult * rapidMult, true, p.kind).dmg : dmg,
+          critFromLevel,
+          critAttack: critFromLevel ? g.combat.rollDamage(p.damageMult * rapidMult, true, p.kind).dmg : dmg,
           tailIds: tails,
           tail: null,
         };
@@ -185,7 +190,7 @@ export class BowShots {
       texture,
       muzzle: muzzle && g.fx.has(muzzle) ? muzzle : null,
       pierce,
-      snipe: S ? { mults: snipeMults, critFromLevel: S.critFromLevel ?? null } : null,
+      snipe: S ? { mults: snipeMults, critFromLevel: critFromLevel ?? null } : null,
       dmg,
       crit,
     };

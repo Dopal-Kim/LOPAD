@@ -78,6 +78,13 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'katana_slam',
       'katana_dashslash',
       'katana_reload',
+      // 53라운드 Q19: 무기별 기본 자세 변형 (_free · 무기 id 접미)
+      'idle_free',
+      'idle_katana',
+      'walk_free',
+      'walk_katana',
+      'run_free',
+      'run_katana',
     ]);
     expect(list.filter((r) => r.category === 'enemies')).toHaveLength(10);
     expect(list.filter((r) => r.category === 'weapons').map((r) => r.action)).toEqual([

@@ -13,7 +13,7 @@ import { DODGE_TRIAL } from './dodgeTrial';
 import { cellIndexAt, pillarAt, type ArenaMask } from './dodgeTrialArena';
 import { steer } from './dodgeTrialTasks';
 import type { FxPool } from './fx';
-import { FX_ACTION } from './spriteDefs';
+import { FX_ACTION, fxDrawScale } from './spriteDefs';
 import { spriteLibrary } from './sprites';
 
 export type BulletKind = 'line' | 'homing' | 'wall';
@@ -148,7 +148,12 @@ export class TrialBullets {
       s.setTexture(TEX_BULLET_PH).setOrigin(0.5, 0.5).setRotation(0).setTint(B.PLACEHOLDER_COLOR);
     }
     if (kind === 'homing') s.setTint(this.homingTint);
-    s.setPosition(x, y).setActive(true).setVisible(true).setAlpha(1).setScale(1);
+    // 53라운드 이펙트 v3: 도트 배율로 (구 시트 1)
+    s.setPosition(x, y)
+      .setActive(true)
+      .setVisible(true)
+      .setAlpha(1)
+      .setScale(def && tex ? fxDrawScale(def) : 1);
     this.fired += 1;
     if (sfx) audio.playSfx(SFX.enemyShot(SHOT_SFX_ENEMY));
     return true;
@@ -315,7 +320,7 @@ export class TrialBullets {
     this.scene.tweens.add({
       targets: b.spr,
       alpha: 0,
-      scale: 0.4,
+      scale: b.spr.scale * 0.4,
       duration: DODGE_TRIAL.BULLET.END_FADE_MS,
       onComplete: () => b.spr.setVisible(false).setScale(1),
     });

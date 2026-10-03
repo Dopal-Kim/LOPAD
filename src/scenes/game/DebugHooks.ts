@@ -273,6 +273,7 @@ export function exposeGameDebug(g: Game): void {
     route: () => routeInfo(g),
     openRouteChooser: () => g.route.openChooser(),
     chooseNode: (id) => g.route.chooseNode(id),
+    cancelChoose: () => g.route.cancelChoose(),
     gotoNode: (id) => g.route.gotoNode(id),
     gotoExit: () => {
       const e = g.layout?.arena?.exit;
@@ -339,7 +340,10 @@ export function exposeGameDebug(g: Game): void {
       return g.menu.isOpen;
     },
     lighting: () => g.lighting?.summary() ?? null,
-    quarter: () => (g.world.quarter ? { ...g.world.quarter.summary, placements: g.world.bigProps } : null),
+    quarter: () =>
+      g.world.quarter
+        ? { ...g.world.quarter.summary, placements: g.world.bigProps, canal: g.world.canal, decals: g.world.decals }
+        : null,
     border: () => (g.border ? { ...g.border.summary(), lookUp: +g.cam.lookUpPx.toFixed(1) } : null),
     scar: () => ({
       view: (({ x, y, width, height }) => ({ x, y, width, height }))(g.cameras.main.worldView),

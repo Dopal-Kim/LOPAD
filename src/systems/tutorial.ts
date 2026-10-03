@@ -31,6 +31,8 @@ export interface TutorialStepDef {
   signName?: string;
   /** 안내 문구 (자리표시). `{name}`·`{description}` = 무기 보조 동작 */
   text: string;
+  /** 53라운드: 안내 패널 키 표시 (UI_EVENTS.TUTORIAL_STEP keys, 예 ['W','A','S','D']) */
+  keys?: string[];
   fight?: TutorialFightDef;
 }
 

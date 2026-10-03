@@ -51,12 +51,26 @@ describe('도트 배율 (50라운드 계약 art §9)', () => {
   });
 
   it('52라운드 v3: 후보 경로 v3 → v2 → 기존, v3 도트(0.5) = 월드 0.25 (도트 1 = 실제 1px)', () => {
-    const r = { category: 'weapons' as const, name: 'katana', action: 'carry_run' };
+    const r = { category: 'weapons' as const, name: 'greatsword', action: 'carry_run' };
     expect(sheetJsonCandidates(r)).toEqual([
-      'sprites/weapons/v3/katana_carry_run.json',
-      'sprites/weapons/v2/katana_carry_run.json',
-      'sprites/weapons/katana_carry_run.json',
+      'sprites/weapons/v3/greatsword_carry_run.json',
+      'sprites/weapons/v2/greatsword_carry_run.json',
+      'sprites/weapons/greatsword_carry_run.json',
     ]);
+    // 53라운드 4번: 주인공·칼 오버레이는 v3 만 (구 시트·v2 를 로드하지 않는다)
+    expect(sheetJsonCandidates({ category: 'weapons', name: 'katana', action: 'carry_run' })).toEqual([
+      'sprites/weapons/v3/katana_carry_run.json',
+    ]);
+    expect(sheetJsonCandidates({ category: 'player', name: 'player', action: 'idle' })).toEqual([
+      'sprites/player/v3/player_idle.json',
+    ]);
+    // 이펙트·적 v3 는 v3 → v2 → 기존 (없으면 기존 동작 유지)
+    expect(sheetJsonCandidates({ category: 'fx', name: 'hit_spark', action: 'fx' })).toEqual([
+      'sprites/fx/v3/hit_spark.json',
+      'sprites/fx/v2/hit_spark.json',
+      'sprites/fx/hit_spark.json',
+    ]);
+    expect(sheetJsonCandidates({ category: 'enemies', name: 'charger', action: 'walk' })).toHaveLength(3);
     expect(artScale({ pixelScale: 0.5 })).toBe(0.25);
     // v3 판정 반경 132 도트 = v2 66 = 월드 33 (논리 크기 같음)
     expect(sheetToWorldUnits({ ...base, pixelScale: 0.5, hitRadiusPx: 132 }).hitRadiusPx).toBe(33);

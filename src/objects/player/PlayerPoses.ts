@@ -11,13 +11,14 @@ import { gameState } from '../../core/GameState';
 import type { InputState } from '../../systems/InputSystem';
 import {
   aimAction,
+  bodyBaseAction,
   facingOf,
   frameDurations,
   progressFrame,
   specialAction,
   type Facing,
 } from '../../systems/spriteDefs';
-import { strideRate } from '../../systems/spriteMeta';
+import { bodyActionFor, strideRate } from '../../systems/spriteMeta';
 import type { Player } from '../Player';
 
 /** 48라운드 특수 자세 구간 */
@@ -31,6 +32,15 @@ export class PlayerPoses {
   strideRate = 1;
 
   constructor(private readonly p: Player) {}
+
+  /**
+   * 53라운드 Q19: 무기별 이동 몸 동작 (idle·walk·run·dash → 아트 규칙 bodySheetByWeapon → `<동작>_<무기>` → 기본).
+   * 칼은 칼집을 쥔 기본 몸, 대검·단검·활은 왼손이 빈 `_free` (아트 규칙). 시트가 없으면 기본 동작 그대로
+   */
+  bodyAction(base: string): string {
+    const visual = this.p.visual;
+    return bodyActionFor(base, gameState.weapon.id, (a) => (visual.hasAction(a) ? visual.sheet(a) : undefined));
+  }
 
   /** 커서 방향 (커서가 없으면 지금 방향) */
   private aimFacing(input?: InputState): Facing {
@@ -136,16 +146,16 @@ export class PlayerPoses {
     const moving = dir.lengthSq() > 0 && p.action !== 'dash';
     const facing = moving ? facingOf(dir.x, dir.y, p.visual.facing) : this.aimFacing(input);
     if (!moving) {
-      p.visual.loop('idle', facing, time);
+      p.visual.loop(this.bodyAction('idle'), facing, time);
       return false;
     }
     // 53라운드 Q10: 기본 이동 = run 그림, 감속 상태(조준·충전·당김·가드·기력 바닥 등)만 walk. Shift 달리기 = run 을 더 빠르게
     const slow = p.moveSlowMult < SPRITES.WALK_BELOW_MULT;
-    const action = !slow && p.visual.hasAction('run') ? 'run' : 'walk';
+    const action = this.bodyAction(!slow && p.visual.hasAction('run') ? 'run' : 'walk');
     const def = p.visual.sheet(action);
     const v = p.body.velocity;
     const speed = Math.hypot(v.x, v.y);
-    this.strideRate = def ? strideRate(def, speed, action === 'run' ? p.speedPx : undefined) : 1;
+    this.strideRate = def ? strideRate(def, speed, bodyBaseAction(action) === 'run' ? p.speedPx : undefined) : 1;
     p.visual.loop(action, facing, time, this.strideRate);
     return true;
   }

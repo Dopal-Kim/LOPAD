@@ -11,11 +11,21 @@
  * - 소품: 타일셋 props 를 같은 배율로 (JSON light → 광원, offset = 칸 안 좌표) · 앞면 창·문(tileLights) 광원
  */
 import Phaser from 'phaser';
-import { DEPTH, QUARTER, STRUCTURE_FX, TILE, entityDepth } from '../core/Constants';
+import { DEPTH, QUARTER, RENDER, STRUCTURE_FX, TILE, entityDepth } from '../core/Constants';
 import type { BigPropPlacement } from './bigProps';
+import type { CanalPlan, CanalTileKind, DecalPlacement } from './floorFeatures';
 import { TileId, type FloorLayout } from '../systems/mapgen';
 import { lightRegistryOf } from '../systems/lighting/lightRegistry';
-import { isOpenId, lightOffsetOf, pickVariant, wallKind, type PropPlacement, type TileSkin } from './tileskin';
+import {
+  isOpenId,
+  lightOffsetOf,
+  pickVariant,
+  wallKind,
+  type LightOffset,
+  type PropPlacement,
+  type TileSkin,
+} from './tileskin';
+import type { LightSpec } from '../systems/spriteDefs';
 import type { LightSource } from '../systems/lighting/lightRegistry';
 
 interface WallImage {
@@ -65,8 +75,14 @@ export class QuarterView {
     private readonly src: QuarterViewSource,
     props: readonly PropPlacement[] = [],
     boundaryWalls = true,
+    /** 53라운드 v3 바닥 소품 시트 (없으면 바닥 타일셋 — 기존) */
+    private readonly propSkin: TileSkin = skin,
+    /** 53라운드 4지역 바닥: 양조 수로 · 데칼 */
+    features: { canal?: CanalPlan | null; decals?: readonly DecalPlacement[] } = {},
   ) {
     this.boundaryWalls = boundaryWalls;
+    this.canal = features.canal ?? null;
+    for (const t of this.canal?.tiles ?? []) this.canalAt.set(`${t.x},${t.y}`, t.kind);
     const px = skin.tilePx;
     this.scale = TILE / px;
     ensureTileFrames(scene, skin.textureKey, px);
@@ -80,18 +96,85 @@ export class QuarterView {
       shade.setScale(this.scale).setDepth(DEPTH.TILES + DEPTH.LIGHT_LAYER_STEP);
       this.shadeLayer = shade;
     }
-    if (props.length > 0) {
+    if (props.length > 0 && propSkin === skin) {
       const layer = this.map.createBlankLayer('qv_props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
       layer.setScale(this.scale).setDepth(DEPTH.PROPS);
       for (const p of props) layer.putTileAt(p.index, p.x, p.y);
       this.propsLayer = layer;
-      this.registerPropLights(props);
-    }
+    } else if (props.length > 0) this.addPropImages(props);
+    if (props.length > 0) this.registerPropLights(props);
     this.rebuildWalls();
+    this.addDecals(features.decals ?? []);
+    this.startCanal();
+  }
+
+  /** 53라운드 수로 칸 → 그 칸 종류 */
+  private readonly canalAt = new Map<string, CanalTileKind>();
+  private readonly canal: CanalPlan | null;
+  private canalTimer: Phaser.Time.TimerEvent | null = null;
+  private canalFrame = 0;
+
+  /** 수로 칸의 지금 시트 인덱스 (물결 프레임 순환, 다리 근처는 밝은 판, 다리는 좌·우) */
+  private canalIndex(kind: CanalTileKind): number {
+    const c = this.skin.def.canal!;
+    if (kind === 'bridgeL') return c.bridge.left;
+    if (kind === 'bridgeR') return c.bridge.right;
+    const list = kind === 'lit' && c.framesLit?.length ? c.framesLit : c.frames;
+    return list[this.canalFrame % list.length];
+  }
+
+  /** 수로 물결 순환 (frameMs) + 다리 칸 광원 (tileLights[다리 인덱스]) */
+  private startCanal(): void {
+    const c = this.skin.def.canal;
+    if (!this.canal || !c) return;
+    const reg = lightRegistryOf(this.scene);
+    for (const t of this.canal.tiles) {
+      if (t.kind !== 'bridgeL' && t.kind !== 'bridgeR') continue;
+      const l = this.skin.def.tileLights?.[String(this.canalIndex(t.kind))];
+      if (!l) continue;
+      const o = lightOffsetOf(l.offset) ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
+      this.wallLightsFixed.push(
+        reg.add(
+          { ...l, radius: l.radius * this.scale },
+          { x: t.x * TILE + o.x * this.scale, y: t.y * TILE + o.y * this.scale },
+        ),
+      );
+    }
+    if (c.frames.length < 2) return;
+    this.canalTimer = this.scene.time.addEvent({
+      delay: c.frameMs && c.frameMs > 0 ? c.frameMs : 180,
+      loop: true,
+      callback: () => {
+        this.canalFrame += 1;
+        for (const t of this.canal!.tiles)
+          if (t.kind === 'water' || t.kind === 'lit') this.ground.putTileAt(this.canalIndex(t.kind), t.x, t.y);
+      },
+    });
+  }
+
+  /** 53라운드 바닥 데칼: 바닥 타일셋 rect 를 발자국 왼쪽 위 칸에 (바닥·그늘 위, 테두리·소품 아래, 조명 받음) */
+  private addDecals(list: readonly DecalPlacement[]): void {
+    const defs = new Map((this.skin.def.decals ?? []).map((d) => [d.name, d]));
+    const tex = this.scene.textures.get(this.skin.textureKey);
+    for (const p of list) {
+      const d = defs.get(p.name);
+      if (!d) continue;
+      const frame = `decal:${d.name}`;
+      if (!tex.has(frame)) tex.add(frame, 0, d.rect.x, d.rect.y, d.rect.w, d.rect.h);
+      this.bigImages.push(
+        this.scene.add
+          .image(p.tx * TILE, p.ty * TILE, this.skin.textureKey, frame)
+          .setOrigin(0, 0)
+          .setScale(this.scale)
+          .setDepth(QUARTER.DECAL_DEPTH),
+      );
+    }
   }
 
   /** 바닥 레이어 인덱스: 벽 칸은 빈 칸(원경) — 벽 그림이 덮는다. 북쪽 벽 틈은 골목 입구 */
   private groundOf(x: number, y: number): number {
+    const canal = this.canalAt.get(`${x},${y}`);
+    if (canal) return this.canalIndex(canal);
     const id = this.src.idAt(x, y);
     if (id === TileId.Wall) return this.skin.voidIndex;
     if (id === TileId.Void && this.isAlley(x, y)) return this.skin.alleyIndex ?? this.skin.voidIndex;
@@ -282,24 +365,54 @@ export class QuarterView {
    * 바닥 깊이, 위는 Y 정렬(가려진 주인공 둘레면 반투명) · JSON light → 광원 (offset = rect 안 도트 좌표)
    */
   addBigProps(list: readonly BigPropPlacement[]): void {
-    const defs = new Map(this.skin.bigProps.map((b) => [b.name, b]));
-    const tex = this.scene.textures.get(this.skin.textureKey);
-    const k = this.scale;
-    const reg = lightRegistryOf(this.scene);
+    const skin = this.propSkin;
+    const defs = new Map(skin.bigProps.map((b) => [b.name, b]));
+    const k = this.propScale;
+    // 53라운드 v3 소품 시트 규칙(아트 anchorRule): 피벗 = 발자국 맨 아래 줄 가로 가운데, 바닥 위 2 논리 px
+    const v3 = skin !== this.skin;
     for (const p of list) {
       const d = defs.get(p.name);
       if (!d) continue;
-      const frame = `big:${d.name}`;
-      if (!tex.has(frame)) tex.add(frame, 0, d.rect.x, d.rect.y, d.rect.w, d.rect.h);
       const x = (p.tx + p.w / 2) * TILE;
       const bottom = (p.ty + p.h) * TILE;
-      const y = bottom - (d.rect.h - d.pivot.y) * k;
-      const make = () =>
-        this.scene.add
-          .image(x, y, this.skin.textureKey, frame)
-          .setOrigin(d.pivot.x / d.rect.w, d.pivot.y / d.rect.h)
-          .setScale(k);
-      const upper = make().setDepth(entityDepth(bottom));
+      const y = v3
+        ? bottom - QUARTER.V3_PIVOT_LIFT_LOGICAL / RENDER.WORLD_TO_SCREEN
+        : bottom - (d.rect.h - d.pivot.y) * k;
+      this.placeCut(`big:${d.name}`, d, x, y, bottom, k, false);
+    }
+    this.bigPlaced = list.length;
+  }
+
+  /**
+   * 시트 영역 하나를 피벗 (x, y) 에 그린다. occludeAbove 가 있으면 그 높이 아래(받침)는 바닥 깊이, 위는 Y 정렬(sortY,
+   * 가려진 주인공 둘레면 반투명). floor = 바닥 데칼(전부 바닥 깊이, 가림 없음). JSON light·lights → 광원(offset = rect 왼쪽 위 기준 도트)
+   */
+  private placeCut(
+    frame: string,
+    d: {
+      rect: { x: number; y: number; w: number; h: number };
+      pivot: { x: number; y: number };
+      occludeAbove?: number;
+      light?: LightSpec & { offset?: LightOffset };
+      lights?: (LightSpec & { offset?: LightOffset })[];
+    },
+    x: number,
+    y: number,
+    sortY: number,
+    k: number,
+    floor: boolean,
+  ): void {
+    const key = this.propSkin.textureKey;
+    const tex = this.scene.textures.get(key);
+    if (!tex.has(frame)) tex.add(frame, 0, d.rect.x, d.rect.y, d.rect.w, d.rect.h);
+    const make = () =>
+      this.scene.add
+        .image(x, y, key, frame)
+        .setOrigin(d.pivot.x / d.rect.w, d.pivot.y / d.rect.h)
+        .setScale(k);
+    if (floor) this.bigImages.push(make().setDepth(DEPTH.PROPS));
+    else {
+      const upper = make().setDepth(entityDepth(sortY));
       const cut = typeof d.occludeAbove === 'number' ? Math.max(0, Math.round(d.pivot.y - d.occludeAbove)) : d.rect.h;
       if (cut < d.rect.h) {
         upper.setCrop(0, 0, d.rect.w, cut);
@@ -322,32 +435,74 @@ export class QuarterView {
         if (col) col.push(w);
         else this.bigByColumn.set(cx, [w]);
       }
-      if (d.light) {
-        const o = lightOffsetOf(d.light.offset);
-        this.wallLightsFixed.push(
-          reg.add(
-            { ...d.light, radius: d.light.radius * k },
-            o ? { x: x + (o.x - d.pivot.x) * k, y: y + (o.y - d.pivot.y) * k } : { x, y: y - d.pivot.y * k * 0.5 },
-          ),
-        );
-      }
     }
-    this.bigPlaced = list.length;
+    const reg = lightRegistryOf(this.scene);
+    for (const l of d.lights ?? (d.light ? [d.light] : [])) {
+      const o = lightOffsetOf(l.offset);
+      this.wallLightsFixed.push(
+        reg.add(
+          { ...l, radius: l.radius * k },
+          o ? { x: x + (o.x - d.pivot.x) * k, y: y + (o.y - d.pivot.y) * k } : { x, y: y - d.pivot.y * k * 0.5 },
+        ),
+      );
+    }
+  }
+
+  /** 소품 시트 도트 → 월드 배율 (바닥 타일셋이면 바닥 배율 그대로, v3 소품 시트면 그 시트 pixelScale) */
+  private get propScale(): number {
+    return this.propSkin === this.skin ? this.scale : this.propSkin.worldScale;
+  }
+
+  /**
+   * 53라운드 v3 작은 소품 (아트 anchorRule): 소품마다 rect·pivot — 피벗을 놓일 칸의 논리 (16, 30) 자리에, occludeAbove 로 Y 정렬,
+   * depth 'floor' 는 바닥 데칼. rect 가 없는 소품은 인덱스 칸 하나를 바닥 한 칸에 (바닥 소품 레이어와 같은 자리)
+   */
+  private addPropImages(props: readonly PropPlacement[]): void {
+    const skin = this.propSkin;
+    const defs = new Map(skin.props.map((p) => [p.index, p]));
+    const tex = this.scene.textures.get(skin.textureKey);
+    const px = skin.tilePx;
+    const cols = skin.columnsOf(tex.source[0]?.width ?? px);
+    const k = skin.worldScale;
+    const A = QUARTER.V3_PROP_ANCHOR_LOGICAL;
+    for (const p of props) {
+      const d = defs.get(p.index);
+      if (d?.rect && d.pivot) {
+        const x = p.x * TILE + A.x / RENDER.WORLD_TO_SCREEN;
+        const y = p.y * TILE + A.y / RENDER.WORLD_TO_SCREEN;
+        const shape = { ...d, rect: d.rect, pivot: d.pivot };
+        this.placeCut(`prop:${p.index}`, shape, x, y, y, k, d.depth === 'floor');
+        continue;
+      }
+      const frame = `prop:${p.index}`;
+      if (!tex.has(frame)) tex.add(frame, 0, (p.index % cols) * px, Math.floor(p.index / cols) * px, px, px);
+      this.bigImages.push(
+        this.scene.add
+          .image(p.x * TILE, p.y * TILE, skin.textureKey, frame)
+          .setOrigin(0, 0)
+          .setScale(TILE / px)
+          .setDepth(DEPTH.PROPS),
+      );
+    }
   }
 
   /** 타일셋 소품 JSON light → 광원 (반경 = 시트 도트 px × 배율) */
   private registerPropLights(props: readonly PropPlacement[]): void {
-    const lit = new Map(this.skin.props.filter((p) => p.light).map((p) => [p.index, p.light!]));
+    const skin = this.propSkin;
+    // v3 소품 시트의 rect 소품은 placeCut 이 광원을 단다
+    const lit = new Map(
+      skin.props.filter((p) => p.light && !(skin !== this.skin && p.rect)).map((p) => [p.index, p.light!]),
+    );
     if (lit.size === 0) return;
     const reg = lightRegistryOf(this.scene);
+    // 칸 안 좌표(offset)는 시트 칸 크기 기준 → 바닥 한 칸(TILE)에 맞춘 배율, 반경은 도트 배율
+    const kc = TILE / skin.tilePx;
+    const kr = this.propScale;
     for (const p of props) {
       const l = lit.get(p.index);
       if (!l) continue;
-      const o = lightOffsetOf(l.offset) ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
-      reg.add(
-        { ...l, radius: l.radius * this.scale },
-        { x: p.x * TILE + o.x * this.scale, y: p.y * TILE + o.y * this.scale },
-      );
+      const o = lightOffsetOf(l.offset) ?? { x: skin.tilePx / 2, y: skin.tilePx / 2 };
+      reg.add({ ...l, radius: l.radius * kr }, { x: p.x * TILE + o.x * kc, y: p.y * TILE + o.y * kc });
     }
   }
 
@@ -364,6 +519,8 @@ export class QuarterView {
   }
 
   destroy(): void {
+    this.canalTimer?.remove();
+    this.canalTimer = null;
     for (const w of this.walls) w.img.destroy();
     this.walls = [];
     this.byColumn.clear();

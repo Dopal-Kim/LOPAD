@@ -60,6 +60,18 @@ export function snipeLevel(traveledPx: number, maxRangePx: number, bounds: reado
   return lv;
 }
 
+/**
+ * 확정 치명이 시작되는 단계 (필중 `critFromLevel`). 53라운드 Q40: `critAimedOnly` 면 조준 사격만 — 일반 화살은 없음(undefined).
+ * 거리 배율(levelMults)은 이와 무관하게 모든 화살
+ */
+export function snipeCritFromLevel(
+  snipe: { critFromLevel?: number; critAimedOnly?: boolean } | null | undefined,
+  aimed: boolean,
+): number | undefined {
+  if (!snipe || snipe.critFromLevel === undefined) return undefined;
+  return aimed || !snipe.critAimedOnly ? snipe.critFromLevel : undefined;
+}
+
 /** 단계 배율 (배열 범위 밖이면 끝 값, 없으면 1) */
 export function levelMult(mults: readonly number[] | undefined, level: number): number {
   if (!mults || mults.length === 0) return 1;
@@ -93,6 +105,7 @@ function clampFrame(f: number, frames: number): number {
 export function branchFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
   const out = new Set<string>();
   for (const [id, w] of Object.entries(weapons))
-    if (w.kind === 'ranged') for (const b of w.personality.branches) for (const s of branchSheetIds(id, b.id)) out.add(s);
+    if (w.kind === 'ranged')
+      for (const b of w.personality.branches) for (const s of branchSheetIds(id, b.id)) out.add(s);
   return [...out];
 }

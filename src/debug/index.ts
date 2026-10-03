@@ -141,6 +141,8 @@ export interface DebugApi {
   /** 48라운드: 다음 노드 선택 열기(출구에 선 것과 같음) · 노드 고르기(uiCommands.chooseNode 와 같은 경로) */
   openRouteChooser: () => boolean;
   chooseNode: (id: string) => boolean;
+  /** 53라운드 Q47: 노드 고르기 취소 (uiCommands.cancelChoose 와 같은 경로) */
+  cancelChoose: () => boolean;
   /** 48라운드 검증: 링크와 무관하게 이 층의 노드로 바로 (층 상태 유지) */
   gotoNode: (id: string) => boolean;
   /** 48라운드: 출구 타일 위로 순간이동 (출구가 열려 있을 때) */
@@ -311,6 +313,8 @@ export function exposeDebug(api: {
   route: () => unknown;
   openRouteChooser: () => boolean;
   chooseNode: (id: string) => boolean;
+  /** 53라운드 Q47: 노드 고르기 취소 (uiCommands.cancelChoose 와 같은 경로) */
+  cancelChoose: () => boolean;
   gotoNode: (id: string) => boolean;
   gotoExit: () => boolean;
   combo: () => unknown;
@@ -460,6 +464,7 @@ export function exposeDebug(api: {
     route: () => api.route(),
     openRouteChooser: () => api.openRouteChooser(),
     chooseNode: (id) => api.chooseNode(id),
+    cancelChoose: () => api.cancelChoose(),
     gotoNode: (id) => api.gotoNode(id),
     gotoExit: () => api.gotoExit(),
     combo: () => api.combo(),

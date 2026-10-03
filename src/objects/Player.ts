@@ -353,7 +353,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       this.lunge = null;
       this.setAction('dash', time + D.durationMs);
       this.combo?.reset();
-      this.visual.oneShot('dash', facingOf(d.x, d.y, this.visual.facing), time, D.durationMs);
+      this.visual.oneShot(this.poses.bodyAction('dash'), facingOf(d.x, d.y, this.visual.facing), time, D.durationMs);
       EventBus.emit(Events.PLAYER_DASHED, { dirX: d.x, dirY: d.y, x: this.x, y: this.y });
       return;
     }

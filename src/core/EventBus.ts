@@ -44,6 +44,8 @@ export const Events = {
   ROOM_ENTERED: 'room:entered',
   TRIAL_STARTED: 'trial:started',
   TRIAL_WAVE: 'trial:wave',
+  /** 53라운드 Q49: 적 소환 예고 (`EnemyIncomingPayload`) — 소환 delayMs 전에. UiRelay 가 UI_EVENTS.ENEMY_INCOMING 으로 중계 */
+  ENEMY_INCOMING: 'enemy:incoming',
   TRIAL_CLEARED: 'trial:cleared',
   BOSS_UNLOCKED: 'boss:unlocked',
   BOSS_STARTED: 'boss:started',
@@ -174,3 +176,10 @@ export type ChallengeEventPayload = {
   kind: 'dogRing' | 'cardTable';
   outcome?: 'clear' | 'flawless' | 'timeout';
 };
+
+/** 53라운드 Q49: 적 소환 예고 (방 · 소환까지 ms · 마리 수) */
+export interface EnemyIncomingPayload {
+  roomId: string;
+  delayMs: number;
+  count?: number;
+}

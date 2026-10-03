@@ -12,12 +12,16 @@ import { spriteLibrary } from '../systems/sprites';
 import {
   animDurationMs,
   artScale,
+  bodyBaseAction,
+  fireDelayMs,
   frameAt,
   frameDurations,
   frameIndices,
   frameStarts,
   keyedDurations,
+  parseAnimKey,
   startsOf,
+  v3HitLift,
   type Facing,
   type SheetJson,
 } from '../systems/spriteDefs';
@@ -73,6 +77,8 @@ export class EntityVisual {
   private readonly baseTint: number;
   /** 지금 맞춘 시트 배율·피벗 (바뀔 때만 바디를 다시 맞춘다) */
   private fitKey = '';
+  /** 53라운드 v3 적: 지금 맞춘 시트 (피격 연출 높이) */
+  private fitDef: Pick<SheetJson, 'pivot' | 'pixelScale'> | null = null;
 
   constructor(
     private readonly host: Host,
@@ -114,6 +120,7 @@ export class EntityVisual {
     const key = `${def.frameWidth},${def.frameHeight},${def.pivot.x},${def.pivot.y},${s}`;
     if (key === this.fitKey) return;
     this.fitKey = key;
+    this.fitDef = def;
     const host = this.host;
     host.setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight);
     host.setScale(s);
@@ -127,6 +134,14 @@ export class EntityVisual {
   private fitAction(action: string): void {
     const def = spriteLibrary.sheet(this.name, action);
     if (def) this.fit(def);
+  }
+
+  /**
+   * 53라운드 v3 적(주인공과 같은 1.5배 그림): 피격 연출(섬광·숫자)을 바디 중심에서 그림 중심으로 올리는 거리(월드).
+   * 그림 중심 = 피벗 높이의 절반. 판정·바디는 그대로. 구 시트·v2 는 0 (기존 자리 그대로)
+   */
+  get hitLiftPx(): number {
+    return this.fitDef ? v3HitLift(this.fitDef, this.bodyH) : 0;
   }
 
   /** 48라운드 탄생 연출: 몸·그림자를 숨긴다 (다른 스프라이트가 대신 그린다) */
@@ -169,7 +184,7 @@ export class EntityVisual {
    * 반복 동작(idle/walk/run). 일회성 동작이 재생 중이거나 프레임 유지 중이면 무시.
    * rate = 재생 배속 (52라운드 Q10 보폭 맞춤 — 매 프레임 갱신). 걷기↔달리기·방향 전환은 프레임 위치를 이어 간다
    */
-  loop(action: 'idle' | 'walk' | 'run', dir: Facing, time: number, rate = 1): void {
+  loop(action: string, dir: Facing, time: number, rate = 1): void {
     this.facing = dir;
     if (this.holdUntil >= 0 && time >= this.holdUntil) this.release();
     if (!this.animated || this.dead || time < this.busyUntil || this.holdUntil >= 0) return;
@@ -180,11 +195,11 @@ export class EntityVisual {
       return;
     }
     this.fitAction(action);
-    const prefix = (a: string) => `${this.sheetName}_${a}_`;
-    const stride = (a: string) => a === 'walk' || a === 'run';
-    const sameAction = this.current?.startsWith(prefix(action)) ?? false;
-    const strideSwap =
-      stride(action) && ['walk', 'run'].some((a) => a !== action && (this.current?.startsWith(prefix(a)) ?? false));
+    // 53라운드 Q19: 무기별 자세 변형(walk_free 등)도 같은 기본 동작으로 본다 — 걷기↔달리기·무기 교체 때 프레임을 잇는다
+    const stride = (a: string) => ['walk', 'run'].includes(bodyBaseAction(a));
+    const prevAction = this.current ? parseAnimKey(this.current, this.sheetName)?.action : undefined;
+    const sameAction = prevAction !== undefined && bodyBaseAction(prevAction) === bodyBaseAction(action);
+    const strideSwap = stride(action) && prevAction !== undefined && stride(prevAction);
     const cur = this.host.anims.currentFrame;
     const frames = spriteLibrary.sheet(this.name, action)?.frames ?? 1;
     const startFrame = SPRITES.KEEP_WALK_FRAME && (sameAction || strideSwap) && cur ? (cur.index - 1) % frames : 0;
@@ -329,12 +344,15 @@ export class EntityVisual {
     return this.host.scene?.time.now ?? 0;
   }
 
-  /** 일회성 동작의 첫 프레임 길이 (적중·발사 타이밍을 2번째 프레임에 맞출 때). 시트가 없으면 0 */
+  /**
+   * 일회성 동작의 발사 프레임 시작 ms (적중·발사 타이밍). 53라운드 적 v3: JSON `fireFrame` 이 있으면 그 프레임 시작
+   * (구 프레임을 나눠 그린 v3 — 구 시트 2번째 프레임과 같은 시각), 없으면 첫 프레임 길이. 시트가 없으면 0
+   */
   impactDelayMs(action: string): number {
     if (!this.animated) return 0;
     const def = spriteLibrary.sheet(this.name, action);
     if (!def || def.frames < 2) return 0;
-    return frameDurations(def)[0];
+    return fireDelayMs(def);
   }
 
   /** 상태 색(경직·예고 등): 플레이스홀더는 채움색, 시트는 곱 틴트 */

@@ -647,11 +647,12 @@
                 "hitboxMult": 1.0,
                 "mods": {
                   "snipe": {
-                    "_note": "53라운드 Q16: 모든 화살 levelMults · 조준 사격 aimedLevelMults · 최장 거리(lv3) 확정 치명은 모든 화살 — 임시값",
+                    "_note": "53라운드 Q16: 모든 화살 levelMults · 조준 사격 aimedLevelMults — 임시값. Q40: 최장 거리(lv3) 확정 치명은 조준 사격만(critAimedOnly)",
                     "levelMults": [1.0, 1.4, 2.0],
                     "aimedLevelMults": [1.0, 1.8, 3.0],
                     "bounds": [0.3333, 0.6667],
-                    "critFromLevel": 3
+                    "critFromLevel": 3,
+                    "critAimedOnly": true
                   }
                 }
               }

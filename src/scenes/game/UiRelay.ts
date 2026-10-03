@@ -4,7 +4,15 @@
  */
 import { gameState } from '../../core/GameState';
 import { BOSSES, STORY } from '../../data';
-import { UI_EVENTS, __system, type StoryKind, type UiWarpState } from '../../contract/ui';
+import {
+  UI_EVENTS,
+  __system,
+  type StoryKind,
+  type UiEnemyIncoming,
+  type UiTutorialStep,
+  type UiWarpState,
+} from '../../contract/ui';
+import type { EnemyIncomingPayload } from '../../core/EventBus';
 import { buildSnapshot } from '../../contract/snapshot';
 import { audio } from '../../systems/audio';
 import { floorText } from '../../systems/story';
@@ -85,6 +93,16 @@ export class UiRelay {
 
   relayHealed(p: unknown): void {
     __system.emit(UI_EVENTS.PLAYER_HEALED, p);
+  }
+
+  /** 53라운드 Q49: 적 소환 예고 (UI 경고는 튜토리얼에서만) */
+  relayEnemyIncoming(p: EnemyIncomingPayload): void {
+    __system.emit(UI_EVENTS.ENEMY_INCOMING, { ...p } satisfies UiEnemyIncoming);
+  }
+
+  /** 53라운드: 튜토리얼 단계 안내 */
+  tutorialStep(info: UiTutorialStep): void {
+    __system.emit(UI_EVENTS.TUTORIAL_STEP, info);
   }
 
   relayGold(p: unknown): void {

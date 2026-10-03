@@ -132,6 +132,8 @@
   "arena": {
     "default": [32, 20],
     "boss": [44, 26],
+    "tutorial": [40, 24],
+    "_tutorial": "53라운드 UI 요청 B8(51라운드 §3 '튜토리얼 전장 확대'): 탄생 전장(kinds.birth.tutorial)만 40×24 (53라운드 Q7 축소 전 크기, 임시). 표식·허수아비 좌표는 그대로",
     "voidMarginTiles": 8,
     "spawnInsetTiles": 3,
     "exitInsetTiles": 3,
@@ -509,21 +511,24 @@
         "action": "arrive",
         "sign": [3, 0],
         "promptOnStart": true,
-        "text": "땅의 표식까지 걸어가 보자. (WASD)"
+        "text": "땅의 표식까지 걸어가 보자. (WASD)",
+        "keys": ["W", "A", "S", "D"]
       },
       {
         "id": "attack",
         "action": "hitDummy",
         "count": 2,
         "sign": [6, -4],
-        "text": "허수아비를 베어 보자. (좌클릭)"
+        "text": "허수아비를 베어 보자. (좌클릭)",
+        "keys": ["좌클릭"]
       },
       {
         "id": "dash",
         "action": "dash",
         "count": 1,
         "sign": [6, 4],
-        "text": "몸을 던져 피하자. (스페이스)"
+        "text": "몸을 던져 피하자. (스페이스)",
+        "keys": ["Space"]
       },
       {
         "id": "secondary",
@@ -531,6 +536,7 @@
         "count": 1,
         "sign": [9, 4],
         "text": "{name} — {description} (우클릭)",
+        "keys": ["우클릭"],
         "signName": "skill"
       },
       {

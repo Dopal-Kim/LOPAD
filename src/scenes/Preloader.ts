@@ -24,6 +24,9 @@ import {
   namedTilesetJsonPath,
   namedTilesetJsonPathV2,
   namedTilesetTextureKey,
+  propSheetJsonPath,
+  propSheetName,
+  propSkins,
   regionSkins,
   tileSkins,
   tilesetJsonPath,
@@ -53,7 +56,7 @@ export class Preloader extends Phaser.Scene {
   private pendingSheets: { req: ReturnType<typeof wantedSheets>[number]; jsonKey: string; dir: string }[] = [];
   private pendingTiles: { floor: number; jsonKey: string }[] = [];
   /** 49라운드 art §7.3: 지역 타일셋 (tiles/stage1_<region>.json, 50라운드: tiles/v2/ 가 있으면 먼저) */
-  private pendingRegionTiles: { name: string; jsonKey: string; dir: string }[] = [];
+  private pendingRegionTiles: { name: string; jsonKey: string; dir: string; props?: boolean }[] = [];
   private audioManifestQueued = false;
   /** 53라운드 Q6: 외벽 테두리 border.json 이 있는 지역 (그림은 그 지역 노드에 들어갈 때 지연 로드 — BorderView) */
   private pendingBorders: { region: string; jsonKey: string }[] = [];
@@ -118,6 +121,14 @@ export class Preloader extends Phaser.Scene {
       this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
       this.pendingRegionTiles.push({ name, jsonKey, dir: dirOf(rel) });
     }
+    // 53라운드 v3 바닥 소품 시트 (`tiles/v3/<지역 타일셋>_props.json`) — 매니페스트에 있을 때만
+    for (const name of regionTilesets()) {
+      const rel = propSheetJsonPath(name);
+      if (!listed(rel)) continue;
+      const jsonKey = `json_${namedTilesetTextureKey(propSheetName(name))}`;
+      this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
+      this.pendingRegionTiles.push({ name, jsonKey, dir: dirOf(rel), props: true });
+    }
     this.pendingBorders = [];
     for (const region of regionIds()) {
       const rel = borderJsonRel(region);
@@ -171,12 +182,13 @@ export class Preloader extends Phaser.Scene {
       tiles.push({ floor: p.floor, json, key });
       if (!this.textures.exists(key)) this.load.image(key, `${ASSETS.URL}/${ASSETS.TILES_DIR}/${json.image}`);
     }
-    const regionTiles: { name: string; json: TilesetJson; key: string }[] = [];
+    const regionTiles: { name: string; json: TilesetJson; key: string; props?: boolean }[] = [];
     for (const p of this.pendingRegionTiles) {
       const json = this.cache.json.get(p.jsonKey) as TilesetJson | undefined;
-      if (!json || !json.image || !json.tiles) continue;
-      const key = namedTilesetTextureKey(p.name);
-      regionTiles.push({ name: p.name, json, key });
+      // 소품 시트는 tiles 가 없어도 된다 (props·bigProps 만)
+      if (!json || !json.image || (!json.tiles && !p.props)) continue;
+      const key = namedTilesetTextureKey(p.props ? propSheetName(p.name) : p.name);
+      regionTiles.push({ name: p.name, json, key, props: p.props });
       if (!this.textures.exists(key)) this.load.image(key, `${ASSETS.URL}/${p.dir}${json.image}`);
     }
     borderDefs.clear();
@@ -195,7 +207,8 @@ export class Preloader extends Phaser.Scene {
       spriteLibrary.createBaseAnims(this);
       for (const t of tiles) if (this.textures.exists(t.key)) tileSkins.set(t.floor, new TileSkin(t.key, t.json, true));
       for (const t of regionTiles)
-        if (this.textures.exists(t.key)) regionSkins.set(t.name, new TileSkin(t.key, t.json, true));
+        if (this.textures.exists(t.key))
+          (t.props ? propSkins : regionSkins).set(t.name, new TileSkin(t.key, t.json, true));
       if (audioQueue) {
         audio.register(
           audioQueue.manifest,

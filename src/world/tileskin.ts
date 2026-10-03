@@ -4,8 +4,9 @@
  * - walls: 상/하/좌/우/모서리 자동타일 (있으면)
  * - props: 방 바닥 소품 (시드 결정적 배치)
  */
-import { ASSETS, QUARTER, TEXTURES, TILE } from '../core/Constants';
+import { ASSETS, QUARTER, RENDER, TEXTURES, TILE } from '../core/Constants';
 import type { LightSpec } from '../systems/spriteDefs';
+import type { CanalJson, DecalJson } from './floorFeatures';
 
 /** 방 종류 바닥 섞기 해시 소금 (변형 선택과 다른 해시) */
 const ROOM_FLOOR_SALT = 977;
@@ -22,6 +23,8 @@ export interface BigPropJson {
   solid?: boolean;
   occludeAbove?: number;
   light?: LightSpec & { offset?: LightOffset };
+  /** 53라운드 v3 소품 시트: 여러 광원 (연회 탁자 촛대 — 있으면 light 대신) */
+  lights?: (LightSpec & { offset?: LightOffset })[];
   placement?: string;
 }
 
@@ -35,6 +38,16 @@ export interface PropDef {
   maxPerRoom?: number;
   /** 40라운드: 배치 가중치 (기본 1, 0 이면 놓지 않음) */
   weight?: number;
+  /**
+   * 53라운드 v3 소품 시트(`tiles/v3/<지역>_props`): 시트 영역·피벗(도트) — 피벗을 놓일 칸의 논리 (16, 30) 자리에.
+   * occludeAbove = 피벗 위 이 높이부터 Y 정렬(캐릭터를 가림), depth 'floor' = 바닥 데칼(Y 정렬 없음)
+   */
+  rect?: { x: number; y: number; w: number; h: number };
+  pivot?: { x: number; y: number };
+  footprint?: [number, number];
+  occludeAbove?: number;
+  depth?: string;
+  lights?: (LightSpec & { offset?: LightOffset })[];
 }
 
 export const ROOM_TYPES: readonly RoomType[] = ['start', 'trial', 'rest', 'boss'];
@@ -76,6 +89,12 @@ export interface TilesetJson {
   quarter?: boolean;
   /** 시트 열 수 (아트 메모 columns) */
   columns?: number;
+  /** 53라운드 v3 소품 시트: 인덱스 격자 칸 크기 (도트, tileWidth 대신) */
+  cell?: number;
+  /** 53라운드 4지역 바닥(art floors_v2): v3 소품 시트 상대 경로(시스템은 `tiles/v3/<이름>_props` 로 찾는다) · 데칼 · 양조 수로 */
+  propsSheet?: string;
+  decals?: DecalJson[];
+  canal?: CanalJson;
   /** 52라운드 계약 §12: 바탕 판석에 방 종류 바닥(roomFloors.*)을 섞는 비율 0~1 (없으면 QUARTER.ROOM_FLOOR_MIX) */
   roomFloorMix?: number;
   props?: PropDef[];
@@ -180,7 +199,8 @@ export class TileSkin {
     readonly isArt: boolean,
   ) {
     for (const id of ALL_IDS) {
-      const list = def.tiles[String(id)];
+      // 53라운드 v3 소품 시트(`tiles/v3/<이름>_props`)는 tiles 가 없을 수 있다
+      const list = def.tiles?.[String(id)];
       const idx = Array.isArray(list) && list.length > 0 ? list : [this.fallbackIndex(id)];
       this.variants.set(id, idx);
       for (const i of idx) if (!this.reverse.has(i)) this.reverse.set(i, id);
@@ -221,8 +241,8 @@ export class TileSkin {
 
   /** 아트 타일셋이 어떤 ID 를 빠뜨렸을 때 쓸 인덱스: 바닥 → 그 외는 void 자리 */
   private fallbackIndex(id: TileId): number {
-    const floor = this.def.tiles[String(TileId.Floor)];
-    const voidIdx = this.def.tiles[String(TileId.Void)];
+    const floor = this.def.tiles?.[String(TileId.Floor)];
+    const voidIdx = this.def.tiles?.[String(TileId.Void)];
     if (id === TileId.Corridor && floor?.length) return floor[0];
     if (voidIdx?.length) return voidIdx[0];
     return floor?.[0] ?? 0;
@@ -286,12 +306,19 @@ export class TileSkin {
       const cols = this.def.columns ?? 8;
       out.push({
         name: 'brazier',
-        rect: { x: (brazier.index % cols) * px, y: Math.floor(brazier.index / cols) * px, w: px, h: px },
+        // 53라운드 v3 소품 시트는 소품마다 rect 가 있다
+        rect: brazier.rect ?? {
+          x: (brazier.index % cols) * px,
+          y: Math.floor(brazier.index / cols) * px,
+          w: px,
+          h: px,
+        },
         pivot: brazier.pivot ?? { x: px / 2, y: px - 2 },
         footprint: [1, 1],
         solid: true,
         occludeAbove: brazier.occludeAbove,
         light: brazier.light,
+        lights: brazier.lights,
         placement: 'floor',
       });
     }
@@ -308,7 +335,23 @@ export class TileSkin {
 
   /** 시트 타일 한 칸 크기 (px). 50라운드 새 타일셋 = 32 */
   get tilePx(): number {
-    return this.def.tileWidth && this.def.tileWidth > 0 ? this.def.tileWidth : TILE;
+    if (this.def.tileWidth && this.def.tileWidth > 0) return this.def.tileWidth;
+    return this.def.cell && this.def.cell > 0 ? this.def.cell : TILE;
+  }
+
+  /**
+   * 시트 도트 → 월드 배율. JSON `pixelScale` 이 있으면 그것(계약 §11: v2 1 → 0.5, v3 0.5 → 0.25), 없으면 칸 크기로
+   * (TILE / tilePx — 32px 타일셋 = 0.5, 기존 16px = 1)
+   */
+  get worldScale(): number {
+    const ps = this.def.pixelScale;
+    return typeof ps === 'number' && ps > 0 ? ps / RENDER.WORLD_TO_SCREEN : TILE / this.tilePx;
+  }
+
+  /** 시트 열 수 (JSON columns, 없으면 이미지 폭 ÷ 칸 — 호출 쪽이 텍스처 폭을 준다) */
+  columnsOf(textureWidth: number): number {
+    const c = this.def.columns;
+    return typeof c === 'number' && c > 0 ? c : Math.max(1, Math.floor(textureWidth / this.tilePx));
   }
 
   /** 빈 칸(void) 인덱스 */
@@ -416,6 +459,27 @@ export const tileSkins = new Map<number, TileSkin>();
 
 /** 49라운드 art §7.3: Preloader 가 채우는 지역 타일셋 이름(`stage1_waste`) → 타일셋 */
 export const regionSkins = new Map<string, TileSkin>();
+
+/**
+ * 53라운드 v3 바닥 소품: Preloader 가 채우는 지역 타일셋 이름 → 소품 시트 (`tiles/v3/stage1_outer_props.json`).
+ * 있으면 그 지역의 큰 소품(bigProps)·작은 소품(props)을 바닥 타일셋 대신 이 시트에서 쓴다 (쿼터뷰 바닥일 때)
+ */
+export const propSkins = new Map<string, TileSkin>();
+
+/** v3 소품 시트 이름 (`stage1_outer_props`) */
+export function propSheetName(tileset: string): string {
+  return `${tileset}${ASSETS.PROPS_SUFFIX}`;
+}
+
+/** v3 소품 시트 JSON 경로 (`tiles/v3/stage1_outer_props.json`) */
+export function propSheetJsonPath(tileset: string): string {
+  return `${ASSETS.TILES_DIR}/${ASSETS.V3_DIR}/${propSheetName(tileset)}.json`;
+}
+
+/** 지역 타일셋의 v3 소품 시트 (없으면 null) */
+export function propSkinFor(tileset: string | null | undefined): TileSkin | null {
+  return (tileset ? propSkins.get(tileset) : undefined) ?? null;
+}
 
 /** 지역 타일셋 텍스처 키 (`tiles_stage1_waste`) */
 export function namedTilesetTextureKey(name: string): string {

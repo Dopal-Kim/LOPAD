@@ -1,6 +1,7 @@
 /**
  * 50라운드 동적 조명 순수 규칙 (Phaser 의존 없음): 깜빡임 · 광원 고르기(상한·화면 안) · 색.
  */
+import type { LightingAmbient, LightingData } from '../../data/types';
 
 /** '#rrggbb' → 0xrrggbb (형식이 아니면 fallback) */
 export function hexColor(hex: string | undefined, fallback: number): number {
@@ -65,4 +66,22 @@ export function pickLights(
   });
   visible.sort((a, b) => Number(b.pinned) - Number(a.pinned) || a.d - b.d);
   return visible.slice(0, Math.max(0, max)).map((v) => v.i);
+}
+
+/**
+ * 지역 주변광 고르기: 지역 자기 값(regions) → 53라운드 Q38: 외벽 테두리 지역이면(borderRegions) regions 에 없을 때 default
+ * (5지역 같은 방식·상향된 밝기) → `?light=1`(flag) 이면 그 밖의 전투장·시험장에도 default → 없음(끔). `?light=0` 은 늘 끔
+ */
+export function lightingAmbientFor(
+  region: string | null | undefined,
+  flag: string | null,
+  arenaOrLab: boolean,
+  hasBorder: (region: string | null | undefined) => boolean,
+  data: Pick<LightingData, 'regions' | 'default' | 'borderRegions'>,
+): LightingAmbient | null {
+  if (flag === '0') return null;
+  const own = region ? data.regions[region] : undefined;
+  if (own) return own;
+  if (data.borderRegions && hasBorder(region)) return data.default;
+  return flag === '1' && arenaOrLab ? data.default : null;
 }

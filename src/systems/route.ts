@@ -67,6 +67,8 @@ export interface RouteFloorDef {
 export interface RouteArenaDef {
   default: [number, number];
   boss: [number, number];
+  /** 53라운드 B8(51라운드 §3): 튜토리얼 전장(kinds.*.tutorial) 크기 — 없으면 default */
+  tutorial?: [number, number];
   voidMarginTiles: number;
   spawnInsetTiles: number;
   exitInsetTiles: number;
@@ -386,7 +388,8 @@ export function kindDef(kind: RouteKind, file: RouteFile = ROUTE): RouteKindDef 
 
 /** 전투장 크기 [w, h] (타일) */
 export function arenaSize(kind: RouteKind, file: RouteFile = ROUTE): [number, number] {
-  return kind === 'boss' ? file.arena.boss : file.arena.default;
+  if (kind === 'boss') return file.arena.boss;
+  return file.kinds[kind]?.tutorial && file.arena.tutorial ? file.arena.tutorial : file.arena.default;
 }
 
 // --- 49라운드 4-2·6: 지역 흐름 ---

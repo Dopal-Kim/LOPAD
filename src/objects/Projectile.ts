@@ -17,6 +17,8 @@ export interface ProjectileVisual {
   originY?: number;
   /** 루프 애니 키 (보스 부채꼴 탄 2프레임 맥동). 없으면 0번 프레임 고정 */
   anim?: string | null;
+  /** 53라운드 이펙트 v3: 그리는 배율 (`fxDrawScale`, 구 시트 1). 판정 크기는 배율과 무관하게 spec.size */
+  scale?: number;
 }
 
 /** 투사체. 벽에 닿거나 수명이 끝나면 비활성화되어 풀로 돌아간다. */
@@ -88,8 +90,11 @@ export class Projectile extends Phaser.GameObjects.Sprite {
       this.setTexture(placeholderTexture(this.scene, spec.size, spec.size)).setOrigin(0.5, 0.5);
       this.setTint(owner === 'player' ? COLORS.PLAYER_SHOT : COLORS.PROJECTILE);
     }
-    // 판정 크기는 외형과 무관하게 spec.size 정사각형, 중심 정렬
-    this.body.setSize(spec.size, spec.size, true);
+    // 판정 크기는 외형과 무관하게 spec.size 정사각형, 중심 정렬 — 바디 크기는 프레임 단위 × 배율이라 배율로 나눠 넣는다
+    const k = texture && visual.scale && visual.scale > 0 ? visual.scale : 1;
+    this.setScale(k);
+    this.body.updateBounds();
+    this.body.setSize(spec.size / k, spec.size / k, true);
     this.setPosition(x, y);
     this.setActive(true).setVisible(true);
     this.body.enable = true;

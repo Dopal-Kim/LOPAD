@@ -5,6 +5,7 @@ import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } fr
 import { CELL_H, CELL_W, type Rect } from '../systems/mapgen/types';
 import { QuarterView } from './QuarterView';
 import { planBigProps, type BigPropPlacement } from './bigProps';
+import { planCanal, planDecals, type CanalPlan, type DecalPlacement } from './floorFeatures';
 import { TileSkin, edgeVoidTiles, isOpenId, planProps, roomTypeMap } from './tileskin';
 
 export type DoorState = 'open' | 'closed' | 'locked';
@@ -31,6 +32,9 @@ export class TileWorld {
   readonly quarter: QuarterView | null = null;
   /** 52라운드 Q11 큰 소품 배치 (쿼터뷰 타일셋만) */
   readonly bigProps: BigPropPlacement[] = [];
+  /** 53라운드 양조 수로 · 바닥 데칼 (쿼터뷰 4지역 바닥) */
+  readonly canal: CanalPlan | null = null;
+  readonly decals: DecalPlacement[] = [];
   /** 여러 칸을 한꺼번에 바꾸는 중 (벽 그림은 끝에 한 번) */
   private batching = false;
   private wallsDirty = false;
@@ -43,8 +47,11 @@ export class TileWorld {
     propSeed: number | string = layout.seed,
     /** 47라운드: 구조물이 먼저 차지한 칸 (소품 제외) */
     structureTiles: ReadonlySet<string> = new Set(),
-    /** 53라운드 Q6: Gemini 외벽 테두리가 경계 벽을 대신 그린다 (쿼터뷰 경계 벽 타일 생략) */
-    opts: { boundaryWalls?: boolean } = {},
+    /**
+     * 53라운드 Q6: Gemini 외벽 테두리가 경계 벽을 대신 그린다 (쿼터뷰 경계 벽 타일 생략).
+     * propSkin = v3 바닥 소품 시트 — 쿼터뷰 바닥이면 큰 소품·작은 소품을 이 시트에서 (없으면 바닥 타일셋)
+     */
+    opts: { boundaryWalls?: boolean; propSkin?: TileSkin | null } = {},
   ) {
     const isOpen = (x: number, y: number) => isOpenId(layout.tiles[y]?.[x]);
     // 방 종류별 바닥(37라운드): 방 내부 바닥은 roomFloors[type], 복도·그 외는 tiles["1"]
@@ -67,24 +74,39 @@ export class TileWorld {
     const up = skin.quarter ? skin.quarter.heightTiles : 0;
     if (C) this.arenaCamera = new Phaser.Geom.Rectangle(C.x * TILE, (C.y - up) * TILE, C.w * TILE, (C.h + up) * TILE);
 
+    // 53라운드: v3 소품 시트는 쿼터뷰 바닥에서만 (기존 16px 바닥에는 기존 소품)
+    const propSkin = skin.quarter && opts.propSkin ? opts.propSkin : skin;
+    const separateProps = propSkin !== skin;
     // 52라운드 Q11: 쿼터뷰 타일셋 큰 소품(가로등·화로·우물·좌판·상자 더미)을 먼저 — 발자국은 막힌 칸, 작은 소품은 그 칸을 피한다
-    const bigShapes = skin.quarter ? skin.bigProps.map((b) => ({ name: b.name, footprint: b.footprint! })) : [];
-    this.bigProps = bigShapes.length > 0 ? planBigProps(layout, bigShapes, structureTiles, propSeed) : [];
     const avoid = new Set(structureTiles);
+    const blockTile = (x: number, y: number) => {
+      avoid.add(`${x},${y}`);
+      this.setBlocked(x, y, true);
+      this.layer.getTileAt(x, y)?.setCollision(true, true, true, true, false);
+    };
+    // 53라운드 양조 수로: 수로 칸은 걷기 막힘(투사체는 통과 — 타일 충돌 없음), 다리 칸은 걷기 가능·소품 없음
+    this.canal = skin.quarter && skin.def.canal ? planCanal(layout, skin.def.canal, structureTiles) : null;
+    const bridges = new Set<string>();
+    for (const t of this.canal?.tiles ?? [])
+      if (t.kind === 'bridgeL' || t.kind === 'bridgeR') bridges.add(`${t.x},${t.y}`);
+      else blockTile(t.x, t.y);
+    const bigShapes = skin.quarter ? propSkin.bigProps.map((b) => ({ name: b.name, footprint: b.footprint! })) : [];
+    this.bigProps = bigShapes.length > 0 ? planBigProps(layout, bigShapes, avoid, propSeed, bridges) : [];
+    for (const k of bridges) avoid.add(k);
     for (const b of this.bigProps)
-      for (let y = b.ty; y < b.ty + b.h; y++)
-        for (let x = b.tx; x < b.tx + b.w; x++) {
-          avoid.add(`${x},${y}`);
-          this.setBlocked(x, y, true);
-          this.layer.getTileAt(x, y)?.setCollision(true, true, true, true, false);
-        }
-    if (this.bigProps.length > 0) this.layer.calculateFacesWithin(0, 0, layout.widthTiles, layout.heightTiles);
+      for (let y = b.ty; y < b.ty + b.h; y++) for (let x = b.tx; x < b.tx + b.w; x++) blockTile(x, y);
     // 화로는 큰 소품 규칙(광장 1~2)으로만 놓는다
     const smallProps = this.bigProps.some((b) => b.name === 'brazier')
-      ? skin.props.filter((p) => p.name !== 'brazier')
-      : skin.props;
+      ? propSkin.props.filter((p) => p.name !== 'brazier')
+      : propSkin.props;
     const placedProps = smallProps.length > 0 ? planProps(layout, smallProps, propSeed, undefined, avoid) : [];
-    if (skin.props.length > 0) {
+    // v3 소품 시트의 단단한 소품은 시트 인덱스가 바닥 타일셋과 달라 소품 레이어 대신 큰 소품처럼 칸을 막는다
+    if (separateProps) for (const p of placedProps) if (p.solid) blockTile(p.x, p.y);
+    // 53라운드 4지역 바닥 데칼 (통과 — 막힌 칸·수로만 피한다)
+    this.decals = skin.quarter && skin.def.decals ? planDecals(layout, skin.def.decals, avoid, propSeed) : [];
+    if (this.bigProps.length > 0 || separateProps || this.canal)
+      this.layer.calculateFacesWithin(0, 0, layout.widthTiles, layout.heightTiles);
+    if (!separateProps && skin.props.length > 0) {
       const props = this.map.createBlankLayer('props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
       props.setDepth(DEPTH.PROPS);
       for (const p of placedProps) props.putTileAt(p.index, p.x, p.y);
@@ -107,6 +129,8 @@ export class TileWorld {
         },
         placedProps,
         opts.boundaryWalls ?? true,
+        propSkin,
+        { canal: this.canal, decals: this.decals },
       );
       this.quarter.addBigProps(this.bigProps);
     }

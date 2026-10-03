@@ -411,6 +411,8 @@ export interface WeaponMods {
     bounds?: number[];
     aimedOnly?: boolean;
     critFromLevel?: number;
+    /** 53라운드 Q40: 확정 치명(critFromLevel)은 조준 사격만 (거리 배율은 모든 화살 그대로) */
+    critAimedOnly?: boolean;
     _note?: string;
   };
 }
@@ -747,8 +749,8 @@ export interface LightingData {
   /** 한 프레임에 그리는 광원 상한 (가까운 순) */
   maxLights: number;
   /**
-   * 53라운드: 외벽 테두리(border.json)가 있는 지역은 regions 에 없어도 조명을 켜고 border.json ambient(없으면 default)를 주변광으로.
-   * 기본 false (지역 조명 확대는 인터뷰 대상 — README 53라운드 절)
+   * 53라운드 Q38: 외벽 테두리(border.json)가 있는 지역은 regions 에 자기 값이 없어도 조명을 켜고 default 를 주변광으로
+   * (5지역 같은 방식). 없거나 false 면 regions 에 있는 지역만
    */
   borderRegions?: boolean;
   /** 라이트맵 해상도 배율 (화면 대비) */

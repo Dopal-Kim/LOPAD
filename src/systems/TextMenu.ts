@@ -73,7 +73,9 @@ export class TextMenu {
     if (!this.current) return;
     if (menuId && this.current.menu.id !== menuId) return;
     const line = this.current.menu.lines.find((l) => l.key === key);
-    if (!line || !line.enabled) return;
+    // 53라운드 UI 요청 B1: 그만두기 key(cancelKey)는 줄이 없어도 받는다 (상점 Esc)
+    const cancel = key === this.current.menu.cancelKey;
+    if (line ? !line.enabled : !cancel) return;
     this.current.selected = true;
     EventBus.emit(Events.MENU_SELECTED, { id: this.current.menu.id, key } satisfies MenuEventPayload);
     this.current.onSelect(key);
