@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   STROKE_FX,
-  burstAt,
-  burstRays,
-  burstTimes,
   gapIntensity,
   gapWidth,
   heatAt,
   pathLength,
   pathPointAt,
   pathPrefix,
+  searAt,
+  searTimes,
 } from './strokeFxMath';
 
 describe('strokeFxMath (48라운드 Q8 획 찢기)', () => {
@@ -31,28 +30,31 @@ describe('strokeFxMath (48라운드 Q8 획 찢기)', () => {
   });
 });
 
-describe('strokeFxMath 49라운드: 빛 터짐', () => {
-  it('타임라인 순서: 흔들림·모음 → 섬광 트레이스 → 광선 → 하얗게(peak) → 걷힘(done)', () => {
-    const B = STROKE_FX.BURST;
-    const T = burstTimes();
-    expect(T.raysAt).toBeGreaterThan(B.CHARGE_MS);
-    expect(T.peakAt).toBeGreaterThan(T.raysAt);
-    expect(T.doneAt).toBeGreaterThan(T.peakAt);
-    const a = burstAt(B.CHARGE_MS / 2);
+describe('strokeFxMath 53라운드: 타오름·스며듦 (빛 터짐 교체)', () => {
+  it('타임라인: 타오름(열기 오름·흔들림) → 스며듦(열기·폭 줄어 잔불 심) → 불티 → 검게(peak) → 걷힘(done), 1.5~2.5초 안에 peak', () => {
+    const S = STROKE_FX.SEAR;
+    const T = searTimes();
+    expect(T.peakAt).toBeGreaterThanOrEqual(1500);
+    expect(T.peakAt).toBeLessThanOrEqual(2500);
+    expect(T.settledAt).toBeLessThanOrEqual(S.DARK_AT);
+    const a = searAt(0);
+    const b = searAt(S.IGNITE_MS - 1);
     expect(a.shaking).toBe(true);
-    expect(a.trace).toBe(0);
-    expect(a.white).toBe(0);
-    const b = burstAt(B.CHARGE_MS + B.TRACE_MS / 2);
-    expect(b.shaking).toBe(false);
-    expect(b.trace).toBeCloseTo(0.5);
-    expect(b.rays).toBe(0);
-    const p = burstAt(T.peakAt);
-    expect(p.white).toBe(1);
-    expect(p.peaked).toBe(true);
-    expect(p.done).toBe(false);
-    expect(burstAt(T.peakAt - 1).peaked).toBe(false);
-    expect(burstAt(T.peakAt + B.HOLD_MS + B.WHITE_OUT_MS / 2).white).toBeCloseTo(0.5);
-    expect(burstAt(T.doneAt)).toMatchObject({ white: 0, done: true });
+    expect(b.heat).toBeGreaterThan(a.heat);
+    expect(b.seep).toBe(0);
+    const c = searAt(T.settledAt);
+    expect(c.shaking).toBe(false);
+    expect(c.seep).toBe(1);
+    expect(c.heat).toBeCloseTo(S.EMBER_HEAT, 2);
+    expect(c.widthMul).toBeCloseTo(S.WIDTH_MUL[1]);
+    expect(searAt(S.EMBERS_AT + 1).embers).toBe(true);
+    expect(searAt(S.EMBERS_AT - 1).embers).toBe(false);
+    expect(searAt(T.peakAt - 1).peaked).toBe(false);
+    expect(searAt(T.peakAt)).toMatchObject({ dark: 1, peaked: true, done: false });
+    expect(searAt(T.doneAt)).toMatchObject({ dark: 0, done: true });
+  });
+  it('타오르는 빛 층은 백열(흰색) 없이 호박 램프만', () => {
+    for (const L of STROKE_FX.SEAR_LAYERS) expect(typeof L.color).toBe('number');
   });
   it('경로 자르기: 길이 비율만큼, 끝점은 보간', () => {
     const pts = [0, 0, 10, 0, 10, 10];
@@ -61,20 +63,5 @@ describe('strokeFxMath 49라운드: 빛 터짐', () => {
     expect(pathPrefix(pts, 0.75)).toEqual([0, 0, 10, 0, 10, 5]);
     expect(pathPrefix(pts, 1)).toEqual(pts);
     expect(pathPointAt(pts, 0.5)).toEqual({ x: 10, y: 0 });
-  });
-  it('광선: 개수만큼, 획 위에서 무게중심 바깥쪽으로', () => {
-    const paths = [
-      [100, 100, 300, 100],
-      [100, 300, 300, 300],
-    ];
-    const rays = burstRays(paths, () => 0.5);
-    expect(rays).toHaveLength(STROKE_FX.BURST.RAY_COUNT);
-    for (const r of rays) {
-      expect([100, 300]).toContain(r.y);
-      // 위 획은 위로(sin < 0), 아래 획은 아래로(sin > 0)
-      expect(Math.sign(Math.sin(r.angle))).toBe(r.y === 100 ? -1 : 1);
-      expect(r.len).toBeGreaterThanOrEqual(STROKE_FX.BURST.RAY_LEN[0]);
-    }
-    expect(burstRays([], () => 0.5)).toEqual([]);
   });
 });

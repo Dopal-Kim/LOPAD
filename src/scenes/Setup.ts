@@ -18,6 +18,9 @@ import {
 } from '../systems/dodgeTrial';
 import { DodgeTrialRunner } from '../systems/dodgeTrialRunner';
 import { StrokeFx } from '../systems/strokeFx';
+import { BACK } from '../systems/strokeFxBack';
+import { encodeScar, type ScarData } from '../systems/setup/scar';
+import { gameState } from '../core/GameState';
 import { STROKE_FX } from '../systems/strokeFxMath';
 import { StrokeExamples } from '../systems/setup/strokeExamples';
 import { scheduleAutoStrokes, type AutoPreset } from '../systems/setup/autoStrokes';
@@ -31,11 +34,12 @@ import { EventBus, Events } from '../core/EventBus';
 import { audio } from '../systems/audio';
 import { UI_EVENTS, __system } from '../contract/ui';
 
-type Phase = 'meta' | 'name' | 'strokes' | 'burst' | 'trial' | 'fate';
+type Phase = 'meta' | 'name' | 'strokes' | 'sear' | 'trial' | 'fate';
 
 /**
- * 개성 선택 (기획 1장): "가장 강한 것"을 3획으로 그린다(48라운드 Q8: 화면이 찢기며 빛이 새는 연출 `StrokeFx`,
- * 49라운드 1절: 부스러기 + 3획 뒤 흔들림 → 획에서 빛이 터짐, 51라운드 1절: 가늘고 매끄러운 곡선 획).
+ * 개성 선택 (기획 1장): "가장 강한 것"을 3획으로 그린다(48라운드 Q8 `StrokeFx`, 51라운드 1절: 가늘고 매끄러운 곡선 획,
+ * 53라운드 Q3: 화면 가득 찬 주인공의 등에 긋고, 3획 뒤 상흔이 호박빛으로 타오르다 살에 스며든다).
+ * 그은 획은 상흔으로 런 상태에 저장한다(53라운드 Q4 준비, `setup/scar.ts`).
  * **무기는 3획만으로** 정한다(49라운드 2절). 이어서 회피 시험(51라운드 2절: 짧은 과제 5개, `DodgeTrialRunner`)의
  * 과제별 피격·떨어짐으로 등급 → 시작 감각 +0~3 (`senseBonus`, Game 씬 시작 데이터로 넘긴다).
  * 화면·연출은 시스템 파트 플레이스홀더이며 UI·아트 파트 산출물로 교체 대상.
@@ -69,6 +73,8 @@ export class Setup extends Phaser.Scene {
   private uiOnly: Phaser.GameObjects.GameObject[] = [];
   private trialResult?: TrialResult;
   private weaponId?: string;
+  /** 등에 그은 상흔 (Game 시작 직전에 런 상태로 넘긴다) */
+  private scar?: ScarData;
   /** Game 씬 시작 데이터 (디버그 표시용) */
   private startData?: { mode: 'new'; weapon: string; playerName: string; senseBonus: number };
   /** 디버그: 다음 회피 시험 경기장 모양 고정 */
@@ -99,6 +105,7 @@ export class Setup extends Phaser.Scene {
     this.startData = undefined;
     this.features = undefined;
     this.weaponId = undefined;
+    this.scar = undefined;
     // 새 런은 1층: 이전 런이 바꿔 둔 층 변형을 원본으로 (시트·예고 색)
     spriteLibrary.activate(this, 1);
     this.label = this.add
@@ -258,7 +265,7 @@ export class Setup extends Phaser.Scene {
       this.strokeFx?.update(time);
       return;
     }
-    this.strokeFx?.update(time); // 마지막 획 섬광 → 빛 터짐 → 하얀 빛이 걷힘 (시험 시작 뒤에도 잠깐)
+    this.strokeFx?.update(time); // 마지막 획 섬광 → 타오름·스며듦 → 어둠이 걷힘 (시험 시작 뒤에도 잠깐)
     if (this.phase !== 'trial' || !this.runner) return;
     const mx = (this.keys.right.isDown ? 1 : 0) - (this.keys.left.isDown ? 1 : 0);
     const my = (this.keys.down.isDown ? 1 : 0) - (this.keys.up.isDown ? 1 : 0);
@@ -312,24 +319,24 @@ export class Setup extends Phaser.Scene {
     if (this.current.length >= PERSONALITY.strokes.minPoints) this.strokes.push(this.current);
     this.current = null;
     this.updateLabel();
-    if (this.strokes.length >= PERSONALITY.strokes.count) this.beginBurst();
+    if (this.strokes.length >= PERSONALITY.strokes.count) this.beginSear();
   }
 
   /**
-   * 3획 완료 (49라운드 1절): 무기는 이 순간 3획만으로 정해 둔다. 마지막 획의 섬광을 잠깐 보여 준 뒤
-   * 화면이 살짝 흔들리고 획에서 빛이 터져 나와 하얗게 번쩍 → 가장 하얀 순간에 회피 시험 시작 → 빛이 걷힌다.
+   * 3획 완료: 무기는 이 순간 3획만으로 정해 둔다(49라운드 1절). 마지막 획의 섬광을 잠깐 보여 준 뒤 (53라운드 Q3)
+   * 획이 호박빛으로 타오름 → 살에 스며들어 균열 + 잔불 심 → 불티 → 검게 덮인 순간 회피 시험 시작 → 어둠이 걷힌다.
    */
-  private beginBurst(): void {
+  private beginSear(): void {
     if (this.phase !== 'strokes') return;
     this.hideExamples();
-    this.phase = 'burst';
+    this.phase = 'sear';
     this.decideWeapon();
     this.time.delayedCall(STROKE_FX.HOLD_AFTER_LAST_MS, () => {
-      if (this.phase !== 'burst') return;
+      if (this.phase !== 'sear') return;
       this.label.setText('');
       const fx = this.strokeFx;
       if (!fx) return this.beginTrial();
-      fx.burst(
+      fx.sear(
         () => this.beginTrial(),
         () => {
           if (this.strokeFx === fx) this.strokeFx = undefined;
@@ -338,11 +345,12 @@ export class Setup extends Phaser.Scene {
     });
   }
 
-  /** 3획 특징 → 운명 무기 (회피 시험과 무관) */
+  /** 3획 특징 → 운명 무기 (회피 시험과 무관) + 상흔 저장 형식 (53라운드 Q4 준비) */
   private decideWeapon(): void {
     const f = strokeFeatures(this.strokes, PERSONALITY);
     this.features = f;
     this.weaponId = chooseWeapon(f, WEAPONS, PERSONALITY).id;
+    this.scar = encodeScar(this.strokes, BACK.SCAR_RECT);
   }
 
   private updateLabel(): void {
@@ -358,7 +366,7 @@ export class Setup extends Phaser.Scene {
    * 이후 씬에 추가되는 오브젝트(투사체·예고·이펙트)는 UI 카메라에서 숨긴다.
    */
   private beginTrial(): void {
-    if (this.runner || !this.scene.isActive() || (this.phase !== 'burst' && this.phase !== 'trial')) return;
+    if (this.runner || !this.scene.isActive() || (this.phase !== 'sear' && this.phase !== 'trial')) return;
     this.phase = 'trial';
     const main = this.cameras.main;
     this.hud = new TrialHud(this, this.label);
@@ -414,6 +422,7 @@ export class Setup extends Phaser.Scene {
         startData: this.startData ?? null,
         features: this.features ?? null,
         weapon: this.weaponId ?? null,
+        scar: this.scar ?? null,
       }),
       {
         /** 메타·이름 단계를 건너뛰고 획 단계로 */
@@ -434,7 +443,7 @@ export class Setup extends Phaser.Scene {
         },
         /**
          * 회피 시험 즉시 종료 + 강제 등급: 'S'|'A'|'B'|'C'(감각 +3/+2/+1/+0) · 'fell'(한 과제 떨어짐) 또는 과제 결과 일부 목록.
-         * 빛 터짐 중이면 기다리지 않고 바로 시험을 열어 끝낸다. (`trialForceGrade` 와 같다)
+         * 타오름·스며듦 중이면 기다리지 않고 바로 시험을 열어 끝낸다. (`trialForceGrade` 와 같다)
          */
         skipTrial: (arg: TrialForce = 'S') => this.debugForce(arg),
         trialForceGrade: (arg: TrialForce = 'S') => this.debugForce(arg),
@@ -455,10 +464,10 @@ export class Setup extends Phaser.Scene {
           }
           return true;
         },
-        /** 빛 터짐 시계를 ms 에 멈춤 (null = 풀기). 3획 전에 걸어 둘 수 있다 (스크린샷용) */
-        holdBurst: (ms: number | null = null) => {
+        /** 타오름·스며듦 시계를 ms 에 멈춤 (null = 풀기). 3획 전에 걸어 둘 수 있다 (스크린샷용) */
+        holdSear: (ms: number | null = null) => {
           if (!this.strokeFx) return false;
-          this.strokeFx.holdBurst(ms);
+          this.strokeFx.holdSear(ms);
           return true;
         },
         /** 카드·정비면 바로 과제 시작, 과제 중이면 과제 시계를 ms 앞당김 (갉아먹힘·예약) */
@@ -478,9 +487,9 @@ export class Setup extends Phaser.Scene {
     (window as unknown as { __lopadSetup: unknown }).__lopadSetup = api;
   }
 
-  /** 시험 단계가 아직 안 열렸으면(빛 터짐 중) 바로 연다 */
+  /** 시험 단계가 아직 안 열렸으면(타오름·스며듦 중) 바로 연다 */
   private ensureRunner(): DodgeTrialRunner | undefined {
-    if (this.phase !== 'trial' && this.phase !== 'burst') return undefined;
+    if (this.phase !== 'trial' && this.phase !== 'sear') return undefined;
     if (!this.runner) this.beginTrial();
     return this.runner;
   }
@@ -511,7 +520,10 @@ export class Setup extends Phaser.Scene {
     );
     const data = { mode: 'new' as const, weapon: id, playerName: this.playerName, senseBonus };
     this.startData = data;
-    this.time.delayedCall(PROTOTYPE.FATE_BANNER_MS, () => this.scene.start(SCENES.GAME, data));
+    this.time.delayedCall(PROTOTYPE.FATE_BANNER_MS, () => {
+      gameState.queueScar(this.scar ?? null); // 다음 startRun(새 런)이 가져간다
+      this.scene.start(SCENES.GAME, data);
+    });
   }
 
   /** 디버그/테스트용 */

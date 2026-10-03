@@ -9,6 +9,7 @@ import { metaBonus, metaStore, type MetaBonus } from '../systems/meta';
 import { PassiveSet } from '../systems/passives';
 import type { RouteState } from '../systems/route';
 import type { StructureFloorCarry } from '../systems/structures/StructureSystem';
+import { sanitizeScar, type ScarData } from '../systems/setup/scar';
 
 export type EndingChoice = 'destroy' | 'understand';
 
@@ -65,6 +66,10 @@ class GameState {
   structureCarry: StructureFloorCarry | null = null;
   /** 48라운드 Q6: 새 런 첫 노드에서 탄생 연출을 아직 보지 않았다 */
   birthPending = false;
+  /** 53라운드 Q4: 개성 선택에서 등에 그은 상흔 (런마다 고유, 세이브에 유지). 없으면 null */
+  scar: ScarData | null = null;
+  /** 개성 선택(Setup)이 맡겨 둔 상흔 — 다음 startRun 이 가져간다 (Game 씬 시작 데이터를 바꾸지 않으려고) */
+  private nextScar: ScarData | null = null;
 
   get stageId(): string {
     return RUN.order[this.stageIndex];
@@ -83,7 +88,12 @@ class GameState {
     return `${this.seed}:${this.stageIndex}`;
   }
 
-  /** 새 런. weaponId 는 개성 선택 결과 (없으면 기본 무기) */
+  /** 개성 선택이 끝날 때 상흔을 맡긴다 (다음 새 런에 들어간다) */
+  queueScar(scar: ScarData | null): void {
+    this.nextScar = scar;
+  }
+
+  /** 새 런. weaponId 는 개성 선택 결과 (없으면 기본 무기). 맡겨 둔 상흔이 없으면 상흔도 비운다 */
   startRun(seed: string, weaponId: string = PLAYER_DATA.startWeapon, playerName = ''): void {
     const wid = WEAPONS[weaponId] ? weaponId : PLAYER_DATA.startWeapon;
     this.seed = seed;
@@ -106,6 +116,8 @@ class GameState {
     this.passives = new PassiveSet();
     this.weapon = new WeaponState(wid, WEAPONS[wid]); // 사망 시 무기 초기화 (기획 3장)
     this.birthPending = true;
+    this.scar = this.nextScar;
+    this.nextScar = null;
     this.resetStage();
   }
 
@@ -182,6 +194,7 @@ class GameState {
       bonus: { ...this.bonus },
       passives: { ...this.passives.owned },
       playerName: this.playerName,
+      ...(this.scar ? { scar: this.scar } : {}),
       savedAt: Date.now(),
     };
   }
@@ -204,6 +217,7 @@ class GameState {
     this.bonus = { ...EMPTY_BONUS, ...d.bonus };
     this.passives.restore(d.passives ?? {});
     this.playerName = d.playerName ?? '';
+    this.scar = sanitizeScar(d.scar);
   }
 }
 

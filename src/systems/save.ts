@@ -3,6 +3,8 @@
  * 저장 시점은 "새 층 시작 직전" 상태라서, 이어하면 그 층의 시작 방에서 시작한다.
  * 사망·클리어 시 삭제. 브라우저 localStorage 사용 (StorageLike 로 추상화해 테스트 가능).
  */
+import type { ScarData } from './setup/scar';
+
 export const SAVE_VERSION = 5;
 export const SAVE_KEY = 'lopad.save';
 
@@ -23,6 +25,8 @@ export interface SaveData {
   bonus: { attack: number; maxHp: number; defense: number; crit: number };
   passives: Record<string, number>;
   playerName: string;
+  /** 53라운드 Q4: 등 상흔 (선택 항목 — 이전 세이브는 없음, 버전 그대로) */
+  scar?: ScarData;
   savedAt: number;
 }
 

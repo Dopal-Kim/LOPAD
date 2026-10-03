@@ -63,6 +63,8 @@ export class DodgeTrialRunner {
   /** 과제 경과 (갉아먹힘 기준, run 밖에서는 멈춤) */
   private elapsed = 0;
   private fallAt: number | null = null;
+  /** 53라운드 6번: 과제 끝 신호 뒤 남은 유도탄을 이미 껐다 */
+  private homingExpired = false;
   private lastFireMs = 0;
   private durationMs = 1;
   private finished = false;
@@ -149,6 +151,10 @@ export class DodgeTrialRunner {
       if (time - this.fallAt >= DODGE_TRIAL.PLAYER.FALL_MS) this.endTask(time);
       return;
     }
+    if (!this.homingExpired && this.elapsed >= this.durationMs + DODGE_TRIAL.HOMING.EXPIRE_AFTER_END_MS) {
+      this.homingExpired = true;
+      this.hazards.expireHoming();
+    }
     const over = this.elapsed >= this.lastFireMs && this.hazards.idle;
     const cap = this.elapsed >= this.durationMs + DODGE_TRIAL.SETTLE_MAX_MS;
     if (over || cap) this.endTask(time);
@@ -165,6 +171,7 @@ export class DodgeTrialRunner {
     this.phaseEnd = time + (i === 0 ? DODGE_TRIAL.FIRST_CARD_MS : DODGE_TRIAL.CARD_MS);
     this.elapsed = 0;
     this.fallAt = null;
+    this.homingExpired = false;
     this.hazards.clear(true);
     const shape = this.opts.shape ?? pickShape(this.rnd(), def.shapes);
     this.mask = buildArena(shape, this.rnd, def.erosion);

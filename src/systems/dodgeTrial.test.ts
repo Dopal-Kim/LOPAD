@@ -118,12 +118,19 @@ describe('dodgeTrial 51라운드: 박자 (읽으면 피할 수 있게)', () => {
     expect(kinds('wall')).toEqual(['wall']);
     expect(kinds('mix').length).toBeGreaterThanOrEqual(3);
   });
-  it('갉아먹힘은 ②·⑤ 에서만, 기둥은 ③ 에서만', () => {
+  it('갉아먹힘은 ②·⑤ 에서만, 기둥은 ③·⑤ 에서만 (53라운드: ⑤ 는 2~4개)', () => {
     for (const id of TASK_IDS) {
       const def = DODGE_TRIAL.TASKS[id];
       expect(Boolean(def.erosion), id).toBe(id === 'ring' || id === 'mix');
-      expect(def.pillars[1] > 0, id).toBe(id === 'homing');
+      expect(def.pillars[1] > 0, id).toBe(id === 'homing' || id === 'mix');
     }
+    expect(DODGE_TRIAL.TASKS.mix.pillars).toEqual([2, 4]);
+  });
+  it('53라운드 유도탄: 수명 없음, 과제 끝 신호 뒤 꺼짐은 과제 끝 최대 대기보다 먼저', () => {
+    expect('LIFE_MS' in DODGE_TRIAL.HOMING).toBe(false);
+    expect(DODGE_TRIAL.HOMING.EXPIRE_AFTER_END_MS + DODGE_TRIAL.BULLET.END_FADE_MS).toBeLessThan(
+      DODGE_TRIAL.SETTLE_MAX_MS,
+    );
   });
   it('예고선 예고는 과제 안에서 짧아진다 (처음 → 끝)', () => {
     const [a, b] = DODGE_TRIAL.LINES.TELEGRAPH_MS;
@@ -247,6 +254,17 @@ describe('dodgeTrialArena 경기장 모양 · 갉아먹힘 · 기둥', () => {
         for (let j = i + 1; j < ps.length; j++)
           expect(Math.hypot(ps[i].x - ps[j].x, ps[i].y - ps[j].y)).toBeGreaterThan(ps[i].r + ps[j].r);
       expect(pillarAt(m, 0, 0)).toBeNull();
+    }
+  });
+  it('기둥(⑤): 갉아먹히는 경기장에서도 끝까지 남는 바닥 위에 2개 이상', () => {
+    const def = DODGE_TRIAL.TASKS.mix;
+    for (let seed = 1; seed <= 10; seed++) {
+      for (const shape of def.shapes) {
+        const m = buildArena(shape, seeded(seed), def.erosion);
+        const ps = placePillars(m, def.pillars[0], seeded(seed + 200));
+        expect(ps.length, `${shape} ${seed}`).toBe(def.pillars[0]);
+        for (const p of ps) expect(isFloorAt(m, p.x, p.y, Number.MAX_VALUE)).toBe(true);
+      }
     }
   });
   it('칸 좌표: 격자 밖은 -1', () => {

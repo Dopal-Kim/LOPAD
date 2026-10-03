@@ -49,7 +49,7 @@ export function cueEndMs(cue: Cue, id: TaskId, C: TrialConfig = DODGE_TRIAL): nu
     case 'ring':
       return fire + cue.closeMs;
     case 'homing':
-      return fire + C.HOMING.LIFE_MS;
+      return fire + C.HOMING.CHASE_EST_MS;
     case 'wall':
       return fire + wallCrossMs(C);
   }

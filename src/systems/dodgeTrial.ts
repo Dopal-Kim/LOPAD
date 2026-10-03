@@ -197,12 +197,17 @@ export const DODGE_TRIAL = {
     DIR_STEP_DEG: 15,
     PROBE: [0.3, 0.6] as [number, number],
   },
-  /** ③ 유도탄: 예고(원) · 속도 · 회전 한계(°/s) · 수명(끝나면 사그라짐) · 판정 */
+  /**
+   * ③ 유도탄: 예고(원) · 속도 · 회전 한계(°/s). 53라운드 6번: **수명 없음** — 경기장 벽(처음 바닥 윤곽 밖)이나 기둥에 부딪혀야
+   * 사라진다. CHASE_EST_MS = 과제 길이·진행 호 어림용 추격 시간. 과제 끝 신호(진행 호 끝 = 어림 길이) 뒤 EXPIRE_AFTER_END_MS 가
+   * 지나도 남은 유도탄은 서서히 꺼진다 (과제가 늘어지지 않게).
+   */
   HOMING: {
     TELEGRAPH_MS: 600,
     SPEED_TILES: 4.4,
     TURN_DEG_PER_S: 115,
-    LIFE_MS: 2200,
+    CHASE_EST_MS: 2200,
+    EXPIRE_AFTER_END_MS: 900,
     /** 처음 이만큼은 곧게 (발사 방향 = 주인공 쪽) */
     STRAIGHT_MS: 220,
   },
@@ -248,7 +253,7 @@ export const DODGE_TRIAL = {
     },
     homing: {
       name: '유도탄 따돌리기',
-      hint: '쫓아오는 탄은 기둥에 부딪히면 깨진다 — 기둥 뒤로 끌어들여라',
+      hint: '쫓아오는 탄은 기둥이나 경기장 벽에 부딪히면 깨진다 — 기둥 뒤·벽 쪽으로 끌어들여라',
       shapes: ['circle', 'ellipse', 'polygon'],
       erosion: null,
       pillars: [3, 4],
@@ -273,10 +278,11 @@ export const DODGE_TRIAL = {
     },
     mix: {
       name: '종합',
-      hint: '지금까지의 전부 — 예고를 보고 박자에 맞춰',
+      hint: '지금까지의 전부 — 예고를 보고 박자에 맞춰. 유도탄은 기둥·벽에 부딪혀 떼어 내라',
       shapes: ['circle', 'ellipse', 'polygon'],
       erosion: { startMs: 1000, endMs: 5600, endFloorFrac: 0.76 },
-      pillars: [0, 0],
+      /** 53라운드 6번: 유도탄 대처용 기둥 소수 (③ 과 같은 규칙 — 모든 탄이 기둥에 깨지고 주인공은 기둥을 못 지난다) */
+      pillars: [2, 4],
       cues: [
         { at: 0, kind: 'line', count: 1 },
         { at: 700, kind: 'homing' },

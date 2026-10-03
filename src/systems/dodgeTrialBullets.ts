@@ -1,7 +1,8 @@
 /**
  * 회피 시험 탄 풀 (화면 쪽, 51라운드 2절): 직선탄(예고선) · 유도탄 · 벽 탄의 생성·이동·판정·소멸.
  * 탄 시트는 enemy_bullet(직선·벽) · boss_fan_shot(유도탄), 없으면 원 플레이스홀더. 유도탄은 회전 한계로 쫓아오고
- * 기둥에 닿으면 깨지며(불꽃 + 부스러기), 수명이 다하면 사그라든다(판정 없음). 직선탄은 경기장 밖으로 나가면 지운다.
+ * 기둥에 닿으면 깨지며(불꽃 + 부스러기), 53라운드 6번: 수명 없음 — 바닥에 한 번 들어온 뒤 처음 바닥 윤곽(경기장 벽) 밖으로
+ * 나가도 깨진다. 과제 끝 신호 뒤에는 `expireHoming` 으로 사그라든다(판정 없음). 직선탄은 경기장 밖으로 나가면 지운다.
  * 예약·고리·벽 같은 과제 박자는 `dodgeTrialHazards.ts`.
  */
 import Phaser from 'phaser';
@@ -9,7 +10,7 @@ import { DEPTH, ENEMY_FX, FEEL } from '../core/Constants';
 import { audio } from './audio';
 import { SFX } from './audioMap';
 import { DODGE_TRIAL } from './dodgeTrial';
-import { pillarAt, type ArenaMask } from './dodgeTrialArena';
+import { cellIndexAt, pillarAt, type ArenaMask } from './dodgeTrialArena';
 import { steer } from './dodgeTrialTasks';
 import type { FxPool } from './fx';
 import { FX_ACTION } from './spriteDefs';
@@ -34,6 +35,8 @@ interface Bullet {
   /** 유도탄 꼬리 (최근 위치 [x,y,…], TRAIL.STEP_MS 간격) */
   trail: number[];
   trailAt: number;
+  /** 유도탄: 바닥 위에 한 번 들어왔다 (그 뒤 바닥 밖 = 벽에 부딪힘) */
+  entered: boolean;
 }
 
 /** 탄이 움직이는 경기장 (기둥·바깥 경계) */
@@ -59,9 +62,11 @@ const TRAIL = { STEP_MS: 35, POINTS: 7, WIDTH: 2, ALPHA: 0.55 };
 const LINE_KILL_PAD_PX = 10;
 
 export class TrialBullets {
-  /** 쏜 수 · 기둥에 깨진 수 (디버그) */
+  /** 쏜 수 · 기둥에 깨진 수 · 벽에 깨진 유도탄 수 · 시간 끝에 꺼진 유도탄 수 (디버그) */
   fired = 0;
   broken = 0;
+  walled = 0;
+  expired = 0;
   private readonly list: Bullet[] = [];
 
   constructor(
@@ -97,7 +102,7 @@ export class TrialBullets {
       .map((b) => ({ x: Math.round(b.x), y: Math.round(b.y) }));
   }
 
-  /** 탄 하나 (풀이 가득이면 null). lifeMs 없으면 종류별 기본 수명 */
+  /** 탄 하나 (풀이 가득이면 null). lifeMs 없으면 종류별 기본 수명 (유도탄은 수명 없음) */
   fire(
     kind: BulletKind,
     x: number,
@@ -120,7 +125,8 @@ export class TrialBullets {
     b.vy = Math.sin(angle) * speed;
     b.r = sheetId === ENEMY_FX.FAN_SHOT ? B.FAN_RADIUS_PX : B.RADIUS_PX;
     b.born = this.scene.time.now;
-    b.dieAt = b.born + (lifeMs ?? (kind === 'homing' ? DODGE_TRIAL.HOMING.LIFE_MS : B.LIFE_MS));
+    b.dieAt = kind === 'homing' && lifeMs === undefined ? Infinity : b.born + (lifeMs ?? B.LIFE_MS);
+    b.entered = false;
     b.alive = true;
     b.trail = [];
     b.trailAt = 0;
@@ -148,7 +154,7 @@ export class TrialBullets {
     return true;
   }
 
-  /** 한 프레임: 유도 → 이동 → 꼬리 → 기둥 → 판정 → 수명 → 경기장 밖. 맞았으면 밀려날 방향(탄 속도) */
+  /** 한 프레임: 유도 → 이동 → 꼬리 → 기둥 → 경기장 벽(유도탄) → 판정 → 수명 → 경기장 밖. 맞았으면 밀려날 방향(탄 속도) */
   update(time: number, dt: number, field: BulletField, tg: BulletTarget): { dx: number; dy: number } | null {
     const P = DODGE_TRIAL.PLAYER;
     const H = DODGE_TRIAL.HOMING;
@@ -176,6 +182,15 @@ export class TrialBullets {
         this.breakBullet(b);
         continue;
       }
+      if (b.kind === 'homing') {
+        const i = cellIndexAt(field.mask, b.x - field.cx, b.y - field.cy);
+        if (i >= 0 && field.mask.floor[i] === 1) b.entered = true;
+        else if (b.entered) {
+          this.walled += 1;
+          this.breakBullet(b);
+          continue;
+        }
+      }
       const gap = Math.hypot(b.x - tg.x, b.y - tg.y) - (P.HIT_RADIUS_PX + b.r);
       if (gap <= 0 && tg.vulnerable && !hit) {
         hit = { dx: b.vx, dy: b.vy };
@@ -187,10 +202,13 @@ export class TrialBullets {
         else this.kill(b);
         continue;
       }
-      if (b.kind === 'line') {
+      if (b.kind === 'line' || (b.kind === 'homing' && !b.entered)) {
         const out = Math.hypot((b.x - field.cx) / orx, (b.y - field.cy) / ory) > 1;
         const outward = (b.x - field.cx) * b.vx + (b.y - field.cy) * b.vy > 0;
-        if (out && outward) this.kill(b);
+        if (out && outward) {
+          if (b.kind === 'homing') this.fizzle(b);
+          else this.kill(b);
+        }
       }
     }
     return hit;
@@ -212,6 +230,18 @@ export class TrialBullets {
         py = y;
       }
     }
+  }
+
+  /** 과제 끝 신호 뒤: 남은 유도탄이 서서히 꺼진다 (판정 없음). 꺼진 수 */
+  expireHoming(): number {
+    let n = 0;
+    for (const b of this.list)
+      if (b.alive && b.kind === 'homing') {
+        this.fizzle(b);
+        n += 1;
+      }
+    this.expired += n;
+    return n;
   }
 
   /** 전부 거둔다 (fade 면 사라지며) */
@@ -259,6 +289,7 @@ export class TrialBullets {
       alive: false,
       trail: [],
       trailAt: 0,
+      entered: false,
     };
     this.list.push(b);
     return b;
@@ -270,7 +301,7 @@ export class TrialBullets {
     b.spr.setActive(false).setVisible(false);
   }
 
-  /** 기둥에 깨짐: 작은 불꽃 + 부스러기 */
+  /** 기둥·벽에 깨짐: 작은 불꽃 + 부스러기 */
   private breakBullet(b: Bullet): void {
     this.kill(b);
     this.broken += 1;
@@ -278,7 +309,7 @@ export class TrialBullets {
     this.onBreak(b.x, b.y);
   }
 
-  /** 유도탄 수명 끝: 사그라든다 (판정 없음) */
+  /** 유도탄이 사그라든다 (판정 없음): 과제 끝 신호 뒤 · 바닥에 못 들어오고 밖으로 나감 */
   private fizzle(b: Bullet): void {
     b.alive = false;
     this.scene.tweens.add({

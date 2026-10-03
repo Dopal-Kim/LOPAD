@@ -2,7 +2,7 @@
  * 회피 시험 위협 (화면 쪽, 51라운드 2절): 과제의 cue 표를 시각에 맞춰 실행한다. 모든 위협은 **예고가 먼저**.
  * - 예고선(line): 예고선(TelegraphFx.line + 오라)이 그어진 뒤 그 선을 따라 직선탄 BURST 발.
  * - 고리(ring): 고리 윤곽 + 밝은 틈 예고 → 구슬 고리가 중심으로 조여 든다. 틈으로 빠져나가면 안전(판정은 해석식 `ringHits`).
- * - 유도탄(homing): 원 예고 → 느린 유도탄(회전 한계). 기둥에 닿으면 깨지고, 수명이 다하면 사그라든다.
+ * - 유도탄(homing): 원 예고 → 느린 유도탄(회전 한계). 기둥·경기장 벽에 닿으면 깨진다(53라운드: 수명 없음, 과제 끝 신호 뒤 사그라듦).
  * - 탄막 벽(wall): 벽 자리 선 + 진행 화살 예고 → 빈틈 없는 탄 줄이 경기장을 가로지른다(대쉬 무적으로만 통과).
  *   벽이 가까워지면(DASH_HINT_PX) 벽 등뼈가 밝아진다 = 대쉬 박자.
  * 탄 풀(생성·이동·판정) = `dodgeTrialBullets.ts`.
@@ -54,6 +54,9 @@ export interface HazardCounts {
   pending: number;
   fired: number;
   broken: number;
+  /** 벽에 깨진 유도탄 · 과제 끝 신호 뒤 꺼진 유도탄 */
+  walled: number;
+  expired: number;
   cues: Record<Cue['kind'], number>;
   /** 주인공에게 다가오는(움직이는) 벽까지 가장 가까운 거리 px — 없으면 null (디버그·검증 봇용) */
   wallNear: number | null;
@@ -118,6 +121,11 @@ export class TrialHazards {
     return this.pending.length === 0 && this.rings.length === 0 && this.walls.length === 0 && !this.bullets.anyAlive;
   }
 
+  /** 과제 끝 신호 뒤: 남은 유도탄을 서서히 끈다 */
+  expireHoming(): number {
+    return this.bullets.expireHoming();
+  }
+
   /** 디버그: 예약을 ms 만큼 앞당긴다 */
   warp(ms: number): void {
     for (const p of this.pending) p.at -= ms;
@@ -158,6 +166,8 @@ export class TrialHazards {
       pending: this.pending.length,
       fired: this.bullets.fired,
       broken: this.bullets.broken,
+      walled: this.bullets.walled,
+      expired: this.bullets.expired,
       cues: { ...this.cueCount },
       wallNear: this.nearestWall(this.scene.time.now),
       threats: this.threats(this.scene.time.now),

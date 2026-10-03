@@ -6,7 +6,7 @@
  * - 곡선: 입력점 → 구심 Catmull-Rom → 1px 간격 표본(`StrokePath`, strokeFxSpline.ts). 폭은 붓처럼 느리면 굵고 빠르면 가늘다
  *   (0.9~3.2px, 이전 2~9px), 빠를수록 밝다. 시작·끝 가늘어짐 + 낮은 주파수 흔들림.
  * - 그리기: 캔버스 2D(안티앨리어싱) 텍스처 두 장(strokeFxPaint.ts) — 가장자리가 캔버스 픽셀보다 잘게 나뉜다.
- *   1. 표면: 절차 생성한 어두운 결 텍스처 (긁히는 바탕)
+ *   1. 바탕: 주인공의 등 (53라운드, 이전엔 긁히는 어두운 표면)
  *   2. 자국 캔버스: 끝난 획은 보관 캔버스에 굽고, 긋는 중인 획은 매 프레임 다시 그린다 — 틈(검정 리본) · 들뜬 가장자리 선 · 잔불 · 심
  *   3. 빛 캔버스 (ADD): 검정 바탕에 'lighten' 으로 백열 코어(fx.core X0/X1) → 층 강조(27/26/25). 표본마다 생성 시각으로 식는다
  *   4. 불티(부드러운 점, 1px 안팎) + 펜 끝 빛 번짐, 빠르게 그을 때 미세 흔들림
@@ -14,8 +14,9 @@
  * 52라운드 Q8: 자국·빛 캔버스는 실제 캔버스 해상도(1920×1080)로 그린다 — 좌표는 논리 px 그대로, 캔버스 변환(× RESOLUTION)으로
  * 2배 촘촘하게(표본 간격 0.5 논리 px = 실제 1px). 표면 결 텍스처는 논리 해상도(배경이라 충분).
  * 획을 떼면 그 획 전체가 한 번 더 번쩍(FLARE)하고 COOL_MS 동안 식는다.
- * 3획을 다 그으면 `burst()` (49라운드 1절): 살짝 흔들림 + 획 맥동 → 백열 섬광이 획을 따라 달림 → 광선이 퍼짐
- * → 화면이 하얗게 번쩍(이때 onPeak: 다음 장면 시작) → 걷힘(onDone).
+ * 53라운드 Q3: 바탕 = 화면 가득 찬 주인공의 등(`strokeFxBack.ts`, 어깨 혼불). 3획을 다 그으면 `sear()`:
+ * 획이 호박빛으로 타오름 → 살에 스며들며 어두운 균열 + 잔불 심(`strokeFxSear.ts`) → 불티 → 검게 덮임(onPeak: 다음 장면 시작)
+ * → 걷힘(onDone). (49라운드 빛 터짐은 폐기)
  * 판정(strokeFeatures)과 무관한 표시 전용.
  */
 import Phaser from 'phaser';
@@ -23,20 +24,14 @@ import { GAME } from '../core/Constants';
 import { CANVAS_H, CANVAS_W, RES } from './display';
 import { PALETTE } from '../data';
 import { fxCoreColor, hexToInt, rampFor } from './palette';
-import { STROKE_FX, burstAt, burstRays, heatAt, pathPointAt, widthRatio, type BurstRay } from './strokeFxMath';
-import {
-  fillRibbon,
-  glowDot,
-  hash01,
-  lightColor,
-  paintRays,
-  rgba,
-  strokeCenter,
-  strokeEdge,
-  type Ctx,
-} from './strokeFxPaint';
+import { STROKE_FX, heatAt, pathPointAt, searAt, widthRatio, type SearState } from './strokeFxMath';
+import { fillRibbon, hash01, lightColor, rgba, strokeCenter, strokeEdge, type Ctx } from './strokeFxPaint';
 import { ensureStrokeFxTextures } from './strokeFxTextures';
-import { StrokePath, flatten, prefixCount, type StrokeSample } from './strokeFxSpline';
+import { BACK, ShoulderFire, ensureBackTexture } from './strokeFxBack';
+import { StrokeSear } from './strokeFxSear';
+import { StrokePath, flatten, type StrokeSample } from './strokeFxSpline';
+
+type GlowLayers = typeof STROKE_FX.HOT_LAYERS;
 
 interface StrokeRec {
   path: StrokePath;
@@ -63,12 +58,21 @@ export interface StrokeFxSummary {
   samples: number[];
   stepPx: number;
   render: 'canvas2d';
-  /** 빛 터짐: null = 시작 전, 아니면 경과 ms·단계 */
-  burst: { t: number; trace: number; rays: number; white: number; peaked: boolean } | null;
+  /** 53라운드 타오름·스며듦: null = 시작 전, 아니면 경과 ms·단계 */
+  sear: {
+    t: number;
+    ignite: number;
+    seep: number;
+    heat: number;
+    dark: number;
+    peaked: boolean;
+    embers: number;
+  } | null;
 }
 
 export class StrokeFx {
-  private readonly surface: Phaser.GameObjects.Image;
+  private readonly back: Phaser.GameObjects.Image;
+  private readonly fire: ShoulderFire;
   private readonly scarTex: Phaser.Textures.CanvasTexture;
   private readonly lightTex: Phaser.Textures.CanvasTexture;
   private readonly scarImg: Phaser.GameObjects.Image;
@@ -87,12 +91,10 @@ export class StrokeFx {
   private scarDirty = false;
   /** 직전 프레임에 빛 캔버스에 무언가 그렸다 (꺼질 때 한 번 더 지운다) */
   private lightLive = false;
-  private burstStart: number | null = null;
-  /** 디버그: 빛 터짐 시계를 이 ms 에 멈춤 (스크린샷용) */
-  private burstHold: number | null = null;
-  private glow?: Phaser.GameObjects.Image;
-  private white?: Phaser.GameObjects.Rectangle;
-  private rays: BurstRay[] = [];
+  private searStart: number | null = null;
+  /** 디버그: 마무리 시계를 이 ms 에 멈춤 (스크린샷용) */
+  private searHold: number | null = null;
+  private searFx?: StrokeSear;
   private peakFired = false;
   private onPeak?: () => void;
   private onDone?: () => void;
@@ -118,8 +120,14 @@ export class StrokeFx {
     this.ramp = (rampFor(PALETTE, floor) ?? rampFor(PALETTE, 1) ?? []).map(hexToInt);
     this.x0 = hexToInt(fxCoreColor(PALETTE, 0) ?? '#ffffff');
     this.x1 = hexToInt(fxCoreColor(PALETTE, 1) ?? '#fff4dc');
-    ensureStrokeFxTextures(this.scene, this.rnd);
-    this.surface = scene.add.image(0, 0, C.SURFACE.KEY).setOrigin(0, 0).setDepth(C.DEPTH_SURFACE);
+    ensureStrokeFxTextures(this.scene);
+    ensureBackTexture(this.scene, this.gray, this.ramp, this.rnd);
+    this.back = scene.add
+      .image(0, 0, BACK.KEY)
+      .setOrigin(0, 0)
+      .setScale(1 / RES)
+      .setDepth(C.DEPTH_SURFACE);
+    this.fire = new ShoulderFire(scene, C.TIP.KEY, this.ramp, C.DEPTH_FIRE);
     this.scarTex = this.makeCanvas(C.CANVAS_KEYS.SCAR);
     this.lightTex = this.makeCanvas(C.CANVAS_KEYS.LIGHT);
     this.scarImg = scene.add
@@ -246,61 +254,46 @@ export class StrokeFx {
 
   update(time: number): void {
     if (this.destroyed) return;
-    if (this.burstStart !== null) this.updateBurst(time);
+    if (this.searStart !== null) this.updateSear(time);
     if (this.destroyed || this.peakFired) return;
+    this.fire.update(time);
     if (this.scarDirty) this.renderScar(time);
     this.renderLight(time);
   }
 
   /**
-   * 3획을 다 그은 뒤 빛 터짐 (49라운드 1절). onPeak = 화면이 가장 하얀 순간(뒤에서 다음 장면 시작),
-   * onDone = 하얀 빛이 걷히고 이 연출이 스스로 파괴된 뒤.
+   * 3획을 다 그은 뒤 타오름·스며듦 (53라운드 Q3). onPeak = 화면이 가장 어두운 순간(뒤에서 다음 장면 시작),
+   * onDone = 덮개가 걷히고 이 연출이 스스로 파괴된 뒤.
    */
-  burst(onPeak?: () => void, onDone?: () => void): void {
-    if (this.burstStart !== null || this.destroyed) return;
-    const B = STROKE_FX.BURST;
+  sear(onPeak?: () => void, onDone?: () => void): void {
+    if (this.searStart !== null || this.destroyed) return;
     this.fading = true;
     this.drawing = false;
     this.active = null;
     this.tip.setVisible(false);
     this.onPeak = onPeak;
     this.onDone = onDone;
-    this.burstStart = this.scene.time.now;
-    const paths = this.strokes.map((s) => flatten(s.path.samples));
-    this.rays = burstRays(paths, this.rnd);
-    let sx = 0;
-    let sy = 0;
-    let n = 0;
-    for (const p of paths)
-      for (let i = 0; i < p.length; i += 2) {
-        sx += p[i];
-        sy += p[i + 1];
-        n += 1;
-      }
-    this.glow = this.scene.add
-      .image(n ? sx / n : GAME.WIDTH / 2, n ? sy / n : GAME.HEIGHT / 2, B.GLOW_KEY)
-      .setBlendMode(Phaser.BlendModes.ADD)
-      .setDepth(STROKE_FX.DEPTH_RAYS)
-      .setTint(this.x1)
-      .setAlpha(0);
-    this.white = this.scene.add
-      .rectangle(0, 0, GAME.WIDTH, GAME.HEIGHT, this.x0, 1)
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(B.DEPTH_WHITE)
-      .setAlpha(0);
-    this.scene.cameras.main.shake(B.CHARGE_MS, B.SHAKE_INTENSITY);
+    this.searStart = this.scene.time.now;
+    this.searFx = new StrokeSear(
+      this.scene,
+      this.strokes.map((r) => r.path.samples),
+      (i) => this.rampColor(i),
+      (i) => this.gray[i] ?? 0x5c5e62,
+      STROKE_FX.SPARKS.KEY,
+      this.rnd,
+    );
+    this.scene.cameras.main.shake(STROKE_FX.SEAR.IGNITE_MS, STROKE_FX.SEAR.SHAKE_INTENSITY);
   }
 
-  /** 디버그: 빛 터짐 시계를 ms 에 멈춘다 (null = 풀고 그 자리부터 계속). 시작 전에 걸어 둘 수도 있다 */
-  holdBurst(ms: number | null): void {
-    if (ms === null && this.burstHold !== null && this.burstStart !== null)
-      this.burstStart = this.scene.time.now - this.burstHold;
-    this.burstHold = ms;
+  /** 디버그: 마무리 시계를 ms 에 멈춘다 (null = 풀고 그 자리부터 계속). 시작 전에 걸어 둘 수도 있다 */
+  holdSear(ms: number | null): void {
+    if (ms === null && this.searHold !== null && this.searStart !== null)
+      this.searStart = this.scene.time.now - this.searHold;
+    this.searHold = ms;
   }
 
-  private burstT(time: number): number {
-    return this.burstHold ?? time - (this.burstStart ?? time);
+  private searT(time: number): number {
+    return this.searHold ?? time - (this.searStart ?? time);
   }
 
   /** 획 단계를 떠날 때(빛 터짐 없이, 폴백): 전부 서서히 사라지고 파괴 */
@@ -310,7 +303,7 @@ export class StrokeFx {
     this.drawing = false;
     this.tip.setVisible(false);
     this.scene.tweens.add({
-      targets: [this.surface, this.scarImg, this.lightImg],
+      targets: [this.back, this.scarImg, this.lightImg],
       alpha: 0,
       duration: STROKE_FX.FADE_OUT_MS,
       onComplete: () => {
@@ -336,20 +329,7 @@ export class StrokeFx {
       samples: this.strokes.map((s) => s.path.samples.length),
       stepPx: STROKE_FX.SPLINE.STEP_PX,
       render: 'canvas2d',
-      burst:
-        this.burstStart === null
-          ? null
-          : (() => {
-              const t = this.burstT(this.scene.time.now);
-              const st = burstAt(t);
-              return {
-                t: Math.round(t),
-                trace: +st.trace.toFixed(2),
-                rays: +st.rays.toFixed(2),
-                white: +st.white.toFixed(2),
-                peaked: st.peaked,
-              };
-            })(),
+      sear: this.searSummary(),
     };
   }
 
@@ -358,7 +338,8 @@ export class StrokeFx {
     this.destroyed = true;
     this.strokes = [];
     this.active = null;
-    this.surface.destroy();
+    this.back.destroy();
+    this.fire.destroy();
     this.scarImg.destroy();
     this.lightImg.destroy();
     const tex = this.scene.textures;
@@ -366,8 +347,7 @@ export class StrokeFx {
     this.sparks.destroy();
     this.debris.destroy();
     this.tip.destroy();
-    this.glow?.destroy();
-    this.white?.destroy();
+    this.searFx?.destroy();
   }
 
   // --- 내부: 그리기 ---
@@ -443,7 +423,7 @@ export class StrokeFx {
   /** 빛 캔버스: 검정 바탕 + 'lighten'. 식은 뒤 한 번 지우고 멈춘다 */
   private renderLight(time: number): void {
     const C = STROKE_FX;
-    const bursting = this.burstStart !== null && !this.peakFired;
+    const st = this.searStart !== null && !this.peakFired ? searAt(this.searT(time)) : null;
     let hot = 0;
     const ctx = this.lightTex.context;
     const begin = () => {
@@ -459,7 +439,7 @@ export class StrokeFx {
       if (n === 0) continue;
       const fa = rec.flareAt === null ? null : time - rec.flareAt;
       // 끝 표본이 식었으면 그 획은 다 식었다 (앞쪽이 먼저 태어났다)
-      if (heatAt(time - pts[n - 1].born, fa) <= 0) continue;
+      if (st || heatAt(time - pts[n - 1].born, fa) <= 0) continue;
       for (let a = 0; a < n; a += C.CHUNK_SAMPLES) {
         const b = Math.min(n - 1, a + C.CHUNK_SAMPLES);
         const mid = pts[(a + b) >> 1];
@@ -474,10 +454,10 @@ export class StrokeFx {
       }
     }
     this.hotSamples = hot;
-    if (bursting) {
+    if (st) {
       if (!cleared) begin();
       cleared = true;
-      this.paintBurst(ctx, time);
+      for (const rec of this.strokes) this.paintSearGlow(ctx, rec.path.samples, st);
     }
     if (!cleared && !this.lightLive) return;
     if (!cleared) begin();
@@ -486,9 +466,17 @@ export class StrokeFx {
     this.lightLive = cleared;
   }
 
-  /** 표본 [a, b] 를 HOT_LAYERS 로 (열기 heat, 폭 배율 widthMul) */
-  private paintGlow(ctx: Ctx, pts: StrokeSample[], a: number, b: number, heat: number, widthMul: number): void {
-    for (const L of STROKE_FX.HOT_LAYERS) {
+  /** 표본 [a, b] 를 빛 층(기본 HOT_LAYERS)으로 (열기 heat, 폭 배율 widthMul) */
+  private paintGlow(
+    ctx: Ctx,
+    pts: StrokeSample[],
+    a: number,
+    b: number,
+    heat: number,
+    widthMul: number,
+    layers: GlowLayers = STROKE_FX.HOT_LAYERS,
+  ): void {
+    for (const L of layers) {
       const k = L.alpha * Math.pow(Math.min(1, heat), L.pow) * (heat > 1 ? heat : 1);
       if (k < 0.01) continue;
       const color = L.color === 'x0' ? this.x0 : L.color === 'x1' ? this.x1 : this.rampColor(L.color);
@@ -496,72 +484,42 @@ export class StrokeFx {
     }
   }
 
-  /** 빛 터짐: 모음(맥동) · 섬광 트레이스 · 광선 */
-  private paintBurst(ctx: Ctx, time: number): void {
-    const C = STROKE_FX;
-    const B = C.BURST;
-    const t = this.burstT(time);
-    const st = burstAt(t);
-    if (st.peaked) return;
-    const pulse = 1 + 0.18 * Math.sin((t / B.PULSE_MS) * Math.PI * 2);
-    const heat = (B.CHARGE_HEAT[0] + (B.CHARGE_HEAT[1] - B.CHARGE_HEAT[0]) * st.charge) * pulse;
-    for (const rec of this.strokes) {
-      const pts = rec.path.samples;
-      if (pts.length >= 2) this.paintGlow(ctx, pts, 0, pts.length - 1, heat, 1);
-    }
-    if (st.trace > 0)
-      for (const rec of this.strokes) {
-        const pts = rec.path.samples;
-        if (pts.length < 2) continue;
-        const k = Math.max(1, prefixCount(pts, st.trace));
-        this.paintGlow(ctx, pts, 0, k - 1, B.TRACE_HEAT, B.TRACE_WIDTH);
-        if (st.trace < 1) {
-          const h = pts[k - 1];
-          ctx.globalCompositeOperation = 'lighter';
-          glowDot(ctx, h.x, h.y, B.TRACE_HEAD_PX * 2.5, this.x0, 1);
-          ctx.globalCompositeOperation = 'lighten';
-          this.sparks.setEmitterAngle({ min: 0, max: 360 });
-          this.sparks.emitParticleAt(h.x, h.y, 2);
-        }
-      }
-    if (st.rays > 0)
-      paintRays(
-        ctx,
-        this.rays,
-        st.rays,
-        [
-          { lf: 1, wf: 1, color: this.rampColor(10), a: 0.2 },
-          { lf: 0.68, wf: 0.55, color: this.x1, a: 0.32 },
-          { lf: 0.38, wf: 0.24, color: this.x0, a: 0.6 },
-        ],
-        B.RAY_ROOT_PX,
-      );
-    if (this.glow) {
-      const e = 1 - Math.pow(1 - st.rays, 3);
-      this.glow.setAlpha(0.95 * e).setScale(0.2 + (B.GLOW_SCALE - 0.2) * e);
+  /** 타오름·스며듦: 획 전체를 호박빛 층으로 (조각마다 살짝 다른 일렁임) */
+  private paintSearGlow(ctx: Ctx, pts: StrokeSample[], st: SearState): void {
+    const n = pts.length;
+    if (n < 2) return;
+    const step = STROKE_FX.CHUNK_SAMPLES * 4;
+    const flick = st.seep < 1 ? STROKE_FX.SEAR.FLICKER * (1 - st.seep) : 0;
+    for (let a = 0; a < n - 1; a += step) {
+      const b = Math.min(n - 1, a + step);
+      const k = 1 + flick * Math.sin(this.scene.time.now / 70 + a * 0.37);
+      this.paintGlow(ctx, pts, a, b, Math.min(1, st.heat * k), st.widthMul, STROKE_FX.SEAR_LAYERS);
     }
   }
 
-  // --- 내부: 빛 터짐 진행 ---
+  // --- 내부: 타오름·스며듦 진행 ---
 
-  private updateBurst(time: number): void {
-    const B = STROKE_FX.BURST;
-    const t = this.burstT(time);
-    const st = burstAt(t);
-    if (!st.peaked && st.shaking)
-      for (let k = 0; k < B.CHARGE_DEBRIS; k++) {
-        const rec = this.strokes[Math.floor(this.rnd() * this.strokes.length)];
-        const pts = rec?.path.samples;
-        if (!pts || pts.length < 2) continue;
-        const q = pts[Math.floor(this.rnd() * pts.length)];
-        this.emitDebris(q.x, q.y, 1);
+  private updateSear(time: number): void {
+    const S = STROKE_FX.SEAR;
+    const st = searAt(this.searT(time));
+    const sear = this.searFx;
+    if (!sear) return;
+    sear.update(st);
+    this.scarImg.setAlpha(sear.scarAlpha(st));
+    this.fire.setBoost(st.peaked ? 0 : Math.max(0, st.heat - S.EMBER_HEAT));
+    if (st.shaking)
+      for (let k = 0; k < S.IGNITE_SPARKS; k++) {
+        const q = sear.randomPoint();
+        if (!q) break;
+        this.sparks.setEmitterAngle({ min: 200, max: 340 });
+        this.sparks.emitParticleAt(q.x, q.y, 1);
       }
-    this.white?.setAlpha(st.white);
     if (st.peaked && !this.peakFired) {
-      // 가장 하얀 순간: 긁힌 화면을 걷어내고 다음 장면을 뒤에서 시작
+      // 가장 어두운 순간: 등을 걷어내고 다음 장면을 뒤에서 시작
       this.peakFired = true;
-      for (const o of [this.surface, this.scarImg, this.lightImg, this.sparks, this.debris, this.tip, this.glow])
-        o?.setVisible(false);
+      for (const o of [this.back, this.scarImg, this.lightImg, this.sparks, this.debris, this.tip]) o.setVisible(false);
+      this.fire.setVisible(false);
+      sear.hideScene();
       this.onPeak?.();
     }
     if (st.done) {
@@ -569,6 +527,21 @@ export class StrokeFx {
       this.destroy();
       done?.();
     }
+  }
+
+  private searSummary(): StrokeFxSummary['sear'] {
+    if (this.searStart === null) return null;
+    const t = this.searT(this.scene.time.now);
+    const st = searAt(t);
+    return {
+      t: Math.round(t),
+      ignite: +st.ignite.toFixed(2),
+      seep: +st.seep.toFixed(2),
+      heat: +st.heat.toFixed(2),
+      dark: +st.dark.toFixed(2),
+      peaked: st.peaked,
+      embers: this.searFx?.embersEmitted ?? 0,
+    };
   }
 
   // --- 내부: 입자 ---
