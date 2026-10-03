@@ -68,3 +68,7 @@
 - 불 웅덩이 그림 깊이: **발 기준 앞뒤 정렬로 (추천)** — 불빛은 자체 광원으로 어둠에서도 보이게.
 - 굴러가는 술통 판정 반경: **그림 지름 기준 8.5 (추천)**.
 - 계약 보충: `circumferencePx`·`diameterPx` 는 논리 px 단위, onfire `lightByPhase`.
+
+### Q28. 누운 자세 불길 (art ffafe90)
+- 결정: **모두 추천대로 (추천)** — 넘어지는 중간·일어나 앉은 프레임도 누운 불길(`useFor`/`standFor`), 전환 프레임 `frameOffsets` 적용(빛 함께), 죽는 동안 타다가 마지막 프레임에서 out, 짧은 프레임의 작은 흠은 그대로.
+- 계약 보충: `boss1_onfire_down` 키 `useFor`·`standFor`·`frameOffsets`(도트), 두 시트 전환 시 열 번호 이어 쓰기.
