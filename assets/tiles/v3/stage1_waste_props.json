@@ -1,0 +1,343 @@
+{
+ "image": "stage1_waste_props.png",
+ "version": "v3 (53라운드 Q12 — 바닥 소품 2배 밀도)",
+ "stage": 1,
+ "region": "waste",
+ "name": "잔(盞) — 황무지 바닥 소품 v3",
+ "pixelScale": 0.5,
+ "units": "모든 길이·좌표(rect·pivot·occludeAbove·light.radius·light.offset)는 시트 도트. 논리 px = 도트 × pixelScale(0.5). 1920 렌더에서 1:1",
+ "cell": 64,
+ "columns": 16,
+ "indexFormula": "row * columns + column (64 도트 격자, rect 왼쪽 위 칸)",
+ "propCell": {
+  "w": 128,
+  "h": 128
+ },
+ "anchorRule": "props: pivot 을 놓일 칸의 논리 (16, 30) 자리에 둔다(v2 와 같은 자리). bigProps: pivot 을 발자국(footprint 가로×세로 칸) 맨 아래 줄의 가로 가운데, 바닥 위 2 논리 px 에 둔다. Y 정렬 기준 = pivot.y, 피벗 위 occludeAbove 도트부터 캐릭터를 가림(§9). light.offset = rect 왼쪽 위 기준 도트",
+ "props": [
+  {
+   "name": "crate",
+   "index": 0,
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "pivot": {
+    "x": 64,
+    "y": 120
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 20,
+   "maxPerRoom": 2,
+   "weight": 0.6
+  },
+  {
+   "name": "sacks",
+   "index": 2,
+   "rect": {
+    "x": 128,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "pivot": {
+    "x": 64,
+    "y": 120
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 20,
+   "maxPerRoom": 1,
+   "weight": 0.5
+  },
+  {
+   "name": "sandbags",
+   "index": 4,
+   "rect": {
+    "x": 256,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "pivot": {
+    "x": 64,
+    "y": 120
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 24,
+   "maxPerRoom": 2,
+   "weight": 0.8
+  },
+  {
+   "name": "helmet_shield",
+   "index": 6,
+   "rect": {
+    "x": 384,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "pivot": {
+    "x": 64,
+    "y": 120
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": false,
+   "maxPerRoom": 2,
+   "weight": 0.8,
+   "depth": "floor",
+   "note": "혼불 fx 자리(Q25: 둑 위 2~3개는 fx) — 투구 위 0.5칸"
+  },
+  {
+   "name": "bones",
+   "index": 8,
+   "rect": {
+    "x": 512,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "pivot": {
+    "x": 64,
+    "y": 120
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": false,
+   "maxPerRoom": 2,
+   "weight": 0.7,
+   "depth": "floor"
+  },
+  {
+   "name": "campfire",
+   "index": 10,
+   "rect": {
+    "x": 640,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "pivot": {
+    "x": 64,
+    "y": 120
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 30,
+   "maxPerRoom": 1,
+   "weight": 0.6,
+   "light": {
+    "color": "#eebb6d",
+    "radius": 400,
+    "intensity": 1.25,
+    "flicker": {
+     "amp": 0.18,
+     "hz": 6
+    },
+    "offset": {
+     "x": 64,
+     "y": 80
+    }
+   }
+  },
+  {
+   "name": "debris",
+   "index": 12,
+   "rect": {
+    "x": 768,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "pivot": {
+    "x": 64,
+    "y": 120
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": false,
+   "maxPerRoom": 3,
+   "weight": 1.0,
+   "depth": "floor"
+  },
+  {
+   "name": "mud_puddle",
+   "index": 14,
+   "rect": {
+    "x": 896,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "pivot": {
+    "x": 64,
+    "y": 120
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": false,
+   "maxPerRoom": 3,
+   "weight": 1.0,
+   "depth": "floor"
+  }
+ ],
+ "propsNote": "인덱스 소품(무작위 배치, 계약 §2 의 13~20 자리). 128×128 칸, 배경 투명. slot = v2 타일셋의 같은 뜻 인덱스(외곽만). depth 'floor' = 바닥 데칼(통과·Y 정렬 없음).",
+ "bigProps": [
+  {
+   "name": "banner_pole",
+   "index": 32,
+   "rect": {
+    "x": 0,
+    "y": 128,
+    "w": 96,
+    "h": 208
+   },
+   "pivot": {
+    "x": 42,
+    "y": 202
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 50,
+   "placement": "floor"
+  },
+  {
+   "name": "weapons_stuck",
+   "index": 34,
+   "rect": {
+    "x": 128,
+    "y": 128,
+    "w": 96,
+    "h": 192
+   },
+   "pivot": {
+    "x": 48,
+    "y": 184
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": false,
+   "occludeAbove": 40,
+   "placement": "floor"
+  },
+  {
+   "name": "stakes",
+   "index": 36,
+   "rect": {
+    "x": 256,
+    "y": 128,
+    "w": 160,
+    "h": 176
+   },
+   "pivot": {
+    "x": 80,
+    "y": 168
+   },
+   "footprint": [
+    2,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 60,
+   "placement": "floor (흙둑 앞·엄폐)"
+  },
+  {
+   "name": "broken_cart",
+   "index": 39,
+   "rect": {
+    "x": 448,
+    "y": 128,
+    "w": 176,
+    "h": 160
+   },
+   "pivot": {
+    "x": 88,
+    "y": 150
+   },
+   "footprint": [
+    2,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 40,
+   "placement": "floor (가장자리 권장)",
+   "light": {
+    "color": "#eebb6d",
+    "radius": 360,
+    "intensity": 1.1,
+    "flicker": {
+     "amp": 0.18,
+     "hz": 6
+    },
+    "offset": {
+     "x": 116,
+     "y": 60
+    }
+   }
+  },
+  {
+   "name": "cannon",
+   "index": 42,
+   "rect": {
+    "x": 640,
+    "y": 128,
+    "w": 160,
+    "h": 112
+   },
+   "pivot": {
+    "x": 78,
+    "y": 104
+   },
+   "footprint": [
+    2,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 30,
+   "placement": "floor"
+  }
+ ],
+ "bigPropsNote": "계약 §12 bigProps 규칙 배치용. rect 로 자른다. lights[] 가 있으면 light 대신 여러 광원(연회 탁자 촛대).",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "emissiveNote": "이 색 픽셀은 자체 발광(불꽃·등불·촛불·끓는 술). 조명 곱하기 뒤 가산 레이어로 다시 그린다(목업 방식)",
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "source": "parts/art/work/props_v3/build.py (53라운드 Q12)"
+}

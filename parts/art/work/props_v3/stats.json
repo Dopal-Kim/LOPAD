@@ -1,0 +1,47 @@
+{
+ "outer": {
+  "sheet": [
+   1024,
+   384
+  ],
+  "props": 8,
+  "bigProps": 5,
+  "opaqueColors": 39
+ },
+ "waste": {
+  "sheet": [
+   1024,
+   384
+  ],
+  "props": 8,
+  "bigProps": 5,
+  "opaqueColors": 31
+ },
+ "gate": {
+  "sheet": [
+   1024,
+   512
+  ],
+  "props": 7,
+  "bigProps": 6,
+  "opaqueColors": 36
+ },
+ "brewery": {
+  "sheet": [
+   1024,
+   448
+  ],
+  "props": 8,
+  "bigProps": 5,
+  "opaqueColors": 33
+ },
+ "hall": {
+  "sheet": [
+   1024,
+   448
+  ],
+  "props": 6,
+  "bigProps": 4,
+  "opaqueColors": 38
+ }
+}
