@@ -24,10 +24,14 @@ from PIL import Image, ImageDraw, ImageFont  # noqa: E402
 
 G, T, ROOT = tc2.G, tc2.T, tc2.ROOT
 FONT = tc2.FONT
-try:
-    FONT_KR = ImageFont.truetype("/usr/share/fonts/truetype/unifont/unifont.ttf", 16)
-except Exception:  # pragma: no cover
-    FONT_KR = FONT
+FONT_KR = FONT
+for _p in ("/usr/share/fonts/truetype/unifont/unifont.ttf", "/usr/share/fonts/opentype/unifont/unifont.otf",
+           "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"):          # 53라운드: unifont.ttf 없는 환경에서 한글이 □ 로 나오던 것 보완
+    try:
+        FONT_KR = ImageFont.truetype(_p, 16)
+        break
+    except Exception:  # pragma: no cover
+        pass
 
 
 def colors(floor_no):
@@ -182,13 +186,44 @@ class Scene:
         canvas.alpha_composite(world.crop((x0, y0, x0 + vw * T, y0 + 270)))
         return canvas
 
+    # ---- 53라운드 Q73: v3 캐릭터(도트 = 내부 렌더 1px) 목업 ----------------------------------
+    def put_sprite_dots(self, img, pivot, foot_x, foot_y, pixel_scale=0.5):
+        """v3 시트(pixelScale = 논리 px / 도트) 를 월드 발 위치 (foot_x, foot_y) 에 놓는다. render_hi 에서만 그려진다.
+        월드 1px = 논리 2px = 내부 렌더 4px. pixelScale 0.5 → 도트 1개 = 내부 렌더 1px."""
+        self.overlays_hi = getattr(self, "overlays_hi", [])
+        self.overlays_hi.append((foot_y, foot_x, pivot, img, pixel_scale))
 
-def label(img, text, xy=(6, 4)):
+    def render_hi(self, view_tx, view_ty, vw=30, vh=17, extra_py=0, K=4):
+        """render() 와 같은 화면을 내부 렌더 해상도(월드 ×K, 기본 4 = 1920×1080)로. 타일·구조물은 최근접 확대,
+        put_sprite_dots 캐릭터는 도트 그대로(pixelScale 0.5 기준 1:1). 발 y 로 함께 정렬."""
+        world = Image.new("RGBA", (self.W * T, self.H * T + T), (0, 0, 0, 255))
+        for y in range(self.H):
+            for x in range(self.W):
+                world.alpha_composite(self.tile_img(self.grid[y][x]), (x * T, y * T))
+        for (x, y), nm in self.tiles_over.items():
+            world.alpha_composite(self.tile_img(nm), (x * T, y * T))
+        big = world.resize((world.width * K, world.height * K), Image.NEAREST)
+        items = [(fy, 0, (x * K, y * K), img.resize((img.width * K, img.height * K), Image.NEAREST)) for fy, x, y, img in self.overlays]
+        for fy, fx, piv, img, ps in getattr(self, "overlays_hi", []):
+            k = K * ps / 2                       # 내부 렌더 px / 도트
+            if k != 1:
+                img = img.resize((round(img.width * k), round(img.height * k)), Image.NEAREST)
+            items.append((fy, 1, (round(fx * K - piv[0] * k), round(fy * K - piv[1] * k)), img))
+        for _, _, (x, y), img in sorted(items, key=lambda o: (o[0], o[1])):
+            big.alpha_composite(img, (x, y)) if x >= 0 and y >= 0 else big.paste(img, (x, y), img)
+        x0, y0 = view_tx * T * K, (view_ty * T + extra_py) * K
+        canvas = Image.new("RGBA", (vw * T * K, 270 * K), (0, 0, 0, 255))
+        canvas.alpha_composite(big.crop((x0, y0, x0 + vw * T * K, y0 + 270 * K)))
+        return canvas
+
+
+def label(img, text, xy=(6, 4), font=None):
     d = ImageDraw.Draw(img)
     x, y = xy
+    f = font or FONT_KR
     for dx, dy in ((1, 1), (-1, 0), (1, 0), (0, -1), (0, 1)):
-        d.text((x + dx, y + dy), text, fill=(0, 0, 0), font=FONT_KR)
-    d.text((x, y), text, fill=(235, 235, 235), font=FONT_KR)
+        d.text((x + dx, y + dy), text, fill=(0, 0, 0), font=f)
+    d.text((x, y), text, fill=(235, 235, 235), font=f)
 
 
 def accent_ratio(img, floor_no):

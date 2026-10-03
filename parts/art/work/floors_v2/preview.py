@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# [53라운드] 미리보기·목업 입력 중 구 시트(assets/sprites/player/player_*, enemies/{dummy,archer,charger}_*, enemies/v2/charger_*, player/v2/*)는 삭제됨 — v3 시트로 바꿀지 결정 대기(아트 보고서 인터뷰 항목). 그 단계는 재실행 시 FileNotFoundError.
+# [53라운드 Q73] 목업 속 캐릭터를 v3 그림으로 교체 — 결사병 v2(삭제) → enemies/v3/charger_*(128×176 pivot (64,170), pixelScale 0.5 → 렌더 1:1 = 화면 64×88). 주인공 player/v3(96×144 pivot (48,138) → 화면 48×72).
 """53라운드 — 5지역 미리보기: 쿼터뷰 바닥(v2 타일) + Gemini 테두리 + v3 소품 + v3 주인공(1.5배), 조명 합성.
 
 python3 parts/art/work/floors_v2/preview.py [region ...]
@@ -172,12 +172,15 @@ def build(rid):
     hero, hj = M.frame(os.path.join(ROOT, "assets/sprites/player/v3/player_idle"), 0, 0)
     items.append((hy, hx - hj["pivot"]["x"] / 2, hy - hj["pivot"]["y"] / 2, hero, M.emissive_of(hero, emc | {(226, 163, 60)}),
                   [(hx - 10, hy - 40, HERO_LIGHT["color"], HERO_LIGHT["radius"], HERO_LIGHT["intensity"])], (hx, hy, 34)))
-    for (path, row, col, dx, dy) in (("enemies/v2/charger_walk", 2, 2, 150, -40), ("enemies/v2/charger_attack", 3, 1, -170, 30),
-                                     ("enemies/v2/charger_idle", 1, 0, 70, 150)):
+    # 53라운드 Q73: 결사병 v3. 프레임 = oldTiming.framesMap (구 attack 1 → v3 3). 화면 64×88 이라 주인공과 간격 조금 넓힘
+    for (path, row, col, dx, dy) in (("enemies/v3/charger_walk", 2, 2, 160, -40), ("enemies/v3/charger_attack", 3, 3, -180, 30),
+                                     ("enemies/v3/charger_idle", 1, 0, 150, 150)):   # 70 → 150: 외곽 화로(16,8)와 겹침 피함
         im, j = M.frame(os.path.join(ROOT, "assets/sprites", path), row, col)
-        im = M.up(im, R * j.get("pixelScale", 1))
+        ps = j.get("pixelScale", 1)                      # 논리 px / 도트
+        im = M.up(im, R * ps)                            # v3(0.5) = ×1
         ex, ey = hx + dx, hy + dy
-        items.append((ey, ex - j["pivot"]["x"], ey - j["pivot"]["y"], im, M.emissive_of(im, emc), [], (ex, ey, 24)))
+        items.append((ey, ex - j["pivot"]["x"] * ps, ey - j["pivot"]["y"] * ps, im, M.emissive_of(im, emc), [],
+                      (ex, ey, int(j["frameWidth"] * ps * 0.7))))   # 그림자 폭 = 화면 폭 × 0.7 (주인공 34/48 과 같은 비율)
     items.sort(key=lambda t: t[0])
     for (sy, x0, y0, im, em, lights, shadow) in items:
         if shadow:
@@ -219,7 +222,7 @@ def collage():
         out.paste(im, (x, y))
         ImageDraw.Draw(out).text((x + 8, y - 40), f"{NAMES[r]} — v2 바닥 + 테두리 + v3 소품 + v3 주인공", fill=(235, 225, 200), font=f)
     d = ImageDraw.Draw(out)
-    d.text((980, 2 * 588 + 60), "주변광 0.425/0.425/0.475 (Q9 × 1.25, Q23)\n주인공 빛 r140 · 0.75 (Q23 임시)\n적 = 결사병 v2(크기 후속)\n"
+    d.text((980, 2 * 588 + 60), "주변광 0.425/0.425/0.475 (Q9 × 1.25, Q23)\n주인공 빛 r140 · 0.75 (Q23 임시)\n적 = 결사병 v3 (화면 64×88, Q73)\n"
            "1배 = 1920×1080 렌더를 절반으로 줄인 모음", fill=(200, 190, 170), font=f)
     out.save(os.path.join(HERE, "preview_mock_f1.png"))
     print("collage")

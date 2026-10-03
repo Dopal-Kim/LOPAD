@@ -22,6 +22,8 @@ V2_P = os.path.join(ROOT, "assets/sprites/player/v2")
 FW, FH, PIV = hero.FW, hero.FH, hero.PIV
 DIRS = anim.DIRS
 SRC = "parts/art/work/hero_v3/build.py (53라운드 Q1·Q4 — 96×144 1.5배 재출력)"
+# 53라운드 Q70: 근접 판정 원점 메모 = 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px = 40 도트(pixelScale 0.5). 구 메모 '60 도트' 정정
+HIT_ORIGIN_NOTE = "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)"
 OLD_P = os.path.join(ROOT, "assets/sprites/player")
 SCAR_NOTE = ("53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, "
              "rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. "
@@ -120,6 +122,12 @@ def body_meta(act):
     if os.path.exists(v2):
         o = json.load(open(v2, encoding="utf-8"))
         m["v2Timing"] = {"frames": o["frames"], "frameDurationsMs": o["frameDurationsMs"], "totalMs": sum(o["frameDurationsMs"])}
+    else:   # 53라운드: player/v2 시트 삭제됨 → 이미 낸 v3 JSON 의 v2Timing 을 그대로 이어 쓴다(재빌드 때 기록이 사라지지 않게)
+        cur = os.path.join(OUT_P, "player_%s.json" % act)
+        if os.path.exists(cur):
+            o = json.load(open(cur, encoding="utf-8"))
+            if "v2Timing" in o:
+                m["v2Timing"] = o["v2Timing"]
     return m
 
 
@@ -210,7 +218,7 @@ def combo_meta(n):
                 v2Timing={"frames": o["frames"], "frameDurationsMs": o["frameDurationsMs"], "hitFrames": o["hitFrames"],
                           "cancelFromFrame": o["cancelFromFrame"], "timingMs": o["timingMs"]},
                 timingNote="v3 는 프레임이 늘었지만 판정 시작(hitAt)·판정 끝·캔슬 시작(cancelAt)·전체(total) ms 는 v2 와 같다 — 판정 시점 불변.",
-                **K.ARC[n], hitOrigin="몸 중심 = 피벗(발)에서 위로 60 도트 (96×144 몸 기준)",
+                **K.ARC[n], hitOrigin=HIT_ORIGIN_NOTE,
                 hitRadiusPx=132, hitNote="임시(아트 메모). v2 66px(pixelScale 1) = v3 132 도트(pixelScale 0.5) — 논리 크기 같음. 시스템 실제 판정값이 우선",
                 arcAngleNote=ARC_NOTE, framesBasis="player_katana_combo%d 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)" % n,
                 frameStates=[f["state"] for f in c["frames"]])

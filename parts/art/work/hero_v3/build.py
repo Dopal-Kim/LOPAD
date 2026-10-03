@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# [53라운드] 미리보기·목업 입력 중 구 시트(assets/sprites/player/player_*, enemies/{dummy,archer,charger}_*, enemies/v2/charger_*, player/v2/*)는 삭제됨 — v3 시트로 바꿀지 결정 대기(아트 보고서 인터뷰 항목). 그 단계는 재실행 시 FileNotFoundError.
+# [53라운드 Q73] 목업 속 캐릭터를 v3 그림으로 교체 — 1배 조명 합성의 비교 칸 '결사병 v2'(삭제된 enemies/v2/charger_idle) → '결사병 v3'(enemies/v3/charger_idle, 128×176 pivot (64,170), pixelScale 0.5 = 주인공과 같은 1:1).
 """주인공 v3 전체 시트 빌드 — 53라운드 Q1(1.5배 96×144)·Q4(등 상흔 기준점) 재출력.
 
 최종 산출(게임이 읽음, 계약 §11·§13 v3 경로):
@@ -97,17 +97,20 @@ def main(only=None):
         print("weapon edge pixels", clip)
         return
 
-    # ---- 1배 조명 합성: 64×96 이전 판 · 결사병 v2 · 96×144 새 판 -------------------------
+    # ---- 1배 조명 합성: 64×96 이전 판 · 결사병 v3 · 96×144 새 판 -------------------------
     ref = os.path.join(HERE, "ref_64")
     old = old_frame(os.path.join(ref, "player_idle.png"), 64, 96, 0, 0)
     oldc = Image.new("RGBA", (128, 128))
     oldc.alpha_composite(old, (32, 32))
     oldc.alpha_composite(old_frame(os.path.join(ref, "katana_carry_idle.png"), 128, 128, 0, 0))
-    charger = old_frame(os.path.join(ROOT, "assets/sprites/enemies/v2/charger_idle.png"), 32, 48, 0, 0, scale=2)
+    with open(os.path.join(ROOT, "assets/sprites/enemies/v3/charger_idle.json"), encoding="utf-8") as f:
+        cj = json.load(f)
+    charger = old_frame(os.path.join(ROOT, "assets/sprites/enemies/v3/charger_idle.png"), cj["frameWidth"], cj["frameHeight"], 0, 0)
+    cpiv = (cj["pivot"]["x"], cj["pivot"]["y"])   # v3 = pixelScale 0.5 (주인공과 같은 밀도) → 1배 렌더에 1:1
     b, cw, cd = keep["idle"], keep["idle_carry"], keep["idle_drawn"]
     piv = (hero.PIV[0] + K.OFF, hero.PIV[1] + K.OFF)
     spots = [("이전 64×96", oldc, (64, 124), True),
-             ("결사병 v2", charger, (32, 92), False),
+             ("결사병 v3", charger, cpiv, False),
              ("새 대기+칼", PV.compose(b["down"][2].image, cw["down"][2]), piv, True),
              ("걷기(옆)", PV.compose(keep["walk"]["left"][2].image, keep["walk_carry"]["left"][2]), piv, True),
              ("달리기", PV.compose(keep["run"]["right"][1].image, keep["run_carry"]["right"][1]), piv, True),

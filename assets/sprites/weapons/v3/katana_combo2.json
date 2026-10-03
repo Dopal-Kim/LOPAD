@@ -78,7 +78,7 @@
  "arcFromDeg": 65,
  "arcToDeg": -65,
  "nextCombo": "katana_combo3",
- "hitOrigin": "몸 중심 = 피벗(발)에서 위로 60 도트 (96×144 몸 기준)",
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
  "hitRadiusPx": 132,
  "hitNote": "임시(아트 메모). v2 66px(pixelScale 1) = v3 132 도트(pixelScale 0.5) — 논리 크기 같음. 시스템 실제 판정값이 우선",
  "arcAngleNote": "right 방향 화면각(0 = 정면, + = 아래, from→to = 휘두름 방향). down = +90° 회전, up = -90°, left = 좌우 반전(180-θ)",

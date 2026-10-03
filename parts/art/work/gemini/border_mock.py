@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# [53라운드] 미리보기·목업 입력 중 구 시트(assets/sprites/player/player_*, enemies/{dummy,archer,charger}_*, enemies/v2/charger_*, player/v2/*)는 삭제됨 — v3 시트로 바꿀지 결정 대기(아트 보고서 인터뷰 항목). 그 단계는 재실행 시 FileNotFoundError.
+# [53라운드 Q73] 목업 속 캐릭터를 v3 그림으로 교체 — 결사병 v2(삭제) → enemies/v3/charger_*(128×176 pivot (64,170), pixelScale 0.5 → 렌더 1:1 = 화면 64×88). 주인공은 player/v3(96×144 pivot (48,138)).
 """53라운드 Q6 — 1층 5지역 테두리 목업 (1920×1080 = 논리 960×540 × 2).
 
 python3 parts/art/work/gemini/border_mock.py [region ...]     # 기본 5지역 전부 + 모음 그림
@@ -206,9 +206,10 @@ def build(rid):
         im, j = M.frame(os.path.join(SPR, path), row, col)
         r = M.up(im, R * j.get("pixelScale", 1))
         return r, (int(j["pivot"]["x"] * r.width / im.width), int(j["pivot"]["y"] * r.height / im.height))
-    for (path, row, col, x, y) in (("enemies/v2/charger_walk", 2, 2, hx + 150, 3 * T + 20),
-                                   ("enemies/v2/charger_attack", 3, 1, hx - 170, 4 * T + 10),
-                                   ("enemies/v2/charger_idle", 1, 0, hx + 60, 11 * T)):
+    # 53라운드 Q73: v3 결사병(화면 64×88)은 구 v2(32×48)보다 커서 주인공과 간격을 조금 넓힘. 프레임 = oldTiming.framesMap (구 attack 1 → v3 3)
+    for (path, row, col, x, y) in (("enemies/v3/charger_walk", 2, 2, hx + 160, 3 * T + 20),
+                                   ("enemies/v3/charger_attack", 3, 3, hx - 180, 4 * T + 10),
+                                   ("enemies/v3/charger_idle", 1, 0, hx + 60, 11 * T)):
         im, piv = ch(path, row, col)
         items.append((y, x, im, piv, None, True, None))
     emc = M.load_tiles()[3]           # v2 발광색(주인공 눈빛·혼불 등)

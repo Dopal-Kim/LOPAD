@@ -1,8 +1,8 @@
-# [53라운드] 미리보기·목업 입력 중 구 시트(assets/sprites/player/player_*, enemies/{dummy,archer,charger}_*, enemies/v2/charger_*, player/v2/*)는 삭제됨 — v3 시트로 바꿀지 결정 대기(아트 보고서 인터뷰 항목). 그 단계는 재실행 시 FileNotFoundError.
+# [53라운드 Q73] 목업 속 캐릭터를 v3 그림으로 교체 — 결사병 v2(삭제) → enemies/v3/charger_*(128×176 pivot (64,170), pixelScale 0.5 = 렌더 1:1). 프레임은 v3 JSON oldTiming.framesMap 으로 같은 순간에 맞춤.
 """53라운드 외벽 테두리 목업 — 1920×1080 렌더(논리 960×540 × 2).
 
 외곽 v2 바닥 도트(assets/tiles/v2/stage1_outer, 32px → 렌더 64px) + Gemini 테두리(assets/tiles/border/outer, 렌더 1:1)
-+ 캐릭터(주인공 v3 64×96 → 53라운드 Q1 크기 96×144 로 1.5배 근사, 결사병 v2 ×2) → 곱하기 조명 + 발광 가산 + 번짐 + 비네팅.
++ 캐릭터(주인공 v3 96×144 pivot (48,138)·결사병 v3 128×176 pivot (64,170), pixelScale 0.5 → 렌더 1:1 = 화면 48×72·64×88) → 곱하기 조명 + 발광 가산 + 번짐 + 비네팅.
 시스템 구현을 모르므로(교차 참조 금지) border.json 의 drawOrder·place 규칙만으로 쌓는다. 산출: parts/art/work/gemini/preview_border_outer*.png
 """
 import json, math, os
@@ -274,19 +274,19 @@ def build_world():
     def add_char(im_piv, x, y, light=None):
         im, piv = im_piv
         items.append((y, x, im, piv, up(emissive_of(im, emc), 1), True, light))
-    # 북쪽 벽 근처 장면
+    # 북쪽 벽 근처 장면 (53라운드 Q73: 결사병 v3 = 화면 64×88 — 구 v2(32×48)보다 커서 서로 겹치지 않게 간격을 넓힘)
     add_char((hero_r, hp), 20 * T, 2 * T + 20, ({"color": "#b0611a", "radius": 90, "intensity": 0.55}, 20 * T - 16, 2 * T - 40))
-    add_char(ch("enemies/v2/charger_walk", 2, 2), 24 * T + 8, 3 * T + 8)
-    add_char(ch("enemies/v2/charger_attack", 2, 1), 23 * T + 20, 1 * T + 24)
-    add_char(ch("enemies/v2/charger_walk", 3, 5), 14 * T, 4 * T + 10)
+    add_char(ch("enemies/v3/charger_walk", 2, 2), 24 * T + 16, 3 * T + 20)
+    add_char(ch("enemies/v3/charger_attack", 2, 3), 23 * T + 8, 1 * T + 20)       # 구 v2 attack 1 → v3 3 (framesMap)
+    add_char(ch("enemies/v3/charger_walk", 3, 5), 14 * T, 4 * T + 10)
     # 광장 가운데 장면
     add_char((idle_r, ip), 20 * T + 16, 12 * T - 10, ({"color": "#b0611a", "radius": 90, "intensity": 0.55}, 20 * T, 12 * T - 60))
-    add_char(ch("enemies/v2/charger_walk", 2, 4), 24 * T, 10 * T)
-    add_char(ch("enemies/v2/charger_attack", 3, 2), 16 * T, 14 * T)
-    add_char(ch("enemies/v2/charger_death", 0, 5), 22 * T, 15 * T + 8)
+    add_char(ch("enemies/v3/charger_walk", 2, 4), 24 * T + 16, 10 * T)
+    add_char(ch("enemies/v3/charger_attack", 3, 4), 16 * T, 14 * T + 8)           # 구 2 → v3 4 (판정 순간)
+    add_char(ch("enemies/v3/charger_death", 0, 9), 22 * T + 16, 15 * T + 16)       # 구 끝 5 → v3 끝 9
     # 남서 모서리
-    add_char(ch("enemies/v2/charger_walk", 0, 3), 5 * T, 22 * T + 20)
-    add_char(ch("enemies/v2/charger_idle", 1, 0), 9 * T, 23 * T + 24)
+    add_char(ch("enemies/v3/charger_walk", 0, 3), 5 * T, 22 * T + 20)
+    add_char(ch("enemies/v3/charger_idle", 1, 0), 9 * T + 8, 23 * T + 24)
 
     items.sort(key=lambda t: t[0])
     for (fy, fx, im, piv, em, shadow, L) in items:

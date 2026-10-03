@@ -57,7 +57,7 @@ def remap_meta(old, first, groups, n_new):
         elif k == "leapOffsetsPx":
             m[k] = {str(j): v[s] * Q.OLD_SCALE for s in v for j in groups[int(s)]}
         elif k == "hitOrigin":
-            m[k] = "몸 중심 = 피벗(발)에서 위로 60 도트 (96×144 몸 기준)"
+            m[k] = EX.HIT_ORIGIN_NOTE                      # 53라운드 Q70: 40 도트
         else:
             m[k] = copy.deepcopy(v)
     if "hitFrames" in old and old["hitFrames"] and "impactFrame" not in m:
