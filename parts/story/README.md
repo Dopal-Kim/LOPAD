@@ -27,3 +27,7 @@
 - `text-pack-2.json`: 위 내용의 기계 판독판. `byName` 24종은 `contracts/story-text.json` 의 `evolution.byName` 에 그대로 복사 가능.
 - 참조한 공개 파일(29라운드 전체 공개): `data/weapons.json`·`data/enemies.json`·`data/bosses.json`, `src/ui/*.ts`, `src/contract/ui.ts`, `parts/producer/contracts/story-text.*`, `parts/art/palette/lopad.json`, `parts/art/work/player/build.py`(주인공 외형 일치 확인).
 - 전부 자율 결정. 복귀 후 재인터뷰로 확정·수정.
+
+## 3차 (2026-10-03, 53라운드 Q35~Q37)
+- `text-pack.md` N절: 활 갈래 6종(속사·저격·연궁·무한통·관통·필중) 진화 자막 확정, 탈락 후보 보관. I-4 옛 활 5줄(산탄·섬광·중시·폭우·추적)은 게임 제외·화기류 때 재사용으로 보관.
+- `text-pack-2.json`: `bowEvolution53Draft` 확정 정리, `byName` 에 새 6종 반영·옛 5줄은 `byNameArchived` 로 이동.
