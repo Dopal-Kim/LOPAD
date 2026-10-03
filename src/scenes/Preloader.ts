@@ -10,8 +10,8 @@ import { audioFileRel, audioManifestRel, isAudioManifest, type AudioManifest } f
 import { spriteLibrary } from '../systems/sprites';
 import { sheetJsonCandidates } from '../systems/spriteMeta';
 import { branchFxSheetIds } from '../systems/branchFx';
+import { meleeBranchFxSheetIds } from '../systems/fxVariants';
 import {
-  allFxSheetIds,
   normalizeStructureSheet,
   sheetToWorldUnits,
   sheetTextureKey,
@@ -19,6 +19,7 @@ import {
   type SheetDef,
   type SheetJson,
 } from '../systems/spriteDefs';
+import { allFxSheetIds } from '../systems/fxIds';
 import {
   TileSkin,
   namedTilesetJsonPath,
@@ -93,7 +94,7 @@ export class Preloader extends Phaser.Scene {
       Object.keys(ENEMIES),
       Object.keys(BOSSES),
       Object.keys(WEAPONS),
-      [...allFxSheetIds(WEAPONS), ...branchFxSheetIds(WEAPONS)],
+      [...allFxSheetIds(WEAPONS), ...branchFxSheetIds(WEAPONS), ...meleeBranchFxSheetIds(WEAPONS)],
       allStructureSprites(),
     )) {
       const paths = sheetJsonCandidates(req);

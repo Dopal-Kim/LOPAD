@@ -142,9 +142,16 @@ export const SPRITES = {
   WALK_BELOW_MULT: 0.85,
   /**
    * 53라운드 4번 피드백: v3 만 로드하는 시트 묶음 (name 이 없으면 분류 전체). 구 주인공(sprites/player/*, player/v2)과
-   * 구 칼 오버레이(weapons/katana_*, weapons/v2/katana_*)는 더 이상 읽지 않는다
+   * 구 칼 오버레이(weapons/katana_*, weapons/v2/katana_*)는 더 이상 읽지 않는다.
+   * 53라운드 후속: v3 적 시트가 갖춰진 허수아비·사수·결사병도 구 시트(enemies/<id>_*, enemies/v2/<id>_*)를 읽지 않는다
    */
-  V3_ONLY: [{ category: 'player' }, { category: 'weapons', name: 'katana' }] as readonly {
+  V3_ONLY: [
+    { category: 'player' },
+    { category: 'weapons', name: 'katana' },
+    { category: 'enemies', name: 'dummy' },
+    { category: 'enemies', name: 'archer' },
+    { category: 'enemies', name: 'charger' },
+  ] as readonly {
     category: string;
     name?: string;
   }[],
@@ -182,6 +189,12 @@ export const DEPTH = {
    */
   LIGHTMAP: 2,
   LIGHT_LAYER_STEP: 0.01,
+  /**
+   * 53라운드 Q64: 이펙트(FxPool)는 라이트맵 위에 — 라이트맵 아래 깊이 d 를 FX_LIT_BASE + d × FX_LIT_SPAN 으로 옮긴다
+   * (빛 번짐 +0.01 위, 드랍 2.5 아래: d < 2 이면 2.02 ~ 2.22)
+   */
+  FX_LIT_BASE: 2.02,
+  FX_LIT_SPAN: 0.1,
   /** 데미지 숫자: 월드 요소 중 가장 위 */
   DAMAGE_TEXT: 5,
   /** 화면 섬광·색 오버레이 (42라운드): 월드 최상. UI 는 별도 씬이라 덮지 않는다 */
@@ -224,6 +237,14 @@ export const QUARTER = {
     CORNER_SEARCH_TILES: 8,
     CRATE_MAX: 2,
     CRATE_TRIES: 12,
+    /**
+     * 53라운드 Q59: 아트 placement 힌트 속 규칙어 → 배치 규칙 ('벽 앞' → 북쪽 벽 앞, '가장자리'·'구석' → 구석, '엄폐' → 서·동 벽가).
+     * 규칙어가 없으면 LEGACY_RULES(52라운드 이름 규칙), 그것도 없으면 놓지 않는다
+     */
+    HINTS: { north: ['벽 앞'], corner: ['가장자리', '구석'], cover: ['엄폐'] },
+    LEGACY_RULES: { lamp_post: 'north', brazier: 'ring', well: 'corner', stall: 'corner', crate_stack: 'cover' },
+    /** 53라운드 Q57: avoidNearBorder 쪽 바닥 끝에서 이 칸 수 안에 발자국이 걸치지 않게 */
+    AVOID_BORDER_TILES: 3,
   },
   /** 53라운드 4지역 바닥 데칼 (art floors_v2 decals[], 임시): 가운데 1장 이름 · 그 밖 이름마다 장 수 · 시도 · 북쪽 비움 */
   DECALS: {
@@ -323,6 +344,14 @@ export const SCAR_FX = {
 /** 발 위치 y 로 깊이를 정한다 (아래쪽이 앞) */
 export function entityDepth(y: number): number {
   return DEPTH.ENTITY + y * DEPTH.ENTITY_Y_SCALE;
+}
+
+/**
+ * 53라운드 Q64: 이펙트 깊이 → 라이트맵 위 띠. 라이트맵 아래 깊이 d 는 FX_LIT_BASE + d × FX_LIT_SPAN 으로 옮겨
+ * 이펙트끼리의 앞뒤(바닥 이펙트 < 개체에 붙은 이펙트)는 지키고 어둠에는 묻히지 않게 한다. 이미 위(투사체·판정·피격)면 그대로
+ */
+export function fxLitDepth(d: number): number {
+  return d < DEPTH.LIGHTMAP ? DEPTH.FX_LIT_BASE + Math.max(0, d) * DEPTH.FX_LIT_SPAN : d;
 }
 
 export const COLORS = {

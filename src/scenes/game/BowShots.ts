@@ -3,7 +3,8 @@
  * 51라운드 Q2: 산탄 계열(산탄·폭우·추적) 갈래는 트리에서 빠졌다 — spread·homingTurnDeg 처리는 화기류 때 재사용하려고 남긴다.
  * 계약 art §10: 속사 `bow_arrow_rapid`·`bow_arrow_aimed_rapid` + 발사 섬광 `bow_muzzle_rapid`(spawn arrow_spawn),
  * 저격 `bow_arrow_snipe`·`bow_arrow_aimed_snipe` + 꼬리 `bow_arrow_snipe_lv1/2/3`(화살 아래 깊이, 비행 거리 1/3·2/3 에서 교체),
- * 조준선 `aim_line_snipe`(MotionFx). 2단 갈래 표시(secondaryVariants 색 교체·겹침)는 범위 조정으로 보류 — 기능(연사·탄창·관통·단계 배율)만.
+ * 조준선 `aim_line_snipe`(MotionFx). 53라운드 무기 이펙트 v3: 2단 갈래 표시 = 화살·꼬리 시트 JSON secondaryVariants
+ * (색 교체 · 따라가는 겹침 — 관통 `fx/pierce`). 적중형 겹침(필중 crit_burst)은 기존 치명 연출이 맡는다.
  */
 import Phaser from 'phaser';
 import { DEPTH, TILE } from '../../core/Constants';
@@ -21,8 +22,10 @@ import {
   tailFxIds,
 } from '../../systems/branchFx';
 import type { FxHandle } from '../../systems/fx';
+import { resolveFxVariant, type FxVariant } from '../../systems/fxVariants';
 import { spriteLibrary } from '../../systems/sprites';
-import { FX_ACTION, arrowFxId, fxDrawScale } from '../../systems/spriteDefs';
+import { FX_ACTION, fxDrawScale } from '../../systems/spriteDefs';
+import { arrowFxId } from '../../systems/fxIds';
 import type { Game } from '../Game';
 import { pathFx } from './shared';
 
@@ -53,6 +56,11 @@ export class BowShots {
 
   private get first(): string | undefined {
     return gameState.weapon.path[0];
+  }
+
+  /** 2단 갈래 변주 (경로 두 번째 노드의 secondaryVariants). 없으면 null */
+  private variantOf(id: string): FxVariant | null {
+    return resolveFxVariant(this.g.fx.sheet(id), { secondary: gameState.weapon.path[1] ?? null });
   }
 
   /** 조준선 시트 (갈래 조준선이 있으면 그것 — AimLine 이 로드 여부를 다시 본다) */
@@ -105,8 +113,13 @@ export class BowShots {
     const base = Math.atan2(p.dirY, p.dirX);
     const arrow = this.arrowSheet(aimed);
     const def = g.fx.sheet(arrow.id);
-    const texture = spriteLibrary.textureKey(arrow.id, FX_ACTION);
-    const anim = def?.loop ? (spriteLibrary.animKey(arrow.id, FX_ACTION, 'down') ?? undefined) : undefined;
+    // 2단 갈래: 화살 색 교체 텍스처 (만들 수 없으면 원본)
+    const variant = arrow.branch ? this.variantOf(arrow.id) : null;
+    const swapped = variant?.swaps.length ? spriteLibrary.recolored(g, arrow.id, FX_ACTION, variant.swaps) : null;
+    const texture = swapped?.texture ?? spriteLibrary.textureKey(arrow.id, FX_ACTION);
+    const anim = def?.loop
+      ? (swapped?.anim('down') ?? spriteLibrary.animKey(arrow.id, FX_ACTION, 'down') ?? undefined)
+      : undefined;
     const origin = def
       ? { originX: def.pivot.x / def.frameWidth, originY: def.pivot.y / def.frameHeight, scale: fxDrawScale(def) }
       : {};
@@ -162,6 +175,15 @@ export class BowShots {
           followRotation: true,
           depth: DEPTH.PROJECTILE - 0.01,
         });
+      // 2단 갈래 따라가는 겹침 (관통: fx/pierce 를 저격 꼬리 위·화살 아래에)
+      for (const o of variant?.followOverlays ?? [])
+        if (g.fx.has(o))
+          g.fx.play(o, shot.x, shot.y, {
+            angle: a,
+            follow: shot,
+            followRotation: true,
+            depth: DEPTH.PROJECTILE - 0.005,
+          });
       if (S) {
         const tails = (def?.tailSheets ?? tailFxIds(branchArrowFxId(weapon.id, false, this.first ?? ''))).map(
           stripFxPrefix,
@@ -188,6 +210,7 @@ export class BowShots {
       sheet: arrow.id,
       branchSheet: arrow.branch,
       texture,
+      variant: variant ? { swaps: variant.swaps.length, overlays: variant.followOverlays } : null,
       muzzle: muzzle && g.fx.has(muzzle) ? muzzle : null,
       pierce,
       snipe: S ? { mults: snipeMults, critFromLevel: critFromLevel ?? null } : null,
@@ -211,6 +234,7 @@ export class BowShots {
       follow: shot,
       followRotation: true,
       depth: DEPTH.PROJECTILE - 0.01,
+      variant: this.variantOf(id),
     });
   }
 

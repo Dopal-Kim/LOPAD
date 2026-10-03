@@ -2,14 +2,18 @@
  * 51·52라운드 (계약 art §10) 활 갈래 시트 고르기 · 저격 단계. Phaser 의존 없음.
  * 1단 갈래 시트: 화살 `fx/<무기>_arrow[_aimed]_<갈래>` · 발사 섬광 `fx/<무기>_muzzle_<갈래>` · 조준선 `fx/aim_line_<갈래>` ·
  * 저격 꼬리 = 화살 JSON `tailSheets`. 파일이 없으면 기본 시트로 대체(호출 쪽).
- * 근접 갈래 이펙트(`<무기>_combo<n>_<갈래>`)·2단 색 교체(secondaryVariants)·단검 heatVariants 연결은 51라운드 범위 조정으로
- * 보류 — 키아트 주인공 기준 무기 재제작 뒤 이펙트와 함께 진행한다.
+ * 근접 갈래 이펙트(`<무기>_combo<n>_<갈래>`)·2단 색 교체(secondaryVariants)·단검 heatVariants 는 53라운드 무기 이펙트 v3 와
+ * 함께 연결 — `fxVariants`.
  */
-import { arrowFxId, type FxWeaponShape } from './spriteDefs';
+import { arrowFxId, type FxWeaponShape } from './fxIds';
 
-/** 갈래 메모 필드 (SheetJson 에 섞여 온다): 저격 화살의 단계별 꼬리 시트 */
+/**
+ * 갈래 메모 필드 (SheetJson 에 섞여 온다): 저격 화살의 단계별 꼬리 시트 · 2단 갈래/가열 변주(형식 검사는 `fxVariants`)
+ */
 export interface BranchSheetFields {
   tailSheets?: string[];
+  secondaryVariants?: unknown;
+  heatVariants?: unknown;
 }
 
 /** 'fx/<이름>' → '<이름>' */

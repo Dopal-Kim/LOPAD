@@ -6,9 +6,12 @@
  * §3.2 양산 필드: `scale`(배율), `flash`(atFrame 시작에 화면 섬광), `shake`(섬광 프레임 또는 타격 프레임에 흔들림),
  * `secondStage`(같은 시트 안 2단 판정 프레임에 섬광·흔들림 한 번 더), `trail`(fromFrame 부터 리본) 은 `hooks` 로 바깥(Game) 에
  * 위임한다 — 크기·프레임 수·시간은 전부 JSON 에서 읽는다. 시각 이벤트는 이펙트 자체의 재생 시간(히트스톱 동안 멈춤)으로 잰다.
+ * 53라운드 Q64: 이펙트는 조명(라이트맵) **위**에 그린다 — 깊이를 `fxLitDepth` 로 라이트맵 위 띠에 옮긴다(이펙트끼리 순서는 유지).
+ * 53라운드 계약 §10: `variant`(2단 갈래·가열 변주) = 색 교체 텍스처 + flash·shake·trail·마지막 프레임 유지 덮어쓰기.
  */
 import Phaser from 'phaser';
-import { PROTOTYPE } from '../core/Constants';
+import { PROTOTYPE, fxLitDepth } from '../core/Constants';
+import type { FxVariant } from './fxVariants';
 import { spriteLibrary } from './sprites';
 import { lightFor, lightRegistryOf, type LightSource } from './lighting/lightRegistry';
 import {
@@ -69,6 +72,8 @@ export interface FxPlayOptions {
   scaleMult?: number;
   /** 시작 알파 (기본 1) */
   alpha?: number;
+  /** 53라운드 계약 §10: 2단 갈래·가열 변주 (`resolveFxVariant`). 색 교체 텍스처·훅 덮어쓰기 */
+  variant?: FxVariant | null;
 }
 
 export interface FxHandle {
@@ -164,8 +169,12 @@ export class FxPool {
 
   play(id: string, x: number, y: number, opts: FxPlayOptions = {}): FxHandle | null {
     const def = spriteLibrary.sheet(id, FX_ACTION);
-    const texture = spriteLibrary.textureKey(id, FX_ACTION);
-    const key = spriteLibrary.animKey(id, FX_ACTION, opts.dir ?? 'down');
+    // 계약 §10 색 교체 변주가 있으면 그 텍스처·애니 (만들 수 없으면 원본)
+    const swapped = opts.variant?.swaps.length
+      ? spriteLibrary.recolored(this.scene, id, FX_ACTION, opts.variant.swaps)
+      : null;
+    const texture = swapped?.texture ?? spriteLibrary.textureKey(id, FX_ACTION);
+    const key = swapped?.anim(opts.dir ?? 'down') ?? spriteLibrary.animKey(id, FX_ACTION, opts.dir ?? 'down');
     if (!def || !texture || !key || !this.scene.textures.exists(texture)) return null;
     const sprite = this.group.get(x, y) as Phaser.GameObjects.Sprite | null;
     if (!sprite) return null;
@@ -190,7 +199,7 @@ export class FxPool {
     } else sprite.clearTint();
     const follow = opts.follow;
     const depth = opts.depth ?? (follow && opts.depthOffset !== undefined ? follow.depth + opts.depthOffset : 0);
-    sprite.setDepth(depth);
+    sprite.setDepth(fxLitDepth(depth));
     const now = this.scene.time.now;
     const state: FxState = {
       token,
@@ -225,7 +234,7 @@ export class FxPool {
       sprite.play(anim, true);
       const loop = Boolean(def.loop) || Boolean(opts.tailFrames);
       if (!loop) {
-        const hold = opts.holdLastMs ?? 0;
+        const hold = opts.holdLastMs ?? opts.variant?.holdLastMs ?? 0;
         sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
           const st = this.states.get(sprite);
           if (st?.token !== token) return;
@@ -254,22 +263,26 @@ export class FxPool {
     const at = (frame: number | undefined, fallback: number) =>
       starts[Math.max(0, Math.min(def.frames - 1, frame ?? fallback))] ?? 0;
     const impact = fxImpactFrame(def);
+    const v = opts.variant;
     const flash = (spec: FxFlashSpec | undefined, frame: number) => {
       if (spec && h.flash) this.schedule(state, at(spec.atFrame, frame), () => h.flash?.(spec));
     };
     const shake = (spec: FxShakeSpec | undefined, frame: number) => {
       if (spec && h.shake && spec.px > 0 && spec.ms > 0) this.schedule(state, at(frame, impact), () => h.shake?.(spec));
     };
-    flash(def.flash, impact);
-    shake(def.shake, def.flash?.atFrame ?? impact);
+    // 계약 §10 2단 갈래: flashOverride·shakeOverride·trailOverride 가 시트 값을 대신한다
+    const flashSpec = v?.flash ?? def.flash;
+    flash(flashSpec, impact);
+    shake(v?.shake ?? def.shake, flashSpec?.atFrame ?? impact);
     const second = def.secondStage;
     if (second) {
       const frame = second.frame ?? second.flash?.atFrame ?? impact;
       flash(second.flash, frame);
       shake(second.shake, frame);
     }
-    if (def.trail && h.trail) {
-      const spec = def.trail;
+    const trailSpec = v?.trail ?? def.trail;
+    if (trailSpec && h.trail) {
+      const spec = trailSpec;
       const up = def.anchor === 'player_pivot' ? (h.bodyCenterUpPx ?? 0) : 0;
       const source =
         opts.trailSource ??
@@ -341,7 +354,7 @@ export class FxPool {
         }
         const o = st.followOffset;
         sprite.setPosition(f.x + (o?.x ?? 0), f.y + (o?.y ?? 0));
-        if (st.depthOffset !== undefined) sprite.setDepth(f.depth + st.depthOffset);
+        if (st.depthOffset !== undefined) sprite.setDepth(fxLitDepth(f.depth + st.depthOffset));
         if (st.followRotation) sprite.setRotation(f.rotation);
       }
       if (time >= st.expireAt) {

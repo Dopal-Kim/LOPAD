@@ -64,13 +64,15 @@ describe('도트 배율 (50라운드 계약 art §9)', () => {
     expect(sheetJsonCandidates({ category: 'player', name: 'player', action: 'idle' })).toEqual([
       'sprites/player/v3/player_idle.json',
     ]);
-    // 이펙트·적 v3 는 v3 → v2 → 기존 (없으면 기존 동작 유지)
+    // 이펙트는 v3 → v2 → 기존 (없으면 기존 동작 유지). 53라운드 후속: v3 가 갖춰진 적 3종은 v3 만
     expect(sheetJsonCandidates({ category: 'fx', name: 'hit_spark', action: 'fx' })).toEqual([
       'sprites/fx/v3/hit_spark.json',
       'sprites/fx/v2/hit_spark.json',
       'sprites/fx/hit_spark.json',
     ]);
-    expect(sheetJsonCandidates({ category: 'enemies', name: 'charger', action: 'walk' })).toHaveLength(3);
+    expect(sheetJsonCandidates({ category: 'enemies', name: 'charger', action: 'walk' })).toEqual([
+      'sprites/enemies/v3/charger_walk.json',
+    ]);
     expect(artScale({ pixelScale: 0.5 })).toBe(0.25);
     // v3 판정 반경 132 도트 = v2 66 = 월드 33 (논리 크기 같음)
     expect(sheetToWorldUnits({ ...base, pixelScale: 0.5, hitRadiusPx: 132 }).hitRadiusPx).toBe(33);

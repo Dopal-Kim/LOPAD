@@ -732,3 +732,35 @@ npm run build
 
 ### 임시값 (전부 검수 대상)
 황무지 주변광 #787882 · 튜토리얼 적 예고 900ms·일반 0 · 고르기 취소 1.5칸 · 튜토리얼 전장 40×24 · 데칼 1~2장·북쪽 2칸 비움·cup_inlay 가운데 · 수로 북쪽 8칸부터·남쪽 3줄·앵커 둘레 1줄 · 큰 소품 피벗 바닥 위 2 논리 px(아트 규칙).
+
+## 53라운드 후속 2: 무기 이펙트 v3 연결 · fx 팔레트 제외·조명 위 · 큰 소품 일반 규칙 · 적 v3 전용 (2026-10-03)
+결정: `decisions/2026-10-03-round-53-playtest4.md` Q59·Q61~Q64, 계약 art §10·§13·§14. 참조: fx·props·weapons v3 JSON 자체만(아트 작업 노트 미열람).
+
+### 정리 (6-1)
+- `spriteDefs.ts` 787 → 약 690줄: 이펙트 id 목록(연격·가열·내리찍기·베기·화살·피격·적·보조·구조물) → `systems/fxIds.ts`.
+- `PlayerStrikes.ts` 약 475 → 315줄: 판정 모양·휘두름 이펙트 고르기·잔상 → `scenes/game/SwingFx.ts`.
+- `sprites.ts`: 층 램프 재채색 캔버스 코드를 `addRecoloredTexture` 하나로(층 변형·색 교체 변형 공용).
+
+### 무기 이펙트 v3 (Q5·Q61~Q64)
+- 근접 1단 갈래 시트 `fx/<무기>_combo<n>_<갈래>` 로드(`fxVariants.meleeBranchFxSheetIds`)·재생: 대쉬 공격 재사용 → 갈래 시트 → 가열 시트 → 기본(마지막 타 진화 베기). 갈래 시트가 있으면 진화 베기 대체보다 우선, 없으면 기본.
+- 2단 갈래 `secondaryVariants[경로 두 번째 노드]`: `colorSwap`(정확 교체·동시 적용, `spriteLibrary.recolored` → `#cs<태그>` 텍스처·애니) · `flashOverride`·`shakeOverride`·`trailOverride`·`holdLastFrameMs`. 겹침은 따라가는 루프(관통 `fx/pierce`)만 화살에 붙이고, 적중형(필중·급소 crit_burst, 출혈 bleed)은 기존 치명·출혈 연출이 맡는다.
+- 단검 가열 + 갈래 시트: `heatVariants.colorSwap[k]`(2단 교체 뒤에 합성 — `composeSwaps`). 배속은 기존 맞춤 길이(= playbackRateHint 값).
+- 활: 갈래 화살·저격 꼬리에 2단 색 교체(투사체 텍스처도 변형 키).
+- fx 팔레트: `paletteSwapExempt` = 분류 fx 또는 `paletteSwap: "none"` → 층 변형을 만들지 않고 늘 원본 키. 구조물 JSON `paletteSwap: false` 는 계약에 없는 값이라 그대로(교체 적용).
+- 조명 위: FxPool 깊이를 `fxLitDepth`(라이트맵 아래 d → 2.02 + d×0.1, 이펙트끼리 순서 유지)로. 바닥 이펙트도 라이트맵 위라 캐릭터 위에 겹쳐 보인다(데모 확인). 시트에 trail 이 없을 때의 기본 휘두름 리본도 같이.
+- 미연결: `trailFill`(Q63 칼끝 반경 메움 — 시트 그림이 이미 메움, 시스템 리본 폭은 그대로)·`scaleHint`(거인)·`glowFrames`(메모).
+
+### 큰 소품 일반 규칙 (Q59)
+- `world/bigProps.bigPropRules`: placement 힌트 규칙어 '벽 앞'→북쪽 벽 앞, '가장자리'·'구석'→구석, '엄폐'→서·동 벽가(적힌 순서로 시도, 앞 규칙에서 못 놓으면 다음). 규칙어가 없으면 52라운드 이름 규칙(lamp_post·brazier·well·stall·crate_stack), 그것도 없으면 놓지 않음.
+- 북쪽 벽 앞 = 같은 규칙 소품끼리 번갈아 간격 6칸·합계 4. 구석 = 소품마다 1. 벽가 = 소품마다 최대 2.
+- `avoidNearBorder`: 그쪽 바닥 끝(방 안 바닥 칸 경계)에서 3칸(`AVOID_BORDER_TILES`) 안에 발자국이 걸치지 않게. 시드 결정적.
+- 8시드 실측: 외곽 그대로(가로등·좌판·우물·상자) · 양조 = steel_vat·barrel_pyramid·crate_stack (crane_barrel 0 — '벽 앞'인데 북쪽 회피) · 성문 = barrel_cart·barricade_x·crate_stack (toll_booth 0 — 같은 이유) · 황무지 = stakes·broken_cart · 연회장 = 0(규칙어 없음).
+
+### 적 v3 전용
+- `SPRITES.V3_ONLY` 에 적 dummy·archer·charger 추가 — 구 `enemies/<id>_*`·`enemies/v2/*` 를 읽지 않는다.
+
+### 테스트 · 검증
+- 테스트 +16: `fxVariants.test.ts`(갈래 id·변주 해석·가열 합성·겹침·팔레트 제외·조명 위 깊이) · `bigProps.test.ts`(힌트 규칙·테두리 회피) · 대검 248×272 원점 · 적 v3 전용 후보 경로. tsc·eslint·vitest(53파일 373개)·vite build 통과.
+
+### 임시값 (전부 검수 대상)
+fx 라이트맵 위 띠 2.02 + d×0.1 · 북쪽 벽 앞 번갈아 합계 4·간격 6 · 구석 소품마다 1 · 벽가 최대 2 · 관통 겹침 깊이 투사체 −0.005.

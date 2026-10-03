@@ -2,16 +2,20 @@
  * 스프라이트 시트 라이브러리 (계약 contracts/art-assets.md §1·§2).
  * Preloader 가 시트를 등록하고, Game 이 층 진입 시 `activate(scene, floor)` 로 팔레트 변형을 만든다.
  * 엔티티는 `animKey(name, action, dir)` 만 묻는다 — 시트가 없으면 null (플레이스홀더 유지).
+ * 53라운드 Q62: 이펙트·`paletteSwap: "none"` 시트는 층 변형을 만들지 않고 늘 원본 키 (`paletteSwapExempt`).
+ * 51·53라운드 계약 §10: 2단 갈래·가열 색 교체는 `recolored` 가 같은 캔버스 재채색으로 변형 텍스처·애니를 만든다.
  */
 import Phaser from 'phaser';
 import { PALETTE } from '../data';
 import { BASE_FLOOR, buildSwapTable, rampFor, recolorPixels, variantSuffix } from './palette';
+import { swapTag, type ColorSwap } from './fxVariants';
 import {
   FACINGS,
   animKey,
   frameAt,
   frameDurations,
   frameIndices,
+  paletteSwapExempt,
   phaseAnimKey,
   sheetId,
   sheetTextureKey,
@@ -55,16 +59,49 @@ class SpriteLibrary {
     return this.suffix;
   }
 
+  /** 이 시트에 쓰는 층 변형 접미 (램프 교체 제외 시트는 늘 '') */
+  private suffixOf(def: SheetDef): string {
+    return paletteSwapExempt(def) ? '' : this.suffix;
+  }
+
   /** 현재 층 변형이 적용된 텍스처 키 */
   textureKey(name: string, action: string): string | null {
     const n = this.resolve(name);
-    return this.has(n, action) ? sheetTextureKey(n, action, this.suffix) : null;
+    const def = this.sheets.get(sheetId(n, action));
+    return def ? sheetTextureKey(n, action, this.suffixOf(def)) : null;
   }
 
   /** 현재 층 변형이 적용된 애니 키. 시트가 없으면 null */
   animKey(name: string, action: string, dir: Facing): string | null {
     const n = this.resolve(name);
-    return this.has(n, action) ? animKey(n, action, dir, this.suffix) : null;
+    const def = this.sheets.get(sheetId(n, action));
+    return def ? animKey(n, action, dir, this.suffixOf(def)) : null;
+  }
+
+  /**
+   * 색 교체 변형 (계약 §10 secondaryVariants·heatVariants colorSwap — 정확 교체, 동시 적용). 현재 층 텍스처를 바탕으로
+   * `#cs<태그>` 접미 텍스처·애니를 한 번 만든다. 교체가 없거나 시트가 없으면 null (호출 쪽은 원본)
+   */
+  recolored(
+    scene: Phaser.Scene,
+    name: string,
+    action: string,
+    swaps: readonly ColorSwap[],
+  ): { texture: string; anim: (dir: Facing) => string } | null {
+    const def = this.sheet(name, action);
+    const base = this.textureKey(name, action);
+    if (!def || !base || swaps.length === 0 || !scene.textures.exists(base)) return null;
+    const suffix = `${this.suffixOf(def)}#cs${swapTag(swaps)}`;
+    const texture = sheetTextureKey(def.name, def.action, suffix);
+    if (!scene.textures.exists(texture)) {
+      const table = buildSwapTable(
+        swaps.map((c) => c.from),
+        swaps.map((c) => c.to),
+      );
+      addRecoloredTexture(scene, base, texture, def, table);
+    }
+    this.createAnims(scene, def, suffix);
+    return { texture, anim: (dir) => animKey(def.name, def.action, dir, suffix) };
   }
 
   /**
@@ -111,32 +148,10 @@ class SpriteLibrary {
     if (this.builtVariants.has(suffix)) return;
     const table = buildSwapTable(from, to);
     for (const def of this.sheets.values()) {
+      // 53라운드 Q62: 이펙트·paletteSwap "none" 시트는 층 램프를 바꾸지 않는다 (원본 키를 그대로 쓴다)
+      if (paletteSwapExempt(def)) continue;
       const key = sheetTextureKey(def.name, def.action, suffix);
-      if (!scene.textures.exists(key)) {
-        const base = scene.textures.get(def.textureKey);
-        const src = base.getSourceImage() as HTMLImageElement | HTMLCanvasElement;
-        const canvas = document.createElement('canvas');
-        canvas.width = src.width;
-        canvas.height = src.height;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-        ctx.drawImage(src, 0, 0);
-        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        recolorPixels(img.data, table);
-        ctx.putImageData(img, 0, 0);
-        const tex = scene.textures.addCanvas(key, canvas)!;
-        tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
-        const rows = def.directions.length;
-        for (let i = 0; i < rows * def.frames; i++) {
-          tex.add(
-            i,
-            0,
-            (i % def.frames) * def.frameWidth,
-            Math.floor(i / def.frames) * def.frameHeight,
-            def.frameWidth,
-            def.frameHeight,
-          );
-        }
-      }
+      if (!scene.textures.exists(key)) addRecoloredTexture(scene, def.textureKey, key, def, table);
       this.createAnims(scene, def, suffix);
     }
     this.builtVariants.add(suffix);
@@ -176,6 +191,38 @@ class SpriteLibrary {
     this.aliases.clear();
     this.builtVariants.clear();
     this.suffix = '';
+  }
+}
+
+/** 원본 텍스처를 캔버스에 복사해 색 표대로 재채색한 텍스처(프레임 = 시트 격자)를 `key` 로 등록 */
+function addRecoloredTexture(
+  scene: Phaser.Scene,
+  baseKey: string,
+  key: string,
+  def: SheetDef,
+  table: Map<number, [number, number, number]>,
+): void {
+  const src = scene.textures.get(baseKey).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+  const canvas = document.createElement('canvas');
+  canvas.width = src.width;
+  canvas.height = src.height;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+  ctx.drawImage(src, 0, 0);
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  recolorPixels(img.data, table);
+  ctx.putImageData(img, 0, 0);
+  const tex = scene.textures.addCanvas(key, canvas)!;
+  tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
+  const rows = def.directions.length;
+  for (let i = 0; i < rows * def.frames; i++) {
+    tex.add(
+      i,
+      0,
+      (i % def.frames) * def.frameWidth,
+      Math.floor(i / def.frames) * def.frameHeight,
+      def.frameWidth,
+      def.frameHeight,
+    );
   }
 }
 

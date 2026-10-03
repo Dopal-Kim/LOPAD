@@ -9,7 +9,7 @@ import {
   v3HitLift,
   type SheetJson,
 } from './spriteDefs';
-import { bodyActionFor, v3Only } from './spriteMeta';
+import { bodyActionFor, sheetJsonCandidates, v3Only } from './spriteMeta';
 import { lightingAmbientFor } from './lighting/lightMath';
 import { TileSkin, propSheetJsonPath, propSkinFor, propSkins } from '../world/tileskin';
 
@@ -70,12 +70,18 @@ describe('53라운드 v3 경로 일반화', () => {
     ]);
   });
 
-  it('4번 구 시트 정리: 주인공 전부·칼 오버레이만 v3 전용, 대검·단검·활 오버레이·적·이펙트는 v3 → 기존', () => {
+  it('4번 구 시트 정리: 주인공 전부·칼 오버레이·v3 적 3종은 v3 전용, 대검·단검·활 오버레이·이펙트는 v3 → 기존', () => {
     expect(v3Only({ category: 'player', name: 'player' })).toBe(true);
     expect(v3Only({ category: 'weapons', name: 'katana' })).toBe(true);
     for (const name of ['greatsword', 'dagger', 'bow']) expect(v3Only({ category: 'weapons', name })).toBe(false);
     expect(v3Only({ category: 'fx', name: 'katana_combo1' })).toBe(false);
-    expect(v3Only({ category: 'enemies', name: 'charger' })).toBe(false);
+    for (const name of ['dummy', 'archer', 'charger']) {
+      expect(v3Only({ category: 'enemies', name })).toBe(true);
+      expect(sheetJsonCandidates({ category: 'enemies', name, action: 'idle' })).toEqual([
+        `sprites/enemies/v3/${name}_idle.json`,
+      ]);
+    }
+    expect(v3Only({ category: 'bosses', name: 'stage1' })).toBe(false);
   });
 
   it('이펙트 v3 그리는 배율: 구 1 · v2 0.5 · v3 0.25, JSON scale 곱, scale "allowed" 는 1', () => {

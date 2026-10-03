@@ -77,7 +77,7 @@ export class TileWorld {
     // 53라운드: v3 소품 시트는 쿼터뷰 바닥에서만 (기존 16px 바닥에는 기존 소품)
     const propSkin = skin.quarter && opts.propSkin ? opts.propSkin : skin;
     const separateProps = propSkin !== skin;
-    // 52라운드 Q11: 쿼터뷰 타일셋 큰 소품(가로등·화로·우물·좌판·상자 더미)을 먼저 — 발자국은 막힌 칸, 작은 소품은 그 칸을 피한다
+    // 52라운드 Q11: 쿼터뷰 타일셋 큰 소품을 먼저 — 발자국은 막힌 칸, 작은 소품은 그 칸을 피한다
     const avoid = new Set(structureTiles);
     const blockTile = (x: number, y: number) => {
       avoid.add(`${x},${y}`);
@@ -90,7 +90,15 @@ export class TileWorld {
     for (const t of this.canal?.tiles ?? [])
       if (t.kind === 'bridgeL' || t.kind === 'bridgeR') bridges.add(`${t.x},${t.y}`);
       else blockTile(t.x, t.y);
-    const bigShapes = skin.quarter ? propSkin.bigProps.map((b) => ({ name: b.name, footprint: b.footprint! })) : [];
+    // 53라운드 Q59: 배치는 아트 placement 힌트 · avoidNearBorder 로 (bigPropRules)
+    const bigShapes = skin.quarter
+      ? propSkin.bigProps.map((b) => ({
+          name: b.name,
+          footprint: b.footprint!,
+          placement: b.placement,
+          avoidNearBorder: Array.isArray(b.avoidNearBorder) ? b.avoidNearBorder : undefined,
+        }))
+      : [];
     this.bigProps = bigShapes.length > 0 ? planBigProps(layout, bigShapes, avoid, propSeed, bridges) : [];
     for (const k of bridges) avoid.add(k);
     for (const b of this.bigProps)

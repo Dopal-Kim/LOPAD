@@ -59,6 +59,9 @@ describe('52라운드 v3 시트 메모 (spriteMeta)', () => {
     expect(overlayPivot(weapon, { pivot: { x: 30, y: 90 }, pixelScale: 0.5 })).toEqual({ x: 62, y: 122 });
     expect(overlayPivot(weapon, { pivot: { x: 16, y: 46 }, pixelScale: 1 })).toEqual({ x: 64, y: 124 });
     expect(overlayPivot({ pivot: { x: 24, y: 39 } }, body)).toEqual({ x: 24, y: 39 });
+    // 53라운드 대검 확대 틀 248×272: 주인공 v3 96×144 피벗 (48,138) + 오프셋 (73,71) = JSON 피벗 (121,209)
+    const greatsword = { pivot: { x: 121, y: 209 }, pixelScale: 0.5, playerFrameOffset: { x: 73, y: 71 } };
+    expect(overlayPivot(greatsword, { pivot: { x: 48, y: 138 }, pixelScale: 0.5 })).toEqual({ x: 121, y: 209 });
   });
 
   it('깊이: occlusionBaked 면 늘 위, depthByFrame 이 depth 보다 우선', () => {

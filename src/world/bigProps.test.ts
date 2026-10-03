@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ROUTE, type RouteNode } from '../systems/route';
 import { planNodeArena } from '../systems/routeArena';
 import { TileId } from '../systems/mapgen';
-import { planBigProps } from './bigProps';
+import { bigPropRules, planBigProps } from './bigProps';
 
 const shapes = [
   { name: 'lamp_post', footprint: [1, 1] as [number, number] },
@@ -70,5 +70,71 @@ describe('52라운드 Q11 큰 소품 배치', () => {
 
   it('모르는 이름·빈 목록이면 아무것도 놓지 않는다', () => {
     expect(planBigProps(arena('x'), [], new Set(), 'x')).toEqual([]);
+    expect(planBigProps(arena('x'), [{ name: 'mystery', footprint: [1, 1] }], new Set(), 'x')).toEqual([]);
+  });
+});
+
+describe('53라운드 Q59 placement 힌트 일반 규칙 · avoidNearBorder', () => {
+  it('힌트 규칙어 → 규칙 (적힌 순서), 없으면 이름 규칙, 그것도 없으면 []', () => {
+    expect(bigPropRules({ name: 'crane_barrel', placement: 'floor (벽 앞)' })).toEqual(['north']);
+    expect(bigPropRules({ name: 'steel_vat', placement: 'floor (벽 앞·구석)' })).toEqual(['north', 'corner']);
+    expect(bigPropRules({ name: 'barrel_cart', placement: 'floor (가장자리 권장)' })).toEqual(['corner']);
+    expect(bigPropRules({ name: 'stakes', placement: 'floor (흙둑 앞·엄폐)' })).toEqual(['cover']);
+    expect(bigPropRules({ name: 'well', placement: 'floor' })).toEqual(['corner']);
+    expect(bigPropRules({ name: 'crate_stack', placement: 'floor' })).toEqual(['cover']);
+    expect(bigPropRules({ name: 'cannon', placement: 'floor' })).toEqual([]);
+  });
+
+  it('지역 이름 없이 힌트만으로 놓고, 피하는 쪽 바닥 끝 3칸에는 발자국이 걸치지 않는다 · 결정적', () => {
+    const generic = [
+      { name: 'a_front', footprint: [2, 1] as [number, number], placement: 'floor (벽 앞 권장)' },
+      {
+        name: 'b_corner',
+        footprint: [3, 1] as [number, number],
+        placement: 'floor (가장자리 권장)',
+        avoidNearBorder: ['east'],
+      },
+      {
+        name: 'c_cover',
+        footprint: [2, 1] as [number, number],
+        placement: 'floor (엄폐)',
+        avoidNearBorder: ['north', 'east'],
+      },
+      {
+        name: 'd_front_corner',
+        footprint: [3, 1] as [number, number],
+        placement: 'floor (벽 앞·구석)',
+        avoidNearBorder: ['north', 'west'],
+      },
+    ];
+    for (const seed of ['a', 'b', 'c', 'd', 'e']) {
+      const L = arena(seed);
+      const out = planBigProps(L, generic, new Set(), seed);
+      expect(out).toEqual(planBigProps(L, generic, new Set(), seed));
+      const names = new Set(out.map((o) => o.name));
+      expect(names.has('a_front')).toBe(true);
+      expect(names.has('b_corner')).toBe(true);
+      for (const o of out.filter((p) => p.name === 'a_front')) expect(L.tiles[o.ty - 1][o.tx]).toBe(TileId.Wall);
+      // 바닥 끝 (방 안 바닥 칸의 경계)
+      const I = L.rooms[0].interior;
+      let north = Infinity;
+      let east = -Infinity;
+      let west = Infinity;
+      for (let y = I.y; y < I.y + I.h; y++)
+        for (let x = I.x; x < I.x + I.w; x++)
+          if (L.tiles[y][x] === TileId.Floor) {
+            north = Math.min(north, y);
+            east = Math.max(east, x);
+            west = Math.min(west, x);
+          }
+      for (const o of out) {
+        const avoid = generic.find((g) => g.name === o.name)!.avoidNearBorder ?? [];
+        if (avoid.includes('north')) expect(o.ty).toBeGreaterThanOrEqual(north + 3);
+        if (avoid.includes('east')) expect(o.tx + o.w - 1).toBeLessThanOrEqual(east - 3);
+        if (avoid.includes('west')) expect(o.tx).toBeGreaterThanOrEqual(west + 3);
+      }
+      // 북쪽을 피하는 '벽 앞·구석' 은 북쪽 벽 앞이 아니라 구석으로
+      for (const o of out.filter((p) => p.name === 'd_front_corner')) expect(o.ty).toBeGreaterThanOrEqual(north + 3);
+    }
   });
 });

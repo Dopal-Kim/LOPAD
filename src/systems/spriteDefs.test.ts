@@ -3,22 +3,18 @@ import {
   FX_ACTION,
   animDurationMs,
   animKey,
-  arrowFxId,
   carryActionFor,
   facingOf,
   frameAt,
   frameDurations,
   frameIndices,
-  fxSheetIds,
-  heatComboFxId,
   overlayActionsFor,
   overlayDepthAt,
   sheetJsonPath,
-  slamFxId,
-  slashFxId,
   wantedSheets,
   type SheetJson,
 } from './spriteDefs';
+import { arrowFxId, fxSheetIds, heatComboFxId, slamFxId, slashFxId } from './fxIds';
 import { WEAPONS } from '../data';
 
 const walk: SheetJson = {
@@ -141,7 +137,8 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
   });
 
   it('2차 진화 노드(next)·보조 연출·피격·적 양상 시트가 전체 목록에 들어간다 (35라운드 3단계)', async () => {
-    const { allFxSheetIds, SECONDARY_FX_IDS, fxDepthHint } = await import('./spriteDefs');
+    const { allFxSheetIds, SECONDARY_FX_IDS } = await import('./fxIds');
+    const { fxDepthHint } = await import('./spriteDefs');
     const weapons = {
       katana: {
         kind: 'melee' as const,

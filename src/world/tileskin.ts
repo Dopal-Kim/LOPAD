@@ -25,7 +25,10 @@ export interface BigPropJson {
   light?: LightSpec & { offset?: LightOffset };
   /** 53라운드 v3 소품 시트: 여러 광원 (연회 탁자 촛대 — 있으면 light 대신) */
   lights?: (LightSpec & { offset?: LightOffset })[];
+  /** 계약 §14 배치 힌트 ('floor (벽 앞)' 등 — `bigPropRules`) */
   placement?: string;
+  /** 계약 §14: 테두리 그림에 같은 물건이 있는 쪽 (north·south·west·east) — 그쪽 바닥 끝 3칸 회피 */
+  avoidNearBorder?: string[];
 }
 
 export interface PropDef {
