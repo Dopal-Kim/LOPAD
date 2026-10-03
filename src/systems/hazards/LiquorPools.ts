@@ -6,9 +6,11 @@
  * - 번짐(spreadMsPerCell 이 있는 웅덩이만): 불붙으면 연결된(틈 linkGapPx 이하) 웅덩이에 칸마다 그만큼 늦게 옮겨 붙는다.
  *   옮겨 붙기 전 불씨가 출발 칸에서 다음 칸으로 달려가 방향·속도가 보인다(도화선).
  * 구조물 웅덩이(spread 없음)는 47라운드 동작 그대로다.
+ * 54라운드 Q26: 불 그림은 라이트맵 위 고정 층이 아니라 **발 기준 앞뒤 정렬** — 그림 피벗(웅덩이 중심) y 의 `entityDepth` 로
+ * 캐릭터 뒤 불은 가려지고 앞 불은 위에 그린다(구조물·보스방 같은 규칙). 어둠 속 밝기는 시트 광원(라이트맵 광원)이 낸다.
  */
 import Phaser from 'phaser';
-import { BOSS_FX, DEPTH, STRUCTURE_FX } from '../../core/Constants';
+import { BOSS_FX, DEPTH, STRUCTURE_FX, entityDepth } from '../../core/Constants';
 import type { Mob } from '../../objects/Mob';
 import type { FxPool } from '../fx';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
@@ -184,31 +186,22 @@ export class LiquorPools {
     const fx = this.host.fx;
     const s = p.spec;
     if (fx.has(s.fireFx)) {
+      // 발 기준 앞뒤 정렬 (Q26): 깊이 = 그 장의 피벗 y (라이트맵 아래 — 빛은 시트 광원)
+      const at = (y: number, durationMs: number, scaleMult?: number) =>
+        fx.play(s.fireFx, p.rect.centerX, y, {
+          depth: entityDepth(y),
+          belowLighting: true,
+          durationMs,
+          ...(scaleMult === undefined ? {} : { scaleMult }),
+        });
       if (p.rect.width >= BIG_POOL_PX) {
-        p.fireFx.push(
-          fx.play(s.fireFx, p.rect.centerX, p.rect.centerY - FIRE_FX_OFFSET_Y, {
-            depth: STRUCTURE_FX.FLOOR_DEPTH + 0.01,
-            durationMs: s.fireMs,
-          }),
-        );
+        p.fireFx.push(at(p.rect.centerY - FIRE_FX_OFFSET_Y, s.fireMs));
         const second = fx.sheet(s.fireFx)?.frameDurationsMs?.[0] ?? 110;
         this.host.scene.time.delayedCall(second, () => {
           if (p.fireUntil > this.now)
-            p.fireFx.push(
-              fx.play(s.fireFx, p.rect.centerX, p.rect.centerY + FIRE_FX_OFFSET_Y, {
-                depth: STRUCTURE_FX.FLOOR_DEPTH + 0.02,
-                durationMs: Math.max(0, p.fireUntil - this.now),
-              }),
-            );
+            p.fireFx.push(at(p.rect.centerY + FIRE_FX_OFFSET_Y, Math.max(0, p.fireUntil - this.now)));
         });
-      } else
-        p.fireFx.push(
-          fx.play(s.fireFx, p.rect.centerX, p.rect.centerY, {
-            depth: STRUCTURE_FX.FLOOR_DEPTH + 0.01,
-            durationMs: s.fireMs,
-            scaleMult: CELL_FIRE_SCALE,
-          }),
-        );
+      } else p.fireFx.push(at(p.rect.centerY, s.fireMs, CELL_FIRE_SCALE));
       return;
     }
     p.fireGfx = this.host.scene.add

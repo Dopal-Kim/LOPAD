@@ -59,6 +59,15 @@ export function stepBurn(s: BurnState, onFire: boolean, now: number, t: BurnTimi
   return null;
 }
 
+/** 지금 꺼지기 시작 (54라운드 Q28: 죽음 마지막 프레임). 타는 중(ignite·loop)일 때만 out 으로 — 바꿨으면 true */
+export function forceOut(s: BurnState, now: number): boolean {
+  if (!isBurning(s)) return false;
+  s.phase = 'out';
+  s.since = now;
+  s.leftAt = 0;
+  return true;
+}
+
 /**
  * 국면 안 경과 ms → 그 국면의 열. loop 면 반복, 아니면 마지막 열 유지. durations = 시트 전체 프레임 길이(열 번호로 찾음)
  */

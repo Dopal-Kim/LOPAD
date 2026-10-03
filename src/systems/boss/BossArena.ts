@@ -94,7 +94,15 @@ export class BossArena implements BossArenaApi {
   /** 디버그 */
   debug = { cupHits: 0, relit: 0, caskKicks: 0, caskRedirects: 0, torches: 0, ignites: 0 };
   /** 디버그: 마지막 근접 판정 사각형 (잔 판정 확인용) */
-  private lastSwing: { x: number; y: number; w: number; h: number } | null = null;
+  private lastSwing: {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    /** 그 순간 잔 맞힘 판정 사각형 (잔이 없으면 null) · 맞혔는지 */
+    cup: { x: number; y: number; w: number; h: number } | null;
+    cupHit: boolean;
+  } | null = null;
 
   constructor(
     private readonly host: BossArenaHost,
@@ -330,9 +338,11 @@ export class BossArena implements BossArenaApi {
   /** 근접 판정 사각형: 약점 잔 · 술통 방향 바꾸기 · 쓰러진 촛대 다시 켜기 */
   onMeleeSwing(x: number, y: number, w: number, h: number, dirX: number, dirY: number): void {
     const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
-    this.lastSwing = { x: r.x, y: r.y, w, h };
-    // 잔 판정은 화살과 같은 사각형 (잔 둘레 + 상체 윗변까지 — 54라운드 Q20). 전에는 잔 사각형만 봐서 몸 높이 베기가 닿지 않았다
-    if (this.wp && Phaser.Geom.Intersects.RectangleToRectangle(r, this.cupHitRect())) this.hitCup();
+    // 잔 판정은 화살과 같은 사각형 (잔 둘레 + 상체 윗변까지 — 54라운드 Q20, 몸 폭만큼 — Q24)
+    const cup = this.wp ? this.cupHitRect() : null;
+    const cupHit = cup !== null && Phaser.Geom.Intersects.RectangleToRectangle(r, cup);
+    this.lastSwing = { x: r.x, y: r.y, w, h, cup: cup && { x: cup.x, y: cup.y, w: cup.width, h: cup.height }, cupHit };
+    if (cupHit) this.hitCup();
     for (const c of this.casks.inRect(r)) if (this.casks.redirect(c, dirX, dirY, this.now)) this.onRedirect();
     for (const c of this.candles.list)
       if (c.state === 'fallen' && Phaser.Geom.Intersects.RectangleToRectangle(r, c.rect)) this.relight(c);
@@ -379,20 +389,19 @@ export class BossArena implements BossArenaApi {
   }
 
   /**
-   * 잔 맞힘 판정 사각형: 잔 + 둘레 여유, 아래로는 보스 바디 윗변 + 여유까지 (머리 높이 잔을 몸 높이 근접 판정이 닿게 —
-   * 그림 크기가 바뀌어도 바디 기준이라 그대로)
+   * 잔 맞힘 판정 사각형: 잔 + 둘레 여유, 아래로는 보스 바디 윗변 + 바디 높이 × HIT_DOWN_RATIO 까지 (머리 높이 잔을 몸 높이
+   * 근접 판정이 닿게). 54라운드 Q24: 좌우는 잔 폭과 **보스 바디 폭** 중 넓은 쪽 — 몸에 맞닿은 옆에서 베어도 닿는다.
+   * 그림 크기가 바뀌어도 바디 기준이라 그대로
    */
   private cupHitRect(): Phaser.Geom.Rectangle {
     const cr = this.wp!.rect();
     const C = BOSS_FX.CUP;
     const b = this.boss();
-    const bottom = Math.max(cr.y + cr.h + C.HIT_PAD_PX, b ? b.body.y + b.body.height * C.HIT_DOWN_RATIO : 0);
-    return new Phaser.Geom.Rectangle(
-      cr.x - C.HIT_PAD_PX,
-      cr.y - C.HIT_PAD_PX,
-      cr.w + C.HIT_PAD_PX * 2,
-      bottom - cr.y + C.HIT_PAD_PX,
-    );
+    const pad = C.HIT_PAD_PX;
+    const left = Math.min(cr.x - pad, b ? b.body.x : Infinity);
+    const right = Math.max(cr.x + cr.w + pad, b ? b.body.right : -Infinity);
+    const bottom = Math.max(cr.y + cr.h + pad, b ? b.body.y + b.body.height * C.HIT_DOWN_RATIO : 0);
+    return new Phaser.Geom.Rectangle(left, cr.y - pad, right - left, bottom - (cr.y - pad));
   }
 
   private hitCup(): void {
@@ -616,6 +625,11 @@ export class BossArena implements BossArenaApi {
         .filter((p) => this.host.pools.burning(p))
         .slice(0, 8)
         .map((p) => [p.rect.centerX, p.rect.centerY]),
+      /** 불 그림 깊이 (54라운드 Q26 발 기준 정렬 확인) */
+      fireDepths: pools
+        .filter((p) => this.host.pools.burning(p))
+        .slice(0, 8)
+        .map((p) => p.fireFx.map((h) => (h ? h.sprite.depth : null))),
       pending: pools.filter((p) => p.igniteAt > 0).length,
       flying: this.torches.count,
       weakPoint: this.wp ? this.wp.rect() : null,
@@ -637,7 +651,8 @@ export class BossArena implements BossArenaApi {
     this.timers = [];
     if (this.dark) this.restoreLight(BOSS_FX.DEATH_RESTORE_MS);
     this.casks.destroy();
-    this.burn?.stop();
+    // 타다 죽으면 시체(죽음 그림)를 따라 타다가 마지막 프레임에서 꺼진다 (54라운드 Q28)
+    this.burn?.onBossDied(this.boss());
   }
 
   destroy(): void {

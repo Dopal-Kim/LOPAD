@@ -16,6 +16,8 @@ export const BOSS_FX = {
     GLOB: 'boss1_liquor_glob',
     /** 54라운드 Q18 보스 불타기 오버레이 (phaseFrames ignite·loop·out, light·lightByPhase) */
     ONFIRE: 'boss1_onfire',
+    /** 54라운드 Q23·Q28 누운 자세 불길 (boss1_onfire JSON lyingSheet 의 기본값 — useFor·standFor·frameOffsets) */
+    ONFIRE_DOWN: 'boss1_onfire_down',
   },
   /**
    * 54라운드 Q18 보스 불타기: 오버레이 시트가 없을 때 임시 — 기존 불 이펙트(fire_pool)를 발 위 LIFT_PX 에 배율 SCALE 로 얹고,
@@ -38,7 +40,8 @@ export const BOSS_FX = {
   LIE_ROTATION: Math.PI / 2,
   /**
    * 약점 잔: 임시 잔 색 · 테두리 강조(깜빡임) · 맞힘 판정 여유 (둘레 HIT_PAD_PX, 아래로는 보스 바디 윗변 + 바디 높이 × HIT_DOWN_RATIO
-   * 까지 — 임시값. 54라운드 2차: 192×240 그림(바디 36)에 맞춰 고정 14px(바디 29 의 약 절반) → 바디 높이 비례 0.5)
+   * 까지 — 임시값. 54라운드 2차: 192×240 그림(바디 36)에 맞춰 고정 14px(바디 29 의 약 절반) → 바디 높이 비례 0.5).
+   * 좌우는 잔 폭(+여유)과 보스 바디 폭 중 넓은 쪽 (54라운드 Q24 — 몸에 맞닿은 옆에서도 닿게)
    */
   CUP: {
     HIT_PAD_PX: 4,

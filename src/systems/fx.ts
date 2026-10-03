@@ -68,6 +68,11 @@ export interface FxPlayOptions {
   trailSource?: () => { x: number; y: number } | null;
   /** false 면 JSON flash·shake·trail 훅을 쓰지 않는다 (달리기·워프 먼지처럼 반복·보조 재생) */
   hooks?: boolean;
+  /**
+   * true 면 깊이를 라이트맵 위 띠로 옮기지 않는다 (54라운드 Q26 불 웅덩이: `entityDepth(발 y)` 로 개체와 앞뒤 정렬).
+   * 그림은 어둠에 잠기므로 밝기는 시트 광원(라이트맵)이 낸다
+   */
+  belowLighting?: boolean;
   /** 시트 배율에 곱하는 배율 (45라운드 달리기 먼지: dash_dust 를 작게). 기본 1 */
   scaleMult?: number;
   /** 시작 알파 (기본 1) */
@@ -199,7 +204,7 @@ export class FxPool {
     } else sprite.clearTint();
     const follow = opts.follow;
     const depth = opts.depth ?? (follow && opts.depthOffset !== undefined ? follow.depth + opts.depthOffset : 0);
-    sprite.setDepth(fxLitDepth(depth));
+    sprite.setDepth(opts.belowLighting ? depth : fxLitDepth(depth));
     const now = this.scene.time.now;
     const state: FxState = {
       token,

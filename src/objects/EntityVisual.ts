@@ -59,6 +59,8 @@ export class EntityVisual {
   /** 애니메이션 시트가 있는지 */
   readonly animated: boolean;
   facing: Facing = 'down';
+  /** spawnCorpse 가 남긴 시체 스프라이트 (사라지면 null) — 54라운드 Q28 보스 불길이 죽음 그림을 따라간다 */
+  corpse: Phaser.GameObjects.Sprite | null = null;
   /** 현재 재생 중인 애니 키 (디버그) */
   current: string | null = null;
   /** 마지막 oneShot 의 2번째 프레임 시작까지 ms (재생 속도 반영). 시트가 없으면 0 */
@@ -394,6 +396,10 @@ export class EntityVisual {
       .setScale(artScale(def))
       .setDepth(entityDepth(this.host.y));
     corpse.play(key);
+    this.corpse = corpse;
+    corpse.once(Phaser.GameObjects.Events.DESTROY, () => {
+      if (this.corpse === corpse) this.corpse = null;
+    });
     const shadow = this.shadow;
     this.shadow = null; // 시체와 함께 사라진다
     const targets = shadow ? [corpse, shadow] : [corpse];

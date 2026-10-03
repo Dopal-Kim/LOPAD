@@ -231,6 +231,15 @@ export interface SheetJson extends BranchSheetFields {
   light?: LightSpec;
   /** 54라운드 아트 boss1_onfire: 국면별 광원 (phaseFrames 이름 → light 형식) */
   lightByPhase?: Record<string, LightSpec>;
+  /** 54라운드 Q23·Q28 boss1_onfire: 누운 자세 불길 시트 이름 (`boss1_onfire_down`) */
+  lyingSheet?: string;
+  /**
+   * 54라운드 Q23·Q28 boss1_onfire_down: 보스 동작 → 이 시트를 쓰는 보스 프레임 열 (useFor) · 서 있는 불길을 쓰는 열 (standFor) ·
+   * 그 보스 프레임에서 오버레이를 옮길 [dx, dy] 도트 (frameOffsets, 동작 → 열 → [dx, dy]) — `systems/boss/onfireMap`
+   */
+  useFor?: Record<string, number[]>;
+  standFor?: Record<string, number[]>;
+  frameOffsets?: Record<string, Record<string, [number, number]>>;
   action: string;
   frameWidth: number;
   frameHeight: number;
