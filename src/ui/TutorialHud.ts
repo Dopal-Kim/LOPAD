@@ -110,65 +110,12 @@ export class TutorialGuide {
   };
 
   private showPanel(s: UiSnapshot, stageIndex: number): void {
-    const sc = this.scene;
-    const rows = tutorialRows(s, (k, v) => (v ? fill(r53Text(k), v) : r53Text(k)));
-    const objs: Phaser.GameObjects.GameObject[] = [];
-    const title = new GlowText(sc, 0, 0, r53Text('tutTitle'), 'ink_body', { scale: 2, stageIndex });
-    objs.push(title);
-    // 줄: 키 아이콘들 + 글
-    const rowObjs = rows.map((r) => {
-      const caps = r.keys.map((k) => new KeyCap(sc, 0, 0, k));
-      const text = new GlowText(sc, 0, 0, r.text, 'ink_body', { stageIndex });
-      objs.push(...caps, text);
-      return { caps, text };
-    });
-    const more = new GlowText(sc, 0, 0, r53Text('tutMore'), 'ink_faint', {
-      wrap: UI_SCREEN.WIDTH - 200,
-      align: 'center',
-    });
-    const close = new GlowText(sc, 0, 0, r53Text('tutClose'), 'ink_accent', { stageIndex });
-    objs.push(more, close);
-    const rowsW = Math.max(...rowObjs.map((r) => TUT.keyColW + r.text.displayWidth));
-    const w = Math.max(TUT.minW, rowsW, more.displayWidth, title.displayWidth) + TUT.padX * 2;
-    const h =
-      TUT.padY +
-      title.displayHeight +
-      10 +
-      rows.length * TUT.rowH +
-      8 +
-      more.displayHeight +
-      6 +
-      close.displayHeight +
-      TUT.padY;
-    const x0 = Math.round(UI_SCREEN.WIDTH / 2 - w / 2);
-    const y0 = Math.round(UI_SCREEN.HEIGHT / 2 - h / 2);
-    const bg: NinePanel = inkPanel(sc, 0, 0, w, h);
-    let y = TUT.padY;
-    title.placeCenter(w / 2, y);
-    y += title.displayHeight + 10;
-    // 키 칸을 가운데 묶음으로: 묶음 폭 = rowsW
-    const left = Math.round(w / 2 - rowsW / 2);
-    for (const r of rowObjs) {
-      let kx = left;
-      for (const c of r.caps) {
-        c.setPosition(kx, y + 2);
-        kx += c.width + TUT.keyGap;
-      }
-      r.text.setPosition(left + TUT.keyColW, y + 2 + Math.round((KEYCAP.h - r.text.displayHeight) / 2));
-      y += TUT.rowH;
-    }
-    y += 8;
-    more.placeCenter(w / 2, y);
-    y += more.displayHeight + 6;
-    close.placeCenter(w / 2, y);
-    const box = sc.add
-      .container(x0, y0, [bg, ...objs])
-      .setDepth(TUT.depth)
-      .setAlpha(0);
+    const p = buildHowToPanel(this.scene, s, stageIndex);
+    const box = p.box.setDepth(TUT.depth).setAlpha(0);
     this.panel = box;
-    sc.tweens.add({ targets: box, alpha: 1, duration: TUT.fadeMs });
-    this.panelTimer = sc.time.delayedCall(TUT.holdMs, () => this.closePanel());
-    debugExpose('tutorial', { open: true, rows: rows.map((r) => `${r.keys.join('+')} ${r.text}`), x: x0, y: y0, w, h });
+    this.scene.tweens.add({ targets: box, alpha: 1, duration: TUT.fadeMs });
+    this.panelTimer = this.scene.time.delayedCall(TUT.holdMs, () => this.closePanel());
+    debugExpose('tutorial', { open: true, rows: p.rows, x: p.x, y: p.y, w: p.w, h: p.h });
   }
 
   private closePanel(now = false): void {
@@ -262,4 +209,74 @@ export class TutorialGuide {
       });
     });
   }
+}
+
+/** '싸우는 법' 패널 한 장 (화면 가운데 Container). 튜토리얼 안내와 일시정지 일기장 '다시 보기'(53라운드 Q50)가 같이 쓴다 */
+export interface HowToPanel {
+  box: Phaser.GameObjects.Container;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** 디버그용 줄 요약 ('W+A+S+D 이동' …) */
+  rows: string[];
+}
+
+/**
+ * '싸우는 법' 패널을 화면 가운데에 만든다 (깊이·알파·닫기는 부르는 쪽이 정한다).
+ * 제목 + 키 아이콘(KeyCap) 줄(이동·공격·우클릭·대쉬·F) + 기타 키 한 줄 + 닫기 안내. 줄은 스냅샷(무기 보조 동작·넣기/뽑기)으로 만든다.
+ */
+export function buildHowToPanel(sc: Phaser.Scene, s: UiSnapshot, stageIndex: number): HowToPanel {
+  const rows = tutorialRows(s, (k, v) => (v ? fill(r53Text(k), v) : r53Text(k)));
+  const objs: Phaser.GameObjects.GameObject[] = [];
+  const title = new GlowText(sc, 0, 0, r53Text('tutTitle'), 'ink_body', { scale: 2, stageIndex });
+  objs.push(title);
+  // 줄: 키 아이콘들 + 글
+  const rowObjs = rows.map((r) => {
+    const caps = r.keys.map((k) => new KeyCap(sc, 0, 0, k));
+    const text = new GlowText(sc, 0, 0, r.text, 'ink_body', { stageIndex });
+    objs.push(...caps, text);
+    return { caps, text };
+  });
+  const more = new GlowText(sc, 0, 0, r53Text('tutMore'), 'ink_faint', {
+    wrap: UI_SCREEN.WIDTH - 200,
+    align: 'center',
+  });
+  const close = new GlowText(sc, 0, 0, r53Text('tutClose'), 'ink_accent', { stageIndex });
+  objs.push(more, close);
+  const rowsW = Math.max(...rowObjs.map((r) => TUT.keyColW + r.text.displayWidth));
+  const w = Math.max(TUT.minW, rowsW, more.displayWidth, title.displayWidth) + TUT.padX * 2;
+  const h =
+    TUT.padY +
+    title.displayHeight +
+    10 +
+    rows.length * TUT.rowH +
+    8 +
+    more.displayHeight +
+    6 +
+    close.displayHeight +
+    TUT.padY;
+  const x0 = Math.round(UI_SCREEN.WIDTH / 2 - w / 2);
+  const y0 = Math.round(UI_SCREEN.HEIGHT / 2 - h / 2);
+  const bg: NinePanel = inkPanel(sc, 0, 0, w, h);
+  let y = TUT.padY;
+  title.placeCenter(w / 2, y);
+  y += title.displayHeight + 10;
+  // 키 칸을 가운데 묶음으로: 묶음 폭 = rowsW
+  const left = Math.round(w / 2 - rowsW / 2);
+  for (const r of rowObjs) {
+    let kx = left;
+    for (const c of r.caps) {
+      c.setPosition(kx, y + 2);
+      kx += c.width + TUT.keyGap;
+    }
+    r.text.setPosition(left + TUT.keyColW, y + 2 + Math.round((KEYCAP.h - r.text.displayHeight) / 2));
+    y += TUT.rowH;
+  }
+  y += 8;
+  more.placeCenter(w / 2, y);
+  y += more.displayHeight + 6;
+  close.placeCenter(w / 2, y);
+  const box = sc.add.container(x0, y0, [bg, ...objs]);
+  return { box, x: x0, y: y0, w, h, rows: rows.map((r) => `${r.keys.join('+')} ${r.text}`) };
 }

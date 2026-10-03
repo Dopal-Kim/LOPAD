@@ -226,6 +226,8 @@ export const R53_TEXT = {
   tutCarryPlain: '넣기·뽑기 — 넣은 채 첫 타가 세다',
   tutMore: 'Q 물약 · Shift 달리기 · E 상호작용 · M 지도 · Esc 뒤로·일시정지',
   tutClose: 'Enter·Esc·클릭 닫기',
+  /** 일시정지 일기장 항목 — '싸우는 법' 패널 다시 보기 (53라운드 Q50) */
+  pauseHowTo: '싸우는 법',
   /** 적 등장 경고 */
   warnTitle: '주의',
   warnLine: '적이 다가온다',

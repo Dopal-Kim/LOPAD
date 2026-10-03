@@ -1,5 +1,27 @@
 # 게임 UI 파트 — 작업 기록
 
+## 53라운드 후속 (2026-10-03) · 시험장 갈래 첫 Esc 버그 · '싸우는 법' 다시 보기 (Q50)
+결정: `decisions/2026-10-03-round-53-playtest4.md` Q47~Q50. 계약: `contracts/ui-system-interface.md` '53라운드 추가'(cancelKey: 상점·구조물·lab '0', labBranch '9', 필수 메뉴 없음). 시스템 코드 열람 없음(계약 + `src/contract/ui.ts` 만).
+
+### 시험장 갈래(labBranch) 첫 Esc 에 메뉴 전체가 닫히던 문제
+- **원인**: Phaser 3.90 `KeyboardPlugin` 은 DOM 키 이벤트가 올 때마다 그 스텝 동안 쌓인 큐(POST_STEP 에서 비움)를 처음부터 다시 훑고, 중복 방지는 '바로 앞 이벤트와 같으면 건너뜀' 뿐이다. 프레임이 밀려 한 스텝 사이에 키 이벤트가 셋 이상 쌓이면(이동 키 자동 반복 + Esc 누름·뗌, 메뉴가 처음 그려지는 무거운 프레임 등) **같은 Esc 이벤트가 다시 넘어온다**(`repeat` false). 첫 처리로 labBranch 에 '9'(뒤로)를 보내 lab 이 다시 열리고, 다시 넘어온 같은 Esc 가 새로 열린 lab 의 cancelKey '0' 으로 처리돼 전부 닫혔다(= 이전 Esc 가 다음 메뉴의 cancelKey 로 새는 것). 49라운드 노드 지도 확인 창 `inputAfter` 와 같은 원인.
+- **수정**: `keyGate.ts` `takeKey(e)` — UI 키 처리기는 **실제로 동작할 때** 이벤트 객체를 기록(WeakSet, UI 씬 전체 공유)하고, 이미 기록된 이벤트면 아무것도 하지 않는다. `escNav.resolveMenuEsc` 가 열린 메뉴(마지막 `MENU_OPEN`)의 cancelKey 만 쓰고, 닫히는 중(MENU_CLOSE 뒤 씬이 멈추기 전)·자동 반복·이미 처리된 이벤트는 무시.
+- **같은 실수 점검·적용**: 메뉴 목록 숫자·Enter·위아래(`SelectList` — 고른 결과로 다음 메뉴가 열려도 같은 키로 또 고르지 않게: 시험장 무기 '1' → 갈래 '1', 상점 구매 → 다시 그린 상점에서 또 구매 등), 패 탁자 카드 키, 일시정지 Esc(닫힌 뒤 HUD 가 같은 Esc 로 일시정지를 또 여는 일), HUD Esc·Enter·Tab·M(방금 연 지도를 같은 키가 바로 닫는 일), 결과 Esc. 노드 지도·워프 지도·지역 카드는 기존 처리(시각 기준 `inputAfter`·뗀 뒤 실행·건너뛰기) 그대로.
+- 메뉴 id 로 cancelKey 를 추정하는 코드는 원래 없었다(테스트만 labBranch '0' 으로 적혀 있어 '9' 로 고침).
+
+### '싸우는 법' 다시 보기 (Q50)
+- 일시정지 일기장 목록: `[1] 더 쓴다 (Esc) / [2] 소리 / [3] 싸우는 법 / [4] 일기장을 덮는다`, 시험장은 `[1] 계속한다 (Esc) / [2] 소리 / [3] 싸우는 법 / [4] 시험장을 나간다`. 페이지 높이 282 → 300(한 줄).
+- [3] → 튜토리얼 안내 패널과 **같은 패널**(`TutorialHud.buildHowToPanel`, 스냅샷의 보조 동작 이름·넣기/뽑기로 줄을 만든다)을 화면 가운데, 일기장 위에 띄운다. 뒤는 G00 α0.55 로 덮고 클릭을 막는다. Esc·Enter·클릭으로 닫으면 일기장으로 돌아온다(Esc 한 단계 뒤로). 일시정지 중이라 저절로 닫히지 않는다. 시스템 데이터는 스냅샷(`weapon.secondaryName`·`carry`)만 사용.
+
+### 소유 코드 추가·변경
+`keyGate.ts`(신규), `escNav.ts`(+test: labBranch '9'·상점↔시험장 전환·다시 넘어온 Esc), `MenuScene.ts`, `widgets.ts`(`SelectList` takeKey·`setEnabled`), `PauseScene.ts`, `HudScene.ts`, `ResultScene.ts`, `TutorialHud.ts`(`buildHowToPanel` 분리), `text.ts`(`pauseHowTo`).
+
+### 검증
+tsc·eslint 통과, vitest 전체 373 통과(UI 57). 헤드리스(Playwright, 빌드본, `uidebug=1`, 스크립트 `scratchpad/labesc.cjs`): 타이틀 [3] → 시험장 → L(lab) → 1(labBranch, cancelKey '9') → **한 작업 안에 W 누름·Esc 누름·Esc 뗌·W 뗌**(프레임 밀림 재현) → lab 으로 한 단계만 돌아옴 → Esc → 닫힘. 대조: 수정을 잠시 끄면 같은 입력에 lab 까지 닫히고 다음 Esc 가 일시정지를 엶. 일시정지 [3] → 패널 → 같은 묶음 Esc → 패널만 닫히고 일기장 유지 → [3] → 클릭 닫기.
+
+### 임시값 (도영 님 검토 대상)
+항목 위치·key([3], 덮기·나가기는 [4]로 밀림), 항목 문구 '싸우는 법', 시험장 일기장에도 넣음, 뒤 덮기 α0.55.
+
 ## 53라운드 (2026-10-03) · Esc 한 단계 뒤로 · F 넣기/뽑기 표시 · 튜토리얼 안내 · 1920 렌더 규칙
 결정: `decisions/2026-10-02-round-51-playtest3.md` §3·§4·§6, `decisions/2026-10-03-round-53-playtest4.md` Q14~Q17. 계약: `contracts/ui-system-interface.md` '53라운드 추가'.
 

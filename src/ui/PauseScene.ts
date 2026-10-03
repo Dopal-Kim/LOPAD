@@ -1,22 +1,33 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, UI_SCREEN, uiBus, uiCommands } from '../contract/ui';
-import { setMutedCmd, withDebug } from './debug';
+import { debugExpose, setMutedCmd, withDebug } from './debug';
 import { GlowText } from './glow';
+import { keyTaken, takeKey } from './keyGate';
 import { ICON, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { hasRoute } from './routeView';
-import { controlsLine, r49Text, uiText } from './text';
+import { controlsLine, r49Text, r53Text, uiText } from './text';
+import { GRAY, LAYOUT, ROUTE, hexToNum } from './theme';
+import { buildHowToPanel } from './TutorialHud';
 import { SelectList } from './widgets';
 
 const PAGE_W = 440;
-const PAGE_H = 282;
+/** 53라운드 Q50: '싸우는 법' 항목 한 줄만큼 높였다 */
+const PAGE_H = 282 + LAYOUT.row;
 const PAD = 24;
+/** '싸우는 법' 패널 깊이 (일기장 위) */
+const HOWTO_DEPTH = 50;
+
+/** 일기장 항목 key (53라운드 Q50: 3 = 싸우는 법, 덮기·나가기는 4) */
+const PAUSE_KEY = { resume: '1', sound: '2', howTo: '3', leave: '4' } as const;
 
 /**
  * 일시정지 = 일기장 한 페이지 (31라운드 채택 문구): 제목 '일기장', 이름·층·시련·세이브, 능력치, 무기, 패시브, 조작법,
  * '더 쓴다 (Esc)' / '소리 끄기·켜기' / '일기장을 덮는다' → 확인 '적지 않은 것은 남지 않는다. 그래도 덮는다 — 예' / '더 쓴다'
  * 49라운드(계약 §11.3·§11.4): 소리 항목 → `setMuted`, 상태는 `snapshot.muted`. 무기 시험장(`lab`)이면 제목 '무기 시험장',
  * '계속한다 (Esc)' / 소리 / '시험장을 나간다'(확인 없이 toTitle).
+ * 53라운드 Q50: '싸우는 법' 항목 — 튜토리얼 안내 패널을 화면 가운데에 다시 띄운다(일기장 위). Esc·Enter·클릭으로 닫으면
+ * 일기장으로 돌아온다 (Esc 한 단계 뒤로).
  */
 export class PauseScene extends Phaser.Scene {
   private list?: SelectList;
@@ -24,6 +35,9 @@ export class PauseScene extends Phaser.Scene {
   private alive = false;
   private muted = false;
   private lab = false;
+  /** '싸우는 법' 패널 (떠 있으면 일기장 목록 입력을 막는다) */
+  private howTo?: Phaser.GameObjects.Container;
+  private howToBlock?: Phaser.GameObjects.Rectangle;
   private onResumed = () => this.scene.stop();
 
   constructor() {
@@ -37,13 +51,19 @@ export class PauseScene extends Phaser.Scene {
   create(): void {
     this.confirm = false;
     this.alive = true;
+    this.howTo = undefined;
+    this.howToBlock = undefined;
     setupKit(this);
     // keydown 이벤트로 (HudScene 참조). Key 객체를 만들지 않는다
     this.input.keyboard?.on('keydown-ESC', this.onEsc);
+    this.input.keyboard?.on('keydown-ENTER', this.onEnter);
     uiBus.on(UI_EVENTS.RESUMED, this.onResumed);
     this.events.once('shutdown', () => {
       this.alive = false;
+      this.howTo = undefined;
+      this.howToBlock = undefined;
       this.input.keyboard?.off('keydown-ESC', this.onEsc);
+      this.input.keyboard?.off('keydown-ENTER', this.onEnter);
       uiBus.off(UI_EVENTS.RESUMED, this.onResumed);
       this.list?.destroy();
     });
@@ -52,8 +72,16 @@ export class PauseScene extends Phaser.Scene {
     });
   }
 
-  /** 51라운드 §6: Esc = 한 단계 뒤로. 덮기 확인 중이면 확인만 닫고, 아니면 게임으로 */
-  private onEsc = (): void => {
+  /**
+   * 51라운드 §6: Esc = 한 단계 뒤로. '싸우는 법' 패널이면 패널만, 덮기 확인 중이면 확인만 닫고, 아니면 게임으로.
+   * 같은 Esc 이벤트가 다시 넘어오면 무시 (keyGate.ts — 닫힌 뒤 HUD 가 같은 Esc 로 일시정지를 또 열지 않게)
+   */
+  private onEsc = (e?: KeyboardEvent): void => {
+    if (e?.repeat || !takeKey(e)) return;
+    if (this.howTo) {
+      this.closeHowTo();
+      return;
+    }
     if (this.confirm) {
       this.confirm = false;
       this.setList();
@@ -128,6 +156,42 @@ export class PauseScene extends Phaser.Scene {
     );
   }
 
+  /** Enter: '싸우는 법' 패널 닫기 (목록의 Enter 는 패널이 떠 있는 동안 막혀 있다) */
+  private onEnter = (e?: KeyboardEvent): void => {
+    if (!this.howTo || keyTaken(e)) return;
+    takeKey(e);
+    this.closeHowTo();
+  };
+
+  /** 53라운드 Q50: '싸우는 법' 패널 다시 보기 — 튜토리얼과 같은 패널을 화면 가운데, 일기장 위에 */
+  private showHowTo(): void {
+    if (this.howTo) return;
+    const s = withDebug(uiCommands.getUiSnapshot());
+    const p = buildHowToPanel(this, s, Math.max(0, s.stageIndex));
+    // 일기장을 G00 α0.55(노드 지도 배경과 같은 허용 알파)로 덮어 반투명 잉크 패널 아래 글이 비치지 않게 하고, 패널 밖 클릭도 닫기.
+    // 화면 전체를 덮어 아래 일기장 항목이 눌리지 않게 한다
+    // (지금 처리 중인 클릭에는 새 판정 대상이 끼지 않으므로, 항목을 누른 그 클릭으로 바로 닫히지 않는다)
+    const block = this.add
+      .rectangle(0, 0, UI_SCREEN.WIDTH, UI_SCREEN.HEIGHT, hexToNum(GRAY[0]), ROUTE.dimAlpha)
+      .setOrigin(0)
+      .setDepth(HOWTO_DEPTH - 1)
+      .setInteractive();
+    block.on('pointerdown', () => this.closeHowTo());
+    this.howTo = p.box.setDepth(HOWTO_DEPTH);
+    this.howToBlock = block;
+    this.list?.setEnabled(false);
+    debugExpose('pauseHowTo', { open: true, rows: p.rows, x: p.x, y: p.y, w: p.w, h: p.h });
+  }
+
+  private closeHowTo(): void {
+    this.howTo?.destroy();
+    this.howToBlock?.destroy();
+    this.howTo = undefined;
+    this.howToBlock = undefined;
+    this.list?.setEnabled(true);
+    debugExpose('pauseHowTo', { open: false });
+  }
+
   private soundLabel(): string {
     return this.muted ? r49Text('soundOn') : r49Text('soundOff');
   }
@@ -136,9 +200,10 @@ export class PauseScene extends Phaser.Scene {
     const keep = this.list?.cursorIndex() ?? 0;
     if (this.lab && !this.confirm) {
       this.list?.setLines([
-        { key: '1', label: `${r49Text('labContinue')} (Esc)`, enabled: true },
-        { key: '2', label: this.soundLabel(), enabled: true },
-        { key: '3', label: r49Text('labLeave'), enabled: true },
+        { key: PAUSE_KEY.resume, label: `${r49Text('labContinue')} (Esc)`, enabled: true },
+        { key: PAUSE_KEY.sound, label: this.soundLabel(), enabled: true },
+        { key: PAUSE_KEY.howTo, label: r53Text('pauseHowTo'), enabled: true },
+        { key: PAUSE_KEY.leave, label: r49Text('labLeave'), enabled: true },
       ]);
       this.list?.setCursorIndex(keep);
       return;
@@ -154,9 +219,10 @@ export class PauseScene extends Phaser.Scene {
             { key: '2', label: uiText('pause', 'cancelQuit', '더 쓴다'), enabled: true },
           ]
         : [
-            { key: '1', label: `${uiText('pause', 'cancelQuit', '더 쓴다')} (Esc)`, enabled: true },
-            { key: '2', label: this.soundLabel(), enabled: true },
-            { key: '3', label: uiText('pause', 'toTitle', '일기장을 덮는다'), enabled: true },
+            { key: PAUSE_KEY.resume, label: `${uiText('pause', 'cancelQuit', '더 쓴다')} (Esc)`, enabled: true },
+            { key: PAUSE_KEY.sound, label: this.soundLabel(), enabled: true },
+            { key: PAUSE_KEY.howTo, label: r53Text('pauseHowTo'), enabled: true },
+            { key: PAUSE_KEY.leave, label: uiText('pause', 'toTitle', '일기장을 덮는다'), enabled: true },
           ],
     );
     if (!this.confirm) this.list?.setCursorIndex(keep);
@@ -171,8 +237,9 @@ export class PauseScene extends Phaser.Scene {
 
   private choose(key: string): void {
     if (!this.confirm) {
-      if (key === '1') uiCommands.resume();
-      else if (key === '2') this.toggleSound();
+      if (key === PAUSE_KEY.resume) uiCommands.resume();
+      else if (key === PAUSE_KEY.sound) this.toggleSound();
+      else if (key === PAUSE_KEY.howTo) this.showHowTo();
       else if (this.lab) uiCommands.toTitle();
       else {
         this.confirm = true;

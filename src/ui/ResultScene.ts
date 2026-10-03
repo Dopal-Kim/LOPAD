@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { UI_SCREEN, uiCommands, type UiResult } from '../contract/ui';
 import { GlowText } from './glow';
 import { DARK_BG, ICON, KIT, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
+import { takeKey } from './keyGate';
 import { UI_SCENE_KEYS } from './keys';
 import { uiText } from './text';
 import { LAYOUT } from './theme';
@@ -45,7 +46,7 @@ export class ResultScene extends Phaser.Scene {
   }
 
   private onEsc = (e?: KeyboardEvent): void => {
-    if (e?.repeat || !this.list) return;
+    if (e?.repeat || !this.list || !takeKey(e)) return;
     uiCommands.toTitle();
   };
 

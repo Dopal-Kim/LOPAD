@@ -38,6 +38,7 @@ import {
   setupKit,
   weaponIconKey,
 } from './kit';
+import { keyTaken, takeKey } from './keyGate';
 import { UI_SCENE_KEYS } from './keys';
 import { Minimap } from './Minimap';
 import { RegionCard } from './RegionCard';
@@ -304,26 +305,40 @@ export class HudScene extends Phaser.Scene {
     if (this.birthActive) return;
     // 지역 카드는 같은 Esc 의 keydown 으로 이미 건너뛰기를 받았다
     if (this.regionCard) return;
-    if (this.guide?.dismiss()) return;
+    // 메뉴·일시정지 씬이 같은 Esc 로 이미 동작했으면(그 씬이 닫힌 뒤 다시 넘어온 이벤트 포함) 넘긴다 (keyGate.ts)
+    if (keyTaken(e)) return;
+    if (this.guide?.panelOpen) {
+      takeKey(e);
+      this.guide.dismiss();
+      return;
+    }
     if (this.routeMap) {
       // 보기 모드는 닫고 재개. 고르기 모드는 고를 곳이 없을 때만 닫는다 (고르는 동안은 시스템이 입력을 잠근다)
       if (this.routeMap.mode === 'view') {
+        takeKey(e);
         this.closeRoute(false);
         this.resumeAfterRelease('Escape');
-      } else if (!this.routeMap.hasChoices) this.closeRoute(false);
+      } else if (!this.routeMap.hasChoices) {
+        takeKey(e);
+        this.closeRoute(false);
+      }
       return;
     }
     if (this.warpMap) {
+      takeKey(e);
       this.closeWarp(false);
       this.resumeAfterRelease('Escape');
       return;
     }
-    if (!this.scene.isActive(UI_SCENE_KEYS.MENU) && !this.scene.isActive(UI_SCENE_KEYS.PAUSE)) uiCommands.pause();
+    if (this.scene.isActive(UI_SCENE_KEYS.MENU) || this.scene.isActive(UI_SCENE_KEYS.PAUSE)) return;
+    if (takeKey(e)) uiCommands.pause();
   };
 
   /** Enter: 튜토리얼 안내 닫기 */
-  private onEnter = (): void => {
-    this.guide?.dismiss();
+  private onEnter = (e?: KeyboardEvent): void => {
+    if (!this.guide?.panelOpen || keyTaken(e)) return;
+    takeKey(e);
+    this.guide.dismiss();
   };
 
   /**
@@ -360,6 +375,8 @@ export class HudScene extends Phaser.Scene {
   private onTab = (e?: KeyboardEvent): void => {
     if (e?.repeat) return;
     if (this.birthActive) return;
+    // 같은 Tab·M 이벤트가 다시 넘어와 방금 연 지도를 곧바로 닫지 않게 (keyGate.ts). 열고 닫는 일만 있으므로 처음에 소비한다
+    if (!takeKey(e)) return;
     if (this.routeMap) {
       if (this.routeMap.mode === 'view') this.closeRoute(true);
       return;

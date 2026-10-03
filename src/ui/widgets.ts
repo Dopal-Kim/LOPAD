@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GlowText } from './glow';
+import { takeKey } from './keyGate';
 import { cursor as makeCursor } from './kit';
 import { LAYOUT, type TextStyleName } from './theme';
 
@@ -39,6 +40,8 @@ export class SelectList {
   private surface: 'page' | 'ink';
   private stageIndex: number;
   private detailWrap?: number;
+  /** false 면 키·마우스 입력을 받지 않는다 (위에 다른 패널이 떠 있을 때, 53라운드 '싸우는 법' 다시 보기) */
+  private enabled = true;
 
   constructor(
     private scene: Phaser.Scene,
@@ -51,13 +54,18 @@ export class SelectList {
     this.stageIndex = opts.stageIndex ?? 0;
     this.detailWrap = opts.detailWrap;
     this.cursorSprite = makeCursor(scene, this.surface === 'ink').setVisible(false);
+    // 동작할 때만 takeKey — 고른 결과로 다음 메뉴가 열려도 같은 키 이벤트가 다시 넘어와 또 고르지 않게 (keyGate.ts)
     this.onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') this.move(-1);
-      else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') this.move(1);
-      else if (e.key === 'Enter' || e.key === ' ') this.choose(this.cursorIdx);
-      else {
+      if (!this.enabled) return;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        if (takeKey(e)) this.move(-1);
+      } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        if (takeKey(e)) this.move(1);
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        if (takeKey(e)) this.choose(this.cursorIdx);
+      } else {
         const idx = this.lines.findIndex((l) => l.key === e.key);
-        if (idx >= 0) this.choose(idx);
+        if (idx >= 0 && takeKey(e)) this.choose(idx);
       }
     };
     scene.input.keyboard?.on('keydown', this.onKeyDown);
@@ -91,7 +99,7 @@ export class SelectList {
       const t = new GlowText(this.scene, this.x + 14 + ind, y, this.itemLabel(l), this.unselStyle(), {
         stageIndex: this.stageIndex,
       }).makeInteractive();
-      t.on('pointerover', () => this.setCursor(i));
+      t.on('pointerover', () => this.enabled && this.setCursor(i));
       t.on('pointerdown', () => this.choose(i));
       this.items.push(t);
       y += SELECT_ROW.line;
@@ -99,7 +107,7 @@ export class SelectList {
         const d = new GlowText(this.scene, this.x + 14 + ind + 26, y - 2, l.detail, 'page_faint', {
           wrap: this.detailWrap,
         }).makeInteractive();
-        d.on('pointerover', () => this.setCursor(i));
+        d.on('pointerover', () => this.enabled && this.setCursor(i));
         d.on('pointerdown', () => this.choose(i));
         this.details.push(d);
         y += d.textH + 4 + SELECT_ROW.gap;
@@ -136,6 +144,12 @@ export class SelectList {
     return this;
   }
 
+  /** 입력 받기 켜기·끄기 */
+  setEnabled(on: boolean): this {
+    this.enabled = on;
+    return this;
+  }
+
   /** 현재 커서 위치 (같은 메뉴를 다시 그릴 때 유지용, 47라운드) */
   cursorIndex(): number {
     return this.cursorIdx;
@@ -169,6 +183,7 @@ export class SelectList {
   }
 
   private choose(i: number): void {
+    if (!this.enabled) return;
     const l = this.lines[i];
     if (l && l.enabled) this.onSelect(l.key);
   }

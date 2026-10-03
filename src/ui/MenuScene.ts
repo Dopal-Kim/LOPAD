@@ -4,7 +4,8 @@ import { debugSelect, isDebugMenu } from './debug';
 import { GlowText } from './glow';
 import { accentHex, book, cursor as makeCursor, fontsReady, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
-import { menuEscAction } from './escNav';
+import { resolveMenuEsc } from './escNav';
+import { takeKey } from './keyGate';
 import { menuIndent } from './resourceView';
 import { cardFocusMove } from './structView';
 import { r53Text, structText } from './text';
@@ -59,11 +60,15 @@ export class MenuScene extends Phaser.Scene {
     // 같은 프레임에 다음 메뉴가 열릴 수 있으므로 다음 update 에서 닫는다
     if (this.menu?.id === p.id) this.pendingClose = true;
   };
-  /** 51라운드 §6: Esc = 한 단계 뒤로 (`menuEscAction`). 앞 단계가 없는 메뉴는 머무르고 안내 한 줄 */
+  /**
+   * 51라운드 §6: Esc = 한 단계 뒤로 (`resolveMenuEsc`). 앞 단계가 없는 메뉴는 머무르고 안내 한 줄.
+   * cancelKey 는 지금 열린 메뉴(`this.menu` = 마지막 MENU_OPEN)의 값. 같은 Esc 이벤트가 다시 넘어오면 무시한다
+   * (53라운드: 갈래 '9' 로 lab 이 다시 열린 뒤 같은 Esc 가 lab 의 '0' 으로 처리돼 메뉴 전체가 닫혔다 — keyGate.ts)
+   */
   private onEsc = (e?: KeyboardEvent) => {
     const m = this.menu;
-    if (!m || e?.repeat) return;
-    const a = menuEscAction(m);
+    const a = resolveMenuEsc(m, e, this.pendingClose);
+    if (!m || !a) return;
     if (a.kind === 'select') this.send(m, a.key);
     else if (a.kind === 'title') uiCommands.toTitle();
     else this.flashStayHint();
@@ -340,21 +345,22 @@ export class MenuScene extends Phaser.Scene {
     this.cardCursor = makeCursor(this).setDepth(3).setVisible(false);
     this.onCardKey = (e: KeyboardEvent) => {
       if (e.repeat) return;
+      // 같은 키 이벤트가 다시 넘어와 다음 메뉴에서 또 고르지 않게 (keyGate.ts)
       if (e.key === 'Enter' || e.key === ' ') {
-        this.chooseCard(this.cardFocus);
+        if (takeKey(e)) this.chooseCard(this.cardFocus);
         return;
       }
       if (this.cancelLine && e.key === this.cancelLine.key) {
-        this.chooseCard(this.cards.length);
+        if (takeKey(e)) this.chooseCard(this.cards.length);
         return;
       }
       const idx = this.cards.findIndex((c) => c.line.key === e.key);
       if (idx >= 0) {
-        this.chooseCard(idx);
+        if (takeKey(e)) this.chooseCard(idx);
         return;
       }
       const next = cardFocusMove(this.cardFocus, this.cards.length, e.key);
-      if (next !== this.cardFocus) this.focusCard(next);
+      if (next !== this.cardFocus && takeKey(e)) this.focusCard(next);
     };
     this.input.keyboard?.on('keydown', this.onCardKey);
     this.cardFocus = Math.max(0, Math.min(n, keepCursor));
