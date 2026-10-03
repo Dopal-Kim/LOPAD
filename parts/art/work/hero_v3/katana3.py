@@ -11,6 +11,7 @@
 각도는 계약의 화면각 규약(right 기준 0 = 앞, + = 아래(=해부 오른쪽), down = +90°, up = -90°, left = 180-θ)과 같다.
 """
 import math
+import zlib
 
 from PIL import Image
 
@@ -525,6 +526,11 @@ def idle_end_frame(d, state):
     return R, w, _anchors(R), state, p
 
 
+def ember_seed(kind, key):
+    """불티 seed — 고정(53라운드 Q21). 예전 hash() 는 PYTHONHASHSEED 에 따라 실행마다 달라 빌드가 비결정적이었다."""
+    return zlib.crc32(("%s:%s" % (kind, key)).encode("utf-8")) % 97
+
+
 def move_frame(d, kind, key, i):
     """kind = "combo"(key = 1·2·3) / "move"(key = draw·sheathe·special) → (몸 Rig, 무기 RGBA, 손 기준점(도트), 상태, pose)."""
     fr = move_frame_def(kind, key, i)
@@ -549,7 +555,7 @@ def move_frame(d, kind, key, i):
             grip = add(m, project(d, HILT_DIR), fr["along"])
             draw_katana(L, d, grip, SAYA_DIR, "steel", seed=i, visible=visible)
         else:
-            draw_katana(L, d, grip, v, state, seed=hash((kind, str(key))) % 97 + i)
+            draw_katana(L, d, grip, v, state, seed=ember_seed(kind, key) + i)
     off = fr["off"]
     hold = ("handR", "handL") if off in ("two", "saya") else ("handR",)
     im = rasterize(L, R, hold_hands=hold)

@@ -174,3 +174,53 @@ if __name__ == "__main__":
         with open(p, "w", encoding="utf-8") as f:
             f.write(build(weapon, way) + "\n")
         print(p, len(build(weapon, way)))
+
+
+# ---------------------------------------------------------------------------
+# 2회차(재생성, 무기당 1회) — 1회차 비평 반영. 번호 매긴 배치 문장이 라벨 글자를 부르는 것으로 보여
+# 배치를 산문으로 바꾸고 '글자 없음'을 앞에도 둔다. 참고 이미지는 1회차와 같음(새로 생성, 편집형 아님).
+# ---------------------------------------------------------------------------
+LAYOUT2 = (
+    "Arrange it as one clean row on a flat plain dark slate-gray background with soft floor shadows, evenly spaced, nothing "
+    "overlapping, no scenery. At the far left, the weapon by itself, very large, in clean side view{weapon_pose}. Next to it, the hero "
+    "holding it in a ready combat stance, three-quarter view{hold}. Next, the hero at rest, standing, carrying it {carry}. At the far "
+    "right, one or two small frozen moments of his basic attack with this weapon showing the attack effect: {fx}. "
+    "The figures stand on their own with nothing written under or over them - this sheet has no captions and no titles at all. "
+)
+
+FIX2 = {
+    ("katana", "B"): (
+        "Important shape note: the weapon is clearly a katana in every view - a gently curved, single-edged, slender blade with a "
+        "small round guard made from a fused shard of breastplate, no cross-guard, no spikes, no straight double-edged blade. "
+        "Its scabbard is a slim curved sleeve following the blade's curve, not a log. "
+    ),
+    ("greatsword", "A"): (
+        "Show the at-rest pose from a back three-quarter view so the greatsword slung diagonally on his back by its leather strap is "
+        "clearly visible, blade pointing down behind his left leg, grip above his right shoulder. "
+    ),
+    ("dagger", "A"): (
+        "Important grip note: in the combat stance, at rest, and in the attack, he always holds the dagger in an icepick reverse "
+        "grip - the blade comes out of the bottom of his fist, on the little-finger side, pointing down and back along the forearm "
+        "toward the elbow; the thumb is on the pommel. The soul-fire on the blade is a seeping glow and small molten drips, not a "
+        "large flame. "
+    ),
+    ("bow", "A"): "",
+}
+
+
+def build2(weapon, way):
+    w = W[(weapon, way)]
+    return ("No text, no letters, no labels anywhere in the image. " + HEAD + w["weapon"] + FIX2[(weapon, way)]
+            + LAYOUT2.format(weapon_pose=w["weapon_pose"], hold=w["hold"], carry=w["carry"], fx=w["fx"]) + TAIL)
+
+
+def write2():
+    for (weapon, way) in FIX2:
+        p = os.path.join(HERE, "prompt_%s_%s2.txt" % (weapon, way))
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(build2(weapon, way) + "\n")
+        print(p)
+
+
+if __name__ == "__main__":
+    write2()
