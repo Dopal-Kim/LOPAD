@@ -17,9 +17,22 @@ ROOT = os.path.normpath(os.path.join(HERE, "../../../.."))
 OUT = os.path.join(ROOT, "assets/tiles/v3")
 SHEET_W = 1024
 CELL = 64
+RID = None
 REGIONS = {"outer": outer, "waste": waste, "gate": gate, "brewery": brewery, "hall": hall}
 NAMES = {"outer": "외곽 거리", "waste": "황무지", "gate": "성문", "brewery": "양조 구역", "hall": "연회장"}
 SRC = "parts/art/work/props_v3/build.py (53라운드 Q12)"
+# 53라운드 Q51~Q54 세부안: 테두리 그림에 이미 같은 물건이 있는 큰 소품 → 그 쪽 테두리 앞에 두지 않음(중복 방지).
+# 근거: gemini/NOTES_borders_f1.md 3절(띠별 내용) · 목업 확인.
+AVOID = {
+    "outer": {"stall": ["north"], "crate_stack": ["north"]},
+    "waste": {"stakes": ["north"], "broken_cart": ["north", "east"], "weapons_stuck": ["north"]},
+    "gate": {"toll_booth": ["north", "east"], "barricade_x": ["north", "east"], "barrel_cart": ["east"],
+             "crate_stack": ["north"]},
+    "brewery": {"barrel_pyramid": ["north", "west"], "crane_barrel": ["north", "west"], "steel_vat": ["west"],
+                "handcart": ["north"], "crate_stack": ["north"]},
+    "hall": {"candelabra_stand": ["north"], "pillar": ["north"]},
+}
+AVOID_TILES = 3
 PAL = ("parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL "
        "(parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음")
 HERO = os.path.join(ROOT, "assets/sprites/player/v3/player_idle")
@@ -71,6 +84,9 @@ def entry(p, x, y, big):
     for k in ("slot", "maxPerRoom", "weight", "depth", "placement", "note"):
         if k in ex:
             e[k] = ex.pop(k)
+    av = AVOID.get(RID, {}).get(p.name) if big else None
+    if av:
+        e["avoidNearBorder"] = av
     if p.light:
         e["light"] = p.light
     if "lights" in ex:
@@ -79,6 +95,8 @@ def entry(p, x, y, big):
 
 
 def build_region(rid, mod):
+    global RID
+    RID = rid
     small, big = mod.small(), mod.big()
     sheet, placed = pack(small, big)
     os.makedirs(OUT, exist_ok=True)
@@ -101,6 +119,8 @@ def build_region(rid, mod):
                       "depth 'floor' = 바닥 데칼(통과·Y 정렬 없음)."),
         "bigProps": bigs,
         "bigPropsNote": "계약 §12 bigProps 규칙 배치용. rect 로 자른다. lights[] 가 있으면 light 대신 여러 광원(연회 탁자 촛대).",
+        "avoidNearBorderNote": (f"avoidNearBorder = 테두리 그림에 같은 물건이 이미 있는 쪽(north·south·west·east). 그 쪽 바닥 끝(테두리 기준선)에서 "
+                                f"{AVOID_TILES}칸 안에 발자국이 걸치지 않게 둔다(53라운드 Q51~Q54, 칸 수 임시)"),
         "emissiveColors": [pk.tohex(c) for c in pk.EMISSIVE],
         "emissiveNote": "이 색 픽셀은 자체 발광(불꽃·등불·촛불·끓는 술). 조명 곱하기 뒤 가산 레이어로 다시 그린다(목업 방식)",
         "palette": PAL, "source": SRC,

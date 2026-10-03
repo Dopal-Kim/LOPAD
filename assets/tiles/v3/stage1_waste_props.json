@@ -248,7 +248,10 @@
    ],
    "solid": false,
    "occludeAbove": 40,
-   "placement": "floor"
+   "placement": "floor",
+   "avoidNearBorder": [
+    "north"
+   ]
   },
   {
    "name": "stakes",
@@ -269,7 +272,10 @@
    ],
    "solid": true,
    "occludeAbove": 60,
-   "placement": "floor (흙둑 앞·엄폐)"
+   "placement": "floor (흙둑 앞·엄폐)",
+   "avoidNearBorder": [
+    "north"
+   ]
   },
   {
    "name": "broken_cart",
@@ -291,6 +297,10 @@
    "solid": true,
    "occludeAbove": 40,
    "placement": "floor (가장자리 권장)",
+   "avoidNearBorder": [
+    "north",
+    "east"
+   ],
    "light": {
     "color": "#eebb6d",
     "radius": 360,
@@ -328,6 +338,7 @@
   }
  ],
  "bigPropsNote": "계약 §12 bigProps 규칙 배치용. rect 로 자른다. lights[] 가 있으면 light 대신 여러 광원(연회 탁자 촛대).",
+ "avoidNearBorderNote": "avoidNearBorder = 테두리 그림에 같은 물건이 이미 있는 쪽(north·south·west·east). 그 쪽 바닥 끝(테두리 기준선)에서 3칸 안에 발자국이 걸치지 않게 둔다(53라운드 Q51~Q54, 칸 수 임시)",
  "emissiveColors": [
   "#e2a33c",
   "#e8b858",

@@ -41,3 +41,9 @@
 - 부서진 수레·짐수레는 상자형 짐칸이 단조롭다(바퀴·불은 읽힘). 대포·말뚝은 덩어리는 좋지만 디테일 밀도가 술통보다 낮다.
 - 술통 피라미드의 통 끝면이 방패처럼 보일 때가 있다(테두리 그림의 술통 더미와 같은 문법이라 유지).
 - 연회장 테두리의 촛대·술통이 v3 보다 크다(그림 축척 ±10%) — 바닥 쪽을 더 키우면 전투 공간을 많이 차지.
+
+## 5. 53라운드 Q51~Q54 후속 (2026-10-03)
+- 불꽃은 정지 그림 + 광원 깜빡임 유지(결정). 수로 투사체 통과(계약 §14).
+- `avoidNearBorder`(bigProps): 테두리 그림에 같은 물건이 있는 쪽. 값 = 방향 목록, 규칙은 JSON `avoidNearBorderNote`(그 쪽 바닥 끝에서 3칸 안 금지, 칸 수 임시).
+  외곽 stall·crate_stack(북) / 황무지 stakes·weapons_stuck(북)·broken_cart(북·동) / 성문 toll_booth·barricade_x(북·동)·barrel_cart(동)·crate_stack(북) / 양조 barrel_pyramid·crane_barrel(북·서)·steel_vat(서)·handcart·crate_stack(북) / 연회장 candelabra_stand·pillar(북).
+- PNG 는 바이트 동일, JSON 은 키 추가만.

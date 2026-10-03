@@ -459,4 +459,8 @@ def build():
 
 
 if __name__ == "__main__":
-    build()
+    if sys.argv[1:] == ["tiles"]:
+        # 타일셋만 다시 만듦(53라운드 바닥 톤 갱신) — 캐릭터·무기·적 v2 시트는 건드리지 않는다
+        preview_tiles(export_tiles()[0])
+    else:
+        build()

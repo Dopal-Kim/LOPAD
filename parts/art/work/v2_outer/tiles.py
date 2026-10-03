@@ -16,6 +16,25 @@ COLS, ROWS = 8, 10
 # 방 종류 바닥도 그 정도 밀도의 '드문 강조'로 보이게 0.02 (방 26×11 기준 약 6칸). 없으면 시스템 기본 0.06.
 ROOM_FLOOR_MIX = 0.02
 
+# 53라운드 Q51~Q54 세부안: 바닥을 Gemini 테두리 톤(따뜻한 갈색)에 맞춰 다시 칠함.
+# 판석·줄눈·배수로의 청회 SL 램프만 같은 명도의 따뜻한 색(어두운 쪽 = WD 엄버, 밝은 쪽 = PL 회갈)으로 바꾼다.
+# 무채 G·층 램프 A(잔 각인·술)·벽·지붕·소품·그늘은 그대로. 새 색 없음(v2 재질 블록 안).
+WARM_FLOOR_IDX = set(range(0, 5)) | set(range(23, 39)) | {60, 61, 62}
+WARM_FLOOR_MAP = {SL[0][:3]: WD[0], SL[1][:3]: WD[0], SL[2][:3]: WD[1], SL[3][:3]: WD[3],
+                  SL[4][:3]: PL[0], SL[5][:3]: PL[1], SL[6][:3]: PL[2], SL[7][:3]: PL[3]}
+
+
+def warm_floor(im):
+    """바닥 칸의 청회 → 따뜻한 갈색(같은 명도 단계, 알파 유지)."""
+    im = im.copy()
+    p = im.load()
+    for y in range(im.height):
+        for x in range(im.width):
+            q = p[x, y]
+            if q[3] and q[:3] in WARM_FLOOR_MAP:
+                p[x, y] = WARM_FLOOR_MAP[q[:3]][:3] + (q[3],)
+    return im
+
 # 재질 램프 묶음 (어두움 → 밝음)
 STONE = {
     "cool": [SL[2], SL[3], SL[4], SL[5], SL[6]],
@@ -1072,8 +1091,9 @@ def build_sheet():
     cells = {}
 
     def put(idx, can):
-        cells[idx] = can.im
-        sheet.alpha_composite(can.im, ((idx % COLS) * T, (idx // COLS) * T))
+        im = warm_floor(can.im) if idx in WARM_FLOOR_IDX else can.im
+        cells[idx] = im
+        sheet.alpha_composite(im, ((idx % COLS) * T, (idx // COLS) * T))
 
     for i in range(4):
         put(i, floor(i))
