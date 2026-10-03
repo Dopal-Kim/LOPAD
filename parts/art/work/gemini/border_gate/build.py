@@ -11,7 +11,10 @@ sys.path.insert(0, os.path.dirname(HERE))
 import border_kit as BK  # noqa: E402
 
 BANDS = {
-    "north": dict(parts=[("raw_north_a.jpg", (0, 0, 4128, 1024))], wrap="x", wrap_overlap=56,
+    # 53라운드 Q22: 띠를 통째로 반복하면 성문이 두 개 보임 → 가운데 조각(성문·옆문·통행세 오두막, 원본 x 1080~3100)은 한 번만,
+    # 좌(원본 60~1150: 끝 망루·깃발·상자)·우(3030~4100: 바리케이드·물통·끝 망루) 성벽 조각만 반복. 경계는 원래 그림에서 이어지는 자리.
+    "north": dict(parts=[("raw_north_a.jpg", (0, 0, 4128, 1024))], wrap_overlap=56,
+                  split={"left": (60, 1150), "right": (3030, 4100)},
                   baseline_src=950, curve="wall"),        # 성벽 기단 밑변
     "west": dict(parts=[("raw_west_a.jpg", (230, 0, 870, 4128))], wrap="y", wrap_overlap=72, curve="wall"),   # 오른쪽 검은 틈 버림
     "east": dict(parts=[("raw_east_a.jpg", (0, 0, 640, 4128))], wrap="y", wrap_overlap=72, curve="wall"),
@@ -25,7 +28,8 @@ DOORS = {
     "west": dict(front_x=480, south_x=900, openingH=96, curve="wall"),
 }
 # 큰 성문(문 터널 빛)이 띠 가운데 — 시스템이 출구 문을 북쪽 가운데에 둘 때 맞추도록 기준 x 제공(선택)
-EXTRA = {"north": {"focusX": 824.0, "focusNote": "성문 터널 가운데(띠 국소 논리 x). 선택: 바닥 가운데 또는 북쪽 출구 문 칸 가운데에 맞춰 띠의 반복 위상을 정한다."}}
+# focusX = 성문 터널 가운데(가운데 조각 국소 논리 x) = (2060 × 0.8 − 864) / 2
+EXTRA = {"north": {"focusX": 392.0, "focusNote": "성문 터널 가운데(가운데 조각 north.png 국소 논리 x). 바닥 가운데 x 에 맞춘다(필수). 북쪽 출구가 가운데면 이 성문이 출구 — door_north(옆문)는 가운데가 아닌 북쪽 문에만."}}
 
 def main():
     BK.build_region("gate", HERE, BANDS, DOORS, extra=EXTRA)

@@ -104,3 +104,14 @@ drawOrder    …, north, doors(west,east,north), ySorted, south, doors(south), l
 5. **연회장 카메라**: 보스 시작 자리(왕좌 앞)에서는 위로 110 치우침으로 화로 불꽃이 겨우 들어온다. (추천) 연회장만 `northLookUp` 160 / 모든 지역 110 유지.
 6. **황무지 혼불 보강**: 북 띠에 혼불이 거의 없다. (추천) 시스템 fx 혼불(바이블 4.1)을 둑 위에 2~3개 띄움 / 그대로.
 7. **남은 호출 3회**(성문·양조·연회장 각 1): (추천) 3번 결정에 따라 쓰고, 아니면 보류.
+
+## 10. 53라운드 Q22 후속 — 성문 북쪽 띠 '성문 두 개' 수정 (2026-10-03, 호출 0회)
+- 원인: 북 띠를 통째로 반복(`repeat: "x"`)하면 주기(1623)마다 성문이 다시 나온다(목업 성문의 북쪽 옆문 조각도 두 번째 성문처럼 보임).
+- 수정: 북 띠를 세 장으로 나눔 — **가운데 `north.png`(808, 성문·옆문·통행세 오두막, 원본 x 1080~3100) 한 번만**, **좌 `north_left.png`(408, 끝 망루·깃발·상자, 원본 60~1150)**, **우 `north_right.png`(400, 바리케이드·물통·끝 망루, 원본 3030~4100)** 만 반복. 경계를 원래 그림에서 이어지는 자리로 잡아(좌 = 감싸기 끝이 가운데 시작으로, 우 = 반전 감싸기로 시작이 가운데 끝에서) 이음새가 없다: 좌→가운데 1.9, 가운데→우 1.6, 좌·우 감싸기 5.8/5.3, 4.9/5.7.
+- `border.json` 키 (새 규칙, 계약 §13 확정 대상):
+  - `bands.north.repeat: "sides"` — `image`(가운데)는 한 번만, `focusX`(가운데 조각 국소 논리 x = 성문 터널 가운데 **392**)를 바닥 가운데 x 에 맞춘다(필수).
+  - `bands.north.sides.left|right: {image, emissive, width, repeat:"x", lights[]}` — left 는 가운데 조각 왼쪽 끝에 오른쪽 끝을 맞춰 왼쪽으로 반복, right 는 오른쪽 끝에서 오른쪽으로 반복. 높이·baselineY 는 가운데와 같음.
+  - 다른 지역은 그대로 `repeat: "x"`(연회장은 `focusX` 로 위상만 맞춤).
+- 성문 북쪽 출구가 가운데면 띠의 성문이 곧 출구 — `door_north`(옆문)는 가운데가 아닌 북쪽 문에만 쓴다(`focusNote` 에 적음). 목업에서는 옆문 조각을 빼고 그렸다.
+- 목업 갱신: `preview_border_gate.png`, `preview_border_gate_vs_keyart.png`, `preview_borders_f1.png`. 코드: `border_kit.build_north_split`, `border_mock.place_north_sides`, `border_gate/build.py`(split 표).
+- 남은 성문 호출 1회는 쓰지 않음(누적 그대로 약 56회).

@@ -31,11 +31,11 @@ KEYART = {"outer": "keyart_outer/raw_a.jpg", "waste": "keyart_waste/raw_a.jpg", 
 DOORS = {
     "outer": {"north": (8, 11), "west": (9, 12), "south": (22, 25)},
     "waste": {"north": (8, 11), "west": (9, 12), "south": (22, 25)},
-    "gate": {"north": (6, 9), "west": (9, 12), "south": (14, 18)},
+    "gate": {"west": (9, 12), "south": (14, 18)},      # Q22: 북쪽 출구 = 띠 가운데 성문(옆문 조각 안 씀)
     "brewery": {"north": (8, 11), "west": (9, 12), "south": (22, 25)},
     "hall": {"west": (9, 12), "south": (14, 18)},
 }
-CAM = {"outer": 400, "waste": 400, "gate": 430, "brewery": 400, "hall": 512}   # 목업 카메라 중심 x(논리)
+CAM = {"outer": 400, "waste": 400, "gate": 512, "brewery": 400, "hall": 512}   # 목업 카메라 중심 x(논리)
 
 
 class World(M.World):
@@ -98,7 +98,32 @@ def edge_shadow(world):
         world.put(g, x, y, occlude=False)
 
 
+def _put_band(world, bdir, image, emissive, lights, x, y):
+    world.put(Image.open(os.path.join(bdir, image)).convert("RGBA"), x, y,
+              Image.open(os.path.join(bdir, emissive)).convert("RGBA"), occlude=True)
+    for L in lights:
+        world.light(x + L["x"], y + L["y"], L["color"], L["radius"], L["intensity"])
+
+
+def place_north_sides(world, bdir, b):
+    """repeat 'sides' (Q22): 가운데 조각 한 번 + 좌·우 조각 반복."""
+    y = -b["baselineY"]
+    cx = FW * T / 2 - b["focusX"]
+    _put_band(world, bdir, b["image"], b["emissive"], b["lights"], cx, y)
+    L, Rr = b["sides"]["left"], b["sides"]["right"]
+    x = cx - L["width"]
+    while x + L["width"] > world.x0:
+        _put_band(world, bdir, L["image"], L["emissive"], L["lights"], x, y)
+        x -= L["width"]
+    x = cx + b["width"]
+    while x < world.x1:
+        _put_band(world, bdir, Rr["image"], Rr["emissive"], Rr["lights"], x, y)
+        x += Rr["width"]
+
+
 def place_band(world, bdir, name, b, phase_x=None):
+    if name == "north" and b.get("repeat") == "sides":
+        return place_north_sides(world, bdir, b)
     img = Image.open(os.path.join(bdir, b["image"])).convert("RGBA")
     em = Image.open(os.path.join(bdir, b["emissive"])).convert("RGBA")
     W, H = b["width"], b["height"]

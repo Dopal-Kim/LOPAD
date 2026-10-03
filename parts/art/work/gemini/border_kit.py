@@ -451,6 +451,54 @@ def build_band(src_dir, name, cfg):
     return out, em, tone, emit, info
 
 
+def _even(v):
+    v = int(round(v))
+    return v - v % 2
+
+
+def build_north_split(src_dir, cfg):
+    """북 띠를 가운데 조각(한 번만) + 좌·우 반복 조각으로 (repeat 'sides', Q22 성문).
+    원본 좌표 split = {left:(a,b), right:(c,d)}. 저장 px 로 바꿔
+      left  = wrap_h(src[a:b])                 → 끝이 src[b-ov] 로 이어짐
+      center= src[b-ov : c+ov]                 → 원래 그림 그대로(이음새 없음)
+      right = flip(wrap_h(flip(src[c:d])))     → 시작이 src[c+ov] 로 이어짐
+    반환: {left|center|right: (out, em, tone, emit)}, info"""
+    src = band_source(src_dir, cfg)
+    ov = cfg["wrap_overlap"]
+    (a, b), (c, d) = cfg["split"]["left"], cfg["split"]["right"]
+    a, b, c, d = (_even(v * KS) for v in (a, b, c, d))
+    H = src.height
+    segL = src.crop((a, 0, b, H))
+    segR = ImageOps.mirror(src.crop((c, 0, d, H)))
+    pieces = {
+        "left": wrap_h(segL, ov),
+        "center": src.crop((b - ov, 0, c + ov, H)),
+        "right": ImageOps.mirror(wrap_h(segR, ov)),
+    }
+    base = _even(cfg["baseline_src"] * KS)
+    info = {"baselineY": base * PS, "apronBelow": (H - base) * PS,
+            "seamLeftWrap": seam_err_h(pieces["left"]), "seamRightWrap": seam_err_h(pieces["right"]),
+            "centerStartSrc": (b - ov) / KS, "splitStorage": [a, b, c, d]}
+    # 이음 확인: left 끝 → center 시작, center 끝 → right 시작 (인접 열 차이)
+    def coldiff(A, B):
+        pa, pb = A.load(), B.load()
+        return round(sum(sum(abs(x - y) for x, y in zip(pa[0, yy], pb[0, yy])) for yy in range(H)) / (3 * H), 1)
+    L, C, R = (pieces[k].convert("RGB") for k in ("left", "center", "right"))
+    info["joinLC"] = coldiff(L.crop((L.width - 1, 0, L.width, H)), C.crop((0, 0, 1, H)))
+    info["joinCR"] = coldiff(C.crop((C.width - 1, 0, C.width, H)), R.crop((0, 0, 1, H)))
+    out = {}
+    for k, im in pieces.items():
+        tone, alb, emit = tone_split(im, cfg)
+        alpha = apron_alpha(im.width, H, base)
+        emit = ImageChops.multiply(emit, alpha)
+        em = tone.copy().convert("RGBA")
+        em.putalpha(emit)
+        o = alb.convert("RGBA")
+        o.putalpha(alpha)
+        out[k] = (o, em, tone, emit)
+    return out, info
+
+
 def strip_emissive(em):
     nz = em.getchannel("A").point(lambda v: 255 if v > 2 else 0)
     return Image.composite(em, Image.new("RGBA", em.size, (0, 0, 0, 0)), nz)
@@ -613,6 +661,18 @@ def build_region(region, src_dir, bands, doors=None, extra=None, json_head=None)
     os.makedirs(out_dir, exist_ok=True)
     meta = {}
     for name, cfg in bands.items():
+        if name == "north" and cfg.get("split"):
+            parts, info = build_north_split(src_dir, cfg)
+            files = {"center": "north", "left": "north_left", "right": "north_right"}
+            pm = {}
+            for k, (o, em, tone, emit) in parts.items():
+                o.save(os.path.join(out_dir, f"{files[k]}.png"), optimize=True)
+                strip_emissive(em).save(os.path.join(out_dir, f"{files[k]}_emissive.png"), optimize=True)
+                pm[k] = dict(size=o.size, lights=band_lights(emit, tone, cap=cfg.get("light_cap")), file=files[k])
+            meta[name] = dict(info, size=pm["center"]["size"], lights=pm["center"]["lights"], sides=pm)
+            print(region, "north split", {k: v["size"] for k, v in pm.items()}, "wrapL", info["seamLeftWrap"],
+                  "wrapR", info["seamRightWrap"], "joinLC", info["joinLC"], "joinCR", info["joinCR"])
+            continue
         out, em, tone, emit, info = build_band(src_dir, name, cfg)
         out.save(os.path.join(out_dir, f"{name}.png"), optimize=True)
         em = strip_emissive(em)
@@ -709,6 +769,16 @@ def write_json(region, out_dir, meta, dmeta, extra, head):
         "camera": {"bounds": {"top": -n["baselineY"], "bottom": "floorBottom + %g" % (lg(s["size"][1]) - s["baselineY"]), "left": -200, "right": "floorRight + 200"}, "northLookUp": 110, "note": "53라운드 Q8 결정: 북쪽 끝 200 안에서 최대 110 위로. 위 = 북쪽 띠 위끝(바닥 북쪽 끝 기준 -baselineY), 아래 = 남쪽 띠 아래끝, 좌우 = 바닥 끝 ± 200."},
         "ambient": {"rgb": [0.34, 0.34, 0.38], "note": "53라운드 Q9 결정(중립 숯빛)"},
     }
+    if n.get("sides"):
+        sd = n["sides"]
+        nn = data["bands"]["north"]
+        nn.update({
+            "repeat": "sides",
+            "place": "repeat 'sides': 가운데 조각(image)은 한 번만 — focusX 가 바닥 가운데 x 에 오게 둔다. 그 왼쪽 끝에 sides.left 를 오른쪽 끝을 맞춰 붙이고 왼쪽으로 (바닥 왼쪽 - west.width) 까지 반복, 오른쪽 끝에 sides.right 를 붙여 오른쪽으로 (바닥 오른쪽 + east.width) 까지 반복. 세 조각 모두 같은 높이·baselineY.",
+            "sides": {k: {"image": f"{sd[k]['file']}.png", "emissive": f"{sd[k]['file']}_emissive.png",
+                          "width": lg(sd[k]["size"][0]), "repeat": "x", "lights": _L(sd[k]["lights"])}
+                      for k in ("left", "right")},
+        })
     data["bands"]["north"].update(extra.get("north", {}))
     if dmeta:
         data["doors"] = dict(dmeta, doc=DOORS_DOC)

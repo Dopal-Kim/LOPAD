@@ -25,32 +25,20 @@
   "north": {
    "image": "north.png",
    "emissive": "north_emissive.png",
-   "width": 1623.0,
+   "width": 808.0,
    "height": 409.0,
-   "repeat": "x",
+   "repeat": "sides",
    "anchor": "floorTop",
    "baselineY": 380.0,
    "apronBelow": 29.0,
-   "place": "띠의 baselineY 줄 = 바닥 북쪽 끝(북쪽 벽 앞면 아랫단의 밑변). x 는 (바닥 왼쪽 - west.width) 부터 반복해 (바닥 오른쪽 + east.width) 까지 덮는다.",
+   "place": "repeat 'sides': 가운데 조각(image)은 한 번만 — focusX 가 바닥 가운데 x 에 오게 둔다. 그 왼쪽 끝에 sides.left 를 오른쪽 끝을 맞춰 붙이고 왼쪽으로 (바닥 왼쪽 - west.width) 까지 반복, 오른쪽 끝에 sides.right 를 붙여 오른쪽으로 (바닥 오른쪽 + east.width) 까지 반복. 세 조각 모두 같은 높이·baselineY.",
    "apron": "baselineY 아래 apronBelow 는 땅·소품 밑동이 알파로 사라지는 앞치마 — 바닥 위에 겹쳐 그린다(충돌 없음).",
    "depth": "background",
    "lights": [
     {
-     "x": 671.5,
-     "y": 103.2,
-     "color": "#eeb56b",
-     "radius": 62,
-     "intensity": 0.5,
-     "flicker": {
-      "amp": 0.04,
-      "hz": 3
-     },
-     "kind": "window"
-    },
-    {
-     "x": 738.9,
-     "y": 102.5,
-     "color": "#eeb56b",
+     "x": 240.1,
+     "y": 103.1,
+     "color": "#eeb469",
      "radius": 63,
      "intensity": 0.51,
      "flicker": {
@@ -60,33 +48,9 @@
      "kind": "window"
     },
     {
-     "x": 819.1,
-     "y": 339.9,
-     "color": "#ee9842",
-     "radius": 150,
-     "intensity": 0.92,
-     "flicker": {
-      "amp": 0.08,
-      "hz": 3
-     },
-     "kind": "door_or_lantern"
-    },
-    {
-     "x": 856.4,
-     "y": 294.6,
-     "color": "#eea052",
-     "radius": 81,
-     "intensity": 0.59,
-     "flicker": {
-      "amp": 0.04,
-      "hz": 3
-     },
-     "kind": "window"
-    },
-    {
-     "x": 910.8,
-     "y": 102.2,
-     "color": "#eeb66c",
+     "x": 308.2,
+     "y": 102.0,
+     "color": "#eeb46b",
      "radius": 64,
      "intensity": 0.51,
      "flicker": {
@@ -96,11 +60,11 @@
      "kind": "window"
     },
     {
-     "x": 978.6,
-     "y": 102.2,
-     "color": "#eeb56e",
-     "radius": 65,
-     "intensity": 0.52,
+     "x": 361.9,
+     "y": 297.8,
+     "color": "#ee9b4c",
+     "radius": 87,
+     "intensity": 0.62,
      "flicker": {
       "amp": 0.04,
       "hz": 3
@@ -108,9 +72,57 @@
      "kind": "window"
     },
     {
-     "x": 1163.9,
-     "y": 367.9,
-     "color": "#edc395",
+     "x": 394.4,
+     "y": 349.5,
+     "color": "#ee9740",
+     "radius": 140,
+     "intensity": 0.87,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 426.2,
+     "y": 295.1,
+     "color": "#ee9e52",
+     "radius": 81,
+     "intensity": 0.6,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 480.0,
+     "y": 102.7,
+     "color": "#eeb66b",
+     "radius": 63,
+     "intensity": 0.51,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 548.3,
+     "y": 102.8,
+     "color": "#eeb466",
+     "radius": 63,
+     "intensity": 0.51,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 734.0,
+     "y": 368.2,
+     "color": "#eec394",
      "radius": 53,
      "intensity": 0.46,
      "flicker": {
@@ -120,11 +132,11 @@
      "kind": "window"
     },
     {
-     "x": 1199.8,
+     "x": 771.6,
      "y": 349.4,
-     "color": "#eea461",
-     "radius": 72,
-     "intensity": 0.55,
+     "color": "#eead72",
+     "radius": 70,
+     "intensity": 0.54,
      "flicker": {
       "amp": 0.04,
       "hz": 3
@@ -132,23 +144,11 @@
      "kind": "window"
     },
     {
-     "x": 1203.4,
-     "y": 392.5,
+     "x": 773.0,
+     "y": 392.4,
      "color": "#eea055",
-     "radius": 58,
+     "radius": 57,
      "intensity": 0.48,
-     "flicker": {
-      "amp": 0.04,
-      "hz": 3
-     },
-     "kind": "window"
-    },
-    {
-     "x": 1234.0,
-     "y": 344.1,
-     "color": "#eea371",
-     "radius": 50,
-     "intensity": 0.44,
      "flicker": {
       "amp": 0.04,
       "hz": 3
@@ -156,8 +156,24 @@
      "kind": "window"
     }
    ],
-   "focusX": 824.0,
-   "focusNote": "성문 터널 가운데(띠 국소 논리 x). 선택: 바닥 가운데 또는 북쪽 출구 문 칸 가운데에 맞춰 띠의 반복 위상을 정한다."
+   "sides": {
+    "left": {
+     "image": "north_left.png",
+     "emissive": "north_left_emissive.png",
+     "width": 408.0,
+     "repeat": "x",
+     "lights": []
+    },
+    "right": {
+     "image": "north_right.png",
+     "emissive": "north_right_emissive.png",
+     "width": 400.0,
+     "repeat": "x",
+     "lights": []
+    }
+   },
+   "focusX": 392.0,
+   "focusNote": "성문 터널 가운데(가운데 조각 north.png 국소 논리 x). 바닥 가운데 x 에 맞춘다(필수). 북쪽 출구가 가운데면 이 성문이 출구 — door_north(옆문)는 가운데가 아닌 북쪽 문에만."
   },
   "south": {
    "image": "south.png",

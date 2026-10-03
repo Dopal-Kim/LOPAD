@@ -2,18 +2,184 @@
  "north": {
   "baselineY": 380.0,
   "apronBelow": 29.0,
-  "seamBefore": [
-   12.6,
-   6.3
+  "seamLeftWrap": [
+   5.8,
+   5.3
   ],
-  "seamAfter": [
-   2.9,
-   6.1
+  "seamRightWrap": [
+   4.9,
+   5.7
   ],
+  "centerStartSrc": 1080.0,
+  "splitStorage": [
+   48,
+   920,
+   2424,
+   3280
+  ],
+  "joinLC": 1.9,
+  "joinCR": 1.6,
   "size": [
-   3246,
+   1616,
    818
-  ]
+  ],
+  "sides": {
+   "left": {
+    "size": [
+     816,
+     818
+    ],
+    "lights": [],
+    "file": "north_left"
+   },
+   "center": {
+    "size": [
+     1616,
+     818
+    ],
+    "lights": [
+     {
+      "x": 240.1,
+      "y": 103.1,
+      "color": "#eeb469",
+      "radius": 63,
+      "intensity": 0.51,
+      "areaPx": 54,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     },
+     {
+      "x": 308.2,
+      "y": 102.0,
+      "color": "#eeb46b",
+      "radius": 64,
+      "intensity": 0.51,
+      "areaPx": 56,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     },
+     {
+      "x": 361.9,
+      "y": 297.8,
+      "color": "#ee9b4c",
+      "radius": 87,
+      "intensity": 0.62,
+      "areaPx": 222,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     },
+     {
+      "x": 394.4,
+      "y": 349.5,
+      "color": "#ee9740",
+      "radius": 140,
+      "intensity": 0.87,
+      "areaPx": 981,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     },
+     {
+      "x": 426.2,
+      "y": 295.1,
+      "color": "#ee9e52",
+      "radius": 81,
+      "intensity": 0.6,
+      "areaPx": 170,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     },
+     {
+      "x": 480.0,
+      "y": 102.7,
+      "color": "#eeb66b",
+      "radius": 63,
+      "intensity": 0.51,
+      "areaPx": 54,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     },
+     {
+      "x": 548.3,
+      "y": 102.8,
+      "color": "#eeb466",
+      "radius": 63,
+      "intensity": 0.51,
+      "areaPx": 54,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     },
+     {
+      "x": 734.0,
+      "y": 368.2,
+      "color": "#eec394",
+      "radius": 53,
+      "intensity": 0.46,
+      "areaPx": 17,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     },
+     {
+      "x": 771.6,
+      "y": 349.4,
+      "color": "#eead72",
+      "radius": 70,
+      "intensity": 0.54,
+      "areaPx": 89,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     },
+     {
+      "x": 773.0,
+      "y": 392.4,
+      "color": "#eea055",
+      "radius": 57,
+      "intensity": 0.48,
+      "areaPx": 28,
+      "flicker": {
+       "amp": 0.04,
+       "hz": 3
+      },
+      "kind": "window"
+     }
+    ],
+    "file": "north"
+   },
+   "right": {
+    "size": [
+     800,
+     818
+    ],
+    "lights": [],
+    "file": "north_right"
+   }
+  }
  },
  "west": {
   "seamBefore": [
