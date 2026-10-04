@@ -200,20 +200,22 @@
 - (55라운드 Q26~Q28) 새 연격 시트 이름: 몸 `player/v3/player_<동작>`·무기 `weapons/v3/<동작>`·fx `fx/v3/<동작>` — 동작 = `katana_rise`·`katana_fall`·`katana_crescent`(+fx `katana_crescent_echo`), `greatsword_sweep_cw`·`greatsword_cleave`(+fx `greatsword_cleave_impact`)·`greatsword_sweep_ccw`·`greatsword_charge`(fx `greatsword_charge_flash_lv1~3`)·`greatsword_charge_slam`(fx `greatsword_charge_slam_lv1~3`·`greatsword_charge_ring`). 대검 새 무기 틀 ~~240×264·피벗 (117,200)·offset (69,62)~~ **240×280·피벗 (117,207)·offset (69,69)(56라운드 작업 B → §18)**. 왼쪽 방향은 그림·판정 모두 180° 회전(`dirTransform: rotate`, 거울 아님) — **(56라운드 Q6 → §18) 대검은 8방향을 직접 그린 `dirTransform: drawn8`(회전·반전 없음), 칼·단검·활은 `rotate` 유지**. 56라운드 추가 동작: `katana_issen`(3타 일섬), `greatsword_charge_plunge`(꽂아내리기) — §18. 대검 차지 3단 번쩍임만 백열 허용(Q27). 타이밍 기준 = 아트 JSON(`timingMs`·`spawnAtMs`·`impactFrame`).
 
 ## 18. 56라운드 무기 피드백 (아트·시스템 공용 규격)
-- 근거: `decisions/2026-10-04-round-56-weapon-feedback.md` Q1~Q43. 아트 산출: 커밋 2a943eb(작업 A — 붓획·칼 템포·일섬·분신·단검 fx), c2f2a91(작업 B — 대검 8방향 무게 프레임·땅 균열·충격파·단검 1.3배·활 당겨 떼기), 65bf004(작업 C — 공격 수단 키아트, 참고 그림). 아래 수치는 아트 JSON 에서 옮긴 값이다. 판정·피해는 §17 원칙대로 **시스템 데이터가 기준**(JSON `hitShape` 등은 참고값).
-- 단위: JSON 의 `…Px`·`pivot`·anchor 는 **도트**(`pixelScale: 0.5`, 월드 px = 도트 / 4). `world` 표기는 월드 px. 판정 원점 = 피벗(발) 위 40 도트. 시간 ms, 0 = 몸 시트 재생 시작. 56라운드 시트 JSON 은 `version: "v3-r56"`(몸·무기·fx 공통), 설명 필드 `r56` 에 근거 Q 번호.
+- 근거: `decisions/2026-10-04-round-56-weapon-feedback.md` Q1~Q55. 아트 산출: 커밋 2a943eb(작업 A — 붓획·칼 템포·일섬·분신·단검 fx), c2f2a91(작업 B — 대검 8방향 무게 프레임·땅 균열·충격파·단검 1.3배·활 당겨 떼기), 65bf004(작업 C — 공격 수단 키아트, 참고 그림), 07d3c00(작업 D·E1·E2 — 대검 fx 8행 정리·자원/상태 표시·약한 화살 / 칼·대검 새 기본기 / 단검·활 새 기본기), 5f7dae8(작업 F — Q51 JSON 정리·새 동작과 뽑기·넣기·보조 동작의 검기·울분 오버레이). 아래 수치는 아트 JSON 에서 옮긴 값이다. 판정·피해는 §17 원칙대로 **시스템 데이터가 기준**(JSON `hitShape` 등은 참고값). 인터뷰로 정한 값은 '결정'으로 따로 적는다(JSON 문구와 다르면 결정이 우선).
+- 단위: JSON 의 `…Px`·`pivot`·anchor 는 **도트**(`pixelScale: 0.5`, 월드 px = 도트 / 4). `world` 표기는 월드 px. 판정 원점 = 피벗(발) 위 40 도트. 시간 ms, 0 = 몸 시트 재생 시작. 56라운드 시트 JSON 의 `version` 은 `"v3-r56"`(작업 A·B·E2·F), `"v3-r56-e1"`(작업 E1 칼·대검 새 기본기), `"v3-r56d"`(작업 D 자원·상태·약한 화살·검기/울분 오버레이) 중 하나, 설명 필드 `r56` 에 근거 Q 번호.
 
 ### 18.1 공통
 - **fx 생성 시각 `spawnRule`**: `spawnAtMs = 몸 hitAt − sum(fx frameDurationsMs[:impactFrame])`(아트 빌드 때 현재 몸 JSON 으로 계산). 몸 타이밍을 데이터로 바꾸면 같은 식으로 다시 계산하면 그림이 맞는다. fx 필드 `spawn: "body_ms"`·`spawnAtMs`·`impactAtBodyMs`.
 - **붓획 궤적(Q11)**: 연격 fx 는 채운 초승달 면 대신 붓 한 획 — 시작 가늘고·가운데 굵고·끝 갈라짐, 판정 호를 따라 2~3프레임에 그어 나가고 시작 쪽부터 재로 마름. JSON `brushStroke: true`, `drawnArc{fromDeg, toDeg, radiusDots, brushWidthDots, …}`(붓획 바깥 가장자리 ≈ 판정 반경), `frameRoles`(pre → draw → draw(끝까지) → decay…). 백열은 `glowFrames` 의 획 머리 몇 도트만. 55라운드 그림은 `previous` 경로(`parts/art/work/combo56_fx/prev55/`)에 보관.
-- **히트스톱 정지 프레임(Q37)**: 붓획이 다 그어진 **다음 칸**에서 멈춘다(55라운드 Q14 규칙 대체). 56 연격 fx JSON 에는 전용 정지 프레임 키가 없다 — `frameRoles` 의 'draw(끝까지)' 다음 칸이 그 칸(키 추가 여부는 미정).
-- **무기 적중 번쩍임(Q12)**: 적중 순간 무기 그림이 크게·하얗게 번쩍 — 기준 그림은 무기 시트의 판정 프레임(`glowFrames`·`frameStates: "glow"`).
+- **히트스톱 정지 프레임(Q37)**: 붓획이 다 그어진 **다음 칸**에서 멈춘다(55라운드 Q14 규칙 대체). 56 연격 fx JSON 에는 전용 정지 프레임 키가 없다 — `frameRoles` 의 'draw(끝까지)' 다음 칸이 그 칸. **결정(Q51): 시스템이 `frameRoles` 로 계산, 키는 추가하지 않는다.** (일부 새 fx 는 `holdFrame` 을 따로 적어 둠 — `dagger_backstab`·`guard_perfect_fx`, 그 시트는 `holdFrame` 우선.)
+- **무기 적중 번쩍임(Q12)**: 적중 순간 무기 그림이 크게·하얗게 번쩍 — 기준 그림은 무기 시트의 판정 프레임(`glowFrames`·`frameStates: "glow"`). **결정(Q50): 판정 첫 1프레임만 백열, 그다음 판정 프레임은 호박.**
+- **행 규약(56라운드 추가)**: `dirTransform` = `rotate`(§17, 칼·단검·활) · `drawn8`(대검 8방향, §18.3) · `drawn4`(칼 새 기본기 fx `katana_counter`·`katana_iai` — JSON `directionNote`: 4행 = 칼 몸 행 순서, left 는 §17 180° 회전 규칙으로 그려 둠). 행이 방향이 아닌 시트는 `rowsAre` 로 표시 — `"sizes"`(s·m·l), `"stacks"`(1~5), `"kinds"`(guard·parry). 이 시트는 방향으로 행을 고르지 않는다.
+- **이동형 동작 공통 필드**: `dash`·`dashPx`·`leapPx`·`sidestepPx` = `{world, dots, frames, startMs, endMs, easing, stopsAtWall}`(있는 키만). 그림은 제자리(피벗 고정), 이동은 시스템. 방향키와 무관하게 조준 방향(비켜섬은 `side`). 벽에 막히면 그 자리에서 멈추고 남은 프레임은 그대로 재생.
 - **칼끝 리본(§16 `ribbon_ash`, Q38)**: 기본 연격에서는 끄고 돌진류(그림자 걸음·꽂아내리기 등 이동 궤적)에만.
 - 적 피격 번쩍임 = 호박색 반투명 80ms, 히트스톱으로 늘어나지 않음(Q36) — 시스템 처리, 시트 변경 없음.
 
-### 18.2 칼 (Q1·Q2·Q3·Q28·Q29·Q31·Q34·Q35)
+### 18.2 칼 (Q1·Q2·Q3·Q28·Q29·Q31·Q34·Q35·Q48·Q49)
 - **판정 반경 R = 38 월드 px(152 도트)** — §17 의 33 대체(사거리 ×1.15, Q1). 몸 96×144·피벗 (48,138), 무기 192×192·피벗 (96,186)·`playerFrameOffset (48,48)`, 4행·`dirTransform: rotate`(§17 그대로).
-- 연격(3연격 합 470 + 440 + 740 = 1650ms, 타마다 잔심 정지):
+- 연격(3연격 합 470 + 440 + 740 = 1650ms, 타마다 잔심 정지 — **결정(Q49): 1.65초 그대로**, 데모로 조정). 칼 가드 = 우클릭, 누른 직후 0.15초 안 피격 = 패링(**결정 Q48**, 11라운드 0.2초 대체 — §18.10 `guard_perfect_fx`):
 
 | 동작 (몸·무기·fx 같은 이름) | 프레임 | frameDurationsMs | total / hitAt / activeEndAt / cancelAt | impactFrame (hitFrames) | 판정 참고 | 내딛기 (월드) | fx 틀 · 피벗 · spawnAtMs · fx impactFrame |
 |---|---|---|---|---|---|---|---|
@@ -237,16 +239,16 @@
   - `anchor: "dash_start_pivot"` — 일섬 돌진을 시작한 순간의 주인공 발 위치(월드)에 고정, 주인공을 따라가지 않음. 선은 판정 원점 높이(피벗 위 40 도트)에서 돌진 방향으로 그어짐.
   - 생성: `spawnAtMs 220`(= `dash.startMs`), 출발 피벗에 1회. 고르기 `pickRule`: **실제 이동 칸 수**(벽에 막히면 줄어듦)를 내림해 t1~t4(4칸 = t4, 1칸 미만 = t1).
   - 깊이 `depth: "below_player"` — 바닥 바로 위, 주인공·적·그림자 분신 아래. 조명 위(fx 규칙)는 유지.
-  - **분신 유무로 고르기(Q28)**: 검기 3단 소모 일섬(분신이 따라옴) = `katana_issen_line_tN`(`glowFrames [1,2,8]`, f5~f7 분신이 지나간 부분만 다시 밝아짐, f8 = 분신 도착 터짐). 그 밖의 일섬 = `katana_issen_line_tN_solo`(`glowFrames [1,2]`, `shadowSheet: null`). 짝은 각 JSON `soloVariant`·`withShadow`. 몸 JSON `lineSheets` 는 t1~t4 만 적혀 있으므로 이 규칙으로 읽는다.
+  - **분신 유무로 고르기(Q28)**: 검기 3단 소모 일섬(분신이 따라옴) = `katana_issen_line_tN`(`glowFrames [1,2,8]`, f5~f7 분신이 지나간 부분만 다시 밝아짐, f8 = 분신 도착 터짐). 그 밖의 일섬 = `katana_issen_line_tN_solo`(`glowFrames [1,2]`, `shadowSheet: null`). 짝은 각 JSON `soloVariant`·`withShadow`. 몸·무기 JSON `lineSheets` 는 8키 — `t1`~`t4`(분신 있음) + `t1_solo`~`t4_solo`(분신 없음)(작업 F).
   - `_solo` 의 f8 터짐은 **연출만, 추가 피해 없음**(Q31 — A25 이하 색).
 - **그림자 분신 `fx/v3/katana_issen_shadow`(Q3 → Q28·Q29)**: 192×208, 피벗 (94,146) = 분신 발, 8프레임 `[50, 50, 50, 60, 50, 60, 70, 80]`, 4행 = 돌진 방향, 색 9.
-  - **조건: 검기 3단을 소모한 일섬일 때만**(Q28 — Q3 '일섬마다'와 아트 메모 '일섬 0.2초 뒤'·몸 JSON `shadow` 블록의 무조건 표기는 이 조건으로 대체).
+  - **조건: 검기 3단을 소모한 일섬일 때만**(Q28 — Q3 '일섬마다'와 아트 메모 '일섬 0.2초 뒤' 대체). 몸·무기 JSON `shadow.condition: "ki3_spent"`(`conditionRef` Q28), fx JSON `condition` 도 같음(작업 F). `shadow.startAtMs 420`·`arriveAtMs 570`.
   - `anchor: "issen_shadow_path"` — `travelFrames [0,1,2]`(`travelMs 150`) 동안 출발 피벗 → 도착 피벗(주인공이 실제로 멈춘 자리) 선형 이동, `slashFrame 3`, `vanishFrames [4~7]` 은 도착 피벗에 고정. 생성 `spawnAtMs 420`(몸 기준, 돌진 시작 + 200ms).
-  - **피해: 도착 순간 1회(몸 570ms = 선 `burstFrame`), 일섬 선(`hitShape` rect, 실제 이동 거리) 위 적 전부에 50%**(Q29 — JSON `hitTimingOptions` 의 A, `damageScale 0.5`).
+  - **피해: 도착 순간 1회(몸 570ms = 선 `burstFrame`), 일섬 선(`hitShape` rect, 실제 이동 거리) 위 적 전부에 50%**(Q29). 몸·무기 JSON `shadow.damageScale 0.5`·`shadow.damageTiming {rule: "arrive_once", atBodyMs: 570, target: "issen_line_rect"}`(작업 F). fx JSON `hitTimingOptions` 는 검토 기록(A 채택).
   - 깊이: JSON `depth` = 주인공처럼 Y 정렬(일반 스프라이트 깊이 권장), `lit: false`.
 - **`katana_crescent`(몸·무기·fx) + fx `katana_crescent_echo` 보관(Q35)**: 55라운드 3타 수평 발도·잔상 시트. 기본 연격에서는 쓰지 않고, 갈래·새 공격 수단 재사용 후보 — 삭제하지 않는다.
 
-### 18.3 대검 (Q5·Q6·Q10·Q25·Q27·Q30·Q32)
+### 18.3 대검 (Q5·Q6·Q10·Q25·Q27·Q30·Q32·Q51)
 - **8방향 `directionRows`(Q6)** — 몸·무기·연격 fx 공통 행 순서(기존 4행 뒤에 대각 4행):
 
 | 행 | direction | 화면각 | 몸 |
@@ -275,9 +277,9 @@
 | `greatsword_charge_slam` 기본 차지 | 9 | 40, 60, 40, 40, 80, 110, 120, 100, 110 | 700 / 180 / 260 / — | 4 ([4]) | [0] / [5,6] | — · 12 [2,3,4] | `wedge` 40° ×1.3 / 1.5 / 1.8(단계) + `impactCircle` 0.35R |
 | `greatsword_charge_plunge` 꽂아내리기 | 9 | 40, 70, 80, 90, 40, 90, 160, 110, 120 | 800 / 280 / 320 / — | 4 ([4]) | [0,3] / [5,6] | — | 꽂힌 자리 `ring` 0.45R(91.8 도트) + 충격파 fx |
 
-  - 템포: H1 → V → H2 = 820 + 920 + 820 = 2560ms(Q25, 55라운드 Q29 '약 2초' 대체). 무기 JSON `msNote` 의 '55라운드 Q29(예전 템포 유지)' 문구는 Q25 로 대체.
+  - 템포: H1 → V → H2 = 820 + 920 + 820 = 2560ms(Q25, 55라운드 Q29 '약 2초' 대체). 몸·무기 JSON `msNote` 근거도 Q25 로 정리됨(작업 F).
   - `greatsword_charge`: 들어 올림 [0,1,2] 1회 → 홀드 동안 `loopRange [3,6]` 반복(시트 `loop: false`, 시스템이 반복 재생). 단계 번쩍임 `greatsword_charge_flash_lv1~3`(55라운드 규격). `nextMove` = 기본 → `greatsword_charge_slam`, 개성 발현 후 → `greatsword_charge_plunge`(Q10).
-  - **`greatsword_charge_slam`(Q10 기본 차지)**: 칼로 직접 강하게 내려침, **충격파 링 없음**(`greatsword_charge_ring` 은 쓰지 않음). 땅 충격 = `greatsword_ground_crack`, 행 `rowByStage [m, m, l]`, impactFrame 시작에 쐐기 끝점.
+  - **`greatsword_charge_slam`(Q10 기본 차지)**: 칼로 직접 강하게 내려침, **충격파 링 없음**(`greatsword_charge_ring` 은 쓰지 않음 — fx `charge_slam_lv1~3` JSON 의 `ringStage3`·`ringSheet` 필드는 제거됨, 몸 JSON `chargeBasicNote`, 작업 F). 땅 충격 = `greatsword_ground_crack`, 행 `rowByStage [m, m, l]`, impactFrame 시작에 쐐기 끝점.
   - **`greatsword_charge_plunge`(Q10 개성 발현 후 차지)**: 휘두르지 않고 칼을 땅에 수직으로 꽂아 마우스 방향 충격파. `plantFrames [4,5,6,7]`, `plantAnchors` = 칼이 바닥에 꽂힌 점(몸 시트 도트, 꽂힌 프레임만 값·나머지 null): down (45.0,143.8)·up (51.0,132.2)·left (31.5,136.9)·right (64.5,139.1)·down-right (50.6,143.8)·down-left (39.7,143.1)·up-right (56.3,132.9)·up-left (45.4,132.2). impactFrame 시작에 이 점을 피벗으로 `greatsword_plunge_wave`(마우스 방향) + `greatsword_ground_crack` 행 l. 땅속 칼 부분은 그리지 않음.
 - **대검 fx**:
 
@@ -295,45 +297,186 @@
   - `greatsword_cleave`·`charge_slam_lv*` 의 끝점 충격 `greatsword_cleave_impact`(55라운드 규격, `impactSheetScale` cleave 관성 최대 1.3 · 차지 1.0 / 1.15 / 1.3 참고값).
   - **`greatsword_ground_crack`**: `directions` 칸에 크기 키 `s`·`m`·`l` — **`rowsAre: "sizes"`**, 방향으로 고르지 않음(`rotate: false`, 회전·반전 없음). `anchor: "hitbox_center"` = 내려찍은 자리(V·차지 = 쐐기 끝점 충격원 중심, 꽂아내리기 = `plantAnchors`). 크기 `s` 반경 102 도트(0.5R) = V 내려찍기(관성 최대면 `m`), `m` 143(0.7R) = 차지 1·2단, `l` 204(1.0R) = 차지 3단·꽂아내리기. 세로 압축 `groundKy 0.85`, `depth: "above"`, `shakeHint` s 4px·100ms / m 6·130 / l 8·170(참고). f4~f7 은 식은 금 — 오래 남기려면 마지막 프레임을 붙잡고 시스템이 끄는 시점을 정함(반투명 금지). `greatsword_cleave_impact` 와 함께 써도, 대신 써도 된다.
   - **`greatsword_plunge_wave`**: `anchor: "plant_point"`(꽂힌 자리), `rotate: true`·`drawnFacing: "right"`(마우스 방향 각도로 회전)·`flipY: "allowed"`, `depth: "above"`. 판정 참고 `hitShape: rect` `fromPx 0`·`lengthPx 408`(2.0R)·`halfWidthPx 52`, 앞머리 **`frontPxByFrame [70, 150, 230, 310, 380, 408, 408, 408]`**, 판정 프레임 [0~4] — 앞머리가 지나간 칸만 맞히거나 판정 프레임 동안 전체 사각형(시스템 데이터 기준). `shakeHint` 7px·160ms.
-  - **대검 fx 8행 통일(Q30) — 아트 작업 D 진행 중**: 대검 이펙트는 몸 시트와 같은 `directionRows` 순서의 8행 시트로 통일한다. 56라운드 작업 A 보고의 대각 전용 `_diag` 별도 시트는 **과도기 규격**이며 시스템은 의존하지 않는다. 현재 저장소에서 연격 3종·`charge_slam_lv1~3` fx 는 이미 8행 `drawn8`, `greatsword_cleave_impact`(1행)·`charge_flash_lv1~3`(4행)·`charge_ring`(1행)은 55라운드 `rotate` 규격, `ground_crack`·`plunge_wave` 는 방향 무관. 작업 D 산출 후 이 줄을 갱신한다.
+  - **대검 fx 8행(Q30·Q51)**: 대검 방향성 이펙트는 몸·무기 시트와 같은 `directionRows` 순서의 8행 `dirTransform: "drawn8"` 시트 — 연격 3종(`greatsword_sweep_cw`·`greatsword_cleave`·`greatsword_sweep_ccw`)·`greatsword_charge_slam_lv1~3`(각 JSON `directionRows`·`directionRowsNote`)과 새 기본기 fx(§18.8). 몸 시트에서 고른 행 번호를 fx 에도 그대로 쓴다. 대각 전용 `_diag` 시트는 **없다**(만들지 않음). 둥글거나 작은 fx `greatsword_cleave_impact`(1행)·`greatsword_charge_flash_lv1~3`(4행)·`greatsword_charge_ring`(1행, 기본 차지에는 안 씀)은 8행 통일에서 빼고 55라운드 `rotate` 규격 유지(**결정 Q51**). `greatsword_ground_crack`·`greatsword_plunge_wave` 는 방향 무관(위).
 
 ### 18.4 단검 (Q4)
 - **무기 그림 1.3배**: `weapons/v3/dagger_combo1~3`·`dagger_special`·`dagger_carry_idle/walk/run/dash` — 같은 디자인을 새 치수로 다시 래스터(최근접 확대 아님): 조각 길이 16.0→20.8·폭 최대 7→9 도트·손잡이 4.5→5.8(JSON `scale56`). 틀 192×192·피벗 (96,186)·`playerFrameOffset (48,48)` 은 그대로.
-- **`hitReference56`(몸·무기 `dagger_combo1~3` JSON)**: 찌르기 직사각 판정의 수평 길이 ×1.5, 폭·시작점·각도는 그대로. 몸·무기 JSON 의 `thrust` 는 이전 값이 남아 있으므로 **판정 참고는 `hitReference56.thrust`(= fx `thrust`)를 읽는다**. 피해 ×1.4 는 시스템 데이터. 타이밍(빠른 템포)은 그대로.
+- **판정 참고(몸·무기·fx `dagger_combo1~3` JSON)**: 찌르기 직사각 판정의 수평 길이 ×1.5, 폭·시작점·각도는 그대로. **몸·무기 JSON 최상위 `thrust` 가 56값**(작업 F 정리 — Q51), 이전 값은 `previousThrust`(최상위와 `hitReference56` 안). 최상위 `thrust` = `hitReference56.thrust` = fx `thrust`. 피해 ×1.4 는 시스템 데이터. 타이밍(빠른 템포)은 그대로.
 
-| 타 | thrust (도트) 이전 → 56 | widthPx | angleDeg | fromPx | total / hitAt | fx 틀 · 피벗 |
+| 타 | lengthPx (도트) `previousThrust` → `thrust` | widthPx | angleDeg | fromPx | total / hitAt | fx 틀 · 피벗 |
 |---|---|---|---|---|---|---|
 | `dagger_combo1` | 96 → 144 | 32 | −8 | 16 | 160 / 50 | 328×344 · (164,204) |
 | `dagger_combo2` | 96 → 144 | 32 | +10 | 16 | 150 / 40 | 336×336 · (165,205) |
 | `dagger_combo3` | 112 → 168 | 40 | 0 | 16 | 280 / 60 | 400×400 · (199,236) |
 
-### 18.5 활 (Q9·Q20·Q26·Q27)
+### 18.5 활 (Q9·Q20·Q26·Q27·Q55)
 - **`player_bow_draw_hold` + `weapons/v3/bow_draw_hold`**(`bow_aim` 대체): 우클릭을 누르는 동안 당김, **자동 발사 없음**. 14프레임 `[90 ×10, 70 ×4]`, 4행, 무기 192×192·피벗 (96,186)·offset (48,48).
   - f0~f5 = 진행도 구동(`progressDriven`): `frame = min(5, floor(p × 5))`, **`fullFrame 5`**(가득). 진행 속도(가득까지 시간)는 시스템 데이터.
   - `holdLoop [6,9]` — 가득 뒤 계속 누름(시위 1px 떨림).
-  - `strainLoop [10,13]` — 너무 오래 쥠: 조준선 흔들림·위력 감소(Q20 · Q27 채택. JSON 의 '선택 — 미정' 문구는 이 결정으로 대체). 시작 시점·감소량은 시스템 데이터.
+  - `strainLoop [10,13]` — 너무 오래 쥠: 조준선 흔들림·위력 감소(Q20 · Q27 채택, JSON `strainLoopNote` 도 채택 표기로 정리됨 — 작업 F). 시작 시점·감소량은 시스템 데이터.
   - 당기는 중 이동 50%(Q20).
 - **`player_bow_release` + `weapons/v3/bow_release`**: 4프레임 `[40, 60, 80, 100]`(release → follow → recover → ready), **`releaseFrame 0`** = 놓는 순간 화살 생성. 일찍 놓은 약한 화살도 같은 몸 시트(구분은 화살 그림). 끝 = 계속 우클릭이면 바로 `bow_draw_hold`, 아니면 `bow_carry_idle`.
 - **`arrowSpawnAnchors`**(무기 `bow_release` JSON, f0 만 값): 무기 시트 좌표 down (102.8,115.3)·up (89.2,86.9)·left (55.5,103.2)·right (136.5,98.4). 화살 생성 점이자 `bow_perfect_release`·`bow_muzzle_rapid` 의 피벗(몸 좌표 = 무기 좌표 − (48,48)).
 - **`fx/v3/bow_perfect_release`**: 112×104, 피벗 (36,56) = 화살 생성 점, 5프레임 `[30, 40, 50, 60, 80]`, 1행 `any`, `rotate: true`·`drawnFacing: "right"`(발사 각도), `anchor: "projectile"`, `depth: "above"`, `glowFrames [0,1]`(백열 허용). **완벽 놓기 = 가득(f5 도달) 직후 0.15초 안에 뗌**(Q9)일 때만 `bow_release` f0 시작에 1회. 일반 놓기는 없음(또는 `bow_muzzle_rapid`).
-- **예정 `bow_arrow_weak`**: 일찍 뗀 약한 화살 전용 그림(Q26) — 촉이 어둡고 짧게 흔들리는 연기 꼬리. 형식은 산출 후 이 절에 추가.
+- **`fx/v3/bow_arrow_weak`(Q26)**: 일찍 뗀 약한 화살 전용 그림 — 촉이 어둡고 짧게 흔들리는 연기 꼬리. 64×24, 피벗 (40,12), 4프레임 `[60 ×4]` 루프(`anim: "loop_move"`), 1행 `any`, `anchor: "projectile"`, `rotate: true`·`drawnFacing: "right"`·`flipY: "allowed"`, `depth: "above"`. 기존 `bow_arrow`(48×24, 피벗 (24,12))와 같은 축 — 화살 픽셀은 피벗 기준 같은 자리, 꼬리 쪽으로 16 도트 넓힘. 가득(f5) 전에 놓으면 `bow_arrow` 대신 이 시트(`spawn: "early_release"`). **결정(Q55): 한 시트를 갈래 공용으로** — 속사·저격 갈래 화살(`_rapid`·`_snipe`) 상태에서도 일찍 놓으면 이 시트(JSON `replacesWhen` 의 '질문 사항'은 이 결정으로 정리). 피해·속도는 시스템 데이터.
 
-### 18.6 예정 키 (아트 병행 제작 중 — 이름만 예정, 형식·값은 산출 후 이 절에 추가)
-| 무기 | 예정 키 | 동작 | 입력·조건 (Q40~Q43, 수치는 임시값) |
-|---|---|---|---|
-| 칼 | `katana_counter` | 간파 반격 | 기본기 — 패링 성공 직후 0.4초 안 좌클릭 |
-| 칼 | `katana_iai` | 대치 일격 | 기본기 — F 로 넣은 채 좌클릭을 눌렀다 떼면 발도 일격(넣기 첫 타 치명과 연결) |
-| 대검 | `greatsword_tackle` | 어깨 태클 | 기본기 — 대쉬 공격 교체 |
-| 대검 | `greatsword_brace_upswing` | 버티기 올려베기 | 기본기 — 가드 중 좌클릭(맞아도 안 끊김, 울분 소모 시 강화) |
-| 대검 | `greatsword_leap_slam` | 공중제비 도약 찍기 | 기본기 — 차지 중 스페이스(차지 단계 유지) |
-| 대검 | `greatsword_guard_rush` | 막다가 떼면 돌진 | 기본기 — 퍼펙트 가드 직후 우클릭을 떼면 밀쳐내기 대신 돌진 |
-| 단검 | `dagger_backstab` | 등 뒤 치명 찌르기 | 기본기 — 그림자 걸음 직후 좌클릭(기존 확정 치명을 전용 동작으로) |
-| 단검 | `dagger_flurry` | 고속 난타 | 기본기 — 좌클릭 홀드(과열 빠르게 상승) |
-| 활 | `bow_arrow_rain`(+`bow_arrow_rain_fall`·`bow_arrow_rain_mark`) | 화살비 | 기본기 — 우클릭으로 당긴 채 좌클릭, 하늘로 3발, 커서 원 범위 낙하, 탄창 3 소모 |
-| 칼 | (키 미정) | 검기 칼날 빛 3단 | 자원 표시 — 재 → 호박 → 백열(Q14) |
-| 대검 | (키 미정) | 울분 | 자원 표시 — 칼에 재 자국 → 잔불(Q15) |
-| 단검 | (키 미정) · `dagger_brand_burst` | 낙인 표식 · 낙인 기폭 | 자원 표시 — 같은 적 타격마다 표식(최대 5), 그림자 걸음으로 뒤로 가면 전부 폭발(Q16) · 과열 100% 일괄 폭발(Q18) |
-| 공통 | `guard_perfect_fx` | 퍼펙트 가드 | 가드 누른 직후 0.15초 안 피격 = 피해 0, 튕겨내지 않음(Q7). 문구 'PERFECT GUARD'·'PARRY'(Q8)는 UI 소관 |
-| 공통 | `player_groggy` | 그로기 | 기력 0 → 1.5초, 공격·대쉬 불가·가드만, 시간 경과로만 회복(칼·대검, Q7·Q13·Q19) |
+### 18.6 새 기본기 요약 (Q21~Q24 키아트 → Q40~Q43 입력 · Q48·Q52~Q55 결정)
+- 시트 이름: 몸 `player/v3/player_<키>`·무기 `weapons/v3/<키>`·fx `fx/v3/<키>`(+ 표의 보조 fx). 상세 규격은 §18.7~§18.9.
+
+| 무기 | 키 | 동작 | 입력·조건 (Q40~Q43, 수치는 임시값) | 결정 |
+|---|---|---|---|---|
+| 칼 | `katana_counter` | 간파 반격 | 기본기 — 패링 성공 직후 0.4초 안 좌클릭. 패링 = 우클릭 가드를 누른 직후 0.15초 안 피격(Q48) | 비켜섬 = 조준 방향의 해부 왼쪽 6 월드 px, 호 130° ×1.1(Q55) |
+| 칼 | `katana_iai`(+fx `katana_iai_ready`) | 대치 일격 | 기본기 — F 로 넣은 채 좌클릭을 누르고 있다가 떼면 발도 일격(넣기 첫 타 치명과 연결) | **언제 떼도 같은 일격, 최소 유지 시간 없음**(Q53 — 넣기 첫 타 치명은 그대로). 납도 딸깍 터짐은 연출만·칼집에 넣은 채 끝(Q55) |
+| 대검 | `greatsword_tackle` | 어깨 태클 | 기본기 — 대쉬 중 좌클릭(대쉬 공격 `greatsword_dashslash` 교체) | 적을 밀고 감, 돌진 40 월드 px, fx 는 첫 접촉 순간(Q55) |
+| 대검 | `greatsword_brace_upswing`(+fx `_ember`·`greatsword_brace_absorb`) | 버티기 올려베기 | 기본기 — 가드 중 좌클릭(맞아도 안 끊김, 울분 소모 시 강화) | **피해는 그대로 받음(맞은 피해는 울분으로 쌓임), 버티기 0.27초 고정**(Q54) |
+| 대검 | `greatsword_leap_slam`(+fx `_land`) | 공중제비 도약 찍기 | 기본기 — 차지 중 스페이스(차지 단계 유지) | 공중 무적 없음, 착지 링 0.6R, 벽에 막히면 나선 fx 생략, 공중제비 칸(몸이 무기 오버레이에 그려짐) 색 예외 허용(Q55) |
+| 대검 | `greatsword_guard_rush` | 막다가 떼면 돌진 | 기본기 — 퍼펙트 가드 직후 우클릭을 떼면 밀쳐내기 대신 돌진 | 적을 밀고 감, 돌진 56 월드 px(Q55) |
+| 단검 | `dagger_backstab` | 등 뒤 치명 찌르기 | 기본기 — 그림자 걸음 직후 좌클릭(기존 확정 치명을 전용 동작으로) | 560ms, 전용 섬광만 — 공용 치명 fx 를 겹치지 않음(Q55) |
+| 단검 | `dagger_flurry`(+fx `_heat2`·`_heat3`) | 고속 난타 | 기본기 — 좌클릭 홀드(과열 빠르게 상승) | 과열 3단(경계 40·80%), 초당 약 11타(Q55) |
+| 활 | `bow_arrow_rain`(+fx `bow_arrow_rain_rise`·`_fall`·`_mark`) | 화살비 | 기본기 — 우클릭으로 당긴 채 좌클릭, 하늘로 3발, 커서 원 범위 낙하, 탄창 3 소모 | **3발 연속 발사(640ms), 떨어지는 자리마다 작은 판정 — 원 안 무작위 9곳, 40ms 간격**(Q52). 예고 원 m(32 월드 px)·좌클릭 순간 표시, 낙하 화살 12° 고정 + 좌우 뒤집기(Q55) |
 
 - 갈래로 열리는 수단(칼 회전 베기 = 거합 1단·가드 불가 내려베기 = 발도술 1단, 단검 부채꼴 투척 = 질풍 1단·그림자 분신 교차 베기 = 쌍격 1단, 활 속사 연사 = 속사 갈래·관통 화살 = 저격 갈래)의 시트 키는 미정. 키아트(참고 그림)는 `parts/art/work/gemini/weapon_moves/sheet_<weapon>.png`·`list_<weapon>.md`(Q39 확정).
+
+### 18.7 칼 새 기본기 (Q21·Q40·Q48·Q53·Q55)
+- 몸 96×144·피벗 (48,138), 무기 192×192·피벗 (96,186)·`playerFrameOffset (48,48)`, 4행 down·up·left·right. fx `dirTransform: "drawn4"`(§18.1 행 규약). 판정 반경 R = 38 월드 px(152 도트, §18.2).
+
+| 동작 (몸·무기 같은 이름) | 프레임 | frameDurationsMs | total / hitAt / activeEndAt / cancelAt | impactFrame (hitFrames) | 판정 참고 | 이동 (월드) | fx 틀 · 피벗 · 생성 · fx impactFrame |
+|---|---|---|---|---|---|---|---|
+| `katana_counter` 간파 반격 | 8 | 30, 40, 40, 30, 40, 120, 60, 60 | 420 / 110 / 140 / 300 | 3 ([3]) | `arc` −80°→+50°(130°) ×1.1, 내반경 0 | 비켜섬 6 [1,2] 30ms~ · 내딛기 6 [3,4] 110ms~ | 344×368 · (171,251) · `spawnAtMs` 80 · 1 |
+| `katana_iai` 대치 일격 | 15 | 50, 60, 80, 120, 120, 120, 120, 30, 30, 40, 160, 70, 60, 90, 50 | 1200 / 700 / 770 / 1150 (유지 루프 1회 기준) | 8 ([8,9]) | `rect` `fromPx 22.8`·`lengthPx 231`·`widthPx 273.6`(0.15R~1.52R, 폭 1.8R) | 내딛기 16 [7,8,9] | 504×504 · (249,291) · 뗀 순간 · 1 |
+
+- **`katana_counter`**: `phases` catch [0] → slip [1] → cock [2] → cut [3,4] → zanshin [5,6] → recover [7]. `startsFrom` = `katana_special` 패링 창 f3~f4(받은 자세), `endsWith` = 뽑아 든 낮은 겨눔(`katana_carry_drawn_idle`), `nextMove` = `katana_rise`(이어서 좌클릭 시 1타).
+  - `sidestepPx {world 6, dots 24, frames [1,2], startMs 30, side: "anatomicalLeft"}` — 조준 방향의 해부 왼쪽(화면 반시계 90°)으로 반 발 비켜섬. `stepPx` 6 [3,4] 은 방향키를 누를 때만.
+  - fx `katana_counter`: 6프레임 `[30, 20, 30, 70, 80, 90]`, `anchor: player_pivot`, `glowFrames [1,2]` — 1·2타보다 가늘고 짧은 붓 한 획(`drawnArc` 반경 167.2 도트).
+- **`katana_iai`**: `phases` enter [0,1,2] → hold [3~6] → release [7~14](draw 7 · strike 8,9 · zanshin 10 · chiburi 11 · noto 12,13 · recover 14). 시트 `loop: false`.
+  - 유지: `holdFrames` = `loopFrames` [3,4,5,6](`loopRange [3,6]`, `holdFrame 3`) — 좌클릭을 누르는 동안 시스템이 반복.
+  - 뗌: **`releaseFrame 7`** — 떼는 순간 f7 로 건너뛰어 끝까지. 들어감(f0~f2) 중에 떼도 f7 로 바로(최소 유지 없음 — Q53). `releaseTimingMs {hitAfterRelease 30, activeEndAfterRelease 100, clickAfterRelease 390, totalAfterRelease 530}` — 판정·딸깍·끝은 **뗀 시각 기준**으로 계산(`timingMs` 는 유지 루프 1회 = 480ms 기준 시트 시각).
+  - **`clickFrame 13`** = 납도 딸깍(선 터짐). `burst {atFrame 13, afterReleaseMs 390}` — **연출만, 추가 피해 없음**(Q55).
+  - `startsFrom` = `katana_carry_idle`(F 로 넣은 상태), `endsWith` = `katana_carry_idle`(칼집에 넣은 채, Q55), `nextMove` = `katana_rise`(칼집 상태 1타 = 뽑기 후 베기 — 넣기 첫 타 치명).
+  - **`koiguchiAnchors`** = 프레임별 칼집 입구(몸 시트 도트, 15프레임 모두 값). 무기 시트 좌표 = + `playerFrameOffset (48,48)`.
+  - fx `katana_iai`: 11프레임 `[30, 30, 40, 80, 80, 70, 60, 60, 70, 80, 90]`, **`anchor: "release_pivot"`**(뗀 순간의 주인공 발에 고정, 따라가지 않음), `spawn: "release"`·`spawnAtReleaseMs 0`(JSON `spawnAtMs 670` 은 루프 1회 기준), `impactFrame 1`, `glowFrames [1,2]`, `burstFrame 7`(`burstAtLineMs 390` = 몸 `clickFrame`), `depth: "below_player"`. JSON `burstNote` 의 'glowFrames 에 7 추가 가능'은 쓰지 않음(Q55).
+  - fx `katana_iai_ready`: 48×56, 피벗 (21,8), 5프레임 `[30, 40, 50, 60, 70]`, 1행 `any`, `anchor: "koiguchi"`, `depth: "above"`, 백열 없음. JSON: 유지 `readyAfterHoldMs` 500(임시)에 1회(`spawn: "hold_ready"`). **Q53(언제 떼도 같은 일격)에 따라 JSON `readyNote` 의 '완성 일격(치명 등)'은 쓰지 않는다** — 반짝임을 연출로만 남길지는 미정.
+
+### 18.8 대검 새 기본기 (Q22·Q40·Q54·Q55)
+- 몸 96×144·피벗 (48,138), 8행 `directionRows`·`drawn8`(§18.3). **무기 틀 280×296·피벗 (139,206)·`playerFrameOffset (91,68)`** — 새 4동작 합집합 틀(결정 Q55: 별도 틀). §18.3 연격 틀(240×280·(117,207)·(69,69))과 다르므로 JSON `frameWidth/frameHeight`·`pivot`·`playerFrameOffset` 을 읽는다. 무게 필드(`frameRoles`·`holdFrames`·`dragFrames`·`dragStepPx`·`stepPx`)는 §18.3 규칙.
+
+| 동작 | 프레임 | frameDurationsMs | total / hitAt / activeEndAt / cancelAt | impactFrame (hitFrames) | holdFrames / dragFrames | 이동 (월드) | 판정 참고 |
+|---|---|---|---|---|---|---|---|
+| `greatsword_tackle` 어깨 태클 | 9 | 60, 90, 40, 40, 40, 70, 90, 90, 100 | 620 / 190 / 270 / 430 | 3 ([3,4]) | [1] / [6] | `dashPx` 40 [2,3,4] 150~270ms easeOut · 끌림 6 (340ms~) | `rect` 앞 0~0.6R·폭 0.8R, `travelsWithPlayer` |
+| `greatsword_brace_upswing` 버티기 올려베기 | 11 | 40, 70, 100, 100, 60, 40, 50, 80, 100, 90, 100 | 830 / 370 / 460 / 640 | 5 ([5,6]) | [] / [7,8] | `stepPx` 6 [4,5] 310ms~ | `wedge` 50° ×1.2 + `impactCircle` 중심 0.9R·반경 0.3R, `launch` |
+| `greatsword_leap_slam` 공중제비 도약 찍기 | 13 | 40, 80, 50, 50, 50, 50, 50, 40, 60, 110, 120, 100, 110 | 910 / 410 / 470 / — | 8 ([8]) | [0] / [9,10] | `leapPx` 48 [2~7] 120~410ms linear | `wedge` 40° ×1.3 / 1.5 / 1.8(차지 단계) + 쐐기 끝 `impactCircle` 0.45R + `landingRing` 0.6R |
+| `greatsword_guard_rush` 막다가 떼면 돌진 | 9 | 40, 50, 40, 40, 40, 60, 90, 90, 100 | 550 / 130 / 270 / 360 | 3 ([3,4,5]) | [] / [6] | `dashPx` 56 [2,3,4,5] 90~270ms easeOut · 끌림 6 (270ms~) | `rect` 앞 0~0.75R·폭 0.9R, `travelsWithPlayer`·`carry` |
+
+- **`greatsword_tackle`**: `startsFrom` = 대쉬 중 좌클릭(`greatsword_dashslash` 대신), `endsWith` = `greatsword_carry_drawn_idle`. `dashPx {world 40, dots 160, frames [2,3,4], startMs 150, endMs 270, easing easeOut, stopsAtWall}` — 벽·큰 적에 막히면 멈춤. 판정은 돌진 동안 몸과 함께 이동, 적마다 1회, **적을 밀고 감**(Q55).
+- **`greatsword_brace_upswing`**: `startsFrom` = 가드 자세(`greatsword_special`) 중 좌클릭, `endsWith` = LINK_C, `nextMove` = `greatsword_cleave` | `greatsword_sweep_cw`.
+  - **`superArmorFrames [0~6]`·`superArmorMs [0,460]`** — 이 구간에 맞아도 동작이 끊기지 않음. **피해는 그대로 받고 울분으로 쌓임(결정 Q54)**. 맞을 때마다 fx `greatsword_brace_absorb` 1회.
+  - `braceFrames [1,2,3]`(40~310ms = 270ms) — **버티기 0.27초 고정(결정 Q54)**.
+  - `rageVariant`: 울분 소모 시 판정 ×1.5·60°, fx 를 `greatsword_brace_upswing_ember` 로(몸·무기 그림은 같음).
+- **`greatsword_leap_slam`**: `startsFrom` = `greatsword_charge` 루프 f3~f6 중 스페이스(f0 = 루프 f3 자세), cancel 없음, `endsWith` = `greatsword_carry_drawn_idle`.
+  - **차지 단계 유지(`chargeStageKept`)**: 뛰기 직전 차지 단계로 착지 쐐기(`hitShape.lengthPxByStage [265.2, 306.0, 367.2]`)와 균열(`groundCrack.rowByStage [m, m, l]`, 착지 impactFrame 시작에 쐐기 끝점)을 고른다.
+  - **`leapPx {world 48, dots 192, frames [2~7], startMs 120, endMs 410, easing linear, stopsAtWall}`** — 벽에 막히면 그 자리에 착지. `airborneFrames [2~7]`, `landAtMs 410`. **공중 무적 없음(결정 Q55)**.
+  - **`airOffsetPx.byFrame [0, 0, 18, 58, 76, 64, 34, 12, 0, 0, 0, 0, 0]`**(도트, 위 +) — 시스템이 몸·무기(오버레이 포함) 시트를 이만큼 위로 올려 그린다. 그림자·피벗·판정 원점은 바닥, 프레임 사이 보간 가능.
+  - **`flipFrames [3,4,5]`**(`flipAngles` 90° / 180° / 270°)·**`bodyInOverlayFrames [3,4,5]`** — 이 칸은 몸 시트 칸이 비어 있고 몸이 무기 오버레이 안에 함께 그려져 있다(회전 그림이 몸 틀보다 큼). 몸·무기 두 시트를 늘 겹쳐 그리면 맞는다. 이 칸의 몸 색은 무기 색 예산 예외(결정 Q55). `flipRender` 는 행별 회전 원본·각도·중심(제작 기록).
+- **`greatsword_guard_rush`**: `startsFrom` = 퍼펙트 가드 직후 우클릭 뗌(밀쳐내기 `greatsword_special` 대신), `endsWith` = `greatsword_carry_drawn_idle`. `dashPx {world 56, dots 224, frames [2,3,4,5], startMs 90, endMs 270, easing easeOut, stopsAtWall}`. 판정 `carry: true` — **적을 앞으로 밀고 감**(크게 튕기지 않음, Q5·Q55), 적마다 1회, f5 퍼 올림에서 놓음.
+- **대검 새 기본기 fx**(모두 `brushStroke`, 8행 `drawn8` 은 몸 행 번호 그대로):
+
+| fx | 틀 | 피벗 | 프레임 · ms | 생성 (fx impactFrame) | anchor · 깊이 | 행 |
+|---|---|---|---|---|---|---|
+| `greatsword_tackle` | 296×296 | (148,230) | 6 · 40, 40, 50, 60, 70, 80 | **첫 접촉 순간**(0) — 결정 Q55(JSON `spawnAlt`), 빗나가면 생략. JSON `spawnAtMs 190` 은 몸 hitAt | `player_pivot`, `followPlayer` | 8행 |
+| `greatsword_brace_upswing` | 360×424 | (181,265) | 6 · 40, 40, 50, 60, 70, 80 | 330 (1) | `player_pivot` | 8행 · `variant: "base"` |
+| `greatsword_brace_upswing_ember` | 416×496 | (210,304) | 6 · 40, 40, 50, 60, 70, 80 | 330 (1) | `player_pivot` | 8행 · `variant: "rage"`(울분 소모) |
+| `greatsword_brace_absorb` | 80×88 | (42,81) | 5 · 30, 40, 50, 60, 70 | `superArmorFrames` 중 피격마다 1회 | `player_pivot`, `followPlayer`, above | 1행 `any` |
+| `greatsword_leap_slam`(나선) | 592×664 | (292,398) | 8 · 50, 50, 50, 50, 40, 60, 70, 80 | 170 (—) | **`leap_start_pivot`**, above · `bakedTravelDots 192`·`airBaked` | 8행 |
+| `greatsword_leap_slam_land` | 568×576 | (284,324) | 5 · 40, 50, 60, 70, 90 | 370 (1) = 착지 410ms | `player_pivot`, `followPlayer` | 8행 |
+| `greatsword_guard_rush`(땅 홈) | 696×672 | (345,338) | 8 · 40, 40, 40, 60, 90, 90, 100, 120 | 90 (—) | **`dash_start_pivot`**, `below_player` · `bakedTravelDots 224` | 8행 |
+
+  - 나선(`greatsword_leap_slam`)은 도약 48 월드 px 기준으로 이동이 그려져 있음 — **벽에 막혀 짧게 뛰면 생략**(결정 Q55). `glowFrames` 없음.
+  - 땅 홈(`greatsword_guard_rush`)은 돌진 56 월드 px(224 도트) 기준으로 그려져 있음.
+  - `greatsword_leap_slam_land` 와 함께 `greatsword_ground_crack`(위 `rowByStage`).
+
+### 18.9 단검·활 새 기본기 (Q23·Q24·Q40~Q43·Q52·Q55)
+- 단검: 몸 96×144·피벗 (48,138), 무기 192×192·피벗 (96,186)·`playerFrameOffset (48,48)`, 4행, 무기 그림 1.3배(`scale56`, 역수 `reverseGrip`).
+
+| 동작 | 프레임 | frameDurationsMs | total / hitAt / activeEndAt / cancelAt | impactFrame (hitFrames) | 판정 참고 `thrust` (도트) | fx 틀 · 피벗 · spawnAtMs · fx impactFrame |
+|---|---|---|---|---|---|---|
+| `dagger_backstab` 등 뒤 치명 찌르기 | 10 | 40, 50, 70, 30, 50, 60, 70, 50, 60, 80 | 560 / 190 / 240 / 420 | 4 ([4]) | `lengthPx 150`·`widthPx 56`·`fromPx 24`·0° | 200×152 · (101,137) · 160 · 1 |
+| `dagger_flurry` 고속 난타 | 10 | 40, 40, 45, 45, 45, 45, 45, 45, 60, 80 | 490 / 80 / 305 / — (`hitsAt` 80·170·260, `loopMs 270`) | 2 ([2,4,6]) | `lengthPx 144`·`widthPx 48`·`fromPx 16`·0° | 336×344 · (168,208) · 0 · 2 |
+
+- **`dagger_backstab`**: `startsFrom` = `dagger_special` 끝 프레임(f8 확정 치명 자세), `endsWith` = READY_DG → `dagger_carry_idle`, `cancelFromFrame 8`. 판정은 기본 3타(168)보다 짧고 넓은 정면 직사각(바로 앞 적의 등).
+  - fx `dagger_backstab`: 6프레임 `[30, 50, 60, 70, 60, 80]`, `anchor: player_pivot`, `holdFrame 1`, `hitstopHint 90ms`, `shakeHint` 3px·110ms, `flash`(화면 가장자리 호박 60ms, 선택 — 시스템). **`critAnchors`**(치명 섬광 중심 = 칼날 70% 박힌 자리, 몸 시트 도트): down (47.7,90.2)·up (48.3,60.9)·left (6.2,75.2)·right (89.8,75.4), 몸 피벗 기준 = (x−48, y−138).
+  - **결정(Q55): 전용 섬광만 — 공용 치명 fx(`hit_dagger_heavy`·`crit_burst`)를 겹치지 않는다**(JSON `critAnchorNote` 의 '겹친다면' 경우는 쓰지 않음).
+- **`dagger_flurry`**: 좌클릭 홀드 — **`startFrames [0,1]`** 1회 → 홀드 동안 **`loopFrames [2~7]`**(`loopRange [2,7]`, f7 → f2) 반복 → 떼면 지금 찌르기의 당김 프레임까지 마치고 **`endFrames [8,9]`**. 시트 `loop: false`(시스템이 반복). `stabAngles {2: −10°, 4: +12°, 6: 0°}` 는 그림 각(판정은 0° 하나).
+  - fx: 몸과 같은 10프레임·같은 ms, 몸 f0 시작에 같이 시작하고 같은 프레임 번호를 같은 시각에 표시(`spawnAtMs 0`).
+  - **과열 단계 `heatRule`**: 과열 0~39% = `dagger_flurry`, 40~79% = `dagger_flurry_heat2`(360×368·(180,220)), 80~100% = `dagger_flurry_heat3`(376×376·(185,225)). 단계가 바뀌면 같은 프레임 번호로 fx 시트만 바꿔 이어 재생(`heatVariants`·`heatLevel`·`heatOf`, 세 시트 프레임·ms 동일). 몸·무기 그림은 같음. **결정(Q55): 과열 3단 경계 40·80%, 초당 약 11타.** 100% 자동 폭발은 §18.10 `dagger_overheat_burst`.
+- **활 `bow_arrow_rain`**(몸·무기): 12프레임 `[50, 60, 40, 40, 40, 40, 40, 40, 40, 70, 80, 100]`, 4행, 무기 192×192·피벗 (96,186)·offset (48,48). `timingMs {total 640, releasesAt [110, 230, 350], cancelAt 390}`, `cancelFromFrame 9`.
+  - `phases` raise [0,1] → volley [2~8] → recover [9,10,11]. **`releaseFrames [2,5,8]`**(`arrowCount 3`) — 각 프레임 시작에 화살 1발 생성(하늘로). renock 프레임은 시위 위에서 재가 뭉쳐 새 화살이 맺힘(몸에서 뽑지 않음, 탄창 3 소모는 시스템).
+  - `startsFrom` = `bow_draw_hold` 가득(f5) 또는 유지 루프(f6~f9) 중 좌클릭, `endsWith` = 우클릭을 계속 누르고 있으면 `bow_draw_hold`, 아니면 `bow_carry_idle`. `skyAngleDeg`(프레임별 하늘 각) 참고.
+  - **`arrowSpawnAnchors`**(무기 JSON, 무기 시트 좌표, `releaseFrames`·f9 만 값): `bow_arrow_rain_rise` 의 피벗.
+- **화살비 fx**:
+
+| fx | 틀 | 피벗 | 프레임 · ms | 행 | anchor · 깊이 | 생성 |
+|---|---|---|---|---|---|---|
+| `bow_arrow_rain_rise` | 200×184 | (105,179) | 4 · 40, 40, 40, 50 | 4행(방향), `rotate: false` | **`arrow_spawn`**, above | 몸 `releaseFrames` 시작마다 1회(110·230·350ms). 솟는 이동은 시트 안에 그려짐(`screenAngleDeg`·`riseDistancePx`) |
+| `bow_arrow_rain_mark` | 440×440 | (219,219) | 10 · 50, 60, 90, 90, 90, 90, 60, 60, 70, 90 | 3행 = 크기 s·m·l(`rowsAre: "sizes"`) | `hitbox_center`(커서 원 중심), below | 좌클릭 순간 appear [0,1] 1회 → 첫 화살이 떨어질 때까지 wait `loopRange [2,5]` → 낙하 동안 rain [6,7](마지막 칸 유지 가능) → out [8,9] |
+| `bow_arrow_rain_fall` | 72×232 | (49,219) | 7 · 40, 40, 40, 40, 60, 80, 100 | 1행 `any`, `rotate: false`, `flipX: "allowed"` | `hitbox_center`(낙하점), above | 낙하점마다 1회, `impactFrame 3`(시트 120ms) 시작 = 그 점의 판정 |
+
+  - 예고 원 `sizeInfo`: s 96 도트(24 월드)·m 128(32)·l 176(44). `scaleRule` = 판정 반경에 가장 가까운 행을 고르고 scale = R / `radiusPx`(0.85~1.2 권장). **결정(Q55): m(32 월드 px), 좌클릭 순간 표시.**
+  - 낙하 화살: `fallHeightPx 150`, `fallSlantDeg 12`, `flipX` 로 좌우 섞기. **결정(Q52): 떨어지는 자리마다 작은 판정 — 원 안 무작위 9곳, 40ms 간격**(JSON `spawnNote` 의 '9~12곳·30~50ms·큰 원 1회 판정 선택'은 이 결정으로 대체). **결정(Q55): 12° 고정 + 좌우 뒤집기.** 작은 판정 반경·첫 낙하 시각은 시스템 데이터.
+
+### 18.10 자원·상태 표시 (Q7·Q8·Q13~Q20·Q48·Q51·Q55)
+- **검기·울분 오버레이(무기 위 덧그림, Q14·Q15)**:
+  - 이름: `weapons/v3/<칼 무기 시트>_ki1`~`_ki3`(검기 1~3단), `weapons/v3/<대검 무기 시트>_grudge1`~`_grudge3`(울분 단계).
+  - 그리는 법(`drawRule`): 대상 무기 시트(`overlayOf`)를 그린 **바로 위**(`depth: "above_weapon"`)에 **같은 프레임 번호(row*frames+col)·같은 시각·같은 피벗**(주인공 피벗 + `playerFrameOffset`)으로 겹친다. 틀·피벗·offset·프레임 수·`frameDurationsMs`·행 = 대상 시트와 같음(`bodySheet`·`level` 표시). 단계가 바뀌면 같은 프레임 번호로 오버레이만 바꿔 낀다. **0단이거나 대상 시트의 오버레이 파일이 없으면 생략**.
+  - 3단 `glowFrames` = 대상 시트의 판정 프레임(검기 3단 판정 날선 흰 픽셀 허용, Q55). 칼집 안(칼끝 null) 칸·칼집 휴대 시트는 칼집 금을 단계 색으로 달굼(1단 연기 / 2·3단 작은 불, `sheathNote`).
+  - **결정(Q55)**: 오버레이 시트 방식, 새 칼·대검 동작에도 적용. 울분 단계 = 게이지 구간 1~33 / 34~66 / 67~100%(값은 시스템 데이터) — 차지 내려찍기로 전부 소모하면 오버레이 없음.
+  - `greatsword_leap_slam_grudge1~3` 도 `bodyInOverlayFrames [3,4,5]`(§18.8) · 위로 올려 그리기(`airOffsetPx`)는 무기와 같이.
+  - 대상 시트(07d3c00 + 5f7dae8):
+
+| 자원 | 대상 무기 시트 (`weapons/v3/`, 각 `_ki1~3` / `_grudge1~3`) |
+|---|---|
+| 검기 (16시트 × 3) | `katana_carry_idle`·`katana_carry_walk`·`katana_carry_run`·`katana_carry_dash`, `katana_carry_drawn_idle`·`katana_carry_drawn_walk`·`katana_carry_drawn_run`·`katana_carry_drawn_dash`, `katana_rise`·`katana_fall`·`katana_issen`, `katana_counter`·`katana_iai`, `katana_draw`·`katana_sheathe`·`katana_special` |
+| 울분 (18시트 × 3) | `greatsword_carry_idle`·`greatsword_carry_walk`·`greatsword_carry_run`·`greatsword_carry_dash`, `greatsword_carry_drawn_idle`·`greatsword_carry_drawn_walk`·`greatsword_carry_drawn_run`·`greatsword_carry_drawn_dash`, `greatsword_sweep_cw`·`greatsword_cleave`·`greatsword_sweep_ccw`, `greatsword_charge`·`greatsword_charge_slam`·`greatsword_charge_plunge`, `greatsword_tackle`·`greatsword_brace_upswing`·`greatsword_leap_slam`·`greatsword_guard_rush` |
+
+  - 오버레이가 없는 무기 시트(재생 중 생략): 칼 `katana_crescent`(보관)·`katana_combo1~3`·`katana_carry_groggy`, 대검 `greatsword_special`·`greatsword_draw`·`greatsword_sheathe`·`greatsword_dashslash`(태클로 교체)·`greatsword_slam`·`greatsword_combo1~3`·`greatsword_carry_groggy`.
+- **낙인 표식 `fx/v3/dagger_brand_mark`(Q16)**: 44×40, 피벗 (17,34), 6프레임 `[40, 70, 120, 120, 120, 120]`, **행 = 스택 `"1"`~`"5"`**(`rowsAre: "stacks"`, 방향으로 고르지 않음·회전 없음), **`anchor: "enemy_head"`**, `followTarget`, `depth: "above"`, `glowFrames [0]`. 스택이 오를 때마다 그 행의 stamp [0,1] 1회 → `loopRange [2,5]` 반복, 스택이 그대로면 루프만. 기폭·과열 폭발·대상 사망 때 지움. **결정(Q55): 셈 획은 적 머리 위.**
+- **낙인 기폭 `fx/v3/dagger_brand_burst`(Q16·Q18)**: 152×136, 피벗 (76,68), 8프레임 `[40, 40, 50, 60, 70, 80, 100, 120]`, **행 = 크기 s·m·l**(`rowsAre: "sizes"`) — 스택 1~2 = s(반경 34 도트)·3~4 = m(46)·5 = l(60)(**결정 Q55: 스택 → s/m/l**). `anchor: "hitbox_center"`, `impactFrame 1`, `glowFrames [1,2]`, `shakeHint` s 2px·80ms / m 3·100 / l 5·130, `light`. 생성: 그림자 걸음으로 낙인 적 등 뒤에 선 순간 1회 + 과열 100% 일괄 폭발 때 낙인 적마다 1회(가까운 적부터 40ms 간격 권장).
+- **과열 폭발 `fx/v3/dagger_overheat_burst`(Q19 · Q51 전용 fx)**: 224×144, 피벗 (110,78), 8프레임 `[40, 40, 50, 60, 70, 80, 90, 110]`, 1행 `any`, `anchor: player_pivot`, `impactFrame 0`, `radiusPx 92`, `glowFrames [0,1]`, `light`, `shakeHint` 4px·140ms. 과열 100% 순간 1회 — 주변 낙인 적의 기폭은 이 시트 f1 시작부터 가까운 순서로 `dagger_brand_burst`.
+  - 식힘 `fx/v3/dagger_overheat_cool`: 72×128, 피벗 (35,117), 6프레임 ×110ms 루프, `anchor: player_pivot`·`followTarget`. 식는 동안(잠깐 느려짐) 루프, 끝나면 마지막 칸에서 끔(반투명 금지).
+- **퍼펙트 가드·패링 `fx/v3/guard_perfect_fx`(Q7·Q8·Q48)**: 88×104, 피벗 (44,52), 7프레임 `[30, 40, 50, 60, 70, 80, 90]`, **행 = 종류 `guard`·`parry`**(`rowsAre: "kinds"`) — guard = 퍼펙트 가드(피해 0, 튕기지 않음), parry = 패링 성공. **`anchor: "guard_contact"`**, `rotate: true`·`drawnFacing: "right"`(그림 오른쪽 = 공격이 들어온 쪽, 주인공 → 공격자·투사체 각도)·`flipY: "allowed"`, `depth: "above"`, `impactFrame 0`, `glowFrames [0,1]`(f0 틈 흰 픽셀 허용, Q55), `holdFrame 1`, `light`, `shakeHint` guard 2px·70ms / parry 3·90.
+  - **결정(Q55): 기존 `parry_flash`·`guard_wave`(§16)를 대체**한다(JSON `pairsWith` 의 '함께 또는 대신'은 이 결정으로 정리). 문구 'PERFECT GUARD'·'PARRY'(Q8)는 UI·시스템 텍스트.
+  - 판정 창: 가드를 누른 직후 0.15초 안 피격 — 칼 패링·대검 퍼펙트 가드 공통(Q7·Q48).
+- **그로기 `player/v3/player_groggy`(Q7·Q13·Q19)**: 96×144, 피벗 (48,138), 10프레임 ×150ms = 1500ms 루프(한 주기 = 그로기 1.5초), 4행. **결정(Q55): 칼·대검이 같은 몸을 공유(왼손 빈 몸), 루프만(전환 프레임 없음), 그로기 중 가드 몸은 현행** — 가드를 누르면 현행 가드 몸으로 바꾸고, 떼면 이 시트의 같은 시각 프레임으로 돌아온다(권장). `phases` swayRight [0~4]·swayLeft [5~9], `eyeOffFrames [6,7]`.
+  - 휴대 무기 `carryOverlay`(같은 프레임 번호로 겹침): `weapons/v3/katana_carry_groggy`(192×192·피벗 (96,186)·offset (48,48), 왼허리 칼집, `sheathMouthAnchors`) / `weapons/v3/greatsword_carry_groggy`(240×272·피벗 (119,209)·offset (71,71), 등 가죽끈, 4행).
+  - 소용돌이 `fx/v3/player_groggy_swirl`: 40×20, 피벗 (20,10), 6프레임 ×125ms 루프(1.5초에 2바퀴), 1행 `any`, `anchor: "player_head_top"`, `followTarget`, `depth: "above"`. 피벗 = 몸 **`headTopAnchors[방향][프레임]`**(머리 꼭대기, 몸 시트 도트) + **`swirlOffsetY −14`**(도트, 위로 14). 그로기가 끝나면 끔.
+- 약한 화살 `bow_arrow_weak` 은 §18.5.
+- 흰 픽셀 허용처(결정 Q55): 검기 3단 판정 날선 · 낙인 새 획 · 퍼펙트 가드 f0 틈 · 기폭 핵. 그 밖은 기존 규칙(백열은 판정 순간 획 머리 몇 도트만).
+
+### 18.11 56라운드 앵커 이름
+- `anchor` 값(fx 를 어디에 붙이는가):
+
+| anchor | 종류 | 뜻 | 쓰는 시트 |
+|---|---|---|---|
+| `player_pivot` | 따라감(기존) | 주인공 발(몸 피벗). `followPlayer: true` 면 매 프레임 따라감 | 대부분의 몸 기준 fx |
+| `dash_start_pivot` | world 고정 | 돌진을 시작한 순간의 주인공 발 | `katana_issen_line_t1~t4`(`_solo`), `greatsword_guard_rush` fx |
+| `issen_shadow_path` | 이동 | `travelFrames` 동안 출발 피벗 → 도착 피벗(실제로 멈춘 자리) 선형 이동, 이후 도착 피벗 고정 | `katana_issen_shadow` |
+| `release_pivot` | world 고정 | 좌클릭을 뗀 순간(몸 `releaseFrame` 시작)의 주인공 발 | `katana_iai` fx |
+| `leap_start_pivot` | world 고정 | 도약 출발(`leapPx.startMs`) 순간의 주인공 발 | `greatsword_leap_slam` fx(나선) |
+| `koiguchi` | 몸 앵커 | 칼집 입구 — 몸 `koiguchiAnchors[방향][프레임]` | `katana_iai_ready` |
+| `arrow_spawn` | 무기 앵커 | 화살 생성 점 — 무기 `arrowSpawnAnchors[방향][프레임]` | `bow_arrow_rain_rise` |
+| `projectile` | 투사체(기존) | 투사체 위치·진행 각도 | `bow_perfect_release`, `bow_arrow_weak` |
+| `plant_point` | 몸 앵커 | 칼이 바닥에 꽂힌 점 — 몸 `plantAnchors`(§18.3) | `greatsword_plunge_wave`(꽂아내리기 `greatsword_ground_crack` 도 이 점) |
+| `player_head_top` | 몸 앵커 | 머리 꼭대기 — 몸 `headTopAnchors` + `swirlOffsetY` | `player_groggy_swirl` |
+| `enemy_head` | 적 | 적 머리 위(적을 따라감, `followTarget`) | `dagger_brand_mark` |
+| `hitbox_center` | 판정(기존 §16) | 판정 중심 — 적 히트박스 중심 / 내려찍은 자리 / 커서 원 중심 / 낙하점 | `hit_*`, `greatsword_ground_crack`, `dagger_brand_burst`, `bow_arrow_rain_mark`·`bow_arrow_rain_fall` |
+| `guard_contact` | 판정 | 가드 맞닿음 점(주인공과 들어온 공격 사이), 각도 = 주인공 → 공격자·투사체 | `guard_perfect_fx` |
+
+- 앵커 좌표 필드(프레임별 점 — 값이 없는 프레임은 `null`):
+
+| 필드 | 들어 있는 JSON | 좌표계 | 값 있는 프레임 |
+|---|---|---|---|
+| `plantAnchors` | 몸 `player_greatsword_charge_plunge` | 몸 시트 도트 | `plantFrames [4,5,6,7]` |
+| `arrowSpawnAnchors` | 무기 `bow_release`(§18.5) · 무기 `bow_arrow_rain` | 무기 시트 좌표(몸 좌표 = − (48,48)) | `bow_release` f0 · `bow_arrow_rain` f2·f5·f8·f9 |
+| `koiguchiAnchors` | 몸·무기 `katana_iai` | 몸 시트 도트(무기 좌표 = + (48,48)) | 15프레임 모두 |
+| `headTopAnchors` | 몸 `player_groggy` | 몸 시트 도트 | 10프레임 모두 |
+| `critAnchors` | fx `dagger_backstab` | 몸 시트 도트(방향당 1점) | — |
+| `sheathMouthAnchors` | 무기 `katana_carry_groggy` | 몸 시트 도트 | 10프레임 모두 |
