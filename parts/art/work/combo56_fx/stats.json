@@ -1,0 +1,135 @@
+{
+ "dagger_combo1": {
+  "frame": [
+   328,
+   344
+  ],
+  "colors": 11
+ },
+ "dagger_combo2": {
+  "frame": [
+   336,
+   336
+  ],
+  "colors": 10
+ },
+ "dagger_combo3": {
+  "frame": [
+   400,
+   400
+  ],
+  "colors": 10
+ },
+ "greatsword_charge_slam_lv1": {
+  "frame": [
+   568,
+   576
+  ],
+  "colors": 13
+ },
+ "greatsword_charge_slam_lv2": {
+  "frame": [
+   648,
+   656
+  ],
+  "colors": 13
+ },
+ "greatsword_charge_slam_lv3": {
+  "frame": [
+   776,
+   784
+  ],
+  "colors": 13
+ },
+ "greatsword_cleave": {
+  "frame": [
+   568,
+   576
+  ],
+  "colors": 13
+ },
+ "greatsword_sweep_ccw": {
+  "frame": [
+   440,
+   448
+  ],
+  "colors": 12
+ },
+ "greatsword_sweep_cw": {
+  "frame": [
+   440,
+   448
+  ],
+  "colors": 12
+ },
+ "katana_fall": {
+  "frame": [
+   312,
+   336
+  ],
+  "colors": 13
+ },
+ "katana_issen_line_t1": {
+  "frame": [
+   248,
+   256
+  ],
+  "colors": 13
+ },
+ "katana_issen_line_t1_solo": {
+  "frame": [
+   248,
+   256
+  ],
+  "colors": 13
+ },
+ "katana_issen_line_t2": {
+  "frame": [
+   368,
+   376
+  ],
+  "colors": 13
+ },
+ "katana_issen_line_t2_solo": {
+  "frame": [
+   368,
+   376
+  ],
+  "colors": 13
+ },
+ "katana_issen_line_t3": {
+  "frame": [
+   496,
+   504
+  ],
+  "colors": 12
+ },
+ "katana_issen_line_t3_solo": {
+  "frame": [
+   496,
+   504
+  ],
+  "colors": 12
+ },
+ "katana_issen_line_t4": {
+  "frame": [
+   624,
+   624
+  ],
+  "colors": 12
+ },
+ "katana_issen_line_t4_solo": {
+  "frame": [
+   624,
+   624
+  ],
+  "colors": 12
+ },
+ "katana_rise": {
+  "frame": [
+   320,
+   328
+  ],
+  "colors": 11
+ }
+}

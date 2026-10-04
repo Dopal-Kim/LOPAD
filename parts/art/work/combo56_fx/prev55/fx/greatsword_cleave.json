@@ -1,0 +1,97 @@
+{
+ "image": "greatsword_cleave.png",
+ "action": "greatsword_cleave",
+ "version": "v3-r55",
+ "frameWidth": 536,
+ "frameHeight": 536,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 25.0,
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  40,
+  40,
+  40
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 13,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo55/build.py (55라운드 Q18~Q25 · 계약 §17 새 연격 이펙트)",
+ "weapon": "greatsword",
+ "design": "V 정면 내려찍기 — 머리 위에서 앞 지면으로 세로로 선 가는 호 → 칼이 닿은 자리에서 쐐기 끝점까지 달려 나가는 백열 충격 선 + 쐐기를 따라 갈라지는 바닥 금",
+ "bodySheet": "player_greatsword_cleave",
+ "weaponSheet": "weapons/v3/greatsword_cleave",
+ "comboSet": "G-C 관성 순환",
+ "dirTransform": "rotate",
+ "dirTransformNote": "§17 각도(조준 0°, 화면 시계 +)를 모든 방향에 회전으로 적용 — left = right 를 180° 회전(구 fx 의 좌우 반전 아님). 몸 시트의 휘두름 방향과 같다",
+ "effectRule": "55라운드: 원 전체가 아니라 판정 호를 따라 2~3프레임에 그려 나가는 부분 초승달, 80~120ms 소멸, 재·호박만, 판정 순간만 백열",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 268,
+  "y": 308
+ },
+ "hitOriginInFrame": {
+  "x": 268,
+  "y": 268
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗)에 맞춘다. 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "spawn": "body_frame",
+ "spawnBodyFrame": 2,
+ "spawnAtMs": 150,
+ "impactAtBodyMs": 230,
+ "hitShape": {
+  "type": "wedge",
+  "angleDeg": 40,
+  "lengthR": 1.3,
+  "impactCircle": {
+   "centerR": 1.3,
+   "radiusR": 0.35,
+   "centerDistPx": 265.2,
+   "radiusPx": 71.4
+  },
+  "note": "좁은 쐐기 40° ×1.3 + 끝점 충격원 0.35R (§17). 관성 최대 = 충격원 확대(impactSheet scale)",
+  "R": {
+   "world": 51,
+   "dots": 204
+  },
+  "lengthPx": 265.2,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "impactFrame": 2,
+ "timingNote": "spawnAtMs = 몸 시트 시작 기준 이 시트를 띄우는 시각. impactFrame 시작 = 몸 hitAt(판정). 관성 공속은 몸·fx 를 같은 배율로 재생",
+ "drawnArc": {
+  "wedgeLengthDots": 265.2,
+  "verticalRadiusDots": 150,
+  "note": "세로 호(머리 위 → 칼이 닿는 앞 지면 Rv) + Rv → 쐐기 끝(L) 충격 선 + 바닥 금"
+ },
+ "frameRoles": [
+  "pre",
+  "draw(내려옴)",
+  "impact(백열 — 판정)",
+  "decay",
+  "decay",
+  "decay"
+ ],
+ "impactSheet": "greatsword_cleave_impact",
+ "impactSheetAt": "impactFrame 시작, 쐐기 끝점(hitbox_center)",
+ "inertiaMaxImpactScale": 1.3,
+ "inertiaNote": "§17 관성 최대(+20%)일 때 끝점 충격 시트를 scale 1.3 으로(참고값)",
+ "glowFrames": [
+  2
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

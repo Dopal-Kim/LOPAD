@@ -3,7 +3,7 @@
  "action": "katana_fall",
  "frameWidth": 192,
  "frameHeight": 192,
- "frames": 6,
+ "frames": 7,
  "directions": [
   "down",
   "up",
@@ -12,13 +12,14 @@
  ],
  "layout": "rows = directions (down, up, left, right), columns = frames",
  "frameIndex": "row * frames + column",
- "fps": 28.57,
+ "fps": 15.91,
  "frameDurationsMs": [
-  20,
-  20,
+  70,
+  50,
   40,
   30,
-  40,
+  60,
+  130,
   60
  ],
  "loop": false,
@@ -28,16 +29,16 @@
  },
  "pixelScale": 0.5,
  "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
- "source": "parts/art/work/combo55/build.py (55라운드 Q18~Q25 · 계약 §17 새 연격)",
+ "source": "parts/art/work/combo56_fx/build.py (56라운드 Q1 칼 템포 · Q2 일섬 — combo55 렌더 경로)",
  "weapon": "katana",
- "version": "v3-r55",
+ "version": "v3-r56",
  "comboSet": "K-A 발도 초승달",
- "label": "2타 대각 내려베기(X자)",
+ "label": "2타 대각 내려베기(X자, 56 템포)",
  "timingMs": {
-  "total": 210,
-  "hitAt": 40,
-  "activeEndAt": 80,
-  "cancelAt": 110
+  "total": 440,
+  "hitAt": 120,
+  "activeEndAt": 160,
+  "cancelAt": 380
  },
  "frameStates": [
   "steel",
@@ -45,7 +46,8 @@
   "glow",
   "steel",
   "steel",
-  "fade"
+  "steel",
+  "steel"
  ],
  "framesBasis": "player_katana_fall 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
  "msNote": "ms 는 아트 제안값. 시스템이 데이터로 바꿔도 impactFrame 시작 = hitAt 이 맞으면 그림은 맞는다(관성 공속은 재생 속도로).",
@@ -60,7 +62,7 @@
  "glowFrames": [
   2
  ],
- "cancelFromFrame": 4,
+ "cancelFromFrame": 6,
  "anticipationFrames": [
   0,
   1
@@ -68,7 +70,8 @@
  "recoverFrames": [
   3,
   4,
-  5
+  5,
+  6
  ],
  "hitShape": {
   "type": "arc",
@@ -76,12 +79,12 @@
   "endDeg": 40,
   "radiusR": 1.0,
   "innerR": 0.0,
-  "note": "비대칭 호 110° (§17 대각, 1타 역방향)",
+  "note": "비대칭 호 110° (§17 대각, 1타 역방향) · 56라운드 Q1 사거리 ×1.15(R 38)",
   "R": {
-   "world": 33,
-   "dots": 132
+   "world": 38,
+   "dots": 152
   },
-  "outerRadiusPx": 132.0,
+  "outerRadiusPx": 152.0,
   "innerRadiusPx": 0.0,
   "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
   "reference": "참고값 — 시스템 데이터(§17)가 기준"
@@ -100,8 +103,25 @@
   ],
   "note": "내딛기 참고값(§17, 월드 px) — 방향키를 누를 때만. frames = 몸이 앞으로 나가는 프레임(그림은 제자리, 이동은 시스템)"
  },
- "stepStartMs": 20,
- "nextMove": "katana_crescent",
+ "stepStartMs": 70,
+ "phases": {
+  "windup": [
+   0,
+   1
+  ],
+  "cut": [
+   2,
+   3
+  ],
+  "zanshin": [
+   4,
+   5
+  ],
+  "recover": [
+   6
+  ]
+ },
+ "nextMove": "katana_issen",
  "startsFrom": "katana_rise 끝(f6, 왼쪽 위로 든 칼)",
  "anchor": "player_pivot",
  "playerFrameOffset": {
@@ -121,9 +141,11 @@
    "above",
    "above",
    "above",
+   "above",
    "above"
   ],
   "up": [
+   "above",
    "above",
    "above",
    "above",
@@ -137,9 +159,11 @@
    "above",
    "above",
    "above",
+   "above",
    "above"
   ],
   "right": [
+   "above",
    "above",
    "above",
    "above",
@@ -186,6 +210,16 @@
     "handR": [
      81.8,
      136.7
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     79.3,
+     137.1
     ],
     "handL": [
      118.5,
@@ -266,6 +300,16 @@
    },
    {
     "handR": [
+     112.7,
+     125.1
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
      108.3,
      125.2
     ],
@@ -310,6 +354,16 @@
     "handR": [
      71.3,
      122.8
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     78.7,
+     125.0
     ],
     "handL": [
      102.0,
@@ -390,6 +444,16 @@
    },
    {
     "handR": [
+     113.3,
+     136.6
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
      113.0,
      135.1
     ],
@@ -423,6 +487,10 @@
     137.1
    ],
    [
+    79.3,
+    137.1
+   ],
+   [
     83.7,
     137.0
    ]
@@ -443,6 +511,10 @@
    [
     110.2,
     119.5
+   ],
+   [
+    112.7,
+    125.1
    ],
    [
     112.7,
@@ -475,6 +547,10 @@
     125.0
    ],
    [
+    78.7,
+    125.0
+   ],
+   [
     79.0,
     126.5
    ]
@@ -495,6 +571,10 @@
    [
     120.7,
     132.8
+   ],
+   [
+    113.3,
+    136.6
    ],
    [
     113.3,
@@ -537,6 +617,10 @@
    "elevDeg": -32
   },
   {
+   "thetaDeg": 58,
+   "elevDeg": -35
+  },
+  {
    "thetaDeg": 48,
    "elevDeg": -30
   }
@@ -565,6 +649,10 @@
     178.4
    ],
    [
+    37.6,
+    180.7
+   ],
+   [
     45.0,
     179.2
    ]
@@ -589,6 +677,10 @@
    [
     155.8,
     147.4
+   ],
+   [
+    154.4,
+    150.4
    ],
    [
     147.0,
@@ -617,6 +709,10 @@
     141.7
    ],
    [
+    52.7,
+    144.8
+   ],
+   [
     44.2,
     143.0
    ]
@@ -643,6 +739,10 @@
     183.5
    ],
    [
+    139.3,
+    185.6
+   ],
+   [
     147.8,
     178.6
    ]
@@ -650,5 +750,7 @@
  },
  "bladeTipNote": "칼끝(무기 시트 좌표, 55라운드 시스템 요청 — 칼 포함). null = 날이 칼집 안. 칼끝 리본(§16 ribbon_ash)의 머리 위치로 쓸 수 있다",
  "bodySheet": "player_katana_fall",
- "overlay": "player_katana_fall 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset."
+ "overlay": "player_katana_fall 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
+ "tempoNote": "56라운드 Q1 — 예비 120ms · 휘두름 70ms · 잔심 190ms · 풀림 60ms. cancelAt = 풀림 시작",
+ "r56": "56라운드 Q1(템포·사거리 ×1.15)"
 }

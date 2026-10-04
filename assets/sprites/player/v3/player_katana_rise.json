@@ -3,7 +3,7 @@
  "action": "katana_rise",
  "frameWidth": 96,
  "frameHeight": 144,
- "frames": 7,
+ "frames": 8,
  "directions": [
   "down",
   "up",
@@ -12,14 +12,15 @@
  ],
  "layout": "rows = directions (down, up, left, right), columns = frames",
  "frameIndex": "row * frames + column",
- "fps": 26.92,
+ "fps": 17.02,
  "frameDurationsMs": [
-  40,
-  30,
-  20,
-  40,
+  60,
+  60,
   30,
   40,
+  30,
+  60,
+  130,
   60
  ],
  "loop": false,
@@ -29,21 +30,21 @@
  },
  "pixelScale": 0.5,
  "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
- "source": "parts/art/work/combo55/build.py (55라운드 Q18~Q25 · 계약 §17 새 연격)",
+ "source": "parts/art/work/combo56_fx/build.py (56라운드 Q1 칼 템포 · Q2 일섬 — combo55 렌더 경로)",
  "emissiveColors": [
   "#e2a33c",
   "#eecc78",
   "#f4de9b"
  ],
  "weapon": "katana",
- "version": "v3-r55",
+ "version": "v3-r56",
  "comboSet": "K-A 발도 초승달",
- "label": "1타 대각 올려베기",
+ "label": "1타 대각 올려베기(56 템포)",
  "timingMs": {
-  "total": 260,
-  "hitAt": 90,
-  "activeEndAt": 130,
-  "cancelAt": 160
+  "total": 470,
+  "hitAt": 150,
+  "activeEndAt": 190,
+  "cancelAt": 410
  },
  "frameStates": [
   "steel",
@@ -52,7 +53,8 @@
   "glow",
   "steel",
   "steel",
-  "fade"
+  "steel",
+  "steel"
  ],
  "framesBasis": "player_katana_rise 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
  "msNote": "ms 는 아트 제안값. 시스템이 데이터로 바꿔도 impactFrame 시작 = hitAt 이 맞으면 그림은 맞는다(관성 공속은 재생 속도로).",
@@ -67,7 +69,7 @@
  "glowFrames": [
   3
  ],
- "cancelFromFrame": 5,
+ "cancelFromFrame": 7,
  "anticipationFrames": [
   0,
   1,
@@ -76,7 +78,8 @@
  "recoverFrames": [
   4,
   5,
-  6
+  6,
+  7
  ],
  "hitShape": {
   "type": "arc",
@@ -84,12 +87,12 @@
   "endDeg": -40,
   "radiusR": 1.0,
   "innerR": 0.0,
-  "note": "비대칭 호 110° (§17 대각)",
+  "note": "비대칭 호 110° (§17 대각) · 56라운드 Q1 사거리 ×1.15(R 38)",
   "R": {
-   "world": 33,
-   "dots": 132
+   "world": 38,
+   "dots": 152
   },
-  "outerRadiusPx": 132.0,
+  "outerRadiusPx": 152.0,
   "innerRadiusPx": 0.0,
   "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
   "reference": "참고값 — 시스템 데이터(§17)가 기준"
@@ -109,7 +112,25 @@
   ],
   "note": "내딛기 참고값(§17, 월드 px) — 방향키를 누를 때만. frames = 몸이 앞으로 나가는 프레임(그림은 제자리, 이동은 시스템)"
  },
- "stepStartMs": 40,
+ "stepStartMs": 60,
+ "phases": {
+  "windup": [
+   0,
+   1,
+   2
+  ],
+  "cut": [
+   3,
+   4
+  ],
+  "zanshin": [
+   5,
+   6
+  ],
+  "recover": [
+   7
+  ]
+ },
  "nextMove": "katana_fall",
  "startsFrom": "katana_carry_drawn_idle 0 (뽑아 든 낮은 겨눔) · 3타 끝 f7",
  "handAnchors": {
@@ -162,6 +183,16 @@
     "handL": [
      70.5,
      81.0
+    ]
+   },
+   {
+    "handR": [
+     62.5,
+     62.1
+    ],
+    "handL": [
+     57.0,
+     74.3
     ]
    },
    {
@@ -248,6 +279,16 @@
    },
    {
     "handR": [
+     33.5,
+     50.1
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
      35.7,
      53.2
     ],
@@ -306,6 +347,16 @@
     "handL": [
      54.0,
      90.7
+    ]
+   },
+   {
+    "handR": [
+     30.8,
+     60.9
+    ],
+    "handL": [
+     34.5,
+     72.5
     ]
    },
    {
@@ -392,6 +443,16 @@
    },
    {
     "handR": [
+     65.2,
+     50.7
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
      65.0,
      54.5
     ],
@@ -454,6 +515,14 @@
     "visible": false
    },
    {
+    "x": 51.9,
+    "y": 72.0,
+    "w": 25.5,
+    "h": 18.9,
+    "rot": 7.2,
+    "visible": false
+   },
+   {
     "x": 51.4,
     "y": 69.9,
     "w": 25.5,
@@ -509,6 +578,14 @@
     "w": 25.5,
     "h": 18.8,
     "rot": -7.3,
+    "visible": true
+   },
+   {
+    "x": 44.1,
+    "y": 72.0,
+    "w": 25.5,
+    "h": 18.9,
+    "rot": -7.2,
     "visible": true
    },
    {
@@ -570,6 +647,14 @@
     "visible": true
    },
    {
+    "x": 48.2,
+    "y": 72.8,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": -14.4,
+    "visible": true
+   },
+   {
     "x": 48.5,
     "y": 70.9,
     "w": 7.2,
@@ -628,6 +713,14 @@
     "visible": true
    },
    {
+    "x": 47.8,
+    "y": 72.8,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": 14.4,
+    "visible": true
+   },
+   {
     "x": 47.5,
     "y": 70.9,
     "w": 7.2,
@@ -639,5 +732,7 @@
  },
  "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
  "weaponOverlayV3": "weapons/v3/katana_rise",
- "note": "55라운드 새 연격(§17) 몸. weapons/v3/katana_rise 를 같은 프레임 번호·같은 시각에 겹친다. v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b."
+ "note": "55라운드 새 연격(§17) 몸. weapons/v3/katana_rise 를 같은 프레임 번호·같은 시각에 겹친다. v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b.",
+ "tempoNote": "56라운드 Q1 — 3연격 ~1.5초: 예비 150ms · 휘두름 70ms · 잔심(정지 포즈) 190ms · 풀림 60ms. cancelAt = 풀림 시작",
+ "r56": "56라운드 Q1(템포·사거리 ×1.15)"
 }

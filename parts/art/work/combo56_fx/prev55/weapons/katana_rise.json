@@ -1,0 +1,738 @@
+{
+ "image": "katana_rise.png",
+ "action": "katana_rise",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 26.92,
+ "frameDurationsMs": [
+  40,
+  30,
+  20,
+  40,
+  30,
+  40,
+  60
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/combo55/build.py (55라운드 Q18~Q25 · 계약 §17 새 연격)",
+ "weapon": "katana",
+ "version": "v3-r55",
+ "comboSet": "K-A 발도 초승달",
+ "label": "1타 대각 올려베기",
+ "timingMs": {
+  "total": 260,
+  "hitAt": 90,
+  "activeEndAt": 130,
+  "cancelAt": 160
+ },
+ "frameStates": [
+  "steel",
+  "steel",
+  "steel",
+  "glow",
+  "steel",
+  "steel",
+  "fade"
+ ],
+ "framesBasis": "player_katana_rise 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "msNote": "ms 는 아트 제안값. 시스템이 데이터로 바꿔도 impactFrame 시작 = hitAt 이 맞으면 그림은 맞는다(관성 공속은 재생 속도로).",
+ "comboIndex": 1,
+ "impactFrame": 3,
+ "hitFrames": [
+  3
+ ],
+ "activeFrames": [
+  3
+ ],
+ "glowFrames": [
+  3
+ ],
+ "cancelFromFrame": 5,
+ "anticipationFrames": [
+  0,
+  1,
+  2
+ ],
+ "recoverFrames": [
+  4,
+  5,
+  6
+ ],
+ "hitShape": {
+  "type": "arc",
+  "startDeg": 70,
+  "endDeg": -40,
+  "radiusR": 1.0,
+  "innerR": 0.0,
+  "note": "비대칭 호 110° (§17 대각)",
+  "R": {
+   "world": 33,
+   "dots": 132
+  },
+  "outerRadiusPx": 132.0,
+  "innerRadiusPx": 0.0,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
+ "arcFromDeg": 70,
+ "arcToDeg": -40,
+ "arcDeg": 110,
+ "arcNote": "그림의 휘두름 방향(from → to). 화면각(조준 0°, 시계 +). 모든 방향 = 조준 방향 기준 회전(left 도 회전, 좌우 반전 아님)",
+ "stepPx": {
+  "world": 5,
+  "dots": 20,
+  "frames": [
+   1,
+   2,
+   3
+  ],
+  "note": "내딛기 참고값(§17, 월드 px) — 방향키를 누를 때만. frames = 몸이 앞으로 나가는 프레임(그림은 제자리, 이동은 시스템)"
+ },
+ "stepStartMs": 40,
+ "nextMove": "katana_fall",
+ "startsFrom": "katana_carry_drawn_idle 0 (뽑아 든 낮은 겨눔) · 3타 끝 f7",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     76.8,
+     135.6
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     74.4,
+     135.8
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     76.7,
+     134.6
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     93.3,
+     128.6
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     116.9
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     110.5,
+     110.1
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     108.3,
+     113.0
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     115.2,
+     129.6
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     117.6,
+     126.4
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     115.3,
+     118.6
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     98.7,
+     106.6
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     83.3,
+     100.3
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     81.5,
+     98.1
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     83.7,
+     101.2
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     87.5,
+     125.6
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     82.5,
+     123.2
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     73.0,
+     119.6
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     64.6,
+     116.3
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     72.2,
+     112.7
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     78.8,
+     108.9
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     79.0,
+     111.1
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     104.5,
+     139.0
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     109.5,
+     138.4
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     119.0,
+     133.0
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     127.4,
+     118.3
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     119.8,
+     103.9
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     113.2,
+     98.7
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     113.0,
+     102.5
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    76.8,
+    135.6
+   ],
+   [
+    74.4,
+    135.8
+   ],
+   [
+    76.7,
+    134.6
+   ],
+   [
+    93.3,
+    128.6
+   ],
+   [
+    108.7,
+    116.9
+   ],
+   [
+    110.5,
+    110.1
+   ],
+   [
+    108.3,
+    113.0
+   ]
+  ],
+  "up": [
+   [
+    115.2,
+    129.6
+   ],
+   [
+    117.6,
+    126.4
+   ],
+   [
+    115.3,
+    118.6
+   ],
+   [
+    98.7,
+    106.6
+   ],
+   [
+    83.3,
+    100.3
+   ],
+   [
+    81.5,
+    98.1
+   ],
+   [
+    83.7,
+    101.2
+   ]
+  ],
+  "left": [
+   [
+    87.5,
+    125.6
+   ],
+   [
+    82.5,
+    123.2
+   ],
+   [
+    73.0,
+    119.6
+   ],
+   [
+    64.6,
+    116.3
+   ],
+   [
+    72.2,
+    112.7
+   ],
+   [
+    78.8,
+    108.9
+   ],
+   [
+    79.0,
+    111.1
+   ]
+  ],
+  "right": [
+   [
+    104.5,
+    139.0
+   ],
+   [
+    109.5,
+    138.4
+   ],
+   [
+    119.0,
+    133.0
+   ],
+   [
+    127.4,
+    118.3
+   ],
+   [
+    119.8,
+    103.9
+   ],
+   [
+    113.2,
+    98.7
+   ],
+   [
+    113.0,
+    102.5
+   ]
+  ]
+ },
+ "gripHand": "handR",
+ "design": "B 재 칼날 (53라운드 Q26) — 검은 재 칼날 + 날선 호박 균열 1줄 + 흉갑 조각 코등이 + 붕대 손잡이 + 금 간 재·흙 칼집",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_katana_B2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 날선·칼집 금만 1px 은은(A21/A19), 판정(glow) 프레임만 날선 A25/A26 + 날 몸 A21",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G·호박 A·흉갑 SL·붕대 PL 램프 공유, Q32). 백열 코어 X 미사용",
+ "includesSheath": true,
+ "carryHidden": "연격 시트에 칼집(빈 칼집 또는 칼이 든 칼집)이 들어 있으므로 재생 동안 katana_carry_* 는 숨긴다.",
+ "stateNote": "steel 실물 · glow 판정(날선 A25/A26) · fade 흐림 · partial 칼집 축을 따라 날 일부만 밖 · sheathed 칼집 안(손잡이를 쥠)",
+ "bladeLocal": [
+  {
+   "thetaDeg": 100,
+   "elevDeg": -34
+  },
+  {
+   "thetaDeg": 88,
+   "elevDeg": -26
+  },
+  {
+   "thetaDeg": 55,
+   "elevDeg": -12
+  },
+  {
+   "thetaDeg": -5,
+   "elevDeg": 14
+  },
+  {
+   "thetaDeg": -45,
+   "elevDeg": 32
+  },
+  {
+   "thetaDeg": -62,
+   "elevDeg": 40
+  },
+  {
+   "thetaDeg": -55,
+   "elevDeg": 34
+  }
+ ],
+ "bladeLocalNote": "몸 기준 무기 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). null = 칼집 안",
+ "bladeTipAnchors": {
+  "down": [
+   [
+    27.8,
+    166.1
+   ],
+   [
+    20.5,
+    162.8
+   ],
+   [
+    28.6,
+    158.9
+   ],
+   [
+    98.3,
+    134.4
+   ],
+   [
+    144.7,
+    97.7
+   ],
+   [
+    151.0,
+    79.1
+   ],
+   [
+    149.1,
+    89.5
+   ]
+  ],
+  "up": [
+   [
+    164.2,
+    166.2
+   ],
+   [
+    171.5,
+    152.0
+   ],
+   [
+    163.4,
+    119.2
+   ],
+   [
+    93.7,
+    71.8
+   ],
+   [
+    47.3,
+    55.9
+   ],
+   [
+    41.0,
+    51.9
+   ],
+   [
+    42.9,
+    57.6
+   ]
+  ],
+  "left": [
+   [
+    96.1,
+    142.0
+   ],
+   [
+    80.6,
+    130.7
+   ],
+   [
+    39.4,
+    115.2
+   ],
+   [
+    6.6,
+    103.6
+   ],
+   [
+    36.2,
+    93.5
+   ],
+   [
+    57.2,
+    84.5
+   ],
+   [
+    50.5,
+    91.8
+   ]
+  ],
+  "right": [
+   [
+    95.9,
+    189.7
+   ],
+   [
+    111.4,
+    183.5
+   ],
+   [
+    152.6,
+    162.4
+   ],
+   [
+    185.4,
+    102.0
+   ],
+   [
+    155.8,
+    59.5
+   ],
+   [
+    134.8,
+    46.0
+   ],
+   [
+    141.5,
+    54.7
+   ]
+  ]
+ },
+ "bladeTipNote": "칼끝(무기 시트 좌표, 55라운드 시스템 요청 — 칼 포함). null = 날이 칼집 안. 칼끝 리본(§16 ribbon_ash)의 머리 위치로 쓸 수 있다",
+ "bodySheet": "player_katana_rise",
+ "overlay": "player_katana_rise 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset."
+}

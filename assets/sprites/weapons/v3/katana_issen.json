@@ -1,0 +1,1133 @@
+{
+ "image": "katana_issen.png",
+ "action": "katana_issen",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 12,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.22,
+ "frameDurationsMs": [
+  60,
+  50,
+  110,
+  30,
+  40,
+  40,
+  40,
+  110,
+  70,
+  60,
+  90,
+  40
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/combo56_fx/build.py (56라운드 Q1 칼 템포 · Q2 일섬 — combo55 렌더 경로)",
+ "weapon": "katana",
+ "version": "v3-r56",
+ "comboSet": "K-A 발도 초승달",
+ "label": "3타 일섬(4칸 돌진 일자 베기)",
+ "timingMs": {
+  "total": 740,
+  "hitAt": 250,
+  "activeEndAt": 330,
+  "cancelAt": 700
+ },
+ "frameStates": [
+  "steel",
+  "partial",
+  "sheathed",
+  "partial",
+  "glow",
+  "glow",
+  "steel",
+  "steel",
+  "steel",
+  "partial",
+  "sheathed",
+  "sheathed"
+ ],
+ "framesBasis": "player_katana_issen 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "msNote": "ms 는 아트 제안값. 시스템이 데이터로 바꿔도 impactFrame 시작 = hitAt 이 맞으면 그림은 맞는다(관성 공속은 재생 속도로).",
+ "comboIndex": 3,
+ "impactFrame": 4,
+ "hitFrames": [
+  4,
+  5
+ ],
+ "activeFrames": [
+  4,
+  5
+ ],
+ "glowFrames": [
+  4,
+  5
+ ],
+ "cancelFromFrame": 11,
+ "anticipationFrames": [
+  0,
+  1,
+  2,
+  3
+ ],
+ "recoverFrames": [
+  6,
+  7,
+  8,
+  9,
+  10,
+  11
+ ],
+ "hitShape": {
+  "type": "rect",
+  "fromPx": -24.0,
+  "lengthPx": 320.0,
+  "widthPx": 72.0,
+  "angleDeg": 0,
+  "note": "돌진 경로를 쓸고 지나가는 직사각형 — 출발 피벗 뒤 24 도트부터 도착 피벗 앞 40 도트(칼 끝 여유 · 일섬 선 끝과 같음)까지, 폭 72 도트(18 월드 px). 벽에 막혀 짧게 멈추면 lengthPx 도 실제 이동 거리 + 64 로 줄인다",
+  "travelPx": {
+   "world": 64,
+   "dots": 256
+  },
+  "R": {
+   "world": 38,
+   "dots": 152
+  },
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 원점 = 돌진 출발 시점의 판정 원점(피벗 위 40 도트), 0° = 돌진 방향",
+  "reference": "참고값 — 시스템 데이터가 기준"
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
+ "stepPx": {
+  "world": 64,
+  "dots": 256,
+  "frames": [
+   3,
+   4,
+   5,
+   6
+  ],
+  "note": "일섬 돌진 거리(방향키와 무관 — 항상 조준 방향으로)"
+ },
+ "stepStartMs": 220,
+ "phases": {
+  "sheathe": [
+   0,
+   1
+  ],
+  "iaiStance": [
+   2
+  ],
+  "dash": [
+   3,
+   4,
+   5,
+   6
+  ],
+  "zanshin": [
+   7
+  ],
+  "chiburi": [
+   8
+  ],
+  "noto": [
+   9,
+   10
+  ],
+  "recover": [
+   11
+  ]
+ },
+ "nextMove": "katana_rise (칼집 상태 1타 = 뽑기 후 베기, 55라운드 Q28)",
+ "startsFrom": "katana_fall 끝(오른쪽 아래)",
+ "endsWith": "칼집에 넣은 상태(katana_carry_idle)",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     107.0,
+     135.2
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     95.2,
+     137.8
+    ],
+    "handL": [
+     121.7,
+     139.1
+    ]
+   },
+   {
+    "handR": [
+     106.7,
+     138.4
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     98.5,
+     138.0
+    ],
+    "handL": [
+     120.1,
+     139.0
+    ]
+   },
+   {
+    "handR": [
+     102.9,
+     140.9
+    ],
+    "handL": [
+     116.0,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     68.0,
+     135.7
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     69.1,
+     130.6
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     70.6,
+     131.7
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     73.4,
+     135.5
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     99.3,
+     138.0
+    ],
+    "handL": [
+     122.6,
+     139.2
+    ]
+   },
+   {
+    "handR": [
+     106.7,
+     138.4
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     105.2,
+     137.0
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     85.0,
+     118.0
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   },
+   {
+    "handR": [
+     96.8,
+     117.5
+    ],
+    "handL": [
+     70.3,
+     145.2
+    ]
+   },
+   {
+    "handR": [
+     85.3,
+     129.5
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   },
+   {
+    "handR": [
+     93.5,
+     120.9
+    ],
+    "handL": [
+     71.9,
+     143.4
+    ]
+   },
+   {
+    "handR": [
+     89.1,
+     118.3
+    ],
+    "handL": [
+     76.0,
+     139.1
+    ]
+   },
+   {
+    "handR": [
+     124.0,
+     123.5
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     122.9,
+     128.6
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     121.4,
+     130.5
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     118.6,
+     129.7
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     92.7,
+     121.8
+    ],
+    "handL": [
+     69.4,
+     146.0
+    ]
+   },
+   {
+    "handR": [
+     85.3,
+     129.5
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   },
+   {
+    "handR": [
+     85.3,
+     129.5
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     71.3,
+     130.1
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   },
+   {
+    "handR": [
+     66.9,
+     127.1
+    ],
+    "handL": [
+     102.1,
+     146.9
+    ]
+   },
+   {
+    "handR": [
+     83.3,
+     137.4
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   },
+   {
+    "handR": [
+     71.6,
+     130.0
+    ],
+    "handL": [
+     99.9,
+     147.0
+    ]
+   },
+   {
+    "handR": [
+     63.7,
+     131.7
+    ],
+    "handL": [
+     96.4,
+     145.7
+    ]
+   },
+   {
+    "handR": [
+     78.5,
+     119.5
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     93.2,
+     119.9
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     94.2,
+     121.9
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     87.8,
+     124.4
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     72.8,
+     130.8
+    ],
+    "handL": [
+     103.2,
+     147.6
+    ]
+   },
+   {
+    "handR": [
+     83.3,
+     137.4
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   },
+   {
+    "handR": [
+     83.3,
+     137.4
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     120.7,
+     122.5
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   },
+   {
+    "handR": [
+     125.1,
+     127.6
+    ],
+    "handL": [
+     87.4,
+     132.8
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     129.9
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   },
+   {
+    "handR": [
+     120.4,
+     128.3
+    ],
+    "handL": [
+     89.7,
+     132.5
+    ]
+   },
+   {
+    "handR": [
+     128.3,
+     126.9
+    ],
+    "handL": [
+     95.6,
+     131.7
+    ]
+   },
+   {
+    "handR": [
+     113.5,
+     139.1
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     98.8,
+     138.7
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     97.8,
+     139.7
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     104.2,
+     140.2
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     119.2,
+     128.4
+    ],
+    "handL": [
+     86.2,
+     133.0
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     129.9
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     129.9
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    107.0,
+    135.2
+   ],
+   [
+    95.2,
+    137.8
+   ],
+   [
+    106.7,
+    138.4
+   ],
+   [
+    98.5,
+    138.0
+   ],
+   [
+    102.9,
+    140.9
+   ],
+   [
+    68.0,
+    135.7
+   ],
+   [
+    69.1,
+    130.6
+   ],
+   [
+    70.6,
+    131.7
+   ],
+   [
+    73.4,
+    135.5
+   ],
+   [
+    99.3,
+    138.0
+   ],
+   [
+    106.7,
+    138.4
+   ],
+   [
+    105.2,
+    137.0
+   ]
+  ],
+  "up": [
+   [
+    85.0,
+    118.0
+   ],
+   [
+    96.8,
+    117.5
+   ],
+   [
+    85.3,
+    129.5
+   ],
+   [
+    93.5,
+    120.9
+   ],
+   [
+    89.1,
+    118.3
+   ],
+   [
+    124.0,
+    123.5
+   ],
+   [
+    122.9,
+    128.6
+   ],
+   [
+    121.4,
+    130.5
+   ],
+   [
+    118.6,
+    129.7
+   ],
+   [
+    92.7,
+    121.8
+   ],
+   [
+    85.3,
+    129.5
+   ],
+   [
+    85.3,
+    129.5
+   ]
+  ],
+  "left": [
+   [
+    71.3,
+    130.1
+   ],
+   [
+    66.9,
+    127.1
+   ],
+   [
+    83.3,
+    137.4
+   ],
+   [
+    71.6,
+    130.0
+   ],
+   [
+    63.7,
+    131.7
+   ],
+   [
+    78.5,
+    119.5
+   ],
+   [
+    93.2,
+    119.9
+   ],
+   [
+    94.2,
+    121.9
+   ],
+   [
+    87.8,
+    124.4
+   ],
+   [
+    72.8,
+    130.8
+   ],
+   [
+    83.3,
+    137.4
+   ],
+   [
+    83.3,
+    137.4
+   ]
+  ],
+  "right": [
+   [
+    120.7,
+    122.5
+   ],
+   [
+    125.1,
+    127.6
+   ],
+   [
+    108.7,
+    129.9
+   ],
+   [
+    120.4,
+    128.3
+   ],
+   [
+    128.3,
+    126.9
+   ],
+   [
+    113.5,
+    139.1
+   ],
+   [
+    98.8,
+    138.7
+   ],
+   [
+    97.8,
+    139.7
+   ],
+   [
+    104.2,
+    140.2
+   ],
+   [
+    119.2,
+    128.4
+   ],
+   [
+    108.7,
+    129.9
+   ],
+   [
+    108.7,
+    129.9
+   ]
+  ]
+ },
+ "gripHand": "handR",
+ "design": "B 재 칼날 (53라운드 Q26) — 검은 재 칼날 + 날선 호박 균열 1줄 + 흉갑 조각 코등이 + 붕대 손잡이 + 금 간 재·흙 칼집",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_katana_B2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 날선·칼집 금만 1px 은은(A21/A19), 판정(glow) 프레임만 날선 A25/A26 + 날 몸 A21",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G·호박 A·흉갑 SL·붕대 PL 램프 공유, Q32). 백열 코어 X 미사용",
+ "includesSheath": true,
+ "carryHidden": "연격 시트에 칼집(빈 칼집 또는 칼이 든 칼집)이 들어 있으므로 재생 동안 katana_carry_* 는 숨긴다.",
+ "stateNote": "steel 실물 · glow 판정(날선 A25/A26) · fade 흐림 · partial 칼집 축을 따라 날 일부만 밖 · sheathed 칼집 안(손잡이를 쥠)",
+ "bladeLocal": [
+  {
+   "thetaDeg": -128,
+   "elevDeg": -12
+  },
+  null,
+  null,
+  null,
+  {
+   "thetaDeg": -18,
+   "elevDeg": -8
+  },
+  {
+   "thetaDeg": 96,
+   "elevDeg": -10
+  },
+  {
+   "thetaDeg": 150,
+   "elevDeg": -16
+  },
+  {
+   "thetaDeg": 154,
+   "elevDeg": -20
+  },
+  {
+   "thetaDeg": 120,
+   "elevDeg": -36
+  },
+  null,
+  null,
+  null
+ ],
+ "bladeLocalNote": "몸 기준 무기 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). null = 칼집 안",
+ "bladeTipAnchors": {
+  "down": [
+   [
+    153.2,
+    135.1
+   ],
+   null,
+   null,
+   null,
+   [
+    121.2,
+    169.0
+   ],
+   [
+    9.2,
+    144.0
+   ],
+   [
+    40.3,
+    129.6
+   ],
+   [
+    45.8,
+    134.5
+   ],
+   [
+    31.4,
+    162.2
+   ],
+   null,
+   null,
+   null
+  ],
+  "up": [
+   [
+    38.8,
+    143.1
+   ],
+   null,
+   null,
+   null,
+   [
+    70.8,
+    106.9
+   ],
+   [
+    182.8,
+    136.1
+   ],
+   [
+    151.7,
+    162.6
+   ],
+   [
+    146.2,
+    168.7
+   ],
+   [
+    160.6,
+    173.5
+   ],
+   null,
+   null,
+   null
+  ],
+  "left": [
+   [
+    107.5,
+    158.8
+   ],
+   null,
+   null,
+   null,
+   [
+    7.2,
+    146.5
+   ],
+   [
+    84.7,
+    109.4
+   ],
+   [
+    143.1,
+    126.3
+   ],
+   [
+    144.9,
+    133.8
+   ],
+   [
+    112.1,
+    145.0
+   ],
+   null,
+   null,
+   null
+  ],
+  "right": [
+   [
+    84.5,
+    118.7
+   ],
+   null,
+   null,
+   null,
+   [
+    184.8,
+    128.8
+   ],
+   [
+    107.3,
+    170.1
+   ],
+   [
+    48.9,
+    165.3
+   ],
+   [
+    47.1,
+    168.9
+   ],
+   [
+    79.9,
+    190.2
+   ],
+   null,
+   null,
+   null
+  ]
+ },
+ "bladeTipNote": "칼끝(무기 시트 좌표, 55라운드 시스템 요청 — 칼 포함). null = 날이 칼집 안. 칼끝 리본(§16 ribbon_ash)의 머리 위치로 쓸 수 있다",
+ "bodySheet": "player_katana_issen",
+ "overlay": "player_katana_issen 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
+ "tempoNote": "56라운드 Q2 — 납도·자세 220ms · 돌진 150ms(64 월드 px) · 잔심 110 · 피 털기 70 · 납도 150 · 일어섬 40",
+ "r56": "56라운드 Q1(템포·사거리 ×1.15) · Q2 일섬 · Q3 그림자 분신",
+ "dashFrames": [
+  3,
+  4,
+  5,
+  6
+ ],
+ "invulnFrames": [
+  3,
+  4,
+  5,
+  6
+ ],
+ "dash": {
+  "startMs": 220,
+  "endMs": 370,
+  "distancePx": {
+   "world": 64,
+   "dots": 256
+  },
+  "easing": "linear",
+  "stopsAtWall": true,
+  "invulnerable": true,
+  "passesThroughEnemies": true,
+  "note": "dashFrames 동안 조준 방향(4방향 행)으로 이동 — 그림은 제자리(피벗 고정), 이동은 시스템. 벽에 막히면 그 자리에서 멈추고 나머지 프레임은 그대로 재생"
+ },
+ "shadow": {
+  "sheet": "fx/v3/katana_issen_shadow",
+  "startAtMs": 420,
+  "damageScale": 0.5,
+  "note": "돌진 시작 + 200ms 에 출발 피벗에서 출발 → 같은 시간(150ms)에 도착 피벗까지 달려 베고 사라짐(fx JSON travel)"
+ },
+ "lineSheets": {
+  "t1": "fx/v3/katana_issen_line_t1",
+  "t2": "fx/v3/katana_issen_line_t2",
+  "t3": "fx/v3/katana_issen_line_t3",
+  "t4": "fx/v3/katana_issen_line_t4"
+ },
+ "lineNote": "돌진 시작에 출발 피벗에 일섬 선 시트를 띄운다(실제 이동 칸 수에 맞는 t1~t4, 4칸 = t4)"
+}
