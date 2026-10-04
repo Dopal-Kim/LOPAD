@@ -344,3 +344,12 @@ interface UiRoute {
 - **화면(52라운드 Q8)**: 실제 캔버스 1920×1080, 논리 화면 960×540. UI 씬의 main 카메라는 시스템이 씬 시작(READY) 때 zoom 2·원점 (0,0)으로 맞추므로 UI는 960×540 좌표로 그린다. 씬의 `this.scale.width/height`는 960×540으로 보인다(호환 층, 임시 — UI가 `UI_SCREEN` 상수로 옮긴 뒤 제거). `pointer.x/y`는 실제 캔버스 px — 논리 좌표는 `pointer.worldX/worldY`. `UiInteractable.screen` 등 화면 좌표는 논리 960×540 px. UI 씬은 main 카메라 zoom·origin·centerOn을 바꾸지 않는다. 코드 상수 `UI_SCREEN = { WIDTH: 960, HEIGHT: 540, RESOLUTION: 2 }`(`src/contract/ui.ts`).
 - **넣기/뽑기(51라운드 Q4)**: `UiSnapshot.carry: { drawn: boolean; firstStrike: string | null; key: 'F' } | null` — 칼·대검처럼 넣고 뽑는 무기일 때만, 손에 드는 무기(단검·활)는 null. `firstStrike` = 넣은 상태에서 준비된 첫 타 보너스 이름(예: '발도', '끌어내기'), 뽑았거나 없으면 null. 조작 안내에 F(넣기/뽑기) 추가.
 - **(53라운드 Q47~Q50, 시스템 구현)** `UI_EVENTS.ENEMY_INCOMING` `{ roomId, delayMs, count? }` — 모든 적 소환 delayMs 전에 발행(0이면 동시, 튜토리얼 900ms). UI 경고는 튜토리얼에서만. `UI_EVENTS.TUTORIAL_STEP` `{ index, total, text, keys: string[] }` — 튜토리얼 안내 문구가 뜰 때. `uiCommands.cancelChoose(): boolean` — 노드 고르기 중 Esc, 지도를 닫고 출구에서 물러남(고르는 중이 아니면 false). `cancelKey` 는 Esc로 닫을 수 있는 메뉴(상점 '0', 구조물 '0', 시험장 lab '0', labBranch '9')에만, 필수 메뉴(보상·패시브·개성·엔딩)에는 없음. 시험장에서 메뉴가 없을 때의 Esc는 UI 일시정지(pause()가 시험장에도 적용)가 받는다.
+
+## 13. 56라운드 추가 (무기 고유 자원·그로기 HUD, 승인 #20)
+- 근거: 56라운드 Q13~Q20(자원 구조), Q7·Q19(그로기 1.5초), Q48(칼 우클릭 가드·패링), Q58(HUD 표시 결정).
+- **`UiSnapshot.gauge: UiWeaponGauge | null`** — 무기 고유 자원. 칼 `kenki`(검기, 3단), 대검 `grudge`(울분), 단검 `brand`(낙인 — 값은 현재 가장 많이 쌓인 적의 스택 0~5, 과열은 기존 `resource`), 활 `breath`(숨, 0~3).
+  - `{ kind: 'kenki' | 'grudge' | 'brand' | 'breath'; label: string; value: number; max: number; stage?: number; focusing?: boolean }` — `stage` 는 단계형(검기 0~3, 울분 0~3 구간 1~33/34~66/67~100%), `focusing` 은 숨 감속 정밀 조준 중.
+- **`UiSnapshot.groggy: { active: boolean; leftMs: number } | null`** — 칼·대검만(기력 0 → 1.5초, 시간으로만 회복). 그 밖의 무기는 null. 기존 `resource.state: 'exhausted'` 는 유지.
+- **이름 변경**: 칼 `weapon.secondaryName` '패링' → '가드·패링'(조작 안내 `{secondary}` 문구에 그대로 반영).
+- 월드 문구 "PERFECT GUARD"·"PARRY" 는 시스템이 월드 공간 텍스트로 그린다(UI 아님).
+- UI 표시(56라운드 Q58): 무기명 옆 고유 자원 게이지(단계 눈금), 그로기 중 남은 시간 표시. 세부 모양은 UI 파트 인터뷰.

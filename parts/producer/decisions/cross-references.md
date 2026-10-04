@@ -24,3 +24,4 @@
 | 17 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (노드 지도 route, chooseNode, 탄생 연출 이벤트) | 계약 `ui-system-interface.md` §10 항목만 | 48라운드 작업 기간. 계약 변경은 재인터뷰 | 도영 님, 48라운드 |
 | 18 | 2026-10-02 | UI | 아트 | `assets/sprites/ui/node_icons.*` (계약 `art-assets.md` §6·§7.3), 49라운드부터 `assets/sprites/ui/keyart_*`·`map_bg_*`(§8) | 노드 지도 아이콘·키아트·지도 배경 읽기·`assets/ui/` 로 복사 | 48·49라운드 작업 기간 (49라운드 연장) | 도영 님, 48라운드 (49라운드 Gemini 결정으로 범위 연장) |
 | 19 | 2026-10-04 | 프로듀서 | 아트 | `parts/art/work/combo56_body/`·`combo56_fx/`·`gemini/weapon_moves/` 시트 메모, `assets/sprites/{player,weapons,fx}/v3/` 56라운드 시트 JSON | 계약 `art-assets.md` §18(56라운드) 작성용 읽기만 | 56라운드 작업 기간 | 도영 님, 56라운드 |
+| 20 | 2026-10-04 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (gauge, groggy, 칼 secondaryName) | 계약 `ui-system-interface.md` §13 항목만 | 56라운드 작업 기간. 계약 변경은 재인터뷰 | 도영 님, 56라운드 Q58 |
