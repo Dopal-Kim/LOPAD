@@ -1,0 +1,38 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "No text, no letters, no captions, no titles, no numbers anywhere in the image. Key art for a dark modern 2D pixel-art roguelike action game, shown as a two-by-two grid of four equal panels separated by thin pure-black gutters. Every panel is a separate dramatic moment showing a different attack technique of the same hero with the same weapon; the panels share one style, one palette and one lighting. The first attached image shows the hero's approved design - keep him exactly as drawn there: a war ghost born on the battlefield, a hunched, gaunt revenant made of cracked dark ash and scorched battlefield earth, a smooth dark shadowed face with no features except one fierce amber burning eye (his left eye) glaring with pure hatred, amber soul-fire glowing through fissures in his chest and back, one small flame on his left shoulder, shards of armor (fractured breastplate, bent vambrace, dented greave), broken arrow shafts and rusty nails stuck in his shoulders and back, dirty bandages on hands and shins, a ragged leather scrap at the hips. No clothes, no hat, no hood, no cloak, no chains. He exists only to fight: every pose is coiled, predatory and full of loathing - nothing heroic, noble or elegant about him. The second attached image shows the approved design of his weapon - keep the weapon exactly as drawn there. The third attached image only shows the mood, darkness and palette of the series key art - do not copy its scene. His weapon is a dagger: a fang-shaped shard broken off his own ash shell - a short, thick, curved spike of cracked charcoal with amber soul-fire veins in its cracks and a white-hot glowing tip, its base wrapped in dirty bandage with a rusty nail driven through. He holds it in a reverse grip, the blade pointing down out of the bottom of his fist. He is fast and predatory, low to the ground, darting. Camera in every panel: a high three-quarter top-down angle looking down at the battlefield ground at roughly fifty degrees, like a modern top-down action roguelike game scene, but staged cinematically as key art, with the hero at medium size, enemies around him, and the attack effect large and clear. Ground: dark trampled mud, ash, broken pikes and spent arrows, lit only by the attack and the hero's soul-fire. Enemies: grim Renaissance-era soldiers rendered in the same dark grays - drunken conscripts in battered barrel-stave armor with clubs, tricorn-hat musketeers with matchlocks, pikemen, and a bucket-helmed brute behind a tall rectangular pavise shield; their faces are lost in shadow; struck enemies burst into gray ash and amber sparks, no red blood. Attack effects are simple brush strokes, like a single stroke of an ink brush: thin at the start, thick in the middle, splitting into ragged ash at the end - not filled crescents, not full glowing circles. Top-left panel - the fan throw: with one sweep of his arm he throws five ash-fang daggers in a wide fan; each flying blade trails a thin amber streak, and several enemies in front are pinned by them. Top-right panel - the flurry: a blur of countless rapid cuts against one enemy, his arm multiplied into afterimages, a dense knot of short crossing amber nicks covering the enemy, ash flakes spraying everywhere. Bottom-left panel - the shadow cross-cut: he and a pitch-dark ash shadow copy of himself dash past one enemy from opposite sides at the same moment, their two cuts crossing as a sharp X of amber lines through the enemy. Bottom-right panel - overheat: his dagger and forearm glow white-hot, heat haze and smoke pour from the cracks of his body and the ground around him is scorched; all the branded enemies around him explode at once in a ring of amber bursts, while he hunches over, venting ash like steam, briefly sluggish as he cools. Rendering: crisp high-detail modern pixel art drawn at large scale, chunky readable shapes, cel shading with one shadow and one highlight step, dark 1-pixel outlines, strong value contrast - deep black silhouettes, dim gray midtones, the brightest values only in the amber effects. Palette: charcoal, ash and cold soil grays, dark rusty iron, dark umber leather, dirty off-white bandage, plus one warm amber accent only (#8b4d22, #d67a11, #e8b858, #faeec0, white-hot = #faeec0) for soul-fire, the burning eye, embers and the attack effects. No saturated blue, green, purple or red; no magic runes, no gems. Panels carry no captions, no titles and no numbers. No text, no letters, no logos, no UI, no watermark, no outer frame.",
+ "refs": [
+  "ref_hero3b_views.png",
+  "../concept_weapons/raw_dagger_B.jpg",
+  "../keyart_waste/raw_a.jpg"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 1794,
+   "candidatesTokenCount": 1628,
+   "totalTokenCount": 3422,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 1020
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 774
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-04T03:29:13"
+}

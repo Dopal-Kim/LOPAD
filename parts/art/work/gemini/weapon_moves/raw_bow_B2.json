@@ -1,0 +1,38 @@
+{
+ "model": "gemini-3.1-flash-image",
+ "aspect": "16:9",
+ "prompt": "No text, no letters, no captions, no titles, no numbers anywhere in the image. Key art for a dark modern 2D pixel-art roguelike action game, shown as two equal side-by-side panels separated by one thin pure-black gutter. Every panel is a separate dramatic moment showing a different attack technique of the same hero with the same weapon; the panels share one style, one palette and one lighting. The first attached image shows the hero's approved design - keep him exactly as drawn there: a war ghost born on the battlefield, a hunched, gaunt revenant made of cracked dark ash and scorched battlefield earth, a smooth dark shadowed face with no features except one fierce amber burning eye (his left eye) glaring with pure hatred, amber soul-fire glowing through fissures in his chest and back, one small flame on his left shoulder, shards of armor (fractured breastplate, bent vambrace, dented greave), broken arrow shafts and rusty nails stuck in his shoulders and back, dirty bandages on hands and shins, a ragged leather scrap at the hips. No clothes, no hat, no hood, no cloak, no chains. He exists only to fight: every pose is coiled, predatory and full of loathing - nothing heroic, noble or elegant about him. The second attached image shows the approved design of his weapon - keep the weapon exactly as drawn there. The third attached image only shows the mood, darkness and palette of the series key art - do not copy its scene. His weapon is a longbow whose limbs are hardened ash and earth around an old pike shaft, with thin amber cracks along the limbs and shards of armor plate capping both tips; its bowstring is a single thread of amber soul-fire, the only glowing line on the weapon. His arrows are the broken arrow shafts pulled out of his own body: dark shafts whose heads catch amber fire when nocked. Camera in every panel: a high three-quarter top-down angle looking down at the battlefield ground at roughly fifty degrees, like a modern top-down action roguelike game scene, but staged cinematically as key art, with the hero at medium size, enemies around him, and the attack effect large and clear. Ground: dark trampled mud, ash, broken pikes and spent arrows, lit only by the attack and the hero's soul-fire. Enemies: grim Renaissance-era soldiers rendered in the same dark grays - drunken conscripts in battered barrel-stave armor with clubs, tricorn-hat musketeers with matchlocks, pikemen, and a bucket-helmed brute behind a tall rectangular pavise shield; their faces are lost in shadow; struck enemies burst into gray ash and amber sparks, no red blood. Attack effects are simple brush strokes, like a single stroke of an ink brush: thin at the start, thick in the middle, splitting into ragged ash at the end - not filled crescents, not full glowing circles. Left panel - breath, slowed-time precision aim: time has almost stopped - the battlefield around him is drained to flat dull gray with pale ripples of slowed air, a musket ball and puffs of powder smoke hang frozen in mid-air, falling ash flakes are frozen as still dots; only the hero at full draw, his burning eye, the glowing soul-fire string and the burning arrowhead keep their color; a thin amber aim line stretches perfectly straight to the head of a distant musketeer frozen mid-shot; one slow wisp of ash leaves his face like an exhaled breath. Right panel - reload from his own body, close up: holding the bow low in his left hand, with his right hand he wrenches a broken arrow shaft out of his own shoulder - ash crumbles from the hole and a flicker of soul-fire escapes from it - and in the same motion its arrowhead bursts into amber flame as he brings it to the soul-fire string. Enemy skin is ash-gray like everything else, and their faces are hidden in deep shadow under helmets and hat brims - no pink skin, no clearly drawn human faces. Rendering: crisp high-detail modern pixel art drawn at large scale, chunky readable shapes, cel shading with one shadow and one highlight step, dark 1-pixel outlines, strong value contrast - deep black silhouettes, dim gray midtones, the brightest values only in the amber effects. Palette: charcoal, ash and cold soil grays, dark rusty iron, dark umber leather, dirty off-white bandage, plus one warm amber accent only (#8b4d22, #d67a11, #e8b858, #faeec0, white-hot = #faeec0) for soul-fire, the burning eye, embers and the attack effects. No saturated blue, green, purple or red; no magic runes, no gems. Panels carry no captions, no titles and no numbers. No text, no letters, no logos, no UI, no watermark, no outer frame.",
+ "refs": [
+  "ref_hero3b_views.png",
+  "../concept_weapons/raw_bow_B.jpg",
+  "../keyart_waste/raw_a.jpg"
+ ],
+ "response": {
+  "mime": "image/jpeg",
+  "finishReason": "STOP",
+  "usage": {
+   "promptTokenCount": 1804,
+   "candidatesTokenCount": 1665,
+   "totalTokenCount": 3469,
+   "promptTokensDetails": [
+    {
+     "modality": "TEXT",
+     "tokenCount": 1030
+    },
+    {
+     "modality": "IMAGE",
+     "tokenCount": 774
+    }
+   ],
+   "candidatesTokensDetails": [
+    {
+     "modality": "IMAGE",
+     "tokenCount": 1120
+    }
+   ],
+   "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.1-flash-image"
+ },
+ "time": "2026-10-04T03:30:32"
+}

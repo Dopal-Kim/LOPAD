@@ -30,8 +30,8 @@ F3 = os.path.join(ROOT, "assets/sprites/fx/v3")
 OLD = os.path.join(HERE, "prev55")
 GIF = os.path.join(HERE, "gif")
 BG = (30, 30, 35, 255)
-BASE = {"right": 0.0, "down": 90.0, "left": 180.0, "up": -90.0}
-DV = {"right": (1, 0), "left": (-1, 0), "down": (0, 1), "up": (0, -1)}
+BASE = {"right": 0.0, "down": 90.0, "left": 180.0, "up": -90.0, "down-right": 45.0, "down-left": 135.0, "up-right": -45.0, "up-left": -135.0}
+DV = {k: (math.cos(math.radians(a)), math.sin(math.radians(a))) for k, a in BASE.items()}
 HIT_UP = 40
 _cache = {}
 
@@ -426,6 +426,16 @@ def issen_mock():
                     "일섬(4칸 = 256 도트) + 그림자 분신 · 1배 조명 합성 · t = 돌진 시작 기준 ms", "preview_mock_issen.png")
 
 
+def gs_diag_mock():
+    cells = []
+    for c, name in enumerate(["greatsword_sweep_cw", "greatsword_cleave", "greatsword_sweep_ccw", "greatsword_charge_slam"]):
+        ev, fx, _ = make_events([name], fx_of=FX56)
+        bj, _ = load(P3, "player_" + name)
+        for r, d in enumerate(["down-right", "down-left", "up-right", "up-left"]):
+            cells.append((c, r, ev, fx, tm(bj)["hitAt"] + 15, d, (360, 360), "%s %s 판정+15ms" % (name, d)))
+    return lit_grid(cells, 720, 720, 4, 4, "대검 대각 행 · 작업 B 몸(8방향) + 56 붓획 8행 · 1배 조명 합성", "preview_mock_greatsword_diag.png")
+
+
 def main(args=()):
     args = set(args)
     if not args or "sheets" in args:
@@ -436,6 +446,7 @@ def main(args=()):
     if not args or "mock" in args:
         print(cmp_55_56())
         print(issen_mock())
+        print(gs_diag_mock())
     print("preview ok")
 
 
