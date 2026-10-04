@@ -3,6 +3,8 @@
  * 피격·적 양상·보조·구조물 이펙트 고정 목록. Phaser 의존 없음 (53라운드 6-1 정리: spriteDefs 에서 분리, 동작 그대로).
  * 갈래 시트 id 는 `branchFx`(활)·`fxVariants`(근접).
  */
+import type { ComboDef } from '../data/types';
+import { comboArtNames } from './comboArt';
 import { BIRTH_FX, COMBO_HITS } from './spriteDefs';
 
 /** 연격 베기 이펙트 `fx/<무기>_combo<n>` */
@@ -17,6 +19,8 @@ export interface FxWeaponShape {
   /** 49라운드: 과열 무기면 가열 단계별 연격 이펙트, 내리찍기가 있으면 내리찍기 이펙트 */
   resource?: { kind: string };
   slam?: unknown;
+  /** 55라운드 §17: 연격 그림 이름 표 (휘두름·바닥 충격 이펙트 `fx/<무기>_<이름>`) */
+  combo?: Pick<ComboDef, 'art'>;
 }
 
 /** 49라운드 §7.2 과열 단계 수 (fx/<무기>_combo<n>_heat<k>, k = 1..3) */
@@ -62,6 +66,7 @@ export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
       if (w.resource?.kind === 'heat')
         for (let n = 1; n <= COMBO_HITS; n++) for (let k = 1; k <= HEAT_STAGES; k++) out.add(heatComboFxId(id, n, k));
       if (w.slam) out.add(slamFxId(id));
+      for (const n of comboArtNames(w.combo).fx) out.add(`${id}_${n}`);
     } else {
       out.add(arrowFxId(id, false));
       out.add(arrowFxId(id, true));

@@ -6,13 +6,27 @@ import Phaser from 'phaser';
 import { EventBus, Events, type PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { PLAYER_DATA } from '../../data';
-import type { ComboHitDef, WeaponDef, WeaponSlamDef } from '../../data/types';
+import type { ComboFollowUpDef, ComboHitDef, WeaponDef, WeaponSlamDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
 import { comboAction, facingOf, motionAction } from '../../systems/spriteDefs';
 import type { Player } from '../Player';
 
 /** 연격 한 타 (속도 배율 반영 길이 포함) */
-export type ComboStrike = { index: number; count: number; hit: ComboHitDef; durationMs: number };
+export type ComboStrike = {
+  index: number;
+  count: number;
+  hit: ComboHitDef;
+  durationMs: number;
+  /** 55라운드: 막타 (ComboTracker.isHeavy — 차지 내려찍기는 hit.heavy) */
+  heavy?: boolean;
+  /** 55라운드 Q22: 차지 내려찍기 단계 (1..) — 있으면 연격 번호 없이 보낸다 */
+  charge?: number;
+  /** 55라운드 Q23: 이 타의 관성 공속 비율 · 모양 배율(차지 쐐기 길이·관성 최대 충격원) */
+  momentum?: number;
+  shapeScale?: { lengthMult?: number; impactMult?: number };
+  /** 55라운드: 타 데이터 뒤에 더 붙는 후속 판정 (차지 단계의 충격파 링) */
+  extraFollowUps?: ComboFollowUpDef[];
+};
 
 /** 조준 방향 단위벡터 (커서가 몸 위면 바라보는 방향) · 커서까지 거리 */
 export function aimVector(p: Player, input: InputState): { x: number; y: number; dist: number } {

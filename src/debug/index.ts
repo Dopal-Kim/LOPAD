@@ -149,6 +149,8 @@ export interface DebugApi {
   gotoExit: () => boolean;
   /** 48라운드: 3연격 상태(마지막 타·다음 허용 시각) + 마지막 근접 판정(모양·원점·맞은 수) */
   combo: () => unknown;
+  /** 55라운드 §17 판정 모양 오버레이 켜기·끄기 (인자 없으면 그대로) — 반환 = 켜짐 여부 */
+  hitShapes: (on?: boolean) => boolean;
   /** 48라운드: 탄생 연출 상태 · 건너뛰기 */
   birth: () => unknown;
   skipBirth: () => void;
@@ -337,6 +339,8 @@ export function exposeDebug(api: {
   gotoNode: (id: string) => boolean;
   gotoExit: () => boolean;
   combo: () => unknown;
+  /** 55라운드 §17 판정 모양 오버레이 켜기·끄기 (인자 없으면 그대로) — 반환 = 켜짐 여부 */
+  hitShapes: (on?: boolean) => boolean;
   birth: () => unknown;
   skipBirth: () => void;
   weaponState: () => unknown;
@@ -488,6 +492,7 @@ export function exposeDebug(api: {
     gotoNode: (id) => api.gotoNode(id),
     gotoExit: () => api.gotoExit(),
     combo: () => api.combo(),
+    hitShapes: (on) => api.hitShapes(on),
     birth: () => api.birth(),
     skipBirth: () => api.skipBirth(),
     weaponState: () => api.weaponState(),

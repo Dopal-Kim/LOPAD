@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ComboTracker, arcHit, comboShape, shapeHit, thrustHit } from './combo';
+import { ComboTracker } from './combo';
+import { arcHit, comboShape, shapeHit, thrustHit } from './hitShapes';
 import type { ComboDef } from '../data/types';
 import { WEAPONS } from '../data';
 
@@ -88,13 +89,15 @@ describe('48라운드 판정 모양', () => {
     expect(WEAPONS.greatsword.combo?.shape).toBe('arc');
     expect(WEAPONS.dagger.combo?.shape).toBe('thrust');
     expect(WEAPONS.bow.combo).toBeUndefined();
-    for (const id of ['katana', 'greatsword', 'dagger']) expect(WEAPONS[id].combo!.hits).toHaveLength(3);
+    // 55라운드 §17: 칼·단검 3연격, 대검 G-C 순환 4타(H1·V·H2·V)
+    for (const id of ['katana', 'dagger']) expect(WEAPONS[id].combo!.hits).toHaveLength(3);
+    expect(WEAPONS.greatsword.combo!.hits).toHaveLength(4);
     // 1.5배 히트박스 (47라운드 칼 24×16 리치 14 → 36×24 리치 21)
     expect(WEAPONS.katana.hitbox).toMatchObject({ width: 36, height: 24, reach: 21 });
     expect(WEAPONS.bow.hitbox).toMatchObject({ width: 6, height: 6, reach: 12 });
-    // 대검 3타가 가장 크다(피해), 칼 2타는 1타보다 빠르다
+    // 대검 내려찍기 V 가 수평 H 보다 크다(피해), 칼 2타는 1타보다 빠르다
     const gs = WEAPONS.greatsword.combo!.hits;
-    expect(gs[2].damageMult).toBeGreaterThan(gs[0].damageMult);
+    expect(gs[1].damageMult).toBeGreaterThan(gs[0].damageMult);
     const k = WEAPONS.katana.combo!.hits;
     expect(k[1].durationMs).toBeLessThan(k[0].durationMs);
   });

@@ -56,6 +56,8 @@ export interface FxPlayOptions {
   variant?: FxVariant | null;
   /** 55라운드 Q14 ①: 히트스톱 중 멈출 프레임 열 (판정 백열 · 적중 시트 holdFrame) */
   hitstopFrame?: number;
+  /** 55라운드 Q23: 재생 배속 (대검 관성 — 몸과 같은 배속). 기본 1 */
+  timeScale?: number;
   /** false 면 JSON trail 리본을 쓰지 않는다 (55라운드: 연격은 칼끝 리본을 SwingFx 가 따로 그린다) */
   trail?: boolean;
   /** 위아래 뒤집기 (적중 스파크 flipY) */

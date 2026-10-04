@@ -399,6 +399,8 @@ export const COLORS = {
   PLAYER_GUARD: 0x8fa8c8,
   PLAYER_AIM: 0xd0b0ff,
   PLAYER_SHADOW: 0x303048,
+  /** 55라운드 Q22 대검 차지 단계 번쩍임 (팔레트 호박 #e2a33c) */
+  CHARGE_FLASH: 0xe2a33c,
   GUARD_PUSH: 0xb0c8e8,
   TRAIL_DOT: 0xa0a0ff,
   BLEED: 0xc03030,
@@ -648,6 +650,8 @@ export const FEEL = {
     TAIL_FRAMES: 1,
     /** 칼끝 메모가 없는 무기(칼 v3 등): 판정 호 반경 × 이 비율 위를 훑는다 (아트 trailFill.bladeTipRadiusDots 가 있으면 그것) */
     FALLBACK_RADIUS_RATIO: 0.65,
+    /** 55라운드 내려찍기 쐐기(칼끝 메모 없음): 쐐기 길이 × 이 비율에서 끝점까지 앞으로 떨어진다 (임시) */
+    WEDGE_START_RATIO: 0.3,
     /** 텍스처가 없을 때(캔버스 렌더러 등) 선 색: 머리 호박 A25 · 꼬리 재 S2 */
     FALLBACK_HEAD: 0xeecc78,
     FALLBACK_TAIL: 0x756c62,
@@ -778,6 +782,21 @@ export const DEBUG = {
   /** 시스템 파트 임시 디버그 텍스트. HUD는 UI 파트 소유이므로 이것은 HUD가 아니다. */
   SHOW_TEXT: true,
   FONT: '12px monospace',
+  /**
+   * 55라운드 §17 판정 모양 오버레이 (`?debug` 에서 켜짐, `&hitshapes=0` 끔): 판정이 살아 있는 동안 윤곽, 그 뒤 FADE_MS 동안 흐려짐.
+   * 색 = 모양별 (호·쐐기·찌르기·고리), 후속 판정(잔상 베기·충격파)은 FOLLOW
+   */
+  HIT_SHAPES: {
+    PARAM_OFF: 'hitshapes',
+    LINE_PX: 1,
+    LINE_ALPHA: 0.95,
+    FILL_ALPHA: 0.18,
+    FADE_MS: 220,
+    COLORS: { arc: 0x7fe0ff, wedge: 0xffb040, thrust: 0x9cff7a, ring: 0xff6ad5, follow: 0xffffff } as Record<
+      string,
+      number
+    >,
+  },
 };
 
 /** 시스템 임시 화면(개성 선택·결과·임시 메뉴)의 글꼴. 960×540 기준 (32라운드). UI 파트 산출물로 교체 대상 */

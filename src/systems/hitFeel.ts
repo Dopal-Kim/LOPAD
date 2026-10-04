@@ -1,6 +1,7 @@
 /**
  * 55라운드 적중 반응 규칙 (Q6 히트스톱 · Q8 스파크·흔들림 · Q10 막타 기준, 계약 §16). Phaser 의존 없음.
- * - 막타 = 연격 마지막 타 · 대쉬 공격(마무리) · 치명타 → `hit_<무기>_heavy`, 히트스톱 × HEAVY_MULT, 흔들림
+ * - 막타 = 연격 마지막 타 · 대쉬 공격(마무리) · 치명타 → `hit_<무기>_heavy`, 히트스톱 × HEAVY_MULT, 흔들림.
+ *   55라운드 §17 새 연격은 타별 데이터 `heavy`(칼 3타·잔상 베기, 대검 내려찍기 V·차지 내려찍기)가 정한다
  * - 일반 적중 = `hit_<무기>` (없으면 기존 hit_burst), 흔들림은 대검(shakeEveryHit)만
  */
 import { FEEL } from '../core/Constants';
@@ -11,11 +12,14 @@ export interface StrikeShape {
   kind: string;
   comboIndex?: number;
   comboCount?: number;
+  /** 55라운드: 타별 데이터 막타 (있으면 이것이 우선) */
+  heavy?: boolean;
 }
 
-/** Q10: 연격 마지막 타 또는 대쉬 공격 (치명타는 굴린 뒤 따로 더한다) */
+/** Q10: 막타(데이터 heavy, 없으면 연격 마지막 타) 또는 대쉬 공격 (치명타는 굴린 뒤 따로 더한다) */
 export function isHeavyStrike(p: StrikeShape): boolean {
   if (p.kind === 'dashAttack') return true;
+  if (p.heavy !== undefined) return p.heavy;
   return p.comboIndex !== undefined && p.comboCount !== undefined && p.comboIndex === p.comboCount - 1;
 }
 

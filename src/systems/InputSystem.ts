@@ -7,6 +7,8 @@ export interface InputState {
   moveY: number; // -1..1
   /** 이 프레임에 공격 입력이 시작됨 (좌클릭) */
   attackPressed: boolean;
+  /** 55라운드 Q22: 좌클릭을 누르고 있음 (대검 홀드 차지) */
+  attackHeld: boolean;
   /** 이 프레임에 보조 동작 입력이 시작됨 (우클릭: 패링·가드·그림자 걸음·조준 사격) */
   secondaryPressed: boolean;
   /** 우클릭을 누르고 있음 (가드·조준 유지) */
@@ -40,6 +42,7 @@ export function neutralInput(s: InputState): InputState {
     moveX: 0,
     moveY: 0,
     attackPressed: false,
+    attackHeld: false,
     secondaryPressed: false,
     secondaryReleased: false,
     dashPressed: false,
@@ -56,6 +59,7 @@ export function neutralInput(s: InputState): InputState {
 export class InputSystem {
   private keys: Record<string, Phaser.Input.Keyboard.Key>;
   private attackQueued = false;
+  private attackHeld = false;
   private secondaryQueued = false;
   private secondaryReleaseQueued = false;
   private secondaryHeld = false;
@@ -78,13 +82,17 @@ export class InputSystem {
     };
     scene.input.mouse?.disableContextMenu();
     this.onPointerDown = (p) => {
-      if (p.leftButtonDown()) this.attackQueued = true;
+      if (p.leftButtonDown()) {
+        this.attackQueued = true;
+        this.attackHeld = true;
+      }
       if (p.rightButtonDown() && !this.secondaryHeld) {
         this.secondaryQueued = true;
         this.secondaryHeld = true;
       }
     };
     this.onPointerUp = (p) => {
+      if (!p.leftButtonDown()) this.attackHeld = false;
       if (!p.rightButtonDown() && this.secondaryHeld) {
         this.secondaryHeld = false;
         this.secondaryReleaseQueued = true;
@@ -92,6 +100,8 @@ export class InputSystem {
     };
     scene.input.on('pointerdown', this.onPointerDown);
     scene.input.on('pointerup', this.onPointerUp);
+    // 55라운드: 캔버스 밖에서 뗀 좌클릭도 홀드 끝 (차지가 붙어 있지 않게)
+    scene.input.on('pointerupoutside', this.onPointerUp);
   }
 
   read(): InputState {
@@ -107,6 +117,7 @@ export class InputSystem {
       moveX: x,
       moveY: y,
       attackPressed: this.attackQueued,
+      attackHeld: this.attackHeld,
       secondaryPressed: this.secondaryQueued,
       secondaryHeld: this.secondaryHeld,
       secondaryReleased: this.secondaryReleaseQueued,
@@ -130,5 +141,6 @@ export class InputSystem {
   destroy(): void {
     this.scene.input.off('pointerdown', this.onPointerDown);
     this.scene.input.off('pointerup', this.onPointerUp);
+    this.scene.input.off('pointerupoutside', this.onPointerUp);
   }
 }

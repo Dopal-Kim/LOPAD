@@ -12,6 +12,11 @@ export interface SwingPickInput {
   weaponId: string;
   /** 연격 번호 (1부터). 연격이 아니면 null */
   comboN: number | null;
+  /**
+   * 55라운드 §17: 연격 기본 이펙트 id (그림 이름 표에서 고른 `<무기>_<이름>`, 로드 안 됐을 수 있음).
+   * 있으면 comboN 대신 — 갈래 `<id>_<1단>`·가열 `<id>_heat<k>` 도 이 id 에서
+   */
+  comboId?: string | null;
   /** 연격 마지막 타 (진화 베기 자리) */
   finisher: boolean;
   /** 개성 경로 (1단, 2단) */
@@ -41,8 +46,8 @@ export function branchOf(
   has: (id: string) => boolean,
 ): string {
   if (!first) return id;
-  const n = /_combo(\d+)$/.exec(id);
-  const branch = n ? branchComboFxId(weaponId, Number(n[1]), first) : `${id}_${first}`;
+  const n = /^(.*)_combo(\d+)$/.exec(id);
+  const branch = n && n[1] === weaponId ? branchComboFxId(weaponId, Number(n[2]), first) : `${id}_${first}`;
   return has(branch) ? branch : id;
 }
 
@@ -52,10 +57,15 @@ export function pickSwingFx(input: SwingPickInput, lookup: TierLookup): SwingPic
   const secondary = path[1] ?? null;
   const has = (id: string) => lookup.has(id);
   const reuse = input.reuseId ? branchOf(input.reuseId, w, first, has) : null;
-  const comboId = comboN !== null ? comboFxId(w, comboN) : null;
+  const comboId = input.comboId !== undefined ? input.comboId : comboN !== null ? comboFxId(w, comboN) : null;
   const branchId = comboId ? branchOf(comboId, w, first, has) : null;
   const branchSheet = branchId !== null && branchId !== comboId;
-  const heatId = comboId && heat > 0 && !branchSheet ? heatComboFxId(w, comboN!, heat) : null;
+  const heatId =
+    comboId && heat > 0 && !branchSheet
+      ? comboN !== null && input.comboId === undefined
+        ? heatComboFxId(w, comboN, heat)
+        : `${comboId}_heat${heat}`
+      : null;
   const heatSheet = heatId !== null && has(heatId);
   const baseId = comboId && has(comboId) ? (finisher && evoId ? evoId : comboId) : (evoId ?? slashFxId(w));
   let pick: { id: string; tier: FxTier; variant: FxVariant | null };

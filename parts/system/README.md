@@ -907,3 +907,40 @@ onFire 전부(lingerMs 1000 · 발밑 0.5×6px · 접촉 10/500ms · 여유 3px)
 - `fx.ts` 옵션·훅 형식 → `fxTypes.ts`(511 → 433줄). SwingFx 는 고르기·타이밍·칼끝을 순수 모듈로 빼 177 → 158줄. `trail.ts` 삭제, `trailMath.ts` 는 섬광 감쇠만.
 - 디버그: `__lopad.combo().swingFx`(시트·단계·배율·띄운 시각·리본 방식), `trails()` = 리본 요약, `feel().hitFx`(lastSpark·particles).
 
+
+## 55라운드 2차: 칼 K-A·대검 G-C 새 연격 — 타별 판정 모양·순환·관성·홀드 차지·내딛기 (2026-10-03)
+결정: `decisions/2026-10-03-round-55-weapon-fx-overhaul.md` Q18~Q25, 조사 `research-2026-10-03-melee-combos.md`, 계약 `art-assets.md` §17. 아트 8ddce9c(새 몸·무기·fx 46파일 — JSON 은 읽기만, 승인 대장 #8).
+
+### 정리 (6-1)
+- `Player.ts` 의 연격 입력 구간 → `objects/player/MeleeDriver.ts`(연격·대쉬 공격·대검 정지 구간 + 순환·관성·차지·내딛기). Player 는 상태 머신·이동·대쉬·보조 동작만.
+- 판정 기하 `combo.ts` → `systems/hitShapes.ts`(combo.ts = 상태 머신만). 연격 데이터 형식 `data/comboTypes.ts`, 검사 `data/validateCombo.ts`(types.ts·index.ts 에서 분리). 판정 윤곽 그리기 → `scenes/game/HitShapeOverlay.ts`.
+
+### 판정 모양 (§17, `combo.hits[i].hitShape`)
+| kind | 필드 (R = radiusPx × 갈래·강화 × 타·대쉬 크기) | 판정 |
+|---|---|---|
+| `arc` | `fromDeg`·`toDeg`(휘두름 방향, 비대칭 가능) · `innerRatio`(내반경/반경) · `radiusMult` | 호 안 + 내반경 밖 (초승달) |
+| `wedge` | `widthDeg` · `lengthMult` · `angleDeg` · `impactCircle {radiusRatio, atMult}` | 좁은 쐐기 ∪ 끝점 충격원 |
+| `rect` | `lengthMult`·`widthMult`·`angleDeg`·`fromMult` | 찌르기 직사각형 (내부 kind `thrust`) |
+| `ring` | `radiusMult` · `innerRatio` · `atMult` | 고리 (충격파) |
+- 각도 = 조준 0°·화면 시계 +. 왼쪽 조준: `combo.leftTransform` = `mirror`(기본, 48라운드 그림 규칙) / `rotate`(새 시트 `dirTransform: rotate` — 칼·대검, 확인 전 임시).
+- 타별 모양이 없는 연격(단검 찌르기·대검 대쉬 공격·49라운드 내리찍기)은 기존 규칙(아트 메모 우선) 그대로. 타별 모양이 있으면 아트 `hitShape` 메모는 참고만, 다음 타 허용도 데이터(`cancelFromMs`).
+- 후속 판정 `followUps[] {id, delayMs, damageMult, hitShape?, at: origin|impact, activeMs?, art?}` — 씬 시계 지연(히트스톱 동안 멈춤), 전용 이펙트는 그 정지 프레임이 판정 시각에 오게 먼저 띄운다.
+- 디버그 오버레이: `?debug` 에서 켜짐(`&hitshapes=0` 끔, `__lopad.hitShapes(on)`), 판정 유지 동안 윤곽(호 하늘·쐐기 주황·찌르기 연두·고리 분홍·후속 흰색). `__lopad.combo().swings`(최근 12 판정)·`.melee`(순환·관성·차지).
+
+### 칼 K-A · 대검 G-C
+- 칼: 1타 `rise` +70→−40 · 2타 `fall` −70→+40 · 3타 `crescent` +75→−75 ×1.25 내반경 0.45 + 잔상 베기(150ms·50%, `heavy`). 3타 그림은 −75→+75 로 휘두름 — 칼끝 리본은 무기 bladeTipAnchors(폴백이면 몸 시트 arcFrom/To 방향)를 따른다.
+- 대검: `loop: true` H1 `sweep_cw`(−75→+75) → V `cleave`(쐐기 40° ×1.3 + 충격원 0.35R, heavy) → H2 `sweep_ccw` → V → H1 … (ComboTracker 순환: 마지막 다음 = 1타, 회복 없음). 기력 바닥이면 막타(V) 대신 H1.
+- 관성 `momentum {perHit 0.05, max 0.2, idleResetMs 1000, maxImpactMult 1.3}` (`systems/momentum.ts`): 이어지는 타마다 공속(몸·이펙트 같은 배속 — FxPool `timeScale`), 누름·홀드가 입력, 피격 시 초기화, 최대면 V 충격원·바닥 충격 ×1.3.
+- 홀드 차지 `charge {holdMs 180, moveMult 0.35, stages[{atMs 400/800/1200, lengthMult 1.3/1.5/1.8, damageMult, impactMult 1.0/1.15/1.3, art}], hit}` (`systems/chargeHold.ts`): holdMs 전에 떼면 일반 연격(tap), 단계 전에 떼도 tap. 단계마다 호박 틴트 번쩍임 + `charge_flash_lv<n>`, `PLAYER_CHARGE` 이벤트(시스템 내부 — UI 계약 밖). 자세 = `player_greatsword_charge` 들기 f0~2 → loopFrames 반복. 떼면 `charge_slam` + `charge_slam_lv<n>` + 끝점 `cleave_impact`, 3단은 120ms 뒤 끝점 고리(`charge_ring`). 대쉬·우클릭(가드 그대로)·피격·F 는 차지를 버린다. 기력 = cost.slam.
+- 내딛기(Q21): 타 `step {px, ms}` — 방향키를 누를 때만, 조준 방향. 구간 = 몸 시트 `stepPx.frames`(없으면 판정 프레임 시작에 끝나게 ms). 대검 49라운드 반 걸음은 step 이 없는 데이터에만.
+- 막타(heavy 스파크·히트스톱 ×1.8·흔들림·충격파 갈래) = 데이터 `heavy` → `hitFeel.isHeavyStrike`·`isFinisher`. 칼 3타+잔상, 대검 V·차지 내려찍기(+링).
+- 순환 연격에선 49라운드 도약 내리찍기(파쇄 갈래 마지막 타)가 일어나지 않는다 — 파쇄 충격파는 V·차지의 끝점에 (갈래 재작업 Q25 전 임시).
+
+### 그림 연결 (데이터 한 곳 — `combo.art`)
+- 키 → `{body, fx, impactFx, flashFx, holdColumn}` 후보(앞이 우선, 로드된 첫 시트). 몸 `player_<무기>_<이름>`, 무기 오버레이 `<무기>_<이름>`(몸을 따라감, `overlayActionsFor` 가 표 이름을 안다), 이펙트 `fx/<무기>_<이름>`. 새 시트가 없으면 뒤의 기존 시트(combo1~3·slam)로 대체. 로드 목록은 표에서 유도(Preloader·fxIds).
+- 판정 프레임 = 몸 `hitFrames[0]`(없으면 `impactFrame`), 이펙트 정지 프레임(holdFrame→impactFrame)이 그 시각에 오게 띄움(Q14 규칙 그대로).
+- 타 시간은 51라운드 Q3 템포(칼 3연격 ~1.1초·대검 ~2초) 유지 — 아트 제안(칼 260·210·410, 대검 490·530)보다 느리게 두 구간 맞춤으로 늘여 재생(질문 보고). 차지 내려찍기는 아트 값(480/120).
+
+### 테스트 · 검증
+- 테스트 +26: `hitShapes.test`(호 내반경·비대칭·회전/반전·쐐기+충격원·차지 배율·rect·ring·외접·데이터 §17) · `comboLoop.test`(순환·막타·기력·칼/단검 회귀·관성·차지 tap/단계/시계·그림 표·오버레이·isHeavyStrike·검사).
+- 헤드리스(1920×1080, 별도 outDir): 칼 3연격+잔상(오른쪽·왼쪽 rotate)·내딛기(방향키 있을 때만 5/15px)·대검 H-V-H-V ×2(관성 0→+20%, 최대 충격원 17.9→23.2px, 1초 뒤 초기화)·차지 3단(번쩍임·루프 자세·쐐기 91.8px·링)·짧게 누르면 H1·단검·활 회귀. 콘솔 오류 0.

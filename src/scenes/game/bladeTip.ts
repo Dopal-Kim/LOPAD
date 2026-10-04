@@ -5,11 +5,13 @@
 import { FEEL } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { arcTipAt, swingWindow, tipAt, type TipTrack, type Vec } from '../../systems/bladeTipMath';
-import { facingAngle, rotateDir, type HitShape } from '../../systems/combo';
+import { facingAngle, rotateDir, type HitShape } from '../../systems/hitShapes';
 import { overlayPivot } from '../../systems/spriteMeta';
+import { gameState } from '../../core/GameState';
+import { overlayArtCandidates } from '../../systems/comboArt';
 import { spriteLibrary } from '../../systems/sprites';
 import { animDurationMs, artScale, frameStarts, overlayActionsFor, type Facing } from '../../systems/spriteDefs';
-import { HIT_ORIGIN_UP_PX } from './shared';
+import { HIT_ORIGIN_UP_PX, shapeFacing } from './shared';
 
 /** 칼끝 리본 계획: 찍는 구간(공격 시작부터 ms) + 시각(공격 시작부터 ms) → 발 피벗 기준 칼끝 오프셋 */
 export interface TipPlan {
@@ -33,7 +35,8 @@ function anchorTrack(
   total: number,
 ): TipTrack | null {
   const body = spriteLibrary.sheet('player', bodyAction);
-  for (const a of overlayActionsFor(bodyAction, weaponId)) {
+  const combo = gameState.weapon.def.combo;
+  for (const a of overlayActionsFor(bodyAction, weaponId, (r) => overlayArtCandidates(combo, r))) {
     const def = spriteLibrary.sheet(weaponId, a);
     if (!def) continue;
     const list = def.bladeTipAnchors?.[dir];
@@ -70,24 +73,37 @@ export function planBladeTip(
   };
   const track = p.bodyAction ? anchorTrack(weaponId, p.bodyAction, dir, starts, total) : null;
   if (track) return { ...win, mode: 'anchors', at: (t) => tipAt(track, t) };
-  if (!shape) return null;
+  if (!shape || shape.kind === 'ring') return null;
+  // 55라운드: 새 연격(rotate 무기)은 왼쪽도 회전만 — 판정과 같은 규칙
+  const sf = shapeFacing(p, dir);
   const center = { x: 0, y: -HIT_ORIGIN_UP_PX };
   const base = Math.atan2(p.dirY, p.dirX);
   const span = Math.max(1, win.to - win.from);
-  if (shape.kind === 'thrust') {
-    const d = rotateDir(p.dirX, p.dirY, facingAngle(shape.angleDeg, dir));
+  if (shape.kind === 'thrust' || shape.kind === 'wedge') {
+    // 찌르기 = 몸에서 앞으로, 55라운드 내려찍기 쐐기 = 몸 가까이에서 끝점으로 (세로로 선 칼날이 앞으로 떨어짐)
+    const thrust = shape.kind === 'thrust';
+    const d = rotateDir(p.dirX, p.dirY, facingAngle(thrust ? shape.angleDeg : shape.centerDeg, sf));
+    const r0 = thrust ? shape.fromPx : shape.length * R.WEDGE_START_RATIO;
+    const r1 = thrust ? shape.fromPx + shape.length : shape.length;
     return {
       ...win,
       mode: 'arc',
       at: (t) => {
-        const r = shape.fromPx + shape.length * Math.min(1, (t - win.from) / span);
+        const r = r0 + (r1 - r0) * Math.min(1, (t - win.from) / span);
         return { x: center.x + d.x * r, y: center.y + d.y * r };
       },
     };
   }
+  // 리본이 훑는 방향은 몸 시트 메모(arcFromDeg→arcToDeg, 그린 휘두름)를 따른다 — 범위는 판정 호 (칼 3타: 판정 +75→−75, 그림 −75→+75)
+  const drawnFrom = body?.arcFromDeg;
+  const drawnTo = body?.arcToDeg;
+  const flip =
+    typeof drawnFrom === 'number' && typeof drawnTo === 'number' && drawnTo - drawnFrom !== 0
+      ? Math.sign(drawnTo - drawnFrom) !== Math.sign(shape.toDeg - shape.fromDeg)
+      : false;
   const deg = Math.PI / 180;
-  const from = base + facingAngle(shape.fromDeg, dir) * deg;
-  const to = base + facingAngle(shape.toDeg, dir) * deg;
+  const from = base + facingAngle(flip ? shape.toDeg : shape.fromDeg, sf) * deg;
+  const to = base + facingAngle(flip ? shape.fromDeg : shape.toDeg, sf) * deg;
   const r = tipRadius ?? shape.radius * R.FALLBACK_RADIUS_RATIO;
   return { ...win, mode: 'arc', at: (t) => arcTipAt(center, r, from, to, (t - win.from) / span) };
 }

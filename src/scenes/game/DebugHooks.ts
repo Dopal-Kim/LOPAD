@@ -299,7 +299,15 @@ export function exposeGameDebug(g: Game): void {
         bow: { shot: g.strikes.bow.debugLastShot, hit: g.strikes.bow.debugLastHit },
         overlay: { frame: g.player.overlay.frame, action: g.player.overlay.action },
         anim: g.player.animKey,
+        // 55라운드 §17: 순환·관성·차지 · 최근 판정(후속 판정 포함) · 판정 모양 오버레이
+        melee: g.player.melee.debug(g.time.now),
+        swings: g.strikes.swingLog.slice(),
+        hitShapes: { enabled: g.strikes.overlay.enabled, drawn: g.strikes.overlay.drawn },
       };
+    },
+    hitShapes: (on) => {
+      if (on !== undefined) g.strikes.overlay.enabled = on;
+      return g.strikes.overlay.enabled;
     },
     birth: () => ({
       active: g.birth.active,

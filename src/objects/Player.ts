@@ -15,7 +15,7 @@ import type { SecondaryDef, WeaponCarryDef, WeaponFirstStrikeDef } from '../data
 import { applyDefense } from '../systems/Combat';
 import type { InputState } from '../systems/InputSystem';
 import { facingOf, motionAction, type Facing } from '../systems/spriteDefs';
-import { ComboTracker } from '../systems/combo';
+import type { ComboTracker } from '../systems/combo';
 import type { WeaponResource } from '../systems/weaponResource';
 import { knockFactor, knockSpeed } from '../systems/feel';
 import { sprintStep } from '../systems/traversal';
@@ -24,8 +24,9 @@ import { WeaponOverlay } from './WeaponOverlay';
 import { ScarOverlay } from './player/ScarOverlay';
 import { PlayerGear } from './player/PlayerGear';
 import { PlayerPoses } from './player/PlayerPoses';
-import { startDashSlash, startSlam, type ComboStrike } from './player/heavyMoves';
+import type { ComboStrike } from './player/heavyMoves';
 import { emitPlayerAttack, type AttackExtra } from './player/attackEmit';
+import { MeleeDriver } from './player/MeleeDriver';
 
 type Body = Phaser.Physics.Arcade.Body;
 
@@ -40,7 +41,8 @@ export type HitResult = 'hit' | 'dead' | 'parried' | 'ignored';
 /**
  * 주인공. 시트(`player_*`)가 있으면 애니메이션 스프라이트, 없으면 단색 사각형 플레이스홀더.
  * 50라운드 분리: 무기 자원·휴대 = `player/PlayerGear`, 무기를 든 자세 = `player/PlayerPoses`,
- * 대검 내리찍기·대쉬 공격 = `player/heavyMoves`. 이 파일은 상태 머신(이동·대쉬·보조 동작·연격 입력·피격)
+ * 대검 내리찍기·대쉬 공격 = `player/heavyMoves`. 55라운드: 연격 입력(순환·관성·차지·내딛기·정지) = `player/MeleeDriver`.
+ * 이 파일은 상태 머신(이동·대쉬·보조 동작·피격)
  */
 export class Player extends Phaser.GameObjects.Sprite {
   declare body: Body;
@@ -86,19 +88,12 @@ export class Player extends Phaser.GameObjects.Sprite {
   private lastAimAngle = 0;
   /** 피격 넉백(35라운드): 가해자 반대 방향으로 선형 감쇠. 경과는 update 의 시간 차로 누적(히트스톱 중엔 update 가 없다) */
   private shoveState: { vx: number; vy: number; elapsed: number; ms: number } | null = null;
-  /** 48라운드 Q2: 근접 3연격 상태 (무기 데이터에 combo 가 있을 때) */
-  private comboTracker: ComboTracker | null = null;
-  private comboWeapon = '';
-  /** 49라운드 무기 자원·휴대 · 48라운드 무기를 든 자세 */
+  /** 49라운드 무기 자원·휴대 · 48라운드 무기를 든 자세 · 55라운드 근접 연격 입력 */
   readonly gear: PlayerGear;
   readonly poses: PlayerPoses;
+  readonly melee: MeleeDriver;
   /** 49라운드: 앞으로 내딛기·도약 (from ~ until 동안 이 속도) */
   private lunge: { vx: number; vy: number; from: number; until: number } | null = null;
-  /** 49라운드 대검: 마지막 타 뒤 완전 정지 구간 */
-  private stopFrom = 0;
-  private stopUntil = 0;
-  /** 정지 구간에 공격·대쉬도 막는가 (마지막 타) — 1·2타 회복 구간은 이동만 막고 다음 타는 허용 */
-  private stopBlocksAct = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     const [w, h] = PLAYER_DATA.size;
@@ -108,6 +103,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.visual = new EntityVisual(this, 'player', w, h, COLORS.PLAYER);
     this.gear = new PlayerGear(this);
     this.poses = new PlayerPoses(this);
+    this.melee = new MeleeDriver(this);
     this.overlay = new WeaponOverlay(
       this,
       () => this.visual.current,
@@ -184,12 +180,7 @@ export class Player extends Phaser.GameObjects.Sprite {
 
   /** 48라운드: 현재 무기의 연격 상태 (연격이 없는 무기면 null) */
   get combo(): ComboTracker | null {
-    const w = gameState.weapon;
-    if (this.comboWeapon !== w.id) {
-      this.comboWeapon = w.id;
-      this.comboTracker = w.def.kind === 'melee' && w.def.combo ? new ComboTracker(w.def.combo) : null;
-    }
-    return this.comboTracker;
+    return this.melee.combo;
   }
 
   /** 49라운드: 현재 무기의 자원 상태 (자원이 없는 무기면 null) */
@@ -204,7 +195,12 @@ export class Player extends Phaser.GameObjects.Sprite {
 
   /** 대검 마지막 타 뒤 정지 중 */
   isStopped(time: number): boolean {
-    return time >= this.stopFrom && time < this.stopUntil;
+    return this.melee.isStopped(time);
+  }
+
+  /** 대쉬가 끝나고 대쉬 공격 창 안인가 */
+  inDashWindow(time: number): boolean {
+    return time - this.dashEndedAt <= PLAYER_DATA.dash.attackWindowMs;
   }
 
   /** 현재 대쉬 방향 단위벡터 (대쉬 중이 아니면 마지막 값) */
@@ -221,7 +217,6 @@ export class Player extends Phaser.GameObjects.Sprite {
     const P = PLAYER_DATA.parry;
     const S = this.secondary;
     const mods = gameState.weapon.mods;
-    const W = gameState.weapon.def;
     // 49라운드 무기 자원: 회복·장전·냉각 진행 (상태 변화는 WEAPON_RESOURCE 로 알린다)
     const res = this.resource;
     if (res) this.gear.tick(res, time, delta);
@@ -310,6 +305,8 @@ export class Player extends Phaser.GameObjects.Sprite {
       let slow = time < this.attackSlowUntil ? gameState.weapon.attackSlowMult : 1;
       if (this.action === 'guard' && S.kind === 'guard') slow = Math.min(slow, S.moveMult);
       if (this.action === 'aim' && S.kind === 'aimedshot') slow = Math.min(slow, S.moveMult);
+      // 55라운드 Q22: 대검 차지 중 감속
+      slow = Math.min(slow, this.melee.moveMult);
       // 49라운드: 기력이 바닥나면 감속
       const tired = res?.moveMult ?? 1;
       this.moveSlowMult = slow * tired * Math.min(1, this.envSpeedMult);
@@ -323,15 +320,16 @@ export class Player extends Phaser.GameObjects.Sprite {
     }
     this.moving = this.poses.locomotion(input, dir, time);
     this.poses.holdSecondary(input, time);
+    this.melee.holdPose(input, time);
     this.gear.updateCarry(time);
 
-    const canAct = this.action === 'normal' && !(stopped && this.stopBlocksAct);
+    const canAct = this.action === 'normal' && !(stopped && this.melee.stopBlocksAct);
 
     // 51라운드 Q4: F = 넣기/뽑기 (칼·대검). 동작 동안 다른 행동은 잠그고 느리게 걷는다
     if (input.carryPressed && canAct) {
       const r = this.gear.toggle(time);
       if (r) {
-        this.combo?.reset();
+        this.melee.reset();
         this.lunge = null;
         if (r.ms > 0) {
           this.setAction('draw', time + r.ms);
@@ -360,6 +358,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       this.lunge = null;
       this.setAction('dash', time + D.durationMs);
       this.combo?.reset();
+      this.melee.cancelCharge();
       this.visual.oneShot(this.poses.bodyAction('dash'), facingOf(d.x, d.y, this.visual.facing), time, D.durationMs);
       EventBus.emit(Events.PLAYER_DASHED, { dirX: d.x, dirY: d.y, x: this.x, y: this.y });
       return;
@@ -367,6 +366,8 @@ export class Player extends Phaser.GameObjects.Sprite {
 
     // 보조 동작 (우클릭): 무기별. 49라운드 휴대: 칼·대검은 보조 동작으로도 뽑은 상태가 된다
     if (input.secondaryPressed && canAct) {
+      // 55라운드 Q22: 우클릭(가드)은 그대로 — 차지 중이면 차지를 버리고 가드
+      this.melee.cancelCharge();
       if (S.kind === 'parry' || S.kind === 'guard') this.gear.markDrawn(time);
       switch (S.kind) {
         case 'parry': {
@@ -404,66 +405,9 @@ export class Player extends Phaser.GameObjects.Sprite {
       }
     }
 
-    // 공격 (대쉬 직후면 대쉬 공격). 48라운드: 근접은 3연격 상태 머신(입력 버퍼·다음 타 허용 창·리셋)
-    const combo = this.combo;
-    if (combo) {
-      if (input.attackPressed) combo.press(time);
-      if (!canAct || !combo.buffered(time)) return;
-      // 49라운드 과열: 냉각 중엔 공격 불가
-      if (res && !res.canAttack()) return;
-      // 49라운드 휴대: 대검은 등에서 두 손으로 끌어낸 뒤 휘두른다 (버퍼는 유지 → 뽑기가 끝나면 1타)
-      const carry = W.carry;
-      if (carry && carry.mode !== 'hand' && !this.gear.drawn && carry.drawMs > 0) {
-        this.startDraw(input, time, carry);
-        return;
-      }
-      // 49라운드 기력: 바닥나면 강한 타(마지막 타·대쉬 공격·내리찍기) 불가
-      const strong = res?.canStrong ?? true;
-      const dashWindow = strong && time - this.dashEndedAt <= D.attackWindowMs;
-      if (W.dashSlash && dashWindow && time >= combo.readyAt()) {
-        startDashSlash(this, input, time, W);
-        return;
-      }
-      combo.setSpeed(res?.speedMult ?? 1);
-      const idx = combo.poll(time, true, strong);
-      if (idx === null) return;
-      const hit = combo.hits[idx];
-      const last = idx === combo.hits.length - 1;
-      const slam = last && W.slam && mods.shockwave ? W.slam : null;
-      if (res?.def.kind === 'stamina') {
-        const C = res.def.cost;
-        res.spend(slam ? C.slam : dashWindow ? C.dashAttack : (C.hits[Math.min(idx, C.hits.length - 1)] ?? 0), time);
-      }
-      if (res?.kind === 'heat') res.heatUp(idx, time);
-      // 51라운드 Q4: 넣은 채 첫 타 보너스 (칼 발도 = 확정 치명, 대검 끌어내기 = 크게 밀쳐냄)
-      const first = this.gear.firstStrike;
-      this.gear.markDrawn(time);
-      if (slam) {
-        startSlam(this, input, time, { index: idx, count: combo.hits.length, hit, durationMs: hit.durationMs }, slam);
-        return;
-      }
-      const strike: ComboStrike = { index: idx, count: combo.hits.length, hit, durationMs: combo.durationOf(idx) };
-      const weight = W.weight;
-      this.attackSlowUntil =
-        time + Math.max(hit.activeMs, PLAYER_DATA.attackSlowMinMs, weight ? strike.durationMs + weight.postSlowMs : 0);
-      const payload = this.fireAttack(input, time, strike, dashWindow, first);
-      // 49라운드 대검 무게감: 타마다 반 걸음 전진 (51라운드: 예비 동작이 길어져 휘두르는 순간에 맞춰 내딛는다). 이동 정지 = 몸 시트 recoverFrames 구간(아트 메모, 마지막 타는 공격·대쉬도),
-      // 시트 메모가 없으면 마지막 타만 타격 순간부터 finisherStopMs
-      if (weight) {
-        const stepFrom = Math.max(0, payload.swingDelayMs - weight.stepMs);
-        this.startLunge(payload.dirX, payload.dirY, weight.stepPx, weight.stepMs, time, stepFrom);
-        this.stopUntil = 0;
-        this.stopBlocksAct = last;
-        const body = payload.bodyAction ? this.visual.sheet(payload.bodyAction) : undefined;
-        const rf = body?.recoverFrames;
-        if (Array.isArray(rf) && rf.length > 0 && payload.bodyAction !== 'attack') {
-          this.stopFrom = time + this.visual.frameStartMs(Math.min(...rf));
-          this.stopUntil = time + this.visual.lastDurationMs;
-        } else if (last) {
-          this.stopFrom = time + payload.swingDelayMs;
-          this.stopUntil = this.stopFrom + weight.finisherStopMs;
-        }
-      }
+    // 공격 (대쉬 직후면 대쉬 공격). 48라운드: 근접은 연격 상태 머신 — 55라운드 `MeleeDriver`(순환·관성·차지·내딛기)
+    if (this.combo) {
+      this.melee.update(input, time, canAct, dir.lengthSq() > 0);
       return;
     }
     if (input.attackPressed && canAct && time >= this.attackReadyAt) {
@@ -509,9 +453,9 @@ export class Player extends Phaser.GameObjects.Sprite {
 
   /**
    * 공격 1회 (대쉬 공격·그림자 걸음 직후 확정 치명 판정 포함). combo 가 있으면 그 타의 배율·길이.
-   * 49라운드: allowDash 가 false(기력 바닥)면 대쉬 직후라도 일반 공격
+   * 49라운드: allowDash 가 false(기력 바닥)면 대쉬 직후라도 일반 공격. MeleeDriver 도 쓴다
    */
-  private fireAttack(
+  fireAttack(
     input: InputState,
     time: number,
     combo: ComboStrike | null,
@@ -538,7 +482,7 @@ export class Player extends Phaser.GameObjects.Sprite {
   // --- 49라운드: 대검 무게감 (내딛기·감속·뽑기) — heavyMoves 도 쓴다 ---
 
   /** 대검: 등에서 두 손으로 끌어냄 (`player_greatsword_draw` + `weapons/greatsword_draw`, drawMs 에 맞춤) */
-  private startDraw(input: InputState, time: number, carry: WeaponCarryDef): void {
+  startDraw(input: InputState, time: number, carry: WeaponCarryDef): void {
     this.setAction('draw', time + carry.drawMs);
     this.slowUntil(time + carry.drawMs);
     const act = motionAction(gameState.weapon.id, 'draw');
@@ -589,6 +533,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       strideRate: this.poses.strideRate,
       resource: this.resource?.debug(time) ?? null,
       lunge: this.lunge ? { ...this.lunge } : null,
+      melee: this.melee.debug(time),
       stopped: this.isStopped(time),
       sinceDashMs: Number.isFinite(this.dashEndedAt) ? time - this.dashEndedAt : null,
       lastEvent: this.gear.lastEvent,
@@ -616,10 +561,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   haltForWarp(): void {
     if (this.action !== 'normal') this.setAction('normal', 0);
     this.lunge = null;
-    this.stopUntil = 0;
-    this.stopBlocksAct = false;
+    this.melee.reset();
     this.visual.release();
-    this.combo?.reset();
     this.shoveState = null;
     this.sprintFactor = 1;
     this.sprintingNow = false;
@@ -683,6 +626,8 @@ export class Player extends Phaser.GameObjects.Sprite {
     }
     gameState.hp = Math.max(0, gameState.hp - amount);
     this.flash(COLORS.PLAYER_HURT);
+    // 55라운드 Q23: 피격 → 대검 관성 초기화·차지 취소
+    this.melee.onHurt();
     if (source && this.action !== 'dash' && (source.dirX !== 0 || source.dirY !== 0)) {
       const K = FEEL.KNOCKBACK;
       const speed = knockSpeed(K.PLAYER_PX, K.PLAYER_MS);
@@ -737,6 +682,11 @@ export class Player extends Phaser.GameObjects.Sprite {
       default:
         this.visual.restore();
     }
+  }
+
+  /** 짧은 번쩍임 (55라운드 차지 단계 호박 번쩍임 — MeleeDriver) */
+  flashColor(color: number): void {
+    this.flash(color);
   }
 
   private flash(color: number): void {

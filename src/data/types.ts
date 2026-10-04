@@ -1,5 +1,6 @@
 import type { BossPatternName, PatternParams } from './bossPatterns';
 export type { BossPatternName, PatternParams } from './bossPatterns';
+import type { ComboDef } from './comboTypes';
 
 /** data/*.json 의 타입 정의. JSON을 바꾸면 여기와 validate()도 함께 맞춘다. */
 
@@ -24,44 +25,22 @@ export interface AttackHitbox {
   cooldownMs: number;
 }
 
-/** 48라운드 Q2: 근접 3연격 한 타 (임시값, data/weapons.json `combo.hits`) */
-export interface ComboHitDef {
-  /** 이 타의 피해 배율 (무기·진화 배율에 곱한다) */
-  damageMult: number;
-  /** 이 타의 판정 크기 배율 */
-  sizeMult: number;
-  /** 몸·무기 애니 길이 ms (공격 애니를 이 시간에 맞춘다) */
-  durationMs: number;
-  /** 다음 타를 시작할 수 있는 시각 (이 타 시작부터 ms). 마지막 타는 durationMs 와 같게 */
-  cancelFromMs: number;
-  /** 판정이 살아 있는 시간 ms */
-  activeMs: number;
-  /**
-   * 51라운드 Q3 템포: 판정 프레임(몸 시트 hitFrames[0]) 시작 ms. 있으면 예비 동작(앞 구간)과 휘두름·여운(뒤 구간)을
-   * 따로 늘여 판정이 이 시각에 오게 한다 (대검 = 예비 동작 길게). 없으면 시트 전체를 durationMs 에 균일 맞춤
-   */
-  hitAtMs?: number;
-}
-
-/** 근접 판정 모양: arc = 몸 중심 부채꼴, thrust = 앞으로 뻗는 직사각형(찌르기) */
-export type ComboShape = 'arc' | 'thrust';
-
-/** 48라운드 Q2: 무기별 3연격 상태 머신 파라미터 (임시값) */
-export interface ComboDef {
-  shape: ComboShape;
-  /** arc: 부채꼴 각도(도) · 반경 px (없으면 hitbox.reach + hitbox.width / 2). 진화·강화 배율을 곱한다 */
-  arcDeg?: number;
-  radiusPx?: number;
-  /** thrust: 기본 길이·폭 px (진화·강화 배율을 곱한다) */
-  thrust?: { lengthPx: number; widthPx: number };
-  /** 다음 타 허용 전에 누른 입력을 기억하는 시간 ms */
-  bufferMs: number;
-  /** 한 타가 끝나고(durationMs) 이 시간 안에 다음 타가 없으면 1타로 돌아간다 */
-  resetMs: number;
-  /** 마지막 타가 끝난 뒤 새 연격까지 추가 대기 ms */
-  finisherRecoverMs: number;
-  hits: ComboHitDef[];
-}
+export type {
+  ArcShapeSpec,
+  ComboArtEntry,
+  ComboChargeDef,
+  ComboChargeStageDef,
+  ComboDef,
+  ComboFollowUpDef,
+  ComboHitDef,
+  ComboMomentumDef,
+  ComboShape,
+  ComboStepDef,
+  HitShapeSpec,
+  RectShapeSpec,
+  RingShapeSpec,
+  WedgeShapeSpec,
+} from './comboTypes';
 
 export interface DashParams {
   distanceTiles: number;

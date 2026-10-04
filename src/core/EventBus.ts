@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { BossPatternName } from '../data/bossPatterns';
+import type { ComboFollowUpDef, HitShapeSpec } from '../data/comboTypes';
 
 /** 씬·시스템 간 유일한 통신 경로. 직접 참조 금지. */
 export const EventBus = new Phaser.Events.EventEmitter();
@@ -18,6 +19,11 @@ export const Events = {
   PLAYER_SHADOW_STEP: 'player:shadow-step',
   /** 보조 동작 국면 (음향 트리거): guard start / aimedshot start·cancel */
   PLAYER_SECONDARY: 'player:secondary',
+  /**
+   * 55라운드 Q22 대검 홀드 차지 국면 (`PlayerChargePayload`): start · stage(1..3, 단계마다 호박 번쩍임) · release · cancel.
+   * 시스템 내부(월드 번쩍임·디버그·음향 훅 후보). UI 계약 밖 — HUD 표시가 필요하면 계약 변경 인터뷰
+   */
+  PLAYER_CHARGE: 'player:charge',
   /** 49라운드 무기 휴대: 칼집·등에서 뽑음 / 넣음(납도) — 음향 훅 후보 (`WeaponCarryPayload`) */
   PLAYER_WEAPON_DRAWN: 'player:weapon-drawn',
   PLAYER_WEAPON_SHEATHED: 'player:weapon-sheathed',
@@ -133,7 +139,22 @@ export type PlayerAttackPayload = {
   /** 51라운드 Q4: 넣은 채 첫 타 보너스 이름 (발도·끌어내기) · 적중 넉백 배율 */
   firstStrike?: string;
   knockbackMult?: number;
+  /** 55라운드 §17: 이 타의 판정 모양 (데이터 — 진화·강화·크기 배율은 받는 쪽이 R 로) · 끝점 충격원 배율(관성 최대) */
+  hitShape?: HitShapeSpec;
+  shapeScale?: { lengthMult?: number; impactMult?: number };
+  /** 55라운드: 막타 (heavy 적중 스파크·히트스톱 ×HEAVY_MULT·흔들림·충격파 갈래). 없으면 연격 마지막 타 규칙 */
+  heavy?: boolean;
+  /** 55라운드 §17: 뒤따르는 판정 (칼 잔상 베기 · 차지 충격파 링) */
+  followUps?: ComboFollowUpDef[];
+  /** 55라운드 §17: 연격 그림 키 (`combo.art`) — 휘두름·바닥 충격 이펙트 고르기 */
+  art?: string;
+  /** 55라운드 Q22: 대검 차지 내려찍기 단계 (1..3) */
+  charge?: number;
+  /** 55라운드 Q23: 이 타에 더해진 관성 공속 비율 (0 ~ 0.2) */
+  momentum?: number;
 };
+/** 55라운드 Q22 대검 홀드 차지 국면 */
+export type PlayerChargePayload = { phase: 'start' | 'stage' | 'release' | 'cancel'; stage: number };
 /** 49라운드: 무기 휴대 뽑기·넣기 */
 export type WeaponCarryPayload = { weapon: string; mode: 'sheath' | 'back' | 'hand' };
 /** 49라운드: 무기 자원 변화 */

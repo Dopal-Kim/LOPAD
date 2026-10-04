@@ -53,6 +53,8 @@ interface FxState {
   /** 재생 경과 ms (update 사이 시간 합, 히트스톱 동안 안 늘어남) */
   elapsed: number;
   lastTick: number;
+  /** 55라운드 Q23 재생 배속 (예약 훅 시계도 같은 배속) */
+  timeScale: number;
   timed: FxTimed[];
   /** 50라운드: 이 이펙트의 광원 (시트 JSON light · fallback · 무기 이펙트 순간광) */
   light?: LightSource;
@@ -151,6 +153,7 @@ export class FxPool {
       noFade: false,
       elapsed: 0,
       lastTick: now,
+      timeScale: opts.timeScale && opts.timeScale > 0 ? opts.timeScale : 1,
       timed: [],
       hitstopFrame: opts.hitstopFrame,
       def,
@@ -171,7 +174,7 @@ export class FxPool {
     }
     if (opts.staticFrame === undefined) {
       const anim = opts.tailFrames ? this.tailAnim(id, key, texture, opts.tailFrames, opts.dir ?? 'down') : key;
-      sprite.anims.timeScale = 1;
+      sprite.anims.timeScale = state.timeScale;
       sprite.play(anim, true);
       const loop = Boolean(def.loop) || Boolean(opts.tailFrames);
       if (!loop) {
@@ -277,7 +280,7 @@ export class FxPool {
   /** 매 프레임: 예약 이벤트·따라가기·만료 */
   update(time: number): void {
     for (const [sprite, st] of this.states) {
-      st.elapsed += Math.max(0, time - st.lastTick);
+      st.elapsed += Math.max(0, time - st.lastTick) * st.timeScale;
       st.lastTick = time;
       this.fireDue(st);
       if (st.fading) continue;

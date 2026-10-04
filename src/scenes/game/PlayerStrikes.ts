@@ -1,29 +1,49 @@
 /**
- * 플레이어 공격 (PLAYER_ATTACKED): 근접 3연격 판정 (48라운드) · 대검 내리찍기 (49라운드) · 진화 부가 효과(쌍격·지진 2단).
+ * 플레이어 공격 (PLAYER_ATTACKED): 근접 연격 판정 (48라운드) · 대검 내리찍기 (49라운드) · 진화 부가 효과(쌍격·지진 2단).
  * 51라운드 정리: 활 = `BowShots`, 잔월·출혈 = `StrikeDots`. 53라운드 정리: 판정 모양·휘두름 이펙트·잔상 리본 = `SwingFx`.
- * 피해 계산·피격 연출은 GameCombat.
+ * 55라운드 §17: 타별 판정 모양(호·쐐기+충격원·찌르기·고리) · 후속 판정(칼 잔상 베기·차지 충격파 링 — 씬 시계 지연이라 히트스톱 동안 멈춤)
+ * · 내려찍기 끝점 바닥 충격 · 판정 모양 디버그 오버레이(`HitShapeOverlay`). 피해 계산·피격 연출은 GameCombat.
  */
 import Phaser from 'phaser';
 import { COLORS, DEPTH, ENEMY_FX, FEEL, PROTOTYPE } from '../../core/Constants';
-import type { PlayerAttackPayload } from '../../core/EventBus';
+import type { PlayerAttackPayload, PlayerChargePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
+import type { ComboFollowUpDef } from '../../data/types';
 import type { Mob } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
-import { facingAngle, hitShapeBounds, rotateDir, shapeHit, type HitShape } from '../../systems/combo';
+import { hitShapeBounds, shapeCenterPoint, shapeHit, type Pt } from '../../systems/hitShapes';
 import type { FxHandle } from '../../systems/fx';
-import { facingOf, hitFrameOffsets, radiusFitScale, type Facing } from '../../systems/spriteDefs';
-import { comboFxId, slamFxId, slashFxId } from '../../systems/fxIds';
+import { facingOf, hitFrameOffsets, radiusFitScale } from '../../systems/spriteDefs';
+import { slamFxId, slashFxId } from '../../systems/fxIds';
 import { isBackswing, isHeavyStrike } from '../../systems/hitFeel';
 import type { Game } from '../Game';
 import { BowShots } from './BowShots';
+import { HitShapeOverlay } from './HitShapeOverlay';
 import { StrikeDots } from './StrikeDots';
 import { SwingFx } from './SwingFx';
-import { HIT_ORIGIN_UP_PX, evolutionFxId, isFinisher, pathFx } from './shared';
+import { HIT_ORIGIN_UP_PX, evolutionFxId, isFinisher, isMeleeStrike, pathFx, shapeFacing } from './shared';
+
+/** 판정 한 번의 옵션: 지진 2단 · 55라운드 후속 판정(원점·모양 덮어쓰기) */
+interface SwingOpts {
+  secondWave?: boolean;
+  follow?: ComboFollowUpDef;
+  origin?: Pt;
+  /** 후속 판정 전용 이펙트를 이미 띄웠다 (플레이스홀더 없음) */
+  followFx?: boolean;
+}
+
+/** 디버그로 남기는 최근 판정 수 */
+const SWING_LOG_MAX = 12;
 
 export class PlayerStrikes {
   /** 디버그: 마지막 공격 이벤트 · 최근 근접 판정 (모양·원점·맞은 수) */
   debugLastAttack: unknown = null;
   debugLastSwing: unknown = null;
+  /** 55라운드 디버그: 최근 판정들 (후속 판정 포함 — 잔상 베기·충격파 링 시각·맞은 수) */
+  readonly swingLog: Record<string, unknown>[] = [];
+  readonly overlay: HitShapeOverlay;
+  /** 디버그: 마지막 차지 단계 번쩍임 이펙트를 재생했는가 */
+  chargeFlashFx = false;
   /** 디버그 (51라운드 템포 실측): 최근 공격 시각 (게임 시간 ms) */
   readonly attackLog: { time: number; kind: string; comboIndex: number | null; firstStrike: string | null }[] = [];
   readonly bow: BowShots;
@@ -40,6 +60,7 @@ export class PlayerStrikes {
     this.bow = new BowShots(g);
     this.dots = new StrikeDots(g);
     this.swing = new SwingFx(g);
+    this.overlay = new HitShapeOverlay(g);
   }
 
   private pathFx(...candidates: string[]): string | null {
@@ -68,7 +89,7 @@ export class PlayerStrikes {
     }
     const mods = weapon.mods;
     // 48라운드 3연격: 판정은 휘두름 프레임(hitFrames[0]) 시작에, 지진 2단·충격파는 마지막 타에서만
-    const combo = p.comboIndex !== undefined;
+    const combo = isMeleeStrike(p);
     const finisher = isFinisher(p);
     this.swing.play(p);
     this.playGiantFx(p);
@@ -80,7 +101,33 @@ export class PlayerStrikes {
         : combo
           ? { ...p, x: g.player.x, y: g.player.y }
           : p;
-      this.meleeSwing(at);
+      const main = this.meleeSwing(at);
+      // 55라운드 §17 후속 판정: 칼 잔상 베기(150ms 뒤 같은 호 50%) · 차지 3단 충격파 링(끝점). 씬 시계라 히트스톱 동안 멈춘다
+      for (const fu of p.followUps ?? []) {
+        // 전용 이펙트는 그 판정(정지) 프레임이 후속 판정 시각에 오게 먼저 띄운다 (칼 잔상: 320ms 띄움 → 350ms 판정)
+        const lead = this.swing.followUpLeadMs(fu.art);
+        const fuAt = fu.at === 'impact' ? (main.impact ?? undefined) : undefined;
+        if (lead !== null)
+          g.time.delayedCall(Math.max(0, fu.delayMs - lead), () => {
+            if (this.live) this.swing.playFollowUpFx(fu.art, at.dirX, at.dirY, fuAt);
+          });
+        g.time.delayedCall(fu.delayMs, () => {
+          if (!this.live) return;
+          const origin = fuAt;
+          this.meleeSwing(
+            {
+              ...at,
+              x: g.player.x,
+              y: g.player.y,
+              damageMult: at.damageMult * fu.damageMult,
+              activeMs: fu.activeMs ?? at.activeMs,
+              hitShape: fu.hitShape ?? at.hitShape,
+              followUps: undefined,
+            },
+            { follow: fu, origin, followFx: lead !== null },
+          );
+        });
+      }
       // 쌍격·난무: 추가 타격. 시트 hitFrames 가 있으면 그 프레임 시작 간격(43라운드 B), 없으면 TWIN_DELAY_MS 간격
       const hits = Math.max(1, mods.hits ?? 1);
       const multiFx = this.pathFx('dance', 'twin');
@@ -103,7 +150,7 @@ export class PlayerStrikes {
                 sizeMult: at.sizeMult * second.sizeMult,
                 damageMult: at.damageMult * second.damageMult,
               },
-              true,
+              { secondWave: true },
             );
         });
       }
@@ -144,17 +191,21 @@ export class PlayerStrikes {
 
   // --- 근접 판정 ---
 
-  private meleeSwing(p: PlayerAttackPayload, secondWave = false): void {
+  /** 판정 한 번. 반환 = 끝점(쐐기 충격원·고리 중심, 없으면 null) — 후속 판정 원점 */
+  private meleeSwing(p: PlayerAttackPayload, opts: SwingOpts = {}): { impact: Pt | null } {
     const g = this.g;
     const weapon = gameState.weapon;
     const mods = weapon.mods;
     const hb = weapon.hitbox;
+    const secondWave = Boolean(opts.secondWave);
+    const follow = opts.follow ?? null;
     // 48라운드 3연격: 몸 중심(발 위 10px) 부채꼴·찌르기 판정. 물리 영역은 외접 사각형이고 겹친 적을 모양으로 다시 거른다
     const shape = this.swing.shape(p);
-    const facing = facingOf(p.dirX, p.dirY, g.player.facingDir);
-    const ox = p.x;
-    // 49라운드 내리찍기: 원 중심 = 착지점 그대로 (몸 중심 보정 없음)
-    const oy = p.slam ? p.y : p.y - HIT_ORIGIN_UP_PX;
+    const facing = shapeFacing(p, facingOf(p.dirX, p.dirY, g.player.facingDir));
+    // 49라운드 내리찍기: 원 중심 = 착지점 그대로 (몸 중심 보정 없음). 55라운드 후속 판정 'impact' = 본 타 끝점
+    const ox = opts.origin?.x ?? p.x;
+    const oy = opts.origin?.y ?? (p.slam ? p.y : p.y - HIT_ORIGIN_UP_PX);
+    const impact = shape ? shapeCenterPoint(ox, oy, p.dirX, p.dirY, shape, facing) : null;
     let cx: number;
     let cy: number;
     let w: number;
@@ -173,7 +224,8 @@ export class PlayerStrikes {
       w = (horizontal ? hb.width : hb.height) * p.sizeMult;
       h = (horizontal ? hb.height : hb.width) * p.sizeMult;
     }
-    const finisher = isFinisher(p);
+    // 후속 판정은 충격파 갈래·진화 베기를 다시 부르지 않는다
+    const finisher = isFinisher(p) && !follow;
     const activeMs = p.activeMs ?? hb.activeMs;
     // 47라운드: 타격형 구조물·화로 점화·불붙은 무기의 웅덩이 점화
     g.structures.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
@@ -182,11 +234,35 @@ export class PlayerStrikes {
     // 베기 시트가 있으면 판정 사각형은 보이지 않게(판정만), 없으면 기존 플레이스홀더 표시
     const evoFx = evolutionFxId(g.fx);
     const swingFx = this.pathFx('wide', 'iai', 'dance', 'twin');
-    const comboFx = p.comboIndex !== undefined ? comboFxId(weapon.id, p.comboIndex + 1) : null;
-    const hasSwingArt = g.fx.has(slashFxId(weapon.id)) || swingFx !== null || (comboFx !== null && g.fx.has(comboFx));
+    // 그림이 있는가: 베기·진화 시트, 내리찍기 충격 시트, 이 공격의 휘두름 이펙트(SwingFx 가 고른 것)
+    const hasSwingArt =
+      g.fx.has(slashFxId(weapon.id)) ||
+      swingFx !== null ||
+      (p.slam ? g.fx.has(slamFxId(weapon.id)) : this.swing.lastFxLoaded);
     // 연격 판정은 모양이라 사각형 플레이스홀더를 그리지 않는다 (시트가 없으면 모양 윤곽)
     const zone = g.add.rectangle(cx, cy, w, h, COLORS.ATTACK, hasSwingArt || shape ? 0 : 0.6).setDepth(DEPTH.ATTACK);
-    if (shape && !hasSwingArt) this.drawShapeOutline(ox, oy, p.dirX, p.dirY, shape, facing);
+    if (shape) {
+      this.overlay.debug(ox, oy, p.dirX, p.dirY, shape, facing, activeMs, follow !== null);
+      // 후속 판정 이펙트 (잔상 베기 전용 fx) — 없으면 윤곽 플레이스홀더 · 고리는 충격파 그림
+      const followFx = Boolean(opts.followFx);
+      // 55라운드 내려찍기 끝점 바닥 충격 (본 타만)
+      const impactFx =
+        !follow && !secondWave && shape.kind === 'wedge' && shape.impact !== null && impact !== null
+          ? this.swing.playImpactFx(
+              p.art,
+              impact.x,
+              impact.y,
+              shape.impact.radius,
+              p.dirX,
+              p.dirY,
+              p.shapeScale?.impactMult,
+            )
+          : false;
+      if (follow && !followFx && shape.kind === 'ring' && impact)
+        g.combat.drawShockwave(impact.x, impact.y, shape.radius);
+      else if (follow ? !followFx : !hasSwingArt && !impactFx)
+        this.overlay.placeholder(ox, oy, p.dirX, p.dirY, shape, facing);
+    }
     // 궤적·충격파: 시트가 있으면 시트, 없으면 Graphics 플레이스홀더
     if (mods.slashTrail && !swingFx) this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
     if (mods.shockwave && finisher) {
@@ -197,10 +273,13 @@ export class PlayerStrikes {
           : false;
       // 지진(quake)·분쇄(pulverize) 가 파쇄(crush) 대신. quake 는 1단에서 한 번(3프레임 = 2단 시점), 2단은 다시 안 그린다
       const shockFx = slamFx ? this.pathFx('quake', 'pulverize') : this.pathFx('quake', 'pulverize', 'crush');
+      // 55라운드: 내려찍기 쐐기는 충격파를 끝점에
+      const sx = impact?.x ?? cx;
+      const sy = impact?.y ?? cy;
       if (shockFx === 'quake' && secondWave) {
         /* 1단에서 재생한 quake 의 3~5프레임이 2단 링 */
-      } else if (shockFx) g.fx.play(shockFx, cx, cy, { depth: DEPTH.FX_GROUND });
-      else if (!slamFx) g.combat.drawShockwave(cx, cy, Math.max(w, h));
+      } else if (shockFx) g.fx.play(shockFx, sx, sy, { depth: DEPTH.FX_GROUND });
+      else if (!slamFx) g.combat.drawShockwave(sx, sy, Math.max(w, h));
       if (!slamFx) g.shake.add(g.time.now, FEEL.SHAKE.SHOCKWAVE.PX, FEEL.SHAKE.SHOCKWAVE.MS);
     }
     // 중압: 적중 판정 시작에 히트박스 중심 아래 6px (피벗 = 바닥 타격점)
@@ -212,15 +291,23 @@ export class PlayerStrikes {
     const swingLog = {
       shape,
       origin: { x: ox, y: oy },
+      impact,
       dir: { x: p.dirX, y: p.dirY },
       facing,
       bounds: { cx, cy, w, h },
       comboIndex: p.comboIndex ?? null,
+      art: p.art ?? null,
+      charge: p.charge ?? null,
+      heavy: isHeavyStrike(p),
+      followUp: follow?.id ?? null,
+      damageMult: p.damageMult,
       activeMs,
       hits: 0,
       time: g.time.now,
     };
-    this.debugLastSwing = swingLog;
+    if (!follow) this.debugLastSwing = swingLog;
+    this.swingLog.push(swingLog);
+    if (this.swingLog.length > SWING_LOG_MAX) this.swingLog.shift();
     const overlap = g.physics.add.overlap(zone, g.mobs, (_z, m) => {
       const mob = m as Mob;
       if (hit.has(mob)) return;
@@ -249,38 +336,7 @@ export class PlayerStrikes {
       if (clear) g.physics.world.removeCollider(clear);
       zone.destroy();
     });
-  }
-
-  /** 연격 판정 모양 윤곽 (시트가 없을 때 플레이스홀더) */
-  private drawShapeOutline(ox: number, oy: number, dirX: number, dirY: number, shape: HitShape, facing: Facing): void {
-    const g = this.g.add.graphics().setDepth(DEPTH.ATTACK);
-    g.lineStyle(1, COLORS.ATTACK, 0.8);
-    g.fillStyle(COLORS.ATTACK, 0.25);
-    if (shape.kind === 'arc') {
-      const c = rotateDir(dirX, dirY, facingAngle(shape.centerDeg, facing));
-      const a = Math.atan2(c.y, c.x);
-      const half = Phaser.Math.DegToRad(shape.arcDeg / 2);
-      g.slice(ox, oy, shape.radius, a - half, a + half, false);
-      g.fillPath();
-      g.strokePath();
-    } else {
-      const d = rotateDir(dirX, dirY, facingAngle(shape.angleDeg, facing));
-      const px = -d.y * (shape.width / 2);
-      const py = d.x * (shape.width / 2);
-      const sx = ox + d.x * shape.fromPx;
-      const sy = oy + d.y * shape.fromPx;
-      const ex = sx + d.x * shape.length;
-      const ey = sy + d.y * shape.length;
-      const pts = [
-        new Phaser.Math.Vector2(sx + px, sy + py),
-        new Phaser.Math.Vector2(ex + px, ey + py),
-        new Phaser.Math.Vector2(ex - px, ey - py),
-        new Phaser.Math.Vector2(sx - px, sy - py),
-      ];
-      g.fillPoints(pts, true);
-      g.strokePoints(pts, true);
-    }
-    this.g.tweens.add({ targets: g, alpha: 0, duration: PROTOTYPE.SLASH_TRAIL_MS, onComplete: () => g.destroy() });
+    return { impact };
   }
 
   /** 진화 무기의 베기 궤적 (플레이스홀더 연출. 정식 이펙트는 아트 파트) */
@@ -316,6 +372,11 @@ export class PlayerStrikes {
     g.structures.onMobHit(mob, false);
     if (mods.hitStunMs) mob.stun(now, mods.hitStunMs, 'hit');
     if (mods.bleed) this.dots.applyBleed(mob);
+  }
+
+  /** 55라운드 Q22 대검 차지 국면: 단계 번쩍임 이펙트 (틴트 번쩍임은 Player) */
+  onPlayerCharge(p: PlayerChargePayload): void {
+    if (p.phase === 'stage') this.chargeFlashFx = this.swing.playChargeFlash(p.stage);
   }
 
   // --- 매 프레임: 추적 화살·저격 꼬리 · 잔월 · 출혈 ---

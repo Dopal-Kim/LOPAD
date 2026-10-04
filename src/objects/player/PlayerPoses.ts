@@ -116,7 +116,8 @@ export class PlayerPoses {
     if (!def) return null;
     if (combo) {
       const at = combo.hit.hitAtMs;
-      const hf = def.hitFrames?.[0];
+      // 55라운드: 판정 프레임 = hitFrames[0], 없으면 impactFrame (내리찍기 몸을 대검 V·차지 내려찍기 대체 그림으로)
+      const hf = def.hitFrames?.[0] ?? (typeof def.impactFrame === 'number' ? def.impactFrame : undefined);
       if (!at || hf === undefined || combo.durationMs <= 0) return null;
       return { frame: hf, atMs: (at * combo.durationMs) / combo.hit.durationMs };
     }

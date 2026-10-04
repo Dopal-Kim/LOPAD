@@ -12,6 +12,7 @@ import { sheetJsonCandidates } from '../systems/spriteMeta';
 import { branchFxSheetIds } from '../systems/branchFx';
 import { meleeBranchFxSheetIds } from '../systems/fxVariants';
 import { tier2FxSheetIds } from '../systems/fxTier';
+import { comboArtNames } from '../systems/comboArt';
 import {
   normalizeStructureSheet,
   sheetToWorldUnits,
@@ -105,6 +106,7 @@ export class Preloader extends Phaser.Scene {
         ...bossFxSheets(),
       ],
       [...allStructureSprites(), ...bossStructureSheets()],
+      Object.fromEntries(Object.entries(WEAPONS).map(([id, w]) => [id, comboArtNames(w.combo).body])),
     )) {
       const paths = sheetJsonCandidates(req);
       const legacy = paths[paths.length - 1];

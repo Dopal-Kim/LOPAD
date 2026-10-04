@@ -131,8 +131,13 @@ export const WEAPON_EXTRA_ACTIONS: readonly string[] = [
 /**
  * 주인공 애니 동작 → 겹칠 무기 시트 동작 후보 (앞이 우선, 마지막은 기존 attack 폴백).
  * attack · <무기>_combo<n> · <무기>_special · <무기>_aim 만 무기를 보인다. 그 외(idle·walk·dash·hurt·death·birth) 는 []
+ * 55라운드 §17: `art` = 무기 연격 그림 이름 표 조회(`comboArt.overlayArtCandidates`) — 표의 새 동작 이름도 무기를 보인다
  */
-export function overlayActionsFor(playerAction: string, weaponId: string): string[] {
+export function overlayActionsFor(
+  playerAction: string,
+  weaponId: string,
+  art?: (rest: string) => string[] | null,
+): string[] {
   if (playerAction === 'attack') return ['attack'];
   const prefix = `${weaponId}_`;
   if (!playerAction.startsWith(prefix)) return [];
@@ -142,7 +147,7 @@ export function overlayActionsFor(playerAction: string, weaponId: string): strin
   // 49라운드: 내리찍기·대쉬 공격은 무기 시트가 없으면 3타·attack, 뽑기·넣기·장전은 그 시트만 (없으면 휴대 표시)
   if (rest === 'slam' || rest === 'dashslash') return [rest, weaponComboAction(COMBO_HITS), 'attack'];
   if (rest === 'draw' || rest === 'sheathe' || rest === 'reload') return [rest];
-  return [];
+  return art?.(rest) ?? [];
 }
 
 /** 애니 키 `<이름>_<동작>_<방향>[@f<n>][#…]` 에서 동작·방향을 꺼낸다. 형식이 아니면 null */
@@ -364,8 +369,10 @@ export interface SheetJson extends BranchSheetFields {
   fx?: { under?: string; underOptional?: boolean; ambient?: string };
   /** 특수 자세 구간 (패링 ready/window/riposte/recover · 가드 enter/hold/release/recover · 그림자 걸음 depart/arrive/primed) */
   phases?: Record<string, number[]>;
-  /** 가드를 누르는 동안 반복할 열 */
+  /** 가드를 누르는 동안 반복할 열 (55라운드: 대검 차지 유지 루프도) */
   loopFrames?: number[];
+  /** 55라운드 §17 연격 몸 메모: 내딛기 참고값 (world = 월드 px, frames = 몸이 앞으로 나가는 열) — 시스템은 frames 시간만 쓴다 */
+  stepPx?: { world?: number; frames?: number[] };
   /** 활 조준: 진행도 프레임 목록 · 발사 프레임 */
   progressFrames?: number[];
   releaseFrame?: number;
@@ -541,21 +548,30 @@ export function wantedSheets(
   weaponIds: readonly string[] = [],
   fxIds: readonly string[] = [],
   structureIds: readonly string[] = [],
+  /** 55라운드 §17: 무기별 연격 그림 이름 표의 몸·무기 동작 이름 (`comboArt.comboArtNames(...).body`) */
+  comboArt: Readonly<Record<string, readonly string[]>> = {},
 ): SheetRequest[] {
   const out: SheetRequest[] = [];
   for (const action of PLAYER_ACTIONS) out.push({ category: 'player', name: 'player', action });
   // 48라운드 §6: 탄생 · 무기별 연격·특수·조준 (매니페스트에 없으면 로더가 건너뛴다)
   out.push({ category: 'player', name: 'player', action: BIRTH_ACTION });
-  for (const id of weaponIds)
-    for (const action of playerWeaponActions(id)) out.push({ category: 'player', name: 'player', action });
+  for (const id of weaponIds) {
+    const known = new Set(playerWeaponActions(id));
+    for (const action of known) out.push({ category: 'player', name: 'player', action });
+    for (const n of comboArt[id] ?? [])
+      if (!known.has(`${id}_${n}`)) out.push({ category: 'player', name: 'player', action: `${id}_${n}` });
+  }
   // 53라운드 Q19: 무기별 기본 자세 (`player_idle_free`·`player_walk_bow` 등, 없으면 기본 몸)
   for (const action of bodyVariantActions(weaponIds)) out.push({ category: 'player', name: 'player', action });
   for (const name of enemyIds) for (const action of MOB_ACTIONS) out.push({ category: 'enemies', name, action });
   for (const name of bossIds)
     for (const action of [...MOB_ACTIONS, ...BOSS_EXTRA_ACTIONS]) out.push({ category: 'bosses', name, action });
   for (const name of weaponIds) for (const action of WEAPON_ACTIONS) out.push({ category: 'weapons', name, action });
-  for (const name of weaponIds)
+  for (const name of weaponIds) {
     for (const action of WEAPON_EXTRA_ACTIONS) out.push({ category: 'weapons', name, action });
+    for (const n of comboArt[name] ?? [])
+      if (!WEAPON_EXTRA_ACTIONS.includes(n)) out.push({ category: 'weapons', name, action: n });
+  }
   for (const name of fxIds) out.push({ category: 'fx', name, action: FX_ACTION });
   for (const name of structureIds) out.push({ category: 'structures', name, action: STRUCTURE_ACTION });
   return out;

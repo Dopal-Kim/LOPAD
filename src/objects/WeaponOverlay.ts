@@ -15,6 +15,7 @@ import { CARRY, DEPTH } from '../core/Constants';
 import { anchorOffset, bladeAt, gripAt, handAt, overlayPivot, type BladeLocal } from '../systems/spriteMeta';
 import { gameState } from '../core/GameState';
 import { spriteLibrary } from '../systems/sprites';
+import { overlayArtCandidates } from '../systems/comboArt';
 import {
   artScale,
   bodyBaseAction,
@@ -95,7 +96,7 @@ export class WeaponOverlay {
     }
     this.bodyAt = { dir: parsed.dir, column };
     const id = gameState.weapon.id;
-    for (const a of overlayActionsFor(parsed.action, id)) {
+    for (const a of overlayActionsFor(parsed.action, id, (r) => overlayArtCandidates(gameState.weapon.def.combo, r))) {
       const def = this.sheetOf(id, a);
       if (def) {
         // 무기 시트 하나가 휴대 모습을 대신한다 — v3 연격(carryHidden)은 빈 칼집까지 시트에 들어 있다

@@ -30,10 +30,27 @@ export const SENSE_BONUS_MAX = 3;
 /** 판정 원점 = 몸 중심 (발 위 10px, 48라운드 아트 메모 hitOrigin) */
 export const HIT_ORIGIN_UP_PX = 10;
 
-/** 연격의 마지막 타(충격파·진화 베기 시점). 연격이 아니면 true, 대검 대쉬 공격은 false (49라운드: 충격파 없음) */
+/**
+ * 연격의 마무리 타(충격파·진화 베기 시점). 연격이 아니면 true, 대검 대쉬 공격은 false (49라운드: 충격파 없음).
+ * 55라운드: 타별 데이터 `heavy` 가 있으면 그것 (대검 순환 = 내려찍기 V·차지 내려찍기, 칼 = 3타)
+ */
 export function isFinisher(p: PlayerAttackPayload): boolean {
   if (p.dashSlash) return false;
+  if (p.heavy !== undefined) return p.heavy;
   return p.comboIndex === undefined || p.comboIndex === (p.comboCount ?? 1) - 1;
+}
+
+/**
+ * 55라운드 §17 판정 모양에 넘길 방향: 타별 모양(hitShape)이 있고 무기가 `leftTransform: rotate` 면 왼쪽도 회전만
+ * (`facingAngle` 은 'left' 일 때만 반전하므로 'right' 를 넘긴다). 그 밖은 그대로 (48라운드 좌우 반전)
+ */
+export function shapeFacing<F extends string>(p: PlayerAttackPayload, facing: F): F | 'right' {
+  return p.hitShape && gameState.weapon.def.combo?.leftTransform === 'rotate' ? 'right' : facing;
+}
+
+/** 55라운드: 근접 연격 타(연격 번호가 있거나 차지 내려찍기) — 판정을 몸 판정 프레임(swingDelayMs)에, 위치는 그때 몸 */
+export function isMeleeStrike(p: PlayerAttackPayload): boolean {
+  return p.comboIndex !== undefined || p.charge !== undefined;
 }
 
 /**

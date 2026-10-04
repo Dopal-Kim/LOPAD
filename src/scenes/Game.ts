@@ -388,6 +388,7 @@ export class Game extends Phaser.Scene {
     const { strikes: s, progress: p, combat: c, ui, motion: m } = this;
     this.subs = [
       [Events.PLAYER_ATTACKED, s.onPlayerAttacked, s],
+      [Events.PLAYER_CHARGE, s.onPlayerCharge, s],
       [Events.PLAYER_DIED, p.onPlayerDied, p],
       [Events.TRIAL_CLEARED, p.onTrialCleared, p],
       [Events.ROOM_ENTERED, ui.onRoomEntered, ui],
