@@ -353,3 +353,188 @@ interface UiRoute {
 - **이름 변경**: 칼 `weapon.secondaryName` '패링' → '가드·패링'(조작 안내 `{secondary}` 문구에 그대로 반영).
 - 월드 문구 "PERFECT GUARD"·"PARRY" 는 시스템이 월드 공간 텍스트로 그린다(UI 아님).
 - UI 표시(56라운드 Q58): 무기명 옆 고유 자원 게이지(단계 눈금), 그로기 중 남은 시간 표시. 세부 모양은 UI 파트 인터뷰.
+
+## 14. 57라운드 빌드 축·2차 묶음 — **초안 (57 Q38 일괄 진행 지시에 따라 적용 예정)**
+> **초안이다.** 계약 변경은 원래 재인터뷰 사항(승인 #12·#14·#17·#20 조건)이다. 57라운드 Q38 "방금 다뤘던 최적화랑 설계 요소들 모두 진행하자"(남은 항목 추천안 확정·구현 진행)에 따라 이 형태로 **적용 예정**이며, 승인 기록은 `decisions/cross-references.md` #21. 아래 타입·필드·이벤트·메뉴 id 이름은 프로듀서 제안이다 — 시스템·UI 구현 중 바꿀 필요가 생기면 이 절부터 고친다.
+> 근거: 57라운드 Q22~Q37(빌드 축 1차), Q38(취기·2차 묶음 추천안 확정), 설계안 `decisions/design-2026-10-04-build-axis.md`(1.4 세트·1.6 패시브·1.7 이중 개성·2.6 개성 3지선다 칸·4.2 저주), `design-2026-10-04-build-axis-chwigi.md`(QC-0 취기 상태 합침), `design-2026-10-04-second-bundle.md`(a 보상 미리보기 · b 위험 노드 · d 숨은 노드·지도 정보 · e 상점 진열 · f 성소·성과 등급 · g 엘리트 · i 소모품).
+> 공통: 새 필드는 시스템이 채우기 전까지 빈 기본값(`null` / `[]` / `false`)이다. 이름·문장·설명은 전부 **자리표시**(스토리 확정 전, §9.8 과 같은 원칙) — UI 는 받은 문자열을 그대로 그린다. 1층 단계(57 Q23): 2단 갈래·각성은 무기 시험장에서만 실제로 나온다(실제 런에서는 해당 값이 비거나 잠김).
+
+### 14.1 태그·세트 (`UiSnapshot.build`)
+```ts
+type UiTagId =                 // 10태그 (57 Q24). 이름(name)은 자리표시
+  | 'insight'   // 간파 — 완벽 성공(패링·퍼펙트 가드·완벽 놓기·완벽 회피)
+  | 'breach'    // 돌파 — 이동기
+  | 'vital'     // 급소 — 치명
+  | 'scar'      // 상흔 — 출혈·화상
+  | 'chain'     // 연쇄 — 처치
+  | 'ranged'    // 원격 — 투사체·충격파
+  | 'weight'    // 중량 — 강공
+  | 'mark'      // 표식 — 표식·낙인
+  | 'endure'    // 버팀 — 위기·피해 감소
+  | 'drunk';    // 취기 — 1층 '잔' 테마 태그 (2층부터 층 테마 태그가 이 유니온에 추가된다)
+
+interface UiTagState {
+  id: UiTagId;
+  name: string;              // '간파' 등
+  score: number;             // 태그 점수 = 패시브 종류당 1 + Lv3 +1 + 갈래 노드 1(강화 시 최대 3) + 저주 이득 (57 Q25)
+  stage: 0 | 2 | 4 | 6;      // 지금 켜진 세트 단계 (임계 2/4/6)
+  next: number | null;       // 다음 임계 (6 달성이면 null)
+  effects: { threshold: 2 | 4 | 6; name: string; description: string; active: boolean }[]; // 세트 효과 3칸
+}
+interface UiBuildState {
+  tags: UiTagState[];        // score > 0 인 태그만, 점수 높은 순 (시스템 정렬)
+  dualTraits: UiDualTrait[]; // 얻은 이중 개성 (14.2)
+  curse: UiCurse | null;     // 지금 걸린 저주 (14.3, 동시 1개)
+}
+// UiSnapshot.build: UiBuildState
+```
+- **패시브 목록에 태그**: 기존 `UiSnapshot.passives[]` 항목에 `tags: UiTagId[]`(1~2개)·`maxLevel: number`(현행 3)를 더한다. 이중 개성은 태그 점수를 주지 않으므로 `passives` 가 아니라 `build.dualTraits` 에 둔다.
+- 세트 단계가 바뀌면 이벤트 `TAG_SET_CHANGED`(14.8).
+
+### 14.2 이중 개성 (`UiDualTrait`)
+```ts
+interface UiDualTrait {
+  id: string; name: string; description: string;
+  branchName: string;        // 짝 갈래 이름 (예 '선풍')
+  tag: UiTagId;              // 짝 태그 (취기 짝 4종은 'drunk')
+  tier: 1 | 2;               // 1단 짝(태그 2점) / 2단 짝(태그 4점)
+}
+```
+- 조건을 채우면 다음 보상 3지선다 1칸에 확정 등장(57 Q27) — 그 칸은 메뉴 줄 `kind: 'dual'`(14.4).
+
+### 14.3 저주 (`UiCurse`)
+```ts
+interface UiCurse {
+  id: string; name: string;  // 1층 7종 (만취 서약·외상·깨진 잔·불붙은 혀·맨손 맹세·저주 궤짝·피멍), 자리표시
+  benefit: string;           // 이득 한 줄
+  penalty: string;           // 저주 한 줄
+  nodesLeft: number | null;  // 남은 노드 수 (층을 넘어도 유지). 처치 수 기준 저주면 null
+  killsLeft: number | null;  // 처치 수 기준 저주(저주 궤짝 '다음 12처치')만, 그 외 null
+}
+```
+- 정화 없음·동시 1개(57 Q37). 노드 지도·HUD 노드 띠에 남은 노드 표시는 UI 판단.
+- 저주를 받을 때(위험 노드 '저주 길' 2택, 이벤트, 구조물, 개성 '피의 계약' 칸)는 기존 메뉴 흐름 — 저주 2택은 새 메뉴 id `curse`(14.7).
+
+### 14.4 메뉴 줄 종류 — 개성 3지선다 칸·보상 칸 (`UiMenu.lines[]` 확장)
+```ts
+type UiChoiceKind =
+  | 'branchA' | 'branchB'    // 갈래 A / B (1단 임계 100, 2단 임계 200)
+  | 'reinforce'              // 강화 (+15%, 갈래 태그 +1 최대 3. 각성 후 상한 5)
+  | 'bloodPact'              // 피의 계약 (2단 이후 임계 200마다 셋째 칸 — 저주 1개, 이득 1.5배·지속 +1노드)
+  | 'awaken'                 // 최종 각성 (조건 미충족이면 잠김)
+  | 'dual'                   // 이중 개성 확정 칸 (보상 3지선다)
+  | 'passive'                // 일반 패시브 선택
+  | 'curse';                 // 저주 선택 (저주 2택)
+interface UiMenuLine {
+  // ...기존 key, label, enabled, detail?
+  kind?: UiChoiceKind;
+  tags?: UiTagId[];          // 이 선택이 주는 태그 (패시브·갈래 노드)
+  rarity?: 'common' | 'rare' | 'epic' | 'legendary'; // 패시브 희귀도 (일반·희귀·영웅·전설)
+  locked?: { condition: string } | null; // 잠긴 칸 — 각성 조건 안내 (예 '2단 + 그 2단 태그 6점 + 5층 보스 이후'). locked 면 enabled=false
+}
+```
+- `evolve` 메뉴 칸 구성(27 Q4 · 57 Q37 · 설계안 2.6): 1단 임계 = [`branchA` / `branchB` / `reinforce`], 2단 임계 = [`branchA` / `branchB` / `reinforce`], 2단 이후 임계마다 = [`reinforce` / `bloodPact` / `awaken`](잠김이면 `locked`).
+- 보상 3지선다(`reward`·`passive`)에 이중 개성이 대기 중이면 한 칸이 `kind: 'dual'`.
+
+### 14.5 노드 지도 (`UiRouteNode` 확장 · `UiRoute` 확장)
+```ts
+type UiNodeRewardKind =      // 보상 미리보기 아이콘 7종 (설계안 a.1)
+  | 'gold' | 'passive' | 'personality' | 'consumable' | 'statPoint' | 'curse' | 'unknown';
+type UiNodeGrade = 'perfect' | 'good';   // 완(完) · 양(良)
+interface UiRouteNode {
+  // ...기존 id, type, name, col, row, links, state, region?, desc?
+  reward: UiNodeRewardKind | null; // 공개된 보상. null = 아직 비공개(다음 단만 공개)·상점·휴식. 'unknown' = '?'(이벤트·숨김)
+  risk: 'elite' | 'curse' | null;  // 위험 노드 (엘리트 길 / 저주 길, 1층 1개)
+  riskText: string;                // 진입 확인('넘어가시겠습니까?')에 붙일 위험 한 줄. 위험 노드 아니면 ''
+  prefixes: string[] | null;       // 엘리트 접두어 이름 (지도 정보로 공개된 경우만, 아니면 null)
+  eventName: string | null;        // 이벤트 내용 이름 (지도 정보로 공개된 경우만)
+  hidden: 'smudge' | 'located' | 'found' | null; // 숨은 노드: 얼룩만 / 위치 표시(지도 정보) / 조사로 길 열림. 일반 노드는 null
+  grade: UiNodeGrade | null;       // 지나온 노드의 성과 도장
+}
+interface UiRoute {
+  // ...기존 floor, nodes, currentId, choosing
+  intel: { nextTier: boolean; fullFloor: boolean; hiddenLocated: boolean }; // 산 지도 정보 3품목
+}
+```
+- 숨은 노드는 `hidden: 'smudge'` 동안 이어지는 노드의 `links` 에 들어가지 않는다(UI 는 얼룩만 그림). `found` 가 되면 `links` 에 들어가고 고를 수 있다.
+- 지도 정보 구매: 국경 초소 '지도 장수' = 새 메뉴 id `mapInfo`(14.7), 상점 노드 = `shop` 메뉴 줄(`group: 'mapInfo'`, 14.6).
+
+### 14.6 상점 진열 (`shop` 메뉴 줄 확장)
+```ts
+interface UiMenuLine {
+  // ...14.4 확장 포함
+  group?: 'fixed' | 'display' | 'reroll' | 'chest' | 'mapInfo'; // 고정 4칸 / 진열 3칸(패시브 2·소모품 1) / 리롤 / 궤짝 덤 / 지도 정보
+  price?: UiCost;            // 가격 (§9.1 UiCost). 리롤은 15 → 25 → 35
+  soldOut?: boolean;         // 팔림 (enabled=false)
+}
+```
+- 리롤 줄은 상점 안 전표 리롤만(토큰 아님 — 57 Q38 충돌 처리). 리롤 뒤 같은 id 로 `MENU_OPEN` 을 다시 보낸다(§9.4 규칙).
+
+### 14.7 새 메뉴 id
+| id | 여는 때 | 줄 | `cancelKey` |
+|---|---|---|---|
+| `curse` | 저주 길 진입·이벤트 등 저주 2택 | `kind: 'curse'` 2줄 (`detail` = 이득·저주·지속) | 없음(필수) — 저주 길은 진입 확인에서 이미 동의 |
+| `event` | 이벤트 노드 (1층 9종) | 선택지 + 마지막 줄 '지나간다'(`'0'`) — §9.4 구조물 메뉴 틀 | `'0'` |
+| `mapInfo` | 국경 초소 지도 장수 | 3품목(`price`) + 그만두기 | `'0'` |
+| `consumableSwap` | 소모품 칸이 찬 상태에서 다른 종류 획득 | '바꾼다' / '그대로 둔다' | 없음(필수) |
+- `UiMenuId` 유니온에 위 4개를 더한다.
+
+### 14.8 소모품 칸 (`UiSnapshot.consumable`)
+```ts
+interface UiConsumableSlot {
+  key: string;               // 사용 키 이름 (시스템이 읽음 — 새 키, 독주 Q 와 별개)
+  item: { id: string; name: string; description: string; kind: 'throw' | 'drink'; count: number; max: number } | null; // 같은 종류 최대 2. 빈 칸이면 null
+}
+// UiSnapshot.consumable: UiConsumableSlot | null   (소모품 칸이 없는 모드면 null)
+```
+- 소모품 키는 시스템이 읽는다(§9.3 의 E 와 같은 방식). 투척은 누르면 커서 방향 즉시. UI 는 HUD 칸·키 안내만.
+
+### 14.9 엘리트 이름표 (`UiSnapshot.elites`)
+```ts
+interface UiElite {
+  id: string;
+  name: string;              // 이름표 문구 (예 '불붙은 결사병', 자리표시)
+  prefixes: string[];        // 접두어 (1층 1개)
+  hp: number; maxHp: number;
+  screen: { x: number; y: number }; // 머리 위 화면 좌표 (논리 960×540 px, 카메라 반영 — §9.1 screen 과 같은 규칙)
+}
+// UiSnapshot.elites: UiElite[]   (화면 안의 살아 있는 엘리트만)
+```
+- 외곽선·머리 위 문장 아이콘·접두어 fx 는 월드 그림(시스템·아트). 이 필드는 UI 가 이름표를 그릴 때 쓴다.
+
+### 14.10 노드 성과 등급 · 진행 표시
+```ts
+interface UiNodeTrial {      // 잔 구간 전투·위험 노드 진행 중에만
+  timeLimitMs: number;       // 1층 50000 (데이터 값)
+  elapsedMs: number;
+  hitTaken: boolean;         // 피격 있었음
+}
+// UiSnapshot.nodeTrial: UiNodeTrial | null
+interface UiNodeGraded {
+  nodeId: string;
+  grade: UiNodeGrade | null; // null = 등급 없음
+  noHit: boolean; inTime: boolean;
+  deltas: { gold?: number; personality?: number }; // 받은 보상 (위험 노드 ×2 반영)
+  text: string;              // 결과 문구 (자리표시)
+}
+```
+- 노드 종료 시 `NODE_GRADED`(14.11) — UI 가 일기장 도장 연출. 지도에는 `UiRouteNode.grade` 로 남는다. 보상은 메뉴 없이 자동 지급(설계안 0.3-3).
+- 도전 성소(C4 전장 깃발): `UiStructureKind` 에 `'warFlag'` 추가(E, 첫 웨이브 전 비전투에만), 시작·종료는 기존 `CHALLENGE_STARTED`·`CHALLENGE_CLEARED`(kind 에 `'warFlag'` 추가).
+
+### 14.11 이벤트 (시스템 → UI)
+| 이벤트 | 값 | 페이로드 | 시점 |
+|---|---|---|---|
+| `TAG_SET_CHANGED` | `'ui:tag-set-changed'` | `{ tag: UiTagId; name: string; stage: 0 \| 2 \| 4 \| 6; effectName: string }` | 세트 단계가 오르거나 내림 |
+| `DUAL_TRAIT_GAINED` | `'ui:dual-trait-gained'` | `UiDualTrait` | 이중 개성 획득 |
+| `CURSE_GAINED` | `'ui:curse-gained'` | `UiCurse` | 저주 받음 |
+| `CURSE_ENDED` | `'ui:curse-ended'` | `{ id: string; name: string }` | 저주 기간 끝 |
+| `NODE_GRADED` | `'ui:node-graded'` | `UiNodeGraded` | 성과 등급 노드 종료 |
+| `HIDDEN_NODE_FOUND` | `'ui:hidden-node-found'` | `{ nodeId: string }` | 단서 조사로 숨은 길 열림 |
+| `PERFECT_SUCCESS` | `'ui:perfect-success'` | `{ kind: 'parry' \| 'perfectGuard' \| 'perfectRelease' \| 'perfectEvade' }` | 완벽 성공 사건 (완벽 회피 = 적 공격 판정 직전 0.15초 안 대쉬·그림자 걸음, 57 Q28) |
+| `CONSUMABLE_USED` | `'ui:consumable-used'` | `{ id: string; name: string; left: number }` | 소모품 사용 |
+- 월드 문구: '완벽 회피' 표시는 §13 'PERFECT GUARD'·'PARRY' 와 같은 방식(시스템 월드 텍스트)을 제안. UI 는 `PERFECT_SUCCESS` 를 HUD 연출(예: 간파 세트 진행)에만 쓴다.
+- 기존 `STATE` 스냅샷으로 모든 값이 매 프레임 오므로 위 이벤트는 연출용이다(구독 선택).
+
+### 14.12 그 밖 (이번 초안 범위 밖 — 다음 인터뷰 후보)
+- 취기 상태(QC-0 합침): HUD 상태 `drunk`(§9.2)를 그대로 쓰고, 세트 2 '한 잔'의 취기 상태 5초는 `remainMs`/`durationMs` 를 채우는 안 — 형태만 메모, 확정은 시스템 구현 때.
+- 보스 파훼 결정타 이벤트·결과 표시, 이벤트 E4 '일기장의 빈 쪽'의 갈래 트리 미리보기 데이터, 저주 남은 노드의 노드 띠 표시 방식 — 별도.

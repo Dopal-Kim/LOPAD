@@ -3,9 +3,9 @@
 아트 파트는 아래 형식으로 내보내고, 시스템 파트는 아래 형식만 믿고 로드한다. 변경은 양쪽 합의 후 이 문서부터 고친다.
 
 ## 1. 스프라이트 시트 (`assets/sprites/<분류>/<이름>_<동작>.png` + `.json`)
-- 격자 시트, 패딩 0. **행 = 방향**(`directions` 순서: down, up, left, right), **열 = 프레임**. 프레임 번호 = `row * frames + column`.
-- JSON 필드: `image, action, frameWidth, frameHeight, frames, directions[], fps, frameDurationsMs[], loop, pivot{x,y}`.
-- 시스템은 `this.load.spritesheet(key, png, { frameWidth, frameHeight })` 로 읽고, `anims.create({ key: '<이름>_<동작>_<방향>', frames: row 범위, frameRate: fps 또는 duration 배열, repeat: loop ? -1 : 0 })` 로 등록한다.
+- 격자 시트, 패딩 0. **행 = 방향**(`directions` 순서: down, up, left, right), **열 = 프레임**. 프레임 번호 = `row * frames + column`. → **(57라운드 → §19) v3 아틀라스 시트는 `row * atlas.grid.columns + column`. 정수 `frames` 는 `framesPerDirection` 으로 바뀌고 `frames` 는 프레임 사전(객체)이다.**
+- JSON 필드: `image, action, frameWidth, frameHeight, frames, directions[], fps, frameDurationsMs[], loop, pivot{x,y}`. (§19 적용 시트: 정수 `frames` → `framesPerDirection`, `frames{}`·`atlas{}`·`meta{}` 추가)
+- 시스템은 ~~`this.load.spritesheet(key, png, { frameWidth, frameHeight })` 로 읽고~~ → **(57라운드 Q16·Q38 → §19) v3 시트(player·weapons·fx·enemies·bosses·structures)는 트림 아틀라스로 읽는다(`this.load.atlas`, 4096 초과는 `this.load.multiatlas`). 격자 `spritesheet` 로드는 §19 적용 밖 시트(타일셋 등)·옛 격자 JSON 에만 남는다.** 그 뒤 `anims.create({ key: '<이름>_<동작>_<방향>', frames: row 범위, frameRate: fps 또는 duration 배열, repeat: loop ? -1 : 0 })` 로 등록한다.
 - 애니메이션 키 규칙: `player_walk_down`, `dummy_idle_left` 등 `<이름>_<동작>_<방향>`.
 - 피벗: 스프라이트 원점은 `pivot`(발 위치). 물리 바디는 시스템이 별도로 정한다(현재 플레이어 바디 12×12 가 발밑에 오도록).
 - 동작 목록: 주인공 idle/walk/attack/dash/hurt/death. 일반 적·보스 idle/walk/attack/death(+ 보스는 phase2 등 추가 가능, JSON 에 있으면 시스템이 선택적으로 사용).
@@ -123,6 +123,7 @@
 - 근거: 52라운드 Q7·Q8. 내부 렌더 1920×1080, 논리 좌표·UI 배치는 960×540 기준 유지.
 - `pixelScale` 의미 확장: 960×540 논리 px 하나에 들어가는 도트 수의 역수. 기존 v1 = 2(카메라 2배 시절 도트, 시스템이 1로 간주해 온 '구 시트'), v2 = 1(32×48 = 화면 32×48), **v3 = 0.5**(64×96 도트 = 화면 32×48 크기). 시스템은 `pixelScale` 로 길이 필드(hitRadius·thrust·light radius·occludeAbove·피벗)를 환산한다.
 - 경로: `sprites/<category>/v3/…` — v3 → v2 → 구 시트 순으로 우선 로드(동작 단위 혼용 허용).
+- **(57라운드 → §19)** v3 시트의 로드 형식은 격자 `spritesheet` 가 아니라 **트림 아틀라스**(§19.2·§19.3). 픽셀 크기·피벗·프레임 수·ms 등 이 절의 규격은 그대로이고, 저장 형식만 바뀐다.
 - 주인공 v3: ~~64×96~~ **96×144(53라운드 Q1 → §13)**, 피벗 = 발 중앙(아트가 JSON `pivot` 으로 명시), 색 예산 30. 프레임: idle 6 · walk 8 · run 8 · 연격 타당 6~8 · dash 5 · hurt 3 · death 10(재로 무너지고 일기장만 남음).
 - 보스 v3: ~~128×192(화면 64×96)~~ **1층 보스 192×240(화면 96×120), 피벗 (96,220)(54라운드 Q14·Q22 → §15)**. 이펙트 v3: 기존 크기 ×2, 같은 생성 스크립트로 재출력.
 - 타일·구조물·세트는 32px(v2) 유지.
@@ -145,6 +146,7 @@
 - **등 상흔 기준점**: 주인공 v3 몸 JSON 에 프레임별 `scarAnchor` = `{x, y, w, h, rot, visible}`(도트 좌표, 등 중앙 사각형). 뒷모습(up)은 visible:true, 측면은 어깨 쪽 작은 사각형, 정면은 false. 시스템이 플레이어가 그은 획을 이 사각형에 맞춰 줄여 빛나는 균열로 겹쳐 그린다(몸 위, 조명 영향 없음).
 - **Gemini 외벽 테두리**: `assets/tiles/border/<region>/` — 북(`north.png`, 가로 이음새 없는 띠)·남(`south.png`)·서(`west.png`)·동(`east.png`)·모서리(선택) 그림 + `border.json`(각 띠의 화면 높이/폭 논리 px, 바닥과 맞닿는 기준선 y, 반복 여부, 광원 자리 `lights[]`). 바닥·충돌은 기존 격자, 벽 칸 위에 테두리 그림을 덮는다. 세부 키는 시범(외곽 거리) 산출 뒤 확정.
 - (53라운드, 시스템 61e326b 해석 확정) 테두리 `border.json` 키: `bands.{north,south,west,east}`(`image`·`emissive`·`width`·`height`·`baselineY`/`baselineX`·`repeat: "x"|"none"|"sides"`·`focusX`·`lights[]`), `bands.north.sides.left|right`(`image`·`emissive`·`width`·`repeat:"x"`·`lights[]`), `doors.{north,south,west,east}`(`file`·`w`·`h`·`baselineY`/`baselineX`·`openingX/Y/W/H`·`mirrorOf`), `ambient`(참고값, 시스템은 `lighting.json` 기준). 성문은 가운데 조각의 성문이 북쪽 가운데 출구.
+- **(57라운드 → §19.4)** 외벽 그림 파일은 `.png` 가 아니라 **`.webp`**(PNG 삭제), 가로·세로 4096 초과 띠는 `pieces[]` 로 나뉜다. 위 키의 뜻은 그대로.
 - (53라운드 Q42·Q43) **이펙트 v3**: `sprites/fx/v3/<이름>.png/.json`, `pixelScale: 0.5`. 우선순위 v3 → v2 → 구(시트 단위 대체). 크기는 구 fx(pixelScale 2 간주)와 화면 크기가 같게 도트 ×4, 주인공에 붙는 `dash_trail`·`dash_dust` 는 ×6(§11 의 '기존 크기 ×2' 문구 정정). 프레임·ms·loop·anchor·spawn·segments·directions 는 구 시트와 동일. 도트 단위 길이(pivot·hitRadiusPx·drift.pxPerSec·tilePeriodPx)는 시스템이 pixelScale 로 환산, `scale`·`shake.px` 는 환산하지 않음. `telegraph_line` 타일 주기 64도트. 색 시트당 14 이하, 주인공 재 램프 7색 공유 허용.
 - (53라운드 Q44~Q46) **무기별 이동 몸 선택**: 칼 `player_<idle|walk|run>`(칼집 쥔 몸), 대검·단검·활 `player_<idle|walk|run>_free`, 대쉬 공통 `player_dash`. 휴대 `<weapon>_carry_<동작>`, 뽑아 든 상태 `<weapon>_carry_drawn_<동작>`. 무기 시트 크기는 무기마다 다를 수 있음(대검 확대 틀) — 시스템은 JSON `frameWidth/frameHeight`·`pivot`·`playerFrameOffset` 을 읽는다. 추가 필드 `bodySheet`·`bodySheetByWeapon`·`bladeTipAnchors`·`glowRule`·`design`.
 - (53라운드 Q61~Q64) **무기 이펙트 v3**: `sprites/fx/v3/<weapon>_<동작>[_<갈래>]`, 색은 주인공 재·호박 램프만(무기별 강조색 없음). fx JSON `paletteSwap: "none"` — 시스템은 지역 바닥 팔레트 교체에서 fx 를 제외한다. fx 는 조명(라이트맵) **위**에 그린다(어둠에 묻히지 않게). 칼·대검 연격 궤적은 칼끝 반경까지 메운다. 판정 밖 프레임(선딜·잔광)은 호박 A25(#eecc78) 이하 색(반투명 아님, Q66), 백열 X0/X1 은 판정 프레임만(Q65), 지속 버프 루프(giant·gale)는 예외(Q67). 공용 fx 도 팔레트 교체 제외(Q68). `shadowstep_ghost` 는 주인공 크기(×6).
@@ -426,7 +428,7 @@
 ### 18.10 자원·상태 표시 (Q7·Q8·Q13~Q20·Q48·Q51·Q55)
 - **검기·울분 오버레이(무기 위 덧그림, Q14·Q15)**:
   - 이름: `weapons/v3/<칼 무기 시트>_ki1`~`_ki3`(검기 1~3단), `weapons/v3/<대검 무기 시트>_grudge1`~`_grudge3`(울분 단계).
-  - 그리는 법(`drawRule`): 대상 무기 시트(`overlayOf`)를 그린 **바로 위**(`depth: "above_weapon"`)에 **같은 프레임 번호(row*frames+col)·같은 시각·같은 피벗**(주인공 피벗 + `playerFrameOffset`)으로 겹친다. 틀·피벗·offset·프레임 수·`frameDurationsMs`·행 = 대상 시트와 같음(`bodySheet`·`level` 표시). 단계가 바뀌면 같은 프레임 번호로 오버레이만 바꿔 낀다. **0단이거나 대상 시트의 오버레이 파일이 없으면 생략**.
+  - 그리는 법(`drawRule`): 대상 무기 시트(`overlayOf`)를 그린 **바로 위**(`depth: "above_weapon"`)에 **같은 프레임 번호(row*frames+col — 57라운드 아틀라스는 row*`atlas.grid.columns`+col, §19.2)·같은 시각·같은 피벗**(주인공 피벗 + `playerFrameOffset`)으로 겹친다. 틀·피벗·offset·프레임 수·`frameDurationsMs`·행 = 대상 시트와 같음(`bodySheet`·`level` 표시). 단계가 바뀌면 같은 프레임 번호로 오버레이만 바꿔 낀다. **0단이거나 대상 시트의 오버레이 파일이 없으면 생략**.
   - 3단 `glowFrames` = 대상 시트의 판정 프레임(검기 3단 판정 날선 흰 픽셀 허용, Q55). 칼집 안(칼끝 null) 칸·칼집 휴대 시트는 칼집 금을 단계 색으로 달굼(1단 연기 / 2·3단 작은 불, `sheathNote`).
   - **결정(Q55)**: 오버레이 시트 방식, 새 칼·대검 동작에도 적용. 울분 단계 = 게이지 구간 1~33 / 34~66 / 67~100%(값은 시스템 데이터) — 차지 내려찍기로 전부 소모하면 오버레이 없음.
   - `greatsword_leap_slam_grudge1~3` 도 `bodyInOverlayFrames [3,4,5]`(§18.8) · 위로 올려 그리기(`airOffsetPx`)는 무기와 같이.
@@ -480,3 +482,60 @@
 | `headTopAnchors` | 몸 `player_groggy` | 몸 시트 도트 | 10프레임 모두 |
 | `critAnchors` | fx `dagger_backstab` | 몸 시트 도트(방향당 1점) | — |
 | `sheathMouthAnchors` | 무기 `katana_carry_groggy` | 몸 시트 도트 | 10프레임 모두 |
+
+## 19. 57라운드 트림 아틀라스·외벽 WebP (저장 형식 변경)
+- 근거: `decisions/2026-10-04-round-57-systems-review.md` Q16~Q19(고른 무기만 런 시작 때 로드 · 빈 공간을 잘라낸 아틀라스 · 외벽 WebP 손실 압축과 4096px 초과 분할), Q38(아틀라스 JSON 형식은 아트안으로 통일 — 정수 `frames` → `framesPerDirection`, `frames{}` hash, `atlas.grid.columns` / 프레임 여백 2px / 외벽 albedo q90·발광 무손실 / 반복 타일·리본 5종 트림 안 함 / assets 교체 + 원 격자 PNG·외벽 PNG 삭제 / 적·보스·구조물 v3 도 같은 변환), 점검 보고 `decisions/research-2026-10-04-optimization-audit.md` A1~A4. 산출: 아트 866d609(변환 도구·스테이징), 시스템 a5d89fc(아틀라스 로더 — 격자·아틀라스 양쪽 지원).
+- **바뀌는 것은 저장 형식뿐이다.** §1~§18 의 크기(원 프레임 `frameWidth`×`frameHeight`)·피벗·앵커·프레임 수·`frameDurationsMs`·행 규약·추가 필드의 뜻은 그대로다.
+
+### 19.1 적용 범위
+| 대상 | 경로 | 형식 |
+|---|---|---|
+| 주인공 몸 | `sprites/player/v3/` | 트림 아틀라스 |
+| 무기 (휴대·연격·오버레이 `_ki1~3`·`_grudge1~3` 포함) | `sprites/weapons/v3/` | 트림 아틀라스 |
+| 이펙트 | `sprites/fx/v3/` | 트림 아틀라스 (아래 '트림 안 함' 제외) |
+| 적 | `sprites/enemies/v3/` | 트림 아틀라스 (57 Q38 범위 확장) |
+| 보스 | `sprites/bosses/v3/` | 트림 아틀라스 (57 Q38 범위 확장) |
+| 구조물 | 구조물 v3 시트 | 트림 아틀라스 (57 Q38 범위 확장) |
+| 외벽 테두리 | `tiles/border/<region>/` | WebP (§19.4) |
+| 타일셋·소품 시트 (`tiles/**` 의 격자 타일셋) | §2·§9·§12·§14 | **변경 없음**(격자 유지) |
+
+- **트림 안 함(`atlas.noTrim: true`)**: 반복 타일 계열 fx(`telegraph_line` 처럼 타일 주기로 이어 그리는 시트)와 칼끝 리본(`ribbon_ash`·`ribbon_ash_thin` 등) — **5종**(57 Q38). 이 시트도 아틀라스 JSON 형식은 같고 프레임 사각형만 원 프레임 크기 그대로다. 5종의 정확한 목록은 아트 변환 도구 설정이 기준이다.
+- 무기 시트 로드 시점(Q16): 고른 무기의 시트만 런 시작 때 로드하고, 시험장 등에서 무기를 바꾸면 이전 무기 시트를 해제한다(Q38 시스템 — 시스템 처리, 시트 변경 없음).
+
+### 19.2 아틀라스 JSON (`<이름>.json` + 페이지 PNG)
+기존 시트 JSON 의 필드를 유지하고 아래만 바뀌거나 더해진다.
+
+| 필드 | 형태 | 뜻 |
+|---|---|---|
+| `framesPerDirection` | number | **옛 정수 `frames`**(방향 한 행의 프레임 수). 이름만 바뀜 |
+| `frameWidth`·`frameHeight` | number | 원 프레임(트림 전) 크기 — 그대로. = 각 프레임의 `sourceSize` |
+| `frames` | object | **TexturePacker JSON Hash** 형식의 프레임 사전. 키 = `String(row * columns + column)`(`columns` = `atlas.grid.columns`), 값 = `{ frame{x,y,w,h}, rotated: false, trimmed, spriteSourceSize{x,y,w,h}, sourceSize{w,h} }` |
+| `atlas.version` | `"atlas57-1"` | 아틀라스 형식 판 |
+| `atlas.grid` | `{ columns, rows, frameWidth, frameHeight, frameCount }` | 원 격자 정보 — 열 수·행 수(방향 수)·원 프레임 크기·전체 프레임 수 |
+| `atlas.padding` | `2` | 페이지 안 프레임 사이 여백(px) |
+| `atlas.noTrim` | boolean | 트림하지 않은 시트(§19.1 '트림 안 함') |
+| `atlas.emptyFrames` | 목록 | 완전히 빈 프레임 — 1×1 투명 사각형으로 저장, 키·번호는 유지 |
+| `atlas.dedupedFrames` | 목록·사전 | 그림이 같은 프레임을 한 사각형으로 합친 기록 — 여러 키가 같은 `frame` 사각형을 가리킨다 |
+| `atlas.pages` | number | 페이지 수 (1 = 단일 PNG) |
+| `meta` | `{ image, size{w,h}, … }` | TexturePacker 메타. `meta.size` = 페이지 크기 |
+| `image` | string \| `null` | 단일 페이지면 페이지 PNG. **4096px 를 넘어 나눈 시트는 `null` + `textures[]`** |
+| `textures[]` | 배열 | **multiatlas**: 페이지마다 `{ image, size, frames }`. 키 규칙은 `frames` 와 같다 |
+
+- **좌표 원칙**: `pivot` 과 §3~§18 의 모든 도트 좌표(앵커·`bladeTipAnchors`·`scarAnchor`·`plantAnchors`·`koiguchiAnchors`·`cupAnchors`·`arrowSpawnAnchors`·`headTopAnchors` 등)는 **원 프레임(`sourceSize`) 좌표**다. 트림 오프셋(`spriteSourceSize`)은 로더가 처리하므로 좌표를 다시 계산하지 않는다.
+- **프레임 번호**: 애니메이션은 `String(row * atlas.grid.columns + column)` 키로 만든다. §1 `row * frames + column`, §18.10 오버레이 '같은 프레임 번호' 규칙도 이 번호로 읽는다(값은 같다 — 열 수가 같으므로).
+- **빈 프레임**: 몸 칸이 비어 있는 `bodyInOverlayFrames`(§18.8) 같은 칸도 키를 지우지 않고 1×1 로 둔다 — 프레임 수·시각이 어긋나지 않게.
+- 페이지 한 변 최대 **4096px**. 넘으면 multiatlas 로 나눈다.
+
+### 19.3 로드 (시스템)
+- §19.1 범위 시트는 아틀라스로 로드한다(`this.load.atlas` — `textures[]` 가 있으면 `this.load.multiatlas`). 애니메이션 키 규칙(`<이름>_<동작>_<방향>`)은 §1 그대로.
+- 시스템 로더는 격자·아틀라스 양쪽을 읽는다(a5d89fc). 어느 쪽인지 고르는 기준(`atlas` 블록 유무 / `frames` 가 객체인지)은 시스템 구현을 따른다.
+- Canvas 렌더러 폴백에서 트림 위치 1px 차는 허용한다(57 Q38 시스템).
+
+### 19.4 외벽 테두리 WebP (`tiles/border/<region>/`)
+- 그림 파일: `.png` → **`.webp`**. 그림(albedo) = **손실 WebP q90**, 알파 = **무손실**, 발광(`emissive`) = **무손실 WebP**. 옛 외벽 PNG 는 삭제(57 Q38).
+- `border.json`(§13) 추가 키: **`imageFormat`**(그림 형식 표시, `"webp"`), 띠 한 변이 **4096px 를 넘으면 `pieces[]`** = `[{ image, emissive, x, y, width, height }]` — 한 띠를 여러 조각으로 나누고, 조각마다 그림·발광 파일과 띠 안 위치·크기를 적는다. 시스템은 조각을 그 위치에 이어 그린다. 그 밖의 §13 키(`width`·`height`·`baselineY`/`baselineX`·`repeat`·`lights[]`·`doors`·`sides` 등)의 뜻은 그대로.
+
+### 19.5 새 시트 제작 규칙
+- §19.1 범위의 **새 시트·고친 시트는 모두 atlas57 파이프라인**(아트 오프라인 Python 변환 도구, 866d609)을 거쳐 아틀라스로 내보낸다. 원 격자 PNG 는 `assets/` 에 두지 않는다(작업 원본 보관은 아트 파트 폴더).
+- 새 외벽 그림도 §19.4 규칙(WebP·4096 분할)으로 내보낸다.
+- 형식을 바꿀 때는 이 절부터 고친다(문서 머리말 규칙).
