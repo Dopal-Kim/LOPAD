@@ -7,6 +7,7 @@
   flipmask Q55 공중제비 도약 찍기 bodyInOverlayFrames 칸의 '칼만' 마스크(E1 렌더 재현) → flipmask_greatsword_leap_slam.png  flipmask.py
   overlay  Q14 검기 weapons/v3/<칼 시트>_ki1~3 · Q15 울분 weapons/v3/<대검 시트>_grudge1~3                      overlay.py
            (Q55: 새 칼·대검 기본기 6종 + 게임이 쓰는 옛 칼 시트 draw·sheathe·special 포함 — overlay.KATANA_SHEETS/GS_SHEETS)
+           (Q62: 대검 가드 자세·뽑기·넣기 greatsword_special·draw·sheathe 포함)
   brand    Q16·Q19 fx/v3/dagger_brand_mark · dagger_brand_burst · dagger_overheat_burst · dagger_overheat_cool      brand.py
   guard    Q7 fx/v3/guard_perfect_fx                                                                           guard.py
   groggy   Q7·Q18 player/v3/player_groggy · weapons/v3/{katana,greatsword}_carry_groggy · fx/v3/player_groggy_swirl groggy.py

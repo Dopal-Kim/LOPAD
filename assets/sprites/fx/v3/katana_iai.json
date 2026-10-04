@@ -57,7 +57,7 @@
  "impactFrame": 1,
  "burstFrame": 7,
  "burstAtLineMs": 390,
- "burstNote": "납도 딸깍(몸 clickFrame)과 같은 시각. 연출만(백열 없음) — 터짐에 피해를 주면 glowFrames 에 7 추가 가능",
+ "burstNote": "납도 딸깍(몸 clickFrame)과 같은 시각. 터짐은 연출만 — 추가 피해 없음, 백열 없음(56라운드 Q53·Q55)",
  "hitShape": {
   "type": "rect",
   "fromPx": 22.8,

@@ -430,20 +430,20 @@
   - 3단 `glowFrames` = 대상 시트의 판정 프레임(검기 3단 판정 날선 흰 픽셀 허용, Q55). 칼집 안(칼끝 null) 칸·칼집 휴대 시트는 칼집 금을 단계 색으로 달굼(1단 연기 / 2·3단 작은 불, `sheathNote`).
   - **결정(Q55)**: 오버레이 시트 방식, 새 칼·대검 동작에도 적용. 울분 단계 = 게이지 구간 1~33 / 34~66 / 67~100%(값은 시스템 데이터) — 차지 내려찍기로 전부 소모하면 오버레이 없음.
   - `greatsword_leap_slam_grudge1~3` 도 `bodyInOverlayFrames [3,4,5]`(§18.8) · 위로 올려 그리기(`airOffsetPx`)는 무기와 같이.
-  - 대상 시트(07d3c00 + 5f7dae8):
+  - 대상 시트(07d3c00 + 5f7dae8 + 56라운드 작업 G):
 
 | 자원 | 대상 무기 시트 (`weapons/v3/`, 각 `_ki1~3` / `_grudge1~3`) |
 |---|---|
 | 검기 (16시트 × 3) | `katana_carry_idle`·`katana_carry_walk`·`katana_carry_run`·`katana_carry_dash`, `katana_carry_drawn_idle`·`katana_carry_drawn_walk`·`katana_carry_drawn_run`·`katana_carry_drawn_dash`, `katana_rise`·`katana_fall`·`katana_issen`, `katana_counter`·`katana_iai`, `katana_draw`·`katana_sheathe`·`katana_special` |
-| 울분 (18시트 × 3) | `greatsword_carry_idle`·`greatsword_carry_walk`·`greatsword_carry_run`·`greatsword_carry_dash`, `greatsword_carry_drawn_idle`·`greatsword_carry_drawn_walk`·`greatsword_carry_drawn_run`·`greatsword_carry_drawn_dash`, `greatsword_sweep_cw`·`greatsword_cleave`·`greatsword_sweep_ccw`, `greatsword_charge`·`greatsword_charge_slam`·`greatsword_charge_plunge`, `greatsword_tackle`·`greatsword_brace_upswing`·`greatsword_leap_slam`·`greatsword_guard_rush` |
+| 울분 (21시트 × 3) | `greatsword_special`·`greatsword_draw`·`greatsword_sheathe`(Q62 추가), `greatsword_carry_idle`·`greatsword_carry_walk`·`greatsword_carry_run`·`greatsword_carry_dash`, `greatsword_carry_drawn_idle`·`greatsword_carry_drawn_walk`·`greatsword_carry_drawn_run`·`greatsword_carry_drawn_dash`, `greatsword_sweep_cw`·`greatsword_cleave`·`greatsword_sweep_ccw`, `greatsword_charge`·`greatsword_charge_slam`·`greatsword_charge_plunge`, `greatsword_tackle`·`greatsword_brace_upswing`·`greatsword_leap_slam`·`greatsword_guard_rush` |
 
-  - 오버레이가 없는 무기 시트(재생 중 생략): 칼 `katana_crescent`(보관)·`katana_combo1~3`·`katana_carry_groggy`, 대검 `greatsword_special`·`greatsword_draw`·`greatsword_sheathe`·`greatsword_dashslash`(태클로 교체)·`greatsword_slam`·`greatsword_combo1~3`·`greatsword_carry_groggy`.
+  - 오버레이가 없는 무기 시트(재생 중 생략): 칼 `katana_crescent`(보관)·`katana_combo1~3`·`katana_carry_groggy`, 대검 `greatsword_dashslash`(태클로 교체)·`greatsword_slam`·`greatsword_combo1~3`·`greatsword_carry_groggy`.
 - **낙인 표식 `fx/v3/dagger_brand_mark`(Q16)**: 44×40, 피벗 (17,34), 6프레임 `[40, 70, 120, 120, 120, 120]`, **행 = 스택 `"1"`~`"5"`**(`rowsAre: "stacks"`, 방향으로 고르지 않음·회전 없음), **`anchor: "enemy_head"`**, `followTarget`, `depth: "above"`, `glowFrames [0]`. 스택이 오를 때마다 그 행의 stamp [0,1] 1회 → `loopRange [2,5]` 반복, 스택이 그대로면 루프만. 기폭·과열 폭발·대상 사망 때 지움. **결정(Q55): 셈 획은 적 머리 위.**
 - **낙인 기폭 `fx/v3/dagger_brand_burst`(Q16·Q18)**: 152×136, 피벗 (76,68), 8프레임 `[40, 40, 50, 60, 70, 80, 100, 120]`, **행 = 크기 s·m·l**(`rowsAre: "sizes"`) — 스택 1~2 = s(반경 34 도트)·3~4 = m(46)·5 = l(60)(**결정 Q55: 스택 → s/m/l**). `anchor: "hitbox_center"`, `impactFrame 1`, `glowFrames [1,2]`, `shakeHint` s 2px·80ms / m 3·100 / l 5·130, `light`. 생성: 그림자 걸음으로 낙인 적 등 뒤에 선 순간 1회 + 과열 100% 일괄 폭발 때 낙인 적마다 1회(가까운 적부터 40ms 간격 권장).
 - **과열 폭발 `fx/v3/dagger_overheat_burst`(Q19 · Q51 전용 fx)**: 224×144, 피벗 (110,78), 8프레임 `[40, 40, 50, 60, 70, 80, 90, 110]`, 1행 `any`, `anchor: player_pivot`, `impactFrame 0`, `radiusPx 92`, `glowFrames [0,1]`, `light`, `shakeHint` 4px·140ms. 과열 100% 순간 1회 — 주변 낙인 적의 기폭은 이 시트 f1 시작부터 가까운 순서로 `dagger_brand_burst`.
   - 식힘 `fx/v3/dagger_overheat_cool`: 72×128, 피벗 (35,117), 6프레임 ×110ms 루프, `anchor: player_pivot`·`followTarget`. 식는 동안(잠깐 느려짐) 루프, 끝나면 마지막 칸에서 끔(반투명 금지).
 - **퍼펙트 가드·패링 `fx/v3/guard_perfect_fx`(Q7·Q8·Q48)**: 88×104, 피벗 (44,52), 7프레임 `[30, 40, 50, 60, 70, 80, 90]`, **행 = 종류 `guard`·`parry`**(`rowsAre: "kinds"`) — guard = 퍼펙트 가드(피해 0, 튕기지 않음), parry = 패링 성공. **`anchor: "guard_contact"`**, `rotate: true`·`drawnFacing: "right"`(그림 오른쪽 = 공격이 들어온 쪽, 주인공 → 공격자·투사체 각도)·`flipY: "allowed"`, `depth: "above"`, `impactFrame 0`, `glowFrames [0,1]`(f0 틈 흰 픽셀 허용, Q55), `holdFrame 1`, `light`, `shakeHint` guard 2px·70ms / parry 3·90.
-  - **결정(Q55): 기존 `parry_flash`·`guard_wave`(§16)를 대체**한다(JSON `pairsWith` 의 '함께 또는 대신'은 이 결정으로 정리). 문구 'PERFECT GUARD'·'PARRY'(Q8)는 UI·시스템 텍스트.
+  - **결정(Q55·Q62): 퍼펙트 가드·패링 순간에만 기존 `parry_flash`·`guard_wave`(§16)를 대체**한다. 일반 가드의 `guard_wave` 는 유지(Q62)(JSON `pairsWith` 의 '함께 또는 대신'은 이 결정으로 정리). 문구 'PERFECT GUARD'·'PARRY'(Q8)는 UI·시스템 텍스트.
   - 판정 창: 가드를 누른 직후 0.15초 안 피격 — 칼 패링·대검 퍼펙트 가드 공통(Q7·Q48).
 - **그로기 `player/v3/player_groggy`(Q7·Q13·Q19)**: 96×144, 피벗 (48,138), 10프레임 ×150ms = 1500ms 루프(한 주기 = 그로기 1.5초), 4행. **결정(Q55): 칼·대검이 같은 몸을 공유(왼손 빈 몸), 루프만(전환 프레임 없음), 그로기 중 가드 몸은 현행** — 가드를 누르면 현행 가드 몸으로 바꾸고, 떼면 이 시트의 같은 시각 프레임으로 돌아온다(권장). `phases` swayRight [0~4]·swayLeft [5~9], `eyeOffFrames [6,7]`.
   - 휴대 무기 `carryOverlay`(같은 프레임 번호로 겹침): `weapons/v3/katana_carry_groggy`(192×192·피벗 (96,186)·offset (48,48), 왼허리 칼집, `sheathMouthAnchors`) / `weapons/v3/greatsword_carry_groggy`(240×272·피벗 (119,209)·offset (71,71), 등 가죽끈, 4행).

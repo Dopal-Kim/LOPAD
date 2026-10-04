@@ -67,7 +67,7 @@ def build():
                        "깃 뒤로 짧게 흔들리는 회색 재 연기 꼬리",
                 axisNote="기존 bow_arrow(48×24, 피벗 (24,12)) 와 같은 축 — 화살 픽셀은 피벗 기준 같은 자리, 왼쪽(꼬리)으로 16 도트 넓힘",
                 spawn="early_release", spawnNote="56라운드 Q9·Q20: 가득 당기기 전에 놓았을 때 발사되는 약한 1발. 피해·속도는 시스템 데이터",
-                replacesWhen="bow_arrow(일반) 대신 — 활 갈래 화살(_rapid·_snipe) 상태에서도 일찍 놓기면 이 시트(갈래 표시는 생략, 질문 사항)",
+                replacesWhen="bow_arrow(일반) 대신 — 갈래 공용 한 시트: 속사·저격 갈래 화살(_rapid·_snipe) 상태에서도 일찍 놓으면 이 시트, 갈래 표시는 생략(56라운드 Q55)",
                 glowFrames=[], frameRoles=["연기 위", "연기 가운데", "연기 아래", "연기 가운데"])
     return rk.write_sheet("bow_arrow_weak", rk.OUT_FX, ["any"], fr, MS, meta, glow=[], loop=True)
 

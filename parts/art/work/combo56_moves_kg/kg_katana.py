@@ -205,11 +205,11 @@ def build():
             upd.update(holdFrames=hold, loopFrames=hold, loopRange=[hold[0], hold[-1]], holdFrame=hold[0], releaseFrame=rel,
                        clickFrame=m["clickFrame"],
                        holdNote="f0~f2 들어감 1회 → 좌클릭을 누르는 동안 holdFrames(f3~f6) 반복 → 떼는 순간 releaseFrame(f7)으로 건너뛰어 끝까지. "
-                                "들어감 중에 떼면 f7 로 바로(최소 유지 없음 — 임시). 시트 loop 값은 false",
+                                "들어감 중에 떼면 f7 로 바로(최소 유지 없음 — 56라운드 Q53). 시트 loop 값은 false",
                        releaseTimingMs=dict(hitAfterRelease=st[m["impact"]] - st[rel], activeEndAfterRelease=st[m["active"][-1]] + m["ms"][m["active"][-1]] - st[rel],
                                             clickAfterRelease=st[m["clickFrame"]] - st[rel], totalAfterRelease=sum(m["ms"][rel:])),
                        readyAfterHoldMs=500, readyFx="fx/v3/katana_iai_ready",
-                       readyNote="(임시 제안) 유지 0.5초가 지나면 칼집 입구에 준비 반짝임 1회(koiguchiAnchors) — 이후 떼면 '완성 일격'(치명 등). 시스템 판단",
+                       readyNote="유지 0.5초(readyAfterHoldMs)가 지나면 칼집 입구에 준비 반짝임 1회(koiguchiAnchors, fx/v3/katana_iai_ready) — 연출만, 위력 변화 없음. 언제 떼도 같은 일격(56라운드 Q53·Q60)",
                        koiguchiAnchors=koiguchi_anchors(fr), koiguchiNote="칼집 입구(몸 시트 도트). 무기 시트 좌표 = + playerFrameOffset (48,48)",
                        hitShape=iai_hit_shape(),
                        drawnLine=dict(nearR=IAI_LINE["near"], farR=IAI_LINE["far"], halfWidthR=IAI_LINE["half"], heightDots=[IAI_LINE["z0"], IAI_LINE["z1"]],

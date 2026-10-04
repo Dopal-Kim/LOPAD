@@ -300,7 +300,8 @@ def extra_meta(name, m):
         sa = m["superArmorFrames"]
         upd.update(superArmorFrames=sa, superArmorMs=[st[sa[0]], st[sa[-1]] + m["ms"][sa[-1]]],
                    braceFrames=[i for i, r in enumerate(m["roles"]) if r == "brace"],
-                   superArmorNote="이 구간 동안 맞아도 동작이 끊기지 않음(피해는 받음 — 감쇄 여부 시스템). 맞을 때마다 fx/v3/greatsword_brace_absorb 를 몸 위에 1회",
+                   superArmorNote="superArmorMs 구간(0.46초) 동안 맞아도 동작이 끊기지 않음 — 피해는 그대로 받고 울분으로 쌓임(56라운드 Q54·Q61). "
+                                  "버티는 자세는 braceFrames 0.27초 고정, 가드를 오래 눌러도 늘지 않음(Q54·Q61). 맞을 때마다 fx/v3/greatsword_brace_absorb 를 몸 위에 1회",
                    rageVariant=m["rageVariant"])
     if name == "greatsword_leap_slam":
         upd.update(airOffsetPx=dict(byFrame=AIR, unit="dots(pixelScale 0.5) — 위 +",

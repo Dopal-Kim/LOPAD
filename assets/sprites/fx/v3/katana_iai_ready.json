@@ -39,7 +39,7 @@
  "bodySheet": "player_katana_iai",
  "spawn": "hold_ready",
  "anchorNote": "몸 JSON koiguchiAnchors[방향][프레임](몸 시트 도트) 위치에 pivot 을 맞춘다(행 any — 방향 무관)",
- "spawnNote": "대치 유지가 readyAfterHoldMs(임시 500ms)에 닿을 때 1회",
+ "spawnNote": "대치 유지가 readyAfterHoldMs(500ms)에 닿을 때 1회 — 연출만, 위력 변화 없음(56라운드 Q60)",
  "depth": "above",
  "frameRoles": [
   "반짝 시작",

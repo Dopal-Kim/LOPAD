@@ -36,7 +36,9 @@ GS_SHEETS = ["greatsword_sweep_cw", "greatsword_sweep_ccw", "greatsword_cleave",
              "greatsword_carry_idle", "greatsword_carry_walk", "greatsword_carry_run", "greatsword_carry_dash",
              "greatsword_carry_drawn_idle", "greatsword_carry_drawn_walk", "greatsword_carry_drawn_run", "greatsword_carry_drawn_dash",
              # 56라운드 Q55 — E1 새 대검 기본기(280×296 틀)
-             "greatsword_tackle", "greatsword_brace_upswing", "greatsword_leap_slam", "greatsword_guard_rush"]
+             "greatsword_tackle", "greatsword_brace_upswing", "greatsword_leap_slam", "greatsword_guard_rush",
+             # 56라운드 Q62 — 가드 자세(우클릭 가드·떼면 밀쳐내기)·뽑기·넣기. 울분은 가드로 쌓이므로 가드 자세에서 가장 잘 보여야 함
+             "greatsword_special", "greatsword_draw", "greatsword_sheathe"]
 
 EDGE_COLS = {(0xd6, 0x7a, 0x11), (0xe2, 0xa3, 0x3c), (0xee, 0xcc, 0x78), (0xf4, 0xde, 0x9b)}
 SHEATH_GLOW = {(0xd6, 0x7a, 0x11), (0x8b, 0x4d, 0x22)}

@@ -111,7 +111,7 @@ def build():
                 hitstopNote="히트스톱 정지 프레임 권장 = 열 1(holdFrame)", holdFrame=1,
                 light={"color": "#eecc78", "radius": 90, "intensity": 0.9, "frames": [0, 1, 2]},
                 shakeHint={"guard": {"px": 2, "ms": 70}, "parry": {"px": 3, "ms": 90}},
-                pairsWith="parry_flash(가운데 동심 고리)·guard_wave 와 함께 또는 대신 — 시스템 판단(질문)",
+                pairsWith="퍼펙트 가드·패링 성공 순간에만 이 시트 — 그 순간의 parry_flash(가운데 동심 고리)·guard_wave 를 대체(56라운드 Q55). 일반 가드(퍼펙트 아님)의 guard_wave 는 그대로 유지(56라운드 Q62)",
                 design="56라운드 Q7 퍼펙트 가드·패링 — 맞닿은 점의 짧은 세로 백열 틈 → 재·호박 방패 호. guard 는 버티고 불티가 흘러내림, parry 는 호가 공격 쪽으로 튕겨 나가며 불티 원뿔")
     return rk.write_sheet("guard_perfect_fx", rk.OUT_FX, rows, fr, MS, meta, glow=GLOW)
 

@@ -71,8 +71,8 @@ def build_fx():
                hitFrames=[1], activeFrames=[1], thrust=bj["thrust"], hitShape=bj["hitShape"], timingMs=dict(hitAt=X.BS_MS[0], total=sum(X.BS_MS)),
                spawnRule="spawnAtMs = 몸 hitAt − frameDurationsMs[0] (= 몸 drive 프레임 시작). impactFrame 시작 = 몸 hitAt",
                critAnchors={d: {"x": crit[d][0], "y": crit[d][1]} for d in X.DIRS4},
-               critAnchorNote="치명 섬광 중심(몸 시트 도트 = 칼날 70% 지점, 박힌 자리). 이 시트에 이미 그려져 있음 — 시스템이 hit_dagger_heavy·crit_burst 를 "
-                              "겹친다면 이 점(또는 적 히트박스 중심)에. 몸 피벗 기준 = (x−48, y−138)",
+               critAnchorNote="치명 섬광 중심(몸 시트 도트 = 칼날 70% 지점, 박힌 자리). 섬광은 이 시트에 이미 그려져 있음 — 전용 섬광만, "
+                              "공용 치명 fx(hit_dagger_heavy·crit_burst)는 겹치지 않음(56라운드 Q55). 몸 피벗 기준 = (x−48, y−138)",
                frameRoles=X.BS_ROLES, holdFrame=1, hitstopHint=dict(ms=90, note="치명 일격 — 히트스톱 동안 holdFrame(백열 코어) 유지 권장(값은 시스템)"),
                shakeHint=dict(px=3, ms=110), flash=dict(color="#eecc78", ms=60, atFrame=1, note="선택: 화면 가장자리 호박 번쩍(시스템 판단)"),
                design="등 뒤 치명 찌르기 — 위에서 내리꽂는 칼끝 경로의 짧고 굵은 붓획(丿, 박히며 끝이 갈라짐) + 박힌 자리 치명 섬광: 세로로 긴 바늘 8갈래(백열은 "
@@ -138,8 +138,8 @@ def build_fx():
                timingMs=dict(hitAt=sum(X.FALL_MS[:X.FALL_IMPACT]), total=sum(X.FALL_MS)),
                fallHeightPx=X.FALL_H[0], fallSlantDeg=12,
                pivotNote="pivot = 화살이 꽂히는 바닥 점(예고 원 안의 낙하 지점). 화살은 그 위 fallHeightPx 도트에서 떨어짐(시트 안에 그려짐 — 시스템은 움직이지 않음)",
-               spawn="rain", spawnNote="임시 제안: 예고 원 rain 단계 시작부터 약 0.4초 동안 원 안 무작위 점 9~12곳에 30~50ms 간격으로 재생(화살 3발 × 3~4갈래). "
-                                       "각 재생의 impactFrame 시작 = 그 점의 판정 순간(작은 원 판정 또는 큰 원 1회 판정 — 시스템 선택). flipX 로 좌우 섞기 허용",
+               spawn="rain", spawnNote="예고 원 rain 단계 시작부터 원 안 무작위 9곳에 40ms 간격으로 1곳씩 재생(화살 3발 연속 발사 640ms, 56라운드 Q52). "
+                                       "낙하점마다 작은 판정 — 각 재생의 impactFrame 시작 = 그 점의 판정 순간(Q52). 낙하 화살 12° 고정 + flipX 로 좌우 섞기(Q55)",
                frameRoles=["떨어짐(높이 150)", "떨어짐(100)", "떨어짐(48) · 바닥 그림자 진해짐", "꽂힘(판정 — 촉 자리 백열 몇 도트 · 먼지)", "꽂혀 남음(불티)",
                            "위부터 재로 부서짐", "재"],
                design="화살비 낙하 — 재 화살이 불티 꼬리를 끌며 비스듬히 떨어져 바닥에 꽂히고(작은 먼지·섬광) 위에서부터 재로 부서짐",

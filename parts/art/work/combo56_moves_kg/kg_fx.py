@@ -530,7 +530,7 @@ def spec_table():
         spawnNote="좌클릭을 뗀 순간(몸 releaseFrame 시작)에 1회 — 주인공 발에 놓고 따라가지 않음(world 고정, 일격 선이 그 자리에 남음). "
                   "spawnAtMs 는 유지 루프 1회 기준 시트 시각",
         anchor="release_pivot", impactFrame=1, burstFrame=IAI_BURST, burstAtLineMs=sum(IAI_MS[:IAI_BURST]),
-        burstNote="납도 딸깍(몸 clickFrame)과 같은 시각. 연출만(백열 없음) — 터짐에 피해를 주면 glowFrames 에 7 추가 가능",
+        burstNote="납도 딸깍(몸 clickFrame)과 같은 시각. 터짐은 연출만 — 추가 피해 없음, 백열 없음(56라운드 Q53·Q55)",
         hitShape=b["hitShape"], depth="below_player",
         frameRoles=["pre", "draw(판정 · 머리 백열)", "draw(끝까지 · 판정)", "잔심 남은 선", "잔심(떨림)", "잔심", "잔심",
                     "납도 딸깍 — 터짐(교차 베기 자국)", "재로 부서짐", "재", "재"],
@@ -538,7 +538,7 @@ def spec_table():
     T["katana_iai_ready"] = dict(dirs=["any"], fn=lambda d: ready_frames(), ms=READY_MS, glow=[], meta=dict(
         weapon="katana", bodySheet="player_katana_iai", anchor="koiguchi", spawn="hold_ready",
         anchorNote="몸 JSON koiguchiAnchors[방향][프레임](몸 시트 도트) 위치에 pivot 을 맞춘다(행 any — 방향 무관)",
-        spawnNote="대치 유지가 readyAfterHoldMs(임시 500ms)에 닿을 때 1회", depth="above",
+        spawnNote="대치 유지가 readyAfterHoldMs(500ms)에 닿을 때 1회 — 연출만, 위력 변화 없음(56라운드 Q60)", depth="above",
         frameRoles=["반짝 시작", "가장 밝음(A25)", "퍼짐", "식음", "사라짐"],
         design="칼집 입구에서 가는 가로 빛 한 줄 + 작은 네 갈래 반짝임 — '준비됨'(백열 없음, A25 이하)"))
     b = bk["greatsword_tackle"]
