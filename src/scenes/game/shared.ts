@@ -5,6 +5,7 @@
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { FxPool } from '../../systems/fx/fx';
+import { PLAYER_HIT_ORIGIN_UP_PX } from '../../systems/weapon/playerScale';
 
 /**
  * mode 'floor' = 디버그·검증용 층 이동 (47라운드, 세이브 없음) · 'node' = 같은 층 안 다음 노드 (48라운드).
@@ -27,8 +28,8 @@ export type GameInitData = {
 /** 49라운드 회피 시험 보상 상한 (결정 49 Q2: 시작 감각 +0~3) */
 export const SENSE_BONUS_MAX = 3;
 
-/** 판정 원점 = 몸 중심 (발 위 10px, 48라운드 아트 메모 hitOrigin) */
-export const HIT_ORIGIN_UP_PX = 10;
+/** 판정 원점 = 몸 중심 (발 위 10px, 48라운드 아트 메모 hitOrigin — 58라운드 Q2 주인공 그림 배율만큼 올라간다) */
+export const HIT_ORIGIN_UP_PX = PLAYER_HIT_ORIGIN_UP_PX;
 
 /**
  * 연격의 마무리 타(충격파·진화 베기 시점). 연격이 아니면 true, 대검 대쉬 공격은 false (49라운드: 충격파 없음).

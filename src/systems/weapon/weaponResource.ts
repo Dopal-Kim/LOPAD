@@ -272,12 +272,34 @@ function round1(v: number): number {
   return Math.round(v * 10) / 10;
 }
 
-/** 51라운드 속사: 갈래가 바꾼 탄창 수·장전 시간 (탄창이 아니면 그대로) */
-export function effectiveResource(def: WeaponResourceDef, mods: WeaponMods): WeaponResourceDef {
-  if (def.kind !== 'ammo' || (!mods.magazineBonus && !mods.reloadMult)) return def;
-  return {
-    ...def,
-    max: Math.max(1, Math.round(def.max + (mods.magazineBonus ?? 0))),
-    reloadMs: def.reloadMs * (mods.reloadMult ?? 1),
-  };
+/** 57라운드 빌드 축 자원 조정: 피멍 최대치 ×maxMult(영구) · 식힘·재장전 ×coolMult · 그로기 ms 덮어쓰기(버팀 4·피멍) */
+export interface ResourceAdjust {
+  maxMult?: number;
+  coolMult?: number;
+  groggyMs?: number | null;
+}
+
+/** 51라운드 속사: 갈래가 바꾼 탄창 수·장전 시간 (탄창이 아니면 그대로) + 57라운드 빌드 축 조정 */
+export function effectiveResource(
+  def: WeaponResourceDef,
+  mods: WeaponMods,
+  adj: ResourceAdjust = {},
+): WeaponResourceDef {
+  const maxMult = adj.maxMult ?? 1;
+  const cool = adj.coolMult ?? 1;
+  if (def.kind === 'ammo') {
+    if (!mods.magazineBonus && !mods.reloadMult && maxMult === 1 && cool === 1) return def;
+    return {
+      ...def,
+      max: Math.max(1, Math.round((def.max + (mods.magazineBonus ?? 0)) * maxMult)),
+      reloadMs: def.reloadMs * (mods.reloadMult ?? 1) * cool,
+    };
+  }
+  if (def.kind === 'heat') {
+    if (maxMult === 1 && cool === 1) return def;
+    return { ...def, max: def.max * maxMult, cooldownMs: def.cooldownMs * cool };
+  }
+  const groggy = def.groggyMs !== undefined && adj.groggyMs ? adj.groggyMs : def.groggyMs;
+  if (maxMult === 1 && groggy === def.groggyMs) return def;
+  return { ...def, max: def.max * maxMult, ...(groggy !== undefined ? { groggyMs: groggy } : {}) };
 }

@@ -23,8 +23,11 @@ export class Economy {
   dropLoot(mob: Mob, goldMult = 1): void {
     const G = ECONOMY.gold;
     const gold = Math.round(rollGold(mob.goldValue, G.variance, this.g.rng) * goldMult);
-    this.spawnPickup(mob.x, mob.y, 'gold', gold);
-    if (this.g.rng.chance(ECONOMY.drops.potion.chance)) this.spawnPickup(mob.x + 10, mob.y, 'potion', 1);
+    // 57라운드 외상 저주: 처치 전표 0 → 드랍 없음
+    if (gold > 0) this.spawnPickup(mob.x, mob.y, 'gold', gold);
+    // 57라운드 허리춤 호리병: 독주 드랍 +%p
+    if (this.g.rng.chance(ECONOMY.drops.potion.chance + (this.g.build?.potionDropAdd() ?? 0)))
+      this.spawnPickup(mob.x + 10, mob.y, 'potion', 1);
   }
 
   spawnPickup(x: number, y: number, kind: 'gold' | 'potion', value: number): void {
@@ -53,7 +56,7 @@ export class Economy {
 
   /** 물약 최대 소지 = 기본 + 영구 강화 */
   get potionCarry(): number {
-    return ECONOMY.drops.potion.maxCarry + gameState.meta.potionCarry;
+    return ECONOMY.drops.potion.maxCarry + gameState.meta.potionCarry + (this.g.build?.potionMaxAdd() ?? 0);
   }
 
   addGold(amount: number): void {
@@ -70,6 +73,8 @@ export class Economy {
 
   usePotion(): void {
     if (gameState.potions <= 0 || gameState.hp >= gameState.maxHp) return;
+    // 57라운드 깨진 잔 저주: 독주 사용 불가
+    if (this.g.build && !this.g.build.potionAllowed()) return;
     gameState.potions -= 1;
     EventBus.emit(Events.POTION_USED, { potions: gameState.potions });
     this.g.player.heal(ECONOMY.drops.potion.heal);
@@ -97,7 +102,7 @@ export class Economy {
     EventBus.emit(Events.SHOP_OPENED);
     const render = () => {
       const lines = ECONOMY.shop.items.map((it, i) => {
-        const price = shopPrice(it, gameState.stageIndex);
+        const price = Math.round(shopPrice(it, gameState.stageIndex) * this.g.build.shopPriceMult());
         const full = it.id === 'potion' && gameState.potions >= this.potionCarry;
         const name = it.id === 'potion' ? `${STORY.names.potion} +1` : it.name;
         return {
@@ -133,7 +138,7 @@ export class Economy {
 
   private buy(id: 'heal' | 'sense' | 'stat' | 'potion', rerender: () => void): void {
     const item = ECONOMY.shop.items.find((i) => i.id === id)!;
-    const price = shopPrice(item, gameState.stageIndex);
+    const price = Math.round(shopPrice(item, gameState.stageIndex) * this.g.build.shopPriceMult());
     if (gameState.gold < price) return;
     gameState.gold -= price;
     EventBus.emit(Events.GOLD_CHANGED, { gold: gameState.gold, delta: -price });

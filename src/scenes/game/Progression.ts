@@ -12,13 +12,13 @@ import {
   type WeaponReinforcedPayload,
 } from '../../core/EventBus';
 import { gameState, type EndingChoice } from '../../core/GameState';
-import { ECONOMY, STORY, WEAPON_RULES } from '../../data';
-import type { StatKey, WeaponEvolution } from '../../data/types';
+import { ECONOMY, STORY } from '../../data';
+import { BUILD } from '../../data/build';
+import type { StatKey } from '../../data/types';
 import { UI_EVENTS, __system } from '../../contract/ui';
 import type { Mob } from '../../objects/Mob';
 import { applyStatReward, findReward } from '../../systems/economy';
 import { markUnderstood, metaStore, recordRun } from '../../systems/meta';
-import { PASSIVES } from '../../systems/passives';
 import type { KillKind } from '../../systems/senses';
 import { deathLine, evolutionLine, fill, floorText } from '../../systems/story';
 import { UI_SCENES } from '../../ui';
@@ -81,10 +81,21 @@ export class Progression {
     gameState.kills += 1;
     // 47라운드: 판돈 종·룰렛 '배수 판' 배율
     const km = g.structures.killMods();
-    g.economy.dropLoot(mob, km.goldMult);
+    // 57라운드: 외상 저주 처치 전표 0
+    g.economy.dropLoot(mob, km.goldMult * g.build.killGoldMult());
+    // 57라운드 2차 묶음 S3-A: 일반 처치 개성 절반 (보스 그대로) · 연쇄 6 살기 ×2
+    const normal = mob.isBoss ? 1 : BUILD.personality.normalKillMult;
     this.gainPersonality(
-      Math.round(mob.personalityValue * (1 + gameState.passives.total('personalityMult')) * km.personalityMult),
+      Math.round(
+        mob.personalityValue *
+          normal *
+          (1 + gameState.passives.total('personalityMult')) *
+          km.personalityMult *
+          g.build.combat.personalityMult(),
+      ),
     );
+    // 57라운드 빌드 축: 처치 사건 (연쇄·표식·상흔·취기·저주 궤짝·갈래)
+    g.build.combat.onKill(mob, kind);
     const lifesteal = gameState.passives.total('healOnKill');
     if (lifesteal > 0) g.player.heal(lifesteal);
     if (gameState.senses.recordKill(kind)) {
@@ -96,55 +107,15 @@ export class Progression {
   /** 개성 수치 적립. 임계에 닿으면 선택 대기 → update 에서 메뉴를 연다 */
   gainPersonality(amount: number): void {
     const weapon = gameState.weapon;
-    const reached = weapon.gainPersonality(amount);
+    // 57라운드 Q37: 트리가 끝나도 피의 계약·각성 칸이 있으면 게이지가 돈다 (27라운드 게이지 정지 대체)
+    const reached = weapon.gainPersonality(amount, this.g.buildMenus.canEvolve());
     EventBus.emit(Events.PERSONALITY_GAINED, { value: weapon.personality, threshold: weapon.threshold });
     if (reached) EventBus.emit(Events.WEAPON_CHOICE_PENDING, { weapon: weapon.id, stage: weapon.stage });
   }
 
   /** 개성 임계 도달 → 다른 메뉴(보스 보상 등)가 닫힌 뒤 3지선다 (게임 정지) */
   maybeOpenEvolveMenu(): void {
-    if (gameState.weapon.choicePending && !this.g.menu.isOpen && !this.g.frozen) this.openEvolveMenu();
-  }
-
-  private openEvolveMenu(): void {
-    const g = this.g;
-    const w = gameState.weapon;
-    const options = w.options;
-    if (!w.canEvolve) {
-      w.choicePending = false;
-      return;
-    }
-    g.setFrozen(true);
-    const lines = [0, 1].map((i) => {
-      const o = options[i] as WeaponEvolution | undefined;
-      return {
-        key: String(i + 1),
-        label: o ? o.name : '변환 (완료)',
-        enabled: Boolean(o),
-        detail: o?.description,
-      };
-    });
-    const cur = w.evolution ? w.evolution.name : w.def.name;
-    const bonusPct = Math.round(WEAPON_RULES.reinforceBonus * 100);
-    lines.push({
-      key: '3',
-      label: `${fill(STORY.ui.evolveMenu.reinforceItem, { n: w.reinforce + 1 })} — ${cur}`,
-      enabled: w.canReinforce,
-      detail: `피해·범위 +${bonusPct}% · 강화 ${w.reinforce}/${WEAPON_RULES.reinforceMax}`,
-    });
-    g.menu.open(
-      'evolve',
-      fill(STORY.ui.evolveMenu.title, { weapon: w.def.name, threshold: w.threshold }),
-      lines,
-      (key) => {
-        if (key === '3') this.applyReinforce();
-        else {
-          const pick = options[Number(key) - 1];
-          if (pick) this.applyEvolution(pick.id);
-        }
-      },
-      STORY.ui.evolveMenu.footer,
-    );
+    if (gameState.weapon.choicePending && !this.g.menu.isOpen && !this.g.frozen) this.g.buildMenus.openEvolveMenu();
   }
 
   applyEvolution(id: string): void {
@@ -161,7 +132,7 @@ export class Progression {
     g.ui.story('evolution', evolutionLine(node.name));
   }
 
-  private applyReinforce(): void {
+  applyReinforce(): void {
     const g = this.g;
     const weapon = gameState.weapon;
     if (!weapon.reinforceNow()) return;
@@ -271,29 +242,9 @@ export class Progression {
     show();
   }
 
-  /** 보스 보상 패시브 3지선다 (임시 텍스트) */
+  /** 보스 보상 패시브 3지선다 — 57라운드: BuildMenus (이중 개성 확정 칸 · 태그 · 1층 테마 가중) */
   private openPassiveChooser(onDone: () => void): void {
-    const g = this.g;
-    const choices = gameState.passives.rollChoices(g.rng, ECONOMY.rarity, PASSIVES.choices);
-    if (choices.length === 0) {
-      onDone();
-      return;
-    }
-    const lines = choices.map((p, i) => {
-      const lv = gameState.passives.level(p.id);
-      return {
-        key: String(i + 1),
-        label: `[${p.rarity}] ${p.name}${lv > 0 ? ` (Lv${lv} → ${lv + 1})` : ''} — ${p.description}`,
-        enabled: true,
-      };
-    });
-    g.menu.open('passive', STORY.ui.hud.passiveTitle, lines, (key) => {
-      const pick = choices[Number(key) - 1];
-      gameState.passives.add(pick.id);
-      EventBus.emit(Events.PASSIVE_GAINED, { id: pick.id, level: gameState.passives.level(pick.id) });
-      g.menu.close();
-      onDone();
-    });
+    this.g.buildMenus.openPassiveMenu('boss', {}, onDone);
   }
 
   private applyReward(id: StatKey): void {

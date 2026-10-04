@@ -273,15 +273,15 @@ describe('56라운드 Q2 일섬 기하', () => {
     expect(issenHit({ x: 0, y: 0 }, { x: 1, y: 0 }, 64, geom, { x: 30, y: 20, r: 4 })).toBe(false);
     expect(shadowAt({ x: 0, y: 0 }, { x: 64, y: 0 }, 75, 150)).toEqual({ x: 32, y: 0 });
   });
-  it('칼 3타 = 일섬, 반경 38, 템포 약 1.5초 (아트 시간)', () => {
+  it('58라운드 Q1 칼 3타 = 찌르기, 반경 38, 템포 약 1.65초 (아트 시간)', () => {
     const c = WEAPONS.katana.combo!;
     expect(c.radiusPx).toBe(38);
     expect(c.hits.map((h) => [h.durationMs, h.hitAtMs])).toEqual([
       [470, 150],
       [440, 120],
-      [740, 250],
+      [710, 250],
     ]);
-    expect(c.hits[2].move).toBe('issen');
+    expect(c.hits[2].move).toBe('thrust');
     const total = c.hits[0].cancelFromMs + c.hits[1].cancelFromMs + c.hits[2].durationMs;
     expect(total).toBeGreaterThan(1400);
     expect(total).toBeLessThan(1700);
@@ -290,7 +290,8 @@ describe('56라운드 Q2 일섬 기하', () => {
 
 describe('56라운드 Q40~Q43 공격 수단 표', () => {
   it('구현된 수단만 고른다 · 갈래 수단은 그 갈래가 경로에 있을 때만 열린다', () => {
-    expect(pickMove('katana', 'comboFinisher', [])?.id).toBe('issen');
+    expect(pickMove('katana', 'comboFinisher', [])?.id).toBe('thrust');
+    expect(pickMove('katana', 'dashAttack', [])?.id).toBe('issen');
     // 2단계: 기본기 9종 live · 갈래 수단(회전 베기 등)은 그림 대기
     expect(pickMove('katana', 'afterParry', [])?.id).toBe('counter');
     expect(pickMove('katana', 'sheathedHoldRelease', [])?.id).toBe('iai_draw');
@@ -301,8 +302,12 @@ describe('56라운드 Q40~Q43 공격 수단 표', () => {
     expect(pickMove('dagger', 'afterShadowStep', [])?.id).toBe('backstab');
     expect(pickMove('dagger', 'attackHold', [])?.id).toBe('flurry');
     expect(pickMove('bow', 'drawAttack', [])?.id).toBe('arrow_rain');
-    expect(pickMove('katana', 'branchAttack', ['iai'])).toBeNull();
-    expect(pickMove('bow', 'attackHold', ['rapid'])).toBeNull();
+    // 57라운드: 갈래 수단은 기존 시트·플레이스홀더로 live (관통 화살은 56 Q9 '가득 이상 관통'과 겹쳐 대기)
+    expect(pickMove('katana', 'branchAttack', ['iai'])?.id).toBe('spin');
+    expect(pickMove('katana', 'branchAttack', ['batto'])?.id).toBe('unblockable');
+    expect(pickMove('bow', 'attackHold', ['rapid'])?.id).toBe('rapid_volley');
+    expect(pickMove('dagger', 'dashAttack', ['gale'])?.id).toBe('fan_throw');
+    expect(pickMove('bow', 'perfectRelease', ['snipe'])).toBeNull();
     expect(availableMoves('katana', []).some((m) => m.id === 'spin')).toBe(false);
     expect(availableMoves('katana', ['iai']).some((m) => m.id === 'spin')).toBe(true);
     expect(pickMove('greatsword', 'chargeRelease', ['crush'], () => false)).toBeNull();

@@ -61,15 +61,15 @@ describe('hitFeel: 55라운드 Q6 히트스톱 · Q10 막타', () => {
     expect(sparkOrientation(1, 0, { flipAllowed: true, rotateLeft: true, backswing: true }).flipY).toBe(true);
   });
 
-  it('칼 K-A 되돌아 휘두름은 데이터에서: 1타(+70→−40)만 · 56라운드 Q2 3타 = 일섬(판정 모양 없이 전용 동작)', () => {
+  it('칼 K-A 되돌아 휘두름은 데이터에서: 1타(+70→−40)만 · 58라운드 Q1 3타 = 찌르기(직사각 판정)', () => {
     const k = WEAPONS.katana.combo!;
     const back = k.hits.map((h) => {
       const s = h.hitShape;
       return s?.kind === 'arc' ? isBackswing({ kind: 'arc', fromDeg: s.fromDeg, toDeg: s.toDeg }) : false;
     });
     expect(back).toEqual([true, false, false]);
-    expect(k.hits[2].move).toBe('issen');
-    expect(k.hits[2].hitShape).toBeUndefined();
+    expect(k.hits[2].move).toBe('thrust');
+    expect(k.hits[2].hitShape?.kind).toBe('rect');
   });
 });
 

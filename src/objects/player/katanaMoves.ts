@@ -99,7 +99,7 @@ export class IaiHold {
     const col = sheet && cur ? Number(cur.frame.name) % sheet.frames : 0;
     const pt = anchors?.[this.dir]?.[col] ?? anchors?.[this.dir]?.[0];
     if (!sheet || !pt) return { x: p.x, y: p.y };
-    const k = artScale(sheet);
+    const k = artScale(sheet) * p.visual.drawScale;
     return { x: p.x + (pt[0] - sheet.pivot.x) * k, y: p.y + (pt[1] - sheet.pivot.y) * k };
   }
 

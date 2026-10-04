@@ -3,7 +3,7 @@
  * 51라운드 정리: 활 = `BowShots`, 잔월·출혈 = `StrikeDots`. 53라운드 정리: 판정 모양·휘두름 이펙트·잔상 리본 = `SwingFx`.
  * 55라운드 §17: 타별 판정 모양(호·쐐기+충격원·찌르기·고리) · 내려찍기 끝점 바닥 충격 · 판정 모양 디버그 오버레이(`HitShapeOverlay`).
  * 55라운드 6-1: 후속 판정(칼 잔상 베기·차지 충격파 링)·추가 타·지진 2단 스케줄 = `StrikeSchedule`. 피해 계산·피격 연출은 GameCombat.
- * 56라운드: 칼 일섬 = `IssenStrikes` · 대검 꽂아내리기 = `PlungeStrikes` · 단검 낙인 = `BrandMarks` · 휘두름이 처음 맞힌 순간
+ * 56라운드: 칼 일섬 = `IssenStrikes` · 58라운드 대검 차지 균열 = `CrackLineStrikes`(꽂아내리기 대체) · 단검 낙인 = `BrandMarks` · 휘두름이 처음 맞힌 순간
  * 무기 그림 번쩍임(Q12)·검기 획득 · 내려찍기 땅 균열(Q5).
  */
 import Phaser from 'phaser';
@@ -25,7 +25,8 @@ import { StrikeSchedule, type SwingOpts } from './StrikeSchedule';
 import { SwingFx } from './SwingFx';
 import { BrandMarks } from './BrandMarks';
 import { IssenStrikes } from './IssenStrikes';
-import { PlungeStrikes } from './PlungeStrikes';
+import { CrackLineStrikes, crackOrigin } from './CrackLineStrikes';
+import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 import { MoveStrikes } from './MoveStrikes';
 import { ArrowRain } from './ArrowRain';
 import { HIT_ORIGIN_UP_PX, evolutionFxId, isFinisher, isMeleeStrike, pathFx, rotatesLeft, shapeFacing } from './shared';
@@ -48,7 +49,8 @@ export class PlayerStrikes {
   readonly dots: StrikeDots;
   /** 56라운드 일섬 · 꽂아내리기 · 낙인 */
   readonly issen: IssenStrikes;
-  readonly plunge: PlungeStrikes;
+  /** 58라운드 Q3 대검 차지 균열 (꽂아내리기 대체) */
+  readonly crackLine: CrackLineStrikes;
   readonly brands: BrandMarks;
   /** 56라운드 2단계 새 기본기 (돌진형·도약 찍기·흡수·준비 반짝임·난타 fx) · 활 화살비 */
   readonly moves: MoveStrikes;
@@ -70,7 +72,7 @@ export class PlayerStrikes {
     this.schedule = new StrikeSchedule(g, this.swing, (p, opts) => this.meleeSwing(p, opts));
     const strike = (mob: Mob, p: PlayerAttackPayload, first: boolean) => this.strikeMob(mob, p, first);
     this.issen = new IssenStrikes(g, strike);
-    this.plunge = new PlungeStrikes(g, this.swing, strike);
+    this.crackLine = new CrackLineStrikes(g, strike);
     this.brands = new BrandMarks(g);
     this.moves = new MoveStrikes(g, this.swing, strike);
     this.rain = new ArrowRain(g);
@@ -100,10 +102,6 @@ export class PlayerStrikes {
       this.issen.start(p);
       return;
     }
-    if (p.plunge) {
-      this.plunge.start(p);
-      return;
-    }
     // 56라운드 2단계: 태클·막다가 떼면 돌진 — 판정이 몸과 함께 이동 (휘두름 fx 는 그림 표대로)
     if (p.rush) {
       this.swing.play(p);
@@ -126,6 +124,8 @@ export class PlayerStrikes {
           ? { ...p, x: g.player.x, y: g.player.y }
           : p;
       const main = this.meleeSwing(at);
+      // 58라운드 Q3 대검 차지: 내리찍은 자리에서 커서까지 균열
+      if (p.crackLine) this.crackLine.start(at, main.impact);
       // 후속 판정 · 쌍격·난무 추가 타 · 지진 2단 (씬 시계 — 히트스톱 동안 멈춤)
       this.schedule.after(at, main.impact, finisher);
     };
@@ -144,6 +144,7 @@ export class PlayerStrikes {
       follow: g.player,
       depthOffset: -DEPTH.OVERLAY_STEP,
       durationMs: p.durationMs ?? gameState.weapon.hitbox.cooldownMs,
+      scaleMult: PLAYER_RENDER_SCALE,
     });
   }
 
@@ -233,7 +234,9 @@ export class PlayerStrikes {
             )
           : false;
       // 56라운드 Q5: 내려찍기 끝점 땅 균열 (본 타만 — V s(관성 최대 m) · 차지 m/m/l)
-      if (!follow && !secondWave && p.crack && impact) this.swing.playCrack(p.art, impact.x, impact.y, p.crack);
+      // 58라운드 Q3 차지 휘둘러 내리찍기: 땅 충격도 찍은 자리(몸 slamAnchors)에
+      const crackAt = p.crackLine ? crackOrigin(p, g.player, impact) : impact;
+      if (!follow && !secondWave && p.crack && crackAt) this.swing.playCrack(p.art, crackAt.x, crackAt.y, p.crack);
       if (follow && !followFx && shape.kind === 'ring' && impact)
         g.combat.drawShockwave(impact.x, impact.y, shape.radius);
       else if (follow ? !followFx : !hasSwingArt && !impactFx)
@@ -340,7 +343,9 @@ export class PlayerStrikes {
     }
     const mods = gameState.weapon.mods;
     const stunnedByParry = mob.isParryStunned(now);
-    const { dmg, crit } = g.combat.rollDamage(p.damageMult, p.forceCrit, p.kind);
+    // 57라운드 빌드 축: 강공 피해·일회성 배율·확정 치명 (BuildCombat)
+    const bb = g.build.combat.strikeBonus(mob, p);
+    const { dmg, crit } = g.combat.rollDamage(p.damageMult * bb.mult, p.forceCrit || bb.forceCrit, p.kind, mob);
     // 2차 전용 치명 이펙트: 급소(대쉬 베기 적중) → dashcrit, 암살(그림자 걸음 직후) → assassin. 둘 다 crit_burst 대신
     const critFx = p.primed ? this.pathFx('assassin') : p.kind === 'dashAttack' ? this.pathFx('dashcrit') : null;
     // 51라운드 Q4: 대검 끌어내기 첫 타 = 크게 밀쳐냄
@@ -364,7 +369,9 @@ export class PlayerStrikes {
       // 56라운드 2단계 등 뒤 찌르기: 전용 섬광만 (공용 적중·치명 fx 없음)
       ...(p.noImpactFx ? { noImpactFx: true } : {}),
     };
-    if (g.combat.hitMob(mob, dmg, style)) {
+    const died = g.combat.hitMob(mob, dmg, style);
+    g.build.combat.afterStrike(mob, p, crit, died);
+    if (died) {
       g.progress.onKill(mob, stunnedByParry ? 'parry' : p.kind === 'aimed' ? 'attack' : p.kind);
       return;
     }
@@ -386,7 +393,7 @@ export class PlayerStrikes {
     this.bow.update(delta);
     this.dots.update(time);
     this.issen.update();
-    this.plunge.update();
+    this.crackLine.update();
     this.brands.update(time);
     this.moves.update();
     this.rain.update();

@@ -122,8 +122,27 @@ export interface ArrowRainMoveDef {
   fallFx: string;
 }
 
+/** 58라운드 Q1 칼 3타 찌르기: 검기 단수(0~3)별 판정 직사각형(R 배율)·피해 배율·그림 키 (검기 전부 소모) */
+export interface ThrustKiLevelDef {
+  fromMult: number;
+  lengthMult: number;
+  widthMult: number;
+  damageMult: number;
+  /** 그림 이름 표 키 (fx `katana_thrust(_ki<n>)`) */
+  art: string;
+}
+
+/** 58라운드 Q1 칼 3타 찌르기 (연격 타 `move: "thrust"`) — 판정·피해는 검기 단수, 내딛기는 방향키와 무관 */
+export interface ThrustMoveDef {
+  byKi: ThrustKiLevelDef[];
+  lunge?: MoveTravelDef;
+}
+
 /** 무기별 새 기본기 (있는 것만) */
 export interface WeaponMovesDef {
+  /** 58라운드 Q1: 칼 3타 찌르기 · 대쉬 일섬(대쉬 공격 자리 — 기하는 무기 데이터 `issen`) */
+  thrust?: ThrustMoveDef;
+  issenDash?: MoveStrikeDef;
   counter?: CounterMoveDef;
   iai?: IaiMoveDef;
   tackle?: RushMoveDef;

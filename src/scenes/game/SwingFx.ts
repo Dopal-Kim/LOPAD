@@ -35,6 +35,7 @@ import type { ShakeHint } from './swingShake';
 import { crackShake } from './swingShake';
 import type { Game } from '../Game';
 import { planBladeTip } from './bladeTip';
+import { HIT_ORIGIN_BASE_PX, PLAYER_RENDER_SCALE, weaponRangeScale } from '../../systems/weapon/playerScale';
 import { HIT_ORIGIN_UP_PX, isFinisher, isMeleeStrike, pathFx } from './shared';
 
 /** 56라운드 §18.11: 생성 순간의 주인공 발에 고정되는 앵커 (따라가지 않음) — 대치 일격 fx 등 */
@@ -53,10 +54,9 @@ export class SwingFx {
     return this.g.scene.isActive() && !this.g.frozen && !gameState.gameOver;
   }
 
-  /** 판정 배율 = 갈래·강화 (현재 reach / 기본 reach) */
+  /** 판정 배율 = 갈래·강화 (현재 reach / 기본 reach) × 58라운드 주인공 판정 배율 — 휘두름 그림도 이만큼 */
   private get hbScale(): number {
-    const w = gameState.weapon;
-    return w.def.hitbox.reach > 0 ? w.hitbox.reach / w.def.hitbox.reach : 1;
+    return weaponRangeScale(gameState.weapon);
   }
 
   /** 55라운드 §17: 데이터 모양 → px (R = radiusPx × 갈래·강화 × 타·대쉬 크기 배율) */
@@ -185,7 +185,8 @@ export class SwingFx {
     const below = (def.depth as unknown) === 'below_player';
     const play = () => {
       if (!this.live || !g.fx.has(id)) return;
-      const lift = (combo ? HIT_ORIGIN_UP_PX : 0) * (scaleMult - 1);
+      // 그림 판정 원점(발 위 기준 × 배율)을 실제 판정 원점(발 위 HIT_ORIGIN_UP_PX)에 맞춘다
+      const lift = combo ? HIT_ORIGIN_BASE_PX * scaleMult - HIT_ORIGIN_UP_PX : 0;
       g.fx.play(id, player.x, player.y + (fixed ? lift : 0), {
         dir,
         ...(fixed ? {} : { follow: player, followOffset: { x: 0, y: lift }, depthOffset: DEPTH.OVERLAY_STEP * 2 }),
@@ -225,7 +226,7 @@ export class SwingFx {
       g.fx.play(id, player.x, player.y, {
         dir,
         follow: player,
-        followOffset: { x: 0, y: HIT_ORIGIN_UP_PX * (k - 1) },
+        followOffset: { x: 0, y: HIT_ORIGIN_BASE_PX * k - HIT_ORIGIN_UP_PX },
         depthOffset: DEPTH.OVERLAY_STEP * 2,
         scaleMult: k,
         hitstopFrame,
@@ -260,6 +261,7 @@ export class SwingFx {
         dir: rowDirFor(g.fx.sheet(fid), Math.cos(a), Math.sin(a), player.facingDir),
         follow: player,
         depthOffset: DEPTH.OVERLAY_STEP * 2,
+        scaleMult: PLAYER_RENDER_SCALE,
       }) !== null
     );
   }

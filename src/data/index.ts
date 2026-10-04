@@ -58,6 +58,12 @@ export function validatePlayer(p: PlayerData): PlayerData {
   if (typeof p.startWeapon !== 'string') throw new Error('[data] player.startWeapon 없음');
   assertNumber(p.attackSlowMinMs, 'player.attackSlowMinMs');
   if (p.perfectGuard) assertNumber(p.perfectGuard.windowMs, 'player.perfectGuard.windowMs');
+  if (p.drawScale) {
+    for (const k of ['render', 'hit'] as const) {
+      assertNumber(p.drawScale[k], `player.drawScale.${k}`);
+      if (p.drawScale[k] <= 0) throw new Error(`[data] player.drawScale.${k} 는 0 보다 커야 합니다`);
+    }
+  }
   return p;
 }
 

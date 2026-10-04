@@ -77,6 +77,8 @@ export class WeaponOverlay {
     private readonly currentKey: () => string | null = () => null,
     /** 49라운드: 휴대 상태 (없으면 휴대 표시 안 함) */
     private readonly carryInfo: () => CarryInfo | null = () => null,
+    /** 58라운드 Q2: 몸과 같은 그림 배율 (원점 = 몸 피벗이라 발 기준으로 커진다) */
+    private readonly drawScale = 1,
   ) {
     this.sprite = host.scene.add.sprite(host.x, host.y, '__DEFAULT').setVisible(false);
     host.once(Phaser.GameObjects.Events.DESTROY, () => {
@@ -175,7 +177,10 @@ export class WeaponOverlay {
     }
     this.bodyAt = { dir: parsed.dir, column };
     const id = gameState.weapon.id;
-    for (const a of overlayActionsFor(parsed.action, id, (r) => overlayArtCandidates(gameState.weapon.def.combo, r))) {
+    // 57라운드: 갈래 수단 몸 동작(회전 베기·투척 등)도 같은 이름의 무기 시트
+    const art = (r: string) =>
+      overlayArtCandidates(gameState.weapon.def.combo, r) ?? (branchBodyNames().includes(r) ? [r, 'attack'] : null);
+    for (const a of overlayActionsFor(parsed.action, id, art)) {
       const def = this.sheetOf(id, a);
       if (def) {
         // 무기 시트 하나가 휴대 모습을 대신한다 — v3 연격(carryHidden)은 빈 칼집까지 시트에 들어 있다
@@ -277,10 +282,10 @@ export class WeaponOverlay {
     this.action = action;
     this.sprite.setFrame(this.frame);
     // 50라운드: 새 2배 도트 무기 시트(pixelScale 1)는 0.5 배 — 몸 시트와 같은 화면 크기
-    const k = artScale(def);
+    const k = artScale(def) * this.drawScale;
     if (place) {
       this.sprite.setScale(place.scale * k).setAngle(place.angle);
-      this.sprite.setPosition(this.host.x + place.x, this.host.y + place.y);
+      this.sprite.setPosition(this.host.x + place.x * this.drawScale, this.host.y + place.y * this.drawScale);
     } else {
       this.sprite.setScale(k).setAngle(0);
       this.sprite.setPosition(this.host.x, this.host.y - this.lift);
@@ -317,7 +322,7 @@ export class WeaponOverlay {
     const pv = overlayPivot(odef, this.body);
     o.setOrigin(pv.x / odef.frameWidth, pv.y / odef.frameHeight)
       .setFrame(frameAt(odef, dir, Math.min(column, odef.frames - 1)))
-      .setScale(artScale(odef))
+      .setScale(artScale(odef) * this.drawScale)
       .setPosition(this.sprite.x, this.sprite.y)
       .setAlpha(this.sprite.alpha)
       .setDepth(this.sprite.depth + DEPTH.OVERLAY_STEP * 0.25)
@@ -347,7 +352,8 @@ export class WeaponOverlay {
     blade: BladeLocal | null;
   } {
     const h = this.host;
-    const at = (o: { x: number; y: number } | null) => (o ? { x: h.x + o.x, y: h.y + o.y } : null);
+    const k = this.drawScale;
+    const at = (o: { x: number; y: number } | null) => (o ? { x: h.x + o.x * k, y: h.y + o.y * k } : null);
     const ba = this.bodyAt;
     const hands = this.body && ba ? handAt(this.body, ba.dir, ba.column) : null;
     const s = this.shown;
@@ -359,4 +365,11 @@ export class WeaponOverlay {
       blade: s ? bladeAt(s.def, s.column) : null,
     };
   }
+}
+
+/** 57라운드: 지금 무기 갈래 수단의 몸 동작 이름 (노드 art.body) */
+function branchBodyNames(): string[] {
+  return gameState.weapon.def.personality.branches
+    .flatMap((a) => [a, ...(a.next ?? [])])
+    .flatMap((n) => n.art?.body ?? []);
 }

@@ -310,12 +310,11 @@ describe('56라운드 무기 피드백 효과음 (WEAPON_SFX)', () => {
     ]);
   });
 
-  it('꽂아내리기 = gs_plunge + gs_crack(40ms 뒤), 기본 차지 = charge_slam', () => {
-    const plunge = { phase: 'release', stage: 3, impactDelayMs: 280, mode: 'plunge' };
-    expect(ids(Events.PLAYER_CHARGE, plunge)).toEqual([WEAPON_SFX.gsPlunge, WEAPON_SFX.gsCrack]);
-    const crack = fire(Events.PLAYER_CHARGE, plunge).find((tr) => tr.sfx === WEAPON_SFX.gsCrack);
-    expect(crack?.delayMs?.(plunge)).toBe(320);
-    expect(ids(Events.PLAYER_CHARGE, { phase: 'release', stage: 3, impactDelayMs: 180 })).toEqual([CHARGE_SFX.slam(3)]);
+  it('58라운드 Q3 차지 휘둘러 내리찍기 = charge_slam + 균열 gs_crack(40ms 뒤) — 꽂아내리기 gs_plunge 없음', () => {
+    const release = { phase: 'release', stage: 3, impactDelayMs: 180 };
+    expect(ids(Events.PLAYER_CHARGE, release)).toEqual([CHARGE_SFX.slam(3), WEAPON_SFX.gsCrack]);
+    const crack = fire(Events.PLAYER_CHARGE, release).find((tr) => tr.sfx === WEAPON_SFX.gsCrack);
+    expect(crack?.delayMs?.(release)).toBe(220);
   });
 
   it('퍼펙트 가드 · 그로기 · 검기 단 · 일섬 · 활 약한/완벽 놓기', () => {

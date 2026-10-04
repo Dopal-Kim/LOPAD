@@ -14,6 +14,7 @@ import type {
   UiGroggy,
   UiWeaponGauge,
   UiWeaponResource,
+  UiBuildState,
 } from './ui';
 
 export interface SnapshotContext {
@@ -42,6 +43,8 @@ export interface SnapshotContext {
   /** 56라운드 (계약 §13): 무기 고유 자원 · 그로기 (칼·대검만). 생략 시 null */
   gauge?: UiWeaponGauge | null;
   groggy?: UiGroggy | null;
+  /** 57라운드 (계약 §14.1): 태그·세트·이중 개성·저주. 생략 시 빈 값 */
+  build?: UiBuildState | null;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -72,7 +75,10 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     maxHp: gameState.maxHp,
     gold: gameState.gold,
     potions: gameState.potions,
-    potionMax: ECONOMY.drops.potion.maxCarry + gameState.meta.potionCarry,
+    potionMax:
+      ECONOMY.drops.potion.maxCarry +
+      gameState.meta.potionCarry +
+      gameState.build.mods(gameState.passives, gameState.weapon).stats.potionMaxAdd,
     stageIndex: gameState.stageIndex,
     stageName: gameState.stage.name,
     trialsCleared: gameState.trialsCleared,
@@ -98,7 +104,13 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     },
     passives: Object.entries(gameState.passives.owned).map(([id, level]) => {
       const d = gameState.passives.def(id);
-      return { name: d?.name ?? id, level, description: d?.description ?? '' };
+      return {
+        name: d?.name ?? id,
+        level,
+        description: d?.description ?? '',
+        tags: [...(d?.tags ?? [])],
+        maxLevel: gameState.passives.maxLevel,
+      };
     }),
     savesLeft: gameState.savesLeft,
     seed: gameState.seed,
@@ -127,5 +139,12 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     carry: ctx.carry ? { ...ctx.carry } : null,
     gauge: ctx.gauge ? { ...ctx.gauge } : null,
     groggy: ctx.groggy ? { ...ctx.groggy } : null,
+    build: ctx.build
+      ? {
+          tags: ctx.build.tags.map((t) => ({ ...t, effects: t.effects.map((e) => ({ ...e })) })),
+          dualTraits: ctx.build.dualTraits.map((d) => ({ ...d })),
+          curse: ctx.build.curse ? { ...ctx.build.curse } : null,
+        }
+      : { tags: [], dualTraits: [], curse: null },
   };
 }

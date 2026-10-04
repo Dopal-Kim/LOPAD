@@ -1,0 +1,167 @@
+/**
+ * 57라운드 빌드 축 런 상태 (GameState.build — 런 시작에 새로, 세이브에 남음). Phaser 의존 없음.
+ * 얻은 이중 개성 · 지금 저주 · 각성 · 처치한 보스 최고 층 · 영구 보너스(불붙은 혀 상흔 +1·화상 10%, 피멍 자원 +30%) · 층당 1회 표시.
+ * 합산(`computeBuildMods`)은 런타임이 상태 서명이 바뀔 때만 다시 한다.
+ */
+import { AWAKENINGS, BUILD, DUAL_TRAITS, curseDef, tagName } from '../../data/build';
+import { TAG_IDS, type DualTraitDef, type TagId } from '../../data/buildTypes';
+import type { UiBuildState, UiCurse, UiDualTrait, UiTagState } from '../../contract/ui';
+import type { PassiveSet } from '../passives';
+import type { WeaponState } from '../weapon/weapons';
+import { computeBuildMods, type BuildMods } from './buildMods';
+import { CurseState, type CurseSave } from './curses';
+import { nextThreshold } from './tagScore';
+
+export interface BuildSave {
+  dual: string[];
+  curse: CurseSave | null;
+  awakened: boolean;
+  bossFloorCleared: number;
+  permanentTags: Partial<Record<TagId, number>>;
+  permanentBurnChance: number;
+  resourceMaxBonus: number;
+}
+
+export class BuildState {
+  dualOwned: string[] = [];
+  curse: CurseState | null = null;
+  awakened = false;
+  /** 처치한 보스의 가장 높은 층 (1부터, 없으면 0) — 각성 조건 */
+  bossFloorCleared = 0;
+  permanentTags: Partial<Record<TagId, number>> = {};
+  permanentBurnChance = 0;
+  /** 피멍: 무기 자원 최대치 +비율 (영구) */
+  resourceMaxBonus = 0;
+  /** 층당 1회 (버팀 4 위기·버팀 6·마지막 잔) — 층 시작에 비움, 세이브 안 함 */
+  readonly floorOnce = new Set<string>();
+  /** 상태가 바뀔 때마다 +1 (합산 캐시 무효화) */
+  version = 0;
+  private cache: { sig: string; mods: BuildMods } | null = null;
+
+  touch(): void {
+    this.version += 1;
+  }
+
+  get dualDefs(): DualTraitDef[] {
+    return this.dualOwned.map((id) => DUAL_TRAITS.find((d) => d.id === id)).filter((d): d is DualTraitDef => !!d);
+  }
+
+  addDual(id: string): boolean {
+    if (this.dualOwned.includes(id) || !DUAL_TRAITS.some((d) => d.id === id)) return false;
+    this.dualOwned.push(id);
+    this.touch();
+    return true;
+  }
+
+  onFloorStart(): void {
+    this.floorOnce.clear();
+  }
+
+  /** 층당 1회 표시 — 처음이면 true (이번에 쓴 것으로 남긴다) */
+  takeFloorOnce(key: string): boolean {
+    if (this.floorOnce.has(key)) return false;
+    this.floorOnce.add(key);
+    return true;
+  }
+
+  /** 합산 (서명 — 상태 version · 패시브 · 갈래 경로 · 강화 — 이 같으면 캐시) */
+  mods(passives: PassiveSet, weapon: WeaponState): BuildMods {
+    const sig = `${this.version}|${JSON.stringify(passives.owned)}|${weapon.id}|${weapon.path.join('/')}|${weapon.reinforce}`;
+    if (this.cache?.sig !== sig) this.cache = { sig, mods: this.compute(passives, weapon) };
+    return this.cache.mods;
+  }
+
+  compute(passives: PassiveSet, weapon: WeaponState): BuildMods {
+    return computeBuildMods({
+      data: BUILD,
+      passives,
+      nodes: weapon.nodes,
+      reinforce: weapon.reinforce,
+      dual: this.dualDefs,
+      awakening: this.awakened ? (AWAKENINGS[weapon.id] ?? null) : null,
+      curse: this.curse,
+      permanentTags: this.permanentTags,
+    });
+  }
+
+  toSave(): BuildSave {
+    return {
+      dual: [...this.dualOwned],
+      curse: this.curse ? this.curse.toSave() : null,
+      awakened: this.awakened,
+      bossFloorCleared: this.bossFloorCleared,
+      permanentTags: { ...this.permanentTags },
+      permanentBurnChance: this.permanentBurnChance,
+      resourceMaxBonus: this.resourceMaxBonus,
+    };
+  }
+
+  restore(s: Partial<BuildSave> | undefined): void {
+    this.dualOwned = (s?.dual ?? []).filter((id) => DUAL_TRAITS.some((d) => d.id === id));
+    const cd = s?.curse ? curseDef(s.curse.id) : undefined;
+    this.curse = cd && s?.curse ? CurseState.restore(cd, s.curse) : null;
+    this.awakened = Boolean(s?.awakened);
+    this.bossFloorCleared = Math.max(0, Number(s?.bossFloorCleared) || 0);
+    this.permanentTags = {};
+    for (const [k, v] of Object.entries(s?.permanentTags ?? {}))
+      if ((TAG_IDS as readonly string[]).includes(k) && typeof v === 'number') this.permanentTags[k as TagId] = v;
+    this.permanentBurnChance = Math.max(0, Number(s?.permanentBurnChance) || 0);
+    this.resourceMaxBonus = Math.max(0, Number(s?.resourceMaxBonus) || 0);
+    this.floorOnce.clear();
+    this.touch();
+  }
+}
+
+/** 계약 §14.2 */
+export function uiDualTrait(d: DualTraitDef, weapon: WeaponState): UiDualTrait {
+  const idx = weapon.path.indexOf(d.branch);
+  const node = weapon.nodes.find((n) => n.id === d.branch);
+  return {
+    id: d.id,
+    name: d.name,
+    description: d.description,
+    branchName: node?.name ?? d.branch,
+    tag: d.tag,
+    tier: idx <= 0 ? 1 : 2,
+  };
+}
+
+/** 계약 §14.3 */
+export function uiCurse(c: CurseState): UiCurse {
+  return {
+    id: c.id,
+    name: c.def.name,
+    benefit: c.def.benefit,
+    penalty: c.def.penalty,
+    nodesLeft: c.nodesLeft,
+    killsLeft: c.killsLeft,
+  };
+}
+
+/** 계약 §14.1 태그 상태 (score > 0 만, 점수 높은 순 — 같으면 태그 순서) */
+export function uiTags(mods: BuildMods): UiTagState[] {
+  const T = BUILD.scoring.thresholds;
+  return TAG_IDS.filter((t) => mods.scores[t] > 0)
+    .sort((a, b) => mods.scores[b] - mods.scores[a] || TAG_IDS.indexOf(a) - TAG_IDS.indexOf(b))
+    .map((t) => ({
+      id: t,
+      name: tagName(t),
+      score: mods.scores[t],
+      stage: mods.stages[t],
+      next: nextThreshold(mods.scores[t], T),
+      effects: BUILD.sets[t].map((st) => ({
+        threshold: st.threshold,
+        name: st.name,
+        description: st.description,
+        active: mods.stages[t] >= st.threshold,
+      })),
+    }));
+}
+
+export function uiBuild(mods: BuildMods, state: BuildState, weapon: WeaponState): UiBuildState {
+  return {
+    tags: uiTags(mods),
+    dualTraits: state.dualDefs.map((d) => uiDualTrait(d, weapon)),
+    curse: state.curse ? uiCurse(state.curse) : null,
+  };
+}

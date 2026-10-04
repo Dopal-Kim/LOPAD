@@ -44,6 +44,11 @@ export const Events = {
   PLAYER_SKILL: 'player:skill',
   /** 56라운드 2단계 활 화살비 (`ArrowRainPayload`): 좌클릭 순간 — 예고 원·3발 발사·낙하점 판정은 씬(ArrowRain) */
   PLAYER_ARROW_RAIN: 'player:arrow-rain',
+  /**
+   * 57라운드 갈래 1단 수단 (`PlayerBranchMovePayload`): 칼 회전 베기·가드 불가 내려베기(좌클릭 홀드 0.4/0.6초 후 떼기) ·
+   * 단검 부채꼴 투척(대쉬 직후 좌클릭) — 입력은 Player(BranchMoves), 판정·연출은 씬(build/BranchStrikes). 음향 훅 후보
+   */
+  PLAYER_BRANCH_MOVE: 'player:branch-move',
   /** 49라운드 무기 휴대: 칼집·등에서 뽑음 / 넣음(납도) — 음향 훅 후보 (`WeaponCarryPayload`) */
   PLAYER_WEAPON_DRAWN: 'player:weapon-drawn',
   PLAYER_WEAPON_SHEATHED: 'player:weapon-sheathed',
@@ -176,14 +181,18 @@ export type PlayerAttackPayload = {
   crack?: string;
   /** 56라운드 Q2 칼 일섬: 4방향 돌진 · 검기 소모 단 · 분신 (판정·선·분신은 IssenStrikes) */
   issen?: { facing: 'down' | 'up' | 'left' | 'right'; dirX: number; dirY: number; kenki: number; clone: boolean };
-  /** 56라운드 Q10 대검 꽂아내리기: 차지 단계 · 충격파 길이·반폭 · 꽂힌 자리(발 피벗 기준 월드 오프셋)·충격원 반지름 (PlungeStrikes) */
-  plunge?: {
+  /**
+   * 58라운드 Q3 대검 차지 균열 (CrackLineStrikes): 판정 순간 찍은 자리에서 조준 방향으로 커서까지(최대 maxTiles 칸·벽까지),
+   * 앞머리가 지나간 칸만 판정. 찍은 자리 = 발 피벗 + startOffset(몸 시트 slamAnchors) — 없으면 쐐기 끝점 충격원 중심
+   */
+  crackLine?: {
     stage: number;
-    waveLengthPx: number;
-    waveHalfWidthPx: number;
-    plantOffsetX: number;
-    plantOffsetY: number;
-    plantRadiusPx: number;
+    maxTiles: number;
+    cursorX: number;
+    cursorY: number;
+    halfWidthPx: number;
+    damageMult: number;
+    startOffset?: { x: number; y: number };
   };
   /** 56라운드 Q9 활 놓기 세기 (weak · perfect · full · strained) */
   bowPower?: 'weak' | 'perfect' | 'full' | 'strained';
@@ -306,8 +315,6 @@ export type PlayerChargePayload = {
   impactDelayMs?: number;
   /** cancel: 피격(hurt) · 1단 전에 떼서 일반 연격(tap) · 그 밖(대쉬·가드·F·워프·무기 교체 — 없음) */
   reason?: 'hurt' | 'tap';
-  /** 56라운드 Q10 release: plunge = 개성 발현 후 꽂아내리기 (없으면 기본 차지 내려찍기) */
-  mode?: 'plunge';
 };
 /** 55라운드 §17 후속 판정 (데이터 `followUps[].id` — 칼 echo · 대검 ring) */
 export type PlayerFollowUpPayload = { weapon: string; id: string; art?: string };
@@ -402,3 +409,14 @@ export interface EnemyIncomingPayload {
   delayMs: number;
   count?: number;
 }
+
+/** 57라운드 갈래 1단 수단 국면: ready = 홀드 완료(번쩍임) · release = 뗌·발동 · sustain = 회오리 지속 회전 틱 · end = 끝 */
+export type PlayerBranchMovePayload = {
+  weapon: string;
+  move: 'spin' | 'unblockable' | 'fanThrow';
+  phase: 'ready' | 'release' | 'sustain' | 'end';
+  x: number;
+  y: number;
+  dirX: number;
+  dirY: number;
+};

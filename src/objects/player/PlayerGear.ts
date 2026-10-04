@@ -7,6 +7,15 @@ import { gameState } from '../../core/GameState';
 import type { WeaponCarryDef, WeaponFirstStrikeDef } from '../../data/types';
 import { frameDurations, motionAction } from '../../systems/sprites/spriteDefs';
 import { WeaponResource, effectiveResource } from '../../systems/weapon/weaponResource';
+import { resourceAdjust } from '../../systems/build/current';
+import type { WeaponResourceDef } from '../../data/types';
+
+/** 자원 정의가 바뀌었는지 (장전·식힘·그로기 시간) */
+function resourceKeyPart(def: WeaponResourceDef): string {
+  if (def.kind === 'ammo') return String(def.reloadMs);
+  if (def.kind === 'heat') return String(def.cooldownMs);
+  return String(def.groggyMs ?? '');
+}
 import type { Player } from '../Player';
 
 export class PlayerGear {
@@ -26,8 +35,9 @@ export class PlayerGear {
   /** 현재 무기의 자원 상태 (자원이 없는 무기면 null). 51라운드 속사: 갈래가 탄창·장전을 바꾸면 값을 이어 새로 만든다 */
   get resource(): WeaponResource | null {
     const w = gameState.weapon;
-    const def = w.def.resource ? effectiveResource(w.def.resource, w.mods) : null;
-    const key = def ? `${w.id}|${def.max}|${def.kind === 'ammo' ? def.reloadMs : ''}` : w.id;
+    // 57라운드: 빌드 축 자원 조정 (피멍·버팀 4)
+    const def = w.def.resource ? effectiveResource(w.def.resource, w.mods, resourceAdjust()) : null;
+    const key = def ? `${w.id}|${def.max}|${resourceKeyPart(def)}` : w.id;
     if (this.trackerWeapon !== key) {
       const sameWeapon = this.trackerWeapon.split('|')[0] === w.id;
       const prev = this.tracker;

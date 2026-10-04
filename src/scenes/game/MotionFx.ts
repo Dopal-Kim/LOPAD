@@ -23,6 +23,7 @@ import { fxWeaponColor, hexToInt } from '../../systems/palette';
 import { facingOf, progressFrame } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 import { evolutionFxId, pathFx } from './shared';
+import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 
 export class MotionFx {
   /** 질풍: 이동·대쉬 중 루프 이펙트 */
@@ -107,6 +108,14 @@ export class MotionFx {
     const g = this.g;
     const S = gameState.weapon.def.secondary;
     if (S.kind !== 'shadowstep') return;
+    // 57라운드 비도(단검 2단): 박힌 단검이 있으면 그 자리로
+    const knife = g.build.branch.takeStuckKnife();
+    if (knife) {
+      g.player.teleportTo(knife.x, knife.y);
+      this.stepRibbon(p.x, p.y, knife.x, knife.y);
+      g.build.onShadowStep(p.x, p.y, knife.x, knife.y);
+      return;
+    }
     const target = g.combat.nearestMob(p.x, p.y, S.rangeTiles * TILE);
     const [pw, ph] = PLAYER_DATA.size;
     const half = Math.max(pw, ph) / 2;
@@ -145,6 +154,8 @@ export class MotionFx {
       g.tweens.add({ targets: ghost, alpha: 0, duration: PROTOTYPE.SHADOW_STEP_MS, onComplete: () => ghost.destroy() });
     }
     g.player.teleportTo(dest.x, dest.y);
+    // 57라운드: 이동기 사건 (완벽 회피 무장 · 돌파 경로 베기 · 열풍)
+    g.build.onShadowStep(p.x, p.y, dest.x, dest.y);
     // 56라운드 Q38: 리본은 돌진류에만 — 그림자 걸음 출발 → 도착을 짧게 긋는다
     this.stepRibbon(p.x, p.y, dest.x, dest.y);
     // 56라운드 Q16: 그 적 뒤에 서면 낙인 전부 폭발
@@ -188,7 +199,12 @@ export class MotionFx {
     if (longinvuln) g.fx.play(longinvuln, p.x, p.y, { dir, follow: g.player, depthOffset: DEPTH.OVERLAY_STEP * 3 });
     g.structures.onDash(p.x, p.y, p.dirX, p.dirY, PLAYER_DATA.dash.distanceTiles * TILE);
     const afterimage = pathFx(g.fx, 'afterimage');
-    if (afterimage) g.fx.play(afterimage, p.x, p.y, { dir, depth: entityDepth(p.y) - DEPTH.OVERLAY_STEP });
+    if (afterimage)
+      g.fx.play(afterimage, p.x, p.y, {
+        dir,
+        depth: entityDepth(p.y) - DEPTH.OVERLAY_STEP,
+        scaleMult: PLAYER_RENDER_SCALE,
+      });
     const mult = gameState.weapon.mods.dashTrailDamageMult;
     if (!mult) return;
     const D = PLAYER_DATA.dash;
@@ -302,6 +318,7 @@ export class MotionFx {
       depth: entityDepth(player.y) - DEPTH.OVERLAY_STEP,
       tint: hex ? hexToInt(hex) : undefined,
       tintFill: method.includes('setTintFill'),
+      scaleMult: PLAYER_RENDER_SCALE,
     });
   }
 

@@ -4,20 +4,21 @@
  * `pickMove(weapon, trigger, ctx)` 로 지금 조건에 맞는 **구현된** 수단만 받는다. 아직 그림이 없는 수단은 `live: false` —
  * 아트 시트가 오면 live 로 바꾸고 실행기를 붙인다. 56라운드 2단계: 기본기 9종 live (실행기 `player/BasicMoves`·`katanaMoves`·
  * `greatswordMoves`·`daggerMoves`·`bowRain`, 수치 data `moves`). 갈래 수단(회전 베기·가드 불가 내려베기·부채꼴 투척·분신 교차 베기·
- * 속사 연사·관통 화살)은 그림 대기.
+ * 속사 연사·관통 화살)은 그림 대기. 57라운드: 갈래 수단 5종은 기존 시트·플레이스홀더로 동작 (입력 `player/BranchMoves`,
+ * 판정 `scenes/game/build/BranchStrikes`) — 관통 화살은 56 Q9 '가득 이상 관통'과 겹쳐 대기(인터뷰).
  */
 
 /** 입력 계기 (Q40~Q43 결정 문구 그대로) */
 export type MoveTrigger =
-  /** 연격 n번째 타 (칼 3타 일섬) */
+  /** 연격 n번째 타 (칼 3타 찌르기) */
   | 'comboFinisher'
-  /** 차지를 떼서 (대검 차지 내려찍기·꽂아내리기) */
+  /** 차지를 떼서 (대검 휘둘러 내리찍기 + 균열) */
   | 'chargeRelease'
   /** 패링 성공 직후 창 안 좌클릭 (칼 간파 반격) */
   | 'afterParry'
   /** F 로 넣은 채 좌클릭을 눌렀다 뗌 (칼 대치 일격) */
   | 'sheathedHoldRelease'
-  /** 대쉬 공격 자리 (대검 어깨 태클) */
+  /** 대쉬 공격 자리 (대검 어깨 태클 · 58라운드 칼 일섬) */
   | 'dashAttack'
   /** 가드 중 좌클릭 (대검 버티기 올려베기) */
   | 'guardAttack'
@@ -55,7 +56,9 @@ export interface MoveDef {
 /** 표 (순서 = 같은 계기에서 우선) */
 export const MOVES: readonly MoveDef[] = [
   // 칼 (Q40: 기본기 2 + 갈래 2, 기본 포함 일섬·분신)
-  { id: 'issen', weapon: 'katana', name: '일섬', slot: 'basic', trigger: 'comboFinisher', live: true },
+  // 58라운드 Q1: 3연격 3타 = 찌르기(검기 소모 강화), 일섬은 대쉬 공격으로만
+  { id: 'thrust', weapon: 'katana', name: '찌르기', slot: 'basic', trigger: 'comboFinisher', live: true },
+  { id: 'issen', weapon: 'katana', name: '일섬', slot: 'basic', trigger: 'dashAttack', live: true },
   {
     id: 'counter',
     weapon: 'katana',
@@ -73,7 +76,7 @@ export const MOVES: readonly MoveDef[] = [
     slot: 'branch',
     branch: 'iai',
     trigger: 'branchAttack',
-    live: false,
+    live: true,
   },
   {
     id: 'unblockable',
@@ -82,10 +85,18 @@ export const MOVES: readonly MoveDef[] = [
     slot: 'branch',
     branch: 'batto',
     trigger: 'branchAttack',
-    live: false,
+    live: true,
   },
   // 대검 (Q41: 모두 기본기, 기본 포함 모아 내려찍기·땅 꽂기 충격파)
-  { id: 'plunge', weapon: 'greatsword', name: '꽂아내리기', slot: 'basic', trigger: 'chargeRelease', live: true },
+  // 58라운드 Q3: 차지 = 휘둘러 내리찍기 + 균열이 커서까지 (어느 갈래든 — 56라운드 꽂아내리기 대체)
+  {
+    id: 'charge_swing',
+    weapon: 'greatsword',
+    name: '휘둘러 내리찍기',
+    slot: 'basic',
+    trigger: 'chargeRelease',
+    live: true,
+  },
   { id: 'tackle', weapon: 'greatsword', name: '어깨 태클', slot: 'basic', trigger: 'dashAttack', live: true },
   {
     id: 'brace_upswing',
@@ -127,8 +138,8 @@ export const MOVES: readonly MoveDef[] = [
     name: '부채꼴 투척',
     slot: 'branch',
     branch: 'gale',
-    trigger: 'branchAttack',
-    live: false,
+    trigger: 'dashAttack',
+    live: true,
   },
   {
     id: 'clone_cross',
@@ -137,7 +148,7 @@ export const MOVES: readonly MoveDef[] = [
     slot: 'branch',
     branch: 'twin',
     trigger: 'brandBurst',
-    live: false,
+    live: true,
   },
   // 활 (Q43: 화살비만 기본기, 나머지 갈래)
   { id: 'arrow_rain', weapon: 'bow', name: '화살비', slot: 'basic', trigger: 'drawAttack', live: true },
@@ -148,7 +159,7 @@ export const MOVES: readonly MoveDef[] = [
     slot: 'branch',
     branch: 'rapid',
     trigger: 'attackHold',
-    live: false,
+    live: true,
   },
   {
     id: 'pierce_arrow',
@@ -169,7 +180,7 @@ export function availableMoves(weapon: string, path: readonly string[]): MoveDef
 }
 
 /**
- * 계기에 맞는 구현된 수단 (없으면 null). `require` 는 수단별 추가 조건(예: 꽂아내리기 = 충격파 갈래 발현) — 호출 쪽이 판단
+ * 계기에 맞는 구현된 수단 (없으면 null). `require` 는 수단별 추가 조건 — 호출 쪽이 판단
  */
 export function pickMove(
   weapon: string,

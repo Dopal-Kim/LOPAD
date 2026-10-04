@@ -16,6 +16,7 @@ import { artScale, frameDurations, frameStarts, fxImpactFrame } from '../../syst
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import type { Game } from '../Game';
 import { HIT_ORIGIN_UP_PX } from './shared';
+import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 
 interface RainRun {
   p: ArrowRainPayload;
@@ -106,7 +107,7 @@ export class ArrowRain {
       ?.arrowSpawnAnchors;
     const col = p.releaseFrames[i];
     const pt = col !== undefined ? anchors?.[p.facing]?.[col] : null;
-    const k = sheet ? artScale(sheet) : 0;
+    const k = sheet ? artScale(sheet) * PLAYER_RENDER_SCALE : 0;
     const x = sheet && pt ? pl.x + (pt[0] - sheet.pivot.x) * k : pl.x;
     const y = sheet && pt ? pl.y + (pt[1] - sheet.pivot.y) * k : pl.y - HIT_ORIGIN_UP_PX * 2;
     if (g.fx.has(p.riseFx)) g.fx.play(p.riseFx, x, y, { dir: p.facing, depth: pl.depth + DEPTH.OVERLAY_STEP * 3 });

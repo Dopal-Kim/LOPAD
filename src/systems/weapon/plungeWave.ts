@@ -1,7 +1,7 @@
 /**
- * 56라운드 Q10 대검 꽂아내리기 충격파 앞머리 (Phaser 의존 없음): 시트 `greatsword_plunge_wave` 메모 `hitShape.frontPxByFrame`
- * (도트, 프레임마다 앞머리 거리)·`activeFrames`·`frameDurationsMs` → 시간에 따른 앞머리 비율(0..1). 앞머리가 지나간 칸만 맞는다.
- * 메모가 없으면 travelMs 동안 선형.
+ * 앞머리가 나아가는 판정 (Phaser 의존 없음) — 56라운드 Q10 꽂아내리기 충격파에서 시작, 58라운드 Q3 차지 균열(CrackLineStrikes)이 쓴다.
+ * fx 시트 메모 `hitShape.frontPxByFrame`(도트, 프레임마다 앞머리 거리)·`activeFrames`·`frameDurationsMs` → 시간에 따른 앞머리
+ * 비율(0..1). 앞머리가 지나간 칸만 맞는다. 메모가 없으면 travelMs 동안 선형.
  */
 import type { Pt, HitTarget } from './hitShapes';
 import { thrustHit } from './hitShapes';
@@ -60,4 +60,15 @@ export function waveEndMs(tl: WaveTimeline): number {
 /** 앞머리가 지나간 직사각형(시작 = 꽂힌 자리)에 대상이 걸쳤는가 */
 export function waveHit(origin: Pt, dir: Pt, frontPx: number, halfWidthPx: number, t: HitTarget): boolean {
   return frontPx > 0 && thrustHit(origin.x, origin.y, dir.x, dir.y, frontPx, halfWidthPx * 2, t);
+}
+
+/**
+ * 58라운드 Q3 균열 칸 수 (아트 pickRule): min(차지 단계 최대, 찍은 자리 → 커서 거리 / 칸 반올림(최소 1), 벽까지 / 칸 내림).
+ * 0 이면 균열 없음 (바로 앞이 벽)
+ */
+export function crackTiles(maxTiles: number, cursorAlongPx: number, wallPx: number, tilePx: number): number {
+  const t = Math.max(1, tilePx);
+  const toCursor = Math.max(1, Math.round(cursorAlongPx / t));
+  const toWall = Math.floor(wallPx / t + 1e-6);
+  return Math.max(0, Math.min(maxTiles, toCursor, toWall));
 }

@@ -352,7 +352,7 @@ export function exposeGameDebug(g: Game): void {
         defense: pl.defense.lastOutcome,
         brands: g.strikes.brands.summary(),
         issen: g.strikes.issen.debugLast,
-        plunge: g.strikes.plunge.debugLast,
+        crackLine: g.strikes.crackLine.debugLast,
         // 56라운드 2단계 새 기본기
         moves: pl.moves.debug(now),
         moveStrikes: g.strikes.moves.debugLast,
@@ -418,6 +418,34 @@ export function exposeGameDebug(g: Game): void {
       gameState.scar = s;
       g.player.scar.refresh();
       return true;
+    },
+    build: {
+      info: () => g.build.debug(),
+      ui: () => g.build.toUi(),
+      addPassive: (id, levels = 1) => {
+        let ok = false;
+        for (let i = 0; i < levels; i++) ok = gameState.passives.add(id) || ok;
+        return ok;
+      },
+      curse: (id, pact) => g.build.grantCurse(id, { pact: Boolean(pact) }),
+      endCurse: () => g.build.endCurse(),
+      dual: (id) => g.build.addDualTrait(id),
+      perfect: (kind) => (kind === 'perfectEvade' ? g.build.perfect.onEvade() : g.build.perfect.onPerfect(kind, 10)),
+      drink: () => g.build.drink('potion'),
+      bossFloor: (n) => {
+        gameState.build.bossFloorCleared = n;
+        gameState.build.touch();
+      },
+      evolveSlots: () =>
+        g.buildMenus
+          .slots()
+          .map((sl) => ({ kind: sl.kind, enabled: sl.enabled, node: sl.node?.id ?? null, locked: sl.locked ?? null })),
+      openPassiveMenu: (source = 'boss') => g.buildMenus.openPassiveMenu(source),
+      openCurseMenu: () => g.buildMenus.openCurseMenu(),
+      openEvolveMenu: () => {
+        gameState.weapon.choicePending = true;
+        g.buildMenus.openEvolveMenu();
+      },
     },
     boss: {
       info: () => findBoss(g)?.debugInfo ?? null,

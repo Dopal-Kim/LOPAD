@@ -74,6 +74,7 @@
         "action": "연다",
         "actionKey": "chest.open",
         "passive": "궤짝 안: {name}",
+        "pick": "궤짝 안에 둘 — 하나만 챙긴다",
         "fallback": "빈 궤짝 바닥에 {potion} 한 병과 거스름 {gold}전표"
       }
     },

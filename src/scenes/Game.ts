@@ -76,6 +76,8 @@ import { SENSE_BONUS_MAX, urlParams, type GameInitData } from './game/shared';
 import { AnchorDebug } from './game/AnchorDebug';
 import { runWeaponFor } from './game/runWeapon';
 import { preloadWeaponSheets } from '../systems/sprites/sheetLoader';
+import { BuildRuntime } from './game/build/BuildRuntime';
+import { BuildMenus } from './game/build/BuildMenus';
 
 export type { GameInitData } from './game/shared';
 
@@ -156,6 +158,9 @@ export class Game extends Phaser.Scene {
   ui: UiRelay;
   /** 56라운드 무기 피드백 연출 (월드 문구·숨 집중·과열 낙인 폭발) */
   feedback: WeaponFeedback;
+  /** 57라운드 빌드 축: 태그 세트·패시브 규칙·이중 개성·갈래 수단·각성·저주 (런 상태는 gameState.build) · 선택 메뉴 */
+  build: BuildRuntime;
+  buildMenus: BuildMenus;
 
   initData: GameInitData = {};
   private senseBonus = 0;
@@ -225,6 +230,10 @@ export class Game extends Phaser.Scene {
       : this.world.roomCenter(layout.rooms.find((r) => r.type === 'start')!);
     this.player = new Player(this, start.x, start.y);
     this.route = new RouteFlow(this);
+    // 57라운드 빌드 축 (bindEvents 보다 먼저 — 공격 페이로드의 갈래 한 타 변화를 판정보다 먼저 건다)
+    this.buildMenus = new BuildMenus(this);
+    this.build = new BuildRuntime(this);
+    this.player.buildHooks = this.build.defense;
 
     this.createActors();
     createFx(this, floor);
@@ -382,6 +391,12 @@ export class Game extends Phaser.Scene {
         },
         story: (kind, text) => this.ui.story(kind, text),
         nodeMode: this.routeMode,
+        // 57라운드 빌드 축: 구조물 저주 줄 · 궤짝 2택
+        build: {
+          curseLine: (kind, key) => this.buildMenus.structureCurseLine(kind, key),
+          grantCurse: (kind) => this.buildMenus.grantStructureCurse(kind),
+          chestPick: (onDone) => this.buildMenus.openPassiveMenu('chest', {}, onDone),
+        },
       },
       plan,
     );
@@ -516,6 +531,7 @@ export class Game extends Phaser.Scene {
     this.bossArena?.update(input, time, delta);
     input = this.structures.adjustAim(input, time);
     this.player.sprintAllowed = !this.director.inCombat;
+    this.build.update(time);
     this.player.update(input, time, delta);
     this.motion.update(time);
     this.cam.update(false, delta);
@@ -623,6 +639,7 @@ export class Game extends Phaser.Scene {
     // 엔딩 선택 뒤 정지 상태로 씬이 끝나면 물리 플러그인이 먼저 정리돼 world 가 없을 수 있다
     if ((this.frozen || this.hitStopped) && this.physics.world) this.physics.world.resume();
     this.numbers.destroy();
+    this.build.destroy();
     this.feedback.destroy();
     this.strikes.brands.destroy();
     this.strikes.moves.destroy();

@@ -14,6 +14,7 @@ import type { FxHandle } from '../../systems/fx/fx';
 import { artScale } from '../../systems/sprites/spriteDefs';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { HIT_ORIGIN_UP_PX } from './shared';
+import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 import { gameState } from '../../core/GameState';
 import { WorldCallouts } from '../../systems/fx/worldCallouts';
 import type { Game } from '../Game';
@@ -73,6 +74,7 @@ export class WeaponFeedback {
           flipY: dx < 0,
           depth: DEPTH.HIT_FX,
           hitstopFrame: g.fx.sheet(G.SHEET)?.holdFrame,
+          scaleMult: PLAYER_RENDER_SCALE,
         }) !== null
       : false;
     this.lastGuardFx = { kind, ok };
@@ -96,6 +98,7 @@ export class WeaponFeedback {
         this.coolFx = g.fx.play(O.COOL_SHEET, g.player.x, g.player.y, {
           follow: g.player,
           depthOffset: DEPTH.OVERLAY_STEP * 3,
+          scaleMult: PLAYER_RENDER_SCALE,
         });
       }
     }
@@ -122,7 +125,7 @@ export class WeaponFeedback {
         })
       | undefined;
     const head = body?.headTopAnchors?.down?.[0];
-    const k = body ? artScale(body) : 0;
+    const k = body ? artScale(body) * PLAYER_RENDER_SCALE : 0;
     const off =
       body && head
         ? { x: (head[0] - body.pivot.x) * k, y: (head[1] + (body.swirlOffsetY ?? 0) - body.pivot.y) * k }
@@ -132,6 +135,7 @@ export class WeaponFeedback {
       follow: g.player,
       followOffset: off,
       depthOffset: DEPTH.OVERLAY_STEP * 3,
+      scaleMult: PLAYER_RENDER_SCALE,
     });
   }
 

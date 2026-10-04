@@ -46,12 +46,13 @@ export interface ReleaseResult {
 export function releaseShot(
   def: BowDrawDef,
   elapsedMs: number,
-  opts: { focus?: boolean; windowMult?: number } = {},
+  opts: { focus?: boolean; windowMult?: number; windowAddMs?: number } = {},
 ): ReleaseResult {
   const st = drawState(def, elapsedMs, opts.focus);
   if (st.progress < 1)
     return { power: 'weak', damageMult: def.weakDamageMult, replacesAimed: true, refund: false, pierce: false };
-  const win = def.perfectWindowMs * (opts.windowMult ?? 1);
+  // 57라운드 철벽 패링: 완벽 창 +ms
+  const win = def.perfectWindowMs * (opts.windowMult ?? 1) + (opts.windowAddMs ?? 0);
   if (st.sinceFullMs <= win)
     return { power: 'perfect', damageMult: def.perfectDamageMult, replacesAimed: false, refund: true, pierce: true };
   if (st.phase === 'strain') {

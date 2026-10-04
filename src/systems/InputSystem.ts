@@ -82,7 +82,8 @@ export class InputSystem {
     };
     scene.input.mouse?.disableContextMenu();
     this.onPointerDown = (p) => {
-      if (p.leftButtonDown()) {
+      // 58라운드: 한 프레임 안에 눌렀다 뗀 아주 짧은 클릭도 — 처리 시점에 버튼 상태가 이미 풀렸어도 누른 버튼(button 0)으로 받는다
+      if (p.leftButtonDown() || p.button === 0) {
         this.attackQueued = true;
         this.attackHeld = true;
       }

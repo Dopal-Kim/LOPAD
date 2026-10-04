@@ -31,6 +31,7 @@ import { FX_ACTION, artScale, facingOf, fxDrawScale } from '../../systems/sprite
 import { arrowFxId, perfectReleaseFxId } from '../../systems/fx/fxIds';
 import type { Game } from '../Game';
 import { HIT_ORIGIN_UP_PX, pathFx } from './shared';
+import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 
 /** 저격 화살 한 발의 상태 (발사점·사거리·단계·꼬리) */
 interface SnipeShot {
@@ -123,7 +124,7 @@ export class BowShots {
       ?.arrowSpawnAnchors;
     const pt = anchors?.[facingOf(dirX, dirY, this.g.player.facingDir)]?.[0];
     if (!sheet || !pt) return null;
-    const k = artScale(sheet);
+    const k = artScale(sheet) * PLAYER_RENDER_SCALE;
     return { x: (pt[0] - sheet.pivot.x) * k, y: (pt[1] - sheet.pivot.y) * k };
   }
 
@@ -134,13 +135,16 @@ export class BowShots {
     const mods = weapon.mods;
     const now = g.time.now;
     const aimed = p.kind === 'aimed';
-    const { dmg, crit } = g.combat.rollDamage(p.damageMult * rapidMult, p.forceCrit, p.kind);
+    // 57라운드 빌드 축: 강공·일회성 배율 · 갈래(저격 완벽 놓기·천공 스택·필중) · 원격 사거리·속도·관통
+    const bb = g.build.arrowMods(p);
+    const { dmg, crit } = g.combat.rollDamage(p.damageMult * rapidMult * bb.mult, p.forceCrit || bb.forceCrit, p.kind);
     // 조준 사격·섬광·관통(저격 2단): 무한 관통
     // 56라운드 Q9: 약한 화살(일찍 놓기)은 관통 없음
     const weak = p.bowPower === 'weak';
-    const pierce = (aimed && p.pierce !== false) || mods.pierceInfinite ? Infinity : (mods.pierce ?? 0);
-    const size = weapon.hitbox.width * p.sizeMult;
-    const speed = R.projectileSpeedTiles * TILE * (mods.projectileSpeedMult ?? 1);
+    const pierce =
+      (aimed && p.pierce !== false) || mods.pierceInfinite ? Infinity : (mods.pierce ?? 0) + (weak ? 0 : bb.pierceAdd);
+    const size = weapon.hitbox.width * p.sizeMult * bb.sizeMult;
+    const speed = R.projectileSpeedTiles * TILE * (mods.projectileSpeedMult ?? 1) * bb.speedMult;
     const base = Math.atan2(p.dirY, p.dirX);
     // 56라운드 Q26: 약한 화살 전용 그림(없으면 기본 화살을 어둡게)
     const D = weapon.def.draw;
@@ -204,7 +208,7 @@ export class BowShots {
         sy,
         dx,
         dy,
-        { speedPx: speed, attack: dmg, size, lifeMs: R.projectileLifeMs },
+        { speedPx: speed, attack: dmg, size, lifeMs: R.projectileLifeMs * bb.lifeMult },
         now,
         'player',
         pierce,
@@ -212,6 +216,7 @@ export class BowShots {
       );
       shot.crit = crit;
       shot.heavy = isHeavyStrike(p);
+      g.build.onArrowSpawn(shot, p);
       if (weak && !weakSheet && D) shot.setTint(D.weakArrowTint);
       if (mods.homingTurnDeg) shot.homingTurn = Phaser.Math.DegToRad(mods.homingTurnDeg);
       if (aimed && mods.aimedShotStunMs) shot.hitStunMs = mods.aimedShotStunMs;

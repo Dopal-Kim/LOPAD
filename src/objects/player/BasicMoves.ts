@@ -3,7 +3,7 @@
  * 시각·누름 시작)를 들고, 조건이 맞으면 무기별 실행기(`katanaMoves`·`greatswordMoves`·`daggerMoves`)를 부른다.
  * 유지형(대치 일격·고속 난타)은 진행 중 입력을 가져간다. 슈퍼아머(버티기 올려베기) 구간·도약 공중 높이도 여기서 잰다.
  * Player.update 는 이동 뒤·넣기/대쉬/보조/공격 앞에서 `update` 를 부르고, 처리했으면 그 프레임을 끝낸다.
- * 태클(대쉬 공격 자리)은 MeleeDriver, 막다가 떼면 돌진(가드 뗌)은 SecondaryDriver, 화살비는 SecondaryDriver(활 당김 중)가 부른다.
+ * 대쉬 공격 자리(대검 태클·칼 일섬)는 MeleeDriver, 막다가 떼면 돌진(가드 뗌)은 SecondaryDriver, 화살비는 SecondaryDriver(활 당김 중)가 부른다.
  */
 import { EventBus, Events, type GuardReleasedPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
@@ -16,6 +16,7 @@ import { FlurryHold } from './daggerMoves';
 import { startBackstab } from './daggerMoves';
 import { startBrace, startGuardRush, startLeap, startTackle } from './greatswordMoves';
 import { IaiHold, startCounter } from './katanaMoves';
+import { startIssen } from './issenMove';
 
 export class BasicMoves {
   /** 계기 시각: 패링 성공 · 퍼펙트 가드 · 그림자 걸음 착지 · 좌클릭 누름 시작 */
@@ -135,13 +136,27 @@ export class BasicMoves {
     return false;
   }
 
-  /** 대검 어깨 태클 (MeleeDriver 의 대쉬 공격 자리). 시작했으면 true */
-  tryTackle(input: InputState, time: number): boolean {
+  /** 대쉬 공격 자리의 수단이 있는가 (대검 어깨 태클 · 58라운드 칼 대쉬 일섬) */
+  get hasDashAttack(): boolean {
     const M = this.defs;
-    if (!M?.tackle || !this.live('tackle', 'dashAttack')) return false;
-    startTackle(this.p, input, time, M.tackle);
-    this.last = { move: 'tackle', time };
-    return true;
+    return Boolean(
+      (M?.tackle && this.live('tackle', 'dashAttack')) || (M?.issenDash && this.live('issen', 'dashAttack')),
+    );
+  }
+
+  /** 대쉬 공격 자리 (MeleeDriver): 대검 어깨 태클 · 칼 대쉬 일섬. 시작했으면 true */
+  tryDashAttack(input: InputState, time: number): boolean {
+    const M = this.defs;
+    if (M?.tackle && this.live('tackle', 'dashAttack')) {
+      startTackle(this.p, input, time, M.tackle);
+      this.last = { move: 'tackle', time };
+      return true;
+    }
+    if (M?.issenDash && this.live('issen', 'dashAttack') && startIssen(this.p, input, time, M.issenDash) > 0) {
+      this.last = { move: 'issen', time };
+      return true;
+    }
+    return false;
   }
 
   /** 대검 막다가 떼면 돌진 조건 (가드를 떼는 지금 — 퍼펙트 가드 직후 창 안) */
@@ -182,7 +197,7 @@ export class BasicMoves {
     const air = (sheet as { airOffsetPx?: { byFrame?: number[] } } | undefined)?.airOffsetPx?.byFrame;
     if (!sheet || !air || !cur) return 0;
     const col = Number(cur.frame.name) % sheet.frames;
-    return (air[col] ?? 0) * artScale(sheet);
+    return (air[col] ?? 0) * artScale(sheet) * p.visual.drawScale;
   }
 
   /** 피격 (슈퍼아머가 아닐 때): 유지형을 끊는다 */

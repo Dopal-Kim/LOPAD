@@ -26,6 +26,18 @@ function strike(m: MoveStrikeDef, path: string, art: Record<string, unknown> | u
 }
 
 export function validateMoves(m: WeaponMovesDef, path: string, art: Record<string, unknown> | undefined): void {
+  if (m.thrust) {
+    const t = m.thrust;
+    if (!Array.isArray(t.byKi) || t.byKi.length === 0) throw new Error(`[data] ${path}.thrust.byKi 비어 있음`);
+    t.byKi.forEach((l, i) => {
+      const lp = `${path}.thrust.byKi[${i}]`;
+      nums(l, ['fromMult', 'lengthMult', 'widthMult', 'damageMult'], lp);
+      str(l.art, `${lp}.art`);
+      if (art && !(l.art in art)) throw new Error(`[data] ${lp}.art '${l.art}' 이 combo.art 표에 없음`);
+    });
+    if (t.lunge) travel(t.lunge, `${path}.thrust.lunge`);
+  }
+  if (m.issenDash) strike(m.issenDash, `${path}.issenDash`, art);
   if (m.counter) {
     strike(m.counter, `${path}.counter`, art);
     num(m.counter.windowMs, `${path}.counter.windowMs`);

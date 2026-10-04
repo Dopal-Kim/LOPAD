@@ -9,6 +9,7 @@
 import { gameState } from '../../core/GameState';
 import type { BraceMoveDef, LeapMoveDef, RushMoveDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
+import { weaponRangeScale } from '../../systems/weapon/playerScale';
 import type { Player } from '../Player';
 import { addTravel, aimDir, emitSkill, fireMoveStrike } from './moveStrike';
 
@@ -115,9 +116,9 @@ export function startLeap(p: Player, input: InputState, time: number, def: LeapM
   return total;
 }
 
-/** 현재 판정 반경 R (combo.radiusPx × 갈래·강화 배율) */
+/** 현재 판정 반경 R (combo.radiusPx × 갈래·강화 배율 × 58라운드 주인공 판정 배율) */
 function currentRadius(): number {
   const w = gameState.weapon;
   const base = w.def.combo?.radiusPx ?? w.def.hitbox.reach + w.def.hitbox.width / 2;
-  return base * (w.def.hitbox.reach > 0 ? w.hitbox.reach / w.def.hitbox.reach : 1);
+  return base * weaponRangeScale(w);
 }

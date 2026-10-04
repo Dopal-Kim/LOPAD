@@ -138,6 +138,16 @@ export function validateCombo(c: ComboDef, path: string): ComboDef {
     if (ch.hit.hitShape?.kind !== 'wedge') throw new Error(`[data] ${path}.charge.hit.hitShape 는 wedge`);
     if (ch.holdArt !== undefined && !(c.art && ch.holdArt in c.art))
       throw new Error(`[data] ${path}.charge.holdArt '${ch.holdArt}' 없음`);
+    const cl = ch.crackLine;
+    if (cl) {
+      const cp = `${path}.charge.crackLine`;
+      if (!(c.art && cl.art in c.art)) throw new Error(`[data] ${cp}.art '${cl.art}' 이 combo.art 표에 없음`);
+      if (!Array.isArray(cl.tilesByStage) || cl.tilesByStage.length !== ch.stages.length)
+        throw new Error(`[data] ${cp}.tilesByStage 는 차지 단계 수만큼`);
+      cl.tilesByStage.forEach((v, i) => positive(v, `${cp}.tilesByStage[${i}]`));
+      for (const k of ['tilePx', 'halfWidthPx', 'msPerTile', 'tileCrackScale'] as const) positive(cl[k], `${cp}.${k}`);
+      num(cl.damageMult, `${cp}.damageMult`);
+    }
   }
   return c;
 }

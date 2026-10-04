@@ -23,7 +23,7 @@ export type AttackExtra = Pick<
   | 'pierce'
   | 'crack'
   | 'issen'
-  | 'plunge'
+  | 'crackLine'
   | 'move'
   | 'noImpactFx'
   | 'rush'

@@ -113,7 +113,7 @@ describe('55라운드 §17 판정 모양 — wedge · rect · ring', () => {
 });
 
 describe('55라운드 데이터 (계약 §17 수치)', () => {
-  it('칼 K-A: 1타 +70→−40 · 2타 −70→+40 · 56라운드 Q2 3타 = 일섬(4칸 돌진 — 무기 데이터 issen), 반경 38(Q1)', () => {
+  it('칼 K-A: 1타 +70→−40 · 2타 −70→+40 · 58라운드 Q1 3타 = 찌르기(검기 단수별 직사각) · 일섬은 대쉬 공격(무기 데이터 issen), 반경 38', () => {
     const c = WEAPONS.katana.combo!;
     const R = comboRadius(c, WEAPONS.katana.hitbox);
     expect(R).toBe(38);
@@ -121,7 +121,12 @@ describe('55라운드 데이터 (계약 §17 수치)', () => {
       { kind: 'arc', fromDeg: 70, toDeg: -40 },
       { kind: 'arc', fromDeg: -70, toDeg: 40 },
     ]);
-    expect(c.hits[2]).toMatchObject({ move: 'issen', heavy: true, art: 'issen' });
+    expect(c.hits[2]).toMatchObject({ move: 'thrust', heavy: true, art: 'thrust' });
+    // 아트 player_katana_thrust hitShape.byKiLevel (도트 ÷ 152): 끝 197.6 / 228 / 258.4 / 288.8
+    const byKi = WEAPONS.katana.moves!.thrust!.byKi;
+    expect(byKi.map((l) => Math.round((l.fromMult + l.lengthMult) * 152))).toEqual([198, 228, 258, 289]);
+    expect(byKi.map((l) => l.art)).toEqual(['thrust', 'thrust_ki1', 'thrust_ki2', 'thrust_ki3']);
+    expect(WEAPONS.katana.moves!.issenDash!.hit).toMatchObject({ durationMs: 740, hitAtMs: 250, art: 'issen_dash' });
     expect(WEAPONS.katana.issen).toMatchObject({
       distancePx: 64,
       dashStartMs: 220,
@@ -156,9 +161,10 @@ describe('55라운드 데이터 (계약 §17 수치)', () => {
       [800, 1.5],
       [1200, 1.8],
     ]);
-    // 56라운드 Q10: 기본 차지는 충격파 링 없음 (충격파는 개성 발현 후 꽂아내리기 — 무기 데이터 plunge)
+    // 56라운드 Q10: 기본 차지는 충격파 링 없음 · 58라운드 Q3: 균열이 커서까지 3/4/5칸 (꽂아내리기 대체)
     expect(c.charge!.stages.every((s) => !s.followUps)).toBe(true);
-    expect(WEAPONS.greatsword.plunge?.wave.lengthMultByStage).toHaveLength(3);
+    expect(c.charge!.crackLine?.tilesByStage).toEqual([3, 4, 5]);
+    expect(c.charge!.crackLine?.tilePx).toBe(16);
     expect(c.charge!.moveMult).toBe(0.35);
     expect(c.leftTransform).toBe('rotate');
     expect(c.charge!.stages.map((s) => s.impactMult)).toEqual([1.0, 1.15, 1.3]);

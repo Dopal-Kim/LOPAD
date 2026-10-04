@@ -5,6 +5,7 @@ import type { BowDrawDef, IssenDef, PlungeDef, WeaponGaugeDef } from './weaponKi
 export type * from './weaponKitTypes';
 export type * from './moveTypes';
 import type { WeaponMovesDef } from './moveTypes';
+import type { ComboChangeDef, RuleDef, TagId } from './buildTypes';
 
 /** data/*.json 의 타입 정의. JSON을 바꾸면 여기와 validate()도 함께 맞춘다. */
 
@@ -33,6 +34,7 @@ export type {
   ArcShapeSpec,
   ComboArtEntry,
   ComboChargeDef,
+  ComboCrackLineDef,
   ComboChargeStageDef,
   ComboDef,
   ComboFollowUpDef,
@@ -79,6 +81,11 @@ export interface PlayerData {
   stats: PlayerStats;
   invulnerableMs: number;
   size: [number, number];
+  /**
+   * 58라운드 Q2: 주인공 그림 배율 — render = 몸·무기·오버레이·붙는 fx·판정 원점 높이, hit = 근접 무기 판정 크기 배율.
+   * 이동 충돌(size)·대쉬 거리·속도는 그대로. 없으면 1
+   */
+  drawScale?: { render: number; hit: number };
   dash: DashParams;
   parry: ParryParams;
   /** 45라운드 Q2: 비전투 중 Shift 를 누르는 동안 이동 속도 배율 (가속·감속 시간은 임시값) */
@@ -472,6 +479,17 @@ export interface WeaponEvolution {
   hitboxMult: number;
   mods: WeaponMods;
   next?: WeaponEvolution[];
+  /** 57라운드 빌드 축 (형식·검증 `buildTypes`·`data/build.ts`): 갈래 노드 태그 · 1단 새 동작 · 연격 한 타 변화 · 2단 규칙 */
+  tags?: TagId[];
+  move?: string;
+  moveParams?: Record<string, unknown>;
+  comboChange?: ComboChangeDef[];
+  rule?: RuleDef;
+  /** false = 데이터만 (효과 일부 미연결) */
+  live?: boolean;
+  _tmpName?: boolean;
+  /** 57라운드 갈래 수단 그림 (로드 목록): body = 몸·무기 동작 이름(`player_<무기>_<이름>`·`weapons/<무기>_<이름>`), fx = 이펙트 id */
+  art?: { body?: string[]; fx?: string[] };
 }
 
 /** 우클릭 보조 동작 (27라운드 Q1). 무기마다 1종 */

@@ -44,7 +44,7 @@ export class UiRelay {
       sprinting: g.player.sprinting,
       warp: this.warpState(),
       interactable: g.structures?.interactable() ?? null,
-      statuses: g.structures?.statuses() ?? [],
+      statuses: g.build ? g.build.statuses(g.structures?.statuses() ?? []) : (g.structures?.statuses() ?? []),
       structureRooms: g.structures?.structureRooms(),
       route: gameState.route?.toUi() ?? null,
       // 49라운드 (계약 §11): 무기 자원 · 음소거 · 시험장
@@ -55,6 +55,8 @@ export class UiRelay {
       // 56라운드 (계약 §13): 무기 고유 자원 · 그로기
       gauge: g.player?.gauges.toUi(now) ?? g.strikes?.brands.toUi() ?? null,
       groggy: this.groggy(now),
+      // 57라운드 (계약 §14.1): 태그·세트 · 이중 개성 · 저주
+      build: g.build?.toUi() ?? null,
     });
   }
 

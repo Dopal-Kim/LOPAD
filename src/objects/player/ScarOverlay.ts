@@ -32,6 +32,8 @@ export class ScarOverlay {
     private readonly host: Phaser.GameObjects.Sprite,
     /** 현재 애니 키 (EntityVisual.current — 프레임 유지 `#hold<c>` 포함) */
     private readonly currentKey: () => string | null,
+    /** 58라운드 Q2: 몸과 같은 그림 배율 */
+    private readonly drawScale = 1,
   ) {
     const scene = host.scene;
     ensureDot(scene);
@@ -84,7 +86,7 @@ export class ScarOverlay {
     this.lastAnchor = { action: parsed.action, dir, column };
     const a = scarAt(def, dir, column);
     if (!a || !a.visible) return 'hidden';
-    const k = artScale(def);
+    const k = artScale(def) * this.drawScale;
     const flip = host.flipX ? -1 : 1;
     const x = host.x + (a.x - def.pivot.x) * k * flip;
     // 56라운드 2단계: 도약 공중 높이만큼 몸과 같이

@@ -25,6 +25,7 @@ import { facingOf, rowDirFor } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 import type { MobStrike } from './IssenStrikes';
 import { HIT_ORIGIN_UP_PX, shapeFacing } from './shared';
+import { PLAYER_RENDER_SCALE, weaponRangeScale } from '../../systems/weapon/playerScale';
 import type { SwingFx } from './SwingFx';
 
 /** 돌진형 한 번 */
@@ -163,6 +164,7 @@ export class MoveStrikes {
       dir: rowDirFor(g.fx.sheet(id), run.dir.x, run.dir.y, pl.facingDir),
       follow: pl,
       depthOffset: DEPTH.OVERLAY_STEP * 2,
+      scaleMult: PLAYER_RENDER_SCALE,
     });
     if (this.debugLast) this.debugLast.contactFx = id;
   }
@@ -243,7 +245,12 @@ export class MoveStrikes {
     if (!p.armored) return;
     const g = this.g;
     const id = this.fxId(gameState.weapon.def.moves?.brace?.absorbFx);
-    if (id) g.fx.play(id, g.player.x, g.player.y, { follow: g.player, depthOffset: DEPTH.OVERLAY_STEP * 3 });
+    if (id)
+      g.fx.play(id, g.player.x, g.player.y, {
+        follow: g.player,
+        depthOffset: DEPTH.OVERLAY_STEP * 3,
+        scaleMult: PLAYER_RENDER_SCALE,
+      });
     this.debugLast = { kind: 'absorb', time: g.time.now, amount: p.amount, fx: id };
   }
 
@@ -252,7 +259,8 @@ export class MoveStrikes {
     if (p.move !== 'iai' || p.phase !== 'ready' || !p.at) return;
     const g = this.g;
     const id = this.fxId(gameState.weapon.def.moves?.iai?.readyFx);
-    if (id) g.fx.play(id, p.at.x, p.at.y, { depth: g.player.depth + DEPTH.OVERLAY_STEP * 3 });
+    if (id)
+      g.fx.play(id, p.at.x, p.at.y, { depth: g.player.depth + DEPTH.OVERLAY_STEP * 3, scaleMult: PLAYER_RENDER_SCALE });
     this.debugLast = { kind: 'iaiReady', time: g.time.now, at: p.at, fx: id };
   }
 
@@ -275,6 +283,8 @@ export class MoveStrikes {
         follow: g.player,
         depthOffset: DEPTH.OVERLAY_STEP * 2,
         staticFrame: view.column,
+        // 찌르기 판정 길이와 같은 배율 (갈래·강화 × 58라운드 주인공 판정 배율)
+        scaleMult: weaponRangeScale(gameState.weapon),
       });
       this.flurryFx = { handle, id: view.fx, facing: view.facing };
     }

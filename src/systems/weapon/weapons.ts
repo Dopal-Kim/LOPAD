@@ -23,6 +23,8 @@ export class WeaponState {
   path: string[] = [];
   reinforce = 0;
   choicePending = false;
+  /** 57라운드 Q37: 각성 후 강화 상한 (null = 규칙 reinforceMax) */
+  reinforceCapOverride: number | null = null;
 
   constructor(
     readonly id: string,
@@ -67,11 +69,19 @@ export class WeaponState {
     return T[Math.min(this.stage, T.length - 1)];
   }
 
-  get canReinforce(): boolean {
-    return this.reinforce < this.rules.reinforceMax;
+  /** 강화 상한 (57라운드: 각성 후 5) */
+  get reinforceCap(): number {
+    return this.reinforceCapOverride ?? this.rules.reinforceMax;
   }
 
-  /** 게이지가 아직 의미가 있는지 (선택지나 강화가 남아 있음) */
+  get canReinforce(): boolean {
+    return this.reinforce < this.reinforceCap;
+  }
+
+  /**
+   * 게이지가 아직 의미가 있는지 (선택지나 강화가 남아 있음). 57라운드 Q37: 트리가 끝난 뒤에도 피의 계약·각성 칸이 있으므로
+   * 호출 쪽(Progression)이 칸 계산으로 덮어쓴다 — `gainPersonality(amount, canEvolve)`
+   */
   get canEvolve(): boolean {
     return this.options.length > 0 || this.canReinforce;
   }
@@ -151,7 +161,7 @@ export class WeaponState {
       this.path.push(id);
       options = node.next;
     }
-    this.reinforce = Math.max(0, Math.min(p.reinforce ?? 0, this.rules.reinforceMax));
+    this.reinforce = Math.max(0, Math.min(p.reinforce ?? 0, this.reinforceCap));
     this.personality = Math.max(0, p.personality ?? 0);
     this.choicePending = Boolean(p.choicePending) && this.canEvolve;
   }
@@ -160,8 +170,8 @@ export class WeaponState {
    * 개성 수치를 더한다. 임계에 닿으면 선택 대기 상태가 되고 true 를 반환한다.
    * 선택 대기 중이거나 더 오를 곳이 없으면 무시.
    */
-  gainPersonality(amount: number): boolean {
-    if (this.choicePending || !this.canEvolve) return false;
+  gainPersonality(amount: number, canEvolve = this.canEvolve): boolean {
+    if (this.choicePending || !canEvolve) return false;
     this.personality += amount;
     if (this.personality >= this.threshold) {
       this.personality = this.threshold;
@@ -181,7 +191,13 @@ export class WeaponState {
     return node;
   }
 
-  /** 현재 개성 강화 (+reinforceBonus, 최대 reinforceMax 회). 불가하면 false */
+  /** 개성 3지선다의 강화 아닌 칸(피의 계약·각성)을 골랐다: 수치 0, 대기 끝 */
+  consumeChoice(): void {
+    this.personality = 0;
+    this.choicePending = false;
+  }
+
+  /** 현재 개성 강화 (+reinforceBonus, 최대 reinforceCap 회). 불가하면 false */
   reinforceNow(): boolean {
     if (!this.canReinforce) return false;
     this.reinforce += 1;

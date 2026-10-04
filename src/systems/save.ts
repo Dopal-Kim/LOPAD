@@ -4,6 +4,7 @@
  * 사망·클리어 시 삭제. 브라우저 localStorage 사용 (StorageLike 로 추상화해 테스트 가능).
  */
 import type { ScarData } from './setup/scar';
+import type { BuildSave } from './build/BuildState';
 
 export const SAVE_VERSION = 5;
 export const SAVE_KEY = 'lopad.save';
@@ -27,6 +28,8 @@ export interface SaveData {
   playerName: string;
   /** 53라운드 Q4: 등 상흔 (선택 항목 — 이전 세이브는 없음, 버전 그대로) */
   scar?: ScarData;
+  /** 57라운드 빌드 축: 이중 개성·저주·각성·영구 보너스 (선택 항목 — 이전 세이브는 없음, 버전 그대로) */
+  build?: BuildSave;
   savedAt: number;
 }
 

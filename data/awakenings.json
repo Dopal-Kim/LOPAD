@@ -1,0 +1,71 @@
+{
+  "_note": "57라운드 Q33 최종 각성 (설계안 3.4 A안): 무기당 1종 + 2단별 규칙. 조건 = 2단 + 그 2단 태그 중 하나 6점 + 5층 보스 처치 이후, 개성 3지선다 한 칸으로 획득, 각성 후 강화 상한 5. 1층 단계는 무기 시험장에서만. 이름 자리표시(_tmpName). live false = 데이터만 (무기 외형 변형·시그니처 fx 는 아트 대기, 칼 검기·대검 차지는 병행 작업과 합친 뒤)",
+  "items": {
+    "katana": {
+      "name": "만월 (滿月)",
+      "_tmpName": true,
+      "description": "검기 상한 5단, 일섬이 쓴 검기 단수만큼 연속 일섬 (최대 3회, 각 4칸), 그림자 분신 상시 동행",
+      "common": { "kind": "fullMoon", "live": false, "kenkiStages": 5, "issenChain": 3 },
+      "rules": {
+        "vortex": { "description": "일섬 끝마다 회전 베기 1회", "kind": "issenSpin", "live": false },
+        "zangetsu": { "description": "모든 일섬 선이 2초 남음", "kind": "issenLinger", "live": false, "ms": 2000 },
+        "cleave": { "description": "마지막 일섬이 가드 불가 처형", "kind": "issenExecute", "live": false },
+        "meikyo": {
+          "description": "패링 시 자동 일섬 반격",
+          "kind": "parryIssen",
+          "live": true,
+          "damageMult": 1.6,
+          "rangeTiles": 4
+        }
+      }
+    },
+    "greatsword": {
+      "name": "산붕 (山崩)",
+      "_tmpName": true,
+      "description": "4타 내려찍기마다 충격파, 울분 가득이면 차지 3단이 즉시",
+      "common": { "kind": "mountainFall", "live": true, "comboIndex": 3, "waveTiles": 3, "waveMult": 0.8 },
+      "rules": {
+        "quake": { "description": "모든 균열 3갈래", "kind": "allSplit", "live": true },
+        "resonance": {
+          "description": "일반 가드도 울분 반격 (위력 50%)",
+          "kind": "guardEcho",
+          "live": true,
+          "mult": 0.5
+        },
+        "giant": { "description": "차지 중 받는 피해 −80%", "kind": "giantArmor", "live": true, "damageTaken": -0.8 },
+        "clot": { "description": "그로기 대신 '분노' (1.5초 공격 가능·가드 불가)", "kind": "rage", "live": false }
+      }
+    },
+    "dagger": {
+      "name": "백귀 (百鬼)",
+      "_tmpName": true,
+      "description": "그림자 걸음 쿨 0.5초, 낙인 기폭마다 분신 3체",
+      "common": { "kind": "hundredDemons", "live": true, "shadowStepCooldownMs": 500, "clones": 3, "cloneMult": 0.4 },
+      "rules": {
+        "dance": { "description": "분신 상주 6초", "kind": "danceLong", "live": true, "ms": 6000 },
+        "bleed": { "description": "출혈이 2배 빨리", "kind": "fastBleed", "live": true, "tickMult": 0.5 },
+        "flyknife": { "description": "투척 단검이 돌아옴 (왕복 판정)", "kind": "boomerang", "live": false },
+        "heatwave": { "description": "과열 100%에서도 식지 않음 (폭발만 반복)", "kind": "endlessHeat", "live": false }
+      }
+    },
+    "bow": {
+      "name": "유성 (流星)",
+      "_tmpName": true,
+      "description": "화살비가 3초마다 탄창 소모 없이 자동, 완벽 놓기 화살마다 하늘에서 1발 추가",
+      "common": {
+        "kind": "meteor",
+        "live": true,
+        "autoRainMs": 3000,
+        "rainRadiusTiles": 1.5,
+        "rainMult": 0.6,
+        "skyMult": 0.8
+      },
+      "rules": {
+        "volley": { "description": "분열이 매 발", "kind": "splitEvery", "live": true },
+        "quiver": { "description": "탄창 무한 (재장전 없음)", "kind": "infiniteAmmo", "live": true },
+        "deadeye": { "description": "정밀 조준이 완벽 놓기마다 자동", "kind": "autoFocus", "live": false },
+        "skypierce": { "description": "연결 스택 상한 5", "kind": "stackCap", "live": true, "maxStacks": 5 }
+      }
+    }
+  }
+}

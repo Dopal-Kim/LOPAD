@@ -171,6 +171,27 @@ export interface ComboChargeDef {
   hit: ComboHitDef;
   /** 차지 유지 자세 그림 키 (`combo.art`) */
   holdArt?: string;
+  /** 58라운드 Q3: 휘둘러 내리찍은 자리에서 커서까지 이어지는 균열 (없으면 내려찍기만) */
+  crackLine?: ComboCrackLineDef;
+}
+
+/**
+ * 58라운드 Q3 대검 차지 균열 (꽂아내리기 대체): 찍은 자리 → 조준 방향으로 칸 수 = min(단계 최대, 커서까지 반올림(최소 1), 벽까지 내림).
+ * 앞머리가 지나간 칸만 판정 (적마다 1회)
+ */
+export interface ComboCrackLineDef {
+  /** 그림 이름 표 키 — fx = 칸 수별 균열 선(1칸부터 순서) · crackFx(그림이 없을 때 칸마다 놓는 균열) · crackRow */
+  art: string;
+  /** 차지 단계(1..) → 최대 칸 수 */
+  tilesByStage: number[];
+  tilePx: number;
+  /** 판정 반폭 (월드 px, 갈래·강화 배율을 곱한다) · 피해 배율(차지 피해에 곱한다) */
+  halfWidthPx: number;
+  damageMult: number;
+  /** 앞머리 속도 (fx 메모 frontPxByFrame 이 없을 때 한 칸당 ms) */
+  msPerTile: number;
+  /** 대체 그림: 칸마다 놓는 균열 배율 */
+  tileCrackScale: number;
 }
 
 /** 48라운드 Q2: 무기별 연격 상태 머신 파라미터 (임시값) */

@@ -134,7 +134,8 @@ export class SecondaryDriver {
     const breath = gameState.weapon.def.gauge;
     const windowMult = focus && breath?.kind === 'breath' ? breath.focusPerfectWindowMult : 1;
     const elapsed = time - this.drawStartedAt;
-    const r = releaseShot(d, elapsed, { focus, windowMult });
+    const windowAddMs = this.p.buildHooks?.perfectWindowAddMs(d.perfectWindowMs) ?? 0;
+    const r = releaseShot(d, elapsed, { focus, windowMult, windowAddMs });
     const aimedMult = S.damageMult * (gameState.weapon.mods.aimedShotMult ?? 1);
     const mult = r.replacesAimed ? r.damageMult : aimedMult * r.damageMult;
     this.lastRelease = { power: r.power, damageMult: mult, refund: r.refund, elapsedMs: Math.round(elapsed) };
@@ -173,7 +174,9 @@ export class SecondaryDriver {
     if (S.kind === 'parry' || S.kind === 'guard') p.gear.markDrawn(time);
     switch (S.kind) {
       case 'parry': {
-        const win = PLAYER_DATA.parry.windowMs * (1 + gameState.passives.total('parryWindowMult'));
+        // 57라운드 철벽 패링 재정의: 완벽 창 +ms (빌드 합산)
+        const base = PLAYER_DATA.parry.windowMs;
+        const win = base + (p.buildHooks?.perfectWindowAddMs(base) ?? 0);
         p.setAction('parry', time + win);
         p.poses.playSpecial(time, 'parryStart', win, input);
         return true;
@@ -190,8 +193,9 @@ export class SecondaryDriver {
         if (time >= this.readyAt && (!res || res.canFire())) this.beginDraw(time);
         return true;
       case 'shadowstep':
-        if (time >= this.readyAt) {
-          this.readyAt = time + S.cooldownMs;
+        // 57라운드: 맨손 맹세 = 그림자 걸음 불가 · 돌파 2·각성 백귀 쿨
+        if (time >= this.readyAt && (p.buildHooks?.dashAllowed() ?? true)) {
+          this.readyAt = time + (p.buildHooks?.shadowStepCooldown(S.cooldownMs) ?? S.cooldownMs);
           p.primeShadow(time + S.primeMs);
           const f = p.facingVec;
           const payload: ShadowStepPayload = { x: p.x, y: p.y, facingX: f.x, facingY: f.y };

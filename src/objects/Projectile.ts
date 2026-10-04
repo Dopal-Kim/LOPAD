@@ -42,6 +42,18 @@ export class Projectile extends Phaser.GameObjects.Sprite {
   impactFx: string | null = null;
   /** 47라운드 1-2: 증류 화로 불꽃을 지난 불화살 (적중 시 화상, 독주 웅덩이 점화) */
   fire = false;
+  /**
+   * 57라운드 빌드 축: 이 투사체를 낸 빌드 효과 (fanThrow 부채꼴 투척 · split 분열 · shard 파편 · bottle 술병 …).
+   * 분열·파편이 다시 분열하지 않게 거른다. null = 무기 기본 화살
+   */
+  buildTag: string | null = null;
+  /** 57라운드 천공 3스택: 벽을 지나간다 (수명으로만 끝) */
+  wallPierce = false;
+  /** 쏜 자리 (원격 세트 사거리·흩어진 촉) */
+  originX = 0;
+  originY = 0;
+  /** 57라운드: 수명·벽으로 끝날 때 한 번 (흩어진 촉) — launch 가 비운다 */
+  onEnd: ((shot: Projectile, reason: 'expire' | 'wall') => void) | null = null;
   /** 아트 텍스처 사용 중 (틴트 대신 원색, 속도 방향으로 회전) */
   private textured = false;
   private rotateToVelocity = false;
@@ -78,6 +90,11 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     this.heavy = false;
     this.impactFx = null;
     this.fire = false;
+    this.buildTag = null;
+    this.wallPierce = false;
+    this.onEnd = null;
+    this.originX = x;
+    this.originY = y;
     this.hitSet.clear();
     this.expireAt = time + spec.lifeMs;
     const texture = visual.texture && this.scene.textures.exists(visual.texture) ? visual.texture : null;
@@ -137,7 +154,11 @@ export class Projectile extends Phaser.GameObjects.Sprite {
 
   tick(time: number): void {
     if (!this.active) return;
-    if (time >= this.expireAt || !this.body.blocked.none) {
+    const wall = !this.body.blocked.none && !this.wallPierce;
+    if (time >= this.expireAt || wall) {
+      const end = this.onEnd;
+      this.onEnd = null;
+      end?.(this, wall ? 'wall' : 'expire');
       this.deactivate();
       return;
     }

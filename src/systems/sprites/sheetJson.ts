@@ -164,6 +164,8 @@ export interface SheetJson extends BranchSheetFields {
   dragStepPx?: { world?: number; frames?: number[]; startMs?: number };
   /** Q10 꽂아내리기: 칼이 바닥에 꽂힌 점 (몸 시트 도트, 방향 → 열 목록, 꽂히지 않은 열은 null) */
   plantAnchors?: Partial<Record<Dir8, ([number, number] | null)[]>>;
+  /** 58라운드 Q3 차지 휘둘러 내리찍기: 칼끝이 바닥에 닿은 점 (몸 시트 도트, slamFrames 만 값) — 균열 선·땅 충격 자리 */
+  slamAnchors?: Partial<Record<Dir8, ([number, number] | null)[]>>;
   /** Q9 활: 가득 열 · 유지 반복 [시작, 끝] · 흔들림 반복 [시작, 끝] · 화살이 생기는 점 (무기 시트 도트) */
   fullFrame?: number;
   holdLoop?: [number, number];

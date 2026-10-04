@@ -48,10 +48,10 @@ describe('51·52라운드 활 갈래 시트 (계약 art §10)', () => {
 });
 
 describe('51라운드 Q2 활 갈래 = 속사·저격 (산탄 계열 삭제)', () => {
-  it('트리 id 가 아트 BRANCHES(rapid·snipe·volley·quiver·pierce·deadeye)와 같다', () => {
+  it('트리 id: 1단 속사·저격 (아트 BRANCHES), 2단 연궁·무한통·필중·천공 (57 S-1: 2단 관통 → 천공)', () => {
     const b = WEAPONS.bow.personality.branches;
     expect(b.map((x) => x.id)).toEqual(['rapid', 'snipe']);
-    expect(b.flatMap((x) => (x.next ?? []).map((n) => n.id))).toEqual(['volley', 'quiver', 'pierce', 'deadeye']);
+    expect(b.flatMap((x) => (x.next ?? []).map((n) => n.id))).toEqual(['volley', 'quiver', 'deadeye', 'skypierce']);
   });
 
   it('속사: 연사 배율이 시위 당김·다음 발 간격을 나누고 탄창이 늘어난다', () => {
@@ -67,26 +67,29 @@ describe('51라운드 Q2 활 갈래 = 속사·저격 (산탄 계열 삭제)', ()
     w.restore({ path: ['rapid', 'quiver'] });
     const q = effectiveResource(WEAPONS.bow.resource!, w.mods);
     expect(q.max).toBeGreaterThan(ammo.max);
-    expect(q.kind === 'ammo' && q.reloadMs).toBeLessThan(1300);
+    // 57라운드 빌드 축 조정: 피멍 최대 +30% · 식힘 ×2
+    const adj = effectiveResource(WEAPONS.bow.resource!, w.mods, { maxMult: 1.3, coolMult: 2 });
+    expect(adj.max).toBe(Math.round(q.max * 1.3));
+    expect(adj.kind === 'ammo' && adj.reloadMs).toBe(
+      WEAPONS.bow.resource!.kind === 'ammo' ? WEAPONS.bow.resource!.reloadMs * 2 : 0,
+    );
   });
 
-  it('저격: 조준 사격 거리 단계 배율 · 관통, 필중은 lv3 확정 치명', () => {
+  it('저격: 거리 단계 배율 최대 ×1.6 · 필중 상한 ×2.2 (57라운드 — 필중 치명은 정밀 조준 완벽 놓기 규칙)', () => {
     const w = new WeaponState('bow', WEAPONS.bow);
     w.restore({ path: ['snipe'] });
     expect(w.mods.snipe?.levelMults).toHaveLength(3);
-    expect(w.mods.pierce).toBeGreaterThan(0);
+    expect(w.mods.snipe?.aimedLevelMults?.[2]).toBeCloseTo(1.6);
     w.restore({ path: ['snipe', 'deadeye'] });
-    expect(w.mods.snipe?.critFromLevel).toBe(3);
+    expect(w.mods.snipe?.aimedLevelMults?.[2]).toBeCloseTo(2.2);
+    expect(w.mods.snipe?.critFromLevel).toBeUndefined();
+    expect(w.evolution?.rule?.kind).toBe('deadeye');
   });
 
-  it('53라운드 Q40: 필중 최장 거리 확정 치명은 조준 사격만 (거리 배율은 그대로 모든 화살)', () => {
-    const w = new WeaponState('bow', WEAPONS.bow);
-    w.restore({ path: ['snipe', 'deadeye'] });
-    const S = w.mods.snipe;
-    expect(S?.critAimedOnly).toBe(true);
+  it('53라운드 Q40 규칙 함수: 최장 거리 확정 치명은 조준 사격만 (플래그가 있을 때)', () => {
+    const S = { critFromLevel: 3, critAimedOnly: true, levelMults: [1, 1.4, 2] };
     expect(snipeCritFromLevel(S, true)).toBe(3);
     expect(snipeCritFromLevel(S, false)).toBeUndefined();
-    expect(S?.levelMults[2]).toBeGreaterThan(1);
     // 플래그가 없으면 예전처럼 모든 화살
     expect(snipeCritFromLevel({ critFromLevel: 3 }, false)).toBe(3);
     expect(snipeCritFromLevel(null, true)).toBeUndefined();

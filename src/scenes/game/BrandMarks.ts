@@ -46,13 +46,24 @@ export class BrandMarks {
     return gd?.kind === 'brand' ? gd : null;
   }
 
-  /** 현재 무기의 장부 (단검이 아니면 null — 무기가 바뀌면 비운다) */
+  /** 낙인 최대 (57라운드 표식 세트 2: 5 → 7) */
+  get maxMarks(): number {
+    const d = this.def;
+    return d ? d.max + (this.g.build?.brandMaxAdd() ?? 0) : 0;
+  }
+
+  /** 이 적의 낙인 수 (단검이 아니면 0) */
+  marksOf(mob: Mob): number {
+    return this.ledger?.marks(mob) ?? 0;
+  }
+
+  /** 현재 무기의 장부 (단검이 아니면 null — 무기·낙인 최대가 바뀌면 새로) */
   private get ledger(): BrandBook<Mob> | null {
-    const w = gameState.weapon.id;
-    if (this.bookWeapon !== w) {
-      this.bookWeapon = w;
-      const d = this.def;
-      this.book = d ? new BrandBook<Mob>(d) : null;
+    const d = this.def;
+    const key = `${gameState.weapon.id}|${this.maxMarks}`;
+    if (this.bookWeapon !== key) {
+      this.bookWeapon = key;
+      this.book = d ? new BrandBook<Mob>({ ...d, max: this.maxMarks }) : null;
     }
     return this.book;
   }
@@ -128,7 +139,14 @@ export class BrandMarks {
     const g = this.g;
     const d = this.def;
     if (!d || !mob.active) return;
-    const { dmg, crit } = g.combat.rollDamage(marks * d.burstDamagePerMark, false, 'other');
+    // 57라운드 빌드 축: 쌍격 +30%·표식 6 +40% · 출혈(2단) = 즉시 비율만 (나머지는 출혈)
+    const br = g.build.branch;
+    const { dmg, crit } = g.combat.rollDamage(
+      marks * d.burstDamagePerMark * br.brandBurstMult() * br.brandImmediateRatio(),
+      false,
+      'other',
+      mob,
+    );
     const p = g.player;
     const dx = mob.x - p.x;
     const dy = mob.y - p.y;
@@ -143,8 +161,9 @@ export class BrandMarks {
     const sh = crackShake((g.fx.sheet(B.BURST_SHEET) as { shakeHint?: ShakeHint } | null)?.shakeHint, row);
     if (fx && sh) g.shake.add(g.time.now, sh.px, sh.ms);
     this.lastBurst = { marks, dmg, time: g.time.now, cause, fx };
-    if (g.combat.hitMob(mob, dmg, { crit, dirX: dx / len, dirY: dy / len, heavy: true, knock: false }))
-      g.progress.onKill(mob, 'attack');
+    const died = g.combat.hitMob(mob, dmg, { crit, dirX: dx / len, dirY: dy / len, heavy: true, knock: false });
+    br.onBrandBurst(mob, marks, dmg, died);
+    if (died) g.progress.onKill(mob, 'attack');
   }
 
   /** 적 머리 위 표식 fx 를 스택에 맞춘다 (스택이 오르면 그 행의 찍힘부터, 시트가 없으면 false) */

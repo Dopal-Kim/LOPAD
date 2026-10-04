@@ -7,6 +7,8 @@ import { WeaponState } from '../systems/weapon/weapons';
 import { EMPTY_BONUS, type StatBonus } from '../systems/economy';
 import { metaBonus, metaStore, type MetaBonus } from '../systems/meta';
 import { PassiveSet } from '../systems/passives';
+import { BuildState } from '../systems/build/BuildState';
+import { BUILD } from '../data/build';
 import type { RouteState } from '../systems/route';
 import type { StructureFloorCarry } from '../systems/structures/StructureSystem';
 import { sanitizeScar, type ScarData } from '../systems/setup/scar';
@@ -30,6 +32,8 @@ class GameState {
   pointsPending = 0;
   bonus: StatBonus = { ...EMPTY_BONUS };
   passives = new PassiveSet();
+  /** 57라운드 빌드 축: 이중 개성·저주·각성·영구 보너스 (태그 점수·세트는 passives + weapon 에서 합산) */
+  build = new BuildState();
   /** 보상 선택 중 (출구는 끝난 뒤 열림) */
   rewardPending = false;
   /** 런 시작 시 적용된 영구 강화 */
@@ -114,6 +118,7 @@ class GameState {
     this.pointsPending = 0;
     this.bonus = { ...EMPTY_BONUS };
     this.passives = new PassiveSet();
+    this.build = new BuildState();
     this.weapon = new WeaponState(wid, WEAPONS[wid]); // 사망 시 무기 초기화 (기획 3장)
     this.birthPending = true;
     this.scar = this.nextScar;
@@ -136,6 +141,7 @@ class GameState {
   }
 
   private resetStage(): void {
+    this.build.onFloorStart();
     this.trialsCleared = 0;
     this.trialsTotal = 0;
     this.roomId = '';
@@ -174,7 +180,9 @@ class GameState {
   }
 
   get crit(): number {
-    return PLAYER_DATA.stats.crit + this.bonus.crit + this.weapon.def.critBonus;
+    // 57라운드: 급소 세트 2·숫돌 치명 확률 (빌드 합산)
+    const build = this.build.mods(this.passives, this.weapon).stats.critChanceAdd;
+    return PLAYER_DATA.stats.crit + this.bonus.crit + this.weapon.def.critBonus + build;
   }
 
   toSave(): SaveData {
@@ -193,6 +201,7 @@ class GameState {
       pointsPending: this.pointsPending,
       bonus: { ...this.bonus },
       passives: { ...this.passives.owned },
+      build: this.build.toSave(),
       playerName: this.playerName,
       ...(this.scar ? { scar: this.scar } : {}),
       savedAt: Date.now(),
@@ -210,6 +219,8 @@ class GameState {
     this.savesLeft = d.savesLeft;
     const weaponId = WEAPONS[d.weapon.id] ? d.weapon.id : PLAYER_DATA.startWeapon;
     this.weapon = new WeaponState(weaponId, WEAPONS[weaponId]);
+    this.build.restore(d.build);
+    if (this.build.awakened) this.weapon.reinforceCapOverride = BUILD.evolve.reinforceMaxAwakened;
     this.weapon.restore(d.weapon);
     this.gold = d.gold;
     this.potions = d.potions;

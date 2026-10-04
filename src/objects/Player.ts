@@ -23,6 +23,10 @@ import { PlayerDefense } from './player/PlayerDefense';
 import { PlayerGauges } from './player/PlayerGauges';
 import { SecondaryDriver } from './player/SecondaryDriver';
 import { BasicMoves } from './player/BasicMoves';
+import { BranchMoves } from './player/BranchMoves';
+import { DashCharges } from '../systems/build/dashCharges';
+import type { PlayerBuildHooks } from '../systems/build/playerHooks';
+import { PLAYER_RENDER_SCALE } from '../systems/weapon/playerScale';
 
 type Body = Phaser.Physics.Arcade.Body;
 
@@ -119,6 +123,17 @@ export class Player extends Phaser.GameObjects.Sprite {
   skillMoveMult = 0;
   /** 이번 프레임 우클릭을 쥐고 있는가 (56라운드 Q58: 패링 뒤 계속 쥐고 있으면 가드로 복귀) */
   secondaryHeldNow = false;
+  /** 57라운드 빌드 축: 갈래 1단 수단 입력 (칼 홀드·단검 투척·활 연사) */
+  readonly branchMoves: BranchMoves;
+  /** 57라운드 빌드 축 훅 (씬 BuildRuntime 이 넣는다 — 없으면 기본 규칙) */
+  buildHooks: PlayerBuildHooks | null = null;
+  /** 빌드 축 이동·공속 배율 · 피격 경직 없음 (BuildRuntime 이 매 프레임) · 갈래 수단 이동 배율 (속사 연사) */
+  buildSpeedMult = 1;
+  buildAttackSpeed = 1;
+  buildNoFlinch = false;
+  branchMoveMult = 1;
+  /** 돌파 6 대쉬 충전 */
+  private readonly dashStock = new DashCharges();
   /**
    * 56라운드 Q57 숨 집중 보정: 물리 배속을 늦춘 동안(world.timeScale > 1) 주인공 속도만 이만큼 곱해 제 속도로 움직인다.
    * WeaponFeedback 이 집중 시작·끝에 넣는다 (1 = 보정 없음)
@@ -139,19 +154,22 @@ export class Player extends Phaser.GameObjects.Sprite {
     super(scene, x, y, placeholderTexture(scene, w, h));
     scene.add.existing(this);
     scene.physics.add.existing(this);
-    this.visual = new EntityVisual(this, 'player', w, h, COLORS.PLAYER);
+    // 58라운드 Q2: 몸·무기 그림만 약 1.25배 (바디·대쉬·속도 그대로)
+    this.visual = new EntityVisual(this, 'player', w, h, COLORS.PLAYER, PLAYER_RENDER_SCALE);
     this.gear = new PlayerGear(this);
     this.poses = new PlayerPoses(this);
     this.melee = new MeleeDriver(this);
     this.secondaryDriver = new SecondaryDriver(this);
     this.defense = new PlayerDefense(this);
     this.moves = new BasicMoves(this);
+    this.branchMoves = new BranchMoves(this);
     this.overlay = new WeaponOverlay(
       this,
       () => this.visual.current,
       () => ({ mode: this.gear.carryMode, drawn: this.gear.drawn }),
+      PLAYER_RENDER_SCALE,
     );
-    this.scar = new ScarOverlay(this, () => this.visual.current);
+    this.scar = new ScarOverlay(this, () => this.visual.current, PLAYER_RENDER_SCALE);
     this.body.setCollideWorldBounds(true);
   }
 
@@ -180,7 +198,14 @@ export class Player extends Phaser.GameObjects.Sprite {
 
   get speedPx(): number {
     const weaponMult = gameState.weapon.mods.moveSpeedMult ?? 1;
-    return PLAYER_DATA.stats.speedTiles * TILE * (1 + gameState.passives.total('moveSpeedMult')) * weaponMult;
+    return (
+      PLAYER_DATA.stats.speedTiles *
+      TILE *
+      (1 + gameState.passives.total('moveSpeedMult')) *
+      weaponMult *
+      this.buildSpeedMult *
+      this.branchMoveMult
+    );
   }
 
   /** 달리는 중 (스냅샷 `sprinting`) */
@@ -201,7 +226,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       this.action === 'guard' &&
       S.kind === 'guard' &&
       S.perfect === 'parry' &&
-      isPerfectGuard(this.defense.guardStartedAt, this.scene.time.now, PLAYER_DATA.perfectGuard?.windowMs ?? 0)
+      isPerfectGuard(this.defense.guardStartedAt, this.scene.time.now, this.perfectWindowMs())
     );
   }
 
@@ -286,6 +311,23 @@ export class Player extends Phaser.GameObjects.Sprite {
   /** 대검 마지막 타 뒤 정지 중 */
   isStopped(time: number): boolean {
     return this.melee.isStopped(time);
+  }
+
+  /** 57라운드: 대쉬 가능 (맨손 맹세 금지 · 돌파 6 충전) */
+  private dashReady(time: number): boolean {
+    if (this.buildHooks && !this.buildHooks.dashAllowed()) return false;
+    return this.dashStock.ready(time, this.buildHooks?.dashCharges() ?? 1);
+  }
+
+  /** 57라운드: 대쉬 공격 창을 쓴다 (단검 부채꼴 투척이 대쉬 공격을 대신) */
+  consumeDashWindow(): void {
+    this.dashEndedAt = -Infinity;
+  }
+
+  /** 완벽 창 ms (퍼펙트 가드·칼 패링 — 57라운드 철벽 패링·울혈·명경 추가) */
+  perfectWindowMs(): number {
+    const base = PLAYER_DATA.perfectGuard?.windowMs ?? 0;
+    return base + (this.buildHooks?.perfectWindowAddMs(base) ?? 0);
   }
 
   /** 대쉬가 끝나고 대쉬 공격 창 안인가 */
@@ -406,6 +448,8 @@ export class Player extends Phaser.GameObjects.Sprite {
     // 56라운드 Q7: 그로기 중엔 공격·대쉬·넣기 불가 (보조 동작 = 가드·패링만)
     const canStrike = canAct && !this.groggy;
 
+    // 57라운드 갈래 1단 수단 (단검 대쉬 투척 · 활 속사 연사) — 처리했으면 이번 프레임 끝
+    if (this.branchMoves.update(input, time, canStrike)) return;
     // 56라운드 2단계 새 기본기 (간파 반격·대치 일격·버티기·도약 찍기·등 뒤 찌르기·고속 난타) — 처리했으면 이번 프레임 끝
     if (this.moves.update(input, time, canStrike, dir.lengthSq() > 0)) return;
 
@@ -424,16 +468,17 @@ export class Player extends Phaser.GameObjects.Sprite {
     }
 
     // 대쉬
-    if (input.dashPressed && canStrike && time >= this.dashReadyAt) {
+    if (input.dashPressed && canStrike && time >= this.dashReadyAt && this.dashReady(time)) {
       const d = dir.lengthSq() > 0 ? dir : this.facing;
       const speed = (D.distanceTiles * TILE) / (D.durationMs / 1000);
       this.dashVel.set(d.x * speed, d.y * speed);
-      this.dashReadyAt =
-        time +
+      // 57라운드: 패시브·돌파 2 쿨 배율은 빌드 합산 (훅이 없으면 패시브만) · 돌파 6 충전
+      const cd =
         D.cooldownMs *
-          gameState.meta.dashCooldownMult *
-          (1 + gameState.passives.total('dashCooldownMult')) *
-          (mods.dashCooldownMult ?? 1);
+        gameState.meta.dashCooldownMult *
+        (this.buildHooks?.dashCooldownMult() ?? 1 + gameState.passives.total('dashCooldownMult')) *
+        (mods.dashCooldownMult ?? 1);
+      this.dashStock.use(time, cd);
       if (D.invulnerable) {
         this.invulnerableUntil = Math.max(this.invulnerableUntil, time + D.durationMs + (mods.dashInvulnExtraMs ?? 0));
       }
@@ -453,7 +498,8 @@ export class Player extends Phaser.GameObjects.Sprite {
 
     // 공격 (대쉬 직후면 대쉬 공격). 48라운드: 근접은 연격 상태 머신 — 55라운드 `MeleeDriver`(순환·관성·차지·내딛기)
     if (this.combo) {
-      this.melee.update(input, time, canStrike, dir.lengthSq() > 0);
+      // 57라운드: 칼 홀드 갈래는 누름을 뗄 때까지 미룬다 (BranchMoves.filter)
+      this.melee.update(this.branchMoves.filter(input, time, canStrike), time, canStrike, dir.lengthSq() > 0);
       return;
     }
     if (input.attackPressed && canStrike && time >= this.attackReadyAt) {
@@ -464,7 +510,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       }
       // 51라운드 Q2·Q3: 시위 당김(drawMs)이 보이게 · 다음 발 간격 (속사 배율 반영)
       const T = gameState.weapon.shotTiming;
-      this.attackReadyAt = time + T.cooldownMs;
+      this.attackReadyAt = time + T.cooldownMs / Math.max(0.1, this.buildAttackSpeed);
       this.attackSlowUntil = time + Math.max(gameState.weapon.hitbox.activeMs, PLAYER_DATA.attackSlowMinMs, T.drawMs);
       this.fireAttack(input, time, null, true);
       this.gear.markDrawn(time);
@@ -623,6 +669,7 @@ export class Player extends Phaser.GameObjects.Sprite {
   haltForWarp(): void {
     if (this.action === 'aim') this.secondaryDriver.cancelDraw(this.scene.time.now);
     this.moves.reset();
+    this.branchMoves.reset();
     if (this.action !== 'normal') this.setAction('normal', 0);
     this.lunges = [];
     this.defense.clearWindows();

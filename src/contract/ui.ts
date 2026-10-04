@@ -54,7 +54,106 @@ export const UI_EVENTS = {
   ENEMY_INCOMING: 'ui:enemy-incoming',
   /** 53라운드: 튜토리얼 단계 안내 (`UiTutorialStep`) — 안내 문구가 뜰 때 */
   TUTORIAL_STEP: 'ui:tutorial-step',
+  /** 57라운드 §14.11: 세트 단계가 오르거나 내림 (`UiTagSetChanged`) */
+  TAG_SET_CHANGED: 'ui:tag-set-changed',
+  /** 57라운드 §14.11: 이중 개성 획득 (`UiDualTrait`) */
+  DUAL_TRAIT_GAINED: 'ui:dual-trait-gained',
+  /** 57라운드 §14.11: 저주 받음 (`UiCurse`) */
+  CURSE_GAINED: 'ui:curse-gained',
+  /** 57라운드 §14.11: 저주 기간 끝 (`UiCurseEnded`) */
+  CURSE_ENDED: 'ui:curse-ended',
+  /** 57라운드 §14.11: 완벽 성공 사건 (`UiPerfectSuccess`) — 완벽 회피 = 적 공격 판정 직전 0.15초 안 대쉬·그림자 걸음 */
+  PERFECT_SUCCESS: 'ui:perfect-success',
 } as const;
+
+/**
+ * 57라운드 계약 §14.1 (승인 #21): 10태그. 이름(name)은 자리표시. 2층부터 층 테마 태그가 이 유니온에 추가된다
+ * insight 간파 · breach 돌파 · vital 급소 · scar 상흔 · chain 연쇄 · ranged 원격 · weight 중량 · mark 표식 · endure 버팀 · drunk 취기
+ */
+export type UiTagId =
+  'insight' | 'breach' | 'vital' | 'scar' | 'chain' | 'ranged' | 'weight' | 'mark' | 'endure' | 'drunk';
+
+/** §14.1 태그 하나의 상태 */
+export interface UiTagState {
+  id: UiTagId;
+  /** '간파' 등 (자리표시) */
+  name: string;
+  /** 태그 점수 = 패시브 종류당 1 + Lv3 +1 + 갈래 노드 1(강화 시 최대 3) + 저주 이득 */
+  score: number;
+  /** 지금 켜진 세트 단계 (임계 2/4/6) */
+  stage: 0 | 2 | 4 | 6;
+  /** 다음 임계 (6 달성이면 null) */
+  next: number | null;
+  /** 세트 효과 3칸 */
+  effects: { threshold: 2 | 4 | 6; name: string; description: string; active: boolean }[];
+}
+
+/** §14.2 이중 개성 */
+export interface UiDualTrait {
+  id: string;
+  name: string;
+  description: string;
+  /** 짝 갈래 이름 (예 '선풍') */
+  branchName: string;
+  /** 짝 태그 (취기 짝 4종은 'drunk') */
+  tag: UiTagId;
+  /** 1단 짝(태그 2점) / 2단 짝(태그 4점) */
+  tier: 1 | 2;
+}
+
+/** §14.3 저주 (동시 1개, 정화 없음) */
+export interface UiCurse {
+  id: string;
+  /** 1층 7종 (만취 서약·외상·깨진 잔·불붙은 혀·맨손 맹세·저주 궤짝·피멍), 자리표시 */
+  name: string;
+  /** 이득 한 줄 */
+  benefit: string;
+  /** 저주 한 줄 */
+  penalty: string;
+  /** 남은 노드 수 (층을 넘어도 유지). 처치 수 기준 저주면 null */
+  nodesLeft: number | null;
+  /** 처치 수 기준 저주(저주 궤짝 '다음 12처치')만, 그 외 null */
+  killsLeft: number | null;
+}
+
+/** §14.1 `UiSnapshot.build` */
+export interface UiBuildState {
+  /** score > 0 인 태그만, 점수 높은 순 (시스템 정렬) */
+  tags: UiTagState[];
+  /** 얻은 이중 개성 */
+  dualTraits: UiDualTrait[];
+  /** 지금 걸린 저주 (동시 1개) */
+  curse: UiCurse | null;
+}
+
+/** §14.11 `TAG_SET_CHANGED` 페이로드 */
+export interface UiTagSetChanged {
+  tag: UiTagId;
+  name: string;
+  stage: 0 | 2 | 4 | 6;
+  /** 새로 켜진(또는 꺼진 뒤 남은) 단계 효과 이름. 0 단계면 '' */
+  effectName: string;
+}
+
+/** §14.11 `CURSE_ENDED` 페이로드 */
+export interface UiCurseEnded {
+  id: string;
+  name: string;
+}
+
+/** §14.11 `PERFECT_SUCCESS` 페이로드 */
+export interface UiPerfectSuccess {
+  kind: 'parry' | 'perfectGuard' | 'perfectRelease' | 'perfectEvade';
+}
+
+/**
+ * §14.4 메뉴 줄 종류 — 개성 3지선다 칸·보상 칸. branchA/B 갈래 · reinforce 강화 · bloodPact 피의 계약 · awaken 최종 각성 ·
+ * dual 이중 개성 확정 칸 · passive 일반 패시브 · curse 저주 선택
+ */
+export type UiChoiceKind = 'branchA' | 'branchB' | 'reinforce' | 'bloodPact' | 'awaken' | 'dual' | 'passive' | 'curse';
+
+/** §14.4 패시브 희귀도 (일반·희귀·영웅·전설) */
+export type UiRarity = 'common' | 'rare' | 'epic' | 'legendary';
 
 /** 53라운드 Q49: 적 소환 예고. delayMs = 소환까지 남은 ms (0 = 바로) · count = 마리 수 */
 export interface UiEnemyIncoming {
@@ -168,6 +267,14 @@ export interface UiMenuLine {
   label: string;
   enabled: boolean;
   detail?: string;
+  /** 57라운드 §14.4: 칸 종류 (개성 3지선다·보상 3지선다·저주 2택). 없으면 일반 줄 */
+  kind?: UiChoiceKind;
+  /** §14.4: 이 선택이 주는 태그 (패시브·갈래 노드) */
+  tags?: UiTagId[];
+  /** §14.4: 패시브 희귀도 */
+  rarity?: UiRarity;
+  /** §14.4: 잠긴 칸 — 각성 조건 안내. locked 면 enabled = false */
+  locked?: { condition: string } | null;
 }
 
 /**
@@ -180,7 +287,10 @@ export type UiStructureMenuId = 'cards' | 'exchange' | 'pawn' | 'grave' | 'ledge
 /** 'evolve' 는 27라운드 개성 3지선다, 'ending' 은 23라운드 엔딩 2지선다 (계약 추가분, 승인 대기) */
 /** 49라운드: 무기 시험장 메뉴 (계약 §11.4) */
 export type UiLabMenuId = 'lab' | 'labBranch';
-export type UiMenuId = 'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending' | UiStructureMenuId | UiLabMenuId;
+/** 57라운드 §14.7: 저주 2택 (필수 — cancelKey 없음). event·mapInfo·consumableSwap 은 2차 묶음 */
+export type UiBuildMenuId = 'curse';
+export type UiMenuId =
+  'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending' | UiStructureMenuId | UiLabMenuId | UiBuildMenuId;
 
 /**
  * 53라운드 계약 추가 (51라운드 Q4 넣기/뽑기): 칼·대검처럼 넣고 뽑는 무기만 (단검·활은 스냅샷 carry = null).
@@ -410,7 +520,8 @@ export interface UiSnapshot {
   weapon: { name: string; evolutionName: string | null; personality: number; threshold: number; secondaryName: string };
   boss: { name: string; hp: number; maxHp: number; phase: number } | null;
   stats: { attack: number; defense: number; crit: number; sense: number };
-  passives: { name: string; level: number; description: string }[];
+  /** 57라운드 §14.1: 태그(1~2개)·최대 레벨 추가 */
+  passives: { name: string; level: number; description: string; tags: UiTagId[]; maxLevel: number }[];
   savesLeft: number;
   seed: string;
   map: UiMap;
@@ -446,6 +557,8 @@ export interface UiSnapshot {
   gauge: UiWeaponGauge | null;
   /** 56라운드: 그로기 상태. 칼·대검만, 그 밖은 null (계약 §13) */
   groggy: UiGroggy | null;
+  /** 57라운드: 태그·세트 · 이중 개성 · 저주 (계약 §14.1) */
+  build: UiBuildState;
 }
 
 export interface UiResult {
@@ -544,6 +657,7 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   carry: null,
   gauge: null,
   groggy: null,
+  build: { tags: [], dualTraits: [], curse: null },
 };
 
 export const uiCommands = {

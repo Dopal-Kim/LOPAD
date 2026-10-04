@@ -15,6 +15,7 @@ import { issenHit, lineTier, predictTravel, shadowAt } from '../../systems/weapo
 import type { Pt } from '../../systems/weapon/hitShapes';
 import type { Game } from '../Game';
 import { HIT_ORIGIN_UP_PX } from './shared';
+import { PLAYER_HIT_SCALE, PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 
 /** 일섬 한 번의 진행 상태 */
 interface IssenRun {
@@ -152,7 +153,7 @@ export class IssenStrikes {
     if (!s) return;
     this.measure(run);
     const origin = { x: s.x, y: s.y - HIT_ORIGIN_UP_PX };
-    const geom = { backPx: run.def.hitBackPx, extraPx: run.def.hitExtraPx, widthPx: run.def.hitWidthPx };
+    const geom = this.geom(run);
     for (const child of [...this.g.mobs.getChildren()]) {
       const mob = child as Mob;
       if (!mob.active || run.hit.has(mob)) continue;
@@ -163,6 +164,12 @@ export class IssenStrikes {
       this.strike(mob, { ...run.p, x: s.x, y: s.y }, run.hit.size === 1);
     }
     this.debugLast = { ...this.debugLast, hits: run.hit.size };
+  }
+
+  /** 판정 직사각형 치수 (돌진 거리는 그대로, 뒤·앞 여유·폭은 58라운드 주인공 판정 배율) */
+  private geom(run: IssenRun): { backPx: number; extraPx: number; widthPx: number } {
+    const k = PLAYER_HIT_SCALE;
+    return { backPx: run.def.hitBackPx * k, extraPx: run.def.hitExtraPx * k, widthPx: run.def.hitWidthPx * k };
   }
 
   /** 분신 출발: 출발점 → 도착점(실제로 멈춘 자리)을 travelMs 동안 */
@@ -182,6 +189,8 @@ export class IssenStrikes {
       follow,
       depth: entityDepth(s.y),
       belowLighting: true,
+      // 58라운드 Q2: 분신 = 주인공 그림 배율 (일섬 선은 이동 거리 그대로라 배율 없음)
+      scaleMult: PLAYER_RENDER_SCALE,
     });
   }
 
@@ -191,7 +200,7 @@ export class IssenStrikes {
     if (!s) return;
     this.measure(run);
     const origin = { x: s.x, y: s.y - HIT_ORIGIN_UP_PX };
-    const geom = { backPx: run.def.hitBackPx, extraPx: run.def.hitExtraPx, widthPx: run.def.hitWidthPx };
+    const geom = this.geom(run);
     const p = { ...run.p, x: s.x, y: s.y, damageMult: run.p.damageMult * run.def.shadow.damageScale, forceCrit: false };
     let n = 0;
     for (const child of [...this.g.mobs.getChildren()]) {

@@ -12,3 +12,4 @@ export * from './player';
 export * from './scenes';
 export { BOSS_FX } from './boss';
 export { MOVE_FX } from './moves';
+export { BUILD_FX } from './build';

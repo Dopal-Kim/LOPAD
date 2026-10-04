@@ -4,7 +4,7 @@
  * (기본 · 1차 2개 · 2차 4개 · 강화 +1 순환 · 무기 바꾸기 · 닫기). 선택지 key 는 숫자 문자, 그만두기 = '0'.
  */
 import type { WeaponDef, WeaponTable } from '../../data/types';
-import type { UiMenuLine } from '../../contract/ui';
+import type { UiMenuLine, UiTagId } from '../../contract/ui';
 
 /** 그만두기 (닫기) key — 계약 §9.4 구조물 메뉴와 같은 관례 */
 export const LAB_CANCEL_KEY = '0';
@@ -13,9 +13,28 @@ export const LAB_TO_BRANCH_KEY = '9';
 /** labBranch 메뉴: 강화 +1 · 무기 바꾸기 */
 export const LAB_REINFORCE_KEY = '8';
 export const LAB_TO_WEAPONS_KEY = '9';
+/** 57라운드 빌드 축 시험: 최종 각성 켜기·끄기 · 패시브 3지선다 열기 · 저주 2택 열기 (숫자 키가 다 차서 글자 키) */
+export const LAB_AWAKEN_KEY = 'a';
+export const LAB_PASSIVE_KEY = 'p';
+export const LAB_CURSE_KEY = 'c';
 
 export type LabBranchAction =
-  { kind: 'path'; path: string[] } | { kind: 'reinforce' } | { kind: 'weapons' } | { kind: 'close' };
+  | { kind: 'path'; path: string[] }
+  | { kind: 'reinforce' }
+  | { kind: 'weapons' }
+  | { kind: 'close' }
+  | { kind: 'awaken' }
+  | { kind: 'passive' }
+  | { kind: 'curse' };
+
+/** 57라운드 labBranch 빌드 시험 줄 (각성 이름·현재 상태) */
+export interface LabBuildInfo {
+  awakenName: string | null;
+  awakened: boolean;
+  /** 각성은 2단이 있어야 (57 Q33) */
+  tier2: boolean;
+  curseActive: boolean;
+}
 
 export interface LabWeaponChoice {
   key: string;
@@ -60,20 +79,28 @@ export function labBranchMenu(
   currentPath: readonly string[],
   reinforce: number,
   reinforceMax: number,
+  build: LabBuildInfo | null = null,
 ): { lines: UiMenuLine[]; actions: Map<string, LabBranchAction> } {
   const lines: UiMenuLine[] = [];
   const actions = new Map<string, LabBranchAction>();
   const cur = currentPath.join('/');
   let n = 1;
-  const add = (label: string, path: string[], detail?: string) => {
+  const add = (label: string, path: string[], detail?: string, tags?: readonly UiTagId[]) => {
     const key = String(n++);
     actions.set(key, { kind: 'path', path });
-    lines.push({ key, label: path.join('/') === cur ? `${label} (지금)` : label, enabled: true, detail });
+    lines.push({
+      key,
+      label: path.join('/') === cur ? `${label} (지금)` : label,
+      enabled: true,
+      detail,
+      // 57라운드 계약 §14.4: 갈래 노드 태그
+      ...(tags?.length ? { tags: [...tags] } : {}),
+    });
   };
   add('기본 (갈래 없음)', []);
   for (const b of def.personality.branches) {
-    add(`${treePrefix(1)}${b.name}`, [b.id], b.description);
-    for (const c of b.next ?? []) add(`${treePrefix(2)}${c.name}`, [b.id, c.id], c.description);
+    add(`${treePrefix(1)}${b.name}`, [b.id], b.description, b.tags);
+    for (const c of b.next ?? []) add(`${treePrefix(2)}${c.name}`, [b.id, c.id], c.description, c.tags);
   }
   actions.set(LAB_REINFORCE_KEY, { kind: 'reinforce' });
   lines.push({
@@ -81,6 +108,26 @@ export function labBranchMenu(
     label: `강화 +1 (지금 ${reinforce}/${reinforceMax}${reinforce >= reinforceMax ? ' → 0' : ''})`,
     enabled: true,
   });
+  if (build) {
+    actions.set(LAB_AWAKEN_KEY, { kind: 'awaken' });
+    lines.push({
+      key: LAB_AWAKEN_KEY,
+      kind: 'awaken',
+      label: `최종 각성${build.awakenName ? ` — ${build.awakenName}` : ''} (${build.awakened ? '켜짐 → 끔' : '꺼짐 → 켬'})`,
+      enabled: build.tier2 || build.awakened,
+      detail: build.tier2 || build.awakened ? '시험장: 층·태그 조건 없이' : '2단 갈래를 먼저 고른다',
+    });
+    actions.set(LAB_PASSIVE_KEY, { kind: 'passive' });
+    lines.push({ key: LAB_PASSIVE_KEY, kind: 'passive', label: '패시브 3지선다 (빌드 시험)', enabled: true });
+    actions.set(LAB_CURSE_KEY, { kind: 'curse' });
+    lines.push({
+      key: LAB_CURSE_KEY,
+      kind: 'curse',
+      label: '저주 2택 (빌드 시험)',
+      enabled: !build.curseActive,
+      detail: build.curseActive ? '저주는 동시에 하나' : undefined,
+    });
+  }
   actions.set(LAB_TO_WEAPONS_KEY, { kind: 'weapons' });
   lines.push({ key: LAB_TO_WEAPONS_KEY, label: '무기 바꾸기', enabled: true });
   actions.set(LAB_CANCEL_KEY, { kind: 'close' });

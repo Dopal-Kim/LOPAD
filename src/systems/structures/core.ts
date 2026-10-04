@@ -61,6 +61,18 @@ export interface StructureHost {
   openStatChooser(): void;
   story(kind: StoryKind, text: string): void;
   /**
+   * 57라운드 빌드 축 (선택): 구조물 저주 줄(카운터 만취 서약·장부대 외상·묘 맨손 맹세 — curses.json sources) ·
+   * 궤짝 패시브 2택 메뉴. 없으면 47라운드 동작 그대로
+   */
+  build?: {
+    /** 이 구조물 종류가 주는 저주 줄 (없으면 null). 저주가 이미 있으면 enabled false */
+    curseLine(kind: string, key: string): UiMenuLine | null;
+    /** 그 저주를 받는다 (받았으면 true) */
+    grantCurse(kind: string): boolean;
+    /** 궤짝: 패시브 2택 메뉴 (열었으면 true — 고를 것이 없으면 false) */
+    chestPick(onDone: () => void): boolean;
+  };
+  /**
    * 48라운드 노드 지도: 층 상태(빚·취기·판돈·불씨·불붙은 무기·전당·궤짝 수·숙성)를 노드 사이에 들고 다닌다.
    * 불씨는 모닥불이 없는 노드에서도 쌓이고, 숙성 통에 넣은 물약은 노드를 떠나도 익으면 자동으로 받는다
    */

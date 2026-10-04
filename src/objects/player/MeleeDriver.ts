@@ -1,7 +1,8 @@
 /**
  * 근접 연격 입력 (55라운드 6-1 — Player.ts 에서 분리): 연격 상태 머신·대쉬 공격·대검 무게감(정지 구간) +
  * 55라운드 §17 새 연격 — 순환(대검 H1→V→H2→V…)·관성 공속(Q23)·홀드 차지 내려찍기(Q22)·내딛기(Q21, 방향키를 누를 때만).
- * 56라운드: 타 데이터 `move` = 전용 동작(칼 3타 일섬 — `issenMove`), 차지 떼기 = `chargeRelease`(기본 내려찍기·꽂아내리기),
+ * 56라운드: 타 데이터 `move` = 전용 동작, 차지 떼기 = `chargeRelease`.
+ * 58라운드 Q1: 칼 3타 = 찌르기(`thrustMove` — 검기 소모 강화), 대쉬 공격 자리 = 공격 수단 표 `dashAttack`(칼 일섬·대검 태클 — `BasicMoves`),
  * 대검 휘두른 뒤 끌림(몸 시트 dragFrames·dragStepPx — 방향키와 무관), 8행 시트 차지 자세(조준각 8분할), 균열 행.
  * Player 는 행동 가능 여부·이동·대쉬·보조 동작을 정하고 공격 구간을 여기에 맡긴다.
  */
@@ -26,7 +27,7 @@ import { pickMove } from '../../systems/weapon/moves';
 import type { Player } from '../Player';
 import { releaseCharge } from './chargeRelease';
 import { startDashSlash, startSlam, type ComboStrike } from './heavyMoves';
-import { startIssen } from './issenMove';
+import { applyThrust, thrustLunge } from './thrustMove';
 
 /** 56라운드 Q46: 대검 끌림음은 3타(연격 번호 2 — H2)에만 */
 const DRAG_SFX_HIT = 2;
@@ -74,6 +75,11 @@ export class MeleeDriver {
   get charge(): ChargeHold | null {
     void this.combo;
     return this.charge_;
+  }
+
+  /** 대쉬 공격 자리가 있는 무기 (대검 대쉬 베기·태클 · 칼 대쉬 일섬) */
+  private get hasDashAttack(): boolean {
+    return Boolean(gameState.weapon.def.dashSlash) || this.p.moves.hasDashAttack;
   }
 
   /** 대검 정지 구간 중 */
@@ -175,7 +181,7 @@ export class MeleeDriver {
     if (input.attackPressed) {
       combo.press(time);
       // 대쉬 직후 누름은 대쉬 공격 (차지 후보로 미루지 않는다)
-      if (charge && !(W.dashSlash && strong && p.inDashWindow(time))) charge.press(time);
+      if (charge && !(this.hasDashAttack && strong && p.inDashWindow(time))) charge.press(time);
     }
     if (input.attackPressed || input.attackHeld) mom?.input(time);
     mom?.expire(time);
@@ -218,13 +224,17 @@ export class MeleeDriver {
       return;
     }
     const dashWindow = strong && p.inDashWindow(time);
-    if (W.dashSlash && dashWindow && time >= combo.readyAt()) {
-      // 56라운드 2단계 Q41: 대검 대쉬 공격 = 어깨 태클 (공격 수단 표 live 일 때)
-      if (!p.moves.tryTackle(input, time)) startDashSlash(p, input, time, W);
-      return;
+    if (dashWindow && time >= combo.readyAt()) {
+      // 56라운드 2단계 Q41 대검 어깨 태클 · 58라운드 Q1 칼 대쉬 일섬 (공격 수단 표 dashAttack live 일 때)
+      if (p.moves.tryDashAttack(input, time)) return;
+      if (W.dashSlash) {
+        startDashSlash(p, input, time, W);
+        return;
+      }
     }
     // 49라운드 과열 단계 공속 × 55라운드 Q23 관성 공속
-    combo.setSpeed((res?.speedMult ?? 1) * (mom?.speedMult ?? 1));
+    // 57라운드 빌드 축 공속 (연쇄 2·열풍) — Player.buildAttackSpeed
+    combo.setSpeed((res?.speedMult ?? 1) * (mom?.speedMult ?? 1) * p.buildAttackSpeed);
     const idx = combo.poll(time, true, strong);
     if (idx === null) return;
     const hit = combo.hits[idx];
@@ -248,7 +258,7 @@ export class MeleeDriver {
     // 56라운드 Q5: 판정 순간 땅 균열 (그림 표 crackRow — 관성 최대면 crackRowAtMax)
     const artEntry = hit.art ? W.combo?.art?.[hit.art] : undefined;
     const crack = (m?.atMax ? artEntry?.crackRowAtMax : undefined) ?? artEntry?.crackRow;
-    const strike: ComboStrike = {
+    let strike: ComboStrike = {
       index: idx,
       count: combo.hits.length,
       hit,
@@ -258,16 +268,18 @@ export class MeleeDriver {
       ...(m?.atMax && mom ? { shapeScale: { impactMult: mom.impactMult } } : {}),
       ...(crack ? { crack } : {}),
     };
-    // 56라운드: 전용 동작 (공격 수단 표 — 칼 3타 일섬)
-    if (hit.move && pickMove(gameState.weapon.id, 'comboFinisher', gameState.weapon.path, (mv) => mv.id === hit.move)) {
-      if (hit.move === 'issen' && startIssen(p, input, time, strike, first) > 0) return;
-    }
+    // 58라운드 Q1: 전용 연격 타 (공격 수단 표 — 칼 3타 찌르기: 검기 소모 → 판정·피해·fx 단수)
+    const thrust =
+      hit.move === 'thrust' &&
+      pickMove(gameState.weapon.id, 'comboFinisher', gameState.weapon.path, (mv) => mv.id === hit.move) !== null;
+    if (thrust) strike = applyThrust(p, strike).strike;
     const weight = W.weight;
     p.slowUntil(
       time + Math.max(hit.activeMs, PLAYER_DATA.attackSlowMinMs, weight ? strike.durationMs + weight.postSlowMs : 0),
     );
     const payload = p.fireAttack(input, time, strike, dashWindow, first);
-    this.afterStrike(payload, hit, time, closing, moving);
+    if (thrust) thrustLunge(p, payload, strike.durationMs, time);
+    this.afterStrike(payload, strike.hit, time, closing, moving);
   }
 
   /**

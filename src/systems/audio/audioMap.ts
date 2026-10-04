@@ -352,22 +352,15 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   t<PlayerChargePayload>({
     event: Events.PLAYER_CHARGE,
     note: '차지 내려찍기 → charge_slam_lv<n> (판정 프레임 = impactDelayMs 에, swing_greatsword 대신)',
-    when: (p) => p.phase === 'release' && p.stage > 0 && p.mode !== 'plunge',
+    when: (p) => p.phase === 'release' && p.stage > 0,
     sfx: (p) => CHARGE_SFX.slam(p.stage),
     delayMs: (p) => p.impactDelayMs ?? 0,
   }),
   // --- 56라운드 무기 피드백 (WEAPON_SFX) ---
   t<PlayerChargePayload>({
     event: Events.PLAYER_CHARGE,
-    note: '56라운드 Q10 꽂아내리기 → gs_plunge (꽂히는 순간 = impactDelayMs)',
-    when: (p) => p.phase === 'release' && p.mode === 'plunge',
-    sfx: WEAPON_SFX.gsPlunge,
-    delayMs: (p) => p.impactDelayMs ?? 0,
-  }),
-  t<PlayerChargePayload>({
-    event: Events.PLAYER_CHARGE,
-    note: '56라운드 Q10 꽂아내리기 균열 충격파 → gs_crack (꽂힘 + 40ms)',
-    when: (p) => p.phase === 'release' && p.mode === 'plunge',
+    note: '58라운드 Q3 휘둘러 내리찍은 자리에서 커서까지 균열 → gs_crack (내리찍기 + 40ms, 56라운드 꽂아내리기 균열음 재사용 — gs_plunge 는 쓰지 않음)',
+    when: (p) => p.phase === 'release' && p.stage > 0,
     sfx: WEAPON_SFX.gsCrack,
     delayMs: (p) => (p.impactDelayMs ?? 0) + WEAPON_SFX.crackDelayMs,
   }),

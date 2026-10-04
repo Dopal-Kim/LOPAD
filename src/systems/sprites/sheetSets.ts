@@ -24,7 +24,20 @@ function fxIdsFor(weapons: WeaponTable): string[] {
     ...branchFxSheetIds(weapons),
     ...meleeBranchFxSheetIds(weapons),
     ...tier2FxSheetIds(weapons),
+    ...Object.values(weapons).flatMap((w) => branchMoveArt(w).fx),
   ];
+}
+
+/** 57라운드 갈래 수단 그림 (1단 노드 `art`): 몸·무기 동작 이름 · 이펙트 id */
+export function branchMoveArt(w: WeaponTable[string]): { body: string[]; fx: string[] } {
+  const body: string[] = [];
+  const fx: string[] = [];
+  for (const a of w.personality.branches)
+    for (const n of [a, ...(a.next ?? [])]) {
+      for (const b of n.art?.body ?? []) if (!body.includes(b)) body.push(b);
+      for (const f of n.art?.fx ?? []) if (!fx.includes(f)) fx.push(f);
+    }
+  return { body, fx };
 }
 
 function pick(ids: readonly string[]): WeaponTable {
@@ -45,7 +58,9 @@ function requestsFor(
     Object.keys(weapons),
     [...fxIdsFor(weapons), ...extraFx],
     structures,
-    Object.fromEntries(Object.entries(weapons).map(([id, w]) => [id, comboArtNames(w.combo).body])),
+    Object.fromEntries(
+      Object.entries(weapons).map(([id, w]) => [id, [...comboArtNames(w.combo).body, ...branchMoveArt(w).body]]),
+    ),
     Object.fromEntries(
       Object.entries(weapons).flatMap(([id, w]) => {
         const sfx = gaugeOverlaySuffix(w.gauge?.kind);

@@ -1,0 +1,85 @@
+{
+  "_note": "57라운드 Q36·Q37 대가형 저주 이득 (설계안 4.2 · 취기 QC-8): 지속 = 노드 수 (보스 노드도 1노드, 층을 넘어도 남은 노드 유지), 동시 1개, 정화 없음. 획득 = 위험 노드(2차 묶음) · 1층 구조물(카운터·장부대·화로·묘) · 이벤트(2차 묶음) · 개성 '피의 계약' 칸. 이름 자리표시(_tmpName)",
+  "pactPool": ["drunkOath", "credit", "brokenCup", "burningTongue", "bareOath", "bruise"],
+  "items": [
+    {
+      "id": "drunkOath",
+      "name": "만취 서약",
+      "_tmpName": true,
+      "benefit": "공격력 +30% · 취기 점수 +1 · 취기 상태 유지",
+      "penalty": "받는 피해 +50%",
+      "nodes": 2,
+      "sources": ["counter", "riskNode"],
+      "benefits": { "attackMult": 0.3, "tagBonus": { "drunk": 1 }, "drunkAlways": 1 },
+      "penalties": { "damageTakenMult": 0.5 }
+    },
+    {
+      "id": "credit",
+      "name": "외상",
+      "_tmpName": true,
+      "benefit": "전표 +100 즉시",
+      "penalty": "처치 전표 0 · 상점 가격 +20%",
+      "nodes": 3,
+      "sources": ["ledger", "event"],
+      "benefits": { "goldNow": 100 },
+      "penalties": { "killGoldMult": 0, "shopPriceMult": 0.2 }
+    },
+    {
+      "id": "brokenCup",
+      "name": "깨진 잔",
+      "_tmpName": true,
+      "benefit": "개성 +60 즉시 (갈래를 앞당김)",
+      "penalty": "물약(독주) 사용 불가",
+      "nodes": 2,
+      "sources": ["riskNode", "pact"],
+      "benefits": { "personalityNow": 60 },
+      "penalties": { "noPotion": 1 }
+    },
+    {
+      "id": "burningTongue",
+      "name": "불붙은 혀",
+      "_tmpName": true,
+      "benefit": "상흔 태그 +1점(영구) · 타격 10% 화상(영구)",
+      "penalty": "최대 HP −20 (끝나면 복구)",
+      "nodes": 3,
+      "sources": ["still"],
+      "benefits": { "permanentTag": { "scar": 1 }, "permanentBurnChance": 0.1 },
+      "penalties": { "maxHpAdd": -20 },
+      "burn": { "ms": 3000, "tickMs": 500, "tickMult": 0.15 }
+    },
+    {
+      "id": "bareOath",
+      "name": "맨손 맹세",
+      "_tmpName": true,
+      "benefit": "영웅 패시브 1개 (3지선다)",
+      "penalty": "대쉬·그림자 걸음 불가",
+      "nodes": 1,
+      "nodeFilter": "combat",
+      "sources": ["grave", "riskNode"],
+      "benefits": { "passivePick": { "rarities": ["epic"], "choices": 3 } },
+      "penalties": { "noDash": 1 }
+    },
+    {
+      "id": "cursedChest",
+      "name": "저주 궤짝",
+      "_tmpName": true,
+      "benefit": "희귀 이상 패시브 2택",
+      "penalty": "다음 12처치 전에 피격하면 HP 50% 손실 (1회 발동 후 해제)",
+      "kills": 12,
+      "sources": ["riskNode"],
+      "benefits": { "passivePick": { "rarities": ["rare", "epic", "legendary"], "choices": 2 } },
+      "penalties": { "hitHpLoss": 0.5 }
+    },
+    {
+      "id": "bruise",
+      "name": "피멍",
+      "_tmpName": true,
+      "benefit": "무기 자원 최대치 +30% (영구 — 기력·과열 한계·탄창)",
+      "penalty": "그로기 2.5초 (칼·대검) / 과열 식힘·재장전 2배 (단검·활)",
+      "nodes": 2,
+      "sources": ["riskNode"],
+      "benefits": { "permanentResourceMax": 0.3 },
+      "penalties": { "groggyMs": 2500, "coolMult": 2 }
+    }
+  ]
+}

@@ -6,7 +6,8 @@
 import { KEYS, LAB, TILE } from '../../core/Constants';
 import { EventBus, Events } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import { WEAPONS, WEAPON_RULES } from '../../data';
+import { WEAPONS } from '../../data';
+import { AWAKENINGS, BUILD } from '../../data/build';
 import { LabDummy } from '../../objects/LabDummy';
 import { generateArena, type FloorLayout } from '../../systems/mapgen';
 import { oncePerKeyEvent } from '../../systems/keyEvents';
@@ -117,7 +118,12 @@ export class LabMode {
     const g = this.g;
     if (!g.lab || this.exitPending || g.transitioning) return;
     const w = gameState.weapon;
-    const { lines, actions } = labBranchMenu(w.def, w.path, w.reinforce, WEAPON_RULES.reinforceMax);
+    const { lines, actions } = labBranchMenu(w.def, w.path, w.reinforce, w.reinforceCap, {
+      awakenName: AWAKENINGS[w.id]?.name ?? null,
+      awakened: gameState.build.awakened,
+      tier2: w.path.length >= 2,
+      curseActive: gameState.build.curse !== null,
+    });
     g.setFrozen(true);
     g.player.haltForWarp();
     g.menu.open(
@@ -129,9 +135,25 @@ export class LabMode {
         if (!a) return;
         if (a.kind === 'close') return this.closeMenu();
         if (a.kind === 'weapons') return this.openWeaponMenu();
-        if (a.kind === 'reinforce')
-          w.restore({ path: w.path, reinforce: nextReinforce(w.reinforce, WEAPON_RULES.reinforceMax) });
-        else w.restore({ path: a.path, reinforce: w.reinforce });
+        // 57라운드 빌드 시험: 패시브 3지선다 · 저주 2택 (닫히면 갈래 메뉴로 돌아온다)
+        if (a.kind === 'passive') {
+          g.menu.close();
+          if (!g.buildMenus.openPassiveMenu('lab', {}, () => this.openBranchMenu())) this.openBranchMenu();
+          return;
+        }
+        if (a.kind === 'curse') {
+          g.menu.close();
+          if (!g.buildMenus.openCurseMenu(undefined, () => this.openBranchMenu())) this.openBranchMenu();
+          return;
+        }
+        if (a.kind === 'awaken') this.toggleAwaken();
+        else if (a.kind === 'reinforce')
+          w.restore({ path: w.path, reinforce: nextReinforce(w.reinforce, w.reinforceCap) });
+        else {
+          // 갈래를 바꾸면 각성은 끈다 (2단별 규칙이 갈래에 묶임)
+          if (gameState.build.awakened && a.path.join('/') !== w.path.join('/')) this.setAwaken(false);
+          w.restore({ path: a.path, reinforce: w.reinforce });
+        }
         w.personality = 0;
         w.choicePending = false;
         for (const d of this.dummies) d.resetStats();
@@ -141,6 +163,19 @@ export class LabMode {
       // 53라운드 UI 요청 B2: Esc = 무기 목록으로 돌아감
       { cancelKey: LAB_TO_WEAPONS_KEY },
     );
+  }
+
+  /** 57라운드 시험장: 최종 각성 켜기·끄기 (조건 없이 — 1층 단계는 시험장에서만, 57 Q23) */
+  private toggleAwaken(): void {
+    this.setAwaken(!gameState.build.awakened);
+  }
+
+  private setAwaken(on: boolean): void {
+    const w = gameState.weapon;
+    gameState.build.awakened = on;
+    gameState.build.touch();
+    w.reinforceCapOverride = on ? BUILD.evolve.reinforceMaxAwakened : null;
+    if (!on) w.restore({ path: w.path, reinforce: w.reinforce });
   }
 
   private closeMenu(): void {

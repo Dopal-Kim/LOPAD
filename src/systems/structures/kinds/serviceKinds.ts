@@ -36,6 +36,12 @@ export class ServiceKinds {
     c.chestsOpened += 1;
     s.state = 'used';
     c.setVisual(s, 'used');
+    // 57라운드 Q29: 궤짝 = 패시브 2택 (47 Q8 임시 1개 대체) — 빌드 메뉴가 열리면 결과는 메뉴에서
+    if (c.host.build?.chestPick(() => {})) {
+      c.result(s, 'mixed', txt(d, 'pick'), { gold: -price });
+      c.used(s, d.text.actionKey);
+      return;
+    }
     const pick = gameState.passives.rollChoices(c.host.rng, ECONOMY.rarity, 1)[0];
     if (pick) {
       gameState.passives.add(pick.id);
@@ -114,9 +120,14 @@ export class ServiceKinds {
       [
         { key: '1', label: txt(d, 'record'), enabled: true, detail: txt(d, 'recordDetail', { souls }) },
         { key: '2', label: txt(d, 'accept'), enabled: true, detail: txt(d, 'acceptDetail', { personality: pers }) },
+        ...curseLines(c, 'grave', '3'),
       ],
       (key) => {
         c.host.menu.close();
+        if (key === '3') {
+          if (c.host.build?.grantCurse('grave')) c.used(s, 'grave.curse');
+          return;
+        }
         s.state = 'used';
         c.setVisual(s, 'used');
         if (key === '1') {
@@ -159,9 +170,14 @@ export class ServiceKinds {
           enabled: c.debt > 0 && repay > 0,
           detail: txt(d, 'repayDetail'),
         },
+        ...curseLines(c, 'ledger', '3'),
       ],
       (key) => {
         c.host.menu.close();
+        if (key === '3') {
+          if (c.host.build?.grantCurse('ledger')) c.used(s, 'ledger.curse');
+          return;
+        }
         if (key === '1') {
           s.loans += 1;
           c.debt += debtAdd;
@@ -199,8 +215,14 @@ export class ServiceKinds {
         detail: txt(d, 'cupDetail', { atk: Math.round(P.attackPerLevel * 100), def: P.defensePerLevel }),
       });
     }
-    c.openMenu('counter', s, txt(d, 'menuTitle', { level: c.drunk }), lines, () => {
+    lines.push(...curseLines(c, 'counter', String(num(d, 'cups') + 1)));
+    const curseKey = String(num(d, 'cups') + 1);
+    c.openMenu('counter', s, txt(d, 'menuTitle', { level: c.drunk }), lines, (key) => {
       c.host.menu.close();
+      if (key === curseKey) {
+        if (c.host.build?.grantCurse('counter')) c.used(s, 'counter.curse');
+        return;
+      }
       if (gameState.gold < price) return;
       c.host.spendGold(price);
       s.cups += 1;
@@ -222,4 +244,10 @@ export class ServiceKinds {
     const s = c.find('counter');
     if (s) c.result(s, 'info', txt(s.def, 'sober'), {});
   }
+}
+
+/** 57라운드: 구조물 저주 줄 (빌드 축 훅이 없거나 이 구조물이 주는 저주가 없으면 []) */
+function curseLines(c: StructureCore, kind: string, key: string): UiMenuLine[] {
+  const line = c.host.build?.curseLine(kind, key);
+  return line ? [line] : [];
 }

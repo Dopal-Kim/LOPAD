@@ -187,6 +187,32 @@ export interface DebugApi {
   injectScar: (scar?: unknown) => boolean;
   /** 54라운드 보스: 상태(페이즈·패턴·강화·강제·무적·기록) · 방 환경(촛대·술통·웅덩이·어둠·기울기) · 패턴 강제 · 페이즈 강제 */
   boss: BossDebugApi;
+  /** 57라운드 빌드 축 검증 */
+  build: BuildDebugApi;
+}
+
+/** 57라운드 빌드 축 검증 훅 (`__lopad.build.*`) */
+export interface BuildDebugApi {
+  /** 태그 점수·세트 단계·수치·규칙·저주·이중 개성·최근 사건 */
+  info: () => unknown;
+  /** 계약 §14.1 스냅샷 build */
+  ui: () => unknown;
+  /** 패시브 levels 회 추가 */
+  addPassive: (id: string, levels?: number) => boolean;
+  curse: (id: string, pact?: boolean) => boolean;
+  endCurse: () => void;
+  dual: (id: string) => boolean;
+  /** 완벽 성공 사건을 바로 일으킨다 */
+  perfect: (kind: 'parry' | 'perfectGuard' | 'perfectRelease' | 'perfectEvade') => void;
+  drink: () => void;
+  /** 처치한 보스 최고 층 (각성 조건) */
+  bossFloor: (n: number) => void;
+  /** 개성 3지선다 칸 (지금 상태로 계산) */
+  evolveSlots: () => unknown;
+  openPassiveMenu: (source?: 'boss' | 'chest' | 'lab') => boolean;
+  openCurseMenu: () => boolean;
+  /** 개성 3지선다 메뉴를 바로 연다 */
+  openEvolveMenu: () => void;
 }
 
 export interface BossDebugApi {
@@ -382,6 +408,7 @@ export function exposeDebug(api: {
   scar: () => unknown;
   injectScar: (scar?: unknown) => boolean;
   boss: BossDebugApi;
+  build: BuildDebugApi;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -537,6 +564,7 @@ export function exposeDebug(api: {
     scar: () => api.scar(),
     injectScar: (scar) => api.injectScar(scar),
     boss: api.boss,
+    build: api.build,
     doorsOf: (roomId) =>
       api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };

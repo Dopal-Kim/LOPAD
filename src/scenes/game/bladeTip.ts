@@ -18,6 +18,7 @@ import {
   type Facing,
 } from '../../systems/sprites/spriteDefs';
 import { HIT_ORIGIN_UP_PX, shapeFacing } from './shared';
+import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 
 /** 칼끝 리본 계획: 찍는 구간(공격 시작부터 ms) + 시각(공격 시작부터 ms) → 발 피벗 기준 칼끝 오프셋 */
 export interface TipPlan {
@@ -48,7 +49,8 @@ function anchorTrack(
     const list = def.bladeTipAnchors?.[dir];
     if (!Array.isArray(list) || list.length === 0) return null;
     const pv = overlayPivot(def, body);
-    const k = artScale(def);
+    // 58라운드 Q2: 무기 그림 배율 (몸과 같이)
+    const k = artScale(def) * PLAYER_RENDER_SCALE;
     const tips = starts.map((_, c) => {
       const p = list[Math.min(c, list.length - 1)];
       return isPoint(p) ? { x: (p[0] - pv.x) * k, y: (p[1] - pv.y) * k } : null;

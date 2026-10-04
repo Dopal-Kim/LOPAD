@@ -97,6 +97,8 @@ export class EntityVisual {
     private readonly bodyW: number,
     private readonly bodyH: number,
     placeholderColor: number,
+    /** 58라운드 Q2: 그림만 이 배율 (주인공 1.25 — 바디·피벗·그림자 자리는 그대로, 발 피벗 기준으로 커진다) */
+    readonly drawScale = 1,
   ) {
     const scene = host.scene;
     this.baseTint = placeholderColor;
@@ -107,7 +109,7 @@ export class EntityVisual {
     if (idle && texture && this.animated) {
       host.setTexture(texture, 0);
       this.fit(idle);
-      const sw = bodyW + SPRITES.SHADOW_PAD;
+      const sw = Math.round((bodyW + SPRITES.SHADOW_PAD) * drawScale);
       this.shadow = scene.add
         .image(host.x, host.y, shadowTexture(scene, sw))
         .setAlpha(SPRITES.SHADOW_ALPHA)
@@ -127,7 +129,7 @@ export class EntityVisual {
    * 월드 크기 bodyW×bodyH 로 — Arcade 바디 크기·오프셋은 프레임 단위 × 스프라이트 배율이라 배율로 나눠 넣는다
    */
   private fit(def: Pick<SheetJson, 'frameWidth' | 'frameHeight' | 'pivot' | 'pixelScale'>): void {
-    const s = artScale(def);
+    const s = artScale(def) * this.drawScale;
     const key = `${def.frameWidth},${def.frameHeight},${def.pivot.x},${def.pivot.y},${s}`;
     if (key === this.fitKey) return;
     this.fitKey = key;
@@ -145,7 +147,7 @@ export class EntityVisual {
   private applyOrigin(): void {
     const def = this.fitFrame;
     if (!def) return;
-    const s = artScale(def);
+    const s = artScale(def) * this.drawScale;
     const up = this.lift / s;
     this.host.setOrigin(def.pivot.x / def.frameWidth, (def.pivot.y + up) / def.frameHeight);
     this.host.body.setOffset((def.frameWidth - this.bodyW / s) / 2, def.pivot.y + up + (1 - this.bodyH) / s);
@@ -492,7 +494,7 @@ export class EntityVisual {
     const corpse = scene.add
       .sprite(this.host.x, this.host.y, texture, 0)
       .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-      .setScale(artScale(def))
+      .setScale(artScale(def) * this.drawScale)
       .setDepth(entityDepth(this.host.y));
     corpse.play(key);
     this.corpse = corpse;

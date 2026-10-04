@@ -38,6 +38,8 @@ export interface HitOptions {
   from?: { x: number; y: number };
   /** 56라운드 2단계 단검 등 뒤 찌르기 (Q55): 공용 적중 스파크·치명 fx·치명 화면 번쩍임 없음 (전용 섬광만) */
   noImpactFx?: boolean;
+  /** 57라운드 투구가르기: 가드 불가 (결사병 방패 무시) */
+  ignoreGuard?: boolean;
 }
 
 export class GameCombat {
@@ -121,20 +123,36 @@ export class GameCombat {
 
   // --- 피해 계산 · 적 피격 ---
 
-  /** 공격력 × 배율 × 치명타 × 패시브. 치명타 확률은 기본 + 보너스 + 무기. forceCrit 이면 확정 */
-  rollDamage(mult: number, forceCrit = false, kind: DamageKind = 'other'): { dmg: number; crit: boolean } {
+  /**
+   * 공격력 × 배율 × 치명타 × 패시브. 치명타 확률은 기본 + 보너스 + 무기 (+ 57라운드 급소 세트·숫돌). forceCrit 이면 확정.
+   * 57라운드 빌드 축: target 이 있으면 대상 확정 치명(급소 6 금·견장)·대상 배율(표식·살기), 공격력 배율은 패시브 + 저주(만취 서약),
+   * 치명 피해 = ×1.5 + 급소 4 (+0.5) + 견장
+   */
+  rollDamage(
+    mult: number,
+    forceCrit = false,
+    kind: DamageKind = 'other',
+    target?: Mob,
+  ): { dmg: number; crit: boolean } {
     const g = this.g;
-    const crit = forceCrit || rollCrit(gameState.crit + g.structures.critBonus(), g.rng);
+    const B = g.build;
+    const crit =
+      forceCrit ||
+      (B?.combat.forceCritOn(target) ?? false) ||
+      rollCrit(gameState.crit + g.structures.critBonus(), g.rng);
     const P = gameState.passives;
     const lowHp = P.lowHpThreshold() > 0 && gameState.hp / gameState.maxHp <= P.lowHpThreshold();
-    const passiveMult = 1 + P.total('attackMult') + (lowHp ? P.total('lowHpAttackMult') : 0);
+    const attackMult = B ? B.stat('attackMult') : P.total('attackMult');
+    const passiveMult = 1 + attackMult + (lowHp ? P.total('lowHpAttackMult') : 0);
+    const critMult = B ? B.critDamageMult() : ECONOMY.critDamageMult;
     const dmg = Math.round(
       gameState.attack *
         mult *
         gameState.weapon.damageMult *
         passiveMult *
-        (crit ? ECONOMY.critDamageMult : 1) *
-        g.structures.damageMult(kind, crit),
+        (crit ? critMult : 1) *
+        g.structures.damageMult(kind, crit) *
+        (B?.combat.damageMultFor(target) ?? 1),
     );
     return { dmg, crit };
   }
@@ -169,7 +187,7 @@ export class GameCombat {
       return false;
     }
     // 방패 막기(35라운드 2단계): 정면에서 온 공격은 피해 감소, 섬광만, 넉백·피 없음. 틱 피해는 막지 않는다
-    const block = opts.tick ? 0 : mob.guardReduction(nx, ny, now);
+    const block = opts.tick || opts.ignoreGuard ? 0 : mob.guardReduction(nx, ny, now);
     if (block > 0) dmg = Math.max(1, Math.round(dmg * (1 - block)));
     const died = mob.takeDamage(dmg, { crit: opts.crit, tick: opts.tick });
     if (opts.tick) {
@@ -257,7 +275,16 @@ export class GameCombat {
     }
     // 51라운드 저격: 비행 거리 단계 배율 · 필중 확정 치명 (저격 화살이 아니면 그대로)
     const m = g.strikes.bow.hitMods(shot);
-    if (this.hitMob(mob, m.attack, { crit: m.crit, dirX, dirY, heavy: shot.heavy })) {
+    // 57라운드 빌드 축: 대상 배율(표식·살기)·확정 치명(금·견장·장교 사냥) — 치명이 새로 붙으면 치명 피해 배율
+    const b = g.build.shotHit(shot, mob, m.crit);
+    const died = this.hitMob(mob, Math.max(1, Math.round(m.attack * b.mult)), {
+      crit: b.crit,
+      dirX,
+      dirY,
+      heavy: shot.heavy,
+    });
+    g.build.afterShotHit(shot, mob, b.crit, died);
+    if (died) {
       g.progress.onKill(mob, stunnedByParry ? 'parry' : 'attack');
       return;
     }

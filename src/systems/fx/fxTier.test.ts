@@ -96,10 +96,11 @@ describe('fxTier: 2단 전용 시트 → 1단 → 기본 (55라운드 Q16)', () 
 
   it('로드 목록: 근접 2단 연격 · 활 2단 화살·꼬리', () => {
     const ids = tier2FxSheetIds(WEAPONS);
-    expect(ids).toContain('katana_combo1_iai_wide');
+    // 57라운드 갈래 재설계: 2단 id 가 바뀐 노드는 새 id 로 (그림이 없으면 1단 → 기본으로 내려간다)
+    expect(ids).toContain('katana_combo1_iai_vortex');
     expect(ids).toContain('greatsword_combo3_weight_giant');
-    expect(ids).toContain('dagger_combo2_gale_assassin');
-    expect(ids).toContain('bow_arrow_snipe_pierce');
+    expect(ids).toContain('dagger_combo2_gale_flyknife');
+    expect(ids).toContain('bow_arrow_snipe_skypierce');
     expect(ids).toContain('bow_arrow_aimed_rapid_volley');
     expect(ids).toContain('bow_arrow_snipe_lv3_deadeye');
   });

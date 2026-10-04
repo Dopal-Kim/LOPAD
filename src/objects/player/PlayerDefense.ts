@@ -60,9 +60,12 @@ export class PlayerDefense {
       action: p.action === 'parry' ? 'parry' : guarding ? 'guard' : 'other',
       guardStartedAt: this.guardStartedAt,
       now: time,
-      perfectWindowMs: PLAYER_DATA.perfectGuard?.windowMs ?? 0,
+      perfectWindowMs: p.perfectWindowMs(),
       perfectKind: S.kind === 'guard' ? (S.perfect ?? 'guard') : 'guard',
-      guardReduction: S.kind === 'guard' ? (mods.guardReduction ?? S.damageReduction) : 0,
+      guardReduction:
+        S.kind === 'guard'
+          ? Math.min(0.95, (mods.guardReduction ?? S.damageReduction) + (p.buildHooks?.guardReductionAdd() ?? 0))
+          : 0,
       damage: applyDefense(attack, gameState.defense),
       groggy: Boolean(res?.isGroggy),
     });
@@ -78,7 +81,11 @@ export class PlayerDefense {
       EventBus.emit(Events.PLAYER_PARRIED, { attack, ...toward(source) });
       return 'parried';
     }
-    if (p.isInvulnerableAt(time) || this.inWindow) return 'ignored';
+    if (p.isInvulnerableAt(time) || this.inWindow) {
+      // 57라운드: 대쉬·그림자 걸음 무적으로 흘림 → 완벽 회피 검사
+      p.buildHooks?.onIgnoredHit(time);
+      return 'ignored';
+    }
     if (outcome.kind === 'perfect') {
       // 56라운드 Q7: 피해 완전 무시, 튕겨내지 않음 (가드 유지) — 무적 시간도 주지 않는다(다음 타는 다시 판정)
       p.gauges.onGuardBlock(outcome.blocked, 'perfect');
@@ -90,24 +97,31 @@ export class PlayerDefense {
       EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'guard', phase: 'block' } satisfies PlayerSecondaryPayload);
       return 'ignored';
     }
+    // 57라운드 취기 4 취보: 취기 중 처음 받는 공격 1회 = 휘청 (피해 0)
+    if (p.buildHooks?.evadeHit(time, source)) return 'ignored';
     p.grantInvulnerable(time + PLAYER_DATA.invulnerableMs);
-    let amount = outcome.amount;
+    // 57라운드: 빌드 축 받는 피해 (저주·버팀 2·강공 중·굳은살)
+    let amount = p.buildHooks ? p.buildHooks.adjustDamage(outcome.amount, time) : outcome.amount;
     if (outcome.kind === 'guarded') {
       p.gauges.onGuardBlock(outcome.blocked, outcome.groggy ? 'groggy' : 'normal');
       EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'guard', phase: 'block' } satisfies PlayerSecondaryPayload);
     }
     if (mods.superArmorReduction && p.inAttackSlow(time)) amount = Math.round(amount * (1 - mods.superArmorReduction));
     gameState.hp = Math.max(0, gameState.hp - amount);
+    // 57라운드 버팀 6·마지막 잔: 층당 1회 HP 0 → 버팀 (HP 를 채운다)
+    if (gameState.hp <= 0) p.buildHooks?.preventDeath(time);
     p.flashColor(COLORS.PLAYER_HURT);
     // 56라운드 2단계 Q54·Q61 버티기 올려베기 슈퍼아머: 피해는 그대로, 끊기지 않음(넉백·피격 자세 없음), 맞은 피해는 울분으로
     const armored = p.moves.superArmor;
+    // 57라운드: 취기 상태·강공 중 끊기지 않음 — 피해는 그대로, 경직·밀려남 없음
+    const steady = armored || p.buildNoFlinch;
     if (armored) p.gauges.onGuardBlock(amount, 'normal');
-    else {
+    else if (!steady) {
       // 55라운드 Q23: 피격 → 대검 관성 초기화·차지 취소 · 2단계 유지형(대치 일격·난타) 끊김
       p.melee.onHurt();
       p.moves.onHurt();
     }
-    if (!armored && source && p.action !== 'dash' && (source.dirX !== 0 || source.dirY !== 0)) {
+    if (!steady && source && p.action !== 'dash' && (source.dirX !== 0 || source.dirY !== 0)) {
       const K = FEEL.KNOCKBACK;
       const speed = knockSpeed(K.PLAYER_PX, K.PLAYER_MS);
       const len = Math.hypot(source.dirX, source.dirY) || 1;
@@ -128,7 +142,7 @@ export class PlayerDefense {
       EventBus.emit(Events.PLAYER_DIED);
       return 'dead';
     }
-    if (!armored) p.visual.oneShot('hurt', p.visual.facing, time);
+    if (!steady) p.visual.oneShot('hurt', p.visual.facing, time);
     return 'hit';
   }
 }
