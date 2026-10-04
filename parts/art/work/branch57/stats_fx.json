@@ -1,0 +1,114 @@
+{
+ "bow_arrow_pierce": {
+  "frame": [
+   144,
+   16
+  ],
+  "colors": 10
+ },
+ "bow_arrow_pierce_hit": {
+  "frame": [
+   56,
+   64
+  ],
+  "colors": 8
+ },
+ "dagger_cross_clone": {
+  "frame": [
+   184,
+   224
+  ],
+  "colors": 14
+ },
+ "dagger_fan_throw": {
+  "frame": [
+   216,
+   216
+  ],
+  "colors": 12
+ },
+ "dagger_thrown": {
+  "frame": [
+   72,
+   16
+  ],
+  "colors": 14
+ },
+ "greatsword_quake_ring": {
+  "frame": [
+   456,
+   392
+  ],
+  "colors": 14
+ },
+ "greatsword_shatter_crack": {
+  "frame": [
+   344,
+   56
+  ],
+  "colors": 13
+ },
+ "greatsword_shatter_crack_t1": {
+  "frame": [
+   88,
+   48
+  ],
+  "colors": 10
+ },
+ "greatsword_shatter_crack_t2": {
+  "frame": [
+   152,
+   56
+  ],
+  "colors": 10
+ },
+ "greatsword_shatter_crack_t3": {
+  "frame": [
+   216,
+   56
+  ],
+  "colors": 10
+ },
+ "greatsword_shatter_crack_t4": {
+  "frame": [
+   280,
+   56
+  ],
+  "colors": 10
+ },
+ "greatsword_shatter_crack_t5": {
+  "frame": [
+   344,
+   56
+  ],
+  "colors": 10
+ },
+ "greatsword_shatter_snuff": {
+  "frame": [
+   48,
+   48
+  ],
+  "colors": 7
+ },
+ "katana_guardbreak": {
+  "frame": [
+   416,
+   424
+  ],
+  "colors": 13
+ },
+ "katana_spin": {
+  "frame": [
+   336,
+   304
+  ],
+  "colors": 13
+ },
+ "katana_spin_ready": {
+  "frame": [
+   32,
+   32
+  ],
+  "colors": 5
+ }
+}

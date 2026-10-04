@@ -1,0 +1,372 @@
+[
+ {
+  "cat": "player",
+  "name": "player_katana_spin",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_spin",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "player",
+  "name": "player_katana_guardbreak",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_guardbreak",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "player",
+  "name": "player_dagger_fan_throw",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_fan_throw",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "player",
+  "name": "player_bow_rapid_loop",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_rapid_loop",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_spin_ki1",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_spin_ki2",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_spin_ki3",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_guardbreak_ki1",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_guardbreak_ki2",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_guardbreak_ki3",
+  "state": "이미 아틀라스 — 건너뜀"
+ },
+ {
+  "cat": "fx",
+  "name": "katana_spin",
+  "state": "아틀라스로 교체",
+  "src": [
+   2688,
+   1216
+  ],
+  "pages": [
+   [
+    "katana_spin.png",
+    948,
+    2070
+   ]
+  ],
+  "gpuBeforeMB": 12.47,
+  "gpuAfterMB": 7.49,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_spin_ready",
+  "state": "아틀라스로 교체",
+  "src": [
+   160,
+   32
+  ],
+  "pages": [
+   [
+    "katana_spin_ready.png",
+    42,
+    34
+   ]
+  ],
+  "gpuBeforeMB": 0.02,
+  "gpuAfterMB": 0.01,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_guardbreak",
+  "state": "아틀라스로 교체",
+  "src": [
+   2912,
+   1696
+  ],
+  "pages": [
+   [
+    "katana_guardbreak.png",
+    368,
+    634
+   ]
+  ],
+  "gpuBeforeMB": 18.84,
+  "gpuAfterMB": 0.89,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_shatter_crack_t1",
+  "state": "아틀라스로 교체",
+  "src": [
+   1056,
+   48
+  ],
+  "pages": [
+   [
+    "greatsword_shatter_crack_t1.png",
+    77,
+    399
+   ]
+  ],
+  "gpuBeforeMB": 0.19,
+  "gpuAfterMB": 0.12,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_shatter_crack_t2",
+  "state": "아틀라스로 교체",
+  "src": [
+   1824,
+   56
+  ],
+  "pages": [
+   [
+    "greatsword_shatter_crack_t2.png",
+    141,
+    459
+   ]
+  ],
+  "gpuBeforeMB": 0.39,
+  "gpuAfterMB": 0.25,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_shatter_crack_t3",
+  "state": "아틀라스로 교체",
+  "src": [
+   2592,
+   56
+  ],
+  "pages": [
+   [
+    "greatsword_shatter_crack_t3.png",
+    205,
+    435
+   ]
+  ],
+  "gpuBeforeMB": 0.55,
+  "gpuAfterMB": 0.34,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_shatter_crack_t4",
+  "state": "아틀라스로 교체",
+  "src": [
+   3360,
+   56
+  ],
+  "pages": [
+   [
+    "greatsword_shatter_crack_t4.png",
+    269,
+    422
+   ]
+  ],
+  "gpuBeforeMB": 0.72,
+  "gpuAfterMB": 0.43,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_shatter_crack_t5",
+  "state": "아틀라스로 교체",
+  "src": [
+   4128,
+   56
+  ],
+  "pages": [
+   [
+    "greatsword_shatter_crack_t5.png",
+    1077,
+    128
+   ]
+  ],
+  "gpuBeforeMB": 0.88,
+  "gpuAfterMB": 0.53,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_shatter_snuff",
+  "state": "아틀라스로 교체",
+  "src": [
+   288,
+   48
+  ],
+  "pages": [
+   [
+    "greatsword_shatter_snuff.png",
+    59,
+    82
+   ]
+  ],
+  "gpuBeforeMB": 0.05,
+  "gpuAfterMB": 0.02,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_quake_ring",
+  "state": "아틀라스로 교체",
+  "src": [
+   4104,
+   1176
+  ],
+  "pages": [
+   [
+    "greatsword_quake_ring.png",
+    726,
+    3186
+   ]
+  ],
+  "gpuBeforeMB": 18.41,
+  "gpuAfterMB": 8.82,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "dagger_fan_throw",
+  "state": "아틀라스로 교체",
+  "src": [
+   1080,
+   864
+  ],
+  "pages": [
+   [
+    "dagger_fan_throw.png",
+    164,
+    767
+   ]
+  ],
+  "gpuBeforeMB": 3.56,
+  "gpuAfterMB": 0.48,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "dagger_thrown",
+  "state": "아틀라스로 교체",
+  "src": [
+   288,
+   16
+  ],
+  "pages": [
+   [
+    "dagger_thrown.png",
+    251,
+    6
+   ]
+  ],
+  "gpuBeforeMB": 0.02,
+  "gpuAfterMB": 0.01,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "dagger_cross_clone",
+  "state": "아틀라스로 교체",
+  "src": [
+   1656,
+   896
+  ],
+  "pages": [
+   [
+    "dagger_cross_clone.png",
+    372,
+    1180
+   ]
+  ],
+  "gpuBeforeMB": 5.66,
+  "gpuAfterMB": 1.67,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "bow_arrow_pierce",
+  "state": "아틀라스로 교체",
+  "src": [
+   576,
+   16
+  ],
+  "pages": [
+   [
+    "bow_arrow_pierce.png",
+    538,
+    9
+   ]
+  ],
+  "gpuBeforeMB": 0.04,
+  "gpuAfterMB": 0.02,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "bow_arrow_pierce_hit",
+  "state": "아틀라스로 교체",
+  "src": [
+   336,
+   64
+  ],
+  "pages": [
+   [
+    "bow_arrow_pierce_hit.png",
+    80,
+    70
+   ]
+  ],
+  "gpuBeforeMB": 0.08,
+  "gpuAfterMB": 0.02,
+  "empty": 0,
+  "deduped": 0
+ }
+]

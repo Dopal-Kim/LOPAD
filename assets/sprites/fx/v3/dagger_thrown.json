@@ -1,0 +1,93 @@
+{
+ "image": "dagger_thrown.png",
+ "action": "dagger_thrown",
+ "version": "v3-r57-branch",
+ "frameWidth": 72,
+ "frameHeight": 16,
+ "framesPerDirection": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.0,
+ "frameDurationsMs": [
+  50,
+  50,
+  50,
+  50
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 14,
+ "semiTransparent": false,
+ "source": "parts/art/work/branch57/build.py fx (57라운드 갈래 1단 수단 fx)",
+ "pivot": {
+  "x": 50,
+  "y": 6
+ },
+ "weapon": "dagger",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "depth": "above",
+ "anim": "loop_move",
+ "spawn": "dagger_fan_throw",
+ "spawnNote": "몸 player_dagger_fan_throw releaseFrame 시작에 3개 — 위치 = 무기 JSON throwSpawnAnchors, 각도 = 조준각 + fanDeg(−15°·0°·+15°). 시스템이 진행 각도로 회전·이동(사거리 6칸 — 설계안 2.4)",
+ "pivotNote": "pivot = 송곳니 몸통 가운데(끝 = pivot 앞 14 도트)",
+ "effectRule": "56라운드 Q11 붓획(시작 가늘고·가운데 굵고·끝 갈라짐) — 닫힌 원 금지. 재·호박만(57 지시), 흰 픽셀(X0/X1·A26)은 판정 프레임의 획 머리 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "r57": "57라운드 Q22~Q37 갈래 1단 수단(설계안 2.2~2.5 · 6.2)",
+ "frameRoles": [
+  "날아감(꼬리 흔들림 루프)",
+  "날아감(꼬리 흔들림 루프)",
+  "날아감(꼬리 흔들림 루프)",
+  "날아감(꼬리 흔들림 루프)"
+ ],
+ "hitFx": "fx/v3/hit_dagger (기존)",
+ "lengthDots": 28,
+ "design": "투척 송곳니 — 단검과 같은 재 껍데기 송곳니(28 도트 · 붕대 손잡이 · 균열 혼불 · 끝 A23) + 뒤로 가는 호박 꼬리 줄과 재 조각",
+ "branch": "질풍(疾風) 1단 B",
+ "directionNote": "1행 any — 방향 무관 (rotate: 진행 각도로 회전)",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_thrown.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 72,
+   "frameHeight": 16,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":62,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":62,"h":6},"sourceSize":{"w":72,"h":16}},
+  "1":{"frame":{"x":191,"y":0,"w":60,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":3,"w":60,"h":6},"sourceSize":{"w":72,"h":16}},
+  "2":{"frame":{"x":128,"y":0,"w":61,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":3,"w":61,"h":6},"sourceSize":{"w":72,"h":16}},
+  "3":{"frame":{"x":64,"y":0,"w":62,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":62,"h":6},"sourceSize":{"w":72,"h":16}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_thrown.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 251,
+   "h": 6
+  },
+  "scale": "1"
+ }
+}

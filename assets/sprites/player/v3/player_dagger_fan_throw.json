@@ -1,0 +1,619 @@
+{
+ "image": "player_dagger_fan_throw.png",
+ "action": "dagger_fan_throw",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.22,
+ "frameDurationsMs": [
+  40,
+  60,
+  40,
+  60,
+  80,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/branch57/build.py body (57라운드 갈래 1단 — 단검 부채꼴 투척 · 활 속사 연사)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "weapon": "dagger",
+ "label": "부채꼴 투척(질풍 1단 — 대쉬 직후 좌클릭)",
+ "branch": "질풍(疾風) 1단 B",
+ "branchNameNote": "갈래 이름은 임시(스토리 파트 확정 전)",
+ "r57": "57라운드 Q22~Q37 갈래 1단 수단(설계안 2.4) — 부채꼴 투척, 입력 = 대쉬 공격 교체",
+ "input": "대쉬 직후 0.3초 안 좌클릭(대쉬 공격 교체) — 질풍 1단을 고른 런에서만",
+ "timingMs": {
+  "total": 370,
+  "releaseAt": 100,
+  "cancelAt": 200
+ },
+ "frameRoles": [
+  "gather(송곳니가 맺힘)",
+  "wind(비틀어 감음)",
+  "release(투척 — 투사체 생성)",
+  "follow",
+  "recover",
+  "ready"
+ ],
+ "frameStates": [
+  "steel",
+  "steel",
+  "steel",
+  "steel",
+  "steel",
+  "steel"
+ ],
+ "fanFrames": [
+  "form",
+  "held",
+  "release",
+  null,
+  null,
+  null
+ ],
+ "framesBasis": "player_dagger_fan_throw 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "msNote": "ms 는 아트 임시 제안 — 시스템이 바꿔도 releaseFrame 시작 = 투사체 생성이면 그림이 맞는다",
+ "phases": {
+  "gather": [
+   0
+  ],
+  "wind": [
+   1
+  ],
+  "release": [
+   2
+  ],
+  "follow": [
+   3
+  ],
+  "recover": [
+   4,
+   5
+  ]
+ },
+ "startsFrom": "player_dash 끝(대쉬 직후 0.3초 안 좌클릭 — 대쉬 공격 교체, 57 Q22~Q37)",
+ "endsWith": "READY_DG(기본 연격 끝 겨눔) → dagger_carry_idle",
+ "cancelFromFrame": 4,
+ "releaseFrame": 2,
+ "projectileCount": 3,
+ "fanDeg": [
+  -15.0,
+  0.0,
+  15.0
+ ],
+ "fanSpreadDeg": 30,
+ "releaseNote": "releaseFrame(f2) 시작에 투사체 3개 생성(fx/v3/dagger_thrown) — 위치 = 무기 JSON throwSpawnAnchors, 각도 = 조준각 + fanDeg(−15°·0°·+15°). 사거리 6칸·개당 ×0.6·적중 시 낙인 1(설계안 2.4 — 시스템 데이터)",
+ "projectile": "fx/v3/dagger_thrown",
+ "fxSheet": "fx/v3/dagger_fan_throw",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     41.2,
+     75.2
+    ],
+    "handL": [
+     40.5,
+     67.3
+    ]
+   },
+   {
+    "handR": [
+     41.2,
+     75.2
+    ],
+    "handL": [
+     31.0,
+     49.0
+    ]
+   },
+   {
+    "handR": [
+     41.2,
+     75.2
+    ],
+    "handL": [
+     58.5,
+     69.2
+    ]
+   },
+   {
+    "handR": [
+     41.2,
+     75.2
+    ],
+    "handL": [
+     85.5,
+     67.9
+    ]
+   },
+   {
+    "handR": [
+     41.2,
+     75.2
+    ],
+    "handL": [
+     61.5,
+     73.3
+    ]
+   },
+   {
+    "handR": [
+     41.2,
+     75.2
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     54.8,
+     67.0
+    ],
+    "handL": [
+     55.5,
+     59.9
+    ]
+   },
+   {
+    "handR": [
+     54.8,
+     67.0
+    ],
+    "handL": [
+     65.8,
+     50.5
+    ]
+   },
+   {
+    "handR": [
+     54.8,
+     67.0
+    ],
+    "handL": [
+     37.5,
+     43.0
+    ]
+   },
+   {
+    "handR": [
+     54.8,
+     67.0
+    ],
+    "handL": [
+     10.5,
+     53.2
+    ]
+   },
+   {
+    "handR": [
+     54.8,
+     67.0
+    ],
+    "handL": [
+     34.5,
+     62.8
+    ]
+   },
+   {
+    "handR": [
+     54.8,
+     67.0
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     36.3,
+     68.4
+    ],
+    "handL": [
+     37.5,
+     60.7
+    ]
+   },
+   {
+    "handR": [
+     36.3,
+     68.4
+    ],
+    "handL": [
+     51.0,
+     41.5
+    ]
+   },
+   {
+    "handR": [
+     36.3,
+     68.4
+    ],
+    "handL": [
+     10.5,
+     59.5
+    ]
+   },
+   {
+    "handR": [
+     36.3,
+     68.4
+    ],
+    "handL": [
+     27.0,
+     73.4
+    ]
+   },
+   {
+    "handR": [
+     36.3,
+     68.4
+    ],
+    "handL": [
+     33.0,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     36.3,
+     68.4
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     59.7,
+     73.2
+    ],
+    "handL": [
+     58.5,
+     65.9
+    ]
+   },
+   {
+    "handR": [
+     59.7,
+     73.2
+    ],
+    "handL": [
+     45.0,
+     55.1
+    ]
+   },
+   {
+    "handR": [
+     59.7,
+     73.2
+    ],
+    "handL": [
+     85.5,
+     52.1
+    ]
+   },
+   {
+    "handR": [
+     59.7,
+     73.2
+    ],
+    "handL": [
+     69.0,
+     47.2
+    ]
+   },
+   {
+    "handR": [
+     59.7,
+     73.2
+    ],
+    "handL": [
+     63.0,
+     63.1
+    ]
+   },
+   {
+    "handR": [
+     59.7,
+     73.2
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트, 해부 기준 R 오른손 · L 왼손). 무기 시트 좌표 = 몸 + (48,48)",
+ "scarAnchor": {
+  "down": [
+   {
+    "x": 46.3,
+    "y": 74.1,
+    "w": 25.5,
+    "h": 18.6,
+    "rot": -3.2,
+    "visible": false
+   },
+   {
+    "x": 42.9,
+    "y": 75.4,
+    "w": 25.5,
+    "h": 19.3,
+    "rot": -9.3,
+    "visible": false
+   },
+   {
+    "x": 50.9,
+    "y": 77.6,
+    "w": 25.5,
+    "h": 17.9,
+    "rot": 5.7,
+    "visible": false
+   },
+   {
+    "x": 52.6,
+    "y": 77.3,
+    "w": 25.5,
+    "h": 18.3,
+    "rot": 8.9,
+    "visible": false
+   },
+   {
+    "x": 49.0,
+    "y": 73.5,
+    "w": 25.5,
+    "h": 18.4,
+    "rot": 1.8,
+    "visible": false
+   },
+   {
+    "x": 46.1,
+    "y": 70.1,
+    "w": 25.5,
+    "h": 18.8,
+    "rot": -3.6,
+    "visible": false
+   }
+  ],
+  "up": [
+   {
+    "x": 49.7,
+    "y": 74.1,
+    "w": 25.5,
+    "h": 18.6,
+    "rot": 3.2,
+    "visible": true
+   },
+   {
+    "x": 53.1,
+    "y": 75.4,
+    "w": 25.5,
+    "h": 19.3,
+    "rot": 9.3,
+    "visible": true
+   },
+   {
+    "x": 45.1,
+    "y": 77.6,
+    "w": 25.5,
+    "h": 17.9,
+    "rot": -5.7,
+    "visible": true
+   },
+   {
+    "x": 43.4,
+    "y": 77.3,
+    "w": 25.5,
+    "h": 18.3,
+    "rot": -8.9,
+    "visible": true
+   },
+   {
+    "x": 47.0,
+    "y": 73.5,
+    "w": 25.5,
+    "h": 18.4,
+    "rot": -1.8,
+    "visible": true
+   },
+   {
+    "x": 49.9,
+    "y": 70.1,
+    "w": 25.5,
+    "h": 18.8,
+    "rot": 3.6,
+    "visible": true
+   }
+  ],
+  "left": [
+   {
+    "x": 47.1,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 11.7,
+    "rot": -16.7,
+    "visible": true
+   },
+   {
+    "x": 49.4,
+    "y": 76.6,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": -11.7,
+    "visible": true
+   },
+   {
+    "x": 43.8,
+    "y": 77.2,
+    "w": 7.2,
+    "h": 12.2,
+    "rot": -23.2,
+    "visible": true
+   },
+   {
+    "x": 44.7,
+    "y": 77.2,
+    "w": 7.2,
+    "h": 12.1,
+    "rot": -21.4,
+    "visible": true
+   },
+   {
+    "x": 46.6,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 11.8,
+    "rot": -17.7,
+    "visible": true
+   },
+   {
+    "x": 48.0,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": -14.7,
+    "visible": true
+   }
+  ],
+  "right": [
+   {
+    "x": 48.9,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 11.7,
+    "rot": 16.7,
+    "visible": true
+   },
+   {
+    "x": 46.6,
+    "y": 76.6,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": 11.7,
+    "visible": true
+   },
+   {
+    "x": 52.2,
+    "y": 77.2,
+    "w": 7.2,
+    "h": 12.2,
+    "rot": 23.2,
+    "visible": true
+   },
+   {
+    "x": 51.3,
+    "y": 77.2,
+    "w": 7.2,
+    "h": 12.1,
+    "rot": 21.4,
+    "visible": true
+   },
+   {
+    "x": 49.4,
+    "y": 73.9,
+    "w": 7.2,
+    "h": 11.8,
+    "rot": 17.7,
+    "visible": true
+   },
+   {
+    "x": 48.0,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": 14.7,
+    "visible": true
+   }
+  ]
+ },
+ "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
+ "weaponOverlayV3": "weapons/v3/dagger_fan_throw",
+ "note": "57라운드 갈래 1단 몸. weapons/v3/dagger_fan_throw 를 같은 프레임 번호·같은 시각에 겹친다. v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b.",
+ "version": "v3-r57-branch",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_dagger_fan_throw.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":179,"y":115,"w":63,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":31,"w":63,"h":112},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":0,"y":117,"w":65,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":30,"w":65,"h":111},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":110,"y":452,"w":63,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":37,"w":63,"h":107},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":110,"y":343,"w":76,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":37,"w":76,"h":107},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":129,"y":0,"w":63,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":31,"w":63,"h":113},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":0,"y":0,"w":68,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":27,"w":68,"h":115},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":0,"y":230,"w":57,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":31,"w":57,"h":111},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":179,"y":229,"w":58,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":30,"w":58,"h":112},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":63,"y":561,"w":57,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":37,"w":57,"h":107},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":188,"y":343,"w":71,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":37,"w":71,"h":107},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":67,"y":117,"w":59,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":31,"w":59,"h":111},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":70,"y":0,"w":57,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":27,"w":57,"h":114},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":59,"y":342,"w":49,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":30,"w":49,"h":109},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":180,"y":561,"w":45,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":32,"w":45,"h":107},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":175,"y":452,"w":61,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":32,"w":61,"h":107},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":0,"y":563,"w":56,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":32,"w":56,"h":107},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":59,"y":230,"w":51,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":29,"w":51,"h":110},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":194,"y":0,"w":48,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":26,"w":48,"h":113},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":0,"y":343,"w":49,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":30,"w":49,"h":109},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":227,"y":561,"w":45,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":32,"w":45,"h":107},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":0,"y":454,"w":61,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":32,"w":61,"h":107},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":122,"y":561,"w":56,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":32,"w":56,"h":107},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":112,"y":230,"w":51,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":29,"w":51,"h":110},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":129,"y":115,"w":48,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":26,"w":48,"h":113},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_dagger_fan_throw.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 272,
+   "h": 670
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,10 @@
+{
+ "katana_thrust": {
+  "weaponColors": 16,
+  "bodyColors": 28
+ },
+ "katana_issen_dash": {
+  "weaponColors": 16,
+  "bodyColors": 28
+ }
+}

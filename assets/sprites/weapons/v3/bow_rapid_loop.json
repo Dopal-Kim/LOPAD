@@ -1,0 +1,1244 @@
+{
+ "image": "bow_rapid_loop.png",
+ "action": "bow_rapid_loop",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 12,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 18.75,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  50,
+  50,
+  50,
+  50,
+  50,
+  50,
+  50,
+  70,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/branch57/build.py body (57라운드 갈래 1단 — 단검 부채꼴 투척 · 활 속사 연사)",
+ "weapon": "bow",
+ "label": "속사 연사(속사 1단 — 좌클릭 홀드, 초당 5발)",
+ "branch": "속사(速射) 1단 A",
+ "branchNameNote": "갈래 이름은 53라운드 이름 유지(57 Q22~Q37)",
+ "r57": "57라운드 Q22~Q37 갈래 1단 수단(설계안 2.5) — 속사 연사, 좌클릭 홀드",
+ "input": "좌클릭 홀드 — 속사 1단을 고른 런에서 좌클릭 충전형 대신(누르는 동안 연사, 떼면 끝)",
+ "timingMs": {
+  "total": 640,
+  "releasesAt": [
+   180,
+   380
+  ],
+  "loopStartAt": 80,
+  "loopMs": 400,
+  "endMs": 160
+ },
+ "frameRoles": [
+  "start",
+  "start",
+  "renock",
+  "draw(반)",
+  "release(화살 생성)",
+  "follow",
+  "renock",
+  "draw(반)",
+  "release(화살 생성)",
+  "follow",
+  "end",
+  "end"
+ ],
+ "frameStates": [
+  "draw",
+  "draw",
+  "draw",
+  "draw",
+  "release",
+  "release",
+  "draw",
+  "draw",
+  "release",
+  "release",
+  "draw",
+  "draw"
+ ],
+ "framesBasis": "player_bow_rapid_loop 프레임 번호(몸·무기 공통)",
+ "msNote": "루프 400ms 에 2발 = 초당 5발(설계안 2.5). 연사 속도를 바꾸면 루프 ms 를 같은 비율로 늘이거나 줄인다",
+ "phases": {
+  "start": [
+   0,
+   1
+  ],
+  "loop": [
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9
+  ],
+  "end": [
+   10,
+   11
+  ]
+ },
+ "startsFrom": "bow_carry_idle / bow_carry_walk(좌클릭 홀드 시작)",
+ "endsWith": "bow_draw_hold f0 근처 → bow_carry_idle",
+ "loopFrames": [
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9
+ ],
+ "loopRange": [
+  2,
+  9
+ ],
+ "startFrames": [
+  0,
+  1
+ ],
+ "endFrames": [
+  10,
+  11
+ ],
+ "releaseFrames": [
+  4,
+  8
+ ],
+ "loopNote": "좌클릭 홀드: f0~f1 1회 → 누르는 동안 loopFrames(f2~f9) 반복(f9 → f2) → 떼면 지금 발의 follow 까지 마치고 f10~f11. 시트 loop 값은 false",
+ "releaseNote": "화살 생성 = releaseFrames(f4·f8) 시작, 위치 = 무기 JSON arrowSpawnAnchors. 화살 그림 = fx/v3/bow_arrow_rapid(기존), 입구 섬광 bow_muzzle_rapid(기존). 탄창이 비면 이 시트 대신 bow_reload(시스템). 연사 중 이동 ×0.5·숨 회복 없음(설계안 2.5 — 시스템 데이터)",
+ "arrowSheet": "fx/v3/bow_arrow_rapid",
+ "muzzleFx": "fx/v3/bow_muzzle_rapid",
+ "drawProgressByFrame": [
+  0.25,
+  0.45,
+  0.08,
+  0.6,
+  0.62,
+  0.3,
+  0.08,
+  0.6,
+  0.62,
+  0.3,
+  0.1,
+  0.0
+ ],
+ "version": "v3-r57-branch",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     93.4,
+     108.2
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     91.9,
+     104.3
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     94.7,
+     111.5
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     90.8,
+     101.4
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     84.8,
+     97.4
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     84.8,
+     99.1
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     94.7,
+     111.3
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     90.8,
+     102.2
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     84.8,
+     97.1
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     84.8,
+     98.9
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     94.9,
+     112.1
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     95.2,
+     113.1
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     98.6,
+     93.2
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     100.1,
+     94.2
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     97.3,
+     92.5
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     101.2,
+     94.8
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     107.2,
+     95.8
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     107.2,
+     98.6
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     97.3,
+     91.8
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     101.2,
+     95.2
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     107.2,
+     94.9
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     107.2,
+     97.9
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     97.1,
+     92.3
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     96.8,
+     92.1
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     74.6,
+     99.5
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     81.5,
+     97.5
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     68.8,
+     101.2
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     86.7,
+     96.0
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     93.8,
+     92.4
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     95.2,
+     94.6
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     68.2,
+     100.8
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     85.9,
+     96.6
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     92.8,
+     91.8
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     94.7,
+     94.2
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     67.7,
+     101.5
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     66.0,
+     102.0
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     117.4,
+     101.3
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     110.5,
+     100.4
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     123.2,
+     102.2
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     105.3,
+     99.6
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     98.2,
+     100.2
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     96.8,
+     102.5
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     123.8,
+     101.7
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     106.1,
+     100.2
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     99.2,
+     99.6
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     97.3,
+     102.0
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     124.3,
+     102.3
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     126.0,
+     102.6
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ]
+  ],
+  "up": [
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ]
+  ],
+  "left": [
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ]
+  ],
+  "right": [
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ]
+  ]
+ },
+ "gripHand": "handL",
+ "design": "B + 몸에 꽂힌 화살 뽑기 (53라운드 Q29) — 재·흙 활대 + 호박 균열 · 양 끝 갑옷 조각 · 혼불 시위(유일하게 빛나는 선) · 재 화살",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_bow_B.jpg (+ 장전 연출 raw_bow_A2, 참고만)",
+ "glowRule": "53라운드 Q30: 시위 평소 A21 · 당김 A23 · 가득 A25 · 놓는 순간 A26 번쩍. 활대 균열 1px A21, 화살촉 A21→A25",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G · 흙 WD · 호박 A · 갑옷 SL · 붕대 PL, Q32)",
+ "bowLengthDots": 60,
+ "arrowLengthDots": 36,
+ "bladeTipAnchors": {
+  "down": [
+   [
+    114.5,
+    124.1
+   ],
+   [
+    110.3,
+    122.9
+   ],
+   [
+    119.6,
+    123.1
+   ],
+   [
+    107.9,
+    121.3
+   ],
+   null,
+   null,
+   [
+    120.5,
+    124.0
+   ],
+   [
+    108.3,
+    121.3
+   ],
+   null,
+   null,
+   [
+    120.8,
+    122.5
+   ],
+   [
+    123.0,
+    121.1
+   ]
+  ],
+  "up": [
+   [
+    77.5,
+    79.0
+   ],
+   [
+    81.7,
+    81.9
+   ],
+   [
+    72.4,
+    75.4
+   ],
+   [
+    84.1,
+    83.5
+   ],
+   null,
+   null,
+   [
+    71.5,
+    76.2
+   ],
+   [
+    83.7,
+    83.1
+   ],
+   null,
+   null,
+   [
+    71.2,
+    74.5
+   ],
+   [
+    69.0,
+    73.0
+   ]
+  ],
+  "left": [
+   [
+    31.5,
+    107.7
+   ],
+   [
+    37.3,
+    107.1
+   ],
+   [
+    27.9,
+    107.2
+   ],
+   [
+    42.1,
+    106.3
+   ],
+   null,
+   null,
+   [
+    27.7,
+    108.4
+   ],
+   [
+    41.4,
+    106.2
+   ],
+   null,
+   null,
+   [
+    27.5,
+    106.9
+   ],
+   [
+    27.2,
+    106.2
+   ]
+  ],
+  "right": [
+   [
+    160.5,
+    94.8
+   ],
+   [
+    154.7,
+    97.1
+   ],
+   [
+    164.1,
+    90.7
+   ],
+   [
+    149.9,
+    97.9
+   ],
+   null,
+   null,
+   [
+    164.3,
+    91.2
+   ],
+   [
+    150.6,
+    97.6
+   ],
+   null,
+   null,
+   [
+    164.5,
+    89.5
+   ],
+   [
+    164.8,
+    87.3
+   ]
+  ]
+ },
+ "bladeTipNote": "화살촉 끝(무기 시트 좌표). null = 화살 없음",
+ "arrowSpawnAnchors": {
+  "down": [
+   null,
+   null,
+   null,
+   null,
+   [
+    102.8,
+    115.3
+   ],
+   null,
+   null,
+   null,
+   [
+    102.8,
+    115.3
+   ],
+   null,
+   null,
+   null
+  ],
+  "up": [
+   null,
+   null,
+   null,
+   null,
+   [
+    89.2,
+    86.9
+   ],
+   null,
+   null,
+   null,
+   [
+    89.2,
+    86.9
+   ],
+   null,
+   null,
+   null
+  ],
+  "left": [
+   null,
+   null,
+   null,
+   null,
+   [
+    55.5,
+    103.2
+   ],
+   null,
+   null,
+   null,
+   [
+    55.5,
+    103.2
+   ],
+   null,
+   null,
+   null
+  ],
+  "right": [
+   null,
+   null,
+   null,
+   null,
+   [
+    136.5,
+    98.4
+   ],
+   null,
+   null,
+   null,
+   [
+    136.5,
+    98.4
+   ],
+   null,
+   null,
+   null
+  ]
+ },
+ "arrowSpawnNote": "화살 생성 점(무기 시트 좌표) — releaseFrames 의 줌통(왼손). bow_muzzle_rapid 의 pivot",
+ "carryHidden": "이 시트 동안 bow_carry_* 는 숨긴다(이 시트가 손의 활·화살을 그림).",
+ "stateNote": "draw 반 당김(시위 A21→A23) · renock 시위 위 재가 맺히는 새 화살 · release 놓는 순간(시위 A26 번쩍 — releaseFrames 만) · follow",
+ "bodySheet": "player_bow_rapid_loop",
+ "overlay": "player_bow_rapid_loop 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_rapid_loop.png)",
+  "grid": {
+   "columns": 12,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 48
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 8,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":130,"y":258,"w":25,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":90,"y":83,"w":25,"h":61},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":130,"y":321,"w":23,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":82,"w":23,"h":61},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":74,"y":258,"w":28,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":83,"w":28,"h":62},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":103,"y":322,"w":22,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":82,"w":22,"h":60},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":147,"y":194,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":94,"y":322,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":43,"y":258,"w":29,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":83,"w":29,"h":62},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":103,"y":384,"w":22,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":82,"w":22,"h":60},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":147,"y":194,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":94,"y":322,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":95,"y":65,"w":29,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":83,"w":29,"h":63},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":142,"y":65,"w":11,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":83,"w":11,"h":63},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":45,"y":427,"w":18,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":78,"y":59,"w":18,"h":40},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":65,"y":427,"w":14,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":82,"y":59,"w":14,"h":40},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":73,"y":385,"w":25,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":72,"y":60,"w":25,"h":40},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":142,"y":384,"w":9,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":9,"h":41},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":27,"y":385,"w":7,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":7,"h":41},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":36,"y":385,"w":7,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":7,"h":41},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":0,"y":385,"w":25,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":59,"w":25,"h":41},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":142,"y":427,"w":9,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":9,"h":41},"sourceSize":{"w":192,"h":192}},
+  "20":{"frame":{"x":27,"y":385,"w":7,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":7,"h":41},"sourceSize":{"w":192,"h":192}},
+  "21":{"frame":{"x":36,"y":385,"w":7,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":7,"h":41},"sourceSize":{"w":192,"h":192}},
+  "22":{"frame":{"x":45,"y":385,"w":26,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":60,"w":26,"h":40},"sourceSize":{"w":192,"h":192}},
+  "23":{"frame":{"x":81,"y":427,"w":11,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":60,"w":11,"h":39},"sourceSize":{"w":192,"h":192}},
+  "24":{"frame":{"x":49,"y":65,"w":44,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":71,"w":44,"h":63},"sourceSize":{"w":192,"h":192}},
+  "25":{"frame":{"x":0,"y":130,"w":45,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":71,"w":45,"h":62},"sourceSize":{"w":192,"h":192}},
+  "26":{"frame":{"x":46,"y":194,"w":42,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":72,"w":42,"h":62},"sourceSize":{"w":192,"h":192}},
+  "27":{"frame":{"x":47,"y":130,"w":45,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":71,"w":45,"h":62},"sourceSize":{"w":192,"h":192}},
+  "28":{"frame":{"x":141,"y":130,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":72,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "29":{"frame":{"x":134,"y":194,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":72,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "30":{"frame":{"x":0,"y":258,"w":41,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":72,"w":41,"h":62},"sourceSize":{"w":192,"h":192}},
+  "31":{"frame":{"x":94,"y":130,"w":45,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":71,"w":45,"h":62},"sourceSize":{"w":192,"h":192}},
+  "32":{"frame":{"x":141,"y":130,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":72,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "33":{"frame":{"x":134,"y":194,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":72,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "34":{"frame":{"x":90,"y":194,"w":42,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":72,"w":42,"h":62},"sourceSize":{"w":192,"h":192}},
+  "35":{"frame":{"x":126,"y":65,"w":14,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":72,"w":14,"h":63},"sourceSize":{"w":192,"h":192}},
+  "36":{"frame":{"x":0,"y":65,"w":47,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":69,"w":47,"h":63},"sourceSize":{"w":192,"h":192}},
+  "37":{"frame":{"x":0,"y":0,"w":49,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":68,"w":49,"h":63},"sourceSize":{"w":192,"h":192}},
+  "38":{"frame":{"x":0,"y":322,"w":45,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":120,"y":70,"w":45,"h":61},"sourceSize":{"w":192,"h":192}},
+  "39":{"frame":{"x":51,"y":0,"w":49,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":68,"w":49,"h":63},"sourceSize":{"w":192,"h":192}},
+  "40":{"frame":{"x":104,"y":258,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":69,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "41":{"frame":{"x":117,"y":258,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":69,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "42":{"frame":{"x":0,"y":194,"w":44,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":70,"w":44,"h":62},"sourceSize":{"w":192,"h":192}},
+  "43":{"frame":{"x":102,"y":0,"w":49,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":103,"y":68,"w":49,"h":63},"sourceSize":{"w":192,"h":192}},
+  "44":{"frame":{"x":104,"y":258,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":69,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "45":{"frame":{"x":117,"y":258,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":69,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "46":{"frame":{"x":47,"y":322,"w":45,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":70,"w":45,"h":61},"sourceSize":{"w":192,"h":192}},
+  "47":{"frame":{"x":127,"y":384,"w":13,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":71,"w":13,"h":60},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_rapid_loop.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 155,
+   "h": 468
+  },
+  "scale": "1"
+ }
+}

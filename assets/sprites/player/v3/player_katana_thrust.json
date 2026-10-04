@@ -1,0 +1,1054 @@
+{
+ "image": "player_katana_thrust.png",
+ "action": "katana_thrust",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.08,
+ "frameDurationsMs": [
+  60,
+  90,
+  70,
+  30,
+  40,
+  40,
+  150,
+  80,
+  90,
+  60
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/combo58/build.py katana (58라운드 Q1 칼 3타 찌르기 · 대쉬 일섬 — combo55 렌더 경로)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "weapon": "katana",
+ "version": "v3-r58",
+ "comboSet": "K-A 발도 초승달",
+ "label": "3타 찌르기(반 발 내딛으며 길게 찌름 · 검기 단수만큼 사거리↑)",
+ "timingMs": {
+  "total": 710,
+  "hitAt": 250,
+  "activeEndAt": 330,
+  "cancelAt": 560
+ },
+ "frameStates": [
+  "steel",
+  "steel",
+  "steel",
+  "steel",
+  "glow",
+  "glow",
+  "steel",
+  "steel",
+  "steel",
+  "steel"
+ ],
+ "framesBasis": "player_katana_thrust 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "msNote": "ms 는 아트 제안값. 시스템이 데이터로 바꿔도 impactFrame 시작 = hitAt 이 맞으면 그림은 맞는다(관성 공속은 재생 속도로).",
+ "comboIndex": 3,
+ "impactFrame": 4,
+ "hitFrames": [
+  4,
+  5
+ ],
+ "activeFrames": [
+  4,
+  5
+ ],
+ "glowFrames": [
+  4,
+  5
+ ],
+ "cancelFromFrame": 8,
+ "anticipationFrames": [
+  0,
+  1,
+  2,
+  3
+ ],
+ "recoverFrames": [
+  6,
+  7,
+  8,
+  9
+ ],
+ "hitShape": {
+  "type": "rect",
+  "fromPx": 16.0,
+  "lengthPx": 197.6,
+  "widthPx": 40.0,
+  "angleDeg": 0,
+  "world": {
+   "fromPx": 4.0,
+   "lengthPx": 49.4,
+   "widthPx": 10.0
+  },
+  "R": {
+   "world": 38,
+   "dots": 152
+  },
+  "byKiLevel": {
+   "0": {
+    "type": "rect",
+    "fromPx": 16.0,
+    "lengthPx": 197.6,
+    "widthPx": 40.0,
+    "angleDeg": 0,
+    "world": {
+     "fromPx": 4.0,
+     "lengthPx": 49.4,
+     "widthPx": 10.0
+    }
+   },
+   "1": {
+    "type": "rect",
+    "fromPx": 16.0,
+    "lengthPx": 228.0,
+    "widthPx": 44.0,
+    "angleDeg": 0,
+    "world": {
+     "fromPx": 4.0,
+     "lengthPx": 57.0,
+     "widthPx": 11.0
+    }
+   },
+   "2": {
+    "type": "rect",
+    "fromPx": 16.0,
+    "lengthPx": 258.4,
+    "widthPx": 48.0,
+    "angleDeg": 0,
+    "world": {
+     "fromPx": 4.0,
+     "lengthPx": 64.6,
+     "widthPx": 12.0
+    }
+   },
+   "3": {
+    "type": "rect",
+    "fromPx": 16.0,
+    "lengthPx": 288.8,
+    "widthPx": 56.0,
+    "angleDeg": 0,
+    "world": {
+     "fromPx": 4.0,
+     "lengthPx": 72.2,
+     "widthPx": 14.0
+    }
+   }
+  },
+  "kiRule": "검기 단수(0~3)를 소모해 찌르면 byKiLevel[단수] 직사각형 · fx/v3/katana_thrust(_ki1~3) · 무기 오버레이 _ki1~3. 피해 배율은 시스템 데이터",
+  "note": "정면 직사각 찌르기 — 판정 원점(피벗 위 40 도트)에서 조준 방향으로 fromPx~lengthPx, 폭 widthPx. 기본(검기 0) 1.3R",
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 0° = 조준 방향",
+  "reference": "참고값 — 시스템 데이터가 기준"
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
+ "stepPx": {
+  "world": 10,
+  "dots": 40,
+  "frames": [
+   3,
+   4,
+   5
+  ],
+  "note": "= lungePx (방향키와 무관 — 58 제안)"
+ },
+ "stepStartMs": 220,
+ "phases": {
+  "pull": [
+   0
+  ],
+  "coil": [
+   1,
+   2
+  ],
+  "thrust": [
+   3,
+   4,
+   5
+  ],
+  "zanshin": [
+   6,
+   7
+  ],
+  "withdraw": [
+   8
+  ],
+  "recover": [
+   9
+  ]
+ },
+ "nextMove": "katana_rise (이어서 좌클릭 시 1타)",
+ "startsFrom": "katana_fall 끝(f6, 오른쪽 아래 칼)",
+ "endsWith": "뽑아 든 낮은 겨눔(katana_carry_drawn_idle 0 근처 = katana_rise f0)",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     38.1,
+     74.3
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     42.0,
+     70.5
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     42.4,
+     70.8
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     41.3,
+     80.5
+    ],
+    "handL": [
+     70.5,
+     81.0
+    ]
+   },
+   {
+    "handR": [
+     46.1,
+     83.8
+    ],
+    "handL": [
+     70.5,
+     81.0
+    ]
+   },
+   {
+    "handR": [
+     46.0,
+     84.1
+    ],
+    "handL": [
+     70.5,
+     81.0
+    ]
+   },
+   {
+    "handR": [
+     46.1,
+     83.8
+    ],
+    "handL": [
+     70.5,
+     81.0
+    ]
+   },
+   {
+    "handR": [
+     46.1,
+     83.5
+    ],
+    "handL": [
+     70.5,
+     81.0
+    ]
+   },
+   {
+    "handR": [
+     34.5,
+     87.2
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     28.8,
+     87.6
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     57.9,
+     76.9
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     54.0,
+     77.7
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     53.6,
+     78.9
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     54.7,
+     67.7
+    ],
+    "handL": [
+     25.5,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     49.9,
+     64.4
+    ],
+    "handL": [
+     25.5,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     50.0,
+     64.1
+    ],
+    "handL": [
+     25.5,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     49.9,
+     64.4
+    ],
+    "handL": [
+     25.5,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     49.9,
+     64.7
+    ],
+    "handL": [
+     25.5,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     61.5,
+     76.0
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     67.2,
+     81.6
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     51.6,
+     71.8
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     58.4,
+     71.7
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     59.5,
+     72.6
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     29.7,
+     71.5
+    ],
+    "handL": [
+     54.0,
+     90.7
+    ]
+   },
+   {
+    "handR": [
+     20.3,
+     73.1
+    ],
+    "handL": [
+     54.0,
+     90.7
+    ]
+   },
+   {
+    "handR": [
+     19.6,
+     73.1
+    ],
+    "handL": [
+     54.0,
+     90.7
+    ]
+   },
+   {
+    "handR": [
+     20.3,
+     73.1
+    ],
+    "handL": [
+     54.0,
+     90.7
+    ]
+   },
+   {
+    "handR": [
+     21.1,
+     73.1
+    ],
+    "handL": [
+     54.0,
+     90.7
+    ]
+   },
+   {
+    "handR": [
+     31.9,
+     76.6
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     39.5,
+     77.6
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     44.4,
+     78.8
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     37.6,
+     75.9
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     36.5,
+     76.5
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     66.3,
+     76.1
+    ],
+    "handL": [
+     42.0,
+     74.9
+    ]
+   },
+   {
+    "handR": [
+     75.7,
+     74.5
+    ],
+    "handL": [
+     42.0,
+     74.9
+    ]
+   },
+   {
+    "handR": [
+     76.4,
+     74.5
+    ],
+    "handL": [
+     42.0,
+     74.9
+    ]
+   },
+   {
+    "handR": [
+     75.7,
+     74.5
+    ],
+    "handL": [
+     42.0,
+     74.9
+    ]
+   },
+   {
+    "handR": [
+     74.9,
+     74.5
+    ],
+    "handL": [
+     42.0,
+     74.9
+    ]
+   },
+   {
+    "handR": [
+     64.1,
+     86.0
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     56.5,
+     91.0
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 해부 기준 R = 오른손 · L = 왼손). 무기 시트 좌표 = 몸 좌표 + playerFrameOffset(48,48). 칼은 오른손(R)이 쥔다. ",
+ "scarAnchor": {
+  "down": [
+   {
+    "x": 45.4,
+    "y": 74.2,
+    "w": 25.5,
+    "h": 19.1,
+    "rot": -4.9,
+    "visible": false
+   },
+   {
+    "x": 43.9,
+    "y": 76.1,
+    "w": 25.5,
+    "h": 19.5,
+    "rot": -7.4,
+    "visible": false
+   },
+   {
+    "x": 43.8,
+    "y": 76.9,
+    "w": 25.5,
+    "h": 19.6,
+    "rot": -7.7,
+    "visible": false
+   },
+   {
+    "x": 46.6,
+    "y": 79.4,
+    "w": 25.5,
+    "h": 18.1,
+    "rot": -2.8,
+    "visible": false
+   },
+   {
+    "x": 48.7,
+    "y": 82.3,
+    "w": 25.5,
+    "h": 17.1,
+    "rot": 1.5,
+    "visible": false
+   },
+   {
+    "x": 48.7,
+    "y": 82.7,
+    "w": 25.5,
+    "h": 17.0,
+    "rot": 1.5,
+    "visible": false
+   },
+   {
+    "x": 48.7,
+    "y": 82.8,
+    "w": 25.5,
+    "h": 17.1,
+    "rot": 1.5,
+    "visible": false
+   },
+   {
+    "x": 48.7,
+    "y": 82.8,
+    "w": 25.5,
+    "h": 17.3,
+    "rot": 1.5,
+    "visible": false
+   },
+   {
+    "x": 45.1,
+    "y": 75.7,
+    "w": 25.5,
+    "h": 18.5,
+    "rot": -5.5,
+    "visible": false
+   },
+   {
+    "x": 43.9,
+    "y": 72.2,
+    "w": 25.5,
+    "h": 19.0,
+    "rot": -7.6,
+    "visible": false
+   }
+  ],
+  "up": [
+   {
+    "x": 50.6,
+    "y": 74.2,
+    "w": 25.5,
+    "h": 19.1,
+    "rot": 4.9,
+    "visible": true
+   },
+   {
+    "x": 52.1,
+    "y": 76.1,
+    "w": 25.5,
+    "h": 19.5,
+    "rot": 7.4,
+    "visible": true
+   },
+   {
+    "x": 52.2,
+    "y": 76.9,
+    "w": 25.5,
+    "h": 19.6,
+    "rot": 7.7,
+    "visible": true
+   },
+   {
+    "x": 49.4,
+    "y": 79.4,
+    "w": 25.5,
+    "h": 18.1,
+    "rot": 2.8,
+    "visible": true
+   },
+   {
+    "x": 47.3,
+    "y": 82.3,
+    "w": 25.5,
+    "h": 17.1,
+    "rot": -1.5,
+    "visible": true
+   },
+   {
+    "x": 47.3,
+    "y": 82.7,
+    "w": 25.5,
+    "h": 17.0,
+    "rot": -1.5,
+    "visible": true
+   },
+   {
+    "x": 47.3,
+    "y": 82.8,
+    "w": 25.5,
+    "h": 17.1,
+    "rot": -1.5,
+    "visible": true
+   },
+   {
+    "x": 47.3,
+    "y": 82.8,
+    "w": 25.5,
+    "h": 17.3,
+    "rot": -1.5,
+    "visible": true
+   },
+   {
+    "x": 50.9,
+    "y": 75.7,
+    "w": 25.5,
+    "h": 18.5,
+    "rot": 5.5,
+    "visible": true
+   },
+   {
+    "x": 52.1,
+    "y": 72.2,
+    "w": 25.5,
+    "h": 19.0,
+    "rot": 7.6,
+    "visible": true
+   }
+  ],
+  "left": [
+   {
+    "x": 49.4,
+    "y": 75.4,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": -11.7,
+    "visible": true
+   },
+   {
+    "x": 51.0,
+    "y": 77.8,
+    "w": 7.2,
+    "h": 11.4,
+    "rot": -8.1,
+    "visible": true
+   },
+   {
+    "x": 51.2,
+    "y": 78.7,
+    "w": 7.2,
+    "h": 11.4,
+    "rot": -7.6,
+    "visible": true
+   },
+   {
+    "x": 44.7,
+    "y": 79.3,
+    "w": 7.2,
+    "h": 12.1,
+    "rot": -21.4,
+    "visible": true
+   },
+   {
+    "x": 40.1,
+    "y": 80.8,
+    "w": 7.2,
+    "h": 13.0,
+    "rot": -30.0,
+    "visible": true
+   },
+   {
+    "x": 39.6,
+    "y": 81.1,
+    "w": 7.2,
+    "h": 13.1,
+    "rot": -30.8,
+    "visible": true
+   },
+   {
+    "x": 40.3,
+    "y": 81.4,
+    "w": 7.2,
+    "h": 12.9,
+    "rot": -29.6,
+    "visible": true
+   },
+   {
+    "x": 41.3,
+    "y": 81.7,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": -28.0,
+    "visible": true
+   },
+   {
+    "x": 46.6,
+    "y": 76.1,
+    "w": 7.2,
+    "h": 11.8,
+    "rot": -17.7,
+    "visible": true
+   },
+   {
+    "x": 48.5,
+    "y": 73.1,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": -13.7,
+    "visible": true
+   }
+  ],
+  "right": [
+   {
+    "x": 46.6,
+    "y": 75.4,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": 11.7,
+    "visible": true
+   },
+   {
+    "x": 45.0,
+    "y": 77.8,
+    "w": 7.2,
+    "h": 11.4,
+    "rot": 8.1,
+    "visible": true
+   },
+   {
+    "x": 44.8,
+    "y": 78.7,
+    "w": 7.2,
+    "h": 11.4,
+    "rot": 7.6,
+    "visible": true
+   },
+   {
+    "x": 51.3,
+    "y": 79.3,
+    "w": 7.2,
+    "h": 12.1,
+    "rot": 21.4,
+    "visible": true
+   },
+   {
+    "x": 55.9,
+    "y": 80.8,
+    "w": 7.2,
+    "h": 13.0,
+    "rot": 30.0,
+    "visible": true
+   },
+   {
+    "x": 56.4,
+    "y": 81.1,
+    "w": 7.2,
+    "h": 13.1,
+    "rot": 30.8,
+    "visible": true
+   },
+   {
+    "x": 55.7,
+    "y": 81.4,
+    "w": 7.2,
+    "h": 12.9,
+    "rot": 29.6,
+    "visible": true
+   },
+   {
+    "x": 54.7,
+    "y": 81.7,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": 28.0,
+    "visible": true
+   },
+   {
+    "x": 49.4,
+    "y": 76.1,
+    "w": 7.2,
+    "h": 11.8,
+    "rot": 17.7,
+    "visible": true
+   },
+   {
+    "x": 47.5,
+    "y": 73.1,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": 13.7,
+    "visible": true
+   }
+  ]
+ },
+ "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
+ "weaponOverlayV3": "weapons/v3/katana_thrust",
+ "note": "55라운드 새 연격(§17) 몸. weapons/v3/katana_thrust 를 같은 프레임 번호·같은 시각에 겹친다. v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b.",
+ "tempoNote": "58라운드 Q1 — 3연격 470 + 440 + 710 = 1620ms(56 Q49 1.65초 안). 끌어당김 60 · 감아 당김·버팀 160 · 출발 30 → 판정 250ms(일섬과 같음) · 뻗음 80 · 잔심 230 · 거둠 150",
+ "frameRoles": [
+  "pull",
+  "coil",
+  "hold",
+  "launch",
+  "extend",
+  "extend",
+  "zanshin",
+  "settle",
+  "withdraw",
+  "recover"
+ ],
+ "r58": "58라운드 Q1 칼 3연격 3타 = 찌르기(일섬 대체)",
+ "lungePx": {
+  "world": 10,
+  "dots": 40,
+  "frames": [
+   3,
+   4,
+   5
+  ],
+  "startMs": 220,
+  "endMs": 330,
+  "easing": "easeOut",
+  "stopsAtWall": true,
+  "note": "반 발 내딛기 — 방향키와 무관하게 조준 방향으로(제안). 그림은 제자리(피벗 고정), 이동은 시스템"
+ },
+ "fxSheet": "fx/v3/katana_thrust",
+ "fxByKiLevel": {
+  "0": "fx/v3/katana_thrust",
+  "1": "fx/v3/katana_thrust_ki1",
+  "2": "fx/v3/katana_thrust_ki2",
+  "3": "fx/v3/katana_thrust_ki3"
+ },
+ "kiOverlay": "weapons/v3/katana_thrust_ki1~3 (§18.10 규칙 — 검기 단수 표시. fx 의 _ki1~3 은 '이번 찌르기에 소모한 단수'로 고른다)",
+ "timingSource": "이 JSON(timingMs · frameDurationsMs) — 시스템이 늘이거나 줄여도 impactFrame 시작 = hitAt 이면 그림이 맞는다",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_katana_thrust.png)",
+  "grid": {
+   "columns": 10,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 40
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":272,"y":0,"w":66,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":29,"w":66,"h":112},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":261,"y":114,"w":67,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":31,"w":67,"h":111},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":261,"y":227,"w":65,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":31,"w":65,"h":111},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":110,"y":338,"w":81,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":39,"w":81,"h":105},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":271,"y":552,"w":80,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":43,"w":80,"h":101},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":152,"y":758,"w":80,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":45,"w":80,"h":99},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":69,"y":656,"w":80,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":44,"w":80,"h":100},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":151,"y":656,"w":80,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":44,"w":80,"h":100},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":77,"y":115,"w":65,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":33,"w":65,"h":111},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":0,"y":0,"w":75,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":29,"w":75,"h":114},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":202,"y":114,"w":57,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":29,"w":57,"h":112},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":140,"y":0,"w":60,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":31,"w":60,"h":113},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":77,"y":0,"w":61,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":31,"w":61,"h":113},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":193,"y":340,"w":75,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":39,"w":75,"h":105},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":271,"y":655,"w":74,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":43,"w":74,"h":101},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":234,"y":758,"w":74,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":45,"w":74,"h":99},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":0,"y":758,"w":74,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":44,"w":74,"h":100},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":76,"y":758,"w":74,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":44,"w":74,"h":100},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":0,"y":116,"w":59,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":33,"w":59,"h":111},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":202,"y":0,"w":68,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":29,"w":68,"h":112},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":110,"y":228,"w":45,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":31,"w":45,"h":108},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":328,"y":227,"w":41,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":33,"w":41,"h":106},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":54,"y":341,"w":43,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":34,"w":43,"h":105},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":204,"y":228,"w":55,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":34,"w":55,"h":105},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":214,"y":447,"w":67,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":36,"w":67,"h":103},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":0,"y":449,"w":68,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":36,"w":68,"h":103},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":70,"y":552,"w":67,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":37,"w":67,"h":102},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":139,"y":552,"w":64,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":37,"w":64,"h":102},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":0,"y":229,"w":52,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":31,"w":52,"h":108},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":144,"y":115,"w":47,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":28,"w":47,"h":111},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":157,"y":228,"w":45,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":31,"w":45,"h":108},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":328,"y":335,"w":41,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":33,"w":41,"h":106},"sourceSize":{"w":96,"h":144}},
+  "32":{"frame":{"x":99,"y":445,"w":43,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":34,"w":43,"h":105},"sourceSize":{"w":96,"h":144}},
+  "33":{"frame":{"x":270,"y":340,"w":55,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":34,"w":55,"h":105},"sourceSize":{"w":96,"h":144}},
+  "34":{"frame":{"x":283,"y":447,"w":67,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":36,"w":67,"h":103},"sourceSize":{"w":96,"h":144}},
+  "35":{"frame":{"x":144,"y":447,"w":68,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":36,"w":68,"h":103},"sourceSize":{"w":96,"h":144}},
+  "36":{"frame":{"x":0,"y":554,"w":67,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":37,"w":67,"h":102},"sourceSize":{"w":96,"h":144}},
+  "37":{"frame":{"x":205,"y":552,"w":64,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":37,"w":64,"h":102},"sourceSize":{"w":96,"h":144}},
+  "38":{"frame":{"x":0,"y":339,"w":52,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":31,"w":52,"h":108},"sourceSize":{"w":96,"h":144}},
+  "39":{"frame":{"x":61,"y":228,"w":47,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":28,"w":47,"h":111},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_katana_thrust.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 369,
+   "h": 858
+  },
+  "scale": "1"
+ }
+}

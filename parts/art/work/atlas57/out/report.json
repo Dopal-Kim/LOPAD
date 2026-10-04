@@ -391,16 +391,16 @@
    "pages": [
     [
      "player_greatsword_brace_upswing.png",
-     460,
-     1454
+     444,
+     1362
     ]
    ],
    "gpuBefore": 4866048,
-   "gpuAfter": 2675360,
-   "fileBefore": 198665,
-   "fileAfter": 91816,
-   "jsonBefore": 25791,
-   "jsonAfter": 40869,
+   "gpuAfter": 2418912,
+   "fileBefore": 188827,
+   "fileAfter": 93603,
+   "jsonBefore": 26042,
+   "jsonAfter": 41124,
    "cat": "player"
   },
   {
@@ -416,16 +416,16 @@
    "pages": [
     [
      "player_greatsword_charge.png",
-     418,
-     922
+     642,
+     580
     ]
    ],
    "gpuBefore": 3096576,
-   "gpuAfter": 1541584,
-   "fileBefore": 110008,
-   "fileAfter": 51549,
-   "jsonBefore": 17475,
-   "jsonAfter": 27363,
+   "gpuAfter": 1489440,
+   "fileBefore": 105099,
+   "fileAfter": 50150,
+   "jsonBefore": 17717,
+   "jsonAfter": 27615,
    "cat": "player"
   },
   {
@@ -441,16 +441,16 @@
    "pages": [
     [
      "player_greatsword_charge_plunge.png",
-     483,
-     1114
+     464,
+     1097
     ]
    ],
    "gpuBefore": 3981312,
-   "gpuAfter": 2152248,
-   "fileBefore": 169338,
-   "fileAfter": 75249,
-   "jsonBefore": 23586,
-   "jsonAfter": 36045,
+   "gpuAfter": 2036032,
+   "fileBefore": 162609,
+   "fileAfter": 77623,
+   "jsonBefore": 23834,
+   "jsonAfter": 36302,
    "cat": "player"
   },
   {
@@ -466,16 +466,16 @@
    "pages": [
     [
      "player_greatsword_charge_slam.png",
-     347,
-     1610
+     399,
+     1275
     ]
    ],
    "gpuBefore": 3981312,
-   "gpuAfter": 2234680,
-   "fileBefore": 175442,
-   "fileAfter": 79431,
-   "jsonBefore": 22038,
-   "jsonAfter": 34492,
+   "gpuAfter": 2034900,
+   "fileBefore": 166676,
+   "fileAfter": 78085,
+   "jsonBefore": 22286,
+   "jsonAfter": 34721,
    "cat": "player"
   },
   {
@@ -491,16 +491,16 @@
    "pages": [
     [
      "player_greatsword_cleave.png",
-     564,
-     1315
+     686,
+     994
     ]
    ],
    "gpuBefore": 5308416,
-   "gpuAfter": 2966640,
-   "fileBefore": 213092,
-   "fileAfter": 98755,
-   "jsonBefore": 26843,
-   "jsonAfter": 43165,
+   "gpuAfter": 2727536,
+   "fileBefore": 204364,
+   "fileAfter": 99658,
+   "jsonBefore": 27099,
+   "jsonAfter": 43414,
    "cat": "player"
   },
   {
@@ -641,16 +641,16 @@
    "pages": [
     [
      "player_greatsword_guard_rush.png",
-     614,
-     844
+     403,
+     1259
     ]
    ],
    "gpuBefore": 3981312,
-   "gpuAfter": 2072864,
-   "fileBefore": 168451,
-   "fileAfter": 72151,
-   "jsonBefore": 22045,
-   "jsonAfter": 34466,
+   "gpuAfter": 2029508,
+   "fileBefore": 160458,
+   "fileAfter": 77748,
+   "jsonBefore": 22286,
+   "jsonAfter": 34726,
    "cat": "player"
   },
   {
@@ -666,16 +666,16 @@
    "pages": [
     [
      "player_greatsword_leap_slam.png",
-     358,
-     1600
+     874,
+     642
     ]
    ],
    "gpuBefore": 5750784,
-   "gpuAfter": 2291200,
-   "fileBefore": 210027,
-   "fileAfter": 85624,
-   "jsonBefore": 32438,
-   "jsonAfter": 50050,
+   "gpuAfter": 2244432,
+   "fileBefore": 198794,
+   "fileAfter": 82443,
+   "jsonBefore": 32707,
+   "jsonAfter": 50302,
    "cat": "player"
   },
   {
@@ -766,16 +766,16 @@
    "pages": [
     [
      "player_greatsword_sweep_ccw.png",
-     541,
-     1220
+     593,
+     995
     ]
    ],
    "gpuBefore": 4866048,
-   "gpuAfter": 2640080,
-   "fileBefore": 203894,
-   "fileAfter": 92408,
-   "jsonBefore": 25144,
-   "jsonAfter": 40218,
+   "gpuAfter": 2360140,
+   "fileBefore": 195341,
+   "fileAfter": 94134,
+   "jsonBefore": 25382,
+   "jsonAfter": 40451,
    "cat": "player"
   },
   {
@@ -791,16 +791,16 @@
    "pages": [
     [
      "player_greatsword_sweep_cw.png",
-     964,
-     667
+     924,
+     662
     ]
    ],
    "gpuBefore": 4866048,
-   "gpuAfter": 2571952,
-   "fileBefore": 200492,
-   "fileAfter": 85103,
-   "jsonBefore": 25255,
-   "jsonAfter": 40315,
+   "gpuAfter": 2446752,
+   "fileBefore": 193996,
+   "fileAfter": 90198,
+   "jsonBefore": 25493,
+   "jsonAfter": 40559,
    "cat": "player"
   },
   {
@@ -816,16 +816,16 @@
    "pages": [
     [
      "player_greatsword_tackle.png",
-     1820,
-     325
+     626,
+     858
     ]
    ],
    "gpuBefore": 3981312,
-   "gpuAfter": 2366000,
-   "fileBefore": 174758,
-   "fileAfter": 71940,
-   "jsonBefore": 21976,
-   "jsonAfter": 34447,
+   "gpuAfter": 2148432,
+   "fileBefore": 170069,
+   "fileAfter": 82159,
+   "jsonBefore": 22207,
+   "jsonAfter": 34672,
    "cat": "player"
   },
   {
@@ -1833,24 +1833,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_brace_upswing.png",
    "srcSize": [
     3080,
-    2368
+    2496
    ],
    "frames": 88,
-   "empty": 2,
+   "empty": 1,
    "deduped": 0,
    "pages": [
     [
      "greatsword_brace_upswing.png",
-     417,
-     709
+     278,
+     1209
     ]
    ],
-   "gpuBefore": 29173760,
-   "gpuAfter": 1182612,
-   "fileBefore": 104820,
-   "fileAfter": 22052,
-   "jsonBefore": 29889,
-   "jsonAfter": 44995,
+   "gpuBefore": 30750720,
+   "gpuAfter": 1344408,
+   "fileBefore": 113158,
+   "fileAfter": 24601,
+   "jsonBefore": 30108,
+   "jsonAfter": 45238,
    "cat": "weapons"
   },
   {
@@ -1858,24 +1858,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_brace_upswing_grudge1.png",
    "srcSize": [
     3080,
-    2368
+    2496
    ],
    "frames": 88,
-   "empty": 4,
+   "empty": 2,
    "deduped": 0,
    "pages": [
     [
      "greatsword_brace_upswing_grudge1.png",
-     120,
-     265
+     146,
+     239
     ]
    ],
-   "gpuBefore": 29173760,
-   "gpuAfter": 127200,
-   "fileBefore": 40669,
-   "fileAfter": 3589,
-   "jsonBefore": 3435,
-   "jsonAfter": 18436,
+   "gpuBefore": 30750720,
+   "gpuAfter": 139576,
+   "fileBefore": 42589,
+   "fileAfter": 3673,
+   "jsonBefore": 3459,
+   "jsonAfter": 18477,
    "cat": "weapons"
   },
   {
@@ -1883,24 +1883,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_brace_upswing_grudge2.png",
    "srcSize": [
     3080,
-    2368
+    2496
    ],
    "frames": 88,
-   "empty": 3,
+   "empty": 1,
    "deduped": 0,
    "pages": [
     [
      "greatsword_brace_upswing_grudge2.png",
      42,
-     1675
+     1853
     ]
    ],
-   "gpuBefore": 29173760,
-   "gpuAfter": 281400,
-   "fileBefore": 62883,
-   "fileAfter": 8435,
-   "jsonBefore": 3462,
-   "jsonAfter": 18493,
+   "gpuBefore": 30750720,
+   "gpuAfter": 311304,
+   "fileBefore": 65390,
+   "fileAfter": 8774,
+   "jsonBefore": 3486,
+   "jsonAfter": 18524,
    "cat": "weapons"
   },
   {
@@ -1908,24 +1908,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_brace_upswing_grudge3.png",
    "srcSize": [
     3080,
-    2368
+    2496
    ],
    "frames": 88,
-   "empty": 3,
+   "empty": 1,
    "deduped": 0,
    "pages": [
     [
      "greatsword_brace_upswing_grudge3.png",
-     159,
-     688
+     55,
+     2308
     ]
    ],
-   "gpuBefore": 29173760,
-   "gpuAfter": 437568,
-   "fileBefore": 70682,
-   "fileAfter": 11131,
-   "jsonBefore": 3516,
-   "jsonAfter": 18542,
+   "gpuBefore": 30750720,
+   "gpuAfter": 507760,
+   "fileBefore": 73118,
+   "fileAfter": 11455,
+   "jsonBefore": 3540,
+   "jsonAfter": 18582,
    "cat": "weapons"
   },
   {
@@ -2758,7 +2758,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge.png",
    "srcSize": [
     1680,
-    2240
+    2368
    ],
    "frames": 56,
    "empty": 0,
@@ -2766,16 +2766,16 @@
    "pages": [
     [
      "greatsword_charge.png",
-     223,
-     986
+     375,
+     637
     ]
    ],
-   "gpuBefore": 15052800,
-   "gpuAfter": 879512,
-   "fileBefore": 54489,
-   "fileAfter": 15429,
-   "jsonBefore": 20604,
-   "jsonAfter": 30488,
+   "gpuBefore": 15912960,
+   "gpuAfter": 955500,
+   "fileBefore": 58965,
+   "fileAfter": 15560,
+   "jsonBefore": 20805,
+   "jsonAfter": 30700,
    "cat": "weapons"
   },
   {
@@ -2783,7 +2783,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_grudge1.png",
    "srcSize": [
     1680,
-    2240
+    2368
    ],
    "frames": 56,
    "empty": 0,
@@ -2791,16 +2791,16 @@
    "pages": [
     [
      "greatsword_charge_grudge1.png",
-     100,
-     223
+     104,
+     230
     ]
    ],
-   "gpuBefore": 15052800,
-   "gpuAfter": 89200,
-   "fileBefore": 20822,
-   "fileAfter": 2600,
-   "jsonBefore": 3332,
-   "jsonAfter": 13141,
+   "gpuBefore": 15912960,
+   "gpuAfter": 95680,
+   "fileBefore": 21675,
+   "fileAfter": 2551,
+   "jsonBefore": 3356,
+   "jsonAfter": 13153,
    "cat": "weapons"
   },
   {
@@ -2808,7 +2808,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_grudge2.png",
    "srcSize": [
     1680,
-    2240
+    2368
    ],
    "frames": 56,
    "empty": 0,
@@ -2817,15 +2817,15 @@
     [
      "greatsword_charge_grudge2.png",
      30,
-     1472
+     1748
     ]
    ],
-   "gpuBefore": 15052800,
-   "gpuAfter": 176640,
-   "fileBefore": 34081,
-   "fileAfter": 5524,
-   "jsonBefore": 3359,
-   "jsonAfter": 13192,
+   "gpuBefore": 15912960,
+   "gpuAfter": 209760,
+   "fileBefore": 35014,
+   "fileAfter": 5595,
+   "jsonBefore": 3383,
+   "jsonAfter": 13196,
    "cat": "weapons"
   },
   {
@@ -2833,7 +2833,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_grudge3.png",
    "srcSize": [
     1680,
-    2240
+    2368
    ],
    "frames": 56,
    "empty": 0,
@@ -2841,16 +2841,16 @@
    "pages": [
     [
      "greatsword_charge_grudge3.png",
-     36,
-     1832
+     134,
+     608
     ]
    ],
-   "gpuBefore": 15052800,
-   "gpuAfter": 263808,
-   "fileBefore": 37247,
-   "fileAfter": 6740,
-   "jsonBefore": 3402,
-   "jsonAfter": 13249,
+   "gpuBefore": 15912960,
+   "gpuAfter": 325888,
+   "fileBefore": 38712,
+   "fileAfter": 7698,
+   "jsonBefore": 3426,
+   "jsonAfter": 13250,
    "cat": "weapons"
   },
   {
@@ -2858,7 +2858,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_plunge.png",
    "srcSize": [
     2160,
-    2240
+    2368
    ],
    "frames": 72,
    "empty": 0,
@@ -2866,16 +2866,16 @@
    "pages": [
     [
      "greatsword_charge_plunge.png",
-     113,
-     1681
+     306,
+     676
     ]
    ],
-   "gpuBefore": 19353600,
-   "gpuAfter": 759812,
-   "fileBefore": 66234,
-   "fileAfter": 13705,
-   "jsonBefore": 27065,
-   "jsonAfter": 39597,
+   "gpuBefore": 20459520,
+   "gpuAfter": 827424,
+   "fileBefore": 70332,
+   "fileAfter": 14844,
+   "jsonBefore": 27324,
+   "jsonAfter": 39853,
    "cat": "weapons"
   },
   {
@@ -2883,24 +2883,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_plunge_grudge1.png",
    "srcSize": [
     2160,
-    2240
+    2368
    ],
    "frames": 72,
-   "empty": 19,
-   "deduped": 0,
+   "empty": 13,
+   "deduped": 2,
    "pages": [
     [
      "greatsword_charge_plunge_grudge1.png",
-     136,
-     122
+     130,
+     137
     ]
    ],
-   "gpuBefore": 19353600,
-   "gpuAfter": 66368,
-   "fileBefore": 26383,
-   "fileAfter": 2382,
-   "jsonBefore": 3422,
-   "jsonAfter": 15788,
+   "gpuBefore": 20459520,
+   "gpuAfter": 71240,
+   "fileBefore": 27691,
+   "fileAfter": 2431,
+   "jsonBefore": 3446,
+   "jsonAfter": 15800,
    "cat": "weapons"
   },
   {
@@ -2908,24 +2908,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_plunge_grudge2.png",
    "srcSize": [
     2160,
-    2240
+    2368
    ],
    "frames": 72,
-   "empty": 0,
-   "deduped": 5,
+   "empty": 7,
+   "deduped": 0,
    "pages": [
     [
      "greatsword_charge_plunge_grudge2.png",
      42,
-     828
+     911
     ]
    ],
-   "gpuBefore": 19353600,
-   "gpuAfter": 139104,
-   "fileBefore": 41262,
-   "fileAfter": 5506,
-   "jsonBefore": 3449,
-   "jsonAfter": 15838,
+   "gpuBefore": 20459520,
+   "gpuAfter": 153048,
+   "fileBefore": 42714,
+   "fileAfter": 5649,
+   "jsonBefore": 3473,
+   "jsonAfter": 15877,
    "cat": "weapons"
   },
   {
@@ -2933,24 +2933,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_plunge_grudge3.png",
    "srcSize": [
     2160,
-    2240
+    2368
    ],
    "frames": 72,
-   "empty": 0,
+   "empty": 7,
    "deduped": 0,
    "pages": [
     [
      "greatsword_charge_plunge_grudge3.png",
      56,
-     1124
+     1153
     ]
    ],
-   "gpuBefore": 19353600,
-   "gpuAfter": 251776,
-   "fileBefore": 48397,
-   "fileAfter": 7832,
-   "jsonBefore": 3498,
-   "jsonAfter": 15891,
+   "gpuBefore": 20459520,
+   "gpuAfter": 258272,
+   "fileBefore": 48577,
+   "fileAfter": 7709,
+   "jsonBefore": 3522,
+   "jsonAfter": 15940,
    "cat": "weapons"
   },
   {
@@ -2958,24 +2958,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_slam.png",
    "srcSize": [
     2160,
-    2240
+    2368
    ],
    "frames": 72,
-   "empty": 1,
+   "empty": 0,
    "deduped": 0,
    "pages": [
     [
      "greatsword_charge_slam.png",
-     102,
-     2718
+     376,
+     867
     ]
    ],
-   "gpuBefore": 19353600,
-   "gpuAfter": 1108944,
-   "fileBefore": 84364,
-   "fileAfter": 19999,
-   "jsonBefore": 25510,
-   "jsonAfter": 38019,
+   "gpuBefore": 20459520,
+   "gpuAfter": 1303968,
+   "fileBefore": 91153,
+   "fileAfter": 22166,
+   "jsonBefore": 25727,
+   "jsonAfter": 38260,
    "cat": "weapons"
   },
   {
@@ -2983,24 +2983,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_slam_grudge1.png",
    "srcSize": [
     2160,
-    2240
+    2368
    ],
    "frames": 72,
-   "empty": 9,
+   "empty": 6,
    "deduped": 0,
    "pages": [
     [
      "greatsword_charge_slam_grudge1.png",
-     78,
-     332
+     164,
+     181
     ]
    ],
-   "gpuBefore": 19353600,
-   "gpuAfter": 103584,
-   "fileBefore": 27873,
-   "fileAfter": 2877,
-   "jsonBefore": 3411,
-   "jsonAfter": 15819,
+   "gpuBefore": 20459520,
+   "gpuAfter": 118736,
+   "fileBefore": 29698,
+   "fileAfter": 3105,
+   "jsonBefore": 3435,
+   "jsonAfter": 15852,
    "cat": "weapons"
   },
   {
@@ -3008,7 +3008,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_slam_grudge2.png",
    "srcSize": [
     2160,
-    2240
+    2368
    ],
    "frames": 72,
    "empty": 2,
@@ -3016,16 +3016,16 @@
    "pages": [
     [
      "greatsword_charge_slam_grudge2.png",
-     116,
-     498
+     148,
+     445
     ]
    ],
-   "gpuBefore": 19353600,
-   "gpuAfter": 231072,
-   "fileBefore": 45493,
-   "fileAfter": 6903,
-   "jsonBefore": 3438,
-   "jsonAfter": 15859,
+   "gpuBefore": 20459520,
+   "gpuAfter": 263440,
+   "fileBefore": 47966,
+   "fileAfter": 7458,
+   "jsonBefore": 3462,
+   "jsonAfter": 15907,
    "cat": "weapons"
   },
   {
@@ -3033,7 +3033,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_charge_slam_grudge3.png",
    "srcSize": [
     2160,
-    2240
+    2368
    ],
    "frames": 72,
    "empty": 2,
@@ -3042,15 +3042,15 @@
     [
      "greatsword_charge_slam_grudge3.png",
      51,
-     2015
+     2291
     ]
    ],
-   "gpuBefore": 19353600,
-   "gpuAfter": 411060,
-   "fileBefore": 52897,
-   "fileAfter": 9205,
-   "jsonBefore": 3487,
-   "jsonAfter": 15948,
+   "gpuBefore": 20459520,
+   "gpuAfter": 467364,
+   "fileBefore": 54384,
+   "fileAfter": 9495,
+   "jsonBefore": 3511,
+   "jsonAfter": 15968,
    "cat": "weapons"
   },
   {
@@ -3058,24 +3058,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_cleave.png",
    "srcSize": [
     2880,
-    2240
+    2368
    ],
    "frames": 96,
-   "empty": 4,
+   "empty": 3,
    "deduped": 0,
    "pages": [
     [
      "greatsword_cleave.png",
-     402,
-     859
+     109,
+     3778
     ]
    ],
-   "gpuBefore": 25804800,
-   "gpuAfter": 1381272,
-   "fileBefore": 108945,
-   "fileAfter": 25001,
-   "jsonBefore": 30956,
-   "jsonAfter": 47335,
+   "gpuBefore": 27279360,
+   "gpuAfter": 1647208,
+   "fileBefore": 118568,
+   "fileAfter": 28133,
+   "jsonBefore": 31171,
+   "jsonAfter": 47591,
    "cat": "weapons"
   },
   {
@@ -3083,24 +3083,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_cleave_grudge1.png",
    "srcSize": [
     2880,
-    2240
+    2368
    ],
    "frames": 96,
-   "empty": 11,
+   "empty": 7,
    "deduped": 0,
    "pages": [
     [
      "greatsword_cleave_grudge1.png",
-     107,
-     309
+     192,
+     207
     ]
    ],
-   "gpuBefore": 25804800,
-   "gpuAfter": 132252,
-   "fileBefore": 36937,
-   "fileAfter": 3466,
-   "jsonBefore": 3398,
-   "jsonAfter": 19631,
+   "gpuBefore": 27279360,
+   "gpuAfter": 158976,
+   "fileBefore": 39663,
+   "fileAfter": 3820,
+   "jsonBefore": 3422,
+   "jsonAfter": 19712,
    "cat": "weapons"
   },
   {
@@ -3108,24 +3108,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_cleave_grudge2.png",
    "srcSize": [
     2880,
-    2240
+    2368
    ],
    "frames": 96,
-   "empty": 5,
+   "empty": 4,
    "deduped": 0,
    "pages": [
     [
      "greatsword_cleave_grudge2.png",
      41,
-     1750
+     2023
     ]
    ],
-   "gpuBefore": 25804800,
-   "gpuAfter": 287000,
-   "fileBefore": 60318,
-   "fileAfter": 8571,
-   "jsonBefore": 3425,
-   "jsonAfter": 19730,
+   "gpuBefore": 27279360,
+   "gpuAfter": 331772,
+   "fileBefore": 64095,
+   "fileAfter": 9279,
+   "jsonBefore": 3449,
+   "jsonAfter": 19755,
    "cat": "weapons"
   },
   {
@@ -3133,24 +3133,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_cleave_grudge3.png",
    "srcSize": [
     2880,
-    2240
+    2368
    ],
    "frames": 96,
-   "empty": 5,
+   "empty": 4,
    "deduped": 0,
    "pages": [
     [
      "greatsword_cleave_grudge3.png",
-     54,
-     2360
+     223,
+     667
     ]
    ],
-   "gpuBefore": 25804800,
-   "gpuAfter": 509760,
-   "fileBefore": 69535,
-   "fileAfter": 11595,
-   "jsonBefore": 3474,
-   "jsonAfter": 19786,
+   "gpuBefore": 27279360,
+   "gpuAfter": 594964,
+   "fileBefore": 72945,
+   "fileAfter": 12639,
+   "jsonBefore": 3498,
+   "jsonAfter": 19818,
    "cat": "weapons"
   },
   {
@@ -3358,7 +3358,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_guard_rush.png",
    "srcSize": [
     2520,
-    2368
+    2496
    ],
    "frames": 72,
    "empty": 1,
@@ -3366,16 +3366,16 @@
    "pages": [
     [
      "greatsword_guard_rush.png",
-     617,
-     426
+     363,
+     808
     ]
    ],
-   "gpuBefore": 23869440,
-   "gpuAfter": 1051368,
-   "fileBefore": 79201,
-   "fileAfter": 18476,
-   "jsonBefore": 25770,
-   "jsonAfter": 38270,
+   "gpuBefore": 25159680,
+   "gpuAfter": 1173216,
+   "fileBefore": 82939,
+   "fileAfter": 19645,
+   "jsonBefore": 25981,
+   "jsonAfter": 38493,
    "cat": "weapons"
   },
   {
@@ -3383,24 +3383,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_guard_rush_grudge1.png",
    "srcSize": [
     2520,
-    2368
+    2496
    ],
    "frames": 72,
-   "empty": 6,
+   "empty": 5,
    "deduped": 0,
    "pages": [
     [
      "greatsword_guard_rush_grudge1.png",
-     195,
-     133
+     129,
+     221
     ]
    ],
-   "gpuBefore": 23869440,
-   "gpuAfter": 103740,
-   "fileBefore": 31530,
-   "fileAfter": 3028,
-   "jsonBefore": 3401,
-   "jsonAfter": 15846,
+   "gpuBefore": 25159680,
+   "gpuAfter": 114036,
+   "fileBefore": 33125,
+   "fileAfter": 3118,
+   "jsonBefore": 3425,
+   "jsonAfter": 15872,
    "cat": "weapons"
   },
   {
@@ -3408,24 +3408,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_guard_rush_grudge2.png",
    "srcSize": [
     2520,
-    2368
+    2496
    ],
    "frames": 72,
-   "empty": 4,
+   "empty": 3,
    "deduped": 0,
    "pages": [
     [
      "greatsword_guard_rush_grudge2.png",
-     141,
-     424
+     122,
+     522
     ]
    ],
-   "gpuBefore": 23869440,
-   "gpuAfter": 239136,
-   "fileBefore": 48431,
-   "fileAfter": 7239,
-   "jsonBefore": 3428,
-   "jsonAfter": 15902,
+   "gpuBefore": 25159680,
+   "gpuAfter": 254736,
+   "fileBefore": 50056,
+   "fileAfter": 7394,
+   "jsonBefore": 3452,
+   "jsonAfter": 15917,
    "cat": "weapons"
   },
   {
@@ -3433,24 +3433,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_guard_rush_grudge3.png",
    "srcSize": [
     2520,
-    2368
+    2496
    ],
    "frames": 72,
-   "empty": 4,
+   "empty": 3,
    "deduped": 0,
    "pages": [
     [
      "greatsword_guard_rush_grudge3.png",
-     193,
-     573
+     330,
+     359
     ]
    ],
-   "gpuBefore": 23869440,
-   "gpuAfter": 442356,
-   "fileBefore": 54407,
-   "fileAfter": 9660,
-   "jsonBefore": 3487,
-   "jsonAfter": 15982,
+   "gpuBefore": 25159680,
+   "gpuAfter": 473880,
+   "fileBefore": 56197,
+   "fileAfter": 9852,
+   "jsonBefore": 3511,
+   "jsonAfter": 16006,
    "cat": "weapons"
   },
   {
@@ -3458,24 +3458,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_leap_slam.png",
    "srcSize": [
     3640,
-    2368
+    2496
    ],
    "frames": 104,
-   "empty": 1,
+   "empty": 0,
    "deduped": 0,
    "pages": [
     [
      "greatsword_leap_slam.png",
-     168,
-     3076
+     370,
+     1596
     ]
    ],
-   "gpuBefore": 34478080,
-   "gpuAfter": 2067072,
-   "fileBefore": 225684,
-   "fileAfter": 53369,
-   "jsonBefore": 36956,
-   "jsonAfter": 54742,
+   "gpuBefore": 36341760,
+   "gpuAfter": 2362080,
+   "fileBefore": 226533,
+   "fileAfter": 56099,
+   "jsonBefore": 37182,
+   "jsonAfter": 55001,
    "cat": "weapons"
   },
   {
@@ -3483,24 +3483,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_leap_slam_grudge1.png",
    "srcSize": [
     3640,
-    2368
+    2496
    ],
    "frames": 104,
-   "empty": 6,
+   "empty": 5,
    "deduped": 0,
    "pages": [
     [
      "greatsword_leap_slam_grudge1.png",
-     130,
-     276
+     138,
+     300
     ]
    ],
-   "gpuBefore": 34478080,
-   "gpuAfter": 143520,
-   "fileBefore": 48403,
-   "fileAfter": 3862,
-   "jsonBefore": 3789,
-   "jsonAfter": 21358,
+   "gpuBefore": 36341760,
+   "gpuAfter": 165600,
+   "fileBefore": 50517,
+   "fileAfter": 4088,
+   "jsonBefore": 3813,
+   "jsonAfter": 21390,
    "cat": "weapons"
   },
   {
@@ -3508,7 +3508,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_leap_slam_grudge2.png",
    "srcSize": [
     3640,
-    2368
+    2496
    ],
    "frames": 104,
    "empty": 1,
@@ -3517,15 +3517,15 @@
     [
      "greatsword_leap_slam_grudge2.png",
      42,
-     1830
+     2084
     ]
    ],
-   "gpuBefore": 34478080,
-   "gpuAfter": 307440,
-   "fileBefore": 76048,
-   "fileAfter": 9557,
-   "jsonBefore": 3816,
-   "jsonAfter": 21433,
+   "gpuBefore": 36341760,
+   "gpuAfter": 350112,
+   "fileBefore": 78554,
+   "fileAfter": 10009,
+   "jsonBefore": 3840,
+   "jsonAfter": 21461,
    "cat": "weapons"
   },
   {
@@ -3533,7 +3533,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_leap_slam_grudge3.png",
    "srcSize": [
     3640,
-    2368
+    2496
    ],
    "frames": 104,
    "empty": 1,
@@ -3542,15 +3542,15 @@
     [
      "greatsword_leap_slam_grudge3.png",
      57,
-     2330
+     2696
     ]
    ],
-   "gpuBefore": 34478080,
-   "gpuAfter": 531240,
-   "fileBefore": 85596,
-   "fileAfter": 12888,
-   "jsonBefore": 3865,
-   "jsonAfter": 21480,
+   "gpuBefore": 36341760,
+   "gpuAfter": 614688,
+   "fileBefore": 88690,
+   "fileAfter": 13342,
+   "jsonBefore": 3889,
+   "jsonAfter": 21514,
    "cat": "weapons"
   },
   {
@@ -3783,7 +3783,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_sweep_ccw.png",
    "srcSize": [
     2640,
-    2240
+    2368
    ],
    "frames": 88,
    "empty": 0,
@@ -3791,16 +3791,16 @@
    "pages": [
     [
      "greatsword_sweep_ccw.png",
-     270,
-     1152
+     452,
+     754
     ]
    ],
-   "gpuBefore": 23654400,
-   "gpuAfter": 1244160,
-   "fileBefore": 93254,
-   "fileAfter": 23411,
-   "jsonBefore": 29047,
-   "jsonAfter": 44131,
+   "gpuBefore": 25006080,
+   "gpuAfter": 1363232,
+   "fileBefore": 100113,
+   "fileAfter": 24331,
+   "jsonBefore": 29261,
+   "jsonAfter": 44357,
    "cat": "weapons"
   },
   {
@@ -3808,7 +3808,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_sweep_ccw_grudge1.png",
    "srcSize": [
     2640,
-    2240
+    2368
    ],
    "frames": 88,
    "empty": 1,
@@ -3816,16 +3816,16 @@
    "pages": [
     [
      "greatsword_sweep_ccw_grudge1.png",
-     177,
-     186
+     90,
+     381
     ]
    ],
-   "gpuBefore": 23654400,
-   "gpuAfter": 131688,
-   "fileBefore": 34684,
-   "fileAfter": 3739,
-   "jsonBefore": 3409,
-   "jsonAfter": 18413,
+   "gpuBefore": 25006080,
+   "gpuAfter": 137160,
+   "fileBefore": 36542,
+   "fileAfter": 3850,
+   "jsonBefore": 3433,
+   "jsonAfter": 18412,
    "cat": "weapons"
   },
   {
@@ -3833,7 +3833,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_sweep_ccw_grudge2.png",
    "srcSize": [
     2640,
-    2240
+    2368
    ],
    "frames": 88,
    "empty": 0,
@@ -3841,16 +3841,16 @@
    "pages": [
     [
      "greatsword_sweep_ccw_grudge2.png",
-     137,
-     584
+     276,
+     290
     ]
    ],
-   "gpuBefore": 23654400,
-   "gpuAfter": 320032,
-   "fileBefore": 56483,
-   "fileAfter": 9169,
-   "jsonBefore": 3436,
-   "jsonAfter": 18460,
+   "gpuBefore": 25006080,
+   "gpuAfter": 320160,
+   "fileBefore": 58781,
+   "fileAfter": 9280,
+   "jsonBefore": 3460,
+   "jsonAfter": 18507,
    "cat": "weapons"
   },
   {
@@ -3858,7 +3858,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_sweep_ccw_grudge3.png",
    "srcSize": [
     2640,
-    2240
+    2368
    ],
    "frames": 88,
    "empty": 0,
@@ -3866,16 +3866,16 @@
    "pages": [
     [
      "greatsword_sweep_ccw_grudge3.png",
-     283,
-     467
+     214,
+     635
     ]
    ],
-   "gpuBefore": 23654400,
-   "gpuAfter": 528644,
-   "fileBefore": 62309,
-   "fileAfter": 11925,
-   "jsonBefore": 3490,
-   "jsonAfter": 18551,
+   "gpuBefore": 25006080,
+   "gpuAfter": 543560,
+   "fileBefore": 64895,
+   "fileAfter": 12164,
+   "jsonBefore": 3514,
+   "jsonAfter": 18558,
    "cat": "weapons"
   },
   {
@@ -3883,7 +3883,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_sweep_cw.png",
    "srcSize": [
     2640,
-    2240
+    2368
    ],
    "frames": 88,
    "empty": 0,
@@ -3891,16 +3891,16 @@
    "pages": [
     [
      "greatsword_sweep_cw.png",
-     321,
-     962
+     507,
+     668
     ]
    ],
-   "gpuBefore": 23654400,
-   "gpuAfter": 1235208,
-   "fileBefore": 93052,
-   "fileAfter": 23102,
-   "jsonBefore": 29174,
-   "jsonAfter": 44255,
+   "gpuBefore": 25006080,
+   "gpuAfter": 1354704,
+   "fileBefore": 99051,
+   "fileAfter": 24182,
+   "jsonBefore": 29390,
+   "jsonAfter": 44480,
    "cat": "weapons"
   },
   {
@@ -3908,7 +3908,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_sweep_cw_grudge1.png",
    "srcSize": [
     2640,
-    2240
+    2368
    ],
    "frames": 88,
    "empty": 1,
@@ -3916,16 +3916,16 @@
    "pages": [
     [
      "greatsword_sweep_cw_grudge1.png",
-     106,
-     304
+     126,
+     273
     ]
    ],
-   "gpuBefore": 23654400,
-   "gpuAfter": 128896,
-   "fileBefore": 34703,
-   "fileAfter": 3759,
-   "jsonBefore": 3403,
-   "jsonAfter": 18379,
+   "gpuBefore": 25006080,
+   "gpuAfter": 137592,
+   "fileBefore": 36360,
+   "fileAfter": 3829,
+   "jsonBefore": 3427,
+   "jsonAfter": 18415,
    "cat": "weapons"
   },
   {
@@ -3933,7 +3933,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_sweep_cw_grudge2.png",
    "srcSize": [
     2640,
-    2240
+    2368
    ],
    "frames": 88,
    "empty": 1,
@@ -3941,16 +3941,16 @@
    "pages": [
     [
      "greatsword_sweep_cw_grudge2.png",
-     164,
-     493
+     138,
+     580
     ]
    ],
-   "gpuBefore": 23654400,
-   "gpuAfter": 323408,
-   "fileBefore": 56659,
-   "fileAfter": 9192,
-   "jsonBefore": 3430,
-   "jsonAfter": 18467,
+   "gpuBefore": 25006080,
+   "gpuAfter": 320160,
+   "fileBefore": 58492,
+   "fileAfter": 9394,
+   "jsonBefore": 3454,
+   "jsonAfter": 18495,
    "cat": "weapons"
   },
   {
@@ -3958,7 +3958,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_sweep_cw_grudge3.png",
    "srcSize": [
     2640,
-    2240
+    2368
    ],
    "frames": 88,
    "empty": 1,
@@ -3966,16 +3966,16 @@
    "pages": [
     [
      "greatsword_sweep_cw_grudge3.png",
-     318,
-     427
+     178,
+     769
     ]
    ],
-   "gpuBefore": 23654400,
-   "gpuAfter": 543144,
-   "fileBefore": 61798,
-   "fileAfter": 11969,
-   "jsonBefore": 3484,
-   "jsonAfter": 18547,
+   "gpuBefore": 25006080,
+   "gpuAfter": 547528,
+   "fileBefore": 63858,
+   "fileAfter": 11879,
+   "jsonBefore": 3508,
+   "jsonAfter": 18546,
    "cat": "weapons"
   },
   {
@@ -3983,7 +3983,7 @@
    "src": "assets/sprites/weapons/v3/greatsword_tackle.png",
    "srcSize": [
     2520,
-    2368
+    2496
    ],
    "frames": 72,
    "empty": 0,
@@ -3991,16 +3991,16 @@
    "pages": [
     [
      "greatsword_tackle.png",
-     303,
-     916
+     259,
+     1111
     ]
    ],
-   "gpuBefore": 23869440,
-   "gpuAfter": 1110192,
-   "fileBefore": 73087,
-   "fileAfter": 19048,
-   "jsonBefore": 25757,
-   "jsonAfter": 38244,
+   "gpuBefore": 25159680,
+   "gpuAfter": 1150996,
+   "fileBefore": 76587,
+   "fileAfter": 20231,
+   "jsonBefore": 25968,
+   "jsonAfter": 38472,
    "cat": "weapons"
   },
   {
@@ -4008,24 +4008,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_tackle_grudge1.png",
    "srcSize": [
     2520,
-    2368
+    2496
    ],
    "frames": 72,
-   "empty": 7,
+   "empty": 3,
    "deduped": 0,
    "pages": [
     [
      "greatsword_tackle_grudge1.png",
-     111,
-     243
+     164,
+     173
     ]
    ],
-   "gpuBefore": 23869440,
-   "gpuAfter": 107892,
-   "fileBefore": 30488,
-   "fileAfter": 3078,
-   "jsonBefore": 3377,
-   "jsonAfter": 15822,
+   "gpuBefore": 25159680,
+   "gpuAfter": 113488,
+   "fileBefore": 32298,
+   "fileAfter": 3188,
+   "jsonBefore": 3401,
+   "jsonAfter": 15824,
    "cat": "weapons"
   },
   {
@@ -4033,24 +4033,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_tackle_grudge2.png",
    "srcSize": [
     2520,
-    2368
+    2496
    ],
    "frames": 72,
-   "empty": 4,
+   "empty": 2,
    "deduped": 0,
    "pages": [
     [
      "greatsword_tackle_grudge2.png",
-     167,
-     358
+     170,
+     372
     ]
    ],
-   "gpuBefore": 23869440,
-   "gpuAfter": 239144,
-   "fileBefore": 45657,
-   "fileAfter": 7112,
-   "jsonBefore": 3404,
-   "jsonAfter": 15887,
+   "gpuBefore": 25159680,
+   "gpuAfter": 252960,
+   "fileBefore": 47748,
+   "fileAfter": 7406,
+   "jsonBefore": 3428,
+   "jsonAfter": 15903,
    "cat": "weapons"
   },
   {
@@ -4058,24 +4058,24 @@
    "src": "assets/sprites/weapons/v3/greatsword_tackle_grudge3.png",
    "srcSize": [
     2520,
-    2368
+    2496
    ],
    "frames": 72,
-   "empty": 4,
+   "empty": 2,
    "deduped": 0,
    "pages": [
     [
      "greatsword_tackle_grudge3.png",
-     263,
-     437
+     267,
+     453
     ]
    ],
-   "gpuBefore": 23869440,
-   "gpuAfter": 459724,
-   "fileBefore": 51339,
-   "fileAfter": 9661,
-   "jsonBefore": 3458,
-   "jsonAfter": 15963,
+   "gpuBefore": 25159680,
+   "gpuAfter": 483804,
+   "fileBefore": 53508,
+   "fileAfter": 9913,
+   "jsonBefore": 3482,
+   "jsonAfter": 15971,
    "cat": "weapons"
   },
   {
@@ -12002,6 +12002,631 @@
    "jsonBefore": 1737,
    "jsonAfter": 7798,
    "cat": "bosses"
+  },
+  {
+   "name": "player_greatsword_charge_swing",
+   "src": "assets/sprites/player/v3/player_greatsword_charge_swing.png",
+   "srcSize": [
+    1056,
+    1152
+   ],
+   "frames": 88,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "player_greatsword_charge_swing.png",
+     744,
+     862
+    ]
+   ],
+   "gpuBefore": 4866048,
+   "gpuAfter": 2565312,
+   "fileBefore": 205421,
+   "fileAfter": 92467,
+   "jsonBefore": 29347,
+   "jsonAfter": 44373,
+   "cat": "player"
+  },
+  {
+   "name": "player_katana_issen_dash",
+   "src": "assets/sprites/player/v3/player_katana_issen_dash.png",
+   "srcSize": [
+    1152,
+    576
+   ],
+   "frames": 48,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "player_katana_issen_dash.png",
+     406,
+     942
+    ]
+   ],
+   "gpuBefore": 2654208,
+   "gpuAfter": 1529808,
+   "fileBefore": 107910,
+   "fileAfter": 54183,
+   "jsonBefore": 16973,
+   "jsonAfter": 25536,
+   "cat": "player"
+  },
+  {
+   "name": "player_katana_thrust",
+   "src": "assets/sprites/player/v3/player_katana_thrust.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "player_katana_thrust.png",
+     369,
+     858
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1266408,
+   "fileBefore": 86406,
+   "fileAfter": 43326,
+   "jsonBefore": 14621,
+   "jsonAfter": 21908,
+   "cat": "player"
+  },
+  {
+   "name": "greatsword_charge_swing",
+   "src": "assets/sprites/weapons/v3/greatsword_charge_swing.png",
+   "srcSize": [
+    2728,
+    2304
+   ],
+   "frames": 88,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "greatsword_charge_swing.png",
+     722,
+     503
+    ]
+   ],
+   "gpuBefore": 25141248,
+   "gpuAfter": 1452664,
+   "fileBefore": 113953,
+   "fileAfter": 25610,
+   "jsonBefore": 33316,
+   "jsonAfter": 48460,
+   "cat": "weapons"
+  },
+  {
+   "name": "greatsword_charge_swing_grudge1",
+   "src": "assets/sprites/weapons/v3/greatsword_charge_swing_grudge1.png",
+   "srcSize": [
+    2728,
+    2304
+   ],
+   "frames": 88,
+   "empty": 6,
+   "deduped": 0,
+   "pages": [
+    [
+     "greatsword_charge_swing_grudge1.png",
+     181,
+     190
+    ]
+   ],
+   "gpuBefore": 25141248,
+   "gpuAfter": 137560,
+   "fileBefore": 36895,
+   "fileAfter": 3576,
+   "jsonBefore": 3430,
+   "jsonAfter": 18448,
+   "cat": "weapons"
+  },
+  {
+   "name": "greatsword_charge_swing_grudge2",
+   "src": "assets/sprites/weapons/v3/greatsword_charge_swing_grudge2.png",
+   "srcSize": [
+    2728,
+    2304
+   ],
+   "frames": 88,
+   "empty": 1,
+   "deduped": 0,
+   "pages": [
+    [
+     "greatsword_charge_swing_grudge2.png",
+     42,
+     1835
+    ]
+   ],
+   "gpuBefore": 25141248,
+   "gpuAfter": 308280,
+   "fileBefore": 60311,
+   "fileAfter": 8765,
+   "jsonBefore": 3457,
+   "jsonAfter": 18500,
+   "cat": "weapons"
+  },
+  {
+   "name": "greatsword_charge_swing_grudge3",
+   "src": "assets/sprites/weapons/v3/greatsword_charge_swing_grudge3.png",
+   "srcSize": [
+    2728,
+    2304
+   ],
+   "frames": 88,
+   "empty": 1,
+   "deduped": 0,
+   "pages": [
+    [
+     "greatsword_charge_swing_grudge3.png",
+     57,
+     2390
+    ]
+   ],
+   "gpuBefore": 25141248,
+   "gpuAfter": 544920,
+   "fileBefore": 68613,
+   "fileAfter": 11614,
+   "jsonBefore": 3506,
+   "jsonAfter": 18560,
+   "cat": "weapons"
+  },
+  {
+   "name": "katana_issen_dash",
+   "src": "assets/sprites/weapons/v3/katana_issen_dash.png",
+   "srcSize": [
+    2304,
+    768
+   ],
+   "frames": 48,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_issen_dash.png",
+     191,
+     823
+    ]
+   ],
+   "gpuBefore": 7077888,
+   "gpuAfter": 628772,
+   "fileBefore": 29845,
+   "fileAfter": 9454,
+   "jsonBefore": 16123,
+   "jsonAfter": 24713,
+   "cat": "weapons"
+  },
+  {
+   "name": "katana_issen_dash_ki1",
+   "src": "assets/sprites/weapons/v3/katana_issen_dash_ki1.png",
+   "srcSize": [
+    2304,
+    768
+   ],
+   "frames": 48,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_issen_dash_ki1.png",
+     133,
+     391
+    ]
+   ],
+   "gpuBefore": 7077888,
+   "gpuAfter": 208012,
+   "fileBefore": 12415,
+   "fileAfter": 3196,
+   "jsonBefore": 2506,
+   "jsonAfter": 11086,
+   "cat": "weapons"
+  },
+  {
+   "name": "katana_issen_dash_ki2",
+   "src": "assets/sprites/weapons/v3/katana_issen_dash_ki2.png",
+   "srcSize": [
+    2304,
+    768
+   ],
+   "frames": 48,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_issen_dash_ki2.png",
+     119,
+     352
+    ]
+   ],
+   "gpuBefore": 7077888,
+   "gpuAfter": 167552,
+   "fileBefore": 15771,
+   "fileAfter": 3824,
+   "jsonBefore": 2518,
+   "jsonAfter": 11070,
+   "cat": "weapons"
+  },
+  {
+   "name": "katana_issen_dash_ki3",
+   "src": "assets/sprites/weapons/v3/katana_issen_dash_ki3.png",
+   "srcSize": [
+    2304,
+    768
+   ],
+   "frames": 48,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_issen_dash_ki3.png",
+     135,
+     402
+    ]
+   ],
+   "gpuBefore": 7077888,
+   "gpuAfter": 217080,
+   "fileBefore": 23211,
+   "fileAfter": 6301,
+   "jsonBefore": 2573,
+   "jsonAfter": 11150,
+   "cat": "weapons"
+  },
+  {
+   "name": "katana_thrust",
+   "src": "assets/sprites/weapons/v3/katana_thrust.png",
+   "srcSize": [
+    1920,
+    768
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_thrust.png",
+     321,
+     735
+    ]
+   ],
+   "gpuBefore": 5898240,
+   "gpuAfter": 943740,
+   "fileBefore": 25224,
+   "fileAfter": 9153,
+   "jsonBefore": 14795,
+   "jsonAfter": 22104,
+   "cat": "weapons"
+  },
+  {
+   "name": "katana_thrust_ki1",
+   "src": "assets/sprites/weapons/v3/katana_thrust_ki1.png",
+   "srcSize": [
+    1920,
+    768
+   ],
+   "frames": 40,
+   "empty": 1,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_thrust_ki1.png",
+     54,
+     671
+    ]
+   ],
+   "gpuBefore": 5898240,
+   "gpuAfter": 144936,
+   "fileBefore": 11024,
+   "fileAfter": 3129,
+   "jsonBefore": 2469,
+   "jsonAfter": 9701,
+   "cat": "weapons"
+  },
+  {
+   "name": "katana_thrust_ki2",
+   "src": "assets/sprites/weapons/v3/katana_thrust_ki2.png",
+   "srcSize": [
+    1920,
+    768
+   ],
+   "frames": 40,
+   "empty": 1,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_thrust_ki2.png",
+     56,
+     412
+    ]
+   ],
+   "gpuBefore": 5898240,
+   "gpuAfter": 92288,
+   "fileBefore": 13619,
+   "fileAfter": 3603,
+   "jsonBefore": 2481,
+   "jsonAfter": 9719,
+   "cat": "weapons"
+  },
+  {
+   "name": "katana_thrust_ki3",
+   "src": "assets/sprites/weapons/v3/katana_thrust_ki3.png",
+   "srcSize": [
+    1920,
+    768
+   ],
+   "frames": 40,
+   "empty": 1,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_thrust_ki3.png",
+     56,
+     731
+    ]
+   ],
+   "gpuBefore": 5898240,
+   "gpuAfter": 163744,
+   "fileBefore": 21144,
+   "fileAfter": 6597,
+   "jsonBefore": 2536,
+   "jsonAfter": 9767,
+   "cat": "weapons"
+  },
+  {
+   "name": "greatsword_charge_crack_line_t1",
+   "src": "assets/sprites/fx/v3/greatsword_charge_crack_line_t1.png",
+   "srcSize": [
+    960,
+    72
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 4,
+   "pages": [
+    [
+     "greatsword_charge_crack_line_t1.png",
+     70,
+     395
+    ]
+   ],
+   "gpuBefore": 276480,
+   "gpuAfter": 110600,
+   "fileBefore": 5126,
+   "fileAfter": 3108,
+   "jsonBefore": 3537,
+   "jsonAfter": 6279,
+   "cat": "fx"
+  },
+  {
+   "name": "greatsword_charge_crack_line_t2",
+   "src": "assets/sprites/fx/v3/greatsword_charge_crack_line_t2.png",
+   "srcSize": [
+    1728,
+    64
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 3,
+   "pages": [
+    [
+     "greatsword_charge_crack_line_t2.png",
+     1104,
+     49
+    ]
+   ],
+   "gpuBefore": 442368,
+   "gpuAfter": 216384,
+   "fileBefore": 8232,
+   "fileAfter": 4701,
+   "jsonBefore": 3550,
+   "jsonAfter": 6323,
+   "cat": "fx"
+  },
+  {
+   "name": "greatsword_charge_crack_line_t3",
+   "src": "assets/sprites/fx/v3/greatsword_charge_crack_line_t3.png",
+   "srcSize": [
+    2496,
+    72
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "greatsword_charge_crack_line_t3.png",
+     198,
+     466
+    ]
+   ],
+   "gpuBefore": 718848,
+   "gpuAfter": 369072,
+   "fileBefore": 11486,
+   "fileAfter": 6482,
+   "jsonBefore": 3550,
+   "jsonAfter": 6329,
+   "cat": "fx"
+  },
+  {
+   "name": "greatsword_charge_crack_line_t4",
+   "src": "assets/sprites/fx/v3/greatsword_charge_crack_line_t4.png",
+   "srcSize": [
+    3264,
+    72
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "greatsword_charge_crack_line_t4.png",
+     263,
+     513
+    ]
+   ],
+   "gpuBefore": 940032,
+   "gpuAfter": 539676,
+   "fileBefore": 15593,
+   "fileAfter": 9327,
+   "jsonBefore": 3550,
+   "jsonAfter": 6329,
+   "cat": "fx"
+  },
+  {
+   "name": "greatsword_charge_crack_line_t5",
+   "src": "assets/sprites/fx/v3/greatsword_charge_crack_line_t5.png",
+   "srcSize": [
+    4032,
+    72
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "greatsword_charge_crack_line_t5.png",
+     780,
+     209
+    ]
+   ],
+   "gpuBefore": 1161216,
+   "gpuAfter": 652080,
+   "fileBefore": 18963,
+   "fileAfter": 11476,
+   "jsonBefore": 3550,
+   "jsonAfter": 6333,
+   "cat": "fx"
+  },
+  {
+   "name": "greatsword_charge_swing",
+   "src": "assets/sprites/fx/v3/greatsword_charge_swing.png",
+   "srcSize": [
+    3976,
+    4608
+   ],
+   "frames": 56,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "greatsword_charge_swing.png",
+     668,
+     3035
+    ]
+   ],
+   "gpuBefore": 73285632,
+   "gpuAfter": 8109520,
+   "fileBefore": 206262,
+   "fileAfter": 58259,
+   "jsonBefore": 3071,
+   "jsonAfter": 13178,
+   "cat": "fx"
+  },
+  {
+   "name": "katana_thrust",
+   "src": "assets/sprites/fx/v3/katana_thrust.png",
+   "srcSize": [
+    2640,
+    1760
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_thrust.png",
+     201,
+     297
+    ]
+   ],
+   "gpuBefore": 18585600,
+   "gpuAfter": 238788,
+   "fileBefore": 25393,
+   "fileAfter": 3505,
+   "jsonBefore": 3216,
+   "jsonAfter": 7923,
+   "cat": "fx"
+  },
+  {
+   "name": "katana_thrust_ki1",
+   "src": "assets/sprites/fx/v3/katana_thrust_ki1.png",
+   "srcSize": [
+    2976,
+    2048
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_thrust_ki1.png",
+     390,
+     311
+    ]
+   ],
+   "gpuBefore": 24379392,
+   "gpuAfter": 485160,
+   "fileBefore": 37163,
+   "fileAfter": 6412,
+   "jsonBefore": 3141,
+   "jsonAfter": 7878,
+   "cat": "fx"
+  },
+  {
+   "name": "katana_thrust_ki2",
+   "src": "assets/sprites/fx/v3/katana_thrust_ki2.png",
+   "srcSize": [
+    3360,
+    2272
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_thrust_ki2.png",
+     262,
+     584
+    ]
+   ],
+   "gpuBefore": 30535680,
+   "gpuAfter": 612032,
+   "fileBefore": 43535,
+   "fileAfter": 6607,
+   "jsonBefore": 3136,
+   "jsonAfter": 7861,
+   "cat": "fx"
+  },
+  {
+   "name": "katana_thrust_ki3",
+   "src": "assets/sprites/fx/v3/katana_thrust_ki3.png",
+   "srcSize": [
+    3744,
+    2528
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "katana_thrust_ki3.png",
+     293,
+     642
+    ]
+   ],
+   "gpuBefore": 37859328,
+   "gpuAfter": 752424,
+   "fileBefore": 58472,
+   "fileAfter": 9846,
+   "jsonBefore": 3188,
+   "jsonAfter": 7916,
+   "cat": "fx"
   }
  ]
 }

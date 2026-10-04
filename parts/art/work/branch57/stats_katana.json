@@ -1,0 +1,10 @@
+{
+ "katana_spin": {
+  "weaponColors": 16,
+  "bodyColors": 28
+ },
+ "katana_guardbreak": {
+  "weaponColors": 16,
+  "bodyColors": 28
+ }
+}
