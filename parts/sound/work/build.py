@@ -1702,7 +1702,7 @@ def _kenki_stage3(sr, rng):
     return _kenki(sr, rng, 3)
 
 
-@sfx('utbun_full', 'UTBUN_CHANGED{full:true}', "울분 가득(대검). 낮게 끓어오르는 잔불 + 불씨 '훅' 치솟음 + 타닥 + 칼이 달아오르는 쇳소리", -3)
+@sfx('utbun_full', 'UTBUN_CHANGED{full:true}', "울분 가득(대검, 가득 차는 순간 1회만 · 반복음 없음 — 56라운드 Q47). 낮게 끓어오르는 잔불 + 불씨 '훅' 치솟음 + 타닥 + 칼이 달아오르는 쇳소리", -3)
 def _utbun_full(sr, rng):
     dur = 1.1
     n = sec(sr, dur)
@@ -1907,7 +1907,7 @@ def _gs_crack(sr, rng):
     return reverb(s, sr, size=0.9, decay=0.55, wet=0.18)
 
 
-@sfx('gs_drag', 'PLAYER_ATTACK{weapon:greatsword,phase:recover}', "대검 휘두른 뒤 몸이 끌려감(짧게). 칼끝이 돌바닥을 긁는 쇳소리 + 자갈 + 미끄러지는 장화", -5)
+@sfx('gs_drag', 'PLAYER_ATTACK{weapon:greatsword,combo:3,phase:recover}', "대검 3타 뒤 몸이 끌려감(짧게, 56라운드 Q46: 3타에만). 칼끝이 돌바닥을 긁는 쇳소리 + 자갈 + 미끄러지는 장화", -5)
 def _gs_drag(sr, rng):
     dur = 0.36
     n = sec(sr, dur)
@@ -2092,6 +2092,39 @@ def _arrow_rain_impact(sr, rng):
         mix_into(s, arrow_thunk(sr, rng), sec(sr, t0), 0.9 - 0.12 * k)
     mix_into(s, gravel(sr, rng, 0.5, 5, 0.1, 0.35, 0.2), 0)
     return tail(s, sr, 0.03)
+
+
+# ---- 활 가득 당김 알림 · 오래 쥐어 흔들림 (56라운드 Q44) ----
+# 반드시 arrow_rain_impact 뒤에 둔다(시드 = 1000 + 등록 순서). 기존 109개 파일 바이트 불변.
+# bow_draw(0.6 s, 70→95 Hz 톱니 · 400→1200 Hz 밴드 · 28 Hz 삐걱)가 끝나는 지점의 음색을 이어받는다.
+
+@sfx('bow_full_draw', 'PLAYER_SECONDARY{kind:aimedshot,phase:full}', "활 가득 당김 알림(완벽 놓기 창 0.15s 시작 순간, 파일 0ms = 가득 찬 순간). 활대가 멈추는 짧은 나무 '톡' + 딸깍 + 팽팽한 시위 '틱' + 아주 작은 A6 쇠 반짝임", -4)
+def _bow_full_draw(sr, rng):
+    dur = 0.13
+    s = zeros(sec(sr, dur))
+    mix_into(s, click(sr, rng, 0.003, 5200), 0, 0.9)  # 딸깍
+    mix_into(s, thud(sr, 0.05, 320, 210, 0.01), 0, 0.55)  # 활대 멈춤(나무)
+    p = mul(pluck(sr, 0.1, 293.66, rng, damp=0.95, bright=0.8), env_exp(sr, 0.1, 0.018))
+    mix_into(s, highpass(p, sr, 500), 0, 0.45)  # 팽팽한 시위 틱(D4)
+    mix_into(s, metal(sr, 0.1, 1760, rng, tau=0.02, jitter=0.005), sec(sr, 0.002), 0.12)  # 작은 반짝임(A6)
+    return tail(s, sr, 0.02)
+
+
+@sfx('bow_strain', 'PLAYER_SECONDARY{kind:aimedshot,phase:strain}', "활을 너무 오래 쥐어 조준선이 흔들리는 동안의 루프(1.0s, 이음매 없음). 한계까지 당긴 시위의 떨리는 험(95/98 Hz 맥놀이) + 불규칙하게 떨리는 나무 삐걱 + 드문 작은 삐걱 딸깍. 아주 작게, 흔들림 시작에 페이드인 · 놓으면 즉시 페이드아웃", -10, loop=True)
+def _bow_strain(sr, rng):
+    dur = 1.0
+    n = sec(sr, dur)
+    st = add(tone_loop(sr, n, 95, 'saw'), scale(tone_loop(sr, n, 98, 'saw'), 0.7))  # 3 Hz 맥놀이
+    st = wrap2(lambda x: svf(x, sr, 1200, 2.0, 'band'), st)
+    fl = [a * b for a, b in zip(lfo_loop(sr, n, 7.0, 0.3, 0.7), lfo_loop(sr, n, 11.0, 0.25, 0.75, 0.3))]
+    s = scale(mul(st, fl), 0.8)  # 떨리는 시위
+    cr = wrap2(lambda x: svf(x, sr, 2200, 1.0, 'band'), noise_loop(sr, n, rng))
+    trem = [a * b for a, b in zip(lfo_loop(sr, n, 28.0, 0.5, 0.5), lfo_loop(sr, n, 5.0, 0.4, 0.6, 0.6))]
+    mix_into(s, mul(cr, trem), 0, 0.3)  # 나무 삐걱(bow_draw 와 같은 28 Hz)
+    for t0, g in [(0.17, 0.5), (0.58, 0.35), (0.83, 0.42)]:  # 드문 삐걱 딸깍 — 경계에서 감긴다
+        tk = add(scale(click(sr, rng, 0.003, 3800), 0.6), thud(sr, 0.04, 380, 260, 0.008))
+        mix_into(s, tk, sec(sr, t0), 0.3 * g, wrap=True)
+    return s
 
 
 # ---------------------------------------------------------------------------

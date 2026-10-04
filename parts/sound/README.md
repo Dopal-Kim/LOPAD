@@ -5,7 +5,7 @@
 |---|---|
 | `parts/sound/sound-design.md` | 음향 바이블: 톤, 악기(합성 방식), 층별 BGM 매핑, 효과음 표(트리거 제안) |
 | `parts/sound/work/build.py` | **단일 소스.** 효과음·BGM·매니페스트를 전부 재생성. 파이썬 표준 라이브러리만 사용, 고정 시드로 결정적 |
-| `assets/audio/sfx/*.wav` | 효과음 103종(29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34), 44.1 kHz / 16 bit / mono, 피크 -6 dBFS |
+| `assets/audio/sfx/*.wav` | 효과음 105종(29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2), 44.1 kHz / 16 bit / mono, 피크 -6 dBFS |
 | `assets/audio/bgm/*.wav` | BGM 6곡, 22.05 kHz / 16 bit / mono, 27~32 s 루프, 피크 -6 dBFS |
 | `assets/audio/manifest.json` | 시스템 파트가 읽을 목록(계약 초안): 파일·길이·루프·권장 음량·트리거 이벤트 제안·층별 BGM 매핑 |
 
@@ -54,6 +54,12 @@ python3 parts/sound/work/build.py verify     # 생성된 파일 검증(길이·�
 - 재사용: `bow_draw`(같은 키 기존 파일), 일반 발사 `bow_aimed`, 도약 찍기 차지분 `charge_slam_lv1~3`.
 - 기존 방식 그대로, 새 항목은 목록 맨 뒤 — 기존 75개 파일 바이트 불변(md5 대조), 매니페스트는 항목 추가만.
 - 검증: 파일 109개(SFX 103 + BGM 6), 총 14.14 MB, 클리핑 0, 전 파일 피크 -6.00 dBFS, `katana_iai_hold` 경계비 0.10.
+
+## 추가 (56라운드 검수 Q44~Q47, 2026-10-04)
+- 새 2종: 활 가득 당김 알림 `bow_full_draw`(0.15 s) + 오래 쥐어 흔들릴 때 시위 떨림 루프 `bow_strain`(1.00 s, 경계비 0.05). `arrow_rain_impact` 뒤에 등록.
+- 문서·메타만: `gs_drag` 3타만(트리거 `combo:3`), `parry`+`parry_perfect` 겹침·`bow_draw` 유지·울분 가득 1회·`gs_` 이름 유지 '결정됨' 표시(`sound-design.md` 4-1-2).
+- 기존 109개 파일 바이트 불변(md5 대조), 매니페스트는 2항목 추가 + `gs_drag`·`utbun_full` 의 trigger/note 갱신.
+- 검증: 파일 111개(SFX 105 + BGM 6), 총 14.24 MB, 클리핑 0, 전 파일 피크 -6.00 dBFS.
 
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).

@@ -1422,7 +1422,7 @@
           "full:true"
         ]
       },
-      "note": "울분 가득(대검). 낮게 끓어오르는 잔불 + 불씨 '훅' 치솟음 + 타닥 + 칼이 달아오르는 쇳소리"
+      "note": "울분 가득(대검, 가득 차는 순간 1회만 · 반복음 없음 — 56라운드 Q47). 낮게 끓어오르는 잔불 + 불씨 '훅' 치솟음 + 타닥 + 칼이 달아오르는 쇳소리"
     },
     {
       "id": "sfx/brand_apply",
@@ -1668,10 +1668,11 @@
         "event": "PLAYER_ATTACK",
         "when": [
           "weapon:greatsword",
+          "combo:3",
           "phase:recover"
         ]
       },
-      "note": "대검 휘두른 뒤 몸이 끌려감(짧게). 칼끝이 돌바닥을 긁는 쇳소리 + 자갈 + 미끄러지는 장화"
+      "note": "대검 3타 뒤 몸이 끌려감(짧게, 56라운드 Q46: 3타에만). 칼끝이 돌바닥을 긁는 쇳소리 + 자갈 + 미끄러지는 장화"
     },
     {
       "id": "sfx/gs_tackle",
@@ -1948,6 +1949,44 @@
         ]
       },
       "note": "화살비 낙하(커서 원 범위). 짧게 내려꽂히는 휘파람(0~0.1s) → 흙에 꽂히는 '툭' 셋(0.1/0.16/0.23s) + 화살대 떨림. 첫 꽂힘 = 0.1s"
+    },
+    {
+      "id": "sfx/bow_full_draw",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bow_full_draw.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 150,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "PLAYER_SECONDARY",
+        "when": [
+          "kind:aimedshot",
+          "phase:full"
+        ]
+      },
+      "note": "활 가득 당김 알림(완벽 놓기 창 0.15s 시작 순간, 파일 0ms = 가득 찬 순간). 활대가 멈추는 짧은 나무 '톡' + 딸깍 + 팽팽한 시위 '틱' + 아주 작은 A6 쇠 반짝임"
+    },
+    {
+      "id": "sfx/bow_strain",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bow_strain.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1000,
+      "loop": true,
+      "gainDb": -10,
+      "trigger": {
+        "event": "PLAYER_SECONDARY",
+        "when": [
+          "kind:aimedshot",
+          "phase:strain"
+        ]
+      },
+      "note": "활을 너무 오래 쥐어 조준선이 흔들리는 동안의 루프(1.0s, 이음매 없음). 한계까지 당긴 시위의 떨리는 험(95/98 Hz 맥놀이) + 불규칙하게 떨리는 나무 삐걱 + 드문 작은 삐걱 딸깍. 아주 작게, 흔들림 시작에 페이드인 · 놓으면 즉시 페이드아웃"
     },
     {
       "id": "bgm/title",
