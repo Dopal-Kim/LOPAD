@@ -20,10 +20,10 @@
  },
  "greatsword_charge_flash_lv3": {
   "frame": [
-   200,
+   208,
    248
   ],
-  "colors": 5
+  "colors": 8
  },
  "greatsword_charge_ring": {
   "frame": [

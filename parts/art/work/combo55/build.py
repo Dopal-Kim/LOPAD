@@ -143,7 +143,8 @@ FX = {
     "greatsword_charge_flash_lv2": dict(kind="flash", move="greatsword_charge", level=2, ms=[30, 40, 50, 60, 70], seed=72,
                                         design="차지 2단(0.8초) — 날을 따라 손잡이 → 칼끝으로 흐르는 호박 + 중간 별 + 불티(A25 까지)"),
     "greatsword_charge_flash_lv3": dict(kind="flash", move="greatsword_charge", level=3, ms=[30, 40, 50, 60, 70], seed=73,
-                                        design="차지 3단(1.2초) — 큰 별(대각 빛살) + 퍼지는 고리 + 불티 다발(A25 까지, 백열 없음 — Q65)"),
+                                        glow=[0, 1],
+                                        design="차지 3단(1.2초, 최대 차지) — f0 날 전체 백열 점화 + 칼끝 X0 코어·긴 빛살 → f1 8빛살 큰 별 + X1 실선 고리 + 불티 방사(백열 = f0·f1, 55라운드 Q27) → f2~ 호박 별 수축·끊긴 고리 퍼짐·불티 식음"),
 }
 FX_ORDER = list(FX)
 
@@ -176,8 +177,14 @@ def fx_job(name):
     data = fx_meta(name, sp, pivot, origin)
     glow = sp.get("glow")
     if sp["kind"] == "flash":
-        glow = []                                       # 판정 아님 — 전 프레임 A25 이하
-    sheet, j, _ = X.write(name, cut, dirs, sp["ms"], data, glow)
+        glow = sp.get("glow", [])                       # 판정 아님 — lv1·lv2 전 프레임 A25 이하 / lv3 만 Q27 예외(f0·f1 백열)
+        if sp["level"] == 3:
+            assert glow == X.LV3_GLOW, (name, glow)
+    sheet, j, outf = X.write(name, cut, dirs, sp["ms"], data, glow)
+    if sp["kind"] == "flash" and sp["level"] == 3:      # Q27: 최대 차지 신호 — glowFrames 에 X0 가 실제로 있어야 함
+        for d in dirs:
+            for i in glow:
+                assert X.W.X0 in X.W.colors_of(outf[d][i]), (name, d, i, "no X0")
     return name, j["frameWidth"], j["frameHeight"], j["colors"], round(time.time() - t0, 1)
 
 
@@ -254,7 +261,8 @@ def fx_meta(name, sp, pivot, origin):
         lv = sp["level"]
         d.update(spawn="charge_stage_reached", chargeStage=lv, atHoldSec=[0.4, 0.8, 1.2][lv - 1],
                  spawnNote="홀드 시작부터 %.1f초에 1회(차지 몸 greatsword_charge 의 어느 프레임이든 — 홀드 루프 자세의 칼끝 기준 그림)" % [0.4, 0.8, 1.2][lv - 1],
-                 glowNote="판정 아님 — 전 프레임 A25 이하(Q65). 단계 차이는 크기·빛살 수·고리·불티로")
+                 glowNote="판정 아님 — 전 프레임 A25 이하(Q65). 단계 차이는 크기·빛살 수·고리·불티로" if lv < 3 else
+                 "55라운드 Q27: 3단(최대 차지)만 Q65 의 예외로 백열 허용 — glowFrames(f0 점화·f1 정점)에만 X0/X1·A26, f2~ 는 A25 이하(빌드 검사)")
     return d
 
 

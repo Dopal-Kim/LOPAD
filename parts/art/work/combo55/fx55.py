@@ -454,7 +454,10 @@ def ring_frames(radii, seed=9):
 
 def flash_frames(d, blade, level, seed=11):
     """차지 단계 도달 번쩍임(anchor player_pivot · 4방향). blade = (손잡이, 칼끝) 큰 캔버스 화면 좌표(이 방향 홀드 자세).
-    lv1 작은 반짝(A23) · lv2 중간 + 날 따라 흐르는 호박(A25) · lv3 큰 별 + 고리 + 불티(A25) — 판정 아님 → 백열 없음(Q65)."""
+    lv1 작은 반짝(A23) · lv2 중간 + 날 따라 흐르는 호박(A25) — 판정 아님 → 백열 없음(Q65).
+    lv3 = flash_frames_lv3(55라운드 Q27: 최대 차지 신호로 f0·f1 만 백열 허용)."""
+    if level == 3:
+        return flash_frames_lv3(d, blade, seed)
     t = T(d, *CO)
     (gx, gy), (tx, ty) = blade
     size = {1: 9, 2: 16, 3: 26}[level]
@@ -484,6 +487,78 @@ def flash_frames(d, blade, level, seed=11):
                 ln = rng.uniform(6, 14) * level
                 Le.stroke([(tx + math.cos(a) * 4, ty + math.sin(a) * 4), (tx + math.cos(a) * ln, ty + math.sin(a) * ln)], 0.8,
                           prof=FK.tp_tail(0.8), v=0.6)
+        out.append(fr.render())
+    return out
+
+
+LV3_GLOW = [0, 1]                                     # 55라운드 Q27 — 3단 번쩍임 f0·f1 만 백열(X0/X1·A26). f2~ 는 A25 이하
+
+
+def flash_frames_lv3(d, blade, seed=11):
+    """차지 3단(최대 차지) 번쩍임 — Q27: Q65 '판정 순간만 백열'의 예외. lv1·lv2(호박까지)와 한눈에 갈리게:
+      f0 30ms 점화: 날 전체가 손잡이→칼끝 백열 선으로 켜지고 칼끝에 X0 코어 + 긴 4빛살(끝으로 갈수록 호박)
+      f1 40ms 정점: 8빛살 큰 별(코어 X0 → 빛살 끝 호박) + 칼끝을 감싸는 X1 실선 고리 + 불티 방사, 날은 칼끝 쪽 절반만 X1
+      f2~f4: 백열 꺼짐 — 호박(A25 이하) 별 수축 · 고리가 끊긴 호박 고리로 퍼짐 · 불티 점이 밖으로 흩어지며 식음."""
+    t = T(d, *CO)
+    (gx, gy), (tx, ty) = blade
+    rng = W.Debris(seed + 3).rng
+    embers = [(j * 2 * math.pi / 14 + 0.2 + rng.uniform(-0.18, 0.18), rng.uniform(0.8, 1.2), rng.uniform(0.7, 1.0)) for j in range(14)]   # 고르게 방사
+    bl = math.hypot(tx - gx, ty - gy) or 1.0
+    ux, uy = (tx - gx) / bl, (ty - gy) / bl
+    out = []
+    for i in range(5):
+        fr = W.Frame(CANVAS, CANVAS, t)
+        Laura = fr.L([W.A19, W.A21, W.A23, W.A25])           # 날 둘레 호박 테(백열 선 뒤)
+        Lring = fr.L(W.R_EDGE)
+        Le = fr.L(W.R_EMBER)
+        Ls = fr.L(W.R_EDGE)                                  # 별·날선(위)
+        Lc = fr.L(W.R_HOT)                                   # 코어
+        if i == 0:
+            Laura.stroke([(gx, gy), (tx, ty)], 2.6, prof=FK.tp_head(0.5), v=0.95)
+            Ls.stroke([(gx, gy), (tx, ty)], 1.1, prof=FK.tp_head(0.35), v=0.92, vprof=lambda u: 0.82 + 0.18 * u)
+            for k in range(4):
+                a = math.pi / 4 * 0 + k * math.pi / 2
+                Ls.ray(tx, ty, a, 0, 34, 1.6, prof=FK.tp_tail(0.9), v=1.0, vprof=lambda u: 1.0 - 0.5 * u)
+            for k in range(4):
+                a = math.pi / 4 + k * math.pi / 2
+                Ls.ray(tx, ty, a, 0, 15, 1.0, prof=FK.tp_tail(1.0), v=0.8, vprof=lambda u: 1.0 - 0.4 * u)
+            Lc.disc(tx, ty, 5.5, v=1.0, edge=0.62)
+        elif i == 1:
+            h0 = 0.45                                        # 날은 칼끝 쪽 절반만 백열
+            hx, hy = gx + (tx - gx) * h0, gy + (ty - gy) * h0
+            Laura.stroke([(gx, gy), (tx, ty)], 2.2, prof=FK.tp_head(0.8), v=0.9)
+            Ls.stroke([(hx, hy), (tx, ty)], 1.0, prof=FK.tp_head(0.6), v=0.86)
+            for k in range(4):
+                a = k * math.pi / 2
+                Ls.ray(tx, ty, a, 0, 46, 2.0, prof=FK.tp_tail(0.85), v=1.0, vprof=lambda u: 1.0 - 0.52 * u)
+            for k in range(4):
+                a = math.pi / 4 + k * math.pi / 2
+                Ls.ray(tx, ty, a, 0, 28, 1.3, prof=FK.tp_tail(0.95), v=0.86, vprof=lambda u: 1.0 - 0.42 * u)
+            r = 18
+            Lring.arc(tx, ty, r + 2.2, (r + 2.2) * 0.9, 0, 2 * math.pi, 1.6, v=0.6)
+            Lring.arc(tx, ty, r, r * 0.9, 0, 2 * math.pi, 1.1, v=0.84)
+            for a, sp, vv in embers:
+                r0, r1 = 11 * sp, 32 * sp
+                Le.stroke([(tx + math.cos(a) * r0, ty + math.sin(a) * r0), (tx + math.cos(a) * r1, ty + math.sin(a) * r1)], 0.9,
+                          prof=FK.tp_tail(0.8), v=0.7 * vv + 0.25)
+            Lc.disc(tx, ty, 7.0, v=1.0, edge=0.6)
+        else:
+            k = i - 2                                        # 0,1,2 — 식는 꼬리(A25 이하)
+            Laura.stroke([(tx - ux * (36 - 10 * k), ty - uy * (36 - 10 * k)), (tx, ty)], 1.6 - 0.4 * k, prof=FK.tp_head(0.7),
+                         v=0.9 - 0.25 * k)
+            sz = [26, 13, 7][k]
+            Ls.star4(tx, ty, sz, w=1.4 - 0.3 * k, v=[0.62, 0.55, 0.42][k], diag=0.55 if k == 0 else 0.0)
+            r = [24, 33, 40][k]
+            Lring.arc(tx, ty, r, r * 0.9, 0, 2 * math.pi, 1.3 - 0.3 * k, v=[0.62, 0.5, 0.36][k], dash=(12, 0.72 - 0.12 * k, 0.04 * k))
+            for j, (a, sp, vv) in enumerate(embers):
+                if k == 2 and j % 2:
+                    continue
+                rr = (34 + 9 * k) * sp
+                ex, ey = tx + math.cos(a) * rr, ty + math.sin(a) * rr + 2.5 * k * k
+                Le.stroke([(ex - math.cos(a) * (4 - k), ey - math.sin(a) * (4 - k)), (ex, ey)], 0.8, prof=FK.tp_head(0.8),
+                          v=(0.62 - 0.17 * k) * vv + 0.1)
+            if k == 0:
+                Lc.disc(tx, ty, 3.0, v=0.58, edge=0.7)
         out.append(fr.render())
     return out
 
