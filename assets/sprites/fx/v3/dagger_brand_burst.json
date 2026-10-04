@@ -1,0 +1,117 @@
+{
+ "image": "dagger_brand_burst.png",
+ "action": "dagger_brand_burst",
+ "version": "v3-r56d",
+ "frameWidth": 152,
+ "frameHeight": 136,
+ "frames": 8,
+ "directions": [
+  "s",
+  "m",
+  "l"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.29,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  70,
+  80,
+  100,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 13,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_res/build.py (56라운드 작업 D — 자원·가드·그로기 표시)",
+ "weapon": "dagger",
+ "rowsAre": "sizes",
+ "rowBy": "stack",
+ "sizes": [
+  "s",
+  "m",
+  "l"
+ ],
+ "sizeInfo": {
+  "s": {
+   "stacks": [
+    1,
+    2
+   ],
+   "radiusPx": 34
+  },
+  "m": {
+   "stacks": [
+    3,
+    4
+   ],
+   "radiusPx": 46
+  },
+  "l": {
+   "stacks": [
+    5
+   ],
+   "radiusPx": 60
+  }
+ },
+ "directionsNote": "directions 칸에 크기 키(s·m·l)를 넣었다 — 행 = 낙인 스택으로 고른 크기. 방향으로 고르지 말 것",
+ "anchor": "hitbox_center",
+ "pivot": {
+  "x": 76,
+  "y": 68
+ },
+ "pivotNote": "pivot = 폭발 중심(적 몸 중심). radiusPx = 그림 반경(도트) — 판정 반경은 시스템 데이터",
+ "rotate": false,
+ "depth": "above",
+ "spawn": "brand_detonate",
+ "spawnNote": "그림자 걸음으로 낙인 적의 등 뒤에 선 순간(기폭) 1회 + 과열 100% 일괄 폭발 때 낙인 적마다 1회(가까운 적부터 40ms 간격 권장)",
+ "impactFrame": 1,
+ "glowFrames": [
+  1,
+  2
+ ],
+ "frameRoles": [
+  "셈 획이 부풀어 갈라짐",
+  "폭발(판정) 백열 핵·빛살",
+  "불덩이·충격 고리",
+  "연기 고리·끊긴 고리",
+  "연기 오름",
+  "연기",
+  "연기",
+  "사라짐"
+ ],
+ "shakeHint": {
+  "s": {
+   "px": 2,
+   "ms": 80
+  },
+  "m": {
+   "px": 3,
+   "ms": 100
+  },
+  "l": {
+   "px": 5,
+   "ms": 130
+  }
+ },
+ "light": {
+  "color": "#e2a33c",
+  "radius": 120,
+  "intensity": 0.9,
+  "frames": [
+   1,
+   2,
+   3
+  ]
+ },
+ "design": "56라운드 Q16 낙인 기폭 — 적에게 지진 셈 획이 부풀며 갈라졌다가 백열 핵으로 터지고, 호박 불덩이·충격 고리 → 회색 재 연기·불티·재 조각",
+ "keyArt": "parts/art/work/gemini/weapon_moves/raw_dagger_B.jpg 패널 4",
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

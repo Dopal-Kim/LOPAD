@@ -1,0 +1,140 @@
+{
+ "image": "dagger_flurry.png",
+ "action": "dagger_flurry",
+ "version": "v3-r56",
+ "frameWidth": 336,
+ "frameHeight": 344,
+ "frames": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.41,
+ "frameDurationsMs": [
+  40,
+  40,
+  45,
+  45,
+  45,
+  45,
+  45,
+  45,
+  60,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_moves_db/build.py fx (56라운드 Q40~Q43 새 기본기 — 작업 E2)",
+ "effectRule": "56라운드 Q11 붓획 · 재·호박만 · 백열 X0/X1·A26 은 glowFrames 의 몇 도트만(흰 막대 없음)",
+ "r56": "56라운드 Q40~Q43 새 기본기(작업 E2)",
+ "weapon": "dagger",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 168,
+  "y": 208
+ },
+ "hitOriginInFrame": {
+  "x": 168,
+  "y": 168
+ },
+ "depth": "above",
+ "bodySheet": "player_dagger_flurry",
+ "spawn": "body_ms",
+ "spawnAtMs": 0,
+ "spawnNote": "몸 시트와 같은 10프레임·같은 ms — 몸 f0 시작에 같이 시작하고 몸과 같은 프레임 번호를 같은 시각에 표시",
+ "loopFrames": [
+  2,
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "loopRange": [
+  2,
+  7
+ ],
+ "hitFrames": [
+  2,
+  4,
+  6
+ ],
+ "activeFrames": [
+  2,
+  4,
+  6
+ ],
+ "impactFrame": 2,
+ "thrust": {
+  "lengthPx": 144,
+  "widthPx": 48,
+  "angleDeg": 0,
+  "fromPx": 16
+ },
+ "hitShape": {
+  "type": "rect",
+  "lengthPx": 144,
+  "widthPx": 48,
+  "fromPx": 16,
+  "angleDeg": 0,
+  "note": "§17 판정 모양 rect(찌르기)"
+ },
+ "timingMs": {
+  "total": 490,
+  "hitAt": 80,
+  "activeEndAt": 305,
+  "hitsAt": [
+   80,
+   170,
+   260
+  ],
+  "cancelAt": null,
+  "loopStartAt": 80,
+  "loopMs": 270,
+  "startMs": 80,
+  "endMs": 140
+ },
+ "frameRoles": [
+  "start",
+  "start",
+  "stab",
+  "retract",
+  "stab",
+  "retract",
+  "stab",
+  "retract",
+  "end",
+  "end"
+ ],
+ "stabAngles": {
+  "2": -10,
+  "4": 12,
+  "6": 0
+ },
+ "loopNote": "몸 loopRange 와 같이 반복. 루프 프레임은 이전 찌르기 획이 나이대로 마르는 모습까지 그려 이음새 없음(f7 → f2). 떼면 몸과 같이 f8~f9",
+ "heatLevel": 1,
+ "heatLabel": "1단(과열 0~39%) — 재 테 + 호박 심의 가는 붓획",
+ "heatVariants": {
+  "1": "dagger_flurry",
+  "2": "dagger_flurry_heat2",
+  "3": "dagger_flurry_heat3"
+ },
+ "heatRule": "임시 제안: 과열 0~39% = dagger_flurry, 40~79% = _heat2, 80~100% = _heat3. 단계가 바뀌면 같은 프레임 번호로 시트만 바꿔 이어 재생(세 시트 프레임·ms·피벗 기준 동일). 100% 자동 폭발은 기존 과열 규칙(Q13~Q20)",
+ "design": "고속 난타 — 앞으로 짧게 튕긴 찌르기 붓획 3갈래(위·아래·가운데)가 엇갈려 남는 칼자국 다발. 1단(과열 0~39%) — 재 테 + 호박 심의 가는 붓획",
+ "designRef": "parts/art/work/gemini/weapon_moves/sheet_dagger.png 6번(분위기만, 도트 직접)",
+ "glowFrames": [
+  2,
+  4,
+  6
+ ],
+ "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

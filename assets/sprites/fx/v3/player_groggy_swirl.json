@@ -1,0 +1,44 @@
+{
+ "image": "player_groggy_swirl.png",
+ "action": "player_groggy_swirl",
+ "version": "v3-r56d",
+ "frameWidth": 40,
+ "frameHeight": 20,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 8.0,
+ "frameDurationsMs": [
+  125,
+  125,
+  125,
+  125,
+  125,
+  125
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 6,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_res/build.py (56라운드 작업 D — 자원·가드·그로기 표시)",
+ "anchor": "player_head_top",
+ "pivot": {
+  "x": 20,
+  "y": 10
+ },
+ "pivotNote": "pivot = 소용돌이 궤도 중심. 위치 = 주인공 피벗 기준 몸 JSON headTopAnchors[방향][프레임] + (0, swirlOffsetY −14) — 몸 시트 도트 좌표를 그대로",
+ "rotate": false,
+ "depth": "above",
+ "followTarget": true,
+ "glowFrames": [],
+ "weapon": "katana|greatsword",
+ "playRule": "그로기 동안 루프(6 × 125ms = 750ms, 1.5초에 2바퀴). 그로기 끝나면 끔",
+ "design": "56라운드 그로기 — 머리 위 납작한 궤도를 도는 재 덩이 3(앞쪽은 크고 밝게, 뒤쪽은 작고 어둡게) + 쫓아 도는 어두운 불씨 + 끊긴 궤적",
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

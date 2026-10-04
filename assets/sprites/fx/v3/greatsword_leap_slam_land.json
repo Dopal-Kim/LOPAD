@@ -1,0 +1,110 @@
+{
+ "image": "greatsword_leap_slam_land.png",
+ "action": "greatsword_leap_slam_land",
+ "version": "v3-r56-e1",
+ "frameWidth": 568,
+ "frameHeight": 576,
+ "frames": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right",
+  "down-right",
+  "down-left",
+  "up-right",
+  "up-left"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.13,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 13,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_moves_kg/build.py fx (56라운드 Q21·Q22·Q40 새 기본기 fx — 작업 E1)",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 284,
+  "y": 324
+ },
+ "hitOriginInFrame": {
+  "x": 284,
+  "y": 284
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗)에 맞춘다. 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "effectRule": "56라운드 Q11: 붓으로 그은 한 획(시작 가늘고·가운데 굵고·끝 갈라짐) — 닫힌 원 금지. 재·호박만, 백열은 판정 프레임의 획 머리 몇 도트만. 판정 밖 프레임은 A25(#eecc78) 이하",
+ "brushStroke": true,
+ "r56": "56라운드 Q21·Q22·Q40 새 기본기(작업 E1)",
+ "weapon": "greatsword",
+ "bodySheet": "player_greatsword_leap_slam",
+ "spawn": "body_ms",
+ "spawnAtMs": 370,
+ "impactAtBodyMs": 410,
+ "impactFrame": 1,
+ "followPlayer": true,
+ "hitShape": {
+  "type": "wedge",
+  "angleDeg": 40,
+  "lengthRByStage": [
+   1.3,
+   1.5,
+   1.8
+  ],
+  "impactCircle": {
+   "radiusR": 0.45,
+   "atWedgeEnd": true,
+   "radiusPx": 91.8
+  },
+  "landingRing": {
+   "radiusR": 0.6,
+   "note": "착지 발밑 둥근 판정(임시) — 공중에서 내려앉는 충격",
+   "radiusPx": 122.4
+  },
+  "note": "차지 내려찍기와 같은 쐐기(차지 단계별 ×1.3/1.5/1.8) + 착지 충격원 — 임시 제안",
+  "R": {
+   "world": 51,
+   "dots": 204
+  },
+  "lengthPxByStage": [
+   265.2,
+   306.0,
+   367.2
+  ],
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "임시 제안값 — 시스템 데이터가 기준"
+ },
+ "groundCrack": {
+  "sheet": "greatsword_ground_crack",
+  "rowByStage": [
+   "m",
+   "m",
+   "l"
+  ],
+  "at": "impactFrame 시작, 쐐기 끝점"
+ },
+ "frameRoles": [
+  "내려옴",
+  "착지 내려찍기(판정 · 지면 붓획)",
+  "decay",
+  "decay",
+  "decay"
+ ],
+ "design": "착지 내려찍기 — 세로 붓획 + 지면 붓획 + 금. 바닥 균열은 greatsword_ground_crack(차지 단계 m·m·l)을 같은 시각에 함께",
+ "dirTransform": "drawn8",
+ "directionNote": "8행 = 작업 B 대검 몸 행 순서(down, up, left, right, down-right, down-left, up-right, up-left). 대각 행 = 조준 45° 로 다시 그린 것(이미지 회전 아님)",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

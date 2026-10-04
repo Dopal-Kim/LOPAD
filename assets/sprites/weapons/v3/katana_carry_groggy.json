@@ -1,0 +1,233 @@
+{
+ "image": "katana_carry_groggy.png",
+ "action": "carry_groggy",
+ "version": "v3-r56d",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 6.67,
+ "frameDurationsMs": [
+  150,
+  150,
+  150,
+  150,
+  150,
+  150,
+  150,
+  150,
+  150,
+  150
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 12,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_res/build.py (56라운드 작업 D — 자원·가드·그로기 표시)",
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "anchor": "player_pivot",
+ "occlusionBaked": true,
+ "design": "B 재 칼날 (53라운드 Q26) — 검은 재 칼날 + 날선 호박 균열 1줄 + 흉갑 조각 코등이 + 붕대 손잡이 + 금 간 재·흙 칼집",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_katana_B2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 날선·칼집 금만 1px 은은(A21/A19), 판정(glow) 프레임만 날선 A25/A26 + 날 몸 A21",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G·호박 A·흉갑 SL·붕대 PL 램프 공유, Q32). 백열 코어 X 미사용",
+ "weapon": "katana",
+ "carry": "sheathed — 왼허리 칼집(손을 놓아 흔들림)",
+ "state": "sheathed",
+ "bodySheet": "player_groggy",
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "sheathMouthAnchors": {
+  "down": [
+   [
+    63.8,
+    95.7
+   ],
+   [
+    65.4,
+    95.5
+   ],
+   [
+    66.5,
+    95.4
+   ],
+   [
+    66.5,
+    95.4
+   ],
+   [
+    65.4,
+    95.5
+   ],
+   [
+    63.8,
+    95.7
+   ],
+   [
+    62.1,
+    98.0
+   ],
+   [
+    61.0,
+    99.4
+   ],
+   [
+    61.0,
+    99.4
+   ],
+   [
+    62.1,
+    98.0
+   ]
+  ],
+  "up": [
+   [
+    32.2,
+    92.6
+   ],
+   [
+    31.0,
+    92.4
+   ],
+   [
+    30.2,
+    92.3
+   ],
+   [
+    30.2,
+    92.3
+   ],
+   [
+    31.0,
+    92.4
+   ],
+   [
+    32.2,
+    92.6
+   ],
+   [
+    33.5,
+    94.8
+   ],
+   [
+    34.3,
+    96.3
+   ],
+   [
+    34.3,
+    96.3
+   ],
+   [
+    33.5,
+    94.8
+   ]
+  ],
+  "left": [
+   [
+    43.5,
+    93.8
+   ],
+   [
+    43.5,
+    94.8
+   ],
+   [
+    43.5,
+    95.5
+   ],
+   [
+    43.5,
+    95.5
+   ],
+   [
+    43.5,
+    94.8
+   ],
+   [
+    43.5,
+    93.8
+   ],
+   [
+    43.5,
+    94.8
+   ],
+   [
+    43.5,
+    95.5
+   ],
+   [
+    43.5,
+    95.5
+   ],
+   [
+    43.5,
+    94.8
+   ]
+  ],
+  "right": [
+   [
+    52.5,
+    93.8
+   ],
+   [
+    52.5,
+    94.8
+   ],
+   [
+    52.5,
+    95.5
+   ],
+   [
+    52.5,
+    95.5
+   ],
+   [
+    52.5,
+    94.8
+   ],
+   [
+    52.5,
+    93.8
+   ],
+   [
+    52.5,
+    94.8
+   ],
+   [
+    52.5,
+    95.5
+   ],
+   [
+    52.5,
+    95.5
+   ],
+   [
+    52.5,
+    94.8
+   ]
+  ]
+ },
+ "overlay": "player_groggy 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset"
+}

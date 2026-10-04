@@ -1,0 +1,52 @@
+{
+ "image": "bow_arrow_weak.png",
+ "action": "bow_arrow_weak",
+ "version": "v3-r56d",
+ "frameWidth": 64,
+ "frameHeight": 24,
+ "frames": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.67,
+ "frameDurationsMs": [
+  60,
+  60,
+  60,
+  60
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 8,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_res/build.py (56라운드 작업 D — 자원·가드·그로기 표시)",
+ "weapon": "bow",
+ "anchor": "projectile",
+ "pivot": {
+  "x": 40,
+  "y": 12
+ },
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "depth": "above",
+ "anim": "loop_move",
+ "design": "56라운드 Q26 약한 화살(일찍 놓기) — 기존 재 화살과 같은 화살대·깃, 촉은 덜 타 어둡고(A17~A19, 불씨 1~2 도트만 A21), 깃 뒤로 짧게 흔들리는 회색 재 연기 꼬리",
+ "axisNote": "기존 bow_arrow(48×24, 피벗 (24,12)) 와 같은 축 — 화살 픽셀은 피벗 기준 같은 자리, 왼쪽(꼬리)으로 16 도트 넓힘",
+ "spawn": "early_release",
+ "spawnNote": "56라운드 Q9·Q20: 가득 당기기 전에 놓았을 때 발사되는 약한 1발. 피해·속도는 시스템 데이터",
+ "replacesWhen": "bow_arrow(일반) 대신 — 활 갈래 화살(_rapid·_snipe) 상태에서도 일찍 놓기면 이 시트(갈래 표시는 생략, 질문 사항)",
+ "glowFrames": [],
+ "frameRoles": [
+  "연기 위",
+  "연기 가운데",
+  "연기 아래",
+  "연기 가운데"
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

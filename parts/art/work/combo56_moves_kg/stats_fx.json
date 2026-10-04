@@ -1,0 +1,72 @@
+{
+ "greatsword_brace_absorb": {
+  "frame": [
+   80,
+   88
+  ],
+  "colors": 7
+ },
+ "greatsword_brace_upswing": {
+  "frame": [
+   360,
+   424
+  ],
+  "colors": 12
+ },
+ "greatsword_brace_upswing_ember": {
+  "frame": [
+   416,
+   496
+  ],
+  "colors": 12
+ },
+ "greatsword_guard_rush": {
+  "frame": [
+   696,
+   672
+  ],
+  "colors": 10
+ },
+ "greatsword_leap_slam": {
+  "frame": [
+   592,
+   664
+  ],
+  "colors": 8
+ },
+ "greatsword_leap_slam_land": {
+  "frame": [
+   568,
+   576
+  ],
+  "colors": 13
+ },
+ "greatsword_tackle": {
+  "frame": [
+   296,
+   296
+  ],
+  "colors": 13
+ },
+ "katana_counter": {
+  "frame": [
+   344,
+   368
+  ],
+  "colors": 11
+ },
+ "katana_iai": {
+  "frame": [
+   504,
+   504
+  ],
+  "colors": 13
+ },
+ "katana_iai_ready": {
+  "frame": [
+   48,
+   56
+  ],
+  "colors": 4
+ }
+}

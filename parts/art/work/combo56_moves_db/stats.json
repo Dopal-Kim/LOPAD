@@ -1,0 +1,70 @@
+{
+ "body": {
+  "dagger_backstab": {
+   "weaponColors": 14,
+   "bodyColors": 28,
+   "edgePixels": 0
+  },
+  "dagger_flurry": {
+   "weaponColors": 14,
+   "bodyColors": 28,
+   "edgePixels": 0
+  },
+  "bow_arrow_rain": {
+   "weaponColors": 15,
+   "bodyColors": 28,
+   "edgePixels": 0
+  }
+ },
+ "fx": {
+  "dagger_backstab": {
+   "frame": [
+    200,
+    152
+   ],
+   "colors": 11
+  },
+  "dagger_flurry": {
+   "frame": [
+    336,
+    344
+   ],
+   "colors": 11
+  },
+  "dagger_flurry_heat2": {
+   "frame": [
+    360,
+    368
+   ],
+   "colors": 12
+  },
+  "dagger_flurry_heat3": {
+   "frame": [
+    376,
+    376
+   ],
+   "colors": 11
+  },
+  "bow_arrow_rain_rise": {
+   "frame": [
+    200,
+    184
+   ],
+   "colors": 9
+  },
+  "bow_arrow_rain_fall": {
+   "frame": [
+    72,
+    232
+   ],
+   "colors": 14
+  },
+  "bow_arrow_rain_mark": {
+   "frame": [
+    440,
+    440
+   ],
+   "colors": 10
+  }
+ }
+}

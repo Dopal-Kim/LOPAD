@@ -1,0 +1,44 @@
+{
+ "image": "dagger_overheat_cool.png",
+ "action": "dagger_overheat_cool",
+ "version": "v3-r56d",
+ "frameWidth": 72,
+ "frameHeight": 128,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 9.09,
+ "frameDurationsMs": [
+  110,
+  110,
+  110,
+  110,
+  110,
+  110
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 4,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_res/build.py (56라운드 작업 D — 자원·가드·그로기 표시)",
+ "weapon": "dagger",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 35,
+  "y": 117
+ },
+ "pivotNote": "pivot = 주인공 발",
+ "rotate": false,
+ "depth": "above",
+ "followTarget": true,
+ "glowFrames": [],
+ "playRule": "과열 식는 동안(잠깐 느려짐) 루프. 끝나면 마지막 열에서 끔(반투명 금지)",
+ "design": "56라운드 Q19 식힘 — 어깨·팔에서 회색 재 김이 피어올라 흩어짐, 어두운 불씨 한두 점",
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}
