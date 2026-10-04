@@ -8,8 +8,16 @@
  */
 import Phaser from 'phaser';
 import { BIRTH, CAMERA, DEPTH, entityDepth } from '../core/Constants';
-import { spriteLibrary } from './sprites';
-import { BIRTH_ACTION, BIRTH_FX, FX_ACTION, artScale, frameDurations, frameStarts, type SheetDef } from './spriteDefs';
+import { spriteLibrary } from './sprites/sprites';
+import {
+  BIRTH_ACTION,
+  BIRTH_FX,
+  FX_ACTION,
+  artScale,
+  frameDurations,
+  frameStarts,
+  type SheetDef,
+} from './sprites/spriteDefs';
 
 export interface BirthHost {
   scene: Phaser.Scene;

@@ -20,10 +20,10 @@
  * 판정(strokeFeatures)과 무관한 표시 전용.
  */
 import Phaser from 'phaser';
-import { GAME } from '../core/Constants';
-import { CANVAS_H, CANVAS_W, RES } from './display';
-import { PALETTE } from '../data';
-import { fxCoreColor, hexToInt, rampFor } from './palette';
+import { GAME } from '../../core/Constants';
+import { CANVAS_H, CANVAS_W, RES } from '../display';
+import { PALETTE } from '../../data';
+import { fxCoreColor, hexToInt, rampFor } from '../palette';
 import { STROKE_FX, heatAt, pathPointAt, searAt, widthRatio, type SearState } from './strokeFxMath';
 import { fillRibbon, hash01, lightColor, rgba, strokeCenter, strokeEdge, type Ctx } from './strokeFxPaint';
 import { ensureStrokeFxTextures } from './strokeFxTextures';

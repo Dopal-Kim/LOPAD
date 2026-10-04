@@ -7,8 +7,8 @@ import Phaser from 'phaser';
 import { BOSS_FX, DEPTH, QUARTER, RENDER, TILE, entityDepth } from '../../core/Constants';
 import type { BossArenaParams } from '../../data/types';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
-import { spriteLibrary } from '../sprites';
-import { STRUCTURE_ACTION, artScale, frameDurations, structureStateFrames } from '../spriteDefs';
+import { spriteLibrary } from '../sprites/sprites';
+import { STRUCTURE_ACTION, artScale, frameDurations, structureStateFrames } from '../sprites/spriteDefs';
 import type { TileSkin } from '../../world/tileskin';
 
 export type CandleState = 'lit' | 'fallen' | 'relit';

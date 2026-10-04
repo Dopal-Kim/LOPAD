@@ -45,7 +45,15 @@ export interface DebugApi {
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
   player: () => PlayerInfo;
   /** 로드된 스프라이트 시트·애니 키·현재 층 변형 */
-  sprites: () => { sheets: string[]; anims: string[]; variant: string; aliases: Record<string, string> };
+  /** 57라운드 A2: weaponLoaded = 지금 올라간 런 무기 시트 · textureCount = 텍스처 수 */
+  sprites: () => {
+    sheets: string[];
+    anims: string[];
+    variant: string;
+    aliases: Record<string, string>;
+    weaponLoaded: string | null;
+    textureCount: number;
+  };
   /** 활성 이펙트 스프라이트 */
   fx: () => unknown;
   stunAll: (ms: number) => void;
@@ -159,7 +167,7 @@ export interface DebugApi {
   /** 49라운드: 자원 값을 바로 바꾼다 (기력 바닥·탄창 비우기·최대 열 검증용). 자원이 없으면 false */
   setResource: (value: number) => boolean;
   /** 56라운드: 무기 고유 자원(검기·울분·숨)·그로기·낙인·일섬·꽂아내리기·월드 문구·숨 집중·차지 유지음 속도 */
-  w56: () => unknown;
+  weaponKit: () => unknown;
   /** 56라운드: 고유 자원 값을 바로 바꾼다 (검기 3단 = 300 등). 자원이 없으면 false */
   setGauge: (value: number) => boolean;
   /** 56라운드 2단계 캡처용: 게임 씬 갱신을 멈추고(그림은 그대로) 다시 잇는다 */
@@ -293,7 +301,15 @@ export function exposeDebug(api: {
   hurt: (m: Mob, amount: number, crit?: boolean) => void;
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
   playerInfo: () => PlayerInfo;
-  sprites: () => { sheets: string[]; anims: string[]; variant: string; aliases: Record<string, string> };
+  /** 57라운드 A2: weaponLoaded = 지금 올라간 런 무기 시트 · textureCount = 텍스처 수 */
+  sprites: () => {
+    sheets: string[];
+    anims: string[];
+    variant: string;
+    aliases: Record<string, string>;
+    weaponLoaded: string | null;
+    textureCount: number;
+  };
   fx: () => unknown;
   stunAll: (ms: number) => void;
   now: () => number;
@@ -351,7 +367,7 @@ export function exposeDebug(api: {
   skipBirth: () => void;
   weaponState: () => unknown;
   setResource: (value: number) => boolean;
-  w56: () => unknown;
+  weaponKit: () => unknown;
   setGauge: (value: number) => boolean;
   freeze: (on: boolean) => void;
   lab: () => unknown;
@@ -506,7 +522,7 @@ export function exposeDebug(api: {
     skipBirth: () => api.skipBirth(),
     weaponState: () => api.weaponState(),
     setResource: (v) => api.setResource(v),
-    w56: () => api.w56(),
+    weaponKit: () => api.weaponKit(),
     freeze: (on) => api.freeze(on),
     setGauge: (v) => api.setGauge(v),
     lab: () => api.lab(),

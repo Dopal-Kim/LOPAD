@@ -12,12 +12,12 @@ import { DEPTH, ENEMY_FX, FEEDBACK, fxLitDepth } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { HitShapeSpec } from '../../data/types';
-import { artCandidates, pickArt } from '../../systems/comboArt';
-import { comboFxId, slamFxId } from '../../systems/fxIds';
-import { comboRadius, comboShape, resolveHitShape, type HitShape } from '../../systems/hitShapes';
-import { spriteLibrary } from '../../systems/sprites';
-import type { FxVariant } from '../../systems/fxVariants';
-import { pickSwingFx } from '../../systems/swingSelect';
+import { artCandidates, pickArt } from '../../systems/weapon/comboArt';
+import { comboFxId, slamFxId } from '../../systems/fx/fxIds';
+import { comboRadius, comboShape, resolveHitShape, type HitShape } from '../../systems/weapon/hitShapes';
+import { spriteLibrary } from '../../systems/sprites/sprites';
+import type { FxVariant } from '../../systems/fx/fxVariants';
+import { pickSwingFx } from '../../systems/weapon/swingSelect';
 import {
   artScale,
   comboAction,
@@ -30,7 +30,7 @@ import {
   swingFxDelayMs,
   type Dir8,
   type Facing,
-} from '../../systems/spriteDefs';
+} from '../../systems/sprites/spriteDefs';
 import type { ShakeHint } from './swingShake';
 import { crackShake } from './swingShake';
 import type { Game } from '../Game';

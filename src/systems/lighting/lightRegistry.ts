@@ -5,7 +5,7 @@
  */
 import { LIGHTING } from '../../data';
 import type { LightDefData } from '../../data/types';
-import type { LightSpec } from '../spriteDefs';
+import type { LightSpec } from '../sprites/spriteDefs';
 import { hexColor } from './lightMath';
 
 /** 위치를 따라갈 대상 (스프라이트 등) */

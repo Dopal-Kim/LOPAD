@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { WEAPONS } from '../data';
-import type { AmmoResourceDef, HeatResourceDef, StaminaResourceDef } from '../data/types';
+import { WEAPONS } from '../../data';
+import type { AmmoResourceDef, HeatResourceDef, StaminaResourceDef } from '../../data/types';
 import { WeaponResource } from './weaponResource';
 
 const STAMINA: StaminaResourceDef = {

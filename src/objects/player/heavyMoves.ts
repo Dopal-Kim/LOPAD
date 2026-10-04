@@ -8,7 +8,7 @@ import { gameState } from '../../core/GameState';
 import { PLAYER_DATA } from '../../data';
 import type { ComboFollowUpDef, ComboHitDef, WeaponDef, WeaponSlamDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
-import { comboAction, facingOf, motionAction } from '../../systems/spriteDefs';
+import { comboAction, facingOf, motionAction } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 
 /** 연격 한 타 (속도 배율 반영 길이 포함) */

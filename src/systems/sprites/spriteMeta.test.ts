@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SPRITES } from '../core/Constants';
+import { SPRITES } from '../../core/Constants';
 import { overlayDepthAt, type SheetJson } from './spriteDefs';
 import {
   anchorOffset,

@@ -3,7 +3,7 @@ import type Phaser from 'phaser';
 import { SCENES } from '../core/Constants';
 import { STORY } from '../data';
 import { SaveSlot, browserStorage } from '../systems/save';
-import { audio } from '../systems/audio';
+import { audio } from '../systems/audio/audio';
 import { UI_EVENTS, __system, type UiMenuId, type UiSnapshot, type UiWarpDenied, type UiWarpDenyReason } from './ui';
 import { UI_SCENES } from '../ui';
 

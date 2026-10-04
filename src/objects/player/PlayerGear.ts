@@ -5,8 +5,8 @@
 import { EventBus, Events, type WeaponCarryPayload, type WeaponResourcePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { WeaponCarryDef, WeaponFirstStrikeDef } from '../../data/types';
-import { frameDurations, motionAction } from '../../systems/spriteDefs';
-import { WeaponResource, effectiveResource } from '../../systems/weaponResource';
+import { frameDurations, motionAction } from '../../systems/sprites/spriteDefs';
+import { WeaponResource, effectiveResource } from '../../systems/weapon/weaponResource';
 import type { Player } from '../Player';
 
 export class PlayerGear {

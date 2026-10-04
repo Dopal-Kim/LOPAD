@@ -9,8 +9,8 @@
  * 수치는 전부 시스템 임시값.
  */
 import Phaser from 'phaser';
-import { GAME } from '../core/Constants';
-import { CANVAS_H, CANVAS_W, RES } from './display';
+import { GAME } from '../../core/Constants';
+import { CANVAS_H, CANVAS_W, RES } from '../display';
 import { rgba, type Ctx } from './strokeFxPaint';
 
 export const BACK = {

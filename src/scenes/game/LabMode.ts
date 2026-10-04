@@ -6,7 +6,7 @@
 import { KEYS, LAB, TILE } from '../../core/Constants';
 import { EventBus, Events } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import { PLAYER_DATA, WEAPONS, WEAPON_RULES } from '../../data';
+import { WEAPONS, WEAPON_RULES } from '../../data';
 import { LabDummy } from '../../objects/LabDummy';
 import { generateArena, type FloorLayout } from '../../systems/mapgen';
 import { oncePerKeyEvent } from '../../systems/keyEvents';
@@ -18,8 +18,9 @@ import {
   labBranchMenu,
   labWeaponMenu,
   nextReinforce,
-} from '../../systems/weaponLab';
+} from '../../systems/weapon/weaponLab';
 import type { Game } from '../Game';
+import { labWeaponFor } from './runWeapon';
 import { urlParams, type GameInitData } from './shared';
 
 export class LabMode {
@@ -35,9 +36,7 @@ export class LabMode {
 
   /** 연습 런: 세이브·노드 지도·탄생 없이 고른 무기로. 층 시작 UI 이벤트는 내지 않는다(스냅샷 lab = true) */
   prepareRun(): boolean {
-    const want = this.init.labWeapon ?? gameState.weapon?.id;
-    const weapon = want && WEAPONS[want] ? want : PLAYER_DATA.startWeapon;
-    gameState.startRun(LAB.SEED, weapon, gameState.playerName);
+    gameState.startRun(LAB.SEED, labWeaponFor(this.init), gameState.playerName);
     gameState.birthPending = false;
     // 51라운드 검증: `?branch=<1단>[,<2단>]` 로 갈래를 바로 (트리에 없는 id 는 restore 가 거른다)
     const branch = urlParams().get('branch');

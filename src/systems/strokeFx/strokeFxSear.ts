@@ -6,8 +6,8 @@
  * 타임라인 계산은 `strokeFxMath.ts` 의 `searAt`. 획 빛(타오름)은 `StrokeFx` 의 빛 캔버스가 SEAR_LAYERS 로 그린다.
  */
 import Phaser from 'phaser';
-import { GAME } from '../core/Constants';
-import { CANVAS_H, CANVAS_W, RES } from './display';
+import { GAME } from '../../core/Constants';
+import { CANVAS_H, CANVAS_W, RES } from '../display';
 import { STROKE_FX, type SearState } from './strokeFxMath';
 import { fillRibbon, rgba, strokeCenter, strokeEdge } from './strokeFxPaint';
 import type { StrokeSample } from './strokeFxSpline';

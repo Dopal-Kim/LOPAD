@@ -5,6 +5,7 @@
  * 좌표는 경기장 중심 기준 월드 px.
  */
 import { DODGE_TRIAL, type ArenaShape, type ErosionSpec, type TrialConfig } from './dodgeTrial';
+import { clamp01 } from '../mathUtil';
 
 /** 기둥 (중심 기준 px, 반지름 px) */
 export interface Pillar {
@@ -288,8 +289,4 @@ function segDist(px: number, py: number, ax: number, ay: number, bx: number, by:
   const l2 = dx * dx + dy * dy;
   const t = l2 > 0 ? clamp01(((px - ax) * dx + (py - ay) * dy) / l2) : 0;
   return Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
-}
-
-function clamp01(v: number): number {
-  return Math.max(0, Math.min(1, v));
 }

@@ -5,8 +5,8 @@
 import { EventBus, Events, type ArrowRainPayload, type PlayerSecondaryPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { InputState } from '../../systems/InputSystem';
-import { pickMove } from '../../systems/moves';
-import { facingOf } from '../../systems/spriteDefs';
+import { pickMove } from '../../systems/weapon/moves';
+import { facingOf } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 
 /** 화살비 시작 (조건이 안 맞으면 false — 공격 수단 표 live · 탄창 ammoCost 이상 · 장전 중 아님) */

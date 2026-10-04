@@ -4,7 +4,7 @@
  */
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import type { FxPool } from '../../systems/fx';
+import type { FxPool } from '../../systems/fx/fx';
 
 /**
  * mode 'floor' = 디버그·검증용 층 이동 (47라운드, 세이브 없음) · 'node' = 같은 층 안 다음 노드 (48라운드).

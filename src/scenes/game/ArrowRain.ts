@@ -9,11 +9,11 @@ import { DEPTH, MOVE_FX, entityDepth } from '../../core/Constants';
 import { EventBus, Events, type ArrowRainPayload, type PlayerSkillPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
-import { markColumn, rainPoints, type Pt } from '../../systems/arrowRainMath';
-import type { FxHandle } from '../../systems/fxTypes';
-import { circleHit } from '../../systems/hitShapes';
-import { artScale, frameDurations, frameStarts, fxImpactFrame } from '../../systems/spriteDefs';
-import { spriteLibrary } from '../../systems/sprites';
+import { markColumn, rainPoints, type Pt } from '../../systems/weapon/arrowRainMath';
+import type { FxHandle } from '../../systems/fx/fxTypes';
+import { circleHit } from '../../systems/weapon/hitShapes';
+import { artScale, frameDurations, frameStarts, fxImpactFrame } from '../../systems/sprites/spriteDefs';
+import { spriteLibrary } from '../../systems/sprites/sprites';
 import type { Game } from '../Game';
 import { HIT_ORIGIN_UP_PX } from './shared';
 

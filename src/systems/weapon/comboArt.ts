@@ -4,7 +4,7 @@
  * 몸 `player_<무기>_<이름>`(무기 오버레이 `<무기>_<이름>` 이 몸을 따라감) · 휘두름 이펙트 `fx/<무기>_<이름>` · 끝점 바닥 충격 `fx/<무기>_<이름>`.
  * 아트의 새 시트 명세가 오면 표의 앞에 새 이름을 넣으면 되고, 새 시트가 아직 없으면 뒤의 기존 시트로 대체돼 로직만 먼저 돈다.
  */
-import type { ComboArtEntry, ComboDef } from '../data/types';
+import type { ComboArtEntry, ComboDef } from '../../data/types';
 
 export type ArtCategory = 'body' | 'fx' | 'impactFx' | 'flashFx' | 'crackFx';
 

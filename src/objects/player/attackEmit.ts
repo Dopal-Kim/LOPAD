@@ -8,9 +8,9 @@
 import Phaser from 'phaser';
 import { EventBus, Events, type PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import { artCandidates, hitArtKey, pickArt } from '../../systems/comboArt';
+import { artCandidates, hitArtKey, pickArt } from '../../systems/weapon/comboArt';
 import type { InputState } from '../../systems/InputSystem';
-import { facingOf, rowDirFor } from '../../systems/spriteDefs';
+import { facingOf, rowDirFor } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 import type { ComboStrike } from './heavyMoves';
 

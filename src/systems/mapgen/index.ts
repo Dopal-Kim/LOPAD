@@ -24,9 +24,3 @@ export function generateFloor(seed: number | string, P: LayoutParams): FloorLayo
   }
   throw new Error(`[mapgen] ${MAX_ATTEMPTS}번 시도 후에도 층을 생성하지 못함 (seed=${String(seed)})`);
 }
-
-/** 디버그용 ASCII 출력 */
-export function renderAscii(layout: FloorLayout): string {
-  const ch = ['.', ' ', '#', '+', 'D', 'L', ':'];
-  return layout.tiles.map((row) => row.map((t) => ch[t]).join('')).join('\n');
-}

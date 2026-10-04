@@ -8,9 +8,9 @@
  * 탄 풀(생성·이동·판정) = `dodgeTrialBullets.ts`.
  */
 import Phaser from 'phaser';
-import { DEPTH, ENEMY_FX, TILE } from '../core/Constants';
-import { audio } from './audio';
-import { SFX } from './audioMap';
+import { DEPTH, ENEMY_FX, TILE } from '../../core/Constants';
+import { audio } from '../audio/audio';
+import { SFX } from '../audio/audioMap';
 import { DODGE_TRIAL, type Cue, type TaskId } from './dodgeTrial';
 import type { ArenaMask } from './dodgeTrialArena';
 import { SHOT_SFX_ENEMY, TrialBullets } from './dodgeTrialBullets';
@@ -23,8 +23,8 @@ import {
   taskCues,
   wallFrame,
 } from './dodgeTrialTasks';
-import type { FxPool } from './fx';
-import { TelegraphFx } from './telegraph';
+import type { FxPool } from '../fx/fx';
+import { TelegraphFx } from '../telegraph';
 import { drawHazards, wallAlong, type Ring, type Wall } from './dodgeTrialHazardsView';
 
 /** 지금 과제의 경기장 (러너가 넘긴다) */

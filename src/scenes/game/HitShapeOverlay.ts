@@ -5,7 +5,7 @@
  */
 import Phaser from 'phaser';
 import { COLORS, DEBUG, DEPTH, PROTOTYPE } from '../../core/Constants';
-import { shapeOutline, type HitShape, type ShapeFacing } from '../../systems/hitShapes';
+import { shapeOutline, type HitShape, type ShapeFacing } from '../../systems/weapon/hitShapes';
 import type { Game } from '../Game';
 import { urlParams } from './shared';
 

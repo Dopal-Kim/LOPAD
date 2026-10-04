@@ -15,7 +15,7 @@ import {
 } from '../../contract/ui';
 import type { EnemyIncomingPayload } from '../../core/EventBus';
 import { buildSnapshot } from '../../contract/snapshot';
-import { audio } from '../../systems/audio';
+import { audio } from '../../systems/audio/audio';
 import { floorText } from '../../systems/story';
 import type { WarpDenyReason } from '../../systems/traversal';
 import type { Game } from '../Game';

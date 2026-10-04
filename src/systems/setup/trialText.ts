@@ -2,9 +2,9 @@
  * 회피 시험 자리표시 문구 조립 (Phaser 없음): 과제 카드 · 진행 줄 · 과제 결과 한 줄 · 전체 결과.
  * 문구 원본은 `DODGE_TRIAL.TEXT`·`TASKS[id].name/hint` (스토리·UI 파트 교체 대상).
  */
-import { DODGE_TRIAL, TASK_IDS, type TaskResult, type TrialResult } from '../dodgeTrial';
+import { DODGE_TRIAL, TASK_IDS, type TaskResult, type TrialResult } from '../dodgeTrial/dodgeTrial';
 import { fill } from '../story';
-import type { TrialStatus } from '../dodgeTrialRunner';
+import type { TrialStatus } from '../dodgeTrial/dodgeTrialRunner';
 
 const T = DODGE_TRIAL.TEXT;
 

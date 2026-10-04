@@ -5,8 +5,8 @@
  */
 import Phaser from 'phaser';
 import { BOSS_FX, TILE, entityDepth } from '../../core/Constants';
-import { spriteLibrary } from '../sprites';
-import { STRUCTURE_ACTION, artScale, facingOf, structureStateFrames } from '../spriteDefs';
+import { spriteLibrary } from '../sprites/sprites';
+import { STRUCTURE_ACTION, artScale, facingOf, structureStateFrames } from '../sprites/spriteDefs';
 import { caskCircumferenceWorld } from './caskMath';
 
 export interface CaskParams {

@@ -1,15 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { STAGES } from '../../data';
-import { generateFloor, TileId } from '../mapgen';
+import { generateFloor, TileId, type FloorLayout } from '../mapgen';
 import { planProps } from '../../world/tileskin';
 import { INTERACT_KINDS, STRUCTURE_DEFS, STRUCTURE_RULES, structureDef } from './data';
 import { baseBlocked, planStructures, solidStructureTiles, structureTiles, type StructurePlacement } from './placement';
 
 const seeds = [1, 2, 3, 42, 'lopad', 'abc', 9999, 123456, 'r47', 'demo'];
 
+/** 57라운드 D1: 같은 (층, 시드) 의 층·배치는 한 번만 만든다 (테스트는 결과를 바꾸지 않는다) */
+const layouts = new Map<string, FloorLayout>();
+const plans = new Map<string, { layout: FloorLayout; list: StructurePlacement[] }>();
+function layoutOf(stageId: string, seed: string | number): FloorLayout {
+  const key = `${seed}:${stageId}`;
+  let L = layouts.get(key);
+  if (!L) layouts.set(key, (L = generateFloor(key, STAGES[stageId].layout)));
+  return L;
+}
 function floor(stageId: string, seed: string | number) {
-  const layout = generateFloor(`${seed}:${stageId}`, STAGES[stageId].layout);
-  return { layout, list: planStructures(layout, stageId, `${seed}:${stageId}`) };
+  const key = `${seed}:${stageId}`;
+  let f = plans.get(key);
+  if (!f) {
+    const layout = layoutOf(stageId, seed);
+    plans.set(key, (f = { layout, list: planStructures(layout, stageId, key) }));
+  }
+  return f;
 }
 
 const budgetKinds = (list: StructurePlacement[], group: 'common' | 'theme') =>
@@ -127,7 +141,7 @@ describe('planStructures (47라운드 배치)', () => {
   it('forceAll: 그 층에 나올 수 있는 종류가 (자리가 있으면) 전부 나온다', () => {
     for (const s of seeds.slice(0, 5)) {
       for (const stage of ['stage1', 'stage2']) {
-        const layout = generateFloor(`${s}:${stage}`, STAGES[stage].layout);
+        const layout = layoutOf(stage, s);
         const list = planStructures(layout, stage, `${s}:${stage}`, { forceAll: true });
         const kinds = new Set(list.map((p) => p.kind));
         const want = [...STRUCTURE_DEFS.values()]

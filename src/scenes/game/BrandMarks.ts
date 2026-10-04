@@ -3,18 +3,18 @@
  * 전부 폭발 · 과열 100% → 주변 낙인 일괄 폭발. 표식 = fx `dagger_brand_mark`(행 = 스택 1~5, 적 머리 위, 찍힘 0~1 → 2~5 반복),
  * 폭발 = `dagger_brand_burst`(행 s·m·l = 스택), 과열 = `dagger_overheat_burst`(주인공 발) 뒤 가까운 적부터 40ms 간격.
  * 시트가 없으면 작은 호박 마름모(Graphics)·플레이스홀더.
- * 장부 규칙은 `systems/weaponGauge.BrandBook`(Phaser 의존 없음).
+ * 장부 규칙은 `systems/weapon/weaponGauge.BrandBook`(Phaser 의존 없음).
  */
 import Phaser from 'phaser';
 import { DEPTH, FEEDBACK, TILE } from '../../core/Constants';
-import type { FxHandle } from '../../systems/fx';
+import type { FxHandle } from '../../systems/fx/fx';
 import { crackShake, type ShakeHint } from './swingShake';
 import { EventBus, Events, type PlayerSkillPayload, type WeaponGaugePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { BrandGaugeDef } from '../../data/types';
 import type { UiWeaponGauge } from '../../contract/ui';
 import type { Mob } from '../../objects/Mob';
-import { BrandBook, isBackHit } from '../../systems/weaponGauge';
+import { BrandBook, isBackHit } from '../../systems/weapon/weaponGauge';
 import type { Game } from '../Game';
 
 /** 4방향 → 단위벡터 (적이 바라보는 쪽) */

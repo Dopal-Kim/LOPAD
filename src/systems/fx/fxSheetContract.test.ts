@@ -5,14 +5,14 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { WEAPONS } from '../data';
+import { WEAPONS } from '../../data';
 import { parseAshKinds, parseAshRecipes } from './ashParticleMath';
 import { weaponHitFxIds } from './fxIds';
 import { secondarySheetId, tier2FxSheetIds } from './fxTier';
 import { branchComboFxId } from './fxVariants';
-import { animDurationMs, artScale, frameDurations, fxHoldFrame, type SheetJson } from './spriteDefs';
+import { animDurationMs, artScale, frameDurations, fxHoldFrame, type SheetJson } from '../sprites/spriteDefs';
 
-const DIR = resolve(__dirname, '../../assets/sprites/fx/v3');
+const DIR = resolve(__dirname, '../../../assets/sprites/fx/v3');
 const read = (id: string): SheetJson | null => {
   const f = `${DIR}/${id}.json`;
   return existsSync(f) ? (JSON.parse(readFileSync(f, 'utf8')) as SheetJson) : null;

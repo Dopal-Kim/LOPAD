@@ -5,8 +5,8 @@
  */
 import Phaser from 'phaser';
 import { COLORS, DEPTH, GAME, PLACEHOLDER_UI } from '../../core/Constants';
-import type { TrialResult } from '../dodgeTrial';
-import type { TrialStatus } from '../dodgeTrialRunner';
+import type { TrialResult } from '../dodgeTrial/dodgeTrial';
+import type { TrialStatus } from '../dodgeTrial/dodgeTrialRunner';
 import { cardText, resultText, statusLine, taskLine } from './trialText';
 
 /** 카드 판 알파 (제목 카드 · 과제 결과 · 전체 결과) · 판 여백 px */

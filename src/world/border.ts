@@ -12,6 +12,7 @@
  */
 import { BORDER, RENDER } from '../core/Constants';
 import { TileId, type FloorLayout } from '../systems/mapgen';
+import { nonEmptyStr, numOr } from '../data/validateUtil';
 
 /** 월드 단위 / 논리 px */
 export const WORLD_PER_LOGICAL = 1 / RENDER.WORLD_TO_SCREEN;
@@ -130,8 +131,8 @@ export interface BorderPlan {
 
 // --- 읽기 ---
 
-const num = (v: unknown, fallback: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
-const str = (v: unknown): string | null => (typeof v === 'string' && v.length > 0 ? v : null);
+const num = numOr;
+const str = nonEmptyStr;
 
 function lightsOf(raw: unknown): BorderLight[] {
   if (!Array.isArray(raw)) return [];

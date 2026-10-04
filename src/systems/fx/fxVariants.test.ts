@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DEPTH, entityDepth, fxLitDepth } from '../core/Constants';
-import { WEAPONS } from '../data';
+import { DEPTH, entityDepth, fxLitDepth } from '../../core/Constants';
+import { WEAPONS } from '../../data';
 import { branchComboFxId, composeSwaps, meleeBranchFxSheetIds, resolveFxVariant, swapTag } from './fxVariants';
-import { paletteSwapExempt } from './spriteDefs';
+import { paletteSwapExempt } from '../sprites/spriteDefs';
 
 /** 아트 v3 JSON 형태를 줄인 예 (계약 §10: secondaryVariants · heatVariants) */
 const iai = {

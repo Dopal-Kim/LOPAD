@@ -8,7 +8,7 @@
  */
 import Phaser from 'phaser';
 import { DEPTH, SPRITES, TEXTURES, entityDepth } from '../core/Constants';
-import { spriteLibrary } from '../systems/sprites';
+import { spriteLibrary } from '../systems/sprites/sprites';
 import {
   animDurationMs,
   artScale,
@@ -27,7 +27,7 @@ import {
   type Dir8,
   type Facing,
   type SheetJson,
-} from '../systems/spriteDefs';
+} from '../systems/sprites/spriteDefs';
 
 type Body = Phaser.Physics.Arcade.Body;
 type Host = Phaser.GameObjects.Sprite & { body: Body };

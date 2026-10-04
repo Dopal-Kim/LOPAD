@@ -18,9 +18,9 @@ import {
   progressFrame,
   specialAction,
   type Facing,
-} from '../../systems/spriteDefs';
-import { bodyActionFor, strideRate } from '../../systems/spriteMeta';
-import { drawFrame } from '../../systems/bowDraw';
+} from '../../systems/sprites/spriteDefs';
+import { bodyActionFor, strideRate } from '../../systems/sprites/spriteMeta';
+import { drawFrame } from '../../systems/weapon/bowDraw';
 import type { Player } from '../Player';
 
 /** 48라운드 특수 자세 구간 */

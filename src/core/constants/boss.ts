@@ -1,5 +1,5 @@
 /**
- * 54라운드 1층 보스 '만취' 연출 상수 (Constants.ts 가 커져서 분리 — Constants 에서 다시 내보낸다).
+ * 54라운드 1층 보스 '만취' 연출 상수 (Constants.ts 가 커져서 분리 — `core/constants/index.ts` 에서 다시 내보낸다).
  * 게임 수치(시간·피해·거리)는 data/bosses.json, 여기는 그림이 없을 때의 임시 그림·연출 값.
  */
 export const BOSS_FX = {

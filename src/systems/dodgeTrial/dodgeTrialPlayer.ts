@@ -5,14 +5,14 @@
  * 좌표 pos = 판정 원 중심(월드 px), 발 = pos.y + FOOT_OFFSET.
  */
 import Phaser from 'phaser';
-import { DEPTH, FEEL, TILE, entityDepth } from '../core/Constants';
-import { PLAYER_DATA } from '../data';
-import { audio } from './audio';
-import { SFX } from './audioMap';
+import { DEPTH, FEEL, TILE, entityDepth } from '../../core/Constants';
+import { PLAYER_DATA } from '../../data';
+import { audio } from '../audio/audio';
+import { SFX } from '../audio/audioMap';
 import { DODGE_TRIAL } from './dodgeTrial';
-import type { FxPool } from './fx';
-import { artScale, facingOf, type Facing } from './spriteDefs';
-import { spriteLibrary } from './sprites';
+import type { FxPool } from '../fx/fx';
+import { artScale, facingOf, type Facing } from '../sprites/spriteDefs';
+import { spriteLibrary } from '../sprites/sprites';
 
 export interface TrialInput {
   mx: number;

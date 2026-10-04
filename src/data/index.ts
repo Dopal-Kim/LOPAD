@@ -3,7 +3,7 @@ import enemiesJson from '../../data/enemies.json';
 import bossesJson from '../../data/bosses.json';
 import stagesJson from '../../data/stages.json';
 import weaponsJson from '../../data/weapons.json';
-import { validateWeapon56 } from './validate56';
+import { validateWeaponKit } from './validateWeaponKit';
 import economyJson from '../../data/economy.json';
 import personalityJson from '../../data/personality.json';
 import storyJson from '../../data/story.json';
@@ -332,7 +332,7 @@ export function validateWeaponExtras(w: WeaponDef, path: string): void {
   ];
   for (const [name, b, keys] of blocks)
     if (b) for (const k of keys) assertNumber((b as Record<string, unknown>)[k], `${path}.${name}.${k}`);
-  validateWeapon56(w, path);
+  validateWeaponKit(w, path);
 }
 
 export function validateWeaponRules(r: WeaponRules): WeaponRules {

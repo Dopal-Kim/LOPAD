@@ -5,6 +5,7 @@
  * (Catmull-Rom + 일정 간격 표본), 그리기는 `strokeFxPaint.ts`(캔버스 2D 안티앨리어싱, 1px 아래 단차).
  * 수치는 전부 시스템 임시값 (이번 작업 범위상 Constants.ts 대신 여기에 — 다음 정리 때 옮긴다).
  */
+import { clamp01 } from '../mathUtil';
 
 export const STROKE_FX = {
   /** 개성 선택은 새 런 시작 전 → 강조 램프는 1층(잔) */
@@ -335,8 +336,4 @@ export function pathPrefix(pts: number[], frac: number): number[] {
 export function pathPointAt(pts: number[], frac: number): { x: number; y: number } {
   const p = pathPrefix(pts, frac);
   return { x: p[p.length - 2], y: p[p.length - 1] };
-}
-
-function clamp01(v: number): number {
-  return Math.max(0, Math.min(1, v));
 }

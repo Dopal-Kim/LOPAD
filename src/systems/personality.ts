@@ -1,4 +1,5 @@
 import type { Affinity, PersonalityData, WeaponTable } from '../data/types';
+import { clamp01 } from './mathUtil';
 
 /** 3획 입력: 각 획의 점 목록 (px, ms) */
 export interface StrokePoint {
@@ -12,14 +13,6 @@ export type Stroke = StrokePoint[];
 export const STROKE_KEYS = ['strokeLength', 'strokeSpeed', 'straightness'] as const;
 export type StrokeKey = (typeof STROKE_KEYS)[number];
 export type StrokeFeatures = Pick<Affinity, StrokeKey>;
-
-/** 키 입력 리듬 집계 (14라운드 5초 리듬 — 49라운드부터 무기 결정에 쓰지 않음, 호환용으로 유지) */
-export interface RhythmSample {
-  frames: number;
-  movingFrames: number;
-  attacks: number;
-  dashes: number;
-}
 
 export function strokeFeatures(strokes: Stroke[], P: PersonalityData): StrokeFeatures {
   const valid = strokes.filter((s) => s.length >= P.strokes.minPoints);
@@ -44,22 +37,10 @@ export function strokeFeatures(strokes: Stroke[], P: PersonalityData): StrokeFea
   };
 }
 
-export function rhythmFeatures(
-  r: RhythmSample,
-  P: PersonalityData,
-): Pick<Affinity, 'keyMove' | 'keyAttack' | 'keyDash'> {
-  return {
-    keyMove: r.frames > 0 ? clamp01(r.movingFrames / r.frames) : 0,
-    keyAttack: clamp01(r.attacks / P.rhythm.attackSaturation),
-    keyDash: clamp01(r.dashes / P.rhythm.dashSaturation),
-  };
-}
-
 /**
  * 운명 무기 결정 (49라운드 2절): **3획 특징만으로** — 획 3축(길이·속도·직선성)과 무기 affinity 의 같은 3축 사이
  * 가중 유클리드 거리(가중치 `personality.json weights` 의 획 3축)가 가장 가까운 무기.
  * 회피 시험(움직임)은 무기 결정에서 완전히 빠졌다 — 시험은 등급 → 시작 감각 가산만 준다 (`dodgeTrial.gradeTrial`).
- * features 에 다른 축(key*)이 들어 있어도 무시한다.
  */
 export function chooseWeapon(
   features: StrokeFeatures,
@@ -80,8 +61,4 @@ export function chooseWeapon(
     }
   }
   return { id: best, distances };
-}
-
-function clamp01(v: number): number {
-  return Math.max(0, Math.min(1, v));
 }

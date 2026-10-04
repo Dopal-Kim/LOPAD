@@ -3,10 +3,10 @@
  * 우선순위: 대쉬 공격 재사용(갈래 시트 우선) → 1단 갈래 연격 시트(`<무기>_combo<n>_<갈래>`, 2단이면 2단 전용 시트) →
  * 가열 시트 → 기본 연격(마지막 타는 진화 베기) → 진화 베기 → `<무기>_slash`.
  */
-import { WEAPON_FX } from '../core/Constants';
-import { comboFxId, heatComboFxId, slashFxId } from './fxIds';
-import { pickTierSheet, type FxTier, type TierLookup } from './fxTier';
-import { branchComboFxId, resolveFxVariant, type FxVariant } from './fxVariants';
+import { WEAPON_FX } from '../../core/Constants';
+import { comboFxId, heatComboFxId, slashFxId } from '../fx/fxIds';
+import { pickTierSheet, type FxTier, type TierLookup } from '../fx/fxTier';
+import { branchComboFxId, resolveFxVariant, type FxVariant } from '../fx/fxVariants';
 
 export interface SwingPickInput {
   weaponId: string;

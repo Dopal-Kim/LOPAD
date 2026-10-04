@@ -6,7 +6,7 @@ import type { BossActionKind, BossLoopKind } from '../../core/EventBus';
 import type { BossDef } from '../../data/types';
 import type { BossPatternName, PatternParams } from '../../data/bossPatterns';
 import type { MobContext } from '../Mob';
-import type { Facing } from '../../systems/spriteDefs';
+import type { Facing } from '../../systems/sprites/spriteDefs';
 
 export interface Vec {
   x: number;

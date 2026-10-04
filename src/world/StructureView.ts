@@ -9,8 +9,14 @@ import Phaser from 'phaser';
 import { DEPTH, STRUCTURE_FX, entityDepth } from '../core/Constants';
 import { lightFor, lightRegistryOf, type LightSource } from '../systems/lighting/lightRegistry';
 import { lightOffsetOf } from './tileskin';
-import { spriteLibrary } from '../systems/sprites';
-import { STRUCTURE_ACTION, artScale, frameDurations, structureStateFrames, type SheetDef } from '../systems/spriteDefs';
+import { spriteLibrary } from '../systems/sprites/sprites';
+import {
+  STRUCTURE_ACTION,
+  artScale,
+  frameDurations,
+  structureStateFrames,
+  type SheetDef,
+} from '../systems/sprites/spriteDefs';
 
 /** 시트에 그 상태가 없을 때 차례로 볼 대체 상태 */
 export function stateFallbacks(state: string): string[] {

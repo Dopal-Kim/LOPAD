@@ -7,7 +7,7 @@
  * 55라운드 Q18 순환(`loop`): 마지막 타 다음도 회복 없이 1타로 이어진다(대검 H1→V→H2→V→H1…).
  * 막타(`heavy`, 없으면 순환이 아닌 연격의 마지막 타)는 기력이 바닥나면 1타로 바뀐다.
  */
-import type { ComboDef, ComboHitDef } from '../data/types';
+import type { ComboDef, ComboHitDef } from '../../data/types';
 
 export class ComboTracker {
   /** 마지막으로 시작한 타 번호 (-1 = 아직 없음) */

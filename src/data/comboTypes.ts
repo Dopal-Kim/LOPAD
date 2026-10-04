@@ -107,7 +107,7 @@ export interface ComboHitDef {
   heavy?: boolean;
   /** 55라운드 §17: 뒤따르는 판정 (칼 잔상 베기) */
   followUps?: ComboFollowUpDef[];
-  /** 56라운드: 일반 휘두름 대신 전용 동작 (칼 3타 일섬 — 무기 데이터 `issen`). 공격 수단 표(`systems/moves`)의 id */
+  /** 56라운드: 일반 휘두름 대신 전용 동작 (칼 3타 일섬 — 무기 데이터 `issen`). 공격 수단 표(`systems/weapon/moves`)의 id */
   move?: string;
 }
 

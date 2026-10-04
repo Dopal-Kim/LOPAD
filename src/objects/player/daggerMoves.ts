@@ -9,11 +9,11 @@ import { EventBus, Events, type PlayerAttackPayload } from '../../core/EventBus'
 import { gameState } from '../../core/GameState';
 import type { BackstabMoveDef, FlurryMoveDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
-import { artCandidates, pickArt } from '../../systems/comboArt';
-import { facingOf, frameDurations, type Facing } from '../../systems/spriteDefs';
+import { artCandidates, pickArt } from '../../systems/weapon/comboArt';
+import { facingOf, frameDurations, type Facing } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 import { aimDir, emitSkill, fireMoveStrike } from './moveStrike';
-import { heatLevelOf, stabsCrossed } from '../../systems/flurryMath';
+import { heatLevelOf, stabsCrossed } from '../../systems/weapon/flurryMath';
 
 /** 시트가 없을 때 찌르기 간격 (초당 약 11타) */
 const FALLBACK_STAB_MS = 90;

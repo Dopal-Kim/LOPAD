@@ -18,10 +18,10 @@ import {
 import { gameState } from '../../core/GameState';
 import { PLAYER_DATA } from '../../data';
 import type { Mob } from '../../objects/Mob';
-import type { FxHandle } from '../../systems/fxTypes';
-import { circleHit, shapeHit, type HitShape, type Pt } from '../../systems/hitShapes';
-import { predictTravel } from '../../systems/issenPath';
-import { facingOf, rowDirFor } from '../../systems/spriteDefs';
+import type { FxHandle } from '../../systems/fx/fxTypes';
+import { circleHit, shapeHit, type HitShape, type Pt } from '../../systems/weapon/hitShapes';
+import { predictTravel } from '../../systems/weapon/issenPath';
+import { facingOf, rowDirFor } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 import type { MobStrike } from './IssenStrikes';
 import { HIT_ORIGIN_UP_PX, shapeFacing } from './shared';

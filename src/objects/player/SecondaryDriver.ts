@@ -1,7 +1,7 @@
 /**
  * 우클릭 보조 동작 (56라운드 6-1 — Player.ts 에서 분리): 칼 패링 · 대검 가드(퍼펙트 가드 창 시작 시각) · 단검 그림자 걸음 ·
  * 활 당김·놓기(56라운드 Q9 — 누르면 당김, 떼면 발사, 자동 발사 없음, 가득 직후 완벽 놓기, 오래 쥐면 흔들림, 숨 집중).
- * 판정 규칙은 `systems/bowDraw`(Phaser 의존 없음). Player 는 행동 가능 여부만 정하고 여기에 맡긴다.
+ * 판정 규칙은 `systems/weapon/bowDraw`(Phaser 의존 없음). Player 는 행동 가능 여부만 정하고 여기에 맡긴다.
  */
 import Phaser from 'phaser';
 import { COLORS } from '../../core/Constants';
@@ -15,7 +15,7 @@ import {
 import { gameState } from '../../core/GameState';
 import { PLAYER_DATA } from '../../data';
 import type { BowDrawDef } from '../../data/types';
-import { drawState, releaseShot, strainShakeRad, type DrawState } from '../../systems/bowDraw';
+import { drawState, releaseShot, strainShakeRad, type DrawState } from '../../systems/weapon/bowDraw';
 import type { InputState } from '../../systems/InputSystem';
 import type { Player } from '../Player';
 import { startArrowRain } from './bowRain';
@@ -116,14 +116,13 @@ export class SecondaryDriver {
     }
     if (input.secondaryHeld) return;
     p.setAction('normal', 0);
-    // 56라운드 Q58: 아주 짧은 탭은 취소 (화살·탄창 소모 없음)
+    // 56라운드 Q58: 아주 짧은 탭은 취소 (화살·탄창 소모 없음). 당김 데이터는 aimedshot 에 필수 (데이터 검증)
     const d = this.draw;
-    if (d && time - this.drawStartedAt < (d.tapCancelMs ?? 0)) {
+    if (!d || time - this.drawStartedAt < (d.tapCancelMs ?? 0)) {
       this.cancelDraw(time);
       return;
     }
-    if (d) this.releaseDraw(input, time, d);
-    else this.releaseLegacy(input, time, full);
+    this.releaseDraw(input, time, d);
   }
 
   /** 56라운드 Q9: 놓기 — 일찍 = 약한 1발 · 가득 직후 = 완벽 · 그 뒤 = 가득 · 오래 쥠 = 흔들림(위력 감소) */
@@ -152,21 +151,6 @@ export class SecondaryDriver {
     if (r.power === 'perfect') p.gauges.onPerfectRelease();
     else if (res?.kind === 'ammo' && res.fire(time)) p.gear.onReloadStart(time);
     p.gauges.endFocus(time);
-  }
-
-  /** 옛 조준 사격 (당김 데이터가 없는 활): 가득 전에 떼면 취소 */
-  private releaseLegacy(input: InputState, time: number, charged: boolean): void {
-    const p = this.p;
-    const S = p.secondary;
-    if (S.kind !== 'aimedshot') return;
-    if (!charged) {
-      EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'cancel' } satisfies PlayerSecondaryPayload);
-      return;
-    }
-    this.readyAt = time + S.cooldownMs;
-    p.emitAttack(input, time, 'aimed', S.damageMult * (gameState.weapon.mods.aimedShotMult ?? 1), 1, false);
-    const res = p.resource;
-    if (res?.kind === 'ammo' && res.fire(time)) p.gear.onReloadStart(time);
   }
 
   private jitteredAim(input: InputState, rad: number): InputState {

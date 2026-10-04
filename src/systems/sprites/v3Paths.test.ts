@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { LIGHTING } from '../data';
-import { ROUTE, arenaSize } from './route';
+import { LIGHTING } from '../../data';
+import { ROUTE, arenaSize } from '../route';
 import {
   bodyBaseAction,
   bodyVariantActions,
@@ -10,8 +10,8 @@ import {
   type SheetJson,
 } from './spriteDefs';
 import { bodyActionFor, sheetJsonCandidates, v3Only } from './spriteMeta';
-import { lightingAmbientFor } from './lighting/lightMath';
-import { TileSkin, propSheetJsonPath, propSkinFor, propSkins } from '../world/tileskin';
+import { lightingAmbientFor } from '../lighting/lightMath';
+import { TileSkin, propSheetJsonPath, propSkinFor, propSkins } from '../../world/tileskin';
 
 type RuleSheet = Pick<SheetJson, 'bodySheetByWeapon'>;
 

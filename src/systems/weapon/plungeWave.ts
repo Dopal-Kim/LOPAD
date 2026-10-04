@@ -5,7 +5,7 @@
  */
 import type { Pt, HitTarget } from './hitShapes';
 import { thrustHit } from './hitShapes';
-import { frameStarts, type SheetJson } from './spriteDefs';
+import { frameStarts, type SheetJson } from '../sprites/spriteDefs';
 
 /** 앞머리 시간표: 시각(ms) → 비율 (끝 = 판정 끝) */
 export interface WaveTimeline {

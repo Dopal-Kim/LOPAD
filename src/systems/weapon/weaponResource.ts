@@ -9,14 +9,9 @@
  * 56라운드 Q7·Q19: 기력에 `groggyMs` 가 있으면 0 = 그로기 — 그 시간 동안 회복 없음·공격 불가(가드만), 지나야만 풀리고
  * 기력 = max × recoverRatio. Q18: 과열 `cooling`(단검 낙인 연동)이 있으면 식는 동안 공격은 되고 느려진다.
  */
-import type {
-  AmmoResourceDef,
-  HeatResourceDef,
-  StaminaResourceDef,
-  WeaponMods,
-  WeaponResourceDef,
-} from '../data/types';
-import type { UiWeaponResource } from '../contract/ui';
+import type { HeatResourceDef, StaminaResourceDef, WeaponMods, WeaponResourceDef } from '../../data/types';
+import type { UiWeaponResource } from '../../contract/ui';
+import { clamp01 } from '../mathUtil';
 
 export class WeaponResource {
   value: number;
@@ -273,17 +268,8 @@ function staminaState(d: StaminaResourceDef, r: WeaponResource): UiWeaponResourc
   return r.value < d.max * d.lowRatio ? 'low' : 'ok';
 }
 
-function clamp01(v: number): number {
-  return Math.max(0, Math.min(1, v));
-}
-
 function round1(v: number): number {
   return Math.round(v * 10) / 10;
-}
-
-/** 타입 좁히기 도우미 (테스트·호출 쪽) */
-export function isAmmo(d: WeaponResourceDef): d is AmmoResourceDef {
-  return d.kind === 'ammo';
 }
 
 /** 51라운드 속사: 갈래가 바꾼 탄창 수·장전 시간 (탄창이 아니면 그대로) */

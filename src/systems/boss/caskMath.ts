@@ -1,6 +1,6 @@
 /** 54라운드 Q21 굴러가는 술통 그림 → 판정·회전 수치 (Phaser 없음 — 단위 테스트) */
 import { RENDER } from '../../core/Constants';
-import type { SheetJson } from '../spriteDefs';
+import type { SheetJson } from '../sprites/spriteDefs';
 
 /**
  * 술통 그림 한 바퀴 굴림 둘레 (월드 px). 아트 JSON `circumferencePx` 는 **논리 px**(도트 × 0.5 — rotationNote "157 도트(78 논리 px)")

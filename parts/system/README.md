@@ -988,3 +988,23 @@ onFire 전부(lingerMs 1000 · 발밑 0.5×6px · 접촉 10/500ms · 여유 3px)
 
 ### 검증
 tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험장 4무기 9종 실행 캡처(판정·fx·소리 트리거·디버그 `w56().moves`).
+
+## 57라운드: 파일 최적화 — 코드 구조 정리 · 고른 무기만 로드 · 트림 아틀라스 대비 (2026-10-04)
+근거: 결정 `2026-10-04-round-57-systems-review.md` Q7·Q16~Q19, 점검 `research-2026-10-04-optimization-audit.md`.
+
+### 정리
+- 죽은 export 13개 삭제(B1) · 중복 도우미 공통화(B4: `systems/mathUtil.clamp01`, `data/validateUtil` num·str·nums·numOr·nonEmptyStr) · 층 생성 테스트 메모이즈(D1).
+- 리듬 잔재 삭제(B2: `rhythmFeatures`·`RhythmSample`·`personality.json rhythm`·`weights/affinity key*`) · 옛 조준 사격 경로 삭제(B3: aimedshot 은 `draw` 필수 — 데이터 검증) · 보스 레거시 회귀 테스트·fixture 삭제(B11).
+- `core/Constants.ts` → `core/constants/{display,colors,assets,world,feel,enemy,player,scenes,boss,moves}.ts` + 재수출(B6). `spriteDefs.ts` → `sprites/{spriteDirs,spriteActions,sheetJson,sheetFrames,sheetPaths}.ts` + 재수출(B7). `telegraph.ts` → `telegraph/{TelegraphFx,pathTelegraph,shapes,types,index}.ts`(B8).
+- `src/systems/` 하위 폴더(B5): `fx/` · `strokeFx/` · `dodgeTrial/` · `audio/` · `weapon/` · `sprites/` · `telegraph/`.
+- 라운드 번호 이름 → 의미 이름(B9): `validate56`→`validateWeaponKit` · `weapon56Types`→`weaponKitTypes` · `weapon56.test`→`weaponKit.test` · `fxContract55.test`→`fxSheetContract.test` · `SFX56`→`WEAPON_SFX` · `sfx56Ids`→`weaponSfxIds` · `WEAPON_MOTIONS_56`→`BOW_DRAW_MOTIONS` · `weapon56FxIds`→`weaponKitFxIds` · 디버그 `w56()`→`weaponKit()`.
+- 활 `secondary.name` = '당겨 쏘기'(Q7).
+
+### 고른 무기만 로드 (A2)
+- `sprites/sheetSets`: 부팅 묶음(주인공 기본 몸·적·보스·공용 fx·구조물) / 무기 묶음(그 무기의 몸 동작·자세 변형·오버레이·고유 자원 단계·무기 유도 fx). 부팅 + 모든 무기 = 예전 부팅 목록(테스트).
+- `sprites/sheetLoader`: Preloader 와 Game 이 같은 길(JSON → 이미지 → 등록)로 읽는다. `Game.preload` 가 `runWeaponFor`(prepareRun 과 같은 규칙)로 런 무기를 알아 그 무기만 읽고, 다른 무기의 시트는 `spriteLibrary.removeSheets` 로 내린다(텍스처·층 변형·색 교체·애니). 늦게 읽은 시트도 `addSheets` 가 이미 만든 층 변형까지 만든다. 로드 중 암전 안에 '불러오는 중…'(`WEAPON_LOAD`).
+- 텍스처 추정(RGBA): 예전 4.36GB → 부팅 0.21GB + 칼 1.04 / 대검 2.70 / 단검 0.34 / 활 0.08GB.
+
+### 트림 아틀라스 대비
+- `sprites/sheetAtlas`: 시트 JSON 의 `frames` 가 배열·객체면 트림 아틀라스(Phaser `load.atlas`), 숫자면 기존 spritesheet. 프레임 번호·피벗·앵커는 칸(sourceSize) 기준 그대로. 층 변형·색 교체 텍스처는 원본 프레임(잘린 영역 + trim)을 그대로 옮긴다(`copyFrames`). `tile: true` 시트는 잘라내지 않는다.
+- WebGL 에서 격자 시트와 같은 시트의 트림 아틀라스를 24프레임 × (기본·좌우 반전·2배·복사 텍스처) 그려 픽셀 차 0 확인.

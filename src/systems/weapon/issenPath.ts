@@ -2,7 +2,7 @@
  * 56라운드 Q2 칼 3타 일섬 기하 (Phaser 의존 없음): 조준 4방향 돌진 · 벽에 막힌 실제 거리 예측 · 선 시트 t1~t4 · 판정 직사각형.
  * 선·분신 시트(art combo56_fx)는 4방향 행으로 축을 따라 그려져 있으므로 돌진도 4방향 축으로 한다.
  */
-import type { Facing } from './spriteDefs';
+import type { Facing } from '../sprites/spriteDefs';
 import type { HitTarget, Pt } from './hitShapes';
 import { thrustHit } from './hitShapes';
 

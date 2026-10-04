@@ -4,13 +4,19 @@
  */
 import { FEEL } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
-import { arcTipAt, swingWindow, tipAt, type TipTrack, type Vec } from '../../systems/bladeTipMath';
-import { facingAngle, rotateDir, type HitShape } from '../../systems/hitShapes';
-import { overlayPivot } from '../../systems/spriteMeta';
+import { arcTipAt, swingWindow, tipAt, type TipTrack, type Vec } from '../../systems/weapon/bladeTipMath';
+import { facingAngle, rotateDir, type HitShape } from '../../systems/weapon/hitShapes';
+import { overlayPivot } from '../../systems/sprites/spriteMeta';
 import { gameState } from '../../core/GameState';
-import { overlayArtCandidates } from '../../systems/comboArt';
-import { spriteLibrary } from '../../systems/sprites';
-import { animDurationMs, artScale, frameStarts, overlayActionsFor, type Facing } from '../../systems/spriteDefs';
+import { overlayArtCandidates } from '../../systems/weapon/comboArt';
+import { spriteLibrary } from '../../systems/sprites/sprites';
+import {
+  animDurationMs,
+  artScale,
+  frameStarts,
+  overlayActionsFor,
+  type Facing,
+} from '../../systems/sprites/spriteDefs';
 import { HIT_ORIGIN_UP_PX, shapeFacing } from './shared';
 
 /** 칼끝 리본 계획: 찍는 구간(공격 시작부터 ms) + 시각(공격 시작부터 ms) → 발 피벗 기준 칼끝 오프셋 */

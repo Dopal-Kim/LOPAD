@@ -118,10 +118,7 @@
       "affinity": {
         "strokeLength": 0.6,
         "strokeSpeed": 0.7,
-        "straightness": 0.9,
-        "keyMove": 0.5,
-        "keyAttack": 0.6,
-        "keyDash": 0.5
+        "straightness": 0.9
       },
       "personality": {
         "thresholds": [100, 200],
@@ -492,10 +489,7 @@
       "affinity": {
         "strokeLength": 0.9,
         "strokeSpeed": 0.3,
-        "straightness": 0.6,
-        "keyMove": 0.3,
-        "keyAttack": 0.8,
-        "keyDash": 0.2
+        "straightness": 0.6
       },
       "personality": {
         "thresholds": [100, 200],
@@ -775,10 +769,7 @@
       "affinity": {
         "strokeLength": 0.3,
         "strokeSpeed": 0.9,
-        "straightness": 0.4,
-        "keyMove": 0.8,
-        "keyAttack": 0.7,
-        "keyDash": 0.9
+        "straightness": 0.4
       },
       "personality": {
         "thresholds": [100, 200],
@@ -948,7 +939,7 @@
       },
       "secondary": {
         "kind": "aimedshot",
-        "name": "조준 사격",
+        "name": "당겨 쏘기",
         "chargeMs": 600,
         "damageMult": 2.5,
         "moveMult": 0.5,
@@ -958,10 +949,7 @@
       "affinity": {
         "strokeLength": 0.7,
         "strokeSpeed": 0.5,
-        "straightness": 0.8,
-        "keyMove": 0.6,
-        "keyAttack": 0.3,
-        "keyDash": 0.4
+        "straightness": 0.8
       },
       "personality": {
         "thresholds": [100, 200],

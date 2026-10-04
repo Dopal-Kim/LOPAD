@@ -5,7 +5,7 @@
  * - 숨 집중(감속 정밀 조준) 중에는 완벽 창이 넓고 흔들림이 없다
  * 몸 시트 `player_bow_draw_hold` 열: 진행 progressFrames(f0~5) → 유지 holdLoop(f6~9) → 흔들림 strainLoop(f10~13)
  */
-import type { BowDrawDef } from '../data/types';
+import type { BowDrawDef } from '../../data/types';
 
 export type DrawPower = 'weak' | 'perfect' | 'full' | 'strained';
 

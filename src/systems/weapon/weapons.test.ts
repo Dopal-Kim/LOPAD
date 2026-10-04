@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WEAPONS, WEAPON_RULES } from '../data';
+import { WEAPONS, WEAPON_RULES } from '../../data';
 import { WeaponState } from './weapons';
 
 describe('WeaponState (27라운드 분기 트리)', () => {

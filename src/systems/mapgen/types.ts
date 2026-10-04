@@ -5,7 +5,6 @@ export type Dir = 'N' | 'S' | 'E' | 'W';
 
 export const DIRS: Dir[] = ['N', 'S', 'E', 'W'];
 export const DIR_VEC: Record<Dir, [number, number]> = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
-export const DIR_OPP: Record<Dir, Dir> = { N: 'S', S: 'N', E: 'W', W: 'E' };
 
 /**
  * 셀 하나 = 방 한 칸 (타일 단위). 32라운드 Q5: 80×48 (1280×768px) — 화면 960×540 보다 크고 카메라가 따라간다.

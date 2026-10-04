@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { WEAPONS } from '../data';
+import { WEAPONS } from '../../data';
 import { aimLineFrame, branchFxSheetIds, levelMult, snipeCritFromLevel, snipeLevel, stripFxPrefix } from './branchFx';
-import { keyedDurations, startsOf } from './spriteDefs';
-import { WeaponResource, effectiveResource } from './weaponResource';
-import { WeaponState } from './weapons';
+import { keyedDurations, startsOf } from '../sprites/spriteDefs';
+import { WeaponResource, effectiveResource } from '../weapon/weaponResource';
+import { WeaponState } from '../weapon/weapons';
 
 describe('51·52라운드 활 갈래 시트 (계약 art §10)', () => {
   it('활 1단 갈래 로드 목록 (화살·조준 화살·발사 섬광·조준선·꼬리) — 근접 갈래 이펙트는 보류', () => {

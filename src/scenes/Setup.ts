@@ -15,24 +15,24 @@ import {
   type TaskResult,
   type TrialGrade,
   type TrialResult,
-} from '../systems/dodgeTrial';
-import { DodgeTrialRunner } from '../systems/dodgeTrialRunner';
-import { StrokeFx } from '../systems/strokeFx';
-import { BACK } from '../systems/strokeFxBack';
+} from '../systems/dodgeTrial/dodgeTrial';
+import { DodgeTrialRunner } from '../systems/dodgeTrial/dodgeTrialRunner';
+import { StrokeFx } from '../systems/strokeFx/strokeFx';
+import { BACK } from '../systems/strokeFx/strokeFxBack';
 import { encodeScar, type ScarData } from '../systems/setup/scar';
 import { gameState } from '../core/GameState';
-import { STROKE_FX } from '../systems/strokeFxMath';
+import { STROKE_FX } from '../systems/strokeFx/strokeFxMath';
 import { oncePerKeyEvent } from '../systems/keyEvents';
 import { StrokeExamples } from '../systems/setup/strokeExamples';
 import { scheduleAutoStrokes, type AutoPreset } from '../systems/setup/autoStrokes';
 import { TrialHud } from '../systems/setup/trialHud';
-import { spriteLibrary } from '../systems/sprites';
+import { spriteLibrary } from '../systems/sprites/sprites';
 import { META_CONFIG, buyUpgrade, metaStore, upgradeCost } from '../systems/meta';
 import { TextMenu } from '../systems/TextMenu';
 import { CANVAS_H, CANVAS_W, makeLogicalCamera, toLogical, worldZoom } from '../systems/display';
 import { setMenuSelect } from '../contract/host';
 import { EventBus, Events } from '../core/EventBus';
-import { audio } from '../systems/audio';
+import { audio } from '../systems/audio/audio';
 import { UI_EVENTS, __system } from '../contract/ui';
 
 type Phase = 'meta' | 'name' | 'strokes' | 'sear' | 'trial' | 'fate';

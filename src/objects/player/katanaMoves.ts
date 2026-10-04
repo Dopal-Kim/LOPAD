@@ -7,8 +7,8 @@
 import { gameState } from '../../core/GameState';
 import type { CounterMoveDef, IaiMoveDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
-import { artCandidates, pickArt } from '../../systems/comboArt';
-import { artScale, facingOf, frameDurations, type Facing } from '../../systems/spriteDefs';
+import { artCandidates, pickArt } from '../../systems/weapon/comboArt';
+import { artScale, facingOf, frameDurations, type Facing } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 import { emitPlayerAttack } from './attackEmit';
 import type { ComboStrike } from './heavyMoves';

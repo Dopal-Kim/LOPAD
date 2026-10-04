@@ -2,27 +2,21 @@ import Phaser from 'phaser';
 import { ASSETS, COLORS, FEEL, SCENES, SPRITES, TEXTURES, TILE } from '../core/Constants';
 import { TileId } from '../systems/mapgen';
 import { SaveSlot, browserStorage } from '../systems/save';
-import { BOSSES, ENEMIES, RUN, WEAPONS } from '../data';
+import { BOSSES, RUN, WEAPONS } from '../data';
 import { metaStore } from '../systems/meta';
-import { audio } from '../systems/audio';
+import { audio } from '../systems/audio/audio';
 import { ensureFont } from '../systems/fonts';
-import { audioFileRel, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audioDefs';
-import { spriteLibrary } from '../systems/sprites';
-import { sheetJsonCandidates } from '../systems/spriteMeta';
-import { branchFxSheetIds } from '../systems/branchFx';
-import { meleeBranchFxSheetIds } from '../systems/fxVariants';
-import { tier2FxSheetIds } from '../systems/fxTier';
-import { comboArtNames } from '../systems/comboArt';
+import { audioFileRel, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audio/audioDefs';
+import { spriteLibrary } from '../systems/sprites/sprites';
+import type { SheetDef } from '../systems/sprites/spriteDefs';
 import {
-  gaugeOverlaySuffix,
-  normalizeStructureSheet,
-  sheetToWorldUnits,
-  sheetTextureKey,
-  wantedSheets,
-  type SheetDef,
-  type SheetJson,
-} from '../systems/spriteDefs';
-import { allFxSheetIds } from '../systems/fxIds';
+  queueSheetImage,
+  queueSheetJsons,
+  registerSheets,
+  setAssetManifest,
+  type PendingSheet,
+} from '../systems/sprites/sheetLoader';
+import { bootSheetRequests } from '../systems/sprites/sheetSets';
 import {
   TileSkin,
   namedTilesetJsonPath,
@@ -40,8 +34,6 @@ import {
 import { regionIds, regionTilesets } from '../systems/route';
 import { borderDefs, borderJsonRel, parseBorder } from '../world/border';
 import { UI_SCENES } from '../ui';
-import { allStructureSprites } from '../systems/structures/data';
-import { bossFxSheets, bossStructureSheets } from '../systems/boss/bossSheets';
 import { bossQuery } from '../debug/bossQuery';
 import { urlParams } from './game/shared';
 
@@ -55,11 +47,13 @@ const AUDIO_MANIFEST_KEY = 'audio_manifest';
 /**
  * 아트·음향 산출물 로드 (계약 contracts/art-assets.md, 음향은 assets/audio/manifest.json 계약 초안).
  * 1) manifest.json → 존재하는 파일만 2) 시트·타일셋·음향 매니페스트 JSON → 3) PNG·WAV → 애니 등록·오디오 등록.
+ * 57라운드 A2: 시트는 부팅 묶음(무기와 무관한 것)만 — 무기 시트는 런 무기가 정해진 씬(Game·WeaponLab)의 preload 가 그 무기만
+ * 읽는다 (`sheetLoader.preloadWeaponSheets`).
  * 없는 파일은 조용히 건너뛰고(404 는 loaderror 로 무시) 플레이스홀더 텍스처로 폴백한다.
  */
 export class Preloader extends Phaser.Scene {
   private manifest: Set<string> | null = null;
-  private pendingSheets: { req: ReturnType<typeof wantedSheets>[number]; jsonKey: string; dir: string }[] = [];
+  private pendingSheets: PendingSheet[] = [];
   private pendingTiles: { floor: number; jsonKey: string }[] = [];
   /** 49라운드 art §7.3: 지역 타일셋 (tiles/stage1_<region>.json, 50라운드: tiles/v2/ 가 있으면 먼저) */
   private pendingRegionTiles: { name: string; jsonKey: string; dir: string; props?: boolean }[] = [];
@@ -83,6 +77,7 @@ export class Preloader extends Phaser.Scene {
     this.buildTileTexture();
     const m = this.cache.json.get(TEXTURES.MANIFEST) as Manifest | undefined;
     this.manifest = m && Array.isArray(m.files) ? new Set(m.files) : null;
+    setAssetManifest(this.manifest);
     this.queueJsons();
     this.load.once(Phaser.Loader.Events.COMPLETE, () => this.queueImages());
     this.load.start();
@@ -94,35 +89,7 @@ export class Preloader extends Phaser.Scene {
     // 50·52라운드 새 도트(`v3/`·`v2/`)는 매니페스트에 있을 때만 (매니페스트가 없으면 기존 경로). v3 → v2 → 기존, 동작 단위
     const listed = (rel: string) => this.manifest !== null && this.manifest.has(rel);
     const dirOf = (rel: string) => rel.slice(0, rel.lastIndexOf('/') + 1);
-    this.pendingSheets = [];
-    for (const req of wantedSheets(
-      Object.keys(ENEMIES),
-      Object.keys(BOSSES),
-      Object.keys(WEAPONS),
-      [
-        ...allFxSheetIds(WEAPONS),
-        ...branchFxSheetIds(WEAPONS),
-        ...meleeBranchFxSheetIds(WEAPONS),
-        ...tier2FxSheetIds(WEAPONS),
-        ...bossFxSheets(),
-      ],
-      [...allStructureSprites(), ...bossStructureSheets()],
-      Object.fromEntries(Object.entries(WEAPONS).map(([id, w]) => [id, comboArtNames(w.combo).body])),
-      Object.fromEntries(
-        Object.entries(WEAPONS).flatMap(([id, w]) => {
-          const sfx = gaugeOverlaySuffix(w.gauge?.kind);
-          return sfx ? [[id, sfx]] : [];
-        }),
-      ),
-    )) {
-      const paths = sheetJsonCandidates(req);
-      const legacy = paths[paths.length - 1];
-      const rel = paths.slice(0, -1).find(listed) ?? legacy;
-      if (!exists(rel)) continue;
-      const jsonKey = `json_${sheetTextureKey(req.name, req.action)}`;
-      this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
-      this.pendingSheets.push({ req, jsonKey, dir: dirOf(rel) });
-    }
+    this.pendingSheets = queueSheetJsons(this, bootSheetRequests());
     this.pendingTiles = [];
     for (let floor = 1; floor <= RUN.order.length; floor++) {
       const rel = tilesetJsonPath(floor);
@@ -181,17 +148,8 @@ export class Preloader extends Phaser.Scene {
   private queueImages(): void {
     const sheets: SheetDef[] = [];
     for (const p of this.pendingSheets) {
-      const raw = this.cache.json.get(p.jsonKey) as SheetJson | undefined;
-      if (!raw || !raw.image || !(raw.frameWidth > 0) || !(raw.frameHeight > 0) || !(raw.frames > 0)) continue;
-      // 구조물 시트(계약 §5)는 fps·loop·directions·pivot 을 생략할 수 있다. 50라운드: 메모 길이는 월드 단위로 (pixelScale)
-      const json = sheetToWorldUnits(p.req.category === 'structures' ? normalizeStructureSheet(raw) : raw);
-      const textureKey = sheetTextureKey(p.req.name, p.req.action);
-      const imageUrl = `${ASSETS.URL}/${p.dir}${json.image}`;
-      // 동작 이름은 요청 기준 (이펙트 시트의 JSON action 은 파일 이름과 같아 내부 동작 'fx' 로 통일)
-      sheets.push({ ...json, action: p.req.action, category: p.req.category, name: p.req.name, textureKey, imageUrl });
-      if (!this.textures.exists(textureKey)) {
-        this.load.spritesheet(textureKey, imageUrl, { frameWidth: json.frameWidth, frameHeight: json.frameHeight });
-      }
+      const def = queueSheetImage(this, p);
+      if (def) sheets.push(def);
     }
     const tiles: { floor: number; json: TilesetJson; key: string }[] = [];
     for (const p of this.pendingTiles) {
@@ -217,13 +175,12 @@ export class Preloader extends Phaser.Scene {
     }
     const audioQueue = this.queueAudio();
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
-      for (const def of sheets) if (this.textures.exists(def.textureKey)) spriteLibrary.register(def);
+      registerSheets(this, sheets);
       // 자기 시트가 없는 보스는 폴백 시트를 쓴다 (결정 로그 J: 2~7층 보스 = stage1 시트 + 층 램프 스왑)
       for (const id of Object.keys(BOSSES)) {
         if (!spriteLibrary.has(id) && spriteLibrary.has(SPRITES.BOSS_FALLBACK_SHEET))
           spriteLibrary.alias(id, SPRITES.BOSS_FALLBACK_SHEET);
       }
-      spriteLibrary.createBaseAnims(this);
       for (const t of tiles) if (this.textures.exists(t.key)) tileSkins.set(t.floor, new TileSkin(t.key, t.json, true));
       for (const t of regionTiles)
         if (this.textures.exists(t.key))

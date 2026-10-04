@@ -3,10 +3,10 @@
  * 피격·적 양상·보조·구조물 이펙트 고정 목록. Phaser 의존 없음 (53라운드 6-1 정리: spriteDefs 에서 분리, 동작 그대로).
  * 갈래 시트 id 는 `branchFx`(활)·`fxVariants`(근접).
  */
-import type { ComboDef, WeaponMovesDef } from '../data/types';
-import { moveFxNames } from '../data/moveTypes';
-import { comboArtNames } from './comboArt';
-import { BIRTH_FX, COMBO_HITS } from './spriteDefs';
+import type { ComboDef, WeaponMovesDef } from '../../data/types';
+import { moveFxNames } from '../../data/moveTypes';
+import { comboArtNames } from '../weapon/comboArt';
+import { BIRTH_FX, COMBO_HITS } from '../sprites/spriteDefs';
 
 /** 연격 베기 이펙트 `fx/<무기>_combo<n>` */
 export function comboFxId(weaponId: string, n: number): string {
@@ -36,7 +36,7 @@ export function perfectReleaseFxId(weaponId: string): string {
 }
 
 /** 56라운드 이펙트: 일섬 선 t1~t4(+분신 없는 _solo)·그림자 분신 · 꽂아내리기 충격파 · 활 약한 화살·완벽 놓기 섬광 · 2단계 새 기본기 보조 fx */
-export function weapon56FxIds(id: string, w: FxWeaponShape): string[] {
+export function weaponKitFxIds(id: string, w: FxWeaponShape): string[] {
   const out: string[] = [];
   if (w.issen) {
     for (const s of w.issen.lineSheets) out.push(s, `${s}${w.issen.soloSuffix}`);
@@ -93,11 +93,11 @@ export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
       if (w.slam) out.add(slamFxId(id));
       for (const n of comboArtNames(w.combo).fx) out.add(`${id}_${n}`);
     } else {
-      for (const f of weapon56FxIds(id, w)) out.add(f);
+      for (const f of weaponKitFxIds(id, w)) out.add(f);
       out.add(arrowFxId(id, false));
       out.add(arrowFxId(id, true));
     }
-    if (w.kind === 'melee') for (const f of weapon56FxIds(id, w)) out.add(f);
+    if (w.kind === 'melee') for (const f of weaponKitFxIds(id, w)) out.add(f);
     for (const b of w.personality.branches) {
       out.add(b.id);
       for (const n of b.next ?? []) out.add(n.id);

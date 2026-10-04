@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WEAPONS } from '../data';
+import { WEAPONS } from '../../data';
 import {
   arcHit,
   comboRadius,

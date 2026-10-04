@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, FEEDBACK, PROTOTYPE } from '../core/Constants';
 import { EventBus, Events, type EnemyAttackPayload, type EnemyDamagedPayload } from '../core/EventBus';
-import { facingOf, type Facing } from '../systems/spriteDefs';
+import { facingOf, type Facing } from '../systems/sprites/spriteDefs';
 import { knockFactor, knockSpeed } from '../systems/feel';
 import type { PackCharge } from '../systems/packCharge';
 import type { TelegraphFx } from '../systems/telegraph';

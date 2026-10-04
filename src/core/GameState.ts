@@ -3,7 +3,7 @@ import type { StageDef } from '../data/types';
 import type { SaveData } from '../systems/save';
 import { SAVE_VERSION } from '../systems/save';
 import { SenseTracker } from '../systems/senses';
-import { WeaponState } from '../systems/weapons';
+import { WeaponState } from '../systems/weapon/weapons';
 import { EMPTY_BONUS, type StatBonus } from '../systems/economy';
 import { metaBonus, metaStore, type MetaBonus } from '../systems/meta';
 import { PassiveSet } from '../systems/passives';

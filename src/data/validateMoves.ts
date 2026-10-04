@@ -1,20 +1,9 @@
 /**
- * 56라운드 2단계 새 기본기 데이터 검증 (data/weapons.json `moves` — 형식은 `moveTypes`). validate56 이 부른다.
+ * 56라운드 2단계 새 기본기 데이터 검증 (data/weapons.json `moves` — 형식은 `moveTypes`). validateWeaponKit 이 부른다.
  */
 import type { MoveTravelDef, MoveStrikeDef, WeaponMovesDef } from './moveTypes';
 import { validateHit, validateHitShape } from './validateCombo';
-
-function num(v: unknown, path: string): void {
-  if (typeof v !== 'number' || !Number.isFinite(v)) throw new Error(`[data] ${path} 는 숫자여야 합니다`);
-}
-
-function str(v: unknown, path: string): void {
-  if (typeof v !== 'string' || !v) throw new Error(`[data] ${path} 는 문자열이어야 합니다`);
-}
-
-function nums(o: object, keys: readonly string[], path: string): void {
-  for (const k of keys) num((o as Record<string, unknown>)[k], `${path}.${k}`);
-}
+import { num, nums, str } from './validateUtil';
 
 function numList(v: unknown, path: string, minLen = 1): void {
   if (!Array.isArray(v) || v.length < minLen) throw new Error(`[data] ${path} 는 숫자 배열 (${minLen}개 이상)`);

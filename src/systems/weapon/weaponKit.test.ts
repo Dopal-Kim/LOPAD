@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { PLAYER_DATA, WEAPONS } from '../data';
-import type { BowDrawDef, BrandGaugeDef, HeatResourceDef, StaminaResourceDef } from '../data/types';
+import { PLAYER_DATA, WEAPONS } from '../../data';
+import type { BowDrawDef, BrandGaugeDef, HeatResourceDef, StaminaResourceDef } from '../../data/types';
 import { WeaponResource } from './weaponResource';
 import { BrandBook, BreathGauge, GrudgeGauge, KenkiGauge, isBackHit, makeGauge } from './weaponGauge';
 import { drawFrame, drawState, releaseShot, strainShakeRad } from './bowDraw';
 import { issenHit, lineTier, predictTravel, shadowAt } from './issenPath';
 import { MOVES, availableMoves, pickMove } from './moves';
-import { isPerfectGuard, resolveDefense } from './defense';
+import { isPerfectGuard, resolveDefense } from '../defense';
 import {
   animRowNames,
   directionRow,
@@ -18,7 +18,7 @@ import {
   rowDirFor,
   strokeDoneFrame,
   type SheetJson,
-} from './spriteDefs';
+} from '../sprites/spriteDefs';
 
 const STAMINA: StaminaResourceDef = {
   kind: 'stamina',

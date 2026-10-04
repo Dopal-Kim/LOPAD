@@ -1,7 +1,7 @@
 /**
  * 이벤트 → 효과음 표 (음향↔시스템 계약 초안 `assets/audio/manifest.json` 의 trigger 제안을
  * 시스템 EventBus 이벤트 이름으로 확정한 것. 결정 로그 I·K).
- * 순수 데이터 — 재생은 systems/audio.ts 가 이 표를 구독해서 처리한다.
+ * 순수 데이터 — 재생은 systems/audio/audio.ts 가 이 표를 구독해서 처리한다.
  * `sfx` 가 함수이면 페이로드로 id 를 정한다(null 이면 재생 없음). 매니페스트에 없는 id 는 조용히 무시된다.
  */
 import {
@@ -29,8 +29,8 @@ import {
   type TrialClearedPayload,
   type WeaponGaugePayload,
   type WeaponResourcePayload,
-} from '../core/EventBus';
-import { gameState } from '../core/GameState';
+} from '../../core/EventBus';
+import { gameState } from '../../core/GameState';
 import { t, type AudioTrigger } from './audioTrigger';
 import { MOVE_AUDIO_TRIGGERS } from './audioMoves';
 export type { AudioTrigger } from './audioTrigger';
@@ -130,7 +130,7 @@ export const FOLLOW_UP_SFX: Readonly<Record<string, readonly string[]>> = {
 /**
  * 56라운드 무기 피드백 효과음 (음향 매니페스트 sfx/<키> — 파일이 없는 키는 조용히 건너뛴다). **키 이름이 바뀌면 여기만 고친다.**
  */
-export const SFX56 = {
+export const WEAPON_SFX = {
   perfectGuard: 'sfx/perfect_guard',
   parryPerfect: 'sfx/parry_perfect',
   groggyStart: 'sfx/groggy_start',
@@ -163,10 +163,10 @@ export const SFX56 = {
 } as const;
 
 /** 56라운드 효과음 전부 (검기 단 포함) — 매니페스트 점검 */
-export function sfx56Ids(): string[] {
+export function weaponSfxIds(): string[] {
   const out: string[] = [];
-  for (const v of Object.values(SFX56)) if (typeof v === 'string') out.push(v);
-  for (let n = 1; n <= SFX56.kenkiStages; n++) out.push(SFX56.kenkiStage(n));
+  for (const v of Object.values(WEAPON_SFX)) if (typeof v === 'string') out.push(v);
+  for (let n = 1; n <= WEAPON_SFX.kenkiStages; n++) out.push(WEAPON_SFX.kenkiStage(n));
   return out;
 }
 
@@ -281,27 +281,28 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     event: Events.PLAYER_SECONDARY,
     note: '조준 사격 취소·56라운드 놓기 → bow_draw 정지 · 흔들림 루프 페이드 아웃',
     when: (p) => p.kind === 'aimedshot' && (p.phase === 'cancel' || p.phase === 'release'),
-    stop: [SFX.bowDraw, SFX56.bowStrain],
-    stopFadeMs: SFX56.bowStrainFadeOutMs,
+    stop: [SFX.bowDraw, WEAPON_SFX.bowStrain],
+    stopFadeMs: WEAPON_SFX.bowStrainFadeOutMs,
   }),
   t<PlayerSecondaryPayload>({
     event: Events.PLAYER_SECONDARY,
     note: '56라운드 Q20·Q44 너무 오래 쥠 → bow_strain 루프 (페이드 인)',
     when: (p) => p.kind === 'aimedshot' && p.phase === 'strain',
-    loop: SFX56.bowStrain,
-    loopFadeInMs: SFX56.bowStrainFadeInMs,
+    loop: WEAPON_SFX.bowStrain,
+    loopFadeInMs: WEAPON_SFX.bowStrainFadeInMs,
   }),
   t<PlayerSecondaryPayload>({
     event: Events.PLAYER_SECONDARY,
     note: '56라운드 Q44 가득 당김 → bow_full_draw (음향 추가 예정 — 없으면 무음)',
     when: (p) => p.kind === 'aimedshot' && p.phase === 'ready',
-    sfx: () => SFX56.bowFullDraw,
+    sfx: () => WEAPON_SFX.bowFullDraw,
   }),
   t<PlayerSecondaryPayload>({
     event: Events.PLAYER_SECONDARY,
     note: '56라운드 Q9 놓기: 약한 화살 → bow_release_weak · 완벽 → bow_release_perfect (bow_aimed 위에 겹침)',
     when: (p) => p.kind === 'aimedshot' && p.phase === 'release',
-    sfx: (p) => (p.power === 'weak' ? SFX56.bowReleaseWeak : p.power === 'perfect' ? SFX56.bowReleasePerfect : null),
+    sfx: (p) =>
+      p.power === 'weak' ? WEAPON_SFX.bowReleaseWeak : p.power === 'perfect' ? WEAPON_SFX.bowReleasePerfect : null,
   }),
   t<PlayerSecondaryPayload>({
     event: Events.PLAYER_SECONDARY,
@@ -355,48 +356,48 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     sfx: (p) => CHARGE_SFX.slam(p.stage),
     delayMs: (p) => p.impactDelayMs ?? 0,
   }),
-  // --- 56라운드 무기 피드백 (SFX56) ---
+  // --- 56라운드 무기 피드백 (WEAPON_SFX) ---
   t<PlayerChargePayload>({
     event: Events.PLAYER_CHARGE,
     note: '56라운드 Q10 꽂아내리기 → gs_plunge (꽂히는 순간 = impactDelayMs)',
     when: (p) => p.phase === 'release' && p.mode === 'plunge',
-    sfx: SFX56.gsPlunge,
+    sfx: WEAPON_SFX.gsPlunge,
     delayMs: (p) => p.impactDelayMs ?? 0,
   }),
   t<PlayerChargePayload>({
     event: Events.PLAYER_CHARGE,
     note: '56라운드 Q10 꽂아내리기 균열 충격파 → gs_crack (꽂힘 + 40ms)',
     when: (p) => p.phase === 'release' && p.mode === 'plunge',
-    sfx: SFX56.gsCrack,
-    delayMs: (p) => (p.impactDelayMs ?? 0) + SFX56.crackDelayMs,
+    sfx: WEAPON_SFX.gsCrack,
+    delayMs: (p) => (p.impactDelayMs ?? 0) + WEAPON_SFX.crackDelayMs,
   }),
-  t({ event: Events.PLAYER_PERFECT_GUARD, note: '56라운드 Q7 퍼펙트 가드', sfx: SFX56.perfectGuard }),
+  t({ event: Events.PLAYER_PERFECT_GUARD, note: '56라운드 Q7 퍼펙트 가드', sfx: WEAPON_SFX.perfectGuard }),
   t({
     event: Events.PLAYER_PARRIED,
     note: '56라운드 칼 패링 강조 (기존 parry 위에 겹침, PARRY 문구·검기 1단)',
     when: () => gameState.weapon.id === 'katana',
-    sfx: SFX56.parryPerfect,
+    sfx: WEAPON_SFX.parryPerfect,
   }),
   t<WeaponResourcePayload>({
     event: Events.WEAPON_RESOURCE,
     note: '56라운드 Q7 그로기 시작 (칼·대검 기력 0)',
     when: (p) => p.event === 'groggy',
-    sfx: SFX56.groggyStart,
+    sfx: WEAPON_SFX.groggyStart,
   }),
   t<WeaponGaugePayload>({
     event: Events.WEAPON_GAUGE,
     note: '56라운드 검기 단 도달 → kenki_stage<n> · 울분 가득 → utbun_full · 낙인 → brand_apply(등 뒤 rate 1.1) · 숨 집중 → breath_focus',
     sfx: (p) =>
       p.gauge === 'kenki' && p.event === 'stage' && (p.stage ?? 0) > 0
-        ? SFX56.kenkiStage(p.stage!)
+        ? WEAPON_SFX.kenkiStage(p.stage!)
         : p.gauge === 'grudge' && p.event === 'full'
-          ? SFX56.utbunFull
+          ? WEAPON_SFX.utbunFull
           : p.gauge === 'brand' && p.event === 'apply'
-            ? SFX56.brandApply
+            ? WEAPON_SFX.brandApply
             : p.gauge === 'breath' && p.event === 'focusStart'
-              ? SFX56.breathFocus
+              ? WEAPON_SFX.breathFocus
               : null,
-    rate: (p) => (p.gauge === 'brand' && p.back ? SFX56.brandBackRate : 1),
+    rate: (p) => (p.gauge === 'brand' && p.back ? WEAPON_SFX.brandBackRate : 1),
   }),
   t<PlayerSkillPayload>({
     event: Events.PLAYER_SKILL,
@@ -404,18 +405,18 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     sfx: (p) =>
       p.move === 'issen'
         ? p.phase === 'dash'
-          ? SFX56.issenDash
+          ? WEAPON_SFX.issenDash
           : p.phase === 'clone'
-            ? SFX56.shadowClone
+            ? WEAPON_SFX.shadowClone
             : p.phase === 'burst'
-              ? SFX56.issenBurst
+              ? WEAPON_SFX.issenBurst
               : null
         : p.move === 'brand'
-          ? SFX56.brandBurst
+          ? WEAPON_SFX.brandBurst
           : p.move === 'overheat'
-            ? SFX56.overheatBurst
+            ? WEAPON_SFX.overheatBurst
             : p.move === 'drag'
-              ? SFX56.gsDrag
+              ? WEAPON_SFX.gsDrag
               : null,
   }),
   t<PlayerFollowUpPayload>({

@@ -24,6 +24,7 @@ import { deathLine, evolutionLine, fill, floorText } from '../../systems/story';
 import { UI_SCENES } from '../../ui';
 import type { TileWorld } from '../../world/TileWorld';
 import type { Game } from '../Game';
+import { continueSave } from './runWeapon';
 import { urlParams, type GameInitData } from './shared';
 
 export class Progression {
@@ -52,8 +53,7 @@ export class Progression {
       gameState.senses.sense += senseBonus;
       g.saveSlot.clear();
     } else {
-      const params = urlParams();
-      const save = params.has('new') || params.has('seed') ? null : g.saveSlot.read();
+      const save = continueSave(g.saveSlot);
       if (save) {
         gameState.applySave(save);
       } else {

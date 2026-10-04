@@ -12,7 +12,7 @@
 import Phaser from 'phaser';
 import { BOSS_FX, DEPTH, STRUCTURE_FX, entityDepth } from '../../core/Constants';
 import type { Mob } from '../../objects/Mob';
-import type { FxPool } from '../fx';
+import type { FxPool } from '../fx/fx';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 import { linked } from './liquorNet';
 

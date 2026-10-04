@@ -1,0 +1,19 @@
+{
+  "_note": "57라운드 트림 아틀라스 시험 시트: 2행(down·up) × 3열, 칸 32×48, 피벗 (16,44). 1번 칸은 빈 칸(1×1)",
+  "image": "trim_test.png",
+  "frameWidth": 32,
+  "frameHeight": 48,
+  "fps": 8,
+  "loop": true,
+  "directions": ["down", "up"],
+  "pivot": { "x": 16, "y": 44 },
+  "pixelScale": 0.5,
+  "frames": [
+    { "filename": "0", "frame": { "x": 0, "y": 0, "w": 10, "h": 20 }, "rotated": false, "trimmed": true, "spriteSourceSize": { "x": 11, "y": 24, "w": 10, "h": 20 }, "sourceSize": { "w": 32, "h": 48 } },
+    { "filename": "1", "frame": { "x": 10, "y": 0, "w": 1, "h": 1 }, "rotated": false, "trimmed": true, "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 }, "sourceSize": { "w": 32, "h": 48 } },
+    { "filename": "2", "frame": { "x": 11, "y": 0, "w": 32, "h": 48 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 48 }, "sourceSize": { "w": 32, "h": 48 } },
+    { "filename": "3", "frame": { "x": 43, "y": 0, "w": 12, "h": 22 }, "rotated": false, "trimmed": true, "spriteSourceSize": { "x": 10, "y": 22, "w": 12, "h": 22 }, "sourceSize": { "w": 32, "h": 48 } },
+    { "filename": "4", "frame": { "x": 55, "y": 0, "w": 12, "h": 22 }, "rotated": false, "trimmed": true, "spriteSourceSize": { "x": 10, "y": 22, "w": 12, "h": 22 }, "sourceSize": { "w": 32, "h": 48 } },
+    { "filename": "5", "frame": { "x": 67, "y": 0, "w": 12, "h": 22 }, "rotated": false, "trimmed": true, "spriteSourceSize": { "x": 10, "y": 22, "w": 12, "h": 22 }, "sourceSize": { "w": 32, "h": 48 } }
+  ]
+}

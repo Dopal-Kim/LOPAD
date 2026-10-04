@@ -77,7 +77,6 @@ export interface BreathGaugeDef {
 }
 
 export type WeaponGaugeDef = KenkiGaugeDef | GrudgeGaugeDef | BrandGaugeDef | BreathGaugeDef;
-export type WeaponGaugeKind = WeaponGaugeDef['kind'];
 
 /** 칼 3타 일섬 (몸 시트 player_katana_issen 메모가 기준 — 여기는 시스템 값). 길이는 월드 px */
 export interface IssenDef {

@@ -1,5 +1,5 @@
-import { WEAPON_RULES } from '../data';
-import type { AttackHitbox, WeaponDef, WeaponEvolution, WeaponMods, WeaponRules } from '../data/types';
+import { WEAPON_RULES } from '../../data';
+import type { AttackHitbox, WeaponDef, WeaponEvolution, WeaponMods, WeaponRules } from '../../data/types';
 
 /** 세이브에 들어가는 무기 개성 상태 */
 export interface WeaponProgress {

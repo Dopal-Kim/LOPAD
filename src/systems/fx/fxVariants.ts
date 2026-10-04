@@ -7,7 +7,7 @@
  * - 단검 가열: 갈래 시트 JSON `heatVariants.colorSwap[<k>]` + `playbackRateHint[<k>]` (기본 시트는 별도 heat 시트)
  * 필드가 없거나 형식이 틀리면 조용히 무시한다 (원본 그대로).
  */
-import { COMBO_HITS, type FxFlashSpec, type FxShakeSpec, type FxTrailSpec } from './spriteDefs';
+import { COMBO_HITS, type FxFlashSpec, type FxShakeSpec, type FxTrailSpec } from '../sprites/spriteDefs';
 import { comboFxId, type FxWeaponShape } from './fxIds';
 
 /** 정확 색 교체 한 쌍 ('#rrggbb') */

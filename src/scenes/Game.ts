@@ -1,5 +1,16 @@
 import Phaser from 'phaser';
-import { CAMERA, COLORS, DEBUG, DEPTH, ENEMY_INCOMING, PROTOTYPE, SCENES, TILE } from '../core/Constants';
+import {
+  CAMERA,
+  COLORS,
+  DEBUG,
+  DEPTH,
+  ENEMY_INCOMING,
+  GAME,
+  PROTOTYPE,
+  SCENES,
+  TILE,
+  WEAPON_LOAD,
+} from '../core/Constants';
 import { screenFixed, worldZoom } from '../systems/display';
 import { EventBus, Events } from '../core/EventBus';
 import { gameState } from '../core/GameState';
@@ -30,17 +41,17 @@ import type { BorderView } from '../world/BorderView';
 import type { SetPieceView } from '../world/SetPieceView';
 import type { NodeArenaPlan } from '../systems/routeArena';
 import { TutorialDirector } from '../systems/tutorialDirector';
-import type { FxPool } from '../systems/fx';
+import type { FxPool } from '../systems/fx/fx';
 import { HitStop, PauseClock, Shake } from '../systems/feel';
-import type { RibbonRenderer } from '../systems/ribbon';
-import type { AshParticles } from '../systems/ashParticles';
-import type { ScreenFx } from '../systems/screenFx';
-import type { AimLine } from '../systems/aimFx';
-import type { DamageNumberPool } from '../systems/damageNumbers';
-import type { HitFx } from '../systems/hitFx';
+import type { RibbonRenderer } from '../systems/fx/ribbon';
+import type { AshParticles } from '../systems/fx/ashParticles';
+import type { ScreenFx } from '../systems/fx/screenFx';
+import type { AimLine } from '../systems/fx/aimFx';
+import type { DamageNumberPool } from '../systems/fx/damageNumbers';
+import type { HitFx } from '../systems/fx/hitFx';
 import type { TelegraphFx } from '../systems/telegraph';
 import { PackCharge } from '../systems/packCharge';
-import { audio } from '../systems/audio';
+import { audio } from '../systems/audio/audio';
 import { StructureSystem } from '../systems/structures/StructureSystem';
 import { LiquorPools } from '../systems/hazards/LiquorPools';
 import { BossArena } from '../systems/boss/BossArena';
@@ -63,6 +74,8 @@ import { UiRelay } from './game/UiRelay';
 import { WorldSetup } from './game/WorldSetup';
 import { SENSE_BONUS_MAX, urlParams, type GameInitData } from './game/shared';
 import { AnchorDebug } from './game/AnchorDebug';
+import { runWeaponFor } from './game/runWeapon';
+import { preloadWeaponSheets } from '../systems/sprites/sheetLoader';
 
 export type { GameInitData } from './game/shared';
 
@@ -162,6 +175,22 @@ export class Game extends Phaser.Scene {
     this.initData = { ...(data ?? {}) };
     this.senseBonus = Phaser.Math.Clamp(Math.floor(Number(data?.senseBonus) || 0), 0, SENSE_BONUS_MAX);
     this.transitioning = false;
+  }
+
+  /**
+   * 57라운드 A2: 런 무기의 시트만 로드 (새 런·이어하기·시험장 무기 교체 — 같은 무기의 다음 노드는 아무것도 안 함).
+   * 전환 암전 안에서 짧게 '불러오는 중' 을 보이고 로드가 끝나면(create 전) 지운다
+   */
+  preload(): void {
+    if (!preloadWeaponSheets(this, runWeaponFor(this.initData, this.lab, this.saveSlot))) return;
+    const at = screenFixed(this.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2);
+    const label = this.add
+      .text(at.x, at.y, WEAPON_LOAD.TEXT, { font: WEAPON_LOAD.FONT, color: WEAPON_LOAD.COLOR })
+      .setOrigin(0.5)
+      .setScale(at.scale)
+      .setScrollFactor(0)
+      .setDepth(DEPTH.DEBUG);
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => label.destroy());
   }
 
   create(): void {

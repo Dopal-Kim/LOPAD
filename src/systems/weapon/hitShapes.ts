@@ -3,7 +3,7 @@
  * combo.ts 에서 분리(55라운드 6-1). 각도 규약: 조준 방향 = 0°, 화면 기준 시계 방향 + (right 기준, + = 아래),
  * 왼쪽 조준은 좌우 반전(`facingAngle` — 그림과 같은 규칙), 위·아래는 회전 그대로.
  */
-import type { ComboDef, HitShapeSpec } from '../data/types';
+import type { ComboDef, HitShapeSpec } from '../../data/types';
 
 export type ShapeFacing = 'down' | 'up' | 'left' | 'right';
 

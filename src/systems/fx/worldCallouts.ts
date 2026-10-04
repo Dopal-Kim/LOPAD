@@ -3,8 +3,8 @@
  * 몸 위에서 떠올라(RISE_PX) 머물렀다(HOLD_MS) 사라진다(FADE_MS). 시간은 트윈 — 히트스톱 동안에도 읽힌다. Text 풀 재사용.
  */
 import Phaser from 'phaser';
-import { DEPTH, FEEDBACK, FEEL } from '../core/Constants';
-import { fontFamilyOr } from './fonts';
+import { DEPTH, FEEDBACK, FEEL } from '../../core/Constants';
+import { fontFamilyOr } from '../fonts';
 
 export interface CalloutSummary {
   text: string;

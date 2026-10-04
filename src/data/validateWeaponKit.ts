@@ -3,18 +3,7 @@
  */
 import type { WeaponDef } from './types';
 import { validateMoves } from './validateMoves';
-
-function num(v: unknown, path: string): void {
-  if (typeof v !== 'number' || !Number.isFinite(v)) throw new Error(`[data] ${path} 는 숫자여야 합니다`);
-}
-
-function str(v: unknown, path: string): void {
-  if (typeof v !== 'string' || !v) throw new Error(`[data] ${path} 는 문자열이어야 합니다`);
-}
-
-function nums(o: object, keys: readonly string[], path: string): void {
-  for (const k of keys) num((o as Record<string, unknown>)[k], `${path}.${k}`);
-}
+import { num, nums, str } from './validateUtil';
 
 const GAUGE_NUMERIC: Record<string, readonly string[]> = {
   kenki: ['stages', 'perStage', 'gainPerHit', 'parryGainStages', 'issenDamagePerStage', 'cloneAtStages'],
@@ -34,7 +23,7 @@ const GAUGE_NUMERIC: Record<string, readonly string[]> = {
   breath: ['max', 'perfectGain', 'focusMs', 'focusTimeScale', 'focusPerfectWindowMult'],
 };
 
-export function validateWeapon56(w: WeaponDef, path: string): void {
+export function validateWeaponKit(w: WeaponDef, path: string): void {
   const r = w.resource;
   if (r?.kind === 'stamina' && r.groggyMs !== undefined) num(r.groggyMs, `${path}.resource.groggyMs`);
   const g = w.gauge;
@@ -83,6 +72,8 @@ export function validateWeapon56(w: WeaponDef, path: string): void {
     str(p.crackRow, `${path}.plunge.crackRow`);
   }
   const d = w.draw;
+  // 57라운드 B3: 옛 조준 사격 경로 삭제 — 조준 사격(활)은 당김 데이터가 반드시 있어야 한다
+  if (w.secondary.kind === 'aimedshot' && !d) throw new Error(`[data] ${path}.draw 는 aimedshot 무기에 필수`);
   if (d) {
     nums(
       d,

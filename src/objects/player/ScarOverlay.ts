@@ -6,9 +6,9 @@
 import Phaser from 'phaser';
 import { DEPTH, SCAR_FX } from '../../core/Constants';
 import { gameState } from '../../core/GameState';
-import { spriteLibrary } from '../../systems/sprites';
-import { artScale, parseAnimKey, type Dir8 } from '../../systems/spriteDefs';
-import { scarAt, scarFit } from '../../systems/spriteMeta';
+import { spriteLibrary } from '../../systems/sprites/sprites';
+import { artScale, parseAnimKey, type Dir8 } from '../../systems/sprites/spriteDefs';
+import { scarAt, scarFit } from '../../systems/sprites/spriteMeta';
 import type { ScarData } from '../../systems/setup/scar';
 
 const KEY_PREFIX = 'scar_';

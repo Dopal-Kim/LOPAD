@@ -3,8 +3,8 @@
  * `lab` = 무기 4종 고르기 (+ 개성 갈래로 · 닫기), `labBranch` = 개성 진화 갈래 트리에서 아무 단계나 즉시 적용
  * (기본 · 1차 2개 · 2차 4개 · 강화 +1 순환 · 무기 바꾸기 · 닫기). 선택지 key 는 숫자 문자, 그만두기 = '0'.
  */
-import type { WeaponDef, WeaponTable } from '../data/types';
-import type { UiMenuLine } from '../contract/ui';
+import type { WeaponDef, WeaponTable } from '../../data/types';
+import type { UiMenuLine } from '../../contract/ui';
 
 /** 그만두기 (닫기) key — 계약 §9.4 구조물 메뉴와 같은 관례 */
 export const LAB_CANCEL_KEY = '0';

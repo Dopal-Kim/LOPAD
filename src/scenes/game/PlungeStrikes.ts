@@ -1,15 +1,15 @@
 /**
  * 56라운드 Q10 대검 꽂아내리기 (씬 쪽): 판정 프레임(몸 hitAt)에 꽂힌 자리(몸 plantAnchors)에서 마우스 방향 충격파
  * (fx greatsword_plunge_wave — 회전, 앞머리가 지나간 칸만 맞음) + 꽂힌 자리 작은 충격원 + 땅 균열 l. 휘두름 이펙트 없음.
- * 시각은 씬 시계·플레이 시계(히트스톱 동안 멈춤). 앞머리 시간표는 `systems/plungeWave`.
+ * 시각은 씬 시계·플레이 시계(히트스톱 동안 멈춤). 앞머리 시간표는 `systems/weapon/plungeWave`.
  */
 import { DEPTH, COLORS } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
-import { circleHit, type Pt } from '../../systems/hitShapes';
-import { waveEndMs, waveFrontRatio, waveHit, waveTimeline, type WaveTimeline } from '../../systems/plungeWave';
-import { artScale } from '../../systems/spriteDefs';
+import { circleHit, type Pt } from '../../systems/weapon/hitShapes';
+import { waveEndMs, waveFrontRatio, waveHit, waveTimeline, type WaveTimeline } from '../../systems/weapon/plungeWave';
+import { artScale } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 import type { MobStrike } from './IssenStrikes';
 import type { SwingFx } from './SwingFx';

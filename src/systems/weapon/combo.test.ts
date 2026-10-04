@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { ComboTracker } from './combo';
 import { arcHit, comboShape, shapeHit, thrustHit } from './hitShapes';
-import type { ComboDef } from '../data/types';
-import { WEAPONS } from '../data';
+import type { ComboDef } from '../../data/types';
+import { WEAPONS } from '../../data';
 
 const def: ComboDef = {
   shape: 'arc',

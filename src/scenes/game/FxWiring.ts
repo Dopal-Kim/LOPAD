@@ -5,15 +5,15 @@
  */
 import { DEPTH, FEEL } from '../../core/Constants';
 import { PALETTE } from '../../data';
-import { AimLine } from '../../systems/aimFx';
-import { DamageNumberPool } from '../../systems/damageNumbers';
-import { FxPool } from '../../systems/fx';
-import { AshParticles } from '../../systems/ashParticles';
-import { HitFx } from '../../systems/hitFx';
+import { AimLine } from '../../systems/fx/aimFx';
+import { DamageNumberPool } from '../../systems/fx/damageNumbers';
+import { FxPool } from '../../systems/fx/fx';
+import { AshParticles } from '../../systems/fx/ashParticles';
+import { HitFx } from '../../systems/fx/hitFx';
 import { resolveFxColor } from '../../systems/palette';
-import { ScreenFx } from '../../systems/screenFx';
+import { ScreenFx } from '../../systems/fx/screenFx';
 import { TelegraphFx } from '../../systems/telegraph';
-import { RibbonRenderer } from '../../systems/ribbon';
+import { RibbonRenderer } from '../../systems/fx/ribbon';
 import type { Game } from '../Game';
 
 export function createFx(g: Game, floor: number): void {

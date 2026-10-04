@@ -10,7 +10,7 @@
 import { branchSheetIds, stripFxPrefix } from './branchFx';
 import { type FxWeaponShape } from './fxIds';
 import { branchComboFxId, resolveFxVariant, runtimeFxVariant, type FxVariant } from './fxVariants';
-import { COMBO_HITS } from './spriteDefs';
+import { COMBO_HITS } from '../sprites/spriteDefs';
 
 /** 고르기에 필요한 시트 JSON 필드 (SheetJson 에 섞여 온다) */
 export interface TierSheetFields {

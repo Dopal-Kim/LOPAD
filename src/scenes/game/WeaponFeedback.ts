@@ -10,12 +10,12 @@ import type {
   WeaponGaugePayload,
   WeaponResourcePayload,
 } from '../../core/EventBus';
-import type { FxHandle } from '../../systems/fx';
-import { artScale } from '../../systems/spriteDefs';
-import { spriteLibrary } from '../../systems/sprites';
+import type { FxHandle } from '../../systems/fx/fx';
+import { artScale } from '../../systems/sprites/spriteDefs';
+import { spriteLibrary } from '../../systems/sprites/sprites';
 import { HIT_ORIGIN_UP_PX } from './shared';
 import { gameState } from '../../core/GameState';
-import { WorldCallouts } from '../../systems/worldCallouts';
+import { WorldCallouts } from '../../systems/fx/worldCallouts';
 import type { Game } from '../Game';
 
 /** 문구 (결정 Q8: 영문) */

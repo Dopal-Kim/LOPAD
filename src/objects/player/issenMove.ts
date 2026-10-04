@@ -6,8 +6,8 @@
 import { gameState } from '../../core/GameState';
 import type { WeaponFirstStrikeDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
-import { facingVector } from '../../systems/issenPath';
-import { facingOf } from '../../systems/spriteDefs';
+import { facingVector } from '../../systems/weapon/issenPath';
+import { facingOf } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 import { aimVector, type ComboStrike } from './heavyMoves';
 

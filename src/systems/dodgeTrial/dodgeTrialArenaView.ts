@@ -4,7 +4,7 @@
  * 과제마다 `setMask` 로 새 경기장으로 바꾼다(짧게 나타남). 좌표는 월드 px, 경기장 중심 (cx, cy).
  */
 import Phaser from 'phaser';
-import { DEPTH, entityDepth } from '../core/Constants';
+import { DEPTH, entityDepth } from '../../core/Constants';
 import { DODGE_TRIAL } from './dodgeTrial';
 import type { ArenaMask } from './dodgeTrialArena';
 

@@ -47,9 +47,3 @@ export function fontFamilyOr(family: string, fallback: string): string {
 export function fontStatus(family: string): boolean | undefined {
   return ready.get(family);
 }
-
-/** 테스트용 */
-export function resetFonts(): void {
-  ready.clear();
-  pending.clear();
-}

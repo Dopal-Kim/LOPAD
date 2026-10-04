@@ -1,5 +1,5 @@
 /**
- * 56라운드 2단계 새 기본기 연출 상수 (Constants.ts 가 커져서 분리 — Constants 에서 다시 내보낸다).
+ * 56라운드 2단계 새 기본기 연출 상수 (Constants.ts 가 커져서 분리 — `core/constants/index.ts` 에서 다시 내보낸다).
  * 게임 수치(시간·판정·피해·이동)는 data/weapons.json `moves`, 여기는 시트에 값이 없을 때의 대체·연출 값 (임시).
  */
 export const MOVE_FX = {

@@ -5,10 +5,10 @@
  * 51·52라운드 계약 art §10: 갈래 조준선(`aim_line_snipe`)은 진행도 구동(progressDriven) — frame = min(4, floor(progress×5)), 완료 = 5.
  */
 import Phaser from 'phaser';
-import { COLORS, DEPTH, ENEMY_FX } from '../core/Constants';
-import { spriteLibrary } from './sprites';
+import { COLORS, DEPTH, ENEMY_FX } from '../../core/Constants';
+import { spriteLibrary } from '../sprites/sprites';
 import { aimLineFrame } from './branchFx';
-import { FX_ACTION, fxDrawScale } from './spriteDefs';
+import { FX_ACTION, fxDrawScale } from '../sprites/spriteDefs';
 
 const BASE_ID = 'aim_line';
 

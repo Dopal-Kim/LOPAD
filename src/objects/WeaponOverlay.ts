@@ -12,10 +12,10 @@
  */
 import Phaser from 'phaser';
 import { CARRY, DEPTH, FEEDBACK } from '../core/Constants';
-import { anchorOffset, bladeAt, gripAt, handAt, overlayPivot, type BladeLocal } from '../systems/spriteMeta';
+import { anchorOffset, bladeAt, gripAt, handAt, overlayPivot, type BladeLocal } from '../systems/sprites/spriteMeta';
 import { gameState } from '../core/GameState';
-import { spriteLibrary } from '../systems/sprites';
-import { overlayArtCandidates } from '../systems/comboArt';
+import { spriteLibrary } from '../systems/sprites/sprites';
+import { overlayArtCandidates } from '../systems/weapon/comboArt';
 import {
   GROGGY_ACTION,
   GROGGY_CARRY,
@@ -33,7 +33,7 @@ import {
   type CarryAction,
   type Dir8,
   type SheetDef,
-} from '../systems/spriteDefs';
+} from '../systems/sprites/spriteDefs';
 
 /** 휴대 상태: hand = 늘 손(단검·활) · stowed = 칼집·등에 넣음 · drawn = 칼·대검을 뽑아 든 상태 */
 export interface CarryInfo {

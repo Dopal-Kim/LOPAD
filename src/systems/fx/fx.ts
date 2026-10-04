@@ -13,23 +13,21 @@
  * 그 프레임으로 건너뛰어 멈추고, 끝나면 그 프레임을 처음부터 이어 재생한다.
  */
 import Phaser from 'phaser';
-import { PROTOTYPE, fxLitDepth } from '../core/Constants';
-import { spriteLibrary } from './sprites';
-import { lightFor, lightRegistryOf, type LightSource } from './lighting/lightRegistry';
+import { PROTOTYPE, fxLitDepth } from '../../core/Constants';
+import { spriteLibrary } from '../sprites/sprites';
+import { lightFor, lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 import {
   FX_ACTION,
   animDurationMs,
   fxDrawScale,
-  animKey,
   frameDurations,
   frameIndices,
   frameStarts,
   fxImpactFrame,
-  type Facing,
   type FxFlashSpec,
   type FxShakeSpec,
   type SheetJson,
-} from './spriteDefs';
+} from '../sprites/spriteDefs';
 import type { FxFollowTarget, FxHandle, FxHooks, FxPlayOptions } from './fxTypes';
 
 export type { FxFollowTarget, FxHandle, FxHooks, FxPlayOptions, FxTrailRequest } from './fxTypes';
@@ -441,9 +439,4 @@ export class FxPool {
     }
     return tailKey;
   }
-}
-
-/** 변형 접미를 뗀 기본 애니 키 (테스트·디버그) */
-export function baseFxAnimKey(id: string, dir: Facing): string {
-  return animKey(id, FX_ACTION, dir);
 }

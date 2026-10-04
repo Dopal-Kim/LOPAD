@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { WEAPON_FX } from '../core/Constants';
-import type { TierSheetFields } from './fxTier';
+import { WEAPON_FX } from '../../core/Constants';
+import type { TierSheetFields } from '../fx/fxTier';
 import { pickSwingFx, type SwingPickInput } from './swingSelect';
 
 const base: SwingPickInput = {

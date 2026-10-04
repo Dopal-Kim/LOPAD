@@ -5,7 +5,7 @@
  * - props: 방 바닥 소품 (시드 결정적 배치)
  */
 import { ASSETS, QUARTER, RENDER, TEXTURES, TILE } from '../core/Constants';
-import type { LightSpec } from '../systems/spriteDefs';
+import type { LightSpec } from '../systems/sprites/spriteDefs';
 import type { CanalJson, DecalJson } from './floorFeatures';
 
 /** 방 종류 바닥 섞기 해시 소금 (변형 선택과 다른 해시) */

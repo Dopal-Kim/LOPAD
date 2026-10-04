@@ -4,7 +4,7 @@
  * - 보폭(stride): 걷기·달리기 재생 배속을 실제 이동 속도에 맞춘다 (이동 속도는 그대로)
  * - 손·칼 앵커: 몸 `handAnchors`, 무기 `gripAnchors`·`handAnchors`·`bladeLocal`·`playerFrameOffset` — 시트 도트 좌표 → 월드
  */
-import { ASSETS, SPRITES } from '../core/Constants';
+import { ASSETS, SPRITES } from '../../core/Constants';
 import {
   BODY_VARIANT_BASES,
   FREE_POSE,

@@ -12,10 +12,10 @@ import type { PlayerAttackPayload, PlayerChargePayload } from '../../core/EventB
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
-import { hitShapeBounds, shapeCenterPoint, shapeHit, type Pt } from '../../systems/hitShapes';
-import type { FxHandle } from '../../systems/fx';
-import { facingOf, radiusFitScale } from '../../systems/spriteDefs';
-import { slamFxId, slashFxId } from '../../systems/fxIds';
+import { hitShapeBounds, shapeCenterPoint, shapeHit, type Pt } from '../../systems/weapon/hitShapes';
+import type { FxHandle } from '../../systems/fx/fx';
+import { facingOf, radiusFitScale } from '../../systems/sprites/spriteDefs';
+import { slamFxId, slashFxId } from '../../systems/fx/fxIds';
 import { isBackswing, isHeavyStrike } from '../../systems/hitFeel';
 import type { Game } from '../Game';
 import { BowShots } from './BowShots';

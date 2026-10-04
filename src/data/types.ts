@@ -1,8 +1,8 @@
 import type { BossPatternName, PatternParams } from './bossPatterns';
 export type { BossPatternName, PatternParams } from './bossPatterns';
 import type { ComboDef } from './comboTypes';
-import type { BowDrawDef, IssenDef, PlungeDef, WeaponGaugeDef } from './weapon56Types';
-export type * from './weapon56Types';
+import type { BowDrawDef, IssenDef, PlungeDef, WeaponGaugeDef } from './weaponKitTypes';
+export type * from './weaponKitTypes';
 export type * from './moveTypes';
 import type { WeaponMovesDef } from './moveTypes';
 
@@ -357,14 +357,11 @@ export interface StagesFile {
   stages: StageTable;
 }
 
-/** 개성 선택에서 쓰는 성향 축 (전부 0..1) */
+/** 개성 선택에서 쓰는 성향 축 = 획 3축 (전부 0..1). 49라운드부터 무기는 3획만으로 결정 — 57라운드 B2 리듬 축(key*) 제거 */
 export interface Affinity {
   strokeLength: number;
   strokeSpeed: number;
   straightness: number;
-  keyMove: number;
-  keyAttack: number;
-  keyDash: number;
 }
 
 export interface WeaponRanged {
@@ -382,7 +379,6 @@ export interface WeaponRanged {
 
 export interface PersonalityData {
   strokes: { count: number; lengthMaxPx: number; speedMaxPxPerSec: number; minPoints: number };
-  rhythm: { durationMs: number; attackSaturation: number; dashSaturation: number };
   weights: Affinity;
 }
 
@@ -517,8 +513,6 @@ export type SecondaryDef =
       moveMult: number;
       cooldownMs: number;
     };
-
-export type SecondaryKind = SecondaryDef['kind'];
 
 /** 49라운드 Q4·Q6: 무기 자원 (임시값). 칼·대검 기력 · 활 화살 탄창 · 단검 과열 */
 export interface StaminaResourceDef {

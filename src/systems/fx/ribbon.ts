@@ -7,11 +7,11 @@
  * - `feelSettings.trail` 이 false 면 만들지 않는다. 수식은 `ribbonMath`.
  */
 import Phaser from 'phaser';
-import { FEEL } from '../core/Constants';
-import { feelSettings } from './feel';
+import { FEEL } from '../../core/Constants';
+import { feelSettings } from '../feel';
 import { pruneRibbon, pushRibbonSample, ribbonAgeFrame, sampleTimes, type RibbonSample } from './ribbonMath';
-import { spriteLibrary } from './sprites';
-import { FX_ACTION, artScale, fxDrawScale } from './spriteDefs';
+import { spriteLibrary } from '../sprites/sprites';
+import { FX_ACTION, artScale, fxDrawScale } from '../sprites/spriteDefs';
 
 /** 플레이 시계 t 의 위치. null 이면 더 찍지 않는다 (남은 점은 수명대로 사라진다) */
 export type RibbonSource = (t: number) => { x: number; y: number } | null;

@@ -1,8 +1,8 @@
 /**
  * 오디오 매니페스트 정의와 순수 규칙 (음향↔시스템 계약 초안 `assets/audio/manifest.json`, 결정 로그 I).
- * Phaser 의존 없음 — 로드·재생은 systems/audio.ts, 이벤트 → 효과음 표는 systems/audioMap.ts.
+ * Phaser 의존 없음 — 로드·재생은 systems/audio/audio.ts, 이벤트 → 효과음 표는 systems/audio/audioMap.ts.
  */
-import { ASSETS, AUDIO } from '../core/Constants';
+import { ASSETS, AUDIO } from '../../core/Constants';
 
 export type AudioKind = 'sfx' | 'bgm';
 

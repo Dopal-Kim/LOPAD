@@ -8,9 +8,9 @@ import { EventBus, Events, type PlayerAttackPayload, type PlayerChargePayload } 
 import { gameState } from '../../core/GameState';
 import type { ComboChargeDef, ComboHitDef, PlungeDef, WeaponFirstStrikeDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
-import { comboRadius } from '../../systems/hitShapes';
-import { pickMove } from '../../systems/moves';
-import { artScale, rowDirFor } from '../../systems/spriteDefs';
+import { comboRadius } from '../../systems/weapon/hitShapes';
+import { pickMove } from '../../systems/weapon/moves';
+import { artScale, rowDirFor } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 import { strikeBodyAction } from './attackEmit';
 import { aimVector, type ComboStrike } from './heavyMoves';

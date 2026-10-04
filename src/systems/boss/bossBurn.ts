@@ -11,9 +11,9 @@ import Phaser from 'phaser';
 import { BOSS_FX, DEPTH, fxLitDepth } from '../../core/Constants';
 import type { BossOnFireParams } from '../../data/types';
 import type { Mob } from '../../objects/Mob';
-import type { FxHandle, FxPool } from '../fx';
+import type { FxHandle, FxPool } from '../fx/fx';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
-import { spriteLibrary } from '../sprites';
+import { spriteLibrary } from '../sprites/sprites';
 import {
   FX_ACTION,
   artScale,
@@ -22,7 +22,7 @@ import {
   type Facing,
   type LightSpec,
   type SheetDef,
-} from '../spriteDefs';
+} from '../sprites/spriteDefs';
 import { lightOffsetOf } from '../../world/tileskin';
 import {
   burnColumn,

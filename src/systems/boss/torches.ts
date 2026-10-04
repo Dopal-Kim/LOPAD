@@ -5,7 +5,7 @@
 import Phaser from 'phaser';
 import { BOSS_FX, DEPTH } from '../../core/Constants';
 import type { Vec } from '../../objects/boss/types';
-import type { FxHandle, FxPool } from '../fx';
+import type { FxHandle, FxPool } from '../fx/fx';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 
 interface Torch {

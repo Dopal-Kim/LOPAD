@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FEEL } from '../core/Constants';
+import { FEEL } from '../../core/Constants';
 import { pruneRibbon, pushRibbonSample, ribbonAgeFrame, sampleTimes, type RibbonSample } from './ribbonMath';
 
 describe('ribbonMath: 칼끝 잔상 리본 (55라운드 Q7)', () => {

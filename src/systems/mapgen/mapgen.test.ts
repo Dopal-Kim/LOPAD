@@ -4,6 +4,14 @@ import { CELL_H, CELL_W, ROOM_MARGIN, generateFloor, TileId, cellKey, type Floor
 
 const P = STAGES.stage1.layout;
 
+/** 57라운드 D1: 같은 시드의 층은 한 번만 만든다 (테스트는 결과를 바꾸지 않는다). 결정성 테스트는 generateFloor 를 직접 부른다 */
+const floors = new Map<string | number, FloorLayout>();
+function floorOf(seed: string | number): FloorLayout {
+  let L = floors.get(seed);
+  if (!L) floors.set(seed, (L = generateFloor(seed, P)));
+  return L;
+}
+
 function walkable(t: TileId): boolean {
   return t === TileId.Floor || t === TileId.Corridor || t === TileId.DoorOpen || t === TileId.DoorLocked;
 }
@@ -40,7 +48,7 @@ describe('generateFloor', () => {
 
   it('방 구성: 시작 1 + 시련 N + 휴식 M + 보스 1', () => {
     for (const s of seeds) {
-      const L = generateFloor(s, P);
+      const L = floorOf(s);
       const count = (t: string) => L.rooms.filter((r) => r.type === t).length;
       expect(count('start')).toBe(1);
       expect(count('trial')).toBe(P.trialCount);
@@ -59,7 +67,7 @@ describe('generateFloor', () => {
 
   it('모든 방은 시작 방에서 바닥으로 도달 가능하다', () => {
     for (const s of seeds) {
-      const L = generateFloor(s, P);
+      const L = floorOf(s);
       const seen = reachable(L);
       for (const r of L.rooms) {
         const cx = r.interior.x + Math.floor(r.interior.w / 2);
@@ -71,7 +79,7 @@ describe('generateFloor', () => {
 
   it('시련 방은 시작 방에서 최소 거리 이상 떨어진다', () => {
     for (const s of seeds) {
-      const L = generateFloor(s, P);
+      const L = floorOf(s);
       const start = L.rooms.find((r) => r.type === 'start')!.cells[0];
       for (const r of L.rooms.filter((r) => r.type === 'trial')) {
         const d = Math.abs(r.cells[0].cx - start.cx) + Math.abs(r.cells[0].cy - start.cy);
@@ -82,7 +90,7 @@ describe('generateFloor', () => {
 
   it('보스 방은 시작 방이 아닌 방(시련·휴식)에 붙어 있고 잠긴 문으로만 들어간다', () => {
     for (const s of seeds) {
-      const L = generateFloor(s, P);
+      const L = floorOf(s);
       const boss = L.rooms.find((r) => r.type === 'boss')!;
       const start = L.rooms.find((r) => r.type === 'start')!.cells[0];
       const anchors = L.rooms.filter((r) => r.type === 'trial' || r.type === 'rest').map((r) => r.cells[0]);
@@ -105,7 +113,7 @@ describe('generateFloor', () => {
   });
 
   it('모든 문 타일은 방 벽선 위에 있고 양옆은 벽이다', () => {
-    const L = generateFloor(7, P);
+    const L = floorOf(7);
     for (const r of L.rooms) {
       expect(r.doors.length).toBeGreaterThanOrEqual(1);
       for (const d of r.doors) {
@@ -116,7 +124,7 @@ describe('generateFloor', () => {
   });
 
   it('바닥은 모두 벽 또는 바닥으로만 둘러싸인다 (빈 공간 노출 없음)', () => {
-    const L = generateFloor('walls', P);
+    const L = floorOf('walls');
     for (let y = 0; y < L.heightTiles; y++) {
       for (let x = 0; x < L.widthTiles; x++) {
         if (!walkable(L.tiles[y][x])) continue;
@@ -134,7 +142,7 @@ describe('generateFloor', () => {
   });
 
   it('cellRoom 은 방 셀만 담는다', () => {
-    const L = generateFloor(3, P);
+    const L = floorOf(3);
     const total = L.rooms.reduce((n, r) => n + r.cells.length, 0);
     expect(L.cellRoom.size).toBe(total);
     for (const h of L.hallways) expect(L.cellRoom.has(cellKey(h.cell))).toBe(false);
@@ -143,7 +151,7 @@ describe('generateFloor', () => {
   it('방 내부는 80×48 셀 안에 ROOM_MARGIN 여백을 두고 놓인다 (보스는 2×2 블록)', () => {
     expect([CELL_W, CELL_H]).toEqual([80, 48]);
     for (const s of seeds) {
-      const L = generateFloor(s, P);
+      const L = floorOf(s);
       for (const r of L.rooms) {
         const xs = r.cells.map((c) => c.cx);
         const ys = r.cells.map((c) => c.cy);
@@ -164,7 +172,7 @@ describe('generateFloor', () => {
     let bent = 0;
     let direct = 0;
     for (const s of seeds) {
-      const L = generateFloor(s, P);
+      const L = floorOf(s);
       const byId = new Map(L.rooms.map((r) => [r.id, r]));
       for (const r of L.rooms) {
         for (const d of r.doors) {

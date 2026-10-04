@@ -2,7 +2,7 @@
  * 56라운드 2단계 새 기본기 효과음 (음향 4-1-2절 · assets/audio/manifest.json trigger `PLAYER_SKILL` move·phase).
  * 키 이름이 바뀌면 `MOVE_SFX` 만 고친다. 매니페스트에 없는 id 는 조용히 건너뛴다.
  */
-import { Events, type PlayerSkillPayload } from '../core/EventBus';
+import { Events, type PlayerSkillPayload } from '../../core/EventBus';
 import { t, type AudioTrigger } from './audioTrigger';
 
 export const MOVE_SFX = {

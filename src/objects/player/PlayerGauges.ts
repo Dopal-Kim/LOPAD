@@ -13,7 +13,7 @@ import {
   makeGauge,
   type GuardBlockMode,
   type WeaponGauge,
-} from '../../systems/weaponGauge';
+} from '../../systems/weapon/weaponGauge';
 
 export class PlayerGauges {
   private current: WeaponGauge | null = null;

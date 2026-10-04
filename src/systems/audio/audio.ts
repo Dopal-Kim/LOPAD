@@ -9,9 +9,9 @@
  * 게임 수명 동안 하나(main.ts 에서 attach). 씬 재시작과 무관하게 BGM 이 이어진다.
  */
 import Phaser from 'phaser';
-import { AUDIO } from '../core/Constants';
-import { EventBus, Events, type RunEndedPayload } from '../core/EventBus';
-import { browserStorage } from './save';
+import { AUDIO } from '../../core/Constants';
+import { EventBus, Events, type RunEndedPayload } from '../../core/EventBus';
+import { browserStorage } from '../save';
 import {
   EMPTY_AUDIO_MANIFEST,
   bgmGain,

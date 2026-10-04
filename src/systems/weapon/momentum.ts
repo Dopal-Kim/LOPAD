@@ -2,7 +2,7 @@
  * 55라운드 Q23 대검 관성 (계약 §17): 이어지는 타마다 공속 +perHit, 최대 +max. 마지막 입력(누름·홀드)에서
  * idleResetMs 동안 입력이 없거나 피격되면 처음부터. 최대일 때 내려찍기 끝점 충격원 확대(maxImpactMult). Phaser 의존 없음.
  */
-import type { ComboMomentumDef } from '../data/types';
+import type { ComboMomentumDef } from '../../data/types';
 
 export class Momentum {
   /** 지금 이어지고 있는 타 수 (다음 타 전까지 시작한 타) */

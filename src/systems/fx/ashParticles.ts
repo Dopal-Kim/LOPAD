@@ -4,7 +4,7 @@
  * 깊이는 적중 스파크 바로 아래(라이트맵 위). 시트가 없으면 아무것도 하지 않는다.
  */
 import Phaser from 'phaser';
-import { DEPTH, FEEL } from '../core/Constants';
+import { DEPTH, FEEL } from '../../core/Constants';
 import {
   ashDrawPos,
   ashFrame,
@@ -16,8 +16,8 @@ import {
   type AshParticle,
   type AshRecipe,
 } from './ashParticleMath';
-import { spriteLibrary } from './sprites';
-import { FX_ACTION, artScale, fxDrawScale } from './spriteDefs';
+import { spriteLibrary } from '../sprites/sprites';
+import { FX_ACTION, artScale, fxDrawScale } from '../sprites/spriteDefs';
 
 interface Live {
   img: Phaser.GameObjects.Image;

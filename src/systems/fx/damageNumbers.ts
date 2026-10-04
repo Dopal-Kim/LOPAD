@@ -5,11 +5,11 @@
  * - 글꼴 Galmuri11 (34라운드 규칙, 11px). 로드 전·실패면 monospace.
  */
 import Phaser from 'phaser';
-import { COLORS, DEPTH, FEEL } from '../core/Constants';
-import { PALETTE } from '../data';
-import { rampFor } from './palette';
-import { fontFamilyOr } from './fonts';
-import { feelSettings } from './feel';
+import { COLORS, DEPTH, FEEL } from '../../core/Constants';
+import { PALETTE } from '../../data';
+import { rampFor } from '../palette';
+import { fontFamilyOr } from '../fonts';
+import { feelSettings } from '../feel';
 
 export type DamageKind = 'hit' | 'crit' | 'tick' | 'player';
 

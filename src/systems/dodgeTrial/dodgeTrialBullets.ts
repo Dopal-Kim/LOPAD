@@ -6,15 +6,15 @@
  * 예약·고리·벽 같은 과제 박자는 `dodgeTrialHazards.ts`.
  */
 import Phaser from 'phaser';
-import { DEPTH, ENEMY_FX, FEEL } from '../core/Constants';
-import { audio } from './audio';
-import { SFX } from './audioMap';
+import { DEPTH, ENEMY_FX, FEEL } from '../../core/Constants';
+import { audio } from '../audio/audio';
+import { SFX } from '../audio/audioMap';
 import { DODGE_TRIAL } from './dodgeTrial';
 import { cellIndexAt, pillarAt, type ArenaMask } from './dodgeTrialArena';
 import { steer } from './dodgeTrialTasks';
-import type { FxPool } from './fx';
-import { FX_ACTION, fxDrawScale } from './spriteDefs';
-import { spriteLibrary } from './sprites';
+import type { FxPool } from '../fx/fx';
+import { FX_ACTION, fxDrawScale } from '../sprites/spriteDefs';
+import { spriteLibrary } from '../sprites/sprites';
 
 export type BulletKind = 'line' | 'homing' | 'wall';
 

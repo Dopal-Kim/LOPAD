@@ -5,8 +5,15 @@
  */
 import Phaser from 'phaser';
 import { BOSS_FX, SPRITES } from '../../core/Constants';
-import { spriteLibrary } from '../../systems/sprites';
-import { artScale, facingOf, frameDurations, frameStarts, type Facing, type SheetJson } from '../../systems/spriteDefs';
+import { spriteLibrary } from '../../systems/sprites/sprites';
+import {
+  artScale,
+  facingOf,
+  frameDurations,
+  frameStarts,
+  type Facing,
+  type SheetJson,
+} from '../../systems/sprites/spriteDefs';
 import type { EntityVisual } from '../EntityVisual';
 import type { BossPoseApi, Vec } from './types';
 

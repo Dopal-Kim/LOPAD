@@ -5,6 +5,7 @@
  * - recipes.<적중 시트>: kind → 개수 + coneDeg (공격 방향 ±coneDeg/2 로 발사)
  * 길이(속도·중력·흔들림)는 시트 도트 단위 → `unit`(= 도트 배율, pixelScale 0.5 → 월드 0.25)으로 월드 단위로 바꾼다.
  */
+import { numOr } from '../../data/validateUtil';
 
 export interface AshKind {
   start: number;
@@ -39,9 +40,7 @@ export interface AshParticle {
 
 const DEFAULT_FRAME_MS = 80;
 
-function num(v: unknown, fallback: number): number {
-  return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
-}
+const num = numOr;
 
 function range(v: unknown, fallback: [number, number]): [number, number] {
   if (Array.isArray(v) && v.length >= 2 && typeof v[0] === 'number' && typeof v[1] === 'number')

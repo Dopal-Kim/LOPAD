@@ -180,7 +180,3 @@ export function pickMove(
   for (const m of availableMoves(weapon, path)) if (m.trigger === trigger && m.live && require(m)) return m;
   return null;
 }
-
-export function moveById(id: string): MoveDef | undefined {
-  return MOVES.find((m) => m.id === id);
-}

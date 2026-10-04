@@ -3,7 +3,7 @@
  */
 import type Phaser from 'phaser';
 import type { FxVariant } from './fxVariants';
-import type { Facing, FxFlashSpec, FxShakeSpec, FxTrailSpec } from './spriteDefs';
+import type { Facing, FxFlashSpec, FxShakeSpec, FxTrailSpec } from '../sprites/spriteDefs';
 
 /** 따라갈 대상 (플레이어·투사체·적). 비활성화되면 이펙트도 멈춘다 */
 export interface FxFollowTarget {

@@ -9,10 +9,10 @@
  * `feelSettings.flash` 가 false 면 전부 무시.
  */
 import Phaser from 'phaser';
-import { DEPTH, FEEL } from '../core/Constants';
-import { PALETTE } from '../data';
-import { feelSettings } from './feel';
-import { hexToInt, rampFor } from './palette';
+import { DEPTH, FEEL } from '../../core/Constants';
+import { PALETTE } from '../../data';
+import { feelSettings } from '../feel';
+import { hexToInt, rampFor } from '../palette';
 import { flashAlphaAt } from './trailMath';
 
 export interface ScreenFxSummary {

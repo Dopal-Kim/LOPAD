@@ -12,8 +12,8 @@ import type { Mob, MobContext, ProjectileSpec } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
 import { rollCrit } from '../../systems/economy';
 import { hitShake, shakesOnHit, weaponHitstopMs } from '../../systems/hitFeel';
-import { spriteLibrary } from '../../systems/sprites';
-import { FX_ACTION, fxDrawScale, radiusFitScale } from '../../systems/spriteDefs';
+import { spriteLibrary } from '../../systems/sprites/sprites';
+import { FX_ACTION, fxDrawScale, radiusFitScale } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 
 export type DamageKind = 'attack' | 'dashAttack' | 'aimed' | 'other';

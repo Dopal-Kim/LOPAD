@@ -4,7 +4,7 @@
  * - 단검 낙인(烙印)은 적마다 쌓이므로 `BrandBook`(대상 → 표식 수)
  * HUD 표시는 UI 계약 §13 `UiSnapshot.gauge`(승인 #20) — 값은 PlayerGauges.toUi · BrandMarks.toUi 가 만든다.
  */
-import type { BrandGaugeDef, BreathGaugeDef, GrudgeGaugeDef, KenkiGaugeDef, WeaponGaugeDef } from '../data/types';
+import type { BrandGaugeDef, BreathGaugeDef, GrudgeGaugeDef, KenkiGaugeDef, WeaponGaugeDef } from '../../data/types';
 
 /** 칼 검기: 단(0..stages) = floor(값 / perStage) */
 export class KenkiGauge {

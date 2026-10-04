@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { gameConfig } from './config';
 import { SCENES } from './core/Constants';
 import { installContractHost } from './contract/host';
-import { audio } from './systems/audio';
+import { audio } from './systems/audio/audio';
 import { displayZoom, installLogicalCameras } from './systems/display';
 
 document.addEventListener('DOMContentLoaded', () => {

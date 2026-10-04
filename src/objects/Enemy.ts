@@ -10,8 +10,8 @@ import {
 import { ENEMIES } from '../data';
 import type { EnemyDef, EnemyScale } from '../data/types';
 import type { TelegraphHandle } from '../systems/telegraph';
-import { anchorOffset } from '../systems/spriteMeta';
-import type { Facing } from '../systems/spriteDefs';
+import { anchorOffset } from '../systems/sprites/spriteMeta';
+import type { Facing } from '../systems/sprites/spriteDefs';
 import { Mob, type MobContext } from './Mob';
 
 type ChargeState = 'approach' | 'telegraph' | 'dash' | 'cooldown';

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { frameStarts, fxHoldFrame, keyedDurations, startsOf, swingFxDelayMs, type SheetJson } from './spriteDefs';
+import {
+  frameStarts,
+  fxHoldFrame,
+  keyedDurations,
+  startsOf,
+  swingFxDelayMs,
+  type SheetJson,
+} from '../sprites/spriteDefs';
 
 /** 대검 1타 몸 시트(v3)와 연격 이펙트(v3) 타이밍 — 아트 JSON 값 */
 const body = [45, 45, 50, 50, 30, 30, 55, 55, 70, 70, 65, 65];

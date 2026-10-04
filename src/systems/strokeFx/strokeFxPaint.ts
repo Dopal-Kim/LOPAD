@@ -153,15 +153,3 @@ export function hash01(i: number, salt = 0): number {
   h ^= h >>> 13;
   return (h >>> 0) / 4294967296;
 }
-
-/** 빛의 방사 점 (섬광 머리·펜 끝) — 'lighter' 로 더한다 */
-export function glowDot(ctx: Ctx, x: number, y: number, r: number, color: number, a: number): void {
-  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-  g.addColorStop(0, lightColor(color, a * 1.4));
-  g.addColorStop(0.4, lightColor(color, a * 0.6));
-  g.addColorStop(1, 'rgb(0,0,0)');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
-}

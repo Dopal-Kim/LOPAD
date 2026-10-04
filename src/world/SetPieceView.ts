@@ -6,8 +6,8 @@
 import Phaser from 'phaser';
 import { STRUCTURE_FX, TILE, entityDepth } from '../core/Constants';
 import { ROUTE, type SetPieceViewDef } from '../systems/route';
-import { spriteLibrary } from '../systems/sprites';
-import { FX_ACTION, STRUCTURE_ACTION, artScale } from '../systems/spriteDefs';
+import { spriteLibrary } from '../systems/sprites/sprites';
+import { FX_ACTION, STRUCTURE_ACTION, artScale } from '../systems/sprites/spriteDefs';
 import { lightFor, lightRegistryOf } from '../systems/lighting/lightRegistry';
 import type { DecorPlacement, SetPiecePlan } from '../systems/structures/setpiece';
 import { StructureView } from './StructureView';

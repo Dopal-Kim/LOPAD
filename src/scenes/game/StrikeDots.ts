@@ -7,8 +7,8 @@ import { COLORS, DEPTH, entityDepth } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
-import type { FxHandle } from '../../systems/fx';
-import { facingOf } from '../../systems/spriteDefs';
+import type { FxHandle } from '../../systems/fx/fx';
+import { facingOf } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 import { pathFx } from './shared';
 

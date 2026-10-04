@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PERSONALITY, WEAPONS } from '../data';
-import { STROKE_KEYS, chooseWeapon, rhythmFeatures, strokeFeatures, type Stroke } from './personality';
+import { STROKE_KEYS, chooseWeapon, strokeFeatures, type Stroke } from './personality';
 
 const line = (len: number, ms: number): Stroke => [
   { x: 0, y: 0, t: 0 },
@@ -29,12 +29,6 @@ describe('personality', () => {
   it('점이 모자란 획은 무시', () => {
     expect(strokeFeatures([[{ x: 0, y: 0, t: 0 }]], PERSONALITY).strokeLength).toBe(0);
   });
-  it('리듬: 이동 비율·공격·대쉬 포화', () => {
-    const f = rhythmFeatures({ frames: 100, movingFrames: 80, attacks: 30, dashes: 4 }, PERSONALITY);
-    expect(f.keyMove).toBeCloseTo(0.8);
-    expect(f.keyAttack).toBe(1);
-    expect(f.keyDash).toBeCloseTo(0.5);
-  });
   it('각 무기의 성향 벡터 자체를 넣으면 그 무기가 선택된다', () => {
     for (const [id, w] of Object.entries(WEAPONS)) {
       expect(chooseWeapon(w.affinity, WEAPONS, PERSONALITY).id).toBe(id);
@@ -55,19 +49,6 @@ describe('personality: 3획만으로 무기 결정', () => {
   it('거리는 획 3축만 본다 (자기 affinity 와의 거리 0)', () => {
     for (const [id, w] of Object.entries(WEAPONS)) {
       expect(chooseWeapon(w.affinity, WEAPONS, PERSONALITY).distances[id]).toBe(0);
-    }
-  });
-  it('움직임 축(key*)을 어떻게 바꿔도 결과가 같다', () => {
-    const strokes = { strokeLength: 0.6, strokeSpeed: 0.6, straightness: 0.7 };
-    const base = chooseWeapon(strokes, WEAPONS, PERSONALITY);
-    for (const k of [0, 0.5, 1]) {
-      const r = chooseWeapon(
-        { ...strokes, keyMove: k, keyAttack: 1 - k, keyDash: k } as typeof strokes,
-        WEAPONS,
-        PERSONALITY,
-      );
-      expect(r.id).toBe(base.id);
-      expect(r.distances).toEqual(base.distances);
     }
   });
   it('STROKE_KEYS = 획 3축', () => {

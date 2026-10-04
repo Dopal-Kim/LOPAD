@@ -6,7 +6,6 @@ import Phaser from 'phaser';
 import { CANVAS_H, CANVAS_W } from '../display';
 
 export type AutoPreset = 'fast' | 'slow' | 'round';
-export const AUTO_PRESETS: AutoPreset[] = ['fast', 'slow', 'round'];
 
 const AUTO_STROKES: Record<AutoPreset, [number, number][][]> = {
   fast: [0.2, 0.42, 0.64].map((y0) =>

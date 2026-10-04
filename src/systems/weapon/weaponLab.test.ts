@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WEAPONS, WEAPON_RULES } from '../data';
+import { WEAPONS, WEAPON_RULES } from '../../data';
 import { WeaponState } from './weapons';
 import { LAB_CANCEL_KEY, labBranchMenu, labWeaponMenu, nextReinforce } from './weaponLab';
 

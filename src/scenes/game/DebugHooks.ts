@@ -11,13 +11,14 @@ import type { Pickup } from '../../objects/Pickup';
 import type { Projectile } from '../../objects/Projectile';
 import { exposeDebug } from '../../debug';
 import { isBossPatternName } from '../../data/bossPatterns';
-import { audio } from '../../systems/audio';
-import { CHARGE_SFX } from '../../systems/audioMap';
+import { audio } from '../../systems/audio/audio';
+import { CHARGE_SFX } from '../../systems/audio/audioMap';
 import { feelSettings, setFeel } from '../../systems/feel';
 import { fontStatus } from '../../systems/fonts';
 import { metaStore } from '../../systems/meta';
 import { sanitizeScar } from '../../systems/setup/scar';
-import { spriteLibrary } from '../../systems/sprites';
+import { spriteLibrary } from '../../systems/sprites/sprites';
+import { loadedWeaponSheets } from '../../systems/sprites/sheetLoader';
 import type { Game } from '../Game';
 import type { GameInitData } from './shared';
 import { RES, logicalZoomOf } from '../../systems/display';
@@ -57,7 +58,11 @@ export function exposeGameDebug(g: Game): void {
       overlayFrame: g.player.overlay.frame,
       moving: g.player.moving,
     }),
-    sprites: () => spriteLibrary.summary(g),
+    sprites: () => ({
+      ...spriteLibrary.summary(g),
+      weaponLoaded: loadedWeaponSheets(),
+      textureCount: g.textures.getTextureKeys().length,
+    }),
     fx: () => g.fx.summary(),
     nextStage: () => {
       if (g.transitioning) return;
@@ -330,7 +335,7 @@ export function exposeGameDebug(g: Game): void {
       } else r.value = Phaser.Math.Clamp(value, 0, r.max);
       return true;
     },
-    w56: () => {
+    weaponKit: () => {
       const pl = g.player;
       const now = g.time.now;
       return {

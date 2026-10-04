@@ -10,13 +10,13 @@
  * (flipY 허용) 적중점에 — 히트스톱 동안 `holdFrame` 에 멈춘다 — 그리고 `particles_ash` 의 그 시트 묶음으로 재 파편을 낸다.
  */
 import Phaser from 'phaser';
-import { COLORS, DEPTH, FEEL, entityDepth } from '../core/Constants';
-import { PALETTE } from '../data';
+import { COLORS, DEPTH, FEEL, entityDepth } from '../../core/Constants';
+import { PALETTE } from '../../data';
 import type { AshParticles } from './ashParticles';
 import { FxPool } from './fx';
-import { sparkOrientation, weaponHitSheet } from './hitFeel';
-import { rampFor } from './palette';
-import { facingOf, fxHoldFrame, type Facing } from './spriteDefs';
+import { sparkOrientation, weaponHitSheet } from '../hitFeel';
+import { rampFor } from '../palette';
+import { facingOf, fxHoldFrame, type Facing } from '../sprites/spriteDefs';
 
 const TEX_SPARK = 'fxph_spark';
 const TEX_DOT = 'fxph_dot';

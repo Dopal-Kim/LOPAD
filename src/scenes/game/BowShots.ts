@@ -21,14 +21,14 @@ import {
   snipeLevel,
   stripFxPrefix,
   tailFxIds,
-} from '../../systems/branchFx';
-import type { FxHandle } from '../../systems/fx';
-import { pickTierSheet } from '../../systems/fxTier';
+} from '../../systems/fx/branchFx';
+import type { FxHandle } from '../../systems/fx/fx';
+import { pickTierSheet } from '../../systems/fx/fxTier';
 import { isHeavyStrike } from '../../systems/hitFeel';
-import { resolveFxVariant, runtimeFxVariant, type FxVariant } from '../../systems/fxVariants';
-import { spriteLibrary } from '../../systems/sprites';
-import { FX_ACTION, artScale, facingOf, fxDrawScale } from '../../systems/spriteDefs';
-import { arrowFxId, perfectReleaseFxId } from '../../systems/fxIds';
+import { resolveFxVariant, runtimeFxVariant, type FxVariant } from '../../systems/fx/fxVariants';
+import { spriteLibrary } from '../../systems/sprites/sprites';
+import { FX_ACTION, artScale, facingOf, fxDrawScale } from '../../systems/sprites/spriteDefs';
+import { arrowFxId, perfectReleaseFxId } from '../../systems/fx/fxIds';
 import type { Game } from '../Game';
 import { HIT_ORIGIN_UP_PX, pathFx } from './shared';
 

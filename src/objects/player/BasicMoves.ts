@@ -1,5 +1,5 @@
 /**
- * 56라운드 2단계 새 기본기 입력 (공격 수단 표 `systems/moves` 의 live 수단만 — Q40~Q43): 계기 상태(패링·퍼펙트 가드·그림자 걸음 착지
+ * 56라운드 2단계 새 기본기 입력 (공격 수단 표 `systems/weapon/moves` 의 live 수단만 — Q40~Q43): 계기 상태(패링·퍼펙트 가드·그림자 걸음 착지
  * 시각·누름 시작)를 들고, 조건이 맞으면 무기별 실행기(`katanaMoves`·`greatswordMoves`·`daggerMoves`)를 부른다.
  * 유지형(대치 일격·고속 난타)은 진행 중 입력을 가져간다. 슈퍼아머(버티기 올려베기) 구간·도약 공중 높이도 여기서 잰다.
  * Player.update 는 이동 뒤·넣기/대쉬/보조/공격 앞에서 `update` 를 부르고, 처리했으면 그 프레임을 끝낸다.
@@ -9,8 +9,8 @@ import { EventBus, Events, type GuardReleasedPayload } from '../../core/EventBus
 import { gameState } from '../../core/GameState';
 import type { WeaponMovesDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
-import { pickMove, type MoveTrigger } from '../../systems/moves';
-import { artScale } from '../../systems/spriteDefs';
+import { pickMove, type MoveTrigger } from '../../systems/weapon/moves';
+import { artScale } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 import { FlurryHold } from './daggerMoves';
 import { startBackstab } from './daggerMoves';

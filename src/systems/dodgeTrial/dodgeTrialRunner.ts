@@ -7,16 +7,16 @@
  * 좌표는 월드 px (Setup 이 메인 카메라를 ZOOM 배로 경기장 중심에 맞춘다).
  */
 import Phaser from 'phaser';
-import { GAME, TILE } from '../core/Constants';
-import { PALETTE } from '../data';
+import { GAME, TILE } from '../../core/Constants';
+import { PALETTE } from '../../data';
 import { DODGE_TRIAL, TASK_IDS, emptyTaskResult, type ArenaShape, type TaskId, type TaskResult } from './dodgeTrial';
 import { buildArena, isFloorAt, pickShape, placePillars, type ArenaMask } from './dodgeTrialArena';
 import { TrialArenaView } from './dodgeTrialArenaView';
 import { TrialHazards, type HazardArena } from './dodgeTrialHazards';
 import { TrialPlayer, type TrialGround, type TrialInput } from './dodgeTrialPlayer';
 import { taskCues, cueFireMs, taskDurationMs } from './dodgeTrialTasks';
-import { FxPool } from './fx';
-import { fxCoreColor, hexToInt, rampFor } from './palette';
+import { FxPool } from '../fx/fx';
+import { fxCoreColor, hexToInt, rampFor } from '../palette';
 
 export type { TrialInput } from './dodgeTrialPlayer';
 export type TrialPhase = 'card' | 'prep' | 'run' | 'clear' | 'done';

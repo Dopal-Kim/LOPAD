@@ -381,7 +381,6 @@ export type PlayerDamagedPayload = {
   /** 56라운드 2단계: 슈퍼아머(버티기 올려베기)로 받음 — 동작이 끊기지 않음, 흡수 fx */
   armored?: boolean;
 };
-export type EnemyDiedPayload = { id: string; remaining: number };
 export type RoomEnteredPayload = { roomId: string; type: string };
 export type TrialClearedPayload = { roomId: string; cleared: number; total: number };
 export type BossPhasePayload = { phase: number; hp: number; maxHp: number };

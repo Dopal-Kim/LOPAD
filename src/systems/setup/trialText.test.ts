@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { TASK_IDS, emptyTaskResult, gradeTrial, presetResults } from '../dodgeTrial';
+import { TASK_IDS, emptyTaskResult, gradeTrial, presetResults } from '../dodgeTrial/dodgeTrial';
 import { cardText, resultText, statusLine, taskLine, taskMark } from './trialText';
-import type { TrialStatus } from '../dodgeTrialRunner';
+import type { TrialStatus } from '../dodgeTrial/dodgeTrialRunner';
 
 const st = (over: Partial<TrialStatus>): TrialStatus => ({
   phase: 'card',

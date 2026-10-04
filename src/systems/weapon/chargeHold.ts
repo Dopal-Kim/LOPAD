@@ -3,7 +3,7 @@
  * → 떼면 그 단계의 차지 내려찍기. holdMs 전에 떼면 일반 연격(tap). 단계에 닿기 전에 떼도 일반 연격(stage 0 — tap 과 같게).
  * 차지 시계는 누른 때와 행동 가능해진 때(직전 타 다음 타 허용) 중 늦은 쪽부터. Phaser 의존 없음.
  */
-import type { ComboChargeDef } from '../data/types';
+import type { ComboChargeDef } from '../../data/types';
 
 export type ChargePhase = 'idle' | 'pending' | 'charging';
 

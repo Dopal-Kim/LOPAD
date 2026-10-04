@@ -25,7 +25,7 @@ import {
   type PropPlacement,
   type TileSkin,
 } from './tileskin';
-import type { LightSpec } from '../systems/spriteDefs';
+import type { LightSpec } from '../systems/sprites/spriteDefs';
 import type { LightSource } from '../systems/lighting/lightRegistry';
 
 interface WallImage {

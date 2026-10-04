@@ -22,7 +22,7 @@ import {
 import type { Mob } from '../../objects/Mob';
 import type { Player } from '../../objects/Player';
 import type { LiquorPools } from '../hazards/LiquorPools';
-import type { FxPool } from '../fx';
+import type { FxPool } from '../fx/fx';
 import type { RoomDirector } from '../RoomDirector';
 import type { Rng } from '../rng';
 import type { KillKind } from '../senses';

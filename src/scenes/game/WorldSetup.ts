@@ -13,7 +13,7 @@ import { Lighting } from '../../systems/lighting/Lighting';
 import { lightingAmbientFor } from '../../systems/lighting/lightMath';
 import { Rng, hashSeed } from '../../systems/rng';
 import { planNodeArena, setPieceTiles } from '../../systems/routeArena';
-import { spriteLibrary } from '../../systems/sprites';
+import { spriteLibrary } from '../../systems/sprites/sprites';
 import { planStructures, structureTiles, type StructurePlacement } from '../../systems/structures/placement';
 import { BorderView, releaseBorderTextures } from '../../world/BorderView';
 import { borderFor, borderGaps, floorRectOf, type BorderDef } from '../../world/border';

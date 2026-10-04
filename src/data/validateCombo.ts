@@ -2,11 +2,7 @@
  * 48·55라운드 연격 데이터 검사 (data/index.ts 에서 분리 — 55라운드 6-1). 형식은 `comboTypes.ts`.
  */
 import type { ComboDef, ComboFollowUpDef, ComboHitDef, HitShapeSpec } from './comboTypes';
-
-function num(v: unknown, path: string): void {
-  if (typeof v !== 'number' || Number.isNaN(v))
-    throw new Error(`[data] ${path} 는 숫자여야 합니다 (받은 값: ${String(v)})`);
-}
+import { num } from './validateUtil';
 
 function optNum(v: unknown, path: string): void {
   if (v !== undefined) num(v, path);

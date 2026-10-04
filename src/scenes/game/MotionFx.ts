@@ -18,9 +18,9 @@ import type { GuardReleasedPayload, ShadowStepPayload } from '../../core/EventBu
 import { gameState } from '../../core/GameState';
 import { PALETTE, PLAYER_DATA } from '../../data';
 import type { Mob } from '../../objects/Mob';
-import type { FxHandle } from '../../systems/fx';
+import type { FxHandle } from '../../systems/fx/fx';
 import { fxWeaponColor, hexToInt } from '../../systems/palette';
-import { facingOf, progressFrame } from '../../systems/spriteDefs';
+import { facingOf, progressFrame } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 import { evolutionFxId, pathFx } from './shared';
 

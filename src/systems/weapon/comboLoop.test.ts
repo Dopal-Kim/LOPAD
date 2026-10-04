@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { WEAPONS } from '../data';
-import { validateCombo } from '../data/validateCombo';
-import type { ComboDef } from '../data/types';
+import { WEAPONS } from '../../data';
+import { validateCombo } from '../../data/validateCombo';
+import type { ComboDef } from '../../data/types';
 import { ChargeHold, type ChargeEvent } from './chargeHold';
 import { ComboTracker } from './combo';
 import { artCandidates, comboArtNames, hitArtKey, overlayArtCandidates, pickArt } from './comboArt';
-import { isHeavyStrike } from './hitFeel';
+import { isHeavyStrike } from '../hitFeel';
 import { Momentum } from './momentum';
-import { overlayActionsFor } from './spriteDefs';
+import { overlayActionsFor } from '../sprites/spriteDefs';
 
 /** 다음 타 허용 시각마다 눌러 n 타를 이어 친 번호 */
 function chain(c: ComboTracker, n: number, allowHeavy = true): number[] {
