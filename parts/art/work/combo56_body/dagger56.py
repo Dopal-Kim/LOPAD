@@ -44,27 +44,36 @@ def install():
                              % (OLD["FANG"], DG.FANG, OLD["GRIP"], DG.GRIP))
 
 
-def thrust56(t):
+BASE55_LEN = {"dagger_combo1": 96, "dagger_combo2": 96, "dagger_combo3": 112}   # 55라운드 찌르기 길이(도트) — ×1.5 의 기준(재실행해도 두 번 곱하지 않게)
+
+
+def thrust56(t, base_len):
     o = dict(t)
-    o["lengthPx"] = round(t["lengthPx"] * THRUST_X)
+    o["lengthPx"] = round(base_len * THRUST_X)
     return o
 
 
 REF_NOTE = ("56라운드 Q4 판정 참고값: 찌르기 직사각 판정의 수평 길이 ×1.5(lengthPx), 폭·시작점·각도는 그대로. "
-            "이펙트(fx/v3/dagger_combo*)의 찌르기 길이도 ×1.5 로 다시 그리면(작업 A) 이 값과 맞는다. 피해 ×1.4 는 시스템 데이터. 단위 도트(월드 px = 도트/4)")
+            "최상위 thrust 와 같은 값(56라운드 Q51 정리), fx/v3/dagger_combo* 의 thrust 와도 같다. 피해 ×1.4 는 시스템 데이터. 단위 도트(월드 px = 도트/4)")
+THRUST_NOTE = ("몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 방향 변환은 호와 같은 규약. "
+               "56라운드 Q4 수평 사거리 ×1.5 반영값(%d → %d 도트, Q51 정리 — 이전 값은 previousThrust)")
 
 
 def patch_refs():
-    """몸·무기 JSON 에 56라운드 판정 참고값(hitReference56)을 더한다(기존 thrust 는 이전 값 기록으로 남김)."""
+    """몸·무기 JSON 의 thrust 를 56라운드 값(×1.5)으로 맞추고 hitReference56 도 같은 값으로(56라운드 Q51). 이전 값은 previousThrust."""
     out = {}
     for n in ("dagger_combo1", "dagger_combo2", "dagger_combo3"):
         for path in (os.path.join(wv3.EX.OUT_P, "player_%s.json" % n), os.path.join(wv3.EX.OUT_W, "%s.json" % n)):
             j = json.load(open(path, encoding="utf-8"))
             if "thrust" not in j:
                 continue
-            new = thrust56(j["thrust"])
-            j["hitReference56"] = dict(thrust=new, previousThrust=j["thrust"], note=REF_NOTE)
-            out[n] = dict(old=j["thrust"], new=new)
+            old = dict(j["thrust"], lengthPx=BASE55_LEN[n])
+            new = thrust56(j["thrust"], BASE55_LEN[n])
+            j["thrust"] = new
+            j["previousThrust"] = old
+            j["thrustNote"] = THRUST_NOTE % (old["lengthPx"], new["lengthPx"])
+            j["hitReference56"] = dict(thrust=new, previousThrust=old, note=REF_NOTE)
+            out[n] = dict(old=old, new=new)
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(j, f, ensure_ascii=False, indent=1)
     return out

@@ -35,6 +35,18 @@ def body_json(name):
     return json.load(open(os.path.join(P3, "player_%s.json" % name), encoding="utf-8"))
 
 
+CHARGE_NO_RING_NOTE = ("§17 차지: 쐐기 길이 ×1.3/1.5/1.8. 56라운드 Q10: 기본 차지는 충격파 링 없음(땅 균열 greatsword_ground_crack 만) — "
+                       "충격파는 개성 발현 후 greatsword_charge_plunge + greatsword_plunge_wave")
+
+
+def strip_ring(hs):
+    """charge_slam_lv* hitShape 에서 55라운드 '3단 충격파 링'(ringStage3) 제거(56라운드 Q10·Q51)."""
+    hs = dict(hs or {})
+    hs.pop("ringStage3", None)
+    hs["note"] = CHARGE_NO_RING_NOTE
+    return hs
+
+
 # =============================================================================
 # 시트 정의
 # =============================================================================
@@ -144,6 +156,9 @@ def meta(name, sp, pivot, origin):
                 base.pop("spawnBodyFrame", None)
             if "hitShape" in bj and "stage" not in sp:
                 upd["hitShape"] = bj["hitShape"]
+            if "stage" in sp:                                # 56라운드 Q10·Q51: 기본 차지는 충격파 없음 — 55 바탕의 3단 링 필드 제거
+                upd["hitShape"] = strip_ring(base.get("hitShape"))
+                base.pop("ringSheet", None)
             upd["drawnArc"] = (dict(fromDeg=sp["arc"][0], toDeg=sp["arc"][1], radiusDots=sp["R"], brushWidthDots=sp["wmax"],
                                     heightDots=list(sp["z"]), note="붓획 바깥 가장자리 ≈ 판정 반경")
                                if sp["kind"] == "arc" else
@@ -192,14 +207,14 @@ def meta(name, sp, pivot, origin):
                timingNote="선 시트 시각 0 = 돌진 시작. 돌진 150ms 동안 f0~f3 이 칼(주인공) 바로 뒤를 따라 그어진다(head = 이동 진행 + 칼끝 26 도트). "
                           "f5~f7 = 분신(+200ms 출발, 150ms 이동)이 지나간 부분만 다시 밝아짐, f8 = 분신 도착 순간 터짐")
     if not sp["shadow"]:
-        upd.update(design="일섬 선(%d칸, 분신 없음) — 그어짐 → 남은 가는 선이 식으며 떨림 → 터짐 → 재. 검기 3단이 아닐 때(56라운드 Q14)" % n,
+        upd.update(design="일섬 선(%d칸, 분신 없음) — 그어짐 → 남은 가는 선이 식으며 떨림 → 터짐 → 재. 검기 3단을 소모하지 않은 일섬(56라운드 Q28)" % n,
                    shadowSheet=None, withShadow="katana_issen_line_t%d" % n, glowFrames=[1, 2],
-                   burstNote="분신이 없으면 터짐은 연출만(판정 없음 가정) — 백열 없이 A25 이하. 터짐에도 판정이 있으면 알려 주면 glowFrames 에 8 추가",
+                   burstNote=k56.SOLO_BURST_NOTE, variantNote=k56.VARIANT_NOTE,
                    frameRoles=upd["frameRoles"][:5] + ["남은 선(식음)", "남은 선(떨림)", "남은 선(식음)"] + ["터짐(A25 이하)"] + upd["frameRoles"][9:])
         upd.pop("shadowStartAtLineMs", None)
         return None, upd, F.ISSEN_MS, [1, 2]
     upd["soloVariant"] = "katana_issen_line_t%d_solo" % n
-    upd["variantNote"] = "56라운드 Q14: 그림자 분신은 검기 3단일 때만 — 분신이 따라오면 이 시트, 아니면 _solo 시트"
+    upd["variantNote"] = k56.VARIANT_NOTE
     return None, upd, F.ISSEN_MS, F.ISSEN_GLOW
 
 

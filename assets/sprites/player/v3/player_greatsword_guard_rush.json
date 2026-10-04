@@ -75,7 +75,7 @@
  ],
  "framesBasis": "player_greatsword_guard_rush 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
  "weightNote": "56라운드 Q5 무게: 긴 선딜(hold/brace/crouch) → 짧은 판정 → drag(칼 무게에 끌림) → catch. 판정은 짧게, 앞뒤는 길게",
- "msNote": "ms 는 아트 제안값. 55라운드 Q29(예전 템포 유지)대로 늘여 재생해도 impactFrame 시작 = hitAt 만 맞으면 그림은 맞는다(관성 공속은 재생 속도로). 무게를 살리려면 선딜(hold)과 drag 구간을 늘이고 strike 는 짧게 두기를 권장",
+ "msNote": "ms = 채택된 템포(56라운드 Q25 — 새 그림 시간 그대로: 수평 0.82초 · 내려찍기 0.92초, 3타 H1→V→H2 ≈ 2.6초. 55라운드 Q29 '약 2초' 대체). 데이터로 바꿔도 impactFrame 시작 = hitAt 만 맞으면 그림은 맞는다(관성 공속은 재생 속도로). 무게를 살리려면 선딜(hold)과 drag 구간을 늘이고 strike 는 짧게 두기를 권장",
  "directionRows": [
   {
    "row": 0,

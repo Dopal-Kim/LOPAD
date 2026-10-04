@@ -20,6 +20,13 @@ R_KATANA_56 = 38                     # 33 × 1.15 = 37.95 → 38 월드 px (Q1)
 ISSEN_WORLD = 64                     # 4칸 × 16 월드 px (Q2)
 ISSEN_DOTS = ISSEN_WORLD * M.WORLD_TO_DOT   # 256 도트
 SHADOW_DELAY_MS = 200                # Q3: 일섬 0.2초 뒤(돌진 시작 기준)
+SHADOW_TRAVEL_MS = 150               # 분신 이동(travelFrames) — 도착 = 돌진 시작 + 200 + 150 ms
+SHADOW_CONDITION = ("검기(劍氣) 3단을 소모한 일섬일 때만(56라운드 Q28 — Q3 '일섬마다'·'일섬 0.2초 뒤 무조건' 표기 대체). "
+                    "그 밖의 일섬은 분신 없음 + 일섬 선 _solo 시트")
+SHADOW_DAMAGE_NOTE = ("분신 피해 = 도착 순간 1회(몸 기준 %dms = 일섬 선 burstFrame), 일섬 선(hitShape rect, 실제 이동 거리) 위 적 전부에 "
+                      "damageScale 배(56라운드 Q29 — fx hitTimingOptions 의 A)")
+VARIANT_NOTE = "56라운드 Q28: 그림자 분신은 검기 3단을 소모한 일섬일 때만 — 분신이 따라오면 이 시트, 아니면 _solo 시트"
+SOLO_BURST_NOTE = "분신이 없는 일섬의 터짐(f8)은 연출만, 추가 피해 없음(56라운드 Q31) — 백열 없이 A25 이하"
 
 
 def _settle(fr, **kw):

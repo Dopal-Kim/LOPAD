@@ -88,10 +88,7 @@
    "atWedgeEnd": true,
    "radiusPx": 71.4
   },
-  "ringStage3": {
-   "sheet": "greatsword_charge_ring"
-  },
-  "note": "§17 차지: 쐐기 길이 ×1.3/1.5/1.8, 3단은 충격파 링",
+  "note": "§17 차지: 쐐기 길이 ×1.3/1.5/1.8. 56라운드 Q10: 기본 차지는 충격파 링 없음(땅 균열 greatsword_ground_crack 만) — 충격파는 개성 발현 후 greatsword_charge_plunge + greatsword_plunge_wave",
   "R": {
    "world": 51,
    "dots": 204
@@ -108,7 +105,6 @@
  },
  "impactSheetScale": 1.3,
  "impactSheetScaleNote": "끝점 충격 시트 scale 참고값(충격원 반경도 키울지는 시스템 데이터)",
- "ringSheet": "greatsword_charge_ring",
  "glowFrames": [
   2
  ],

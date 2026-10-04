@@ -33,7 +33,7 @@
  "semiTransparent": false,
  "source": "parts/art/work/combo56_fx/build.py (56라운드 Q11 붓획 · Q1 칼 템포 · Q2 일섬 · Q3 그림자 분신)",
  "weapon": "katana",
- "design": "그림자 분신(Q3) — 일섬 0.2초 뒤 같은 선을 달려 베고 재로 부서져 사라지는 어두운 재 실루엣(주인공 v3 일섬 자세 기반). 반투명 대신 어두운 재 4단 디더 · 뒤쪽 디더 비움 · 불씨 테",
+ "design": "그림자 분신(Q3 → 조건 Q28) — 검기 3단을 소모한 일섬의 0.2초 뒤 같은 선을 달려 베고 재로 부서져 사라지는 어두운 재 실루엣(주인공 v3 일섬 자세 기반). 반투명 대신 어두운 재 4단 디더 · 뒤쪽 디더 비움 · 불씨 테",
  "anchor": "issen_shadow_path",
  "pivot": {
   "x": 94,
@@ -62,6 +62,10 @@
   "A(아트 제안)": "도착 순간 1회 = 일섬 선 터짐 프레임(katana_issen_line burstFrame, 몸 기준 570ms)",
   "B": "travelFrames 동안 분신 위치 주변 판정(지나가며 벰)"
  },
+ "hitTimingChosen": "A",
+ "hitTimingRef": "56라운드 Q29 — 도착 순간 1회, 일섬 선 위 적 전부 50%",
+ "condition": "ki3_spent",
+ "conditionNote": "검기(劍氣) 3단을 소모한 일섬일 때만(56라운드 Q28 — Q3 '일섬마다'·'일섬 0.2초 뒤 무조건' 표기 대체). 그 밖의 일섬은 분신 없음 + 일섬 선 _solo 시트",
  "depth": "같은 Y 정렬(주인공처럼) — 조명 위가 아니라 일반 스프라이트 깊이 권장",
  "lit": false,
  "litNote": "어두운 실루엣이라 조명(라이트맵) 아래·위 어느 쪽이든 읽힘 — fx 규칙대로 조명 위 권장",

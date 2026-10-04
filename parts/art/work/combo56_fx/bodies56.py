@@ -61,7 +61,7 @@ def build():
         stats[name] = _check(name, fr, pal)
         out[name] = fr
         m = M.KATANA[name]
-        upd = dict(tempoNote=m.get("tempoNote"), r56="56라운드 Q1(템포·사거리 ×1.15)" + (" · Q2 일섬 · Q3 그림자 분신" if name == "katana_issen" else ""))
+        upd = dict(tempoNote=m.get("tempoNote"), r56="56라운드 Q1(템포·사거리 ×1.15)" + (" · Q2 일섬 · Q3 그림자 분신(조건 Q28 · 피해 Q29)" if name == "katana_issen" else ""))
         if name == "katana_issen":
             st = M.starts(m["ms"])
             d0, d1 = m["dashFrames"][0], m["dashFrames"][-1]
@@ -69,10 +69,9 @@ def build():
                        dash=dict(startMs=st[d0], endMs=st[d1] + m["ms"][d1], distancePx={"world": k56.ISSEN_WORLD, "dots": k56.ISSEN_DOTS},
                                  easing="linear", stopsAtWall=True, invulnerable=True, passesThroughEnemies=True,
                                  note="dashFrames 동안 조준 방향(4방향 행)으로 이동 — 그림은 제자리(피벗 고정), 이동은 시스템. 벽에 막히면 그 자리에서 멈추고 나머지 프레임은 그대로 재생"),
-                       shadow=dict(sheet="fx/v3/katana_issen_shadow", startAtMs=st[d0] + k56.SHADOW_DELAY_MS, damageScale=0.5,
-                                   note="돌진 시작 + 200ms 에 출발 피벗에서 출발 → 같은 시간(150ms)에 도착 피벗까지 달려 베고 사라짐(fx JSON travel)"),
-                       lineSheets={"t%d" % k: "fx/v3/katana_issen_line_t%d" % k for k in (1, 2, 3, 4)},
-                       lineNote="돌진 시작에 출발 피벗에 일섬 선 시트를 띄운다(실제 이동 칸 수에 맞는 t1~t4, 4칸 = t4)",
+                       shadow=issen_shadow_block(st[d0]),
+                       lineSheets=issen_line_sheets(),
+                       lineNote=ISSEN_LINE_NOTE,
                        stepPx=dict(world=k56.ISSEN_WORLD, dots=k56.ISSEN_DOTS, frames=m["dashFrames"],
                                    note="일섬 돌진 거리(방향키와 무관 — 항상 조준 방향으로)"),
                        stepStartMs=st[d0])
@@ -84,6 +83,28 @@ def build():
             _patch_json(os.path.join(EX.OUT_W, "%s.json" % name), upd)
         print(name, "ok", data["timingMs"], stats[name])
     return out, stats
+
+
+ISSEN_LINE_NOTE = ("돌진 시작에 출발 피벗에 일섬 선 시트를 띄운다(실제 이동 칸 수에 맞는 t1~t4, 4칸 = t4). "
+                   "검기 3단을 소모한 일섬(그림자 분신이 따라옴) = tN, 그 밖의 일섬 = tN_solo(56라운드 Q28)")
+
+
+def issen_shadow_block(dash_start_ms):
+    """일섬 몸·무기 JSON 의 shadow 블록(56라운드 Q28 조건 · Q29 피해 시점)."""
+    arrive = dash_start_ms + k56.SHADOW_DELAY_MS + k56.SHADOW_TRAVEL_MS
+    return dict(sheet="fx/v3/katana_issen_shadow", condition="ki3_spent", conditionNote=k56.SHADOW_CONDITION, conditionRef="56라운드 Q28",
+                startAtMs=dash_start_ms + k56.SHADOW_DELAY_MS, arriveAtMs=arrive, damageScale=0.5,
+                damageTiming=dict(rule="arrive_once", atBodyMs=arrive, target="issen_line_rect", ref="56라운드 Q29"),
+                damageNote=k56.SHADOW_DAMAGE_NOTE % arrive,
+                note="검기 3단 소모 일섬일 때만: 돌진 시작 + %dms 에 출발 피벗에서 출발 → %dms 동안 도착 피벗까지 달려 베고 사라짐(fx JSON travel)"
+                     % (k56.SHADOW_DELAY_MS, k56.SHADOW_TRAVEL_MS))
+
+
+def issen_line_sheets():
+    """t1~t4 = 분신이 따라오는 선(검기 3단 소모), t1_solo~t4_solo = 분신 없는 선(56라운드 Q28)."""
+    out = {"t%d" % k: "fx/v3/katana_issen_line_t%d" % k for k in (1, 2, 3, 4)}
+    out.update({"t%d_solo" % k: "fx/v3/katana_issen_line_t%d_solo" % k for k in (1, 2, 3, 4)})
+    return out
 
 
 def _wdir():

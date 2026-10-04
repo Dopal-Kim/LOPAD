@@ -25,11 +25,18 @@ from rk import W, FK
 
 KATANA_SHEETS = ["katana_rise", "katana_fall", "katana_issen",
                  "katana_carry_idle", "katana_carry_walk", "katana_carry_run", "katana_carry_dash",
-                 "katana_carry_drawn_idle", "katana_carry_drawn_walk", "katana_carry_drawn_run", "katana_carry_drawn_dash"]
+                 "katana_carry_drawn_idle", "katana_carry_drawn_walk", "katana_carry_drawn_run", "katana_carry_drawn_dash",
+                 # 56라운드 Q55 — E1 새 칼 기본기
+                 "katana_counter", "katana_iai",
+                 # 56라운드 Q55 — 계약 §7.1(뽑기·넣기)·§6.2(무기 든 보조 동작)로 게임이 여전히 쓰는 옛 칼 시트.
+                 # katana_combo1~3 은 §17 새 연격(katana_rise·fall·issen)으로 대체되어 제외
+                 "katana_draw", "katana_sheathe", "katana_special"]
 GS_SHEETS = ["greatsword_sweep_cw", "greatsword_sweep_ccw", "greatsword_cleave", "greatsword_charge", "greatsword_charge_slam",
              "greatsword_charge_plunge",
              "greatsword_carry_idle", "greatsword_carry_walk", "greatsword_carry_run", "greatsword_carry_dash",
-             "greatsword_carry_drawn_idle", "greatsword_carry_drawn_walk", "greatsword_carry_drawn_run", "greatsword_carry_drawn_dash"]
+             "greatsword_carry_drawn_idle", "greatsword_carry_drawn_walk", "greatsword_carry_drawn_run", "greatsword_carry_drawn_dash",
+             # 56라운드 Q55 — E1 새 대검 기본기(280×296 틀)
+             "greatsword_tackle", "greatsword_brace_upswing", "greatsword_leap_slam", "greatsword_guard_rush"]
 
 EDGE_COLS = {(0xd6, 0x7a, 0x11), (0xe2, 0xa3, 0x3c), (0xee, 0xcc, 0x78), (0xf4, 0xde, 0x9b)}
 SHEATH_GLOW = {(0xd6, 0x7a, 0x11), (0x8b, 0x4d, 0x22)}
@@ -73,8 +80,30 @@ def components(im):
     return comps
 
 
-def katana_blade(im, tip):
-    """→ (칼날 픽셀 set, 날선 픽셀 set, 칼끝, 손잡이 끝) 또는 None."""
+def edge_runs(edge, min_len=5):
+    """날선 픽셀 중 길게 이어진 줄(8연결 덩어리 min_len 이상)만 — 칼집 금(호박 점 1~3개)과 가른다."""
+    left, out = set(edge), set()
+    while left:
+        q = [left.pop()]
+        comp = set(q)
+        while q:
+            x, y = q.pop()
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    n = (x + dx, y + dy)
+                    if n in left:
+                        left.discard(n)
+                        comp.add(n)
+                        q.append(n)
+        if len(comp) >= min_len:
+            out |= comp
+    return out
+
+
+def katana_blade(im, tip, refine=False):
+    """→ (칼날 픽셀 set, 날선 픽셀 set, 칼끝, 손잡이 끝) 또는 None.
+    refine(56라운드 Q55 — 칼끝 기준점이 없고 칼집과 칼날이 한 덩어리로 붙는 뽑기·넣기 시트): 길게 이어진 날선 줄에서 4 도트 안의
+    픽셀만 칼날로 본다(칼집 몸통·칼집 금은 제외). 긴 날선 줄이 없으면 None(= 칼집 안 취급)."""
     px = im.load()
     comps = components(im)
     if not comps:
@@ -88,6 +117,11 @@ def katana_blade(im, tip):
             return None
     pts = set(best)
     edge = {p for p in pts if px[p][:3] in EDGE_COLS}
+    if refine:
+        edge = edge_runs(edge)
+        if not edge:
+            return None
+        pts = {p for p in pts if any((p[0] - e[0]) ** 2 + (p[1] - e[1]) ** 2 <= 16 for e in edge)}
     # 축: 가장 먼 두 점
     a = max(pts, key=lambda p: (p[0] - 96) ** 2 + (p[1] - 130) ** 2) if tip is None else min(pts, key=lambda p: (p[0] - tip[0]) ** 2 + (p[1] - tip[1]) ** 2)
     b = max(pts, key=lambda p: (p[0] - a[0]) ** 2 + (p[1] - a[1]) ** 2)
@@ -170,10 +204,10 @@ KI_LV = {
 }
 
 
-def ki_frame(im, tip, lv, i, glow, fw, fh):
+def ki_frame(im, tip, lv, i, glow, fw, fh, refine=False):
     cfg = KI_LV[lv]
     f = rk.frame(fw, fh)
-    blade = katana_blade(im, tip)
+    blade = katana_blade(im, tip, refine)
     px = im.load()
     if tip is None and blade is not None and not blade[1]:
         blade = None
@@ -231,6 +265,11 @@ def ki_frame(im, tip, lv, i, glow, fw, fh):
                 yy = y - 9 - ((i * 3 + k * 5) % 9)
                 xx = x + int(2 * math.sin(i + k))
                 Le.put(xx, yy, 0.8 - 0.25 * k)
+        if refine:                                     # 칼집이 같은 덩어리인 칸: 칼집 금은 칼집 안 칸과 같은 단계 색(이어 보이게, 불꽃 없음)
+            col = {1: rk.S3, 2: rk.A23, 3: rk.A25}[lv]
+            for (x, y) in components_pts(im):
+                if (x, y) not in pts and px[x, y][:3] in SHEATH_GLOW:
+                    out_recolor[(x, y)] = col
     img = f.render()
     p = img.load()
     for (x, y), c in out_recolor.items():
@@ -317,6 +356,17 @@ COPY = ("frameWidth", "frameHeight", "frames", "directions", "directionRows", "l
         "loop", "pivot", "playerFrameOffset", "anchor", "bodySheet", "dirTransform", "framesBasis", "timingMs", "glowFrames")
 
 
+def components_pts(im):
+    px = im.load()
+    bb = im.getbbox()
+    if not bb:
+        return []
+    return [(x, y) for y in range(bb[1], bb[3]) for x in range(bb[0], bb[2]) if px[x, y][3]]
+
+
+SHEATHED_STATES = ("sheathed", "click")
+
+
 def tips_of(j, d):
     t = j.get("bladeTipAnchors")
     if isinstance(t, dict):
@@ -324,12 +374,38 @@ def tips_of(j, d):
     return [None] * j["frames"]
 
 
+def body_in_overlay_masks(j, sheet, fr):
+    """bodyInOverlayFrames(몸이 무기 시트 칸에 함께 그려진 칸 — 공중제비 도약 찍기) → 칸마다 몸 픽셀을 지운 '칼만' 그림.
+    마스크는 flipmask.py(build.py flipmask)가 E1 렌더로 다시 그린 칼 층. 없으면 실패(몸까지 달구지 않게)."""
+    frames = j.get("bodyInOverlayFrames") or []
+    if not frames:
+        return {}
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "flipmask_%s.png" % sheet)
+    assert os.path.exists(path), (sheet, "bodyInOverlayFrames 마스크 없음 — build.py flipmask 먼저")
+    mk = Image.open(path).convert("L")
+    fw, fh = j["frameWidth"], j["frameHeight"]
+    assert mk.size == (fw * j["frames"], fh * len(j["directions"])), (sheet, mk.size)
+    out = {}
+    for r, d in enumerate(j["directions"]):
+        for i in frames:
+            m = mk.crop((i * fw, r * fh, (i + 1) * fw, (r + 1) * fh))
+            im = fr[d][i].copy()
+            im.putalpha(Image.composite(im.getchannel("A"), Image.new("L", im.size, 0), m))
+            out[(d, i)] = im
+    return out
+
+
 def job(args):
     kind, sheet = args
     j, fr = rk.load_sheet("weapons/v3/" + sheet)
     fw, fh = j["frameWidth"], j["frameHeight"]
+    blade_only = body_in_overlay_masks(j, sheet, fr)
+    for (d, i), im in blade_only.items():               # 몸이 든 칸은 칼만 남긴 그림으로 칼날을 찾는다(오버레이는 칼날만 달굼)
+        fr[d][i] = im
     glow = set(j.get("glowFrames") or [])
     has_tip = isinstance(j.get("bladeTipAnchors"), dict)
+    states = None if has_tip else j.get("frameStates")   # 칼끝 기준점 없는 옛 칼 시트(draw·sheathe·special)만 상태로 칼집 칸을 가름
+    refine = bool(states)                                # 휴대 시트(frameStates 없음)는 예전 방식 그대로
     out = []
     for lv in (1, 2, 3):
         frames = {}
@@ -342,8 +418,10 @@ def job(args):
                     tip = tips[i] if has_tip else None
                     if has_tip and tip is None:          # 칼끝 null = 칼집 안 → 칼집 금만
                         lst.append(ki_sheathed(im, lv, i, fw, fh))
+                    elif states and states[i] in SHEATHED_STATES:   # 칼끝 기준점 없는 뽑기·넣기 시트의 칼집 안 칸(Q55)
+                        lst.append(ki_sheathed(im, lv, i, fw, fh))
                     else:
-                        lst.append(ki_frame(im, tip, lv, i, i in glow, fw, fh))
+                        lst.append(ki_frame(im, tip, lv, i, i in glow, fw, fh, refine=refine))
                 else:
                     lst.append(grudge_frame(im, grips[i] if grips else None, tips[i], lv, i, i in glow, fw, fh))
             frames[d] = lst
@@ -353,6 +431,10 @@ def job(args):
         meta.pop("frameWidth", None)
         meta.pop("frameHeight", None)
         meta.pop("glowFrames", None)
+        if blade_only:
+            meta.update(bodyInOverlayFrames=sorted(j["bodyInOverlayFrames"]),
+                        bodyInOverlayNote="무기 시트의 이 칸들은 몸이 함께 그려져 있다(공중제비). 오버레이는 칼날만 달군다 — 몸 픽셀은 "
+                                          "flipmask_%s.png(E1 렌더로 다시 그린 칼 층)로 빼고 칼날을 찾음. 불꽃·불티는 칼날 위로 올라가 몸에 겹칠 수 있음" % sheet)
         meta.update(overlayOf="weapons/v3/" + sheet, level=lv, depth="above_weapon",
                     drawRule="무기 시트 '%s' 를 그린 바로 위에, 같은 프레임 번호(row*frames+col)·같은 시각·같은 피벗(주인공 피벗 + playerFrameOffset)으로 겹친다. "
                              "자원 단계가 바뀌면 같은 프레임 번호로 오버레이만 바꿔 낀다(0단 = 오버레이 없음)" % sheet,

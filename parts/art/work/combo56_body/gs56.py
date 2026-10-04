@@ -22,6 +22,8 @@ HERE = rig8.HERE
 SRC = "parts/art/work/combo56_body/build.py (56라운드 Q5·Q6·Q10 — 대검 무게·8방향·꽂아내리기)"
 STATE = os.path.join(HERE, "state56.json")
 V_TYPE = ("greatsword_cleave", "greatsword_charge_slam")
+MS_NOTE = ("ms = 채택된 템포(56라운드 Q25 — 새 그림 시간 그대로: 수평 0.82초 · 내려찍기 0.92초, 3타 H1→V→H2 ≈ 2.6초. 55라운드 Q29 '약 2초' 대체). "
+           '데이터로 바꿔도 impactFrame 시작 = hitAt 만 맞으면 그림은 맞는다(관성 공속은 재생 속도로). 무게를 살리려면 선딜(hold)과 drag 구간을 늘이고 strike 는 짧게 두기를 권장')
 DIAG_V_CAP = -46.0          # 대각 내려찍기: 칼 기울기 하한(화면에서 대각으로 읽히게)
 DIAG_V_TURN = 12.3          # 대각 내려찍기: 칼 수평 방향을 화면 45° 바닥 각보다 이만큼 더 옆으로
 DIAG_TURN = ("down-right", "down-left")   # 위 대각(up-*)은 보정하지 않음 — 칼이 몸 뒤(화면 위쪽 땅)로 내려가 up 과 같이 대부분 가려진다.
@@ -165,8 +167,7 @@ def meta_for(name, m, fr):
                 frameStates=[f["state"] for f in fr[DIRS8[0]]], frameRoles=m["roles"],
                 framesBasis="player_%s 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)" % name,
                 weightNote="56라운드 Q5 무게: windup 들어 올림 → hold 머리 위/뒤에서 잠깐 버팀(긴 선딜) → heave → strike(판정) → drag 칼 무게에 몸이 끌려감 → catch 버팀",
-                msNote="ms 는 아트 제안값. 55라운드 Q29(예전 템포 유지)대로 늘여 재생해도 impactFrame 시작 = hitAt 만 맞으면 그림은 맞는다(관성 공속은 재생 속도로). "
-                       "무게를 살리려면 선딜(hold)과 drag 구간을 늘이고 strike 는 짧게 두기를 권장",
+                msNote=MS_NOTE,
                 directionRows=ROW_TABLE, directionNote=DIR_NOTE, dirTransform="drawn8",
                 dirTransformNote="8방향 모두 그림이 있음(회전·반전 없음). 조준각을 8분할해 행을 고른다. 판정·fx 는 조준각 그대로(§17 회전 규칙)")
     if m.get("comboIndex"):

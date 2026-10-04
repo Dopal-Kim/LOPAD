@@ -128,7 +128,7 @@ def build():
         progressDriven=True, progressFrames=[0, 1, 2, 3, 4, 5],
         progressFormula="당김 진행도 p(0~1) → frame = min(5, floor(p*5)) · f5 = 가득(full)",
         fullFrame=5, holdLoop=[6, 9], holdLoopNote="가득 도달 뒤 계속 누르고 있으면 f6~f9 반복(시위 A25 · 1px 떨림)",
-        strainLoop=[10, 13], strainLoopNote="(선택 — 미정) 오래 쥐면 흔들림·감쇠: 화살·활이 흔들리고 시위가 A23 으로 식음. 시스템이 '오래 쥠' 규칙을 채택하면 그 시점부터 반복",
+        strainLoop=[10, 13], strainLoopNote="채택(56라운드 Q20·Q27) — 너무 오래 쥐면 조준선 흔들림·위력 감소: 화살·활이 흔들리고 시위가 A23 으로 식음. 시작 시점·감소량은 시스템 데이터, 그 시점부터 이 구간을 반복",
         perfectWindowNote="56라운드 Q9: 가득(f5 도달) 직후 0.15초 안에 떼면 '완벽' — 놓는 순간 bow_release + fx bow_perfect_release. 그 전에 떼면 약한 화살",
         drawProgressByFrame=PROG + [1.0] * 4 + [1.0] * 4,
         releaseSheet="bow_release", replaces="bow_aim(우클릭 조준 → 자동 발사) 대신"))

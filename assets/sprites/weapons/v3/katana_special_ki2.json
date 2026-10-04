@@ -1,0 +1,58 @@
+{
+ "image": "katana_special_ki2.png",
+ "action": "katana_special_ki2",
+ "version": "v3-r56d",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 9,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.45,
+ "frameDurationsMs": [
+  25,
+  25,
+  50,
+  40,
+  120,
+  35,
+  35,
+  50,
+  60
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 4,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_res/build.py (56라운드 작업 D — 자원·가드·그로기 표시)",
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "anchor": "player_pivot",
+ "framesBasis": "player_katana_special 프레임 번호 (몸·무기 공통)",
+ "overlayOf": "weapons/v3/katana_special",
+ "level": 2,
+ "depth": "above_weapon",
+ "drawRule": "무기 시트 'katana_special' 를 그린 바로 위에, 같은 프레임 번호(row*frames+col)·같은 시각·같은 피벗(주인공 피벗 + playerFrameOffset)으로 겹친다. 자원 단계가 바뀌면 같은 프레임 번호로 오버레이만 바꿔 낀다(0단 = 오버레이 없음)",
+ "weapon": "katana",
+ "resource": "검기(劍氣)",
+ "resourceRef": "56라운드 Q14",
+ "design": "2단 호박 — 날선 A23·날선 옆 A21 로 달아오르고 칼등을 따라 작은 호박 불꽃 혀가 흔들림",
+ "sheathNote": "칼끝이 null(칼집 안)인 프레임·칼집 휴대 시트는 칼집 금(호박 점)을 단계 색으로 달구고 1단 연기 / 2·3단 작은 불만",
+ "keyArt": "parts/art/work/gemini/weapon_moves/raw_katana_A.jpg 패널 4(sheet_katana 4번)",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q65 · 56라운드: 백열 X0/X1·A26 은 3단의 판정 프레임(무기 시트 glowFrames)만. 그 밖은 A25 이하 — 빌드 검사 통과"
+}

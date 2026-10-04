@@ -57,12 +57,12 @@
  "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
  "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
  "thrust": {
-  "lengthPx": 96,
+  "lengthPx": 144,
   "widthPx": 32,
   "angleDeg": -8,
   "fromPx": 16
  },
- "thrustNote": "몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 방향 변환은 호와 같은 규약",
+ "thrustNote": "몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 방향 변환은 호와 같은 규약. 56라운드 Q4 수평 사거리 ×1.5 반영값(96 → 144 도트, Q51 정리 — 이전 값은 previousThrust)",
  "note": "단검: 역수(날이 새끼손가락 쪽) — 장전 때 날을 팔뚝에 붙이고, 찌를 때 손목을 꺾어 앞·아래로 박는다. v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b.",
  "impactFrame": 2,
  "oldTiming": {
@@ -710,6 +710,12 @@
    "angleDeg": -8,
    "fromPx": 16
   },
-  "note": "56라운드 Q4 판정 참고값: 찌르기 직사각 판정의 수평 길이 ×1.5(lengthPx), 폭·시작점·각도는 그대로. 이펙트(fx/v3/dagger_combo*)의 찌르기 길이도 ×1.5 로 다시 그리면(작업 A) 이 값과 맞는다. 피해 ×1.4 는 시스템 데이터. 단위 도트(월드 px = 도트/4)"
+  "note": "56라운드 Q4 판정 참고값: 찌르기 직사각 판정의 수평 길이 ×1.5(lengthPx), 폭·시작점·각도는 그대로. 최상위 thrust 와 같은 값(56라운드 Q51 정리), fx/v3/dagger_combo* 의 thrust 와도 같다. 피해 ×1.4 는 시스템 데이터. 단위 도트(월드 px = 도트/4)"
+ },
+ "previousThrust": {
+  "lengthPx": 96,
+  "widthPx": 32,
+  "angleDeg": -8,
+  "fromPx": 16
  }
 }

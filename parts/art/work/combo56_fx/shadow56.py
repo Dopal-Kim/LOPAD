@@ -18,6 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import fx56 as F  # noqa: E402
 from brush import W  # noqa: E402
+import k56  # noqa: E402  (56라운드 Q28·Q29 분신 조건·피해 문구)
 
 ROOT = F.X.W.OUT_FX.rsplit("/assets/", 1)[0]
 P3 = os.path.join(ROOT, "assets/sprites/player/v3")
@@ -195,7 +196,7 @@ def build():
     cut = {d: [im.crop((x0, y0, x0 + Wd, y0 + Hd)) for im in lst] for d, lst in frames.items()}
     pivot = (piv[0] - x0, piv[1] - y0)
     d0 = bj["dash"]["startMs"]
-    upd = dict(weapon="katana", design="그림자 분신(Q3) — 일섬 0.2초 뒤 같은 선을 달려 베고 재로 부서져 사라지는 어두운 재 실루엣(주인공 v3 일섬 자세 기반). "
+    upd = dict(weapon="katana", design="그림자 분신(Q3 → 조건 Q28) — 검기 3단을 소모한 일섬의 0.2초 뒤 같은 선을 달려 베고 재로 부서져 사라지는 어두운 재 실루엣(주인공 v3 일섬 자세 기반). "
                                        "반투명 대신 어두운 재 4단 디더 · 뒤쪽 디더 비움 · 불씨 테",
                anchor="issen_shadow_path", pivot={"x": pivot[0], "y": pivot[1]},
                anchorNote="pivot = 분신의 발. travelFrames 동안 일섬 출발 피벗 → 도착 피벗(주인공이 실제로 멈춘 자리)으로 선형 이동, 그 뒤 프레임은 도착 피벗에 고정. 행 = 돌진 방향",
@@ -204,6 +205,8 @@ def build():
                damageScale=0.5, hitShapeRef="player_katana_issen.hitShape(같은 선 — 실제 이동 거리로)",
                hitTimingOptions={"A(아트 제안)": "도착 순간 1회 = 일섬 선 터짐 프레임(katana_issen_line burstFrame, 몸 기준 %dms)" % (d0 + F.ISSEN_SHADOW_AT + 150),
                                  "B": "travelFrames 동안 분신 위치 주변 판정(지나가며 벰)"},
+               hitTimingChosen="A", hitTimingRef="56라운드 Q29 — 도착 순간 1회, 일섬 선 위 적 전부 50%",
+               condition="ki3_spent", conditionNote=k56.SHADOW_CONDITION,
                depth="같은 Y 정렬(주인공처럼) — 조명 위가 아니라 일반 스프라이트 깊이 권장",
                lit=False, litNote="어두운 실루엣이라 조명(라이트맵) 아래·위 어느 쪽이든 읽힘 — fx 규칙대로 조명 위 권장",
                basedOn="player_katana_issen f%s + weapons/v3/katana_issen" % sorted(set(POSE)),

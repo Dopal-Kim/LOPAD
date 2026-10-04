@@ -1091,7 +1091,7 @@
  "bodySheet": "player_katana_issen",
  "overlay": "player_katana_issen 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
  "tempoNote": "56라운드 Q2 — 납도·자세 220ms · 돌진 150ms(64 월드 px) · 잔심 110 · 피 털기 70 · 납도 150 · 일어섬 40",
- "r56": "56라운드 Q1(템포·사거리 ×1.15) · Q2 일섬 · Q3 그림자 분신",
+ "r56": "56라운드 Q1(템포·사거리 ×1.15) · Q2 일섬 · Q3 그림자 분신(조건 Q28 · 피해 Q29)",
  "dashFrames": [
   3,
   4,
@@ -1119,15 +1119,30 @@
  },
  "shadow": {
   "sheet": "fx/v3/katana_issen_shadow",
+  "condition": "ki3_spent",
+  "conditionNote": "검기(劍氣) 3단을 소모한 일섬일 때만(56라운드 Q28 — Q3 '일섬마다'·'일섬 0.2초 뒤 무조건' 표기 대체). 그 밖의 일섬은 분신 없음 + 일섬 선 _solo 시트",
+  "conditionRef": "56라운드 Q28",
   "startAtMs": 420,
+  "arriveAtMs": 570,
   "damageScale": 0.5,
-  "note": "돌진 시작 + 200ms 에 출발 피벗에서 출발 → 같은 시간(150ms)에 도착 피벗까지 달려 베고 사라짐(fx JSON travel)"
+  "damageTiming": {
+   "rule": "arrive_once",
+   "atBodyMs": 570,
+   "target": "issen_line_rect",
+   "ref": "56라운드 Q29"
+  },
+  "damageNote": "분신 피해 = 도착 순간 1회(몸 기준 570ms = 일섬 선 burstFrame), 일섬 선(hitShape rect, 실제 이동 거리) 위 적 전부에 damageScale 배(56라운드 Q29 — fx hitTimingOptions 의 A)",
+  "note": "검기 3단 소모 일섬일 때만: 돌진 시작 + 200ms 에 출발 피벗에서 출발 → 150ms 동안 도착 피벗까지 달려 베고 사라짐(fx JSON travel)"
  },
  "lineSheets": {
   "t1": "fx/v3/katana_issen_line_t1",
   "t2": "fx/v3/katana_issen_line_t2",
   "t3": "fx/v3/katana_issen_line_t3",
-  "t4": "fx/v3/katana_issen_line_t4"
+  "t4": "fx/v3/katana_issen_line_t4",
+  "t1_solo": "fx/v3/katana_issen_line_t1_solo",
+  "t2_solo": "fx/v3/katana_issen_line_t2_solo",
+  "t3_solo": "fx/v3/katana_issen_line_t3_solo",
+  "t4_solo": "fx/v3/katana_issen_line_t4_solo"
  },
- "lineNote": "돌진 시작에 출발 피벗에 일섬 선 시트를 띄운다(실제 이동 칸 수에 맞는 t1~t4, 4칸 = t4)"
+ "lineNote": "돌진 시작에 출발 피벗에 일섬 선 시트를 띄운다(실제 이동 칸 수에 맞는 t1~t4, 4칸 = t4). 검기 3단을 소모한 일섬(그림자 분신이 따라옴) = tN, 그 밖의 일섬 = tN_solo(56라운드 Q28)"
 }
