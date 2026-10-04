@@ -6,7 +6,7 @@ import { BOSSES, RUN, WEAPONS } from '../data';
 import { metaStore } from '../systems/meta';
 import { audio } from '../systems/audio/audio';
 import { ensureFont } from '../systems/fonts';
-import { audioFileRel, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audio/audioDefs';
+import { audioFileRels, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audio/audioDefs';
 import { spriteLibrary } from '../systems/sprites/sprites';
 import type { SheetDef } from '../systems/sprites/spriteDefs';
 import {
@@ -46,7 +46,7 @@ const AUDIO_MANIFEST_KEY = 'audio_manifest';
 
 /**
  * 아트·음향 산출물 로드 (계약 contracts/art-assets.md, 음향은 assets/audio/manifest.json 계약 초안).
- * 1) manifest.json → 존재하는 파일만 2) 시트·타일셋·음향 매니페스트 JSON → 3) PNG·WAV → 애니 등록·오디오 등록.
+ * 1) manifest.json → 존재하는 파일만 2) 시트·타일셋·음향 매니페스트 JSON → 3) 그림·소리(OGG/M4A) → 애니 등록·오디오 등록.
  * 57라운드 A2: 시트는 부팅 묶음(무기와 무관한 것)만 — 무기 시트는 런 무기가 정해진 씬(Game·WeaponLab)의 preload 가 그 무기만
  * 읽는다 (`sheetLoader.preloadWeaponSheets`).
  * 없는 파일은 조용히 건너뛰고(404 는 loaderror 로 무시) 플레이스홀더 텍스처로 폴백한다.
@@ -127,7 +127,10 @@ export class Preloader extends Phaser.Scene {
     if (this.audioManifestQueued) this.load.json(AUDIO_MANIFEST_KEY, `${ASSETS.URL}/${audioManifestRel()}`);
   }
 
-  /** 음향 매니페스트 entries 중 매니페스트(파일 목록)에 있는 WAV 만 로드 큐에 넣는다 */
+  /**
+   * 음향 매니페스트 entries 중 매니페스트(파일 목록)에 있는 형식만 로드 큐에 넣는다 (57라운드 Q38: `files` ogg → m4a 순 —
+   * Phaser 가 재생 가능한 첫 형식을 고른다)
+   */
   private queueAudio(): { manifest: AudioManifest; keys: string[] } | null {
     if (!this.audioManifestQueued) return null;
     const json = this.cache.json.get(AUDIO_MANIFEST_KEY) as unknown;
@@ -136,10 +139,14 @@ export class Preloader extends Phaser.Scene {
     const keys: string[] = [];
     for (const entry of json.entries) {
       if (!entry || typeof entry.id !== 'string' || typeof entry.file !== 'string') continue;
-      const rel = audioFileRel(entry);
-      if (!exists(rel)) continue;
+      const rels = audioFileRels(entry).filter(exists);
+      if (rels.length === 0) continue;
       keys.push(entry.id);
-      if (!this.cache.audio.exists(entry.id)) this.load.audio(entry.id, `${ASSETS.URL}/${rel}`);
+      if (!this.cache.audio.exists(entry.id))
+        this.load.audio(
+          entry.id,
+          rels.map((rel) => `${ASSETS.URL}/${rel}`),
+        );
     }
     return { manifest: json, keys };
   }

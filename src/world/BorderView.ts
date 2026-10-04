@@ -2,8 +2,9 @@
  * 53라운드 Q6 Gemini 외벽 테두리 그림 (계약 art §13, 배치 계산은 `border.ts`).
  * 그리기 순서: 바닥 → 서·동 → 북 → Y 정렬 층 → 남(전경) → 조명(곱하기) → 발광(가산). 충돌은 격자 그대로.
  *
- * 그림이 크다(북 띠 6214×818 등, 한 지역 약 10MB PNG · GPU 약 75MB) → Preloader 는 border.json 만 읽고, 그림은 그 지역
+ * 그림이 크다(북 띠 6214×818 등, 한 지역 GPU 약 75MB) → Preloader 는 border.json 만 읽고, 그림은 그 지역
  * 노드에 들어갈 때 지연 로드한다. 다른 지역의 테두리 텍스처는 그때 내린다. 로드가 실패하면 `onFail`(기존 벽 타일로).
+ * 57라운드 Q17·Q38: 그림은 WebP, 4096px 초과 띠는 조각(`BorderImage`) 여러 장 — 배치(`planBorder`)가 조각마다 자른 사각형을 준다.
  */
 import Phaser from 'phaser';
 import { ASSETS, BORDER } from '../core/Constants';
@@ -12,8 +13,8 @@ import { hexColor } from '../systems/lighting/lightMath';
 import { ROUTE } from '../systems/route';
 import { spawnWisp } from './SetPieceView';
 import {
-  BAND_SIDES,
   WORLD_PER_LOGICAL,
+  bandImageFiles,
   borderDefs,
   borderFileRel,
   borderFiles,
@@ -40,12 +41,14 @@ const DEPTH_OF: Record<BandSide, number> = {
   south: BORDER.DEPTH_SOUTH,
 };
 
+type PieceRect = Pick<BorderPiece, 'x' | 'y' | 'cropX' | 'cropY' | 'cropW' | 'cropH' | 'scale'>;
+
 interface SouthPiece {
-  piece: BorderPiece;
+  piece: PieceRect;
   /** 가림 때 함께 비칠 그림 (띠·발광·문 자리) */
   images: { setAlpha(a: number): unknown }[];
-  /** 남 띠 그림이면 하늘 윤곽(skyline)으로, 아니면(문 조각·틈) 사각형으로 겹침 판정 */
-  sky: boolean;
+  /** 남 띠 그림 조각이면 그 그림의 하늘 윤곽(열 → 처음 불투명한 줄)으로, null 이면(문 조각·틈·윤곽 없음) 사각형으로 겹침 판정 */
+  sky: Float32Array | null;
 }
 
 export class BorderView {
@@ -62,8 +65,6 @@ export class BorderView {
   wisps = 0;
   private readonly lights: LightSource[] = [];
   private readonly south: SouthPiece[] = [];
-  /** 남 띠 하늘 윤곽: 이미지 열 → 처음 불투명한 줄 (없으면 Infinity) */
-  private skyline: Float32Array | null = null;
   private southAlpha = 1;
   private destroyed = false;
   doorPieces = 0;
@@ -105,19 +106,18 @@ export class BorderView {
 
   private build(): void {
     const scene = this.scene;
-    const bands = this.def.bands;
-    if (BAND_SIDES.some((s) => !scene.textures.exists(this.key(bands[s].image)))) {
+    if (bandImageFiles(this.def).some((f) => !scene.textures.exists(this.key(f)))) {
       this.failed = true;
       this.onFail();
       return;
     }
     const reg = lightRegistryOf(scene);
+    const skylines = this.southSkylines();
     for (const p of this.plan.pieces) {
-      const band = p.part && bands[p.side].sides ? bands[p.side].sides![p.part] : bands[p.side];
-      const images = [this.albedoImage(band.image, p, DEPTH_OF[p.side])];
-      if (band.emissive && scene.textures.exists(this.key(band.emissive)))
-        images.push(this.image(band.emissive, p, BORDER.DEPTH_EMISSIVE).setBlendMode(Phaser.BlendModes.ADD));
-      if (p.side === 'south') this.south.push({ piece: p, images, sky: true });
+      const images = [this.albedoImage(p.image, p, DEPTH_OF[p.side])];
+      if (p.emissive && scene.textures.exists(this.key(p.emissive)))
+        images.push(this.image(p.emissive, p, BORDER.DEPTH_EMISSIVE).setBlendMode(Phaser.BlendModes.ADD));
+      if (p.side === 'south') this.south.push({ piece: p, images, sky: skylines.get(p.image) ?? null });
     }
     for (const l of this.plan.lights) this.addLight(reg, l.light, l.x, l.y);
     for (const g of this.plan.gaps) this.drawGap(g);
@@ -130,16 +130,21 @@ export class BorderView {
         this.tweens.push(r.tween);
         this.wisps++;
       });
-    this.skyline = southSkyline(scene, this.key(bands.south.image), bands.south.baselineY / this.def.pixelScale);
     this.ready = true;
   }
 
-  private image(
-    file: string,
-    p: Pick<BorderPiece, 'x' | 'y' | 'cropX' | 'cropY' | 'cropW' | 'cropH' | 'scale'>,
-    depth: number,
-    flipX = false,
-  ) {
+  /** 남 띠 그림 조각마다 하늘 윤곽 (바닥과 겹치는 기준선 위 줄만 — 조각의 띠 안 세로 위치를 뺀다) */
+  private southSkylines(): Map<string, Float32Array | null> {
+    const S = this.def.bands.south;
+    const ps = this.def.pixelScale;
+    const out = new Map<string, Float32Array | null>();
+    for (const im of S.images)
+      if (!out.has(im.image))
+        out.set(im.image, southSkyline(this.scene, this.key(im.image), (S.baselineY - im.y) / ps));
+    return out;
+  }
+
+  private image(file: string, p: PieceRect, depth: number, flipX = false) {
     const img = this.scene.add
       .image(p.x, p.y, this.key(file))
       .setOrigin(0, 0)
@@ -151,12 +156,7 @@ export class BorderView {
     return img;
   }
 
-  private albedoImage(
-    file: string,
-    p: Pick<BorderPiece, 'x' | 'y' | 'cropX' | 'cropY' | 'cropW' | 'cropH' | 'scale'>,
-    depth: number,
-    flipX = false,
-  ) {
+  private albedoImage(file: string, p: PieceRect, depth: number, flipX = false) {
     const img = this.image(file, p, depth, flipX).setTint(this.tint);
     this.albedo.push(img);
     return img;
@@ -225,8 +225,8 @@ export class BorderView {
       gfx.fillStyle(c, 1);
       gfx.fillRect(g.x0, g.y, w, h);
       gfx.setDepth(BORDER.DEPTH_SOUTH_DOOR);
-      const piece: BorderPiece = { side: 'south', x: g.x0, y: g.y, cropX: 0, cropY: 0, cropW: w, cropH: h, scale: 1 };
-      this.south.push({ piece, images: [gfx], sky: false });
+      const piece: PieceRect = { x: g.x0, y: g.y, cropX: 0, cropY: 0, cropW: w, cropH: h, scale: 1 };
+      this.south.push({ piece, images: [gfx], sky: null });
     }
     this.objects.push(gfx);
     this.doorCuts++;
@@ -249,7 +249,7 @@ export class BorderView {
     const imgs = [this.albedoImage(door.image, p, depth, door.flipX)];
     if (door.emissive && this.scene.textures.exists(this.key(door.emissive)))
       imgs.push(this.image(door.emissive, p, BORDER.DEPTH_EMISSIVE, door.flipX).setBlendMode(Phaser.BlendModes.ADD));
-    if (g.side === 'south') this.south.push({ piece: { side: 'south', ...p }, images: imgs, sky: false });
+    if (g.side === 'south') this.south.push({ piece: p, images: imgs, sky: null });
     const reg = lightRegistryOf(this.scene);
     for (const l of door.lights) this.addLight(reg, l, x + l.x * k, y + l.y * k);
     this.doorPieces++;
@@ -274,11 +274,10 @@ export class BorderView {
     const S = this.def.bands.south;
     const top = this.floor.y1 - S.baselineY * WORLD_PER_LOGICAL;
     if (t.y <= top) return false;
-    const sky = this.skyline;
-    for (const { piece: p, sky: bySky } of this.south) {
+    for (const { piece: p, sky } of this.south) {
       const x0 = p.x + p.cropX * p.scale;
       if (x0 > right || x0 + p.cropW * p.scale < left) continue;
-      if (!bySky || !sky) {
+      if (!sky) {
         if (p.y < t.y) return true;
         continue;
       }
@@ -306,7 +305,7 @@ export class BorderView {
       loadMs: Math.round(this.loadMs),
       pieces: this.plan.pieces.map(
         (p) =>
-          `${p.side}@${Math.round(p.x)},${Math.round(p.y)} +${Math.round(p.cropX)},${Math.round(p.cropY)} ${Math.round(p.cropW)}×${Math.round(p.cropH)}`,
+          `${p.side}:${p.image}@${Math.round(p.x)},${Math.round(p.y)} +${Math.round(p.cropX)},${Math.round(p.cropY)} ${Math.round(p.cropW)}×${Math.round(p.cropH)}`,
       ),
       lights: this.lights.length,
       gaps: this.plan.gaps.map((g) => `${g.side} ${g.x0}-${g.x1}`),

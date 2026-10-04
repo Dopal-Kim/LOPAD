@@ -11,11 +11,13 @@ import { weaponHitFxIds } from './fxIds';
 import { secondarySheetId, tier2FxSheetIds } from './fxTier';
 import { branchComboFxId } from './fxVariants';
 import { animDurationMs, artScale, frameDurations, fxHoldFrame, type SheetJson } from '../sprites/spriteDefs';
+import { readSheetJson } from '../sprites/sheetAtlas';
 
 const DIR = resolve(__dirname, '../../../assets/sprites/fx/v3');
 const read = (id: string): SheetJson | null => {
   const f = `${DIR}/${id}.json`;
-  return existsSync(f) ? (JSON.parse(readFileSync(f, 'utf8')) as SheetJson) : null;
+  // 57라운드 아틀라스(`framesPerDirection`·`frames{}`)도 로더와 같은 정규화로 (frames = 방향당 프레임 수)
+  return existsSync(f) ? (readSheetJson(JSON.parse(readFileSync(f, 'utf8')))?.json ?? null) : null;
 };
 const present = existsSync(DIR);
 

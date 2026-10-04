@@ -9,6 +9,8 @@
  * - 서 띠 baselineX = 바닥 서쪽 끝, 동 띠 baselineX = 바닥 동쪽 끝, 세로는 북 띠 위끝 ~ 남 띠 아래끝 반복
  * - 광원 lights[] 는 조각마다 등록(잘린 부분 밖은 빼기), 서·동 띠 광원은 바닥 세로 범위 밖이면 빼기(lightsRule)
  * - 문·출구: 바닥 바로 바깥 북·남 줄의 열린 틈(void) 칸 → 골목 입구 조각(`doors.<north|south>`, 임시 형식) 또는 어둠
+ * - 57라운드 Q17·Q38: 그림은 WebP(최상위 `imageFormat`). 4096px 를 넘는 띠는 `pieces[]{image, emissive, x, y, width, height}`
+ *   (띠 국소 논리 px, 그 띠에는 image/emissive 없음)로 나뉜다 — 조각을 이어 원 띠 한 장처럼 그리고, 반복은 조각 묶음 전체가 한 주기
  */
 import { BORDER, RENDER } from '../core/Constants';
 import { TileId, type FloorLayout } from '../systems/mapgen';
@@ -30,9 +32,22 @@ export interface BorderLight {
   kind?: string;
 }
 
-export interface BorderBand {
+/**
+ * 띠 그림 한 장 (57라운드 Q17: 4096 초과 띠는 여러 장). x·y·width·height = 띠 국소 논리 px — 조각을 이 자리에 이어 붙이면 원 띠.
+ * 한 장짜리 띠는 { x: 0, y: 0, 띠 크기 } 하나
+ */
+export interface BorderImage {
   image: string;
   emissive: string | null;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface BorderBand {
+  /** 띠 그림 (한 장이면 길이 1, 4096 초과 띠는 조각 순서대로) */
+  images: BorderImage[];
   width: number;
   height: number;
   /** 북·남: 바닥 끝과 맞닿는 줄 (띠 위끝 기준) */
@@ -54,8 +69,7 @@ export interface BorderBand {
 }
 
 export interface BorderSidePart {
-  image: string;
-  emissive: string | null;
+  images: BorderImage[];
   width: number;
   lights: BorderLight[];
 }
@@ -100,7 +114,10 @@ export interface WorldRect {
 
 export interface BorderPiece {
   side: BandSide;
-  /** 조각 왼쪽 위 (월드) */
+  /** 그릴 그림 파일 · 발광 파일 (띠 그림 조각 하나 — `BorderImage`) */
+  image: string;
+  emissive: string | null;
+  /** 그림 왼쪽 위 (월드, 그림 px 격자 = 정수 화면 px 에 맞춘다) */
   x: number;
   y: number;
   /** repeat 'sides' 의 좌·우 조각이면 그 쪽 (그림은 band.sides[part]) */
@@ -153,13 +170,34 @@ function lightsOf(raw: unknown): BorderLight[] {
   return out;
 }
 
+/**
+ * 띠(또는 성문 좌·우 조각)의 그림 목록: `pieces[]` 가 있으면 그것(조각마다 image·emissive·x·y·width·height),
+ * 없으면 image/emissive 한 장 = 띠 전체. 그림이 없거나 조각 형식이 틀리면 null
+ */
+function imagesOf(b: Record<string, unknown>, width: number, height: number): BorderImage[] | null {
+  if (Array.isArray(b.pieces)) {
+    const out: BorderImage[] = [];
+    for (const p of b.pieces as Record<string, unknown>[]) {
+      const image = p ? str(p.image) : null;
+      const w = p ? num(p.width, 0) : 0;
+      const h = p ? num(p.height, 0) : 0;
+      if (!image || !(w > 0) || !(h > 0)) return null;
+      out.push({ image, emissive: str(p.emissive), x: num(p.x, 0), y: num(p.y, 0), width: w, height: h });
+    }
+    return out.length > 0 ? out : null;
+  }
+  const image = str(b.image);
+  return image ? [{ image, emissive: str(b.emissive), x: 0, y: 0, width, height }] : null;
+}
+
 function bandOf(raw: unknown): BorderBand | null {
   const b = raw as Record<string, unknown> | undefined;
-  if (!b || !str(b.image) || !(num(b.width, 0) > 0) || !(num(b.height, 0) > 0)) return null;
+  if (!b || !(num(b.width, 0) > 0) || !(num(b.height, 0) > 0)) return null;
+  const images = imagesOf(b, num(b.width, 0), num(b.height, 0));
+  if (!images) return null;
   const occ = b.occlusion as Record<string, unknown> | undefined;
   return {
-    image: str(b.image)!,
-    emissive: str(b.emissive),
+    images,
     width: num(b.width, 0),
     height: num(b.height, 0),
     baselineY: num(b.baselineY, 0),
@@ -168,16 +206,18 @@ function bandOf(raw: unknown): BorderBand | null {
     fadeAlpha: occ && typeof occ.fadeAlpha === 'number' ? occ.fadeAlpha : null,
     focusX: typeof b.focusX === 'number' ? b.focusX : null,
     repeat: b.repeat === 'none' || b.repeat === false ? 'none' : b.repeat === 'sides' ? 'sides' : 'repeat',
-    sides: sidesOf(b.sides),
+    sides: sidesOf(b.sides, num(b.height, 0)),
   };
 }
 
-function sidesOf(raw: unknown): BorderBand['sides'] {
+/** 성문 좌·우 반복 조각 (높이는 가운데 띠와 같다) */
+function sidesOf(raw: unknown, height: number): BorderBand['sides'] {
   const r = raw as Record<string, Record<string, unknown> | undefined> | undefined;
-  const part = (p: Record<string, unknown> | undefined): BorderSidePart | null =>
-    p && str(p.image) && num(p.width, 0) > 0
-      ? { image: str(p.image)!, emissive: str(p.emissive), width: num(p.width, 0), lights: lightsOf(p.lights) }
-      : null;
+  const part = (p: Record<string, unknown> | undefined): BorderSidePart | null => {
+    const width = p ? num(p.width, 0) : 0;
+    const images = p && width > 0 ? imagesOf(p, width, num(p.height, height)) : null;
+    return p && images ? { images, width, lights: lightsOf(p.lights) } : null;
+  };
   const left = part(r?.left);
   const right = part(r?.right);
   return left && right ? { left, right } : null;
@@ -270,17 +310,25 @@ export function borderTextureKey(region: string, file: string): string {
   return `border_${region}_${file}`;
 }
 
+/** 띠 그림 파일 (조각 순서, 발광 제외) — 그림이 다 있어야 테두리를 그린다 */
+export function bandImageFiles(def: BorderDef): string[] {
+  const out = new Set<string>();
+  for (const s of BAND_SIDES) for (const im of def.bands[s].images) out.add(im.image);
+  for (const p of Object.values(def.bands.north.sides ?? {})) for (const im of p.images) out.add(im.image);
+  return [...out];
+}
+
 /** 이 정의가 쓰는 그림 파일 (띠·발광 + 문 조각). doorSides 를 주면 그 쪽 문 조각만 (문 칸이 있는 쪽 — 지연 로드량 줄이기) */
 export function borderFiles(def: BorderDef, doorSides?: readonly BandSide[]): string[] {
   const out = new Set<string>();
-  for (const s of BAND_SIDES) {
-    out.add(def.bands[s].image);
-    if (def.bands[s].emissive) out.add(def.bands[s].emissive!);
-  }
-  for (const p of Object.values(def.bands.north.sides ?? {})) {
-    out.add(p.image);
-    if (p.emissive) out.add(p.emissive);
-  }
+  const addImages = (images: readonly BorderImage[]) => {
+    for (const im of images) {
+      out.add(im.image);
+      if (im.emissive) out.add(im.emissive);
+    }
+  };
+  for (const s of BAND_SIDES) addImages(def.bands[s].images);
+  for (const p of Object.values(def.bands.north.sides ?? {})) addImages(p.images);
   for (const side of doorSides ?? BAND_SIDES) {
     const d = def.doors[side];
     if (!d) continue;
@@ -354,10 +402,15 @@ export function planBorder(def: BorderDef, floor: WorldRect, gaps: BorderGap[] =
   const bottom = floor.y1 + (S.height - S.baselineY) * k;
   const pieces: BorderPiece[] = [];
   const lights: BorderPlan['lights'] = [];
-  /** x·y = 그림 원점, (sx, sy) 부터 w×h 가 보인다 (월드) */
+  /** 월드 → 그림 px 격자 (그림 px 1개 = 정수 화면 px — 조각 경계가 어긋나거나 겹치지 않게) */
+  const px = (v: number) => Math.round(v / scale);
+  /**
+   * x·y = 띠 원점, 띠 국소 (sx, sy) 부터 w×h 가 보인다 (월드). 띠 그림 조각마다 보이는 부분만 잘라 그린다 — 조각의 원점은
+   * 그림 px 격자에 맞추고, 자르기 경계는 같은 월드 좌표에서 같은 반올림을 하므로 이웃 조각과 틈·겹침이 없다
+   */
   const add = (
     side: BandSide,
-    band: Pick<BorderBand, 'lights'>,
+    band: Pick<BorderBand, 'lights' | 'images'>,
     x: number,
     y: number,
     sx: number,
@@ -366,18 +419,31 @@ export function planBorder(def: BorderDef, floor: WorldRect, gaps: BorderGap[] =
     h: number,
     part?: 'left' | 'right',
   ) => {
-    const piece: BorderPiece = {
-      side,
-      x,
-      y,
-      cropX: sx / scale,
-      cropY: sy / scale,
-      cropW: w / scale,
-      cropH: h / scale,
-      scale,
-    };
-    if (part) piece.part = part;
-    pieces.push(piece);
+    const ox = px(x);
+    const oy = px(y);
+    for (const im of band.images) {
+      const ix = px(im.x * k);
+      const iy = px(im.y * k);
+      const x0 = Math.max(px(sx), ix);
+      const y0 = Math.max(px(sy), iy);
+      const x1 = Math.min(px(sx + w), ix + px(im.width * k));
+      const y1 = Math.min(px(sy + h), iy + px(im.height * k));
+      if (x1 <= x0 || y1 <= y0) continue;
+      const piece: BorderPiece = {
+        side,
+        image: im.image,
+        emissive: im.emissive,
+        x: (ox + ix) * scale,
+        y: (oy + iy) * scale,
+        cropX: x0 - ix,
+        cropY: y0 - iy,
+        cropW: x1 - x0,
+        cropH: y1 - y0,
+        scale,
+      };
+      if (part) piece.part = part;
+      pieces.push(piece);
+    }
     for (const l of band.lights) {
       const lx = l.x * k;
       const ly = l.y * k;

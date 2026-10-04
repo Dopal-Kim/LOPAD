@@ -1,16 +1,17 @@
 /**
  * 시트 로드 공용 단계 (57라운드 A2: Preloader 에서 분리 — 부팅 묶음과 무기 묶음이 같은 길로 읽는다).
  * 1) 후보 경로(v3 → v2 → 기존, 매니페스트에 있는 것) 의 시트 JSON 2) JSON 이 읽힌 것만 이미지 — 격자 시트는 spritesheet,
- *    `frames` 가 배열·객체인 트림 아틀라스(57라운드 Q16, `sheetAtlas`)는 atlas 3) 텍스처가 생긴 것만 spriteLibrary 에 등록.
+ *    트림 아틀라스(57라운드 Q16·Q38 `atlas57-1`, `sheetAtlas`)는 atlas(여러 장이면 multiatlas) 3) 텍스처가 생긴 것만
+ *    spriteLibrary 에 등록.
  * 무기 묶음(`preloadWeaponSheets`)은 런 무기가 정해진 씬(Game·WeaponLab)의 preload 에서 그 무기만 읽고, 다른 무기의 시트는 내린다.
  */
 import Phaser from 'phaser';
 import { ASSETS } from '../../core/Constants';
 import { spriteLibrary } from './sprites';
 import { sheetJsonCandidates } from './spriteMeta';
-import { normalizeStructureSheet, sheetToWorldUnits, type SheetDef, type SheetJson } from './sheetJson';
+import { normalizeStructureSheet, sheetToWorldUnits, type SheetDef } from './sheetJson';
 import { sheetTextureKey, type SheetRequest } from './sheetPaths';
-import { isAtlasSheet, parseAtlasSheet, type AtlasData } from './sheetAtlas';
+import { readSheetJson as parseSheetJson, type AtlasData } from './sheetAtlas';
 import { weaponSheetRequests } from './sheetSets';
 
 export interface PendingSheet {
@@ -56,22 +57,9 @@ export function queueSheetJsons(scene: Phaser.Scene, reqs: readonly SheetRequest
   return out;
 }
 
-/** 시트 JSON → 격자 메타 SheetJson (+ 트림 아틀라스면 Phaser 아틀라스 데이터). 형식이 틀리면 null */
-export function readSheetJson(raw: unknown): { json: SheetJson; atlas: AtlasData | null } | null {
-  if (!raw || typeof raw !== 'object') return null;
-  let json = raw as SheetJson;
-  let atlas: AtlasData | null = null;
-  if (isAtlasSheet(raw)) {
-    const r = parseAtlasSheet(raw);
-    if ('error' in r) {
-      console.warn(`[sprites] 아틀라스 시트 형식 오류: ${r.error}`);
-      return null;
-    }
-    json = r.json;
-    atlas = r.atlas;
-  }
-  if (!json.image || !(json.frameWidth > 0) || !(json.frameHeight > 0) || !(json.frames > 0)) return null;
-  return { json, atlas };
+/** 시트 JSON → 격자 메타 SheetJson (+ 트림 아틀라스면 Phaser 아틀라스 데이터). 형식이 틀리면 null (`sheetAtlas.readSheetJson`) */
+export function readSheetJson(raw: unknown): ReturnType<typeof parseSheetJson> {
+  return parseSheetJson(raw, (msg) => console.warn(`[sprites] 아틀라스 시트 형식 오류: ${msg}`));
 }
 
 /** 읽힌 시트 JSON → SheetDef, 이미지(격자 = spritesheet, 트림 = atlas)를 로드 큐에. JSON 이 없거나 형식이 틀리면 null */
@@ -83,11 +71,26 @@ export function queueSheetImage(scene: Phaser.Scene, p: PendingSheet): SheetDef 
   const textureKey = sheetTextureKey(p.req.name, p.req.action);
   const imageUrl = `${ASSETS.URL}/${p.dir}${json.image}`;
   if (!scene.textures.exists(textureKey)) {
-    if (read.atlas) scene.load.atlas(textureKey, imageUrl, read.atlas);
+    if (read.atlas) queueAtlas(scene, textureKey, `${ASSETS.URL}/${p.dir}`, read.atlas);
     else scene.load.spritesheet(textureKey, imageUrl, { frameWidth: json.frameWidth, frameHeight: json.frameHeight });
   }
   // 동작 이름은 요청 기준 (이펙트 시트의 JSON action 은 파일 이름과 같아 내부 동작 'fx' 로 통일)
   return { ...json, action: p.req.action, category: p.req.category, name: p.req.name, textureKey, imageUrl };
+}
+
+/**
+ * 트림 아틀라스 이미지를 로드 큐에: 한 장이면 `load.atlas`(JSON Array 데이터), 4096 을 넘어 여러 장이면 `load.multiatlas`
+ * (JSON 은 이미 읽었으므로 데이터 객체를 넘기고, 장 이미지는 `dir` 기준 상대 경로)
+ */
+function queueAtlas(scene: Phaser.Scene, key: string, dir: string, atlas: AtlasData): void {
+  if (atlas.pages.length === 1) {
+    const page = atlas.pages[0];
+    scene.load.atlas(key, `${dir}${page.image}`, { frames: page.frames });
+    return;
+  }
+  // Phaser 타입은 atlasURL 을 string 으로만 적지만 JSONFile 은 데이터 객체를 그대로 받는다 (load.atlas 와 같다)
+  const data = { textures: atlas.pages.map((p) => ({ image: p.image, frames: p.frames })) };
+  scene.load.multiatlas(key, data as unknown as string, dir);
 }
 
 /** 텍스처가 실제로 로드된 시트만 등록 (원본 애니 + 이미 만든 층 변형) */

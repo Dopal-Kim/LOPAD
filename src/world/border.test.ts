@@ -160,6 +160,49 @@ describe('53라운드 Q6 외벽 테두리 (border.json → 배치)', () => {
     expect(gapIsBandGate(def, floor, { side: 'north', x0: cx - 16, x1: cx + 16, y: floor.y0 })).toBe(false);
   });
 
+  it('57라운드 Q17·Q38 조각 띠: pieces[] 를 이어 원 띠 한 장처럼 (틈·겹침 없이, 정수 그림 px), 반복은 조각 묶음 한 주기', () => {
+    const k = WORLD_PER_LOGICAL;
+    const south = {
+      width: 2310,
+      height: 136,
+      baselineY: 25,
+      repeat: 'x',
+      lights: [],
+      pieces: [
+        { image: 'south_0.webp', emissive: 'south_0_emissive.webp', x: 0, y: 0, width: 1155, height: 136 },
+        { image: 'south_1.webp', emissive: 'south_1_emissive.webp', x: 1155, y: 0, width: 1155, height: 136 },
+      ],
+    };
+    const d = parseBorder({ ...RAW, bands: { ...RAW.bands, south } }, 'outer')!;
+    expect(d.bands.south.images.map((i) => i.image)).toEqual(['south_0.webp', 'south_1.webp']);
+    expect(borderFiles(d, [])).toEqual(expect.arrayContaining(['south_0.webp', 'south_1_emissive.webp']));
+    expect(borderFiles(d, [])).not.toContain('south.png');
+    // 넓은 바닥(띠 한 주기보다 넓게)이면 조각 0·1·0… 순서로 이어진다
+    const wide = { x0: 144, y0: 144, x1: 144 + 2310 * k * 2, y1: 464 };
+    const ps = planBorder(d, wide).pieces.filter((p) => p.side === 'south');
+    expect(ps.map((p) => p.image).slice(0, 3)).toEqual(['south_0.webp', 'south_1.webp', 'south_0.webp']);
+    expect(ps[0].emissive).toBe('south_0_emissive.webp');
+    for (let i = 1; i < ps.length; i++) {
+      const prevEnd = ps[i - 1].x + (ps[i - 1].cropX + ps[i - 1].cropW) * ps[i - 1].scale;
+      expect(ps[i].x + ps[i].cropX * ps[i].scale).toBeCloseTo(prevEnd, 9);
+    }
+    for (const p of ps) {
+      for (const v of [p.cropX, p.cropY, p.cropW, p.cropH, p.x / p.scale, p.y / p.scale])
+        expect(Number.isInteger(v)).toBe(true);
+      expect(p.cropX + p.cropW).toBeLessThanOrEqual(1155 / d.pixelScale);
+    }
+    // 덮는 범위는 한 장짜리 띠와 같다
+    const one = planBorder(def, wide).pieces.filter((p) => p.side === 'south');
+    const span = (list: typeof ps) => [
+      Math.min(...list.map((p) => p.x + p.cropX * p.scale)),
+      Math.max(...list.map((p) => p.x + (p.cropX + p.cropW) * p.scale)),
+    ];
+    expect(span(ps)).toEqual(span(one));
+    // 조각 형식이 틀리면(그림 이름 없음) 띠 없음 → 테두리 없음
+    const broken = { ...south, pieces: [{ x: 0, y: 0, width: 10, height: 10 }] };
+    expect(parseBorder({ ...RAW, bands: { ...RAW.bands, south: broken } }, 'x')).toBeNull();
+  });
+
   it('광원: 잘린 부분 밖 · 서·동 띠의 바닥 세로 범위 밖은 빼고, 반경은 월드로', () => {
     const plan = planBorder(def, floor);
     const k = WORLD_PER_LOGICAL;

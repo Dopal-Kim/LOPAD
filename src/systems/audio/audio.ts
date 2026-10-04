@@ -1,6 +1,6 @@
 /**
  * 오디오 시스템 (음향↔시스템 계약 초안 `assets/audio/manifest.json`, 결정 로그 I·K).
- * - Preloader 가 매니페스트·WAV 를 로드한 뒤 `register()` 로 넘긴다.
+ * - Preloader 가 매니페스트·소리(57라운드: OGG → M4A 순 `files`)를 로드한 뒤 `register()` 로 넘긴다 (루프는 loopEnd 로 자름).
  * - 효과음은 EventBus 이벤트를 `audioMap.ts` 표로 매핑해 재생한다 (게임 코드는 소리를 직접 호출하지 않는다).
  * - BGM 은 층(`bgmByFloor`)·상태(`bgmByState`: title / boss / emperor)로 정하고 크로스페이드한다.
  * - 버스: SFX 0 dB, BGM -8 dB, 보스전 BGM -3 dB, entry.gainDb 가산. 같은 효과음 20ms 중복 1회, swing·hit 류 ±4% 피치.
@@ -19,6 +19,7 @@ import {
   hasPitchVariance,
   indexEntries,
   isBossState,
+  loopEndFrames,
   mixingOf,
   pitchRate,
   resolveBgm,
@@ -49,6 +50,8 @@ export interface AudioSummary {
   state: string | null;
   paused: boolean;
   loops: string[];
+  /** 루프 끝(loopEndSample)에 맞춰 버퍼를 자른 소리 */
+  loopTrimmed: string[];
   voices: number;
   recent: { id: string; at: number; rate: number; delayMs: number }[];
   mute: boolean;
@@ -60,6 +63,8 @@ export class AudioSystem {
   private entries = new Map<string, AudioEntry>();
   private mix: AudioMixing = mixingOf(EMPTY_AUDIO_MANIFEST);
   private readonly loaded = new Set<string>();
+  /** 루프 끝에 맞춰 자른 버퍼 (디버그) */
+  private readonly trimmed = new Set<string>();
   private readonly missing = new Set<string>();
   private readonly dedupe = new SfxDedupe();
   private voices: Snd[] = [];
@@ -116,8 +121,27 @@ export class AudioSystem {
     this.entries = indexEntries(manifest);
     this.mix = mixingOf(manifest);
     this.loaded.clear();
+    this.trimmed.clear();
     for (const k of loadedKeys) if (this.entries.has(k)) this.loaded.add(k);
+    for (const k of this.loaded) this.applyLoopEnd(this.entries.get(k)!);
     this.refreshBgm();
+  }
+
+  /**
+   * 57라운드 Q38 루프 이음매: 디코딩 버퍼가 `loopEndSample / sampleRate` 보다 길면(M4A 끝 패딩) 그 길이로 자른 버퍼로 바꾼다
+   * — Phaser WebAudio 루프는 버퍼 끝에서 다음 회차를 잇기 때문에 이것이 곧 loopEnd 다. WebAudio 가 아니면 그대로
+   */
+  private applyLoopEnd(entry: AudioEntry): void {
+    const sm = this.game?.sound;
+    if (!(sm instanceof Phaser.Sound.WebAudioSoundManager)) return;
+    const buf = this.game!.cache.audio.get(entry.id) as unknown;
+    if (typeof AudioBuffer === 'undefined' || !(buf instanceof AudioBuffer)) return;
+    const frames = loopEndFrames(entry, buf);
+    if (frames === null) return;
+    const cut = sm.context.createBuffer(buf.numberOfChannels, frames, buf.sampleRate);
+    for (let c = 0; c < buf.numberOfChannels; c++) cut.copyToChannel(buf.getChannelData(c).subarray(0, frames), c);
+    this.game!.cache.audio.add(entry.id, cut);
+    this.trimmed.add(entry.id);
   }
 
   get isMuted(): boolean {
@@ -294,6 +318,7 @@ export class AudioSystem {
       state: this.state,
       paused: this.paused,
       loops: [...this.loops.keys()],
+      loopTrimmed: [...this.trimmed],
       voices: this.voices.filter((v) => v.isPlaying).length,
       recent: [...this.recent],
       mute: this.muted,

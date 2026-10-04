@@ -10,8 +10,16 @@ export interface AudioEntry {
   id: string;
   kind: AudioKind;
   category: string;
-  /** 저장소 루트 기준 경로 (`assets/audio/sfx/x.wav`) */
+  /** 저장소 루트 기준 1순위 경로 (57라운드: `assets/audio/sfx/x.ogg`) */
   file: string;
+  /** 57라운드 Q38 (계약 sound-assets): 같은 소리의 형식별 경로, 선호 순서(ogg → m4a) — 재생 가능한 첫 항목을 쓴다 */
+  files?: string[];
+  /** 원본 표본 수·표본율 (루프 이음매 계산) */
+  samples?: number;
+  sampleRate?: number;
+  /** 루프 구간 [loopStartSample, loopEndSample) — 디코딩 버퍼가 끝 패딩으로 더 길면 loopEnd 로 자른다 */
+  loopStartSample?: number;
+  loopEndSample?: number;
   durationMs: number;
   loop: boolean;
   /** 버스 기준 상대 음량 dB */
@@ -57,6 +65,30 @@ export function dbToGain(db: number): number {
 export function audioFileRel(entry: Pick<AudioEntry, 'file'>): string {
   const f = entry.file.replace(/\\/g, '/');
   return f.startsWith(ASSETS.AUDIO_FILE_PREFIX) ? f.slice(ASSETS.AUDIO_FILE_PREFIX.length) : f;
+}
+
+/**
+ * 57라운드 Q38: 로드 후보 경로 (`files` 선호 순서, 없으면 `file` 하나) — 매니페스트·URL 공통 상대 경로.
+ * Phaser `load.audio(id, urls)` 가 브라우저가 재생할 수 있는 첫 형식을 고른다
+ */
+export function audioFileRels(entry: Pick<AudioEntry, 'file' | 'files'>): string[] {
+  const list = Array.isArray(entry.files) && entry.files.length > 0 ? entry.files : [entry.file];
+  return [...new Set(list.filter((f) => typeof f === 'string' && f !== '').map((file) => audioFileRel({ file })))];
+}
+
+/**
+ * 루프 끝(디코딩 버퍼의 표본 수 단위). 루프 항목이고 `loopEndSample`·`sampleRate` 가 있을 때만 — 디코더(AAC 등)가 끝 패딩을 남겨
+ * 버퍼가 이보다 길면 이 길이로 잘라 이음매를 맞춘다. 버퍼 표본율이 원본과 다르면(컨텍스트 재표본화) 비례 환산. 자를 필요 없으면 null
+ */
+export function loopEndFrames(
+  entry: Pick<AudioEntry, 'loop' | 'loopEndSample' | 'sampleRate'>,
+  buffer: { length: number; sampleRate: number },
+): number | null {
+  const end = entry.loopEndSample;
+  const rate = entry.sampleRate;
+  if (!entry.loop || typeof end !== 'number' || !(end > 0) || typeof rate !== 'number' || !(rate > 0)) return null;
+  const frames = Math.round((end / rate) * buffer.sampleRate);
+  return frames > 0 && buffer.length > frames ? frames : null;
 }
 
 /** 음향 매니페스트 자체의 상대 경로 (`audio/manifest.json`) */

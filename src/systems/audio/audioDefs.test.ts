@@ -5,6 +5,8 @@ import { resolve } from 'node:path';
 import {
   SfxDedupe,
   audioFileRel,
+  audioFileRels,
+  loopEndFrames,
   audioManifestRel,
   bgmGain,
   bossBgmState,
@@ -89,6 +91,36 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
     expect(audioFileRel({ file: 'assets/audio/sfx/swing_katana.wav' })).toBe('audio/sfx/swing_katana.wav');
     expect(audioFileRel({ file: 'audio/sfx/x.wav' })).toBe('audio/sfx/x.wav');
     expect(audioManifestRel()).toBe('audio/manifest.json');
+  });
+
+  it('57라운드 Q38: files(ogg → m4a) 순서대로 후보, 없으면 file 하나 · 실제 매니페스트는 .wav 없음', () => {
+    expect(
+      audioFileRels({
+        file: 'assets/audio/sfx/a.ogg',
+        files: ['assets/audio/sfx/a.ogg', 'assets/audio/sfx/a.m4a'],
+      }),
+    ).toEqual(['audio/sfx/a.ogg', 'audio/sfx/a.m4a']);
+    expect(audioFileRels({ file: 'assets/audio/sfx/a.ogg' })).toEqual(['audio/sfx/a.ogg']);
+    expect(audioFileRels({ file: 'assets/audio/sfx/a.ogg', files: [] })).toEqual(['audio/sfx/a.ogg']);
+    for (const e of manifest.entries) {
+      const rels = audioFileRels(e);
+      expect(rels.length, e.id).toBeGreaterThan(0);
+      for (const r of rels) expect(r.endsWith('.wav'), r).toBe(false);
+      if (e.files) expect(rels[0].endsWith('.ogg'), e.id).toBe(true);
+    }
+  });
+
+  it('57라운드 Q38 루프 끝: 디코딩 버퍼가 loopEndSample/sampleRate 보다 길 때만 그 길이 (재표본화 비례)', () => {
+    const e = { loop: true, loopEndSample: 26460, sampleRate: 44100 };
+    expect(loopEndFrames(e, { length: 26460, sampleRate: 44100 })).toBeNull();
+    expect(loopEndFrames(e, { length: 27484, sampleRate: 44100 })).toBe(26460);
+    // 48kHz 컨텍스트: 0.6초 = 28800
+    expect(loopEndFrames(e, { length: 30000, sampleRate: 48000 })).toBe(28800);
+    expect(loopEndFrames({ ...e, loop: false }, { length: 30000, sampleRate: 44100 })).toBeNull();
+    expect(loopEndFrames({ loop: true }, { length: 30000, sampleRate: 44100 })).toBeNull();
+    // 실제 매니페스트의 루프 항목은 이음매 정보가 있다
+    for (const m of manifest.entries.filter((x) => x.loop))
+      if (m.files) expect(m.loopEndSample, m.id).toBeGreaterThan(0);
   });
 
   it('버스 음량: SFX 0 dB + gainDb, BGM -8 dB (+ 보스 -3 dB, 일시정지 -6 dB)', () => {

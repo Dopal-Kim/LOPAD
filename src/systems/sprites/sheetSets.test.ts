@@ -33,6 +33,17 @@ describe('57라운드 A2 로드 묶음 (부팅 + 고른 무기)', () => {
     }
   });
 
+  it('57라운드 Q38: 단검 전용 낙인·과열 fx 4종은 단검 묶음 (부팅·다른 무기에는 없다)', () => {
+    const own = ['dagger_brand_mark', 'dagger_brand_burst', 'dagger_overheat_burst', 'dagger_overheat_cool'];
+    const names = (list: ReturnType<typeof bootSheetRequests>) =>
+      list.filter((r) => r.category === 'fx').map((r) => r.name);
+    for (const n of own) {
+      expect(names(weaponSheetRequests('dagger'))).toContain(n);
+      expect(names(bootSheetRequests())).not.toContain(n);
+      for (const o of ids.filter((x) => x !== 'dagger')) expect(names(weaponSheetRequests(o))).not.toContain(n);
+    }
+  });
+
   it('모르는 무기는 빈 목록', () => {
     expect(weaponSheetRequests('nope')).toEqual([]);
   });

@@ -53,6 +53,8 @@ export interface DebugApi {
     aliases: Record<string, string>;
     weaponLoaded: string | null;
     textureCount: number;
+    /** 57라운드 Q38 검증: 텍스처 GPU 메모리 추정 (폭 × 높이 × 4) */
+    textureBytes: { total: number; byGroup: Record<string, number>; top: [string, number][] };
   };
   /** 활성 이펙트 스프라이트 */
   fx: () => unknown;
@@ -309,6 +311,8 @@ export function exposeDebug(api: {
     aliases: Record<string, string>;
     weaponLoaded: string | null;
     textureCount: number;
+    /** 57라운드 Q38 검증: 텍스처 GPU 메모리 추정 (폭 × 높이 × 4) */
+    textureBytes: { total: number; byGroup: Record<string, number>; top: [string, number][] };
   };
   fx: () => unknown;
   stunAll: (ms: number) => void;

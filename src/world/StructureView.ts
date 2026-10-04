@@ -111,17 +111,23 @@ export class StructureView {
     const h = def.occludeAbove;
     if (typeof h !== 'number' || !(h > 0) || this.opts.floor || def.depth === 'floor') return;
     const cut = Math.max(0, Math.min(def.frameHeight, Math.round(def.pivot.y - h / this.scale)));
-    sprite.setCrop(0, 0, def.frameWidth, cut);
+    // 자르기 사각형은 원 칸(frameWidth × frameHeight = 트림 전 realWidth·realHeight) 기준. 57라운드 트림 아틀라스는 Phaser 가
+    // 자르기를 그 칸의 그림 영역과의 교집합으로 줄여 저장하므로, 프레임이 바뀔 때마다 원래 사각형으로 다시 건다
+    const cropTop = () => sprite.setCrop(0, 0, def.frameWidth, cut);
     const base = this.scene.add
       .sprite(sprite.x, sprite.y, texture, sprite.frame.name)
       .setOrigin(sprite.originX, sprite.originY)
       .setScale(this.scale)
-      .setCrop(0, cut, def.frameWidth, def.frameHeight - cut)
       .setDepth(STRUCTURE_FX.OCCLUDE_BASE_DEPTH);
+    const cropBase = () => base.setCrop(0, cut, def.frameWidth, def.frameHeight - cut);
+    cropTop();
+    cropBase();
     this.base = base;
     const sync = () => {
-      if (base.active && sprite.active)
-        base.setFrame(sprite.frame.name).setVisible(sprite.visible).setAlpha(sprite.alpha);
+      if (!base.active || !sprite.active) return;
+      cropTop();
+      base.setFrame(sprite.frame.name).setVisible(sprite.visible).setAlpha(sprite.alpha);
+      cropBase();
     };
     sprite.on(Phaser.Animations.Events.ANIMATION_UPDATE, sync);
     sprite.on(Phaser.Animations.Events.ANIMATION_START, sync);

@@ -15,8 +15,10 @@ const GAME_ASSET_URL = '/assets-game/';
 const MANIFEST = 'manifest.json';
 const MIME: Record<string, string> = {
   png: 'image/png',
+  webp: 'image/webp',
   json: 'application/json',
   ogg: 'audio/ogg',
+  m4a: 'audio/mp4',
   mp3: 'audio/mpeg',
   wav: 'audio/wav',
   woff2: 'font/woff2',

@@ -261,7 +261,8 @@ class SpriteLibrary {
 
 /**
  * 원본 텍스처를 캔버스에 복사해 색 표대로 재채색한 텍스처를 `key` 로 등록. 프레임은 원본 텍스처의 프레임을 그대로 옮긴다
- * (격자 시트 = 칸, 57라운드 트림 아틀라스 = 잘린 영역 + trim 오프셋 — 프레임 번호·피벗 의미가 원본과 같다)
+ * (격자 시트 = 칸, 57라운드 트림 아틀라스 = 잘린 영역 + trim 오프셋 — 프레임 번호·피벗 의미가 원본과 같다).
+ * 아틀라스는 이미지 전체(여러 장이면 장마다)를 재채색한다 — 프레임은 장 번호(sourceIndex)까지 그대로
  */
 function addRecoloredTexture(
   scene: Phaser.Scene,
@@ -270,7 +271,23 @@ function addRecoloredTexture(
   table: Map<number, [number, number, number]>,
 ): void {
   const base = scene.textures.get(baseKey);
-  const src = base.getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+  const canvases = base.source.map((s) => recolorSource(s.image as HTMLImageElement | HTMLCanvasElement, table));
+  let tex: Phaser.Textures.Texture | null;
+  if (canvases.length === 1) tex = scene.textures.addCanvas(key, canvases[0]);
+  else {
+    tex = scene.textures.create(key, canvases, canvases[0].width, canvases[0].height);
+    tex?.add('__BASE', 0, 0, 0, canvases[0].width, canvases[0].height);
+  }
+  if (!tex) return;
+  tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
+  copyFrames(base, tex);
+}
+
+/** 이미지 한 장 → 재채색한 캔버스 (같은 크기) */
+function recolorSource(
+  src: HTMLImageElement | HTMLCanvasElement,
+  table: Map<number, [number, number, number]>,
+): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = src.width;
   canvas.height = src.height;
@@ -279,17 +296,15 @@ function addRecoloredTexture(
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
   recolorPixels(img.data, table);
   ctx.putImageData(img, 0, 0);
-  const tex = scene.textures.addCanvas(key, canvas)!;
-  tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
-  copyFrames(base, tex);
+  return canvas;
 }
 
-/** 원본 텍스처의 프레임(이름·잘린 영역·trim)을 같은 크기의 다른 텍스처로 옮긴다 (`__BASE` 제외) */
+/** 원본 텍스처의 프레임(이름·장 번호·잘린 영역·trim)을 같은 배치의 다른 텍스처로 옮긴다 (`__BASE` 제외) */
 export function copyFrames(from: Phaser.Textures.Texture, to: Phaser.Textures.Texture): void {
   for (const name of from.getFrameNames()) {
     const f = from.get(name);
-    // 이름은 원본 그대로 (격자 시트 = 숫자, 아틀라스 = 문자열 번호)
-    const nf = to.add(f.name, 0, f.cutX, f.cutY, f.cutWidth, f.cutHeight);
+    // 이름은 원본 그대로 (격자 시트 = 숫자, 아틀라스 = 문자열 번호). 트림 칸은 원 칸 크기(realWidth·realHeight) 안 위치까지
+    const nf = to.add(f.name, f.sourceIndex, f.cutX, f.cutY, f.cutWidth, f.cutHeight);
     if (nf && f.trimmed) nf.setTrim(f.realWidth, f.realHeight, f.x, f.y, f.cutWidth, f.cutHeight);
   }
 }

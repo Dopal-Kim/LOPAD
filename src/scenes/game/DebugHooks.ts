@@ -62,6 +62,7 @@ export function exposeGameDebug(g: Game): void {
       ...spriteLibrary.summary(g),
       weaponLoaded: loadedWeaponSheets(),
       textureCount: g.textures.getTextureKeys().length,
+      textureBytes: textureBytes(g),
     }),
     fx: () => g.fx.summary(),
     nextStage: () => {
@@ -459,6 +460,32 @@ export function exposeGameDebug(g: Game): void {
       return false;
     },
   });
+}
+
+/**
+ * 57라운드 Q38 검증: 올라간 텍스처의 GPU 메모리 추정 (장마다 폭 × 높이 × 4 바이트, 밉맵 없음). 합계 · 분류별 합 ·
+ * 큰 텍스처 상위 10
+ */
+function textureBytes(g: Game): { total: number; byGroup: Record<string, number>; top: [string, number][] } {
+  const list: [string, number][] = [];
+  const byGroup: Record<string, number> = {};
+  for (const key of g.textures.getTextureKeys()) {
+    const bytes = g.textures.get(key).source.reduce((a, s) => a + s.width * s.height * 4, 0);
+    list.push([key, bytes]);
+    // 시트(sheet_ — 층 변형 @·색 교체 # 포함) · 외벽(border_) · 타일 · 그 밖
+    const group = key.startsWith('sheet_')
+      ? /[@#]/.test(key)
+        ? 'sheetVariant'
+        : 'sheet'
+      : key.startsWith('border_')
+        ? 'border'
+        : key.startsWith('tile')
+          ? 'tiles'
+          : 'other';
+    byGroup[group] = (byGroup[group] ?? 0) + bytes;
+  }
+  list.sort((a, b) => b[1] - a[1]);
+  return { total: list.reduce((a, [, b]) => a + b, 0), byGroup, top: list.slice(0, 10) };
 }
 
 function findBoss(g: Game): Boss | null {

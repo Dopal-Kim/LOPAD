@@ -7,6 +7,7 @@ import type { ComboDef, WeaponMovesDef } from '../../data/types';
 import { moveFxNames } from '../../data/moveTypes';
 import { comboArtNames } from '../weapon/comboArt';
 import { BIRTH_FX, COMBO_HITS } from '../sprites/spriteDefs';
+import { FEEDBACK } from '../../core/Constants';
 
 /** 연격 베기 이펙트 `fx/<무기>_combo<n>` */
 export function comboFxId(weaponId: string, n: number): string {
@@ -28,6 +29,18 @@ export interface FxWeaponShape {
   draw?: { weakArrowSheet: string };
   /** 56라운드 2단계 새 기본기 보조 fx (`<무기>_<이름>`) */
   moves?: WeaponMovesDef;
+  /** 56라운드 고유 자원 (낙인 brand → 단검 전용 낙인·과열 fx) */
+  gauge?: { kind?: string };
+}
+
+/**
+ * 57라운드 Q38: 고유 자원 전용 fx — 낙인(brand, 단검): 표식·폭발 · 과열 폭발·식음. 예전엔 공용 보조 연출 목록(부팅 묶음)에
+ * 있었지만 그 자원을 쓰는 무기만 쓰므로 무기 묶음으로 (재생 쪽 `BrandMarks`·`WeaponFeedback` 도 gauge.kind 'brand' 일 때만)
+ */
+export function gaugeFxIds(w: Pick<FxWeaponShape, 'gauge'>): string[] {
+  if (w.gauge?.kind !== 'brand') return [];
+  const { BRAND, OVERHEAT } = FEEDBACK;
+  return [BRAND.MARK_SHEET, BRAND.BURST_SHEET, OVERHEAT.SHEET, OVERHEAT.COOL_SHEET];
 }
 
 /** 56라운드 Q9 완벽 놓기 섬광 `fx/<무기>_perfect_release` */
@@ -45,6 +58,7 @@ export function weaponKitFxIds(id: string, w: FxWeaponShape): string[] {
   if (w.plunge) out.push(w.plunge.wave.sheet);
   if (w.draw) out.push(w.draw.weakArrowSheet, perfectReleaseFxId(id));
   for (const n of moveFxNames(w.moves)) out.push(`${id}_${n}`);
+  out.push(...gaugeFxIds(w));
   return out;
 }
 
@@ -140,13 +154,9 @@ export const SECONDARY_FX_IDS: readonly string[] = [
   'dash_dust',
   'dash_trail',
   'heavyarrow_hit',
-  // 56라운드 (계약 §18): 퍼펙트 가드·패링 · 그로기 소용돌이 · 단검 낙인 표식·폭발 · 과열 폭발·식음
+  // 56라운드 (계약 §18): 퍼펙트 가드·패링 · 그로기 소용돌이 (단검 낙인·과열 fx 는 57라운드 Q38 무기 묶음 — `gaugeFxIds`)
   'guard_perfect_fx',
   'player_groggy_swirl',
-  'dagger_brand_mark',
-  'dagger_brand_burst',
-  'dagger_overheat_burst',
-  'dagger_overheat_cool',
 ];
 
 /** 47라운드 구조물 이펙트 (계약 art-assets §5): 1-1 불붙은 독주 웅덩이 루프. 48라운드 §6.3 탄생 흙 */
