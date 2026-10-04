@@ -1389,6 +1389,164 @@ def _boss1_phase_drink(sr, rng):
     return reverb(s, sr, size=1.2, decay=0.7, wet=0.3)
 
 
+# --- 55라운드: 대검 홀드 차지 · 칼 3타 잔상 베기 ------------------------------------------
+# 결정 근거: parts/producer/decisions/2026-10-03-round-55-weapon-fx-overhaul.md Q22·Q24·Q29~Q32.
+# 반드시 boss1_* 뒤에 둔다(시드 = 1000 + 등록 순서). 차지 단계 0.4/0.8/1.2 s, 잔상 베기는 본 타격 150 ms 뒤.
+# 3단 내려찍기는 충격파 꼬리가 붙어 구조가 달라지므로 재생 속도 변주가 아니라 단계별 파일 3개로 둔다.
+
+AMBER_D = [146.83, 293.66, 440.0, 587.33]  # D3·D4·A4·D5. 차지 단계 1·2·3 = [1]·[2]·[3] (D 단조 BGM 과 어울림), [1] 은 루프 험·3단 아래 옥타브에도 씀
+
+
+def jing(sr, dur, f, rng, bright=0.0, tau=0.5, bend=0.012):
+    """호박빛 '징': 비조화 배음 + 처음 0.12 s 동안 살짝 올라갔다 자리 잡는 음높이(징 특유의 '웅').
+    bright(0~1) 가 클수록 윗배음이 커지고 저역통과가 열린다(3단 = 백열)."""
+    n = sec(sr, dur)
+    parts = [(1.0, 1.0), (2.0, 0.42), (2.76, 0.30), (4.07, 0.16 + 0.25 * bright),
+             (5.40, 0.08 + 0.22 * bright), (6.80, 0.15 * bright), (8.20, 0.09 * bright)]
+    nb = sec(sr, 0.12)
+    bend_env = [1.0 + bend * (math.sin(0.5 * math.pi * min(1.0, i / nb))) for i in range(n)]
+    out = zeros(n)
+    for ratio, amp in parts:
+        if amp <= 0:
+            continue
+        fr = f * ratio * (1 + rng.uniform(-0.002, 0.002))
+        freqs = [fr * b for b in bend_env]
+        e = env_exp(sr, dur, tau / math.sqrt(ratio))
+        osc = tone_f(sr, freqs, 'sine', rng.random())
+        for i in range(n):
+            out[i] += amp * e[i] * osc[i]
+    out = mul(out, env_adsr(sr, dur, 0.006, 0.0, 1.0, dur * 0.25))
+    out = lowpass(out, sr, 2200 + 6000 * bright)
+    mix_into(out, thud(sr, 0.06, f * 0.5, f * 0.3, 0.015), 0, 0.35)  # 채가 닿는 둔탁한 머리
+    return out
+
+
+def gravel(sr, rng, dur, count, t0, t1, g=0.3):
+    """흩어지는 돌 부스러기: 낮은 대역 짧은 딸깍을 무작위로."""
+    s = zeros(sec(sr, dur))
+    for _ in range(count):
+        c = burst(sr, 0.015, rng, fc=rng.uniform(900, 3200), q=0.8, tau=rng.uniform(0.002, 0.005))
+        mix_into(s, c, sec(sr, rng.uniform(t0, t1)), g * rng.uniform(0.3, 1.0))
+    return s
+
+
+def slam_impact(sr, rng, dur, f0, f1, tau, weight):
+    """지면 강타: 몸통 저음 + 저역 폭발 + 돌 깨짐 + 칼날 쇳소리. weight 1.0~1.6."""
+    s = zeros(sec(sr, dur))
+    mix_into(s, thud(sr, min(dur, 0.6), f0, f1, tau), 0, 1.2 * weight)
+    mix_into(s, burst(sr, 0.25, rng, fc=380, q=0.6, tau=0.04 * weight, mode='low'), 0, 1.0 * weight)
+    mix_into(s, burst(sr, 0.06, rng, fc=1800, q=0.7, tau=0.012), sec(sr, 0.002), 0.55)
+    mix_into(s, metal(sr, 0.3, 640, rng, tau=0.07, jitter=0.03), sec(sr, 0.003), 0.28)
+    mix_into(s, click(sr, rng, 0.004, 2600), 0, 0.8)
+    return s
+
+
+@sfx('charge_start', 'PLAYER_CHARGE{weapon:greatsword,phase:start}', "대검 홀드 차지 시작(홀드 인식 0.18s 시점). 무거운 칼을 들어 올리는 쇳소리 + 숨처럼 차오르는 노이즈(목소리 아님)", -4)
+def _charge_start(sr, rng):
+    dur = 0.3
+    n = sec(sr, dur)
+    s = zeros(n)
+    mix_into(s, thud(sr, 0.07, 170, 90, 0.018), 0, 0.5)  # 손잡이 고쳐 쥠
+    sc = svf(noise(sr, 0.26, rng), sr, sweep(sr, sec(sr, 0.26), 1600, 4200), 3.0, 'band')
+    grind = [0.55 + 0.45 * math.sin(TAU * 34 * i / sr) for i in range(len(sc))]
+    sc = mul(mul(sc, grind), env_adsr(sr, 0.26, 0.05, 0.0, 1.0, 0.1))
+    mix_into(s, sc, sec(sr, 0.02), 0.45)  # 쇠 긁힘
+    mix_into(s, metal(sr, 0.25, 760, rng, tau=0.09, jitter=0.02), sec(sr, 0.03), 0.18)
+    br = svf(noise(sr, dur, rng), sr, sweep(sr, n, 420, 1500), 0.8, 'band')
+    br = mul(br, [((i / n) ** 2.0) * (1.0 if i < n * 0.86 else max(0.0, (n - i) / (n * 0.14))) for i in range(n)])
+    mix_into(s, br, 0, 0.6)  # 숨처럼 차오르는 노이즈
+    wt = mul(lowpass(tone(sr, dur, 58, 88, kind='saw'), sr, 260), env_adsr(sr, dur, 0.12, 0.0, 1.0, 0.06))
+    mix_into(s, wt, 0, 0.35)  # 들어 올리는 무게
+    return s
+
+
+@sfx('charge_stage1', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:1}', "차지 1단(0.4s). 낮은 호박빛 '징'(D4) 한 번", -6)
+def _charge_stage1(sr, rng):
+    s = jing(sr, 0.6, AMBER_D[1], rng, bright=0.0, tau=0.32)
+    return tail(s, sr, 0.02)
+
+
+@sfx('charge_stage2', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:2}', "차지 2단(0.8s). 한 단 높은 '징'(A4), 1단보다 조금 밝고 길다", -4)
+def _charge_stage2(sr, rng):
+    s = jing(sr, 0.8, AMBER_D[2], rng, bright=0.35, tau=0.42)
+    mix_into(s, jing(sr, 0.6, AMBER_D[1], rng, bright=0.0, tau=0.3), sec(sr, 0.004), 0.25)
+    return tail(s, sr, 0.02)
+
+
+@sfx('charge_stage3', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:3}', "차지 3단(1.2s, 최대). 가장 높고 밝은 '징'(D5) + 아래 옥타브 겹침 + 백열 고음 반짝임, 가장 길게", -2)
+def _charge_stage3(sr, rng):
+    dur = 1.2
+    s = jing(sr, dur, AMBER_D[3], rng, bright=1.0, tau=0.6)
+    mix_into(s, jing(sr, 1.0, AMBER_D[1], rng, bright=0.3, tau=0.5), sec(sr, 0.004), 0.4)
+    hi = mul(tone(sr, 0.9, 3520, 3560), env_adsr(sr, 0.9, 0.05, 0.0, 1.0, 0.7))
+    mix_into(s, hi, sec(sr, 0.02), 0.035)  # 백열 신호(Q27)
+    mix_into(s, whoosh(sr, 0.35, rng, 2500, 7000, q=1.0, a=0.1, r=0.8), 0, 0.12)
+    return reverb(tail(s, sr, 0.05), sr, size=0.7, decay=0.55, wet=0.15)
+
+
+@sfx('charge_loop', 'PLAYER_CHARGE{weapon:greatsword,phase:start,until:release}', "차지 유지 루프(1.0s). 낮은 웅웅 + 느린 맥놀이 + 희미한 호박 험. start 에 페이드인 시작, release·피격 취소 시 정지", -12, loop=True)
+def _charge_loop(sr, rng):
+    dur = 1.0
+    n = sec(sr, dur)
+    g = wrap2(lambda x: lowpass(x, sr, 170), tone_loop(sr, n, 55, 'saw'))
+    sub = mul(tone_loop(sr, n, 110, 'sine'), lfo_loop(sr, n, 2.0, 0.35, 0.65))
+    mix_into(g, sub, 0, 0.35)
+    beat = tone_loop(sr, n, 113, 'sine')  # 110 과 3 Hz 맥놀이
+    mix_into(g, beat, 0, 0.18)
+    rum = wrap2(lambda x: svf(x, sr, 200, 0.9, 'low'), noise_loop(sr, n, rng))
+    rum = mul(rum, lfo_loop(sr, n, 4.0, 0.3, 0.7))
+    mix_into(g, rum, 0, 0.6)
+    hum = mul(tone_loop(sr, n, AMBER_D[1], 'sine'), lfo_loop(sr, n, 3.0, 0.5, 0.5, 0.25))
+    mix_into(g, hum, 0, 0.05)
+    return g
+
+
+@sfx('charge_slam_lv1', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:1}', "차지 1단 내려찍기(판정 프레임에 재생). 지면 강타 + 돌 깨짐 + 칼날 쇳소리", -2)
+def _charge_slam_lv1(sr, rng):
+    s = slam_impact(sr, rng, 0.55, 125, 36, 0.09, 1.0)
+    mix_into(s, gravel(sr, rng, 0.55, 6, 0.04, 0.3, 0.3), 0)
+    s = softclip(s, 1.3)
+    return reverb(tail(s, sr, 0.05), sr, size=0.6, decay=0.5, wet=0.12)
+
+
+@sfx('charge_slam_lv2', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:2}', "차지 2단 내려찍기. 1단보다 낮고 무거운 강타 + 부스러기 더 많이", -2)
+def _charge_slam_lv2(sr, rng):
+    s = slam_impact(sr, rng, 0.75, 115, 30, 0.12, 1.3)
+    mix_into(s, gravel(sr, rng, 0.75, 10, 0.04, 0.45, 0.32), 0)
+    rum = mul(svf(noise(sr, 0.6, rng), sr, 160, 0.8, 'low'), env_exp(sr, 0.6, 0.15))
+    mix_into(s, rum, sec(sr, 0.01), 0.7)
+    s = softclip(s, 1.5)
+    return reverb(tail(s, sr, 0.05), sr, size=0.8, decay=0.55, wet=0.15)
+
+
+@sfx('charge_slam_lv3', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:3}', "차지 3단 내려찍기(막타, 충격파 링). 가장 무거운 강타 + 바깥으로 퍼지는 충격파 꼬리 + 땅울림 + 백열 쇳소리", 0)
+def _charge_slam_lv3(sr, rng):
+    dur = 1.4
+    s = zeros(sec(sr, dur))
+    mix_into(s, slam_impact(sr, rng, 0.8, 105, 26, 0.15, 1.6), 0)
+    sub = mul(tone(sr, 1.0, 50, 24), env_exp(sr, 1.0, 0.32))
+    mix_into(s, sub, sec(sr, 0.01), 0.9)  # 충격파 저음
+    wave_ = whoosh(sr, 0.8, rng, 2600, 220, q=0.7, a=0.06, r=0.85)
+    mix_into(s, wave_, sec(sr, 0.03), 0.55)  # 퍼져 나가는 링
+    rum = mul(svf(noise(sr, 1.1, rng), sr, 140, 0.8, 'low'), env_adsr(sr, 1.1, 0.05, 0.0, 1.0, 0.9))
+    mix_into(s, rum, sec(sr, 0.05), 0.8)  # 땅울림
+    mix_into(s, gravel(sr, rng, 1.2, 16, 0.05, 0.9, 0.3), 0)
+    mix_into(s, metal(sr, 0.7, 1300, rng, tau=0.16, jitter=0.015), sec(sr, 0.004), 0.16)  # 백열 쇳소리
+    s = softclip(s, 1.8)
+    return reverb(s, sr, size=1.1, decay=0.65, wet=0.25)
+
+
+@sfx('katana_echo', 'PLAYER_ATTACK{weapon:katana,combo:3,phase:echo}', "칼 3타 잔상 베기(본 타격 150ms 뒤 같은 호, 피해 50%). 같은 호를 다시 긋는 얇고 날카로운 바람 + 짧은 잔향 반복", -4)
+def _katana_echo(sr, rng):
+    w = whoosh(sr, 0.14, rng, 6800, 2200, q=2.2, a=0.12, r=0.6)
+    mix_into(w, metal(sr, 0.1, 3300, rng, tau=0.035, jitter=0.02), sec(sr, 0.015), 0.1)
+    w = highpass(w, sr, 1400)
+    s = zeros(sec(sr, 0.25))
+    for t0, g in [(0.0, 1.0), (0.032, 0.45), (0.064, 0.2)]:  # 잔상처럼 겹치는 짧은 반복
+        mix_into(s, w, sec(sr, t0), g)
+    return s
+
+
 # ---------------------------------------------------------------------------
 # BGM 정의 — 각 함수는 루프 길이에 맞춘 버퍼를 돌려준다 (22.05 kHz).
 # 설계: 모든 음은 wrap=True 로 섞고, 리버브는 loop=True 로 처리해 경계가 이어진다.

@@ -66,6 +66,33 @@
 | shadowstep | 0.42 s | `PLAYER_SECONDARY` shadowstep | 역방향 바람(600→4.5k 상승) + 꺼지는 저음, 끝에 딸깍 | -2 |
 | dash | 0.23 s | `PLAYER_DASH` | 700→3.2k 바람 + 발 디딤 | -3 |
 
+### 4-1-1. 대검 홀드 차지 · 칼 3타 잔상 베기 (55라운드, 9종)
+결정 근거: `parts/producer/decisions/2026-10-03-round-55-weapon-fx-overhaul.md` Q22(칼 잔상 베기 150 ms 뒤)·Q24(차지 0.4/0.8/1.2 s 3단)·Q27(3단만 백열)·Q30(막타 = 차지 내려찍기만)·Q32(음향 병행 제작). 기존 방식(build.py 절차 합성, 44.1 kHz/16 bit/mono, 피크 -6 dBFS, 목소리 없음) 그대로. 트리거는 **제안**(시스템 이벤트 후보 `PLAYER_CHARGE {phase: start|stage|release, stage}`).
+
+| id | 길이 | 루프 | 트리거 제안 | 질감 | gainDb |
+|---|---|---|---|---|---|
+| charge_start | 0.30 s | - | `PLAYER_CHARGE` weapon:greatsword phase:start | 손잡이 고쳐 쥠 + 1.6k→4.2k 쇠 긁힘(34 Hz 떨림) + 760 Hz 쇠 울림 + 420→1500 Hz 숨처럼 차오르는 노이즈(목소리 아님) + 58→88 Hz 무게 | -4 |
+| charge_stage1 | 0.62 s | - | `PLAYER_CHARGE` phase:stage stage:1 (0.4 s) | 호박빛 '징' D4(294 Hz), 비조화 배음, 첫 0.12 s 음높이 +1.2% 휘어 오름, 어둡게(LP 2.2k) | -6 |
+| charge_stage2 | 0.82 s | - | `PLAYER_CHARGE` phase:stage stage:2 (0.8 s) | '징' A4(440 Hz) + D4 겹침, 윗배음 조금 열림 | -4 |
+| charge_stage3 | 1.25 s | - | `PLAYER_CHARGE` phase:stage stage:3 (1.2 s) | '징' D5(587 Hz), 가장 밝게(LP 8.2k) + 아래 옥타브 D4 + 3.5k 백열 반짝임 + 상승 바람, 작은 울림 | -2 |
+| charge_loop | 1.00 s | 루프 | `PLAYER_CHARGE` phase:start 부터 release·취소까지 | 55 Hz 톱니 저역 + 110/113 Hz 3 Hz 맥놀이 + 4 Hz 떨리는 럼블 + 희미한 D4 험(정수 주기·랩어라운드) | -12 |
+| charge_slam_lv1 | 0.60 s | - | `PLAYER_CHARGE` phase:release stage:1 | 125→36 Hz 강타 + 저역 폭발 + 1.8k 돌 깨짐 + 640 Hz 칼날 쇳소리 + 부스러기 6 | -2 |
+| charge_slam_lv2 | 0.80 s | - | `PLAYER_CHARGE` phase:release stage:2 | 115→30 Hz 더 무거운 강타(×1.3) + 저역 럼블 + 부스러기 10 | -2 |
+| charge_slam_lv3 | 1.40 s | - | `PLAYER_CHARGE` phase:release stage:3 (막타·충격파 링) | 105→26 Hz 강타(×1.6) + 50→24 Hz 충격파 저음 + 2.6k→220 Hz 퍼져 나가는 바람(링) + 땅울림 + 부스러기 16 + 1.3k 백열 쇳소리, 울림 | 0 |
+| katana_echo | 0.25 s | - | `PLAYER_ATTACK` weapon:katana combo:3 phase:echo (본 타격 150 ms 뒤 후속 판정) | 6.8k→2.2k 얇은 바람 + 3.3k 쇠 틱, 고역통과 1.4k, 32 ms 간격 3겹 반복(잔상) | -4 |
+
+설계 메모:
+- **내려찍기는 단계별 파일 3개**(재생 속도 변주 안 씀). 근거: ① 3단은 충격파 꼬리가 붙어 구조가 다르다 — 속도만으로는 못 만든다. ② 재생 속도를 올리면 음높이가 올라가 더 가볍게 들린다(단계가 오를수록 무거워져야 하는 것과 반대). ③ 아트 fx `greatsword_charge_slam_lv1~3` 와 1:1 대응. 용량 증가는 3개 합쳐 약 240 KB.
+- 단계 '징'은 D4→A4→D5(5도·4도 상승)로 D 단조 BGM 과 부딪치지 않는다. 앞 단계 꼬리가 다음 단계와 겹쳐도 협화.
+- 0.18 s 홀드 인식 전에 떼거나 1단(0.4 s) 전에 떼었을 때의 소리는 정하지 않았다 — 기존 `swing_greatsword`(일반 내려찍기)로 두는 것을 권장.
+
+연결 권장:
+- 홀드 인식(0.18 s) 시점에 charge_start + charge_loop(150 ms 페이드인) 동시 시작. 단계 도달마다 charge_stageN 1회. 루프 재생 속도를 단계마다 1.0/1.03/1.06 으로 올리면 긴장이 쌓인다(선택).
+- 떼면 charge_loop 80~120 ms 페이드아웃, charge_slam_lvN 은 **판정(impact) 프레임**에 재생(떼는 순간이 아님). 파일 0 ms 가 타격 순간이다.
+- 피격 취소 시 charge_loop 즉시 페이드아웃(60 ms), 울리던 stage 음은 그대로 둔다.
+- charge_slam_lv3 와 겹쳐 쓰는 막타 적중음(`hit_enemy_crit` 등)은 그대로 재생해도 된다(대역이 다름). 화면 흔들림·히트스톱과 같은 프레임 권장.
+- katana_echo 는 잔상 판정 시점(본 타격 +150 ms)에 재생. 본 휘두름(`swing_katana`)과 20 ms 중복 규칙에 걸리지 않도록 다른 키이므로 그대로 겹친다. ±4% 랜덤 피치 권장.
+
 ### 4-2. 타격·적
 | id | 길이 | 트리거 제안 | 질감 | gainDb |
 |---|---|---|---|---|

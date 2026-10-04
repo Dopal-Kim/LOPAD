@@ -1118,6 +1118,185 @@
       "note": "만취 페이즈 전환 들이켜기(선택, boss_phase 대신 또는 뒤에). 잔 출렁 + 빠른 꿀꺽 3번 + 큰 '크아' + 낮은 북"
     },
     {
+      "id": "sfx/charge_start",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charge_start.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 300,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:start"
+        ]
+      },
+      "note": "대검 홀드 차지 시작(홀드 인식 0.18s 시점). 무거운 칼을 들어 올리는 쇳소리 + 숨처럼 차오르는 노이즈(목소리 아님)"
+    },
+    {
+      "id": "sfx/charge_stage1",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charge_stage1.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 620,
+      "loop": false,
+      "gainDb": -6,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:stage",
+          "stage:1"
+        ]
+      },
+      "note": "차지 1단(0.4s). 낮은 호박빛 '징'(D4) 한 번"
+    },
+    {
+      "id": "sfx/charge_stage2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charge_stage2.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 820,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:stage",
+          "stage:2"
+        ]
+      },
+      "note": "차지 2단(0.8s). 한 단 높은 '징'(A4), 1단보다 조금 밝고 길다"
+    },
+    {
+      "id": "sfx/charge_stage3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charge_stage3.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1250,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:stage",
+          "stage:3"
+        ]
+      },
+      "note": "차지 3단(1.2s, 최대). 가장 높고 밝은 '징'(D5) + 아래 옥타브 겹침 + 백열 고음 반짝임, 가장 길게"
+    },
+    {
+      "id": "sfx/charge_loop",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charge_loop.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1000,
+      "loop": true,
+      "gainDb": -12,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:start",
+          "until:release"
+        ]
+      },
+      "note": "차지 유지 루프(1.0s). 낮은 웅웅 + 느린 맥놀이 + 희미한 호박 험. start 에 페이드인 시작, release·피격 취소 시 정지"
+    },
+    {
+      "id": "sfx/charge_slam_lv1",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charge_slam_lv1.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:release",
+          "stage:1"
+        ]
+      },
+      "note": "차지 1단 내려찍기(판정 프레임에 재생). 지면 강타 + 돌 깨짐 + 칼날 쇳소리"
+    },
+    {
+      "id": "sfx/charge_slam_lv2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charge_slam_lv2.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 800,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:release",
+          "stage:2"
+        ]
+      },
+      "note": "차지 2단 내려찍기. 1단보다 낮고 무거운 강타 + 부스러기 더 많이"
+    },
+    {
+      "id": "sfx/charge_slam_lv3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/charge_slam_lv3.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1400,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:release",
+          "stage:3"
+        ]
+      },
+      "note": "차지 3단 내려찍기(막타, 충격파 링). 가장 무거운 강타 + 바깥으로 퍼지는 충격파 꼬리 + 땅울림 + 백열 쇳소리"
+    },
+    {
+      "id": "sfx/katana_echo",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/katana_echo.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 250,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:katana",
+          "combo:3",
+          "phase:echo"
+        ]
+      },
+      "note": "칼 3타 잔상 베기(본 타격 150ms 뒤 같은 호, 피해 50%). 같은 호를 다시 긋는 얇고 날카로운 바람 + 짧은 잔향 반복"
+    },
+    {
       "id": "bgm/title",
       "kind": "bgm",
       "category": "bgm",
