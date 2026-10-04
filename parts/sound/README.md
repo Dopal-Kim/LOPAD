@@ -5,7 +5,7 @@
 |---|---|
 | `parts/sound/sound-design.md` | 음향 바이블: 톤, 악기(합성 방식), 층별 BGM 매핑, 효과음 표(트리거 제안) |
 | `parts/sound/work/build.py` | **단일 소스.** 효과음·BGM·매니페스트를 전부 재생성. 파이썬 표준 라이브러리만 사용, 고정 시드로 결정적 |
-| `assets/audio/sfx/*.wav` | 효과음 69종(29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9), 44.1 kHz / 16 bit / mono, 피크 -6 dBFS |
+| `assets/audio/sfx/*.wav` | 효과음 103종(29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34), 44.1 kHz / 16 bit / mono, 피크 -6 dBFS |
 | `assets/audio/bgm/*.wav` | BGM 6곡, 22.05 kHz / 16 bit / mono, 27~32 s 루프, 피크 -6 dBFS |
 | `assets/audio/manifest.json` | 시스템 파트가 읽을 목록(계약 초안): 파일·길이·루프·권장 음량·트리거 이벤트 제안·층별 BGM 매핑 |
 
@@ -48,6 +48,12 @@ python3 parts/sound/work/build.py verify     # 생성된 파일 검증(길이·�
 - 대검 홀드 차지 8종(`charge_start`, `charge_stage1~3`, `charge_loop` 루프, `charge_slam_lv1~3`) + 칼 3타 잔상 베기 `katana_echo`. 목록·연결 권장은 `sound-design.md` 4-1-1.
 - 기존 방식 그대로, 새 항목은 목록 맨 뒤 — 기존 66개 파일(SFX 60 + BGM 6) 바이트 불변(md5 대조).
 - 검증: 파일 75개(SFX 69 + BGM 6), 총 12.22 MB, 클리핑 0, 전 파일 피크 -6.00 dBFS, `charge_loop` 경계비 0.23.
+
+## 추가 (56라운드, 2026-10-04)
+- 가드·자원 11종(`perfect_guard`, `parry_perfect`, `groggy_start`, `kenki_stage1~3`, `utbun_full`, `brand_apply`, `brand_burst`, `overheat_burst`, `breath_focus`) + 칼 6 + 대검 8 + 단검 5(`dagger_backstab`, `dagger_flurry1~4`) + 활 4 = 34종. 목록·연결 권장은 `sound-design.md` 4-1-2.
+- 재사용: `bow_draw`(같은 키 기존 파일), 일반 발사 `bow_aimed`, 도약 찍기 차지분 `charge_slam_lv1~3`.
+- 기존 방식 그대로, 새 항목은 목록 맨 뒤 — 기존 75개 파일 바이트 불변(md5 대조), 매니페스트는 항목 추가만.
+- 검증: 파일 109개(SFX 103 + BGM 6), 총 14.14 MB, 클리핑 0, 전 파일 피크 -6.00 dBFS, `katana_iai_hold` 경계비 0.10.
 
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).

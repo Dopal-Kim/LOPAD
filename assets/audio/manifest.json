@@ -1297,6 +1297,659 @@
       "note": "칼 3타 잔상 베기(본 타격 150ms 뒤 같은 호, 피해 50%). 같은 호를 다시 긋는 얇고 날카로운 바람 + 짧은 잔향 반복"
     },
     {
+      "id": "sfx/perfect_guard",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/perfect_guard.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 950,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PERFECT_GUARD",
+        "when": []
+      },
+      "note": "퍼펙트 가드(가드 누른 직후 0.15s 안 피격 → 피해 0, 튕겨내지 않음). 충격이 흡수되는 짧은 둔탁음 + 맑게 오래 남는 금속 울림(A5·D6). 'PERFECT GUARD' 문구와 같은 프레임"
+    },
+    {
+      "id": "sfx/parry_perfect",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/parry_perfect.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 790,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PARRY_SUCCESS",
+        "when": [
+          "weapon:katana",
+          "emphasis:true"
+        ]
+      },
+      "note": "칼 패링 성공 강조(기존 parry 위에 겹쳐 재생, 'PARRY' 문구·검기 1단 충전과 같은 프레임). 2 kHz 위 대역만: 날카로운 '키잉' + 위로 번뜩이는 스침 + 짧은 울림"
+    },
+    {
+      "id": "sfx/groggy_start",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/groggy_start.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1380,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "GROGGY",
+        "when": [
+          "phase:start"
+        ]
+      },
+      "note": "그로기 시작(칼·대검 기력 0, 1.5s). 기운이 빠지는 하강음 + 거친 숨 헐떡임 두 번(노이즈 포먼트, 목소리 아님) + 무릎이 꺾이는 둔탁음 + 갑옷 처짐"
+    },
+    {
+      "id": "sfx/kenki_stage1",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/kenki_stage1.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 470,
+      "loop": false,
+      "gainDb": -6,
+      "trigger": {
+        "event": "KENKI_CHANGED",
+        "when": [
+          "stage:1",
+          "delta>0"
+        ]
+      },
+      "note": "검기 1단 도달(재빛 칼날). 낮고 어두운 칼날 울림 A4 '시잉'"
+    },
+    {
+      "id": "sfx/kenki_stage2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/kenki_stage2.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 620,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "KENKI_CHANGED",
+        "when": [
+          "stage:2",
+          "delta>0"
+        ]
+      },
+      "note": "검기 2단 도달(호박빛). 한 단 높고 밝은 칼날 울림 D5 + 아래 옥타브"
+    },
+    {
+      "id": "sfx/kenki_stage3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/kenki_stage3.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 890,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "KENKI_CHANGED",
+        "when": [
+          "stage:3",
+          "delta>0"
+        ]
+      },
+      "note": "검기 3단 도달(백열, 그림자 분신 준비). 가장 높고 밝은 칼날 울림 A5 + 미세 떨림 + 백열 고음, 짧은 울림"
+    },
+    {
+      "id": "sfx/utbun_full",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/utbun_full.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1130,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "UTBUN_CHANGED",
+        "when": [
+          "full:true"
+        ]
+      },
+      "note": "울분 가득(대검). 낮게 끓어오르는 잔불 + 불씨 '훅' 치솟음 + 타닥 + 칼이 달아오르는 쇳소리"
+    },
+    {
+      "id": "sfx/brand_apply",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/brand_apply.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 190,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": {
+        "event": "BRAND_CHANGED",
+        "when": [
+          "delta>0"
+        ]
+      },
+      "note": "낙인 1스택(단검). 살짝 지지는 '칙' + 작은 틱. 등 뒤 2스택일 때는 같은 소리를 rate 1.1 로 1회 권장"
+    },
+    {
+      "id": "sfx/brand_burst",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/brand_burst.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 790,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "BRAND_BURST",
+        "when": []
+      },
+      "note": "낙인 기폭(그림자 걸음으로 대상 뒤 이동 시 전부 폭발). 숨 들이켜듯 빨려드는 짧은 역바람 → 재 폭발 '펑' + 지지는 꼬리. 파일 0.06s 가 폭발 순간"
+    },
+    {
+      "id": "sfx/overheat_burst",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/overheat_burst.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1500,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "OVERHEAT",
+        "when": [
+          "full:true"
+        ]
+      },
+      "note": "과열 100% 자동 폭발(단검, 주변 낙인 일괄 폭발 + 식힘). 엇갈린 재 폭발 4번 + 낮은 폭음 + 길게 식는 증기 쉿"
+    },
+    {
+      "id": "sfx/breath_focus",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/breath_focus.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 980,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "BREATH_FOCUS",
+        "when": [
+          "phase:start"
+        ]
+      },
+      "note": "숨(활) 가득 → 감속 정밀 조준 진입. 길게 빨려드는 바람(목소리 아님) + 소리가 먹먹해지며 내려앉는 저음 + 아주 희미한 고음 한 가닥"
+    },
+    {
+      "id": "sfx/issen_dash",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/issen_dash.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 390,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:issen",
+          "phase:dash"
+        ]
+      },
+      "note": "일섬 돌진(앞으로 4칸, 적 관통, 무적). 칼집 딸깍 + 공기를 찢는 아주 빠른 고역 바람 + 발 디딤. 발도 순간 = 0s"
+    },
+    {
+      "id": "sfx/issen_burst",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/issen_burst.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 830,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:issen",
+          "phase:burst"
+        ]
+      },
+      "note": "일섬 선이 터짐(돌진 후 잠시 뒤, _solo 선 끝 폭발 연출과 같은 프레임). 선을 따라 촘촘히 번지는 날카로운 파열 + 낮은 폭음 + 밝은 칼날 울림"
+    },
+    {
+      "id": "sfx/shadow_clone",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/shadow_clone.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 650,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:issen",
+          "phase:clone"
+        ]
+      },
+      "note": "그림자 분신 질주(검기 3단 일섬, 일섬 0.2s 뒤 출발 → 0.37s 뒤 도착 베기). 빨려드는 어두운 역바람(이질) + 낮게 겹친 일섬 찢김 + 도착 시 0.37s 에 낮은 베기 '슥'"
+    },
+    {
+      "id": "sfx/katana_counter",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/katana_counter.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 470,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:counter"
+        ]
+      },
+      "note": "간파 반격(패링 직후 0.4s 안 좌클릭). 짧게 숨 죽인 정적 뒤 날카롭고 빠른 일격 + 밝은 칼날 울림 + 단단한 적중 머리"
+    },
+    {
+      "id": "sfx/katana_iai_hold",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/katana_iai_hold.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 2000,
+      "loop": true,
+      "gainDb": -12,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:iai",
+          "phase:hold"
+        ]
+      },
+      "note": "대치 일격 납도 대치 루프(2.0s, 좌클릭 누르는 동안). 낮게 조여 오는 울림 + 칼집 속 희미한 칼날 험 + 느린 맥박. 아주 작게"
+    },
+    {
+      "id": "sfx/katana_iai_release",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/katana_iai_release.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 680,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:iai",
+          "phase:release"
+        ]
+      },
+      "note": "대치 일격 발도(좌클릭 떼는 순간). 코이구치 딸깍 → 30ms 뒤 번개 같은 발도 바람 + 단단한 칼날 울림 + 낮은 무게. 넣기 첫 타 치명과 연결"
+    },
+    {
+      "id": "sfx/gs_plunge",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/gs_plunge.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 690,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:release",
+          "mode:plunge"
+        ]
+      },
+      "note": "땅 꽂기(개성 발현 후 차지 = 휘두르지 않고 칼을 땅에 꽂음). 쇠가 흙·돌을 파고드는 '푹' + 무거운 둔탁음 + 칼날 떨림. 파일 0s = 꽂히는 순간, 뒤이어 gs_crack"
+    },
+    {
+      "id": "sfx/gs_crack",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/gs_crack.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 1000,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_CHARGE",
+        "when": [
+          "weapon:greatsword",
+          "phase:release",
+          "mode:plunge",
+          "part:crack"
+        ]
+      },
+      "note": "균열 충격파(꽂은 자리에서 마우스 방향으로 뻗는 균열). 앞으로 달려가는 돌 갈라짐 + 낮은 폭음 + 멀어지는 땅울림. gs_plunge 와 같은 프레임 또는 40ms 뒤"
+    },
+    {
+      "id": "sfx/gs_drag",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/gs_drag.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 380,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:greatsword",
+          "phase:recover"
+        ]
+      },
+      "note": "대검 휘두른 뒤 몸이 끌려감(짧게). 칼끝이 돌바닥을 긁는 쇳소리 + 자갈 + 미끄러지는 장화"
+    },
+    {
+      "id": "sfx/gs_tackle",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/gs_tackle.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 520,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:greatsword",
+          "move:tackle"
+        ]
+      },
+      "note": "어깨 태클(대검 대쉬 공격). 무거운 박차기 + 낮은 돌진 바람 + 갑옷 덜그럭 + 어깨 몸통 충돌 '쿵'(0.16s). 적중 시 hit_enemy 를 겹쳐 재생"
+    },
+    {
+      "id": "sfx/gs_brace_upswing",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/gs_brace_upswing.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 580,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:greatsword",
+          "move:brace_upswing"
+        ]
+      },
+      "note": "버티기 올려베기(가드 중 좌클릭, 맞아도 안 끊김). 발을 박는 디딤 + 쇠 긁으며 들어 올림 → 아래에서 위로 치솟는 무거운 바람. 울분 소모 강화 시 rate 0.92 + utbun_full 의 불씨 겹침 권장"
+    },
+    {
+      "id": "sfx/gs_leap",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/gs_leap.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 530,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:greatsword",
+          "move:leap",
+          "phase:takeoff"
+        ]
+      },
+      "note": "공중제비 도약(차지 중 스페이스, 차지 단계 유지). 무겁게 박차는 디딤 + 갑옷 출렁 + 몸이 도는 바람 2회(공중제비)"
+    },
+    {
+      "id": "sfx/gs_leap_slam",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/gs_leap_slam.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 930,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:greatsword",
+          "move:leap",
+          "phase:land"
+        ]
+      },
+      "note": "도약 착지 찍기(판정 프레임 = 0s). 몸무게가 실린 착지 + 지면 강타 + 갑옷 쿵 + 흙먼지. 차지 1단 이상이면 charge_slam_lvN 을 같은 프레임에 겹쳐 재생(0단이면 이것만)"
+    },
+    {
+      "id": "sfx/gs_guard_rush",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/gs_guard_rush.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 630,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:greatsword",
+          "move:guard_rush"
+        ]
+      },
+      "note": "막다가 떼면 돌진(퍼펙트 가드 직후 우클릭 떼기, 밀쳐내기 대체). 가드를 풀며 터지는 압력 + 앞으로 밀고 나가는 무거운 바람 + 연속 디딤 + 갑옷"
+    },
+    {
+      "id": "sfx/dagger_backstab",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dagger_backstab.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 480,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:dagger",
+          "move:backstab"
+        ]
+      },
+      "note": "등 뒤 치명 찌르기(그림자 걸음 직후 좌클릭). 짧은 숨 같은 정적 → 깊이 파고드는 찌르기 + 날 박힘 + 밝은 치명 울림. 적중 프레임 = 0.04s"
+    },
+    {
+      "id": "sfx/dagger_flurry1",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dagger_flurry1.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 70,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:dagger",
+          "move:flurry",
+          "variant:1"
+        ]
+      },
+      "note": "고속 난타(좌클릭 홀드) 짧은 찌르기 변주 1/4. 찌를 때마다 1~4 중 무작위(직전과 다른 것) + ±3% rate 권장"
+    },
+    {
+      "id": "sfx/dagger_flurry2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dagger_flurry2.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 70,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:dagger",
+          "move:flurry",
+          "variant:2"
+        ]
+      },
+      "note": "고속 난타 변주 2/4(조금 낮고 둔탁)"
+    },
+    {
+      "id": "sfx/dagger_flurry3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dagger_flurry3.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 70,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:dagger",
+          "move:flurry",
+          "variant:3"
+        ]
+      },
+      "note": "고속 난타 변주 3/4(높고 가벼움)"
+    },
+    {
+      "id": "sfx/dagger_flurry4",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dagger_flurry4.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 70,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "weapon:dagger",
+          "move:flurry",
+          "variant:4"
+        ]
+      },
+      "note": "고속 난타 변주 4/4(짧은 쇠 스침이 섞임)"
+    },
+    {
+      "id": "sfx/bow_release_weak",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bow_release_weak.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 210,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "PLAYER_SECONDARY",
+        "when": [
+          "kind:aimedshot",
+          "phase:release",
+          "power:weak"
+        ]
+      },
+      "note": "일찍 놓은 약한 화살. 덜 당긴 시위의 둔하고 짧은 '퉁' + 힘없이 흔들리는 바람 + 연기 같은 쉿"
+    },
+    {
+      "id": "sfx/bow_release_perfect",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bow_release_perfect.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 500,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_SECONDARY",
+        "when": [
+          "kind:aimedshot",
+          "phase:release",
+          "power:perfect"
+        ]
+      },
+      "note": "완벽 놓기(가득 당긴 직후 0.15s 안). 깊고 단단한 시위 + 맑은 '팅'(A5) + 길게 꿰뚫는 바람 + 짧은 울림. 화살 미소모·숨 회복과 같은 프레임"
+    },
+    {
+      "id": "sfx/arrow_rain_launch",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/arrow_rain_launch.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 780,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:bow",
+          "move:arrow_rain",
+          "phase:launch"
+        ]
+      },
+      "note": "화살비 발사(당긴 채 좌클릭, 하늘로 3발). 빠른 시위 세 번(0/0.06/0.12s) + 하늘로 솟아 멀어지는 바람"
+    },
+    {
+      "id": "sfx/arrow_rain_impact",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/arrow_rain_impact.wav",
+      "sampleRate": 44100,
+      "channels": 1,
+      "durationMs": 630,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:bow",
+          "move:arrow_rain",
+          "phase:impact"
+        ]
+      },
+      "note": "화살비 낙하(커서 원 범위). 짧게 내려꽂히는 휘파람(0~0.1s) → 흙에 꽂히는 '툭' 셋(0.1/0.16/0.23s) + 화살대 떨림. 첫 꽂힘 = 0.1s"
+    },
+    {
       "id": "bgm/title",
       "kind": "bgm",
       "category": "bgm",
