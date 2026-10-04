@@ -10,18 +10,20 @@
 | 3 | 2026-10-01 | 시스템 | 스토리 | `parts/producer/contracts/story-text.md` (프로듀서가 text-pack·층 표에서 정리) | 계약의 이름 표·텍스트 키·문장만. `parts/story/**` 직접 읽기 금지 | 스토리 텍스트 반영 기간. 텍스트 변경은 스토리 파트 재인터뷰 후 계약 갱신 | 도영 님, 26라운드 |
 | 4 | 2026-10-01 | UI | 시스템 | `src/contract/ui.ts` 추가분 (STORY 이벤트, playerName, floorTitle) | 계약 `ui-system-interface.md` §1·§2 추가 항목만 | 〃 | 도영 님, 26라운드 |
 | 5 | 2026-10-01 | 전 파트 | 전 파트 | 저장소 전체 | **읽기 전체 공개** (29라운드 도영 님 지시, 31라운드 유지 확정). 열람 시마다 도영 님께 인터뷰로 알린다. 쓰기는 자기 소유 경로만. 계약 문서는 계속 유지·갱신 | 도영 님이 다르게 정할 때까지 | 도영 님, 29라운드 |
-| 6 | 2026-10-02 | 아트 | UI | `src/ui/*.ts`, `parts/ui/README.md` | UI 키트 제작을 위한 요소 파악(읽기) | 32라운드 UI 재설계 기간 | 도영 님, 32라운드 |
-| 7 | 2026-10-02 | UI | 아트·스토리 | `parts/art/palette/lopad.json`, `parts/art/art-bible.md`, `assets/ui/**`(키트), `parts/story/text-pack-2.json` | 색·질감·문구 적용(읽기) | 〃 | 도영 님, 32라운드 |
-| 8 | 2026-10-02 | 시스템 | 아트·음향 | `assets/**` 시트 JSON, `assets/audio/manifest.json` | 계약 범위 내 읽기 | 〃 | 도영 님, 32라운드 |
-| 9 | 2026-10-02 | 아트 | 스토리 | `parts/story/world-bible.md`, `parts/story/text-pack.md` | 2~8층 타일셋·보스 시트 제작용 읽기 | 층 시트 제작 기간 | 도영 님, 34라운드 |
-| 10 | 2026-10-02 | UI | 아트 | `assets/sprites/ui/**`(키트 원본, `assets/ui/kit/` 로 복사), `contracts/ui-art-kit.md` | UI 키트 적용(읽기·복사) | UI 재설계 기간 | 도영 님, 41라운드 |
-| 11 | 2026-10-02 | 시스템 | 스토리 | `parts/story/world-bible.md` | 1~2층 테마 상호작용 구조물 초안 작성용 읽기 | 구조물 초안 작성 기간 | 도영 님, 45라운드 |
-| 12 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (비전투 여부, 워프 가능 방, 워프 요청) | 계약 `ui-system-interface.md` 의 45라운드 추가 항목만 | 워프 구현 기간. 계약 변경은 재인터뷰 | 도영 님, 45라운드 |
-| 13 | 2026-10-02 | 시스템 | 아트 | `assets/sprites/structures/**` (계약 `art-assets.md` §5) | 구조물 시트 JSON·PNG 읽기·로드 | 구조물 구현 기간 | 도영 님, 47라운드 |
-| 14 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (상호작용 안내, 구조물 메뉴, HUD 상태, 미니맵 점) | 계약 `ui-system-interface.md` §9 항목만 | 구조물 구현 기간. 계약 변경은 재인터뷰 | 도영 님, 47라운드 |
-| 15 | 2026-10-02 | 아트 | 시스템 | `parts/system/structures-draft.md` | 구조물 외형 메모(아트 요청) 읽기 | 구조물 시트 제작 기간 | 도영 님, 47라운드 |
-| 16 | 2026-10-02 | 시스템·아트 | 스토리 | `parts/story/world-bible.md` | 평화지역→잔 여정 노드 구성·탄생지 분위기 파악(읽기) | 48라운드 작업 기간 | 도영 님, 48라운드 |
-| 17 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (노드 지도 route, chooseNode, 탄생 연출 이벤트) | 계약 `ui-system-interface.md` §10 항목만 | 48라운드 작업 기간. 계약 변경은 재인터뷰 | 도영 님, 48라운드 |
-| 18 | 2026-10-02 | UI | 아트 | `assets/sprites/ui/node_icons.*` (계약 `art-assets.md` §6·§7.3), 49라운드부터 `assets/sprites/ui/keyart_*`·`map_bg_*`(§8) | 노드 지도 아이콘·키아트·지도 배경 읽기·`assets/ui/` 로 복사 | 48·49라운드 작업 기간 (49라운드 연장) | 도영 님, 48라운드 (49라운드 Gemini 결정으로 범위 연장) |
-| 19 | 2026-10-04 | 프로듀서 | 아트 | `parts/art/work/combo56_body/`·`combo56_fx/`·`gemini/weapon_moves/` 시트 메모, `assets/sprites/{player,weapons,fx}/v3/` 56라운드 시트 JSON | 계약 `art-assets.md` §18(56라운드) 작성용 읽기만 | 56라운드 작업 기간 | 도영 님, 56라운드 |
+| 6 | 2026-10-02 | 아트 | UI | `src/ui/*.ts`, `parts/ui/README.md` | UI 키트 제작을 위한 요소 파악(읽기) | 32라운드 UI 재설계 기간 → **만료(57라운드)** | 도영 님, 32라운드 |
+| 7 | 2026-10-02 | UI | 아트·스토리 | `parts/art/palette/lopad.json`, `parts/art/art-bible.md`, `assets/ui/**`(키트), `parts/story/text-pack-2.json` | 색·질감·문구 적용(읽기) | 〃 → **만료(57라운드)** | 도영 님, 32라운드 |
+| 8 | 2026-10-02 | 시스템 | 아트·음향 | `assets/**` 시트 JSON, `assets/audio/manifest.json` | 계약 범위 내 읽기 | 〃 → **만료(57라운드)** | 도영 님, 32라운드 |
+| 9 | 2026-10-02 | 아트 | 스토리 | `parts/story/world-bible.md`, `parts/story/text-pack.md` | 2~8층 타일셋·보스 시트 제작용 읽기 | 층 시트 제작 기간 → **만료(57라운드)** | 도영 님, 34라운드 |
+| 10 | 2026-10-02 | UI | 아트 | `assets/sprites/ui/**`(키트 원본, `assets/ui/kit/` 로 복사), `contracts/ui-art-kit.md` | UI 키트 적용(읽기·복사) | UI 재설계 기간 → **만료(57라운드)** | 도영 님, 41라운드 |
+| 11 | 2026-10-02 | 시스템 | 스토리 | `parts/story/world-bible.md` | 1~2층 테마 상호작용 구조물 초안 작성용 읽기 | 구조물 초안 작성 기간 → **만료(57라운드)** | 도영 님, 45라운드 |
+| 12 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (비전투 여부, 워프 가능 방, 워프 요청) | 계약 `ui-system-interface.md` 의 45라운드 추가 항목만 | 워프 구현 기간. 계약 변경은 재인터뷰 → **만료(57라운드)** | 도영 님, 45라운드 |
+| 13 | 2026-10-02 | 시스템 | 아트 | `assets/sprites/structures/**` (계약 `art-assets.md` §5) | 구조물 시트 JSON·PNG 읽기·로드 | 구조물 구현 기간 → **만료(57라운드)** | 도영 님, 47라운드 |
+| 14 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (상호작용 안내, 구조물 메뉴, HUD 상태, 미니맵 점) | 계약 `ui-system-interface.md` §9 항목만 | 구조물 구현 기간. 계약 변경은 재인터뷰 → **만료(57라운드)** | 도영 님, 47라운드 |
+| 15 | 2026-10-02 | 아트 | 시스템 | `parts/system/structures-draft.md` | 구조물 외형 메모(아트 요청) 읽기 | 구조물 시트 제작 기간 → **만료(57라운드)** | 도영 님, 47라운드 |
+| 16 | 2026-10-02 | 시스템·아트 | 스토리 | `parts/story/world-bible.md` | 평화지역→잔 여정 노드 구성·탄생지 분위기 파악(읽기) | 48라운드 작업 기간 → **만료(57라운드)** | 도영 님, 48라운드 |
+| 17 | 2026-10-02 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (노드 지도 route, chooseNode, 탄생 연출 이벤트) | 계약 `ui-system-interface.md` §10 항목만 | 48라운드 작업 기간. 계약 변경은 재인터뷰 → **만료(57라운드)** | 도영 님, 48라운드 |
+| 18 | 2026-10-02 | UI | 아트 | `assets/sprites/ui/node_icons.*` (계약 `art-assets.md` §6·§7.3), 49라운드부터 `assets/sprites/ui/keyart_*`·`map_bg_*`(§8) | 노드 지도 아이콘·키아트·지도 배경 읽기·`assets/ui/` 로 복사 | 48·49라운드 작업 기간 (49라운드 연장) → **만료(57라운드)** | 도영 님, 48라운드 (49라운드 Gemini 결정으로 범위 연장) |
+| 19 | 2026-10-04 | 프로듀서 | 아트 | `parts/art/work/combo56_body/`·`combo56_fx/`·`gemini/weapon_moves/` 시트 메모, `assets/sprites/{player,weapons,fx}/v3/` 56라운드 시트 JSON | 계약 `art-assets.md` §18(56라운드) 작성용 읽기만 | 56라운드 작업 기간 → **만료(57라운드)** | 도영 님, 56라운드 |
 | 20 | 2026-10-04 | UI·시스템 | 시스템·UI | `src/contract/ui.ts` 추가분 (gauge, groggy, 칼 secondaryName) | 계약 `ui-system-interface.md` §13 항목만 | 56라운드 작업 기간. 계약 변경은 재인터뷰 | 도영 님, 56라운드 Q58 |
+
+- 57라운드 Q4: 기간 조건부 승인 #6~#19 는 해당 작업 기간이 끝나 **만료** 표시. #5 읽기 전체 공개가 유지되므로 읽기 실효 변화는 없다(열람 시 도영 님 고지 규칙은 그대로). #1~#4(계약 기반)와 #20(56라운드 작업 기간, 진행 중)은 유지.

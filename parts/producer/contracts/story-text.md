@@ -21,7 +21,7 @@ names: { potion, potionDesc, gold, goldDesc, souls, soulsDesc, sense, shop, shop
 diary: { first, beforeFate, fate }           // fate: "{weapon}." 무기 이름만
 evolution: { generic, byName: { "<진화명>": 문장 } }
 death: "다시 태어난다. 기록만 남는다. {name}, {floor}층, {kills}명."
-endings: { destroy, understand, choice: ["없앤다", "이해한다"] }   // 분기 구현은 별도 인터뷰
+endings: { destroy, understand, choice: ["없앤다", "이해한다"] }   // ~~분기 구현은 별도 인터뷰~~ → 29라운드 H 구현, 31라운드 #8 승인 (메뉴 id `ending`, ui-system-interface §7)
 notices: { trialStart, trialClear, bossUnlocked, saved }   // saved: "{savesLeft}" 치환
 ```
 문장은 text-pack 의 확정 문장을 그대로 복사한다 (여기 재수록하지 않음 — 시스템은 text-pack 을 읽지 않으므로 프로듀서가 story.json 초안을 만들어 넘긴다: `parts/producer/contracts/story-text.json`).

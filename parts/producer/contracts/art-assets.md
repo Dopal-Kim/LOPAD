@@ -1,4 +1,4 @@
-# 계약: 아트 산출물 ↔ 게임 시스템 로드 형식 (29라운드 자율 승인, 도영 님 복귀 후 검토)
+# 계약: 아트 산출물 ↔ 게임 시스템 로드 형식 (29라운드 자율 승인, ~~도영 님 복귀 후 검토~~ → 31라운드 #8 일괄 승인)
 
 아트 파트는 아래 형식으로 내보내고, 시스템 파트는 아래 형식만 믿고 로드한다. 변경은 양쪽 합의 후 이 문서부터 고친다.
 
@@ -9,7 +9,7 @@
 - 애니메이션 키 규칙: `player_walk_down`, `dummy_idle_left` 등 `<이름>_<동작>_<방향>`.
 - 피벗: 스프라이트 원점은 `pivot`(발 위치). 물리 바디는 시스템이 별도로 정한다(현재 플레이어 바디 12×12 가 발밑에 오도록).
 - 동작 목록: 주인공 idle/walk/attack/dash/hurt/death. 일반 적·보스 idle/walk/attack/death(+ 보스는 phase2 등 추가 가능, JSON 에 있으면 시스템이 선택적으로 사용).
-- 크기: 주인공·일반 적 16×24(덩치 24×24 허용), 보스 32×48, 황제 48×64. 1프레임 동작도 같은 형식(frames: 1).
+- 크기: ~~주인공·일반 적 16×24(덩치 24×24 허용), 보스 32×48, 황제 48×64~~ → **현행: 주인공 96×144 도트(화면 48×72, §13·53라운드 Q1), 일반 적 주인공과 같은 크기·결사병 128×176(§14·53라운드 Q33·Q52), 1층 보스 192×240(§15·54라운드 Q14·Q22). 28라운드 크기는 50라운드 Q2로 대체.** 1프레임 동작도 같은 형식(frames: 1).
 
 ## 2. 타일셋 (`assets/tiles/stage<n>.png` + `stage<n>.json`)
 - 16×16 격자 한 장. JSON 의 `tiles` 는 **게임 타일 ID → 시트 인덱스 목록**. 게임 타일 ID(시스템 `TileId`): `0 void, 1 floor, 2 wall, 3 door_open, 4 door_closed, 5 door_locked, 6 corridor, 7 exit, 8 shop`.
@@ -123,8 +123,8 @@
 - 근거: 52라운드 Q7·Q8. 내부 렌더 1920×1080, 논리 좌표·UI 배치는 960×540 기준 유지.
 - `pixelScale` 의미 확장: 960×540 논리 px 하나에 들어가는 도트 수의 역수. 기존 v1 = 2(카메라 2배 시절 도트, 시스템이 1로 간주해 온 '구 시트'), v2 = 1(32×48 = 화면 32×48), **v3 = 0.5**(64×96 도트 = 화면 32×48 크기). 시스템은 `pixelScale` 로 길이 필드(hitRadius·thrust·light radius·occludeAbove·피벗)를 환산한다.
 - 경로: `sprites/<category>/v3/…` — v3 → v2 → 구 시트 순으로 우선 로드(동작 단위 혼용 허용).
-- 주인공 v3: 64×96, 피벗 = 발 중앙(아트가 JSON `pivot` 으로 명시), 색 예산 30. 프레임: idle 6 · walk 8 · run 8 · 연격 타당 6~8 · dash 5 · hurt 3 · death 10(재로 무너지고 일기장만 남음).
-- 보스 v3: 128×192(화면 64×96). 이펙트 v3: 기존 크기 ×2, 같은 생성 스크립트로 재출력.
+- 주인공 v3: ~~64×96~~ **96×144(53라운드 Q1 → §13)**, 피벗 = 발 중앙(아트가 JSON `pivot` 으로 명시), 색 예산 30. 프레임: idle 6 · walk 8 · run 8 · 연격 타당 6~8 · dash 5 · hurt 3 · death 10(재로 무너지고 일기장만 남음).
+- 보스 v3: ~~128×192(화면 64×96)~~ **1층 보스 192×240(화면 96×120), 피벗 (96,220)(54라운드 Q14·Q22 → §15)**. 이펙트 v3: 기존 크기 ×2, 같은 생성 스크립트로 재출력.
 - 타일·구조물·세트는 32px(v2) 유지.
 
 ## 12. §9 쿼터뷰 타일셋 키 정리 (52라운드 Q9 · 시스템 질문 정리)
@@ -171,7 +171,7 @@
   - `phase_drink`(페이즈 전환 들이켜기, 선택 — 없으면 `drink` 재사용)
 - 보스방 소품(연회장 `stage1_hall_props` v3 시트 확장 또는 별도 시트): 기둥(solid, 2×2 발자국 권장), 촛대 상태 `lit`/`fallen_unlit`/`relit`(쓰러지면 통과), 굴러가는 술통(회전 프레임), 횃불 투사체, 잔 파편·술 튀김 fx(`fx/v3`, `paletteSwap: "none"`).
 - (54라운드 Q18·Q21) 보스 불타는 오버레이 `fx/v3/boss1_onfire`(루프, 보스 발 기준 피벗, `paletteSwap: "none"`, 광원 포함 권장), 굴러가는 술통 1.25배(지름 약 68도트, `circumferencePx` 갱신).
-- (54라운드 Q23~Q27) `boss1_rolling_barrel` 의 `circumferencePx`·`diameterPx`·`lengthPx` 는 **논리 px** 단위. `boss1_onfire` 는 보스와 같은 프레임·피벗(192×240, (96,220)), 행 = 보스 방향, `phaseFrames {ignite, loop, out}`·`loopRange`·`light`·`lightByPhase`(도트 단위 반경). 누운 동작(fall·death)용 불길 행/시트 추가 예정(키는 아트가 제안, 시스템은 JSON 을 따름).
+- (54라운드 Q23~Q27) `boss1_rolling_barrel` 의 `circumferencePx`·`diameterPx`·`lengthPx` 는 **논리 px** 단위. `boss1_onfire` 는 보스와 같은 프레임·피벗(192×240, (96,220)), 행 = 보스 방향, `phaseFrames {ignite, loop, out}`·`loopRange`·`light`·`lightByPhase`(도트 단위 반경). ~~누운 동작(fall·death)용 불길 행/시트 추가 예정(키는 아트가 제안, 시스템은 JSON 을 따름).~~ → **54라운드 Q28: `fx/v3/boss1_onfire_down` 으로 해결(아래 항목).**
 - (54라운드 Q28) `fx/v3/boss1_onfire_down`: 1행(any) 16열, `useFor`/`standFor` 로 보스 동작 프레임별 누운/서 있는 불길 선택, `frameOffsets` [dx,dy] 도트(빛도 함께 이동), 두 시트 `phaseFrames`·타이밍 동일 — 전환 시 열 번호 이어 씀. 죽음은 마지막 프레임에서 out.
 
 ## 16. 55라운드 무기 이펙트 전면 디벨롭 (타격감·움직임·갈래)
@@ -355,7 +355,7 @@
   - `startsFrom` = `katana_carry_idle`(F 로 넣은 상태), `endsWith` = `katana_carry_idle`(칼집에 넣은 채, Q55), `nextMove` = `katana_rise`(칼집 상태 1타 = 뽑기 후 베기 — 넣기 첫 타 치명).
   - **`koiguchiAnchors`** = 프레임별 칼집 입구(몸 시트 도트, 15프레임 모두 값). 무기 시트 좌표 = + `playerFrameOffset (48,48)`.
   - fx `katana_iai`: 11프레임 `[30, 30, 40, 80, 80, 70, 60, 60, 70, 80, 90]`, **`anchor: "release_pivot"`**(뗀 순간의 주인공 발에 고정, 따라가지 않음), `spawn: "release"`·`spawnAtReleaseMs 0`(JSON `spawnAtMs 670` 은 루프 1회 기준), `impactFrame 1`, `glowFrames [1,2]`, `burstFrame 7`(`burstAtLineMs 390` = 몸 `clickFrame`), `depth: "below_player"`. JSON `burstNote` 의 'glowFrames 에 7 추가 가능'은 쓰지 않음(Q55).
-  - fx `katana_iai_ready`: 48×56, 피벗 (21,8), 5프레임 `[30, 40, 50, 60, 70]`, 1행 `any`, `anchor: "koiguchi"`, `depth: "above"`, 백열 없음. JSON: 유지 `readyAfterHoldMs` 500(임시)에 1회(`spawn: "hold_ready"`). **Q53(언제 떼도 같은 일격)에 따라 JSON `readyNote` 의 '완성 일격(치명 등)'은 쓰지 않는다** — 반짝임을 연출로만 남길지는 미정.
+  - fx `katana_iai_ready`: 48×56, 피벗 (21,8), 5프레임 `[30, 40, 50, 60, 70]`, 1행 `any`, `anchor: "koiguchi"`, `depth: "above"`, 백열 없음. JSON: 유지 `readyAfterHoldMs` 500(임시)에 1회(`spawn: "hold_ready"`). **Q53(언제 떼도 같은 일격)에 따라 JSON `readyNote` 의 '완성 일격(치명 등)'은 쓰지 않는다** — ~~반짝임을 연출로만 남길지는 미정.~~ → **연출만 남김, 위력 변화 없음(56라운드 Q60).**
 
 ### 18.8 대검 새 기본기 (Q22·Q40·Q54·Q55)
 - 몸 96×144·피벗 (48,138), 8행 `directionRows`·`drawn8`(§18.3). **무기 틀 280×296·피벗 (139,206)·`playerFrameOffset (91,68)`** — 새 4동작 합집합 틀(결정 Q55: 별도 틀). §18.3 연격 틀(240×280·(117,207)·(69,69))과 다르므로 JSON `frameWidth/frameHeight`·`pivot`·`playerFrameOffset` 을 읽는다. 무게 필드(`frameRoles`·`holdFrames`·`dragFrames`·`dragStepPx`·`stepPx`)는 §18.3 규칙.
