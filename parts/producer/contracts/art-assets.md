@@ -188,7 +188,7 @@
 - **칼 K-A 발도 초승달**
   - 1타 대각 올려베기: 비대칭 호 110°, +70°→−40°, ×1.0, 빠름, 내딛기 4~6px.
   - 2타 대각 내려베기: 비대칭 호 110°, −70°→+40°(1타 역방향, X자 교차), ×1.0, 빠름, 내딛기 4~6px.
-  - 3타 수평 발도(마무리): 초승달 150°, +75°→−75°, ×1.25, 납도 자세 선딜(중간 템포), 내딛기 14~16px. **150ms 뒤 같은 호에 잔상 베기 2차 판정(피해 50%)** — 전용 잔상 fx.
+  - 3타 수평 발도(마무리): 초승달 150°, ~~+75°→−75°~~ **−75°→+75°(왼 허리 칼집에서 뽑는 방향, Q26)**, ×1.25, 납도 자세 선딜(중간 템포), 내딛기 14~16px. **150ms 뒤 같은 호에 잔상 베기 2차 판정(피해 50%)** — 전용 잔상 fx.
 - **대검 G-C 관성 순환**
   - 연격: H1 수평 시계 방향 150°(×1.0, 내딛기 4~6px) → V 정면 내려찍기(좁은 쐐기 40° ×1.3 + 끝점 충격원 반경 0.35R, 내딛기 ~12px, 무거운 히트스톱·흔들림) → H2 수평 반시계 150° → V → H1 … 입력이 이어지는 한 끊김 없이 교대.
   - 관성: 이어지는 타마다 공속 +5%, 최대 +20%, 1초 무입력·피격 시 초기화. 최대일 때 V 충격원 확대.
@@ -196,3 +196,4 @@
 - **판정 모양 종류(시스템 데이터)**: `arc`(내반경 있는 호: 시작각·끝각·내반경), `wedge`(좁은 쐐기 + 선택 `impactCircle`), `rect`(찌르기), `ring`(충격파). 타마다 지정.
 - **그림(아트)**: 몸 v3 `player_<weapon>_<동작>`·무기 v3 `<weapon>_<동작>`·fx v3 `<weapon>_<동작>` 를 새 동작 단위로. 이펙트는 원 전체가 아니라 판정 호를 따라 2~3프레임에 그려 나가는 부분 초승달(내려찍기는 세로로 선 가는 호 + 바닥 균열·먼지 링). JSON 에 판정 프레임(`impactFrame`/`glowFrames`/`holdFrame`)·`bladeTipAnchors`(칼 포함 모든 근접)·`hitShape` 참고값. 동작 이름은 아트가 제안, 시스템은 JSON 을 따름(보고서 표로 공유).
 - 갈래(1단·2단) 시트는 기본 연격 데모 확인 후 새 모양에 맞춰 다시 그린다(Q25).
+- (55라운드 Q26~Q28) 새 연격 시트 이름: 몸 `player/v3/player_<동작>`·무기 `weapons/v3/<동작>`·fx `fx/v3/<동작>` — 동작 = `katana_rise`·`katana_fall`·`katana_crescent`(+fx `katana_crescent_echo`), `greatsword_sweep_cw`·`greatsword_cleave`(+fx `greatsword_cleave_impact`)·`greatsword_sweep_ccw`·`greatsword_charge`(fx `greatsword_charge_flash_lv1~3`)·`greatsword_charge_slam`(fx `greatsword_charge_slam_lv1~3`·`greatsword_charge_ring`). 대검 새 무기 틀 240×264·피벗 (117,200)·offset (69,62). 왼쪽 방향은 그림·판정 모두 180° 회전(`dirTransform: rotate`, 거울 아님). 대검 차지 3단 번쩍임만 백열 허용(Q27). 타이밍 기준 = 아트 JSON(`timingMs`·`spawnAtMs`·`impactFrame`).
