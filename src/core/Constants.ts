@@ -1039,3 +1039,4 @@ export const FEEDBACK = {
 } as const;
 
 export { BOSS_FX } from './BossConstants';
+export { MOVE_FX } from './MoveConstants';

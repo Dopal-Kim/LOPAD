@@ -42,6 +42,8 @@ export const Events = {
   WEAPON_GAUGE: 'weapon:gauge',
   /** 56라운드 무기 전용 동작 국면 (`PlayerSkillPayload`): 일섬 돌진·분신·터짐 · 대검 끌림 · 낙인 폭발 — 음향 훅 */
   PLAYER_SKILL: 'player:skill',
+  /** 56라운드 2단계 활 화살비 (`ArrowRainPayload`): 좌클릭 순간 — 예고 원·3발 발사·낙하점 판정은 씬(ArrowRain) */
+  PLAYER_ARROW_RAIN: 'player:arrow-rain',
   /** 49라운드 무기 휴대: 칼집·등에서 뽑음 / 넣음(납도) — 음향 훅 후보 (`WeaponCarryPayload`) */
   PLAYER_WEAPON_DRAWN: 'player:weapon-drawn',
   PLAYER_WEAPON_SHEATHED: 'player:weapon-sheathed',
@@ -187,6 +189,35 @@ export type PlayerAttackPayload = {
   bowPower?: 'weak' | 'perfect' | 'full' | 'strained';
   /** 56라운드: 화살 관통 (가득 이상). 없으면 조준 사격 = 무한 관통(기존) */
   pierce?: boolean;
+  /**
+   * 56라운드 2단계 새 기본기 (공격 수단 표 id — counter·iai_draw·tackle·brace_upswing·leap_slam·guard_rush·backstab·flurry).
+   * 휘두름 소리는 PLAYER_SKILL 이 대신한다
+   */
+  move?: string;
+  /** 단검 등 뒤 찌르기 (Q55): 공용 적중·치명 fx 를 띄우지 않는다 — 전용 섬광(휘두름 fx)만 */
+  noImpactFx?: boolean;
+  /**
+   * 태클·막다가 떼면 돌진 (Q55): 판정이 몸과 함께 이동(공격 시작부터 fromMs~toMs, 적마다 1회) · 맞은 적을 밀고 감(carryPx) ·
+   * 첫 접촉 fx(몸을 따라감) · 돌진 출발 고정 바닥 fx(땅 홈, groundAtMs 에)
+   */
+  rush?: {
+    /** 돌진 구간 (공격 시작부터) · 거리 — 밀고 가는 거리 = 남은 돌진 + carryExtraPx */
+    dashFromMs: number;
+    dashToMs: number;
+    dashPx: number;
+    carryExtraPx: number;
+    contactFx?: string;
+    groundFx?: string;
+  };
+  /** 도약 찍기 (Q55): 차지 단계 · 착지 발밑 링(반지름·피해 배율) · 나선 fx(도약 출발 고정, 벽에 막히면 null) */
+  leap?: {
+    stage: number;
+    ringRadiusPx: number;
+    ringDamageMult: number;
+    spiralFx: string | null;
+    startX: number;
+    startY: number;
+  };
 };
 /** 56라운드 Q7 퍼펙트 가드 */
 export type PerfectGuardPayload = { x: number; y: number; attack: number; dirX?: number; dirY?: number };
@@ -208,8 +239,64 @@ export type WeaponGaugePayload = {
 /** 56라운드 무기 전용 동작 국면 (음향 매니페스트 PLAYER_SKILL move·phase) */
 export type PlayerSkillPayload = {
   weapon: string;
-  move: 'issen' | 'drag' | 'brand' | 'overheat' | 'plunge';
-  phase: 'dash' | 'clone' | 'burst' | 'recover' | 'crack';
+  move:
+    | 'issen'
+    | 'drag'
+    | 'brand'
+    | 'overheat'
+    | 'plunge'
+    // 56라운드 2단계 새 기본기 (음향 매니페스트 trigger.when 의 move 값)
+    | 'counter'
+    | 'iai'
+    | 'tackle'
+    | 'brace_upswing'
+    | 'leap'
+    | 'guard_rush'
+    | 'backstab'
+    | 'flurry'
+    | 'arrow_rain';
+  phase:
+    | 'dash'
+    | 'clone'
+    | 'burst'
+    | 'recover'
+    | 'crack'
+    | 'start'
+    | 'hold'
+    | 'release'
+    | 'cancel'
+    | 'takeoff'
+    | 'land'
+    | 'launch'
+    | 'impact'
+    | 'stab'
+    | 'ready'
+    | 'end';
+  /** 울분 소모 강화판 (버티기 올려베기) */
+  rage?: boolean;
+  /** 도약 찍기 착지: 유지한 차지 단계 (1 이상이면 차지 내려찍기 소리 겹침) */
+  stage?: number;
+  /** 대치 일격 준비 반짝임 자리 (칼집 입구 — 월드) */
+  at?: { x: number; y: number };
+};
+/** 56라운드 2단계 활 화살비: 원 중심·반지름·시트 행 · 발사 시각(좌클릭부터) · 낙하 · 피해 배율 */
+export type ArrowRainPayload = {
+  x: number;
+  y: number;
+  radiusPx: number;
+  markRow: string;
+  facing: 'down' | 'up' | 'left' | 'right';
+  releasesAtMs: number[];
+  /** 몸 시트 releaseFrames (무기 arrowSpawnAnchors 열 — 없으면 []) */
+  releaseFrames: number[];
+  drops: number;
+  dropIntervalMs: number;
+  firstDropAtMs: number;
+  dropRadiusPx: number;
+  damageMult: number;
+  riseFx: string;
+  markFx: string;
+  fallFx: string;
 };
 /** 55라운드 Q22 대검 홀드 차지 국면 */
 export type PlayerChargePayload = {
@@ -282,7 +369,8 @@ export type BossScreenPayload = { effect: 'tilt' | 'dark'; on: boolean };
 export type BossWallHitPayload = { id: string; x: number; y: number };
 export type MenuEventPayload = { id: string; reopen?: boolean; key?: string; selected?: boolean };
 export type RunEndedPayload = { cleared: boolean };
-export type GuardReleasedPayload = { x: number; y: number };
+/** 56라운드 2단계: quiet = 밀쳐내기 없이 끝 (퍼펙트 가드 직후 돌진 · 가드 중 반격·올려베기 — 밀쳐내기·그 소리 없음) */
+export type GuardReleasedPayload = { x: number; y: number; quiet?: boolean };
 export type ShadowStepPayload = { x: number; y: number; facingX: number; facingY: number };
 /** 35라운드: `source` = 가해자 → 플레이어 방향 단위벡터(넉백·연출용, 계약 UI 페이로드에는 없음) */
 export type PlayerDamagedPayload = {
@@ -290,6 +378,8 @@ export type PlayerDamagedPayload = {
   maxHp: number;
   amount: number;
   source?: { dirX: number; dirY: number };
+  /** 56라운드 2단계: 슈퍼아머(버티기 올려베기)로 받음 — 동작이 끊기지 않음, 흡수 fx */
+  armored?: boolean;
 };
 export type EnemyDiedPayload = { id: string; remaining: number };
 export type RoomEnteredPayload = { roomId: string; type: string };

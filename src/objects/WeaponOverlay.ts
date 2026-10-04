@@ -68,6 +68,8 @@ export class WeaponOverlay {
   /** 지금 보이는 무기 시트·방향·열 (앵커 조회) */
   private shown: { def: SheetDef; dir: Dir8; column: number; pivot: { x: number; y: number } } | null = null;
   private bodyAt: { dir: Dir8; column: number } | null = null;
+  /** 56라운드 2단계 도약 찍기 공중 높이 (월드 px, 위 +) — 몸과 같이 올려 그린다 */
+  private lift = 0;
 
   constructor(
     private readonly host: Phaser.GameObjects.Sprite,
@@ -83,6 +85,11 @@ export class WeaponOverlay {
       this.gaugeSprite?.destroy();
       this.sprite.destroy();
     });
+  }
+
+  /** 56라운드 2단계: 공중 높이 (몸 EntityVisual.setLift 와 같은 값) */
+  setLift(px: number): void {
+    this.lift = px;
   }
 
   /** 56라운드 Q14·Q15: 자원 오버레이 단계 (null = 없음) · 오버레이 시트가 없을 때 칼날 곱 틴트 */
@@ -276,7 +283,7 @@ export class WeaponOverlay {
       this.sprite.setPosition(this.host.x + place.x, this.host.y + place.y);
     } else {
       this.sprite.setScale(k).setAngle(0);
-      this.sprite.setPosition(this.host.x, this.host.y);
+      this.sprite.setPosition(this.host.x, this.host.y - this.lift);
     }
     this.sprite
       .setAlpha(this.host.alpha)

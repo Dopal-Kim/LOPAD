@@ -22,6 +22,7 @@ import { MeleeDriver } from './player/MeleeDriver';
 import { PlayerDefense } from './player/PlayerDefense';
 import { PlayerGauges } from './player/PlayerGauges';
 import { SecondaryDriver } from './player/SecondaryDriver';
+import { BasicMoves } from './player/BasicMoves';
 
 type Body = Phaser.Physics.Arcade.Body;
 
@@ -42,6 +43,22 @@ interface Lunge {
 }
 
 export type HitResult = 'hit' | 'dead' | 'parried' | 'ignored';
+
+/** 내딛기 구간들이 [t0, t0 + dt] 와 겹치는 이동량을 dt 동안의 속도로 (겹치는 구간이 없으면 null) */
+function lungeVelocity(list: readonly Lunge[], t0: number, dt: number): { x: number; y: number } | null {
+  let dx = 0;
+  let dy = 0;
+  let any = false;
+  const t1 = t0 + dt;
+  for (const l of list) {
+    const o = Math.min(t1, l.until) - Math.max(t0, l.from);
+    if (o <= 0) continue;
+    any = true;
+    dx += l.vx * o;
+    dy += l.vy * o;
+  }
+  return any ? { x: dx / dt, y: dy / dt } : null;
+}
 
 /**
  * 주인공. 시트(`player_*`)가 있으면 애니메이션 스프라이트, 없으면 단색 사각형 플레이스홀더.
@@ -96,6 +113,17 @@ export class Player extends Phaser.GameObjects.Sprite {
   readonly secondaryDriver: SecondaryDriver;
   readonly defense: PlayerDefense;
   readonly gauges = new PlayerGauges();
+  /** 56라운드 2단계: 새 기본기 (간파 반격·대치 일격·태클·버티기·도약 찍기·돌진·등 뒤 찌르기·난타 — 화살비는 SecondaryDriver) */
+  readonly moves: BasicMoves;
+  /** 전용 동작(skill) 중 이동 배율 (0 = 이동 잠금 — 고속 난타만 느리게 걷는다). setAction 이 0 으로 */
+  skillMoveMult = 0;
+  /** 이번 프레임 우클릭을 쥐고 있는가 (56라운드 Q58: 패링 뒤 계속 쥐고 있으면 가드로 복귀) */
+  secondaryHeldNow = false;
+  /**
+   * 56라운드 Q57 숨 집중 보정: 물리 배속을 늦춘 동안(world.timeScale > 1) 주인공 속도만 이만큼 곱해 제 속도로 움직인다.
+   * WeaponFeedback 이 집중 시작·끝에 넣는다 (1 = 보정 없음)
+   */
+  timeComp = 1;
   /** 49라운드: 앞으로 내딛기·도약. 56라운드: 구간 여러 개를 이어 붙인다 (대검 내딛기 → 휘두른 뒤 끌림) */
   private lunges: Lunge[] = [];
   /** 그로기 틴트를 칠했는가 (풀리면 원래 색) */
@@ -117,6 +145,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.melee = new MeleeDriver(this);
     this.secondaryDriver = new SecondaryDriver(this);
     this.defense = new PlayerDefense(this);
+    this.moves = new BasicMoves(this);
     this.overlay = new WeaponOverlay(
       this,
       () => this.visual.current,
@@ -129,6 +158,11 @@ export class Player extends Phaser.GameObjects.Sprite {
   protected preUpdate(time: number, delta: number): void {
     super.preUpdate(time, delta);
     this.visual.sync();
+    // 56라운드 2단계 도약 찍기: 몸·무기·상흔을 공중 높이만큼 올려 그린다 (바디·그림자·깊이는 바닥)
+    const lift = this.moves.liftPx();
+    this.visual.setLift(lift);
+    this.overlay.setLift(lift);
+    this.scar.lift = lift;
     this.overlay.update();
     // 56라운드 Q14·Q15: 검기·울분 무기 오버레이 (시트가 없으면 칼날 곱 틴트)
     this.overlay.setGauge(this.gauges.overlay, this.gauges.bladeTint);
@@ -273,6 +307,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     const P = PLAYER_DATA.parry;
     const mods = gameState.weapon.mods;
     this.ownClock += Math.max(0, delta);
+    this.secondaryHeldNow = input.secondaryHeld;
     // 49라운드 무기 자원: 회복·장전·냉각 진행 (상태 변화는 WEAPON_RESOURCE 로 알린다) · 56라운드 고유 자원(숨 집중 끝)
     const res = this.resource;
     if (res) this.gear.tick(res, time, delta);
@@ -317,7 +352,9 @@ export class Player extends Phaser.GameObjects.Sprite {
     // 49라운드: 내딛기·도약 (대검 반 걸음 · 내리찍기 도약 · 대쉬 공격 돌진 · 56라운드 끌림·일섬 돌진)
     const own = this.ownClock;
     this.lunges = this.lunges.filter((l) => own < l.until);
-    const lunge = this.lunges.find((l) => own >= l.from) ?? null;
+    // 56라운드 2단계: 다음 프레임(이번 프레임 길이로 예측) 동안 겹치는 구간 이동량의 평균 속도 — 프레임이 길어 짧은 구간을
+    // 건너뛰어도(easeOut 분할·느린 기기) 이동 거리가 맞는다. 60fps 에서는 구간 속도 그대로
+    const lunge = lungeVelocity(this.lunges, own, Math.max(1, delta || 1000 / 60));
     const stopped = this.isStopped(time);
     if (this.action === 'dash') {
       this.body.setVelocity(this.dashVel.x, this.dashVel.y);
@@ -328,8 +365,13 @@ export class Player extends Phaser.GameObjects.Sprite {
       if (f <= 0) this.shoveState = null;
       this.body.setVelocity(sh.vx * f, sh.vy * f);
     } else if (lunge) {
-      this.body.setVelocity(lunge.vx, lunge.vy);
-    } else if (this.action === 'slam' || this.action === 'dashslash' || this.action === 'skill' || stopped) {
+      this.body.setVelocity(lunge.x, lunge.y);
+    } else if (
+      this.action === 'slam' ||
+      this.action === 'dashslash' ||
+      (this.action === 'skill' && this.skillMoveMult <= 0) ||
+      stopped
+    ) {
       // 대검: 내리찍기 착지·대쉬 공격 뒤 멈춤 · 3타 뒤 정지 · 56라운드 전용 동작(일섬 자세·꽂아내리기)
       this.body.setVelocity(0, 0);
     } else {
@@ -337,8 +379,9 @@ export class Player extends Phaser.GameObjects.Sprite {
       const S = this.secondary;
       if (this.action === 'guard' && S.kind === 'guard') slow = Math.min(slow, S.moveMult);
       if (this.action === 'aim' && S.kind === 'aimedshot') slow = Math.min(slow, S.moveMult);
-      // 55라운드 Q22: 대검 차지 중 감속
+      // 55라운드 Q22: 대검 차지 중 감속 · 56라운드 2단계 고속 난타 중 느리게
       slow = Math.min(slow, this.melee.moveMult);
+      if (this.action === 'skill') slow = Math.min(slow, this.skillMoveMult);
       // 49라운드: 기력이 바닥나면 감속 (56라운드: 그로기 · 단검 과열 식는 동안)
       const tired = res?.moveMult ?? 1;
       this.moveSlowMult = slow * tired * Math.min(1, this.envSpeedMult);
@@ -346,10 +389,14 @@ export class Player extends Phaser.GameObjects.Sprite {
       if (this.envSlip > 0) {
         // 미끄러움: 60fps 한 프레임에 (1 - slip) 만큼만 목표 속도로 붙는다 (프레임 시간 보정)
         const k = 1 - Math.pow(this.envSlip, delta / (1000 / 60));
-        const v = this.body.velocity;
-        this.body.setVelocity(v.x + (dir.x * speed - v.x) * k, v.y + (dir.y * speed - v.y) * k);
+        const c = this.timeComp > 0 ? this.timeComp : 1;
+        const vx = this.body.velocity.x / c;
+        const vy = this.body.velocity.y / c;
+        this.body.setVelocity(vx + (dir.x * speed - vx) * k, vy + (dir.y * speed - vy) * k);
       } else this.body.setVelocity(dir.x * speed, dir.y * speed);
     }
+    // 56라운드 Q57: 숨 집중으로 물리를 늦춘 동안에도 주인공(이동·대쉬·내딛기·넉백)은 제 속도
+    if (this.timeComp !== 1 && this.timeComp > 0) this.body.velocity.scale(this.timeComp);
     this.moving = this.poses.locomotion(input, dir, time);
     this.poses.holdSecondary(input, time);
     this.melee.holdPose(input, time);
@@ -358,6 +405,9 @@ export class Player extends Phaser.GameObjects.Sprite {
     const canAct = this.action === 'normal' && !(stopped && this.melee.stopBlocksAct);
     // 56라운드 Q7: 그로기 중엔 공격·대쉬·넣기 불가 (보조 동작 = 가드·패링만)
     const canStrike = canAct && !this.groggy;
+
+    // 56라운드 2단계 새 기본기 (간파 반격·대치 일격·버티기·도약 찍기·등 뒤 찌르기·고속 난타) — 처리했으면 이번 프레임 끝
+    if (this.moves.update(input, time, canStrike, dir.lengthSq() > 0)) return;
 
     // 51라운드 Q4: F = 넣기/뽑기 (칼·대검). 동작 동안 다른 행동은 잠그고 느리게 걷는다
     if (input.carryPressed && canStrike) {
@@ -541,6 +591,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       resource: this.resource?.debug(time) ?? null,
       lunge: this.lunges[0] ? { ...this.lunges[0], clock: this.ownClock } : null,
       lunges: this.lunges.length,
+      moves: this.moves.debug(time),
       groggy: this.groggy,
       gauge: this.gauges.debug(time),
       secondary: { lastRelease: this.secondaryDriver.lastRelease, defense: this.defense.lastOutcome },
@@ -571,6 +622,7 @@ export class Player extends Phaser.GameObjects.Sprite {
   /** 워프(45라운드): 진행 중 동작·넉백·달리기를 끊고 멈춘다 */
   haltForWarp(): void {
     if (this.action === 'aim') this.secondaryDriver.cancelDraw(this.scene.time.now);
+    this.moves.reset();
     if (this.action !== 'normal') this.setAction('normal', 0);
     this.lunges = [];
     this.defense.clearWindows();
@@ -590,6 +642,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   /** 그림자 걸음 등으로 순간이동 (Game 이 목적지를 정한다) */
   teleportTo(x: number, y: number): void {
     this.body.reset(x, y);
+    // 56라운드 Q59: 그림자 걸음 착지 — 이 뒤 잠시 단검 등 뒤 판정 항상 인정
+    this.moves.shadowLandedAt = this.scene.time.now;
     this.flash(COLORS.PLAYER_SHADOW);
   }
 
@@ -615,10 +669,16 @@ export class Player extends Phaser.GameObjects.Sprite {
     return this.defense.takeHit(attack, time, source);
   }
 
+  /** 내딛기·도약 구간을 모두 비운다 (새 기본기 시작) */
+  clearLunges(): void {
+    this.lunges = [];
+  }
+
   /** 동작 상태 전환 (heavyMoves 도 쓴다) */
   setAction(a: PlayerAction, until: number): void {
     this.action = a;
     this.actionUntil = until;
+    this.skillMoveMult = 0;
     this.applyStateColor();
   }
 

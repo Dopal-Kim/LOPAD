@@ -135,13 +135,18 @@ export class WeaponFeedback {
     });
   }
 
-  /** 숨 집중: 물리 배속을 낮춘다 (Arcade timeScale > 1 = 느림). 끝나면 1 */
+  /**
+   * 숨 집중: 물리 배속을 낮춘다 (Arcade timeScale > 1 = 느림) — 적 이동·탄이 느려진다. 끝나면 1.
+   * 56라운드 Q57: 주인공은 제 속도 (Player.timeComp 로 속도를 되돌려 곱한다 — 조준·놓기는 원래 씬 시계라 그대로)
+   */
   private setFocus(on: boolean): void {
     const gd = gameState.weapon.def.gauge;
     const scale = on && gd?.kind === 'breath' ? gd.focusTimeScale : 1;
     this.focusScale = scale;
     const world = this.g.physics.world;
-    if (world) world.timeScale = scale > 0 ? 1 / scale : 1;
+    const ts = scale > 0 ? 1 / scale : 1;
+    if (world) world.timeScale = ts;
+    if (this.g.player) this.g.player.timeComp = ts;
     if (on) this.g.screenFx.flash(FEEDBACK.FOCUS_FLASH.COLOR, FEEDBACK.FOCUS_FLASH.MS, FEEDBACK.FOCUS_FLASH.ALPHA);
   }
 

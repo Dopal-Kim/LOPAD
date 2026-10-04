@@ -8,7 +8,7 @@
  * 56라운드: Q6 8행 이펙트 시트는 조준각 8분할 행(없으면 4방향 회전 규칙) · Q37 히트스톱 정지 = 붓획이 다 그어진 다음 칸
  * (띄우는 시각은 그대로 판정 프레임 = 몸 hitAt) · Q38 칼끝 리본은 돌진류(대쉬 공격)에만 · Q5 땅 균열(`playCrack`).
  */
-import { DEPTH, ENEMY_FX, fxLitDepth } from '../../core/Constants';
+import { DEPTH, ENEMY_FX, FEEDBACK, fxLitDepth } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { HitShapeSpec } from '../../data/types';
@@ -36,6 +36,9 @@ import { crackShake } from './swingShake';
 import type { Game } from '../Game';
 import { planBladeTip } from './bladeTip';
 import { HIT_ORIGIN_UP_PX, isFinisher, isMeleeStrike, pathFx } from './shared';
+
+/** 56라운드 §18.11: 생성 순간의 주인공 발에 고정되는 앵커 (따라가지 않음) — 대치 일격 fx 등 */
+const WORLD_FIXED_ANCHORS: readonly string[] = ['release_pivot', 'dash_start_pivot', 'leap_start_pivot'];
 
 export class SwingFx {
   /** 디버그: 마지막 휘두름 이펙트 (시트·단계·배율·띄운 시각·리본 방식) */
@@ -177,13 +180,20 @@ export class SwingFx {
     const lead = (frameStarts(def)[fxImpactFrame(def)] ?? 0) / timeScale;
     const delay = swingFxDelayMs(hitAtMs, lead);
     const player = g.player;
+    // 56라운드 2단계 §18.11: world 고정 앵커(대치 일격 release_pivot)는 그 순간 발에 두고 따라가지 않는다 · below_player 는 바닥 위
+    const fixed = typeof def.anchor === 'string' && WORLD_FIXED_ANCHORS.includes(def.anchor);
+    const below = (def.depth as unknown) === 'below_player';
     const play = () => {
       if (!this.live || !g.fx.has(id)) return;
-      g.fx.play(id, player.x, player.y, {
+      const lift = (combo ? HIT_ORIGIN_UP_PX : 0) * (scaleMult - 1);
+      g.fx.play(id, player.x, player.y + (fixed ? lift : 0), {
         dir,
-        follow: player,
-        followOffset: { x: 0, y: (combo ? HIT_ORIGIN_UP_PX : 0) * (scaleMult - 1) },
-        depthOffset: DEPTH.OVERLAY_STEP * 2,
+        ...(fixed ? {} : { follow: player, followOffset: { x: 0, y: lift }, depthOffset: DEPTH.OVERLAY_STEP * 2 }),
+        ...(below
+          ? { depth: FEEDBACK.ISSEN_LINE_DEPTH, belowLighting: true }
+          : fixed
+            ? { depth: player.depth + DEPTH.OVERLAY_STEP * 2 }
+            : {}),
         scaleMult,
         variant,
         hitstopFrame: holdFrame,

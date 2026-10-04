@@ -347,6 +347,11 @@ export function exposeGameDebug(g: Game): void {
         brands: g.strikes.brands.summary(),
         issen: g.strikes.issen.debugLast,
         plunge: g.strikes.plunge.debugLast,
+        // 56라운드 2단계 새 기본기
+        moves: pl.moves.debug(now),
+        moveStrikes: g.strikes.moves.debugLast,
+        arrowRain: g.strikes.rain.debugLast,
+        lift: pl.visual.liftPx,
         callouts: {
           count: g.feedback.callouts.count,
           last: g.feedback.callouts.last,
@@ -357,6 +362,10 @@ export function exposeGameDebug(g: Game): void {
         bladeFlashes: pl.overlay.flashCount,
         chargeLoopRate: audio.loopRateOf(CHARGE_SFX.loop),
       };
+    },
+    freeze: (on) => {
+      if (on) g.scene.pause();
+      else g.scene.resume();
     },
     setGauge: (value) => {
       const gg = g.player.gauges.gauge;

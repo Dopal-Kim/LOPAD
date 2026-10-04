@@ -1,10 +1,11 @@
 /**
  * 56라운드 Q13~Q20 무기 고유 자원 (칼 검기 · 대검 울분 · 활 숨) — 무기가 바뀌면 새로 시작한다. 단검 낙인은 적마다라 씬(BrandMarks).
- * 변화는 WEAPON_GAUGE 로 알린다(음향·월드 연출·디버그). HUD 는 UI 계약 밖.
+ * 변화는 WEAPON_GAUGE 로 알린다(음향·월드 연출·디버그). HUD 는 계약 §13 `UiSnapshot.gauge`(`toUi`, 단검 낙인은 BrandMarks.toUi).
  */
 import { FEEDBACK } from '../../core/Constants';
 import { EventBus, Events, type WeaponGaugePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
+import type { UiWeaponGauge } from '../../contract/ui';
 import {
   BreathGauge,
   GrudgeGauge,
@@ -123,7 +124,7 @@ export class PlayerGauges {
     const k = this.kenki;
     if (k) return k.stage > 0 ? { suffix: 'ki', level: k.stage } : null;
     const g = this.grudge;
-    if (g && g.ratio > 0) return { suffix: 'grudge', level: Math.min(3, Math.max(1, Math.ceil(g.ratio * 3 - 1e-9))) };
+    if (g && g.ratio > 0) return { suffix: 'grudge', level: PlayerGauges.grudgeStage(g.ratio) };
     return null;
   }
 
@@ -131,6 +132,23 @@ export class PlayerGauges {
   get bladeTint(): number | null {
     const st = this.kenki?.stage ?? 0;
     return st > 0 ? (FEEDBACK.KENKI_TINT[Math.min(st, FEEDBACK.KENKI_TINT.length) - 1] ?? null) : null;
+  }
+
+  /** 울분 단계 0~3 (계약 §13: 구간 1~33 / 34~66 / 67~100%) */
+  static grudgeStage(ratio: number): number {
+    return ratio > 0 ? Math.min(3, Math.max(1, Math.ceil(ratio * 3 - 1e-9))) : 0;
+  }
+
+  /** 계약 §13 `UiSnapshot.gauge` — 칼 검기 · 대검 울분 · 활 숨 (단검 낙인은 BrandMarks.toUi) */
+  toUi(time: number): UiWeaponGauge | null {
+    const g = this.gauge;
+    const label = gameState.weapon.def.gauge?.label ?? '';
+    if (g instanceof KenkiGauge) return { kind: 'kenki', label, value: round1(g.value), max: g.max, stage: g.stage };
+    if (g instanceof GrudgeGauge)
+      return { kind: 'grudge', label, value: round1(g.value), max: g.max, stage: PlayerGauges.grudgeStage(g.ratio) };
+    if (g instanceof BreathGauge)
+      return { kind: 'breath', label, value: round1(g.value), max: g.max, focusing: g.focusing(time) };
+    return null;
   }
 
   debug(time: number): Record<string, unknown> | null {
@@ -147,4 +165,8 @@ export class PlayerGauges {
     this.lastEvent = payload;
     EventBus.emit(Events.WEAPON_GAUGE, payload);
   }
+}
+
+function round1(v: number): number {
+  return Math.round(v * 10) / 10;
 }

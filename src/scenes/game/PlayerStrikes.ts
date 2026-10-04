@@ -26,6 +26,8 @@ import { SwingFx } from './SwingFx';
 import { BrandMarks } from './BrandMarks';
 import { IssenStrikes } from './IssenStrikes';
 import { PlungeStrikes } from './PlungeStrikes';
+import { MoveStrikes } from './MoveStrikes';
+import { ArrowRain } from './ArrowRain';
 import { HIT_ORIGIN_UP_PX, evolutionFxId, isFinisher, isMeleeStrike, pathFx, rotatesLeft, shapeFacing } from './shared';
 
 /** 디버그로 남기는 최근 판정 수 */
@@ -48,6 +50,9 @@ export class PlayerStrikes {
   readonly issen: IssenStrikes;
   readonly plunge: PlungeStrikes;
   readonly brands: BrandMarks;
+  /** 56라운드 2단계 새 기본기 (돌진형·도약 찍기·흡수·준비 반짝임·난타 fx) · 활 화살비 */
+  readonly moves: MoveStrikes;
+  readonly rain: ArrowRain;
   private readonly swing: SwingFx;
   private readonly schedule: StrikeSchedule;
 
@@ -67,6 +72,8 @@ export class PlayerStrikes {
     this.issen = new IssenStrikes(g, strike);
     this.plunge = new PlungeStrikes(g, this.swing, strike);
     this.brands = new BrandMarks(g);
+    this.moves = new MoveStrikes(g, this.swing, strike);
+    this.rain = new ArrowRain(g);
   }
 
   private pathFx(...candidates: string[]): string | null {
@@ -97,6 +104,14 @@ export class PlayerStrikes {
       this.plunge.start(p);
       return;
     }
+    // 56라운드 2단계: 태클·막다가 떼면 돌진 — 판정이 몸과 함께 이동 (휘두름 fx 는 그림 표대로)
+    if (p.rush) {
+      this.swing.play(p);
+      this.moves.startRush(p);
+      return;
+    }
+    // 도약 찍기: 쐐기·끝 충격원·균열은 아래 일반 판정, 나선·착지 링은 MoveStrikes
+    if (p.leap) this.moves.startLeap(p);
     // 48라운드 3연격: 판정은 휘두름 프레임(hitFrames[0]) 시작에, 지진 2단·충격파는 마지막 타에서만
     const combo = isMeleeStrike(p);
     const finisher = isFinisher(p);
@@ -292,7 +307,8 @@ export class PlayerStrikes {
     // 잔월: 궤적이 남아 지속 피해
     if (mods.trailDot) this.dots.leaveTrailDot(p, { cx, cy, w, h }, swingFx);
 
-    g.time.delayedCall(activeMs, () => {
+    // 판정 영역은 물리 한 단계는 살아 있어야 겹침이 잡힌다 — 프레임이 판정 시간보다 길면(느린 기기) 한 프레임 + 여유만큼 (56라운드 2단계)
+    g.time.delayedCall(Math.max(activeMs, g.game.loop.delta + 1), () => {
       g.physics.world.removeCollider(overlap);
       if (clear) g.physics.world.removeCollider(clear);
       zone.destroy();
@@ -335,7 +351,19 @@ export class PlayerStrikes {
     // Q28: 왼쪽 회전 연격(칼·대검 타별 모양)은 왼쪽이어도 스파크를 바로 세우지 않는다 — 되돌아 휘두름만 데이터로
     const rotateLeft = rotatesLeft(p);
     const from = { x: g.player.x, y: g.player.y - HIT_ORIGIN_UP_PX };
-    const style = { crit, dirX: p.dirX, dirY: p.dirY, critFx, knockMult, heavy, backswing, rotateLeft, from };
+    const style = {
+      crit,
+      dirX: p.dirX,
+      dirY: p.dirY,
+      critFx: p.noImpactFx ? null : critFx,
+      knockMult,
+      heavy,
+      backswing,
+      rotateLeft,
+      from,
+      // 56라운드 2단계 등 뒤 찌르기: 전용 섬광만 (공용 적중·치명 fx 없음)
+      ...(p.noImpactFx ? { noImpactFx: true } : {}),
+    };
     if (g.combat.hitMob(mob, dmg, style)) {
       g.progress.onKill(mob, stunnedByParry ? 'parry' : p.kind === 'aimed' ? 'attack' : p.kind);
       return;
@@ -360,5 +388,7 @@ export class PlayerStrikes {
     this.issen.update();
     this.plunge.update();
     this.brands.update(time);
+    this.moves.update();
+    this.rain.update();
   }
 }

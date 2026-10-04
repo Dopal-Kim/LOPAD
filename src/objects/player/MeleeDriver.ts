@@ -219,7 +219,8 @@ export class MeleeDriver {
     }
     const dashWindow = strong && p.inDashWindow(time);
     if (W.dashSlash && dashWindow && time >= combo.readyAt()) {
-      startDashSlash(p, input, time, W);
+      // 56라운드 2단계 Q41: 대검 대쉬 공격 = 어깨 태클 (공격 수단 표 live 일 때)
+      if (!p.moves.tryTackle(input, time)) startDashSlash(p, input, time, W);
       return;
     }
     // 49라운드 과열 단계 공속 × 55라운드 Q23 관성 공속

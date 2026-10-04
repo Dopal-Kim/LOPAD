@@ -75,7 +75,7 @@ function validateFollowUps(list: ComboFollowUpDef[] | undefined, path: string): 
   });
 }
 
-function validateHit(h: ComboHitDef, path: string, art: Record<string, unknown> | undefined): void {
+export function validateHit(h: ComboHitDef, path: string, art: Record<string, unknown> | undefined): void {
   for (const k of ['damageMult', 'sizeMult', 'durationMs', 'cancelFromMs', 'activeMs'] as const)
     num(h[k], `${path}.${k}`);
   if (h.cancelFromMs > h.durationMs) throw new Error(`[data] ${path}.cancelFromMs 는 durationMs 이하`);

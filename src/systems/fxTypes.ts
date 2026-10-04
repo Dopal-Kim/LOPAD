@@ -67,6 +67,8 @@ export interface FxPlayOptions {
   trail?: boolean;
   /** 위아래 뒤집기 (적중 스파크 flipY) */
   flipY?: boolean;
+  /** 56라운드 2단계: 좌우 뒤집기 (화살비 낙하 화살 `flipX: allowed`) */
+  flipX?: boolean;
 }
 
 export interface FxHandle {

@@ -25,42 +25,15 @@ import {
   type PlayerFollowUpPayload,
   type PlayerSecondaryPayload,
   type PlayerSkillPayload,
+  type GuardReleasedPayload,
   type TrialClearedPayload,
   type WeaponGaugePayload,
   type WeaponResourcePayload,
 } from '../core/EventBus';
 import { gameState } from '../core/GameState';
-
-export interface AudioTrigger<P = unknown> {
-  event: string;
-  /** 설명 (매핑 요약용) */
-  note: string;
-  /** 재생할 효과음 id (고정 또는 페이로드로 결정). 목록이면 로드된 첫 후보 (55라운드 — 키 이름 대체) */
-  sfx?: string | ((p: P) => string | readonly string[] | null);
-  /** 조건. 없으면 항상 */
-  when?: (p: P) => boolean;
-  /** 재생 지연 ms (애니 프레임에 맞출 때) */
-  delayMs?: (p: P) => number;
-  /** 루프 효과음 시작 (가드 유지) */
-  loop?: string;
-  /** 정지할 효과음·루프 id */
-  stop?: string[];
-  /** 54라운드: 페이로드로 정하는 루프·정지 (보스 루프) */
-  loopOf?: (p: P) => string;
-  stopOf?: (p: P) => string[];
-  /** 54라운드: 정지 페이드 ms (루프 끝 80~150ms 권장 — 음향 파트). 55라운드: 페이로드로 (피격 취소 60ms) */
-  stopFadeMs?: number | ((p: P) => number);
-  /** 55라운드: 루프 시작 페이드 인 ms (차지 루프 150ms — 음향 권장) */
-  loopFadeInMs?: number;
-  /** 54라운드: 재생 속도 (3연 취권 1·2·3타 1.0/1.06/1.12 — 음향 파트 권장) */
-  rate?: (p: P) => number;
-  /** 56라운드: 돌고 있는 루프의 재생 속도를 바꾼다 (차지 유지음 단계 1.0/1.03/1.06) */
-  loopRate?: (p: P) => { id: string; rate: number } | null;
-}
-
-function t<P>(def: AudioTrigger<P>): AudioTrigger {
-  return def as AudioTrigger;
-}
+import { t, type AudioTrigger } from './audioTrigger';
+import { MOVE_AUDIO_TRIGGERS } from './audioMoves';
+export type { AudioTrigger } from './audioTrigger';
 
 export const SFX = {
   swing: (weaponId: string) => `sfx/swing_${weaponId}`,
@@ -189,28 +162,6 @@ export const SFX56 = {
   kenkiStages: 3,
 } as const;
 
-/**
- * 56라운드 Q40~Q43 새 공격 수단(아트 시트 대기 — 공격 수단 표 `systems/moves` live: false)의 효과음. 수단이 구현되면 그 트리거로 옮긴다.
- * 지금은 매니페스트 점검(누락 자산)용 목록
- */
-export const MOVE_SFX_RESERVED: readonly string[] = [
-  'sfx/katana_counter',
-  'sfx/katana_iai_hold',
-  'sfx/katana_iai_release',
-  'sfx/gs_tackle',
-  'sfx/gs_brace_upswing',
-  'sfx/gs_leap',
-  'sfx/gs_leap_slam',
-  'sfx/gs_guard_rush',
-  'sfx/dagger_backstab',
-  'sfx/dagger_flurry1',
-  'sfx/dagger_flurry2',
-  'sfx/dagger_flurry3',
-  'sfx/dagger_flurry4',
-  'sfx/arrow_rain_launch',
-  'sfx/arrow_rain_impact',
-];
-
 /** 56라운드 효과음 전부 (검기 단 포함) — 매니페스트 점검 */
 export function sfx56Ids(): string[] {
   const out: string[] = [];
@@ -304,6 +255,8 @@ export function structureUseSfx(kind: string): string | null {
 }
 
 export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
+  // --- 56라운드 2단계 새 기본기 (audioMoves) ---
+  ...MOVE_AUDIO_TRIGGERS,
   // --- 주인공 공격·보조 동작 ---
   t<PlayerAttackPayload>({
     event: Events.PLAYER_ATTACKED,
@@ -312,7 +265,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
       const w = gameState.weapon.def;
       // 56라운드 Q9: 약한 화살은 bow_release_weak 가 대신 (PLAYER_SECONDARY release)
       if (w.kind === 'ranged') return p.kind === 'aimed' ? (p.bowPower === 'weak' ? null : SFX.bowAimed) : SFX.bowShot;
-      if (p.charge !== undefined) return null;
+      // 56라운드 2단계 새 기본기는 전용 소리(PLAYER_SKILL — audioMoves)가 대신
+      if (p.charge !== undefined || p.move) return null;
       return SFX.swing(gameState.weapon.id);
     },
     delayMs: (p) => (gameState.weapon.def.kind === 'ranged' ? p.releaseDelayMs : p.swingDelayMs),
@@ -355,11 +309,18 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => p.kind === 'guard' && p.phase === 'start',
     loop: SFX.guardHold,
   }),
-  t({
+  t<GuardReleasedPayload>({
     event: Events.PLAYER_GUARD_RELEASED,
-    note: '가드 해제 → 루프 정지 + guard_push',
+    note: '가드 해제 → 루프 정지 + guard_push (56라운드 2단계: 돌진·반격·올려베기로 끝나면 밀쳐내기 소리 없음)',
     stop: [SFX.guardHold],
+    when: (p) => !p?.quiet,
     sfx: SFX.guardPush,
+  }),
+  t<GuardReleasedPayload>({
+    event: Events.PLAYER_GUARD_RELEASED,
+    note: '56라운드 2단계: 조용한 가드 해제 → 루프 정지만',
+    when: (p) => Boolean(p?.quiet),
+    stop: [SFX.guardHold],
   }),
   // --- 55라운드 Q32 대검 홀드 차지 · 칼 잔상 베기 (CHARGE_SFX · FOLLOW_UP_SFX) ---
   t<PlayerChargePayload>({

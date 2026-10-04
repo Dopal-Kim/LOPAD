@@ -1,7 +1,8 @@
 /**
- * 56라운드 무기 데이터 검증 (gauge · issen · plunge · draw · 기력 groggyMs) — data/index.ts validateWeaponExtras 가 부른다.
+ * 56라운드 무기 데이터 검증 (gauge · issen · plunge · draw · 기력 groggyMs · 2단계 moves) — data/index.ts validateWeaponExtras 가 부른다.
  */
 import type { WeaponDef } from './types';
+import { validateMoves } from './validateMoves';
 
 function num(v: unknown, path: string): void {
   if (typeof v !== 'number' || !Number.isFinite(v)) throw new Error(`[data] ${path} 는 숫자여야 합니다`);
@@ -100,5 +101,10 @@ export function validateWeapon56(w: WeaponDef, path: string): void {
       `${path}.draw`,
     );
     str(d.weakArrowSheet, `${path}.draw.weakArrowSheet`);
+    if (d.tapCancelMs !== undefined) num(d.tapCancelMs, `${path}.draw.tapCancelMs`);
   }
+  if (g?.kind === 'brand' && g.backAfterShadowStepMs !== undefined)
+    num(g.backAfterShadowStepMs, `${path}.gauge.backAfterShadowStepMs`);
+  // 56라운드 2단계 새 기본기
+  if (w.moves) validateMoves(w.moves, `${path}.moves`, w.combo?.art as Record<string, unknown> | undefined);
 }

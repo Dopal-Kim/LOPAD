@@ -11,6 +11,8 @@ import type {
   UiSnapshot,
   UiStatus,
   UiWarpState,
+  UiGroggy,
+  UiWeaponGauge,
   UiWeaponResource,
 } from './ui';
 
@@ -37,6 +39,9 @@ export interface SnapshotContext {
   lab?: boolean;
   /** 53라운드: 넣기/뽑기 (칼·대검만). 생략 시 null */
   carry?: UiCarry | null;
+  /** 56라운드 (계약 §13): 무기 고유 자원 · 그로기 (칼·대검만). 생략 시 null */
+  gauge?: UiWeaponGauge | null;
+  groggy?: UiGroggy | null;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -120,5 +125,7 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     muted: ctx.muted ?? false,
     lab: ctx.lab ?? false,
     carry: ctx.carry ? { ...ctx.carry } : null,
+    gauge: ctx.gauge ? { ...ctx.gauge } : null,
+    groggy: ctx.groggy ? { ...ctx.groggy } : null,
   };
 }

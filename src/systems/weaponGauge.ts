@@ -2,7 +2,7 @@
  * 56라운드 Q13~Q20 무기별 고유 자원 (Phaser 의존 없음, 시간은 호출 쪽이 넣는다). 기력·과열·탄창(`weaponResource`)과 따로 돈다.
  * - 칼 검기(劍氣) 3단 `KenkiGauge` · 대검 울분(鬱憤) `GrudgeGauge` · 활 숨(呼吸) `BreathGauge` — 무기 하나에 하나
  * - 단검 낙인(烙印)은 적마다 쌓이므로 `BrandBook`(대상 → 표식 수)
- * HUD 표시는 UI 계약 밖(계약 변경은 재인터뷰) — 지금은 월드 연출(칼날 빛·표식)·디버그만.
+ * HUD 표시는 UI 계약 §13 `UiSnapshot.gauge`(승인 #20) — 값은 PlayerGauges.toUi · BrandMarks.toUi 가 만든다.
  */
 import type { BrandGaugeDef, BreathGaugeDef, GrudgeGaugeDef, KenkiGaugeDef, WeaponGaugeDef } from '../data/types';
 

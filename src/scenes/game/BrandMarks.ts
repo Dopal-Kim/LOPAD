@@ -12,6 +12,7 @@ import { crackShake, type ShakeHint } from './swingShake';
 import { EventBus, Events, type PlayerSkillPayload, type WeaponGaugePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { BrandGaugeDef } from '../../data/types';
+import type { UiWeaponGauge } from '../../contract/ui';
 import type { Mob } from '../../objects/Mob';
 import { BrandBook, isBackHit } from '../../systems/weaponGauge';
 import type { Game } from '../Game';
@@ -61,10 +62,13 @@ export class BrandMarks {
     const book = this.ledger;
     const d = this.def;
     if (!book || !d || !mob.active) return;
-    const back = isBackHit(facingVec(mob.visual.facing), { x: dirX, y: dirY }, d.backAngleDeg);
+    // 56라운드 Q59: 그림자 걸음 착지 뒤 backAfterShadowStepMs 동안은 늘 등 뒤, 그 밖은 적이 바라보는 방향의 등 쪽
+    const now = this.g.time.now;
+    const afterStep = now - this.g.player.moves.shadowLandedAt <= (d.backAfterShadowStepMs ?? 0);
+    const back = afterStep || isBackHit(facingVec(mob.visual.facing), { x: dirX, y: dirY }, d.backAngleDeg);
     const res = this.g.player.resource;
     const heatStage = res?.kind === 'heat' ? res.stage : 0;
-    const r = book.add(mob, this.g.time.now, { back, heatStage });
+    const r = book.add(mob, now, { back, heatStage });
     if (r.after === r.before) return;
     const payload: WeaponGaugePayload = {
       weapon: gameState.weapon.id,
@@ -192,6 +196,16 @@ export class BrandMarks {
     }
     // 표식이 사라진(시간·사망) 적의 fx 정리
     for (const mob of [...this.markFx.keys()]) if (!listed.has(mob)) this.clearMark(mob);
+  }
+
+  /** 계약 §13 `UiSnapshot.gauge` (단검): 값 = 지금 가장 많이 쌓인 적의 표식 수 0~max. 단검이 아니면 null */
+  toUi(): UiWeaponGauge | null {
+    const book = this.ledger;
+    const d = this.def;
+    if (!book || !d) return null;
+    let top = 0;
+    for (const [, n] of book.list()) top = Math.max(top, n);
+    return { kind: 'brand', label: d.label, value: top, max: d.max };
   }
 
   /** 디버그 */

@@ -134,6 +134,7 @@ export class FxPool {
       .setAlpha(opts.alpha ?? 1)
       .setScale(scale * (opts.scaleMult ?? 1))
       .setFlipY(Boolean(opts.flipY))
+      .setFlipX(Boolean(opts.flipX))
       .setActive(true)
       .setVisible(true);
     if (opts.tint !== undefined) {

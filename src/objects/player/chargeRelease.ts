@@ -1,7 +1,7 @@
 /**
  * 대검 홀드 차지를 뗐을 때 (56라운드 6-1 — MeleeDriver 에서 분리):
  * - 기본(55라운드 Q22 → 56라운드 Q10): 충격파 링 없는 강한 차지 내려찍기 — 쐐기 길이·피해 = 단계 배율 × 울분, 균열 m/m/l
- * - 개성 발현(충격파 갈래, 공격 수단 표 'plunge') 뒤: 휘두르지 않고 칼을 땅에 꽂아 마우스 방향 충격파 + 균열 l (판정은 씬 PlungeStrikes)
+ * - 개성 발현(56라운드 Q56: 어느 갈래든 1단, 공격 수단 표 'plunge') 뒤: 휘두르지 않고 칼을 땅에 꽂아 마우스 방향 충격파 + 균열 l (판정은 씬 PlungeStrikes)
  * 울분(Q15)은 둘 다 전부 소모해 위력·범위를 키운다.
  */
 import { EventBus, Events, type PlayerAttackPayload, type PlayerChargePayload } from '../../core/EventBus';
@@ -56,7 +56,8 @@ export function releaseCharge(
   p.gear.markDrawn(time);
   // 56라운드 Q15: 울분 전부 소모 → 피해·범위
   const grudge = p.gauges.consumeGrudge();
-  const plunge = w.def.plunge && pickMove(w.id, 'chargeRelease', w.path, () => Boolean(w.mods.shockwave));
+  // 56라운드 Q56: 어느 갈래든 1단이 발현하면 차지 = 꽂아내리기 (갈래별 차이는 충격파 모양·효과)
+  const plunge = w.def.plunge && pickMove(w.id, 'chargeRelease', w.path, () => w.path.length > 0);
   if (plunge && w.def.plunge) return startPlunge(p, input, time, C, stage, w.def.plunge, grudge, first);
   // 단계별 그림 키(stages[i].art) — 아트 단계 시트·균열 행은 그림 표
   const art = st.art ?? C.hit.art;

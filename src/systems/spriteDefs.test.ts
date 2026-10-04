@@ -78,6 +78,7 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       // 56라운드 Q9 활 당김 유지·놓기 (다른 무기는 매니페스트가 거른다)
       'katana_draw_hold',
       'katana_release',
+      'katana_arrow_rain',
       // 53라운드 Q19: 무기별 기본 자세 변형 (_free · 무기 id 접미)
       'idle_free',
       'idle_katana',
@@ -109,6 +110,7 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'reload',
       'draw_hold',
       'release',
+      'arrow_rain',
       'carry_groggy',
     ]);
     expect(sheetJsonPath({ category: 'player', name: 'player', action: 'katana_combo2' })).toBe(

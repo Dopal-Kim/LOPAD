@@ -60,6 +60,8 @@ export interface BrandGaugeDef {
   coolingMoveMult: number;
   /** 마지막 표식 뒤 이 시간이 지나면 그 적의 표식이 사라진다 */
   lifeMs: number;
+  /** 56라운드 Q59: 그림자 걸음 착지 뒤 이 시간 동안은 방향과 무관하게 등 뒤로 인정 (없으면 0) */
+  backAfterShadowStepMs?: number;
 }
 
 /** 활 숨: 완벽 놓기마다 회복 · 가득 차면 다음 당김이 짧은 감속 정밀 조준 (Q17) */
@@ -142,4 +144,6 @@ export interface BowDrawDef {
   weakArrowTint: number;
   /** 놓기 동작 길이 (player_bow_release, 시트가 없으면) */
   releaseMs: number;
+  /** 56라운드 Q58: 이보다 짧게 누른 탭은 취소 (화살·탄창 소모 없음, 없으면 0) */
+  tapCancelMs?: number;
 }

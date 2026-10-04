@@ -972,3 +972,19 @@ onFire 전부(lingerMs 1000 · 발밑 0.5×6px · 접촉 10/500ms · 여유 3px)
 ### 검증
 - tsc · eslint · vitest 71파일 520 · vite build(별도 outDir) 통과.
 - 헤드리스(1920×1080, 시험장): 대검 홀드 1.6초 → start·stage1~3·루프 유지 → 떼면 루프 정지·`charge_slam_lv3`(swing 없음)·3단 링 후속 판정 · 0.29초 홀드 뒤 뗌 → cancel(tap)·루프 정지 · 연격 H1·V·H2·V 모두 heavy false, 차지 내려찍기 heavy true · 칼 3연격 3타 판정 −75→+75 + 잔상 베기 `katana_echo` · 왼쪽 조준 facing right(회전). 콘솔 오류 0.
+
+## 56라운드 2단계: 새 기본기 9종 · 1단계 검수(Q56~Q63) · UI 계약 §13 (2026-10-04)
+근거: 결정 `2026-10-04-round-56-weapon-feedback.md` Q40~Q63, 계약 art §18.6~§18.11, UI §13(승인 #20).
+
+### 구조 (6-1 — 새 파일로)
+- 데이터: `data/weapons.json` 무기별 `moves`(형식 `src/data/moveTypes.ts`, 검증 `validateMoves.ts`) · 그림 이름 표 `combo.art` 에 새 몸·fx 키.
+- 플레이어: `player/BasicMoves.ts`(계기·조건·유지형·슈퍼아머·공중 높이) → `katanaMoves`(간파 반격·대치 일격) · `greatswordMoves`(태클·버티기·도약 찍기·돌진) · `daggerMoves`(등 뒤 찌르기·난타) · `bowRain`(화살비) · 공통 `moveStrike`(연격 파이프라인으로 한 번 휘두르기·이동 구간 easeOut 분할).
+- 씬: `scenes/game/MoveStrikes.ts`(돌진형 판정이 몸과 함께·밀고 감·첫 접촉 fx·땅 홈 · 도약 나선/착지 링 · 흡수 fx · 준비 반짝임 · 난타 fx 열 동기화) · `ArrowRain.ts`(예고 원·솟는 화살·낙하점 작은 판정, 순수 규칙 `systems/arrowRainMath`).
+- 음향: `systems/audioMoves.ts`(PLAYER_SKILL move·phase → 새 효과음 15개, 예약 목록 대체) · 표 형식 `audioTrigger.ts` 분리.
+- 공용 개선: 내딛기 속도 = 다음 프레임과 겹치는 구간 이동량(느린 프레임에서도 거리 유지) · 판정 영역은 최소 한 물리 단계 · SwingFx world 고정 앵커(release/dash_start/leap_start_pivot)·below_player 깊이 · fx `flipX`.
+
+### 검수 반영 (Q56~Q63)
+꽂아내리기 = 어느 갈래든 1단 · 숨 집중 중 주인공 속도 보정(`Player.timeComp`) · 패링 뒤 우클릭 유지 시 가드 복귀 · 활 0.1초 미만 탭 취소(`draw.tapCancelMs`) · 단검 그림자 걸음 착지 후 1초 등 뒤 인정(`gauge.backAfterShadowStepMs`) · `guard_perfect_fx` 가 있으면 `parry_flash` 생략 · 화살 생성점 = 무기 `bow_release` arrowSpawnAnchors.
+
+### 검증
+tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험장 4무기 9종 실행 캡처(판정·fx·소리 트리거·디버그 `w56().moves`).

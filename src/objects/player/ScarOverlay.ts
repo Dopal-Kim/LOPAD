@@ -25,6 +25,8 @@ export class ScarOverlay {
   /** 디버그: 지난 프레임 상태 */
   state: 'none' | 'back' | 'side' | 'hidden' = 'none';
   lastAnchor: { action: string; dir: Dir8; column: number } | null = null;
+  /** 56라운드 2단계 도약 공중 높이 (월드 px, 위 +) */
+  lift = 0;
 
   constructor(
     private readonly host: Phaser.GameObjects.Sprite,
@@ -85,7 +87,8 @@ export class ScarOverlay {
     const k = artScale(def);
     const flip = host.flipX ? -1 : 1;
     const x = host.x + (a.x - def.pivot.x) * k * flip;
-    const y = host.y + (a.y - def.pivot.y) * k;
+    // 56라운드 2단계: 도약 공중 높이만큼 몸과 같이
+    const y = host.y + (a.y - def.pivot.y) * k - this.lift;
     const rot = Phaser.Math.DegToRad(a.rot) * flip;
     const pulse = 1 - SCAR_FX.PULSE_AMP * (0.5 - 0.5 * Math.sin((time / 1000) * Math.PI * 2 * SCAR_FX.PULSE_HZ));
     const flicker = 1 - SCAR_FX.FLICKER_AMP * (0.5 + 0.5 * Math.sin(time * 0.0173) * Math.sin(time * 0.0071));

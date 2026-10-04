@@ -208,6 +208,28 @@ export interface UiWeaponResource {
   stage?: number;
 }
 
+/**
+ * 56라운드 계약 §13 (승인 #20): 무기 고유 자원.
+ * 칼 kenki(검기 3단) · 대검 grudge(울분) · 단검 brand(낙인 — 가장 많이 쌓인 적의 스택 0~5, 과열은 resource) · 활 breath(숨 0~3)
+ */
+export type UiWeaponGaugeKind = 'kenki' | 'grudge' | 'brand' | 'breath';
+export interface UiWeaponGauge {
+  kind: UiWeaponGaugeKind;
+  label: string;
+  value: number;
+  max: number;
+  /** 단계형 — 검기 0~3, 울분 0~3 (구간 1~33 / 34~66 / 67~100%) */
+  stage?: number;
+  /** 숨 감속 정밀 조준 중 */
+  focusing?: boolean;
+}
+
+/** 56라운드 계약 §13: 그로기(기력 0 → 1.5초, 시간으로만 회복). 칼·대검만, 그 밖은 null */
+export interface UiGroggy {
+  active: boolean;
+  leftMs: number;
+}
+
 export interface UiMenu {
   id: UiMenuId;
   title: string;
@@ -420,6 +442,10 @@ export interface UiSnapshot {
   lab: boolean;
   /** 53라운드: 넣기/뽑기 상태 (F). 손에 드는 무기면 null */
   carry: UiCarry | null;
+  /** 56라운드: 무기 고유 자원. 없으면 null (계약 §13) */
+  gauge: UiWeaponGauge | null;
+  /** 56라운드: 그로기 상태. 칼·대검만, 그 밖은 null (계약 §13) */
+  groggy: UiGroggy | null;
 }
 
 export interface UiResult {
@@ -516,6 +542,8 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   muted: false,
   lab: false,
   carry: null,
+  gauge: null,
+  groggy: null,
 };
 
 export const uiCommands = {

@@ -2,7 +2,9 @@
  * 56라운드 공격 수단 표 (Q21~Q24 키아트 · Q40~Q43 입력·조건). Phaser 의존 없음.
  * 무기마다 '기본기'와 '갈래(1단 노드에서 열림)' 수단을 한 곳에 적고, 입력 쪽(MeleeDriver·SecondaryDriver)은
  * `pickMove(weapon, trigger, ctx)` 로 지금 조건에 맞는 **구현된** 수단만 받는다. 아직 그림이 없는 수단은 `live: false` —
- * 아트 시트가 오면 live 로 바꾸고 실행기(`player/moveRunners`)를 붙인다.
+ * 아트 시트가 오면 live 로 바꾸고 실행기를 붙인다. 56라운드 2단계: 기본기 9종 live (실행기 `player/BasicMoves`·`katanaMoves`·
+ * `greatswordMoves`·`daggerMoves`·`bowRain`, 수치 data `moves`). 갈래 수단(회전 베기·가드 불가 내려베기·부채꼴 투척·분신 교차 베기·
+ * 속사 연사·관통 화살)은 그림 대기.
  */
 
 /** 입력 계기 (Q40~Q43 결정 문구 그대로) */
@@ -61,9 +63,9 @@ export const MOVES: readonly MoveDef[] = [
     slot: 'basic',
     trigger: 'afterParry',
     windowMs: 400,
-    live: false,
+    live: true,
   },
-  { id: 'iai_draw', weapon: 'katana', name: '대치 일격', slot: 'basic', trigger: 'sheathedHoldRelease', live: false },
+  { id: 'iai_draw', weapon: 'katana', name: '대치 일격', slot: 'basic', trigger: 'sheathedHoldRelease', live: true },
   {
     id: 'spin',
     weapon: 'katana',
@@ -84,14 +86,14 @@ export const MOVES: readonly MoveDef[] = [
   },
   // 대검 (Q41: 모두 기본기, 기본 포함 모아 내려찍기·땅 꽂기 충격파)
   { id: 'plunge', weapon: 'greatsword', name: '꽂아내리기', slot: 'basic', trigger: 'chargeRelease', live: true },
-  { id: 'tackle', weapon: 'greatsword', name: '어깨 태클', slot: 'basic', trigger: 'dashAttack', live: false },
+  { id: 'tackle', weapon: 'greatsword', name: '어깨 태클', slot: 'basic', trigger: 'dashAttack', live: true },
   {
     id: 'brace_upswing',
     weapon: 'greatsword',
     name: '버티기 올려베기',
     slot: 'basic',
     trigger: 'guardAttack',
-    live: false,
+    live: true,
   },
   {
     id: 'leap_slam',
@@ -99,7 +101,7 @@ export const MOVES: readonly MoveDef[] = [
     name: '공중제비 도약 찍기',
     slot: 'basic',
     trigger: 'chargeDash',
-    live: false,
+    live: true,
   },
   {
     id: 'guard_rush',
@@ -107,7 +109,7 @@ export const MOVES: readonly MoveDef[] = [
     name: '막다가 떼면 돌진',
     slot: 'basic',
     trigger: 'perfectGuardRelease',
-    live: false,
+    live: true,
   },
   // 단검 (Q42: 기본기 2 + 갈래 2, 기본 포함 그림자 걸음·낙인 기폭)
   {
@@ -116,9 +118,9 @@ export const MOVES: readonly MoveDef[] = [
     name: '등 뒤 치명 찌르기',
     slot: 'basic',
     trigger: 'afterShadowStep',
-    live: false,
+    live: true,
   },
-  { id: 'flurry', weapon: 'dagger', name: '고속 난타', slot: 'basic', trigger: 'attackHold', live: false },
+  { id: 'flurry', weapon: 'dagger', name: '고속 난타', slot: 'basic', trigger: 'attackHold', live: true },
   {
     id: 'fan_throw',
     weapon: 'dagger',
@@ -138,7 +140,7 @@ export const MOVES: readonly MoveDef[] = [
     live: false,
   },
   // 활 (Q43: 화살비만 기본기, 나머지 갈래)
-  { id: 'arrow_rain', weapon: 'bow', name: '화살비', slot: 'basic', trigger: 'drawAttack', live: false },
+  { id: 'arrow_rain', weapon: 'bow', name: '화살비', slot: 'basic', trigger: 'drawAttack', live: true },
   {
     id: 'rapid_volley',
     weapon: 'bow',

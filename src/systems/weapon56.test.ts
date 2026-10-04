@@ -291,7 +291,18 @@ describe('56라운드 Q2 일섬 기하', () => {
 describe('56라운드 Q40~Q43 공격 수단 표', () => {
   it('구현된 수단만 고른다 · 갈래 수단은 그 갈래가 경로에 있을 때만 열린다', () => {
     expect(pickMove('katana', 'comboFinisher', [])?.id).toBe('issen');
-    expect(pickMove('katana', 'afterParry', [])).toBeNull();
+    // 2단계: 기본기 9종 live · 갈래 수단(회전 베기 등)은 그림 대기
+    expect(pickMove('katana', 'afterParry', [])?.id).toBe('counter');
+    expect(pickMove('katana', 'sheathedHoldRelease', [])?.id).toBe('iai_draw');
+    expect(pickMove('greatsword', 'dashAttack', [])?.id).toBe('tackle');
+    expect(pickMove('greatsword', 'guardAttack', [])?.id).toBe('brace_upswing');
+    expect(pickMove('greatsword', 'chargeDash', [])?.id).toBe('leap_slam');
+    expect(pickMove('greatsword', 'perfectGuardRelease', [])?.id).toBe('guard_rush');
+    expect(pickMove('dagger', 'afterShadowStep', [])?.id).toBe('backstab');
+    expect(pickMove('dagger', 'attackHold', [])?.id).toBe('flurry');
+    expect(pickMove('bow', 'drawAttack', [])?.id).toBe('arrow_rain');
+    expect(pickMove('katana', 'branchAttack', ['iai'])).toBeNull();
+    expect(pickMove('bow', 'attackHold', ['rapid'])).toBeNull();
     expect(availableMoves('katana', []).some((m) => m.id === 'spin')).toBe(false);
     expect(availableMoves('katana', ['iai']).some((m) => m.id === 'spin')).toBe(true);
     expect(pickMove('greatsword', 'chargeRelease', ['crush'], () => false)).toBeNull();
@@ -359,5 +370,22 @@ describe('56라운드 Q6 8방향 행 · Q37 정지 프레임', () => {
     expect(fxHoldFrame({ frames: 6, impactFrame: 1, brushStroke: true, frameRoles: roles } as SheetJson)).toBe(3);
     const cleave = ['pre', 'draw(내려옴)', 'impact(지면 붓획 · 판정)', 'decay', 'decay', 'decay'];
     expect(fxHoldFrame({ frames: 6, impactFrame: 2, brushStroke: true, frameRoles: cleave } as SheetJson)).toBe(3);
+  });
+});
+
+describe('56라운드 2단계 단검 고속 난타', () => {
+  it('지나간 찌르기 열을 센다 (프레임이 길어 열을 건너뛰어도)', async () => {
+    const { stabsCrossed, heatLevelOf } = await import('./flurryMath');
+    const loop = [2, 3, 4, 5, 6, 7];
+    const stabs = [2, 4, 6];
+    expect(stabsCrossed(loop, stabs, 1, 2)).toBe(1);
+    expect(stabsCrossed(loop, stabs, 2, 3)).toBe(0);
+    expect(stabsCrossed(loop, stabs, 3, 7)).toBe(2);
+    expect(stabsCrossed(loop, stabs, 7, 3)).toBe(1);
+    expect(stabsCrossed(loop, stabs, 5, 4)).toBe(3);
+    expect(stabsCrossed(loop, stabs, 3, 9)).toBe(0);
+    expect(heatLevelOf(0.39, [0.4, 0.8])).toBe(0);
+    expect(heatLevelOf(0.4, [0.4, 0.8])).toBe(1);
+    expect(heatLevelOf(0.95, [0.4, 0.8])).toBe(2);
   });
 });

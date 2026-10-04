@@ -18,6 +18,7 @@ import type { BowDrawDef } from '../../data/types';
 import { drawState, releaseShot, strainShakeRad, type DrawState } from '../../systems/bowDraw';
 import type { InputState } from '../../systems/InputSystem';
 import type { Player } from '../Player';
+import { startArrowRain } from './bowRain';
 
 export class SecondaryDriver {
   /** 보조 동작 쿨 (그림자 걸음·조준 사격) */
@@ -26,6 +27,8 @@ export class SecondaryDriver {
   private drawStartedAt = 0;
   private drawFull = false;
   private drawStrain = false;
+  /** 화살비 뒤 우클릭을 계속 쥐고 있으면 다시 당긴다 */
+  private rainResume = false;
   /** 디버그: 마지막 놓기 */
   lastRelease: { power: string; damageMult: number; refund: boolean; elapsedMs: number } | null = null;
 
@@ -70,18 +73,27 @@ export class SecondaryDriver {
   hold(input: InputState, time: number): void {
     const p = this.p;
     const S = p.secondary;
+    // 56라운드 2단계: 활 화살비 뒤 우클릭을 계속 쥐고 있으면 다시 당김
+    if (this.rainResume && p.action === 'normal') {
+      this.rainResume = false;
+      if (input.secondaryHeld && S.kind === 'aimedshot') this.beginDraw(time);
+    }
     if (p.action === 'guard' && !input.secondaryHeld) {
+      // 56라운드 2단계 Q41: 퍼펙트 가드 직후 떼면 밀쳐내기 대신 돌진 (밀쳐내기·그 소리 없음)
+      const rush = p.moves.guardRushReady(time);
       p.setAction('normal', 0);
-      const payload: GuardReleasedPayload = { x: p.x, y: p.y };
+      const payload: GuardReleasedPayload = { x: p.x, y: p.y, ...(rush ? { quiet: true } : {}) };
       EventBus.emit(Events.PLAYER_GUARD_RELEASED, payload);
       p.visual.release();
+      if (rush) p.moves.startGuardRush(input, time);
       // 56라운드 Q48 칼 가드: 패링 자세의 회복 열 (대검은 가드 떼기·밀쳐내기 열)
-      p.poses.playSpecial(
-        time,
-        S.kind === 'guard' && S.perfect === 'parry' ? 'parryFail' : 'guardRelease',
-        undefined,
-        input,
-      );
+      else
+        p.poses.playSpecial(
+          time,
+          S.kind === 'guard' && S.perfect === 'parry' ? 'parryFail' : 'guardRelease',
+          undefined,
+          input,
+        );
     }
     if (p.action !== 'aim' || S.kind !== 'aimedshot') return;
     const full = time - this.drawStartedAt >= (this.draw?.fullMs ?? S.chargeMs);
@@ -97,9 +109,20 @@ export class SecondaryDriver {
       this.drawStrain = true;
       EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'strain' } satisfies PlayerSecondaryPayload);
     }
+    // 56라운드 2단계 Q43: 가득 당긴 채 좌클릭 = 화살비
+    if (input.attackPressed && this.drawFull && startArrowRain(p, input, time)) {
+      this.rainResume = true;
+      return;
+    }
     if (input.secondaryHeld) return;
     p.setAction('normal', 0);
-    if (this.draw) this.releaseDraw(input, time, this.draw);
+    // 56라운드 Q58: 아주 짧은 탭은 취소 (화살·탄창 소모 없음)
+    const d = this.draw;
+    if (d && time - this.drawStartedAt < (d.tapCancelMs ?? 0)) {
+      this.cancelDraw(time);
+      return;
+    }
+    if (d) this.releaseDraw(input, time, d);
     else this.releaseLegacy(input, time, full);
   }
 
@@ -180,16 +203,7 @@ export class SecondaryDriver {
         return true;
       case 'aimedshot':
         // 49라운드 탄창: 화살이 있고 장전 중이 아닐 때만 당김
-        if (time >= this.readyAt && (!res || res.canFire())) {
-          this.drawStartedAt = time;
-          this.drawFull = false;
-          this.drawStrain = false;
-          p.setAction('aim', 0);
-          EventBus.emit(Events.PLAYER_SECONDARY, {
-            kind: 'aimedshot',
-            phase: 'start',
-          } satisfies PlayerSecondaryPayload);
-        }
+        if (time >= this.readyAt && (!res || res.canFire())) this.beginDraw(time);
         return true;
       case 'shadowstep':
         if (time >= this.readyAt) {
@@ -202,6 +216,17 @@ export class SecondaryDriver {
         }
         return true;
     }
+  }
+
+  /** 활 당김 시작 */
+  private beginDraw(time: number): void {
+    const res = this.p.resource;
+    if (res && !res.canFire()) return;
+    this.drawStartedAt = time;
+    this.drawFull = false;
+    this.drawStrain = false;
+    this.p.setAction('aim', 0);
+    EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'start' } satisfies PlayerSecondaryPayload);
   }
 
   /** 당김을 끊는다 (대쉬·워프 — 숨 집중도 끝) */

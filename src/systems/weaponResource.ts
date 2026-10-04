@@ -189,6 +189,14 @@ export class WeaponResource {
     this.value = Math.min(d.max, this.value + g);
   }
 
+  /** 56라운드 2단계 고속 난타: 찌르기마다 정해진 양만큼 가열 (과열 냉각 중엔 없음) */
+  heatBy(amount: number, now: number): void {
+    const d = this.def;
+    if (d.kind !== 'heat' || this.overheatStart >= 0 || amount <= 0) return;
+    this.lastUseAt = now;
+    this.value = Math.min(d.max, this.value + amount);
+  }
+
   get overheated(): boolean {
     return this.def.kind === 'heat' && this.overheatStart >= 0;
   }

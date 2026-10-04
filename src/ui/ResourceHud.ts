@@ -2,9 +2,10 @@ import Phaser from 'phaser';
 import type { UiWeaponResource } from '../contract/ui';
 import { GlowText } from './glow';
 import { Gauge, accentHex } from './kit';
+import type { GroggyView } from './gaugeView';
 import { ammoCells, heatStage, resourceRatio, ringLit, ringPoints, shownValue } from './resourceView';
-import { r49Text } from './text';
-import { GRAY, RES, hexToNum } from './theme';
+import { fill, r49Text, r56Text } from './text';
+import { GRAY, GROGGY, RES, hexToNum } from './theme';
 
 /** 화살 한 칸 5×11 (1 = 촉, 2 = 대, 3 = 깃) */
 const ARROW = ['..1..', '.111.', '11111', '..2..', '..2..', '..2..', '..2..', '..2..', '.323.', '3.2.3', '3...3'];
@@ -15,6 +16,7 @@ const ARROW = ['..1..', '.111.', '11111', '..2..', '..2..', '..2..', '..2..', '.
  * - ammo(활 화살): 화살 칸(찬 칸 촉 강조 22·대 G13·깃 G11, 빈 칸 G04). 장전 중이면 오른쪽 진행 링 + '장전'
  * - heat(단검 열기): 막대(1/3·2/3 눈금) + 단계 눈금 3칸(강조 20·22·25, 달아오를수록 밝게). overheat 면 막대 맥동 + 아래 냉각 진행선 + '과열'
  * 값이 null 이면 아무것도 그리지 않는다. 글은 Galmuri11 발광 규칙(ink_faint·ink_accent).
+ * 56라운드 그로기(계약 §13, 칼·대검): 기력 막대 아래 2px 남은 시간선(강조 22, 오른쪽부터 줄어듦) + 상태 글 '그로기 1.2초' 깜빡임.
  */
 export class ResourceGauge {
   private label: GlowText;
@@ -62,7 +64,7 @@ export class ResourceGauge {
     this.stateText.setVisible(false);
   }
 
-  render(res: UiWeaponResource | null, stageIndex: number, now: number): void {
+  render(res: UiWeaponResource | null, stageIndex: number, now: number, groggy: GroggyView | null = null): void {
     if (!res || !res.kind) {
       if (this.lastKey !== '') {
         this.lastKey = '';
@@ -71,7 +73,9 @@ export class ResourceGauge {
       return;
     }
     const blinkOn = Math.floor(now / RES.blinkMs) % 2 === 0;
-    const needsBlink = res.state === 'overheat' || res.state === 'exhausted';
+    // 56라운드: 그로기는 기력 막대에만 (칼·대검). 남은 시간선 폭이 바뀔 때만 다시 그린다
+    const grog = res.kind === 'stamina' ? groggy : null;
+    const needsBlink = res.state === 'overheat' || res.state === 'exhausted' || Boolean(grog);
     const key = [
       stageIndex,
       res.kind,
@@ -82,6 +86,7 @@ export class ResourceGauge {
       res.progress ?? '',
       res.stage ?? '',
       needsBlink ? blinkOn : '',
+      grog ? `${grog.seconds}:${Math.round(grog.ratio * (RES.barW - 4))}` : '',
     ].join('|');
     if (key === this.lastKey) return;
     this.lastKey = key;
@@ -98,10 +103,11 @@ export class ResourceGauge {
       const slot = res.state === 'exhausted' ? null : res.state === 'low' ? RES.staminaLow : RES.staminaOk;
       this.bar.setVisible(true).setFillSlot(this.scene, si, slot).set(resourceRatio(res));
       endX = gx + RES.barW;
-      if (res.state === 'exhausted') {
-        state = r49Text('resExhausted');
+      if (res.state === 'exhausted' || grog) {
+        state = grog ? fill(r56Text('groggyLeft'), { s: grog.seconds }) : r49Text('resExhausted');
         this.bar.setAlpha(blinkOn ? 1 : 0.55);
       } else this.bar.setAlpha(1);
+      if (grog) this.drawGroggyLine(gx, grog.ratio, si);
     } else if (res.kind === 'ammo') {
       endX = this.drawAmmo(res, gx, si);
       if (res.state === 'reloading') {
@@ -122,6 +128,17 @@ export class ResourceGauge {
       .setText(state)
       .setX(this.valueText.x + this.valueText.displayWidth + 4)
       .setAlpha(needsBlink && !blinkOn ? 0.55 : 1);
+  }
+
+  /** 56라운드 그로기 남은 시간선: 기력 막대 아래 2px, G03 바탕 위에 남은 만큼 강조 22 (왼쪽 고정, 오른쪽부터 줄어듦) */
+  private drawGroggyLine(gx: number, ratio: number, si: number): void {
+    const innerX = gx + 2;
+    const innerW = RES.barW - 4;
+    const y = this.y + GROGGY.lineDy;
+    this.g.fillStyle(hexToNum(GRAY[3]), 1).fillRect(innerX, y, innerW, GROGGY.lineH);
+    const w = Math.round(innerW * Math.max(0, Math.min(1, ratio)));
+    if (w > 0)
+      this.g.fillStyle(hexToNum(accentHex(this.scene, si, GROGGY.lineSlot)), 1).fillRect(innerX, y, w, GROGGY.lineH);
   }
 
   /** 화살 칸. 칸이 너무 많으면 막대로. 끝 x 를 돌려준다 */

@@ -3,6 +3,8 @@ export type { BossPatternName, PatternParams } from './bossPatterns';
 import type { ComboDef } from './comboTypes';
 import type { BowDrawDef, IssenDef, PlungeDef, WeaponGaugeDef } from './weapon56Types';
 export type * from './weapon56Types';
+export type * from './moveTypes';
+import type { WeaponMovesDef } from './moveTypes';
 
 /** data/*.json 의 타입 정의. JSON을 바꾸면 여기와 validate()도 함께 맞춘다. */
 
@@ -670,6 +672,8 @@ export interface WeaponDef {
   plunge?: PlungeDef;
   /** 56라운드 Q9: 활 우클릭 당김·놓기 */
   draw?: BowDrawDef;
+  /** 56라운드 2단계: 새 기본기 (간파 반격·대치 일격·태클·버티기·도약 찍기·돌진·등 뒤 찌르기·난타·화살비) */
+  moves?: WeaponMovesDef;
   hitbox: AttackHitbox;
   /** 48라운드: 근접 3연격 (없으면 기존 단일 공격 + cooldownMs) */
   combo?: ComboDef;

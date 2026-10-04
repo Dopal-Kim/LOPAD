@@ -162,6 +162,8 @@ export interface DebugApi {
   w56: () => unknown;
   /** 56라운드: 고유 자원 값을 바로 바꾼다 (검기 3단 = 300 등). 자원이 없으면 false */
   setGauge: (value: number) => boolean;
+  /** 56라운드 2단계 캡처용: 게임 씬 갱신을 멈추고(그림은 그대로) 다시 잇는다 */
+  freeze: (on: boolean) => void;
   /** 49라운드 무기 시험장: 허수아비 누적 피해·맞은 수·쏜 탄 수 · 메뉴 */
   lab: () => unknown;
   /** 49라운드 무기 시험장: 'lab' 또는 'labBranch' 메뉴 열기 (L 키와 같은 경로) */
@@ -351,6 +353,7 @@ export function exposeDebug(api: {
   setResource: (value: number) => boolean;
   w56: () => unknown;
   setGauge: (value: number) => boolean;
+  freeze: (on: boolean) => void;
   lab: () => unknown;
   openLabMenu: (which: 'lab' | 'labBranch') => boolean;
   lighting: () => unknown;
@@ -504,6 +507,7 @@ export function exposeDebug(api: {
     weaponState: () => api.weaponState(),
     setResource: (v) => api.setResource(v),
     w56: () => api.w56(),
+    freeze: (on) => api.freeze(on),
     setGauge: (v) => api.setGauge(v),
     lab: () => api.lab(),
     openLabMenu: (which) => api.openLabMenu(which),

@@ -27,7 +27,7 @@ import { pickTierSheet } from '../../systems/fxTier';
 import { isHeavyStrike } from '../../systems/hitFeel';
 import { resolveFxVariant, runtimeFxVariant, type FxVariant } from '../../systems/fxVariants';
 import { spriteLibrary } from '../../systems/sprites';
-import { FX_ACTION, fxDrawScale } from '../../systems/spriteDefs';
+import { FX_ACTION, artScale, facingOf, fxDrawScale } from '../../systems/spriteDefs';
 import { arrowFxId, perfectReleaseFxId } from '../../systems/fxIds';
 import type { Game } from '../Game';
 import { HIT_ORIGIN_UP_PX, pathFx } from './shared';
@@ -112,6 +112,21 @@ export class BowShots {
     return { id: heavy ?? arrowFxId(w, aimed), branch: false, tier2: false, variant: null };
   }
 
+  /**
+   * 56라운드 Q58·계약 §18.11: 화살이 생기는 점 = 무기 놓기 시트(`<무기>_release`) arrowSpawnAnchors[방향][0] (무기 시트 좌표 →
+   * 피벗 기준 × 도트 배율, 발 기준 월드 오프셋). 시트·값이 없으면 null (기존 — 조준 방향 reach, 발 높이)
+   */
+  private spawnOffset(dirX: number, dirY: number): { x: number; y: number } | null {
+    const w = gameState.weapon.id;
+    const sheet = spriteLibrary.sheet(w, 'release');
+    const anchors = (sheet as { arrowSpawnAnchors?: Record<string, ([number, number] | null)[]> } | undefined)
+      ?.arrowSpawnAnchors;
+    const pt = anchors?.[facingOf(dirX, dirY, this.g.player.facingDir)]?.[0];
+    if (!sheet || !pt) return null;
+    const k = artScale(sheet);
+    return { x: (pt[0] - sheet.pivot.x) * k, y: (pt[1] - sheet.pivot.y) * k };
+  }
+
   private spawnArrows(p: PlayerAttackPayload, rapidMult: number): void {
     const g = this.g;
     const weapon = gameState.weapon;
@@ -157,20 +172,22 @@ export class BowShots {
     const spread = !aimed && mods.spread ? mods.spread : { count: 1, spreadDeg: 0 };
     const burstFx = pathFx(g.fx, 'rain', 'scatter');
     const reach = weapon.hitbox.reach;
-    if (spread.count > 1 && burstFx)
-      g.fx.play(burstFx, p.x + p.dirX * reach, p.y + p.dirY * reach, { angle: base, depth: DEPTH.PROJECTILE });
+    // 화살이 생기는 점 (arrowSpawnAnchors — 없으면 조준 방향 reach)
+    const so = this.spawnOffset(p.dirX, p.dirY);
+    const ax = p.x + (so ? so.x : p.dirX * reach);
+    const ay = p.y + (so ? so.y : p.dirY * reach);
+    if (spread.count > 1 && burstFx) g.fx.play(burstFx, ax, ay, { angle: base, depth: DEPTH.PROJECTILE });
     // 속사: 발사 섬광 (화살이 생기는 점 = arrow_spawn, 1회 재생 — 간격이 짧으면 처음부터 다시)
     // 56라운드 Q9: 완벽 놓기 섬광 (화살이 생기는 점, 발사 각도)
     const perfectFx = perfectReleaseFxId(weapon.id);
     if (p.bowPower === 'perfect' && g.fx.has(perfectFx))
-      g.fx.play(perfectFx, p.x + p.dirX * reach, p.y + p.dirY * reach - HIT_ORIGIN_UP_PX, {
+      g.fx.play(perfectFx, ax, so ? ay : ay - HIT_ORIGIN_UP_PX, {
         angle: base,
         flipY: p.dirX < 0,
         depth: DEPTH.PROJECTILE + 0.02,
       });
     const muzzle = this.first ? muzzleFxId(weapon.id, this.first) : null;
-    if (muzzle && g.fx.has(muzzle))
-      g.fx.play(muzzle, p.x + p.dirX * reach, p.y + p.dirY * reach, { angle: base, depth: DEPTH.PROJECTILE + 0.01 });
+    if (muzzle && g.fx.has(muzzle)) g.fx.play(muzzle, ax, ay, { angle: base, depth: DEPTH.PROJECTILE + 0.01 });
     const n = Math.max(1, spread.count);
     for (let i = 0; i < n; i++) {
       const t = n === 1 ? 0 : i / (n - 1) - 0.5;
@@ -180,8 +197,8 @@ export class BowShots {
       const shot = g.playerShots.get() as Projectile | null;
       if (!shot) return;
       this.dropSnipe(shot);
-      const sx = p.x + dx * reach;
-      const sy = p.y + dy * reach;
+      const sx = so ? ax : p.x + dx * reach;
+      const sy = so ? ay : p.y + dy * reach;
       shot.launch(
         sx,
         sy,

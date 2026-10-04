@@ -68,8 +68,10 @@ export class PlayerDefense {
     });
     this.lastOutcome = outcome.kind;
     if (outcome.kind === 'parried') {
-      // 성공: 창을 닫고 즉시 행동 가능 · 56라운드 Q14 검기 1단 즉시
-      p.setAction('normal', 0);
+      // 성공: 창을 닫고 즉시 행동 가능 · 56라운드 Q14 검기 1단 즉시 · Q58 우클릭을 계속 쥐고 있으면 가드로 복귀(창은 다시 열지 않음)
+      if (!(p.secondaryHeldNow && S.kind === 'guard')) p.setAction('normal', 0);
+      // 2단계 Q40: 간파 반격 창 시작
+      p.moves.parriedAt = time;
       p.flashColor(COLORS.PLAYER_PARRY);
       p.poses.playSpecial(time, 'parrySuccess');
       p.gauges.onParried();
@@ -80,6 +82,8 @@ export class PlayerDefense {
     if (outcome.kind === 'perfect') {
       // 56라운드 Q7: 피해 완전 무시, 튕겨내지 않음 (가드 유지) — 무적 시간도 주지 않는다(다음 타는 다시 판정)
       p.gauges.onGuardBlock(outcome.blocked, 'perfect');
+      // 2단계 Q41: 막다가 떼면 돌진 창 시작
+      p.moves.perfectGuardAt = time;
       p.flashColor(COLORS.PLAYER_PARRY);
       const payload: PerfectGuardPayload = { x: p.x, y: p.y, attack, ...toward(source) };
       EventBus.emit(Events.PLAYER_PERFECT_GUARD, payload);
@@ -95,15 +99,27 @@ export class PlayerDefense {
     if (mods.superArmorReduction && p.inAttackSlow(time)) amount = Math.round(amount * (1 - mods.superArmorReduction));
     gameState.hp = Math.max(0, gameState.hp - amount);
     p.flashColor(COLORS.PLAYER_HURT);
-    // 55라운드 Q23: 피격 → 대검 관성 초기화·차지 취소
-    p.melee.onHurt();
-    if (source && p.action !== 'dash' && (source.dirX !== 0 || source.dirY !== 0)) {
+    // 56라운드 2단계 Q54·Q61 버티기 올려베기 슈퍼아머: 피해는 그대로, 끊기지 않음(넉백·피격 자세 없음), 맞은 피해는 울분으로
+    const armored = p.moves.superArmor;
+    if (armored) p.gauges.onGuardBlock(amount, 'normal');
+    else {
+      // 55라운드 Q23: 피격 → 대검 관성 초기화·차지 취소 · 2단계 유지형(대치 일격·난타) 끊김
+      p.melee.onHurt();
+      p.moves.onHurt();
+    }
+    if (!armored && source && p.action !== 'dash' && (source.dirX !== 0 || source.dirY !== 0)) {
       const K = FEEL.KNOCKBACK;
       const speed = knockSpeed(K.PLAYER_PX, K.PLAYER_MS);
       const len = Math.hypot(source.dirX, source.dirY) || 1;
       if (speed > 0) p.shove((source.dirX / len) * speed, (source.dirY / len) * speed, K.PLAYER_MS);
     }
-    const payload: PlayerDamagedPayload = { hp: gameState.hp, maxHp: gameState.maxHp, amount, source };
+    const payload: PlayerDamagedPayload = {
+      hp: gameState.hp,
+      maxHp: gameState.maxHp,
+      amount,
+      source,
+      ...(armored ? { armored: true } : {}),
+    };
     EventBus.emit(Events.PLAYER_DAMAGED, payload);
     if (gameState.hp <= 0) {
       gameState.gameOver = true;
@@ -112,7 +128,7 @@ export class PlayerDefense {
       EventBus.emit(Events.PLAYER_DIED);
       return 'dead';
     }
-    p.visual.oneShot('hurt', p.visual.facing, time);
+    if (!armored) p.visual.oneShot('hurt', p.visual.facing, time);
     return 'hit';
   }
 }

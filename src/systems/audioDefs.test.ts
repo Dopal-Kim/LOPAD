@@ -23,7 +23,6 @@ import {
   AUDIO_TRIGGERS,
   CHARGE_SFX,
   FOLLOW_UP_SFX,
-  MOVE_SFX_RESERVED,
   SFX,
   SFX56,
   bossActionSfx,
@@ -33,6 +32,7 @@ import {
   staticSfxIds,
 } from './audioMap';
 import { Events, type BossActionKind } from '../core/EventBus';
+import { MOVE_SFX, moveSfxIds, pickFlurryVariant } from './audioMoves';
 
 // audioMap → EventBus 가 Phaser 를 import 하므로(window 필요) 이벤트 이미터만 node 것으로 대체한다
 vi.mock('phaser', () => ({ default: { Events: { EventEmitter } } }));
@@ -162,9 +162,9 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       ...Object.values(SFX.boss1),
       // 55라운드 차지·잔상 (후보 목록 — 없어도 무음)
       ...chargeSfxIds(),
-      // 56라운드 무기 피드백 · 새 공격 수단 예약(아트 대기)
+      // 56라운드 무기 피드백 · 2단계 새 기본기
       ...sfx56Ids(),
-      ...MOVE_SFX_RESERVED,
+      ...moveSfxIds(),
     ]);
     const unused = manifest.entries.filter((e) => e.kind === 'sfx' && !used.has(e.id)).map((e) => e.id);
     expect(unused).toEqual([]);
@@ -304,8 +304,34 @@ describe('56라운드 무기 피드백 효과음 (SFX56)', () => {
     ]);
   });
 
-  it('예약 목록과 56라운드 목록은 겹치지 않는다', () => {
+  it('2단계 새 기본기 목록과 56라운드 목록은 겹치지 않는다', () => {
     const a = new Set(sfx56Ids());
-    for (const id of MOVE_SFX_RESERVED) expect(a.has(id), id).toBe(false);
+    for (const id of moveSfxIds()) expect(a.has(id), id).toBe(false);
+  });
+
+  it('2단계 새 기본기: PLAYER_SKILL move·phase → 효과음 (난타 변주는 직전과 다름)', () => {
+    const skill = (move: string, phase: string, more = {}) => ({ weapon: 'x', move, phase, ...more });
+    expect(ids(Events.PLAYER_SKILL, skill('counter', 'start'))).toEqual([MOVE_SFX.katanaCounter]);
+    expect(ids(Events.PLAYER_SKILL, skill('iai', 'release'))).toEqual([MOVE_SFX.katanaIaiRelease]);
+    expect(ids(Events.PLAYER_SKILL, skill('leap', 'land', { stage: 0 }))).toEqual([MOVE_SFX.gsLeapSlam]);
+    expect(ids(Events.PLAYER_SKILL, skill('leap', 'land', { stage: 2 }))).toEqual([
+      MOVE_SFX.gsLeapSlam,
+      ['sfx/charge_slam_lv2', 'sfx/charge_slam'],
+    ]);
+    expect(ids(Events.PLAYER_SKILL, skill('arrow_rain', 'impact'))).toEqual([MOVE_SFX.arrowRainImpact]);
+    for (let prev = 1; prev <= 4; prev++)
+      for (const r of [0, 0.4, 0.99]) {
+        const n = pickFlurryVariant(prev, 4, r);
+        expect(n).not.toBe(prev);
+        expect(n >= 1 && n <= 4).toBe(true);
+      }
+  });
+
+  it('2단계: 새 기본기 공격은 휘두름 소리 없음 · 조용한 가드 해제는 밀쳐내기 소리 없음', () => {
+    const atk = { x: 0, y: 0, dirX: 1, dirY: 0, damageMult: 1, sizeMult: 1, kind: 'attack', forceCrit: false };
+    expect(
+      ids(Events.PLAYER_ATTACKED, { ...atk, primed: false, swingDelayMs: 0, releaseDelayMs: 0, move: 'counter' }),
+    ).toEqual([]);
+    expect(ids(Events.PLAYER_GUARD_RELEASED, { x: 0, y: 0, quiet: true })).toEqual([]);
   });
 });

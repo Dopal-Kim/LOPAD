@@ -9,6 +9,7 @@ import {
   __system,
   type StoryKind,
   type UiEnemyIncoming,
+  type UiGroggy,
   type UiTutorialStep,
   type UiWarpState,
 } from '../../contract/ui';
@@ -51,7 +52,17 @@ export class UiRelay {
       muted: audio.isMuted,
       lab: g.lab,
       carry: g.player?.carryUi() ?? null,
+      // 56라운드 (계약 §13): 무기 고유 자원 · 그로기
+      gauge: g.player?.gauges.toUi(now) ?? g.strikes?.brands.toUi() ?? null,
+      groggy: this.groggy(now),
     });
+  }
+
+  /** 계약 §13: 그로기 규칙(기력 groggyMs)이 있는 무기(칼·대검)만, 그 밖은 null */
+  private groggy(now: number): UiGroggy | null {
+    const res = this.g.player?.resource;
+    if (!res?.groggyRule) return null;
+    return { active: res.isGroggy, leftMs: Math.round(res.groggyLeftMs(now)) };
   }
 
   /** 매 프레임 UI 상태 */

@@ -55,6 +55,27 @@ describe('buildSnapshot', () => {
     });
     expect(s2.carry).toEqual(carry);
     expect(s2.carry).not.toBe(carry);
+    // 56라운드 계약 §13: 고유 자원 · 그로기 (생략 시 null, 주면 복사본)
+    expect(s.gauge).toBeNull();
+    expect(s.groggy).toBeNull();
+    const gauge = { kind: 'kenki' as const, label: '검기', value: 120, max: 300, stage: 1 };
+    const groggy = { active: true, leftMs: 900 };
+    const s3 = buildSnapshot({
+      layout,
+      visited: new Set(),
+      cleared: new Set(),
+      bossName: null,
+      paused: false,
+      menu: null,
+      inCombat: false,
+      sprinting: false,
+      warp: { ready: false, blocked: 'busy', targets: [], warping: false },
+      gauge,
+      groggy,
+    });
+    expect(s3.gauge).toEqual(gauge);
+    expect(s3.gauge).not.toBe(gauge);
+    expect(s3.groggy).toEqual(groggy);
     s.gold = 0; // 복사본 수정은 상태에 영향 없음
     expect(gameState.gold).toBe(42);
   });

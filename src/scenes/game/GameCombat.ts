@@ -3,7 +3,7 @@
  * 플레이어 공격의 모양·연출은 PlayerStrikes, 처치 보상은 Progression.
  */
 import Phaser from 'phaser';
-import { DEPTH, ENEMY_FX, FEEL, PROTOTYPE, COLORS } from '../../core/Constants';
+import { DEPTH, ENEMY_FX, FEEDBACK, FEEL, PROTOTYPE, COLORS } from '../../core/Constants';
 import type { BossWallHitPayload, PlayerDamagedPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { ECONOMY, PLAYER_DATA } from '../../data';
@@ -36,6 +36,8 @@ export interface HitOptions {
   rotateLeft?: boolean;
   /** 근접 공격자 위치 (계약 §16: 근접 스파크 회전 = 공격자 → 적 중심). 없으면 공격 진행 방향 */
   from?: { x: number; y: number };
+  /** 56라운드 2단계 단검 등 뒤 찌르기 (Q55): 공용 적중 스파크·치명 fx·치명 화면 번쩍임 없음 (전용 섬광만) */
+  noImpactFx?: boolean;
 }
 
 export class GameCombat {
@@ -188,17 +190,19 @@ export class GameCombat {
     const flen = Math.hypot(fdx, fdy);
     const sx = flen > 0 ? fdx / flen : nx;
     const sy = flen > 0 ? fdy / flen : ny;
-    const sheet = g.hitFx.impact(
-      hitX,
-      hitY,
-      sx,
-      sy,
-      opts.crit,
-      opts.critFx ? { id: opts.critFx, x: c.x, y: c.y - mob.visual.hitLiftPx } : null,
-      { weaponId: weapon.id, heavy, backswing: opts.backswing, rotateLeft: opts.rotateLeft },
-    );
+    const sheet = opts.noImpactFx
+      ? null
+      : g.hitFx.impact(
+          hitX,
+          hitY,
+          sx,
+          sy,
+          opts.crit,
+          opts.critFx ? { id: opts.critFx, x: c.x, y: c.y - mob.visual.hitLiftPx } : null,
+          { weaponId: weapon.id, heavy, backswing: opts.backswing, rotateLeft: opts.rotateLeft },
+        );
     g.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
-    if (opts.crit) g.screenFx.crit();
+    if (opts.crit && !opts.noImpactFx) g.screenFx.crit();
     g.hitStop.request(now, weaponHitstopMs(feel, heavy));
     if (shakesOnHit(feel, heavy)) {
       const sh = hitShake(sheet ? g.fx.sheet(sheet) : null);
@@ -305,7 +309,9 @@ export class GameCombat {
   /** 패링 성공: 접점에 parry_flash(개체 위) + 짧은 히트스톱 (1프레임이 멈춤 동안 보이도록) */
   private onParried(x: number, y: number): void {
     const g = this.g;
-    if (g.fx.has('parry_flash')) g.fx.play('parry_flash', x, y, { depth: DEPTH.HIT_FX + 0.02 });
+    // 56라운드 Q55·Q62: guard_perfect_fx(WeaponFeedback, 행 parry)가 있으면 그것이 parry_flash 를 대신한다
+    if (!g.fx.has(FEEDBACK.GUARD_FX.SHEET) && g.fx.has('parry_flash'))
+      g.fx.play('parry_flash', x, y, { depth: DEPTH.HIT_FX + 0.02 });
     g.hitStop.request(g.time.now, FEEL.SECONDARY.PARRY_HITSTOP_MS);
   }
 

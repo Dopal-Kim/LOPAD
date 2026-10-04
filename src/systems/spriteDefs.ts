@@ -70,8 +70,11 @@ export const WEAPON_MOTIONS = ['draw', 'sheathe', 'slam', 'dashslash', 'reload']
 /** 56라운드 Q7 그로기 몸 `player_groggy`(칼·대검 공용 루프) · 휴대 무기 `<무기>_carry_groggy` */
 export const GROGGY_ACTION = 'groggy';
 export const GROGGY_CARRY = 'carry_groggy';
-/** 56라운드 Q9 활 당김 유지·놓기 (몸 `player_<무기>_draw_hold`·`_release`, 무기 같은 이름) — 다른 무기는 매니페스트가 거른다 */
-export const WEAPON_MOTIONS_56 = ['draw_hold', 'release'] as const;
+/**
+ * 56라운드 Q9 활 당김 유지·놓기 (몸 `player_<무기>_draw_hold`·`_release`, 무기 같은 이름) · 2단계 화살비 `arrow_rain`(Q43)
+ * — 다른 무기는 매니페스트가 거른다
+ */
+export const WEAPON_MOTIONS_56 = ['draw_hold', 'release', 'arrow_rain'] as const;
 export type WeaponMotion = (typeof WEAPON_MOTIONS)[number];
 
 /** 몸 동작 `<무기>_<motion>` */

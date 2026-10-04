@@ -1,5 +1,33 @@
 # 게임 UI 파트 — 작업 기록
 
+## 56라운드 (2026-10-04) · 무기 고유 자원·그로기 HUD
+결정: `decisions/2026-10-04-round-56-weapon-feedback.md` Q13~Q20·Q48·Q58. 계약: `contracts/ui-system-interface.md` **§13**(승인 #20) — `UiSnapshot.gauge`(`UiWeaponGauge`)·`groggy`(`UiGroggy`), 칼 `secondaryName` '가드·패링'. 타입은 `src/contract/ui.ts`(시스템 추가분)만 import, UI 쪽 복제 정의 없음. 시스템 코드 열람 없음.
+
+### 화면
+- **고유 자원 눈금** (HUD 2행, 무기 이름 바로 오른쪽 10px): 라벨 `gauge.label`(ink_faint, 비면 기본 이름) + 칸. 개성 아이콘·게이지는 그 뒤로 비킨다(최소 px+200 그대로).
+  - 검기 `kenki`: 칼날 마름모 7×8 × 3칸(간격 2), 아래에서 위로 차오름. 칸 색 재 G11 → 호박 22 → 백열 27. `stage` = 찬 단 수, 다음 칸은 비율 나머지만큼(시스템 실제 값 max 300).
+  - 울분 `grudge`: 이어진 3칸 막대 14×6(간격 1), 왼쪽부터 연속 채움. 색 = 구간(`stage` 1·2·3 → 강조 20·22·25, 없으면 비율 1~33/34~66/67~100%).
+  - 낙인 `brand`: 셈 획 2×8 × max(기본 5)칸, 정수 스택만. 최대면 전부 강조 25.
+  - 숨 `breath`: 방울 7×7 × max(기본 3)칸, 소수면 부분 채움. 켜짐 G12, `focusing` 이면 강조 25 + '집중'(ink_accent 깜빡임).
+  - 꺼진 칸은 G06 테두리 + G03 안쪽(열기 단계 눈금과 같은 문체). 가득이면 라벨 ink_accent.
+  - 긴 무기·갈래 이름으로 '우클릭 …' 과 겹치면(간격 8 미만) 눈금 라벨을 빼고, 그래도 겹치면 '우클릭 …' 을 숨긴다(조작 안내·일기장에 같은 글).
+- **그로기** (`groggy.active`, 칼·대검): 3행 기력 막대 아래 2px 남은 시간선(G03 바탕 + 강조 22, 오른쪽부터 줄어듦), 상태 글 '지침' 대신 **'그로기 1.2초'**(0.1초 올림, ink_accent 깜빡임), 2행 무기 아이콘·이름·눈금이 1px 떨림(60ms 계단 0·+1·0·−1). 전체 시간은 계약에 없어 이번 그로기에서 본 가장 큰 `leftMs`(없으면 1.5초).
+- **가드·패링**: 조작 안내 `{secondary}`·HUD '우클릭 …'·튜토리얼은 `secondaryName` 을 그대로 쓰므로 변경 없이 '우클릭 가드·패링' 으로 보인다(캡처 확인).
+
+### 소유 코드 변경
+`GaugeHud.ts`(신규, `WeaponGaugeChip` Container — 하단 묶음과 함께 setY), `gaugeView.ts`·`gaugeView.test.ts`(신규, 순수 계산: 칸 채움·부분 px·테두리·그로기 초·떨림, 테스트 12개), `ResourceHud.ts`(그로기 남은 시간선·상태 글), `HudScene.ts`(2행 배치·겹침 처리·그로기 전체 시간), `theme.ts`(`WGAUGE`·`GROGGY`), `text.ts`(`R56_TEXT`·`r56Text`).
+
+### 검증
+`npx tsc --noEmit`·`npx eslint .`·`npx vitest run`(73 파일 557개) 작업 트리 통과. 헤드리스 Playwright(1920×1080, `vite preview`, `?debug=1&uidebug=1&lab&weapon=<무기>`, 스크립트·캡처 `scratchpad/r56/ui/`): 네 무기 실제 스냅샷(시스템이 이미 gauge·groggy 를 채움) + 가짜 값(검기 0·1.5·3단, 울분 20·50·100%, 낙인 2·5, 숨 1.5·3+집중, 그로기 1.5·0.6·1.1초, 긴 갈래 이름 3단계) + Esc 일기장 조작 안내. 그로기 중 무기 줄 프레임 3종(떨림)·평소 1종 확인. 콘솔 오류는 기존 404 1건뿐.
+
+### 임시값 (도영 님 검토 대상)
+- 위치: 2행 무기 이름 오른쪽(계약 '무기명 옆'). 그로기는 3행 기력 막대 아래 선 + 상태 글 + 무기 줄 떨림.
+- 모양·색: 위 화면 절 그대로(`theme.ts WGAUGE`·`GROGGY`), 깜빡임 0.2초, 떨림 1px·60ms.
+- 문구: '그로기 {s}초', '집중', 기본 라벨 '검기'·'울분'·'낙인'·'숨'(시스템 label 우선).
+- 판단: 긴 이름일 때 라벨 → '우클릭 …' 순으로 줄임. 검기 `stage` 를 '찬 단 수' 로 읽음(울분은 '구간').
+
+---
+
 ## 53라운드 후속 2 (2026-10-03) · 노드 고르기 Esc(Q47) · 적 등장 예고(Q49·Q60) · TUTORIAL_STEP · 시험장 문구
 결정: `decisions/2026-10-03-round-53-playtest4.md` Q47·Q49·Q60. 계약: `contracts/ui-system-interface.md` '53라운드 추가'(`ENEMY_INCOMING`·`TUTORIAL_STEP`·`cancelChoose()`), `src/contract/ui.ts`. 시스템 코드 열람 없음.
 

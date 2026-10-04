@@ -243,3 +243,24 @@ export type R53TextKey = keyof typeof R53_TEXT;
 export function r53Text(key: R53TextKey): string {
   return uiText('hud', key, R53_TEXT[key]);
 }
+
+/**
+ * 56라운드 문구 (임시값, 도영 님 검수 대상): 무기 고유 자원·그로기 HUD (계약 §13).
+ * 고유 자원 라벨은 시스템이 주는 `gauge.label` 을 그대로 쓴다 (비면 아래 기본 이름). 텍스트 팩 `hud.<키>` 가 있으면 그 문구.
+ */
+export const R56_TEXT = {
+  /** 그로기 남은 시간 — {s} = 1.2 */
+  groggyLeft: '그로기 {s}초',
+  /** 숨 정밀 조준 중 */
+  breathFocus: '집중',
+  /** gauge.label 이 비었을 때 */
+  gaugeKenki: '검기',
+  gaugeGrudge: '울분',
+  gaugeBrand: '낙인',
+  gaugeBreath: '숨',
+} as const;
+export type R56TextKey = keyof typeof R56_TEXT;
+
+export function r56Text(key: R56TextKey): string {
+  return uiText('hud', key, R56_TEXT[key]);
+}

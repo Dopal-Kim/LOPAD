@@ -3,7 +3,8 @@
  * 피격·적 양상·보조·구조물 이펙트 고정 목록. Phaser 의존 없음 (53라운드 6-1 정리: spriteDefs 에서 분리, 동작 그대로).
  * 갈래 시트 id 는 `branchFx`(활)·`fxVariants`(근접).
  */
-import type { ComboDef } from '../data/types';
+import type { ComboDef, WeaponMovesDef } from '../data/types';
+import { moveFxNames } from '../data/moveTypes';
 import { comboArtNames } from './comboArt';
 import { BIRTH_FX, COMBO_HITS } from './spriteDefs';
 
@@ -25,6 +26,8 @@ export interface FxWeaponShape {
   issen?: { lineSheets: string[]; soloSuffix: string; shadow: { sheet: string } };
   plunge?: { wave: { sheet: string } };
   draw?: { weakArrowSheet: string };
+  /** 56라운드 2단계 새 기본기 보조 fx (`<무기>_<이름>`) */
+  moves?: WeaponMovesDef;
 }
 
 /** 56라운드 Q9 완벽 놓기 섬광 `fx/<무기>_perfect_release` */
@@ -32,7 +35,7 @@ export function perfectReleaseFxId(weaponId: string): string {
   return `${weaponId}_perfect_release`;
 }
 
-/** 56라운드 이펙트: 일섬 선 t1~t4(+분신 없는 _solo)·그림자 분신 · 꽂아내리기 충격파 · 활 약한 화살·완벽 놓기 섬광 */
+/** 56라운드 이펙트: 일섬 선 t1~t4(+분신 없는 _solo)·그림자 분신 · 꽂아내리기 충격파 · 활 약한 화살·완벽 놓기 섬광 · 2단계 새 기본기 보조 fx */
 export function weapon56FxIds(id: string, w: FxWeaponShape): string[] {
   const out: string[] = [];
   if (w.issen) {
@@ -41,6 +44,7 @@ export function weapon56FxIds(id: string, w: FxWeaponShape): string[] {
   }
   if (w.plunge) out.push(w.plunge.wave.sheet);
   if (w.draw) out.push(w.draw.weakArrowSheet, perfectReleaseFxId(id));
+  for (const n of moveFxNames(w.moves)) out.push(`${id}_${n}`);
   return out;
 }
 

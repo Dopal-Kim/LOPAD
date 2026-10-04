@@ -14,10 +14,20 @@ import { facingOf, rowDirFor } from '../../systems/spriteDefs';
 import type { Player } from '../Player';
 import type { ComboStrike } from './heavyMoves';
 
-/** 51라운드 Q4: 넣은 채 첫 타 보너스 표시 (발도·끌어내기) */
+/** 51라운드 Q4: 넣은 채 첫 타 보너스 표시 (발도·끌어내기) · 56라운드 전용 동작·새 기본기 필드 */
 export type AttackExtra = Pick<
   PlayerAttackPayload,
-  'firstStrike' | 'knockbackMult' | 'bowPower' | 'pierce' | 'crack' | 'issen' | 'plunge'
+  | 'firstStrike'
+  | 'knockbackMult'
+  | 'bowPower'
+  | 'pierce'
+  | 'crack'
+  | 'issen'
+  | 'plunge'
+  | 'move'
+  | 'noImpactFx'
+  | 'rush'
+  | 'leap'
 >;
 
 /** 연격 타의 그림 키 (차지 = 차지 hit.art, 없으면 `combo<n>`) */
@@ -40,6 +50,8 @@ export function emitPlayerAttack(
   a: Pick<PlayerAttackPayload, 'kind' | 'damageMult' | 'sizeMult' | 'forceCrit' | 'primed'>,
   combo: ComboStrike | null,
   extra?: AttackExtra,
+  /** 56라운드 2단계: 몸 시트의 이 열만 제 시간으로 재생 (대치 일격 — 뗀 순간 releaseFrame 부터 끝까지) */
+  frames?: number[],
 ): PlayerAttackPayload {
   const visual = p.visual;
   const aim = new Phaser.Math.Vector2(input.aimX - p.x, input.aimY - p.y);
@@ -55,7 +67,8 @@ export function emitPlayerAttack(
   const key = p.poses.keyFrame(action, combo, shot);
   // 조준 사격은 활 조준 시트의 발사 프레임 (없으면 기존 attack)
   const aimedRelease = a.kind === 'aimed' && p.poses.playAimRelease(facingOf(aim.x, aim.y, visual.facing), time);
-  if (!aimedRelease) visual.oneShot(action, aimDir, time, fit, key ?? undefined);
+  if (frames && frames.length > 0 && !aimedRelease) visual.playFrames(action, aimDir, frames, time);
+  else if (!aimedRelease) visual.oneShot(action, aimDir, time, fit, key ?? undefined);
   // 연격 시트 JSON 메모: hitFrames[0](없으면 impactFrame) 시작 = 휘두름 시점, cancelFromFrame 시작 = 다음 타 허용
   const sheet = action !== 'attack' ? visual.sheet(action) : undefined;
   const hf = sheet?.hitFrames?.[0] ?? (typeof sheet?.impactFrame === 'number' ? sheet.impactFrame : undefined);

@@ -20,6 +20,8 @@ import {
 import { CarryChip } from './CarryHud';
 import { carryView } from './carryView';
 import { cancelChooseCmd, chooseNodeCmd, debugExpose, installUiDebug, withDebug } from './debug';
+import { WeaponGaugeChip } from './GaugeHud';
+import { gaugeView, groggyShake, groggyView } from './gaugeView';
 import { GlowText } from './glow';
 import {
   Gauge,
@@ -49,7 +51,7 @@ import { hasRoute } from './routeView';
 import { ResourceGauge } from './ResourceHud';
 import { ChallengePanel, InteractBubble, ResultToasts, StatusChips } from './StructureHud';
 import { fill, r49Text, regionText, routeText, uiText, warpText } from './text';
-import { LAYOUT, MAP_BG_FLOORS, RES, ROUTE, STRUCT } from './theme';
+import { GROGGY, LAYOUT, MAP_BG_FLOORS, RES, ROUTE, STRUCT, WGAUGE } from './theme';
 import { TutorialGuide } from './TutorialHud';
 import { sameStepText } from './tutorialView';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
@@ -84,6 +86,7 @@ const STRUCTURE_MENU_IDS: ReadonlySet<string> = new Set<UiStructureMenuId>([
  * 보스 게이지는 묶음 위 8px, 자막은 그 위. 상단 좌 층 제목·시련, 상단 우 미니맵 + 'M 지도'. 우하단 공지.
  * 49라운드: 무기 자원이 있으면 묶음이 80 으로 커지고 3행에 자원 게이지(계약 §11.1). M = 지도(Tab 과 같음, §11.3).
  * 무기 시험장(`lab`)에서는 좌상단에 '무기 시험장 · L 무기 고르기 · Esc 일기장', 우상단 지도·안내는 숨긴다.
+ * 56라운드(계약 §13): 2행 무기 이름 오른쪽에 고유 자원 눈금(`WeaponGaugeChip`), 그로기 중 3행 기력 막대 아래 남은 시간선 + 무기 줄 떨림.
  */
 export class HudScene extends Phaser.Scene {
   private built = false;
@@ -104,6 +107,12 @@ export class HudScene extends Phaser.Scene {
   private resource?: ResourceGauge;
   /** 53라운드: F 넣기/뽑기 (3행 오른쪽) */
   private carry?: CarryChip;
+  /** 56라운드: 무기 고유 자원 눈금 (2행 무기 이름 오른쪽) */
+  private weaponGauge?: WeaponGaugeChip;
+  /** 56라운드: 이번 그로기의 전체 시간 (시작 때 본 가장 큰 leftMs, 끝나면 0) */
+  private groggyTotal = 0;
+  /** 56라운드: 자리가 모자라 고유 자원 라벨을 뺐는가 */
+  private gaugeCompact = false;
   /** 53라운드: 튜토리얼 안내 패널·적 등장 경고 */
   private guide?: TutorialGuide;
   private labMode = false;
@@ -189,6 +198,8 @@ export class HudScene extends Phaser.Scene {
     this.bundleH = HUD_H;
     this.bundleObjs = [];
     this.bundleGauges = [];
+    this.groggyTotal = 0;
+    this.gaugeCompact = false;
     this.birthActive = false;
     this.bannerQueue = [];
     this.bannerBusy = false;
@@ -274,6 +285,7 @@ export class HudScene extends Phaser.Scene {
       this.input.keyboard?.removeCapture('TAB');
       this.resource = undefined;
       this.carry = undefined;
+      this.weaponGauge = undefined;
       this.guide?.destroy();
       this.guide = undefined;
       this.warpMap?.destroy();
@@ -640,6 +652,8 @@ export class HudScene extends Phaser.Scene {
     this.personalityGauge = new Gauge(this, 0, py + 39, PERSONALITY_W, 'gray');
     this.personalityText = this.glow(0, py + 37, '', 'ink_faint');
     this.secondaryText = this.glow(0, py + 37, '', 'ink_faint');
+    // 56라운드: 무기 고유 자원 (무기 이름 바로 오른쪽, x 는 render 에서)
+    this.weaponGauge = new WeaponGaugeChip(this, px + 28, py + 37, this.stageIndex);
 
     // ---- 보스 게이지 (묶음 위 8px) + 이름
     const by = py - 8 - 14;
@@ -668,6 +682,7 @@ export class HudScene extends Phaser.Scene {
       this.bossIcon,
       this.bossName,
       this.carry,
+      this.weaponGauge,
     ];
     this.bundleGauges = [this.hpGauge, this.personalityGauge, this.bossGauge];
 
@@ -749,6 +764,7 @@ export class HudScene extends Phaser.Scene {
       for (const t of this.glows) t.setStageIndex(si);
       this.hpGauge.setStage(this, si);
       this.carry?.setStageIndex(si);
+      this.weaponGauge?.setStageIndex(si);
       this.bossGauge.setStage(this, si);
     }
     const px = this.panelX;
@@ -762,23 +778,52 @@ export class HudScene extends Phaser.Scene {
     this.potionIcon.setX(x);
     this.potionText.setText(`${s.potions}/${s.potionMax}`).setX(x + 20);
     this.potionKey.setX(x + 20 + this.potionText.textW + 8);
-    // 2행
-    this.renderWeaponIcon(s.weapon.name);
+    // 2행 (56라운드: 그로기 중이면 무기 아이콘·이름·고유 자원이 1px 떨린다)
+    const now = this.time.now;
+    const grog = this.groggyOf(s);
+    const shake = grog ? groggyShake(now, GROGGY.shakeMs, GROGGY.shakeAmp) : 0;
+    this.renderWeaponIcon(s.weapon.name, shake);
     const evo = s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : '';
     this.weaponText.setText(`${s.weapon.name}${evo}`);
-    x = Math.max(this.weaponText.x + this.weaponText.textW + 14, px + 200);
-    this.senseIcon.setX(x);
-    const gx = x + 22;
     this.personalityGauge.set(s.weapon.threshold > 0 ? s.weapon.personality / s.weapon.threshold : 0);
-    this.personalityGauge.setPositionX(gx);
-    this.personalityText.setText(`${s.weapon.personality}/${s.weapon.threshold}`).setX(gx + PERSONALITY_W + 6);
+    this.personalityText.setText(`${s.weapon.personality}/${s.weapon.threshold}`);
     this.secondaryText.setText(s.weapon.secondaryName ? `우클릭 ${s.weapon.secondaryName}` : '');
     this.secondaryText.placeRight(px + HUD_W - 10, this.secondaryText.y);
+    // 56라운드: 무기 이름 바로 오른쪽에 고유 자원 눈금, 개성 아이콘은 그 뒤로 비킨다.
+    // 긴 무기·갈래 이름으로 '우클릭 …' 과 겹치면 눈금 라벨을 빼고, 그래도 겹치면 '우클릭 …' 을 숨긴다 (조작 안내·일기장에 같은 글이 있다)
+    const nameEnd = this.weaponText.x - shake + this.weaponText.textW;
+    const gv = gaugeView(s.gauge);
+    const persW = 22 + PERSONALITY_W + 6 + this.personalityText.textW;
+    const secLeft = s.weapon.secondaryName ? this.secondaryText.x : px + HUD_W - 10;
+    const fits = (gaugeW: number): boolean => {
+      const end = gv ? nameEnd + WGAUGE.gapName + gaugeW + WGAUGE.gapAfter : nameEnd + 14;
+      return Math.max(end, px + 200) + persW + WGAUGE.minGapSecondary <= secLeft;
+    };
+    let gaugeW = 0;
+    if (this.weaponGauge) {
+      this.weaponGauge.render(gv, si, now, this.gaugeCompact);
+      const full = this.weaponGauge.fullW;
+      const compact = Boolean(gv) && !fits(full);
+      if (compact !== this.gaugeCompact) {
+        this.gaugeCompact = compact;
+        this.weaponGauge.render(gv, si, now, compact);
+      }
+      if (gv) {
+        this.weaponGauge.setX(nameEnd + WGAUGE.gapName + shake);
+        gaugeW = this.weaponGauge.w;
+      }
+    }
+    this.secondaryText.setVisible(Boolean(s.weapon.secondaryName) && fits(gaugeW));
+    x = Math.max(gv ? nameEnd + WGAUGE.gapName + gaugeW + WGAUGE.gapAfter : nameEnd + 14, px + 200);
+    this.senseIcon.setX(x);
+    const gx = x + 22;
+    this.personalityGauge.setPositionX(gx);
+    this.personalityText.setX(gx + PERSONALITY_W + 6);
     // 3행 (49라운드): 무기 자원 + 53라운드 F 넣기/뽑기. 둘 다 없으면 묶음을 원래 높이로
     const res = s.resource && s.resource.kind ? s.resource : null;
     const carry = carryView(s.carry);
     this.setBundleHeight(res || carry ? RES.bundleH : HUD_H);
-    this.resource?.render(res, si, this.time.now);
+    this.resource?.render(res, si, now, grog);
     this.carry?.render(carry);
     // 보스 (처치 뒤 스냅샷에 hp 0 으로 남는 동안은 숨긴다)
     if (s.boss && s.boss.hp > 0) {
@@ -862,15 +907,29 @@ export class HudScene extends Phaser.Scene {
     }
   }
 
-  /** 무기 아이콘: 이름 매핑 + 텍스처가 있을 때만 보이고, 이름은 아이콘 오른쪽으로 비킨다 */
-  private renderWeaponIcon(weaponName: string): void {
+  /** 무기 아이콘: 이름 매핑 + 텍스처가 있을 때만 보이고, 이름은 아이콘 오른쪽으로 비킨다. shake = 56라운드 그로기 떨림 px */
+  private renderWeaponIcon(weaponName: string, shake = 0): void {
     const id = WEAPON_ICON_IDS[weaponName];
     const key = id ? weaponIconKey(id) : '';
     const has = Boolean(key) && this.textures.exists(key);
     if (has && this.weaponIcon.texture.key !== key) this.weaponIcon.setTexture(key);
     this.weaponIcon.setVisible(has);
-    const x = this.panelX + (has ? 28 : 8);
+    const ix = this.panelX + 8 + shake;
+    if (this.weaponIcon.x !== ix) this.weaponIcon.setX(ix);
+    const x = this.panelX + (has ? 28 : 8) + shake;
     if (this.weaponText.x !== x) this.weaponText.setX(x);
+  }
+
+  /** 56라운드 그로기 표시 (계약 §13). 전체 시간은 이번 그로기에서 본 가장 큰 leftMs (끝나면 잊는다) */
+  private groggyOf(s: UiSnapshot): ReturnType<typeof groggyView> {
+    const g = s.groggy;
+    if (!g || g.active !== true) {
+      this.groggyTotal = 0;
+      return null;
+    }
+    const left = Number.isFinite(g.leftMs) ? g.leftMs : 0;
+    this.groggyTotal = Math.max(this.groggyTotal, left);
+    return groggyView(g, this.groggyTotal || GROGGY.defaultMs);
   }
 
   /** 스토리 자막: 보스 게이지 위(보스전이 아니면 묶음 위) 가운데, 패널 없이 ink_body. 공지 1.8초, 그 외 3.6초 */

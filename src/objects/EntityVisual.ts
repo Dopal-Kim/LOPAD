@@ -87,6 +87,9 @@ export class EntityVisual {
   private tintTween: Phaser.Tweens.Tween | null = null;
   /** 53라운드 v3 적: 지금 맞춘 시트 (피격 연출 높이) */
   private fitDef: Pick<SheetJson, 'pivot' | 'pixelScale'> | null = null;
+  /** 56라운드 2단계: 지금 맞춘 시트 전체 틀 · 공중 높이(월드 px, 위 +) — 그림만 올리고 바디·그림자·깊이는 바닥 */
+  private fitFrame: Pick<SheetJson, 'frameWidth' | 'frameHeight' | 'pivot' | 'pixelScale'> | null = null;
+  private lift = 0;
 
   constructor(
     private readonly host: Host,
@@ -129,13 +132,34 @@ export class EntityVisual {
     if (key === this.fitKey) return;
     this.fitKey = key;
     this.fitDef = def;
+    this.fitFrame = def;
     const host = this.host;
-    host.setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight);
     host.setScale(s);
     // 바디의 배율 캐시(_sx)를 지금 배율로 맞춘 뒤 크기를 넣는다 (다음 물리 단계를 기다리지 않고 바로 맞는 크기)
     host.body.updateBounds();
     host.body.setSize(this.bodyW / s, this.bodyH / s, false);
-    host.body.setOffset((def.frameWidth - this.bodyW / s) / 2, def.pivot.y + (1 - this.bodyH) / s);
+    this.applyOrigin();
+  }
+
+  /** 원점 = 피벗(+ 공중 높이) · 바디 오프셋도 같은 만큼 — 바디 월드 위치는 그대로 */
+  private applyOrigin(): void {
+    const def = this.fitFrame;
+    if (!def) return;
+    const s = artScale(def);
+    const up = this.lift / s;
+    this.host.setOrigin(def.pivot.x / def.frameWidth, (def.pivot.y + up) / def.frameHeight);
+    this.host.body.setOffset((def.frameWidth - this.bodyW / s) / 2, def.pivot.y + up + (1 - this.bodyH) / s);
+  }
+
+  /** 56라운드 2단계 도약 찍기 공중 높이 (월드 px, 위 +). 그림만 올리고 바디·그림자·깊이는 바닥에 */
+  setLift(px: number): void {
+    if (px === this.lift || !this.animated) return;
+    this.lift = px;
+    this.applyOrigin();
+  }
+
+  get liftPx(): number {
+    return this.lift;
   }
 
   /** 동작 시트로 배율·원점 맞춤 (시트가 없으면 그대로) */

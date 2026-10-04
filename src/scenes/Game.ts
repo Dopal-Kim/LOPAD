@@ -412,6 +412,10 @@ export class Game extends Phaser.Scene {
       [Events.PLAYER_PARRIED, f.onParried, f],
       [Events.WEAPON_GAUGE, f.onGauge, f],
       [Events.WEAPON_RESOURCE, f.onResource, f],
+      // 56라운드 2단계 새 기본기: 화살비 · 준비 반짝임 · 슈퍼아머 흡수
+      [Events.PLAYER_ARROW_RAIN, s.rain.start, s.rain],
+      [Events.PLAYER_SKILL, s.moves.onSkill, s.moves],
+      [Events.PLAYER_DAMAGED, s.moves.onPlayerDamaged, s.moves],
     ];
     for (const [event, fn, ctx] of this.subs) EventBus.on(event, fn, ctx);
   }
@@ -592,6 +596,8 @@ export class Game extends Phaser.Scene {
     this.numbers.destroy();
     this.feedback.destroy();
     this.strikes.brands.destroy();
+    this.strikes.moves.destroy();
+    this.strikes.rain.destroy();
     this.telegraph.destroy();
     this.ribbons.destroy();
     this.ash.destroy();
