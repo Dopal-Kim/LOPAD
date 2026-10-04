@@ -1,0 +1,60 @@
+{
+ "image": "dagger_gale_wind.png",
+ "action": "dagger_gale_wind",
+ "version": "v3-r57-build",
+ "frameWidth": 144,
+ "frameHeight": 160,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.0,
+ "frameDurationsMs": [
+  40,
+  50,
+  70,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 6,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py combo (57라운드 1단 연격 변화 fx)",
+ "pivot": {
+  "x": 69,
+  "y": 133
+ },
+ "anchor": "player_pivot",
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
+ "weapon": "dagger",
+ "branch": "질풍(疾風) 1단 B — 연격 변화(이동 +15%·연격 중 감속 없음)",
+ "followPlayer": false,
+ "depth": "below_player",
+ "spawn": "move_interval",
+ "spawnIntervalMs": 90,
+ "spawnNote": "질풍 1단 런에서 걷기·달리기·연격 중 이동할 때 90ms마다 그 순간의 발 피벗에 1회(따라가지 않음). 행 = 이동 방향(4방향 중 가까운 것)",
+ "heroSource": "player/v3/player_run_free 열 2(방향 행별) 실루엣 — 단검 몸과 자세가 달라도 재 실루엣이라 무방",
+ "frameRoles": [
+  "재 실루엣 + 바람 획 3",
+  "아래부터 부서짐",
+  "부서짐",
+  "거의 사라짐"
+ ],
+ "design": "달리는 몸 뒤에 남는 재 실루엣(어두운 재 디더 · 밝은 재 테 · 금 자리 호박)과 뒤로 끌리는 가는 바람 붓획 3줄, 재 조각이 떠오름",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "hitOriginInFrame": {
+  "x": 69,
+  "y": 93
+ }
+}

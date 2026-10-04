@@ -1,0 +1,107 @@
+{
+ "image": "set_stasis_wave.png",
+ "action": "set_stasis_wave",
+ "version": "v3-r57-build",
+ "frameWidth": 784,
+ "frameHeight": 664,
+ "framesPerDirection": 9,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 10.98,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  70,
+  80,
+  100,
+  120,
+  140,
+  160
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py status (57라운드 상태·세트·저주 표시 fx)",
+ "pivot": {
+  "x": 390,
+  "y": 332
+ },
+ "anchor": "player_pivot",
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
+ "tag": "간파 6 '정적'",
+ "followPlayer": false,
+ "depth": "below_player",
+ "spawn": "stasis_start",
+ "spawnNote": "완벽 성공 3회째에 1회 — 정적 1초(적·탄 40% 감속) 시작. 감속 중 적·탄 표시는 status_slowed. 화면 전체 연출(색 빼기 등)은 시스템 선택",
+ "frameRoles": [
+  "발동(별 백열)",
+  "퍼짐",
+  "퍼짐",
+  "퍼짐",
+  "퍼짐",
+  "최대",
+  "멈칫",
+  "멈칫",
+  "사라짐"
+ ],
+ "design": "발밑에서 재 점선 고리 두 겹과 시계 눈금 12개가 크게 퍼지고 가운데 바늘이 멈칫거림",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "hitOriginInFrame": {
+  "x": 390,
+  "y": 292
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 set_stasis_wave.png)",
+  "grid": {
+   "columns": 9,
+   "rows": 1,
+   "frameWidth": 784,
+   "frameHeight": 664,
+   "frameCount": 9
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":1420,"y":1320,"w":114,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":333,"y":261,"w":114,"h":120},"sourceSize":{"w":784,"h":664}},
+  "1":{"frame":{"x":0,"y":1958,"w":352,"h":300},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":214,"y":182,"w":352,"h":300},"sourceSize":{"w":784,"h":664}},
+  "2":{"frame":{"x":750,"y":1890,"w":536,"h":456},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":104,"w":536,"h":456},"sourceSize":{"w":784,"h":664}},
+  "3":{"frame":{"x":750,"y":1320,"w":668,"h":568},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":48,"w":668,"h":568},"sourceSize":{"w":784,"h":664}},
+  "4":{"frame":{"x":0,"y":1320,"w":748,"h":636},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":14,"w":748,"h":636},"sourceSize":{"w":784,"h":664}},
+  "5":{"frame":{"x":0,"y":0,"w":774,"h":658},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":774,"h":658},"sourceSize":{"w":784,"h":664}},
+  "6":{"frame":{"x":776,"y":0,"w":774,"h":658},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":774,"h":658},"sourceSize":{"w":784,"h":664}},
+  "7":{"frame":{"x":0,"y":660,"w":774,"h":658},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":774,"h":658},"sourceSize":{"w":784,"h":664}},
+  "8":{"frame":{"x":776,"y":660,"w":774,"h":658},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":774,"h":658},"sourceSize":{"w":784,"h":664}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "set_stasis_wave.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1550,
+   "h": 2346
+  },
+  "scale": "1"
+ }
+}

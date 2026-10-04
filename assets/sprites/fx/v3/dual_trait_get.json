@@ -1,0 +1,117 @@
+{
+ "image": "dual_trait_get.png",
+ "action": "dual_trait_get",
+ "version": "v3-r57-build",
+ "frameWidth": 88,
+ "frameHeight": 200,
+ "framesPerDirection": 12,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 13.79,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  50,
+  60,
+  60,
+  70,
+  80,
+  90,
+  100,
+  110,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 12,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py status (57라운드 상태·세트·저주 표시 fx)",
+ "pivot": {
+  "x": 44,
+  "y": 196
+ },
+ "anchor": "player_pivot",
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
+ "tag": "이중 개성",
+ "followPlayer": true,
+ "depth": "above",
+ "spawn": "dual_trait_acquired",
+ "spawnNote": "이중 개성을 고른 순간(보상 화면을 닫고 전투 복귀) 1회 — 갈래 하나(호박 붓)와 태그 하나(재 붓)가 감겨 오르는 그림",
+ "frameRoles": [
+  "감겨 오름",
+  "감겨 오름",
+  "감겨 오름",
+  "감겨 오름",
+  "감겨 오름",
+  "감겨 오름",
+  "감겨 오름",
+  "머리 위 맞닿음(백열 별)",
+  "별(백열)",
+  "불씨 떨어짐",
+  "불씨",
+  "사라짐"
+ ],
+ "design": "호박 붓 한 줄과 재 붓 한 줄이 주인공을 나선으로 감으며 올라가 머리 위에서 만나 큰 별, 불씨가 내려앉음",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [
+  7,
+  8
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "hitOriginInFrame": {
+  "x": 44,
+  "y": 156
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dual_trait_get.png)",
+  "grid": {
+   "columns": 12,
+   "rows": 1,
+   "frameWidth": 88,
+   "frameHeight": 200,
+   "frameCount": 12
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":50,"y":390,"w":82,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":158,"w":82,"h":39},"sourceSize":{"w":88,"h":200}},
+  "1":{"frame":{"x":50,"y":335,"w":82,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":144,"w":82,"h":53},"sourceSize":{"w":88,"h":200}},
+  "2":{"frame":{"x":67,"y":249,"w":82,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":113,"w":82,"h":84},"sourceSize":{"w":88,"h":200}},
+  "3":{"frame":{"x":67,"y":144,"w":82,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":94,"w":82,"h":103},"sourceSize":{"w":88,"h":200}},
+  "4":{"frame":{"x":0,"y":0,"w":82,"h":129},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":68,"w":82,"h":129},"sourceSize":{"w":88,"h":200}},
+  "5":{"frame":{"x":84,"y":0,"w":65,"h":142},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":46,"w":65,"h":142},"sourceSize":{"w":88,"h":200}},
+  "6":{"frame":{"x":0,"y":131,"w":65,"h":140},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":23,"w":65,"h":140},"sourceSize":{"w":88,"h":200}},
+  "7":{"frame":{"x":0,"y":273,"w":48,"h":131},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":5,"w":48,"h":131},"sourceSize":{"w":88,"h":200}},
+  "8":{"frame":{"x":48,"y":431,"w":50,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":3,"w":50,"h":44},"sourceSize":{"w":88,"h":200}},
+  "9":{"frame":{"x":100,"y":431,"w":46,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":75,"w":46,"h":19},"sourceSize":{"w":88,"h":200}},
+  "10":{"frame":{"x":0,"y":461,"w":46,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":94,"w":46,"h":32},"sourceSize":{"w":88,"h":200}},
+  "11":{"frame":{"x":0,"y":406,"w":46,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":123,"w":46,"h":53},"sourceSize":{"w":88,"h":200}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dual_trait_get.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 149,
+   "h": 493
+  },
+  "scale": "1"
+ }
+}

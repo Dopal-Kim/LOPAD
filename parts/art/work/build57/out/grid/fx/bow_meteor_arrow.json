@@ -1,0 +1,71 @@
+{
+ "image": "bow_meteor_arrow.png",
+ "action": "bow_meteor_arrow",
+ "version": "v3-r57-build",
+ "frameWidth": 208,
+ "frameHeight": 344,
+ "frames": 9,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.07,
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  30,
+  50,
+  60,
+  80,
+  100,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 14,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py awaken (57라운드 최종 각성 — 무기 변형 오버레이 · 시그니처 fx)",
+ "pivot": {
+  "x": 124,
+  "y": 299
+ },
+ "weapon": "bow",
+ "awakening": "유성(流星)",
+ "anchor": "hitbox_center",
+ "followTarget": false,
+ "depth": "above",
+ "spawn": "awaken_perfect_release",
+ "anchorNote": "pivot = 떨어지는 자리(완벽 놓기 화살이 맞은 적 발밑 · 화살비는 낙하점)",
+ "impactFrame": 3,
+ "impactAtMs": 120,
+ "spawnNote": "각성 '유성' 런에서 완벽 놓기 화살마다 하늘에서 1발 추가(설계안 3.4) — 적중 지점에 생성, f3 시작(120ms 뒤)이 판정",
+ "hitShape": {
+  "type": "circle",
+  "radiusPx": 56,
+  "note": "착탄 반경 참고값"
+ },
+ "frameRoles": [
+  "별똥 낙하",
+  "낙하",
+  "닿기 직전(백열 촉)",
+  "착탄(백열 별)",
+  "고리 퍼짐",
+  "퍼짐",
+  "식음",
+  "재",
+  "재"
+ ],
+ "design": "왼쪽 위 하늘에서 호박 불꼬리를 끄는 별똥 화살이 떨어져 꽂히며 큰 별·고리 → 흙먼지·불티·재",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [
+  2,
+  3
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

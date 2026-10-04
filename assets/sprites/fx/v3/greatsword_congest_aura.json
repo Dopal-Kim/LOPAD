@@ -1,0 +1,97 @@
+{
+ "image": "greatsword_congest_aura.png",
+ "action": "greatsword_congest_aura",
+ "version": "v3-r57-build",
+ "frameWidth": 80,
+ "frameHeight": 128,
+ "framesPerDirection": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 8.0,
+ "frameDurationsMs": [
+  125,
+  125,
+  125,
+  125,
+  125,
+  125
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 9,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py branch (57라운드 2단 갈래 fx)",
+ "pivot": {
+  "x": 38,
+  "y": 103
+ },
+ "anchor": "player_pivot",
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
+ "weapon": "greatsword",
+ "branch": "울혈(鬱血) 2단 B-β — 그로기 중 울분 맺힘",
+ "followPlayer": true,
+ "depth": "below_player",
+ "spawn": "groggy_start",
+ "spawnNote": "울혈 런에서 그로기 동안 루프(750ms × 2 = 그로기 1.5초), player_groggy_swirl 과 함께. 그로기 중 퍼펙트 가드 창 2배는 시스템",
+ "frameRoles": [
+  "맥동 루프",
+  "맥동 루프",
+  "맥동 루프",
+  "맥동 루프",
+  "맥동 루프",
+  "맥동 루프"
+ ],
+ "design": "발밑 어두운 웅덩이에서 뻗는 호박 혈관 금 7줄이 맥박처럼 밝아졌다 어두워지고, 가는 재 연기·불티가 오름",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "hitOriginInFrame": {
+  "x": 38,
+  "y": 63
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_congest_aura.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 80,
+   "frameHeight": 128,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":337,"w":72,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":13,"w":72,"h":105},"sourceSize":{"w":80,"h":128}},
+  "1":{"frame":{"x":0,"y":547,"w":72,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":22,"w":72,"h":96},"sourceSize":{"w":80,"h":128}},
+  "2":{"frame":{"x":0,"y":117,"w":72,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":8,"w":72,"h":110},"sourceSize":{"w":80,"h":128}},
+  "3":{"frame":{"x":0,"y":444,"w":72,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":17,"w":72,"h":101},"sourceSize":{"w":80,"h":128}},
+  "4":{"frame":{"x":0,"y":0,"w":72,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":72,"h":115},"sourceSize":{"w":80,"h":128}},
+  "5":{"frame":{"x":0,"y":229,"w":72,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":12,"w":72,"h":106},"sourceSize":{"w":80,"h":128}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "greatsword_congest_aura.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 72,
+   "h": 643
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,51 @@
+{
+ "image": "bow_carry_dash_awaken.png",
+ "action": "bow_carry_dash_awaken",
+ "version": "v3-r57-build",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.83,
+ "frameDurationsMs": [
+  30,
+  40,
+  60,
+  60,
+  50
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 4,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py awaken (57라운드 최종 각성 — 무기 변형 오버레이 · 시그니처 fx)",
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_dash",
+ "overlayOf": "weapons/v3/bow_carry_dash",
+ "depth": "above_weapon",
+ "weapon": "bow",
+ "awakening": "유성(流星)",
+ "design": "활대 테두리 곳곳이 호박 별빛(A21), 시위·날선 A25, 활대 양 끝에 반짝이는 네 갈래 별 + 활대를 따라 도는 별똥 불티",
+ "drawRule": "무기 시트 'bow_carry_dash' 를 그린 바로 위에 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각·같은 피벗(주인공 피벗 + playerFrameOffset)으로 겹친다. 각성한 런에서만. 검기·울분 오버레이가 있으면 그 위(무기 → _awaken → _ki/_grudge)",
+ "r57": "57라운드 Q22~Q37 최종 각성(설계안 3.4 A안 — 무기당 1종, 무기 외형 변형) · 1층 단계는 무기 시험장에서만",
+ "glowFrames": [],
+ "glowRule": "백열(X1·A26)은 무기 시트 glowFrames(판정 순간)만 — 그 밖 A25 이하, 빌드 검사 통과"
+}

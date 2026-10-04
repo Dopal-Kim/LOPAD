@@ -1,0 +1,85 @@
+{
+ "image": "greatsword_quake_fork.png",
+ "action": "greatsword_quake_fork",
+ "version": "v3-r57-build",
+ "frameWidth": 280,
+ "frameHeight": 136,
+ "frames": 9,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.52,
+ "frameDurationsMs": [
+  30,
+  30,
+  30,
+  30,
+  60,
+  80,
+  100,
+  120,
+  140
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 9,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py branch (57라운드 2단 갈래 fx)",
+ "pivot": {
+  "x": 140,
+  "y": 68
+ },
+ "weapon": "greatsword",
+ "branch": "지진(地震) 2단 A-α",
+ "anchor": "crack_end",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "depth": "above",
+ "anchorNote": "pivot = 파쇄 균열(greatsword_shatter_crack_tN) 앞머리가 멈춘 끝점 — 그 균열과 같은 각도로 회전",
+ "spawn": "crack_front_end",
+ "spawnNote": "지진 런에서 파쇄 균열 앞머리가 끝에 닿은 순간 1회. 공중제비 착지 균열 1줄은 greatsword_shatter_crack_t2 를 착지점·조준 방향으로 재사용",
+ "hitShape": {
+  "type": "rays",
+  "anglesDeg": [
+   -25,
+   0,
+   25
+  ],
+  "lengthPx": 128,
+  "halfWidthPx": 20,
+  "frontPxByFrame": [
+   44,
+   88,
+   128
+  ],
+  "activeFrames": [
+   0,
+   1,
+   2
+  ],
+  "damageScale": 0.6,
+  "note": "설계안 2.3 갈래 ±25°·각 ×0.6 — 길이 2칸은 아트 제안, 참고값"
+ },
+ "frameRoles": [
+  "갈라짐",
+  "갈라짐",
+  "2칸(끝)",
+  "다 갈라짐",
+  "식음",
+  "식음",
+  "식음",
+  "식음",
+  "재"
+ ],
+ "design": "균열 끝에서 −25°·0°·+25° 세 갈래로 다시 터져 나가는 호박 금(흙 테·가지 금·돌 조각·흙먼지)",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

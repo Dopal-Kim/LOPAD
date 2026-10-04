@@ -1,0 +1,123 @@
+{
+ "image": "greatsword_leap_slam_awaken.png",
+ "action": "greatsword_leap_slam_awaken",
+ "version": "v3-r57-build",
+ "frameWidth": 280,
+ "frameHeight": 312,
+ "frames": 13,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right",
+  "down-right",
+  "down-left",
+  "up-right",
+  "up-left"
+ ],
+ "layout": "rows = directions (down, up, left, right, down-right, down-left, up-right, up-left), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.29,
+ "frameDurationsMs": [
+  40,
+  80,
+  50,
+  50,
+  50,
+  50,
+  50,
+  40,
+  60,
+  110,
+  120,
+  100,
+  110
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py awaken (57라운드 최종 각성 — 무기 변형 오버레이 · 시그니처 fx)",
+ "directionRows": [
+  {
+   "row": 0,
+   "direction": "down",
+   "screenDeg": 90.0,
+   "body": "정면"
+  },
+  {
+   "row": 1,
+   "direction": "up",
+   "screenDeg": -90.0,
+   "body": "뒷면"
+  },
+  {
+   "row": 2,
+   "direction": "left",
+   "screenDeg": 180.0,
+   "body": "측면"
+  },
+  {
+   "row": 3,
+   "direction": "right",
+   "screenDeg": 0.0,
+   "body": "측면"
+  },
+  {
+   "row": 4,
+   "direction": "down-right",
+   "screenDeg": 45.0,
+   "body": "3/4 (정면 쪽)"
+  },
+  {
+   "row": 5,
+   "direction": "down-left",
+   "screenDeg": 135.0,
+   "body": "3/4 (정면 쪽)"
+  },
+  {
+   "row": 6,
+   "direction": "up-right",
+   "screenDeg": -45.0,
+   "body": "3/4 (뒷면 쪽)"
+  },
+  {
+   "row": 7,
+   "direction": "up-left",
+   "screenDeg": -135.0,
+   "body": "3/4 (뒷면 쪽)"
+  }
+ ],
+ "pivot": {
+  "x": 139,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 91,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_greatsword_leap_slam",
+ "dirTransform": "drawn8",
+ "framesBasis": "player_greatsword_leap_slam 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "total": 910,
+  "hitAt": 410,
+  "activeEndAt": 470,
+  "cancelAt": null
+ },
+ "overlayOf": "weapons/v3/greatsword_leap_slam",
+ "depth": "above_weapon",
+ "weapon": "greatsword",
+ "awakening": "산붕(山崩)",
+ "design": "대검 날이 바위(흙 B1~B3·재 S2, 테 B0)로 바뀌고 용암 금 3줄이 맥박, 등날 한쪽에 바위 조각 4개가 솟음(형태) + 떨어지는 돌가루",
+ "drawRule": "무기 시트 'greatsword_leap_slam' 를 그린 바로 위에 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각·같은 피벗(주인공 피벗 + playerFrameOffset)으로 겹친다. 각성한 런에서만. 검기·울분 오버레이가 있으면 그 위(무기 → _awaken → _ki/_grudge)",
+ "r57": "57라운드 Q22~Q37 최종 각성(설계안 3.4 A안 — 무기당 1종, 무기 외형 변형) · 1층 단계는 무기 시험장에서만",
+ "glowFrames": [
+  8
+ ],
+ "glowRule": "백열(X1·A26)은 무기 시트 glowFrames(판정 순간)만 — 그 밖 A25 이하, 빌드 검사 통과"
+}

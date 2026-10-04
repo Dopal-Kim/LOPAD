@@ -1,0 +1,59 @@
+{
+ "image": "aim_charge_quick.png",
+ "action": "aim_charge_quick",
+ "version": "v3-r57-build",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "frames": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 13.33,
+ "frameDurationsMs": [
+  70,
+  70,
+  70,
+  70,
+  70,
+  100
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 10,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py combo (57라운드 1단 연격 변화 fx)",
+ "pivot": {
+  "x": 64,
+  "y": 64
+ },
+ "weapon": "bow",
+ "branch": "속사(速射) 1단 A — 연격 변화(좌클릭 충전 시간 −30%)",
+ "replaces": "fx/v3/aim_charge",
+ "anchor": "player_pivot",
+ "anchorNote": "aim_charge 와 같은 자리·같은 규격(128×128 · 피벗 = 고리 중심 · 반지름 40 도트) — 속사 1단 런에서 1:1 교체",
+ "progressDriven": true,
+ "progressRule": "frame = min(5, floor(progress × 5)) (aim_charge 와 같음). 충전 속도(−30%)는 시스템 데이터",
+ "spawn": "aim_charge",
+ "depth": "above",
+ "glowNote": "f5(가득) 고리 위 별만 백열",
+ "frameRoles": [
+  "0%",
+  "20%",
+  "40%",
+  "60%",
+  "80%",
+  "가득"
+ ],
+ "design": "점선 안내 고리를 혼불 고리가 시계 방향으로 채우는데 머리 앞에 속도 쐐기 » 두 개 + 안쪽 짧은 둘째 줄(빠름 표시)",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [
+  5
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

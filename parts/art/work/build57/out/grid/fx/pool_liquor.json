@@ -1,0 +1,73 @@
+{
+ "image": "pool_liquor.png",
+ "action": "pool_liquor",
+ "version": "v3-r57-build",
+ "frameWidth": 144,
+ "frameHeight": 56,
+ "frames": 10,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 8.85,
+ "frameDurationsMs": [
+  60,
+  70,
+  80,
+  140,
+  140,
+  140,
+  140,
+  100,
+  120,
+  140
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 6,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py status (57라운드 상태·세트·저주 표시 fx)",
+ "pivot": {
+  "x": 70,
+  "y": 31
+ },
+ "tag": "취기",
+ "anchor": "hitbox_center",
+ "depth": "floor",
+ "scale": "allowed",
+ "radiusPx": 64.0,
+ "groundRy": 28.0,
+ "loopRange": [
+  3,
+  6
+ ],
+ "endFrames": [
+  7,
+  9
+ ],
+ "spawn": "liquor_pool",
+ "lifeRule": "f0~f2 퍼짐 → f3~f6 루프(6초 — 시스템) → f7~f9 마름. 반경 1칸 = 64 도트(취기 6 '술바다' 1.2칸이면 scale 1.2)",
+ "spawnNote": "취기 패시브 '엎지른 술'·세트 6 처치·독주 술통 파괴·보스 술 뿌리기·적 사망(독주 행상·술통 짐꾼) 자리. 불이 닿으면 pool_liquor_fire 로 교체(같은 피벗)",
+ "pivotNote": "pivot = 웅덩이 중심(바닥). fire_pool·boss1_liquor_splash 와 같은 바닥 깊이",
+ "frameRoles": [
+  "퍼짐",
+  "퍼짐",
+  "퍼짐",
+  "루프",
+  "루프",
+  "루프",
+  "루프",
+  "마름",
+  "마름",
+  "마름"
+ ],
+ "design": "호박 술 웅덩이(울퉁불퉁한 가장자리 · 어두운 테 · 위쪽 밝음) 위로 흐르는 빛 띠 두 줄과 반짝임 한 점. 불은 없음",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+}

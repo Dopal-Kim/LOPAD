@@ -1,0 +1,89 @@
+{
+ "image": "dagger_brand_hop.png",
+ "action": "dagger_brand_hop",
+ "version": "v3-r57-build",
+ "frameWidth": 96,
+ "frameHeight": 24,
+ "framesPerDirection": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.0,
+ "frameDurationsMs": [
+  50,
+  50,
+  50,
+  50
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 6,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py branch (57라운드 2단 갈래 fx)",
+ "pivot": {
+  "x": 48,
+  "y": 12
+ },
+ "weapon": "dagger",
+ "branch": "출혈(出血) 2단 A-β — 출혈 중 처치 시 낙인이 반경 3칸 적 1명에게 옮겨감",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "depth": "above",
+ "anim": "loop_move",
+ "spawn": "brand_transfer",
+ "spawnNote": "죽은 적 → 새 적으로 시스템이 이동(약 0.2초 권장), 도착하면 dagger_brand_mark 스택 행 stamp",
+ "frameRoles": [
+  "날아감 루프",
+  "날아감 루프",
+  "날아감 루프",
+  "날아감 루프"
+ ],
+ "design": "X 낙인 한 개가 호박 꼬리 줄을 끌며 날아감",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_brand_hop.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 96,
+   "frameHeight": 24,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":49,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":5,"w":49,"h":14},"sourceSize":{"w":96,"h":24}},
+  "1":{"frame":{"x":102,"y":0,"w":48,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":5,"w":48,"h":14},"sourceSize":{"w":96,"h":24}},
+  "2":{"frame":{"x":152,"y":0,"w":47,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":5,"w":47,"h":14},"sourceSize":{"w":96,"h":24}},
+  "3":{"frame":{"x":51,"y":0,"w":49,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":5,"w":49,"h":14},"sourceSize":{"w":96,"h":24}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_brand_hop.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 199,
+   "h": 14
+  },
+  "scale": "1"
+ }
+}

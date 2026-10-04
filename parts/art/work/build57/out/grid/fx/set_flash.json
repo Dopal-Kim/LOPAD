@@ -1,0 +1,69 @@
+{
+ "image": "set_flash.png",
+ "action": "set_flash",
+ "version": "v3-r57-build",
+ "frameWidth": 248,
+ "frameHeight": 272,
+ "frames": 8,
+ "directions": [
+  "2",
+  "4",
+  "6"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.09,
+ "frameDurationsMs": [
+  30,
+  40,
+  50,
+  60,
+  70,
+  80,
+  90,
+  110
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 9,
+ "semiTransparent": false,
+ "source": "parts/art/work/build57/build.py status (57라운드 상태·세트·저주 표시 fx)",
+ "pivot": {
+  "x": 123,
+  "y": 207
+ },
+ "anchor": "player_pivot",
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
+ "tag": "공용(10태그)",
+ "rowsAre": "stages",
+ "followPlayer": true,
+ "depth": "above",
+ "spawn": "set_tier_reached",
+ "rowNote": "행 = 세트 단계 2·4·6(태그 공용 — 태그 구분은 UI 아이콘·문구). 단계가 클수록 기둥·고리·빛살이 큼(빛살 4/8/12)",
+ "spawnNote": "태그 점수가 2·4·6 임계를 처음 넘은 순간 1회(보상 화면에서 고른 뒤 전투 복귀 시 재생 권장)",
+ "frameRoles": [
+  "발동(백열 기둥·별)",
+  "백열",
+  "퍼짐",
+  "퍼짐",
+  "퍼짐",
+  "불티",
+  "불티",
+  "사라짐"
+ ],
+ "design": "발밑 점선 고리와 방사 빛살이 퍼지며 몸을 꿰는 빛기둥과 머리 위 별 — 6단계는 안쪽 고리 한 겹 더",
+ "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "glowFrames": [
+  0,
+  1
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "hitOriginInFrame": {
+  "x": 123,
+  "y": 167
+ }
+}
