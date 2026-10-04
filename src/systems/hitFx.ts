@@ -29,11 +29,13 @@ export interface HitFxSummary {
   particles: ReturnType<AshParticles['summary']> | null;
 }
 
-/** 55라운드 무기 적중 표시: 무기 id · 막타(연격 마지막 타·대쉬 공격) · 되돌아 휘두름(짝수 번째 타) */
+/** 55라운드 무기 적중 표시: 무기 id · 막타(데이터 heavy · 대쉬 공격) · 되돌아 휘두름(판정 호가 반대로 훑는 타) · 왼쪽 회전 */
 export interface WeaponHitStyle {
   weaponId: string;
   heavy: boolean;
   backswing?: boolean;
+  /** 55라운드 Q28: 왼쪽 조준이 180° 회전인 연격 (스파크를 바로 세우지 않는다 — sparkOrientation) */
+  rotateLeft?: boolean;
 }
 
 export class HitFx {
@@ -77,8 +79,8 @@ export class HitFx {
     // 55라운드: 무기 적중 스파크 (치명타도 막타 시트). 2차 전용 치명 이펙트는 그 위에
     const heavy = Boolean(style?.heavy) || crit;
     const sheet = style ? weaponHitSheet(style.weaponId, heavy, (id) => this.fx.has(id)) : null;
-    if (sheet) {
-      this.weaponSpark(sheet, x, y, dirX, dirY, Boolean(style?.backswing));
+    if (sheet && style) {
+      this.weaponSpark(sheet, x, y, dirX, dirY, style);
       if (crit && critFx && this.fx.has(critFx.id))
         this.fx.play(critFx.id, critFx.x, critFx.y, { dir: this.dirOf(dirX, dirY), depth: DEPTH.HIT_FX + 0.01 });
       return sheet;
@@ -101,12 +103,13 @@ export class HitFx {
    * 무기 적중 스파크 (계약 §16): 피벗 = 적중점, 공격 진행 방향으로 회전(drawnFacing 기준), flipY 허용이면 바로 세움·되돌아 휘두름 반전,
    * 히트스톱 중 holdFrame. 재 파편 = particles_ash recipes.<시트> (같은 프레임 두 번째 적중부터 MULTI_HIT_FACTOR 배)
    */
-  private weaponSpark(id: string, x: number, y: number, dirX: number, dirY: number, backswing: boolean): void {
+  private weaponSpark(id: string, x: number, y: number, dirX: number, dirY: number, style: WeaponHitStyle): void {
     const def = this.fx.sheet(id);
     const o = sparkOrientation(dirX, dirY, {
       drawnFacing: def?.drawnFacing,
       flipAllowed: def?.flipY === 'allowed' || def?.flipY === true,
-      backswing,
+      backswing: Boolean(style.backswing),
+      rotateLeft: Boolean(style.rotateLeft),
     });
     this.fx.play(id, x, y, {
       angle: o.angle,

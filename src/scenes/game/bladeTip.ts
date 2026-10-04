@@ -94,7 +94,7 @@ export function planBladeTip(
       },
     };
   }
-  // 리본이 훑는 방향은 몸 시트 메모(arcFromDeg→arcToDeg, 그린 휘두름)를 따른다 — 범위는 판정 호 (칼 3타: 판정 +75→−75, 그림 −75→+75)
+  // 리본이 훑는 방향은 몸 시트 메모(arcFromDeg→arcToDeg, 그린 휘두름)를 따른다 — 범위는 판정 호 (칼 3타: 판정·그림 모두 −75→+75, Q26)
   const drawnFrom = body?.arcFromDeg;
   const drawnTo = body?.arcToDeg;
   const flip =

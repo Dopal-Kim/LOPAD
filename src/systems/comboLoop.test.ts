@@ -35,10 +35,10 @@ describe('55라운드 Q18 대검 G-C 순환', () => {
     expect(c2.readyAt() - c2.lastStartedAt).toBe(gs.hits[3].cancelFromMs);
   });
 
-  it('막타 = V (데이터 heavy), 기력 바닥이면 V 대신 H1', () => {
+  it('Q30: 연격 V 는 일반 타격(막타 아님) — 기력 바닥이어도 순환은 그대로', () => {
     const c = new ComboTracker(gs);
-    expect([0, 1, 2, 3].map((i) => c.isHeavy(i))).toEqual([false, true, false, true]);
-    expect(chain(new ComboTracker(gs), 4, false)).toEqual([0, 0, 0, 0]);
+    expect([0, 1, 2, 3].map((i) => c.isHeavy(i))).toEqual([false, false, false, false]);
+    expect(chain(new ComboTracker(gs), 4, false)).toEqual([0, 1, 2, 3]);
   });
 
   it('리셋 시간이 지나면 H1 부터', () => {

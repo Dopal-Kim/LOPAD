@@ -21,9 +21,15 @@ export const Events = {
   PLAYER_SECONDARY: 'player:secondary',
   /**
    * 55라운드 Q22 대검 홀드 차지 국면 (`PlayerChargePayload`): start · stage(1..3, 단계마다 호박 번쩍임) · release · cancel.
-   * 시스템 내부(월드 번쩍임·디버그·음향 훅 후보). UI 계약 밖 — HUD 표시가 필요하면 계약 변경 인터뷰
+   * 시스템 내부(월드 번쩍임·디버그·음향 audioMap). UI 계약 밖 — HUD 표시가 필요하면 계약 변경 인터뷰.
+   * 차지가 시작된 뒤 1단 전에 떼서 일반 연격이 나가면 cancel(reason 'tap') — start 뒤엔 반드시 release 또는 cancel 이 온다
    */
   PLAYER_CHARGE: 'player:charge',
+  /**
+   * 55라운드 §17 후속 판정 시각 (`PlayerFollowUpPayload`): 칼 잔상 베기 · 대검 차지 3단 충격파 링. 씬 시계(히트스톱 동안 멈춤).
+   * 시스템 내부(음향 audioMap — katana_echo). UI 계약 밖
+   */
+  PLAYER_FOLLOW_UP: 'player:follow-up',
   /** 49라운드 무기 휴대: 칼집·등에서 뽑음 / 넣음(납도) — 음향 훅 후보 (`WeaponCarryPayload`) */
   PLAYER_WEAPON_DRAWN: 'player:weapon-drawn',
   PLAYER_WEAPON_SHEATHED: 'player:weapon-sheathed',
@@ -154,7 +160,16 @@ export type PlayerAttackPayload = {
   momentum?: number;
 };
 /** 55라운드 Q22 대검 홀드 차지 국면 */
-export type PlayerChargePayload = { phase: 'start' | 'stage' | 'release' | 'cancel'; stage: number };
+export type PlayerChargePayload = {
+  phase: 'start' | 'stage' | 'release' | 'cancel';
+  stage: number;
+  /** release: 차지 내려찍기 판정(impact) 프레임까지 ms — 타격음은 이 시각에 */
+  impactDelayMs?: number;
+  /** cancel: 피격(hurt) · 1단 전에 떼서 일반 연격(tap) · 그 밖(대쉬·가드·F·워프·무기 교체 — 없음) */
+  reason?: 'hurt' | 'tap';
+};
+/** 55라운드 §17 후속 판정 (데이터 `followUps[].id` — 칼 echo · 대검 ring) */
+export type PlayerFollowUpPayload = { weapon: string; id: string; art?: string };
 /** 49라운드: 무기 휴대 뽑기·넣기 */
 export type WeaponCarryPayload = { weapon: string; mode: 'sheath' | 'back' | 'hand' };
 /** 49라운드: 무기 자원 변화 */

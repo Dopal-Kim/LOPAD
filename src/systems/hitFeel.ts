@@ -53,16 +53,19 @@ const FACING_ANGLE: Record<string, number> = { right: 0, down: Math.PI / 2, left
 
 /**
  * 회전 스파크 방향 (계약 §16 rotate·drawnFacing·flipY): 각도 = 공격 진행 방향 − 그린 방향.
- * 왼쪽으로 돌면 그림이 뒤집히므로 flipY 로 바로 세우고, 연격 짝수 번째 타(되돌아 휘두름)는 한 번 더 뒤집는다 (flipY 허용 시트만)
+ * 왼쪽으로 돌면 그림이 뒤집히므로 flipY 로 바로 세우고(48라운드 좌우 반전 연격), 되돌아 휘두름(판정 호가 반대로 훑는 타)은
+ * 한 번 더 뒤집는다 (flipY 허용 시트만). `rotateLeft` = 55라운드 Q28 왼쪽 180° 회전 연격(칼·대검 타별 모양): 왼쪽 휘두름도
+ * 화면에서 같은 방향으로 훑으므로 바로 세우지 않고 되돌아 휘두름만 본다
  */
 export function sparkOrientation(
   dirX: number,
   dirY: number,
-  opts: { drawnFacing?: string; flipAllowed?: boolean; backswing?: boolean } = {},
+  opts: { drawnFacing?: string; flipAllowed?: boolean; backswing?: boolean; rotateLeft?: boolean } = {},
 ): { angle: number; flipY: boolean } {
   const angle = Math.atan2(dirY, dirX) - (FACING_ANGLE[opts.drawnFacing ?? 'right'] ?? 0);
   if (!opts.flipAllowed) return { angle, flipY: false };
-  return { angle, flipY: dirX < 0 !== Boolean(opts.backswing) };
+  const left = dirX < 0 && !opts.rotateLeft;
+  return { angle, flipY: left !== Boolean(opts.backswing) };
 }
 
 /**

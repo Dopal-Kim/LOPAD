@@ -1,36 +1,27 @@
 /**
  * 플레이어 공격 (PLAYER_ATTACKED): 근접 연격 판정 (48라운드) · 대검 내리찍기 (49라운드) · 진화 부가 효과(쌍격·지진 2단).
  * 51라운드 정리: 활 = `BowShots`, 잔월·출혈 = `StrikeDots`. 53라운드 정리: 판정 모양·휘두름 이펙트·잔상 리본 = `SwingFx`.
- * 55라운드 §17: 타별 판정 모양(호·쐐기+충격원·찌르기·고리) · 후속 판정(칼 잔상 베기·차지 충격파 링 — 씬 시계 지연이라 히트스톱 동안 멈춤)
- * · 내려찍기 끝점 바닥 충격 · 판정 모양 디버그 오버레이(`HitShapeOverlay`). 피해 계산·피격 연출은 GameCombat.
+ * 55라운드 §17: 타별 판정 모양(호·쐐기+충격원·찌르기·고리) · 내려찍기 끝점 바닥 충격 · 판정 모양 디버그 오버레이(`HitShapeOverlay`).
+ * 55라운드 6-1: 후속 판정(칼 잔상 베기·차지 충격파 링)·추가 타·지진 2단 스케줄 = `StrikeSchedule`. 피해 계산·피격 연출은 GameCombat.
  */
 import Phaser from 'phaser';
 import { COLORS, DEPTH, ENEMY_FX, FEEL, PROTOTYPE } from '../../core/Constants';
 import type { PlayerAttackPayload, PlayerChargePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import type { ComboFollowUpDef } from '../../data/types';
 import type { Mob } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
 import { hitShapeBounds, shapeCenterPoint, shapeHit, type Pt } from '../../systems/hitShapes';
 import type { FxHandle } from '../../systems/fx';
-import { facingOf, hitFrameOffsets, radiusFitScale } from '../../systems/spriteDefs';
+import { facingOf, radiusFitScale } from '../../systems/spriteDefs';
 import { slamFxId, slashFxId } from '../../systems/fxIds';
 import { isBackswing, isHeavyStrike } from '../../systems/hitFeel';
 import type { Game } from '../Game';
 import { BowShots } from './BowShots';
 import { HitShapeOverlay } from './HitShapeOverlay';
 import { StrikeDots } from './StrikeDots';
+import { StrikeSchedule, type SwingOpts } from './StrikeSchedule';
 import { SwingFx } from './SwingFx';
-import { HIT_ORIGIN_UP_PX, evolutionFxId, isFinisher, isMeleeStrike, pathFx, shapeFacing } from './shared';
-
-/** 판정 한 번의 옵션: 지진 2단 · 55라운드 후속 판정(원점·모양 덮어쓰기) */
-interface SwingOpts {
-  secondWave?: boolean;
-  follow?: ComboFollowUpDef;
-  origin?: Pt;
-  /** 후속 판정 전용 이펙트를 이미 띄웠다 (플레이스홀더 없음) */
-  followFx?: boolean;
-}
+import { HIT_ORIGIN_UP_PX, evolutionFxId, isFinisher, isMeleeStrike, pathFx, rotatesLeft, shapeFacing } from './shared';
 
 /** 디버그로 남기는 최근 판정 수 */
 const SWING_LOG_MAX = 12;
@@ -49,6 +40,7 @@ export class PlayerStrikes {
   readonly bow: BowShots;
   readonly dots: StrikeDots;
   private readonly swing: SwingFx;
+  private readonly schedule: StrikeSchedule;
 
   /** 디버그: 마지막 휘두름 이펙트 (55라운드 — 시트·단계·배율·띄운 시각·리본 방식) */
   get debugSwingFx(): unknown {
@@ -61,15 +53,11 @@ export class PlayerStrikes {
     this.dots = new StrikeDots(g);
     this.swing = new SwingFx(g);
     this.overlay = new HitShapeOverlay(g);
+    this.schedule = new StrikeSchedule(g, this.swing, (p, opts) => this.meleeSwing(p, opts));
   }
 
   private pathFx(...candidates: string[]): string | null {
     return pathFx(this.g.fx, ...candidates);
-  }
-
-  /** 씬 진행 중(정지·사망 아님)인지 — 지연 실행 콜백 공통 확인 */
-  private get live(): boolean {
-    return this.g.scene.isActive() && !this.g.frozen && !gameState.gameOver;
   }
 
   onPlayerAttacked(p: PlayerAttackPayload): void {
@@ -87,14 +75,13 @@ export class PlayerStrikes {
       this.bow.fire(p);
       return;
     }
-    const mods = weapon.mods;
     // 48라운드 3연격: 판정은 휘두름 프레임(hitFrames[0]) 시작에, 지진 2단·충격파는 마지막 타에서만
     const combo = isMeleeStrike(p);
     const finisher = isFinisher(p);
     this.swing.play(p);
     this.playGiantFx(p);
     const strike = () => {
-      if (!this.live) return;
+      if (!this.schedule.live) return;
       // 49라운드 내리찍기: 착지점 = 그 순간 발 피벗 + 시트 impactOffsetPx
       const at = p.slam
         ? { ...p, x: g.player.x + p.slam.offsetX, y: g.player.y + p.slam.offsetY }
@@ -102,58 +89,8 @@ export class PlayerStrikes {
           ? { ...p, x: g.player.x, y: g.player.y }
           : p;
       const main = this.meleeSwing(at);
-      // 55라운드 §17 후속 판정: 칼 잔상 베기(150ms 뒤 같은 호 50%) · 차지 3단 충격파 링(끝점). 씬 시계라 히트스톱 동안 멈춘다
-      for (const fu of p.followUps ?? []) {
-        // 전용 이펙트는 그 판정(정지) 프레임이 후속 판정 시각에 오게 먼저 띄운다 (칼 잔상: 320ms 띄움 → 350ms 판정)
-        const lead = this.swing.followUpLeadMs(fu.art);
-        const fuAt = fu.at === 'impact' ? (main.impact ?? undefined) : undefined;
-        if (lead !== null)
-          g.time.delayedCall(Math.max(0, fu.delayMs - lead), () => {
-            if (this.live) this.swing.playFollowUpFx(fu.art, at.dirX, at.dirY, fuAt);
-          });
-        g.time.delayedCall(fu.delayMs, () => {
-          if (!this.live) return;
-          const origin = fuAt;
-          this.meleeSwing(
-            {
-              ...at,
-              x: g.player.x,
-              y: g.player.y,
-              damageMult: at.damageMult * fu.damageMult,
-              activeMs: fu.activeMs ?? at.activeMs,
-              hitShape: fu.hitShape ?? at.hitShape,
-              followUps: undefined,
-            },
-            { follow: fu, origin, followFx: lead !== null },
-          );
-        });
-      }
-      // 쌍격·난무: 추가 타격. 시트 hitFrames 가 있으면 그 프레임 시작 간격(43라운드 B), 없으면 TWIN_DELAY_MS 간격
-      const hits = Math.max(1, mods.hits ?? 1);
-      const multiFx = this.pathFx('dance', 'twin');
-      const offsets = FEEL.SYNC_HIT_FRAMES && multiFx ? hitFrameOffsets(g.fx.sheet(multiFx), hits) : null;
-      for (let i = 1; i < hits; i++) {
-        g.time.delayedCall(offsets?.[i] ?? PROTOTYPE.TWIN_DELAY_MS * i, () => {
-          if (g.scene.isActive() && !g.frozen) this.meleeSwing({ ...at, x: g.player.x, y: g.player.y });
-        });
-      }
-      // 지진: 충격파 2단 (quake 시트는 1단에서 한 번만 — 3프레임 시작이 2단 판정 시점)
-      const second = mods.shockwaveSecond;
-      if (mods.shockwave && second && finisher) {
-        g.time.delayedCall(second.delayMs, () => {
-          if (g.scene.isActive() && !g.frozen)
-            this.meleeSwing(
-              {
-                ...at,
-                x: g.player.x,
-                y: g.player.y,
-                sizeMult: at.sizeMult * second.sizeMult,
-                damageMult: at.damageMult * second.damageMult,
-              },
-              { secondWave: true },
-            );
-        });
-      }
+      // 후속 판정 · 쌍격·난무 추가 타 · 지진 2단 (씬 시계 — 히트스톱 동안 멈춤)
+      this.schedule.after(at, main.impact, finisher);
     };
     const hitDelay = combo ? p.swingDelayMs : 0;
     if (hitDelay > 0) g.time.delayedCall(hitDelay, strike);
@@ -361,11 +298,14 @@ export class PlayerStrikes {
     const critFx = p.primed ? this.pathFx('assassin') : p.kind === 'dashAttack' ? this.pathFx('dashcrit') : null;
     // 51라운드 Q4: 대검 끌어내기 첫 타 = 크게 밀쳐냄
     const knockMult = p.knockbackMult;
-    // 55라운드 Q10: 막타(연격 마지막 타·대쉬 공격) · 판정 호가 반대로 훑는 타는 되돌아 휘두름(스파크 반전)
+    // 55라운드 Q10·Q30: 막타(데이터 heavy — 칼 3타·잔상, 대검 차지 내려찍기 · 대쉬 공격) · 판정 호가 반대로 훑는 타는 되돌아 휘두름(스파크 반전)
     const heavy = isHeavyStrike(p);
     const backswing = isBackswing(this.swing.shape(p));
+    // Q28: 왼쪽 회전 연격(칼·대검 타별 모양)은 왼쪽이어도 스파크를 바로 세우지 않는다 — 되돌아 휘두름만 데이터로
+    const rotateLeft = rotatesLeft(p);
     const from = { x: g.player.x, y: g.player.y - HIT_ORIGIN_UP_PX };
-    if (g.combat.hitMob(mob, dmg, { crit, dirX: p.dirX, dirY: p.dirY, critFx, knockMult, heavy, backswing, from })) {
+    const style = { crit, dirX: p.dirX, dirY: p.dirY, critFx, knockMult, heavy, backswing, rotateLeft, from };
+    if (g.combat.hitMob(mob, dmg, style)) {
       g.progress.onKill(mob, stunnedByParry ? 'parry' : p.kind === 'aimed' ? 'attack' : p.kind);
       return;
     }

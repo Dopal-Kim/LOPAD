@@ -41,6 +41,8 @@ export class MeleeDriver {
   get combo(): ComboTracker | null {
     const w = gameState.weapon;
     if (this.trackerWeapon !== w.id) {
+      // 차지 중 무기가 바뀌면 차지를 버린다 (음향 루프 정지)
+      if (this.charge_?.charging) this.emitCharge({ phase: 'cancel', stage: 0 });
       this.trackerWeapon = w.id;
       const c = w.def.kind === 'melee' ? w.def.combo : undefined;
       this.tracker = c ? new ComboTracker(c) : null;
@@ -90,8 +92,8 @@ export class MeleeDriver {
   }
 
   /** 대쉬·가드·피격 등으로 차지(또는 차지 후보)를 버린다 */
-  cancelCharge(): void {
-    if (this.charge?.cancel()) this.emitCharge({ phase: 'cancel', stage: 0 });
+  cancelCharge(reason?: 'hurt'): void {
+    if (this.charge?.cancel()) this.emitCharge({ phase: 'cancel', stage: 0, ...(reason ? { reason } : {}) });
     this.releasePose();
   }
 
@@ -105,7 +107,7 @@ export class MeleeDriver {
   /** Q23: 피격 → 관성 초기화, 차지 취소 */
   onHurt(): void {
     this.momentum?.reset();
-    this.cancelCharge();
+    this.cancelCharge('hurt');
   }
 
   /** 차지 유지 자세 (`combo.charge.holdArt` 몸 시트의 holdFrame, 없으면 그림 표 holdColumn) */
@@ -165,9 +167,13 @@ export class MeleeDriver {
 
     if (charge && charge.phase !== 'idle' && W.combo?.charge) {
       const ready = canAct && strong && time >= combo.readyAt() && (!res || res.canAttack());
+      const wasCharging = charge.charging;
       for (const ev of charge.update(time, input.attackHeld, ready)) {
-        if (ev.kind === 'tap') combo.press(time);
-        else if (ev.kind === 'start') {
+        if (ev.kind === 'tap') {
+          // 차지가 시작된 뒤 1단 전에 뗌 → 일반 연격 + 차지 끝 알림 (음향 루프 정지)
+          if (wasCharging) this.emitCharge({ phase: 'cancel', stage: 0, reason: 'tap' });
+          combo.press(time);
+        } else if (ev.kind === 'start') {
           combo.clearBuffer();
           this.lifted = false;
           this.emitCharge({ phase: 'start', stage: 0 });
@@ -306,8 +312,9 @@ export class MeleeDriver {
       shapeScale: { lengthMult: st.lengthMult, ...(st.impactMult !== undefined ? { impactMult: st.impactMult } : {}) },
       ...(st.followUps ? { extraFollowUps: st.followUps } : {}),
     };
-    this.emitCharge({ phase: 'release', stage });
     const payload = p.fireAttack(input, time, strike, false, first);
+    // 타격음은 판정 프레임에 (음향 charge_slam_lv<n> 0ms = 타격 순간)
+    this.emitCharge({ phase: 'release', stage, impactDelayMs: payload.swingDelayMs });
     const total = Math.max(payload.durationMs ?? hit.durationMs, p.visual.lastDurationMs);
     p.setAction('slam', time + total);
     p.slowUntil(time + total);

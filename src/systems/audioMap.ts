@@ -21,6 +21,8 @@ import {
   type EnemyTelegraphPayload,
   type MenuEventPayload,
   type PlayerAttackPayload,
+  type PlayerChargePayload,
+  type PlayerFollowUpPayload,
   type PlayerSecondaryPayload,
   type TrialClearedPayload,
 } from '../core/EventBus';
@@ -30,8 +32,8 @@ export interface AudioTrigger<P = unknown> {
   event: string;
   /** 설명 (매핑 요약용) */
   note: string;
-  /** 재생할 효과음 id (고정 또는 페이로드로 결정) */
-  sfx?: string | ((p: P) => string | null);
+  /** 재생할 효과음 id (고정 또는 페이로드로 결정). 목록이면 로드된 첫 후보 (55라운드 — 키 이름 대체) */
+  sfx?: string | ((p: P) => string | readonly string[] | null);
   /** 조건. 없으면 항상 */
   when?: (p: P) => boolean;
   /** 재생 지연 ms (애니 프레임에 맞출 때) */
@@ -43,8 +45,10 @@ export interface AudioTrigger<P = unknown> {
   /** 54라운드: 페이로드로 정하는 루프·정지 (보스 루프) */
   loopOf?: (p: P) => string;
   stopOf?: (p: P) => string[];
-  /** 54라운드: 정지 페이드 ms (루프 끝 80~150ms 권장 — 음향 파트) */
-  stopFadeMs?: number;
+  /** 54라운드: 정지 페이드 ms (루프 끝 80~150ms 권장 — 음향 파트). 55라운드: 페이로드로 (피격 취소 60ms) */
+  stopFadeMs?: number | ((p: P) => number);
+  /** 55라운드: 루프 시작 페이드 인 ms (차지 루프 150ms — 음향 권장) */
+  loopFadeInMs?: number;
   /** 54라운드: 재생 속도 (3연 취권 1·2·3타 1.0/1.06/1.12 — 음향 파트 권장) */
   rate?: (p: P) => number;
 }
@@ -116,6 +120,43 @@ export const SFX = {
     phaseDrink: 'sfx/boss1_phase_drink',
   },
 } as const;
+
+/**
+ * 55라운드 Q32 대검 홀드 차지·칼 잔상 베기 효과음 (음향 커밋 — `sfx/<키>`). **키 이름이 바뀌면 여기만 고친다.**
+ * 함수 결과가 목록이면 로드된 첫 후보를 재생하고, 아무것도 없으면 무음 (매니페스트에 없어도 동작).
+ */
+export const CHARGE_SFX = {
+  /** 홀드 인식(holdMs) — 차지 시작 */
+  start: 'sfx/charge_start',
+  /** 단계 도달 n = 1..3 */
+  stage: (n: number): readonly string[] => [`sfx/charge_stage${n}`],
+  /** 차지 유지 루프 (시작 페이드 인 · 떼거나 취소 시 페이드 아웃) */
+  loop: 'sfx/charge_loop',
+  /** 차지 내려찍기 n단 — 0ms = 타격 순간이라 판정(impact) 프레임에 재생. 단계 파일이 없으면 공용 charge_slam */
+  slam: (n: number): readonly string[] => [`sfx/charge_slam_lv${n}`, 'sfx/charge_slam'],
+  loopFadeInMs: 150,
+  /** 떼거나(release)·1단 전에 뗌·대쉬·가드 등 취소 */
+  loopFadeOutMs: 120,
+  /** 피격 취소 (음향 권장 60ms) */
+  loopFadeOutHurtMs: 60,
+  stages: 3,
+} as const;
+
+/** 55라운드 §17 후속 판정 → 효과음 (키 `<무기>:<followUps[].id>`). 없는 항목은 무음 — 대검 3단 링은 charge_slam_lv3 에 포함 */
+export const FOLLOW_UP_SFX: Readonly<Record<string, readonly string[]>> = {
+  'katana:echo': ['sfx/katana_echo'],
+};
+
+/** 표의 페이로드 결정 효과음 전부 (매니페스트 대조 테스트용 — 없어도 무음이라 고정 id 목록과 분리) */
+export function chargeSfxIds(): string[] {
+  const out = new Set<string>([CHARGE_SFX.start, CHARGE_SFX.loop]);
+  for (let n = 1; n <= CHARGE_SFX.stages; n++) {
+    for (const id of CHARGE_SFX.stage(n)) out.add(id);
+    for (const id of CHARGE_SFX.slam(n)) out.add(id);
+  }
+  for (const ids of Object.values(FOLLOW_UP_SFX)) for (const id of ids) out.add(id);
+  return [...out].sort();
+}
 
 /** 54라운드: 3연 취권 n타(0부터) 재생 속도 (음향 권장 1.0 / 1.06 / 1.12) */
 export const REEL_RATES = [1, 1.06, 1.12] as const;
@@ -194,10 +235,11 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   // --- 주인공 공격·보조 동작 ---
   t<PlayerAttackPayload>({
     event: Events.PLAYER_ATTACKED,
-    note: '공격: 근접은 무기별 swing(휘두름 2프레임 시작에 맞춤), 활은 bow_shot(3프레임 = 화살 생성), 조준 사격은 bow_aimed',
+    note: '공격: 근접은 무기별 swing(휘두름 2프레임 시작에 맞춤), 활은 bow_shot(3프레임 = 화살 생성), 조준 사격은 bow_aimed. 차지 내려찍기는 charge_slam_lv<n> 이 대신 (PLAYER_CHARGE release)',
     sfx: (p) => {
       const w = gameState.weapon.def;
       if (w.kind === 'ranged') return p.kind === 'aimed' ? SFX.bowAimed : SFX.bowShot;
+      if (p.charge !== undefined) return null;
       return SFX.swing(gameState.weapon.id);
     },
     delayMs: (p) => (gameState.weapon.def.kind === 'ranged' ? p.releaseDelayMs : p.swingDelayMs),
@@ -225,6 +267,40 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     note: '가드 해제 → 루프 정지 + guard_push',
     stop: [SFX.guardHold],
     sfx: SFX.guardPush,
+  }),
+  // --- 55라운드 Q32 대검 홀드 차지 · 칼 잔상 베기 (CHARGE_SFX · FOLLOW_UP_SFX) ---
+  t<PlayerChargePayload>({
+    event: Events.PLAYER_CHARGE,
+    note: '차지 시작(홀드 인식) → charge_start + charge_loop 루프(페이드 인 150ms)',
+    when: (p) => p.phase === 'start',
+    sfx: () => CHARGE_SFX.start,
+    loopOf: () => CHARGE_SFX.loop,
+    loopFadeInMs: CHARGE_SFX.loopFadeInMs,
+  }),
+  t<PlayerChargePayload>({
+    event: Events.PLAYER_CHARGE,
+    note: '차지 단계 n → charge_stage<n>',
+    when: (p) => p.phase === 'stage',
+    sfx: (p) => CHARGE_SFX.stage(p.stage),
+  }),
+  t<PlayerChargePayload>({
+    event: Events.PLAYER_CHARGE,
+    note: '떼거나 취소 → charge_loop 페이드 아웃 (피격 취소 60ms, 그 밖 120ms)',
+    when: (p) => p.phase === 'release' || p.phase === 'cancel',
+    stopOf: () => [CHARGE_SFX.loop],
+    stopFadeMs: (p) => (p.reason === 'hurt' ? CHARGE_SFX.loopFadeOutHurtMs : CHARGE_SFX.loopFadeOutMs),
+  }),
+  t<PlayerChargePayload>({
+    event: Events.PLAYER_CHARGE,
+    note: '차지 내려찍기 → charge_slam_lv<n> (판정 프레임 = impactDelayMs 에, swing_greatsword 대신)',
+    when: (p) => p.phase === 'release' && p.stage > 0,
+    sfx: (p) => CHARGE_SFX.slam(p.stage),
+    delayMs: (p) => p.impactDelayMs ?? 0,
+  }),
+  t<PlayerFollowUpPayload>({
+    event: Events.PLAYER_FOLLOW_UP,
+    note: '후속 판정 시각 → FOLLOW_UP_SFX (칼 잔상 베기 katana_echo)',
+    sfx: (p) => FOLLOW_UP_SFX[`${p.weapon}:${p.id}`] ?? null,
   }),
   t({ event: Events.PLAYER_SHADOW_STEP, note: '그림자 걸음', sfx: SFX.shadowstep }),
   t({ event: Events.PLAYER_DASHED, note: '대쉬', sfx: SFX.dash }),

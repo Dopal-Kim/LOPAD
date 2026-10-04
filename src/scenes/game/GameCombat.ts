@@ -32,6 +32,8 @@ export interface HitOptions {
   heavy?: boolean;
   /** 되돌아 휘두름(판정 호가 반대로 훑는 타) — 적중 스파크 위아래 반전 */
   backswing?: boolean;
+  /** 55라운드 Q28: 왼쪽 조준이 180° 회전인 연격 — 왼쪽이어도 스파크를 바로 세우지 않는다 */
+  rotateLeft?: boolean;
   /** 근접 공격자 위치 (계약 §16: 근접 스파크 회전 = 공격자 → 적 중심). 없으면 공격 진행 방향 */
   from?: { x: number; y: number };
 }
@@ -193,7 +195,7 @@ export class GameCombat {
       sy,
       opts.crit,
       opts.critFx ? { id: opts.critFx, x: c.x, y: c.y - mob.visual.hitLiftPx } : null,
-      { weaponId: weapon.id, heavy, backswing: opts.backswing },
+      { weaponId: weapon.id, heavy, backswing: opts.backswing, rotateLeft: opts.rotateLeft },
     );
     g.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
     if (opts.crit) g.screenFx.crit();

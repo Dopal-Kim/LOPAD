@@ -32,7 +32,7 @@ export const HIT_ORIGIN_UP_PX = 10;
 
 /**
  * 연격의 마무리 타(충격파·진화 베기 시점). 연격이 아니면 true, 대검 대쉬 공격은 false (49라운드: 충격파 없음).
- * 55라운드: 타별 데이터 `heavy` 가 있으면 그것 (대검 순환 = 내려찍기 V·차지 내려찍기, 칼 = 3타)
+ * 55라운드: 타별 데이터 `heavy` 가 있으면 그것 (칼 = 3타·잔상 베기, 대검 = 차지 내려찍기만 — Q30 연격 V 는 일반 타격)
  */
 export function isFinisher(p: PlayerAttackPayload): boolean {
   if (p.dashSlash) return false;
@@ -45,7 +45,12 @@ export function isFinisher(p: PlayerAttackPayload): boolean {
  * (`facingAngle` 은 'left' 일 때만 반전하므로 'right' 를 넘긴다). 그 밖은 그대로 (48라운드 좌우 반전)
  */
 export function shapeFacing<F extends string>(p: PlayerAttackPayload, facing: F): F | 'right' {
-  return p.hitShape && gameState.weapon.def.combo?.leftTransform === 'rotate' ? 'right' : facing;
+  return rotatesLeft(p) ? 'right' : facing;
+}
+
+/** 55라운드 Q28: 이 타는 왼쪽 조준을 180° 회전으로 그리고 판정한다 (타별 모양 + `leftTransform: rotate`) — 스파크도 바로 세우지 않음 */
+export function rotatesLeft(p: PlayerAttackPayload): boolean {
+  return Boolean(p.hitShape) && gameState.weapon.def.combo?.leftTransform === 'rotate';
 }
 
 /** 55라운드: 근접 연격 타(연격 번호가 있거나 차지 내려찍기) — 판정을 몸 판정 프레임(swingDelayMs)에, 위치는 그때 몸 */

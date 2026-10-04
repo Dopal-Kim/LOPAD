@@ -19,8 +19,17 @@ import {
   sfxGain,
   type AudioManifest,
 } from './audioDefs';
-import { AUDIO_TRIGGERS, SFX, bossActionSfx, bossLoopSfx, staticSfxIds } from './audioMap';
-import type { BossActionKind } from '../core/EventBus';
+import {
+  AUDIO_TRIGGERS,
+  CHARGE_SFX,
+  FOLLOW_UP_SFX,
+  SFX,
+  bossActionSfx,
+  bossLoopSfx,
+  chargeSfxIds,
+  staticSfxIds,
+} from './audioMap';
+import { Events, type BossActionKind } from '../core/EventBus';
 
 // audioMap → EventBus 가 Phaser 를 import 하므로(window 필요) 이벤트 이미터만 node 것으로 대체한다
 vi.mock('phaser', () => ({ default: { Events: { EventEmitter } } }));
@@ -148,6 +157,8 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       SFX.hitEnemyCrit,
       SFX.bossPhase,
       ...Object.values(SFX.boss1),
+      // 55라운드 차지·잔상 (후보 목록 — 없어도 무음)
+      ...chargeSfxIds(),
     ]);
     const unused = manifest.entries.filter((e) => e.kind === 'sfx' && !used.has(e.id)).map((e) => e.id);
     expect(unused).toEqual([]);
@@ -186,5 +197,56 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
     reached.add(SFX.boss1.phaseDrink);
     expect([...reached].sort()).toEqual(Object.values(SFX.boss1).sort());
     expect(bossActionSfx('bossIgnite')).toBe(SFX.boss1.ignite);
+  });
+});
+
+describe('55라운드 Q32 차지·잔상 효과음 매핑 (CHARGE_SFX · FOLLOW_UP_SFX)', () => {
+  const fire = (event: string, payload: unknown) =>
+    AUDIO_TRIGGERS.filter((tr) => tr.event === event && (!tr.when || tr.when(payload)));
+  const sfxOf = (tr: (typeof AUDIO_TRIGGERS)[number], p: unknown) =>
+    typeof tr.sfx === 'function' ? tr.sfx(p) : tr.sfx;
+
+  it('고정 id 목록에 넣지 않는다 (매니페스트에 없어도 무음으로 동작)', () => {
+    const fixed = new Set(staticSfxIds());
+    for (const id of chargeSfxIds()) expect(fixed.has(id), id).toBe(false);
+  });
+
+  it('start → charge_start + 루프(페이드 인), stage n → charge_stage<n>', () => {
+    const start = fire(Events.PLAYER_CHARGE, { phase: 'start', stage: 0 });
+    expect(start).toHaveLength(1);
+    expect(sfxOf(start[0], {})).toBe(CHARGE_SFX.start);
+    expect(start[0].loopOf?.({})).toBe(CHARGE_SFX.loop);
+    expect(start[0].loopFadeInMs).toBe(150);
+    const st = fire(Events.PLAYER_CHARGE, { phase: 'stage', stage: 2 });
+    expect(st.map((tr) => sfxOf(tr, { phase: 'stage', stage: 2 }))).toEqual([['sfx/charge_stage2']]);
+  });
+
+  it('release → 루프 120ms 페이드 + charge_slam_lv<n> 을 판정 프레임(impactDelayMs)에, cancel(hurt) → 60ms', () => {
+    const rel = { phase: 'release', stage: 3, impactDelayMs: 120 };
+    const trs = fire(Events.PLAYER_CHARGE, rel);
+    const stop = trs.find((tr) => tr.stopOf)!;
+    expect(stop.stopOf!(rel)).toEqual([CHARGE_SFX.loop]);
+    expect(typeof stop.stopFadeMs === 'function' ? stop.stopFadeMs(rel) : stop.stopFadeMs).toBe(120);
+    const slam = trs.find((tr) => tr.sfx)!;
+    expect(sfxOf(slam, rel)).toEqual(['sfx/charge_slam_lv3', 'sfx/charge_slam']);
+    expect(slam.delayMs!(rel)).toBe(120);
+    const hurt = { phase: 'cancel', stage: 0, reason: 'hurt' };
+    const c = fire(Events.PLAYER_CHARGE, hurt);
+    expect(c).toHaveLength(1);
+    expect(typeof c[0].stopFadeMs === 'function' ? c[0].stopFadeMs(hurt) : 0).toBe(60);
+    // 1단 전에 뗀 일반 연격(tap)도 루프를 끈다 (swing_greatsword 는 PLAYER_ATTACKED 가 그대로)
+    expect(fire(Events.PLAYER_CHARGE, { phase: 'cancel', stage: 0, reason: 'tap' })).toHaveLength(1);
+  });
+
+  it('차지 내려찍기 공격은 swing 대신 charge_slam (PLAYER_ATTACKED 의 swing 없음)', () => {
+    const atk = AUDIO_TRIGGERS.find((tr) => tr.event === Events.PLAYER_ATTACKED)!;
+    expect(sfxOf(atk, { kind: 'attack', charge: 2, swingDelayMs: 100 })).toBeNull();
+  });
+
+  it('후속 판정: 칼 잔상 베기 → katana_echo, 대검 링 → 없음', () => {
+    const tr = fire(Events.PLAYER_FOLLOW_UP, { weapon: 'katana', id: 'echo' });
+    expect(tr).toHaveLength(1);
+    expect(sfxOf(tr[0], { weapon: 'katana', id: 'echo' })).toEqual(FOLLOW_UP_SFX['katana:echo']);
+    expect(sfxOf(tr[0], { weapon: 'greatsword', id: 'ring' })).toBeNull();
   });
 });

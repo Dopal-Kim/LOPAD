@@ -45,8 +45,8 @@ describe('55라운드 §17 판정 모양 — arc (내반경·비대칭)', () => 
     expect(shapeHit(0, 0, -1, 0, s, at(120, 25), 'right')).toBe(false);
   });
 
-  it('칼 3타 초승달: 반경 ×1.25 · 내반경 0.45 (아트 그림 값)', () => {
-    const s = resolveHitShape({ kind: 'arc', fromDeg: 75, toDeg: -75, innerRatio: 0.45, radiusMult: 1.25 }, 33);
+  it('칼 3타 초승달: 반경 ×1.25 · 내반경 0.45 (아트 그림 값), −75→+75 (Q26)', () => {
+    const s = resolveHitShape({ kind: 'arc', fromDeg: -75, toDeg: 75, innerRatio: 0.45, radiusMult: 1.25 }, 33);
     if (s.kind !== 'arc') throw new Error('arc');
     expect(s.radius).toBeCloseTo(41.25);
     expect(s.inner).toBeCloseTo(18.5625);
@@ -113,14 +113,14 @@ describe('55라운드 §17 판정 모양 — wedge · rect · ring', () => {
 });
 
 describe('55라운드 데이터 (계약 §17 수치)', () => {
-  it('칼 K-A: 1타 +70→−40 · 2타 −70→+40 · 3타 +75→−75 ×1.25 + 150ms 잔상 50%', () => {
+  it('칼 K-A: 1타 +70→−40 · 2타 −70→+40 · 3타 −75→+75(Q26 왼 허리 발도) ×1.25 + 150ms 잔상 50%', () => {
     const c = WEAPONS.katana.combo!;
     const R = comboRadius(c, WEAPONS.katana.hitbox);
     expect(R).toBe(33);
     expect(c.hits.map((h) => h.hitShape)).toMatchObject([
       { kind: 'arc', fromDeg: 70, toDeg: -40 },
       { kind: 'arc', fromDeg: -70, toDeg: 40 },
-      { kind: 'arc', fromDeg: 75, toDeg: -75, radiusMult: 1.25 },
+      { kind: 'arc', fromDeg: -75, toDeg: 75, radiusMult: 1.25 },
     ]);
     expect(c.hits[2].heavy).toBe(true);
     expect(c.hits[2].followUps).toMatchObject([{ id: 'echo', delayMs: 150, damageMult: 0.5 }]);
@@ -142,7 +142,9 @@ describe('55라운드 데이터 (계약 §17 수치)', () => {
     expect(h2).toMatchObject({ kind: 'arc', fromDeg: 75, toDeg: -75 });
     for (const s of [v, v2])
       expect(s).toMatchObject({ kind: 'wedge', widthDeg: 40, lengthMult: 1.3, impactCircle: { radiusRatio: 0.35 } });
-    expect(c.hits.map((h) => Boolean(h.heavy))).toEqual([false, true, false, true]);
+    // Q30: 막타는 차지 내려찍기만 — 연격 V 는 일반 타격
+    expect(c.hits.map((h) => Boolean(h.heavy))).toEqual([false, false, false, false]);
+    expect(c.charge!.hit.heavy).toBe(true);
     expect(c.hits[1].step!.px).toBe(12);
     expect(c.momentum).toMatchObject({ perHit: 0.05, max: 0.2, idleResetMs: 1000 });
     expect(c.charge!.stages.map((s) => [s.atMs, s.lengthMult])).toEqual([

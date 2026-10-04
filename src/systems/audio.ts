@@ -64,8 +64,8 @@ export class AudioSystem {
   private readonly dedupe = new SfxDedupe();
   private voices: Snd[] = [];
   private readonly loops = new Map<string, Snd>();
-  /** 페이드 아웃 중인 루프 */
-  private fading: { snd: Snd; from: number; at: number; ms: number }[] = [];
+  /** 페이드 중인 루프 — to 0 = 페이드 아웃 뒤 정지, 그 밖 = 페이드 인 (55라운드 차지 루프) */
+  private fading: { snd: Snd; from: number; to: number; at: number; ms: number }[] = [];
   /** 55라운드 Q14 ②: 지연 효과음 예약기 (게임 씬 시계 — 히트스톱 동안 멈춤). 없으면 WebAudio 지연 */
   private delayScheduler: ((ms: number, fire: () => void) => unknown) | null = null;
   private bgm: BgmTrack | null = null;
@@ -175,17 +175,19 @@ export class AudioSystem {
     return true;
   }
 
-  /** 루프 효과음 시작 (가드 유지). 이미 돌고 있으면 유지 */
-  startLoop(id: string): void {
+  /** 루프 효과음 시작 (가드 유지). 이미 돌고 있으면 유지. fadeInMs 가 있으면 0 에서 그동안 올린다 (55라운드 차지 루프) */
+  startLoop(id: string, fadeInMs = 0): void {
     const sm = this.game?.sound;
     const entry = this.entries.get(id);
     if (!sm || !entry || !this.loaded.has(id) || this.loops.has(id)) {
       if (!entry || !this.loaded.has(id)) this.missing.add(id);
       return;
     }
-    const snd = sm.add(id, { volume: sfxGain(this.mix, entry), loop: true }) as Snd;
+    const volume = sfxGain(this.mix, entry);
+    const snd = sm.add(id, { volume: fadeInMs > 0 ? 0 : volume, loop: true }) as Snd;
     snd.play();
     this.loops.set(id, snd);
+    if (fadeInMs > 0) this.fading.push({ snd, from: 0, to: volume, at: this.now(), ms: fadeInMs });
   }
 
   /** 루프 정지. fadeMs 가 있으면 그동안 볼륨을 줄인 뒤 (54라운드 보스 루프) */
@@ -193,8 +195,16 @@ export class AudioSystem {
     const snd = this.loops.get(id);
     if (!snd) return;
     this.loops.delete(id);
+    // 페이드 인 중이면 그 항목을 버리고 지금 볼륨에서 내린다
+    this.fading = this.fading.filter((f) => f.snd !== snd);
     if (fadeMs > 0 && snd.isPlaying)
-      this.fading.push({ snd, from: (snd as unknown as { volume: number }).volume ?? 1, at: this.now(), ms: fadeMs });
+      this.fading.push({
+        snd,
+        from: (snd as unknown as { volume: number }).volume ?? 1,
+        to: 0,
+        at: this.now(),
+        ms: fadeMs,
+      });
     else this.kill(snd);
   }
 
@@ -281,15 +291,23 @@ export class AudioSystem {
   private onTrigger(tr: AudioTrigger, payload: unknown): void {
     if (tr.when && !tr.when(payload)) return;
     const stops = [...(tr.stop ?? []), ...(tr.stopOf?.(payload) ?? [])];
+    const fadeMs = typeof tr.stopFadeMs === 'function' ? tr.stopFadeMs(payload) : (tr.stopFadeMs ?? 0);
     for (const id of stops) {
-      if (tr.stopFadeMs) this.stopLoop(id, tr.stopFadeMs);
+      if (fadeMs > 0) this.stopLoop(id, fadeMs);
       this.stopSfx(id);
     }
-    if (tr.loop) this.startLoop(tr.loop);
+    if (tr.loop) this.startLoop(tr.loop, tr.loopFadeInMs);
     const loopId = tr.loopOf?.(payload);
-    if (loopId) this.startLoop(loopId);
-    const id = typeof tr.sfx === 'function' ? tr.sfx(payload) : tr.sfx;
+    if (loopId) this.startLoop(loopId, tr.loopFadeInMs);
+    const id = this.pickLoaded(typeof tr.sfx === 'function' ? tr.sfx(payload) : tr.sfx);
     if (id) this.playSfx(id, { delayMs: tr.delayMs ? tr.delayMs(payload) : 0, rate: tr.rate ? tr.rate(payload) : 1 });
+  }
+
+  /** 55라운드: 효과음 후보 목록이면 로드된 첫 id (없으면 첫 후보 — playSfx 가 missing 으로 기록하고 무음) */
+  private pickLoaded(ids: string | readonly string[] | null | undefined): string | null {
+    if (ids === null || ids === undefined) return null;
+    if (typeof ids === 'string') return ids;
+    return ids.find((id) => this.loaded.has(id)) ?? ids[0] ?? null;
   }
 
   private onStageStarted(p: { stageIndex: number }): void {
@@ -365,12 +383,12 @@ export class AudioSystem {
     if (this.fading.length > 0) {
       this.fading = this.fading.filter((f) => {
         const k = Math.min(1, (now - f.at) / f.ms);
-        if (k >= 1 || f.snd.pendingRemove) {
+        if (f.snd.pendingRemove || (k >= 1 && f.to <= 0)) {
           this.kill(f.snd);
           return false;
         }
-        f.snd.setVolume(f.from * (1 - k));
-        return true;
+        f.snd.setVolume(f.from + (f.to - f.from) * k);
+        return k < 1;
       });
     }
     if (this.bgm?.fade) this.applyFade(this.bgm, now);

@@ -928,12 +928,12 @@ onFire 전부(lingerMs 1000 · 발밑 0.5×6px · 접촉 10/500ms · 여유 3px)
 - 디버그 오버레이: `?debug` 에서 켜짐(`&hitshapes=0` 끔, `__lopad.hitShapes(on)`), 판정 유지 동안 윤곽(호 하늘·쐐기 주황·찌르기 연두·고리 분홍·후속 흰색). `__lopad.combo().swings`(최근 12 판정)·`.melee`(순환·관성·차지).
 
 ### 칼 K-A · 대검 G-C
-- 칼: 1타 `rise` +70→−40 · 2타 `fall` −70→+40 · 3타 `crescent` +75→−75 ×1.25 내반경 0.45 + 잔상 베기(150ms·50%, `heavy`). 3타 그림은 −75→+75 로 휘두름 — 칼끝 리본은 무기 bladeTipAnchors(폴백이면 몸 시트 arcFrom/To 방향)를 따른다.
+- 칼: 1타 `rise` +70→−40 · 2타 `fall` −70→+40 · 3타 `crescent` ~~+75→−75~~ **−75→+75(3차, Q26)** ×1.25 내반경 0.45 + 잔상 베기(150ms·50%, `heavy`). 3타 그림은 −75→+75 로 휘두름 — 칼끝 리본은 무기 bladeTipAnchors(폴백이면 몸 시트 arcFrom/To 방향)를 따른다.
 - 대검: `loop: true` H1 `sweep_cw`(−75→+75) → V `cleave`(쐐기 40° ×1.3 + 충격원 0.35R, heavy) → H2 `sweep_ccw` → V → H1 … (ComboTracker 순환: 마지막 다음 = 1타, 회복 없음). 기력 바닥이면 막타(V) 대신 H1.
 - 관성 `momentum {perHit 0.05, max 0.2, idleResetMs 1000, maxImpactMult 1.3}` (`systems/momentum.ts`): 이어지는 타마다 공속(몸·이펙트 같은 배속 — FxPool `timeScale`), 누름·홀드가 입력, 피격 시 초기화, 최대면 V 충격원·바닥 충격 ×1.3.
 - 홀드 차지 `charge {holdMs 180, moveMult 0.35, stages[{atMs 400/800/1200, lengthMult 1.3/1.5/1.8, damageMult, impactMult 1.0/1.15/1.3, art}], hit}` (`systems/chargeHold.ts`): holdMs 전에 떼면 일반 연격(tap), 단계 전에 떼도 tap. 단계마다 호박 틴트 번쩍임 + `charge_flash_lv<n>`, `PLAYER_CHARGE` 이벤트(시스템 내부 — UI 계약 밖). 자세 = `player_greatsword_charge` 들기 f0~2 → loopFrames 반복. 떼면 `charge_slam` + `charge_slam_lv<n>` + 끝점 `cleave_impact`, 3단은 120ms 뒤 끝점 고리(`charge_ring`). 대쉬·우클릭(가드 그대로)·피격·F 는 차지를 버린다. 기력 = cost.slam.
 - 내딛기(Q21): 타 `step {px, ms}` — 방향키를 누를 때만, 조준 방향. 구간 = 몸 시트 `stepPx.frames`(없으면 판정 프레임 시작에 끝나게 ms). 대검 49라운드 반 걸음은 step 이 없는 데이터에만.
-- 막타(heavy 스파크·히트스톱 ×1.8·흔들림·충격파 갈래) = 데이터 `heavy` → `hitFeel.isHeavyStrike`·`isFinisher`. 칼 3타+잔상, 대검 V·차지 내려찍기(+링).
+- 막타(heavy 스파크·히트스톱 ×1.8·흔들림·충격파 갈래) = 데이터 `heavy` → `hitFeel.isHeavyStrike`·`isFinisher`. 칼 3타+잔상, 대검 ~~V·~~차지 내려찍기(+링) — 3차 Q30: V 는 일반 타격.
 - 순환 연격에선 49라운드 도약 내리찍기(파쇄 갈래 마지막 타)가 일어나지 않는다 — 파쇄 충격파는 V·차지의 끝점에 (갈래 재작업 Q25 전 임시).
 
 ### 그림 연결 (데이터 한 곳 — `combo.art`)
@@ -944,3 +944,31 @@ onFire 전부(lingerMs 1000 · 발밑 0.5×6px · 접촉 10/500ms · 여유 3px)
 ### 테스트 · 검증
 - 테스트 +26: `hitShapes.test`(호 내반경·비대칭·회전/반전·쐐기+충격원·차지 배율·rect·ring·외접·데이터 §17) · `comboLoop.test`(순환·막타·기력·칼/단검 회귀·관성·차지 tap/단계/시계·그림 표·오버레이·isHeavyStrike·검사).
 - 헤드리스(1920×1080, 별도 outDir): 칼 3연격+잔상(오른쪽·왼쪽 rotate)·내딛기(방향키 있을 때만 5/15px)·대검 H-V-H-V ×2(관성 0→+20%, 최대 충격원 17.9→23.2px, 1초 뒤 초기화)·차지 3단(번쩍임·루프 자세·쐐기 91.8px·링)·짧게 누르면 H1·단검·활 회귀. 콘솔 오류 0.
+
+## 55라운드 3차: 발도 방향·대검 막타·차지/잔상 효과음 훅 (2026-10-04)
+결정: `decisions/2026-10-03-round-55-weapon-fx-overhaul.md` Q26~Q32, 계약 `art-assets.md` §17.
+
+### 데이터
+- **칼 3타 판정 −75°→+75°**(Q26 왼 허리 칼집 발도 방향 — 그림과 같은 방향). 되돌아 휘두름(스파크 반전)은 계속 판정 모양에서 읽는다(`hitFeel.isBackswing`): 칼 1타(+70→−40)만 되돌아, 2타·3타·잔상 베기(같은 호)는 아님. 대검 H2(+75→−75)는 되돌아.
+- **왼쪽 회전 연격의 스파크**(Q28): 타별 모양 + `leftTransform: rotate` 인 타(`shared.rotatesLeft`)는 왼쪽이어도 스파크를 바로 세우지 않는다(`sparkOrientation({rotateLeft})` — 180° 회전이라 훑는 방향이 화면에서 같음). 48라운드 좌우 반전 연격(단검 등)은 그대로.
+- **대검 막타 = 차지 내려찍기만**(Q30, +3단 링). 연격 V 는 `heavy: false`(일반 스파크·히트스톱, 충격파 갈래 없음 — 대검 `shakeEveryHit` 작은 흔들림은 그대로). 그 결과 기력 바닥이어도 V 는 막히지 않는다(강한 타 = 막타·대쉬 공격·차지). 칼은 3타+잔상 베기 막타 유지.
+- 템포(Q29): 51라운드 Q3 유지 확인 — 칼 1타 cancel 380 + 2타 155 + 3타 560 = 1095ms(~1.1초), 대검 H1 550 + V 640 + H2 800 = 1990ms(~2초). 변경 없음.
+
+### 효과음 훅 (Q32, 음향 커밋 키 — 매핑 한 곳 `audioMap.CHARGE_SFX`·`FOLLOW_UP_SFX`)
+| 이벤트 (시스템 내부) | 효과음 | 시점·처리 |
+|---|---|---|
+| `PLAYER_CHARGE start` | `sfx/charge_start` + 루프 `sfx/charge_loop` | 홀드 인식(holdMs 0.18초). 루프 페이드 인 150ms |
+| `PLAYER_CHARGE stage n` | `sfx/charge_stage<n>` | 단계 도달 (0.4/0.8/1.2초) |
+| `PLAYER_CHARGE release` | 루프 정지 + `sfx/charge_slam_lv<n>`(없으면 `sfx/charge_slam`) | 루프 페이드 120ms, 타격음은 `impactDelayMs`(= 판정 프레임, 씬 시계 예약)에. 이 공격의 `swing_greatsword` 는 내지 않는다 |
+| `PLAYER_CHARGE cancel` | 루프 정지 | 피격(`reason: 'hurt'`) 60ms · 1단 전에 떼서 일반 연격(`reason: 'tap'`)·대쉬·가드·F·무기 교체 120ms |
+| `PLAYER_FOLLOW_UP {weapon:'katana', id:'echo'}` | `sfx/katana_echo` | 잔상 베기 판정 시각 (씬 시계 — 히트스톱 동안 멈춤) |
+- 함수 결과가 목록이면 로드된 첫 후보(`AudioSystem.pickLoaded`), 매니페스트에 없으면 무음. 고정 id 목록(`staticSfxIds`)과 분리 — 대조 테스트는 `chargeSfxIds()` 를 '사용 중'으로 센다.
+- `AudioSystem.startLoop(id, fadeInMs)` 페이드 인, `AudioTrigger.stopFadeMs` 페이로드 함수 허용, `loopFadeInMs`.
+- 차지 이벤트 보강: start 뒤엔 반드시 release 또는 cancel(1단 전 tap 도 cancel `reason:'tap'`, 차지 중 무기 교체도 cancel). release 는 공격 발사 뒤에 낸다(판정 프레임 ms 를 싣기 위해).
+
+### 정리 (6-1)
+- `PlayerStrikes.ts`(388 → 328줄)의 지연 판정 스케줄 → `scenes/game/StrikeSchedule.ts`(116줄): 후속 판정(전용 fx 선행 + `PLAYER_FOLLOW_UP`) · 쌍격·난무 추가 타 · 지진 2단. 지연 콜백은 모두 같은 진행 확인(`live` — 정지·사망이면 무시; 추가 타·지진 2단도 이제 게임 오버를 본다).
+
+### 검증
+- tsc · eslint · vitest 71파일 520 · vite build(별도 outDir) 통과.
+- 헤드리스(1920×1080, 시험장): 대검 홀드 1.6초 → start·stage1~3·루프 유지 → 떼면 루프 정지·`charge_slam_lv3`(swing 없음)·3단 링 후속 판정 · 0.29초 홀드 뒤 뗌 → cancel(tap)·루프 정지 · 연격 H1·V·H2·V 모두 heavy false, 차지 내려찍기 heavy true · 칼 3연격 3타 판정 −75→+75 + 잔상 베기 `katana_echo` · 왼쪽 조준 facing right(회전). 콘솔 오류 0.
