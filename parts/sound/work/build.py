@@ -3,18 +3,24 @@
 """
 LOPAD 음향 파트 — 절차적 합성 빌드 스크립트 (단일 소스)
 
-  python3 parts/sound/work/build.py            # 전부 재생성 (sfx + bgm + manifest)
-  python3 parts/sound/work/build.py sfx        # 효과음만
-  python3 parts/sound/work/build.py bgm        # BGM 만
-  python3 parts/sound/work/build.py verify     # 생성된 파일 검증 표 출력
+  python3 parts/sound/work/build.py            # 전부 재생성 (합성 → 인코딩 → 매니페스트 → 검증)
+  python3 parts/sound/work/build.py sfx        # 효과음만 (+인코딩·매니페스트)
+  python3 parts/sound/work/build.py bgm        # BGM 만 (+인코딩·매니페스트)
+  python3 parts/sound/work/build.py sfx parry  # 특정 소리만
+  python3 parts/sound/work/build.py encode     # 작업 캐시 WAV → OGG·M4A 만 다시 (+매니페스트)
+  python3 parts/sound/work/build.py manifest   # 매니페스트만
+  python3 parts/sound/work/build.py verify     # 검증 표 출력 (WAV 원본 + OGG·M4A 디코드 대조)
 
-의존성: 파이썬 표준 라이브러리만 (wave, struct/array, math, random, json).
-외부 라이브러리·네트워크 다운로드 없음. 결과는 결정적(고정 시드)이다.
+의존성: 합성은 파이썬 표준 라이브러리만 (wave, struct/array, math, random, json).
+인코딩은 ffmpeg(libvorbis·aac). 외부 파이썬 라이브러리·네트워크 없음. 결과는 결정적(고정 시드·bitexact).
 
 출력:
-  assets/audio/sfx/<이름>.wav   44.1 kHz / 16 bit / mono, 피크 -6 dBFS
-  assets/audio/bgm/<이름>.wav   22.05 kHz / 16 bit / mono, 피크 -6 dBFS, 루프 가능
-  assets/audio/manifest.json    시스템 파트가 읽을 목록(계약 초안)
+  parts/sound/work/wav/{sfx,bgm}/<이름>.wav   합성 원본(작업 캐시, git 제외 — 이 스크립트로 재생성)
+                                              SFX 44.1 kHz / BGM 22.05 kHz, 16 bit, mono, 피크 -6 dBFS
+  assets/audio/{sfx,bgm}/<이름>.ogg           배포 1순위 Ogg Vorbis (57라운드 Q17)
+  assets/audio/{sfx,bgm}/<이름>.m4a           배포 2순위 AAC-LC (Ogg 미지원 브라우저 대비)
+  assets/audio/manifest.json                  시스템 파트가 읽을 목록(계약 초안)
+인코딩 규칙·검증 지표는 encode.py 참고.
 """
 import array
 import json
@@ -24,7 +30,14 @@ import random
 import sys
 import wave
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import encode  # noqa: E402  (배포 형식 인코딩·검증)
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+# 합성 WAV = 작업 캐시(저장소·빌드 결과에 넣지 않음), 배포 파일 = OGG·M4A
+WAV_DIR = os.path.join(ROOT, 'parts', 'sound', 'work', 'wav')
+SFX_WAV_DIR = os.path.join(WAV_DIR, 'sfx')
+BGM_WAV_DIR = os.path.join(WAV_DIR, 'bgm')
 SFX_DIR = os.path.join(ROOT, 'assets', 'audio', 'sfx')
 BGM_DIR = os.path.join(ROOT, 'assets', 'audio', 'bgm')
 MANIFEST = os.path.join(ROOT, 'assets', 'audio', 'manifest.json')
@@ -2384,7 +2397,7 @@ def _bgm_emperor(sr, rng):
 # ---------------------------------------------------------------------------
 
 def build_sfx(names=None):
-    os.makedirs(SFX_DIR, exist_ok=True)
+    os.makedirs(SFX_WAV_DIR, exist_ok=True)
     out = []
     for i, (name, spec) in enumerate(SFX.items()):
         if names and name not in names:
@@ -2393,7 +2406,7 @@ def build_sfx(names=None):
         buf = spec['fn'](SR_SFX, rng)
         if not spec['loop']:
             buf = fade_edges(buf, SR_SFX, 0.002)
-        path = os.path.join(SFX_DIR, name + '.wav')
+        path = os.path.join(SFX_WAV_DIR, name + '.wav')
         dur = write_wav(path, buf, SR_SFX)
         out.append((name, path, dur))
         print('  sfx  %-20s %6.3fs' % (name, dur))
@@ -2401,14 +2414,14 @@ def build_sfx(names=None):
 
 
 def build_bgm(names=None):
-    os.makedirs(BGM_DIR, exist_ok=True)
+    os.makedirs(BGM_WAV_DIR, exist_ok=True)
     out = []
     for i, (name, spec) in enumerate(BGM.items()):
         if names and name not in names:
             continue
         rng = random.Random(5000 + i)
         buf = spec['fn'](SR_BGM, rng)
-        path = os.path.join(BGM_DIR, name + '.wav')
+        path = os.path.join(BGM_WAV_DIR, name + '.wav')
         dur = write_wav(path, buf, SR_BGM)
         out.append((name, path, dur))
         print('  bgm  %-20s %6.3fs' % (name, dur))
@@ -2444,35 +2457,88 @@ def parse_trigger(t):
     return dict(event=ev, when=conds)
 
 
+def _items(kind=None, names=None):
+    """(kind, name, 캐시 WAV 경로, 배포 폴더, loop) 목록 — 등록 순서."""
+    out = []
+    if kind in (None, 'sfx'):
+        for name, spec in SFX.items():
+            if not names or name in names:
+                out.append(('sfx', name, os.path.join(SFX_WAV_DIR, name + '.wav'), SFX_DIR, spec['loop']))
+    if kind in (None, 'bgm'):
+        for name, spec in BGM.items():
+            if not names or name in names:
+                out.append(('bgm', name, os.path.join(BGM_WAV_DIR, name + '.wav'), BGM_DIR, True))
+    return out
+
+
+def _need_cache(items):
+    missing = [os.path.relpath(w, ROOT) for _, _, w, _, _ in items if not os.path.exists(w)]
+    if missing:
+        sys.exit('작업 캐시 WAV 가 없습니다(%d개, 예: %s). 먼저 `python3 parts/sound/work/build.py` 로 합성하세요.'
+                 % (len(missing), missing[0]))
+
+
+def encode_all(kind=None, names=None):
+    items = _items(kind, names)
+    _need_cache(items)
+    for k, name, wav_path, out_dir, loop in items:
+        encode.encode_file(k, wav_path, out_dir, loop)
+        print('  enc  %-20s ogg %6.1f KB  m4a %6.1f KB%s' % (
+            name, os.path.getsize(os.path.join(out_dir, name + '.ogg')) / 1024,
+            os.path.getsize(os.path.join(out_dir, name + '.m4a')) / 1024, '  (loop)' if loop else ''))
+
+
+def _asset_path(kind, name, fmt):
+    return 'assets/audio/%s/%s.%s' % (kind, name, fmt)
+
+
 def write_manifest():
+    items = _items()
+    _need_cache(items)
     entries = []
-    for name, spec in SFX.items():
-        p = os.path.join(SFX_DIR, name + '.wav')
-        if not os.path.exists(p):
-            continue
-        info = wav_info(p)
-        entries.append(dict(
-            id='sfx/' + name, kind='sfx', category=spec['category'],
-            file='assets/audio/sfx/%s.wav' % name,
-            sampleRate=info['sr'], channels=info['ch'],
-            durationMs=int(round(info['dur'] * 1000)), loop=spec['loop'],
-            gainDb=spec['gain_db'], trigger=parse_trigger(spec['trigger']), note=spec['note']))
-    for name, spec in BGM.items():
-        p = os.path.join(BGM_DIR, name + '.wav')
-        if not os.path.exists(p):
-            continue
-        info = wav_info(p)
-        entries.append(dict(
-            id='bgm/' + name, kind='bgm', category='bgm',
-            file='assets/audio/bgm/%s.wav' % name,
-            sampleRate=info['sr'], channels=info['ch'],
-            durationMs=int(round(info['dur'] * 1000)), loop=True,
-            gainDb=spec['gain_db'], floors=spec['floors'], note=spec['note']))
+    for kind, name, wav_path, out_dir, loop in items:
+        info = wav_info(wav_path)
+        files = [_asset_path(kind, name, fmt) for fmt in encode.FORMATS]
+        e = dict(id='%s/%s' % (kind, name), kind=kind)
+        e['category'] = SFX[name]['category'] if kind == 'sfx' else 'bgm'
+        e['file'] = files[0]
+        e['files'] = files
+        e['sampleRate'] = info['sr']
+        e['channels'] = info['ch']
+        e['samples'] = info['frames']
+        e['durationMs'] = int(round(info['dur'] * 1000))
+        e['loop'] = loop
+        if loop:
+            e['loopStartSample'] = 0
+            e['loopEndSample'] = info['frames']
+        if kind == 'sfx':
+            spec = SFX[name]
+            e['gainDb'] = spec['gain_db']
+            e['trigger'] = parse_trigger(spec['trigger'])
+        else:
+            spec = BGM[name]
+            e['gainDb'] = spec['gain_db']
+            e['floors'] = spec['floors']
+        e['note'] = spec['note']
+        entries.append(e)
+    prof = encode.PROFILE
     manifest = dict(
         version=1,
         generatedBy='parts/sound/work/build.py',
-        format=dict(container='wav', bitDepth=16, peakDbfs=PEAK_DBFS,
-                    sfxSampleRate=SR_SFX, bgmSampleRate=SR_BGM, channels=1),
+        format=dict(
+            container='ogg', codec='vorbis', mime=encode.MIME['ogg'],
+            alternates=[dict(container='m4a', codec='aac-lc', mime=encode.MIME['m4a'])],
+            filesNote='file = 1순위(Ogg Vorbis) 경로. files = 같은 소리의 형식별 경로, 선호 순서(ogg → m4a). '
+                      '재생 가능한 첫 항목을 쓴다 — Phaser this.load.audio(id, files) 에 그대로 넘기면 된다.',
+            loopNote='loop 항목의 이음매 구간은 [loopStartSample, loopEndSample) = 파일 전체 [0, samples). '
+                     '디코더가 끝 패딩을 남겨 버퍼가 samples 보다 길면 AudioBufferSourceNode.loopEnd = '
+                     'loopEndSample / sampleRate 로 지정한다(M4A 를 쓰는 브라우저 대비).',
+            encode=dict(bgm=dict(oggQuality=prof['bgm']['ogg_q'], m4aKbps=prof['bgm']['m4a_kbps']),
+                        sfx=dict(oggQuality=prof['sfx']['ogg_q'], m4aKbps=prof['sfx']['m4a_kbps'])),
+            source=dict(container='wav', dir='parts/sound/work/wav/',
+                        note='합성 원본. 배포·저장소에 넣지 않으며 build.py 로 바이트 단위 재생성(결정적).'),
+            bitDepth=16, peakDbfs=PEAK_DBFS,
+            sfxSampleRate=SR_SFX, bgmSampleRate=SR_BGM, channels=1),
         mixing=dict(masterDb=0.0, sfxBusDb=0.0, bgmBusDb=-8.0,
                     bgmCrossfadeMs=1200, bgmBossDuckDb=-3.0,
                     note='gainDb 는 버스 기준 상대값(dB). BGM 의 gainDb 는 곡 간 RMS 를 약 -21 dBFS 로 맞추는 보정값. 같은 효과음 20ms 내 중복 재생은 1회로 묶기 권장.'),
@@ -2485,31 +2551,64 @@ def write_manifest():
     print('  manifest %s (%d entries)' % (os.path.relpath(MANIFEST, ROOT), len(entries)))
 
 
+def _fmt_seam(v):
+    return '-' if v is None else '%.2f (%.0f dB)' % v
+
+
 def verify():
-    rows = []
-    total = 0
-    for d in (SFX_DIR, BGM_DIR):
-        if not os.path.isdir(d):
-            continue
-        for fn in sorted(os.listdir(d)):
-            if not fn.endswith('.wav'):
-                continue
-            p = os.path.join(d, fn)
-            info = wav_info(p)
-            total += info['bytes']
-            rows.append((os.path.relpath(p, os.path.join(ROOT, 'assets', 'audio')), info))
-    print('| 파일 | SR | ch | 길이(s) | 피크(dBFS) | 클리핑 | 경계차(÷최대인접차) | 크기(KB) |')
-    print('|---|---|---|---|---|---|---|---|')
-    bad = 0
-    for rel, i in rows:
-        ok = i['clipped'] == 0 and i['peak_db'] <= -5.9 and i['seam_ratio'] <= 1.0
-        if not ok:
-            bad += 1
-        print('| %s | %d | %d | %.3f | %.2f | %d | %.4f (%.2f) | %.0f |' % (
-            rel, i['sr'], i['ch'], i['dur'], i['peak_db'], i['clipped'], i['seam'], i['seam_ratio'], i['bytes'] / 1024))
+    """WAV 원본(피크·클리핑·경계) + OGG·M4A 디코드 대조(길이·정렬·피크·루프 이음매)."""
+    items = _items()
+    _need_cache(items)
+    print('| 파일 | SR | 샘플 | 길이(s) | 루프 | WAV 피크 | WAV 경계비 | OGG KB | OGG 길이차 ff/vf | OGG 피크 | OGG 이음매 '
+          '| M4A KB | M4A elst | M4A 끝패딩 | M4A 피크 | M4A 이음매 | 판정 |')
+    print('<!-- 이음매 = 튐 비율(디코드 이음매 한 칸 ÷ 안쪽 인접 변화 99.9 백분위, ≤1 통과) (원본 대비 이음매 오차 dBFS) -->')
+    print('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
+    tot = dict(wav=0, ogg=0, m4a=0)
+    by_kind = {}
+    bad_total = 0
+    for kind, name, wav_path, out_dir, loop in items:
+        wi = wav_info(wav_path)
+        bad = []
+        if not (wi['clipped'] == 0 and wi['peak_db'] <= -5.9 and wi['seam_ratio'] <= 1.0):
+            bad.append('wav')
+        enc = {fmt: os.path.join(out_dir, '%s.%s' % (name, fmt)) for fmt in encode.FORMATS}
+        if not all(os.path.exists(p) for p in enc.values()):
+            bad.append('인코딩 없음')
+            r = None
+        else:
+            r, b2 = encode.check_encoded(kind, wav_path, enc, loop)
+            bad += b2
+        tot['wav'] += wi['bytes']
+        k = by_kind.setdefault(kind, dict(n=0, wav=0, ogg=0, m4a=0))
+        k['n'] += 1
+        k['wav'] += wi['bytes']
+        if r:
+            tot['ogg'] += r['ogg_kb'] * 1024
+            tot['m4a'] += r['m4a_kb'] * 1024
+            k['ogg'] += r['ogg_kb'] * 1024
+            k['m4a'] += r['m4a_kb'] * 1024
+            vf = 'n/a' if r['ogg_vf'] is None else '%+d' % r['ogg_vf']
+            print('| %s/%s | %d | %d | %.3f | %s | %.2f | %.2f | %.1f | %+d/%s | %.2f | %s | %.1f | %s | %+d | %.2f | %s | %s |' % (
+                kind, name, wi['sr'], wi['frames'], wi['dur'], '루프' if loop else '', wi['peak_db'], wi['seam_ratio'],
+                r['ogg_kb'], r['ogg_ff'], vf, r['ogg_peak'], _fmt_seam(r['ogg_seam']),
+                r['m4a_kb'], 'ok' if r['m4a_elst'] == wi['frames'] else r['m4a_elst'], r['m4a_tail'],
+                r['m4a_peak'], _fmt_seam(r['m4a_seam']), 'OK' if not bad else ', '.join(bad)))
+        else:
+            print('| %s/%s | %d | %d | %.3f | %s | %.2f | %.2f | - | - | - | - | - | - | - | - | - | %s |' % (
+                kind, name, wi['sr'], wi['frames'], wi['dur'], '루프' if loop else '', wi['peak_db'], wi['seam_ratio'],
+                ', '.join(bad)))
+        if bad:
+            bad_total += 1
     print()
-    print('파일 %d 개, 총 %.2f MB, 문제 %d 건' % (len(rows), total / 1048576, bad))
-    return bad == 0
+    mb = 1048576.0
+    for kind, k in by_kind.items():
+        print('%s %d개: WAV %.2f MB → OGG %.2f MB (%.1f%%), M4A %.2f MB (%.1f%%)' % (
+            kind, k['n'], k['wav'] / mb, k['ogg'] / mb, 100 * k['ogg'] / k['wav'], k['m4a'] / mb, 100 * k['m4a'] / k['wav']))
+    print('전체 %d개: WAV %.2f MB → 배포(OGG+M4A) %.2f MB, 브라우저 1곳이 받는 양 OGG %.2f MB / M4A %.2f MB, 문제 %d 건' % (
+        len(items), tot['wav'] / mb, (tot['ogg'] + tot['m4a']) / mb, tot['ogg'] / mb, tot['m4a'] / mb, bad_total))
+    if not encode._vorbisfile():
+        print('(libvorbisfile 없음 — OGG 참조 디코더 대조 생략)')
+    return bad_total == 0
 
 
 def main(argv):
@@ -2521,7 +2620,13 @@ def main(argv):
     if what in ('all', 'bgm'):
         print('[bgm] %d 곡' % len(BGM))
         build_bgm(names)
-    if what in ('all', 'sfx', 'bgm', 'manifest'):
+    if what in ('all', 'sfx', 'bgm', 'encode'):
+        kind = what if what in ('sfx', 'bgm') else None
+        print('[encode] ogg q%s/%s · m4a %s/%s kbps (bgm/sfx)' % (
+            encode.PROFILE['bgm']['ogg_q'], encode.PROFILE['sfx']['ogg_q'],
+            encode.PROFILE['bgm']['m4a_kbps'], encode.PROFILE['sfx']['m4a_kbps']))
+        encode_all(kind, names)
+    if what in ('all', 'sfx', 'bgm', 'encode', 'manifest'):
         write_manifest()
     if what in ('all', 'verify'):
         print()
