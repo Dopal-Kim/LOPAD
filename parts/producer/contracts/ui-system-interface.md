@@ -45,7 +45,7 @@ interface UiSnapshot {
 }
 ```
 `UiResult` 에도 `playerName` 과 `line`(사망·클리어 문장)이 추가된다 (26라운드). `STAGE_STARTED.stageName` 은 층 제목으로 채워진다.
-`secondaryName` 은 우클릭 보조 동작의 이름. ~~(현재 전 무기 "패링"). 무기별로 달라질 예정(16라운드 도영 님 지시).~~ → **무기별(27라운드 Q1·§7): 칼 '가드·패링'(56라운드 Q48·§13) / 대검 '가드' / 단검 '그림자 걸음' / 활 '조준 사격'.**
+`secondaryName` 은 우클릭 보조 동작의 이름. ~~(현재 전 무기 "패링"). 무기별로 달라질 예정(16라운드 도영 님 지시).~~ → **무기별(27라운드 Q1·§7): 칼 '가드·패링'(56라운드 Q48·§13) / 대검 '가드' / 단검 '그림자 걸음' / 활 ~~'조준 사격'~~ '당겨 쏘기'(57라운드 Q7).**
 
 ## 3. 메뉴 — `UiMenu`
 ```ts
@@ -81,7 +81,7 @@ export const uiScenes: Phaser.Types.Scenes.SceneType[];
 
 ## 7. 29라운드 추가분 (자율 승인, ~~도영 님 검토 대기~~ → 31라운드 #8 일괄 승인)
 - 메뉴 id `evolve`: 개성 임계 도달 시 3지선다(변환 A / 변환 B / 강화). 시스템이 게임을 정지하고 UI 메뉴 씬이 그린다. 선택지 `label` 은 **이름만**, `detail` 은 설명(UI 가 아래 줄에 그린다). 강화 항목은 label '더 깊게 — …', detail 에 수치.
-- `uiCommands.getUiText()` 추가. `weapon.secondaryName` 은 무기별(패링/가드/그림자 걸음/조준 사격). (칼은 56라운드 '가드·패링' — §13)
+- `uiCommands.getUiText()` 추가. `weapon.secondaryName` 은 무기별(패링/가드/그림자 걸음/~~조준 사격~~). (칼은 56라운드 '가드·패링' — §13, 활은 57라운드 Q7 '당겨 쏘기')
 - 아트 연동: UI 는 스프라이트를 직접 다루지 않는다. HUD 아이콘이 필요하면 `assets/ui/**`(UI 소유)에 둔다.
 - 메뉴 id `ending`: 황제 처치 후 2지선다(없앤다/이해한다). `UiResult.ending?: 'destroy' | 'understand'`, `line` 은 고른 엔딩 문장. (29라운드 자율 승인)
 - 요청 대기: `UiSnapshot.weapon.id`, `UiSnapshot.mute`.
