@@ -162,6 +162,75 @@
 - Q46 대검 끌림음 `gs_drag`: **3타만** — 연결 권장·매니페스트 트리거(`combo:3`) 갱신(오디오 파일은 그대로).
 - Q47 세부: `bow_draw` 기존 유지 · 울분 가득(`utbun_full`)은 가득 차는 순간 **한 번만**(반복음 없음) · 대검 키 이름 **`gs_` 유지** — 이미 그대로, 결정됨.
 
+### 4-1-3. 57·58라운드 빌드 축·갈래 1단 수단·칼 찌르기·대검 균열·상태 (37종)
+결정 근거: `parts/producer/decisions/2026-10-04-round-57-systems-review.md` Q22~Q39(Q39 '특성·갈래 본격 디벨롭' 음향 병행), `2026-10-04-round-58-weapon-feedback2.md` Q1(3타 찌르기·검기 소모 강화)·Q3(휘둘러 내리찍기 + 균열 3/4/5칸)·Q5~Q7·Q11, 설계안 `design-2026-10-04-build-axis.md` 6.1·`-chwigi.md`. 트리거 이벤트 이름은 UI 계약 §14.11(`TAG_SET_CHANGED`·`DUAL_TRAIT_GAINED`·`CURSE_GAINED`·`CURSE_ENDED`·`PERFECT_SUCCESS`)에 있는 것은 그대로, 없는 것은 **제안**. 기존 방식 그대로(build.py 절차 합성, 피크 -6 dBFS, 목소리 없음), `bow_strain` 뒤에 등록 — 기존 111개 파일 바이트 불변(WAV·OGG·M4A md5 대조).
+
+새 재료·음색 규칙:
+- **세트 = 걸쇠가 맞물리는 강철 + D 단조 종**(`latch`): 2단계 D5 → 4단계 D5·A5 → 6단계 D5·A5·D6 + 낮은 북 + 서늘한 한 가닥. 태그 공용(태그별 색은 UI·아트가 맡음).
+- **이중 개성 = 어긋난 두 종이 한 음으로 겹침**(`glide_bell`, A4 ±1.5% → A4). 개성(evolve) 계열 '이질' 허용.
+- **저주 = 깃펜·밀랍 도장·쇠사슬 + 낮은 삼전음 D2–G#2**(`tritone_drone`). 해제는 삼전음이 5도(D–A)로 풀림. 피의 계약은 피·심장 박동(`heartbeat`)이 더해진 짙은 판.
+- **각성 = 공용 뼈대**(`_awaken_core`: 모여드는 바람·열리는 D 드론 → 0.9 s 북 + 종 아르페지오 D4 A4 D5 F5 A5 D6) **+ 무기 서명**(칼 달빛 칼날 울림 / 대검 산사태·징 / 단검 그림자 셋 교차 베기 / 활 유성 낙하). 4파일.
+- 음높이는 D 단조 축 유지(검기 A4·D5·A5, 차지 '징' D4·A4·D5 와 협화).
+
+| id | 길이 | 루프 | 트리거 제안 | 질감 | gainDb |
+|---|---|---|---|---|---|
+| set_tier1 | 0.70 s | - | `TAG_SET_CHANGED` stage:2 (오를 때만) | 걸쇠 '철컥' + 종 D5 | -5 |
+| set_tier2 | 0.95 s | - | `TAG_SET_CHANGED` stage:4 | 걸쇠 둘 + 종 D5·A5 + 자물쇠 몸통 | -4 |
+| set_tier3 | 1.40 s | - | `TAG_SET_CHANGED` stage:6 | 무거운 자물쇠 + 종 D5·A5·D6 + 낮은 북 + 고음 한 가닥, 울림 | -2 |
+| dual_trait | 1.50 s | - | `DUAL_TRAIT_GAINED` | 두 종 A4 ±1.5% → 0.45 s 에 한 음 + D5 피어남 + 바람 | -2 |
+| curse_take | 1.30 s | - | `CURSE_GAINED` | 깃펜 → 0.2 s 밀랍 도장 + 쇠사슬 3 + 삼전음 드론 | -2 |
+| curse_end | 1.00 s | - | `CURSE_ENDED` | 족쇄 딸깍 + 사슬 떨어짐 4 + 빠지는 숨(노이즈) + D–A 로 풀림 | -4 |
+| blood_pact | 1.80 s | - | `CURSE_GAINED` source:bloodPact (개성 '피의 계약' 칸) | 손바닥 긋는 찢김 → 핏방울 3 + 심장 2회 + 어두운 D4 종 + 짙은 삼전음 | -1 |
+| perfect_evade | 0.62 s | - | `PERFECT_SUCCESS` kind:perfectEvade | 1.2 kHz 위만: 스쳐 지나가는 날 바람(오르내림) + '팅' A6 + D7 | -2 |
+| awaken_katana | 2.60 s | - | `WEAPON_EVOLVED` kind:awaken weapon:katana | 공용 뼈대 + 0.9 s 찢김·초승달 베기 + 칼날 울림 A5·D6(떨림) | 0 |
+| awaken_greatsword | 2.60 s | - | 〃 weapon:greatsword | 공용 뼈대 + 0.9 s 강타(×1.6) + 굴러 내리는 바위 18 + 자갈 + 징 D4·A4 | 0 |
+| awaken_dagger | 2.60 s | - | 〃 weapon:dagger | 공용 뼈대 + 빨려드는 역바람 3겹 → 0.9 s 교차 베기 3 + 재 폭발 3 | 0 |
+| awaken_bow | 2.60 s | - | 〃 weapon:bow | 깊은 시위 110 Hz + 0.35~0.9 s 떨어지는 휘파람 → 유성 폭음 + 불티 26 + 공용 종 | 0 |
+| katana_spin_ready | 0.32 s | - | `PLAYER_SKILL` katana move:spin phase:ready (0.4 s 홀드 도달) | 딸깍 + 칼날 울림 A5 | -6 |
+| katana_spin | 0.52 s | - | `PLAYER_SKILL` katana move:spin phase:release | 발 돌림 + 대역이 올랐다 내려오는 한 바퀴 칼바람 + 찢김 + 칼날 울림 D5 | -1 |
+| katana_guardbreak_hold | 1.00 s | 루프 | `PLAYER_SKILL` katana move:guardbreak phase:hold | 달아오르는 칼: D3 웅웅(2 Hz) + 6 Hz 떨리는 A5 험 + 열기 노이즈 + 잔불 타닥 10 | -11 |
+| katana_guardbreak | 0.77 s | - | `PLAYER_SKILL` katana move:guardbreak phase:strike | 0~0.1 s 내려오는 칼바람 → 0.1 s 판정: 쪼개지는 쇠 720 Hz + 강타 115→38 Hz + 칼날 울림 D5 | 0 |
+| katana_thrust | 0.28 s | - | `PLAYER_ATTACK` katana combo:3 | 반 발 디딤 + 곧게 뚫는 좁은 '쉭'(2.2→5.2k, Q 2.4) + 칼끝 틱 | -2 |
+| katana_thrust_ki1 | 0.47 s | - | `PLAYER_ATTACK` katana combo:3 kenki:1 (겹침) | 0.2 s 뻗는 찢김 + 칼날 울림 A4(재) | -5 |
+| katana_thrust_ki2 | 0.58 s | - | 〃 kenki:2 | 0.24 s 찢김 + 칼날 울림 D5(호박) | -4 |
+| katana_thrust_ki3 | 0.78 s | - | 〃 kenki:3 | 0.3 s 찢김 + 칼날 울림 A5(백열) + 3.5k 고음, 울림 | -3 |
+| gs_crack_line_lv1 | 0.73 s | - | `PLAYER_CHARGE` greatsword release stage:1 part:crack | 커서 쪽으로 달려가는 갈라짐 9(3칸 × 칸당 0.06 s) + 끝 '툭' + 땅울림 | -1 |
+| gs_crack_line_lv2 | 0.79 s | - | 〃 stage:2 | 4칸(0.24 s), 갈라짐 12 | -1 |
+| gs_crack_line_lv3 | 0.85 s | - | 〃 stage:3 | 5칸(0.30 s), 갈라짐 15 | 0 |
+| gs_quake_ring | 1.00 s | - | `PLAYER_CHARGE` greatsword release branch:pressure part:quake (중압) | 12 Hz 로 떨리는 땅(48→34 Hz) + 안으로 빨려드는 바람 → 0.32 s 짓눌림 '쿵' + 자갈 | 0 |
+| gs_shatter_snuff | 0.27 s | - | `PLAYER_SKILL` greatsword move:crack phase:snuff (파쇄: 투사체 소멸) | 으스러지는 '빠직'(돌·쇠 파편) + 먼지 '푹' | -4 |
+| dagger_fan_throw | 0.34 s | - | `PLAYER_SKILL` dagger move:fan_throw (질풍) | 손목 딸깍 + 25 ms 간격 높은 바람 3(음높이 다름) + 칼날 틱 | -2 |
+| dagger_cross_clone | 0.62 s | - | `PLAYER_SKILL` dagger move:cross_clone (쌍격) | 0.16 s 빨려드는 어두운 역바람 → 0.16·0.19 s 엇갈린 두 베기(X) + 낮은 몸통 | -2 |
+| bow_rapid1~3 | 0.13 s ×3 | - | `PLAYER_ATTACK` bow move:rapid variant:1~3 (속사) | 짧은 시위 '틱'(220/196/247 Hz) + 짧은 화살 바람 | -4 |
+| bow_pierce | 0.26 s | - | `PLAYER_SKILL` bow move:pierce phase:pass (저격, 적마다) | 박혔다 빠지는 '퍽' + 계속 뻗어 나가는 3.8→7.5k 바람 | -3 |
+| mark_stack | 0.18 s | - | `MARK_CHANGED` delta>0 (공용 표식) | 붉은 분필 긋는 '슥' + 나무 틱 (낙인 지짐과 구분) | -8 |
+| boil_burst | 0.82 s | - | `STATUS_BURST` kind:boil (상흔 4 끓음) | 0.14 s 빨라지는 거품 → 젖은 재 폭발 + 핏방울 + 지짐 | -2 |
+| stillness | 1.10 s | - | `SET_EFFECT` tag:insight effect:stillness (간파 6 정적) | 빨려드는 숨(노이즈) → 0.12 s '틱' + 얼어붙는 A5·D6 + 내려앉는 92→40 Hz | -3 |
+| drunk_ignite | 0.62 s | - | `POOL_IGNITED` (술 웅덩이 점화·술불) | 작은 '훅' 95→45 Hz + 300→2.4k 번지는 불길 + 타닥 9 | -3 |
+| drunk_sway | 0.47 s | - | `DRUNK_SWAY` (취기 4 취보 '휘청') | 7 Hz 일렁이는 바람 + 장화 미끄러짐 + 술 출렁 + 작은 잔 '팅' | -3 |
+| endure_trigger | 1.02 s | - | `ENDURE_TRIGGERED` (버팀 4·6, 패시브 '마지막 잔') | 심장 두 번 + 발 박는 강철 + 차오르는 숨(노이즈) + 낮은 D2 | -1 |
+
+연결 권장:
+- **세트**: 단계가 **오를 때만** 해당 단계음 1회(내려갈 때 없음). 같은 프레임에 두 태그가 오르면 높은 단계 하나만.
+- **이중 개성·저주·각성**: 메뉴 선택 확정 프레임. 피의 계약은 `curse_take` 대신 `blood_pact` 하나만. 각성은 파일 0.9 s 가 정점 — 무기 외형 전환·화면 번쩍임을 재생 시작 + 0.9 s 에 맞추면 좋다(또는 재생을 0.9 s 앞당김). 각성 때 기존 `evolve` 는 겹치지 않는다.
+- **완벽 회피**: `dash`·`shadowstep` 위에 겹침(1.2 kHz 아래를 비워 둠). 간파 세트 진행 연출과 같은 프레임.
+- **회전 베기**: 0.4 s 홀드 도달 `katana_spin_ready` → 떼면 `katana_spin`. 검기 소모 2회전은 같은 파일 0.28 s 뒤 rate 1.05.
+- **가드 불가 내려베기**: 홀드 시작 `katana_guardbreak_hold`(150 ms 페이드인, 0.6 s 까지 rate 1.0→1.06 선택) → 0.6 s 도달 알림은 `katana_spin_ready` 를 rate 0.667(A5→D5)로 재사용 → 떼면 루프 60 ms 페이드아웃 + `katana_guardbreak` 를 **판정 프레임 100 ms 앞**에서(파일 0.1 s = 판정).
+- **3타 찌르기**: 매번 `katana_thrust`, 검기를 소모하면 같은 프레임에 그 단수의 `katana_thrust_ki1~3` 겹침(아트 오버레이 `katana_thrust_ki1~3` 와 1:1). 재생 속도 변주를 쓰지 않은 이유는 차지 내려찍기와 같다(음높이가 D 단조 축을 벗어나고 가벼워짐).
+- **대검 휘둘러 내리찍기(58 Q3)**: 판정 프레임에 기존 `charge_slam_lvN` + `gs_crack_line_lvN` 동시. 커서·벽 때문에 균열이 짧게 끝나면 그 시점에 균열음 80 ms 페이드아웃. 중압 갈래는 균열 대신 진동이므로 `gs_crack_line` 대신 `gs_quake_ring`. 파쇄 갈래는 `gs_crack_line` 그대로 + 탄을 지울 때마다 `gs_shatter_snuff`.
+- **질풍·쌍격**: 투척 `dagger_fan_throw` 1회(3자루 함께), 적중은 기존 `hit_enemy` + `brand_apply`. 분신 교차는 `brand_burst` 와 같은 프레임에 겹침.
+- **속사**: 발마다 `bow_rapid1~3` 중 직전과 다른 것 + ±3% rate. 일찍 놓기·완벽 놓기 판정은 기존 `bow_release_weak`/`bow_release_perfect` 그대로.
+- **관통**: 완벽 놓기 = 기존 `bow_release_perfect`, 적을 뚫을 때마다 `bow_pierce` + `hit_enemy`.
+- **표식**: 쌓일 때마다 `mark_stack`(표식 2·3 은 rate 1.06·1.12). **술 점화**: 웅덩이마다 `drunk_ignite`(연쇄는 80~150 ms 시차), 타는 동안 기존 `boss1_fire_loop` 1개(가까운 웅덩이 기준).
+
+재사용(새로 만들지 않음):
+- 대검 휘둘러 내리찍기 강타 = 기존 `charge_slam_lv1~3`(원래 휘둘러 내리찍기용으로 만든 소리, 58 Q7 '단계와 관계없이 휘둘러 내리찍기'와 일치). 균열 부분만 새로(`gs_crack_line_lv1~3`).
+- 마시기 사건(독주·깡술·카운터) = 기존 `potion_use`. 술불 지속 = `boss1_fire_loop`. 표식 6 기폭 = 기존 `brand_burst`. 대쉬 일섬(58 Q1) = 기존 `issen_dash`·`issen_burst`·`shadow_clone`. 속사의 기본 사격음은 기존 `bow_shot`(0.30 s, 초당 5발에는 길어 `bow_rapid1~3` 를 새로 만듦).
+
+현재 결정과 어긋나 보이는 기존 항목(파일·매니페스트는 그대로 둠 — 인터뷰 대상):
+- `gs_plunge`·`gs_crack`: 트리거 `mode:plunge` — 58 Q11 로 꽂아내리기 코드·데이터 삭제. 쓰는 곳이 없으면 보관/삭제 결정 필요.
+- `katana_echo`: 트리거 `combo:3 phase:echo` — 58 Q1 로 3타가 찌르기가 되어 잔상 베기가 남는지 불명.
+
 ### 4-2. 타격·적
 | id | 길이 | 트리거 제안 | 질감 | gainDb |
 |---|---|---|---|---|

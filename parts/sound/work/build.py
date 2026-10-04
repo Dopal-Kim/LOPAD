@@ -2140,6 +2140,595 @@ def _bow_strain(sr, rng):
     return s
 
 
+# --- 57·58라운드: 빌드 축(세트·이중 개성·저주·완벽 회피·각성) · 갈래 1단 수단 · 칼 찌르기 · 대검 균열 · 상태 ----------
+# 결정 근거: parts/producer/decisions/2026-10-04-round-57-systems-review.md Q22~Q39,
+#            2026-10-04-round-58-weapon-feedback2.md Q1·Q3·Q5~Q7·Q11, 설계안 design-2026-10-04-build-axis.md 6.1·-chwigi.md.
+# 반드시 bow_strain 뒤에 둔다(시드 = 1000 + 등록 순서). 기존 111개 파일은 바이트 불변이어야 한다.
+# 재료 규칙: 세트 = 걸쇠가 맞물리는 강철 + D 단조 종(D5·A5·D6), 저주 = 깃펜·밀랍 도장·쇠사슬 + 삼전음(D–G#),
+#            각성 = 개성(evolve)과 같은 '이질'(종 아르페지오·드론) + 무기별 재료 서명. 목소리 없음(숨도 노이즈로만).
+
+def glide_bell(sr, dur, f0, f1, glide, rng, tau=0.6):
+    """음높이가 glide 초 동안 f0 → f1 로 미끄러져 자리 잡는 종(이중 개성: 두 음이 하나로 겹침)."""
+    n = sec(sr, dur)
+    ng = max(1, sec(sr, glide))
+    out = zeros(n)
+    for ratio, amp in [(1.0, 1.0), (2.0, 0.45), (2.76, 0.35), (4.07, 0.16), (5.4, 0.08)]:
+        freqs = [ratio * (f0 + (f1 - f0) * (1 - (1 - min(1.0, i / ng)) ** 2)) for i in range(n)]
+        osc = tone_f(sr, freqs, 'sine', rng.random())
+        e = env_exp(sr, dur, tau / math.sqrt(ratio))
+        for i in range(n):
+            out[i] += amp * e[i] * osc[i]
+    return mul(out, env_adsr(sr, dur, 0.01, 0.0, 1.0, dur * 0.3))
+
+
+def latch(sr, rng, g=1.0, heavy=0.0):
+    """걸쇠가 맞물리는 '철컥': 딸깍 두 겹 + 짧은 쇠 + (heavy) 낮은 자물쇠 몸통."""
+    s = zeros(sec(sr, 0.2))
+    mix_into(s, click(sr, rng, 0.004, 5200), 0, 0.9)
+    mix_into(s, metal(sr, 0.12, 1650, rng, tau=0.025, jitter=0.03), sec(sr, 0.002), 0.35)
+    mix_into(s, click(sr, rng, 0.003, 3400), sec(sr, 0.028), 0.6)
+    if heavy:
+        mix_into(s, thud(sr, 0.16, 140, 60, 0.035), sec(sr, 0.026), 0.9 * heavy)
+        mix_into(s, metal(sr, 0.18, 700, rng, tau=0.05, jitter=0.03), sec(sr, 0.028), 0.3 * heavy)
+    return scale(s, g)
+
+
+def heartbeat(sr, rng, g=1.0):
+    """심장 박동 한 번(쿵-쿵): 낮은 몸통 두 번."""
+    s = zeros(sec(sr, 0.4))
+    mix_into(s, lowpass(thud(sr, 0.18, 68, 40, 0.05), sr, 200), 0, 1.0)
+    mix_into(s, lowpass(thud(sr, 0.16, 60, 38, 0.045), sr, 200), sec(sr, 0.16), 0.7)
+    return scale(s, g)
+
+
+def tritone_drone(sr, dur, rng, f=73.42, a=0.3, r=0.5):
+    """저주의 낮은 삼전음 드론(D2 + G#2, 톱니 저역통과) — '불협이 몸에 붙는다'."""
+    s = add(tone(sr, dur, f, kind='saw'), scale(tone(sr, dur, f * 1.4142, kind='saw'), 0.7))
+    s = lowpass(lowpass(s, sr, 320), sr, 320)
+    return mul(s, env_adsr(sr, dur, a, 0.0, 1.0, r))
+
+
+def quill_scratch(sr, rng, d=0.16, f0=3000, f1=5500):
+    n = sec(sr, d)
+    sc = svf(noise(sr, d, rng), sr, sweep(sr, n, f0, f1), 1.5, 'band')
+    trem = [0.6 + 0.4 * math.sin(TAU * 40 * i / sr) for i in range(n)]
+    return mul(mul(sc, trem), env_adsr(sr, d, 0.02, 0.0, 1.0, 0.05))
+
+
+# ---- 빌드 축 ----
+
+def _set_tier(sr, rng, tier):
+    dur = [0, 0.7, 0.95, 1.4][tier]
+    s = zeros(sec(sr, dur))
+    mix_into(s, latch(sr, rng, 1.0, heavy=[0, 0.0, 0.5, 1.0][tier]), 0, 0.8)
+    if tier >= 2:
+        mix_into(s, latch(sr, rng, 0.7, heavy=0.0), sec(sr, 0.055), 0.6)  # 둘째 걸쇠
+    bells = [(587.33, 0.0, 0.5)]  # D5
+    if tier >= 2:
+        bells.append((880.0, 0.06, 0.38))  # A5
+    if tier >= 3:
+        bells.append((1174.66, 0.13, 0.3))  # D6
+    for f, t0, g in bells:
+        mix_into(s, bell(sr, dur - t0 - 0.02, f, rng, tau=0.22 + 0.1 * tier), sec(sr, 0.03 + t0), g)
+    if tier == 3:
+        mix_into(s, lowpass(kick(sr, 0.5, 110, 40, 0.12, rng=rng), sr, 450), sec(sr, 0.03), 0.8)
+        sh = mul(tone(sr, 0.9, 3520, 3560), env_adsr(sr, 0.9, 0.08, 0.0, 1.0, 0.7))
+        mix_into(s, sh, sec(sr, 0.15), 0.025)  # 서늘한 한 가닥
+        mix_into(s, whoosh(sr, 0.5, rng, 900, 5000, q=0.9, a=0.7, r=0.3), 0, 0.12)
+        s = reverb(s, sr, size=0.9, decay=0.65, wet=0.25)
+    else:
+        s = reverb(s, sr, size=0.6, decay=0.5, wet=0.15)
+    return s
+
+
+@sfx('set_tier1', 'TAG_SET_CHANGED{stage:2,delta>0}', "태그 세트 2단계 켜짐(태그 공용). 걸쇠가 맞물리는 '철컥' + 맑은 종 D5 한 번. 단계가 오를 때만(내려갈 때 없음)", -5, category='event')
+def _set_tier1(sr, rng):
+    return _set_tier(sr, rng, 1)
+
+
+@sfx('set_tier2', 'TAG_SET_CHANGED{stage:4,delta>0}', "태그 세트 4단계 켜짐(태그 공용). 걸쇠 두 번 + 종 D5·A5 + 낮은 자물쇠 몸통", -4, category='event')
+def _set_tier2(sr, rng):
+    return _set_tier(sr, rng, 2)
+
+
+@sfx('set_tier3', 'TAG_SET_CHANGED{stage:6,delta>0}', "태그 세트 6단계 켜짐(태그 공용, 최대). 무거운 자물쇠 '철컹' + 종 D5·A5·D6 쌓임 + 낮은 북 + 서늘한 고음 한 가닥 + 울림", -2, category='event')
+def _set_tier3(sr, rng):
+    return _set_tier(sr, rng, 3)
+
+
+@sfx('dual_trait', 'DUAL_TRAIT_GAINED', "이중 개성 획득(갈래 × 태그). 서로 어긋난 두 종(A4 ±1.5%)이 0.45 s 동안 미끄러져 한 음으로 겹치고, 겹치는 순간 D5 종이 피어남 + 바람. 개성(evolve) 계열 '이질'", -2, category='event')
+def _dual_trait(sr, rng):
+    dur = 1.5
+    s = zeros(sec(sr, dur))
+    mix_into(s, glide_bell(sr, 1.4, 440.0 * 0.985, 440.0, 0.45, rng, tau=0.55), 0, 0.42)
+    mix_into(s, glide_bell(sr, 1.4, 440.0 * 1.015, 440.0, 0.45, rng, tau=0.55), sec(sr, 0.004), 0.42)
+    mix_into(s, bell(sr, 1.0, 587.33, rng, tau=0.45), sec(sr, 0.45), 0.4)  # 겹치는 순간
+    mix_into(s, bell(sr, 0.9, 880.0, rng, tau=0.35), sec(sr, 0.5), 0.18)
+    mix_into(s, whoosh(sr, 0.55, rng, 600, 4200, q=0.9, a=0.8, r=0.2), 0, 0.18)
+    mix_into(s, lowpass(thud(sr, 0.25, 110, 55, 0.06), sr, 400), sec(sr, 0.45), 0.4)
+    sh = mul(tone(sr, 0.8, 2637.0, 2650.0), env_adsr(sr, 0.8, 0.1, 0.0, 1.0, 0.6))
+    mix_into(s, sh, sec(sr, 0.47), 0.02)
+    return reverb(s, sr, size=1.1, decay=0.7, wet=0.32)
+
+
+@sfx('curse_take', 'CURSE_GAINED', "저주 계약(받음). 깃펜 긁기 → 밀랍 도장 '꾹' + 쇠사슬 감김 3 + 낮은 삼전음(D2–G#2) 드론이 몸에 붙음", -2, category='event')
+def _curse_take(sr, rng):
+    dur = 1.3
+    s = zeros(sec(sr, dur))
+    mix_into(s, quill_scratch(sr, rng, 0.16), 0, 0.5)
+    t = sec(sr, 0.2)
+    mix_into(s, thud(sr, 0.2, 130, 55, 0.04), t, 1.0)  # 도장
+    mix_into(s, burst(sr, 0.06, rng, fc=700, q=0.6, tau=0.015, mode='low'), t, 0.6)
+    for k, t0 in enumerate((0.28, 0.36, 0.45)):  # 쇠사슬 감김
+        mix_into(s, metal(sr, 0.14, 1250 + 160 * k, rng, tau=0.03, jitter=0.05), sec(sr, t0), 0.25)
+        mix_into(s, click(sr, rng, 0.003, 4200), sec(sr, t0), 0.35)
+    mix_into(s, tritone_drone(sr, 1.0, rng, a=0.25, r=0.55), t, 0.55)
+    mix_into(s, lowpass(bell(sr, 0.9, 293.66, rng, tau=0.4), sr, 1200), t, 0.25)
+    return reverb(s, sr, size=0.9, decay=0.6, wet=0.22)
+
+
+@sfx('curse_end', 'CURSE_ENDED', "저주 기간 끝(해제). 족쇄 풀리는 딸깍 + 쇠사슬이 바닥에 떨어짐 + 길게 빠지는 숨(노이즈) + 삼전음이 5도(D–A)로 풀림", -4, category='event')
+def _curse_end(sr, rng):
+    dur = 1.0
+    s = zeros(sec(sr, dur))
+    mix_into(s, click(sr, rng, 0.005, 3600), 0, 0.9)
+    mix_into(s, metal(sr, 0.18, 1500, rng, tau=0.04, jitter=0.03), 0, 0.35)
+    for k, t0 in enumerate((0.07, 0.12, 0.2, 0.26)):  # 바닥에 떨어지는 사슬
+        mix_into(s, metal(sr, 0.16, 900 + 140 * k, rng, tau=0.035, jitter=0.06), sec(sr, t0), 0.28 - 0.04 * k)
+        mix_into(s, thud(sr, 0.04, 240, 160, 0.01), sec(sr, t0), 0.25)
+    n = sec(sr, 0.6)
+    ex = svf(noise(sr, 0.6, rng), sr, sweep(sr, n, 1300, 450), 1.2, 'band')
+    mix_into(s, mul(ex, env_adsr(sr, 0.6, 0.06, 0.0, 1.0, 0.5)), sec(sr, 0.1), 0.3)  # 빠지는 숨
+    tr = tritone_drone(sr, 0.25, rng, a=0.0, r=0.2)
+    mix_into(s, tr, 0, 0.35)
+    fifth = add(tone(sr, 0.7, 73.42, kind='saw'), scale(tone(sr, 0.7, 110.0, kind='saw'), 0.7))
+    fifth = mul(lowpass(lowpass(fifth, sr, 360), sr, 360), env_adsr(sr, 0.7, 0.08, 0.0, 1.0, 0.55))
+    mix_into(s, fifth, sec(sr, 0.18), 0.4)  # D–A 로 풀림
+    return reverb(s, sr, size=0.8, decay=0.55, wet=0.2)
+
+
+@sfx('blood_pact', 'CURSE_GAINED{source:bloodPact}', "개성 '피의 계약' 칸 선택(저주 + 이득 1.5배). 날이 손바닥을 긋는 짧은 찢김 → 핏방울 3 + 심장 두 번 + 어두운 D4 종 + 짙은 삼전음 드론. 이때는 curse_take 대신 이것만", -1, category='event')
+def _blood_pact(sr, rng):
+    dur = 1.8
+    s = zeros(sec(sr, dur))
+    mix_into(s, tear(sr, 0.12, rng, 3500, 7000, rate=80.0, q=1.6), 0, 0.5)  # 손바닥 긋기
+    mix_into(s, metal(sr, 0.1, 2600, rng, tau=0.02, jitter=0.02), 0, 0.12)
+    for t0, f in [(0.2, 520), (0.33, 470), (0.47, 560)]:  # 핏방울(낮은 물방울)
+        d = mul(tone(sr, 0.04, f, f * 1.5), env_exp(sr, 0.04, 0.012))
+        mix_into(s, lowpass(d, sr, 1800), sec(sr, t0), 0.35)
+    mix_into(s, heartbeat(sr, rng), sec(sr, 0.3), 0.9)
+    mix_into(s, heartbeat(sr, rng), sec(sr, 0.95), 0.75)
+    mix_into(s, tritone_drone(sr, 1.5, rng, f=55.0, a=0.35, r=0.7), sec(sr, 0.2), 0.6)
+    mix_into(s, lowpass(bell(sr, 1.3, 293.66, rng, tau=0.55), sr, 900), sec(sr, 0.3), 0.35)
+    sh = mul(tone(sr, 0.9, 2489.0, 2500.0), env_adsr(sr, 0.9, 0.2, 0.0, 1.0, 0.6))
+    mix_into(s, sh, sec(sr, 0.35), 0.015)  # 서늘한 한 가닥(G#7 근처, 삼전음 쪽)
+    return reverb(s, sr, size=1.1, decay=0.7, wet=0.28)
+
+
+@sfx('perfect_evade', 'PERFECT_SUCCESS{kind:perfectEvade}', "완벽 회피(적 공격 판정 직전 0.15 s 안 대쉬·그림자 걸음). 1.2 kHz 위 대역만(대쉬·그림자 걸음과 겹쳐 재생): 스쳐 지나가는 날 바람(가까워졌다 멀어짐) + 맑은 '팅' A6 + D7 반짝임. '완벽 회피' 문구와 같은 프레임", -2)
+def _perfect_evade(sr, rng):
+    dur = 0.6
+    s = zeros(sec(sr, dur))
+    n = sec(sr, 0.22)
+    nz = svf(noise(sr, 0.22, rng), sr, [1800 * (1 + 2.2 * math.sin(math.pi * i / n)) for i in range(n)], 2.0, 'band')
+    nz = mul(nz, [math.sin(math.pi * i / n) ** 2 for i in range(n)])
+    mix_into(s, nz, 0, 0.7)  # 스쳐 지나가는 날(도플러처럼 올라갔다 내려감)
+    mix_into(s, bell(sr, 0.5, 1760.0, rng, tau=0.2), sec(sr, 0.09), 0.4)  # A6 '팅'
+    sh = mul(tone(sr, 0.4, 2349.3, 2360.0), env_adsr(sr, 0.4, 0.02, 0.0, 1.0, 0.35))
+    mix_into(s, sh, sec(sr, 0.1), 0.05)  # D7
+    mix_into(s, click(sr, rng, 0.003, 7000), sec(sr, 0.09), 0.5)
+    s = highpass(highpass(s, sr, 1200), sr, 1200)
+    return reverb(tail(s, sr, 0.02), sr, size=0.6, decay=0.5, wet=0.2)
+
+
+def _awaken_core(sr, rng, dur, peak=0.9):
+    """최종 각성 공용 뼈대: 모여드는 바람 + 열리는 D 드론 → peak 에 북 + 종 아르페지오(D4 A4 D5 F5 A5 D6) + 이질 고음."""
+    s = zeros(sec(sr, dur))
+    m = sec(sr, peak)
+    g = svf(noise(sr, peak, rng), sr, sweep(sr, m, 300, 3800), 1.0, 'band')
+    mix_into(s, mul(g, [((i / m) ** 2.2) for i in range(m)]), 0, 0.45)  # 모여드는 바람
+    dr = add(tone(sr, dur, 36.71, kind='saw'), scale(tone(sr, dur, 73.42 * 1.003, kind='saw'), 0.6))
+    nd = sec(sr, dur)
+    dr = lowpass(dr, sr, [200 + 700 * min(1.0, i / m) for i in range(nd)])
+    dr = mul(dr, env_adsr(sr, dur, peak * 0.8, 0.0, 1.0, dur - peak))
+    mix_into(s, dr, 0, 0.4)
+    mix_into(s, lowpass(kick(sr, 0.8, 90, 30, 0.2, rng=rng), sr, 380), m, 1.0)
+    for k, f in enumerate([293.66, 440.0, 587.33, 698.46, 880.0, 1174.66]):
+        mix_into(s, bell(sr, max(0.4, dur - peak - 0.08 * k - 0.05), f, rng, tau=0.4), m + sec(sr, 0.05 + 0.075 * k), 0.34 - 0.03 * k)
+    sh = mul(tone(sr, dur - peak, 2936.6, 2950.0), env_adsr(sr, dur - peak, 0.2, 0.0, 1.0, 0.8))
+    mix_into(s, sh, m, 0.02)
+    return s
+
+
+@sfx('awaken_katana', 'WEAPON_EVOLVED{kind:awaken,weapon:katana}', "최종 각성 — 칼(만월, 임시 이름). 공용 각성 뼈대(모여드는 바람·D 드론 → 0.9 s 북 + 종 아르페지오) + 달빛 칼날 울림 A5·D6(떨림) + 초승달 베기 '시잉'. 파일 0.9 s = 정점(무기 변형 그림 전환과 같은 프레임 권장)", 0, category='event')
+def _awaken_katana(sr, rng):
+    dur = 2.6
+    s = _awaken_core(sr, rng, dur)
+    m = sec(sr, 0.9)
+    mix_into(s, tear(sr, 0.25, rng, 2500, 9000, rate=90.0, q=1.8), m - sec(sr, 0.05), 0.5)
+    mix_into(s, whoosh(sr, 0.3, rng, 8000, 2000, q=2.0, a=0.1, r=0.7), m, 0.45)
+    mix_into(s, blade_ring(sr, 1.5, 880.0, rng, bright=1.0, tau=0.6, vib=0.003), m, 0.4)
+    mix_into(s, blade_ring(sr, 1.3, 1174.66, rng, bright=0.8, tau=0.5, vib=0.002), m + sec(sr, 0.08), 0.22)
+    return reverb(softclip(s, 1.2), sr, size=1.3, decay=0.78, wet=0.35)
+
+
+@sfx('awaken_greatsword', 'WEAPON_EVOLVED{kind:awaken,weapon:greatsword}', "최종 각성 — 대검(산붕, 임시 이름). 공용 각성 뼈대 + 0.9 s 산이 무너지는 강타(×1.6) + 오래 굴러 내리는 바위·자갈 + 호박빛 '징' D4·A4. 파일 0.9 s = 정점", 0, category='event')
+def _awaken_greatsword(sr, rng):
+    dur = 2.6
+    s = _awaken_core(sr, rng, dur)
+    m = sec(sr, 0.9)
+    mix_into(s, slam_impact(sr, rng, 0.8, 100, 26, 0.12, 1.6), m, 0.9)
+    rum = mul(svf(noise(sr, 1.6, rng), sr, 140, 0.8, 'low'), env_adsr(sr, 1.6, 0.05, 0.0, 1.0, 1.4))
+    mix_into(s, rum, m, 0.9)
+    for k in range(18):  # 굴러 내리는 바위
+        t0 = 0.9 + 0.05 + rng.uniform(0, 1.2) * (k / 18) ** 0.7
+        mix_into(s, thud(sr, 0.08, rng.uniform(120, 200), 60, 0.02), sec(sr, t0), 0.35 * (1 - k / 22))
+    mix_into(s, gravel(sr, rng, 1.5, 24, 0.0, 1.3, 0.25), m)
+    mix_into(s, jing(sr, 1.4, 293.66, rng, bright=0.4, tau=0.7), m + sec(sr, 0.02), 0.3)
+    mix_into(s, jing(sr, 1.2, 440.0, rng, bright=0.6, tau=0.6), m + sec(sr, 0.1), 0.2)
+    return reverb(softclip(s, 1.5), sr, size=1.3, decay=0.75, wet=0.3)
+
+
+@sfx('awaken_dagger', 'WEAPON_EVOLVED{kind:awaken,weapon:dagger}', "최종 각성 — 단검(백귀, 임시 이름). 공용 각성 뼈대 + 엇갈려 빨려드는 어두운 역바람 3겹(그림자 셋) → 0.9 s 부터 세 번 교차 베기 + 재 폭발 작게 셋. 파일 0.9 s = 정점", 0, category='event')
+def _awaken_dagger(sr, rng):
+    dur = 2.6
+    s = _awaken_core(sr, rng, dur)
+    m = sec(sr, 0.9)
+    for k, (st, f0) in enumerate([(0.45, 350), (0.55, 450), (0.65, 300)]):
+        d = 0.9 - st
+        nd = sec(sr, d)
+        nz = svf(noise(sr, d, rng), sr, sweep(sr, nd, f0, 2400 + 300 * k), 1.4, 'band')
+        mix_into(s, mul(nz, [((i / nd) ** 1.6) for i in range(nd)]), sec(sr, st), 0.35)
+    for k in range(3):  # 세 번 교차 베기
+        t0 = m + sec(sr, 0.06 * k)
+        cut = whoosh(sr, 0.12, rng, 7500 - 600 * k, 2200, q=1.9, a=0.1, r=0.6)
+        mix_into(s, cut, t0, 0.6)
+        mix_into(s, metal(sr, 0.12, 2200 + 300 * k, rng, tau=0.035, jitter=0.03), t0 + sec(sr, 0.01), 0.15)
+        mix_into(s, ash_pop(sr, rng, 0.4, 170 - 15 * k, 45, 0.6), t0 + sec(sr, 0.04), 0.35)
+    return reverb(softclip(s, 1.3), sr, size=1.2, decay=0.75, wet=0.33)
+
+
+@sfx('awaken_bow', 'WEAPON_EVOLVED{kind:awaken,weapon:bow}', "최종 각성 — 활(유성, 임시 이름). 깊은 시위 '둥' → 하늘에서 떨어지는 휘파람(0.35~0.9 s) → 0.9 s 유성 낙하 폭음 + 공용 각성 종 + 흩어지는 불티. 파일 0.9 s = 정점", 0, category='event')
+def _awaken_bow(sr, rng):
+    dur = 2.6
+    s = _awaken_core(sr, rng, dur)
+    m = sec(sr, 0.9)
+    st = pluck(sr, 0.6, 110, rng, damp=0.992, bright=0.6)
+    mix_into(s, mul(st, env_exp(sr, 0.6, 0.18)), 0, 0.6)  # 깊은 시위
+    d = 0.55
+    nd = sec(sr, d)
+    wh = mul(tone(sr, d, 3200, 700), [((i / nd) ** 1.4) for i in range(nd)])
+    mix_into(s, wh, sec(sr, 0.35), 0.1)  # 떨어지는 휘파람
+    fall = svf(noise(sr, d, rng), sr, sweep(sr, nd, 5000, 900), 1.6, 'band')
+    mix_into(s, mul(fall, [((i / nd) ** 1.8) for i in range(nd)]), sec(sr, 0.35), 0.4)
+    mix_into(s, ash_pop(sr, rng, 0.9, 120, 28, 1.6), m, 0.9)
+    mix_into(s, crackle(sr, rng, 1.2, 26, 0.3), m + sec(sr, 0.05))
+    return reverb(softclip(s, 1.4), sr, size=1.3, decay=0.78, wet=0.33)
+
+
+# ---- 칼 갈래 1단: 선풍 회전 베기 · 투구가르기 가드 불가 내려베기 · 3타 찌르기 ----
+
+@sfx('katana_spin_ready', 'PLAYER_SKILL{weapon:katana,move:spin,phase:ready}', "회전 베기 준비 완료(좌클릭 0.4 s 홀드 도달, 반짝임 fx 와 같은 프레임). 칼을 고쳐 쥐는 딸깍 + 짧은 칼날 울림 A5. 투구가르기 0.6 s 도달 알림에도 rate 0.667(→D5) 로 재사용 권장", -6)
+def _katana_spin_ready(sr, rng):
+    s = zeros(sec(sr, 0.32))
+    mix_into(s, click(sr, rng, 0.004, 4200), 0, 0.7)
+    mix_into(s, blade_ring(sr, 0.3, 880.0, rng, bright=0.5, tau=0.1), sec(sr, 0.004), 0.5)
+    return s
+
+
+@sfx('katana_spin', 'PLAYER_SKILL{weapon:katana,move:spin,phase:release}', "회전 베기(360°, 반경 2.5칸) 떼는 순간. 발 돌림 스침 → 한 바퀴 도는 칼바람(대역이 올라갔다 내려옴) + 찢김 + 칼날 울림 D5. 검기 소모 2회전은 같은 파일을 0.28 s 뒤 rate 1.05 로 한 번 더", -1)
+def _katana_spin(sr, rng):
+    dur = 0.5
+    s = zeros(sec(sr, dur))
+    sc = svf(noise(sr, 0.06, rng), sr, 900, 0.8, 'band')
+    mix_into(s, mul(sc, env_exp(sr, 0.06, 0.02)), 0, 0.35)  # 발 돌림
+    d = 0.32
+    n = sec(sr, d)
+    fc = [1400 * (1 + 3.2 * math.sin(math.pi * i / n) ** 1.5) for i in range(n)]
+    w = svf(noise(sr, d, rng), sr, fc, 1.7, 'band')
+    w = mul(w, [math.sin(math.pi * i / n) ** 0.8 for i in range(n)])
+    mix_into(s, w, sec(sr, 0.02), 1.0)  # 한 바퀴 칼바람
+    mix_into(s, tear(sr, 0.24, rng, 2600, 6500, rate=75.0, q=1.5), sec(sr, 0.06), 0.35)
+    mix_into(s, blade_ring(sr, 0.35, 587.33, rng, bright=0.4, tau=0.12), sec(sr, 0.14), 0.2)
+    return tail(s, sr, 0.02)
+
+
+@sfx('katana_guardbreak_hold', 'PLAYER_SKILL{weapon:katana,move:guardbreak,phase:hold}', "가드 불가 내려베기 홀드 루프(1.0 s, 좌클릭 누르는 동안). 달아오르는 칼: 낮은 D3 웅웅 + 6 Hz 떨리는 칼날 험 A5 + 열기 노이즈 + 잔불 타닥(이음매 없음). 홀드 시작에 150 ms 페이드인, 떼거나 취소하면 60 ms 페이드아웃. 0.6 s 까지 rate 1.0→1.06 올리면 달아오름이 쌓임(선택)", -11, loop=True)
+def _katana_guardbreak_hold(sr, rng):
+    dur = 1.0
+    n = sec(sr, dur)
+    # 톱니는 2번 저역통과(고역 잡음이 많으면 AAC 이음매 오차가 커짐), 험은 위상 0.25(이음매에서 기울기 0)
+    g = wrap2(lambda x: lowpass(lowpass(x, sr, 260), sr, 600), tone_loop(sr, n, 146.83, 'saw'))  # D3
+    g = mul(g, lfo_loop(sr, n, 2.0, 0.2, 0.8))
+    hum = add(tone_loop(sr, n, 880.0, 'sine', 0.25), scale(tone_loop(sr, n, 886.0, 'sine', 0.25), 0.6))  # 6 Hz 떨림
+    mix_into(g, hum, 0, 0.05)
+    heat = wrap2(lambda x: svf(x, sr, 700, 0.8, 'band'), noise_loop(sr, n, rng))
+    mix_into(g, mul(heat, lfo_loop(sr, n, 3.0, 0.3, 0.7, 0.2)), 0, 0.35)
+    # 타닥은 이음매 ±20 ms 밖에만 둔다(경계에 걸친 딸깍이 AAC 이음매 튐을 키움)
+    mix_into(g, fade_edges(crackle(sr, rng, dur - 0.05, 10, 0.35), sr, 0.005), sec(sr, 0.02))
+    return g
+
+
+@sfx('katana_guardbreak', 'PLAYER_SKILL{weapon:katana,move:guardbreak,phase:strike}', "가드 불가 내려베기(정면 쐐기 3칸, 가드·방패 무시). 0~0.1 s 내려오는 무거운 칼바람 → 0.1 s 판정: 방패·갑옷이 쪼개지는 쇳소리 + 둔탁한 강타 + 밝은 칼날 울림 D5. 판정 프레임 100 ms 앞에서 재생", 0)
+def _katana_guardbreak(sr, rng):
+    dur = 0.75
+    s = zeros(sec(sr, dur))
+    mix_into(s, whoosh(sr, 0.12, rng, 3200, 600, q=1.4, a=0.3, r=0.2), 0, 0.8)
+    t = sec(sr, 0.1)
+    mix_into(s, metal(sr, 0.45, 720, rng, tau=0.09, jitter=0.04), t, 0.5)  # 쪼개지는 쇠
+    mix_into(s, burst(sr, 0.08, rng, fc=1300, q=0.8, tau=0.018), t, 0.9)
+    mix_into(s, thud(sr, 0.3, 115, 38, 0.07), t, 1.1)
+    mix_into(s, burst(sr, 0.2, rng, fc=400, q=0.6, tau=0.04, mode='low'), t, 0.7)
+    mix_into(s, blade_ring(sr, 0.5, 587.33, rng, bright=0.8, tau=0.2), t + sec(sr, 0.01), 0.28)
+    mix_into(s, gravel(sr, rng, 0.3, 5, 0.0, 0.18, 0.2), t)
+    s = softclip(s, 1.4)
+    return reverb(tail(s, sr, 0.02), sr, size=0.6, decay=0.5, wet=0.12)
+
+
+@sfx('katana_thrust', 'PLAYER_ATTACK{weapon:katana,combo:3}', "칼 3연격 3타 찌르기(58라운드 Q1, 휘두르지 않고 곧게 뻗음). 반 발 디딤 + 앞으로 곧게 뚫는 좁은 '쉭' + 칼끝 틱. 검기 소모 시 위에 katana_thrust_ki1~3 를 겹침", -2)
+def _katana_thrust(sr, rng):
+    dur = 0.26
+    s = zeros(sec(sr, dur))
+    mix_into(s, thud(sr, 0.07, 150, 85, 0.016), 0, 0.5)  # 반 발 디딤
+    n = sec(sr, 0.13)
+    p = svf(noise(sr, 0.13, rng), sr, sweep(sr, n, 2200, 5200), 2.4, 'band')
+    mix_into(s, mul(p, env_adsr(sr, 0.13, 0.02, 0.0, 1.0, 0.09)), sec(sr, 0.01), 1.0)
+    mix_into(s, metal(sr, 0.08, 3300, rng, tau=0.02, jitter=0.02), sec(sr, 0.07), 0.12)
+    mix_into(s, click(sr, rng, 0.003, 5500), sec(sr, 0.07), 0.4)
+    return tail(s, sr, 0.02)
+
+
+def _thrust_ki(sr, rng, stage):
+    f = [0, 440.0, 587.33, 880.0][stage]
+    reach = [0, 0.2, 0.24, 0.3][stage]  # 사거리 1.5/1.7/1.9R 에 맞춰 길게
+    dur = reach + [0, 0.25, 0.32, 0.45][stage]
+    s = zeros(sec(sr, dur))
+    mix_into(s, tear(sr, reach, rng, 2000, 6500 + 800 * stage, rate=80.0 + 5 * stage, q=1.7), 0, 0.6)
+    mix_into(s, blade_ring(sr, dur - 0.01, f, rng, bright=[0, 0.0, 0.45, 1.0][stage], tau=0.14 + 0.04 * stage, vib=0.001 * stage),
+             sec(sr, 0.01), 0.4)
+    if stage == 3:
+        hi = mul(tone(sr, 0.4, 3520, 3540), env_adsr(sr, 0.4, 0.02, 0.0, 1.0, 0.35))
+        mix_into(s, hi, sec(sr, 0.02), 0.03)
+        return reverb(tail(s, sr, 0.03), sr, size=0.5, decay=0.5, wet=0.15)
+    return tail(s, sr, 0.02)
+
+
+@sfx('katana_thrust_ki1', 'PLAYER_ATTACK{weapon:katana,combo:3,kenki:1}', "3타 찌르기 검기 1단 소모 겹침(재빛, 사거리 1.5R). 앞으로 뻗는 찢김 + 칼날 울림 A4 — katana_thrust 와 같은 프레임", -5)
+def _katana_thrust_ki1(sr, rng):
+    return _thrust_ki(sr, rng, 1)
+
+
+@sfx('katana_thrust_ki2', 'PLAYER_ATTACK{weapon:katana,combo:3,kenki:2}', "3타 찌르기 검기 2단 소모 겹침(호박빛, 1.7R). 더 길게 뻗는 찢김 + 칼날 울림 D5", -4)
+def _katana_thrust_ki2(sr, rng):
+    return _thrust_ki(sr, rng, 2)
+
+
+@sfx('katana_thrust_ki3', 'PLAYER_ATTACK{weapon:katana,combo:3,kenki:3}', "3타 찌르기 검기 3단 소모 겹침(백열, 1.9R). 가장 길고 밝은 찢김 + 칼날 울림 A5 + 백열 고음 + 짧은 울림", -3)
+def _katana_thrust_ki3(sr, rng):
+    return _thrust_ki(sr, rng, 3)
+
+
+# ---- 대검: 휘둘러 내리찍기 균열(58 Q3) · 중압 원형 진동 · 파쇄 탄 소멸 ----
+
+def _crack_line(sr, rng, tiles):
+    step = 0.06  # 칸당 진행 시간(제안) — 시스템 균열 속도·아트 t1~t5 와 맞춰 조정
+    run = step * tiles
+    dur = run + 0.55
+    n = sec(sr, dur)
+    s = zeros(n)
+    k_all = tiles * 3
+    for k in range(k_all):  # 칸마다 갈라짐 3번, 멀어질수록 어둡고 작게
+        t0 = 0.01 + run * k / k_all + rng.uniform(-0.004, 0.004)
+        g = 0.75 * (1 - 0.45 * k / k_all)
+        mix_into(s, burst(sr, 0.045, rng, fc=max(600, 2300 - 1400 * k / k_all), q=0.9, tau=0.009), sec(sr, t0), g)
+        mix_into(s, thud(sr, 0.05, 165 - 40 * k / k_all, 75, 0.013), sec(sr, t0), g * 0.35)
+    mix_into(s, burst(sr, 0.12, rng, fc=900, q=0.7, tau=0.025), sec(sr, run), 0.55)  # 끝 '툭' 터짐
+    mix_into(s, thud(sr, 0.18, 120, 45, 0.04), sec(sr, run), 0.5)
+    rum = mul(svf(noise(sr, dur, rng), sr, 160, 0.8, 'low'), env_adsr(sr, dur, run * 0.5, 0.0, 1.0, 0.5))
+    mix_into(s, rum, 0, 0.55)
+    mix_into(s, gravel(sr, rng, dur, 4 + 2 * tiles, 0.02, run + 0.2, 0.22), 0)
+    s = softclip(s, 1.4)
+    return reverb(s, sr, size=0.8, decay=0.5, wet=0.15)
+
+
+@sfx('gs_crack_line_lv1', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:1,part:crack}', "휘둘러 내리찍기 균열 진행(차지 1단, 3칸). 찍은 자리에서 커서 쪽으로 달려가는 갈라짐(칸당 0.06 s, 멀어질수록 어둡게) + 끝 '툭' + 땅울림. charge_slam_lv1 과 같은 판정 프레임에 겹침. 커서·벽이 가까워 짧게 끝나면 그 시점에 80 ms 페이드아웃", -1)
+def _gs_crack_line_lv1(sr, rng):
+    return _crack_line(sr, rng, 3)
+
+
+@sfx('gs_crack_line_lv2', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:2,part:crack}', "균열 진행(차지 2단, 4칸). 1단과 같은 재료, 0.24 s 동안 달려감", -1)
+def _gs_crack_line_lv2(sr, rng):
+    return _crack_line(sr, rng, 4)
+
+
+@sfx('gs_crack_line_lv3', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:3,part:crack}', "균열 진행(차지 3단, 5칸). 0.30 s 동안 달려감, 가장 길다", 0)
+def _gs_crack_line_lv3(sr, rng):
+    return _crack_line(sr, rng, 5)
+
+
+@sfx('gs_quake_ring', 'PLAYER_CHARGE{weapon:greatsword,phase:release,branch:pressure,part:quake}', "중압(대검 1단 B) 원형 진동 — 기본 균열 대신(찍은 자리 중심). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, 반경(단계)에 따라 gain +0/+1.5/+3 dB 권장", 0)
+def _gs_quake_ring(sr, rng):
+    dur = 1.0
+    n = sec(sr, dur)
+    s = zeros(n)
+    vib = mul(tone(sr, 0.8, 48, 34), [0.55 + 0.45 * math.sin(TAU * 12 * i / sr) for i in range(sec(sr, 0.8))])
+    mix_into(s, mul(vib, env_adsr(sr, 0.8, 0.02, 0.0, 1.0, 0.5)), 0, 1.0)  # 떨리는 땅
+    gr = svf(noise(sr, 0.8, rng), sr, 260, 0.8, 'low')
+    gr = mul(gr, [0.5 + 0.5 * math.sin(TAU * 12 * i / sr + 0.8) for i in range(sec(sr, 0.8))])
+    mix_into(s, mul(gr, env_adsr(sr, 0.8, 0.02, 0.0, 1.0, 0.5)), 0, 0.6)
+    m = sec(sr, 0.32)
+    suck = svf(noise(sr, 0.32, rng), sr, sweep(sr, m, 2400, 350), 1.3, 'band')
+    mix_into(s, mul(suck, [((i / m) ** 1.5) for i in range(m)]), 0, 0.45)  # 안으로 빨려듦
+    mix_into(s, thud(sr, 0.3, 105, 36, 0.07), m, 1.0)  # 짓눌림
+    mix_into(s, burst(sr, 0.15, rng, fc=500, q=0.6, tau=0.03, mode='low'), m, 0.6)
+    mix_into(s, gravel(sr, rng, 0.6, 10, 0.0, 0.45, 0.22), sec(sr, 0.02))
+    s = softclip(s, 1.5)
+    return reverb(s, sr, size=0.8, decay=0.5, wet=0.15)
+
+
+@sfx('gs_shatter_snuff', 'PLAYER_SKILL{weapon:greatsword,move:crack,phase:snuff}', "파쇄(대검 1단 A) 균열이 적 투사체를 소멸. 짧게 으스러지는 '빠직'(돌·나무·쇠 파편) + 작은 먼지 '푹'. 투사체마다(20 ms 규칙으로 동시 다발은 1회)", -4)
+def _gs_shatter_snuff(sr, rng):
+    s = zeros(sec(sr, 0.25))
+    mix_into(s, burst(sr, 0.03, rng, fc=2600, q=0.8, tau=0.006), 0, 0.9)
+    mix_into(s, metal(sr, 0.08, 1450, rng, tau=0.02, jitter=0.06), sec(sr, 0.003), 0.25)
+    mix_into(s, gravel(sr, rng, 0.12, 5, 0.0, 0.06, 0.4), 0)
+    mix_into(s, burst(sr, 0.12, rng, fc=500, q=0.6, tau=0.03, mode='low'), sec(sr, 0.01), 0.4)
+    return tail(s, sr, 0.02)
+
+
+# ---- 단검 갈래 1단: 질풍 부채꼴 투척 · 쌍격 분신 교차 베기 ----
+
+@sfx('dagger_fan_throw', 'PLAYER_SKILL{weapon:dagger,move:fan_throw}', "질풍(단검 1단 B) 부채꼴 투척(대쉬 직후 0.3 s 안 좌클릭, 3자루 30°). 손목 딸깍 + 25 ms 간격으로 날아가는 높은 바람 셋(음높이 조금씩 다름) + 칼날 틱", -2)
+def _dagger_fan_throw(sr, rng):
+    s = zeros(sec(sr, 0.32))
+    mix_into(s, click(sr, rng, 0.003, 4800), 0, 0.6)
+    for k, (f0, f1) in enumerate([(7200, 3000), (8000, 3400), (6600, 2700)]):
+        t0 = sec(sr, 0.025 * k)
+        mix_into(s, whoosh(sr, 0.16, rng, f0, f1, q=2.0, a=0.08, r=0.7), t0, 0.6)
+        mix_into(s, metal(sr, 0.05, 3600 + 300 * k, rng, tau=0.012, jitter=0.03), t0, 0.08)
+    return tail(s, sr, 0.02)
+
+
+@sfx('dagger_cross_clone', 'PLAYER_SKILL{weapon:dagger,move:cross_clone}', "쌍격(단검 1단 A) 그림자 분신 교차 베기 — 낙인 기폭 때 분신이 반대편에서. 0.16 s 빨려드는 어두운 역바람(분신 나타남, 이질) → 0.16 s·0.19 s 엇갈린 두 베기(X) + 쇠 틱 + 낮은 몸통. brand_burst 와 같은 프레임에 겹침", -2)
+def _dagger_cross_clone(sr, rng):
+    dur = 0.6
+    s = zeros(sec(sr, dur))
+    m = sec(sr, 0.16)
+    nz = svf(noise(sr, 0.16, rng), sr, sweep(sr, m, 350, 2600), 1.4, 'band')
+    mix_into(s, mul(nz, [((i / m) ** 1.6) for i in range(m)]), 0, 0.5)
+    for k, (f0, f1) in enumerate([(7000, 2200), (5600, 1700)]):
+        t0 = m + sec(sr, 0.03 * k)
+        mix_into(s, whoosh(sr, 0.13, rng, f0, f1, q=1.9, a=0.1, r=0.6), t0, 0.75)
+        mix_into(s, metal(sr, 0.1, 2400 - 400 * k, rng, tau=0.03, jitter=0.03), t0 + sec(sr, 0.01), 0.15)
+    mix_into(s, thud(sr, 0.12, 130, 55, 0.03), m + sec(sr, 0.03), 0.45)
+    return reverb(tail(s, sr, 0.02), sr, size=0.6, decay=0.5, wet=0.2)
+
+
+# ---- 활 갈래 1단: 속사 연사 · 저격 관통 화살 ----
+
+def _rapid(sr, rng, f, fc):
+    s = mul(pluck(sr, 0.11, f, rng, damp=0.97, bright=0.75), env_exp(sr, 0.11, 0.03))
+    mix_into(s, whoosh(sr, 0.08, rng, 2800, fc, q=1.3, a=0.15, r=0.6), sec(sr, 0.005), 0.3)
+    mix_into(s, thud(sr, 0.04, 240, 140, 0.01), 0, 0.4)
+    mix_into(s, click(sr, rng, 0.003, 5000), 0, 0.3)
+    return tail(s, sr, 0.02)
+
+
+@sfx('bow_rapid1', 'PLAYER_ATTACK{weapon:bow,move:rapid,variant:1}', "속사(활 1단 A) 연사 한 발 — 변주 1/3. 초당 5발에 맞춘 짧은 시위 '틱' + 짧은 화살 바람(0.13 s, bow_shot 의 1/2 길이). 발마다 1~3 중 직전과 다른 것 + ±3% rate", -4)
+def _bow_rapid1(sr, rng):
+    return _rapid(sr, rng, 220.0, 6200)
+
+
+@sfx('bow_rapid2', 'PLAYER_ATTACK{weapon:bow,move:rapid,variant:2}', "속사 연사 변주 2/3(조금 낮고 둔함)", -4)
+def _bow_rapid2(sr, rng):
+    return _rapid(sr, rng, 196.0, 5200)
+
+
+@sfx('bow_rapid3', 'PLAYER_ATTACK{weapon:bow,move:rapid,variant:3}', "속사 연사 변주 3/3(조금 높고 가벼움)", -4)
+def _bow_rapid3(sr, rng):
+    return _rapid(sr, rng, 247.0, 7000)
+
+
+@sfx('bow_pierce', 'PLAYER_SKILL{weapon:bow,move:pierce,phase:pass}', "저격(활 1단 B) 관통 화살이 적을 뚫고 지나감(적마다, 최대 3). 날이 박혔다 빠지는 '퍽' + 계속 뻗어 나가는 높은 바람. 적중 피격음(hit_enemy)과 겹침", -3)
+def _bow_pierce(sr, rng):
+    s = zeros(sec(sr, 0.24))
+    mix_into(s, burst(sr, 0.03, rng, fc=1700, q=0.8, tau=0.006), 0, 0.9)
+    mix_into(s, thud(sr, 0.06, 200, 110, 0.014), 0, 0.6)
+    mix_into(s, whoosh(sr, 0.18, rng, 3800, 7500, q=1.4, a=0.05, r=0.8), sec(sr, 0.012), 0.6)
+    mix_into(s, metal(sr, 0.06, 3100, rng, tau=0.015, jitter=0.03), sec(sr, 0.004), 0.1)
+    return tail(s, sr, 0.02)
+
+
+# ---- 상태 ----
+
+@sfx('mark_stack', 'MARK_CHANGED{delta>0}', "공용 표식 1 쌓임(표식 세트 2, 같은 적 3타마다, 최대 3). 붉은 분필 긋는 짧은 '슥' + 나무 틱. 단검 낙인(brand_apply, 지짐)과 구분. 표식 2·3 에서 rate 1.06·1.12 권장", -8)
+def _mark_stack(sr, rng):
+    s = zeros(sec(sr, 0.16))
+    mix_into(s, quill_scratch(sr, rng, 0.07, 2600, 4200), 0, 0.7)
+    mix_into(s, thud(sr, 0.04, 420, 300, 0.008), sec(sr, 0.05), 0.5)
+    mix_into(s, metal(sr, 0.06, 2200, rng, tau=0.012, jitter=0.02), sec(sr, 0.05), 0.1)
+    return tail(s, sr, 0.02)
+
+
+@sfx('boil_burst', 'STATUS_BURST{kind:boil}', "끓음 폭발(상흔 세트 4: 출혈 + 화상이 함께 걸린 적의 남은 지속 피해가 즉시 터짐, 반경 1.5칸). 0.14 s 빨라지는 거품 끓음 → 젖은 재 폭발 '퍽' + 핏방울·지짐. 파일 0.14 s = 폭발", -2)
+def _boil_burst(sr, rng):
+    dur = 0.8
+    s = zeros(sec(sr, dur))
+    for k in range(12):  # 빨라지는 끓음
+        t0 = 0.14 * (1 - (1 - k / 12) ** 0.6)
+        d = mul(tone(sr, 0.03, rng.uniform(180, 420), rng.uniform(500, 800)), env_exp(sr, 0.03, 0.01))
+        mix_into(s, lowpass(d, sr, 1500), sec(sr, t0), 0.25 + 0.03 * k)
+    t = sec(sr, 0.14)
+    mix_into(s, ash_pop(sr, rng, 0.5, 160, 45, 1.0), t, 0.9)
+    mix_into(s, droplets(sr, rng, 0.4, 8, 0.02, 0.3, 600, 1600, 0.3), t)
+    mix_into(s, sizzle(sr, rng, 0.4, fc=4400, tau=0.1), t + sec(sr, 0.02), 0.3)
+    s = softclip(s, 1.3)
+    return reverb(tail(s, sr, 0.02), sr, size=0.5, decay=0.45, wet=0.12)
+
+
+@sfx('stillness', 'SET_EFFECT{tag:insight,effect:stillness}', "정적(간파 세트 6: 완벽 성공 3회마다 1 s 동안 적·탄 40% 감속). 짧게 빨려드는 숨(노이즈) → 0.12 s 맑은 '틱' + 유리처럼 얼어붙는 A5·D6 + 먹먹하게 내려앉는 저음. 활 숨(breath_focus)보다 짧고 차갑다", -3)
+def _stillness(sr, rng):
+    dur = 1.1
+    s = zeros(sec(sr, dur))
+    m = sec(sr, 0.12)
+    nz = svf(noise(sr, 0.12, rng), sr, sweep(sr, m, 1200, 5200), 1.3, 'band')
+    mix_into(s, mul(nz, [((i / m) ** 2) for i in range(m)]), 0, 0.5)
+    mix_into(s, click(sr, rng, 0.004, 6500), m, 0.8)
+    for f, g, tr in [(880.0, 0.3, 5.0), (1174.66, 0.22, 3.7)]:
+        b = bell(sr, 0.95, f, rng, tau=0.5)
+        b = mul(b, [0.75 + 0.25 * math.sin(TAU * tr * i / sr) for i in range(len(b))])
+        mix_into(s, b, m, g)
+    lo = mul(tone(sr, 0.7, 92, 40), env_adsr(sr, 0.7, 0.01, 0.0, 1.0, 0.6))
+    mix_into(s, lowpass(lo, sr, 300), m, 0.8)
+    return reverb(s, sr, size=1.0, decay=0.6, wet=0.25)
+
+
+@sfx('drunk_ignite', 'POOL_IGNITED', "술 웅덩이 점화(술불, 취기). 작은 '훅' + 낮은 펑 + 빠르게 번지는 불길 + 타닥 — 보스 boss1_ignite(1.1 s)보다 짧고 가볍다(여러 웅덩이 연쇄 대비). 번질 때마다 80~150 ms 시차 권장, 타는 동안은 boss1_fire_loop 1개 재사용", -3)
+def _drunk_ignite(sr, rng):
+    dur = 0.6
+    n = sec(sr, dur)
+    s = zeros(n)
+    mix_into(s, thud(sr, 0.2, 95, 45, 0.045), 0, 0.7)
+    roar = svf(noise(sr, dur, rng), sr, sweep(sr, n, 300, 2400), 0.7, 'low')
+    mix_into(s, mul(roar, env_adsr(sr, dur, 0.03, 0.1, 0.45, 0.42)), 0, 0.9)
+    mix_into(s, crackle(sr, rng, 0.5, 9, 0.35), sec(sr, 0.06))
+    s = softclip(s, 1.2)
+    return tail(s, sr, 0.02)
+
+
+@sfx('drunk_sway', 'DRUNK_SWAY', "취기 휘청(취기 세트 4 '취보': 취기 중 첫 피격 1회 피해 0·0.4 s 무적·반 칸 비틀 미끄러짐). 7 Hz 로 일렁이는 바람 + 장화 미끄러짐 + 몸 안 술 출렁 + 작은 잔 '팅'. 피격음 대신 재생", -3)
+def _drunk_sway(sr, rng):
+    dur = 0.45
+    n = sec(sr, dur)
+    s = zeros(n)
+    fc = [900 * (1 + 0.6 * math.sin(TAU * 7 * i / sr)) for i in range(n)]
+    w = svf(noise(sr, dur, rng), sr, fc, 1.2, 'band')
+    mix_into(s, mul(w, env_adsr(sr, dur, 0.05, 0.0, 1.0, 0.3)), 0, 0.7)
+    sl = svf(noise(sr, 0.18, rng), sr, 800, 0.8, 'band')
+    mix_into(s, mul(sl, env_adsr(sr, 0.18, 0.02, 0.0, 1.0, 0.12)), sec(sr, 0.04), 0.4)  # 장화 미끄러짐
+    mix_into(s, gravel(sr, rng, 0.2, 3, 0.0, 0.15, 0.2), sec(sr, 0.04))
+    mix_into(s, slosh(sr, rng, 0.3, 380, 700), sec(sr, 0.02), 0.45)
+    gl = metal(sr, 0.25, 2100, rng, partials=GLASS, tau=0.06, jitter=0.01)
+    mix_into(s, gl, sec(sr, 0.03), 0.12)
+    return tail(s, sr, 0.02)
+
+
+@sfx('endure_trigger', 'ENDURE_TRIGGERED', "버팀 발동(버팀 세트 4 위기 무적·세트 6 HP 0 버팀·패시브 '마지막 잔'). 무거운 심장 박동 두 번 + 발을 박는 강철 버팀 + 차오르는 숨(노이즈, 목소리 아님) + 낮은 D2. 무적 시작 프레임", -1)
+def _endure_trigger(sr, rng):
+    dur = 1.0
+    s = zeros(sec(sr, dur))
+    mix_into(s, heartbeat(sr, rng, 1.0), 0, 1.0)
+    mix_into(s, heavy_step(sr, rng, 1.0), sec(sr, 0.02), 0.6)
+    mix_into(s, metal(sr, 0.35, 520, rng, tau=0.08, jitter=0.03), sec(sr, 0.03), 0.3)
+    n = sec(sr, 0.5)
+    br = svf(noise(sr, 0.5, rng), sr, sweep(sr, n, 400, 1500), 1.1, 'band')
+    mix_into(s, mul(br, [((i / n) ** 1.3) * (1 if i < n * 0.85 else (n - i) / (n * 0.15)) for i in range(n)]), sec(sr, 0.3), 0.3)
+    d2 = lowpass(tone(sr, 0.8, 73.42, kind='saw'), sr, 260)
+    mix_into(s, mul(d2, env_adsr(sr, 0.8, 0.1, 0.0, 1.0, 0.5)), sec(sr, 0.1), 0.4)
+    s = softclip(s, 1.3)
+    return reverb(tail(s, sr, 0.02), sr, size=0.7, decay=0.5, wet=0.15)
+
+
 # ---------------------------------------------------------------------------
 # BGM 정의 — 각 함수는 루프 길이에 맞춘 버퍼를 돌려준다 (22.05 kHz).
 # 설계: 모든 음은 wrap=True 로 섞고, 리버브는 loop=True 로 처리해 경계가 이어진다.
