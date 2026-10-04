@@ -4,7 +4,7 @@
  "version": "v3-r55",
  "frameWidth": 208,
  "frameHeight": 248,
- "frames": 5,
+ "framesPerDirection": 5,
  "directions": [
   "down",
   "up",
@@ -56,5 +56,57 @@
   0,
   1
  ],
- "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_charge_flash_lv3.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 208,
+   "frameHeight": 248,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":94,"y":0,"w":68,"h":129},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":63,"y":17,"w":68,"h":129},"sourceSize":{"w":208,"h":248}},
+  "1":{"frame":{"x":0,"y":0,"w":92,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":5,"w":92,"h":139},"sourceSize":{"w":208,"h":248}},
+  "2":{"frame":{"x":174,"y":238,"w":78,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":60,"y":12,"w":78,"h":77},"sourceSize":{"w":208,"h":248}},
+  "3":{"frame":{"x":479,"y":222,"w":97,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":5,"w":97,"h":97},"sourceSize":{"w":208,"h":248}},
+  "4":{"frame":{"x":544,"y":0,"w":111,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":3,"w":111,"h":109},"sourceSize":{"w":208,"h":248}},
+  "5":{"frame":{"x":94,"y":131,"w":68,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":63,"y":49,"w":68,"h":92},"sourceSize":{"w":208,"h":248}},
+  "6":{"frame":{"x":0,"y":141,"w":92,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":36,"w":92,"h":104},"sourceSize":{"w":208,"h":248}},
+  "7":{"frame":{"x":277,"y":127,"w":78,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":60,"y":43,"w":78,"h":78},"sourceSize":{"w":208,"h":248}},
+  "8":{"frame":{"x":578,"y":222,"w":97,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":36,"w":97,"h":97},"sourceSize":{"w":208,"h":248}},
+  "9":{"frame":{"x":544,"y":111,"w":111,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":34,"w":111,"h":109},"sourceSize":{"w":208,"h":248}},
+  "10":{"frame":{"x":366,"y":0,"w":87,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":31,"w":87,"h":113},"sourceSize":{"w":208,"h":248}},
+  "11":{"frame":{"x":164,"y":0,"w":99,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":19,"w":99,"h":125},"sourceSize":{"w":208,"h":248}},
+  "12":{"frame":{"x":94,"y":238,"w":78,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":105,"y":27,"w":78,"h":78},"sourceSize":{"w":208,"h":248}},
+  "13":{"frame":{"x":277,"y":226,"w":97,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":20,"w":97,"h":97},"sourceSize":{"w":208,"h":248}},
+  "14":{"frame":{"x":366,"y":115,"w":111,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":18,"w":111,"h":109},"sourceSize":{"w":208,"h":248}},
+  "15":{"frame":{"x":455,"y":0,"w":87,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":31,"w":87,"h":113},"sourceSize":{"w":208,"h":248}},
+  "16":{"frame":{"x":265,"y":0,"w":99,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":19,"w":99,"h":125},"sourceSize":{"w":208,"h":248}},
+  "17":{"frame":{"x":0,"y":247,"w":78,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":27,"w":78,"h":78},"sourceSize":{"w":208,"h":248}},
+  "18":{"frame":{"x":376,"y":226,"w":97,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":20,"w":97,"h":97},"sourceSize":{"w":208,"h":248}},
+  "19":{"frame":{"x":164,"y":127,"w":111,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":18,"w":111,"h":109},"sourceSize":{"w":208,"h":248}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "greatsword_charge_flash_lv3.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 675,
+   "h": 325
+  },
+  "scale": "1"
+ }
 }

@@ -3,7 +3,7 @@
  "action": "carry_walk",
  "frameWidth": 192,
  "frameHeight": 192,
- "frames": 8,
+ "framesPerDirection": 8,
  "directions": [
   "down",
   "up",
@@ -620,5 +620,69 @@
    null
   ]
  },
- "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고"
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_carry_walk.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":84,"y":167,"w":23,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":107,"w":23,"h":46},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":84,"y":117,"w":20,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":105,"y":104,"w":20,"h":48},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":166,"y":116,"w":22,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":103,"y":105,"w":22,"h":53},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":167,"y":0,"w":24,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":109,"w":24,"h":54},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":166,"y":61,"w":26,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":114,"w":26,"h":53},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":36,"y":65,"w":29,"h":50},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":111,"w":29,"h":50},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":0,"y":119,"w":30,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":107,"w":30,"h":49},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":36,"y":117,"w":26,"h":50},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":106,"w":26,"h":50},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":75,"y":0,"w":27,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":112,"w":27,"h":61},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":64,"y":117,"w":18,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":121,"w":18,"h":49},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":64,"y":168,"w":18,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":120,"w":18,"h":46},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":122,"y":170,"w":18,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":125,"w":18,"h":39},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":32,"y":169,"w":19,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":128,"w":19,"h":38},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":135,"y":61,"w":29,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":105,"w":29,"h":58},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":135,"y":0,"w":30,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":104,"w":30,"h":59},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":104,"y":0,"w":29,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":108,"w":29,"h":60},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":0,"y":66,"w":16,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":82,"y":107,"w":16,"h":48},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":19,"y":65,"w":15,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":103,"w":15,"h":52},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":104,"y":62,"w":15,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":102,"w":15,"h":53},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":75,"y":63,"w":16,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":67,"y":103,"w":16,"h":52},"sourceSize":{"w":192,"h":192}},
+  "20":{"frame":{"x":106,"y":117,"w":16,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":107,"w":16,"h":48},"sourceSize":{"w":192,"h":192}},
+  "21":{"frame":{"x":124,"y":121,"w":19,"h":47},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":65,"y":105,"w":19,"h":47},"sourceSize":{"w":192,"h":192}},
+  "22":{"frame":{"x":145,"y":168,"w":17,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":105,"w":17,"h":44},"sourceSize":{"w":192,"h":192}},
+  "23":{"frame":{"x":145,"y":121,"w":17,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":105,"w":17,"h":45},"sourceSize":{"w":192,"h":192}},
+  "24":{"frame":{"x":0,"y":0,"w":17,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":110,"y":103,"w":17,"h":64},"sourceSize":{"w":192,"h":192}},
+  "25":{"frame":{"x":61,"y":0,"w":12,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":100,"w":12,"h":63},"sourceSize":{"w":192,"h":192}},
+  "26":{"frame":{"x":121,"y":62,"w":11,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":109,"y":100,"w":11,"h":51},"sourceSize":{"w":192,"h":192}},
+  "27":{"frame":{"x":109,"y":167,"w":11,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":103,"y":121,"w":11,"h":40},"sourceSize":{"w":192,"h":192}},
+  "28":{"frame":{"x":124,"y":115,"w":6,"h":4},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":163,"w":6,"h":4},"sourceSize":{"w":192,"h":192}},
+  "29":{"frame":{"x":164,"y":171,"w":17,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":121,"w":17,"h":42},"sourceSize":{"w":192,"h":192}},
+  "30":{"frame":{"x":19,"y":0,"w":19,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":103,"y":99,"w":19,"h":63},"sourceSize":{"w":192,"h":192}},
+  "31":{"frame":{"x":40,"y":0,"w":19,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":109,"y":100,"w":19,"h":63},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_carry_walk.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 192,
+   "h": 214
+  },
+  "scale": "1"
+ }
 }

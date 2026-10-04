@@ -3,7 +3,7 @@
  "action": "afterimage",
  "frameWidth": 256,
  "frameHeight": 256,
- "frames": 5,
+ "framesPerDirection": 5,
  "directions": [
   "down",
   "up",
@@ -59,5 +59,57 @@
   "note": "잔상(2차): 대쉬 출발점(고정)에 분신 군집 — 돌진 실루엣 W2 + 좌우(대쉬에 수직) 8→14px 로 벌어지는 분신 W1 → 세로 줄무늬 → 조각, 바닥 W0 웅덩이 수축 + f1 교차 베기 2줄(W3 + X0/X1 코어). 방향 = 대쉬 방향(실루엣은 player_dash f1). 경로가 길면 중간점에 하나 더.",
   "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
   "secondary": "fx.weapons.dagger"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 afterimage.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 3,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":131,"y":732,"w":120,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":77,"w":120,"h":107},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":212,"y":341,"w":131,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":62,"w":131,"h":119},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":0,"y":510,"w":169,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":77,"w":169,"h":100},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":0,"y":225,"w":185,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":60,"w":185,"h":114},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":0,"y":733,"w":97,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":65,"w":97,"h":105},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":253,"y":732,"w":120,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":77,"w":120,"h":107},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":0,"y":612,"w":129,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":62,"w":129,"h":119},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":171,"y":510,"w":169,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":77,"w":169,"h":100},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":187,"y":225,"w":185,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":60,"w":185,"h":114},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":0,"y":733,"w":97,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":65,"w":97,"h":105},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":131,"y":612,"w":120,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":66,"w":120,"h":118},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":0,"y":341,"w":104,"h":167},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":34,"w":104,"h":167},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":287,"y":0,"w":83,"h":207},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":14,"w":83,"h":207},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":0,"y":0,"w":99,"h":223},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":6,"w":99,"h":223},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":0,"y":733,"w":97,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":65,"w":97,"h":105},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":253,"y":612,"w":120,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":66,"w":120,"h":118},"sourceSize":{"w":256,"h":256}},
+  "16":{"frame":{"x":106,"y":341,"w":104,"h":167},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":34,"w":104,"h":167},"sourceSize":{"w":256,"h":256}},
+  "17":{"frame":{"x":201,"y":0,"w":84,"h":207},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":14,"w":84,"h":207},"sourceSize":{"w":256,"h":256}},
+  "18":{"frame":{"x":101,"y":0,"w":98,"h":223},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":6,"w":98,"h":223},"sourceSize":{"w":256,"h":256}},
+  "19":{"frame":{"x":0,"y":733,"w":97,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":65,"w":97,"h":105},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "afterimage.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 373,
+   "h": 839
+  },
+  "scale": "1"
  }
 }

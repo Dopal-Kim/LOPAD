@@ -3,7 +3,7 @@
  "action": "katana_combo2",
  "frameWidth": 384,
  "frameHeight": 384,
- "frames": 4,
+ "framesPerDirection": 4,
  "directions": [
   "down",
   "up",
@@ -108,5 +108,53 @@
    "fromFrame": 2,
    "note": "W1 잔상 트레일, 반지름 = hitRadiusPx - 띠 두께/2"
   }
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_combo2.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 384,
+   "frameHeight": 384,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":437,"y":79,"w":25,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":247,"w":25,"h":36},"sourceSize":{"w":384,"h":384}},
+  "1":{"frame":{"x":0,"y":0,"w":238,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":248,"w":238,"h":77},"sourceSize":{"w":384,"h":384}},
+  "2":{"frame":{"x":0,"y":79,"w":217,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":226,"w":217,"h":96},"sourceSize":{"w":384,"h":384}},
+  "3":{"frame":{"x":392,"y":339,"w":213,"h":95},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":228,"w":213,"h":95},"sourceSize":{"w":384,"h":384}},
+  "4":{"frame":{"x":437,"y":117,"w":25,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":285,"y":101,"w":25,"h":36},"sourceSize":{"w":384,"h":384}},
+  "5":{"frame":{"x":240,"y":0,"w":238,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":59,"w":238,"h":77},"sourceSize":{"w":384,"h":384}},
+  "6":{"frame":{"x":219,"y":79,"w":216,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":62,"w":216,"h":96},"sourceSize":{"w":384,"h":384}},
+  "7":{"frame":{"x":392,"y":240,"w":214,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":61,"w":214,"h":97},"sourceSize":{"w":384,"h":384}},
+  "8":{"frame":{"x":437,"y":155,"w":36,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":285,"w":36,"h":25},"sourceSize":{"w":384,"h":384}},
+  "9":{"frame":{"x":480,"y":0,"w":77,"h":238},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":59,"y":73,"w":77,"h":238},"sourceSize":{"w":384,"h":384}},
+  "10":{"frame":{"x":0,"y":177,"w":96,"h":216},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":73,"w":96,"h":216},"sourceSize":{"w":384,"h":384}},
+  "11":{"frame":{"x":196,"y":177,"w":96,"h":215},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":61,"y":75,"w":96,"h":215},"sourceSize":{"w":384,"h":384}},
+  "12":{"frame":{"x":392,"y":177,"w":36,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":247,"y":285,"w":36,"h":25},"sourceSize":{"w":384,"h":384}},
+  "13":{"frame":{"x":559,"y":0,"w":77,"h":238},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":248,"y":73,"w":77,"h":238},"sourceSize":{"w":384,"h":384}},
+  "14":{"frame":{"x":98,"y":177,"w":96,"h":216},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":226,"y":73,"w":96,"h":216},"sourceSize":{"w":384,"h":384}},
+  "15":{"frame":{"x":294,"y":177,"w":96,"h":215},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":227,"y":75,"w":96,"h":215},"sourceSize":{"w":384,"h":384}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_combo2.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 636,
+   "h": 434
+  },
+  "scale": "1"
  }
 }

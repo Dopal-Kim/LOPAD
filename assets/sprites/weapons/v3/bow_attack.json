@@ -3,7 +3,7 @@
  "action": "attack",
  "frameWidth": 192,
  "frameHeight": 192,
- "frames": 7,
+ "framesPerDirection": 7,
  "directions": [
   "down",
   "up",
@@ -634,5 +634,69 @@
    null
   ]
  },
- "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고"
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_attack.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 28
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [
+   7,
+   12,
+   13
+  ],
+  "dedupedFrames": 1,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":44,"y":377,"w":5,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":91,"w":5,"h":56},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":44,"y":318,"w":5,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":87,"w":5,"h":57},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":0,"y":129,"w":20,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":81,"w":20,"h":59},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":38,"y":255,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":40,"y":192,"w":6,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":87,"w":6,"h":61},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":44,"y":435,"w":5,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":92,"w":5,"h":56},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":42,"y":129,"w":5,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":93,"w":5,"h":56},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":48,"y":187,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":9,"y":474,"w":5,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":67,"w":5,"h":26},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":18,"y":318,"w":19,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":58,"w":19,"h":43},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":0,"y":441,"w":7,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":7,"h":40},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":0,"y":483,"w":5,"h":4},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":69,"w":5,"h":4},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":48,"y":187,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":48,"y":187,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":22,"y":129,"w":18,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":72,"y":86,"w":18,"h":61},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":0,"y":190,"w":18,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":79,"w":18,"h":61},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":0,"y":65,"w":44,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":70,"w":44,"h":62},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":0,"y":377,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":72,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":31,"y":363,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":79,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":22,"y":129,"w":18,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":86,"w":18,"h":61},"sourceSize":{"w":192,"h":192}},
+  "20":{"frame":{"x":19,"y":255,"w":17,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":87,"w":17,"h":61},"sourceSize":{"w":192,"h":192}},
+  "21":{"frame":{"x":13,"y":428,"w":14,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":99,"w":14,"h":44},"sourceSize":{"w":192,"h":192}},
+  "22":{"frame":{"x":20,"y":192,"w":18,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":75,"w":18,"h":61},"sourceSize":{"w":192,"h":192}},
+  "23":{"frame":{"x":0,"y":0,"w":49,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":68,"w":49,"h":63},"sourceSize":{"w":192,"h":192}},
+  "24":{"frame":{"x":31,"y":427,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":69,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "25":{"frame":{"x":18,"y":363,"w":11,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":120,"y":75,"w":11,"h":63},"sourceSize":{"w":192,"h":192}},
+  "26":{"frame":{"x":0,"y":253,"w":17,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":81,"w":17,"h":62},"sourceSize":{"w":192,"h":192}},
+  "27":{"frame":{"x":0,"y":317,"w":16,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":86,"w":16,"h":58},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_attack.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 49,
+   "h": 500
+  },
+  "scale": "1"
+ }
 }

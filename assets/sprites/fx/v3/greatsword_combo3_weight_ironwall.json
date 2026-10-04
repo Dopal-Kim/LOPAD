@@ -3,7 +3,7 @@
  "action": "greatsword_combo3_weight",
  "frameWidth": 576,
  "frameHeight": 576,
- "frames": 7,
+ "framesPerDirection": 7,
  "directions": [
   "down",
   "up",
@@ -134,5 +134,65 @@
   },
   "revision": "49라운드 재제작 (두 손 큰 휘두름 + 몸 비틀림·무게 중심 이동·회복 프레임)",
   "v3Note": "2단 갈래 시트(55라운드) — 구 시트 없음. legacy 는 1단 구 시트(greatsword_combo3_weight) 기준"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_combo3_weight_ironwall.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 4,
+   "frameWidth": 576,
+   "frameHeight": 576,
+   "frameCount": 28
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 4,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":1583,"y":1331,"w":96,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":389,"y":114,"w":96,"h":134},"sourceSize":{"w":576,"h":576}},
+  "1":{"frame":{"x":811,"y":1747,"w":405,"h":392},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":100,"w":405,"h":392},"sourceSize":{"w":576,"h":576}},
+  "2":{"frame":{"x":0,"y":907,"w":405,"h":412},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":80,"w":405,"h":412},"sourceSize":{"w":576,"h":576}},
+  "3":{"frame":{"x":0,"y":907,"w":405,"h":412},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":80,"w":405,"h":412},"sourceSize":{"w":576,"h":576}},
+  "4":{"frame":{"x":1191,"y":467,"w":410,"h":433},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":63,"w":410,"h":433},"sourceSize":{"w":576,"h":576}},
+  "5":{"frame":{"x":803,"y":0,"w":415,"h":437},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":62,"w":415,"h":437},"sourceSize":{"w":576,"h":576}},
+  "6":{"frame":{"x":1218,"y":1747,"w":404,"h":386},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":78,"y":122,"w":404,"h":386},"sourceSize":{"w":576,"h":576}},
+  "7":{"frame":{"x":1583,"y":1467,"w":96,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":328,"w":96,"h":134},"sourceSize":{"w":576,"h":576}},
+  "8":{"frame":{"x":384,"y":1764,"w":405,"h":390},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":64,"w":405,"h":390},"sourceSize":{"w":576,"h":576}},
+  "9":{"frame":{"x":404,"y":1352,"w":405,"h":410},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":44,"w":405,"h":410},"sourceSize":{"w":576,"h":576}},
+  "10":{"frame":{"x":404,"y":1352,"w":405,"h":410},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":44,"w":405,"h":410},"sourceSize":{"w":576,"h":576}},
+  "11":{"frame":{"x":0,"y":479,"w":409,"h":426},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":28,"w":409,"h":426},"sourceSize":{"w":576,"h":576}},
+  "12":{"frame":{"x":1191,"y":902,"w":412,"h":427},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":27,"w":412,"h":427},"sourceSize":{"w":576,"h":576}},
+  "13":{"frame":{"x":1218,"y":2135,"w":404,"h":370},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":84,"w":404,"h":370},"sourceSize":{"w":576,"h":576}},
+  "14":{"frame":{"x":811,"y":1352,"w":134,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":328,"y":91,"w":134,"h":96},"sourceSize":{"w":576,"h":576}},
+  "15":{"frame":{"x":407,"y":925,"w":382,"h":420},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":67,"w":382,"h":420},"sourceSize":{"w":576,"h":576}},
+  "16":{"frame":{"x":411,"y":479,"w":382,"h":444},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":43,"w":382,"h":444},"sourceSize":{"w":576,"h":576}},
+  "17":{"frame":{"x":411,"y":479,"w":382,"h":444},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":43,"w":382,"h":444},"sourceSize":{"w":576,"h":576}},
+  "18":{"frame":{"x":1220,"y":0,"w":389,"h":465},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":29,"w":389,"h":465},"sourceSize":{"w":576,"h":576}},
+  "19":{"frame":{"x":0,"y":0,"w":402,"h":477},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":28,"w":402,"h":477},"sourceSize":{"w":576,"h":576}},
+  "20":{"frame":{"x":1179,"y":1331,"w":402,"h":414},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":94,"w":402,"h":414},"sourceSize":{"w":576,"h":576}},
+  "21":{"frame":{"x":947,"y":1352,"w":134,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":91,"w":134,"h":96},"sourceSize":{"w":576,"h":576}},
+  "22":{"frame":{"x":0,"y":1737,"w":382,"h":420},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":67,"w":382,"h":420},"sourceSize":{"w":576,"h":576}},
+  "23":{"frame":{"x":795,"y":906,"w":382,"h":444},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":43,"w":382,"h":444},"sourceSize":{"w":576,"h":576}},
+  "24":{"frame":{"x":795,"y":906,"w":382,"h":444},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":43,"w":382,"h":444},"sourceSize":{"w":576,"h":576}},
+  "25":{"frame":{"x":803,"y":439,"w":386,"h":465},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":29,"w":386,"h":465},"sourceSize":{"w":576,"h":576}},
+  "26":{"frame":{"x":404,"y":0,"w":397,"h":477},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":28,"w":397,"h":477},"sourceSize":{"w":576,"h":576}},
+  "27":{"frame":{"x":0,"y":1321,"w":402,"h":414},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":94,"w":402,"h":414},"sourceSize":{"w":576,"h":576}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "greatsword_combo3_weight_ironwall.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1679,
+   "h": 2505
+  },
+  "scale": "1"
  }
 }

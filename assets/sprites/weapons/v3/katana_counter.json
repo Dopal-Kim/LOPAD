@@ -3,7 +3,7 @@
  "action": "katana_counter",
  "frameWidth": 192,
  "frameHeight": 192,
- "frames": 8,
+ "framesPerDirection": 8,
  "directions": [
   "down",
   "up",
@@ -864,5 +864,69 @@
   "note": "반 발 비켜섬 — 조준 방향의 해부 왼쪽(화면 반시계 90°)으로 6 월드 px(참고값). 그림은 제자리, 이동은 시스템",
   "dots": 24,
   "startMs": 30
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_counter.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":84,"y":447,"w":68,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":90,"w":68,"h":69},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":176,"y":437,"w":71,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":97,"w":71,"h":65},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":324,"y":242,"w":50,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":64,"w":50,"h":96},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":300,"y":490,"w":48,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":127,"w":48,"h":34},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":219,"y":242,"w":103,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":128,"w":103,"h":49},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":0,"y":145,"w":111,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":127,"w":111,"h":51},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":113,"y":184,"w":110,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":126,"w":110,"h":55},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":0,"y":105,"w":118,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":128,"w":118,"h":38},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":313,"y":0,"w":60,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":57,"w":60,"h":121},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":332,"y":123,"w":46,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":87,"w":46,"h":94},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":275,"y":0,"w":36,"h":131},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":48,"w":36,"h":131},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":268,"y":293,"w":37,"h":90},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":90,"w":37,"h":90},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":0,"y":249,"w":104,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":124,"w":104,"h":57},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":208,"y":133,"w":111,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":132,"w":111,"h":49},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":0,"y":198,"w":110,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":133,"w":110,"h":49},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":0,"y":60,"w":118,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":134,"w":118,"h":43},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":0,"y":308,"w":89,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":83,"w":89,"h":92},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":208,"y":44,"w":64,"h":66},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":112,"w":64,"h":66},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":106,"y":293,"w":69,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":75,"w":69,"h":101},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":0,"y":0,"w":136,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":118,"w":136,"h":58},"sourceSize":{"w":192,"h":192}},
+  "20":{"frame":{"x":225,"y":184,"w":105,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":121,"w":105,"h":56},"sourceSize":{"w":192,"h":192}},
+  "21":{"frame":{"x":91,"y":396,"w":83,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":128,"w":83,"h":49},"sourceSize":{"w":192,"h":192}},
+  "22":{"frame":{"x":177,"y":385,"w":83,"h":50},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":128,"w":83,"h":50},"sourceSize":{"w":192,"h":192}},
+  "23":{"frame":{"x":249,"y":490,"w":49,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":90,"y":142,"w":49,"h":32},"sourceSize":{"w":192,"h":192}},
+  "24":{"frame":{"x":177,"y":293,"w":89,"h":90},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":64,"w":89,"h":90},"sourceSize":{"w":192,"h":192}},
+  "25":{"frame":{"x":307,"y":340,"w":67,"h":85},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":71,"w":67,"h":85},"sourceSize":{"w":192,"h":192}},
+  "26":{"frame":{"x":138,"y":44,"w":68,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":37,"w":68,"h":118},"sourceSize":{"w":192,"h":192}},
+  "27":{"frame":{"x":138,"y":0,"w":135,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":115,"w":135,"h":42},"sourceSize":{"w":192,"h":192}},
+  "28":{"frame":{"x":112,"y":241,"w":105,"h":50},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":125,"w":105,"h":50},"sourceSize":{"w":192,"h":192}},
+  "29":{"frame":{"x":262,"y":427,"w":82,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":125,"w":82,"h":61},"sourceSize":{"w":192,"h":192}},
+  "30":{"frame":{"x":0,"y":402,"w":82,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":125,"w":82,"h":64},"sourceSize":{"w":192,"h":192}},
+  "31":{"frame":{"x":0,"y":468,"w":53,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":127,"w":53,"h":64},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_counter.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 378,
+   "h": 532
+  },
+  "scale": "1"
  }
 }

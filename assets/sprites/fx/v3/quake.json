@@ -3,7 +3,7 @@
  "action": "quake",
  "frameWidth": 384,
  "frameHeight": 384,
- "frames": 7,
+ "framesPerDirection": 7,
  "directions": [
   "any"
  ],
@@ -83,5 +83,44 @@
   "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
   "secondary": "fx.weapons.greatsword",
   "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 quake.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 1,
+   "frameWidth": 384,
+   "frameHeight": 384,
+   "frameCount": 7
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":609,"y":0,"w":8,"h":192},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":190,"y":25,"w":8,"h":192},"sourceSize":{"w":384,"h":384}},
+  "1":{"frame":{"x":236,"y":0,"w":52,"h":231},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":167,"y":14,"w":52,"h":231},"sourceSize":{"w":384,"h":384}},
+  "2":{"frame":{"x":168,"y":272,"w":85,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":195,"w":85,"h":55},"sourceSize":{"w":384,"h":384}},
+  "3":{"frame":{"x":0,"y":272,"w":166,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":108,"y":170,"w":166,"h":106},"sourceSize":{"w":384,"h":384}},
+  "4":{"frame":{"x":0,"y":0,"w":234,"h":270},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":24,"w":234,"h":270},"sourceSize":{"w":384,"h":384}},
+  "5":{"frame":{"x":290,"y":199,"w":296,"h":182},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":128,"w":296,"h":182},"sourceSize":{"w":384,"h":384}},
+  "6":{"frame":{"x":290,"y":0,"w":317,"h":197},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":123,"w":317,"h":197},"sourceSize":{"w":384,"h":384}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "quake.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 617,
+   "h": 381
+  },
+  "scale": "1"
  }
 }

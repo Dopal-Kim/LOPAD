@@ -3,7 +3,7 @@
  "action": "hurt",
  "frameWidth": 96,
  "frameHeight": 144,
- "frames": 3,
+ "framesPerDirection": 3,
  "directions": [
   "down",
   "up",
@@ -53,5 +53,49 @@
   ],
   "note": "구 프레임 k 의 시작 ms = 새 프레임 framesMap[k][0] 의 시작 ms (assert). 전체 길이 같음"
  },
- "flashFrame": 0
+ "flashFrame": 0,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dummy_hurt.png)",
+  "grid": {
+   "columns": 3,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 12
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":352,"y":0,"w":57,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":24,"w":57,"h":119},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":0,"y":0,"w":62,"h":124},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":19,"w":62,"h":124},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":64,"y":0,"w":59,"h":123},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":20,"w":59,"h":123},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":165,"y":0,"w":57,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":22,"w":57,"h":120},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":582,"y":0,"w":62,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":31,"w":62,"h":111},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":521,"y":0,"w":59,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":25,"w":59,"h":117},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":312,"y":0,"w":38,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":24,"w":38,"h":120},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":411,"y":0,"w":53,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":25,"w":53,"h":119},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":224,"y":0,"w":42,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":24,"w":42,"h":120},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":125,"y":0,"w":38,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":23,"w":38,"h":121},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":466,"y":0,"w":53,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":26,"w":53,"h":118},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":268,"y":0,"w":42,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":24,"w":42,"h":120},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dummy_hurt.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 644,
+   "h": 124
+  },
+  "scale": "1"
+ }
 }

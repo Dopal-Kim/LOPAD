@@ -4,7 +4,7 @@
  "version": "v3-r56d",
  "frameWidth": 152,
  "frameHeight": 136,
- "frames": 8,
+ "framesPerDirection": 8,
  "directions": [
   "s",
   "m",
@@ -113,5 +113,61 @@
  },
  "design": "56라운드 Q16 낙인 기폭 — 적에게 지진 셈 획이 부풀며 갈라졌다가 백열 핵으로 터지고, 호박 불덩이·충격 고리 → 회색 재 연기·불티·재 조각",
  "keyArt": "parts/art/work/gemini/weapon_moves/raw_dagger_B.jpg 패널 4",
- "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_brand_burst.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 3,
+   "frameWidth": 152,
+   "frameHeight": 136,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":72,"y":783,"w":19,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":67,"y":46,"w":19,"h":31},"sourceSize":{"w":152,"h":136}},
+  "1":{"frame":{"x":0,"y":842,"w":42,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":47,"w":42,"h":42},"sourceSize":{"w":152,"h":136}},
+  "2":{"frame":{"x":0,"y":783,"w":70,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":39,"w":70,"h":57},"sourceSize":{"w":152,"h":136}},
+  "3":{"frame":{"x":125,"y":445,"w":75,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":37,"w":75,"h":62},"sourceSize":{"w":152,"h":136}},
+  "4":{"frame":{"x":146,"y":60,"w":55,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":41,"w":55,"h":51},"sourceSize":{"w":152,"h":136}},
+  "5":{"frame":{"x":125,"y":380,"w":64,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":36,"w":64,"h":63},"sourceSize":{"w":152,"h":136}},
+  "6":{"frame":{"x":125,"y":223,"w":74,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":30,"w":74,"h":77},"sourceSize":{"w":152,"h":136}},
+  "7":{"frame":{"x":133,"y":114,"w":69,"h":66},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":25,"w":69,"h":66},"sourceSize":{"w":152,"h":136}},
+  "8":{"frame":{"x":44,"y":842,"w":43,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":46,"w":43,"h":31},"sourceSize":{"w":152,"h":136}},
+  "9":{"frame":{"x":146,"y":0,"w":58,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":39,"w":58,"h":58},"sourceSize":{"w":152,"h":136}},
+  "10":{"frame":{"x":107,"y":699,"w":93,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":29,"w":93,"h":77},"sourceSize":{"w":152,"h":136}},
+  "11":{"frame":{"x":0,"y":616,"w":101,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":27,"w":101,"h":83},"sourceSize":{"w":152,"h":136}},
+  "12":{"frame":{"x":114,"y":520,"w":85,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":34,"w":85,"h":67},"sourceSize":{"w":152,"h":136}},
+  "13":{"frame":{"x":103,"y":616,"w":95,"h":81},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":29,"w":95,"h":81},"sourceSize":{"w":152,"h":136}},
+  "14":{"frame":{"x":0,"y":520,"w":112,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":27,"w":112,"h":94},"sourceSize":{"w":152,"h":136}},
+  "15":{"frame":{"x":107,"y":778,"w":93,"h":76},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":22,"w":93,"h":76},"sourceSize":{"w":152,"h":136}},
+  "16":{"frame":{"x":133,"y":182,"w":53,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":46,"w":53,"h":31},"sourceSize":{"w":152,"h":136}},
+  "17":{"frame":{"x":125,"y":302,"w":76,"h":76},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":30,"w":76,"h":76},"sourceSize":{"w":152,"h":136}},
+  "18":{"frame":{"x":0,"y":223,"w":120,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":18,"w":120,"h":99},"sourceSize":{"w":152,"h":136}},
+  "19":{"frame":{"x":0,"y":114,"w":131,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":15,"w":131,"h":107},"sourceSize":{"w":152,"h":136}},
+  "20":{"frame":{"x":0,"y":701,"w":105,"h":80},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":29,"w":105,"h":80},"sourceSize":{"w":152,"h":136}},
+  "21":{"frame":{"x":0,"y":423,"w":123,"h":95},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":24,"w":123,"h":95},"sourceSize":{"w":152,"h":136}},
+  "22":{"frame":{"x":0,"y":0,"w":144,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":19,"w":144,"h":112},"sourceSize":{"w":152,"h":136}},
+  "23":{"frame":{"x":0,"y":324,"w":123,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":18,"w":123,"h":97},"sourceSize":{"w":152,"h":136}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_brand_burst.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 204,
+   "h": 884
+  },
+  "scale": "1"
+ }
 }

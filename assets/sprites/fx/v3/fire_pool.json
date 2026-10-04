@@ -1,55 +1,91 @@
 {
-  "image": "fire_pool.png",
-  "action": "fire_pool",
-  "version": "v3",
-  "frameWidth": 192,
-  "frameHeight": 96,
-  "pixelScale": 0.5,
-  "directions": [
-    "any"
-  ],
-  "layout": "row = direction (directions order), column = frame index",
-  "frameIndex": "row * frames + column",
-  "fps": 9,
-  "frameDurationsMs": [
-    110,
-    110,
-    110,
-    110
-  ],
-  "loop": true,
+ "image": "fire_pool.png",
+ "action": "fire_pool",
+ "version": "v3",
+ "frameWidth": 192,
+ "frameHeight": 96,
+ "pixelScale": 0.5,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 9,
+ "frameDurationsMs": [
+  110,
+  110,
+  110,
+  110
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 96,
+  "y": 72
+ },
+ "framesPerDirection": 4,
+ "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
+ "anchor": "hitbox_center",
+ "spawn": "fire_pool_ignite",
+ "depth": "below",
+ "scale": "allowed",
+ "source": "parts/art/work/fx_v3/build.py",
+ "areaTiles": [
+  3,
+  3
+ ],
+ "pivotNote": "피벗 (96,72) = 웅덩이 중심. 웅덩이 타원 176×38 위로 혓바닥 최대 약 56 도트. 3×3 타일 영역은 구 안내와 같이 y −40/+40 도트 두 장 또는 정수 scale.",
+ "note": "v3: 웅덩이 타원(층 램프 어두운 쪽) + 흐르는 액체 빛 띠 3줄 + 큰 혓바닥 9(밑이 둥글고 끝이 뾰족·휘어짐) + 작은 혓바닥 14 + 안쪽 밝은 심 + 오르는 불티 7. 4f 위상 1/4 이음새 없음.",
+ "colors": 10,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). 층 강조 램프 hex 가 들어 있어도 그대로 그린다.",
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
+ "legacy": {
+  "image": "../fire_pool.png",
+  "frameWidth": 48,
+  "frameHeight": 24,
   "pivot": {
-    "x": 96,
-    "y": 72
+   "x": 24,
+   "y": 18
   },
-  "frames": 4,
-  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 hex, fixed — 53라운드 Q62 paletteSwap none + fx core X0/X1) + hero v3 warm ash (#2a1e17 #3b2a1f #4f3828 #664a33 #45403b #5c554e #756c62, fixed)",
-  "anchor": "hitbox_center",
-  "spawn": "fire_pool_ignite",
-  "depth": "below",
-  "scale": "allowed",
-  "source": "parts/art/work/fx_v3/build.py",
-  "areaTiles": [
-    3,
-    3
-  ],
-  "pivotNote": "피벗 (96,72) = 웅덩이 중심. 웅덩이 타원 176×38 위로 혓바닥 최대 약 56 도트. 3×3 타일 영역은 구 안내와 같이 y −40/+40 도트 두 장 또는 정수 scale.",
-  "note": "v3: 웅덩이 타원(층 램프 어두운 쪽) + 흐르는 액체 빛 띠 3줄 + 큰 혓바닥 9(밑이 둥글고 끝이 뾰족·휘어짐) + 작은 혓바닥 14 + 안쪽 밝은 심 + 오르는 불티 7. 4f 위상 1/4 이음새 없음.",
-  "colors": 10,
-  "paletteSwap": "none",
-  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다). 층 강조 램프 hex 가 들어 있어도 그대로 그린다.",
-  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·drift.pxPerSec·타일 주기)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다.",
-  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·segments 는 구 시트와 동일.",
-  "legacy": {
-    "image": "../fire_pool.png",
-    "frameWidth": 48,
-    "frameHeight": 24,
-    "pivot": {
-      "x": 24,
-      "y": 18
-    },
-    "pixelScale": 2,
-    "pivotNote": "피벗 (24,18) = 불붙은 웅덩이(독주 웅덩이 3x3 타일) 중심. 웅덩이 타원 48x11 위로 혓바닥 8개가 최대 14px 솟는다. 3x3 타일 영역을 덮으려면 같은 시트를 y-10/+10 두 장(두 번째는 1프레임 어긋나게) 또는 scale 정수 배율.",
-    "note": "1-1 독주 웅덩이 불바다 루프 4f(이음새 없음). 층 램프 17~27 + 백열 코어(혓바닥 밑 심). 웅덩이 17/19/21 → 혓바닥 19 테두리·21 몸·23/25 안·X1 심 → 오르는 불티 23/25. 4초 지속 동안 반복 재생, 끝은 시스템이 알파로 지움."
-  }
+  "pixelScale": 2,
+  "pivotNote": "피벗 (24,18) = 불붙은 웅덩이(독주 웅덩이 3x3 타일) 중심. 웅덩이 타원 48x11 위로 혓바닥 8개가 최대 14px 솟는다. 3x3 타일 영역을 덮으려면 같은 시트를 y-10/+10 두 장(두 번째는 1프레임 어긋나게) 또는 scale 정수 배율.",
+  "note": "1-1 독주 웅덩이 불바다 루프 4f(이음새 없음). 층 램프 17~27 + 백열 코어(혓바닥 밑 심). 웅덩이 17/19/21 → 혓바닥 19 테두리·21 몸·23/25 안·X1 심 → 오르는 불티 23/25. 4초 지속 동안 반복 재생, 끝은 시스템이 알파로 지움."
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 fire_pool.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 192,
+   "frameHeight": 96,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":237,"w":176,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":23,"w":176,"h":68},"sourceSize":{"w":192,"h":96}},
+  "1":{"frame":{"x":0,"y":0,"w":176,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":13,"w":176,"h":78},"sourceSize":{"w":192,"h":96}},
+  "2":{"frame":{"x":0,"y":80,"w":176,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":13,"w":176,"h":78},"sourceSize":{"w":192,"h":96}},
+  "3":{"frame":{"x":0,"y":160,"w":176,"h":75},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":16,"w":176,"h":75},"sourceSize":{"w":192,"h":96}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "fire_pool.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 176,
+   "h": 305
+  },
+  "scale": "1"
+ }
 }

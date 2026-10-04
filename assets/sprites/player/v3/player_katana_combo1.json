@@ -3,7 +3,7 @@
  "action": "katana_combo1",
  "frameWidth": 96,
  "frameHeight": 144,
- "frames": 7,
+ "framesPerDirection": 7,
  "directions": [
   "down",
   "up",
@@ -626,5 +626,65 @@
  },
  "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
  "nextComboSheet": "player_katana_combo2",
- "note": "무기를 든 연격 몸 동작. weapons/v3/katana_combo1 를 같은 프레임 번호·같은 시각에 겹친다(§6.1)."
+ "note": "무기를 든 연격 몸 동작. weapons/v3/katana_combo1 를 같은 프레임 번호·같은 시각에 겹친다(§6.1).",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_katana_combo1.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 28
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":119,"w":71,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":28,"w":71,"h":112},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":405,"y":116,"w":72,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":30,"w":72,"h":113},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":128,"y":117,"w":74,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":32,"w":74,"h":112},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":405,"y":231,"w":83,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":32,"w":83,"h":112},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":309,"y":0,"w":89,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":30,"w":89,"h":114},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":128,"y":0,"w":89,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":29,"w":89,"h":115},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":0,"y":0,"w":67,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":26,"w":67,"h":117},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":144,"y":231,"w":65,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":28,"w":65,"h":112},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":0,"y":233,"w":66,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":30,"w":66,"h":112},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":73,"y":231,"w":69,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":32,"w":69,"h":112},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":204,"y":117,"w":74,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":32,"w":74,"h":112},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":400,"y":0,"w":87,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":30,"w":87,"h":114},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":219,"y":0,"w":88,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":29,"w":88,"h":115},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":69,"y":0,"w":57,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":26,"w":57,"h":116},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":0,"y":347,"w":45,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":28,"w":45,"h":111},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":319,"y":232,"w":49,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":28,"w":49,"h":111},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":264,"y":345,"w":55,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":29,"w":55,"h":110},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":321,"y":345,"w":55,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":29,"w":55,"h":110},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":73,"y":118,"w":53,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":28,"w":53,"h":111},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":266,"y":232,"w":51,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":28,"w":51,"h":111},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":309,"y":116,"w":46,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":25,"w":46,"h":114},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":119,"y":345,"w":45,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":28,"w":45,"h":111},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":68,"y":345,"w":49,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":28,"w":49,"h":111},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":378,"y":345,"w":55,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":29,"w":55,"h":110},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":435,"y":345,"w":55,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":29,"w":55,"h":110},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":211,"y":231,"w":53,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":28,"w":53,"h":111},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":211,"y":344,"w":51,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":28,"w":51,"h":111},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":357,"y":116,"w":46,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":25,"w":46,"h":114},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_katana_combo1.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 490,
+   "h": 458
+  },
+  "scale": "1"
+ }
 }

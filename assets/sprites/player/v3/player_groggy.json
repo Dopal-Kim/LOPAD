@@ -4,7 +4,7 @@
  "version": "v3-r56d",
  "frameWidth": 96,
  "frameHeight": 144,
- "frames": 10,
+ "framesPerDirection": 10,
  "directions": [
   "down",
   "up",
@@ -990,5 +990,77 @@
   ]
  },
  "scarAnchorNote": "53라운드 Q4 · 계약 §13 등 상흔 사각형(몸 시트 도트)",
- "design": "56라운드 그로기 — 재 껍데기가 무릎이 꺾인 채 좌우로 휘청이고 머리가 늦게 따라 흔들리며, 눈빛이 깜빡 꺼지고, 어깨 혼불이 눌리고, 늘어진 팔 끝에서 재가 흘러내림"
+ "design": "56라운드 그로기 — 재 껍데기가 무릎이 꺾인 채 좌우로 휘청이고 머리가 늦게 따라 흔들리며, 눈빛이 깜빡 꺼지고, 어깨 혼불이 눌리고, 늘어진 팔 끝에서 재가 흘러내림",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_groggy.png)",
+  "grid": {
+   "columns": 10,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 40
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":107,"w":68,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":37,"w":68,"h":103},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":338,"y":0,"w":67,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":36,"w":67,"h":104},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":0,"w":68,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":35,"w":68,"h":105},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":70,"y":0,"w":68,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":35,"w":68,"h":105},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":407,"y":0,"w":67,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":36,"w":67,"h":104},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":70,"y":107,"w":68,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":37,"w":68,"h":103},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":379,"y":106,"w":70,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":39,"w":70,"h":101},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":803,"y":106,"w":72,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":41,"w":72,"h":99},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":877,"y":106,"w":72,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":41,"w":72,"h":99},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":451,"y":106,"w":70,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":39,"w":70,"h":101},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":140,"y":107,"w":67,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":37,"w":67,"h":103},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":523,"y":106,"w":68,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":39,"w":68,"h":101},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":951,"y":106,"w":67,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":41,"w":67,"h":99},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":1020,"y":106,"w":67,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":41,"w":67,"h":99},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":593,"y":106,"w":68,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":39,"w":68,"h":101},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":209,"y":107,"w":67,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":37,"w":67,"h":103},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":663,"y":106,"w":68,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":39,"w":68,"h":101},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":1089,"y":106,"w":67,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":41,"w":67,"h":99},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":1158,"y":106,"w":67,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":41,"w":67,"h":99},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":733,"y":106,"w":68,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":39,"w":68,"h":101},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":244,"y":0,"w":45,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":34,"w":45,"h":105},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":834,"y":0,"w":51,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":35,"w":51,"h":104},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":598,"y":0,"w":57,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":35,"w":57,"h":104},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":476,"y":0,"w":59,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":35,"w":59,"h":104},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":657,"y":0,"w":57,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":35,"w":57,"h":104},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":140,"y":0,"w":50,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":34,"w":50,"h":105},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":940,"y":0,"w":42,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":35,"w":42,"h":104},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":1112,"y":0,"w":39,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":35,"w":39,"h":104},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":1153,"y":0,"w":39,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":35,"w":39,"h":104},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":1194,"y":0,"w":39,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":35,"w":39,"h":104},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":291,"y":0,"w":45,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":34,"w":45,"h":105},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":887,"y":0,"w":51,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":35,"w":51,"h":104},"sourceSize":{"w":96,"h":144}},
+  "32":{"frame":{"x":716,"y":0,"w":57,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":35,"w":57,"h":104},"sourceSize":{"w":96,"h":144}},
+  "33":{"frame":{"x":537,"y":0,"w":59,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":35,"w":59,"h":104},"sourceSize":{"w":96,"h":144}},
+  "34":{"frame":{"x":775,"y":0,"w":57,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":35,"w":57,"h":104},"sourceSize":{"w":96,"h":144}},
+  "35":{"frame":{"x":192,"y":0,"w":50,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":34,"w":50,"h":105},"sourceSize":{"w":96,"h":144}},
+  "36":{"frame":{"x":984,"y":0,"w":42,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":35,"w":42,"h":104},"sourceSize":{"w":96,"h":144}},
+  "37":{"frame":{"x":1028,"y":0,"w":40,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":35,"w":40,"h":104},"sourceSize":{"w":96,"h":144}},
+  "38":{"frame":{"x":1070,"y":0,"w":40,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":35,"w":40,"h":104},"sourceSize":{"w":96,"h":144}},
+  "39":{"frame":{"x":338,"y":106,"w":39,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":35,"w":39,"h":104},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_groggy.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1233,
+   "h": 210
+  },
+  "scale": "1"
+ }
 }

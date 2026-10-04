@@ -3,7 +3,7 @@
  "action": "dagger_combo3_twin",
  "frameWidth": 320,
  "frameHeight": 320,
- "frames": 5,
+ "framesPerDirection": 5,
  "directions": [
   "down",
   "up",
@@ -173,5 +173,57 @@
   "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
   "secondary": "fx.weapons.dagger",
   "v3Note": "2단 갈래 시트(55라운드) — 구 시트 없음. legacy 는 1단 구 시트(dagger_combo3_twin) 기준"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo3_twin_dance.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 320,
+   "frameHeight": 320,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":176,"y":389,"w":44,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":138,"y":176,"w":44,"h":37},"sourceSize":{"w":320,"h":320}},
+  "1":{"frame":{"x":0,"y":0,"w":57,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":133,"y":176,"w":57,"h":110},"sourceSize":{"w":320,"h":320}},
+  "2":{"frame":{"x":204,"y":0,"w":55,"h":86},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":130,"y":190,"w":55,"h":86},"sourceSize":{"w":320,"h":320}},
+  "3":{"frame":{"x":0,"y":196,"w":84,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":193,"w":84,"h":82},"sourceSize":{"w":320,"h":320}},
+  "4":{"frame":{"x":86,"y":196,"w":83,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":110,"y":198,"w":83,"h":67},"sourceSize":{"w":320,"h":320}},
+  "5":{"frame":{"x":0,"y":280,"w":44,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":138,"y":107,"w":44,"h":37},"sourceSize":{"w":320,"h":320}},
+  "6":{"frame":{"x":59,"y":0,"w":57,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":133,"y":34,"w":57,"h":110},"sourceSize":{"w":320,"h":320}},
+  "7":{"frame":{"x":204,"y":88,"w":55,"h":86},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":130,"y":44,"w":55,"h":86},"sourceSize":{"w":320,"h":320}},
+  "8":{"frame":{"x":118,"y":0,"w":84,"h":95},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":46,"w":84,"h":95},"sourceSize":{"w":320,"h":320}},
+  "9":{"frame":{"x":171,"y":196,"w":83,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":110,"y":68,"w":83,"h":63},"sourceSize":{"w":320,"h":320}},
+  "10":{"frame":{"x":224,"y":324,"w":37,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":138,"w":37,"h":44},"sourceSize":{"w":320,"h":320}},
+  "11":{"frame":{"x":0,"y":328,"w":110,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":133,"w":110,"h":59},"sourceSize":{"w":320,"h":320}},
+  "12":{"frame":{"x":0,"y":389,"w":86,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":126,"w":86,"h":59},"sourceSize":{"w":320,"h":320}},
+  "13":{"frame":{"x":95,"y":112,"w":85,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":126,"w":85,"h":82},"sourceSize":{"w":320,"h":320}},
+  "14":{"frame":{"x":171,"y":261,"w":83,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":137,"w":83,"h":61},"sourceSize":{"w":320,"h":320}},
+  "15":{"frame":{"x":224,"y":370,"w":37,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":176,"y":138,"w":37,"h":44},"sourceSize":{"w":320,"h":320}},
+  "16":{"frame":{"x":112,"y":328,"w":110,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":176,"y":133,"w":110,"h":59},"sourceSize":{"w":320,"h":320}},
+  "17":{"frame":{"x":88,"y":389,"w":86,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":190,"y":126,"w":86,"h":59},"sourceSize":{"w":320,"h":320}},
+  "18":{"frame":{"x":0,"y":112,"w":93,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":181,"y":126,"w":93,"h":82},"sourceSize":{"w":320,"h":320}},
+  "19":{"frame":{"x":86,"y":265,"w":83,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":177,"y":137,"w":83,"h":61},"sourceSize":{"w":320,"h":320}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_combo3_twin_dance.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 261,
+   "h": 448
+  },
+  "scale": "1"
  }
 }

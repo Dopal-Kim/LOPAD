@@ -3,7 +3,7 @@
  "action": "boss1_cup_shatter",
  "frameWidth": 128,
  "frameHeight": 128,
- "frames": 8,
+ "framesPerDirection": 8,
  "directions": [
   "any"
  ],
@@ -49,5 +49,45 @@
   "#faeec0",
   "#ffffff",
   "#fff4dc"
- ]
+ ],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 boss1_cup_shatter.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 128,
+   "frameCount": 8
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":230,"y":111,"w":37,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":42,"w":37,"h":37},"sourceSize":{"w":128,"h":128}},
+  "1":{"frame":{"x":180,"y":111,"w":48,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":41,"w":48,"h":32},"sourceSize":{"w":128,"h":128}},
+  "2":{"frame":{"x":206,"y":63,"w":55,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":35,"w":55,"h":46},"sourceSize":{"w":128,"h":128}},
+  "3":{"frame":{"x":206,"y":0,"w":64,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":32,"w":64,"h":61},"sourceSize":{"w":128,"h":128}},
+  "4":{"frame":{"x":98,"y":75,"w":80,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":35,"w":80,"h":72},"sourceSize":{"w":128,"h":128}},
+  "5":{"frame":{"x":0,"y":60,"w":96,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":41,"w":96,"h":82},"sourceSize":{"w":128,"h":128}},
+  "6":{"frame":{"x":105,"y":0,"w":99,"h":73},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":55,"w":99,"h":73},"sourceSize":{"w":128,"h":128}},
+  "7":{"frame":{"x":0,"y":0,"w":103,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":70,"w":103,"h":58},"sourceSize":{"w":128,"h":128}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "boss1_cup_shatter.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 270,
+   "h": 148
+  },
+  "scale": "1"
+ }
 }

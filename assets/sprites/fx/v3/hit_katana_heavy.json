@@ -1,58 +1,96 @@
 {
+ "image": "hit_katana_heavy.png",
+ "action": "hit_heavy",
+ "version": "v3",
+ "frameWidth": 192,
+ "frameHeight": 160,
+ "pixelScale": 0.5,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "framesPerDirection": 6,
+ "frameDurationsMs": [
+  30,
+  40,
+  50,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 72,
+  "y": 80
+ },
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "depth": "above",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "weapon": "katana",
+ "variant": "heavy",
+ "useFor": "막타(연격 마지막 타)·치명타 — 같은 무기의 hit_<weapon> 대신",
+ "replaces": "hit_burst (무기별로 바꿔 씀, 파일이 없으면 hit_burst)",
+ "design": "X 베기 — 두 사선 + 긴 앞 바늘·큰 코어 → 두 선이 갈라지며 앞쪽 초승달 충격 호 + 불티 12",
+ "hitstopMs": 81,
+ "hitstopNote": "55라운드 Q6 무기별 히트스톱(막타·치명타 ×1.8) 참고값. 히트스톱 동안 이 시트는 holdFrame 에 멈춰 두기를 권장(판정 순간 백열이 보이도록).",
+ "holdFrame": 0,
+ "pivotNote": "피벗 (72,80) = 적중점. 시스템은 공격 방향 각도(근접 = 주인공→적 중심, 활 = 화살 진행 각)으로 회전한다. flipY 는 위아래 뒤집기 허용(칼은 연격 홀·짝 휘두름 방향에 맞추면 자연스럽다). 중력 표현이 없어 어느 각도로 돌려도 된다.",
+ "particles": "particles_ash recipes.hit_katana_heavy 참고(시스템 입자 발생기).",
+ "shakeHint": {
+  "px": 3,
+  "ms": 90,
+  "note": "55라운드 Q8 화면 흔들림(막타·대검·치명타만 짧게) — 값은 아트 임시 제안, 시스템 판단."
+ },
+ "glowFrames": [
+  0,
+  1
+ ],
+ "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
+ "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
+ "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
+ "source": "parts/art/work/fx_v3/build_feel.py",
+ "colors": 12,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 hit_katana_heavy.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 192,
+   "frameHeight": 160,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":305,"y":154,"w":106,"h":142},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":9,"w":106,"h":142},"sourceSize":{"w":192,"h":160}},
+  "1":{"frame":{"x":305,"y":0,"w":106,"h":152},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":4,"w":106,"h":152},"sourceSize":{"w":192,"h":160}},
+  "2":{"frame":{"x":0,"y":142,"w":123,"h":156},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":4,"w":123,"h":156},"sourceSize":{"w":192,"h":160}},
+  "3":{"frame":{"x":165,"y":0,"w":138,"h":157},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":2,"w":138,"h":157},"sourceSize":{"w":192,"h":160}},
+  "4":{"frame":{"x":0,"y":0,"w":163,"h":140},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":15,"w":163,"h":140},"sourceSize":{"w":192,"h":160}},
+  "5":{"frame":{"x":125,"y":159,"w":167,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":28,"w":167,"h":114},"sourceSize":{"w":192,"h":160}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
   "image": "hit_katana_heavy.png",
-  "action": "hit_heavy",
-  "version": "v3",
-  "frameWidth": 192,
-  "frameHeight": 160,
-  "pixelScale": 0.5,
-  "directions": [
-    "any"
-  ],
-  "layout": "row = direction (directions order), column = frame index",
-  "frames": 6,
-  "frameDurationsMs": [
-    30,
-    40,
-    50,
-    60,
-    70,
-    90
-  ],
-  "loop": false,
-  "pivot": {
-    "x": 72,
-    "y": 80
+  "format": "RGBA8888",
+  "size": {
+   "w": 411,
+   "h": 298
   },
-  "anchor": "hitbox_center",
-  "spawn": "hit",
-  "depth": "above",
-  "rotate": true,
-  "drawnFacing": "right",
-  "flipY": "allowed",
-  "weapon": "katana",
-  "variant": "heavy",
-  "useFor": "막타(연격 마지막 타)·치명타 — 같은 무기의 hit_<weapon> 대신",
-  "replaces": "hit_burst (무기별로 바꿔 씀, 파일이 없으면 hit_burst)",
-  "design": "X 베기 — 두 사선 + 긴 앞 바늘·큰 코어 → 두 선이 갈라지며 앞쪽 초승달 충격 호 + 불티 12",
-  "hitstopMs": 81,
-  "hitstopNote": "55라운드 Q6 무기별 히트스톱(막타·치명타 ×1.8) 참고값. 히트스톱 동안 이 시트는 holdFrame 에 멈춰 두기를 권장(판정 순간 백열이 보이도록).",
-  "holdFrame": 0,
-  "pivotNote": "피벗 (72,80) = 적중점. 시스템은 공격 방향 각도(근접 = 주인공→적 중심, 활 = 화살 진행 각)으로 회전한다. flipY 는 위아래 뒤집기 허용(칼은 연격 홀·짝 휘두름 방향에 맞추면 자연스럽다). 중력 표현이 없어 어느 각도로 돌려도 된다.",
-  "particles": "particles_ash recipes.hit_katana_heavy 참고(시스템 입자 발생기).",
-  "shakeHint": {
-    "px": 3,
-    "ms": 90,
-    "note": "55라운드 Q8 화면 흔들림(막타·대검·치명타만 짧게) — 값은 아트 임시 제안, 시스템 판단."
-  },
-  "glowFrames": [
-    0,
-    1
-  ],
-  "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
-  "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
-  "paletteSwap": "none",
-  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
-  "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
-  "source": "parts/art/work/fx_v3/build_feel.py",
-  "colors": 12
+  "scale": "1"
+ }
 }

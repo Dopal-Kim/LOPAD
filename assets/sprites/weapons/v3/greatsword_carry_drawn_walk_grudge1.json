@@ -4,7 +4,7 @@
  "version": "v3-r56d",
  "frameWidth": 240,
  "frameHeight": 272,
- "frames": 8,
+ "framesPerDirection": 8,
  "directions": [
   "down",
   "up",
@@ -53,5 +53,69 @@
  "keyArt": "parts/art/work/gemini/weapon_moves/raw_greatsword_A.jpg 패널 4(sheet_greatsword 4번)",
  "stageNote": "단계 = 울분 게이지 구간(임시: 1~33% · 34~66% · 67~100%, 시스템 데이터). 차지 내려찍기로 전부 소모하면 오버레이 없음",
  "glowFrames": [],
- "glowRule": "53라운드 Q65 · 56라운드: 백열 X0/X1·A26 은 3단의 판정 프레임(무기 시트 glowFrames)만. 그 밖은 A25 이하 — 빌드 검사 통과"
+ "glowRule": "53라운드 Q65 · 56라운드: 백열 X0/X1·A26 은 3단의 판정 프레임(무기 시트 glowFrames)만. 그 밖은 A25 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_carry_drawn_walk_grudge1.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 240,
+   "frameHeight": 272,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":91,"y":0,"w":22,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":182,"w":22,"h":22},"sourceSize":{"w":240,"h":272}},
+  "1":{"frame":{"x":115,"y":0,"w":22,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":178,"w":22,"h":22},"sourceSize":{"w":240,"h":272}},
+  "2":{"frame":{"x":139,"y":0,"w":22,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":175,"w":22,"h":22},"sourceSize":{"w":240,"h":272}},
+  "3":{"frame":{"x":0,"y":0,"w":21,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":175,"w":21,"h":23},"sourceSize":{"w":240,"h":272}},
+  "4":{"frame":{"x":23,"y":0,"w":21,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":178,"w":21,"h":23},"sourceSize":{"w":240,"h":272}},
+  "5":{"frame":{"x":69,"y":0,"w":20,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":176,"w":20,"h":23},"sourceSize":{"w":240,"h":272}},
+  "6":{"frame":{"x":46,"y":0,"w":21,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":176,"w":21,"h":23},"sourceSize":{"w":240,"h":272}},
+  "7":{"frame":{"x":150,"y":24,"w":21,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":180,"w":21,"h":21},"sourceSize":{"w":240,"h":272}},
+  "8":{"frame":{"x":99,"y":48,"w":23,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":161,"y":164,"w":23,"h":13},"sourceSize":{"w":240,"h":272}},
+  "9":{"frame":{"x":0,"y":64,"w":24,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":160,"y":163,"w":24,"h":13},"sourceSize":{"w":240,"h":272}},
+  "10":{"frame":{"x":57,"y":25,"w":24,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":165,"w":24,"h":15},"sourceSize":{"w":240,"h":272}},
+  "11":{"frame":{"x":57,"y":42,"w":23,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":171,"w":23,"h":14},"sourceSize":{"w":240,"h":272}},
+  "12":{"frame":{"x":0,"y":48,"w":23,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":175,"w":23,"h":14},"sourceSize":{"w":240,"h":272}},
+  "13":{"frame":{"x":25,"y":48,"w":21,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":160,"y":170,"w":21,"h":14},"sourceSize":{"w":240,"h":272}},
+  "14":{"frame":{"x":99,"y":63,"w":21,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":161,"y":164,"w":21,"h":13},"sourceSize":{"w":240,"h":272}},
+  "15":{"frame":{"x":124,"y":48,"w":22,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":161,"y":162,"w":22,"h":13},"sourceSize":{"w":240,"h":272}},
+  "16":{"frame":{"x":81,"y":64,"w":15,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":161,"w":15,"h":12},"sourceSize":{"w":240,"h":272}},
+  "17":{"frame":{"x":171,"y":47,"w":13,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":158,"w":13,"h":12},"sourceSize":{"w":240,"h":272}},
+  "18":{"frame":{"x":171,"y":61,"w":13,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":159,"w":13,"h":12},"sourceSize":{"w":240,"h":272}},
+  "19":{"frame":{"x":65,"y":58,"w":14,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":82,"y":161,"w":14,"h":13},"sourceSize":{"w":240,"h":272}},
+  "20":{"frame":{"x":82,"y":48,"w":15,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":84,"y":164,"w":15,"h":14},"sourceSize":{"w":240,"h":272}},
+  "21":{"frame":{"x":48,"y":58,"w":15,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":78,"y":161,"w":15,"h":14},"sourceSize":{"w":240,"h":272}},
+  "22":{"frame":{"x":26,"y":64,"w":16,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":160,"w":16,"h":13},"sourceSize":{"w":240,"h":272}},
+  "23":{"frame":{"x":122,"y":63,"w":15,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":65,"y":159,"w":15,"h":12},"sourceSize":{"w":240,"h":272}},
+  "24":{"frame":{"x":0,"y":25,"w":18,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":139,"y":178,"w":18,"h":21},"sourceSize":{"w":240,"h":272}},
+  "25":{"frame":{"x":20,"y":25,"w":17,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":142,"y":176,"w":17,"h":21},"sourceSize":{"w":240,"h":272}},
+  "26":{"frame":{"x":39,"y":25,"w":16,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":177,"w":16,"h":21},"sourceSize":{"w":240,"h":272}},
+  "27":{"frame":{"x":132,"y":24,"w":16,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":154,"y":178,"w":16,"h":22},"sourceSize":{"w":240,"h":272}},
+  "28":{"frame":{"x":112,"y":24,"w":18,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":155,"y":181,"w":18,"h":22},"sourceSize":{"w":240,"h":272}},
+  "29":{"frame":{"x":163,"y":0,"w":19,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":156,"y":177,"w":19,"h":22},"sourceSize":{"w":240,"h":272}},
+  "30":{"frame":{"x":91,"y":24,"w":19,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":175,"w":19,"h":22},"sourceSize":{"w":240,"h":272}},
+  "31":{"frame":{"x":150,"y":47,"w":19,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":145,"y":175,"w":19,"h":21},"sourceSize":{"w":240,"h":272}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "greatsword_carry_drawn_walk_grudge1.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 184,
+   "h": 77
+  },
+  "scale": "1"
+ }
 }

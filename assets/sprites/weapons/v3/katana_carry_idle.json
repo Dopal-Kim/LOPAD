@@ -3,7 +3,7 @@
  "action": "carry_idle",
  "frameWidth": 192,
  "frameHeight": 192,
- "frames": 6,
+ "framesPerDirection": 6,
  "directions": [
   "down",
   "up",
@@ -193,5 +193,61 @@
  "sheathMouthNote": "칼집 입구(무기 시트 좌표) — 뽑기 이펙트·손 위치 참고용",
  "overlay": "player_idle 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
  "leftHandGrip": true,
- "leftHandNote": "대기·걷기·달리기: 왼손이 칼집 입구 바로 뒤를 쥐고 엄지로 코등이를 누른다(손 픽셀 위 칼집·코등이는 지워 둠)."
+ "leftHandNote": "대기·걷기·달리기: 왼손이 칼집 입구 바로 뒤를 쥐고 엄지로 코등이를 누른다(손 픽셀 위 칼집·코등이는 지워 둠).",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_carry_idle.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 6,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":46,"y":44,"w":43,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":136,"w":43,"h":18},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":282,"y":41,"w":44,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":136,"w":44,"h":18},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":188,"y":41,"w":45,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":136,"w":45,"h":18},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":235,"y":41,"w":45,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":136,"w":45,"h":18},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":0,"y":44,"w":44,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":136,"w":44,"h":18},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":91,"y":44,"w":43,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":136,"w":43,"h":18},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":331,"y":40,"w":32,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":141,"w":32,"h":31},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":296,"y":0,"w":33,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":133,"w":33,"h":39},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":188,"y":0,"w":34,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":133,"w":34,"h":39},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":224,"y":0,"w":34,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":133,"w":34,"h":39},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":260,"y":0,"w":34,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":133,"w":34,"h":39},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":331,"y":0,"w":32,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":134,"w":32,"h":38},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":0,"y":0,"w":61,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":128,"w":61,"h":42},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":63,"y":0,"w":61,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":128,"w":61,"h":42},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":126,"y":0,"w":60,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":128,"w":60,"h":42},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":126,"y":0,"w":60,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":128,"w":60,"h":42},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":63,"y":0,"w":61,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":128,"w":61,"h":42},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":0,"y":0,"w":61,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":128,"w":61,"h":42},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":136,"y":61,"w":61,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":136,"w":61,"h":12},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":199,"y":61,"w":60,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":136,"w":60,"h":12},"sourceSize":{"w":192,"h":192}},
+  "20":{"frame":{"x":261,"y":61,"w":59,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":136,"w":59,"h":11},"sourceSize":{"w":192,"h":192}},
+  "21":{"frame":{"x":261,"y":61,"w":59,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":136,"w":59,"h":11},"sourceSize":{"w":192,"h":192}},
+  "22":{"frame":{"x":199,"y":61,"w":60,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":136,"w":60,"h":12},"sourceSize":{"w":192,"h":192}},
+  "23":{"frame":{"x":136,"y":61,"w":61,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":136,"w":61,"h":12},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_carry_idle.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 363,
+   "h": 73
+  },
+  "scale": "1"
+ }
 }

@@ -3,7 +3,7 @@
  "action": "katana_combo2_batto",
  "frameWidth": 448,
  "frameHeight": 448,
- "frames": 4,
+ "framesPerDirection": 4,
  "directions": [
   "down",
   "up",
@@ -99,5 +99,53 @@
   "secondary": "fx.weapons.katana",
   "trail": null,
   "v3Note": "2단 갈래 시트(55라운드) — 구 시트 없음. legacy 는 1단 구 시트(katana_combo2_batto) 기준"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_combo2_batto_longinvuln.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 448,
+   "frameHeight": 448,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":366,"y":389,"w":46,"h":73},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":189,"y":210,"w":46,"h":73},"sourceSize":{"w":448,"h":448}},
+  "1":{"frame":{"x":551,"y":653,"w":288,"h":182},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":191,"w":288,"h":182},"sourceSize":{"w":448,"h":448}},
+  "2":{"frame":{"x":203,"y":198,"w":299,"h":189},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":184,"w":299,"h":189},"sourceSize":{"w":448,"h":448}},
+  "3":{"frame":{"x":203,"y":0,"w":311,"h":196},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":177,"w":311,"h":196},"sourceSize":{"w":448,"h":448}},
+  "4":{"frame":{"x":414,"y":389,"w":46,"h":73},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":213,"y":165,"w":46,"h":73},"sourceSize":{"w":448,"h":448}},
+  "5":{"frame":{"x":0,"y":679,"w":288,"h":180},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":75,"w":288,"h":180},"sourceSize":{"w":448,"h":448}},
+  "6":{"frame":{"x":551,"y":475,"w":299,"h":176},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":75,"w":299,"h":176},"sourceSize":{"w":448,"h":448}},
+  "7":{"frame":{"x":504,"y":301,"w":311,"h":172},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":75,"w":311,"h":172},"sourceSize":{"w":448,"h":448}},
+  "8":{"frame":{"x":290,"y":679,"w":73,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":165,"y":213,"w":73,"h":46},"sourceSize":{"w":448,"h":448}},
+  "9":{"frame":{"x":366,"y":475,"w":183,"h":288},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":80,"w":183,"h":288},"sourceSize":{"w":448,"h":448}},
+  "10":{"frame":{"x":711,"y":0,"w":179,"h":299},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":74,"w":179,"h":299},"sourceSize":{"w":448,"h":448}},
+  "11":{"frame":{"x":0,"y":313,"w":178,"h":311},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":68,"w":178,"h":311},"sourceSize":{"w":448,"h":448}},
+  "12":{"frame":{"x":290,"y":727,"w":73,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":210,"y":213,"w":73,"h":46},"sourceSize":{"w":448,"h":448}},
+  "13":{"frame":{"x":180,"y":389,"w":184,"h":288},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":189,"y":80,"w":184,"h":288},"sourceSize":{"w":448,"h":448}},
+  "14":{"frame":{"x":516,"y":0,"w":193,"h":299},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":180,"y":74,"w":193,"h":299},"sourceSize":{"w":448,"h":448}},
+  "15":{"frame":{"x":0,"y":0,"w":201,"h":311},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":172,"y":68,"w":201,"h":311},"sourceSize":{"w":448,"h":448}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_combo2_batto_longinvuln.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 890,
+   "h": 859
+  },
+  "scale": "1"
  }
 }

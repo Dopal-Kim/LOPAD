@@ -3,7 +3,7 @@
  "action": "katana_rise",
  "frameWidth": 96,
  "frameHeight": 144,
- "frames": 8,
+ "framesPerDirection": 8,
  "directions": [
   "down",
   "up",
@@ -734,5 +734,69 @@
  "weaponOverlayV3": "weapons/v3/katana_rise",
  "note": "55라운드 새 연격(§17) 몸. weapons/v3/katana_rise 를 같은 프레임 번호·같은 시각에 겹친다. v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b.",
  "tempoNote": "56라운드 Q1 — 3연격 ~1.5초: 예비 150ms · 휘두름 70ms · 잔심(정지 포즈) 190ms · 풀림 60ms. cancelAt = 풀림 시작",
- "r56": "56라운드 Q1(템포·사거리 ×1.15)"
+ "r56": "56라운드 Q1(템포·사거리 ×1.15)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_katana_rise.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":328,"y":117,"w":75,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":29,"w":75,"h":113},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":250,"y":117,"w":76,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":30,"w":76,"h":114},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":65,"y":118,"w":87,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":31,"w":87,"h":113},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":154,"y":118,"w":79,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":31,"w":79,"h":113},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":250,"y":0,"w":77,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":29,"w":77,"h":115},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":65,"y":0,"w":64,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":28,"w":64,"h":116},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":401,"y":0,"w":64,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":29,"w":64,"h":115},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":0,"y":0,"w":63,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":27,"w":63,"h":117},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":378,"y":346,"w":68,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":29,"w":68,"h":112},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":454,"y":232,"w":70,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":30,"w":70,"h":112},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":378,"y":232,"w":74,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":31,"w":74,"h":112},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":405,"y":117,"w":72,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":31,"w":72,"h":113},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":329,"y":0,"w":70,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":29,"w":70,"h":115},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":131,"y":0,"w":58,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":28,"w":58,"h":116},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":467,"y":0,"w":58,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":29,"w":58,"h":115},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":191,"y":0,"w":57,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":27,"w":57,"h":116},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":0,"y":234,"w":47,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":28,"w":47,"h":111},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":52,"y":347,"w":49,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":29,"w":49,"h":110},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":212,"y":346,"w":52,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":29,"w":52,"h":110},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":103,"y":233,"w":55,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":28,"w":55,"h":111},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":217,"y":233,"w":53,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":28,"w":53,"h":111},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":448,"y":346,"w":51,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":27,"w":51,"h":112},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":103,"y":346,"w":50,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":28,"w":50,"h":111},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":0,"y":119,"w":48,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":26,"w":48,"h":113},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":479,"y":117,"w":47,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":28,"w":47,"h":111},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":155,"y":346,"w":55,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":29,"w":55,"h":110},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":266,"y":346,"w":52,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":29,"w":52,"h":110},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":160,"y":233,"w":55,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":28,"w":55,"h":111},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":272,"y":233,"w":53,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":28,"w":53,"h":111},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":50,"y":233,"w":51,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":27,"w":51,"h":112},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":0,"y":347,"w":50,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":28,"w":50,"h":111},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":328,"y":232,"w":48,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":26,"w":48,"h":113},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_katana_rise.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 526,
+   "h": 458
+  },
+  "scale": "1"
+ }
 }

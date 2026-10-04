@@ -3,7 +3,7 @@
  "action": "boss1_liquor_glob",
  "frameWidth": 48,
  "frameHeight": 32,
- "frames": 4,
+ "framesPerDirection": 4,
  "directions": [
   "any"
  ],
@@ -38,5 +38,41 @@
  "emissiveColors": [
   "#e2a33c"
  ],
- "spawnNote": "보스 stage1_throw releaseFrame 의 handAnchors(잔 테) 점에서 부채꼴로 생성"
+ "spawnNote": "보스 stage1_throw releaseFrame 의 handAnchors(잔 테) 점에서 부채꼴로 생성",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 boss1_liquor_glob.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 48,
+   "frameHeight": 32,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":81,"y":0,"w":37,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":10,"w":37,"h":13},"sourceSize":{"w":48,"h":32}},
+  "1":{"frame":{"x":41,"y":0,"w":38,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":10,"w":38,"h":13},"sourceSize":{"w":48,"h":32}},
+  "2":{"frame":{"x":0,"y":0,"w":39,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":10,"w":39,"h":13},"sourceSize":{"w":48,"h":32}},
+  "3":{"frame":{"x":120,"y":0,"w":36,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":10,"w":36,"h":13},"sourceSize":{"w":48,"h":32}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "boss1_liquor_glob.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 156,
+   "h": 13
+  },
+  "scale": "1"
+ }
 }

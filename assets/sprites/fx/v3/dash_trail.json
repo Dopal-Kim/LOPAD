@@ -1,69 +1,117 @@
 {
-  "image": "dash_trail.png",
-  "action": "dash_trail",
-  "version": "v3",
-  "frameWidth": 96,
-  "frameHeight": 144,
-  "pixelScale": 0.5,
-  "directions": [
-    "down",
-    "up",
-    "left",
-    "right"
-  ],
-  "layout": "row = direction (directions order), column = frame index",
-  "frames": 4,
-  "frameDurationsMs": [
-    30,
-    40,
-    50,
-    70
-  ],
-  "loop": false,
-  "anchor": "player_pivot",
-  "spawn": "dash_trail",
-  "depth": "below",
-  "followsPlayer": false,
-  "weapon": "any",
-  "tint": {
-    "when": "batto / longinvuln / afterimage node",
-    "color": "fx.weapons.<katana|dagger>.ramp[1]",
-    "method": "setTintFill (flat) — sheet is dark gray G02~G04, multiplicative setTint would go black"
-  },
-  "heroSource": "player/v3/player_dash frame 2 (실루엣 사본, 주인공 대쉬가 바뀌면 재빌드)",
-  "legacy": {
-    "image": "../dash_trail.png",
-    "frameWidth": 16,
-    "frameHeight": 24,
-    "pivot": {
-      "x": 8,
-      "y": 23
-    },
-    "pixelScale": 2,
-    "note": "대쉬 잔상(무채 G02~G04, 42라운드 결정: 유지 + 시스템 틴트). 대쉬 중 40~50ms 마다 현재 위치에 하나씩, 각 180ms 뒤 소멸. 발도술·허보·잔상 노드일 때만 그 무기 W1 로 틴트(setTintFill). 바닥 깊이."
-  },
-  "pivotNote": "피벗 (48,138) = 주인공 v3 발 중앙(player/v3/player_dash 와 같음).",
-  "previous": {
-    "frames": 3,
-    "frameDurationsMs": [
-      40,
-      60,
-      80
-    ],
-    "totalMs": 180,
-    "source": "parts/art/work/fx_v3/build.py"
-  },
-  "note": "v3 55R: 주인공 v3 대쉬 프레임 2 실루엣 — f0 재 몸(갈색 재 위아래 명암) + 뒤쪽 가장자리 밝은 재 테두리 + 몸의 호박 균열 자리 그대로 A23 → f1 이동 줄 4개 중 1줄 빠짐 + 줄 뒤끝이 뒤로 끌림(재 꼬리) + 재 조각 떨어져 나감 → f2 줄 3개 중 1줄만, 몸이 뒤로 5도트 밀림, 균열 A19 → f3 몸 없이 재 조각·불씨만.",
+ "image": "dash_trail.png",
+ "action": "dash_trail",
+ "version": "v3",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "pixelScale": 0.5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "framesPerDirection": 4,
+ "frameDurationsMs": [
+  30,
+  40,
+  50,
+  70
+ ],
+ "loop": false,
+ "anchor": "player_pivot",
+ "spawn": "dash_trail",
+ "depth": "below",
+ "followsPlayer": false,
+ "weapon": "any",
+ "tint": {
+  "when": "batto / longinvuln / afterimage node",
+  "color": "fx.weapons.<katana|dagger>.ramp[1]",
+  "method": "setTintFill (flat) — sheet is dark gray G02~G04, multiplicative setTint would go black"
+ },
+ "heroSource": "player/v3/player_dash frame 2 (실루엣 사본, 주인공 대쉬가 바뀌면 재빌드)",
+ "legacy": {
+  "image": "../dash_trail.png",
+  "frameWidth": 16,
+  "frameHeight": 24,
   "pivot": {
-    "x": 48,
-    "y": 138
+   "x": 8,
+   "y": 23
   },
-  "glowFrames": [],
-  "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
-  "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
-  "paletteSwap": "none",
-  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
-  "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
-  "source": "parts/art/work/fx_v3/build_feel.py",
-  "colors": 10
+  "pixelScale": 2,
+  "note": "대쉬 잔상(무채 G02~G04, 42라운드 결정: 유지 + 시스템 틴트). 대쉬 중 40~50ms 마다 현재 위치에 하나씩, 각 180ms 뒤 소멸. 발도술·허보·잔상 노드일 때만 그 무기 W1 로 틴트(setTintFill). 바닥 깊이."
+ },
+ "pivotNote": "피벗 (48,138) = 주인공 v3 발 중앙(player/v3/player_dash 와 같음).",
+ "previous": {
+  "frames": 3,
+  "frameDurationsMs": [
+   40,
+   60,
+   80
+  ],
+  "totalMs": 180,
+  "source": "parts/art/work/fx_v3/build.py"
+ },
+ "note": "v3 55R: 주인공 v3 대쉬 프레임 2 실루엣 — f0 재 몸(갈색 재 위아래 명암) + 뒤쪽 가장자리 밝은 재 테두리 + 몸의 호박 균열 자리 그대로 A23 → f1 이동 줄 4개 중 1줄 빠짐 + 줄 뒤끝이 뒤로 끌림(재 꼬리) + 재 조각 떨어져 나감 → f2 줄 3개 중 1줄만, 몸이 뒤로 5도트 밀림, 균열 A19 → f3 몸 없이 재 조각·불씨만.",
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "glowFrames": [],
+ "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
+ "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
+ "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
+ "source": "parts/art/work/fx_v3/build_feel.py",
+ "colors": 10,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dash_trail.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":183,"y":194,"w":69,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":51,"w":69,"h":93},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":254,"y":194,"w":69,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":49,"w":69,"h":93},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":197,"w":67,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":50,"w":67,"h":89},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":278,"y":0,"w":40,"h":85},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":21,"w":40,"h":85},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":89,"y":195,"w":69,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":55,"w":69,"h":89},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":149,"y":289,"w":69,"h":87},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":57,"w":69,"h":87},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":0,"y":288,"w":67,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":60,"w":67,"h":84},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":280,"y":87,"w":51,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":61,"w":51,"h":69},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":93,"y":99,"w":88,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":38,"w":88,"h":94},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":186,"y":98,"w":92,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":38,"w":92,"h":94},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":186,"y":0,"w":90,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":35,"w":90,"h":96},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":220,"y":289,"w":69,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":33,"w":69,"h":84},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":0,"y":101,"w":87,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":38,"w":87,"h":94},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":93,"y":0,"w":91,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":35,"w":91,"h":97},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":0,"y":0,"w":91,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":32,"w":91,"h":99},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":69,"y":286,"w":78,"h":87},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":28,"w":78,"h":87},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dash_trail.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 331,
+   "h": 376
+  },
+  "scale": "1"
+ }
 }

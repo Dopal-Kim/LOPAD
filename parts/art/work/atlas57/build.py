@@ -1,7 +1,9 @@
 """57라운드 Q16: 격자 스프라이트시트 → 트림 아틀라스 변환 (Pillow 만 사용).
 
-입력: assets/sprites/{player,weapons,fx}/v3/<이름>.png + .json (격자 시트, 계약 art-assets §1)
-출력: parts/art/work/atlas57/out/sprites/<분류>/v3/ (스테이징 — assets 는 바꾸지 않는다)
+입력: assets/sprites/<분류>/v3/<이름>.png + .json (격자 시트, 계약 art-assets §1)
+출력: 기본은 parts/art/work/atlas57/out/sprites/<분류>/v3/ (스테이징).
+      --in-place 면 assets 를 직접 교체한다(57라운드 Q38): 아직 격자인 시트만 변환 → 전 프레임 픽셀 대조 →
+      통과하면 원 격자 PNG·JSON 을 아틀라스로 덮어쓴다(원 격자는 남기지 않는다. 이미 아틀라스면 건너뜀).
 
 - 프레임마다 알파>0 경계 상자로 잘라(trim) MaxRects(BSSF)로 빽빽하게 다시 담는다.
 - 프레임 이름 = 기존 격자 번호(row * columns + column) 정수 문자열 → 프레임 인덱스 호환.
@@ -12,7 +14,8 @@
 - 빈 프레임은 공용 1×1 투명 칸을 가리킨다. 같은 픽셀 프레임은 같은 frame 좌표를 공유한다.
 - 알파 0 픽셀의 RGB 는 0 으로 정규화(보이지 않는 값).
 
-사용: python3 build.py [--cats player,weapons,fx] [--only 이름부분] [--pad 2] [--max 4096] [--no-dedup]
+사용: python3 build.py [--in-place] [--cats player,weapons,fx,enemies,bosses,structures] [--only 이름부분]
+                      [--pad 2] [--max 4096] [--no-dedup]
 """
 from __future__ import annotations
 
@@ -21,6 +24,7 @@ import hashlib
 import json
 import math
 import os
+import shutil
 import sys
 from glob import glob
 
@@ -32,6 +36,7 @@ SRC = os.path.join(ROOT, "assets", "sprites")
 OUT = os.path.join(HERE, "out", "sprites")
 
 ATLAS_VERSION = "atlas57-1"
+CATS = "player,weapons,fx,enemies,bosses,structures"
 
 
 # ---------------------------------------------------------------- MaxRects
@@ -343,40 +348,101 @@ def convert_sheet(png_path, json_path, out_dir, pad, max_side, dedup):
     }
 
 
+def sheet_state(json_path) -> str:
+    """'grid' = 격자(변환 대상) / 'atlas' = 변환 끝 / 'mixed' = JSON 과 PNG 가 어긋남(옛 스크립트가 아틀라스 JSON 을
+    읽어 격자 PNG 와 함께 다시 쓴 경우 등 — 변환하지 않고 오류로 알린다)."""
+    m = json.load(open(json_path, encoding="utf-8"))
+    if "atlas" not in m and not isinstance(m.get("frames"), dict) and "framesPerDirection" not in m:
+        return "grid"
+    if "atlas" not in m or not isinstance(m.get("frames", m.get("textures")), (dict, list)):
+        return "mixed"
+    pages = [(t["image"], t["size"]) for t in m["textures"]] if "textures" in m else [(m["meta"]["image"], m["meta"]["size"])]
+    d = os.path.dirname(json_path)
+    for img, size in pages:
+        p = os.path.join(d, img)
+        if not os.path.exists(p) or Image.open(p).size != (size["w"], size["h"]):
+            return "mixed"
+    return "atlas"
+
+
+def apply_in_place(res, tmp_dir, dst_dir, png_path, json_path, max_side):
+    """스테이징(tmp_dir) 결과를 전 프레임 대조한 뒤 assets 로 옮긴다. 불일치면 예외(원본 그대로)."""
+    import verify  # 같은 폴더
+    name = res["name"]
+    meta = json.load(open(json_path, encoding="utf-8"))
+    atlas = json.load(open(os.path.join(tmp_dir, name + ".json"), encoding="utf-8"))
+    errs = verify.check_format(meta, atlas, max_side)
+    sheet = Image.open(png_path).convert("RGBA")
+    bad = verify.compare_sheet(sheet, meta, atlas, tmp_dir)
+    if errs or bad:
+        raise RuntimeError(f"{name}: 형식 오류 {errs[:3]} / 픽셀 불일치 {bad}프레임 — assets 는 바꾸지 않았다")
+    pages = [n for n, _, _ in res["pages"]]
+    if name + ".png" not in pages:
+        os.remove(png_path)  # 멀티 아틀라스: <이름>_<i>.png 로 대체
+    for n in pages:
+        shutil.move(os.path.join(tmp_dir, n), os.path.join(dst_dir, n))
+    shutil.move(os.path.join(tmp_dir, name + ".json"), json_path)
+    return res
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cats", default="player,weapons,fx")
+    ap.add_argument("--cats", default=CATS)
     ap.add_argument("--only", default="")
     ap.add_argument("--pad", type=int, default=2)
     ap.add_argument("--max", type=int, default=4096)
     ap.add_argument("--no-dedup", action="store_true")
-    ap.add_argument("--out", default=OUT, help="출력 루트(기본 out/sprites)")
+    ap.add_argument("--out", default=OUT, help="출력 루트(기본 out/sprites, --in-place 면 무시)")
+    ap.add_argument("--in-place", action="store_true", help="assets/sprites 를 직접 교체(전 프레임 대조 통과 시)")
     args = ap.parse_args()
 
-    results = []
+    results, skipped, mixed = [], 0, []
+    tmp_root = os.path.join(HERE, "out", "_inplace_tmp")
     for cat in args.cats.split(","):
         src_dir = os.path.join(SRC, cat, "v3")
-        out_dir = os.path.join(args.out, cat, "v3")
+        out_dir = os.path.join(tmp_root if args.in_place else args.out, cat, "v3")
         for jp in sorted(glob(os.path.join(src_dir, "*.json"))):
             pp = jp[:-5] + ".png"
             if args.only and args.only not in os.path.basename(jp):
+                continue
+            state = sheet_state(jp)
+            if state == "atlas":
+                skipped += 1  # 이미 아틀라스(재변환하지 않는다)
+                continue
+            if state == "mixed":
+                mixed.append(os.path.relpath(jp, ROOT))
                 continue
             if not os.path.exists(pp):
                 print("PNG 없음, 건너뜀:", jp)
                 continue
             res = convert_sheet(pp, jp, out_dir, args.pad, args.max, not args.no_dedup)
             res["cat"] = cat
+            if args.in_place:
+                apply_in_place(res, out_dir, src_dir, pp, jp, args.max)
             results.append(res)
             print(f"{cat}/{res['name']}: {res['srcSize'][0]}x{res['srcSize'][1]} -> "
                   + ", ".join(f"{w}x{h}" for _, w, h in res["pages"])
                   + f"  GPU {res['gpuBefore']/2**20:.1f}->{res['gpuAfter']/2**20:.2f}MB"
                   + (f"  빈{res['empty']}" if res["empty"] else "")
-                  + (f"  중복{res['deduped']}" if res["deduped"] else ""))
+                  + (f"  중복{res['deduped']}" if res["deduped"] else "")
+                  + ("  [assets 교체]" if args.in_place else ""))
+    if args.in_place:
+        shutil.rmtree(tmp_root, ignore_errors=True)
+    if skipped:
+        print(f"이미 아틀라스라 건너뜀: {skipped}개")
+    if mixed:
+        print("오류 — JSON·PNG 형식이 어긋나 변환하지 않음(격자 JSON 을 다시 만들고 재실행):", ", ".join(mixed))
     os.makedirs(os.path.join(HERE, "out"), exist_ok=True)
     rp = os.path.join(HERE, "out", "report.json")
-    if not args.only and os.path.abspath(args.out) == os.path.abspath(OUT):
+    if results and (args.in_place or (not args.only and os.path.abspath(args.out) == os.path.abspath(OUT))):
+        # 변환 기록은 누적한다(분류/이름 기준 덮어쓰기) — 이미 아틀라스가 된 시트의 '전' 수치를 잃지 않게
+        old = json.load(open(rp, encoding="utf-8")) if os.path.exists(rp) else {"sheets": []}
+        keep = {(r["cat"], r["name"]): r for r in old.get("sheets", [])}
+        for r in results:
+            keep[(r["cat"], r["name"])] = r
         with open(rp, "w", encoding="utf-8") as f:
-            json.dump({"version": ATLAS_VERSION, "pad": args.pad, "max": args.max, "sheets": results}, f, ensure_ascii=False, indent=1)
+            json.dump({"version": ATLAS_VERSION, "pad": args.pad, "max": args.max, "sheets": list(keep.values())},
+                      f, ensure_ascii=False, indent=1)
     summarize(results)
 
 
@@ -403,4 +469,4 @@ def summarize(results):
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

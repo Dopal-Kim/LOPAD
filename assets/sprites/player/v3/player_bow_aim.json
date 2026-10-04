@@ -3,7 +3,7 @@
  "action": "bow_aim",
  "frameWidth": 96,
  "frameHeight": 144,
- "frames": 8,
+ "framesPerDirection": 8,
  "directions": [
   "down",
   "up",
@@ -901,5 +901,69 @@
  "weaponTipNote": "안내선(미리보기용 임시 무기 길이) 끝 위치(몸 시트 도트) — 이펙트 위치 참고",
  "oldWeapon": null,
  "weaponOverlayV3": "weapons/v3/bow_aim",
- "weaponOverlayNote": "weapons/v3/bow_aim 를 같은 프레임 번호·같은 시각에 겹친다(53라운드 무기 재디자인, weapons_v3). oldWeapon 은 더 쓰지 않는다."
+ "weaponOverlayNote": "weapons/v3/bow_aim 를 같은 프레임 번호·같은 시각에 겹친다(53라운드 무기 재디자인, weapons_v3). oldWeapon 은 더 쓰지 않는다.",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_bow_aim.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":966,"w":64,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":22,"w":64,"h":118},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":0,"y":1206,"w":63,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":22,"w":63,"h":118},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":1326,"w":63,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":22,"w":63,"h":118},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":0,"y":1086,"w":64,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":22,"w":64,"h":118},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":0,"y":363,"w":65,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":21,"w":65,"h":119},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":0,"y":121,"w":66,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":21,"w":66,"h":119},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":0,"y":242,"w":66,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":21,"w":66,"h":119},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":0,"y":846,"w":65,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":22,"w":65,"h":118},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":0,"y":1686,"w":61,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":22,"w":61,"h":118},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":0,"y":1806,"w":61,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":22,"w":61,"h":118},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":0,"y":1566,"w":62,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":22,"w":62,"h":118},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":0,"y":1446,"w":63,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":22,"w":63,"h":118},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":0,"y":484,"w":64,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":21,"w":64,"h":119},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":0,"y":605,"w":64,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":21,"w":64,"h":119},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":0,"y":0,"w":68,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":21,"w":68,"h":119},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":0,"y":726,"w":66,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":22,"w":66,"h":118},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":0,"y":2622,"w":61,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":25,"w":61,"h":114},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":0,"y":2738,"w":61,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":25,"w":61,"h":114},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":0,"y":2506,"w":62,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":25,"w":62,"h":114},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":0,"y":2274,"w":63,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":25,"w":63,"h":114},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":0,"y":2042,"w":64,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":25,"w":64,"h":114},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":0,"y":3086,"w":66,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":26,"w":66,"h":113},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":0,"y":3431,"w":65,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":26,"w":65,"h":113},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":0,"y":3546,"w":62,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":26,"w":62,"h":113},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":0,"y":2854,"w":61,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":25,"w":61,"h":114},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":0,"y":2970,"w":61,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":25,"w":61,"h":114},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":0,"y":2390,"w":63,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":25,"w":63,"h":114},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":0,"y":2158,"w":64,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":25,"w":64,"h":114},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":0,"y":1926,"w":65,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":25,"w":65,"h":114},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":0,"y":3201,"w":66,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":26,"w":66,"h":113},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":0,"y":3316,"w":66,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":26,"w":66,"h":113},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":0,"y":3661,"w":62,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":26,"w":62,"h":113},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_bow_aim.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 68,
+   "h": 3774
+  },
+  "scale": "1"
+ }
 }

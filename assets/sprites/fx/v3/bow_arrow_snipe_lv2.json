@@ -3,7 +3,7 @@
  "action": "bow_arrow_snipe_lv2",
  "frameWidth": 160,
  "frameHeight": 20,
- "frames": 3,
+ "framesPerDirection": 3,
  "directions": [
   "any"
  ],
@@ -107,5 +107,40 @@
   "note": "lv2 40×5: 뒤 0 → 앞 3px 로 굵어지는 꼬리(W1/W2 몸 + 코어 X1/W3 맥동)",
   "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
   "secondary": "fx.weapons.bow"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_arrow_snipe_lv2.png)",
+  "grid": {
+   "columns": 3,
+   "rows": 1,
+   "frameWidth": 160,
+   "frameHeight": 20,
+   "frameCount": 3
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":281,"y":0,"w":132,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":2,"w":132,"h":12},"sourceSize":{"w":160,"h":20}},
+  "1":{"frame":{"x":147,"y":0,"w":132,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":2,"w":132,"h":13},"sourceSize":{"w":160,"h":20}},
+  "2":{"frame":{"x":0,"y":0,"w":145,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":2,"w":145,"h":13},"sourceSize":{"w":160,"h":20}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_arrow_snipe_lv2.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 413,
+   "h": 13
+  },
+  "scale": "1"
  }
 }

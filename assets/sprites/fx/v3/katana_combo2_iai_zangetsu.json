@@ -3,7 +3,7 @@
  "action": "katana_combo2_iai",
  "frameWidth": 448,
  "frameHeight": 448,
- "frames": 4,
+ "framesPerDirection": 4,
  "directions": [
   "down",
   "up",
@@ -123,5 +123,53 @@
    "note": "거합: 잔광과 같은 W2, 폭 1px 권장(가는 획)"
   },
   "v3Note": "2단 갈래 시트(55라운드) — 구 시트 없음. legacy 는 1단 구 시트(katana_combo2_iai) 기준"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_combo2_iai_zangetsu.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 448,
+   "frameHeight": 448,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":816,"y":264,"w":42,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":105,"y":276,"w":42,"h":54},"sourceSize":{"w":448,"h":448}},
+  "1":{"frame":{"x":0,"y":281,"w":273,"h":147},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":232,"w":273,"h":147},"sourceSize":{"w":448,"h":448}},
+  "2":{"frame":{"x":275,"y":427,"w":254,"h":144},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":109,"y":237,"w":254,"h":144},"sourceSize":{"w":448,"h":448}},
+  "3":{"frame":{"x":0,"y":430,"w":241,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":243,"w":241,"h":135},"sourceSize":{"w":448,"h":448}},
+  "4":{"frame":{"x":816,"y":320,"w":42,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":301,"y":118,"w":42,"h":54},"sourceSize":{"w":448,"h":448}},
+  "5":{"frame":{"x":531,"y":424,"w":273,"h":147},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":69,"w":273,"h":147},"sourceSize":{"w":448,"h":448}},
+  "6":{"frame":{"x":275,"y":275,"w":254,"h":150},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":61,"w":254,"h":150},"sourceSize":{"w":448,"h":448}},
+  "7":{"frame":{"x":573,"y":264,"w":241,"h":158},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":47,"w":241,"h":158},"sourceSize":{"w":448,"h":448}},
+  "8":{"frame":{"x":806,"y":424,"w":54,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":301,"w":54,"h":42},"sourceSize":{"w":448,"h":448}},
+  "9":{"frame":{"x":275,"y":0,"w":147,"h":273},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":83,"w":147,"h":273},"sourceSize":{"w":448,"h":448}},
+  "10":{"frame":{"x":573,"y":0,"w":142,"h":262},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":85,"w":142,"h":262},"sourceSize":{"w":448,"h":448}},
+  "11":{"frame":{"x":137,"y":0,"w":136,"h":278},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":62,"w":136,"h":278},"sourceSize":{"w":448,"h":448}},
+  "12":{"frame":{"x":806,"y":468,"w":54,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":276,"y":301,"w":54,"h":42},"sourceSize":{"w":448,"h":448}},
+  "13":{"frame":{"x":424,"y":0,"w":147,"h":273},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":232,"y":83,"w":147,"h":273},"sourceSize":{"w":448,"h":448}},
+  "14":{"frame":{"x":717,"y":0,"w":142,"h":262},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":237,"y":85,"w":142,"h":262},"sourceSize":{"w":448,"h":448}},
+  "15":{"frame":{"x":0,"y":0,"w":135,"h":279},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":243,"y":62,"w":135,"h":279},"sourceSize":{"w":448,"h":448}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_combo2_iai_zangetsu.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 860,
+   "h": 571
+  },
+  "scale": "1"
  }
 }

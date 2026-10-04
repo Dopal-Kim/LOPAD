@@ -11177,6 +11177,831 @@
    "jsonBefore": 2997,
    "jsonAfter": 6456,
    "cat": "fx"
+  },
+  {
+   "name": "boss1_barrel_break",
+   "src": "assets/sprites/structures/v3/boss1_barrel_break.png",
+   "srcSize": [
+    1400,
+    160
+   ],
+   "frames": 7,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "boss1_barrel_break.png",
+     347,
+     310
+    ]
+   ],
+   "gpuBefore": 896000,
+   "gpuAfter": 430280,
+   "fileBefore": 10277,
+   "fileAfter": 5404,
+   "jsonBefore": 1177,
+   "jsonAfter": 3169,
+   "cat": "structures"
+  },
+  {
+   "name": "boss1_candelabra",
+   "src": "assets/sprites/structures/v3/boss1_candelabra.png",
+   "srcSize": [
+    2560,
+    224
+   ],
+   "frames": 10,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "boss1_candelabra.png",
+     367,
+     415
+    ]
+   ],
+   "gpuBefore": 2293760,
+   "gpuAfter": 609220,
+   "fileBefore": 15170,
+   "fileAfter": 6510,
+   "jsonBefore": 2458,
+   "jsonAfter": 4926,
+   "cat": "structures"
+  },
+  {
+   "name": "boss1_pillar",
+   "src": "assets/sprites/structures/v3/boss1_pillar.png",
+   "srcSize": [
+    480,
+    448
+   ],
+   "frames": 3,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "boss1_pillar.png",
+     153,
+     1303
+    ]
+   ],
+   "gpuBefore": 860160,
+   "gpuAfter": 797436,
+   "fileBefore": 11724,
+   "fileAfter": 7808,
+   "jsonBefore": 1204,
+   "jsonAfter": 2534,
+   "cat": "structures"
+  },
+  {
+   "name": "boss1_rolling_barrel",
+   "src": "assets/sprites/structures/v3/boss1_rolling_barrel.png",
+   "srcSize": [
+    1280,
+    560
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "boss1_rolling_barrel.png",
+     111,
+     3230
+    ]
+   ],
+   "gpuBefore": 2867200,
+   "gpuAfter": 1434120,
+   "fileBefore": 25972,
+   "fileAfter": 10061,
+   "jsonBefore": 1712,
+   "jsonAfter": 7774,
+   "cat": "structures"
+  },
+  {
+   "name": "archer_attack",
+   "src": "assets/sprites/enemies/v3/archer_attack.png",
+   "srcSize": [
+    672,
+    576
+   ],
+   "frames": 28,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "archer_attack.png",
+     204,
+     1014
+    ]
+   ],
+   "gpuBefore": 1548288,
+   "gpuAfter": 827424,
+   "fileBefore": 54998,
+   "fileAfter": 25429,
+   "jsonBefore": 2791,
+   "jsonAfter": 8128,
+   "cat": "enemies"
+  },
+  {
+   "name": "archer_death",
+   "src": "assets/sprites/enemies/v3/archer_death.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "archer_death.png",
+     73,
+     3882
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1133544,
+   "fileBefore": 83793,
+   "fileAfter": 33750,
+   "jsonBefore": 1574,
+   "jsonAfter": 8794,
+   "cat": "enemies"
+  },
+  {
+   "name": "archer_hurt",
+   "src": "assets/sprites/enemies/v3/archer_hurt.png",
+   "srcSize": [
+    288,
+    576
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "archer_hurt.png",
+     540,
+     127
+    ]
+   ],
+   "gpuBefore": 663552,
+   "gpuAfter": 274320,
+   "fileBefore": 23878,
+   "fileAfter": 9954,
+   "jsonBefore": 1422,
+   "jsonAfter": 4174,
+   "cat": "enemies"
+  },
+  {
+   "name": "archer_idle",
+   "src": "assets/sprites/enemies/v3/archer_idle.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "archer_idle.png",
+     40,
+     3005
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 480800,
+   "fileBefore": 37155,
+   "fileAfter": 16107,
+   "jsonBefore": 1521,
+   "jsonAfter": 6211,
+   "cat": "enemies"
+  },
+  {
+   "name": "archer_walk",
+   "src": "assets/sprites/enemies/v3/archer_walk.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "archer_walk.png",
+     400,
+     496
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 793600,
+   "fileBefore": 50573,
+   "fileAfter": 26512,
+   "jsonBefore": 1585,
+   "jsonAfter": 7574,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_attack",
+   "src": "assets/sprites/enemies/v3/charger_attack.png",
+   "srcSize": [
+    1024,
+    704
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "charger_attack.png",
+     334,
+     1048
+    ]
+   ],
+   "gpuBefore": 2883584,
+   "gpuAfter": 1400128,
+   "fileBefore": 88175,
+   "fileAfter": 42564,
+   "jsonBefore": 3004,
+   "jsonAfter": 9024,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_death",
+   "src": "assets/sprites/enemies/v3/charger_death.png",
+   "srcSize": [
+    1280,
+    704
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "charger_death.png",
+     100,
+     4009
+    ]
+   ],
+   "gpuBefore": 3604480,
+   "gpuAfter": 1603600,
+   "fileBefore": 110890,
+   "fileAfter": 45133,
+   "jsonBefore": 1614,
+   "jsonAfter": 8947,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_hurt",
+   "src": "assets/sprites/enemies/v3/charger_hurt.png",
+   "srcSize": [
+    384,
+    704
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "charger_hurt.png",
+     135,
+     810
+    ]
+   ],
+   "gpuBefore": 1081344,
+   "gpuAfter": 437400,
+   "fileBefore": 32439,
+   "fileAfter": 14466,
+   "jsonBefore": 1461,
+   "jsonAfter": 4234,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_idle",
+   "src": "assets/sprites/enemies/v3/charger_idle.png",
+   "srcSize": [
+    768,
+    704
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "charger_idle.png",
+     218,
+     1042
+    ]
+   ],
+   "gpuBefore": 2162688,
+   "gpuAfter": 908624,
+   "fileBefore": 46568,
+   "fileAfter": 22254,
+   "jsonBefore": 1560,
+   "jsonAfter": 6282,
+   "cat": "enemies"
+  },
+  {
+   "name": "charger_walk",
+   "src": "assets/sprites/enemies/v3/charger_walk.png",
+   "srcSize": [
+    1024,
+    704
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "charger_walk.png",
+     262,
+     1183
+    ]
+   ],
+   "gpuBefore": 2883584,
+   "gpuAfter": 1239784,
+   "fileBefore": 68934,
+   "fileAfter": 38034,
+   "jsonBefore": 1624,
+   "jsonAfter": 7651,
+   "cat": "enemies"
+  },
+  {
+   "name": "dummy_attack",
+   "src": "assets/sprites/enemies/v3/dummy_attack.png",
+   "srcSize": [
+    672,
+    576
+   ],
+   "frames": 28,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "dummy_attack.png",
+     309,
+     718
+    ]
+   ],
+   "gpuBefore": 1548288,
+   "gpuAfter": 887448,
+   "fileBefore": 67441,
+   "fileAfter": 30574,
+   "jsonBefore": 1761,
+   "jsonAfter": 7103,
+   "cat": "enemies"
+  },
+  {
+   "name": "dummy_death",
+   "src": "assets/sprites/enemies/v3/dummy_death.png",
+   "srcSize": [
+    960,
+    576
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "dummy_death.png",
+     78,
+     3971
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1238952,
+   "fileBefore": 98008,
+   "fileAfter": 38873,
+   "jsonBefore": 1593,
+   "jsonAfter": 8797,
+   "cat": "enemies"
+  },
+  {
+   "name": "dummy_hurt",
+   "src": "assets/sprites/enemies/v3/dummy_hurt.png",
+   "srcSize": [
+    288,
+    576
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "dummy_hurt.png",
+     644,
+     124
+    ]
+   ],
+   "gpuBefore": 663552,
+   "gpuAfter": 319424,
+   "fileBefore": 28730,
+   "fileAfter": 11914,
+   "jsonBefore": 1441,
+   "jsonAfter": 4192,
+   "cat": "enemies"
+  },
+  {
+   "name": "dummy_idle",
+   "src": "assets/sprites/enemies/v3/dummy_idle.png",
+   "srcSize": [
+    576,
+    576
+   ],
+   "frames": 24,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "dummy_idle.png",
+     179,
+     852
+    ]
+   ],
+   "gpuBefore": 1327104,
+   "gpuAfter": 610032,
+   "fileBefore": 49879,
+   "fileAfter": 22736,
+   "jsonBefore": 1540,
+   "jsonAfter": 6230,
+   "cat": "enemies"
+  },
+  {
+   "name": "dummy_walk",
+   "src": "assets/sprites/enemies/v3/dummy_walk.png",
+   "srcSize": [
+    768,
+    576
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "dummy_walk.png",
+     224,
+     955
+    ]
+   ],
+   "gpuBefore": 1769472,
+   "gpuAfter": 855680,
+   "fileBefore": 63400,
+   "fileAfter": 31492,
+   "jsonBefore": 1604,
+   "jsonAfter": 7589,
+   "cat": "enemies"
+  },
+  {
+   "name": "stage1_attack",
+   "src": "assets/sprites/bosses/v3/stage1_attack.png",
+   "srcSize": [
+    2496,
+    960
+   ],
+   "frames": 52,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_attack.png",
+     682,
+     2193
+    ]
+   ],
+   "gpuBefore": 9584640,
+   "gpuAfter": 5982504,
+   "fileBefore": 322726,
+   "fileAfter": 146645,
+   "jsonBefore": 3919,
+   "jsonAfter": 13319,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_death",
+   "src": "assets/sprites/bosses/v3/stage1_death.png",
+   "srcSize": [
+    2688,
+    960
+   ],
+   "frames": 56,
+   "empty": 0,
+   "deduped": 18,
+   "pages": [
+    [
+     "stage1_death.png",
+     450,
+     2097
+    ]
+   ],
+   "gpuBefore": 10321920,
+   "gpuAfter": 3774600,
+   "fileBefore": 331467,
+   "fileAfter": 102309,
+   "jsonBefore": 1961,
+   "jsonAfter": 12028,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_drink",
+   "src": "assets/sprites/bosses/v3/stage1_drink.png",
+   "srcSize": [
+    2880,
+    960
+   ],
+   "frames": 60,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "stage1_drink.png",
+     911,
+     1660
+    ]
+   ],
+   "gpuBefore": 11059200,
+   "gpuAfter": 6049040,
+   "fileBefore": 294884,
+   "fileAfter": 143441,
+   "jsonBefore": 8904,
+   "jsonAfter": 19595,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_drink_break",
+   "src": "assets/sprites/bosses/v3/stage1_drink_break.png",
+   "srcSize": [
+    2880,
+    960
+   ],
+   "frames": 60,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_drink_break.png",
+     1948,
+     832
+    ]
+   ],
+   "gpuBefore": 11059200,
+   "gpuAfter": 6482944,
+   "fileBefore": 337122,
+   "fileAfter": 157208,
+   "jsonBefore": 3954,
+   "jsonAfter": 14667,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_fall",
+   "src": "assets/sprites/bosses/v3/stage1_fall.png",
+   "srcSize": [
+    3264,
+    960
+   ],
+   "frames": 68,
+   "empty": 0,
+   "deduped": 30,
+   "pages": [
+    [
+     "stage1_fall.png",
+     468,
+     2177
+    ]
+   ],
+   "gpuBefore": 12533760,
+   "gpuAfter": 4075344,
+   "fileBefore": 471985,
+   "fileAfter": 106332,
+   "jsonBefore": 2180,
+   "jsonAfter": 14210,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_hurt",
+   "src": "assets/sprites/bosses/v3/stage1_hurt.png",
+   "srcSize": [
+    576,
+    960
+   ],
+   "frames": 12,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_hurt.png",
+     235,
+     1273
+    ]
+   ],
+   "gpuBefore": 2211840,
+   "gpuAfter": 1196620,
+   "fileBefore": 67648,
+   "fileAfter": 29002,
+   "jsonBefore": 1619,
+   "jsonAfter": 4411,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_idle",
+   "src": "assets/sprites/bosses/v3/stage1_idle.png",
+   "srcSize": [
+    1536,
+    960
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_idle.png",
+     506,
+     1664
+    ]
+   ],
+   "gpuBefore": 5898240,
+   "gpuAfter": 3367936,
+   "fileBefore": 160021,
+   "fileAfter": 83676,
+   "jsonBefore": 1693,
+   "jsonAfter": 7768,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_kick",
+   "src": "assets/sprites/bosses/v3/stage1_kick.png",
+   "srcSize": [
+    1920,
+    960
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_kick.png",
+     603,
+     1877
+    ]
+   ],
+   "gpuBefore": 7372800,
+   "gpuAfter": 4527324,
+   "fileBefore": 216906,
+   "fileAfter": 105652,
+   "jsonBefore": 3461,
+   "jsonAfter": 10860,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_phase_drink",
+   "src": "assets/sprites/bosses/v3/stage1_phase_drink.png",
+   "srcSize": [
+    3072,
+    960
+   ],
+   "frames": 64,
+   "empty": 0,
+   "deduped": 2,
+   "pages": [
+    [
+     "stage1_phase_drink.png",
+     854,
+     2073
+    ]
+   ],
+   "gpuBefore": 11796480,
+   "gpuAfter": 7081368,
+   "fileBefore": 338689,
+   "fileAfter": 158330,
+   "jsonBefore": 9291,
+   "jsonAfter": 20636,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_slam",
+   "src": "assets/sprites/bosses/v3/stage1_slam.png",
+   "srcSize": [
+    2304,
+    960
+   ],
+   "frames": 48,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_slam.png",
+     1360,
+     979
+    ]
+   ],
+   "gpuBefore": 8847360,
+   "gpuAfter": 5325760,
+   "fileBefore": 309516,
+   "fileAfter": 127656,
+   "jsonBefore": 3784,
+   "jsonAfter": 12491,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_stagger_dash",
+   "src": "assets/sprites/bosses/v3/stage1_stagger_dash.png",
+   "srcSize": [
+    2688,
+    960
+   ],
+   "frames": 56,
+   "empty": 0,
+   "deduped": 4,
+   "pages": [
+    [
+     "stage1_stagger_dash.png",
+     566,
+     2608
+    ]
+   ],
+   "gpuBefore": 10321920,
+   "gpuAfter": 5904512,
+   "fileBefore": 331153,
+   "fileAfter": 153520,
+   "jsonBefore": 4111,
+   "jsonAfter": 14175,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_throw",
+   "src": "assets/sprites/bosses/v3/stage1_throw.png",
+   "srcSize": [
+    1920,
+    960
+   ],
+   "frames": 40,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_throw.png",
+     587,
+     1845
+    ]
+   ],
+   "gpuBefore": 7372800,
+   "gpuAfter": 4332060,
+   "fileBefore": 244633,
+   "fileAfter": 112282,
+   "jsonBefore": 4894,
+   "jsonAfter": 12294,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_throw_torch",
+   "src": "assets/sprites/bosses/v3/stage1_throw_torch.png",
+   "srcSize": [
+    2112,
+    960
+   ],
+   "frames": 44,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_throw_torch.png",
+     729,
+     1673
+    ]
+   ],
+   "gpuBefore": 8110080,
+   "gpuAfter": 4878468,
+   "fileBefore": 258680,
+   "fileAfter": 124563,
+   "jsonBefore": 4628,
+   "jsonAfter": 12695,
+   "cat": "bosses"
+  },
+  {
+   "name": "stage1_walk",
+   "src": "assets/sprites/bosses/v3/stage1_walk.png",
+   "srcSize": [
+    1536,
+    960
+   ],
+   "frames": 32,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_walk.png",
+     685,
+     1240
+    ]
+   ],
+   "gpuBefore": 5898240,
+   "gpuAfter": 3397600,
+   "fileBefore": 175540,
+   "fileAfter": 86872,
+   "jsonBefore": 1737,
+   "jsonAfter": 7798,
+   "cat": "bosses"
   }
  ]
 }

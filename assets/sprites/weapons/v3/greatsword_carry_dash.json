@@ -3,7 +3,7 @@
  "action": "carry_dash",
  "frameWidth": 240,
  "frameHeight": 272,
- "frames": 5,
+ "framesPerDirection": 5,
  "directions": [
   "down",
   "up",
@@ -427,5 +427,57 @@
    ]
   ]
  },
- "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고"
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_carry_dash.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 240,
+   "frameHeight": 272,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":134,"y":197,"w":65,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":102,"w":65,"h":92},"sourceSize":{"w":240,"h":272}},
+  "1":{"frame":{"x":134,"y":102,"w":65,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":109,"w":65,"h":93},"sourceSize":{"w":240,"h":272}},
+  "2":{"frame":{"x":0,"y":204,"w":65,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":114,"w":65,"h":92},"sourceSize":{"w":240,"h":272}},
+  "3":{"frame":{"x":67,"y":204,"w":65,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":114,"w":65,"h":92},"sourceSize":{"w":240,"h":272}},
+  "4":{"frame":{"x":134,"y":291,"w":65,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":105,"w":65,"h":92},"sourceSize":{"w":240,"h":272}},
+  "5":{"frame":{"x":0,"y":0,"w":65,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":78,"y":105,"w":65,"h":100},"sourceSize":{"w":240,"h":272}},
+  "6":{"frame":{"x":67,"y":0,"w":65,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":78,"y":113,"w":65,"h":100},"sourceSize":{"w":240,"h":272}},
+  "7":{"frame":{"x":134,"y":0,"w":65,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":117,"w":65,"h":100},"sourceSize":{"w":240,"h":272}},
+  "8":{"frame":{"x":0,"y":102,"w":65,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":117,"w":65,"h":100},"sourceSize":{"w":240,"h":272}},
+  "9":{"frame":{"x":67,"y":102,"w":65,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":78,"y":108,"w":65,"h":100},"sourceSize":{"w":240,"h":272}},
+  "10":{"frame":{"x":0,"y":298,"w":32,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":94,"w":32,"h":114},"sourceSize":{"w":240,"h":272}},
+  "11":{"frame":{"x":201,"y":202,"w":53,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":90,"y":98,"w":53,"h":104},"sourceSize":{"w":240,"h":272}},
+  "12":{"frame":{"x":201,"y":102,"w":61,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":82,"y":100,"w":61,"h":98},"sourceSize":{"w":240,"h":272}},
+  "13":{"frame":{"x":201,"y":0,"w":60,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":99,"w":60,"h":100},"sourceSize":{"w":240,"h":272}},
+  "14":{"frame":{"x":201,"y":308,"w":35,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":95,"w":35,"h":113},"sourceSize":{"w":240,"h":272}},
+  "15":{"frame":{"x":97,"y":298,"w":33,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":109,"w":33,"h":70},"sourceSize":{"w":240,"h":272}},
+  "16":{"frame":{"x":95,"y":385,"w":53,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":112,"w":53,"h":61},"sourceSize":{"w":240,"h":272}},
+  "17":{"frame":{"x":34,"y":298,"w":61,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":114,"w":61,"h":55},"sourceSize":{"w":240,"h":272}},
+  "18":{"frame":{"x":34,"y":355,"w":59,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":114,"w":59,"h":56},"sourceSize":{"w":240,"h":272}},
+  "19":{"frame":{"x":150,"y":385,"w":36,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":109,"w":36,"h":70},"sourceSize":{"w":240,"h":272}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "greatsword_carry_dash.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 262,
+   "h": 455
+  },
+  "scale": "1"
+ }
 }

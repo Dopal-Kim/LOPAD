@@ -3,7 +3,7 @@
  "action": "death",
  "frameWidth": 96,
  "frameHeight": 144,
- "frames": 10,
+ "framesPerDirection": 10,
  "directions": [
   "down",
   "up",
@@ -78,5 +78,77 @@
    ]
   ],
   "note": "구 프레임 k 의 시작 ms = 새 프레임 framesMap[k][0] 의 시작 ms (assert). 전체 길이 같음"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 archer_death.png)",
+  "grid": {
+   "columns": 10,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 40
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":44,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":18,"w":44,"h":126},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":0,"y":128,"w":57,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":22,"w":57,"h":122},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":1098,"w":57,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":29,"w":57,"h":115},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":0,"y":1770,"w":57,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":43,"w":57,"h":101},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":0,"y":3103,"w":57,"h":85},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":59,"w":57,"h":85},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":0,"y":2456,"w":71,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":49,"w":71,"h":93},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":0,"y":1873,"w":71,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":44,"w":71,"h":98},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":0,"y":2361,"w":72,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":49,"w":72,"h":93},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":0,"y":3617,"w":72,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":75,"w":72,"h":67},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":0,"y":3686,"w":72,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":81,"w":72,"h":61},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":0,"y":861,"w":44,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":25,"w":44,"h":117},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":0,"y":980,"w":58,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":26,"w":58,"h":116},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":0,"y":1215,"w":57,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":28,"w":57,"h":114},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":0,"y":1447,"w":57,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":35,"w":57,"h":107},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":0,"y":1973,"w":57,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":44,"w":57,"h":98},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":0,"y":2169,"w":71,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":48,"w":71,"h":94},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":0,"y":3190,"w":71,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":58,"w":71,"h":84},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":0,"y":3276,"w":71,"h":81},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":62,"w":71,"h":81},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":0,"y":3359,"w":73,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":76,"w":73,"h":67},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":0,"y":3494,"w":73,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":83,"w":73,"h":60},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":0,"y":252,"w":49,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":21,"w":49,"h":122},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":0,"y":621,"w":57,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":24,"w":57,"h":119},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":0,"y":1331,"w":57,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":29,"w":57,"h":114},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":0,"y":1664,"w":57,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":39,"w":57,"h":104},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":0,"y":2740,"w":59,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":51,"w":59,"h":92},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":0,"y":2551,"w":68,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":49,"w":68,"h":93},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":0,"y":2646,"w":68,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":50,"w":68,"h":92},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":0,"y":2926,"w":68,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":54,"w":68,"h":88},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":0,"y":3749,"w":68,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":75,"w":68,"h":67},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":0,"y":3818,"w":68,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":78,"w":68,"h":64},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":0,"y":376,"w":49,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":23,"w":49,"h":121},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":0,"y":499,"w":57,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":24,"w":57,"h":120},"sourceSize":{"w":96,"h":144}},
+  "32":{"frame":{"x":0,"y":742,"w":57,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":27,"w":57,"h":117},"sourceSize":{"w":96,"h":144}},
+  "33":{"frame":{"x":0,"y":1556,"w":61,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":38,"w":61,"h":106},"sourceSize":{"w":96,"h":144}},
+  "34":{"frame":{"x":0,"y":2265,"w":69,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":50,"w":69,"h":94},"sourceSize":{"w":96,"h":144}},
+  "35":{"frame":{"x":0,"y":2073,"w":73,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":48,"w":73,"h":94},"sourceSize":{"w":96,"h":144}},
+  "36":{"frame":{"x":0,"y":2834,"w":73,"h":90},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":52,"w":73,"h":90},"sourceSize":{"w":96,"h":144}},
+  "37":{"frame":{"x":0,"y":3016,"w":73,"h":85},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":57,"w":73,"h":85},"sourceSize":{"w":96,"h":144}},
+  "38":{"frame":{"x":0,"y":3428,"w":73,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":78,"w":73,"h":64},"sourceSize":{"w":96,"h":144}},
+  "39":{"frame":{"x":0,"y":3556,"w":73,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":83,"w":73,"h":59},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "archer_death.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 73,
+   "h": 3882
+  },
+  "scale": "1"
  }
 }

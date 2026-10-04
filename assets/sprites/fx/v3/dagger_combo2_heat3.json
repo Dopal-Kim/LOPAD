@@ -3,7 +3,7 @@
  "action": "dagger_combo2_heat3",
  "frameWidth": 320,
  "frameHeight": 320,
- "frames": 4,
+ "framesPerDirection": 4,
  "directions": [
   "down",
   "up",
@@ -97,5 +97,53 @@
   "visualLengthPx": 30,
   "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
   "secondary": "fx.weapons.dagger"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo2_heat3.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 320,
+   "frameHeight": 320,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":134,"y":0,"w":9,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":175,"w":9,"h":40},"sourceSize":{"w":320,"h":320}},
+  "1":{"frame":{"x":0,"y":0,"w":43,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":175,"w":43,"h":126},"sourceSize":{"w":320,"h":320}},
+  "2":{"frame":{"x":90,"y":0,"w":42,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":167,"w":42,"h":114},"sourceSize":{"w":320,"h":320}},
+  "3":{"frame":{"x":0,"y":128,"w":42,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":203,"w":42,"h":69},"sourceSize":{"w":320,"h":320}},
+  "4":{"frame":{"x":134,"y":42,"w":9,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":162,"y":105,"w":9,"h":40},"sourceSize":{"w":320,"h":320}},
+  "5":{"frame":{"x":45,"y":0,"w":43,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":156,"y":19,"w":43,"h":126},"sourceSize":{"w":320,"h":320}},
+  "6":{"frame":{"x":90,"y":116,"w":42,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":157,"y":39,"w":42,"h":114},"sourceSize":{"w":320,"h":320}},
+  "7":{"frame":{"x":44,"y":128,"w":42,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":156,"y":58,"w":42,"h":65},"sourceSize":{"w":320,"h":320}},
+  "8":{"frame":{"x":0,"y":252,"w":40,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":105,"y":162,"w":40,"h":9},"sourceSize":{"w":320,"h":320}},
+  "9":{"frame":{"x":0,"y":285,"w":126,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":156,"w":126,"h":43},"sourceSize":{"w":320,"h":320}},
+  "10":{"frame":{"x":0,"y":375,"w":114,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":157,"w":114,"h":42},"sourceSize":{"w":320,"h":320}},
+  "11":{"frame":{"x":0,"y":199,"w":59,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":156,"w":59,"h":51},"sourceSize":{"w":320,"h":320}},
+  "12":{"frame":{"x":0,"y":263,"w":40,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":175,"y":162,"w":40,"h":9},"sourceSize":{"w":320,"h":320}},
+  "13":{"frame":{"x":0,"y":330,"w":126,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":175,"y":156,"w":126,"h":43},"sourceSize":{"w":320,"h":320}},
+  "14":{"frame":{"x":0,"y":419,"w":114,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":167,"y":157,"w":114,"h":42},"sourceSize":{"w":320,"h":320}},
+  "15":{"frame":{"x":61,"y":232,"w":59,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":203,"y":156,"w":59,"h":51},"sourceSize":{"w":320,"h":320}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_combo2_heat3.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 143,
+   "h": 461
+  },
+  "scale": "1"
  }
 }

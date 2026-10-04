@@ -4,7 +4,7 @@
  "version": "v3-r56-e1",
  "frameWidth": 48,
  "frameHeight": 56,
- "frames": 5,
+ "framesPerDirection": 5,
  "directions": [
   "any"
  ],
@@ -51,5 +51,42 @@
  "design": "칼집 입구에서 가는 가로 빛 한 줄 + 작은 네 갈래 반짝임 — '준비됨'(백열 없음, A25 이하)",
  "directionNote": "1행 any — 방향 무관",
  "glowFrames": [],
- "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+ "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_iai_ready.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 1,
+   "frameWidth": 48,
+   "frameHeight": 56,
+   "frameCount": 5
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":108,"y":0,"w":12,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":5,"w":12,"h":6},"sourceSize":{"w":48,"h":56}},
+  "1":{"frame":{"x":78,"y":0,"w":28,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":3,"w":28,"h":10},"sourceSize":{"w":48,"h":56}},
+  "2":{"frame":{"x":40,"y":0,"w":36,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":4,"w":36,"h":10},"sourceSize":{"w":48,"h":56}},
+  "3":{"frame":{"x":0,"y":0,"w":24,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":5,"w":24,"h":12},"sourceSize":{"w":48,"h":56}},
+  "4":{"frame":{"x":26,"y":0,"w":12,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":6,"w":12,"h":12},"sourceSize":{"w":48,"h":56}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_iai_ready.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 120,
+   "h": 12
+  },
+  "scale": "1"
+ }
 }

@@ -1,6 +1,8 @@
 """57라운드 Q17: 외벽 그림(assets/tiles/border/**) PNG → WebP 손실 압축 + 4096px 초과 분할.
 
-출력(스테이징): parts/art/work/atlas57/border_webp/<region>/  — assets 는 바꾸지 않는다.
+출력: 기본은 스테이징 parts/art/work/atlas57/border_webp/<region>/ (assets 그대로).
+      --in-place 면 assets/tiles/border/<region>/ 에 직접 WebP·border.json 을 쓰고 원 PNG 를 지운다(57라운드 Q38).
+      border.json 에 imageFormat 이 이미 있는 지역(변환 끝)은 건너뛴다.
 - albedo: WebP 손실(--q, 기본 90, method 6), 알파는 무손실(alpha_quality 100) — 알파 오차 0.
 - emissive(*_emissive.png): --emissive lossy|lossless (기본 lossless — 차이 0.3MB 로 가산 발광을 정확히 유지). 알파 = 세기라 알파는 항상 무손실.
 - 가로나 세로가 --max(4096) 를 넘으면 긴 축으로 짝수 px 경계에서 n 등분 → <이름>_<i>.webp (+ <이름>_<i>_emissive.webp).
@@ -10,7 +12,7 @@
 - border.json 최상위에 imageFormat 블록을 더한다.
 - 비교 미리보기: border_webp/preview/compare_<region>.png (원본 | WebP | 차이×8, 4배 확대 크롭)
 
-사용: python3 border_webp.py [--q 90] [--emissive lossy] [--max 4096] [--no-preview]
+사용: python3 border_webp.py [--in-place] [--only 지역] [--q 90] [--emissive lossy] [--max 4096] [--no-preview]
 """
 from __future__ import annotations
 
@@ -71,7 +73,7 @@ def metrics(a: Image.Image, b: Image.Image):
     return round(psnr, 2), p999, aerr
 
 
-def convert_region(region_dir, out_dir, q, emissive_mode, max_side):
+def convert_region(region_dir, out_dir, q, emissive_mode, max_side, in_place=False):
     os.makedirs(out_dir, exist_ok=True)
     region = os.path.basename(region_dir)
     files = {}
@@ -148,6 +150,8 @@ def convert_region(region_dir, out_dir, q, emissive_mode, max_side):
 
     walk(out.get("bands", {}))
     walk(out.get("doors", {}))
+    if isinstance(out.get("lighting"), str):
+        out["lighting"] = out["lighting"].replace("_emissive.png", "_emissive.webp")
     out["imageFormat"] = {
         "round": 57,
         "format": "webp",
@@ -155,7 +159,8 @@ def convert_region(region_dir, out_dir, q, emissive_mode, max_side):
         "emissive": "lossless" if emissive_mode == "lossless" else f"lossy q{q}, alpha lossless",
         "maxTextureSide": max_side,
         "pieces": "가로·세로 4096px 초과 그림은 bands.*.pieces[] 로 분할(그 띠는 image/emissive 키 없음)",
-        "source": "parts/art/work/atlas57/border_webp.py (원본 PNG 는 assets/tiles/border 에 그대로)",
+        "source": ("parts/art/work/atlas57/border_webp.py --in-place (원 PNG 는 지움 — 원본은 git 기록, 57라운드 Q38)"
+                   if in_place else "parts/art/work/atlas57/border_webp.py (원본 PNG 는 assets/tiles/border 에 그대로)"),
     }
     with open(os.path.join(out_dir, "border.json"), "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
@@ -215,6 +220,8 @@ def compare_preview(region_dir, out_dir, files, q, prev_dir):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--in-place", action="store_true", help="assets/tiles/border 를 직접 교체(원 PNG 삭제)")
+    ap.add_argument("--only", default="", help="지역 이름 하나만")
     ap.add_argument("--q", type=int, default=90)
     ap.add_argument("--emissive", choices=["lossy", "lossless"], default="lossless")
     ap.add_argument("--max", type=int, default=4096)
@@ -225,14 +232,33 @@ def main():
     for rd in sorted(glob(os.path.join(SRC, "*"))):
         if not os.path.isdir(rd):
             continue
-        od = os.path.join(OUT, os.path.basename(rd))
-        files, stats = convert_region(rd, od, args.q, args.emissive, args.max)
+        region = os.path.basename(rd)
+        if args.only and region != args.only:
+            continue
+        meta = json.load(open(os.path.join(rd, "border.json"), encoding="utf-8"))
+        if "imageFormat" in meta:
+            print(region, "이미 WebP — 건너뜀")
+            continue
+        od = rd if args.in_place else os.path.join(OUT, region)
+        files, stats = convert_region(rd, od, args.q, args.emissive, args.max, args.in_place)
         all_stats += stats
         if not args.no_preview:
             compare_preview(rd, od, files, args.q, os.path.join(OUT, "preview"))
-        print(os.path.basename(rd), "완료")
-    with open(os.path.join(OUT, "report.json"), "w", encoding="utf-8") as f:
-        json.dump({"q": args.q, "emissive": args.emissive, "max": args.max, "files": all_stats}, f, ensure_ascii=False, indent=1)
+        if args.in_place:
+            for name in files:
+                os.remove(os.path.join(rd, name + ".png"))
+        print(region, "완료" + (" (assets 교체, PNG 삭제)" if args.in_place else ""))
+    if not all_stats:
+        return
+    # 기록은 누적(지역/파일 기준 덮어쓰기) — 이미 교체된 지역의 PNG 수치를 잃지 않게
+    rp = os.path.join(OUT, "report.json")
+    old = json.load(open(rp, encoding="utf-8")) if os.path.exists(rp) else {"files": []}
+    keep = {(s["region"], s["file"]): s for s in old.get("files", [])}
+    for s in all_stats:
+        keep[(s["region"], s["file"])] = s
+    with open(rp, "w", encoding="utf-8") as f:
+        json.dump({"q": args.q, "emissive": args.emissive, "max": args.max, "files": list(keep.values())},
+                  f, ensure_ascii=False, indent=1)
 
     print("\n| 지역 | PNG(MB) | WebP(MB) | 비율 | PSNR 최저(dB) | 99.9% 오차 최대 | 알파 오차 |")
     print("|---|---|---|---|---|---|---|")

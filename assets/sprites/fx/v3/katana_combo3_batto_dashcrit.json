@@ -3,7 +3,7 @@
  "action": "katana_combo3_batto",
  "frameWidth": 448,
  "frameHeight": 448,
- "frames": 6,
+ "framesPerDirection": 6,
  "directions": [
   "down",
   "up",
@@ -122,5 +122,61 @@
   "secondary": "fx.weapons.katana",
   "trail": null,
   "v3Note": "2단 갈래 시트(55라운드) — 구 시트 없음. legacy 는 1단 구 시트(katana_combo3_batto) 기준"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_combo3_batto_dashcrit.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 448,
+   "frameHeight": 448,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":887,"y":645,"w":32,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":196,"y":210,"w":32,"h":51},"sourceSize":{"w":448,"h":448}},
+  "1":{"frame":{"x":367,"y":313,"w":275,"h":172},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":205,"w":275,"h":172},"sourceSize":{"w":448,"h":448}},
+  "2":{"frame":{"x":0,"y":684,"w":278,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":242,"w":278,"h":139},"sourceSize":{"w":448,"h":448}},
+  "3":{"frame":{"x":0,"y":518,"w":280,"h":164},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":81,"y":236,"w":280,"h":164},"sourceSize":{"w":448,"h":448}},
+  "4":{"frame":{"x":282,"y":658,"w":306,"h":142},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":257,"w":306,"h":142},"sourceSize":{"w":448,"h":448}},
+  "5":{"frame":{"x":0,"y":335,"w":323,"h":181},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":244,"w":323,"h":181},"sourceSize":{"w":448,"h":448}},
+  "6":{"frame":{"x":887,"y":698,"w":32,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":220,"y":187,"w":32,"h":51},"sourceSize":{"w":448,"h":448}},
+  "7":{"frame":{"x":644,"y":471,"w":275,"h":172},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":71,"w":275,"h":172},"sourceSize":{"w":448,"h":448}},
+  "8":{"frame":{"x":607,"y":645,"w":278,"h":144},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":67,"w":278,"h":144},"sourceSize":{"w":448,"h":448}},
+  "9":{"frame":{"x":325,"y":487,"w":280,"h":169},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":53,"w":280,"h":169},"sourceSize":{"w":448,"h":448}},
+  "10":{"frame":{"x":921,"y":557,"w":306,"h":145},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":306,"h":145},"sourceSize":{"w":448,"h":448}},
+  "11":{"frame":{"x":656,"y":285,"w":323,"h":184},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":43,"w":323,"h":184},"sourceSize":{"w":448,"h":448}},
+  "12":{"frame":{"x":921,"y":471,"w":51,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":187,"y":220,"w":51,"h":32},"sourceSize":{"w":448,"h":448}},
+  "13":{"frame":{"x":993,"y":280,"w":172,"h":275},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":87,"w":172,"h":275},"sourceSize":{"w":448,"h":448}},
+  "14":{"frame":{"x":993,"y":0,"w":141,"h":278},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":67,"y":87,"w":141,"h":278},"sourceSize":{"w":448,"h":448}},
+  "15":{"frame":{"x":656,"y":0,"w":167,"h":283},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":87,"w":167,"h":283},"sourceSize":{"w":448,"h":448}},
+  "16":{"frame":{"x":512,"y":0,"w":142,"h":311},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":87,"w":142,"h":311},"sourceSize":{"w":448,"h":448}},
+  "17":{"frame":{"x":0,"y":0,"w":182,"h":333},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":87,"w":182,"h":333},"sourceSize":{"w":448,"h":448}},
+  "18":{"frame":{"x":921,"y":505,"w":51,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":210,"y":220,"w":51,"h":32},"sourceSize":{"w":448,"h":448}},
+  "19":{"frame":{"x":1167,"y":280,"w":172,"h":275},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":205,"y":87,"w":172,"h":275},"sourceSize":{"w":448,"h":448}},
+  "20":{"frame":{"x":1136,"y":0,"w":141,"h":278},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":240,"y":87,"w":141,"h":278},"sourceSize":{"w":448,"h":448}},
+  "21":{"frame":{"x":825,"y":0,"w":166,"h":283},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":232,"y":87,"w":166,"h":283},"sourceSize":{"w":448,"h":448}},
+  "22":{"frame":{"x":367,"y":0,"w":143,"h":311},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":250,"y":87,"w":143,"h":311},"sourceSize":{"w":448,"h":448}},
+  "23":{"frame":{"x":184,"y":0,"w":181,"h":333},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":234,"y":87,"w":181,"h":333},"sourceSize":{"w":448,"h":448}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_combo3_batto_dashcrit.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1339,
+   "h": 823
+  },
+  "scale": "1"
  }
 }

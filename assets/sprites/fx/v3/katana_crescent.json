@@ -4,7 +4,7 @@
  "version": "v3-r55",
  "frameWidth": 344,
  "frameHeight": 344,
- "frames": 6,
+ "framesPerDirection": 6,
  "directions": [
   "down",
   "up",
@@ -94,5 +94,61 @@
   1,
   2
  ],
- "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_crescent.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 344,
+   "frameHeight": 344,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":503,"y":456,"w":20,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":308,"y":221,"w":20,"h":40},"sourceSize":{"w":344,"h":344}},
+  "1":{"frame":{"x":0,"y":315,"w":189,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":215,"w":189,"h":126},"sourceSize":{"w":344,"h":344}},
+  "2":{"frame":{"x":636,"y":309,"w":298,"h":143},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":194,"w":298,"h":143},"sourceSize":{"w":344,"h":344}},
+  "3":{"frame":{"x":532,"y":454,"w":309,"h":142},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":195,"w":309,"h":142},"sourceSize":{"w":344,"h":344}},
+  "4":{"frame":{"x":0,"y":573,"w":309,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":214,"w":309,"h":114},"sourceSize":{"w":344,"h":344}},
+  "5":{"frame":{"x":191,"y":456,"w":310,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":214,"w":310,"h":115},"sourceSize":{"w":344,"h":344}},
+  "6":{"frame":{"x":503,"y":498,"w":20,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":83,"w":20,"h":40},"sourceSize":{"w":344,"h":344}},
+  "7":{"frame":{"x":0,"y":443,"w":189,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":3,"w":189,"h":126},"sourceSize":{"w":344,"h":344}},
+  "8":{"frame":{"x":232,"y":311,"w":298,"h":143},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":7,"w":298,"h":143},"sourceSize":{"w":344,"h":344}},
+  "9":{"frame":{"x":843,"y":454,"w":309,"h":142},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":7,"w":309,"h":142},"sourceSize":{"w":344,"h":344}},
+  "10":{"frame":{"x":311,"y":598,"w":309,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":16,"w":309,"h":114},"sourceSize":{"w":344,"h":344}},
+  "11":{"frame":{"x":622,"y":598,"w":310,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":17,"w":310,"h":113},"sourceSize":{"w":344,"h":344}},
+  "12":{"frame":{"x":311,"y":573,"w":40,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":308,"w":40,"h":20},"sourceSize":{"w":344,"h":344}},
+  "13":{"frame":{"x":1042,"y":0,"w":126,"h":189},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":143,"w":126,"h":189},"sourceSize":{"w":344,"h":344}},
+  "14":{"frame":{"x":752,"y":0,"w":143,"h":298},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":12,"w":143,"h":298},"sourceSize":{"w":344,"h":344}},
+  "15":{"frame":{"x":232,"y":0,"w":142,"h":309},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":12,"w":142,"h":309},"sourceSize":{"w":344,"h":344}},
+  "16":{"frame":{"x":116,"y":0,"w":114,"h":310},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":12,"w":114,"h":310},"sourceSize":{"w":344,"h":344}},
+  "17":{"frame":{"x":0,"y":0,"w":114,"h":313},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":12,"w":114,"h":313},"sourceSize":{"w":344,"h":344}},
+  "18":{"frame":{"x":353,"y":573,"w":40,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":221,"y":16,"w":40,"h":20},"sourceSize":{"w":344,"h":344}},
+  "19":{"frame":{"x":1042,"y":191,"w":126,"h":189},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":215,"y":12,"w":126,"h":189},"sourceSize":{"w":344,"h":344}},
+  "20":{"frame":{"x":897,"y":0,"w":143,"h":298},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":194,"y":34,"w":143,"h":298},"sourceSize":{"w":344,"h":344}},
+  "21":{"frame":{"x":376,"y":0,"w":142,"h":309},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":195,"y":23,"w":142,"h":309},"sourceSize":{"w":344,"h":344}},
+  "22":{"frame":{"x":520,"y":0,"w":114,"h":308},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":214,"y":24,"w":114,"h":308},"sourceSize":{"w":344,"h":344}},
+  "23":{"frame":{"x":636,"y":0,"w":114,"h":307},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":214,"y":25,"w":114,"h":307},"sourceSize":{"w":344,"h":344}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_crescent.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1168,
+   "h": 712
+  },
+  "scale": "1"
+ }
 }

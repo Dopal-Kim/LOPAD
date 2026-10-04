@@ -3,7 +3,7 @@
  "action": "dagger_combo3_twin",
  "frameWidth": 256,
  "frameHeight": 256,
- "frames": 5,
+ "framesPerDirection": 5,
  "directions": [
   "down",
   "up",
@@ -232,5 +232,57 @@
   "note": "쌍격 = 이중 궤적: 나란한 가는 찌르기 두 줄(±2.5px). 둘째 줄이 1프레임 늦게 끝까지 뻗는다. 3타는 두 줄이 촉에서 만나는 가위 찌르기 + 교차 섬광.",
   "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
   "secondary": "fx.weapons.dagger"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo3_twin.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":70,"y":460,"w":44,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":144,"w":44,"h":37},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":0,"y":0,"w":54,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":144,"w":54,"h":110},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":0,"y":112,"w":44,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":174,"w":44,"h":70},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":44,"y":184,"w":42,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":174,"w":42,"h":68},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":92,"y":112,"w":16,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":175,"w":16,"h":33},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":70,"y":499,"w":44,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":75,"w":44,"h":37},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":56,"y":0,"w":54,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":2,"w":54,"h":110},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":46,"y":112,"w":44,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":12,"w":44,"h":70},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":0,"y":184,"w":42,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":14,"w":42,"h":70},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":88,"y":213,"w":17,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":112,"y":61,"w":17,"h":28},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":72,"y":368,"w":37,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":106,"w":37,"h":44},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":0,"y":256,"w":110,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":101,"w":110,"h":54},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":0,"y":368,"w":70,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":106,"w":70,"h":44},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":0,"y":460,"w":68,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":107,"w":68,"h":42},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":92,"y":147,"w":20,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":61,"y":112,"w":20,"h":31},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":72,"y":414,"w":37,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":106,"w":37,"h":44},"sourceSize":{"w":256,"h":256}},
+  "16":{"frame":{"x":0,"y":312,"w":110,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":101,"w":110,"h":54},"sourceSize":{"w":256,"h":256}},
+  "17":{"frame":{"x":0,"y":414,"w":70,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":174,"y":106,"w":70,"h":44},"sourceSize":{"w":256,"h":256}},
+  "18":{"frame":{"x":0,"y":504,"w":68,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":174,"y":107,"w":68,"h":42},"sourceSize":{"w":256,"h":256}},
+  "19":{"frame":{"x":92,"y":180,"w":20,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":175,"y":112,"w":20,"h":31},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_combo3_twin.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 114,
+   "h": 546
+  },
+  "scale": "1"
  }
 }

@@ -3,7 +3,7 @@
  "action": "dagger_combo2_gale",
  "frameWidth": 320,
  "frameHeight": 320,
- "frames": 4,
+ "framesPerDirection": 4,
  "directions": [
   "down",
   "up",
@@ -168,5 +168,53 @@
   "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
   "secondary": "fx.weapons.dagger",
   "v3Note": "2단 갈래 시트(55라운드) — 구 시트 없음. legacy 는 1단 구 시트(dagger_combo2_gale) 기준"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo2_gale_assassin.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 320,
+   "frameHeight": 320,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":292,"y":192,"w":35,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":164,"w":35,"h":43},"sourceSize":{"w":320,"h":320}},
+  "1":{"frame":{"x":0,"y":245,"w":68,"h":146},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":131,"w":68,"h":146},"sourceSize":{"w":320,"h":320}},
+  "2":{"frame":{"x":355,"y":0,"w":80,"h":144},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":123,"w":80,"h":144},"sourceSize":{"w":320,"h":320}},
+  "3":{"frame":{"x":0,"y":0,"w":94,"h":161},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":112,"y":116,"w":94,"h":161},"sourceSize":{"w":320,"h":320}},
+  "4":{"frame":{"x":292,"y":237,"w":35,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":113,"w":35,"h":43},"sourceSize":{"w":320,"h":320}},
+  "5":{"frame":{"x":70,"y":245,"w":68,"h":146},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":43,"w":68,"h":146},"sourceSize":{"w":320,"h":320}},
+  "6":{"frame":{"x":355,"y":146,"w":80,"h":144},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":53,"w":80,"h":144},"sourceSize":{"w":320,"h":320}},
+  "7":{"frame":{"x":96,"y":0,"w":94,"h":161},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":43,"w":94,"h":161},"sourceSize":{"w":320,"h":320}},
+  "8":{"frame":{"x":140,"y":344,"w":43,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":144,"w":43,"h":35},"sourceSize":{"w":320,"h":320}},
+  "9":{"frame":{"x":140,"y":274,"w":146,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":128,"w":146,"h":68},"sourceSize":{"w":320,"h":320}},
+  "10":{"frame":{"x":0,"y":163,"w":144,"h":80},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":122,"w":144,"h":80},"sourceSize":{"w":320,"h":320}},
+  "11":{"frame":{"x":192,"y":0,"w":161,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":114,"w":161,"h":94},"sourceSize":{"w":320,"h":320}},
+  "12":{"frame":{"x":185,"y":344,"w":43,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":164,"y":144,"w":43,"h":35},"sourceSize":{"w":320,"h":320}},
+  "13":{"frame":{"x":288,"y":292,"w":146,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":131,"y":128,"w":146,"h":68},"sourceSize":{"w":320,"h":320}},
+  "14":{"frame":{"x":146,"y":192,"w":144,"h":80},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":123,"y":122,"w":144,"h":80},"sourceSize":{"w":320,"h":320}},
+  "15":{"frame":{"x":192,"y":96,"w":161,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":114,"w":161,"h":94},"sourceSize":{"w":320,"h":320}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_combo2_gale_assassin.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 435,
+   "h": 391
+  },
+  "scale": "1"
  }
 }

@@ -3,7 +3,7 @@
  "action": "carry_dash",
  "frameWidth": 192,
  "frameHeight": 192,
- "frames": 5,
+ "framesPerDirection": 5,
  "directions": [
   "down",
   "up",
@@ -172,5 +172,57 @@
  "sheathMouthNote": "칼집 입구(무기 시트 좌표) — 뽑기 이펙트·손 위치 참고용",
  "overlay": "player_dash 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
  "leftHandGrip": false,
- "leftHandNote": "대기·걷기·달리기: 왼손이 칼집 입구 바로 뒤를 쥐고 엄지로 코등이를 누른다(손 픽셀 위 칼집·코등이는 지워 둠)."
+ "leftHandNote": "대기·걷기·달리기: 왼손이 칼집 입구 바로 뒤를 쥐고 엄지로 코등이를 누른다(손 픽셀 위 칼집·코등이는 지워 둠).",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_carry_dash.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":145,"y":138,"w":44,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":143,"w":44,"h":17},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":137,"y":19,"w":47,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":148,"w":47,"h":17},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":0,"y":59,"w":50,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":151,"w":50,"h":17},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":137,"y":0,"w":48,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":151,"w":48,"h":17},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":145,"y":118,"w":44,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":144,"w":44,"h":18},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":109,"y":118,"w":34,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":140,"w":34,"h":38},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":71,"y":117,"w":36,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":145,"w":36,"h":38},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":133,"y":39,"w":38,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":148,"w":38,"h":37},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":143,"y":78,"w":37,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":148,"w":37,"h":38},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":0,"y":118,"w":34,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":141,"w":34,"h":39},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":66,"y":39,"w":65,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":135,"w":65,"h":39},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":66,"y":0,"w":69,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":138,"w":69,"h":37},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":71,"y":80,"w":70,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":139,"w":70,"h":35},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":0,"y":80,"w":69,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":139,"w":69,"h":36},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":0,"y":0,"w":64,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":135,"w":64,"h":41},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":0,"y":43,"w":64,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":141,"w":64,"h":14},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":36,"y":157,"w":68,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":143,"w":68,"h":16},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":36,"y":118,"w":31,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":150,"w":31,"h":11},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":36,"y":131,"w":30,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":150,"w":30,"h":11},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":106,"y":158,"w":62,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":142,"w":62,"h":13},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_carry_dash.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 189,
+   "h": 173
+  },
+  "scale": "1"
+ }
 }

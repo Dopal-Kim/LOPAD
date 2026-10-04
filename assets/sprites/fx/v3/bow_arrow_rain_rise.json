@@ -4,7 +4,7 @@
  "version": "v3-r56",
  "frameWidth": 200,
  "frameHeight": 184,
- "frames": 4,
+ "framesPerDirection": 4,
  "directions": [
   "down",
   "up",
@@ -73,5 +73,53 @@
  "design": "화살비 쏘아 올림 — 재 화살이 불티 꼬리를 끌며 하늘로 솟아 작아지며 사라짐(판정 없음 — 백열 없음)",
  "designRef": "parts/art/work/gemini/weapon_moves/sheet_bow.png 3번(분위기만)",
  "glowFrames": [],
- "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+ "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_arrow_rain_rise.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 200,
+   "frameHeight": 184,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":37,"y":219,"w":17,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":139,"w":17,"h":40},"sourceSize":{"w":200,"h":184}},
+  "1":{"frame":{"x":73,"y":76,"w":23,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":109,"y":97,"w":23,"h":67},"sourceSize":{"w":200,"h":184}},
+  "2":{"frame":{"x":21,"y":0,"w":28,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":45,"w":28,"h":83},"sourceSize":{"w":200,"h":184}},
+  "3":{"frame":{"x":56,"y":219,"w":14,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":8,"w":14,"h":39},"sourceSize":{"w":200,"h":184}},
+  "4":{"frame":{"x":79,"y":145,"w":13,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":137,"w":13,"h":42},"sourceSize":{"w":200,"h":184}},
+  "5":{"frame":{"x":0,"y":87,"w":16,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":94,"w":16,"h":70},"sourceSize":{"w":200,"h":184}},
+  "6":{"frame":{"x":0,"y":0,"w":19,"h":85},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":41,"w":19,"h":85},"sourceSize":{"w":200,"h":184}},
+  "7":{"frame":{"x":79,"y":189,"w":9,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":3,"w":9,"h":41},"sourceSize":{"w":200,"h":184}},
+  "8":{"frame":{"x":0,"y":222,"w":24,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":81,"y":144,"w":24,"h":35},"sourceSize":{"w":200,"h":184}},
+  "9":{"frame":{"x":37,"y":159,"w":40,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":108,"w":40,"h":58},"sourceSize":{"w":200,"h":184}},
+  "10":{"frame":{"x":21,"y":85,"w":50,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":63,"w":50,"h":72},"sourceSize":{"w":200,"h":184}},
+  "11":{"frame":{"x":23,"y":261,"w":24,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":31,"w":24,"h":34},"sourceSize":{"w":200,"h":184}},
+  "12":{"frame":{"x":72,"y":232,"w":24,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":143,"w":24,"h":36},"sourceSize":{"w":200,"h":184}},
+  "13":{"frame":{"x":0,"y":159,"w":35,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":104,"w":35,"h":61},"sourceSize":{"w":200,"h":184}},
+  "14":{"frame":{"x":51,"y":0,"w":43,"h":74},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":132,"y":58,"w":43,"h":74},"sourceSize":{"w":200,"h":184}},
+  "15":{"frame":{"x":0,"y":259,"w":21,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":174,"y":24,"w":21,"h":35},"sourceSize":{"w":200,"h":184}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_arrow_rain_rise.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 96,
+   "h": 295
+  },
+  "scale": "1"
+ }
 }

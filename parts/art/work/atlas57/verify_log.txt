@@ -1,22 +1,8 @@
-형식 점검: 시트 447개, 오류 0
-OK  fx/v3/bow_arrow_aimed_rapid_volley #1 원 112x32 → 트림 81x22 @(27,5) 불투명 479px
-OK  weapons/v3/greatsword_carry_drawn_idle_grudge1 #19 원 240x272 → 트림 18x21 @(149,178) 불투명 62px
-OK  fx/v3/boss1_cup_shatter #3 원 128x128 → 트림 64x61 @(33,32) 불투명 576px
-OK  player/v3/player_katana_special #20 원 96x144 → 트림 52x111 @(12,28) 불투명 2698px
-OK  player/v3/player_greatsword_special #18 원 96x144 → 트림 59x110 @(18,34) 불투명 3713px
-OK  player/v3/player_dagger_combo1 #20 원 96x144 → 트림 58x111 @(29,28) 불투명 3096px
-OK  weapons/v3/katana_fall_ki3 #12 원 192x192 → 트림 25x27 @(132,124) 불투명 219px
-OK  fx/v3/boss1_liquor_glob #1 원 48x32 → 트림 38x13 @(1,10) 불투명 181px
-OK  player/v3/player_run #23 원 96x144 → 트림 74x108 @(5,28) 불투명 2923px
-OK  fx/v3/knock_dust #12 원 64x32 → 트림 24x11 @(22,18) 불투명 147px
-OK  fx/v3/dagger_combo1_heat1 #15 원 320x320 → 트림 51x40 @(204,136) 불투명 132px
-OK  weapons/v3/dagger_carry_dash #8 원 192x192 → 트림 11x20 @(123,142) 불투명 122px
-OK  weapons/v3/katana_counter_ki2 #8 원 192x192 → 트림 19x27 @(68,50) 불투명 105px
-OK  weapons/v3/greatsword_brace_upswing_grudge1 #18 원 280x296 → 트림 9x23 @(135,52) 불투명 59px
-OK  fx/v3/dagger_combo3 #12 원 400x400 → 트림 174x22 @(3,188) 불투명 659px
-OK  weapons/v3/dagger_combo2 #4 원 192x192 → 트림 32x31 @(62,119) 불투명 225px
-OK  weapons/v3/katana_counter_ki2 #27 원 192x192 → 트림 54x12 @(135,109) 불투명 279px
-OK  player/v3/player_katana_rise #11 원 96x144 → 트림 72x113 @(4,31) 불투명 3918px
-OK  weapons/v3/greatsword_carry_drawn_idle_grudge1 #13 원 240x272 → 트림 15x12 @(77,161) 불투명 60px
-OK  fx/v3/katana_issen_line_t3 #36 원 496x504 → 트림 80x6 @(232,245) 불투명 341px
-픽셀 비교: 20프레임 중 불일치 0
+형식 점검: 시트 480개, 오류 0
+픽셀 비교: 시트 480개 14956프레임 중 불일치 0
+외벽 brewery: 그림 18개 OK
+외벽 gate: 그림 22개 OK
+외벽 hall: 그림 16개 OK
+외벽 outer: 그림 20개 OK
+외벽 waste: 그림 18개 OK
+외벽 점검: 지역 5개, 원본 대조 84장, 불일치 0, 오류 0, albedo PSNR 최저 41.9dB

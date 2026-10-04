@@ -3,7 +3,7 @@
  "action": "dagger_combo2_twin",
  "frameWidth": 256,
  "frameHeight": 256,
- "frames": 4,
+ "framesPerDirection": 4,
  "directions": [
   "down",
   "up",
@@ -227,5 +227,53 @@
   "note": "쌍격 = 이중 궤적: 나란한 가는 찌르기 두 줄(±2.5px). 둘째 줄이 1프레임 늦게 끝까지 뻗는다. 3타는 두 줄이 촉에서 만나는 가위 찌르기 + 교차 섬광.",
   "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
   "secondary": "fx.weapons.dagger"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo2_twin.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":137,"y":99,"w":30,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":110,"y":141,"w":30,"h":35},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":0,"y":0,"w":45,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":141,"w":45,"h":97},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":99,"y":99,"w":36,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":177,"w":36,"h":51},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":65,"y":193,"w":17,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":179,"w":17,"h":36},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":137,"y":0,"w":30,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":80,"w":30,"h":35},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":47,"y":0,"w":45,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":18,"w":45,"h":97},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":99,"y":0,"w":36,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":28,"w":36,"h":59},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":149,"y":37,"w":17,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":52,"w":17,"h":43},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":99,"y":190,"w":35,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":116,"w":35,"h":30},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":0,"y":99,"w":97,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":116,"w":97,"h":45},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":99,"y":152,"w":51,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":119,"w":51,"h":36},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":37,"y":193,"w":26,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":121,"w":26,"h":30},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":0,"y":193,"w":35,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":116,"w":35,"h":30},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":0,"y":146,"w":97,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":116,"w":97,"h":45},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":94,"y":61,"w":53,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":175,"y":119,"w":53,"h":36},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":136,"y":190,"w":29,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":175,"y":121,"w":29,"h":30},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_combo2_twin.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 167,
+   "h": 229
+  },
+  "scale": "1"
  }
 }

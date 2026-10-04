@@ -3,7 +3,7 @@
  "action": "dagger_slash",
  "frameWidth": 192,
  "frameHeight": 192,
- "frames": 5,
+ "framesPerDirection": 5,
  "directions": [
   "down",
   "up",
@@ -79,5 +79,57 @@
    "fromFrame": 2,
    "widthRatio": 0.6
   }
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_slash.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":633,"y":0,"w":9,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":111,"w":9,"h":18},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":419,"y":0,"w":105,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":115,"w":105,"h":41},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":318,"y":44,"w":98,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":120,"w":98,"h":39},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":318,"y":0,"w":99,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":123,"w":99,"h":42},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":318,"y":85,"w":103,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":127,"w":103,"h":30},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":633,"y":20,"w":9,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":63,"w":9,"h":18},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":526,"y":0,"w":105,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":36,"w":105,"h":41},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":520,"y":43,"w":97,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":35,"w":97,"h":37},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":419,"y":43,"w":99,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":32,"w":99,"h":39},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":520,"y":82,"w":104,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":36,"w":104,"h":36},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":626,"y":43,"w":18,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":63,"y":40,"w":18,"h":9},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":0,"y":0,"w":41,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":39,"w":41,"h":105},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":238,"y":0,"w":38,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":47,"w":38,"h":97},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":196,"y":0,"w":40,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":48,"w":40,"h":98},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":86,"y":0,"w":32,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":50,"w":32,"h":102},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":626,"y":54,"w":18,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":111,"y":40,"w":18,"h":9},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":43,"y":0,"w":41,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":39,"w":41,"h":105},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":278,"y":0,"w":38,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":120,"y":47,"w":38,"h":97},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":154,"y":0,"w":40,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":47,"w":40,"h":99},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":120,"y":0,"w":32,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":50,"w":32,"h":102},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_slash.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 644,
+   "h": 118
+  },
+  "scale": "1"
  }
 }

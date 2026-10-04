@@ -4,7 +4,7 @@
  "version": "v3-r56d",
  "frameWidth": 88,
  "frameHeight": 104,
- "frames": 7,
+ "framesPerDirection": 7,
  "directions": [
   "guard",
   "parry"
@@ -98,5 +98,51 @@
  },
  "pairsWith": "퍼펙트 가드·패링 성공 순간에만 이 시트 — 그 순간의 parry_flash(가운데 동심 고리)·guard_wave 를 대체(56라운드 Q55). 일반 가드(퍼펙트 아님)의 guard_wave 는 그대로 유지(56라운드 Q62)",
  "design": "56라운드 Q7 퍼펙트 가드·패링 — 맞닿은 점의 짧은 세로 백열 틈 → 재·호박 방패 호. guard 는 버티고 불티가 흘러내림, parry 는 호가 공격 쪽으로 튕겨 나가며 불티 원뿔",
- "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과"
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 guard_perfect_fx.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 2,
+   "frameWidth": 88,
+   "frameHeight": 104,
+   "frameCount": 14
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 1,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":19,"y":334,"w":21,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":36,"w":21,"h":32},"sourceSize":{"w":88,"h":104}},
+  "1":{"frame":{"x":43,"y":277,"w":18,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":23,"w":18,"h":58},"sourceSize":{"w":88,"h":104}},
+  "2":{"frame":{"x":53,"y":0,"w":22,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":22,"w":22,"h":60},"sourceSize":{"w":88,"h":104}},
+  "3":{"frame":{"x":24,"y":204,"w":21,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":22,"w":21,"h":60},"sourceSize":{"w":88,"h":104}},
+  "4":{"frame":{"x":0,"y":284,"w":17,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":25,"w":17,"h":62},"sourceSize":{"w":88,"h":104}},
+  "5":{"frame":{"x":24,"y":266,"w":17,"h":66},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":27,"w":17,"h":66},"sourceSize":{"w":88,"h":104}},
+  "6":{"frame":{"x":47,"y":204,"w":17,"h":71},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":29,"w":17,"h":71},"sourceSize":{"w":88,"h":104}},
+  "7":{"frame":{"x":19,"y":334,"w":21,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":36,"w":21,"h":32},"sourceSize":{"w":88,"h":104}},
+  "8":{"frame":{"x":0,"y":148,"w":40,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":26,"w":40,"h":52},"sourceSize":{"w":88,"h":104}},
+  "9":{"frame":{"x":42,"y":148,"w":35,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":25,"w":35,"h":54},"sourceSize":{"w":88,"h":104}},
+  "10":{"frame":{"x":44,"y":76,"w":34,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":23,"w":34,"h":58},"sourceSize":{"w":88,"h":104}},
+  "11":{"frame":{"x":0,"y":76,"w":42,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":17,"w":42,"h":70},"sourceSize":{"w":88,"h":104}},
+  "12":{"frame":{"x":0,"y":0,"w":51,"h":74},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":15,"w":51,"h":74},"sourceSize":{"w":88,"h":104}},
+  "13":{"frame":{"x":0,"y":202,"w":22,"h":80},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":12,"w":22,"h":80},"sourceSize":{"w":88,"h":104}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "guard_perfect_fx.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 78,
+   "h": 366
+  },
+  "scale": "1"
+ }
 }
