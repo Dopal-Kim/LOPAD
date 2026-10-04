@@ -1,0 +1,567 @@
+{
+ "image": "dagger_carry_idle.png",
+ "action": "carry_idle",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 4.92,
+ "frameDurationsMs": [
+  200,
+  200,
+  180,
+  220,
+  200,
+  220
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/weapons_v3/build.py (53라운드 Q26~Q32 무기 재디자인 — v3 도트 오버레이)",
+ "weapon": "dagger",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     75.6,
+     137.8
+    ],
+    "handL": [
+     116.4,
+     137.8
+    ]
+   },
+   {
+    "handR": [
+     75.9,
+     137.1
+    ],
+    "handL": [
+     116.7,
+     137.1
+    ]
+   },
+   {
+    "handR": [
+     76.2,
+     136.3
+    ],
+    "handL": [
+     117.0,
+     136.3
+    ]
+   },
+   {
+    "handR": [
+     76.1,
+     136.3
+    ],
+    "handL": [
+     116.9,
+     136.3
+    ]
+   },
+   {
+    "handR": [
+     75.6,
+     137.1
+    ],
+    "handL": [
+     116.4,
+     137.1
+    ]
+   },
+   {
+    "handR": [
+     75.3,
+     137.8
+    ],
+    "handL": [
+     116.1,
+     137.8
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     116.4,
+     137.8
+    ],
+    "handL": [
+     75.6,
+     137.8
+    ]
+   },
+   {
+    "handR": [
+     116.1,
+     137.1
+    ],
+    "handL": [
+     75.3,
+     137.1
+    ]
+   },
+   {
+    "handR": [
+     115.8,
+     136.3
+    ],
+    "handL": [
+     75.0,
+     136.3
+    ]
+   },
+   {
+    "handR": [
+     115.9,
+     136.3
+    ],
+    "handL": [
+     75.1,
+     136.3
+    ]
+   },
+   {
+    "handR": [
+     116.4,
+     137.1
+    ],
+    "handL": [
+     75.6,
+     137.1
+    ]
+   },
+   {
+    "handR": [
+     116.7,
+     137.8
+    ],
+    "handL": [
+     75.9,
+     137.8
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     81.8,
+     134.3
+    ],
+    "handL": [
+     78.0,
+     134.2
+    ]
+   },
+   {
+    "handR": [
+     81.3,
+     133.6
+    ],
+    "handL": [
+     77.5,
+     133.5
+    ]
+   },
+   {
+    "handR": [
+     80.8,
+     132.8
+    ],
+    "handL": [
+     77.1,
+     132.7
+    ]
+   },
+   {
+    "handR": [
+     80.8,
+     132.8
+    ],
+    "handL": [
+     77.1,
+     132.7
+    ]
+   },
+   {
+    "handR": [
+     81.3,
+     133.6
+    ],
+    "handL": [
+     77.5,
+     133.5
+    ]
+   },
+   {
+    "handR": [
+     81.8,
+     134.3
+    ],
+    "handL": [
+     78.0,
+     134.2
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     114.0,
+     134.2
+    ],
+    "handL": [
+     110.2,
+     134.3
+    ]
+   },
+   {
+    "handR": [
+     114.4,
+     133.5
+    ],
+    "handL": [
+     110.7,
+     133.6
+    ]
+   },
+   {
+    "handR": [
+     114.9,
+     132.7
+    ],
+    "handL": [
+     111.2,
+     132.8
+    ]
+   },
+   {
+    "handR": [
+     114.9,
+     132.7
+    ],
+    "handL": [
+     111.2,
+     132.8
+    ]
+   },
+   {
+    "handR": [
+     114.4,
+     133.5
+    ],
+    "handL": [
+     110.7,
+     133.6
+    ]
+   },
+   {
+    "handR": [
+     114.0,
+     134.2
+    ],
+    "handL": [
+     110.2,
+     134.3
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    75.6,
+    137.8
+   ],
+   [
+    75.9,
+    137.1
+   ],
+   [
+    76.2,
+    136.3
+   ],
+   [
+    76.1,
+    136.3
+   ],
+   [
+    75.6,
+    137.1
+   ],
+   [
+    75.3,
+    137.8
+   ]
+  ],
+  "up": [
+   [
+    116.4,
+    137.8
+   ],
+   [
+    116.1,
+    137.1
+   ],
+   [
+    115.8,
+    136.3
+   ],
+   [
+    115.9,
+    136.3
+   ],
+   [
+    116.4,
+    137.1
+   ],
+   [
+    116.7,
+    137.8
+   ]
+  ],
+  "left": [
+   [
+    81.8,
+    134.3
+   ],
+   [
+    81.3,
+    133.6
+   ],
+   [
+    80.8,
+    132.8
+   ],
+   [
+    80.8,
+    132.8
+   ],
+   [
+    81.3,
+    133.6
+   ],
+   [
+    81.8,
+    134.3
+   ]
+  ],
+  "right": [
+   [
+    114.0,
+    134.2
+   ],
+   [
+    114.4,
+    133.5
+   ],
+   [
+    114.9,
+    132.7
+   ],
+   [
+    114.9,
+    132.7
+   ],
+   [
+    114.4,
+    133.5
+   ],
+   [
+    114.0,
+    134.2
+   ]
+  ]
+ },
+ "gripHand": "handR",
+ "design": "B 재 껍데기 송곳니 (53라운드 Q28) — 자기 재 껍데기에서 부러낸 송곳니 조각 · 균열 혼불 · 백열 끝 · 붕대 손잡이 + 녹슨 못 · 역수",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_dagger_B.jpg (참고만 — 시안은 정수, 도트는 역수)",
+ "glowRule": "53라운드 Q30: 평소 균열 1px(A21/A19) + 끝 A23 은은, 판정(glow) 프레임만 균열 A23 · 끝 A26",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G · 호박 A · 붕대 PL, Q32)",
+ "reverseGrip": true,
+ "bladeLengthDots": 19,
+ "hiltLengthDots": 7,
+ "carry": "hand, reverse grip (오른손 역수 — 날이 팔뚝을 따라 뒤로)",
+ "state": "inHand",
+ "bladeLocal": {
+  "thetaDeg": 140.0,
+  "elevDeg": -60.0
+ },
+ "bodySheet": "player_idle_free",
+ "bodySheetByWeapon": {
+  "katana": "player_idle",
+  "greatsword": "player_idle_free",
+  "dagger": "player_idle_free",
+  "bow": "player_idle_free"
+ },
+ "bodySheetRuleNote": "무기별 이동 몸 시트 선택 규칙(아트 제안): bodySheetByWeapon[무기][동작]. 칼만 칼집을 쥔 player_<동작>, 나머지는 왼손이 빈 player_<동작>_free. 대쉬는 모든 무기가 player_dash. 오버레이는 <무기>_carry_<동작>(대검·칼은 뽑아 든 상태면 <무기>_carry_drawn_<동작>).",
+ "overlay": "player_idle_free 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
+ "bladeTipAnchors": {
+  "down": [
+   [
+    67.2,
+    157.1
+   ],
+   [
+    67.5,
+    156.3
+   ],
+   [
+    67.8,
+    155.6
+   ],
+   [
+    67.6,
+    155.6
+   ],
+   [
+    67.2,
+    156.3
+   ],
+   [
+    66.8,
+    157.1
+   ]
+  ],
+  "up": [
+   [
+    124.8,
+    164.1
+   ],
+   [
+    124.5,
+    163.4
+   ],
+   [
+    124.2,
+    162.6
+   ],
+   [
+    124.4,
+    162.6
+   ],
+   [
+    124.8,
+    163.4
+   ],
+   [
+    125.2,
+    164.1
+   ]
+  ],
+  "left": [
+   [
+    91.8,
+    154.1
+   ],
+   [
+    91.4,
+    153.4
+   ],
+   [
+    90.9,
+    152.6
+   ],
+   [
+    90.9,
+    152.6
+   ],
+   [
+    91.4,
+    153.4
+   ],
+   [
+    91.8,
+    154.1
+   ]
+  ],
+  "right": [
+   [
+    103.9,
+    159.9
+   ],
+   [
+    104.4,
+    159.1
+   ],
+   [
+    104.8,
+    158.4
+   ],
+   [
+    104.8,
+    158.4
+   ],
+   [
+    104.4,
+    159.1
+   ],
+   [
+    103.9,
+    159.9
+   ]
+  ]
+ },
+ "bladeTipNote": "무기 끝(무기 시트 좌표) — 이펙트 위치 참고"
+}

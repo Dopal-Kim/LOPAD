@@ -696,5 +696,20 @@
  "weaponTipNote": "안내선(미리보기용 임시 무기 길이) 끝 위치(몸 시트 도트) — 이펙트 위치 참고",
  "oldWeapon": null,
  "weaponOverlayV3": "weapons/v3/dagger_combo1",
- "weaponOverlayNote": "weapons/v3/dagger_combo1 를 같은 프레임 번호·같은 시각에 겹친다(53라운드 무기 재디자인, weapons_v3). oldWeapon 은 더 쓰지 않는다."
+ "weaponOverlayNote": "weapons/v3/dagger_combo1 를 같은 프레임 번호·같은 시각에 겹친다(53라운드 무기 재디자인, weapons_v3). oldWeapon 은 더 쓰지 않는다.",
+ "hitReference56": {
+  "thrust": {
+   "lengthPx": 144,
+   "widthPx": 32,
+   "angleDeg": -8,
+   "fromPx": 16
+  },
+  "previousThrust": {
+   "lengthPx": 96,
+   "widthPx": 32,
+   "angleDeg": -8,
+   "fromPx": 16
+  },
+  "note": "56라운드 Q4 판정 참고값: 찌르기 직사각 판정의 수평 길이 ×1.5(lengthPx), 폭·시작점·각도는 그대로. 이펙트(fx/v3/dagger_combo*)의 찌르기 길이도 ×1.5 로 다시 그리면(작업 A) 이 값과 맞는다. 피해 ×1.4 는 시스템 데이터. 단위 도트(월드 px = 도트/4)"
+ }
 }

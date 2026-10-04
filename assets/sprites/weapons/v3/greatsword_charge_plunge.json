@@ -1,0 +1,2193 @@
+{
+ "image": "greatsword_charge_plunge.png",
+ "action": "greatsword_charge_plunge",
+ "frameWidth": 240,
+ "frameHeight": 280,
+ "frames": 9,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right",
+  "down-right",
+  "down-left",
+  "up-right",
+  "up-left"
+ ],
+ "layout": "rows = directions (down, up, left, right, down-right, down-left, up-right, up-left), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 11.25,
+ "frameDurationsMs": [
+  40,
+  70,
+  80,
+  90,
+  40,
+  90,
+  160,
+  110,
+  120
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 117,
+  "y": 207
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/combo56_body/build.py (56라운드 Q5·Q6·Q10 — 대검 무게·8방향·꽂아내리기)",
+ "weapon": "greatsword",
+ "version": "v3-r56",
+ "comboSet": "G-C 관성 순환",
+ "label": "꽂아내리기(개성 발현 후 차지 — 휘두르지 않고 칼을 땅에 박아 마우스 방향 충격파)",
+ "timingMs": {
+  "total": 800,
+  "hitAt": 280,
+  "activeEndAt": 320,
+  "cancelAt": null
+ },
+ "frameStates": [
+  "charge",
+  "steel",
+  "steel",
+  "steel",
+  "glow",
+  "steel",
+  "steel",
+  "steel",
+  "steel"
+ ],
+ "frameRoles": [
+  "hold",
+  "turn",
+  "raise",
+  "hold",
+  "plunge",
+  "planted",
+  "planted",
+  "pull",
+  "recover"
+ ],
+ "framesBasis": "player_greatsword_charge_plunge 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "weightNote": "56라운드 Q5 무게: windup 들어 올림 → hold 머리 위/뒤에서 잠깐 버팀(긴 선딜) → heave → strike(판정) → drag 칼 무게에 몸이 끌려감 → catch 버팀",
+ "msNote": "ms 는 아트 제안값. 55라운드 Q29(예전 템포 유지)대로 늘여 재생해도 impactFrame 시작 = hitAt 만 맞으면 그림은 맞는다(관성 공속은 재생 속도로). 무게를 살리려면 선딜(hold)과 drag 구간을 늘이고 strike 는 짧게 두기를 권장",
+ "directionRows": [
+  {
+   "row": 0,
+   "direction": "down",
+   "screenDeg": 90.0,
+   "body": "정면"
+  },
+  {
+   "row": 1,
+   "direction": "up",
+   "screenDeg": -90.0,
+   "body": "뒷면"
+  },
+  {
+   "row": 2,
+   "direction": "left",
+   "screenDeg": 180.0,
+   "body": "측면"
+  },
+  {
+   "row": 3,
+   "direction": "right",
+   "screenDeg": 0.0,
+   "body": "측면"
+  },
+  {
+   "row": 4,
+   "direction": "down-right",
+   "screenDeg": 45.0,
+   "body": "정면 3/4"
+  },
+  {
+   "row": 5,
+   "direction": "down-left",
+   "screenDeg": 135.0,
+   "body": "정면 3/4"
+  },
+  {
+   "row": 6,
+   "direction": "up-right",
+   "screenDeg": -45.0,
+   "body": "뒷면 3/4"
+  },
+  {
+   "row": 7,
+   "direction": "up-left",
+   "screenDeg": -135.0,
+   "body": "뒷면 3/4"
+  }
+ ],
+ "directionNote": "56라운드 Q6 8방향: 행 = down, up, left, right, down-right, down-left, up-right, up-left (기존 4행 순서 그대로 앞에 두고 대각 4행을 뒤에 더함). 대각 = 화면 45°(마우스 방향 8분할: 조준각 -22.5°~22.5° = right … 시계 방향). 대각 행은 회전·반전이 아니라 따로 그린 그림 — 판정·fx 각도는 그대로 조준각. 대각 몸은 정면/뒷면 몸 Rig 에 3/4 단서(가슴 비틀림·머리·디딤발이 바라보는 쪽으로), 무기·손은 대각 바닥 각으로 투영(리그 바닥 압축 0.35 때문에 화면 45° = 바닥 70.7°). 아래 대각 내려찍기(cleave·charge_slam, down-right·down-left)는 화면에서 대각으로 읽히도록 칼 수평 성분을 더 옆으로 돌리고(±38°) 기울기를 −46° 까지 세움(칼끝은 바닥에 닿음). 위 대각(up-right·up-left)의 내려찍기는 up 과 같이 칼이 몸 너머 땅으로 내려가 대부분 가려진다 — 방향은 바닥 fx(균열·붓획)가 보여 줌.",
+ "dirTransform": "drawn8",
+ "dirTransformNote": "8방향 모두 그림이 있음(회전·반전 없음). 조준각을 8분할해 행을 고른다. 판정·fx 는 조준각 그대로(§17 회전 규칙)",
+ "impactFrame": 4,
+ "hitFrames": [
+  4
+ ],
+ "activeFrames": [
+  4
+ ],
+ "glowFrames": [
+  4
+ ],
+ "cancelFromFrame": null,
+ "anticipationFrames": [
+  0,
+  1,
+  2,
+  3
+ ],
+ "recoverFrames": [
+  5,
+  6,
+  7,
+  8
+ ],
+ "holdFrames": [
+  0,
+  3
+ ],
+ "dragFrames": [
+  5,
+  6
+ ],
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
+ "hitShape": {
+  "type": "ring",
+  "centerAt": "plant point (body front)",
+  "radiusR": 0.45,
+  "note": "꽂힌 자리 작은 충격원(참고값) — 본 판정은 충격파 fx greatsword_plunge_wave(rect, 마우스 방향)",
+  "R": {
+   "world": 51,
+   "dots": 204
+  },
+  "radiusPx": 91.8,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "startsFrom": "greatsword_charge 루프 f3~f6 (머리 위로 든 칼) — f0 = 루프 f3 과 같은 자세",
+ "endsWith": "greatsword_carry_drawn_idle",
+ "groundCrack": {
+  "sheet": "greatsword_ground_crack",
+  "row": "l",
+  "at": "impactFrame 시작, 꽂힌 자리(plantAnchors)"
+ },
+ "waveSheet": "greatsword_plunge_wave",
+ "waveAt": "impactFrame 시작, 꽂힌 자리(plantAnchors)에서 마우스 방향으로",
+ "chargeAwakenedNote": "56라운드 Q10: 개성 발현 후 차지 — 휘두르지 않고 칼을 땅에 수직으로 꽂아 마우스 방향 충격파(greatsword_plunge_wave)",
+ "plantFrames": [
+  4,
+  5,
+  6,
+  7
+ ],
+ "plantNote": "plantAnchors = 칼이 바닥에 꽂힌 점(몸 시트 도트, 꽂힌 프레임만, 나머지 null). 충격파·균열 fx 의 pivot 을 여기에. 땅속 칼 부분은 그리지 않음",
+ "plantAnchors": {
+  "down": [
+   null,
+   null,
+   null,
+   null,
+   [
+    114.0,
+    212.8
+   ],
+   [
+    114.0,
+    212.8
+   ],
+   [
+    114.0,
+    212.8
+   ],
+   [
+    114.0,
+    212.8
+   ],
+   null
+  ],
+  "up": [
+   null,
+   null,
+   null,
+   null,
+   [
+    120.0,
+    201.2
+   ],
+   [
+    120.0,
+    201.2
+   ],
+   [
+    120.0,
+    201.2
+   ],
+   [
+    120.0,
+    201.2
+   ],
+   null
+  ],
+  "left": [
+   null,
+   null,
+   null,
+   null,
+   [
+    100.5,
+    205.9
+   ],
+   [
+    100.5,
+    205.9
+   ],
+   [
+    100.5,
+    205.9
+   ],
+   [
+    100.5,
+    205.9
+   ],
+   null
+  ],
+  "right": [
+   null,
+   null,
+   null,
+   null,
+   [
+    133.5,
+    208.1
+   ],
+   [
+    133.5,
+    208.1
+   ],
+   [
+    133.5,
+    208.1
+   ],
+   [
+    133.5,
+    208.1
+   ],
+   null
+  ],
+  "down-right": [
+   null,
+   null,
+   null,
+   null,
+   [
+    119.6,
+    212.8
+   ],
+   [
+    119.6,
+    212.8
+   ],
+   [
+    119.6,
+    212.8
+   ],
+   [
+    119.6,
+    212.8
+   ],
+   null
+  ],
+  "down-left": [
+   null,
+   null,
+   null,
+   null,
+   [
+    108.7,
+    212.1
+   ],
+   [
+    108.7,
+    212.1
+   ],
+   [
+    108.7,
+    212.1
+   ],
+   [
+    108.7,
+    212.1
+   ],
+   null
+  ],
+  "up-right": [
+   null,
+   null,
+   null,
+   null,
+   [
+    125.3,
+    201.9
+   ],
+   [
+    125.3,
+    201.9
+   ],
+   [
+    125.3,
+    201.9
+   ],
+   [
+    125.3,
+    201.9
+   ],
+   null
+  ],
+  "up-left": [
+   null,
+   null,
+   null,
+   null,
+   [
+    114.4,
+    201.2
+   ],
+   [
+    114.4,
+    201.2
+   ],
+   [
+    114.4,
+    201.2
+   ],
+   [
+    114.4,
+    201.2
+   ],
+   null
+  ]
+ },
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 69,
+  "y": 69
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above",
+  "down-right": "above",
+  "down-left": "above",
+  "up-right": "above",
+  "up-left": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "down-right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "down-left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up-right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up-left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     117.0,
+     112.0
+    ],
+    "handL": [
+     117.0,
+     122.0
+    ]
+   },
+   {
+    "handR": [
+     114.0,
+     106.8
+    ],
+    "handL": [
+     114.1,
+     105.6
+    ]
+   },
+   {
+    "handR": [
+     111.2,
+     95.0
+    ],
+    "handL": [
+     122.1,
+     95.3
+    ]
+   },
+   {
+    "handR": [
+     111.3,
+     96.0
+    ],
+    "handL": [
+     122.0,
+     96.4
+    ]
+   },
+   {
+    "handR": [
+     114.0,
+     135.4
+    ],
+    "handL": [
+     114.0,
+     125.6
+    ]
+   },
+   {
+    "handR": [
+     114.0,
+     150.4
+    ],
+    "handL": [
+     114.0,
+     140.6
+    ]
+   },
+   {
+    "handR": [
+     114.0,
+     151.9
+    ],
+    "handL": [
+     114.0,
+     142.1
+    ]
+   },
+   {
+    "handR": [
+     114.0,
+     123.4
+    ],
+    "handL": [
+     114.0,
+     113.6
+    ]
+   },
+   {
+    "handR": [
+     109.7,
+     150.9
+    ],
+    "handL": [
+     114.9,
+     144.4
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     117.0,
+     106.7
+    ],
+    "handL": [
+     117.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     121.2,
+     100.8
+    ],
+    "handL": [
+     119.1,
+     104.9
+    ]
+   },
+   {
+    "handR": [
+     125.2,
+     94.0
+    ],
+    "handL": [
+     110.2,
+     94.5
+    ]
+   },
+   {
+    "handR": [
+     125.0,
+     95.0
+    ],
+    "handL": [
+     110.3,
+     95.6
+    ]
+   },
+   {
+    "handR": [
+     120.0,
+     123.8
+    ],
+    "handL": [
+     120.0,
+     114.1
+    ]
+   },
+   {
+    "handR": [
+     120.0,
+     138.8
+    ],
+    "handL": [
+     120.0,
+     129.1
+    ]
+   },
+   {
+    "handR": [
+     120.0,
+     140.3
+    ],
+    "handL": [
+     120.0,
+     130.6
+    ]
+   },
+   {
+    "handR": [
+     120.0,
+     111.8
+    ],
+    "handL": [
+     116.6,
+     107.2
+    ]
+   },
+   {
+    "handR": [
+     124.3,
+     138.3
+    ],
+    "handL": [
+     119.1,
+     136.8
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     109.5,
+     109.1
+    ],
+    "handL": [
+     104.0,
+     117.1
+    ]
+   },
+   {
+    "handR": [
+     105.0,
+     101.2
+    ],
+    "handL": [
+     114.5,
+     103.3
+    ]
+   },
+   {
+    "handR": [
+     106.6,
+     92.9
+    ],
+    "handL": [
+     109.0,
+     92.6
+    ]
+   },
+   {
+    "handR": [
+     106.5,
+     93.8
+    ],
+    "handL": [
+     108.6,
+     93.5
+    ]
+   },
+   {
+    "handR": [
+     100.5,
+     128.2
+    ],
+    "handL": [
+     100.7,
+     118.5
+    ]
+   },
+   {
+    "handR": [
+     100.5,
+     143.2
+    ],
+    "handL": [
+     100.7,
+     133.5
+    ]
+   },
+   {
+    "handR": [
+     100.5,
+     144.8
+    ],
+    "handL": [
+     100.7,
+     135.0
+    ]
+   },
+   {
+    "handR": [
+     100.5,
+     116.2
+    ],
+    "handL": [
+     100.7,
+     106.5
+    ]
+   },
+   {
+    "handR": [
+     98.9,
+     141.7
+    ],
+    "handL": [
+     106.1,
+     139.6
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     124.5,
+     109.1
+    ],
+    "handL": [
+     130.0,
+     117.1
+    ]
+   },
+   {
+    "handR": [
+     129.0,
+     103.4
+    ],
+    "handL": [
+     119.5,
+     105.4
+    ]
+   },
+   {
+    "handR": [
+     127.7,
+     93.0
+    ],
+    "handL": [
+     125.1,
+     92.6
+    ]
+   },
+   {
+    "handR": [
+     127.8,
+     93.8
+    ],
+    "handL": [
+     125.5,
+     93.5
+    ]
+   },
+   {
+    "handR": [
+     133.5,
+     130.4
+    ],
+    "handL": [
+     133.3,
+     120.6
+    ]
+   },
+   {
+    "handR": [
+     133.5,
+     145.4
+    ],
+    "handL": [
+     133.3,
+     135.6
+    ]
+   },
+   {
+    "handR": [
+     133.5,
+     146.9
+    ],
+    "handL": [
+     133.3,
+     137.1
+    ]
+   },
+   {
+    "handR": [
+     133.5,
+     118.4
+    ],
+    "handL": [
+     133.3,
+     108.6
+    ]
+   },
+   {
+    "handR": [
+     135.1,
+     146.9
+    ],
+    "handL": [
+     127.9,
+     141.1
+    ]
+   }
+  ],
+  "down-right": [
+   {
+    "handR": [
+     119.5,
+     111.8
+    ],
+    "handL": [
+     121.3,
+     121.7
+    ]
+   },
+   {
+    "handR": [
+     118.1,
+     106.9
+    ],
+    "handL": [
+     116.6,
+     107.4
+    ]
+   },
+   {
+    "handR": [
+     115.4,
+     94.9
+    ],
+    "handL": [
+     126.0,
+     95.6
+    ]
+   },
+   {
+    "handR": [
+     115.6,
+     95.9
+    ],
+    "handL": [
+     125.9,
+     96.6
+    ]
+   },
+   {
+    "handR": [
+     119.6,
+     135.4
+    ],
+    "handL": [
+     119.6,
+     125.6
+    ]
+   },
+   {
+    "handR": [
+     119.6,
+     150.4
+    ],
+    "handL": [
+     119.6,
+     140.6
+    ]
+   },
+   {
+    "handR": [
+     119.6,
+     151.9
+    ],
+    "handL": [
+     119.6,
+     142.1
+    ]
+   },
+   {
+    "handR": [
+     119.6,
+     123.4
+    ],
+    "handL": [
+     119.6,
+     113.6
+    ]
+   },
+   {
+    "handR": [
+     116.1,
+     151.4
+    ],
+    "handL": [
+     118.6,
+     144.5
+    ]
+   }
+  ],
+  "down-left": [
+   {
+    "handR": [
+     114.5,
+     111.8
+    ],
+    "handL": [
+     112.7,
+     121.7
+    ]
+   },
+   {
+    "handR": [
+     110.2,
+     106.2
+    ],
+    "handL": [
+     113.4,
+     105.1
+    ]
+   },
+   {
+    "handR": [
+     107.0,
+     95.1
+    ],
+    "handL": [
+     118.5,
+     94.9
+    ]
+   },
+   {
+    "handR": [
+     107.2,
+     96.1
+    ],
+    "handL": [
+     118.3,
+     96.0
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     134.7
+    ],
+    "handL": [
+     108.8,
+     124.9
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     149.7
+    ],
+    "handL": [
+     108.8,
+     139.9
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     151.2
+    ],
+    "handL": [
+     108.8,
+     141.4
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     122.7
+    ],
+    "handL": [
+     108.8,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     104.1,
+     149.7
+    ],
+    "handL": [
+     111.5,
+     144.0
+    ]
+   }
+  ],
+  "up-right": [
+   {
+    "handR": [
+     119.5,
+     106.9
+    ],
+    "handL": [
+     121.3,
+     113.2
+    ]
+   },
+   {
+    "handR": [
+     125.0,
+     101.2
+    ],
+    "handL": [
+     120.6,
+     104.2
+    ]
+   },
+   {
+    "handR": [
+     129.1,
+     94.2
+    ],
+    "handL": [
+     114.1,
+     94.3
+    ]
+   },
+   {
+    "handR": [
+     128.9,
+     95.2
+    ],
+    "handL": [
+     114.2,
+     95.3
+    ]
+   },
+   {
+    "handR": [
+     125.3,
+     124.5
+    ],
+    "handL": [
+     125.2,
+     114.8
+    ]
+   },
+   {
+    "handR": [
+     125.3,
+     139.5
+    ],
+    "handL": [
+     125.2,
+     129.8
+    ]
+   },
+   {
+    "handR": [
+     125.3,
+     141.0
+    ],
+    "handL": [
+     125.2,
+     131.3
+    ]
+   },
+   {
+    "handR": [
+     125.3,
+     112.5
+    ],
+    "handL": [
+     121.7,
+     107.7
+    ]
+   },
+   {
+    "handR": [
+     129.9,
+     139.5
+    ],
+    "handL": [
+     122.5,
+     137.3
+    ]
+   }
+  ],
+  "up-left": [
+   {
+    "handR": [
+     114.5,
+     106.9
+    ],
+    "handL": [
+     112.7,
+     113.2
+    ]
+   },
+   {
+    "handR": [
+     117.1,
+     100.7
+    ],
+    "handL": [
+     116.4,
+     106.4
+    ]
+   },
+   {
+    "handR": [
+     120.9,
+     93.9
+    ],
+    "handL": [
+     106.2,
+     94.7
+    ]
+   },
+   {
+    "handR": [
+     120.8,
+     94.9
+    ],
+    "handL": [
+     106.3,
+     95.7
+    ]
+   },
+   {
+    "handR": [
+     114.4,
+     123.8
+    ],
+    "handL": [
+     114.4,
+     114.1
+    ]
+   },
+   {
+    "handR": [
+     114.4,
+     138.8
+    ],
+    "handL": [
+     114.4,
+     129.1
+    ]
+   },
+   {
+    "handR": [
+     114.4,
+     140.3
+    ],
+    "handL": [
+     114.4,
+     130.6
+    ]
+   },
+   {
+    "handR": [
+     114.4,
+     111.8
+    ],
+    "handL": [
+     111.4,
+     106.8
+    ]
+   },
+   {
+    "handR": [
+     117.9,
+     137.8
+    ],
+    "handL": [
+     115.4,
+     136.8
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    117.0,
+    112.0
+   ],
+   [
+    114.0,
+    106.8
+   ],
+   [
+    111.2,
+    95.0
+   ],
+   [
+    111.3,
+    96.0
+   ],
+   [
+    114.0,
+    135.4
+   ],
+   [
+    114.0,
+    150.4
+   ],
+   [
+    114.0,
+    151.9
+   ],
+   [
+    114.0,
+    123.4
+   ],
+   [
+    109.7,
+    150.9
+   ]
+  ],
+  "up": [
+   [
+    117.0,
+    106.7
+   ],
+   [
+    121.2,
+    100.8
+   ],
+   [
+    125.2,
+    94.0
+   ],
+   [
+    125.0,
+    95.0
+   ],
+   [
+    120.0,
+    123.8
+   ],
+   [
+    120.0,
+    138.8
+   ],
+   [
+    120.0,
+    140.3
+   ],
+   [
+    120.0,
+    111.8
+   ],
+   [
+    124.3,
+    138.3
+   ]
+  ],
+  "left": [
+   [
+    109.5,
+    109.1
+   ],
+   [
+    105.0,
+    101.2
+   ],
+   [
+    106.6,
+    92.9
+   ],
+   [
+    106.5,
+    93.8
+   ],
+   [
+    100.5,
+    128.2
+   ],
+   [
+    100.5,
+    143.2
+   ],
+   [
+    100.5,
+    144.8
+   ],
+   [
+    100.5,
+    116.2
+   ],
+   [
+    98.9,
+    141.7
+   ]
+  ],
+  "right": [
+   [
+    124.5,
+    109.1
+   ],
+   [
+    129.0,
+    103.4
+   ],
+   [
+    127.7,
+    93.0
+   ],
+   [
+    127.8,
+    93.8
+   ],
+   [
+    133.5,
+    130.4
+   ],
+   [
+    133.5,
+    145.4
+   ],
+   [
+    133.5,
+    146.9
+   ],
+   [
+    133.5,
+    118.4
+   ],
+   [
+    135.1,
+    146.9
+   ]
+  ],
+  "down-right": [
+   [
+    119.5,
+    111.8
+   ],
+   [
+    118.1,
+    106.9
+   ],
+   [
+    115.4,
+    94.9
+   ],
+   [
+    115.6,
+    95.9
+   ],
+   [
+    119.6,
+    135.4
+   ],
+   [
+    119.6,
+    150.4
+   ],
+   [
+    119.6,
+    151.9
+   ],
+   [
+    119.6,
+    123.4
+   ],
+   [
+    116.1,
+    151.4
+   ]
+  ],
+  "down-left": [
+   [
+    114.5,
+    111.8
+   ],
+   [
+    110.2,
+    106.2
+   ],
+   [
+    107.0,
+    95.1
+   ],
+   [
+    107.2,
+    96.1
+   ],
+   [
+    108.7,
+    134.7
+   ],
+   [
+    108.7,
+    149.7
+   ],
+   [
+    108.7,
+    151.2
+   ],
+   [
+    108.7,
+    122.7
+   ],
+   [
+    104.1,
+    149.7
+   ]
+  ],
+  "up-right": [
+   [
+    119.5,
+    106.9
+   ],
+   [
+    125.0,
+    101.2
+   ],
+   [
+    129.1,
+    94.2
+   ],
+   [
+    128.9,
+    95.2
+   ],
+   [
+    125.3,
+    124.5
+   ],
+   [
+    125.3,
+    139.5
+   ],
+   [
+    125.3,
+    141.0
+   ],
+   [
+    125.3,
+    112.5
+   ],
+   [
+    129.9,
+    139.5
+   ]
+  ],
+  "up-left": [
+   [
+    114.5,
+    106.9
+   ],
+   [
+    117.1,
+    100.7
+   ],
+   [
+    120.9,
+    93.9
+   ],
+   [
+    120.8,
+    94.9
+   ],
+   [
+    114.4,
+    123.8
+   ],
+   [
+    114.4,
+    138.8
+   ],
+   [
+    114.4,
+    140.3
+   ],
+   [
+    114.4,
+    111.8
+   ],
+   [
+    117.9,
+    137.8
+   ]
+  ]
+ },
+ "gripHand": "handR",
+ "design": "A 녹슨 양손검 (53라운드 Q27) — 갈고리 달린 녹슨 츠바이헨더 · 박힌 화살촉 · 이 빠진 홈에서 새는 혼불 · 가죽 리카소",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_greatsword_A2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 가장 깊은 홈 혼불 1px(A21) 은은, 판정(glow) 프레임만 날 가장자리 A25/A23 + 홈·끝 A26",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(강철 G · 녹 A18/A19 · 혼불 A · 가죽 WD, Q32)",
+ "includesSheath": false,
+ "carryHidden": "이 시트 동안 greatsword_carry_* 는 숨긴다(이 시트가 손의 대검을 그림).",
+ "stateNote": "steel 평소(홈 혼불 1px 은은) · glow 판정(날 가장자리 A25/A23 + 홈 A26) · charge 홀드(평소 그림 — 단계 번쩍임은 fx)",
+ "twoHanded": true,
+ "bladeLengthDots": 90,
+ "hiltLengthDots": 21,
+ "sizeNote": "53라운드 Q44 '몸만한 칼'(날 90 + 손잡이 21 도트, 폭 9) · Q45 대검 시트만 틀 확대 — frameWidth/frameHeight·pivot·playerFrameOffset 을 JSON 에서 읽을 것",
+ "bladeLocal": [
+  {
+   "thetaDeg": 180,
+   "elevDeg": 56.0
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": 12
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": -78
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": -80
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": -89
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": -89
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": -89
+  },
+  {
+   "thetaDeg": 0,
+   "elevDeg": -89
+  },
+  {
+   "thetaDeg": 36,
+   "elevDeg": -24
+  }
+ ],
+ "bladeLocalByDirection": {
+  "down": [
+   {
+    "thetaDeg": 180,
+    "elevDeg": 56.0
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": 12
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -78
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -80
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 36,
+    "elevDeg": -24
+   }
+  ],
+  "up": [
+   {
+    "thetaDeg": 180,
+    "elevDeg": 56.0
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": 12
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -78
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -80
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 36,
+    "elevDeg": -24
+   }
+  ],
+  "left": [
+   {
+    "thetaDeg": 180,
+    "elevDeg": 56.0
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": 12
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -78
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -80
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 36,
+    "elevDeg": -24
+   }
+  ],
+  "right": [
+   {
+    "thetaDeg": 180,
+    "elevDeg": 56.0
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": 12
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -78
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -80
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 36,
+    "elevDeg": -24
+   }
+  ],
+  "down-right": [
+   {
+    "thetaDeg": 180,
+    "elevDeg": 56.0
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": 12
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -78
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -80
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 36,
+    "elevDeg": -24
+   }
+  ],
+  "down-left": [
+   {
+    "thetaDeg": 180,
+    "elevDeg": 56.0
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": 12
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -78
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -80
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 36,
+    "elevDeg": -24
+   }
+  ],
+  "up-right": [
+   {
+    "thetaDeg": 180,
+    "elevDeg": 56.0
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": 12
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -78
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -80
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 36,
+    "elevDeg": -24
+   }
+  ],
+  "up-left": [
+   {
+    "thetaDeg": 180,
+    "elevDeg": 56.0
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": 12
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -78
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -80
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 0,
+    "elevDeg": -89
+   },
+   {
+    "thetaDeg": 36,
+    "elevDeg": -24
+   }
+  ]
+ },
+ "bladeLocalNote": "몸 기준 무기 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). 대각 내려찍기는 방향마다 다름(bladeLocalByDirection)",
+ "bladeTipAnchors": {
+  "down": [
+   [
+    117.0,
+    15.9
+   ],
+   [
+    114.0,
+    119.4
+   ],
+   [
+    111.2,
+    193.5
+   ],
+   [
+    111.3,
+    194.0
+   ],
+   [
+    114.0,
+    212.8
+   ],
+   [
+    114.0,
+    212.8
+   ],
+   [
+    114.0,
+    212.8
+   ],
+   [
+    114.0,
+    212.8
+   ],
+   [
+    59.4,
+    213.3
+   ]
+  ],
+  "up": [
+   [
+    117.0,
+    47.4
+   ],
+   [
+    121.2,
+    49.2
+   ],
+   [
+    125.2,
+    178.9
+   ],
+   [
+    125.0,
+    181.6
+   ],
+   [
+    120.0,
+    201.2
+   ],
+   [
+    120.0,
+    201.2
+   ],
+   [
+    120.0,
+    201.2
+   ],
+   [
+    120.0,
+    201.2
+   ],
+   [
+    174.6,
+    152.2
+   ]
+  ],
+  "left": [
+   [
+    161.9,
+    31.3
+   ],
+   [
+    13.3,
+    81.8
+   ],
+   [
+    87.1,
+    184.6
+   ],
+   [
+    90.2,
+    186.1
+   ],
+   [
+    100.5,
+    205.9
+   ],
+   [
+    100.5,
+    205.9
+   ],
+   [
+    100.5,
+    205.9
+   ],
+   [
+    100.5,
+    205.9
+   ],
+   [
+    29.6,
+    162.3
+   ]
+  ],
+  "right": [
+   [
+    72.1,
+    31.3
+   ],
+   [
+    220.7,
+    83.9
+   ],
+   [
+    147.1,
+    184.7
+   ],
+   [
+    144.1,
+    186.1
+   ],
+   [
+    133.5,
+    208.1
+   ],
+   [
+    133.5,
+    208.1
+   ],
+   [
+    133.5,
+    208.1
+   ],
+   [
+    133.5,
+    208.1
+   ],
+   [
+    204.4,
+    202.6
+   ]
+  ],
+  "down-right": [
+   [
+    102.2,
+    16.8
+   ],
+   [
+    148.4,
+    117.7
+   ],
+   [
+    121.9,
+    193.0
+   ],
+   [
+    121.0,
+    193.6
+   ],
+   [
+    119.6,
+    212.8
+   ],
+   [
+    119.6,
+    212.8
+   ],
+   [
+    119.6,
+    212.8
+   ],
+   [
+    119.6,
+    212.8
+   ],
+   [
+    91.5,
+    218.3
+   ]
+  ],
+  "down-left": [
+   [
+    131.8,
+    16.8
+   ],
+   [
+    79.9,
+    117.0
+   ],
+   [
+    100.6,
+    193.2
+   ],
+   [
+    101.8,
+    193.8
+   ],
+   [
+    108.7,
+    212.1
+   ],
+   [
+    108.7,
+    212.1
+   ],
+   [
+    108.7,
+    212.1
+   ],
+   [
+    108.7,
+    212.1
+   ],
+   [
+    33.7,
+    204.9
+   ]
+  ],
+  "up-right": [
+   [
+    102.2,
+    46.5
+   ],
+   [
+    155.3,
+    51.4
+   ],
+   [
+    135.5,
+    179.5
+   ],
+   [
+    134.3,
+    182.2
+   ],
+   [
+    125.3,
+    201.9
+   ],
+   [
+    125.3,
+    201.9
+   ],
+   [
+    125.3,
+    201.9
+   ],
+   [
+    125.3,
+    201.9
+   ],
+   [
+    200.3,
+    160.5
+   ]
+  ],
+  "up-left": [
+   [
+    131.8,
+    46.5
+   ],
+   [
+    86.8,
+    50.9
+   ],
+   [
+    114.5,
+    179.2
+   ],
+   [
+    115.4,
+    181.9
+   ],
+   [
+    114.4,
+    201.2
+   ],
+   [
+    114.4,
+    201.2
+   ],
+   [
+    114.4,
+    201.2
+   ],
+   [
+    114.4,
+    201.2
+   ],
+   [
+    142.5,
+    147.2
+   ]
+  ]
+ },
+ "bladeTipNote": "칼끝(무기 시트 좌표). 8방향. 붓획 fx·칼끝 리본·차지 번쩍임 위치 참고",
+ "bodySheet": "player_greatsword_charge_plunge",
+ "overlay": "player_greatsword_charge_plunge 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset."
+}
