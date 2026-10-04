@@ -1,21 +1,35 @@
 /**
  * 근접 연격 입력 (55라운드 6-1 — Player.ts 에서 분리): 연격 상태 머신·대쉬 공격·대검 무게감(정지 구간) +
  * 55라운드 §17 새 연격 — 순환(대검 H1→V→H2→V…)·관성 공속(Q23)·홀드 차지 내려찍기(Q22)·내딛기(Q21, 방향키를 누를 때만).
+ * 56라운드: 타 데이터 `move` = 전용 동작(칼 3타 일섬 — `issenMove`), 차지 떼기 = `chargeRelease`(기본 내려찍기·꽂아내리기),
+ * 대검 휘두른 뒤 끌림(몸 시트 dragFrames·dragStepPx — 방향키와 무관), 8행 시트 차지 자세(조준각 8분할), 균열 행.
  * Player 는 행동 가능 여부·이동·대쉬·보조 동작을 정하고 공격 구간을 여기에 맡긴다.
  */
 import { COLORS } from '../../core/Constants';
-import { EventBus, Events, type PlayerAttackPayload, type PlayerChargePayload } from '../../core/EventBus';
+import {
+  EventBus,
+  Events,
+  type PlayerAttackPayload,
+  type PlayerChargePayload,
+  type PlayerSkillPayload,
+} from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { PLAYER_DATA } from '../../data';
-import type { ComboChargeDef, ComboHitDef } from '../../data/types';
+import type { ComboHitDef } from '../../data/types';
 import { ChargeHold } from '../../systems/chargeHold';
 import { ComboTracker } from '../../systems/combo';
 import { artCandidates, pickArt } from '../../systems/comboArt';
 import type { InputState } from '../../systems/InputSystem';
 import { Momentum } from '../../systems/momentum';
-import { facingOf, frameDurations } from '../../systems/spriteDefs';
+import { frameDurations, rowDirFor } from '../../systems/spriteDefs';
+import { pickMove } from '../../systems/moves';
 import type { Player } from '../Player';
+import { releaseCharge } from './chargeRelease';
 import { startDashSlash, startSlam, type ComboStrike } from './heavyMoves';
+import { startIssen } from './issenMove';
+
+/** 56라운드 Q46: 대검 끌림음은 3타(연격 번호 2 — H2)에만 */
+const DRAG_SFX_HIT = 2;
 
 /** 차지 유지 자세를 매 프레임 이만큼 유지 (다음 프레임에 갱신) */
 const CHARGE_HOLD_REFRESH_MS = 80;
@@ -122,7 +136,8 @@ export class MeleeDriver {
     if (!name) return;
     const action = `${id}_${name}`;
     const sheet = visual.sheet(action);
-    const dir = facingOf(input.aimX - this.p.x, input.aimY - this.p.y, visual.facing);
+    // 56라운드 Q6: 8행 차지 시트는 조준각 8분할
+    const dir = rowDirFor(sheet, input.aimX - this.p.x, input.aimY - this.p.y, visual.facing);
     // 아트 루프(들기 f0~ 뒤 loopFrames 반복)가 있으면 루프, 없으면 holdFrame(없으면 그림 표 holdColumn) 한 장 유지
     const loop = sheet?.loopFrames;
     if (sheet && Array.isArray(loop) && loop.length > 0) {
@@ -181,7 +196,10 @@ export class MeleeDriver {
           p.flashColor(COLORS.CHARGE_FLASH);
           this.emitCharge({ phase: 'stage', stage: ev.stage });
         } else {
-          this.startChargeSlam(input, time, W.combo.charge, ev.stage, moving);
+          this.posing = false;
+          this.lastCharge = releaseCharge(p, input, time, W.combo.charge, ev.stage, moving, (pl, hit, t, mv) =>
+            this.afterStrike(pl, hit, t, false, mv),
+          );
           return;
         }
       }
@@ -226,6 +244,9 @@ export class MeleeDriver {
       startSlam(p, input, time, { index: idx, count: combo.hits.length, hit, durationMs: hit.durationMs }, slam);
       return;
     }
+    // 56라운드 Q5: 판정 순간 땅 균열 (그림 표 crackRow — 관성 최대면 crackRowAtMax)
+    const artEntry = hit.art ? W.combo?.art?.[hit.art] : undefined;
+    const crack = (m?.atMax ? artEntry?.crackRowAtMax : undefined) ?? artEntry?.crackRow;
     const strike: ComboStrike = {
       index: idx,
       count: combo.hits.length,
@@ -234,7 +255,12 @@ export class MeleeDriver {
       heavy,
       ...(m ? { momentum: m.bonus } : {}),
       ...(m?.atMax && mom ? { shapeScale: { impactMult: mom.impactMult } } : {}),
+      ...(crack ? { crack } : {}),
     };
+    // 56라운드: 전용 동작 (공격 수단 표 — 칼 3타 일섬)
+    if (hit.move && pickMove(gameState.weapon.id, 'comboFinisher', gameState.weapon.path, (mv) => mv.id === hit.move)) {
+      if (hit.move === 'issen' && startIssen(p, input, time, strike, first) > 0) return;
+    }
     const weight = W.weight;
     p.slowUntil(
       time + Math.max(hit.activeMs, PLAYER_DATA.attackSlowMinMs, weight ? strike.durationMs + weight.postSlowMs : 0),
@@ -264,6 +290,7 @@ export class MeleeDriver {
       const from = win ? win.from : Math.max(0, payload.swingDelayMs - step.ms);
       p.startLunge(payload.dirX, payload.dirY, step.px, win ? win.ms : step.ms, time, from);
     }
+    this.dragAfter(payload, body, time);
     if (!weight) return;
     // 49라운드: 이동 정지 = 몸 시트 recoverFrames 구간(마지막 타는 공격·대쉬도), 메모가 없으면 마지막 타만 finisherStopMs
     this.stopUntil = 0;
@@ -278,6 +305,22 @@ export class MeleeDriver {
     }
   }
 
+  /**
+   * 56라운드 Q5 대검 무게: 휘두른 뒤 칼 무게에 몸이 끌려감 — 몸 시트 dragFrames 구간에 dragStepPx.world 만큼 조준 방향으로
+   * (방향키와 무관, 아트 메모 '시스템 판단'). 끌림 시작에 PLAYER_SKILL drag (음향 gs_drag)
+   */
+  private dragAfter(payload: PlayerAttackPayload, body: ReturnType<Player['visual']['sheet']>, time: number): void {
+    const drag = body?.dragStepPx;
+    const px = typeof drag?.world === 'number' ? drag.world : 0;
+    const win = px > 0 ? this.stepWindow(body?.dragFrames ?? drag?.frames) : null;
+    if (!win) return;
+    this.p.startLunge(payload.dirX, payload.dirY, px, win.ms, time, win.from, true);
+    // 끌림음 gs_drag 는 3타에만 (56라운드 Q46 — 연격 번호 DRAG_SFX_HIT)
+    if (payload.comboIndex !== DRAG_SFX_HIT) return;
+    const skill: PlayerSkillPayload = { weapon: gameState.weapon.id, move: 'drag', phase: 'recover' };
+    this.p.scene.time.delayedCall(win.from, () => EventBus.emit(Events.PLAYER_SKILL, skill));
+  }
+
   /** 몸 시트 열 목록 → 방금 재생한 시간표의 구간 (첫 열 시작 ~ 마지막 열 끝) */
   private stepWindow(frames: number[] | undefined): { from: number; ms: number } | null {
     if (!Array.isArray(frames) || frames.length === 0) return null;
@@ -287,38 +330,6 @@ export class MeleeDriver {
     const from = v.frameStartMs(a);
     const end = v.lastFrameStarts[b + 1] ?? v.lastDurationMs;
     return end > from ? { from, ms: end - from } : null;
-  }
-
-  /** Q22: 떼서 차지 내려찍기 — 쐐기 길이·피해 = 단계 배율, 3단은 충격파 링. 다음 연격은 1타부터 */
-  private startChargeSlam(input: InputState, time: number, C: ComboChargeDef, stage: number, moving: boolean): void {
-    const p = this.p;
-    const combo = this.combo!;
-    const res = p.resource;
-    const st = C.stages[Math.min(stage, C.stages.length) - 1];
-    this.posing = false;
-    combo.reset();
-    if (res?.def.kind === 'stamina') res.spend(res.def.cost.slam, time);
-    const first = p.gear.firstStrike;
-    p.gear.markDrawn(time);
-    // 단계별 그림 키(stages[i].art)가 있으면 그 시트 — 아트 단계 시트 명세가 오면 데이터만
-    const hit: ComboHitDef = { ...C.hit, art: st.art ?? C.hit.art, damageMult: C.hit.damageMult * st.damageMult };
-    const strike: ComboStrike = {
-      index: 0,
-      count: combo.hits.length,
-      hit,
-      durationMs: hit.durationMs,
-      heavy: hit.heavy ?? true,
-      charge: stage,
-      shapeScale: { lengthMult: st.lengthMult, ...(st.impactMult !== undefined ? { impactMult: st.impactMult } : {}) },
-      ...(st.followUps ? { extraFollowUps: st.followUps } : {}),
-    };
-    const payload = p.fireAttack(input, time, strike, false, first);
-    // 타격음은 판정 프레임에 (음향 charge_slam_lv<n> 0ms = 타격 순간)
-    this.emitCharge({ phase: 'release', stage, impactDelayMs: payload.swingDelayMs });
-    const total = Math.max(payload.durationMs ?? hit.durationMs, p.visual.lastDurationMs);
-    p.setAction('slam', time + total);
-    p.slowUntil(time + total);
-    this.afterStrike(payload, hit, time, false, moving);
   }
 
   private emitCharge(payload: PlayerChargePayload): void {

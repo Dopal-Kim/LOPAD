@@ -3,6 +3,7 @@ import enemiesJson from '../../data/enemies.json';
 import bossesJson from '../../data/bosses.json';
 import stagesJson from '../../data/stages.json';
 import weaponsJson from '../../data/weapons.json';
+import { validateWeapon56 } from './validate56';
 import economyJson from '../../data/economy.json';
 import personalityJson from '../../data/personality.json';
 import storyJson from '../../data/story.json';
@@ -56,6 +57,7 @@ export function validatePlayer(p: PlayerData): PlayerData {
   if (p.sprint.speedMult < 1) throw new Error('[data] player.sprint.speedMult 는 1 이상');
   if (typeof p.startWeapon !== 'string') throw new Error('[data] player.startWeapon 없음');
   assertNumber(p.attackSlowMinMs, 'player.attackSlowMinMs');
+  if (p.perfectGuard) assertNumber(p.perfectGuard.windowMs, 'player.perfectGuard.windowMs');
   return p;
 }
 
@@ -330,6 +332,7 @@ export function validateWeaponExtras(w: WeaponDef, path: string): void {
   ];
   for (const [name, b, keys] of blocks)
     if (b) for (const k of keys) assertNumber((b as Record<string, unknown>)[k], `${path}.${name}.${k}`);
+  validateWeapon56(w, path);
 }
 
 export function validateWeaponRules(r: WeaponRules): WeaponRules {

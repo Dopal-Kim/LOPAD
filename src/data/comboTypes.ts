@@ -107,6 +107,8 @@ export interface ComboHitDef {
   heavy?: boolean;
   /** 55라운드 §17: 뒤따르는 판정 (칼 잔상 베기) */
   followUps?: ComboFollowUpDef[];
+  /** 56라운드: 일반 휘두름 대신 전용 동작 (칼 3타 일섬 — 무기 데이터 `issen`). 공격 수단 표(`systems/moves`)의 id */
+  move?: string;
 }
 
 /** 근접 판정 모양: arc = 몸 중심 부채꼴, thrust = 앞으로 뻗는 직사각형(찌르기) — 타별 `hitShape` 가 없을 때 */
@@ -128,6 +130,10 @@ export interface ComboArtEntry {
   flashFx?: string[];
   /** 몸 시트에 holdFrame 이 없을 때 차지 유지 열 */
   holdColumn?: number;
+  /** 56라운드 Q5: 판정 순간 땅 균열 (fx 후보 · 행 s·m·l · 관성 최대일 때 행) */
+  crackFx?: string[];
+  crackRow?: string;
+  crackRowAtMax?: string;
 }
 
 /** 55라운드 Q23 대검 관성: 이어지는 타마다 공속 +perHit (최대 max), idleResetMs 무입력·피격 시 초기화 */

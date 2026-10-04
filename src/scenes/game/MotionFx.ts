@@ -3,7 +3,17 @@
  * 유지형 연출(질풍 루프 · 조준 점선·차지 게이지 · 대쉬 잔상 · 달리기 먼지, 35·45라운드).
  */
 import Phaser from 'phaser';
-import { COLORS, DEPTH, FEEL, PROTOTYPE, TILE, TRAVERSAL, entityDepth } from '../../core/Constants';
+import {
+  COLORS,
+  DEPTH,
+  FEEDBACK,
+  FEEL,
+  PROTOTYPE,
+  TILE,
+  TRAVERSAL,
+  entityDepth,
+  fxLitDepth,
+} from '../../core/Constants';
 import type { GuardReleasedPayload, ShadowStepPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { PALETTE, PLAYER_DATA } from '../../data';
@@ -50,7 +60,8 @@ export class MotionFx {
   onGuardReleased(p: GuardReleasedPayload): void {
     const g = this.g;
     const S = gameState.weapon.def.secondary;
-    if (S.kind !== 'guard') return;
+    // 56라운드 Q48 칼 가드: 떼도 밀쳐내지 않는다 (반경 0)
+    if (S.kind !== 'guard' || S.pushRadiusTiles <= 0) return;
     const now = g.time.now;
     const radius = S.pushRadiusTiles * TILE;
     const counter = gameState.weapon.mods.guardCounterMult ?? 0;
@@ -134,6 +145,29 @@ export class MotionFx {
       g.tweens.add({ targets: ghost, alpha: 0, duration: PROTOTYPE.SHADOW_STEP_MS, onComplete: () => ghost.destroy() });
     }
     g.player.teleportTo(dest.x, dest.y);
+    // 56라운드 Q38: 리본은 돌진류에만 — 그림자 걸음 출발 → 도착을 짧게 긋는다
+    this.stepRibbon(p.x, p.y, dest.x, dest.y);
+    // 56라운드 Q16: 그 적 뒤에 서면 낙인 전부 폭발
+    if (target && dest !== null) g.strikes.brands.onShadowStep(target);
+  }
+
+  /** 출발 → 도착 리본 (플레이 시계로 SHADOWSTEP_RIBBON_MS 동안 머리가 이동) */
+  private stepRibbon(x0: number, y0: number, x1: number, y1: number): void {
+    const g = this.g;
+    const sheet = gameState.weapon.def.feel?.ribbon;
+    if (!sheet) return;
+    const t0 = g.playNow();
+    const ms = FEEDBACK.SHADOWSTEP_RIBBON_MS;
+    const up = FEEL.SECONDARY.BODY_CENTER_UP_PX;
+    g.ribbons.start(
+      (t) => {
+        const k = (t - t0) / ms;
+        if (k > 1) return null;
+        const c = Math.max(0, k);
+        return { x: x0 + (x1 - x0) * c, y: y0 - up + (y1 - y0) * c };
+      },
+      { sheet, depth: fxLitDepth(entityDepth(y1) + DEPTH.OVERLAY_STEP) },
+    );
   }
 
   /**
@@ -222,7 +256,9 @@ export class MotionFx {
     const cy = player.y - S.BODY_CENTER_UP_PX;
     // aim_line stateFrames: 차지 중 f0 / 완료 f1 (43라운드 B) · 갈래 조준선은 진행도 프레임
     // 51라운드 저격: 갈래 조준선(aim_line_snipe, 진행도 구동)이 있으면 그것
-    g.aimLine.show(cx, cy, player.aimAngle, S.AIM_LINE_TILES * TILE, progress, g.strikes.bow.aimLineId);
+    // 56라운드 Q20: 오래 쥐면 조준선이 흔들린다 (화살도 같은 각으로 나간다)
+    const angle = player.aimAngle + player.aimJitter(time);
+    g.aimLine.show(cx, cy, angle, S.AIM_LINE_TILES * TILE, progress, g.strikes.bow.aimLineId);
     if (!g.fx.has('aim_charge')) return;
     // aim_charge 진행도 프레임 = min(마지막, floor(progress × 5)) — 6프레임 시트의 f5 = 완료
     const frame = progressFrame(progress, g.fx.framesOf('aim_charge'), S.AIM_CHARGE_DIVISOR);

@@ -4,7 +4,7 @@
  * 움직이지 않고(넉백·밀쳐내기 무시) 접촉 피해도 없다. 개성·골드를 주지 않는다.
  */
 import Phaser from 'phaser';
-import { ENEMY_FX, LAB, PLACEHOLDER_UI, COLORS } from '../core/Constants';
+import { ENEMY_FX, FEEDBACK, LAB, PLACEHOLDER_UI, COLORS } from '../core/Constants';
 import { EventBus, Events, type EnemyDamagedPayload } from '../core/EventBus';
 import { Mob, type DamageInfo, type MobContext } from './Mob';
 
@@ -95,7 +95,8 @@ export class LabDummy extends Mob {
       died: false,
       tick: Boolean(info.tick),
     } satisfies EnemyDamagedPayload);
-    this.flash(COLORS.MOB_HURT);
+    // 56라운드 Q36: 호박 반투명 80ms (히트스톱에 늘어나지 않음)
+    this.visual.flashOverlay(COLORS.MOB_HURT, FEEDBACK.MOB_HURT.ALPHA, FEEDBACK.MOB_HURT.MS);
     return false;
   }
 

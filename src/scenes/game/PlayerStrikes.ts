@@ -3,6 +3,8 @@
  * 51라운드 정리: 활 = `BowShots`, 잔월·출혈 = `StrikeDots`. 53라운드 정리: 판정 모양·휘두름 이펙트·잔상 리본 = `SwingFx`.
  * 55라운드 §17: 타별 판정 모양(호·쐐기+충격원·찌르기·고리) · 내려찍기 끝점 바닥 충격 · 판정 모양 디버그 오버레이(`HitShapeOverlay`).
  * 55라운드 6-1: 후속 판정(칼 잔상 베기·차지 충격파 링)·추가 타·지진 2단 스케줄 = `StrikeSchedule`. 피해 계산·피격 연출은 GameCombat.
+ * 56라운드: 칼 일섬 = `IssenStrikes` · 대검 꽂아내리기 = `PlungeStrikes` · 단검 낙인 = `BrandMarks` · 휘두름이 처음 맞힌 순간
+ * 무기 그림 번쩍임(Q12)·검기 획득 · 내려찍기 땅 균열(Q5).
  */
 import Phaser from 'phaser';
 import { COLORS, DEPTH, ENEMY_FX, FEEL, PROTOTYPE } from '../../core/Constants';
@@ -21,6 +23,9 @@ import { HitShapeOverlay } from './HitShapeOverlay';
 import { StrikeDots } from './StrikeDots';
 import { StrikeSchedule, type SwingOpts } from './StrikeSchedule';
 import { SwingFx } from './SwingFx';
+import { BrandMarks } from './BrandMarks';
+import { IssenStrikes } from './IssenStrikes';
+import { PlungeStrikes } from './PlungeStrikes';
 import { HIT_ORIGIN_UP_PX, evolutionFxId, isFinisher, isMeleeStrike, pathFx, rotatesLeft, shapeFacing } from './shared';
 
 /** 디버그로 남기는 최근 판정 수 */
@@ -39,6 +44,10 @@ export class PlayerStrikes {
   readonly attackLog: { time: number; kind: string; comboIndex: number | null; firstStrike: string | null }[] = [];
   readonly bow: BowShots;
   readonly dots: StrikeDots;
+  /** 56라운드 일섬 · 꽂아내리기 · 낙인 */
+  readonly issen: IssenStrikes;
+  readonly plunge: PlungeStrikes;
+  readonly brands: BrandMarks;
   private readonly swing: SwingFx;
   private readonly schedule: StrikeSchedule;
 
@@ -54,6 +63,10 @@ export class PlayerStrikes {
     this.swing = new SwingFx(g);
     this.overlay = new HitShapeOverlay(g);
     this.schedule = new StrikeSchedule(g, this.swing, (p, opts) => this.meleeSwing(p, opts));
+    const strike = (mob: Mob, p: PlayerAttackPayload, first: boolean) => this.strikeMob(mob, p, first);
+    this.issen = new IssenStrikes(g, strike);
+    this.plunge = new PlungeStrikes(g, this.swing, strike);
+    this.brands = new BrandMarks(g);
   }
 
   private pathFx(...candidates: string[]): string | null {
@@ -73,6 +86,15 @@ export class PlayerStrikes {
     const weapon = gameState.weapon;
     if (weapon.def.kind === 'ranged') {
       this.bow.fire(p);
+      return;
+    }
+    // 56라운드: 전용 동작 — 판정·연출을 각 모듈이 (휘두름 이펙트·일반 판정 없음)
+    if (p.issen) {
+      this.issen.start(p);
+      return;
+    }
+    if (p.plunge) {
+      this.plunge.start(p);
       return;
     }
     // 48라운드 3연격: 판정은 휘두름 프레임(hitFrames[0]) 시작에, 지진 2단·충격파는 마지막 타에서만
@@ -195,6 +217,8 @@ export class PlayerStrikes {
               p.shapeScale?.impactMult,
             )
           : false;
+      // 56라운드 Q5: 내려찍기 끝점 땅 균열 (본 타만 — V s(관성 최대 m) · 차지 m/m/l)
+      if (!follow && !secondWave && p.crack && impact) this.swing.playCrack(p.art, impact.x, impact.y, p.crack);
       if (follow && !followFx && shape.kind === 'ring' && impact)
         g.combat.drawShockwave(impact.x, impact.y, shape.radius);
       else if (follow ? !followFx : !hasSwingArt && !impactFx)
@@ -255,7 +279,7 @@ export class PlayerStrikes {
       }
       hit.add(mob);
       swingLog.hits += 1;
-      this.applyMeleeHit(mob, p);
+      this.strikeMob(mob, p, swingLog.hits === 1 && !follow && !secondWave);
     });
     // 분쇄: 충격파 범위의 적 투사체 소멸
     const clear =
@@ -287,10 +311,17 @@ export class PlayerStrikes {
     this.g.tweens.add({ targets: g, alpha: 0, duration: PROTOTYPE.SLASH_TRAIL_MS, onComplete: () => g.destroy() });
   }
 
-  /** 근접 타격 1회: 피해 → (사망) 또는 중압 경직·출혈 */
-  private applyMeleeHit(mob: Mob, p: PlayerAttackPayload): void {
+  /**
+   * 근접 타격 1회: 피해 → (사망) 또는 중압 경직·출혈·낙인. first = 이 휘두름이 처음 맞힌 적 → 56라운드 Q12 무기 그림 번쩍임·Q14 검기.
+   * 일섬·꽂아내리기 모듈도 쓴다
+   */
+  strikeMob(mob: Mob, p: PlayerAttackPayload, first = false): void {
     const g = this.g;
     const now = g.time.now;
+    if (first) {
+      g.player.overlay.flashHit();
+      g.player.gauges.onStrikeHit();
+    }
     const mods = gameState.weapon.mods;
     const stunnedByParry = mob.isParryStunned(now);
     const { dmg, crit } = g.combat.rollDamage(p.damageMult, p.forceCrit, p.kind);
@@ -312,6 +343,8 @@ export class PlayerStrikes {
     g.structures.onMobHit(mob, false);
     if (mods.hitStunMs) mob.stun(now, mods.hitStunMs, 'hit');
     if (mods.bleed) this.dots.applyBleed(mob);
+    // 56라운드 Q16: 단검 낙인 (같은 적 타격마다, 등 뒤 2)
+    this.brands.onHit(mob, p.dirX, p.dirY);
   }
 
   /** 55라운드 Q22 대검 차지 국면: 단계 번쩍임 이펙트 (틴트 번쩍임은 Player) */
@@ -324,5 +357,8 @@ export class PlayerStrikes {
   update(time: number, delta: number): void {
     this.bow.update(delta);
     this.dots.update(time);
+    this.issen.update();
+    this.plunge.update();
+    this.brands.update(time);
   }
 }

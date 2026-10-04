@@ -5,6 +5,8 @@
  * Q15: 갈래 판정 배율(hitboxMult·강화)만큼 그림도 키운다. Q7: 칼끝 리본(`bladeTip` + RibbonRenderer)이 42라운드 흰 리본을 대신한다.
  * 55라운드 §17: 타별 판정 모양은 데이터(`hitShape` → `resolveHitShape`, 아트 메모는 참고만), 휘두름·바닥 충격·잔상 이펙트는
  * 그림 이름 표(`combo.art`)의 로드된 첫 후보.
+ * 56라운드: Q6 8행 이펙트 시트는 조준각 8분할 행(없으면 4방향 회전 규칙) · Q37 히트스톱 정지 = 붓획이 다 그어진 다음 칸
+ * (띄우는 시각은 그대로 판정 프레임 = 몸 hitAt) · Q38 칼끝 리본은 돌진류(대쉬 공격)에만 · Q5 땅 균열(`playCrack`).
  */
 import { DEPTH, ENEMY_FX, fxLitDepth } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
@@ -22,10 +24,15 @@ import {
   facingOf,
   frameStarts,
   fxHoldFrame,
+  fxImpactFrame,
   radiusFitScale,
+  rowDirFor,
   swingFxDelayMs,
+  type Dir8,
   type Facing,
 } from '../../systems/spriteDefs';
+import type { ShakeHint } from './swingShake';
+import { crackShake } from './swingShake';
 import type { Game } from '../Game';
 import { planBladeTip } from './bladeTip';
 import { HIT_ORIGIN_UP_PX, isFinisher, isMeleeStrike, pathFx } from './shared';
@@ -142,7 +149,9 @@ export class SwingFx {
     const id = pick.id;
     this.lastFxLoaded = g.fx.has(id);
     const scaleMult = pick.heatScale * hb;
-    const delay = this.playAligned(id, p.swingDelayMs, scaleMult, combo, pick.variant, dir, 1 + (p.momentum ?? 0));
+    // 56라운드 Q6: 8행 이펙트 시트(대검 붓획)는 몸과 같은 8분할 행
+    const fxDir = rowDirFor(g.fx.sheet(id), p.dirX, p.dirY, g.player.facingDir);
+    const delay = this.playAligned(id, p.swingDelayMs, scaleMult, combo, pick.variant, fxDir, 1 + (p.momentum ?? 0));
     const ribbon = this.startRibbon(p, dir, shape, id, hb);
     this.debugLast = { id, art: p.art, tier: pick.tier, scaleMult, delay, hitAt: p.swingDelayMs, ribbon };
   }
@@ -156,15 +165,16 @@ export class SwingFx {
     scaleMult: number,
     combo: boolean,
     variant: FxVariant | null,
-    dir: Facing,
+    dir: Dir8,
     timeScale = 1,
   ): number {
     const g = this.g;
     const def = g.fx.sheet(id);
     if (!def) return -1;
     const holdFrame = fxHoldFrame(def);
-    // Q23 관성: 이펙트도 몸과 같은 배속 (정지 프레임까지 시간도 그만큼 짧다)
-    const lead = (frameStarts(def)[holdFrame] ?? 0) / timeScale;
+    // 판정 프레임(impactFrame — 아트 spawnRule: spawnAtMs = hitAt − 판정 프레임까지)이 몸 hitAt 에 오게 띄운다.
+    // Q23 관성: 이펙트도 몸과 같은 배속 (판정 프레임까지 시간도 그만큼 짧다). 정지는 Q37 붓획 다음 칸(holdFrame)
+    const lead = (frameStarts(def)[fxImpactFrame(def)] ?? 0) / timeScale;
     const delay = swingFxDelayMs(hitAtMs, lead);
     const player = g.player;
     const play = () => {
@@ -195,7 +205,7 @@ export class SwingFx {
     const { id } = this.artFxId(art, 'fx');
     if (!id || !g.fx.has(id)) return false;
     const def = g.fx.sheet(id);
-    const dir = facingOf(dirX, dirY, g.player.facingDir);
+    const dir = rowDirFor(def, dirX, dirY, g.player.facingDir);
     const hitstopFrame = def ? fxHoldFrame(def) : 0;
     if (at)
       return g.fx.play(id, at.x, at.y, { dir, depth: DEPTH.FX_GROUND, scaleMult: this.hbScale, hitstopFrame }) !== null;
@@ -214,12 +224,12 @@ export class SwingFx {
     );
   }
 
-  /** 후속 판정 이펙트의 정지(판정) 프레임까지 ms — 판정 시각보다 이만큼 먼저 띄운다. 시트가 없으면 null */
+  /** 후속 판정 이펙트의 판정 프레임까지 ms — 판정 시각보다 이만큼 먼저 띄운다. 시트가 없으면 null */
   followUpLeadMs(art: string | undefined): number | null {
     const { id } = this.artFxId(art, 'fx');
     const def = id ? this.g.fx.sheet(id) : undefined;
     if (!id || !def || !this.g.fx.has(id)) return null;
-    return frameStarts(def)[fxHoldFrame(def)] ?? 0;
+    return frameStarts(def)[fxImpactFrame(def)] ?? 0;
   }
 
   /** 55라운드 Q22 차지 단계 번쩍임 이펙트 (단계 그림 키 → 차지 자세 키의 flashFx, 몸을 따라). 시트가 없으면 false */
@@ -233,13 +243,32 @@ export class SwingFx {
     const name = pickArt(names, (n) => g.fx.has(`${w}_${n}`));
     if (!name) return false;
     const player = g.player;
+    const fid = `${w}_${name}`;
+    const a = player.aimAngle;
     return (
-      g.fx.play(`${w}_${name}`, player.x, player.y, {
-        dir: player.facingDir,
+      g.fx.play(fid, player.x, player.y, {
+        dir: rowDirFor(g.fx.sheet(fid), Math.cos(a), Math.sin(a), player.facingDir),
         follow: player,
         depthOffset: DEPTH.OVERLAY_STEP * 2,
       }) !== null
     );
+  }
+
+  /**
+   * 56라운드 Q5 땅 균열 (그림 표 `crackFx` — 행 = 크기 s·m·l, 회전 없음): 판정 순간 끝점(꽂힌 자리)에 바닥 깊이, 흔들림 = 시트 shakeHint.
+   * 시트가 없으면 false
+   */
+  playCrack(art: string | undefined, x: number, y: number, row: string): boolean {
+    const g = this.g;
+    const w = gameState.weapon;
+    const names = art !== undefined ? artCandidates(w.def.combo, art, 'crackFx') : [];
+    const name = pickArt(names, (n) => g.fx.has(`${w.id}_${n}`));
+    if (!name) return false;
+    const id = `${w.id}_${name}`;
+    const ok = g.fx.play(id, x, y, { dir: row, depth: DEPTH.FX_GROUND, scaleMult: this.hbScale }) !== null;
+    const sh = crackShake((g.fx.sheet(id) as { shakeHint?: ShakeHint } | null)?.shakeHint, row);
+    if (ok && sh) g.shake.add(g.time.now, sh.px, sh.ms);
+    return ok;
   }
 
   /**
@@ -267,7 +296,7 @@ export class SwingFx {
     const scaleMult = drawnFor
       ? (impactMult ?? 1) * this.hbScale
       : radiusFitScale(radiusPx, def?.hitRadiusPx ?? ENEMY_FX.SLAM_BASE_RADIUS_PX);
-    const dir = facingOf(dirX, dirY, this.g.player.facingDir);
+    const dir = rowDirFor(def, dirX, dirY, this.g.player.facingDir);
     return fx.play(sheet, x, y, { dir, depth: DEPTH.FX_GROUND, scaleMult }) !== null;
   }
 
@@ -285,7 +314,8 @@ export class SwingFx {
     const g = this.g;
     const weapon = gameState.weapon;
     const sheet = weapon.def.feel?.ribbon;
-    if (!sheet) return null;
+    // 56라운드 Q38: 기본 연격에서는 끄고 돌진류(대쉬 공격 — 일섬·그림자 걸음은 IssenStrikes·MotionFx)에만
+    if (!sheet || p.kind !== 'dashAttack') return null;
     const fxDef =
       (fxId ? g.fx.sheet(fxId) : undefined) ??
       (p.comboIndex !== undefined ? g.fx.sheet(comboFxId(weapon.id, p.comboIndex + 1)) : undefined);

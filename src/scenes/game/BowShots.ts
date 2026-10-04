@@ -28,9 +28,9 @@ import { isHeavyStrike } from '../../systems/hitFeel';
 import { resolveFxVariant, runtimeFxVariant, type FxVariant } from '../../systems/fxVariants';
 import { spriteLibrary } from '../../systems/sprites';
 import { FX_ACTION, fxDrawScale } from '../../systems/spriteDefs';
-import { arrowFxId } from '../../systems/fxIds';
+import { arrowFxId, perfectReleaseFxId } from '../../systems/fxIds';
 import type { Game } from '../Game';
-import { pathFx } from './shared';
+import { HIT_ORIGIN_UP_PX, pathFx } from './shared';
 
 /** 저격 화살 한 발의 상태 (발사점·사거리·단계·꼬리) */
 interface SnipeShot {
@@ -121,11 +121,20 @@ export class BowShots {
     const aimed = p.kind === 'aimed';
     const { dmg, crit } = g.combat.rollDamage(p.damageMult * rapidMult, p.forceCrit, p.kind);
     // 조준 사격·섬광·관통(저격 2단): 무한 관통
-    const pierce = aimed || mods.pierceInfinite ? Infinity : (mods.pierce ?? 0);
+    // 56라운드 Q9: 약한 화살(일찍 놓기)은 관통 없음
+    const weak = p.bowPower === 'weak';
+    const pierce = (aimed && p.pierce !== false) || mods.pierceInfinite ? Infinity : (mods.pierce ?? 0);
     const size = weapon.hitbox.width * p.sizeMult;
     const speed = R.projectileSpeedTiles * TILE * (mods.projectileSpeedMult ?? 1);
     const base = Math.atan2(p.dirY, p.dirX);
-    const arrow = this.arrowSheet(aimed);
+    // 56라운드 Q26: 약한 화살 전용 그림(없으면 기본 화살을 어둡게)
+    const D = weapon.def.draw;
+    const weakSheet = weak && D && g.fx.has(D.weakArrowSheet) ? D.weakArrowSheet : null;
+    const arrow = weakSheet
+      ? { id: weakSheet, branch: false, tier2: false, variant: null }
+      : weak
+        ? { id: arrowFxId(weapon.id, false), branch: false, tier2: false, variant: null }
+        : this.arrowSheet(aimed);
     const def = g.fx.sheet(arrow.id);
     // 2단 갈래: 2단 전용 시트면 그 runtime, 대체 경로면 화살 색 교체 텍스처 (만들 수 없으면 원본)
     const variant = arrow.variant;
@@ -151,6 +160,14 @@ export class BowShots {
     if (spread.count > 1 && burstFx)
       g.fx.play(burstFx, p.x + p.dirX * reach, p.y + p.dirY * reach, { angle: base, depth: DEPTH.PROJECTILE });
     // 속사: 발사 섬광 (화살이 생기는 점 = arrow_spawn, 1회 재생 — 간격이 짧으면 처음부터 다시)
+    // 56라운드 Q9: 완벽 놓기 섬광 (화살이 생기는 점, 발사 각도)
+    const perfectFx = perfectReleaseFxId(weapon.id);
+    if (p.bowPower === 'perfect' && g.fx.has(perfectFx))
+      g.fx.play(perfectFx, p.x + p.dirX * reach, p.y + p.dirY * reach - HIT_ORIGIN_UP_PX, {
+        angle: base,
+        flipY: p.dirX < 0,
+        depth: DEPTH.PROJECTILE + 0.02,
+      });
     const muzzle = this.first ? muzzleFxId(weapon.id, this.first) : null;
     if (muzzle && g.fx.has(muzzle))
       g.fx.play(muzzle, p.x + p.dirX * reach, p.y + p.dirY * reach, { angle: base, depth: DEPTH.PROJECTILE + 0.01 });
@@ -178,6 +195,7 @@ export class BowShots {
       );
       shot.crit = crit;
       shot.heavy = isHeavyStrike(p);
+      if (weak && !weakSheet && D) shot.setTint(D.weakArrowTint);
       if (mods.homingTurnDeg) shot.homingTurn = Phaser.Math.DegToRad(mods.homingTurnDeg);
       if (aimed && mods.aimedShotStunMs) shot.hitStunMs = mods.aimedShotStunMs;
       // 중시: 적중 시 번개 낙하(heavyarrow_hit, 섬광·흔들림은 시트 JSON)
@@ -224,6 +242,7 @@ export class BowShots {
       time: now,
       aimed,
       sheet: arrow.id,
+      power: p.bowPower ?? null,
       branchSheet: arrow.branch,
       tier2: arrow.tier2,
       texture,

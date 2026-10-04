@@ -26,6 +26,8 @@ export type ComboStrike = {
   shapeScale?: { lengthMult?: number; impactMult?: number };
   /** 55라운드: 타 데이터 뒤에 더 붙는 후속 판정 (차지 단계의 충격파 링) */
   extraFollowUps?: ComboFollowUpDef[];
+  /** 56라운드 Q5: 판정 순간 땅 균열 행 (s·m·l) */
+  crack?: string;
 };
 
 /** 조준 방향 단위벡터 (커서가 몸 위면 바라보는 방향) · 커서까지 거리 */

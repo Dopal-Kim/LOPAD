@@ -23,10 +23,13 @@ import {
   AUDIO_TRIGGERS,
   CHARGE_SFX,
   FOLLOW_UP_SFX,
+  MOVE_SFX_RESERVED,
   SFX,
+  SFX56,
   bossActionSfx,
   bossLoopSfx,
   chargeSfxIds,
+  sfx56Ids,
   staticSfxIds,
 } from './audioMap';
 import { Events, type BossActionKind } from '../core/EventBus';
@@ -159,6 +162,9 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       ...Object.values(SFX.boss1),
       // 55라운드 차지·잔상 (후보 목록 — 없어도 무음)
       ...chargeSfxIds(),
+      // 56라운드 무기 피드백 · 새 공격 수단 예약(아트 대기)
+      ...sfx56Ids(),
+      ...MOVE_SFX_RESERVED,
     ]);
     const unused = manifest.entries.filter((e) => e.kind === 'sfx' && !used.has(e.id)).map((e) => e.id);
     expect(unused).toEqual([]);
@@ -248,5 +254,58 @@ describe('55라운드 Q32 차지·잔상 효과음 매핑 (CHARGE_SFX · FOLLOW_
     expect(tr).toHaveLength(1);
     expect(sfxOf(tr[0], { weapon: 'katana', id: 'echo' })).toEqual(FOLLOW_UP_SFX['katana:echo']);
     expect(sfxOf(tr[0], { weapon: 'greatsword', id: 'ring' })).toBeNull();
+  });
+});
+
+describe('56라운드 무기 피드백 효과음 (SFX56)', () => {
+  const fire = (event: string, payload: unknown) =>
+    AUDIO_TRIGGERS.filter((tr) => tr.event === event && (!tr.when || tr.when(payload)));
+  const ids = (event: string, payload: unknown) =>
+    fire(event, payload)
+      .map((tr) => (typeof tr.sfx === 'function' ? tr.sfx(payload) : tr.sfx))
+      .filter(Boolean);
+
+  it('차지 유지음 음높이 단계 1.0 / 1.03 / 1.06', () => {
+    const rates = [1, 2, 3].map((n) =>
+      fire(Events.PLAYER_CHARGE, { phase: 'stage', stage: n })
+        .map((tr) => tr.loopRate?.({ phase: 'stage', stage: n }))
+        .find(Boolean),
+    );
+    expect(rates).toEqual([
+      { id: CHARGE_SFX.loop, rate: 1 },
+      { id: CHARGE_SFX.loop, rate: 1.03 },
+      { id: CHARGE_SFX.loop, rate: 1.06 },
+    ]);
+  });
+
+  it('꽂아내리기 = gs_plunge + gs_crack(40ms 뒤), 기본 차지 = charge_slam', () => {
+    const plunge = { phase: 'release', stage: 3, impactDelayMs: 280, mode: 'plunge' };
+    expect(ids(Events.PLAYER_CHARGE, plunge)).toEqual([SFX56.gsPlunge, SFX56.gsCrack]);
+    const crack = fire(Events.PLAYER_CHARGE, plunge).find((tr) => tr.sfx === SFX56.gsCrack);
+    expect(crack?.delayMs?.(plunge)).toBe(320);
+    expect(ids(Events.PLAYER_CHARGE, { phase: 'release', stage: 3, impactDelayMs: 180 })).toEqual([CHARGE_SFX.slam(3)]);
+  });
+
+  it('퍼펙트 가드 · 그로기 · 검기 단 · 일섬 · 활 약한/완벽 놓기', () => {
+    expect(ids(Events.PLAYER_PERFECT_GUARD, { x: 0, y: 0, attack: 5 })).toEqual([SFX56.perfectGuard]);
+    expect(ids(Events.WEAPON_RESOURCE, { weapon: 'katana', kind: 'stamina', event: 'groggy' })).toEqual([
+      SFX56.groggyStart,
+    ]);
+    expect(ids(Events.WEAPON_GAUGE, { weapon: 'katana', gauge: 'kenki', event: 'stage', stage: 2 })).toEqual([
+      'sfx/kenki_stage2',
+    ]);
+    expect(ids(Events.WEAPON_GAUGE, { weapon: 'katana', gauge: 'kenki', event: 'consume', stage: 3 })).toEqual([]);
+    expect(ids(Events.PLAYER_SKILL, { weapon: 'katana', move: 'issen', phase: 'dash' })).toEqual([SFX56.issenDash]);
+    expect(ids(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'release', power: 'weak' })).toEqual([
+      SFX56.bowReleaseWeak,
+    ]);
+    expect(ids(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'release', power: 'perfect' })).toEqual([
+      SFX56.bowReleasePerfect,
+    ]);
+  });
+
+  it('예약 목록과 56라운드 목록은 겹치지 않는다', () => {
+    const a = new Set(sfx56Ids());
+    for (const id of MOVE_SFX_RESERVED) expect(a.has(id), id).toBe(false);
   });
 });

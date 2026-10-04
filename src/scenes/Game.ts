@@ -58,6 +58,7 @@ import { MotionFx } from './game/MotionFx';
 import { PlayerStrikes } from './game/PlayerStrikes';
 import { Progression } from './game/Progression';
 import { RouteFlow } from './game/RouteFlow';
+import { WeaponFeedback } from './game/WeaponFeedback';
 import { UiRelay } from './game/UiRelay';
 import { WorldSetup } from './game/WorldSetup';
 import { SENSE_BONUS_MAX, urlParams, type GameInitData } from './game/shared';
@@ -140,6 +141,8 @@ export class Game extends Phaser.Scene {
   birth: BirthFlow;
   labMode: LabMode | null = null;
   ui: UiRelay;
+  /** 56라운드 무기 피드백 연출 (월드 문구·숨 집중·과열 낙인 폭발) */
+  feedback: WeaponFeedback;
 
   initData: GameInitData = {};
   private senseBonus = 0;
@@ -170,6 +173,7 @@ export class Game extends Phaser.Scene {
     this.economy = new Economy(this);
     this.birth = new BirthFlow(this);
     this.ui = new UiRelay(this);
+    this.feedback = new WeaponFeedback(this);
     this.labMode = this.lab ? new LabMode(this, this.initData) : null;
     this.frozen = false;
     this.hitStopped = false;
@@ -385,7 +389,7 @@ export class Game extends Phaser.Scene {
   }
 
   private bindEvents(): void {
-    const { strikes: s, progress: p, combat: c, ui, motion: m } = this;
+    const { strikes: s, progress: p, combat: c, ui, motion: m, feedback: f } = this;
     this.subs = [
       [Events.PLAYER_ATTACKED, s.onPlayerAttacked, s],
       [Events.PLAYER_CHARGE, s.onPlayerCharge, s],
@@ -404,6 +408,10 @@ export class Game extends Phaser.Scene {
       [Events.PLAYER_SHADOW_STEP, m.onShadowStep, m],
       [Events.PLAYER_DASHED, m.onPlayerDashed, m],
       [Events.ENEMY_INCOMING, ui.relayEnemyIncoming, ui],
+      [Events.PLAYER_PERFECT_GUARD, f.onPerfectGuard, f],
+      [Events.PLAYER_PARRIED, f.onParried, f],
+      [Events.WEAPON_GAUGE, f.onGauge, f],
+      [Events.WEAPON_RESOURCE, f.onResource, f],
     ];
     for (const [event, fn, ctx] of this.subs) EventBus.on(event, fn, ctx);
   }
@@ -582,6 +590,8 @@ export class Game extends Phaser.Scene {
     // 엔딩 선택 뒤 정지 상태로 씬이 끝나면 물리 플러그인이 먼저 정리돼 world 가 없을 수 있다
     if ((this.frozen || this.hitStopped) && this.physics.world) this.physics.world.resume();
     this.numbers.destroy();
+    this.feedback.destroy();
+    this.strikes.brands.destroy();
     this.telegraph.destroy();
     this.ribbons.destroy();
     this.ash.destroy();

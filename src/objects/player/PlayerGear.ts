@@ -32,7 +32,10 @@ export class PlayerGear {
       const sameWeapon = this.trackerWeapon.split('|')[0] === w.id;
       const prev = this.tracker;
       this.trackerWeapon = key;
-      this.tracker = def ? new WeaponResource(def) : null;
+      // 56라운드 Q18: 단검 낙인 연동 — 과열 식는 동안 공격 가능·느려짐
+      const g = w.def.gauge;
+      const cooling = g?.kind === 'brand' ? { speedMult: g.coolingSpeedMult, moveMult: g.coolingMoveMult } : null;
+      this.tracker = def ? new WeaponResource(def, cooling) : null;
       if (sameWeapon && prev && this.tracker) {
         // 탄창이 커지면 늘어난 만큼 채워 준다
         const grow = Math.max(0, this.tracker.max - prev.max);
@@ -97,7 +100,7 @@ export class PlayerGear {
     if (before.oh && !res.overheated) emit('cooled');
     if (!before.oh && res.overheated) emit('overheat');
     // 소모·가열(공격 시점)로 생긴 변화는 다음 프레임에 잡는다
-    if (!this.prevExhausted && res.isExhausted) emit('exhausted');
+    if (!this.prevExhausted && res.isExhausted) emit(res.isGroggy ? 'groggy' : 'exhausted');
     this.prevExhausted = res.isExhausted;
     if (res.kind === 'heat' && res.stage !== this.prevStage) emit('heatStage', res.stage);
     this.prevStage = res.stage;
@@ -146,7 +149,8 @@ export class PlayerGear {
     const carry = gameState.weapon.def.carry;
     const visual = this.p.visual;
     // 51라운드 Q4: sheatheAfterMs 0 = 자동으로 넣지 않음 (F 키로만)
-    if (!this.drawn || !carry || carry.mode === 'hand' || carry.sheatheAfterMs <= 0 || this.p.action !== 'normal') return;
+    if (!this.drawn || !carry || carry.mode === 'hand' || carry.sheatheAfterMs <= 0 || this.p.action !== 'normal')
+      return;
     if (time - this.lastAttackAt < carry.sheatheAfterMs || visual.isBusy(time)) return;
     this.drawn = false;
     const act = motionAction(gameState.weapon.id, 'sheathe');

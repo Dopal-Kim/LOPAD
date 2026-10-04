@@ -105,7 +105,8 @@ describe('48라운드 판정 모양', () => {
   it('모양: 아트 메모가 데이터보다 우선, 배율 적용, left 는 좌우 반전', () => {
     const k = WEAPONS.katana;
     const s1 = comboShape(k.combo!, k.hitbox, 1);
-    expect(s1).toMatchObject({ kind: 'arc', radius: 33, arcDeg: 140 });
+    // 56라운드 Q1 사거리 ×1.15 (반경 33 → 38)
+    expect(s1).toMatchObject({ kind: 'arc', radius: 38, arcDeg: 140 });
     const s2 = comboShape(k.combo!, k.hitbox, 1.5, { hitRadiusPx: 20, arcDeg: 90, arcFromDeg: 65, arcToDeg: -25 });
     expect(s2).toMatchObject({ kind: 'arc', radius: 30, arcDeg: 90, centerDeg: 20 });
     const d = WEAPONS.dagger;

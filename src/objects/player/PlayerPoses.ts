@@ -12,6 +12,7 @@ import type { InputState } from '../../systems/InputSystem';
 import {
   aimAction,
   bodyBaseAction,
+  GROGGY_ACTION,
   facingOf,
   frameDurations,
   progressFrame,
@@ -19,6 +20,7 @@ import {
   type Facing,
 } from '../../systems/spriteDefs';
 import { bodyActionFor, strideRate } from '../../systems/spriteMeta';
+import { drawFrame } from '../../systems/bowDraw';
 import type { Player } from '../Player';
 
 /** 48라운드 특수 자세 구간 */
@@ -69,13 +71,22 @@ export class PlayerPoses {
     visual.playFrames(action, this.aimFacing(input), cols[step], time, fitMs);
   }
 
-  /** 유지형 보조 동작 자세: 가드 = 특수 자세 loopFrames 반복, 조준 = 활 조준 시트의 진행도 프레임 (min(5, floor(p×5))) */
+  /**
+   * 유지형 보조 동작 자세: 가드 = 특수 자세 loopFrames 반복, 활 = 56라운드 당김 유지 시트(`<무기>_draw_hold` — 진행 → 유지 반복 →
+   * 흔들림 반복, `bowDraw.drawFrame`), 없으면 조준 시트의 진행도 프레임 (min(5, floor(p×5)))
+   */
   holdSecondary(input: InputState, time: number): void {
     const p = this.p;
     const visual = p.visual;
     const id = gameState.weapon.id;
     const dir = this.aimFacing(input);
     if (p.action === 'aim') {
+      const hold = `${id}_draw_hold`;
+      const st = p.secondaryDriver.drawStateAt(time);
+      if (st && visual.hasAction(hold)) {
+        visual.hold(hold, dir, drawFrame(st, visual.sheet(hold)!), time, SECONDARY_HOLD_MS);
+        return;
+      }
       const action = aimAction(id);
       if (!visual.hasAction(action)) return;
       const def = visual.sheet(action)!;
@@ -86,6 +97,11 @@ export class PlayerPoses {
       const action = specialAction(id);
       if (!visual.hasAction(action) || visual.isBusy(time)) return;
       const def = visual.sheet(action)!;
+      // 56라운드 Q48 칼 가드: 반복 열이 없는 패링 자세는 창 끝 열(holdFrame) 유지
+      if (!def.loopFrames && typeof def.holdFrame === 'number') {
+        visual.hold(action, dir, def.holdFrame, time, SECONDARY_HOLD_MS);
+        return;
+      }
       const loop = def.loopFrames ?? [1, 2];
       const d = frameDurations(def);
       if (!visual.current?.includes(`#p${loop.join('-')}`) || visual.facing !== dir)
@@ -93,9 +109,17 @@ export class PlayerPoses {
     }
   }
 
-  /** 조준 사격 발사 순간: 활 조준 시트의 발사 프레임(releaseFrame) 1회. 시트가 없으면 false */
+  /**
+   * 조준 사격 발사 순간: 56라운드 놓기 시트(`<무기>_release`, 화살 = f0 시작) 1회 → 없으면 활 조준 시트의 발사 프레임(releaseFrame).
+   * 시트가 없으면 false
+   */
   playAimRelease(dir: Facing, time: number): boolean {
     const visual = this.p.visual;
+    const release = `${gameState.weapon.id}_release`;
+    if (visual.hasAction(release)) {
+      visual.release();
+      return visual.oneShot(release, dir, time) > 0;
+    }
     const action = aimAction(gameState.weapon.id);
     if (!visual.hasAction(action)) return false;
     const def = visual.sheet(action)!;
@@ -147,7 +171,9 @@ export class PlayerPoses {
     const moving = dir.lengthSq() > 0 && p.action !== 'dash';
     const facing = moving ? facingOf(dir.x, dir.y, p.visual.facing) : this.aimFacing(input);
     if (!moving) {
-      p.visual.loop(this.bodyAction('idle'), facing, time);
+      // 56라운드 Q7: 그로기 중 서 있으면 그로기 몸(칼·대검 공용 루프, 시트가 없으면 대기)
+      const groggy = p.groggy && p.action === 'normal' && p.visual.hasAction(GROGGY_ACTION);
+      p.visual.loop(groggy ? GROGGY_ACTION : this.bodyAction('idle'), facing, time);
       return false;
     }
     // 53라운드 Q10: 기본 이동 = run 그림, 감속 상태(조준·충전·당김·가드·기력 바닥 등)만 walk. Shift 달리기 = run 을 더 빠르게

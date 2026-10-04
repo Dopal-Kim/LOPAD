@@ -8,7 +8,7 @@
       "name": "사무라이 칼",
       "kind": "melee",
       "resource": {
-        "_note": "49라운드 임시값: 기력 — 공격·대쉬·대쉬 공격이 소모(칼 보통), 시간 회복. 바닥나면 이동 감속·강한 타(3타·대쉬 공격) 불가. 비전투 달리기는 소모 없음",
+        "_note": "49라운드 임시값: 기력 — 공격·대쉬·대쉬 공격이 소모(칼 보통), 시간 회복. 바닥나면 이동 감속·강한 타(3타·대쉬 공격) 불가. 비전투 달리기는 소모 없음 56라운드 Q7·Q19: 기력 0 → 그로기 groggyMs(1.5초, 공격·대쉬 불가·패링만, 시간이 지나야만 풀림 — 풀리면 max × recoverRatio)",
         "kind": "stamina",
         "label": "기력",
         "max": 100,
@@ -22,7 +22,8 @@
           "dash": 12,
           "dashAttack": 16,
           "slam": 0
-        }
+        },
+        "groggyMs": 1500
       },
       "carry": {
         "_note": "49라운드 임시값: 허리 칼집. 1타가 발도(뽑기 = 첫 타). 51라운드 Q4: F = 넣기/뽑기, 자동 납도 끔(sheatheAfterMs 0), 넣은 동안 기력 회복 ×sheathedRegenMult, 넣은 채 첫 타 = 발도(확정 치명)",
@@ -50,7 +51,7 @@
         "_note": "48라운드 임시값: '씽 씽씽'. 판정 = 몸 중심(발 위 10px). 51라운드 Q3 템포(임시): 3연격(1타 시작 → 3타 끝) 약 1.1초 — hitAtMs = 판정 프레임 시작(예비 동작 구간). 55라운드 §17 K-A 발도 초승달(Q19): 1타 대각 올려베기(+70°→−40°) → 2타 대각 내려베기(−70°→+40°, X자) → 3타 수평 발도 150°(−75°→+75° — 왼 허리 칼집에서 뽑는 방향, 55라운드 Q26 · 그림과 같은 방향, R×1.25, 내반경 = 초승달) + 150ms 뒤 같은 호 잔상 베기 50%. 각도 = 조준 0°·화면 시계 방향 +(leftTransform rotate = 왼쪽 조준은 180° 회전, 아트 dirTransform 과 같게 — 확인 전 임시), R = radiusPx × 갈래·강화·크기 배율. step = 방향키를 누를 때만 내딛기(Q21, 구간 = 몸 시트 stepPx.frames). 타 시간은 51라운드 Q3 템포(3연격 약 1.1초) 유지 — 아트 8ddce9c 새 시트(제안 260·210·410ms)를 두 구간 맞춤으로 늘여 재생(이펙트 판정 프레임 = 몸 판정 프레임). 내반경 0.45 = 아트 그림 값(임시)",
         "shape": "arc",
         "arcDeg": 140,
-        "radiusPx": 33,
+        "radiusPx": 38,
         "bufferMs": 220,
         "resetMs": 380,
         "finisherRecoverMs": 160,
@@ -60,50 +61,57 @@
           "rise": { "body": ["rise", "combo1"], "fx": ["rise", "combo1"] },
           "fall": { "body": ["fall", "combo2"], "fx": ["fall", "combo2"] },
           "crescent": { "body": ["crescent", "combo3"], "fx": ["crescent", "combo3"] },
-          "echo": { "fx": ["crescent_echo", "combo3"] }
+          "echo": { "fx": ["crescent_echo", "combo3"] },
+          "issen": { "body": ["issen", "crescent", "combo3"], "fx": [] }
         },
         "hits": [
           {
-            "damageMult": 1.6,
+            "damageMult": 1.8,
             "sizeMult": 1.0,
-            "durationMs": 520,
-            "hitAtMs": 160,
-            "cancelFromMs": 380,
-            "activeMs": 60,
+            "durationMs": 470,
+            "hitAtMs": 150,
+            "cancelFromMs": 410,
+            "activeMs": 40,
             "art": "rise",
             "hitShape": { "kind": "arc", "fromDeg": 70, "toDeg": -40 },
             "step": { "px": 5, "ms": 80 }
           },
           {
-            "damageMult": 1.0,
+            "damageMult": 1.3,
             "sizeMult": 1.0,
-            "durationMs": 300,
-            "hitAtMs": 90,
-            "cancelFromMs": 155,
-            "activeMs": 50,
+            "durationMs": 440,
+            "hitAtMs": 120,
+            "cancelFromMs": 380,
+            "activeMs": 40,
             "art": "fall",
             "hitShape": { "kind": "arc", "fromDeg": -70, "toDeg": 40 },
             "step": { "px": 5, "ms": 70 }
           },
           {
-            "damageMult": 1.4,
+            "damageMult": 2.0,
             "sizeMult": 1.0,
-            "durationMs": 560,
-            "hitAtMs": 150,
-            "cancelFromMs": 560,
-            "activeMs": 60,
-            "art": "crescent",
-            "hitShape": { "kind": "arc", "fromDeg": -75, "toDeg": 75, "innerRatio": 0.45, "radiusMult": 1.25 },
-            "step": { "px": 15, "ms": 110 },
-            "heavy": true,
-            "followUps": [{ "id": "echo", "delayMs": 150, "damageMult": 0.5, "art": "echo" }]
+            "durationMs": 740,
+            "hitAtMs": 250,
+            "cancelFromMs": 700,
+            "activeMs": 80,
+            "art": "issen",
+            "move": "issen",
+            "heavy": true
           }
-        ]
+        ],
+        "_note56": "56라운드 Q1 템포 약 1.5초·사거리 ×1.15(반경 33→38)·타당 피해 상향(임시 1.8/1.3/2.0) — 아트 combo56 새 시트 시간 그대로(rise 470/150 · fall 440/120 · issen 740/250). Q2 3타 = 일섬(move issen — 무기 데이터 issen), 55라운드 3타 발도 초승달·잔상 베기는 그림 표에 남겨 둠(Q35 재사용 후보)"
       },
       "secondary": {
-        "kind": "parry",
-        "name": "패링",
-        "description": "공격이 닿는 순간 우클릭. 받아치면 빈틈이 생긴다."
+        "_note": "56라운드 Q48: 우클릭 = 가드(누르는 동안 피해 감소·느려짐), 누른 직후 0.15초(player.perfectGuard) 안에 맞으면 패링(피해 0·튕겨냄·PARRY·검기 1단·간파 반격 자리). 그로기 중에도 이 가드로 버틴다. 11라운드 패링 창 0.2초 대체. 감소·이동 배율은 임시값, 떼도 밀쳐내지 않음",
+        "kind": "guard",
+        "name": "가드·패링",
+        "damageReduction": 0.5,
+        "moveMult": 0.55,
+        "pushRadiusTiles": 0,
+        "pushSpeedTiles": 0,
+        "pushMs": 0,
+        "perfect": "parry",
+        "description": "누르는 동안 막는다. 누르는 순간 맞으면 받아쳐 빈틈을 만든다."
       },
       "affinity": {
         "strokeLength": 0.6,
@@ -184,13 +192,46 @@
             ]
           }
         ]
+      },
+      "issen": {
+        "_note": "56라운드 Q2·Q3·Q28·Q29 (몸 시트 player_katana_issen 메모 기준, 월드 px): 220~370ms 조준 4방향으로 64px(4칸) 돌진·적 관통·벽에 막히면 멈춤·돌진 중 무적, 판정 250~330ms = 출발 원점 뒤 6px ~ 이동 거리 + 16px, 폭 18px. 선 시트는 220ms 에 출발 발 위치(바닥 깊이), 실제 이동 칸 수로 t1~t4. 분신은 검기 3단 소모 시에만 — 420ms 출발, 570ms(도착) 선 위 적 전부 50% 1회. 분신이 없으면 _solo 선(끝 폭발은 연출만)",
+        "dashStartMs": 220,
+        "dashEndMs": 370,
+        "distancePx": 64,
+        "tilePx": 16,
+        "hitFromMs": 250,
+        "hitToMs": 330,
+        "hitBackPx": 6,
+        "hitExtraPx": 16,
+        "hitWidthPx": 18,
+        "lineSheets": ["katana_issen_line_t1", "katana_issen_line_t2", "katana_issen_line_t3", "katana_issen_line_t4"],
+        "soloSuffix": "_solo",
+        "burstAtLineMs": 350,
+        "shadow": {
+          "sheet": "katana_issen_shadow",
+          "startAtMs": 420,
+          "travelMs": 150,
+          "hitAtMs": 570,
+          "damageScale": 0.5
+        }
+      },
+      "gauge": {
+        "_note": "56라운드 Q14 검기(劍氣) 3단 (임시값): 근접 적중마다 gainPerHit, 패링 성공 시 1단 즉시, 일섬이 전부 소모(단마다 피해 +25%), 3단이면 그림자 분신(Q28). 칼날 빛 재→호박→백열은 아트 오버레이 전까지 무기 곱 틴트",
+        "kind": "kenki",
+        "label": "검기",
+        "stages": 3,
+        "perStage": 100,
+        "gainPerHit": 22,
+        "parryGainStages": 1,
+        "issenDamagePerStage": 0.25,
+        "cloneAtStages": 3
       }
     },
     "greatsword": {
       "name": "대검",
       "kind": "melee",
       "resource": {
-        "_note": "49라운드 임시값: 기력 — 대검은 크게 소모, 회복 느림. 바닥나면 이동 감속·강한 타(3타·대쉬 공격·내리찍기) 불가",
+        "_note": "49라운드 임시값: 기력 — 대검은 크게 소모, 회복 느림. 바닥나면 이동 감속·강한 타(3타·대쉬 공격·내리찍기) 불가 56라운드 Q7·Q19: 기력 0 → 그로기 groggyMs(1.5초, 공격·대쉬 불가·가드만)",
         "kind": "stamina",
         "label": "기력",
         "max": 100,
@@ -205,7 +246,8 @@
           "dash": 15,
           "dashAttack": 26,
           "slam": 32
-        }
+        },
+        "groggyMs": 1500
       },
       "carry": {
         "_note": "49라운드 임시값: 등에 멤. 1타 f0~f1 이 곧 등에서 끌어올리기(아트 메모) → 별도 뽑기 없이 1타(drawMs 0). 51라운드 Q4: F = 넣기/뽑기, 자동으로 넣지 않음, 넣은 동안 기력 회복 ×sheathedRegenMult, 넣은 채 첫 타 = 끌어내기(넉백 ×knockbackMult)",
@@ -268,28 +310,47 @@
         "leftTransform": "rotate",
         "art": {
           "h1": { "body": ["sweep_cw", "combo1"], "fx": ["sweep_cw", "combo1"] },
-          "v": { "body": ["cleave", "slam", "combo3"], "fx": ["cleave"], "impactFx": ["cleave_impact", "slam"] },
+          "v": {
+            "body": ["cleave", "slam", "combo3"],
+            "fx": ["cleave"],
+            "impactFx": ["cleave_impact", "slam"],
+            "crackFx": ["ground_crack"],
+            "crackRow": "s",
+            "crackRowAtMax": "m"
+          },
           "h2": { "body": ["sweep_ccw", "combo2"], "fx": ["sweep_ccw", "combo2"] },
           "charge": { "body": ["charge", "slam", "combo3"], "fx": [], "holdColumn": 3 },
           "charge1": {
             "body": ["charge_slam", "slam", "combo3"],
             "fx": ["charge_slam_lv1"],
             "impactFx": ["cleave_impact", "slam"],
-            "flashFx": ["charge_flash_lv1"]
+            "flashFx": ["charge_flash_lv1"],
+            "crackFx": ["ground_crack"],
+            "crackRow": "m"
           },
           "charge2": {
             "body": ["charge_slam", "slam", "combo3"],
             "fx": ["charge_slam_lv2"],
             "impactFx": ["cleave_impact", "slam"],
-            "flashFx": ["charge_flash_lv2"]
+            "flashFx": ["charge_flash_lv2"],
+            "crackFx": ["ground_crack"],
+            "crackRow": "m"
           },
           "charge3": {
             "body": ["charge_slam", "slam", "combo3"],
             "fx": ["charge_slam_lv3"],
             "impactFx": ["cleave_impact", "slam"],
-            "flashFx": ["charge_flash_lv3"]
+            "flashFx": ["charge_flash_lv3"],
+            "crackFx": ["ground_crack"],
+            "crackRow": "l"
           },
-          "ring": { "fx": ["charge_ring"] }
+          "ring": { "fx": ["charge_ring"] },
+          "plunge": {
+            "body": ["charge_plunge", "charge_slam", "slam"],
+            "fx": [],
+            "crackFx": ["ground_crack"],
+            "crackRow": "l"
+          }
         },
         "hits": [
           {
@@ -297,7 +358,7 @@
             "sizeMult": 1.0,
             "durationMs": 820,
             "hitAtMs": 380,
-            "cancelFromMs": 550,
+            "cancelFromMs": 630,
             "activeMs": 90,
             "art": "h1",
             "hitShape": { "kind": "arc", "fromDeg": -75, "toDeg": 75, "innerRatio": 0.35 },
@@ -306,9 +367,9 @@
           {
             "damageMult": 1.5,
             "sizeMult": 1.0,
-            "durationMs": 900,
+            "durationMs": 920,
             "hitAtMs": 440,
-            "cancelFromMs": 640,
+            "cancelFromMs": 740,
             "activeMs": 90,
             "art": "v",
             "hitShape": { "kind": "wedge", "widthDeg": 40, "lengthMult": 1.3, "impactCircle": { "radiusRatio": 0.35 } },
@@ -318,9 +379,9 @@
           {
             "damageMult": 1.0,
             "sizeMult": 1.0,
-            "durationMs": 800,
-            "hitAtMs": 360,
-            "cancelFromMs": 535,
+            "durationMs": 820,
+            "hitAtMs": 380,
+            "cancelFromMs": 630,
             "activeMs": 90,
             "art": "h2",
             "hitShape": { "kind": "arc", "fromDeg": 75, "toDeg": -75, "innerRatio": 0.35 },
@@ -329,9 +390,9 @@
           {
             "damageMult": 1.5,
             "sizeMult": 1.0,
-            "durationMs": 900,
+            "durationMs": 920,
             "hitAtMs": 440,
-            "cancelFromMs": 640,
+            "cancelFromMs": 740,
             "activeMs": 90,
             "art": "v",
             "hitShape": { "kind": "wedge", "widthDeg": 40, "lengthMult": 1.3, "impactCircle": { "radiusRatio": 0.35 } },
@@ -352,33 +413,23 @@
               "lengthMult": 1.8,
               "damageMult": 2.0,
               "impactMult": 1.3,
-              "art": "charge3",
-              "followUps": [
-                {
-                  "id": "ring",
-                  "delayMs": 120,
-                  "damageMult": 0.6,
-                  "at": "impact",
-                  "hitShape": { "kind": "ring", "radiusMult": 1.0, "innerRatio": 0.45 },
-                  "activeMs": 100,
-                  "art": "ring"
-                }
-              ]
+              "art": "charge3"
             }
           ],
           "hit": {
             "damageMult": 1.5,
             "sizeMult": 1.0,
-            "durationMs": 480,
-            "hitAtMs": 120,
-            "cancelFromMs": 480,
+            "durationMs": 700,
+            "hitAtMs": 180,
+            "cancelFromMs": 700,
             "activeMs": 80,
             "art": "charge1",
             "hitShape": { "kind": "wedge", "widthDeg": 40, "lengthMult": 1.3, "impactCircle": { "radiusRatio": 0.35 } },
             "step": { "px": 12, "ms": 120 },
             "heavy": true
           }
-        }
+        },
+        "_note56": "56라운드 Q5·Q25 무게: 아트 combo56_body 새 시트 시간 그대로(H 820/380 · V 920/440 · 차지 내려찍기 700/180 · 꽂아내리기 800/280, 3타 약 2.6초 — 55라운드 Q29 '약 2초' 대체), 몸 시트 holdFrames(선딜 버팀)·dragFrames(끌림 — dragStepPx 를 방향키와 무관하게 미끄러짐). Q6 8방향(조준각 8분할 행). Q10 기본 차지 = 충격파 링 없는 강한 내려찍기, 개성 발현(충격파 갈래) 후 차지 = 꽂아내리기(plunge). 균열 crackRow: V s(관성 최대 m) · 차지 1·2단 m · 3단 l · 꽂아내리기 l"
       },
       "secondary": {
         "kind": "guard",
@@ -388,7 +439,8 @@
         "pushRadiusTiles": 2.5,
         "pushSpeedTiles": 14,
         "pushMs": 220,
-        "description": "누르는 동안 버틴다(피해 -70%, 느려짐). 떼면 밀쳐낸다."
+        "description": "누르는 동안 버틴다(피해 -70%, 느려짐). 떼면 밀쳐낸다.",
+        "perfect": "guard"
       },
       "affinity": {
         "strokeLength": 0.9,
@@ -472,13 +524,40 @@
             ]
           }
         ]
+      },
+      "plunge": {
+        "_note": "56라운드 Q10 (임시값): 충격파 갈래(파쇄 — mods.shockwave) 발현 후 차지를 떼면 휘두르지 않고 칼을 꽂아(몸 시트 plantAnchors) 마우스 방향 충격파(fx greatsword_plunge_wave — 앞머리가 지나간 칸만) + 꽂힌 자리 작은 충격원 + 균열 l. 피해 = 차지 hit × 단계 배율 × 울분 보너스 × 각 배율",
+        "art": "plunge",
+        "durationMs": 800,
+        "hitAtMs": 280,
+        "plantRadiusRatio": 0.45,
+        "plantDamageMult": 1.0,
+        "wave": {
+          "sheet": "greatsword_plunge_wave",
+          "lengthMultByStage": [1.4, 1.7, 2.0],
+          "halfWidthPx": 13,
+          "damageMult": 0.8,
+          "travelMs": 220
+        },
+        "crackRow": "l"
+      },
+      "gauge": {
+        "_note": "56라운드 Q15 울분(鬱憤) (임시값): 가드로 줄인 피해 × blockGainMult(퍼펙트 가드 = 원래 피해 × perfectMult, 그로기 중 가드 × groggyMult) 가 쌓이고, 차지 내려찍기·꽂아내리기가 전부 소모해 피해 +slamDamageBonus·판정 길이 +slamRangeBonus (가득 기준, 비율만큼)",
+        "kind": "grudge",
+        "label": "울분",
+        "max": 100,
+        "blockGainMult": 2.0,
+        "perfectMult": 2.0,
+        "groggyMult": 3.0,
+        "slamDamageBonus": 1.0,
+        "slamRangeBonus": 0.3
       }
     },
     "dagger": {
       "name": "단검",
       "kind": "melee",
       "resource": {
-        "_note": "49라운드 임시값: 과열 — 연격이 이어질수록 가열(단계 0→3, 공격속도↑·이펙트 강화). 최대 열을 1.5초 유지하면 과열 → 1.6초 냉각(공격 불가)",
+        "_note": "49라운드 임시값: 과열 — 연격이 이어질수록 가열(단계 0→3, 공격속도↑·이펙트 강화). 최대 열을 1.5초 유지하면 과열 → 1.6초 냉각(공격 불가) 56라운드 Q18: 100% 즉시 과열 → 낙인 일괄 폭발, 식는 동안(1.2초) 공격 가능·느려짐(gauge.coolingSpeedMult)",
         "kind": "heat",
         "label": "열기",
         "max": 100,
@@ -487,8 +566,8 @@
         "decayDelayMs": 450,
         "stages": [30, 60, 90],
         "speedMults": [1.0, 1.15, 1.3, 1.5],
-        "overheatHoldMs": 1500,
-        "cooldownMs": 1600
+        "overheatHoldMs": 0,
+        "cooldownMs": 1200
       },
       "carry": {
         "_note": "49라운드: 손(역수)",
@@ -496,7 +575,7 @@
         "drawMs": 0,
         "sheatheAfterMs": 0
       },
-      "damageMult": 0.6,
+      "damageMult": 0.84,
       "critBonus": 20,
       "attackSlowMult": 1.0,
       "feel": { "hitstopMs": 30, "ribbon": "ribbon_ash_thin", "shakeEveryHit": false },
@@ -511,7 +590,7 @@
         "_note": "48라운드 임시값: '슈슈슉' 찌르기 3연타 — 몸 중심에서 앞으로 뻗는 직사각형(길이·폭, 아트 JSON thrust 가 있으면 그 값·비틀림 각도). 51라운드 Q3 템포(임시): 3연격 약 0.5초(가열 단계 배속으로 더 빨라짐)",
         "shape": "thrust",
         "thrust": {
-          "lengthPx": 24,
+          "lengthPx": 36,
           "widthPx": 8
         },
         "bufferMs": 200,
@@ -631,6 +710,22 @@
             ]
           }
         ]
+      },
+      "_note56": "56라운드 Q4: 피해 ×1.4(0.6 → 0.84), 찌르기 수평 사거리 ×1.5(모든 방향 — 판정은 fx v3 dagger_combo* 메모 thrust 144/144/168 도트, 대체 데이터 24 → 36), 무기 그림 1.3배는 아트",
+      "gauge": {
+        "_note": "56라운드 Q16·Q18 낙인(烙印) (임시값): 같은 적 타격마다 perHit(등 뒤 backGain), 최대 max, 과열 단계마다 획득 +heatGainPerStage. 그림자 걸음으로 그 적 뒤에 서면 전부 폭발(표식 × burstDamagePerMark × 공격력). 과열 100% → 반경 overheatBurstRadiusTiles 낙인 일괄 폭발, 식는 동안(cooldownMs) 공격 속도 ×coolingSpeedMult·이동 ×coolingMoveMult (공격 가능)",
+        "kind": "brand",
+        "label": "낙인",
+        "max": 5,
+        "perHit": 1,
+        "backGain": 2,
+        "backAngleDeg": 70,
+        "heatGainPerStage": 0.5,
+        "burstDamagePerMark": 0.6,
+        "overheatBurstRadiusTiles": 4,
+        "coolingSpeedMult": 0.7,
+        "coolingMoveMult": 0.85,
+        "lifeMs": 6000
       }
     },
     "bow": {
@@ -677,8 +772,8 @@
         "chargeMs": 600,
         "damageMult": 2.5,
         "moveMult": 0.5,
-        "cooldownMs": 800,
-        "description": "누르고 있다가 놓으면 꿰뚫는 한 발. 조준 중엔 느려진다."
+        "cooldownMs": 0,
+        "description": "누르는 동안 시위를 당기고 떼면 쏜다. 가득 당긴 직후 놓으면 완벽한 한 발."
       },
       "affinity": {
         "strokeLength": 0.7,
@@ -773,6 +868,30 @@
             ]
           }
         ]
+      },
+      "draw": {
+        "_note": "56라운드 Q9·Q20 (임시값): 우클릭 누르는 동안 당김(fullMs = 진행 f0~5), 떼면 발사, 자동 발사 없음, 당기는 중 이동 secondary.moveMult. 가득 전 = 약한 1발(weakDamageMult, 관통 없음). 가득 직후 perfectWindowMs 안 = 완벽(조준 사격 × perfectDamageMult, 화살 미소모, 숨 회복, fx bow_perfect_release). 가득 뒤 strainAfterMs 넘게 쥐면 흔들림 동작·조준선 흔들림·위력 감소(strainRampMs 동안 strainMinMult 까지)",
+        "fullMs": 600,
+        "perfectWindowMs": 150,
+        "weakDamageMult": 0.6,
+        "perfectDamageMult": 1.3,
+        "strainAfterMs": 1200,
+        "strainRampMs": 1000,
+        "strainMinMult": 0.6,
+        "strainShakeDeg": 6,
+        "weakArrowSheet": "bow_arrow_weak",
+        "weakArrowTint": 7895160,
+        "releaseMs": 280
+      },
+      "gauge": {
+        "_note": "56라운드 Q17 숨(呼吸) + 재장전 유지 (임시값): 완벽 놓기마다 perfectGain, 가득 차면 다음 당김이 가득에 닿는 순간 집중 — focusMs 동안 물리 배속 focusTimeScale(감속)·완벽 창 ×focusPerfectWindowMult·조준선 흔들림 없음, 놓으면 숨 0",
+        "kind": "breath",
+        "label": "숨",
+        "max": 3,
+        "perfectGain": 1,
+        "focusMs": 1200,
+        "focusTimeScale": 0.4,
+        "focusPerfectWindowMult": 4
       }
     }
   }

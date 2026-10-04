@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, PROTOTYPE } from '../core/Constants';
+import { COLORS, FEEDBACK, PROTOTYPE } from '../core/Constants';
 import { EventBus, Events, type EnemyAttackPayload, type EnemyDamagedPayload } from '../core/EventBus';
 import { facingOf, type Facing } from '../systems/spriteDefs';
 import { knockFactor, knockSpeed } from '../systems/feel';
@@ -309,7 +309,8 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
       this.destroy();
       return true;
     }
-    this.flash(COLORS.MOB_HURT);
+    // 56라운드 Q36: 호박 반투명 80ms (히트스톱에 늘어나지 않음)
+    this.visual.flashOverlay(COLORS.MOB_HURT, FEEDBACK.MOB_HURT.ALPHA, FEEDBACK.MOB_HURT.MS);
     // 보스가 국면 프레임을 유지 중이면 피격 애니 대신 번쩍임만
     if (!this.visual.held) this.visual.oneShot('hurt', this.visual.facing, this.scene.time.now);
     return false;

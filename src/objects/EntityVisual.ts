@@ -13,6 +13,7 @@ import {
   animDurationMs,
   artScale,
   bodyBaseAction,
+  directionRow,
   fireDelayMs,
   frameAt,
   frameDurations,
@@ -22,6 +23,8 @@ import {
   parseAnimKey,
   startsOf,
   v3HitLift,
+  cardinalOf,
+  type Dir8,
   type Facing,
   type SheetJson,
 } from '../systems/spriteDefs';
@@ -79,6 +82,9 @@ export class EntityVisual {
   private readonly baseTint: number;
   /** 지금 맞춘 시트 배율·피벗 (바뀔 때만 바디를 다시 맞춘다) */
   private fitKey = '';
+  /** 56라운드 Q36: 반투명 번쩍임 사본 · 그 시간 트윈 */
+  private tintCopy: Phaser.GameObjects.Sprite | null = null;
+  private tintTween: Phaser.Tweens.Tween | null = null;
   /** 53라운드 v3 적: 지금 맞춘 시트 (피격 연출 높이) */
   private fitDef: Pick<SheetJson, 'pivot' | 'pixelScale'> | null = null;
 
@@ -173,10 +179,67 @@ export class EntityVisual {
     return spriteLibrary.sheet(this.name, action);
   }
 
-  /** 매 프레임: 깊이·그림자 위치 */
+  /** 매 프레임: 깊이·그림자 위치 (56라운드: 반투명 번쩍임 사본도 몸 프레임을 따라간다) */
   sync(): void {
     this.host.setDepth(entityDepth(this.host.y));
     if (this.shadow) this.shadow.setPosition(this.host.x, this.host.y);
+    if (this.tintCopy?.visible) this.copyHost(this.tintCopy);
+  }
+
+  /**
+   * 56라운드 Q36: 반투명 색 번쩍임 (적 피격 = 호박 반투명) — 몸 위에 같은 프레임 사본을 채움색·알파로 겹친다.
+   * 시간은 트윈으로 재므로 히트스톱(씬 시계 정지)에 늘어나지 않는다. 시트가 없으면 곱 틴트를 같은 시간만
+   */
+  flashOverlay(color: number, alpha: number, ms: number): void {
+    const host = this.host;
+    const scene = host.scene;
+    this.tintTween?.stop();
+    if (!this.animated) {
+      host.setTint(color);
+      this.tintTween = scene.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: ms,
+        onComplete: () => {
+          if (host.active) host.setTint(this.baseTint);
+        },
+      });
+      return;
+    }
+    let copy = this.tintCopy;
+    if (!copy) {
+      copy = scene.add.sprite(host.x, host.y, host.texture.key).setVisible(false);
+      this.tintCopy = copy;
+      host.once(Phaser.GameObjects.Events.DESTROY, () => {
+        this.tintTween?.stop();
+        copy?.destroy();
+        this.tintCopy = null;
+      });
+    }
+    this.copyHost(copy);
+    copy.setTintFill(color).setAlpha(alpha).setVisible(host.visible);
+    this.tintTween = scene.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: ms,
+      onComplete: () => copy?.setVisible(false),
+    });
+  }
+
+  /** 디버그: 반투명 번쩍임이 보이는 중 */
+  get overlayFlashing(): boolean {
+    return Boolean(this.tintCopy?.visible);
+  }
+
+  private copyHost(copy: Phaser.GameObjects.Sprite): void {
+    const h = this.host;
+    copy
+      .setTexture(h.texture.key, h.frame.name)
+      .setOrigin(h.originX, h.originY)
+      .setPosition(h.x, h.y)
+      .setScale(h.scaleX, h.scaleY)
+      .setFlip(h.flipX, h.flipY)
+      .setDepth(h.depth + DEPTH.OVERLAY_STEP * 0.5);
   }
 
   get isDead(): boolean {
@@ -220,8 +283,9 @@ export class EntityVisual {
    * 일회성 동작(attack/dash/hurt/death). fitMs 를 주면 그 시간에 맞춰 재생 속도를 조정.
    * 반환: 실제 재생 시간 ms (시트가 없으면 0)
    */
-  oneShot(action: string, dir: Facing, time: number, fitMs?: number, key?: { frame: number; atMs: number }): number {
-    this.facing = dir;
+  oneShot(action: string, dir: Dir8, time: number, fitMs?: number, key?: { frame: number; atMs: number }): number {
+    // 56라운드: 8행 시트는 대각 행으로 재생하고, 이동·대기 그림의 방향은 가로 성분 4방향으로 이어 간다
+    this.facing = cardinalOf(dir);
     this.lastImpactMs = 0;
     this.lastFrameStarts = [];
     this.lastDurationMs = 0;
@@ -274,13 +338,13 @@ export class EntityVisual {
    * 한 프레임 유지 (보스 예고 frame 0, 벽 경직·부채꼴 frame 3). `untilMs` 가 Infinity 면 `release()` 까지.
    * 시트가 없으면 아무것도 하지 않는다 (false)
    */
-  hold(action: string, dir: Facing, column: number, time: number, durationMs = Infinity): boolean {
-    this.facing = dir;
+  hold(action: string, dir: Dir8, column: number, time: number, durationMs = Infinity): boolean {
+    this.facing = cardinalOf(dir);
     if (!this.animated || this.dead) return false;
     const def = spriteLibrary.sheet(this.name, action);
     const texture = spriteLibrary.textureKey(this.name, action);
     if (!def || !texture) return false;
-    const row = Math.max(0, def.directions.indexOf(dir));
+    const row = directionRow(def, dir);
     const c = Math.max(0, Math.min(def.frames - 1, column));
     this.fit(def);
     this.host.anims.stop();
@@ -292,8 +356,8 @@ export class EntityVisual {
   }
 
   /** 지정한 열만 반복 (보스 돌진 1↔2). `release()` 까지 유지. 시트가 없으면 false */
-  loopFrames(action: string, dir: Facing, columns: number[], frameMs: number): boolean {
-    this.facing = dir;
+  loopFrames(action: string, dir: Dir8, columns: number[], frameMs: number): boolean {
+    this.facing = cardinalOf(dir);
     if (!this.animated || this.dead) return false;
     const key = spriteLibrary.phaseAnim(this.host.scene, this.name, action, dir, columns, frameMs);
     if (!key) return false;
@@ -310,8 +374,8 @@ export class EntityVisual {
    * 48라운드: 지정한 열만 1회 재생 (특수 자세의 구간 — 패링 창 f0~2, 성공 f3~4 등). fitMs 를 주면 그 시간에 맞춘다.
    * 반환: 재생 시간 ms (시트가 없으면 0)
    */
-  playFrames(action: string, dir: Facing, columns: number[], time: number, fitMs?: number): number {
-    this.facing = dir;
+  playFrames(action: string, dir: Dir8, columns: number[], time: number, fitMs?: number): number {
+    this.facing = cardinalOf(dir);
     if (!this.animated || this.dead || columns.length === 0) return 0;
     const def = spriteLibrary.sheet(this.name, action);
     const base = spriteLibrary.animKey(this.name, action, dir);
@@ -338,6 +402,17 @@ export class EntityVisual {
     this.current = key;
     const ms = natural / scale;
     this.busyUntil = time + ms;
+    // 56라운드 Q39 버그: 구간 재생도 '마지막 재생'의 프레임 시각을 남긴다 (열 번호 → 시작 ms, 재생하지 않은 열은 비움).
+    // 예전에는 직전 oneShot 의 시각이 남아 활 조준 사격의 발사 지연이 그 값(260ms)을 재사용했다
+    const starts: number[] = [];
+    let acc = 0;
+    for (const c of cols) {
+      if (starts[c] === undefined) starts[c] = acc / scale;
+      acc += d[c];
+    }
+    this.lastFrameStarts = starts;
+    this.lastDurationMs = ms;
+    this.lastImpactMs = 0;
     return ms;
   }
 

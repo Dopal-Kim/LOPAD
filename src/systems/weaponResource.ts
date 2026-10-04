@@ -6,8 +6,16 @@
  * - 과열(heat, 단검): 공격마다 가열, 마지막 가열 뒤 decayDelayMs 가 지나면 식는다. 경계(stages)를 넘을 때마다
  *   단계 +1(공격 속도 배율 speedMults). 최대 열을 overheatHoldMs 동안 유지하면 과열 → cooldownMs 냉각(공격 불가).
  * 계약 §11.1 `UiWeaponResource` 로 내보낸다.
+ * 56라운드 Q7·Q19: 기력에 `groggyMs` 가 있으면 0 = 그로기 — 그 시간 동안 회복 없음·공격 불가(가드만), 지나야만 풀리고
+ * 기력 = max × recoverRatio. Q18: 과열 `cooling`(단검 낙인 연동)이 있으면 식는 동안 공격은 되고 느려진다.
  */
-import type { AmmoResourceDef, HeatResourceDef, StaminaResourceDef, WeaponMods, WeaponResourceDef } from '../data/types';
+import type {
+  AmmoResourceDef,
+  HeatResourceDef,
+  StaminaResourceDef,
+  WeaponMods,
+  WeaponResourceDef,
+} from '../data/types';
 import type { UiWeaponResource } from '../contract/ui';
 
 export class WeaponResource {
@@ -25,8 +33,14 @@ export class WeaponResource {
   private overheatFrom = 0;
   /** 51라운드 Q4: 기력 회복 배율 (무기를 넣은 동안 > 1). 호출 쪽이 매 프레임 넣는다 */
   regenMult = 1;
+  /** 56라운드: 그로기가 풀리는 시각 (그로기 규칙이 아니거나 그로기가 아니면 -Infinity) */
+  private groggyUntil = -Infinity;
 
-  constructor(readonly def: WeaponResourceDef) {
+  constructor(
+    readonly def: WeaponResourceDef,
+    /** 56라운드 Q18: 과열 냉각 동안 공격 허용 + 공격 속도·이동 배율 (없으면 49라운드 — 냉각 동안 공격 불가) */
+    private readonly cooling: { speedMult: number; moveMult: number } | null = null,
+  ) {
     this.value = def.kind === 'heat' ? 0 : def.max;
   }
 
@@ -43,6 +57,15 @@ export class WeaponResource {
     const d = this.def;
     const dt = Math.max(0, dtMs);
     if (d.kind === 'stamina') {
+      if (this.groggyRule && this.exhausted) {
+        // 56라운드 Q19: 그로기는 시간이 지나야만 풀린다 (그동안 회복 없음)
+        if (now < this.groggyUntil) return;
+        this.exhausted = false;
+        this.groggyUntil = -Infinity;
+        this.value = Math.max(this.value, d.max * d.recoverRatio);
+        this.lastUseAt = -Infinity;
+        return;
+      }
       if (now - this.lastUseAt >= d.regenDelayMs && this.value < d.max)
         this.value = Math.min(d.max, this.value + (d.regenPerSec * this.regenMult * dt) / 1000);
       if (this.exhausted && this.value >= d.max * d.recoverRatio) this.exhausted = false;
@@ -80,16 +103,35 @@ export class WeaponResource {
 
   // --- 기력 ---
 
-  /** 기력 소모. 0 에 닿으면 exhausted */
+  /** 기력 소모. 0 에 닿으면 exhausted (56라운드: 그로기 규칙이면 그로기 시작) */
   spend(amount: number, now: number): void {
     if (this.def.kind !== 'stamina' || amount <= 0) return;
+    if (this.groggyRule && this.exhausted) return;
     this.lastUseAt = now;
     this.value = Math.max(0, this.value - amount);
-    if (this.value <= 0) this.exhausted = true;
+    if (this.value <= 0) {
+      this.exhausted = true;
+      if (this.def.groggyMs !== undefined) this.groggyUntil = now + this.def.groggyMs;
+    }
   }
 
   get isExhausted(): boolean {
     return this.def.kind === 'stamina' && this.exhausted;
+  }
+
+  /** 56라운드: 그로기 규칙(기력 `groggyMs`)을 쓰는가 */
+  get groggyRule(): boolean {
+    return this.def.kind === 'stamina' && this.def.groggyMs !== undefined;
+  }
+
+  /** 56라운드 Q7: 그로기 중 (공격·대쉬 불가, 가드만) */
+  get isGroggy(): boolean {
+    return this.groggyRule && this.exhausted;
+  }
+
+  /** 그로기 남은 ms (그로기가 아니면 0) */
+  groggyLeftMs(now: number): number {
+    return this.isGroggy ? Math.max(0, this.groggyUntil - now) : 0;
   }
 
   /** 강한 타(3타·대쉬 공격·내리찍기) 가능 — 기력 무기가 바닥나지 않았을 때 (다른 자원은 항상) */
@@ -97,8 +139,9 @@ export class WeaponResource {
     return !this.isExhausted;
   }
 
-  /** 이동 속도 배율 (기력 바닥 감속) */
+  /** 이동 속도 배율 (기력 바닥 감속 · 56라운드 Q18 과열 식는 동안) */
   get moveMult(): number {
+    if (this.def.kind === 'heat') return this.cooling && this.overheated ? this.cooling.moveMult : 1;
     return this.def.kind === 'stamina' && this.exhausted ? this.def.exhaustedMoveMult : 1;
   }
 
@@ -159,10 +202,11 @@ export class WeaponResource {
     return s;
   }
 
-  /** 공격 속도 배율 (과열 단계) */
+  /** 공격 속도 배율 (과열 단계 · 56라운드 Q18 식는 동안 느려짐) */
   get speedMult(): number {
     const d = this.def;
     if (d.kind !== 'heat') return 1;
+    if (this.overheated) return this.cooling?.speedMult ?? 1;
     return d.speedMults[Math.min(this.stage, d.speedMults.length - 1)] ?? 1;
   }
 
@@ -177,8 +221,9 @@ export class WeaponResource {
   /** 지금 공격(연격 한 타·화살 한 발)을 시작할 수 있는가 */
   canAttack(): boolean {
     if (this.def.kind === 'ammo') return this.canFire();
-    if (this.def.kind === 'heat') return !this.overheated;
-    return true;
+    if (this.def.kind === 'heat') return !this.overheated || this.cooling !== null;
+    // 56라운드 Q7: 그로기 중 공격 불가
+    return !this.isGroggy;
   }
 
   /** 계약 §11.1 게이지 */
@@ -203,6 +248,8 @@ export class WeaponResource {
       value: this.value,
       max: this.max,
       exhausted: this.isExhausted,
+      groggy: this.isGroggy,
+      groggyLeftMs: this.groggyLeftMs(now),
       reloading: this.reloading,
       overheated: this.overheated,
       stage: this.stage,

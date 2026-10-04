@@ -10,12 +10,15 @@ import { EventBus, Events, type PlayerAttackPayload } from '../../core/EventBus'
 import { gameState } from '../../core/GameState';
 import { artCandidates, hitArtKey, pickArt } from '../../systems/comboArt';
 import type { InputState } from '../../systems/InputSystem';
-import { facingOf } from '../../systems/spriteDefs';
+import { facingOf, rowDirFor } from '../../systems/spriteDefs';
 import type { Player } from '../Player';
 import type { ComboStrike } from './heavyMoves';
 
 /** 51라운드 Q4: 넣은 채 첫 타 보너스 표시 (발도·끌어내기) */
-export type AttackExtra = Pick<PlayerAttackPayload, 'firstStrike' | 'knockbackMult'>;
+export type AttackExtra = Pick<
+  PlayerAttackPayload,
+  'firstStrike' | 'knockbackMult' | 'bowPower' | 'pierce' | 'crack' | 'issen' | 'plunge'
+>;
 
 /** 연격 타의 그림 키 (차지 = 차지 hit.art, 없으면 `combo<n>`) */
 function strikeArt(combo: ComboStrike): string {
@@ -46,12 +49,13 @@ export function emitPlayerAttack(
   const action = combo ? strikeBodyAction(p, combo) : 'attack';
   const shot = gameState.weapon.def.kind === 'ranged' ? gameState.weapon.shotTiming : null;
   const fit = combo ? combo.durationMs : (shot?.cooldownMs ?? gameState.weapon.hitbox.cooldownMs);
-  const aimDir = facingOf(aim.x, aim.y, visual.facing);
+  // 56라운드 Q6: 8행 시트(대검 연격·차지)는 조준각 8분할 행, 4행 시트는 기존 4방향
+  const aimDir = rowDirFor(visual.sheet(action), aim.x, aim.y, visual.facing);
   // 51라운드 Q3: 판정·발사 프레임 시각을 따로 맞춘다 (연격 hitAtMs = 예비 동작, 활 drawMs = 시위 당김)
   const key = p.poses.keyFrame(action, combo, shot);
   // 조준 사격은 활 조준 시트의 발사 프레임 (없으면 기존 attack)
-  if (!(a.kind === 'aimed' && p.poses.playAimRelease(aimDir, time)))
-    visual.oneShot(action, aimDir, time, fit, key ?? undefined);
+  const aimedRelease = a.kind === 'aimed' && p.poses.playAimRelease(facingOf(aim.x, aim.y, visual.facing), time);
+  if (!aimedRelease) visual.oneShot(action, aimDir, time, fit, key ?? undefined);
   // 연격 시트 JSON 메모: hitFrames[0](없으면 impactFrame) 시작 = 휘두름 시점, cancelFromFrame 시작 = 다음 타 허용
   const sheet = action !== 'attack' ? visual.sheet(action) : undefined;
   const hf = sheet?.hitFrames?.[0] ?? (typeof sheet?.impactFrame === 'number' ? sheet.impactFrame : undefined);
@@ -66,7 +70,8 @@ export function emitPlayerAttack(
     dirY: aim.y,
     ...a,
     swingDelayMs: hf !== undefined ? visual.frameStartMs(hf) : visual.lastImpactMs,
-    releaseDelayMs: visual.frameStartMs(shot?.releaseFrame ?? 2),
+    // 56라운드 Q39 버그 수정: 조준 사격은 놓는 순간 화살 (놓기 시트 f0 시작) — 직전 동작의 프레임 시각을 쓰지 않는다
+    releaseDelayMs: aimedRelease || a.kind === 'aimed' ? 0 : visual.frameStartMs(shot?.releaseFrame ?? 2),
     comboIndex: charge === undefined ? combo?.index : undefined,
     comboCount: charge === undefined ? combo?.count : undefined,
     activeMs: combo ? Math.max(combo.hit.activeMs, p.poses.activeWindowMs(sheet)) : undefined,
@@ -82,6 +87,7 @@ export function emitPlayerAttack(
     if (followUps.length > 0) payload.followUps = followUps;
     if (charge !== undefined) payload.charge = charge;
     if (combo.momentum !== undefined) payload.momentum = combo.momentum;
+    if (combo.crack) payload.crack = combo.crack;
   }
   // 49라운드 과열: 가열 단계 (이펙트 강화)
   const res = p.gear.resource;

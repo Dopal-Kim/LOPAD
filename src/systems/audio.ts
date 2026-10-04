@@ -64,6 +64,8 @@ export class AudioSystem {
   private readonly dedupe = new SfxDedupe();
   private voices: Snd[] = [];
   private readonly loops = new Map<string, Snd>();
+  /** 56라운드: 루프별 재생 속도 (디버그·검증) */
+  private readonly loopRates = new Map<string, number>();
   /** 페이드 중인 루프 — to 0 = 페이드 아웃 뒤 정지, 그 밖 = 페이드 인 (55라운드 차지 루프) */
   private fading: { snd: Snd; from: number; to: number; at: number; ms: number }[] = [];
   /** 55라운드 Q14 ②: 지연 효과음 예약기 (게임 씬 시계 — 히트스톱 동안 멈춤). 없으면 WebAudio 지연 */
@@ -190,6 +192,18 @@ export class AudioSystem {
     if (fadeInMs > 0) this.fading.push({ snd, from: 0, to: volume, at: this.now(), ms: fadeInMs });
   }
 
+  /** 56라운드: 돌고 있는 루프의 재생 속도(음높이) — 차지 유지음 단계 1.0/1.03/1.06. 루프가 없으면 무시 */
+  setLoopRate(id: string, rate: number): void {
+    const snd = this.loops.get(id) as (Snd & { setRate?: (r: number) => unknown }) | undefined;
+    if (snd && typeof snd.setRate === 'function' && rate > 0) snd.setRate(rate);
+    this.loopRates.set(id, rate);
+  }
+
+  /** 디버그: 마지막으로 정한 루프 속도 */
+  loopRateOf(id: string): number {
+    return this.loopRates.get(id) ?? 1;
+  }
+
   /** 루프 정지. fadeMs 가 있으면 그동안 볼륨을 줄인 뒤 (54라운드 보스 루프) */
   stopLoop(id: string, fadeMs = 0): void {
     const snd = this.loops.get(id);
@@ -298,7 +312,12 @@ export class AudioSystem {
     }
     if (tr.loop) this.startLoop(tr.loop, tr.loopFadeInMs);
     const loopId = tr.loopOf?.(payload);
-    if (loopId) this.startLoop(loopId, tr.loopFadeInMs);
+    if (loopId) {
+      this.startLoop(loopId, tr.loopFadeInMs);
+      this.loopRates.set(loopId, 1);
+    }
+    const lr = tr.loopRate?.(payload);
+    if (lr) this.setLoopRate(lr.id, lr.rate);
     const id = this.pickLoaded(typeof tr.sfx === 'function' ? tr.sfx(payload) : tr.sfx);
     if (id) this.playSfx(id, { delayMs: tr.delayMs ? tr.delayMs(payload) : 0, rate: tr.rate ? tr.rate(payload) : 1 });
   }

@@ -121,9 +121,10 @@ describe('51라운드 Q3 템포 · Q4 넣기/뽑기', () => {
       const h = WEAPONS[id].combo!.hits;
       return h[0].cancelFromMs + h[1].cancelFromMs + h[2].durationMs;
     };
-    expect(t3('greatsword')).toBeGreaterThan(1800);
-    expect(t3('katana')).toBeGreaterThan(950);
-    expect(t3('katana')).toBeLessThan(1250);
+    // 56라운드 Q25 대검 새 그림 시간 그대로(3타 약 2.6초) · Q1 칼 약 1.5초
+    expect(t3('greatsword')).toBeGreaterThan(2000);
+    expect(t3('katana')).toBeGreaterThan(1400);
+    expect(t3('katana')).toBeLessThan(1700);
     expect(t3('dagger')).toBeLessThan(600);
     const hit = (id: string) => WEAPONS[id].damageMult * Math.max(...WEAPONS[id].combo!.hits.map((x) => x.damageMult));
     expect(hit('greatsword')).toBeGreaterThan(hit('katana'));

@@ -6,7 +6,7 @@
  */
 import type { ComboArtEntry, ComboDef } from '../data/types';
 
-export type ArtCategory = 'body' | 'fx' | 'impactFx' | 'flashFx';
+export type ArtCategory = 'body' | 'fx' | 'impactFx' | 'flashFx' | 'crackFx';
 
 /** 기존 연격 그림 이름 `combo<n>` (n = 1부터) */
 export function legacyComboArt(n: number): string {
@@ -18,13 +18,13 @@ export function hitArtKey(def: Pick<ComboDef, 'hits'> | undefined, index: number
   return def?.hits[index]?.art ?? legacyComboArt(index + 1);
 }
 
-/** 그림 키 → 후보 이름. 표에 없는 키는 그 이름 그대로(기존 `combo<n>`). fx 가 없으면 몸 후보와 같게, impactFx·flashFx 는 없으면 없음 */
+/** 그림 키 → 후보 이름. 표에 없는 키는 그 이름 그대로(기존 `combo<n>`). fx 가 없으면 몸 후보와 같게, impactFx·flashFx·crackFx 는 없으면 없음 */
 export function artCandidates(def: Pick<ComboDef, 'art'> | undefined, key: string, cat: ArtCategory): string[] {
   const e: ComboArtEntry | undefined = def?.art?.[key];
   if (!e) return cat === 'body' || cat === 'fx' ? [key] : [];
   if (cat === 'body') return e.body ?? [key];
   if (cat === 'fx') return e.fx ?? e.body ?? [key];
-  return (cat === 'impactFx' ? e.impactFx : e.flashFx) ?? [];
+  return (cat === 'impactFx' ? e.impactFx : cat === 'crackFx' ? e.crackFx : e.flashFx) ?? [];
 }
 
 /** 로드된 첫 후보 (없으면 null) */
@@ -42,6 +42,7 @@ export function comboArtNames(def: Pick<ComboDef, 'art'> | undefined): { body: s
     for (const n of e.fx ?? []) fx.add(n);
     for (const n of e.impactFx ?? []) fx.add(n);
     for (const n of e.flashFx ?? []) fx.add(n);
+    for (const n of e.crackFx ?? []) fx.add(n);
   }
   return { body: [...body], fx: [...fx] };
 }

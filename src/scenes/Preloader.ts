@@ -14,6 +14,7 @@ import { meleeBranchFxSheetIds } from '../systems/fxVariants';
 import { tier2FxSheetIds } from '../systems/fxTier';
 import { comboArtNames } from '../systems/comboArt';
 import {
+  gaugeOverlaySuffix,
   normalizeStructureSheet,
   sheetToWorldUnits,
   sheetTextureKey,
@@ -107,6 +108,12 @@ export class Preloader extends Phaser.Scene {
       ],
       [...allStructureSprites(), ...bossStructureSheets()],
       Object.fromEntries(Object.entries(WEAPONS).map(([id, w]) => [id, comboArtNames(w.combo).body])),
+      Object.fromEntries(
+        Object.entries(WEAPONS).flatMap(([id, w]) => {
+          const sfx = gaugeOverlaySuffix(w.gauge?.kind);
+          return sfx ? [[id, sfx]] : [];
+        }),
+      ),
     )) {
       const paths = sheetJsonCandidates(req);
       const legacy = paths[paths.length - 1];

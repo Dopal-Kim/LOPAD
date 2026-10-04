@@ -9,8 +9,10 @@ import {
   BODY_VARIANT_BASES,
   FREE_POSE,
   artScale,
+  cardinalOf,
+  directionRow,
   sheetJsonPath,
-  type Facing,
+  type Dir8,
   type SheetJson,
   type SheetRequest,
 } from './spriteDefs';
@@ -123,8 +125,9 @@ export interface BladeLocal {
   elevDeg: number | null;
 }
 
-function pick<T>(table: Partial<Record<Facing, T[]>> | undefined, dir: Facing, column: number): T | null {
-  const row = table?.[dir];
+function pick<T>(table: Partial<Record<Dir8, T[]>> | undefined, dir: Dir8, column: number): T | null {
+  // 56라운드: 대각 표가 없는 시트는 가로 성분 방향의 표
+  const row = table?.[dir] ?? table?.[cardinalOf(dir)];
   if (!Array.isArray(row) || row.length === 0) return null;
   return row[Math.max(0, Math.min(row.length - 1, column))] ?? null;
 }
@@ -134,7 +137,7 @@ function isPoint(v: unknown): v is AnchorPoint {
 }
 
 /** 프레임의 양손 앵커 (시트 도트 좌표). 없으면 null */
-export function handAt(def: Pick<SheetJson, 'handAnchors'>, dir: Facing, column: number): HandAnchor | null {
+export function handAt(def: Pick<SheetJson, 'handAnchors'>, dir: Dir8, column: number): HandAnchor | null {
   const h = pick(def.handAnchors, dir, column);
   return h && isPoint(h.handR) && isPoint(h.handL) ? h : null;
 }
@@ -142,7 +145,7 @@ export function handAt(def: Pick<SheetJson, 'handAnchors'>, dir: Facing, column:
 /** 무기를 쥔 손(시트 도트 좌표): gripAnchors → handAnchors.handR. 없으면 null */
 export function gripAt(
   def: Pick<SheetJson, 'gripAnchors' | 'handAnchors'>,
-  dir: Facing,
+  dir: Dir8,
   column: number,
 ): AnchorPoint | null {
   const g = pick(def.gripAnchors, dir, column);
@@ -211,16 +214,16 @@ function scarOf(v: unknown): ScarAnchor | null {
  */
 export function scarAt(
   def: Pick<SheetJson, 'scarAnchor' | 'frames' | 'directions'>,
-  dir: Facing,
+  dir: Dir8,
   column: number,
 ): ScarAnchor | null {
   const raw = def.scarAnchor;
   if (Array.isArray(raw)) {
-    const row = Math.max(0, def.directions.indexOf(dir));
+    const row = directionRow(def, dir);
     const i = raw.length >= def.frames * def.directions.length ? row * def.frames + column : column;
     return scarOf(raw[Math.max(0, Math.min(raw.length - 1, i))]);
   }
-  if (raw && typeof raw === 'object') return scarOf(pick(raw as Partial<Record<Facing, unknown[]>>, dir, column));
+  if (raw && typeof raw === 'object') return scarOf(pick(raw as Partial<Record<Dir8, unknown[]>>, dir, column));
   return null;
 }
 

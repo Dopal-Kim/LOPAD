@@ -63,6 +63,7 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'hurt',
       'death',
       'birth',
+      'groggy', // 56라운드 Q7 그로기 몸
       'katana_combo1',
       'katana_combo2',
       'katana_combo3',
@@ -74,6 +75,9 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'katana_slam',
       'katana_dashslash',
       'katana_reload',
+      // 56라운드 Q9 활 당김 유지·놓기 (다른 무기는 매니페스트가 거른다)
+      'katana_draw_hold',
+      'katana_release',
       // 53라운드 Q19: 무기별 기본 자세 변형 (_free · 무기 id 접미)
       'idle_free',
       'idle_katana',
@@ -103,6 +107,9 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'slam',
       'dashslash',
       'reload',
+      'draw_hold',
+      'release',
+      'carry_groggy',
     ]);
     expect(sheetJsonPath({ category: 'player', name: 'player', action: 'katana_combo2' })).toBe(
       'sprites/player/player_katana_combo2.json',

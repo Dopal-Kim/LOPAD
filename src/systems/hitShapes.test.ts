@@ -113,24 +113,28 @@ describe('55라운드 §17 판정 모양 — wedge · rect · ring', () => {
 });
 
 describe('55라운드 데이터 (계약 §17 수치)', () => {
-  it('칼 K-A: 1타 +70→−40 · 2타 −70→+40 · 3타 −75→+75(Q26 왼 허리 발도) ×1.25 + 150ms 잔상 50%', () => {
+  it('칼 K-A: 1타 +70→−40 · 2타 −70→+40 · 56라운드 Q2 3타 = 일섬(4칸 돌진 — 무기 데이터 issen), 반경 38(Q1)', () => {
     const c = WEAPONS.katana.combo!;
     const R = comboRadius(c, WEAPONS.katana.hitbox);
-    expect(R).toBe(33);
-    expect(c.hits.map((h) => h.hitShape)).toMatchObject([
+    expect(R).toBe(38);
+    expect(c.hits.slice(0, 2).map((h) => h.hitShape)).toMatchObject([
       { kind: 'arc', fromDeg: 70, toDeg: -40 },
       { kind: 'arc', fromDeg: -70, toDeg: 40 },
-      { kind: 'arc', fromDeg: -75, toDeg: 75, radiusMult: 1.25 },
     ]);
-    expect(c.hits[2].heavy).toBe(true);
-    expect(c.hits[2].followUps).toMatchObject([{ id: 'echo', delayMs: 150, damageMult: 0.5 }]);
-    expect(c.hits[2].hitShape).toMatchObject({ innerRatio: 0.45 });
+    expect(c.hits[2]).toMatchObject({ move: 'issen', heavy: true, art: 'issen' });
+    expect(WEAPONS.katana.issen).toMatchObject({
+      distancePx: 64,
+      dashStartMs: 220,
+      dashEndMs: 370,
+      hitFromMs: 250,
+      hitToMs: 330,
+    });
+    // 55라운드 발도 초승달·잔상 그림은 그림 표에 남겨 둔다 (Q35 재사용 후보)
+    expect(c.art?.crescent).toBeDefined();
     expect(c.leftTransform).toBe('rotate');
-    // 내딛기 1·2타 4~6 · 3타 14~16
+    // 내딛기 1·2타 4~6
     for (const i of [0, 1]) expect(c.hits[i].step!.px).toBeGreaterThanOrEqual(4);
     for (const i of [0, 1]) expect(c.hits[i].step!.px).toBeLessThanOrEqual(6);
-    expect(c.hits[2].step!.px).toBeGreaterThanOrEqual(14);
-    expect(c.hits[2].step!.px).toBeLessThanOrEqual(16);
   });
 
   it('대검 G-C: H1 시계 150° → V 쐐기 40° ×1.3 + 충격원 0.35R → H2 반시계 → V, 순환·관성·차지', () => {
@@ -152,7 +156,9 @@ describe('55라운드 데이터 (계약 §17 수치)', () => {
       [800, 1.5],
       [1200, 1.8],
     ]);
-    expect(c.charge!.stages[2].followUps![0].hitShape!.kind).toBe('ring');
+    // 56라운드 Q10: 기본 차지는 충격파 링 없음 (충격파는 개성 발현 후 꽂아내리기 — 무기 데이터 plunge)
+    expect(c.charge!.stages.every((s) => !s.followUps)).toBe(true);
+    expect(WEAPONS.greatsword.plunge?.wave.lengthMultByStage).toHaveLength(3);
     expect(c.charge!.moveMult).toBe(0.35);
     expect(c.leftTransform).toBe('rotate');
     expect(c.charge!.stages.map((s) => s.impactMult)).toEqual([1.0, 1.15, 1.3]);

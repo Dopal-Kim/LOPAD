@@ -30,6 +30,18 @@ export const Events = {
    * 시스템 내부(음향 audioMap — katana_echo). UI 계약 밖
    */
   PLAYER_FOLLOW_UP: 'player:follow-up',
+  /**
+   * 56라운드 Q7·Q8 퍼펙트 가드 (`PerfectGuardPayload`): 가드 직후 창 안 피격 — 피해 0, 튕겨내지 않음. 월드 문구 'PERFECT GUARD'·음향.
+   * 시스템 내부(UI 계약 밖)
+   */
+  PLAYER_PERFECT_GUARD: 'player:perfect-guard',
+  /**
+   * 56라운드 무기 고유 자원 변화 (`WeaponGaugePayload`): 칼 검기 단 · 대검 울분 가득·소모 · 단검 낙인 · 활 숨·집중.
+   * 시스템 내부(월드 연출·음향·디버그). HUD 표시는 UI 계약 변경 인터뷰가 필요하다
+   */
+  WEAPON_GAUGE: 'weapon:gauge',
+  /** 56라운드 무기 전용 동작 국면 (`PlayerSkillPayload`): 일섬 돌진·분신·터짐 · 대검 끌림 · 낙인 폭발 — 음향 훅 */
+  PLAYER_SKILL: 'player:skill',
   /** 49라운드 무기 휴대: 칼집·등에서 뽑음 / 넣음(납도) — 음향 훅 후보 (`WeaponCarryPayload`) */
   PLAYER_WEAPON_DRAWN: 'player:weapon-drawn',
   PLAYER_WEAPON_SHEATHED: 'player:weapon-sheathed',
@@ -158,6 +170,46 @@ export type PlayerAttackPayload = {
   charge?: number;
   /** 55라운드 Q23: 이 타에 더해진 관성 공속 비율 (0 ~ 0.2) */
   momentum?: number;
+  /** 56라운드 Q5: 판정 순간 땅 균열 행 (greatsword_ground_crack s·m·l — 끝점 충격원 중심) */
+  crack?: string;
+  /** 56라운드 Q2 칼 일섬: 4방향 돌진 · 검기 소모 단 · 분신 (판정·선·분신은 IssenStrikes) */
+  issen?: { facing: 'down' | 'up' | 'left' | 'right'; dirX: number; dirY: number; kenki: number; clone: boolean };
+  /** 56라운드 Q10 대검 꽂아내리기: 차지 단계 · 충격파 길이·반폭 · 꽂힌 자리(발 피벗 기준 월드 오프셋)·충격원 반지름 (PlungeStrikes) */
+  plunge?: {
+    stage: number;
+    waveLengthPx: number;
+    waveHalfWidthPx: number;
+    plantOffsetX: number;
+    plantOffsetY: number;
+    plantRadiusPx: number;
+  };
+  /** 56라운드 Q9 활 놓기 세기 (weak · perfect · full · strained) */
+  bowPower?: 'weak' | 'perfect' | 'full' | 'strained';
+  /** 56라운드: 화살 관통 (가득 이상). 없으면 조준 사격 = 무한 관통(기존) */
+  pierce?: boolean;
+};
+/** 56라운드 Q7 퍼펙트 가드 */
+export type PerfectGuardPayload = { x: number; y: number; attack: number; dirX?: number; dirY?: number };
+/** 패링 성공 (56라운드: 주인공 → 공격자 방향 — 패링 fx 회전) */
+export type PlayerParriedPayload = { attack: number; dirX?: number; dirY?: number };
+/** 56라운드 무기 고유 자원 */
+export type WeaponGaugePayload = {
+  weapon: string;
+  gauge: 'kenki' | 'grudge' | 'brand' | 'breath';
+  /** stage = 검기 단 변화 · full = 울분·숨 가득 · consume = 소모 · apply = 낙인 표식 · focusStart/focusEnd = 숨 집중 */
+  event: 'stage' | 'full' | 'consume' | 'apply' | 'focusStart' | 'focusEnd';
+  stage?: number;
+  /** 증가량(낙인 표식 수 증가 등) */
+  delta?: number;
+  /** 낙인: 대상의 표식 수 · 등 뒤 */
+  marks?: number;
+  back?: boolean;
+};
+/** 56라운드 무기 전용 동작 국면 (음향 매니페스트 PLAYER_SKILL move·phase) */
+export type PlayerSkillPayload = {
+  weapon: string;
+  move: 'issen' | 'drag' | 'brand' | 'overheat' | 'plunge';
+  phase: 'dash' | 'clone' | 'burst' | 'recover' | 'crack';
 };
 /** 55라운드 Q22 대검 홀드 차지 국면 */
 export type PlayerChargePayload = {
@@ -167,6 +219,8 @@ export type PlayerChargePayload = {
   impactDelayMs?: number;
   /** cancel: 피격(hurt) · 1단 전에 떼서 일반 연격(tap) · 그 밖(대쉬·가드·F·워프·무기 교체 — 없음) */
   reason?: 'hurt' | 'tap';
+  /** 56라운드 Q10 release: plunge = 개성 발현 후 꽂아내리기 (없으면 기본 차지 내려찍기) */
+  mode?: 'plunge';
 };
 /** 55라운드 §17 후속 판정 (데이터 `followUps[].id` — 칼 echo · 대검 ring) */
 export type PlayerFollowUpPayload = { weapon: string; id: string; art?: string };
@@ -176,14 +230,20 @@ export type WeaponCarryPayload = { weapon: string; mode: 'sheath' | 'back' | 'ha
 export type WeaponResourcePayload = {
   weapon: string;
   kind: 'stamina' | 'ammo' | 'heat';
-  event: 'exhausted' | 'recovered' | 'reloadStart' | 'reloadDone' | 'overheat' | 'cooled' | 'heatStage';
+  /** 56라운드: groggy = 기력 0 그로기 시작(칼·대검, 끝은 recovered) */
+  event: 'exhausted' | 'recovered' | 'reloadStart' | 'reloadDone' | 'overheat' | 'cooled' | 'heatStage' | 'groggy';
   /** heatStage 일 때 새 단계 */
   stage?: number;
 };
 export type PlayerSecondaryPayload = {
   kind: 'parry' | 'guard' | 'shadowstep' | 'aimedshot';
-  /** ready = 조준 사격 차지 완료(유지 중, 떼면 발사 — 31라운드 2). block = 가드로 피격을 받아냄(47라운드 룰렛 규칙) */
-  phase: 'start' | 'ready' | 'cancel' | 'block';
+  /**
+   * ready = 조준 사격 차지 완료(유지 중, 떼면 발사 — 31라운드 2). block = 가드로 피격을 받아냄(47라운드 룰렛 규칙).
+   * 56라운드 Q9: release = 활 놓기(power = 약한·완벽·가득·흔들림) — 일찍 떼도 약한 1발이 나간다(취소 없음).
+   * strain = 너무 오래 쥐어 흔들리기 시작(Q20 — 음향 bow_strain 루프)
+   */
+  phase: 'start' | 'ready' | 'cancel' | 'block' | 'release' | 'strain';
+  power?: 'weak' | 'perfect' | 'full' | 'strained';
 };
 export type EnemyDamagedPayload = { id: string; amount: number; crit: boolean; died: boolean; tick: boolean };
 export type EnemyAttackPayload = { id: string; kind: 'contact' | 'dash' | 'shot' };

@@ -410,7 +410,8 @@ export const COLORS = {
   SHOCKWAVE: 0xffd080,
   STROKE: 0xe0e0ff,
   ATTACK: 0xf5f5c0,
-  MOB_HURT: 0xffffff,
+  /** 56라운드 Q36: 적 피격 번쩍임 = 호박 반투명 (흰 채움 → 흰 막대 주원인이었다). 알파·시간은 FEEDBACK.MOB_HURT */
+  MOB_HURT: 0xe2a33c,
   TELEGRAPH: 0xfff0a0,
   STUN: 0x707090,
   /** 54라운드 보스 마시는 중 (호박색 곱 틴트) */
@@ -977,6 +978,64 @@ export const STRUCTURE_FX = {
   CRACK_COLOR: 0xe0a040,
   /** 투견 링 시작: 플레이어를 링 중심에서 아래로 이 칸만큼 (링 안) */
   RING_ENTER_TILES: 2,
+} as const;
+
+/**
+ * 56라운드 무기 피드백 (결정 2026-10-04-round-56) 연출 상수. 수치·게임 규칙은 data/weapons.json·player.json (임시값 표는 보고서)
+ */
+export const FEEDBACK = {
+  /** Q36: 적 피격 번쩍임 — 호박 반투명, 80ms, 히트스톱으로 늘어나지 않음(트윈 시계) */
+  MOB_HURT: { ALPHA: 0.55, MS: 80 },
+  /**
+   * Q12·Q50: 적중 순간 무기 그림이 크게 번쩍 — 판정 1프레임(WHITE_MS)만 백열 X1 #fff4dc, 그다음 호박 A25 #eecc78 로 식으며 사라짐
+   * (더하기 혼합 사본, 트윈 시계 — 히트스톱 동안에도 진행)
+   */
+  BLADE_FLASH: { COLOR: 0xfff4dc, AMBER: 0xeecc78, WHITE_MS: 34, ALPHA: 0.85, SCALE: 1.12, MS: 110 },
+  /** Q7·Q8: 월드 문구 (PERFECT GUARD · PARRY) — 몸 위에서 떠올라 사라짐 */
+  CALLOUT: {
+    FONT_PX: 11,
+    COLOR: '#f4de9b',
+    STROKE: '#2a1e17',
+    STROKE_PX: 3,
+    OFFSET_Y: -22,
+    RISE_PX: 10,
+    HOLD_MS: 420,
+    FADE_MS: 260,
+    POOL: 4,
+  },
+  /** 칼 검기 3단 칼날 빛 (아트 오버레이가 오기 전 임시 곱 틴트: 재 → 호박 → 백열) */
+  KENKI_TINT: [0xb8aca0, 0xeecc78, 0xfff4dc] as readonly number[],
+  /** 그로기 몸 틴트 (아트 그로기 자세가 오기 전 임시) */
+  GROGGY_TINT: 0x8a8070,
+  /**
+   * 단검 낙인: 표식 fx (행 = 스택, 적 시트 윗변 + 여백 4 월드 px, 찍힘 뒤 2~5 반복) · 폭발 fx (행 s·m·l) ·
+   * 시트가 없을 때 작은 마름모(Graphics)
+   */
+  BRAND: {
+    MARK_SHEET: 'dagger_brand_mark',
+    BURST_SHEET: 'dagger_brand_burst',
+    MARK_LOOP_FROM: 2,
+    HEAD_GAP_PX: 4,
+    COLOR: 0xe2a33c,
+    EDGE: 0x2a1e17,
+    SIZE_PX: 2,
+    GAP_PX: 5,
+    OFFSET_Y: 6,
+  },
+  /** 단검 과열 100%: 전용 폭발 fx (주인공 발) · 식는 동안 루프 · 낙인 적 연쇄 간격 */
+  OVERHEAT: { SHEET: 'dagger_overheat_burst', COOL_SHEET: 'dagger_overheat_cool', CHAIN_MS: 40 },
+  /** 퍼펙트 가드·패링 fx (행 guard·parry, 맞닿은 점 = 판정 원점에서 공격자 쪽 6 월드 px, 공격자 방향 회전) */
+  GUARD_FX: { SHEET: 'guard_perfect_fx', CONTACT_PX: 6 },
+  /** 그로기: 몸 루프 · 머리 위 소용돌이 (머리 꼭대기 = 몸 JSON headTopAnchors, 없으면 OFFSET) */
+  GROGGY: { SWIRL_SHEET: 'player_groggy_swirl', SWIRL_FALLBACK_Y: -29 },
+  /** 대검 울분 가득 몸 틴트 깜빡임 (임시) */
+  GRUDGE_FULL_TINT: 0xe2a33c,
+  /** 활 숨 집중(감속 정밀 조준) 시작 화면 섬광 (임시) — 물리 배속은 data bow.gauge.focusTimeScale */
+  FOCUS_FLASH: { COLOR: 0xeecc78, MS: 320, ALPHA: 0.14 },
+  /** 일섬 선 깊이: 바닥 바로 위 (주인공·적 아래) — 아트 depth below_player */
+  ISSEN_LINE_DEPTH: 0.96,
+  /** 그림자 걸음 리본 (Q38 돌진류만): 출발 → 도착을 이 시간에 긋는다 */
+  SHADOWSTEP_RIBBON_MS: 90,
 } as const;
 
 export { BOSS_FX } from './BossConstants';

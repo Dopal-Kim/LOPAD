@@ -7,7 +7,7 @@ import Phaser from 'phaser';
 import { DEPTH, SCAR_FX } from '../../core/Constants';
 import { gameState } from '../../core/GameState';
 import { spriteLibrary } from '../../systems/sprites';
-import { artScale, parseAnimKey, type Facing } from '../../systems/spriteDefs';
+import { artScale, parseAnimKey, type Dir8 } from '../../systems/spriteDefs';
 import { scarAt, scarFit } from '../../systems/spriteMeta';
 import type { ScarData } from '../../systems/setup/scar';
 
@@ -24,7 +24,7 @@ export class ScarOverlay {
   aboveLight = false;
   /** 디버그: 지난 프레임 상태 */
   state: 'none' | 'back' | 'side' | 'hidden' = 'none';
-  lastAnchor: { action: string; dir: Facing; column: number } | null = null;
+  lastAnchor: { action: string; dir: Dir8; column: number } | null = null;
 
   constructor(
     private readonly host: Phaser.GameObjects.Sprite,
@@ -77,7 +77,7 @@ export class ScarOverlay {
     const fi = Number(host.frame?.name);
     if (!parsed || !def || !Number.isFinite(fi)) return 'hidden';
     const row = Math.floor(fi / def.frames);
-    const dir = (def.directions[row] as Facing | undefined) ?? parsed.dir;
+    const dir = (def.directions[row] as Dir8 | undefined) ?? parsed.dir;
     const column = fi % def.frames;
     this.lastAnchor = { action: parsed.action, dir, column };
     const a = scarAt(def, dir, column);

@@ -37,7 +37,8 @@ describe('data/*.json', () => {
     const ids = Object.keys(WEAPONS);
     expect(ids).toEqual(['katana', 'greatsword', 'dagger', 'bow']);
     const secondaryNames = ids.map((id) => WEAPONS[id].secondary.name);
-    expect(secondaryNames).toEqual(['패링', '가드', '그림자 걸음', '조준 사격']);
+    // 56라운드 Q48: 칼 우클릭 = 가드(누른 직후 0.15초 = 패링)
+    expect(secondaryNames).toEqual(['가드·패링', '가드', '그림자 걸음', '조준 사격']);
     for (const id of ids) {
       const P = WEAPONS[id].personality;
       expect(P.thresholds).toEqual([100, 200]);

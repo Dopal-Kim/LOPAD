@@ -32,5 +32,6 @@
     "decelMs": 120
   },
   "startWeapon": "katana",
-  "attackSlowMinMs": 120
+  "attackSlowMinMs": 120,
+  "perfectGuard": { "windowMs": 150 }
 }

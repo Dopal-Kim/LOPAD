@@ -21,6 +21,27 @@ export interface FxWeaponShape {
   slam?: unknown;
   /** 55라운드 §17: 연격 그림 이름 표 (휘두름·바닥 충격 이펙트 `fx/<무기>_<이름>`) */
   combo?: Pick<ComboDef, 'art'>;
+  /** 56라운드: 일섬 선·분신 · 꽂아내리기 충격파 · 활 약한 화살 */
+  issen?: { lineSheets: string[]; soloSuffix: string; shadow: { sheet: string } };
+  plunge?: { wave: { sheet: string } };
+  draw?: { weakArrowSheet: string };
+}
+
+/** 56라운드 Q9 완벽 놓기 섬광 `fx/<무기>_perfect_release` */
+export function perfectReleaseFxId(weaponId: string): string {
+  return `${weaponId}_perfect_release`;
+}
+
+/** 56라운드 이펙트: 일섬 선 t1~t4(+분신 없는 _solo)·그림자 분신 · 꽂아내리기 충격파 · 활 약한 화살·완벽 놓기 섬광 */
+export function weapon56FxIds(id: string, w: FxWeaponShape): string[] {
+  const out: string[] = [];
+  if (w.issen) {
+    for (const s of w.issen.lineSheets) out.push(s, `${s}${w.issen.soloSuffix}`);
+    out.push(w.issen.shadow.sheet);
+  }
+  if (w.plunge) out.push(w.plunge.wave.sheet);
+  if (w.draw) out.push(w.draw.weakArrowSheet, perfectReleaseFxId(id));
+  return out;
 }
 
 /** 49라운드 §7.2 과열 단계 수 (fx/<무기>_combo<n>_heat<k>, k = 1..3) */
@@ -68,9 +89,11 @@ export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
       if (w.slam) out.add(slamFxId(id));
       for (const n of comboArtNames(w.combo).fx) out.add(`${id}_${n}`);
     } else {
+      for (const f of weapon56FxIds(id, w)) out.add(f);
       out.add(arrowFxId(id, false));
       out.add(arrowFxId(id, true));
     }
+    if (w.kind === 'melee') for (const f of weapon56FxIds(id, w)) out.add(f);
     for (const b of w.personality.branches) {
       out.add(b.id);
       for (const n of b.next ?? []) out.add(n.id);
@@ -113,6 +136,13 @@ export const SECONDARY_FX_IDS: readonly string[] = [
   'dash_dust',
   'dash_trail',
   'heavyarrow_hit',
+  // 56라운드 (계약 §18): 퍼펙트 가드·패링 · 그로기 소용돌이 · 단검 낙인 표식·폭발 · 과열 폭발·식음
+  'guard_perfect_fx',
+  'player_groggy_swirl',
+  'dagger_brand_mark',
+  'dagger_brand_burst',
+  'dagger_overheat_burst',
+  'dagger_overheat_cool',
 ];
 
 /** 47라운드 구조물 이펙트 (계약 art-assets §5): 1-1 불붙은 독주 웅덩이 루프. 48라운드 §6.3 탄생 흙 */

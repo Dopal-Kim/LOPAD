@@ -158,6 +158,10 @@ export interface DebugApi {
   weaponState: () => unknown;
   /** 49라운드: 자원 값을 바로 바꾼다 (기력 바닥·탄창 비우기·최대 열 검증용). 자원이 없으면 false */
   setResource: (value: number) => boolean;
+  /** 56라운드: 무기 고유 자원(검기·울분·숨)·그로기·낙인·일섬·꽂아내리기·월드 문구·숨 집중·차지 유지음 속도 */
+  w56: () => unknown;
+  /** 56라운드: 고유 자원 값을 바로 바꾼다 (검기 3단 = 300 등). 자원이 없으면 false */
+  setGauge: (value: number) => boolean;
   /** 49라운드 무기 시험장: 허수아비 누적 피해·맞은 수·쏜 탄 수 · 메뉴 */
   lab: () => unknown;
   /** 49라운드 무기 시험장: 'lab' 또는 'labBranch' 메뉴 열기 (L 키와 같은 경로) */
@@ -345,6 +349,8 @@ export function exposeDebug(api: {
   skipBirth: () => void;
   weaponState: () => unknown;
   setResource: (value: number) => boolean;
+  w56: () => unknown;
+  setGauge: (value: number) => boolean;
   lab: () => unknown;
   openLabMenu: (which: 'lab' | 'labBranch') => boolean;
   lighting: () => unknown;
@@ -497,6 +503,8 @@ export function exposeDebug(api: {
     skipBirth: () => api.skipBirth(),
     weaponState: () => api.weaponState(),
     setResource: (v) => api.setResource(v),
+    w56: () => api.w56(),
+    setGauge: (v) => api.setGauge(v),
     lab: () => api.lab(),
     openLabMenu: (which) => api.openLabMenu(which),
     lighting: () => api.lighting(),

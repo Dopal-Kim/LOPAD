@@ -12,6 +12,7 @@ import type { Projectile } from '../../objects/Projectile';
 import { exposeDebug } from '../../debug';
 import { isBossPatternName } from '../../data/bossPatterns';
 import { audio } from '../../systems/audio';
+import { CHARGE_SFX } from '../../systems/audioMap';
 import { feelSettings, setFeel } from '../../systems/feel';
 import { fontStatus } from '../../systems/fonts';
 import { metaStore } from '../../systems/meta';
@@ -327,6 +328,40 @@ export function exposeGameDebug(g: Game): void {
         r.value = r.max;
         r.spend(Math.max(0, r.max - value), g.time.now);
       } else r.value = Phaser.Math.Clamp(value, 0, r.max);
+      return true;
+    },
+    w56: () => {
+      const pl = g.player;
+      const now = g.time.now;
+      return {
+        weapon: gameState.weapon.id,
+        action: pl.action,
+        groggy: pl.groggy,
+        resource: pl.resource?.debug(now) ?? null,
+        gauge: pl.gauges.debug(now),
+        bladeTint: pl.gauges.bladeTint,
+        draw: pl.secondaryDriver.drawStateAt(now),
+        aimJitter: pl.aimJitter(now),
+        lastRelease: pl.secondaryDriver.lastRelease,
+        defense: pl.defense.lastOutcome,
+        brands: g.strikes.brands.summary(),
+        issen: g.strikes.issen.debugLast,
+        plunge: g.strikes.plunge.debugLast,
+        callouts: {
+          count: g.feedback.callouts.count,
+          last: g.feedback.callouts.last,
+          live: g.feedback.callouts.summary(),
+        },
+        focusScale: g.feedback.focusScale,
+        physicsTimeScale: g.physics.world.timeScale,
+        bladeFlashes: pl.overlay.flashCount,
+        chargeLoopRate: audio.loopRateOf(CHARGE_SFX.loop),
+      };
+    },
+    setGauge: (value) => {
+      const gg = g.player.gauges.gauge;
+      if (!gg) return false;
+      gg.value = Phaser.Math.Clamp(value, 0, gg.max);
       return true;
     },
     lab: () => ({

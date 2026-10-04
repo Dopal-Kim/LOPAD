@@ -11,23 +11,27 @@
  * 동안 휴대 시트를 숨긴다 · 달리기 휴대 `carry_run`(없으면 walk). 손·칼 앵커는 `spriteMeta`(디버그 `?anchors`).
  */
 import Phaser from 'phaser';
-import { CARRY, DEPTH } from '../core/Constants';
+import { CARRY, DEPTH, FEEDBACK } from '../core/Constants';
 import { anchorOffset, bladeAt, gripAt, handAt, overlayPivot, type BladeLocal } from '../systems/spriteMeta';
 import { gameState } from '../core/GameState';
 import { spriteLibrary } from '../systems/sprites';
 import { overlayArtCandidates } from '../systems/comboArt';
 import {
+  GROGGY_ACTION,
+  GROGGY_CARRY,
   artScale,
   bodyBaseAction,
   carryAction,
   carryActionFor,
   carryDrawnAction,
+  cardinalOf,
   frameAt,
+  gaugeOverlayAction,
   overlayActionsFor,
   overlayDepthAt,
   parseAnimKey,
   type CarryAction,
-  type Facing,
+  type Dir8,
   type SheetDef,
 } from '../systems/spriteDefs';
 
@@ -50,9 +54,20 @@ export class WeaponOverlay {
   carryHidden = false;
   /** 현재 몸 시트 (원점 정렬·손 앵커) */
   private body: SheetDef | undefined;
+  /** 56라운드 Q14: 칼날 빛 곱 틴트 (검기 단 — null 이면 원색, 오버레이 시트가 없을 때만) */
+  private bladeTint: number | null = null;
+  /** 56라운드 Q14·Q15: 자원 오버레이 (검기 ki · 울분 grudge 단) · 그 스프라이트 · 디버그 */
+  private gauge: { suffix: string; level: number } | null = null;
+  private gaugeSprite: Phaser.GameObjects.Sprite | null = null;
+  gaugeAction: string | null = null;
+  /** 56라운드 Q12: 적중 순간 무기 번쩍임 사본 (더하기 혼합) · 그 트윈 */
+  private glint: Phaser.GameObjects.Sprite | null = null;
+  private glintTween: Phaser.Tweens.Tween | null = null;
+  /** 디버그: 무기 번쩍임 횟수 */
+  flashCount = 0;
   /** 지금 보이는 무기 시트·방향·열 (앵커 조회) */
-  private shown: { def: SheetDef; dir: Facing; column: number; pivot: { x: number; y: number } } | null = null;
-  private bodyAt: { dir: Facing; column: number } | null = null;
+  private shown: { def: SheetDef; dir: Dir8; column: number; pivot: { x: number; y: number } } | null = null;
+  private bodyAt: { dir: Dir8; column: number } | null = null;
 
   constructor(
     private readonly host: Phaser.GameObjects.Sprite,
@@ -62,7 +77,64 @@ export class WeaponOverlay {
     private readonly carryInfo: () => CarryInfo | null = () => null,
   ) {
     this.sprite = host.scene.add.sprite(host.x, host.y, '__DEFAULT').setVisible(false);
-    host.once(Phaser.GameObjects.Events.DESTROY, () => this.sprite.destroy());
+    host.once(Phaser.GameObjects.Events.DESTROY, () => {
+      this.glintTween?.stop();
+      this.glint?.destroy();
+      this.gaugeSprite?.destroy();
+      this.sprite.destroy();
+    });
+  }
+
+  /** 56라운드 Q14·Q15: 자원 오버레이 단계 (null = 없음) · 오버레이 시트가 없을 때 칼날 곱 틴트 */
+  setGauge(gauge: { suffix: string; level: number } | null, fallbackTint: number | null): void {
+    this.gauge = gauge;
+    this.bladeTint = fallbackTint;
+  }
+
+  /**
+   * 56라운드 Q12·Q50: 적중 순간 무기 그림(칼날)이 크게 번쩍 — 지금 보이는 무기 프레임의 사본을 더하기 혼합으로 키워 겹치고
+   * 1프레임 백열 → 호박으로 식으며 트윈으로 사라진다(히트스톱 동안에도 보인다). 무기가 안 보이면 아무것도 안 한다
+   */
+  flashHit(): boolean {
+    const src = this.sprite;
+    if (!src.visible || this.action === null) return false;
+    const scene = src.scene;
+    const B = FEEDBACK.BLADE_FLASH;
+    let g = this.glint;
+    if (!g) {
+      g = scene.add.sprite(src.x, src.y, src.texture.key).setVisible(false);
+      g.setBlendMode(Phaser.BlendModes.ADD);
+      this.glint = g;
+    }
+    this.glintTween?.stop();
+    g.setTexture(src.texture.key, src.frame.name)
+      .setOrigin(src.originX, src.originY)
+      .setPosition(src.x, src.y)
+      .setAngle(src.angle)
+      .setScale(src.scaleX * B.SCALE, src.scaleY * B.SCALE)
+      .setDepth(src.depth + DEPTH.OVERLAY_STEP * 0.5)
+      .setTintFill(B.COLOR)
+      .setAlpha(B.ALPHA)
+      .setVisible(true);
+    this.flashCount += 1;
+    let amber = false;
+    this.glintTween = scene.tweens.add({
+      targets: g,
+      alpha: 0,
+      scaleX: src.scaleX,
+      scaleY: src.scaleY,
+      duration: B.MS,
+      ease: 'Quad.easeIn',
+      // Q50: 판정 1프레임만 백열, 그다음 호박
+      onUpdate: (tw) => {
+        if (!amber && tw.elapsed >= B.WHITE_MS) {
+          amber = true;
+          g?.setTintFill(B.AMBER);
+        }
+      },
+      onComplete: () => g?.setVisible(false),
+    });
+    return true;
   }
 
   get visible(): boolean {
@@ -110,7 +182,18 @@ export class WeaponOverlay {
   }
 
   /** 49라운드 휴대: 휴대 시트(같은 열) → 없으면(또는 뽑아 든 상태면) attack 0프레임 폴백 */
-  private updateCarry(bodyAction: string, dir: Facing, column: number): void {
+  private updateCarry(bodyAction: string, dir: Dir8, column: number): void {
+    // 56라운드 Q7: 그로기 몸 = 휴대 무기 `<무기>_carry_groggy` 같은 열
+    if (bodyAction === GROGGY_ACTION) {
+      const gdef = this.sheetOf(gameState.weapon.id, GROGGY_CARRY);
+      if (gdef) {
+        this.carry = 'sheet';
+        this.carryHidden = false;
+        const col = column % gdef.frames;
+        this.show(gdef, GROGGY_CARRY, dir, col, overlayDepthAt(gdef, dir, col) === 'below');
+        return;
+      }
+    }
     const info = this.carryInfo();
     const ca = carryActionFor(bodyAction);
     if (!info || !ca) return this.hide();
@@ -130,7 +213,7 @@ export class WeaponOverlay {
     const attack = this.sheetOf(id, 'attack');
     if (!attack) return this.hide();
     const table = stowed ? (info.mode === 'back' ? CARRY.BACK : CARRY.SHEATH) : CARRY.HAND;
-    const at = table[dir];
+    const at = table[cardinalOf(dir)];
     this.carry = 'fallback';
     this.show(attack, 'attack', dir, 0, at.below, {
       x: at.x,
@@ -169,7 +252,7 @@ export class WeaponOverlay {
   private show(
     def: SheetDef,
     action: string,
-    dir: Facing,
+    dir: Dir8,
     column: number,
     below: boolean,
     place: { x: number; y: number; angle: number; scale: number } | null = null,
@@ -199,10 +282,46 @@ export class WeaponOverlay {
       .setAlpha(this.host.alpha)
       .setDepth(this.host.depth + (below ? -DEPTH.OVERLAY_STEP : DEPTH.OVERLAY_STEP))
       .setVisible(this.host.visible);
+    // 56라운드 Q14·Q15 자원 오버레이 (같은 프레임 번호·같은 피벗으로 무기 위) — 시트가 없으면 칼날 곱 틴트
+    const shownGauge = !place && this.showGauge(action, dir, column);
+    if (this.bladeTint !== null && !place && !shownGauge) this.sprite.setTint(this.bladeTint);
+    else this.sprite.clearTint();
+    if (this.glint?.visible) this.glint.setPosition(this.sprite.x, this.sprite.y);
+  }
+
+  /** 자원 오버레이 시트 `<무기 동작>_<접미><단>` 를 겹친다. 보였으면 true */
+  private showGauge(action: string, dir: Dir8, column: number): boolean {
+    const g = this.gauge;
+    const id = gameState.weapon.id;
+    const name = g ? gaugeOverlayAction(action, g.suffix, g.level) : null;
+    const odef = name ? this.sheetOf(id, name) : undefined;
+    if (!name || !odef) {
+      if (this.gaugeSprite?.visible) this.gaugeSprite.setVisible(false);
+      this.gaugeAction = null;
+      return false;
+    }
+    let o = this.gaugeSprite;
+    if (!o) {
+      o = this.sprite.scene.add.sprite(0, 0, '__DEFAULT').setVisible(false);
+      this.gaugeSprite = o;
+    }
+    const tex = spriteLibrary.textureKey(id, name)!;
+    if (o.texture.key !== tex) o.setTexture(tex, 0);
+    const pv = overlayPivot(odef, this.body);
+    o.setOrigin(pv.x / odef.frameWidth, pv.y / odef.frameHeight)
+      .setFrame(frameAt(odef, dir, Math.min(column, odef.frames - 1)))
+      .setScale(artScale(odef))
+      .setPosition(this.sprite.x, this.sprite.y)
+      .setAlpha(this.sprite.alpha)
+      .setDepth(this.sprite.depth + DEPTH.OVERLAY_STEP * 0.25)
+      .setVisible(this.sprite.visible);
+    this.gaugeAction = name;
+    return true;
   }
 
   hide(): void {
     if (this.sprite.visible) this.sprite.setVisible(false);
+    if (this.gaugeSprite?.visible) this.gaugeSprite.setVisible(false);
     this.frame = -1;
     this.action = null;
     this.carry = null;

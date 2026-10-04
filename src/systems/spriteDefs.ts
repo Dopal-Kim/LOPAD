@@ -10,6 +10,15 @@ import type { AnchorPoint, BladeLocal, HandAnchor, StrideSpec } from './spriteMe
 export type SpriteCategory = 'player' | 'enemies' | 'bosses' | 'weapons' | 'fx' | 'structures';
 export type Facing = 'down' | 'up' | 'left' | 'right';
 export const FACINGS: readonly Facing[] = ['down', 'up', 'left', 'right'];
+/**
+ * 56라운드 Q6 대각 4방향 (아트 `directionRows`·`dirTransform: drawn8` 시트의 행 이름 — 기존 4행 뒤에 down-right, down-left, up-right, up-left).
+ * 이동·대기 그림은 4방향 그대로, 8행 시트(대검 연격·차지·꽂아내리기·이펙트)만 조준각 8분할로 행을 고른다
+ */
+export type Diagonal = 'down-right' | 'down-left' | 'up-right' | 'up-left';
+export const DIAGONALS: readonly Diagonal[] = ['down-right', 'down-left', 'up-right', 'up-left'];
+/** 시트 행 방향 (4방향 + 대각) */
+export type Dir8 = Facing | Diagonal;
+export const DIRS8: readonly Dir8[] = [...FACINGS, ...DIAGONALS];
 
 /** 계약 §1 동작 목록 (+ 52라운드 Q13 달리기 `run` — 없으면 walk) */
 export const PLAYER_ACTIONS = ['idle', 'walk', 'run', 'attack', 'dash', 'hurt', 'death'] as const;
@@ -58,6 +67,11 @@ export function aimAction(weaponId: string): string {
  * 몸 `player/player_<무기>_<동작>`, 무기 `weapons/<무기>_<동작>` (같은 열·같은 시각, §6.1 겹침 규칙)
  */
 export const WEAPON_MOTIONS = ['draw', 'sheathe', 'slam', 'dashslash', 'reload'] as const;
+/** 56라운드 Q7 그로기 몸 `player_groggy`(칼·대검 공용 루프) · 휴대 무기 `<무기>_carry_groggy` */
+export const GROGGY_ACTION = 'groggy';
+export const GROGGY_CARRY = 'carry_groggy';
+/** 56라운드 Q9 활 당김 유지·놓기 (몸 `player_<무기>_draw_hold`·`_release`, 무기 같은 이름) — 다른 무기는 매니페스트가 거른다 */
+export const WEAPON_MOTIONS_56 = ['draw_hold', 'release'] as const;
 export type WeaponMotion = (typeof WEAPON_MOTIONS)[number];
 
 /** 몸 동작 `<무기>_<motion>` */
@@ -115,6 +129,7 @@ export function playerWeaponActions(weaponId: string): string[] {
   for (let n = 1; n <= COMBO_HITS; n++) out.push(comboAction(weaponId, n));
   out.push(specialAction(weaponId), aimAction(weaponId));
   for (const m of WEAPON_MOTIONS) out.push(motionAction(weaponId, m));
+  for (const m of WEAPON_MOTIONS_56) out.push(`${weaponId}_${m}`);
   return out;
 }
 
@@ -126,6 +141,9 @@ export const WEAPON_EXTRA_ACTIONS: readonly string[] = [
   ...CARRY_ACTIONS.map(carryAction),
   ...CARRY_ACTIONS.map(carryDrawnAction),
   ...WEAPON_MOTIONS,
+  ...WEAPON_MOTIONS_56,
+  // 56라운드 Q7 그로기 휴대 (`weapons/v3/<무기>_carry_groggy` — 몸 player_groggy 와 같은 열)
+  GROGGY_CARRY,
 ];
 
 /**
@@ -147,11 +165,13 @@ export function overlayActionsFor(
   // 49라운드: 내리찍기·대쉬 공격은 무기 시트가 없으면 3타·attack, 뽑기·넣기·장전은 그 시트만 (없으면 휴대 표시)
   if (rest === 'slam' || rest === 'dashslash') return [rest, weaponComboAction(COMBO_HITS), 'attack'];
   if (rest === 'draw' || rest === 'sheathe' || rest === 'reload') return [rest];
+  // 56라운드 Q9 활 당김 유지·놓기 (무기 시트가 활·화살을 그림)
+  if ((WEAPON_MOTIONS_56 as readonly string[]).includes(rest)) return [rest, 'aim'];
   return art?.(rest) ?? [];
 }
 
 /** 애니 키 `<이름>_<동작>_<방향>[@f<n>][#…]` 에서 동작·방향을 꺼낸다. 형식이 아니면 null */
-export function parseAnimKey(key: string, name: string): { action: string; dir: Facing } | null {
+export function parseAnimKey(key: string, name: string): { action: string; dir: Dir8 } | null {
   if (!key.startsWith(`${name}_`)) return null;
   const body = key
     .slice(name.length + 1)
@@ -159,8 +179,8 @@ export function parseAnimKey(key: string, name: string): { action: string; dir: 
     .split('@')[0];
   const i = body.lastIndexOf('_');
   if (i <= 0) return null;
-  const dir = body.slice(i + 1) as Facing;
-  if (!FACINGS.includes(dir)) return null;
+  const dir = body.slice(i + 1) as Dir8;
+  if (!DIRS8.includes(dir)) return null;
   return { action: body.slice(0, i), dir };
 }
 /**
@@ -205,9 +225,9 @@ export interface SheetJson extends BranchSheetFields {
   /** 52라운드 Q10 (계약 §12): 걷기·달리기 한 주기 이동 도트·주기 ms — 재생 배속을 실제 속도에 맞춘다 (`spriteMeta.strideRate`) */
   stride?: StrideSpec;
   /** 52라운드 Q13 v3 몸: 프레임별 양손 중심 (시트 도트, 방향 → 열 목록) */
-  handAnchors?: Partial<Record<Facing, HandAnchor[]>>;
+  handAnchors?: Partial<Record<Dir8, HandAnchor[]>>;
   /** 52라운드 Q13 v3 무기: 칼을 쥔 손 (무기 시트 도트, 방향 → 열 목록) · 몸 기준 칼 방향 (열 목록) */
-  gripAnchors?: Partial<Record<Facing, AnchorPoint[]>>;
+  gripAnchors?: Partial<Record<Dir8, AnchorPoint[]>>;
   bladeLocal?: BladeLocal[];
   /**
    * 53라운드 Q4 (계약 §13) v3 몸: 프레임별 등 상흔 사각형 {x, y, w, h, rot, visible} (도트, x·y = 중심). 형식은 handAnchors 처럼
@@ -221,7 +241,7 @@ export interface SheetJson extends BranchSheetFields {
   bodySheetByWeapon?: Record<string, string | Record<string, string>>;
   /** 53라운드 적 v3 (사수): 발사 프레임 · 프레임별 총구 도트 좌표 (총을 놓친 프레임은 null) */
   fireFrame?: number;
-  muzzleAnchors?: Partial<Record<Facing, (AnchorPoint | null)[]>>;
+  muzzleAnchors?: Partial<Record<Dir8, (AnchorPoint | null)[]>>;
   /** 52라운드 v3 무기: 무기 시트 좌표 = 몸 시트 좌표 + 이 값 (피벗 정렬) */
   playerFrameOffset?: { x: number; y: number };
   /** 52라운드 v3 무기: 몸 뒤로 가는 픽셀을 시트에서 지웠다 → 늘 몸 위(above) */
@@ -229,7 +249,7 @@ export interface SheetJson extends BranchSheetFields {
   /** 52라운드 v3 칼 연격: 연격 동안 휴대 시트를 숨긴다 (값은 메모 문자열일 수 있다 — 참이면 숨김) */
   carryHidden?: boolean | string;
   /** 52라운드 v3 무기: 방향·프레임별 깊이 (있으면 depth 보다 우선) */
-  depthByFrame?: Partial<Record<Facing, ('above' | 'below')[]>>;
+  depthByFrame?: Partial<Record<Dir8, ('above' | 'below')[]>>;
   /** 50라운드 계약 §9: 높이가 있는 구조물·소품 — 피벗(바닥 접점)에서 이 높이(px, 시트 도트) 위로는 캐릭터를 가린다 */
   occludeAbove?: number;
   /** 50라운드 계약 §9: 광원 */
@@ -263,7 +283,7 @@ export interface SheetJson extends BranchSheetFields {
    * 깊이. 무기 오버레이(§3.1)는 방향별 above / below, 이펙트(§3.2)는 문자열 above(개체 위) / below(개체 아래·바닥).
    * 이펙트의 기본 깊이를 정할 때 쓴다 (호출 쪽이 깊이를 주면 그쪽이 우선)
    */
-  depth?: 'above' | 'below' | 'floor' | 'y' | Partial<Record<Facing, 'above' | 'below' | ('above' | 'below')[]>>;
+  depth?: 'above' | 'below' | 'floor' | 'y' | Partial<Record<Dir8, 'above' | 'below' | ('above' | 'below')[]>>;
   // --- 계약 §5 구조물 시트 (47라운드) ---
   /** 단단한 영역 타일 수 [가로, 세로] */
   footprint?: [number, number];
@@ -307,7 +327,7 @@ export interface SheetJson extends BranchSheetFields {
   /** 회전 시트 위아래 뒤집기 허용 ("allowed") */
   flipY?: string | boolean;
   /** 방향별 깊이 (ironwall {"up": "below"}) */
-  depthByDirection?: Partial<Record<Facing, 'above' | 'below'>>;
+  depthByDirection?: Partial<Record<Dir8, 'above' | 'below'>>;
   /** 재 파편 입자 묶음 (particles_ash — `ashParticleMath` 가 읽는다) */
   kinds?: unknown;
   recipes?: unknown;
@@ -316,7 +336,26 @@ export interface SheetJson extends BranchSheetFields {
   /** 53라운드 Q63 연격 궤적 메모: 칼끝 반경(도트, 판정 원점 기준) — 칼끝 메모가 없는 무기의 리본 반경 */
   trailFill?: { bladeTipRadiusDots?: number };
   /** 55라운드 v3 무기: 프레임별 칼끝 (무기 시트 도트, 방향 → 열 목록) */
-  bladeTipAnchors?: Partial<Record<Facing, AnchorPoint[]>>;
+  bladeTipAnchors?: Partial<Record<Dir8, AnchorPoint[]>>;
+  // --- 56라운드 (무기 피드백 — 아트 JSON 메모, 시스템이 읽는 것만) ---
+  /** Q11 붓획 이펙트 (히트스톱 정지 = 붓획이 다 그어진 다음 칸, Q37) */
+  brushStroke?: boolean;
+  /** 프레임 역할 (Q51 정지 칸 계산 — 문자열 배열, 종류별 시트는 표) */
+  frameRoles?: unknown[] | Record<string, unknown[]>;
+  /** Q5 대검 무게: 선딜 버팀 열 · 휘두른 뒤 끌림 열 · 끌림 이동 참고값 (world = 월드 px, frames = 몸이 끌리는 열) */
+  holdFrames?: number[];
+  dragFrames?: number[];
+  dragStepPx?: { world?: number; frames?: number[]; startMs?: number };
+  /** Q10 꽂아내리기: 칼이 바닥에 꽂힌 점 (몸 시트 도트, 방향 → 열 목록, 꽂히지 않은 열은 null) */
+  plantAnchors?: Partial<Record<Dir8, ([number, number] | null)[]>>;
+  /** Q9 활: 가득 열 · 유지 반복 [시작, 끝] · 흔들림 반복 [시작, 끝] · 화살이 생기는 점 (무기 시트 도트) */
+  fullFrame?: number;
+  holdLoop?: [number, number];
+  strainLoop?: [number, number];
+  arrowSpawnAnchors?: Partial<Record<Dir8, (AnchorPoint | null)[]>>;
+  /** Q2 일섬 그림자 분신: 출발→도착 이동 열 · 이동 ms · 베기 열 */
+  travelFrames?: number[];
+  travelMs?: number;
   /** 54라운드 아트 v3 술통 회전 시트: 한 바퀴 굴림 둘레 (**논리 px** = 도트 × 0.5 — 아트 rotationNote, `caskCircumferenceWorld`) */
   circumferencePx?: number;
   /** 54라운드 아트 2차 술통: 그림 지름 · 길이 (논리 px) — 판정 반경 (`caskRadiusFromArt`) */
@@ -357,7 +396,7 @@ export interface SheetJson extends BranchSheetFields {
   /** 49라운드: 이펙트 f0 재생 시각 ms (몸 시트 기준, 재생 배속 반영 전) */
   fxSpawnAtMs?: number;
   /** 49라운드 내리찍기: 발 피벗에서 착지(충격파 중심)까지 — 방향별 오프셋 px 우선, 없으면 조준 방향 거리 */
-  impactOffsetPx?: Partial<Record<Facing, { x: number; y: number }>>;
+  impactOffsetPx?: Partial<Record<Dir8, { x: number; y: number }>>;
   impactDistancePx?: number;
   /** 49라운드 내리찍기 도약 프레임별 몸 띄우기 px (제안 메모 — 시스템 미적용) */
   leapOffsetsPx?: Record<string, number>;
@@ -458,7 +497,7 @@ export function sheetToWorldUnits<T extends SheetJson>(json: T): T {
       fromPx: px(json.thrust.fromPx),
     };
   if (json.impactOffsetPx) {
-    const o: Partial<Record<Facing, { x: number; y: number }>> = {};
+    const o: Partial<Record<Dir8, { x: number; y: number }>> = {};
     for (const [d, v] of Object.entries(json.impactOffsetPx)) if (v) o[d as Facing] = { x: v.x * k, y: v.y * k };
     out.impactOffsetPx = o;
   }
@@ -550,11 +589,14 @@ export function wantedSheets(
   structureIds: readonly string[] = [],
   /** 55라운드 §17: 무기별 연격 그림 이름 표의 몸·무기 동작 이름 (`comboArt.comboArtNames(...).body`) */
   comboArt: Readonly<Record<string, readonly string[]>> = {},
+  /** 56라운드: 무기별 고유 자원 오버레이 접미 (칼 `ki` · 대검 `grudge` — 무기 동작마다 `<동작>_<접미><1~3>`) */
+  gaugeOverlay: Readonly<Record<string, string>> = {},
 ): SheetRequest[] {
   const out: SheetRequest[] = [];
   for (const action of PLAYER_ACTIONS) out.push({ category: 'player', name: 'player', action });
   // 48라운드 §6: 탄생 · 무기별 연격·특수·조준 (매니페스트에 없으면 로더가 건너뛴다)
   out.push({ category: 'player', name: 'player', action: BIRTH_ACTION });
+  out.push({ category: 'player', name: 'player', action: GROGGY_ACTION });
   for (const id of weaponIds) {
     const known = new Set(playerWeaponActions(id));
     for (const action of known) out.push({ category: 'player', name: 'player', action });
@@ -568,13 +610,31 @@ export function wantedSheets(
     for (const action of [...MOB_ACTIONS, ...BOSS_EXTRA_ACTIONS]) out.push({ category: 'bosses', name, action });
   for (const name of weaponIds) for (const action of WEAPON_ACTIONS) out.push({ category: 'weapons', name, action });
   for (const name of weaponIds) {
-    for (const action of WEAPON_EXTRA_ACTIONS) out.push({ category: 'weapons', name, action });
-    for (const n of comboArt[name] ?? [])
-      if (!WEAPON_EXTRA_ACTIONS.includes(n)) out.push({ category: 'weapons', name, action: n });
+    const acts = [...WEAPON_EXTRA_ACTIONS];
+    for (const n of comboArt[name] ?? []) if (!acts.includes(n)) acts.push(n);
+    for (const action of acts) out.push({ category: 'weapons', name, action });
+    const suffix = gaugeOverlay[name];
+    if (suffix)
+      for (const action of acts)
+        for (let lv = 1; lv <= GAUGE_OVERLAY_LEVELS; lv++)
+          out.push({ category: 'weapons', name, action: gaugeOverlayAction(action, suffix, lv) });
   }
   for (const name of fxIds) out.push({ category: 'fx', name, action: FX_ACTION });
   for (const name of structureIds) out.push({ category: 'structures', name, action: STRUCTURE_ACTION });
   return out;
+}
+
+/** 56라운드 고유 자원 오버레이 단계 수 (검기 3단 · 울분 3단) */
+export const GAUGE_OVERLAY_LEVELS = 3;
+
+/** 56라운드 고유 자원 오버레이 무기 동작 `<무기 동작>_<접미><단>` (`katana_rise_ki2`·`greatsword_cleave_grudge1` — 무기 시트 이름) */
+export function gaugeOverlayAction(weaponAction: string, suffix: string, level: number): string {
+  return `${weaponAction}_${suffix}${level}`;
+}
+
+/** 고유 자원 종류 → 오버레이 접미 (없으면 null — 낙인·숨은 무기 오버레이 없음) */
+export function gaugeOverlaySuffix(kind: string | undefined): string | null {
+  return kind === 'kenki' ? 'ki' : kind === 'grudge' ? 'grudge' : null;
 }
 
 /** 구조물 시트 내부 동작 이름 (파일 이름에 동작 접미가 없다 — 이펙트와 같은 방식). sheetId = `<id>_st` */
@@ -659,11 +719,41 @@ export function fxImpactFrame(def: Pick<SheetJson, 'impactFrame' | 'spawn' | 'fr
 }
 
 /**
- * 55라운드 Q14 ①: 히트스톱 동안 멈출 프레임 = `holdFrame`(적중 스파크) → 타격 프레임(`fxImpactFrame`, 연격 = 판정 백열 시작)
+ * 히트스톱 동안 멈출 프레임 = `holdFrame`(적중 스파크) → 56라운드 Q37: 붓획 시트(`brushStroke`)는 붓획이 다 그어진 다음 칸
+ * (판정 백열 `glowFrames` 마지막 다음 — 백열 프레임에 멈춰 흰 막대가 보이지 않게, 55라운드 Q14 규칙 대체) → 타격 프레임(`fxImpactFrame`)
  */
-export function fxHoldFrame(def: Pick<SheetJson, 'holdFrame' | 'impactFrame' | 'spawn' | 'frames'>): number {
+export function fxHoldFrame(
+  def: Pick<SheetJson, 'holdFrame' | 'impactFrame' | 'spawn' | 'frames' | 'brushStroke' | 'glowFrames' | 'frameRoles'>,
+): number {
   if (typeof def.holdFrame === 'number') return Math.max(0, Math.min(def.frames - 1, Math.floor(def.holdFrame)));
+  if (def.brushStroke) return strokeDoneFrame(def);
   return fxImpactFrame(def);
+}
+
+/**
+ * 56라운드 Q37·Q51: 붓획이 다 그어진 다음 칸 — `frameRoles` 로 계산(시스템): 'draw(끝까지 …)' 다음 칸, 없으면 마지막
+ * draw·impact 역할 다음 칸. 역할 표가 없으면 백열(glowFrames) 마지막 + 1 (없으면 타격 프레임 + 1). 마지막 프레임까지
+ */
+export function strokeDoneFrame(
+  def: Pick<SheetJson, 'impactFrame' | 'spawn' | 'frames' | 'glowFrames' | 'frameRoles'>,
+): number {
+  const roles = Array.isArray(def.frameRoles) ? def.frameRoles.map((r) => (typeof r === 'string' ? r : '')) : null;
+  let base: number | null = null;
+  if (roles) {
+    const done = roles.findIndex((r) => r.includes('끝까지'));
+    if (done >= 0) base = done;
+    else
+      for (let i = roles.length - 1; i >= 0; i--)
+        if (/^(draw|impact)/.test(roles[i])) {
+          base = i;
+          break;
+        }
+  }
+  if (base === null) {
+    const glow = Array.isArray(def.glowFrames) && def.glowFrames.length > 0 ? Math.max(...def.glowFrames) : null;
+    base = glow ?? fxImpactFrame(def);
+  }
+  return Math.max(0, Math.min(def.frames - 1, base + 1));
 }
 
 /**
@@ -699,12 +789,12 @@ export function progressFrame(progress: number, frames: number, divisor = frames
  */
 export function overlayDepthAt(
   def: Pick<SheetJson, 'depth' | 'depthByFrame' | 'occlusionBaked'>,
-  dir: Facing,
+  dir: Dir8,
   column: number,
 ): 'above' | 'below' {
-  // 52라운드 v3: 가림을 시트에 구웠으면 늘 위, 프레임별 표가 있으면 그것
+  // 52라운드 v3: 가림을 시트에 구웠으면 늘 위, 프레임별 표가 있으면 그것 (56라운드: 대각 표가 없으면 가로 성분 방향)
   if (def.occlusionBaked) return 'above';
-  const byFrame = def.depthByFrame?.[dir];
+  const byFrame = def.depthByFrame?.[dir] ?? def.depthByFrame?.[cardinalOf(dir)];
   if (Array.isArray(byFrame) && byFrame.length > 0) {
     const c = byFrame[Math.max(0, Math.min(byFrame.length - 1, column))];
     if (c === 'above' || c === 'below') return c;
@@ -712,7 +802,7 @@ export function overlayDepthAt(
   const d = def.depth;
   if (d === 'above' || d === 'below') return d;
   if (d && typeof d === 'object') {
-    const v = d[dir];
+    const v = d[dir] ?? d[cardinalOf(dir)];
     if (v === 'above' || v === 'below') return v;
     if (Array.isArray(v) && v.length > 0) {
       const c = v[Math.max(0, Math.min(v.length - 1, column))];
@@ -742,7 +832,7 @@ export function sheetTextureKey(name: string, action: string, suffix = ''): stri
 }
 
 /** 계약 §1 애니메이션 키 `<이름>_<동작>_<방향>` (+ 층 변형 접미) */
-export function animKey(name: string, action: string, dir: Facing, suffix = ''): string {
+export function animKey(name: string, action: string, dir: string, suffix = ''): string {
   return `${sheetId(name, action)}_${dir}${suffix}`;
 }
 
@@ -759,20 +849,28 @@ export function animDurationMs(def: SheetJson): number {
   return frameDurations(def).reduce((a, b) => a + b, 0);
 }
 
-/** 방향 행 번호 (JSON directions 순서). 없으면 0 */
-export function directionRow(def: SheetJson, dir: Facing): number {
+/**
+ * 방향 행 번호 (JSON directions 순서). 56라운드: 대각 이름이 없는 4행 시트면 대각은 가로 성분(right·left) 행 — `facingOf` 의
+ * 45° 동률 규칙(가로 우선)과 같다. 크기 행(`s`·`m`·`l` — 균열)처럼 방향이 아닌 행 이름도 그대로 찾는다. 없으면 0
+ */
+export function directionRow(def: Pick<SheetJson, 'directions'>, dir: string): number {
   const i = def.directions.indexOf(dir);
-  return i < 0 ? 0 : i;
+  if (i >= 0) return i;
+  if ((DIAGONALS as readonly string[]).includes(dir)) {
+    const j = def.directions.indexOf(cardinalOf(dir as Diagonal));
+    if (j >= 0) return j;
+  }
+  return 0;
 }
 
 /** 방향 행의 프레임 번호 목록: row * frames + column */
-export function frameIndices(def: SheetJson, dir: Facing): number[] {
+export function frameIndices(def: SheetJson, dir: string): number[] {
   const row = directionRow(def, dir);
   return Array.from({ length: def.frames }, (_, c) => row * def.frames + c);
 }
 
 /** 방향별 프레임 번호의 열 → 시트 프레임 번호. 다른 시트(무기 오버레이)가 같은 열을 같은 시각에 보일 때 */
-export function frameAt(def: SheetJson, dir: Facing, column: number): number {
+export function frameAt(def: SheetJson, dir: string, column: number): number {
   const c = Math.max(0, Math.min(def.frames - 1, column));
   return directionRow(def, dir) * def.frames + c;
 }
@@ -782,4 +880,46 @@ export function facingOf(dx: number, dy: number, fallback: Facing): Facing {
   if (dx === 0 && dy === 0) return fallback;
   if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? 'right' : 'left';
   return dy > 0 ? 'down' : 'up';
+}
+
+/**
+ * 56라운드 Q6: 조준각 8분할 (아트 directionNote: −22.5°~22.5° = right, 시계 방향으로 down-right, down, …). 0 벡터면 fallback
+ */
+export function facing8Of(dx: number, dy: number, fallback: Dir8): Dir8 {
+  if (dx === 0 && dy === 0) return fallback;
+  const deg = (Math.atan2(dy, dx) * 180) / Math.PI;
+  const sector = ((Math.round(deg / 45) % 8) + 8) % 8;
+  return (['right', 'down-right', 'down', 'down-left', 'left', 'up-left', 'up', 'up-right'] as const)[sector];
+}
+
+/** 대각 → 가로 성분 4방향 (대각 행이 없는 시트의 대체 행) · 4방향은 그대로 */
+export function cardinalOf(dir: Dir8): Facing {
+  if (dir === 'down-right' || dir === 'up-right') return 'right';
+  if (dir === 'down-left' || dir === 'up-left') return 'left';
+  return dir;
+}
+
+/** 이 시트에 대각 행이 있는가 (`directions` 에 대각 이름) */
+export function hasDiagonalRows(def: Pick<SheetJson, 'directions'> | null | undefined): boolean {
+  return Boolean(def && def.directions.some((d) => (DIAGONALS as readonly string[]).includes(d)));
+}
+
+/**
+ * 56라운드 Q6: 조준 벡터로 고르는 시트 행 방향 — 대각 행이 있는 시트(8행)는 8분할, 없으면 기존 4방향(지배 축) 그대로.
+ * 4행 시트의 동작은 바뀌지 않는다
+ */
+export function rowDirFor(
+  def: Pick<SheetJson, 'directions'> | null | undefined,
+  dx: number,
+  dy: number,
+  fallback: Facing,
+): Dir8 {
+  return hasDiagonalRows(def) ? facing8Of(dx, dy, fallback) : facingOf(dx, dy, fallback);
+}
+
+/** 애니를 만들 행 이름: 4방향(4행 시트·`any` 시트는 대체 행) + 시트에 있는 다른 행 이름(대각·크기) */
+export function animRowNames(def: Pick<SheetJson, 'directions'>): string[] {
+  const out: string[] = [...FACINGS];
+  for (const d of def.directions) if (d !== 'any' && !out.includes(d)) out.push(d);
+  return out;
 }

@@ -120,6 +120,8 @@ export class FxPool {
     if (!sprite) return null;
     const token = this.nextToken++;
     sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
+    // 56라운드: 남은 애니 체인(loopFrom)을 비운 뒤 멈춘다 — stop() 은 체인 다음 애니를 재생하기 때문
+    sprite.anims.chain();
     sprite.anims.stop();
     // 50라운드: 새 2배 도트 이펙트(pixelScale 1)는 0.5 배로 그려 화면 크기를 맞춘다
     const scale = fxDrawScale(def);
@@ -176,7 +178,12 @@ export class FxPool {
       const anim = opts.tailFrames ? this.tailAnim(id, key, texture, opts.tailFrames, opts.dir ?? 'down') : key;
       sprite.anims.timeScale = state.timeScale;
       sprite.play(anim, true);
-      const loop = Boolean(def.loop) || Boolean(opts.tailFrames);
+      // 56라운드: 한 번 재생 뒤 loopFrom 열부터 반복 (Phaser 애니 체인)
+      const loopFrom =
+        opts.loopFrom !== undefined && opts.loopFrom > 0 && opts.loopFrom < def.frames ? opts.loopFrom : null;
+      if (loopFrom !== null && !opts.tailFrames)
+        sprite.chain(this.tailAnim(id, key, texture, def.frames - loopFrom, opts.dir ?? 'down'));
+      const loop = Boolean(def.loop) || Boolean(opts.tailFrames) || loopFrom !== null;
       if (!loop) {
         const hold = opts.holdLastMs ?? opts.variant?.holdLastMs ?? 0;
         sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
@@ -248,14 +255,14 @@ export class FxPool {
   }
 
   /** 4방향 루프 이펙트의 방향 바꾸기 (질풍: 플레이어 방향을 따른다) */
-  setDir(h: FxHandle | null, id: string, dir: Facing): void {
+  setDir(h: FxHandle | null, id: string, dir: string): void {
     if (!h || !this.isActive(h)) return;
     const key = spriteLibrary.animKey(id, FX_ACTION, dir);
     if (key && h.sprite.anims.currentAnim?.key !== key) h.sprite.play(key, true);
   }
 
   /** 고정 프레임 이펙트(진행도 주도)의 열 바꾸기 */
-  setFrame(h: FxHandle | null, id: string, column: number, dir: Facing = 'down'): void {
+  setFrame(h: FxHandle | null, id: string, column: number, dir: string = 'down'): void {
     if (!h || !this.isActive(h)) return;
     const def = spriteLibrary.sheet(id, FX_ACTION);
     if (!def) return;
@@ -411,12 +418,13 @@ export class FxPool {
     if (st?.light) lightRegistryOf(this.scene).remove(st.light);
     this.states.delete(sprite);
     sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
+    sprite.anims.chain();
     sprite.anims.stop();
     sprite.setActive(false).setVisible(false).setAlpha(1).setRotation(0).setScale(1).setFlipY(false).clearTint();
   }
 
   /** 마지막 n 프레임만 반복하는 애니 (키 `<애니>#tail<n>`, 텍스처 변형별로 1회 생성) */
-  private tailAnim(id: string, key: string, texture: string, n: number, dir: Facing): string {
+  private tailAnim(id: string, key: string, texture: string, n: number, dir: string): string {
     const tailKey = `${key}#tail${n}`;
     if (!this.scene.anims.exists(tailKey)) {
       const def = spriteLibrary.sheet(id, FX_ACTION)!;

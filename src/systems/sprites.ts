@@ -10,8 +10,11 @@ import { PALETTE } from '../data';
 import { BASE_FLOOR, buildSwapTable, rampFor, recolorPixels, variantSuffix } from './palette';
 import { swapTag, type ColorSwap } from './fxVariants';
 import {
+  DIAGONALS,
   FACINGS,
   animKey,
+  animRowNames,
+  cardinalOf,
   frameAt,
   frameDurations,
   frameIndices,
@@ -19,7 +22,7 @@ import {
   phaseAnimKey,
   sheetId,
   sheetTextureKey,
-  type Facing,
+  type Diagonal,
   type SheetDef,
 } from './spriteDefs';
 
@@ -71,11 +74,19 @@ class SpriteLibrary {
     return def ? sheetTextureKey(n, action, this.suffixOf(def)) : null;
   }
 
-  /** 현재 층 변형이 적용된 애니 키. 시트가 없으면 null */
-  animKey(name: string, action: string, dir: Facing): string | null {
+  /**
+   * 현재 층 변형이 적용된 애니 키. 시트가 없으면 null. 56라운드: 시트에 없는 행 이름(4행 시트의 대각)은 그 대체 행의 키
+   */
+  animKey(name: string, action: string, dir: string): string | null {
     const n = this.resolve(name);
     const def = this.sheets.get(sheetId(n, action));
-    return def ? animKey(n, action, dir, this.suffixOf(def)) : null;
+    return def ? animKey(n, action, this.rowName(def, dir), this.suffixOf(def)) : null;
+  }
+
+  /** 애니가 있는 행 이름 (시트에 있으면 그대로, 4행 시트의 대각은 가로 성분, 그 밖은 down) */
+  private rowName(def: SheetDef, dir: string): string {
+    if (animRowNames(def).includes(dir)) return dir;
+    return (DIAGONALS as readonly string[]).includes(dir) ? cardinalOf(dir as Diagonal) : FACINGS[0];
   }
 
   /**
@@ -87,7 +98,7 @@ class SpriteLibrary {
     name: string,
     action: string,
     swaps: readonly ColorSwap[],
-  ): { texture: string; anim: (dir: Facing) => string } | null {
+  ): { texture: string; anim: (dir: string) => string } | null {
     const def = this.sheet(name, action);
     const base = this.textureKey(name, action);
     if (!def || !base || swaps.length === 0 || !scene.textures.exists(base)) return null;
@@ -111,7 +122,7 @@ class SpriteLibrary {
     scene: Phaser.Scene,
     name: string,
     action: string,
-    dir: Facing,
+    dir: string,
     columns: number[],
     frameMs: number,
   ): string | null {
@@ -160,7 +171,8 @@ class SpriteLibrary {
   private createAnims(scene: Phaser.Scene, def: SheetDef, suffix: string): void {
     const texture = sheetTextureKey(def.name, def.action, suffix);
     const durations = frameDurations(def);
-    for (const dir of FACINGS) {
+    // 56라운드: 4방향 + 시트의 대각·크기 행 (4행 시트의 대각 키는 만들지 않는다 — animKey 가 4방향 키로 대체)
+    for (const dir of animRowNames(def)) {
       const key = animKey(def.name, def.action, dir, suffix);
       if (scene.anims.exists(key)) continue;
       const frames = frameIndices(def, dir).map((frame, i) => ({ key: texture, frame, duration: durations[i] }));

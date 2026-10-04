@@ -1,6 +1,8 @@
 import type { BossPatternName, PatternParams } from './bossPatterns';
 export type { BossPatternName, PatternParams } from './bossPatterns';
 import type { ComboDef } from './comboTypes';
+import type { BowDrawDef, IssenDef, PlungeDef, WeaponGaugeDef } from './weapon56Types';
+export type * from './weapon56Types';
 
 /** data/*.json 의 타입 정의. JSON을 바꾸면 여기와 validate()도 함께 맞춘다. */
 
@@ -83,6 +85,11 @@ export interface PlayerData {
   startWeapon: string;
   /** 공격 후 감속이 적용되는 최소 시간 */
   attackSlowMinMs: number;
+  /**
+   * 56라운드 Q7: 퍼펙트 가드 — 가드를 누른 직후 windowMs 안의 피격은 피해 0(튕겨내지 않음) + 월드 문구 'PERFECT GUARD'.
+   * 칼 패링은 기존 패링 창 그대로(성공 시 문구 'PARRY')
+   */
+  perfectGuard?: { windowMs: number };
 }
 
 export type EnemyBehavior = 'chase' | 'ranged' | 'charge';
@@ -478,10 +485,15 @@ export type SecondaryDef =
       /** 누르는 동안 받는 피해 감소 비율 (0.7 = 70% 감소) */
       damageReduction: number;
       moveMult: number;
-      /** 떼면 이 반경(칸) 안의 적을 밀쳐낸다 */
+      /** 떼면 이 반경(칸) 안의 적을 밀쳐낸다 (0 = 밀쳐내지 않음 — 56라운드 칼 가드) */
       pushRadiusTiles: number;
       pushSpeedTiles: number;
       pushMs: number;
+      /**
+       * 56라운드: 가드 직후 창(player.perfectGuard) 안 피격 — guard = 퍼펙트 가드(피해 0, 튕겨내지 않음, 대검) ·
+       * parry = 패링(피해 0, 튕겨냄·경직, 'PARRY', 검기 1단 — 칼, Q48 11라운드 패링 창 0.2초 대체). 없으면 guard
+       */
+      perfect?: 'guard' | 'parry';
     }
   | {
       kind: 'shadowstep';
@@ -521,6 +533,11 @@ export interface StaminaResourceDef {
   recoverRatio: number;
   /** 바닥난 동안 이동 속도 배율 */
   exhaustedMoveMult: number;
+  /**
+   * 56라운드 Q7·Q19: 기력 0 → 그로기 ms (칼·대검). 그동안 공격·대쉬 불가·가드만, 이 시간이 지나야만 풀린다(퍼펙트로 탈출 없음).
+   * 풀리면 기력 = max × recoverRatio (임시). 없으면 49라운드 규칙(recoverRatio 까지 차면 풀림)
+   */
+  groggyMs?: number;
   /** 소모량: 연격 타별 · 대쉬 · 대쉬 공격 · 내리찍기 */
   cost: { hits: number[]; dash: number; dashAttack: number; slam: number };
 }
@@ -645,6 +662,14 @@ export interface WeaponDef {
   attackSlowMult: number;
   /** 55라운드 Q6·Q7·Q8 타격감 (없으면 Constants 기본값) */
   feel?: WeaponFeelDef;
+  /** 56라운드 Q13~Q20: 무기별 고유 자원 (칼 검기·대검 울분·단검 낙인·활 숨) */
+  gauge?: WeaponGaugeDef;
+  /** 56라운드 Q2: 칼 3타 일섬 (연격 타 `move: "issen"`) */
+  issen?: IssenDef;
+  /** 56라운드 Q10: 대검 개성 발현(충격파 갈래) 후 차지 = 꽂아내리기 */
+  plunge?: PlungeDef;
+  /** 56라운드 Q9: 활 우클릭 당김·놓기 */
+  draw?: BowDrawDef;
   hitbox: AttackHitbox;
   /** 48라운드: 근접 3연격 (없으면 기존 단일 공격 + cooldownMs) */
   combo?: ComboDef;

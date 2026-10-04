@@ -15,8 +15,11 @@ export interface FxFollowTarget {
 }
 
 export interface FxPlayOptions {
-  /** 4방향 시트의 행. `directions: ["any"]` 시트는 무시된다 */
-  dir?: Facing;
+  /**
+   * 시트의 행 이름: 4방향 · 56라운드 대각(8행 시트, 4행 시트면 가로 성분 행) · 크기(균열 s·m·l).
+   * `directions: ["any"]` 시트는 무시된다
+   */
+  dir?: Facing | string;
   /** 투사체 앵커(`rotate: true`): 진행 각도(rad). 우향으로 그려졌으므로 그대로 회전 */
   angle?: number;
   /** 절대 깊이. follow 가 있고 depthOffset 이 있으면 대상 깊이 + 오프셋을 매 프레임 쓴다 */
@@ -31,6 +34,8 @@ export interface FxPlayOptions {
   durationMs?: number;
   /** 시트의 마지막 `tailFrames` 프레임만 루프 (잔월: 거합 4~6프레임 반복) */
   tailFrames?: number;
+  /** 56라운드: 처음부터 한 번 재생한 뒤 이 열부터 끝까지 반복 (낙인 표식 찍힘 0~1 → 2~5 루프). 멈추려면 stop / follow 해제 */
+  loopFrom?: number;
   /** 일회성 재생이 끝난 뒤 마지막 프레임을 이 시간만큼 유지하고 페이드 (피 바닥 얼룩) */
   holdLastMs?: number;
   /** 애니 대신 고정 프레임 (진행도 주도 aim_charge). `setFrame` 으로 바꾸고 `stop` 으로 끝낸다 */
