@@ -1,0 +1,99 @@
+{
+ "image": "aim_line.png",
+ "action": "aim_line",
+ "frameWidth": 32,
+ "frameHeight": 8,
+ "framesPerDirection": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 0,
+ "frameDurationsMs": [
+  0,
+  0
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 0,
+  "y": 4
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "anchor": "player_pivot",
+ "rotate": true,
+ "drawnFacing": "right",
+ "tile": true,
+ "spawn": "aim_charge",
+ "depth": "below",
+ "weapon": "bow",
+ "stateFrames": {
+  "charging": 0,
+  "complete": 1
+ },
+ "pivotNote": "피벗 (0,1) = 선 시작(플레이어 몸 중심). TileSprite 폭 = 사거리, 회전 = 커서 각도",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
+ "source": "parts/art/work/fx_weapons_v3/build.py",
+ "colors": 5,
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "활 B 혼불 시위 + 재 화살(Q29) — 재 화살대·타는 촉, 재 연기·불티 꼬리, 조준 = 혼불 실",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
+ "tilePeriodPx": 32,
+ "note": "v3 (53라운드 Q5): 활 B 혼불 시위 + 재 화살(Q29) — 재 화살대·타는 촉, 재 연기·불티 꼬리, 조준 = 혼불 실",
+ "legacy": {
+  "image": "../aim_line.png.png",
+  "frameWidth": 8,
+  "frameHeight": 2,
+  "pivot": {
+   "x": 0,
+   "y": 1
+  },
+  "pixelScale": 2,
+  "note": "조준 궤적 코어 점선(4 on / 4 off): f0 차지 중 = X1 코어 + W2 밑줄, f1 차지 완료 = X0 코어 + W3 밑줄. 상태 프레임(시간 애니 아님) — 미지원이면 f0 만 사용.",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
+  "secondary": "fx.weapons.bow",
+  "v3Note": "TileSprite 주기 32 도트(구 8 ×4)"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 aim_line.png)",
+  "grid": {
+   "columns": 2,
+   "rows": 1,
+   "frameWidth": 32,
+   "frameHeight": 8,
+   "frameCount": 2
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": true,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":32,"h":8},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":32,"h":8},"sourceSize":{"w":32,"h":8}},
+  "1":{"frame":{"x":34,"y":0,"w":32,"h":8},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":32,"h":8},"sourceSize":{"w":32,"h":8}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "aim_line.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 66,
+   "h": 8
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,151 @@
+{
+ "image": "katana_counter.png",
+ "action": "katana_counter",
+ "version": "v3-r56-e1",
+ "frameWidth": 344,
+ "frameHeight": 368,
+ "framesPerDirection": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 18.75,
+ "frameDurationsMs": [
+  30,
+  20,
+  30,
+  70,
+  80,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_moves_kg/build.py fx (56라운드 Q21·Q22·Q40 새 기본기 fx — 작업 E1)",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 171,
+  "y": 251
+ },
+ "hitOriginInFrame": {
+  "x": 171,
+  "y": 211
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗)에 맞춘다. 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "effectRule": "56라운드 Q11: 붓으로 그은 한 획(시작 가늘고·가운데 굵고·끝 갈라짐) — 닫힌 원 금지. 재·호박만, 백열은 판정 프레임의 획 머리 몇 도트만. 판정 밖 프레임은 A25(#eecc78) 이하",
+ "brushStroke": true,
+ "r56": "56라운드 Q21·Q22·Q40 새 기본기(작업 E1)",
+ "weapon": "katana",
+ "bodySheet": "player_katana_counter",
+ "spawn": "body_ms",
+ "spawnAtMs": 80,
+ "impactAtBodyMs": 110,
+ "impactFrame": 1,
+ "hitShape": {
+  "type": "arc",
+  "startDeg": -80,
+  "endDeg": 50,
+  "radiusR": 1.1,
+  "innerR": 0.0,
+  "note": "비대칭 호 130° ×1.1 (임시 제안 — 시스템 데이터가 기준). 왼쪽 위 → 오른쪽 아래 袈裟 베기",
+  "R": {
+   "world": 38,
+   "dots": 152
+  },
+  "outerRadiusPx": 167.2,
+  "innerRadiusPx": 0.0,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "drawnArc": {
+  "fromDeg": -80,
+  "toDeg": 50,
+  "radiusDots": 167.2,
+  "brushWidthDots": 7.5,
+  "heightDots": [
+   46,
+   4
+  ]
+ },
+ "frameRoles": [
+  "pre(붓 끝 닿음)",
+  "draw(머리 55% · 판정)",
+  "draw(끝까지 · 붓털 갈라짐)",
+  "decay",
+  "decay",
+  "decay(재)"
+ ],
+ "design": "간파 반격 — 받아 흘린 직후 왼쪽 위에서 오른쪽 아래로 짧고 날카롭게 그은 가는 붓 한 획(1·2타보다 가늘고 짧음)",
+ "spawnRule": "spawnAtMs = 몸 hitAt − frameDurationsMs[0]",
+ "dirTransform": "drawn4",
+ "directionNote": "4행 = 칼 몸 시트 행 순서(down, up, left, right) — left 는 180° 회전 규칙(§17)",
+ "glowFrames": [
+  1,
+  2
+ ],
+ "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_counter.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 344,
+   "frameHeight": 368,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":284,"y":862,"w":11,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":322,"y":193,"w":11,"h":38},"sourceSize":{"w":344,"h":368}},
+  "1":{"frame":{"x":145,"y":1525,"w":129,"h":156},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":204,"y":193,"w":129,"h":156},"sourceSize":{"w":344,"h":368}},
+  "2":{"frame":{"x":0,"y":346,"w":302,"h":167},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":193,"w":302,"h":167},"sourceSize":{"w":344,"h":368}},
+  "3":{"frame":{"x":0,"y":632,"w":299,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":235,"w":299,"h":125},"sourceSize":{"w":344,"h":368}},
+  "4":{"frame":{"x":0,"y":862,"w":265,"h":73},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":287,"w":265,"h":73},"sourceSize":{"w":344,"h":368}},
+  "5":{"frame":{"x":75,"y":1297,"w":184,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":310,"w":184,"h":54},"sourceSize":{"w":344,"h":368}},
+  "6":{"frame":{"x":267,"y":862,"w":14,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":101,"w":14,"h":36},"sourceSize":{"w":344,"h":368}},
+  "7":{"frame":{"x":0,"y":1775,"w":149,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":22,"w":149,"h":115},"sourceSize":{"w":344,"h":368}},
+  "8":{"frame":{"x":0,"y":515,"w":301,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":22,"w":301,"h":115},"sourceSize":{"w":344,"h":368}},
+  "9":{"frame":{"x":0,"y":759,"w":291,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":22,"w":291,"h":101},"sourceSize":{"w":344,"h":368}},
+  "10":{"frame":{"x":0,"y":1198,"w":247,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":61,"y":23,"w":247,"h":97},"sourceSize":{"w":344,"h":368}},
+  "11":{"frame":{"x":0,"y":1683,"w":155,"h":90},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":29,"w":155,"h":90},"sourceSize":{"w":344,"h":368}},
+  "12":{"frame":{"x":267,"y":902,"w":35,"h":8},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":108,"y":319,"w":35,"h":8},"sourceSize":{"w":344,"h":368}},
+  "13":{"frame":{"x":157,"y":1683,"w":136,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":210,"w":136,"h":117},"sourceSize":{"w":344,"h":368}},
+  "14":{"frame":{"x":0,"y":937,"w":140,"h":259},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":68,"w":140,"h":259},"sourceSize":{"w":344,"h":368}},
+  "15":{"frame":{"x":142,"y":937,"w":102,"h":258},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":66,"w":102,"h":258},"sourceSize":{"w":344,"h":368}},
+  "16":{"frame":{"x":0,"y":1297,"w":73,"h":217},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":79,"w":73,"h":217},"sourceSize":{"w":344,"h":368}},
+  "17":{"frame":{"x":0,"y":1532,"w":68,"h":147},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":80,"w":68,"h":147},"sourceSize":{"w":344,"h":368}},
+  "18":{"frame":{"x":142,"y":326,"w":38,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":199,"y":3,"w":38,"h":17},"sourceSize":{"w":344,"h":368}},
+  "19":{"frame":{"x":145,"y":1353,"w":137,"h":170},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":199,"y":3,"w":137,"h":170},"sourceSize":{"w":344,"h":368}},
+  "20":{"frame":{"x":0,"y":0,"w":140,"h":344},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":199,"y":3,"w":140,"h":344},"sourceSize":{"w":344,"h":368}},
+  "21":{"frame":{"x":142,"y":0,"w":88,"h":324},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":251,"y":31,"w":88,"h":324},"sourceSize":{"w":344,"h":368}},
+  "22":{"frame":{"x":232,"y":0,"w":70,"h":280},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":268,"y":76,"w":70,"h":280},"sourceSize":{"w":344,"h":368}},
+  "23":{"frame":{"x":75,"y":1353,"w":68,"h":177},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":269,"y":172,"w":68,"h":177},"sourceSize":{"w":344,"h":368}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_counter.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 302,
+   "h": 1890
+  },
+  "scale": "1"
+ }
+}

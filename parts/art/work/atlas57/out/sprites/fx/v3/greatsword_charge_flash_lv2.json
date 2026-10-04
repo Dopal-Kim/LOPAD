@@ -1,0 +1,109 @@
+{
+ "image": "greatsword_charge_flash_lv2.png",
+ "action": "greatsword_charge_flash_lv2",
+ "version": "v3-r55",
+ "frameWidth": 136,
+ "frameHeight": 216,
+ "framesPerDirection": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.0,
+ "frameDurationsMs": [
+  30,
+  40,
+  50,
+  60,
+  70
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 5,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo55/build.py (55라운드 Q18~Q25 · 계약 §17 새 연격 이펙트)",
+ "weapon": "greatsword",
+ "design": "차지 2단(0.8초) — 날을 따라 손잡이 → 칼끝으로 흐르는 호박 + 중간 별 + 불티(A25 까지)",
+ "bodySheet": "player_greatsword_charge",
+ "weaponSheet": "weapons/v3/greatsword_charge",
+ "comboSet": "G-C 관성 순환",
+ "dirTransform": "rotate",
+ "dirTransformNote": "§17 각도(조준 0°, 화면 시계 +)를 모든 방향에 회전으로 적용 — left = right 를 180° 회전(구 fx 의 좌우 반전 아님). 몸 시트의 휘두름 방향과 같다",
+ "effectRule": "55라운드: 원 전체가 아니라 판정 호를 따라 2~3프레임에 그려 나가는 부분 초승달, 80~120ms 소멸, 재·호박만, 판정 순간만 백열",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 66,
+  "y": 210
+ },
+ "hitOriginInFrame": {
+  "x": 66,
+  "y": 170
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗)에 맞춘다. 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "spawn": "charge_stage_reached",
+ "chargeStage": 2,
+ "atHoldSec": 0.8,
+ "spawnNote": "홀드 시작부터 0.8초에 1회(차지 몸 greatsword_charge 의 어느 프레임이든 — 홀드 루프 자세의 칼끝 기준 그림)",
+ "glowNote": "판정 아님 — 전 프레임 A25 이하(Q65). 단계 차이는 크기·빛살 수·고리·불티로",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_charge_flash_lv2.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 136,
+   "frameHeight": 216,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":34,"y":111,"w":26,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":6,"w":26,"h":109},"sourceSize":{"w":136,"h":216}},
+  "1":{"frame":{"x":0,"y":0,"w":32,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":3,"w":32,"h":111},"sourceSize":{"w":136,"h":216}},
+  "2":{"frame":{"x":34,"y":0,"w":39,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":5,"w":39,"h":109},"sourceSize":{"w":136,"h":216}},
+  "3":{"frame":{"x":0,"y":113,"w":24,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":7,"w":24,"h":107},"sourceSize":{"w":136,"h":216}},
+  "4":{"frame":{"x":64,"y":1054,"w":10,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":61,"y":14,"w":10,"h":10},"sourceSize":{"w":136,"h":216}},
+  "5":{"frame":{"x":34,"y":1054,"w":28,"h":71},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":38,"w":28,"h":71},"sourceSize":{"w":136,"h":216}},
+  "6":{"frame":{"x":0,"y":980,"w":32,"h":74},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":35,"w":32,"h":74},"sourceSize":{"w":136,"h":216}},
+  "7":{"frame":{"x":34,"y":980,"w":39,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":37,"w":39,"h":72},"sourceSize":{"w":136,"h":216}},
+  "8":{"frame":{"x":0,"y":1056,"w":26,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":39,"w":26,"h":70},"sourceSize":{"w":136,"h":216}},
+  "9":{"frame":{"x":62,"y":137,"w":12,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":60,"y":45,"w":12,"h":10},"sourceSize":{"w":136,"h":216}},
+  "10":{"frame":{"x":0,"y":606,"w":66,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":21,"w":66,"h":92},"sourceSize":{"w":136,"h":216}},
+  "11":{"frame":{"x":0,"y":222,"w":69,"h":95},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":18,"w":69,"h":95},"sourceSize":{"w":136,"h":216}},
+  "12":{"frame":{"x":0,"y":416,"w":74,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":20,"w":74,"h":93},"sourceSize":{"w":136,"h":216}},
+  "13":{"frame":{"x":0,"y":794,"w":65,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":22,"w":65,"h":91},"sourceSize":{"w":136,"h":216}},
+  "14":{"frame":{"x":62,"y":111,"w":12,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":105,"y":29,"w":12,"h":11},"sourceSize":{"w":136,"h":216}},
+  "15":{"frame":{"x":0,"y":700,"w":66,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":21,"w":66,"h":92},"sourceSize":{"w":136,"h":216}},
+  "16":{"frame":{"x":0,"y":319,"w":69,"h":95},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":18,"w":69,"h":95},"sourceSize":{"w":136,"h":216}},
+  "17":{"frame":{"x":0,"y":511,"w":71,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":20,"w":71,"h":93},"sourceSize":{"w":136,"h":216}},
+  "18":{"frame":{"x":0,"y":887,"w":65,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":22,"w":65,"h":91},"sourceSize":{"w":136,"h":216}},
+  "19":{"frame":{"x":62,"y":124,"w":12,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":29,"w":12,"h":11},"sourceSize":{"w":136,"h":216}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "greatsword_charge_flash_lv2.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 74,
+   "h": 1126
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,454 @@
+player/player_attack: 672x576 -> 618x355  GPU 1.5->0.84MB
+player/player_birth: 6528x192 -> 164x1336  GPU 4.8->0.84MB
+player/player_bow_aim: 768x576 -> 68x3774  GPU 1.7->0.98MB
+player/player_bow_arrow_rain: 1152x576 -> 523x717  GPU 2.5->1.43MB
+player/player_bow_draw_hold: 1344x576 -> 1981x235  GPU 3.0->1.78MB
+player/player_bow_release: 384x576 -> 528x235  GPU 0.8->0.47MB
+player/player_bow_reload: 960x576 -> 416x706  GPU 2.1->1.12MB
+player/player_dagger_backstab: 960x576 -> 256x1131  GPU 2.1->1.10MB
+player/player_dagger_combo1: 576x576 -> 382x459  GPU 1.3->0.67MB
+player/player_dagger_combo2: 576x576 -> 203x919  GPU 1.3->0.71MB
+player/player_dagger_combo3: 768x576 -> 370x657  GPU 1.7->0.93MB
+player/player_dagger_flurry: 960x576 -> 1264x225  GPU 2.1->1.08MB
+player/player_dagger_special: 864x576 -> 338x754  GPU 1.9->0.97MB
+player/player_dash: 480x576 -> 371x404  GPU 1.1->0.57MB
+player/player_death: 960x576 -> 222x982  GPU 2.1->0.83MB  중복2
+player/player_greatsword_brace_upswing: 1056x1152 -> 460x1454  GPU 4.6->2.55MB
+player/player_greatsword_charge: 672x1152 -> 418x922  GPU 3.0->1.47MB
+player/player_greatsword_charge_plunge: 864x1152 -> 483x1114  GPU 3.8->2.05MB
+player/player_greatsword_charge_slam: 864x1152 -> 347x1610  GPU 3.8->2.13MB
+player/player_greatsword_cleave: 1152x1152 -> 564x1315  GPU 5.1->2.83MB
+player/player_greatsword_combo1: 1152x576 -> 444x778  GPU 2.5->1.32MB
+player/player_greatsword_combo2: 1152x576 -> 750x456  GPU 2.5->1.30MB
+player/player_greatsword_combo3: 1344x576 -> 632x652  GPU 3.0->1.57MB
+player/player_greatsword_dashslash: 1248x576 -> 473x882  GPU 2.7->1.59MB
+player/player_greatsword_draw: 672x576 -> 337x594  GPU 1.5->0.76MB
+player/player_greatsword_guard_rush: 864x1152 -> 614x844  GPU 3.8->1.98MB
+player/player_greatsword_leap_slam: 1248x1152 -> 358x1600  GPU 5.5->2.19MB  빈24
+player/player_greatsword_sheathe: 672x576 -> 418x477  GPU 1.5->0.76MB
+player/player_greatsword_slam: 1536x576 -> 316x1418  GPU 3.4->1.71MB
+player/player_greatsword_special: 1152x576 -> 395x901  GPU 2.5->1.36MB
+player/player_greatsword_sweep_ccw: 1056x1152 -> 541x1220  GPU 4.6->2.52MB
+player/player_greatsword_sweep_cw: 1056x1152 -> 964x667  GPU 4.6->2.45MB
+player/player_greatsword_tackle: 864x1152 -> 1820x325  GPU 3.8->2.26MB
+player/player_groggy: 960x576 -> 1233x210  GPU 2.1->0.99MB
+player/player_hurt: 288x576 -> 226x510  GPU 0.6->0.44MB
+player/player_idle: 576x576 -> 185x974  GPU 1.3->0.69MB
+player/player_idle_free: 576x576 -> 218x849  GPU 1.3->0.71MB
+player/player_katana_combo1: 672x576 -> 490x458  GPU 1.5->0.86MB
+player/player_katana_combo2: 576x576 -> 507x344  GPU 1.3->0.67MB
+player/player_katana_combo3: 672x576 -> 303x676  GPU 1.5->0.78MB
+player/player_katana_counter: 768x576 -> 236x1007  GPU 1.7->0.91MB
+player/player_katana_crescent: 768x576 -> 745x336  GPU 1.7->0.95MB
+player/player_katana_draw: 576x576 -> 403x465  GPU 1.3->0.71MB
+player/player_katana_fall: 672x576 -> 225x1029  GPU 1.5->0.88MB
+player/player_katana_iai: 1440x576 -> 450x1071  GPU 3.2->1.84MB
+player/player_katana_issen: 1152x576 -> 399x955  GPU 2.5->1.45MB
+player/player_katana_rise: 768x576 -> 526x458  GPU 1.7->0.92MB
+player/player_katana_sheathe: 768x576 -> 737x351  GPU 1.7->0.99MB
+player/player_katana_special: 864x576 -> 793x348  GPU 1.9->1.05MB
+player/player_run: 768x576 -> 780x330  GPU 1.7->0.98MB
+player/player_run_free: 768x576 -> 764x330  GPU 1.7->0.96MB
+player/player_walk: 768x576 -> 533x499  GPU 1.7->1.01MB
+player/player_walk_free: 768x576 -> 334x736  GPU 1.7->0.94MB
+weapons/bow_aim: 1536x768 -> 51x1065  GPU 4.5->0.21MB
+weapons/bow_arrow_rain: 2304x768 -> 53x1728  GPU 6.8->0.35MB
+weapons/bow_attack: 1344x768 -> 49x500  GPU 3.9->0.09MB  빈3  중복1
+weapons/bow_carry_dash: 960x768 -> 38x736  GPU 2.8->0.11MB
+weapons/bow_carry_idle: 1152x768 -> 74x334  GPU 3.4->0.09MB  중복6
+weapons/bow_carry_run: 1536x768 -> 88x445  GPU 4.5->0.15MB  빈2  중복2
+weapons/bow_carry_walk: 1536x768 -> 192x214  GPU 4.5->0.16MB
+weapons/bow_draw_hold: 2688x768 -> 52x2298  GPU 7.9->0.46MB  중복3
+weapons/bow_release: 768x768 -> 45x404  GPU 2.2->0.07MB
+weapons/bow_reload: 1920x768 -> 154x462  GPU 5.6->0.27MB  빈2  중복6
+weapons/dagger_backstab: 1920x768 -> 34x565  GPU 5.6->0.07MB  빈4
+weapons/dagger_carry_dash: 960x768 -> 67x106  GPU 2.8->0.03MB
+weapons/dagger_carry_idle: 1152x768 -> 19x613  GPU 3.4->0.04MB  중복6
+weapons/dagger_carry_run: 1536x768 -> 56x231  GPU 4.5->0.05MB  빈1  중복2
+weapons/dagger_carry_walk: 1536x768 -> 21x904  GPU 4.5->0.07MB  빈1  중복4
+weapons/dagger_combo1: 1152x768 -> 122x108  GPU 3.4->0.05MB  빈2
+weapons/dagger_combo2: 1152x768 -> 54x231  GPU 3.4->0.05MB  빈3
+weapons/dagger_combo3: 1536x768 -> 100x169  GPU 4.5->0.06MB  빈2
+weapons/dagger_flurry: 1920x768 -> 82x245  GPU 5.6->0.08MB  빈3
+weapons/dagger_special: 1728x768 -> 84x183  GPU 5.1->0.06MB  빈4
+weapons/greatsword_brace_upswing: 3080x2368 -> 417x709  GPU 27.8->1.13MB  빈2
+weapons/greatsword_brace_upswing_grudge1: 3080x2368 -> 120x265  GPU 27.8->0.12MB  빈4
+weapons/greatsword_brace_upswing_grudge2: 3080x2368 -> 42x1675  GPU 27.8->0.27MB  빈3
+weapons/greatsword_brace_upswing_grudge3: 3080x2368 -> 159x688  GPU 27.8->0.42MB  빈3
+weapons/greatsword_carry_dash: 1200x1088 -> 262x455  GPU 5.0->0.45MB
+weapons/greatsword_carry_dash_grudge1: 1200x1088 -> 70x91  GPU 5.0->0.02MB
+weapons/greatsword_carry_dash_grudge2: 1200x1088 -> 78x171  GPU 5.0->0.05MB
+weapons/greatsword_carry_dash_grudge3: 1200x1088 -> 35x685  GPU 5.0->0.09MB
+weapons/greatsword_carry_drawn_dash: 1200x1088 -> 171x388  GPU 5.0->0.25MB
+weapons/greatsword_carry_drawn_dash_grudge1: 1200x1088 -> 44x146  GPU 5.0->0.02MB
+weapons/greatsword_carry_drawn_dash_grudge2: 1200x1088 -> 32x486  GPU 5.0->0.06MB
+weapons/greatsword_carry_drawn_dash_grudge3: 1200x1088 -> 44x637  GPU 5.0->0.11MB
+weapons/greatsword_carry_drawn_idle: 1440x1088 -> 316x267  GPU 6.0->0.32MB  중복6
+weapons/greatsword_carry_drawn_idle_grudge1: 1440x1088 -> 68x114  GPU 6.0->0.03MB  중복6
+weapons/greatsword_carry_drawn_idle_grudge2: 1440x1088 -> 100x235  GPU 6.0->0.09MB
+weapons/greatsword_carry_drawn_idle_grudge3: 1440x1088 -> 94x457  GPU 6.0->0.16MB
+weapons/greatsword_carry_drawn_run: 1920x1088 -> 159x713  GPU 8.0->0.43MB
+weapons/greatsword_carry_drawn_run_grudge1: 1920x1088 -> 79x130  GPU 8.0->0.04MB  빈4
+weapons/greatsword_carry_drawn_run_grudge2: 1920x1088 -> 93x274  GPU 8.0->0.10MB
+weapons/greatsword_carry_drawn_run_grudge3: 1920x1088 -> 105x479  GPU 8.0->0.19MB
+weapons/greatsword_carry_drawn_walk: 1920x1088 -> 250x557  GPU 8.0->0.53MB
+weapons/greatsword_carry_drawn_walk_grudge1: 1920x1088 -> 184x77  GPU 8.0->0.05MB
+weapons/greatsword_carry_drawn_walk_grudge2: 1920x1088 -> 101x313  GPU 8.0->0.12MB
+weapons/greatsword_carry_drawn_walk_grudge3: 1920x1088 -> 187x328  GPU 8.0->0.23MB
+weapons/greatsword_carry_groggy: 2400x1088 -> 65x2620  GPU 10.0->0.65MB  중복7
+weapons/greatsword_carry_idle: 1440x1088 -> 66x1678  GPU 6.0->0.42MB  중복3
+weapons/greatsword_carry_idle_grudge1: 1440x1088 -> 30x178  GPU 6.0->0.02MB  중복6
+weapons/greatsword_carry_idle_grudge2: 1440x1088 -> 27x493  GPU 6.0->0.05MB
+weapons/greatsword_carry_idle_grudge3: 1440x1088 -> 35x731  GPU 6.0->0.10MB
+weapons/greatsword_carry_run: 1920x1088 -> 214x827  GPU 8.0->0.68MB  중복2
+weapons/greatsword_carry_run_grudge1: 1920x1088 -> 78x82  GPU 8.0->0.02MB  중복12
+weapons/greatsword_carry_run_grudge2: 1920x1088 -> 27x812  GPU 8.0->0.08MB
+weapons/greatsword_carry_run_grudge3: 1920x1088 -> 35x1107  GPU 8.0->0.15MB
+weapons/greatsword_carry_walk: 1920x1088 -> 65x2175  GPU 8.0->0.54MB  중복4
+weapons/greatsword_carry_walk_grudge1: 1920x1088 -> 50x105  GPU 8.0->0.02MB  중복14
+weapons/greatsword_carry_walk_grudge2: 1920x1088 -> 27x625  GPU 8.0->0.06MB
+weapons/greatsword_carry_walk_grudge3: 1920x1088 -> 35x876  GPU 8.0->0.12MB
+weapons/greatsword_charge: 1680x2240 -> 223x986  GPU 14.4->0.84MB
+weapons/greatsword_charge_grudge1: 1680x2240 -> 100x223  GPU 14.4->0.09MB
+weapons/greatsword_charge_grudge2: 1680x2240 -> 30x1472  GPU 14.4->0.17MB
+weapons/greatsword_charge_grudge3: 1680x2240 -> 36x1832  GPU 14.4->0.25MB
+weapons/greatsword_charge_plunge: 2160x2240 -> 113x1681  GPU 18.5->0.72MB
+weapons/greatsword_charge_plunge_grudge1: 2160x2240 -> 136x122  GPU 18.5->0.06MB  빈19
+weapons/greatsword_charge_plunge_grudge2: 2160x2240 -> 42x828  GPU 18.5->0.13MB  중복5
+weapons/greatsword_charge_plunge_grudge3: 2160x2240 -> 56x1124  GPU 18.5->0.24MB
+weapons/greatsword_charge_slam: 2160x2240 -> 102x2718  GPU 18.5->1.06MB  빈1
+weapons/greatsword_charge_slam_grudge1: 2160x2240 -> 78x332  GPU 18.5->0.10MB  빈9
+weapons/greatsword_charge_slam_grudge2: 2160x2240 -> 116x498  GPU 18.5->0.22MB  빈2
+weapons/greatsword_charge_slam_grudge3: 2160x2240 -> 51x2015  GPU 18.5->0.39MB  빈2
+weapons/greatsword_cleave: 2880x2240 -> 402x859  GPU 24.6->1.32MB  빈4
+weapons/greatsword_cleave_grudge1: 2880x2240 -> 107x309  GPU 24.6->0.13MB  빈11
+weapons/greatsword_cleave_grudge2: 2880x2240 -> 41x1750  GPU 24.6->0.27MB  빈5
+weapons/greatsword_cleave_grudge3: 2880x2240 -> 54x2360  GPU 24.6->0.49MB  빈5
+weapons/greatsword_combo1: 2880x1088 -> 283x629  GPU 12.0->0.68MB
+weapons/greatsword_combo2: 2880x1088 -> 510x353  GPU 12.0->0.69MB
+weapons/greatsword_combo3: 3360x1088 -> 350x602  GPU 13.9->0.80MB
+weapons/greatsword_dashslash: 3120x1088 -> 404x446  GPU 12.9->0.69MB
+weapons/greatsword_draw: 1680x1088 -> 616x168  GPU 7.0->0.39MB
+weapons/greatsword_draw_grudge1: 1680x1088 -> 66x144  GPU 7.0->0.04MB
+weapons/greatsword_draw_grudge2: 1680x1088 -> 72x326  GPU 7.0->0.09MB
+weapons/greatsword_draw_grudge3: 1680x1088 -> 212x192  GPU 7.0->0.16MB
+weapons/greatsword_guard_rush: 2520x2368 -> 617x426  GPU 22.8->1.00MB  빈1
+weapons/greatsword_guard_rush_grudge1: 2520x2368 -> 195x133  GPU 22.8->0.10MB  빈6
+weapons/greatsword_guard_rush_grudge2: 2520x2368 -> 141x424  GPU 22.8->0.23MB  빈4
+weapons/greatsword_guard_rush_grudge3: 2520x2368 -> 193x573  GPU 22.8->0.42MB  빈4
+weapons/greatsword_leap_slam: 3640x2368 -> 168x3076  GPU 32.9->1.97MB  빈1
+weapons/greatsword_leap_slam_grudge1: 3640x2368 -> 130x276  GPU 32.9->0.14MB  빈6
+weapons/greatsword_leap_slam_grudge2: 3640x2368 -> 42x1830  GPU 32.9->0.29MB  빈1
+weapons/greatsword_leap_slam_grudge3: 3640x2368 -> 57x2330  GPU 32.9->0.51MB  빈1
+weapons/greatsword_sheathe: 1680x1088 -> 269x464  GPU 7.0->0.48MB
+weapons/greatsword_sheathe_grudge1: 1680x1088 -> 54x154  GPU 7.0->0.03MB  빈7
+weapons/greatsword_sheathe_grudge2: 1680x1088 -> 125x170  GPU 7.0->0.08MB  빈2
+weapons/greatsword_sheathe_grudge3: 1680x1088 -> 175x237  GPU 7.0->0.16MB  빈2
+weapons/greatsword_slam: 3840x1088 -> 347x786  GPU 15.9->1.04MB  빈1
+weapons/greatsword_special: 2880x1088 -> 113x1608  GPU 12.0->0.69MB  중복4
+weapons/greatsword_special_grudge1: 2880x1088 -> 120x159  GPU 12.0->0.07MB  중복4
+weapons/greatsword_special_grudge2: 2880x1088 -> 190x251  GPU 12.0->0.18MB
+weapons/greatsword_special_grudge3: 2880x1088 -> 301x278  GPU 12.0->0.32MB
+weapons/greatsword_sweep_ccw: 2640x2240 -> 270x1152  GPU 22.6->1.19MB
+weapons/greatsword_sweep_ccw_grudge1: 2640x2240 -> 177x186  GPU 22.6->0.13MB  빈1
+weapons/greatsword_sweep_ccw_grudge2: 2640x2240 -> 137x584  GPU 22.6->0.31MB
+weapons/greatsword_sweep_ccw_grudge3: 2640x2240 -> 283x467  GPU 22.6->0.50MB
+weapons/greatsword_sweep_cw: 2640x2240 -> 321x962  GPU 22.6->1.18MB
+weapons/greatsword_sweep_cw_grudge1: 2640x2240 -> 106x304  GPU 22.6->0.12MB  빈1
+weapons/greatsword_sweep_cw_grudge2: 2640x2240 -> 164x493  GPU 22.6->0.31MB  빈1
+weapons/greatsword_sweep_cw_grudge3: 2640x2240 -> 318x427  GPU 22.6->0.52MB  빈1
+weapons/greatsword_tackle: 2520x2368 -> 303x916  GPU 22.8->1.06MB
+weapons/greatsword_tackle_grudge1: 2520x2368 -> 111x243  GPU 22.8->0.10MB  빈7
+weapons/greatsword_tackle_grudge2: 2520x2368 -> 167x358  GPU 22.8->0.23MB  빈4
+weapons/greatsword_tackle_grudge3: 2520x2368 -> 263x437  GPU 22.8->0.44MB  빈4
+weapons/katana_carry_dash: 960x768 -> 189x173  GPU 2.8->0.12MB
+weapons/katana_carry_dash_ki1: 960x768 -> 60x185  GPU 2.8->0.04MB
+weapons/katana_carry_dash_ki2: 960x768 -> 57x166  GPU 2.8->0.04MB
+weapons/katana_carry_dash_ki3: 960x768 -> 62x189  GPU 2.8->0.04MB
+weapons/katana_carry_drawn_dash: 960x768 -> 169x383  GPU 2.8->0.25MB
+weapons/katana_carry_drawn_dash_ki1: 960x768 -> 161x181  GPU 2.8->0.11MB
+weapons/katana_carry_drawn_dash_ki2: 960x768 -> 84x264  GPU 2.8->0.08MB
+weapons/katana_carry_drawn_dash_ki3: 960x768 -> 267x117  GPU 2.8->0.12MB
+weapons/katana_carry_drawn_idle: 1152x768 -> 101x934  GPU 3.4->0.36MB  중복6
+weapons/katana_carry_drawn_idle_ki1: 1152x768 -> 106x312  GPU 3.4->0.13MB
+weapons/katana_carry_drawn_idle_ki2: 1152x768 -> 82x371  GPU 3.4->0.12MB
+weapons/katana_carry_drawn_idle_ki3: 1152x768 -> 145x255  GPU 3.4->0.14MB
+weapons/katana_carry_drawn_run: 1536x768 -> 353x310  GPU 4.5->0.42MB
+weapons/katana_carry_drawn_run_ki1: 1536x768 -> 84x357  GPU 4.5->0.11MB
+weapons/katana_carry_drawn_run_ki2: 1536x768 -> 103x221  GPU 4.5->0.09MB
+weapons/katana_carry_drawn_run_ki3: 1536x768 -> 107x317  GPU 4.5->0.13MB
+weapons/katana_carry_drawn_walk: 1536x768 -> 200x855  GPU 4.5->0.65MB
+weapons/katana_carry_drawn_walk_ki1: 1536x768 -> 185x261  GPU 4.5->0.18MB
+weapons/katana_carry_drawn_walk_ki2: 1536x768 -> 97x426  GPU 4.5->0.16MB
+weapons/katana_carry_drawn_walk_ki3: 1536x768 -> 212x228  GPU 4.5->0.18MB
+weapons/katana_carry_groggy: 1920x768 -> 167x377  GPU 5.6->0.24MB
+weapons/katana_carry_idle: 1152x768 -> 363x73  GPU 3.4->0.10MB  중복6
+weapons/katana_carry_idle_ki1: 1152x768 -> 55x234  GPU 3.4->0.05MB
+weapons/katana_carry_idle_ki2: 1152x768 -> 84x137  GPU 3.4->0.04MB
+weapons/katana_carry_idle_ki3: 1152x768 -> 89x146  GPU 3.4->0.05MB
+weapons/katana_carry_run: 1536x768 -> 105x320  GPU 4.5->0.13MB  중복8
+weapons/katana_carry_run_ki1: 1536x768 -> 120x128  GPU 4.5->0.06MB
+weapons/katana_carry_run_ki2: 1536x768 -> 77x170  GPU 4.5->0.05MB
+weapons/katana_carry_run_ki3: 1536x768 -> 85x184  GPU 4.5->0.06MB
+weapons/katana_carry_walk: 1536x768 -> 111x338  GPU 4.5->0.14MB  중복6
+weapons/katana_carry_walk_ki1: 1536x768 -> 101x153  GPU 4.5->0.06MB
+weapons/katana_carry_walk_ki2: 1536x768 -> 56x243  GPU 4.5->0.05MB
+weapons/katana_carry_walk_ki3: 1536x768 -> 62x260  GPU 4.5->0.06MB
+weapons/katana_combo1: 1344x768 -> 196x589  GPU 3.9->0.44MB
+weapons/katana_combo2: 1152x768 -> 125x855  GPU 3.4->0.41MB
+weapons/katana_combo3: 1344x768 -> 177x782  GPU 3.9->0.53MB
+weapons/katana_counter: 1536x768 -> 378x532  GPU 4.5->0.77MB
+weapons/katana_counter_ki1: 1536x768 -> 95x418  GPU 4.5->0.15MB
+weapons/katana_counter_ki2: 1536x768 -> 85x383  GPU 4.5->0.12MB
+weapons/katana_counter_ki3: 1536x768 -> 139x303  GPU 4.5->0.16MB
+weapons/katana_crescent: 1536x768 -> 171x729  GPU 4.5->0.48MB
+weapons/katana_draw: 1152x768 -> 215x370  GPU 3.4->0.30MB
+weapons/katana_draw_ki1: 1152x768 -> 141x423  GPU 3.4->0.23MB
+weapons/katana_draw_ki2: 1152x768 -> 171x291  GPU 3.4->0.19MB
+weapons/katana_draw_ki3: 1152x768 -> 264x241  GPU 3.4->0.24MB
+weapons/katana_fall: 1344x768 -> 312x567  GPU 3.9->0.67MB
+weapons/katana_fall_ki1: 1344x768 -> 112x347  GPU 3.9->0.15MB
+weapons/katana_fall_ki2: 1344x768 -> 82x370  GPU 3.9->0.12MB
+weapons/katana_fall_ki3: 1344x768 -> 175x237  GPU 3.9->0.16MB
+weapons/katana_iai: 2880x768 -> 137x1249  GPU 8.4->0.65MB
+weapons/katana_iai_ki1: 2880x768 -> 68x855  GPU 8.4->0.22MB
+weapons/katana_iai_ki2: 2880x768 -> 126x367  GPU 8.4->0.18MB
+weapons/katana_iai_ki3: 2880x768 -> 117x498  GPU 8.4->0.22MB
+weapons/katana_issen: 2304x768 -> 195x826  GPU 6.8->0.61MB
+weapons/katana_issen_ki1: 2304x768 -> 72x755  GPU 6.8->0.21MB
+weapons/katana_issen_ki2: 2304x768 -> 73x598  GPU 6.8->0.17MB
+weapons/katana_issen_ki3: 2304x768 -> 73x788  GPU 6.8->0.22MB
+weapons/katana_rise: 1536x768 -> 255x785  GPU 4.5->0.76MB
+weapons/katana_rise_ki1: 1536x768 -> 99x441  GPU 4.5->0.17MB
+weapons/katana_rise_ki2: 1536x768 -> 108x323  GPU 4.5->0.13MB
+weapons/katana_rise_ki3: 1536x768 -> 230x206  GPU 4.5->0.18MB
+weapons/katana_sheathe: 1536x768 -> 291x389  GPU 4.5->0.43MB
+weapons/katana_sheathe_ki1: 1536x768 -> 176x520  GPU 4.5->0.35MB
+weapons/katana_sheathe_ki2: 1536x768 -> 265x276  GPU 4.5->0.28MB
+weapons/katana_sheathe_ki3: 1536x768 -> 117x795  GPU 4.5->0.35MB
+weapons/katana_special: 1728x768 -> 408x558  GPU 5.1->0.87MB
+weapons/katana_special_ki1: 1728x768 -> 267x822  GPU 5.1->0.84MB
+weapons/katana_special_ki2: 1728x768 -> 415x459  GPU 5.1->0.73MB
+weapons/katana_special_ki3: 1728x768 -> 312x699  GPU 5.1->0.83MB
+fx/afterimage: 1280x1024 -> 373x839  GPU 5.0->1.19MB  중복3
+fx/aim_charge: 768x128 -> 108x656  GPU 0.4->0.27MB
+fx/aim_line: 64x8 -> 66x8  GPU 0.0->0.00MB
+fx/aim_line_snipe: 384x12 -> 394x12  GPU 0.0->0.02MB
+fx/assassin: 1280x256 -> 515x255  GPU 1.2->0.50MB
+fx/batto: 1792x1024 -> 716x1220  GPU 7.0->3.33MB
+fx/birth_dust: 2304x128 -> 245x777  GPU 1.1->0.73MB
+fx/bleed: 384x96 -> 48x288  GPU 0.1->0.05MB
+fx/blood: 480x384 -> 98x215  GPU 0.7->0.08MB
+fx/boss1_cup_shatter: 1024x128 -> 270x148  GPU 0.5->0.15MB
+fx/boss1_liquor_glob: 192x32 -> 156x13  GPU 0.0->0.01MB
+fx/boss1_liquor_splash: 1120x96 -> 131x180  GPU 0.4->0.09MB
+fx/boss1_onfire: 3072x960 -> 1223x1128  GPU 11.2->5.26MB
+fx/boss1_onfire_down: 3072x240 -> 262x1071  GPU 2.8->1.07MB
+fx/boss1_torch: 384x48 -> 194x24  GPU 0.1->0.02MB
+fx/boss_fan_shot: 80x40 -> 30x62  GPU 0.0->0.01MB
+fx/boss_slam: 2304x384 -> 378x1425  GPU 3.4->2.05MB
+fx/bow_arrow: 48x24 -> 39x8  GPU 0.0->0.00MB
+fx/bow_arrow_aimed: 64x32 -> 56x9  GPU 0.0->0.00MB
+fx/bow_arrow_aimed_rapid: 160x24 -> 143x12  GPU 0.0->0.01MB
+fx/bow_arrow_aimed_rapid_quiver: 224x32 -> 196x12  GPU 0.0->0.01MB
+fx/bow_arrow_aimed_rapid_volley: 224x32 -> 161x22  GPU 0.0->0.01MB
+fx/bow_arrow_aimed_snipe: 256x20 -> 200x8  GPU 0.0->0.01MB
+fx/bow_arrow_aimed_snipe_deadeye: 320x28 -> 104x36  GPU 0.0->0.01MB
+fx/bow_arrow_aimed_snipe_pierce: 320x28 -> 211x14  GPU 0.0->0.01MB
+fx/bow_arrow_rain_fall: 504x232 -> 131x219  GPU 0.4->0.11MB
+fx/bow_arrow_rain_mark: 4400x1320 -> 796x3580  GPU 22.2->10.87MB
+fx/bow_arrow_rain_rise: 800x736 -> 96x295  GPU 2.2->0.11MB
+fx/bow_arrow_rapid: 128x24 -> 110x12  GPU 0.0->0.01MB
+fx/bow_arrow_rapid_quiver: 192x32 -> 167x12  GPU 0.0->0.01MB
+fx/bow_arrow_rapid_volley: 192x32 -> 127x22  GPU 0.0->0.01MB
+fx/bow_arrow_snipe: 192x20 -> 148x8  GPU 0.0->0.00MB
+fx/bow_arrow_snipe_deadeye: 256x28 -> 78x36  GPU 0.0->0.01MB
+fx/bow_arrow_snipe_lv1: 288x12 -> 217x6  GPU 0.0->0.00MB
+fx/bow_arrow_snipe_lv1_deadeye: 480x20 -> 400x13  GPU 0.0->0.02MB
+fx/bow_arrow_snipe_lv1_pierce: 480x20 -> 406x14  GPU 0.0->0.02MB
+fx/bow_arrow_snipe_lv2: 480x20 -> 413x13  GPU 0.0->0.02MB
+fx/bow_arrow_snipe_lv2_deadeye: 672x28 -> 195x66  GPU 0.1->0.05MB
+fx/bow_arrow_snipe_lv2_pierce: 672x28 -> 595x22  GPU 0.1->0.05MB
+fx/bow_arrow_snipe_lv3: 672x28 -> 621x22  GPU 0.1->0.05MB
+fx/bow_arrow_snipe_lv3_deadeye: 864x36 -> 811x30  GPU 0.1->0.09MB
+fx/bow_arrow_snipe_lv3_pierce: 864x36 -> 816x30  GPU 0.1->0.09MB
+fx/bow_arrow_snipe_pierce: 256x28 -> 159x14  GPU 0.0->0.01MB
+fx/bow_arrow_weak: 256x24 -> 229x8  GPU 0.0->0.01MB
+fx/bow_muzzle_rapid: 128x64 -> 56x30  GPU 0.0->0.01MB
+fx/bow_perfect_release: 560x104 -> 182x165  GPU 0.2->0.11MB
+fx/crit_burst: 640x128 -> 120x502  GPU 0.3->0.23MB
+fx/crush: 1536x256 -> 231x331  GPU 1.5->0.29MB
+fx/dagger_backstab: 1200x608 -> 201x649  GPU 2.8->0.50MB
+fx/dagger_brand_burst: 1216x408 -> 204x884  GPU 1.9->0.69MB
+fx/dagger_brand_mark: 264x200 -> 123x164  GPU 0.2->0.08MB
+fx/dagger_combo1: 1312x1376 -> 146x294  GPU 6.9->0.16MB
+fx/dagger_combo1_gale: 1024x1024 -> 253x346  GPU 4.0->0.33MB
+fx/dagger_combo1_gale_afterimage: 1280x1280 -> 307x415  GPU 6.2->0.49MB
+fx/dagger_combo1_gale_assassin: 1280x1280 -> 435x390  GPU 6.2->0.65MB
+fx/dagger_combo1_heat1: 1280x1280 -> 143x245  GPU 6.2->0.13MB
+fx/dagger_combo1_heat2: 1280x1280 -> 236x170  GPU 6.2->0.15MB
+fx/dagger_combo1_heat3: 1280x1280 -> 230x324  GPU 6.2->0.28MB
+fx/dagger_combo1_twin: 1024x1024 -> 167x223  GPU 4.0->0.14MB
+fx/dagger_combo1_twin_bleed: 1280x1280 -> 215x418  GPU 6.2->0.34MB
+fx/dagger_combo1_twin_dance: 1280x1280 -> 169x533  GPU 6.2->0.34MB
+fx/dagger_combo2: 1344x1344 -> 147x343  GPU 6.9->0.19MB
+fx/dagger_combo2_gale: 1024x1024 -> 254x344  GPU 4.0->0.33MB
+fx/dagger_combo2_gale_afterimage: 1280x1280 -> 309x413  GPU 6.2->0.49MB
+fx/dagger_combo2_gale_assassin: 1280x1280 -> 435x391  GPU 6.2->0.65MB
+fx/dagger_combo2_heat1: 1280x1280 -> 105x341  GPU 6.2->0.14MB
+fx/dagger_combo2_heat2: 1280x1280 -> 135x462  GPU 6.2->0.24MB
+fx/dagger_combo2_heat3: 1280x1280 -> 143x461  GPU 6.2->0.25MB
+fx/dagger_combo2_twin: 1024x1024 -> 167x229  GPU 4.0->0.15MB
+fx/dagger_combo2_twin_bleed: 1280x1280 -> 172x511  GPU 6.2->0.34MB
+fx/dagger_combo2_twin_dance: 1280x1280 -> 169x534  GPU 6.2->0.34MB
+fx/dagger_combo3: 2000x1600 -> 294x177  GPU 12.2->0.20MB
+fx/dagger_combo3_gale: 1280x1024 -> 194x859  GPU 5.0->0.64MB
+fx/dagger_combo3_gale_afterimage: 1600x1280 -> 346x604  GPU 7.8->0.80MB
+fx/dagger_combo3_gale_assassin: 1600x1280 -> 259x1188  GPU 7.8->1.17MB
+fx/dagger_combo3_heat1: 1600x1280 -> 227x230  GPU 7.8->0.20MB
+fx/dagger_combo3_heat2: 1600x1280 -> 197x378  GPU 7.8->0.28MB
+fx/dagger_combo3_heat3: 1600x1280 -> 185x513  GPU 7.8->0.36MB
+fx/dagger_combo3_twin: 1280x1024 -> 114x546  GPU 5.0->0.24MB
+fx/dagger_combo3_twin_bleed: 1600x1280 -> 342x411  GPU 7.8->0.54MB
+fx/dagger_combo3_twin_dance: 1600x1280 -> 261x448  GPU 7.8->0.45MB
+fx/dagger_flurry: 3360x1376 -> 288x652  GPU 17.6->0.72MB  빈4  중복3
+fx/dagger_flurry_heat2: 3600x1472 -> 461x515  GPU 20.2->0.91MB  빈4  중복3
+fx/dagger_flurry_heat3: 3760x1504 -> 359x1128  GPU 21.6->1.54MB  빈4
+fx/dagger_overheat_burst: 1792x144 -> 214x721  GPU 1.0->0.59MB
+fx/dagger_overheat_cool: 432x128 -> 120x173  GPU 0.2->0.08MB
+fx/dagger_slash: 960x768 -> 644x118  GPU 2.8->0.29MB
+fx/dance: 2688x1536 -> 602x816  GPU 15.8->1.87MB
+fx/dash_dust: 384x192 -> 124x142  GPU 0.3->0.07MB
+fx/dash_trail: 384x576 -> 331x376  GPU 0.8->0.47MB
+fx/dashcrit: 1280x256 -> 290x266  GPU 1.2->0.29MB
+fx/enemy_bullet: 32x32 -> 28x18  GPU 0.0->0.00MB
+fx/fire_pool: 768x96 -> 176x305  GPU 0.3->0.20MB
+fx/flash: 512x32 -> 470x8  GPU 0.1->0.01MB
+fx/gale: 1024x1024 -> 450x216  GPU 4.0->0.37MB
+fx/giant: 1024x256 -> 206x582  GPU 1.0->0.46MB
+fx/greatsword_brace_absorb: 400x88 -> 129x63  GPU 0.1->0.03MB
+fx/greatsword_brace_upswing: 2160x3392 -> 1392x779  GPU 27.9->4.14MB
+fx/greatsword_brace_upswing_ember: 2496x3968 -> 580x2617  GPU 37.8->5.79MB
+fx/greatsword_charge_flash_lv1: 600x832 -> 18x289  GPU 1.9->0.02MB
+fx/greatsword_charge_flash_lv2: 680x864 -> 74x1126  GPU 2.2->0.32MB
+fx/greatsword_charge_flash_lv3: 1040x992 -> 675x325  GPU 3.9->0.84MB
+fx/greatsword_charge_ring: 2592x368 -> 803x741  GPU 3.6->2.27MB
+fx/greatsword_charge_slam_lv1: 3408x4608 -> 810x1404  GPU 59.9->4.34MB
+fx/greatsword_charge_slam_lv2: 3888x5248 -> 784x1815  GPU 77.8->5.43MB
+fx/greatsword_charge_slam_lv3: 4656x6272 -> 1405x1544  GPU 111.4->8.28MB
+fx/greatsword_cleave: 3408x4608 -> 606x1846  GPU 59.9->4.27MB
+fx/greatsword_cleave_impact: 880x144 -> 168x571  GPU 0.5->0.37MB
+fx/greatsword_combo1: 3072x2048 -> 845x2739  GPU 24.0->8.83MB
+fx/greatsword_combo1_crush: 3072x2048 -> 716x3395  GPU 24.0->9.27MB
+fx/greatsword_combo1_crush_pulverize: 3456x2304 -> 1262x2476  GPU 30.4->11.92MB
+fx/greatsword_combo1_crush_quake: 3456x2304 -> 1285x1913  GPU 30.4->9.38MB
+fx/greatsword_combo1_weight: 3072x2048 -> 1218x1592  GPU 24.0->7.40MB  중복4
+fx/greatsword_combo1_weight_giant: 3456x2304 -> 979x3138  GPU 30.4->11.72MB
+fx/greatsword_combo1_weight_ironwall: 3456x2304 -> 1252x2219  GPU 30.4->10.60MB
+fx/greatsword_combo2: 3072x2048 -> 661x3471  GPU 24.0->8.75MB
+fx/greatsword_combo2_crush: 3072x2048 -> 650x3404  GPU 24.0->8.44MB
+fx/greatsword_combo2_crush_pulverize: 3456x2304 -> 966x3075  GPU 30.4->11.33MB
+fx/greatsword_combo2_crush_quake: 3456x2304 -> 1262x1944  GPU 30.4->9.36MB
+fx/greatsword_combo2_weight: 3072x2048 -> 849x1950  GPU 24.0->6.32MB  중복4
+fx/greatsword_combo2_weight_giant: 3456x2304 -> 984x3208  GPU 30.4->12.04MB
+fx/greatsword_combo2_weight_ironwall: 3456x2304 -> 1683x1350  GPU 30.4->8.67MB
+fx/greatsword_combo3: 3584x2048 -> 1498x2697  GPU 28.0->15.41MB
+fx/greatsword_combo3_crush: 3584x2048 -> 1618x2289  GPU 28.0->14.13MB
+fx/greatsword_combo3_crush_pulverize: 4032x2304 -> 1574x2835  GPU 35.4->17.02MB
+fx/greatsword_combo3_crush_quake: 4032x2304 -> 2020x1869  GPU 35.4->14.40MB
+fx/greatsword_combo3_weight: 3584x2048 -> 1726x1569  GPU 28.0->10.33MB  중복8
+fx/greatsword_combo3_weight_giant: 4032x2304 -> 1920x2658  GPU 35.4->19.47MB
+fx/greatsword_combo3_weight_ironwall: 4032x2304 -> 1679x2505  GPU 35.4->16.04MB  중복4
+fx/greatsword_ground_crack: 3392x1056 -> 748x2296  GPU 13.7->6.55MB
+fx/greatsword_guard_rush: 5568x5376 -> 779x1314  GPU 114.2->3.90MB
+fx/greatsword_leap_slam: 4736x5312 -> 732x1671  GPU 96.0->4.67MB
+fx/greatsword_leap_slam_land: 2840x4608 -> 543x2433  GPU 49.9->5.04MB
+fx/greatsword_plunge_wave: 3328x112 -> 404x536  GPU 1.4->0.83MB
+fx/greatsword_slam: 2304x1536 -> 628x1401  GPU 13.5->3.36MB  중복3
+fx/greatsword_slash: 960x768 -> 368x669  GPU 2.8->0.94MB
+fx/greatsword_sweep_ccw: 2640x3584 -> 1025x2372  GPU 36.1->9.27MB
+fx/greatsword_sweep_cw: 2640x3584 -> 1330x1843  GPU 36.1->9.35MB
+fx/greatsword_tackle: 1776x2368 -> 607x1867  GPU 16.0->4.32MB
+fx/guard_perfect_fx: 616x208 -> 78x366  GPU 0.5->0.11MB  중복1
+fx/guard_wave: 1280x512 -> 235x739  GPU 2.5->0.66MB
+fx/heavyarrow: 64x32 -> 53x11  GPU 0.0->0.00MB
+fx/heavyarrow_hit: 1280x256 -> 153x350  GPU 1.2->0.20MB
+fx/hit_bow: 512x80 -> 121x79  GPU 0.2->0.04MB
+fx/hit_bow_heavy: 960x112 -> 225x216  GPU 0.4->0.19MB
+fx/hit_burst: 384x96 -> 141x169  GPU 0.1->0.09MB
+fx/hit_dagger: 416x80 -> 92x77  GPU 0.1->0.03MB
+fx/hit_dagger_heavy: 640x96 -> 109x238  GPU 0.2->0.10MB
+fx/hit_greatsword: 640x128 -> 157x225  GPU 0.3->0.13MB
+fx/hit_greatsword_heavy: 1152x192 -> 240x430  GPU 0.8->0.39MB
+fx/hit_katana: 640x112 -> 152x277  GPU 0.3->0.16MB
+fx/hit_katana_heavy: 1152x160 -> 411x298  GPU 0.7->0.47MB
+fx/hit_spark: 384x96 -> 141x169  GPU 0.1->0.09MB
+fx/iai: 1792x1024 -> 496x1625  GPU 7.0->3.07MB
+fx/ironwall: 1280x1024 -> 277x876  GPU 5.0->0.93MB
+fx/katana_combo1: 1920x1536 -> 678x575  GPU 11.2->1.49MB
+fx/katana_combo1_batto: 1920x1536 -> 566x767  GPU 11.2->1.66MB
+fx/katana_combo1_batto_dashcrit: 2240x1792 -> 887x795  GPU 15.3->2.69MB
+fx/katana_combo1_batto_longinvuln: 2240x1792 -> 2868x363  GPU 15.3->3.97MB
+fx/katana_combo1_iai: 1920x1536 -> 269x1602  GPU 11.2->1.64MB
+fx/katana_combo1_iai_wide: 2240x1792 -> 1181x1326  GPU 15.3->5.97MB
+fx/katana_combo1_iai_zangetsu: 2240x1792 -> 1171x675  GPU 15.3->3.02MB
+fx/katana_combo2: 1536x1536 -> 636x434  GPU 9.0->1.05MB
+fx/katana_combo2_batto: 1536x1536 -> 553x597  GPU 9.0->1.26MB
+fx/katana_combo2_batto_dashcrit: 1792x1792 -> 941x552  GPU 12.2->1.98MB
+fx/katana_combo2_batto_longinvuln: 1792x1792 -> 890x859  GPU 12.2->2.92MB
+fx/katana_combo2_iai: 1536x1536 -> 539x501  GPU 9.0->1.03MB
+fx/katana_combo2_iai_wide: 1792x1792 -> 604x1767  GPU 12.2->4.07MB
+fx/katana_combo2_iai_zangetsu: 1792x1792 -> 860x571  GPU 12.2->1.87MB
+fx/katana_combo3: 2304x1536 -> 267x2628  GPU 13.5->2.68MB
+fx/katana_combo3_batto: 2304x1536 -> 789x823  GPU 13.5->2.48MB
+fx/katana_combo3_batto_dashcrit: 2688x1792 -> 1339x823  GPU 18.4->4.20MB
+fx/katana_combo3_batto_longinvuln: 2688x1792 -> 972x1352  GPU 18.4->5.01MB
+fx/katana_combo3_iai: 2304x1536 -> 754x998  GPU 13.5->2.87MB
+fx/katana_combo3_iai_wide: 2688x1792 -> 652x3068  GPU 18.4->7.63MB
+fx/katana_combo3_iai_zangetsu: 2688x1792 -> 777x1857  GPU 18.4->5.50MB
+fx/katana_counter: 2064x1472 -> 302x1890  GPU 11.6->2.18MB
+fx/katana_crescent: 2064x1376 -> 1168x712  GPU 10.8->3.17MB
+fx/katana_crescent_echo: 1640x1312 -> 532x1386  GPU 8.2->2.81MB
+fx/katana_fall: 1872x1344 -> 604x564  GPU 9.6->1.30MB
+fx/katana_iai: 5544x2016 -> 898x2345  GPU 42.6->8.03MB
+fx/katana_iai_ready: 240x56 -> 120x12  GPU 0.1->0.01MB
+fx/katana_issen_line_t1: 2976x1024 -> 133x1105  GPU 11.6->0.56MB
+fx/katana_issen_line_t1_solo: 2976x1024 -> 133x1131  GPU 11.6->0.57MB
+fx/katana_issen_line_t2: 4416x1504 -> 196x1150  GPU 25.3->0.86MB
+fx/katana_issen_line_t2_solo: 4416x1504 -> 196x1150  GPU 25.3->0.86MB
+fx/katana_issen_line_t3: 5952x2016 -> 259x1078  GPU 45.8->1.07MB
+fx/katana_issen_line_t3_solo: 5952x2016 -> 259x1077  GPU 45.8->1.06MB
+fx/katana_issen_line_t4: 7488x2496 -> 1134x325  GPU 71.3->1.41MB
+fx/katana_issen_line_t4_solo: 7488x2496 -> 1133x326  GPU 71.3->1.41MB
+fx/katana_issen_shadow: 1536x832 -> 296x1309  GPU 4.9->1.48MB
+fx/katana_rise: 1920x1312 -> 502x693  GPU 9.6->1.33MB
+fx/katana_slash: 960x768 -> 136x1014  GPU 2.8->0.53MB
+fx/knock_dust: 256x128 -> 209x56  GPU 0.1->0.04MB
+fx/longinvuln: 1280x1024 -> 216x958  GPU 5.0->0.79MB
+fx/muzzle_flash: 96x192 -> 160x21  GPU 0.1->0.01MB
+fx/parry_flash: 1152x192 -> 353x434  GPU 0.8->0.58MB
+fx/particles_ash: 368x16 -> 122x4  GPU 0.0->0.00MB
+fx/pierce: 512x32 -> 442x9  GPU 0.1->0.02MB
+fx/player_groggy_swirl: 240x20 -> 208x13  GPU 0.0->0.01MB
+fx/player_hit: 288x96 -> 180x53  GPU 0.1->0.04MB
+fx/pulverize: 1280x256 -> 216x530  GPU 1.2->0.44MB
+fx/quake: 2688x384 -> 617x381  GPU 3.9->0.90MB
+fx/ribbon_ash: 256x3 -> 262x3  GPU 0.0->0.00MB
+fx/ribbon_ash_thin: 256x2 -> 262x2  GPU 0.0->0.00MB
+fx/shadowstep_ghost: 384x576 -> 844x138  GPU 0.8->0.44MB
+fx/soul_wisp: 512x96 -> 18x609  GPU 0.2->0.04MB
+fx/telegraph_aura: 1024x256 -> 960x240  GPU 1.0->0.88MB
+fx/telegraph_circle: 1536x256 -> 718x442  GPU 1.5->1.21MB
+fx/telegraph_cone: 1536x1024 -> 421x1078  GPU 6.0->1.73MB
+fx/telegraph_line: 128x64 -> 64x130  GPU 0.0->0.03MB
+fx/twin: 1792x1024 -> 345x610  GPU 7.0->0.80MB
+fx/weight: 1536x256 -> 203x346  GPU 1.5->0.27MB
+fx/wide: 2688x1536 -> 834x2616  GPU 15.8->8.32MB
+fx/zangetsu: 1024x1024 -> 838x658  GPU 4.0->2.10MB
+
+| 분류 | 시트 | GPU 전(MB) | GPU 후(MB) | PNG 전(MB) | PNG 후(MB) | JSON 전(KB) | JSON 후(KB) |
+|---|---|---|---|---|---|---|---|
+| player | 53 | 125.4 | 65.9 | 4.93 | 2.31 | 746 | 1165 |
+| weapons | 179 | 1700.4 | 52.6 | 4.80 | 1.10 | 1098 | 2479 |
+| fx | 215 | 2489.5 | 491.3 | 13.94 | 5.11 | 927 | 1737 |
+| 합계 | 447 | 4315.3 | 609.8 | 23.67 | 8.52 | 2771 | 5381 |

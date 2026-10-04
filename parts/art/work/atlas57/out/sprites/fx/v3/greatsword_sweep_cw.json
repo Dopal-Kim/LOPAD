@@ -1,0 +1,257 @@
+{
+ "image": "greatsword_sweep_cw.png",
+ "action": "greatsword_sweep_cw",
+ "version": "v3-r56",
+ "frameWidth": 440,
+ "frameHeight": 448,
+ "framesPerDirection": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right",
+  "down-right",
+  "down-left",
+  "up-right",
+  "up-left"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 24.0,
+ "frameDurationsMs": [
+  40,
+  45,
+  45,
+  40,
+  40,
+  40
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_fx/build.py (56라운드 Q11 붓획 · Q1 칼 템포 · Q2 일섬 · Q3 그림자 분신)",
+ "weapon": "greatsword",
+ "design": "H1 수평 시계 — 굵은 흙·녹 붓 한 획, 가운데 호박 결, 끝은 마른 붓털로 갈라지며 흙먼지처럼 흩어짐",
+ "bodySheet": "player_greatsword_sweep_cw",
+ "weaponSheet": "weapons/v3/greatsword_sweep_cw",
+ "comboSet": "G-C 관성 순환",
+ "dirTransform": "drawn8",
+ "dirTransformNote": "56라운드 Q6 · 작업 B 대검 8방향 — 8행을 직접 그림(행 순서 = 몸·무기 시트: down, up, left, right, down-right, down-left, up-right, up-left). 대각 행 = 조준 방향 45°(화면각 down-right 45° · down-left 135° · up-right -45° · up-left -135°)로 §17 각도를 회전해 다시 그린 것(이미지 회전 아님). 시스템은 몸 시트와 같은 행을 고르면 된다",
+ "effectRule": "56라운드 Q11: 채운 초승달 면 대신 붓으로 그은 한 획 — 시작 가늘고 · 가운데 굵고 · 끝은 붓털이 갈라지며 흩어짐(먹 튐). 판정 호를 따라 2~3프레임에 그어 나가고, 시작 쪽부터 말라 재로 부서짐. 재·호박만, 백열은 판정 프레임의 획 머리 몇 도트만(흰 막대 없음)",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 219,
+  "y": 267
+ },
+ "hitOriginInFrame": {
+  "x": 219,
+  "y": 227
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗)에 맞춘다. 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "spawn": "body_ms",
+ "spawnAtMs": 340,
+ "impactAtBodyMs": 380,
+ "hitShape": {
+  "type": "arc",
+  "startDeg": -75,
+  "endDeg": 75,
+  "radiusR": 1.0,
+  "innerR": 0.35,
+  "note": "수평 초승달 150° (§17)",
+  "R": {
+   "world": 51,
+   "dots": 204
+  },
+  "outerRadiusPx": 204.0,
+  "innerRadiusPx": 71.4,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "impactFrame": 1,
+ "timingNote": "spawnAtMs = 몸 시트 시작 기준 이 시트를 띄우는 시각. impactFrame 시작 = 몸 hitAt(판정). 관성 공속은 몸·fx 를 같은 배율로 재생",
+ "drawnArc": {
+  "fromDeg": -75,
+  "toDeg": 75,
+  "radiusDots": 204.0,
+  "brushWidthDots": 24,
+  "heightDots": [
+   8,
+   8
+  ],
+  "note": "붓획 바깥 가장자리 ≈ 판정 반경"
+ },
+ "frameRoles": [
+  "pre(붓 끝 닿음)",
+  "draw(머리 55%)",
+  "draw(끝까지 · 붓털 갈라짐)",
+  "decay(시작부터 마름)",
+  "decay",
+  "decay(재)"
+ ],
+ "glowFrames": [
+  1,
+  2
+ ],
+ "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "colors": 12,
+ "brushStroke": true,
+ "r56": "56라운드 Q11 붓획",
+ "previous": "prev55: 55라운드 부분 초승달(같은 이름) — parts/art/work/combo56_fx/prev55/fx/greatsword_sweep_cw.png",
+ "bodyTimingSource": "player_greatsword_sweep_cw v3-r56",
+ "spawnRule": "spawnAtMs = 몸 hitAt − sum(frameDurationsMs[:impactFrame]) (빌드 때 현재 몸 JSON 으로 계산). 몸 타이밍이 바뀌면 이 규칙으로 다시 계산하면 그림이 맞는다",
+ "directionRows": [
+  {
+   "row": 0,
+   "direction": "down",
+   "screenDeg": 90.0,
+   "body": "정면"
+  },
+  {
+   "row": 1,
+   "direction": "up",
+   "screenDeg": -90.0,
+   "body": "뒷면"
+  },
+  {
+   "row": 2,
+   "direction": "left",
+   "screenDeg": 180.0,
+   "body": "측면"
+  },
+  {
+   "row": 3,
+   "direction": "right",
+   "screenDeg": 0.0,
+   "body": "측면"
+  },
+  {
+   "row": 4,
+   "direction": "down-right",
+   "screenDeg": 45.0,
+   "body": "정면 3/4"
+  },
+  {
+   "row": 5,
+   "direction": "down-left",
+   "screenDeg": 135.0,
+   "body": "정면 3/4"
+  },
+  {
+   "row": 6,
+   "direction": "up-right",
+   "screenDeg": -45.0,
+   "body": "뒷면 3/4"
+  },
+  {
+   "row": 7,
+   "direction": "up-left",
+   "screenDeg": -135.0,
+   "body": "뒷면 3/4"
+  }
+ ],
+ "directionRowsNote": "56라운드 Q30: 이펙트도 8행 시트로 통일 — 행 = 몸·무기 시트와 같은 directionRows(down, up, left, right, down-right, down-left, up-right, up-left). 몸 시트에서 고른 행 번호를 이 시트에도 그대로 쓴다. 대각 행(4~7)은 작업 A 가 조준 45° 로 다시 그린 붓획(별도 _diag 시트는 만들지 않음)",
+ "timingCheck": {
+  "bodyHitAt": 380,
+  "bodyImpactFrame": 5,
+  "bodyFrameStartsMs": [
+   0,
+   60,
+   140,
+   250,
+   320,
+   380,
+   420,
+   470,
+   540,
+   630,
+   720
+  ],
+  "fxImpactFrame": 1,
+  "spawnAtMs": 340,
+  "rule": "spawnAtMs + sum(fx frameDurationsMs[:impactFrame]) = 몸 hitAt",
+  "checkedBy": "parts/art/work/combo56_res/gs8.py"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_sweep_cw.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 8,
+   "frameWidth": 440,
+   "frameHeight": 448,
+   "frameCount": 48
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":1307,"y":958,"w":23,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":384,"y":268,"w":23,"h":49},"sourceSize":{"w":440,"h":448}},
+  "1":{"frame":{"x":563,"y":1013,"w":215,"h":156},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":192,"y":268,"w":215,"h":156},"sourceSize":{"w":440,"h":448}},
+  "2":{"frame":{"x":563,"y":1252,"w":404,"h":172},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":252,"w":404,"h":172},"sourceSize":{"w":440,"h":448}},
+  "3":{"frame":{"x":406,"y":1426,"w":397,"h":171},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":252,"w":397,"h":171},"sourceSize":{"w":440,"h":448}},
+  "4":{"frame":{"x":316,"y":1599,"w":315,"h":161},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":261,"w":315,"h":161},"sourceSize":{"w":440,"h":448}},
+  "5":{"frame":{"x":1118,"y":1433,"w":188,"h":165},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":268,"w":188,"h":165},"sourceSize":{"w":440,"h":448}},
+  "6":{"frame":{"x":1307,"y":1009,"w":23,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":121,"w":23,"h":49},"sourceSize":{"w":440,"h":448}},
+  "7":{"frame":{"x":0,"y":1654,"w":215,"h":156},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":14,"w":215,"h":156},"sourceSize":{"w":440,"h":448}},
+  "8":{"frame":{"x":0,"y":1314,"w":404,"h":172},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":14,"w":404,"h":172},"sourceSize":{"w":440,"h":448}},
+  "9":{"frame":{"x":162,"y":1135,"w":399,"h":177},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":15,"w":399,"h":177},"sourceSize":{"w":440,"h":448}},
+  "10":{"frame":{"x":805,"y":1426,"w":311,"h":171},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":123,"y":21,"w":311,"h":171},"sourceSize":{"w":440,"h":448}},
+  "11":{"frame":{"x":947,"y":1600,"w":188,"h":152},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":222,"y":19,"w":188,"h":152},"sourceSize":{"w":440,"h":448}},
+  "12":{"frame":{"x":780,"y":1065,"w":49,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":384,"w":49,"h":23},"sourceSize":{"w":440,"h":448}},
+  "13":{"frame":{"x":1154,"y":1216,"w":156,"h":215},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":192,"w":156,"h":215},"sourceSize":{"w":440,"h":448}},
+  "14":{"frame":{"x":0,"y":0,"w":172,"h":404},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":3,"w":172,"h":404},"sourceSize":{"w":440,"h":448}},
+  "15":{"frame":{"x":524,"y":0,"w":174,"h":394},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":10,"w":174,"h":394},"sourceSize":{"w":440,"h":448}},
+  "16":{"frame":{"x":1157,"y":648,"w":164,"h":308},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":13,"w":164,"h":308},"sourceSize":{"w":440,"h":448}},
+  "17":{"frame":{"x":330,"y":937,"w":157,"h":196},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":28,"w":157,"h":196},"sourceSize":{"w":440,"h":448}},
+  "18":{"frame":{"x":780,"y":1090,"w":49,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":268,"y":31,"w":49,"h":23},"sourceSize":{"w":440,"h":448}},
+  "19":{"frame":{"x":330,"y":720,"w":156,"h":215},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":268,"y":31,"w":156,"h":215},"sourceSize":{"w":440,"h":448}},
+  "20":{"frame":{"x":174,"y":0,"w":172,"h":404},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":252,"y":31,"w":172,"h":404},"sourceSize":{"w":440,"h":448}},
+  "21":{"frame":{"x":348,"y":0,"w":174,"h":401},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":249,"y":40,"w":174,"h":401},"sourceSize":{"w":440,"h":448}},
+  "22":{"frame":{"x":524,"y":396,"w":164,"h":318},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":253,"y":126,"w":164,"h":318},"sourceSize":{"w":440,"h":448}},
+  "23":{"frame":{"x":0,"y":1020,"w":160,"h":182},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":268,"y":227,"w":160,"h":182},"sourceSize":{"w":440,"h":448}},
+  "24":{"frame":{"x":921,"y":907,"w":24,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":385,"y":121,"w":24,"h":49},"sourceSize":{"w":440,"h":448}},
+  "25":{"frame":{"x":831,"y":655,"w":88,"h":256},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":333,"y":121,"w":88,"h":256},"sourceSize":{"w":440,"h":448}},
+  "26":{"frame":{"x":0,"y":406,"w":328,"h":305},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":121,"w":328,"h":305},"sourceSize":{"w":440,"h":448}},
+  "27":{"frame":{"x":831,"y":961,"w":321,"h":289},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":136,"w":321,"h":289},"sourceSize":{"w":440,"h":448}},
+  "28":{"frame":{"x":633,"y":1599,"w":312,"h":154},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":270,"w":312,"h":154},"sourceSize":{"w":440,"h":448}},
+  "29":{"frame":{"x":217,"y":1762,"w":246,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":120,"y":372,"w":246,"h":51},"sourceSize":{"w":440,"h":448}},
+  "30":{"frame":{"x":780,"y":1013,"w":49,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":268,"y":385,"w":49,"h":24},"sourceSize":{"w":440,"h":448}},
+  "31":{"frame":{"x":947,"y":1754,"w":256,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":61,"y":333,"w":256,"h":88},"sourceSize":{"w":440,"h":448}},
+  "32":{"frame":{"x":700,"y":0,"w":305,"h":328},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":93,"w":305,"h":328},"sourceSize":{"w":440,"h":448}},
+  "33":{"frame":{"x":995,"y":330,"w":292,"h":316},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":101,"w":292,"h":316},"sourceSize":{"w":440,"h":448}},
+  "34":{"frame":{"x":995,"y":648,"w":160,"h":311},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":104,"w":160,"h":311},"sourceSize":{"w":440,"h":448}},
+  "35":{"frame":{"x":921,"y":655,"w":60,"h":250},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":120,"w":60,"h":250},"sourceSize":{"w":440,"h":448}},
+  "36":{"frame":{"x":780,"y":1039,"w":49,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":29,"w":49,"h":24},"sourceSize":{"w":440,"h":448}},
+  "37":{"frame":{"x":633,"y":1755,"w":256,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":17,"w":256,"h":88},"sourceSize":{"w":440,"h":448}},
+  "38":{"frame":{"x":1007,"y":0,"w":305,"h":328},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":17,"w":305,"h":328},"sourceSize":{"w":440,"h":448}},
+  "39":{"frame":{"x":700,"y":330,"w":293,"h":323},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":132,"y":27,"w":293,"h":323},"sourceSize":{"w":440,"h":448}},
+  "40":{"frame":{"x":348,"y":403,"w":159,"h":315},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":265,"y":39,"w":159,"h":315},"sourceSize":{"w":440,"h":448}},
+  "41":{"frame":{"x":1247,"y":958,"w":58,"h":237},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":363,"y":81,"w":58,"h":237},"sourceSize":{"w":440,"h":448}},
+  "42":{"frame":{"x":947,"y":907,"w":24,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":268,"w":24,"h":49},"sourceSize":{"w":440,"h":448}},
+  "43":{"frame":{"x":1157,"y":958,"w":88,"h":256},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":61,"w":88,"h":256},"sourceSize":{"w":440,"h":448}},
+  "44":{"frame":{"x":0,"y":713,"w":328,"h":305},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":12,"w":328,"h":305},"sourceSize":{"w":440,"h":448}},
+  "45":{"frame":{"x":509,"y":716,"w":320,"h":295},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":13,"w":320,"h":295},"sourceSize":{"w":440,"h":448}},
+  "46":{"frame":{"x":0,"y":1488,"w":314,"h":164},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":14,"w":314,"h":164},"sourceSize":{"w":440,"h":448}},
+  "47":{"frame":{"x":563,"y":1171,"w":242,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":17,"w":242,"h":72},"sourceSize":{"w":440,"h":448}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "greatsword_sweep_cw.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1330,
+   "h": 1843
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,270 @@
+{
+ "image": "dagger_combo2_gale.png",
+ "action": "dagger_combo2_gale",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "framesPerDirection": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 20,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  70
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 128,
+  "y": 168
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "source": "parts/art/work/fx_weapons_v3/build.py",
+ "weapon": "dagger",
+ "comboIndex": 2,
+ "comboLength": 3,
+ "nextCombo": "dagger_combo3",
+ "hitFrames": [
+  1
+ ],
+ "activeFrames": [
+  1
+ ],
+ "cancelFromFrame": 2,
+ "framesBasis": "player_dagger_combo2 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 40,
+  "cancelAt": 80,
+  "total": 150
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트(구 10px ×4)",
+ "hitNote": "임시(아트 메모). 기존 판정 먼 끝(리치 + 짧은 변/2) x1.5. 시스템 실제값이 다르면 시스템 값 우선 — 알려 주면 호 반경을 맞춰 재빌드",
+ "thrust": {
+  "lengthPx": 96,
+  "widthPx": 32,
+  "angleDeg": 10,
+  "fromPx": 16
+ },
+ "thrustNote": "몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 방향 변환은 호와 같은 규약",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "impactFrame": 1,
+ "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
+ "depth": "above",
+ "pivotNote": "피벗 (32,42) = 발. 호·찌르기 원점 = 몸 중심 (32,32) (발 위 10px).",
+ "branch": "gale",
+ "branchLabel": "질풍",
+ "branchTier": 1,
+ "baseSheet": "fx/dagger_combo2",
+ "replaces": "fx/dagger_combo2 대신 재생 — 크기·피벗·프레임 수·ms·anchor·spawn·impactFrame·hitFrames 등 메모 전부 기본 시트와 같다",
+ "secondaryVariants": {
+  "afterimage": {
+   "label": "잔상",
+   "colorSwap": [
+    {
+     "from": "#ffffff",
+     "to": "#eecc78",
+     "fromSlot": "X0",
+     "toSlot": "hero.A25",
+     "role": "백열 끝 → 호박(잔상 쪽으로 빛이 옮겨감)"
+    },
+    {
+     "from": "#fff4dc",
+     "to": "#eecc78",
+     "fromSlot": "X1",
+     "toSlot": "hero.A25",
+     "role": "백열 둘레 → 호박"
+    }
+   ],
+   "trailOverride": {
+    "color": "#8b4d22",
+    "alpha": 0.6,
+    "ms": 160,
+    "fromFrame": 1
+   },
+   "sheet": "fx/dagger_combo2_gale_afterimage",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
+  },
+  "assassin": {
+   "label": "암살",
+   "colorSwap": [
+    {
+     "from": "#e2a33c",
+     "to": "#eecc78",
+     "fromSlot": "hero.A23",
+     "toSlot": "hero.A25",
+     "role": "바람 줄기 한 단 밝게"
+    },
+    {
+     "from": "#f4de9b",
+     "to": "#eecc78",
+     "fromSlot": "hero.A26",
+     "toSlot": "hero.A25",
+     "role": "섬광 끝 고르게"
+    }
+   ],
+   "sheet": "fx/dagger_combo2_gale_assassin",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
+  }
+ },
+ "secondaryNote": "2차 갈래는 별도 시트 없이 이 시트에 colorSwap(정확한 색 → 색 치환, 층 팔레트 스왑과 같은 캔버스 재채색) + overlay(기존 시트) + 메모 필드(holdLastFrameMs·flashOverride·shakeOverride·trailOverride)로 표현한다. colorSwap 이 어려우면 Phaser setTint 로 'to' 색 근사 가능(정확도 낮음).",
+ "heatVariants": {
+  "note": "가열 heat1~3 을 갈래 시트에 겹칠 때: 별도 heat 시트 없이 아래 colorSwap + playbackRateHint(기존 1.15/1.3/1.5). 한 단계 안의 여러 치환은 동시 적용(순차 아님).",
+  "colorSwap": {
+   "1": [
+    {
+     "from": "#8b4d22",
+     "to": "#d67a11",
+     "fromSlot": "hero.A19",
+     "toSlot": "hero.A21",
+     "role": "식은 금 → 혼불"
+    }
+   ],
+   "2": [
+    {
+     "from": "#8b4d22",
+     "to": "#d67a11",
+     "fromSlot": "hero.A19",
+     "toSlot": "hero.A21",
+     "role": "식은 금 → 혼불"
+    },
+    {
+     "from": "#d67a11",
+     "to": "#e2a33c",
+     "fromSlot": "hero.A21",
+     "toSlot": "hero.A23",
+     "role": "심 한 단 밝게"
+    }
+   ],
+   "3": [
+    {
+     "from": "#8b4d22",
+     "to": "#d67a11",
+     "fromSlot": "hero.A19",
+     "toSlot": "hero.A21",
+     "role": "식은 금 → 혼불"
+    },
+    {
+     "from": "#d67a11",
+     "to": "#e2a33c",
+     "fromSlot": "hero.A21",
+     "toSlot": "hero.A23",
+     "role": "심 한 단 밝게"
+    },
+    {
+     "from": "#e2a33c",
+     "to": "#eecc78",
+     "fromSlot": "hero.A23",
+     "toSlot": "hero.A25",
+     "role": "금 → 밝은 혼불"
+    },
+    {
+     "from": "#5c554e",
+     "to": "#d67a11",
+     "fromSlot": "hero.ash.S1",
+     "toSlot": "hero.A21",
+     "role": "재 몸 → 달군 몸"
+    }
+   ]
+  },
+  "playbackRateHint": {
+   "1": 1.15,
+   "2": 1.3,
+   "3": 1.5
+  }
+ },
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
+ "colors": 12,
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "단검 B 재 송곳니(Q28) — 백열 끝 바늘 찌르기 + 공중에 남는 호박 금 → 재로 떨어짐",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
+ "branchDesignV3": "gale   질풍 = 회오리 꼬리: 가는 본 바늘을 두 가닥 나선이 감고(앞면 호박 · 뒷면 재), 몸 뒤에 옆으로 누운 회오리 고리 3겹(원뿔) → 나선이 앞으로 풀리며 끊김",
+ "tierNote": "55라운드 Q9: 1단 = 궤적 모양이 갈래별로 다름(색은 재·호박), 2단 = 이 모양 + 입자·빛·잔연 + 큰 틀(secondarySheets)",
+ "secondarySheets": {
+  "afterimage": "fx/dagger_combo2_gale_afterimage",
+  "assassin": "fx/dagger_combo2_gale_assassin"
+ },
+ "secondarySheetsNote": "55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.",
+ "note": "v3 (53라운드 Q5): gale   질풍 = 회오리 꼬리: 가는 본 바늘을 두 가닥 나선이 감고(앞면 호박 · 뒷면 재), 몸 뒤에 옆으로 누운 회오리 고리 3겹(원뿔) → 나선이 앞으로 풀리며 끊김",
+ "legacy": {
+  "image": "../dagger_combo2_gale.png.png",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "pivot": {
+   "x": 32,
+   "y": 42
+  },
+  "pixelScale": 2,
+  "thrust": {
+   "lengthPx": 24,
+   "widthPx": 8,
+   "angleDeg": 10,
+   "fromPx": 4
+  },
+  "note": "질풍 = 바람 줄기: 가는 본 줄기 + 양옆 1px 바람 줄기(완만한 물결, 뒤 어둡고 앞 밝음)가 앞으로 밀려나며 길어지고, 촉 너머로 이어지는 바람 한 줄. 3타는 바람 3→4줄.",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+  "secondary": "fx.weapons.dagger"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo2_gale.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":225,"y":134,"w":24,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":133,"w":24,"h":42},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":0,"y":231,"w":46,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":103,"y":127,"w":46,"h":109},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":0,"y":122,"w":56,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":128,"w":56,"h":107},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":0,"y":0,"w":65,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":125,"w":65,"h":120},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":225,"y":178,"w":24,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":81,"w":24,"h":42},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":48,"y":231,"w":46,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":20,"w":46,"h":109},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":58,"y":122,"w":56,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":21,"w":56,"h":107},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":67,"y":0,"w":65,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":11,"w":65,"h":120},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":207,"y":250,"w":42,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":81,"y":118,"w":42,"h":24},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":96,"y":250,"w":109,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":107,"w":109,"h":46},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":116,"y":134,"w":107,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":102,"w":107,"h":56},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":134,"y":0,"w":120,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":97,"w":120,"h":65},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":207,"y":276,"w":42,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":133,"y":118,"w":42,"h":24},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":96,"y":298,"w":109,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":107,"w":109,"h":46},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":116,"y":192,"w":107,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":102,"w":107,"h":56},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":134,"y":67,"w":120,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":125,"y":97,"w":120,"h":65},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_combo2_gale.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 254,
+   "h": 344
+  },
+  "scale": "1"
+ }
+}

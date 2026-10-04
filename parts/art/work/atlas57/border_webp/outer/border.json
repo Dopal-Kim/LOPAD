@@ -1,0 +1,483 @@
+{
+ "region": "outer",
+ "stage": 1,
+ "version": "53라운드 시범 확정(Q6) + 골목 입구 조각(Q13)",
+ "source": "parts/art/work/gemini/border_outer/build.py (원본·프롬프트 같은 폴더)",
+ "pixelScale": 0.5,
+ "units": "모든 길이·좌표 = 논리 px(960×540 기준). 이미지 픽셀 = 논리 px / pixelScale(=2배). 1920 렌더에서 1:1.",
+ "lighting": "albedo 는 바닥 v2 타일과 같은 조명 공간(곱하기 조명을 받는다). *_emissive.png 는 조명 뒤 가산(알파 = 세기, 어둠에 묻히지 않음). lights[] 는 띠 국소 좌표의 광원 — 반복 띠는 주기마다 반복 등록.",
+ "lightsRule": "lights[] 좌표 = 띠 이미지 왼쪽 위 기준 논리 px. 반복 띠는 주기마다 등록. 서·동 띠 광원 중 바닥 세로 범위(북쪽 기준선 ~ 남쪽 기준선) 밖에 오는 것은 다른 띠에 가려지므로 등록하지 않는다. flicker 는 계약 §12 형식.",
+ "drawOrder": [
+  "floor",
+  "floorDecals+floorShadows",
+  "west",
+  "east",
+  "north",
+  "doors(west,east,north)",
+  "ySorted(props, characters, fx)",
+  "south",
+  "doors(south)",
+  "lighting",
+  "emissive(add)",
+  "ui"
+ ],
+ "bands": {
+  "north": {
+   "width": 3107.0,
+   "height": 409.0,
+   "repeat": "x",
+   "anchor": "floorTop",
+   "baselineY": 377.0,
+   "apronBelow": 32.0,
+   "place": "띠의 baselineY 줄 = 바닥 북쪽 끝(북쪽 벽 앞면 아랫단의 밑변). x 는 (바닥 왼쪽 - west.width) 부터 반복해 (바닥 오른쪽 + east.width) 까지 덮는다.",
+   "apron": "baselineY 아래 apronBelow 는 땅·소품 밑동이 알파로 사라지는 앞치마 — 바닥 위에 겹쳐 그린다(충돌 없음).",
+   "depth": "background",
+   "lights": [
+    {
+     "x": 358.5,
+     "y": 325.0,
+     "color": "#eeaf5a",
+     "radius": 118,
+     "intensity": 0.77,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 365.5,
+     "y": 198.3,
+     "color": "#eea358",
+     "radius": 107,
+     "intensity": 0.72,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 414.5,
+     "y": 342.4,
+     "color": "#eeaf54",
+     "radius": 150,
+     "intensity": 0.95,
+     "flicker": {
+      "amp": 0.08,
+      "hz": 3
+     },
+     "kind": "door_or_lantern"
+    },
+    {
+     "x": 921.6,
+     "y": 311.5,
+     "color": "#eead64",
+     "radius": 92,
+     "intensity": 0.65,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1036.2,
+     "y": 317.8,
+     "color": "#eea86e",
+     "radius": 89,
+     "intensity": 0.63,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1086.9,
+     "y": 314.6,
+     "color": "#eea876",
+     "radius": 61,
+     "intensity": 0.5,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1135.5,
+     "y": 216.4,
+     "color": "#ee9c54",
+     "radius": 82,
+     "intensity": 0.6,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1517.7,
+     "y": 201.5,
+     "color": "#ee9a4b",
+     "radius": 135,
+     "intensity": 0.85,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1989.1,
+     "y": 178.6,
+     "color": "#eea458",
+     "radius": 98,
+     "intensity": 0.67,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 2282.8,
+     "y": 314.1,
+     "color": "#eeae57",
+     "radius": 104,
+     "intensity": 0.7,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 2551.9,
+     "y": 190.6,
+     "color": "#eea56d",
+     "radius": 78,
+     "intensity": 0.58,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "pieces": [
+    {
+     "image": "north_0.webp",
+     "emissive": "north_0_emissive.webp",
+     "x": 0.0,
+     "y": 0.0,
+     "width": 1554.0,
+     "height": 409.0
+    },
+    {
+     "image": "north_1.webp",
+     "emissive": "north_1_emissive.webp",
+     "x": 1554.0,
+     "y": 0.0,
+     "width": 1553.0,
+     "height": 409.0
+    }
+   ],
+   "piecesNote": "57라운드 Q17: 원 그림 6214×818px 가 4096 을 넘어 x 축 2조각. 조각을 x/y(띠 국소 논리 px) 에 이어 붙이면 원 띠 한 장(width×height)과 같다. 반복·focusX·lights 는 원 띠 기준 그대로"
+  },
+  "south": {
+   "width": 2310.0,
+   "height": 136.0,
+   "repeat": "x",
+   "anchor": "floorBottom",
+   "baselineY": 25.0,
+   "place": "띠의 baselineY 줄 = 바닥 남쪽 끝. 그 위(0~baselineY)는 전경이 바닥을 덮는 겹침(투명 하늘 제외).",
+   "depth": "foreground",
+   "occlusion": {
+    "fadeAlpha": 0.45,
+    "rule": "플레이어 몸 사각형이 띠의 불투명 픽셀과 겹치면 띠 전체(또는 그 구간)를 fadeAlpha 로 반투명"
+   },
+   "lights": [
+    {
+     "x": 563.1,
+     "y": 99.4,
+     "color": "#eeab6f",
+     "radius": 57,
+     "intensity": 0.48,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 1076.7,
+     "y": 97.9,
+     "color": "#eeaf77",
+     "radius": 58,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 2154.0,
+     "y": 93.7,
+     "color": "#eeb179",
+     "radius": 53,
+     "intensity": 0.46,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "pieces": [
+    {
+     "image": "south_0.webp",
+     "emissive": "south_0_emissive.webp",
+     "x": 0.0,
+     "y": 0.0,
+     "width": 1155.0,
+     "height": 136.0
+    },
+    {
+     "image": "south_1.webp",
+     "emissive": "south_1_emissive.webp",
+     "x": 1155.0,
+     "y": 0.0,
+     "width": 1155.0,
+     "height": 136.0
+    }
+   ],
+   "piecesNote": "57라운드 Q17: 원 그림 4620×272px 가 4096 을 넘어 x 축 2조각. 조각을 x/y(띠 국소 논리 px) 에 이어 붙이면 원 띠 한 장(width×height)과 같다. 반복·focusX·lights 는 원 띠 기준 그대로"
+  },
+  "west": {
+   "image": "west.webp",
+   "emissive": "west_emissive.webp",
+   "width": 256.0,
+   "height": 1615.0,
+   "repeat": "y",
+   "anchor": "floorLeft",
+   "baselineX": 256.0,
+   "place": "띠의 오른쪽 끝(baselineX) = 바닥 서쪽 끝(서쪽 벽 칸의 동쪽 변). y 는 북쪽 띠 위끝부터 남쪽 띠 아래끝까지 반복(북쪽 띠·남쪽 띠가 위에 덮임).",
+   "depth": "background",
+   "lights": [
+    {
+     "x": 5.5,
+     "y": 168.0,
+     "color": "#eda45a",
+     "radius": 79,
+     "intensity": 0.58,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 39.6,
+     "y": 292.0,
+     "color": "#eead65",
+     "radius": 64,
+     "intensity": 0.52,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ]
+  },
+  "east": {
+   "image": "east.webp",
+   "emissive": "east_emissive.webp",
+   "width": 256.0,
+   "height": 1615.0,
+   "repeat": "y",
+   "anchor": "floorRight",
+   "baselineX": 0,
+   "place": "띠의 왼쪽 끝 = 바닥 동쪽 끝. 나머지는 west 와 같음.",
+   "depth": "background",
+   "lights": [
+    {
+     "x": 154.8,
+     "y": 1457.6,
+     "color": "#eeb05b",
+     "radius": 110,
+     "intensity": 0.73,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 204.5,
+     "y": 1462.3,
+     "color": "#eea66a",
+     "radius": 94,
+     "intensity": 0.66,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ]
+  }
+ },
+ "corners": "별도 모서리 그림 없음 — north·south 가 좌우 띠 폭까지 덮는다(그리기 순서로 해결).",
+ "collision": "충돌은 기존 격자 그대로(벽 칸 = 막힘). 테두리 그림은 벽 칸 위에 덮는 그림일 뿐이며, 테두리가 있는 지역에서는 벽 타일(앞면·윗면·가장자리)을 그리지 않는다. 문·출구 칸은 doors 조각을 덧그린다(통행은 격자대로).",
+ "camera": {
+  "bounds": {
+   "top": -377.0,
+   "bottom": "floorBottom + 111",
+   "left": -200,
+   "right": "floorRight + 200"
+  },
+  "northLookUp": 110,
+  "note": "53라운드 Q8 결정: 북쪽 끝 200 안에서 최대 110 위로. 위 = 북쪽 띠 위끝(바닥 북쪽 끝 기준 -baselineY), 아래 = 남쪽 띠 아래끝, 좌우 = 바닥 끝 ± 200."
+ },
+ "ambient": {
+  "rgb": [
+   0.34,
+   0.34,
+   0.38
+  ],
+  "note": "53라운드 Q9 결정(중립 숯빛)"
+ },
+ "doors": {
+  "north": {
+   "w": 314.0,
+   "h": 402.0,
+   "baselineY": 377.0,
+   "openingX": 159.4,
+   "openingW": 63.6,
+   "lights": [
+    {
+     "x": 155.5,
+     "y": 74.9,
+     "color": "#eea04b",
+     "radius": 119,
+     "intensity": 0.77,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 155.8,
+     "y": 279.2,
+     "color": "#eeb771",
+     "radius": 59,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    },
+    {
+     "x": 210.0,
+     "y": 88.1,
+     "color": "#eea676",
+     "radius": 50,
+     "intensity": 0.44,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "file": "door_north.webp",
+   "emissive": "door_north_emissive.webp"
+  },
+  "south": {
+   "w": 201.0,
+   "h": 228.0,
+   "baselineY": 12,
+   "openingX": 102.1,
+   "openingW": 97.7,
+   "lights": [
+    {
+     "x": 127.4,
+     "y": 20.3,
+     "color": "#ee9f4b",
+     "radius": 56,
+     "intensity": 0.48,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "file": "door_south.webp",
+   "emissive": "door_south_emissive.webp"
+  },
+  "west": {
+   "w": 256.0,
+   "h": 291.0,
+   "baselineX": 256.0,
+   "openingY": 198.0,
+   "openingH": 96.0,
+   "lights": [
+    {
+     "x": 137.9,
+     "y": 88.7,
+     "color": "#eeab73",
+     "radius": 59,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "file": "door_west.webp",
+   "emissive": "door_west_emissive.webp"
+  },
+  "east": {
+   "w": 256.0,
+   "h": 291.0,
+   "baselineX": 0,
+   "openingY": 198.0,
+   "openingH": 96.0,
+   "lights": [
+    {
+     "x": 118.1,
+     "y": 88.7,
+     "color": "#eeab73",
+     "radius": 59,
+     "intensity": 0.49,
+     "flicker": {
+      "amp": 0.04,
+      "hz": 3
+     },
+     "kind": "window"
+    }
+   ],
+   "file": "door_east.webp",
+   "emissive": "door_east_emissive.webp",
+   "mirrorOf": "door_west.webp"
+  },
+  "doc": "골목 입구 조각(53라운드 Q13, 키 이름은 시스템과 확정 대상). 문·출구 칸 위에 띠 다음에 덧그린다(같은 depth·조명·발광 규칙). north: baselineY 줄 = 바닥 북쪽 끝, openingX(조각 국소 x) = 문 칸들의 가운데 x 에 맞춤, openingW = 그림 속 통로 폭(참고). south: baselineY 줄 = 바닥 남쪽 끝, openingX 를 문 칸 가운데에. 남 띠와 같은 전경(foreground)·가림 규칙. west: 오른쪽 끝(baselineX) = 바닥 서쪽 끝, openingY(조각 국소 y) = 문 칸들의 가운데 y, openingH = 그림 속 골목 폭. east: west 의 좌우 반전(baselineX 0 = 바닥 동쪽 끝). lights[] = 조각 국소 좌표, 띠 광원 중 조각에 가려지는 것은 빼지 않아도 된다(약함)."
+ },
+ "imageFormat": {
+  "round": 57,
+  "format": "webp",
+  "albedo": "lossy q90, alpha lossless",
+  "emissive": "lossless",
+  "maxTextureSide": 4096,
+  "pieces": "가로·세로 4096px 초과 그림은 bands.*.pieces[] 로 분할(그 띠는 image/emissive 키 없음)",
+  "source": "parts/art/work/atlas57/border_webp.py (원본 PNG 는 assets/tiles/border 에 그대로)"
+ }
+}

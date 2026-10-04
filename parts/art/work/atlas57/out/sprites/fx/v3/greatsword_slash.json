@@ -1,0 +1,135 @@
+{
+ "image": "greatsword_slash.png",
+ "action": "slash",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 16,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 136
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "depth": "above",
+ "weapon": "greatsword",
+ "trail": {
+  "color": "#8b4d22",
+  "alpha": 0.6,
+  "ms": 120,
+  "fromFrame": 2,
+  "note": "W1 잔상 트레일, 폭 = 본 띠 두께의 0.6, 깊이 = 시트 바로 아래(캐릭터 위)"
+ },
+ "pivotNote": "피벗 (24,34) = 발. 호 중심 (24,24).",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
+ "source": "parts/art/work/fx_weapons_v3/build.py",
+ "colors": 13,
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "대검 A 녹슨 양손검(Q27) — 녹·흙 넓은 띠 + 이 빠진 홈 혼불 한 줄(이 빠진 자리마다 끊김) + 흙먼지·불씨",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
+ "drawnArc": {
+  "radiusDots": 80,
+  "fromDeg": -95,
+  "toDeg": 85,
+  "note": "그림 메모(구 그림에서 잰 값 ×4) — 판정 아님"
+ },
+ "note": "v3 (53라운드 Q5): 대검 A 녹슨 양손검(Q27) — 녹·흙 넓은 띠 + 이 빠진 홈 혼불 한 줄(이 빠진 자리마다 끊김) + 흙먼지·불씨",
+ "legacy": {
+  "image": "../greatsword_slash.png.png",
+  "frameWidth": 48,
+  "frameHeight": 48,
+  "pivot": {
+   "x": 24,
+   "y": 34
+  },
+  "pixelScale": 2,
+  "note": "대검 기본 베기: 두께 6.5 묵직한 호 2겹(W0·W1·W2·W3·X1 코어) + 호 아래 바닥 불티(27/24) + 재 G06/G09. 대검 W2 #d8441c.",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+  "secondary": "fx.weapons.greatsword",
+  "trail": {
+   "color": "#a8321c",
+   "alpha": 0.6,
+   "ms": 120,
+   "fromFrame": 2,
+   "note": "W1 잔상 트레일, 폭 = 본 띠 두께의 0.6, 깊이 = 시트 바로 아래(캐릭터 위)"
+  },
+  "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_slash.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":162,"y":315,"w":7,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":168,"y":89,"w":7,"h":37},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":0,"y":315,"w":160,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":89,"w":160,"h":88},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":0,"y":583,"w":151,"h":86},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":91,"w":151,"h":86},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":0,"y":495,"w":152,"h":86},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":91,"w":152,"h":86},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":0,"y":405,"w":157,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":95,"w":157,"h":88},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":162,"y":354,"w":7,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":66,"w":7,"h":37},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":162,"y":403,"w":160,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":15,"w":160,"h":88},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":159,"y":493,"w":151,"h":87},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":15,"w":151,"h":87},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":154,"y":582,"w":152,"h":86},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":16,"w":152,"h":86},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":173,"y":312,"w":156,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":14,"w":156,"h":89},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":331,"y":312,"w":37,"h":7},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":17,"w":37,"h":7},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":0,"y":0,"w":88,"h":160},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":16,"w":88,"h":160},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":180,"y":159,"w":87,"h":151},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":25,"w":87,"h":151},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":0,"y":162,"w":85,"h":151},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":25,"w":85,"h":151},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":271,"y":0,"w":88,"h":157},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":22,"w":88,"h":157},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":331,"y":321,"w":37,"h":7},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":17,"w":37,"h":7},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":90,"y":0,"w":88,"h":160},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":16,"w":88,"h":160},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":269,"y":159,"w":86,"h":151},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":25,"w":86,"h":151},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":87,"y":162,"w":84,"h":151},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":25,"w":84,"h":151},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":180,"y":0,"w":89,"h":157},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":22,"w":89,"h":157},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "greatsword_slash.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 368,
+   "h": 669
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,159 @@
+{
+ "image": "wide.png",
+ "action": "wide",
+ "frameWidth": 384,
+ "frameHeight": 384,
+ "framesPerDirection": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 11,
+ "frameDurationsMs": [
+  40,
+  50,
+  70,
+  90,
+  110,
+  140,
+  160
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 192,
+  "y": 232
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "depth": "above",
+ "weapon": "katana",
+ "flash": {
+  "color": "#fff4dc",
+  "alpha": 0.22,
+  "ms": 40,
+  "atFrame": 1
+ },
+ "shake": {
+  "px": 3,
+  "ms": 80
+ },
+ "trail": {
+  "color": "#8b4d22",
+  "alpha": 0.7,
+  "ms": 220,
+  "fromFrame": 2,
+  "note": "W1 잔상 트레일, 폭 = 본 띠 두께의 0.6, 깊이 = 시트 바로 아래(캐릭터 위)"
+ },
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
+ "source": "parts/art/work/fx_weapons_v3/build.py",
+ "colors": 12,
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "칼 B 재 칼날(53라운드 Q26) — 날선 호박 한 줄이 그은 가는 초승달 궤적, 곧 회색 재 장막·불티로 부서짐",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
+ "drawnArc": {
+  "radiusDots": 160,
+  "fromDeg": -105,
+  "toDeg": 105,
+  "note": "그림 메모(구 그림에서 잰 값 ×4) — 판정 아님"
+ },
+ "moon": {
+  "radiusDots": 84,
+  "closedFrame": 3,
+  "note": "안쪽 달무리 r84 가 f3 에서 닫힌 보름달(점선 백열 + 네 귀 글린트)"
+ },
+ "note": "v3 (53라운드 Q5): 칼 B 재 칼날(53라운드 Q26) — 날선 호박 한 줄이 그은 가는 초승달 궤적, 곧 회색 재 장막·불티로 부서짐",
+ "legacy": {
+  "image": "../wide.png.png",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "pivot": {
+   "x": 48,
+   "y": 58
+  },
+  "pixelScale": 2,
+  "note": "만월: 거합 3겹 + 안쪽 r21 달무리가 f3 에서 닫힌 보름달(백열 점선) + 네 귀 글린트. iai 대신 재생(같은 시점·규약, 캔버스 96).",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+  "secondary": "fx.weapons.katana",
+  "trail": {
+   "color": "#6f7e97",
+   "alpha": 0.7,
+   "ms": 220,
+   "fromFrame": 2,
+   "note": "W1 잔상 트레일, 폭 = 본 띠 두께의 0.6, 깊이 = 시트 바로 아래(캐릭터 위)"
+  },
+  "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 wide.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 4,
+   "frameWidth": 384,
+   "frameHeight": 384,
+   "frameCount": 28
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":670,"y":0,"w":159,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":192,"y":151,"w":159,"h":126},"sourceSize":{"w":384,"h":384}},
+  "1":{"frame":{"x":0,"y":2149,"w":320,"h":202},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":151,"w":320,"h":202},"sourceSize":{"w":384,"h":384}},
+  "2":{"frame":{"x":0,"y":0,"w":333,"h":254},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":107,"w":333,"h":254},"sourceSize":{"w":384,"h":384}},
+  "3":{"frame":{"x":322,"y":764,"w":318,"h":254},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":106,"w":318,"h":254},"sourceSize":{"w":384,"h":384}},
+  "4":{"frame":{"x":0,"y":1340,"w":319,"h":253},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":107,"w":319,"h":253},"sourceSize":{"w":384,"h":384}},
+  "5":{"frame":{"x":0,"y":1659,"w":322,"h":245},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":107,"w":322,"h":245},"sourceSize":{"w":384,"h":384}},
+  "6":{"frame":{"x":512,"y":256,"w":322,"h":252},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":107,"w":322,"h":252},"sourceSize":{"w":384,"h":384}},
+  "7":{"frame":{"x":670,"y":128,"w":159,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":107,"w":159,"h":126},"sourceSize":{"w":384,"h":384}},
+  "8":{"frame":{"x":0,"y":2353,"w":320,"h":202},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":31,"w":320,"h":202},"sourceSize":{"w":384,"h":384}},
+  "9":{"frame":{"x":335,"y":0,"w":333,"h":254},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":23,"w":333,"h":254},"sourceSize":{"w":384,"h":384}},
+  "10":{"frame":{"x":0,"y":846,"w":318,"h":254},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":24,"w":318,"h":254},"sourceSize":{"w":384,"h":384}},
+  "11":{"frame":{"x":0,"y":591,"w":320,"h":253},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":24,"w":320,"h":253},"sourceSize":{"w":384,"h":384}},
+  "12":{"frame":{"x":0,"y":1906,"w":321,"h":241},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":36,"w":321,"h":241},"sourceSize":{"w":384,"h":384}},
+  "13":{"frame":{"x":512,"y":510,"w":322,"h":252},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":25,"w":322,"h":252},"sourceSize":{"w":384,"h":384}},
+  "14":{"frame":{"x":322,"y":591,"w":130,"h":159},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":33,"w":130,"h":159},"sourceSize":{"w":384,"h":384}},
+  "15":{"frame":{"x":324,"y":1659,"w":246,"h":320},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":32,"w":246,"h":320},"sourceSize":{"w":384,"h":384}},
+  "16":{"frame":{"x":0,"y":256,"w":254,"h":333},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":27,"w":254,"h":333},"sourceSize":{"w":384,"h":384}},
+  "17":{"frame":{"x":320,"y":1020,"w":254,"h":318},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":42,"w":254,"h":318},"sourceSize":{"w":384,"h":384}},
+  "18":{"frame":{"x":321,"y":1340,"w":253,"h":317},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":43,"w":253,"h":317},"sourceSize":{"w":384,"h":384}},
+  "19":{"frame":{"x":323,"y":1981,"w":242,"h":313},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":47,"w":242,"h":313},"sourceSize":{"w":384,"h":384}},
+  "20":{"frame":{"x":572,"y":1659,"w":252,"h":307},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":52,"w":252,"h":307},"sourceSize":{"w":384,"h":384}},
+  "21":{"frame":{"x":0,"y":1102,"w":126,"h":159},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":33,"w":126,"h":159},"sourceSize":{"w":384,"h":384}},
+  "22":{"frame":{"x":322,"y":2296,"w":202,"h":320},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":32,"w":202,"h":320},"sourceSize":{"w":384,"h":384}},
+  "23":{"frame":{"x":256,"y":256,"w":254,"h":333},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":27,"w":254,"h":333},"sourceSize":{"w":384,"h":384}},
+  "24":{"frame":{"x":576,"y":1020,"w":254,"h":318},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":42,"w":254,"h":318},"sourceSize":{"w":384,"h":384}},
+  "25":{"frame":{"x":576,"y":1340,"w":253,"h":317},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":43,"w":253,"h":317},"sourceSize":{"w":384,"h":384}},
+  "26":{"frame":{"x":567,"y":2277,"w":242,"h":313},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":47,"w":242,"h":313},"sourceSize":{"w":384,"h":384}},
+  "27":{"frame":{"x":572,"y":1968,"w":252,"h":307},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":52,"w":252,"h":307},"sourceSize":{"w":384,"h":384}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "wide.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 834,
+   "h": 2616
+  },
+  "scale": "1"
+ }
+}

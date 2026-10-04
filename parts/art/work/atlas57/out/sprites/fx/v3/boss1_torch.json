@@ -1,0 +1,97 @@
+{
+ "image": "boss1_torch.png",
+ "action": "boss1_torch",
+ "frameWidth": 96,
+ "frameHeight": 48,
+ "framesPerDirection": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "1행",
+ "frameIndex": "column",
+ "fps": 16.67,
+ "frameDurationsMs": [
+  60,
+  60,
+  60,
+  60
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 62,
+  "y": 24
+ },
+ "anchor": "projectile",
+ "spawn": "boss_throw_torch_release",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 이펙트: 주인공 재·호박 램프(#3f271d~#f4de9b = 1층 램프 A17~A26) + 백열 X0 #ffffff / X1 #fff4dc + 술통 널(WD)·쇠테(G). paletteSwap none",
+ "drawOver": "lightmap",
+ "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
+ "source": "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)",
+ "note": "횃불 투사체(54라운드 '불붙은 술' — 웅덩이 점화). 불 머리 = 진행 방향(drawnFacing right), 꼬리 불꽃이 뒤로 끌림",
+ "colors": 12,
+ "rotate": true,
+ "drawnFacing": "right",
+ "light": {
+  "color": "#e8b858",
+  "radius": 160,
+  "intensity": 0.8,
+  "flicker": {
+   "amp": 0.25,
+   "hz": 9
+  },
+  "offset": {
+   "x": 62,
+   "y": 22
+  }
+ },
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "spawnNote": "보스 stage1_throw_torch releaseFrame 의 handAnchors 점에서 생성. 착지하면 fx/fire_pool(웅덩이 점화)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 boss1_torch.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 96,
+   "frameHeight": 48,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":49,"y":0,"w":46,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":9,"w":46,"h":24},"sourceSize":{"w":96,"h":48}},
+  "1":{"frame":{"x":0,"y":0,"w":47,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":9,"w":47,"h":24},"sourceSize":{"w":96,"h":48}},
+  "2":{"frame":{"x":97,"y":0,"w":47,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":9,"w":47,"h":23},"sourceSize":{"w":96,"h":48}},
+  "3":{"frame":{"x":146,"y":0,"w":48,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":8,"w":48,"h":22},"sourceSize":{"w":96,"h":48}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "boss1_torch.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 194,
+   "h": 24
+  },
+  "scale": "1"
+ }
+}

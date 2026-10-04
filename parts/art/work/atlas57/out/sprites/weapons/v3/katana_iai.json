@@ -1,0 +1,1686 @@
+{
+ "image": "katana_iai.png",
+ "action": "katana_iai",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 15,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 12.5,
+ "frameDurationsMs": [
+  50,
+  60,
+  80,
+  120,
+  120,
+  120,
+  120,
+  30,
+  30,
+  40,
+  160,
+  70,
+  60,
+  90,
+  50
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/combo56_moves_kg/build.py katana (56라운드 Q21·Q40 칼 새 기본기 — combo55 렌더 경로)",
+ "weapon": "katana",
+ "version": "v3-r56-e1",
+ "comboSet": "K-A 발도 초승달",
+ "label": "대치 일격(칼을 넣은 채 좌클릭 홀드 → 떼면 발도 일격)",
+ "timingMs": {
+  "total": 1200,
+  "hitAt": 700,
+  "activeEndAt": 770,
+  "cancelAt": 1150
+ },
+ "frameStates": [
+  "sheathed",
+  "sheathed",
+  "partial",
+  "partial",
+  "partial",
+  "partial",
+  "partial",
+  "partial",
+  "glow",
+  "glow",
+  "steel",
+  "steel",
+  "partial",
+  "sheathed",
+  "sheathed"
+ ],
+ "framesBasis": "player_katana_iai 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "msNote": "ms 는 아트 제안값. 시스템이 데이터로 바꿔도 impactFrame 시작 = hitAt 이 맞으면 그림은 맞는다(관성 공속은 재생 속도로).",
+ "impactFrame": 8,
+ "hitFrames": [
+  8,
+  9
+ ],
+ "activeFrames": [
+  8,
+  9
+ ],
+ "glowFrames": [
+  8,
+  9
+ ],
+ "cancelFromFrame": 14,
+ "anticipationFrames": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "recoverFrames": [
+  10,
+  11,
+  12,
+  13,
+  14
+ ],
+ "hitShape": {
+  "type": "rect",
+  "fromPx": 22.8,
+  "lengthPx": 231.0,
+  "widthPx": 273.6,
+  "angleDeg": 0,
+  "R": {
+   "world": 38,
+   "dots": 152
+  },
+  "note": "발도 일격 — 앞 0.15R ~ 1.52R, 폭 1.8R 의 사각형(임시 제안). 그림 선은 이 사각형 안을 대각(조준과 약 58°)으로 가로지르는 가는 일자 붓획",
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 원점 = 판정 원점(피벗 위 40 도트), 0° = 조준 방향",
+  "reference": "참고값 — 시스템 데이터가 기준"
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
+ "stepPx": {
+  "world": 16,
+  "dots": 64,
+  "frames": [
+   7,
+   8,
+   9
+  ],
+  "note": "내딛기 참고값(§17, 월드 px) — 방향키를 누를 때만. frames = 몸이 앞으로 나가는 프레임(그림은 제자리, 이동은 시스템)"
+ },
+ "stepStartMs": 670,
+ "phases": {
+  "enter": [
+   0,
+   1,
+   2
+  ],
+  "hold": [
+   3,
+   4,
+   5,
+   6
+  ],
+  "release": [
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14
+  ],
+  "draw": [
+   7
+  ],
+  "strike": [
+   8,
+   9
+  ],
+  "zanshin": [
+   10
+  ],
+  "chiburi": [
+   11
+  ],
+  "noto": [
+   12,
+   13
+  ],
+  "recover": [
+   14
+  ]
+ },
+ "nextMove": "katana_rise (칼집 상태 1타 = 뽑기 후 베기 — 넣기 첫 타 치명과 연결)",
+ "startsFrom": "katana_carry_idle (칼집에 넣은 상태, F)",
+ "endsWith": "칼집에 넣은 상태(katana_carry_idle)",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     106.7,
+     138.4
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     106.7,
+     138.4
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     105.2,
+     138.3
+    ],
+    "handL": [
+     114.7,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     105.2,
+     138.3
+    ],
+    "handL": [
+     114.8,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     105.2,
+     138.3
+    ],
+    "handL": [
+     115.0,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     105.2,
+     138.3
+    ],
+    "handL": [
+     115.1,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     105.2,
+     138.3
+    ],
+    "handL": [
+     115.0,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     97.7,
+     137.9
+    ],
+    "handL": [
+     119.3,
+     139.0
+    ]
+   },
+   {
+    "handR": [
+     105.5,
+     138.2
+    ],
+    "handL": [
+     117.6,
+     138.9
+    ]
+   },
+   {
+    "handR": [
+     68.8,
+     134.0
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     67.9,
+     129.8
+    ],
+    "handL": [
+     118.5,
+     129.0
+    ]
+   },
+   {
+    "handR": [
+     73.4,
+     134.0
+    ],
+    "handL": [
+     105.0,
+     122.3
+    ]
+   },
+   {
+    "handR": [
+     99.3,
+     138.0
+    ],
+    "handL": [
+     122.6,
+     139.2
+    ]
+   },
+   {
+    "handR": [
+     106.7,
+     138.4
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   },
+   {
+    "handR": [
+     105.2,
+     137.0
+    ],
+    "handL": [
+     114.3,
+     138.8
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     85.3,
+     129.5
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   },
+   {
+    "handR": [
+     85.3,
+     129.5
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   },
+   {
+    "handR": [
+     86.8,
+     128.0
+    ],
+    "handL": [
+     77.3,
+     137.8
+    ]
+   },
+   {
+    "handR": [
+     86.8,
+     127.9
+    ],
+    "handL": [
+     77.2,
+     137.9
+    ]
+   },
+   {
+    "handR": [
+     86.8,
+     127.9
+    ],
+    "handL": [
+     77.0,
+     138.1
+    ]
+   },
+   {
+    "handR": [
+     86.8,
+     127.9
+    ],
+    "handL": [
+     76.9,
+     138.3
+    ]
+   },
+   {
+    "handR": [
+     86.8,
+     127.9
+    ],
+    "handL": [
+     77.0,
+     138.1
+    ]
+   },
+   {
+    "handR": [
+     94.3,
+     120.1
+    ],
+    "handL": [
+     72.7,
+     142.6
+    ]
+   },
+   {
+    "handR": [
+     86.5,
+     115.0
+    ],
+    "handL": [
+     74.4,
+     140.9
+    ]
+   },
+   {
+    "handR": [
+     123.2,
+     119.2
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     124.1,
+     126.4
+    ],
+    "handL": [
+     73.5,
+     133.2
+    ]
+   },
+   {
+    "handR": [
+     118.6,
+     128.2
+    ],
+    "handL": [
+     87.0,
+     112.9
+    ]
+   },
+   {
+    "handR": [
+     92.7,
+     121.8
+    ],
+    "handL": [
+     69.4,
+     146.0
+    ]
+   },
+   {
+    "handR": [
+     85.3,
+     129.5
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   },
+   {
+    "handR": [
+     85.3,
+     129.5
+    ],
+    "handL": [
+     77.7,
+     137.4
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     83.3,
+     137.4
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   },
+   {
+    "handR": [
+     83.3,
+     137.4
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   },
+   {
+    "handR": [
+     81.2,
+     136.1
+    ],
+    "handL": [
+     94.7,
+     144.6
+    ]
+   },
+   {
+    "handR": [
+     81.1,
+     136.0
+    ],
+    "handL": [
+     94.8,
+     144.6
+    ]
+   },
+   {
+    "handR": [
+     81.2,
+     136.0
+    ],
+    "handL": [
+     95.1,
+     144.8
+    ]
+   },
+   {
+    "handR": [
+     81.2,
+     136.1
+    ],
+    "handL": [
+     95.2,
+     144.9
+    ]
+   },
+   {
+    "handR": [
+     81.1,
+     136.0
+    ],
+    "handL": [
+     95.0,
+     144.8
+    ]
+   },
+   {
+    "handR": [
+     70.5,
+     129.3
+    ],
+    "handL": [
+     99.5,
+     147.1
+    ]
+   },
+   {
+    "handR": [
+     62.8,
+     129.6
+    ],
+    "handL": [
+     98.8,
+     147.2
+    ]
+   },
+   {
+    "handR": [
+     74.8,
+     116.8
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     91.1,
+     118.0
+    ],
+    "handL": [
+     102.0,
+     138.7
+    ]
+   },
+   {
+    "handR": [
+     87.8,
+     122.9
+    ],
+    "handL": [
+     82.5,
+     120.5
+    ]
+   },
+   {
+    "handR": [
+     72.8,
+     130.8
+    ],
+    "handL": [
+     103.3,
+     147.9
+    ]
+   },
+   {
+    "handR": [
+     83.3,
+     137.4
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   },
+   {
+    "handR": [
+     83.3,
+     137.4
+    ],
+    "handL": [
+     94.1,
+     144.2
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     108.7,
+     129.9
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     129.9
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   },
+   {
+    "handR": [
+     110.8,
+     129.6
+    ],
+    "handL": [
+     97.3,
+     131.5
+    ]
+   },
+   {
+    "handR": [
+     110.9,
+     129.6
+    ],
+    "handL": [
+     97.2,
+     131.5
+    ]
+   },
+   {
+    "handR": [
+     110.8,
+     129.6
+    ],
+    "handL": [
+     96.9,
+     131.5
+    ]
+   },
+   {
+    "handR": [
+     110.8,
+     129.6
+    ],
+    "handL": [
+     96.8,
+     131.5
+    ]
+   },
+   {
+    "handR": [
+     110.9,
+     129.6
+    ],
+    "handL": [
+     97.0,
+     131.5
+    ]
+   },
+   {
+    "handR": [
+     121.5,
+     128.1
+    ],
+    "handL": [
+     90.9,
+     132.3
+    ]
+   },
+   {
+    "handR": [
+     129.2,
+     123.0
+    ],
+    "handL": [
+     93.2,
+     132.0
+    ]
+   },
+   {
+    "handR": [
+     117.2,
+     135.8
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     100.9,
+     137.6
+    ],
+    "handL": [
+     90.0,
+     122.9
+    ]
+   },
+   {
+    "handR": [
+     104.2,
+     138.7
+    ],
+    "handL": [
+     109.5,
+     114.2
+    ]
+   },
+   {
+    "handR": [
+     119.2,
+     128.4
+    ],
+    "handL": [
+     86.2,
+     133.0
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     129.9
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   },
+   {
+    "handR": [
+     108.7,
+     129.9
+    ],
+    "handL": [
+     97.9,
+     131.4
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    106.7,
+    138.4
+   ],
+   [
+    106.7,
+    138.4
+   ],
+   [
+    105.2,
+    138.3
+   ],
+   [
+    105.2,
+    138.3
+   ],
+   [
+    105.2,
+    138.3
+   ],
+   [
+    105.2,
+    138.3
+   ],
+   [
+    105.2,
+    138.3
+   ],
+   [
+    97.7,
+    137.9
+   ],
+   [
+    105.5,
+    138.2
+   ],
+   [
+    68.8,
+    134.0
+   ],
+   [
+    67.9,
+    129.8
+   ],
+   [
+    73.4,
+    134.0
+   ],
+   [
+    99.3,
+    138.0
+   ],
+   [
+    106.7,
+    138.4
+   ],
+   [
+    105.2,
+    137.0
+   ]
+  ],
+  "up": [
+   [
+    85.3,
+    129.5
+   ],
+   [
+    85.3,
+    129.5
+   ],
+   [
+    86.8,
+    128.0
+   ],
+   [
+    86.8,
+    127.9
+   ],
+   [
+    86.8,
+    127.9
+   ],
+   [
+    86.8,
+    127.9
+   ],
+   [
+    86.8,
+    127.9
+   ],
+   [
+    94.3,
+    120.1
+   ],
+   [
+    86.5,
+    115.0
+   ],
+   [
+    123.2,
+    119.2
+   ],
+   [
+    124.1,
+    126.4
+   ],
+   [
+    118.6,
+    128.2
+   ],
+   [
+    92.7,
+    121.8
+   ],
+   [
+    85.3,
+    129.5
+   ],
+   [
+    85.3,
+    129.5
+   ]
+  ],
+  "left": [
+   [
+    83.3,
+    137.4
+   ],
+   [
+    83.3,
+    137.4
+   ],
+   [
+    81.2,
+    136.1
+   ],
+   [
+    81.1,
+    136.0
+   ],
+   [
+    81.2,
+    136.0
+   ],
+   [
+    81.2,
+    136.1
+   ],
+   [
+    81.1,
+    136.0
+   ],
+   [
+    70.5,
+    129.3
+   ],
+   [
+    62.8,
+    129.6
+   ],
+   [
+    74.8,
+    116.8
+   ],
+   [
+    91.1,
+    118.0
+   ],
+   [
+    87.8,
+    122.9
+   ],
+   [
+    72.8,
+    130.8
+   ],
+   [
+    83.3,
+    137.4
+   ],
+   [
+    83.3,
+    137.4
+   ]
+  ],
+  "right": [
+   [
+    108.7,
+    129.9
+   ],
+   [
+    108.7,
+    129.9
+   ],
+   [
+    110.8,
+    129.6
+   ],
+   [
+    110.9,
+    129.6
+   ],
+   [
+    110.8,
+    129.6
+   ],
+   [
+    110.8,
+    129.6
+   ],
+   [
+    110.9,
+    129.6
+   ],
+   [
+    121.5,
+    128.1
+   ],
+   [
+    129.2,
+    123.0
+   ],
+   [
+    117.2,
+    135.8
+   ],
+   [
+    100.9,
+    137.6
+   ],
+   [
+    104.2,
+    138.7
+   ],
+   [
+    119.2,
+    128.4
+   ],
+   [
+    108.7,
+    129.9
+   ],
+   [
+    108.7,
+    129.9
+   ]
+  ]
+ },
+ "gripHand": "handR",
+ "design": "B 재 칼날 (53라운드 Q26) — 검은 재 칼날 + 날선 호박 균열 1줄 + 흉갑 조각 코등이 + 붕대 손잡이 + 금 간 재·흙 칼집",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_katana_B2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 날선·칼집 금만 1px 은은(A21/A19), 판정(glow) 프레임만 날선 A25/A26 + 날 몸 A21",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G·호박 A·흉갑 SL·붕대 PL 램프 공유, Q32). 백열 코어 X 미사용",
+ "includesSheath": true,
+ "carryHidden": "연격 시트에 칼집(빈 칼집 또는 칼이 든 칼집)이 들어 있으므로 재생 동안 katana_carry_* 는 숨긴다.",
+ "stateNote": "steel 실물 · glow 판정(날선 A25/A26) · fade 흐림 · partial 칼집 축을 따라 날 일부만 밖 · sheathed 칼집 안(손잡이를 쥠)",
+ "bladeLocal": [
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  {
+   "thetaDeg": -24,
+   "elevDeg": -6
+  },
+  {
+   "thetaDeg": 72,
+   "elevDeg": -8
+  },
+  {
+   "thetaDeg": 128,
+   "elevDeg": -14
+  },
+  {
+   "thetaDeg": 118,
+   "elevDeg": -31
+  },
+  null,
+  null,
+  null
+ ],
+ "bladeLocalNote": "몸 기준 무기 방향(θ: 0 = 앞, + = 해부 오른쪽 · elev: + = 위). null = 칼집 안",
+ "bladeTipAnchors": {
+  "down": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   [
+    129.8,
+    163.6
+   ],
+   [
+    12.3,
+    148.8
+   ],
+   [
+    22.1,
+    131.8
+   ],
+   [
+    28.0,
+    156.4
+   ],
+   null,
+   null,
+   null
+  ],
+  "up": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   [
+    62.2,
+    102.2
+   ],
+   [
+    179.7,
+    121.1
+   ],
+   [
+    169.9,
+    153.4
+   ],
+   [
+    164.0,
+    167.6
+   ],
+   null,
+   null,
+   null
+  ],
+  "left": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   [
+    8.3,
+    144.4
+   ],
+   [
+    56.4,
+    105.4
+   ],
+   [
+    126.9,
+    116.4
+   ],
+   [
+    111.9,
+    137.9
+   ],
+   null,
+   null,
+   null
+  ],
+  "right": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   [
+    183.7,
+    120.7
+   ],
+   [
+    135.6,
+    163.9
+   ],
+   [
+    65.1,
+    168.2
+   ],
+   [
+    80.1,
+    185.5
+   ],
+   null,
+   null,
+   null
+  ]
+ },
+ "bladeTipNote": "칼끝(무기 시트 좌표, 55라운드 시스템 요청 — 칼 포함). null = 날이 칼집 안. 칼끝 리본(§16 ribbon_ash)의 머리 위치로 쓸 수 있다",
+ "bodySheet": "player_katana_iai",
+ "overlay": "player_katana_iai 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
+ "tempoNote": "들어감 190 → 유지 루프 480(반복) → 뗌: 발도 30 · 일격 70(판정 = 뗀 뒤 30ms) · 잔심 160 · 피 털기 70 · 납도 150(딸깍 = 선 터짐) · 일어섬 50",
+ "frameRoles": [
+  "enter",
+  "enter",
+  "enter",
+  "hold",
+  "hold",
+  "hold",
+  "hold",
+  "draw",
+  "strike",
+  "strike",
+  "zanshin",
+  "chiburi",
+  "noto",
+  "noto(click · 선 터짐)",
+  "recover"
+ ],
+ "r56": "56라운드 Q21·Q40 칼 새 기본기(작업 E1)",
+ "input": "칼을 넣은 채(F) 좌클릭 누르는 동안 유지, 떼면 발도 일격(56라운드 Q40)",
+ "fxSheet": "fx/v3/katana_iai",
+ "timingSource": "이 JSON(timingMs · frameDurationsMs) — 시스템이 늘이거나 줄여도 impactFrame 시작 = hitAt 이면 그림이 맞는다",
+ "holdFrames": [
+  3,
+  4,
+  5,
+  6
+ ],
+ "loopFrames": [
+  3,
+  4,
+  5,
+  6
+ ],
+ "loopRange": [
+  3,
+  6
+ ],
+ "holdFrame": 3,
+ "releaseFrame": 7,
+ "clickFrame": 13,
+ "holdNote": "f0~f2 들어감 1회 → 좌클릭을 누르는 동안 holdFrames(f3~f6) 반복 → 떼는 순간 releaseFrame(f7)으로 건너뛰어 끝까지. 들어감 중에 떼면 f7 로 바로(최소 유지 없음 — 56라운드 Q53). 시트 loop 값은 false",
+ "releaseTimingMs": {
+  "hitAfterRelease": 30,
+  "activeEndAfterRelease": 100,
+  "clickAfterRelease": 390,
+  "totalAfterRelease": 530
+ },
+ "readyAfterHoldMs": 500,
+ "readyFx": "fx/v3/katana_iai_ready",
+ "readyNote": "유지 0.5초(readyAfterHoldMs)가 지나면 칼집 입구에 준비 반짝임 1회(koiguchiAnchors, fx/v3/katana_iai_ready) — 연출만, 위력 변화 없음. 언제 떼도 같은 일격(56라운드 Q53·Q60)",
+ "koiguchiAnchors": {
+  "down": [
+   [
+    64.6,
+    97.0
+   ],
+   [
+    64.9,
+    102.2
+   ],
+   [
+    65.0,
+    104.4
+   ],
+   [
+    65.0,
+    104.7
+   ],
+   [
+    65.0,
+    105.1
+   ],
+   [
+    65.1,
+    105.3
+   ],
+   [
+    65.0,
+    105.0
+   ],
+   [
+    64.6,
+    105.1
+   ],
+   [
+    63.9,
+    107.9
+   ],
+   [
+    62.9,
+    108.6
+   ],
+   [
+    62.6,
+    107.7
+   ],
+   [
+    62.8,
+    102.4
+   ],
+   [
+    64.5,
+    100.7
+   ],
+   [
+    64.7,
+    99.2
+   ],
+   [
+    64.3,
+    95.4
+   ]
+  ],
+  "up": [
+   [
+    31.4,
+    93.8
+   ],
+   [
+    31.1,
+    99.1
+   ],
+   [
+    31.0,
+    101.2
+   ],
+   [
+    31.0,
+    101.6
+   ],
+   [
+    31.0,
+    101.9
+   ],
+   [
+    30.9,
+    102.2
+   ],
+   [
+    31.0,
+    101.9
+   ],
+   [
+    31.4,
+    101.9
+   ],
+   [
+    32.1,
+    104.7
+   ],
+   [
+    33.1,
+    105.5
+   ],
+   [
+    33.4,
+    104.6
+   ],
+   [
+    33.2,
+    99.3
+   ],
+   [
+    31.5,
+    97.6
+   ],
+   [
+    31.3,
+    96.1
+   ],
+   [
+    31.7,
+    92.2
+   ]
+  ],
+  "left": [
+   [
+    43.5,
+    95.2
+   ],
+   [
+    43.5,
+    100.4
+   ],
+   [
+    43.5,
+    102.4
+   ],
+   [
+    43.5,
+    102.8
+   ],
+   [
+    43.5,
+    103.1
+   ],
+   [
+    43.5,
+    103.4
+   ],
+   [
+    43.5,
+    103.1
+   ],
+   [
+    43.5,
+    103.1
+   ],
+   [
+    43.5,
+    105.8
+   ],
+   [
+    43.5,
+    106.5
+   ],
+   [
+    43.5,
+    105.8
+   ],
+   [
+    43.5,
+    100.6
+   ],
+   [
+    43.5,
+    99.0
+   ],
+   [
+    43.5,
+    97.5
+   ],
+   [
+    43.5,
+    93.8
+   ]
+  ],
+  "right": [
+   [
+    52.5,
+    95.2
+   ],
+   [
+    52.5,
+    100.4
+   ],
+   [
+    52.5,
+    102.4
+   ],
+   [
+    52.5,
+    102.8
+   ],
+   [
+    52.5,
+    103.1
+   ],
+   [
+    52.5,
+    103.4
+   ],
+   [
+    52.5,
+    103.1
+   ],
+   [
+    52.5,
+    103.1
+   ],
+   [
+    52.5,
+    105.8
+   ],
+   [
+    52.5,
+    106.5
+   ],
+   [
+    52.5,
+    105.8
+   ],
+   [
+    52.5,
+    100.6
+   ],
+   [
+    52.5,
+    99.0
+   ],
+   [
+    52.5,
+    97.5
+   ],
+   [
+    52.5,
+    93.8
+   ]
+  ]
+ },
+ "koiguchiNote": "칼집 입구(몸 시트 도트). 무기 시트 좌표 = + playerFrameOffset (48,48)",
+ "drawnLine": {
+  "nearR": 0.45,
+  "farR": 1.55,
+  "halfWidthR": 0.9,
+  "heightDots": [
+   40.0,
+   4.0
+  ],
+  "note": "선: (near·R, −half·R, z0) → (far·R, +half·R, z1) — 해부 왼쪽 앞 높은 곳에서 오른쪽 먼 낮은 곳으로"
+ },
+ "burst": {
+  "atFrame": 13,
+  "atMs": 1060,
+  "afterReleaseMs": 390,
+  "note": "납도 딸깍 순간 일격 선이 터짐(연출). 추가 피해 여부는 인터뷰 — 기본 연출만"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_iai.png)",
+  "grid": {
+   "columns": 15,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 60
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":92,"y":1076,"w":42,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":143,"w":42,"h":15},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":44,"y":1135,"w":41,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":103,"y":146,"w":41,"h":17},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":90,"y":538,"w":46,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":148,"w":46,"h":18},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":0,"y":1096,"w":46,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":148,"w":46,"h":18},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":0,"y":1116,"w":46,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":149,"w":46,"h":17},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":48,"y":1096,"w":46,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":149,"w":46,"h":18},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":48,"y":1116,"w":46,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":149,"w":46,"h":17},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":70,"y":984,"w":58,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":90,"y":148,"w":58,"h":19},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":42,"y":1057,"w":48,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":132,"w":48,"h":37},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":0,"y":186,"w":132,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":130,"w":132,"h":40},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":0,"y":288,"w":123,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":126,"w":123,"h":43},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":0,"y":384,"w":117,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":128,"w":117,"h":36},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":71,"y":864,"w":60,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":144,"w":60,"h":18},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":92,"y":1057,"w":42,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":143,"w":42,"h":17},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":0,"y":1135,"w":42,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":142,"w":42,"h":15},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":0,"y":1059,"w":31,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":142,"w":31,"h":35},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":0,"y":1152,"w":31,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":143,"w":31,"h":39},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":87,"y":1136,"w":32,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":148,"w":32,"h":37},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":101,"y":1175,"w":32,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":149,"w":32,"h":36},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":33,"y":1154,"w":32,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":149,"w":32,"h":37},"sourceSize":{"w":192,"h":192}},
+  "20":{"frame":{"x":101,"y":1213,"w":32,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":150,"w":32,"h":36},"sourceSize":{"w":192,"h":192}},
+  "21":{"frame":{"x":67,"y":1175,"w":32,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":149,"w":32,"h":37},"sourceSize":{"w":192,"h":192}},
+  "22":{"frame":{"x":96,"y":1093,"w":36,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":149,"w":36,"h":41},"sourceSize":{"w":192,"h":192}},
+  "23":{"frame":{"x":0,"y":422,"w":39,"h":90},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":101,"w":39,"h":90},"sourceSize":{"w":192,"h":192}},
+  "24":{"frame":{"x":0,"y":111,"w":133,"h":73},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":115,"w":133,"h":73},"sourceSize":{"w":192,"h":192}},
+  "25":{"frame":{"x":0,"y":228,"w":123,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":129,"w":123,"h":58},"sourceSize":{"w":192,"h":192}},
+  "26":{"frame":{"x":0,"y":333,"w":118,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":133,"w":118,"h":49},"sourceSize":{"w":192,"h":192}},
+  "27":{"frame":{"x":0,"y":1009,"w":40,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":142,"w":40,"h":48},"sourceSize":{"w":192,"h":192}},
+  "28":{"frame":{"x":0,"y":1193,"w":31,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":143,"w":31,"h":36},"sourceSize":{"w":192,"h":192}},
+  "29":{"frame":{"x":33,"y":1193,"w":32,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":142,"w":32,"h":33},"sourceSize":{"w":192,"h":192}},
+  "30":{"frame":{"x":72,"y":633,"w":63,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":133,"w":63,"h":41},"sourceSize":{"w":192,"h":192}},
+  "31":{"frame":{"x":72,"y":676,"w":63,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":138,"w":63,"h":41},"sourceSize":{"w":192,"h":192}},
+  "32":{"frame":{"x":0,"y":743,"w":69,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":136,"w":69,"h":45},"sourceSize":{"w":192,"h":192}},
+  "33":{"frame":{"x":0,"y":790,"w":69,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":137,"w":69,"h":45},"sourceSize":{"w":192,"h":192}},
+  "34":{"frame":{"x":0,"y":837,"w":69,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":137,"w":69,"h":45},"sourceSize":{"w":192,"h":192}},
+  "35":{"frame":{"x":0,"y":696,"w":70,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":137,"w":70,"h":45},"sourceSize":{"w":192,"h":192}},
+  "36":{"frame":{"x":0,"y":884,"w":69,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":137,"w":69,"h":45},"sourceSize":{"w":192,"h":192}},
+  "37":{"frame":{"x":41,"y":481,"w":88,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":59,"y":130,"w":88,"h":55},"sourceSize":{"w":192,"h":192}},
+  "38":{"frame":{"x":0,"y":0,"w":137,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":125,"w":137,"h":61},"sourceSize":{"w":192,"h":192}},
+  "39":{"frame":{"x":0,"y":623,"w":69,"h":71},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":113,"w":69,"h":71},"sourceSize":{"w":192,"h":192}},
+  "40":{"frame":{"x":88,"y":562,"w":49,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":114,"w":49,"h":69},"sourceSize":{"w":192,"h":192}},
+  "41":{"frame":{"x":70,"y":1005,"w":49,"h":50},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":90,"y":128,"w":49,"h":50},"sourceSize":{"w":192,"h":192}},
+  "42":{"frame":{"x":41,"y":422,"w":88,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":128,"w":88,"h":57},"sourceSize":{"w":192,"h":192}},
+  "43":{"frame":{"x":72,"y":719,"w":63,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":135,"w":63,"h":41},"sourceSize":{"w":192,"h":192}},
+  "44":{"frame":{"x":71,"y":762,"w":63,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":75,"y":131,"w":63,"h":41},"sourceSize":{"w":192,"h":192}},
+  "45":{"frame":{"x":71,"y":805,"w":62,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":140,"w":62,"h":13},"sourceSize":{"w":192,"h":192}},
+  "46":{"frame":{"x":71,"y":820,"w":62,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":145,"w":62,"h":13},"sourceSize":{"w":192,"h":192}},
+  "47":{"frame":{"x":0,"y":994,"w":68,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":147,"w":68,"h":13},"sourceSize":{"w":192,"h":192}},
+  "48":{"frame":{"x":0,"y":963,"w":69,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":147,"w":69,"h":13},"sourceSize":{"w":192,"h":192}},
+  "49":{"frame":{"x":0,"y":931,"w":69,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":147,"w":69,"h":14},"sourceSize":{"w":192,"h":192}},
+  "50":{"frame":{"x":0,"y":978,"w":68,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":147,"w":68,"h":14},"sourceSize":{"w":192,"h":192}},
+  "51":{"frame":{"x":0,"y":947,"w":69,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":147,"w":69,"h":14},"sourceSize":{"w":192,"h":192}},
+  "52":{"frame":{"x":0,"y":562,"w":86,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":145,"w":86,"h":21},"sourceSize":{"w":192,"h":192}},
+  "53":{"frame":{"x":0,"y":63,"w":137,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":119,"w":137,"h":46},"sourceSize":{"w":192,"h":192}},
+  "54":{"frame":{"x":0,"y":585,"w":84,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":129,"w":84,"h":36},"sourceSize":{"w":192,"h":192}},
+  "55":{"frame":{"x":71,"y":944,"w":58,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":130,"w":58,"h":38},"sourceSize":{"w":192,"h":192}},
+  "56":{"frame":{"x":71,"y":884,"w":58,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":128,"w":58,"h":58},"sourceSize":{"w":192,"h":192}},
+  "57":{"frame":{"x":0,"y":538,"w":88,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":141,"w":88,"h":22},"sourceSize":{"w":192,"h":192}},
+  "58":{"frame":{"x":71,"y":835,"w":62,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":142,"w":62,"h":13},"sourceSize":{"w":192,"h":192}},
+  "59":{"frame":{"x":71,"y":850,"w":62,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":139,"w":62,"h":12},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_iai.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 137,
+   "h": 1249
+  },
+  "scale": "1"
+ }
+}

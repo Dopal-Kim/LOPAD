@@ -1,0 +1,117 @@
+{
+ "image": "dagger_overheat_burst.png",
+ "action": "dagger_overheat_burst",
+ "version": "v3-r56d",
+ "frameWidth": 224,
+ "frameHeight": 144,
+ "framesPerDirection": 8,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.81,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  70,
+  80,
+  90,
+  110
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 10,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_res/build.py (56라운드 작업 D — 자원·가드·그로기 표시)",
+ "weapon": "dagger",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 110,
+  "y": 78
+ },
+ "pivotNote": "pivot = 주인공 발. 바닥 고리(세로 0.55 눌림) + 가슴에서 터지는 열",
+ "rotate": false,
+ "depth": "above",
+ "spawn": "overheat_full",
+ "impactFrame": 0,
+ "glowFrames": [
+  0,
+  1
+ ],
+ "radiusPx": 92,
+ "spawnNote": "56라운드 Q19: 과열 100% 순간 1회. 주변 낙인 적의 폭발은 각 적에 dagger_brand_burst(스택 크기 행)를 이 시트 열 1 시작부터 가까운 순서로",
+ "frameRoles": [
+  "가슴의 열이 터짐(판정)",
+  "불꽃 고리 퍼짐",
+  "퍼짐",
+  "퍼짐",
+  "퍼짐(식음)",
+  "끊긴 고리·재 김",
+  "재 김",
+  "사라짐"
+ ],
+ "light": {
+  "color": "#e2a33c",
+  "radius": 180,
+  "intensity": 1.0,
+  "frames": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "shakeHint": {
+  "px": 4,
+  "ms": 140
+ },
+ "coolSheet": "dagger_overheat_cool",
+ "design": "56라운드 Q19 과열 100% — 몸 안의 열이 가슴에서 터지고 발밑을 따라 불꽃 혀 고리가 퍼졌다가 끊겨 재 김으로 식음",
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_overheat_burst.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 1,
+   "frameWidth": 224,
+   "frameHeight": 144,
+   "frameCount": 8
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":147,"y":575,"w":50,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":15,"w":50,"h":78},"sourceSize":{"w":224,"h":144}},
+  "1":{"frame":{"x":0,"y":654,"w":96,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":61,"y":35,"w":96,"h":67},"sourceSize":{"w":224,"h":144}},
+  "2":{"frame":{"x":0,"y":575,"w":145,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":36,"w":145,"h":77},"sourceSize":{"w":224,"h":144}},
+  "3":{"frame":{"x":0,"y":482,"w":176,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":30,"w":176,"h":91},"sourceSize":{"w":224,"h":144}},
+  "4":{"frame":{"x":0,"y":137,"w":203,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":25,"w":203,"h":103},"sourceSize":{"w":224,"h":144}},
+  "5":{"frame":{"x":0,"y":368,"w":178,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":15,"w":178,"h":112},"sourceSize":{"w":224,"h":144}},
+  "6":{"frame":{"x":0,"y":242,"w":196,"h":124},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":9,"w":196,"h":124},"sourceSize":{"w":224,"h":144}},
+  "7":{"frame":{"x":0,"y":0,"w":214,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":214,"h":135},"sourceSize":{"w":224,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_overheat_burst.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 214,
+   "h": 721
+  },
+  "scale": "1"
+ }
+}

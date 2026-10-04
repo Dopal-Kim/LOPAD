@@ -1,0 +1,94 @@
+{
+ "image": "hit_dagger_heavy.png",
+ "action": "hit_heavy",
+ "version": "v3",
+ "frameWidth": 128,
+ "frameHeight": 96,
+ "pixelScale": 0.5,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "framesPerDirection": 5,
+ "frameDurationsMs": [
+  30,
+  40,
+  40,
+  50,
+  60
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 36,
+  "y": 48
+ },
+ "anchor": "hitbox_center",
+ "spawn": "hit",
+ "depth": "above",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "weapon": "dagger",
+ "variant": "heavy",
+ "useFor": "막타(연격 마지막 타)·치명타 — 같은 무기의 hit_<weapon> 대신",
+ "replaces": "hit_burst (무기별로 바꿔 씀, 파일이 없으면 hit_burst)",
+ "design": "별빛 부채 — 큰 별 + 관통 바늘 → 앞으로 펼쳐지는 별 3 → 바깥 별 4 → 식는 별",
+ "hitstopMs": 54,
+ "hitstopNote": "55라운드 Q6 무기별 히트스톱(막타·치명타 ×1.8) 참고값. 히트스톱 동안 이 시트는 holdFrame 에 멈춰 두기를 권장(판정 순간 백열이 보이도록).",
+ "holdFrame": 0,
+ "pivotNote": "피벗 (36,48) = 적중점. 시스템은 공격 방향 각도(근접 = 주인공→적 중심, 활 = 화살 진행 각)으로 회전한다. flipY 는 위아래 뒤집기 허용(칼은 연격 홀·짝 휘두름 방향에 맞추면 자연스럽다). 중력 표현이 없어 어느 각도로 돌려도 된다.",
+ "particles": "particles_ash recipes.hit_dagger_heavy 참고(시스템 입자 발생기).",
+ "shakeHint": {
+  "px": 3,
+  "ms": 90,
+  "note": "55라운드 Q8 화면 흔들림(막타·대검·치명타만 짧게) — 값은 아트 임시 제안, 시스템 판단."
+ },
+ "glowFrames": [
+  0,
+  1
+ ],
+ "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
+ "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
+ "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
+ "source": "parts/art/work/fx_v3/build_feel.py",
+ "colors": 9,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 hit_dagger_heavy.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 96,
+   "frameCount": 5
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":75,"h":66},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":15,"w":75,"h":66},"sourceSize":{"w":128,"h":96}},
+  "1":{"frame":{"x":47,"y":162,"w":60,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":18,"w":60,"h":60},"sourceSize":{"w":128,"h":96}},
+  "2":{"frame":{"x":0,"y":68,"w":58,"h":80},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":8,"w":58,"h":80},"sourceSize":{"w":128,"h":96}},
+  "3":{"frame":{"x":0,"y":150,"w":45,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":1,"w":45,"h":88},"sourceSize":{"w":128,"h":96}},
+  "4":{"frame":{"x":60,"y":68,"w":49,"h":92},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":60,"y":2,"w":49,"h":92},"sourceSize":{"w":128,"h":96}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "hit_dagger_heavy.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 109,
+   "h": 238
+  },
+  "scale": "1"
+ }
+}

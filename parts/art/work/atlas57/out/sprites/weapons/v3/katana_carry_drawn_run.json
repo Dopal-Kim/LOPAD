@@ -1,0 +1,168 @@
+{
+ "image": "katana_carry_drawn_run.png",
+ "action": "carry_drawn_run",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.38,
+ "frameDurationsMs": [
+  65,
+  65,
+  65,
+  65,
+  65,
+  65,
+  65,
+  65
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (53라운드 Q1·Q4 — 96×144 1.5배 재출력)",
+ "weapon": "katana",
+ "carry": "drawn, in right hand (뽑아 든 상태) + 빈 칼집(왼허리)",
+ "state": "drawn",
+ "bodySheet": "player_run",
+ "anchor": "player_pivot",
+ "design": "B 재 칼날 (53라운드 Q26) — 검은 재 칼날 + 날선 호박 균열 1줄 + 흉갑 조각 코등이 + 붕대 손잡이 + 금 간 재·흙 칼집",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_katana_B2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 날선·칼집 금만 1px 은은(A21/A19), 판정(glow) 프레임만 날선 A25/A26 + 날 몸 A21",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G·호박 A·흉갑 SL·붕대 PL 램프 공유, Q32). 백열 코어 X 미사용",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "bladeLocal": {
+  "thetaDeg": 165.0,
+  "elevDeg": -18.0
+ },
+ "bladeNote": "대기·걷기 = 앞·아래·바깥으로 낮게 든 칼, 달리기 = 뒤로 끌며 낮게, 대쉬 = 뒤로 곧게. 오른손 = 몸 시트 handAnchors.R",
+ "stateNote": "공격 뒤 납도 전(비전투 타이머 동안) 이동·대기 때 katana_carry_* 대신 사용(구 시트와 같은 쓰임).",
+ "overlay": "player_run 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_carry_drawn_run.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":237,"y":289,"w":80,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":65,"y":142,"w":80,"h":14},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":95,"y":253,"w":89,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":60,"y":129,"w":89,"h":29},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":90,"y":221,"w":92,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":127,"w":92,"h":30},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":186,"y":259,"w":90,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":126,"w":90,"h":28},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":0,"y":225,"w":85,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":135,"w":85,"h":26},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":79,"y":284,"w":78,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":61,"y":143,"w":78,"h":19},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":278,"y":255,"w":74,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":142,"w":74,"h":15},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":159,"y":289,"w":76,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":139,"w":76,"h":18},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":0,"y":184,"w":88,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":136,"w":88,"h":39},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":86,"y":141,"w":87,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":144,"w":87,"h":41},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":0,"y":52,"w":86,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":143,"w":86,"h":48},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":196,"y":0,"w":84,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":140,"w":84,"h":52},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":267,"y":103,"w":83,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":148,"w":83,"h":38},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":181,"y":103,"w":84,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":139,"w":84,"h":43},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":195,"y":54,"w":84,"h":47},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":130,"w":84,"h":47},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":0,"y":102,"w":84,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":129,"w":84,"h":44},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":98,"y":51,"w":95,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":127,"w":95,"h":44},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":188,"y":219,"w":75,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":135,"w":75,"h":38},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":282,"y":0,"w":69,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":72,"y":129,"w":69,"h":42},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":282,"y":44,"w":68,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":125,"w":68,"h":42},"sourceSize":{"w":192,"h":192}},
+  "20":{"frame":{"x":274,"y":143,"w":79,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":133,"w":79,"h":38},"sourceSize":{"w":192,"h":192}},
+  "21":{"frame":{"x":88,"y":97,"w":91,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":131,"w":91,"h":42},"sourceSize":{"w":192,"h":192}},
+  "22":{"frame":{"x":0,"y":0,"w":96,"h":50},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":121,"w":96,"h":50},"sourceSize":{"w":192,"h":192}},
+  "23":{"frame":{"x":98,"y":0,"w":96,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":118,"w":96,"h":49},"sourceSize":{"w":192,"h":192}},
+  "24":{"frame":{"x":0,"y":148,"w":76,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":130,"w":76,"h":31},"sourceSize":{"w":192,"h":192}},
+  "25":{"frame":{"x":0,"y":253,"w":93,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":127,"w":93,"h":29},"sourceSize":{"w":192,"h":192}},
+  "26":{"frame":{"x":90,"y":186,"w":96,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":119,"w":96,"h":33},"sourceSize":{"w":192,"h":192}},
+  "27":{"frame":{"x":175,"y":148,"w":97,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":115,"w":97,"h":36},"sourceSize":{"w":192,"h":192}},
+  "28":{"frame":{"x":188,"y":186,"w":92,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":127,"w":92,"h":31},"sourceSize":{"w":192,"h":192}},
+  "29":{"frame":{"x":0,"y":284,"w":77,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":133,"w":77,"h":26},"sourceSize":{"w":192,"h":192}},
+  "30":{"frame":{"x":265,"y":222,"w":69,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":127,"w":69,"h":31},"sourceSize":{"w":192,"h":192}},
+  "31":{"frame":{"x":282,"y":183,"w":70,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":123,"w":70,"h":37},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_carry_drawn_run.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 353,
+   "h": 310
+  },
+  "scale": "1"
+ }
+}

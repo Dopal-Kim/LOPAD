@@ -1,0 +1,482 @@
+{
+ "image": "bow_release.png",
+ "action": "bow_release",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.29,
+ "frameDurationsMs": [
+  40,
+  60,
+  80,
+  100
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/combo56_body/build.py bow (56라운드 Q9 — 활 당겨 떼기)",
+ "weapon": "bow",
+ "version": "v3-r56",
+ "frameRoles": [
+  "release",
+  "follow",
+  "recover",
+  "ready"
+ ],
+ "frameStates": [
+  "release",
+  "release",
+  "draw",
+  "draw"
+ ],
+ "framesBasis": "player_bow_release 프레임 번호(몸·무기 공통)",
+ "releaseFrame": 0,
+ "releaseNote": "놓는 순간 = f0 시작 → 화살 생성(arrowSpawnAnchors). 일찍 놓은 약한 화살도 같은 시트(시위 번쩍임은 같음 — 화살 fx 로 구분)",
+ "endsWith": "bow_draw_hold f0 근처(다시 당길 준비) — 계속 우클릭이면 바로 bow_draw_hold 로, 아니면 bow_carry_idle",
+ "perfectFx": "bow_perfect_release (완벽 놓기일 때만, f0 시작, arrowSpawnAnchors)",
+ "anchor": "player_pivot",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "depthNote": "몸 뒤로 가는 무기 픽셀(몸 기준 카메라 반대쪽)은 몸 실루엣으로 지웠고, 쥔 손잡이는 주먹 픽셀로 가렸다 → 항상 above.",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     81.8,
+     89.9
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     79.5,
+     102.0
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     94.9,
+     112.1
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   },
+   {
+    "handR": [
+     95.2,
+     113.1
+    ],
+    "handL": [
+     102.8,
+     115.3
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     110.2,
+     97.3
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     112.5,
+     106.2
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     97.1,
+     92.3
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   },
+   {
+    "handR": [
+     96.8,
+     92.1
+    ],
+    "handL": [
+     89.2,
+     86.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     106.5,
+     88.3
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     102.0,
+     98.0
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     67.7,
+     101.5
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   },
+   {
+    "handR": [
+     66.0,
+     102.0
+    ],
+    "handL": [
+     55.5,
+     103.2
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     85.5,
+     98.3
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     90.0,
+     109.6
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     124.3,
+     102.3
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     126.0,
+     102.6
+    ],
+    "handL": [
+     136.5,
+     98.4
+    ]
+   }
+  ]
+ },
+ "gripAnchors": {
+  "down": [
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ],
+   [
+    102.8,
+    115.3
+   ]
+  ],
+  "up": [
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ],
+   [
+    89.2,
+    86.9
+   ]
+  ],
+  "left": [
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ],
+   [
+    55.5,
+    103.2
+   ]
+  ],
+  "right": [
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ],
+   [
+    136.5,
+    98.4
+   ]
+  ]
+ },
+ "gripHand": "handL",
+ "design": "B + 몸에 꽂힌 화살 뽑기 (53라운드 Q29) — 재·흙 활대 + 호박 균열 · 양 끝 갑옷 조각 · 혼불 시위(유일하게 빛나는 선) · 재 화살",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_bow_B.jpg (+ 장전 연출 raw_bow_A2, 참고만)",
+ "glowRule": "53라운드 Q30: 시위 평소 A21 · 당김 A23 · 가득 A25 · 놓는 순간 A26 번쩍. 활대 균열 1px A21, 화살촉 A21→A25",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G · 흙 WD · 호박 A · 갑옷 SL · 붕대 PL, Q32)",
+ "bowLengthDots": 60,
+ "arrowLengthDots": 36,
+ "bladeTipAnchors": {
+  "down": [
+   null,
+   null,
+   [
+    120.8,
+    122.5
+   ],
+   [
+    123.0,
+    121.1
+   ]
+  ],
+  "up": [
+   null,
+   null,
+   [
+    71.2,
+    74.5
+   ],
+   [
+    69.0,
+    73.0
+   ]
+  ],
+  "left": [
+   null,
+   null,
+   [
+    27.5,
+    106.9
+   ],
+   [
+    27.2,
+    106.2
+   ]
+  ],
+  "right": [
+   null,
+   null,
+   [
+    164.5,
+    89.5
+   ],
+   [
+    164.8,
+    87.3
+   ]
+  ]
+ },
+ "bladeTipNote": "화살촉 끝(무기 시트 좌표). 없으면 null(화살 없음)",
+ "bodySheet": "player_bow_release",
+ "carryHidden": "이 시트 동안 bow_carry_* 는 숨긴다(이 시트가 손의 활·화살을 그림).",
+ "overlay": "player_bow_release 와 같은 프레임 번호(row*frames+col)를 같은 시각에 겹친다. 피벗 = 주인공 피벗 + playerFrameOffset.",
+ "stateNote": "draw 당김(시위 A21→A23) · full 가득(시위 A25 · 촉 끝 A26) · release 놓는 순간(시위 A26 번쩍) · settle/ready 내림·다시 당길 준비",
+ "arrowSpawnAnchors": {
+  "down": [
+   [
+    102.8,
+    115.3
+   ],
+   null,
+   null,
+   null
+  ],
+  "up": [
+   [
+    89.2,
+    86.9
+   ],
+   null,
+   null,
+   null
+  ],
+  "left": [
+   [
+    55.5,
+    103.2
+   ],
+   null,
+   null,
+   null
+  ],
+  "right": [
+   [
+    136.5,
+    98.4
+   ],
+   null,
+   null,
+   null
+  ]
+ },
+ "arrowSpawnNote": "화살 생성 점(무기 시트 좌표) — 놓기 f0 의 줌통 앞. bow_perfect_release·bow_muzzle_rapid 의 pivot 을 여기에",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_release.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":26,"y":194,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":35,"y":194,"w":7,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":83,"w":7,"h":61},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":0,"y":0,"w":29,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":83,"w":29,"h":63},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":0,"y":65,"w":11,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":83,"w":11,"h":63},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":24,"y":321,"w":7,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":7,"h":40},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":15,"y":321,"w":7,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":59,"w":7,"h":41},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":15,"y":364,"w":26,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":60,"w":26,"h":40},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":33,"y":321,"w":11,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":60,"w":11,"h":39},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":13,"y":65,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":72,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":26,"y":65,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":72,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":0,"y":130,"w":42,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":72,"w":42,"h":62},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":31,"y":0,"w":14,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":72,"w":14,"h":63},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":0,"y":194,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":69,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":13,"y":194,"w":11,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":69,"w":11,"h":62},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":0,"y":258,"w":45,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":70,"w":45,"h":61},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":0,"y":321,"w":13,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":71,"w":13,"h":60},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_release.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 45,
+   "h": 404
+  },
+  "scale": "1"
+ }
+}

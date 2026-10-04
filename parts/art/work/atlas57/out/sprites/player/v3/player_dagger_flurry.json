@@ -1,0 +1,987 @@
+{
+ "image": "player_dagger_flurry.png",
+ "action": "dagger_flurry",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.41,
+ "frameDurationsMs": [
+  40,
+  40,
+  45,
+  45,
+  45,
+  45,
+  45,
+  45,
+  60,
+  80
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/combo56_moves_db/build.py body (56라운드 Q40~Q43 새 기본기 — 작업 E2)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "weapon": "dagger",
+ "version": "v3-r56",
+ "label": "고속 난타",
+ "basicMove": true,
+ "r56": "56라운드 Q40~Q43 새 기본기(작업 E2)",
+ "timingMs": {
+  "total": 490,
+  "hitAt": 80,
+  "activeEndAt": 305,
+  "hitsAt": [
+   80,
+   170,
+   260
+  ],
+  "cancelAt": null,
+  "loopStartAt": 80,
+  "loopMs": 270,
+  "startMs": 80,
+  "endMs": 140
+ },
+ "frameRoles": [
+  "start",
+  "start",
+  "stab",
+  "retract",
+  "stab",
+  "retract",
+  "stab",
+  "retract",
+  "end",
+  "end"
+ ],
+ "frameStates": [
+  "steel",
+  "steel",
+  "glow",
+  "steel",
+  "glow",
+  "steel",
+  "glow",
+  "steel",
+  "fade",
+  "steel"
+ ],
+ "framesBasis": "player_dagger_flurry 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "msNote": "ms·판정은 아트 임시 제안(보고서 표). 시스템이 바꿔도 판정 프레임 시작 = hitAt 이 맞으면 그림은 맞는다",
+ "phases": {
+  "start": [
+   0,
+   1
+  ],
+  "loop": [
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "end": [
+   8,
+   9
+  ]
+ },
+ "startsFrom": "dagger_carry_idle / 기본 연격 아무 프레임(좌클릭 홀드 시작)",
+ "endsWith": "READY_DG(겨눔) → dagger_carry_idle",
+ "impactFrame": 2,
+ "hitFrames": [
+  2,
+  4,
+  6
+ ],
+ "activeFrames": [
+  2,
+  4,
+  6
+ ],
+ "glowFrames": [
+  2,
+  4,
+  6
+ ],
+ "anticipationFrames": [
+  0,
+  1
+ ],
+ "thrust": {
+  "lengthPx": 144,
+  "widthPx": 48,
+  "angleDeg": 0,
+  "fromPx": 16
+ },
+ "thrustNote": "몸 중심(판정 원점 = 피벗 위 40 도트)에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정(도트, 월드 px = 도트/4). 참고값 — 시스템 데이터가 기준",
+ "hitShape": {
+  "type": "rect",
+  "lengthPx": 144,
+  "widthPx": 48,
+  "fromPx": 16,
+  "angleDeg": 0,
+  "note": "§17 판정 모양 rect(찌르기)"
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트 (96×144 몸 기준 · 시스템 HIT_ORIGIN_UP_PX 10 월드 px = 논리 20px, 53라운드 Q70)",
+ "hitNote": "임시 제안: 루프 한 바퀴(270ms)에 3타 = 초당 약 11타. 판정 = 정면 직사각(기본 1타 ×1.5 길이 144, 폭 48) — stabAngles 는 그림 각(판정은 0° 하나로 충분)",
+ "loopFrames": [
+  2,
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "loopRange": [
+  2,
+  7
+ ],
+ "startFrames": [
+  0,
+  1
+ ],
+ "endFrames": [
+  8,
+  9
+ ],
+ "loopNote": "좌클릭 홀드: f0~f1(시작) 1회 → 홀드 동안 loopFrames 반복(f7 끝 → f2) → 떼면 지금 찌르기의 당김 프레임까지 마치고 f8~f9(끝). 시트 loop 값은 false(시스템이 loopRange 를 반복). 과열 단계는 fx 시트만 바꿈(몸·무기 같음)",
+ "stabAngles": {
+  "2": -10,
+  "4": 12,
+  "6": 0
+ },
+ "stabAnglesNote": "각 찌르기 그림 각(화면, 조준 0° 시계 +) — 이펙트 붓획 각과 같음",
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     41.2,
+     73.7
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     38.2,
+     70.5
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     54.0,
+     75.5
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     37.4,
+     72.5
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     43.2,
+     87.6
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     36.5,
+     70.0
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     49.3,
+     82.2
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     38.5,
+     70.7
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     39.8,
+     77.3
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   },
+   {
+    "handR": [
+     41.2,
+     75.2
+    ],
+    "handL": [
+     57.0,
+     74.3
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     54.8,
+     65.5
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     57.8,
+     65.7
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     42.0,
+     51.7
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     58.6,
+     63.7
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     52.8,
+     63.6
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     59.5,
+     63.2
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     46.7,
+     57.0
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     57.5,
+     65.5
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     56.2,
+     64.9
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   },
+   {
+    "handR": [
+     54.8,
+     67.0
+    ],
+    "handL": [
+     39.0,
+     64.9
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     36.3,
+     66.9
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     41.1,
+     64.4
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     14.0,
+     65.4
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     35.4,
+     64.1
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     13.8,
+     73.6
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     38.4,
+     62.3
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     12.0,
+     69.7
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     40.6,
+     64.5
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     30.3,
+     67.9
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   },
+   {
+    "handR": [
+     36.3,
+     68.4
+    ],
+    "handL": [
+     34.5,
+     72.5
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     59.7,
+     71.7
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     54.9,
+     71.2
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     82.0,
+     61.2
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     60.6,
+     71.5
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     82.2,
+     77.0
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     57.6,
+     70.3
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     84.0,
+     68.9
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     55.4,
+     71.1
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     65.7,
+     73.7
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   },
+   {
+    "handR": [
+     59.7,
+     73.2
+    ],
+    "handL": [
+     61.5,
+     66.2
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트, 해부 기준 R 오른손 · L 왼손 — 단검 R 역수 · 활 L 줌통/R 시위). 무기 시트 좌표 = 몸 + (48,48)",
+ "scarAnchor": {
+  "down": [
+   {
+    "x": 45.6,
+    "y": 72.7,
+    "w": 25.5,
+    "h": 18.5,
+    "rot": -4.6,
+    "visible": false
+   },
+   {
+    "x": 44.4,
+    "y": 74.8,
+    "w": 25.5,
+    "h": 18.2,
+    "rot": -7.0,
+    "visible": false
+   },
+   {
+    "x": 50.6,
+    "y": 75.3,
+    "w": 25.5,
+    "h": 17.7,
+    "rot": 5.3,
+    "visible": false
+   },
+   {
+    "x": 45.8,
+    "y": 74.9,
+    "w": 25.5,
+    "h": 18.0,
+    "rot": -4.3,
+    "visible": false
+   },
+   {
+    "x": 46.6,
+    "y": 76.9,
+    "w": 25.5,
+    "h": 17.6,
+    "rot": -2.9,
+    "visible": false
+   },
+   {
+    "x": 45.1,
+    "y": 74.9,
+    "w": 25.5,
+    "h": 18.0,
+    "rot": -5.7,
+    "visible": false
+   },
+   {
+    "x": 49.2,
+    "y": 76.3,
+    "w": 25.5,
+    "h": 17.5,
+    "rot": 2.4,
+    "visible": false
+   },
+   {
+    "x": 44.5,
+    "y": 74.8,
+    "w": 25.5,
+    "h": 18.2,
+    "rot": -6.8,
+    "visible": false
+   },
+   {
+    "x": 46.8,
+    "y": 71.9,
+    "w": 25.5,
+    "h": 18.5,
+    "rot": -2.3,
+    "visible": false
+   },
+   {
+    "x": 46.1,
+    "y": 70.1,
+    "w": 25.5,
+    "h": 18.8,
+    "rot": -3.6,
+    "visible": false
+   }
+  ],
+  "up": [
+   {
+    "x": 50.4,
+    "y": 72.7,
+    "w": 25.5,
+    "h": 18.5,
+    "rot": 4.6,
+    "visible": true
+   },
+   {
+    "x": 51.6,
+    "y": 74.8,
+    "w": 25.5,
+    "h": 18.2,
+    "rot": 7.0,
+    "visible": true
+   },
+   {
+    "x": 45.4,
+    "y": 75.3,
+    "w": 25.5,
+    "h": 17.7,
+    "rot": -5.3,
+    "visible": true
+   },
+   {
+    "x": 50.2,
+    "y": 74.9,
+    "w": 25.5,
+    "h": 18.0,
+    "rot": 4.3,
+    "visible": true
+   },
+   {
+    "x": 49.4,
+    "y": 76.9,
+    "w": 25.5,
+    "h": 17.6,
+    "rot": 2.9,
+    "visible": true
+   },
+   {
+    "x": 50.9,
+    "y": 74.9,
+    "w": 25.5,
+    "h": 18.0,
+    "rot": 5.7,
+    "visible": true
+   },
+   {
+    "x": 46.8,
+    "y": 76.3,
+    "w": 25.5,
+    "h": 17.5,
+    "rot": -2.4,
+    "visible": true
+   },
+   {
+    "x": 51.5,
+    "y": 74.8,
+    "w": 25.5,
+    "h": 18.2,
+    "rot": 6.8,
+    "visible": true
+   },
+   {
+    "x": 49.2,
+    "y": 71.9,
+    "w": 25.5,
+    "h": 18.5,
+    "rot": 2.3,
+    "visible": true
+   },
+   {
+    "x": 49.9,
+    "y": 70.1,
+    "w": 25.5,
+    "h": 18.8,
+    "rot": 3.6,
+    "visible": true
+   }
+  ],
+  "left": [
+   {
+    "x": 46.6,
+    "y": 73.1,
+    "w": 7.2,
+    "h": 11.8,
+    "rot": -17.7,
+    "visible": true
+   },
+   {
+    "x": 44.7,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.1,
+    "rot": -21.4,
+    "visible": true
+   },
+   {
+    "x": 42.9,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.4,
+    "rot": -25.0,
+    "visible": true
+   },
+   {
+    "x": 44.3,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.2,
+    "rot": -22.3,
+    "visible": true
+   },
+   {
+    "x": 42.4,
+    "y": 76.1,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": -25.9,
+    "visible": true
+   },
+   {
+    "x": 44.3,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.2,
+    "rot": -22.3,
+    "visible": true
+   },
+   {
+    "x": 42.2,
+    "y": 75.4,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": -26.3,
+    "visible": true
+   },
+   {
+    "x": 44.7,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.1,
+    "rot": -21.4,
+    "visible": true
+   },
+   {
+    "x": 47.1,
+    "y": 72.4,
+    "w": 7.2,
+    "h": 11.7,
+    "rot": -16.7,
+    "visible": true
+   },
+   {
+    "x": 48.0,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": -14.7,
+    "visible": true
+   }
+  ],
+  "right": [
+   {
+    "x": 49.4,
+    "y": 73.1,
+    "w": 7.2,
+    "h": 11.8,
+    "rot": 17.7,
+    "visible": true
+   },
+   {
+    "x": 51.3,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.1,
+    "rot": 21.4,
+    "visible": true
+   },
+   {
+    "x": 53.1,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.4,
+    "rot": 25.0,
+    "visible": true
+   },
+   {
+    "x": 51.7,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.2,
+    "rot": 22.3,
+    "visible": true
+   },
+   {
+    "x": 53.6,
+    "y": 76.1,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": 25.9,
+    "visible": true
+   },
+   {
+    "x": 51.7,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.2,
+    "rot": 22.3,
+    "visible": true
+   },
+   {
+    "x": 53.8,
+    "y": 75.4,
+    "w": 7.2,
+    "h": 12.5,
+    "rot": 26.3,
+    "visible": true
+   },
+   {
+    "x": 51.3,
+    "y": 74.6,
+    "w": 7.2,
+    "h": 12.1,
+    "rot": 21.4,
+    "visible": true
+   },
+   {
+    "x": 48.9,
+    "y": 72.4,
+    "w": 7.2,
+    "h": 11.7,
+    "rot": 16.7,
+    "visible": true
+   },
+   {
+    "x": 48.0,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 11.6,
+    "rot": 14.7,
+    "visible": true
+   }
+  ]
+ },
+ "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
+ "weaponOverlayV3": "weapons/v3/dagger_flurry",
+ "note": "56라운드 새 기본기 몸. weapons/v3/dagger_flurry 를 같은 프레임 번호·같은 시각에 겹친다. v3 · 53라운드 Q1 1.5배 — 96×144 도트, 화면 48×72 (pixelScale 0.5, 계약 §13). 개념 gemini/concept_char/hero3_b.",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_dagger_flurry.png)",
+  "grid": {
+   "columns": 10,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 40
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":137,"y":0,"w":67,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":30,"w":67,"h":114},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":691,"y":0,"w":66,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":34,"w":66,"h":110},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":961,"y":0,"w":63,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":35,"w":63,"h":109},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":895,"y":0,"w":64,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":35,"w":64,"h":109},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":1006,"y":111,"w":64,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":37,"w":64,"h":107},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":827,"y":0,"w":66,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":35,"w":66,"h":109},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":1072,"y":111,"w":63,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":37,"w":63,"h":107},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":759,"y":0,"w":66,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":34,"w":66,"h":110},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":70,"y":0,"w":65,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":29,"w":65,"h":115},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":0,"y":0,"w":68,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":27,"w":68,"h":115},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":424,"y":0,"w":57,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":30,"w":57,"h":112},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":1148,"y":0,"w":57,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":34,"w":57,"h":109},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":1207,"y":0,"w":57,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":35,"w":57,"h":109},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":886,"y":111,"w":58,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":35,"w":58,"h":108},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":1137,"y":111,"w":59,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":37,"w":59,"h":107},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":946,"y":111,"w":58,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":35,"w":58,"h":108},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":1198,"y":111,"w":57,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":37,"w":57,"h":107},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":827,"y":111,"w":57,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":34,"w":57,"h":109},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":265,"y":0,"w":57,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":29,"w":57,"h":113},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":206,"y":0,"w":57,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":27,"w":57,"h":114},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":483,"y":0,"w":50,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":28,"w":50,"h":111},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":540,"y":113,"w":54,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":30,"w":54,"h":109},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":1026,"y":0,"w":59,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":30,"w":59,"h":109},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":691,"y":112,"w":55,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":30,"w":55,"h":109},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":0,"y":117,"w":59,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":31,"w":59,"h":108},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":748,"y":112,"w":55,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":30,"w":55,"h":109},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":137,"y":116,"w":60,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":31,"w":60,"h":108},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":596,"y":113,"w":54,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":30,"w":54,"h":109},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":535,"y":0,"w":50,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":28,"w":50,"h":111},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":324,"y":0,"w":48,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":26,"w":48,"h":113},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":587,"y":0,"w":50,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":28,"w":50,"h":111},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":265,"y":115,"w":54,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":30,"w":54,"h":109},"sourceSize":{"w":96,"h":144}},
+  "32":{"frame":{"x":1087,"y":0,"w":59,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":30,"w":59,"h":109},"sourceSize":{"w":96,"h":144}},
+  "33":{"frame":{"x":483,"y":113,"w":55,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":30,"w":55,"h":109},"sourceSize":{"w":96,"h":144}},
+  "34":{"frame":{"x":61,"y":117,"w":59,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":31,"w":59,"h":108},"sourceSize":{"w":96,"h":144}},
+  "35":{"frame":{"x":424,"y":114,"w":55,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":30,"w":55,"h":109},"sourceSize":{"w":96,"h":144}},
+  "36":{"frame":{"x":199,"y":116,"w":60,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":31,"w":60,"h":108},"sourceSize":{"w":96,"h":144}},
+  "37":{"frame":{"x":321,"y":115,"w":54,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":30,"w":54,"h":109},"sourceSize":{"w":96,"h":144}},
+  "38":{"frame":{"x":639,"y":0,"w":50,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":28,"w":50,"h":111},"sourceSize":{"w":96,"h":144}},
+  "39":{"frame":{"x":374,"y":0,"w":48,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":26,"w":48,"h":113},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_dagger_flurry.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1264,
+   "h": 225
+  },
+  "scale": "1"
+ }
+}

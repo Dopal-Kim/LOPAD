@@ -1,0 +1,2767 @@
+{
+ "round": 57,
+ "rule": "Q19 결정 완료 라운드(≤55) 미리보기 정리",
+ "applied": true,
+ "deletedBytes": 126586529,
+ "delete": [
+  {
+   "path": "birth/gif/birth_dust_swirl_x4.gif",
+   "bytes": 4562
+  },
+  {
+   "path": "birth/gif/birth_scene_x4.gif",
+   "bytes": 52168
+  },
+  {
+   "path": "birth/gif/birth_soul_x4.gif",
+   "bytes": 31542
+  },
+  {
+   "path": "birth/gif/soul_wisp_x4.gif",
+   "bytes": 3663
+  },
+  {
+   "path": "birth/preview.png",
+   "bytes": 45962
+  },
+  {
+   "path": "birth/preview_battlefield_x2.png",
+   "bytes": 14191
+  },
+  {
+   "path": "boss1_v3/preview_attack_x2.png",
+   "bytes": 469765
+  },
+  {
+   "path": "boss1_v3/preview_attack_x3.gif",
+   "bytes": 507401
+  },
+  {
+   "path": "boss1_v3/preview_death_x2.png",
+   "bytes": 514959
+  },
+  {
+   "path": "boss1_v3/preview_death_x3.gif",
+   "bytes": 473046
+  },
+  {
+   "path": "boss1_v3/preview_design.png",
+   "bytes": 258869
+  },
+  {
+   "path": "boss1_v3/preview_drink_break_x2.png",
+   "bytes": 525208
+  },
+  {
+   "path": "boss1_v3/preview_drink_break_x3.gif",
+   "bytes": 585295
+  },
+  {
+   "path": "boss1_v3/preview_drink_x2.png",
+   "bytes": 439767
+  },
+  {
+   "path": "boss1_v3/preview_drink_x3.gif",
+   "bytes": 564896
+  },
+  {
+   "path": "boss1_v3/preview_fall_x2.png",
+   "bytes": 704974
+  },
+  {
+   "path": "boss1_v3/preview_fall_x3.gif",
+   "bytes": 591421
+  },
+  {
+   "path": "boss1_v3/preview_hurt_x2.png",
+   "bytes": 88320
+  },
+  {
+   "path": "boss1_v3/preview_hurt_x3.gif",
+   "bytes": 93640
+  },
+  {
+   "path": "boss1_v3/preview_idle_x2.png",
+   "bytes": 213189
+  },
+  {
+   "path": "boss1_v3/preview_idle_x3.gif",
+   "bytes": 303478
+  },
+  {
+   "path": "boss1_v3/preview_kick_x2.png",
+   "bytes": 297451
+  },
+  {
+   "path": "boss1_v3/preview_kick_x3.gif",
+   "bytes": 392374
+  },
+  {
+   "path": "boss1_v3/preview_mock_hall_x2.png",
+   "bytes": 95560
+  },
+  {
+   "path": "boss1_v3/preview_onfire_down_x2.png",
+   "bytes": 281602
+  },
+  {
+   "path": "boss1_v3/preview_onfire_down_x3.gif",
+   "bytes": 2117715
+  },
+  {
+   "path": "boss1_v3/preview_onfire_x2.png",
+   "bytes": 673195
+  },
+  {
+   "path": "boss1_v3/preview_onfire_x3.gif",
+   "bytes": 2475416
+  },
+  {
+   "path": "boss1_v3/preview_phase_drink_x2.png",
+   "bytes": 556506
+  },
+  {
+   "path": "boss1_v3/preview_phase_drink_x3.gif",
+   "bytes": 632710
+  },
+  {
+   "path": "boss1_v3/preview_props.png",
+   "bytes": 416137
+  },
+  {
+   "path": "boss1_v3/preview_size_compare.png",
+   "bytes": 35149
+  },
+  {
+   "path": "boss1_v3/preview_slam_x2.png",
+   "bytes": 486495
+  },
+  {
+   "path": "boss1_v3/preview_slam_x3.gif",
+   "bytes": 468267
+  },
+  {
+   "path": "boss1_v3/preview_stagger_dash_x2.png",
+   "bytes": 506174
+  },
+  {
+   "path": "boss1_v3/preview_stagger_dash_x3.gif",
+   "bytes": 546008
+  },
+  {
+   "path": "boss1_v3/preview_throw_torch_x2.png",
+   "bytes": 342948
+  },
+  {
+   "path": "boss1_v3/preview_throw_torch_x3.gif",
+   "bytes": 429124
+  },
+  {
+   "path": "boss1_v3/preview_throw_x2.png",
+   "bytes": 337668
+  },
+  {
+   "path": "boss1_v3/preview_throw_x3.gif",
+   "bytes": 383987
+  },
+  {
+   "path": "boss1_v3/preview_walk_x2.png",
+   "bytes": 232273
+  },
+  {
+   "path": "boss1_v3/preview_walk_x3.gif",
+   "bytes": 303126
+  },
+  {
+   "path": "bosses/gif/emperor_attack_down.gif",
+   "bytes": 8804
+  },
+  {
+   "path": "bosses/gif/emperor_attack_left.gif",
+   "bytes": 6954
+  },
+  {
+   "path": "bosses/gif/emperor_attack_right.gif",
+   "bytes": 6908
+  },
+  {
+   "path": "bosses/gif/emperor_attack_up.gif",
+   "bytes": 8792
+  },
+  {
+   "path": "bosses/gif/emperor_death_down.gif",
+   "bytes": 11648
+  },
+  {
+   "path": "bosses/gif/emperor_death_left.gif",
+   "bytes": 9775
+  },
+  {
+   "path": "bosses/gif/emperor_death_right.gif",
+   "bytes": 9564
+  },
+  {
+   "path": "bosses/gif/emperor_death_up.gif",
+   "bytes": 11418
+  },
+  {
+   "path": "bosses/gif/emperor_hurt_down.gif",
+   "bytes": 4000
+  },
+  {
+   "path": "bosses/gif/emperor_hurt_left.gif",
+   "bytes": 3368
+  },
+  {
+   "path": "bosses/gif/emperor_hurt_right.gif",
+   "bytes": 3235
+  },
+  {
+   "path": "bosses/gif/emperor_hurt_up.gif",
+   "bytes": 4040
+  },
+  {
+   "path": "bosses/gif/emperor_idle_down.gif",
+   "bytes": 11867
+  },
+  {
+   "path": "bosses/gif/emperor_idle_left.gif",
+   "bytes": 5741
+  },
+  {
+   "path": "bosses/gif/emperor_idle_right.gif",
+   "bytes": 8860
+  },
+  {
+   "path": "bosses/gif/emperor_idle_up.gif",
+   "bytes": 11756
+  },
+  {
+   "path": "bosses/gif/emperor_walk_down.gif",
+   "bytes": 18912
+  },
+  {
+   "path": "bosses/gif/emperor_walk_left.gif",
+   "bytes": 15025
+  },
+  {
+   "path": "bosses/gif/emperor_walk_right.gif",
+   "bytes": 14029
+  },
+  {
+   "path": "bosses/gif/emperor_walk_up.gif",
+   "bytes": 18749
+  },
+  {
+   "path": "bosses/gif/stage1_attack_down.gif",
+   "bytes": 8224
+  },
+  {
+   "path": "bosses/gif/stage1_attack_left.gif",
+   "bytes": 6544
+  },
+  {
+   "path": "bosses/gif/stage1_attack_right.gif",
+   "bytes": 6655
+  },
+  {
+   "path": "bosses/gif/stage1_attack_up.gif",
+   "bytes": 8003
+  },
+  {
+   "path": "bosses/gif/stage1_death_down.gif",
+   "bytes": 9500
+  },
+  {
+   "path": "bosses/gif/stage1_death_left.gif",
+   "bytes": 7915
+  },
+  {
+   "path": "bosses/gif/stage1_death_right.gif",
+   "bytes": 8088
+  },
+  {
+   "path": "bosses/gif/stage1_death_up.gif",
+   "bytes": 8142
+  },
+  {
+   "path": "bosses/gif/stage1_hurt_down.gif",
+   "bytes": 3643
+  },
+  {
+   "path": "bosses/gif/stage1_hurt_left.gif",
+   "bytes": 3104
+  },
+  {
+   "path": "bosses/gif/stage1_hurt_right.gif",
+   "bytes": 3165
+  },
+  {
+   "path": "bosses/gif/stage1_hurt_up.gif",
+   "bytes": 3220
+  },
+  {
+   "path": "bosses/gif/stage1_idle_down.gif",
+   "bytes": 11387
+  },
+  {
+   "path": "bosses/gif/stage1_idle_left.gif",
+   "bytes": 9134
+  },
+  {
+   "path": "bosses/gif/stage1_idle_right.gif",
+   "bytes": 9622
+  },
+  {
+   "path": "bosses/gif/stage1_idle_up.gif",
+   "bytes": 9916
+  },
+  {
+   "path": "bosses/gif/stage1_walk_down.gif",
+   "bytes": 18388
+  },
+  {
+   "path": "bosses/gif/stage1_walk_left.gif",
+   "bytes": 14557
+  },
+  {
+   "path": "bosses/gif/stage1_walk_right.gif",
+   "bytes": 15418
+  },
+  {
+   "path": "bosses/gif/stage1_walk_up.gif",
+   "bytes": 15929
+  },
+  {
+   "path": "bosses/preview_emperor.png",
+   "bytes": 68187
+  },
+  {
+   "path": "bosses/preview_scale.png",
+   "bytes": 7862
+  },
+  {
+   "path": "bosses/preview_stage1.png",
+   "bytes": 54757
+  },
+  {
+   "path": "carry/gif/carry_walk_down.gif",
+   "bytes": 38851
+  },
+  {
+   "path": "carry/gif/carry_walk_left.gif",
+   "bytes": 36606
+  },
+  {
+   "path": "carry/gif/carry_walk_right.gif",
+   "bytes": 36707
+  },
+  {
+   "path": "carry/gif/carry_walk_up.gif",
+   "bytes": 38586
+  },
+  {
+   "path": "carry/gif/greatsword_draw_sheathe_right.gif",
+   "bytes": 51065
+  },
+  {
+   "path": "carry/gif/katana_draw_sheathe_right.gif",
+   "bytes": 50607
+  },
+  {
+   "path": "carry/preview_drawsheathe.png",
+   "bytes": 60196
+  },
+  {
+   "path": "carry/preview_mock_1x.png",
+   "bytes": 12154
+  },
+  {
+   "path": "carry/preview_mock_2x.png",
+   "bytes": 21978
+  },
+  {
+   "path": "combat_fx/preview.png",
+   "bytes": 53454
+  },
+  {
+   "path": "combat_fx/preview_1x.png",
+   "bytes": 16878
+  },
+  {
+   "path": "combat_fx/preview_blood_dirs.png",
+   "bytes": 14577
+  },
+  {
+   "path": "combo55/gif/greatsword_chain_left_up.gif",
+   "bytes": 1212369
+  },
+  {
+   "path": "combo55/gif/greatsword_chain_left_up_hit.gif",
+   "bytes": 1268454
+  },
+  {
+   "path": "combo55/gif/greatsword_chain_right_down.gif",
+   "bytes": 1249287
+  },
+  {
+   "path": "combo55/gif/greatsword_chain_right_down_hit.gif",
+   "bytes": 1303600
+  },
+  {
+   "path": "combo55/gif/katana_chain_left_up.gif",
+   "bytes": 606381
+  },
+  {
+   "path": "combo55/gif/katana_chain_left_up_hit.gif",
+   "bytes": 748047
+  },
+  {
+   "path": "combo55/gif/katana_chain_right_down.gif",
+   "bytes": 625505
+  },
+  {
+   "path": "combo55/gif/katana_chain_right_down_hit.gif",
+   "bytes": 775068
+  },
+  {
+   "path": "combo55/preview_body_greatsword_charge_slam_x2.png",
+   "bytes": 176685
+  },
+  {
+   "path": "combo55/preview_body_greatsword_charge_x2.png",
+   "bytes": 140385
+  },
+  {
+   "path": "combo55/preview_body_greatsword_cleave_x2.png",
+   "bytes": 205622
+  },
+  {
+   "path": "combo55/preview_body_greatsword_sweep_ccw_x2.png",
+   "bytes": 179642
+  },
+  {
+   "path": "combo55/preview_body_greatsword_sweep_cw_x2.png",
+   "bytes": 188899
+  },
+  {
+   "path": "combo55/preview_body_katana_crescent_x2.png",
+   "bytes": 156096
+  },
+  {
+   "path": "combo55/preview_body_katana_fall_x2.png",
+   "bytes": 124959
+  },
+  {
+   "path": "combo55/preview_body_katana_rise_x2.png",
+   "bytes": 136549
+  },
+  {
+   "path": "combo55/preview_charge_flash.png",
+   "bytes": 262673
+  },
+  {
+   "path": "combo55/preview_fx_sheets.png",
+   "bytes": 442796
+  },
+  {
+   "path": "combo55/preview_mock_greatsword.png",
+   "bytes": 560787
+  },
+  {
+   "path": "combo55/preview_mock_katana.png",
+   "bytes": 331268
+  },
+  {
+   "path": "combos/gif/bow_reload_down.gif",
+   "bytes": 17214
+  },
+  {
+   "path": "combos/gif/branch_dagger_combo1_right.gif",
+   "bytes": 4820
+  },
+  {
+   "path": "combos/gif/branch_dagger_combo2_right.gif",
+   "bytes": 4851
+  },
+  {
+   "path": "combos/gif/branch_dagger_combo3_right.gif",
+   "bytes": 6396
+  },
+  {
+   "path": "combos/gif/branch_greatsword_combo1_right.gif",
+   "bytes": 41234
+  },
+  {
+   "path": "combos/gif/branch_greatsword_combo2_right.gif",
+   "bytes": 41904
+  },
+  {
+   "path": "combos/gif/branch_greatsword_combo3_right.gif",
+   "bytes": 65333
+  },
+  {
+   "path": "combos/gif/branch_katana_combo1_right.gif",
+   "bytes": 14798
+  },
+  {
+   "path": "combos/gif/branch_katana_combo2_right.gif",
+   "bytes": 11560
+  },
+  {
+   "path": "combos/gif/branch_katana_combo3_right.gif",
+   "bytes": 23181
+  },
+  {
+   "path": "combos/gif/dagger_chain_right.gif",
+   "bytes": 142256
+  },
+  {
+   "path": "combos/gif/greatsword_chain_right.gif",
+   "bytes": 319153
+  },
+  {
+   "path": "combos/gif/greatsword_dashslash_right.gif",
+   "bytes": 54584
+  },
+  {
+   "path": "combos/gif/greatsword_slam_right.gif",
+   "bytes": 54896
+  },
+  {
+   "path": "combos/gif/katana_chain_right.gif",
+   "bytes": 178904
+  },
+  {
+   "path": "combos/preview_branch_bow.png",
+   "bytes": 25068
+  },
+  {
+   "path": "combos/preview_branch_dagger.png",
+   "bytes": 48328
+  },
+  {
+   "path": "combos/preview_branch_greatsword.png",
+   "bytes": 177038
+  },
+  {
+   "path": "combos/preview_branch_katana.png",
+   "bytes": 83231
+  },
+  {
+   "path": "combos/preview_branch_mock_1x.png",
+   "bytes": 23659
+  },
+  {
+   "path": "combos/preview_branch_mock_2x.png",
+   "bytes": 31530
+  },
+  {
+   "path": "combos/preview_branch_strip_1x.png",
+   "bytes": 19276
+  },
+  {
+   "path": "combos/preview_dagger.png",
+   "bytes": 65784
+  },
+  {
+   "path": "combos/preview_dagger_heat.png",
+   "bytes": 14997
+  },
+  {
+   "path": "combos/preview_greatsword.png",
+   "bytes": 196686
+  },
+  {
+   "path": "combos/preview_katana.png",
+   "bytes": 95499
+  },
+  {
+   "path": "combos/preview_mock_1x.png",
+   "bytes": 14881
+  },
+  {
+   "path": "combos/preview_mock_2x.png",
+   "bytes": 25199
+  },
+  {
+   "path": "combos/preview_mock_2x_down.png",
+   "bytes": 21145
+  },
+  {
+   "path": "combos/preview_mock_r49_1x.png",
+   "bytes": 8550
+  },
+  {
+   "path": "combos/preview_mock_r49_2x.png",
+   "bytes": 20497
+  },
+  {
+   "path": "combos/preview_r49_actions.png",
+   "bytes": 101986
+  },
+  {
+   "path": "combos/preview_specials.png",
+   "bytes": 143217
+  },
+  {
+   "path": "combos/preview_strip_1x.png",
+   "bytes": 47926
+  },
+  {
+   "path": "enemies/gif/archer_attack_down.gif",
+   "bytes": 3907
+  },
+  {
+   "path": "enemies/gif/archer_attack_left.gif",
+   "bytes": 3613
+  },
+  {
+   "path": "enemies/gif/archer_attack_right.gif",
+   "bytes": 3529
+  },
+  {
+   "path": "enemies/gif/archer_attack_up.gif",
+   "bytes": 3634
+  },
+  {
+   "path": "enemies/gif/archer_death_down.gif",
+   "bytes": 4295
+  },
+  {
+   "path": "enemies/gif/archer_death_left.gif",
+   "bytes": 3946
+  },
+  {
+   "path": "enemies/gif/archer_death_right.gif",
+   "bytes": 3929
+  },
+  {
+   "path": "enemies/gif/archer_death_up.gif",
+   "bytes": 4198
+  },
+  {
+   "path": "enemies/gif/archer_hurt_down.gif",
+   "bytes": 2018
+  },
+  {
+   "path": "enemies/gif/archer_hurt_left.gif",
+   "bytes": 1660
+  },
+  {
+   "path": "enemies/gif/archer_hurt_right.gif",
+   "bytes": 1645
+  },
+  {
+   "path": "enemies/gif/archer_hurt_up.gif",
+   "bytes": 1898
+  },
+  {
+   "path": "enemies/gif/archer_idle_down.gif",
+   "bytes": 3039
+  },
+  {
+   "path": "enemies/gif/archer_idle_left.gif",
+   "bytes": 2504
+  },
+  {
+   "path": "enemies/gif/archer_idle_right.gif",
+   "bytes": 2457
+  },
+  {
+   "path": "enemies/gif/archer_idle_up.gif",
+   "bytes": 3060
+  },
+  {
+   "path": "enemies/gif/archer_walk_down.gif",
+   "bytes": 8242
+  },
+  {
+   "path": "enemies/gif/archer_walk_left.gif",
+   "bytes": 6877
+  },
+  {
+   "path": "enemies/gif/archer_walk_right.gif",
+   "bytes": 6647
+  },
+  {
+   "path": "enemies/gif/archer_walk_up.gif",
+   "bytes": 8203
+  },
+  {
+   "path": "enemies/gif/charger_attack_down.gif",
+   "bytes": 5908
+  },
+  {
+   "path": "enemies/gif/charger_attack_left.gif",
+   "bytes": 5234
+  },
+  {
+   "path": "enemies/gif/charger_attack_right.gif",
+   "bytes": 5048
+  },
+  {
+   "path": "enemies/gif/charger_attack_up.gif",
+   "bytes": 5516
+  },
+  {
+   "path": "enemies/gif/charger_death_down.gif",
+   "bytes": 6427
+  },
+  {
+   "path": "enemies/gif/charger_death_left.gif",
+   "bytes": 5951
+  },
+  {
+   "path": "enemies/gif/charger_death_right.gif",
+   "bytes": 5724
+  },
+  {
+   "path": "enemies/gif/charger_death_up.gif",
+   "bytes": 6297
+  },
+  {
+   "path": "enemies/gif/charger_hurt_down.gif",
+   "bytes": 2856
+  },
+  {
+   "path": "enemies/gif/charger_hurt_left.gif",
+   "bytes": 2574
+  },
+  {
+   "path": "enemies/gif/charger_hurt_right.gif",
+   "bytes": 2469
+  },
+  {
+   "path": "enemies/gif/charger_hurt_up.gif",
+   "bytes": 2696
+  },
+  {
+   "path": "enemies/gif/charger_idle_down.gif",
+   "bytes": 6369
+  },
+  {
+   "path": "enemies/gif/charger_idle_left.gif",
+   "bytes": 5838
+  },
+  {
+   "path": "enemies/gif/charger_idle_right.gif",
+   "bytes": 5735
+  },
+  {
+   "path": "enemies/gif/charger_idle_up.gif",
+   "bytes": 5908
+  },
+  {
+   "path": "enemies/gif/charger_walk_down.gif",
+   "bytes": 12651
+  },
+  {
+   "path": "enemies/gif/charger_walk_left.gif",
+   "bytes": 11613
+  },
+  {
+   "path": "enemies/gif/charger_walk_right.gif",
+   "bytes": 11276
+  },
+  {
+   "path": "enemies/gif/charger_walk_up.gif",
+   "bytes": 11698
+  },
+  {
+   "path": "enemies/gif/dummy_attack_down.gif",
+   "bytes": 4748
+  },
+  {
+   "path": "enemies/gif/dummy_attack_left.gif",
+   "bytes": 3819
+  },
+  {
+   "path": "enemies/gif/dummy_attack_right.gif",
+   "bytes": 3825
+  },
+  {
+   "path": "enemies/gif/dummy_attack_up.gif",
+   "bytes": 5070
+  },
+  {
+   "path": "enemies/gif/dummy_death_down.gif",
+   "bytes": 5749
+  },
+  {
+   "path": "enemies/gif/dummy_death_left.gif",
+   "bytes": 4796
+  },
+  {
+   "path": "enemies/gif/dummy_death_right.gif",
+   "bytes": 4884
+  },
+  {
+   "path": "enemies/gif/dummy_death_up.gif",
+   "bytes": 5720
+  },
+  {
+   "path": "enemies/gif/dummy_hurt_down.gif",
+   "bytes": 2327
+  },
+  {
+   "path": "enemies/gif/dummy_hurt_left.gif",
+   "bytes": 1834
+  },
+  {
+   "path": "enemies/gif/dummy_hurt_right.gif",
+   "bytes": 1737
+  },
+  {
+   "path": "enemies/gif/dummy_hurt_up.gif",
+   "bytes": 2136
+  },
+  {
+   "path": "enemies/gif/dummy_idle_down.gif",
+   "bytes": 7366
+  },
+  {
+   "path": "enemies/gif/dummy_idle_left.gif",
+   "bytes": 5967
+  },
+  {
+   "path": "enemies/gif/dummy_idle_right.gif",
+   "bytes": 5752
+  },
+  {
+   "path": "enemies/gif/dummy_idle_up.gif",
+   "bytes": 7390
+  },
+  {
+   "path": "enemies/gif/dummy_walk_down.gif",
+   "bytes": 10062
+  },
+  {
+   "path": "enemies/gif/dummy_walk_left.gif",
+   "bytes": 7802
+  },
+  {
+   "path": "enemies/gif/dummy_walk_right.gif",
+   "bytes": 7800
+  },
+  {
+   "path": "enemies/gif/dummy_walk_up.gif",
+   "bytes": 10036
+  },
+  {
+   "path": "enemies/preview_all.png",
+   "bytes": 10758
+  },
+  {
+   "path": "enemies/preview_archer.png",
+   "bytes": 32438
+  },
+  {
+   "path": "enemies/preview_charger.png",
+   "bytes": 36638
+  },
+  {
+   "path": "enemies/preview_dummy.png",
+   "bytes": 34456
+  },
+  {
+   "path": "enemies_v3/preview_archer_attack_x2.png",
+   "bytes": 73333
+  },
+  {
+   "path": "enemies_v3/preview_archer_attack_x3.gif",
+   "bytes": 149699
+  },
+  {
+   "path": "enemies_v3/preview_archer_death_x2.png",
+   "bytes": 109914
+  },
+  {
+   "path": "enemies_v3/preview_archer_death_x3.gif",
+   "bytes": 191725
+  },
+  {
+   "path": "enemies_v3/preview_archer_hurt_x2.png",
+   "bytes": 31063
+  },
+  {
+   "path": "enemies_v3/preview_archer_hurt_x3.gif",
+   "bytes": 51057
+  },
+  {
+   "path": "enemies_v3/preview_archer_idle_x2.png",
+   "bytes": 47192
+  },
+  {
+   "path": "enemies_v3/preview_archer_idle_x3.gif",
+   "bytes": 121801
+  },
+  {
+   "path": "enemies_v3/preview_archer_walk_x2.png",
+   "bytes": 64121
+  },
+  {
+   "path": "enemies_v3/preview_archer_walk_x3.gif",
+   "bytes": 165744
+  },
+  {
+   "path": "enemies_v3/preview_charger_attack_x2.png",
+   "bytes": 130162
+  },
+  {
+   "path": "enemies_v3/preview_charger_attack_x3.gif",
+   "bytes": 257994
+  },
+  {
+   "path": "enemies_v3/preview_charger_death_x2.png",
+   "bytes": 156891
+  },
+  {
+   "path": "enemies_v3/preview_charger_death_x3.gif",
+   "bytes": 282287
+  },
+  {
+   "path": "enemies_v3/preview_charger_hurt_x2.png",
+   "bytes": 42457
+  },
+  {
+   "path": "enemies_v3/preview_charger_hurt_x3.gif",
+   "bytes": 79679
+  },
+  {
+   "path": "enemies_v3/preview_charger_idle_x2.png",
+   "bytes": 58855
+  },
+  {
+   "path": "enemies_v3/preview_charger_idle_x3.gif",
+   "bytes": 191282
+  },
+  {
+   "path": "enemies_v3/preview_charger_walk_x2.png",
+   "bytes": 86908
+  },
+  {
+   "path": "enemies_v3/preview_charger_walk_x3.gif",
+   "bytes": 254011
+  },
+  {
+   "path": "enemies_v3/preview_dummy_attack_x2.png",
+   "bytes": 91126
+  },
+  {
+   "path": "enemies_v3/preview_dummy_attack_x3.gif",
+   "bytes": 164286
+  },
+  {
+   "path": "enemies_v3/preview_dummy_death_x2.png",
+   "bytes": 124782
+  },
+  {
+   "path": "enemies_v3/preview_dummy_death_x3.gif",
+   "bytes": 208622
+  },
+  {
+   "path": "enemies_v3/preview_dummy_hurt_x2.png",
+   "bytes": 37305
+  },
+  {
+   "path": "enemies_v3/preview_dummy_hurt_x3.gif",
+   "bytes": 58287
+  },
+  {
+   "path": "enemies_v3/preview_dummy_idle_x2.png",
+   "bytes": 60198
+  },
+  {
+   "path": "enemies_v3/preview_dummy_idle_x3.gif",
+   "bytes": 134473
+  },
+  {
+   "path": "enemies_v3/preview_dummy_walk_x2.png",
+   "bytes": 78428
+  },
+  {
+   "path": "enemies_v3/preview_dummy_walk_x3.gif",
+   "bytes": 182218
+  },
+  {
+   "path": "enemies_v3/preview_mock_lit.png",
+   "bytes": 79102
+  },
+  {
+   "path": "evolution_fx/preview_1x.png",
+   "bytes": 51675
+  },
+  {
+   "path": "evolution_fx/preview_evolution.png",
+   "bytes": 253960
+  },
+  {
+   "path": "evolution_fx/preview_secondary.png",
+   "bytes": 86867
+  },
+  {
+   "path": "floors_v2/preview_floor_brewery.png",
+   "bytes": 23453
+  },
+  {
+   "path": "floors_v2/preview_floor_gate.png",
+   "bytes": 25026
+  },
+  {
+   "path": "floors_v2/preview_floor_hall.png",
+   "bytes": 19250
+  },
+  {
+   "path": "floors_v2/preview_floor_waste.png",
+   "bytes": 17976
+  },
+  {
+   "path": "floors_v2/preview_mock_brewery.png",
+   "bytes": 966606
+  },
+  {
+   "path": "floors_v2/preview_mock_brewery_overview.png",
+   "bytes": 1314868
+  },
+  {
+   "path": "floors_v2/preview_mock_f1.png",
+   "bytes": 2268893
+  },
+  {
+   "path": "floors_v2/preview_mock_gate.png",
+   "bytes": 938397
+  },
+  {
+   "path": "floors_v2/preview_mock_gate_overview.png",
+   "bytes": 1201612
+  },
+  {
+   "path": "floors_v2/preview_mock_hall_overview.png",
+   "bytes": 1067629
+  },
+  {
+   "path": "floors_v2/preview_mock_outer.png",
+   "bytes": 1113788
+  },
+  {
+   "path": "floors_v2/preview_mock_outer_overview.png",
+   "bytes": 1378284
+  },
+  {
+   "path": "floors_v2/preview_mock_waste.png",
+   "bytes": 991098
+  },
+  {
+   "path": "floors_v2/preview_mock_waste_overview.png",
+   "bytes": 1102493
+  },
+  {
+   "path": "floors_v2/preview_tiles_brewery.png",
+   "bytes": 53674
+  },
+  {
+   "path": "floors_v2/preview_tiles_gate.png",
+   "bytes": 45687
+  },
+  {
+   "path": "floors_v2/preview_tiles_hall.png",
+   "bytes": 43148
+  },
+  {
+   "path": "floors_v2/preview_tiles_waste.png",
+   "bytes": 47044
+  },
+  {
+   "path": "fx_concept/preview_concept.png",
+   "bytes": 166549
+  },
+  {
+   "path": "fx_concept/preview_mock_fight.png",
+   "bytes": 49420
+  },
+  {
+   "path": "fx_prod/preview_a.png",
+   "bytes": 311896
+  },
+  {
+   "path": "fx_prod/preview_a_fight.png",
+   "bytes": 62044
+  },
+  {
+   "path": "fx_prod/preview_b.png",
+   "bytes": 207645
+  },
+  {
+   "path": "fx_prod/preview_b_fight.png",
+   "bytes": 54726
+  },
+  {
+   "path": "fx_prod/preview_boss_slam.png",
+   "bytes": 166432
+  },
+  {
+   "path": "fx_v3/cmp/cmp_birth_dust_x1.png",
+   "bytes": 26468
+  },
+  {
+   "path": "fx_v3/cmp/cmp_blood_x2.png",
+   "bytes": 22388
+  },
+  {
+   "path": "fx_v3/cmp/cmp_boss_fan_shot_x2.png",
+   "bytes": 4056
+  },
+  {
+   "path": "fx_v3/cmp/cmp_boss_slam_x1.png",
+   "bytes": 92990
+  },
+  {
+   "path": "fx_v3/cmp/cmp_crit_burst_x2.png",
+   "bytes": 24805
+  },
+  {
+   "path": "fx_v3/cmp/cmp_dash_dust_x2.png",
+   "bytes": 11824
+  },
+  {
+   "path": "fx_v3/cmp/cmp_dash_trail_x2.png",
+   "bytes": 29361
+  },
+  {
+   "path": "fx_v3/cmp/cmp_enemy_bullet_x2.png",
+   "bytes": 2217
+  },
+  {
+   "path": "fx_v3/cmp/cmp_fire_pool_x2.png",
+   "bytes": 26964
+  },
+  {
+   "path": "fx_v3/cmp/cmp_hit_burst_x2.png",
+   "bytes": 12946
+  },
+  {
+   "path": "fx_v3/cmp/cmp_knock_dust_x2.png",
+   "bytes": 10316
+  },
+  {
+   "path": "fx_v3/cmp/cmp_parry_flash_x2.png",
+   "bytes": 31331
+  },
+  {
+   "path": "fx_v3/cmp/cmp_player_hit_x2.png",
+   "bytes": 8077
+  },
+  {
+   "path": "fx_v3/cmp/cmp_soul_wisp_x2.png",
+   "bytes": 10589
+  },
+  {
+   "path": "fx_v3/cmp/cmp_telegraph_aura_x2.png",
+   "bytes": 32919
+  },
+  {
+   "path": "fx_v3/cmp/cmp_telegraph_circle_x1.png",
+   "bytes": 43669
+  },
+  {
+   "path": "fx_v3/cmp/cmp_telegraph_cone_x1.png",
+   "bytes": 98579
+  },
+  {
+   "path": "fx_v3/cmp/cmp_telegraph_line_x2.png",
+   "bytes": 4286
+  },
+  {
+   "path": "fx_v3/feel/gif/hit_bow_heavy_x2.gif",
+   "bytes": 18193
+  },
+  {
+   "path": "fx_v3/feel/gif/hit_bow_x2.gif",
+   "bytes": 6824
+  },
+  {
+   "path": "fx_v3/feel/gif/hit_dagger_heavy_x2.gif",
+   "bytes": 12280
+  },
+  {
+   "path": "fx_v3/feel/gif/hit_dagger_x2.gif",
+   "bytes": 6086
+  },
+  {
+   "path": "fx_v3/feel/gif/hit_greatsword_heavy_x2.gif",
+   "bytes": 41563
+  },
+  {
+   "path": "fx_v3/feel/gif/hit_greatsword_x2.gif",
+   "bytes": 17973
+  },
+  {
+   "path": "fx_v3/feel/gif/hit_katana_heavy_x2.gif",
+   "bytes": 27876
+  },
+  {
+   "path": "fx_v3/feel/gif/hit_katana_x2.gif",
+   "bytes": 11394
+  },
+  {
+   "path": "fx_v3/feel/gif/hits_4weapons_1x.gif",
+   "bytes": 38433
+  },
+  {
+   "path": "fx_v3/feel/hits_compare_x2.png",
+   "bytes": 161512
+  },
+  {
+   "path": "fx_v3/feel/hits_mock_1x.png",
+   "bytes": 46230
+  },
+  {
+   "path": "fx_v3/feel/hits_rotated_x1.png",
+   "bytes": 180277
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_aim_charge_any_x2.gif",
+   "bytes": 43824
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_dash_dust_down_x2.gif",
+   "bytes": 33556
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_dash_dust_right_x2.gif",
+   "bytes": 31913
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_dash_trail_down_x2.gif",
+   "bytes": 51030
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_dash_trail_right_x2.gif",
+   "bytes": 45484
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_guard_wave_down_x1.gif",
+   "bytes": 26128
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_guard_wave_right_x1.gif",
+   "bytes": 27349
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_ironwall_down_x1.gif",
+   "bytes": 36948
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_ironwall_right_x1.gif",
+   "bytes": 37644
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_parry_flash_any_x1.gif",
+   "bytes": 36640
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_shadowstep_ghost_down_x2.gif",
+   "bytes": 55213
+  },
+  {
+   "path": "fx_v3/feel/motion/ba_shadowstep_ghost_right_x2.gif",
+   "bytes": 47522
+  },
+  {
+   "path": "fx_v3/feel/motion/cmp_aim_charge_x2.png",
+   "bytes": 27901
+  },
+  {
+   "path": "fx_v3/feel/motion/cmp_dash_dust_x2.png",
+   "bytes": 23469
+  },
+  {
+   "path": "fx_v3/feel/motion/cmp_dash_trail_x2.png",
+   "bytes": 53211
+  },
+  {
+   "path": "fx_v3/feel/motion/cmp_guard_wave_x1.png",
+   "bytes": 72956
+  },
+  {
+   "path": "fx_v3/feel/motion/cmp_ironwall_x1.png",
+   "bytes": 102081
+  },
+  {
+   "path": "fx_v3/feel/motion/cmp_parry_flash_x2.png",
+   "bytes": 51147
+  },
+  {
+   "path": "fx_v3/feel/motion/cmp_shadowstep_ghost_x2.png",
+   "bytes": 52263
+  },
+  {
+   "path": "fx_v3/feel/particles_ash_x8.png",
+   "bytes": 29549
+  },
+  {
+   "path": "fx_v3/feel/particles_burst_sim_x2.png",
+   "bytes": 17658
+  },
+  {
+   "path": "fx_v3/feel/ribbon_ash_x12.png",
+   "bytes": 30750
+  },
+  {
+   "path": "fx_v3/feel/scene_mock_1x.png",
+   "bytes": 81032
+  },
+  {
+   "path": "fx_v3/gif/blood_1x.gif",
+   "bytes": 2728
+  },
+  {
+   "path": "fx_v3/gif/boss_slam_1x.gif",
+   "bytes": 53273
+  },
+  {
+   "path": "fx_v3/gif/crit_burst_1x.gif",
+   "bytes": 8558
+  },
+  {
+   "path": "fx_v3/gif/fire_pool_1x.gif",
+   "bytes": 11224
+  },
+  {
+   "path": "fx_v3/gif/hit_burst_1x.gif",
+   "bytes": 4773
+  },
+  {
+   "path": "fx_v3/gif/parry_flash_1x.gif",
+   "bytes": 12004
+  },
+  {
+   "path": "fx_v3/gif/soul_wisp_1x.gif",
+   "bytes": 4134
+  },
+  {
+   "path": "fx_v3/gif/telegraph_aura_1x.gif",
+   "bytes": 16419
+  },
+  {
+   "path": "fx_v3/preview_mock_1x.png",
+   "bytes": 65424
+  },
+  {
+   "path": "fx_weapons_v3/gif/branch_dagger_combo1_right.gif",
+   "bytes": 70631
+  },
+  {
+   "path": "fx_weapons_v3/gif/branch_dagger_combo2_right.gif",
+   "bytes": 63577
+  },
+  {
+   "path": "fx_weapons_v3/gif/branch_dagger_combo3_right.gif",
+   "bytes": 102133
+  },
+  {
+   "path": "fx_weapons_v3/gif/branch_greatsword_combo1_right.gif",
+   "bytes": 323742
+  },
+  {
+   "path": "fx_weapons_v3/gif/branch_greatsword_combo2_right.gif",
+   "bytes": 321656
+  },
+  {
+   "path": "fx_weapons_v3/gif/branch_greatsword_combo3_right.gif",
+   "bytes": 562549
+  },
+  {
+   "path": "fx_weapons_v3/gif/branch_katana_combo1_right.gif",
+   "bytes": 123360
+  },
+  {
+   "path": "fx_weapons_v3/gif/branch_katana_combo2_right.gif",
+   "bytes": 86843
+  },
+  {
+   "path": "fx_weapons_v3/gif/branch_katana_combo3_right.gif",
+   "bytes": 138976
+  },
+  {
+   "path": "fx_weapons_v3/gif/dagger_combo1_right.gif",
+   "bytes": 21006
+  },
+  {
+   "path": "fx_weapons_v3/gif/dagger_combo2_right.gif",
+   "bytes": 18812
+  },
+  {
+   "path": "fx_weapons_v3/gif/dagger_combo3_down.gif",
+   "bytes": 35723
+  },
+  {
+   "path": "fx_weapons_v3/gif/dagger_combo3_right.gif",
+   "bytes": 30466
+  },
+  {
+   "path": "fx_weapons_v3/gif/greatsword_combo1_right.gif",
+   "bytes": 101030
+  },
+  {
+   "path": "fx_weapons_v3/gif/greatsword_combo2_right.gif",
+   "bytes": 103237
+  },
+  {
+   "path": "fx_weapons_v3/gif/greatsword_combo3_down.gif",
+   "bytes": 227092
+  },
+  {
+   "path": "fx_weapons_v3/gif/greatsword_combo3_right.gif",
+   "bytes": 202605
+  },
+  {
+   "path": "fx_weapons_v3/gif/katana_combo1_right.gif",
+   "bytes": 36263
+  },
+  {
+   "path": "fx_weapons_v3/gif/katana_combo2_right.gif",
+   "bytes": 26134
+  },
+  {
+   "path": "fx_weapons_v3/gif/katana_combo3_down.gif",
+   "bytes": 47895
+  },
+  {
+   "path": "fx_weapons_v3/gif/katana_combo3_right.gif",
+   "bytes": 44030
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_bow.gif",
+   "bytes": 620518
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_dagger_combo1_right.gif",
+   "bytes": 126943
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_dagger_combo2_right.gif",
+   "bytes": 115908
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_dagger_combo3_right.gif",
+   "bytes": 189096
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_greatsword_combo1_right.gif",
+   "bytes": 708500
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_greatsword_combo2_right.gif",
+   "bytes": 703062
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_greatsword_combo3_right.gif",
+   "bytes": 1250741
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_katana_combo1_right.gif",
+   "bytes": 369509
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_katana_combo2_right.gif",
+   "bytes": 256775
+  },
+  {
+   "path": "fx_weapons_v3/gif/tiers_katana_combo3_right.gif",
+   "bytes": 409426
+  },
+  {
+   "path": "fx_weapons_v3/preview_bow_x4.png",
+   "bytes": 92678
+  },
+  {
+   "path": "fx_weapons_v3/preview_branch_dagger.png",
+   "bytes": 286869
+  },
+  {
+   "path": "fx_weapons_v3/preview_branch_greatsword.png",
+   "bytes": 625833
+  },
+  {
+   "path": "fx_weapons_v3/preview_branch_katana.png",
+   "bytes": 438972
+  },
+  {
+   "path": "fx_weapons_v3/preview_cmp_dagger.png",
+   "bytes": 9471
+  },
+  {
+   "path": "fx_weapons_v3/preview_cmp_greatsword.png",
+   "bytes": 78130
+  },
+  {
+   "path": "fx_weapons_v3/preview_cmp_katana.png",
+   "bytes": 23418
+  },
+  {
+   "path": "fx_weapons_v3/preview_mock_bow.png",
+   "bytes": 119913
+  },
+  {
+   "path": "fx_weapons_v3/preview_mock_dagger.png",
+   "bytes": 176857
+  },
+  {
+   "path": "fx_weapons_v3/preview_mock_greatsword.png",
+   "bytes": 452643
+  },
+  {
+   "path": "fx_weapons_v3/preview_mock_katana.png",
+   "bytes": 266192
+  },
+  {
+   "path": "fx_weapons_v3/preview_sheets_bow.png",
+   "bytes": 90209
+  },
+  {
+   "path": "fx_weapons_v3/preview_sheets_dagger.png",
+   "bytes": 187338
+  },
+  {
+   "path": "fx_weapons_v3/preview_sheets_greatsword.png",
+   "bytes": 428166
+  },
+  {
+   "path": "fx_weapons_v3/preview_sheets_katana.png",
+   "bytes": 256589
+  },
+  {
+   "path": "fx_weapons_v3/preview_tiers_bow.png",
+   "bytes": 147089
+  },
+  {
+   "path": "fx_weapons_v3/preview_tiers_dagger.png",
+   "bytes": 579345
+  },
+  {
+   "path": "fx_weapons_v3/preview_tiers_dagger_after.png",
+   "bytes": 521721
+  },
+  {
+   "path": "fx_weapons_v3/preview_tiers_greatsword.png",
+   "bytes": 1414497
+  },
+  {
+   "path": "fx_weapons_v3/preview_tiers_greatsword_after.png",
+   "bytes": 1503559
+  },
+  {
+   "path": "fx_weapons_v3/preview_tiers_katana.png",
+   "bytes": 935052
+  },
+  {
+   "path": "fx_weapons_v3/preview_tiers_katana_after.png",
+   "bytes": 819815
+  },
+  {
+   "path": "gemini/concept_weapons/preview_weapons_concepts.png",
+   "bytes": 2464117
+  },
+  {
+   "path": "gemini/concept_weapons/preview_weapons_readability.png",
+   "bytes": 404648
+  },
+  {
+   "path": "gemini/preview_border_brewery.png",
+   "bytes": 1002976
+  },
+  {
+   "path": "gemini/preview_border_brewery_vs_keyart.png",
+   "bytes": 1381645
+  },
+  {
+   "path": "gemini/preview_border_gate.png",
+   "bytes": 859261
+  },
+  {
+   "path": "gemini/preview_border_gate_vs_keyart.png",
+   "bytes": 1215670
+  },
+  {
+   "path": "gemini/preview_border_hall.png",
+   "bytes": 1040944
+  },
+  {
+   "path": "gemini/preview_border_hall_vs_keyart.png",
+   "bytes": 1337410
+  },
+  {
+   "path": "gemini/preview_border_outer.png",
+   "bytes": 1038466
+  },
+  {
+   "path": "gemini/preview_border_outer_center.png",
+   "bytes": 418132
+  },
+  {
+   "path": "gemini/preview_border_outer_north.png",
+   "bytes": 1009451
+  },
+  {
+   "path": "gemini/preview_border_outer_overview.png",
+   "bytes": 1516302
+  },
+  {
+   "path": "gemini/preview_border_outer_sw.png",
+   "bytes": 774508
+  },
+  {
+   "path": "gemini/preview_border_outer_vs_keyart.png",
+   "bytes": 1482168
+  },
+  {
+   "path": "gemini/preview_border_waste.png",
+   "bytes": 857243
+  },
+  {
+   "path": "gemini/preview_border_waste_vs_keyart.png",
+   "bytes": 1108544
+  },
+  {
+   "path": "gemini/preview_borders_f1.png",
+   "bytes": 4702056
+  },
+  {
+   "path": "gemini/preview_concepts_f1.png",
+   "bytes": 2854156
+  },
+  {
+   "path": "gemini/preview_hero2.png",
+   "bytes": 1338914
+  },
+  {
+   "path": "gemini/preview_hero3.png",
+   "bytes": 1347641
+  },
+  {
+   "path": "gemini/preview_keyart_all.png",
+   "bytes": 989926
+  },
+  {
+   "path": "gemini/preview_map_nodes.png",
+   "bytes": 576935
+  },
+  {
+   "path": "gemini/preview_tone_vs_quant.png",
+   "bytes": 453308
+  },
+  {
+   "path": "hero3/preview_hero3_dark_x1.png",
+   "bytes": 61841
+  },
+  {
+   "path": "hero3/preview_hero3_x4.png",
+   "bytes": 7310
+  },
+  {
+   "path": "hero_v3/preview_attack_x2.png",
+   "bytes": 79871
+  },
+  {
+   "path": "hero_v3/preview_attack_x3.gif",
+   "bytes": 188192
+  },
+  {
+   "path": "hero_v3/preview_birth_x2.png",
+   "bytes": 89708
+  },
+  {
+   "path": "hero_v3/preview_birth_x3.gif",
+   "bytes": 145320
+  },
+  {
+   "path": "hero_v3/preview_bow_aim_x2.png",
+   "bytes": 84552
+  },
+  {
+   "path": "hero_v3/preview_bow_aim_x3.gif",
+   "bytes": 220401
+  },
+  {
+   "path": "hero_v3/preview_bow_reload_x2.png",
+   "bytes": 90232
+  },
+  {
+   "path": "hero_v3/preview_bow_reload_x3.gif",
+   "bytes": 254997
+  },
+  {
+   "path": "hero_v3/preview_carry_drawn_dash_x2.png",
+   "bytes": 79510
+  },
+  {
+   "path": "hero_v3/preview_carry_drawn_dash_x3.gif",
+   "bytes": 134938
+  },
+  {
+   "path": "hero_v3/preview_carry_drawn_idle_x2.png",
+   "bytes": 73614
+  },
+  {
+   "path": "hero_v3/preview_carry_drawn_idle_x3.gif",
+   "bytes": 185501
+  },
+  {
+   "path": "hero_v3/preview_carry_drawn_run_x2.png",
+   "bytes": 114042
+  },
+  {
+   "path": "hero_v3/preview_carry_drawn_run_x3.gif",
+   "bytes": 221196
+  },
+  {
+   "path": "hero_v3/preview_carry_drawn_walk_x2.png",
+   "bytes": 123410
+  },
+  {
+   "path": "hero_v3/preview_carry_drawn_walk_x3.gif",
+   "bytes": 250166
+  },
+  {
+   "path": "hero_v3/preview_dagger_combo1_x2.png",
+   "bytes": 71706
+  },
+  {
+   "path": "hero_v3/preview_dagger_combo1_x3.gif",
+   "bytes": 149430
+  },
+  {
+   "path": "hero_v3/preview_dagger_combo2_x2.png",
+   "bytes": 72183
+  },
+  {
+   "path": "hero_v3/preview_dagger_combo2_x3.gif",
+   "bytes": 150944
+  },
+  {
+   "path": "hero_v3/preview_dagger_combo3_x2.png",
+   "bytes": 103331
+  },
+  {
+   "path": "hero_v3/preview_dagger_combo3_x3.gif",
+   "bytes": 202084
+  },
+  {
+   "path": "hero_v3/preview_dagger_special_x2.png",
+   "bytes": 116224
+  },
+  {
+   "path": "hero_v3/preview_dagger_special_x3.gif",
+   "bytes": 218335
+  },
+  {
+   "path": "hero_v3/preview_dash_x2.png",
+   "bytes": 76042
+  },
+  {
+   "path": "hero_v3/preview_dash_x3.gif",
+   "bytes": 129198
+  },
+  {
+   "path": "hero_v3/preview_death_x2.png",
+   "bytes": 120578
+  },
+  {
+   "path": "hero_v3/preview_death_x3.gif",
+   "bytes": 164989
+  },
+  {
+   "path": "hero_v3/preview_greatsword_combo1_x2.png",
+   "bytes": 222729
+  },
+  {
+   "path": "hero_v3/preview_greatsword_combo1_x3.gif",
+   "bytes": 331480
+  },
+  {
+   "path": "hero_v3/preview_greatsword_combo2_x2.png",
+   "bytes": 192031
+  },
+  {
+   "path": "hero_v3/preview_greatsword_combo2_x3.gif",
+   "bytes": 329634
+  },
+  {
+   "path": "hero_v3/preview_greatsword_combo3_x2.png",
+   "bytes": 264578
+  },
+  {
+   "path": "hero_v3/preview_greatsword_combo3_x3.gif",
+   "bytes": 384196
+  },
+  {
+   "path": "hero_v3/preview_greatsword_dashslash_x2.png",
+   "bytes": 235115
+  },
+  {
+   "path": "hero_v3/preview_greatsword_dashslash_x3.gif",
+   "bytes": 358573
+  },
+  {
+   "path": "hero_v3/preview_greatsword_draw_x2.png",
+   "bytes": 101335
+  },
+  {
+   "path": "hero_v3/preview_greatsword_draw_x3.gif",
+   "bytes": 191541
+  },
+  {
+   "path": "hero_v3/preview_greatsword_sheathe_x2.png",
+   "bytes": 93049
+  },
+  {
+   "path": "hero_v3/preview_greatsword_sheathe_x3.gif",
+   "bytes": 191824
+  },
+  {
+   "path": "hero_v3/preview_greatsword_slam_x2.png",
+   "bytes": 314363
+  },
+  {
+   "path": "hero_v3/preview_greatsword_slam_x3.gif",
+   "bytes": 444422
+  },
+  {
+   "path": "hero_v3/preview_greatsword_special_x2.png",
+   "bytes": 192580
+  },
+  {
+   "path": "hero_v3/preview_greatsword_special_x3.gif",
+   "bytes": 335850
+  },
+  {
+   "path": "hero_v3/preview_hurt_x2.png",
+   "bytes": 47665
+  },
+  {
+   "path": "hero_v3/preview_hurt_x3.gif",
+   "bytes": 79007
+  },
+  {
+   "path": "hero_v3/preview_idle_x2.png",
+   "bytes": 63316
+  },
+  {
+   "path": "hero_v3/preview_idle_x3.gif",
+   "bytes": 167312
+  },
+  {
+   "path": "hero_v3/preview_katana_combo1_x2.png",
+   "bytes": 112005
+  },
+  {
+   "path": "hero_v3/preview_katana_combo1_x3.gif",
+   "bytes": 209592
+  },
+  {
+   "path": "hero_v3/preview_katana_combo2_x2.png",
+   "bytes": 95915
+  },
+  {
+   "path": "hero_v3/preview_katana_combo2_x3.gif",
+   "bytes": 178723
+  },
+  {
+   "path": "hero_v3/preview_katana_combo3_x2.png",
+   "bytes": 120936
+  },
+  {
+   "path": "hero_v3/preview_katana_combo3_x3.gif",
+   "bytes": 204335
+  },
+  {
+   "path": "hero_v3/preview_katana_draw_x2.png",
+   "bytes": 93768
+  },
+  {
+   "path": "hero_v3/preview_katana_draw_x3.gif",
+   "bytes": 177081
+  },
+  {
+   "path": "hero_v3/preview_katana_sheathe_x2.png",
+   "bytes": 118263
+  },
+  {
+   "path": "hero_v3/preview_katana_sheathe_x3.gif",
+   "bytes": 236037
+  },
+  {
+   "path": "hero_v3/preview_katana_special_x2.png",
+   "bytes": 150908
+  },
+  {
+   "path": "hero_v3/preview_katana_special_x3.gif",
+   "bytes": 273860
+  },
+  {
+   "path": "hero_v3/preview_mock_lit.png",
+   "bytes": 100826
+  },
+  {
+   "path": "hero_v3/preview_run_x2.png",
+   "bytes": 105700
+  },
+  {
+   "path": "hero_v3/preview_run_x3.gif",
+   "bytes": 211589
+  },
+  {
+   "path": "hero_v3/preview_scar_x3.png",
+   "bytes": 106989
+  },
+  {
+   "path": "hero_v3/preview_walk_x2.png",
+   "bytes": 101588
+  },
+  {
+   "path": "hero_v3/preview_walk_x3.gif",
+   "bytes": 224627
+  },
+  {
+   "path": "player/gif/attack_down.gif",
+   "bytes": 5468
+  },
+  {
+   "path": "player/gif/attack_left.gif",
+   "bytes": 4635
+  },
+  {
+   "path": "player/gif/attack_right.gif",
+   "bytes": 4544
+  },
+  {
+   "path": "player/gif/attack_up.gif",
+   "bytes": 5454
+  },
+  {
+   "path": "player/gif/dash_down.gif",
+   "bytes": 4108
+  },
+  {
+   "path": "player/gif/dash_left.gif",
+   "bytes": 3322
+  },
+  {
+   "path": "player/gif/dash_right.gif",
+   "bytes": 3626
+  },
+  {
+   "path": "player/gif/dash_up.gif",
+   "bytes": 4079
+  },
+  {
+   "path": "player/gif/death_down.gif",
+   "bytes": 5970
+  },
+  {
+   "path": "player/gif/death_left.gif",
+   "bytes": 5048
+  },
+  {
+   "path": "player/gif/death_right.gif",
+   "bytes": 5214
+  },
+  {
+   "path": "player/gif/death_up.gif",
+   "bytes": 6185
+  },
+  {
+   "path": "player/gif/hurt_down.gif",
+   "bytes": 2336
+  },
+  {
+   "path": "player/gif/hurt_left.gif",
+   "bytes": 1957
+  },
+  {
+   "path": "player/gif/hurt_right.gif",
+   "bytes": 1922
+  },
+  {
+   "path": "player/gif/hurt_up.gif",
+   "bytes": 2199
+  },
+  {
+   "path": "player/gif/idle_down.gif",
+   "bytes": 6770
+  },
+  {
+   "path": "player/gif/idle_left.gif",
+   "bytes": 5636
+  },
+  {
+   "path": "player/gif/idle_right.gif",
+   "bytes": 3304
+  },
+  {
+   "path": "player/gif/idle_up.gif",
+   "bytes": 4101
+  },
+  {
+   "path": "player/gif/walk_down.gif",
+   "bytes": 11259
+  },
+  {
+   "path": "player/gif/walk_left.gif",
+   "bytes": 9416
+  },
+  {
+   "path": "player/gif/walk_right.gif",
+   "bytes": 9070
+  },
+  {
+   "path": "player/gif/walk_up.gif",
+   "bytes": 11165
+  },
+  {
+   "path": "player/preview_attack.png",
+   "bytes": 17139
+  },
+  {
+   "path": "player/preview_dash.png",
+   "bytes": 15558
+  },
+  {
+   "path": "player/preview_death.png",
+   "bytes": 25854
+  },
+  {
+   "path": "player/preview_hurt.png",
+   "bytes": 12371
+  },
+  {
+   "path": "player/preview_idle.png",
+   "bytes": 20561
+  },
+  {
+   "path": "player/preview_rimlight.png",
+   "bytes": 104793
+  },
+  {
+   "path": "player/preview_sheet.png",
+   "bytes": 26352
+  },
+  {
+   "path": "player/preview_walk.png",
+   "bytes": 25071
+  },
+  {
+   "path": "player/silhouette_down.png",
+   "bytes": 576
+  },
+  {
+   "path": "player/silhouette_right.png",
+   "bytes": 586
+  },
+  {
+   "path": "props_v3/preview_brewery.png",
+   "bytes": 83649
+  },
+  {
+   "path": "props_v3/preview_compare_outer.png",
+   "bytes": 59151
+  },
+  {
+   "path": "props_v3/preview_gate.png",
+   "bytes": 67093
+  },
+  {
+   "path": "props_v3/preview_hall.png",
+   "bytes": 67888
+  },
+  {
+   "path": "props_v3/preview_outer.png",
+   "bytes": 68236
+  },
+  {
+   "path": "props_v3/preview_waste.png",
+   "bytes": 71750
+  },
+  {
+   "path": "structures/preview.png",
+   "bytes": 137794
+  },
+  {
+   "path": "structures/preview_mock_x2.png",
+   "bytes": 72012
+  },
+  {
+   "path": "structures/preview_sets.png",
+   "bytes": 35474
+  },
+  {
+   "path": "structures/preview_sets_x2.png",
+   "bytes": 74081
+  },
+  {
+   "path": "structures/preview_sets_x2_0.png",
+   "bytes": 19628
+  },
+  {
+   "path": "structures/preview_sets_x2_1.png",
+   "bytes": 19784
+  },
+  {
+   "path": "structures/preview_sets_x2_2.png",
+   "bytes": 20014
+  },
+  {
+   "path": "structures/preview_sets_x2_3.png",
+   "bytes": 20337
+  },
+  {
+   "path": "tiles_regions/brewery/preview.png",
+   "bytes": 24279
+  },
+  {
+   "path": "tiles_regions/brewery/preview_seam.png",
+   "bytes": 9967
+  },
+  {
+   "path": "tiles_regions/gate/preview.png",
+   "bytes": 23264
+  },
+  {
+   "path": "tiles_regions/gate/preview_seam.png",
+   "bytes": 9884
+  },
+  {
+   "path": "tiles_regions/hall/preview.png",
+   "bytes": 23623
+  },
+  {
+   "path": "tiles_regions/hall/preview_seam.png",
+   "bytes": 11663
+  },
+  {
+   "path": "tiles_regions/outer/preview.png",
+   "bytes": 22273
+  },
+  {
+   "path": "tiles_regions/outer/preview_seam.png",
+   "bytes": 8916
+  },
+  {
+   "path": "tiles_regions/preview_x2_all.png",
+   "bytes": 69807
+  },
+  {
+   "path": "tiles_regions/preview_x2_brewery.png",
+   "bytes": 25685
+  },
+  {
+   "path": "tiles_regions/preview_x2_gate.png",
+   "bytes": 22454
+  },
+  {
+   "path": "tiles_regions/preview_x2_hall.png",
+   "bytes": 22275
+  },
+  {
+   "path": "tiles_regions/preview_x2_waste.png",
+   "bytes": 21919
+  },
+  {
+   "path": "tiles_regions/waste/preview.png",
+   "bytes": 22582
+  },
+  {
+   "path": "tiles_regions/waste/preview_seam.png",
+   "bytes": 8949
+  },
+  {
+   "path": "tiles_stage5/preview_room.png",
+   "bytes": 37377
+  },
+  {
+   "path": "tiles_stage5/preview_rooms.png",
+   "bytes": 77548
+  },
+  {
+   "path": "tiles_stage5/preview_seam.png",
+   "bytes": 18398
+  },
+  {
+   "path": "tiles_stage6/preview_room.png",
+   "bytes": 36630
+  },
+  {
+   "path": "tiles_stage6/preview_rooms.png",
+   "bytes": 75355
+  },
+  {
+   "path": "tiles_stage6/preview_seam.png",
+   "bytes": 18426
+  },
+  {
+   "path": "tiles_stage7/preview_room.png",
+   "bytes": 37371
+  },
+  {
+   "path": "tiles_stage7/preview_rooms.png",
+   "bytes": 78923
+  },
+  {
+   "path": "tiles_stage7/preview_seam.png",
+   "bytes": 18507
+  },
+  {
+   "path": "tiles_stage8/preview_room.png",
+   "bytes": 24018
+  },
+  {
+   "path": "tiles_stage8/preview_rooms.png",
+   "bytes": 53596
+  },
+  {
+   "path": "tiles_stage8/preview_seam.png",
+   "bytes": 12213
+  },
+  {
+   "path": "tiles_v4/preview_icons.png",
+   "bytes": 38698
+  },
+  {
+   "path": "tiles_v4/preview_x2.png",
+   "bytes": 165571
+  },
+  {
+   "path": "tiles_v4/stage1/x2_0.png",
+   "bytes": 48900
+  },
+  {
+   "path": "tiles_v4/stage1/x2_1.png",
+   "bytes": 50706
+  },
+  {
+   "path": "tiles_v4/stage1/x2_2.png",
+   "bytes": 36104
+  },
+  {
+   "path": "tiles_v4/stage2/x2_3.png",
+   "bytes": 52726
+  },
+  {
+   "path": "ui/preview_icons.png",
+   "bytes": 8001
+  },
+  {
+   "path": "ui/preview_kit.png",
+   "bytes": 70997
+  },
+  {
+   "path": "ui/preview_mock.png",
+   "bytes": 95004
+  },
+  {
+   "path": "ui/preview_mock_result.png",
+   "bytes": 86418
+  },
+  {
+   "path": "v2_outer/preview_charger.png",
+   "bytes": 89663
+  },
+  {
+   "path": "v2_outer/preview_compare_charger.png",
+   "bytes": 16264
+  },
+  {
+   "path": "v2_outer/preview_compare_player.png",
+   "bytes": 14716
+  },
+  {
+   "path": "v2_outer/preview_katana.png",
+   "bytes": 110651
+  },
+  {
+   "path": "v2_outer/preview_mock_lit_zoom2x.png",
+   "bytes": 116204
+  },
+  {
+   "path": "v2_outer/preview_player.png",
+   "bytes": 87907
+  },
+  {
+   "path": "v2_outer/preview_tiles.png",
+   "bytes": 68288
+  },
+  {
+   "path": "weapons/preview_attack.png",
+   "bytes": 40302
+  },
+  {
+   "path": "weapons/preview_fx.png",
+   "bytes": 115096
+  },
+  {
+   "path": "weapons/preview_icons.png",
+   "bytes": 4639
+  },
+  {
+   "path": "weapons_v3/preview_bow_aim_x2.png",
+   "bytes": 101695
+  },
+  {
+   "path": "weapons_v3/preview_bow_aim_x3.gif",
+   "bytes": 239211
+  },
+  {
+   "path": "weapons_v3/preview_bow_attack_x2.png",
+   "bytes": 86411
+  },
+  {
+   "path": "weapons_v3/preview_bow_attack_x3.gif",
+   "bytes": 194734
+  },
+  {
+   "path": "weapons_v3/preview_bow_carry_dash_x2.png",
+   "bytes": 75199
+  },
+  {
+   "path": "weapons_v3/preview_bow_carry_dash_x3.gif",
+   "bytes": 127824
+  },
+  {
+   "path": "weapons_v3/preview_bow_carry_idle_x2.png",
+   "bytes": 60767
+  },
+  {
+   "path": "weapons_v3/preview_bow_carry_idle_x3.gif",
+   "bytes": 160552
+  },
+  {
+   "path": "weapons_v3/preview_bow_carry_run_x2.png",
+   "bytes": 117115
+  },
+  {
+   "path": "weapons_v3/preview_bow_carry_run_x3.gif",
+   "bytes": 213944
+  },
+  {
+   "path": "weapons_v3/preview_bow_carry_walk_x2.png",
+   "bytes": 96307
+  },
+  {
+   "path": "weapons_v3/preview_bow_carry_walk_x3.gif",
+   "bytes": 218136
+  },
+  {
+   "path": "weapons_v3/preview_bow_reload_x2.png",
+   "bytes": 110130
+  },
+  {
+   "path": "weapons_v3/preview_bow_reload_x3.gif",
+   "bytes": 273582
+  },
+  {
+   "path": "weapons_v3/preview_dagger_carry_dash_x2.png",
+   "bytes": 71554
+  },
+  {
+   "path": "weapons_v3/preview_dagger_carry_dash_x3.gif",
+   "bytes": 120777
+  },
+  {
+   "path": "weapons_v3/preview_dagger_carry_idle_x2.png",
+   "bytes": 60161
+  },
+  {
+   "path": "weapons_v3/preview_dagger_carry_idle_x3.gif",
+   "bytes": 157874
+  },
+  {
+   "path": "weapons_v3/preview_dagger_carry_run_x2.png",
+   "bytes": 106658
+  },
+  {
+   "path": "weapons_v3/preview_dagger_carry_run_x3.gif",
+   "bytes": 202147
+  },
+  {
+   "path": "weapons_v3/preview_dagger_carry_walk_x2.png",
+   "bytes": 93493
+  },
+  {
+   "path": "weapons_v3/preview_dagger_carry_walk_x3.gif",
+   "bytes": 212871
+  },
+  {
+   "path": "weapons_v3/preview_dagger_combo1_x2.png",
+   "bytes": 77164
+  },
+  {
+   "path": "weapons_v3/preview_dagger_combo1_x3.gif",
+   "bytes": 153119
+  },
+  {
+   "path": "weapons_v3/preview_dagger_combo2_x2.png",
+   "bytes": 77674
+  },
+  {
+   "path": "weapons_v3/preview_dagger_combo2_x3.gif",
+   "bytes": 154576
+  },
+  {
+   "path": "weapons_v3/preview_dagger_combo3_x2.png",
+   "bytes": 113257
+  },
+  {
+   "path": "weapons_v3/preview_dagger_combo3_x3.gif",
+   "bytes": 207275
+  },
+  {
+   "path": "weapons_v3/preview_dagger_special_x2.png",
+   "bytes": 133764
+  },
+  {
+   "path": "weapons_v3/preview_dagger_special_x3.gif",
+   "bytes": 223658
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_dash_x2.png",
+   "bytes": 87459
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_dash_x3.gif",
+   "bytes": 146854
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_drawn_dash_x2.png",
+   "bytes": 94684
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_drawn_dash_x3.gif",
+   "bytes": 147516
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_drawn_idle_x2.png",
+   "bytes": 86934
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_drawn_idle_x3.gif",
+   "bytes": 203278
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_drawn_run_x2.png",
+   "bytes": 148130
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_drawn_run_x3.gif",
+   "bytes": 249084
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_drawn_walk_x2.png",
+   "bytes": 147168
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_drawn_walk_x3.gif",
+   "bytes": 274275
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_idle_x2.png",
+   "bytes": 71498
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_idle_x3.gif",
+   "bytes": 186891
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_run_x2.png",
+   "bytes": 123445
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_run_x3.gif",
+   "bytes": 244835
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_walk_x2.png",
+   "bytes": 111957
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_carry_walk_x3.gif",
+   "bytes": 250402
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_combo1_x2.png",
+   "bytes": 291089
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_combo1_x3.gif",
+   "bytes": 391834
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_combo2_x2.png",
+   "bytes": 263975
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_combo2_x3.gif",
+   "bytes": 386403
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_combo3_x2.png",
+   "bytes": 341479
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_combo3_x3.gif",
+   "bytes": 453023
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_dashslash_x2.png",
+   "bytes": 305886
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_dashslash_x3.gif",
+   "bytes": 419776
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_draw_x2.png",
+   "bytes": 136666
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_draw_x3.gif",
+   "bytes": 226205
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_sheathe_x2.png",
+   "bytes": 128083
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_sheathe_x3.gif",
+   "bytes": 227029
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_slam_x2.png",
+   "bytes": 417721
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_slam_x3.gif",
+   "bytes": 534095
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_special_x2.png",
+   "bytes": 256587
+  },
+  {
+   "path": "weapons_v3/preview_greatsword_special_x3.gif",
+   "bytes": 394089
+  },
+  {
+   "path": "weapons_v3/preview_mock_lit.png",
+   "bytes": 106161
+  }
+ ],
+ "keep": [
+  {
+   "path": "boss1_v3/preview_mock_hall.png",
+   "bytes": 190289,
+   "reason": "입력으로 읽힘: boss1_v3/design.py"
+  },
+  {
+   "path": "carry/preview_carry_drawn.png",
+   "bytes": 99173,
+   "reason": "입력으로 읽힘: carry/build.py"
+  },
+  {
+   "path": "carry/preview_carry_hand.png",
+   "bytes": 93631,
+   "reason": "입력으로 읽힘: carry/build.py"
+  },
+  {
+   "path": "carry/preview_carry_sword.png",
+   "bytes": 96354,
+   "reason": "입력으로 읽힘: carry/build.py"
+  },
+  {
+   "path": "floors_v2/preview_mock_hall.png",
+   "bytes": 1121179,
+   "reason": "입력으로 읽힘: boss1_v3/design.py"
+  },
+  {
+   "path": "gemini/preview_border_outer_north_neutral.png",
+   "bytes": 1034411,
+   "reason": "옛 판·실험 비교본(재현 불가)"
+  },
+  {
+   "path": "gemini/preview_border_outer_north_nobias.png",
+   "bytes": 846320,
+   "reason": "옛 판·실험 비교본(재현 불가)"
+  },
+  {
+   "path": "gemini/preview_border_outer_vs_old.png",
+   "bytes": 797805,
+   "reason": "옛 판·실험 비교본(재현 불가)"
+  },
+  {
+   "path": "hero_v3/preview_compare_old_new.png",
+   "bytes": 64536,
+   "reason": "옛 판·실험 비교본(재현 불가)"
+  },
+  {
+   "path": "hero_v3/preview_oldweapon_bow.png",
+   "bytes": 63566,
+   "reason": "옛 판·실험 비교본(재현 불가)"
+  },
+  {
+   "path": "hero_v3/preview_oldweapon_dagger.png",
+   "bytes": 84454,
+   "reason": "옛 판·실험 비교본(재현 불가)"
+  },
+  {
+   "path": "hero_v3/preview_oldweapon_greatsword.png",
+   "bytes": 157365,
+   "reason": "옛 판·실험 비교본(재현 불가)"
+  },
+  {
+   "path": "tiles_regions/preview_x2_outer.png",
+   "bytes": 21226,
+   "reason": "입력으로 읽힘: v2_outer/build.py"
+  },
+  {
+   "path": "tiles_stage1/preview.png",
+   "bytes": 27287,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage1/preview_room.png",
+   "bytes": 39660,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage1/preview_rooms.png",
+   "bytes": 86499,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage1/preview_seam.png",
+   "bytes": 18557,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage2/preview.png",
+   "bytes": 27524,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage2/preview_room.png",
+   "bytes": 38917,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage2/preview_rooms.png",
+   "bytes": 83506,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage2/preview_seam.png",
+   "bytes": 18918,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage3/preview.png",
+   "bytes": 28308,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage3/preview_room.png",
+   "bytes": 38775,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage3/preview_rooms.png",
+   "bytes": 84255,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage3/preview_seam.png",
+   "bytes": 18719,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage4/preview.png",
+   "bytes": 28313,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage4/preview_room.png",
+   "bytes": 38281,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage4/preview_rooms.png",
+   "bytes": 81815,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage4/preview_seam.png",
+   "bytes": 18801,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage5/preview.png",
+   "bytes": 27622,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage6/preview.png",
+   "bytes": 28169,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage7/preview.png",
+   "bytes": 28661,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_stage8/preview.png",
+   "bytes": 24003,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_v4/stage1/preview.png",
+   "bytes": 22026,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_v4/stage1/preview_seam.png",
+   "bytes": 8856,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_v4/stage2/preview.png",
+   "bytes": 22135,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "tiles_v4/stage2/preview_seam.png",
+   "bytes": 8741,
+   "reason": "만든 스크립트 리터럴을 못 찾음(재생성 불확실)"
+  },
+  {
+   "path": "v2_outer/preview_compare_old_new.png",
+   "bytes": 329580,
+   "reason": "옛 판·실험 비교본(재현 불가)"
+  },
+  {
+   "path": "v2_outer/preview_mock_albedo.png",
+   "bytes": 74286,
+   "reason": "입력으로 읽힘: hero3/build.py"
+  },
+  {
+   "path": "v2_outer/preview_mock_lit.png",
+   "bytes": 273456,
+   "reason": "입력으로 읽힘: gemini/border_outer/mock.py"
+  },
+  {
+   "path": "weapons_v3/preview_compare_old.png",
+   "bytes": 77966,
+   "reason": "옛 판·실험 비교본(재현 불가)"
+  }
+ ]
+}

@@ -1,0 +1,1066 @@
+{
+ "image": "player_groggy.png",
+ "action": "player_groggy",
+ "version": "v3-r56d",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 6.67,
+ "frameDurationsMs": [
+  150,
+  150,
+  150,
+  150,
+  150,
+  150,
+  150,
+  150,
+  150,
+  150
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "parts/art/palette/lopad.json (주인공 v3 30색) — 몸 시트 규칙(hero_v3)과 같음",
+ "colors": 28,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_res/build.py (56라운드 작업 D — 자원·가드·그로기 표시)",
+ "weapon": "katana|greatsword",
+ "label": "그로기(기력 0)",
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "timingMs": {
+  "total": 1500,
+  "loopMs": 1500
+ },
+ "groggyNote": "56라운드 Q7·Q18: 기력 0 → 그로기 1.5초(공격·대쉬 불가, 가드만), 1.5초 뒤에만 회복. 이 시트 한 주기 = 1.5초. 가드를 누르면 가드 몸(현행)으로 바꾸고, 가드를 떼면 이 시트의 같은 시각 프레임으로 돌아온다(권장)",
+ "bodyRule": "왼손이 빈 몸(free) 하나를 칼·대검이 같이 쓴다. 휴대 무기 = weapons/v3/<weapon>_carry_groggy(같은 프레임 번호)",
+ "carryOverlay": {
+  "katana": "weapons/v3/katana_carry_groggy",
+  "greatsword": "weapons/v3/greatsword_carry_groggy"
+ },
+ "swirlFx": "fx/v3/player_groggy_swirl",
+ "headTopAnchors": {
+  "down": [
+   [
+    43.5,
+    37
+   ],
+   [
+    44.5,
+    40
+   ],
+   [
+    32.2,
+    41
+   ],
+   [
+    32.6,
+    41
+   ],
+   [
+    49.3,
+    40
+   ],
+   [
+    50.0,
+    37
+   ],
+   [
+    42.0,
+    40
+   ],
+   [
+    36.0,
+    42
+   ],
+   [
+    34.0,
+    42
+   ],
+   [
+    37.0,
+    40
+   ]
+  ],
+  "up": [
+   [
+    52.5,
+    37
+   ],
+   [
+    47.5,
+    40
+   ],
+   [
+    46.7,
+    42
+   ],
+   [
+    44.8,
+    42
+   ],
+   [
+    42.5,
+    40
+   ],
+   [
+    45.5,
+    37
+   ],
+   [
+    49.5,
+    40
+   ],
+   [
+    53.5,
+    42
+   ],
+   [
+    55.5,
+    42
+   ],
+   [
+    54.5,
+    40
+   ]
+  ],
+  "left": [
+   [
+    32.1,
+    34
+   ],
+   [
+    26.3,
+    36
+   ],
+   [
+    25.2,
+    39
+   ],
+   [
+    25.6,
+    39
+   ],
+   [
+    24.5,
+    36
+   ],
+   [
+    29.5,
+    34
+   ],
+   [
+    35.9,
+    36
+   ],
+   [
+    42.2,
+    39
+   ],
+   [
+    43.0,
+    39
+   ],
+   [
+    38.5,
+    36
+   ]
+  ],
+  "right": [
+   [
+    63.0,
+    34
+   ],
+   [
+    68.8,
+    36
+   ],
+   [
+    69.8,
+    39
+   ],
+   [
+    69.0,
+    39
+   ],
+   [
+    70.4,
+    36
+   ],
+   [
+    65.6,
+    34
+   ],
+   [
+    59.0,
+    36
+   ],
+   [
+    53.9,
+    39
+   ],
+   [
+    53.1,
+    39
+   ],
+   [
+    56.6,
+    36
+   ]
+  ]
+ },
+ "headTopNote": "프레임별 머리 꼭대기(몸 시트 도트). 소용돌이 fx 피벗을 여기서 위로 14 도트에 둔다(swirlOffsetY)",
+ "swirlOffsetY": -14,
+ "eyeOffFrames": [
+  6,
+  7
+ ],
+ "phases": {
+  "swayRight": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "swayLeft": [
+   5,
+   6,
+   7,
+   8,
+   9
+  ]
+ },
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     28.2,
+     97.4
+    ],
+    "handL": [
+     67.8,
+     97.4
+    ]
+   },
+   {
+    "handR": [
+     29.4,
+     98.4
+    ],
+    "handL": [
+     70.1,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     30.0,
+     99.1
+    ],
+    "handL": [
+     71.7,
+     99.1
+    ]
+   },
+   {
+    "handR": [
+     29.6,
+     99.1
+    ],
+    "handL": [
+     72.1,
+     99.1
+    ]
+   },
+   {
+    "handR": [
+     28.5,
+     98.4
+    ],
+    "handL": [
+     71.0,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     27.0,
+     97.4
+    ],
+    "handL": [
+     69.0,
+     97.4
+    ]
+   },
+   {
+    "handR": [
+     25.8,
+     98.4
+    ],
+    "handL": [
+     66.7,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     25.2,
+     99.1
+    ],
+    "handL": [
+     65.1,
+     99.1
+    ]
+   },
+   {
+    "handR": [
+     25.6,
+     99.1
+    ],
+    "handL": [
+     64.7,
+     99.1
+    ]
+   },
+   {
+    "handR": [
+     26.7,
+     98.4
+    ],
+    "handL": [
+     65.8,
+     98.4
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     67.8,
+     97.4
+    ],
+    "handL": [
+     28.2,
+     97.4
+    ]
+   },
+   {
+    "handR": [
+     67.1,
+     98.4
+    ],
+    "handL": [
+     26.4,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     66.8,
+     99.1
+    ],
+    "handL": [
+     25.1,
+     99.1
+    ]
+   },
+   {
+    "handR": [
+     67.2,
+     99.1
+    ],
+    "handL": [
+     24.7,
+     99.1
+    ]
+   },
+   {
+    "handR": [
+     68.0,
+     98.4
+    ],
+    "handL": [
+     25.5,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     69.0,
+     97.4
+    ],
+    "handL": [
+     27.0,
+     97.4
+    ]
+   },
+   {
+    "handR": [
+     69.7,
+     98.4
+    ],
+    "handL": [
+     28.8,
+     98.4
+    ]
+   },
+   {
+    "handR": [
+     70.0,
+     99.1
+    ],
+    "handL": [
+     30.1,
+     99.1
+    ]
+   },
+   {
+    "handR": [
+     69.6,
+     99.1
+    ],
+    "handL": [
+     30.5,
+     99.1
+    ]
+   },
+   {
+    "handR": [
+     68.8,
+     98.4
+    ],
+    "handL": [
+     29.7,
+     98.4
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     28.0,
+     92.9
+    ],
+    "handL": [
+     25.6,
+     93.3
+    ]
+   },
+   {
+    "handR": [
+     23.1,
+     94.2
+    ],
+    "handL": [
+     20.7,
+     94.2
+    ]
+   },
+   {
+    "handR": [
+     19.6,
+     95.0
+    ],
+    "handL": [
+     17.2,
+     94.7
+    ]
+   },
+   {
+    "handR": [
+     18.9,
+     94.9
+    ],
+    "handL": [
+     16.5,
+     94.6
+    ]
+   },
+   {
+    "handR": [
+     21.2,
+     94.3
+    ],
+    "handL": [
+     18.8,
+     93.9
+    ]
+   },
+   {
+    "handR": [
+     25.7,
+     93.3
+    ],
+    "handL": [
+     23.3,
+     92.9
+    ]
+   },
+   {
+    "handR": [
+     30.6,
+     94.2
+    ],
+    "handL": [
+     28.2,
+     94.2
+    ]
+   },
+   {
+    "handR": [
+     34.1,
+     94.7
+    ],
+    "handL": [
+     31.7,
+     95.0
+    ]
+   },
+   {
+    "handR": [
+     34.8,
+     94.6
+    ],
+    "handL": [
+     32.4,
+     94.9
+    ]
+   },
+   {
+    "handR": [
+     32.5,
+     93.9
+    ],
+    "handL": [
+     30.1,
+     94.3
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     70.4,
+     93.3
+    ],
+    "handL": [
+     68.0,
+     92.9
+    ]
+   },
+   {
+    "handR": [
+     75.3,
+     94.2
+    ],
+    "handL": [
+     72.9,
+     94.2
+    ]
+   },
+   {
+    "handR": [
+     78.8,
+     94.7
+    ],
+    "handL": [
+     76.4,
+     95.0
+    ]
+   },
+   {
+    "handR": [
+     79.5,
+     94.6
+    ],
+    "handL": [
+     77.1,
+     94.9
+    ]
+   },
+   {
+    "handR": [
+     77.2,
+     93.9
+    ],
+    "handL": [
+     74.8,
+     94.3
+    ]
+   },
+   {
+    "handR": [
+     72.7,
+     92.9
+    ],
+    "handL": [
+     70.3,
+     93.3
+    ]
+   },
+   {
+    "handR": [
+     67.8,
+     94.2
+    ],
+    "handL": [
+     65.4,
+     94.2
+    ]
+   },
+   {
+    "handR": [
+     64.3,
+     95.0
+    ],
+    "handL": [
+     61.9,
+     94.7
+    ]
+   },
+   {
+    "handR": [
+     63.6,
+     94.9
+    ],
+    "handL": [
+     61.2,
+     94.6
+    ]
+   },
+   {
+    "handR": [
+     65.9,
+     94.3
+    ],
+    "handL": [
+     63.5,
+     93.9
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트). 두 손 모두 비어 늘어짐",
+ "scarAnchor": {
+  "down": [
+   {
+    "x": 48.0,
+    "y": 71.7,
+    "w": 25.5,
+    "h": 17.5,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 52.1,
+    "y": 72.8,
+    "w": 25.6,
+    "h": 17.7,
+    "rot": 6.5,
+    "visible": false
+   },
+   {
+    "x": 54.7,
+    "y": 73.4,
+    "w": 25.7,
+    "h": 17.8,
+    "rot": 10.5,
+    "visible": false
+   },
+   {
+    "x": 54.7,
+    "y": 73.4,
+    "w": 25.7,
+    "h": 17.8,
+    "rot": 10.5,
+    "visible": false
+   },
+   {
+    "x": 52.1,
+    "y": 72.8,
+    "w": 25.6,
+    "h": 17.7,
+    "rot": 6.5,
+    "visible": false
+   },
+   {
+    "x": 48.0,
+    "y": 71.7,
+    "w": 25.5,
+    "h": 17.5,
+    "rot": 0.0,
+    "visible": false
+   },
+   {
+    "x": 43.9,
+    "y": 72.8,
+    "w": 25.6,
+    "h": 17.7,
+    "rot": -6.5,
+    "visible": false
+   },
+   {
+    "x": 41.3,
+    "y": 73.4,
+    "w": 25.7,
+    "h": 17.8,
+    "rot": -10.5,
+    "visible": false
+   },
+   {
+    "x": 41.3,
+    "y": 73.4,
+    "w": 25.7,
+    "h": 17.8,
+    "rot": -10.5,
+    "visible": false
+   },
+   {
+    "x": 43.9,
+    "y": 72.8,
+    "w": 25.6,
+    "h": 17.7,
+    "rot": -6.5,
+    "visible": false
+   }
+  ],
+  "up": [
+   {
+    "x": 48.0,
+    "y": 71.7,
+    "w": 25.5,
+    "h": 17.5,
+    "rot": 0.0,
+    "visible": true
+   },
+   {
+    "x": 46.8,
+    "y": 72.8,
+    "w": 25.6,
+    "h": 17.6,
+    "rot": 0.1,
+    "visible": true
+   },
+   {
+    "x": 46.0,
+    "y": 73.4,
+    "w": 25.7,
+    "h": 17.6,
+    "rot": 0.1,
+    "visible": true
+   },
+   {
+    "x": 46.0,
+    "y": 73.4,
+    "w": 25.7,
+    "h": 17.6,
+    "rot": 0.1,
+    "visible": true
+   },
+   {
+    "x": 46.8,
+    "y": 72.8,
+    "w": 25.6,
+    "h": 17.6,
+    "rot": 0.1,
+    "visible": true
+   },
+   {
+    "x": 48.0,
+    "y": 71.7,
+    "w": 25.5,
+    "h": 17.5,
+    "rot": 0.0,
+    "visible": true
+   },
+   {
+    "x": 49.2,
+    "y": 72.8,
+    "w": 25.6,
+    "h": 17.6,
+    "rot": -0.1,
+    "visible": true
+   },
+   {
+    "x": 50.0,
+    "y": 73.4,
+    "w": 25.7,
+    "h": 17.6,
+    "rot": -0.1,
+    "visible": true
+   },
+   {
+    "x": 50.0,
+    "y": 73.4,
+    "w": 25.7,
+    "h": 17.6,
+    "rot": -0.1,
+    "visible": true
+   },
+   {
+    "x": 49.2,
+    "y": 72.8,
+    "w": 25.6,
+    "h": 17.6,
+    "rot": -0.1,
+    "visible": true
+   }
+  ],
+  "left": [
+   {
+    "x": 45.3,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 12.0,
+    "rot": -20.3,
+    "visible": true
+   },
+   {
+    "x": 41.6,
+    "y": 71.9,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": -27.4,
+    "visible": true
+   },
+   {
+    "x": 39.3,
+    "y": 72.6,
+    "w": 7.2,
+    "h": 13.2,
+    "rot": -31.4,
+    "visible": true
+   },
+   {
+    "x": 39.3,
+    "y": 72.6,
+    "w": 7.2,
+    "h": 13.2,
+    "rot": -31.4,
+    "visible": true
+   },
+   {
+    "x": 41.6,
+    "y": 71.9,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": -27.4,
+    "visible": true
+   },
+   {
+    "x": 45.3,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 12.0,
+    "rot": -20.3,
+    "visible": true
+   },
+   {
+    "x": 49.1,
+    "y": 71.9,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": -12.4,
+    "visible": true
+   },
+   {
+    "x": 51.4,
+    "y": 72.6,
+    "w": 7.2,
+    "h": 11.3,
+    "rot": -7.3,
+    "visible": true
+   },
+   {
+    "x": 51.4,
+    "y": 72.6,
+    "w": 7.2,
+    "h": 11.3,
+    "rot": -7.3,
+    "visible": true
+   },
+   {
+    "x": 49.1,
+    "y": 71.9,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": -12.4,
+    "visible": true
+   }
+  ],
+  "right": [
+   {
+    "x": 50.7,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 12.0,
+    "rot": 20.3,
+    "visible": true
+   },
+   {
+    "x": 54.4,
+    "y": 71.9,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": 27.4,
+    "visible": true
+   },
+   {
+    "x": 56.7,
+    "y": 72.6,
+    "w": 7.2,
+    "h": 13.2,
+    "rot": 31.4,
+    "visible": true
+   },
+   {
+    "x": 56.7,
+    "y": 72.6,
+    "w": 7.2,
+    "h": 13.2,
+    "rot": 31.4,
+    "visible": true
+   },
+   {
+    "x": 54.4,
+    "y": 71.9,
+    "w": 7.2,
+    "h": 12.7,
+    "rot": 27.4,
+    "visible": true
+   },
+   {
+    "x": 50.7,
+    "y": 70.9,
+    "w": 7.2,
+    "h": 12.0,
+    "rot": 20.3,
+    "visible": true
+   },
+   {
+    "x": 46.9,
+    "y": 71.9,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": 12.4,
+    "visible": true
+   },
+   {
+    "x": 44.6,
+    "y": 72.6,
+    "w": 7.2,
+    "h": 11.3,
+    "rot": 7.3,
+    "visible": true
+   },
+   {
+    "x": 44.6,
+    "y": 72.6,
+    "w": 7.2,
+    "h": 11.3,
+    "rot": 7.3,
+    "visible": true
+   },
+   {
+    "x": 46.9,
+    "y": 71.9,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": 12.4,
+    "visible": true
+   }
+  ]
+ },
+ "scarAnchorNote": "53라운드 Q4 · 계약 §13 등 상흔 사각형(몸 시트 도트)",
+ "design": "56라운드 그로기 — 재 껍데기가 무릎이 꺾인 채 좌우로 휘청이고 머리가 늦게 따라 흔들리며, 눈빛이 깜빡 꺼지고, 어깨 혼불이 눌리고, 늘어진 팔 끝에서 재가 흘러내림",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_groggy.png)",
+  "grid": {
+   "columns": 10,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 40
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":107,"w":68,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":37,"w":68,"h":103},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":338,"y":0,"w":67,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":36,"w":67,"h":104},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":0,"w":68,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":35,"w":68,"h":105},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":70,"y":0,"w":68,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":35,"w":68,"h":105},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":407,"y":0,"w":67,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":36,"w":67,"h":104},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":70,"y":107,"w":68,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":37,"w":68,"h":103},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":379,"y":106,"w":70,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":39,"w":70,"h":101},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":803,"y":106,"w":72,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":41,"w":72,"h":99},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":877,"y":106,"w":72,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":41,"w":72,"h":99},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":451,"y":106,"w":70,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":39,"w":70,"h":101},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":140,"y":107,"w":67,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":37,"w":67,"h":103},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":523,"y":106,"w":68,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":39,"w":68,"h":101},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":951,"y":106,"w":67,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":41,"w":67,"h":99},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":1020,"y":106,"w":67,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":41,"w":67,"h":99},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":593,"y":106,"w":68,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":39,"w":68,"h":101},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":209,"y":107,"w":67,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":37,"w":67,"h":103},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":663,"y":106,"w":68,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":39,"w":68,"h":101},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":1089,"y":106,"w":67,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":41,"w":67,"h":99},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":1158,"y":106,"w":67,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":41,"w":67,"h":99},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":733,"y":106,"w":68,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":39,"w":68,"h":101},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":244,"y":0,"w":45,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":34,"w":45,"h":105},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":834,"y":0,"w":51,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":35,"w":51,"h":104},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":598,"y":0,"w":57,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":35,"w":57,"h":104},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":476,"y":0,"w":59,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":35,"w":59,"h":104},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":657,"y":0,"w":57,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":35,"w":57,"h":104},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":140,"y":0,"w":50,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":34,"w":50,"h":105},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":940,"y":0,"w":42,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":35,"w":42,"h":104},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":1112,"y":0,"w":39,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":35,"w":39,"h":104},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":1153,"y":0,"w":39,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":35,"w":39,"h":104},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":1194,"y":0,"w":39,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":35,"w":39,"h":104},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":291,"y":0,"w":45,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":34,"w":45,"h":105},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":887,"y":0,"w":51,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":35,"w":51,"h":104},"sourceSize":{"w":96,"h":144}},
+  "32":{"frame":{"x":716,"y":0,"w":57,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":35,"w":57,"h":104},"sourceSize":{"w":96,"h":144}},
+  "33":{"frame":{"x":537,"y":0,"w":59,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":35,"w":59,"h":104},"sourceSize":{"w":96,"h":144}},
+  "34":{"frame":{"x":775,"y":0,"w":57,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":35,"w":57,"h":104},"sourceSize":{"w":96,"h":144}},
+  "35":{"frame":{"x":192,"y":0,"w":50,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":34,"w":50,"h":105},"sourceSize":{"w":96,"h":144}},
+  "36":{"frame":{"x":984,"y":0,"w":42,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":35,"w":42,"h":104},"sourceSize":{"w":96,"h":144}},
+  "37":{"frame":{"x":1028,"y":0,"w":40,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":35,"w":40,"h":104},"sourceSize":{"w":96,"h":144}},
+  "38":{"frame":{"x":1070,"y":0,"w":40,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":35,"w":40,"h":104},"sourceSize":{"w":96,"h":144}},
+  "39":{"frame":{"x":338,"y":106,"w":39,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":35,"w":39,"h":104},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_groggy.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1233,
+   "h": 210
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,92 @@
+{
+ "image": "bow_perfect_release.png",
+ "action": "bow_perfect_release",
+ "version": "v3-r56",
+ "frameWidth": 112,
+ "frameHeight": 104,
+ "framesPerDirection": 5,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 19.23,
+ "frameDurationsMs": [
+  30,
+  40,
+  50,
+  60,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_body/build.py fx (56라운드 Q5·Q9·Q10 작업 B)",
+ "weapon": "bow",
+ "anchor": "projectile",
+ "pivot": {
+  "x": 36,
+  "y": 56
+ },
+ "rotate": true,
+ "drawnFacing": "right",
+ "depth": "above",
+ "spawn": "perfect_release",
+ "pivotNote": "pivot = 화살이 생기는 점(활 시위 앞 — bow_muzzle_rapid 와 같은 자리, 무기 시트 arrowSpawnAnchors). 발사 각도로 회전",
+ "spawnNote": "56라운드 Q9: 가득 당긴 직후 0.15초 창 안에 놓았을 때(완벽 놓기)만 1회. 일반 놓기는 없음(또는 bow_muzzle_rapid)",
+ "design": "Q9 완벽 놓기 — f0 백열 4빛살 별 + 화살 진행 쪽 긴 빛살 + 작은 고리 → f1 별·빛살·고리 퍼짐 + 앞으로 밀리는 충격 호 → 식으며 끊긴 고리·재 연기·불티",
+ "glowNote": "판정 순간 백열 허용(Q9 작업 지시) — glowFrames(f0·f1)만 X0/X1·A26, f2~ 는 A25 이하",
+ "frameRoles": [
+  "백열 별(판정)",
+  "별·고리 퍼짐(판정)",
+  "식음",
+  "식음",
+  "사라짐"
+ ],
+ "glowFrames": [
+  0,
+  1
+ ],
+ "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_perfect_release.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 1,
+   "frameWidth": 112,
+   "frameHeight": 104,
+   "frameCount": 5
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":108,"y":0,"w":74,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":27,"w":74,"h":58},"sourceSize":{"w":112,"h":104}},
+  "1":{"frame":{"x":90,"y":114,"w":81,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":35,"w":81,"h":42},"sourceSize":{"w":112,"h":104}},
+  "2":{"frame":{"x":108,"y":60,"w":74,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":29,"w":74,"h":52},"sourceSize":{"w":112,"h":104}},
+  "3":{"frame":{"x":0,"y":95,"w":88,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":16,"w":88,"h":70},"sourceSize":{"w":112,"h":104}},
+  "4":{"frame":{"x":0,"y":0,"w":106,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":106,"h":93},"sourceSize":{"w":112,"h":104}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_perfect_release.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 182,
+   "h": 165
+  },
+  "scale": "1"
+ }
+}

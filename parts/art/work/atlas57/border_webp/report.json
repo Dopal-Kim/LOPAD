@@ -1,0 +1,1445 @@
+{
+ "q": 90,
+ "emissive": "lossless",
+ "max": 4096,
+ "files": [
+  {
+   "region": "brewery",
+   "file": "door_east.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 290834,
+   "webpBytes": 29784,
+   "pieces": [
+    "door_east.webp"
+   ],
+   "psnrMin": 43.19,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "brewery",
+   "file": "door_east_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 26405,
+   "webpBytes": 18362,
+   "pieces": [
+    "door_east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "brewery",
+   "file": "door_north.png",
+   "size": [
+    468,
+    654
+   ],
+   "pngBytes": 354608,
+   "webpBytes": 35918,
+   "pieces": [
+    "door_north.webp"
+   ],
+   "psnrMin": 44.38,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "brewery",
+   "file": "door_north_emissive.png",
+   "size": [
+    468,
+    654
+   ],
+   "pngBytes": 3881,
+   "webpBytes": 2048,
+   "pieces": [
+    "door_north_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "brewery",
+   "file": "door_south.png",
+   "size": [
+    468,
+    508
+   ],
+   "pngBytes": 252113,
+   "webpBytes": 25898,
+   "pieces": [
+    "door_south.webp"
+   ],
+   "psnrMin": 45.86,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "brewery",
+   "file": "door_south_emissive.png",
+   "size": [
+    468,
+    508
+   ],
+   "pngBytes": 1820,
+   "webpBytes": 798,
+   "pieces": [
+    "door_south_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "brewery",
+   "file": "door_west.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 288656,
+   "webpBytes": 29700,
+   "pieces": [
+    "door_west.webp"
+   ],
+   "psnrMin": 43.21,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "brewery",
+   "file": "door_west_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 26578,
+   "webpBytes": 18476,
+   "pieces": [
+    "door_west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "brewery",
+   "file": "east.png",
+   "size": [
+    512,
+    3102
+   ],
+   "pngBytes": 1627513,
+   "webpBytes": 116516,
+   "pieces": [
+    "east.webp"
+   ],
+   "psnrMin": 41.91,
+   "p999Max": 9,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "brewery",
+   "file": "east_emissive.png",
+   "size": [
+    512,
+    3102
+   ],
+   "pngBytes": 209935,
+   "webpBytes": 140076,
+   "pieces": [
+    "east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "brewery",
+   "file": "north.png",
+   "size": [
+    3246,
+    818
+   ],
+   "pngBytes": 2931424,
+   "webpBytes": 250034,
+   "pieces": [
+    "north.webp"
+   ],
+   "psnrMin": 42.69,
+   "p999Max": 8,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "brewery",
+   "file": "north_emissive.png",
+   "size": [
+    3246,
+    818
+   ],
+   "pngBytes": 121662,
+   "webpBytes": 83964,
+   "pieces": [
+    "north_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "brewery",
+   "file": "south.png",
+   "size": [
+    4612,
+    416
+   ],
+   "pngBytes": 1478339,
+   "webpBytes": 84318,
+   "pieces": [
+    "south_0.webp",
+    "south_1.webp"
+   ],
+   "psnrMin": 45.64,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "brewery",
+   "file": "south_emissive.png",
+   "size": [
+    4612,
+    416
+   ],
+   "pngBytes": 9099,
+   "webpBytes": 1698,
+   "pieces": [
+    "south_0_emissive.webp",
+    "south_1_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "brewery",
+   "file": "west.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 1911971,
+   "webpBytes": 161132,
+   "pieces": [
+    "west.webp"
+   ],
+   "psnrMin": 42.42,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "brewery",
+   "file": "west_emissive.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 44592,
+   "webpBytes": 24618,
+   "pieces": [
+    "west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "door_east.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 230283,
+   "webpBytes": 17254,
+   "pieces": [
+    "door_east.webp"
+   ],
+   "psnrMin": 46.32,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "door_east_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 1235,
+   "webpBytes": 54,
+   "pieces": [
+    "door_east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "door_north.png",
+   "size": [
+    578,
+    490
+   ],
+   "pngBytes": 361685,
+   "webpBytes": 37620,
+   "pieces": [
+    "door_north.webp"
+   ],
+   "psnrMin": 42.84,
+   "p999Max": 9,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "door_north_emissive.png",
+   "size": [
+    578,
+    490
+   ],
+   "pngBytes": 34403,
+   "webpBytes": 24434,
+   "pieces": [
+    "door_north_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "door_south.png",
+   "size": [
+    578,
+    582
+   ],
+   "pngBytes": 382073,
+   "webpBytes": 34700,
+   "pieces": [
+    "door_south.webp"
+   ],
+   "psnrMin": 45.32,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "door_south_emissive.png",
+   "size": [
+    578,
+    582
+   ],
+   "pngBytes": 4650,
+   "webpBytes": 2666,
+   "pieces": [
+    "door_south_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "door_west.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 228038,
+   "webpBytes": 16732,
+   "pieces": [
+    "door_west.webp"
+   ],
+   "psnrMin": 46.18,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "door_west_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 1235,
+   "webpBytes": 54,
+   "pieces": [
+    "door_west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "east.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 1857102,
+   "webpBytes": 114780,
+   "pieces": [
+    "east.webp"
+   ],
+   "psnrMin": 43.13,
+   "p999Max": 8,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "east_emissive.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 44987,
+   "webpBytes": 25870,
+   "pieces": [
+    "east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "north.png",
+   "size": [
+    1616,
+    818
+   ],
+   "pngBytes": 1354894,
+   "webpBytes": 88872,
+   "pieces": [
+    "north.webp"
+   ],
+   "psnrMin": 43.76,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "north_emissive.png",
+   "size": [
+    1616,
+    818
+   ],
+   "pngBytes": 65884,
+   "webpBytes": 43088,
+   "pieces": [
+    "north_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "north_left.png",
+   "size": [
+    816,
+    818
+   ],
+   "pngBytes": 647497,
+   "webpBytes": 35040,
+   "pieces": [
+    "north_left.webp"
+   ],
+   "psnrMin": 44.87,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "north_left_emissive.png",
+   "size": [
+    816,
+    818
+   ],
+   "pngBytes": 2667,
+   "webpBytes": 68,
+   "pieces": [
+    "north_left_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "north_right.png",
+   "size": [
+    800,
+    818
+   ],
+   "pngBytes": 641134,
+   "webpBytes": 35186,
+   "pieces": [
+    "north_right.webp"
+   ],
+   "psnrMin": 43.6,
+   "p999Max": 9,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "north_right_emissive.png",
+   "size": [
+    800,
+    818
+   ],
+   "pngBytes": 3351,
+   "webpBytes": 804,
+   "pieces": [
+    "north_right_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "south.png",
+   "size": [
+    4620,
+    336
+   ],
+   "pngBytes": 1302548,
+   "webpBytes": 55832,
+   "pieces": [
+    "south_0.webp",
+    "south_1.webp"
+   ],
+   "psnrMin": 45.11,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "south_emissive.png",
+   "size": [
+    4620,
+    336
+   ],
+   "pngBytes": 6097,
+   "webpBytes": 144,
+   "pieces": [
+    "south_0_emissive.webp",
+    "south_1_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "gate",
+   "file": "west.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 1846978,
+   "webpBytes": 140542,
+   "pieces": [
+    "west.webp"
+   ],
+   "psnrMin": 43.09,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "gate",
+   "file": "west_emissive.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 64633,
+   "webpBytes": 39548,
+   "pieces": [
+    "west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "hall",
+   "file": "door_east.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 230844,
+   "webpBytes": 20068,
+   "pieces": [
+    "door_east.webp"
+   ],
+   "psnrMin": 45.34,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "hall",
+   "file": "door_east_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 1893,
+   "webpBytes": 642,
+   "pieces": [
+    "door_east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "hall",
+   "file": "door_north.png",
+   "size": [
+    422,
+    484
+   ],
+   "pngBytes": 232186,
+   "webpBytes": 22454,
+   "pieces": [
+    "door_north.webp"
+   ],
+   "psnrMin": 44.61,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "hall",
+   "file": "door_north_emissive.png",
+   "size": [
+    422,
+    484
+   ],
+   "pngBytes": 9148,
+   "webpBytes": 6012,
+   "pieces": [
+    "door_north_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "hall",
+   "file": "door_south.png",
+   "size": [
+    300,
+    326
+   ],
+   "pngBytes": 83794,
+   "webpBytes": 7414,
+   "pieces": [
+    "door_south.webp"
+   ],
+   "psnrMin": 47.52,
+   "p999Max": 5,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "hall",
+   "file": "door_south_emissive.png",
+   "size": [
+    300,
+    326
+   ],
+   "pngBytes": 459,
+   "webpBytes": 34,
+   "pieces": [
+    "door_south_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "hall",
+   "file": "door_west.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 228204,
+   "webpBytes": 19690,
+   "pieces": [
+    "door_west.webp"
+   ],
+   "psnrMin": 45.31,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "hall",
+   "file": "door_west_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 1887,
+   "webpBytes": 676,
+   "pieces": [
+    "door_west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "hall",
+   "file": "east.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 1776061,
+   "webpBytes": 120112,
+   "pieces": [
+    "east.webp"
+   ],
+   "psnrMin": 43.19,
+   "p999Max": 8,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "hall",
+   "file": "east_emissive.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 82248,
+   "webpBytes": 53140,
+   "pieces": [
+    "east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "hall",
+   "file": "north.png",
+   "size": [
+    3246,
+    818
+   ],
+   "pngBytes": 2691627,
+   "webpBytes": 173560,
+   "pieces": [
+    "north.webp"
+   ],
+   "psnrMin": 43.47,
+   "p999Max": 8,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "hall",
+   "file": "north_emissive.png",
+   "size": [
+    3246,
+    818
+   ],
+   "pngBytes": 182143,
+   "webpBytes": 123888,
+   "pieces": [
+    "north_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "hall",
+   "file": "south.png",
+   "size": [
+    1178,
+    384
+   ],
+   "pngBytes": 219960,
+   "webpBytes": 21348,
+   "pieces": [
+    "south.webp"
+   ],
+   "psnrMin": 47.94,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "hall",
+   "file": "south_emissive.png",
+   "size": [
+    1178,
+    384
+   ],
+   "pngBytes": 1834,
+   "webpBytes": 58,
+   "pieces": [
+    "south_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "hall",
+   "file": "west.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 1765114,
+   "webpBytes": 107176,
+   "pieces": [
+    "west.webp"
+   ],
+   "psnrMin": 43.79,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "hall",
+   "file": "west_emissive.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 63541,
+   "webpBytes": 40238,
+   "pieces": [
+    "west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "outer",
+   "file": "door_east.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 262515,
+   "webpBytes": 24592,
+   "pieces": [
+    "door_east.webp"
+   ],
+   "psnrMin": 44.5,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "outer",
+   "file": "door_east_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 12995,
+   "webpBytes": 7566,
+   "pieces": [
+    "door_east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "outer",
+   "file": "door_north.png",
+   "size": [
+    628,
+    804
+   ],
+   "pngBytes": 627505,
+   "webpBytes": 67482,
+   "pieces": [
+    "door_north.webp"
+   ],
+   "psnrMin": 44.24,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "outer",
+   "file": "door_north_emissive.png",
+   "size": [
+    628,
+    804
+   ],
+   "pngBytes": 13331,
+   "webpBytes": 7446,
+   "pieces": [
+    "door_north_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "outer",
+   "file": "door_south.png",
+   "size": [
+    402,
+    456
+   ],
+   "pngBytes": 193517,
+   "webpBytes": 21136,
+   "pieces": [
+    "door_south.webp"
+   ],
+   "psnrMin": 45.46,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "outer",
+   "file": "door_south_emissive.png",
+   "size": [
+    402,
+    456
+   ],
+   "pngBytes": 1936,
+   "webpBytes": 998,
+   "pieces": [
+    "door_south_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "outer",
+   "file": "door_west.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 261774,
+   "webpBytes": 24172,
+   "pieces": [
+    "door_west.webp"
+   ],
+   "psnrMin": 44.38,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "outer",
+   "file": "door_west_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 13097,
+   "webpBytes": 7512,
+   "pieces": [
+    "door_west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "outer",
+   "file": "east.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 1865994,
+   "webpBytes": 149784,
+   "pieces": [
+    "east.webp"
+   ],
+   "psnrMin": 43.16,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "outer",
+   "file": "east_emissive.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 36963,
+   "webpBytes": 20972,
+   "pieces": [
+    "east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "outer",
+   "file": "north.png",
+   "size": [
+    6214,
+    818
+   ],
+   "pngBytes": 5268563,
+   "webpBytes": 383512,
+   "pieces": [
+    "north_0.webp",
+    "north_1.webp"
+   ],
+   "psnrMin": 43.73,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "outer",
+   "file": "north_emissive.png",
+   "size": [
+    6214,
+    818
+   ],
+   "pngBytes": 135541,
+   "webpBytes": 74520,
+   "pieces": [
+    "north_0_emissive.webp",
+    "north_1_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "outer",
+   "file": "south.png",
+   "size": [
+    4620,
+    272
+   ],
+   "pngBytes": 1139251,
+   "webpBytes": 72766,
+   "pieces": [
+    "south_0.webp",
+    "south_1.webp"
+   ],
+   "psnrMin": 44.82,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "outer",
+   "file": "south_emissive.png",
+   "size": [
+    4620,
+    272
+   ],
+   "pngBytes": 14121,
+   "webpBytes": 7008,
+   "pieces": [
+    "south_0_emissive.webp",
+    "south_1_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "outer",
+   "file": "west.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 1924233,
+   "webpBytes": 169756,
+   "pieces": [
+    "west.webp"
+   ],
+   "psnrMin": 43.07,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "outer",
+   "file": "west_emissive.png",
+   "size": [
+    512,
+    3230
+   ],
+   "pngBytes": 17657,
+   "webpBytes": 7782,
+   "pieces": [
+    "west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "waste",
+   "file": "door_east.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 279931,
+   "webpBytes": 26948,
+   "pieces": [
+    "door_east.webp"
+   ],
+   "psnrMin": 45.09,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "waste",
+   "file": "door_east_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 1235,
+   "webpBytes": 54,
+   "pieces": [
+    "door_east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "waste",
+   "file": "door_north.png",
+   "size": [
+    564,
+    432
+   ],
+   "pngBytes": 317829,
+   "webpBytes": 34768,
+   "pieces": [
+    "door_north.webp"
+   ],
+   "psnrMin": 43.86,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "waste",
+   "file": "door_north_emissive.png",
+   "size": [
+    564,
+    432
+   ],
+   "pngBytes": 9515,
+   "webpBytes": 5754,
+   "pieces": [
+    "door_north_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "waste",
+   "file": "door_south.png",
+   "size": [
+    534,
+    500
+   ],
+   "pngBytes": 317573,
+   "webpBytes": 33602,
+   "pieces": [
+    "door_south.webp"
+   ],
+   "psnrMin": 45.22,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "waste",
+   "file": "door_south_emissive.png",
+   "size": [
+    534,
+    500
+   ],
+   "pngBytes": 1115,
+   "webpBytes": 54,
+   "pieces": [
+    "door_south_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "waste",
+   "file": "door_west.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 278431,
+   "webpBytes": 26880,
+   "pieces": [
+    "door_west.webp"
+   ],
+   "psnrMin": 45.06,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "waste",
+   "file": "door_west_emissive.png",
+   "size": [
+    512,
+    582
+   ],
+   "pngBytes": 1235,
+   "webpBytes": 54,
+   "pieces": [
+    "door_west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "waste",
+   "file": "east.png",
+   "size": [
+    512,
+    2950
+   ],
+   "pngBytes": 1751226,
+   "webpBytes": 127190,
+   "pieces": [
+    "east.webp"
+   ],
+   "psnrMin": 42.98,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "waste",
+   "file": "east_emissive.png",
+   "size": [
+    512,
+    2950
+   ],
+   "pngBytes": 58937,
+   "webpBytes": 38320,
+   "pieces": [
+    "east_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "waste",
+   "file": "north.png",
+   "size": [
+    3246,
+    616
+   ],
+   "pngBytes": 2340387,
+   "webpBytes": 189134,
+   "pieces": [
+    "north.webp"
+   ],
+   "psnrMin": 43.2,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "waste",
+   "file": "north_emissive.png",
+   "size": [
+    3246,
+    616
+   ],
+   "pngBytes": 31828,
+   "webpBytes": 16764,
+   "pieces": [
+    "north_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "waste",
+   "file": "south.png",
+   "size": [
+    4620,
+    384
+   ],
+   "pngBytes": 1461348,
+   "webpBytes": 80592,
+   "pieces": [
+    "south_0.webp",
+    "south_1.webp"
+   ],
+   "psnrMin": 45.97,
+   "p999Max": 6,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "waste",
+   "file": "south_emissive.png",
+   "size": [
+    4620,
+    384
+   ],
+   "pngBytes": 19432,
+   "webpBytes": 9104,
+   "pieces": [
+    "south_0_emissive.webp",
+    "south_1_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  },
+  {
+   "region": "waste",
+   "file": "west.png",
+   "size": [
+    512,
+    3006
+   ],
+   "pngBytes": 1884881,
+   "webpBytes": 165090,
+   "pieces": [
+    "west.webp"
+   ],
+   "psnrMin": 42.6,
+   "p999Max": 7,
+   "alphaErrMax": 0,
+   "lossless": false
+  },
+  {
+   "region": "waste",
+   "file": "west_emissive.png",
+   "size": [
+    512,
+    3006
+   ],
+   "pngBytes": 49679,
+   "webpBytes": 30680,
+   "pieces": [
+    "west_emissive.webp"
+   ],
+   "psnrMin": 99.0,
+   "p999Max": 0,
+   "alphaErrMax": 0,
+   "lossless": true
+  }
+ ]
+}

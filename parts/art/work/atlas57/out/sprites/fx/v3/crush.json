@@ -1,0 +1,109 @@
+{
+ "image": "crush.png",
+ "action": "crush",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "framesPerDirection": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12,
+ "frameDurationsMs": [
+  40,
+  50,
+  70,
+  90,
+  110,
+  130
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 128,
+  "y": 160
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "anchor": "hitbox_center",
+ "spawn": "hit_judge",
+ "depth": "below",
+ "weapon": "greatsword",
+ "flash": {
+  "color": "#eecc78",
+  "alpha": 0.16,
+  "ms": 40,
+  "atFrame": 1
+ },
+ "shake": {
+  "px": 2,
+  "ms": 60
+ },
+ "pivotNote": "피벗 (32,40) = 바닥 타격점 (히트박스 중심에서 아래로 6px 권장). 낙뢰는 캔버스 위 가장자리에서 내려온다 — 회전 없음.",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
+ "source": "parts/art/work/fx_weapons_v3/build.py",
+ "colors": 12,
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "대검 A 녹슨 양손검(Q27) — 녹·흙 넓은 띠 + 이 빠진 홈 혼불 한 줄(이 빠진 자리마다 끊김) + 흙먼지·불씨",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다. (빌드 검사: glowFrames 밖 프레임에는 X0·X1·A26 없음 — A25 이하)",
+ "note": "v3 (53라운드 Q5): 대검 A 녹슨 양손검(Q27) — 녹·흙 넓은 띠 + 이 빠진 홈 혼불 한 줄(이 빠진 자리마다 끊김) + 흙먼지·불씨",
+ "legacy": {
+  "image": "../crush.png.png",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "pivot": {
+   "x": 32,
+   "y": 40
+  },
+  "pixelScale": 2,
+  "note": "파쇄: 낙뢰(3겹 번개 + 가지 2) → 타격 섬광 별 → 세로 0.6 압축 링 r8→16→24 + 방사 균열(용암 W2 → 식어서 W1/W0 점) + 재 G06/G09. 콘셉트 quake_bolt 승격.",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed; greatsword W2 #d8441c round-43)",
+  "secondary": "fx.weapons.greatsword",
+  "design": "fx-design.md (round 42/43 infernum language) — produced by parts/art/work/fx_prod/build_a.py"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 crush.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":221,"y":0,"w":10,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":126,"y":31,"w":10,"h":122},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":177,"y":120,"w":42,"h":161},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":20,"w":42,"h":161},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":129,"y":283,"w":68,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":134,"w":68,"h":48},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":0,"y":226,"w":127,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":115,"w":127,"h":83},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":0,"y":120,"w":175,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":108,"w":175,"h":104},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":0,"y":0,"w":202,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":101,"w":202,"h":118},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "crush.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 231,
+   "h": 331
+  },
+  "scale": "1"
+ }
+}

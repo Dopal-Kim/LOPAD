@@ -1,0 +1,168 @@
+{
+ "image": "katana_carry_drawn_walk.png",
+ "action": "carry_drawn_walk",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 12.5,
+ "frameDurationsMs": [
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero_v3/build.py (53라운드 Q1·Q4 — 96×144 1.5배 재출력)",
+ "weapon": "katana",
+ "carry": "drawn, in right hand (뽑아 든 상태) + 빈 칼집(왼허리)",
+ "state": "drawn",
+ "bodySheet": "player_walk",
+ "anchor": "player_pivot",
+ "design": "B 재 칼날 (53라운드 Q26) — 검은 재 칼날 + 날선 호박 균열 1줄 + 흉갑 조각 코등이 + 붕대 손잡이 + 금 간 재·흙 칼집",
+ "designRef": "parts/art/work/gemini/concept_weapons/raw_katana_B2.jpg (참고만, 도트는 직접)",
+ "glowRule": "53라운드 Q30: 평소 날선·칼집 금만 1px 은은(A21/A19), 판정(glow) 프레임만 날선 A25/A26 + 날 몸 A21",
+ "colorBudget": 16,
+ "colorNote": "무기 16색 이하, 전부 주인공 30색 팔레트 안(재 G·호박 A·흉갑 SL·붕대 PL 램프 공유, Q32). 백열 코어 X 미사용",
+ "playerFrameOffset": {
+  "x": 48,
+  "y": 48
+ },
+ "depth": {
+  "down": "above",
+  "up": "above",
+  "left": "above",
+  "right": "above"
+ },
+ "depthByFrame": {
+  "down": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "up": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "left": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ],
+  "right": [
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above",
+   "above"
+  ]
+ },
+ "occlusionBaked": true,
+ "bladeLocal": {
+  "thetaDeg": 30.0,
+  "elevDeg": -40.0
+ },
+ "bladeNote": "대기·걷기 = 앞·아래·바깥으로 낮게 든 칼, 달리기 = 뒤로 끌며 낮게, 대쉬 = 뒤로 곧게. 오른손 = 몸 시트 handAnchors.R",
+ "stateNote": "공격 뒤 납도 전(비전투 타이머 동안) 이동·대기 때 katana_carry_* 대신 사용(구 시트와 같은 쓰임).",
+ "overlay": "player_walk 와 같은 프레임 번호를 같은 시각에 겹친다. 피벗 (96,186) = 주인공 피벗 (48,138).",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_carry_drawn_walk.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":108,"y":214,"w":90,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":131,"w":90,"h":61},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":105,"y":333,"w":95,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":129,"w":95,"h":60},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":102,"y":433,"w":98,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":126,"w":98,"h":61},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":101,"y":496,"w":98,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":130,"w":98,"h":58},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":97,"y":705,"w":94,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":128,"w":94,"h":63},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":0,"y":714,"w":89,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":124,"w":89,"h":65},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":112,"y":86,"w":86,"h":66},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":123,"w":86,"h":66},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":0,"y":781,"w":86,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":127,"w":86,"h":64},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":107,"y":277,"w":90,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":130,"w":90,"h":44},"sourceSize":{"w":192,"h":192}},
+  "9":{"frame":{"x":0,"y":632,"w":97,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":128,"w":97,"h":41},"sourceSize":{"w":192,"h":192}},
+  "10":{"frame":{"x":0,"y":495,"w":99,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":128,"w":99,"h":38},"sourceSize":{"w":192,"h":192}},
+  "11":{"frame":{"x":0,"y":594,"w":98,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":132,"w":98,"h":36},"sourceSize":{"w":192,"h":192}},
+  "12":{"frame":{"x":0,"y":675,"w":95,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":136,"w":95,"h":37},"sourceSize":{"w":192,"h":192}},
+  "13":{"frame":{"x":91,"y":770,"w":89,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":132,"w":89,"h":40},"sourceSize":{"w":192,"h":192}},
+  "14":{"frame":{"x":88,"y":812,"w":86,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":129,"w":86,"h":43},"sourceSize":{"w":192,"h":192}},
+  "15":{"frame":{"x":112,"y":39,"w":87,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":128,"w":87,"h":45},"sourceSize":{"w":192,"h":192}},
+  "16":{"frame":{"x":0,"y":0,"w":112,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":133,"w":112,"h":37},"sourceSize":{"w":192,"h":192}},
+  "17":{"frame":{"x":0,"y":139,"w":110,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":131,"w":110,"h":35},"sourceSize":{"w":192,"h":192}},
+  "18":{"frame":{"x":0,"y":397,"w":101,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":131,"w":101,"h":34},"sourceSize":{"w":192,"h":192}},
+  "19":{"frame":{"x":105,"y":395,"w":92,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":132,"w":92,"h":36},"sourceSize":{"w":192,"h":192}},
+  "20":{"frame":{"x":108,"y":176,"w":91,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":134,"w":91,"h":36},"sourceSize":{"w":192,"h":192}},
+  "21":{"frame":{"x":100,"y":612,"w":98,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":132,"w":98,"h":34},"sourceSize":{"w":192,"h":192}},
+  "22":{"frame":{"x":0,"y":297,"w":105,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":131,"w":105,"h":34},"sourceSize":{"w":192,"h":192}},
+  "23":{"frame":{"x":0,"y":100,"w":110,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":131,"w":110,"h":37},"sourceSize":{"w":192,"h":192}},
+  "24":{"frame":{"x":99,"y":648,"w":95,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":124,"w":95,"h":55},"sourceSize":{"w":192,"h":192}},
+  "25":{"frame":{"x":0,"y":535,"w":98,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":121,"w":98,"h":57},"sourceSize":{"w":192,"h":192}},
+  "26":{"frame":{"x":0,"y":433,"w":100,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":120,"w":100,"h":60},"sourceSize":{"w":192,"h":192}},
+  "27":{"frame":{"x":0,"y":333,"w":103,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":120,"w":103,"h":62},"sourceSize":{"w":192,"h":192}},
+  "28":{"frame":{"x":0,"y":176,"w":106,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":123,"w":106,"h":61},"sourceSize":{"w":192,"h":192}},
+  "29":{"frame":{"x":0,"y":39,"w":110,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":121,"w":110,"h":59},"sourceSize":{"w":192,"h":192}},
+  "30":{"frame":{"x":0,"y":239,"w":105,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":121,"w":105,"h":56},"sourceSize":{"w":192,"h":192}},
+  "31":{"frame":{"x":100,"y":556,"w":98,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":122,"w":98,"h":54},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_carry_drawn_walk.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 200,
+   "h": 855
+  },
+  "scale": "1"
+ }
+}

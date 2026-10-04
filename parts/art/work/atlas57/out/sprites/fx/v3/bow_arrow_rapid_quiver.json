@@ -1,0 +1,103 @@
+{
+ "image": "bow_arrow_rapid_quiver.png",
+ "action": "bow_arrow_rapid",
+ "frameWidth": 96,
+ "frameHeight": 32,
+ "framesPerDirection": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 25,
+ "frameDurationsMs": [
+  40,
+  40
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 80,
+  "y": 16
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "source": "parts/art/work/fx_weapons_v3/build.py",
+ "weapon": "bow",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "depth": "above",
+ "branch": "rapid",
+ "branchLabel": "속사",
+ "replaces": "2단 갈래 '무한통' 획득 시 fx/bow_arrow_rapid 대신 재생 — 프레임 수·ms·loop·anchor·spawn·impact/hit/active/cancel·판정 필드는 1단과 같다. 틀이 1단보다 넓다(왼쪽·위아래로 넓힘, 촉 쪽 기준 그대로) — JSON frameWidth/Height·pivot 을 읽을 것.",
+ "spawn": "loop_move",
+ "pivotNote": "피벗 (12,3) = 화살 몸 중심(8px 화살의 가운데). 잔상은 뒤(왼쪽)로 그려져 있음",
+ "version": "v3",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
+ "colors": 10,
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "활 B 혼불 시위 + 재 화살(Q29) — 재 화살대·타는 촉, 재 연기·불티 꼬리, 조준 = 혼불 실",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [],
+ "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다.",
+ "branchTier": 2,
+ "secondary": "quiver",
+ "secondaryLabel": "무한통",
+ "baseSheet": "fx/bow_arrow_rapid",
+ "tier1Sheet": "fx/bow_arrow_rapid",
+ "runtime": {},
+ "runtimeNote": "1단 secondaryVariants[quiver] 의 colorSwap 은 이 시트에 이미 그려져 있으므로 적용하지 않는다. runtime 의 나머지(overlay·flashOverride·holdLastFrameMs·shakeOverride·trailOverride·scaleHint)는 그대로 쓴다. (구 메모: 탄창 대폭: 화살대에 호박 실체화 빛 한 줄)",
+ "tierDesign": "관통 pierce  = 저격 + 촉 앞에서 공기를 가르는 '<' 쐐기 2겹 / 꼬리 = 굵은 창 심 + 고리가 날카로운 쐐기로 + 뒤로 튀는 재 조각",
+ "tierNote": "55라운드 Q9: 2단 = 1단 모양 + 입자·빛·잔연 + 큰 틀",
+ "note": "v3 (53라운드 Q5): 관통 pierce  = 저격 + 촉 앞에서 공기를 가르는 '<' 쐐기 2겹 / 꼬리 = 굵은 창 심 + 고리가 날카로운 쐐기로 + 뒤로 튀는 재 조각",
+ "legacy": {
+  "image": "../bow_arrow_rapid.png.png",
+  "frameWidth": 16,
+  "frameHeight": 6,
+  "pivot": {
+   "x": 12,
+   "y": 3
+  },
+  "pixelScale": 2,
+  "note": "짧고 빠른 잔상 화살 16×6: 8px 화살(X0 촉 · X1 코어 자루 · W2 그늘 · W3 깃) + 뒤로 끊긴 잔상 2개(W2/W1 → W1/W0). 2프레임 40ms 루프 = 잔상이 1px 엇갈려 깜빡임.",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+  "secondary": "fx.weapons.bow",
+  "v3Note": "2단 갈래 시트(55라운드) — 구 시트 없음. legacy 는 1단 구 시트(bow_arrow_rapid) 기준"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_arrow_rapid_quiver.png)",
+  "grid": {
+   "columns": 2,
+   "rows": 1,
+   "frameWidth": 96,
+   "frameHeight": 32,
+   "frameCount": 2
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":87,"y":0,"w":80,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":10,"w":80,"h":12},"sourceSize":{"w":96,"h":32}},
+  "1":{"frame":{"x":0,"y":0,"w":85,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":10,"w":85,"h":12},"sourceSize":{"w":96,"h":32}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_arrow_rapid_quiver.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 167,
+   "h": 12
+  },
+  "scale": "1"
+ }
+}

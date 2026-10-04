@@ -1,0 +1,138 @@
+{
+ "image": "dagger_brand_mark.png",
+ "action": "dagger_brand_mark",
+ "version": "v3-r56d",
+ "frameWidth": 44,
+ "frameHeight": 40,
+ "framesPerDirection": 6,
+ "directions": [
+  "1",
+  "2",
+  "3",
+  "4",
+  "5"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 10.17,
+ "frameDurationsMs": [
+  40,
+  70,
+  120,
+  120,
+  120,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "colors": 8,
+ "semiTransparent": false,
+ "source": "parts/art/work/combo56_res/build.py (56라운드 작업 D — 자원·가드·그로기 표시)",
+ "weapon": "dagger",
+ "rowsAre": "stacks",
+ "rowBy": "stack",
+ "sizes": [
+  "1",
+  "2",
+  "3",
+  "4",
+  "5"
+ ],
+ "directionsNote": "directions 칸에 스택 수(1~5)를 넣었다 — 행 = 낙인 스택. 방향으로 고르지 말 것(회전·반전 없음)",
+ "anchor": "enemy_head",
+ "pivot": {
+  "x": 17,
+  "y": 34
+ },
+ "pivotNote": "pivot = 표식 아래 가운데. 적 머리 위(적 시트 윗변 + 여백 8 논리 px 권장)에 놓는다. 몸에 붙이고 싶으면 anchor 를 enemy_body(몸 중심)로 — 그림은 같다",
+ "rotate": false,
+ "depth": "above",
+ "followTarget": true,
+ "phaseFrames": {
+  "stamp": [
+   0,
+   1
+  ],
+  "loop": [
+   2,
+   5
+  ]
+ },
+ "loopRange": [
+  2,
+  5
+ ],
+ "playRule": "스택이 오를 때마다 그 스택 행의 열 0→1 을 1회 재생한 뒤 열 2~5 를 루프. 스택이 그대로면 루프만. 기폭·과열 폭발·대상 사망 때 지움",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "53라운드 Q65: 백열(A26)은 새 획이 지져지는 열 0(타격 판정 순간)만. 그 밖은 A25 이하 — 빌드 검사 통과",
+ "design": "56라운드 Q16 낙인 — 붓으로 지진 셈 획(1~4 세로 획, 5 = 가로질러 긋는 획 = '꽉 참'). 새 획은 지져지는 순간 뜨겁게 번쩍, 남은 획은 호박 잔불로 깜빡이고 불티가 오른다",
+ "keyArt": "parts/art/work/gemini/weapon_moves/raw_dagger_A2.jpg 패널 3(sheet_dagger 3번)",
+ "sizeNote": "화면 약 22×20 논리 px — 적 결사병(화면 64×88) 머리 위에서 읽히는 크기",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_brand_mark.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 5,
+   "frameWidth": 44,
+   "frameHeight": 40,
+   "frameCount": 30
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":105,"y":117,"w":14,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":5,"w":14,"h":26},"sourceSize":{"w":44,"h":40}},
+  "1":{"frame":{"x":101,"y":145,"w":6,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":13,"w":6,"h":18},"sourceSize":{"w":44,"h":40}},
+  "2":{"frame":{"x":103,"y":0,"w":9,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":2,"w":9,"h":29},"sourceSize":{"w":44,"h":40}},
+  "3":{"frame":{"x":56,"y":118,"w":10,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":8,"w":10,"h":23},"sourceSize":{"w":44,"h":40}},
+  "4":{"frame":{"x":114,"y":0,"w":9,"h":27},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":4,"w":9,"h":27},"sourceSize":{"w":44,"h":40}},
+  "5":{"frame":{"x":68,"y":118,"w":8,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":10,"w":8,"h":21},"sourceSize":{"w":44,"h":40}},
+  "6":{"frame":{"x":82,"y":117,"w":21,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":5,"w":21,"h":26},"sourceSize":{"w":44,"h":40}},
+  "7":{"frame":{"x":0,"y":146,"w":14,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":13,"w":14,"h":18},"sourceSize":{"w":44,"h":40}},
+  "8":{"frame":{"x":87,"y":0,"w":14,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":2,"w":14,"h":29},"sourceSize":{"w":44,"h":40}},
+  "9":{"frame":{"x":89,"y":31,"w":14,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":3,"w":14,"h":28},"sourceSize":{"w":44,"h":40}},
+  "10":{"frame":{"x":105,"y":31,"w":14,"h":27},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":4,"w":14,"h":27},"sourceSize":{"w":44,"h":40}},
+  "11":{"frame":{"x":0,"y":118,"w":14,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":5,"w":14,"h":26},"sourceSize":{"w":44,"h":40}},
+  "12":{"frame":{"x":30,"y":90,"w":26,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":5,"w":26,"h":26},"sourceSize":{"w":44,"h":40}},
+  "13":{"frame":{"x":79,"y":145,"w":20,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":13,"w":20,"h":18},"sourceSize":{"w":44,"h":40}},
+  "14":{"frame":{"x":63,"y":0,"w":22,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":2,"w":22,"h":29},"sourceSize":{"w":44,"h":40}},
+  "15":{"frame":{"x":63,"y":31,"w":24,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":3,"w":24,"h":28},"sourceSize":{"w":44,"h":40}},
+  "16":{"frame":{"x":63,"y":61,"w":23,"h":27},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":4,"w":23,"h":27},"sourceSize":{"w":44,"h":40}},
+  "17":{"frame":{"x":58,"y":90,"w":22,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":5,"w":22,"h":26},"sourceSize":{"w":44,"h":40}},
+  "18":{"frame":{"x":88,"y":61,"w":35,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":5,"w":35,"h":26},"sourceSize":{"w":44,"h":40}},
+  "19":{"frame":{"x":49,"y":145,"w":28,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":13,"w":28,"h":18},"sourceSize":{"w":44,"h":40}},
+  "20":{"frame":{"x":33,"y":0,"w":28,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":2,"w":28,"h":29},"sourceSize":{"w":44,"h":40}},
+  "21":{"frame":{"x":33,"y":31,"w":28,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":28,"h":28},"sourceSize":{"w":44,"h":40}},
+  "22":{"frame":{"x":33,"y":61,"w":28,"h":27},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":4,"w":28,"h":27},"sourceSize":{"w":44,"h":40}},
+  "23":{"frame":{"x":0,"y":90,"w":28,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":5,"w":28,"h":26},"sourceSize":{"w":44,"h":40}},
+  "24":{"frame":{"x":16,"y":118,"w":38,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":6,"w":38,"h":25},"sourceSize":{"w":44,"h":40}},
+  "25":{"frame":{"x":16,"y":145,"w":31,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":13,"w":31,"h":18},"sourceSize":{"w":44,"h":40}},
+  "26":{"frame":{"x":0,"y":0,"w":31,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":2,"w":31,"h":29},"sourceSize":{"w":44,"h":40}},
+  "27":{"frame":{"x":0,"y":31,"w":31,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":3,"w":31,"h":28},"sourceSize":{"w":44,"h":40}},
+  "28":{"frame":{"x":0,"y":61,"w":31,"h":27},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":4,"w":31,"h":27},"sourceSize":{"w":44,"h":40}},
+  "29":{"frame":{"x":88,"y":89,"w":31,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":2,"y":5,"w":31,"h":26},"sourceSize":{"w":44,"h":40}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_brand_mark.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 123,
+   "h": 164
+  },
+  "scale": "1"
+ }
+}
