@@ -1022,3 +1022,13 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 - 각성 오버레이(`<무기 동작>_awaken`)는 각성 런만(`preloadWeaponSheets(…, awaken)` · `loadAwakenSheets`), 피벗은 오버레이 JSON.
 - 갈래 fx 는 노드 `art.fx`·`replaceFx`(fx 별칭) — 옛 갈래·조합·tier2 시트는 읽지 않음, 옛 2단 시트는 빌드에서 뺌(`data/buildExclude.json`).
 - §22: 소품(`structures/v3`) · 월드 소모품(분류 `items` — `sprites/items/<이름>.json`) · 엘리트 외곽선(`enemies/v3/<적>_<동작>_elite`)은 부팅 묶음.
+
+### 60라운드 후속 (아트 P1·각성 재디자인 연결 · Q27~Q32 반영)
+- 6-1 정리(동작 그대로): `build/BuildCombat` → 파사드 + `build/combat/{AttackPassives,ShotRules,KillRules,common}` · `bundle/EliteSystem` → 규칙 + `bundle/EliteArt`(그림) · `DebugHooks` → + `debug/{combatDebug,worldDebug}`. 칸 → px 도우미 `T` 는 `scenes/game/shared` 하나로.
+- 각성(계약 art §21 제작 결과): `build/AwakenFlow` — 획득 때 각성 시트 로드 → 메뉴가 닫힌 순간 `<무기>_awaken_in` 1회 + 오버레이 켬(`WeaponOverlay.holdAwaken`, 각성 순간 시트가 없으면 시그니처 fx). 각성 런은 무기 fx 마다 `<fx>_awaken` 을 FxPool 교체 표로(`sheetSets.awakenFxAliases`, 갈래 replaceFx 가 같은 fx 를 바꾸면 갈래 우선). 화살 텍스처·빌드 투사체도 교체 표를 거친다. 오버레이 정렬은 JSON pivot(= 원 피벗 + pivotDelta) — `awakenSheets.test` 가 실제 JSON 으로 확인.
+- 64도트 타일(§11 P1): 도트 길이 환산은 `world/quarterScale`(칸 배율 TILE/tilePx = pixelScale/2), 화로 기본 피벗 들림도 배율 기준. `quarterScale.test` 가 5지역 실제 JSON 으로 한 칸 = TILE·데칼 = 발자국·광원 칸 안 확인.
+- 1층 적 10·4프레임: 시스템은 JSON 프레임 메모만 읽는다(하드코딩 없음) — `enemyFrames.test` 가 판정·발사 시각(170·160·240ms)·총 길이·엘리트 외곽선 같은 프레임·headTopByEnemy 확인.
+- Q28 빌드 제외 확대(`data/buildExclude.json`): 옛 1단 진화 시트(iai·batto·crush·weight·gale·twin) · 꽂아내리기 그림. `buildExclude.test` 가 로드하는 시트는 안 빠지는지 확인.
+- Q30 저주 길 보상 패시브 3택: 영웅 이상 `passiveGuaranteed`(1)개 확정 + 나머지 일반 확률 (`RollOptions.guaranteed`).
+- Q32 단서·이벤트 소품·지도 장수 = E 조사 (`UiStructureKind` clue·eventProp·mapSeller, 전투 중이면 reason combat). '가까이 가면 메뉴' 방식은 없앴다.
+- 음향 manifest 남은 불일치는 `audioBuild.SOUND_ID_ALIASES` 아래 블록(키 = manifest 지금 값, 값 = 시스템 실제).

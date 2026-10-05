@@ -220,7 +220,7 @@ export class NodeFlow {
     chain(steps);
   }
 
-  /** 저주 길 보상: 영웅 이상 패시브 3택 또는 전표 100 (고르기) */
+  /** 저주 길 보상: 패시브 3택(영웅 이상 1개 확정 + 나머지 일반 확률 — 60 Q30) 또는 전표 100 (고르기) */
   private curseReward(next: () => void): void {
     const g = this.g;
     const C = BUNDLE2.risk.curse;
@@ -229,13 +229,24 @@ export class NodeFlow {
       'event',
       String(BUNDLE2.rewards.names.curse ?? ''),
       [
-        { key: '1', label: `영웅 이상 패시브 ${C.passiveChoices}택`, enabled: true },
+        {
+          key: '1',
+          label: `패시브 ${C.passiveChoices}택 (영웅 이상 ${C.passiveGuaranteed}개 확정)`,
+          enabled: true,
+        },
         { key: '2', label: goldLabel, enabled: true },
       ],
       (key) => {
         if (key === '1') {
           g.menu.close();
-          g.buildMenus.openPassiveMenu('node', { choices: C.passiveChoices, rarities: C.passiveRarities }, next);
+          g.buildMenus.openPassiveMenu(
+            'node',
+            {
+              choices: C.passiveChoices,
+              guaranteed: { rarities: C.passiveRarities, count: C.passiveGuaranteed },
+            },
+            next,
+          );
         } else if (key === '2') {
           g.menu.close();
           g.economy.addGold(C.gold);

@@ -316,7 +316,11 @@ export class TileSkin {
           w: px,
           h: px,
         },
-        pivot: brazier.pivot ?? { x: px / 2, y: px - 2 },
+        // 피벗 기본 = 칸 아래 가운데, 바닥 위 2 논리 px (32칸 2도트 · 64칸 4도트)
+        pivot: brazier.pivot ?? {
+          x: px / 2,
+          y: px - QUARTER.V3_PIVOT_LIFT_LOGICAL / RENDER.WORLD_TO_SCREEN / this.worldScale,
+        },
         footprint: [1, 1],
         solid: true,
         occludeAbove: brazier.occludeAbove,

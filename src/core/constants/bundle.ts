@@ -2,10 +2,13 @@
 export const BUNDLE_FX = {
   /** 소품 플레이스홀더 색 (시트가 없을 때 StructureView 기본 도형) */
   PROP_COLOR: '#8a6a3a',
-  /** E 소품 안내 반경 · 메뉴 소품 '가까이' 반경 (칸) */
+  /** E 소품 안내 반경 (칸) · 못 쓰는 사유 문구 (자리표시) */
   INTERACT_TILES: 1.5,
-  NEAR_TILES: 1.2,
   NOT_READY_TEXT: '지금은 아니다',
+  COMBAT_TEXT: '전투 중',
+  /** 60라운드 Q32 E 조사 소품 (UI 계약 §14.10 clue·eventProp·mapSeller) 행동 문구 (자리표시) */
+  EVENT_ACTION: '살펴본다',
+  SELLER_ACTION: '말을 건다',
   /** 소품 자리: 전투장 가운데에서 (칸) — 이벤트 소품은 가운데 위, 성소 깃발은 가운데 왼쪽, 단서는 가운데 아래 */
   EVENT_OFFSET: { x: 0, y: -2 },
   SHRINE_OFFSET: { x: -3, y: -1 },

@@ -146,13 +146,15 @@ export class BowShots {
       : weak
         ? { id: arrowFxId(weapon.id, false), branch: false, tier2: false, variant: null }
         : this.arrowSheet(aimed);
+    // 60라운드 계약 art §21: 교체 표(각성 궤적 `bow_arrow_awaken` 등 — 꼬리 때문에 틀이 길어도 피벗 기준)를 거친 실제 시트
+    const sheetId = g.fx.resolve(arrow.id);
     const def = g.fx.sheet(arrow.id);
     // 2단 갈래: 2단 전용 시트면 그 runtime, 대체 경로면 화살 색 교체 텍스처 (만들 수 없으면 원본)
     const variant = arrow.variant;
-    const swapped = variant?.swaps.length ? spriteLibrary.recolored(g, arrow.id, FX_ACTION, variant.swaps) : null;
-    const texture = swapped?.texture ?? spriteLibrary.textureKey(arrow.id, FX_ACTION);
+    const swapped = variant?.swaps.length ? spriteLibrary.recolored(g, sheetId, FX_ACTION, variant.swaps) : null;
+    const texture = swapped?.texture ?? spriteLibrary.textureKey(sheetId, FX_ACTION);
     const anim = def?.loop
-      ? (swapped?.anim('down') ?? spriteLibrary.animKey(arrow.id, FX_ACTION, 'down') ?? undefined)
+      ? (swapped?.anim('down') ?? spriteLibrary.animKey(sheetId, FX_ACTION, 'down') ?? undefined)
       : undefined;
     const origin = def
       ? { originX: def.pivot.x / def.frameWidth, originY: def.pivot.y / def.frameHeight, scale: fxDrawScale(def) }

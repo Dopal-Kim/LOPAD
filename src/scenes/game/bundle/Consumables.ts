@@ -8,7 +8,7 @@
  * 월드 드롭 = `items/v3/consumable_f1` (행 = 종류) — 밟으면 줍는다.
  */
 import Phaser from 'phaser';
-import { BUILD_ART, BUNDLE_FX, DEPTH, KEYS, TILE } from '../../../core/Constants';
+import { BUILD_ART, BUNDLE_FX, DEPTH, KEYS } from '../../../core/Constants';
 import { EventBus, Events, type ConsumablePayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { BUNDLE2, consumableDef } from '../../../data/bundle2';
@@ -18,6 +18,7 @@ import { spriteLibrary } from '../../../systems/sprites/sprites';
 import { FX_ACTION, artScale } from '../../../systems/sprites/spriteDefs';
 import { ITEM_ACTION, ITEM_SHEET } from '../../../systems/bundle2/bundleSheets';
 import type { Game } from '../../Game';
+import { T } from '../shared';
 
 export type { ConsumablePayload } from '../../../core/EventBus';
 
@@ -26,8 +27,6 @@ interface Drop {
   sprite: Phaser.GameObjects.GameObject & { x: number; y: number; destroy(): void };
   until: number;
 }
-
-const T = (n: number) => n * TILE;
 
 export class Consumables {
   /** 깡술 끝 · 냉수 기울기 무시 끝 */

@@ -62,6 +62,8 @@ export class WeaponOverlay {
   gaugeAction: string | null = null;
   /** 60라운드 계약 art §21 최종 각성 외형 오버레이 (`<무기 동작>_awaken`, 각성 런에서만) — 그리는 순서 무기 → 각성 → 검기·울분 */
   private awaken = false;
+  /** 60라운드: 각성 순간 fx(`<무기>_awaken_in`)와 같은 순간에 켜려고 잠시 숨김 (런 도중 각성 — 시트 로드·메뉴 닫힘 전까지) */
+  private awakenHeld = false;
   private awakenSprite: Phaser.GameObjects.Sprite | null = null;
   awakenAction: string | null = null;
   /** 56라운드 Q12: 적중 순간 무기 번쩍임 사본 (더하기 혼합) · 그 트윈 */
@@ -102,6 +104,11 @@ export class WeaponOverlay {
   /** 60라운드: 각성 외형 오버레이 켜기 (각성 런) */
   setAwaken(on: boolean): void {
     this.awaken = on;
+  }
+
+  /** 60라운드: 각성 오버레이를 잠시 숨김 (true) · 각성 순간 fx 와 함께 켬 (false) */
+  holdAwaken(held: boolean): void {
+    this.awakenHeld = held;
   }
 
   /** 56라운드 Q14·Q15: 자원 오버레이 단계 (null = 없음) · 오버레이 시트가 없을 때 칼날 곱 틴트 */
@@ -347,7 +354,7 @@ export class WeaponOverlay {
   /** 각성 오버레이 시트 `<무기 동작>_awaken` 를 겹친다 (계약 §21 — 검기·울분 오버레이와 같은 규칙) */
   private showAwaken(action: string, dir: Dir8, column: number): void {
     const id = gameState.weapon.id;
-    const name = this.awaken ? `${action}_awaken` : null;
+    const name = this.awaken && !this.awakenHeld ? `${action}_awaken` : null;
     const odef = name ? this.sheetOf(id, name) : undefined;
     if (!name || !odef) {
       this.hideAwaken();

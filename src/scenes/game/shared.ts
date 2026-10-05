@@ -2,6 +2,7 @@
  * Game 씬 분리 모듈(50라운드 1단계)이 함께 쓰는 형식·작은 함수.
  * 씬 시작 데이터 · 판정 원점 · 연격 마지막 타 판정 · 주소 옵션 (60라운드: 옛 개성 경로 이펙트 고르기 pathFx 삭제 — 57 Q42).
  */
+import { TILE } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { PLAYER_HIT_ORIGIN_UP_PX } from '../../systems/weapon/playerScale';
@@ -23,6 +24,9 @@ export type GameInitData = {
   /** 54라운드 `?boss`·`?bossPhase`·`?bossPattern`: 새 런으로 이 층 보스 노드에 바로 (보스 확인용) */
   bossJump?: boolean;
 };
+
+/** 칸 → 월드 px (60라운드 6-1: 빌드·묶음 모듈이 따로 두던 같은 도우미를 하나로) */
+export const T = (tiles: number): number => tiles * TILE;
 
 /** 49라운드 회피 시험 보상 상한 (결정 49 Q2: 시작 감각 +0~3) */
 export const SENSE_BONUS_MAX = 3;

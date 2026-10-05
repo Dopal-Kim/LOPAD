@@ -259,8 +259,10 @@ export class BuildEffects {
   }
 
   /** 투사체 시트 외형 (GameCombat.fire 와 같은 규칙 — 회전·원점·루프·그리는 배율) */
-  shotVisual(id: string): ProjectileVisual {
-    if (!this.g.fx.has(id)) return {};
+  shotVisual(rawId: string): ProjectileVisual {
+    if (!this.g.fx.has(rawId)) return {};
+    // 60라운드: 교체 표(각성 궤적 등)를 거친 실제 시트
+    const id = this.g.fx.resolve(rawId);
     const def = spriteLibrary.sheet(id, FX_ACTION);
     if (!def) return {};
     return {

@@ -84,7 +84,22 @@ export class EventNode {
     }
     if (def.prop) {
       const p = this.at(BUNDLE_FX.EVENT_OFFSET);
-      this.props.add({ id: EVENT_PROP, sheet: def.prop, label: def.name, x: p.x, y: p.y, onNear: () => this.open() });
+      // 60라운드 Q32: 이벤트 소품은 E 로 조사 (UI 계약 §14.10 eventProp)
+      this.props.add({
+        id: EVENT_PROP,
+        sheet: def.prop,
+        label: def.name,
+        x: p.x,
+        y: p.y,
+        interact: {
+          kind: 'eventProp',
+          name: def.name,
+          action: BUNDLE_FX.EVENT_ACTION,
+          actionKey: 'eventProp.inspect',
+          usable: () => true,
+          use: () => this.open(),
+        },
+      });
     } else after(() => this.open());
   }
 
@@ -100,7 +115,15 @@ export class EventNode {
       x: p.x,
       y: p.y,
       state: 'idle',
-      onNear: () => this.openClue(),
+      // 60라운드 Q32: 단서는 E 로 살펴보기 (UI 계약 §14.10 clue) — 길을 연 뒤에는 쓸 수 없다
+      interact: {
+        kind: 'clue',
+        name: BUNDLE2.hidden.name,
+        action: BUNDLE_FX.CLUE_LABEL,
+        actionKey: 'clue.inspect',
+        usable: () => gameState.bundle.floor?.hidden?.state !== 'found',
+        use: () => this.openClue(),
+      },
     });
   }
 
@@ -138,7 +161,15 @@ export class EventNode {
       label: BUNDLE2.mapInfo.sellerName,
       x: p.x,
       y: p.y,
-      onNear: () => this.openSeller(),
+      // 60라운드 Q32: 지도 장수는 E 로 말 걸기 (UI 계약 §14.10 mapSeller)
+      interact: {
+        kind: 'mapSeller',
+        name: BUNDLE2.mapInfo.sellerName,
+        action: BUNDLE_FX.SELLER_ACTION,
+        actionKey: 'mapSeller.talk',
+        usable: () => true,
+        use: () => this.openSeller(),
+      },
     });
   }
 

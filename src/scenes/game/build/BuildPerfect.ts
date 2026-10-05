@@ -22,10 +22,9 @@ import type { Projectile } from '../../../objects/Projectile';
 import { param } from '../../../systems/build/buildMods';
 import type { Game } from '../../Game';
 import type { BuildRuntime } from './BuildRuntime';
+import { T } from '../shared';
 
 export type PerfectKind = UiPerfectSuccess['kind'];
-
-const T = (tiles: number) => tiles * TILE;
 
 export class BuildPerfect {
   /** 간파 6: 완벽 성공 횟수 · 정적 끝 */

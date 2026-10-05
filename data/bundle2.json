@@ -30,7 +30,14 @@
     "rewardMult": 2,
     "elitePerWave": 1,
     "eliteRewardRarities": ["rare", "epic", "legendary"],
-    "curse": { "choices": 2, "passiveChoices": 3, "passiveRarities": ["epic", "legendary"], "gold": 100 },
+    "curse": {
+      "choices": 2,
+      "passiveChoices": 3,
+      "passiveRarities": ["epic", "legendary"],
+      "passiveGuaranteed": 1,
+      "_noteQ30": "60라운드 Q30: 패시브 3택 = passiveRarities(영웅 이상) passiveGuaranteed 개 확정 + 나머지는 일반 등급 확률(전 희귀도 가중)",
+      "gold": 100
+    },
     "text": {
       "_tmpName": true,
       "elite": "엘리트가 웨이브마다 하나씩 섞여 나온다 (보상 ×2)",

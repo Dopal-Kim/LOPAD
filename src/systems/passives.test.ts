@@ -85,3 +85,21 @@ describe('passives', () => {
     expect(s.owned).toEqual({ sprint: 3 });
   });
 });
+
+describe('60라운드 Q30 저주 길 보상: 영웅 이상 1개 확정 + 나머지 일반 확률', () => {
+  it('처음 하나는 늘 영웅 이상, 나머지는 모든 희귀도에서 (중복 없음)', () => {
+    const rng = new Rng(17);
+    const others = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+      const picks = new PassiveSet().rollChoices(rng, ECONOMY.rarity, 3, {
+        guaranteed: { rarities: ['epic', 'legendary'], count: 1 },
+      });
+      expect(picks).toHaveLength(3);
+      expect(['epic', 'legendary']).toContain(picks[0].rarity);
+      expect(new Set(picks.map((p) => p.id)).size).toBe(3);
+      for (const p of picks.slice(1)) others.add(p.rarity);
+    }
+    // 나머지 둘은 희귀도 제한 없이 — 일반 등급도 나온다
+    expect(others.has('common')).toBe(true);
+  });
+});

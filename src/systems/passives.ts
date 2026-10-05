@@ -81,6 +81,8 @@ export interface RollOptions {
   themeTag?: TagId | null;
   themeMult?: number;
   exclude?: readonly string[];
+  /** 60라운드 Q30: 처음 count 개는 이 희귀도에서 확정, 나머지는 일반 확률 (rarities 와 함께 쓰지 않는다) */
+  guaranteed?: { rarities: readonly string[]; count: number };
 }
 
 export class PassiveSet {
@@ -173,6 +175,27 @@ export class PassiveSet {
         (!opts.rarities || opts.rarities.includes(p.rarity)) &&
         !(opts.exclude ?? []).includes(p.id),
     );
+    const out: PassiveDef[] = [];
+    const G = opts.guaranteed;
+    if (G && G.count > 0) {
+      const sure = pool.filter((p) => G.rarities.includes(p.rarity));
+      for (const p of this.drawWeighted(rng, rarityWeights, sure, Math.min(count, G.count), opts)) {
+        out.push(p);
+        pool.splice(pool.indexOf(p), 1);
+      }
+    }
+    out.push(...this.drawWeighted(rng, rarityWeights, pool, count - out.length, opts));
+    return out;
+  }
+
+  /** 가중 무작위로 count 개 (pool 에서 뽑은 것은 뺀다) */
+  private drawWeighted(
+    rng: Rng,
+    rarityWeights: Record<string, number>,
+    pool: PassiveDef[],
+    count: number,
+    opts: RollOptions,
+  ): PassiveDef[] {
     const out: PassiveDef[] = [];
     while (out.length < count && pool.length > 0) {
       const weights = pool.map(

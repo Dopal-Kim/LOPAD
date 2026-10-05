@@ -1,45 +1,22 @@
 /**
  * `?debug=1` 검증 훅 연결 (게임 로직 아님). Game 의 상태를 debug/index.ts 의 형식으로 읽기 전용으로 넘긴다.
  */
-import Phaser from 'phaser';
-import { FEEL, TILE } from '../../core/Constants';
+import { TILE } from '../../core/Constants';
 import { gameState } from '../../core/GameState';
-import type { Boss } from '../../objects/Boss';
-import type { Enemy } from '../../objects/Enemy';
 import type { Mob } from '../../objects/Mob';
 import type { Pickup } from '../../objects/Pickup';
-import type { Projectile } from '../../objects/Projectile';
 import { exposeDebug } from '../../debug';
-import { isBossPatternName } from '../../data/bossPatterns';
 import { audio } from '../../systems/audio/audio';
-import { CHARGE_SFX } from '../../systems/audio/audioMap';
-import { feelSettings, setFeel } from '../../systems/feel';
-import { fontStatus } from '../../systems/fonts';
 import { metaStore } from '../../systems/meta';
-import { sanitizeScar } from '../../systems/setup/scar';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { loadedWeaponSheets } from '../../systems/sprites/sheetLoader';
 import type { Game } from '../Game';
 import type { GameInitData } from './shared';
 import { RES, logicalZoomOf } from '../../systems/display';
-import { CONSUMABLE_IDS } from '../../data/bundle2';
-import type { ConsumableId, ElitePrefixId, MapInfoId } from '../../data/bundle2Types';
-import { buyIntel } from '../../systems/bundle2/routeExtras';
-
-/** 53라운드 Q4 검증용 견본 상흔 (정규화 3획: 긴 사선 · 갈래 · 짧은 가로) */
-const DEBUG_SCAR = {
-  v: 1,
-  aspect: 460 / 420,
-  strokes: [
-    [0.22, 0.12, 0.38, 0.34, 0.5, 0.52, 0.63, 0.74, 0.78, 0.9],
-    [0.5, 0.52, 0.36, 0.66, 0.28, 0.84],
-    [0.56, 0.3, 0.7, 0.26, 0.84, 0.32],
-  ],
-};
+import { activeShots, combatDebug } from './debug/combatDebug';
+import { routeInfo, textureBytes, worldDebug } from './debug/worldDebug';
 
 export function exposeGameDebug(g: Game): void {
-  const activeShots = (group: Phaser.GameObjects.Group) =>
-    (group.getChildren() as Projectile[]).filter((p) => p.active);
   exposeDebug({
     world: g.world,
     director: g.director,
@@ -168,79 +145,6 @@ export function exposeGameDebug(g: Game): void {
       shoved: g.player.isShoved,
     }),
     audio: () => audio.summary(),
-    feel: () => ({
-      settings: { ...feelSettings },
-      constants: FEEL,
-      hitstop: {
-        active: g.hitStop.active(g.time.now),
-        remainingMs: g.hitStop.remaining(g.time.now),
-        count: g.hitStop.count,
-        physicsPaused: g.physics.world.isPaused,
-      },
-      shake: {
-        offset: { ...g.shake.offset },
-        active: g.shake.activeCount,
-        count: g.shake.count,
-        last: g.shake.last,
-      },
-      numbers: g.numbers.summary(),
-      numbersCount: g.numbers.count,
-      font: { family: g.numbers.fontFamily, loaded: fontStatus(FEEL.DAMAGE_TEXT.FONT_FAMILY) ?? null },
-      hitFx: g.hitFx.summary(),
-    }),
-    setFeel: (patch) => setFeel(patch),
-    shoved: () => (g.mobs.getChildren() as Mob[]).filter((m) => m.isShoved).length,
-    telegraph: () => ({
-      markers: g.telegraph.summary(),
-      sheets: {
-        line: g.telegraph.has('line'),
-        circle: g.telegraph.has('circle'),
-        cone: g.telegraph.has('cone'),
-        aura: g.telegraph.has('aura'),
-      },
-    }),
-    projectiles: () =>
-      activeShots(g.projectiles).map((p) => ({
-        x: p.x,
-        y: p.y,
-        vx: p.body.velocity.x,
-        vy: p.body.velocity.y,
-        attack: p.attack,
-        texture: p.texture.key,
-        frame: p.frame.name,
-        anim: p.anims.currentAnim?.key ?? null,
-        rotation: p.rotation,
-        reflected: p.reflected,
-      })),
-    behavior: () =>
-      (g.mobs.getChildren() as Mob[])
-        .filter((m) => m.active)
-        .map((m) => {
-          const e = m as unknown as Partial<Enemy> & Partial<Boss>;
-          return {
-            id: m.spriteId,
-            state: e.behaviorState ?? e.patternState ?? '?',
-            shots: e.shotsSinceReload ?? null,
-            pattern: e.pattern ?? null,
-            patternLog: e.patternLog ? [...e.patternLog] : null,
-            summoned: e.summoned ?? null,
-            phase: e.phase ? gameState.bossPhase : null,
-            vx: m.body.velocity.x,
-            vy: m.body.velocity.y,
-            x: m.x,
-            y: m.y,
-          };
-        }),
-    lastSlam: () => g.combat.debugLastSlam,
-    trails: () => ({ active: g.ribbons.activeCount, count: g.ribbons.count, list: g.ribbons.summary() }),
-    screen: () => g.screenFx.summary(),
-    aimFx: () => ({
-      line: g.aimLine.visible,
-      lineSheet: g.aimLine.sheet,
-      lineId: g.aimLine.id,
-      lineFrame: g.aimLine.frame,
-      charge: g.motion.aimChargeFrame,
-    }),
     evolveTo: (id) => {
       if (!gameState.weapon.choicePending) return false;
       const before = gameState.weapon.path.length;
@@ -292,96 +196,6 @@ export function exposeGameDebug(g: Game): void {
       g.player.body.reset((e.x + 1) * TILE, (e.y + 1) * TILE);
       return true;
     },
-    combo: () => {
-      const c = g.player.combo;
-      return {
-        weapon: gameState.weapon.id,
-        hasCombo: Boolean(c),
-        lastIndex: c?.lastIndex ?? null,
-        lastStartedAt: c?.lastStartedAt ?? null,
-        readyAt: c ? c.readyAt() : null,
-        nextIndex: c ? c.nextIndex(g.time.now) : null,
-        now: g.time.now,
-        lastSwing: g.strikes.debugLastSwing,
-        swingFx: g.strikes.debugSwingFx,
-        // 51라운드: 공격 시각 기록(템포 실측) · 활 마지막 발사·적중
-        log: g.strikes.attackLog.slice(),
-        bow: { shot: g.strikes.bow.debugLastShot, hit: g.strikes.bow.debugLastHit },
-        overlay: { frame: g.player.overlay.frame, action: g.player.overlay.action },
-        anim: g.player.animKey,
-        // 55라운드 §17: 순환·관성·차지 · 최근 판정(후속 판정 포함) · 판정 모양 오버레이
-        melee: g.player.melee.debug(g.time.now),
-        swings: g.strikes.swingLog.slice(),
-        hitShapes: { enabled: g.strikes.overlay.enabled, drawn: g.strikes.overlay.drawn },
-      };
-    },
-    hitShapes: (on) => {
-      if (on !== undefined) g.strikes.overlay.enabled = on;
-      return g.strikes.overlay.enabled;
-    },
-    birth: () => ({
-      active: g.birth.active,
-      pending: gameState.birthPending,
-      ...(g.birth.seq?.state ?? {}),
-      camZoom: logicalZoomOf(g.cameras.main),
-      playerVisible: g.player.visible,
-      playerAlpha: g.player.alpha,
-    }),
-    skipBirth: () => g.birth.forceSkip(),
-    weaponState: () => g.player.debugWeapon(g.time.now),
-    setResource: (value) => {
-      const r = g.player.resource;
-      if (!r) return false;
-      if (r.kind === 'stamina') {
-        // 소모 경로로 (바닥 판정·회복 지연 포함)
-        r.value = r.max;
-        r.spend(Math.max(0, r.max - value), g.time.now);
-      } else r.value = Phaser.Math.Clamp(value, 0, r.max);
-      return true;
-    },
-    weaponKit: () => {
-      const pl = g.player;
-      const now = g.time.now;
-      return {
-        weapon: gameState.weapon.id,
-        action: pl.action,
-        groggy: pl.groggy,
-        resource: pl.resource?.debug(now) ?? null,
-        gauge: pl.gauges.debug(now),
-        bladeTint: pl.gauges.bladeTint,
-        draw: pl.secondaryDriver.drawStateAt(now),
-        aimJitter: pl.aimJitter(now),
-        lastRelease: pl.secondaryDriver.lastRelease,
-        defense: pl.defense.lastOutcome,
-        brands: g.strikes.brands.summary(),
-        issen: g.strikes.issen.debugLast,
-        crackLine: g.strikes.crackLine.debugLast,
-        // 56라운드 2단계 새 기본기
-        moves: pl.moves.debug(now),
-        moveStrikes: g.strikes.moves.debugLast,
-        arrowRain: g.strikes.rain.debugLast,
-        lift: pl.visual.liftPx,
-        callouts: {
-          count: g.feedback.callouts.count,
-          last: g.feedback.callouts.last,
-          live: g.feedback.callouts.summary(),
-        },
-        focusScale: g.feedback.focusScale,
-        physicsTimeScale: g.physics.world.timeScale,
-        bladeFlashes: pl.overlay.flashCount,
-        chargeLoopRate: audio.loopRateOf(CHARGE_SFX.loop),
-      };
-    },
-    freeze: (on) => {
-      if (on) g.scene.pause();
-      else g.scene.resume();
-    },
-    setGauge: (value) => {
-      const gg = g.player.gauges.gauge;
-      if (!gg) return false;
-      gg.value = Phaser.Math.Clamp(value, 0, gg.max);
-      return true;
-    },
     lab: () => ({
       lab: g.lab,
       dummies: (g.labMode?.dummies ?? []).map((d) => ({
@@ -402,176 +216,7 @@ export function exposeGameDebug(g: Game): void {
       else g.labMode.openBranchMenu();
       return g.menu.isOpen;
     },
-    lighting: () => g.lighting?.summary() ?? null,
-    quarter: () =>
-      g.world.quarter
-        ? { ...g.world.quarter.summary, placements: g.world.bigProps, canal: g.world.canal, decals: g.world.decals }
-        : null,
-    border: () => (g.border ? { ...g.border.summary(), lookUp: +g.cam.lookUpPx.toFixed(1) } : null),
-    scar: () => ({
-      view: (({ x, y, width, height }) => ({ x, y, width, height }))(g.cameras.main.worldView),
-      data: gameState.scar,
-      state: g.player.scar.state,
-      anchor: g.player.scar.lastAnchor,
-      aboveLight: g.player.scar.aboveLight,
-    }),
-    injectScar: (scar) => {
-      const s = sanitizeScar(scar ?? DEBUG_SCAR);
-      if (!s) return false;
-      gameState.scar = s;
-      g.player.scar.refresh();
-      return true;
-    },
-    build: {
-      info: () => g.build.debug(),
-      ui: () => g.build.toUi(),
-      addPassive: (id, levels = 1) => {
-        let ok = false;
-        for (let i = 0; i < levels; i++) ok = gameState.passives.add(id) || ok;
-        return ok;
-      },
-      curse: (id, pact) => g.build.grantCurse(id, { pact: Boolean(pact) }),
-      endCurse: () => g.build.endCurse(),
-      dual: (id) => g.build.addDualTrait(id),
-      perfect: (kind) => (kind === 'perfectEvade' ? g.build.perfect.onEvade() : g.build.perfect.onPerfect(kind, 10)),
-      drink: () => g.build.drink('potion'),
-      bossFloor: (n) => {
-        gameState.build.bossFloorCleared = n;
-        gameState.build.touch();
-      },
-      evolveSlots: () =>
-        g.buildMenus
-          .slots()
-          .map((sl) => ({ kind: sl.kind, enabled: sl.enabled, node: sl.node?.id ?? null, locked: sl.locked ?? null })),
-      openPassiveMenu: (source = 'boss') => g.buildMenus.openPassiveMenu(source),
-      openCurseMenu: () => g.buildMenus.openCurseMenu(),
-      openEvolveMenu: () => {
-        gameState.weapon.choicePending = true;
-        g.buildMenus.openEvolveMenu();
-      },
-    },
-    bundle: {
-      info: () => g.bundle.debug(),
-      gain: (id) => (CONSUMABLE_IDS as readonly string[]).includes(id) && g.bundle.consumables.gain(id as ConsumableId),
-      elite: (prefix) => {
-        const p = g.player;
-        const mobs = (g.mobs.getChildren() as Mob[]).filter((m) => m.active && !m.isBoss && !m.elite);
-        mobs.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
-        return mobs[0] ? g.bundle.elites.makeElite(mobs[0], (prefix as ElitePrefixId | undefined) ?? null) : false;
-      },
-      intel: (id) => {
-        const ex = gameState.bundle.floor;
-        return ex ? buyIntel(ex, id as MapInfoId) : false;
-      },
-    },
-    boss: {
-      info: () => findBoss(g)?.debugInfo ?? null,
-      arena: () => g.bossArena?.summary() ?? null,
-      force: (patterns, now) => {
-        const b = findBoss(g);
-        if (!b) return false;
-        const list = patterns.filter(isBossPatternName);
-        b.debugForce(list.length > 0 ? list : null, now);
-        return true;
-      },
-      phase: (n) => {
-        const b = findBoss(g);
-        if (!b) return false;
-        b.debugPhase(n);
-        return true;
-      },
-      hitCup: () => g.bossArena?.debugHitCup() ?? false,
-      geom: () => {
-        const b = findBoss(g);
-        return b ? { ...b.debugGeom, cup: g.bossArena?.debugCup() ?? null } : null;
-      },
-      tilt: (opts) => {
-        const b = findBoss(g);
-        if (!g.bossArena || !b) return null;
-        g.bossArena.startTilt({
-          ...b.params<Parameters<NonNullable<typeof g.bossArena>['startTilt']>[0]>('spin'),
-          ...opts,
-        });
-        return g.bossArena.screen.summary();
-      },
-    },
-    setBossHp: (hp) => {
-      for (const m of g.mobs.getChildren() as Mob[]) {
-        if (m.isBoss && m.active) {
-          m.takeDamage(Math.max(0, m.hp - hp));
-          return true;
-        }
-      }
-      return false;
-    },
+    ...combatDebug(g),
+    ...worldDebug(g),
   });
-}
-
-/**
- * 57라운드 Q38 검증: 올라간 텍스처의 GPU 메모리 추정 (장마다 폭 × 높이 × 4 바이트, 밉맵 없음). 합계 · 분류별 합 ·
- * 큰 텍스처 상위 10
- */
-function textureBytes(g: Game): { total: number; byGroup: Record<string, number>; top: [string, number][] } {
-  const list: [string, number][] = [];
-  const byGroup: Record<string, number> = {};
-  for (const key of g.textures.getTextureKeys()) {
-    const bytes = g.textures.get(key).source.reduce((a, s) => a + s.width * s.height * 4, 0);
-    list.push([key, bytes]);
-    // 시트(sheet_ — 층 변형 @·색 교체 # 포함) · 외벽(border_) · 타일 · 그 밖
-    const group = key.startsWith('sheet_')
-      ? /[@#]/.test(key)
-        ? 'sheetVariant'
-        : 'sheet'
-      : key.startsWith('border_')
-        ? 'border'
-        : key.startsWith('tile')
-          ? 'tiles'
-          : 'other';
-    byGroup[group] = (byGroup[group] ?? 0) + bytes;
-  }
-  list.sort((a, b) => b[1] - a[1]);
-  return { total: list.reduce((a, [, b]) => a + b, 0), byGroup, top: list.slice(0, 10) };
-}
-
-function findBoss(g: Game): Boss | null {
-  for (const m of g.mobs.getChildren() as Mob[]) if (m.active && m.isBoss) return m as Boss;
-  return null;
-}
-
-/** `route()` 디버그: 계약 UiRoute + 종류·클리어·출구·경로·선택지·전투장·지역·세트·튜토리얼·잠금 */
-function routeInfo(g: Game): unknown {
-  const route = gameState.route;
-  if (!route) return null;
-  const arena = g.nodeArena;
-  const sp = arena?.setPiece;
-  return {
-    ...route.toUi(),
-    kind: g.nodeKind,
-    cleared: route.currentCleared,
-    exitOpen: g.route.exitOpen,
-    path: [...route.path],
-    options: route.nextOptions().map((n) => ({ id: n.id, kind: n.kind, name: n.name })),
-    kinds: route.graph.nodes.map((n) => ({ id: n.id, kind: n.kind, col: n.col, row: n.row })),
-    arena: g.layout?.arena ?? null,
-    region: arena ? { id: arena.regionId, tileset: arena.tileset, skin: g.world.skin.textureKey } : null,
-    setPiece: sp
-      ? {
-          template: sp.template,
-          fixed: sp.fixed,
-          cover: sp.cover.length,
-          center: sp.center,
-          signs: sp.signs,
-          dummies: sp.dummies,
-          decor: sp.decor.map((d) => ({ name: d.name, role: d.role, sprites: d.sprites })),
-          view: g.setPieceView?.summary ?? null,
-        }
-      : null,
-    tutorial: g.tutorial
-      ? { step: g.tutorial.machine.stepIndex, done: g.tutorial.done, skip: () => g.tutorial?.skip() }
-      : null,
-    room: g.layout?.rooms[0]
-      ? { id: g.layout.rooms[0].id, type: g.layout.rooms[0].type, floor: g.layout.rooms[0].floor }
-      : null,
-    locked: g.route.locked(g.time.now),
-  };
 }

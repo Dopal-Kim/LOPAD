@@ -16,6 +16,7 @@ import { bundleSheetRequests } from '../bundle2/bundleSheets';
 import { comboArtNames } from '../weapon/comboArt';
 import { gaugeOverlaySuffix } from './spriteActions';
 import { sheetId, wantedSheets, type SheetRequest } from './sheetPaths';
+import { FX_ACTION } from './spriteActions';
 
 /**
  * 무기 표에서 유도하는 이펙트 시트 id (연격·활 1단 화살·갈래 수단 그림 + 공용 고정 목록 — 빈 표면 공용만).
@@ -112,16 +113,46 @@ export function weaponSheetRequests(weaponId: string): SheetRequest[] {
 
 /** 각성 오버레이 접미 (계약 art §21 `<무기 시트>_awaken`) */
 export const AWAKEN_OVERLAY_SUFFIX = 'awaken';
+/** 60라운드 계약 art §21 각성 순간 fx 접미 (`<무기>_awaken_in`) */
+export const AWAKEN_IN_SUFFIX = 'awaken_in';
+
+/** 각성 순간 fx id (`<무기>_awaken_in` — 각성을 얻은 순간 1회, 주인공 피벗을 따라감) */
+export function awakenInFxId(weaponId: string): string {
+  return `${weaponId}_${AWAKEN_IN_SUFFIX}`;
+}
+
+/**
+ * 60라운드 계약 art §21 각성 전용 궤적 교체 표: 그 무기 이름으로 시작하는 무기 fx(연격·일섬 선·화살 …)마다
+ * `<fx>_awaken` (JSON `swapRule` — 같은 틀·프레임·ms·피벗·행, 1:1). 실제 파일이 없는 것은 매니페스트가 걸러 로드되지 않고,
+ * FxPool 교체 표는 교체 시트가 로드돼 있을 때만 쓴다(`FxPool.resolve`)
+ */
+export function awakenFxAliases(weaponId: string): Record<string, string> {
+  if (!WEAPONS[weaponId]) return {};
+  const own = `${weaponId}_`;
+  const out: Record<string, string> = {};
+  for (const id of fxIdsFor(pick([weaponId])))
+    if (id.startsWith(own) && !id.endsWith(`_${AWAKEN_OVERLAY_SUFFIX}`) && id !== awakenInFxId(weaponId))
+      out[id] = `${id}_${AWAKEN_OVERLAY_SUFFIX}`;
+  return out;
+}
 
 /**
  * 60라운드 계약 art §21 최종 각성 무기 외형 오버레이: 무기 묶음의 무기 동작(휴대·연격·새 동작 — 자원 오버레이 제외)마다
- * `<동작>_awaken`. 각성 런에서만 로드 (`sheetLoader.preloadWeaponSheets(…, awaken)`·`loadAwakenSheets`). 없는 파일은 매니페스트가 거른다
+ * `<동작>_awaken` + 각성 순간 fx `<무기>_awaken_in` + 각성 전용 궤적 `<fx>_awaken`(`awakenFxAliases`).
+ * 각성 런에서만 로드 (`sheetLoader.preloadWeaponSheets(…, awaken)`·`loadAwakenSheets`). 없는 파일은 매니페스트가 거른다
  */
 export function awakenSheetRequests(weaponId: string): SheetRequest[] {
+  if (!WEAPONS[weaponId]) return [];
   const gauge = /_(?:ki|grudge)\d$/;
-  return weaponSheetRequests(weaponId)
+  const overlays = weaponSheetRequests(weaponId)
     .filter((r) => r.category === 'weapons' && r.name === weaponId && !gauge.test(r.action))
     .map((r) => ({ ...r, action: `${r.action}_${AWAKEN_OVERLAY_SUFFIX}` }));
+  const fx = [awakenInFxId(weaponId), ...Object.values(awakenFxAliases(weaponId))].map((name): SheetRequest => ({
+    category: 'fx',
+    name,
+    action: FX_ACTION,
+  }));
+  return dedupe([...overlays, ...fx]);
 }
 
 /** 57라운드 전 부팅 목록 (모든 무기) — 회귀 테스트용 */

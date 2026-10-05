@@ -196,7 +196,12 @@ export class BuildMenus {
    */
   openPassiveMenu(
     source: PassiveSource,
-    opts: { choices?: number; rarities?: readonly string[] } = {},
+    opts: {
+      choices?: number;
+      rarities?: readonly string[];
+      /** 60라운드 Q30: 이 희귀도 count 개 확정 + 나머지 일반 확률 */
+      guaranteed?: { rarities: readonly string[]; count: number };
+    } = {},
     onDone: () => void = () => {},
   ): boolean {
     const g = this.g;
@@ -211,6 +216,7 @@ export class BuildMenus {
     const theme = themeTagOf(gameState.floorReached);
     const picks = gameState.passives.rollChoices(g.rng, ECONOMY.rarity, count - (dual ? 1 : 0), {
       rarities: opts.rarities,
+      guaranteed: opts.guaranteed,
       themeTag: theme,
       themeMult: BUILD.pool.themeWeightMult,
     });

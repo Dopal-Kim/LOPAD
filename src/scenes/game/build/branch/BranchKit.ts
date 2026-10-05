@@ -2,7 +2,7 @@
  * 갈래 수단 공용 도우미 (60라운드 6-1 정리 — BranchStrikes 에서 분리, 동작 그대로): 노드 수치 읽기 · 한 타 피해 · 페이로드 ·
  * 몸 동작 · 수단 이펙트 재생 · 판정 배율 · 균열 한 줄 · 바쁨(강공 중) 표시. 무기별 갈래(Katana/Greatsword/Dagger/BowBranch)가 함께 쓴다.
  */
-import { BUILD_FX, DEPTH, TILE, entityDepth } from '../../../../core/Constants';
+import { BUILD_FX, DEPTH, entityDepth } from '../../../../core/Constants';
 import { EventBus, Events, type BranchEffectPayload, type PlayerAttackPayload } from '../../../../core/EventBus';
 import { gameState } from '../../../../core/GameState';
 import type { Mob } from '../../../../objects/Mob';
@@ -12,7 +12,7 @@ import { PLAYER_HIT_SCALE, PLAYER_RENDER_SCALE } from '../../../../systems/weapo
 import type { Game } from '../../../Game';
 import type { BuildRuntime } from '../BuildRuntime';
 
-export const T = (tiles: number): number => tiles * TILE;
+export { T } from '../../shared';
 
 export type Dir = { x: number; y: number };
 export type BranchPayload = PlayerAttackPayload & { buildMove?: string; ignoreGuard?: boolean };

@@ -409,7 +409,13 @@ export type UiStructureKind =
   | 'roulette'
   | 'pawn'
   /** 60라운드 §14.10: 도전 성소 C4 전장 깃발 (E, 첫 웨이브 전 비전투에만) */
-  | 'warFlag';
+  | 'warFlag'
+  /** 60라운드 Q32 §14.10: 숨은 노드 단서 (E 로 살펴보기 → 지도에 길 공개) */
+  | 'clue'
+  /** 60라운드 Q32 §14.10: 이벤트 노드 소품 (E 로 이벤트 메뉴) */
+  | 'eventProp'
+  /** 60라운드 Q32 §14.10: 국경 초소 지도 장수 (E 로 mapInfo 메뉴) */
+  | 'mapSeller';
 
 /** 47라운드: 상호작용 비용 표시 (계약 §9.1) */
 export interface UiCost {

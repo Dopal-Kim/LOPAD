@@ -103,7 +103,14 @@ export interface Bundle2Data {
     rewardMult: number;
     elitePerWave: number;
     eliteRewardRarities: string[];
-    curse: { choices: number; passiveChoices: number; passiveRarities: string[]; gold: number };
+    /** 60라운드 Q30: 패시브 passiveChoices 택 = passiveRarities 중 passiveGuaranteed 개 확정 + 나머지는 일반 등급 확률 */
+    curse: {
+      choices: number;
+      passiveChoices: number;
+      passiveRarities: string[];
+      passiveGuaranteed: number;
+      gold: number;
+    };
     text: Record<string, string | boolean>;
   };
   events: { narrativeMult: number; items: EventDef[]; passLabel: string };

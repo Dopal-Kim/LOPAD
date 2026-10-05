@@ -13,18 +13,11 @@
 import Phaser from 'phaser';
 import { DEPTH, QUARTER, RENDER, STRUCTURE_FX, TILE, entityDepth } from '../core/Constants';
 import type { BigPropPlacement } from './bigProps';
+import { cellLight, cutLight, occludeCut, tileDotScale } from './quarterScale';
 import type { CanalPlan, CanalTileKind, DecalPlacement } from './floorFeatures';
 import { TileId, type FloorLayout } from '../systems/mapgen';
 import { lightRegistryOf } from '../systems/lighting/lightRegistry';
-import {
-  isOpenId,
-  lightOffsetOf,
-  pickVariant,
-  wallKind,
-  type LightOffset,
-  type PropPlacement,
-  type TileSkin,
-} from './tileskin';
+import { isOpenId, pickVariant, wallKind, type LightOffset, type PropPlacement, type TileSkin } from './tileskin';
 import type { LightSpec } from '../systems/sprites/spriteDefs';
 import type { LightSource } from '../systems/lighting/lightRegistry';
 
@@ -84,7 +77,7 @@ export class QuarterView {
     this.canal = features.canal ?? null;
     for (const t of this.canal?.tiles ?? []) this.canalAt.set(`${t.x},${t.y}`, t.kind);
     const px = skin.tilePx;
-    this.scale = TILE / px;
+    this.scale = tileDotScale(px);
     ensureTileFrames(scene, skin.textureKey, px);
     const data = layout.tiles.map((row, y) => row.map((_, x) => this.groundOf(x, y)));
     this.map = scene.make.tilemap({ data, tileWidth: px, tileHeight: px });
@@ -132,13 +125,8 @@ export class QuarterView {
       if (t.kind !== 'bridgeL' && t.kind !== 'bridgeR') continue;
       const l = this.skin.def.tileLights?.[String(this.canalIndex(t.kind))];
       if (!l) continue;
-      const o = lightOffsetOf(l.offset) ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
-      this.wallLightsFixed.push(
-        reg.add(
-          { ...l, radius: l.radius * this.scale },
-          { x: t.x * TILE + o.x * this.scale, y: t.y * TILE + o.y * this.scale },
-        ),
-      );
+      const c = cellLight(l, t.x, t.y, this.skin.tilePx, this.scale);
+      this.wallLightsFixed.push(reg.add(c.spec, { x: c.x, y: c.y }));
     }
     if (c.frames.length < 2) return;
     this.canalTimer = this.scene.time.addEvent({
@@ -314,14 +302,8 @@ export class QuarterView {
   private addTileLight(index: number, tx: number, ty: number): void {
     const l = this.skin.def.tileLights?.[String(index)];
     if (!l) return;
-    const k = this.scale;
-    const o = lightOffsetOf(l.offset) ?? { x: this.skin.tilePx / 2, y: this.skin.tilePx / 2 };
-    this.wallLights.push(
-      lightRegistryOf(this.scene).add(
-        { ...l, radius: l.radius * k },
-        { x: tx * TILE + o.x * k, y: ty * TILE + o.y * k },
-      ),
-    );
+    const c = cellLight(l, tx, ty, this.skin.tilePx, this.scale);
+    this.wallLights.push(lightRegistryOf(this.scene).add(c.spec, { x: c.x, y: c.y }));
   }
 
   private place(tx: number, ty: number, frame: number, depth: number): void {
@@ -413,7 +395,7 @@ export class QuarterView {
     if (floor) this.bigImages.push(make().setDepth(DEPTH.PROPS));
     else {
       const upper = make().setDepth(entityDepth(sortY));
-      const cut = typeof d.occludeAbove === 'number' ? Math.max(0, Math.round(d.pivot.y - d.occludeAbove)) : d.rect.h;
+      const cut = occludeCut(d);
       if (cut < d.rect.h) {
         upper.setCrop(0, 0, d.rect.w, cut);
         this.bigImages.push(
@@ -438,13 +420,8 @@ export class QuarterView {
     }
     const reg = lightRegistryOf(this.scene);
     for (const l of d.lights ?? (d.light ? [d.light] : [])) {
-      const o = lightOffsetOf(l.offset);
-      this.wallLightsFixed.push(
-        reg.add(
-          { ...l, radius: l.radius * k },
-          o ? { x: x + (o.x - d.pivot.x) * k, y: y + (o.y - d.pivot.y) * k } : { x, y: y - d.pivot.y * k * 0.5 },
-        ),
-      );
+      const c = cutLight(l, x, y, d.pivot, k);
+      this.wallLightsFixed.push(reg.add(c.spec, { x: c.x, y: c.y }));
     }
   }
 
@@ -480,7 +457,7 @@ export class QuarterView {
         this.scene.add
           .image(p.x * TILE, p.y * TILE, skin.textureKey, frame)
           .setOrigin(0, 0)
-          .setScale(TILE / px)
+          .setScale(tileDotScale(px))
           .setDepth(DEPTH.PROPS),
       );
     }
@@ -496,13 +473,13 @@ export class QuarterView {
     if (lit.size === 0) return;
     const reg = lightRegistryOf(this.scene);
     // 칸 안 좌표(offset)는 시트 칸 크기 기준 → 바닥 한 칸(TILE)에 맞춘 배율, 반경은 도트 배율
-    const kc = TILE / skin.tilePx;
+    const kc = tileDotScale(skin.tilePx);
     const kr = this.propScale;
     for (const p of props) {
       const l = lit.get(p.index);
       if (!l) continue;
-      const o = lightOffsetOf(l.offset) ?? { x: skin.tilePx / 2, y: skin.tilePx / 2 };
-      reg.add({ ...l, radius: l.radius * kr }, { x: p.x * TILE + o.x * kc, y: p.y * TILE + o.y * kc });
+      const c = cellLight(l, p.x, p.y, skin.tilePx, kc, kr);
+      reg.add(c.spec, { x: c.x, y: c.y });
     }
   }
 

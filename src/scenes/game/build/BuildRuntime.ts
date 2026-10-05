@@ -11,12 +11,10 @@ import {
   type PlayerAttackPayload,
   type StructureEventPayload,
   type TagSetChangedPayload,
-  type WeaponEvolvedPayload,
 } from '../../../core/EventBus';
 import { BUILD_ART } from '../../../core/Constants';
 import { gameState } from '../../../core/GameState';
-import { AWAKENINGS, BUILD, CURSES, DUAL_TRAITS, curseDef, tagName } from '../../../data/build';
-import { loadAwakenSheets } from '../../../systems/sprites/sheetLoader';
+import { BUILD, CURSES, DUAL_TRAITS, curseDef, tagName } from '../../../data/build';
 import { TAG_IDS, type BuildStatKey, type TagId } from '../../../data/buildTypes';
 import { ECONOMY } from '../../../data';
 import {
@@ -36,6 +34,7 @@ import { currentBuild } from '../../../systems/build/current';
 import { CurseState, pickPactCurse, scaledBenefit } from '../../../systems/build/curses';
 import { DotBook, DrunkTimer, EvadeTracker, MarkBook } from '../../../systems/build/statusBooks';
 import type { Game } from '../../Game';
+import { AwakenFlow } from './AwakenFlow';
 import { BranchStrikes } from './BranchStrikes';
 import { BuildArt } from './BuildArt';
 import { BuildCombat } from './BuildCombat';
@@ -56,6 +55,8 @@ export class BuildRuntime {
   readonly defense: BuildDefense;
   readonly perfect: BuildPerfect;
   readonly branch: BranchStrikes;
+  /** 60라운드 최종 각성 연출·각성 궤적 교체 */
+  readonly awaken: AwakenFlow;
   readonly drunk = new DrunkTimer();
   readonly marks = new MarkBook<Mob>();
   readonly dots = new DotBook<Mob>();
@@ -77,6 +78,7 @@ export class BuildRuntime {
     this.defense = new BuildDefense(g, this);
     this.perfect = new BuildPerfect(g, this);
     this.branch = new BranchStrikes(g, this);
+    this.awaken = new AwakenFlow(g, this);
     this.stages = { ...currentBuild().stages };
     this.subs = [
       [Events.PLAYER_DASHED, (p: { x: number; y: number; dirX: number; dirY: number }) => this.onDash(p)],
@@ -104,26 +106,13 @@ export class BuildRuntime {
       this.onNodeEntered(g.nodeKind === 'battle' || g.nodeKind === 'boss' || g.nodeKind === 'road');
     // 만취 서약: 취기 상태 유지
     if (this.mods.flags.drunkAlways) this.drink('counter', true);
-    // 60라운드: 각성 런이면 각성 외형 오버레이 (preload 에서 못 읽었으면 지금)
-    if (gameState.build.awakened) loadAwakenSheets(g, gameState.weapon.id);
+    // 60라운드: 각성 런이면 각성 시트 (preload 에서 못 읽었으면 지금)
+    this.awaken.onSceneStart();
   }
 
-  /**
-   * 60라운드 최종 각성 획득 (개성 '각성' 칸·시험장 a): 각성 외형 오버레이(계약 art §21 `_awaken`) 로드 + 시그니처 fx 1회
-   * (아트: 만월은 '각성 획득 연출로도 1회 — 시스템 선택'). emit = 시험장처럼 WEAPON_EVOLVED 를 따로 내지 않은 곳이면 true
-   */
+  /** 60라운드 최종 각성 획득 (개성 '각성' 칸·시험장 a) — `AwakenFlow` */
   onAwakened(emit = true): void {
-    const w = gameState.weapon;
-    loadAwakenSheets(this.g, w.id);
-    const sig = AWAKENINGS[w.id]?.art?.fx?.[0];
-    if (sig) this.afterMenu(() => this.art.onPlayer(sig));
-    if (emit)
-      EventBus.emit(Events.WEAPON_EVOLVED, {
-        weapon: w.id,
-        stage: w.stage + 1,
-        name: AWAKENINGS[w.id]?.name ?? w.displayName,
-        kind: 'awaken',
-      } satisfies WeaponEvolvedPayload);
+    this.awaken.onAwakened(emit);
   }
 
   // --- 합산 읽기 ---
@@ -418,15 +407,18 @@ export class BuildRuntime {
 
   // --- 매 프레임 ---
 
-  /** 60라운드 계약 art §21 갈래 런 교체 규칙 (경로 노드 art.replaceFx → FxPool) — 경로가 바뀔 때만 */
+  /**
+   * 60라운드 계약 art §21 fx 교체 표 (FxPool): 각성 런의 각성 궤적(`AwakenFlow.aliases`) 위에 갈래 런 교체 규칙(경로 노드
+   * art.replaceFx)을 덮는다 — 경로·각성이 바뀔 때만
+   */
   private aliasSig: string | null = null;
 
   private syncFxAliases(): void {
     const w = gameState.weapon;
-    const sig = `${w.id}:${w.path.join('/')}`;
+    const sig = `${w.id}:${w.path.join('/')}:${gameState.build.awakened ? 'awaken' : ''}`;
     if (sig === this.aliasSig) return;
     this.aliasSig = sig;
-    const map: Record<string, string> = {};
+    const map: Record<string, string> = { ...this.awaken.aliases() };
     for (const n of w.nodes) Object.assign(map, n.art?.replaceFx ?? {});
     this.g.fx.setAliases(map);
   }
@@ -485,7 +477,8 @@ export class BuildRuntime {
 
   private pendingAfterMenu: (() => void)[] = [];
 
-  private afterMenu(fn: () => void): void {
+  /** 메뉴가 닫힌 뒤(전투 복귀) 실행 — 보상 화면 위에서 연출이 묻히지 않게 */
+  afterMenu(fn: () => void): void {
     this.pendingAfterMenu.push(fn);
   }
 
@@ -549,6 +542,7 @@ export class BuildRuntime {
       dual: [...gameState.build.dualOwned],
       curse: gameState.build.curse ? uiCurse(gameState.build.curse) : null,
       awakened: gameState.build.awakened,
+      awakenFx: this.awaken.last,
       bossFloorCleared: gameState.build.bossFloorCleared,
       log: [...this.log],
       combat: this.combat.debug(),

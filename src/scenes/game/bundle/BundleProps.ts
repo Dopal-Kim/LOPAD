@@ -1,12 +1,12 @@
 /**
  * 60라운드 2차 묶음 전투장 소품 (계약 art §22 `structures/v3/*` — challenge_banner · event_* · clue_*): 그림(StructureView —
- * 상태 프레임·광원)과 가까이 가면 여는 메뉴(이벤트·단서·지도 장수) / E 로 쓰는 소품(도전 성소 깃발 — 계약 §14.10 warFlag).
- * 구조물 시스템(47라운드)과는 따로 둔다 — 계약 UiStructureKind 에 없는 소품(이벤트·단서·지도 장수)은 상호작용 안내 대신
- * '가까이 가면 메뉴'(상점 칸과 같은 방식)로 연다. 시트가 없으면 플레이스홀더 도형(StructureView 기본).
+ * 상태 프레임·광원)과 E 로 쓰는 소품 — 도전 성소 깃발(warFlag) · 60라운드 Q32 단서(clue)·이벤트 소품(eventProp)·지도 장수(mapSeller)
+ * (UI 계약 §14.10, 가까이 가면 `UiSnapshot.interactable` 안내 → E 로 열기). 구조물 시스템(47라운드)과는 따로 둔다.
+ * 시트가 없으면 플레이스홀더 도형(StructureView 기본).
  */
 import Phaser from 'phaser';
 import { BUNDLE_FX, TILE } from '../../../core/Constants';
-import type { UiInteractable } from '../../../contract/ui';
+import type { UiInteractable, UiStructureKind } from '../../../contract/ui';
 import { worldToLogicalScreen } from '../../../systems/display';
 import { StructureView } from '../../../world/StructureView';
 import type { Game } from '../../Game';
@@ -19,11 +19,9 @@ export interface PropSpec {
   /** 월드 발 위치 (px) */
   x: number;
   y: number;
-  /** 가까이 가면 (메뉴 소품) — E 소품이면 null */
-  onNear?: () => void;
-  /** E 소품: 계약 UiInteractable (지금은 warFlag 만) */
+  /** E 소품: 계약 UiInteractable (warFlag · clue · eventProp · mapSeller) */
   interact?: {
-    kind: 'warFlag';
+    kind: Extract<UiStructureKind, 'warFlag' | 'clue' | 'eventProp' | 'mapSeller'>;
     name: string;
     action: string;
     actionKey: string;
@@ -37,8 +35,6 @@ export interface PropSpec {
 interface Prop {
   spec: PropSpec;
   view: StructureView;
-  /** 메뉴 소품: 멀어졌다 다시 들어와야 다시 연다 */
-  armed: boolean;
   gone: boolean;
 }
 
@@ -57,7 +53,7 @@ export class BundleProps {
       floor: false,
     });
     if (spec.state) view.setState(spec.state);
-    this.list.push({ spec, view, armed: true, gone: false });
+    this.list.push({ spec, view, gone: false });
   }
 
   setState(id: string, state: string): void {
@@ -99,20 +95,11 @@ export class BundleProps {
     return best;
   }
 
-  /** 매 프레임: 메뉴 소품 가까이 가면 열기 · E 소품 E 키. busy = 메뉴·연출 중 */
+  /** 매 프레임: E 소품 E 키 (전투 중·쓸 수 없으면 무시). busy = 메뉴·연출 중 */
   update(interactPressed: boolean, busy: boolean): void {
-    const near = BUNDLE_FX.NEAR_TILES * TILE;
-    for (const p of this.list) {
-      if (p.gone || !p.spec.onNear) continue;
-      const inside = this.dist(p) <= near;
-      if (!inside) p.armed = true;
-      else if (p.armed && !busy) {
-        p.armed = false;
-        p.spec.onNear();
-      }
-    }
+    if (!interactPressed || busy || this.g.director.inCombat) return;
     const it = this.nearestInteract();
-    if (it && interactPressed && !busy && it.spec.interact!.usable()) it.spec.interact!.use();
+    if (it && it.spec.interact!.usable()) it.spec.interact!.use();
   }
 
   /** 계약 §9.1·§14.10 상호작용 안내 (E 소품만) */
@@ -120,7 +107,8 @@ export class BundleProps {
     const p = this.nearestInteract();
     if (!p?.spec.interact) return null;
     const I = p.spec.interact;
-    const usable = I.usable();
+    const combat = this.g.director.inCombat;
+    const usable = !combat && I.usable();
     const s = worldToLogicalScreen(this.g.cameras.main, p.spec.x, Math.min(p.view.topY, p.spec.y - TILE));
     return {
       id: p.spec.id,
@@ -133,8 +121,8 @@ export class BundleProps {
       cost: null,
       hold: null,
       usable,
-      reason: usable ? null : 'notReady',
-      reasonText: usable ? '' : BUNDLE_FX.NOT_READY_TEXT,
+      reason: usable ? null : combat ? 'combat' : 'notReady',
+      reasonText: usable ? '' : combat ? BUNDLE_FX.COMBAT_TEXT : BUNDLE_FX.NOT_READY_TEXT,
       screen: { x: Math.round(s.x), y: Math.round(s.y) },
     };
   }

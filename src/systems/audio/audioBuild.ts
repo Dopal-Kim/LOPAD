@@ -204,6 +204,32 @@ export const SOUND_ID_ALIASES: Readonly<Record<string, string>> = {
   'PLAYER_SECONDARY{target:knife}': 'BRANCH_EFFECT{branch:flyknife,effect:step}',
   'BRAND_BURST{branch:bleed}': 'BRANCH_EFFECT{branch:bleed,effect:bleed}',
   'PLAYER_SKILL{move:guardbreak,phase:hold}': 'PLAYER_BRANCH_MOVE{move:unblockable,phase:hold}',
+  // --- 60라운드 manifest(9e897ec, 시스템 이름으로 고친 뒤) 남은 불일치: 키 = manifest trigger 지금 값, 값 = 시스템 실제 ---
+  'BRANCH_EFFECT{branch:heatwave,effect:trail}':
+    'BRANCH_EFFECT{branch:heatwave,effect:trail_start} 루프 시작 · {effect:trail_end} 루프 끝',
+  'BRANCH_EFFECT{branch:heatwave,effect:burst}':
+    'PLAYER_SKILL{weapon:dagger,move:overheat,phase:burst} + 경로에 heatwave',
+  'BRANCH_EFFECT{branch:deadeye,effect:hold}':
+    'BRANCH_EFFECT{branch:deadeye,effect:hold_start} 루프 시작 · {effect:hold_end} 루프 끝',
+  'BRANCH_EFFECT{branch:clot,effect:hold}':
+    'BRANCH_EFFECT{branch:clot,effect:hold} 루프 시작 · {effect:end|burst} 루프 끝 (일치)',
+  'PLAYER_CHARGE{branch:giant,part:quake}': 'BRANCH_EFFECT{branch:giant,effect:ring}',
+  'PLAYER_CHARGE{branch:quake,part:fork}': 'BRANCH_EFFECT{branch:quake,effect:fork}',
+  'PARRY_SUCCESS{weapon:katana,branch:meikyo}': 'BRANCH_EFFECT{branch:meikyo,effect:parry}',
+  'PERFECT_GUARD{weapon:greatsword,branch:resonance}': 'BRANCH_EFFECT{branch:resonance,effect:counter}',
+  'BRAND_BURST{branch:twinBrand}': 'BRANCH_EFFECT{branch:bleed,effect:bleed} (dagger_bleed)',
+  'PLAYER_SECONDARY{kind:shadowstep,target:knife}': 'BRANCH_EFFECT{branch:flyknife,effect:step}',
+  'PLAYER_ATTACK{move:rapid,branch:volley,phase:split}': 'BRANCH_EFFECT{branch:volley,effect:split}',
+  'PLAYER_SKILL{weapon:dagger,move:fan_throw,branch:flyknife}':
+    'PLAYER_SKILL{weapon:dagger,move:fan_throw} + 경로에 flyknife (페이로드에 branch 키 없음)',
+  'WEAPON_GAUGE{stage:n,delta>0}':
+    'WEAPON_GAUGE{weapon:katana,gauge:kenki,event:stage,stage:n} (오를 때만 — 내릴 때는 event:consume)',
+  'UTBUN_CHANGED{full:true}': 'WEAPON_GAUGE{weapon:greatsword,gauge:grudge,event:full}',
+  'BRAND_CHANGED{delta>0}': 'WEAPON_GAUGE{weapon:dagger,gauge:brand,event:apply,back?} (등 뒤 rate 1.1)',
+  BRAND_BURST: 'PLAYER_SKILL{weapon:dagger,move:brand,phase:burst}',
+  'OVERHEAT{full:true}': 'PLAYER_SKILL{weapon:dagger,move:overheat,phase:burst}',
+  'BREATH_FOCUS{phase:start}': 'WEAPON_GAUGE{weapon:bow,gauge:breath,event:focusStart}',
+  'GROGGY{phase:start}': 'WEAPON_RESOURCE{event:groggy}',
 };
 
 /** 속사 연사 n번째 (1→2→3 순환) */
