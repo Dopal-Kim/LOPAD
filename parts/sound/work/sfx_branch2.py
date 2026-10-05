@@ -243,7 +243,7 @@ def _gs_echo_counter(sr, rng):
 
 # ---- 거인(巨人) 2단 B-α: 차지 4단(1.6 s ×3.8, 진동 반경 5칸), 차지·꽂기 중 끊기지 않음 ----
 
-@sfx('charge_stage4', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:4}', "차지 4단 도달(거인 전용, 1.6 s · fx greatsword_charge_flash_lv4 · 60라운드 Q25 재제작 — 징 없음). 3단 '척' 신호를 더 무겁게: 파일 0 s 에 낮은 '척' + 쿵 두 겹(0 s · 0.09 s) + 위로 터지는 공기 → 땅이 갈라지는 저음(낮은 균열 + 자갈) + 15 Hz 로 떨리며 버티는 압력, 거인이 한계를 넘는 느낌. 오를 때만", -2)
+@sfx('charge_stage4', 'PLAYER_CHARGE{phase:stage,stage:4}', "차지 4단 도달(거인 전용, 1.6 s · fx greatsword_charge_flash_lv4 · 60라운드 Q25 재제작 — 징 없음). 3단 '척' 신호를 더 무겁게: 파일 0 s 에 낮은 '척' + 쿵 두 겹(0 s · 0.09 s) + 위로 터지는 공기 → 땅이 갈라지는 저음(낮은 균열 + 자갈) + 15 Hz 로 떨리며 버티는 압력, 거인이 한계를 넘는 느낌. 오를 때만", -2)
 def _charge_stage4(sr, rng):
     dur = 1.5
     s = zeros(sec(sr, dur))
@@ -267,7 +267,7 @@ def _charge_stage4(sr, rng):
     return reverb(tail(s, sr, 0.04), sr, size=0.9, decay=0.55, wet=0.15)
 
 
-@sfx('charge_slam_lv4', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:4}', "차지 4단 내려찍기(거인, ×3.8 · fx greatsword_giant_ring 반경 5칸: 0~0.15 s 퍼짐 → 0.15~0.38 s 끌어당김 → 가라앉음). 가장 무거운 강타(×1.9) + 퍼져 나가는 바람 링 → 안으로 빨려드는 바람 → 0.38 s 짓눌림 '쿵' + 오래 가는 땅울림 + 자갈 + 백열 쇳소리. 이 단에서는 charge_slam_lv3·gs_quake_ring 대신 이것 하나", 0)
+@sfx('charge_slam_lv4', 'PLAYER_CHARGE{phase:release,stage:4}', "차지 4단 내려찍기(거인, ×3.8 · fx greatsword_giant_ring 반경 5칸: 0~0.15 s 퍼짐 → 0.15~0.38 s 끌어당김 → 가라앉음). 가장 무거운 강타(×1.9) + 퍼져 나가는 바람 링 → 안으로 빨려드는 바람 → 0.38 s 짓눌림 '쿵' + 오래 가는 땅울림 + 자갈 + 백열 쇳소리. 거인 4단 내려찍기 소리는 이것 하나뿐 — charge_slam_lv3·gs_quake_ring·gs_crack_line_lv3 모두 울리지 않음(60라운드 Q40)", 0)
 def _charge_slam_lv4(sr, rng):
     dur = 1.9
     n = sec(sr, dur)
@@ -441,7 +441,7 @@ def _dagger_hotwind_loop(sr, rng):
     return s
 
 
-@sfx('dagger_hotwind_burst', 'PLAYER_SKILL{weapon:dagger,move:overheat,phase:burst,branch:heatwave}', "열풍 과열 폭발(반경 ×2 · 화상 3 s · 무적 0.5 s, fx dagger_hotwind_burst — dagger_overheat_burst 를 교체하듯 이 소리가 overheat_burst 를 교체). 큰 재 폭발(×1.8) + 엇갈린 작은 폭발 여섯 + 사방으로 눕는 불혀 '화르륵' + 길게 식는 증기", 0)
+@sfx('dagger_hotwind_burst', 'PLAYER_SKILL{move:overheat,phase:burst,branch:heatwave}', "열풍 과열 폭발(반경 ×2 · 화상 3 s · 무적 0.5 s, fx dagger_hotwind_burst — dagger_overheat_burst 를 교체하듯 이 소리가 overheat_burst 를 교체). 큰 재 폭발(×1.8) + 엇갈린 작은 폭발 여섯 + 사방으로 눕는 불혀 '화르륵' + 길게 식는 증기", 0)
 def _dagger_hotwind_burst(sr, rng):
     dur = 1.75
     s = zeros(sec(sr, dur))

@@ -1817,7 +1817,7 @@ def _brand_apply(sr, rng):
     return tail(s, sr, 0.02)
 
 
-@sfx('brand_burst', 'PLAYER_SKILL{weapon:dagger,move:brand,phase:burst}', "낙인 기폭(그림자 걸음으로 대상 뒤 이동 시 전부 폭발). 숨 들이켜듯 빨려드는 짧은 역바람 → 재 폭발 '펑' + 지지는 꼬리. 파일 0.06s 가 폭발 순간", -1)
+@sfx('brand_burst', 'PLAYER_SKILL{move:brand,phase:burst}', "낙인 기폭(그림자 걸음으로 대상 뒤 이동 시 전부 폭발). 숨 들이켜듯 빨려드는 짧은 역바람 → 재 폭발 '펑' + 지지는 꼬리. 파일 0.06s 가 폭발 순간", -1)
 def _brand_burst(sr, rng):
     dur = 0.75
     s = zeros(sec(sr, dur))
@@ -1831,7 +1831,7 @@ def _brand_burst(sr, rng):
     return reverb(tail(s, sr, 0.04), sr, size=0.5, decay=0.45, wet=0.12)
 
 
-@sfx('overheat_burst', 'PLAYER_SKILL{weapon:dagger,move:overheat,phase:burst}', "과열 100% 자동 폭발(단검, 주변 낙인 일괄 폭발 + 식힘). 엇갈린 재 폭발 4번 + 낮은 폭음 + 길게 식는 증기 쉿", 0)
+@sfx('overheat_burst', 'PLAYER_SKILL{move:overheat,phase:burst}', "과열 100% 자동 폭발(단검, 주변 낙인 일괄 폭발 + 식힘). 엇갈린 재 폭발 4번 + 낮은 폭음 + 길게 식는 증기 쉿", 0)
 def _overheat_burst(sr, rng):
     dur = 1.5
     n = sec(sr, dur)
@@ -2605,22 +2605,22 @@ def _crack_line(sr, rng, tiles):
     return reverb(s, sr, size=0.8, decay=0.5, wet=0.15)
 
 
-@sfx('gs_crack_line_lv1', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:1,part:crack}', "휘둘러 내리찍기 균열 진행(차지 1단, 3칸). 찍은 자리에서 커서 쪽으로 달려가는 갈라짐(칸당 0.06 s, 멀어질수록 어둡게) + 끝 '툭' + 땅울림. charge_slam_lv1 과 같은 판정 프레임에 겹침. 커서·벽이 가까워 짧게 끝나면 그 시점에 80 ms 페이드아웃", -1)
+@sfx('gs_crack_line_lv1', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:1,part:crack}', "휘둘러 내리찍기 균열 진행(차지 1단, 3칸). 찍은 자리에서 커서 쪽으로 달려가는 갈라짐(칸당 0.06 s, 멀어질수록 어둡게) + 끝 '툭' + 땅울림. charge_slam_lv1 과 같은 판정 프레임에 겹침. 커서·벽이 가까워 짧게 끝나면 그 시점에 80 ms 페이드아웃. 균열이 보일 때만(중압 런·거인 4단에서는 울리지 않음 · 60라운드 Q40)", -1)
 def _gs_crack_line_lv1(sr, rng):
     return _crack_line(sr, rng, 3)
 
 
-@sfx('gs_crack_line_lv2', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:2,part:crack}', "균열 진행(차지 2단, 4칸). 1단과 같은 재료, 0.24 s 동안 달려감", -1)
+@sfx('gs_crack_line_lv2', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:2,part:crack}', "균열 진행(차지 2단, 4칸). 1단과 같은 재료, 0.24 s 동안 달려감. 균열이 보일 때만(중압 런·거인 4단에서는 울리지 않음)", -1)
 def _gs_crack_line_lv2(sr, rng):
     return _crack_line(sr, rng, 4)
 
 
-@sfx('gs_crack_line_lv3', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:3,part:crack}', "균열 진행(차지 3단, 5칸). 0.30 s 동안 달려감, 가장 길다", 0)
+@sfx('gs_crack_line_lv3', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:3,part:crack}', "균열 진행(차지 3단, 5칸). 0.30 s 동안 달려감, 가장 길다. 균열이 보일 때만(중압 런·거인 4단에서는 울리지 않음)", 0)
 def _gs_crack_line_lv3(sr, rng):
     return _crack_line(sr, rng, 5)
 
 
-@sfx('gs_quake_ring', 'BRANCH_EFFECT{branch:giant,effect:ring}', "중압(대검 1단 B) 원형 진동 — 기본 균열 대신(찍은 자리 중심). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, 반경(단계)에 따라 gain +0/+1.5/+3 dB 권장", 0)
+@sfx('gs_quake_ring', 'BRANCH_EFFECT{branch:weight,effect:ring,stack:1|2|3}', "중압(대검 1단 B) 1~3단 원형 진동 — 기본 균열 대신(찍은 자리 중심, 중압 런에서는 gs_crack_line 없음 · 60라운드 Q40). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, stack 1/2/3 에 따라 gain +0/+1.5/+3 dB 권장. 거인 4단에서는 울리지 않음(charge_slam_lv4 하나만)", 0)
 def _gs_quake_ring(sr, rng):
     dur = 1.0
     n = sec(sr, dur)

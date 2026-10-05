@@ -113,8 +113,8 @@
 | kenki_stage3 | 0.98 s | - | `WEAPON_GAUGE` gauge:kenki event:stage stage:3 | **60 Q22 재제작** 빛남: 타오르는 바탕 + 번쩍 오르는 고역(3k→9.5k) + 일렁이는 반짝임 + 아주 작은 맑은 지속음(종 아님) | -4 |
 | utbun_full | 1.13 s | - | `WEAPON_GAUGE` gauge:grudge event:full (가득 차는 순간 1회만, Q47) | 끓어오르는 저역 잔불 + 0.3 s 불씨 '훅' + 타닥 18 + 달아오른 D4 쇠 험 | -3 |
 | brand_apply | 0.19 s | - | `WEAPON_GAUGE` gauge:brand event:apply (등 뒤 back:true) | 5.6k 지짐 '칙' + 틱 | -7 |
-| brand_burst | 0.79 s | - | `PLAYER_SKILL` dagger move:brand phase:burst | 60 ms 빨려드는 역바람 → 재 폭발 '펑'(0.06 s) + 지짐 꼬리 | -1 |
-| overheat_burst | 1.50 s | - | `PLAYER_SKILL` dagger move:overheat phase:burst | 큰 재 폭발 + 엇갈린 작은 폭발 4 + 길게 식는 증기 쉿 + 타닥 | 0 |
+| brand_burst | 0.79 s | - | `PLAYER_SKILL` move:brand phase:burst | 60 ms 빨려드는 역바람 → 재 폭발 '펑'(0.06 s) + 지짐 꼬리 | -1 |
+| overheat_burst | 1.50 s | - | `PLAYER_SKILL` move:overheat phase:burst | 큰 재 폭발 + 엇갈린 작은 폭발 4 + 길게 식는 증기 쉿 + 타닥 | 0 |
 | breath_focus | 0.98 s | - | `WEAPON_GAUGE` gauge:breath event:focusStart | 빨려드는 바람 0.45 s → 110→46 Hz 내려앉음(감속) + 희미한 D7 한 가닥 | -3 |
 | issen_dash | 0.39 s | - | 칼 일섬 돌진 | 칼집 딸깍 + 디딤 + 1.8k→7.5k 공기 찢김 + 6.5k→2.4k 칼바람 | -1 |
 | issen_burst | 0.83 s | - | 칼 일섬 선 터짐 | 선을 따라 0.1 s 동안 번지는 파열 9 + 낮은 폭음 + 칼날 울림 D6 | -1 |
@@ -194,10 +194,10 @@
 | katana_thrust_ki1 | 0.47 s | - | `PLAYER_ATTACK` katana combo:3 kenkiStage:1 (겹침) | 0.2 s 뻗는 찢김 + 칼날 울림 A4(재) | -5 |
 | katana_thrust_ki2 | 0.58 s | - | 〃 kenkiStage:2 | 0.24 s 찢김 + 칼날 울림 D5(호박) | -4 |
 | katana_thrust_ki3 | 0.78 s | - | 〃 kenkiStage:3 | 0.3 s 찢김 + 칼날 울림 A5(백열) + 3.5k 고음, 울림 | -3 |
-| gs_crack_line_lv1 | 0.73 s | - | `PLAYER_CHARGE` greatsword release stage:1 part:crack | 커서 쪽으로 달려가는 갈라짐 9(3칸 × 칸당 0.06 s) + 끝 '툭' + 땅울림 | -1 |
+| gs_crack_line_lv1 | 0.73 s | - | `PLAYER_CHARGE` greatsword release stage:1 part:crack(균열이 보일 때만 — 중압 런·거인 4단 제외, 60 Q40) | 커서 쪽으로 달려가는 갈라짐 9(3칸 × 칸당 0.06 s) + 끝 '툭' + 땅울림 | -1 |
 | gs_crack_line_lv2 | 0.79 s | - | 〃 stage:2 | 4칸(0.24 s), 갈라짐 12 | -1 |
 | gs_crack_line_lv3 | 0.85 s | - | 〃 stage:3 | 5칸(0.30 s), 갈라짐 15 | 0 |
-| gs_quake_ring | 1.00 s | - | `BRANCH_EFFECT` branch:giant effect:ring (중압) | 12 Hz 로 떨리는 땅(48→34 Hz) + 안으로 빨려드는 바람 → 0.32 s 짓눌림 '쿵' + 자갈 | 0 |
+| gs_quake_ring | 1.00 s | - | `BRANCH_EFFECT` branch:weight effect:ring stack:1\|2\|3 (중압 1~3단, 단계별 gain +0/+1.5/+3 dB · 거인 4단 무음, 60 Q40) | 12 Hz 로 떨리는 땅(48→34 Hz) + 안으로 빨려드는 바람 → 0.32 s 짓눌림 '쿵' + 자갈 | 0 |
 | gs_shatter_snuff | 0.27 s | - | `PLAYER_SKILL` greatsword move:crack phase:snuff (파쇄: 투사체 소멸) | 으스러지는 '빠직'(돌·쇠 파편) + 먼지 '푹' | -4 |
 | dagger_fan_throw | 0.34 s | - | `PLAYER_SKILL` dagger move:fan_throw (질풍) | 손목 딸깍 + 25 ms 간격 높은 바람 3(음높이 다름) + 칼날 틱 | -2 |
 | dagger_cross_clone | 0.62 s | - | `PLAYER_SKILL` dagger move:cross_clone (쌍격) | 0.16 s 빨려드는 어두운 역바람 → 0.16·0.19 s 엇갈린 두 베기(X) + 낮은 몸통 | -2 |
@@ -217,7 +217,7 @@
 - **회전 베기**: 0.4 s 홀드 도달 `katana_spin_ready` → 떼면 `katana_spin`. 검기 소모 2회전은 같은 파일 0.28 s 뒤 rate 1.05.
 - **가드 불가 내려베기**: 홀드 시작 `katana_guardbreak_hold`(150 ms 페이드인, 0.6 s 까지 rate 1.0→1.06 선택) → 0.6 s 도달 알림은 `katana_spin_ready` 를 rate 0.667(A5→D5)로 재사용 → 떼면 루프 60 ms 페이드아웃 + `katana_guardbreak` 를 **판정 프레임 100 ms 앞**에서(파일 0.1 s = 판정).
 - **3타 찌르기**: 매번 `katana_thrust`, 검기를 소모하면 같은 프레임에 그 단수의 `katana_thrust_ki1~3` 겹침(아트 오버레이 `katana_thrust_ki1~3` 와 1:1). 재생 속도 변주를 쓰지 않은 이유는 차지 내려찍기와 같다(음높이가 D 단조 축을 벗어나고 가벼워짐).
-- **대검 휘둘러 내리찍기(58 Q3)**: 판정 프레임에 기존 `charge_slam_lvN` + `gs_crack_line_lvN` 동시. 커서·벽 때문에 균열이 짧게 끝나면 그 시점에 균열음 80 ms 페이드아웃. 중압 갈래는 균열 대신 진동이므로 `gs_crack_line` 대신 `gs_quake_ring`. 파쇄 갈래는 `gs_crack_line` 그대로 + 탄을 지울 때마다 `gs_shatter_snuff`.
+- **대검 휘둘러 내리찍기(58 Q3)**: 판정 프레임에 기존 `charge_slam_lvN` + `gs_crack_line_lvN` 동시. 커서·벽 때문에 균열이 짧게 끝나면 그 시점에 균열음 80 ms 페이드아웃. 중압 갈래는 균열 대신 진동이므로 `gs_crack_line` 대신 `gs_quake_ring`(중압 1~3단, `BRANCH_EFFECT{branch:weight,effect:ring,stack}` — 중압 런에서는 균열음 없음, 60 Q40). 파쇄 갈래는 `gs_crack_line` 그대로 + 탄을 지울 때마다 `gs_shatter_snuff`.
 - **질풍·쌍격**: 투척 `dagger_fan_throw` 1회(3자루 함께), 적중은 기존 `hit_enemy` + `brand_apply`. 분신 교차는 `brand_burst` 와 같은 프레임에 겹침.
 - **속사**: 발마다 `bow_rapid1~3` 중 직전과 다른 것 + ±3% rate. 일찍 놓기·완벽 놓기 판정은 기존 `bow_release_weak`/`bow_release_perfect` 그대로.
 - **관통**: 완벽 놓기 = 기존 `bow_release_perfect`, 적을 뚫을 때마다 `bow_pierce` + `hit_enemy`.
@@ -368,8 +368,8 @@
 | kenki_stage5 | 칼 · 명경 | 1.19 s | - | `WEAPON_GAUGE{gauge:kenki,event:stage,stage:5}` | 검기 5단 도달(명경 최대 — 다음 일섬 분신 2체 · 60라운드 Q25 재제작 — 칼날 울림 없음). 빛이 고리로 이어지는 반짝임 다섯 번(발밑 초승달 다섯, 0.12 s 부터 70 ms 간격, 점점 높게) → 0.47 s 고리가 닫히며 짧은 백열 '화악' + 타닥. 5단 일섬 = 기존 shadow_clone 두 번(+90 ms) | -3 |
 | gs_quake_fork | 대검 · 지진 | 0.65 s | - | `BRANCH_EFFECT{branch:quake,effect:fork}` | 지진 세 갈래(fx greatsword_quake_fork: 파쇄 균열 앞머리가 끝에 닿은 순간, 30 ms × 3 = 0.09 s 에 2칸 끝). 세 줄이 동시에 터져 나가는 갈라짐(조금씩 어긋남) + 끝 '툭' 셋 + 땅울림. gs_crack_line_lvN 재생 + 균열 달리는 시간(칸 × 0.06 s) 뒤 | -1 |
 | gs_echo_counter | 대검 · 반향 | 0.90 s | - | `BRANCH_EFFECT{branch:resonance,effect:counter}` | 반향 반격(퍼펙트 가드 + 울분 30% 이상, fx greatsword_echo_counter impactFrame 0 → 30 ms × 3 = 3칸). 땅이 되받아치는 낮은 '둥' + 70 ms 간격으로 두 번 메아리치는 징 D4 + 앞으로 달리는 균열 3칸. perfect_guard 와 같은 프레임에 겹침(울분 30% 미만이면 재생 안 함) | 0 |
-| charge_stage4 | 대검 · 거인 | 1.54 s | - | `PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:4}` | 차지 4단 도달(거인 전용, 1.6 s · fx greatsword_charge_flash_lv4 · 60라운드 Q25 재제작 — 징 없음). 3단 '척' 신호를 더 무겁게: 파일 0 s 에 낮은 '척' + 쿵 두 겹(0 s · 0.09 s) + 위로 터지는 공기 → 땅이 갈라지는 저음(낮은 균열 + 자갈) + 15 Hz 로 떨리며 버티는 압력, 거인이 한계를 넘는 느낌. 오를 때만 | -2 |
-| charge_slam_lv4 | 대검 · 거인 | 1.90 s | - | `PLAYER_CHARGE{weapon:greatsword,phase:release,stage:4}` | 차지 4단 내려찍기(거인, ×3.8 · fx greatsword_giant_ring 반경 5칸: 0~0.15 s 퍼짐 → 0.15~0.38 s 끌어당김 → 가라앉음). 가장 무거운 강타(×1.9) + 퍼져 나가는 바람 링 → 안으로 빨려드는 바람 → 0.38 s 짓눌림 '쿵' + 오래 가는 땅울림 + 자갈 + 백열 쇳소리. 이 단에서는 charge_slam_lv3·gs_quake_ring 대신 이것 하나 | 0 |
+| charge_stage4 | 대검 · 거인 | 1.54 s | - | `PLAYER_CHARGE{phase:stage,stage:4}` | 차지 4단 도달(거인 전용, 1.6 s · fx greatsword_charge_flash_lv4 · 60라운드 Q25 재제작 — 징 없음). 3단 '척' 신호를 더 무겁게: 파일 0 s 에 낮은 '척' + 쿵 두 겹(0 s · 0.09 s) + 위로 터지는 공기 → 땅이 갈라지는 저음(낮은 균열 + 자갈) + 15 Hz 로 떨리며 버티는 압력, 거인이 한계를 넘는 느낌. 오를 때만 | -2 |
+| charge_slam_lv4 | 대검 · 거인 | 1.90 s | - | `PLAYER_CHARGE{phase:release,stage:4}` | 차지 4단 내려찍기(거인, ×3.8 · fx greatsword_giant_ring 반경 5칸: 0~0.15 s 퍼짐 → 0.15~0.38 s 끌어당김 → 가라앉음). 가장 무거운 강타(×1.9) + 퍼져 나가는 바람 링 → 안으로 빨려드는 바람 → 0.38 s 짓눌림 '쿵' + 오래 가는 땅울림 + 자갈 + 백열 쇳소리. 거인 4단 내려찍기 소리는 이것 하나뿐 — charge_slam_lv3·gs_quake_ring·gs_crack_line_lv3 모두 울리지 않음(60라운드 Q40) | 0 |
 | gs_congest_loop | 대검 · 울혈 | 0.75 s | 루프 | `BRANCH_EFFECT{branch:clot,effect:hold}` (멈춤 `end`·`burst`) | 울혈 맺힘 루프(0.75 s = fx greatsword_congest_aura 한 바퀴, 그로기 1.5 s 동안 2바퀴). 바퀴마다 무거운 심장 한 번 + 피가 몰리는 낮은 D2 웅웅(한 번 부풂) + 드문 잔불 타닥. groggy_start 와 함께 시작, 그로기 끝에 60 ms 페이드아웃 | -10 |
 | gs_congest_burst | 대검 · 울혈 | 1.25 s | - | `BRANCH_EFFECT{branch:clot,effect:burst}` | 울혈 폭발(그로기가 풀리는 순간 울분 100% → 전부 소모, 차지 2단 위력 · fx greatsword_congest_burst 반경 2.25칸 · 흔들림 180 ms). 0.04 s 빨려드는 숨 → 핏빛 재 폭발 '퍽'(×1.4) + 강타 + 치솟는 불기둥 + 길게 식는 연기 쉿. 파일 0.04 s = 폭발 | 0 |
 | dagger_frenzy_in | 단검 · 난무 | 0.44 s | - | `BRANCH_EFFECT{branch:dance,effect:clone_in}` | 난무 분신 나타남(낙인 5스택 기폭 뒤, fx dagger_frenzy_clone_in 0.22 s). 재 알갱이가 모여드는 빨려드는 어두운 역바람 + 점점 촘촘해지는 재 틱 → 0.22 s 형태가 잡히는 딸깍 + 낮은 몸통. 분신 연격음 = swing_dagger 를 rate 0.94 · -6 dB 로 따라 재생(권장) | -3 |
@@ -380,7 +380,7 @@
 | dagger_knife_stick | 단검 · 비도 | 0.38 s | - | `BRANCH_EFFECT{branch:flyknife,effect:stick}` | 비도 단검이 바닥에 박힘(fx dagger_stuck_blade f0, 2 s 유지). 짧게 꽂히는 '톡' + 날이 떠는 쇠 울림(30 Hz 떨림). 다섯이 거의 함께 떨어지면 20 ms 규칙으로 묶이므로 30~60 ms 시차 권장 | -7 |
 | dagger_knife_step | 단검 · 비도 | 0.47 s | - | `BRANCH_EFFECT{branch:flyknife,effect:step}` | 비도: 박힌 단검 자리로 그림자 걸음(과열 −10%). 도착 순간 단검을 뽑아 드는 '칭'(위로 긁는 쇠) + 단검이 재로 부서짐 + 낮은 몸통. 기존 shadowstep 의 끝 딸깍(0.26 s)에 맞춰 겹침 | -3 |
 | dagger_hotwind_loop | 단검 · 열풍 | 1.12 s | 루프 | `BRANCH_EFFECT{branch:heatwave,effect:trail_start}` (멈춤 `trail_end`) | 열풍 달아오른 질주 루프(1.12 s = fx dagger_hotwind_trail 280 ms × 4). 발 뒤로 흘러가는 낮은 불혀(3.57 Hz 일렁임) + 열 아지랑이 쉿 + 드문 타닥. 과열 50% 이상 + 이동 중일 때만, 멈추거나 50% 미만이면 120 ms 페이드아웃 | -12 |
-| dagger_hotwind_burst | 단검 · 열풍 | 1.75 s | - | `PLAYER_SKILL{weapon:dagger,move:overheat,phase:burst,branch:heatwave}` | 열풍 과열 폭발(반경 ×2 · 화상 3 s · 무적 0.5 s, fx dagger_hotwind_burst — dagger_overheat_burst 를 교체하듯 이 소리가 overheat_burst 를 교체). 큰 재 폭발(×1.8) + 엇갈린 작은 폭발 여섯 + 사방으로 눕는 불혀 '화르륵' + 길게 식는 증기 | 0 |
+| dagger_hotwind_burst | 단검 · 열풍 | 1.75 s | - | `PLAYER_SKILL{move:overheat,phase:burst,branch:heatwave}` | 열풍 과열 폭발(반경 ×2 · 화상 3 s · 무적 0.5 s, fx dagger_hotwind_burst — dagger_overheat_burst 를 교체하듯 이 소리가 overheat_burst 를 교체). 큰 재 폭발(×1.8) + 엇갈린 작은 폭발 여섯 + 사방으로 눕는 불혀 '화르륵' + 길게 식는 증기 | 0 |
 | bow_arrow_split | 활 · 연궁 | 0.26 s | - | `BRANCH_EFFECT{branch:volley,effect:split}` | 연궁 분열(연사 3발마다, fx bow_arrow_split impactFrame 0 · ±12°). 갈림목의 작은 '팅' + 위·아래로 벌어지는 짧은 바람 둘. 그 발의 bow_rapidN 위에 겹침. 패시브 '흩어진 촉'의 벽·사거리 끝 분열에도 재사용 권장 | -5 |
 | bow_arrow_recall | 활 · 무한통 | 0.47 s | - | `BRANCH_EFFECT{branch:quiver,effect:recall}` | 무한통 화살 회수(박힌 화살 밟기 +1 · 처치 +3, fx bow_arrow_recall). 화살통에 화살대가 떨어져 들어가는 나무 딸깍 넷 + 위로 솟는 불씨 블립 다섯 + 작게 오르는 바람. 처치 +3 은 같은 파일 한 번 | -6 |
 | bow_deadeye_lock | 활 · 필중 | 0.62 s | - | `BRANCH_EFFECT{branch:deadeye,effect:lock}` | 필중 조준 다 좁혀짐(fx bow_deadeye_scope 진행도 100% = f5). 괄호 넷이 좁혀 드는 빨라지는 틱(점점 높게) → 0.15 s 맑은 '딸깍-팅' + 아주 희미한 D7 + 낮은 심장 한 번. 이 뒤 완벽 놓기 = 치명 확정. 이어서 bow_deadeye_hold | -4 |
@@ -429,7 +429,7 @@
 - **명경**: 패링 = `parry` + `parry_perfect` + `katana_mirror_parry` 셋 겹침(대역이 나뉨). 4·5단 도달 `kenki_stage4/5`, 5단 일섬 분신 2체 = `shadow_clone` 두 번(+90 ms).
 - **지진**: `gs_crack_line_lvN` 시작 + (칸 수 × 0.06 s) 에 `gs_quake_fork`. 공중제비 착지 균열 1줄 = `gs_crack_line_lv1` 을 2칸 시점(약 0.12 s)에 80 ms 페이드아웃.
 - **반향**: `perfect_guard` + `gs_echo_counter` 같은 프레임(울분 30% 미만이면 `perfect_guard` 만).
-- **거인**: 4단 도달 `charge_stage4`, 4단 내려찍기는 `charge_slam_lv4` 하나(lv3·`gs_quake_ring` 겹치지 않음). 차지 루프 rate 는 4단에서 1.09(선택).
+- **거인**: 4단 도달 `charge_stage4`, 4단 내려찍기는 `charge_slam_lv4` 하나(lv3·`gs_quake_ring`·`gs_crack_line_lv3` 겹치지 않음, 60 Q40). 차지 루프 rate 는 4단에서 1.09(선택).
 - **울혈**: 그로기 진입 `groggy_start` + `gs_congest_loop`(그로기 동안), 풀릴 때 울분 100% 면 `gs_congest_burst`.
 - **난무**: 분신 등장 `dagger_frenzy_in` → 분신 연격마다 `swing_dagger` rate 0.94 · -6 dB → 3 s 끝 `dagger_frenzy_out`.
 - **출혈**: 기폭 `brand_burst` + `dagger_bleed` 겹침, 옮겨감 `dagger_brand_hop`. 0.5 s 틱은 무음.

@@ -1888,7 +1888,6 @@
       "trigger": {
         "event": "PLAYER_SKILL",
         "when": [
-          "weapon:dagger",
           "move:brand",
           "phase:burst"
         ]
@@ -1913,7 +1912,6 @@
       "trigger": {
         "event": "PLAYER_SKILL",
         "when": [
-          "weapon:dagger",
           "move:overheat",
           "phase:burst"
         ]
@@ -3068,7 +3066,7 @@
           "part:crack"
         ]
       },
-      "note": "휘둘러 내리찍기 균열 진행(차지 1단, 3칸). 찍은 자리에서 커서 쪽으로 달려가는 갈라짐(칸당 0.06 s, 멀어질수록 어둡게) + 끝 '툭' + 땅울림. charge_slam_lv1 과 같은 판정 프레임에 겹침. 커서·벽이 가까워 짧게 끝나면 그 시점에 80 ms 페이드아웃"
+      "note": "휘둘러 내리찍기 균열 진행(차지 1단, 3칸). 찍은 자리에서 커서 쪽으로 달려가는 갈라짐(칸당 0.06 s, 멀어질수록 어둡게) + 끝 '툭' + 땅울림. charge_slam_lv1 과 같은 판정 프레임에 겹침. 커서·벽이 가까워 짧게 끝나면 그 시점에 80 ms 페이드아웃. 균열이 보일 때만(중압 런·거인 4단에서는 울리지 않음 · 60라운드 Q40)"
     },
     {
       "id": "sfx/gs_crack_line_lv2",
@@ -3094,7 +3092,7 @@
           "part:crack"
         ]
       },
-      "note": "균열 진행(차지 2단, 4칸). 1단과 같은 재료, 0.24 s 동안 달려감"
+      "note": "균열 진행(차지 2단, 4칸). 1단과 같은 재료, 0.24 s 동안 달려감. 균열이 보일 때만(중압 런·거인 4단에서는 울리지 않음)"
     },
     {
       "id": "sfx/gs_crack_line_lv3",
@@ -3120,7 +3118,7 @@
           "part:crack"
         ]
       },
-      "note": "균열 진행(차지 3단, 5칸). 0.30 s 동안 달려감, 가장 길다"
+      "note": "균열 진행(차지 3단, 5칸). 0.30 s 동안 달려감, 가장 길다. 균열이 보일 때만(중압 런·거인 4단에서는 울리지 않음)"
     },
     {
       "id": "sfx/gs_quake_ring",
@@ -3140,11 +3138,12 @@
       "trigger": {
         "event": "BRANCH_EFFECT",
         "when": [
-          "branch:giant",
-          "effect:ring"
+          "branch:weight",
+          "effect:ring",
+          "stack:1|2|3"
         ]
       },
-      "note": "중압(대검 1단 B) 원형 진동 — 기본 균열 대신(찍은 자리 중심). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, 반경(단계)에 따라 gain +0/+1.5/+3 dB 권장"
+      "note": "중압(대검 1단 B) 1~3단 원형 진동 — 기본 균열 대신(찍은 자리 중심, 중압 런에서는 gs_crack_line 없음 · 60라운드 Q40). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, stack 1/2/3 에 따라 gain +0/+1.5/+3 dB 권장. 거인 4단에서는 울리지 않음(charge_slam_lv4 하나만)"
     },
     {
       "id": "sfx/gs_shatter_snuff",
@@ -4294,7 +4293,6 @@
       "trigger": {
         "event": "PLAYER_CHARGE",
         "when": [
-          "weapon:greatsword",
           "phase:stage",
           "stage:4"
         ]
@@ -4319,12 +4317,11 @@
       "trigger": {
         "event": "PLAYER_CHARGE",
         "when": [
-          "weapon:greatsword",
           "phase:release",
           "stage:4"
         ]
       },
-      "note": "차지 4단 내려찍기(거인, ×3.8 · fx greatsword_giant_ring 반경 5칸: 0~0.15 s 퍼짐 → 0.15~0.38 s 끌어당김 → 가라앉음). 가장 무거운 강타(×1.9) + 퍼져 나가는 바람 링 → 안으로 빨려드는 바람 → 0.38 s 짓눌림 '쿵' + 오래 가는 땅울림 + 자갈 + 백열 쇳소리. 이 단에서는 charge_slam_lv3·gs_quake_ring 대신 이것 하나"
+      "note": "차지 4단 내려찍기(거인, ×3.8 · fx greatsword_giant_ring 반경 5칸: 0~0.15 s 퍼짐 → 0.15~0.38 s 끌어당김 → 가라앉음). 가장 무거운 강타(×1.9) + 퍼져 나가는 바람 링 → 안으로 빨려드는 바람 → 0.38 s 짓눌림 '쿵' + 오래 가는 땅울림 + 자갈 + 백열 쇳소리. 거인 4단 내려찍기 소리는 이것 하나뿐 — charge_slam_lv3·gs_quake_ring·gs_crack_line_lv3 모두 울리지 않음(60라운드 Q40)"
     },
     {
       "id": "sfx/gs_congest_loop",
@@ -4589,7 +4586,6 @@
       "trigger": {
         "event": "PLAYER_SKILL",
         "when": [
-          "weapon:dagger",
           "move:overheat",
           "phase:burst",
           "branch:heatwave"
