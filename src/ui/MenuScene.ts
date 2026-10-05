@@ -150,6 +150,12 @@ export class MenuScene extends Phaser.Scene {
   private show(m: UiMenu): void {
     const prev = this.drawn;
     const same = Boolean(prev) && prev!.id === m.id && (prev!.structureId ?? '') === (m.structureId ?? '');
+    // 61 단계 4: 처음 안내가 떠 있는 동안 같은 메뉴가 다시 오면(시스템이 다시 띄움·MENU_OPEN 재전송) 안내를 지킨다
+    if (same && this.guideCancel && isGrowthMenu(m)) {
+      this.menu = m;
+      this.drawn = m;
+      return;
+    }
     const keepCursor = same ? (this.list?.cursorIndex() ?? this.cardRow?.focusIndex() ?? 0) : 0;
     this.menu = m;
     this.drawn = m;
@@ -165,15 +171,22 @@ export class MenuScene extends Phaser.Scene {
     if (isGrowthMenu(m)) {
       // 61 단계 4 P12: 무기 성장 카드 — 메타 기준 처음이면 안내 카드 한 장 뒤에
       const gk = guideKind(m, snap.growth);
+      debugExpose('growthMenu', {
+        guide: gk,
+        firstTime: snap.growth?.firstTime ?? null,
+        shown: gk ? guideShown(gk) : null,
+      });
       if (gk && !guideShown(gk)) {
-        markGuideShown(gk);
+        // 본 것으로 치는 것은 닫았을 때 (씬이 다시 떠도 아직 안 닫았으면 다시 띄운다)
         this.guideCancel = showGrowthGuide(this, gk, guideLook(gk, snap), () => {
+          markGuideShown(gk);
           this.guideCancel = undefined;
-          if (this.alive && this.drawn === m) this.show(m);
+          if (this.alive && this.drawn) this.show(this.drawn);
         });
         return;
       }
       page = showGrowthCards(this, m, snap, ctx, MENU_MAX_PAGE_H);
+      debugExpose('growthCards', { id: m.id, drawn: Boolean(page) });
       if (!page) this.children.removeAll(true);
     } else if (m.id === 'cards' && cardLines.length >= CARD_MIN && cardLines.length <= CARD_MAX) {
       page = showFaceDownCards(this, m, cardLines, ctx);

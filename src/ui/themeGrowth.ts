@@ -36,18 +36,20 @@ export const GROWTH_HUD = {
 
 /** 선택 카드 (개성 발현 3 · 1차 각성 3 · 2차 각성 2 · 단련 눈금 [단련/개성/개성]) */
 export const GROWTH_CARD = {
-  /** 카드 폭: 3장 · 2장 */
-  w3: 212,
+  /** 카드 폭: 3장 · 2장 (1차 각성 카드의 길 미리보기가 두 줄 안에 들게 넓게) */
+  w3: 256,
   w2: 252,
   minH: 208,
-  gap: 22,
+  gap: 18,
   pad: 14,
   matPad: 16,
   tabH: 24,
   tabTop: 10,
   stripe: 3,
   /** 무기 모양 그림 칸 높이 (그림은 칸 안에 정수 배율로) */
-  lookH: 64,
+  lookH: 56,
+  /** 화면에 들지 않을 때 그림 칸 높이 */
+  lookHCompact: 40,
   /** 개성 카드의 큰 키 그림 배율 */
   keyScale: 2 as const,
   /** 고른 카드 들림·그림자 */

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { UI_SCREEN, type UiMenu, type UiSnapshot } from '../contract/ui';
 import { buildOf } from './buildView';
+import { debugExpose } from './debug';
 import { cardPage, cardShell, type ShellSlot } from './cardShell';
 import { choiceHint } from './choiceCardView';
 import { GlowText } from './glow';
@@ -43,18 +44,40 @@ export function showGrowthCards(
   if (data.length < 2) return null;
   const n = data.length;
   const cw = growthCardW(n);
-  const faces = data.map((d) => cardFace(scene, d, cw));
-  const ch = Math.max(C.minH, ...faces.map((f) => f.h));
   const matW = n * cw + (n - 1) * C.gap + C.matPad * 2;
-  const page = cardPage(
-    scene,
-    m,
-    ctx,
-    { w: matW, h: ch + C.matPad * 2, pad: C.matPad },
-    choiceHint(m, r60Text),
-    maxPageH,
-  );
-  if (!page) return null;
+  // 화면에 들 때까지 조인다: 0 = 그대로 → 1 = 그림 칸 낮게·괘선·'2차 각성 길' 머리글 뺌 → 2 = 길 한 줄·태그도 뺌 (그래도 넘치면 목록)
+  const tried: number[] = [];
+  for (const lv of [0, 1, 2] as const) {
+    const before = new Set(scene.children.list);
+    const faces = data.map((d) => cardFace(scene, d, cw, lv));
+    const ch = Math.max(C.minH, ...faces.map((f) => f.h));
+    const page = cardPage(
+      scene,
+      m,
+      ctx,
+      { w: matW, h: ch + C.matPad * 2, pad: C.matPad },
+      choiceHint(m, r60Text),
+      maxPageH,
+    );
+    tried.push(ch);
+    if (page) {
+      debugExpose('growthCardFit', { level: lv, tried });
+      return finishCards(scene, page, faces, cw, ch);
+    }
+    for (const o of scene.children.list.filter((x) => !before.has(x))) o.destroy();
+    for (const f of faces) for (const o of f.parts) o.destroy();
+  }
+  debugExpose('growthCardFit', { level: -1, tried });
+  return null;
+}
+
+function finishCards(
+  scene: Phaser.Scene,
+  page: NonNullable<ReturnType<typeof cardPage>>,
+  faces: Face[],
+  cw: number,
+  ch: number,
+): CardPage {
   const slots: ShellSlot[] = faces.map((f, i) =>
     cardShell(
       scene,
@@ -86,7 +109,8 @@ interface Face {
 }
 
 /** 카드 내용 (카드 왼쪽 위 기준 지역 좌표) */
-function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number): Face {
+function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 | 2): Face {
+  const lookH = lv === 0 ? C.lookH : C.lookHCompact;
   const inner = cw - C.pad * 2;
   const cx = Math.round(cw / 2);
   const parts: Phaser.GameObjects.GameObject[] = [];
@@ -100,10 +124,10 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number): Face {
   };
   // ---- 위: 그림 (각성) 또는 큰 키 그림 (개성)
   if (d.kind === 'awaken1' || d.kind === 'awaken2') {
-    g.fillStyle(hexToNum(SEPIA[1]), 0.55).fillRect(C.pad, y, inner, C.lookH);
-    const img = lookImage(scene, d.look, cx, y, inner - 8, C.lookH);
-    parts.push(img ?? lookText(scene, d.lookText || d.name, cx, y, C.lookH));
-    y += C.lookH + GAP.afterLook;
+    g.fillStyle(hexToNum(SEPIA[1]), 0.55).fillRect(C.pad, y, inner, lookH);
+    const img = lookImage(scene, d.look, cx, y, inner - 8, lookH);
+    parts.push(img ?? lookText(scene, d.lookText || d.name, cx, y, lookH));
+    y += lookH + GAP.afterLook;
   } else if (d.kind === 'trait' && d.verb) {
     y = bigKey(scene, g, parts, d.verb, cx, y);
   }
@@ -117,21 +141,26 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number): Face {
   // 각성 카드: 바뀌는 키 한 줄 ([키] '… 바뀜')
   if ((d.kind === 'awaken1' || d.kind === 'awaken2') && d.verb) y = keyRow(scene, g, parts, d.verb, cx, y);
   // ---- 괘선 · 한 줄
-  const rule = scene.add.tileSprite(C.pad, y, inner, 4, KIT.rule).setOrigin(0, 0);
-  parts.push(rule);
-  y += 4 + GAP.afterRule;
-  if (d.line) add(new GlowText(scene, 0, 0, d.line, 'page_body', { wrap: inner, align: 'center' }), GAP.afterLine);
-  if (d.tags.length)
+  // (조인 단계에서는 괘선을 빼고 한 줄 아래 틈을 줄인다)
+  if (lv === 0) {
+    const rule = scene.add.tileSprite(C.pad, y, inner, 4, KIT.rule).setOrigin(0, 0);
+    parts.push(rule);
+    y += 4 + GAP.afterRule;
+  }
+  if (d.line)
+    add(new GlowText(scene, 0, 0, d.line, 'page_body', { wrap: inner, align: 'center' }), lv === 0 ? GAP.afterLine : 2);
+  if (d.tags.length && lv < 2)
     add(new GlowText(scene, 0, 0, d.tags.join(' · '), 'page_faint', { wrap: inner, align: 'center' }), GAP.afterLine);
   // ---- 1차 각성: 2차 길 미리보기
   if (d.kind === 'awaken1' && d.paths.length) {
-    add(new GlowText(scene, 0, 0, growthText('pathsHead'), 'page_faint'), 2);
+    if (lv === 0) add(new GlowText(scene, 0, 0, growthText('pathsHead'), 'page_faint'), 2);
+    else y += 2;
     for (const p of d.paths) {
       const pn = new GlowText(scene, C.pad + 10, y, p.name, 'page_body');
       diamond(g, C.pad + 4, y + Math.round(pn.displayHeight / 2), 3, swatch(scene, 0, { slot: C.pathDotSlot }), true);
       parts.push(pn);
       y += pn.displayHeight;
-      if (p.line) {
+      if (p.line && lv < 2) {
         const pl = new GlowText(scene, C.pad + 10, y, p.line, 'page_faint', { wrap: inner - 10 });
         parts.push(pl);
         y += pl.displayHeight;

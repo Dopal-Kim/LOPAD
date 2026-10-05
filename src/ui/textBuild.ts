@@ -145,7 +145,8 @@ export const RARITY_NAME: Record<UiRarity, string> = {
 export const REWARD_NAME: Record<UiNodeRewardKind, string> = {
   gold: '전표 주머니',
   passive: '패시브',
-  personality: '개성',
+  // 61 G: 노드 보상 'personality' = 각성 게이지 (옛 '개성' 수치)
+  personality: '각성 게이지',
   consumable: '소모품',
   statPoint: '능력치 포인트',
   curse: '저주',
@@ -154,12 +155,12 @@ export const REWARD_NAME: Record<UiNodeRewardKind, string> = {
 
 /**
  * 노드 보상 임시 글리프 (아이콘 7종이 오기 전 — 아트 요청 목록). 한 글자를 작은 표 안에 그린다.
- * 전표 주머니 '전' · 패시브 '패' · 개성 '개' · 소모품 '병' · 능력치 포인트 '점' · 저주 '저' · 미상 '?'
+ * 전표 주머니 '전' · 패시브 '패' · 각성 게이지 '각' · 소모품 '병' · 능력치 포인트 '점' · 저주 '저' · 미상 '?'
  */
 export const REWARD_GLYPH: Record<UiNodeRewardKind, string> = {
   gold: '전',
   passive: '패',
-  personality: '개',
+  personality: '각',
   consumable: '병',
   statPoint: '점',
   curse: '저',

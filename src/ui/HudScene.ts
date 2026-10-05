@@ -16,8 +16,6 @@ import {
   type UiRouteEntered,
   type UiRouteNode,
   type UiSnapshot,
-  type UiBuildMenuId,
-  type UiStructureMenuId,
   type UiStructureResult,
   type UiTagSetChanged,
   type UiWarpDenied,
@@ -67,22 +65,8 @@ const ROUTE_CANCEL_SUPPRESS_MS = 1500;
 
 /** 가운데 배너 깊이 (자막과 같은 층 — StoryHud STORY_UI.depth) */
 const CAPTION_DEPTH = 50;
-/**
- * 47라운드 구조물 메뉴 id (계약 §9.4) + 60라운드 §14.7 게임 중 메뉴(저주 2택·이벤트·지도 장수·소모품 바꾸기) —
- * 시스템이 메뉴 씬을 띄우지 않았을 때의 안전망에 쓴다
- */
-const STRUCTURE_MENU_IDS: ReadonlySet<string> = new Set<UiStructureMenuId | UiBuildMenuId>([
-  'cards',
-  'exchange',
-  'pawn',
-  'grave',
-  'ledger',
-  'counter',
-  'curse',
-  'event',
-  'mapInfo',
-  'consumableSwap',
-]);
+/** 메뉴 씬 안전망: MENU_OPEN 뒤 이만큼 기다려도 메뉴 씬이 없으면 UI 가 띄운다 (ms) */
+const MENU_SAFETY_MS = 60;
 
 /**
  * 게임 위에 병렬로 떠 있는 HUD (41라운드 키트 적용). 매 프레임 STATE 스냅샷으로 갱신.
@@ -277,7 +261,7 @@ export class HudScene extends Phaser.Scene {
         this.challenge?.reset();
         this.toasts?.clear();
       });
-    this.on(UI_EVENTS.MENU_OPEN, (m: UiMenu) => this.ensureStructureMenu(m));
+    this.on(UI_EVENTS.MENU_OPEN, (m: UiMenu) => this.ensureMenuScene(m));
     // 57·60라운드 §14.11: 빌드 축·2차 묶음 알림 (모두 연출용 — 값은 STATE 로도 온다)
     this.on(UI_EVENTS.TAG_SET_CHANGED, (p: UiTagSetChanged) => this.buildLayer?.tagSetChanged(p));
     this.on(UI_EVENTS.CURSE_GAINED, (p: UiCurse) => this.buildLayer?.curseGained(p));
@@ -567,12 +551,12 @@ export class HudScene extends Phaser.Scene {
   }
 
   /**
-   * 구조물 메뉴 안전망: 시스템이 MENU_OPEN 뒤 메뉴 씬을 띄우는 것이 기본(계약 §5). 잠시 뒤에도 메뉴 씬이 없고
-   * 스냅샷의 열린 메뉴가 같은 id 면 UI 가 직접 띄운다 (구조물 메뉴만).
+   * 메뉴 씬 안전망: 시스템이 MENU_OPEN 뒤 메뉴 씬을 띄우는 것이 기본(계약 §5). 잠시 뒤에도 메뉴 씬이 없고 스냅샷의 열린 메뉴가
+   * 같은 id 면 UI 가 직접 띄운다. 47라운드에는 구조물 메뉴만이었으나, 61 단계 4 에서 모든 메뉴로 넓혔다 — 한 메뉴를 닫고 같은
+   * 순간 다음 메뉴를 열면(시험장 '다음 눈금까지' → 개성 발현) 메뉴 씬이 닫히는 중이라 시스템이 다시 띄우지 않아 메뉴가 사라졌다.
    */
-  private ensureStructureMenu(m: UiMenu): void {
-    if (!STRUCTURE_MENU_IDS.has(m.id)) return;
-    this.time.delayedCall(60, () => {
+  private ensureMenuScene(m: UiMenu): void {
+    this.time.delayedCall(MENU_SAFETY_MS, () => {
       if (!this.alive) return;
       const status = this.scene.get(UI_SCENE_KEYS.MENU).sys.settings.status;
       const busy = status >= Phaser.Scenes.INIT && status <= Phaser.Scenes.SLEEPING;
