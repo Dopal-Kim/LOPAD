@@ -105,3 +105,4 @@ interface SoundEntry {
 ## 10. 무기 성장 (61 단계 4, P12)
 - `growth_tick`(게이지 눈금 근접·획득 반짝, 아주 작게, `UI_EVENTS.GROWTH_GAIN` — 너무 잦으면 300ms 묶음), `trait_manifest`(개성 발현 메뉴 열림 / 고름), `awaken1`(1차 각성 — 금 가며 깨어남, 0.8초 정지와 맞춤), `awaken2`(2차 각성 — 돋아나며 빛, 1.0초), 무기별 짧은 꼬리(칼·대검·단검·활 4종, `{weapon}` 조건). 트리거는 시스템 EventBus `WEAPON_AWAKEN{stage,weapon}`·`TRAIT_GAINED`·`GROWTH_MARK`(시스템이 이름 확정 후 이 줄 갱신).
 - 옛 `evolve`(갈래 선택) 소리는 `awaken1` 로 대체, 옛 `dual_trait_get` 은 `trait_manifest` 로 대체.
+- (61 단계 4 음향 반영) §6 트리거에 `BOSS_ACTION{boss,action,index?}` 추가: `introRoar`→`boss1_intro_roar`(boss1_entrance 와 둘 다 재생), `cupStruck`→`boss1_cup_struck`(잔이 깨지는 타에는 보내지 않음 — 깨지면 boss1_break_cup 만), `pillarCrack{index 1~3}`→`boss1_pillar_crack1~3`(ui:boss-break{pillar} 위에 겹쳐 재생), `flameSnuff`→`boss1_flame_snuff`(+`_v2`·`_v3` 변주, 그룹 동시 4). 믹싱 우선순위는 같은 이벤트 안에서 action 조건별로 매김(포효 4·잔/균열 3·촛불 1), `perGroupOverrides` boss1_flame_snuff 4·boss1_cup_struck 2. 화살비 launch 0.53초(시위 0/0.12/0.24)·impact 9타.
