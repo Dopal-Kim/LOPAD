@@ -543,3 +543,18 @@ interface UiNodeGraded {
 - 보스 파훼 결정타 이벤트·결과 표시, 이벤트 E4 '일기장의 빈 쪽'의 갈래 트리 미리보기 데이터, 저주 남은 노드의 노드 띠 표시 방식 — 별도.
 
 - **(60라운드 Q39)** §14.9 `UiElite.screen` 은 엘리트 **머리 꼭대기** 화면 좌표. UI 는 그 37px 위(문장 pivot + 64도트)에 이름표를 둔다.
+
+## 15. 설정 (61라운드 P10)
+```ts
+interface UiSettings {
+  shake: number;          // 화면 흔들림 배율 0~1 (기본 1)
+  flash: boolean;         // 섬광(피격·결정타 화면 번쩍임) 켜기 (기본 true)
+  tilt: boolean;          // 보스 '세상이 돈다' 화면 기울기 켜기 (기본 true)
+  damageNumbers: boolean; // 피해 숫자 표시 (기본 true)
+  master: number;         // 전체 음량 0~1
+  bgm: number;            // 배경음 0~1
+  sfx: number;            // 효과음 0~1
+}
+```
+- UI 가 설정 화면(일시정지 메뉴의 한 항목, 타이틀에서도 열림)을 그리고 값을 바꾼다. 시스템 명령 `setSettings(s: UiSettings)` 로 넘기고, 시스템은 즉시 적용(카메라 흔들림 배율·섬광·기울기·피해 숫자·음량 버스)한다. 저장은 시스템 세이브(메타 영역)에, 부팅 때 `UiSnapshot.settings` 로 UI 에 알려 준다.
+- 기존 §11.3 `setMuted` 는 유지(`master` 0 과 별개의 빠른 음소거).
