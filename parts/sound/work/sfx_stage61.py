@@ -18,13 +18,13 @@ from sfx_bundle2 import flame, glass_shards  # noqa: F401
 ROUND = '61-2'   # listen_index 의 round 값(61라운드 단계 2·3)
 
 
-def redo(name, note, gain_db=None, trigger=None):
-    """이미 등록된 키의 합성 함수·설명(·트리거·음량)을 바꾼다. 등록 순서·시드는 그대로."""
+def redo(name, note, gain_db=None, trigger=None, round_=ROUND):
+    """이미 등록된 키의 합성 함수·설명(·트리거·음량)을 바꾼다. 등록 순서·시드는 그대로. round_ = listen_index 의 round 값."""
     old = SFX[name]
 
     def deco(fn):
         spec = dict(old)
-        spec.update(fn=fn, note=note, redone=ROUND, origin_module=old.get('origin_module', old['fn'].__module__))
+        spec.update(fn=fn, note=note, redone=round_, origin_module=old.get('origin_module', old['fn'].__module__))
         if gain_db is not None:
             spec['gain_db'] = gain_db
         if trigger is not None:
@@ -910,3 +910,208 @@ def _guard_block_heavy(sr, rng):
     mix_into(s, scuff(sr, rng, 0.2, 1100), sec(sr, 0.05), 0.4)
     mix_into(s, punch(sr, 100, 45, 0.1, 0.025, 1.2), sec(sr, 0.2), 0.3)
     return softclip(s, 1.7)
+
+
+# ===========================================================================
+# 6. 61라운드 단계 4 — 새 보스 내부 이벤트 BOSS_ACTION(introRoar·cupStruck·pillarCrack·flameSnuff) · 화살비 타이밍
+#    (데모 버전 6 피드백 배분 '새 보스 동작 소리 → 음향'. 시스템 EventBus `BOSS_ACTION {id, action, index?}`.
+#     트리거 표기는 이 파일의 보스 관례(`EVENT{boss:1,키:값}`) — 조건 키 action·index 는 payload 필드 그대로.)
+#    **이 절 아래에만 새 효과음을 붙인다**(시드 = 1000 + 등록 순서 — 위 소리는 바이트 불변).
+# ===========================================================================
+
+ROUND4 = '61-4'   # listen_index 의 round 값(61라운드 단계 4)
+
+
+def sfx4(name, trigger, note, gain_db=0.0, loop=False, category='combat'):
+    """sfx() + round 표시(61-4)."""
+    def deco(fn):
+        sfx(name, trigger, note, gain_db, loop=loop, category=category)(fn)
+        SFX[name]['round'] = ROUND4
+        return fn
+    return deco
+
+
+def variant4(base, k, note):
+    """sfx_core61.variant() + round 표시(61-4)."""
+    from sfx_core61 import variant
+
+    def deco(fn):
+        variant(base, k, note)(fn)
+        SFX['%s_v%d' % (base, k)]['round'] = ROUND4
+        return fn
+    return deco
+
+
+# ---- 등장 포효 (BOSS_ACTION introRoar — 등장 연출 roarAtMs 3.8 s, 이름 카드 ui:boss-roar 와 같은 순간) ----------
+
+@sfx4('boss1_intro_roar', 'BOSS_ACTION{boss:1,action:introRoar}', "61-4 새 — 만취 등장 포효(등장 연출의 포효 프레임 = 보스 이름 카드가 뜨는 순간, 등장 시작 3.8 s). boss1_entrance(0 s, 2.7 s — 탁자 '탁!'·걸음·'크아')와 겹치지 않고 그 뒤에 온다: 가슴을 부풀린 디딤 '쿵'(105→36 Hz) + 아래 무게 → 0.02~0.9 s 짧고 굵은 포효(노이즈 포먼트 'ㅇ워아' F1 380→760→480 Hz, 목소리 아님) + 31 Hz 로 긁는 거친 떨림 + 가슴 저역 + 48 Hz 낮은 으르렁 + 0.25 s 부터 커지는 4 Hz 취기 흔들림(혀 꼬인 끝 처짐) + 배 속 술 출렁 → 0.95 s 작은 딸꾹. 돌방 울림. 이름 카드와 함께 화면의 한 방(우선순위 4 — 다른 효과음 −6 dB·BGM −3 dB 덕킹)", 0, category='boss')
+def _boss1_intro_roar(sr, rng):
+    dur = 1.25
+    s = zeros(sec(sr, dur))
+    mix_into(s, punch(sr, 105, 36, 0.42, 0.1, 2.0), 0, 0.85)                              # 디딤 '쿵'
+    mix_into(s, sub(sr, 60, 34, 0.5, 0.15), 0, 0.6)
+    mix_into(s, lowpass(burst(sr, 0.25, rng, fc=280, q=0.6, tau=0.06, mode='low'), sr, 450), 0, 0.5)
+    rd = 0.9
+    n = sec(sr, rd)
+    t0 = sec(sr, 0.02)
+    f1, f2 = [], []
+    for i in range(n):                                                                    # 'ㅇ워아' → 처짐
+        t = i / sr
+        if t < 0.18:
+            u = t / 0.18
+            a, b = 380 + 380 * u, 880 + 370 * u
+        else:
+            u = min(1.0, (t - 0.18) / 0.72)
+            a, b = 760 - 280 * u, 1250 - 300 * u
+        w = 1 + 0.07 * min(1.0, max(0.0, (t - 0.25) / 0.3)) * math.sin(TAU * 4.2 * t)      # 취기 흔들림
+        f1.append(a * w)
+        f2.append(b * w)
+    src = noise(sr, rd, rng)
+    v = [x * 0.6 + y * 0.32 + z * 0.1 for x, y, z in zip(svf(src, sr, f1, 4.5, 'band'), svf(src, sr, f2, 5.5, 'band'),
+                                                           svf(src, sr, 2500, 4.0, 'band'))]
+    growl = [0.45 + 0.55 * (0.5 + 0.5 * math.sin(TAU * 31 * i / sr + 1.3 * math.sin(TAU * 7 * i / sr))) for i in range(n)]
+    jit = normalize(lowpass([rng.uniform(-1, 1) for _ in range(n)], sr, 40), 1.0)
+    v = mul(mul(v, growl), [0.75 + 0.25 * j for j in jit])
+    chest = mul(svf(noise(sr, rd, rng), sr, 210, 0.8, 'low'), growl)
+    mix_into(v, chest, 0, 1.1)
+    rum = lowpass(lowpass(tone_f(sr, [48 * (1 + 0.04 * math.sin(TAU * 4.2 * i / sr)) for i in range(n)], 'saw'), sr, 170), sr, 170)
+    mix_into(v, mul(rum, growl), 0, 0.55)
+    v = mul(v, env_adsr(sr, rd, 0.06, 0.1, 0.8, 0.38, curve=0.7))
+    mix_into(s, softclip(v, 2.4), t0, 1.0)
+    mix_into(s, slosh(sr, rng, 0.35, 320, 650), sec(sr, 0.1), 0.22)                      # 배 속 출렁
+    hc = sec(sr, 0.95)                                                                    # 작은 딸꾹
+    mix_into(s, burst(sr, 0.02, rng, fc=2400, q=1.0, tau=0.004), hc, 0.3)
+    mix_into(s, breath(sr, rng, 0.07, (560, 480), (1050, 980), 0.4, 0.004, 1.0, 0.6, 0.05), hc, 0.3)
+    s = softclip(s, 1.4)
+    return reverb(s, sr, size=1.3, decay=0.72, wet=0.26)
+
+
+# ---- 잔 맞힘 · 안 깨짐 (BOSS_ACTION cupStruck — 3국면은 2타째에 깨짐 → 그때는 ui:boss-break{kind:cup}) ---------
+
+@sfx4('boss1_cup_struck', 'BOSS_ACTION{boss:1,action:cupStruck}', "61-4 새 — 약점 잔을 맞혔으나 아직 안 깨짐(3국면 1타째 등). 맞는 순간 짧은 '딱' + 잔 몸통 '톡' → 맑은 '팅'(2.95 kHz 종 배음, 0.11 s 감쇠 — 0.7~2 kHz 오래 남는 울림 없음) + 6 Hz 로 흔들리는 맥놀이(잔이 흔들림) + 짧은 술 출렁 + 물방울 몇. 깨질 때의 boss1_break_cup(둔탁한 '빡'·뒤집어씀)과 반대로 가볍고 맑다 = '금은 갔지만 아직'. 우선순위 3", -2, category='boss')
+def _boss1_cup_struck(sr, rng):
+    dur = 0.62
+    s = zeros(sec(sr, dur))
+    mix_into(s, snap(sr, rng, 3200, 0.012, 0.002), 0, 0.5)
+    mix_into(s, wood_tok(sr, rng, 1500, 0.04, 0.005, 0.7), 0, 0.3)
+    mix_into(s, punch(sr, 260, 140, 0.06, 0.015, 1.3), 0, 0.25)
+    pt = [(1.0, 1.0), (2.01, 0.35), (2.76, 0.25), (4.07, 0.12)]
+    mix_into(s, highpass(metal(sr, 0.5, 2950, rng, partials=pt, tau=0.11, jitter=0.002), sr, 2000), 0, 0.55)
+    mix_into(s, highpass(metal(sr, 0.5, 2956, rng, partials=pt[:2], tau=0.13, jitter=0.0), sr, 2000), 0, 0.28)
+    mix_into(s, slosh(sr, rng, 0.32, 500, 1000), sec(sr, 0.015), 0.45)
+    mix_into(s, droplets(sr, rng, 0.4, 4, 0.05, 0.3, 700, 1500, 0.12), 0)
+    return reverb(s, sr, size=0.6, decay=0.45, wet=0.12)
+
+
+# ---- 기둥 균열 (BOSS_ACTION pillarCrack, index = 새 단 1~3 — 3단에서 멈춤, 무너지지 않음) ---------------------
+
+def _pillar_crack(sr, rng, st):
+    """돌기둥에 금이 감: 단이 오를수록 길고 낮고 깊다. 돌진 충돌(ui:boss-break{kind:pillar} 의 큰 '쿵')과 같은 프레임에
+    겹칠 수 있으므로 몸통은 가볍게 두고 '돌이 갈라지는' 결(중고역 지직·쩌억·부스러기)에 무게를 둔다."""
+    dur = (0.5, 0.75, 1.05)[st - 1]
+    s = zeros(sec(sr, dur))
+    mix_into(s, snap(sr, rng, 2600, 0.014, 0.0025), 0, 0.8)                               # 'ㅉ'
+    mix_into(s, crunch(burst(sr, 0.05 + 0.02 * st, rng, fc=1400 - 250 * st, q=0.8, tau=0.012 + 0.006 * st), 5 + 2 * st), 0, 0.8)
+    spread = 0.1 + 0.12 * st                                                              # 번지는 잔금
+    times = sorted(rng.uniform(0.02, 0.02 + spread) for _ in range(4 + 5 * st))
+    for k, t in enumerate(times):
+        u = k / max(1, len(times) - 1)
+        fc = 3200 * (1 - u) + (1100 - 150 * st) * u
+        c = crunch(burst(sr, 0.014, rng, fc=fc, q=0.9, tau=rng.uniform(0.002, 0.005)), 3)
+        mix_into(s, c, sec(sr, t), (0.55 - 0.25 * u) * rng.uniform(0.6, 1.0))
+    mix_into(s, punch(sr, 190 - 35 * st, 80 - 12 * st, 0.12 + 0.06 * st, 0.03 + 0.015 * st, 1.6), 0, 0.3 + 0.12 * st)
+    if st >= 2:                                                                           # '쩌억'
+        mix_into(s, tear(sr, 0.18 * st, rng, 900, 350, rate=38.0, q=1.2), sec(sr, 0.04), 0.3 + 0.08 * st)
+    if st >= 3:                                                                           # 깊은 돌 신음
+        gn = sec(sr, 0.45)
+        gr = svf(tone(sr, 0.45, 70, 48, kind='saw'), sr, sweep(sr, gn, 260, 160), 2.0, 'band')
+        mix_into(s, mul(gr, env_adsr(sr, 0.45, 0.12, 0.0, 1.0, 0.3)), sec(sr, 0.08), 0.45)
+        mix_into(s, sub(sr, 64, 34, 0.5, 0.15), sec(sr, 0.03), 0.5)
+    mix_into(s, gravel(sr, rng, dur, 3 + 5 * st, 0.05, 0.25 + 0.2 * st, 0.18 + 0.04 * st), 0)  # 부스러기
+    if st >= 2:
+        dust = mul(svf(noise(sr, 0.3 * st, rng), sr, 900, 0.7, 'low'), env_adsr(sr, 0.3 * st, 0.04, 0.0, 1.0, 0.25 * st))
+        mix_into(s, dust, sec(sr, 0.05), 0.1 * st)
+    s = softclip(s, 1.5)
+    return reverb(s, sr, size=0.9 + 0.15 * st, decay=0.55 + 0.05 * st, wet=0.15 + 0.03 * st)
+
+
+@sfx4('boss1_pillar_crack1', 'BOSS_ACTION{boss:1,action:pillarCrack,index:1}', "61-4 새 — 기둥 균열 1단(가는 금). 돌이 '짝' 갈라지는 짧은 소리 + 위로 번지는 잔금 지직 9(고역 → 중역) + 가벼운 돌 몸통(155→68 Hz) + 부스러기 몇. 0.5 s. 돌진 충돌의 ui:boss-break{kind:pillar} 와 같은 프레임에 겹쳐도 되게 몸통은 가볍다", -3, category='boss')
+def _boss1_pillar_crack1(sr, rng):
+    return _pillar_crack(sr, rng, 1)
+
+
+@sfx4('boss1_pillar_crack2', 'BOSS_ACTION{boss:1,action:pillarCrack,index:2}', "61-4 새 — 기둥 균열 2단(벌어짐). 1단보다 낮고 길게: '짝' + 잔금 14 + 0.04 s 부터 '쩌억' 찢기는 돌(900→350 Hz, 38 Hz 거친 떨림) + 돌 몸통(120→56 Hz) + 부스러기·먼지. 0.75 s", -2, category='boss')
+def _boss1_pillar_crack2(sr, rng):
+    return _pillar_crack(sr, rng, 2)
+
+
+@sfx4('boss1_pillar_crack3', 'BOSS_ACTION{boss:1,action:pillarCrack,index:3}', "61-4 새 — 기둥 균열 3단(깊은 금 — 여기서 멈춤, 무너지지 않음). 2단 위에 기둥 속에서 울리는 깊은 돌 신음(70→48 Hz 톱니, 260→160 Hz 대역) + 아래 무게(64→34 Hz) + 더 많은 부스러기·먼지, '쩌억' 더 길게. 1.05 s", -1, category='boss')
+def _boss1_pillar_crack3(sr, rng):
+    return _pillar_crack(sr, rng, 3)
+
+
+# ---- 촛불 하나 꺼짐 (BOSS_ACTION flameSnuff — 처치 연출 snuffAtMs 부터 먼 촛대 순으로 60·90·75 ms 간격) ----------
+
+def _snuff(sr, rng, fc=1000, puff=0.07):
+    """불꽃 하나가 '훅' 꺼짐 + 가는 연기. 여러 개가 60~90 ms 간격으로 겹치므로 머리는 짧고 또렷하게, 꼬리(연기)는 아주
+    작게, 울림 거의 없음 — 겹쳐도 '훅·훅·훅' 이 하나씩 들리게."""
+    dur = 0.34
+    s = zeros(sec(sr, dur))
+    m = sec(sr, puff)
+    pf = svf(noise(sr, puff, rng), sr, sweep(sr, m, fc * 1.3, fc * 0.45), 0.9, 'band')
+    mix_into(s, mul(pf, env_adsr(sr, puff, 0.004, 0.0, 1.0, puff * 0.85)), 0, 1.0)    # '훅'
+    mix_into(s, thud(sr, 0.04, 160, 90, 0.012), 0, 0.15)                                 # 공기가 꺼지는 작은 몸통
+    mix_into(s, crackle(sr, rng, 0.08, 2, 0.12), sec(sr, 0.01))                            # 심지 마지막 지직
+    sm = svf(noise(sr, 0.28, rng), sr, 2200, 0.5, 'band')                                  # 연기
+    am = normalize(lowpass([rng.uniform(0, 1) for _ in range(len(sm))], sr, 18), 1.0)
+    sm = mul(mul(sm, [0.5 + 0.5 * a for a in am]), env_adsr(sr, 0.28, 0.03, 0.0, 1.0, 0.24))
+    mix_into(s, sm, sec(sr, 0.03), 0.13)
+    return reverb(s, sr, size=0.4, decay=0.35, wet=0.06)
+
+
+@sfx4('boss1_flame_snuff', 'BOSS_ACTION{boss:1,action:flameSnuff}', "61-4 새 — 촛불 하나 꺼짐(보스 처치 연출: snuffAtMs 2.3 s 부터 방 촛대를 먼 순서로 60·90·75 ms 간격, fx boss1_flame_snuff 와 함께). 아주 짧은 '훅'(1.3k→450 Hz, 70 ms) + 작은 몸통 + 심지 지직 + 가는 연기 쉿(2.2 kHz, 0.28 s, 아주 작게). 울림 거의 없음 — 여러 개가 겹쳐도 하나씩 들리게. 변주 v2·v3 를 번갈아(직전과 다른 것) + 재생 속도 ±3 %. 같은 그룹 동시 4개", -7, category='boss')
+def _boss1_flame_snuff(sr, rng):
+    return _snuff(sr, rng, 1000, 0.07)
+
+
+@variant4('boss1_flame_snuff', 2, "촛불 꺼짐 변주 2 — '훅' 조금 낮고 짧게(850 Hz, 60 ms)")
+def _boss1_flame_snuff_v2(sr, rng):
+    return _snuff(sr, rng, 850, 0.06)
+
+
+@variant4('boss1_flame_snuff', 3, "촛불 꺼짐 변주 3 — '훅' 조금 높고 길게(1.18 kHz, 80 ms)")
+def _boss1_flame_snuff_v3(sr, rng):
+    return _snuff(sr, rng, 1180, 0.08)
+
+
+# ---- 화살비 타이밍 맞춤 (서서 시작 판 arrow_rain_stand: releasesAtMs [240,360,480], 전체 770 ms,
+#      firstDropAtMs 690 + 낙하 판정 프레임 120 ms = 첫 꽂힘 810 ms, 낙하 9곳 × 40 ms) ----------------------------
+#  시스템: launch = releasesAtMs[0](240 ms)에 1회, impact = 첫 꽂힘 − 100 ms(710 ms)에 1회.
+
+@redo('arrow_rain_launch', "화살비 발사(61-4 다시 만듦 — 서서 시작 판 발사 시각 240·360·480 ms 에 맞춤). 파일 0 = 첫 발사(launch 이벤트 = releasesAtMs[0]). 시위 세 번 0 / 0.12 / 0.24 s(옛 0/0.06/0.12 s 는 발사 간격 120 ms 와 어긋남) + 발마다 하늘로 솟는 짧은 바람 → 0.25~0.47 s 멀어지는 바람(낙하 휘파람이 시작하는 0.47 s = 710 ms 전에 사라짐)", round_=ROUND4)
+def _arrow_rain_launch61(sr, rng):
+    dur = 0.5
+    s = zeros(sec(sr, dur))
+    for k, t0 in enumerate((0.0, 0.12, 0.24)):
+        p = mul(pluck(sr, 0.2, 170 + 15 * k, rng, damp=0.985, bright=0.7), env_exp(sr, 0.2, 0.06))
+        mix_into(s, p, sec(sr, t0), 0.8)
+        mix_into(s, thud(sr, 0.06, 210, 120, 0.015), sec(sr, t0), 0.4)
+        mix_into(s, whoosh(sr, 0.16, rng, 2500, 6500, q=1.2, a=0.2, r=0.6), sec(sr, t0 + 0.01), 0.25)
+    up = whoosh(sr, 0.22, rng, 3000, 7500, q=1.4, a=0.15, r=0.8)
+    mix_into(s, lowpass(up, sr, sweep(sr, len(up), 9000, 2500)), sec(sr, 0.25), 0.3)  # 멀어짐
+    return tail(s, sr, 0.03)
+
+
+@redo('arrow_rain_impact', "화살비 낙하(61-4 다시 만듦 — 낙하 9곳 × 40 ms 에 맞춤). 파일 0 = 첫 꽂힘 100 ms 전(impact 이벤트). 0~0.1 s 내려꽂히는 휘파람 + 비 쏟아지는 쉿(0.4 s) → 흙에 꽂히는 '툭' 아홉(0.10 + 0.04 s × k, ±4 ms, 점점 작게 — 옛 셋 0.1/0.16/0.23 s 는 마지막 낙하 0.42 s 까지 못 감) + 화살대 떨림 + 흙 튐", round_=ROUND4)
+def _arrow_rain_impact61(sr, rng):
+    dur = 0.6
+    s = zeros(sec(sr, dur))
+    wh = mul(tone(sr, 0.1, 2600, 1500), env_adsr(sr, 0.1, 0.06, 0.0, 1.0, 0.02))
+    mix_into(s, wh, 0, 0.06)                                                              # 내려오는 휘파람
+    mix_into(s, whoosh(sr, 0.11, rng, 5000, 2200, q=1.4, a=0.6, r=0.2), 0, 0.3)
+    mix_into(s, whoosh(sr, 0.4, rng, 4200, 2600, q=0.9, a=0.15, r=0.5), sec(sr, 0.06), 0.1)  # 이어 떨어지는 쉿
+    for k in range(9):
+        t0 = 0.10 + 0.04 * k + (rng.uniform(-0.004, 0.004) if k else 0.0)
+        mix_into(s, arrow_thunk(sr, rng), sec(sr, t0), (0.9 - 0.05 * k) * rng.uniform(0.7, 1.0))
+    mix_into(s, gravel(sr, rng, 0.6, 9, 0.1, 0.5, 0.18), 0)
+    return tail(s, sr, 0.03)

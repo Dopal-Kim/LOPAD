@@ -112,6 +112,12 @@ SUBGROUP = {
     'boss1_candle_topple': '등불', 'boss1_candle_relight': '등불',
     'boss1_dash_telegraph': '1국면 패턴', 'boss1_dash': '1국면 패턴',
     'boss1_slam_telegraph': '1국면 패턴', 'boss1_slam': '1국면 패턴',
+    # 61라운드 단계 4 — BOSS_ACTION 새 동작
+    'boss1_intro_roar': '등장 · 쓰러짐', 'boss1_cup_struck': '잔 · 기둥 (파훼 전)',
+    'boss1_pillar_crack1': '잔 · 기둥 (파훼 전)', 'boss1_pillar_crack2': '잔 · 기둥 (파훼 전)',
+    'boss1_pillar_crack3': '잔 · 기둥 (파훼 전)',
+    'boss1_flame_snuff': '처치 연출 · 촛불 꺼짐', 'boss1_flame_snuff_v2': '처치 연출 · 촛불 꺼짐',
+    'boss1_flame_snuff_v3': '처치 연출 · 촛불 꺼짐',
 }
 
 NEW_MODULES = {'sfx_bundle2': 'bundle2', 'sfx_branch2': 'branch2', 'sfx_passive': 'passive'}
@@ -168,6 +174,8 @@ def _round(name, kind, sfx_specs):
     if kind == 'bgm':
         return '61' if name.startswith('f1_') else ''
     spec = sfx_specs[name]
+    if spec.get('redone') == '61-4' or spec.get('round') == '61-4':
+        return '61-4'
     if spec.get('redone') == '61-2' or spec.get('archived') == '61-2' or spec['fn'].__module__ == 'sfx_stage61':
         return '61-2'
     if spec.get('redone') == '61' or spec['fn'].__module__ == 'sfx_core61':
@@ -218,6 +226,7 @@ def write(root, manifest_path, sfx_specs, out_path=None):
              '청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. '
              'round "60" = 60라운드 새 소리, "61" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, '
              '"61-2" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), '
+             '"61-4" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],
         groups=[dict(id=g, label=label, count=counts.get(g, 0)) for g, label in GROUPS],

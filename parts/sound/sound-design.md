@@ -152,8 +152,8 @@
 | dagger_flurry1~4 | 0.07 s ×4 | - | 단검 고속 난타(찌를 때마다 1개) | 짧은 찌르기 4변주(기본/낮고 둔탁/높고 가벼움/쇠 스침) | -5 |
 | bow_release_weak | 0.21 s | - | 활 일찍 놓기 | 둔한 240 Hz 시위 '퉁'(LP 1.6k) + 13 Hz 흔들리는 바람 + 연기 쉿 | -4 |
 | bow_release_perfect | 0.50 s | - | 활 완벽 놓기 | 110 Hz 깊은 시위 + 맑은 '팅' A5 + 9k 까지 꿰뚫는 바람 | 0 |
-| arrow_rain_launch | 0.78 s | - | 활 화살비 발사 | 시위 3번(0/0.06/0.12 s) + 하늘로 멀어지는 바람 | -2 |
-| arrow_rain_impact | 0.63 s | - | 활 화살비 낙하 | 0.1 s 내려오는 휘파람 → 흙에 꽂힘 3(0.1/0.16/0.23 s) + 화살대 떨림 | -2 |
+| arrow_rain_launch | ~~0.78~~ **0.53 s**(61-4) | - | 활 화살비 발사(파일 0 = 첫 발사 240 ms) | 시위 3번 ~~0/0.06/0.12 s~~ → **0/0.12/0.24 s**(서서 시작 판 발사 240·360·480 ms) + 발마다 솟는 바람 → 0.47 s 까지 멀어지는 바람(4-10) | -2 |
+| arrow_rain_impact | 0.63 s | - | 활 화살비 낙하(파일 0 = 첫 꽂힘 − 100 ms) | 0.1 s 내려오는 휘파람 → 흙에 꽂힘 ~~3(0.1/0.16/0.23 s)~~ → **9(0.10 + 0.04 s × k, 낙하 9곳 × 40 ms)**(61-4) + 화살대 떨림 | -2 |
 | bow_full_draw | 0.15 s | - | 활 가득 당김 알림(Q44) `PLAYER_SECONDARY{kind:aimedshot,phase:full}` | 딸깍(5.2k) + 활대 멈춤 나무 '톡'(320→210 Hz) + 팽팽한 시위 '틱' D4(고역통과 500) + 아주 작은 A6 쇠 반짝임, 드라이 | -4 |
 | bow_strain | 1.00 s | 루프 | 활 오래 쥐어 흔들림(Q44) `PLAYER_SECONDARY{kind:aimedshot,phase:strain}` | 한계까지 당긴 시위 험 95/98 Hz 톱니(3 Hz 맥놀이, 밴드 1.2k) × 7·11 Hz 불규칙 떨림 + 28 Hz 나무 삐걱(5 Hz 일렁임) + 드문 삐걱 딸깍 3(랩어라운드). `bow_draw` 끝 음색(95 Hz·1.2k·28 Hz)을 이어받음, 정수 주기 이음매 | -10 |
 
@@ -564,6 +564,33 @@
 
 **믹싱(5장 갱신)**: `BOSS_BREAK`(= `ui:boss-break`) 를 우선순위 3(방어 판정급)으로 — 파훼·결정타·`break_count` 가 2 → 3. 덕킹 한 줄 추가: BOSS_BREAK 소리 재생 → SFX(≤ 2) -4 dB 300 ms(한 방이 앞에 서게). 같은 소리 상한: `guard_block_heavy` 2 · `peddler_hurt`·`porter_hurt` 2 · `barrel_return` 2.
 
+### 4-10. 61라운드 단계 4 — 보스 `BOSS_ACTION` 새 동작 4종(새 6 + 변주 2) · 화살비 타이밍(다시 2)
+근거: `parts/producer/decisions/2026-10-05-round-61-autonomous-stage1.md` 단계 4 배분('새 보스 동작 소리 → 음향'), 시스템 EventBus `BOSS_ACTION {id, action, index?}` 의 61 E 새 action(`introRoar`·`cupStruck`·`pillarCrack`·`flameSnuff`), 계약 `ui-system-interface.md` §17(`ui:boss-roar` = 이름 카드), `art-assets.md` 서서 시작 화살비(`releasesAt [240,360,480]`, 전체 770 ms). 코드 `work/sfx_stage61.py` 6절(round `61-4`). 원칙은 4-8·4-9 그대로.
+
+**트리거 표기**: 기존 manifest 에는 `BOSS_ACTION` 을 직접 쓴 항목이 없었다(54라운드 패턴 소리는 `BOSS_TELEGRAPH/ATTACK{boss:1,attack,phase}` 표기 + 시스템 audioMap `bossActionSfx` 대응표). 새 항목은 이 문서의 보스 관례 `EVENT{boss:1,키:값}` 에 payload 필드 이름을 그대로 써 `BOSS_ACTION{boss:1,action:<action>}`(+ `index:N`)로 적었다.
+
+| id | 길이 | gainDb | 우선순위 | 트리거 | 질감 |
+|---|---|---|---|---|---|
+| `boss1_intro_roar` | 1.25 s | 0 | **4** | `BOSS_ACTION{boss:1,action:introRoar}` (등장 3.8 s, `ui:boss-roar` 이름 카드와 같은 순간) | 디딤 '쿵'(105→36 Hz) + 아래 무게 → 0.02~0.9 s 짧고 굵은 포효(노이즈 포먼트 'ㅇ워아' F1 380→760→480 Hz — 목소리 아님) + 31 Hz 거친 떨림 + 가슴 저역 + 48 Hz 으르렁 + 0.25 s 부터 4 Hz 취기 흔들림(끝이 처짐) + 배 속 출렁 → 0.95 s 작은 딸꾹. `boss1_entrance`(0~2.7 s, 탁자 '탁!'·걸음·'크아')가 끝난 뒤라 겹치지 않고, 음색도 '크아'(ㅏ, 날숨)와 달리 굵게 긁는 포효 |
+| `boss1_cup_struck` | 0.62 s | -2 | 3 | `BOSS_ACTION{boss:1,action:cupStruck}` (잔을 맞혔으나 안 깨짐 — 3국면 1타째 등) | 짧은 '딱' + 잔 몸통 '톡' → 맑은 '팅'(2.95 kHz 종 배음, 0.11 s 감쇠, 2 kHz 고역통과 — 0.7~2 kHz 오래 남는 울림 없음) + 6 Hz 맥놀이(잔이 흔들림) + 짧은 출렁 + 물방울. 깨질 때(`boss1_break_cup`, 둔탁한 '빡'·뒤집어씀)의 반대 = '금은 갔지만 아직' |
+| `boss1_pillar_crack1` | 0.50 s | -3 | 3 | `BOSS_ACTION{boss:1,action:pillarCrack,index:1}` | 가는 금: '짝' + 위로 번지는 잔금 지직 9(고역 → 중역) + 가벼운 돌 몸통(155→68 Hz) + 부스러기 |
+| `boss1_pillar_crack2` | 0.75 s | -2 | 3 | 〃 `index:2` | 벌어짐: 잔금 14 + 0.04 s '쩌억' 찢기는 돌(900→350 Hz, 38 Hz 떨림) + 몸통 120→56 Hz + 먼지 |
+| `boss1_pillar_crack3` | 1.05 s | -1 | 3 | 〃 `index:3` (여기서 멈춤 — 무너지지 않음) | 깊은 금: 2단 + 기둥 속 깊은 돌 신음(70→48 Hz 톱니) + 아래 무게(64→34 Hz) + 부스러기·먼지 더 많이 |
+| `boss1_flame_snuff` (+ `_v2`·`_v3`) | 0.34 s | -7 | 1 | `BOSS_ACTION{boss:1,action:flameSnuff}` (처치 연출 `snuffAtMs` 2.3 s 부터 먼 촛대 순으로 60·90·75 ms 간격, fx `boss1_flame_snuff` 와 함께) | 아주 짧은 '훅'(1.3k→450 Hz, 70 ms — v2 850 Hz 60 ms · v3 1.18 kHz 80 ms) + 작은 몸통 + 심지 지직 + 가는 연기 쉿(2.2 kHz, 아주 작게). 울림 거의 없음 |
+
+판단과 이유:
+- **포효는 짧게(1.25 s)**: 등장 시간표가 포효 3.8 s → 카메라 복귀 4.7 s → 전투 5.2 s 라 1.4 s 안에 끝나야 한다. 소리의 몸은 0.9 s, 0.95 s 딸꾹 뒤 울림만 남는다. 이름 카드와 같은 한 방이라 우선순위 4(기존 덕킹 규칙 '우선순위 4 → 효과음 −6·BGM −3 dB' 가 그대로 걸린다).
+- **기둥 균열 = 3 파일(피치 변주 아님)**: 단이 오를수록 소리의 '구조'가 달라진다(1단 지직만 → 2단 '쩌억' → 3단 깊은 신음). 피치만 바꾸면 3단이 '같은 소리가 낮아진 것'으로 들린다. 돌진 충돌(`ui:boss-break{kind:pillar}`)과 같은 프레임에 올 수 있어 큰 '쿵'은 넣지 않고 갈라지는 결에 무게를 뒀다(합쳐 들으면 '쿵 — 쩌억').
+- **촛불 = 짧은 머리 + 작은 꼬리 + 변주 3**: 60~90 ms 간격으로 6~10개가 겹친다. 머리 '훅'은 40 ms 안에 -11 dB 떨어지고 연기는 머리보다 약 20 dB 작다 — 겹쳐도 '훅·훅·훅' 이 하나씩 들린다. 직전과 다른 변주 + ±3 % 속도로 기계적 반복을 피하고, 같은 그룹 동시 4개(넘치면 가장 오래된 것 30 ms 페이드)로 꼬리가 쌓이는 것을 막는다. 처치 뒤 BGM 정적 구간이라 우선순위 1 이어도 묻히지 않는다.
+- **잔 '팅' 은 금속성 예외**: 61 P11 의 '금속 울림 금지'는 0.7~2 kHz 에 오래 남는 울림이 대상이다. 이 '팅'은 정보음(약점이 맞았다)이라 맑게 두되 2 kHz 고역통과·0.11 s 감쇠로 짧게.
+
+**화살비 타이밍 (서서 시작 판 `arrow_rain_stand`)** — 시스템이 `launch` 를 첫 발사(`releasesAtMs[0]` = 240 ms)에 1회, `impact` 를 첫 꽂힘(`firstDropAtMs` 690 + 낙하 판정 프레임 120 = 810 ms) − 100 ms 에 1회 보낸다.
+| id | 옛 | 지금 | 맞춘 것 |
+|---|---|---|---|
+| `arrow_rain_launch` | 0.78 s, 시위 0/0.06/0.12 s, 멀어지는 바람 0.14~0.69 s | **0.53 s**, 시위 **0/0.12/0.24 s**(= 240·360·480 ms), 멀어지는 바람 0.25~0.47 s | 발사 간격 120 ms. 낙하 휘파람이 시작하는 710 ms(= 파일 0.47 s) 전에 사라져 두 바람이 겹치지 않음. 770 ms 동작 안(240 + 530 = 770 ms)에 끝남 |
+| `arrow_rain_impact` | 0.63 s, '툭' 셋 0.1/0.16/0.23 s | 0.63 s, '툭' **아홉 0.10 + 0.04 s × k**(±4 ms, 점점 작게) + 이어 떨어지는 쉿 | 낙하 9곳 × 40 ms(810~1130 ms) 전부. 옛 판은 마지막 여섯 낙하에 소리가 없었다 |
+
+
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).
 - 같은 효과음이 20 ms 안에 여러 번 요청되면 1회만 재생(산탄·난무·충격파 중복 방지) — `dedupeMs: 20`, 변주는 원본 그룹으로 센다.
@@ -572,9 +599,9 @@
 | 키 | 값 | 이유 |
 |---|---|---|
 | `voices.maxSfx` | **12** (UI 는 별도 `maxUi` 2) | 1층 웨이브(노드당 12~16 처치, 2~3 웨이브)에서 타격·처치·부가음이 몰린다. 8 은 변주·겹침(피격 + `enemy_hurt` + 패시브)에서 예고음까지 빼앗길 위험 |
-| `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
+| `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 · (61-2) `guard_block_heavy`·`peddler_hurt`·`porter_hurt`·`barrel_return` 2 · **(61-4) `boss1_flame_snuff` 4 · `boss1_cup_struck` 2** | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
 | `voices.steal` | `lowest-priority-oldest` (30 ms 페이드). loop 항목은 빼앗지 않음(같은 id 1개) | 새 소리보다 낮거나 같은 우선순위 중 가장 오래된 것부터 |
-| `priority` (항목별 필드) | **4 보스 예고·신호**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`) > **2 타격·공격**(그 밖의 combat·boss) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`), 0 UI | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
+| `priority` (항목별 필드) | **4 보스 예고·신호**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`), 0 UI. 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
 | `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) 파훼 소리(`ui:boss-break`·`BOSS_BREAK`) → SFX(≤2) -4 dB 300 ms** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
 | `variation` | 변주 목록에서 직전과 다른 것 + 재생 속도 1 ± 0.03 (loop·UI·BGM 제외) | 반복 피로. 변주가 생겨 ±4 % → ±3 % |
 | `masterLimiter` | 문턱 -3 dB, knee 6, ratio 12, attack 3 ms, release 120 ms (DynamicsCompressorNode) | 새 타격음이 같은 피크에서 짧은 구간 음량이 커져 몰릴 때 찌그러짐 방지 |

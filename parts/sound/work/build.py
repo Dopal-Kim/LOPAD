@@ -3282,7 +3282,8 @@ def write_manifest():
             base = SFX[spec.get('variant_of', name)]
             e['gainDb'] = spec['gain_db']
             e['trigger'] = parse_trigger(spec['trigger'])
-            e['priority'] = mixing.priority(base, parse_trigger(base['trigger'])['event'])
+            bt = parse_trigger(base['trigger'])
+            e['priority'] = mixing.priority(base, bt['event'], bt['when'])
             if spec.get('variant_of'):
                 e['variantOf'] = 'sfx/' + spec['variant_of']
             elif name in variants:

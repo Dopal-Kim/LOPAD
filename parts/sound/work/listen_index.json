@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedBy": "parts/sound/work/build.py → listen_index.py (manifest 기준)",
-  "note": "들어보기 페이지 입력. 경로는 저장소 루트 기준. gainDb 는 SFX/BGM 버스 기준 권장 상대 음량(manifest 와 같음) — 청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. round \"60\" = 60라운드 새 소리, \"61\" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, \"61-2\" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), status \"archived\" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.",
+  "note": "들어보기 페이지 입력. 경로는 저장소 루트 기준. gainDb 는 SFX/BGM 버스 기준 권장 상대 음량(manifest 와 같음) — 청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. round \"60\" = 60라운드 새 소리, \"61\" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, \"61-2\" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), \"61-4\" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍), status \"archived\" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.",
   "mixing": {
     "masterDb": 0.0,
     "sfxBusDb": 0.0,
@@ -31,7 +31,9 @@
         "sfx/guard_block_heavy": 2,
         "sfx/peddler_hurt": 2,
         "sfx/porter_hurt": 2,
-        "sfx/barrel_return": 2
+        "sfx/barrel_return": 2,
+        "sfx/boss1_flame_snuff": 4,
+        "sfx/boss1_cup_struck": 2
       },
       "steal": "lowest-priority-oldest",
       "note": "동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). loop 항목은 빼앗지 않는다(상태가 끝날 때 시스템이 멈춤) — 대신 같은 id 는 1개만. UI 는 별도 상한 maxUi."
@@ -47,7 +49,8 @@
             "BOSS_STARTED",
             "BOSS_PHASE",
             "BOSS_DIED",
-            "boss:intro"
+            "boss:intro",
+            "BOSS_ACTION{action:introRoar}"
           ]
         },
         {
@@ -62,7 +65,9 @@
             "ENEMY_TELEGRAPH",
             "RUN_ENDED",
             "BOSS_BREAK",
-            "ui:boss-break"
+            "ui:boss-break",
+            "BOSS_ACTION{action:cupStruck}",
+            "BOSS_ACTION{action:pillarCrack}"
           ]
         },
         {
@@ -80,6 +85,7 @@
           "events": [
             "PASSIVE_PROC",
             "STATUS_CHANGED",
+            "BOSS_ACTION{action:flameSnuff}",
             "(world·pickup·event 분류)"
           ]
         },
@@ -124,13 +130,13 @@
         "note": "맞은 순간이 또렷하게"
       },
       {
-        "when": "파훼 소리 재생(ui:boss-break → boss1_break_*·break_finisher, BOSS_BREAK → break_count)",
+        "when": "파훼 소리 재생(boss1_break_*·break_finisher)",
         "target": "sfx priority ≤ 2",
         "db": -4.0,
         "attackMs": 5,
         "releaseMs": 300,
         "hold": "300 ms",
-        "note": "61-2: 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게"
+        "note": "61-2: 트리거 ui:boss-break(break_count 는 제외) · 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게"
       }
     ],
     "variation": {
@@ -223,6 +229,11 @@
       "sfx/menu_move": [
         "sfx/menu_move",
         "sfx/menu_move_v2"
+      ],
+      "sfx/boss1_flame_snuff": [
+        "sfx/boss1_flame_snuff",
+        "sfx/boss1_flame_snuff_v2",
+        "sfx/boss1_flame_snuff_v3"
       ]
     }
   },
@@ -290,7 +301,7 @@
     {
       "id": "boss1",
       "label": "1층 보스 '만취'",
-      "count": 28
+      "count": 36
     },
     {
       "id": "world",
@@ -318,7 +329,7 @@
       "count": 4
     }
   ],
-  "total": 274,
+  "total": 282,
   "entries": [
     {
       "key": "hit_enemy",
@@ -2163,18 +2174,18 @@
       "kind": "sfx",
       "group": "weapon_bow",
       "subgroup": "",
-      "desc": "화살비 발사(당긴 채 좌클릭, 하늘로 3발)",
-      "note": "화살비 발사(당긴 채 좌클릭, 하늘로 3발). 빠른 시위 세 번(0/0.06/0.12s) + 하늘로 솟아 멀어지는 바람",
+      "desc": "화살비 발사(61-4 다시 만듦 — 서서 시작 판 발사 시각 240·360·480 ms 에 맞춤)",
+      "note": "화살비 발사(61-4 다시 만듦 — 서서 시작 판 발사 시각 240·360·480 ms 에 맞춤). 파일 0 = 첫 발사(launch 이벤트 = releasesAtMs[0]). 시위 세 번 0 / 0.12 / 0.24 s(옛 0/0.06/0.12 s 는 발사 간격 120 ms 와 어긋남) + 발마다 하늘로 솟는 짧은 바람 → 0.25~0.47 s 멀어지는 바람(낙하 휘파람이 시작하는 0.47 s = 710 ms 전에 사라짐)",
       "trigger": "PLAYER_SKILL{weapon:bow,move:arrow_rain,phase:launch}",
-      "durationMs": 780,
-      "samples": 34398,
+      "durationMs": 530,
+      "samples": 23373,
       "sampleRate": 44100,
       "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/arrow_rain_launch.ogg",
       "m4a": "assets/audio/sfx/arrow_rain_launch.m4a",
-      "round": "",
+      "round": "61-4",
       "status": "active",
       "priority": 2
     },
@@ -2184,8 +2195,8 @@
       "kind": "sfx",
       "group": "weapon_bow",
       "subgroup": "",
-      "desc": "화살비 낙하(커서 원 범위)",
-      "note": "화살비 낙하(커서 원 범위). 짧게 내려꽂히는 휘파람(0~0.1s) → 흙에 꽂히는 '툭' 셋(0.1/0.16/0.23s) + 화살대 떨림. 첫 꽂힘 = 0.1s",
+      "desc": "화살비 낙하(61-4 다시 만듦 — 낙하 9곳 × 40 ms 에 맞춤)",
+      "note": "화살비 낙하(61-4 다시 만듦 — 낙하 9곳 × 40 ms 에 맞춤). 파일 0 = 첫 꽂힘 100 ms 전(impact 이벤트). 0~0.1 s 내려꽂히는 휘파람 + 비 쏟아지는 쉿(0.4 s) → 흙에 꽂히는 '툭' 아홉(0.10 + 0.04 s × k, ±4 ms, 점점 작게 — 옛 셋 0.1/0.16/0.23 s 는 마지막 낙하 0.42 s 까지 못 감) + 화살대 떨림 + 흙 튐",
       "trigger": "PLAYER_SKILL{weapon:bow,move:arrow_rain,phase:impact}",
       "durationMs": 630,
       "samples": 27783,
@@ -2195,7 +2206,7 @@
       "gainDb": -2,
       "ogg": "assets/audio/sfx/arrow_rain_impact.ogg",
       "m4a": "assets/audio/sfx/arrow_rain_impact.m4a",
-      "round": "",
+      "round": "61-4",
       "status": "active",
       "priority": 2
     },
@@ -5421,6 +5432,181 @@
       "round": "61-2",
       "status": "active",
       "priority": 2
+    },
+    {
+      "key": "boss1_intro_roar",
+      "id": "sfx/boss1_intro_roar",
+      "kind": "sfx",
+      "group": "boss1",
+      "subgroup": "등장 · 쓰러짐",
+      "desc": "61-4 새 — 만취 등장 포효(등장 연출의 포효 프레임 = 보스 이름 카드가 뜨는 순간, 등장 시작 3.8 s)",
+      "note": "61-4 새 — 만취 등장 포효(등장 연출의 포효 프레임 = 보스 이름 카드가 뜨는 순간, 등장 시작 3.8 s). boss1_entrance(0 s, 2.7 s — 탁자 '탁!'·걸음·'크아')와 겹치지 않고 그 뒤에 온다: 가슴을 부풀린 디딤 '쿵'(105→36 Hz) + 아래 무게 → 0.02~0.9 s 짧고 굵은 포효(노이즈 포먼트 'ㅇ워아' F1 380→760→480 Hz, 목소리 아님) + 31 Hz 로 긁는 거친 떨림 + 가슴 저역 + 48 Hz 낮은 으르렁 + 0.25 s 부터 커지는 4 Hz 취기 흔들림(혀 꼬인 끝 처짐) + 배 속 술 출렁 → 0.95 s 작은 딸꾹. 돌방 울림. 이름 카드와 함께 화면의 한 방(우선순위 4 — 다른 효과음 −6 dB·BGM −3 dB 덕킹)",
+      "trigger": "BOSS_ACTION{boss:1,action:introRoar}",
+      "durationMs": 1250,
+      "samples": 55125,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": 0,
+      "ogg": "assets/audio/sfx/boss1_intro_roar.ogg",
+      "m4a": "assets/audio/sfx/boss1_intro_roar.m4a",
+      "round": "61-4",
+      "status": "active",
+      "priority": 4
+    },
+    {
+      "key": "boss1_cup_struck",
+      "id": "sfx/boss1_cup_struck",
+      "kind": "sfx",
+      "group": "boss1",
+      "subgroup": "잔 · 기둥 (파훼 전)",
+      "desc": "61-4 새 — 약점 잔을 맞혔으나 아직 안 깨짐(3국면 1타째 등)",
+      "note": "61-4 새 — 약점 잔을 맞혔으나 아직 안 깨짐(3국면 1타째 등). 맞는 순간 짧은 '딱' + 잔 몸통 '톡' → 맑은 '팅'(2.95 kHz 종 배음, 0.11 s 감쇠 — 0.7~2 kHz 오래 남는 울림 없음) + 6 Hz 로 흔들리는 맥놀이(잔이 흔들림) + 짧은 술 출렁 + 물방울 몇. 깨질 때의 boss1_break_cup(둔탁한 '빡'·뒤집어씀)과 반대로 가볍고 맑다 = '금은 갔지만 아직'. 우선순위 3",
+      "trigger": "BOSS_ACTION{boss:1,action:cupStruck}",
+      "durationMs": 620,
+      "samples": 27342,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/boss1_cup_struck.ogg",
+      "m4a": "assets/audio/sfx/boss1_cup_struck.m4a",
+      "round": "61-4",
+      "status": "active",
+      "priority": 3
+    },
+    {
+      "key": "boss1_pillar_crack1",
+      "id": "sfx/boss1_pillar_crack1",
+      "kind": "sfx",
+      "group": "boss1",
+      "subgroup": "잔 · 기둥 (파훼 전)",
+      "desc": "61-4 새 — 기둥 균열 1단(가는 금)",
+      "note": "61-4 새 — 기둥 균열 1단(가는 금). 돌이 '짝' 갈라지는 짧은 소리 + 위로 번지는 잔금 지직 9(고역 → 중역) + 가벼운 돌 몸통(155→68 Hz) + 부스러기 몇. 0.5 s. 돌진 충돌의 ui:boss-break{kind:pillar} 와 같은 프레임에 겹쳐도 되게 몸통은 가볍다",
+      "trigger": "BOSS_ACTION{boss:1,action:pillarCrack,index:1}",
+      "durationMs": 500,
+      "samples": 22050,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -3,
+      "ogg": "assets/audio/sfx/boss1_pillar_crack1.ogg",
+      "m4a": "assets/audio/sfx/boss1_pillar_crack1.m4a",
+      "round": "61-4",
+      "status": "active",
+      "priority": 3
+    },
+    {
+      "key": "boss1_pillar_crack2",
+      "id": "sfx/boss1_pillar_crack2",
+      "kind": "sfx",
+      "group": "boss1",
+      "subgroup": "잔 · 기둥 (파훼 전)",
+      "desc": "61-4 새 — 기둥 균열 2단(벌어짐)",
+      "note": "61-4 새 — 기둥 균열 2단(벌어짐). 1단보다 낮고 길게: '짝' + 잔금 14 + 0.04 s 부터 '쩌억' 찢기는 돌(900→350 Hz, 38 Hz 거친 떨림) + 돌 몸통(120→56 Hz) + 부스러기·먼지. 0.75 s",
+      "trigger": "BOSS_ACTION{boss:1,action:pillarCrack,index:2}",
+      "durationMs": 750,
+      "samples": 33075,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/boss1_pillar_crack2.ogg",
+      "m4a": "assets/audio/sfx/boss1_pillar_crack2.m4a",
+      "round": "61-4",
+      "status": "active",
+      "priority": 3
+    },
+    {
+      "key": "boss1_pillar_crack3",
+      "id": "sfx/boss1_pillar_crack3",
+      "kind": "sfx",
+      "group": "boss1",
+      "subgroup": "잔 · 기둥 (파훼 전)",
+      "desc": "61-4 새 — 기둥 균열 3단(깊은 금 — 여기서 멈춤, 무너지지 않음)",
+      "note": "61-4 새 — 기둥 균열 3단(깊은 금 — 여기서 멈춤, 무너지지 않음). 2단 위에 기둥 속에서 울리는 깊은 돌 신음(70→48 Hz 톱니, 260→160 Hz 대역) + 아래 무게(64→34 Hz) + 더 많은 부스러기·먼지, '쩌억' 더 길게. 1.05 s",
+      "trigger": "BOSS_ACTION{boss:1,action:pillarCrack,index:3}",
+      "durationMs": 1050,
+      "samples": 46305,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -1,
+      "ogg": "assets/audio/sfx/boss1_pillar_crack3.ogg",
+      "m4a": "assets/audio/sfx/boss1_pillar_crack3.m4a",
+      "round": "61-4",
+      "status": "active",
+      "priority": 3
+    },
+    {
+      "key": "boss1_flame_snuff",
+      "id": "sfx/boss1_flame_snuff",
+      "kind": "sfx",
+      "group": "boss1",
+      "subgroup": "처치 연출 · 촛불 꺼짐",
+      "desc": "61-4 새 — 촛불 하나 꺼짐(보스 처치 연출: snuffAtMs 2.3 s 부터 방 촛대를 먼 순서로 60·90·75 ms 간격, fx boss1_flame_snuff 와 함께)",
+      "note": "61-4 새 — 촛불 하나 꺼짐(보스 처치 연출: snuffAtMs 2.3 s 부터 방 촛대를 먼 순서로 60·90·75 ms 간격, fx boss1_flame_snuff 와 함께). 아주 짧은 '훅'(1.3k→450 Hz, 70 ms) + 작은 몸통 + 심지 지직 + 가는 연기 쉿(2.2 kHz, 0.28 s, 아주 작게). 울림 거의 없음 — 여러 개가 겹쳐도 하나씩 들리게. 변주 v2·v3 를 번갈아(직전과 다른 것) + 재생 속도 ±3 %. 같은 그룹 동시 4개",
+      "trigger": "BOSS_ACTION{boss:1,action:flameSnuff}",
+      "durationMs": 340,
+      "samples": 14994,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -7,
+      "ogg": "assets/audio/sfx/boss1_flame_snuff.ogg",
+      "m4a": "assets/audio/sfx/boss1_flame_snuff.m4a",
+      "round": "61-4",
+      "status": "active",
+      "priority": 1,
+      "variants": [
+        "sfx/boss1_flame_snuff",
+        "sfx/boss1_flame_snuff_v2",
+        "sfx/boss1_flame_snuff_v3"
+      ]
+    },
+    {
+      "key": "boss1_flame_snuff_v2",
+      "id": "sfx/boss1_flame_snuff_v2",
+      "kind": "sfx",
+      "group": "boss1",
+      "subgroup": "처치 연출 · 촛불 꺼짐",
+      "desc": "촛불 꺼짐 변주 2 — '훅' 조금 낮고 짧게(850 Hz, 60 ms)",
+      "note": "촛불 꺼짐 변주 2 — '훅' 조금 낮고 짧게(850 Hz, 60 ms)",
+      "trigger": "변주 — sfx/boss1_flame_snuff 트리거에서 번갈아",
+      "durationMs": 340,
+      "samples": 14994,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -7,
+      "ogg": "assets/audio/sfx/boss1_flame_snuff_v2.ogg",
+      "m4a": "assets/audio/sfx/boss1_flame_snuff_v2.m4a",
+      "round": "61-4",
+      "status": "active",
+      "priority": 1,
+      "variantOf": "sfx/boss1_flame_snuff"
+    },
+    {
+      "key": "boss1_flame_snuff_v3",
+      "id": "sfx/boss1_flame_snuff_v3",
+      "kind": "sfx",
+      "group": "boss1",
+      "subgroup": "처치 연출 · 촛불 꺼짐",
+      "desc": "촛불 꺼짐 변주 3 — '훅' 조금 높고 길게(1.18 kHz, 80 ms)",
+      "note": "촛불 꺼짐 변주 3 — '훅' 조금 높고 길게(1.18 kHz, 80 ms)",
+      "trigger": "변주 — sfx/boss1_flame_snuff 트리거에서 번갈아",
+      "durationMs": 340,
+      "samples": 14994,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -7,
+      "ogg": "assets/audio/sfx/boss1_flame_snuff_v3.ogg",
+      "m4a": "assets/audio/sfx/boss1_flame_snuff_v3.m4a",
+      "round": "61-4",
+      "status": "active",
+      "priority": 1,
+      "variantOf": "sfx/boss1_flame_snuff"
     },
     {
       "key": "door_close",
