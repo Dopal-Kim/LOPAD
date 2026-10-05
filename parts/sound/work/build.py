@@ -8,7 +8,8 @@ LOPAD 음향 파트 — 절차적 합성 빌드 스크립트 (단일 소스)
   python3 parts/sound/work/build.py bgm        # BGM 만 (+인코딩·매니페스트)
   python3 parts/sound/work/build.py sfx parry  # 특정 소리만
   python3 parts/sound/work/build.py encode     # 작업 캐시 WAV → OGG·M4A 만 다시 (+매니페스트)
-  python3 parts/sound/work/build.py manifest   # 매니페스트만
+  python3 parts/sound/work/build.py manifest   # 매니페스트만 (+들어보기 목록)
+  python3 parts/sound/work/build.py listen     # 들어보기 목록(parts/sound/work/listen_index.json)만
   python3 parts/sound/work/build.py verify     # 검증 표 출력 (WAV 원본 + OGG·M4A 디코드 대조)
 
 의존성: 합성은 파이썬 표준 라이브러리만 (wave, struct/array, math, random, json).
@@ -19,7 +20,9 @@ LOPAD 음향 파트 — 절차적 합성 빌드 스크립트 (단일 소스)
                                               SFX 44.1 kHz / BGM 22.05 kHz, 16 bit, mono, 피크 -6 dBFS
   assets/audio/{sfx,bgm}/<이름>.ogg           배포 1순위 Ogg Vorbis (57라운드 Q17)
   assets/audio/{sfx,bgm}/<이름>.m4a           배포 2순위 AAC-LC (Ogg 미지원 브라우저 대비)
-  assets/audio/manifest.json                  시스템 파트가 읽을 목록(계약 초안)
+  assets/audio/manifest.json                  시스템 파트가 읽을 목록(계약 sound-assets.md)
+  parts/sound/work/listen_index.json          청취 검수(들어보기) 페이지용 목록 — 분류·한 줄 설명·트리거·경로
+효과음 정의: 이 파일(1~5x라운드) + sfx_bundle2.py · sfx_branch2.py · sfx_passive.py(60라운드, 이 순서로 등록).
 인코딩 규칙·검증 지표는 encode.py 참고.
 """
 import array
@@ -1549,7 +1552,7 @@ def _charge_slam_lv3(sr, rng):
     return reverb(s, sr, size=1.1, decay=0.65, wet=0.25)
 
 
-@sfx('katana_echo', 'PLAYER_ATTACK{weapon:katana,combo:3,phase:echo}', "칼 3타 잔상 베기(본 타격 150ms 뒤 같은 호, 피해 50%). 같은 호를 다시 긋는 얇고 날카로운 바람 + 짧은 잔향 반복", -4)
+@sfx('katana_echo', 'PLAYER_ATTACK{weapon:katana,combo:3,phase:echo}', "[보관 — 60라운드 Q6: 파일·manifest 항목 유지, 시스템 연결 끊음] 칼 3타 잔상 베기(본 타격 150ms 뒤 같은 호, 피해 50%). 같은 호를 다시 긋는 얇고 날카로운 바람 + 짧은 잔향 반복", -4)
 def _katana_echo(sr, rng):
     w = whoosh(sr, 0.14, rng, 6800, 2200, q=2.2, a=0.12, r=0.6)
     mix_into(w, metal(sr, 0.1, 3300, rng, tau=0.035, jitter=0.02), sec(sr, 0.015), 0.1)
@@ -1886,7 +1889,7 @@ def _katana_iai_release(sr, rng):
 
 # ---- 대검 ----
 
-@sfx('gs_plunge', 'PLAYER_CHARGE{weapon:greatsword,phase:release,mode:plunge}', "땅 꽂기(개성 발현 후 차지 = 휘두르지 않고 칼을 땅에 꽂음). 쇠가 흙·돌을 파고드는 '푹' + 무거운 둔탁음 + 칼날 떨림. 파일 0s = 꽂히는 순간, 뒤이어 gs_crack", -1)
+@sfx('gs_plunge', 'PLAYER_CHARGE{weapon:greatsword,phase:release,mode:plunge}', "[보관 — 60라운드 Q6: 파일·manifest 항목 유지, 시스템 연결 끊음] 땅 꽂기(개성 발현 후 차지 = 휘두르지 않고 칼을 땅에 꽂음). 쇠가 흙·돌을 파고드는 '푹' + 무거운 둔탁음 + 칼날 떨림. 파일 0s = 꽂히는 순간, 뒤이어 gs_crack", -1)
 def _gs_plunge(sr, rng):
     dur = 0.65
     s = zeros(sec(sr, dur))
@@ -1902,7 +1905,7 @@ def _gs_plunge(sr, rng):
     return reverb(tail(s, sr, 0.04), sr, size=0.6, decay=0.5, wet=0.12)
 
 
-@sfx('gs_crack', 'PLAYER_CHARGE{weapon:greatsword,phase:release,mode:plunge,part:crack}', "균열 충격파(꽂은 자리에서 마우스 방향으로 뻗는 균열). 앞으로 달려가는 돌 갈라짐 + 낮은 폭음 + 멀어지는 땅울림. gs_plunge 와 같은 프레임 또는 40ms 뒤", 0)
+@sfx('gs_crack', 'PLAYER_CHARGE{weapon:greatsword,phase:release,mode:plunge,part:crack}', "[보관 — 60라운드 Q6: 파일·manifest 항목 유지, 시스템 연결 끊음] 균열 충격파(꽂은 자리에서 마우스 방향으로 뻗는 균열). 앞으로 달려가는 돌 갈라짐 + 낮은 폭음 + 멀어지는 땅울림. gs_plunge 와 같은 프레임 또는 40ms 뒤", 0)
 def _gs_crack(sr, rng):
     dur = 1.0
     n = sec(sr, dur)
@@ -2729,6 +2732,18 @@ def _endure_trigger(sr, rng):
     return reverb(tail(s, sr, 0.02), sr, size=0.7, decay=0.5, wet=0.15)
 
 
+# --- 60라운드: 2차 묶음 · 2단 갈래 16종 · 패시브 — 별도 모듈(CLAUDE.md 6-1 분리) ----------------------
+# 등록 순서 = 아래 import 순서(시드 = 1000 + 등록 순서). 기존 148개는 바이트 불변이어야 하므로 이 줄 위에는
+# 효과음을 더 넣지 않는다. 새 효과음은 마지막 모듈(sfx_passive.py) 끝 — 또는 그 뒤 새 모듈 — 에만 추가한다.
+# 모듈은 `from build import *` 로 이 파일의 DSP 유틸을 쓴다: 스크립트로 실행될 때(__main__)도 같은 모듈 객체를
+# 쓰도록 'build' 이름을 먼저 걸어 둔다(두 번 실행되어 SFX 표가 갈라지는 것을 막음).
+sys.modules.setdefault('build', sys.modules[__name__])
+import sfx_bundle2  # noqa: E402,F401  2차 묶음 25 (엘리트·성소·등급·리롤·소모품·이벤트·숨은 노드·지도 정보·파훼·증류 화로)
+import sfx_branch2  # noqa: E402,F401  2단 갈래 16종 → 32 파일
+import sfx_passive  # noqa: E402,F401  패시브 9종 → 10 파일
+import listen_index  # noqa: E402  들어보기 페이지용 목록(listen_index.json)
+
+
 # ---------------------------------------------------------------------------
 # BGM 정의 — 각 함수는 루프 길이에 맞춘 버퍼를 돌려준다 (22.05 kHz).
 # 설계: 모든 음은 wrap=True 로 섞고, 리버브는 loop=True 로 처리해 경계가 이어진다.
@@ -3217,6 +3232,8 @@ def main(argv):
         encode_all(kind, names)
     if what in ('all', 'sfx', 'bgm', 'encode', 'manifest'):
         write_manifest()
+    if what in ('all', 'sfx', 'bgm', 'encode', 'manifest', 'listen'):
+        listen_index.write(ROOT, MANIFEST, SFX)
     if what in ('all', 'verify'):
         print()
         ok = verify()

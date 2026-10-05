@@ -227,9 +227,9 @@
 - 대검 휘둘러 내리찍기 강타 = 기존 `charge_slam_lv1~3`(원래 휘둘러 내리찍기용으로 만든 소리, 58 Q7 '단계와 관계없이 휘둘러 내리찍기'와 일치). 균열 부분만 새로(`gs_crack_line_lv1~3`).
 - 마시기 사건(독주·깡술·카운터) = 기존 `potion_use`. 술불 지속 = `boss1_fire_loop`. 표식 6 기폭 = 기존 `brand_burst`. 대쉬 일섬(58 Q1) = 기존 `issen_dash`·`issen_burst`·`shadow_clone`. 속사의 기본 사격음은 기존 `bow_shot`(0.30 s, 초당 5발에는 길어 `bow_rapid1~3` 를 새로 만듦).
 
-현재 결정과 어긋나 보이는 기존 항목(파일·매니페스트는 그대로 둠 — 인터뷰 대상):
-- `gs_plunge`·`gs_crack`: 트리거 `mode:plunge` — 58 Q11 로 꽂아내리기 코드·데이터 삭제. 쓰는 곳이 없으면 보관/삭제 결정 필요.
-- `katana_echo`: 트리거 `combo:3 phase:echo` — 58 Q1 로 3타가 찌르기가 되어 잔상 베기가 남는지 불명.
+현재 결정과 어긋나 보이던 기존 항목 → **보관 결정됨(60라운드 Q6)**: 파일·매니페스트 항목은 그대로 두고 시스템 연결만 끊는다(58 Q11 그림 보관과 같은 방식). 매니페스트 `note` 앞에 '[보관 — 60라운드 Q6 …]' 표시만 붙였다(오디오 바이트 불변).
+- `gs_plunge`·`gs_crack`: 트리거 `mode:plunge` — 58 Q11 로 꽂아내리기 코드·데이터 삭제.
+- `katana_echo`: 트리거 `combo:3 phase:echo` — 58 Q1 로 3타가 찌르기가 됨.
 
 ### 4-2. 타격·적
 | id | 길이 | 트리거 제안 | 질감 | gainDb |
@@ -312,6 +312,129 @@
 | evolve | 1.60 s | `WEAPON_EVOLVED` | 73→110 Hz 드론 부풀기 + 종 아르페지오(D A D A D 상승) + 바람, 큰 리버브 | -1 |
 | reinforce | 0.60 s | `WEAPON_REINFORCED` | 모루 망치질 1.05k + 둔탁음 | -2 |
 | player_death | 2.40 s | `RUN_ENDED` reason:death | 110→32 Hz 꺼지는 저음, 멀어지는 심장 박동 2회, 바람 | 0 |
+
+### 4-7. 60라운드 — 2차 묶음 · 2단 갈래 16종 · 패시브 (67종)
+결정 근거: `parts/producer/decisions/2026-10-05-round-60-parallel-production.md` Q5~Q7(다음 음향 범위: 2차 묶음 효과음 + 2단 갈래 16종 효과음 + 패시브별 소리 + 청취 검수 페이지), 설계안 `design-2026-10-04-second-bundle.md`(57 Q38 확정 문구), `design-2026-10-04-build-axis.md` 1.5·1.6·2.2~2.5, `-chwigi.md` 3장, 계약 `art-assets.md` §21 + 각 fx JSON(`assets/sprites/fx/v3/*.json` — frameDurationsMs·spawn·spawnAtMs·hitTiming·burstAtMs 로 파일 안 시각을 맞춤).
+기존 방식 그대로(절차 합성, 44.1 kHz/16 bit/mono, 피크 -6 dBFS, 목소리 없음 — 으르렁·'크아'·숨도 노이즈로만). 코드는 `build.py` 가 길어져(CLAUDE.md 6-1) **별도 모듈 3개**로 분리: `work/sfx_bundle2.py` → `sfx_branch2.py` → `sfx_passive.py` 순서로 `endure_trigger` 뒤에 등록(시드 = 1000 + 등록 순서). 기존 148개(WAV 캐시·OGG·M4A) 바이트 불변 md5 대조, 전체 재빌드 바이트 재현 확인.
+트리거: UI 계약 §9.6·§14.11, 음향 계약 §6 목록에 있는 이름(`CHALLENGE_STARTED`·`CHALLENGE_CLEARED`·`STRUCTURE_USED`·`NODE_GRADED`·`HIDDEN_NODE_FOUND`·`CONSUMABLE_USED`·`SHOP_PURCHASE`·`ROOM_ENTERED`·`UI_MENU_SELECT`·`ENEMY_DIED`·`BOSS_DIED`·`PLAYER_*`·`KENKI_CHANGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`GROGGY`·`BRAND_BURST`·`OVERHEAT`·`BREATH_FOCUS`)은 그대로 쓰고 조건 키만 더했다. 없는 것은 **제안**: `ELITE_SPAWNED`·`ELITE_PREFIX`·`CONSUMABLE_IMPACT`·`BOSS_BREAK`·`STATUS_CHANGED`·`BRANCH_EFFECT`·`PASSIVE_PROC`. 갈래·패시브·접두어 id(영문)는 음향 제안 — 시스템 id 로 바꿔 적는다.
+
+새 재료·음색 규칙:
+- **엘리트 = 전쟁 북 + 갑옷 + 낮은 뿔나팔 A2·E3**(공용 1파일), 접두어는 눈에 띄는 사건이 있는 4종만 변주(통 갑옷 깨짐·성난 발동·들이켜는 마시기·패거리 두목 쓰러짐). 고주망태 웅덩이 = `boss1_liquor_splash`, 불붙은 불씨 = 기존 불 소리 재사용.
+- **일기장 도장**(`stamp`): 등급·이벤트 선택의 공통 재료. 완 = 무거운 도장 + 종 D5·A5·D6, 양 = 가벼운 도장 + 종 A4.
+- **성소 = 깃대·깃발 천·뿔나팔 D3·북**, 실패는 뿔나팔이 반음(D3→C#3) 내려앉음.
+- **소모품 = 유리·술·불·물**: 깡술은 독주(`potion_use`)보다 거칠고 뜨겁게(꿀꺽 셋 + '크아' + 불 '훅' + 심장), 냉수는 '촤악' + 맑은 '팅' A6 + 내쉬는 숨.
+- **2단 갈래**: 음높이 단계를 이어 감 — 검기 A4·D5·A5 → **D6·A6**(명경 4·5단), 차지 징 D4·A4·D5 → **A5**(거인 4단). 칼 = 칼날 울림·찢김, 대검 = 징·돌·흙, 단검 = 재·지짐·그림자 역바람, 활 = 시위 하모닉·유리 반짝임.
+- **패시브 = 작게**(gainDb -2~-8): 처치·타격마다 날 수 있어 기본 공격음 위에 얹히는 크기. 깨진 거울은 유리 결로 칼 `shadow_clone`(칼날 울림)과 구분.
+
+#### 4-7-1. 2차 묶음 (25)
+| id | 분류 | 길이 | 루프 | 트리거 제안 | 소리·연결 | gainDb |
+|---|---|---|---|---|---|---|
+| elite_appear | 엘리트 | 1.30 s | - | `ELITE_SPAWNED` | 엘리트 등장(접두어 공용, 2차 묶음 g). 0.12 s 차오르는 바람 → 전쟁 북 두 번 + 갑옷 덜그럭 + 낮은 뿔나팔 A2·E3 + 호박빛 쇠 울림 A4. 호박 외곽선·이름표가 켜지는 프레임에 재생(파일 0.12 s = 북) | -2 |
+| elite_armor_break | 엘리트 · 통 갑옷 | 0.82 s | - | `ELITE_PREFIX{prefix:barrelArmor,phase:break}` | 엘리트 접두어 '통 갑옷' 깨짐(첫 강공 적중 → 일반 상태). 술통 판자가 쪼개지는 크랙 여럿 + 속 빈 통 공명(230·520 Hz) + 쇠테 '쨍' + 나무 조각 흩어짐. 깨짐 fx 와 같은 프레임 | -1 |
+| elite_enrage | 엘리트 · 성난 | 0.92 s | - | `ELITE_PREFIX{prefix:enraged,phase:trigger}` | 엘리트 접두어 '성난' 발동(HP 50% 이하 → 공격·이동 +40%). 낮은 으르렁(거친 저역 노이즈, 목소리 아님) + 빨라지는 심장 둘 + 열기 '훅' + 위로 긁는 쇠. 붉은 눈 빛 켜지는 프레임 | -2 |
+| elite_drink | 엘리트 · 들이켜는 | 0.77 s | - | `ELITE_PREFIX{prefix:drinker,phase:drink}` | 엘리트 접두어 '들이켜는' 마시기(주변 적이 죽을 때 HP +15%·크기 +5%, 최대 3회). 잔 틱 → 빠른 꿀꺽 둘 + 짧은 '크아'(노이즈) + 몸이 커지는 낮은 부풂. 3회째는 rate 0.94 로 더 무겁게(선택) | -4 |
+| elite_leader_down | 엘리트 · 패거리 두목 | 1.17 s | - | `ELITE_PREFIX{prefix:leader,phase:death}` | 엘리트 접두어 '패거리 두목' 쓰러짐(주변 적 1 s 경직). 깃 장식 깃대가 부러지는 '뚝' + 천이 내려앉음 + 낮게 오래 맥놀이 치는 둔한 종 D3(멍해짐). enemy_death·elite_die 위에 겹침 | -2 |
+| elite_die | 엘리트 | 1.02 s | - | `ENEMY_DIED{elite:true}` | 엘리트 처치(보상 개성·전표 ×3). 무거운 몸 쓰러짐 + 갑옷 무너짐 셋 + 동전이 쏟아지는 소리 + 꺼지는 호박빛 종 A4. 일반 enemy_death 대신(또는 위에) 재생 | -1 |
+| shrine_activate | 도전 성소 | 1.70 s | - | `CHALLENGE_STARTED{kind:warFlag}` | 도전 성소 발동(전장 깃발을 세움 → 엘리트 1 + 마지막 웨이브 +1). 깃대를 땅에 박는 '쿵' + 깃발 천이 펼쳐지는 펄럭 + 멀리 울리는 뿔나팔 D3 + 짧은 북 연타 → 북 한 번 | -1 |
+| shrine_clear | 도전 성소 | 1.40 s | - | `CHALLENGE_CLEARED{kind:warFlag,outcome:clear}` | 도전 성소 성공(전표 +25 + 노드 보상 한 번 더). 북 두 번 + 깃발 펄럭 + 종 D5 → A5 + 동전 반짝임 | -2 |
+| shrine_fail | 도전 성소 | 1.27 s | - | `CHALLENGE_CLEARED{kind:warFlag,outcome:fail}` | 도전 성소 실패(조건은 시스템 정의 대기). 삐걱이다 부러지는 깃대 + 쓰러지는 '쿵' + 천이 털썩 + 반음 내려앉는 뿔나팔 D3→C#3 + 둔한 북 | -3 |
+| grade_perfect | 성과 등급 | 1.35 s | - | `NODE_GRADED{grade:perfect}` | 노드 성과 등급 완(完) = 무피격 + 제한 시간 안(전표 +20 · 개성 +15). 무거운 일기장 도장 '꾹' + 종 D5·A5·D6 차례로 + 동전 둘. 도장 연출 프레임 | -2 |
+| grade_good | 성과 등급 | 0.85 s | - | `NODE_GRADED{grade:good}` | 노드 성과 등급 양(良) = 무피격·제한 시간 중 하나(전표 +10). 가벼운 도장 + 종 A4 한 번 + 동전 하나 | -4 |
+| shop_reroll | 상점 리롤 | 0.64 s | - | `SHOP_PURCHASE{group:reroll}` | 상점 진열 리롤(전표 15 → 25 → 35, 진열 3칸 새로). 좌판 천을 걷어 다시 펼치는 휙 + 물건이 뒤섞이는 나무·쇠 딸깍 + 동전 둘. shop_buy 대신 | -4 |
+| map_info_buy | 지도 정보 | 0.92 s | - | `SHOP_PURCHASE{group:mapInfo}` | 지도 정보 구매(다음 단 공개 10 / 층 전체 25 / 숨은 노드 위치 20 — 국경 초소 지도 장수·상점 노드). 동전 둘 + 지도 펼치는 바스락 + 깃펜이 길을 긋는 두 획 | -4 |
+| bottle_throw | 소모품 · 화염 술병 | 0.47 s | - | `CONSUMABLE_USED{id:fireBottle}` | 소모품 '화염 술병' 투척(누르면 커서 방향 즉시). 심지에 불붙는 '칙' + 팔 휘두름 + 빙글 도는 병 속 술 출렁(9 Hz). 착탄은 bottle_burst | -3 |
+| bottle_burst | 소모품 · 화염 술병 | 0.92 s | - | `CONSUMABLE_IMPACT{id:fireBottle}` | 화염 술병 착탄(반경 1.5칸 불 웅덩이 4 s). 유리 깨짐 + 술 첨벙 + 0.04 s 불 '화륵' + 타닥. 웅덩이가 타는 동안은 boss1_fire_loop 1개 재사용(가장 가까운 불 기준) | -1 |
+| strong_drink | 소모품 · 깡술 한 모금 | 1.02 s | - | `CONSUMABLE_USED{id:strongDrink}` | 소모품 '깡술 한 모금'(8 s 공격 +20% · 받는 피해 +10% · 경직 없음). 코르크 '퐁' + 빠른 꿀꺽 셋 + 짧은 '크아'(노이즈, 목소리 아님) + 속이 달아오르는 낮은 불 '훅' + 심장 한 번. 독주(potion_use)보다 거칠고 뜨겁다 | -3 |
+| cold_water | 소모품 · 냉수 한 바가지 | 1.07 s | - | `CONSUMABLE_USED{id:coldWater}` | 소모품 '냉수 한 바가지'(그로기 해제·기력 50% / 과열 0 / 탄창·숨 가득, 3 s 기울기 무시). 나무 바가지가 통에 닿는 '톡' + 물 뜨는 출렁 → 머리에 끼얹는 '촤악' + 물방울 + 맑은 '팅' A6 + 길게 내쉬는 숨(노이즈) | -3 |
+| event_enter | 이벤트 노드 | 1.60 s | - | `ROOM_ENTERED{type:event}` | 이벤트 노드 진입('?' 노드, 1층 9종 중 하나). 촛불이 흔들리는 바람 + 일기장 쪽 넘김 + 낮게 부푸는 D2·A2 드론 + 멀리 종 F4 한 번 + 희미한 고음. 월드 이벤트라 돌방 울림 | -3 |
+| event_choice | 이벤트 노드 | 0.75 s | - | `UI_MENU_SELECT{menu:event}` | 이벤트 선택지 확정('지나간다'는 menu_cancel). 깃펜 한 획 + 가벼운 도장 + 낮은 종 D4. 이벤트 메뉴에서는 menu_select 대신 | -4 |
+| hidden_node_found | 숨은 노드 | 1.45 s | - | `HIDDEN_NODE_FOUND` | 숨은 노드 발견(단서 소품 조사 → 지도에 숨은 길). 속 빈 벽을 두 번 두드림 + 돌이 밀리는 마찰 + 깃펜이 길을 긋는 소리 + 위로 오르는 종 D5·F5·A5(작게) | -2 |
+| break_count | 약점 파훼 · 다양성 | 0.75 s | - | `BOSS_BREAK{distinct:true}` | 약점 파훼 다양성 +1(이번 보스전에서 처음 성공한 파훼 종류 — 잔·기둥·술통·취권). 일기장에 표 긋는 '슥' + 나무 틱 + 맑은 종 A5. n번째마다 rate 1.0 / 1.059 / 1.189 / 1.335(A5→B♭5→C6→D6, D 단조) 권장. 파훼 자체 소리(boss1_cup_shatter 등) 뒤 120 ms | -3 |
+| break_finisher | 약점 파훼 · 결정타 | 1.90 s | - | `BOSS_DIED{finisher:true}` | 결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격) | 0 |
+| still_ignite | 증류 화로 | 1.17 s | - | `STRUCTURE_USED{kind:still}` | 증류 화로 통과 → 무기에 불(fireWeapon 6 s). 증류기 끓는 거품 + 화로가 '후욱' 숨 쉬듯 타오름 + 칼날에 불이 옮겨붙는 '화륵' + 달아오르는 쇠 험 D4 + 타닥. 이어서 fire_weapon_loop | -2 |
+| fire_weapon_loop | 증류 화로 | 1.00 s | 루프 | `STATUS_CHANGED{id:fireWeapon,phase:start}` | 불 무기 지속 루프(1.0 s, fireWeapon 6 s 동안). 칼날을 핥는 낮은 불길(2·5 Hz 일렁임) + 아주 작은 쉿 + 드문 타닥 + 희미한 D4 쇠 험. 시작 200 ms 페이드인, 상태 끝(fire_weapon_end)에서 150 ms 페이드아웃. 전투음 아래에 깔리게 작게 | -14 |
+| fire_weapon_end | 증류 화로 | 0.53 s | - | `STATUS_CHANGED{id:fireWeapon,phase:end}` | 불 무기 꺼짐(6 s 끝). 식는 쇠의 증기 쉿(5k→2k) + 작은 '푸' + 마지막 타닥 둘. fire_weapon_loop 를 150 ms 페이드아웃하며 같은 프레임 | -6 |
+
+#### 4-7-2. 2단 갈래 16종 (32)
+| id | 분류 | 길이 | 루프 | 트리거 제안 | 소리·연결 | gainDb |
+|---|---|---|---|---|---|---|
+| katana_whirl_loop | 칼 · 회오리 | 0.96 s | 루프 | `PLAYER_SKILL{weapon:katana,move:whirl,phase:hold}` | 회오리 지속 회전 루프(0.96 s = 한 바퀴 240 ms × 4, fx katana_whirl_loop 와 같은 주기). 바퀴마다 올라갔다 내려오는 칼바람 + 바퀴 시작(= 판정, fx f0)마다 작은 칼날 틱 + 낮게 도는 바람. katana_spin 1회 뒤 이어서, 떼면 80 ms 페이드아웃 | -6 |
+| katana_whirl_reflect | 칼 · 회오리 | 0.32 s | - | `PLAYER_SKILL{weapon:katana,move:whirl,phase:reflect}` | 회오리 회전 중 적 투사체 되받아침(fx katana_whirl_reflect, impactFrame 0). 칼날에 맞는 맑은 '팅' + 칼날 울림 D6 + 되돌아 나가는 바람(2k→6.5k). 투사체마다(20 ms 규칙) | -3 |
+| katana_moon_trail | 칼 · 잔월 | 1.55 s | - | `BRANCH_EFFECT{branch:moon,effect:trail}` | 잔월 달 궤적이 깔림(검기 쓴 일섬·회전 뒤, 궤적 한 줄에 1회 — 초승달 조각마다 아님). fx katana_moon_trail 수명에 맞춤: 0~0.1 s 생김 '시잉'(A4, 어둡게) → 0.1·0.4·0.7·1.0 s 작은 틱(0.3 s 피해 틱) + 은은한 A5 험 → 1.3 s 재로 부서짐. 시스템 지속이 1.2 s 와 다르면 끝에서 페이드아웃 | -6 |
+| katana_cleave_crack | 칼 · 일도양단 | 0.62 s | - | `PLAYER_SKILL{weapon:katana,move:guardbreak,phase:cleave}` | 일도양단 균열 4칸 더(fx katana_cleave_crack: 몸 hitAt + 40 ms, 칸당 30 ms → 0.12 s 끝). 빠르게 달리는 굵은 갈라짐 12 + 끝 '툭' + 돌 조각·불티. katana_guardbreak 재생 시작 + 140 ms(그 파일 0.1 s = 판정) | -1 |
+| katana_execute | 칼 · 일도양단 | 0.74 s | - | `BRANCH_EFFECT{branch:cleave,effect:execute}` | 일도양단 처형(HP 30% 이하 일반 적, fx katana_execute impactFrame 0 · 히트스톱 80 ms). 세로로 가르는 '쉭' + 칼끝 틱 → 0.08 s 두 쪽으로 갈라지는 젖은 재 폭발 둘 + 밝은 칼날 울림 D6 + 둔탁한 바닥. 보스·엘리트(×1.5)는 이 소리 없음 | 0 |
+| katana_mirror_parry | 칼 · 명경 | 0.52 s | - | `PARRY_SUCCESS{weapon:katana,branch:mirror}` | 명경 패링 = 검기 2단 충전(fx katana_mirror_parry: 거울 면 → 두 조각이 주인공 쪽으로). 1 kHz 위만: 거울 '팅'(유리 A6·E7 근처) → 0.08~0.2 s 날아드는 두 조각 바람 → 0.2 s 닿는 칼날 틱 둘. parry + parry_perfect 위에 겹침(같은 프레임) | -3 |
+| kenki_stage4 | 칼 · 명경 | 0.99 s | - | `KENKI_CHANGED{stage:4,delta>0}` | 검기 4단 도달(명경 전용, 상한 5). kenki_stage1~3(A4·D5·A5) 다음 단 — 칼날 울림 D6 + 아래 옥타브 D5, 백열 고음. 오를 때만 | -4 |
+| kenki_stage5 | 칼 · 명경 | 1.19 s | - | `KENKI_CHANGED{stage:5,delta>0}` | 검기 5단 도달(명경 최대 — 다음 일섬 분신 2체). 칼날 울림 A6 + A5 + D5 쌓임 + 발밑 다섯 초승달이 이어지는 작은 틱 다섯, 울림. 5단 일섬 = 기존 shadow_clone 두 번(+90 ms) | -3 |
+| gs_quake_fork | 대검 · 지진 | 0.65 s | - | `PLAYER_CHARGE{weapon:greatsword,phase:release,branch:quake,part:fork}` | 지진 세 갈래(fx greatsword_quake_fork: 파쇄 균열 앞머리가 끝에 닿은 순간, 30 ms × 3 = 0.09 s 에 2칸 끝). 세 줄이 동시에 터져 나가는 갈라짐(조금씩 어긋남) + 끝 '툭' 셋 + 땅울림. gs_crack_line_lvN 재생 + 균열 달리는 시간(칸 × 0.06 s) 뒤 | -1 |
+| gs_echo_counter | 대검 · 반향 | 0.90 s | - | `PERFECT_GUARD{weapon:greatsword,branch:echo}` | 반향 반격(퍼펙트 가드 + 울분 30% 이상, fx greatsword_echo_counter impactFrame 0 → 30 ms × 3 = 3칸). 땅이 되받아치는 낮은 '둥' + 70 ms 간격으로 두 번 메아리치는 징 D4 + 앞으로 달리는 균열 3칸. perfect_guard 와 같은 프레임에 겹침(울분 30% 미만이면 재생 안 함) | 0 |
+| charge_stage4 | 대검 · 거인 | 1.50 s | - | `PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:4}` | 차지 4단 도달(거인 전용, 1.6 s · fx greatsword_charge_flash_lv4). charge_stage1~3(징 D4·A4·D5) 다음 단 — '징' A5 백열 + D5·D4 겹침 + 3.5k 반짝임 + 치솟는 바람 + 거인의 낮은 '쿵'. 오를 때만 | -2 |
+| charge_slam_lv4 | 대검 · 거인 | 1.90 s | - | `PLAYER_CHARGE{weapon:greatsword,phase:release,stage:4}` | 차지 4단 내려찍기(거인, ×3.8 · fx greatsword_giant_ring 반경 5칸: 0~0.15 s 퍼짐 → 0.15~0.38 s 끌어당김 → 가라앉음). 가장 무거운 강타(×1.9) + 퍼져 나가는 바람 링 → 안으로 빨려드는 바람 → 0.38 s 짓눌림 '쿵' + 오래 가는 땅울림 + 자갈 + 백열 쇳소리. 이 단에서는 charge_slam_lv3·gs_quake_ring 대신 이것 하나 | 0 |
+| gs_congest_loop | 대검 · 울혈 | 0.75 s | 루프 | `GROGGY{weapon:greatsword,branch:congest,phase:hold}` | 울혈 맺힘 루프(0.75 s = fx greatsword_congest_aura 한 바퀴, 그로기 1.5 s 동안 2바퀴). 바퀴마다 무거운 심장 한 번 + 피가 몰리는 낮은 D2 웅웅(한 번 부풂) + 드문 잔불 타닥. groggy_start 와 함께 시작, 그로기 끝에 60 ms 페이드아웃 | -10 |
+| gs_congest_burst | 대검 · 울혈 | 1.25 s | - | `GROGGY{weapon:greatsword,branch:congest,phase:end,burst:true}` | 울혈 폭발(그로기가 풀리는 순간 울분 100% → 전부 소모, 차지 2단 위력 · fx greatsword_congest_burst 반경 2.25칸 · 흔들림 180 ms). 0.04 s 빨려드는 숨 → 핏빛 재 폭발 '퍽'(×1.4) + 강타 + 치솟는 불기둥 + 길게 식는 연기 쉿. 파일 0.04 s = 폭발 | 0 |
+| dagger_frenzy_in | 단검 · 난무 | 0.44 s | - | `BRANCH_EFFECT{branch:frenzy,effect:clone_in}` | 난무 분신 나타남(낙인 5스택 기폭 뒤, fx dagger_frenzy_clone_in 0.22 s). 재 알갱이가 모여드는 빨려드는 어두운 역바람 + 점점 촘촘해지는 재 틱 → 0.22 s 형태가 잡히는 딸깍 + 낮은 몸통. 분신 연격음 = swing_dagger 를 rate 0.94 · -6 dB 로 따라 재생(권장) | -3 |
+| dagger_frenzy_out | 단검 · 난무 | 0.52 s | - | `BRANCH_EFFECT{branch:frenzy,effect:clone_out}` | 난무 분신 사라짐(3 s 끝, fx dagger_frenzy_clone_out 0.41 s). 발부터 재로 부서져 흩어지는 알갱이 + 위로 빠지는 바람 + 아주 낮게 꺼지는 숨 | -6 |
+| dagger_bleed | 단검 · 출혈 | 0.72 s | - | `BRAND_BURST{branch:bleed}` | 출혈 시작(기폭 = 60% + 4 s 출혈, fx dagger_brand_bleed). 젖은 찢김 + 핏방울 넷 + 옅은 지짐. brand_burst 와 같은 프레임에 겹침(그 파일 0.06 s = 폭발이라 같은 시작). 0.5 s 출혈 틱에는 소리 없음(피격 번쩍임만) | -3 |
+| dagger_brand_hop | 단검 · 출혈 | 0.36 s | - | `BRANCH_EFFECT{branch:bleed,effect:transfer}` | 출혈 낙인이 옮겨감(출혈 중 처치 → 반경 3칸 적 1명, fx dagger_brand_hop 이동 약 0.2 s). 꼬리를 끄는 지짐 바람(혜성 '츠츠') → 0.2 s 도착 '칙'(brand_apply 결). 도착에 brand_apply 를 따로 울리지 않아도 됨 | -6 |
+| dagger_flyknife_throw | 단검 · 비도 | 0.44 s | - | `PLAYER_SKILL{weapon:dagger,move:fan_throw,branch:flyknife}` | 비도 투척 다섯 자루(45°, dagger_fan_throw 의 5자루판). 손목 딸깍 + 18 ms 간격 높은 바람 다섯(음높이 모두 다름) + 칼날 틱. 비도 런에서는 dagger_fan_throw 대신 | -2 |
+| dagger_knife_stick | 단검 · 비도 | 0.38 s | - | `BRANCH_EFFECT{branch:flyknife,effect:stick}` | 비도 단검이 바닥에 박힘(fx dagger_stuck_blade f0, 2 s 유지). 짧게 꽂히는 '톡' + 날이 떠는 쇠 울림(30 Hz 떨림). 다섯이 거의 함께 떨어지면 20 ms 규칙으로 묶이므로 30~60 ms 시차 권장 | -7 |
+| dagger_knife_step | 단검 · 비도 | 0.47 s | - | `PLAYER_SECONDARY{kind:shadowstep,target:knife}` | 비도: 박힌 단검 자리로 그림자 걸음(과열 −10%). 도착 순간 단검을 뽑아 드는 '칭'(위로 긁는 쇠) + 단검이 재로 부서짐 + 낮은 몸통. 기존 shadowstep 의 끝 딸깍(0.26 s)에 맞춰 겹침 | -3 |
+| dagger_hotwind_loop | 단검 · 열풍 | 1.12 s | 루프 | `OVERHEAT{weapon:dagger,branch:hotwind,over50:true,moving:true}` | 열풍 달아오른 질주 루프(1.12 s = fx dagger_hotwind_trail 280 ms × 4). 발 뒤로 흘러가는 낮은 불혀(3.57 Hz 일렁임) + 열 아지랑이 쉿 + 드문 타닥. 과열 50% 이상 + 이동 중일 때만, 멈추거나 50% 미만이면 120 ms 페이드아웃 | -12 |
+| dagger_hotwind_burst | 단검 · 열풍 | 1.75 s | - | `OVERHEAT{full:true,branch:hotwind}` | 열풍 과열 폭발(반경 ×2 · 화상 3 s · 무적 0.5 s, fx dagger_hotwind_burst — dagger_overheat_burst 를 교체하듯 이 소리가 overheat_burst 를 교체). 큰 재 폭발(×1.8) + 엇갈린 작은 폭발 여섯 + 사방으로 눕는 불혀 '화르륵' + 길게 식는 증기 | 0 |
+| bow_arrow_split | 활 · 연궁 | 0.26 s | - | `PLAYER_ATTACK{weapon:bow,move:rapid,branch:split,phase:split}` | 연궁 분열(연사 3발마다, fx bow_arrow_split impactFrame 0 · ±12°). 갈림목의 작은 '팅' + 위·아래로 벌어지는 짧은 바람 둘. 그 발의 bow_rapidN 위에 겹침. 패시브 '흩어진 촉'의 벽·사거리 끝 분열에도 재사용 권장 | -5 |
+| bow_arrow_recall | 활 · 무한통 | 0.47 s | - | `BRANCH_EFFECT{branch:quiver,effect:recall}` | 무한통 화살 회수(박힌 화살 밟기 +1 · 처치 +3, fx bow_arrow_recall). 화살통에 화살대가 떨어져 들어가는 나무 딸깍 넷 + 위로 솟는 불씨 블립 다섯 + 작게 오르는 바람. 처치 +3 은 같은 파일 한 번 | -6 |
+| bow_deadeye_lock | 활 · 필중 | 0.62 s | - | `BREATH_FOCUS{weapon:bow,branch:deadeye,phase:full}` | 필중 조준 다 좁혀짐(fx bow_deadeye_scope 진행도 100% = f5). 괄호 넷이 좁혀 드는 빨라지는 틱(점점 높게) → 0.15 s 맑은 '딸깍-팅' + 아주 희미한 D7 + 낮은 심장 한 번. 이 뒤 완벽 놓기 = 치명 확정. 이어서 bow_deadeye_hold | -4 |
+| bow_deadeye_hold | 활 · 필중 | 0.72 s | 루프 | `BREATH_FOCUS{weapon:bow,branch:deadeye,phase:hold}` | 필중 조준 유지 루프(0.72 s = fx bow_deadeye_scope 루프 360 ms × 2). 멈춘 공기의 좁은 숨결(900 Hz) + 360 ms 마다 아주 작은 맥박 + 희미한 D7 한 가닥. 놓거나 취소하면 60 ms 페이드아웃. 숨 감속 중 다른 소리 아래 깔리게 아주 작게 | -14 |
+| bow_link1 | 활 · 천공 | 0.47 s | - | `BRANCH_EFFECT{branch:skypierce,effect:link,stack:1}` | 천공 연결 1스택(완벽 놓기 연속, fx bow_link_stack 행 1). 화살촉 '틱' + 팽팽한 시위 하모닉 D5 + 유리 반짝임. bow_release_perfect 위에 겹침 | -6 |
+| bow_link2 | 활 · 천공 | 0.57 s | - | `BRANCH_EFFECT{branch:skypierce,effect:link,stack:2}` | 천공 연결 2스택. 시위 하모닉 A5 + 반짝임 | -5 |
+| bow_link3 | 활 · 천공 | 0.83 s | - | `BRANCH_EFFECT{branch:skypierce,effect:link,stack:3}` | 천공 연결 3스택(다음 화살 = 벽 관통 + 선 폭발). 시위 하모닉 D6 + 걸쇠 '철컥'(고리가 이어짐) + 종 D5, 짧은 울림 | -4 |
+| bow_link_break | 활 · 천공 | 0.38 s | - | `BRANCH_EFFECT{branch:skypierce,effect:link_break}` | 천공 연결 끊김(완벽 놓기를 놓쳐 스택 0). 힘 빠진 낮은 시위 '퉁'(D3, 둔하게) + 내려앉는 짧은 음 + 작은 나무 틱. 1스택 이상일 때만 | -7 |
+| bow_skypierce | 활 · 천공 | 1.30 s | - | `BRANCH_EFFECT{branch:skypierce,effect:line}` | 천공 3스택 화살(벽 관통 + 지나간 선이 0.5 s 뒤 터짐, fx bow_skypierce_line burstAtMs 500). 하늘을 찢는 화살 비명(3k→9k) + 0.06 s 벽을 뚫는 돌·나무 '퍽' + 선 위를 흐르는 가는 반짝임 → 0.5 s 선을 따라 번지는 파열 아홉 + 낮은 폭음 + 칼날 울림 D6(일섬 선 결). 파일 0.5 s = 선 폭발 | -1 |
+
+#### 4-7-3. 패시브 (9종 → 10)
+| id | 분류 | 길이 | 루프 | 트리거 제안 | 소리·연결 | gainDb |
+|---|---|---|---|---|---|---|
+| passive_glass_shard | #10 깨진 잔 조각 | 0.32 s | - | `PASSIVE_PROC{passive:brokenGlass}` | 패시브 #10 '깨진 잔 조각'(타격 12% 출혈) 발동. 작은 유리 조각 둘이 '찰캉' + 젖은 틱. 그 타격의 hit_enemy 위에 작게 | -8 |
+| passive_ember_sleeve | #11 불붙은 소매 | 0.57 s | - | `PASSIVE_PROC{passive:burningSleeve}` | 패시브 #11 '불붙은 소매'(대쉬 경로에 불씨 1 s+) 발동. 소매에서 번지는 짧은 불 '화륵' + 뒤로 남는 타닥. dash 위에 겹침 | -8 |
+| passive_blood_scent | #18 피 냄새 | 0.47 s | - | `PASSIVE_PROC{passive:bloodScent}` | 패시브 #18 '피 냄새'(지속 피해 중인 적 처치 → 지속 피해가 다른 적에게 옮겨붙음) 발동. 갈라져 날아가는 젖은 바람 둘 → 0.24 s 도착하는 지짐·핏방울 | -6 |
+| passive_domino | #20 도미노 | 0.34 s | - | `PASSIVE_PROC{passive:domino}` | 패시브 #20 '도미노'(처치 시 가장 가까운 적에게 재 파편 1발) 발동. 쓰러진 자리의 작은 재 '푹' + 날아가는 짧은 바람 + 0.2 s 박히는 틱 | -7 |
+| passive_mirror_clone | #24 깨진 거울 | 0.47 s | - | `PASSIVE_PROC{passive:brokenMirror}` | 패시브 #24 '깨진 거울'(대쉬 후 0.5 s 안 첫 공격을 그림자 분신이 한 번 더) 발동. 깨진 거울 '팅'(유리) + 짧게 빨려드는 어두운 역바람 → 0.14 s 분신 베기(어둡게) + 쇠 틱. 칼 shadow_clone(칼날 울림)과 유리 결로 구분 | -5 |
+| passive_ember_heart | #25 잔불 심장 | 0.82 s | - | `PASSIVE_PROC{passive:emberHeart}` | 패시브 #25 '잔불 심장'(전설, 강공 적중 지점에 불 웅덩이 2~4 s) 발동. 심장 한 번 '쿵' + 피어오르는 불 '훅' + 타닥. 웅덩이가 타는 동안 boss1_fire_loop 1개 재사용(가까운 것 기준) | -4 |
+| passive_spilled_drink | #26 엎지른 술 | 0.42 s | - | `PASSIVE_PROC{passive:spilledDrink}` | 패시브 #26 '엎지른 술'(처치 시 15~30% 술 웅덩이) 발동. 쏟아지는 술 '철퍽' + 물방울 + 작은 잔 '팅'. 보스 boss1_liquor_splash 보다 짧고 작다 | -7 |
+| passive_liquor_spray | #28 독한 숨 | 0.57 s | - | `PASSIVE_PROC{passive:strongBreath}` | 패시브 #28 '독한 숨'(마시기 직후 3 s 안 첫 공격 = 앞 원뿔 2칸 술 뿜기, 맞은 자리 웅덩이) 발동. 입술 '프'(노이즈, 목소리 아님) → 넓게 퍼지는 술 안개 '푸쉬' + 흩어지는 물방울. 그 공격의 휘두름 위에 겹침 | -3 |
+| passive_fire_breath | #28 독한 숨 (술불 위) | 0.87 s | - | `PASSIVE_PROC{passive:strongBreath,fire:true}` | 패시브 #28 '독한 숨' 술불 위에서 뿜음 = 화염 뿜기(×1.5). 술 안개 '푸쉬'에 불이 붙어 0.05 s 부터 낮게 으르렁대는 불길 + 타닥. passive_liquor_spray 대신 | -2 |
+| passive_drunk_fist | #29 취권 | 0.52 s | - | `PASSIVE_PROC{passive:drunkFist}` | 패시브 #29 '취권'(영웅, 취기 중 대쉬 직후 공격 = 휘는 궤적 2칸 비틀 돌진 베기, 연속 3회) 한 번. 7 Hz 로 휘는 무거운 바람 + 술 출렁 → 0.22 s 베기 + 둔탁한 디딤. 1·2·3회 rate 1.0/1.06/1.12, 3회째 뒤 0.5 s 비틀 경직에 drunk_sway 재사용 권장(보스 '3연 취권' 오마주) | -3 |
+
+패시브 고른 기준(29종 → 9종): **발동 순간이 화면의 '사건'(불씨·분신·파편·웅덩이·뿜기·돌진)으로 보이고, 기존 소리로 대신되지 않는 것.**
+| 판정 | 패시브(설계안 번호) | 이유 |
+|---|---|---|
+| 만듦 | #10 깨진 잔 조각 · #11 불붙은 소매 · #18 피 냄새 · #20 도미노 · #24 깨진 거울 · #25 잔불 심장 · #26 엎지른 술 · #28 독한 숨(일반·술불 위 2파일) · #29 취권 | 확률 발동·대쉬 불씨·옮겨붙음·파편·분신·불 웅덩이·술 웅덩이·뿜기·돌진 베기 — 눈에 보이는 발동 |
+| 재사용 | #23 마지막 잔 = `endure_trigger` · #15 붉은 분필 = `mark_stack` · #12 사냥 표지 = `pickup_gold` · #21 장교의 견장 = `hit_enemy_crit` · #19 흩어진 촉 = `bow_arrow_split` | 같은 순간을 이미 맡는 소리가 있음 |
+| 안 만듦 | #2 강철 피부 · #3 질주 · #4 맹공 · #6 철벽 패링 · #7 잔상 · #8 개성 각성 · #9 숫돌 · #13 긴 시위 · #14 굳은살 · #16 무거운 손목 · #27 허리춤 호리병 | 수치만 바뀌고 발동 순간이 없음 |
+| 안 만듦 | #1 흡혈 · #5 역전의 일격 · #17 아슬아슬 · #22 끌어내린 무게 | 흡혈은 처치마다(소리 과다), 역전의 일격은 상태 진입(HP 30% — 버팀 세트의 `endure_trigger` 와 겹침), 아슬아슬은 `perfect_evade` 가 그 순간을 맡음, 끌어내린 무게는 '끊기지 않음'이라 사건 없음 |
+
+연결 권장:
+- **엘리트**: 등장 = 외곽선·이름표가 켜지는 프레임(파일 0.12 s = 북). 처치 = `elite_die`(일반 `enemy_death` 대신). 두목 쓰러짐은 `elite_die` 위에 `elite_leader_down` 겹침.
+- **성소**: 깃발 세움 `shrine_activate`(파일 1.0 s 북 = 웨이브 시작 신호로 쓰기 좋음) → 성공 `shrine_clear` / 실패 `shrine_fail`(실패 조건은 시스템 정의 대기).
+- **등급**: 노드 종료 도장 연출 프레임에 `grade_perfect`/`grade_good`, 등급 없음은 무음. 위험 노드 ×2 도 같은 파일.
+- **상점·지도**: 리롤·지도 정보는 `SHOP_PURCHASE{group:…}` 로 `shop_buy` 대신. 국경 초소 지도 장수 메뉴(`mapInfo`)도 같은 이벤트를 내 달라고 요청.
+- **화염 술병**: 던질 때 `bottle_throw` → 착탄 `bottle_burst` → 웅덩이 4 s 동안 `boss1_fire_loop` 1개(가까운 불 기준, 여러 불이어도 1개).
+- **이벤트**: 진입 `event_enter`, 선택지 확정 `event_choice`(이벤트 메뉴에서 `menu_select` 대신), '지나간다'는 기존 `menu_cancel`.
+- **파훼**: 새 종류 파훼 성공마다 `break_count` — n번째 rate 1.0/1.059/1.189/1.335(A5→B♭5→C6→D6). 결정타는 `boss_die` 와 같은 프레임에 `break_finisher` 겹침(파일 0.08 s = 일격).
+- **증류 화로**: 통과 `still_ignite` → `fire_weapon_loop`(200 ms 페이드인) → 6 s 끝 `fire_weapon_end` + 루프 150 ms 페이드아웃.
+- **회오리**: `katana_spin` 1회 뒤 `katana_whirl_loop` — 루프 시작을 fx `katana_whirl_loop` f0 과 같은 프레임에(파일 0.012 s·0.252 s… 틱 = 판정). 반사는 투사체마다 `katana_whirl_reflect`.
+- **일도양단**: `katana_guardbreak` 시작 + 140 ms 에 `katana_cleave_crack`(fx spawnAtMs = 몸 hitAt + 40 ms). 처형은 `katana_execute`(히트스톱 80 ms 를 파일 안에 둠).
+- **명경**: 패링 = `parry` + `parry_perfect` + `katana_mirror_parry` 셋 겹침(대역이 나뉨). 4·5단 도달 `kenki_stage4/5`, 5단 일섬 분신 2체 = `shadow_clone` 두 번(+90 ms).
+- **지진**: `gs_crack_line_lvN` 시작 + (칸 수 × 0.06 s) 에 `gs_quake_fork`. 공중제비 착지 균열 1줄 = `gs_crack_line_lv1` 을 2칸 시점(약 0.12 s)에 80 ms 페이드아웃.
+- **반향**: `perfect_guard` + `gs_echo_counter` 같은 프레임(울분 30% 미만이면 `perfect_guard` 만).
+- **거인**: 4단 도달 `charge_stage4`, 4단 내려찍기는 `charge_slam_lv4` 하나(lv3·`gs_quake_ring` 겹치지 않음). 차지 루프 rate 는 4단에서 1.09(선택).
+- **울혈**: 그로기 진입 `groggy_start` + `gs_congest_loop`(그로기 동안), 풀릴 때 울분 100% 면 `gs_congest_burst`.
+- **난무**: 분신 등장 `dagger_frenzy_in` → 분신 연격마다 `swing_dagger` rate 0.94 · -6 dB → 3 s 끝 `dagger_frenzy_out`.
+- **출혈**: 기폭 `brand_burst` + `dagger_bleed` 겹침, 옮겨감 `dagger_brand_hop`. 0.5 s 틱은 무음.
+- **비도**: 투척 `dagger_flyknife_throw`(fan_throw 대신) → 박힘 `dagger_knife_stick`(30~60 ms 시차) → 그 자리로 걸음 = `shadowstep` + `dagger_knife_step`.
+- **열풍**: 과열 50% 이상 + 이동 중 `dagger_hotwind_loop`(120 ms 페이드), 100% 폭발은 `overheat_burst` 대신 `dagger_hotwind_burst`.
+- **연궁**: 분열하는 발의 `bow_rapidN` 위에 `bow_arrow_split`. **무한통**: 회수마다 `bow_arrow_recall`. **필중**: 진행도 100% `bow_deadeye_lock` → `bow_deadeye_hold` 루프 → 놓으면 60 ms 페이드아웃 + 기존 `bow_release_perfect`. **천공**: 스택 오를 때 `bow_link1~3`, 끊기면 `bow_link_break`, 3스택 화살 = `bow_skypierce`(파일 0.5 s = 선 폭발, fx burstAtMs 500).
+- **패시브**: 그 순간의 기본 소리(타격·대쉬·휘두름) 위에 얹는다. 취권 3회째 뒤 비틀 경직에 `drunk_sway`. 잔불 심장 웅덩이는 `boss1_fire_loop` 1개.
 
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).

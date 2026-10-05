@@ -126,7 +126,7 @@
 - **(57라운드 → §19)** v3 시트의 로드 형식은 격자 `spritesheet` 가 아니라 **트림 아틀라스**(§19.2·§19.3). 픽셀 크기·피벗·프레임 수·ms 등 이 절의 규격은 그대로이고, 저장 형식만 바뀐다.
 - 주인공 v3: ~~64×96~~ **96×144(53라운드 Q1 → §13)**, 피벗 = 발 중앙(아트가 JSON `pivot` 으로 명시), 색 예산 30. 프레임: idle 6 · walk 8 · run 8 · 연격 타당 6~8 · dash 5 · hurt 3 · death 10(재로 무너지고 일기장만 남음).
 - 보스 v3: ~~128×192(화면 64×96)~~ **1층 보스 192×240(화면 96×120), 피벗 (96,220)(54라운드 Q14·Q22 → §15)**. 이펙트 v3: 기존 크기 ×2, 같은 생성 스크립트로 재출력.
-- 타일·구조물·세트는 32px(v2) 유지.
+- ~~타일·구조물·세트는 32px(v2) 유지.~~ → **(60라운드 Q9 B안) 지역 바닥·엄폐 담·구조물도 64도트 = 1칸(`pixelScale 0.5`)으로 전환**. 아트가 2배 밀도 설계로 다시 만들어 넣는 시트부터 적용하고, 시스템은 타일셋·구조물 JSON 의 `pixelScale` 을 읽어 0.5(64도트 칸)를 처리한다. 인덱스 표·키는 그대로(§9·§12).
 
 ## 12. §9 쿼터뷰 타일셋 키 정리 (52라운드 Q9 · 시스템 질문 정리)
 현재 아트 산출물(`tiles/v2/stage1_outer.json`)과 시스템 해석기가 맞춘 형태를 정식으로 한다.
@@ -496,8 +496,9 @@
 | 적 | `sprites/enemies/v3/` | 트림 아틀라스 (57 Q38 범위 확장) |
 | 보스 | `sprites/bosses/v3/` | 트림 아틀라스 (57 Q38 범위 확장) |
 | 구조물 | 구조물 v3 시트 | 트림 아틀라스 (57 Q38 범위 확장) |
+| 월드 아이템(소모품 드롭) | `sprites/items/v3/` | 트림 아틀라스 (60라운드, 폴더 위치는 인터뷰 대기) |
 | 외벽 테두리 | `tiles/border/<region>/` | WebP (§19.4) |
-| 타일셋·소품 시트 (`tiles/**` 의 격자 타일셋) | §2·§9·§12·§14 | **변경 없음**(격자 유지) |
+| 타일셋·소품 시트 (`tiles/**` 의 격자 타일셋) | §2·§9·§12·§14 | 격자 유지. 60라운드 B안부터 64도트 칸(`pixelScale 0.5`) 시트가 섞일 수 있음(§11) |
 
 - **트림 안 함(`atlas.noTrim: true`)**: 반복 타일 계열 fx(`telegraph_line` 처럼 타일 주기로 이어 그리는 시트)와 칼끝 리본(`ribbon_ash`·`ribbon_ash_thin` 등) — **5종**(57 Q38). 이 시트도 아틀라스 JSON 형식은 같고 프레임 사각형만 원 프레임 크기 그대로다. 5종의 정확한 목록은 아트 변환 도구 설정이 기준이다.
 - 무기 시트 로드 시점(Q16): 고른 무기의 시트만 런 시작 때 로드하고, 시험장 등에서 무기를 바꾸면 이전 무기 시트를 해제한다(Q38 시스템 — 시스템 처리, 시트 변경 없음).
@@ -562,3 +563,12 @@
 - **그림자 색**: `shadowPalette` 필드(주인공 색 → 분신 색). 난무 상주 분신은 단검 몸·무기 시트를 런타임 색 교체.
 - **재사용 매핑**: 명경 분신 일섬 = `katana_issen_shadow` ×2(+90ms, ±24 도트) / 지진 착지 = `greatsword_shatter_crack_t2` / 비도 투척 = `dagger_thrown` ×5 / 연궁 분열 화살 = `bow_arrow_rapid` / 잔불 심장 = `fire_pool` / 거인 피격 흡수 = `greatsword_brace_absorb` / 비도 도착 = `shadowstep_ghost`.
 - 아트 제안 길이·반경(설계안에 없던 값, 인터뷰 대기): 일도양단 균열 4칸, 지진 갈래 각 2칸, 울혈 폭발 반경 2.25칸, 정적 파동 반경 약 5.6칸.
+
+## 22. 60라운드 2차 묶음 월드 아트 (57 Q38 확정안)
+- 공통: `pixelScale 0.5`(64도트 = 1칸), 트림 아틀라스(§19). JSON 마다 `usage`·`pivot`·`anchor`(또는 `anchorRule`)·`states`, 발광 시트는 `emissiveColors`·`light`/`lightByState`. 상호작용 표지 = 램프 25 한 점 + 23 받침, 사용 후 꺼짐. 세부는 **각 JSON 이 기준**.
+- **엘리트**: `enemies/v3/{dummy,archer,charger}_{idle,walk,attack,hurt,death}_elite`(15) — 호박 외곽선 오버레이. 적 **바로 아래**에 같은 프레임 번호·피벗·flip, scale ×1.15 로 그림(`pulse` 제안 필드). 적 시트를 다시 그리면 아트가 재생성.
+- `fx/v3/elite_emblem` 52×60, 6행 × 2열(`rowsAre: kinds` — 접두어 6종 임시 id drunkard·burning·barrel_armor·enraged·ringleader·guzzler; 0열 평소, 1열 발동·변형). pivot (26,58), `anchor: enemy_head` = 적 pivot 위 `headTopByEnemy`(dummy 117·archer 120·charger 131) + 10도트.
+- `fx/v3/elite_nameplate` 192×30, 가로 `nineSlice` 26/26, `textArea`, 권장 글자색 #eecc78. 글자는 시스템/UI 가 그림. pivot (96,28), 문장 위(2단 배치는 인터뷰 대기).
+- **구조물** `structures/v3/`: `challenge_banner`(C4 도전 성소, idle → raise 5 → active 6 루프 → cleared, 광원 220, `paletteSwap`), `still`(1-2 증류 화로 v3, v1 대체 우선 로드, `fireBox`, 광원 300), `event_last_cup`(E2), `event_tasting_tray`(E5), `event_peddler_mat`(E1·숨은 노드 행상, `slotAnchors` 3), `event_cache`(E7·숨은 보물방, idle/open/used), `event_offering_cup`(E8, pray 4 루프), `event_dropped_ledger`(E9, `depth: floor`), `clue_drain`·`clue_cracked_cask`(숨은 노드 단서, found 상태 발광).
+- **아이템** `items/v3/consumable_f1` 64×72, 3행 × 8(행 = 1층 소모품 3종 임시 id fire_bottle·strong_swig·cold_water), `anchor: ground`.
+- 재사용(새로 그리지 않음): E3 징집병 사망, E4 UI 일기장, E6 독주 술통 + `fire_pool`, E2·E5 카운터, E8 묘, E7 숨은 벽. 성과 등급(완·양)은 UI 몫(설계 f.2).

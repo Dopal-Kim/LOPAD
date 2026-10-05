@@ -1,0 +1,130 @@
+{
+ "image": "elite_emblem.png",
+ "action": "elite_emblem",
+ "frameWidth": 52,
+ "frameHeight": 60,
+ "framesPerDirection": 2,
+ "directions": [
+  "any",
+  "any",
+  "any",
+  "any",
+  "any",
+  "any"
+ ],
+ "layout": "row = direction/kind (directions·rowsAre 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  200,
+  200
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "rowsAre": "kinds",
+ "kinds": [
+  "drunkard",
+  "burning",
+  "barrel_armor",
+  "enraged",
+  "ringleader",
+  "guzzler"
+ ],
+ "kindNames": {
+  "drunkard": "고주망태",
+  "burning": "불붙은",
+  "barrel_armor": "통 갑옷",
+  "enraged": "성난",
+  "ringleader": "패거리 두목",
+  "guzzler": "들이켜는"
+ },
+ "kindNamesNote": "이름은 임시(설계 g.2 — 정식명은 스토리)",
+ "columns": {
+  "0": "평소",
+  "1": "발동·변형(행별 뜻은 frameRoleByKind)"
+ },
+ "frameRoleByKind": {
+  "drunkard": "alt: 술 김 회전(흔들림 박자용 교대 프레임)",
+  "burning": "alt: 불꽃 일렁임(교대 프레임)",
+  "barrel_armor": "broken: 첫 강공 적중으로 갑옷이 깨진 뒤",
+  "enraged": "active: HP 50% 이하 발동",
+  "ringleader": "alt: 지휘 중(주변 적 강화 표시 박자)",
+  "guzzler": "active: 마시는 순간(회복 발동)"
+ },
+ "pivot": {
+  "x": 26,
+  "y": 58
+ },
+ "anchor": "enemy_head",
+ "anchorRule": "문장 pivot(아래 끈 끝) = 적 pivot 위 headTopByEnemy[적] + 10 도트(엘리트 ×1.15 면 headTop×1.15). 적이 좌우로 뒤집혀도 문장은 뒤집지 않는다",
+ "headTopByEnemy": {
+  "dummy": 117,
+  "archer": 120,
+  "charger": 131
+ },
+ "headTopNote": "적 v3 idle 전 프레임의 불투명 꼭대기 — 피벗에서 위로 도트. 동작마다 머리가 움직여도 문장은 고정 높이(흔들림 방지)",
+ "bob": {
+  "px": 2,
+  "periodMs": 1400,
+  "note": "제안 — 시스템이 위아래 2 도트 흔들기"
+ },
+ "usage": "엘리트 접두어 문장(월드, 머리 위). HUD·메뉴 아이콘은 UI 파트 몫(assets/ui)",
+ "depth": "above",
+ "lighting": "조명 위(fx 와 같음). 테·기호 = 자체 발광 램프 23~27",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "paletteSwap": true,
+ "paletteSwapNote": "층 램프 16~27 로 그림 → 런타임 층 스왑 대상(층 강조색). 바탕 쇠는 SL 고정",
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "source": "parts/art/work/bundle2/build.py (57라운드 Q38 2차 묶음 · 60라운드 Q4)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 elite_emblem.png)",
+  "grid": {
+   "columns": 2,
+   "rows": 6,
+   "frameWidth": 52,
+   "frameHeight": 60,
+   "frameCount": 12
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":57,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "1":{"frame":{"x":0,"y":113,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "2":{"frame":{"x":0,"y":169,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "3":{"frame":{"x":0,"y":0,"w":40,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":3,"w":40,"h":55},"sourceSize":{"w":52,"h":60}},
+  "4":{"frame":{"x":0,"y":225,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "5":{"frame":{"x":0,"y":281,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "6":{"frame":{"x":0,"y":337,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "7":{"frame":{"x":0,"y":393,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "8":{"frame":{"x":0,"y":449,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "9":{"frame":{"x":0,"y":505,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "10":{"frame":{"x":0,"y":561,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}},
+  "11":{"frame":{"x":0,"y":617,"w":40,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":4,"w":40,"h":54},"sourceSize":{"w":52,"h":60}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "elite_emblem.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 40,
+   "h": 671
+  },
+  "scale": "1"
+ }
+}

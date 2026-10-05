@@ -11,6 +11,9 @@
    - 반복 타일(`tile: true`)·리본(`ribbon`) 시트는 트림하지 않는다(빽빽한 배치만).
 3. 점검: `python3 parts/art/work/atlas57/verify.py --all --border` (형식 0 오류·픽셀 0 불일치여야 커밋).
    - 원본은 git `GRID_REV`(5bfcf2e)에서 읽는다. 그 뒤에 새로 생긴 시트는 형식만 본다(픽셀은 2단계에서 이미 대조).
+   - **기준 갱신(60라운드)**: `baseline.json` 의 `sheets{시트: 커밋}` 에 적힌 시트는 그 커밋의 **아틀라스**를 프레임별로 되살려 대조한다(메타 필드도 그 커밋 기준). 현재 216개 = 58라운드에 다시 그린 대검 50시트(몸 10·무기 40, 진짜 3/4 대각 리그) + GRID_REV 뒤 새 시트 166개, 기준 커밋 `9257ce8`. 나머지 430개는 계속 GRID_REV 격자와 대조.
+   - 시트를 **의도적으로 다시 그려 커밋한 뒤** 기준을 옮긴다: `python3 parts/art/work/atlas57/verify.py --rebase [--rev HEAD] [--only 이름부분 ...]`
+     (`--only` 없으면 기준과 어긋나는 시트·기준 없는 새 시트를 자동 선별. 커밋과 작업 트리가 다른 시트는 옮기지 않는다 — 커밋 전 변경을 기준으로 삼지 않음.)
 4. 외벽 새 지역: 그림을 PNG 로 `assets/tiles/border/<지역>/` 에 두고 `python3 parts/art/work/atlas57/border_webp.py --in-place --only <지역>`
    → WebP(albedo 손실 q90·알파 무손실, 발광 무손실) + 4096px 초과 띠는 `pieces[]`, 원 PNG 삭제, `border.json` 갱신. `imageFormat` 이 있는 지역은 건너뜀.
 

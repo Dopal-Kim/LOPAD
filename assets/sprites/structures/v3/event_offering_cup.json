@@ -1,0 +1,125 @@
+{
+ "image": "event_offering_cup.png",
+ "action": "event_offering_cup",
+ "frameWidth": 112,
+ "frameHeight": 128,
+ "framesPerDirection": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction/kind (directions·rowsAre 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  100,
+  140,
+  140,
+  140,
+  140,
+  100
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "id": "event_offering_cup",
+ "event": "E8 무명 전사의 술잔(임시)",
+ "usage": "E8 — C3 묘(grave) 바로 앞(남쪽 1칸)에 둔다. E 2초 기도(hold) 동안 pray 루프, 끝나면 메뉴 → used",
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": false,
+ "depth": "y",
+ "pivot": {
+  "x": 56,
+  "y": 120
+ },
+ "occludeAbove": 20,
+ "states": {
+  "idle": [
+   0
+  ],
+  "pray": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "used": [
+   5
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "pray": true,
+  "used": false
+ },
+ "interact": "E(hold 2000ms)",
+ "light": {
+  "color": "#eecc78",
+  "radius": 110,
+  "intensity": 0.6,
+  "flicker": {
+   "amp": 0.2,
+   "hz": 7
+  },
+  "offset": {
+   "x": 76,
+   "y": 82
+  }
+ },
+ "lightByState": {
+  "idle": "켜짐",
+  "pray": "켜짐(intensity ×1.4 권장)",
+  "used": null
+ },
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "floor": "stage1",
+ "paletteSwap": false,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "source": "parts/art/work/bundle2/build.py (57라운드 Q38 2차 묶음 · 60라운드 Q4)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 event_offering_cup.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 112,
+   "frameHeight": 128,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":432,"w":85,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":78,"w":85,"h":49},"sourceSize":{"w":112,"h":128}},
+  "1":{"frame":{"x":0,"y":327,"w":85,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":24,"w":85,"h":103},"sourceSize":{"w":112,"h":128}},
+  "2":{"frame":{"x":0,"y":220,"w":85,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":22,"w":85,"h":105},"sourceSize":{"w":112,"h":128}},
+  "3":{"frame":{"x":0,"y":111,"w":85,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":20,"w":85,"h":107},"sourceSize":{"w":112,"h":128}},
+  "4":{"frame":{"x":0,"y":0,"w":85,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":18,"w":85,"h":109},"sourceSize":{"w":112,"h":128}},
+  "5":{"frame":{"x":0,"y":483,"w":85,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":78,"w":85,"h":49},"sourceSize":{"w":112,"h":128}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "event_offering_cup.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 85,
+   "h": 532
+  },
+  "scale": "1"
+ }
+}

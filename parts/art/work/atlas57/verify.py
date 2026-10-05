@@ -276,7 +276,8 @@ def verify_sprites(args, orig):
             pairs.append((rel, ap_, src_meta, atlas))
     print(f"형식 점검: 시트 {len(atlases)}개, 오류 {fmt_errs}" + (f" (원본 없음 {len(no_orig)}개: 형식만)" if no_orig else "")
           + (f" (아틀라스 기준 {len(apairs)}개: baseline.json)" if based else ""))
-    missing = sorted(set(based) - {os.path.relpath(a, args.root) for a in atlases})
+    missing = (sorted(set(based) - {os.path.relpath(a, args.root) for a in atlases})
+               if os.path.abspath(args.root) == SRC else [])  # 다른 --root(부분 사본)에서는 생략
     if missing:
         fmt_errs += len(missing)
         print(f"기준에 있는데 시트가 없음 {len(missing)}개: {missing[:5]}")

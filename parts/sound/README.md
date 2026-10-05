@@ -5,9 +5,11 @@
 |---|---|
 | `parts/sound/sound-design.md` | 음향 바이블: 톤, 악기(합성 방식), 층별 BGM 매핑, 효과음 표(트리거 제안) |
 | `parts/sound/work/build.py` | **단일 소스.** 효과음·BGM 합성 → OGG·M4A 인코딩 → 매니페스트 → 검증을 전부 재생성. 합성은 파이썬 표준 라이브러리만, 고정 시드로 결정적 |
+| `parts/sound/work/sfx_bundle2.py` · `sfx_branch2.py` · `sfx_passive.py` | 60라운드 효과음 정의(2차 묶음 25 · 2단 갈래 32 · 패시브 10). `build.py` 가 이 순서로 import 해 등록한다(시드 = 등록 순서) — 새 효과음은 `sfx_passive.py` 끝에만 |
+| `parts/sound/work/listen_index.py` → `listen_index.json` | 청취 검수(들어보기) 페이지용 목록: 전 효과음·BGM 의 분류·한 줄 설명·트리거·길이·루프·ogg/m4a 경로. 매니페스트를 쓸 때마다 함께 재생성 |
 | `parts/sound/work/encode.py` | 배포 형식 인코딩·검증(57라운드 Q17). ffmpeg(libvorbis·aac), bitexact 로 결정적 |
 | `parts/sound/work/wav/{sfx,bgm}/*.wav` | 합성 원본 **작업 캐시**(git 제외, `work/.gitignore`). `build.py` 로 바이트 단위 재생성 — 저장소·빌드 결과에 넣지 않는다 |
-| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 142종(29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37), 원본 44.1 kHz / mono / 피크 -6 dBFS |
+| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 209종(29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37 + 60라운드 2차 묶음 25·2단 갈래 32·패시브 10 — 그중 `gs_plunge`·`gs_crack`·`katana_echo` 는 보관), 원본 44.1 kHz / mono / 피크 -6 dBFS |
 | `assets/audio/bgm/*.{ogg,m4a}` | BGM 6곡, 원본 22.05 kHz / mono, 27~32 s 루프, 피크 -6 dBFS |
 | `assets/audio/manifest.json` | 시스템 파트가 읽을 목록(계약 초안): 파일(`file` 1순위 + `files` 형식별)·샘플 수·길이·루프 구간·권장 음량·트리거 이벤트 제안·층별 BGM 매핑 |
 
@@ -19,9 +21,10 @@ python3 parts/sound/work/build.py bgm        # BGM 만 (+인코딩·매니페스
 python3 parts/sound/work/build.py sfx parry  # 특정 소리만
 python3 parts/sound/work/build.py encode     # 작업 캐시 WAV → OGG·M4A 만 다시 (+매니페스트)
 python3 parts/sound/work/build.py verify     # 검증(WAV 피크·클리핑·경계 + OGG·M4A 디코드 길이·정렬·피크·루프 이음매·용량)
+python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.json)만 다시
 ```
 새로 받은 저장소에는 WAV 캐시가 없으므로 `encode`·`manifest`·`verify` 전에 `build.py`(전부)를 한 번 돌린다.
-새 효과음은 `build.py` 의 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 추가하면 매니페스트까지 자동 반영된다. BGM 은 `@bgm(...)`.
+새 효과음은 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 **마지막 모듈(`sfx_passive.py`) 끝**에 추가하면 매니페스트·들어보기 목록까지 자동 반영된다(`build.py` 본문 중간이나 앞 모듈에 끼우면 시드가 밀려 뒤 소리가 바뀐다). 새 소리의 분류는 `listen_index.py` 의 `EXPLICIT`/`SUBGROUP` 에 적는다(60라운드 모듈 소리는 모듈 이름으로 자동). BGM 은 `@bgm(...)`.
 
 ## 자율 결정 (29라운드, 도영 님 부재 중 권장안으로 결정 — 복귀 후 검토)
 음향 파트 개시 BLANK(`parts/sound/CLAUDE.md`, GDD 8장) 네 항목을 아래와 같이 정했다. 근거는 `parts/producer/decisions/2026-10-01-round-29-autonomous-demo.md` 의 자율 진행 지시.
@@ -83,8 +86,20 @@ python3 parts/sound/work/build.py verify     # 검증(WAV 피크·클리핑·경
 - 검증(`build.py verify`, 148개 문제 0): WAV 피크 -6.00 dBFS·클리핑 0, OGG 길이 차 0, 새 루프 `katana_guardbreak_hold` 이음매 튐 비율 OGG 0.63·M4A 0.78(처음 만든 판은 M4A 1.56 이라 톱니 고역을 줄이고 험 위상을 옮겨 고침). 총 WAV 17.09 MB → 배포 5.20 MB(OGG 2.37 MB / M4A 2.84 MB).
 - 새 트리거 이벤트(제안, 시스템 확정 필요): `MARK_CHANGED`·`STATUS_BURST`·`SET_EFFECT`·`POOL_IGNITED`·`DRUNK_SWAY`·`ENDURE_TRIGGERED`, 조건 키 `kind:awaken`·`move:spin|guardbreak|fan_throw|cross_clone|rapid|pierce|crack`·`kenki`·`part:crack|quake`·`branch:pressure`·`source:bloodPact`. 계약 `sound-assets.md` §5 루프 목록(8개로)·§6 이벤트 목록 갱신은 프로듀서 소관.
 
+## 추가 (60라운드 Q5~Q7, 2026-10-05)
+근거: `parts/producer/decisions/2026-10-05-round-60-parallel-production.md` Q5(37종 구성 유지)·Q6(`gs_plunge`·`gs_crack`·`katana_echo` 보관)·Q7(다음 범위: 2차 묶음 효과음 + 2단 갈래 16종 효과음 + 패시브별 소리 + 청취 검수 페이지).
+- **새 67종**: 2차 묶음 25(엘리트 공용 등장 + 접두어 4 + 처치 · 도전 성소 발동·성공·실패 · 성과 등급 완·양 · 상점 리롤 · 지도 정보 구매 · 소모품 3종(화염 술병 투척·착탄 / 깡술 / 냉수) · 이벤트 진입·선택 · 숨은 노드 발견 · 파훼 다양성·결정타 · 증류 화로 통과·불 무기 루프·꺼짐) + 2단 갈래 16종 32파일(아트 fx JSON 의 프레임 시간·spawnAtMs·burstAtMs 에 맞춤) + 패시브 9종 10파일. 목록·연결 권장·패시브 고른 이유는 `sound-design.md` 4-7.
+- **새 루프 5**: `fire_weapon_loop`(1.0 s) · `katana_whirl_loop`(0.96 s = 240 ms × 4) · `gs_congest_loop`(0.75 s) · `dagger_hotwind_loop`(1.12 s = 280 ms × 4) · `bow_deadeye_hold`(0.72 s = 360 ms × 2). 루프 효과음 8 → 13(계약 §5 목록 갱신은 프로듀서 소관).
+- **코드 정리(CLAUDE.md 6-1)**: `build.py`(3,200줄)에 더 붙이지 않고 모듈 3개로 분리 + 들어보기 목록 생성기 `listen_index.py`. `build.py` 는 `sys.modules['build']` 를 먼저 걸어 모듈이 같은 DSP 유틸·SFX 표를 쓰게 했다.
+- **보관 3종**: 오디오·매니페스트 항목 그대로, `note` 앞에 '[보관 — 60라운드 Q6 …]' 표시만(바이트 불변). 들어보기 목록에서는 `status: archived`.
+- 기존 148개(WAV 캐시·OGG·M4A) 바이트 불변(md5 대조), 매니페스트는 67항목 추가 + 보관 3종 note 표시만(최상위 필드 동일). 전체 `build.py` 재실행으로 215개 WAV·OGG·M4A·manifest·listen_index 바이트 재현 확인.
+- **검증**(`build.py verify`, 215개 문제 0): WAV 피크 -6.00 dBFS·클리핑 0, OGG 길이 차 0. 새 루프 이음매 튐 비율 OGG ≤ 0.40 · M4A ≤ 0.34(`fire_weapon_loop` 0.23/0.34, `katana_whirl_loop` 0.01/0.02, `gs_congest_loop` 0.40/0.04, `dagger_hotwind_loop` 0.01/0.31, `bow_deadeye_hold` 0.22/0.19). 총 WAV 21.95 MB → 배포 6.60 MB(OGG 3.05 MB / M4A 3.55 MB).
+- **새 트리거(제안, 시스템 확정 필요)**: 이벤트 `ELITE_SPAWNED`·`ELITE_PREFIX`·`CONSUMABLE_IMPACT`·`BOSS_BREAK`·`STATUS_CHANGED`·`BRANCH_EFFECT`·`PASSIVE_PROC`, 기존 이벤트의 새 조건 키 `elite:true`·`prefix:`·`group:reroll|mapInfo`·`id:fireBottle|strongDrink|coldWater`·`type:event`·`menu:event`·`kind:warFlag`·`outcome:fail`·`grade:`·`kind:still`·`finisher:true`·`branch:<갈래 id>`·`stage:4|5`·`move:whirl`·`phase:reflect|cleave|fork`·`target:knife`·`over50`·`moving`. 계약 §6 갱신은 프로듀서 소관.
+- 들어보기 목록 `parts/sound/work/listen_index.json`: 215항목(효과음 209 + BGM 6), 18분류. 메인 세션이 청취 검수 페이지를 만든다.
+
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).
+- 60라운드 읽기(지시 범위): 아트 fx JSON 26개 `assets/sprites/fx/v3/{katana_whirl_loop,katana_whirl_reflect,katana_moon_trail,katana_cleave_crack,katana_execute,katana_mirror_ki,katana_mirror_parry,greatsword_quake_fork,greatsword_echo_counter,greatsword_giant_ring,greatsword_charge_flash_lv4,greatsword_congest_aura,greatsword_congest_burst,dagger_frenzy_clone_in,dagger_frenzy_clone_out,dagger_brand_bleed,dagger_brand_hop,dagger_stuck_blade,dagger_hotwind_trail,dagger_hotwind_burst,bow_arrow_split,bow_arrow_stuck,bow_arrow_recall,bow_deadeye_scope,bow_link_stack,bow_skypierce_line}.json` — 계약 `art-assets.md` §21 이 타이밍 기준으로 가리키는 런타임 데이터(타이밍 필드만 참고).
 - 쓰기: `parts/sound/**`, `assets/audio/**` 만.
 
 ## 미완료 · 보류

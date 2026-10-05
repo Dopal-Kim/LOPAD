@@ -71,7 +71,7 @@ interface SoundEntry {
 ## 5. 루프 구간 (`loop: true` 항목)
 - 이음매 구간은 **`[loopStartSample, loopEndSample)`**(샘플 단위). 현재는 모두 파일 전체 `[0, samples)`.
 - 디코더가 끝 패딩을 남겨 버퍼가 `samples` 보다 길 수 있다(특히 M4A). 이때 시스템은 `loopStart = loopStartSample / sampleRate`, `loopEnd = loopEndSample / sampleRate` 로 지정해 패딩을 건너뛴다.
-- 현재 루프 항목: 효과음 8(`guard_hold`·`charge_loop`·`katana_iai_hold`·`bow_strain`·`boss1_drink_gulp`·`boss1_barrel_roll`·`boss1_fire_loop`·`katana_guardbreak_hold`) + BGM 6.
+- 현재 루프 항목: 효과음 13(`guard_hold`·`charge_loop`·`katana_iai_hold`·`bow_strain`·`boss1_drink_gulp`·`boss1_barrel_roll`·`boss1_fire_loop`·`katana_guardbreak_hold`·`fire_weapon_loop`·`katana_whirl_loop`·`gs_congest_loop`·`dagger_hotwind_loop`·`bow_deadeye_hold`) + BGM 6.
 
 ## 6. 트리거 `trigger`
 - `event` = 시스템 내부 이벤트 이름, `when` = 조건 문자열 목록(`'키:값'` 꼴, 예 `'weapon:katana'`·`'phase:hold'`·`'boss:1'`). 빈 목록이면 조건 없음.
@@ -79,6 +79,8 @@ interface SoundEntry {
 - 새 소리에 새 이벤트·조건 키가 필요하면 음향이 manifest 에 적고 시스템에 요청한다(이 문서 갱신 동반).
 - 현 manifest 의 `event` 이름(참고): `BOSS_ATTACK`·`BOSS_DIED`·`BOSS_PHASE`·`BOSS_STARTED`·`BOSS_TELEGRAPH`·`BRAND_BURST`·`BRAND_CHANGED`·`BREATH_FOCUS`·`ENEMY_ATTACK`·`ENEMY_DAMAGED`·`ENEMY_DIED`·`ENEMY_TELEGRAPH`·`FATE_DECIDED`·`GOLD_CHANGED`·`GROGGY`·`ITEM_PICKUP`·`KENKI_CHANGED`·`OVERHEAT`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PLAYER_ATTACK`·`PLAYER_CHARGE`·`PLAYER_DAMAGED`·`PLAYER_DASH`·`PLAYER_HEALED`·`PLAYER_SECONDARY`·`PLAYER_SKILL`·`ROOM_CLEARED`·`ROOM_ENTERED`·`RUN_ENDED`·`SHOP_PURCHASE`·`STAGE_STARTED`·`STORY`·`UI_MENU_CANCEL`·`UI_MENU_MOVE`·`UI_MENU_SELECT`·`UTBUN_CHANGED`·`WEAPON_EVOLVED`·`WEAPON_REINFORCED`.
 - 57·58라운드 효과음 37종(음향 요청, 시스템 확정 대기): 이벤트 `MARK_CHANGED`·`STATUS_BURST`·`SET_EFFECT`·`POOL_IGNITED`·`DRUNK_SWAY`·`ENDURE_TRIGGERED` 와 UI 계약 §14.11 의 `TAG_SET_CHANGED`·`DUAL_TRAIT_GAINED`·`CURSE_GAINED`·`CURSE_ENDED`·`PERFECT_SUCCESS`, 조건 키 `WEAPON_EVOLVED{kind:awaken}`·`CURSE_GAINED{source:bloodPact}`·`move:`·`kenki:`·`part:`·`branch:`. 시스템이 이름을 확정하면 이 목록을 갱신한다.
+- 60라운드 효과음 67종(음향 요청, 시스템 확정 대기): 새 이벤트 `ELITE_SPAWNED`·`ELITE_PREFIX{prefix,phase}`·`CONSUMABLE_IMPACT{id}`·`BOSS_BREAK{distinct,kind,count}`·`STATUS_CHANGED{id,phase}`·`BRANCH_EFFECT{branch,effect,stack?}`·`PASSIVE_PROC{passive,fire?}`, 기존 이벤트 새 조건 키 `ENEMY_DIED{elite}`·`BOSS_DIED{finisher}`·`SHOP_PURCHASE{group:reroll|mapInfo}`·`UI_MENU_SELECT{menu:event}`·`ROOM_ENTERED{type:event}`·`CHALLENGE_STARTED/CLEARED{kind,outcome}`·`NODE_GRADED{grade}`·`HIDDEN_NODE_FOUND`·`CONSUMABLE_USED{id}`·`STRUCTURE_USED{kind:still}`·`branch:`·`stage:4|5`·`phase:` 계열. 갈래·패시브·접두어 id 는 음향 임시 영문이며 시스템 실제 id 로 manifest 를 맞춘다. `potion_use` 는 `PLAYER_HEALED{source:potion}` 으로 좁힐 것.
+- 보관 항목(60라운드 Q6): `gs_plunge`·`gs_crack`·`katana_echo` — 파일·manifest 항목은 남기되 시스템은 연결하지 않는다.
 
 ## 7. 원본·인코딩 (음향 파트 규칙)
 - **WAV 원본은 재생성 캐시**다: 합성 스크립트가 `format.source.dir`(음향 작업 폴더)에 바이트 단위로 같게 다시 만든다. **git 에 넣지 않고 배포하지 않는다**(음향 작업 폴더의 `.gitignore`).

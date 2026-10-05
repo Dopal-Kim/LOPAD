@@ -1,0 +1,124 @@
+{
+ "image": "clue_cracked_cask.png",
+ "action": "clue_cracked_cask",
+ "frameWidth": 128,
+ "frameHeight": 160,
+ "framesPerDirection": 7,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction/kind (directions·rowsAre 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  180,
+  180,
+  180,
+  180,
+  180,
+  180,
+  100
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "id": "clue_cracked_cask",
+ "clue": "숨은 노드 단서 — 금 간 술독(임시)",
+ "usage": "2차 묶음 (d) 숨은 노드 단서 2번(설계 d.1 '금 간 술독 벽'). 전투장 벽 가까이에 둔다. E 조사 → found(금이 빛남)",
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "pivot": {
+  "x": 64,
+  "y": 152
+ },
+ "occludeAbove": 40,
+ "states": {
+  "idle": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "found": [
+   6
+  ]
+ },
+ "stateLoop": {
+  "idle": true,
+  "found": false
+ },
+ "interact": "E(전투 후)",
+ "stateNote": "부서지지 않는다(타격 무시 제안) — 조사형. idle = 금에서 술이 스며 똑똑 떨어짐, found = 금이 호박빛",
+ "light": null,
+ "lightByState": {
+  "found": {
+   "color": "#e2a33c",
+   "radius": 70,
+   "intensity": 0.5,
+   "flicker": {
+    "amp": 0.05,
+    "hz": 2
+   },
+   "offset": {
+    "x": 68,
+    "y": 104
+   }
+  }
+ },
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "floor": "stage1",
+ "paletteSwap": false,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "source": "parts/art/work/bundle2/build.py (57라운드 Q38 2차 묶음 · 60라운드 Q4)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 clue_cracked_cask.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 160,
+   "frameCount": 7
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":93,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":51,"w":93,"h":109},"sourceSize":{"w":128,"h":160}},
+  "1":{"frame":{"x":0,"y":111,"w":93,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":51,"w":93,"h":109},"sourceSize":{"w":128,"h":160}},
+  "2":{"frame":{"x":0,"y":222,"w":93,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":51,"w":93,"h":109},"sourceSize":{"w":128,"h":160}},
+  "3":{"frame":{"x":0,"y":333,"w":93,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":51,"w":93,"h":109},"sourceSize":{"w":128,"h":160}},
+  "4":{"frame":{"x":0,"y":444,"w":93,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":51,"w":93,"h":109},"sourceSize":{"w":128,"h":160}},
+  "5":{"frame":{"x":0,"y":555,"w":93,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":51,"w":93,"h":109},"sourceSize":{"w":128,"h":160}},
+  "6":{"frame":{"x":0,"y":666,"w":93,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":51,"w":93,"h":109},"sourceSize":{"w":128,"h":160}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "clue_cracked_cask.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 93,
+   "h": 775
+  },
+  "scale": "1"
+ }
+}

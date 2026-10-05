@@ -1,0 +1,394 @@
+{
+ "enemies/v3/archer_attack_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 28,
+  "rows": 4,
+  "page": [
+   903,
+   268
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/archer_death_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 40,
+  "rows": 4,
+  "page": [
+   79,
+   4054
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/archer_hurt_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 12,
+  "rows": 4,
+  "page": [
+   612,
+   130
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/archer_idle_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 24,
+  "rows": 4,
+  "page": [
+   46,
+   3095
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/archer_walk_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 32,
+  "rows": 4,
+  "page": [
+   898,
+   252
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/charger_attack_elite": {
+  "frame": [
+   128,
+   176
+  ],
+  "frames": 32,
+  "rows": 4,
+  "page": [
+   440,
+   831
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/charger_death_elite": {
+  "frame": [
+   128,
+   176
+  ],
+  "frames": 40,
+  "rows": 4,
+  "page": [
+   313,
+   1468
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/charger_hurt_elite": {
+  "frame": [
+   128,
+   176
+  ],
+  "frames": 12,
+  "rows": 4,
+  "page": [
+   147,
+   828
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/charger_idle_elite": {
+  "frame": [
+   128,
+   176
+  ],
+  "frames": 24,
+  "rows": 4,
+  "page": [
+   236,
+   1069
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/charger_walk_elite": {
+  "frame": [
+   128,
+   176
+  ],
+  "frames": 32,
+  "rows": 4,
+  "page": [
+   507,
+   668
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/dummy_attack_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 28,
+  "rows": 4,
+  "page": [
+   325,
+   744
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/dummy_death_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 40,
+  "rows": 4,
+  "page": [
+   260,
+   1308
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/dummy_hurt_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 12,
+  "rows": 4,
+  "page": [
+   363,
+   250
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/dummy_idle_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 24,
+  "rows": 4,
+  "page": [
+   195,
+   878
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/dummy_walk_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 32,
+  "rows": 4,
+  "page": [
+   66,
+   3936
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "fx/v3/elite_emblem": {
+  "frame": [
+   52,
+   60
+  ],
+  "frames": 12,
+  "rows": 6,
+  "page": [
+   40,
+   671
+  ],
+  "opaqueColors": 20,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "fx/v3/elite_nameplate": {
+  "frame": [
+   192,
+   30
+  ],
+  "frames": 1,
+  "rows": 1,
+  "page": [
+   190,
+   26
+  ],
+  "opaqueColors": 11,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "items/v3/consumable_f1": {
+  "frame": [
+   64,
+   72
+  ],
+  "frames": 24,
+  "rows": 3,
+  "page": [
+   280,
+   153
+  ],
+  "opaqueColors": 32,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/challenge_banner": {
+  "frame": [
+   192,
+   300
+  ],
+  "frames": 13,
+  "rows": 1,
+  "page": [
+   109,
+   3560
+  ],
+  "opaqueColors": 31,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/clue_cracked_cask": {
+  "frame": [
+   128,
+   160
+  ],
+  "frames": 7,
+  "rows": 1,
+  "page": [
+   93,
+   775
+  ],
+  "opaqueColors": 13,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/clue_drain": {
+  "frame": [
+   128,
+   128
+  ],
+  "frames": 7,
+  "rows": 1,
+  "page": [
+   71,
+   590
+  ],
+  "opaqueColors": 17,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/event_cache": {
+  "frame": [
+   160,
+   144
+  ],
+  "frames": 3,
+  "rows": 1,
+  "page": [
+   136,
+   318
+  ],
+  "opaqueColors": 27,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/event_dropped_ledger": {
+  "frame": [
+   144,
+   80
+  ],
+  "frames": 3,
+  "rows": 1,
+  "page": [
+   109,
+   98
+  ],
+  "opaqueColors": 16,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/event_last_cup": {
+  "frame": [
+   128,
+   144
+  ],
+  "frames": 2,
+  "rows": 1,
+  "page": [
+   81,
+   184
+  ],
+  "opaqueColors": 27,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/event_offering_cup": {
+  "frame": [
+   112,
+   128
+  ],
+  "frames": 6,
+  "rows": 1,
+  "page": [
+   85,
+   532
+  ],
+  "opaqueColors": 30,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/event_peddler_mat": {
+  "frame": [
+   224,
+   160
+  ],
+  "frames": 1,
+  "rows": 1,
+  "page": [
+   186,
+   135
+  ],
+  "opaqueColors": 21,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/event_tasting_tray": {
+  "frame": [
+   128,
+   160
+  ],
+  "frames": 2,
+  "rows": 1,
+  "page": [
+   76,
+   248
+  ],
+  "opaqueColors": 29,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "structures/v3/still": {
+  "frame": [
+   192,
+   240
+  ],
+  "frames": 7,
+  "rows": 1,
+  "page": [
+   161,
+   1287
+  ],
+  "opaqueColors": 28,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ }
+}
