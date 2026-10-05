@@ -7,9 +7,9 @@ build.write_manifest() 가 부른다. 시스템이 이 값을 읽어 적용한�
 """
 
 TIERS = [
-    dict(level=4, name='telegraph', label='보스 예고·보스 신호',
+    dict(level=4, name='telegraph', label='보스 예고·보스 신호·무기 각성(61-4)',
          events=['BOSS_TELEGRAPH', 'BOSS_STARTED', 'BOSS_PHASE', 'BOSS_DIED', 'boss:intro',
-                 'BOSS_ACTION{action:introRoar}']),
+                 'BOSS_ACTION{action:introRoar}', 'WEAPON_AWAKEN']),
     dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)',
          events=['PLAYER_DAMAGED', 'PARRY_SUCCESS', 'PERFECT_GUARD', 'PERFECT_SUCCESS', 'ENEMY_TELEGRAPH', 'RUN_ENDED',
                  'BOSS_BREAK', 'ui:boss-break', 'BOSS_ACTION{action:cupStruck}', 'BOSS_ACTION{action:pillarCrack}']),

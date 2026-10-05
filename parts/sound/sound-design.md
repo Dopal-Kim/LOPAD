@@ -591,6 +591,35 @@
 | `arrow_rain_impact` | 0.63 s, '툭' 셋 0.1/0.16/0.23 s | 0.63 s, '툭' **아홉 0.10 + 0.04 s × k**(±4 ms, 점점 작게) + 이어 떨어지는 쉿 | 낙하 9곳 × 40 ms(810~1130 ms) 전부. 옛 판은 마지막 여섯 낙하에 소리가 없었다 |
 
 
+### 4-11. 61라운드 단계 4 — P12 무기 성장 (계약 sound §10: 새 8 + 변주 2, 옛 6 트리거 이동)
+근거: `parts/producer/decisions/2026-10-05-P12-weapon-growth.md`, 계약 `sound-assets.md` §10, 시스템 확정 이벤트(EventBus 이름 = 값): `WEAPON_AWAKEN`='weapon:awaken' `{stage,weapon,branch,path?,name}` · `TRAIT_GAINED`='weapon:trait-gained' `{weapon,id,verb,tag,branch?}` · `GROWTH_MARK`='weapon:growth-mark' `{weapon,kind,at,index}` · `GROWTH_GAINED`='weapon:growth-gained' `{weapon,amount,gauge}` · `WEAPON_TEMPERED`='weapon:tempered'. 시각은 아트 `fx/v4/awaken1_crack`(860 ms, swapFrame 4 = 250 ms 깨짐 정점, shatter 320~860 ms)·`awaken2_bloom`(1.07 s, swapFrame 6 = 420 ms 피어남 정점, ring 490~910 ms, motes 560~1070 ms) JSON. 파일 0 = `WEAPON_AWAKEN` = fx 시작(가정). 코드 `work/sfx_stage61.py` 7절.
+
+| id | 길이 | gainDb | 우선순위 | 트리거(manifest) | 질감 |
+|---|---|---|---|---|---|
+| `awaken1` | 1.90 s | 0 | 4 | `WEAPON_AWAKEN{stage:1}` | 0~0.25 s 껍질에 번지는 금 지직(점점 빠르게) + 모여드는 바람 + D 드론 → **0.25 s 깨짐 정점**: 넓은 '딱' + 150→40 Hz 몸통 + 짧은 조각(3 kHz 위) + 번쩍 공기 + D 단조 패드 + 종 D5·A5·D6(τ 0.26 s) → 흩어지는 조각·불티 |
+| `awaken2` | 2.30 s | 0 | 4 | `WEAPON_AWAKEN{stage:2}` | 0~0.42 s 돋아나는 결(낮은 삐걱·늘어나는 섬유·오르는 톱니 D3→A3) + 차오르는 바람 → **0.42 s 피어남 정점**: 따뜻한 '훔'(70→36 Hz) + 빛 '화악'(300→5 kHz) + D 장조 패드 + 오르는 종 넷 → 0.49 s 퍼지는 빛 고리 → 0.56 s 빛 알갱이. 1차보다 밝고 길다 |
+| `awaken_tail_katana` | 1.05 s | -2 | 4 | `WEAPON_AWAKEN{weapon:katana}` (1·2차 공통, 각성 소리와 **같은 순간** 재생) | 앞 0.5 s 아주 작은 모여드는 바람 → 0.5 s 새 날을 뽑는 '스릉'(6.5k→2.4k) + 짧은 쇳빛 4.2 kHz + 손목 '퍽' |
+| `awaken_tail_greatsword` | 1.25 s | -2 | 4 | 〃 `weapon:greatsword` | 0.5 s 땅에 꽂는 '쿵'(110→36 Hz) + 흙 + 55 Hz 험 + 낮은 덜그럭 |
+| `awaken_tail_dagger` | 0.95 s | -3 | 4 | 〃 `weapon:dagger` | 0.5 s 날 돌리는 휘릭 → '삭·삭' 두 번 + 딸깍 |
+| `awaken_tail_bow` | 1.15 s | -3 | 4 | 〃 `weapon:bow` | 0.5 s 새 시위 '둥'(110 Hz) + 활대 삐걱 + 오르는 작은 휘파람 |
+| `trait_manifest` | 0.75 s | -3 | 1 | `TRAIT_GAINED` (+ 시스템은 `GROWTH_MARK{kind:trait\|temper}` 메뉴 열림에도 같은 id) | 차오르는 바람 → 0.12 s 어긋난 두 종(A5 ±1.2 %)이 한 음으로 겹치는 맑은 '팅'(τ 0.2 s) + E7 반짝 + 가슴 '둥'(옛 dual_trait 계보를 짧게) |
+| `growth_tick` (+ `_v2`·`_v3`) | 0.12 s | **-12** | 1 | `GROWTH_GAINED` (시스템 300 ms 묶음) | 아주 작은 '틱'(2.6→3.1 kHz, 18 ms 감쇠 — v2 2.8→3.3, v3 2.45→2.9) + 딸깍. 처치음 위에 얹혀도 거슬리지 않게 |
+
+**옛 소리 트리거 이동(오디오 바이트 그대로)** — 시스템 audioBuild 가 새 id 가 없을 때만 쓰는 **폴백**이라 파일·항목은 남긴다(시스템 테스트가 존재 검사). note 앞 `[폴백 …]`.
+| id | 옛 트리거 | 지금 | 비고 |
+|---|---|---|---|
+| `evolve` | `WEAPON_EVOLVED` | `WEAPON_AWAKEN` | awaken1·awaken2 가 대신 |
+| `dual_trait` | `DUAL_TRAIT_GAINED` | `TRAIT_GAINED` | 이중 개성 폐지 — trait_manifest 가 대신(옛 `dual_trait_get` 이라는 항목은 manifest 에 없었다 — 같은 뜻의 `dual_trait`) |
+| `awaken_<무기>` ×4 | `WEAPON_EVOLVED{kind:awaken,weapon}` | `WEAPON_AWAKEN{stage:2,weapon}` | 옛 최종 각성 — awaken2 + awaken_tail 이 대신 |
+| `reinforce` | `WEAPON_REINFORCED` | `WEAPON_TEMPERED` | 현행(단련 = 옛 강화) |
+
+판단과 이유:
+- **꼬리 = 같은 트리거, 시각은 파일 안에서**: 시스템이 `WEAPON_AWAKEN` 한 번에 각성 소리와 꼬리를 함께 재생하므로 두 정점(0.25·0.42 s) 뒤인 0.5 s 에 무기 목소리를 둔다. 앞 0.5 s 를 디지털 무음으로 두면 M4A 앞 정렬 검증이 판별하지 못해(첫 8192 샘플) 아주 작은 모여드는 바람(본소리보다 약 −30 dB)을 깔았다 — 각성 소리의 차오름 밑에 묻힌다.
+- **각성 = 우선순위 4**: 게임이 0.8~1.0 s 정지하는 큰 사건. 기존 '우선순위 4 → 효과음 −6·BGM −3 dB' 덕킹이 그대로 걸린다(새 덕킹 규칙 없음). 게임 정지 중에도 이 소리는 멈추지 않아야 한다(시스템 확인).
+- **마법적 질감 허용 + 짧은 종**: 소리 바이블 1장 '마법은 개성 변화에만'. 옛 evolve·awaken_* 계보(D 드론 + 종)를 잇되 61 원칙대로 종은 τ ≤ 0.3 s, 화성은 저역통과 톱니 패드로.
+- **1차 = 단조·깨짐, 2차 = 장조·피어남**: 처음 듣는 사람도 '깨어남 → 꽃핌'의 단계 차이를 귀로 알게.
+- **게이지 '틱' 은 아주 작게(-12 dB)**: 처치마다 올 수 있어 처치음을 가리지 않게. 원하면 시스템이 `gauge` 비율로 재생 속도 1.0→1.12 를 올려 '차오름'을 들려줄 수 있다(제안).
+
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).
 - 같은 효과음이 20 ms 안에 여러 번 요청되면 1회만 재생(산탄·난무·충격파 중복 방지) — `dedupeMs: 20`, 변주는 원본 그룹으로 센다.
@@ -601,7 +630,7 @@
 | `voices.maxSfx` | **12** (UI 는 별도 `maxUi` 2) | 1층 웨이브(노드당 12~16 처치, 2~3 웨이브)에서 타격·처치·부가음이 몰린다. 8 은 변주·겹침(피격 + `enemy_hurt` + 패시브)에서 예고음까지 빼앗길 위험 |
 | `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 · (61-2) `guard_block_heavy`·`peddler_hurt`·`porter_hurt`·`barrel_return` 2 · **(61-4) `boss1_flame_snuff` 4 · `boss1_cup_struck` 2** | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
 | `voices.steal` | `lowest-priority-oldest` (30 ms 페이드). loop 항목은 빼앗지 않음(같은 id 1개) | 새 소리보다 낮거나 같은 우선순위 중 가장 오래된 것부터 |
-| `priority` (항목별 필드) | **4 보스 예고·신호**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`), 0 UI. 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
+| `priority` (항목별 필드) | **4 보스 예고·신호·무기 각성**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`·`WEAPON_AWAKEN`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`), 0 UI. 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
 | `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) 파훼 소리(`ui:boss-break`·`BOSS_BREAK`) → SFX(≤2) -4 dB 300 ms** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
 | `variation` | 변주 목록에서 직전과 다른 것 + 재생 속도 1 ± 0.03 (loop·UI·BGM 제외) | 반복 피로. 변주가 생겨 ±4 % → ±3 % |
 | `masterLimiter` | 문턱 -3 dB, knee 6, ratio 12, attack 3 ms, release 120 ms (DynamicsCompressorNode) | 새 타격음이 같은 피크에서 짧은 구간 음량이 커져 몰릴 때 찌그러짐 방지 |

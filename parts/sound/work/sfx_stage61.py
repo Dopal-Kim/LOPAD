@@ -1115,3 +1115,213 @@ def _arrow_rain_impact61(sr, rng):
         mix_into(s, arrow_thunk(sr, rng), sec(sr, t0), (0.9 - 0.05 * k) * rng.uniform(0.7, 1.0))
     mix_into(s, gravel(sr, rng, 0.6, 9, 0.1, 0.5, 0.18), 0)
     return tail(s, sr, 0.03)
+
+
+# ===========================================================================
+# 7. 61라운드 단계 4 — P12 무기 성장(계약 sound §10): 개성 발현 · 1차 각성 · 2차 각성 · 무기 꼬리 · 게이지 반짝
+#    시스템 EventBus(값): WEAPON_AWAKEN='weapon:awaken' {stage,weapon,branch,path?,name} · TRAIT_GAINED='weapon:trait-gained'
+#    · GROWTH_MARK='weapon:growth-mark' {kind:trait|awaken1|awaken2|temper} · GROWTH_GAINED='weapon:growth-gained'
+#    · WEAPON_TEMPERED='weapon:tempered'. 시각 기준: 아트 fx/v4 awaken1_crack(12프레임 860 ms, swapFrame 4 = 250 ms
+#    '깨짐 정점', shatter 320~860 ms) · awaken2_bloom(14프레임 1.07 s, swapFrame 6 = 420 ms '피어남 정점', ring 490~910 ms,
+#    motes 560~1070 ms). 파일 0 = WEAPON_AWAKEN = fx 시작으로 가정.
+#    톤: 각성은 소리 바이블 1장의 '마법적 질감' 허용 구간(옛 evolve·awaken_* 계보 — D 드론 + 종). 단 61 원칙대로
+#    0.7~2 kHz 에 오래 남는 쇠 울림은 피하고 종은 짧게(τ ≤ 0.3 s).
+# ===========================================================================
+
+from build import blade_ring, glide_bell  # noqa: E402,F401
+
+
+def retrigger(name, trigger, prefix):
+    """오디오·시드 그대로, 트리거만 새 이벤트로 옮기고 note 앞에 [prefix] 표시(61-4 P12 대체·폴백)."""
+    SFX[name] = dict(SFX[name], trigger=trigger, note='[%s] %s' % (prefix, SFX[name]['note']))
+
+
+def _pad(sr, dur, freqs, cut=(250, 1100), a=0.15, r=0.9, g=1.0):
+    """각성 화음 패드: 톱니 겹(살짝 어긋남) → 열리는 저역통과. 쇠 울림 없이 '빛'의 화성만."""
+    n = sec(sr, dur)
+    s = zeros(n)
+    for f in freqs:
+        mix_into(s, tone(sr, dur, f, kind='saw'), 0, 0.5)
+        mix_into(s, tone(sr, dur, f * 1.004, kind='saw'), 0, 0.35)
+    s = svf(s, sr, sweep(sr, n, cut[0], cut[1]), 0.9, 'low')
+    return scale(mul(s, env_adsr(sr, dur, a, 0.0, 1.0, r, curve=0.8)), g / max(1, len(freqs)))
+
+
+@sfx4('awaken1', 'WEAPON_AWAKEN{stage:1}', "61-4 새 — 1차 각성(무기가 금 가며 새 모양으로 깨어남, 0.8 s 게임 정지 · fx awaken1_crack). 파일 0 = 각성 순간. 0~0.25 s 껍질에 금이 번지는 지직(점점 빠르게) + 모여드는 바람 + 열리는 D 드론 → 0.25 s(swapFrame 4 '깨짐 정점') 껍질이 터지는 '쨍-쿵'(넓은 '딱' + 150→40 Hz 몸통 + 짧은 조각, 3 kHz 위) + D 단조 화음 패드가 열림 + 종 셋 D5·A5·D6(짧게) → 0.32~0.86 s 흩어지는 조각·불티 → 울림. 무기별 꼬리 awaken_tail_<무기> 가 같은 순간 함께 재생(0.5 s 부터). 우선순위 4", 0, category='event')
+def _awaken1(sr, rng):
+    dur = 1.9
+    s = zeros(sec(sr, dur))
+    pk = 0.25
+    m = sec(sr, pk)
+    g = svf(noise(sr, pk, rng), sr, sweep(sr, m, 400, 3600), 1.0, 'band')            # 모여드는 바람
+    mix_into(s, mul(g, [(i / m) ** 2.0 for i in range(m)]), 0, 0.4)
+    dr = lowpass(add(tone(sr, 1.6, 36.71, kind='saw'), scale(tone(sr, 1.6, 73.42 * 1.003, kind='saw'), 0.6)), sr, 500)
+    mix_into(s, mul(dr, env_adsr(sr, 1.6, pk, 0.0, 1.0, 1.2)), 0, 0.35)                 # D 드론
+    t = 0.0
+    k = 0
+    while t < pk - 0.01:                                                                   # 번지는 금(점점 빠르게)
+        c = crunch(burst(sr, 0.012, rng, fc=rng.uniform(2200, 5200), q=0.9, tau=0.003), 3)
+        mix_into(s, c, sec(sr, t), 0.25 + 0.5 * (t / pk))
+        t += max(0.012, 0.06 * (1 - t / pk) ** 1.5)
+        k += 1
+    mix_into(s, snap(sr, rng, 2800, 0.02, 0.003), m, 1.0)                                  # 깨짐 정점
+    mix_into(s, punch(sr, 150, 40, 0.5, 0.11, 2.0), m, 0.9)
+    mix_into(s, lowpass(kick(sr, 0.7, 85, 30, 0.18, rng=rng), sr, 380), m, 0.7)
+    mix_into(s, glass_shards(sr, rng, 0.3, 9, 0.0, 0.05, 3200, 7000, 0.3), m)
+    mix_into(s, burst(sr, 0.15, rng, fc=6000, q=0.6, tau=0.03, mode='high'), m, 0.35)       # 번쩍 공기
+    mix_into(s, _pad(sr, 1.5, [146.83, 220.0, 293.66, 349.23], (300, 1400), 0.04, 1.1), m, 0.5)
+    for j, f in enumerate([587.33, 880.0, 1174.66]):
+        mix_into(s, bell(sr, 0.7, f, rng, tau=0.26), m + sec(sr, 0.03 + 0.07 * j), 0.28 - 0.04 * j)
+    mix_into(s, glass_shards(sr, rng, 0.7, 16, 0.07, 0.6, 3500, 8000, 0.14), m)            # 흩어지는 조각
+    mix_into(s, sparks(sr, rng, 0.7, 18, 0.12), m + sec(sr, 0.07))
+    s = softclip(s, 1.3)
+    return reverb(s, sr, size=1.3, decay=0.75, wet=0.32)
+
+
+@sfx4('awaken2', 'WEAPON_AWAKEN{stage:2}', "61-4 새 — 2차 각성(1차 모양 위에 새 부분이 돋아나며 빛, 1.0 s · fx awaken2_bloom). 파일 0 = 각성 순간. 0~0.42 s 돋아나는 결(낮은 삐걱 + 늘어나는 섬유 + 올라가는 두 겹 톱니 D3→A3) + 차오르는 바람 → 0.42 s(swapFrame 6 '피어남 정점') 따뜻한 '훔'(70→36 Hz) + 빛이 터지는 '화악'(300→5 kHz) + D 장조 화음 패드 + 오르는 종 넷 D5·F#5·A5·D6(짧게) → 0.49~0.91 s 퍼지는 빛 고리 바람 → 0.56~1.07 s 떠오르는 빛 알갱이. 1차보다 밝고 길다. 무기별 꼬리 awaken_tail_<무기> 함께. 우선순위 4", 0, category='event')
+def _awaken2(sr, rng):
+    dur = 2.3
+    s = zeros(sec(sr, dur))
+    pk = 0.42
+    m = sec(sr, pk)
+    mix_into(s, creak(sr, rng, pk, 55, 82, (300, 900), 9.0, 2.5), 0, 0.3)                  # 돋아나는 결
+    fib = mul(svf(noise(sr, pk, rng), sr, sweep(sr, m, 900, 3000), 3.0, 'band'), [(i / m) ** 1.5 for i in range(m)])
+    mix_into(s, fib, 0, 0.25)
+    up = svf(add(tone(sr, pk, 146.83, 220.0, kind='saw'), tone(sr, pk, 147.4, 221.0, kind='saw')), sr,
+             sweep(sr, m, 300, 1500), 1.0, 'low')
+    mix_into(s, mul(up, [(i / m) ** 1.6 for i in range(m)]), 0, 0.3)
+    g = svf(noise(sr, pk, rng), sr, sweep(sr, m, 500, 4500), 1.0, 'band')
+    mix_into(s, mul(g, [(i / m) ** 2.2 for i in range(m)]), 0, 0.35)
+    mix_into(s, sub(sr, 70, 36, 0.7, 0.2), m, 0.9)                                         # 피어남 정점
+    mix_into(s, flame(sr, rng, 0.6, 300, 5000, a=0.03), m, 0.6)
+    mix_into(s, _pad(sr, 1.8, [146.83, 220.0, 293.66, 369.99, 440.0], (500, 2200), 0.05, 1.3), m, 0.55)
+    for j, f in enumerate([587.33, 739.99, 880.0, 1174.66]):
+        mix_into(s, bell(sr, 0.8, f, rng, tau=0.28), m + sec(sr, 0.02 + 0.06 * j), 0.26 - 0.03 * j)
+    rg = sec(sr, 0.42)                                                                     # 빛 고리
+    ring = svf(noise(sr, 0.42, rng), sr, sweep(sr, rg, 3200, 600), 1.3, 'band')
+    mix_into(s, mul(ring, env_adsr(sr, 0.42, 0.05, 0.0, 1.0, 0.32)), sec(sr, 0.49), 0.35)
+    mix_into(s, sparks(sr, rng, 0.55, 22, 0.13, 5500, 11000), sec(sr, 0.56))               # 빛 알갱이
+    sh = mul(tone(sr, 0.9, 2349.3, 2362.0), env_adsr(sr, 0.9, 0.15, 0.0, 1.0, 0.7))
+    mix_into(s, sh, sec(sr, 0.56), 0.03)
+    s = softclip(s, 1.25)
+    return reverb(s, sr, size=1.4, decay=0.8, wet=0.36)
+
+
+# ---- 무기별 꼬리 (WEAPON_AWAKEN{weapon} — 1차·2차 공통, 각성 소리와 같은 순간 재생 · 파일 0.5 s 부터 소리) ----
+#  두 각성의 정점(0.25 · 0.42 s) 뒤에 무기가 '제 목소리'를 낸다. 앞 0.5 s 는 아주 작은 모여드는 바람만(같은 트리거라 시각을 파일로 맞춤).
+
+TAIL_AT = 0.5
+
+
+def _tail_pre(sr, rng, s, f0, f1, g=0.1):
+    """꼬리 앞 0.5 s: 무기 쪽으로 모여드는 아주 작은 바람(각성 소리의 차오름 밑에 깔림). 디지털 무음으로 두지 않는다 —
+    M4A 앞 정렬 검증(첫 8192 샘플)이 무음이면 지연을 판별하지 못한다."""
+    m = sec(sr, TAIL_AT)
+    w = svf(noise(sr, TAIL_AT, rng), sr, sweep(sr, m, f0, f1), 1.1, 'band')
+    mix_into(s, mul(w, [0.3 + 0.7 * (i / m) ** 2 for i in range(m)]), 0, g)
+    return s
+
+
+@sfx4('awaken_tail_katana', 'WEAPON_AWAKEN{weapon:katana}', "61-4 새 — 각성 꼬리 · 칼(1차·2차 공통, awaken1/awaken2 와 같은 순간 재생 — 앞 0.5 s 는 아주 작은 모여드는 바람, 본소리는 0.5 s 부터). 칼집에서 새 날을 뽑는 '스릉'(6.5k→2.4k) + 짧은 쇳빛(4.2 kHz, 울림 없음) + 손목 '퍽'", -2, category='event')
+def _awaken_tail_katana(sr, rng):
+    s = _tail_pre(sr, rng, zeros(sec(sr, 1.05)), 1500, 5000)
+    t = sec(sr, TAIL_AT)
+    mix_into(s, slice_(sr, rng, 6500, 2400, 0.22, 1.5, 0.3), t, 0.8)
+    mix_into(s, glint(sr, rng, 4200, 0.12, 0.04), t + sec(sr, 0.16), 0.35)
+    mix_into(s, punch(sr, 170, 70, 0.1, 0.025, 1.3), t + sec(sr, 0.17), 0.4)
+    return reverb(s, sr, size=0.8, decay=0.55, wet=0.18)
+
+
+@sfx4('awaken_tail_greatsword', 'WEAPON_AWAKEN{weapon:greatsword}', "61-4 새 — 각성 꼬리 · 대검(소리는 파일 0.5 s 부터). 새 무게를 땅에 내려 꽂는 '쿵'(110→36 Hz) + 흙·자갈 + 낮게 버티는 울분의 험(55 Hz, 0.45 s) + 갑옷 덜그럭(낮게)", -2, category='event')
+def _awaken_tail_greatsword(sr, rng):
+    s = _tail_pre(sr, rng, zeros(sec(sr, 1.25)), 300, 1200)
+    t = sec(sr, TAIL_AT)
+    mix_into(s, punch(sr, 110, 36, 0.45, 0.11, 2.0), t, 1.0)
+    mix_into(s, lowpass(burst(sr, 0.2, rng, fc=280, q=0.6, tau=0.05, mode='low'), sr, 450), t, 0.6)
+    mix_into(s, gravel(sr, rng, 0.5, 10, 0.0, 0.35, 0.22), t)
+    hum = mul(lowpass(tone(sr, 0.5, 55, 50, kind='saw'), sr, 220), env_adsr(sr, 0.5, 0.04, 0.0, 1.0, 0.4))
+    mix_into(s, hum, t + sec(sr, 0.02), 0.35)
+    mix_into(s, hoop_clunk(sr, rng, 420, 0.1, 0.015), t + sec(sr, 0.05), 0.25)
+    return reverb(softclip(s, 1.5), sr, size=1.0, decay=0.6, wet=0.2)
+
+
+@sfx4('awaken_tail_dagger', 'WEAPON_AWAKEN{weapon:dagger}', "61-4 새 — 각성 꼬리 · 단검(소리는 파일 0.5 s 부터). 손끝에서 날을 돌리는 짧은 휘릭(22 Hz 떨림) → 0.58·0.66 s 두 번 엇갈려 긋는 '삭·삭'(8.5k→3k) + 딸깍", -3, category='event')
+def _awaken_tail_dagger(sr, rng):
+    s = _tail_pre(sr, rng, zeros(sec(sr, 0.95)), 2000, 6000)
+    t = TAIL_AT
+    sp = svf(noise(sr, 0.1, rng), sr, 3500, 1.2, 'band')
+    sp = mul(mul(sp, [0.5 + 0.5 * math.sin(TAU * 22 * i / sr) for i in range(len(sp))]), env_adsr(sr, 0.1, 0.03, 0.0, 1.0, 0.06))
+    mix_into(s, sp, sec(sr, t), 0.4)
+    for j, t0 in enumerate((t + 0.08, t + 0.16)):
+        mix_into(s, slice_(sr, rng, 8500 - 700 * j, 3000, 0.09, 1.7, 0.1), sec(sr, t0), 0.7)
+        mix_into(s, click(sr, rng, 0.003, 6500), sec(sr, t0), 0.35)
+    return reverb(s, sr, size=0.6, decay=0.45, wet=0.14)
+
+
+@sfx4('awaken_tail_bow', 'WEAPON_AWAKEN{weapon:bow}', "61-4 새 — 각성 꼬리 · 활(소리는 파일 0.5 s 부터). 새 시위를 튕기는 깊은 '둥'(110 Hz) + 활대 삐걱 + 하늘로 오르는 짧은 휘파람(1.8k→3.4k, 아주 작게)", -3, category='event')
+def _awaken_tail_bow(sr, rng):
+    s = _tail_pre(sr, rng, zeros(sec(sr, 1.15)), 800, 3500)
+    t = sec(sr, TAIL_AT)
+    st = mul(pluck(sr, 0.5, 110, rng, damp=0.99, bright=0.6), env_exp(sr, 0.5, 0.14))
+    mix_into(s, st, t, 0.8)
+    mix_into(s, thud(sr, 0.1, 200, 90, 0.025), t, 0.4)
+    mix_into(s, creak(sr, rng, 0.18, 70, 92, (350, 900), 20.0), t + sec(sr, 0.02), 0.2)
+    wh = mul(tone(sr, 0.3, 1800, 3400), env_adsr(sr, 0.3, 0.1, 0.0, 1.0, 0.2))
+    mix_into(s, wh, t + sec(sr, 0.06), 0.04)
+    mix_into(s, whoosh(sr, 0.3, rng, 2500, 7000, q=1.3, a=0.2, r=0.7), t + sec(sr, 0.05), 0.2)
+    return reverb(s, sr, size=0.8, decay=0.55, wet=0.18)
+
+
+# ---- 개성 발현 (GROWTH_MARK{kind:trait|temper} 메뉴 열림 · TRAIT_GAINED 고름 — 같은 id) -------------------------
+
+@sfx4('trait_manifest', 'TRAIT_GAINED', "61-4 새 — 개성 발현(눈금 ◇ 에 닿아 개성 메뉴가 열릴 때 GROWTH_MARK{kind:trait|temper} · 고를 때 TRAIT_GAINED — 같은 소리). 옛 dual_trait 계보를 짧게: 0~0.12 s 차오르는 바람 → 0.12 s 어긋난 두 종(A5 ±1.2 %)이 한 음으로 겹치며 맑게 '팅'(짧게, τ 0.2 s) + 위 E7 반짝임 + 가슴 '둥'(110→55 Hz, 낮게). 0.75 s", -3, category='event')
+def _trait_manifest(sr, rng):
+    dur = 0.75
+    s = zeros(sec(sr, dur))
+    mix_into(s, whoosh(sr, 0.16, rng, 900, 4800, q=0.9, a=0.8, r=0.2), 0, 0.25)
+    t = sec(sr, 0.12)
+    mix_into(s, glide_bell(sr, 0.55, 880.0 * 0.988, 880.0, 0.06, rng, tau=0.2), t, 0.35)
+    mix_into(s, glide_bell(sr, 0.55, 880.0 * 1.012, 880.0, 0.06, rng, tau=0.2), t + sec(sr, 0.003), 0.35)
+    mix_into(s, bell(sr, 0.5, 2637.0, rng, tau=0.15), t + sec(sr, 0.03), 0.12)
+    mix_into(s, lowpass(thud(sr, 0.22, 110, 55, 0.05), sr, 400), t, 0.45)
+    mix_into(s, sparks(sr, rng, 0.35, 6, 0.08, 6000, 11000), t + sec(sr, 0.04))
+    return reverb(s, sr, size=1.0, decay=0.6, wet=0.26)
+
+
+# ---- 각성 게이지 반짝 (GROWTH_GAINED — 시스템이 300 ms 묶음) ---------------------------------------------------
+
+def _tick(sr, rng, f0, f1):
+    """아주 작은 '틱': 올라가는 고역 사인(빠른 감쇠) + 딸깍. 처치음 위에 얹혀도 거슬리지 않게 짧고 높게."""
+    s = zeros(sec(sr, 0.12))
+    mix_into(s, mul(tone(sr, 0.08, f0, f1), env_exp(sr, 0.08, 0.018)), 0, 1.0)
+    mix_into(s, click(sr, rng, 0.003, 7000), 0, 0.3)
+    return highpass(s, sr, 1500)
+
+
+@sfx4('growth_tick', 'GROWTH_GAINED', "61-4 새 — 각성 게이지가 오름(처치·성과마다, 시스템이 300 ms 안 여러 번이면 1회). 아주 작은 '틱'(2.6→3.1 kHz, 18 ms 감쇠) + 딸깍. 0.12 s, 권장 음량 -12 dB. 변주 v2·v3 번갈아 + ±3 % 속도(원하면 시스템이 gauge 비율로 재생 속도를 1.0→1.12 올려 '차오름'을 들려줘도 됨)", -12, category='event')
+def _growth_tick(sr, rng):
+    return _tick(sr, rng, 2600, 3100)
+
+
+@variant4('growth_tick', 2, "게이지 반짝 변주 2 — 2.8→3.3 kHz")
+def _growth_tick_v2(sr, rng):
+    return _tick(sr, rng, 2800, 3300)
+
+
+@variant4('growth_tick', 3, "게이지 반짝 변주 3 — 2.45→2.9 kHz")
+def _growth_tick_v3(sr, rng):
+    return _tick(sr, rng, 2450, 2900)
+
+
+# ---- 옛 소리의 트리거 이동 (오디오·시드 그대로) ----------------------------------------------------------------
+#  시스템 audioBuild 가 새 id 가 없을 때의 다음 후보(폴백)로만 쓴다: awaken1 → evolve · awaken2 → awaken_<무기> → evolve
+#  · trait_manifest → dual_trait. 파일은 지우지 않는다(시스템 테스트가 존재를 검사). 단련 = reinforce(현행).
+
+retrigger('evolve', 'WEAPON_AWAKEN', '폴백 — 61-4 P12: 1차·2차 각성은 awaken1·awaken2 가 대신. 둘 다 없을 때만')
+retrigger('dual_trait', 'TRAIT_GAINED', '폴백 — 61-4 P12: 이중 개성 폐지, 개성 발현은 trait_manifest 가 대신. 그것이 없을 때만')
+for _w in ('katana', 'greatsword', 'dagger', 'bow'):
+    retrigger('awaken_%s' % _w, 'WEAPON_AWAKEN{stage:2,weapon:%s}' % _w,
+              '폴백 — 61-4 P12: 옛 최종 각성. 2차 각성은 awaken2 + awaken_tail_%s 가 대신. awaken2 가 없을 때만' % _w)
+SFX['reinforce'] = dict(SFX['reinforce'], trigger='WEAPON_TEMPERED',
+                        note='단련(61-4 P12: 옛 강화 WEAPON_REINFORCED → WEAPON_TEMPERED, 2차 각성 뒤 눈금마다 피해·범위 +10 %, 최대 3). '
+                             + SFX['reinforce']['note'])

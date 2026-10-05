@@ -53,7 +53,9 @@ EXPLICIT = {
                 'bow_pierce'],
     'build': ['set_tier1', 'set_tier2', 'set_tier3', 'dual_trait', 'curse_take', 'curse_end', 'blood_pact',
               'awaken_katana', 'awaken_greatsword', 'awaken_dagger', 'awaken_bow', 'mark_stack', 'boil_burst',
-              'stillness', 'drunk_ignite', 'drunk_sway', 'endure_trigger'],
+              'stillness', 'drunk_ignite', 'drunk_sway', 'endure_trigger',
+              'awaken1', 'awaken2', 'awaken_tail_katana', 'awaken_tail_greatsword', 'awaken_tail_dagger',
+              'awaken_tail_bow', 'trait_manifest', 'growth_tick'],
     'enemy': ['enemy_death', 'enemy_hurt', 'charger_telegraph', 'charger_dash', 'archer_shot',
               'peddler_wick', 'peddler_throw', 'peddler_hurt', 'peddler_death',
               'porter_windup', 'porter_push', 'porter_barrel_roll', 'barrel_return', 'porter_barrel_break',
@@ -118,6 +120,13 @@ SUBGROUP = {
     'boss1_pillar_crack3': '잔 · 기둥 (파훼 전)',
     'boss1_flame_snuff': '처치 연출 · 촛불 꺼짐', 'boss1_flame_snuff_v2': '처치 연출 · 촛불 꺼짐',
     'boss1_flame_snuff_v3': '처치 연출 · 촛불 꺼짐',
+    # 61라운드 단계 4 — P12 무기 성장
+    'awaken1': '무기 성장 · 각성', 'awaken2': '무기 성장 · 각성',
+    'awaken_tail_katana': '무기 성장 · 각성 꼬리', 'awaken_tail_greatsword': '무기 성장 · 각성 꼬리',
+    'awaken_tail_dagger': '무기 성장 · 각성 꼬리', 'awaken_tail_bow': '무기 성장 · 각성 꼬리',
+    'trait_manifest': '무기 성장 · 개성 발현', 'growth_tick': '무기 성장 · 게이지',
+    'evolve': '폴백 (61-4 대체)', 'dual_trait': '폴백 (61-4 대체)', 'awaken_katana': '폴백 (61-4 대체)',
+    'awaken_greatsword': '폴백 (61-4 대체)', 'awaken_dagger': '폴백 (61-4 대체)', 'awaken_bow': '폴백 (61-4 대체)',
 }
 
 NEW_MODULES = {'sfx_bundle2': 'bundle2', 'sfx_branch2': 'branch2', 'sfx_passive': 'passive'}
@@ -226,7 +235,8 @@ def write(root, manifest_path, sfx_specs, out_path=None):
              '청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. '
              'round "60" = 60라운드 새 소리, "61" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, '
              '"61-2" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), '
-             '"61-4" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍), '
+             '"61-4" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍, P12 무기 성장 — 각성·개성 발현·게이지), '
+             '설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],
         groups=[dict(id=g, label=label, count=counts.get(g, 0)) for g, label in GROUPS],

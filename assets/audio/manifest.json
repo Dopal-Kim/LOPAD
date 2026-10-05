@@ -81,14 +81,15 @@
         {
           "level": 4,
           "name": "telegraph",
-          "label": "보스 예고·보스 신호",
+          "label": "보스 예고·보스 신호·무기 각성(61-4)",
           "events": [
             "BOSS_TELEGRAPH",
             "BOSS_STARTED",
             "BOSS_PHASE",
             "BOSS_DIED",
             "boss:intro",
-            "BOSS_ACTION{action:introRoar}"
+            "BOSS_ACTION{action:introRoar}",
+            "WEAPON_AWAKEN"
           ]
         },
         {
@@ -272,6 +273,11 @@
         "sfx/boss1_flame_snuff",
         "sfx/boss1_flame_snuff_v2",
         "sfx/boss1_flame_snuff_v3"
+      ],
+      "sfx/growth_tick": [
+        "sfx/growth_tick",
+        "sfx/growth_tick_v2",
+        "sfx/growth_tick_v3"
       ]
     }
   },
@@ -1010,11 +1016,11 @@
       "loop": false,
       "gainDb": -1,
       "trigger": {
-        "event": "WEAPON_EVOLVED",
+        "event": "WEAPON_AWAKEN",
         "when": []
       },
-      "priority": 1,
-      "note": "개성 변화. 낮게 부푸는 드론 위로 종 같은 상승 아르페지오(이질적·신비)"
+      "priority": 4,
+      "note": "[폴백 — 61-4 P12: 1차·2차 각성은 awaken1·awaken2 가 대신. 둘 다 없을 때만] 개성 변화. 낮게 부푸는 드론 위로 종 같은 상승 아르페지오(이질적·신비)"
     },
     {
       "id": "sfx/reinforce",
@@ -1032,11 +1038,11 @@
       "loop": false,
       "gainDb": -2,
       "trigger": {
-        "event": "WEAPON_REINFORCED",
+        "event": "WEAPON_TEMPERED",
         "when": []
       },
       "priority": 1,
-      "note": "무기 강화. 모루 위 망치질 한 번 + 쇠 울림"
+      "note": "단련(61-4 P12: 옛 강화 WEAPON_REINFORCED → WEAPON_TEMPERED, 2차 각성 뒤 눈금마다 피해·범위 +10 %, 최대 3). 무기 강화. 모루 위 망치질 한 번 + 쇠 울림"
     },
     {
       "id": "sfx/fate_decided",
@@ -3065,11 +3071,11 @@
       "loop": false,
       "gainDb": -2,
       "trigger": {
-        "event": "DUAL_TRAIT_GAINED",
+        "event": "TRAIT_GAINED",
         "when": []
       },
       "priority": 1,
-      "note": "이중 개성 획득(갈래 × 태그). 서로 어긋난 두 종(A4 ±1.5%)이 0.45 s 동안 미끄러져 한 음으로 겹치고, 겹치는 순간 D5 종이 피어남 + 바람. 개성(evolve) 계열 '이질'"
+      "note": "[폴백 — 61-4 P12: 이중 개성 폐지, 개성 발현은 trait_manifest 가 대신. 그것이 없을 때만] 이중 개성 획득(갈래 × 태그). 서로 어긋난 두 종(A4 ±1.5%)이 0.45 s 동안 미끄러져 한 음으로 겹치고, 겹치는 순간 D5 종이 피어남 + 바람. 개성(evolve) 계열 '이질'"
     },
     {
       "id": "sfx/curse_take",
@@ -3179,14 +3185,14 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "WEAPON_EVOLVED",
+        "event": "WEAPON_AWAKEN",
         "when": [
-          "kind:awaken",
+          "stage:2",
           "weapon:katana"
         ]
       },
-      "priority": 1,
-      "note": "최종 각성 — 칼(만월, 임시 이름). 공용 각성 뼈대(모여드는 바람·D 드론 → 0.9 s 북 + 종 아르페지오) + 달빛 칼날 울림 A5·D6(떨림) + 초승달 베기 '시잉'. 파일 0.9 s = 정점(무기 변형 그림 전환과 같은 프레임 권장)"
+      "priority": 4,
+      "note": "[폴백 — 61-4 P12: 옛 최종 각성. 2차 각성은 awaken2 + awaken_tail_katana 가 대신. awaken2 가 없을 때만] 최종 각성 — 칼(만월, 임시 이름). 공용 각성 뼈대(모여드는 바람·D 드론 → 0.9 s 북 + 종 아르페지오) + 달빛 칼날 울림 A5·D6(떨림) + 초승달 베기 '시잉'. 파일 0.9 s = 정점(무기 변형 그림 전환과 같은 프레임 권장)"
     },
     {
       "id": "sfx/awaken_greatsword",
@@ -3204,14 +3210,14 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "WEAPON_EVOLVED",
+        "event": "WEAPON_AWAKEN",
         "when": [
-          "kind:awaken",
+          "stage:2",
           "weapon:greatsword"
         ]
       },
-      "priority": 1,
-      "note": "최종 각성 — 대검(산붕, 임시 이름). 공용 각성 뼈대 + 0.9 s 산이 무너지는 강타(×1.6) + 오래 굴러 내리는 바위·자갈 + 호박빛 '징' D4·A4. 파일 0.9 s = 정점"
+      "priority": 4,
+      "note": "[폴백 — 61-4 P12: 옛 최종 각성. 2차 각성은 awaken2 + awaken_tail_greatsword 가 대신. awaken2 가 없을 때만] 최종 각성 — 대검(산붕, 임시 이름). 공용 각성 뼈대 + 0.9 s 산이 무너지는 강타(×1.6) + 오래 굴러 내리는 바위·자갈 + 호박빛 '징' D4·A4. 파일 0.9 s = 정점"
     },
     {
       "id": "sfx/awaken_dagger",
@@ -3229,14 +3235,14 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "WEAPON_EVOLVED",
+        "event": "WEAPON_AWAKEN",
         "when": [
-          "kind:awaken",
+          "stage:2",
           "weapon:dagger"
         ]
       },
-      "priority": 1,
-      "note": "최종 각성 — 단검(백귀, 임시 이름). 공용 각성 뼈대 + 엇갈려 빨려드는 어두운 역바람 3겹(그림자 셋) → 0.9 s 부터 세 번 교차 베기 + 재 폭발 작게 셋. 파일 0.9 s = 정점"
+      "priority": 4,
+      "note": "[폴백 — 61-4 P12: 옛 최종 각성. 2차 각성은 awaken2 + awaken_tail_dagger 가 대신. awaken2 가 없을 때만] 최종 각성 — 단검(백귀, 임시 이름). 공용 각성 뼈대 + 엇갈려 빨려드는 어두운 역바람 3겹(그림자 셋) → 0.9 s 부터 세 번 교차 베기 + 재 폭발 작게 셋. 파일 0.9 s = 정점"
     },
     {
       "id": "sfx/awaken_bow",
@@ -3254,14 +3260,14 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "WEAPON_EVOLVED",
+        "event": "WEAPON_AWAKEN",
         "when": [
-          "kind:awaken",
+          "stage:2",
           "weapon:bow"
         ]
       },
-      "priority": 1,
-      "note": "최종 각성 — 활(유성, 임시 이름). 깊은 시위 '둥' → 하늘에서 떨어지는 휘파람(0.35~0.9 s) → 0.9 s 유성 낙하 폭음 + 공용 각성 종 + 흩어지는 불티. 파일 0.9 s = 정점"
+      "priority": 4,
+      "note": "[폴백 — 61-4 P12: 옛 최종 각성. 2차 각성은 awaken2 + awaken_tail_bow 가 대신. awaken2 가 없을 때만] 최종 각성 — 활(유성, 임시 이름). 깊은 시위 '둥' → 하늘에서 떨어지는 휘파람(0.35~0.9 s) → 0.9 s 유성 낙하 폭음 + 공용 각성 종 + 흩어지는 불티. 파일 0.9 s = 정점"
     },
     {
       "id": "sfx/katana_spin_ready",
@@ -6994,6 +7000,239 @@
       "priority": 1,
       "variantOf": "sfx/boss1_flame_snuff",
       "note": "촛불 꺼짐 변주 3 — '훅' 조금 높고 길게(1.18 kHz, 80 ms)"
+    },
+    {
+      "id": "sfx/awaken1",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/awaken1.ogg",
+      "files": [
+        "assets/audio/sfx/awaken1.ogg",
+        "assets/audio/sfx/awaken1.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 83790,
+      "durationMs": 1900,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "WEAPON_AWAKEN",
+        "when": [
+          "stage:1"
+        ]
+      },
+      "priority": 4,
+      "note": "61-4 새 — 1차 각성(무기가 금 가며 새 모양으로 깨어남, 0.8 s 게임 정지 · fx awaken1_crack). 파일 0 = 각성 순간. 0~0.25 s 껍질에 금이 번지는 지직(점점 빠르게) + 모여드는 바람 + 열리는 D 드론 → 0.25 s(swapFrame 4 '깨짐 정점') 껍질이 터지는 '쨍-쿵'(넓은 '딱' + 150→40 Hz 몸통 + 짧은 조각, 3 kHz 위) + D 단조 화음 패드가 열림 + 종 셋 D5·A5·D6(짧게) → 0.32~0.86 s 흩어지는 조각·불티 → 울림. 무기별 꼬리 awaken_tail_<무기> 가 같은 순간 함께 재생(0.5 s 부터). 우선순위 4"
+    },
+    {
+      "id": "sfx/awaken2",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/awaken2.ogg",
+      "files": [
+        "assets/audio/sfx/awaken2.ogg",
+        "assets/audio/sfx/awaken2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 101430,
+      "durationMs": 2300,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "WEAPON_AWAKEN",
+        "when": [
+          "stage:2"
+        ]
+      },
+      "priority": 4,
+      "note": "61-4 새 — 2차 각성(1차 모양 위에 새 부분이 돋아나며 빛, 1.0 s · fx awaken2_bloom). 파일 0 = 각성 순간. 0~0.42 s 돋아나는 결(낮은 삐걱 + 늘어나는 섬유 + 올라가는 두 겹 톱니 D3→A3) + 차오르는 바람 → 0.42 s(swapFrame 6 '피어남 정점') 따뜻한 '훔'(70→36 Hz) + 빛이 터지는 '화악'(300→5 kHz) + D 장조 화음 패드 + 오르는 종 넷 D5·F#5·A5·D6(짧게) → 0.49~0.91 s 퍼지는 빛 고리 바람 → 0.56~1.07 s 떠오르는 빛 알갱이. 1차보다 밝고 길다. 무기별 꼬리 awaken_tail_<무기> 함께. 우선순위 4"
+    },
+    {
+      "id": "sfx/awaken_tail_katana",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/awaken_tail_katana.ogg",
+      "files": [
+        "assets/audio/sfx/awaken_tail_katana.ogg",
+        "assets/audio/sfx/awaken_tail_katana.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 46305,
+      "durationMs": 1050,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "WEAPON_AWAKEN",
+        "when": [
+          "weapon:katana"
+        ]
+      },
+      "priority": 4,
+      "note": "61-4 새 — 각성 꼬리 · 칼(1차·2차 공통, awaken1/awaken2 와 같은 순간 재생 — 앞 0.5 s 는 아주 작은 모여드는 바람, 본소리는 0.5 s 부터). 칼집에서 새 날을 뽑는 '스릉'(6.5k→2.4k) + 짧은 쇳빛(4.2 kHz, 울림 없음) + 손목 '퍽'"
+    },
+    {
+      "id": "sfx/awaken_tail_greatsword",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/awaken_tail_greatsword.ogg",
+      "files": [
+        "assets/audio/sfx/awaken_tail_greatsword.ogg",
+        "assets/audio/sfx/awaken_tail_greatsword.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 55125,
+      "durationMs": 1250,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "WEAPON_AWAKEN",
+        "when": [
+          "weapon:greatsword"
+        ]
+      },
+      "priority": 4,
+      "note": "61-4 새 — 각성 꼬리 · 대검(소리는 파일 0.5 s 부터). 새 무게를 땅에 내려 꽂는 '쿵'(110→36 Hz) + 흙·자갈 + 낮게 버티는 울분의 험(55 Hz, 0.45 s) + 갑옷 덜그럭(낮게)"
+    },
+    {
+      "id": "sfx/awaken_tail_dagger",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/awaken_tail_dagger.ogg",
+      "files": [
+        "assets/audio/sfx/awaken_tail_dagger.ogg",
+        "assets/audio/sfx/awaken_tail_dagger.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 41895,
+      "durationMs": 950,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "WEAPON_AWAKEN",
+        "when": [
+          "weapon:dagger"
+        ]
+      },
+      "priority": 4,
+      "note": "61-4 새 — 각성 꼬리 · 단검(소리는 파일 0.5 s 부터). 손끝에서 날을 돌리는 짧은 휘릭(22 Hz 떨림) → 0.58·0.66 s 두 번 엇갈려 긋는 '삭·삭'(8.5k→3k) + 딸깍"
+    },
+    {
+      "id": "sfx/awaken_tail_bow",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/awaken_tail_bow.ogg",
+      "files": [
+        "assets/audio/sfx/awaken_tail_bow.ogg",
+        "assets/audio/sfx/awaken_tail_bow.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 50715,
+      "durationMs": 1150,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "WEAPON_AWAKEN",
+        "when": [
+          "weapon:bow"
+        ]
+      },
+      "priority": 4,
+      "note": "61-4 새 — 각성 꼬리 · 활(소리는 파일 0.5 s 부터). 새 시위를 튕기는 깊은 '둥'(110 Hz) + 활대 삐걱 + 하늘로 오르는 짧은 휘파람(1.8k→3.4k, 아주 작게)"
+    },
+    {
+      "id": "sfx/trait_manifest",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/trait_manifest.ogg",
+      "files": [
+        "assets/audio/sfx/trait_manifest.ogg",
+        "assets/audio/sfx/trait_manifest.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 33075,
+      "durationMs": 750,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "TRAIT_GAINED",
+        "when": []
+      },
+      "priority": 1,
+      "note": "61-4 새 — 개성 발현(눈금 ◇ 에 닿아 개성 메뉴가 열릴 때 GROWTH_MARK{kind:trait|temper} · 고를 때 TRAIT_GAINED — 같은 소리). 옛 dual_trait 계보를 짧게: 0~0.12 s 차오르는 바람 → 0.12 s 어긋난 두 종(A5 ±1.2 %)이 한 음으로 겹치며 맑게 '팅'(짧게, τ 0.2 s) + 위 E7 반짝임 + 가슴 '둥'(110→55 Hz, 낮게). 0.75 s"
+    },
+    {
+      "id": "sfx/growth_tick",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/growth_tick.ogg",
+      "files": [
+        "assets/audio/sfx/growth_tick.ogg",
+        "assets/audio/sfx/growth_tick.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 5292,
+      "durationMs": 120,
+      "loop": false,
+      "gainDb": -12,
+      "trigger": {
+        "event": "GROWTH_GAINED",
+        "when": []
+      },
+      "priority": 1,
+      "variants": [
+        "sfx/growth_tick",
+        "sfx/growth_tick_v2",
+        "sfx/growth_tick_v3"
+      ],
+      "note": "61-4 새 — 각성 게이지가 오름(처치·성과마다, 시스템이 300 ms 안 여러 번이면 1회). 아주 작은 '틱'(2.6→3.1 kHz, 18 ms 감쇠) + 딸깍. 0.12 s, 권장 음량 -12 dB. 변주 v2·v3 번갈아 + ±3 % 속도(원하면 시스템이 gauge 비율로 재생 속도를 1.0→1.12 올려 '차오름'을 들려줘도 됨)"
+    },
+    {
+      "id": "sfx/growth_tick_v2",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/growth_tick_v2.ogg",
+      "files": [
+        "assets/audio/sfx/growth_tick_v2.ogg",
+        "assets/audio/sfx/growth_tick_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 5292,
+      "durationMs": 120,
+      "loop": false,
+      "gainDb": -12,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/growth_tick",
+      "note": "게이지 반짝 변주 2 — 2.8→3.3 kHz"
+    },
+    {
+      "id": "sfx/growth_tick_v3",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/growth_tick_v3.ogg",
+      "files": [
+        "assets/audio/sfx/growth_tick_v3.ogg",
+        "assets/audio/sfx/growth_tick_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 5292,
+      "durationMs": 120,
+      "loop": false,
+      "gainDb": -12,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/growth_tick",
+      "note": "게이지 반짝 변주 3 — 2.45→2.9 kHz"
     },
     {
       "id": "bgm/title",
