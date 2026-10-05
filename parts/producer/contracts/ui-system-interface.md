@@ -570,4 +570,6 @@ interface UiSettings {
 - `UiResult.smudgeLine`: 사망 결과 화면의 이름 번짐 문구.
 - 이벤트 `UI_EVENTS.BOSS_BREAK` = `'ui:boss-break'` `{ kind: 'cup'|'pillar'|'cask'|'stumble'|'finisher'; label?; text? }`, `UI_EVENTS.ENEMY_INTRO` = `'ui:enemy-intro'` `{ id?; name; desc? }`, `BOSS_DIED.finisher?: boolean`.
 - 스냅샷 `boss` 선택 필드: `phaseName`·`phaseNames`·`phaseMarks`(체력 비율 눈금), `broken`(boolean 또는 `{leftMs,totalMs}`), `candles: {x,y,lit}[]`(논리 960×540 화면 좌표), `dark`.
+- (확인, 61 단계 2·3 C1) `ENEMY_INTRO` 페이로드 = `{ id, name, desc }` — 위 `UI_EVENTS.ENEMY_INTRO` 와 같은 이벤트(C1 에서 추가). `id`·`desc` 는 선택 필드로 유지.
+- (확인) 상점 상인의 E 상호작용 안내는 당분간 기존 kind `'mapSeller'` 를 재사용한다(상점 전용 kind 는 아직 없음 — 추가하면 이 줄을 고친다).
 - 보스 처치: UI 는 처치 카드·처치 대사가 끝날 때까지(최대 4.5초) 보상 메뉴를 기다린다. 시스템이 연출 뒤 메뉴를 열면 그 순서를 따른다.

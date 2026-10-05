@@ -9,7 +9,7 @@
 - 애니메이션 키 규칙: `player_walk_down`, `dummy_idle_left` 등 `<이름>_<동작>_<방향>`.
 - 피벗: 스프라이트 원점은 `pivot`(발 위치). 물리 바디는 시스템이 별도로 정한다(현재 플레이어 바디 12×12 가 발밑에 오도록).
 - 동작 목록: 주인공 idle/walk/attack/dash/hurt/death. 일반 적·보스 idle/walk/attack/death(+ 보스는 phase2 등 추가 가능, JSON 에 있으면 시스템이 선택적으로 사용).
-- 크기: ~~주인공·일반 적 16×24(덩치 24×24 허용), 보스 32×48, 황제 48×64~~ → **현행: 주인공 96×144 도트(화면 48×72, §13·53라운드 Q1), 일반 적 주인공과 같은 크기·결사병 128×176(§14·53라운드 Q33·Q52), 1층 보스 192×240(§15·54라운드 Q14·Q22). 28라운드 크기는 50라운드 Q2로 대체.** 1프레임 동작도 같은 형식(frames: 1).
+- 크기: ~~주인공·일반 적 16×24(덩치 24×24 허용), 보스 32×48, 황제 48×64~~ → **현행: 주인공 96×144 도트(화면 48×72, §13·53라운드 Q1), 일반 적 주인공과 같은 크기·결사병 128×176(§14·53라운드 Q33·Q52), 1층 보스 ~~192×240(§15·54라운드 Q14·Q22)~~ → 288×360(§25·61라운드 1.5배 네이티브). 28라운드 크기는 50라운드 Q2로 대체.** 1프레임 동작도 같은 형식(frames: 1).
 
 ## 2. 타일셋 (`assets/tiles/stage<n>.png` + `stage<n>.json`)
 - 16×16 격자 한 장. JSON 의 `tiles` 는 **게임 타일 ID → 시트 인덱스 목록**. 게임 타일 ID(시스템 `TileId`): `0 void, 1 floor, 2 wall, 3 door_open, 4 door_closed, 5 door_locked, 6 corridor, 7 exit, 8 shop`.
@@ -161,7 +161,7 @@
 
 ## 15. 54라운드 1층 보스 '만취' v3 시트 · 보스방 소품
 - 근거: `decisions/2026-10-03-round-54-boss1-patterns.md`.
-- 경로 `sprites/bosses/v3/stage1_<동작>.png/.json`, ~~128×192~~ → **192×240 도트, 피벗 (96,220)(54라운드 Q14·Q22 확정)**, `pixelScale: 0.5`(화면 96×120) — 시스템은 JSON `frameWidth/frameHeight/pivot` 을 읽는다, 피벗 = 발 중앙(JSON `pivot`), 4방향(기존 보스 시트 방향 규칙). 우선순위 v3 → 구 `bosses/stage1_*`(동작 단위 대체). 색: 주인공·적 v3 규칙(시트당 40색 이하 권장), 술은 호박 계열.
+- 경로 `sprites/bosses/v3/stage1_<동작>.png/.json`, ~~128×192~~ → ~~192×240 도트, 피벗 (96,220)(54라운드 Q14·Q22 확정)~~ → **§25 로 대체(61라운드: 288×360·피벗 (144,330) 1.5배 네이티브)**, `pixelScale: 0.5`(화면 ~~96×120~~ → 144×180) — 시스템은 JSON `frameWidth/frameHeight/pivot` 을 읽는다, 피벗 = 발 중앙(JSON `pivot`), 4방향(기존 보스 시트 방향 규칙). 우선순위 v3 → 구 `bosses/stage1_*`(동작 단위 대체). 색: 주인공·적 v3 규칙(시트당 40색 이하 권장), 술은 호박 계열.
 - 동작과 JSON 이벤트 키(시스템이 읽음, 없으면 시스템 임시 타이밍):
   - `idle`·`walk`·`hurt`·`death`(기존과 같은 의미)
   - `attack`(돌진 준비·돌진, `phaseFrames`), `slam`(`impactFrame`)
@@ -174,7 +174,7 @@
   - `phase_drink`(페이즈 전환 들이켜기, 선택 — 없으면 `drink` 재사용)
 - 보스방 소품(연회장 `stage1_hall_props` v3 시트 확장 또는 별도 시트): 기둥(solid, 2×2 발자국 권장), 촛대 상태 `lit`/`fallen_unlit`/`relit`(쓰러지면 통과), 굴러가는 술통(회전 프레임), 횃불 투사체, 잔 파편·술 튀김 fx(`fx/v3`, `paletteSwap: "none"`).
 - (54라운드 Q18·Q21) 보스 불타는 오버레이 `fx/v3/boss1_onfire`(루프, 보스 발 기준 피벗, `paletteSwap: "none"`, 광원 포함 권장), 굴러가는 술통 1.25배(지름 약 68도트, `circumferencePx` 갱신).
-- (54라운드 Q23~Q27) `boss1_rolling_barrel` 의 `circumferencePx`·`diameterPx`·`lengthPx` 는 **논리 px** 단위. `boss1_onfire` 는 보스와 같은 프레임·피벗(192×240, (96,220)), 행 = 보스 방향, `phaseFrames {ignite, loop, out}`·`loopRange`·`light`·`lightByPhase`(도트 단위 반경). ~~누운 동작(fall·death)용 불길 행/시트 추가 예정(키는 아트가 제안, 시스템은 JSON 을 따름).~~ → **54라운드 Q28: `fx/v3/boss1_onfire_down` 으로 해결(아래 항목).**
+- (54라운드 Q23~Q27) `boss1_rolling_barrel` 의 `circumferencePx`·`diameterPx`·`lengthPx` 는 **논리 px** 단위. `boss1_onfire` 는 보스와 같은 프레임·피벗(~~192×240, (96,220)~~ → §25 로 대체: 288×360, (144,330)), 행 = 보스 방향, `phaseFrames {ignite, loop, out}`·`loopRange`·`light`·`lightByPhase`(도트 단위 반경). ~~누운 동작(fall·death)용 불길 행/시트 추가 예정(키는 아트가 제안, 시스템은 JSON 을 따름).~~ → **54라운드 Q28: `fx/v3/boss1_onfire_down` 으로 해결(아래 항목).**
 - (54라운드 Q28) `fx/v3/boss1_onfire_down`: 1행(any) 16열, `useFor`/`standFor` 로 보스 동작 프레임별 누운/서 있는 불길 선택, `frameOffsets` [dx,dy] 도트(빛도 함께 이동), 두 시트 `phaseFrames`·타이밍 동일 — 전환 시 열 번호 이어 씀. 죽음은 마지막 프레임에서 out.
 
 ## 16. 55라운드 무기 이펙트 전면 디벨롭 (타격감·움직임·갈래)
@@ -599,3 +599,29 @@
 - **구조물 v1 → v3(64도트) 26종, id 그대로**: 구조물 데이터 9(`crate_f1`·`chest`·`grave`·`bonfire`·`barrel`·`ledger`·`cask`·`counter`·`cellar_wall`) + 세트·튜토리얼 17(`set_*` 8, `battlefield_{banner,weapon,fallen,dummy}`, `tutorial_sign` 와 `_move/_attack/_dash/_skill`). 상태 이름·프레임 수·시각·footprint·solid·depth·interact·술통 굴림 키는 v1 과 같음, 피벗 = footprint 아래 가운데(도트, pixelScale 0.5). 광원은 시트 JSON 이 `lighting.json` 대체 기본값보다 우선, `cask`·튜토리얼 표지판은 `lightByState`. `counter` 에 선택 키 `markAnchors`. 2층 전용(카드 탁자·룰렛·칩 교환·개 싸움판·판돈 종·전당포·`crate_f2`)은 동결.
 - **1층 5지역 타일셋**: `upscaled60` 칸 전부 다시 그림(JSON `redrawn61`, `upscaled60` 은 빈 목록). 인덱스·키·`tileLights` offset·데칼 rect 불변. 옛 v2 소품 칸(13~20·64~79)은 v3 props 시트가 대체 — 새 키 `supersededByPropsSheet`.
 - **방 변주 소품 17종**: `tiles/v3/stage1_<region>_props` 아래쪽에 추가(기존 rect·픽셀 불변). 새 항목 `added61: true`·`variantTag`(장면 묶음: `outer_wreck`·`outer_backyard`·`brewery_store`·`brewery_works`·`hall_brawl`·`waste_dead`·`waste_volley`·`gate_checkpoint`), 큰 소품 `maxPerRoom: 1`. 엄폐용: `overturned_table`·`pavise_row`·`chain_posts`, 통과: `laundry_line`.
+
+## 25. 61라운드 단계 2·3 — 보스 1.5배 네이티브·파훼 표시·결정타/쓰러짐·무기 갱신
+- 근거: `decisions/2026-10-05-round-61-autonomous-stage1.md`(자율 모드 단계 2·3), 아트 `parts/art/README.md` 「61라운드 단계 2·3 — 아트 2」 절. 정리 원천 열람은 승인 #25. 수치는 각 시트 JSON 이 기준이며 아래와 다르면 JSON 을 따른다.
+- **보스 시트 규격 대체(§15 → §25)**: `bosses/v3/stage1_<동작>` 15동작(`idle`·`walk`·`hurt`·`death`·`attack`·`slam`·`drink`·`drink_break`·`stagger_dash`·`fall`·`kick`·`throw`·`throw_torch`·`phase_drink` + 새 `intro`) **288×360 도트, 피벗 (144,330)**, `pixelScale 0.5` 유지(화면 144×180). 최근접 확대가 아니라 54라운드 골격을 1.5배 판에서 다시 래스터. 모든 앵커(`cupAnchors`·`handAnchors`·`footAnchors`·`impactAnchors`·`bellyAnchors`)는 새 판에서 다시 잰 값, walk `stride {px 86, cycleMs 1040}`(옛 57). 동작별 이벤트 키(phaseFrames 등)의 의미는 §15 그대로.
+  - 새 키: `nativeScale: 1.5`, `renderScaleHint: 1.0`(시스템이 보스에 따로 곱하던 렌더 배율을 1.0 으로), `previousSize {frameWidth 192, frameHeight 240, pivot (96,220)}`.
+  - `stage1_intro`(새 동작, 4방향 × 16프레임, 1회 `durationMs` 2670): `phaseFrames {approach [0..7], stumble [8], toast [9,10,11], roar [12,13], settle [14,15]}`, `walkLoop [0,7]`(걸어 들어올 거리만큼 반복, `stride {px 86, cycleMs 1200}`), `toastLoop [10,11]`(건배 유지), `roarFrame 12`(이름 카드·포효음), 15 ≈ idle 0. 아트 제안 연출 약 5초는 루프로 채운다.
+  - 림라이트 `stage1_{idle,walk,attack,stagger_dash,hurt}_rim`: `overlayOf` 해당 보스 시트, 같은 프레임 번호·피벗(144,330)·flip 으로 보스 바로 위(`depth above_target`, `drawOver lightmap`). **3국면 소등 동안만** 켬. 목록 밖 동작은 오버레이 없이 그리거나 시스템 tintFill 대체(VRAM 절약 권장).
+- **보스 fx 틀 갱신**: `fx/v3/boss1_onfire`·`boss1_onfire_down` 288×360·피벗 (144,330)(`nativeScale`·`previousSize` 포함, `light`·`lightByPhase`·`frameOffsets` 좌표 1.5배). 불길 그림은 54라운드 그림의 최근접 1.5배 **임시본**. `fx/v3/boss1_cup_shatter` 192×192·피벗 (96,90)(최근접 1.5배 임시). 투사체(술 덩이·횃불)·`boss_slam`·술 튀김은 그대로.
+- **파훼 가독성 표시**(AR-5):
+  - `fx/v3/boss1_cup_glint` 160×160·피벗 (80,88), 행 = `kinds`: `glint`(8프레임 × 70ms 루프 — `cupAnchors.visible` 동안 반복) / `struck`(5프레임 30~70ms 1회 — 맞았지만 안 깨짐, 깨지면 `boss1_cup_shatter`). `anchor cup_anchor`(cupAnchors 사각형 가운데), `followTarget`, flipX 안 함, 선택 광원 70.
+  - `structures/v3/boss1_pillar` 160×448·피벗 (80,440) 18프레임: 0~2 는 54라운드 그대로(`idle`·`hit`), 균열 3단 `crack1 [3,4,5]`·`crack1_hit [6,7]` / `crack2 [8,9,10]`·`[11,12]` / `crack3 [13,14,15]`·`[16,17]`, `crackN_idle` = 각 단계 마지막 칸, `stateHold {crack1 5, crack2 10, crack3 15}`, `stages` 표(단계 → enter/idle/hit), `impactPoint (86,262)`. 무너짐 그림 없음(3단 다음 처리는 시스템 판단).
+  - `structures/v3/boss1_rolling_barrel_rim` 160×140·피벗 (80,130), 4방향 × 8(60ms 루프): `boss1_rolling_barrel` 과 같은 프레임·피벗 위에 겹치는 '되칠 수 있음' 테(켜는 조건은 시스템). 되친 순간 같은 행·열 번호로 `boss1_rolling_barrel_returned`(같은 틀, `circumferencePx 98`·`diameterPx 34`·`lengthPx 55` 논리 px, 광원 90)로 교체 — 짐꾼 술통(§23)과 같은 규칙.
+  - `structures/v3/boss1_candelabra` 수정: relight·relit(7~9) 불꽃을 초 끝 심지로 옮김(0~6 픽셀 불변), 새 키 `wickAnchors.fallen`(심지 3, 시트 도트, flipX 면 x → 256 − x), 광원 offset 이동. `fx/v3/boss1_candle_glint`(촛대와 같은 256×224·피벗 (64,216)·flipX, 8 × 90ms 루프): `fallen_unlit` 동안 겹치고 relight 시작 때 끔.
+  - `fx/v3/boss1_break_daze` 128×56·피벗 (64,48), 8 × 90ms 루프: 파훼로 무너진 동안(피해 ×1.5 창) 머리 위. `headTopAnchors[동작][방향][프레임]`(drink_break·fall·hurt·idle·attack·stagger_dash, 1.5배 판 도트, 보스 피벗 기준 = (x − 144, y − 330)), 없는 동작은 idle 같은 방향 0 프레임.
+- **결정타·쓰러짐**:
+  - `fx/v3/boss1_finisher_slash` 1280×208·피벗 (640,104), 8프레임 1회, `rotate`·`drawnFacing right`·`flipY allowed`, `impactFrame 0`·`holdFrame 1`, 각도 = 주인공 → 보스. `systemHints`(히트스톱 180·슬로 0.3×420ms·섬광 70·흔들림 10px/320ms·줌 1.08 — 아트 제안값, 시스템이 정함). 같은 순간·같은 점에 `boss1_finisher_burst`(480×480·피벗 (240,240), 7프레임 1회, 회전 없음).
+  - `fx/v3/boss1_defeat_shatter` 640×520·피벗 (320,470)(보스 피벗), 12프레임 1회, death 0 프레임 시작에 1회, `stateHold 11`(마지막 칸 유지 후 끔), flipX 허용. `fx/v3/boss1_flame_snuff` 48×104·피벗 (24,92)(불꽃 뿌리), 8프레임 1회, `lightByFrame` — 보스 쓰러질 때 방 불을 먼 순서로 하나씩(아트 제안 60~90ms 간격).
+- **무기 갱신**(시스템 61 그림 요청):
+  - 단검 `fx/v3/dagger_combo1~3` 다시 그림 — 판정·ms·행 그대로, 틀만 확대(combo1·2 480×480·피벗 (240,280), combo3 544×544·피벗 (272,312)). 가속 시트 `dagger_combo<n>_accel2`·`_accel3`(같은 프레임·ms·피벗, `visualLengthPx` 예: combo1 188/204). 키 `accelLevel`·`accelOf`·`accelVariants`·`accelRule`. 단계 경계는 시스템 데이터(아트 제안: 공속 배율 ≥1.08 → 2단, ≥1.18 → 3단), 연격 시작 때 단계 시트를 고른다. `fx/v3/hit_dagger`·`hit_dagger_heavy` 다시 그림(틀 그대로).
+  - 대검 `fx/v3/greatsword_{sweep_cw,sweep_ccw,cleave,charge_swing}`: 휘두른 자리 잔상 추가, 새 키 `wake61 {depthDots 46/46/36/40, strengthByFrame}` — 프레임·ms·피벗·8행·판정·glowFrames 불변.
+  - 활 `fx/v3/bow_arrow` 48×24 한 장 → **128×28·피벗 (104,14), 4프레임 × 50ms 루프**(`anim loop_move`, 불티 꼬리), 선택 `light`(반경 56, 광원 상한 시 생략). 서서 시작 화살비 `player/v3/player_bow_arrow_rain_stand`(96×144·피벗 (48,138), 4방향 × 14, `releaseFrames [4,7,10]`, `timingMs {total 770, releasesAt [240,360,480], cancelAt 520}`, `cancelFromFrame 11`) + 무기 오버레이 `weapons/v3/bow_arrow_rain_stand`(192×192·피벗 (96,186), `playerFrameOffset (48,48)`, 같은 프레임 번호). 서 있거나 걷는 중(당기지 않은 상태) 화살비 입력에 사용.
+  - 칼 `fx/v3/katana_iai_ki1~3`(선택): `katana_iai` 와 같은 504×504·피벗 (249,291)·11프레임·ms·4행, `kiVariants {0 katana_iai, 1~3 katana_iai_ki<n>}` — 발도 순간 검기 단수로 고름.
+  - 튜토리얼 허수아비 `structures/v3/tutorial_dummy` 272×208·피벗 (136,166), footprint [1,1], solid, 26프레임: `idle [0..7]` 루프 · `hit [8..13]` · `hit_heavy [14..20]` · `broken [21..25]`(`stateHold 25`), `flashFrames [8,14]`, `anchors {hitCenter (138,96), headTop (136,38)}`, 넉백 0(그림이 기움). **`battlefield_dummy`(§24 v3 포함) 대체**.
+- **폐기(파일은 남김, 시스템 빌드·로드에서 제외)**: `fx/v3/greatsword_guard_rush`·`player/v3/player_greatsword_guard_rush`·`weapons/v3/greatsword_guard_rush`(+`_awaken`·`_grudge1~3`), `fx/v3/katana_issen_shadow`, `fx/v3/katana_thrust_ki1~3`·`weapons/v3/katana_thrust_ki1~3`, `fx/v3/dagger_overheat_cool`, `fx/v3/dagger_combo1~3_heat1~3`(가속 시트로 대체).
+- **VRAM 주의**: 보스방 보스 관련 시트 약 71 → **약 232MB**(아틀라스 페이지 RGBA 기준 — 몸 15동작 약 156·림 5 약 42·불타는 오버레이 약 14·파훼·결정타 fx 약 21. 아트 README 의 '몸 142MB'는 intro 제외 값). 보스방에서 고른 무기 시트와 겹치면 500MB 목표 초과 가능 → **지연 로드 권장**: intro 는 등장 뒤 해제, 림은 3국면 진입 때, `death`·쓰러짐 fx 는 처치 때.
+- 아트 검증: `atlas57/verify.py` 의 형식 차이 29시트는 의도적 재작업의 기준 차이(커밋 뒤 `--rebase --only` 로 기준 이동). 옛 빌드 스크립트 `boss1_v3/{build,props,onfire,onfire_down}.py` 는 `--legacy` 없이 멈춤(192×240 덮어쓰기 방지).
