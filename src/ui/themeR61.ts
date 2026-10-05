@@ -71,9 +71,7 @@ export const COMBAT_HUD = {
   personalityOn: { gray: 9 },
   personalityFull: { slot: 22 },
   personalityOff: { gray: 3 },
-  /** 보스 막대 (아래 가운데) 폭·묶음과 띄울 최소 간격 */
-  bossW: 320,
-  bossGap: 12,
+  // 보스 막대는 61 단계 3 에서 themeStory.ts BOSS_UI 로 옮겼다
 } as const;
 
 /** 빌드 띠 (좌상단 — 저주·태그 칩을 한 줄로 접는다) */

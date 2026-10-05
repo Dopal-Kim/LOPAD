@@ -10,6 +10,8 @@ import { UI_SCENE_KEYS } from './keys';
  * window.__lopadUi = {
  *   patch(p | (s) => p | null)  // 매 STATE 스냅샷 위에 얕게 덮어쓴다 (null 이면 해제)
  *   emit(name, payload)         // UI_EVENTS[name] 를 uiBus 로 (STRUCTURE_RESULT·CHALLENGE_* 등 화면 확인용)
+ *   emitRaw(event, payload)     // 61 단계 2·3: 이벤트 이름 그대로 (계약에 아직 없는 'ui:boss-break'·'ui:enemy-intro' 등)
+ *   launch(key, data)           // 61 단계 2: UI 씬을 가짜 값으로 띄운다 (결과 화면 이름 번짐 확인 — 예 'UiResult')
  *   openMenu(menu) / closeMenu()// 가짜 메뉴 열기·닫기
  *   selects: [menuId, key][]    // 가짜 메뉴에서 고른 기록
  *   fakeChoose(on)              // 48라운드: chooseNode 를 시스템으로 보내지 않고 true 로 (가짜 route 확인용)
@@ -28,6 +30,10 @@ type Patch = Partial<UiSnapshot> | ((s: UiSnapshot) => Partial<UiSnapshot>);
 interface DebugApi {
   patch(p: Patch | null): void;
   emit(name: keyof typeof UI_EVENTS, payload?: unknown): void;
+  /** 61 단계 2·3: 이벤트 이름 그대로 */
+  emitRaw(event: string, payload?: unknown): void;
+  /** 61 단계 2: UI 씬 띄우기 (UI_SCENE_KEYS 값만) */
+  launch(key: string, data?: unknown): void;
   openMenu(menu: UiMenu): void;
   closeMenu(): void;
   selects: [string, string][];
@@ -142,6 +148,13 @@ export function installUiDebug(scene: Phaser.Scene): void {
     },
     emit(name, payload) {
       uiBus.emit(UI_EVENTS[name], payload);
+    },
+    emitRaw(event, payload) {
+      uiBus.emit(event, payload);
+    },
+    launch(key, data) {
+      if (!scenePlugin || !(Object.values(UI_SCENE_KEYS) as string[]).includes(key)) return;
+      scenePlugin.launch(key, data as object);
     },
     openMenu(menu) {
       fakeMenu = menu;

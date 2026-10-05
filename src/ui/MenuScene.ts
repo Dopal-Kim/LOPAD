@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, UI_SCREEN, uiBus, uiCommands, type UiMenu } from '../contract/ui';
 import { buildOf } from './buildView';
-import { debugSelect, isDebugMenu, withDebug } from './debug';
+import { debugExpose, debugSelect, isDebugMenu, withDebug } from './debug';
 import { GlowText } from './glow';
 import { book, fontsReady, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
@@ -120,10 +120,15 @@ export class MenuScene extends Phaser.Scene {
     });
     const first = data;
     // 61라운드 플레이 점검 #11: 성과 도장 카드가 떠 있으면 그것이 끝난 뒤에 (uiSequence.ts — 최대 1.2초)
+    // 61 단계 3: 보스 처치 카드도 (처치에서 최대 4.5초, 보스 대사가 이어지면 늘임)
     const wait = menuWaitMs();
+    debugExpose('menuWait', { id: first?.id, wait });
     fontsReady().then(() => {
       const go = (): void => {
-        if (this.alive && (this.menu ?? first)) this.show(this.menu ?? first);
+        if (this.alive && (this.menu ?? first)) {
+          debugExpose('menuShown', { id: (this.menu ?? first).id, at: Math.round(performance.now()) });
+          this.show(this.menu ?? first);
+        }
       };
       if (wait > 0) this.time.delayedCall(wait, go);
       else go();

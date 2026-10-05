@@ -3,7 +3,7 @@ import { UI_SCREEN, type UiSnapshot } from '../contract/ui';
 import { consumableView } from './buildView';
 import { CarryChip } from './CarryHud';
 import { carryView } from './carryView';
-import { bossLeft, combatRows, hpLow, personalityRatio, pickResources, type CombatRows } from './combatView';
+import { combatRows, hpLow, personalityRatio, pickResources, type CombatRows } from './combatView';
 import { ConsumableChip } from './ConsumableHud';
 import { WeaponGaugeChip, gaugeLabelText } from './GaugeHud';
 import { gaugeView, groggyShake, groggyView } from './gaugeView';
@@ -16,15 +16,13 @@ import { r60Text } from './text';
 import { GROGGY, WGAUGE } from './theme';
 import { COMBAT_HUD as C } from './themeR61';
 
-/** 체력 막대(보스 틀) 높이 */
-const HP_BAR_H = 14;
 /** 아이콘 칸 (16) + 간격 */
 const ICON_COL = 16 + C.iconGap;
 /** 고유 자원 눈금 칩 안쪽 원점 (GaugeHud: 칸 시작 x = RING, 칸 위 y = WGAUGE.cellTop) */
 const CHIP_ORIGIN = { x: RING, y: WGAUGE.cellTop } as const;
 
 /**
- * 61라운드 P10 전투 HUD 다이어트 — 왼쪽 아래 전투 묶음 + 아래 가운데 보스 막대.
+ * 61라운드 P10 전투 HUD 다이어트 — 왼쪽 아래 전투 묶음 (보스 막대는 61 단계 3 에서 `BossHud` 로 옮겼다).
  * 처음 하는 사람이 한눈에 읽게 크게 보이는 것은 넷뿐: 체력 · 무기 고유 자원 하나 · 소모품(독주 Q · 소모품 칸 C) · 전표.
  *  1행 체력: 하트 + 굵은 막대(보스 틀 14px, 200) + 'n / m' (30% 이하면 강조색 깜빡임)
  *  2행 무기: 아이콘 + 고유 자원(라벨 + 눈금 2배) — 고유 자원이 없으면 무기 자원(기력·화살·열기) 막대. 오른쪽 끝 F 넣기/뽑기
@@ -62,11 +60,6 @@ export class CombatHud {
   private goldIcon: Phaser.GameObjects.Image;
   private goldText: GlowText;
   private line: Phaser.GameObjects.Graphics;
-  // 보스
-  private bossGauge: Gauge;
-  private bossIcon: Phaser.GameObjects.Image;
-  private bossName: GlowText;
-  private bossX = 0;
   /** 이번 그로기의 전체 시간 (시작 때 본 가장 큰 leftMs, 끝나면 0) */
   private groggyTotal = 0;
   private lineSig = '';
@@ -94,9 +87,6 @@ export class CombatHud {
     this.goldIcon = icon(scene, 0, 0, ICON.gold);
     this.goldText = this.glow('', 'ink_body');
     this.line = scene.add.graphics();
-    this.bossGauge = new Gauge(scene, 0, 0, C.bossW, 'boss', stageIndex).setVisible(false);
-    this.bossIcon = icon(scene, 0, 0, ICON.boss).setVisible(false);
-    this.bossName = this.glow('', 'ink_accent').setVisible(false);
     this.relayout({ big: false, sub: false });
   }
 
@@ -111,17 +101,16 @@ export class CombatHud {
   }
 
   /**
-   * 가운데 아래 글(자막·완벽 성공 문구)을 놓을 아래 끝: 보스 이름 위, 그리고 왼쪽 묶음 위
-   * (가운데 글이 넓으면 왼쪽 묶음과 가로로 겹칠 수 있어 묶음 위 끝보다 위에 둔다)
+   * 가운데 아래 글(자막·완벽 성공 문구)을 놓을 아래 끝: 왼쪽 묶음 위 (가운데 글이 넓으면 왼쪽 묶음과 가로로 겹칠 수 있어
+   * 묶음 위 끝보다 위에 둔다). 보스 막대가 있으면 HudScene 이 `BossHud.top` 과 더 작은 쪽을 쓴다
    */
   centerBottom(): number {
-    const boss = this.bossName.visible ? this.bossName.y - 4 : UI_SCREEN.HEIGHT - C.bottom;
-    return Math.min(boss, this.top - 6);
+    return Math.min(UI_SCREEN.HEIGHT - C.bottom, this.top - 6);
   }
 
-  /** 보스 막대가 보이는가 (자막 위치) */
-  get bossOn(): boolean {
-    return this.bossName.visible;
+  /** 무기 아이콘 줄 왼쪽 위 (원한의 한마디 자리 — 61 단계 2) */
+  get weaponRowLeft(): number {
+    return C.left + C.padX;
   }
 
   setStageIndex(si: number): void {
@@ -129,7 +118,6 @@ export class CombatHud {
     this.si = si;
     for (const t of this.glows) t.setStageIndex(si);
     this.hpGauge.setStage(this.scene, si);
-    this.bossGauge.setStage(this.scene, si);
     this.gaugeChip.setStageIndex(si);
     this.carry.setStageIndex(si);
     this.consumable.setStageIndex(si);
@@ -216,7 +204,6 @@ export class CombatHud {
     }
     if (cv) this.carry.setPosition(C.left + this.w - C.padX - this.carry.boxW, t + r.weapon + (gv ? 1 : 0));
     this.drawPersonality(personalityRatio(s.weapon));
-    this.renderBoss(s);
   }
 
   /** 막대·눈금이 2배인지, 보조 줄이 있는지로 행 높이가 바뀌면 묶음을 다시 놓는다 (아래 여백 고정, 위로 늘어난다) */
@@ -276,24 +263,6 @@ export class CombatHud {
         fw,
         C.personalityH,
       );
-  }
-
-  /** 보스 막대: 아래 가운데(왼쪽 묶음과 겹치면 비킴), 이름 · 페이즈는 위 (처치 뒤 hp 0 으로 남는 동안 숨김) */
-  private renderBoss(s: UiSnapshot): void {
-    const on = Boolean(s.boss && s.boss.hp > 0);
-    this.bossGauge.setVisible(on);
-    this.bossIcon.setVisible(on);
-    this.bossName.setVisible(on);
-    if (!on || !s.boss) return;
-    const bx = bossLeft(UI_SCREEN.WIDTH, C.bossW, this.bundleRight, C.bossGap);
-    const by = UI_SCREEN.HEIGHT - C.bottom - HP_BAR_H;
-    if (bx !== this.bossX) {
-      this.bossX = bx;
-      this.bossGauge.setPositionX(bx);
-    }
-    this.bossGauge.setPositionY(by).set(s.boss.maxHp > 0 ? s.boss.hp / s.boss.maxHp : 0);
-    this.bossIcon.setPosition(bx - 22, by - 1);
-    this.bossName.setText(`${s.boss.name}  페이즈 ${s.boss.phase}`).placeCenter(bx + C.bossW / 2, by - 18);
   }
 
   private glow(text: string, style: Parameters<GlowText['setGlowStyle']>[0]): GlowText {

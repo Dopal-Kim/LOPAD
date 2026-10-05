@@ -7,6 +7,7 @@ import { NODE_ICON_SHEET, accentHex, book, cursor, nodeIconKey, rule } from './k
 import { RouteConfirm, eventStamp, hasDepth } from './RouteConfirm';
 import { gradeMark, rewardBadge, riskBadge, riskRing, smudgeMark } from './routeMarks';
 import { FIGURE_H, FIGURE_W, FIG_UNIT, diamondRing, drawFigure, makeGlyph, pixelDiamond } from './routeGlyph';
+import { insertNextTo } from './displayOrder';
 import { drawIllustration, drawSheet, illustrationPath, type LateInsert } from './routeSheet';
 import { RouteSide } from './RouteSide';
 import {
@@ -492,13 +493,15 @@ export class RouteMap {
    * 지도를 만드는 중이면(build 끝에서 depth 를 줄 것이므로) 순서만 맞춘다.
    */
   private late: LateInsert = (o, anchor, where) => {
-    const list = this.scene.children;
-    if (where === 'above') list.moveAbove(o, anchor);
-    else list.moveBelow(o, anchor);
+    const children = this.scene.children;
+    // 61 단계 2: moveAbove 는 이미 위에 있으면 옮기지 않아 늦게 온 지도 그림이 노드·길을 덮었다 — 늘 빼고 끼운다 (displayOrder.ts)
+    insertNextTo(children.list, o, anchor, where);
     if (this.objs.length) {
       o.setDepth(ROUTE.depth);
       this.objs.push(o);
     }
+    children.queueDepthSort();
+    debugExpose('routeLate', { where, index: children.list.indexOf(o), anchor: children.list.indexOf(anchor) });
   };
 
   private select(id: string | null): void {

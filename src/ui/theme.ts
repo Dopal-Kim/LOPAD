@@ -128,6 +128,30 @@ export const TEXT_STYLES = {
     bodyAlpha: 1,
     shade: { color: GRAY[0], alpha: 1 },
   },
+  /**
+   * 61라운드 단계 2 원한의 한마디 (STORY 'voice', 월드 위 잉크 글자) — 무기마다 글씨 색이 다르다. 팔레트 색·허용 알파만.
+   * 칼 = 서늘한 회백 G13 + 무채 할로 G07(0.5) · 대검 = 잉걸 강조 21 + 강조 18 할로(0.5) · 단검 = 흐린 G10 할로 없음(속삭임) ·
+   * 활 = 세피아 S5 + S4 할로(0.5)
+   */
+  voice_katana: {
+    body: GRAY[13],
+    bodyAlpha: 1,
+    halo: { color: GRAY[7], alpha: 0.5 },
+    shade: { color: GRAY[0], alpha: 1 },
+  },
+  voice_greatsword: {
+    body: { accentSlot: 21 },
+    bodyAlpha: 1,
+    halo: { color: { accentSlot: 18 }, alpha: 0.5 },
+    shade: { color: GRAY[0], alpha: 1 },
+  },
+  voice_dagger: { body: GRAY[10], bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
+  voice_bow: {
+    body: SEPIA[5],
+    bodyAlpha: 1,
+    halo: { color: SEPIA[4], alpha: 0.5 },
+    shade: { color: GRAY[0], alpha: 1 },
+  },
 } as const satisfies Record<string, GlowStyle>;
 export type TextStyleName = keyof typeof TEXT_STYLES;
 

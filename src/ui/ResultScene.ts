@@ -85,15 +85,17 @@ export class ResultScene extends Phaser.Scene {
       this.add.image(L.x + PAGE_W / 2, y + 32, KIT.diaryClosed);
       y += 64 + 12;
     }
+    // 61 P7: 이름은 따로 그려 사망 시 번지게 한다 (smudgeLine)
+    const nameT = new GlowText(this, L.x + PAD, y, r.playerName || '―', 'page_body', { stageIndex });
     const where = new GlowText(
       this,
-      L.x + PAD,
+      nameT.x + nameT.displayWidth + 8,
       y,
-      `${r.playerName || '―'}   ${r.stageName}  (도달 ${r.floorReached}층)`,
+      `${r.stageName}  (도달 ${r.floorReached}층)`,
       'page_body',
-      { wrap: innerW, stageIndex },
+      { wrap: innerW - nameT.displayWidth - 8, stageIndex },
     );
-    y += where.displayHeight + 6;
+    y += Math.max(nameT.displayHeight, where.displayHeight) + 6;
     const body = (text: string, yy: number, x = L.x + PAD): GlowText =>
       new GlowText(this, x, yy, text, 'page_body', { wrap: innerW, stageIndex });
     body(`처치 ${r.kills}`, y);
@@ -115,6 +117,18 @@ export class ResultScene extends Phaser.Scene {
     if (r.line) {
       const line = new GlowText(this, R.x + PAD, y, r.line, 'page_body', { wrap: innerW, stageIndex });
       y += line.displayHeight + 10;
+    }
+    // 61 P7 (계약 `UiResult.smudgeLine`): 사망 문장 뒤 '이름이 번진다.' — 조금 늦게 나타나며 왼쪽 이름이 번진다
+    const smudge = (r as { smudgeLine?: unknown }).smudgeLine;
+    if (!r.cleared && typeof smudge === 'string' && smudge.trim()) {
+      const sl = new GlowText(this, R.x + PAD, y, smudge.trim(), 'page_faint', { wrap: innerW, stageIndex }).setAlpha(
+        0,
+      );
+      y += sl.displayHeight + 10;
+      this.time.delayedCall(RESULT_SMUDGE.delayMs, () => {
+        this.tweens.add({ targets: sl, alpha: 1, duration: RESULT_SMUDGE.inMs });
+        smudgeName(this, nameT, r.playerName || '―', stageIndex);
+      });
     }
     const endingKey =
       r.ending === 'destroy' ? 'clearedDestroy' : r.ending === 'understand' ? 'clearedUnderstand' : null;
@@ -149,5 +163,27 @@ export class ResultScene extends Phaser.Scene {
     if (this.textures.exists(stampKey)) {
       this.add.image(R.x + PAGE_W - PAD - 24, R.y + PAGE_H - PAD - 24, stampKey).setAlpha(LAYOUT.stampAlpha);
     }
+  }
+}
+
+/** 61 P7 이름 번짐 (결과 화면): 나타나는 때·시간, 번진 자국 오프셋 (정수 px — 흐림 금지라 겹친 사본으로 번짐) */
+const RESULT_SMUDGE = {
+  delayMs: 900,
+  inMs: 700,
+  offsets: [
+    [1, 1],
+    [2, 2],
+    [3, 1],
+  ] as [number, number][],
+  /** 번진 뒤 원래 글자 알파 (허용 알파 0.55) */
+  nameAlpha: 0.55,
+} as const;
+
+/** 이름 글자를 흐리게(허용 알파) 하고 오른쪽 아래로 흐린 사본을 겹쳐 '번진' 자국을 만든다 (page_faint) */
+function smudgeName(scene: Phaser.Scene, name: GlowText, text: string, stageIndex: number): void {
+  scene.tweens.add({ targets: name, alpha: RESULT_SMUDGE.nameAlpha, duration: RESULT_SMUDGE.inMs });
+  for (const [dx, dy] of RESULT_SMUDGE.offsets) {
+    const ghost = new GlowText(scene, name.x + dx, name.y + dy, text, 'page_faint', { stageIndex }).setAlpha(0);
+    scene.tweens.add({ targets: ghost, alpha: 1, duration: RESULT_SMUDGE.inMs });
   }
 }

@@ -4,6 +4,7 @@ import { replaceMuteHint } from './resourceView';
 import { withControlExtras } from './structView';
 import { R60_TEXT, type R60TextKey } from './textBuild';
 import { R61_TEXT, type R61TextKey } from './textR61';
+import { STORY_TEXT, type StoryTextKey } from './textStory';
 import { fill } from './fmt';
 
 /**
@@ -272,4 +273,9 @@ export function r60Text(key: R60TextKey): string {
 /** 61라운드 P10 문구 (textR61.ts R61_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
 export function r61Text(key: R61TextKey): string {
   return uiText('hud', key, R61_TEXT[key]);
+}
+
+/** 61라운드 단계 2·3 서사 표시·보스 UI 틀 문구 (textStory.ts STORY_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
+export function storyText(key: StoryTextKey): string {
+  return uiText('hud', key, STORY_TEXT[key]);
 }

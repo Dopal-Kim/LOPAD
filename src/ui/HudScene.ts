@@ -17,7 +17,6 @@ import {
   type UiRouteEntered,
   type UiRouteNode,
   type UiSnapshot,
-  type UiStoryLine,
   type UiBuildMenuId,
   type UiStructureMenuId,
   type UiStructureResult,
@@ -60,12 +59,13 @@ import { fill, r49Text, r61Text, routeText, uiText, warpText } from './text';
 import { LAYOUT, MAP_BG_FLOORS, STRUCT } from './theme';
 import { PEEK } from './themeR61';
 import { TutorialGuide } from './TutorialHud';
-import { sameStepText } from './tutorialView';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
+import { HudNarrative } from './HudNarrative';
 
 /** 노드를 고르거나 고르기를 취소한 뒤 '고를 차례인데 지도가 없음' 안전망을 쉬는 시간 (ms) — 스냅샷이 따라올 때까지 */
 const ROUTE_CANCEL_SUPPRESS_MS = 1500;
 
+/** 가운데 배너 깊이 (자막과 같은 층 — StoryHud STORY_UI.depth) */
 const CAPTION_DEPTH = 50;
 /**
  * 47라운드 구조물 메뉴 id (계약 §9.4) + 60라운드 §14.7 게임 중 메뉴(저주 2택·이벤트·지도 장수·소모품 바꾸기) —
@@ -102,8 +102,13 @@ export class HudScene extends Phaser.Scene {
   private handlers: [string, (p: never) => void][] = [];
   private pending?: UiSnapshot;
 
-  /** 61라운드 P10: 왼쪽 아래 전투 묶음 + 아래 가운데 보스 막대 */
+  /** 61라운드 P10: 왼쪽 아래 전투 묶음 */
   private combat?: CombatHud;
+  /**
+   * 61라운드 단계 2·3: STORY 자막 차례(자막·공지·원한의 한마디·군주 대사·이벤트 문장·조사 쪽지)·신규 적 소개 +
+   * 보스 막대(국면 눈금)·이름·국면·파훼·처치 카드·촛대 안내 (HudNarrative.ts)
+   */
+  private narr?: HudNarrative;
   /** 61라운드 P10: Tab 빌드 보기 (누르고 있는 동안) */
   private peek?: BuildPeek;
   /** 61라운드 P1: 무기 시험장 아래 가운데 4동사 키캡 안내 */
@@ -123,12 +128,8 @@ export class HudScene extends Phaser.Scene {
   private noticeIcon!: Phaser.GameObjects.Image;
   private noticeText!: GlowText;
   private noticeKind = '';
-  // 자막·배너 (배너 차례·지역 카드는 HudBanners.ts)
+  // 배너 (배너 차례·지역 카드는 HudBanners.ts, 자막은 StoryHud.ts)
   private banners!: BannerQueue;
-  private caption?: GlowText;
-  /** 지금 자막 문구 (튜토리얼 단계 카드와 같은 문구면 거둔다) */
-  private captionLine = '';
-  private captionTimer?: Phaser.Time.TimerEvent;
   // 워프 지도 (45라운드)
   private warpMap?: WarpMap;
   private warpHint?: GlowText;
@@ -148,7 +149,6 @@ export class HudScene extends Phaser.Scene {
   private chooseSuppressUntil = 0;
   // 탄생 연출 (48라운드): HUD 를 숨기고 건너뛰기 안내만
   private birth!: BirthOverlay;
-  private deferredCaption?: UiStoryLine;
   /** 50라운드: 큰 그림 미리 읽기 표시 */
   private prefetchSig = '';
 
@@ -176,14 +176,27 @@ export class HudScene extends Phaser.Scene {
         this.banners.holdRegion();
       },
       onEnd: () => {
-        // 연출 중 미뤄 둔 자막·배너
-        const c = this.deferredCaption;
-        this.deferredCaption = undefined;
-        if (c) this.showCaption(c);
+        // 연출 중 미뤄 둔 자막(StoryHud 차례)·배너
+        this.narr?.story.tick(false);
         this.banners.next();
       },
     });
     this.banners = new BannerQueue(this, () => this.built && !this.birth.active, CAPTION_DEPTH);
+    this.narr = new HudNarrative(this, {
+      canRun: () => this.built && !this.birth.active,
+      menuOpen: () => this.scene.isActive(UI_SCENE_KEYS.MENU),
+      combat: () => this.combat,
+      stageIndex: () => Math.max(0, this.stageIndex),
+      takeTutorialNotice: (text) =>
+        this.built &&
+        Boolean(
+          this.guide?.takeNotice(
+            { kind: 'notice', text },
+            withDebug(uiCommands.getUiSnapshot()),
+            Math.max(0, this.stageIndex),
+          ),
+        ),
+    });
     this.prefetchSig = '';
     installUiDebug(this);
     this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(withDebug(s)));
@@ -191,7 +204,8 @@ export class HudScene extends Phaser.Scene {
       this.banners.text(fill(uiText('hud', 'evolvedBanner', '{name}'), { name: p.name })),
     );
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.banners.text(p.stageName));
-    this.on(UI_EVENTS.STORY, (l: UiStoryLine) => this.showCaption(l));
+    // 61 단계 2·3: STORY 자막 차례·보스 카드·신규 적 소개 (HudNarrative.ts)
+    this.narr.subscribe((e, h) => this.on(e, h));
     // 53라운드 계약: 튜토리얼 단계 카드 · 적 등장 예고('주의' 경고, Q49·Q60)
     this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
     this.on(UI_EVENTS.ENEMY_INCOMING, (p: unknown) => this.guide?.enemyIncoming(p, Math.max(0, this.stageIndex)));
@@ -278,6 +292,8 @@ export class HudScene extends Phaser.Scene {
       this.input.keyboard?.removeCapture('TAB');
       this.game.events.off(Phaser.Core.Events.BLUR, this.onTabUp);
       this.combat = undefined;
+      this.narr?.destroy();
+      this.narr = undefined;
       this.labGuide = undefined;
       this.peek?.destroy();
       this.peek = undefined;
@@ -300,7 +316,6 @@ export class HudScene extends Phaser.Scene {
       this.built = false;
       for (const [e, h] of this.handlers) uiBus.off(e, h);
       this.handlers = [];
-      this.captionTimer?.remove();
     });
     fontsReady().then(() => {
       if (!this.alive) return;
@@ -326,6 +341,12 @@ export class HudScene extends Phaser.Scene {
       this.guide.dismiss('Escape');
       return;
     }
+    // 61 단계 2: 조사 쪽지 덮기
+    if (this.narr?.story.noteOpen) {
+      takeKey(e);
+      this.narr.story.closeNote();
+      return;
+    }
     if (this.routeMap) {
       if (this.routeMap.mode === 'view') {
         // 보기 모드는 닫고 재개
@@ -349,11 +370,16 @@ export class HudScene extends Phaser.Scene {
     if (takeKey(e)) uiCommands.pause();
   };
 
-  /** Enter: 튜토리얼 안내 닫기 */
+  /** Enter: 튜토리얼 안내 닫기 · 조사 쪽지 덮기 */
   private onEnter = (e?: KeyboardEvent): void => {
-    if (!this.guide?.panelOpen || keyTaken(e)) return;
-    takeKey(e);
-    this.guide.dismiss('Enter');
+    if (keyTaken(e)) return;
+    if (this.guide?.panelOpen) {
+      takeKey(e);
+      this.guide.dismiss('Enter');
+    } else if (this.narr?.story.noteOpen) {
+      takeKey(e);
+      this.narr.story.closeNote();
+    }
   };
 
   /**
@@ -571,7 +597,7 @@ export class HudScene extends Phaser.Scene {
 
   /** 짧은 안내 한 줄: 자막 자리(공지와 같은 1.8초) */
   private toast(text: string): void {
-    this.showCaption({ kind: 'notice', text });
+    this.narr?.story.notice(text);
   }
 
   private on<T>(event: string, handler: (p: T) => void): void {
@@ -598,8 +624,9 @@ export class HudScene extends Phaser.Scene {
     const s0 = uiCommands.getUiSnapshot();
     this.stageIndex = Math.max(0, s0.stageIndex);
 
-    // ---- 61라운드 P10: 왼쪽 아래 전투 묶음 + 아래 가운데 보스 막대, Tab 빌드 보기
+    // ---- 61라운드 P10: 왼쪽 아래 전투 묶음, Tab 빌드 보기 / 단계 3: 아래 가운데 보스 막대·보스 카드
     this.combat = new CombatHud(this, this.stageIndex);
+    this.narr?.build(this.stageIndex);
     this.peek = new BuildPeek(this);
     this.labGuide = new KeyGuide(this, 0, H - 12 - 16, 'row', {
       surface: 'ink',
@@ -696,6 +723,7 @@ export class HudScene extends Phaser.Scene {
     // 61라운드 P10: 왼쪽 아래 전투 묶음 (체력·고유 자원·독주·소모품·전표) + 보스 막대
     this.combat?.setStageIndex(si);
     this.combat?.render(s, this.time.now);
+    this.narr?.setStageIndex(si);
     // 상단
     // 48라운드: 노드 지도 층이면 층 제목 옆에 지금 노드 이름, 우상단은 노드 띠, 'Tab 지도' 는 늘 보인다
     // 49라운드: 무기 시험장은 층 제목·노드 띠·지도 안내 대신 시험장 안내 한 줄
@@ -728,6 +756,8 @@ export class HudScene extends Phaser.Scene {
     }
     // 47라운드: 구조물 안내·상태·도전 시간
     const overlay = this.overlayOpen(s);
+    // 61 단계 3: 보스 막대(국면 눈금·무너짐)·촛대 안내 / 단계 2: 자막 차례 (막혀 있던 줄을 풀고, 전투가 시작되면 쪽지를 덮는다)
+    this.narr?.render(s, this.time.now, overlay);
     // 61라운드: 다른 화면이 뜨면 Tab 빌드 보기를 거둔다
     if (overlay) this.onTabUp();
     // 61라운드 P1: 무기 시험장에서는 아래 가운데에 4동사 키캡 안내 (무기를 바꾸면 따라 바뀐다)
@@ -755,7 +785,7 @@ export class HudScene extends Phaser.Scene {
         challengeOn: Boolean(this.challenge?.active),
         tabHint: this.peekMode(s),
       },
-      this.combat?.centerBottom() ?? UI_SCREEN.HEIGHT,
+      this.narr?.centerBottom() ?? UI_SCREEN.HEIGHT,
     );
     this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);
     // 53라운드: 튜토리얼 안내 — 다른 화면·배너·지역 카드·탄생 연출이 없을 때만 새로 띄운다
@@ -786,53 +816,15 @@ export class HudScene extends Phaser.Scene {
     }
   }
 
-  /** 스토리 자막: 보스 게이지 위(보스전이 아니면 묶음 위) 가운데, 패널 없이 ink_body. 공지 1.8초, 그 외 3.6초 */
-  private showCaption(l: UiStoryLine): void {
-    if (!this.built) return;
-    if (this.birth.active) {
-      // 탄생 연출 중 자막은 끝난 뒤 마지막 한 줄만
-      this.deferredCaption = l;
-      return;
-    }
-    // 53라운드: 튜토리얼 노드의 공지는 위쪽 가운데 단계 카드로 (작은 자막 대신)
-    if (this.guide?.takeNotice(l, withDebug(uiCommands.getUiSnapshot()), Math.max(0, this.stageIndex))) return;
-    this.caption?.destroy();
-    this.captionTimer?.remove();
-    const hold = l.kind === 'notice' ? 1800 : 3600;
-    // BOSS_STARTED·STAGE_STARTED 와 같은 프레임에 오므로(STATE 보다 먼저) 스냅샷으로 보스전·층을 본다.
-    // 61라운드: 보스 막대가 아직 안 그려졌으면 막대 + 이름 자리(36)만큼 위로
-    const snap = uiCommands.getUiSnapshot();
-    const bossSoon = Boolean(snap.boss && snap.boss.hp > 0) && !this.combat?.bossOn;
-    const base = this.combat?.centerBottom() ?? UI_SCREEN.HEIGHT - 12;
-    const bottom = bossSoon ? Math.min(base, UI_SCREEN.HEIGHT - 12 - 36) : base;
-    const c = new GlowText(this, 0, 0, l.text, 'ink_body', {
-      wrap: UI_SCREEN.WIDTH - 240,
-      align: 'center',
-      stageIndex: Math.max(0, snap.stageIndex),
-    }).setDepth(CAPTION_DEPTH);
-    c.placeCenter(UI_SCREEN.WIDTH / 2, bottom - c.displayHeight);
-    this.caption = c;
-    this.captionLine = l.text;
-    this.captionTimer = this.time.delayedCall(hold, () => {
-      this.tweens.add({ targets: c, alpha: 0, duration: 300, onComplete: () => c.destroy() });
-    });
-  }
-
   /**
-   * 53라운드 TUTORIAL_STEP: 단계 카드 (TutorialHud). 같은 문구의 STORY 공지가 먼저 와서 작은 자막으로 떠 있으면 거둔다
+   * 53라운드 TUTORIAL_STEP: 단계 카드 (TutorialHud). 같은 문구의 STORY 공지가 먼저 와서 작은 자막으로 떠 있거나 쌓여 있으면 거둔다
    * (시스템이 두 가지를 함께 보내도 한 번만 보이게)
    */
   private onTutorialStep(p: unknown): void {
     if (!this.guide) return;
     const text = this.guide.takeStep(p, withDebug(uiCommands.getUiSnapshot()), Math.max(0, this.stageIndex));
     if (text === null) return;
-    if (this.caption && sameStepText(this.captionLine, text)) {
-      this.caption.destroy();
-      this.caption = undefined;
-      this.captionTimer?.remove();
-      this.captionLine = '';
-    }
-    if (this.deferredCaption && sameStepText(this.deferredCaption.text, text)) this.deferredCaption = undefined;
+    this.narr?.story.dropSame(text);
   }
 
   /**
