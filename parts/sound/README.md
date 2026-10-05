@@ -6,13 +6,14 @@
 | `parts/sound/sound-design.md` | 음향 바이블: 톤, 악기(합성 방식), 층별 BGM 매핑, 효과음 표(트리거 제안) |
 | `parts/sound/work/build.py` | **단일 소스.** 효과음·BGM 합성 → OGG·M4A 인코딩 → 매니페스트 → 검증을 전부 재생성. 합성은 파이썬 표준 라이브러리만, 고정 시드로 결정적 |
 | `parts/sound/work/sfx_bundle2.py` · `sfx_branch2.py` · `sfx_passive.py` | 60라운드 효과음 정의(2차 묶음 25 · 2단 갈래 32 · 패시브 10). `build.py` 가 이 순서로 import 해 등록한다(시드 = 등록 순서) |
-| `parts/sound/work/sfx_core61.py` | 61라운드 P11 핵심 20종 품질 패스(같은 키 18종을 `redo()` 로 다시 등록 — 순서·시드 유지) + 새 2종(`guard_block`·`combo_finish`) + 변주 23. **마지막 모듈 — 새 효과음은 이 파일 끝에만** |
+| `parts/sound/work/sfx_core61.py` | 61라운드 P11 핵심 20종 품질 패스(같은 키 18종을 `redo()` 로 다시 등록 — 순서·시드 유지) + 새 2종(`guard_block`·`combo_finish`) + 변주 23 |
+| `parts/sound/work/sfx_stage61.py` | 61라운드 단계 2·3: 신규 적 2종(독주 행상·술통 짐꾼) 12 · 보스 '만취' 패스(새 11 + `redo()` 다시 9 + 보관 1) · 칼 발도 검기 단수 5 · 가드(다시 2 + 새 1). **마지막 모듈 — 새 효과음은 이 파일 끝에만** |
 | `parts/sound/work/bgm_floor1.py` | 61라운드 P11 1층 전용 BGM 5파일(벽 밖 · 잔 거리 · 만취 3국면), 44.1 kHz 스테레오. 기존 6곡 뒤에 등록 |
 | `parts/sound/work/mixing.py` | 61라운드 믹싱 권장값(동시 재생 상한·우선순위·덕킹·변주·리미터·보스 국면 교차) → manifest `mixing`, 항목별 `priority` |
 | `parts/sound/work/listen_index.py` → `listen_index.json` | 청취 검수(들어보기) 페이지용 목록: 전 효과음·BGM 의 분류·한 줄 설명·트리거·길이·루프·ogg/m4a 경로. 매니페스트를 쓸 때마다 함께 재생성 |
 | `parts/sound/work/encode.py` | 배포 형식 인코딩·검증(57라운드 Q17). ffmpeg(libvorbis·aac), bitexact 로 결정적 |
 | `parts/sound/work/wav/{sfx,bgm}/*.wav` | 합성 원본 **작업 캐시**(git 제외, `work/.gitignore`). `build.py` 로 바이트 단위 재생성 — 저장소·빌드 결과에 넣지 않는다 |
-| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 **234종**(61라운드: 핵심 18종 다시 만듦 + 새 2 + 변주 23. 그 전 209종 = 29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37 + 60라운드 2차 묶음 25·2단 갈래 32·패시브 10 — 그중 `gs_plunge`·`gs_crack`·`katana_echo` 는 보관), 원본 44.1 kHz / mono / 피크 -6 dBFS |
+| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 **263종**(61라운드 단계 2·3: 새 29 + 다시 11 + `boss1_cup_shatter` 보관 — 아래 61-2 절. 그 전 234종 = 61라운드: 핵심 18종 다시 만듦 + 새 2 + 변주 23. 그 전 209종 = 29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37 + 60라운드 2차 묶음 25·2단 갈래 32·패시브 10 — 그중 `gs_plunge`·`gs_crack`·`katana_echo` 는 보관), 원본 44.1 kHz / mono / 피크 -6 dBFS |
 | `assets/audio/bgm/*.{ogg,m4a}` | BGM 11파일: 기존 6곡(22.05 kHz / mono, 27~32 s 루프) + 61라운드 1층 전용 5파일(`f1_outside`·`f1_jan` 96 s, `f1_boss_p1~3` 72 s — 44.1 kHz / **stereo**). 피크 -6 dBFS(보스 p1·p2 는 공통 이득이라 더 낮음) |
 | `assets/audio/manifest.json` | 시스템 파트가 읽을 목록(계약 초안): 파일(`file` 1순위 + `files` 형식별)·샘플 수·길이·루프 구간·권장 음량·트리거 이벤트 제안·층별 BGM 매핑 |
 
@@ -27,7 +28,7 @@ python3 parts/sound/work/build.py verify     # 검증(WAV 피크·클리핑·경
 python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.json)만 다시
 ```
 새로 받은 저장소에는 WAV 캐시가 없으므로 `encode`·`manifest`·`verify` 전에 `build.py`(전부)를 한 번 돌린다.
-새 효과음은 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 **마지막 모듈(`sfx_core61.py`) 끝**에 추가하면 매니페스트·들어보기 목록까지 자동 반영된다(`build.py` 본문 중간이나 앞 모듈에 끼우면 시드가 밀려 뒤 소리가 바뀐다). 새 소리의 분류는 `listen_index.py` 의 `EXPLICIT`/`SUBGROUP` 에 적는다(60라운드 모듈 소리는 모듈 이름으로 자동). BGM 은 `@bgm(...)`.
+새 효과음은 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 **마지막 모듈(`sfx_stage61.py`) 끝**에 추가하면 매니페스트·들어보기 목록까지 자동 반영된다(`build.py` 본문 중간이나 앞 모듈에 끼우면 시드가 밀려 뒤 소리가 바뀐다). 새 소리의 분류는 `listen_index.py` 의 `EXPLICIT`/`SUBGROUP` 에 적는다(60라운드 모듈 소리는 모듈 이름으로 자동). BGM 은 `@bgm(...)`.
 
 ## 자율 결정 (29라운드, 도영 님 부재 중 권장안으로 결정 — 복귀 후 검토)
 음향 파트 개시 BLANK(`parts/sound/CLAUDE.md`, GDD 8장) 네 항목을 아래와 같이 정했다. 근거는 `parts/producer/decisions/2026-10-01-round-29-autonomous-demo.md` 의 자율 진행 지시.
@@ -184,13 +185,58 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 4. `mixing` 새 키: `dedupeMs`·`voices`·`priority`·`ducking`·`variation`·`masterLimiter`·`bgmPhaseCrossfadeMs`·`bgmPhaseSyncPosition`·`bgmPhaseNote`·`bgmJourneyNote`·`variantGroups`.
 5. 새 트리거 제안: `PLAYER_DAMAGED{guarded:true}` → `guard_block`, `PLAYER_ATTACK{finisher:true}`(마지막 타 **적중** 때, 활 제외) → `combo_finish`.
 
+## 추가 (61라운드 단계 2·3 — 신규 적 2종 · 보스 '만취' 패스 P6 · 발도 검기 단수 · 가드, 2026-10-05 자율 모드)
+근거: `parts/producer/decisions/2026-10-05-round-61-autonomous-stage1.md`(자율 모드 — 인터뷰 없이 판단, 이유를 여기 기록), 점검 `review-2026-10-05-stage1-design-audit.md` SY-1(4동사)·SY-5(신규 적 = 보스 예습)·SY-8(보스 재구성), 계약 `art-assets.md` §23(행상 throw 놓음 550 ms · 짐꾼 push 놓음 530 ms · 굴러가는 통 60 ms × 8). 도구 그대로(표준 라이브러리 합성 + ffmpeg). 코드 `work/sfx_stage61.py`, 설계표 `sound-design.md` **4-9**.
+
+**새 29 · 다시 11 · 보관 1** (트리거는 전부 **제안** — 시스템 이름 규칙(`EVENT{키:값}`)으로 썼고 실제 이름·값은 시스템 확정)
+| 묶음 | 키 | 트리거 제안 |
+|---|---|---|
+| 독주 행상 (새 4) | `peddler_wick` · `peddler_throw` · `peddler_hurt` · `peddler_death` | `ENEMY_TELEGRAPH{enemy:peddler}` · `ENEMY_ATTACK{enemy:peddler,phase:throw}` · `ENEMY_DAMAGED{enemy:peddler,aux:true}` · `ENEMY_DIED{enemy:peddler}` |
+| 술통 짐꾼 (새 8) | `porter_windup` · `porter_push` · `porter_barrel_roll`(루프) · `barrel_return` · `porter_barrel_break` · `porter_liquor_spill` · `porter_hurt` · `porter_death` | `ENEMY_TELEGRAPH{enemy:porter}` · `ENEMY_ATTACK{enemy:porter,phase:push\|roll\|return\|break\|spill}` · `ENEMY_DAMAGED{enemy:porter,aux:true}` · `ENEMY_DIED{enemy:porter}` |
+| 보스 파훼·결정타 (새 4 + 다시 1) | `boss1_break_cup` · `boss1_break_pillar` · `boss1_break_barrel` · `boss1_break_reel` · `break_finisher`(다시) | `BOSS_BREAK{kind:cup\|pillar\|barrel\|reel}` · `BOSS_BREAK{kind:finisher}`(그대로) |
+| 보스 등장·국면·쓰러짐 (새 3 + 다시 2) | `boss1_entrance` · `boss1_phase_drink`(다시, 트리거 좁힘) · `boss1_phase_blackout` · `boss1_die` · `boss1_spin_start`(다시) | `BOSS_STARTED{boss:1}` · `BOSS_PHASE{boss:1,phase:2}` · `BOSS_PHASE{boss:1,phase:3}` · `BOSS_DIED{boss:1}` · 그대로 |
+| 보스 등불 (다시 2) | `boss1_candle_topple`(꺼짐) · `boss1_candle_relight`(다시 켜짐) | 그대로(`attack:darkness,phase:topple\|relight`) |
+| 보스 1국면 패턴 (새 4) | `boss1_dash_telegraph` · `boss1_dash` · `boss1_slam_telegraph` · `boss1_slam` | `BOSS_TELEGRAPH{boss:1,attack:dash\|slam}` · `BOSS_ATTACK{boss:1,attack:dash\|slam}` |
+| 보스 금속·얇은 소리 다시 (4) | `boss1_drink_lift` · `boss1_drink_finish` · `boss1_barrel_kick` · `boss1_barrel_bounce` | 그대로 |
+| 보관 (1) | `boss1_cup_shatter` | (연결 끊음 — `boss1_break_cup` 이 대신) |
+| 칼 발도 (새 5) | `katana_iai_ki1` ~ `ki5` | `PLAYER_SKILL{weapon:katana,move:iai,phase:release,kenkiStage:1~5}` |
+| 가드 (다시 2 + 새 1) | `guard_hold`(1.2 s 루프) · `guard_push` · `guard_block_heavy` | 그대로 · `PLAYER_SECONDARY{kind:guard,phase:release,weapon:greatsword}`(weapon 조건 추가) · `PLAYER_DAMAGED{guarded:true,weapon:greatsword}` |
+
+판단과 이유:
+- **행상 병 착탄 = `bottle_burst` 재사용(새 파일 없음)**: 아트 §23 이 행상 병에 소모품과 같은 fx 사슬(`fire_bottle_thrown → fire_bottle_burst → fire_pool`)을 쓴다. 같은 물건은 같은 소리여야 플레이어가 '내가 던지는 술병과 같은 것'으로 읽고, 1층 소리 수도 늘지 않는다. 트리거가 하나뿐이라 manifest 에는 새 항목을 만들지 않고 시스템이 `ENEMY_ATTACK{enemy:peddler,phase:impact}` 에서 `sfx/bottle_burst` 를 재생하도록 요청한다(웅덩이는 기존대로 `boss1_fire_loop` 1개).
+- **예고 = 놓는 순간까지 커지다 뚝 끊김**: `peddler_wick`(0.55 s)·`porter_windup`(0.53 s)은 시트 프레임 0 에서 시작해 놓음 프레임에서 30 ms 만에 끊긴다. 소리가 끊기는 지점이 곧 피하기 신호이고, 이어서 `peddler_throw`·`porter_push` 가 프레임 5 에 붙는다. 예고는 우선순위 3(`ENEMY_TELEGRAPH`).
+- **되치기 '탕' 하나를 짐꾼·보스가 공유(`barrel_return`)**: SY-5 '신규 적 = 보스 예습'. 짐꾼에서 들은 '탕'이 보스전에서 그대로 들리면 파훼가 귀로 이어진다. 보스 쪽은 `BOSS_ATTACK{boss:1,attack:barrel,phase:return}` 에서 같은 id 를 재생하도록 요청. 벽에 튕기는 `boss1_barrel_bounce` 는 일부러 더 둔하게(쳐낸 것 ≠ 벽에 맞은 것).
+- **파훼 4종 = 공통 신호 + 재료**: 4종이 같은 뼈대(넓은 '쾅' → 아래로 꺼지는 '부웅' → 0.14 s 주저앉는 '쿵')를 갖고 재료(도자기·술 / 기둥·돌 / 통·술 / 몸이 비틀려 나뒹굶)만 다르다. 손맛을 위해 `BOSS_BREAK` 우선순위를 2 → 3 으로 올리고(`break_count`·`break_finisher` 포함, 오디오 불변), 재생 동안 다른 타격음을 -4 dB 300 ms 누르는 덕킹을 추가했다(`mixing.py`).
+- **`boss1_cup_shatter` 보관**: 잔 깨짐이 이제 파훼(`BOSS_BREAK{kind:cup}`)이므로 같은 순간 두 소리가 겹치지 않게 연결을 끊었다. 파일·항목·시드는 그대로(`listen_index` '보관' 분류, note 앞 `[보관 …]`).
+- **결정타 다시**: '크고 묵직하게' → 칼날 울림 D6·쪼개지는 쇠·징·종(울림이 남던 금속·얇은 소리)을 모두 빼고 몸통(150→32)·큰 북 둘·0.9 s 낮은 울림·흙돌로. 파일 0.08 s = 일격(옛 규칙 유지). `boss1_die` 는 첫 0.3 s 를 일부러 조용히 두어 결정타와 같은 프레임에 겹쳐도 한 방이 먼저 들린다.
+- **국면 전환에 '세상이 돈다'를 넣음**: P6 '세상이 돈다 = 국면 전환 연출(설정에서 끄기)'. 끄는 설정은 멀미 대책(그림)이라 소리는 그대로 둔다. `boss1_phase_drink` 는 트리거를 `BOSS_PHASE{boss:1}` → `{boss:1,phase:2}` 로 좁혔고, 3국면은 새 `boss1_phase_blackout`. 3국면 진입 확정 소등은 기존 패턴 소리 `boss1_candle_topple`(다시 만든 '등불 꺼짐')이 이어서 맡는다(국면 소리에 넣지 않음 — 이후 반복 소등과 같은 소리).
+- **1국면 돌진·내리찍기 새로 (지시 범위 밖이지만 P6 패스에 포함)**: 1국면 패턴 3개 중 술통만 전용 소리가 있었고 돌진은 공용 `boss_telegraph`(쇠 긁힘), 내리찍기는 소리가 없었다. 기둥 파훼의 출발점이라 전용으로 만들었다.
+- **발도 = 대체(겹침 아님)**: 단수별 무게를 정확히 쌓으려고 `katana_iai_ki1~5` 를 완성된 발도음으로 만들고 `katana_iai_release`(0단)를 대신하게 했다(찌르기 `katana_thrust_ki*` 는 겹침 방식 — 그대로). 옛 발도의 880 Hz 칼날 울림 대신 3.7~4.5 kHz 0.05 s 쇳빛만.
+- **가드**: 4동사 확정(우 = 가드, 칼·대검). `guard_push` 는 대검만(떼면 밀쳐내기) → `weapon:greatsword` 조건 추가. `guard_block` 은 61 P11 판이 아직 청취 전이라 바이트 그대로 두고, 무게가 다른 대검용 `guard_block_heavy` 를 새로 만들었다. `guard_hold` 는 1.24 kHz 쇠 험을 빼고 1.2 s 로 늘려 반복이 덜 들리게.
+- **적 목소리 없음**: 행상의 '흑'·짐꾼의 '끙'은 성대음 없는 노이즈 포먼트 + 가슴 저역(소리 바이블 1장). 사망 시 쓰러짐 시각은 행상 0.18 s · 짐꾼 0.34 s(무릎 0.16 s)로 잡았다 — death 시트의 실제 쓰러짐 프레임은 아트 JSON 에만 있어 확인하지 못함(아래 미완료).
+
+**검증·불변**
+- `build.py sfx` 전체 재합성 후 md5 대조(작업 시작 전 736개): **702개 바이트 불변**, 바뀐 것 = 다시 만든 11종 × 3(WAV·OGG·M4A) + manifest, 새 파일 87개(29 × 3). BGM 은 손대지 않음.
+- `build.py verify`: **274개(효과음 263 + BGM 11) 문제 0**. 새 루프 이음매 튐 비율 OGG / M4A: `guard_hold` 0.04 / 0.05, `porter_barrel_roll` 0.70 / 0.30(≤ 1 통과).
+- 용량: 효과음 OGG 2.28 → 2.66 MB, 브라우저 한 곳이 받는 전체 OGG 9.36 → 9.74 MB(M4A 10.46 MB).
+- 수치 확인(청취 불가 대신): 50 ms 창 음량·대역(0.7~2 kHz) 시간 분석으로 예고 두 개가 0.55·0.53 s 에서 끊기는지, 파훼 4종이 첫 0.3 s 에 -10~-12 dBFS 로 몰리는지, 발도 1→5단의 저역(<250 Hz)이 -23 → -19 dB 로 커지는지, 다시 만든 금속성 소리(`barrel_bounce`·`candle_topple`·`break_finisher` 등)의 0.7~2 kHz 대역이 오래 남지 않는지(남는 것은 술·불 노이즈뿐) 확인. `listen_index.json` 274항목 재생성(새 `round: "61-2"` 41항목, '보관' 4).
+
+**시스템에 전달할 것(계약 `sound-assets.md` 갱신은 프로듀서 소관)**
+1. 새 트리거 이벤트·조건(제안): `ENEMY_TELEGRAPH{enemy:peddler|porter}`, `ENEMY_ATTACK{enemy:peddler,phase:throw|impact}`, `ENEMY_ATTACK{enemy:porter,phase:push|roll|return|break|spill}`, `ENEMY_DAMAGED{enemy:<id>,aux:true}`, `ENEMY_DIED{enemy:<id>}`, `BOSS_BREAK{kind:cup|pillar|barrel|reel}`, `BOSS_STARTED{boss:1}`, `BOSS_PHASE{boss:1,phase:2|3}`, `BOSS_DIED{boss:1}`, `BOSS_TELEGRAPH/ATTACK{boss:1,attack:dash|slam}`, `BOSS_ATTACK{boss:1,attack:barrel,phase:return}`, `PLAYER_SKILL{weapon:katana,move:iai,phase:release,kenkiStage:N}`, `PLAYER_SECONDARY{kind:guard,phase:release,weapon:greatsword}`, `PLAYER_DAMAGED{guarded:true,weapon:greatsword}`. 실제 이름·값(특히 BOSS_BREAK kind, 발도의 move 이름, 짐꾼 통 사건 이름)이 다르면 알려 주면 manifest 를 맞춘다.
+2. **대체(둘 다 울리지 않게)**: `boss1_entrance` ↔ `boss_start`, `boss1_die` ↔ `boss_die`, `boss1_phase_drink`/`boss1_phase_blackout` ↔ `boss_phase`, `boss1_dash_telegraph` ↔ `boss_telegraph`, `katana_iai_ki1~5` ↔ `katana_iai_release`(kenkiStage ≥ 1 이면 ki 만), `guard_block_heavy` ↔ `guard_block`(대검), `peddler_hurt`/`porter_hurt` ↔ `enemy_hurt`, `peddler_death`/`porter_death` ↔ `enemy_death`(엘리트면 `elite_die` 위에 겹침 가능), `boss1_break_reel` ↔ `boss1_fall`(파훼로 인정된 넘어짐일 때). 조건이 더 많은(구체적인) 항목 하나만 재생하는 규칙이면 자동으로 맞는다.
+3. **재사용(새 항목 없음)**: 행상 병 착탄 → `sfx/bottle_burst`, 보스 술통 되치기 → `sfx/barrel_return`, 불 웅덩이 → `sfx/boss1_fire_loop`, 술 웅덩이 점화 → `sfx/drunk_ignite`.
+4. 연결 끊기: `boss1_cup_shatter`(보관). 루프 새 1(`porter_barrel_roll`, 멈춤·깨짐에 80 ms 페이드아웃)·길이 바뀜 1(`guard_hold` 0.6 → 1.2 s — 루프 구간은 manifest `loopEndSample`).
+5. 믹싱: `BOSS_BREAK` 우선순위 3(manifest `priority` 이미 반영), `mixing.ducking` 에 BOSS_BREAK 줄, `perGroupOverrides` 4개 추가.
+
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).
 - 60라운드 읽기(지시 범위): 아트 fx JSON 26개 `assets/sprites/fx/v3/{katana_whirl_loop,katana_whirl_reflect,katana_moon_trail,katana_cleave_crack,katana_execute,katana_mirror_ki,katana_mirror_parry,greatsword_quake_fork,greatsword_echo_counter,greatsword_giant_ring,greatsword_charge_flash_lv4,greatsword_congest_aura,greatsword_congest_burst,dagger_frenzy_clone_in,dagger_frenzy_clone_out,dagger_brand_bleed,dagger_brand_hop,dagger_stuck_blade,dagger_hotwind_trail,dagger_hotwind_burst,bow_arrow_split,bow_arrow_stuck,bow_arrow_recall,bow_deadeye_scope,bow_link_stack,bow_skypierce_line}.json` — 계약 `art-assets.md` §21 이 타이밍 기준으로 가리키는 런타임 데이터(타이밍 필드만 참고).
 - 61라운드 읽기(자율 모드, 지시 범위): `parts/story/world-bible.md` §0(분위기), 공개 자료 `parts/producer/decisions/2026-10-05-round-61-autonomous-stage1.md`·`review-2026-10-05-stage1-design-audit.md`(SD-1·SD-2·SD-4, SY-1 무기 4동사 표)·`2026-10-05-round-60-parallel-production.md`(Q22)·`parts/producer/contracts/sound-assets.md`. 다른 파트 소유 경로(src·data·assets/sprites 등)는 읽지 않았다.
+- 61라운드 단계 2·3 읽기: 공개 자료만 — `CLAUDE.md`, `parts/producer/decisions/2026-10-05-round-61-autonomous-stage1.md`·`review-2026-10-05-stage1-design-audit.md`(SY-1·SY-5·SY-8·SD 절), `parts/producer/contracts/sound-assets.md`·`art-assets.md` §23·`ui-system-interface.md`(보스 이벤트 이름 검색). 아트 JSON(death 프레임 시각)은 읽지 않음.
 - 쓰기: `parts/sound/**`, `assets/audio/**` 만.
 
 ## 미완료 · 보류
-- 실제 청취 검수는 도영 님 복귀 후(컨테이너에서 재생 불가, 수치 검증만 수행). **61라운드 새 BGM 5파일·품질 패스 20종·변주 23 도 청취 전** — 데모에서 들어보고 피드백으로 다듬는다.
+- 실제 청취 검수는 도영 님 복귀 후(컨테이너에서 재생 불가, 수치 검증만 수행). **61-2 새 29·다시 11 도 청취 전.**
+- 61-2: 행상·짐꾼 death 시트의 쓰러짐 프레임 시각 미확인(소리는 행상 0.18 s · 짐꾼 0.34 s 가정) — 데모에서 어긋나면 시각만 옮겨 다시 만든다. 트리거 이름 전부 시스템 확정 대기. **61라운드 새 BGM 5파일·품질 패스 20종·변주 23 도 청취 전** — 데모에서 들어보고 피드백으로 다듬는다.
 - 시스템 파트의 오디오 로더·트리거 연동은 시스템 소유 — 매니페스트 초안을 전달만 한다.
 - 진화별 전용 효과음, 엔딩 2종 음악, 층별 BGM 세분화는 `sound-design.md` 6장 참조.

@@ -9,8 +9,9 @@ build.write_manifest() 가 부른다. 시스템이 이 값을 읽어 적용한�
 TIERS = [
     dict(level=4, name='telegraph', label='보스 예고·보스 신호',
          events=['BOSS_TELEGRAPH', 'BOSS_STARTED', 'BOSS_PHASE', 'BOSS_DIED']),
-    dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고',
-         events=['PLAYER_DAMAGED', 'PARRY_SUCCESS', 'PERFECT_GUARD', 'PERFECT_SUCCESS', 'ENEMY_TELEGRAPH', 'RUN_ENDED']),
+    dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)',
+         events=['PLAYER_DAMAGED', 'PARRY_SUCCESS', 'PERFECT_GUARD', 'PERFECT_SUCCESS', 'ENEMY_TELEGRAPH', 'RUN_ENDED',
+                 'BOSS_BREAK']),
     dict(level=2, name='hit', label='타격·처치·공격 동작(주인공·적·보스)',
          events=['(그 밖의 combat·boss 분류)']),
     dict(level=1, name='ambient', label='환경·획득·이벤트·패시브·상태 부가음',
@@ -42,7 +43,8 @@ def settings(variant_groups):
                                'sfx/hit_player': 2, 'sfx/dash': 1, 'sfx/swing_katana': 2,
                                'sfx/swing_greatsword': 2, 'sfx/swing_dagger': 3, 'sfx/bow_shot': 3,
                                'sfx/pickup_gold': 3, 'sfx/guard_block': 2, 'sfx/parry': 1,
-                               'sfx/combo_finish': 1},
+                               'sfx/combo_finish': 1, 'sfx/guard_block_heavy': 2, 'sfx/peddler_hurt': 2,
+                               'sfx/porter_hurt': 2, 'sfx/barrel_return': 2},
             steal='lowest-priority-oldest',
             note='동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 '
                  '30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). '
@@ -57,6 +59,9 @@ def settings(variant_groups):
                  hold='그 소리 길이 동안', note='bgmBossDuckDb 위에 더해짐'),
             dict(when='sfx/hit_player 그룹 재생', target='sfx priority ≤ 2', db=-3.0, attackMs=5, releaseMs=180,
                  hold='150 ms', note='맞은 순간이 또렷하게'),
+            dict(when='BOSS_BREAK 소리 재생(boss1_break_*·break_finisher)', target='sfx priority ≤ 2', db=-4.0,
+                 attackMs=5, releaseMs=300, hold='300 ms',
+                 note='61-2: 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게'),
         ],
         variation=dict(
             policy='random-no-repeat',

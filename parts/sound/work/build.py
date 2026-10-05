@@ -2827,7 +2827,7 @@ def _endure_trigger(sr, rng):
 
 # --- 60라운드: 2차 묶음 · 2단 갈래 16종 · 패시브 — 별도 모듈(CLAUDE.md 6-1 분리) ----------------------
 # 등록 순서 = 아래 import 순서(시드 = 1000 + 등록 순서). 기존 148개는 바이트 불변이어야 하므로 이 줄 위에는
-# 효과음을 더 넣지 않는다. 새 효과음은 마지막 모듈(sfx_passive.py) 끝 — 또는 그 뒤 새 모듈 — 에만 추가한다.
+# 효과음을 더 넣지 않는다. 새 효과음은 마지막 모듈(sfx_stage61.py) 끝 — 또는 그 뒤 새 모듈 — 에만 추가한다.
 # 모듈은 `from build import *` 로 이 파일의 DSP 유틸을 쓴다: 스크립트로 실행될 때(__main__)도 같은 모듈 객체를
 # 쓰도록 'build' 이름을 먼저 걸어 둔다(두 번 실행되어 SFX 표가 갈라지는 것을 막음).
 sys.modules.setdefault('build', sys.modules[__name__])
@@ -2835,6 +2835,7 @@ import sfx_bundle2  # noqa: E402,F401  2차 묶음 25 (엘리트·성소·등급
 import sfx_branch2  # noqa: E402,F401  2단 갈래 16종 → 32 파일
 import sfx_passive  # noqa: E402,F401  패시브 9종 → 10 파일
 import sfx_core61  # noqa: E402,F401  61라운드 P11 핵심 20종 품질 패스(같은 키 다시 등록 — 순서·시드 유지) + 새 2종 + 변주
+import sfx_stage61  # noqa: E402,F401  61라운드 단계 2·3: 신규 적 2종 · 보스 '만취' 패스(P6) · 발도 검기 단수 · 가드 다듬기
 import listen_index  # noqa: E402  들어보기 페이지용 목록(listen_index.json)
 
 

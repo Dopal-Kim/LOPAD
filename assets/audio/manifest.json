@@ -65,7 +65,11 @@
         "sfx/pickup_gold": 3,
         "sfx/guard_block": 2,
         "sfx/parry": 1,
-        "sfx/combo_finish": 1
+        "sfx/combo_finish": 1,
+        "sfx/guard_block_heavy": 2,
+        "sfx/peddler_hurt": 2,
+        "sfx/porter_hurt": 2,
+        "sfx/barrel_return": 2
       },
       "steal": "lowest-priority-oldest",
       "note": "동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). loop 항목은 빼앗지 않는다(상태가 끝날 때 시스템이 멈춤) — 대신 같은 id 는 1개만. UI 는 별도 상한 maxUi."
@@ -86,14 +90,15 @@
         {
           "level": 3,
           "name": "hurt",
-          "label": "주인공 피격·방어 판정·적 공격 예고",
+          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)",
           "events": [
             "PLAYER_DAMAGED",
             "PARRY_SUCCESS",
             "PERFECT_GUARD",
             "PERFECT_SUCCESS",
             "ENEMY_TELEGRAPH",
-            "RUN_ENDED"
+            "RUN_ENDED",
+            "BOSS_BREAK"
           ]
         },
         {
@@ -153,6 +158,15 @@
         "releaseMs": 180,
         "hold": "150 ms",
         "note": "맞은 순간이 또렷하게"
+      },
+      {
+        "when": "BOSS_BREAK 소리 재생(boss1_break_*·break_finisher)",
+        "target": "sfx priority ≤ 2",
+        "db": -4.0,
+        "attackMs": 5,
+        "releaseMs": 300,
+        "hold": "300 ms",
+        "note": "61-2: 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게"
       }
     ],
     "variation": {
@@ -555,11 +569,11 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 26460,
-      "durationMs": 600,
+      "samples": 52920,
+      "durationMs": 1200,
       "loop": true,
       "loopStartSample": 0,
-      "loopEndSample": 26460,
+      "loopEndSample": 52920,
       "gainDb": -10,
       "trigger": {
         "event": "PLAYER_SECONDARY",
@@ -569,7 +583,7 @@
         ]
       },
       "priority": 2,
-      "note": "가드 유지 루프. 낮은 긴장 울림 + 강철 떨림(누르는 동안 반복)"
+      "note": "가드 유지 루프(61-2 다시 만듦 — 1.24 kHz 쇠 험 제거, 0.6 → 1.2 s). 낮게 버티는 압력(0.83 Hz 숨 쉬듯) + 손잡이 가죽이 이따금 삐걱(셋) + 아주 작은 날 떨림(4.5 kHz 위, 7.5 Hz). 우클릭 누르는 동안(칼·대검 공통, 그로기 중 가드도). 시작 120 ms 페이드인, 떼면 80 ms 페이드아웃"
     },
     {
       "id": "sfx/guard_push",
@@ -582,19 +596,20 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 21168,
-      "durationMs": 480,
+      "samples": 22050,
+      "durationMs": 500,
       "loop": false,
       "gainDb": 0,
       "trigger": {
         "event": "PLAYER_SECONDARY",
         "when": [
           "kind:guard",
-          "phase:release"
+          "phase:release",
+          "weapon:greatsword"
         ]
       },
       "priority": 2,
-      "note": "가드 해제 밀치기. 낮은 폭발적 압력 + 바람"
+      "note": "대검 가드 떼기 = 밀쳐내기(61-2 다시 만듦, 4동사 — 대검만, 퍼펙트 직후 떼기는 gs_guard_rush). 짧게 내뱉는 숨(노이즈) + 칼 넓은 면이 공기를 미는 '훅'(250→900→300 Hz) + 0.06 s 넓적한 '퍽'(120→50 Hz, 저역 압력) + 가죽·갑옷 덜그럭 + 0.18 s 디딤 + 흙 긁힘. 적에게 닿으면 hit_enemy 를 겹침"
     },
     {
       "id": "sfx/shadowstep",
@@ -1322,10 +1337,10 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 22050,
-      "durationMs": 500,
+      "samples": 24255,
+      "durationMs": 550,
       "loop": false,
-      "gainDb": -3,
+      "gainDb": -2,
       "trigger": {
         "event": "BOSS_TELEGRAPH",
         "when": [
@@ -1335,7 +1350,7 @@
         ]
       },
       "priority": 4,
-      "note": "만취 큰 잔 들기. 옷 스침 + 유리잔 부딪힘 + 잔 속 술 출렁"
+      "note": "만취 큰 잔 들기(한 잔 더 예고, 61-2 다시 만듦 — 1.5 kHz 유리 울림 제거). 팔을 드는 옷 바람 + 탁자에서 잔이 끌리는 '드륵' + 도자기 '톡'(짧게) + 무겁게 출렁이는 술 + 0.1~0.5 s 낮게 올라가는 기대음(80→130 Hz, 예고). 이 소리가 들리면 잔을 노린다. 권장 음량 -3 → -2 dB(예고 우선순위 4)"
     },
     {
       "id": "sfx/boss1_drink_gulp",
@@ -1376,8 +1391,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 44100,
-      "durationMs": 1000,
+      "samples": 50715,
+      "durationMs": 1150,
       "loop": false,
       "gainDb": -2,
       "trigger": {
@@ -1389,7 +1404,7 @@
         ]
       },
       "priority": 2,
-      "note": "만취 다 마심. '크아' 숨(노이즈 포먼트, 목소리 아님) + 잔 내려놓는 '탁'"
+      "note": "만취 다 마심(61-2 다시 만듦 — 유리 틱 제거). '크아' 숨(노이즈 포먼트, 목소리 아님) + 0.72 s 큰 잔을 탁자에 내려놓는 '탁!'(나무 몸통 + 잔들 덜그럭)"
     },
     {
       "id": "sfx/boss1_cup_shatter",
@@ -1415,7 +1430,7 @@
         ]
       },
       "priority": 2,
-      "note": "약점 적중: 큰 잔 깨짐 + 술을 뒤집어씀(첨벙 + 물방울). 3초 경직 시작"
+      "note": "[보관 — 61-2: 파훼 · 잔 깨짐은 boss1_break_cup(BOSS_BREAK{kind:cup})으로 대체, 시스템 연결 끊음] 약점 적중: 큰 잔 깨짐 + 술을 뒤집어씀(첨벙 + 물방울). 3초 경직 시작"
     },
     {
       "id": "sfx/boss1_spin_start",
@@ -1441,7 +1456,7 @@
         ]
       },
       "priority": 2,
-      "note": "'세상이 돈다' 시작. 2초 주기로 울렁이며 내려가는 저음 스윕 + 소용돌이 바람 + 희미한 이질 고음"
+      "note": "'세상이 돈다'(61-2 다시 만듦 — 희미한 2.9 kHz 이질 고음 제거). 2 s 주기로 울렁이며 내려가는 저음 톱니 두 겹 + 소용돌이 바람 + 0.3·1.3 s 휘청이는 발 끌림. 국면 전환 소리(boss1_phase_drink·boss1_phase_blackout)에 같은 울렁임이 들어 있으므로, 시스템이 국면 전환과 별도로 '세상이 돈다'를 쓸 때만"
     },
     {
       "id": "sfx/boss1_reel_telegraph",
@@ -1530,8 +1545,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 24255,
-      "durationMs": 550,
+      "samples": 26460,
+      "durationMs": 600,
       "loop": false,
       "gainDb": -1,
       "trigger": {
@@ -1543,7 +1558,7 @@
         ]
       },
       "priority": 2,
-      "note": "술통 걷어차기. 장화 타격 + 속 빈 나무통 울림 + 쇠테 틱 + 통 속 술 출렁"
+      "note": "술통 걷어차기(61-2 다시 만듦 — 쇠테 울림을 낮고 짧게). 장화가 통을 차는 '퍽'(160→75 Hz) + 속 빈 통 울림 + 쇠테 덜컥 + 출렁 → 0.18·0.3 s 굴러 나가는 덜컹 둘. 짐꾼 porter_push 와 같은 재료를 더 크게"
     },
     {
       "id": "sfx/boss1_barrel_roll",
@@ -1584,8 +1599,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 22050,
-      "durationMs": 500,
+      "samples": 24255,
+      "durationMs": 550,
       "loop": false,
       "gainDb": -2,
       "trigger": {
@@ -1597,7 +1612,7 @@
         ]
       },
       "priority": 2,
-      "note": "술통이 벽·기둥에 튕김. 돌에 부딪히는 나무통 + 속 빈 울림 + 쇠테 덜그럭 + 술 출렁"
+      "note": "술통이 벽·기둥에 튕김(61-2 다시 만듦 — 950 Hz 쇠 울림 제거). 돌에 부딪는 '쿵'(130→55 Hz) + 넓은 '딱' + 속 빈 통 울림 + 쇠테 덜컥(낮게) + 출렁. 되치기 '탕'(barrel_return)보다 둔하다 — 벽에 맞은 것과 쳐낸 것을 구별"
     },
     {
       "id": "sfx/boss1_liquor_splash",
@@ -1716,10 +1731,10 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 44100,
-      "durationMs": 1000,
+      "samples": 74970,
+      "durationMs": 1700,
       "loop": false,
-      "gainDb": -2,
+      "gainDb": 0,
       "trigger": {
         "event": "BOSS_ATTACK",
         "when": [
@@ -1729,7 +1744,7 @@
         ]
       },
       "priority": 2,
-      "note": "촛대 쓰러짐(불 꺼짐). 쇠 촛대 넘어지는 쨍그랑 + 한 번 튐 + 불꽃 '훅' 꺼짐 + 내려앉는 저음"
+      "note": "등불 꺼짐(61-2 다시 만듦 — 520 Hz 쇠 촛대 '쨍그랑' 제거). 크게 휘두르는 팔 바람 → 0.12 s 등잔이 엎어지는 둔탁한 '톡' + 기름 찰랑 → 0.18·0.32·0.44·0.54 s 방 안 등불이 차례로 꺼지는 '훅' 넷(점점 작게) → 깔려 내려가는 어둠의 저음(110→45 Hz) + 서늘한 바람결. 돌방 울림. 권장 음량 -2 → 0 dB(화면이 어두워지는 큰 사건)"
     },
     {
       "id": "sfx/boss1_candle_relight",
@@ -1742,8 +1757,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 30870,
-      "durationMs": 700,
+      "samples": 37485,
+      "durationMs": 850,
       "loop": false,
       "gainDb": -3,
       "trigger": {
@@ -1755,7 +1770,7 @@
         ]
       },
       "priority": 1,
-      "note": "촛대 다시 켜기(타격·E). 쇠 촛대 틱 + 불꽃이 '화륵' 붙음 + 작은 타닥"
+      "note": "등불 다시 켜짐(61-2 다시 만듦 — 2.2 kHz 쇠 틱 제거, 타격·E). 심지에 닿는 작은 '톡' + 긁힘 → 0.03 s 불이 붙는 '화륵'(350→2.8k) + 따뜻하게 부푸는 저역 + 작은 타닥. 안심되는 소리"
     },
     {
       "id": "sfx/boss1_phase_drink",
@@ -1768,18 +1783,19 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 79380,
-      "durationMs": 1800,
+      "samples": 119070,
+      "durationMs": 2700,
       "loop": false,
       "gainDb": 0,
       "trigger": {
         "event": "BOSS_PHASE",
         "when": [
-          "boss:1"
+          "boss:1",
+          "phase:2"
         ]
       },
       "priority": 4,
-      "note": "만취 페이즈 전환 들이켜기(선택, boss_phase 대신 또는 뒤에). 잔 출렁 + 빠른 꿀꺽 3번 + 큰 '크아' + 낮은 북"
+      "note": "만취 국면 전환 1→2(얼큰 → 만취, 61-2 다시 만듦 — 트리거를 phase:2 로 좁힘). 잔 들어 출렁 → 0.15 s 꿀꺽 셋(더 낮고 굵게) → 0.85 s 큰 '크아'(노이즈) + 큰 북 '둥' + 1.25 s 두 번째 '둥' → 0.85~2.6 s '세상이 돈다' 울렁임(0.5 Hz = 화면 기울기 2 s, 내려가는 톱니 두 겹 + 소용돌이 바람). 기울기 설정이 꺼져도 소리는 그대로(멀미 설정은 그림만)"
     },
     {
       "id": "sfx/charge_start",
@@ -4362,7 +4378,7 @@
           "distinct:true"
         ]
       },
-      "priority": 2,
+      "priority": 3,
       "note": "약점 파훼 다양성 +1(이번 보스전에서 처음 성공한 파훼 종류 — 잔·기둥·술통·취권). 일기장에 표 긋는 '슥' + 나무 틱 + 맑은 종 A5. n번째마다 rate 1.0 / 1.059 / 1.189 / 1.335(A5→B♭5→C6→D6, D 단조) 권장. 파훼 자체 소리(boss1_cup_shatter 등) 뒤 120 ms"
     },
     {
@@ -4376,8 +4392,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 83790,
-      "durationMs": 1900,
+      "samples": 92610,
+      "durationMs": 2100,
       "loop": false,
       "gainDb": 0,
       "trigger": {
@@ -4386,8 +4402,8 @@
           "kind:finisher"
         ]
       },
-      "priority": 2,
-      "note": "결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격)"
+      "priority": 3,
+      "note": "결정타(61-2 다시 만듦 — 크고 묵직하게, 쇠·징·종 울림 제거). 0.08 s 빨려드는 역바람 → 일격: 겹으로 터지는 '딱-딱' + 날이 파고드는 '샥' + 아주 깊은 몸통(150→32 Hz) + 큰 북 '둥'(75→30 Hz) + 0.9 s 이어지는 낮은 울림(D2→A1, 무게만) + 저역 압력 + 흙·돌 튐 + 번쩍이는 고역 공기 → 0.3 s 두 번째 낮은 '둥'. 큰 돌방 울림. 파일 0.08 s = 일격. 마지막 일격으로 쓰러지면 boss1_die 와 같은 프레임에 겹침(boss1_die 앞 0.3 s 는 일부러 조용함)"
     },
     {
       "id": "sfx/still_ignite",
@@ -6037,6 +6053,733 @@
       "priority": 0,
       "variantOf": "sfx/menu_move",
       "note": "메뉴 이동 변주 2 — 1030 Hz"
+    },
+    {
+      "id": "sfx/peddler_wick",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/peddler_wick.ogg",
+      "files": [
+        "assets/audio/sfx/peddler_wick.ogg",
+        "assets/audio/sfx/peddler_wick.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 26460,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "ENEMY_TELEGRAPH",
+        "when": [
+          "enemy:peddler"
+        ]
+      },
+      "priority": 3,
+      "note": "61-2 새 — 독주 행상 투척 예고(throw 시작 = 프레임 0, 놓음 550 ms 까지). 등불 갓이 '톡' → 0.12 s 심지가 등불에 닿아 불붙는 '푸슉' → 놓는 순간(0.55 s)까지 점점 커지는 심지 지글거림·타닥 + 0.3 s 부터 팔을 젖히는 옷 바람 + 병 속 술 출렁. 소리가 커지다 끊기는 곳 = 병이 날아가는 순간(피하기 신호)"
+    },
+    {
+      "id": "sfx/peddler_throw",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/peddler_throw.ogg",
+      "files": [
+        "assets/audio/sfx/peddler_throw.ogg",
+        "assets/audio/sfx/peddler_throw.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 22932,
+      "durationMs": 520,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:peddler",
+          "phase:throw"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 독주 행상 병 놓음(throw 프레임 5 = 550 ms, fire_bottle_thrown 이 생기는 프레임). 짧게 내뱉는 숨 + 팔 휘두르는 '휙'(1.6k→500) + 빙글 도는 병(9 Hz) + 심지 불이 펄럭이며 멀어짐. 착탄은 bottle_burst 재사용(같은 그림·같은 불 웅덩이), 웅덩이는 boss1_fire_loop"
+    },
+    {
+      "id": "sfx/peddler_hurt",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/peddler_hurt.ogg",
+      "files": [
+        "assets/audio/sfx/peddler_hurt.ogg",
+        "assets/audio/sfx/peddler_hurt.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 12348,
+      "durationMs": 280,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "ENEMY_DAMAGED",
+        "when": [
+          "enemy:peddler",
+          "aux:true"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 독주 행상 피격 몸짓(목소리 없음, hurt 4프레임 · 번쩍 프레임 0). 짧게 들이켜는 '흑' 숨(노이즈) + 등짐 속 술병끼리 부딪는 아주 짧은 '짤그락'(3 kHz 위, 20 ms 감쇠) + 병 속 출렁 + 옷 스침. hit_enemy 위에 겹침(이 적에게는 enemy_hurt 대신)"
+    },
+    {
+      "id": "sfx/peddler_death",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/peddler_death.ogg",
+      "files": [
+        "assets/audio/sfx/peddler_death.ogg",
+        "assets/audio/sfx/peddler_death.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 44100,
+      "durationMs": 1000,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "ENEMY_DIED",
+        "when": [
+          "enemy:peddler"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 독주 행상 쓰러짐(목소리 없음, death 10프레임). 마지막 숨이 빠짐(노이즈) + 비틀 발 끌림 → 0.18 s 몸이 '쿵' + 등짐 술병들이 깨지는 '와장창'(짧은 유리 조각) + 쏟아지는 술 '꿀렁꿀렁' → 병 하나가 데구루루 굴러가다 멈춤. enemy_death 대신(엘리트면 elite_die 위에 겹침)"
+    },
+    {
+      "id": "sfx/porter_windup",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/porter_windup.ogg",
+      "files": [
+        "assets/audio/sfx/porter_windup.ogg",
+        "assets/audio/sfx/porter_windup.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 25578,
+      "durationMs": 580,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "ENEMY_TELEGRAPH",
+        "when": [
+          "enemy:porter"
+        ]
+      },
+      "priority": 3,
+      "note": "61-2 새 — 술통 짐꾼 밀기 예고(push 시작 = 프레임 0, 놓음 530 ms 까지). 발을 디디는 '쿵' + 어깨를 통에 대는 나무 '톡' → 0.08 s 부터 커지는 '끄응' 힘주는 숨(노이즈, 목소리 아님) + 통이 눌려 삐걱 + 발이 흙에 밀림 + 통 속 술 출렁. 0.53 s 에 끊김 = 통이 굴러 나오는 순간"
+    },
+    {
+      "id": "sfx/porter_push",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/porter_push.ogg",
+      "files": [
+        "assets/audio/sfx/porter_push.ogg",
+        "assets/audio/sfx/porter_push.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 22050,
+      "durationMs": 500,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:porter",
+          "phase:push"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 술통 짐꾼 술통 놓음(push 프레임 5 = 530 ms, porter_rolling_barrel 이 생기는 프레임). 내뱉는 '흡' + 어깨로 밀어내는 둔탁한 '쿵'(140→55 Hz) + 속 빈 통 울림 + 굴러 나가며 빨라지는 덜컹 셋 + 출렁. 이어서 porter_barrel_roll 루프"
+    },
+    {
+      "id": "sfx/porter_barrel_roll",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/porter_barrel_roll.ogg",
+      "files": [
+        "assets/audio/sfx/porter_barrel_roll.ogg",
+        "assets/audio/sfx/porter_barrel_roll.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 42336,
+      "durationMs": 960,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 42336,
+      "gainDb": -6,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:porter",
+          "phase:roll"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 짐꾼 술통 굴러가는 루프(0.96 s = 그림 한 바퀴 0.48 s × 2, 60 ms × 8 프레임과 같은 주기). 판자 덜컹 0.12 s 간격(한 바퀴마다 강세) + 낮은 굴림 + 통 속 출렁 + 자갈 바스락. 통이 멈추거나 깨지면 80 ms 페이드아웃. 되치기 뒤(returned)도 같은 루프. 보스 boss1_barrel_roll 보다 가볍고 빠름"
+    },
+    {
+      "id": "sfx/barrel_return",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/barrel_return.ogg",
+      "files": [
+        "assets/audio/sfx/barrel_return.ogg",
+        "assets/audio/sfx/barrel_return.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 25137,
+      "durationMs": 570,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:porter",
+          "phase:return"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 술통 되치기 '탕'(굴러오는 통을 쳐서 되돌린 순간 = porter_rolling_barrel_returned 로 바뀌는 프레임). 넓은 '딱' + 단단한 나무 몸통(270→115 Hz) + 짧게 울리는 속 빈 통(300·680 Hz) + 쇠테 덜컥 + 거꾸로 밀려 나가는 바람(700→2.2k) + 위로 번뜩이는 짧은 공기(울림 없음). **보스 술통 되치기(BOSS_ATTACK{boss:1,attack:barrel,phase:return})에도 같은 id 재사용** — 짐꾼에서 배운 소리 = 보스 파훼 신호"
+    },
+    {
+      "id": "sfx/porter_barrel_break",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/porter_barrel_break.ogg",
+      "files": [
+        "assets/audio/sfx/porter_barrel_break.ogg",
+        "assets/audio/sfx/porter_barrel_break.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 41895,
+      "durationMs": 950,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:porter",
+          "phase:break"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 짐꾼 술통이 벽·단단한 구조물에 깨짐(porter_barrel_break 8프레임 시작). 부딪는 '쾅'(140→45 Hz) + 속 빈 통 마지막 울림 + 판자 쪼개짐 10 + 쇠테 둘이 떨어져 덜컥·굴러감(낮게) + 술이 한꺼번에 쏟아짐 + 나무 조각 흩어짐. 웅덩이가 퍼질 때 porter_liquor_spill"
+    },
+    {
+      "id": "sfx/porter_liquor_spill",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/porter_liquor_spill.ogg",
+      "files": [
+        "assets/audio/sfx/porter_liquor_spill.ogg",
+        "assets/audio/sfx/porter_liquor_spill.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 37485,
+      "durationMs": 850,
+      "loop": false,
+      "gainDb": -6,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:porter",
+          "phase:spill"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 깨진 술통의 술이 바닥에 퍼짐(fx pool_liquor 가 생기는 프레임, break stateHold 뒤). 넓게 번지는 물결 '쏴아'(1.8k→600) + 꿀렁 셋 + 물방울. 불이 닿으면 기존 drunk_ignite(POOL_IGNITED) → boss1_fire_loop"
+    },
+    {
+      "id": "sfx/porter_hurt",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/porter_hurt.ogg",
+      "files": [
+        "assets/audio/sfx/porter_hurt.ogg",
+        "assets/audio/sfx/porter_hurt.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "ENEMY_DAMAGED",
+        "when": [
+          "enemy:porter",
+          "aux:true"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 술통 짐꾼 피격 몸짓(목소리 없음, hurt 4프레임). 낮은 '읍' 끙(노이즈 포먼트 + 가슴 저역) + 큰 몸통 '퍽'(110→48 Hz) + 가죽 멜빵 삐걱 + 등 나무틀 '톡'. hit_enemy 위에 겹침(이 적에게는 enemy_hurt 대신)"
+    },
+    {
+      "id": "sfx/porter_death",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/porter_death.ogg",
+      "files": [
+        "assets/audio/sfx/porter_death.ogg",
+        "assets/audio/sfx/porter_death.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 50715,
+      "durationMs": 1150,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "ENEMY_DIED",
+        "when": [
+          "enemy:porter"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 술통 짐꾼 쓰러짐(목소리 없음, death 10프레임). 길게 빠지는 '끄으' 숨(노이즈) → 0.16 s 무릎이 '쿵' → 0.34 s 큰 몸이 '쿠웅'(95→32 Hz) + 흙·자갈 + 등 나무틀·멜빵 덜그럭 + 쇠테 하나 덜컥 → 한 번 튐 + 먼지. enemy_death 대신(엘리트면 elite_die 위에 겹침)"
+    },
+    {
+      "id": "sfx/boss1_break_cup",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_break_cup.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_break_cup.ogg",
+        "assets/audio/sfx/boss1_break_cup.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 66150,
+      "durationMs": 1500,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_BREAK",
+        "when": [
+          "kind:cup"
+        ]
+      },
+      "priority": 3,
+      "note": "61-2 새 — 파훼 · 잔 깨짐(한 잔 더 마시는 중 큰 잔 약점 적중 → 경직). 도자기 몸통이 갈라지는 둔탁한 '빡' + 짧은 조각(3 kHz 위, 감쇠 짧게) + 술을 뒤집어쓰는 '촤악' + 물방울 + 파훼 공통 신호(쾅 → 꺼지는 '부웅' → 주저앉는 '쿵') + 0.35 s 사레들린 기침 둘(노이즈). boss1_cup_shatter 를 대신함"
+    },
+    {
+      "id": "sfx/boss1_break_pillar",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_break_pillar.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_break_pillar.ogg",
+        "assets/audio/sfx/boss1_break_pillar.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 83790,
+      "durationMs": 1900,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_BREAK",
+        "when": [
+          "kind:pillar"
+        ]
+      },
+      "priority": 3,
+      "note": "61-2 새 — 파훼 · 기둥 무너짐(돌진하다 기둥에 정면 충돌 → 경직). 머리로 들이받는 큰 '쿵'(120→38 Hz) + 기둥 나무가 쪼개짐 + 파훼 공통 신호 → 0.15~0.6 s 기둥이 기우는 낮은 삐걱 신음 → 0.62 s 무너지는 '와르르'(큰 몸통 + 판자 + 돌 부스러기 18) + 먼지. 돌방 울림"
+    },
+    {
+      "id": "sfx/boss1_break_barrel",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_break_barrel.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_break_barrel.ogg",
+        "assets/audio/sfx/boss1_break_barrel.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 66150,
+      "durationMs": 1500,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_BREAK",
+        "when": [
+          "kind:barrel"
+        ]
+      },
+      "priority": 3,
+      "note": "61-2 새 — 파훼 · 술통 되치기(되돌린 술통이 만취에게 박혀 터짐 → 경직). 통이 몸에 박히는 '콰직'(판자 9 + 속 빈 통 마지막 울림 + 쇠테 덜컥 둘) + 술이 한꺼번에 터져 뒤집어씀 + 파훼 공통 신호 + 0.3 s 숨이 턱 막힌 '허억'(노이즈). 되치기 순간의 '탕'은 barrel_return(짐꾼과 같은 소리)"
+    },
+    {
+      "id": "sfx/boss1_break_reel",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_break_reel.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_break_reel.ogg",
+        "assets/audio/sfx/boss1_break_reel.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 70560,
+      "durationMs": 1600,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_BREAK",
+        "when": [
+          "kind:reel"
+        ]
+      },
+      "priority": 3,
+      "note": "61-2 새 — 파훼 · 취권 꺾임(3연 취권 돌진을 받아쳐 꺾음 → 경직). 받아치는 '딱' + 채찍 같은 '샥' → 몸이 비틀려 도는 바람(7 Hz 로 휘며 내려감) + 파훼 공통 신호 → 0.32 s 크게 나뒹구는 '쿵'(boss1_fall 보다 큼) + 바닥 잔·소품 튐 + 먼지. 파훼로 인정된 넘어짐이면 boss1_fall 대신"
+    },
+    {
+      "id": "sfx/boss1_die",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_die.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_die.ogg",
+        "assets/audio/sfx/boss1_die.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 145530,
+      "durationMs": 3300,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_DIED",
+        "when": [
+          "boss:1"
+        ]
+      },
+      "priority": 4,
+      "note": "61-2 새 — 만취 쓰러짐(1층 보스 처치 연출, boss_die 대신). 처음 0.3 s 는 결정타가 들리게 조용히 낮게 앓는 숨(노이즈) → 0.35 s 무거운 비틀 걸음 + 마루 삐걱 → 0.6 s 손에서 큰 잔이 미끄러져 '톡'·데굴 → 0.75 s 무릎 '쿵' → 1.05 s 큰 몸이 탁자를 쓸며 넘어지는 '쿠웅'(85→28 Hz) + 판자·소품 덜그럭 + 쏟아지는 술 꿀렁 + 먼지 → 1.6 s 마지막 긴 숨 → 낮은 울림이 꺼지며 정적. 돌방 울림"
+    },
+    {
+      "id": "sfx/boss1_entrance",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_entrance.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_entrance.ogg",
+        "assets/audio/sfx/boss1_entrance.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 119070,
+      "durationMs": 2700,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_STARTED",
+        "when": [
+          "boss:1"
+        ]
+      },
+      "priority": 4,
+      "note": "61-2 새 — 만취 등장(1층 보스 등장 연출, boss_start 대신 — 1층 BGM 인트로 역할). 큰 잔을 탁자에 내리치는 '탁!' + 잔들 덜그럭 + 큰 북 '둥' → 울렁이며 깔리는 낮은 불협(D2·G#2 톱니, 0.5 Hz 맥놀이) → 0.55·1.15 s 무거운 걸음 둘 + 마루 삐걱 → 1.4 s 크게 내뱉는 '크아'(노이즈) → 1.6 s 등불이 확 살아나는 '화륵'. 돌방 울림"
+    },
+    {
+      "id": "sfx/boss1_phase_blackout",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_phase_blackout.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_phase_blackout.ogg",
+        "assets/audio/sfx/boss1_phase_blackout.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 136710,
+      "durationMs": 3100,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_PHASE",
+        "when": [
+          "boss:1",
+          "phase:3"
+        ]
+      },
+      "priority": 4,
+      "note": "61-2 새 — 만취 국면 전환 2→3(만취 → 인사불성). 술단지째 들이붓는 꿀꺽 다섯(빠르게) + 흘러넘치는 술 → 0.9 s 단지를 내던지는 '휙' → 1.1 s 바닥에 깨지는 '와장창'(도자기, 짧게) + 가장 깊은 '크아아'(노이즈) + 무거운 심장 셋(점점 크게) → 1.0~3.0 s 더 깊고 느린 울렁임(52→38 Hz). 등불 끄기는 이어지는 boss1_candle_topple(3국면 진입 확정 패턴)"
+    },
+    {
+      "id": "sfx/boss1_dash_telegraph",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_dash_telegraph.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_dash_telegraph.ogg",
+        "assets/audio/sfx/boss1_dash_telegraph.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 28665,
+      "durationMs": 650,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_TELEGRAPH",
+        "when": [
+          "boss:1",
+          "attack:dash"
+        ]
+      },
+      "priority": 4,
+      "note": "61-2 새 — 만취 돌진 예고(≈650 ms, 기둥 파훼의 출발 — boss_telegraph 대신, 쇠 긁힘 제거). 바닥을 구르는 무거운 발 둘(0·0.25 s) + 흙 긁기 + 0.45 s 콧김 '흥'(노이즈) + 낮게 올라가는 으르렁(55→120 Hz 톱니, 컷오프가 열림)"
+    },
+    {
+      "id": "sfx/boss1_dash",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_dash.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_dash.ogg",
+        "assets/audio/sfx/boss1_dash.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 26460,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:dash"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 만취 돌진(직선, 기둥에 부딪히면 boss1_break_pillar). 무거운 바람(300→1.1k) + 빠른 쿵쿵 걸음 넷 + 배 속 술 출렁 + 옷 펄럭"
+    },
+    {
+      "id": "sfx/boss1_slam_telegraph",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_slam_telegraph.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_slam_telegraph.ogg",
+        "assets/audio/sfx/boss1_slam_telegraph.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 22050,
+      "durationMs": 500,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_TELEGRAPH",
+        "when": [
+          "boss:1",
+          "attack:slam"
+        ]
+      },
+      "priority": 4,
+      "note": "61-2 새 — 만취 내리찍기 예고(두 팔을 머리 위로). 위로 올라가는 옷 바람(300→1.4k) + 힘주어 들이쉬는 숨(노이즈) + 낮게 차오르는 압력(70→110 Hz)"
+    },
+    {
+      "id": "sfx/boss1_slam",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_slam.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_slam.ogg",
+        "assets/audio/sfx/boss1_slam.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 44100,
+      "durationMs": 1000,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_ATTACK",
+        "when": [
+          "boss:1",
+          "attack:slam"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 만취 내리찍기 착지(바닥 강타). 넓은 '쾅' + 깊은 몸통(110→32 Hz) + 저역 압력 + 마룻장 쪼개짐 + 흙·돌 튐 + 0.12~0.3 s 바닥의 잔·소품이 튀어 덜그럭 + 먼지. 돌방 울림"
+    },
+    {
+      "id": "sfx/katana_iai_ki1",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/katana_iai_ki1.ogg",
+      "files": [
+        "assets/audio/sfx/katana_iai_ki1.ogg",
+        "assets/audio/sfx/katana_iai_ki1.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 28665,
+      "durationMs": 650,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:iai",
+          "phase:release",
+          "kenkiStage:1"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 칼 발도 · 검기 1단 소모(재빛). 딸깍 → 30 ms 발도 찢김 + 날 '샥' + 몸통 '퍽'(163→66 Hz) + 짧은 쇳빛(3.9 kHz, 울림 없음) + 칼날에 남는 지글거림. katana_iai_release(0단) 대신 재생 — 단수가 오를수록 낮고 무겁고 길다"
+    },
+    {
+      "id": "sfx/katana_iai_ki2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/katana_iai_ki2.ogg",
+      "files": [
+        "assets/audio/sfx/katana_iai_ki2.ogg",
+        "assets/audio/sfx/katana_iai_ki2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 33957,
+      "durationMs": 770,
+      "loop": false,
+      "gainDb": -0.5,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:iai",
+          "phase:release",
+          "kenkiStage:2"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 칼 발도 · 검기 2단 소모(호박빛). 1단 위에 불이 붙는 '훅' + 치솟는 불길 + 타닥, 몸통 151→60 Hz 로 더 깊게. katana_iai_release 대신"
+    },
+    {
+      "id": "sfx/katana_iai_ki3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/katana_iai_ki3.ogg",
+      "files": [
+        "assets/audio/sfx/katana_iai_ki3.ogg",
+        "assets/audio/sfx/katana_iai_ki3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 40131,
+      "durationMs": 910,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:iai",
+          "phase:release",
+          "kenkiStage:3"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 칼 발도 · 검기 3단 소모(백열 — 기본 상한). 2단 위에 번쩍 오르는 고역 공기 + 불똥 + 큰 북 같은 아래 무게(68→32 Hz), 몸통 139→54 Hz. katana_iai_release 대신"
+    },
+    {
+      "id": "sfx/katana_iai_ki4",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/katana_iai_ki4.ogg",
+      "files": [
+        "assets/audio/sfx/katana_iai_ki4.ogg",
+        "assets/audio/sfx/katana_iai_ki4.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 46305,
+      "durationMs": 1050,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:iai",
+          "phase:release",
+          "kenkiStage:4"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 칼 발도 · 검기 4단 소모(명경 전용). 3단 위에 불꽃이 맺혀 6 Hz 로 맥동하는 고역 반짝임(8.2k·10.5k), 아래 무게 더 크게. katana_iai_release 대신"
+    },
+    {
+      "id": "sfx/katana_iai_ki5",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/katana_iai_ki5.ogg",
+      "files": [
+        "assets/audio/sfx/katana_iai_ki5.ogg",
+        "assets/audio/sfx/katana_iai_ki5.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 54243,
+      "durationMs": 1230,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_SKILL",
+        "when": [
+          "weapon:katana",
+          "move:iai",
+          "phase:release",
+          "kenkiStage:5"
+        ]
+      },
+      "priority": 2,
+      "note": "61-2 새 — 칼 발도 · 검기 5단 소모(명경 최대). 3단 위에 빛 고리 다섯(45 ms 간격, 점점 높게, 3 kHz 위·짧게) → 0.33 s 백열 '화악' + 불똥, 가장 낮고 무겁고 긴 무게와 울림. katana_iai_release 대신"
+    },
+    {
+      "id": "sfx/guard_block_heavy",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/guard_block_heavy.ogg",
+      "files": [
+        "assets/audio/sfx/guard_block_heavy.ogg",
+        "assets/audio/sfx/guard_block_heavy.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 22050,
+      "durationMs": 500,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "PLAYER_DAMAGED",
+        "when": [
+          "guarded:true",
+          "weapon:greatsword"
+        ]
+      },
+      "priority": 3,
+      "note": "61-2 새 — 대검 일반 가드로 막음(넓은 칼 면을 방패처럼). guard_block(칼) 보다 무겁고 넓다: '딱' + 칼 면으로 받는 큰 충격(120→44 Hz) + 넓적한 저역 '훔' + 날 틱(2.6 kHz, 10 ms 감쇠) + 짧은 긁힘 + 0.05~0.25 s 뒤로 밀리는 발·흙. 대검이면 guard_block 대신"
     },
     {
       "id": "bgm/title",

@@ -28,17 +28,18 @@ GROUPS = [
     ('pickup', '획득·상점'),
     ('ui', 'UI·연출'),
     ('bgm', 'BGM'),
-    ('archived', '보관 (연결 끊음, 60라운드 Q6)'),
+    ('archived', '보관 (연결 끊음, 60라운드 Q6 · 61-2)'),
 ]
 
-ARCHIVED = {'katana_echo', 'gs_plunge', 'gs_crack'}
+ARCHIVED = {'katana_echo', 'gs_plunge', 'gs_crack', 'boss1_cup_shatter'}
 
 EXPLICIT = {
     'combat': ['hit_enemy', 'hit_enemy_crit', 'hit_player', 'dash', 'parry', 'guard_hold', 'guard_push',
-               'perfect_guard', 'groggy_start', 'perfect_evade', 'guard_block', 'combo_finish'],
+               'perfect_guard', 'groggy_start', 'perfect_evade', 'guard_block', 'combo_finish', 'guard_block_heavy'],
     'weapon_katana': ['swing_katana', 'parry_perfect', 'kenki_stage1', 'kenki_stage2', 'kenki_stage3', 'issen_dash',
                       'issen_burst', 'shadow_clone', 'katana_counter', 'katana_iai_hold', 'katana_iai_release',
-                      'katana_thrust', 'katana_thrust_ki1', 'katana_thrust_ki2', 'katana_thrust_ki3'],
+                      'katana_thrust', 'katana_thrust_ki1', 'katana_thrust_ki2', 'katana_thrust_ki3',
+                      'katana_iai_ki1', 'katana_iai_ki2', 'katana_iai_ki3', 'katana_iai_ki4', 'katana_iai_ki5'],
     'weapon_greatsword': ['swing_greatsword', 'charge_start', 'charge_stage1', 'charge_stage2', 'charge_stage3',
                           'charge_loop', 'charge_slam_lv1', 'charge_slam_lv2', 'charge_slam_lv3', 'utbun_full',
                           'gs_drag', 'gs_tackle', 'gs_brace_upswing', 'gs_leap', 'gs_leap_slam', 'gs_guard_rush',
@@ -53,7 +54,10 @@ EXPLICIT = {
     'build': ['set_tier1', 'set_tier2', 'set_tier3', 'dual_trait', 'curse_take', 'curse_end', 'blood_pact',
               'awaken_katana', 'awaken_greatsword', 'awaken_dagger', 'awaken_bow', 'mark_stack', 'boil_burst',
               'stillness', 'drunk_ignite', 'drunk_sway', 'endure_trigger'],
-    'enemy': ['enemy_death', 'enemy_hurt', 'charger_telegraph', 'charger_dash', 'archer_shot'],
+    'enemy': ['enemy_death', 'enemy_hurt', 'charger_telegraph', 'charger_dash', 'archer_shot',
+              'peddler_wick', 'peddler_throw', 'peddler_hurt', 'peddler_death',
+              'porter_windup', 'porter_push', 'porter_barrel_roll', 'barrel_return', 'porter_barrel_break',
+              'porter_liquor_spill', 'porter_hurt', 'porter_death'],
     'boss': ['boss_start', 'boss_phase', 'boss_telegraph', 'boss_fan', 'boss_die'],
     'world': ['level_enter', 'door_close', 'door_open', 'boss_unlock', 'exit_open', 'trial_clear', 'save'],
     'pickup': ['pickup_gold', 'pickup_potion', 'potion_use', 'shop_buy'],
@@ -95,6 +99,19 @@ SUBGROUP = {
     'passive_ember_heart': '#25 잔불 심장', 'passive_spilled_drink': '#26 엎지른 술',
     'passive_liquor_spray': '#28 독한 숨', 'passive_fire_breath': '#28 독한 숨 (술불 위)',
     'passive_drunk_fist': '#29 취권',
+    # 61라운드 단계 2·3
+    'peddler_wick': '독주 행상', 'peddler_throw': '독주 행상', 'peddler_hurt': '독주 행상', 'peddler_death': '독주 행상',
+    'porter_windup': '술통 짐꾼', 'porter_push': '술통 짐꾼', 'porter_barrel_roll': '술통 짐꾼',
+    'barrel_return': '술통 짐꾼 · 되치기 (보스 공용)', 'porter_barrel_break': '술통 짐꾼', 'porter_liquor_spill': '술통 짐꾼',
+    'porter_hurt': '술통 짐꾼', 'porter_death': '술통 짐꾼',
+    'katana_iai_ki1': '발도 · 검기 단수', 'katana_iai_ki2': '발도 · 검기 단수', 'katana_iai_ki3': '발도 · 검기 단수',
+    'katana_iai_ki4': '발도 · 검기 단수 (명경)', 'katana_iai_ki5': '발도 · 검기 단수 (명경)',
+    'boss1_break_cup': '파훼', 'boss1_break_pillar': '파훼', 'boss1_break_barrel': '파훼', 'boss1_break_reel': '파훼',
+    'boss1_entrance': '등장 · 쓰러짐', 'boss1_die': '등장 · 쓰러짐',
+    'boss1_phase_drink': '국면 전환', 'boss1_phase_blackout': '국면 전환', 'boss1_spin_start': '국면 전환',
+    'boss1_candle_topple': '등불', 'boss1_candle_relight': '등불',
+    'boss1_dash_telegraph': '1국면 패턴', 'boss1_dash': '1국면 패턴',
+    'boss1_slam_telegraph': '1국면 패턴', 'boss1_slam': '1국면 패턴',
 }
 
 NEW_MODULES = {'sfx_bundle2': 'bundle2', 'sfx_branch2': 'branch2', 'sfx_passive': 'passive'}
@@ -122,7 +139,8 @@ def _group_of(name, kind, sfx_specs):
         return 'archived'
     if sfx_specs.get(name, {}).get('variant_of'):          # 61라운드 변주 = 원본과 같은 분류
         return _group_of(sfx_specs[name]['variant_of'], kind, sfx_specs)
-    mod = sfx_specs[name]['fn'].__module__ if name in sfx_specs else ''
+    spec = sfx_specs.get(name, {})
+    mod = spec.get('origin_module') or (spec['fn'].__module__ if spec else '')   # 다시 만든 소리는 처음 모듈의 분류
     if mod in NEW_MODULES:
         return NEW_MODULES[mod]
     for g, names in EXPLICIT.items():
@@ -145,10 +163,13 @@ def _bgm_where(e):
 
 
 def _round(name, kind, sfx_specs):
-    """새로 만들거나 다시 만든 라운드: '61' = 61라운드 품질 패스·변주·1층 BGM, '60' = 60라운드 모듈."""
+    """새로 만들거나 다시 만든 라운드: '61-2' = 61라운드 단계 2·3(신규 적·보스 패스·발도·가드),
+    '61' = 61라운드 품질 패스·변주·1층 BGM, '60' = 60라운드 모듈."""
     if kind == 'bgm':
         return '61' if name.startswith('f1_') else ''
     spec = sfx_specs[name]
+    if spec.get('redone') == '61-2' or spec.get('archived') == '61-2' or spec['fn'].__module__ == 'sfx_stage61':
+        return '61-2'
     if spec.get('redone') == '61' or spec['fn'].__module__ == 'sfx_core61':
         return '61'
     return '60' if spec['fn'].__module__ in NEW_MODULES else ''
@@ -196,6 +217,7 @@ def write(root, manifest_path, sfx_specs, out_path=None):
         note='들어보기 페이지 입력. 경로는 저장소 루트 기준. gainDb 는 SFX/BGM 버스 기준 권장 상대 음량(manifest 와 같음) — '
              '청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. '
              'round "60" = 60라운드 새 소리, "61" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, '
+             '"61-2" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],
         groups=[dict(id=g, label=label, count=counts.get(g, 0)) for g, label in GROUPS],
