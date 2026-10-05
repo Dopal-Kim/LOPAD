@@ -1,5 +1,31 @@
 # 게임 UI 파트 — 작업 기록
 
+## 60라운드 후속 (2026-10-05) · Q36~Q39 — 3지선다 카드 3장 · 이름표 새 바탕(글자 칸 24도트) · 완벽 문구 확인
+결정: `decisions/2026-10-05-round-60-parallel-production.md` Q36(이름표 글자 칸 확대 — 아트 1103aba 반영)·Q37(완벽 성공 HUD 문구 회피·놓기만)·Q38(개성 3지선다 카드 3장)·Q39(UI 세부 유지, `screen` = 머리 꼭대기). 계약 §14.4·§14.9, 교차 참조 #24. 시스템 코드 열람 없음.
+
+### 화면
+- **3지선다 카드 3장** (`MenuChoiceCards.ts`): `evolve`·`reward`·`passive` 메뉴에서 그만두기를 뺀 칸이 **정확히 3**이면 카드(그 밖 칸 수·다른 메뉴는 목록 그대로, 화면을 넘으면 목록으로 물러남). 일기장 한 페이지(제목·괘선·footer) 위에 잉크 탁자 깔개(`panel_ink`) + 종이 카드(`panel_paper` + `paper_tile`) 3장(212×208 이상, 간격 22, 그림자 S0 α0.55).
+  - 카드: 위 가운데 머리표 탭(잉크 + 종류 띠 — 갈래 21·강화 22·피의 계약 19·각성 25·이중 개성 23·패시브 22·저주 19, `kind` 가 없으면 메뉴 이름 '개성'·'보상'·'패시브') · 왼쪽 위 `[1]` · 이름(2배) · 희귀도 마름모 4칸(전설은 슬롯 25) · '희귀도 · 태그' · 괘선 · 설명 · 아래 '잠김 — 조건'(자물쇠) 또는 '(불가)'·'(팔림)'. 이름·괘선·설명 줄은 세 장이 같은 높이.
+  - 고름 자리: 카드가 6px 들리고 그림자 3→7px, 층 강조 20 테 2px, 이름 `page_selected`. 못 고르는 카드는 흐림(테는 또렷), 고르면 좌우 2px 흔들림.
+  - 조작: 1·2·3 / ←→(A·D) / Enter·스페이스 / 마우스(올리면 고름 자리, 누르면 선택). 그만두기 줄이 있으면 카드 아래 `[0] …` + ↓·0·Esc·'Esc 닫기' 버튼, 없으면 Esc 머무름 안내(기존). 아래 안내 '1·2·3 또는 ←→ 고르기 · Enter 고른다( · 0·Esc 그만두기)'.
+- **엘리트 이름표 새 바탕** (Q36, 아트 1103aba): `assets/ui/elite/` 사본을 192×40 판(pivot 96,38 · `textArea` 26,7 140×24 · `textCenterY` 19)으로 교체. 코드가 JSON 을 읽는다 — 가로 = `textArea` 가운데(가운데 조각을 늘린 만큼 칸도 넓힘, 칸이 가운데보다 좁으면 그만큼 더 넓힘), 세로 = `textCenterY`(없으면 칸 가운데), 아래 끝 = `pivot.y`. 글자(Galmuri11 1배 12px)가 바느질 테 안 띠에 들어간다. 위치는 `screen`(머리 꼭대기, Q39 확정) 37px 위 그대로.
+- **완벽 성공 문구** (Q37): 이미 회피·놓기만(`themeBuild.PERFECT.hudKinds = ['perfectRelease', 'perfectEvade']`) — 변경 없음, 확인만.
+
+### 소유 코드·에셋 (6-1 정리 먼저)
+- **분리**: `MenuScene.ts` 434 → 229줄 — 카드 고르기(`CardRow`)·닫기 버튼·패 탁자 화면을 `MenuCards.ts` 로.
+- **신규**: `MenuChoiceCards.ts`(카드 3장 화면), `choiceCardView.ts`(+테스트 5개 — 카드 판정·글·안내, 순수 계산).
+- **변경**: `menuView.ts`(`splitLabel` 공용), `eliteView.ts`(`textArea` 읽기·`plateTextCenter`, `plateMidW` 글자 칸 반영)·`EliteHud.ts`·`eliteView.test.ts`(새 판 수치), `textBuild.ts`(`choiceHint`·`choiceHintCancel`·`CHOICE_MENU_HEAD`), `themeBuild.ts`(`CHOICE_CARD`, `ELITE_PLATE` 주석).
+- **에셋**: `assets/ui/elite/elite_nameplate.png/.json`(새 판 사본) + README.
+
+### 검증
+`npx tsc --noEmit`·`npx eslint .`·`npx vitest run`(90 파일 691개)·`npx vite build` 통과. 헤드리스 Playwright(1920×1080, `vite preview`, `?debug=1&uidebug=1&lab&weapon=katana`, 스크립트·캡처 `scratchpad/r60cards/`): 가짜 evolve(강화·피의 계약·잠긴 각성, footer)·reward(패시브 희귀·이중 개성·패시브 전설, '0' 건너뛴다) → 카드 3장·→ 이동·'3'(잠긴 각성은 선택 안 감, reward '3' 은 감)·마우스 클릭(evolve '1'), 엘리트 이름표 2개(새 바탕). 페이지 오류 0.
+
+### 임시값 (도영 님 검토 대상)
+- 카드 수치 전부(`themeBuild.CHOICE_CARD`), 종류 띠 색 배정, 안내 문구, `kind` 없을 때 머리표 이름.
+- 판단: ① 개성 1·2단 임계의 [갈래 A / 갈래 B / 강화]도 3칸이라 카드로 그린다. ② 카드로 그리는 메뉴 = evolve·reward·passive(저주 2택·이벤트·상점 등은 목록). ③ 탁자 깔개 = 잉크 패널.
+
+---
+
 ## 60라운드 (2026-10-05) · 계약 §14 전체 — 빌드 축(태그·세트·이중 개성·저주·3지선다 칸) · 2차 묶음(노드 지도·상점·소모품·엘리트 이름표·성과 등급)
 결정: 57라운드 Q38 '모두 진행', 60라운드 Q12(이름표 문장 위 2단)·Q27(소모품 C)·Q32(E 조사 kind). 계약: `contracts/ui-system-interface.md` **§14**(승인 #21) + `src/contract/ui.ts`(시스템 추가분만 import). 아트: `art-assets.md` §22 `fx/v3/elite_nameplate` → `assets/ui/elite/` 사본(수정 금지). 시스템 코드 열람 없음.
 

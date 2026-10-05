@@ -98,12 +98,16 @@ export const CONSUMABLE = {
 } as const;
 
 /**
- * §14.9 엘리트 이름표 (아트 `elite_nameplate`: 192×30 도트, 가로 nineSlice 26/26, textCenterY 15, 권장 글자 #eecc78 =
- * 1층 램프 슬롯 25). `scale` 0.5 = 아트 도트 밀도 그대로(화면 96×15) — 문장 위 2단 배치(60 Q12).
+ * §14.9 엘리트 이름표 (아트 `elite_nameplate` 60 Q36 판: 192×40 도트, pivot (96,38), 가로 nineSlice 26/26, 글자 칸
+ * `textArea` 26,7 140×24 · textCenterY 19, 권장 글자 #eecc78 = 1층 램프 슬롯 25). 글자 위치·이름표 폭·아래 끝은 JSON
+ * (`textArea`·`textCenterY`·`pivot`)을 읽는다 — 바탕이 또 바뀌어도 사본 교체만으로 맞는다. `scale` 0.5 = 아트 도트 밀도 그대로(화면 96×20, 글자 칸 12px = Galmuri11 1배) — 문장 위 2단 배치(60 Q12).
  */
 export const ELITE_PLATE = {
   scale: 0.5,
-  /** 머리 위 화면 좌표(`screen`)에서 이름표 아래 끝까지 (논리 px) = 문장 pivot(머리 +10도트) 위 64도트 ≈ 37 */
+  /**
+   * 머리 위 화면 좌표(`screen` = 머리 꼭대기, 계약 §14.9 · 60 Q39 확정)에서 이름표 아래 끝까지 (논리 px)
+   * = 문장 pivot(머리 +10도트) 위 64도트 ≈ 37
+   */
   aboveHead: 37,
   /** 글자 좌우 여백 (도트) — 가운데 칸이 이만큼 넓어진다 */
   textPadDots: 6,
@@ -116,4 +120,57 @@ export const ELITE_PLATE = {
   depth: 30,
   /** 글자 층 강조 슬롯 (권장 #eecc78) */
   textSlot: 25,
+} as const;
+
+/**
+ * 60 Q38 개성·보상·패시브 3지선다 카드 3장 (MenuChoiceCards). 일기장 한 페이지 위 잉크 탁자 깔개 + 종이 카드 3장.
+ * 카드 = 키트 panel_paper 9-slice + paper_tile, 머리표 = panel_ink 작은 탭 + 종류 띠. 색은 층 강조 램프 슬롯·세피아만.
+ */
+export const CHOICE_CARD = {
+  /** 이 메뉴 id 들이 그만두기 줄을 빼고 `count` 칸이면 카드로 (그 밖은 목록) */
+  menus: ['evolve', 'reward', 'passive'] as readonly string[],
+  count: 3,
+  /** 카드 폭·최소 높이·간격·안쪽 여백 */
+  w: 212,
+  minH: 208,
+  gap: 22,
+  pad: 14,
+  /** 탁자 깔개(panel_ink) 안쪽 여백 */
+  matPad: 16,
+  /** 머리표 탭 높이(ink 9-slice 최소 24)·위 여백·종류 띠 폭 */
+  tabH: 24,
+  tabTop: 10,
+  stripe: 3,
+  /** 이름 글자 배율 (정수만) */
+  nameScale: 2 as const,
+  /** 희귀도 마름모 반지름·간격 */
+  pipR: 3,
+  pipGap: 3,
+  /** 고른 카드 들림·그림자 어긋남(평소·들림)·그림자 알파 */
+  lift: 6,
+  shadow: 3,
+  shadowLift: 7,
+  shadowAlpha: 0.55,
+  /** 고른 카드 테 (층 강조 슬롯, 2px) */
+  focusSlot: 20,
+  /** 못 고르는 카드 흔들림 px·ms */
+  shakePx: 2,
+  shakeMs: 50,
+  /** 종류별 머리표 띠 색 (층 강조 슬롯). 없으면 `kindSlotDefault` */
+  kindSlot: {
+    branchA: 21,
+    branchB: 21,
+    reinforce: 22,
+    bloodPact: 19,
+    awaken: 25,
+    dual: 23,
+    passive: 22,
+    curse: 19,
+  } as Readonly<Record<string, number>>,
+  kindSlotDefault: 20,
+  /** 희귀도 마름모 칸 수·찬 칸 색 (전설만 밝게) */
+  rarityRank: { common: 1, rare: 2, epic: 3, legendary: 4 } as Readonly<Record<string, number>>,
+  rarityMax: 4,
+  raritySlot: 22,
+  rarityTopSlot: 25,
 } as const;

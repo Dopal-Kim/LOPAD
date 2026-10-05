@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { UI_SCREEN, type UiElite } from '../contract/ui';
-import { plateMidW, platePos, readPlateJson, slice3, type PlateSlices } from './eliteView';
+import { plateMidW, platePos, plateTextCenter, readPlateJson, slice3, type PlateSlices } from './eliteView';
 import { GlowText } from './glow';
 import { ELITE_PLATE_TEX, accentHex } from './kit';
 import { GRAY, hexToNum } from './theme';
@@ -26,7 +26,8 @@ const FRAME = { left: 'plate-l', mid: 'plate-m', right: 'plate-r' } as const;
  * 60라운드 계약 §14.9 엘리트 이름표 — `UiSnapshot.elites`(화면 안의 살아 있는 엘리트)마다 머리 위에 아트 `elite_nameplate`
  * 바탕(가로 3조각: 캡 26 도트 · 가운데 반복 · 캡 26 도트, 도트 밀도 그대로 = scale 0.5) + 이름(권장 #eecc78 = 슬롯 25) +
  * 아래 체력 선. 문장 아이콘·외곽선·접두어 fx 는 월드(시스템·아트) 몫이고, 이름표는 그 위 2단(60 Q12): 머리 위 점에서
- * `ELITE_PLATE.aboveHead` 위가 이름표 아래 끝. 오버레이(메뉴·지도·일시정지)가 떠 있으면 숨긴다. id 로 재사용한다.
+ * `ELITE_PLATE.aboveHead` 위가 이름표 아래 끝(계약 §14.9 `screen` = 머리 꼭대기, 60 Q39 확정). 글자는 JSON `textArea` 가운데
+ * (60 Q36: 글자 칸을 키운 새 바탕이 오면 사본만 바꾸면 된다). 오버레이(메뉴·지도·일시정지)가 떠 있으면 숨긴다. id 로 재사용한다.
  */
 export class ElitePlates {
   private plates = new Map<string, Plate>();
@@ -115,12 +116,13 @@ export class ElitePlates {
     const children: Phaser.GameObjects.GameObject[] = [];
     let w: number;
     let h: number;
+    let textCx: number;
     let textCy: number;
     let hpX: number;
     let hpW: number;
     let bottom: number;
     if (s && meta) {
-      const midW = plateMidW(text.textW, sc, ELITE_PLATE.textPadDots, s, meta.minWidth);
+      const midW = plateMidW(text.textW, sc, ELITE_PLATE.textPadDots, s, meta.minWidth, meta.textArea);
       const key = ELITE_PLATE_TEX.key;
       const bg: Phaser.GameObjects.GameObject[] = [];
       if (s.left) bg.push(scene.add.image(s.left.dx, s.left.dy, key, FRAME.left).setOrigin(0, 0));
@@ -131,18 +133,22 @@ export class ElitePlates {
       w = Math.round((s.leftW + midW + s.rightW) * sc);
       bottom = Math.round(meta.pivotY * sc);
       h = bottom;
-      textCy = meta.textCenterY * sc;
+      // 글자 자리 = 아트 JSON `textArea` 가운데 (60 Q36 새 바탕도 JSON 만 바뀐다)
+      const tc = plateTextCenter(s, midW, meta.textCenterY, meta.textArea);
+      textCx = tc.x * sc;
+      textCy = tc.y * sc;
       hpX = Math.round(s.leftW * sc);
       hpW = Math.max(1, Math.round(midW * sc));
     } else {
       w = text.displayWidth;
       h = text.displayHeight;
       bottom = h;
+      textCx = w / 2;
       textCy = h / 2;
       hpX = 0;
       hpW = w;
     }
-    text.setPosition(Math.round(w / 2 - text.displayWidth / 2), Math.round(textCy - text.displayHeight / 2));
+    text.setPosition(Math.round(textCx - text.displayWidth / 2), Math.round(textCy - text.displayHeight / 2));
     const hp = scene.add.graphics();
     children.push(text, hp);
     const hpY = bottom + ELITE_PLATE.hpGap;

@@ -38,6 +38,11 @@ export const R60_TEXT = {
   groupReroll: '진열 바꾸기',
   groupChest: '덤',
   groupMapInfo: '지도 정보',
+  // ---- 60 Q38 3지선다 카드 (개성·보상·패시브 3택)
+  /** 카드 조작 안내 — {keys} = '1·2·3' */
+  choiceHint: '{keys} 또는 ←→ 고르기 · Enter 고른다',
+  /** 그만두기 줄이 있을 때 덧붙임 — {key} = 그만두기 키 */
+  choiceHintCancel: ' · {key}·Esc 그만두기',
   // ---- §14.11 완벽 성공 (HUD 연출)
   perfectParry: 'PARRY',
   perfectGuard: 'PERFECT GUARD',
@@ -117,6 +122,13 @@ export const CHOICE_KIND_NAME: Record<UiChoiceKind, string> = {
   dual: '이중 개성',
   passive: '패시브',
   curse: '저주',
+};
+
+/** 3지선다 카드 머리표 — 줄에 `kind` 가 없을 때 메뉴 id 로 (60 Q38) */
+export const CHOICE_MENU_HEAD: Readonly<Record<string, string>> = {
+  evolve: '개성',
+  reward: '보상',
+  passive: '패시브',
 };
 
 /** 패시브 희귀도 이름 (§14.4) */

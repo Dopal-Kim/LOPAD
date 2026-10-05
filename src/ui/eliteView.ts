@@ -65,19 +65,47 @@ export function slice3(f: TrimFrame, leftW: number, rightW: number): PlateSlices
   };
 }
 
+/** 글자 칸 (원 프레임 도트, 아트 JSON `textArea`) */
+export interface TextArea {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 /**
- * 이름표 가운데 폭 (도트): 글자 폭(논리 px ÷ scale) + 좌우 여백, 최소 = minWidth - 캡 두 개.
- * 정수로 올린다.
+ * 이름표 가운데 폭 (도트): 글자 폭(논리 px ÷ scale) + 좌우 여백이 **글자 칸**(`textArea`, 가운데를 늘린 만큼 같이 넓어진다)에
+ * 들어가게, 최소 = minWidth - 캡 두 개. 글자 칸이 없으면 가운데 조각 전체를 글자 칸으로 본다. 정수로 올린다.
+ * 60라운드 Q36: 아트가 글자 칸을 키운 바탕(24도트 이상)으로 바꾸면 `textArea` 만 달라지고 코드는 그대로.
  */
 export function plateMidW(
   textW: number,
   scale: number,
   padDots: number,
-  s: Pick<PlateSlices, 'leftW' | 'rightW'>,
+  s: Pick<PlateSlices, 'leftW' | 'rightW' | 'midW'>,
   minWidth: number,
+  textArea?: TextArea | null,
 ): number {
   const need = Math.ceil(textW / Math.max(0.01, scale)) + padDots * 2;
-  return Math.max(minWidth - s.leftW - s.rightW, need, 1);
+  // 가운데 조각 중 글자 칸이 아닌 부분 (늘려도 그대로 남는 여백)
+  const rest = textArea ? Math.max(0, s.midW - textArea.w) : 0;
+  return Math.max(minWidth - s.leftW - s.rightW, need + rest, 1);
+}
+
+/**
+ * 늘린 이름표 위 글자 가운데 (원 프레임 도트 좌표, 가운데 폭 = midW). 가로 = 글자 칸(`textArea`) 가운데(가운데 조각이 늘어난
+ * 만큼 칸도 넓어진다, 칸이 없으면 가운데 조각 가운데), 세로 = 아트 `textCenterY`(JSON 에 없으면 readPlateJson 이 글자 칸
+ * 가운데로 채운다).
+ */
+export function plateTextCenter(
+  s: Pick<PlateSlices, 'leftW' | 'midW'>,
+  midW: number,
+  textCenterY: number,
+  textArea?: TextArea | null,
+): { x: number; y: number } {
+  if (!textArea) return { x: s.leftW + midW / 2, y: textCenterY };
+  const grow = Math.max(0, midW - s.midW);
+  return { x: textArea.x + (textArea.w + grow) / 2, y: textCenterY };
 }
 
 /**
@@ -101,12 +129,16 @@ export function platePos(
   return { x, y };
 }
 
-/** JSON 에서 프레임 '0' 과 nineSlice·글자 자리를 읽는다 (없으면 null — 그 경우 이름표 바탕 없이 글자만) */
+/**
+ * JSON 에서 프레임 '0' 과 nineSlice·글자 자리(`textArea`·`textCenterY`)를 읽는다 (없으면 null — 그 경우 이름표 바탕 없이
+ * 글자만). `textArea` 가 없거나 모양이 틀리면 null(가운데 조각 + textCenterY 로 놓는다).
+ */
 export function readPlateJson(j: unknown): {
   frame: TrimFrame;
   leftW: number;
   rightW: number;
   textCenterY: number;
+  textArea: TextArea | null;
   minWidth: number;
   pivotY: number;
 } | null {
@@ -117,11 +149,22 @@ export function readPlateJson(j: unknown): {
   if (!f || !f.frame || !f.spriteSourceSize || !f.sourceSize) return null;
   const ns = (o.nineSlice ?? {}) as { leftWidth?: number; rightWidth?: number };
   const pivot = (o.pivot ?? {}) as { y?: number };
+  const ta = o.textArea as Partial<TextArea> | undefined;
+  const textArea =
+    ta && [ta.x, ta.y, ta.w, ta.h].every((v) => typeof v === 'number' && Number.isFinite(v)) && ta.w! > 0 && ta.h! > 0
+      ? { x: ta.x!, y: ta.y!, w: ta.w!, h: ta.h! }
+      : null;
   return {
     frame: f,
     leftW: ns.leftWidth ?? 0,
     rightW: ns.rightWidth ?? 0,
-    textCenterY: typeof o.textCenterY === 'number' ? o.textCenterY : Math.round(f.sourceSize.h / 2),
+    textCenterY:
+      typeof o.textCenterY === 'number'
+        ? o.textCenterY
+        : textArea
+          ? textArea.y + textArea.h / 2
+          : Math.round(f.sourceSize.h / 2),
+    textArea,
     minWidth: typeof o.minWidth === 'number' ? o.minWidth : 0,
     pivotY: typeof pivot.y === 'number' ? pivot.y : f.sourceSize.h,
   };

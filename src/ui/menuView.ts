@@ -45,14 +45,25 @@ export function choiceMeta(l: UiMenuLine, build?: UiBuildState | null): string {
   return parts.join(' · ');
 }
 
+/**
+ * 29라운드 evolve: 라벨 끝 ' — 설명' 이 detail 과 같으면 떼어 낸 이름과, 이름에 이미 들어 있지 않은 설명.
+ * 목록(menuLines)과 카드(choiceCardView)가 같이 쓴다.
+ */
+export function splitLabel(l: Pick<UiMenuLine, 'label' | 'detail'>): { label: string; detail: string } {
+  const suffix = l.detail ? ` — ${l.detail}` : '';
+  const dup = Boolean(suffix) && l.label.endsWith(suffix);
+  const label = dup ? l.label.slice(0, -suffix.length) : l.label;
+  const detail = l.detail && (dup || !l.label.includes(l.detail)) ? l.detail : '';
+  return { label, detail };
+}
+
 export function menuLines(m: UiMenu, build?: UiBuildState | null, tx: Tx = (k) => R60_TEXT[k]): SelectLine[] {
   const lab = LAB_MENUS.has(m.id);
   const mixed = mixedKinds(m);
   let prevGroup: string | undefined;
   return m.lines.map((l) => {
-    const suffix = l.detail ? ` — ${l.detail}` : '';
-    const dup = Boolean(suffix) && l.label.endsWith(suffix);
-    let label = dup ? l.label.slice(0, -suffix.length) : l.label;
+    const split = splitLabel(l);
+    let label = split.label;
     let indent = 0;
     const cancel = l.key === m.cancelKey;
     if (lab && !cancel) {
@@ -65,7 +76,7 @@ export function menuLines(m: UiMenu, build?: UiBuildState | null, tx: Tx = (k) =
     if (l.kind && mixed && !cancel) label = `〔${CHOICE_KIND_NAME[l.kind] ?? l.kind}〕 ${label}`;
     const price = l.price && l.price.kind !== 'none' ? l.price.label : '';
     if (price && !label.includes(price)) label = `${label} · ${price}`;
-    const detailText = l.detail && (dup || !l.label.includes(l.detail)) ? l.detail : '';
+    const detailText = split.detail;
     const meta = choiceMeta(l, build);
     const locked = l.locked?.condition ? fill(tx('locked'), { condition: l.locked.condition }) : '';
     const detail = [meta, detailText, locked].filter(Boolean).join('\n');
