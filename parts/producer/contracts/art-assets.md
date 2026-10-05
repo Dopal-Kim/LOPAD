@@ -540,3 +540,25 @@
 - 새 외벽 그림도 §19.4 규칙(WebP·4096 분할)으로 내보낸다.
 - 형식을 바꿀 때는 이 절부터 고친다(문서 머리말 규칙).
 - (57 Q38) **`framesPerDirection` 은 `atlas.grid.columns` 와 같아야 한다** — 다르면 로더가 그 시트를 오류로 건너뛴다(플레이스홀더). Chromium 은 OGG 디코딩 버퍼가 `samples` 보다 8~25ms 길 수 있어 시스템이 `loopEndSample` 로 잘라 쓴다(음향 참고).
+
+## 20. 58라운드 무기 피드백 2 시트 (58 Q1~Q11)
+- 세부 규격(프레임 크기·피벗·anchor·타이밍)은 **각 시트 JSON 이 기준**이다. 저장 형식은 §19.
+- 칼: `katana_thrust`(3타 찌르기, 무기·몸) + fx `katana_thrust_ki1~3`(검기 단계) + 무기 오버레이 `katana_thrust_ki1~3`(§18.10 검기 오버레이 규칙) / `katana_issen_dash`(일섬 = 대쉬 공격 전용).
+- 대검: `greatsword_charge_swing`(차지 = 항상 휘둘러 내리찍기) + fx `greatsword_charge_crack_line_t1~t5`(내리찍은 지점부터 커서 쪽 3/4/5칸, 58 Q5) / 진짜 3/4 대각 리그로 다시 그린 대검 10시트(연격 240×296 피벗 (117,217), 새 동작 280×312 피벗 (139,218), 차지 휘두르기 248×288 피벗 (121,220)).
+- 꽂아내리기 시트는 **보관만**(58 Q11, 로드하지 않음).
+- 갈래 1단 수단(branch57): `katana_spin`, `katana_guardbreak`, `greatsword_shatter_crack_t1~5`, `greatsword_quake_ring`, `dagger_fan_throw`, `dagger_thrown`, `dagger_cross_clone`, `bow_rapid_loop`, `bow_arrow_pierce`.
+
+## 21. 57라운드 빌드 축 시트 (fx·각성 오버레이·상태·저주)
+- 경로: fx `assets/sprites/fx/v3/`, 각성 오버레이 `assets/sprites/weapons/v3/<무기 시트>_awaken`. 세부 규격·타이밍(`spawnAtMs` 또는 생성 규칙)·`glowFrames`·`frameRoles`·판정 제안값은 **각 JSON 이 기준**(판정 수치의 기준은 시스템 데이터).
+- **1단 연격 변화**: `katana_fall_wide`, `status_stagger`, `greatsword_cleave_crack`, `dagger_combo3_double`, `dagger_gale_wind`, `aim_charge_quick`, `bow_snipe_full`.
+- **2단 갈래 fx(16갈래)**: `katana_whirl_loop`·`katana_whirl_reflect` / `katana_moon_trail` / `katana_cleave_crack`·`katana_execute` / `katana_mirror_ki`·`katana_mirror_parry` / `greatsword_quake_fork` / `greatsword_echo_counter` / `greatsword_giant_ring`·`greatsword_charge_flash_lv4` / `greatsword_congest_aura`·`greatsword_congest_burst` / `dagger_frenzy_clone_in`·`_out` / `dagger_brand_bleed`·`dagger_brand_hop` / `dagger_stuck_blade` / `dagger_hotwind_trail`·`dagger_hotwind_burst` / `bow_arrow_split` / `bow_arrow_stuck`·`bow_arrow_recall` / `bow_deadeye_scope` / `bow_link_stack`·`bow_skypierce_line`.
+- **최종 각성**: 시그니처 fx `katana_fullmoon`, `greatsword_landslide`(8방향, `drawn8` 행 순서), `dagger_hundred_ghosts`, `bow_meteor_arrow`. 무기 외형은 오버레이 60장(칼 20·대검 20·단검 11·활 9).
+- **상태·세트**: `status_mark`, `status_burn`, `status_boil`, `set_stasis_wave`, `status_slowed`, `pool_liquor`, `pool_liquor_fire`, `status_drunk`, `drunk_sway`, `endure_last_stand`, `chain_bloodlust`, `set_flash`, `dual_trait_get`, `perfect_dodge`. 저주 표시 `curse_mark`(7행 = 저주 7종).
+- **갈래 런 교체 규칙**: `katana_fall_wide`↔`katana_fall`, `dagger_combo3_double`↔`dagger_combo3`, `aim_charge_quick`↔`aim_charge`, `dagger_hotwind_burst`↔`dagger_overheat_burst`(같은 규격·1:1 교체).
+- **각성 오버레이 규칙**: 검기·울분 오버레이와 같은 규칙(같은 프레임 번호·시각·피벗). 그리는 순서 무기 → `_awaken` → `_ki`/`_grudge`. 각성 런에서만.
+- **새 앵커 이름(§18.11 추가)**: `path_point`, `crack_end`, `player_pivot_ground`, `clone_pivot`, `ground_point`, `aim_cursor`, `line_start`, `dodge_start_pivot`. 머리 꼭대기 앵커가 없는 동작은 주인공 피벗 위 124 도트 × 렌더 배율(1.25).
+- **행 규약 `rowsAre`**: `stacks`(`katana_mirror_ki`·`bow_link_stack`·`status_mark`), `stages`(`set_flash` 2/4/6, `greatsword_giant_ring` lv4), `kinds`(`curse_mark`).
+- **반복 타일**: `bow_skypierce_line`(`tile: true`, 주기 64 도트, 트림 안 함).
+- **그림자 색**: `shadowPalette` 필드(주인공 색 → 분신 색). 난무 상주 분신은 단검 몸·무기 시트를 런타임 색 교체.
+- **재사용 매핑**: 명경 분신 일섬 = `katana_issen_shadow` ×2(+90ms, ±24 도트) / 지진 착지 = `greatsword_shatter_crack_t2` / 비도 투척 = `dagger_thrown` ×5 / 연궁 분열 화살 = `bow_arrow_rapid` / 잔불 심장 = `fire_pool` / 거인 피격 흡수 = `greatsword_brace_absorb` / 비도 도착 = `shadowstep_ghost`.
+- 아트 제안 길이·반경(설계안에 없던 값, 인터뷰 대기): 일도양단 균열 4칸, 지진 갈래 각 2칸, 울혈 폭발 반경 2.25칸, 정적 파동 반경 약 5.6칸.
