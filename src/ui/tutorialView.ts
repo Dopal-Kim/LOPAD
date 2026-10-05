@@ -28,17 +28,34 @@ export function isTutorialNode(s: Pick<UiSnapshot, 'route' | 'lab'>): boolean {
   return !s.lab && currentNodeType(s) === 'journey';
 }
 
-/** 안내 패널을 한 번만 띄우기 위한 열쇠 (런 시드 + 노드 id). 튜토리얼이 아니면 '' */
+/**
+ * 안내 패널을 한 번만 띄우기 위한 열쇠. 튜토리얼이 아니면 ''.
+ * 61라운드 플레이 점검 #2: 노드마다(런 시드 + 노드 id)가 아니라 **런마다 한 번** — 튜토리얼 뒤 첫 전투 노드('버려진 길'도
+ * 여정 노드다)에서 같은 패널이 또 뜨지 않게. 다시 보기는 일시정지 일기장 '싸우는 법'.
+ */
 export function tutorialKey(s: Pick<UiSnapshot, 'route' | 'lab' | 'seed'>): string {
-  return isTutorialNode(s) ? `${s.seed}|${s.route?.currentId ?? ''}` : '';
+  return isTutorialNode(s) ? `run|${s.seed}` : '';
 }
 
-/** 안내 패널 줄: 이동 · 공격 · 우클릭 보조 · 대쉬 · (넣고 뽑는 무기면) F */
-export function tutorialRows(s: Pick<UiSnapshot, 'weapon' | 'carry'>, t: TutorialText): TutorialRow[] {
-  const rows: TutorialRow[] = [
-    { keys: ['W', 'A', 'S', 'D'], text: t('tutMove') },
-    { keys: [t('keyLeftClick')], text: t('tutAttack') },
-  ];
+/**
+ * 안내 패널 줄: 이동 + 무기 4동사(61라운드 P1 `weaponVerbs` — 좌 연격 · 우 시그니처 · Space 대쉬 · 좌 홀드 고유 기술, 이름 — 한 줄 설명).
+ * 4동사가 아직 없으면 예전 줄: 공격 · 우클릭 보조 · 대쉬 · (넣고 뽑는 무기면) F.
+ */
+export function tutorialRows(
+  s: Pick<UiSnapshot, 'weapon' | 'carry'> & { weaponVerbs?: UiSnapshot['weaponVerbs'] | null },
+  t: TutorialText,
+): TutorialRow[] {
+  const move: TutorialRow = { keys: ['W', 'A', 'S', 'D'], text: t('tutMove') };
+  const verbs = s.weaponVerbs?.verbs ?? [];
+  if (verbs.length) {
+    return [
+      move,
+      ...verbs
+        .filter((v) => v && v.key && v.name)
+        .map((v) => ({ keys: [v.key], text: v.hint ? `${v.name} — ${v.hint}` : v.name })),
+    ];
+  }
+  const rows: TutorialRow[] = [move, { keys: [t('keyLeftClick')], text: t('tutAttack') }];
   const sec = s.weapon?.secondaryName;
   if (sec) rows.push({ keys: [t('keyRightClick')], text: t('tutSecondary', { secondary: sec }) });
   rows.push({ keys: [t('keySpace')], text: t('tutDash') });

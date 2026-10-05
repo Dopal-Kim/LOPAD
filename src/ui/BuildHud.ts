@@ -1,167 +1,161 @@
 import Phaser from 'phaser';
 import { UI_SCREEN, type UiBuildState, type UiTagState } from '../contract/ui';
-import { curseLeft, hudTags, stagePips, tagChipValue } from './buildView';
+import { hudTags } from './buildView';
+import { curseShort } from './combatView';
 import { GlowText } from './glow';
 import { NinePanel, accentHex, inkPanel } from './kit';
-import { pixelDiamond, diamondRing } from './routeGlyph';
-import { r60Text } from './text';
+import { KEYCAP, KeyCap } from './keycap';
+import { fill, r60Text, r61Text } from './text';
 import { GRAY, STRUCT, hexToNum } from './theme';
 import { BUILD_HUD, PERFECT } from './themeBuild';
-
-interface Chip {
-  id: string;
-  panel: NinePanel;
-  objs: Phaser.GameObjects.GameObject[];
-  h: number;
-}
+import { BUILD_STRIP } from './themeR61';
 
 /**
- * 57라운드 계약 §14.1·§14.3 HUD 빌드 칩 — 좌상단, 구조물 상태 칩(StatusChips) 아래 세로 목록.
- * - 저주 칩(있으면 맨 위): 손실 띠(층 강조 19) + '저주'(흐림) + 이름(강조) + 남은 기간('3노드 남음' / '12처치 남음')
- * - 태그 칩(점수 높은 순 최대 4): 임시 글리프(이름 첫 글자 상자 — 태그 아이콘 10종 대기) + 이름(흐림) + '점수 · n단' +
- *   세트 임계 2·4·6 마름모 3칸(켜짐 = 층 강조 22, 꺼짐 = G05 고리)
- * 값이 바뀔 때만 다시 만든다. 완벽 성공(§14.11)이면 간파 칩을 한 번 깜빡인다.
+ * 57라운드 계약 §14.1·§14.3 HUD 빌드 칩 → 61라운드 P10 다이어트: **한 줄 띠**로 접는다 (좌상단, 구조물 상태 칩 아래).
+ * - 저주(있으면 맨 앞): 손실 띠(층 강조 19) + '저주 3노드'(강조)
+ * - 태그(점수 높은 순 최대 4): 임시 글리프(이름 첫 글자 상자, 세트가 켜지면 테 강조 22) + 점수(세트 켜짐 = 강조)
+ * - 끝에 [Tab] 빌드 (Tab 빌드 보기를 쓸 수 있는 층·시험장에서만)
+ * 이름·세트 단계·남은 효과는 Tab 빌드 보기·일기장에. 값이 바뀔 때만 다시 만든다. 완벽 성공이면 간파 글리프를 한 번 깜빡인다.
  */
 export class BuildChips {
-  private chips: Chip[] = [];
+  private panel?: NinePanel;
+  private objs: Phaser.GameObjects.GameObject[] = [];
+  /** 태그별 깜빡일 것 */
+  private tagObjs = new Map<string, Phaser.GameObjects.GameObject[]>();
   private sig = '';
   private top = 0;
+  private h = 0;
 
   constructor(
     private scene: Phaser.Scene,
     private x: number,
   ) {}
 
-  render(build: UiBuildState, stageIndex: number, top: number): void {
+  render(build: UiBuildState, stageIndex: number, top: number, tabHint = false): void {
     const tags = hudTags(build, BUILD_HUD.maxTags);
     const c = build.curse;
     const sig = [
       stageIndex,
-      c ? `${c.id}|${c.name}|${c.nodesLeft}|${c.killsLeft}` : '',
+      tabHint ? 'tab' : '',
+      c ? `${c.id}|${c.nodesLeft}|${c.killsLeft}` : '',
       ...tags.map((t) => `${t.id}|${t.name}|${t.score}|${t.stage}`),
     ].join('\u0001');
     if (sig !== this.sig) {
       this.sig = sig;
       this.top = top;
-      this.rebuild(build, tags, stageIndex);
+      this.rebuild(build, tags, stageIndex, tabHint);
     } else if (top !== this.top) {
       const dy = top - this.top;
       this.top = top;
-      for (const ch of this.chips) for (const o of [ch.panel, ...ch.objs]) (o as unknown as { y: number }).y += dy;
+      for (const o of this.all()) (o as unknown as { y: number }).y += dy;
     }
   }
 
-  /** 아래 끝 y */
+  /** 아래 끝 y (띠가 없으면 top) */
   bottom(): number {
-    return this.top + this.chips.reduce((h, c) => h + c.h + BUILD_HUD.chipGap, 0);
+    return this.top + (this.h ? this.h + BUILD_HUD.chipGap : 0);
   }
 
-  /** 완벽 성공: 그 태그 칩을 한 번 깜빡인다 (없으면 아무것도) */
+  /** 완벽 성공: 그 태그 글리프를 한 번 깜빡인다 (없으면 아무것도) */
   flash(tagId: string): void {
-    const ch = this.chips.find((c) => c.id === tagId);
-    if (!ch) return;
-    const targets = [ch.panel, ...ch.objs];
+    const targets = this.tagObjs.get(tagId);
+    if (!targets) return;
     this.scene.tweens.killTweensOf(targets);
     for (const o of targets) (o as unknown as Phaser.GameObjects.Components.Alpha).setAlpha(1);
     this.scene.tweens.add({ targets, alpha: 0.35, duration: BUILD_HUD.flashMs / 2, yoyo: true });
   }
 
   setVisible(v: boolean): void {
-    for (const c of this.chips)
-      for (const o of [c.panel, ...c.objs]) (o as unknown as Phaser.GameObjects.Components.Visible).setVisible(v);
+    for (const o of this.all()) (o as unknown as Phaser.GameObjects.Components.Visible).setVisible(v);
   }
 
   destroy(): void {
     this.clear();
   }
 
+  private all(): Phaser.GameObjects.GameObject[] {
+    return this.panel ? [this.panel, ...this.objs] : [...this.objs];
+  }
+
   private clear(): void {
-    for (const c of this.chips) {
-      this.scene.tweens.killTweensOf([c.panel, ...c.objs]);
-      c.panel.destroy();
-      for (const o of c.objs) o.destroy();
-    }
-    this.chips = [];
+    const all = this.all();
+    this.scene.tweens.killTweensOf(all);
+    for (const o of all) o.destroy();
+    this.panel = undefined;
+    this.objs = [];
+    this.tagObjs.clear();
+    this.h = 0;
   }
 
-  private rebuild(build: UiBuildState, tags: UiTagState[], si: number): void {
+  private rebuild(build: UiBuildState, tags: UiTagState[], si: number, tabHint: boolean): void {
     this.clear();
-    let y = this.top;
+    if (!build.curse && !tags.length && !tabHint) return;
+    const scene = this.scene;
+    const S = BUILD_STRIP;
+    const y = this.top;
+    const g = scene.add.graphics();
+    this.objs.push(g);
+    let x = this.x + S.padX;
+    const textY = y + Math.round((S.h - 16) / 2);
+    const curse = curseShort(build.curse);
     if (build.curse) {
-      this.chips.push(this.curseChip(build.curse.name, curseLeft(build.curse, r60Text), y, si));
-      y += BUILD_HUD.chipH + BUILD_HUD.chipGap;
+      g.fillStyle(hexToNum(accentHex(scene, si, BUILD_HUD.curseSlot)), 1).fillRect(
+        x,
+        y + 5,
+        STRUCT.chipStripe,
+        S.h - 10,
+      );
+      x += STRUCT.chipStripe + 2;
+      const text = curse
+        ? fill(r61Text('curseShort'), {
+            n: curse.n,
+            unit: r61Text(curse.unit === 'node' ? 'curseUnitNode' : 'curseUnitKill'),
+          })
+        : r60Text('curseHead');
+      const t = new GlowText(scene, x, textY, text, 'ink_accent', { stageIndex: si });
+      this.objs.push(t);
+      x += t.displayWidth + S.gap;
     }
-    for (const t of tags) {
-      this.chips.push(this.tagChip(t, y, si));
-      y += BUILD_HUD.chipH + BUILD_HUD.chipGap;
+    const gs = S.glyph;
+    for (const tag of tags) {
+      const gy = y + Math.round((S.h - gs) / 2);
+      // 임시 글리프: 이름 첫 글자 상자 (태그 아이콘 10종이 오면 바꾼다)
+      const box = scene.add.graphics();
+      box.fillStyle(hexToNum(GRAY[2]), 1).fillRect(x, gy, gs, gs);
+      box
+        .lineStyle(1, hexToNum(tag.stage > 0 ? accentHex(scene, si, 22) : GRAY[6]), 1)
+        .strokeRect(x + 0.5, gy + 0.5, gs - 1, gs - 1);
+      const ch = new GlowText(scene, 0, 0, (tag.name || tag.id).slice(0, 1), 'ink_body', { stageIndex: si });
+      ch.setPosition(Math.round(x + gs / 2 - ch.displayWidth / 2), Math.round(gy + gs / 2 - ch.displayHeight / 2));
+      const val = new GlowText(
+        scene,
+        x + gs + S.scoreGap - 2,
+        textY,
+        String(tag.score),
+        tag.stage > 0 ? 'ink_accent' : 'ink_faint',
+        {
+          stageIndex: si,
+        },
+      );
+      this.objs.push(box, ch, val);
+      this.tagObjs.set(tag.id, [box, ch, val]);
+      x = val.x + val.displayWidth + S.gap - 2;
     }
-  }
-
-  private curseChip(name: string, left: string, y: number, si: number): Chip {
-    const scene = this.scene;
-    const x = this.x;
-    const tx = x + 5 + STRUCT.chipStripe + 4;
-    const head = new GlowText(scene, tx - 2, y + 3, r60Text('curseHead'), 'ink_faint', { stageIndex: si });
-    const nm = new GlowText(scene, tx - 2 + head.textW + 6, y + 3, name, 'ink_accent', { stageIndex: si });
-    const lt = new GlowText(scene, nm.x + nm.textW + 6, y + 3, left, 'ink_faint', { stageIndex: si });
-    const w = lt.x + (left ? lt.textW : -6) + 4 + 8 - x;
-    const panel = inkPanel(scene, x, y, w, BUILD_HUD.chipH);
-    const stripe = scene.add.graphics();
-    stripe
-      .fillStyle(hexToNum(accentHex(scene, si, BUILD_HUD.curseSlot)), 1)
-      .fillRect(x + 5, y + 5, STRUCT.chipStripe, BUILD_HUD.chipH - 10);
-    return this.finish('curse', panel, [stripe, head, nm, lt]);
-  }
-
-  private tagChip(t: UiTagState, y: number, si: number): Chip {
-    const scene = this.scene;
-    const x = this.x;
-    const gs = BUILD_HUD.glyph;
-    const gx = x + 6;
-    const gy = y + Math.round((BUILD_HUD.chipH - gs) / 2);
-    // 임시 글리프: 이름 첫 글자 상자 (태그 아이콘 10종이 오면 바꾼다)
-    const box = scene.add.graphics();
-    box.fillStyle(hexToNum(GRAY[2]), 1).fillRect(gx, gy, gs, gs);
-    box
-      .lineStyle(1, hexToNum(t.stage > 0 ? accentHex(scene, si, 22) : GRAY[6]), 1)
-      .strokeRect(gx + 0.5, gy + 0.5, gs - 1, gs - 1);
-    const ch = new GlowText(scene, 0, 0, (t.name || t.id).slice(0, 1), 'ink_body', { stageIndex: si });
-    ch.setPosition(Math.round(gx + gs / 2 - ch.displayWidth / 2), Math.round(gy + gs / 2 - ch.displayHeight / 2));
-    const tx = gx + gs + 6;
-    const nm = new GlowText(scene, tx - 2, y + 3, t.name || t.id, 'ink_faint', { stageIndex: si });
-    const val = new GlowText(
-      scene,
-      nm.x + nm.textW + 6,
-      y + 3,
-      tagChipValue(t, r60Text),
-      t.stage > 0 ? 'ink_accent' : 'ink_body',
-      {
-        stageIndex: si,
-      },
-    );
-    // 세트 임계 2·4·6
-    const pips = scene.add.graphics();
-    const r = BUILD_HUD.pipR;
-    const px0 = val.x + val.textW + 6 + r;
-    const py = y + Math.round(BUILD_HUD.chipH / 2);
-    stagePips(t.stage).forEach((on, i) => {
-      const cx = px0 + i * (r * 2 + 1 + BUILD_HUD.pipGap);
-      if (on) pixelDiamond(pips, r, hexToNum(accentHex(scene, si, 22)), 1, cx, py);
-      else diamondRing(pips, r, 1, hexToNum(GRAY[5]), 1, cx, py);
-    });
-    const w = px0 + 2 * (r * 2 + 1 + BUILD_HUD.pipGap) + r + 8 - x;
-    const panel = inkPanel(scene, x, y, w, BUILD_HUD.chipH);
-    return this.finish(t.id, panel, [box, ch, nm, val, pips]);
-  }
-
-  /** 글자를 패널보다 먼저 만들었으므로 depth 로 순서를 잡는다: 패널 → 띠·그림 → 글자 */
-  private finish(id: string, panel: NinePanel, objs: Phaser.GameObjects.GameObject[]): Chip {
-    panel.setDepth(STRUCT.hudDepth);
-    for (const o of objs) {
+    if (tabHint) {
+      const cap = new KeyCap(scene, x, y + Math.round((S.h - KEYCAP.h) / 2), 'Tab', true);
+      const t = new GlowText(scene, x + cap.width + 3, textY, r61Text('stripTab'), 'ink_faint', { stageIndex: si });
+      this.objs.push(cap, t);
+      x = t.x + t.displayWidth + S.gap;
+    }
+    const w = x - S.gap + S.padX - this.x;
+    this.panel = inkPanel(scene, this.x, y, Math.max(24, w), Math.max(24, S.h));
+    this.h = Math.max(24, S.h);
+    // 글자를 패널보다 먼저 만들었으므로 depth 로 순서를 잡는다: 패널 → 띠·그림 → 글자
+    this.panel.setDepth(STRUCT.hudDepth);
+    for (const o of this.objs) {
       const d = o instanceof GlowText ? STRUCT.hudDepth + 2 : STRUCT.hudDepth + 1;
       (o as unknown as Phaser.GameObjects.Components.Depth).setDepth(d);
     }
-    return { id, panel, objs, h: BUILD_HUD.chipH };
   }
 }
 

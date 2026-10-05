@@ -37,11 +37,6 @@ export function tagName(id: UiTagId | string, build?: UiBuildState | null): stri
   return (TAG_NAME as Record<string, string>)[id] ?? String(id);
 }
 
-/** 세트 임계 2·4·6 중 켜진 칸 (stage 2 → [true,false,false]) */
-export function stagePips(stage: number): [boolean, boolean, boolean] {
-  return [stage >= 2, stage >= 4, stage >= 6];
-}
-
 /** 세트 임계 2·4·6 중 점수로 닿은 칸 (stage 와 같아야 하지만 score 로 다음 칸 차오름을 보인다) */
 export function scorePips(score: number): [number, number, number] {
   // 칸마다 0..1 채움 (0~2 / 2~4 / 4~6)

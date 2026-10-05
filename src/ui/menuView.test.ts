@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { UiMenu } from '../contract/ui';
-import { choiceMeta, menuLines, wideMenu } from './menuView';
+import { choiceMeta, cleanLabel, hasPrice, menuHotkeys, menuLines, wideMenu } from './menuView';
 
 describe('menuView (메뉴 줄 · 60라운드 §14.4·§14.6)', () => {
   it('evolve: 라벨 끝 설명 중복을 떼고, 칸 종류가 섞이면 〔종류〕, 잠긴 칸은 조건 줄 + (잠김)', () => {
@@ -112,5 +112,42 @@ describe('menuView (메뉴 줄 · 60라운드 §14.4·§14.6)', () => {
     expect(ls[1].label).toBe('└ 회오리');
     expect(ls[1].indent).toBeGreaterThan(0);
     expect(ls[2]).toMatchObject({ label: '뒤로', indent: 0 });
+  });
+});
+
+describe('61라운드 플레이 점검 #4 — 내부 표지·단축키·이중 가격', () => {
+  it('라벨 앞 영문 대괄호 표지를 뗀다 (한글 〔〕·가운데 대괄호는 그대로)', () => {
+    expect(cleanLabel('[common] 깨진 잔 조각 40 전표')).toBe('깨진 잔 조각 40 전표');
+    expect(cleanLabel('[d1] [epic] 끌어내린 무게')).toBe('끌어내린 무게');
+    expect(cleanLabel('[m:nextTier] 다음 단 공개')).toBe('다음 단 공개');
+    expect(cleanLabel('〔갈래 A〕 선풍')).toBe('〔갈래 A〕 선풍');
+    expect(cleanLabel('술잔 [1] 개')).toBe('술잔 [1] 개');
+  });
+
+  it('긴 시스템 키는 쓰지 않은 숫자를 단축키로 (이동 키 제외)', () => {
+    expect(menuHotkeys(['1', '2', 'd1', 'd2', 'reroll', '0'])).toEqual(['1', '2', '3', '4', '5', '0']);
+    expect(menuHotkeys(['give', 'rob'])).toEqual(['1', '2']);
+  });
+
+  it('가격이 띄어쓰기만 달라도 다시 붙이지 않는다, 목록 줄에 단축키·희귀도', () => {
+    expect(hasPrice('깨진 잔 조각 40 전표', '40전표')).toBe(true);
+    const m: UiMenu = {
+      id: 'shop',
+      title: '상점',
+      lines: [
+        {
+          key: 'd1',
+          label: '[common] 깨진 잔 조각 40 전표',
+          enabled: true,
+          rarity: 'rare',
+          price: { kind: 'gold', amount: 40, label: '40전표', affordable: true },
+        },
+      ],
+    };
+    const [l] = menuLines(m);
+    expect(l.label).toBe('깨진 잔 조각 40 전표');
+    expect(l.hotkey).toBe('1');
+    expect(l.key).toBe('d1');
+    expect(l.rarity).toBe(2);
   });
 });

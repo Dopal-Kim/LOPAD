@@ -14,6 +14,8 @@ export class KeyCap extends Phaser.GameObjects.Container {
   private g: Phaser.GameObjects.Graphics;
   private label: GlowText;
   private faint = false;
+  /** 61라운드: 넓은 키(Space)처럼 글보다 넓게 그릴 최소 폭 */
+  private minW: number = KEYCAP.minW;
 
   constructor(scene: Phaser.Scene, x: number, y: number, text: string, faint = false) {
     super(scene, x, y);
@@ -33,6 +35,13 @@ export class KeyCap extends Phaser.GameObjects.Container {
     return this;
   }
 
+  /** 61라운드 키캡 안내: 최소 폭 (넓은 키) */
+  setMinWidth(w: number): this {
+    this.minW = Math.max(KEYCAP.minW, Math.round(w));
+    this.redraw();
+    return this;
+  }
+
   setLabel(text: string): this {
     this.label.setText(text);
     this.redraw();
@@ -40,7 +49,7 @@ export class KeyCap extends Phaser.GameObjects.Container {
   }
 
   private redraw(): void {
-    const w = Math.max(KEYCAP.minW, this.label.textW + KEYCAP.padX * 2);
+    const w = Math.max(this.minW, this.label.textW + KEYCAP.padX * 2);
     const h = KEYCAP.h;
     const g = this.g;
     g.clear();

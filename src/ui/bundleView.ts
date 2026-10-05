@@ -75,7 +75,9 @@ export function rewardLegend(nodes: readonly Partial<UiRouteNode>[]): string {
     const r = nodeLook(n).reward;
     if (r && !seen.includes(r)) seen.push(r);
   }
-  return seen.map((r) => `${rewardGlyph(r)} ${REWARD_NAME[r] ?? r}`).join(' · ');
+  // 61라운드 플레이 점검 #10: 한 항목('전 전표 주머니') 안에서는 줄을 바꾸지 않게 안쪽 띄어쓰기를 붙은 공백(NBSP)으로
+  const keep = (t: string): string => t.replace(/ /g, '\u00a0');
+  return seen.map((r) => keep(`${rewardGlyph(r)} ${REWARD_NAME[r] ?? r}`)).join(' · ');
 }
 
 /** 노드 띠·지도 다시 그리기 판단용 서명 (§14.5 필드 포함) */

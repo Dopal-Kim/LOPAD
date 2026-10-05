@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { UI_SCREEN, type UiSnapshot, type UiStoryLine } from '../contract/ui';
 import { debugExpose } from './debug';
 import { GlowText } from './glow';
-import { KEYCAP, KeyCap } from './keycap';
+import { KEYCAP } from './keycap';
+import { keyGlyph } from './keyGuide';
 import { NinePanel, inkPanel } from './kit';
 import { fill, r53Text } from './text';
 import {
@@ -26,8 +27,6 @@ const TUT = {
   /** 키 칸 폭 (줄마다 글 시작을 맞춘다) */
   keyColW: 92,
   minW: 360,
-  /** 저절로 닫히기까지 (ms) */
-  holdMs: 12000,
   fadeMs: 250,
   /** 경고: 화면 가운데에서 위로. 머무는 시간은 이것과 소환까지 남은 시간(delayMs) 중 긴 쪽 */
   warnDy: -110,
@@ -43,14 +42,22 @@ const TUT = {
   warnBlinkMs: 160,
 } as const;
 
+/** '싸우는 법' 패널을 연 곳(HUD)이 게임을 멈추고 재개하는 고리 */
+export interface TutorialHooks {
+  onOpen?: () => void;
+  /** by = 닫은 키('Escape'·'Enter') 또는 'pointer' */
+  onClose?: (by: string) => void;
+}
+
 /** 한 번 띄운 튜토리얼 (런 시드 + 노드 id). HUD 씬이 다시 만들어져도 같은 런에서는 다시 띄우지 않는다 */
 const shownTutorials = new Set<string>();
 
 /**
  * 53라운드 튜토리얼 안내 (51라운드 §3, UI 몫).
  * - 안내 패널: 튜토리얼 노드(여정)에 들어와 배너·지역 카드가 끝난 뒤 화면 가운데 큰 잉크 패널 —
- *   제목 + 키 아이콘(KeyCap) 줄(이동·공격·우클릭·대쉬·F) + 기타 키 한 줄 + 닫기 안내. Enter·Esc·클릭 또는 12초 뒤 닫힌다.
- *   게임은 멈추지 않는다.
+ *   제목 + 키 아이콘(KeyCap) 줄(이동·공격·우클릭·대쉬·F) + 기타 키 한 줄 + 닫기 안내. Enter·Esc·클릭으로 닫힌다.
+ *   61라운드 플레이 점검 #2: 런마다 한 번만, 떠 있는 동안 **게임을 멈춘다**(hooks.onOpen → HUD 가 pause, 닫히면 resume).
+ *   저절로 닫히지 않는다(멈춘 채 몰래 재개되지 않게).
  * - 단계 카드: `TUTORIAL_STEP {index, total, text, keys}` (53라운드 계약) 을 위쪽 가운데 큰 카드로 — 키는 2배 키 아이콘,
  *   문장은 2배 글, 오른쪽 끝에 진행 '2/5'. 다음 단계가 올 때까지(최대 20초) 머물고, 노드를 옮기면 거둔다.
  *   이 이벤트를 아직 한 번도 받지 않았으면 예전처럼 튜토리얼 노드의 시스템 공지(STORY notice, 예 '…걸어가 보자. (WASD)',
@@ -60,7 +67,6 @@ const shownTutorials = new Set<string>();
  */
 export class TutorialGuide {
   private panel?: Phaser.GameObjects.Container;
-  private panelTimer?: Phaser.Time.TimerEvent;
   private warn?: Phaser.GameObjects.Container;
   private step?: Phaser.GameObjects.Container;
   private stepTimer?: Phaser.Time.TimerEvent;
@@ -73,7 +79,10 @@ export class TutorialGuide {
   private warnRoom: string | null = null;
   private alive = true;
 
-  constructor(private scene: Phaser.Scene) {
+  constructor(
+    private scene: Phaser.Scene,
+    private hooks: TutorialHooks = {},
+  ) {
     scene.input.on('pointerdown', this.onPointer);
   }
 
@@ -93,11 +102,16 @@ export class TutorialGuide {
     this.showPanel(s, stageIndex);
   }
 
-  /** Esc·Enter: 패널이 떠 있으면 닫고 true (Esc 한 단계 뒤로) */
-  dismiss(): boolean {
+  /** Esc·Enter: 패널이 떠 있으면 닫고 true (Esc 한 단계 뒤로). key = 닫은 키 (HUD 가 뗀 뒤 재개) */
+  dismiss(key?: string): boolean {
     if (!this.panel) return false;
-    this.closePanel();
+    this.closePanel(false, key ?? 'key');
     return true;
+  }
+
+  /** 게임이 다른 까닭으로 재개되면(RESUMED) 패널만 닫는다 — 재개 알림 없이 */
+  closeQuiet(): void {
+    if (this.panel) this.closePanel(false, null);
   }
 
   /**
@@ -142,7 +156,7 @@ export class TutorialGuide {
   destroy(): void {
     this.alive = false;
     this.scene.input?.off('pointerdown', this.onPointer);
-    this.closePanel(true);
+    this.closePanel(true, null);
     this.stepTimer?.remove();
     this.step?.destroy();
     this.step = undefined;
@@ -151,7 +165,7 @@ export class TutorialGuide {
   }
 
   private onPointer = (): void => {
-    if (this.panel) this.closePanel();
+    if (this.panel) this.closePanel(false, 'pointer');
   };
 
   private showPanel(s: UiSnapshot, stageIndex: number): void {
@@ -159,17 +173,17 @@ export class TutorialGuide {
     const box = p.box.setDepth(TUT.depth).setAlpha(0);
     this.panel = box;
     this.scene.tweens.add({ targets: box, alpha: 1, duration: TUT.fadeMs });
-    this.panelTimer = this.scene.time.delayedCall(TUT.holdMs, () => this.closePanel());
+    this.hooks.onOpen?.();
     debugExpose('tutorial', { open: true, rows: p.rows, x: p.x, y: p.y, w: p.w, h: p.h });
   }
 
-  private closePanel(now = false): void {
+  /** by = 닫은 까닭 ('Escape'·'Enter' 키 / 'pointer' / null = 알리지 않음) */
+  private closePanel(now = false, by: string | null = null): void {
     const p = this.panel;
     if (!p) return;
     this.panel = undefined;
-    this.panelTimer?.remove();
-    this.panelTimer = undefined;
     debugExpose('tutorial', { open: false });
+    if (by !== null && this.alive) this.hooks.onClose?.(by);
     if (now || !this.alive) {
       p.destroy();
       return;
@@ -181,7 +195,8 @@ export class TutorialGuide {
     const sc = this.scene;
     this.stepTimer?.remove();
     this.step?.destroy();
-    const caps = card.keys.map((k) => new KeyCap(sc, 0, 0, k).setScale(2));
+    // 61라운드: 마우스 키는 마우스 그림('좌클릭 길게' = 왼 단추 + 길게 누르기 막대)
+    const caps = card.keys.map((k) => keyGlyph(sc, k, stageIndex).obj.setScale(2));
     const t = new GlowText(sc, 0, 0, card.text, 'ink_body', { scale: 2, stageIndex });
     const prog = card.progress
       ? new GlowText(
@@ -302,7 +317,7 @@ export interface HowToPanel {
 
 /**
  * '싸우는 법' 패널을 화면 가운데에 만든다 (깊이·알파·닫기는 부르는 쪽이 정한다).
- * 제목 + 키 아이콘(KeyCap) 줄(이동·공격·우클릭·대쉬·F) + 기타 키 한 줄 + 닫기 안내. 줄은 스냅샷(무기 보조 동작·넣기/뽑기)으로 만든다.
+ * 제목 + 키 그림 줄(이동 + 61라운드 무기 4동사, 없으면 공격·우클릭·대쉬·F) + 기타 키 한 줄 + 닫기 안내. 줄은 스냅샷으로 만든다.
  */
 export function buildHowToPanel(sc: Phaser.Scene, s: UiSnapshot, stageIndex: number): HowToPanel {
   const rows = tutorialRows(s, (k, v) => (v ? fill(r53Text(k), v) : r53Text(k)));
@@ -311,7 +326,7 @@ export function buildHowToPanel(sc: Phaser.Scene, s: UiSnapshot, stageIndex: num
   objs.push(title);
   // 줄: 키 아이콘들 + 글
   const rowObjs = rows.map((r) => {
-    const caps = r.keys.map((k) => new KeyCap(sc, 0, 0, k));
+    const caps = r.keys.map((k) => keyGlyph(sc, k, stageIndex).obj);
     const text = new GlowText(sc, 0, 0, r.text, 'ink_body', { stageIndex });
     objs.push(...caps, text);
     return { caps, text };

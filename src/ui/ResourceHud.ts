@@ -42,6 +42,18 @@ export class ResourceGauge {
     this.hideAll();
   }
 
+  /** 61라운드: 그린 것의 오른쪽 끝 x (숨김이면 시작 x) */
+  get right(): number {
+    if (!this.valueText.visible) return this.x;
+    const t = this.stateText.visible ? this.stateText : this.valueText;
+    return t.x + t.displayWidth;
+  }
+
+  /** 61라운드: 줄 위치로 옮긴다 (y = 막대 위 끝) */
+  moveToY(y: number): void {
+    this.shiftY(y - this.y);
+  }
+
   /** 하단 묶음이 위아래로 움직일 때 */
   shiftY(dy: number): void {
     if (!dy) return;

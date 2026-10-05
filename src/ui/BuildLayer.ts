@@ -35,6 +35,8 @@ export interface BuildLayerFrame {
   chipsBottom: number;
   /** 도전 판(투견 링·성소)이 떠 있다 (성과 칩은 그 아래로) */
   challengeOn: boolean;
+  /** 61라운드: 빌드 띠 끝에 [Tab] 빌드 안내 (Tab 빌드 보기를 쓸 수 있을 때) */
+  tabHint?: boolean;
 }
 
 /**
@@ -65,6 +67,7 @@ export class BuildLayer {
     this.grade = new GradeCard(scene);
   }
 
+  /** bundleTop = 가운데 아래 글(완벽 성공 문구)의 아래 끝 (61라운드: 전투 묶음 `centerBottom`) */
   render(s: UiSnapshot, f: BuildLayerFrame, bundleTop: number): void {
     this.bundleTop = bundleTop;
     this.stageIndex = f.stageIndex;
@@ -72,9 +75,14 @@ export class BuildLayer {
     const build = buildOf(s);
     for (const t of build.tags) if (!this.stages.has(t.id)) this.stages.set(t.id, t.stage);
     const lab = Boolean(s.lab);
-    this.chips.render(build, f.stageIndex, f.chipsBottom + 4);
+    this.chips.render(build, f.stageIndex, f.chipsBottom + 4, Boolean(f.tabHint) && !f.overlay);
     this.plates.render(s.elites, !f.overlay, f.stageIndex);
     this.trial.render(s.nodeTrial, !f.overlay && !lab, f.challengeOn, f.stageIndex);
+    if (this.pendingGrade && !f.overlay) {
+      const g = this.pendingGrade;
+      this.pendingGrade = null;
+      this.grade.show(g, this.goldName, this.stageIndex);
+    }
   }
 
   // ---- §14.11 이벤트
@@ -105,9 +113,15 @@ export class BuildLayer {
       this.pop.show(perfectText(p, r60Text), this.bundleTop, this.stageIndex);
   }
 
-  nodeGraded(p: UiNodeGraded): void {
+  /** 61라운드 #11: 메뉴·지도 등이 떠 있으면 닫힌 뒤에 (render 가 overlay 없을 때 꺼낸다) */
+  nodeGraded(p: UiNodeGraded, overlayNow = false): void {
+    if (overlayNow) {
+      this.pendingGrade = p;
+      return;
+    }
     this.grade.show(p, this.goldName, this.stageIndex);
   }
+  private pendingGrade: UiNodeGraded | null = null;
 
   hiddenFound(): void {
     this.hooks.toast('info', r60Text('hiddenFoundToast'));
@@ -120,6 +134,7 @@ export class BuildLayer {
   /** 런 끝·층 시작: 연출을 치우고 세트 단계 기억을 지운다 */
   reset(): void {
     this.stages.clear();
+    this.pendingGrade = null;
     this.grade.clear();
     this.pop.destroy();
   }

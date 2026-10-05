@@ -14,7 +14,7 @@ const AFTER_RULE = 4 + 10;
 /**
  * 57·60라운드 일기장 오른쪽 쪽 '빌드' (계약 §14.1~14.3·§14.8): 태그·세트(점수·단계·다음 임계·세트 효과) / 이중 개성 /
  * 저주(남은 기간·이득·저주) / 패시브(Lv/최대·태그) / 소모품. 글을 먼저 만들어 높이를 재고(넘치면 효과·설명 줄을 접고,
- * 그래도 넘치면 끝을 '…'), 책을 깐 뒤 `place` 로 놓는다. 글은 depth 1 (책보다 위).
+ * 그래도 넘치면 끝을 '…'), 책을 깐 뒤 `place` 로 놓는다. 글은 depth 1 (책보다 위). 61라운드 Tab 빌드 보기도 같이 쓴다(`objects`).
  */
 export function buildPage(
   scene: Phaser.Scene,
@@ -22,11 +22,16 @@ export function buildPage(
   s: UiSnapshot,
   stageIndex: number,
   maxH: number,
-): { h: number; place(x: number, y: number): void } {
-  const title = new GlowText(scene, 0, 0, r60Text('buildTitle'), 'page_title', { font: 'title', stageIndex }).setDepth(
-    1,
-  );
-  const top = title.displayHeight + RULE_GAP + AFTER_RULE;
+  opts: { title?: boolean } = {},
+): { h: number; place(x: number, y: number): void; objects(): Phaser.GameObjects.GameObject[] } {
+  // 61라운드 Tab 빌드 보기는 제목·괘선 없이 (그 위에 이미 괘선이 있다)
+  const withTitle = opts.title !== false;
+  const title = new GlowText(scene, 0, 0, withTitle ? r60Text('buildTitle') : '', 'page_title', {
+    font: 'title',
+    stageIndex,
+  }).setDepth(1);
+  let ruleObj: Phaser.GameObjects.GameObject | null = null;
+  const top = withTitle ? title.displayHeight + RULE_GAP + AFTER_RULE : 0;
   const make = (lines: DiaryLine[]): GlowText[] =>
     lines.map((l) => new GlowText(scene, 0, 0, l.text, STYLE[l.style], { wrap: w, stageIndex }).setDepth(1));
   const height = (ts: GlowText[], lines: DiaryLine[]): number =>
@@ -61,15 +66,20 @@ export function buildPage(
   return {
     h: used,
     place(x: number, y: number): void {
-      title.placeCenter(x + w / 2, y);
-      let yy = y + title.displayHeight + RULE_GAP;
-      rule(scene, x, yy, w).setDepth(1);
-      yy += AFTER_RULE;
+      let yy = y;
+      if (withTitle) {
+        title.placeCenter(x + w / 2, y);
+        yy += title.displayHeight + RULE_GAP;
+        ruleObj = rule(scene, x, yy, w).setDepth(1);
+        yy += AFTER_RULE;
+      }
       texts.forEach((t, i) => {
         yy += lines[i].gap;
         t.setPosition(x, yy);
         yy += t.displayHeight + 2;
       });
     },
+    /** 61라운드 Tab 빌드 보기: 만든 것 전부 (치울 때) */
+    objects: () => [title, ...(ruleObj ? [ruleObj] : []), ...texts],
   };
 }

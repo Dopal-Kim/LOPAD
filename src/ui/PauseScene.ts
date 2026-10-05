@@ -6,23 +6,26 @@ import { keyTaken, takeKey } from './keyGate';
 import { ICON, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { hasRoute } from './routeView';
-import { controlsLine, r49Text, r53Text, uiText } from './text';
+import { controlsLine, r49Text, r53Text, r61Text, uiText } from './text';
 import { GRAY, LAYOUT, ROUTE, hexToNum } from './theme';
 import { buildPage } from './PauseBuild';
+import { SettingsPanel } from './SettingsPanel';
+import { KeyGuide } from './keyGuide';
+import { snapshotVerbItems } from './keyGuideView';
 import { buildHowToPanel } from './TutorialHud';
 import { SelectList } from './widgets';
 
 const PAGE_W = 440;
-/** 53라운드 Q50: '싸우는 법' 항목 한 줄만큼 높였다 */
-const PAGE_H = 282 + LAYOUT.row;
+/** 53라운드 Q50: '싸우는 법' 항목 한 줄만큼, 61라운드: 설정 한 줄 + 4동사 키캡 안내(2줄)만큼 높였다 */
+const PAGE_H = 282 + LAYOUT.row * 2 + 44;
 const PAD = 24;
 /** 60라운드: 두 쪽 펼침 쪽 높이 상한 (화면 540 - 책 틀 32 - 여백) */
 const MAX_PAGE_H = UI_SCREEN.HEIGHT - 32 - 16;
 /** '싸우는 법' 패널 깊이 (일기장 위) */
 const HOWTO_DEPTH = 50;
 
-/** 일기장 항목 key (53라운드 Q50: 3 = 싸우는 법, 덮기·나가기는 4) */
-const PAUSE_KEY = { resume: '1', sound: '2', howTo: '3', leave: '4' } as const;
+/** 일기장 항목 key (53라운드 Q50: 3 = 싸우는 법, 61라운드 §15: 4 = 설정, 덮기·나가기는 5) */
+const PAUSE_KEY = { resume: '1', sound: '2', howTo: '3', settings: '4', leave: '5' } as const;
 
 /**
  * 일시정지 = 일기장 한 페이지 (31라운드 채택 문구): 제목 '일기장', 이름·층·시련·세이브, 능력치, 무기, 패시브, 조작법,
@@ -33,6 +36,8 @@ const PAUSE_KEY = { resume: '1', sound: '2', howTo: '3', leave: '4' } as const;
  *   패시브 줄은 왼쪽 쪽에서 오른쪽으로 옮겼다.
  * 53라운드 Q50: '싸우는 법' 항목 — 튜토리얼 안내 패널을 화면 가운데에 다시 띄운다(일기장 위). Esc·Enter·클릭으로 닫으면
  * 일기장으로 돌아온다 (Esc 한 단계 뒤로).
+ * 61라운드 P10(계약 §15): '설정' 항목 — 설정 쪽(SettingsPanel)을 일기장 위에. Esc·'덮는다' 로 일기장으로 돌아온다.
+ * 빠른 소리 끄기(§11.3 setMuted)는 그대로 둔다(전체 음량 0 과 별개).
  */
 export class PauseScene extends Phaser.Scene {
   private list?: SelectList;
@@ -43,6 +48,9 @@ export class PauseScene extends Phaser.Scene {
   /** '싸우는 법' 패널 (떠 있으면 일기장 목록 입력을 막는다) */
   private howTo?: Phaser.GameObjects.Container;
   private howToBlock?: Phaser.GameObjects.Rectangle;
+  /** 61라운드: 설정 쪽 (떠 있으면 일기장 목록 입력을 막는다) */
+  private settings?: SettingsPanel;
+  private stageIndex = 0;
   private onResumed = () => this.scene.stop();
 
   constructor() {
@@ -58,6 +66,7 @@ export class PauseScene extends Phaser.Scene {
     this.alive = true;
     this.howTo = undefined;
     this.howToBlock = undefined;
+    this.settings = undefined;
     setupKit(this);
     // keydown 이벤트로 (HudScene 참조). Key 객체를 만들지 않는다
     this.input.keyboard?.on('keydown-ESC', this.onEsc);
@@ -67,6 +76,8 @@ export class PauseScene extends Phaser.Scene {
       this.alive = false;
       this.howTo = undefined;
       this.howToBlock = undefined;
+      this.settings?.destroy();
+      this.settings = undefined;
       this.input.keyboard?.off('keydown-ESC', this.onEsc);
       this.input.keyboard?.off('keydown-ENTER', this.onEnter);
       uiBus.off(UI_EVENTS.RESUMED, this.onResumed);
@@ -87,6 +98,10 @@ export class PauseScene extends Phaser.Scene {
       this.closeHowTo();
       return;
     }
+    if (this.settings) {
+      this.settings.close();
+      return;
+    }
     if (this.confirm) {
       this.confirm = false;
       this.setList();
@@ -98,6 +113,7 @@ export class PauseScene extends Phaser.Scene {
   private build(): void {
     const s = withDebug(uiCommands.getUiSnapshot());
     const stageIndex = Math.max(0, s.stageIndex);
+    this.stageIndex = stageIndex;
     this.muted = Boolean(s.muted);
     this.lab = Boolean(s.lab);
     const W = UI_SCREEN.WIDTH;
@@ -152,6 +168,11 @@ export class PauseScene extends Phaser.Scene {
     this.list = new SelectList(this, pg.x + PAD, y, (key) => this.choose(key), { stageIndex, detailWrap: innerW - 40 });
     this.setList();
     y += this.list.height() + 10;
+    // 61라운드 P1·P10: 무기 4동사 키캡 안내 (시스템 weaponVerbs, 없으면 지금 조작) — 2단
+    const guide = new KeyGuide(this, pg.x + PAD, y, 'column', { surface: 'page', stageIndex, cols: 2 }).setItems(
+      snapshotVerbItems(s, (k) => r61Text(k)),
+    );
+    y += guide.boxH + 10;
     // 시험장은 워프가 없으므로 'Tab 워프' 를 덧붙이지 않는다 (routeMode 와 같은 처리)
     new GlowText(
       this,
@@ -163,6 +184,19 @@ export class PauseScene extends Phaser.Scene {
         wrap: innerW,
       },
     );
+  }
+
+  /** 61라운드 §15: 설정 쪽 열기 — 닫히면 목록 입력을 다시 켠다 */
+  private openSettings(): void {
+    if (this.settings) return;
+    this.list?.setEnabled(false);
+    this.settings = new SettingsPanel(this, {
+      stageIndex: this.stageIndex,
+      onClose: () => {
+        this.settings = undefined;
+        this.list?.setEnabled(true);
+      },
+    });
   }
 
   /** Enter: '싸우는 법' 패널 닫기 (목록의 Enter 는 패널이 떠 있는 동안 막혀 있다) */
@@ -212,6 +246,7 @@ export class PauseScene extends Phaser.Scene {
         { key: PAUSE_KEY.resume, label: `${r49Text('labContinue')} (Esc)`, enabled: true },
         { key: PAUSE_KEY.sound, label: this.soundLabel(), enabled: true },
         { key: PAUSE_KEY.howTo, label: r53Text('pauseHowTo'), enabled: true },
+        { key: PAUSE_KEY.settings, label: r61Text('settingsItem'), enabled: true },
         { key: PAUSE_KEY.leave, label: r49Text('labLeave'), enabled: true },
       ]);
       this.list?.setCursorIndex(keep);
@@ -231,6 +266,7 @@ export class PauseScene extends Phaser.Scene {
             { key: PAUSE_KEY.resume, label: `${uiText('pause', 'cancelQuit', '더 쓴다')} (Esc)`, enabled: true },
             { key: PAUSE_KEY.sound, label: this.soundLabel(), enabled: true },
             { key: PAUSE_KEY.howTo, label: r53Text('pauseHowTo'), enabled: true },
+            { key: PAUSE_KEY.settings, label: r61Text('settingsItem'), enabled: true },
             { key: PAUSE_KEY.leave, label: uiText('pause', 'toTitle', '일기장을 덮는다'), enabled: true },
           ],
     );
@@ -249,6 +285,7 @@ export class PauseScene extends Phaser.Scene {
       if (key === PAUSE_KEY.resume) uiCommands.resume();
       else if (key === PAUSE_KEY.sound) this.toggleSound();
       else if (key === PAUSE_KEY.howTo) this.showHowTo();
+      else if (key === PAUSE_KEY.settings) this.openSettings();
       else if (this.lab) uiCommands.toTitle();
       else {
         this.confirm = true;

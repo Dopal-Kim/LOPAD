@@ -12,6 +12,11 @@ const DEFAULT_LABEL: Record<GaugeView['kind'], R56TextKey> = {
   breath: 'gaugeBreath',
 };
 
+/** 눈금 라벨: 시스템 `gauge.label`, 비면 기본 이름 (61라운드 전투 묶음도 쓴다) */
+export function gaugeLabelText(v: Pick<GaugeView, 'kind' | 'label'>): string {
+  return v.label || r56Text(DEFAULT_LABEL[v.kind]);
+}
+
 const EDGES = {
   kenki: maskEdges(WGAUGE.kenki.mask),
   brand: maskEdges(WGAUGE.brand.mask),
@@ -32,7 +37,7 @@ export class WeaponGaugeChip extends Phaser.GameObjects.Container {
   private g: Phaser.GameObjects.Graphics;
   private lastSig = '#init';
   /** 지금 보이는 폭: 라벨(줄였으면 생략)~마지막 칸·글 (보이지 않으면 0) */
-  w = 0;
+  boxW = 0;
   /** 라벨까지 넣었을 때의 폭 (줄인 상태에서도 다시 펼칠지 판단용) */
   fullW = 0;
 
@@ -61,12 +66,12 @@ export class WeaponGaugeChip extends Phaser.GameObjects.Container {
     this.g.clear();
     if (!v) {
       this.setVisible(false);
-      this.w = 0;
+      this.boxW = 0;
       this.fullW = 0;
       return;
     }
     this.setVisible(true);
-    const text = v.label || r56Text(DEFAULT_LABEL[v.kind]);
+    const text = gaugeLabelText(v);
     this.label.setText(text).setGlowStyle(v.full && WGAUGE.fullAccent ? 'ink_accent' : 'ink_faint');
     const labelW = this.label.textW > 0 ? this.label.textW + WGAUGE.gapLabel : 0;
     this.label.setVisible(!compact);
@@ -80,7 +85,7 @@ export class WeaponGaugeChip extends Phaser.GameObjects.Container {
         .setAlpha(blinkOn ? 1 : 0.55);
       x = this.stateText.x + RING + this.stateText.textW;
     } else this.stateText.setVisible(false);
-    this.w = x;
+    this.boxW = x;
     this.fullW = x + (compact ? labelW : 0);
   }
 

@@ -26,19 +26,15 @@ import {
   type UiWarpDone,
 } from '../contract/ui';
 import { BuildLayer } from './BuildLayer';
-import { consumableView } from './buildView';
-import { CarryChip } from './CarryHud';
-import { ConsumableChip } from './ConsumableHud';
-import { carryView } from './carryView';
+import { BuildPeek } from './BuildPeek';
+import { KeyGuide } from './keyGuide';
+import { snapshotVerbItems } from './keyGuideView';
+import { CombatHud } from './CombatHud';
 import { cancelChooseCmd, chooseNodeCmd, debugExpose, installUiDebug, withDebug } from './debug';
-import { WeaponGaugeChip } from './GaugeHud';
-import { gaugeView, groggyShake, groggyView } from './gaugeView';
 import { GlowText } from './glow';
 import {
-  Gauge,
   ICON,
   NinePanel,
-  WEAPON_ICON_IDS,
   ensureImage,
   fontsReady,
   icon,
@@ -49,7 +45,6 @@ import {
   mapBgUrl,
   preloadKit,
   setupKit,
-  weaponIconKey,
 } from './kit';
 import { keyTaken, takeKey } from './keyGate';
 import { UI_SCENE_KEYS } from './keys';
@@ -60,12 +55,10 @@ import { findNode, regionArtKey } from './regionView';
 import { RouteMap } from './RouteMap';
 import { RouteStrip } from './RouteStrip';
 import { hasRoute } from './routeView';
-import { ResourceGauge } from './ResourceHud';
 import { ChallengePanel, InteractBubble, ResultToasts, StatusChips } from './StructureHud';
-import { fill, r49Text, routeText, uiText, warpText } from './text';
-import { GROGGY, LAYOUT, MAP_BG_FLOORS, RES, STRUCT, WGAUGE } from './theme';
-import { r60Text } from './text';
-import { CONSUMABLE } from './themeBuild';
+import { fill, r49Text, r61Text, routeText, uiText, warpText } from './text';
+import { LAYOUT, MAP_BG_FLOORS, STRUCT } from './theme';
+import { PEEK } from './themeR61';
 import { TutorialGuide } from './TutorialHud';
 import { sameStepText } from './tutorialView';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
@@ -73,12 +66,6 @@ import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 /** 노드를 고르거나 고르기를 취소한 뒤 '고를 차례인데 지도가 없음' 안전망을 쉬는 시간 (ms) — 스냅샷이 따라올 때까지 */
 const ROUTE_CANCEL_SUPPRESS_MS = 1500;
 
-/** 하단 중앙 묶음 (33라운드 Q3) */
-const HUD_W = 480;
-const HUD_H = 64;
-const BOSS_W = 360;
-const HP_GAUGE_W = 170;
-const PERSONALITY_W = 100;
 const CAPTION_DEPTH = 50;
 /**
  * 47라운드 구조물 메뉴 id (계약 §9.4) + 60라운드 §14.7 게임 중 메뉴(저주 2택·이벤트·지도 장수·소모품 바꾸기) —
@@ -99,13 +86,13 @@ const STRUCTURE_MENU_IDS: ReadonlySet<string> = new Set<UiStructureMenuId | UiBu
 
 /**
  * 게임 위에 병렬로 떠 있는 HUD (41라운드 키트 적용). 매 프레임 STATE 스냅샷으로 갱신.
- * 하단 중앙 panel_ink 480×64: 1행 체력 게이지·수치·전표·독주, 2행 무기·개성 게이지·우클릭.
- * 보스 게이지는 묶음 위 8px, 자막은 그 위. 상단 좌 층 제목·시련, 상단 우 미니맵 + 'M 지도'. 우하단 공지.
- * 49라운드: 무기 자원이 있으면 묶음이 80 으로 커지고 3행에 자원 게이지(계약 §11.1). M = 지도(Tab 과 같음, §11.3).
- * 무기 시험장(`lab`)에서는 좌상단에 '무기 시험장 · L 무기 고르기 · Esc 일기장', 우상단 지도·안내는 숨긴다.
- * 56라운드(계약 §13): 2행 무기 이름 오른쪽에 고유 자원 눈금(`WeaponGaugeChip`), 그로기 중 3행 기력 막대 아래 남은 시간선 + 무기 줄 떨림.
- * 60라운드(계약 §14): 1행 독주 오른쪽 소모품 칸(`ConsumableChip`), 좌상단 상태 칩 아래 빌드 칩·엘리트 이름표·성과 칩·도장 카드·
- * 완벽 성공 문구와 §14.11 알림은 `BuildLayer`. 배너 차례·지역 카드는 `BannerQueue`(HudBanners.ts).
+ * 61라운드 P10 다이어트: 전투 중 크게 보이는 것은 왼쪽 아래 전투 묶음(`CombatHud` — 체력·고유 자원 하나·독주·소모품·전표)뿐.
+ * 보스 막대는 아래 가운데, 자막·완벽 성공 문구는 그 위(`centerBottom`). 상단 좌 층 제목(흐림)·구조물 상태 칩·빌드 띠(한 줄로 접음),
+ * 상단 우 미니맵/노드 띠 + 'M 지도'. 우하단 공지·토스트.
+ * Tab: 노드 지도 층·무기 시험장에서는 누르고 있는 동안 빌드 보기(`BuildPeek`, 게임은 안 멈춤), 그 밖의 층은 워프 지도(45라운드).
+ * M = 지도(§11.3). 무기 시험장(`lab`)에서는 좌상단에 '무기 시험장 · L 무기 고르기 · Esc 일기장', 우상단 지도·안내는 숨긴다.
+ * 60라운드(계약 §14): 빌드 띠·엘리트 이름표·성과 칩·도장 카드·완벽 성공 문구와 §14.11 알림은 `BuildLayer`.
+ * 배너 차례·지역 카드는 `BannerQueue`(HudBanners.ts).
  */
 export class HudScene extends Phaser.Scene {
   private built = false;
@@ -115,47 +102,19 @@ export class HudScene extends Phaser.Scene {
   private handlers: [string, (p: never) => void][] = [];
   private pending?: UiSnapshot;
 
-  // 하단 묶음
-  private panelX = 0;
-  private panelY = 0;
-  private panel!: NinePanel;
-  private bundleH = HUD_H;
-  /** 하단 묶음과 함께 위아래로 움직이는 것 (보스 게이지 포함) */
-  private bundleObjs: { y: number; setY(y: number): unknown }[] = [];
-  private bundleGauges: Gauge[] = [];
-  private resource?: ResourceGauge;
-  /** 53라운드: F 넣기/뽑기 (3행 오른쪽) */
-  private carry?: CarryChip;
-  /** 56라운드: 무기 고유 자원 눈금 (2행 무기 이름 오른쪽) */
-  private weaponGauge?: WeaponGaugeChip;
-  /** 60라운드 §14.8: 소모품 칸 (1행 독주 Q 오른쪽) */
-  private consumable?: ConsumableChip;
-  /** 57·60라운드 §14: 빌드 칩·완벽 성공·엘리트 이름표·성과 칩·도장 카드 */
+  /** 61라운드 P10: 왼쪽 아래 전투 묶음 + 아래 가운데 보스 막대 */
+  private combat?: CombatHud;
+  /** 61라운드 P10: Tab 빌드 보기 (누르고 있는 동안) */
+  private peek?: BuildPeek;
+  /** 61라운드 P1: 무기 시험장 아래 가운데 4동사 키캡 안내 */
+  private labGuide?: KeyGuide;
+  /** 57·60라운드 §14: 빌드 띠·완벽 성공·엘리트 이름표·성과 칩·도장 카드 */
   private buildLayer?: BuildLayer;
-  /** 56라운드: 이번 그로기의 전체 시간 (시작 때 본 가장 큰 leftMs, 끝나면 0) */
-  private groggyTotal = 0;
-  /** 56라운드: 자리가 모자라 고유 자원 라벨을 뺐는가 */
-  private gaugeCompact = false;
   /** 53라운드: 튜토리얼 안내 패널·적 등장 경고 */
   private guide?: TutorialGuide;
+  /** 61라운드 플레이 점검 #2: '싸우는 법' 패널이 게임을 멈춘 중 (PAUSED 가 와도 일기장을 띄우지 않는다) */
+  private guidePaused = false;
   private labMode = false;
-  private hpGauge!: Gauge;
-  private hpText!: GlowText;
-  private goldIcon!: Phaser.GameObjects.Image;
-  private goldText!: GlowText;
-  private potionIcon!: Phaser.GameObjects.Image;
-  private potionText!: GlowText;
-  private potionKey!: GlowText;
-  private weaponIcon!: Phaser.GameObjects.Image;
-  private weaponText!: GlowText;
-  private senseIcon!: Phaser.GameObjects.Image;
-  private personalityGauge!: Gauge;
-  private personalityText!: GlowText;
-  private secondaryText!: GlowText;
-  // 보스
-  private bossGauge!: Gauge;
-  private bossIcon!: Phaser.GameObjects.Image;
-  private bossName!: GlowText;
   // 상단
   private floorText!: GlowText;
   private minimap!: Minimap;
@@ -209,11 +168,6 @@ export class HudScene extends Phaser.Scene {
     this.glows = [];
     this.routeMode = false;
     this.labMode = false;
-    this.bundleH = HUD_H;
-    this.bundleObjs = [];
-    this.bundleGauges = [];
-    this.groggyTotal = 0;
-    this.gaugeCompact = false;
     this.birth = new BirthOverlay(this, {
       onStart: () => {
         this.closeWarp(false);
@@ -242,8 +196,8 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
     this.on(UI_EVENTS.ENEMY_INCOMING, (p: unknown) => this.guide?.enemyIncoming(p, Math.max(0, this.stageIndex)));
     this.on(UI_EVENTS.PAUSED, () => {
-      // 워프 지도·노드 지도가 연 정지면 일시정지 일기장을 띄우지 않는다
-      if (this.warpMap || this.routeMap) return;
+      // 워프 지도·노드 지도·'싸우는 법' 패널이 연 정지면 일시정지 일기장을 띄우지 않는다
+      if (this.warpMap || this.routeMap || this.guidePaused) return;
       if (!this.scene.isActive(UI_SCENE_KEYS.PAUSE)) this.scene.launch(UI_SCENE_KEYS.PAUSE);
     });
     // Esc 는 Key 폴링(JustDown) 대신 keydown 이벤트로 받는다 — 씬이 바뀌는 프레임에 Key 상태가 눌린 채 남아
@@ -252,12 +206,19 @@ export class HudScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-ENTER', this.onEnter);
     // 45라운드 Q9: Tab 워프 지도. 브라우저 포커스 이동을 막도록 캡처한다
     this.input.keyboard?.addCapture('TAB');
-    this.input.keyboard?.on('keydown-TAB', this.onTab);
-    // 49라운드: M = 지도 + 현재 위치·위치 정보 (Tab 과 같은 지도, 계약 §11.3). 음소거는 Esc 일기장으로 옮겼다
+    this.input.keyboard?.on('keydown-TAB', this.onTabDown);
+    this.input.keyboard?.on('keyup-TAB', this.onTabUp);
+    // 49라운드: M = 지도 + 현재 위치·위치 정보 (계약 §11.3). 음소거는 Esc 일기장으로 옮겼다
     this.input.keyboard?.on('keydown-M', this.onTab);
+    // 61라운드: 창이 포커스를 잃으면 Tab 을 뗀 것으로 (빌드 보기가 남지 않게)
+    this.game.events.on(Phaser.Core.Events.BLUR, this.onTabUp);
     this.on(UI_EVENTS.WARP_DENIED, (p: UiWarpDenied) => this.onWarpDenied(p));
     this.on(UI_EVENTS.WARP_DONE, (p: UiWarpDone) => this.toast(fill(warpText('warpDone'), { room: roomName(p.type) })));
     this.on(UI_EVENTS.RESUMED, () => {
+      if (this.guidePaused) {
+        this.guidePaused = false;
+        this.guide?.closeQuiet();
+      }
       this.closeWarp(false);
       if (this.routeMap?.mode === 'view') this.closeRoute(false);
     });
@@ -302,20 +263,24 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.CURSE_GAINED, (p: UiCurse) => this.buildLayer?.curseGained(p));
     this.on(UI_EVENTS.CURSE_ENDED, (p: UiCurseEnded) => this.buildLayer?.curseEnded(p));
     this.on(UI_EVENTS.PERFECT_SUCCESS, (p: UiPerfectSuccess) => this.buildLayer?.perfect(p));
-    this.on(UI_EVENTS.NODE_GRADED, (p: UiNodeGraded) => this.buildLayer?.nodeGraded(p));
+    this.on(UI_EVENTS.NODE_GRADED, (p: UiNodeGraded) =>
+      this.buildLayer?.nodeGraded(p, this.scene.isActive(UI_SCENE_KEYS.MENU)),
+    );
     this.on(UI_EVENTS.HIDDEN_NODE_FOUND, () => this.buildLayer?.hiddenFound());
     this.on(UI_EVENTS.CONSUMABLE_USED, (p: UiConsumableUsed) => this.buildLayer?.consumableUsed(p));
     this.on(UI_EVENTS.RUN_ENDED, () => this.buildLayer?.reset());
     this.events.once('shutdown', () => {
       this.input.keyboard?.off('keydown-ESC', this.onEsc);
       this.input.keyboard?.off('keydown-ENTER', this.onEnter);
-      this.input.keyboard?.off('keydown-TAB', this.onTab);
+      this.input.keyboard?.off('keydown-TAB', this.onTabDown);
+      this.input.keyboard?.off('keyup-TAB', this.onTabUp);
       this.input.keyboard?.off('keydown-M', this.onTab);
       this.input.keyboard?.removeCapture('TAB');
-      this.resource = undefined;
-      this.carry = undefined;
-      this.weaponGauge = undefined;
-      this.consumable = undefined;
+      this.game.events.off(Phaser.Core.Events.BLUR, this.onTabUp);
+      this.combat = undefined;
+      this.labGuide = undefined;
+      this.peek?.destroy();
+      this.peek = undefined;
       this.buildLayer?.destroy();
       this.buildLayer = undefined;
       this.guide?.destroy();
@@ -358,7 +323,7 @@ export class HudScene extends Phaser.Scene {
     if (keyTaken(e)) return;
     if (this.guide?.panelOpen) {
       takeKey(e);
-      this.guide.dismiss();
+      this.guide.dismiss('Escape');
       return;
     }
     if (this.routeMap) {
@@ -388,7 +353,7 @@ export class HudScene extends Phaser.Scene {
   private onEnter = (e?: KeyboardEvent): void => {
     if (!this.guide?.panelOpen || keyTaken(e)) return;
     takeKey(e);
-    this.guide.dismiss();
+    this.guide.dismiss('Enter');
   };
 
   /**
@@ -438,9 +403,50 @@ export class HudScene extends Phaser.Scene {
     this.time.delayedCall(1000, go);
   }
 
+  /** 61라운드: Tab 빌드 보기를 쓰는 곳 (노드 지도 층·무기 시험장). 그 밖의 층은 Tab = 워프 지도 */
+  private peekMode(s: UiSnapshot): boolean {
+    return Boolean(s.lab) || hasRoute(s.route);
+  }
+
   /**
-   * Tab·M: 지도 열기·닫기 (45라운드 Q9·Q10 워프 지도, 48라운드 노드 지도, 49라운드 M = 지도 §11.3).
-   * 노드 지도 층은 M·Tab 모두 노드 지도(보기), 그 외 층은 워프 지도. 무기 시험장에서는 무시.
+   * 61라운드 P10: Tab 누름 — 노드 지도 층·시험장이면 빌드 보기(누르고 있는 동안, 게임은 멈추지 않는다), 그 밖은 워프 지도(onTab).
+   * 메뉴·일시정지·지도·탄생 연출 중에는 열지 않는다.
+   */
+  private onTabDown = (e?: KeyboardEvent): void => {
+    if (!this.built) return;
+    const s = withDebug(uiCommands.getUiSnapshot());
+    if (!this.peekMode(s)) {
+      this.onTab(e);
+      return;
+    }
+    if (e?.repeat || this.peek?.open) return;
+    if (this.birth.active || this.overlayOpen(s)) return;
+    if (!takeKey(e)) return;
+    this.peek?.show(s, Math.max(0, this.stageIndex), (this.combat?.bundleTop ?? UI_SCREEN.HEIGHT) - PEEK.bottomGap);
+    debugExpose('peek', { open: true });
+  };
+
+  private onTabUp = (): void => {
+    if (!this.peek?.open) return;
+    this.peek.hide();
+    debugExpose('peek', { open: false });
+  };
+
+  /** 메뉴·지도·일시정지·결과 화면이 떠 있는가 */
+  private overlayOpen(s: UiSnapshot): boolean {
+    return (
+      Boolean(this.warpMap) ||
+      Boolean(this.routeMap) ||
+      Boolean(s.menu) ||
+      this.scene.isActive(UI_SCENE_KEYS.MENU) ||
+      this.scene.isActive(UI_SCENE_KEYS.PAUSE) ||
+      this.scene.isActive(UI_SCENE_KEYS.RESULT)
+    );
+  }
+
+  /**
+   * M(·워프 층의 Tab): 지도 열기·닫기 (45라운드 Q9·Q10 워프 지도, 48라운드 노드 지도, 49라운드 M = 지도 §11.3).
+   * 노드 지도 층은 노드 지도(보기), 그 외 층은 워프 지도. 무기 시험장에서는 무시. 61라운드: 노드 지도 층의 Tab 은 빌드 보기.
    */
   private onTab = (e?: KeyboardEvent): void => {
     if (e?.repeat) return;
@@ -592,71 +598,17 @@ export class HudScene extends Phaser.Scene {
     const s0 = uiCommands.getUiSnapshot();
     this.stageIndex = Math.max(0, s0.stageIndex);
 
-    // ---- 하단 중앙 묶음
-    const px = Math.round(W / 2 - HUD_W / 2);
-    const py = H - HUD_H - 12;
-    this.panelX = px;
-    this.panelY = py;
-    this.bundleH = HUD_H;
-    this.panel = inkPanel(this, px, py, HUD_W, HUD_H);
-    // 1행: 체력
-    const hpIcon = icon(this, px + 8, py + 8, ICON.hp);
-    this.hpGauge = new Gauge(this, px + 28, py + 11, HP_GAUGE_W, 'frame', this.stageIndex);
-    this.hpText = this.glow(px + 28 + HP_GAUGE_W + 8, py + 9, '', 'ink_body');
-    this.goldIcon = icon(this, 0, py + 8, ICON.gold);
-    this.goldText = this.glow(0, py + 9, '', 'ink_body');
-    this.potionIcon = icon(this, 0, py + 8, ICON.potion);
-    this.potionText = this.glow(0, py + 9, '', 'ink_body');
-    this.potionKey = this.glow(0, py + 9, 'Q', 'ink_faint');
-    // 60라운드 §14.8: 소모품 칸 (x 는 render 에서 독주 Q 오른쪽)
-    this.consumable = new ConsumableChip(this, 0, py + 8, this.stageIndex);
-    // 2행: 무기 · 개성
-    this.weaponIcon = this.add
-      .image(px + 8, py + 36, '__DEFAULT')
-      .setOrigin(0, 0)
-      .setVisible(false);
-    this.weaponText = this.glow(px + 28, py + 37, '', 'ink_body');
-    this.senseIcon = icon(this, 0, py + 36, ICON.sense);
-    this.personalityGauge = new Gauge(this, 0, py + 39, PERSONALITY_W, 'gray');
-    this.personalityText = this.glow(0, py + 37, '', 'ink_faint');
-    this.secondaryText = this.glow(0, py + 37, '', 'ink_faint');
-    // 56라운드: 무기 고유 자원 (무기 이름 바로 오른쪽, x 는 render 에서)
-    this.weaponGauge = new WeaponGaugeChip(this, px + 28, py + 37, this.stageIndex);
-
-    // ---- 보스 게이지 (묶음 위 8px) + 이름
-    const by = py - 8 - 14;
-    this.bossGauge = new Gauge(this, Math.round(W / 2 - BOSS_W / 2), by, BOSS_W, 'boss', this.stageIndex).setVisible(
-      false,
-    );
-    this.bossIcon = icon(this, Math.round(W / 2 - BOSS_W / 2) - 22, by - 1, ICON.boss).setVisible(false);
-    this.bossName = this.glow(0, by - 18, '', 'ink_accent').setVisible(false);
-    // 49라운드: 3행 무기 자원 (묶음이 커질 때만 보인다)
-    this.resource = new ResourceGauge(this, px + RES.labelX, py + RES.rowY);
-    // 53라운드: F 넣기/뽑기 — 3행 오른쪽 끝 (우클릭 글과 같은 오른쪽 선)
-    this.carry = new CarryChip(this, px + HUD_W - 10, py + RES.rowY - 3, this.stageIndex);
-    this.bundleObjs = [
-      hpIcon,
-      this.hpText,
-      this.goldIcon,
-      this.goldText,
-      this.potionIcon,
-      this.potionText,
-      this.potionKey,
-      this.weaponIcon,
-      this.weaponText,
-      this.senseIcon,
-      this.personalityText,
-      this.secondaryText,
-      this.bossIcon,
-      this.bossName,
-      this.carry,
-      this.weaponGauge,
-      this.consumable,
-    ];
-    this.bundleGauges = [this.hpGauge, this.personalityGauge, this.bossGauge];
+    // ---- 61라운드 P10: 왼쪽 아래 전투 묶음 + 아래 가운데 보스 막대, Tab 빌드 보기
+    this.combat = new CombatHud(this, this.stageIndex);
+    this.peek = new BuildPeek(this);
+    this.labGuide = new KeyGuide(this, 0, H - 12 - 16, 'row', {
+      surface: 'ink',
+      stageIndex: this.stageIndex,
+    }).setVisible(false);
 
     // ---- 상단 좌: 층 제목·시련, 그 아래 구조물 상태 칩 (47라운드)
-    this.floorText = this.glow(E, 12, '', 'ink_body');
+    // 61라운드: 층 제목은 흐리게 (전투 중 시선은 왼쪽 아래 묶음으로)
+    this.floorText = this.glow(E, 12, '', 'ink_faint');
     this.chips = new StatusChips(this, E, STRUCT.chipTop);
 
     // ---- 상단 우: 미니맵(노드 띠) + 'M 지도' (49라운드: M 음소거 → Esc 일기장)
@@ -671,7 +623,26 @@ export class HudScene extends Phaser.Scene {
     this.bubble = new InteractBubble(this, this.stageIndex);
     this.toasts = new ResultToasts(this, W - E, H - 12 - 28 - 8);
     this.challenge = new ChallengePanel(this, STRUCT.challengeTop);
-    this.guide = new TutorialGuide(this);
+    // 61라운드 플레이 점검 #2: '싸우는 법' 패널이 떠 있는 동안 게임을 멈춘다 (읽는 사이 맞지 않게)
+    this.guidePaused = false;
+    this.guide = new TutorialGuide(this, {
+      onOpen: () => {
+        if (this.guidePaused) return;
+        this.guidePaused = true;
+        uiCommands.pause();
+      },
+      onClose: (by) => {
+        if (!this.guidePaused) return;
+        const resume = (): void => {
+          if (!this.guidePaused) return;
+          this.guidePaused = false;
+          uiCommands.resume();
+        };
+        // 키로 닫았으면 뗀 다음 프레임에 재개 (게임 씬이 같은 Esc 를 받아 일기장을 열지 않게 — resumeAfterRelease 와 같은 까닭)
+        if (by === 'Escape' || by === 'Enter') this.afterRelease(by, resume);
+        else resume();
+      },
+    });
     // 57·60라운드 §14: 알림은 구조물 결과 토스트·가운데 배너와 같은 자리로
     this.buildLayer = new BuildLayer(this, {
       toast: (tone, text) => this.toasts?.push({ tone, text }, Math.max(0, this.stageIndex)),
@@ -712,21 +683,6 @@ export class HudScene extends Phaser.Scene {
     this.warpHint?.setText(warpText('warpKeyHint')).placeRight(W - E - 20, hintY + 16);
   }
 
-  /**
-   * 49라운드: 하단 묶음 높이 (자원이 있으면 RES.bundleH). 아래 여백 12 를 지키며 위로 늘고, 묶음·보스 게이지를 함께 옮긴다.
-   */
-  private setBundleHeight(h: number): void {
-    if (h === this.bundleH) return;
-    const py = UI_SCREEN.HEIGHT - h - 12;
-    const dy = py - this.panelY;
-    this.bundleH = h;
-    this.panelY = py;
-    this.panel.resize(HUD_W, h).setY(py);
-    for (const o of this.bundleObjs) o.setY(o.y + dy);
-    for (const g of this.bundleGauges) g.setPositionY(g.top + dy);
-    this.resource?.shiftY(dy);
-  }
-
   private render(s: UiSnapshot): void {
     if (!this.built) {
       this.pending = s;
@@ -736,88 +692,10 @@ export class HudScene extends Phaser.Scene {
     if (si !== this.stageIndex) {
       this.stageIndex = si;
       for (const t of this.glows) t.setStageIndex(si);
-      this.hpGauge.setStage(this, si);
-      this.carry?.setStageIndex(si);
-      this.weaponGauge?.setStageIndex(si);
-      this.consumable?.setStageIndex(si);
-      this.bossGauge.setStage(this, si);
     }
-    const px = this.panelX;
-    // 1행
-    this.hpGauge.set(s.maxHp > 0 ? s.hp / s.maxHp : 0);
-    this.hpText.setText(`${s.hp} / ${s.maxHp}`);
-    let x = Math.max(px + 28 + HP_GAUGE_W + 8 + this.hpText.textW + 16, px + 282);
-    this.goldIcon.setX(x);
-    this.goldText.setText(String(s.gold)).setX(x + 20);
-    x = Math.max(x + 20 + this.goldText.textW + 16, px + 352);
-    this.potionIcon.setX(x);
-    this.potionText.setText(`${s.potions}/${s.potionMax}`).setX(x + 20);
-    this.potionKey.setX(x + 20 + this.potionText.textW + 8);
-    // 60라운드 §14.8: 소모품 칸 — 독주 키 글 오른쪽 (칸이 없는 모드면 숨김)
-    const cv = consumableView(s.consumable, r60Text);
-    const cx = this.potionKey.x + this.potionKey.textW + CONSUMABLE.gap;
-    this.consumable?.render(cv, si, px + HUD_W - 10 - cx);
-    if (cv) this.consumable?.setX(cx);
-    // 2행 (56라운드: 그로기 중이면 무기 아이콘·이름·고유 자원이 1px 떨린다)
-    const now = this.time.now;
-    const grog = this.groggyOf(s);
-    const shake = grog ? groggyShake(now, GROGGY.shakeMs, GROGGY.shakeAmp) : 0;
-    this.renderWeaponIcon(s.weapon.name, shake);
-    const evo = s.weapon.evolutionName ? ` · ${s.weapon.evolutionName}` : '';
-    this.weaponText.setText(`${s.weapon.name}${evo}`);
-    this.personalityGauge.set(s.weapon.threshold > 0 ? s.weapon.personality / s.weapon.threshold : 0);
-    this.personalityText.setText(`${s.weapon.personality}/${s.weapon.threshold}`);
-    this.secondaryText.setText(s.weapon.secondaryName ? `우클릭 ${s.weapon.secondaryName}` : '');
-    this.secondaryText.placeRight(px + HUD_W - 10, this.secondaryText.y);
-    // 56라운드: 무기 이름 바로 오른쪽에 고유 자원 눈금, 개성 아이콘은 그 뒤로 비킨다.
-    // 긴 무기·갈래 이름으로 '우클릭 …' 과 겹치면 눈금 라벨을 빼고, 그래도 겹치면 '우클릭 …' 을 숨긴다 (조작 안내·일기장에 같은 글이 있다)
-    const nameEnd = this.weaponText.x - shake + this.weaponText.textW;
-    const gv = gaugeView(s.gauge);
-    const persW = 22 + PERSONALITY_W + 6 + this.personalityText.textW;
-    const secLeft = s.weapon.secondaryName ? this.secondaryText.x : px + HUD_W - 10;
-    const fits = (gaugeW: number): boolean => {
-      const end = gv ? nameEnd + WGAUGE.gapName + gaugeW + WGAUGE.gapAfter : nameEnd + 14;
-      return Math.max(end, px + 200) + persW + WGAUGE.minGapSecondary <= secLeft;
-    };
-    let gaugeW = 0;
-    if (this.weaponGauge) {
-      this.weaponGauge.render(gv, si, now, this.gaugeCompact);
-      const full = this.weaponGauge.fullW;
-      const compact = Boolean(gv) && !fits(full);
-      if (compact !== this.gaugeCompact) {
-        this.gaugeCompact = compact;
-        this.weaponGauge.render(gv, si, now, compact);
-      }
-      if (gv) {
-        this.weaponGauge.setX(nameEnd + WGAUGE.gapName + shake);
-        gaugeW = this.weaponGauge.w;
-      }
-    }
-    this.secondaryText.setVisible(Boolean(s.weapon.secondaryName) && fits(gaugeW));
-    x = Math.max(gv ? nameEnd + WGAUGE.gapName + gaugeW + WGAUGE.gapAfter : nameEnd + 14, px + 200);
-    this.senseIcon.setX(x);
-    const gx = x + 22;
-    this.personalityGauge.setPositionX(gx);
-    this.personalityText.setX(gx + PERSONALITY_W + 6);
-    // 3행 (49라운드): 무기 자원 + 53라운드 F 넣기/뽑기. 둘 다 없으면 묶음을 원래 높이로
-    const res = s.resource && s.resource.kind ? s.resource : null;
-    const carry = carryView(s.carry);
-    this.setBundleHeight(res || carry ? RES.bundleH : HUD_H);
-    this.resource?.render(res, si, now, grog);
-    this.carry?.render(carry);
-    // 보스 (처치 뒤 스냅샷에 hp 0 으로 남는 동안은 숨긴다)
-    if (s.boss && s.boss.hp > 0) {
-      this.bossGauge.setVisible(true).set(s.boss.maxHp > 0 ? s.boss.hp / s.boss.maxHp : 0);
-      this.bossIcon.setVisible(true);
-      this.bossName
-        .setVisible(true)
-        .setText(`${s.boss.name}  ${s.boss.hp}/${s.boss.maxHp}  페이즈 ${s.boss.phase}`)
-        .placeCenter(UI_SCREEN.WIDTH / 2, this.bossName.y);
-    } else {
-      this.bossGauge.setVisible(false);
-      this.bossIcon.setVisible(false);
-      this.bossName.setVisible(false);
-    }
+    // 61라운드 P10: 왼쪽 아래 전투 묶음 (체력·고유 자원·독주·소모품·전표) + 보스 막대
+    this.combat?.setStageIndex(si);
+    this.combat?.render(s, this.time.now);
     // 상단
     // 48라운드: 노드 지도 층이면 층 제목 옆에 지금 노드 이름, 우상단은 노드 띠, 'Tab 지도' 는 늘 보인다
     // 49라운드: 무기 시험장은 층 제목·노드 띠·지도 안내 대신 시험장 안내 한 줄
@@ -849,13 +727,22 @@ export class HudScene extends Phaser.Scene {
       this.warpHint?.setVisible(!s.inCombat && s.warp.blocked !== 'combat');
     }
     // 47라운드: 구조물 안내·상태·도전 시간
-    const overlay =
-      Boolean(this.warpMap) ||
-      Boolean(this.routeMap) ||
-      Boolean(s.menu) ||
-      this.scene.isActive(UI_SCENE_KEYS.MENU) ||
-      this.scene.isActive(UI_SCENE_KEYS.PAUSE) ||
-      this.scene.isActive(UI_SCENE_KEYS.RESULT);
+    const overlay = this.overlayOpen(s);
+    // 61라운드: 다른 화면이 뜨면 Tab 빌드 보기를 거둔다
+    if (overlay) this.onTabUp();
+    // 61라운드 P1: 무기 시험장에서는 아래 가운데에 4동사 키캡 안내 (무기를 바꾸면 따라 바뀐다)
+    if (this.labGuide) {
+      const showGuide = lab && !overlay;
+      this.labGuide.setVisible(showGuide);
+      if (showGuide) {
+        this.labGuide.setItems(snapshotVerbItems(s, (k) => r61Text(k)));
+        const left = Math.max(
+          (this.combat?.bundleRight ?? 0) + 12,
+          Math.round(UI_SCREEN.WIDTH / 2 - this.labGuide.boxW / 2),
+        );
+        this.labGuide.setPosition(left, UI_SCREEN.HEIGHT - 12 - 16);
+      }
+    }
     this.bubble?.update(s.interactable ?? null, !overlay, si);
     this.chips?.render(s.statuses ?? [], si);
     // 57·60라운드 §14: 빌드 칩(상태 칩 아래)·엘리트 이름표·성과 칩
@@ -866,8 +753,9 @@ export class HudScene extends Phaser.Scene {
         overlay,
         chipsBottom: this.chips?.bottom() ?? STRUCT.chipTop,
         challengeOn: Boolean(this.challenge?.active),
+        tabHint: this.peekMode(s),
       },
-      this.panelY,
+      this.combat?.centerBottom() ?? UI_SCREEN.HEIGHT,
     );
     this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);
     // 53라운드: 튜토리얼 안내 — 다른 화면·배너·지역 카드·탄생 연출이 없을 때만 새로 띄운다
@@ -898,31 +786,6 @@ export class HudScene extends Phaser.Scene {
     }
   }
 
-  /** 무기 아이콘: 이름 매핑 + 텍스처가 있을 때만 보이고, 이름은 아이콘 오른쪽으로 비킨다. shake = 56라운드 그로기 떨림 px */
-  private renderWeaponIcon(weaponName: string, shake = 0): void {
-    const id = WEAPON_ICON_IDS[weaponName];
-    const key = id ? weaponIconKey(id) : '';
-    const has = Boolean(key) && this.textures.exists(key);
-    if (has && this.weaponIcon.texture.key !== key) this.weaponIcon.setTexture(key);
-    this.weaponIcon.setVisible(has);
-    const ix = this.panelX + 8 + shake;
-    if (this.weaponIcon.x !== ix) this.weaponIcon.setX(ix);
-    const x = this.panelX + (has ? 28 : 8) + shake;
-    if (this.weaponText.x !== x) this.weaponText.setX(x);
-  }
-
-  /** 56라운드 그로기 표시 (계약 §13). 전체 시간은 이번 그로기에서 본 가장 큰 leftMs (끝나면 잊는다) */
-  private groggyOf(s: UiSnapshot): ReturnType<typeof groggyView> {
-    const g = s.groggy;
-    if (!g || g.active !== true) {
-      this.groggyTotal = 0;
-      return null;
-    }
-    const left = Number.isFinite(g.leftMs) ? g.leftMs : 0;
-    this.groggyTotal = Math.max(this.groggyTotal, left);
-    return groggyView(g, this.groggyTotal || GROGGY.defaultMs);
-  }
-
   /** 스토리 자막: 보스 게이지 위(보스전이 아니면 묶음 위) 가운데, 패널 없이 ink_body. 공지 1.8초, 그 외 3.6초 */
   private showCaption(l: UiStoryLine): void {
     if (!this.built) return;
@@ -936,10 +799,12 @@ export class HudScene extends Phaser.Scene {
     this.caption?.destroy();
     this.captionTimer?.remove();
     const hold = l.kind === 'notice' ? 1800 : 3600;
-    // BOSS_STARTED·STAGE_STARTED 와 같은 프레임에 오므로(STATE 보다 먼저) 스냅샷으로 보스전·층을 본다
+    // BOSS_STARTED·STAGE_STARTED 와 같은 프레임에 오므로(STATE 보다 먼저) 스냅샷으로 보스전·층을 본다.
+    // 61라운드: 보스 막대가 아직 안 그려졌으면 막대 + 이름 자리(36)만큼 위로
     const snap = uiCommands.getUiSnapshot();
-    const bossOn = Boolean(snap.boss && snap.boss.hp > 0) || this.bossName.visible;
-    const bottom = bossOn ? this.panelY - 8 - 14 - 18 - 4 : this.panelY - 6;
+    const bossSoon = Boolean(snap.boss && snap.boss.hp > 0) && !this.combat?.bossOn;
+    const base = this.combat?.centerBottom() ?? UI_SCREEN.HEIGHT - 12;
+    const bottom = bossSoon ? Math.min(base, UI_SCREEN.HEIGHT - 12 - 36) : base;
     const c = new GlowText(this, 0, 0, l.text, 'ink_body', {
       wrap: UI_SCREEN.WIDTH - 240,
       align: 'center',

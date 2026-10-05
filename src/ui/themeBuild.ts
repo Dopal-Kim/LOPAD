@@ -168,8 +168,7 @@ export const CHOICE_CARD = {
     curse: 19,
   } as Readonly<Record<string, number>>,
   kindSlotDefault: 20,
-  /** 희귀도 마름모 칸 수·찬 칸 색 (전설만 밝게) */
-  rarityRank: { common: 1, rare: 2, epic: 3, legendary: 4 } as Readonly<Record<string, number>>,
+  /** 희귀도 마름모 칸 수·찬 칸 색 (전설만 밝게). 칸 수 매기기는 menuView `RARITY_RANK` (목록과 같이 쓴다) */
   rarityMax: 4,
   raritySlot: 22,
   rarityTopSlot: 25,

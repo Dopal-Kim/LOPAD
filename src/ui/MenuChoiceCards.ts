@@ -53,7 +53,7 @@ export function showChoiceCards(
   const faces: Face[] = data.map((d) => ({
     data: d,
     head: new GlowText(scene, 0, 0, d.head, 'ink_body', { stageIndex }),
-    key: new GlowText(scene, 0, 0, `[${d.key}]`, 'page_body', { stageIndex }),
+    key: new GlowText(scene, 0, 0, `[${d.hotkey}]`, 'page_body', { stageIndex }),
     name: new GlowText(scene, 0, 0, d.name, 'page_unsel', {
       scale: C.nameScale,
       wrap: Math.floor(innerW / C.nameScale),
@@ -204,6 +204,7 @@ function buildCard(
   let shakeTween: Phaser.Tweens.Tween | null = null;
   const slot: CardSlotWithBox = {
     key: d.key,
+    hotkey: d.hotkey,
     enabled: d.enabled,
     box,
     paint: (sel) => {

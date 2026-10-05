@@ -24,6 +24,8 @@ import {
 import { routeText } from './text';
 import { GRAY, MAP3D, MAP_ILLUST, ROUTE, SEPIA, type TextStyleName, hexToNum } from './theme';
 import { keyToDir, pickNeighbor, type NavNode } from './warpNav';
+import { placeLabels, type Rect } from './routeLabels';
+import { MARKS } from './themeBuild';
 
 interface NodeView {
   node: UiRouteNode;
@@ -40,6 +42,8 @@ interface NodeView {
   sheet?: Phaser.GameObjects.Image;
   label: GlowText;
   labelLeft: boolean;
+  /** 61라운드: 이 노드의 표지(보상·위험·도장) 자리 — 이름표가 피한다 */
+  marks: Rect[];
   pulse?: Phaser.GameObjects.Graphics;
   /** 60라운드 §14.5: 숨은 노드 얼룩(smudge·located) — 아이콘·고리 없이 얼룩만 */
   smudge: boolean;
@@ -251,7 +255,7 @@ export class RouteMap {
     }
 
     this.drawLinks(nodes, L, Boolean(illust));
-    this.buildNodes(nodes, L, area);
+    this.buildNodes(nodes, L);
     // 고르기 순서는 단계 → 줄 (좌→우). 숨은 노드 얼룩은 고를 수 없다
     if (this.mode === 'choose') {
       const ok = new Set(this.views.filter((v) => v.node.state === 'available' && !v.smudge).map((v) => v.node.id));
@@ -261,13 +265,15 @@ export class RouteMap {
     // 주인공 표시 (현재 노드 왼쪽, 발이 땅에)
     const cur =
       this.views.find((v) => v.node.id === route.currentId) ?? this.views.find((v) => v.node.state === 'current');
+    this.layoutLabels(
+      cur ? { x: cur.x - ICON_HALF - 4 - FIGURE_W, y: cur.gy - FIGURE_H + 1, w: FIGURE_W, h: FIGURE_H } : null,
+      area,
+    );
     if (cur) {
       this.figure = scene.add.graphics();
       drawFigure(this.figure, scene, si);
       this.figureY = cur.gy - FIGURE_H + 1;
       this.figure.setPosition(cur.x - ICON_HALF - 4 - FIGURE_W, this.figureY);
-      // 이름표가 왼쪽으로 넘어간 지금 노드(지도 오른쪽 끝, 예: 보스)는 주인공 표시 왼쪽으로 더 비킨다
-      if (cur.labelLeft) cur.label.setX(cur.label.x - FIGURE_W - 4);
       let up = false;
       this.bobTimer = scene.time.addEvent({
         delay: ROUTE.bobMs,
@@ -365,7 +371,7 @@ export class RouteMap {
    * 노드: 먼 것부터 (가까운 것이 위에 겹친다). 그림자 → 기둥 → Container(Graphics → 아이콘 → 표지) (버튼 규약).
    * 60라운드: 숨은 노드(얼룩)는 그림자·기둥·아이콘 대신 땅 점에 얼룩, 이름표 없음(보기 모드에서 살펴보기만).
    */
-  private buildNodes(nodes: UiRouteNode[], L: PerspectiveLayout, area: { x: number; w: number }): void {
+  private buildNodes(nodes: UiRouteNode[], L: PerspectiveLayout): void {
     const scene = this.scene;
     const si = this.stageIndex;
     const useSheet = NODE_ICON_SHEET.available && scene.textures.exists(NODE_ICON_SHEET.key);
@@ -430,10 +436,13 @@ export class RouteMap {
         wrap: MAP3D.labelWrap,
         stageIndex: si,
       });
-      const lx = ix + ICON_HALF + MAP3D.labelGap;
-      const labelLeft = lx + label.displayWidth > area.x + area.w;
-      if (labelLeft) label.setPosition(ix - ICON_HALF - MAP3D.labelGap - label.displayWidth, iy - 8);
-      else label.setPosition(lx, iy - 8);
+      // 자리는 모든 노드를 만든 뒤 겹침을 피해 고른다 (layoutLabels, 61라운드 플레이 점검 #10)
+      const labelLeft = false;
+      const B = MARKS.badge;
+      const marks: Rect[] = [];
+      if (look.reward) marks.push({ x: ix + MARKS.rewardDx, y: iy + MARKS.rewardDy, w: B, h: B });
+      if (look.risk) marks.push({ x: ix + MARKS.riskDx, y: iy + MARKS.riskDy, w: B, h: B });
+      if (look.grade) marks.push({ x: ix + MARKS.gradeDx, y: iy + MARKS.gradeDy, w: 16, h: 16 });
       this.views.push({
         node: n,
         x: ix,
@@ -447,6 +456,7 @@ export class RouteMap {
         sheet,
         label,
         labelLeft,
+        marks,
         pulse,
         smudge,
         risk: Boolean(look.risk),
@@ -495,6 +505,36 @@ export class RouteMap {
     if (this.destroyed || !id || id === this.sel) return;
     this.sel = id;
     this.redraw();
+  }
+
+  /**
+   * 61라운드 플레이 점검 #10: 이름표 자리 — 다른 노드 아이콘·표지·주인공 표시·먼저 놓은 이름표와 겹치지 않는 곳
+   * (오른쪽 → 왼쪽 → 아래 → 위 …, routeLabels.ts). 지금·갈 수 있는 곳을 먼저 놓는다.
+   */
+  private layoutLabels(figure: Rect | null, area: Rect): void {
+    const obstacles: Rect[] = figure ? [figure] : [];
+    for (const v of this.views) {
+      if (!v.smudge) obstacles.push({ x: v.x - ICON_HALF, y: v.y - ICON_HALF, w: ICON_HALF * 2, h: ICON_HALF * 2 });
+      obstacles.push(...v.marks);
+    }
+    const prio = (st: string): number => (st === 'current' ? 0 : st === 'available' ? 1 : 2);
+    const items = this.views
+      .filter((v) => !v.smudge && v.label.textW > 0)
+      .map((v) => ({
+        id: v.node.id,
+        x: v.x,
+        y: v.y,
+        w: v.label.displayWidth,
+        h: v.label.displayHeight,
+        priority: prio(v.node.state),
+      }));
+    const placed = placeLabels(items, obstacles, area, ICON_HALF, MAP3D.labelGap);
+    for (const v of this.views) {
+      const p = placed.get(v.node.id);
+      if (!p) continue;
+      v.label.setPosition(p.x, p.y);
+      v.labelLeft = p.side === 'left';
+    }
   }
 
   /** 노드 고리·아이콘·이름표·커서·오른쪽 '살펴보는 곳' 을 상태에 맞게 */

@@ -12,6 +12,7 @@ import { menuCloseButton, showFaceDownCards, type CardPage, type CardRow } from 
 import { showChoiceCards } from './MenuChoiceCards';
 import { r53Text, r60Text } from './text';
 import { SelectList } from './widgets';
+import { menuWaitMs } from './uiSequence';
 
 /** 카드 메뉴로 그릴 수 있는 카드 장수 (그 밖이면 일반 목록) */
 const CARD_MIN = 2;
@@ -118,8 +119,14 @@ export class MenuScene extends Phaser.Scene {
       this.list = undefined;
     });
     const first = data;
+    // 61라운드 플레이 점검 #11: 성과 도장 카드가 떠 있으면 그것이 끝난 뒤에 (uiSequence.ts — 최대 1.2초)
+    const wait = menuWaitMs();
     fontsReady().then(() => {
-      if (this.alive && (this.menu ?? first)) this.show(this.menu ?? first);
+      const go = (): void => {
+        if (this.alive && (this.menu ?? first)) this.show(this.menu ?? first);
+      };
+      if (wait > 0) this.time.delayedCall(wait, go);
+      else go();
     });
     this.menu = first;
   }

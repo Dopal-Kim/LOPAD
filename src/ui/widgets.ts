@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { GlowText } from './glow';
 import { takeKey } from './keyGate';
-import { cursor as makeCursor } from './kit';
-import { LAYOUT, type TextStyleName } from './theme';
+import { accentHex, cursor as makeCursor } from './kit';
+import { diamondRing, pixelDiamond } from './routeGlyph';
+import { LAYOUT, SEPIA, type TextStyleName, hexToNum } from './theme';
 
 export interface SelectLine {
   key: string;
@@ -16,6 +17,10 @@ export interface SelectLine {
   header?: string;
   /** 60라운드 §14.4·§14.6: 못 고르는 줄의 꼬리 글 (기본 '(불가)' — 잠김·팔림) */
   note?: string;
+  /** 61라운드: 화면에 보이고 누르는 단축키 (시스템 키가 'd1'·'reroll' 처럼 길 때 menuHotkeys 가 준다). 없으면 key */
+  hotkey?: string;
+  /** 61라운드: 희귀도 칸 수 1~4 — 라벨 오른쪽 마름모(글 대신 색·문양) */
+  rarity?: number;
 }
 
 /** 선택 목록 줄 간격 (계약 1.2절: 글꼴 높이 + 4 이상) */
@@ -38,6 +43,8 @@ export class SelectList {
   private items: GlowText[] = [];
   private details: (GlowText | null)[] = [];
   private headers: (GlowText | null)[] = [];
+  /** 61라운드: 희귀도 마름모 */
+  private marks: (Phaser.GameObjects.Graphics | null)[] = [];
   private cursorIdx = 0;
   private lines: SelectLine[] = [];
   private cursorSprite: Phaser.GameObjects.Sprite;
@@ -69,7 +76,7 @@ export class SelectList {
       } else if (e.key === 'Enter' || e.key === ' ') {
         if (takeKey(e)) this.choose(this.cursorIdx);
       } else {
-        const idx = this.lines.findIndex((l) => l.key === e.key);
+        const idx = this.lines.findIndex((l) => (l.hotkey ?? l.key) === e.key);
         if (idx >= 0 && takeKey(e)) this.choose(idx);
       }
     };
@@ -102,9 +109,11 @@ export class SelectList {
     for (const t of this.items) t.destroy();
     for (const d of this.details) d?.destroy();
     for (const d of this.headers) d?.destroy();
+    for (const g of this.marks) g?.destroy();
     this.items = [];
     this.details = [];
     this.headers = [];
+    this.marks = [];
     let y = this.y;
     lines.forEach((l, i) => {
       const ind = Math.max(0, Math.round(l.indent ?? 0));
@@ -118,9 +127,11 @@ export class SelectList {
       t.on('pointerover', () => this.enabled && this.setCursor(i));
       t.on('pointerdown', () => this.choose(i));
       this.items.push(t);
+      this.marks.push(l.rarity ? this.rarityMarks(t, l.rarity) : null);
       y += SELECT_ROW.line;
       if (l.detail) {
-        const d = new GlowText(this.scene, this.x + 14 + ind + 26, y - 2, l.detail, 'page_faint', {
+        // 61라운드 플레이 점검 #13: 설명 줄 대비 — 흐림(α0.55) 대신 종이 본문 글자
+        const d = new GlowText(this.scene, this.x + 14 + ind + 26, y - 2, l.detail, 'page_body', {
           wrap: this.detailWrap,
         }).makeInteractive();
         d.on('pointerover', () => this.enabled && this.setCursor(i));
@@ -149,6 +160,7 @@ export class SelectList {
     this.x = x;
     this.y = y;
     for (const t of this.items) t.setPosition(t.x + dx, t.y + dy);
+    for (const g of this.marks) g?.setPosition(g.x + dx, g.y + dy);
     for (const d of this.details) d?.setPosition(d.x + dx, d.y + dy);
     for (const d of this.headers) d?.setPosition(d.x + dx, d.y + dy);
     this.render();
@@ -159,6 +171,7 @@ export class SelectList {
     for (const t of this.items) t.setDepth(d);
     for (const t of this.details) t?.setDepth(d);
     for (const t of this.headers) t?.setDepth(d);
+    for (const g of this.marks) g?.setDepth(d);
     this.cursorSprite.setDepth(d + 1);
     return this;
   }
@@ -190,7 +203,24 @@ export class SelectList {
   }
 
   private itemLabel(l: SelectLine): string {
-    return `[${l.key}] ${l.label}${l.enabled ? '' : `  ${l.note ?? '(불가)'}`}`;
+    const k = l.hotkey ?? l.key;
+    return `${k ? `[${k}] ` : ''}${l.label}${l.enabled ? '' : `  ${l.note ?? '(불가)'}`}`;
+  }
+
+  /** 61라운드: 희귀도 = 라벨 오른쪽 작은 마름모 4칸 (켜진 칸 층 강조 22, 전설은 25, 꺼진 칸 세피아 S3 테) */
+  private rarityMarks(t: GlowText, rank: number): Phaser.GameObjects.Graphics {
+    const g = this.scene.add.graphics();
+    const on = hexToNum(accentHex(this.scene, this.stageIndex, rank >= 4 ? 25 : 22));
+    const off = hexToNum(SEPIA[3]);
+    const r = 2;
+    let cx = t.x + t.displayWidth + 4 + r;
+    const cy = t.y + 8;
+    for (let k = 0; k < 4; k++) {
+      if (k < rank) pixelDiamond(g, r, on, 1, cx, cy);
+      else diamondRing(g, r, 1, off, 1, cx, cy);
+      cx += r * 2 + 3;
+    }
+    return g;
   }
   private selStyle(): TextStyleName {
     return this.surface === 'page' ? 'page_selected' : 'ink_body';
@@ -237,6 +267,7 @@ export class SelectList {
     for (const t of this.items) t.destroy();
     for (const d of this.details) d?.destroy();
     for (const d of this.headers) d?.destroy();
+    for (const g of this.marks) g?.destroy();
     this.cursorSprite.destroy();
     this.items = [];
     this.details = [];

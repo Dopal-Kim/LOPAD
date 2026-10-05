@@ -3,6 +3,7 @@ import { firstSentence } from './regionView';
 import { replaceMuteHint } from './resourceView';
 import { withControlExtras } from './structView';
 import { R60_TEXT, type R60TextKey } from './textBuild';
+import { R61_TEXT, type R61TextKey } from './textR61';
 import { fill } from './fmt';
 
 /**
@@ -26,8 +27,7 @@ const DEFAULT_CONTROLS = 'WASD 이동 · 좌클릭 공격 · 우클릭 {secondar
  * `token` 이 조작법 줄에 이미 있으면(텍스트 팩이 이미 적었으면) 덧붙이지 않는다.
  */
 const CONTROL_EXTRAS: { token: RegExp; key: string; fallback: string }[] = [
-  // 53라운드(51라운드 §4): F = 넣기/뽑기
-  { token: /(^|[\s·])F(\s|$)/, key: 'controlCarry', fallback: 'F 넣기·뽑기' },
+  // 53라운드 F 넣기/뽑기는 61라운드 P1(4동사, 칼 발도 = 좌 홀드)로 지워 덧붙이지 않는다
   { token: /(^|[\s·])E(\s|$)/, key: 'controlInteract', fallback: 'E 상호작용' },
   { token: /Shift/i, key: 'controlSprint', fallback: 'Shift 달리기' },
   { token: /Tab/i, key: 'warpKeyHint', fallback: 'Tab 워프' },
@@ -35,8 +35,8 @@ const CONTROL_EXTRAS: { token: RegExp; key: string; fallback: string }[] = [
 
 /**
  * 조작법 한 줄. `{secondary}` 는 스냅샷의 우클릭 보조 동작 이름으로, 비면 '보조 동작'. 47라운드: E·Shift·Tab 이 없으면 덧붙인다.
- * 49라운드: 'M 지도' 를 덧붙이고(팩의 'M 음소거' 는 바꾼다), 노드 지도 층·무기 시험장(`routeMode`)에서는 'Tab 워프' 를 뺀다
- * (노드 지도 층은 M·Tab 이 같은 지도).
+ * 49라운드: 'M 지도' 를 덧붙이고(팩의 'M 음소거' 는 바꾼다), 노드 지도 층·무기 시험장(`routeMode`)에서는 'Tab 워프' 를 뺀다.
+ * 61라운드: 노드 지도 층·무기 시험장은 대신 'Tab 빌드'(누르고 있는 동안 빌드 보기).
  */
 export function controlsLine(secondaryName: string, routeMode = false): string {
   const tpl = uiCommands.getUiText().controls || DEFAULT_CONTROLS;
@@ -47,8 +47,9 @@ export function controlsLine(secondaryName: string, routeMode = false): string {
     token: e.token,
     text: uiText('hud', e.key, e.fallback),
   }));
-  // 노드 지도 층은 M·Tab 이 같은 지도라 'M 지도' 하나만, 그 외 층은 'M 지도' + 'Tab 워프'
+  // 노드 지도 층은 'M 지도' + 'Tab 빌드'(61라운드 Tab 빌드 보기), 그 외 층은 'M 지도' + 'Tab 워프'
   extras.push({ token: /(^|[\s·])M(\s|$)/, text: mapHint });
+  if (routeMode) extras.push({ token: /Tab/i, text: r61Text('controlPeek') });
   return withControlExtras(line, extras);
 }
 
@@ -214,8 +215,6 @@ export const R53_TEXT = {
   carryDrawn: '뽑음',
   /** 넣은 상태 첫 타 준비 — {name} = 발도·끌어내기 */
   carryReady: '{name} 준비',
-  /** 조작법 줄 */
-  controlCarry: 'F 넣기·뽑기',
   /** 튜토리얼 안내 패널 */
   tutTitle: '싸우는 법',
   tutMove: '이동',
@@ -224,7 +223,7 @@ export const R53_TEXT = {
   tutDash: '대쉬 — 대쉬 중엔 맞지 않는다',
   tutCarry: '넣기·뽑기 — 넣은 채 첫 타는 {name}',
   tutCarryPlain: '넣기·뽑기 — 넣은 채 첫 타가 세다',
-  tutMore: 'Q 물약 · Shift 달리기 · E 상호작용 · M 지도 · Esc 뒤로·일시정지',
+  tutMore: 'Q 물약 · Shift 달리기 · E 상호작용 · M 지도 · Tab 빌드 · Esc 뒤로·일시정지',
   tutClose: 'Enter·Esc·클릭 닫기',
   /** 튜토리얼 단계 카드 진행 (TUTORIAL_STEP index+1 / total) */
   tutStep: '{n}/{total}',
@@ -268,4 +267,9 @@ export function r56Text(key: R56TextKey): string {
 /** 57·60라운드 §14 문구 (textBuild.ts R60_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
 export function r60Text(key: R60TextKey): string {
   return uiText('hud', key, R60_TEXT[key]);
+}
+
+/** 61라운드 P10 문구 (textR61.ts R61_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
+export function r61Text(key: R61TextKey): string {
+  return uiText('hud', key, R61_TEXT[key]);
 }

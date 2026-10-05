@@ -11,7 +11,6 @@ import {
   perfectText,
   scorePips,
   setChangeToast,
-  stagePips,
   tagChipValue,
   tagName,
   trialView,
@@ -50,9 +49,6 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
   });
 
   it('세트 임계 2·4·6 칸', () => {
-    expect(stagePips(0)).toEqual([false, false, false]);
-    expect(stagePips(4)).toEqual([true, true, false]);
-    expect(stagePips(6)).toEqual([true, true, true]);
     expect(scorePips(3)).toEqual([1, 0.5, 0]);
   });
 

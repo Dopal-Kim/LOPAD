@@ -52,7 +52,7 @@ describe('bundleView (60라운드 §14.5 노드 지도)', () => {
       routeNode({ id: 'c', reward: 'gold' }),
       routeNode({ id: 'd', hidden: 'smudge', reward: 'passive' }),
     ];
-    expect(rewardLegend(nodes)).toBe('전 전표 주머니 · 저 저주');
+    expect(rewardLegend(nodes)).toBe('전\u00a0전표\u00a0주머니 · 저\u00a0저주');
     expect(rewardLegend([])).toBe('');
   });
 

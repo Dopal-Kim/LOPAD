@@ -6,6 +6,7 @@ import { KIT, NinePanel, SLICE, accentHex, inkPanel } from './kit';
 import { r60Text } from './text';
 import { GRAY, LAYOUT, STRUCT, hexToNum } from './theme';
 import { GRADE_CARD, TRIAL } from './themeBuild';
+import { gradeCardGone, gradeCardShown } from './uiSequence';
 
 /**
  * 60라운드 계약 §14.10 성과 진행 칩 — 잔 구간 전투·위험 노드 진행 중(`UiSnapshot.nodeTrial`)에만 상단 가운데(도전 판이
@@ -141,8 +142,18 @@ export class GradeCard {
       stamp.setY(sy - GRADE_CARD.drop);
       scene.tweens.add({ targets: stamp, y: sy, duration: GRADE_CARD.inMs, ease: 'Quad.easeIn' });
     }
-    this.timer = scene.time.delayedCall(GRADE_CARD.inMs + GRADE_CARD.holdMs, () => {
-      scene.tweens.add({
+    this.fadeAfter(box, GRADE_CARD.inMs + GRADE_CARD.holdMs);
+    // 61라운드 #11: 메뉴가 이 사이에 열리면 메뉴가 기다리고, 카드는 그때까지로 줄어든다 (uiSequence.ts)
+    gradeCardShown(GRADE_CARD.inMs + GRADE_CARD.holdMs + GRADE_CARD.fadeMs, (ms) =>
+      this.fadeAfter(box, Math.max(0, ms - GRADE_CARD.fadeMs)),
+    );
+  }
+
+  /** ms 뒤 사라지기 시작 (앞서 잡은 사라짐은 거둔다) */
+  private fadeAfter(box: Phaser.GameObjects.Container, ms: number): void {
+    this.timer?.remove();
+    this.timer = this.scene.time.delayedCall(ms, () => {
+      this.scene.tweens.add({
         targets: box,
         alpha: 0,
         duration: GRADE_CARD.fadeMs,
@@ -157,6 +168,7 @@ export class GradeCard {
   clear(): void {
     this.timer?.remove();
     this.timer = undefined;
+    if (this.box) gradeCardGone();
     if (this.box) {
       this.scene.tweens.killTweensOf([this.box, ...this.box.list]);
       this.box.destroy();

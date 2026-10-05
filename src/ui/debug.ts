@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { UI_EVENTS, uiBus, uiCommands, type UiMenu, type UiSnapshot } from '../contract/ui';
+import { UI_EVENTS, uiBus, uiCommands, type UiMenu, type UiSettings, type UiSnapshot } from '../contract/ui';
 import { UI_SCENE_KEYS } from './keys';
 
 /**
@@ -16,6 +16,7 @@ import { UI_SCENE_KEYS } from './keys';
  *   chosen: string[]            // 가짜로 고른 노드 id
  *   cancels: number[]           // 53라운드 Q47: 가짜 고르기 중 보낸 cancelChoose 시각 (fakeChoose 가 켜져 있으면 시스템으로 보내지 않는다)
  *   muted: boolean[]            // 49라운드: Esc 일기장에서 보낸 setMuted 기록
+ *   settings: object[]          // 61라운드 §15: 설정 화면에서 보낸 setSettings 기록
  *   view.routeMap.confirm       // 49라운드: '넘어가시겠습니까?' 예·아니오 버튼 화면 좌표
  *   snap()                      // 53라운드: 지금 스냅샷 (덮어쓰기 적용)
  *   scenes()                    // 53라운드: 실행 중인 씬 키 (Esc 단계 확인용)
@@ -37,6 +38,8 @@ interface DebugApi {
   view: Record<string, unknown>;
   /** 49라운드: Esc 일기장에서 보낸 setMuted 기록 */
   muted: boolean[];
+  /** 61라운드 §15: 설정 화면에서 보낸 setSettings 기록 */
+  settings: unknown[];
   /** 53라운드: 지금 스냅샷 (덮어쓰기 적용) */
   snap(): UiSnapshot;
   /** 53라운드: 실행 중인 씬 키 */
@@ -59,6 +62,13 @@ export function setMutedCmd(on: boolean): void {
   uiCommands.setMuted(on);
 }
 const mutedLog: boolean[] = [];
+
+/** 61라운드 §15: 설정 명령. 디버그가 켜져 있으면 기록(`settings`)도 남긴다 (시스템으로도 보낸다) */
+export function setSettingsCmd(s: UiSettings): void {
+  if (uiDebugEnabled()) settingsLog.push({ ...s });
+  uiCommands.setSettings(s);
+}
+const settingsLog: unknown[] = [];
 
 /** 48라운드: 노드 고르기 명령 (디버그 가짜 고르기가 켜져 있으면 기록만 하고 true) */
 export function chooseNodeCmd(id: string): boolean {
@@ -151,6 +161,7 @@ export function installUiDebug(scene: Phaser.Scene): void {
     cancels,
     view: views,
     muted: mutedLog,
+    settings: settingsLog,
     snap: () => withDebug(uiCommands.getUiSnapshot()),
     events: eventLog,
     scenes: () => scenePlugin?.manager.getScenes(true).map((sc) => sc.sys.settings.key) ?? [],

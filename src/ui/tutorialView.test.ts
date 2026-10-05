@@ -32,7 +32,7 @@ describe('tutorialView (53라운드 튜토리얼 안내)', () => {
     expect(isTutorialNode({ route: null, lab: false })).toBe(false);
   });
   it('한 번 띄우기 열쇠', () => {
-    expect(tutorialKey({ route: route('journey'), lab: false, seed: 'abc' })).toBe('abc|n0');
+    expect(tutorialKey({ route: route('journey'), lab: false, seed: 'abc' })).toBe('run|abc');
     expect(tutorialKey({ route: route('battle'), lab: false, seed: 'abc' })).toBe('');
   });
   it('안내 줄: 넣고 뽑는 무기면 F 줄', () => {
@@ -41,6 +41,27 @@ describe('tutorialView (53라운드 튜토리얼 안내)', () => {
     expect(withF.map((r) => r.keys.join(''))).toEqual(['WASD', '좌클릭', '우클릭', 'Space', 'F']);
     expect(withF[4].text).toContain('끌어내기');
     expect(tutorialRows({ weapon, carry: null }, T).some((r) => r.keys[0] === 'F')).toBe(false);
+  });
+  it('61라운드: 4동사가 있으면 이동 + 동사 4줄 (이름 — 설명)', () => {
+    const weapon = { name: '대검', evolutionName: null, personality: 0, threshold: 1, secondaryName: '가드' };
+    const rows = tutorialRows(
+      {
+        weapon,
+        carry: null,
+        weaponVerbs: {
+          weapon: 'greatsword',
+          verbs: [
+            { slot: 'attack', key: '좌클릭', name: '4타', hint: '', branch: null },
+            { slot: 'signature', key: '우클릭', name: '가드', hint: '떼면 밀쳐내기', branch: null },
+            { slot: 'dash', key: 'Space', name: '어깨 태클', hint: '', branch: null },
+            { slot: 'hold', key: '좌클릭 길게', name: '차지', hint: '3단', branch: null },
+          ],
+        },
+      },
+      T,
+    );
+    expect(rows.map((r) => r.keys.join(''))).toEqual(['WASD', '좌클릭', '우클릭', 'Space', '좌클릭 길게']);
+    expect(rows[2].text).toBe('가드 — 떼면 밀쳐내기');
   });
   it('경고: ENEMY_INCOMING delayMs > 0 일 때만 (Q49·Q60, 일반 전투는 0)', () => {
     expect(incomingWarns({ roomId: 'r1', delayMs: 900, count: 3 })).toBe(true);

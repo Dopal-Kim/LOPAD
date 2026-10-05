@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { consumableView } from './buildView';
 import { GlowText } from './glow';
 import { accentHex } from './kit';
+import { KeyCap } from './keycap';
 import { GRAY, hexToNum } from './theme';
 import { CONSUMABLE } from './themeBuild';
 
@@ -25,29 +26,30 @@ type View = NonNullable<ReturnType<typeof consumableView>>;
 
 /**
  * 60라운드 계약 §14.8 소모품 칸 — 하단 묶음 1행 독주(Q) 오른쪽: 병 그림 + 'n/m' + 사용 키(시스템 `consumable.key`, 현재 C).
+ * 61라운드: 왼쪽 아래 전투 묶음 아래 행, 사용 키는 키캡.
  * 빈 칸이면 병 윤곽만 흐리게 + '빈 칸'. 이름은 사용 토스트·일기장에서. 투척(throw)은 마개 자리에 불씨 점.
  * Container(Graphics → 글) 하나라 하단 묶음과 함께 setY 로 움직인다.
  */
 export class ConsumableChip extends Phaser.GameObjects.Container {
   private g: Phaser.GameObjects.Graphics;
   private countT: GlowText;
-  private keyT: GlowText;
+  private keyT: KeyCap;
   private sig = '';
-  /** 그린 폭 (없으면 0) */
-  w = 0;
+  /** 그린 폭 (`w` 는 Phaser Transform 의 4번째 좌표라 setPosition 이 0 으로 되돌린다 — 61라운드 이름 바꿈) */
+  boxW = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, stageIndex: number) {
     super(scene, x, y);
     this.g = scene.add.graphics();
     this.countT = new GlowText(scene, 0, 1, '', 'ink_body', { stageIndex });
-    this.keyT = new GlowText(scene, 0, 1, '', 'ink_faint', { stageIndex });
+    // 61라운드: 사용 키를 키캡으로 (독주 Q 와 같은 문체)
+    this.keyT = new KeyCap(scene, 0, 0, 'C', true);
     this.add([this.g, this.countT, this.keyT]);
     scene.add.existing(this);
   }
 
   setStageIndex(si: number): void {
     this.countT.setStageIndex(si);
-    this.keyT.setStageIndex(si);
     this.sig = '';
   }
 
@@ -58,7 +60,7 @@ export class ConsumableChip extends Phaser.GameObjects.Container {
     this.sig = sig;
     this.setVisible(Boolean(v));
     if (!v) {
-      this.w = 0;
+      this.boxW = 0;
       return;
     }
     const g = this.g.clear();
@@ -90,13 +92,13 @@ export class ConsumableChip extends Phaser.GameObjects.Container {
       .setX(x)
       .setAlpha(v.empty ? CONSUMABLE.emptyAlpha : 1);
     x += this.countT.textW + 6;
-    this.keyT.setText(v.key).setX(x);
-    this.w = x + this.keyT.textW;
-    if (v.empty && this.w > maxW) {
+    this.keyT.setLabel(v.key).setFaint(v.empty).setX(x);
+    this.boxW = x + this.keyT.width;
+    if (v.empty && this.boxW > maxW) {
       this.countT.setText('');
       x = CONSUMABLE.iconW + 4;
       this.keyT.setX(x);
-      this.w = x + this.keyT.textW;
+      this.boxW = x + this.keyT.width;
     }
   }
 }

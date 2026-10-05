@@ -19,6 +19,8 @@ import { LAYOUT, SEPIA, STRUCT, hexToNum } from './theme';
 /** 카드 한 장 (그리기는 각 화면이, 고르기는 CardRow 가) */
 export interface CardSlot {
   key: string;
+  /** 61라운드: 누르는 단축키 (없으면 key) */
+  hotkey?: string;
   enabled: boolean;
   /** 고름 자리가 이 카드인지에 따라 다시 칠한다 */
   paint(sel: boolean): void;
@@ -78,7 +80,7 @@ export class CardRow {
         if (takeKey(e)) this.choose(n);
         return;
       }
-      const idx = this.slots.findIndex((c) => c.key === e.key);
+      const idx = this.slots.findIndex((c) => (c.hotkey ?? c.key) === e.key);
       if (idx >= 0) {
         if (takeKey(e)) this.choose(idx);
         return;

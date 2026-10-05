@@ -1,7 +1,7 @@
 import type { UiBuildState, UiMenu } from '../contract/ui';
 import { type Tx } from './buildView';
 import { fill } from './fmt';
-import { choiceMeta, splitLabel } from './menuView';
+import { RARITY_RANK, choiceMeta, menuHotkeys, splitLabel } from './menuView';
 import { CHOICE_KIND_NAME, CHOICE_MENU_HEAD, R60_TEXT } from './textBuild';
 import { CHOICE_CARD } from './themeBuild';
 
@@ -12,6 +12,8 @@ import { CHOICE_CARD } from './themeBuild';
  */
 export interface ChoiceCardData {
   key: string;
+  /** 61라운드: 화면에 보이고 누르는 단축키 (menuHotkeys) */
+  hotkey: string;
   /** 머리표 (〔〕 없이 종류 이름) */
   head: string;
   /** 머리표 띠 색 (층 강조 슬롯) */
@@ -40,6 +42,8 @@ export function isChoiceCardMenu(m: Pick<UiMenu, 'id' | 'lines' | 'cancelKey'>):
 }
 
 export function choiceCards(m: UiMenu, build?: UiBuildState | null, tx: Tx = (k) => R60_TEXT[k]): ChoiceCardData[] {
+  const hk = menuHotkeys(m.lines.map((l) => l.key));
+  const hotkeyOf = (key: string): string => hk[m.lines.findIndex((l) => l.key === key)] || key;
   return choiceLines(m).map((l) => {
     const { label, detail } = splitLabel(l);
     const head = (l.kind && CHOICE_KIND_NAME[l.kind]) || l.kind || CHOICE_MENU_HEAD[m.id] || '';
@@ -48,11 +52,12 @@ export function choiceCards(m: UiMenu, build?: UiBuildState | null, tx: Tx = (k)
     const note = enabled ? '' : l.locked ? tx('lockedNote') : l.soldOut ? tx('soldOutNote') : tx('disabledNote');
     return {
       key: l.key,
+      hotkey: hotkeyOf(l.key),
       head,
       headSlot: (l.kind && CHOICE_CARD.kindSlot[l.kind]) || CHOICE_CARD.kindSlotDefault,
       name: label,
       meta: choiceMeta(l, build),
-      rarityRank: l.rarity ? (CHOICE_CARD.rarityRank[l.rarity] ?? 0) : 0,
+      rarityRank: l.rarity ? (RARITY_RANK[l.rarity] ?? 0) : 0,
       detail,
       locked,
       enabled,
@@ -63,8 +68,9 @@ export function choiceCards(m: UiMenu, build?: UiBuildState | null, tx: Tx = (k)
 
 /** 카드 조작 안내 한 줄 — 카드 키를 '·' 로 잇고, 그만두기 줄이 있으면 덧붙인다 */
 export function choiceHint(m: UiMenu, tx: Tx = (k) => R60_TEXT[k]): string {
+  const hk = menuHotkeys(m.lines.map((l) => l.key));
   const keys = choiceLines(m)
-    .map((l) => l.key)
+    .map((l) => hk[m.lines.indexOf(l)] || l.key)
     .join('·');
   const base = fill(tx('choiceHint'), { keys });
   const cancel = m.cancelKey && m.lines.some((l) => l.key === m.cancelKey);
