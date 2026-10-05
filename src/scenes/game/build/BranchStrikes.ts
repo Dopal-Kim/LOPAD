@@ -86,7 +86,10 @@ export class BranchStrikes {
     tiles: number,
     lengthPx: number,
   ): { skip: boolean; sheet: string | null } {
-    return this.greatsword.onCrackLine(p, origin, dir, tiles, lengthPx);
+    const out = this.greatsword.onCrackLine(p, origin, dir, tiles, lengthPx);
+    // 61 G 개성 '빨아들이는 균열'
+    if (!out.skip && p.crackLine) this.kit.rt.traits.onCrackLine(origin, dir, lengthPx, p.crackLine.halfWidthPx);
+    return out;
   }
 
   /** 완벽 성공: 반향(퍼펙트 가드) · 천공(완벽 놓기) · 명경(패링) */
@@ -116,6 +119,8 @@ export class BranchStrikes {
 
   onBrandBurst(mob: Mob, marks: number, dmg: number, died: boolean): void {
     this.dagger.onBrandBurst(mob, marks, dmg, died);
+    // 61 G 귀화·분신 방패
+    this.kit.rt.traits.onBrandBurst(mob, marks, died);
   }
 
   // --- 투사체 ---

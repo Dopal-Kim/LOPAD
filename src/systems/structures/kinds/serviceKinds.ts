@@ -137,7 +137,7 @@ export class ServiceKinds {
           c.result(s, 'gain', txt(d, 'recorded', { souls }), { souls });
           c.used(s, 'grave.record');
         } else {
-          c.host.gainPersonality(pers);
+          c.host.gainGrowth(pers);
           c.result(s, 'gain', txt(d, 'accepted', { personality: pers }), { personality: pers });
           c.used(s, 'grave.accept');
         }

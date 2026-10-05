@@ -18,7 +18,7 @@ import {
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
-import { hitShapeBounds, shapeCenterPoint, shapeHit, type Pt } from '../../systems/weapon/hitShapes';
+import { hitShapeBounds, shapeCenterPoint, shapeHitBody, type Pt } from '../../systems/weapon/hitShapes';
 import { facingOf, radiusFitScale } from '../../systems/sprites/spriteDefs';
 import { slamFxId, slashFxId } from '../../systems/fx/fxIds';
 import { isBackswing, isHeavyStrike } from '../../systems/hitFeel';
@@ -196,7 +196,11 @@ export class PlayerStrikes {
     const hasSwingArt =
       g.fx.has(slashFxId(weapon.id)) || (p.slam ? g.fx.has(slamFxId(weapon.id)) : this.swing.lastFxLoaded);
     // 연격 판정은 모양이라 사각형 플레이스홀더를 그리지 않는다 (시트가 없으면 모양 윤곽)
-    const zone = g.add.rectangle(cx, cy, w, h, COLORS.ATTACK, hasSwingArt || shape ? 0 : 0.6).setDepth(DEPTH.ATTACK);
+    // 61 단계 4: 몸통 판정(바디 위 그림 중심까지)이 모양에 걸친 적도 겹침 후보가 되게 물리 영역만 아래로 늘린다
+    const pad = shape ? FEEL.MELEE_HURT_ZONE_PAD_PX : 0;
+    const zone = g.add
+      .rectangle(cx, cy + pad / 2, w, h + pad, COLORS.ATTACK, hasSwingArt || shape ? 0 : 0.6)
+      .setDepth(DEPTH.ATTACK);
     if (shape) {
       this.overlay.debug(ox, oy, p.dirX, p.dirY, shape, facing, activeMs, follow !== null);
       // 후속 판정 이펙트 (잔상 베기 전용 fx) — 없으면 윤곽 플레이스홀더 · 고리는 충격파 그림
@@ -267,7 +271,9 @@ export class PlayerStrikes {
       if (shape) {
         const b = mob.body;
         const target = { x: b.center.x, y: b.center.y, r: Math.min(b.halfWidth, b.halfHeight) };
-        if (!shapeHit(ox, oy, p.dirX, p.dirY, shape, target, facing)) return;
+        // 61 단계 4: 발밑 바디만이 아니라 그림 몸통(hitLiftPx)까지 — 단검 찌르기 헛침
+        const lift = Math.min(mob.visual.hitLiftPx, FEEL.MELEE_HURT_ZONE_PAD_PX);
+        if (!shapeHitBody(ox, oy, p.dirX, p.dirY, shape, target, lift, facing)) return;
       }
       hit.add(mob);
       swingLog.hits += 1;

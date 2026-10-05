@@ -1,6 +1,6 @@
 /**
  * 57라운드 Q25 태그 점수 (설계안 1.2 A): 패시브 종류당 태그마다 1점 + Lv3(최대 레벨) 달성 시 +1 · 갈래 노드 태그마다 1점 ·
- * 강화 시 갈래 태그 +1(최대 reinforceTagMax) · 저주 이득·영구 보너스. 이중 개성은 점수 없음. Phaser 의존 없음.
+ * 저주 이득·영구 보너스·개성 카드(61 G P12 — extra 로 들어온다). Phaser 의존 없음.
  */
 import { TAG_IDS, type BuildScoring, type SetThreshold, type TagId } from '../../data/buildTypes';
 
@@ -11,8 +11,6 @@ export interface TagScoreInput {
   passives: readonly { tags: readonly TagId[]; level: number; maxLevel: number }[];
   /** 선택한 갈래 노드 (경로 순서 — 마지막이 현재 노드) */
   branchNodes: readonly { tags?: readonly TagId[] }[];
-  /** 강화 횟수 */
-  reinforce: number;
   /** 저주 이득·영구 보너스 등 더하는 점수 */
   extra?: readonly Partial<Record<TagId, number>>[];
 }
@@ -31,12 +29,6 @@ export function tagScores(input: TagScoreInput, S: BuildScoring): TagScores {
     for (const t of p.tags) out[t] += S.perPassive + bonus;
   }
   for (const n of input.branchNodes) for (const t of n.tags ?? []) out[t] += S.perBranchNode;
-  const cur = input.branchNodes[input.branchNodes.length - 1];
-  const r = Math.min(Math.max(0, input.reinforce), S.reinforceTagMax);
-  if (cur?.tags?.length && r > 0) {
-    const targets = S.reinforceTagTarget === 'all' ? cur.tags : cur.tags.slice(0, 1);
-    for (const t of targets) out[t] += r;
-  }
   for (const e of input.extra ?? []) for (const [t, v] of Object.entries(e)) out[t as TagId] += v ?? 0;
   return out;
 }

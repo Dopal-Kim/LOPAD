@@ -26,6 +26,10 @@ export const ASSETS = {
   V2_DIR: 'v2',
   /** 52라운드 도트 세분화 하위 폴더 (`sprites/player/v3/…`) — v3 → v2 → 기존 순 (계약 art §11) */
   V3_DIR: 'v3',
+  /** 61 G 계약 art §26: 무기 1차·2차 각성 외형 · 각성 연출 fx (`sprites/weapons/v4/…`, `sprites/fx/v4/…`) — v4 → v3 → v2 → 기존 */
+  V4_DIR: 'v4',
+  /** 61 G art §26: 미리보기 정지 그림 폴더 (`sprites/looks/<무기>_base·<갈래>_a1·<갈래>_a2_<길>.png`, 192×192) */
+  LOOKS_DIR: 'sprites/looks',
   /** 53라운드 v3 바닥 소품 시트 접미 (`tiles/v3/stage1_outer_props.json`) */
   PROPS_SUFFIX: '_props',
   /** 층 타일셋 파일 이름 접두 (`stage1.json`) */

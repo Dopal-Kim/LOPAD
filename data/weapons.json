@@ -1,7 +1,5 @@
 {
   "rules": {
-    "reinforceBonus": 0.15,
-    "reinforceMax": 3,
     "dpsBaseline": {
       "attack": 5,
       "targets": { "katana": [19, 21], "greatsword": [18, 20], "dagger": [21, 23], "bow": [14, 16] }
@@ -104,7 +102,6 @@
       },
       "affinity": { "strokeLength": 0.6, "strokeSpeed": 0.7, "straightness": 0.9 },
       "personality": {
-        "thresholds": [100, 200],
         "branches": [
           {
             "id": "iai",
@@ -166,7 +163,7 @@
                 "tags": ["chain", "scar"],
                 "rule": {
                   "kind": "zangetsu",
-                  "params": { "killKenkiStage": 0.3333, "trailMs": 1200, "tickMs": 300, "tickMult": 0.3 }
+                  "params": { "killKenkiStage": 1, "trailMs": 1200, "tickMs": 300, "tickMult": 0.3 }
                 },
                 "art": { "fx": ["katana_moon_trail"] }
               }
@@ -252,6 +249,46 @@
                 "hint": "0.6초 쥐고 떼면 가드를 깨는 내려베기. 검기 1단을 쓰면 확정 치명"
               }
             }
+          },
+          {
+            "id": "mangetsu",
+            "name": "만월 (滿月)",
+            "description": "패링에 성공하면 달 분신이 공격한 적을 따라 벤다 · 분신이 맞히면 검기가 찬다",
+            "damageMult": 1,
+            "hitboxMult": 1,
+            "mods": {},
+            "tags": ["insight", "vital"],
+            "rule": {
+              "kind": "moonClone",
+              "params": { "delayMs": 220, "rangeTiles": 4, "widthTiles": 1, "damageMult": 1.2, "kenkiStage": 0.34 }
+            },
+            "art": { "fx": ["katana_fullmoon"] },
+            "verbs": { "signature": { "name": "가드 · 만월", "hint": "패링하면 달 분신이 공격한 적을 따라 벤다" } },
+            "next": [
+              {
+                "id": "sakugetsu",
+                "name": "삭월 (朔月)",
+                "description": "일섬이 끝나면 달 분신이 같은 길을 한 번 더 달린다",
+                "damageMult": 1,
+                "hitboxMult": 1,
+                "mods": {},
+                "tags": ["breach", "insight"],
+                "rule": { "kind": "moonIssen", "params": { "delayMs": 180, "damageMult": 0.6, "widthTiles": 1 } }
+              },
+              {
+                "id": "hozuki",
+                "name": "보름 (望月)",
+                "description": "발도하면 달 분신이 함께 칼을 뽑아 앞을 벤다",
+                "damageMult": 1,
+                "hitboxMult": 1,
+                "mods": {},
+                "tags": ["vital", "weight"],
+                "rule": {
+                  "kind": "moonDraw",
+                  "params": { "delayMs": 120, "rangeTiles": 2.5, "arcDeg": 140, "damageMult": 0.6, "perKenki": 0.2 }
+                }
+              }
+            ]
           }
         ]
       },
@@ -386,47 +423,30 @@
           "h1": { "body": ["sweep_cw", "combo1"], "fx": ["sweep_cw", "combo1"] },
           "v": {
             "body": ["cleave", "slam", "combo3"],
-            "fx": ["cleave"],
-            "impactFx": ["cleave_impact", "slam"],
-            "crackFx": ["ground_crack"],
-            "crackRow": "s",
-            "crackRowAtMax": "m"
+            "fx": ["cleave"]
           },
           "h2": { "body": ["sweep_ccw", "combo2"], "fx": ["sweep_ccw", "combo2"] },
           "charge": { "body": ["charge", "slam", "combo3"], "fx": [], "holdColumn": 3 },
           "charge1": {
             "body": ["charge_swing", "charge_slam", "slam", "combo3"],
             "fx": ["charge_swing", "charge_slam_lv1"],
-            "impactFx": ["cleave_impact", "slam"],
-            "flashFx": ["charge_flash_lv1"],
-            "crackFx": ["ground_crack"],
-            "crackRow": "m"
+            "flashFx": ["charge_flash_lv1"]
           },
           "charge2": {
             "body": ["charge_swing", "charge_slam", "slam", "combo3"],
             "fx": ["charge_swing", "charge_slam_lv2"],
-            "impactFx": ["cleave_impact", "slam"],
-            "flashFx": ["charge_flash_lv2"],
-            "crackFx": ["ground_crack"],
-            "crackRow": "m"
+            "flashFx": ["charge_flash_lv2"]
           },
           "charge3": {
             "body": ["charge_swing", "charge_slam", "slam", "combo3"],
             "fx": ["charge_swing", "charge_slam_lv3"],
-            "impactFx": ["cleave_impact", "slam"],
-            "flashFx": ["charge_flash_lv3"],
-            "crackFx": ["ground_crack"],
-            "crackRow": "l"
+            "flashFx": ["charge_flash_lv3"]
           },
           "charge4": {
             "body": ["charge_swing", "charge_slam", "slam", "combo3"],
             "fx": ["charge_swing", "charge_slam_lv3"],
-            "impactFx": ["cleave_impact", "slam"],
-            "flashFx": ["charge_flash_lv4", "charge_flash_lv3"],
-            "crackFx": ["ground_crack"],
-            "crackRow": "l"
+            "flashFx": ["charge_flash_lv4", "charge_flash_lv3"]
           },
-          "ring": { "fx": ["charge_ring"] },
           "crack_line": {
             "fx": [
               "charge_crack_line_t1",
@@ -434,14 +454,12 @@
               "charge_crack_line_t3",
               "charge_crack_line_t4",
               "charge_crack_line_t5"
-            ],
-            "crackFx": ["ground_crack"],
-            "crackRow": "s"
+            ]
           },
           "tackle": { "body": ["tackle"], "fx": [] },
           "brace": { "body": ["brace_upswing"], "fx": ["brace_upswing"] },
           "brace_rage": { "body": ["brace_upswing"], "fx": ["brace_upswing_ember"] },
-          "leap": { "body": ["leap_slam"], "fx": ["leap_slam_land"], "crackFx": ["ground_crack"] }
+          "leap": { "body": ["leap_slam"], "fx": ["leap_slam_land"] }
         },
         "hits": [
           {
@@ -558,7 +576,6 @@
       },
       "affinity": { "strokeLength": 0.9, "strokeSpeed": 0.3, "straightness": 0.6 },
       "personality": {
-        "thresholds": [100, 200],
         "branches": [
           {
             "id": "crush",
@@ -688,6 +705,53 @@
             "verbs": {
               "signature": { "name": "가드 · 버티기 올려베기", "hint": "막은 직후 떼면 버티며 올려벤다(슈퍼아머)" }
             }
+          },
+          {
+            "id": "berserk",
+            "name": "광전 (狂戰)",
+            "description": "울분이 가득 차면 저절로 폭주 — 연격이 끊기지 않고 빨라지며 울분이 빠져나간다 · 적중·피격에도 울분이 찬다",
+            "damageMult": 1,
+            "hitboxMult": 1,
+            "mods": {},
+            "tags": ["weight", "chain"],
+            "rule": {
+              "kind": "rage",
+              "params": { "durationMs": 5000, "attackSpeed": 0.3, "threshold": 1, "hitGain": 4, "hurtGain": 15 }
+            },
+            "verbs": {
+              "attack": { "name": "4타 순환 · 폭주", "hint": "울분이 가득 차면 저절로 폭주 — 끊기지 않고 빨라진다" }
+            },
+            "next": [
+              {
+                "id": "bloodwind",
+                "name": "혈풍 (血風)",
+                "description": "폭주 중 처치마다 폭주가 길어진다",
+                "damageMult": 1,
+                "hitboxMult": 1,
+                "mods": {},
+                "tags": ["chain", "breach"],
+                "rule": { "kind": "rageExtend", "params": { "perKillMs": 700, "maxExtraMs": 5000 } }
+              },
+              {
+                "id": "ironpeak",
+                "name": "철산 (鐵山)",
+                "description": "폭주가 끝나는 순간 가장 깊은 내려찍기가 저절로 터진다",
+                "damageMult": 1,
+                "hitboxMult": 1,
+                "mods": {},
+                "tags": ["weight", "vital"],
+                "rule": {
+                  "kind": "rageFinale",
+                  "params": {
+                    "lengthTiles": 5,
+                    "widthTiles": 1.2,
+                    "damageMult": 2.4,
+                    "radiusTiles": 2,
+                    "ringMult": 1.2
+                  }
+                }
+              }
+            ]
           }
         ]
       },
@@ -759,7 +823,6 @@
           "consumesGrudge": false,
           "leap": { "px": 48, "fromMs": 120, "ms": 290, "easing": "linear" },
           "lengthMult": 1.3,
-          "crackRow": "m",
           "landingRing": { "radiusMult": 0.6, "damageMult": 0.6 },
           "hit": {
             "damageMult": 1.5,
@@ -833,7 +896,6 @@
       },
       "affinity": { "strokeLength": 0.3, "strokeSpeed": 0.9, "straightness": 0.4 },
       "personality": {
-        "thresholds": [100, 200],
         "branches": [
           {
             "id": "twin",
@@ -957,6 +1019,45 @@
               }
             ],
             "verbs": { "dash": { "name": "대쉬 · 부채꼴 투척", "hint": "대쉬 직후 좌클릭 = 단검 3개를 던진다" } }
+          },
+          {
+            "id": "hyakki",
+            "name": "백귀 (百鬼)",
+            "description": "그림자 걸음이 더 자주 준비되고, 낙인이 터질 때마다 그림자 하나가 함께 벤다",
+            "damageMult": 1,
+            "hitboxMult": 1,
+            "mods": {},
+            "tags": ["vital", "breach"],
+            "rule": {
+              "kind": "hundredDemons",
+              "params": { "shadowStepCooldownMult": 0.5, "clones": 1, "cloneMult": 0.5 }
+            },
+            "art": { "fx": ["dagger_hundred_ghosts"] },
+            "verbs": {
+              "signature": { "name": "그림자 걸음 · 백귀", "hint": "더 자주 걷고, 낙인이 터지면 그림자가 함께 벤다" }
+            },
+            "next": [
+              {
+                "id": "nightwalk",
+                "name": "야행 (夜行)",
+                "description": "그림자 걸음 뒤 잠시 모습이 흐려지고 맞지 않는다",
+                "damageMult": 1,
+                "hitboxMult": 1,
+                "mods": {},
+                "tags": ["breach", "insight"],
+                "rule": { "kind": "nightwalk", "params": { "invulnMs": 1000, "alpha": 0.45 } }
+              },
+              {
+                "id": "onibi",
+                "name": "귀화 (鬼火)",
+                "description": "낙인이 터지면 그 불이 옆 적에게 낙인으로 번진다",
+                "damageMult": 1,
+                "hitboxMult": 1,
+                "mods": {},
+                "tags": ["chain", "vital"],
+                "rule": { "kind": "onibi", "params": { "rangeTiles": 2.5, "brands": 2, "targets": 2 } }
+              }
+            ]
           }
         ]
       },
@@ -1046,7 +1147,6 @@
       },
       "affinity": { "strokeLength": 0.7, "strokeSpeed": 0.5, "straightness": 0.8 },
       "personality": {
-        "thresholds": [100, 200],
         "branches": [
           {
             "id": "rapid",
@@ -1165,6 +1265,51 @@
             "verbs": {
               "signature": { "name": "저격 · 관통 화살", "hint": "완벽 놓기가 꿰뚫는다. 숨이 차면 감속 정밀 조준" }
             }
+          },
+          {
+            "id": "meteor",
+            "name": "유성 (流星)",
+            "description": "완벽 놓기 화살이 맞은 자리에 하늘에서 화살 한 발이 더 떨어진다",
+            "damageMult": 1,
+            "hitboxMult": 1,
+            "mods": {},
+            "tags": ["insight", "chain"],
+            "rule": { "kind": "meteor", "params": { "skyMult": 0.8, "skyDelayMs": 120, "skyRadiusTiles": 0.8 } },
+            "art": { "fx": ["bow_meteor_arrow"] },
+            "verbs": {
+              "signature": { "name": "당겨 쏘기 · 유성", "hint": "완벽 놓기마다 하늘에서 한 발이 더 떨어진다" }
+            },
+            "next": [
+              {
+                "id": "starfall",
+                "name": "성우 (星雨)",
+                "description": "화살비가 넓어지고, 가만히 있어도 하늘에서 비가 내린다",
+                "damageMult": 1,
+                "hitboxMult": 1,
+                "mods": {},
+                "tags": ["weight", "chain"],
+                "rule": {
+                  "kind": "starfall",
+                  "params": {
+                    "rainScale": 2,
+                    "autoRainMs": 3000,
+                    "rainRadiusTiles": 1.5,
+                    "rainMult": 0.6,
+                    "rangeTiles": 10
+                  }
+                }
+              },
+              {
+                "id": "comet",
+                "name": "혜성 (彗星)",
+                "description": "완벽 놓기 화살이 적을 꿰뚫으며 터진다",
+                "damageMult": 1,
+                "hitboxMult": 1,
+                "mods": {},
+                "tags": ["vital", "insight"],
+                "rule": { "kind": "comet", "params": { "pierce": 99, "burstRadiusTiles": 1, "burstMult": 0.5 } }
+              }
+            ]
           }
         ]
       },
@@ -1197,6 +1342,7 @@
           "art": "arrow_rain_stand",
           "holdMs": 350,
           "durationMs": 770,
+          "cancelFromMs": 520,
           "releasesAtMs": [240, 360, 480],
           "ammoCost": 3,
           "markRadiusPx": 32,

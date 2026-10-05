@@ -82,7 +82,7 @@ export function rewardSteps(
     case 'personality':
       return [
         (next) => {
-          g.progress.gainPersonality(Math.round(R.personality.amount * mult));
+          g.progress.gainGrowth(Math.round(R.personality.amount * mult));
           next();
         },
       ];
@@ -114,7 +114,7 @@ export function effectStep(g: Game, e: EventEffect, lore = ''): Step {
         else g.economy.spendGold(-e.value);
         return next();
       case 'personality':
-        g.progress.gainPersonality(e.value);
+        g.progress.gainGrowth(e.value);
         return next();
       case 'sense':
         gameState.senses.sense += e.value;

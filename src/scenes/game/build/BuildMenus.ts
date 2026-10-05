@@ -1,37 +1,14 @@
 /**
- * 57라운드 빌드 축 선택 메뉴 (계약 §14.4 줄 종류 · §14.7 curse): 개성 3지선다 칸 (Q37 — 100 = [1단 A/B/강화] · 200 = [2단 α/β/강화] ·
- * 이후 200마다 [강화 / 피의 계약 / 각성(잠김)]) · 패시브 3지선다·2택 (보스·궤짝·저주 이득·노드 보상·상점 진열 훅 — 이중 개성 대기 시
- * 첫 칸 확정, Q27) · 저주 2택. 메뉴 그리기는 UI(MENU_OPEN), 시스템 임시 텍스트는 TextMenu.
+ * 57라운드 빌드 축 선택 메뉴 (계약 §14.4 줄 종류 · §14.7 curse): 패시브 3지선다·2택 (보스·궤짝·저주 이득·노드 보상·상점 진열 훅) ·
+ * 저주 2택 · 구조물 저주 줄. 메뉴 그리기는 UI(MENU_OPEN), 시스템 임시 텍스트는 TextMenu.
+ * 61 G (P12): 옛 개성 3지선다(갈래·강화·피의 계약·각성)·이중 개성 칸은 무기 성장(`growth/GrowthFlow`)으로 옮겼다.
  */
 import { EventBus, Events, type CurseGainedPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
-import {
-  AWAKENINGS,
-  BUILD,
-  CURSES,
-  DUAL_TRAITS,
-  curseDef,
-  curseOn,
-  curseSourceOn,
-  dualAbsorbOn,
-  maxTierOn,
-  tagOn,
-  themeTagOf,
-} from '../../../data/build';
-import type { WeaponEvolution } from '../../../data/types';
-import { ECONOMY, STORY, WEAPON_RULES } from '../../../data';
-import { UI_EVENTS, __system, type UiMenuLine, type UiRarity, type UiTagId } from '../../../contract/ui';
-import type { DualTraitDef } from '../../../data/buildTypes';
+import { BUILD, CURSES, curseDef, curseOn, curseSourceOn, tagOn, themeTagOf } from '../../../data/build';
+import { ECONOMY, STORY } from '../../../data';
+import type { UiMenuLine, UiRarity, UiTagId } from '../../../contract/ui';
 import type { PassiveDef } from '../../../systems/passives';
-import { currentBuild } from '../../../systems/build/current';
-import {
-  anySlotOpen,
-  awakenReady,
-  eligibleDualTraits,
-  evolveSlots,
-  type EvolveSlot,
-} from '../../../systems/build/evolveSlots';
-import { fill } from '../../../systems/story';
 import type { Game } from '../../Game';
 
 /** 패시브 메뉴 출처 (획득 경로 57 Q29): 보스 · 궤짝(2택) · 저주 이득 · 노드 보상(2차 묶음) · 상점 진열(2차 묶음) · 시험장 */
@@ -42,184 +19,12 @@ const asRarity = (r: string): UiRarity | undefined =>
   (RARITIES as readonly string[]).includes(r) ? (r as UiRarity) : undefined;
 
 export class BuildMenus {
-  /** 디버그: 마지막 개성 칸 */
-  lastSlots: EvolveSlot[] = [];
-
   constructor(private readonly g: Game) {}
 
-  // --- 개성 3지선다 ---
-
-  private awakenState() {
-    const w = gameState.weapon;
-    const A = BUILD.awaken;
-    const r = awakenReady({
-      nodes: w.nodes,
-      scores: currentBuild().scores,
-      bossFloorCleared: gameState.build.bossFloorCleared,
-      lab: this.g.lab,
-      tagScore: A.tagScore,
-      afterBossFloor: A.afterBossFloor,
-    });
-    return { ready: r.ready, done: gameState.build.awakened, condition: A.condition };
-  }
-
-  /** 61라운드 P4: 이 층 런에서 고를 수 있는 다음 갈래 (1층 런은 1단까지 — 2단은 시험장) */
-  runOptions(): WeaponEvolution[] {
-    const w = gameState.weapon;
-    const floor = gameState.build.floor;
-    return this.g.lab || w.stage < maxTierOn(floor) ? w.options : [];
-  }
-
-  /** 61라운드 P4: 피의 계약 칸에서 뽑을 저주 (이 층 저주 · 이 층에서 계약 길이 열려 있을 때만 — 1층은 없음) */
-  private pactPool(): string[] {
-    const floor = gameState.build.floor;
-    if (!curseSourceOn('pact', floor)) return [];
-    return CURSES.pactPool.filter((id) => curseOn(curseDef(id), floor));
-  }
-
-  slots(): EvolveSlot[] {
-    const w = gameState.weapon;
-    return evolveSlots({
-      options: this.runOptions(),
-      canReinforce: w.canReinforce,
-      curseActive: gameState.build.curse !== null,
-      pactAvailable: this.pactPool().length > 0,
-      awaken: this.awakenState(),
-    });
-  }
-
-  /** 게이지가 의미가 있는가 (열린 칸이 하나라도) — Progression.gainPersonality */
-  canEvolve(): boolean {
-    return anySlotOpen(this.slots());
-  }
-
-  openEvolveMenu(): void {
-    const g = this.g;
-    const w = gameState.weapon;
-    const slots = this.slots();
-    this.lastSlots = slots;
-    if (!anySlotOpen(slots)) {
-      w.choicePending = false;
-      return;
-    }
-    g.setFrozen(true);
-    const cur = w.evolution ? w.evolution.name : w.def.name;
-    const bonusPct = Math.round(WEAPON_RULES.reinforceBonus * 100);
-    const A = AWAKENINGS[w.id];
-    const lines: UiMenuLine[] = slots.map((s, i) => {
-      const key = String(i + 1);
-      switch (s.kind) {
-        case 'branchA':
-        case 'branchB':
-          return {
-            key,
-            kind: s.kind,
-            label: s.node ? s.node.name : '변환 (완료)',
-            enabled: s.enabled,
-            detail: s.node?.description,
-            ...(s.node?.tags ? { tags: [...s.node.tags] as UiTagId[] } : {}),
-          };
-        case 'reinforce': {
-          const node = w.evolution;
-          const tagTarget = node?.tags?.length
-            ? node.tags.slice(0, BUILD.scoring.reinforceTagTarget === 'all' ? 2 : 1)
-            : [];
-          return {
-            key,
-            kind: 'reinforce',
-            label: `${fill(STORY.ui.evolveMenu.reinforceItem, { n: w.reinforce + 1 })} — ${cur}`,
-            enabled: s.enabled,
-            detail: `피해·범위 +${bonusPct}% · 강화 ${w.reinforce}/${w.reinforceCap}${tagTarget.length && w.reinforce < BUILD.scoring.reinforceTagMax ? ' · 갈래 태그 +1' : ''}`,
-            ...(tagTarget.length ? { tags: [...tagTarget] as UiTagId[] } : {}),
-          };
-        }
-        case 'bloodPact':
-          return {
-            key,
-            kind: 'bloodPact',
-            label: '피의 계약',
-            enabled: s.enabled,
-            detail: s.enabled
-              ? `저주 하나 (무작위) — 이득 ×${BUILD.evolve.pactBenefitMult}, 지속 +${BUILD.evolve.pactExtraNodes}노드`
-              : (s.reason ?? ''),
-          };
-        case 'awaken':
-          return {
-            key,
-            kind: 'awaken',
-            label: A ? `최종 각성 — ${A.name}` : '최종 각성',
-            enabled: s.enabled,
-            detail: s.locked ? `잠김: ${s.locked.condition}` : s.enabled ? (A?.description ?? '') : (s.reason ?? ''),
-            locked: s.locked ?? null,
-          };
-      }
-    });
-    g.menu.open(
-      'evolve',
-      fill(STORY.ui.evolveMenu.title, { weapon: w.def.name, threshold: w.threshold }),
-      lines,
-      (key) => {
-        const s = slots[Number(key) - 1];
-        if (!s?.enabled) return;
-        if ((s.kind === 'branchA' || s.kind === 'branchB') && s.node) g.progress.applyEvolution(s.node.id);
-        else if (s.kind === 'reinforce') g.progress.applyReinforce();
-        else if (s.kind === 'bloodPact') this.applyPact();
-        else if (s.kind === 'awaken') this.applyAwaken();
-      },
-      STORY.ui.evolveMenu.footer,
-    );
-  }
-
-  private closeChoice(): void {
-    gameState.weapon.consumeChoice();
-    this.g.menu.close();
-    this.g.setFrozen(false);
-  }
-
-  private applyPact(): void {
-    this.closeChoice();
-    this.g.build.grantPactCurse(this.pactPool());
-  }
-
-  /** 최종 각성 (57 Q33): 강화 상한 5, 각성 규칙(공통 + 2단별) 켜짐 */
-  applyAwaken(): boolean {
-    const g = this.g;
-    const w = gameState.weapon;
-    const A = AWAKENINGS[w.id];
-    if (!A || gameState.build.awakened) return false;
-    this.closeChoice();
-    gameState.build.awakened = true;
-    gameState.build.touch();
-    w.reinforceCapOverride = BUILD.evolve.reinforceMaxAwakened;
-    g.screenFx.evolve();
-    const name = `${w.displayName} · ${A.name}`;
-    EventBus.emit(Events.WEAPON_EVOLVED, { weapon: w.id, stage: w.stage + 1, name, kind: 'awaken' });
-    __system.emit(UI_EVENTS.WEAPON_EVOLVED, { name });
-    g.ui.story('evolution', `${A.name} — ${A.description}`);
-    g.build.onAwakened(false);
-    g.build.record('awaken', w.id);
-    return true;
-  }
-
-  // --- 패시브 3지선다 · 2택 (이중 개성 확정 칸) ---
-
-  /** 지금 보상 칸에 나올 이중 개성 (조건 충족·미획득, 데이터 순서 첫 번째). 61라운드 P4: 흡수 층(1층)이면 칸 없음 — BuildRuntime 이 자동 */
-  pendingDual(): DualTraitDef | null {
-    if (dualAbsorbOn(gameState.build.floor)) return null;
-    const w = gameState.weapon;
-    const list = eligibleDualTraits(
-      DUAL_TRAITS,
-      w.id,
-      w.path,
-      currentBuild().scores,
-      new Set(gameState.build.dualOwned),
-      BUILD.dual,
-    );
-    return list[0] ?? null;
-  }
+  // --- 패시브 3지선다 · 2택 ---
 
   /**
-   * 패시브 선택 메뉴. 이중 개성이 대기 중이면 첫 칸이 그 이중 개성(kind 'dual'), 나머지는 희귀도 가중 패시브 (1층 테마 태그 ×2).
+   * 패시브 선택 메뉴: 희귀도 가중 패시브 (1층 테마 태그 ×2).
    * 고를 것이 없으면 바로 onDone
    */
   openPassiveMenu(
@@ -240,33 +45,20 @@ export class BuildMenus {
         : source === 'boss'
           ? BUILD.acquisition.bossChoices
           : BUILD.acquisition.nodeChoices);
-    const dual = source === 'curse' || source === 'shop' ? null : this.pendingDual();
     const theme = themeTagOf(gameState.floorReached);
-    const picks = gameState.passives.rollChoices(g.rng, ECONOMY.rarity, count - (dual ? 1 : 0), {
+    const picks = gameState.passives.rollChoices(g.rng, ECONOMY.rarity, count, {
       rarities: opts.rarities,
       guaranteed: opts.guaranteed,
       themeTag: theme,
       themeMult: BUILD.pool.themeWeightMult,
       floor: gameState.build.floor,
     });
-    if (!dual && picks.length === 0) {
+    if (picks.length === 0) {
       onDone();
       return false;
     }
     const lines: UiMenuLine[] = [];
     const actions: (() => void)[] = [];
-    if (dual) {
-      const node = gameState.weapon.nodes.find((n) => n.id === dual.branch);
-      lines.push({
-        key: '1',
-        kind: 'dual',
-        label: `[이중 개성] ${dual.name}`,
-        enabled: true,
-        detail: `${node?.name ?? dual.branch} × ${dual.tag} — ${dual.description}`,
-        tags: [dual.tag],
-      });
-      actions.push(() => g.build.addDualTrait(dual.id));
-    }
     for (const p of picks) {
       const lv = gameState.passives.level(p.id);
       lines.push(this.passiveLine(String(lines.length + 1), p, lv));

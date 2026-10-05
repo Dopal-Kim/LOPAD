@@ -18,7 +18,7 @@ import {
 } from './spriteDefs';
 
 /** 새 도트 하위 폴더 (앞이 우선) */
-export const SHEET_TIERS: readonly string[] = [ASSETS.V3_DIR, ASSETS.V2_DIR];
+export const SHEET_TIERS: readonly string[] = [ASSETS.V4_DIR, ASSETS.V3_DIR, ASSETS.V2_DIR];
 
 /** `sprites/<분류>/<tier>/<파일>` (예: `sprites/player/v3/player_run.json`) */
 export function sheetJsonPathTier(r: SheetRequest, tier: string): string {
@@ -40,7 +40,8 @@ export function v3Only(r: Pick<SheetRequest, 'category' | 'name'>): boolean {
  * v3 만 쓰는 묶음(`v3Only`)은 v3 하나 — 호출 쪽은 마지막 후보를 '있으면 로드'로 다루므로 v3 가 없으면 아무것도 안 읽는다
  */
 export function sheetJsonCandidates(r: SheetRequest): string[] {
-  if (v3Only(r)) return [sheetJsonPathTier(r, ASSETS.V3_DIR)];
+  // 61 G: v3 전용 묶음도 v4(각성 외형) 가 있으면 먼저
+  if (v3Only(r)) return [sheetJsonPathTier(r, ASSETS.V4_DIR), sheetJsonPathTier(r, ASSETS.V3_DIR)];
   return [...SHEET_TIERS.map((t) => sheetJsonPathTier(r, t)), sheetJsonPath(r)];
 }
 

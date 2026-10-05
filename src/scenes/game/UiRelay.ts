@@ -8,13 +8,14 @@ import {
   UI_EVENTS,
   __system,
   type StoryKind,
+  type UiBossRoar,
   type UiEnemyIncoming,
   type UiStoryLine,
   type UiGroggy,
   type UiTutorialStep,
   type UiWarpState,
 } from '../../contract/ui';
-import type { BossBreakPayload, EnemyIncomingPayload } from '../../core/EventBus';
+import type { BossActionPayload, BossBreakPayload, EnemyIncomingPayload } from '../../core/EventBus';
 import { bossSnapshotExtra, uiBossBreak } from './bossUi';
 import { buildSnapshot } from '../../contract/snapshot';
 import { audio } from '../../systems/audio/audio';
@@ -30,6 +31,8 @@ export class UiRelay {
   bossName: string | null = null;
   /** 61라운드: BOSS_DIED 는 그 프레임 끝(emitState)에 낸다 — 같은 프레임 뒤에 오는 결정타(BOSS_BREAK finisher)를 싣기 위해 */
   private bossDiedPending = false;
+  /** 61 단계 4 §17.1: 이번 보스전에 포효(이름 카드)를 냈는가 */
+  private roared = true;
 
   constructor(private readonly g: Game) {}
 
@@ -82,6 +85,8 @@ export class UiRelay {
       groggy: this.groggy(now),
       // 57라운드 (계약 §14.1): 태그·세트 · 이중 개성 · 저주
       build: g.build?.toUi() ?? null,
+      // 61 G 계약 §18: 무기 성장
+      growth: g.growth?.toUi() ?? null,
       // 60라운드 (계약 §14.8~§14.10): 소모품 칸 · 엘리트 이름표 · 노드 성과 진행
       consumable: g.bundle?.consumableUi() ?? null,
       elites: g.bundle?.elitesUi() ?? [],
@@ -154,10 +159,6 @@ export class UiRelay {
     __system.emit(UI_EVENTS.GOLD_CHANGED, p);
   }
 
-  relayEvolved(p: { name: string }): void {
-    __system.emit(UI_EVENTS.WEAPON_EVOLVED, { name: p.name });
-  }
-
   /** 보스 이름표·체력줄 (61라운드: 층 등장 자막은 BossFlow 가 등장 연출 시간표에 맞춰 낸다) */
   relayBossStarted(p: { boss: string }): void {
     this.bossName = BOSSES[p.boss]?.name ?? '보스';
@@ -169,6 +170,25 @@ export class UiRelay {
       // 61라운드 §17: 등장 연출 길이 (BossFlow 가 같은 BOSS_STARTED 를 먼저 받아 정해 둔다)
       introMs: this.g.bossFlow?.introMs ?? 0,
     });
+    // §17.1: 등장 연출이 없으면 이름 카드(포효)를 바로
+    this.roared = false;
+    if (!(this.g.bossFlow?.introMs ?? 0)) this.relayBossRoar();
+  }
+
+  /** §17.1: 등장 동작의 포효 프레임 (BOSS_ACTION introRoar) → 이름 카드 */
+  relayBossAction(p: BossActionPayload): void {
+    if (p.action === 'introRoar') this.relayBossRoar();
+  }
+
+  /** §17.1: 포효 그림이 없는 보스(등장 시트 없음)도 전투 시작까지는 이름 카드를 한 번 낸다 */
+  relayBossFight(): void {
+    this.relayBossRoar();
+  }
+
+  private relayBossRoar(): void {
+    if (this.roared) return;
+    this.roared = true;
+    __system.emit(UI_EVENTS.BOSS_ROAR, { name: this.bossName ?? '보스' } satisfies UiBossRoar);
   }
 
   relayBossPhase(p: { phase: number; hp: number; maxHp: number }): void {

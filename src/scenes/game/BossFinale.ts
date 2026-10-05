@@ -21,7 +21,7 @@ export class BossFinale {
   private center = { x: 0, y: 0 };
   private flipX = false;
   private shatter: FxHandle | null = null;
-  private snuffQueue: { atMs: number; candle: Candle; at: { x: number; y: number } }[] = [];
+  private snuffQueue: { atMs: number; candle: Candle; wicks: { x: number; y: number }[] }[] = [];
   /** 불 끄기 시작 시각 (처치 연출 ms) — 그때 켜진 촛대를 고른다 (처치 순간엔 소등이 아직 풀리기 전일 수 있다) */
   private snuffAtMs: number | null = null;
   private zoomTween: Phaser.Tweens.Tween | null = null;
@@ -61,7 +61,7 @@ export class BossFinale {
     const gaps = BOSS_ART.SNUFF_GAP_MS;
     let at = fromMs;
     this.snuffQueue = arena.snuffTargets(this.pivot).map((t, i) => {
-      const e = { atMs: at, candle: t.candle, at: t.at };
+      const e = { atMs: at, candle: t.candle, wicks: t.wicks };
       at += gaps[i % gaps.length];
       return e;
     });
@@ -123,8 +123,9 @@ export class BossFinale {
       const e = this.snuffQueue.shift()!;
       const arena = this.g.bossArena;
       if (!arena) continue;
+      // 61 단계 4: 서 있는 촛대는 초 심지마다 (아트 wickAnchors.standing) — 촛대는 unlit_standing 으로
       if (this.g.fx.has(BOSS_ART.SHEETS.FLAME_SNUFF))
-        this.g.fx.play(BOSS_ART.SHEETS.FLAME_SNUFF, e.at.x, e.at.y, { hooks: false });
+        for (const w of e.wicks) this.g.fx.play(BOSS_ART.SHEETS.FLAME_SNUFF, w.x, w.y, { hooks: false });
       arena.snuff(e.candle);
       this.log.push(`snuff:${e.candle.id}`);
     }

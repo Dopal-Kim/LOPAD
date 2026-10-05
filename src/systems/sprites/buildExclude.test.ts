@@ -13,7 +13,7 @@ const excluded = (rel: string) => patterns.some((r) => r.test(rel));
 
 describe('빌드 제외 (data/buildExclude.json)', () => {
   it('로드하는 시트(후보 경로 전부)는 빌드에서 빠지지 않는다', () => {
-    const reqs = [...allSheetRequests(), ...Object.keys(WEAPONS).flatMap(awakenSheetRequests)];
+    const reqs = [...allSheetRequests(), ...Object.keys(WEAPONS).flatMap((id) => awakenSheetRequests(id))];
     const hit = reqs.flatMap((r) => sheetJsonCandidates(r)).filter(excluded);
     expect(hit).toEqual([]);
   });

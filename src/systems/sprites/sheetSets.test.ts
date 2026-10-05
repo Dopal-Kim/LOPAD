@@ -8,7 +8,9 @@ import {
   bossSheetRequests,
   floorGatedFxIds,
   requestKey,
-  runAllowsTier2,
+  branchSheetRequests,
+  growthOverlayAction,
+  growthSheetRequests,
   weaponSheetRequests,
 } from './sheetSets';
 
@@ -81,13 +83,29 @@ describe('57라운드 A2 로드 묶음 (부팅 + 고른 무기)', () => {
     expect(all.some((r) => r.name === 'set_stasis_wave')).toBe(false);
   });
 
-  it('61 E VRAM: 1층 런은 2단 갈래 그림을 올리지 않는다 (시험장은 전부)', () => {
-    expect(runAllowsTier2()).toBe(false);
-    const run = new Set(weaponSheetRequests('greatsword', false).map(requestKey));
-    const lab = weaponSheetRequests('greatsword', true).map(requestKey);
-    expect(run.has('fx/greatsword_giant_ring_fx')).toBe(false);
+  it('61 G VRAM: 런 무기 묶음은 지금 경로 노드 그림만 (시험장은 전부) — 고르면 그 갈래·길만 지연 로드', () => {
+    const base = new Set(weaponSheetRequests('greatsword', []).map(requestKey));
+    const lab = weaponSheetRequests('greatsword').map(requestKey);
+    expect(base.has('fx/greatsword_giant_ring_fx')).toBe(false);
+    expect(base.has('fx/greatsword_quake_ring_fx')).toBe(false);
     expect(lab).toContain('fx/greatsword_giant_ring_fx');
-    expect(run.has('fx/greatsword_quake_ring_fx')).toBe(true);
+    const weight = branchSheetRequests('greatsword', ['weight']).map(requestKey);
+    expect(weight).toContain('fx/greatsword_quake_ring_fx');
+    expect(weight).not.toContain('fx/greatsword_giant_ring_fx');
+    expect(branchSheetRequests('greatsword', ['weight', 'giant']).map(requestKey)).toContain(
+      'fx/greatsword_giant_ring_fx',
+    );
+  });
+
+  it('61 G 각성 외형 요청: 1차 a1 · 2차 a2·a2_glow 오버레이 + 연출 fx (고른 갈래만)', () => {
+    const one = growthSheetRequests('katana', 'senpu', 1, []).map(requestKey);
+    expect(one.some((k) => k.startsWith('weapons/katana_senpu_a1_'))).toBe(true);
+    expect(one.some((k) => k.includes('_a2_'))).toBe(false);
+    expect(one).toContain('fx/awaken1_crack_fx');
+    const two = growthSheetRequests('katana', 'senpu', 2, []).map(requestKey);
+    expect(two.some((k) => k.startsWith('weapons/katana_senpu_a2_glow_'))).toBe(true);
+    expect(two).toContain('fx/awaken2_bloom_fx');
+    expect(growthOverlayAction('mangetsu', 2, 'combo1', true)).toBe('mangetsu_a2_glow_combo1');
   });
 
   it('61 E 보스 묶음: 파훼 표시 작은 시트는 보스 묶음, 등장 동작도 보스 묶음, 국면 전환 들이켜기·림·결정타는 지연 묶음', () => {

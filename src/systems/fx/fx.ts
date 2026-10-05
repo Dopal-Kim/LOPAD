@@ -72,6 +72,8 @@ export class FxPool {
   hooks: FxHooks = {};
   /** 60라운드 계약 art §21 갈래 런 교체 규칙 (원 시트 id → 후보 교체 시트 id 목록 — 로드된 첫 후보, Q33 `fxSwapTable`) */
   private readonly aliases = new Map<string, readonly string[]>();
+  /** 61 G 계약 art §26: 2차 각성 휘두름 궤적 길 색 — 이 접두로 시작하는 fx 를 tint 없이 부르면 이 색 (null = 원색) */
+  private trailTint: { prefix: string; tint: number } | null = null;
 
   constructor(private readonly scene: Phaser.Scene) {
     this.group = scene.add.group({
@@ -91,6 +93,11 @@ export class FxPool {
       const list = (typeof to === 'string' ? [to] : to).filter((t) => t !== from);
       if (list.length) this.aliases.set(from, list);
     }
+  }
+
+  /** 61 G: 2차 각성 궤적 색 (무기 fx 접두 · 0xRRGGBB, null 이면 끔) */
+  setTrailTint(prefix: string | null, tint: number | null): void {
+    this.trailTint = prefix && tint !== null ? { prefix, tint } : null;
   }
 
   /** 교체 표를 거친 실제 시트 id */
@@ -165,7 +172,8 @@ export class FxPool {
     if (opts.tint !== undefined) {
       if (opts.tintFill) sprite.setTintFill(opts.tint);
       else sprite.setTint(opts.tint);
-    } else sprite.clearTint();
+    } else if (this.trailTint && rawId.startsWith(this.trailTint.prefix)) sprite.setTint(this.trailTint.tint);
+    else sprite.clearTint();
     const follow = opts.follow;
     const depth = opts.depth ?? (follow && opts.depthOffset !== undefined ? follow.depth + opts.depthOffset : 0);
     sprite.setDepth(opts.belowLighting ? depth : fxLitDepth(depth));

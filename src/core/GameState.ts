@@ -10,7 +10,6 @@ import { PassiveSet } from '../systems/passives';
 import { BuildState } from '../systems/build/BuildState';
 import { BundleState } from '../systems/bundle2/BundleState';
 import { NarrativeState } from '../systems/narrative/NarrativeState';
-import { BUILD } from '../data/build';
 import type { RouteState } from '../systems/route';
 import type { StructureFloorCarry } from '../systems/structures/StructureSystem';
 import { sanitizeScar, type ScarData } from '../systems/setup/scar';
@@ -34,7 +33,7 @@ class GameState {
   pointsPending = 0;
   bonus: StatBonus = { ...EMPTY_BONUS };
   passives = new PassiveSet();
-  /** 57라운드 빌드 축: 이중 개성·저주·각성·영구 보너스 (태그 점수·세트는 passives + weapon 에서 합산) */
+  /** 57라운드 빌드 축: 저주·영구 보너스 (태그 점수·세트는 passives + weapon(갈래·개성) 에서 합산) */
   build = new BuildState();
   /** 60라운드 2차 묶음 런 상태 (이벤트·소모품·예약·층 노드 정보) */
   bundle = new BundleState();
@@ -103,7 +102,7 @@ class GameState {
     this.nextScar = scar;
   }
 
-  /** 새 런. weaponId 는 개성 선택 결과 (없으면 기본 무기). 맡겨 둔 상흔이 없으면 상흔도 비운다 */
+  /** 새 런. weaponId 는 시작 의식 '무기 고르기' 결과 (없으면 기본 무기). 맡겨 둔 상흔이 없으면 상흔도 비운다 */
   startRun(seed: string, weaponId: string = PLAYER_DATA.startWeapon, playerName = ''): void {
     const wid = WEAPONS[weaponId] ? weaponId : PLAYER_DATA.startWeapon;
     this.seed = seed;
@@ -234,7 +233,6 @@ class GameState {
     this.build.restore(d.build);
     this.build.setFloor(this.floorReached);
     this.bundle.restore(d.bundle);
-    if (this.build.awakened) this.weapon.reinforceCapOverride = BUILD.evolve.reinforceMaxAwakened;
     this.weapon.restore(d.weapon);
     this.gold = d.gold;
     this.potions = d.potions;

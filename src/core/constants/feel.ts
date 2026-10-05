@@ -34,6 +34,11 @@ export const PROTOTYPE = {
  * 강도 배율은 런타임 `feelSettings`(systems/feel.ts) 로 조절 — 디버그 `__lopad.setFeel({ shake: 0 })` (접근성 대비).
  */
 export const FEEL = {
+  /**
+   * 61 단계 4 근접 피격 몸통: 판정은 바디(발밑)에서 그림 몸통 중심(`EntityVisual.hitLiftPx`, 일반 적 약 9px)까지.
+   * 몸통 높이 상한이자 물리 겹침 영역을 아래로 늘리는 값 (월드 px)
+   */
+  MELEE_HURT_ZONE_PAD_PX: 24,
   /** 히트스톱: 물리·개체 애니·적 AI 정지 ms (UI·데미지 숫자·흔들림은 계속) */
   HITSTOP: {
     HIT_MS: 40,

@@ -50,8 +50,16 @@ describe('51·52라운드 활 갈래 시트 (계약 art §10)', () => {
 describe('51라운드 Q2 활 갈래 = 속사·저격 (산탄 계열 삭제)', () => {
   it('트리 id: 1단 속사·저격 (아트 BRANCHES), 2단 연궁·무한통·필중·천공 (57 S-1: 2단 관통 → 천공)', () => {
     const b = WEAPONS.bow.personality.branches;
-    expect(b.map((x) => x.id)).toEqual(['rapid', 'snipe']);
-    expect(b.flatMap((x) => (x.next ?? []).map((n) => n.id))).toEqual(['volley', 'quiver', 'deadeye', 'skypierce']);
+    // 61 G: 셋째 갈래 유성 (옛 최종 각성) · 길 성우·혜성
+    expect(b.map((x) => x.id)).toEqual(['rapid', 'snipe', 'meteor']);
+    expect(b.flatMap((x) => (x.next ?? []).map((n) => n.id))).toEqual([
+      'volley',
+      'quiver',
+      'deadeye',
+      'skypierce',
+      'starfall',
+      'comet',
+    ]);
   });
 
   it('속사: 연사 배율이 시위 당김·다음 발 간격을 나누고 탄창이 늘어난다', () => {

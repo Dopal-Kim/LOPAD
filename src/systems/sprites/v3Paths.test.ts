@@ -78,6 +78,7 @@ describe('53라운드 v3 경로 일반화', () => {
     for (const name of ['dummy', 'archer', 'charger']) {
       expect(v3Only({ category: 'enemies', name })).toBe(true);
       expect(sheetJsonCandidates({ category: 'enemies', name, action: 'idle' })).toEqual([
+        `sprites/enemies/v4/${name}_idle.json`,
         `sprites/enemies/v3/${name}_idle.json`,
       ]);
     }

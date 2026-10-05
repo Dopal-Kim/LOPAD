@@ -1,30 +1,34 @@
 import { WEAPON_RULES } from '../../data';
+import { GROWTH, branchByNode, pathByNode, traitDef } from '../../data/growth';
+import type { TraitDef } from '../../data/growthTypes';
 import type { WeaponDef, WeaponEvolution, WeaponMods, WeaponRules } from '../../data/types';
 
-/** 세이브에 들어가는 무기 개성 상태 */
+/** 세이브에 들어가는 무기 성장 상태 (61 G — P12) */
 export interface WeaponProgress {
-  personality: number;
-  /** 선택한 진화 노드 id 경로 (1차, 2차) */
+  /** 각성 게이지 (누적, 줄지 않음) */
+  gauge: number;
+  /** 고른 노드 id 경로 (1차 갈래 노드, 2차 길 노드) */
   path: string[];
-  /** 강화 누적 횟수 */
-  reinforce: number;
-  /** 임계 도달 후 아직 3지선다를 고르지 않음 */
-  choicePending: boolean;
+  /** 얻은 개성 카드 id */
+  traits: string[];
+  /** 단련 횟수 */
+  temper: number;
+  /** 처리한 눈금 수 (눈금 목록 앞에서부터) */
+  marksDone: number;
 }
 
 /**
- * 무기 개성 상태 (기획 4장, 27라운드 분기 트리).
- * 적 처치로 개성 수치를 얻고, 현 단계 임계에 닿으면 `choicePending` 이 되어 게이지가 멈춘다.
- * 3지선다(변환 A / 변환 B / 강화)를 `choose()`·`reinforceNow()` 로 고르면 수치는 0으로 초기화된다.
- * 2차까지 끝나고 강화가 최대면 게이지는 멈춘다. 사망 시 무기도 초기화(기획 3장).
+ * 무기 성장 상태 (61라운드 단계 4 P12 — 옛 개성 임계·0 리셋·강화 대체).
+ * 처치·성과로 각성 게이지가 쌓이고(줄지 않음) 눈금(`systems/growth/marks`)을 넘을 때마다 메뉴 하나가 대기한다 —
+ * ◇ 개성 발현 · ◆ 1차 각성(갈래) · ◆ 2차 각성(길) · 단련. 대기 순서·메뉴 열기는 씬 `GrowthFlow`.
+ * 사망 시 무기도 초기화(기획 3장).
  */
 export class WeaponState {
-  personality = 0;
+  gauge = 0;
   path: string[] = [];
-  reinforce = 0;
-  choicePending = false;
-  /** 57라운드 Q37: 각성 후 강화 상한 (null = 규칙 reinforceMax) */
-  reinforceCapOverride: number | null = null;
+  traits: string[] = [];
+  temper = 0;
+  marksDone = 0;
 
   constructor(
     readonly id: string,
@@ -32,7 +36,7 @@ export class WeaponState {
     private readonly rules: WeaponRules = WEAPON_RULES,
   ) {}
 
-  /** 진화 단계 = 선택한 노드 수 (0 = 기본) */
+  /** 각성 단계 = 선택한 노드 수 (0 기본 · 1 1차 각성 · 2 2차 각성) */
   get stage(): number {
     return this.path.length;
   }
@@ -58,38 +62,39 @@ export class WeaponState {
 
   /** 다음 단계 선택지 (트리가 끝났으면 빈 배열) */
   get options(): WeaponEvolution[] {
-    if (this.stage >= this.def.personality.thresholds.length) return [];
+    if (this.stage >= 2) return [];
     const last = this.evolution;
     return last ? (last.next ?? []) : this.def.personality.branches;
   }
 
-  /** 현 단계 임계. 트리가 끝났으면 마지막 임계를 계속 쓴다 */
-  get threshold(): number {
-    const T = this.def.personality.thresholds;
-    return T[Math.min(this.stage, T.length - 1)];
+  /** 고른 1차 갈래 id (art §26 — growth.json) */
+  get branchId(): string | null {
+    return branchByNode(this.id, this.path[0])?.id ?? null;
   }
 
-  /** 강화 상한 (57라운드: 각성 후 5) */
-  get reinforceCap(): number {
-    return this.reinforceCapOverride ?? this.rules.reinforceMax;
+  /** 고른 2차 길 id */
+  get pathId(): string | null {
+    return pathByNode(this.id, this.path[1])?.path.id ?? null;
   }
 
-  get canReinforce(): boolean {
-    return this.reinforce < this.reinforceCap;
+  get temperMax(): number {
+    return GROWTH.temper.max;
   }
 
-  /**
-   * 게이지가 아직 의미가 있는지 (선택지나 강화가 남아 있음). 57라운드 Q37: 트리가 끝난 뒤에도 피의 계약·각성 칸이 있으므로
-   * 호출 쪽(Progression)이 칸 계산으로 덮어쓴다 — `gainPersonality(amount, canEvolve)`
-   */
-  get canEvolve(): boolean {
-    return this.options.length > 0 || this.canReinforce;
+  get canTemper(): boolean {
+    return this.temper < this.temperMax;
+  }
+
+  get traitDefs(): TraitDef[] {
+    return this.traits.map((id) => traitDef(id)).filter((t): t is TraitDef => Boolean(t));
   }
 
   get displayName(): string {
-    const ev = this.evolution;
-    const plus = this.reinforce > 0 ? ` +${this.reinforce}` : '';
-    return ev ? `${this.def.name} · ${ev.name}${plus}` : `${this.def.name}${plus}`;
+    const b = branchByNode(this.id, this.path[0]);
+    const p = pathByNode(this.id, this.path[1]);
+    const plus = this.temper > 0 ? ` +${this.temper}` : '';
+    const name = p ? `${b?.name ?? ''} · ${p.path.name}` : b ? b.name : '';
+    return name ? `${this.def.name} · ${name}${plus}` : `${this.def.name}${plus}`;
   }
 
   /** 경로를 따라 병합한 효과 (뒤 노드가 같은 키를 덮어쓴다) */
@@ -99,20 +104,30 @@ export class WeaponState {
     return out;
   }
 
-  /** 강화 배율 (피해·범위 공통) */
+  /** 단련 배율 (피해) */
+  get temperDamageMult(): number {
+    return 1 + GROWTH.temper.damageBonus * this.temper;
+  }
+
+  /** 단련 배율 (범위) */
+  get temperRangeMult(): number {
+    return 1 + GROWTH.temper.rangeBonus * this.temper;
+  }
+
+  /** 옛 이름 호환 — 갈래 수단이 쓰는 '강화' 피해 배율 = 단련 피해 배율 */
   get reinforceMult(): number {
-    return 1 + this.rules.reinforceBonus * this.reinforce;
+    return this.temperDamageMult;
   }
 
   get damageMult(): number {
     let m = this.def.damageMult;
     for (const n of this.nodes) m *= n.damageMult;
-    return m * this.reinforceMult;
+    return m * this.temperDamageMult;
   }
 
-  /** 61라운드 P9 (옛 hitbox 대체): 판정 크기 배율 = 강화 × 경로 노드 hitboxMult */
+  /** 판정 크기 배율 = 단련 × 경로 노드 hitboxMult */
   get rangeMult(): number {
-    let m = this.reinforceMult;
+    let m = this.temperRangeMult;
     for (const n of this.nodes) m *= n.hitboxMult;
     return m;
   }
@@ -122,7 +137,7 @@ export class WeaponState {
     return this.def.combo?.radiusPx ?? this.def.ranged?.spawnPx ?? 0;
   }
 
-  /** 판정 기준 거리 px (강화·갈래 배율 반영) — 패시브·갈래 효과의 사거리 기준 */
+  /** 판정 기준 거리 px (단련·갈래 배율 반영) — 패시브·갈래 효과의 사거리 기준 */
   get reachPx(): number {
     return this.baseReachPx * this.rangeMult;
   }
@@ -146,67 +161,68 @@ export class WeaponState {
     return this.mods.attackSlowMult ?? this.def.attackSlowMult;
   }
 
+  /** 무기 규칙 (DPS 기준선 등) */
+  get weaponRules(): WeaponRules {
+    return this.rules;
+  }
+
   toProgress(): WeaponProgress {
     return {
-      personality: this.personality,
+      gauge: this.gauge,
       path: [...this.path],
-      reinforce: this.reinforce,
-      choicePending: this.choicePending,
+      traits: [...this.traits],
+      temper: this.temper,
+      marksDone: this.marksDone,
     };
   }
 
-  /** 세이브에서 복원. 트리에 없는 id 가 나오면 그 앞까지만 */
+  /** 세이브에서 복원. 트리에 없는 id 가 나오면 그 앞까지만, 없는 개성은 버린다 */
   restore(p: Partial<WeaponProgress>): void {
+    this.setPath(p.path ?? []);
+    this.traits = (p.traits ?? []).filter((id) => traitDef(id)?.weapon === this.id);
+    this.temper = Math.max(0, Math.min(Math.floor(p.temper ?? 0), this.temperMax));
+    this.gauge = Math.max(0, Number(p.gauge) || 0);
+    this.marksDone = Math.max(0, Math.floor(Number(p.marksDone) || 0));
+  }
+
+  /** 경로를 바로 정한다 (시험장·복원) — 트리에 없는 id 는 그 앞까지 */
+  setPath(ids: readonly string[]): void {
     this.path = [];
     let options: WeaponEvolution[] | undefined = this.def.personality.branches;
-    for (const id of p.path ?? []) {
+    for (const id of ids.slice(0, 2)) {
       const node: WeaponEvolution | undefined = options?.find((n) => n.id === id);
       if (!node) break;
       this.path.push(id);
       options = node.next;
     }
-    this.reinforce = Math.max(0, Math.min(p.reinforce ?? 0, this.reinforceCap));
-    this.personality = Math.max(0, p.personality ?? 0);
-    this.choicePending = Boolean(p.choicePending) && this.canEvolve;
   }
 
-  /**
-   * 개성 수치를 더한다. 임계에 닿으면 선택 대기 상태가 되고 true 를 반환한다.
-   * 선택 대기 중이거나 더 오를 곳이 없으면 무시.
-   */
-  gainPersonality(amount: number, canEvolve = this.canEvolve): boolean {
-    if (this.choicePending || !canEvolve) return false;
-    this.personality += amount;
-    if (this.personality >= this.threshold) {
-      this.personality = this.threshold;
-      this.choicePending = true;
-      return true;
-    }
-    return false;
+  /** 각성 게이지를 더한다 (음수·NaN 은 무시). 더한 양 */
+  gain(amount: number): number {
+    const a = Math.max(0, Number(amount) || 0);
+    this.gauge += a;
+    return a;
   }
 
-  /** 변환 선택. 선택지에 없는 id 면 null */
-  choose(id: string): WeaponEvolution | null {
-    const node = this.options.find((n) => n.id === id);
+  /** 갈래·길 선택 (지금 단계의 선택지에 있을 때만). 고른 노드 */
+  choose(nodeId: string): WeaponEvolution | null {
+    const node = this.options.find((n) => n.id === nodeId);
     if (!node) return null;
-    this.path.push(id);
-    this.personality = 0;
-    this.choicePending = false;
+    this.path.push(nodeId);
     return node;
   }
 
-  /** 개성 3지선다의 강화 아닌 칸(피의 계약·각성)을 골랐다: 수치 0, 대기 끝 */
-  consumeChoice(): void {
-    this.personality = 0;
-    this.choicePending = false;
+  /** 개성 하나 얻기 (이 무기 것·아직 없는 것만) */
+  addTrait(id: string): boolean {
+    if (this.traits.includes(id) || traitDef(id)?.weapon !== this.id) return false;
+    this.traits.push(id);
+    return true;
   }
 
-  /** 현재 개성 강화 (+reinforceBonus, 최대 reinforceCap 회). 불가하면 false */
-  reinforceNow(): boolean {
-    if (!this.canReinforce) return false;
-    this.reinforce += 1;
-    this.personality = 0;
-    this.choicePending = false;
+  /** 단련 +1 (상한이면 false) */
+  temperNow(): boolean {
+    if (!this.canTemper) return false;
+    this.temper += 1;
     return true;
   }
 }

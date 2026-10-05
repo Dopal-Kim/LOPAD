@@ -1383,3 +1383,103 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 - `tsc --noEmit` · `eslint .` · `vitest run` 119 파일 848 통과 · 바뀐 파일 prettier · `vite build` 통과. 새 테스트: `introArt.test`(등장 시간표) · `bossArt.test`(균열 단·머리 꼭대기 표·림 예산·발도 검기 그림) · `sheetSets.test`(2단 그림·정적 파동·보스 묶음 나눔) · `swingSelect.test`(가속 단계) · `buildExclude.test`(폐기 시트).
 - 헤드리스(빌드, 4무기): 등장 walk→raise→toast→roar→전투, 기둥 균열 1→2→3→3, 잔 struck·깨짐·daze, 소등 림(칼·단검·활 시트 / 대검 tintFill), 결정타(일섬+충격)·쓰러짐 파편·촛대 4개 끄기·보상, 콘솔 오류 0.
 - sim: bossSim 단검 96·칼 106·대검 108·활 117초(변화 없음) · floorSim 보통 길 단검 6.8·칼 6.4·대검 6.4·활 7.4분.
+
+## 61라운드 단계 4 · 시스템 F: 대검 충격파 제거 · 단검 판정 · 보스 포효 UI 이벤트 · 새 보스 동작 소리 · 소등 분리 · 꺼진 촛대·가벼운 림 · 화살비 끊기 (2026-10-05)
+근거: `decisions/2026-10-05-round-61-autonomous-stage1.md` 단계 4 (데모 6 피드백 원문 — '대검 공격 시 요상한 충격파', '단검 공격 판정 수정'), 계약 ui-system-interface §17.1, 아트 커밋 da4dcc2(계약 art §25 보충). 자율 모드 — 세부는 시스템 판단(아래 '왜'). 열람(자율 모드 고지): 아트 시트 JSON 메타(`fx/v3/dagger_combo1~3·accel2·3`, `player/v3/player_dagger_combo1~3`, `fx/v3/greatsword_{cleave_impact,ground_crack,charge_ring}`, `structures/v3/boss1_candelabra`, `bosses/v3/stage1_*_rim{,_lite}`, `fx/v3/boss1_flame_snuff`, `player/v3/player_bow_arrow_rain_stand`), `assets/audio/manifest.json` 새 효과음 항목. 무기 성장 구조(evolve/awaken)는 건드리지 않았다(다른 시스템 작업이 바꾸는 중).
+
+### 1. 대검 '요상한 충격파' 제거
+- 원인: 4타 순환의 V 내려찍기(2·4타)마다 끝점에 `greatsword_cleave_impact`(깨진 고리 + 번개 + 점선 고리)와 `greatsword_ground_crack`(백열 + 방사 균열 + 먼지 고리)이 **같이** 떴다. 연격 두 번에 한 번씩 화면 가운데에 고리가 두 개. 차지 내려찍기도 같은 두 장이 찍은 자리·끝점에 따로 떴다.
+- 변경(데이터 `weapons.json` greatsword `combo.art`): V·charge1~4 의 `impactFx`·`crackFx`·`crackRow`(·`crackRowAtMax`) 삭제, 쓰이지 않던 `ring`(charge_ring) 키 삭제, 균열 선 대체 `crack_line.crackFx` 삭제, 파쇄 도약 찍기 `leap.crackFx`·`moves.leap.crackRow` 삭제(`LeapMoveDef.crackRow` 선택으로). **판정은 그대로**: V 쐐기 + 끝점 충격원(`impactCircle 0.35R`, 관성 최대 ×1.3), 차지 쐐기·균열 선(커서까지 — 그 기술 고유 그림 `charge_crack_line_t*` 만 남김), 도약 착지 링, 파쇄 1단 짧은 균열(갈래 그림), 중압 진동 고리(갈래)는 손대지 않음.
+- 헤드리스 전/후(시험장 허수아비, 스크래치 `r61f/shots_{before,after}`): 순환 2·4타 fx = cleave + cleave_impact + ground_crack → **cleave 만** · 차지 3단 = charge_swing + cleave_impact + ground_crack + crack_line → **charge_swing + crack_line** · 대쉬 공격(태클) 변화 없음(원래 충격파 없음). 흔들림은 무기 `shakeEveryHit`·히트스톱·피격 fx 로 그대로.
+- 부수 효과: 대검 런 텍스처 −9.2MB(시험장 실측 329.4 → 320.2MB — ground_crack 6.6MB 등을 더 올리지 않음).
+
+### 2. 단검 연격 판정
+- 그림 대조(아트 메타 + PNG 실측, 도트 → 월드 = × pixelScale/2 × 주인공 판정 배율 1.25 = 0.3125): 1·2타 찌르기 판정 = 시작 16 + 길이 144 도트(끝 160), 폭 32, 기울기 −8°/+10° · 3타 끝 184, 폭 40. 그림 창끝은 판정 끝 + 12 도트(렌즈) — 실측 판정 프레임 창끝 179(1타)·205(3타) 도트, 대상 반지름(바디 8px = 25.6 도트) 여유 안이라 **기본 시트는 판정과 맞는다**. 판정 시각 = 몸 판정 프레임 시작(hitAt 50·40·60ms × 타 길이 맞춤) = 이펙트 impactFrame 시작(앞 40ms 를 당겨 띄움) — 가속 ×1.25 까지 어긋남 ≤ 5ms(한 프레임 안).
+- 원인 ① **헛침**: 방향을 '발'에서 커서로 재고, 판정 원점은 발 위 12.5px(가슴)이라 찌르기 축이 커서보다 12.5px 위로 지나갔다. 그리고 맞음은 발밑 바디(16×16, 중심 발 위 8px)만 봤다. 적 '그림'(몸통 중심 발 위 약 17px)을 겨누면 좁은 찌르기(폭 10px)가 바디 위로 빗나감 — 가까운 적(위·대각선)과 옆 20~52px 에서 3타 모두 헛침.
+- 원인 ② **가속 단계 어긋남**: 가속 시트 `_accel2·3` 은 '그림만 ×1.1 / ×1.2 길게'(visualLengthPx 188·204, 3타 214·233) 그려지는데 판정은 그대로 — 가속할수록 그림 끝이 판정보다 최대 약 13px 멀리 닿아 보였다.
+- 변경
+  - 근접 공격 방향 = **판정 원점(발 위 가슴 높이)에서 커서로** (`attackEmit`, 근접 무기만) — 찌르기 축(기울기 전)이 커서를 지난다(그림도 같은 축).
+  - 근접 **몸통 판정**(`hitShapes.hurtPoints`·`shapeHitBody`, `PlayerStrikes`): 바디 원에서 그림 몸통 중심(`EntityVisual.hitLiftPx`, 일반 적 약 9px, 상한 `FEEL.MELEE_HURT_ZONE_PAD_PX` 24)까지 반지름 r 원들로 이은 기둥 어디든 걸치면 맞음. 물리 겹침 영역은 그만큼 아래로 늘림(판정 모양 자체·구조물 타격 사각형은 그대로). 모든 근접 무기에 같은 규칙(넓은 호는 체감 차이 작음).
+  - 가속 판정 길이 `payload.reachMult`: 가속 시트를 고르면 `WEAPON_FX.ACCEL_REACH_MULTS [1.1, 1.2]`, 가속 시트가 없어 그림을 키웠으면 그 배율(heatScale), 갈래 변주는 1 (`swingSelect.reachMult` → SwingFx 가 찌르기 길이에).
+- 전/후 (헤드리스, 시험장 허수아비 · 거리 8·20·36·52 × 방향 5 × 1~3타 = 60타, 스크래치 `r61f/dg_*.log`): **그림 몸통을 겨눔 24/60 헛침 → 0/60** · 발을 겨눔 0/60 → 8/60(2타 +10° 기울기로 그림도 발 아래로 지나가는 먼 거리 5 · 적이 주인공 바로 위 8px 에 겹쳐 커서가 주인공 몸 안 3 — 그림과 같은 결과).
+- 단위 테스트 `systems/weapon/daggerStrike.test.ts`: 아트 thrust → 판정 길이·폭·시작점 · 가속 시트 그림 길이 = 기본 판정 끝 × ACCEL_REACH_MULTS(±2 도트) · 몸통 겨눔 3타 × 거리 3 × 방향 7 전부 맞음(예전 규칙은 10칸 넘게 헛침) · 축 위 앞뒤 두 적 맞음·등 뒤 적 안 맞음 · 판정 시각 = impactFrame(가속 ×1.25 까지 16ms 안). `swingSelect.test` reachMult.
+
+### 3. 보스 포효 UI 이벤트 (계약 §17.1)
+- `src/contract/ui.ts`: `UI_EVENTS.BOSS_ROAR = 'ui:boss-roar'` + `UiBossRoar { name }`.
+- `UiRelay`: 등장 동작의 포효 프레임(`BOSS_ACTION introRoar`)에 한 번. 등장 연출이 없으면(`introMs 0` — `?nobossintro`·시험장) BOSS_STARTED 직후. 등장 시트가 없어 포효 그림이 없는 보스도 전투 시작(BOSS_FIGHT)까지는 한 번 낸다(이름 카드가 빠지지 않게).
+- 헤드리스(대검·칼): BOSS_STARTED{introMs 5200} → introRoar 와 같은 순간 BOSS_ROAR → FIGHT · `?nobossintro`: BOSS_STARTED{introMs 0} 직후 BOSS_ROAR.
+
+### 4. 새 보스 동작 소리 (음향 manifest 연결)
+- `audioMap SFX.boss1`: introRoar `boss1_intro_roar`(entrance 와 함께) · cupStruck `boss1_cup_struck`(잔이 깨지는 타는 cupStruck 이 나오지 않음 — 파훼 `boss1_break_cup` 만) · pillarCrack `boss1_pillar_crack1~3`(`bossActionSfx(action, index)` — 새 균열 단, 1~3 으로 자름 · 파훼 소리 위에 겹침) · flameSnuff `boss1_flame_snuff`(변주 _v2·_v3 는 기존 variantOf 규칙). `audioDefs.test` '쓰이지 않는 manifest 효과음 없음' 통과.
+
+### 5. 정리: 보스방 소등 분리 (CLAUDE.md 6-1)
+- `systems/boss/arenaDarkness.ts`(`ArenaDarkness`): 등불 끄기(주변광·촛대 차례로 쓰러뜨림·최소 광원·림·예고를 어둠 위로·저절로 복구)와 처치 때 방 불 끄기(대상·끄기)를 BossArena 에서 옮김. BossArena 680 → 약 630줄, `lightsOut`·`dark`·`snuffTargets`·`snuff`·`rim` 은 넘기기만.
+
+### 6. 아트 da4dcc2 연결
+- **서 있는 꺼진 촛대** `boss1_candelabra unlit_standing [10..13]`: 처치 때 꺼짐(out) = 10~13 재생 후 stateHold 13 유지(예전: lit 그림을 #5a5048 로 어둡게 — 시트에 없을 때만 대체). 끄는 순간 `boss1_flame_snuff` 를 `wickAnchors.standing` 심지 5개(flipX 면 x → 256 − x)에 — 누운 채 켜진 촛대는 불꽃 자리 하나. 꺼진 촛대를 다시 켜면 lit(0) + 광원 400ms 페이드. 상태 정지 프레임은 JSON `stateHold` 를 따른다(쓰러짐 fallen_unlit 도 5 → 6).
+- **가벼운 림** `stage1_*_rim_lite`(144×180 · 피벗 (72,165) · pixelScale 1.0 · 아틀라스 합 10.6MB): 소등 시작 때 '지금 VRAM + 원 림 42MB'가 예산(500MB) 안이면 원 림, 넘으면 가벼운 림(+11MB), 그것도 넘으면 tintFill. `_rim` 과 둘 중 하나만 올림(`BossVram.rimKind`). 표시 배율 = 보스 배율 × (림 도트 배율 / 보스 도트 배율) = ×2, 같은 프레임 번호·원점(0.5, 0.9167)·flip. 로더는 pixelScale 을 텍스처 로드에 쓰지 않아(아틀라스 형식만 봄) 1.0 시트도 그대로 올라오고, 배율만 BossRim 이 계산.
+- 보스방 VRAM 재실측(헤드리스 개발 서버, `?boss&debug=1&new=1&seed=e61`, 등장 → 2·3국면 소등 → 처치): **대검 최고 489.4MB**(림 = rim_lite, 소등 중 486 — 전 485.1 은 tintFill) · 칼 최고 425.4MB(림 = 원 림, 변화 없음) · 4096 초과 0.
+
+### 7. 화살비 끊기 (아트 cancelAt 520)
+- 판단: 쓴다. 520ms 는 마지막 발사(480) 뒤라 화살 수·낙하 시각이 그대로이고, 남은 250ms(활 내리기 11~13)는 그림만의 마무리. 탄창 3 을 쓰는 기술이라 회피가 늦으면 손해가 커서 끊기를 준다.
+- 몸 시트 `cancelFromFrame 11` 시작(= 520ms, 없으면 데이터 `moves.arrowRain.cancelFromMs 520`, 검증: 마지막 발사 ~ durationMs)까지만 동작 잠금·감속. 그 뒤 대쉬·공격은 제 그림이 덮고, 이동하면 마무리 자세를 바로 푼다(`Player.softPose` — 그 사이 다른 동작 그림이면 건드리지 않음).
+- 헤드리스(시험장 활): 화살비 뒤 544ms 에 Space → 576ms 대쉬(전: 770ms 까지 잠김) · 400ms 에 Space → 무시(잠금 유지).
+
+### 검사
+- 저장소 작업 트리(다른 시스템 작업 — 무기 성장 P12 — 변경 포함): `tsc --noEmit` · `eslint .` · `vitest run` 122 파일 878 통과 · 바뀐 파일 prettier · `vite build` 통과. 헤드리스 확인은 그 작업이 진행 중이던 동안 HEAD + 이 작업 변경만 올린 스냅숏(스크래치 `r61f/wt`, 855 통과)에서 했다.
+
+## 61라운드 단계 4 · 시스템 G: 무기 성장 재설계 (P12 — 각성 게이지 · 개성 발현 · 1차/2차 각성) (2026-10-05)
+근거: `decisions/2026-10-05-P12-weapon-growth.md`, 조사 `review-2026-10-05-weapon-growth-current.md`, 계약 UI §18(+§14.4·§16), art §26(+ 보충 5339cab), sound §10. 자율 모드 — 아래 '왜'가 판단 기록. 동시 작업 경계: 시스템 F 의 단검 연격 판정·대검 fx 생성부·BossArena 는 건드리지 않았다(GreatswordBranch 의 옛 산붕 충격파 코드는 규칙이 더 오지 않아 죽은 채로 남김 — F 정리 범위).
+열람(자율 모드 고지): `assets/sprites/weapons/v3`·`v4`·`fx/v4`·`looks/<무기>.json`(파일 이름·JSON 메타 pathTint·trailTint·swapFrame·offsetDots 확인).
+
+### 구조 (옛 임계·0 리셋·강화·피의 계약·각성 칸·이중 개성·maxTierByFloor 대체)
+- 각성 게이지 = `WeaponState.gauge`(누적, 줄지 않음) + 처리한 눈금 수 `marksDone`. 눈금 `data/growth.json` 1층 30 ◇ / 90 ◆1차 / 150 ◇ / 220 ◆2차 / 290 ◇ / 이후 70마다 단련 눈금(`systems/growth/growth.ts`). 한 번에 여러 눈금을 넘으면 차례로 연다.
+- 메뉴(`evolve`, 계약 §18): 개성 3장(`trait` — 갈래 개성 우선 1장·같은 칸 겹치지 않게) · 1차 갈래 3장(`awaken1`, `line.branch`) · 2차 길 2장(`awaken2`, `line.path`) · 단련 눈금 [`temper` / `trait` / `trait`]. 고를 것이 없으면 눈금만 지나간다. 단계와 어긋난 눈금은 보정(`effectiveKind`).
+- 단련 = 피해·범위 +10%, 최대 3(옛 강화 +15%·태그 +1 폐지). 개성 1장 = 그 카드 태그 +1(`scoring.perTrait`).
+- 피의 계약 칸 폐지(옛 세이브의 계약 저주만 `build.json pact` 로 읽음). 1층 런 2단 제한(`maxTierByFloor`)·이중 개성(`dualTraits.json`)·최종 각성(`awakenings.json`)·`evolveSlots` 삭제.
+- 세이브 v6: 무기 = 게이지·경로·개성·단련·처리한 눈금. 메타 `diary.guides`(처음 안내 카드 — 메뉴를 고르면 기록, 시험장 제외).
+
+### 갈래 3 · 길 2 (P12 표, id = art §26 ↔ 노드 id = weapons.json)
+- 옛 1단 2개 + 셋째 갈래(옛 최종 각성): 칼 만월(`mangetsu` — 패링 → 달 분신이 따라 벤다·맞히면 검기) · 대검 광전(`berserk` — 울분 가득 → 저절로 폭주 5초: 끊기지 않음·공속 +30%·울분이 빠져나감, 적중·피격도 울분) · 단검 백귀(`hyakki` — 그림자 걸음 쿨 ×0.5·기폭마다 그림자 1) · 활 유성(`meteor` — 완벽 놓기마다 하늘 화살). 노드 `verbs` 로 바뀌는 칸 이름.
+- 셋째 갈래 길: 삭월(일섬 끝 → 분신이 같은 길) · 보름(발도 → 분신 동시 발도, 검기만큼) · 혈풍(폭주 중 처치 → 연장, 최대 +5초) · 철산(폭주 끝 → 조준 방향 균열 + 고리) · 야행(그림자 걸음 뒤 1초 무적·흐려짐) · 귀화(낙인 폭발 → 옆 적 2에게 낙인 2) · 성우(화살비 범위 ×2·3초마다 자동 화살비) · 혜성(완벽 놓기 화살이 끝까지 꿰뚫으며 맞을 때마다 터짐).
+- 잔월 처치 검기 1/3 → 1단(P12 표). 옛 각성 규칙(live:false 포함)은 위 표로 다시 정의 — 산붕 '4타 충격파'·만월 공통·allSplit 등 각성 덧규칙은 폐기.
+- id 를 바꾸지 않고 연결한 이유: 노드 id(iai·batto·vortex …)는 동작 표·음향 BRANCH_EFFECT·그림 키에 140곳 넘게 쓰인다 — growth.json 이 art id ↔ 노드 id 를 잇고, 계약·그림·런 로그는 art id 만 쓴다.
+
+### 개성 56장 (`data/traits.json` — 무기당 기본 8 = 4동사 × 2 + 갈래마다 2)
+- 한 줄 = '조건 → 행동 변화'(숫자·%·× 없음 — 검증 `plainLine`), verb 키 칸, 1층 태그 하나. 실행: `scenes/game/build/traits/*`(새 규칙 33종) + 옛 이중 개성 실행기 그대로(피바람·술 회오리·투구째·갈라진 길·짓눌린 숨·술독 짓누르기·쌍낙인·독주 투척·쏟아지는 비·장교 사냥·불화살). 옛 '바람 칼'(투척 수·쿨 숫자)은 숫자 카드라 빼고 '돌아오는 칼'로.
+- 훅: BuildCombat(확정 치명·타격 뒤·처치·공속) · BuildDefense(휘두르며 막기·분신 방패) · BuildPerfect · IssenStrikes 끝 · BrandMarks(그림자 매듭·마무리 기폭) · ArrowRain(그물·이어지는 비·성우 범위) · BranchMoves(걸으며 연사) · DaggerBranch(돌아오는 칼·그림자 사냥·취한 그림자) · BowBranch(별 표적·술별).
+
+### 각성 연출·외형 (art §26 실제 시트 연결)
+- 1차 = 0.8초 정지 + `fx/v4/awaken1_crack`(주인공 발 + offsetDots(0,−60), swapFrame 4 시작에 새 외형), 2차 = 1.0초 + `awaken2_bloom`(swapFrame 6, 길 색 tint). 연출 fx 가 없으면 옛 `<무기>_awaken_in`, 그것도 없으면 정지 끝에.
+- 오버레이(`objects/GrowthOverlay` — WeaponOverlay 에서 분리): 무기 → `<갈래>_a1_<동작>` → `_a2_` → `_a2_glow_`(setTint(JSON pathTint[길])) → 검기·울분. 옛 `_awaken` 은 그 동작의 a1 시트가 없을 때만 폴백. 2차 휘두름 궤적 = a2 JSON `trailTint[길]`(FxPool `setTrailTint` — 무기 접두 fx). 셋째 갈래 런은 옛 각성 궤적(`<fx>_awaken`) 교체도.
+- 로드(VRAM): 런 무기 묶음은 지금 경로 노드의 갈래 그림만(`weaponSheetRequests(id, scope)`, 시험장 전부). 1차 뒤 그 갈래 그림 + a1, 2차 뒤 길 그림 + a2·a2_glow 를 지연 로드(`loadGrowthSheets`). 메뉴가 열릴 때 연출 fx 를 미리 받는다. 시트 경로에 v4 단계 추가(v4 → v3 → v2 → 기존).
+- 미리보기(`sprites/looks/`): 씬 시작에 그 무기의 base·갈래 a1·길 a2_<길> 을 받아 `baseLookKey`·`branch.lookKey`·`path.lookKey` 로 넘긴다.
+
+### 계약 (`src/contract/ui.ts` · `snapshot.ts`)
+- §18 타입 `UiGrowth*`·`UiAwaken`·`UiGrowthGain`, `UiSnapshot.growth`, 메뉴 줄 `kind` trait/awaken1/awaken2/temper + `line.branch`/`line.path`/`line.verb`, 이벤트 `ui:growth-gain`·`ui:awaken`·`ui:trait-gained`. 옛 kind(branchA …)·`DUAL_TRAIT_GAINED`·`UiDualTrait` 는 타입만 남기고 내보내지 않는다(`build.dualTraits` 늘 []). UI `WEAPON_EVOLVED` 는 더 내지 않는다(배너 = `ui:awaken`).
+- `weapon.personality`·`threshold` = 게이지·다음 눈금 값(옛 HUD 호환, deprecated).
+
+### 이벤트 (음향 §10 갱신용)
+- 시스템: `GROWTH_GAINED 'weapon:growth-gained' {weapon,amount,gauge}` · `GROWTH_MARK 'weapon:growth-mark' {weapon,kind,at,index}`(메뉴 열림) · `TRAIT_GAINED 'weapon:trait-gained' {weapon,id,verb,tag,branch?}` · `WEAPON_AWAKEN 'weapon:awaken' {stage,weapon,branch,path?,name}` · `WEAPON_TEMPERED 'weapon:tempered' {weapon,temper,name}`. 옛 PERSONALITY_GAINED·WEAPON_EVOLVED·WEAPON_CHOICE_PENDING·WEAPON_REINFORCED·DUAL_TRAIT_GAINED 삭제.
+- audioMap: 1차 → `awaken1`(없으면 evolve) · 2차 → `awaken2` → `awaken_<무기>` → evolve · 꼬리 `awaken_tail_<무기>` · 개성 메뉴 열림·획득 → `trait_manifest`(없으면 dual_trait) · 게이지 → `growth_tick`(300ms 묶음) · 단련 → reinforce. 새 id 는 `GROWTH_SFX`(매니페스트 검사 밖 — 음향 제작 대기).
+- 런 로그 선택: awaken1·awaken2·trait·temper.
+
+### 용어 (시스템 문구)
+- '영혼 → 개성 선택' → '영혼 → 유산'(story.json), 패시브 '개성 각성' → '공명'(각성 게이지 2배), 구조물·이벤트·저주·살기 문구의 '개성' → '각성 게이지', 시작 의식 주석 '무기 고르기'. 갈래 자막 표(`story.evolution.byName`)를 새 갈래 12·길 24 이름으로. 메뉴 제목·끝줄 = growth.json text.
+
+### 획득량 (floorSim 게이지 추적 — `nodeSim.test` 표, 가정 `SIM.GROWTH`: 완 30%·획 자국 0.5회·이벤트 게이지 50%)
+- `growth.gain.normalKillMult` 0.5 → **0.6**(1.0 이면 여정에서 1차·단1 에서 2차 — 너무 빠름).
+
+| 길 | 여정 | 단1 | 단2 | 단3 | 보스 전 | 1차(90) | 2차(220) |
+|---|---|---|---|---|---|---|---|
+| 전투 많음 (처치만/기대) | 58/74 | 136/168 | 214/252 | 292/342 | 342 | 단1 | 단2 |
+| 보통 | 58/74 | 136/168 | 136/183 | 214/267 | 267 | 단1 | 단3 |
+- 4무기 같음(처치 수가 같은 웨이브라). 첫 개성(30)은 버려진 길 안. 보스 50·결정타 30 은 보스 뒤(다음 눈금 290·단련). 실제 런 로그로 보정한다.
+
+### 시험장 (`#lab`)
+- L → '각성 갈래 · 게이지': 기본·갈래 3·길 6 아무 단계나 즉시(연출 없이 외형·그림만) · 게이지 +30 · 다음 눈금까지(그 눈금 메뉴가 그대로 열린다) · 처음으로 · 패시브·저주 시험. `?lab&weapon=<id>&branch=<노드>,<노드>`.
+
+### 검사
+- `tsc --noEmit` · `eslint .` · `vitest run` 122 파일 878 통과(새 `growth/growth.test` 9) · 바뀐 파일 prettier · `vite build` 통과.
+- 헤드리스(vite preview, playwright swiftshader, 1920×1080, 스크래치 `g61/`): 무기 4종 새 런 — 게이지 30·90·150·220·290·360 마다 개성 3장 / 갈래 3장(lookKey 있음) / 개성 3장(갈래 개성 첫 장) / 길 2장(lookKey) / 개성 / [단련·개성·개성], 1차 `awaken1_crack`·2차 `awaken2_bloom` 정지(폴백 아님), 2차 뒤 오버레이 a1·a2·a2_glow 셋 다 켜짐. 시험장 8 조합(셋째 갈래 4 + 옛 갈래 4)에 개성 전부 넣고 연격·홀드·대쉬 공격·우클릭·완벽 성공 4종·울분 가득 → 규칙 발동 기록(만월 분신·보름·광전 시작·포효·철산·혜성·꿰어 박기 …). 콘솔 오류 0.
+- 남은 것: 첫 생 '싸우는 법' 안내판이 떠 있는 동안은 UI 가 게임을 멈춰 눈금 메뉴가 그 뒤로 미뤄진다(의도대로). UI 새 카드 화면은 이 빌드 헤드리스에서 옛 텍스트 메뉴 모양으로 보였다 — UI 쪽 조건 확인 요청.

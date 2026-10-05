@@ -1,6 +1,6 @@
 /**
  * 활 화살비 (56라운드 2단계 Q43·Q52·Q55, 계약 art §18.9 → 61라운드 P1 좌 홀드) — 플레이어 쪽: 좌클릭을 holdMs 넘게 누르면 →
- * 몸·무기 `bow_arrow_rain` (3발 연속 발사 640ms) · 탄창 소모 · PLAYER_ARROW_RAIN(예고 원 중심 = 커서).
+ * 몸·무기 `bow_arrow_rain_stand` (3발 발사 240·360·480ms, 520ms 부터 끊기 가능 — 61 단계 4) · 탄창 소모 · PLAYER_ARROW_RAIN(예고 원 중심 = 커서).
  * 솟는 화살·예고 원·낙하점 판정은 씬(ArrowRain).
  */
 import { EventBus, Events, type ArrowRainPayload, type PlayerSecondaryPayload } from '../../core/EventBus';
@@ -33,8 +33,16 @@ export function startArrowRain(p: Player, input: InputState, time: number): bool
   const memo = (sheet as { releaseFrames?: unknown } | undefined)?.releaseFrames;
   const rf = Array.isArray(memo) ? memo.filter((f): f is number => typeof f === 'number') : [];
   const releases = rf.length > 0 ? rf.map((f) => visual.frameStartMs(f)) : [...def.releasesAtMs];
-  p.setAction('skill', time + total);
-  p.slowUntil(time + total);
+  // 61 단계 4: 아트 cancelAt(몸 시트 cancelFromFrame 시작 = 520ms, 없으면 데이터 cancelFromMs) 부터 끊을 수 있다 — 마지막 발사 뒤만
+  const cf = (sheet as { cancelFromFrame?: unknown } | undefined)?.cancelFromFrame;
+  const lastRelease = Math.max(0, ...releases);
+  const cancelAt = Math.min(
+    total,
+    Math.max(lastRelease, typeof cf === 'number' ? visual.frameStartMs(cf) : (def.cancelFromMs ?? total)),
+  );
+  p.setAction('skill', time + cancelAt);
+  p.slowUntil(time + cancelAt);
+  p.softPose = cancelAt < total ? { until: time + total, anim: visual.current } : null;
   p.gear.lastAttackAt = time;
   if (res?.kind === 'ammo' && res.fire(time, def.ammoCost)) p.gear.onReloadStart(time);
   const payload: ArrowRainPayload = {

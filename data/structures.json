@@ -103,9 +103,9 @@
         "record": "기록한다",
         "recordDetail": "전장의 영혼 +{souls} (런 정산에 더해진다)",
         "accept": "받아들인다",
-        "acceptDetail": "무기 개성 +{personality}",
+        "acceptDetail": "각성 게이지 +{personality}",
         "recorded": "일기장에 한 줄 적었다. 영혼 +{souls}",
-        "accepted": "무기가 조금 더 무거워졌다. 개성 +{personality}"
+        "accepted": "무기가 조금 더 무거워졌다. 각성 게이지 +{personality}"
       }
     },
     {
@@ -474,10 +474,10 @@
         "personalityPerRing": 0.4
       },
       "text": {
-        "warn": "한 번 더 치면 판돈이 오른다: 남은 시련 적 HP +{hp}%·웨이브마다 +{extra}, 전표 ×{gold}·개성 ×{pers}",
+        "warn": "한 번 더 치면 판돈이 오른다: 남은 시련 적 HP +{hp}%·웨이브마다 +{extra}, 전표 ×{gold}·각성 게이지 ×{pers}",
         "rung": "종이 울렸다. 이 층의 판돈 ×{gold}",
         "statusLabel": "판돈",
-        "statusDetail": "남은 시련: 적 HP +{hp}%·웨이브마다 +{extra} / 전표 ×{gold}·개성 ×{pers}"
+        "statusDetail": "남은 시련: 적 HP +{hp}%·웨이브마다 +{extra} / 전표 ×{gold}·각성 게이지 ×{pers}"
       }
     },
     {
@@ -519,7 +519,7 @@
           {
             "id": "counter",
             "name": "받아쳐라",
-            "detail": "패링·가드 성공마다 개성 +5",
+            "detail": "패링·가드 성공마다 각성 게이지 +5",
             "parryPersonality": 5
           },
           { "id": "empty", "name": "빈 판", "detail": "규칙 없음, 시련 보너스 전표 ×2", "trialBonusMult": 2 }

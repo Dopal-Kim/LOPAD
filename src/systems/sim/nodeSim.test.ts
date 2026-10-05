@@ -67,8 +67,12 @@ describe('헤드리스 수치 추정 (61라운드 P9)', () => {
         const f = estimateFloor(id, 'stage1', path);
         expect(f.totalMs).toBeGreaterThan(0);
         rows.push(
-          `   ${path.padEnd(9)} ${(f.totalMs / 60000).toFixed(1)}분(보스 목표 대입 ${(f.withBossTargetMs / 60000).toFixed(1)}분) 처치 ${f.kills} 받는 피해 ${f.damageTaken} 개성 ${f.personality}(개성 메뉴 ${f.personalityMenus}·메뉴 ${f.menus}) | ` +
+          `   ${path.padEnd(9)} ${(f.totalMs / 60000).toFixed(1)}분(보스 목표 대입 ${(f.withBossTargetMs / 60000).toFixed(1)}분) 처치 ${f.kills} 받는 피해 ${f.damageTaken} 게이지 처치 ${f.personality}·기대 ${f.gaugeBeforeBoss}(눈금 메뉴 ${f.personalityMenus}·메뉴 ${f.menus}) | ` +
             f.nodes.map((n) => `${n.kind}${n.elite ? '*' : ''} ${(n.ms / 1000).toFixed(0)}s/${n.kills}`).join(' · '),
+        );
+        // 61 G 각성 게이지 (단별 누적 처치만/기대) · 1차(90)·2차(220) 닿는 단
+        rows.push(
+          `      게이지 ${f.growth.steps.map((st, i) => `${st} ${f.growth.killsOnly[i]}/${f.growth.expected[i]}`).join(' · ')} → 1차 ${f.awaken1At ?? '못 닿음'} · 2차 ${f.awaken2At ?? '보스 전 못 닿음'}`,
         );
       }
     }

@@ -87,8 +87,10 @@ export interface DebugApi {
   tileIndexAt: (tx: number, ty: number) => number;
   world: () => { tileset: string; art: boolean; props: number };
   doorsOf: (roomId: string) => { x: number; y: number; id: number }[][];
-  /** 개성 게이지를 value 로 두고 임계 판정 (27라운드 검증용) */
+  /** 61 G: 각성 게이지를 value 까지 올린다 (누적 — 눈금 메뉴가 열린다) */
   setPersonality: (value: number) => void;
+  /** 61 G: 무기 성장 상태 (게이지·눈금·갈래·길·개성·단련·대기 눈금·최근 메뉴·각성 연출) */
+  growth: () => unknown;
   weapon: () => unknown;
   playerExtra: () => {
     action: string;
@@ -222,17 +224,18 @@ export interface BuildDebugApi {
   addPassive: (id: string, levels?: number) => boolean;
   curse: (id: string, pact?: boolean) => boolean;
   endCurse: () => void;
-  dual: (id: string) => boolean;
+  /** 61 G: 개성 카드 하나를 바로 얻는다 (traits.json id) */
+  trait: (id: string) => boolean;
   /** 완벽 성공 사건을 바로 일으킨다 */
   perfect: (kind: 'parry' | 'perfectGuard' | 'perfectRelease' | 'perfectEvade') => void;
   drink: () => void;
-  /** 처치한 보스 최고 층 (각성 조건) */
+  /** 처치한 보스 최고 층 */
   bossFloor: (n: number) => void;
-  /** 개성 3지선다 칸 (지금 상태로 계산) */
+  /** 61 G: 무기 성장 상태 (= __lopad.growth()) */
   evolveSlots: () => unknown;
   openPassiveMenu: (source?: 'boss' | 'chest' | 'lab') => boolean;
   openCurseMenu: () => boolean;
-  /** 개성 3지선다 메뉴를 바로 연다 */
+  /** 61 G: 다음 눈금까지 게이지를 채워 그 눈금 메뉴를 연다 */
   openEvolveMenu: () => void;
 }
 
@@ -380,6 +383,8 @@ export function exposeDebug(api: {
   pickups: () => { kind: string; value: number; x: number; y: number }[];
   camera: () => CameraInfo;
   setPersonality: (value: number) => void;
+  /** 61 G: 무기 성장 상태 (게이지·눈금·갈래·길·개성·단련·대기 눈금·최근 메뉴·각성 연출) */
+  growth: () => unknown;
   weapon: () => unknown;
   playerExtra: () => {
     action: string;
@@ -498,6 +503,7 @@ export function exposeDebug(api: {
     nextStage: () => api.nextStage(),
     camera: () => api.camera(),
     setPersonality: (v) => api.setPersonality(v),
+    growth: () => api.growth(),
     weapon: () => api.weapon(),
     playerExtra: () => api.playerExtra(),
     audio: () => api.audio(),

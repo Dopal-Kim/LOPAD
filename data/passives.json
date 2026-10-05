@@ -72,11 +72,11 @@
     {
       "id": "awakening",
       "floor": 2,
-      "name": "개성 각성",
-      "_rename": "57 Q34 '최종 각성'과 겹침 — 개명 대상(스토리 파트 제안)",
+      "name": "공명",
+      "_rename": "61 G (P12): '개성 각성' → '공명' (무기 성장 용어와 겹치지 않게)",
       "rarity": "legendary",
       "tags": ["chain"],
-      "description": "개성 획득 2배",
+      "description": "각성 게이지 획득 2배",
       "effects": { "personalityMult": 1.0 }
     },
     {

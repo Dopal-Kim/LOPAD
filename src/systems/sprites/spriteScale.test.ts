@@ -53,24 +53,30 @@ describe('도트 배율 (50라운드 계약 art §9)', () => {
   it('52라운드 v3: 후보 경로 v3 → v2 → 기존, v3 도트(0.5) = 월드 0.25 (도트 1 = 실제 1px)', () => {
     const r = { category: 'weapons' as const, name: 'greatsword', action: 'carry_run' };
     expect(sheetJsonCandidates(r)).toEqual([
+      'sprites/weapons/v4/greatsword_carry_run.json',
       'sprites/weapons/v3/greatsword_carry_run.json',
       'sprites/weapons/v2/greatsword_carry_run.json',
       'sprites/weapons/greatsword_carry_run.json',
     ]);
     // 53라운드 4번: 주인공·칼 오버레이는 v3 만 (구 시트·v2 를 로드하지 않는다)
+    // 61 G: v4 (각성 외형) 가 있으면 먼저
     expect(sheetJsonCandidates({ category: 'weapons', name: 'katana', action: 'carry_run' })).toEqual([
+      'sprites/weapons/v4/katana_carry_run.json',
       'sprites/weapons/v3/katana_carry_run.json',
     ]);
     expect(sheetJsonCandidates({ category: 'player', name: 'player', action: 'idle' })).toEqual([
+      'sprites/player/v4/player_idle.json',
       'sprites/player/v3/player_idle.json',
     ]);
     // 이펙트는 v3 → v2 → 기존 (없으면 기존 동작 유지). 53라운드 후속: v3 가 갖춰진 적 3종은 v3 만
     expect(sheetJsonCandidates({ category: 'fx', name: 'hit_spark', action: 'fx' })).toEqual([
+      'sprites/fx/v4/hit_spark.json',
       'sprites/fx/v3/hit_spark.json',
       'sprites/fx/v2/hit_spark.json',
       'sprites/fx/hit_spark.json',
     ]);
     expect(sheetJsonCandidates({ category: 'enemies', name: 'charger', action: 'walk' })).toEqual([
+      'sprites/enemies/v4/charger_walk.json',
       'sprites/enemies/v3/charger_walk.json',
     ]);
     expect(artScale({ pixelScale: 0.5 })).toBe(0.25);

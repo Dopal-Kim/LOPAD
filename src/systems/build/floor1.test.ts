@@ -1,23 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import {
-  BUILD,
-  CURSES,
-  DUAL_TRAITS,
-  curseOn,
-  curseSourceOn,
-  dualAbsorbOn,
-  maxTierOn,
-  setThresholdsOn,
-  tagOn,
-  tagsOn,
-} from '../../data/build';
+import { BUILD, CURSES, curseOn, curseSourceOn, setThresholdsOn, tagOn, tagsOn } from '../../data/build';
+import { TRAITS } from '../../data/growth';
 import { floorOfStage, onFloor } from '../../data/floorScope';
 import { PASSIVES, PassiveSet } from '../passives';
 import { Rng } from '../rng';
 import { computeBuildMods } from './buildMods';
 import { uiTags } from './BuildState';
-import { absorbedDualTraits } from './evolveSlots';
-import { emptyScores } from './tagScore';
 
 const F1_TAGS = ['insight', 'breach', 'vital', 'chain', 'weight', 'drunk'];
 
@@ -77,9 +65,7 @@ describe('61라운드 P4 빌드 축 1층판 (floor 필드)', () => {
       data: BUILD,
       passives,
       nodes: [],
-      reinforce: 0,
-      dual: [],
-      awakening: null,
+      traits: [],
       curse: null,
       permanentTags: {},
     };
@@ -108,20 +94,7 @@ describe('61라운드 P4 빌드 축 1층판 (floor 필드)', () => {
     expect(curseSourceOn('structure', null)).toBe(true);
   });
 
-  it('갈래: 1층 런은 1단까지 · 이중 개성은 갈래에 흡수 (일반 짝 즉시, 취기 짝은 취기 2점)', () => {
-    expect(maxTierOn(1)).toBe(1);
-    expect(maxTierOn(2)).toBe(Infinity);
-    expect(maxTierOn(null)).toBe(Infinity);
-    expect(dualAbsorbOn(1)).toBe(true);
-    expect(dualAbsorbOn(2)).toBe(false);
-    expect(dualAbsorbOn(null)).toBe(false);
-    const scores = emptyScores();
-    const ids = (s: typeof scores) =>
-      absorbedDualTraits(DUAL_TRAITS, 'katana', ['iai'], s, new Set(), BUILD.dual.tier1Score).map((d) => d.id);
-    expect(ids(scores)).toEqual(['bloodGale']);
-    expect(ids({ ...scores, drunk: 2 })).toEqual(['bloodGale', 'liquorWhirl']);
-    expect(absorbedDualTraits(DUAL_TRAITS, 'katana', [], scores, new Set(), 2)).toEqual([]);
-    // 8갈래 모두 흡수할 일반 짝이 하나씩 있다
-    for (const d of DUAL_TRAITS.filter((x) => x.tag !== 'drunk')) expect(typeof d.branch).toBe('string');
+  it('개성 카드 태그는 모두 1층 태그 (61 G P12)', () => {
+    for (const t of TRAITS) expect(F1_TAGS, t.id).toContain(t.tag);
   });
 });

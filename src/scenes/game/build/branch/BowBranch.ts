@@ -183,18 +183,33 @@ export class BowBranch {
         });
       EventBus.emit(Events.PLAYER_SKILL, { weapon: 'bow', move: 'pierce', phase: 'pass' } satisfies PlayerSkillPayload);
     }
-    // 각성 유성: 완벽 놓기 화살이 맞은 적 발밑에 하늘 화살 (bow_meteor_arrow — f3 시작이 판정)
+    // 61 G 유성 (1차 갈래): 완벽 놓기 화살이 맞은 적 발밑에 하늘 화살 (bow_meteor_arrow — f3 시작이 판정)
     const meteor = k.rt.rule('meteor');
     if (meteor && !shot.buildTag && k.rt.isPerfectShot(shot) && mob.active) {
-      const c = mob.body.center;
+      const c = { x: mob.body.center.x, y: mob.body.center.y };
       const drawn = k.rt.art.once(BUILD_ART.METEOR_ARROW, mob.x, mob.y, { scaleMult: PLAYER_RENDER_SCALE });
+      k.effect('meteor', 'sky');
       k.g.time.delayedCall(param(meteor, 'skyDelayMs', 120), () => {
         if (!k.g.scene.isActive()) return;
-        if (!drawn) k.rt.fx.ring(c.x, c.y, T(0.8), BUILD_FX.COLOR.METEOR);
-        for (const m of k.rt.fx.inCircle(c.x, c.y, T(0.8)))
+        const r = T(param(meteor, 'skyRadiusTiles', 0.8));
+        if (!drawn) k.rt.fx.ring(c.x, c.y, r, BUILD_FX.COLOR.METEOR);
+        this.skyLanded(c, r);
+        for (const m of k.rt.fx.inCircle(c.x, c.y, r)) {
+          // 개성 '별 표적': 하늘 화살에 맞은 적은 다음 한 번 치명
+          const mark = k.rt.rule('skyCrack');
+          if (mark && m.active) k.rt.combat.crackMob(m, param(mark, 'ms', 3000));
           k.rt.fx.damage(m, param(meteor, 'skyMult'), { dirX: 0, dirY: 1 });
+        }
       });
     }
+  }
+
+  /** 하늘 화살이 떨어진 자리 (개성 '술별': 술 웅덩이에 불) */
+  private skyLanded(c: { x: number; y: number }, r: number): void {
+    const k = this.k;
+    const ig = k.rt.rule('skyIgnite');
+    if (!ig) return;
+    for (const q of k.rt.fx.poolsNear(c.x, c.y, Math.max(r, T(param(ig, 'radiusTiles', 1))))) k.g.pools.ignite(q);
   }
 
   /** 장교 사냥: 8칸 이상 거리 완벽 놓기 = 치명 확정 (BowShots 적중 배율) */
@@ -252,17 +267,20 @@ export class BowBranch {
   update(now: number): void {
     const k = this.k;
     const rt = k.rt;
-    // 각성 유성: 3초마다 자동 화살비 (가장 가까운 적 자리)
-    const meteor = rt.rule('meteor');
-    if (meteor && now - this.meteorAt >= param(meteor, 'autoRainMs')) {
+    // 61 G 성우 (유성 2차 길): autoRainMs 마다 자동 화살비 (가장 가까운 적 자리)
+    const star = rt.rule('starfall');
+    if (star && now - this.meteorAt >= param(star, 'autoRainMs', 3000)) {
       this.meteorAt = now;
       const pl = k.g.player;
-      const t = rt.fx.nearest(pl.x, pl.y, T(10));
+      const t = rt.fx.nearest(pl.x, pl.y, T(param(star, 'rangeTiles', 10)));
       if (t) {
-        const r = T(param(meteor, 'rainRadiusTiles'));
+        const r = T(param(star, 'rainRadiusTiles'));
+        const c = { x: t.x, y: t.y };
         if (!rt.art.once(BUILD_ART.METEOR_ARROW, t.x, t.y, { scaleMult: PLAYER_RENDER_SCALE }))
           rt.fx.ring(t.x, t.y, r, BUILD_FX.COLOR.METEOR);
-        for (const m of rt.fx.inCircle(t.x, t.y, r)) rt.fx.damage(m, param(meteor, 'rainMult'), { dirX: 0, dirY: 1 });
+        k.effect('starfall', 'rain');
+        this.skyLanded(c, r);
+        for (const m of rt.fx.inCircle(t.x, t.y, r)) rt.fx.damage(m, param(star, 'rainMult'), { dirX: 0, dirY: 1 });
       }
     }
     // 무한통 각성: 탄창 무한

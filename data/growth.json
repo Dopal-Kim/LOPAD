@@ -1,0 +1,359 @@
+{
+  "_note": "61라운드 단계 4 P12 무기 성장 (결정 decisions/2026-10-05-P12-weapon-growth.md, 계약 UI §18·art §26·sound §10): 각성 게이지(누적, 줄지 않음) → 눈금마다 개성 발현(◇) · 1차 각성(◆ 갈래 3 중 1) · 2차 각성(◆ 내 갈래의 길 2 중 1) · 이후 repeatEvery 마다 단련 눈금(단련 또는 개성). 갈래·길 id 는 art §26 (시스템 노드 id 는 node — weapons.json 갈래 트리). 문구 = 화면 문구(수치·내부 용어 없음)",
+  "marks": {
+    "1": [
+      { "at": 30, "kind": "trait" },
+      { "at": 90, "kind": "awaken1" },
+      { "at": 150, "kind": "trait" },
+      { "at": 220, "kind": "awaken2" },
+      { "at": 290, "kind": "trait" }
+    ]
+  },
+  "repeatEvery": 70,
+  "gain": {
+    "_note": "일반 처치 게이지 = 적 personalityValue × normalKillMult (보스는 그대로). 61 G: 옛 0.5 → 0.6 (floorSim 게이지 추적 — 1차 각성 단1~단2 안, 2차 각성 단2~단3 = 보스 전, 보스 전 기대 약 270~340)",
+    "normalKillMult": 0.6
+  },
+  "temper": { "max": 3, "damageBonus": 0.1, "rangeBonus": 0.1, "name": "단련", "line": "같은 칼을 더 깊게 벼린다" },
+  "traitChoices": 3,
+  "awaken": {
+    "pauseMs": { "1": 800, "2": 1000 },
+    "fx": { "1": "awaken1_crack", "2": "awaken2_bloom" },
+    "_note": "연출 fx = art §26 fx/v4 (swapFrame 에 새 외형). 길 강조색 = 길 tint (art looks/<무기>.json pathTint 와 같음 — 시트 JSON pathTint·trailTint 가 있으면 그것이 우선)"
+  },
+  "text": {
+    "traitTitle": "개성 발현 — {weapon}",
+    "awaken1Title": "1차 각성 — {weapon}",
+    "awaken2Title": "2차 각성 — {branch}",
+    "temperTitle": "단련 — {weapon}",
+    "traitFooter": "하나를 고른다. 고른 개성은 이 생 동안 남는다",
+    "awaken1Footer": "갈래 하나를 고른다. 무기의 모양이 바뀐다",
+    "awaken2Footer": "길 하나를 고른다. 갈래가 끝까지 깨어난다",
+    "temperFooter": "단련하거나, 개성 하나를 고른다",
+    "temperLine": "피해와 범위가 조금 더 깊어진다 ({n}/{max})",
+    "traitNotice": "{name} — {line}",
+    "awakenBanner": "{name} — {line}"
+  },
+  "weapons": {
+    "katana": {
+      "branches": [
+        {
+          "id": "senpu",
+          "node": "iai",
+          "name": "선풍",
+          "line": "무리 한가운데로 파고드는 칼",
+          "verb": "hold",
+          "paths": [
+            {
+              "id": "whirl",
+              "node": "vortex",
+              "name": "회오리",
+              "line": "쥐고 있는 동안 계속 돌며 날아든 탄을 튕겨낸다",
+              "verb": "hold",
+              "tint": [196, 228, 255]
+            },
+            {
+              "id": "zangetsu",
+              "node": "zangetsu",
+              "name": "잔월",
+              "line": "쓰러뜨릴 때마다 검기가 차고, 돈 자리에 달빛이 남는다",
+              "verb": "attack",
+              "tint": [255, 212, 110]
+            }
+          ]
+        },
+        {
+          "id": "kabuto",
+          "node": "batto",
+          "name": "투구가르기",
+          "line": "한 놈을 쪼개는 칼",
+          "verb": "hold",
+          "paths": [
+            {
+              "id": "ittou",
+              "node": "cleave",
+              "name": "일도양단",
+              "line": "내려벤 끝이 땅을 가르고, 버티던 적을 단숨에 끝낸다",
+              "verb": "hold",
+              "tint": [255, 92, 72]
+            },
+            {
+              "id": "meikyo",
+              "node": "meikyo",
+              "name": "명경",
+              "line": "검기를 더 깊이 쌓고, 패링 한 번에 두 단이 찬다",
+              "verb": "signature",
+              "tint": [200, 240, 255]
+            }
+          ]
+        },
+        {
+          "id": "mangetsu",
+          "legacyLook": true,
+          "node": "mangetsu",
+          "name": "만월",
+          "line": "받아치는 칼",
+          "verb": "signature",
+          "paths": [
+            {
+              "id": "sakugetsu",
+              "node": "sakugetsu",
+              "name": "삭월",
+              "line": "달 분신이 일섬까지 따라 달린다",
+              "verb": "dash",
+              "tint": [176, 150, 255]
+            },
+            {
+              "id": "hozuki",
+              "node": "hozuki",
+              "name": "보름",
+              "line": "발도하면 달 분신이 함께 칼을 뽑는다",
+              "verb": "hold",
+              "tint": [255, 226, 140]
+            }
+          ]
+        }
+      ]
+    },
+    "greatsword": {
+      "branches": [
+        {
+          "id": "crush",
+          "node": "crush",
+          "name": "파쇄",
+          "line": "땅을 부수며 뛰어드는 대검",
+          "verb": "dash",
+          "paths": [
+            {
+              "id": "quake",
+              "node": "quake",
+              "name": "지진",
+              "line": "균열이 끝에서 세 갈래로 터진다",
+              "verb": "hold",
+              "tint": [255, 168, 60]
+            },
+            {
+              "id": "echo",
+              "node": "resonance",
+              "name": "반향",
+              "line": "퍼펙트 가드가 그 방향으로 균열을 되돌려 보낸다",
+              "verb": "signature",
+              "tint": [110, 232, 214]
+            }
+          ]
+        },
+        {
+          "id": "weight",
+          "node": "weight",
+          "name": "중압",
+          "line": "맞받아치는 벽",
+          "verb": "signature",
+          "paths": [
+            {
+              "id": "giant",
+              "node": "giant",
+              "name": "거인",
+              "line": "차지가 한 단 더 깊어지고, 모으는 동안 덜 아프다",
+              "verb": "hold",
+              "tint": [255, 210, 100]
+            },
+            {
+              "id": "congest",
+              "node": "clot",
+              "name": "울혈",
+              "line": "지쳐 쓰러지면 울분이 차오르고, 일어서며 터뜨린다",
+              "verb": "signature",
+              "tint": [232, 70, 84]
+            }
+          ]
+        },
+        {
+          "id": "berserk",
+          "legacyLook": true,
+          "node": "berserk",
+          "name": "광전",
+          "line": "몰아치는 대검",
+          "verb": "attack",
+          "paths": [
+            {
+              "id": "bloodwind",
+              "node": "bloodwind",
+              "name": "혈풍",
+              "line": "폭주 중 쓰러뜨릴 때마다 폭주가 길어진다",
+              "verb": "attack",
+              "tint": [255, 64, 64]
+            },
+            {
+              "id": "ironpeak",
+              "node": "ironpeak",
+              "name": "철산",
+              "line": "폭주가 끝나는 순간 가장 깊은 내려찍기가 터진다",
+              "verb": "hold",
+              "tint": [170, 204, 255]
+            }
+          ]
+        }
+      ]
+    },
+    "dagger": {
+      "branches": [
+        {
+          "id": "twin",
+          "node": "twin",
+          "name": "쌍격",
+          "line": "둘이 싸우는 단검",
+          "verb": "signature",
+          "paths": [
+            {
+              "id": "frenzy",
+              "node": "dance",
+              "name": "난무",
+              "line": "낙인을 다 채워 터뜨리면 분신이 잠시 곁에 남아 함께 찌른다",
+              "verb": "attack",
+              "tint": [192, 226, 255]
+            },
+            {
+              "id": "bleed",
+              "node": "bleed",
+              "name": "출혈",
+              "line": "터진 낙인이 피를 흘리게 한다",
+              "verb": "signature",
+              "tint": [255, 72, 92]
+            }
+          ]
+        },
+        {
+          "id": "gale",
+          "node": "gale",
+          "name": "질풍",
+          "line": "치고 빠지는 단검",
+          "verb": "dash",
+          "paths": [
+            {
+              "id": "flyblade",
+              "node": "flyknife",
+              "name": "비도",
+              "line": "더 많이 던지고, 박힌 단검으로 그림자 걸음한다",
+              "verb": "dash",
+              "tint": [172, 255, 150]
+            },
+            {
+              "id": "hotwind",
+              "node": "heatwave",
+              "name": "열풍",
+              "line": "몰아칠수록 빨라지고, 끝까지 달아오르면 둘레 낙인이 터진다",
+              "verb": "attack",
+              "tint": [255, 150, 60]
+            }
+          ]
+        },
+        {
+          "id": "hyakki",
+          "legacyLook": true,
+          "node": "hyakki",
+          "name": "백귀",
+          "line": "사냥하는 단검",
+          "verb": "signature",
+          "paths": [
+            {
+              "id": "nightwalk",
+              "node": "nightwalk",
+              "name": "야행",
+              "line": "그림자 걸음 뒤 잠시 모습이 흐려지고 맞지 않는다",
+              "verb": "signature",
+              "tint": [172, 132, 255]
+            },
+            {
+              "id": "onibi",
+              "node": "onibi",
+              "name": "귀화",
+              "line": "낙인이 터지면 그 불이 옆 적에게 번진다",
+              "verb": "signature",
+              "tint": [100, 240, 220]
+            }
+          ]
+        }
+      ]
+    },
+    "bow": {
+      "branches": [
+        {
+          "id": "rapid",
+          "node": "rapid",
+          "name": "속사",
+          "line": "쏟아붓는 활",
+          "verb": "hold",
+          "paths": [
+            {
+              "id": "split",
+              "node": "volley",
+              "name": "연궁",
+              "line": "연사 화살이 날아가며 갈라진다",
+              "verb": "hold",
+              "tint": [120, 236, 220]
+            },
+            {
+              "id": "endless",
+              "node": "quiver",
+              "name": "무한통",
+              "line": "쓰러뜨리면 화살이 돌아오고, 떨어진 화살을 줍는다",
+              "verb": "attack",
+              "tint": [255, 212, 110]
+            }
+          ]
+        },
+        {
+          "id": "snipe",
+          "node": "snipe",
+          "name": "저격",
+          "line": "한 발의 활",
+          "verb": "signature",
+          "paths": [
+            {
+              "id": "surehit",
+              "node": "deadeye",
+              "name": "필중",
+              "line": "숨을 참고 겨눈 완벽 놓기는 반드시 치명이 된다",
+              "verb": "signature",
+              "tint": [255, 80, 80]
+            },
+            {
+              "id": "pierce",
+              "node": "skypierce",
+              "name": "천공",
+              "line": "완벽 놓기를 이을수록 화살이 굵어지고 벽까지 꿰뚫는다",
+              "verb": "signature",
+              "tint": [192, 230, 255]
+            }
+          ]
+        },
+        {
+          "id": "meteor",
+          "legacyLook": true,
+          "node": "meteor",
+          "name": "유성",
+          "line": "하늘을 부르는 활",
+          "verb": "signature",
+          "paths": [
+            {
+              "id": "starfall",
+              "node": "starfall",
+              "name": "성우",
+              "line": "화살비가 넓어지고, 가만히 있어도 하늘에서 비가 내린다",
+              "verb": "hold",
+              "tint": [200, 222, 255]
+            },
+            {
+              "id": "comet",
+              "node": "comet",
+              "name": "혜성",
+              "line": "완벽 놓기 화살이 적을 꿰뚫으며 터진다",
+              "verb": "signature",
+              "tint": [255, 150, 70]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

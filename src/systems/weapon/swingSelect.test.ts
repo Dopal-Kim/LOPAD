@@ -72,6 +72,24 @@ describe('swingSelect: 휘두름 이펙트 고르기 (2단 → 1단 → 기본, 
     expect(p.variant?.swaps).toHaveLength(1);
   });
 
+  it('61 단계 4 판정 길이 배율 reachMult: 가속 시트 = ACCEL_REACH_MULTS, 키운 대체 = heatScale, 기본·갈래 변주 = 1', () => {
+    const d = { ...base, weaponId: 'dagger', heat: 2 };
+    expect(pickSwingFx(d, lookup(['dagger_combo1', 'dagger_combo1_accel2'])).reachMult).toBe(
+      WEAPON_FX.ACCEL_REACH_MULTS[0],
+    );
+    expect(pickSwingFx({ ...d, heat: 3 }, lookup(['dagger_combo1', 'dagger_combo1_accel3'])).reachMult).toBe(
+      WEAPON_FX.ACCEL_REACH_MULTS[1],
+    );
+    expect(pickSwingFx(d, lookup(['dagger_combo1'])).reachMult).toBeCloseTo(1 + WEAPON_FX.HEAT_SCALE_PER_STAGE);
+    expect(pickSwingFx({ ...d, heat: 0 }, lookup(['dagger_combo1', 'dagger_combo1_accel2'])).reachMult).toBe(1);
+    const sheets = {
+      dagger_combo1_twin: { heatVariants: { colorSwap: { '2': [{ from: '#8b4d22', to: '#d67a11' }] } } },
+    };
+    expect(
+      pickSwingFx({ ...d, path: ['twin'] }, lookup(['dagger_combo1', 'dagger_combo1_twin'], sheets)).reachMult,
+    ).toBe(1);
+  });
+
   it('마지막 타 + 진화 베기(갈래 시트 없음) → 진화 베기, 연격 시트가 없으면 slash', () => {
     expect(pickSwingFx({ ...base, comboN: 3, finisher: true, evoId: 'iai' }, lookup(['katana_combo3', 'iai'])).id).toBe(
       'iai',

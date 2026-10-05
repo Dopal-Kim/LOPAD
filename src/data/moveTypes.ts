@@ -78,9 +78,10 @@ export interface BraceMoveDef extends MoveStrikeDef {
 /** 대검 공중제비 도약 찍기 (Q41·Q55 → 61라운드 파쇄 갈래): 대쉬 공격 자리 — 착지 쐐기 + 끝 충격원 + 착지 링, 공중 무적 없음 */
 export interface LeapMoveDef extends MoveStrikeDef {
   leap: MoveTravelDef;
-  /** 착지 쐐기 길이 배율 · 균열 행 (61라운드: 차지 중 스페이스가 아니라 대쉬 공격 — 차지 단계 없음) */
+  /** 착지 쐐기 길이 배율 (61라운드: 차지 중 스페이스가 아니라 대쉬 공격 — 차지 단계 없음) */
   lengthMult: number;
-  crackRow: string;
+  /** 착지 땅 균열 행 (그림 표 crackFx 와 함께 — 61 F: 일반 땅 균열 그림은 대검에서 빼서 지금은 없음) */
+  crackRow?: string;
   /** 착지 발밑 링 판정 (반지름 = R × 값) · 피해 배율 */
   landingRing: { radiusMult: number; damageMult: number };
   /** 나선 fx (도약 출발 발에 고정 — 벽에 막혀 짧게 뛰면 생략) */
@@ -111,6 +112,11 @@ export interface ArrowRainMoveDef {
   /** 좌클릭을 이만큼 누르고 있으면 화살비 (누른 순간의 한 발은 그대로 나간다) */
   holdMs: number;
   durationMs: number;
+  /**
+   * 61 단계 4: 이 시각부터 동작 잠금을 풀어 대쉬·공격·이동으로 끊을 수 있다 (몸 시트 cancelFromFrame 이 있으면 그 시작 — 아트 cancelAt 520).
+   * 마지막 발사 뒤여야 한다 (없으면 durationMs 끝까지 잠금)
+   */
+  cancelFromMs?: number;
   /** 몸 시트 releaseFrames 가 없을 때 발사 시각 */
   releasesAtMs: number[];
   ammoCost: number;

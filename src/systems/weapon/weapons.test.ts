@@ -1,133 +1,94 @@
 import { describe, expect, it } from 'vitest';
-import { WEAPONS, WEAPON_RULES } from '../../data';
+import { WEAPONS } from '../../data';
+import { GROWTH, TRAITS, growthBranches } from '../../data/growth';
 import { WeaponState } from './weapons';
 
-describe('WeaponState (27라운드 분기 트리 → 57라운드 갈래 24노드)', () => {
-  it('임계 도달 시 선택 대기가 되고 게이지는 멈춘다', () => {
+describe('WeaponState (61 G P12 — 각성 게이지 · 갈래 3 · 길 2 · 개성 · 단련)', () => {
+  it('게이지는 누적이고 줄지 않는다 (음수·NaN 무시)', () => {
     const w = new WeaponState('katana', WEAPONS.katana);
-    expect(w.threshold).toBe(100);
-    expect(w.gainPersonality(60)).toBe(false);
-    expect(w.personality).toBe(60);
-    expect(w.gainPersonality(50)).toBe(true);
-    expect(w.choicePending).toBe(true);
-    expect(w.personality).toBe(100);
-    expect(w.stage).toBe(0);
-    expect(w.gainPersonality(30)).toBe(false); // 선택 전엔 더 쌓이지 않음
-    expect(w.personality).toBe(100);
-    expect(w.options.map((o) => o.id)).toEqual(['iai', 'batto']);
+    expect(w.gain(60)).toBe(60);
+    expect(w.gain(-30)).toBe(0);
+    expect(w.gain(Number.NaN)).toBe(0);
+    expect(w.gauge).toBe(60);
+    expect(w.options.map((o) => o.id)).toEqual(['iai', 'batto', 'mangetsu']);
   });
 
-  it('1단 선풍 → 다음 임계 200 에서 2단 선택지는 선풍의 자식 (회오리·잔월)', () => {
+  it('1차 갈래 → 2차 길은 그 갈래의 자식만, 갈래·길 id 는 art §26 이름으로', () => {
     const w = new WeaponState('katana', WEAPONS.katana);
-    w.gainPersonality(100);
-    expect(w.choose('zangetsu')).toBeNull(); // 2단 노드는 아직 못 고름
+    expect(w.choose('zangetsu')).toBeNull();
     const node = w.choose('iai');
-    expect(node?.name).toContain('선풍');
     expect(node?.move).toBe('spin');
-    expect(node?.tags).toEqual(['chain', 'ranged']);
     expect(w.stage).toBe(1);
-    expect(w.personality).toBe(0);
-    expect(w.choicePending).toBe(false);
-    // 57라운드: 옛 갈래 배율 없음 (1.0) — 갈래는 '하는 일'을 바꾼다
-    expect(w.damageMult).toBeCloseTo(WEAPONS.katana.damageMult);
-    expect(w.threshold).toBe(200);
-    expect(w.gainPersonality(199)).toBe(false);
-    expect(w.gainPersonality(1)).toBe(true);
+    expect(w.branchId).toBe('senpu');
     expect(w.options.map((o) => o.id)).toEqual(['vortex', 'zangetsu']);
     expect(w.choose('batto')).toBeNull();
-    w.choose('zangetsu');
+    w.choose('vortex');
     expect(w.stage).toBe(2);
-    expect(w.path).toEqual(['iai', 'zangetsu']);
-    expect(w.evolution?.rule?.kind).toBe('zangetsu');
-    expect(w.options).toEqual([]); // 트리 끝
-    expect(w.displayName).toBe('사무라이 칼 · 잔월 (殘月)');
+    expect(w.pathId).toBe('whirl');
+    expect(w.options).toEqual([]);
+    expect(w.displayName).toBe('사무라이 칼 · 선풍 · 회오리');
   });
 
-  it('강화는 피해·범위 +15% 를 누적하고 단계는 유지한다', () => {
+  it('단련: 피해·범위 +10% 누적, 최대 3', () => {
     const w = new WeaponState('greatsword', WEAPONS.greatsword);
-    w.gainPersonality(100);
-    w.choose('weight');
-    const dmg1 = w.damageMult;
-    w.gainPersonality(200);
-    expect(w.reinforceNow()).toBe(true);
-    expect(w.stage).toBe(1);
-    expect(w.reinforce).toBe(1);
-    expect(w.personality).toBe(0);
-    expect(w.damageMult).toBeCloseTo(dmg1 * 1.15);
-    expect(w.reachPx).toBeCloseTo(WEAPONS.greatsword.combo!.radiusPx! * 1.15);
-    expect(w.threshold).toBe(200); // 다음 임계 그대로
-    expect(w.options.map((o) => o.id)).toEqual(['giant', 'clot']); // 다시 3지선다
-    expect(w.displayName).toBe('대검 · 중압 (重壓) +1');
+    const d0 = w.damageMult;
+    const r0 = w.rangeMult;
+    for (let i = 0; i < 3; i++) expect(w.temperNow()).toBe(true);
+    expect(w.temperNow()).toBe(false);
+    expect(w.temper).toBe(GROWTH.temper.max);
+    expect(w.damageMult).toBeCloseTo(d0 * 1.3);
+    expect(w.rangeMult).toBeCloseTo(r0 * 1.3);
+    expect(w.displayName).toContain('+3');
   });
 
-  it('강화 최대 3회 — 트리가 끝나도 칸 계산이 열려 있으면 게이지가 돈다 (57 Q37 · 각성 후 상한 5)', () => {
-    const w = new WeaponState('bow', WEAPONS.bow);
-    w.gainPersonality(100);
-    w.choose('rapid');
-    w.gainPersonality(200);
-    w.choose('quiver');
-    for (let i = 0; i < WEAPON_RULES.reinforceMax; i++) {
-      expect(w.canEvolve).toBe(true);
-      expect(w.gainPersonality(200)).toBe(true);
-      expect(w.reinforceNow()).toBe(true);
-    }
-    expect(w.reinforce).toBe(3);
-    expect(w.canReinforce).toBe(false);
-    expect(w.canEvolve).toBe(false);
-    expect(w.gainPersonality(500)).toBe(false);
-    // 피의 계약·각성 칸이 열려 있으면 (Progression 이 칸 계산으로 넘김)
-    expect(w.gainPersonality(500, true)).toBe(true);
-    w.consumeChoice();
-    expect(w.personality).toBe(0);
-    expect(w.choicePending).toBe(false);
-    expect(w.reinforceNow()).toBe(false);
-    w.reinforceCapOverride = 5;
-    expect(w.reinforceNow()).toBe(true);
-    expect(w.reinforce).toBe(4);
-    expect(w.mods.fireRateMult).toBeCloseTo(1.43);
-    expect(w.mods.magazineBonus).toBe(12);
-  });
-
-  it('세이브 복원: 경로·강화·선택 대기, 모르는 id(옛 갈래 포함)는 잘라낸다', () => {
+  it('개성: 이 무기 것만 · 한 번씩', () => {
     const w = new WeaponState('dagger', WEAPONS.dagger);
-    w.restore({ personality: 50, path: ['gale', 'flyknife'], reinforce: 2, choicePending: false });
-    expect(w.path).toEqual(['gale', 'flyknife']);
-    expect(w.reinforce).toBe(2);
-    expect(w.mods.moveSpeedMult).toBe(1.15);
-    const p = w.toProgress();
-    const w2 = new WeaponState('dagger', WEAPONS.dagger);
-    w2.restore(p);
-    expect(w2.toProgress()).toEqual(p);
-    const w3 = new WeaponState('dagger', WEAPONS.dagger);
-    // 57라운드 삭제된 2단 (암살) 은 잘린다
-    w3.restore({ personality: 0, path: ['gale', 'assassin'], reinforce: 9, choicePending: true });
-    expect(w3.path).toEqual(['gale']);
-    expect(w3.reinforce).toBe(WEAPON_RULES.reinforceMax);
-    expect(w3.choicePending).toBe(true);
+    expect(w.addTrait('d_dashBrand')).toBe(true);
+    expect(w.addTrait('d_dashBrand')).toBe(false);
+    expect(w.addTrait('k_iaiWave')).toBe(false);
+    expect(w.traitDefs.map((t) => t.id)).toEqual(['d_dashBrand']);
   });
 
-  it('갈래 24노드: 무기당 1단 2 + 1단마다 2단 2, 1단은 새 동작, 노드마다 태그 1~2', () => {
-    let n = 0;
-    for (const w of Object.values(WEAPONS)) {
-      expect(w.personality.branches).toHaveLength(2);
-      for (const a of w.personality.branches) {
-        n += 1;
-        expect(typeof a.move).toBe('string');
-        expect(a.tags!.length).toBeGreaterThanOrEqual(1);
-        expect(a.next).toHaveLength(2);
-        for (const b of a.next!) {
-          n += 1;
-          expect(b.tags!.length).toBeGreaterThanOrEqual(1);
-          expect(b.tags!.length).toBeLessThanOrEqual(2);
-        }
+  it('세이브 복원: 경로(트리 밖 id 자름)·개성(다른 무기·모르는 것 버림)·단련 상한·게이지·눈금', () => {
+    const w = new WeaponState('bow', WEAPONS.bow);
+    w.restore({
+      gauge: 150,
+      path: ['meteor', 'nope'],
+      traits: ['b_ricochet', 'k_iaiWave', 'ghost'],
+      temper: 9,
+      marksDone: 3,
+    });
+    expect(w.path).toEqual(['meteor']);
+    expect(w.traits).toEqual(['b_ricochet']);
+    expect(w.temper).toBe(GROWTH.temper.max);
+    expect(w.gauge).toBe(150);
+    expect(w.marksDone).toBe(3);
+    const back = new WeaponState('bow', WEAPONS.bow);
+    back.restore(w.toProgress());
+    expect(back.toProgress()).toEqual(w.toProgress());
+  });
+
+  it('갈래 트리: 무기당 1차 3 + 갈래마다 2차 2, growth.json 갈래·길이 모두 노드에 이어진다', () => {
+    for (const [id, def] of Object.entries(WEAPONS)) {
+      expect(def.personality.branches).toHaveLength(3);
+      const gb = growthBranches(id);
+      expect(gb).toHaveLength(3);
+      for (const b of gb) {
+        const node = def.personality.branches.find((n) => n.id === b.node);
+        expect(node, `${id}.${b.id}`).toBeTruthy();
+        expect(node!.tags!.length).toBeGreaterThan(0);
+        expect(b.paths.map((p) => p.node).sort()).toEqual(node!.next!.map((n) => n.id).sort());
       }
+      // 셋째 갈래 = 옛 최종 각성 (옛 모양 재사용)
+      expect(gb[2].legacyLook).toBe(true);
     }
-    expect(n).toBe(24);
-    // S-1 충돌 해소: 철벽·암살·칼 2단 급소 삭제, 활 2단 관통 → 천공
-    const ids = Object.values(WEAPONS).flatMap((w) =>
-      w.personality.branches.flatMap((a) => [a.id, ...(a.next ?? []).map((b) => b.id)]),
-    );
-    for (const gone of ['ironwall', 'assassin', 'dashcrit', 'pierce']) expect(ids).not.toContain(gone);
-    expect(ids).toContain('skypierce');
+  });
+
+  it('개성 풀: 무기당 14장 (기본 8 = 4동사 × 2 · 갈래마다 2)', () => {
+    for (const id of Object.keys(WEAPONS)) {
+      const mine = TRAITS.filter((t) => t.weapon === id);
+      expect(mine).toHaveLength(14);
+      expect(mine.filter((t) => !t.branch)).toHaveLength(8);
+    }
   });
 });

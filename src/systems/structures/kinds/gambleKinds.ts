@@ -263,7 +263,7 @@ export class GambleKinds {
   /** '받아쳐라': 패링·가드 성공마다 개성 */
   counterRule(): void {
     const rule = this.c.activeRule();
-    if (rule && typeof rule.parryPersonality === 'number') this.c.host.gainPersonality(rule.parryPersonality);
+    if (rule && typeof rule.parryPersonality === 'number') this.c.host.gainGrowth(rule.parryPersonality);
   }
 
   // --- 2-6 전당포 ---

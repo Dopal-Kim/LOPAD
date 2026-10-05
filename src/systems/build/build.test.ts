@@ -1,15 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { WEAPONS } from '../../data';
-import {
-  AWAKENINGS,
-  BUILD,
-  CURSES,
-  DUAL_TRAITS,
-  curseDef,
-  findBranch,
-  themeTagOf,
-  validateBuild,
-} from '../../data/build';
+import { BUILD, CURSES, curseDef, themeTagOf, validateBuild } from '../../data/build';
+import { TRAITS, traitDef } from '../../data/growth';
 import { TAG_IDS, type BuildData } from '../../data/buildTypes';
 import { PassiveSet } from '../passives';
 import { WeaponState } from '../weapon/weapons';
@@ -18,26 +10,21 @@ import { computeBuildMods, param, ruleOf } from './buildMods';
 import { BuildState, uiTags } from './BuildState';
 import { CurseState, pickPactCurse, scaledBenefit } from './curses';
 import { DashCharges } from './dashCharges';
-import { anySlotOpen, awakenReady, eligibleDualTraits, evolveSlots } from './evolveSlots';
 import { DotBook, DrunkTimer, EvadeTracker, MarkBook } from './statusBooks';
 import { isStrongAttack } from './strikeKinds';
 import { emptyScores, nextThreshold, setStage, tagScores } from './tagScore';
 
-const weaponAt = (id: string, path: string[], reinforce = 0) => {
+const weaponAt = (id: string, path: string[], traits: string[] = []) => {
   const w = new WeaponState(id, WEAPONS[id]);
-  w.restore({ path, reinforce });
+  w.restore({ path, traits });
   return w;
 };
 
 describe('57라운드 빌드 축 데이터', () => {
-  it('10태그 · 세트 2/4/6 × 10 · 이중 개성 28 (1단 8 + 취기 짝 4 + 2단 16) · 저주 7 · 각성 4 (+2단 규칙 16)', () => {
+  it('10태그 · 세트 2/4/6 × 10 · 개성 56 (61 G) · 저주 7', () => {
     expect(BUILD.tags.map((t) => t.id)).toEqual([...TAG_IDS]);
     for (const t of TAG_IDS) expect(BUILD.sets[t].map((s) => s.threshold)).toEqual([2, 4, 6]);
-    expect(DUAL_TRAITS).toHaveLength(28);
-    const tier1 = DUAL_TRAITS.filter((d) => findBranch(WEAPONS, d.weapon, d.branch)?.depth === 1);
-    expect(tier1.filter((d) => d.tag !== 'drunk')).toHaveLength(8);
-    expect(tier1.filter((d) => d.tag === 'drunk').map((d) => d.branch)).toEqual(['iai', 'weight', 'gale', 'snipe']);
-    expect(DUAL_TRAITS.filter((d) => findBranch(WEAPONS, d.weapon, d.branch)?.depth === 2)).toHaveLength(16);
+    expect(TRAITS).toHaveLength(56);
     expect(CURSES.items.map((c) => c.id)).toEqual([
       'drunkOath',
       'credit',
@@ -47,8 +34,6 @@ describe('57라운드 빌드 축 데이터', () => {
       'cursedChest',
       'bruise',
     ]);
-    expect(Object.keys(AWAKENINGS)).toEqual(Object.keys(WEAPONS));
-    expect(Object.values(AWAKENINGS).flatMap((a) => Object.keys(a.rules))).toHaveLength(16);
     expect(themeTagOf(1)).toBe('drunk');
     expect(themeTagOf(2)).toBeNull();
   });
@@ -64,7 +49,7 @@ describe('57라운드 빌드 축 데이터', () => {
 });
 
 describe('태그 점수 (57 Q25)', () => {
-  it('패시브 종류당 1 + Lv3 +1 · 갈래 노드 1 · 강화 = 현재 노드 첫 태그 +1(최대 3)', () => {
+  it('패시브 종류당 1 + Lv3 +1 · 갈래 노드 1 · 더하는 점수(개성 카드·저주)', () => {
     const S = BUILD.scoring;
     const s = tagScores(
       {
@@ -73,8 +58,7 @@ describe('태그 점수 (57 Q25)', () => {
           { tags: ['weight', 'endure'], level: 1, maxLevel: 3 },
         ],
         branchNodes: [{ tags: ['weight', 'vital'] }, { tags: ['weight', 'vital'] }],
-        reinforce: 5,
-        extra: [{ scar: 1 }],
+        extra: [{ scar: 1 }, { weight: 3 }],
       },
       S,
     );
@@ -118,9 +102,7 @@ describe('합산 (세트·패시브·저주)', () => {
       data: BUILD,
       passives: new PassiveSet(),
       nodes: [],
-      reinforce: 0,
-      dual: [],
-      awakening: null,
+      traits: [],
       curse: new CurseState(def),
       permanentTags: {},
     });
@@ -132,9 +114,7 @@ describe('합산 (세트·패시브·저주)', () => {
       data: BUILD,
       passives: new PassiveSet(),
       nodes: [],
-      reinforce: 0,
-      dual: [],
-      awakening: null,
+      traits: [],
       curse: new CurseState(def, true),
       permanentTags: {},
     });
@@ -147,9 +127,7 @@ describe('합산 (세트·패시브·저주)', () => {
       data: BUILD,
       passives: new PassiveSet(),
       nodes: [],
-      reinforce: 0,
-      dual: [],
-      awakening: null,
+      traits: [],
       permanentTags: {},
     };
     const credit = computeBuildMods({ ...base, curse: new CurseState(curseDef('credit')!) });
@@ -158,7 +136,7 @@ describe('합산 (세트·패시브·저주)', () => {
     expect(computeBuildMods({ ...base, curse: new CurseState(curseDef('bareOath')!) }).flags.noDash).toBe(true);
   });
 
-  it('패시브 규칙 레벨 인자 · 각성 규칙은 live 만', () => {
+  it('패시브 규칙 레벨 인자 · 길 노드 규칙 · 개성 카드 규칙과 태그 점수 (61 G)', () => {
     const p = new PassiveSet();
     p.add('spilledDrink');
     p.add('spilledDrink');
@@ -166,12 +144,14 @@ describe('합산 (세트·패시브·저주)', () => {
     const m = st.compute(p, weaponAt('greatsword', ['crush', 'quake']));
     expect(param(ruleOf(m, 'spillPool')!, 'chance')).toBeCloseTo(0.22);
     expect(ruleOf(m, 'quake')).not.toBeNull(); // 2단 노드 규칙
-    st.awakened = true;
-    const a = st.compute(p, weaponAt('greatsword', ['crush', 'quake']));
-    expect(ruleOf(a, 'mountainFall')).not.toBeNull();
-    expect(ruleOf(a, 'allSplit')).not.toBeNull();
-    const k = st.compute(p, weaponAt('katana', ['iai', 'vortex']));
-    expect(ruleOf(k, 'fullMoon')).toBeNull(); // live false
+    // 옛 산붕 '4타 충격파'는 폐기 (P12)
+    expect(ruleOf(m, 'mountainFall')).toBeNull();
+    const t = st.compute(new PassiveSet(), weaponAt('katana', ['mangetsu'], ['k_iaiWave', 'k_moonRelay']));
+    expect(ruleOf(t, 'moonClone')?.source).toBe('branch');
+    expect(ruleOf(t, 'iaiWave')?.source).toBe('trait');
+    expect(t.scores.weight).toBe(1); // 발도풍 = 중량 +1
+    expect(t.scores.chain).toBe(1); // 달빛 잇기 = 연쇄 +1
+    expect(traitDef('k_moonRelay')?.branch).toBe('mangetsu');
   });
 
   it('UI 태그 상태: 점수 > 0 만, 높은 순, 효과 3칸 active', () => {
@@ -183,87 +163,6 @@ describe('합산 (세트·패시브·저주)', () => {
     expect(ui[0]).toMatchObject({ id: 'drunk', score: 2, stage: 2, next: 4 });
     expect(ui[0].effects.map((e) => e.active)).toEqual([true, false, false]);
     expect(ui.every((t) => t.score > 0)).toBe(true);
-  });
-});
-
-describe('개성 3지선다 칸 (57 Q37)', () => {
-  const awaken = { ready: false, done: false, condition: BUILD.awaken.condition };
-  it('100 = [1단 A / 1단 B / 강화] · 200 = [2단 α / β / 강화] · 이후 = [강화 / 피의 계약 / 각성(잠김)]', () => {
-    const w0 = weaponAt('katana', []);
-    expect(
-      evolveSlots({ options: w0.options, canReinforce: true, curseActive: false, pactAvailable: true, awaken }).map(
-        (s) => s.kind,
-      ),
-    ).toEqual(['branchA', 'branchB', 'reinforce']);
-    const w1 = weaponAt('katana', ['iai']);
-    expect(
-      evolveSlots({ options: w1.options, canReinforce: true, curseActive: false, pactAvailable: true, awaken }).map(
-        (s) => s.node?.id ?? s.kind,
-      ),
-    ).toEqual(['vortex', 'zangetsu', 'reinforce']);
-    const w2 = weaponAt('katana', ['iai', 'vortex'], 3);
-    const late = evolveSlots({
-      options: w2.options,
-      canReinforce: w2.canReinforce,
-      curseActive: false,
-      pactAvailable: true,
-      awaken,
-    });
-    expect(late.map((s) => s.kind)).toEqual(['reinforce', 'bloodPact', 'awaken']);
-    expect(late[0].enabled).toBe(false);
-    expect(late[2].locked?.condition).toContain('5층');
-    expect(anySlotOpen(late)).toBe(true);
-    const stuck = evolveSlots({ options: [], canReinforce: false, curseActive: true, pactAvailable: true, awaken });
-    expect(anySlotOpen(stuck)).toBe(false);
-  });
-
-  it('각성 조건: 2단 + 그 2단 태그 6점 + 5층 보스 이후 (시험장은 층 무시)', () => {
-    const w = weaponAt('katana', ['batto', 'cleave']);
-    const scores = { ...emptyScores(), vital: 6 };
-    const base = { nodes: w.nodes, scores, bossFloorCleared: 4, lab: false, tagScore: 6, afterBossFloor: 5 };
-    expect(awakenReady(base).ready).toBe(false);
-    expect(awakenReady({ ...base, bossFloorCleared: 5 }).ready).toBe(true);
-    expect(awakenReady({ ...base, lab: true }).ready).toBe(true);
-    expect(awakenReady({ ...base, scores: { ...emptyScores(), vital: 5 }, lab: true }).ready).toBe(false);
-    expect(awakenReady({ ...base, nodes: weaponAt('katana', ['batto']).nodes, lab: true }).tier2).toBe(false);
-  });
-
-  it('이중 개성 자격: 1단 + 짝 태그 2 / 2단 + 4, 얻은 것·live false 제외', () => {
-    const scores = { ...emptyScores(), chain: 2, drunk: 2 };
-    const e = eligibleDualTraits(DUAL_TRAITS, 'katana', ['iai'], scores, new Set(), BUILD.dual);
-    expect(e.map((d) => d.id)).toEqual(['bloodGale', 'liquorWhirl']);
-    expect(eligibleDualTraits(DUAL_TRAITS, 'katana', ['iai'], scores, new Set(['bloodGale']), BUILD.dual)[0].id).toBe(
-      'liquorWhirl',
-    );
-    const t2 = eligibleDualTraits(
-      DUAL_TRAITS,
-      'katana',
-      ['batto', 'cleave'],
-      { ...emptyScores(), vital: 3 },
-      new Set(),
-      BUILD.dual,
-    );
-    expect(t2).toHaveLength(0);
-    const t2b = eligibleDualTraits(
-      DUAL_TRAITS,
-      'katana',
-      ['batto', 'cleave'],
-      { ...emptyScores(), vital: 4 },
-      new Set(),
-      BUILD.dual,
-    );
-    expect(t2b.map((d) => d.id)).toEqual(['neckCut']);
-    // 제안(_proposal, live false)은 나오지 않는다
-    expect(
-      eligibleDualTraits(
-        DUAL_TRAITS,
-        'katana',
-        ['iai', 'vortex'],
-        { ...emptyScores(), chain: 9 },
-        new Set(),
-        BUILD.dual,
-      ).map((d) => d.id),
-    ).toEqual(['bloodGale']);
   });
 });
 
@@ -283,7 +182,7 @@ describe('저주 지속 (57 Q37)', () => {
     const chest = new CurseState(curseDef('cursedChest')!);
     for (let i = 0; i < 11; i++) expect(chest.onKill()).toBe(false);
     expect(chest.onKill()).toBe(true);
-    const pact = new CurseState(curseDef('credit')!, true, BUILD.evolve.pactExtraNodes);
+    const pact = new CurseState(curseDef('credit')!, true, BUILD.pact.extraNodes);
     expect(pact.nodesLeft).toBe(4);
     const restored = CurseState.restore(curseDef('credit')!, pact.toSave());
     expect(restored.toSave()).toEqual(pact.toSave());
@@ -292,9 +191,7 @@ describe('저주 지속 (57 Q37)', () => {
 
   it('BuildState 세이브 왕복 · 층당 1회', () => {
     const s = new BuildState();
-    s.addDual('bloodGale');
     s.curse = new CurseState(curseDef('brokenCup')!);
-    s.awakened = true;
     s.bossFloorCleared = 5;
     s.permanentTags = { scar: 1 };
     const t = new BuildState();
@@ -305,10 +202,8 @@ describe('저주 지속 (57 Q37)', () => {
     t.onFloorStart();
     expect(t.takeFloorOnce('lastStand')).toBe(true);
     t.restore({
-      dual: ['nope'],
       curse: { id: 'nope', nodesLeft: 1, killsLeft: null, armed: false, pact: false, maxHpTaken: 0 },
     });
-    expect(t.dualOwned).toEqual([]);
     expect(t.curse).toBeNull();
   });
 });

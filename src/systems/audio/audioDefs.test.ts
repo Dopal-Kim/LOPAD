@@ -216,6 +216,8 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       // 60라운드 빌드 37 + 2차 묶음·갈래·패시브 67 · 페이로드로 고르게 된 기존 id
       ...buildSfxIds(),
       SFX.shopBuy,
+      // 61 G: 1차·2차 각성 폴백 (WEAPON_AWAKEN 페이로드로 고른다)
+      SFX.evolve,
       SFX.menuSelect,
       SFX.enemyDeath,
       SFX.dash,
@@ -278,6 +280,11 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       const id = bossActionSfx(a);
       if (id) reached.add(id);
     }
+    // 61 단계 4: 아트 2 보스 동작 — 기둥 균열은 단(1~3)마다, 범위 밖 단은 끝으로 자른다
+    for (const a of ['introRoar', 'cupStruck', 'flameSnuff'] as const) reached.add(bossActionSfx(a)!);
+    for (const n of [1, 2, 3]) reached.add(bossActionSfx('pillarCrack', n)!);
+    expect(bossActionSfx('pillarCrack', 0)).toBe(SFX.boss1.pillarCrack1);
+    expect(bossActionSfx('pillarCrack', 7)).toBe(SFX.boss1.pillarCrack3);
     for (const l of ['gulp', 'roll', 'fire'] as const) reached.add(bossLoopSfx(l));
     // BOSS_ATTACK spin · BOSS_PHASE(1층) 은 트리거 표에서 직접
     reached.add(SFX.boss1.spinStart);

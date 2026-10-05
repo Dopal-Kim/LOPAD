@@ -24,7 +24,9 @@ describe('buildSnapshot', () => {
     expect(s.weapon.name).toBe('사무라이 칼');
     // 56라운드 Q48: 칼 우클릭 = 가드(누른 직후 0.15초 = 패링)
     expect(s.weapon.secondaryName).toBe('가드·패링');
-    expect(s.weapon.threshold).toBe(100);
+    // 61 G: 옛 임계 자리 = 다음 눈금 (1층 첫 눈금 30)
+    expect(s.weapon.threshold).toBe(30);
+    expect(s.growth).toBeNull();
     expect(s.map.rooms.length).toBe(layout.rooms.length);
     expect(s.map.rooms.find((r) => r.id === 'start')?.visited).toBe(true);
     expect(s.boss).toBeNull();

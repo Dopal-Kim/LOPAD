@@ -1,6 +1,7 @@
 /**
  * `?debug=1` 검증 훅 — 조명·쿼터뷰·외벽·상흔 · 빌드·2차 묶음·보스 (60라운드 6-1: DebugHooks 에서 분리, 동작 그대로)
  */
+import { nextMarkOf } from '../../../systems/growth/growth';
 import { gameState } from '../../../core/GameState';
 import type { Boss } from '../../../objects/Boss';
 import type { Mob } from '../../../objects/Mob';
@@ -60,22 +61,19 @@ export function worldDebug(
       },
       curse: (id, pact) => g.build.grantCurse(id, { pact: Boolean(pact) }),
       endCurse: () => g.build.endCurse(),
-      dual: (id) => g.build.addDualTrait(id),
+      trait: (id) => g.growth.gainTrait(id),
       perfect: (kind) => (kind === 'perfectEvade' ? g.build.perfect.onEvade() : g.build.perfect.onPerfect(kind, 10)),
       drink: () => g.build.drink('potion'),
       bossFloor: (n) => {
         gameState.build.bossFloorCleared = n;
         gameState.build.touch();
       },
-      evolveSlots: () =>
-        g.buildMenus
-          .slots()
-          .map((sl) => ({ kind: sl.kind, enabled: sl.enabled, node: sl.node?.id ?? null, locked: sl.locked ?? null })),
+      evolveSlots: () => g.growth.debug(),
       openPassiveMenu: (source = 'boss') => g.buildMenus.openPassiveMenu(source),
       openCurseMenu: () => g.buildMenus.openCurseMenu(),
       openEvolveMenu: () => {
-        gameState.weapon.choicePending = true;
-        g.buildMenus.openEvolveMenu();
+        const w = gameState.weapon;
+        g.growth.gain(Math.max(0, nextMarkOf(gameState.build.floor, w.marksDone).at - w.gauge));
       },
     },
     bundle: {

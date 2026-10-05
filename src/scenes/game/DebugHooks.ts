@@ -112,10 +112,11 @@ export function exposeGameDebug(g: Game): void {
     kill: (m) => {
       if (m.takeDamage(m.hp)) g.progress.onKill(m, 'attack');
     },
+    // 61 G: 각성 게이지를 value 까지 올린다 (줄이지 않는다 — 누적)
     setPersonality: (value) => {
-      gameState.weapon.personality = 0;
-      g.progress.gainPersonality(value);
+      g.progress.gainGrowth(value - gameState.weapon.gauge);
     },
+    growth: () => g.growth.debug(),
     weapon: () => {
       const w = gameState.weapon;
       return {
@@ -123,11 +124,13 @@ export function exposeGameDebug(g: Game): void {
         displayName: w.displayName,
         path: [...w.path],
         stage: w.stage,
-        reinforce: w.reinforce,
-        personality: w.personality,
-        threshold: w.threshold,
-        choicePending: w.choicePending,
-        canEvolve: w.canEvolve,
+        gauge: w.gauge,
+        marksDone: w.marksDone,
+        branch: w.branchId,
+        growthPath: w.pathId,
+        traits: [...w.traits],
+        temper: w.temper,
+        growthOverlay: { ...g.player.overlay.growth.shown, look: g.player.overlay.growth.look },
         options: w.options.map((o) => ({ id: o.id, name: o.name })),
         mods: { ...w.mods },
         damageMult: w.damageMult,
@@ -145,12 +148,8 @@ export function exposeGameDebug(g: Game): void {
       shoved: g.player.isShoved,
     }),
     audio: () => audio.summary(),
-    evolveTo: (id) => {
-      if (!gameState.weapon.choicePending) return false;
-      const before = gameState.weapon.path.length;
-      g.progress.applyEvolution(id);
-      return gameState.weapon.path.length > before;
-    },
+    // 61 G: 노드 id 로 바로 각성 (연출 포함 — 눈금 없이)
+    evolveTo: (id) => g.growth.awaken(gameState.weapon.stage === 0 ? 1 : 2, id),
     spawnEnemy: (id, x, y) => Boolean(g.director.spawnExtra(id, x, y)),
     hazards: () => g.hazards.summary(),
     warpInfo: () => ({

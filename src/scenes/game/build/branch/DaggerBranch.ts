@@ -87,7 +87,13 @@ export class DaggerBranch {
           crit,
           ...(isBottle ? { tint: BUILD_FX.COLOR.LIQUOR } : sprite ? { sprite } : { tint: BUILD_FX.COLOR.THROW }),
         });
-        if (s && (fly || isBottle)) s.onEnd = (shot) => this.onThrowEnd(shot);
+        // 61 G 개성 '돌아오는 칼': 끝에 닿으면 손으로 되돌아오며 한 번 더 벤다
+        const back = !isBottle && rt.rule('throwReturn');
+        if (s && (fly || isBottle || back))
+          s.onEnd = (shot) => {
+            if (fly || isBottle) this.onThrowEnd(shot);
+            if (back) this.returnKnife(shot, param(back, 'damageMult', 0.6));
+          };
       }
     };
     const at = k.mp(id, 'releaseAtMs');
@@ -95,6 +101,28 @@ export class DaggerBranch {
     else release();
     k.last = { move: 'fanThrow', count, t: Math.round(now) };
     rt.record('fanThrow', count);
+  }
+
+  /** 돌아오는 칼: 끝난 자리에서 주인공 쪽으로 한 자루 */
+  private returnKnife(shot: Projectile, mult: number): void {
+    const k = this.k;
+    const pl = k.g.player;
+    if (!k.g.scene.isActive() || !pl) return;
+    const dx = pl.x - shot.x;
+    const dy = pl.y - shot.y;
+    const d = Math.hypot(dx, dy);
+    if (d < TILE * 0.5) return;
+    const speed = k.mp('gale', 'speedTiles') || 12;
+    const { dmg, crit } = k.g.combat.rollDamage(mult, false, 'other');
+    const sprite = k.mpStr('gale', 'projectile');
+    k.rt.fx.shot(shot.x, shot.y, dx, dy, dmg, {
+      tag: 'fanThrow',
+      speedTiles: speed,
+      lifeMs: (d / (speed * TILE)) * 1000,
+      crit,
+      ...(sprite ? { sprite } : { tint: BUILD_FX.COLOR.THROW }),
+    });
+    k.effect('d_galeReturn', 'return');
   }
 
   /** 던진 단검·술병이 끝남 (벽·사거리) — 비도 박힘 · 술병 웅덩이 */
@@ -234,22 +262,26 @@ export class DaggerBranch {
     // 각성 백귀: 기폭마다 분신 3체 (dagger_hundred_ghosts — 대상 히트박스 중심 1회, 그리면 분신 윤곽 대신)
     const demons = rt.rule('hundredDemons');
     if (demons) {
-      const n = param(demons, 'clones', 3);
+      // 61 G 백귀: 기폭마다 그림자 clones (개성 '취한 그림자': 취기 중 +1)
+      const n = param(demons, 'clones', 1) + (rt.rule('ghostDrunk') && rt.drunkActive ? 1 : 0);
       const drawn = rt.art.once(BUILD_ART.HUNDRED_GHOSTS, at.x, at.y, { scaleMult: PLAYER_RENDER_SCALE });
       for (let i = 0; i < n; i++) {
         const a = (i / n) * Math.PI * 2;
         g.time.delayedCall(80 * (i + 1), () => {
           if (!g.scene.isActive()) return;
           if (!drawn) rt.fx.clone(at.x + Math.cos(a) * TILE, at.y + Math.sin(a) * TILE);
-          for (const m of rt.fx.inCircle(at.x, at.y, T(1.5)))
+          for (const m of rt.fx.inCircle(at.x, at.y, T(1.5))) {
             rt.fx.damage(m, param(demons, 'cloneMult'), { dirX: -Math.cos(a), dirY: -Math.sin(a) });
+            // 61 G 개성 '그림자 사냥': 그림자가 벤 적에게 낙인 하나
+            if (rt.rule('ghostBrand') && m.active) g.strikes.brands.onHit(m, -Math.cos(a), -Math.sin(a));
+          }
         });
       }
     }
   }
 
-  /** 쌍낙인: 낙인이 다음 적으로 옮겨감 (dagger_brand_hop 이 날아가 도착하면 낙인 n) */
-  private hopBrands(from: { x: number; y: number }, to: Mob, n: number, dir: { x: number; y: number }): void {
+  /** 쌍낙인·귀화: 낙인이 다음 적으로 옮겨감 (dagger_brand_hop 이 날아가 도착하면 낙인 n) */
+  hopBrands(from: { x: number; y: number }, to: Mob, n: number, dir: { x: number; y: number }): void {
     const g = this.k.g;
     this.k.effect('twinBrand', 'transfer');
     const land = () => {

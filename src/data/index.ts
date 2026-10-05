@@ -306,21 +306,12 @@ export function validateWeapons(t: WeaponTable): WeaponTable {
     if (typeof sec.name !== 'string' || !sec.name) throw new Error(`[data] weapons.${id}.secondary.name 없음`);
     for (const k of SECONDARY_NUMERIC[sec.kind])
       assertNumber((sec as unknown as Record<string, unknown>)[k], `weapons.${id}.secondary.${k}`);
-    // 분기 트리: thresholds 오름차순, 각 단계 선택지 2개
+    // 61 G (P12): 1차 갈래 3 · 갈래마다 2차 길 2 (눈금은 data/growth.json)
     const P = w.personality;
-    if (!Array.isArray(P.thresholds) || P.thresholds.length === 0)
-      throw new Error(`[data] weapons.${id}.personality.thresholds 비어 있음`);
-    P.thresholds.forEach((th, i) => {
-      assertNumber(th, `weapons.${id}.personality.thresholds[${i}]`);
-      if (i > 0 && th <= P.thresholds[i - 1])
-        throw new Error(`[data] weapons.${id}.personality.thresholds 는 오름차순이어야 합니다`);
-    });
-    if (!Array.isArray(P.branches) || P.branches.length !== 2)
-      throw new Error(`[data] weapons.${id}.personality.branches 는 2개여야 합니다`);
+    if (!Array.isArray(P.branches) || P.branches.length !== 3)
+      throw new Error(`[data] weapons.${id}.personality.branches 는 3개여야 합니다`);
     const ids = new Set<string>();
-    P.branches.forEach((b, i) =>
-      validateEvolution(b, `weapons.${id}.personality.branches[${i}]`, ids, 1, P.thresholds.length),
-    );
+    P.branches.forEach((b, i) => validateEvolution(b, `weapons.${id}.personality.branches[${i}]`, ids, 1, 2));
   }
   return t;
 }
@@ -374,8 +365,6 @@ export function validateWeaponExtras(w: WeaponDef, path: string): void {
 }
 
 export function validateWeaponRules(r: WeaponRules): WeaponRules {
-  assertNumber(r.reinforceBonus, 'weapons.rules.reinforceBonus');
-  assertNumber(r.reinforceMax, 'weapons.rules.reinforceMax');
   if (r.dpsBaseline) {
     assertNumber(r.dpsBaseline.attack, 'weapons.rules.dpsBaseline.attack');
     for (const [id, t] of Object.entries(r.dpsBaseline.targets)) {

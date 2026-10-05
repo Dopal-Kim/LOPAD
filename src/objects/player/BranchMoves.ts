@@ -7,6 +7,8 @@
  * - 단검 질풍: **대쉬 공격 교체** (Q31) — 대쉬 직후 창 안 좌클릭 = 부채꼴 투척.
  * - 활 속사: 좌 홀드가 화살비 대신 연사 (초당 5발 ×0.45, 이동 ×0.5) — 첫 발은 일반 사격.
  */
+import { currentBuild } from '../../systems/build/current';
+import { ruleOf } from '../../systems/build/buildMods';
 import { EventBus, Events, type PlayerBranchMovePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { InputState } from '../../systems/InputSystem';
@@ -235,7 +237,8 @@ export class BranchMoves {
     const volley2 = this.node(1)?.id === 'volley';
     const r2 = this.node(1)?.rule?.params;
     const slow = volley2 && typeof r2?.moveMult === 'number' ? r2.moveMult : this.num('moveMult');
-    p.branchMoveMult = slow || 1;
+    // 61 G 개성 '걸으며 연사': 연사 중에도 제 걸음
+    p.branchMoveMult = ruleOf(currentBuild(), 'rapidStride') ? 1 : slow || 1;
     if (time < this.volleyNextAt) return true;
     const res = p.resource;
     if (res && !res.canAttack()) {

@@ -162,6 +162,32 @@ export function shapeHit(
   }
 }
 
+/**
+ * 61 단계 4: 피격 몸통 — 바디(발밑 원)에서 그림 몸통 중심(위로 liftPx)까지를 반지름 r 원들로 잇는다(간격 ≤ r).
+ * 커서로 적의 '그림'을 겨누면 판정 원점(가슴 높이)에서 나간 좁은 찌르기가 발밑 바디 위로 지나가 헛치던 문제.
+ */
+export function hurtPoints(t: HitTarget, liftPx: number): HitTarget[] {
+  if (!(liftPx > 0)) return [t];
+  const n = Math.max(1, Math.ceil(liftPx / Math.max(1, t.r)));
+  const out: HitTarget[] = [];
+  for (let i = 0; i <= n; i++) out.push({ x: t.x, y: t.y - (liftPx * i) / n, r: t.r });
+  return out;
+}
+
+/** 61 단계 4: 몸통(바디 → 그림 중심) 어디든 모양에 걸치면 true */
+export function shapeHitBody(
+  cx: number,
+  cy: number,
+  dirX: number,
+  dirY: number,
+  shape: HitShape,
+  t: HitTarget,
+  liftPx: number,
+  facing: ShapeFacing = 'right',
+): boolean {
+  return hurtPoints(t, liftPx).some((p) => shapeHit(cx, cy, dirX, dirY, shape, p, facing));
+}
+
 const ARC_STEPS_PER_DEG = 1 / 10;
 
 function circlePts(cx: number, cy: number, r: number): Pt[] {

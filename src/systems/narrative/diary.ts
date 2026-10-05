@@ -28,10 +28,12 @@ export interface DiaryRecord {
   lastName: string;
   /** 지난 생 기록 (오래된 것부터, 최근 N) */
   pastLives: PastLife[];
+  /** 61 G (계약 UI §18 firstTime): 본 처음 안내 카드 — 'trait'·'awaken1'·'awaken2' */
+  guides: string[];
 }
 
 export function emptyDiary(): DiaryRecord {
-  return { lives: 0, deaths: 0, bossKills: {}, clues: [], lastName: '', pastLives: [] };
+  return { lives: 0, deaths: 0, bossKills: {}, clues: [], lastName: '', pastLives: [], guides: [] };
 }
 
 const nonNeg = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
@@ -52,6 +54,7 @@ export function readDiary(meta: Pick<MetaData, 'runs' | 'clears'> & { diary?: Pa
     clues: Array.isArray(d.clues) ? d.clues.filter((c): c is string => typeof c === 'string') : [],
     lastName: typeof d.lastName === 'string' ? d.lastName : '',
     pastLives: Array.isArray(d.pastLives) ? d.pastLives.filter((p) => p && typeof p === 'object') : [],
+    guides: Array.isArray(d.guides) ? d.guides.filter((c): c is string => typeof c === 'string') : [],
   };
 }
 
@@ -74,6 +77,11 @@ export function recordBirth(d: DiaryRecord, name: string): DiaryRecord {
 export function recordLifeEnd(d: DiaryRecord, life: PastLife, max: number): DiaryRecord {
   const pastLives = [...d.pastLives, life].slice(-Math.max(1, max));
   return { ...d, deaths: d.deaths + (life.cleared ? 0 : 1), pastLives };
+}
+
+/** 61 G: 처음 안내 카드를 봤다 (계약 §18 firstTime) */
+export function recordGuide(d: DiaryRecord, guide: string): DiaryRecord {
+  return d.guides.includes(guide) ? d : { ...d, guides: [...d.guides, guide] };
 }
 
 export function recordBossKill(d: DiaryRecord, stageId: string): DiaryRecord {

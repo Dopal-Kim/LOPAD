@@ -6,7 +6,8 @@ describe('story text', () => {
     expect(fill('{a}-{b}-{c}', { a: 1, b: 'x' })).toBe('1-x-{c}');
   });
   it('진화 문장은 이름별, 없으면 공통', () => {
-    expect(evolutionLine('거합 (居合)')).toBe('칼집이 필요 없어졌다.');
+    // 61 G: 갈래·길 자막은 화면 이름(art §26 갈래 이름)으로
+    expect(evolutionLine('선풍')).toBe('한가운데가 가장 조용했다. 칼이 돌고 있었으니까.');
     expect(evolutionLine('없는 진화')).toContain('없는 진화');
   });
   it('사망 문장', () => {

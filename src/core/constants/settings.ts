@@ -72,4 +72,9 @@ export const SIM = {
   BOSS_PHASE_MS: 3000,
   /** 61라운드 P6 보스 '만취' 목표 길이 90~120초의 가운데 (층 추정 '보스 목표 대입' 합계용) */
   BOSS_TARGET_MS: 105000,
+  /**
+   * 61 G (P12) 각성 게이지 기대치 가정: 전투 노드 '완(完)' 받는 비율 · 노드 보상 '획 자국'(층당 1회) 기대 횟수 ·
+   * 이벤트 노드에서 게이지를 고르는 비율 (E4 '떠올린다')
+   */
+  GROWTH: { GRADE_PERFECT_SHARE: 0.3, MARK_REWARD_EXPECT: 0.5, EVENT_GAUGE_SHARE: 0.5 },
 } as const;

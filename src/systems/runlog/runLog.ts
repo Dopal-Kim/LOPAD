@@ -9,7 +9,19 @@ import { RUNLOG } from '../../core/Constants';
 
 export const RUNLOG_VERSION = 1;
 
-export type RunLogChoiceKind = 'branch' | 'awaken' | 'reinforce' | 'passive' | 'dualTrait' | 'curse' | 'stat';
+/** 61 G: awaken1(1차 갈래)·awaken2(2차 길)·trait(개성)·temper(단련) — 옛 branch·awaken·reinforce·dualTrait 는 옛 기록 읽기용 */
+export type RunLogChoiceKind =
+  | 'awaken1'
+  | 'awaken2'
+  | 'trait'
+  | 'temper'
+  | 'branch'
+  | 'awaken'
+  | 'reinforce'
+  | 'passive'
+  | 'dualTrait'
+  | 'curse'
+  | 'stat';
 
 export interface RunLogChoice {
   kind: RunLogChoiceKind;

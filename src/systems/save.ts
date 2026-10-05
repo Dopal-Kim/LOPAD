@@ -5,9 +5,10 @@
  */
 import type { ScarData } from './setup/scar';
 import type { BuildSave } from './build/BuildState';
+import type { WeaponProgress } from './weapon/weapons';
 import type { BundleSave } from './bundle2/BundleState';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 export const SAVE_KEY = 'lopad.save';
 
 export interface SaveData {
@@ -19,8 +20,8 @@ export interface SaveData {
   kills: number;
   sense: number;
   savesLeft: number;
-  /** 무기 개성: 트리 선택 경로·강화 횟수 (v5, 27라운드) */
-  weapon: { id: string; personality: number; path: string[]; reinforce: number; choicePending: boolean };
+  /** 61 G (v6): 무기 성장 — 각성 게이지·경로·개성·단련·처리한 눈금 */
+  weapon: { id: string } & WeaponProgress;
   gold: number;
   potions: number;
   pointsPending: number;

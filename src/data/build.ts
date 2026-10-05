@@ -1,22 +1,18 @@
 /**
  * 57라운드 빌드 축 1차 데이터 로더·검증 (index.ts 와 분리 — 병행 작업 충돌을 줄이려고 따로 둔다).
- * `data/build.json`(태그·세트·규칙 수치) · `data/dualTraits.json` · `data/curses.json` · `data/awakenings.json` +
- * `data/weapons.json` 갈래 노드의 태그·동작·규칙.
+ * `data/build.json`(태그·세트·규칙 수치) · `data/curses.json` + `data/weapons.json` 갈래 노드의 태그·동작·규칙.
+ * 61 G (P12): 옛 이중 개성(dualTraits.json)·최종 각성(awakenings.json)은 무기 성장(`data/growth.ts` — growth.json·traits.json)으로.
  */
 import buildJson from '../../data/build.json';
-import dualJson from '../../data/dualTraits.json';
 import cursesJson from '../../data/curses.json';
-import awakeningsJson from '../../data/awakenings.json';
 import { WEAPONS } from './index';
 import {
   TAG_IDS,
   isBuildStatKey,
   isTagId,
-  type AwakeningDef,
   type BuildData,
   type CurseDef,
   type CursesData,
-  type DualTraitDef,
   type SetThreshold,
   type TagId,
 } from './buildTypes';
@@ -44,10 +40,8 @@ export function validateBuild(b: BuildData): BuildData {
       fail(`build.tags.${t.id}.floor 는 1 이상 정수`);
   }
   const S = b.scoring;
-  for (const k of ['perPassive', 'passiveMaxLevelBonus', 'perBranchNode', 'reinforceTagMax'] as const)
+  for (const k of ['perPassive', 'passiveMaxLevelBonus', 'perBranchNode', 'perTrait'] as const)
     num(S[k], `build.scoring.${k}`);
-  if (S.reinforceTagTarget !== 'primary' && S.reinforceTagTarget !== 'all')
-    fail('build.scoring.reinforceTagTarget 는 primary | all');
   if (JSON.stringify(S.thresholds) !== JSON.stringify(THRESHOLDS)) fail('build.scoring.thresholds 는 [2, 4, 6]');
   for (const tag of TAG_IDS) {
     const stages = b.sets[tag];
@@ -70,28 +64,23 @@ export function validateBuild(b: BuildData): BuildData {
   num(b.events.perfectEvadeWindowMs, 'build.events.perfectEvadeWindowMs');
   num(b.events.perfectEvadeThreatRadiusTiles, 'build.events.perfectEvadeThreatRadiusTiles');
   num(b.events.crisisHpRatio, 'build.events.crisisHpRatio');
-  for (const k of ['repeatThreshold', 'reinforceMaxAwakened', 'pactBenefitMult', 'pactExtraNodes'] as const)
-    num(b.evolve[k], `build.evolve.${k}`);
-  num(b.awaken.tagScore, 'build.awaken.tagScore');
-  num(b.awaken.afterBossFloor, 'build.awaken.afterBossFloor');
-  num(b.personality.normalKillMult, 'build.personality.normalKillMult');
+  num(b.pact.benefitMult, 'build.pact.benefitMult');
+  num(b.pact.extraNodes, 'build.pact.extraNodes');
   num(b.pool.themeWeightMult, 'build.pool.themeWeightMult');
   for (const k of ['bossChoices', 'chestChoices', 'nodeChoices'] as const)
     num(b.acquisition[k], `build.acquisition.${k}`);
-  num(b.dual.tier1Score, 'build.dual.tier1Score');
-  num(b.dual.tier2Score, 'build.dual.tier2Score');
   for (const [k, v] of Object.entries(b.drunk.liquorPool)) if (k !== '_note') num(v, `build.drunk.liquorPool.${k}`);
   return b;
 }
 
-/** 무기 갈래 노드 (1단 2 → 1단마다 2단 2 = 무기당 6, 57 Q22): 태그 1~2개, 1단은 새 동작(move) */
+/** 무기 갈래 노드 (61 G P12: 1차 갈래 3 → 갈래마다 2차 길 2 = 무기당 9): 태그 1~2개, 1차는 새 동작(move) 또는 규칙(rule) */
 export function validateBranchNodes(weapons: WeaponTable): void {
   for (const [wid, w] of Object.entries(weapons)) {
     const visit = (n: WeaponEvolution, depth: number) => {
       const at = `weapons.${wid}.personality ${n.id}`;
       if (!Array.isArray(n.tags) || n.tags.length < 1 || n.tags.length > 2 || !n.tags.every(isTagId))
         fail(`${at}.tags 는 태그 1~2개`);
-      if (depth === 1 && typeof n.move !== 'string') fail(`${at}: 1단 노드는 move(새 동작) 필요`);
+      if (depth === 1 && typeof n.move !== 'string' && !n.rule) fail(`${at}: 1차 노드는 move(새 동작) 또는 rule 필요`);
       if (depth === 2 && !n.rule && Object.keys(n.mods).length === 0) fail(`${at}: 2단 노드는 rule 또는 mods 필요`);
       for (const c of n.comboChange ?? []) num(c.index, `${at}.comboChange.index`);
       for (const c of n.next ?? []) visit(c, depth + 1);
@@ -115,29 +104,6 @@ export function findBranch(
   return null;
 }
 
-export function validateDualTraits(items: DualTraitDef[], weapons: WeaponTable): DualTraitDef[] {
-  const ids = new Set<string>();
-  for (const d of items) {
-    const at = `dualTraits.${d.id}`;
-    if (ids.has(d.id)) fail(`dualTraits 중복 id: ${d.id}`);
-    ids.add(d.id);
-    if (!d.name || !d.description) fail(`${at}.name·description 없음`);
-    if (!isTagId(d.tag)) fail(`${at}.tag 알 수 없음`);
-    const b = findBranch(weapons, d.weapon, d.branch);
-    if (!b) fail(`${at}: ${d.weapon} 에 갈래 ${d.branch} 없음`);
-    if (!d.effect || typeof d.effect.kind !== 'string') fail(`${at}.effect.kind 없음`);
-  }
-  // 57 Q27: 1단 8 + 2단 16 (+ 취기 짝 무기당 1)
-  for (const [wid, w] of Object.entries(weapons))
-    for (const a of w.personality.branches) {
-      if (!items.some((d) => d.weapon === wid && d.branch === a.id && d.tag !== 'drunk'))
-        fail(`dualTraits: ${wid}.${a.id} 짝 없음`);
-      for (const b of a.next ?? [])
-        if (!items.some((d) => d.weapon === wid && d.branch === b.id)) fail(`dualTraits: ${wid}.${b.id} 짝 없음`);
-    }
-  return items;
-}
-
 export function validateCurses(c: CursesData): CursesData {
   const ids = new Set<string>();
   for (const d of c.items) {
@@ -155,31 +121,9 @@ export function validateCurses(c: CursesData): CursesData {
   return c;
 }
 
-export function validateAwakenings(
-  t: Record<string, AwakeningDef>,
-  weapons: WeaponTable,
-): Record<string, AwakeningDef> {
-  for (const [wid, w] of Object.entries(weapons)) {
-    const a = t[wid];
-    if (!a) fail(`awakenings.${wid} 없음 (무기당 1종)`);
-    if (!a.name || !a.common || typeof a.common.kind !== 'string') fail(`awakenings.${wid}.name·common 없음`);
-    for (const b of w.personality.branches)
-      for (const c of b.next ?? []) if (!a.rules[c.id]) fail(`awakenings.${wid}.rules.${c.id} 없음 (2단별 규칙)`);
-  }
-  return t;
-}
-
 export const BUILD: BuildData = validateBuild(buildJson as unknown as BuildData);
 validateBranchNodes(WEAPONS);
-export const DUAL_TRAITS: readonly DualTraitDef[] = validateDualTraits(
-  (dualJson as unknown as { items: DualTraitDef[] }).items,
-  WEAPONS,
-);
 export const CURSES: CursesData = validateCurses(cursesJson as unknown as CursesData);
-export const AWAKENINGS: Record<string, AwakeningDef> = validateAwakenings(
-  (awakeningsJson as unknown as { items: Record<string, AwakeningDef> }).items,
-  WEAPONS,
-);
 
 export function tagName(id: TagId): string {
   return BUILD.tags.find((t) => t.id === id)?.name ?? id;
@@ -223,14 +167,4 @@ export function curseOn(def: CurseDef | undefined, floor: FloorScope): boolean {
 export function curseSourceOn(source: string, floor: FloorScope): boolean {
   const list = byFloor(CURSES.sourcesByFloor, floor, null as string[] | null);
   return !list || list.includes(source);
-}
-
-/** 이 층 런의 갈래 최대 단 (없으면 제한 없음 = Infinity) */
-export function maxTierOn(floor: FloorScope): number {
-  return byFloor(BUILD.evolve.maxTierByFloor, floor, Infinity);
-}
-
-/** 이 층에서 이중 개성을 갈래에 흡수하나 (보상 칸 없음) */
-export function dualAbsorbOn(floor: FloorScope): boolean {
-  return floor !== null && (BUILD.dual.absorbOnFloors ?? []).includes(floor);
 }

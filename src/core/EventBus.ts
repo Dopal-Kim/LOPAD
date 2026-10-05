@@ -61,12 +61,18 @@ export const Events = {
   /** 바닥 드랍 획득 (물약 등 골드 이외) */
   ITEM_PICKED: 'item:picked',
   SENSE_GAINED: 'sense:gained',
-  PERSONALITY_GAINED: 'weapon:personality',
-  WEAPON_EVOLVED: 'weapon:evolved',
-  /** 임계 도달 → 3지선다 대기 */
-  WEAPON_CHOICE_PENDING: 'weapon:choice-pending',
-  /** 강화 선택 */
-  WEAPON_REINFORCED: 'weapon:reinforced',
+  /**
+   * 61라운드 단계 4 P12 무기 성장 (음향 sound §10 트리거 · 런 로그): 각성 게이지가 오름 (`GrowthGainedPayload`)
+   */
+  GROWTH_GAINED: 'weapon:growth-gained',
+  /** P12: 눈금 메뉴가 열림 — 개성 발현·1차/2차 각성·단련 (`GrowthMarkPayload`, 음향 trait_manifest) */
+  GROWTH_MARK: 'weapon:growth-mark',
+  /** P12: 개성 하나를 얻음 (`TraitGainedPayload`, 음향 trait_manifest) */
+  TRAIT_GAINED: 'weapon:trait-gained',
+  /** P12: 1차·2차 각성 (`WeaponAwakenPayload` — 각성 연출 시작, 음향 awaken1·awaken2 + 무기 꼬리) */
+  WEAPON_AWAKEN: 'weapon:awaken',
+  /** P12: 단련 (`WeaponTemperedPayload`, 옛 강화) */
+  WEAPON_TEMPERED: 'weapon:tempered',
   ENEMY_DAMAGED: 'enemy:damaged',
   ENEMY_DIED: 'enemy:died',
   /** 적 공격 예고 (dash = 결사병 돌진, shot = 사수 조준 — 35라운드 2단계) */
@@ -141,8 +147,6 @@ export const Events = {
   // --- 60라운드 빌드 축 (음향 sound §6 요청 — 이름이 UI 계약 §14.11 과 겹치는 것은 그 이름. UI 는 uiBus 쪽을 듣는다) ---
   /** 세트 단계 변화 (`TagSetChangedPayload`) — UI_EVENTS.TAG_SET_CHANGED 와 같은 시점 */
   TAG_SET_CHANGED: 'build:tag-set-changed',
-  /** 이중 개성 획득 (`{ id }`) */
-  DUAL_TRAIT_GAINED: 'build:dual-trait-gained',
   /** 저주 받음 (`CurseGainedPayload` — source bloodPact = 개성 '피의 계약' 칸) */
   CURSE_GAINED: 'build:curse-gained',
   /** 저주 기간 끝 (`{ id }`) */
@@ -228,6 +232,11 @@ export type PlayerAttackPayload = {
   heatStage?: number;
   /** 61 E: 단검 가속 그림 단계 (0 = 기본 · 2·3 = `<연격 fx>_accel<k>` — 타를 낼 때 공속 배율 ≥ 1.08 / ≥ 1.18) */
   accelStage?: number;
+  /**
+   * 61 단계 4: 찌르기 판정 길이 배율 — 휘두름 이펙트가 판정보다 길게 그려질 때(가속 `_accel2·3` 시트 ×1.1·×1.2, 가속 시트가 없어
+   * 그림을 키운 배율) 그림 끝까지 맞게. SwingFx.play 가 고른 그림에 맞춰 싣는다 (없으면 1)
+   */
+  reachMult?: number;
   /** 60라운드: 칼 검기 단 — 61라운드: 이 공격이 소모한 검기 단 (좌 홀드 발도만, 없으면 0) */
   kenkiStage?: number;
   /** 적중 넉백 배율 (61라운드: 넣은 채 첫 타 보너스 이름 firstStrike 삭제) */
@@ -511,8 +520,17 @@ export type RoomEnteredPayload = { roomId: string; type: string };
 export type TrialClearedPayload = { roomId: string; cleared: number; total: number };
 export type BossPhasePayload = { phase: number; hp: number; maxHp: number };
 /** 60라운드: kind = 갈래(branch, 기본) / 최종 각성(awaken — 음향 awaken_<무기>) */
-export type WeaponEvolvedPayload = { weapon: string; stage: number; name: string; kind?: 'branch' | 'awaken' };
-export type WeaponReinforcedPayload = { weapon: string; reinforce: number; name: string };
+/** 61 G P12 무기 성장 */
+export type GrowthGainedPayload = { weapon: string; amount: number; gauge: number };
+export type GrowthMarkPayload = {
+  weapon: string;
+  kind: 'trait' | 'awaken1' | 'awaken2' | 'temper';
+  at: number;
+  index: number;
+};
+export type TraitGainedPayload = { weapon: string; id: string; verb: string; tag: string; branch?: string };
+export type WeaponAwakenPayload = { stage: 1 | 2; weapon: string; branch: string; path?: string; name: string };
+export type WeaponTemperedPayload = { weapon: string; temper: number; name: string };
 /** 47라운드 구조물 이벤트 (내부, 음향 훅). kind = 계약 UiStructureKind */
 export type StructureEventPayload = { id: string; kind: string; roomId: string; actionKey?: string };
 export type StructureFirePayload = { target: 'weapon' | 'arrow' | 'pool' | 'burn' };

@@ -36,6 +36,10 @@ export interface SwingPick {
   variant: FxVariant | null;
   /** 가열 시트도 변주도 없을 때 가열 단계만큼 키우는 배율 (없으면 1) */
   heatScale: number;
+  /**
+   * 61 단계 4: 그림이 기본 연격보다 길게 그려진 배율 — 판정 길이를 이만큼 (가속 시트 = ACCEL_REACH_MULTS, 시트가 없어 키웠으면 heatScale)
+   */
+  reachMult: number;
 }
 
 /**
@@ -83,5 +87,7 @@ export function pickSwingFx(input: SwingPickInput, lookup: TierLookup): SwingPic
   // 가속: 단계 시트가 없고 시트 JSON 에도 가열 변주가 없으면 그림을 키운다 (단계 1 = 그대로)
   const heatVariant = heat > 1 && resolveFxVariant(lookup.sheet(pick.id), { heat }) !== null;
   const heatScale = heat > 1 && !heatSheet && !heatVariant ? 1 + WEAPON_FX.HEAT_SCALE_PER_STAGE * (heat - 1) : 1;
-  return { ...pick, heatScale };
+  const accelSheet = heatSheet && pick.id === heatId;
+  const reachMult = accelSheet ? (WEAPON_FX.ACCEL_REACH_MULTS[heat - 2] ?? 1) : heatScale;
+  return { ...pick, heatScale, reachMult };
 }

@@ -21,9 +21,11 @@ import type {
   UiNodeTrial,
   UiSettings,
   UiBossSnapshot,
+  UiGrowth,
 } from './ui';
 import { DEFAULT_SETTINGS } from '../systems/settings';
 import { weaponVerbs } from '../systems/weapon/verbs';
+import { nextMarkOf } from '../systems/growth/growth';
 
 export interface SnapshotContext {
   layout: FloorLayout | null;
@@ -61,6 +63,8 @@ export interface SnapshotContext {
   nodeTrial?: UiNodeTrial | null;
   /** 61라운드 (계약 §15): 설정. 생략 시 기본값 */
   settings?: UiSettings;
+  /** 61 G (계약 §18): 무기 성장. 생략 시 null */
+  growth?: UiGrowth | null;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -104,8 +108,9 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     weapon: {
       name: w.def.name,
       evolutionName: w.evolution?.name ?? null,
-      personality: w.personality,
-      threshold: w.threshold,
+      // 61 G: 옛 '개성 n/임계' 자리 = 각성 게이지 · 다음 눈금 (정식 표시는 growth)
+      personality: Math.floor(w.gauge),
+      threshold: ctx.growth?.next?.at ?? nextMarkOf(gameState.build.floor, w.marksDone).at,
       secondaryName: w.def.secondary.name,
     },
     boss:
@@ -177,5 +182,19 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     elites: (ctx.elites ?? []).map((e) => ({ ...e, prefixes: [...e.prefixes], screen: { ...e.screen } })),
     nodeTrial: ctx.nodeTrial ? { ...ctx.nodeTrial } : null,
     settings: { ...(ctx.settings ?? DEFAULT_SETTINGS) },
+    growth: ctx.growth
+      ? {
+          ...ctx.growth,
+          marks: ctx.growth.marks.map((m) => ({ ...m })),
+          next: ctx.growth.next ? { ...ctx.growth.next } : null,
+          branches: ctx.growth.branches.map((b) => ({
+            ...b,
+            paths: [{ ...b.paths[0] }, { ...b.paths[1] }] as typeof b.paths,
+          })),
+          traits: ctx.growth.traits.map((t) => ({ ...t })),
+          temper: { ...ctx.growth.temper },
+          firstTime: { ...ctx.growth.firstTime },
+        }
+      : null,
   };
 }

@@ -89,13 +89,15 @@ export class BuildPerfect {
       if (emp) this.rt.combat.empowerNext(param(emp, 'mult'), param(emp, 'windowMs', 2000));
     }
     this.rt.branch.onPerfect(kind, attack, dx, dy);
+    // 61 G 개성·만월
+    this.rt.traits.onPerfect(kind, dx, dy);
   }
 
-  /** 패링: 물 위의 달(분신 일섬) · 각성 명경(자동 일섬 반격) */
+  /** 패링: 물 위의 달(분신 일섬 — 옛 이중 개성 규칙, 61 G 에서 카드 없음) */
   private onParry(dx: number, dy: number): void {
     const pl = this.g.player;
     const at = { x: pl.x, y: pl.y };
-    for (const r of [this.rt.rule('parryClone'), this.rt.rule('parryIssen')]) {
+    for (const r of [this.rt.rule('parryClone')]) {
       if (!r) continue;
       const delay = param(r, 'delayMs', 0);
       const range = T(param(r, 'rangeTiles', 4));

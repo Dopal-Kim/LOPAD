@@ -12,7 +12,15 @@ import { sheetJsonCandidates } from './spriteMeta';
 import { normalizeStructureSheet, sheetToWorldUnits, type SheetDef } from './sheetJson';
 import { sheetTextureKey, type SheetRequest } from './sheetPaths';
 import { readSheetJson as parseSheetJson, type AtlasData } from './sheetAtlas';
-import { awakenSheetRequests, runAllowsTier2, weaponSheetRequests } from './sheetSets';
+import {
+  AWAKEN_OVERLAY_SUFFIX,
+  awakenInFxId,
+  awakenSheetRequests,
+  branchSheetRequests,
+  growthOverlayAction,
+  growthSheetRequests,
+  weaponSheetRequests,
+} from './sheetSets';
 import { SPRITES } from '../../core/Constants';
 import { BOSSES } from '../../data';
 
@@ -25,9 +33,9 @@ export interface PendingSheet {
 
 /** 아트 산출물 파일 목록 (Preloader 가 매니페스트를 읽어 넣는다 — 없으면 null = 전부 있다고 본다) */
 let manifest: Set<string> | null = null;
-/** 지금 시트가 올라가 있는 런 무기 · 각성 오버레이가 올라가 있는 무기 */
+/** 지금 시트가 올라가 있는 런 무기 · 무기 묶음 밖에서 더 올린 시트(갈래·각성 외형 — 무기를 바꿀 때 내린다) */
 let loadedWeapon: string | null = null;
-let loadedAwaken: string | null = null;
+const extraLoaded = new Set<SheetRequest>();
 
 export function setAssetManifest(files: Set<string> | null): void {
   manifest = files;
@@ -140,48 +148,95 @@ export function queueRequests(scene: Phaser.Scene, reqs: readonly SheetRequest[]
   return true;
 }
 
+/** 61 G: 런 무기 묶음 범위 — 경로 노드(갈래·길) · 각성 외형(고른 갈래·단계) */
+export interface WeaponLoadScope {
+  /** 시험장 = 갈래 그림 전부 */
+  lab: boolean;
+  /** 지금 경로 노드 id (1차·2차) */
+  path: readonly string[];
+  /** 각성 외형 (고른 갈래 id · 단계) — 없으면 null */
+  growth: { branch: string; stage: 1 | 2; legacy: boolean } | null;
+}
+
+/** 아트 산출물 파일(assets 상대 경로)이 매니페스트에 있는가 (매니페스트가 없으면 true) */
+export function assetListed(rel: string): boolean {
+  return manifest === null || manifest.has(rel);
+}
+
+/** 이 요청의 시트 파일이 매니페스트에 있는가 (매니페스트가 없으면 true) */
+export function sheetListed(req: SheetRequest): boolean {
+  return pickJsonPath(req) !== null;
+}
+
+/**
+ * 61 G 각성 외형 요청 (art §26 완료): 1차 a1 (+2차 a2·a2_glow) 오버레이 · 각성 연출 fx — 옛 `_awaken` 대신.
+ * 그 동작의 a1 시트가 매니페스트에 없을 때만 옛 `<동작>_awaken` 폴백, 연출 fx 가 없을 때만 옛 `<무기>_awaken_in`.
+ * 셋째 갈래(legacy)는 옛 각성 궤적 `<fx>_awaken` 도 (FxPool 교체 — AwakenFlow.aliases)
+ */
+export function growthLoadRequests(weaponId: string, scope: WeaponLoadScope): SheetRequest[] {
+  const g = scope.growth;
+  if (!g) return [];
+  const range = scope.lab ? 'all' : scope.path;
+  const want = growthSheetRequests(weaponId, g.branch, g.stage, range);
+  const out = want.filter((r) => sheetListed(r));
+  const have = new Set(out.map((r) => `${r.category}/${r.action}/${r.name}`));
+  const fxListed = out.some((r) => r.category === 'fx');
+  for (const r of awakenSheetRequests(weaponId, range)) {
+    if (r.category === 'weapons') {
+      const action = r.action.slice(0, -`_${AWAKEN_OVERLAY_SUFFIX}`.length);
+      if (!have.has(`weapons/${growthOverlayAction(g.branch, 1, action)}/${weaponId}`)) out.push(r);
+    } else if (r.name === awakenInFxId(weaponId)) {
+      if (!fxListed) out.push(r);
+    } else if (g.legacy) out.push(r);
+  }
+  return out;
+}
+
 /**
  * 57라운드 A2: 런 무기의 시트를 이 씬의 preload 에서 로드한다 (Game·WeaponLab — 런 시작·이어하기·시험장 무기 교체).
  * 다른 무기가 올라가 있으면 그 무기만의 시트를 먼저 내린다(GPU 메모리). 이미 올라간 시트는 다시 받지 않는다.
- * 60라운드: awaken 이면 최종 각성 오버레이(`<무기 동작>_awaken`, 계약 art §21 — 각성 런에서만)도 같이.
- * 61 E: lab(시험장)이 아니고 로드 범위 층에서 2단 갈래가 닫혀 있으면 2단 갈래 그림은 올리지 않는다 (`runAllowsTier2`).
+ * 61 G (P12 · VRAM): 런은 갈래 그림을 지금 경로 노드만 + 고른 갈래의 각성 외형만 (시험장은 갈래 그림 전부).
  * JSON 이 읽히는 대로 이미지를 같은 로드에 이어 붙이고, 로드가 끝나면(씬 create 전) 등록한다. 로드할 파일이 있으면 true
  */
-export function preloadWeaponSheets(scene: Phaser.Scene, weaponId: string, awaken = false, lab = true): boolean {
-  const wantAwaken = awaken && loadedAwaken !== weaponId;
+export function preloadWeaponSheets(scene: Phaser.Scene, weaponId: string, scope: WeaponLoadScope): boolean {
   if (loadedWeapon !== weaponId && loadedWeapon) releaseWeaponSheets(scene, loadedWeapon, weaponId);
   const has = (r: SheetRequest) => scene.textures.exists(sheetTextureKey(r.name, r.action));
-  const reqs = weaponSheetRequests(weaponId, lab || runAllowsTier2()).filter((r) => !has(r));
-  if (wantAwaken) reqs.push(...awakenSheetRequests(weaponId).filter((r) => !has(r)));
+  const reqs = [
+    ...weaponSheetRequests(weaponId, scope.lab ? 'all' : scope.path),
+    ...growthLoadRequests(weaponId, scope),
+  ].filter((r) => !has(r));
   loadedWeapon = weaponId;
-  return queueRequests(scene, reqs, () => {
-    if (wantAwaken) loadedAwaken = weaponId;
-  });
+  for (const r of reqs) extraLoaded.add(r);
+  return queueRequests(scene, reqs, () => {});
 }
 
 /**
- * 60라운드: 런 도중 각성했을 때 (create 뒤 — 시험장 a 키·개성 '각성' 칸) 각성 오버레이를 바로 로드한다. 이미 있으면 done 만.
- * 로드가 끝나기 전까지 오버레이는 없다(무기 그림만)
+ * 61 G: 런 도중 각성했을 때 (create 뒤 — 1차·2차 각성·시험장 갈래 바꾸기) 그 갈래·길 그림과 각성 외형을 바로 로드한다.
+ * 이미 있으면 done 만. 로드가 끝나기 전까지 오버레이는 없다(무기 그림만)·갈래 fx 는 윤곽 플레이스홀더
  */
-export function loadAwakenSheets(scene: Phaser.Scene, weaponId: string, done: () => void = () => {}): void {
-  if (loadedAwaken === weaponId) {
-    done();
-    return;
-  }
-  const started = queueRequests(scene, awakenSheetRequests(weaponId), () => {
-    loadedAwaken = weaponId;
-    done();
-  });
+export function loadGrowthSheets(
+  scene: Phaser.Scene,
+  weaponId: string,
+  scope: WeaponLoadScope,
+  done: () => void = () => {},
+): void {
+  const has = (r: SheetRequest) => scene.textures.exists(sheetTextureKey(r.name, r.action));
+  const reqs = [
+    ...(scope.lab ? [] : branchSheetRequests(weaponId, scope.path)),
+    ...growthLoadRequests(weaponId, scope),
+  ].filter((r) => !has(r));
+  for (const r of reqs) extraLoaded.add(r);
+  const started = queueRequests(scene, reqs, done);
   if (started && !scene.load.isLoading()) scene.load.start();
 }
 
-/** 다른 무기로 바뀔 때: 이전 무기만 쓰던 시트를 내린다 (새 무기도 쓰는 시트는 남긴다) — 각성 오버레이 포함 */
+/** 다른 무기로 바뀔 때: 이전 무기만 쓰던 시트를 내린다 (새 무기도 쓰는 시트는 남긴다) — 갈래·각성 외형 포함 */
 function releaseWeaponSheets(scene: Phaser.Scene, prevId: string, nextId: string): void {
   const keep = new Set(weaponSheetRequests(nextId).map((r) => sheetTextureKey(r.name, r.action)));
-  const prev = [...weaponSheetRequests(prevId), ...(loadedAwaken === prevId ? awakenSheetRequests(prevId) : [])];
+  const prev = [...weaponSheetRequests(prevId), ...extraLoaded];
   const drop = prev.filter((r) => !keep.has(sheetTextureKey(r.name, r.action)));
   spriteLibrary.removeSheets(scene, drop);
-  if (loadedAwaken === prevId) loadedAwaken = null;
+  extraLoaded.clear();
 }
 
 /** 자기 시트가 없는 보스는 폴백 시트를 쓴다 (2~7층 보스 = stage1 시트 + 층 램프 스왑) */
@@ -191,7 +246,7 @@ export function aliasBossFallbacks(): void {
       spriteLibrary.alias(id, SPRITES.BOSS_FALLBACK_SHEET);
 }
 
-/** 디버그: 지금 올라가 있는 런 무기 시트 (각성 오버레이면 + '+awaken') */
+/** 디버그: 지금 올라가 있는 런 무기 시트 (+ 더 올린 갈래·각성 외형 시트 수) */
 export function loadedWeaponSheets(): string | null {
-  return loadedWeapon && loadedAwaken === loadedWeapon ? `${loadedWeapon}+awaken` : loadedWeapon;
+  return loadedWeapon ? `${loadedWeapon}${extraLoaded.size ? `+${extraLoaded.size}` : ''}` : null;
 }

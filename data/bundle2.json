@@ -123,7 +123,7 @@
         "options": [
           {
             "key": "recall",
-            "label": "떠올린다 — 개성 +{trait}",
+            "label": "떠올린다 — 각성 게이지 +{trait}",
             "effects": [{ "kind": "personality", "value": 30 }],
             "result": "손이 먼저 알았다. 다음 갈래가 희미하게 비친다."
           },

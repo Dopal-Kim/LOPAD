@@ -93,9 +93,29 @@ export class BrandMarks {
     EventBus.emit(Events.WEAPON_GAUGE, payload);
   }
 
-  /** 그림자 걸음으로 이 적 뒤에 섬 → 표식 전부 폭발 */
+  /** 그림자 걸음으로 이 적 뒤에 섬 → 표식 전부 폭발. 61 G 개성 '그림자 매듭': 낙인 min 이상이면 터지고도 남는다 */
   onShadowStep(target: Mob | null): void {
-    if (target) this.burst(target, 'shadowstep');
+    if (!target) return;
+    const knot = this.g.build?.rule('brandKnot');
+    const marks = this.marksOf(target);
+    if (knot && marks >= (Number(knot.params.min) || 3) && target.active) {
+      EventBus.emit(Events.PLAYER_SKILL, {
+        weapon: gameState.weapon.id,
+        move: 'brand',
+        phase: 'burst',
+      } satisfies PlayerSkillPayload);
+      this.g.build.record('rule:d_shadowKnot', marks);
+      this.explode(target, marks, 'shadowstep');
+      return;
+    }
+    this.burst(target, 'shadowstep');
+  }
+
+  /** 61 G 개성 '마무리 기폭': 이 적의 낙인을 지금 터뜨린다 (없으면 false) */
+  detonate(mob: Mob, cause = 'trait'): boolean {
+    if (this.marksOf(mob) <= 0) return false;
+    this.burst(mob, cause);
+    return true;
   }
 
   /** 둘레 폭발 (2단 열풍 — 가속 100%): 반경 radiusPx 안 낙인 일괄 폭발. 화상·무적은 열풍 쪽(DaggerBranch) */

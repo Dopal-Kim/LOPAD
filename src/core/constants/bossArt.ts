@@ -25,6 +25,12 @@ export const BOSS_ART = {
    * 림 시트를 올리지 않고 tintFill 대체만 쓴다
    */
   RIM_EST_MB: 42,
+  /**
+   * 61 단계 4 가벼운 림 `<동작>_rim_lite` (아트: 반 해상도 144×180·pixelScale 1.0 — 표시 배율 = 보스 × 2, 아틀라스 합 10.6MB).
+   * 원 림이 예산을 넘으면(대검 런 등) 이것, 이것도 넘으면 tintFill. _rim 과 둘 중 하나만 올린다
+   */
+  RIM_LITE_SUFFIX: 'rim_lite',
+  RIM_LITE_EST_MB: 11,
   /** 결정타·쓰러짐·불 끄기 fx 4장 VRAM 추정 MB (아틀라스 크기 합 12.9) · 마지막 국면에 소등이 없을 때 그 진입 뒤 올리는 시각 ms */
   FINALE_EST_MB: 13,
   FINALE_DELAY_MS: 5000,

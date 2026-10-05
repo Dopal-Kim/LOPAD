@@ -136,8 +136,18 @@ export const SFX = {
     breakBarrel: 'sfx/boss1_break_barrel',
     breakReel: 'sfx/boss1_break_reel',
     barrelReturn: 'sfx/barrel_return',
+    // 61 단계 4 음향: 아트 2 보스 동작 (BOSS_ACTION) — 포효는 entrance 와 함께, 균열은 파훼 알림 위에 겹쳐
+    introRoar: 'sfx/boss1_intro_roar',
+    cupStruck: 'sfx/boss1_cup_struck',
+    pillarCrack1: 'sfx/boss1_pillar_crack1',
+    pillarCrack2: 'sfx/boss1_pillar_crack2',
+    pillarCrack3: 'sfx/boss1_pillar_crack3',
+    flameSnuff: 'sfx/boss1_flame_snuff',
   },
 } as const;
+
+/** 61 단계 4: 기둥 균열 단(1~3) → 소리 (범위 밖은 끝으로 자른다) */
+const PILLAR_CRACK_SFX = [SFX.boss1.pillarCrack1, SFX.boss1.pillarCrack2, SFX.boss1.pillarCrack3] as const;
 
 /**
  * 55라운드 Q32 대검 홀드 차지·칼 잔상 베기 효과음 (음향 커밋 — `sfx/<키>`). **키 이름이 바뀌면 여기만 고친다.**
@@ -223,8 +233,11 @@ export function chargeSfxIds(): string[] {
 /** 54라운드: 3연 취권 n타(0부터) 재생 속도 (음향 권장 1.0 / 1.06 / 1.12) */
 export const REEL_RATES = [1, 1.06, 1.12] as const;
 
-/** 54라운드: 보스 패턴 국면 → 효과음 (null = 없음). 대응표는 parts/system/CHANGELOG.md 54라운드 절 */
-export function bossActionSfx(action: BossActionKind): string | null {
+/**
+ * 54라운드: 보스 패턴 국면 → 효과음 (null = 없음). 대응표는 parts/system/CHANGELOG.md 54라운드 절.
+ * index = 페이로드 index (61 단계 4: pillarCrack 의 새 균열 단 1~3)
+ */
+export function bossActionSfx(action: BossActionKind, index?: number): string | null {
   const B = SFX.boss1;
   switch (action) {
     case 'drinkLift':
@@ -260,6 +273,15 @@ export function bossActionSfx(action: BossActionKind): string | null {
       return B.candleTopple;
     case 'candleRelight':
       return B.candleRelight;
+    // 61 단계 4: 등장 포효 · 잔 맞음(안 깨짐 — 깨지는 타는 cupStruck 이 아니라 파훼 boss1_break_cup) · 기둥 균열 단 · 불 꺼짐(변주 _v2·_v3)
+    case 'introRoar':
+      return B.introRoar;
+    case 'cupStruck':
+      return B.cupStruck;
+    case 'pillarCrack':
+      return PILLAR_CRACK_SFX[Math.min(PILLAR_CRACK_SFX.length, Math.max(1, Math.round(index ?? 1))) - 1];
+    case 'flameSnuff':
+      return B.flameSnuff;
     default:
       return null;
   }
@@ -612,7 +634,7 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   t<BossActionPayload>({
     event: Events.BOSS_ACTION,
     note: '보스 패턴 국면 → bossActionSfx (3연 취권 n타는 재생 속도 REEL_RATES)',
-    sfx: (p) => bossActionSfx(p.action),
+    sfx: (p) => bossActionSfx(p.action, p.index),
     rate: (p) =>
       p.action === 'reelTelegraph' || p.action === 'reelDash'
         ? REEL_RATES[Math.min(REEL_RATES.length - 1, p.index ?? 0)]
@@ -690,13 +712,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     note: '엔딩 선택 — 전용 자산이 없어 fate_decided(일기장 덮는 소리) 재사용 (임시)',
     sfx: SFX.fateDecided,
   }),
-  t<{ kind?: string }>({
-    event: Events.WEAPON_EVOLVED,
-    note: '개성 변화 (최종 각성은 awaken_<무기> — audioBuild)',
-    when: (p) => p?.kind !== 'awaken',
-    sfx: SFX.evolve,
-  }),
-  t({ event: Events.WEAPON_REINFORCED, note: '무기 강화', sfx: SFX.reinforce }),
+  // 61 G (sound §10): 1차·2차 각성 · 개성 발현 · 게이지 반짝 · 단련 — audioBuild GROWTH_AUDIO_TRIGGERS
+  t({ event: Events.WEAPON_TEMPERED, note: '단련 (옛 강화 소리)', sfx: SFX.reinforce }),
   t<MenuEventPayload>({
     event: Events.MENU_OPENED,
     note: '메뉴 열림 → menu_move (같은 메뉴를 다시 그리는 reopen 은 제외)',

@@ -1,27 +1,19 @@
 /**
- * 런 진행: 처치 → 개성 적립 → 3지선다(변환 A/B · 강화) · 스테이지 보상(감각 → 능력치 포인트 → 패시브) ·
+ * 런 진행: 처치 → 각성 게이지 적립(61 G — 눈금 메뉴는 growth/GrowthFlow) · 스테이지 보상(감각 → 능력치 포인트 → 패시브) ·
  * 엔딩(23라운드 2지선다) · 사망 · 결과 화면 · 런 시작 모드(새 런 / 다음 층 / 이어하기 / 다음 노드) · 세이브.
  */
-import { COLORS, DEPTH, GAME, PLACEHOLDER_UI, PROTOTYPE, SCENES, SPRITES } from '../../core/Constants';
-import { screenFixed } from '../../systems/display';
-import {
-  EventBus,
-  Events,
-  type RunEndedPayload,
-  type RunStartedPayload,
-  type WeaponEvolvedPayload,
-  type WeaponReinforcedPayload,
-} from '../../core/EventBus';
+import { PROTOTYPE, SCENES, SPRITES } from '../../core/Constants';
+import { EventBus, Events, type RunEndedPayload, type RunStartedPayload } from '../../core/EventBus';
 import { gameState, type EndingChoice } from '../../core/GameState';
 import { ECONOMY, STORY } from '../../data';
-import { BUILD } from '../../data/build';
+import { GROWTH } from '../../data/growth';
 import type { StatKey } from '../../data/types';
 import { UI_EVENTS, __system } from '../../contract/ui';
 import type { Mob } from '../../objects/Mob';
 import { applyStatReward, findReward } from '../../systems/economy';
 import { markUnderstood, metaStore, recordRun } from '../../systems/meta';
 import type { KillKind } from '../../systems/senses';
-import { deathLine, evolutionLine, fill, floorText } from '../../systems/story';
+import { deathLine, fill, floorText } from '../../systems/story';
 import { NARRATIVE, NARRATIVE_STORY } from '../../data/narrative';
 import { recordLifeEnd, updateDiary } from '../../systems/narrative/diary';
 import { UI_SCENES } from '../../ui';
@@ -100,9 +92,9 @@ export class Progression {
     const em = g.bundle?.rewardMult(mob) ?? 1;
     // 57라운드: 외상 저주 처치 전표 0
     g.economy.dropLoot(mob, km.goldMult * g.build.killGoldMult() * em);
-    // 57라운드 2차 묶음 S3-A: 일반 처치 개성 절반 (보스 그대로) · 연쇄 6 살기 ×2
-    const normal = mob.isBoss ? 1 : BUILD.personality.normalKillMult;
-    this.gainPersonality(
+    // 각성 게이지: 일반 처치 = 적 값 × growth.gain.normalKillMult (보스 그대로) · 공명 ×2 · 연쇄 6 살기 ×2
+    const normal = mob.isBoss ? 1 : GROWTH.gain.normalKillMult;
+    this.gainGrowth(
       Math.round(
         mob.personalityValue *
           normal *
@@ -124,71 +116,9 @@ export class Progression {
     g.director.onMobDied(mob);
   }
 
-  /** 개성 수치 적립. 임계에 닿으면 선택 대기 → update 에서 메뉴를 연다 */
-  gainPersonality(amount: number): void {
-    const weapon = gameState.weapon;
-    // 57라운드 Q37: 트리가 끝나도 피의 계약·각성 칸이 있으면 게이지가 돈다 (27라운드 게이지 정지 대체)
-    const reached = weapon.gainPersonality(amount, this.g.buildMenus.canEvolve());
-    EventBus.emit(Events.PERSONALITY_GAINED, { value: weapon.personality, threshold: weapon.threshold });
-    if (reached) EventBus.emit(Events.WEAPON_CHOICE_PENDING, { weapon: weapon.id, stage: weapon.stage });
-  }
-
-  /** 개성 임계 도달 → 다른 메뉴(보스 보상 등)가 닫힌 뒤 3지선다 (게임 정지) */
-  maybeOpenEvolveMenu(): void {
-    // 61라운드: 보스 등장·처치 연출 중에는 미룬다 (연출 → 보상 → 3지선다 순)
-    if (gameState.weapon.choicePending && !this.g.menu.isOpen && !this.g.frozen && !this.g.bossFlow?.busy)
-      this.g.buildMenus.openEvolveMenu();
-  }
-
-  applyEvolution(id: string): void {
-    const g = this.g;
-    const weapon = gameState.weapon;
-    const node = weapon.choose(id);
-    if (!node) return;
-    g.menu.close();
-    g.setFrozen(false);
-    g.screenFx.evolve();
-    const payload: WeaponEvolvedPayload = { weapon: weapon.id, stage: weapon.stage, name: weapon.displayName };
-    EventBus.emit(Events.WEAPON_EVOLVED, payload);
-    if (!__system.rendererRegistered()) this.showEvolutionBanner(weapon.displayName);
-    g.ui.story('evolution', evolutionLine(node.name));
-  }
-
-  applyReinforce(): void {
-    const g = this.g;
-    const weapon = gameState.weapon;
-    if (!weapon.reinforceNow()) return;
-    g.menu.close();
-    g.setFrozen(false);
-    const payload: WeaponReinforcedPayload = {
-      weapon: weapon.id,
-      reinforce: weapon.reinforce,
-      name: weapon.displayName,
-    };
-    EventBus.emit(Events.WEAPON_REINFORCED, payload);
-    __system.emit(UI_EVENTS.WEAPON_EVOLVED, { name: weapon.displayName });
-    if (!__system.rendererRegistered()) this.showEvolutionBanner(weapon.displayName);
-    g.ui.story(
-      'evolution',
-      STORY.reinforce[weapon.reinforce - 1] ??
-        fill(STORY.reinforceBanner, { evolution: weapon.displayName, n: weapon.reinforce }),
-    );
-  }
-
-  /** 개성 변화 알림 (시스템 파트 임시 텍스트. 정식 연출·UI는 UI 파트) */
-  private showEvolutionBanner(name: string): void {
-    const g = this.g;
-    const at = screenFixed(g.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2 - 40);
-    const t = g.add
-      .text(at.x, at.y, `개성 변화: ${name}`, {
-        font: PLACEHOLDER_UI.FONT_BODY,
-        color: COLORS.GAMEOVER_TEXT,
-      })
-      .setOrigin(0.5)
-      .setScale(at.scale)
-      .setScrollFactor(0)
-      .setDepth(DEPTH.DEBUG);
-    g.tweens.add({ targets: t, alpha: 0, delay: PROTOTYPE.BANNER_MS, duration: 400, onComplete: () => t.destroy() });
+  /** 각성 게이지 적립 (61 G — 눈금 메뉴는 GrowthFlow 가 연다) */
+  gainGrowth(amount: number): void {
+    this.g.growth.gain(amount);
   }
 
   // --- 엔딩 (23라운드): 황제 처치 직후 2지선다, 선택 전까지 정지 ---

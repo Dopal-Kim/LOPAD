@@ -107,6 +107,11 @@ export const WEAPON_FX = {
    * 이 값 이상이면 단계 2·3. 단계 1 = 기본 시트
    */
   ACCEL_FX_MULTS: [1.08, 1.18] as readonly number[],
+  /**
+   * 61 단계 4: 가속 단계 시트(2·3)는 기본보다 찌르기가 길게 그려진다(아트 accelRule '그림만 ×1.1 / ×1.2' — visualLengthPx 188·204 대
+   * 기본 약 170 도트). 판정 길이도 이만큼 늘려 그림 끝과 맞춘다 (단계 2·3 순서)
+   */
+  ACCEL_REACH_MULTS: [1.1, 1.2] as readonly number[],
   /** 61라운드 E 칼 발도 검기 단 이펙트 (아트 2 `fx/v3/katana_iai_ki1~3` — 소모한 검기 단, 3 이상은 3): 대상 그림 이름 · 단 수 */
   KENKI_FX: { ART: 'iai', LEVELS: 3 },
 } as const;

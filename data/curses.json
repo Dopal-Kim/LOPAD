@@ -36,7 +36,7 @@
       "markRow": "broken_cup",
       "name": "깨진 잔",
       "_tmpName": true,
-      "benefit": "개성 +60 즉시 (갈래를 앞당김)",
+      "benefit": "각성 게이지 +60 즉시 (각성을 앞당김)",
       "penalty": "물약(독주) 사용 불가",
       "nodes": 2,
       "sources": ["riskNode", "pact"],

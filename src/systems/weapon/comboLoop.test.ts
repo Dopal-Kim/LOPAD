@@ -157,7 +157,9 @@ describe('55라운드 §17 그림 이름 표 (데이터 한 곳 매핑)', () => 
     expect(pickArt(artCandidates(gs, 'v', 'body'), (n) => n === 'combo3')).toBe('combo3');
     expect(artCandidates(gs, 'v', 'fx')).toEqual(['cleave']);
     expect(artCandidates(gs, 'charge', 'fx')).toEqual([]);
-    expect(artCandidates(gs, 'v', 'impactFx')).toEqual(['cleave_impact', 'slam']);
+    // 61 단계 4: 대검 V 내려찍기의 끝점 충격·땅 균열 그림은 뺐다 (도영 님 '요상한 충격파') — 판정 충격원은 데이터 그대로
+    expect(artCandidates(gs, 'v', 'impactFx')).toEqual([]);
+    expect(artCandidates(gs, 'v', 'crackFx')).toEqual([]);
     // fx 가 없으면 몸 후보와 같게, 표에 없는 키는 그 이름 그대로 (기존 combo<n>)
     expect(artCandidates({ art: { a: { body: ['x'] } } }, 'a', 'fx')).toEqual(['x']);
     expect(artCandidates(WEAPONS.dagger.combo, 'combo2', 'fx')).toEqual(['combo2']);

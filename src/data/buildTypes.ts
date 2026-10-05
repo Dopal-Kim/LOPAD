@@ -114,9 +114,8 @@ export interface BuildScoring {
   perPassive: number;
   passiveMaxLevelBonus: number;
   perBranchNode: number;
-  reinforceTagMax: number;
-  /** 강화 태그 점수를 받는 태그: primary = 현재 갈래 노드의 첫 태그 · all = 그 노드 태그 전부 */
-  reinforceTagTarget: 'primary' | 'all';
+  /** 61 G (P12): 개성 카드 1장 = 그 카드 태그 +perTrait */
+  perTrait: number;
   thresholds: SetThreshold[];
 }
 
@@ -136,43 +135,11 @@ export interface BuildData {
   scoring: BuildScoring;
   sets: Record<TagId, SetStageDef[]>;
   events: { perfectEvadeWindowMs: number; perfectEvadeThreatRadiusTiles: number; crisisHpRatio: number };
-  evolve: {
-    repeatThreshold: number;
-    reinforceMaxAwakened: number;
-    pactBenefitMult: number;
-    pactExtraNodes: number;
-    /** 61라운드 P4: 층별 런 갈래 최대 단 (`{ "1": 1 }` = 1층 런은 1단까지 — 2단은 시험장). 없는 층은 제한 없음 */
-    maxTierByFloor?: Record<string, number>;
-  };
-  awaken: { tagScore: number; afterBossFloor: number; condition: string };
-  personality: { normalKillMult: number };
+  /** 61 G (P12): 피의 계약 칸은 폐지 — 옛 세이브의 계약 저주만 이 배율로 읽는다 */
+  pact: { benefitMult: number; extraNodes: number };
   pool: { themeWeightMult: number };
   acquisition: { bossChoices: number; chestChoices: number; nodeChoices: number; shopRarities: string[] };
-  dual: {
-    tier1Score: number;
-    tier2Score: number;
-    /** 61라운드 P4: 이중 개성을 보상 칸 대신 갈래에 흡수하는 층 (일반 짝 = 1단 획득 순간, 취기 짝 = 취기 tier1Score 점) */
-    absorbOnFloors?: number[];
-    /** 흡수 알림 문구 ({branch} · {name} · {description}) */
-    absorbText?: string;
-  };
   drunk: { liquorPool: LiquorPoolParams };
-}
-
-export interface DualTraitDef {
-  id: string;
-  name: string;
-  _tmpName?: boolean;
-  /** 설계안에 없는 시스템 제안 (인터뷰 대상) */
-  _proposal?: boolean;
-  /** false = 데이터만 (효과 미연결) */
-  live?: boolean;
-  weapon: string;
-  /** 짝 갈래 노드 id (1단 또는 2단) */
-  branch: string;
-  tag: TagId;
-  description: string;
-  effect: RuleDef;
 }
 
 export interface CurseDef {
@@ -222,21 +189,6 @@ export interface CursesData {
   /** 61라운드 P4: 층별 저주 획득 길 (riskNode · event · structure · pact). 없는 층은 전부 */
   sourcesByFloor?: Record<string, string[]>;
   items: CurseDef[];
-}
-
-export interface AwakeningPart extends RuleDef {
-  live: boolean;
-}
-
-export interface AwakeningDef {
-  name: string;
-  _tmpName?: boolean;
-  description: string;
-  common: AwakeningPart;
-  /** 2단 노드 id → 덧붙는 규칙 */
-  rules: Record<string, AwakeningPart & { description: string }>;
-  /** 60라운드 계약 art §21 시그니처 fx (무기 묶음에 로드 — 무기 외형 오버레이 `_awaken` 은 각성 런에서만) */
-  art?: { fx: string[] };
 }
 
 /** 갈래 노드 연격 한 타 변화 (1단 — 설계안 2.2~2.5 '연격 변화') */

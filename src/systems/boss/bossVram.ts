@@ -5,7 +5,8 @@
  * - 결정타·쓰러짐·불 끄기 fx: 마지막 국면(HP 30%)의 소등 시작 때 phase_drink 를 내린 뒤 올린다 — 소등이 없으면 마지막 국면 진입
  *   FINALE_DELAY_MS 뒤, 처치 때 아직 없으면 그때.
  * - 국면 전환 들이켜기(phase_drink): 마지막 국면의 소등이 시작되면 다시 쓰지 않으므로 내린다.
- * - 림라이트: 소등 시작에 지금 VRAM + 추정치가 예산 안이면 올리고(없는 동안은 tintFill 대체), 소등이 끝나면 내린다.
+ * - 림라이트: 소등 시작에 지금 VRAM + 추정치가 예산 안이면 원 림, 넘으면 가벼운 림(61 단계 4 `_rim_lite`), 그것도 넘으면
+ *   tintFill 대체만(없는 동안도 대체). 소등이 끝나면 내린다.
  * 내리기는 '그리는 스프라이트가 없을 때'까지 매 프레임 미룬다 (사용 중인 텍스처를 지우면 그리기가 깨진다).
  */
 import type Phaser from 'phaser';
@@ -16,8 +17,14 @@ import { BOSSES } from '../../data';
 import { loadSheetsNow, releaseSheets } from '../sprites/lazySheets';
 import { sheetTextureKey, type SheetRequest } from '../sprites/sheetPaths';
 import { vramOfTextures } from '../vram';
-import { rimFits } from './bossArtRules';
-import { bossDeferredRequests, bossFinaleRequests, bossIntroRequests, bossRimRequests } from './bossSheets';
+import { pickRim } from './bossArtRules';
+import {
+  bossDeferredRequests,
+  bossFinaleRequests,
+  bossIntroRequests,
+  bossRimRequests,
+  type RimKind,
+} from './bossSheets';
 
 export interface BossVramHost {
   scene: Phaser.Scene;
@@ -30,6 +37,8 @@ type Group = 'intro' | 'phaseDrink' | 'rim';
 export class BossVram {
   /** 림 시트가 올라와 있다 (로드 끝) */
   rimReady = false;
+  /** 61 단계 4: 올린(올리는) 림 종류 — 원 림 또는 가벼운 림 (null = 대체만) */
+  rimKind: RimKind | null = null;
   /** 결정타 fx 가 올라와 있다 */
   finaleReady = false;
   /** 디버그: 결정 기록 · 측정 최고 MB */
@@ -106,7 +115,7 @@ export class BossVram {
     } else {
       this.rimWanted = false;
       this.rimReady = false;
-      this.pending.set('rim', bossRimRequests([this.bossId]));
+      if (this.rimKind) this.pending.set('rim', bossRimRequests([this.bossId], this.rimKind));
     }
   }
 
@@ -118,14 +127,15 @@ export class BossVram {
     this.loadFinale('dark');
     const mb = this.measure('dark');
     const budget = VRAM.BUDGET_BYTES / (1024 * 1024);
-    if (!rimFits(mb + finaleMb, BOSS_ART.RIM_EST_MB, budget)) {
-      this.rimWanted = false;
+    const kind = pickRim(mb + finaleMb, BOSS_ART.RIM_EST_MB, BOSS_ART.RIM_LITE_EST_MB, budget);
+    this.rimWanted = false;
+    this.rimKind = kind;
+    if (!kind) {
       this.log.push({ e: 'rim:tintFill', mb });
       return;
     }
-    this.rimWanted = false;
-    this.log.push({ e: 'rim:load', mb });
-    loadSheetsNow(this.host.scene, bossRimRequests([this.bossId]), () => {
+    this.log.push({ e: `rim:load:${kind}`, mb });
+    loadSheetsNow(this.host.scene, bossRimRequests([this.bossId], kind), () => {
       // 로드 사이에 소등이 끝났으면 바로 내린다
       if (this.pending.has('rim')) return;
       this.rimReady = true;
@@ -153,6 +163,7 @@ export class BossVram {
   summary(): Record<string, unknown> {
     return {
       rimReady: this.rimReady,
+      rimKind: this.rimKind,
       finaleReady: this.finaleReady,
       pending: [...this.pending.keys()],
       peakMb: this.peakMb,

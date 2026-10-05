@@ -24,7 +24,8 @@ import {
   type StatusBurstPayload,
   type StatusChangedPayload,
   type TagSetChangedPayload,
-  type WeaponEvolvedPayload,
+  type GrowthMarkPayload,
+  type WeaponAwakenPayload,
 } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { currentAttackTag } from '../build/attackTags';
@@ -51,6 +52,7 @@ export const BUILD_SFX = {
   bloodPact: s('blood_pact'),
   perfectEvade: s('perfect_evade'),
   awaken: (weapon: string) => s(`awaken_${weapon}`),
+
   markStack: s('mark_stack'),
   boilBurst: s('boil_burst'),
   stillness: s('stillness'),
@@ -287,6 +289,26 @@ const skill =
 const effectIs = (branch: string, effects: string) => (p: BranchEffectPayload) =>
   p.branch === branch && effects.split('|').includes(p.effect);
 
+/**
+ * 61 G 계약 sound §10 무기 성장 소리 (음향 파트 제작 대기 — 매니페스트에 생기면 그때부터 난다. 없으면 각 트리거의 다음 후보:
+ * awaken1 → evolve · awaken2 → awaken_<무기> → evolve · trait_manifest → dual_trait · growth_tick·꼬리는 없으면 무음)
+ */
+export const GROWTH_SFX = {
+  awaken1: s('awaken1'),
+  awaken2: s('awaken2'),
+  awakenTail: (weapon: string) => s(`awaken_tail_${weapon}`),
+  traitManifest: s('trait_manifest'),
+  growthTick: s('growth_tick'),
+} as const;
+
+/** 게이지 반짝 소리 묶음 (300ms 안 여러 번이면 한 번 — sound §10) */
+let growthTickAt = -Infinity;
+function growthTickGate(now = Date.now()): boolean {
+  if (now - growthTickAt < 300) return false;
+  growthTickAt = now;
+  return true;
+}
+
 export const BUILD_AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   // --- 57·58라운드 빌드 축 ---
   t<TagSetChangedPayload>({
@@ -295,7 +317,25 @@ export const BUILD_AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => p.delta > 0 && p.stage % 2 === 0 && p.stage >= 2 && p.prev < p.stage,
     sfx: (p) => BUILD_SFX.setTier(Math.min(BUILD_SFX.tiers, p.stage / 2)),
   }),
-  t({ event: Events.DUAL_TRAIT_GAINED, note: '이중 개성 획득', sfx: BUILD_SFX.dualTrait }),
+  // 61 G (sound §10): 개성 발현 — 메뉴가 열림(개성·단련 눈금) / 고름. 새 소리 trait_manifest, 없으면 옛 dual_trait
+  t<GrowthMarkPayload>({
+    event: Events.GROWTH_MARK,
+    note: '개성 발현 메뉴 열림 → trait_manifest (없으면 dual_trait)',
+    when: (p) => p.kind === 'trait' || p.kind === 'temper',
+    sfx: () => [GROWTH_SFX.traitManifest, BUILD_SFX.dualTrait],
+  }),
+  t({
+    event: Events.TRAIT_GAINED,
+    note: '개성 획득 → trait_manifest (옛 dual_trait_get 대체, 없으면 dual_trait)',
+    sfx: () => [GROWTH_SFX.traitManifest, BUILD_SFX.dualTrait],
+  }),
+  t({
+    event: Events.GROWTH_GAINED,
+    note: '각성 게이지 반짝 → growth_tick (300ms 안 여러 번이면 한 번)',
+    when: () => growthTickGate(),
+    // 음향 제작 대기 id 라 고정 id 표(매니페스트 검사)에 넣지 않는다
+    sfx: () => GROWTH_SFX.growthTick,
+  }),
   t<CurseGainedPayload>({
     event: Events.CURSE_GAINED,
     note: '저주 받음 (피의 계약 칸이면 blood_pact)',
@@ -308,11 +348,18 @@ export const BUILD_AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => p.kind === 'perfectEvade',
     sfx: BUILD_SFX.perfectEvade,
   }),
-  t<WeaponEvolvedPayload>({
-    event: Events.WEAPON_EVOLVED,
-    note: '최종 각성 → awaken_<무기> (없으면 evolve)',
-    when: (p) => p.kind === 'awaken',
-    sfx: (p) => [BUILD_SFX.awaken(p.weapon), 'sfx/evolve'],
+  t<WeaponAwakenPayload>({
+    event: Events.WEAPON_AWAKEN,
+    note: '1차 각성 → awaken1 (옛 evolve 대체, 없으면 evolve) · 2차 각성 → awaken2 (없으면 옛 awaken_<무기> → evolve)',
+    sfx: (p) =>
+      p.stage === 1
+        ? [GROWTH_SFX.awaken1, 'sfx/evolve']
+        : [GROWTH_SFX.awaken2, BUILD_SFX.awaken(p.weapon), 'sfx/evolve'],
+  }),
+  t<WeaponAwakenPayload>({
+    event: Events.WEAPON_AWAKEN,
+    note: '각성 무기 꼬리 → awaken_tail_<무기> (있을 때만, 1차·2차 공통)',
+    sfx: (p) => GROWTH_SFX.awakenTail(p.weapon),
   }),
   t<MarkChangedPayload>({
     event: Events.MARK_CHANGED,

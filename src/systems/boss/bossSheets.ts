@@ -38,18 +38,26 @@ export function bossDeferredRequests(bossIds: readonly string[]): SheetRequest[]
 
 /** 보스 지연 묶음 전부 (전투 뒤 들이켜기 · 림 · 결정타 fx) — 보스 노드를 떠날 때 내린다 */
 export function bossLazyRequests(bossIds: readonly string[]): SheetRequest[] {
-  return [...bossDeferredRequests(bossIds), ...bossRimRequests(bossIds), ...bossFinaleRequests()];
+  return [
+    ...bossDeferredRequests(bossIds),
+    ...bossRimRequests(bossIds),
+    ...bossRimRequests(bossIds, 'lite'),
+    ...bossFinaleRequests(),
+  ];
 }
 
-/** 림라이트 동작 이름 `<동작>_rim` */
-export function rimAction(action: string): string {
-  return `${action}_${BOSS_ART.RIM_SUFFIX}`;
+/** 림 종류: full = `<동작>_rim` · lite = 61 단계 4 가벼운 림 `<동작>_rim_lite` (반 해상도) */
+export type RimKind = 'full' | 'lite';
+
+/** 림라이트 동작 이름 `<동작>_rim` (가벼운 림은 `<동작>_rim_lite`) */
+export function rimAction(action: string, kind: RimKind = 'full'): string {
+  return `${action}_${kind === 'lite' ? BOSS_ART.RIM_LITE_SUFFIX : BOSS_ART.RIM_SUFFIX}`;
 }
 
-/** 지연 묶음: 림라이트 오버레이 (보스 몸 동작마다 `<보스>_<동작>_rim`) */
-export function bossRimRequests(bossIds: readonly string[]): SheetRequest[] {
+/** 지연 묶음: 림라이트 오버레이 (보스 몸 동작마다 `<보스>_<동작>_rim` / `_rim_lite`) */
+export function bossRimRequests(bossIds: readonly string[], kind: RimKind = 'full'): SheetRequest[] {
   return bossIds.flatMap((name) =>
-    BOSS_ART.RIM_ACTIONS.map((a): SheetRequest => ({ category: 'bosses', name, action: rimAction(a) })),
+    BOSS_ART.RIM_ACTIONS.map((a): SheetRequest => ({ category: 'bosses', name, action: rimAction(a, kind) })),
   );
 }
 

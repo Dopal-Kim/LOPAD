@@ -74,7 +74,7 @@ export function startLeap(p: Player, input: InputState, time: number, def: LeapM
     allowDash: true,
     hit: { damageMult: def.hit.damageMult * grudge.damageMult },
     shapeScale: { lengthMult: def.lengthMult * grudge.rangeMult },
-    crack: def.crackRow,
+    ...(def.crackRow ? { crack: def.crackRow } : {}),
     extra: {
       leap: {
         stage: 0,

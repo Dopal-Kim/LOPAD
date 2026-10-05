@@ -83,6 +83,8 @@ import { SENSE_BONUS_MAX, urlParams, type GameInitData } from './game/shared';
 import { AnchorDebug } from './game/AnchorDebug';
 import { runWeaponFor } from './game/runWeapon';
 import { preloadWeaponSheets } from '../systems/sprites/sheetLoader';
+import { growthLookOf } from '../systems/growth/growth';
+import { GrowthFlow } from './game/growth/GrowthFlow';
 import { prepareNodeSheets } from '../systems/sprites/lazySheets';
 import { BuildRuntime } from './game/build/BuildRuntime';
 import { BuildMenus } from './game/build/BuildMenus';
@@ -173,6 +175,8 @@ export class Game extends Phaser.Scene {
   /** 57라운드 빌드 축: 태그 세트·패시브 규칙·이중 개성·갈래 수단·각성·저주 (런 상태는 gameState.build) · 선택 메뉴 */
   build: BuildRuntime;
   buildMenus: BuildMenus;
+  /** 61라운드 단계 4 P12 무기 성장: 각성 게이지·개성 발현·1차/2차 각성·단련 (런 상태는 gameState.weapon) */
+  growth: GrowthFlow;
   /** 60라운드 2차 묶음: 노드 보상·위험·성소·등급·이벤트·숨은 노드·상점 진열·엘리트·소모품·보스 파훼 (런 상태는 gameState.bundle) */
   bundle: BundleRuntime;
   /** 61라운드 보스 등장·처치 연출 · 보스 대사 (scenes/game/BossFlow) */
@@ -203,13 +207,19 @@ export class Game extends Phaser.Scene {
    * 전환 암전 안에서 짧게 '불러오는 중' 을 보이고 로드가 끝나면(create 전) 지운다
    */
   preload(): void {
-    // 60라운드: 같은 런의 각성 런이면 각성 외형 오버레이도 (새 런은 아님 — 이어하기는 create 에서 BuildRuntime 이)
-    const awaken = this.initData.mode !== 'new' && gameState.build.awakened;
+    // 61 G: 같은 런의 다음 노드면 지금 경로의 갈래 그림·각성 외형도 (새 런은 기본만 — 이어하기는 create 에서 AwakenFlow 가 지연 로드)
+    const weaponId = runWeaponFor(this.initData, this.lab, this.saveSlot);
+    const same = this.initData.mode !== 'new' && gameState.weapon.id === weaponId;
+    const look = same ? growthLookOf(gameState.weapon) : null;
     // 61라운드 단계 2 첫 로딩 줄이기: 보스 몸·보스방 시트는 보스 노드에 들어갈 때 (`?boss` 바로 가기 포함).
     // 61 E VRAM: 보스 노드에서는 일반 적 시트를 내리고, 다른 노드에서는 보스 묶음을 내린다 (lazySheets)
     const toBoss = !this.lab && (Boolean(this.initData.bossJump) || gameState.route?.current?.kind === 'boss');
     const boss = prepareNodeSheets(this, toBoss, toBoss ? gameState.stage.boss : null);
-    const weapon = preloadWeaponSheets(this, runWeaponFor(this.initData, this.lab, this.saveSlot), awaken, this.lab);
+    const weapon = preloadWeaponSheets(this, weaponId, {
+      lab: this.lab,
+      path: same ? [...gameState.weapon.path] : [],
+      growth: look ? { branch: look.branch, stage: look.stage, legacy: look.legacy } : null,
+    });
     if (!boss && !weapon) return;
     const at = screenFixed(this.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2);
     const label = this.add
@@ -256,6 +266,7 @@ export class Game extends Phaser.Scene {
     this.route = new RouteFlow(this);
     // 57라운드 빌드 축 (bindEvents 보다 먼저 — 공격 페이로드의 갈래 한 타 변화를 판정보다 먼저 건다)
     this.buildMenus = new BuildMenus(this);
+    this.growth = new GrowthFlow(this);
     this.build = new BuildRuntime(this);
     this.player.buildHooks = this.build.defense;
 
@@ -417,7 +428,7 @@ export class Game extends Phaser.Scene {
         addGold: (n) => this.economy.addGold(n),
         spendGold: (n) => this.economy.spendGold(n),
         spawnPickup: (x, y, kind, value) => this.economy.spawnPickup(x, y, kind, value),
-        gainPersonality: (n) => this.progress.gainPersonality(n),
+        gainGrowth: (n) => this.progress.gainGrowth(n),
         heal: (n) => this.player.heal(n),
         hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, o),
         onKill: (m, kind) => this.progress.onKill(m, kind),
@@ -488,11 +499,12 @@ export class Game extends Phaser.Scene {
       [Events.BOSS_WALL_HIT, c.onBossWallHit, c],
       [Events.PLAYER_HEALED, ui.relayHealed, ui],
       [Events.GOLD_CHANGED, ui.relayGold, ui],
-      [Events.WEAPON_EVOLVED, ui.relayEvolved, ui],
       [Events.BOSS_STARTED, ui.relayBossStarted, ui],
       [Events.BOSS_PHASE, ui.relayBossPhase, ui],
       [Events.BOSS_DIED, ui.relayBossDied, ui],
       [Events.BOSS_BREAK, ui.relayBossBreak, ui],
+      [Events.BOSS_ACTION, ui.relayBossAction, ui],
+      [Events.BOSS_FIGHT, ui.relayBossFight, ui],
       [Events.PLAYER_GUARD_RELEASED, m.onGuardReleased, m],
       [Events.PLAYER_SHADOW_STEP, m.onShadowStep, m],
       [Events.PLAYER_DASHED, m.onPlayerDashed, m],
@@ -546,8 +558,8 @@ export class Game extends Phaser.Scene {
 
     // 61라운드 보스 등장·처치 연출 시간표 (실시간 — 히트스톱·정지 중에도)
     this.bossFlow?.update(time, delta);
-    // 개성 임계 도달 → 다른 메뉴(보스 보상 등)가 닫힌 뒤 3지선다 (게임 정지)
-    this.progress.maybeOpenEvolveMenu();
+    // 61 G: 각성 게이지 눈금 → 다른 메뉴(보스 보상 등)·각성 정지가 끝난 뒤 그 눈금 메뉴 (게임 정지)
+    this.growth.maybeOpen();
     if (this.frozen) {
       this.inputSystem.read(); // 큐 비우기
       this.motion.stopLoops();
@@ -638,7 +650,7 @@ export class Game extends Phaser.Scene {
     const s = gameState;
     const boss = s.bossMaxHp > 0 ? `  boss ${s.bossHp}/${s.bossMaxHp} p${s.bossPhase}` : '';
     this.debugText.setText(
-      `[DEBUG] ${s.stage.name} save ${s.savesLeft}  P[${s.passives.summary() || '-'}]  HP ${s.hp}/${s.maxHp}  G ${s.gold}  potion ${s.potions}  pts ${s.pointsPending}  atk ${s.attack} def ${s.defense} crit ${s.crit}%  ${this.player.action}  sense ${s.senses.sense}  ${s.weapon.displayName} ${s.weapon.personality}/${s.weapon.threshold}  room ${s.roomId || '-'}  trials ${s.trialsCleared}/${s.trialsTotal}${s.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${s.seed}`,
+      `[DEBUG] ${s.stage.name} save ${s.savesLeft}  P[${s.passives.summary() || '-'}]  HP ${s.hp}/${s.maxHp}  G ${s.gold}  potion ${s.potions}  pts ${s.pointsPending}  atk ${s.attack} def ${s.defense} crit ${s.crit}%  ${this.player.action}  sense ${s.senses.sense}  ${s.weapon.displayName} G${s.weapon.gauge}  room ${s.roomId || '-'}  trials ${s.trialsCleared}/${s.trialsTotal}${s.bossUnlocked ? ' (boss open)' : ''}${boss}  seed ${s.seed}`,
     );
   }
 
@@ -694,6 +706,7 @@ export class Game extends Phaser.Scene {
     if ((this.frozen || this.hitStopped) && this.physics.world) this.physics.world.resume();
     this.numbers.destroy();
     this.build.destroy();
+    this.growth.destroy();
     this.feedback.destroy();
     this.strikes.brands.destroy();
     this.strikes.moves.destroy();

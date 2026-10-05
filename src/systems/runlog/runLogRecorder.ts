@@ -17,8 +17,9 @@ import {
   type PlayerDamagedPayload,
   type RunEndedPayload,
   type RunStartedPayload,
-  type WeaponEvolvedPayload,
-  type WeaponReinforcedPayload,
+  type TraitGainedPayload,
+  type WeaponAwakenPayload,
+  type WeaponTemperedPayload,
 } from '../../core/EventBus';
 import { UI_EVENTS, uiBus } from '../../contract/ui';
 import { metaStore } from '../meta';
@@ -61,16 +62,22 @@ export class RunLogRecorder {
     on<PlayerDamagedPayload>(Events.PLAYER_DAMAGED, (p) => this.log?.hit(p.amount, p.hp, p.maxHp));
     on(Events.PLAYER_DIED, () => this.log?.died(this.now()));
     on<MenuEventPayload>(Events.MENU_OPENED, (p) => this.log?.menu(p.id, Boolean(p.reopen)));
-    on<WeaponEvolvedPayload>(Events.WEAPON_EVOLVED, (p) =>
-      this.log?.choice(p.kind === 'awaken' ? 'awaken' : 'branch', p.name, p.stage, this.now()),
+    // 61 G 무기 성장: 1차·2차 각성 (갈래·길 id) · 개성 · 단련
+    on<WeaponAwakenPayload>(Events.WEAPON_AWAKEN, (p) =>
+      this.log?.choice(
+        p.stage === 1 ? 'awaken1' : 'awaken2',
+        p.stage === 1 ? p.branch : (p.path ?? ''),
+        p.name,
+        this.now(),
+      ),
     );
-    on<WeaponReinforcedPayload>(Events.WEAPON_REINFORCED, (p) =>
-      this.log?.choice('reinforce', p.name, p.reinforce, this.now()),
+    on<WeaponTemperedPayload>(Events.WEAPON_TEMPERED, (p) =>
+      this.log?.choice('temper', p.weapon, p.temper, this.now()),
     );
+    on<TraitGainedPayload>(Events.TRAIT_GAINED, (p) => this.log?.choice('trait', p.id, p.verb, this.now()));
     on<{ id: string; level: number }>(Events.PASSIVE_GAINED, (p) =>
       this.log?.choice('passive', p.id, p.level, this.now()),
     );
-    on<{ id: string }>(Events.DUAL_TRAIT_GAINED, (p) => this.log?.choice('dualTrait', p.id, undefined, this.now()));
     on<CurseGainedPayload>(Events.CURSE_GAINED, (p) => this.log?.choice('curse', p.id, p.source, this.now()));
     on<{ id: string }>(Events.STAT_REWARD, (p) => this.log?.choice('stat', p.id, undefined, this.now()));
     on<RunEndedPayload>(Events.RUN_ENDED, (p) => this.finish(p.cleared ? 'clear' : 'death'));

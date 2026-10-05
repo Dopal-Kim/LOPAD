@@ -9,7 +9,8 @@
 import { BUILD_ART, ENEMY_HAZARD } from '../../core/Constants';
 import { ENEMIES, WEAPONS } from '../../data';
 import { bossIdsInScope } from '../../data/scope';
-import { AWAKENINGS, BUILD, maxTierOn } from '../../data/build';
+import { BUILD } from '../../data/build';
+import { GROWTH } from '../../data/growth';
 import { onFloor } from '../../data/floorScope';
 import { loadFloorCount } from '../../data/scope';
 import type { WeaponTable } from '../../data/types';
@@ -30,34 +31,31 @@ import { sheetId, wantedSheets, type SheetRequest } from './sheetPaths';
 import { FX_ACTION } from './spriteActions';
 
 /**
+ * 갈래 그림 범위 (61 G P12 — VRAM): 'all' = 갈래 3·길 6 전부(시험장·회귀 테스트) · 노드 id 목록 = 그 노드 것만
+ * (런: 지금 경로 — 1차·2차 각성 때 고른 갈래·길만 지연 로드, `sheetLoader.loadGrowthSheets`)
+ */
+export type BranchScope = 'all' | readonly string[];
+
+/**
  * 무기 표에서 유도하는 이펙트 시트 id (연격·활 1단 화살·갈래 수단 그림 + 공용 고정 목록 — 빈 표면 공용만).
  * 60라운드 (57 Q42): 옛 진화 이펙트(갈래 id 시트·근접 1단 갈래 연격 시트·2단 전용 시트)는 로드하지 않는다
  */
-function fxIdsFor(weapons: WeaponTable, tier2 = true): string[] {
+function fxIdsFor(weapons: WeaponTable, scope: BranchScope = 'all'): string[] {
   return [
     ...allFxSheetIds(weapons),
     ...branchFxSheetIds(weapons),
-    ...Object.entries(weapons).flatMap(([id, w]) => [
-      ...branchMoveArt(w, tier2).fx,
-      ...(AWAKENINGS[id]?.art?.fx ?? []),
-    ]),
+    ...Object.values(weapons).flatMap((w) => branchMoveArt(w, scope).fx),
   ];
 }
 
-/**
- * 61라운드 E (VRAM): 런에서 2단 갈래를 열 수 있는 층이 로드 범위에 있는지 (build.json evolve.maxTierByFloor — 1층판은 1단까지).
- * 없으면 런 무기 묶음에서 2단 갈래 그림을 뺀다 (시험장은 전부)
- */
-export function runAllowsTier2(): boolean {
-  return Array.from({ length: loadFloorCount() }, (_, i) => maxTierOn(i + 1)).some((t) => t >= 2);
-}
-
-/** 57라운드 갈래 수단 그림 (1단 노드 `art` — tier2 면 2단 노드 것도): 몸·무기 동작 이름 · 이펙트 id */
-export function branchMoveArt(w: WeaponTable[string], tier2 = true): { body: string[]; fx: string[] } {
+/** 57라운드 갈래 수단 그림 (갈래·길 노드 `art` — scope 안 노드만): 몸·무기 동작 이름 · 이펙트 id */
+export function branchMoveArt(w: WeaponTable[string], scope: BranchScope = 'all'): { body: string[]; fx: string[] } {
   const body: string[] = [];
   const fx: string[] = [];
+  const inScope = (id: string) => scope === 'all' || scope.includes(id);
   for (const a of w.personality.branches)
-    for (const n of [a, ...(tier2 ? (a.next ?? []) : [])]) {
+    for (const n of [a, ...(a.next ?? [])]) {
+      if (!inScope(n.id)) continue;
       for (const b of n.art?.body ?? []) if (!body.includes(b)) body.push(b);
       for (const f of n.art?.fx ?? []) if (!fx.includes(f)) fx.push(f);
     }
@@ -75,16 +73,16 @@ function requestsFor(
   weapons: WeaponTable,
   extraFx: string[],
   structures: string[],
-  tier2 = true,
+  scope: BranchScope = 'all',
 ) {
   return wantedSheets(
     enemyIds,
     bossIds,
     Object.keys(weapons),
-    [...fxIdsFor(weapons, tier2), ...extraFx],
+    [...fxIdsFor(weapons, scope), ...extraFx],
     structures,
     Object.fromEntries(
-      Object.entries(weapons).map(([id, w]) => [id, [...comboArtNames(w.combo).body, ...branchMoveArt(w, tier2).body]]),
+      Object.entries(weapons).map(([id, w]) => [id, [...comboArtNames(w.combo).body, ...branchMoveArt(w, scope).body]]),
     ),
     Object.fromEntries(
       Object.entries(weapons).flatMap(([id, w]) => {
@@ -165,13 +163,19 @@ export function bossSheetRequests(): SheetRequest[] {
 
 /**
  * 무기 묶음: 그 무기만 쓰는 시트 (부팅 묶음에 있는 것은 뺀다). 모르는 무기면 빈 목록.
- * tier2 = false 면 2단 갈래 그림을 뺀다 (61 E — 1층 런, `runAllowsTier2`)
+ * scope = 갈래 그림 범위 (61 G: 런은 지금 경로 노드만, 시험장 'all')
  */
-export function weaponSheetRequests(weaponId: string, tier2 = true): SheetRequest[] {
+export function weaponSheetRequests(weaponId: string, scope: BranchScope = 'all'): SheetRequest[] {
   if (!WEAPONS[weaponId]) return [];
   bootKeys ??= new Set(bootSheetRequests().map(requestKey));
   const boot = bootKeys;
-  return dedupe(requestsFor([], [], pick([weaponId]), [], [], tier2)).filter((r) => !boot.has(requestKey(r)));
+  return dedupe(requestsFor([], [], pick([weaponId]), [], [], scope)).filter((r) => !boot.has(requestKey(r)));
+}
+
+/** 61 G: 갈래·길 노드 그림만 (그 경로를 고른 순간 지연 로드 — 기본 묶음에 없는 것) */
+export function branchSheetRequests(weaponId: string, nodeIds: readonly string[]): SheetRequest[] {
+  const base = new Set(weaponSheetRequests(weaponId, []).map(requestKey));
+  return weaponSheetRequests(weaponId, nodeIds).filter((r) => !base.has(requestKey(r)));
 }
 
 /** 각성 오버레이 접미 (계약 art §21 `<무기 시트>_awaken`) */
@@ -225,12 +229,13 @@ export function fxSwapTable(
  * `<동작>_awaken` + 각성 순간 fx `<무기>_awaken_in` + 각성 전용 궤적 `<fx>_awaken`(`awakenFxAliases`).
  * 각성 런에서만 로드 (`sheetLoader.preloadWeaponSheets(…, awaken)`·`loadAwakenSheets`). 없는 파일은 매니페스트가 거른다
  */
-export function awakenSheetRequests(weaponId: string): SheetRequest[] {
+export function awakenSheetRequests(weaponId: string, scope: BranchScope = 'all'): SheetRequest[] {
   if (!WEAPONS[weaponId]) return [];
-  const gauge = /_(?:ki|grudge)\d$/;
-  const overlays = weaponSheetRequests(weaponId)
-    .filter((r) => r.category === 'weapons' && r.name === weaponId && !gauge.test(r.action))
-    .map((r) => ({ ...r, action: `${r.action}_${AWAKEN_OVERLAY_SUFFIX}` }));
+  const overlays = weaponOverlayActions(weaponId, scope).map((action): SheetRequest => ({
+    category: 'weapons',
+    name: weaponId,
+    action: `${action}_${AWAKEN_OVERLAY_SUFFIX}`,
+  }));
   const fx = [awakenInFxId(weaponId), ...Object.values(awakenFxAliases(weaponId))].map((name): SheetRequest => ({
     category: 'fx',
     name,
@@ -243,6 +248,7 @@ export function awakenSheetRequests(weaponId: string): SheetRequest[] {
 export function allSheetRequests(): SheetRequest[] {
   return dedupe([
     ...bossRimRequests(bossIdsInScope()),
+    ...bossRimRequests(bossIdsInScope(), 'lite'),
     ...bossFinaleRequests(),
     ...requestsFor(Object.keys(ENEMIES), bossIdsInScope(), WEAPONS, bossFxSheets(), [
       ...allStructureSprites(),
@@ -251,4 +257,51 @@ export function allSheetRequests(): SheetRequest[] {
     ]),
     ...bundleSheetRequests(),
   ]);
+}
+
+/** 무기 오버레이를 겹칠 무기 동작 (휴대·연격·새 동작 — 자원 단계 오버레이 제외), 갈래 그림 범위 안 */
+export function weaponOverlayActions(weaponId: string, scope: BranchScope = 'all'): string[] {
+  const gauge = /_(?:ki|grudge)\d$/;
+  return weaponSheetRequests(weaponId, scope)
+    .filter((r) => r.category === 'weapons' && r.name === weaponId && !gauge.test(r.action))
+    .map((r) => r.action);
+}
+
+/**
+ * 61 G 계약 art §26 무기 1차·2차 각성 외형 오버레이 동작 이름 (시트 이름 = `<무기>_<동작>` →
+ * 파일 `weapons/v4/<무기>_<갈래>_a<단>[_glow]_<무기 동작>.json`). 1차 = 무기 위 새 모양, 2차 = 그 위에 덧붙임 (glow = 길 강조색 마스크)
+ */
+export function growthOverlayAction(branch: string, stage: 1 | 2, action: string, glow = false): string {
+  return `${branch}_a${stage}${glow ? '_glow' : ''}_${action}`;
+}
+
+/** 61 G 각성 연출 fx (계약 art §26 `fx/v4/awaken1_crack`·`awaken2_bloom`) */
+export function growthFxId(stage: 1 | 2): string {
+  return GROWTH.awaken.fx[stage === 1 ? '1' : '2'];
+}
+
+/**
+ * 61 G 각성 외형 묶음 (고른 갈래만 — 지연 로드): 1차 a1 (+ 2차면 a2·a2_glow) 오버레이 + 각성 연출 fx. 없는 파일은 매니페스트가 거른다
+ */
+export function growthSheetRequests(
+  weaponId: string,
+  branch: string,
+  stage: 1 | 2,
+  scope: BranchScope,
+): SheetRequest[] {
+  if (!WEAPONS[weaponId]) return [];
+  const acts = weaponOverlayActions(weaponId, scope);
+  const out: SheetRequest[] = acts.map((a) => ({
+    category: 'weapons',
+    name: weaponId,
+    action: growthOverlayAction(branch, 1, a),
+  }));
+  if (stage >= 2)
+    for (const a of acts)
+      out.push(
+        { category: 'weapons', name: weaponId, action: growthOverlayAction(branch, 2, a) },
+        { category: 'weapons', name: weaponId, action: growthOverlayAction(branch, 2, a, true) },
+      );
+  out.push({ category: 'fx', name: growthFxId(stage), action: FX_ACTION });
+  return dedupe(out);
 }

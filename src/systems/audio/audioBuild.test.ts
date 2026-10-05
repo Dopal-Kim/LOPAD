@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { EventEmitter } from 'node:events';
 import { AUDIO_TRIGGERS, SFX } from './audioMap';
-import { BUILD_SFX, PASSIVE_SFX, katanaThrustSfx, nextRapidVariant } from './audioBuild';
+import { GROWTH_SFX, BUILD_SFX, PASSIVE_SFX, katanaThrustSfx, nextRapidVariant } from './audioBuild';
 import { Events } from '../../core/EventBus';
 import { withAttackTag } from '../build/attackTags';
 
@@ -22,11 +22,18 @@ describe('60라운드 효과음 연결 (audioBuild)', () => {
     expect(ids(Events.POTION_USED, { potions: 1 })).toEqual([]);
   });
 
-  it('각성은 awaken_<무기> (evolve 대신), 일반 개성 변화는 evolve', () => {
-    expect(ids(Events.WEAPON_EVOLVED, { weapon: 'bow', kind: 'awaken' })).toEqual([
-      [BUILD_SFX.awaken('bow'), 'sfx/evolve'],
+  it('61 G 각성: 1차 = awaken1 (없으면 evolve) · 2차 = awaken2 → awaken_<무기> → evolve · 무기 꼬리 · 개성 = trait_manifest', () => {
+    expect(ids(Events.WEAPON_AWAKEN, { stage: 1, weapon: 'bow', branch: 'meteor', name: '유성' })).toEqual([
+      [GROWTH_SFX.awaken1, SFX.evolve],
+      GROWTH_SFX.awakenTail('bow'),
     ]);
-    expect(ids(Events.WEAPON_EVOLVED, { weapon: 'bow', kind: 'branch' })).toEqual([SFX.evolve]);
+    expect(
+      ids(Events.WEAPON_AWAKEN, { stage: 2, weapon: 'bow', branch: 'meteor', path: 'comet', name: '혜성' }),
+    ).toEqual([[GROWTH_SFX.awaken2, BUILD_SFX.awaken('bow'), SFX.evolve], GROWTH_SFX.awakenTail('bow')]);
+    expect(ids(Events.TRAIT_GAINED, { weapon: 'bow', id: 'b_ricochet', verb: 'attack', tag: 'chain' })).toEqual([
+      [GROWTH_SFX.traitManifest, BUILD_SFX.dualTrait],
+    ]);
+    expect(ids(Events.GROWTH_MARK, { weapon: 'bow', kind: 'awaken1', at: 90, index: 1 })).toEqual([]);
   });
 
   it('세트 2·4·6 단 · 저주(피의 계약) · 엘리트 사망 · 상점 그룹 · 이벤트 메뉴', () => {

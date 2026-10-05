@@ -8,16 +8,30 @@ import { BOSS_ART, BOSS_FX, DEPTH, QUARTER, RENDER, TILE, entityDepth } from '..
 import type { BossArenaParams } from '../../data/types';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 import { spriteLibrary } from '../sprites/sprites';
-import { FX_ACTION, STRUCTURE_ACTION, artScale, frameDurations, structureStateFrames } from '../sprites/spriteDefs';
+import {
+  FX_ACTION,
+  STRUCTURE_ACTION,
+  artScale,
+  frameDurations,
+  structureStateFrames,
+  type SheetJson,
+} from '../sprites/spriteDefs';
 import type { TileSkin } from '../../world/tileskin';
 
-/** 61 E: out = 보스 처치 때 꺼짐 (서 있음 · 광원 없음 — 서 있는 꺼진 그림이 없어 lit 그림을 어둡게) */
+/** 61 E: out = 보스 처치 때 꺼짐 (서 있음 · 광원 없음 — 61 단계 4: 아트 unlit_standing, 시트에 없으면 lit 그림을 어둡게) */
 export type CandleState = 'lit' | 'fallen' | 'relit' | 'out';
 
 /** 상태 → 시트 상태 이름 (계약 §15) */
-const SHEET_STATE: Record<CandleState, string> = { lit: 'lit', fallen: 'fallen_unlit', relit: 'relit', out: 'lit' };
-/** 꺼진(out) 촛대 그림 곱 틴트 */
+const SHEET_STATE: Record<CandleState, string> = {
+  lit: 'lit',
+  fallen: 'fallen_unlit',
+  relit: 'relit',
+  out: 'unlit_standing',
+};
+/** 서 있는 꺼진 그림(unlit_standing)이 없는 시트의 out: lit 그림 + 곱 틴트 */
 const OUT_TINT = 0x5a5048;
+/** 61 단계 4: 꺼진(out) 촛대를 다시 켤 때 광원 페이드 ms (아트: 켜는 순간은 lit 0 프레임 + 광원 페이드) */
+const RELIGHT_FADE_MS = 400;
 
 export interface Candle {
   readonly id: number;
@@ -40,6 +54,12 @@ export interface Candle {
 
 /** 전환 상태 (아트 boss1_candelabra: fall · relight) */
 const TRANSITION: Partial<Record<CandleState, string>> = { fallen: 'fall', relit: 'relight' };
+
+/** 상태의 정지 프레임 (JSON stateHold — 없으면 그 상태 첫 프레임) */
+function holdFrame(def: SheetJson, state: string): number {
+  const hold = (def as { stateHold?: Record<string, number> }).stateHold?.[state];
+  return typeof hold === 'number' ? hold : (structureStateFrames(def, state)[0] ?? 0);
+}
 
 export class CandleSet {
   readonly list: Candle[] = [];
@@ -145,6 +165,12 @@ export class CandleSet {
             ? this.P.emberLight
             : null;
     c.light = L ? reg.add(L, { x: c.x, y: c.y }) : null;
+    // 61 단계 4: 꺼진 촛대를 다시 켜면 광원이 서서히
+    if (c.light && prev === 'out') {
+      const full = c.light.intensity;
+      c.light.intensity = 0;
+      this.scene.tweens.add({ targets: c.light, intensity: full, duration: RELIGHT_FADE_MS });
+    }
   }
 
   private draw(c: Candle, prev?: CandleState): Candle['view'] {
@@ -154,8 +180,11 @@ export class CandleSet {
     if (this.sheet) {
       const def = spriteLibrary.sheet(this.sheet, STRUCTURE_ACTION)!;
       const tex = spriteLibrary.textureKey(this.sheet, STRUCTURE_ACTION)!;
-      const final = structureStateFrames(def, SHEET_STATE[c.state])[0] ?? 0;
-      const tr = TRANSITION[c.state];
+      // 61 단계 4: 서 있는 꺼진 그림(unlit_standing 10~13: 잔불·연기 → 13 유지)이 있으면 그것, 없으면 lit + 틴트
+      const unlit = c.state === 'out' && Boolean(def.states?.[SHEET_STATE.out]);
+      const sheetState = c.state === 'out' && !unlit ? 'lit' : SHEET_STATE[c.state];
+      const final = holdFrame(def, sheetState);
+      const tr = unlit ? SHEET_STATE.out : TRANSITION[c.state];
       const trFrames = tr && prev && def.states?.[tr] ? structureStateFrames(def, tr) : [];
       const durs = frameDurations(def);
       c.anim =
@@ -174,7 +203,7 @@ export class CandleSet {
         .setScale(artScale(def))
         .setFlipX(c.x < this.centerX)
         .setDepth(depth);
-      if (c.state === 'out') spr.setTint(OUT_TINT);
+      if (c.state === 'out' && !unlit) spr.setTint(OUT_TINT);
       return spr;
     }
     // 2) 지역 소품 시트의 서 있는 촛대 (쓰러지면 눕힌다)
@@ -237,10 +266,25 @@ export class CandleSet {
     const def = this.sheet ? spriteLibrary.sheet(this.sheet, STRUCTURE_ACTION) : undefined;
     const off = (def?.light as { offset?: { x: number; y: number } } | undefined)?.offset;
     if (!def || !off) return { x: c.x, y: c.y - TILE };
+    return this.sheetPoint(c, def, off);
+  }
+
+  /**
+   * 61 단계 4: 서 있는 촛대 초 심지들 (아트 wickAnchors.standing — 끌 때 boss1_flame_snuff 자리). 없으면 불꽃 자리 하나
+   */
+  wickPoints(c: Candle): { x: number; y: number }[] {
+    const def = this.sheet ? spriteLibrary.sheet(this.sheet, STRUCTURE_ACTION) : undefined;
+    const wicks = (def as { wickAnchors?: { standing?: { x: number; y: number }[] } } | undefined)?.wickAnchors
+      ?.standing;
+    if (!def || !wicks || wicks.length === 0) return [this.flamePoint(c)];
+    return wicks.map((w) => this.sheetPoint(c, def, w));
+  }
+
+  /** 시트 도트 좌표 → 월드 (flipX 는 틀 안에서 뒤집힌다 — 도트 x → 틀 폭 − x) */
+  private sheetPoint(c: Candle, def: SheetJson, p: { x: number; y: number }): { x: number; y: number } {
     const k = artScale(def);
-    // flipX 는 틀 안에서 뒤집힌다 (원점 비율 그대로) — 도트 x → 틀 폭 − x
-    const dx = c.x < this.centerX ? def.frameWidth - off.x : off.x;
-    return { x: c.x + (dx - def.pivot.x) * k, y: c.y + (off.y - def.pivot.y) * k };
+    const dx = c.x < this.centerX ? def.frameWidth - p.x : p.x;
+    return { x: c.x + (dx - def.pivot.x) * k, y: c.y + (p.y - def.pivot.y) * k };
   }
 
   /** 점에서 가장 가까운 쓰러진 촛대 (rangePx 안) */

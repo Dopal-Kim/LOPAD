@@ -125,6 +125,8 @@ export class IssenStrikes {
   private dashEnd(run: IssenRun): void {
     this.measure(run);
     this.debugLast = { ...this.debugLast, travel: Math.round(run.travel * 10) / 10 };
+    // 61 G 개성 '물러서며 베기' · 만월 길 '삭월'
+    if (run.start) this.g.build?.traits.onIssenEnd(run.start, run.dir, run.travel);
   }
 
   /** 출발점에서 지금 몸까지 돌진 축 위 거리 (뒤로는 0) */

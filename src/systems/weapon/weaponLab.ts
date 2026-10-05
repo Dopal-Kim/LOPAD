@@ -1,7 +1,7 @@
 /**
  * 49라운드 계약 §11.4 무기 시험장 메뉴 (Phaser 의존 없음).
- * `lab` = 무기 4종 고르기 (+ 개성 갈래로 · 닫기), `labBranch` = 개성 진화 갈래 트리에서 아무 단계나 즉시 적용
- * (기본 · 1차 2개 · 2차 4개 · 강화 +1 순환 · 무기 바꾸기 · 닫기). 선택지 key 는 숫자 문자, 그만두기 = '0'.
+ * `lab` = 무기 4종 고르기 (+ 각성 갈래로 · 닫기), `labBranch` = 61 G 무기 성장 시험 (갈래 3·길 6 아무 단계나 즉시 · 각성 게이지 자유 조작 ·
+ * 패시브·저주 시험 · 무기 바꾸기 · 닫기). 그만두기 = '0'.
  */
 import type { WeaponDef, WeaponTable } from '../../data/types';
 import type { UiMenuLine, UiTagId } from '../../contract/ui';
@@ -11,30 +11,35 @@ import { verbsLine, weaponVerbs } from './verbs';
 export const LAB_CANCEL_KEY = '0';
 /** lab 메뉴: 개성 갈래 메뉴로 */
 export const LAB_TO_BRANCH_KEY = '9';
-/** labBranch 메뉴: 강화 +1 · 무기 바꾸기 */
-export const LAB_REINFORCE_KEY = '8';
+/** labBranch 메뉴: 무기 바꾸기 */
 export const LAB_TO_WEAPONS_KEY = '9';
-/** 57라운드 빌드 축 시험: 최종 각성 켜기·끄기 · 패시브 3지선다 열기 · 저주 2택 열기 (숫자 키가 다 차서 글자 키) */
-export const LAB_AWAKEN_KEY = 'a';
+/** 61 G (P12): 각성 게이지 +30 · 다음 눈금까지 · 처음으로 · 패시브 3지선다 · 저주 2택 (숫자 키가 다 차서 글자 키) */
+export const LAB_GAUGE_KEY = 'g';
+export const LAB_NEXT_MARK_KEY = 'n';
+export const LAB_RESET_KEY = 'r';
 export const LAB_PASSIVE_KEY = 'p';
 export const LAB_CURSE_KEY = 'c';
+/** 시험장 게이지 한 번에 더하는 양 */
+export const LAB_GAUGE_STEP = 30;
 
 export type LabBranchAction =
   | { kind: 'path'; path: string[] }
-  | { kind: 'reinforce' }
+  | { kind: 'gauge' }
+  | { kind: 'nextMark' }
+  | { kind: 'reset' }
   | { kind: 'weapons' }
   | { kind: 'close' }
-  | { kind: 'awaken' }
   | { kind: 'passive' }
   | { kind: 'curse' };
 
-/** 57라운드 labBranch 빌드 시험 줄 (각성 이름·현재 상태) */
-export interface LabBuildInfo {
-  awakenName: string | null;
-  awakened: boolean;
-  /** 각성은 2단이 있어야 (57 Q33) */
-  tier2: boolean;
+/** 61 G labBranch 성장 줄 (게이지·다음 눈금·저주 상태) */
+export interface LabGrowthInfo {
+  gauge: number;
+  /** 다음 눈금 (값·종류 이름) */
+  next: { at: number; name: string } | null;
   curseActive: boolean;
+  /** 갈래·길 화면 이름 (노드 id → 이름·한 줄) */
+  names?: Record<string, { name: string; line: string }>;
 }
 
 export interface LabWeaponChoice {
@@ -60,7 +65,7 @@ export function labWeaponMenu(
       detail: `${verbsLine(weaponVerbs(id, w, []))} · ${resourceLabel(w)}`,
     });
   });
-  lines.push({ key: LAB_TO_BRANCH_KEY, label: '개성 갈래 고르기', enabled: true });
+  lines.push({ key: LAB_TO_BRANCH_KEY, label: '각성 갈래 · 게이지', enabled: true });
   lines.push({ key: LAB_CANCEL_KEY, label: '닫기', enabled: true });
   return { lines, choices };
 }
@@ -75,53 +80,54 @@ function resourceLabel(w: WeaponDef): string {
 }
 
 /**
- * 개성 갈래 메뉴 줄: '1' 기본(갈래 없음) · 1차 A · 2차 A1 · 2차 A2 · 1차 B · 2차 B1 · 2차 B2 (트리 순서, key '2'..'7',
- * 라벨 앞 깊이 표기 '└ ' / '  └ ') ·
- * '8' 강화 +1 (최대면 0 으로) · '9' 무기 바꾸기 · '0' 닫기. 현재 경로는 label 에 표시
+ * 61 G 시험장 성장 메뉴 줄: 경로 (기본 · 1차 갈래 3 · 각 갈래의 2차 길 2 — 트리 순서, key 'b0'.., 라벨 앞 깊이 표기 '└ ' / '  └ ') ·
+ * 'g' 각성 게이지 +30 · 'n' 다음 눈금까지 · 'r' 처음으로 · 'p' 패시브 3지선다 · 'c' 저주 2택 · '9' 무기 바꾸기 · '0' 닫기.
+ * 현재 경로는 label 에 '(지금)'
  */
 export function labBranchMenu(
   def: WeaponDef,
   currentPath: readonly string[],
-  reinforce: number,
-  reinforceMax: number,
-  build: LabBuildInfo | null = null,
+  info: LabGrowthInfo | null = null,
 ): { lines: UiMenuLine[]; actions: Map<string, LabBranchAction> } {
   const lines: UiMenuLine[] = [];
   const actions = new Map<string, LabBranchAction>();
   const cur = currentPath.join('/');
-  let n = 1;
+  let n = 0;
   const add = (label: string, path: string[], detail?: string, tags?: readonly UiTagId[]) => {
-    const key = String(n++);
+    const key = `b${n++}`;
     actions.set(key, { kind: 'path', path });
     lines.push({
       key,
       label: path.join('/') === cur ? `${label} (지금)` : label,
       enabled: true,
       detail,
-      // 57라운드 계약 §14.4: 갈래 노드 태그
       ...(tags?.length ? { tags: [...tags] } : {}),
     });
   };
-  add('기본 (갈래 없음)', []);
+  const nm = (id: string, fallback: string) => info?.names?.[id]?.name ?? fallback;
+  const ln = (id: string, fallback: string) => info?.names?.[id]?.line ?? fallback;
+  add('기본 (각성 전)', []);
   for (const b of def.personality.branches) {
-    add(`${treePrefix(1)}${b.name}`, [b.id], b.description, b.tags);
-    for (const c of b.next ?? []) add(`${treePrefix(2)}${c.name}`, [b.id, c.id], c.description, c.tags);
+    add(`${treePrefix(1)}${nm(b.id, b.name)}`, [b.id], ln(b.id, b.description), b.tags);
+    for (const c of b.next ?? [])
+      add(`${treePrefix(2)}${nm(c.id, c.name)}`, [b.id, c.id], ln(c.id, c.description), c.tags);
   }
-  actions.set(LAB_REINFORCE_KEY, { kind: 'reinforce' });
-  lines.push({
-    key: LAB_REINFORCE_KEY,
-    label: `강화 +1 (지금 ${reinforce}/${reinforceMax}${reinforce >= reinforceMax ? ' → 0' : ''})`,
-    enabled: true,
-  });
-  if (build) {
-    actions.set(LAB_AWAKEN_KEY, { kind: 'awaken' });
+  if (info) {
+    actions.set(LAB_GAUGE_KEY, { kind: 'gauge' });
     lines.push({
-      key: LAB_AWAKEN_KEY,
-      kind: 'awaken',
-      label: `최종 각성${build.awakenName ? ` — ${build.awakenName}` : ''} (${build.awakened ? '켜짐 → 끔' : '꺼짐 → 켬'})`,
-      enabled: build.tier2 || build.awakened,
-      detail: build.tier2 || build.awakened ? '시험장: 층·태그 조건 없이' : '2단 갈래를 먼저 고른다',
+      key: LAB_GAUGE_KEY,
+      label: `각성 게이지 +${LAB_GAUGE_STEP} (지금 ${Math.floor(info.gauge)})`,
+      enabled: true,
+      detail: '눈금을 넘으면 그 메뉴가 그대로 열린다',
     });
+    actions.set(LAB_NEXT_MARK_KEY, { kind: 'nextMark' });
+    lines.push({
+      key: LAB_NEXT_MARK_KEY,
+      label: info.next ? `다음 눈금까지 (${info.next.at} ${info.next.name})` : '다음 눈금 없음',
+      enabled: Boolean(info.next),
+    });
+    actions.set(LAB_RESET_KEY, { kind: 'reset' });
+    lines.push({ key: LAB_RESET_KEY, label: '게이지·개성·단련 처음으로', enabled: true });
     actions.set(LAB_PASSIVE_KEY, { kind: 'passive' });
     lines.push({ key: LAB_PASSIVE_KEY, kind: 'passive', label: '패시브 3지선다 (빌드 시험)', enabled: true });
     actions.set(LAB_CURSE_KEY, { kind: 'curse' });
@@ -129,8 +135,8 @@ export function labBranchMenu(
       key: LAB_CURSE_KEY,
       kind: 'curse',
       label: '저주 2택 (빌드 시험)',
-      enabled: !build.curseActive,
-      detail: build.curseActive ? '저주는 동시에 하나' : undefined,
+      enabled: !info.curseActive,
+      detail: info.curseActive ? '저주는 동시에 하나' : undefined,
     });
   }
   actions.set(LAB_TO_WEAPONS_KEY, { kind: 'weapons' });
@@ -143,9 +149,4 @@ export function labBranchMenu(
 /** 갈래 깊이 표기 (UI 가 이걸로 들여쓴다, 계약 §11.4): 깊이 d → 공백 2칸 × (d − 1) + '└ ' */
 export function treePrefix(depth: number): string {
   return depth <= 0 ? '' : `${'  '.repeat(depth - 1)}└ `;
-}
-
-/** 강화 순환: 최대면 0 으로 */
-export function nextReinforce(current: number, max: number): number {
-  return current >= max ? 0 : current + 1;
 }

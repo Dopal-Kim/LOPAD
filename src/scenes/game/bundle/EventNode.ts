@@ -257,13 +257,8 @@ export class EventNode {
   /** 선택지형 (61라운드 1층 5종: E3·E4·E5·E8·E9) — 고르면 결과 문장(STORY event) → 효과 */
   private openOptions(def: EventDef): void {
     const intro = eventIntro(def);
-    // E4: 다음 갈래 미리보기 (이 층 런에서 고를 수 있는 단까지만)
-    const tree = def.showTree
-      ? this.g.buildMenus
-          .runOptions()
-          .map((n) => n.name)
-          .join(' · ')
-      : '';
+    // E4: 다음 각성 미리보기 (61 G — 지금 고를 수 있는 갈래·길)
+    const tree = def.showTree ? gameState.weapon.options.map((n) => n.name).join(' · ') : '';
     const opts = def.options ?? [];
     this.menu(
       def,

@@ -708,9 +708,7 @@ export interface WeaponDef {
   verbs: WeaponVerbsDef;
   affinity: Affinity;
   personality: {
-    /** 단계별 임계 (오름차순). thresholds[i] 에 도달하면 i+1 차 선택 */
-    thresholds: number[];
-    /** 1차 선택지 2개 (각각 next 로 2차 선택지 2개) */
+    /** 61 G (P12): 1차 갈래 3개 (각각 next 로 2차 길 2개). 눈금·화면 이름은 data/growth.json */
     branches: WeaponEvolution[];
   };
 }
@@ -728,10 +726,6 @@ export type WeaponVerbsDef = Record<WeaponVerbSlot, WeaponVerbDef>;
 
 /** 개성 공통 규칙 (강화 선택지) */
 export interface WeaponRules {
-  /** 강화 1회당 피해·범위 배율 증가 (0.15 = +15%) */
-  reinforceBonus: number;
-  /** 강화 최대 누적 횟수 */
-  reinforceMax: number;
   /** 61라운드 P2 수치 기준선: 이 공격력에서 무기별 DPS 목표 [하한, 상한] (`systems/weapon/dps` 테스트가 지킨다) */
   dpsBaseline?: { attack: number; targets: Record<string, [number, number]> };
 }

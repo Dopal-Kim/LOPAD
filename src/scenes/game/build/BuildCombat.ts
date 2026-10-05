@@ -132,6 +132,8 @@ export class BuildCombat {
   /** 이 적에게 확정 치명인가 (급소 6 금 · 장교의 견장 최대 표식) — 쓰면 금은 사라진다 */
   forceCritOn(mob: Mob | undefined): boolean {
     if (!mob) return false;
+    // 61 G 개성: 비틀거리는 적 · 낙인 셋 이상 (TraitRules)
+    if (this.rt.traits?.forceCrit(mob)) return true;
     const until = this.cracked.get(mob);
     if (until !== undefined) {
       this.cracked.delete(mob);
@@ -169,6 +171,7 @@ export class BuildCombat {
     const now = this.now;
     const strong = isStrongAttack(p);
     if (crit && !died) this.crackOnCrit(mob);
+    this.rt.traits?.afterStrike(mob, p, died);
     if (died) return;
     for (const c of this.comboChange(p.comboIndex)) {
       if (c.stunMs) {
@@ -178,6 +181,11 @@ export class BuildCombat {
       if (c.brandBonus) for (let i = 0; i < c.brandBonus; i++) this.g.strikes.brands.onHit(mob, p.dirX, p.dirY);
     }
     this.onHitCommon(mob, p.dirX, p.dirY, strong);
+  }
+
+  /** 61 G 개성 (갈라진 투구·별 표적): 이 적의 다음 타격을 ms 안 확정 치명으로 */
+  crackMob(mob: Mob, ms: number): void {
+    if (mob.active) this.cracked.set(mob, this.now + ms);
   }
 
   /** 급소 6 '금': 치명타를 맞고 살아남은 적 → ms 안 다음 타격 확정 치명 */
@@ -288,6 +296,7 @@ export class BuildCombat {
 
   onKill(mob: Mob, kind: string): void {
     this.kills.onKill(mob, kind);
+    this.rt.traits.onKill(mob, kind);
   }
 
   restoreResource(pr: Record<string, unknown>): void {
@@ -315,6 +324,7 @@ export class BuildCombat {
     const h = this.rt.rule('killHaste');
     if (h && this.kills.hasteActive(now)) m *= 1 + param(h, 'attackSpeed');
     m *= this.rt.branch.attackSpeedMult(now);
+    m *= this.rt.traits.attackSpeedMult();
     return m;
   }
 

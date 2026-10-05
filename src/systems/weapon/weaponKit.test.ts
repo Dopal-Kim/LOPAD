@@ -327,12 +327,13 @@ describe('61라운드 P1 4동사 공격 수단 표', () => {
     expect(new Set(MOVES.map((m) => m.id)).size).toBe(MOVES.length);
   });
 
-  it('1단 갈래마다 새 동작이 정확히 하나 · 갈래 노드 verbs 가 그 칸을 바꾼다', () => {
+  it('1차 갈래: 새 동작(move)이면 동작 표에 정확히 하나 · 셋째 갈래(규칙)는 동작 없음 · 갈래 노드 verbs 는 한 칸', () => {
     for (const [id, w] of Object.entries(WEAPONS))
       for (const b of w.personality.branches) {
         const opened = MOVES.filter((m) => m.weapon === id && m.branch === b.id);
-        expect(opened, `${id}.${b.id}`).toHaveLength(1);
-        expect(Object.keys(b.verbs ?? {}), `${id}.${b.id}.verbs`).toEqual([opened[0].verb]);
+        expect(opened, `${id}.${b.id}`).toHaveLength(b.move ? 1 : 0);
+        expect(Object.keys(b.verbs ?? {}), `${id}.${b.id}.verbs`).toHaveLength(1);
+        if (b.move) expect(Object.keys(b.verbs ?? {})).toEqual([opened[0].verb]);
       }
   });
 });

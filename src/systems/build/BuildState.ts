@@ -1,12 +1,13 @@
 /**
  * 57라운드 빌드 축 런 상태 (GameState.build — 런 시작에 새로, 세이브에 남음). Phaser 의존 없음.
- * 얻은 이중 개성 · 지금 저주 · 각성 · 처치한 보스 최고 층 · 영구 보너스(불붙은 혀 상흔 +1·화상 10%, 피멍 자원 +30%) · 층당 1회 표시.
+ * 지금 저주 · 처치한 보스 최고 층 · 영구 보너스(불붙은 혀 상흔 +1·화상 10%, 피멍 자원 +30%) · 층당 1회 표시.
+ * 61 G (P12): 이중 개성·최종 각성은 폐지 — 개성 카드·각성 단계는 무기 상태(`WeaponState.traits`·`path`).
  * 합산(`computeBuildMods`)은 런타임이 상태 서명이 바뀔 때만 다시 한다.
  */
-import { AWAKENINGS, BUILD, DUAL_TRAITS, curseDef, setThresholdsOn, tagName, tagOn } from '../../data/build';
+import { BUILD, curseDef, setThresholdsOn, tagName, tagOn } from '../../data/build';
 import type { FloorScope } from '../../data/floorScope';
-import { TAG_IDS, type DualTraitDef, type TagId } from '../../data/buildTypes';
-import type { UiBuildState, UiCurse, UiDualTrait, UiTagState } from '../../contract/ui';
+import { TAG_IDS, type TagId } from '../../data/buildTypes';
+import type { UiBuildState, UiCurse, UiTagState } from '../../contract/ui';
 import type { PassiveSet } from '../passives';
 import type { WeaponState } from '../weapon/weapons';
 import { computeBuildMods, type BuildMods } from './buildMods';
@@ -14,9 +15,7 @@ import { CurseState, type CurseSave } from './curses';
 import { nextThreshold } from './tagScore';
 
 export interface BuildSave {
-  dual: string[];
   curse: CurseSave | null;
-  awakened: boolean;
   bossFloorCleared: number;
   permanentTags: Partial<Record<TagId, number>>;
   permanentBurnChance: number;
@@ -24,10 +23,8 @@ export interface BuildSave {
 }
 
 export class BuildState {
-  dualOwned: string[] = [];
   curse: CurseState | null = null;
-  awakened = false;
-  /** 처치한 보스의 가장 높은 층 (1부터, 없으면 0) — 각성 조건 */
+  /** 처치한 보스의 가장 높은 층 (1부터, 없으면 0) */
   bossFloorCleared = 0;
   permanentTags: Partial<Record<TagId, number>> = {};
   permanentBurnChance = 0;
@@ -46,17 +43,6 @@ export class BuildState {
 
   touch(): void {
     this.version += 1;
-  }
-
-  get dualDefs(): DualTraitDef[] {
-    return this.dualOwned.map((id) => DUAL_TRAITS.find((d) => d.id === id)).filter((d): d is DualTraitDef => !!d);
-  }
-
-  addDual(id: string): boolean {
-    if (this.dualOwned.includes(id) || !DUAL_TRAITS.some((d) => d.id === id)) return false;
-    this.dualOwned.push(id);
-    this.touch();
-    return true;
   }
 
   onFloorStart(floor?: FloorScope): void {
@@ -78,9 +64,9 @@ export class BuildState {
     return true;
   }
 
-  /** 합산 (서명 — 상태 version · 패시브 · 갈래 경로 · 강화 — 이 같으면 캐시) */
+  /** 합산 (서명 — 상태 version · 패시브 · 갈래 경로 · 개성 — 이 같으면 캐시) */
   mods(passives: PassiveSet, weapon: WeaponState): BuildMods {
-    const sig = `${this.version}|${this.floor}|${JSON.stringify(passives.owned)}|${weapon.id}|${weapon.path.join('/')}|${weapon.reinforce}`;
+    const sig = `${this.version}|${this.floor}|${JSON.stringify(passives.owned)}|${weapon.id}|${weapon.path.join('/')}|${weapon.traits.join(',')}`;
     if (this.cache?.sig !== sig) this.cache = { sig, mods: this.compute(passives, weapon) };
     return this.cache.mods;
   }
@@ -90,9 +76,7 @@ export class BuildState {
       data: BUILD,
       passives,
       nodes: weapon.nodes,
-      reinforce: weapon.reinforce,
-      dual: this.dualDefs,
-      awakening: this.awakened ? (AWAKENINGS[weapon.id] ?? null) : null,
+      traits: weapon.traitDefs,
       curse: this.curse,
       permanentTags: this.permanentTags,
       floor: this.floor,
@@ -101,9 +85,7 @@ export class BuildState {
 
   toSave(): BuildSave {
     return {
-      dual: [...this.dualOwned],
       curse: this.curse ? this.curse.toSave() : null,
-      awakened: this.awakened,
       bossFloorCleared: this.bossFloorCleared,
       permanentTags: { ...this.permanentTags },
       permanentBurnChance: this.permanentBurnChance,
@@ -112,10 +94,8 @@ export class BuildState {
   }
 
   restore(s: Partial<BuildSave> | undefined): void {
-    this.dualOwned = (s?.dual ?? []).filter((id) => DUAL_TRAITS.some((d) => d.id === id));
     const cd = s?.curse ? curseDef(s.curse.id) : undefined;
     this.curse = cd && s?.curse ? CurseState.restore(cd, s.curse) : null;
-    this.awakened = Boolean(s?.awakened);
     this.bossFloorCleared = Math.max(0, Number(s?.bossFloorCleared) || 0);
     this.permanentTags = {};
     for (const [k, v] of Object.entries(s?.permanentTags ?? {}))
@@ -125,20 +105,6 @@ export class BuildState {
     this.floorOnce.clear();
     this.touch();
   }
-}
-
-/** 계약 §14.2 */
-export function uiDualTrait(d: DualTraitDef, weapon: WeaponState): UiDualTrait {
-  const idx = weapon.path.indexOf(d.branch);
-  const node = weapon.nodes.find((n) => n.id === d.branch);
-  return {
-    id: d.id,
-    name: d.name,
-    description: d.description,
-    branchName: node?.name ?? d.branch,
-    tag: d.tag,
-    tier: idx <= 0 ? 1 : 2,
-  };
 }
 
 /** 계약 §14.3 */
@@ -180,10 +146,11 @@ export function uiTags(mods: BuildMods, floor: FloorScope = null): UiTagState[] 
     });
 }
 
-export function uiBuild(mods: BuildMods, state: BuildState, weapon: WeaponState): UiBuildState {
+export function uiBuild(mods: BuildMods, state: BuildState): UiBuildState {
   return {
     tags: uiTags(mods, state.floor),
-    dualTraits: state.dualDefs.map((d) => uiDualTrait(d, weapon)),
+    // 61 G (§18): 이중 개성 폐지 — 개성은 UiSnapshot.growth.traits
+    dualTraits: [],
     curse: state.curse ? uiCurse(state.curse) : null,
   };
 }

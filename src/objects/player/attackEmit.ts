@@ -12,6 +12,7 @@ import { artCandidates, hitArtKey, pickArt } from '../../systems/weapon/comboArt
 import { accelFxLevel } from '../../systems/weapon/swingSelect';
 import type { InputState } from '../../systems/InputSystem';
 import { facingOf, rowDirFor } from '../../systems/sprites/spriteDefs';
+import { PLAYER_HIT_ORIGIN_UP_PX } from '../../systems/weapon/playerScale';
 import type { Player } from '../Player';
 import type { ComboStrike } from './heavyMoves';
 
@@ -55,7 +56,9 @@ export function emitPlayerAttack(
   frames?: number[],
 ): PlayerAttackPayload {
   const visual = p.visual;
-  const aim = new Phaser.Math.Vector2(input.aimX - p.x, input.aimY - p.y);
+  // 61 단계 4: 근접은 판정 원점(발 위 가슴 높이)에서 커서로 — 발에서 잰 방향이면 찌르기 축이 커서보다 원점 높이만큼 위로 지나갔다
+  const fromY = gameState.weapon.def.kind === 'melee' ? p.y - PLAYER_HIT_ORIGIN_UP_PX : p.y;
+  const aim = new Phaser.Math.Vector2(input.aimX - p.x, input.aimY - fromY);
   if (aim.lengthSq() > 0) aim.normalize();
   else aim.copy(p.facingVec);
   // 공격 애니는 조준 방향으로. 연격이면 그 타의 시트(없으면 attack)를 그 타 길이에, 아니면 다음 공격 가능 시점(쿨다운)에 맞춰

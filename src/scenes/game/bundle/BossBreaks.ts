@@ -92,7 +92,7 @@ export class BossBreaks {
     if (!mob.isStunned(now) && !this.tracker.inBreak(now)) return;
     const F = BUNDLE2.break.finisher;
     this.g.economy.addGold(F.gold);
-    this.g.progress.gainPersonality(F.personality);
+    this.g.progress.gainGrowth(F.personality);
     const text = BUNDLE2.break.text.finisher;
     // 61 E 버그 수정: 처치된 보스는 이미 파괴돼 바디가 없다 (결정타마다 TypeError — 헤드리스에서 발견) → 발 자리
     const body = mob.body as Phaser.Physics.Arcade.Body | null | undefined;

@@ -24,6 +24,8 @@ export const BUILD_FX = {
     DRUNK_TINT: 0xe8c890,
     MOON: 0xc8d8f0,
     METEOR: 0xf0e0b0,
+    /** 61 G 광전 폭주 (몸 깜빡임·포효 고리) */
+    RAGE: 0xd8483a,
   },
   LIQUOR_ALPHA: 0.45,
   /** 표식 점 (적 머리 위): 반지름 · 간격 · 머리 위 높이 */
@@ -36,6 +38,8 @@ export const BUILD_FX = {
     STAGGER: 'STAGGER',
     LAST_STAND: 'HOLD ON',
     EXECUTE: 'EXECUTE',
+    /** 61 G 광전 폭주 시작 */
+    RAGE: 'RAGE',
   },
   /** 정적(간파 6) · 숨 집중과 겹치면 집중이 우선 */
   STILL_FLASH: { COLOR: 0xc8d0e0, MS: 120, ALPHA: 0.18 },

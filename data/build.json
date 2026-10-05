@@ -1,5 +1,5 @@
 {
-  "_note61": "61라운드 P4 빌드 축 1층판: 태그 floor(1층 노출 6 = 간파·돌파·급소·연쇄·중량·취기 — 4동사 좌 연격=연쇄·급소 / 우 시그니처=간파 / Space 대쉬=돌파 / 좌 홀드 강공=중량 + 층 테마 취기) · 세트 6단계 floor 2 · evolve.maxTierByFloor(1층 런은 1단까지, 2단은 시험장) · dual.absorbOnFloors(그 층에선 이중 개성을 보상 칸 대신 갈래에 흡수 — 1단 갈래를 고르는 순간 일반 짝 자동, 취기 짝은 취기 tier1Score 점 도달 순간 자동). 그 층에서 꺼진 태그는 점수 0",
+  "_note61": "61라운드 P4 빌드 축 1층판: 태그 floor(1층 노출 6 = 간파·돌파·급소·연쇄·중량·취기 — 4동사 좌 연격=연쇄·급소 / 우 시그니처=간파 / Space 대쉬=돌파 / 좌 홀드 강공=중량 + 층 테마 취기) · 세트 6단계 floor 2 · (61 G P12: 옛 evolve·awaken·dual·personality 는 data/growth.json · traits.json 으로). 그 층에서 꺼진 태그는 점수 0",
   "_note": "57라운드 빌드 축 1차 (Q22~Q37 · Q38 취기 A안). 이름은 전부 자리표시(_tmpName — 정식명은 스토리 파트), 수치는 설계안 초안(데모로 조정). 설계안 decisions/design-2026-10-04-build-axis.md 1.4 · build-axis-chwigi.md 2장 A안",
   "tags": [
     {
@@ -27,12 +27,11 @@
     }
   ],
   "scoring": {
-    "_note": "57 Q25 설계안 1.2 A: 패시브 종류당 1 + Lv3 +1 · 갈래 노드 태그마다 1 · 강화 시 갈래 태그 +1(최대 3, reinforceTagTarget = 현재 노드의 첫 태그 — 해석 임시값) · 저주 이득",
+    "_note": "57 Q25 설계안 1.2 A: 패시브 종류당 1 + Lv3 +1 · 갈래 노드(1차 갈래·2차 길) 태그마다 1 · 저주 이득. 61 G(P12): 옛 강화 태그 +1 폐지, 개성 카드 1장 = 그 태그 +1 (perTrait)",
     "perPassive": 1,
     "passiveMaxLevelBonus": 1,
     "perBranchNode": 1,
-    "reinforceTagMax": 3,
-    "reinforceTagTarget": "primary",
+    "perTrait": 1,
     "thresholds": [2, 4, 6]
   },
   "sets": {
@@ -170,7 +169,7 @@
         "floor": 2,
         "name": "연쇄 6 · 살기",
         "_tmpName": true,
-        "description": "3초 안 3처치 → 살기 5초: 피해 +25%, 개성 획득 ×2",
+        "description": "3초 안 3처치 → 살기 5초: 피해 +25%, 각성 게이지 획득 ×2",
         "effect": {
           "kind": "bloodlust",
           "kills": 3,
@@ -318,23 +317,10 @@
     "perfectEvadeThreatRadiusTiles": 1.6,
     "crisisHpRatio": 0.3
   },
-  "evolve": {
-    "_note": "57 Q37·설계안 2.6: 100 = [1단 A/B/강화] · 200 = [2단 α/β/강화] · 이후 200마다 [강화/피의 계약/각성] · 각성 후 강화 상한 5. 27라운드 게이지 정지 규칙 대체",
-    "repeatThreshold": 200,
-    "reinforceMaxAwakened": 5,
-    "pactBenefitMult": 1.5,
-    "pactExtraNodes": 1,
-    "maxTierByFloor": { "1": 1 }
-  },
-  "awaken": {
-    "_note": "57 Q33·설계안 3.1 A: 2단 + 그 2단 태그 중 하나 6점 + 5층 보스 처치 이후",
-    "tagScore": 6,
-    "afterBossFloor": 5,
-    "condition": "2단 + 그 2단 태그 6점 + 5층 보스 이후"
-  },
-  "personality": {
-    "_note": "2차 묶음 S3-A: 일반 처치 개성 절반 (보스·노드 보상·등급은 그대로)",
-    "normalKillMult": 0.5
+  "pact": {
+    "_note": "61 G(P12): 피의 계약 칸 폐지 — 옛 세이브의 계약 저주(이득 ×1.5·지속 +1노드)를 읽는 데만 남긴다",
+    "benefitMult": 1.5,
+    "extraNodes": 1
   },
   "pool": {
     "_note": "취기 QC-9: 테마 태그 패시브는 그 층부터 풀에 들어오고 그 층에서 가중 ×2",
@@ -346,13 +332,6 @@
     "chestChoices": 2,
     "nodeChoices": 3,
     "shopRarities": ["common", "rare", "epic"]
-  },
-  "dual": {
-    "_note": "57 Q27: 1단 + 짝 태그 2점 / 2단 + 짝 태그 4점 → 다음 보상 3지선다 1칸 확정. 이중 개성은 태그 점수 없음",
-    "tier1Score": 2,
-    "tier2Score": 4,
-    "absorbOnFloors": [1],
-    "absorbText": "{branch} 강화 — {name}: {description}"
   },
   "drunk": {
     "_note": "취기 QC-0: 카운터 '취기 n단'과 하나로 합침 — HUD drunk 하나. 기본 5초, 마시기마다 새로 고침(합산 아님)",

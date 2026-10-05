@@ -12,6 +12,7 @@ import { knockFactor } from '../systems/feel';
 import { isPerfectGuard } from '../systems/defense';
 import { sprintStep } from '../systems/traversal';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
+import { growthLookOf } from '../systems/growth/growth';
 import { WeaponOverlay } from './WeaponOverlay';
 import { ScarOverlay } from './player/ScarOverlay';
 import { PlayerGear } from './player/PlayerGear';
@@ -186,7 +187,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.overlay.update();
     // 56라운드 Q14·Q15: 검기·울분 무기 오버레이 (시트가 없으면 칼날 곱 틴트)
     this.overlay.setGauge(this.gauges.overlay, this.gauges.bladeTint);
-    this.overlay.setAwaken(gameState.build.awakened);
+    this.overlay.setGrowth(growthLookOf(gameState.weapon));
     this.scar.update(time);
   }
 
@@ -322,6 +323,12 @@ export class Player extends Phaser.GameObjects.Sprite {
     return this.dashStock.ready(time, this.buildHooks?.dashCharges() ?? 1);
   }
 
+  /** 61 G 개성 '이어 걷기': 대쉬 충전·쿨다운을 바로 돌려놓는다 */
+  resetDash(): void {
+    this.dashStock.reset();
+    this.dashReadyAt = 0;
+  }
+
   /** 57라운드: 대쉬 공격 창을 쓴다 (단검 부채꼴 투척이 대쉬 공격을 대신) */
   consumeDashWindow(): void {
     this.dashEndedAt = -Infinity;
@@ -393,6 +400,13 @@ export class Player extends Phaser.GameObjects.Sprite {
     // 달리기 (45라운드): 일반 상태 이동 중에만 목표 배율. 대쉬 동안은 배율을 유지해 끝나면 이어서 달린다
     const SP = PLAYER_DATA.sprint;
     this.sprintingNow = this.sprintAllowed && input.sprintHeld && dir.lengthSq() > 0 && this.action === 'normal';
+    // 61 단계 4: 끊을 수 있는 마무리 자세(화살비 cancelAt 뒤)는 움직이면 바로 풀어 이동 그림으로
+    const soft = this.softPose;
+    if (soft && (time >= soft.until || (this.action === 'normal' && dir.lengthSq() > 0))) {
+      // 그 사이 다른 동작(대쉬·공격)이 그림을 덮었으면 건드리지 않는다
+      if (time < soft.until && this.visual.current === soft.anim) this.visual.release();
+      this.softPose = null;
+    }
     if (this.action !== 'dash')
       this.sprintFactor = sprintStep(this.sprintFactor, this.sprintingNow ? SP.speedMult : 1, delta, SP);
     const sh = this.shoveState;
@@ -583,6 +597,9 @@ export class Player extends Phaser.GameObjects.Sprite {
   slowUntil(until: number): void {
     this.attackSlowUntil = Math.max(this.attackSlowUntil, until);
   }
+
+  /** 61 단계 4: 동작 잠금이 풀린 뒤 이 시각까지 남은 마무리 자세(그 애니 키) — 움직이면 바로 푼다 (대쉬·공격은 제 그림이 덮는다) */
+  softPose: { until: number; anim: string | null } | null = null;
 
   /**
    * dir 방향으로 distPx 를 ms 동안 내딛는다 (fromMs 는 지금부터 시작 지연). append 면 앞 구간 뒤에 이어 붙인다(대검 끌림).

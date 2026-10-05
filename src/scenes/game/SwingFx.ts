@@ -96,7 +96,10 @@ export class SwingFx {
     const drawn = Boolean(memo && (typeof memo.hitRadiusPx === 'number' || memo.thrust));
     const hitSize = c.hits[p.comboIndex]?.sizeMult ?? 1;
     const size = drawn ? p.sizeMult / hitSize : p.sizeMult;
-    const shape = comboShape(c, hbScale * size, drawn ? memo : null);
+    const base = comboShape(c, hbScale * size, drawn ? memo : null);
+    // 61 단계 4: 가속 그림이 길어진 만큼 찌르기 길이 (폭·시작점은 그대로)
+    const reach = p.reachMult ?? 1;
+    const shape = base.kind === 'thrust' && reach !== 1 ? { ...base, length: base.length * reach } : base;
     // 아트 메모에 휘두름 방향이 없으면 짝수 번째 타(2타)는 반대로
     if (shape.kind === 'arc' && !(memo && typeof memo.arcFromDeg === 'number') && p.comboIndex % 2 === 1)
       return { ...shape, fromDeg: shape.toDeg, toDeg: shape.fromDeg };
@@ -150,6 +153,8 @@ export class SwingFx {
       },
       { has: (id) => g.fx.has(id), sheet: (id) => g.fx.sheet(id) },
     );
+    // 61 단계 4: 그림이 길어진 만큼(가속 시트·키운 배율) 찌르기 판정도 — 판정은 이 페이로드 사본으로 잰다
+    if (combo && pick.reachMult !== 1) p.reachMult = pick.reachMult;
     // 61 E 칼 발도: 소모한 검기 단 그림 (`katana_iai_ki1~3`, 없으면 기본 발도)
     const ki = p.kenkiStage ? kenkiFxId(pick.id, p.kenkiStage) : null;
     const id = ki && g.fx.has(ki) ? ki : pick.id;

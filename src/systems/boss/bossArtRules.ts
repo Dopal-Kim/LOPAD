@@ -26,3 +26,10 @@ export function headTopDot(table: unknown, action: string, dir: string, col: num
 export function rimFits(currentMb: number, rimMb: number, budgetMb: number): boolean {
   return currentMb + rimMb <= budgetMb;
 }
+
+/** 61 단계 4: 소등 때 올릴 림 — 원 림이 예산 안이면 full, 아니면 가벼운 림(lite), 그것도 넘으면 null(tintFill 대체) */
+export function pickRim(currentMb: number, fullMb: number, liteMb: number, budgetMb: number): 'full' | 'lite' | null {
+  if (rimFits(currentMb, fullMb, budgetMb)) return 'full';
+  if (rimFits(currentMb, liteMb, budgetMb)) return 'lite';
+  return null;
+}

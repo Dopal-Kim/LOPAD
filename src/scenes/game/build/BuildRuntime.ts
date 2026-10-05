@@ -1,6 +1,6 @@
 /**
  * 57라운드 빌드 축 런타임 (씬 쪽, Game 마다 새로 — 런 상태는 GameState.build): 합산(`currentBuild`)을 읽어
- * 공통 사건 훅(완벽 성공·이동기·강공·원거리 판정·표식·위기·마시기·처치)에 세트·패시브·이중 개성·갈래 2단·각성·저주 규칙을 건다.
+ * 공통 사건 훅(완벽 성공·이동기·강공·원거리 판정·표식·위기·마시기·처치)에 세트·패시브·개성 카드·갈래·길·저주 규칙을 건다.
  * 일은 나눠서: 타격·처치·투사체 = `BuildCombat`, 피격·버팀·취보 = `BuildDefense`, 완벽 성공·정적 = `BuildPerfect`,
  * 갈래 수단 = `BranchStrikes`, 월드 도우미·플레이스홀더 = `BuildEffects`. UI 이벤트(계약 §14.11)도 여기서.
  */
@@ -14,9 +14,7 @@ import {
 } from '../../../core/EventBus';
 import { BUILD_ART } from '../../../core/Constants';
 import { gameState } from '../../../core/GameState';
-import { BUILD, CURSES, DUAL_TRAITS, curseDef, dualAbsorbOn, tagName } from '../../../data/build';
-import { absorbedDualTraits } from '../../../systems/build/evolveSlots';
-import { fill } from '../../../systems/story';
+import { BUILD, CURSES, curseDef, tagName } from '../../../data/build';
 import { TAG_IDS, type BuildStatKey, type TagId } from '../../../data/buildTypes';
 import { ECONOMY } from '../../../data';
 import {
@@ -31,13 +29,14 @@ import type { Mob } from '../../../objects/Mob';
 import type { Projectile } from '../../../objects/Projectile';
 import { isStrongAttack } from '../../../systems/build/strikeKinds';
 import { param, ruleOf, rulesOf, type ActiveRule, type BuildMods } from '../../../systems/build/buildMods';
-import { uiBuild, uiCurse, uiDualTrait } from '../../../systems/build/BuildState';
+import { uiBuild, uiCurse } from '../../../systems/build/BuildState';
 import { currentBuild } from '../../../systems/build/current';
 import { CurseState, pickPactCurse, scaledBenefit } from '../../../systems/build/curses';
 import { DotBook, DrunkTimer, EvadeTracker, MarkBook } from '../../../systems/build/statusBooks';
 import { fxSwapTable } from '../../../systems/sprites/sheetSets';
 import type { Game } from '../../Game';
 import { AwakenFlow } from './AwakenFlow';
+import { TraitRules } from './traits/TraitRules';
 import { BranchStrikes } from './BranchStrikes';
 import { BuildArt } from './BuildArt';
 import { BuildCombat } from './BuildCombat';
@@ -58,8 +57,10 @@ export class BuildRuntime {
   readonly defense: BuildDefense;
   readonly perfect: BuildPerfect;
   readonly branch: BranchStrikes;
-  /** 60라운드 최종 각성 연출·각성 궤적 교체 */
+  /** 61 G 각성 연출·외형·셋째 갈래 궤적 교체 */
   readonly awaken: AwakenFlow;
+  /** 61 G 개성 카드·셋째 갈래 규칙 실행 */
+  readonly traits: TraitRules;
   readonly drunk = new DrunkTimer();
   readonly marks = new MarkBook<Mob>();
   readonly dots = new DotBook<Mob>();
@@ -82,6 +83,7 @@ export class BuildRuntime {
     this.perfect = new BuildPerfect(g, this);
     this.branch = new BranchStrikes(g, this);
     this.awaken = new AwakenFlow(g, this);
+    this.traits = new TraitRules(g, this);
     this.stages = { ...currentBuild().stages };
     this.subs = [
       [Events.PLAYER_DASHED, (p: { x: number; y: number; dirX: number; dirY: number }) => this.onDash(p)],
@@ -109,13 +111,8 @@ export class BuildRuntime {
       this.onNodeEntered(g.nodeKind === 'battle' || g.nodeKind === 'boss' || g.nodeKind === 'road');
     // 만취 서약: 취기 상태 유지
     if (this.mods.flags.drunkAlways) this.drink('counter', true);
-    // 60라운드: 각성 런이면 각성 시트 (preload 에서 못 읽었으면 지금)
+    // 61 G: 각성 외형·궤적 색 (preload 에서 못 읽은 그림은 지금)
     this.awaken.onSceneStart();
-  }
-
-  /** 60라운드 최종 각성 획득 (개성 '각성' 칸·시험장 a) — `AwakenFlow` */
-  onAwakened(emit = true): void {
-    this.awaken.onAwakened(emit);
   }
 
   // --- 합산 읽기 ---
@@ -242,6 +239,7 @@ export class BuildRuntime {
     if (p.bowPower === 'perfect') this.perfectShots.add(shot);
     this.combat.onShotSpawn(shot);
     this.branch.onArrowSpawn(shot, p);
+    this.traits.onArrowSpawn(shot, p);
   }
 
   isStrongShot(shot: Projectile): boolean {
@@ -263,6 +261,7 @@ export class BuildRuntime {
     this.combat.afterShot(shot, mob, crit, died);
     this.branch.onShotHit(shot, mob, died);
     this.branch.onArrowHit(shot, mob);
+    this.traits.onShotHit(shot, mob, died);
   }
 
   // --- 이동기 ---
@@ -277,6 +276,7 @@ export class BuildRuntime {
   onShadowStep(fromX: number, fromY: number, toX: number, toY: number): void {
     this.evade.arm(this.now, fromX, fromY);
     this.combat.onMove(fromX, fromY, toX - fromX, toY - fromY, 'shadowstep', Math.hypot(toX - fromX, toY - fromY));
+    this.traits.onShadowStep();
   }
 
   // --- 마시기 · 취기 ---
@@ -331,13 +331,13 @@ export class BuildRuntime {
     const def = curseDef(id);
     if (!def || gameState.build.curse) return false;
     const pact = Boolean(opts.pact);
-    const c = new CurseState(def, pact, BUILD.evolve.pactExtraNodes);
+    const c = new CurseState(def, pact, BUILD.pact.extraNodes);
     const B = def.benefits;
-    const m = BUILD.evolve.pactBenefitMult;
+    const m = BUILD.pact.benefitMult;
     gameState.build.curse = c;
     // 즉시 이득
     if (B.goldNow) this.g.economy.addGold(Math.round(scaledBenefit(B.goldNow, pact, m)));
-    if (B.personalityNow) this.g.progress.gainPersonality(Math.round(scaledBenefit(B.personalityNow, pact, m)));
+    if (B.personalityNow) this.g.progress.gainGrowth(Math.round(scaledBenefit(B.personalityNow, pact, m)));
     for (const [t, v] of Object.entries(B.permanentTag ?? {})) {
       const k = t as TagId;
       gameState.build.permanentTags[k] =
@@ -395,37 +395,6 @@ export class BuildRuntime {
     else if (c?.killsLeft !== null) gameState.build.touch();
   }
 
-  // --- 이중 개성 ---
-
-  addDualTrait(id: string): boolean {
-    if (!gameState.build.addDual(id)) return false;
-    const d = DUAL_TRAITS.find((x) => x.id === id);
-    if (d) __system.emit(UI_EVENTS.DUAL_TRAIT_GAINED, uiDualTrait(d, gameState.weapon));
-    EventBus.emit(Events.DUAL_TRAIT_GAINED, { id });
-    // dual_trait_get: 보상 화면을 닫고 전투로 돌아온 뒤 (메뉴가 닫힐 때까지 미룸)
-    this.afterMenu(() => this.art.onPlayer(BUILD_ART.DUAL_GET));
-    this.record('dual', id);
-    return true;
-  }
-
-  /** 61라운드 P4: 흡수 층(1층)이면 이중 개성을 갈래에 자동으로 (합산이 바뀔 때만 본다) */
-  private absorbRef: BuildMods | null = null;
-
-  private absorbDuals(): void {
-    const m = this.mods;
-    if (m === this.absorbRef) return;
-    this.absorbRef = m;
-    if (this.g.lab || !dualAbsorbOn(gameState.build.floor)) return;
-    const w = gameState.weapon;
-    const owned = new Set(gameState.build.dualOwned);
-    for (const d of absorbedDualTraits(DUAL_TRAITS, w.id, w.path, m.scores, owned, BUILD.dual.tier1Score)) {
-      if (!this.addDualTrait(d.id)) continue;
-      const branch = w.nodes.find((n) => n.id === d.branch)?.name ?? d.branch;
-      const text = BUILD.dual.absorbText ?? '{branch} — {name}: {description}';
-      this.g.ui.story('notice', fill(text, { branch, name: d.name, description: d.description }));
-    }
-  }
-
   // --- 매 프레임 ---
 
   /**
@@ -436,7 +405,7 @@ export class BuildRuntime {
 
   private syncFxAliases(): void {
     const w = gameState.weapon;
-    const sig = `${w.id}:${w.path.join('/')}:${gameState.build.awakened ? 'awaken' : ''}`;
+    const sig = `${w.id}:${w.path.join('/')}`;
     if (sig === this.aliasSig) return;
     this.aliasSig = sig;
     const replace: Record<string, string> = {};
@@ -447,11 +416,11 @@ export class BuildRuntime {
   update(time: number): void {
     this.syncFxAliases();
     this.syncStages();
-    this.absorbDuals();
     if (this.mods.flags.drunkAlways && !this.drunk.active(time)) this.drink('counter', true);
     this.combat.update(time);
     this.perfect.update(time);
     this.branch.update(time);
+    this.traits.update(time);
     this.art.update(time);
     this.flushAfterMenu();
     // 플레이어 속도·공속 배율 (Player·MeleeDriver 가 읽는다)
@@ -459,7 +428,7 @@ export class BuildRuntime {
     if (pl) {
       pl.buildSpeedMult = this.combat.moveSpeedMult(time);
       pl.buildAttackSpeed = this.combat.attackSpeedMult(time);
-      pl.buildNoFlinch = this.drunkActive || this.defense.uninterruptible();
+      pl.buildNoFlinch = this.drunkActive || this.defense.uninterruptible() || this.traits.noFlinch();
     }
   }
 
@@ -513,7 +482,7 @@ export class BuildRuntime {
 
   /** 계약 §14.1 스냅샷 */
   toUi(): UiBuildState {
-    return uiBuild(this.mods, gameState.build, gameState.weapon);
+    return uiBuild(this.mods, gameState.build);
   }
 
   /**
@@ -561,10 +530,10 @@ export class BuildRuntime {
       drunk: this.drunkActive ? Math.round(this.drunk.remainMs(this.now)) : 0,
       marks: this.marks.list().map(([mob, n]) => ({ id: mob.spriteId, marks: n })),
       dots: this.dots.list().length,
-      dual: [...gameState.build.dualOwned],
+      traits: [...gameState.weapon.traits],
       curse: gameState.build.curse ? uiCurse(gameState.build.curse) : null,
-      awakened: gameState.build.awakened,
       awakenFx: this.awaken.last,
+      traitRules: this.traits.debug(),
       bossFloorCleared: gameState.build.bossFloorCleared,
       log: [...this.log],
       combat: this.combat.debug(),
@@ -579,6 +548,7 @@ export class BuildRuntime {
     this.subs = [];
     this.perfect.destroy();
     this.branch.destroy();
+    this.traits.destroy();
     this.art.destroy();
     this.pendingAfterMenu = [];
     this.g.fx.setAliases({});

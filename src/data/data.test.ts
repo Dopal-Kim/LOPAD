@@ -33,7 +33,7 @@ describe('data/*.json', () => {
     expect(() => validateEnemies(bad)).toThrow(/behavior/);
   });
 
-  it('무기 4종: 우클릭 보조 동작 1종, 1차 2 · 2차 각 2, 임계 오름차순 (27라운드)', () => {
+  it('무기 4종: 우클릭 보조 동작 1종, 1차 갈래 3 · 2차 길 각 2 (61 G P12)', () => {
     const ids = Object.keys(WEAPONS);
     expect(ids).toEqual(['katana', 'greatsword', 'dagger', 'bow']);
     const secondaryNames = ids.map((id) => WEAPONS[id].secondary.name);
@@ -41,28 +41,23 @@ describe('data/*.json', () => {
     expect(secondaryNames).toEqual(['가드·패링', '가드', '그림자 걸음', '당겨 쏘기']); // 57라운드 Q7: 활 우클릭 이름
     for (const id of ids) {
       const P = WEAPONS[id].personality;
-      expect(P.thresholds).toEqual([100, 200]);
-      expect(P.branches).toHaveLength(2);
+      expect(P.branches).toHaveLength(3);
       for (const b of P.branches) {
         expect(b.next).toHaveLength(2);
         for (const n of b.next!) expect(n.next ?? []).toHaveLength(0);
       }
       const names = [...P.branches, ...P.branches.flatMap((b) => b.next!)].map((n) => n.name);
-      expect(new Set(names).size).toBe(6);
+      expect(new Set(names).size).toBe(9);
     }
-    expect(WEAPON_RULES).toMatchObject({ reinforceBonus: 0.15, reinforceMax: 3 });
     // 61라운드 P2 DPS 기준선 (systems/weapon/dps.test)
     expect(WEAPON_RULES.dpsBaseline?.attack).toBe(5);
   });
 
-  it('무기 데이터 오류를 거부한다: 임계 역순, 선택지 수, 모르는 효과 키', () => {
+  it('무기 데이터 오류를 거부한다: 갈래 수, 선택지 수, 모르는 효과 키', () => {
     const clone = () => JSON.parse(JSON.stringify(WEAPONS)) as WeaponTable;
-    const a = clone();
-    a.katana.personality.thresholds = [200, 100];
-    expect(() => validateWeapons(a)).toThrow(/오름차순/);
     const b = clone();
     b.dagger.personality.branches = b.dagger.personality.branches.slice(0, 1);
-    expect(() => validateWeapons(b)).toThrow(/2개/);
+    expect(() => validateWeapons(b)).toThrow(/3개/);
     const c = clone();
     c.dagger.personality.branches[0].next = c.dagger.personality.branches[0].next!.slice(0, 1);
     expect(() => validateWeapons(c)).toThrow(/next 는 2개/);

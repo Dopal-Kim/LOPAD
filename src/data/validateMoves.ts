@@ -62,7 +62,7 @@ export function validateMoves(m: WeaponMovesDef, path: string, art: Record<strin
     strike(l, `${path}.leap`, art);
     travel(l.leap, `${path}.leap.leap`);
     num(l.lengthMult, `${path}.leap.lengthMult`);
-    str(l.crackRow, `${path}.leap.crackRow`);
+    if (l.crackRow !== undefined) str(l.crackRow, `${path}.leap.crackRow`);
     nums(l.landingRing, ['radiusMult', 'damageMult'], `${path}.leap.landingRing`);
     str(l.spiralFx, `${path}.leap.spiralFx`);
     if (typeof l.consumesGrudge !== 'boolean') throw new Error(`[data] ${path}.leap.consumesGrudge 는 true·false`);
@@ -96,6 +96,11 @@ export function validateMoves(m: WeaponMovesDef, path: string, art: Record<strin
       `${path}.arrowRain`,
     );
     numList(a.releasesAtMs, `${path}.arrowRain.releasesAtMs`);
+    if (
+      a.cancelFromMs !== undefined &&
+      !(a.cancelFromMs >= Math.max(0, ...a.releasesAtMs) && a.cancelFromMs <= a.durationMs)
+    )
+      throw new Error(`[data] ${path}.arrowRain.cancelFromMs 는 마지막 발사 ~ durationMs 사이`);
     for (const k of ['markRow', 'riseFx', 'markFx', 'fallFx'] as const) str(a[k], `${path}.arrowRain.${k}`);
   }
 }

@@ -7,18 +7,19 @@ import { KEYS, LAB, TILE } from '../../core/Constants';
 import { EventBus, Events } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { WEAPONS } from '../../data';
-import { AWAKENINGS, BUILD } from '../../data/build';
+import { branchByNode, pathByNode } from '../../data/growth';
+import { effectiveKind, nextMarkOf } from '../../systems/growth/growth';
 import { LabDummy } from '../../objects/LabDummy';
 import { generateArena, type FloorLayout } from '../../systems/mapgen';
 import { oncePerKeyEvent } from '../../systems/keyEvents';
 import { ROUTE } from '../../systems/route';
 import {
   LAB_CANCEL_KEY,
+  LAB_GAUGE_STEP,
   LAB_TO_BRANCH_KEY,
   LAB_TO_WEAPONS_KEY,
   labBranchMenu,
   labWeaponMenu,
-  nextReinforce,
 } from '../../systems/weapon/weaponLab';
 import type { Game } from '../Game';
 import { labWeaponFor } from './runWeapon';
@@ -39,11 +40,11 @@ export class LabMode {
   prepareRun(): boolean {
     gameState.startRun(LAB.SEED, labWeaponFor(this.init), gameState.playerName);
     gameState.birthPending = false;
-    // 61라운드 P4: 시험장은 층 노출 제한 없음 (태그 10·세트 6단계·2단·각성 전부)
+    // 61라운드 P4: 시험장은 층 노출 제한 없음 (태그 10·세트 6단계·갈래·길 전부)
     gameState.build.setFloor(null);
-    // 51라운드 검증: `?branch=<1단>[,<2단>]` 로 갈래를 바로 (트리에 없는 id 는 restore 가 거른다)
+    // 51라운드 검증: `?branch=<1차 노드>[,<2차 노드>]` 로 갈래를 바로 (트리에 없는 id 는 거른다)
     const branch = urlParams().get('branch');
-    if (branch) gameState.weapon.restore({ path: branch.split(','), reinforce: 0 });
+    if (branch) gameState.weapon.setPath(branch.split(','));
     EventBus.emit(Events.STAGE_STARTED, { stageIndex: gameState.stageIndex, stageId: gameState.stageId });
     return false;
   }
@@ -115,16 +116,32 @@ export class LabMode {
     );
   }
 
-  /** 개성 갈래 (MENU_OPEN id 'labBranch'): 기본·1차·2차·강화를 아무거나 즉시 적용 */
+  /** 61 G 무기 성장 시험 (MENU_OPEN id 'labBranch'): 갈래·길 아무 단계나 즉시 · 각성 게이지 자유 조작 · 패시브·저주 시험 */
   openBranchMenu(): void {
     const g = this.g;
     if (!g.lab || this.exitPending || g.transitioning) return;
     const w = gameState.weapon;
-    const { lines, actions } = labBranchMenu(w.def, w.path, w.reinforce, w.reinforceCap, {
-      awakenName: AWAKENINGS[w.id]?.name ?? null,
-      awakened: gameState.build.awakened,
-      tier2: w.path.length >= 2,
+    const next = nextMarkOf(gameState.build.floor, w.marksDone);
+    const KIND: Record<string, string> = {
+      trait: '개성 발현',
+      awaken1: '1차 각성',
+      awaken2: '2차 각성',
+      temper: '단련',
+    };
+    const names: Record<string, { name: string; line: string }> = {};
+    for (const b of w.def.personality.branches) {
+      const gb = branchByNode(w.id, b.id);
+      if (gb) names[b.id] = { name: gb.name, line: gb.line };
+      for (const c of b.next ?? []) {
+        const gp = pathByNode(w.id, c.id);
+        if (gp) names[c.id] = { name: gp.path.name, line: gp.path.line };
+      }
+    }
+    const { lines, actions } = labBranchMenu(w.def, w.path, {
+      gauge: w.gauge,
+      next: { at: next.at, name: KIND[effectiveKind(next.kind, w.stage)] ?? next.kind },
       curseActive: gameState.build.curse !== null,
+      names,
     });
     g.setFrozen(true);
     g.player.haltForWarp();
@@ -148,16 +165,15 @@ export class LabMode {
           if (!g.buildMenus.openCurseMenu(undefined, () => this.openBranchMenu())) this.openBranchMenu();
           return;
         }
-        if (a.kind === 'awaken') this.toggleAwaken();
-        else if (a.kind === 'reinforce')
-          w.restore({ path: w.path, reinforce: nextReinforce(w.reinforce, w.reinforceCap) });
-        else {
-          // 갈래를 바꾸면 각성은 끈다 (2단별 규칙이 갈래에 묶임)
-          if (gameState.build.awakened && a.path.join('/') !== w.path.join('/')) this.setAwaken(false);
-          w.restore({ path: a.path, reinforce: w.reinforce });
+        // 61 G: 게이지를 올리면 메뉴를 닫는다 — 눈금 메뉴(개성 발현·각성)가 그대로 열린다
+        if (a.kind === 'gauge' || a.kind === 'nextMark') {
+          const add = a.kind === 'gauge' ? LAB_GAUGE_STEP : Math.max(0, next.at - w.gauge);
+          this.closeMenu();
+          g.growth.labGain(add);
+          return;
         }
-        w.personality = 0;
-        w.choicePending = false;
+        if (a.kind === 'reset') g.growth.labReset();
+        else g.growth.labSetPath(a.path);
         for (const d of this.dummies) d.resetStats();
         this.openBranchMenu(); // 같은 메뉴를 갱신 (지금 표시)
       },
@@ -165,21 +181,6 @@ export class LabMode {
       // 53라운드 UI 요청 B2: Esc = 무기 목록으로 돌아감
       { cancelKey: LAB_TO_WEAPONS_KEY },
     );
-  }
-
-  /** 57라운드 시험장: 최종 각성 켜기·끄기 (조건 없이 — 1층 단계는 시험장에서만, 57 Q23) */
-  private toggleAwaken(): void {
-    this.setAwaken(!gameState.build.awakened);
-  }
-
-  private setAwaken(on: boolean): void {
-    const w = gameState.weapon;
-    gameState.build.awakened = on;
-    gameState.build.touch();
-    w.reinforceCapOverride = on ? BUILD.evolve.reinforceMaxAwakened : null;
-    if (!on) w.restore({ path: w.path, reinforce: w.reinforce });
-    // 60라운드: 각성 외형 오버레이(계약 art §21)는 각성 런에서만 — 켜면 그때 로드 · 시그니처 fx·효과음
-    if (on) this.g.build.onAwakened();
   }
 
   private closeMenu(): void {

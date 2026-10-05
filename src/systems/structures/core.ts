@@ -49,7 +49,7 @@ export interface StructureHost {
   addGold(amount: number): void;
   spendGold(amount: number): void;
   spawnPickup(x: number, y: number, kind: 'gold' | 'potion', value: number): void;
-  gainPersonality(amount: number): void;
+  gainGrowth(amount: number): void;
   heal(amount: number): void;
   /** 적 피격 공통 경로 (Game.hitMob). 사망이면 true */
   hitMob(mob: Mob, dmg: number, opts: { crit: boolean; dirX: number; dirY: number; tick?: boolean }): boolean;

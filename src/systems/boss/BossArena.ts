@@ -1,6 +1,6 @@
 /**
  * 54라운드 1층 보스방 환경 (BossArenaApi 구현): 기둥(임시 그림) · 촛대 · 굴러가는 술통 · 술 웅덩이·불 · 횃불 · 약점 잔 ·
- * 세상이 돈다(카메라 기울기) · 등불 끄기(주변광). 보스 패턴 모듈은 MobContext.arena 로만 부른다.
+ * 세상이 돈다(카메라 기울기) · 등불 끄기(주변광 — 61 단계 4: `arenaDarkness` 로 분리). 보스 패턴 모듈은 MobContext.arena 로만 부른다.
  * Game 이 보스 노드(보스 정의에 arena 가 있을 때)에서만 만들고, 매 프레임 update · 근접 판정·화살 훅을 넘긴다.
  */
 import Phaser from 'phaser';
@@ -25,13 +25,13 @@ import type { FxPool } from '../fx/fx';
 import { cellsAlong } from '../hazards/liquorNet';
 import type { LiquorPools, PoolSpec } from '../hazards/LiquorPools';
 import type { Lighting } from '../lighting/Lighting';
-import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 import { spriteLibrary } from '../sprites/sprites';
 import { STRUCTURE_ACTION, artScale } from '../sprites/spriteDefs';
 import type { TileWorld } from '../../world/TileWorld';
 import type { TileSkin } from '../../world/tileskin';
+import { ArenaDarkness, type SnuffTarget } from './arenaDarkness';
 import { BossBurn } from './bossBurn';
-import { BossRim } from './bossRim';
+import type { BossRim } from './bossRim';
 import { BossVram } from './bossVram';
 import { BreakDaze } from './breakDaze';
 import { CandleSet, type Candle } from './candles';
@@ -86,12 +86,9 @@ export class BossArena implements BossArenaApi {
   private readonly cup: CupWeakPoint;
   /** 61 E: 파훼 창 머리 위 고리 · 소등 림라이트 · 보스방 VRAM 지연 로드 */
   private readonly daze: BreakDaze;
-  readonly rim: BossRim;
   readonly vram: BossVram;
-  private darkUntil = 0;
-  /** 61라운드 점검 #6: 어둠 동안 주인공·보스 최소 광원 */
-  private darkLights: LightSource[] = [];
-  private timers: Phaser.Time.TimerEvent[] = [];
+  /** 61 단계 4: 소등(등불 끄기·처치 때 불 끄기·림) */
+  private readonly darkness: ArenaDarkness;
   private loops = { fire: false, roll: false };
   /** 술통 자국·쏟아짐 웅덩이 불 수치 (보스 fireSpill 공통값) */
   private readonly fireDefaults: FireSpillParams;
@@ -195,12 +192,30 @@ export class BossArena implements BossArenaApi {
         scene: host.scene,
         users: () => {
           const b = this.boss();
-          return [b, b?.visual.corpse, ...this.rim.sprites];
+          return [b, b?.visual.corpse, ...this.darkness.rim.sprites];
         },
       },
       bossId,
     );
-    this.rim = new BossRim(host.scene, bossId, () => this.vram.rimReady);
+    this.darkness = new ArenaDarkness(
+      {
+        scene: host.scene,
+        player: host.player,
+        candles: this.candles,
+        lighting: () => host.lighting(),
+        boss: () => this.boss(),
+        action: (a, i) => this.action(a, i),
+        telegraphAboveDark: (on) => host.telegraphAboveDark?.(on),
+      },
+      this.A,
+      bossId,
+      () => (this.vram.rimReady ? this.vram.rimKind : null),
+    );
+  }
+
+  /** 61 E 소등 림라이트 */
+  get rim(): BossRim {
+    return this.darkness.rim;
   }
 
   // =====================================================================
@@ -222,59 +237,11 @@ export class BossArena implements BossArenaApi {
   }
 
   lightsOut(p: { fadeMs: number; durationMs: number; darkAmbient: string; toppleGapMs: number }): void {
-    if (this.dark) return;
-    const now = this.now;
-    this.darkUntil = now + p.durationMs;
-    const L = this.host.lighting();
-    L?.setAmbient(p.darkAmbient, p.fadeMs);
-    if (L) L.telegraphGain = this.A.darkTelegraphLightMult;
-    this.candles.list.forEach((c, i) => {
-      const t = this.host.scene.time.delayedCall(i * p.toppleGapMs, () => {
-        this.candles.set(c, 'fallen');
-        this.action('candleTopple', i);
-      });
-      this.timers.push(t);
-    });
-    this.timers.push(this.host.scene.time.delayedCall(p.durationMs, () => this.restoreLight(p.fadeMs)));
-    this.addDarkLights();
-    this.rim.setOn(true);
-    this.host.telegraphAboveDark?.(true);
-    EventBus.emit(Events.BOSS_SCREEN, { effect: 'dark', on: true } satisfies BossScreenPayload);
-  }
-
-  /** 61라운드 점검 #6: 어둠 속에서도 주인공·보스 실루엣이 읽히게 최소 광원 (data arena.darkLights) */
-  private addDarkLights(): void {
-    this.removeDarkLights();
-    const D = this.A.darkLights;
-    if (!D) return;
-    const reg = lightRegistryOf(this.host.scene);
-    const p = this.host.player;
-    if (D.player) this.darkLights.push(reg.add(D.player, { x: p.x, y: p.y, anchor: p }));
-    const b = this.boss();
-    if (D.boss && b) this.darkLights.push(reg.add(D.boss, { x: b.x, y: b.y, anchor: b }));
-  }
-
-  private removeDarkLights(): void {
-    const reg = lightRegistryOf(this.host.scene);
-    for (const l of this.darkLights) reg.remove(l);
-    this.darkLights = [];
-  }
-
-  /** 12초 뒤 저절로 복구: 주변광 · 촛대를 다시 세운다 */
-  private restoreLight(fadeMs: number): void {
-    this.darkUntil = 0;
-    this.removeDarkLights();
-    this.rim.setOn(false);
-    this.host.telegraphAboveDark?.(false);
-    const L = this.host.lighting();
-    L?.setAmbient(null, fadeMs);
-    if (L) L.telegraphGain = 1;
-    for (const c of this.candles.list) this.candles.set(c, 'lit');
-    EventBus.emit(Events.BOSS_SCREEN, { effect: 'dark', on: false } satisfies BossScreenPayload);
+    this.darkness.lightsOut(p);
   }
 
   get dark(): boolean {
-    return this.darkUntil > 0;
+    return this.darkness.dark;
   }
 
   traceCask(from: Vec, dirX: number, dirY: number, bounces: number, maxPx: number, radiusPx: number): Vec[] {
@@ -486,7 +453,7 @@ export class BossArena implements BossArenaApi {
       b?.brokenWindow ? { sprite: b, brokenWindow: (now) => b.brokenWindow?.(now) ?? null } : null,
       time,
     );
-    this.rim.update(b);
+    this.darkness.update(b);
     this.vram.update();
     this.syncLoops();
   }
@@ -567,20 +534,14 @@ export class BossArena implements BossArenaApi {
     if (stage !== null) this.action('pillarCrack', stage);
   }
 
-  /**
-   * 61 E 처치 때 방 불 끄기 대상: 켜진 촛대(서 있음·다시 켬) — 보스에서 먼 순서. 촛대의 불꽃 자리와 함께
-   */
-  snuffTargets(from: Vec): { candle: Candle; at: Vec }[] {
-    return this.candles.list
-      .filter((c) => c.state === 'lit' || c.state === 'relit')
-      .map((candle) => ({ candle, at: this.candles.flamePoint(candle) }))
-      .sort((a, b) => Math.hypot(b.at.x - from.x, b.at.y - from.y) - Math.hypot(a.at.x - from.x, a.at.y - from.y));
+  /** 61 E 처치 때 방 불 끄기 대상 (보스에서 먼 순서 — 불꽃 자리 · 심지들) */
+  snuffTargets(from: Vec): SnuffTarget[] {
+    return this.darkness.snuffTargets(from);
   }
 
-  /** 촛대 하나 끄기 (광원 없음 · 서 있는 그림 어둡게) */
+  /** 촛대 하나 끄기 */
   snuff(c: Candle): void {
-    this.candles.set(c, 'out');
-    this.action('flameSnuff', c.id);
+    this.darkness.snuff(c);
   }
 
   private boss(): Mob | null {
@@ -602,9 +563,7 @@ export class BossArena implements BossArenaApi {
   summary(): Record<string, unknown> {
     const pools = this.host.pools.of('boss');
     return {
-      dark: this.dark,
-      darkLights: this.darkLights.length,
-      darkRemainingMs: this.dark ? Math.max(0, Math.round(this.darkUntil - this.now)) : 0,
+      ...this.darkness.summary(this.now),
       screen: this.screen.summary(),
       candles: this.candles.list.map((c) => ({ id: c.id, tx: c.tx, ty: c.ty, state: c.state })),
       casks: this.casks.list.map((c) => ({
@@ -631,7 +590,7 @@ export class BossArena implements BossArenaApi {
       cupHits: this.cup.hits,
       pillars: this.pillars.summary(),
       daze: this.daze.showing,
-      rim: { on: this.rim.on, mode: this.rim.mode },
+      rim: this.rim.summary(),
       vram: this.vram.summary(),
       lighting: this.host.lighting()?.summary() ?? null,
       burn: this.burn?.summary() ?? null,
@@ -648,9 +607,7 @@ export class BossArena implements BossArenaApi {
       this.screen.stop();
       EventBus.emit(Events.BOSS_SCREEN, { effect: 'tilt', on: false } satisfies BossScreenPayload);
     }
-    for (const t of this.timers) t.remove(false);
-    this.timers = [];
-    if (this.dark) this.restoreLight(BOSS_FX.DEATH_RESTORE_MS);
+    this.darkness.onBossDied(BOSS_FX.DEATH_RESTORE_MS);
     this.casks.destroy();
     // 타다 죽으면 시체(죽음 그림)를 따라 타다가 마지막 프레임에서 꺼진다 (54라운드 Q28)
     this.burn?.onBossDied(this.boss());
@@ -659,11 +616,7 @@ export class BossArena implements BossArenaApi {
   destroy(): void {
     EventBus.off(Events.BOSS_DIED, this.onBossDied, this);
     EventBus.off(Events.BOSS_WALL_HIT, this.onWallHit, this);
-    for (const t of this.timers) t.remove(false);
-    this.timers = [];
-    if (this.dark) this.host.lighting()?.setAmbient(null, 0);
-    this.removeDarkLights();
-    this.host.telegraphAboveDark?.(false);
+    this.darkness.destroy();
     this.screen.destroy();
     this.candles.destroy();
     this.casks.destroy();
@@ -672,7 +625,6 @@ export class BossArena implements BossArenaApi {
     this.pillars.destroy();
     this.cup.destroy();
     this.daze.destroy();
-    this.rim.destroy();
     this.vram.destroy();
     if (this.loops.roll) EventBus.emit(Events.BOSS_LOOP, { loop: 'roll', on: false } satisfies BossLoopPayload);
     if (this.loops.fire) EventBus.emit(Events.BOSS_LOOP, { loop: 'fire', on: false } satisfies BossLoopPayload);

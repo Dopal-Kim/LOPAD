@@ -58,7 +58,7 @@ export const UI_EVENTS = {
   TUTORIAL_STEP: 'ui:tutorial-step',
   /** 57라운드 §14.11: 세트 단계가 오르거나 내림 (`UiTagSetChanged`) */
   TAG_SET_CHANGED: 'ui:tag-set-changed',
-  /** 57라운드 §14.11: 이중 개성 획득 (`UiDualTrait`) */
+  /** 57라운드 §14.11: 이중 개성 획득 (`UiDualTrait`) — 61 G(§18): 이중 개성 폐지, 더 오지 않는다 (`TRAIT_GAINED`) */
   DUAL_TRAIT_GAINED: 'ui:dual-trait-gained',
   /** 57라운드 §14.11: 저주 받음 (`UiCurse`) */
   CURSE_GAINED: 'ui:curse-gained',
@@ -74,6 +74,14 @@ export const UI_EVENTS = {
   CONSUMABLE_USED: 'ui:consumable-used',
   /** 61라운드 단계 3 (계약 §17): 보스 파훼·결정타 (`UiBossBreak`) */
   BOSS_BREAK: 'ui:boss-break',
+  /** 61라운드 단계 4 (계약 §17.1): 보스 등장 포효 순간 (`UiBossRoar`) — 이름 카드 자리. 등장 연출이 없으면(introMs 0) BOSS_STARTED 직후 */
+  BOSS_ROAR: 'ui:boss-roar',
+  /** 61라운드 단계 4 (계약 §18): 각성 게이지가 올랐다 (`UiGrowthGain`) — HUD 반짝 */
+  GROWTH_GAIN: 'ui:growth-gain',
+  /** §18: 1차·2차 각성 연출 시작 (`UiAwaken`) — 시스템이 게임을 0.8/1.0초 멈춘다. UI 는 이름·한 줄 배너 */
+  AWAKEN: 'ui:awaken',
+  /** §18: 개성 하나를 얻었다 (`UiGrowthTrait`) — 옛 이중 개성 notice 대체 */
+  TRAIT_GAINED: 'ui:trait-gained',
 } as const;
 
 /**
@@ -130,7 +138,7 @@ export interface UiCurse {
 export interface UiBuildState {
   /** score > 0 인 태그만, 점수 높은 순 (시스템 정렬) */
   tags: UiTagState[];
-  /** 얻은 이중 개성 */
+  /** 얻은 이중 개성 — 61 G(§18): 이중 개성 폐지, 늘 [] (개성은 `UiSnapshot.growth.traits`) */
   dualTraits: UiDualTrait[];
   /** 지금 걸린 저주 (동시 1개) */
   curse: UiCurse | null;
@@ -157,10 +165,108 @@ export interface UiPerfectSuccess {
 }
 
 /**
- * §14.4 메뉴 줄 종류 — 개성 3지선다 칸·보상 칸. branchA/B 갈래 · reinforce 강화 · bloodPact 피의 계약 · awaken 최종 각성 ·
- * dual 이중 개성 확정 칸 · passive 일반 패시브 · curse 저주 선택
+ * §14.4 메뉴 줄 종류 — 보상 칸. passive 일반 패시브 · curse 저주 선택.
+ * 61 G (§18 무기 성장 — `evolve` 메뉴): trait 개성 3장 · awaken1 1차 갈래 · awaken2 2차 길 · temper 단련.
+ * 옛 branchA/branchB/reinforce/bloodPact/awaken/dual 은 UI 코드 호환으로만 남는다 — 시스템은 더 내보내지 않는다
  */
-export type UiChoiceKind = 'branchA' | 'branchB' | 'reinforce' | 'bloodPact' | 'awaken' | 'dual' | 'passive' | 'curse';
+export type UiChoiceKind =
+  | 'trait'
+  | 'awaken1'
+  | 'awaken2'
+  | 'temper'
+  | 'passive'
+  | 'curse'
+  /** @deprecated 61 G — 더 오지 않는다 */
+  | 'branchA'
+  /** @deprecated 61 G */
+  | 'branchB'
+  /** @deprecated 61 G */
+  | 'reinforce'
+  /** @deprecated 61 G */
+  | 'bloodPact'
+  /** @deprecated 61 G */
+  | 'awaken'
+  /** @deprecated 61 G */
+  | 'dual';
+
+/** §18 각성 게이지 눈금 종류: ◇ 개성 발현 · ◆ 1차 각성 · ◆ 2차 각성 · 단련(단련 또는 개성) */
+export type UiGrowthMarkKind = 'trait' | 'awaken1' | 'awaken2' | 'temper';
+/** §18 눈금 하나 (지난 것 done) */
+export interface UiGrowthMark {
+  at: number;
+  kind: UiGrowthMarkKind;
+  done: boolean;
+}
+/** §18 개성 카드 (verb = 바뀌는 키 칸, tag = 1층 태그) */
+export interface UiGrowthTrait {
+  id: string;
+  name: string;
+  /** 조건 → 행동 변화 한 문장 */
+  line: string;
+  verb: UiVerbSlot;
+  tag?: UiTagId;
+}
+/** §18 2차 길 */
+export interface UiGrowthPath {
+  id: string;
+  name: string;
+  line: string;
+  /** 2차 모양 미리보기 텍스처 키 (시스템이 로드해 둔 것만 — 없으면 생략) */
+  lookKey?: string;
+  /** 61 G 시스템 추가: 길이 바꾸는 칸 */
+  verb?: UiVerbSlot;
+}
+/** §18 1차 갈래 */
+export interface UiGrowthBranch {
+  id: string;
+  name: string;
+  /** 한 줄 양상 ('무리 한가운데로 파고드는 칼') */
+  line: string;
+  /** 1차 각성 때 바뀌는 칸 */
+  verb: UiVerbSlot;
+  /** 1차 모양 미리보기 텍스처 키 (로드돼 있을 때만) */
+  lookKey?: string;
+  paths: [UiGrowthPath, UiGrowthPath];
+}
+/** §18 `UiSnapshot.growth` */
+export interface UiGrowth {
+  /** 누적, 줄지 않음 */
+  gauge: number;
+  /** 이번 층 눈금 (지난 것 done) — 기본 눈금 + 다음 단련 눈금 하나 */
+  marks: UiGrowthMark[];
+  /** 다음 눈금 (null = 더 없음) */
+  next: UiGrowthMark | null;
+  /** 각성 단계 */
+  stage: 0 | 1 | 2;
+  weaponName: string;
+  baseLookKey?: string;
+  /** 이 무기의 갈래 3 (성장도 나무용, 항상 전체) */
+  branches: UiGrowthBranch[];
+  /** 고른 1차 갈래 id */
+  branch: string | null;
+  /** 고른 2차 길 id */
+  path: string | null;
+  /** 얻은 개성 */
+  traits: UiGrowthTrait[];
+  temper: { n: number; max: number };
+  /** true = 메타 기준 처음 (안내 카드) — 메뉴가 닫히면 시스템이 메타 `diary.guides` 에 기록 */
+  firstTime: { trait: boolean; awaken1: boolean; awaken2: boolean };
+}
+/** §18 `GROWTH_GAIN` 페이로드 */
+export interface UiGrowthGain {
+  amount: number;
+  gauge: number;
+}
+/** §18 `AWAKEN` 페이로드 */
+export interface UiAwaken {
+  stage: 1 | 2;
+  weapon: string;
+  branch: string;
+  path?: string;
+  name: string;
+  line: string;
+  lookKey?: string;
+}
 
 /** §14.4 패시브 희귀도 (일반·희귀·영웅·전설) */
 export type UiRarity = 'common' | 'rare' | 'epic' | 'legendary';
@@ -326,6 +432,12 @@ export interface UiMenuLine {
   rarity?: UiRarity;
   /** §14.4: 잠긴 칸 — 각성 조건 안내. locked 면 enabled = false */
   locked?: { condition: string } | null;
+  /** 61 G §18: `awaken1` 줄의 갈래 */
+  branch?: UiGrowthBranch;
+  /** §18: `awaken2` 줄의 길 */
+  path?: UiGrowthPath;
+  /** §18: `trait` 줄이 바꾸는 키 칸 */
+  verb?: UiVerbSlot;
   /** 60라운드 §14.6: 상점 줄 묶음 — 고정 4칸 / 진열 3칸 / 리롤 / 궤짝 덤 / 지도 정보 */
   group?: 'fixed' | 'display' | 'reroll' | 'chest' | 'mapInfo';
   /** §14.6: 가격 (리롤은 15 → 25 → 35) */
@@ -606,7 +718,13 @@ export interface UiSnapshot {
   trialsTotal: number;
   bossUnlocked: boolean;
   exitOpen: boolean;
+  /**
+   * personality·threshold = 61 G: 각성 게이지(누적)·다음 눈금 값 (옛 '개성 n/max' 대체 — 정식 표시는 `growth`).
+   * @deprecated personality·threshold — `growth.gauge`·`growth.next` 를 쓴다
+   */
   weapon: { name: string; evolutionName: string | null; personality: number; threshold: number; secondaryName: string };
+  /** 61라운드 단계 4 §18: 무기 성장 (무기 없을 때 null) */
+  growth: UiGrowth | null;
   boss: UiBossSnapshot | null;
   stats: { attack: number; defense: number; crit: number; sense: number };
   /** 57라운드 §14.1: 태그(1~2개)·최대 레벨 추가 */
@@ -770,6 +888,11 @@ export interface UiBossInfo {
   finisher?: boolean;
 }
 
+/** 61라운드 단계 4 (계약 §17.1): BOSS_ROAR — 등장 포효 프레임에 한 번 */
+export interface UiBossRoar {
+  name: string;
+}
+
 /** 61라운드 (계약 §17): 보스 파훼(잔·기둥·술통·취권 넘어짐)·결정타. label = 짧은 이름, text = 알림 문구 */
 export interface UiBossBreak {
   kind: 'cup' | 'pillar' | 'cask' | 'stumble' | 'finisher';
@@ -844,6 +967,7 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   bossUnlocked: false,
   exitOpen: false,
   weapon: { name: '', evolutionName: null, personality: 0, threshold: 1, secondaryName: '' },
+  growth: null,
   boss: null,
   stats: { attack: 0, defense: 0, crit: 0, sense: 0 },
   passives: [],

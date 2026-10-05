@@ -1,27 +1,26 @@
 /**
  * 57라운드 빌드 축 합산 (Phaser 의존 없음): 태그 점수 → 세트 단계 → 수치(stats 합) + 사건 규칙(rules) 목록.
- * 원천: 패시브(effects·byLevel·rule) · 세트(2/4/6 누적) · 갈래 노드 규칙(2단) · 이중 개성 · 각성(공통 + 2단별) · 저주(이득·대가).
+ * 원천: 패시브(effects·byLevel·rule) · 세트(2/4/6 누적) · 갈래 노드 규칙(1차 갈래·2차 길) · 개성 카드(61 G P12) · 저주(이득·대가).
  * 원칙(설계안 0.3): 갈래는 '하는 일', 패시브는 '수치', 세트는 '규칙'. 실행은 씬 쪽 `BuildRuntime`.
  */
 import {
   BUILD_STAT_KEYS,
   TAG_IDS,
   ruleParams,
-  type AwakeningDef,
   type BuildData,
   type BuildStatKey,
-  type DualTraitDef,
   type RuleDef,
   type SetThreshold,
   type TagId,
 } from '../../data/buildTypes';
 import type { WeaponEvolution } from '../../data/types';
+import type { TraitDef } from '../../data/growthTypes';
 import { onFloor, type FloorScope } from '../../data/floorScope';
 import type { PassiveSet } from '../passives';
 import { scaledBenefit, type CurseState } from './curses';
 import { setStage, tagScores, type TagScores } from './tagScore';
 
-export type RuleSource = 'set' | 'passive' | 'dual' | 'branch' | 'awaken' | 'curse';
+export type RuleSource = 'set' | 'passive' | 'trait' | 'branch' | 'curse';
 
 export interface ActiveRule {
   kind: string;
@@ -29,7 +28,7 @@ export interface ActiveRule {
   /** 패시브 레벨 (그 밖은 1) */
   level: number;
   source: RuleSource;
-  /** 원천 id (패시브 id · 태그 id · 이중 개성 id · 노드 id …) */
+  /** 원천 id (패시브 id · 태그 id · 개성 id · 노드 id …) */
   id: string;
 }
 
@@ -61,9 +60,8 @@ export interface BuildModsInput {
   passives: PassiveSet;
   /** 갈래 경로 노드 */
   nodes: readonly WeaponEvolution[];
-  reinforce: number;
-  dual: readonly DualTraitDef[];
-  awakening: AwakeningDef | null;
+  /** 61 G P12: 얻은 개성 카드 (규칙 + 태그 점수) */
+  traits: readonly TraitDef[];
   curse: CurseState | null;
   /** 영구 태그 보너스 (불붙은 혀) */
   permanentTags: Partial<Record<TagId, number>>;
@@ -85,18 +83,18 @@ export function computeBuildMods(i: BuildModsInput): BuildMods {
   const D = i.data;
   const curse = i.curse;
   const curseDef = curse?.def ?? null;
-  const pactMult = D.evolve.pactBenefitMult;
+  const pactMult = D.pact.benefitMult;
   // 태그 점수: 패시브 · 갈래 · 강화 · 영구 · 저주 이득(만취 서약 취기 +1)
   const passiveList = Object.entries(i.passives.owned)
     .map(([id, level]) => ({ def: i.passives.def(id), level }))
     .filter((p): p is { def: NonNullable<ReturnType<PassiveSet['def']>>; level: number } => Boolean(p.def));
   const extra: Partial<Record<TagId, number>>[] = [i.permanentTags];
+  for (const t of i.traits) extra.push({ [t.tag]: D.scoring.perTrait });
   if (curseDef?.benefits.tagBonus) extra.push(curseDef.benefits.tagBonus);
   const scores = tagScores(
     {
       passives: passiveList.map((p) => ({ tags: p.def.tags, level: p.level, maxLevel: i.passives.maxLevel })),
       branchNodes: i.nodes,
-      reinforce: i.reinforce,
       extra,
     },
     D.scoring,
@@ -134,18 +132,10 @@ export function computeBuildMods(i: BuildModsInput): BuildMods {
       } else addRule(rules, st.effect, 'set', `${t}${st.threshold}`);
     }
   }
-  // 갈래 노드 규칙 (2단 규칙 · live 무관하게 목록에 — 실행기가 없으면 아무 일 없음)
+  // 갈래 노드 규칙 (1차 갈래 · 2차 길)
   for (const n of i.nodes) if (n.rule) addRule(rules, n.rule, 'branch', n.id);
-  // 이중 개성
-  for (const d of i.dual) if (d.live !== false) addRule(rules, d.effect, 'dual', d.id);
-  // 각성: 공통 + 현재 2단 규칙 (live 만)
-  const A = i.awakening;
-  if (A) {
-    if (A.common.live) addRule(rules, A.common, 'awaken', 'common');
-    const tier2 = i.nodes[1]?.id;
-    const r = tier2 ? A.rules[tier2] : undefined;
-    if (r?.live) addRule(rules, r, 'awaken', tier2!);
-  }
+  // 개성 카드 (61 G P12)
+  for (const t of i.traits) addRule(rules, t.effect, 'trait', t.id);
   // 저주 (이득은 피의 계약이면 ×pactMult)
   const flags: BuildFlags = {
     noDash: false,

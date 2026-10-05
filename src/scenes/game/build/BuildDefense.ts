@@ -27,6 +27,8 @@ export class BuildDefense implements PlayerBuildHooks {
   }
 
   evadeHit(time: number, source?: { dirX: number; dirY: number }): boolean {
+    // 61 G 개성 '분신 방패' (단검 쌍격): 분신이 대신 맞는다
+    if (this.rt.traits.evadeHit(time)) return true;
     if (this.rt.stage('drunk') < 4) return false;
     const st = BUILD.sets.drunk[1].effect;
     if (!this.rt.drunk.tryStagger(time, Number(st.counterMs) || 0)) return false;
@@ -87,6 +89,8 @@ export class BuildDefense implements PlayerBuildHooks {
     const w = gameState.weapon.def;
     if (callus && w.secondary.kind !== 'guard' && time - this.rt.dashAt <= param(callus, 'dashMs'))
       a *= 1 - Math.min(0.9, param(callus, 'dashReduction'));
+    // 61 G 개성 '휘두르며 막기' (대검)
+    a = this.rt.traits.adjustDamage(a);
     return Math.max(1, Math.round(a));
   }
 
@@ -142,8 +146,9 @@ export class BuildDefense implements PlayerBuildHooks {
   }
 
   shadowStepCooldown(baseMs: number): number {
+    // 61 G 백귀 (1차 갈래): 그림자 걸음 쿨 ×shadowStepCooldownMult
     const demons = this.rt.rule('hundredDemons');
-    if (demons) return param(demons, 'shadowStepCooldownMs', baseMs);
+    if (demons) return baseMs * param(demons, 'shadowStepCooldownMult', 1);
     return baseMs * Math.max(0.1, 1 + this.rt.stat('shadowStepCooldownMult') + this.rt.stat('dashCooldownMult') * 0);
   }
 

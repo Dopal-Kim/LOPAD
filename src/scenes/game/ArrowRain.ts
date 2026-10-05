@@ -53,8 +53,19 @@ export class ArrowRain {
     } satisfies PlayerSkillPayload);
   }
 
-  start(p: ArrowRainPayload): void {
+  start(p0: ArrowRainPayload): void {
     const g = this.g;
+    // 61 G 성우 (유성 2차 길): 화살비 범위 ×rainScale (낙하 수도 같은 배로 — 밀도 유지)
+    const k = g.build?.traits.rainScale() ?? 1;
+    const p: ArrowRainPayload =
+      k === 1
+        ? p0
+        : {
+            ...p0,
+            radiusPx: p0.radiusPx * k,
+            drops: Math.round(p0.drops * k),
+            dropIntervalMs: p0.dropIntervalMs / k,
+          };
     const fallDef = g.fx.sheet(p.fallFx);
     const fallImpact = fallDef ? (frameStarts(fallDef)[fxImpactFrame(fallDef)] ?? 0) : MOVE_FX.RAIN_FALL_IMPACT_MS;
     const lastImpact = p.firstDropAtMs + (p.drops - 1) * p.dropIntervalMs + fallImpact;
@@ -139,7 +150,10 @@ export class ArrowRain {
         continue;
       const { dmg, crit } = g.combat.rollDamage(p.damageMult, false, 'attack');
       if (this.debugLast) this.debugLast.hits = (this.debugLast.hits as number) + 1;
-      if (g.combat.hitMob(mob, dmg, { crit, dirX: 0, dirY: 1, knock: false })) g.progress.onKill(mob, 'attack');
+      const died = g.combat.hitMob(mob, dmg, { crit, dirX: 0, dirY: 1, knock: false });
+      if (died) g.progress.onKill(mob, 'attack');
+      // 61 G 개성 '화살 그물'·'이어지는 비'
+      g.build?.traits.onRainHit(mob, died, pt);
     }
   }
 

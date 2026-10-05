@@ -273,7 +273,7 @@ export class NodeFlow {
     const grade = gradeOf(this.hits, elapsed, limit, G.hitAllowance, onFloor(G.good, gameState.build.floor));
     const r = gradeReward(grade, Boolean(this.ex?.risk));
     if (r.gold > 0) this.g.economy.addGold(r.gold);
-    if (r.personality > 0) this.g.progress.gainPersonality(r.personality);
+    if (r.personality > 0) this.g.progress.gainGrowth(r.personality);
     if (this.ex) this.ex.grade = grade;
     const text = G.text[grade ?? 'none'];
     EventBus.emit(Events.NODE_GRADED, { grade } satisfies NodeGradedPayload);
