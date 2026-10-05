@@ -3,7 +3,7 @@
  * 게임 씬이 `__lopad` 를 새로 만들 때(debug/index.ts `exposeDebug`)도 같은 것을 다시 붙인다.
  * - `__lopad.runlog.dump()` 런 로그 (진행 중·마지막·저장 목록·노드 종류별 평균) · `runlog.clear()` 저장 목록 비우기
  * - `__lopad.vram()` 텍스처 VRAM 추정 (수·합·4096 초과·상위·분류·중복 업로드)
- * - `__lopad.settings()` / `__lopad.setSettings({...})` 계약 §15 설정 (UI 명령과 같은 경로) · `__lopad.hold(true|false)` 안내 패널 멈춤
+ * - `__lopad.settings()` / `__lopad.setSettings({...})` 계약 §15 설정 (UI 명령과 같은 경로)
  */
 import type Phaser from 'phaser';
 import { uiCommands, type UiSettings } from '../contract/ui';
@@ -17,8 +17,6 @@ export interface BootDebugApi {
   vram: (opts?: { all?: boolean }) => VramReport | null;
   settings: () => UiSettings;
   setSettings: (s: Partial<UiSettings>) => UiSettings;
-  /** 61라운드 플레이 점검 #2: 안내 패널 멈춤 (UI 명령 setGameHold 와 같은 경로, reason 'debug') */
-  hold: (on: boolean) => boolean;
 }
 
 let bootGame: Phaser.Game | null = null;
@@ -35,10 +33,6 @@ export function bootDebugApi(): BootDebugApi {
     setSettings: (s) => {
       uiCommands.setSettings({ ...settings.current(), ...s });
       return settings.current();
-    },
-    hold: (on) => {
-      uiCommands.setGameHold('debug', on);
-      return uiCommands.isGameHeld();
     },
   };
 }

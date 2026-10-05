@@ -1131,7 +1131,8 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 
 ### 플레이 점검
 - **P0 크래시** (저주 표시 중 노드 이동 → `reading 'chain'` → 검은 화면): 씬 종료 때 Phaser DisplayList 가 Game.cleanup 보다 먼저 fx 스프라이트를 파괴한다. `fx/fxRelease.ts`(파괴 검사·풀 반납)를 `FxPool.release`·`stop` 이 쓰고, `BuildArt.destroy` 는 표를 먼저 비운 뒤 멈춘다. 재현 테스트 `fxRelease.test`. 헤드리스: `build.curse('bruise')` → 노드 이동 → 다음 노드 정상 진입, 오류 0.
-- **#2 안내 패널 동안 전투 진행**: 계약 명령 추가 `uiCommands.setGameHold(reason, on)`·`isGameHeld()` (host: 이유별 멈춤 — 일시정지 메뉴와 함께 관리해 둘 다 풀려야 재개, PAUSED/RESUMED·BGM 덕킹 없음, 타이틀·새 런·시험장에서 자동 해제, 런 로그 시간에서 제외). 디버그 `__lopad.hold(on)`. (헤드리스: UI 작업 트리는 이미 패널을 열 때 `uiCommands.pause()` 를 불러 멈춘다 — 어느 쪽이든 된다.)
+- **#2 안내 패널 동안 전투 진행**: UI 가 패널을 열 때 기존 `uiCommands.pause()`/`resume()` 을 부르는 것으로 해결(UI 작업 트리 — 헤드리스로 패널 열림 때 게임 씬 멈춤 확인). 새 계약 명령은 만들지 않았다. 런 로그는 PAUSED~RESUMED 를 플레이 시간에서 뺀다.
+- **피해 숫자 겹침**: `fx/damageNumberLayout.ts`(순수) — 같은 자리(반경 14px)·260ms 안 같은 무리(일반·치명 / 틱 / 주인공 피격)는 합쳐 다시 띄우고(치명이 섞이면 치명, 짧게 커졌다 돌아옴), 아니면 근처 숫자 수만큼 위로 9px·좌우 7px 번갈아 비켜 띄운다(`FEEL.DAMAGE_TEXT.STACK`, 임시값). 설정 §15 `damageNumbers` 를 끄면 새 숫자 없음 + 떠 있는 숫자 지움.
 - **#3 내부 id·영문 등급 노출**: 메뉴 줄 label 에서 `[rarity]`(패시브 메뉴·상점 진열)와 가격 문자열을 뺐다. 가격은 `UiMenuLine.price`(`economy.goldCost`)로만 — 고정 4칸(Economy)·행상(EventNode)에도 넣었다. 희귀도 표시명 `RARITY_LABEL`(일반·희귀·영웅·전설)은 UI 렌더러가 없을 때의 임시 텍스트 메뉴만 쓴다(번호 `[1]`…). 줄 key(`d1`·`reroll`·`chest`·`m:<id>`·`give`·`rob`)는 선택용 내부 값 — UI 가 그리지 않는다.
 - **#11 평가 카드와 보상 메뉴 동시**: 등급이 매겨진 노드는 `BUNDLE_FX.GRADE_CARD_HOLD_MS`(1600, 임시) 뒤에 보상 메뉴.
 

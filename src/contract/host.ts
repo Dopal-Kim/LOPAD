@@ -29,18 +29,7 @@ let chooseCanceler: (() => boolean) | null = null;
 const PAUSABLE = [SCENES.GAME, SCENES.WEAPON_LAB];
 
 export function installContractHost(game: Phaser.Game): void {
-  /**
-   * 61라운드 플레이 점검 #2: UI 안내 패널이 거는 '게임 멈춤'(이유별) · 플레이어 일시정지. 둘 중 하나라도 있으면 게임 씬을 멈춘다.
-   * 멈춤은 PAUSED/RESUMED 를 내지 않는다(일시정지 메뉴와 별개)
-   */
-  const holds = new Set<string>();
-  let userPaused = false;
-  const pausableKey = (state: 'active' | 'paused') =>
-    PAUSABLE.find((k) => game.scene.keys[k] && (state === 'active' ? game.scene.isActive(k) : game.scene.isPaused(k)));
   const stopAllUiAndGame = () => {
-    holds.clear();
-    userPaused = false;
-    runLogRecorder.setPaused('hold', false);
     for (const key of [
       SCENES.GAME,
       SCENES.WEAPON_LAB,
@@ -59,37 +48,21 @@ export function installContractHost(game: Phaser.Game): void {
     getSnapshot: () => null,
     select: (menuId, key) => menuSelect?.(menuId, key),
     pause: () => {
-      const key = pausableKey('active') ?? (holds.size > 0 ? pausableKey('paused') : undefined);
+      const key = PAUSABLE.find((k) => game.scene.keys[k] && game.scene.isActive(k));
       if (key) {
-        if (game.scene.isActive(key)) game.scene.pause(key);
-        userPaused = true;
+        game.scene.pause(key);
         audio.setPaused(true);
         __system.emit(UI_EVENTS.PAUSED, {});
       }
     },
     resume: () => {
-      const key = pausableKey('paused');
+      const key = PAUSABLE.find((k) => game.scene.keys[k] && game.scene.isPaused(k));
       if (key) {
-        userPaused = false;
-        // 안내 패널 멈춤이 남아 있으면 씬은 그대로 멈춰 둔다
-        if (holds.size === 0) game.scene.resume(key);
+        game.scene.resume(key);
         audio.setPaused(false);
         __system.emit(UI_EVENTS.RESUMED, {});
       }
     },
-    setGameHold: (reason, on) => {
-      if (on) {
-        holds.add(reason);
-        const key = pausableKey('active');
-        if (key) game.scene.pause(key);
-      } else {
-        holds.delete(reason);
-        const key = pausableKey('paused');
-        if (key && holds.size === 0 && !userPaused) game.scene.resume(key);
-      }
-      runLogRecorder.setPaused('hold', holds.size > 0);
-    },
-    isGameHeld: () => holds.size > 0,
     startNewRun: () => {
       runLogRecorder.abandon();
       saveSlot.clear();

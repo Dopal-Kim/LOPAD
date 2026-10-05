@@ -562,3 +562,5 @@ interface UiSettings {
 ## 16. 무기 4동사 (61라운드 P1)
 - 스냅샷 `weaponVerbs: UiWeaponVerbs` — 현재 무기의 4칸(`UiVerbSlot`: 좌 연격 · 우 시그니처 · Space 대쉬(+대쉬 공격) · 좌 홀드 고유 기술)마다 `UiWeaponVerb`(키 이름·동작 이름·한 줄 설명). 1단 갈래는 동작을 **더하지 않고 같은 칸의 기본 동작을 대신**하므로 갈래를 얻으면 해당 칸 이름이 바뀐다. 정확한 필드는 `src/contract/ui.ts` 가 기준.
 - 함께 바뀐 표시: `carry` 는 늘 null(F 넣기/뽑기 삭제), 단검 `resource` 는 null(가속은 숨김, 보이는 자원은 낙인), 활 `gauge`(숨)는 저격 갈래일 때만. 튜토리얼에 '좌클릭 길게' 단계(`PLAYER_HOLD_VERB` 로 완료).
+- **(61 시스템 구현)** 기본값 상수 `UI_DEFAULT_SETTINGS`, `UiSnapshot.settings` 는 필수(타이틀 등 게임 씬이 없을 때도 저장값). 메타 세이브 키 `lopad.meta.settings`.
+- **(61 시스템 구현) 메뉴 줄 표기 규칙**: `UiMenuLine.label` 에는 가격·희귀도·내부 id 를 넣지 않는다. 가격은 `line.price`(`label` 포함), 희귀도는 `line.rarity`, 선택 값 `line.key`(`d1`·`reroll`·`m:<id>` 등)는 그리지 않고 UI 가 번호 단축키로 보여 준다. 등급 노드의 보상 메뉴는 평가 카드 뒤 1.6초(`GRADE_CARD_HOLD_MS`)에 열린다. 튜토리얼 패널은 기존 `pause()`/`resume()` 사용.

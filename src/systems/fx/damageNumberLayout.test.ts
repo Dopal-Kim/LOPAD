@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { numberLabel, placeNumber, type PlacedNumber } from './damageNumberLayout';
 
 const cfg = { RADIUS_PX: 14, MERGE_MS: 260, STEP_PX: 9, SPREAD_X: 7, MAX_STEPS: 4 };
-const n = (id: number, ox: number, oy: number, at: number, kind: PlacedNumber['kind'] = 'hit', amount = 5): PlacedNumber => ({
+const n = (
+  id: number,
+  ox: number,
+  oy: number,
+  at: number,
+  kind: PlacedNumber['kind'] = 'hit',
+  amount = 5,
+): PlacedNumber => ({
   id,
   ox,
   oy,

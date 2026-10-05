@@ -29,8 +29,7 @@ export function groupOfKind(k: NumberKind): 'strike' | 'tick' | 'player' {
 }
 
 export type Placement =
-  | { merge: true; id: number; amount: number; kind: NumberKind }
-  | { merge: false; dx: number; dy: number };
+  { merge: true; id: number; amount: number; kind: NumberKind } | { merge: false; dx: number; dy: number };
 
 export function placeNumber(
   active: readonly PlacedNumber[],

@@ -31,7 +31,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 
 ### `src/contract/` (UI 경계)
 - `ui.ts` — 계약 본문(이벤트·스냅샷·메뉴·명령). UI 가 import 하는 유일한 시스템 파일.
-- `host.ts` — 명령 구현(일시정지·안내 패널 멈춤 `setGameHold`·새 런·이어하기·타이틀·노드 선택·음소거·시험장·설정). `snapshot.ts` — 스냅샷 조립.
+- `host.ts` — 명령 구현(일시정지·새 런·이어하기·타이틀·노드 선택·음소거·시험장·설정). `snapshot.ts` — 스냅샷 조립.
 
 ### `src/data/` (데이터 로드·검증 — 수치는 `data/*.json`)
 - `index.ts` — JSON 로드 + 검증(`validate*`) → `PLAYER_DATA`·`ENEMIES`·`BOSSES`·`STAGES`·`RUN`·`WEAPONS`·`ECONOMY`·`STORY`·`PALETTE`·`LIGHTING` …
@@ -55,7 +55,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 - 런·진행: `route`(노드 지도 생성·검증) · `routeArena`(노드 전투장) · `RoomDirector`(방 상태 머신·웨이브) · `save`(런 세이브 `lopad.save`) · `meta`(메타 세이브 `lopad.meta`: 영혼·강화·도감·**설정·런 로그**) · `personality` · `passives` · `senses` · `economy` · `story` · `tutorial`/`tutorialDirector` · `birth` · `traversal` · `TextMenu`(메뉴 브로커)
 - 전투 감각: `feel`(히트스톱·흔들림·넉백·`feelSettings` 배율) · `hitFeel` · `Combat`·`defense` · `packCharge` · `weapon/*`(연격·판정 모양 `hitShapes`·자원·고유 자원·활 당김·4동사 `verbs` 등) · `telegraph/*` · `hazards/*`(술 웅덩이) · `boss/*`(보스 전장·불타기·'세상이 돈다' `drunkScreen`)
 - 빌드 축 `build/*` · 2차 묶음 `bundle2/*` · 구조물 `structures/*`(StructureSystem 창구 + core·kinds·interact·placement·setpiece)
-- 그림·소리: `sprites/*`(시트 경로·로드 묶음 `sheetSets`·애니 등록) · `fx/*`(FxPool·섬광 `screenFx`·피해 숫자·리본·잔상 · 씬 종료 중 반납 검사 `fxRelease`) · `lighting/*` · `strokeFx/*`(3획 연출) · `dodgeTrial/*`(회피 시험) · `audio/*`(오디오 매니저 `audio` · 이벤트 → 효과음 표 `audioMap`·`audioBuild` · 61 믹싱 규칙 `audioMix`·목소리 상한/덕킹 `audioVoices`·층 BGM 지연 로드 `audioLazy`) · `palette` · `display`(1920×1080 캔버스·논리 960×540) · `fonts`
+- 그림·소리: `sprites/*`(시트 경로·로드 묶음 `sheetSets`·애니 등록) · `fx/*`(FxPool·섬광 `screenFx`·피해 숫자·리본·잔상 · 씬 종료 중 반납 검사 `fxRelease` · 피해 숫자 합치기/비켜 띄우기 `damageNumberLayout`) · `lighting/*` · `strokeFx/*`(3획 연출) · `dodgeTrial/*`(회피 시험) · `audio/*`(오디오 매니저 `audio` · 이벤트 → 효과음 표 `audioMap`·`audioBuild` · 61 믹싱 규칙 `audioMix`·목소리 상한/덕킹 `audioVoices`·층 BGM 지연 로드 `audioLazy`) · `palette` · `display`(1920×1080 캔버스·논리 960×540) · `fonts`
 - 61라운드 도구: `settings`(계약 §15 설정 적용·저장) · `runlog/*`(런 로그) · `sim/*`(헤드리스 수치 추정) · `vram`(텍스처 VRAM 추정)
 - 기타: `mapgen/*`(방+복도 층 — 노드 지도 이전 층 형식) · `setup/*`(개성 선택 계산) · `rng` · `mathUtil` · `keyEvents` · `InputSystem`
 
@@ -64,7 +64,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 
 ### `src/debug/`
 - `index.ts` — `?debug=1` 이면 게임 씬이 `window.__lopad` 를 만든다(상태·이동·적·보스·구조물·노드·무기·빌드·묶음 조회와 조작).
-- `boot.ts` — 씬과 무관한 훅(타이틀부터): `__lopad.runlog.dump()`·`runlog.clear()` · `__lopad.vram()` / `vram({ all: true })` · `__lopad.settings()`·`setSettings({...})` · `__lopad.hold(on)`(안내 패널 멈춤).
+- `boot.ts` — 씬과 무관한 훅(타이틀부터): `__lopad.runlog.dump()`·`runlog.clear()` · `__lopad.vram()` / `vram({ all: true })` · `__lopad.settings()`·`setSettings({...})`.
 - `bossQuery.ts` — `?boss…` 주소 옵션.
 
 ## 4. 데이터 파일 (`data/*.json`)

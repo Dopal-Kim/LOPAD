@@ -769,9 +769,6 @@ interface SystemImpl {
   cancelChoose: () => boolean;
   setMuted: (muted: boolean) => void;
   startWeaponLab: () => void;
-  /** 61라운드 플레이 점검 #2 */
-  setGameHold: (reason: string, on: boolean) => void;
-  isGameHeld: () => boolean;
   /** 61라운드 §15 */
   getSettings: () => UiSettings;
   setSettings: (s: UiSettings) => void;
@@ -895,19 +892,6 @@ export const uiCommands = {
    */
   setSettings(s: UiSettings): void {
     impl?.setSettings(s);
-  },
-  /**
-   * 61라운드 플레이 점검 #2 (계약 추가 요청 — 프로듀서 계약 문서 갱신 대상): UI 안내 패널(튜토리얼 '싸우는 법' 카드 등)이 떠 있는 동안
-   * 게임 진행을 멈춘다. reason 별로 켜고 끈다(같은 reason 을 두 번 켜도 하나). 모든 reason 이 꺼지고 일시정지 메뉴도 닫혀 있어야 다시 움직인다.
-   * 일시정지 메뉴와 달리 PAUSED/RESUMED 이벤트·BGM 덕킹이 없다. 타이틀·새 런·이어하기·시험장으로 가면 시스템이 모두 푼다.
-   * 멈춘 동안 게임 씬이 STATE 를 내지 않으니 패널은 스스로 그린다
-   */
-  setGameHold(reason: string, on: boolean): void {
-    impl?.setGameHold(reason, on);
-  },
-  /** 지금 안내 패널 멈춤이 하나라도 걸려 있는가 */
-  isGameHeld(): boolean {
-    return impl?.isGameHeld() ?? false;
   },
 };
 
