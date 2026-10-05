@@ -59,9 +59,9 @@ def settings(variant_groups):
                  hold='그 소리 길이 동안', note='bgmBossDuckDb 위에 더해짐'),
             dict(when='sfx/hit_player 그룹 재생', target='sfx priority ≤ 2', db=-3.0, attackMs=5, releaseMs=180,
                  hold='150 ms', note='맞은 순간이 또렷하게'),
-            dict(when='파훼 소리 재생(ui:boss-break → boss1_break_*·break_finisher, BOSS_BREAK → break_count)', target='sfx priority ≤ 2', db=-4.0,
+            dict(when='파훼 소리 재생(boss1_break_*·break_finisher)', target='sfx priority ≤ 2', db=-4.0,
                  attackMs=5, releaseMs=300, hold='300 ms',
-                 note='61-2: 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게'),
+                 note='61-2: 트리거 ui:boss-break(break_count 는 제외) · 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게'),
         ],
         variation=dict(
             policy='random-no-repeat',
