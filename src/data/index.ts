@@ -4,6 +4,7 @@ import bossesJson from '../../data/bosses.json';
 import stagesJson from '../../data/stages.json';
 import weaponsJson from '../../data/weapons.json';
 import { validateWeaponKit } from './validateWeaponKit';
+import { validateEnemyExtras } from './enemyTypes';
 import economyJson from '../../data/economy.json';
 import personalityJson from '../../data/personality.json';
 import storyJson from '../../data/story.json';
@@ -11,6 +12,7 @@ import paletteJson from '../../data/palette.json';
 import lightingJson from '../../data/lighting.json';
 import { validateCombo } from './validateCombo';
 import { checkPatternParams, isBossPatternName, resolvePatternParams, type BossPatternName } from './bossPatterns';
+import { validateBossShow } from './bossShowTypes';
 import type {
   BossTable,
   EconomyData,
@@ -79,7 +81,7 @@ export function validateEnemies(t: EnemyTable): EnemyTable {
     assertNumber(e.gold, `enemies.${id}.gold`);
     if (e.behavior === 'ranged' && !e.ranged) throw new Error(`[data] enemies.${id}: ranged 파라미터 없음`);
     if (e.behavior === 'charge' && !e.charge) throw new Error(`[data] enemies.${id}: charge 파라미터 없음`);
-    if (!['chase', 'ranged', 'charge'].includes(e.behavior)) {
+    if (!['chase', 'ranged', 'charge', 'throw', 'roll'].includes(e.behavior)) {
       throw new Error(`[data] enemies.${id}.behavior 알 수 없음: ${e.behavior}`);
     }
     // 35라운드 2단계 보조 행동
@@ -98,6 +100,8 @@ export function validateEnemies(t: EnemyTable): EnemyTable {
       for (const k of ['minCount', 'rangeTiles', 'speedMult', 'durationMs', 'cooldownMs'] as const)
         assertNumber(e.pack[k], `enemies.${id}.pack.${k}`);
     }
+    // 61라운드 단계 2 신규 적 (독주 행상·술통 짐꾼·사망 웅덩이·소개 문구)
+    validateEnemyExtras(id, e);
   }
   return t;
 }
@@ -151,6 +155,8 @@ export function validateBosses(t: BossTable): BossTable {
       }
       // 기존 규칙: 부채꼴은 돌진 뒤 연계가 있으므로 fan 을 고르는 페이즈만 fan 수치를 본다 (위 검사로 충분)
     });
+    // 61라운드: 존재감·연출·대사·소등 광원·서사 소품 자리
+    validateBossShow(b, `bosses.${id}`);
   }
   return t;
 }

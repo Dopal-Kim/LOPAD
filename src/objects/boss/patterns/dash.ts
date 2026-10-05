@@ -81,6 +81,7 @@ class DashRun implements PatternRun {
           h.paint(COLORS.STUN);
           h.pose.recover(ctx.time, P.wallStunMs);
           h.scheduleNext(ctx.time);
+          h.markBroken(P.wallStunMs);
           h.emitWallHit();
         } else if (ctx.time >= this.until) {
           h.setVelocity(0, 0);

@@ -6,6 +6,7 @@ import { knockFactor, knockSpeed } from '../systems/feel';
 import type { PackCharge } from '../systems/packCharge';
 import type { TelegraphFx } from '../systems/telegraph';
 import type { BossArenaApi } from './boss/types';
+import type { EnemyHazardApi } from '../systems/hazards/enemyHazardTypes';
 import { EntityVisual, placeholderTexture } from './EntityVisual';
 import { LIGHTING } from '../data';
 import { lightRegistryOf } from '../systems/lighting/lightRegistry';
@@ -33,6 +34,8 @@ export interface MobContext {
   pack: PackCharge;
   /** 54라운드: 보스방 환경 (기둥·촛대·술통·술 웅덩이·화면 효과). 보스방이 아니면 없음 */
   arena?: BossArenaApi | null;
+  /** 61라운드 단계 2: 일반 적 위험물 (독주 행상 화염 술병 · 술통 짐꾼 술통 · 술 웅덩이). 없으면 그 행동을 하지 않는다 */
+  hazards?: EnemyHazardApi | null;
 }
 
 export interface ProjectileSpec {
@@ -334,6 +337,11 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   }
 
   protected onDeath(): void {}
+
+  /** 지금 받는 피해 배율 (엘리트 접두어 damageTakenMult · 61라운드 보스는 파훼 경직 동안 더 곱한다 — Boss) */
+  damageTakenMultAt(_now: number): number {
+    return this.damageTakenMult;
+  }
 
   /** 60라운드 엘리트: 최대 HP 를 배율로 늘리고 가득 채운다 */
   scaleMaxHp(mult: number): void {

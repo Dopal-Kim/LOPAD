@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BUNDLE2, validateBundle2 } from '../../data/bundle2';
+import { BUNDLE2, consumableIdsOn, eventsOn, prefixIdsOn, validateBundle2 } from '../../data/bundle2';
 import type { Bundle2Data } from '../../data/bundle2Types';
 import { generateRoute } from '../route';
 import { Rng } from '../rng';
@@ -15,6 +15,26 @@ describe('60라운드 2차 묶음 데이터 (data/bundle2.json)', () => {
     expect(BUNDLE2.events.items).toHaveLength(9);
     expect(BUNDLE2.elite.prefixes).toHaveLength(6);
     expect(BUNDLE2.consumables.items.map((c) => c.id)).toEqual(['fireBottle', 'strongDrink', 'coldWater']);
+  });
+
+  it('61라운드 P5 1층판: 이벤트 5(E3·E4·E5·E8·E9) · 접두어 3 · 소모품 = 화염 술병 · 2층부터 전부', () => {
+    expect(eventsOn(1).map((e) => e.code)).toEqual(['E3', 'E4', 'E5', 'E8', 'E9']);
+    expect(prefixIdsOn(1)).toEqual(['drunkard', 'enraged', 'ringleader']);
+    expect(consumableIdsOn(1)).toEqual(['fireBottle']);
+    expect(eventsOn(2)).toHaveLength(9);
+    expect(prefixIdsOn(2)).toHaveLength(6);
+    expect(consumableIdsOn(null)).toHaveLength(3);
+    // 1층 저주 이벤트는 E9 하나 · E8 맹세(저주) 선택지 없음
+    const curseEvents = eventsOn(1).filter(
+      (e) => e.kind === 'curse' || e.options?.some((o) => o.effects.some((x) => x.kind === 'curse')),
+    );
+    expect(curseEvents.map((e) => e.code)).toEqual(['E9']);
+    // 모든 1층 이벤트: 본문(intro) · 선택지마다 결과 문장(지나가기 포함)
+    for (const e of eventsOn(1)) {
+      expect(e.intro?.length).toBeGreaterThan(0);
+      for (const o of e.options ?? [])
+        if (!o.effects.some((x) => x.kind === 'diaryRead')) expect(o.result, `${e.id}.${o.key}`).toBeTruthy();
+    }
   });
 
   it('형식이 틀리면 예외 (선택지 key 0 금지)', () => {
@@ -50,10 +70,22 @@ describe('층 노드 정보 (routeExtras)', () => {
     }
   });
 
-  it('숨은 노드: 단서 조사 전에는 어디에도 이어지지 않고, 열면 갈라지는 노드 링크에 붙는다', () => {
+  it('61라운드 P5: 1층은 성소·숨은 노드 없음, 엘리트 접두어는 1층 3종만', () => {
+    for (let i = 0; i < 30; i++) {
+      const ex = generateExtras(graphOf(`f1-${i}`), `f1-${i}`, [], 3);
+      expect(ex.hidden).toBeNull();
+      for (const n of Object.values(ex.nodes)) {
+        expect(n.shrine).toBe(false);
+        for (const p of n.prefixes) expect(prefixIdsOn(1)).toContain(p);
+        if (n.eventId) expect(eventsOn(1).map((e) => e.id)).toContain(n.eventId);
+      }
+    }
+  });
+
+  it('숨은 노드(2층부터): 단서 조사 전에는 어디에도 이어지지 않고, 열면 갈라지는 노드 링크에 붙는다', () => {
     let found = false;
     for (let i = 0; i < 40 && !found; i++) {
-      const g = graphOf(`h${i}`);
+      const g = generateRoute('stage2', `h${i}`);
       const ex = generateExtras(g, `h${i}`, [], 3);
       if (!ex.hidden) continue;
       found = true;
@@ -120,7 +152,10 @@ describe('소모품 칸 · 상점 · 등급 · 파훼', () => {
     expect(gradeOf(2, 1000, 50000)).toBe('good');
     expect(gradeOf(0, 60000, 50000)).toBe('good');
     expect(gradeOf(1, 60000, 50000)).toBeNull();
-    expect(gradeReward('perfect', true)).toEqual({ gold: 40, personality: 30 });
+    expect(gradeReward('perfect', true)).toEqual({ gold: 50, personality: 40 });
+    // 61라운드 P5: 1층은 '완' 하나 (양 없음)
+    expect(gradeOf(2, 1000, 50000, 0, false)).toBeNull();
+    expect(gradeOf(0, 1000, 50000, 0, false)).toBe('perfect');
     expect(gradeReward('good', false)).toEqual({ gold: 10, personality: 0 });
   });
 
@@ -149,7 +184,11 @@ describe('소모품 칸 · 상점 · 등급 · 파훼', () => {
 
   it('시트 요청: 소품 · 월드 소모품 · 엘리트 외곽선', () => {
     const reqs = bundleSheetRequests();
-    expect(reqs).toContainEqual({ category: 'structures', name: 'challenge_banner', action: 'st' });
+    // 61라운드: 로드 범위(1층) — 서사 소품 3 · 1층 이벤트 소품, 성소 깃발·숨은 노드 단서·E2 잔은 올리지 않는다
+    for (const name of ['clue_masked_corpse', 'clue_gate_register', 'clue_tab_ledgers', 'event_offering_cup'])
+      expect(reqs).toContainEqual({ category: 'structures', name, action: 'st' });
+    for (const name of ['challenge_banner', 'clue_drain', 'event_last_cup'])
+      expect(reqs).not.toContainEqual({ category: 'structures', name, action: 'st' });
     expect(reqs).toContainEqual({ category: 'items', name: 'consumable_f1', action: 'st' });
     expect(reqs).toContainEqual({ category: 'enemies', name: 'charger', action: eliteAction('attack') });
   });

@@ -9,6 +9,7 @@ import Phaser from 'phaser';
 import { DEPTH, STRUCTURE_FX, entityDepth } from '../core/Constants';
 import { lightFor, lightRegistryOf, type LightSource } from '../systems/lighting/lightRegistry';
 import { lightOffsetOf } from './tileskin';
+import { stateLight } from './structureLight';
 import { spriteLibrary } from '../systems/sprites/sprites';
 import {
   STRUCTURE_ACTION,
@@ -76,11 +77,10 @@ export class StructureView {
         .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
         .setScale(this.scale);
       this.splitOcclusion(def, texture);
-      const ld = opts.unlit ? null : lightFor(opts.sheet, def);
-      // 계약 §12 light.offset = 프레임 안 [x, y] 도트 → 피벗 기준 월드 위치
-      const off = ld && 'offset' in ld ? lightOffsetOf(ld.offset) : null;
-      const at = off ? { dx: (off.x - def.pivot.x) * this.scale, dy: (off.y - def.pivot.y) * this.scale } : {};
-      if (ld) this.light = lightRegistryOf(scene).add(ld, { x: r.centerX, y: r.bottom, anchor: this.sprite, ...at });
+      // 61라운드 art §24: 상태별 광원 표가 있으면 그 표로 (처음은 idle), 없으면 시트 light(없으면 lighting.json 대체값)
+      const byState = opts.unlit ? undefined : stateLight(def, 'idle');
+      const ld = opts.unlit ? null : byState !== undefined ? byState : lightFor(opts.sheet, def);
+      if (ld) this.addLight(ld);
     } else if (opts.subtle) {
       // 숨은 벽: 벽 타일 위 금 간 1px 호박 빛 (40라운드 '문 틈 빛'과 같은 언어)
       const g = scene.add.graphics();
@@ -255,6 +255,26 @@ export class StructureView {
     }
   }
 
+  /** 광원 하나 (계약 §12 light.offset = 프레임 안 [x, y] 도트 → 피벗 기준 월드 위치) */
+  private addLight(ld: NonNullable<ReturnType<typeof lightFor>>): void {
+    const def = this.def!;
+    const r = this.opts.rect;
+    const off = 'offset' in ld ? lightOffsetOf(ld.offset) : null;
+    const at = off ? { dx: (off.x - def.pivot.x) * this.scale, dy: (off.y - def.pivot.y) * this.scale } : {};
+    this.light = lightRegistryOf(this.scene).add(ld, { x: r.centerX, y: r.bottom, anchor: this.sprite, ...at });
+  }
+
+  /** 61라운드 art §24 상태별 광원 (`lightByState` 가 있는 시트만): 상태가 바뀌면 광원을 바꾸거나 끈다. 처리했으면 true */
+  private applyStateLight(state: string): boolean {
+    if (this.opts.unlit || !this.def) return false;
+    const ld = stateLight(this.def, state);
+    if (ld === undefined) return false;
+    if (this.light) lightRegistryOf(this.scene).remove(this.light);
+    this.light = null;
+    if (ld) this.addLight(ld);
+    return true;
+  }
+
   private playSheetState(state: string): void {
     const sprite = this.sprite!;
     const def = this.def!;
@@ -269,8 +289,8 @@ export class StructureView {
       return;
     }
     sprite.setVisible(true).setAlpha(state === 'used' && !def.states?.used ? STRUCTURE_FX.USED_ALPHA : 1);
-    // 광원: 부서지거나 다 쓴(불이 꺼진) 구조물은 끈다
-    if (this.light) this.light.enabled = state !== 'broken' && state !== 'used';
+    // 광원: 부서지거나 다 쓴(불이 꺼진) 구조물은 끈다 (61라운드: 상태별 광원 표가 있으면 그 표)
+    if (!this.applyStateLight(name) && this.light) this.light.enabled = state !== 'broken' && state !== 'used';
     if (frames.length <= 1) {
       sprite.anims.stop();
       sprite.setFrame(frames[0]);

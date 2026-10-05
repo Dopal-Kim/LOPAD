@@ -122,6 +122,7 @@ class DrunkDashRun implements PatternRun {
           h.paint(COLORS.STUN);
           h.pose.lean(0);
           h.pose.recover(ctx.time, P.wallStunMs);
+          h.markBroken(P.wallStunMs);
           h.emitWallHit();
           return null;
         }
@@ -179,6 +180,7 @@ class DrunkDashRun implements PatternRun {
     h.pose.lean(0);
     // 넘어짐 → 누워 있음 루프 (시트가 없으면 임시: 눕힘)
     if (!h.pose.phase('fall', 'fall', ctx.time, { thenLoop: 'down' })) h.pose.lie(true);
+    h.markBroken(this.P.fallMs);
     h.emitAction('fall');
   }
 

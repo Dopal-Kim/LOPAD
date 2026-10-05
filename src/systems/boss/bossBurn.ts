@@ -56,6 +56,8 @@ interface BurnTarget {
   spriteId: string;
   facing: Facing;
   corpse: boolean;
+  /** 61라운드: 대상 그림 배율 (보스 renderScale) — 불길·불빛도 같은 배율 */
+  scale: number;
 }
 
 /** 지금 그릴 불길 (시트 · 행 · 옮김 — 월드) */
@@ -137,7 +139,11 @@ export class BossBurn {
       this.debug.ignites++;
       this.host.onIgnite();
     }
-    this.render({ obj: b, spriteId: b.spriteId, facing: b.visual.facing, corpse: false }, def, time);
+    this.render(
+      { obj: b, spriteId: b.spriteId, facing: b.visual.facing, corpse: false, scale: b.visual.drawScale },
+      def,
+      time,
+    );
     if (this.burning) this.touchFire(b, time);
   }
 
@@ -176,7 +182,11 @@ export class BossBurn {
       this.stop();
       return;
     }
-    this.render({ obj: corpse, spriteId: d.spriteId, facing: d.visual.facing, corpse: true }, def, time);
+    this.render(
+      { obj: corpse, spriteId: d.spriteId, facing: d.visual.facing, corpse: true, scale: d.visual.drawScale },
+      def,
+      time,
+    );
   }
 
   private render(t: BurnTarget, def: SheetDef | undefined, time: number): void {
@@ -192,7 +202,7 @@ export class BossBurn {
     const { action, column } = this.poseOf(t, lying);
     const choice = chooseOverlay(action, column, lying ?? null);
     if (choice.sheet === 'lying' && lying) {
-      const k = artScale(lying);
+      const k = artScale(lying) * t.scale;
       return {
         def: lying,
         tex: spriteLibrary.textureKey(lying.name, FX_ACTION)!,
@@ -247,7 +257,7 @@ export class BossBurn {
     // 보스 스프라이트와 같은 자리(+누운 프레임 옮김)·같은 방향 행, 보스 바로 위 깊이(조명 위 띠 — fx 규칙)
     this.sprite
       .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-      .setScale(artScale(def))
+      .setScale(artScale(def) * t.scale)
       .setPosition(t.obj.x + pick.dx, t.obj.y + pick.dy)
       .setFrame(frame)
       .setAlpha(t.obj.alpha)
@@ -299,7 +309,7 @@ export class BossBurn {
     const def = pick?.def ?? stand;
     const spec: LightSpec = def?.lightByPhase?.[phase] ?? def?.light ?? BOSS_FX.ONFIRE.LIGHT;
     const o = def ? lightOffsetOf(spec.offset) : null;
-    const k = def ? artScale(def) : 1;
+    const k = def ? artScale(def) * t.scale : 1;
     const base = o && def ? { dx: (o.x - def.pivot.x) * k, dy: (o.y - def.pivot.y) * k } : null;
     const at = base ? { dx: base.dx + (pick?.dx ?? 0), dy: base.dy + (pick?.dy ?? 0) } : {};
     const key = `${phase}|${def?.name ?? '-'}|${t.corpse ? 'corpse' : 'boss'}`;

@@ -15,12 +15,12 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 | `npm run build` | 배포 빌드 (`dist/`, `assets/**` → `dist/assets-game/`, `data/buildExclude.json` 패턴은 제외) |
 | `npm run typecheck` · `npm run lint` · `npm test` · `npm run format:check` | 검사 4종 (모두 통과가 커밋 조건) |
 
-자주 쓰는 주소 옵션(`scenes/game/shared.ts urlParams`): `?debug=1` 디버그 훅 · `?new=1&seed=<s>&weapon=<id>` 새 런 바로 · `?lab&weapon=<id>` 무기 시험장 · `?boss`·`?bossPhase=n`·`?bossPattern=a,b` 1층 보스 · `?slice=<지역>` 지역 전투 노드 · `?nobirth` 탄생 연출 생략 · `?resetmeta` 메타 초기화. 주소에 옵션이 없으면 해시 한 단어(`#lab` 등)를 옵션으로 읽는다. 층 이동은 디버그 `__lopad.gotoFloor(n)`.
+자주 쓰는 주소 옵션(`scenes/game/shared.ts urlParams`): `?debug=1` 디버그 훅 · `?new=1&seed=<s>&weapon=<id>` 새 런 바로 · `?lab&weapon=<id>` 무기 시험장 · `?boss`·`?bossPhase=n`·`?bossPattern=a,b` 1층 보스 · `?nobossintro` 보스 등장 연출 생략 · `?slice=<지역>` 지역 전투 노드 · `?nobirth` 탄생 연출 생략 · `?resetmeta` 메타 초기화. 주소에 옵션이 없으면 해시 한 단어(`#lab` 등)를 옵션으로 읽는다. 층 이동은 디버그 `__lopad.gotoFloor(n)`.
 
 ## 2. 부팅 흐름
 
 `main.ts` → Phaser.Game(`config.ts`) → `installContractHost`(계약 명령 구현) → `audio.attach` → `settings.load`(계약 §15 설정 적용) → `runLogRecorder.attach`(런 로그) → `installBootDebug`(`?debug`).
-씬: `Boot` → `Preloader`(매니페스트 → 시트·타일셋·외벽·음향 JSON → 그림·소리, 부팅 묶음만) → UI 타이틀 / `Setup`(개성 선택 의식) / `Game`(런) / `WeaponLab`(Game 의 시험장 모드) / `GameOver`(UI 결과 화면이 없을 때의 임시 화면).
+씬: `Boot` → `Preloader`(매니페스트 → 시트·타일셋·외벽·음향 JSON → 그림·소리, 부팅 묶음만 — 무기 묶음은 Game preload, 61 단계 2: 보스 묶음은 보스 노드 Game preload) → UI 타이틀 / `Setup`(개성 선택 의식) / `Game`(런) / `WeaponLab`(Game 의 시험장 모드) / `GameOver`(UI 결과 화면이 없을 때의 임시 화면).
 
 ## 3. 폴더별 책임
 
@@ -36,24 +36,26 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 ### `src/data/` (데이터 로드·검증 — 수치는 `data/*.json`)
 - `index.ts` — JSON 로드 + 검증(`validate*`) → `PLAYER_DATA`·`ENEMIES`·`BOSSES`·`STAGES`·`RUN`·`WEAPONS`·`ECONOMY`·`STORY`·`PALETTE`·`LIGHTING` …
 - 형식: `types.ts`(공통) · `comboTypes`(연격) · `moveTypes`(기본기) · `weaponKitTypes`(무기 자원·고유 자원) · `buildTypes`(빌드 축) · `bundle2Types`(2차 묶음). 검증: `validateCombo`·`validateMoves`·`validateWeaponKit`·`validateUtil`. `bossPatterns.ts` = 보스 패턴 이름·수치 형식의 단일 출처.
+- `floorScope.ts` — **층 노출**(61 P4·P5): 항목 `floor` = 처음 켜지는 층, `gameState.build.floor`(시험장 null). `narrative.ts` — 서사 문장(story.json clues·weaponVoice·boss1·nameSmudge)·배치(narrative.json).
 - `scope.ts` — **로드 범위**(`stages.json` run.`loadFloors`, 61라운드: 1층만). 범위 밖 층의 데이터는 남기고 부팅 그림(보스 시트·층 타일셋)만 뺀다.
 
 ### `src/scenes/`
 - `Game.ts` — 런 씬 생애주기만(모듈 생성 → 런 준비 → 노드 진입 → 월드 → 플레이어 → 풀·연출 → 물리 배선 → 방 상태 머신 → 구조물 → 계약 연결 → 디버그 → 이벤트 표). 실제 일은 `scenes/game/*` 모듈:
-  - 진행: `Progression`(런 시작 모드·세이브·처치 → 개성·3지선다·스테이지 보상·엔딩·사망·정산·결과) · `RouteFlow`(노드 진입·클리어 → 출구 → 노드 선택·전환) · `BirthFlow`(탄생 연출) · `LabMode`(무기 시험장) · `Economy`(드랍·상점) · `directorHost`(방 상태 머신 생성)
+  - 진행: `Progression`(런 시작 모드·세이브·처치 → 개성·3지선다·스테이지 보상·엔딩·사망·정산·결과) · `BossFlow`(61: 보스 등장·처치 연출 시간표 · 보스 대사 · 보상 미루기 — 데이터 `bosses.json show`·`linesKey`) · `RouteFlow`(노드 진입·클리어 → 출구 → 노드 선택·전환) · `BirthFlow`(탄생 연출) · `LabMode`(무기 시험장) · `Economy`(드랍·상점, 61: 상점 상인 `ShopKeeper` E) · `directorHost`(방 상태 머신 생성)
   - 전투: `GameCombat`(피해 계산 `rollDamage`·적 피격 공통 경로 `hitMob`·접촉·투사체) · `PlayerStrikes`·`MoveStrikes`·`IssenStrikes`·`CrackLineStrikes`·`BowShots`·`ArrowRain`·`BrandMarks`·`StrikeSchedule`·`StrikeDots`
   - 연출: `SwingFx`·`MotionFx`·`WeaponFeedback`·`FxWiring`·`GameCamera`·`swingShake`·`bladeTip`·`HitShapeOverlay`·`AnchorDebug`
   - 빌드 축 `build/*`(BuildRuntime·BuildCombat(+`combat/*`)·BuildMenus·BuildEffects·BuildDefense·BuildPerfect·AwakenFlow·BuildArt, 무기별 갈래 `branch/*`) · 2차 묶음 `bundle/*`(BundleRuntime·NodeFlow·EventNode·BossBreaks·EliteSystem(+EliteArt)·Consumables·ShopMenu·BundleProps·bundleRewards)
+  - 서사: `story/StoryBeats`(61 P8 서사 소품·무기 한마디·일기장 — BundleRuntime 이 만든다)
   - 계약·디버그: `UiRelay`(스냅샷·자막·UI 중계) · `DebugHooks`(+`debug/combatDebug`·`worldDebug`)
 - `Setup.ts` — 시작 의식(이름 → 3획 → 회피 시험 → 운명). `Preloader.ts` — 부팅 로드. `WeaponLab.ts` — 시험장 씬 키.
 
 ### `src/objects/`
 - `Player.ts` — 상태 머신(이동·달리기·대쉬·연격 입력·피격) + `player/*`(MeleeDriver 연격 · SecondaryDriver 우클릭 · BasicMoves/BranchMoves·무기별 moves 기본기 · PlayerDefense 피격·가드·패링 · PlayerGauges 고유 자원 · PlayerGear 무기 자원·휴대 · PlayerPoses 자세 · ScarOverlay 등 상흔).
-- `Mob.ts`(적·보스 공통 바탕) · `Enemy.ts`(일반 적 행동: 추격·사격·돌진·방패·집단 돌격) · `Boss.ts` + `boss/*`(패턴 상태 머신, `boss/patterns/*` 패턴별) · `Projectile` · `Pickup` · `LabDummy` · `EntityVisual`(시트 애니·그림자·시체) · `WeaponOverlay`(무기 오버레이).
+- `Mob.ts`(적·보스 공통 바탕) · `Enemy.ts`(일반 적 행동: 추격·사격·돌진·방패·집단 돌격 · 61: 독주 행상·술통 짐꾼은 `enemy/hazardBrains`) · `Boss.ts` + `boss/*`(패턴 상태 머신, `boss/patterns/*` 패턴별) · `Projectile` · `Pickup` · `LabDummy` · `EntityVisual`(시트 애니·그림자·시체) · `WeaponOverlay`(무기 오버레이).
 
 ### `src/systems/` (Phaser 의존을 줄인 규칙·계산 — 대부분 단위 테스트가 붙어 있다)
-- 런·진행: `route`(노드 지도 생성·검증) · `routeArena`(노드 전투장) · `RoomDirector`(방 상태 머신·웨이브) · `save`(런 세이브 `lopad.save`) · `meta`(메타 세이브 `lopad.meta`: 영혼·강화·도감·**설정·런 로그**) · `personality` · `passives` · `senses` · `economy` · `story` · `tutorial`/`tutorialDirector` · `birth` · `traversal` · `TextMenu`(메뉴 브로커)
-- 전투 감각: `feel`(히트스톱·흔들림·넉백·`feelSettings` 배율) · `hitFeel` · `Combat`·`defense` · `packCharge` · `weapon/*`(연격·판정 모양 `hitShapes`·자원·고유 자원·활 당김·4동사 `verbs` 등) · `telegraph/*` · `hazards/*`(술 웅덩이) · `boss/*`(보스 전장·불타기·'세상이 돈다' `drunkScreen`)
+- 런·진행: `route`(노드 지도 생성·검증, 61: 단마다 종류·웨이브 `columns`·`nodeWaves`) · `routeArena`(노드 전투장, 61: 방 다양화 `arenaVariety`·세트 후보 `pickSetPiece`·소품 장면 `pickPropScene`) · `enemyIntro`(새 적 소개) · `RoomDirector`(방 상태 머신·웨이브) · `save`(런 세이브 `lopad.save`) · `meta`(메타 세이브 `lopad.meta`: 영혼·강화·도감·**설정·런 로그**) · `personality` · `passives` · `senses` · `economy` · `story` · `tutorial`/`tutorialDirector` · `birth` · `traversal` · `TextMenu`(메뉴 브로커)
+- 전투 감각: `feel`(히트스톱·흔들림·넉백·`feelSettings` 배율) · `hitFeel` · `Combat`·`defense` · `packCharge` · `weapon/*`(연격·판정 모양 `hitShapes`·자원·고유 자원·활 당김·4동사 `verbs` 등) · `telegraph/*` · `hazards/*`(술 웅덩이 `LiquorPools` · 61 신규 적 위험물 `EnemyHazards` — 화염 술병·술통 굴림·되치기, 계산 `hazardMath`) · `boss/*`(보스 전장·불타기·'세상이 돈다' `drunkScreen`)
 - 빌드 축 `build/*` · 2차 묶음 `bundle2/*` · 구조물 `structures/*`(StructureSystem 창구 + core·kinds·interact·placement·setpiece)
 - 그림·소리: `sprites/*`(시트 경로·로드 묶음 `sheetSets`·애니 등록) · `fx/*`(FxPool·섬광 `screenFx`·피해 숫자·리본·잔상 · 씬 종료 중 반납 검사 `fxRelease` · 피해 숫자 합치기/비켜 띄우기 `damageNumberLayout`) · `lighting/*` · `strokeFx/*`(3획 연출) · `dodgeTrial/*`(회피 시험) · `audio/*`(오디오 매니저 `audio` · 이벤트 → 효과음 표 `audioMap`·`audioBuild` · 61 믹싱 규칙 `audioMix`·목소리 상한/덕킹 `audioVoices`·층 BGM 지연 로드 `audioLazy`) · `palette` · `display`(1920×1080 캔버스·논리 960×540) · `fonts`
 - 61라운드 도구: `settings`(계약 §15 설정 적용·저장) · `runlog/*`(런 로그) · `sim/*`(헤드리스 수치 추정) · `vram`(텍스처 VRAM 추정)
@@ -65,7 +67,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 ### `src/debug/`
 - `index.ts` — `?debug=1` 이면 게임 씬이 `window.__lopad` 를 만든다(상태·이동·적·보스·구조물·노드·무기·빌드·묶음 조회와 조작).
 - `boot.ts` — 씬과 무관한 훅(타이틀부터): `__lopad.runlog.dump()`·`runlog.clear()` · `__lopad.vram()` / `vram({ all: true })` · `__lopad.settings()`·`setSettings({...})`.
-- `bossQuery.ts` — `?boss…` 주소 옵션.
+- `bossQuery.ts` — `?boss…` 주소 옵션. 보스 연출 상태는 `__lopad.boss.flow()`.
 
 ## 4. 데이터 파일 (`data/*.json`)
 
@@ -73,15 +75,16 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 |---|---|
 | `player.json` | 기본 능력치·대쉬·패링·달리기·피격 무적 |
 | `weapons.json` | 무기 4종(연격·우클릭·4동사·자원·고유 자원·갈래 트리) + 규칙 |
-| `enemies.json` · `bosses.json` | 적 3종 · 층 보스(1층 '만취' 3국면 패턴) |
+| `enemies.json` · `bosses.json` | 적 5종(61: 독주 행상 `throw`·술통 짐꾼 `roll` — 형식 `src/data/enemyTypes.ts`, 소개 문구 `intro`) · 층 보스(1층 '만취' 3국면 패턴 · 61: 그림 배율·시작 자리·파훼 피해 배율·등장/처치 연출 `show`·대사 키 `linesKey`·소등 광원 `arena.darkLights`) |
 | `stages.json` | 층 순서·세이브 횟수·**로드 층 수(`loadFloors`)** · 층별 적 배율·웨이브 |
-| `route.json` | 노드 지도(층 여정·갈래·노드 종류·지역·세트 배치·튜토리얼) |
+| `route.json` | 노드 지도(층 여정·갈래·노드 종류·지역·세트 배치·튜토리얼 · 61: 1층 `columns` 단별 종류·웨이브, `arena.variety` 방 다양화, 전투 세트 후보 `setPieceVariants`) |
 | `structures.json` | 상호작용 구조물 |
 | `economy.json` · `meta.json` | 드랍·상점·능력치 보상 · 영혼·영구 강화 |
 | `personality.json` | 개성 선택 의식 가중 |
 | `build.json` · `passives.json` · `dualTraits.json` · `curses.json` · `awakenings.json` | 빌드 축(태그·세트·패시브·이중 개성·저주·각성) |
 | `bundle2.json` | 2차 묶음(노드 보상·위험·이벤트·숨은 노드·상점·성소·등급·엘리트·파훼·소모품) |
-| `story.json` | 문구(스토리 파트 텍스트 팩) |
+| `story.json` | 문구(스토리 파트 텍스트 팩 — 61: 단서·무기 한마디·만취 대사·이름 번짐) |
+| `narrative.json` | 61 서사 연결 수치·서사 소품 배치·시작 의식 문구 |
 | `palette.json` · `lighting.json` | 층 램프 · 동적 조명 |
 | `buildExclude.json` | 배포 빌드에서 뺄 에셋 경로 패턴(원본 보관) |
 
@@ -90,13 +93,13 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 | 키 | 모듈 | 내용 | 수명 |
 |---|---|---|---|
 | `lopad.save` | `systems/save` | 층 전환 세이브(런당 최대 2회, v5) | 사망·클리어·새 런에 삭제 |
-| `lopad.meta` | `systems/meta` | 영혼·강화·도감·엔딩 기록 · `settings`(계약 §15) · `runLogs`(최근 20런 요약) | 영구 (`?resetmeta` 로 초기화) |
+| `lopad.meta` | `systems/meta` | 영혼·강화·도감·엔딩 기록 · `settings`(계약 §15) · `runLogs`(최근 20런 요약) · `diary`(61 일기장 이력 — `systems/narrative/diary`) | 영구 (`?resetmeta` 로 초기화) |
 | `lopad.mute` | `systems/audio` | 빠른 음소거 | 영구 |
 
 ## 6. 61라운드 밸런스·성능 도구 사용법
 
 - **런 로그**: 데모 플레이 뒤 `?debug=1` 로 열고 `__lopad.runlog.dump()` → `saved`(끝난 런들) · `byKind`(노드 종류별 평균 시간·처치·피격·피해·메뉴) · `current`(진행 중).
-- **수치 추정**: `npx vitest run src/systems/sim --silent=false` → 무기 4종 DPS 와 1층 길 3종(전투 많음·보통·적음)의 노드별 시간·처치·받는 피해. 가정값은 `core/constants/settings.ts SIM`.
+- **수치 추정**: `npx vitest run src/systems/sim --silent=false` → 무기 4종 DPS 와 1층 길 3종(전투 많음·보통·적음)의 노드별 시간·처치·받는 피해. 보스 싸움 길이는 `sim/bossSim.ts`(파훼 피해 창·활 공격 비율 — `bossSim.test` 가 4무기 90~120초를 지킨다). 가정값은 `core/constants/settings.ts SIM`.
 - **VRAM**: `__lopad.vram()` → `mb`(고유 텍스처 추정 합) · `over4096` · `top` · `byGroup` · `dupImages`. 목표 런당 500MB 이하(61 P9).
 
 ## 7. 61라운드 무기 4동사 (구조)

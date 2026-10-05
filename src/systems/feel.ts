@@ -72,10 +72,11 @@ export class HitStop {
   /** 디버그: 시작 횟수 */
   count = 0;
 
-  request(now: number, ms: number): boolean {
+  /** force = 최소 간격 규칙 무시 (61라운드 보스 처치 순간처럼 반드시 멈춰야 하는 연출) */
+  request(now: number, ms: number, force = false): boolean {
     const scaled = ms * feelSettings.hitstop;
     if (scaled <= 0) return false;
-    if (now - this.lastStartAt < FEEL.HITSTOP.MIN_GAP_MS) return false;
+    if (!force && now - this.lastStartAt < FEEL.HITSTOP.MIN_GAP_MS) return false;
     this.lastStartAt = now;
     this.until = Math.max(this.until, now + scaled);
     this.count += 1;

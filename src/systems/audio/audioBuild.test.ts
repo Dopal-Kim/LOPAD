@@ -85,8 +85,12 @@ describe('60라운드 효과음 연결 (audioBuild)', () => {
   });
 
   it('결정타 · 파훼 새 종류', () => {
-    expect(ids(Events.BOSS_BREAK, { kind: 'cup', distinct: true, count: 1 })).toEqual([BUILD_SFX.breakCount]);
-    expect(ids(Events.BOSS_BREAK, { kind: 'cup', distinct: false, count: 1 })).toEqual([]);
+    // 61라운드 단계 3: 파훼 종류별 boss1_break_* 가 늘 함께 (새 종류면 break_count 도)
+    expect([...ids(Events.BOSS_BREAK, { kind: 'cup', distinct: true, count: 1 })].sort()).toEqual(
+      [BUILD_SFX.breakCount, SFX.boss1.breakCup].sort(),
+    );
+    expect(ids(Events.BOSS_BREAK, { kind: 'cup', distinct: false, count: 1 })).toEqual([SFX.boss1.breakCup]);
+    expect(ids(Events.BOSS_BREAK, { kind: 'reel', distinct: false, count: 2 })).toEqual([SFX.boss1.breakReel]);
     expect(ids(Events.BOSS_BREAK, { kind: 'finisher', distinct: false, count: 2 })).toEqual([BUILD_SFX.breakFinisher]);
   });
 });

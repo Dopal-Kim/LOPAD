@@ -1144,3 +1144,180 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 
 ### 수치 추정
 - `sim/nodeSim` 의 DPS·타 피해·공속을 무기 쪽 `systems/weapon/dps.ts`(baselineDps·expectedHit·sustainedSpeed·bowTapDps)로 — 지속 공속(단검 가속·대검 관성 최대)과 활 탄창·장전 반영. 런 로그 받은 피해는 직전 HP 까지만 센다(한 방 넘침 제외).
+
+## 61라운드 단계 3 D: 보스 '만취' 재구성 (P6 · 점검 #5·#6 · 음향 §9 보스 소리) (2026-10-05)
+근거: `decisions/2026-10-05-round-61-autonomous-stage1.md` P6, `review-2026-10-05-stage1-design-audit.md` SY-8, `review-2026-10-05-stage1-playtest.md` #5·#6, 스토리 팩 `boss1.*`(→ `data/story.json boss1`), 계약 sound-assets §9 끝(보스·발도 소리). 인터뷰 없이 판단, 이유는 줄마다.
+
+### 싸움 길이 90~120초 (HP · 국면 · 파훼 보상)
+- HP 300 → **1100**. 근거 = 무기 4종 기본 공격 DPS(`weapon/dps.ts`, 공격 5)로 `sim/bossSim.ts` 추정: 실효 DPS = DPS × [(1−0.12)×공격 비율 + 0.12×0.9×1.5]. 공격 비율 근접 0.45 · **활 0.6**(거리를 두고 계속 쏜다 — 같은 0.45 로 두면 활만 130초를 넘어 무기 간 격차가 커진다). 결과 단검 96 · 칼 106 · 대검 108 · 활 117초(국면 전환 포함, 연출 10.4초 별도). 패시브 2~3개(+10~20%)면 약 85~105초 — 목표 대역 가운데. `bossSim.test` 가 네 무기 모두 90~120초를 지킨다.
+- 국면 HP 100~65 / 65~30 / 30~ (SY-8 표). 1국면 **얼큰** = 돌진·내리찍기·술통 굴리기 3개(배우는 국면 — 잔 파훼는 2국면부터라 '한 잔 더'를 뺐다), 2국면 **만취** = + 한 잔 더(잔 깨기)·불붙은 술, 3국면 **인사불성** = + 3연 취권. 국면마다 1~2개만 더해 새 패턴이 눈에 띄게.
+- **등불 끄기는 3국면 진입 때 확정 1회**: 진입 = `spin`(세상이 돈다 2.2초) → `phaseDrink`(무적 들이켜기 1.6초) → `lightsOut` → 어둠 속 3연 취권. 한 잔 더의 화면 패턴 방아쇠(triggers)는 없앴고 다 마시면 다음 패턴 강화만(모든 국면). `phaseDrink.next` 를 패턴 형식에 추가.
+- **세상이 돈다 = 국면 전환 연출만**: 국면 `enterPattern = spin`, 무적 들이켜기와 겹쳐 그동안만 기울어진다(2.2초). 설정 §15 tilt 0 이면 기울기·흐림만 빠지고 흐름은 같다(기존 `feelSettings.tilt`).
+- **파훼 경직 ×1.5** (`breakDamageMult`): 잔 깨짐(3초)·기둥 충돌(돌진 1.6초·취권 1.8초, 각각 1.0·1.2 에서 늘림 — 1초는 한 연격도 다 못 넣는다)·취권 넘어짐(2.2초)·되친 술통에 맞은 비틀거림(1.5초) 동안 받는 피해 ×1.5. `BossHost.markBroken(ms)` → `Boss.damageTakenMultAt(now)`, 피해 계산은 `GameCombat.hitMob` 이 `Mob.damageTakenMultAt` 하나로(엘리트 배율과 곱). 되친 술통 피해 30 → 60(되치기를 '해볼 만한 일'로). 보상은 기존 파훼 n종(감각·희귀 패시브) + 결정타(전표·개성) 그대로.
+- 피해 약 20% 하향(싸움이 3배 길어져 같은 수치면 받는 피해도 3배): 접촉 12→10, 돌진·내리찍기·취권 20→16, 술통 14→12, 불 10→8, 소등 16→14, 몸 불 10→8.
+- 신규 적이 가르친 것 그대로: 술통 되치기 = 근접·화살로 굴러오는 술통을 치면 방향이 바뀌고 보스에 맞으면 비틀거림(짐꾼과 같은 동사 — 수치 맞춤은 C1 에 요청), 불 = 술 줄 웅덩이 → 횃불 → 칸마다 번짐(행상 화염병과 같은 웅덩이 시스템 `LiquorPools`).
+
+### 존재감 (점검 #6)
+- `renderScale 1.5`: 시트 그대로 1.5배(`EntityVisual.setDrawScale`) — 화면상 주인공의 약 1.2배 → 약 1.9배. 판정도 함께: `bodyFromArt` 0.7×0.4 × 배율 → 50×36(그림 폭에 맞춰 좁힘, 기존 48×36). 배율을 쓰는 곳 모두 맞춤: 잔·손·발 앵커(`bossPose.scaleOf`), 불타기 오버레이·불빛(`bossBurn`), 피격 숫자 높이(`v3HitLift` drawScale), 시체(이미 drawScale).
+- 시작 자리 = 보스방 가운데 + `spawnOffsetTiles [-4, 0]`(주인공 쪽 4칸, 걸을 수 없으면 가운데) — 첫 화면 안쪽.
+- 등장 연출(`scenes/game/BossFlow.ts`, 수치 `show.intro`): 보스 잠재움(패턴·접촉·피해 없음) + 입력 잠금·무적 → 카메라가 보스로(0.7초, `GameCamera.setFocus`) → 0초 `BOSS_INTRO`(무기 한마디 bossBefore 자리, C2 가 붙임) → 1.5초 층 등장 자막(이전엔 UiRelay 가 BOSS_STARTED 에 바로 냈다 — 순서 '무기 → 층 → 보스'를 지키려고 옮김) → 3.1초 `boss1.intro`(계약 STORY speech, speaker 만취) → 4.7초 카메라 복귀 → 5.2초 전투(`BOSS_FIGHT`). UI 이름 카드·체력줄은 기존 BOSS_STARTED(0초). `?nobossintro`·시험장은 연출 없이 바로.
+
+### 3국면 소등 가독성 (점검 #6)
+- 어둠 색 #1c1c26 → #2a2a36(실측 주변광 약 #38 대 — 실루엣이 남는다).
+- 어둠 동안 최소 광원(`arena.darkLights`): 주인공 r96·보스 r84(붉은 빛) — 등불 끄기 시작에 붙고 복구·사망에 뗀다.
+- 쓰러진 촛대 = 다시 켤 수 있는 자리: 기존 깜빡이는 고리 + **네 갈래 별 반짝임**(어둠 위, 촛대마다 위상 어긋남, `BOSS_FX.CANDLE.GLINT`) + 불씨 빛 r22→40.
+- **예고를 어둠 위로**: `TelegraphFx.setAboveDark(true)` 동안 예고 개체(선·원·부채꼴·꺾은선·오라·화살촉)를 라이트맵 바로 위(`ENEMY_FX.DARK_LIFT` → 깊이 2.02)로. 끄면 원래 깊이. 기존 경고광 ×2.2 는 그대로.
+- 헤드리스 확인(스크래치 shots/c_dark): 주인공·보스·촛대 별·예고가 모두 읽힘.
+
+### 처치 연출 (점검 #5)
+- `show.defeat`: 일격 0초 = 히트스톱 240ms(최소 간격 무시 `HitStop.request(…, force)`) · 섬광 · 흔들림 · 카메라가 쓰러진 자리로 → 0.24초 슬로모 1.3초 ×0.35(물리·씬 트윈·죽음 그림 애니만 — 씬 시계는 그대로라 예약 호출이 어긋나지 않는다) → 1.5초 `boss1.defeat` → 3.6초 `BOSS_FALLEN`(무기 한마디 bossKill 자리) → 5.2초 보상 메뉴. 시체(죽음 그림)는 보상까지 남김(`EntityVisual.corpseHoldMs`).
+- 보상 미루기: 방 상태 머신 `onStageCleared`/`onRunCleared` → `BossFlow.after(fn)`(연출 중이면 끝에). 개성 3지선다도 연출 중엔 미룸(`Progression.maybeOpenEvolveMenu`). 연출 동안 주인공 입력 잠금·무적(남은 불 웅덩이).
+- 시간표는 **프레임 delta 누적**으로 진행(실시간 아님): 헤드리스 저프레임에서 실시간 기준이면 대사·메뉴가 쓰러짐 그림보다 앞서 나왔다(트윈·애니는 delta 기준).
+
+### 대사
+- 문장은 `data/story.json boss1`(C2 가 스토리 팩에서 옮김) — 보스 정의 `linesKey: "boss1"`. 파훼 종류 → 대사 키 `BREAK_LINE_KEY`(reel = stumble). 등장·쓰러짐은 매번, 2국면(국면 진입)·3국면(어둠 시작 BOSS_SCREEN dark)·파훼 종류별(BOSS_BREAK distinct)은 그 런 첫 1회(`gameState.narrative.once('boss1.<키>')`). 출력 = `UiRelay.speech(speaker, text)`(계약 STORY kind speech).
+
+### 이벤트 (C2·음향·UI 용)
+- `BOSS_INTRO 'boss:intro'` `{ id, durationMs, lineGapMs }` — 등장 연출 시작(BOSS_STARTED 직후). 무기 한마디 bossBefore.
+- `BOSS_FIGHT 'boss:fight'` `{ id }` — 전투 시작.
+- `BOSS_SPEECH 'boss:speech'` `{ id, key, speaker, text }` — 보스 대사 한 줄.
+- `BOSS_FALLEN 'boss:fallen'` `{ id, finisher, rewardInMs }` — 쓰러짐 대사 뒤. 무기 한마디 bossKill(C2 `bossKillDelayMs 900` → 4.5초, 보상 5.2초 전).
+
+### BGM 국면 교차 (확인)
+- `BOSS_PHASE` 는 HP 문턱을 넘는 순간(국면 진입 연출 시작) — 음향 `onBossPhase` 가 지금 재생 위치에서 800ms 교차(기존 연결, audioMix.test 가 p1~p3 고르기를 지킨다). 등장 0초 BOSS_STARTED 로 보스 곡이 시작해 연출 동안 흐른다. `?bossPhase=n` 디버그는 전투 시작(`Boss.wake`)에 BOSS_PHASE 를 한 번 내 곡을 맞춘다(전엔 p1 그대로).
+
+### 음향 §9 보스·발도 소리 연결 (조율 지시)
+- `BOSS_STARTED{boss:stage1}` → `boss1_entrance`(그 밖 boss_start) · `BOSS_PHASE` 1층 2국면 `boss1_phase_drink`·3국면 `boss1_phase_blackout` · `BOSS_DIED` 1층 → `boss1_die`(120ms 지연 — 같은 프레임 결정타 `break_finisher` 뒤, 히트스톱 동안은 씬 시계라 더 늦게) · `BOSS_TELEGRAPH/ATTACK{dash|slam}` 1층 → `boss1_dash_telegraph`·`boss1_dash`·`boss1_slam_telegraph`·`boss1_slam` · `BOSS_BREAK{cup|pillar|cask|reel}` → `boss1_break_cup|pillar|barrel|reel`(시스템 파훼 이름은 cask — barrel 로 잇는다. 새 종류면 기존 break_count 도) · 술통 되치기(BOSS_ACTION caskRedirect) → `barrel_return`(이전 barrel_kick) · 넘어짐 `boss1_fall` 은 reel 이 1층 파훼 종류일 때 끊음(break_reel 이 대신) · `boss1_cup_shatter` 연결 끊고 보관(`ARCHIVED_SFX`) · 촛대 꺼짐/켜짐은 기존 candle_topple/relight.
+- 덕킹: 매니페스트 규칙 `when "BOSS_BREAK 소리 재생(boss1_break_*·break_finisher)"` 가 'sfx/' 도 'priority' 도 없어 **해석에서 빠지고 있었다** → `parseDucking` 이 괄호 안 이름 목록(`*` = 앞부분 일치)을 읽게(`DuckTrigger groups`). 이제 파훼·결정타 소리 동안 우선순위 2 이하 −4dB 300ms.
+- 칼 발도: `PLAYER_SKILL{iai,release}` 에 `kenkiStage`(소모한 검기 단)를 싣고 n ≥ 1 이면 `katana_iai_ki{n}`, 0 이면 `katana_iai_release`(대체).
+
+### 보스방 외상 장부
+- C2 소품 API(`data/narrative.json props` — bossLedger, anchor center, after bossDied)가 있어 그것을 쓴다. 보스 데이터에 따로 좌표를 두지 않았다. 권장 자리는 C2 에 보고(아래).
+
+### 검사
+- typecheck·lint 통과. 내 파일 format 통과. 테스트: 보스 패턴(국면 진입 순서·등불 확정·파훼 창)·bossShow(시간표·대사·검증)·bossSim(4무기 90~120초)·audio(보스 소리·덕킹) 추가·갱신 통과. 남은 실패 1건은 아트 시트 `awakenSheets.test`(내 변경과 무관), format 경고 2건은 다른 작업 파일(PlayerStrikes·BorderView).
+- 헤드리스(빌드 스냅샷, `?boss&debug=1`): 등장 단계 pan→floorLine→speech→return→fight, 2·3국면 진입, 어둠(광원 2·주변광 #38 대), 처치 hit→slowStart→speech→slowEnd→fallen→reward 뒤 보상 메뉴. 콘솔 오류 0(404 하나는 기존 리소스).
+
+## 61라운드 단계 2 · 시스템 C2: 빌드 축 1층판 · 노드 부가 정리 · 시작 의식 단축 · 서사 연결 (2026-10-05, P4·P5·P7·P8)
+
+근거: `decisions/2026-10-05-round-61-autonomous-stage1.md` P4·P5·P7·P8, 점검 `review-2026-10-05-stage1-design-audit.md` SY-6·SY-7·SY-9, 스토리 팩 `parts/story/text-pack-61-stage1.{md,json}`(61 자율 모드 점검 열람 — 문장을 `data/story.json`·`bundle2.json` 으로 옮김), 계약 art §23. 자율 모드 — 아래 '왜'가 판단 기록. 동시 작업 경계: route·stages·enemies·적 AI(C1), bosses·보스 씬(D)은 건드리지 않았다.
+
+### 층 노출 (`data/floorScope.ts`)
+- 데이터 항목의 `floor` = 처음 켜지는 층(없으면 1). 1층에서 끈 것은 지우지 않고 `floor: 2`. 층 범위는 `gameState.build.floor`(GameState 가 층 시작마다 넣음, 시험장은 `null` = 제한 없음). 그림 로드 범위(`scope.ts`)와는 다른 축.
+
+### P4 빌드 축 1층판
+| 항목 | 1층 노출 | 끈 것 (floor 2) |
+|---|---|---|
+| 태그 6 | 간파·돌파·급소·연쇄·중량·취기 | 상흔·원격·표식·버팀 (그 층에서 점수 0 — 패시브 둘째 태그·갈래 태그여도 세지 않음, UI 에 안 보임) |
+| 세트 | 2·4 단계 (UI 효과 2칸, 4 달성이면 next null) | 6 단계 |
+| 패시브 15 | 간파: 철벽 패링·아슬아슬·굳은살 / 돌파: 질주·잔상(+아슬아슬·깨진 거울·취권) / 급소: 숫돌·역전의 일격·깨진 거울 / 연쇄: 흡혈·도미노 / 중량: 맹공·무거운 손목 / 취기 3: 엎지른 술·허리춤 호리병·취권 | 나머지 14 (깨진 잔 조각·불붙은 소매·사냥 표지·긴 시위·붉은 분필·피 냄새·흩어진 촉·장교의 견장·끌어내린 무게·마지막 잔·잔불 심장·독한 숨·개성 각성·강철 피부) |
+| 저주 3 | 만취 서약·외상·깨진 잔 — 얻는 길 = 위험 노드 저주 길 + E9 (`curses.sourcesByFloor`) | 불붙은 혀·맨손 맹세·저주 궤짝·피멍 · 구조물 저주 줄 · 피의 계약 칸(1층은 '이 층에서는 열리지 않는다') |
+| 갈래 | 1층 런은 1단까지(`evolve.maxTierByFloor`) — 1단 뒤 칸 = 강화 / 계약(닫힘) / 각성(잠김) | 2단·각성은 시험장 |
+| 이중 개성 | 갈래에 흡수(`dual.absorbOnFloors`): 1단을 고르는 순간 일반 짝 자동, 취기 짝은 취기 2점 순간 자동 — notice `{갈래} 강화 — {이름}: {설명}` + DUAL_TRAIT_GAINED. 보상 칸 없음 | 2단 짝 |
+- 왜 태그 6 = 감사안 그대로: 4동사와 한 장씩 맞는다(좌 연격 = 연쇄·급소 / 우 시그니처 = 간파 / Space 대쉬 = 돌파 / 좌 홀드 강공 = 중량) + 층 테마 취기. 원격(갈래 4곳에 있음)은 활·충격파 전용이라 근접 3무기에 의미가 적다 — 갈래 둘째 태그로만 남는다(1단 8갈래 모두 1층 태그가 하나 이상).
+- 왜 패시브 15: 1층 적(무리 징집병·사수·결사병·행상 불·짐꾼 술통)과 보스(패링·되치기·기둥)에 바로 쓰이는 것 위주. 희귀도 일반 6·희귀 5·영웅 3·전설 1 — 위험 노드(영웅 이상 확정)·엘리트(희귀 이상)·시음회(일반) 경로가 다 채워진다. 꺼진 태그가 둘째인 4개(흡혈·역전의 일격·굳은살·도미노)는 1층 태그 점수만 준다.
+- 왜 2단을 막았나: P4 '2단 갈래는 시험장 유지'(57 결정) — 코드가 런에서도 200 에 2단을 열고 있었다.
+
+### P5 노드 부가 정리
+- 이벤트 9 → 5 (E3 낙오한 징집병·E4 일기장의 빈 쪽·E5 양조장 시음회·E8 무명 전사의 술잔·E9 떨어진 외상 장부, 스토리 판단 채택). 문장 = 스토리 팩(`intro` 본문 · 선택지 label `{gold}{trait}{sense}{hp}{discount}{curse}` 를 효과 값으로 · `result` = 고른 뒤 STORY kind `event` · E3 `laterResult` = 다음 전투 노드 끝 갚으러 옴). `pass` 선택지 = 메뉴 '0' 줄 문구. E8 맹세 → '지나간다', 기도(pray 2초)는 '고개를 숙인다' 뒤. E9 돌려줌 = 소품 지움, 긋기 crossed, 태우기 burnt. E4 '지난 생의 기록' = 일기장(만취 처치 → 무작위 지난 생 한 줄 → 첫 생). 저주 주는 선택지는 저주가 이미 있으면 막힘. E1·E2·E6·E7 floor 2.
+- 엘리트 접두어 6 → 3: 고주망태·성난·패거리 두목. 왜: 불붙은(불 웅덩이 = 독주 행상), 통 갑옷(술통 = 술통 짐꾼)은 신규 적이 가르치는 것과 겹치고, 들이켜는(시체 마시기)은 읽기 어렵다.
+- 소모품 3 → 화염 술병(+독주 Q). 깡술·냉수 floor 2 (진열·드롭·행상 모두).
+- 성소 + 등급 → '완' 하나: 성소 floor 2, '양' floor 2(`gradeOf(…, good=false)`). 완 보상 전표 20→25·개성 15→20(성소 몫 흡수), 제한 시간 50→70초(노드당 처치 12~16, 임시값 — 런 로그로).
+- 지도 정보 구매·숨은 노드: floor 2 (국경 초소 지도 장수 대신 서사 소품 성문 출입 장부). 로드 묶음도 1층에서 켜진 소품만(성소 깃발·숨은 단서·E1/E2/E6/E7 소품 빠짐, 서사 소품 3 추가).
+
+### P7 시작 의식 단축 (`Setup.ts` + 메타 일기장)
+- 첫 생(일기장 lives 0, `?ritual=full` 로 강제): 그대로 — 이름 → 3획 → 회피 시험 → 튜토리얼.
+- 두 번째 생부터: 일기장 첫 장 = `nameSmudge.returnFirst`(두 번째 생 한 번) · `diaryOpen` · `layers`(사망 2 이상, '두 겹' 한글 관형사) · `prompt` — 이름 칸에 지난 이름이 채워져 선택됨, Enter = 덧쓴다(`resultSame`) / 고쳐 적으면 `resultChanged` (3획 안내 위에 한 줄). 3획 → 타오르는 동안 `[T] 치른다 · [Enter] 건너뛴다`(건너뛰면 시작 감각 +0, 기다렸다가 고르면 그때 진행). 튜토리얼은 조용히 생략(`TutorialDirector.skip(true)` — 끝 문구 없이 출구만).
+- 운명 직후 일기장에 생 +1·이름, 무기 한마디 `pickup`(Setup 라벨 + STORY voice).
+- 사망 결과 `UiResult.smudgeLine` = '이름이 번진다.'
+
+### P8 서사 연결
+- `data/story.json` + `clues`·`weaponVoice`·`boss1`·`nameSmudge`(팩 사본), 1층 휴식 메모 교체(F1). 배치·수치 `data/narrative.json`, 로더 `src/data/narrative.ts`.
+- `scenes/game/story/StoryBeats.ts`(BundleRuntime 이 만든다): 서사 소품 3종 — 탄생지 `clue_masked_corpse`(주인공 자리 +2,+1) · 국경 초소 `clue_gate_register`(가운데 +3,−2) · 보스방 `clue_tab_ledgers`(보스 처치 뒤, 가운데 +9,−8 북동 기둥 뒤 — 보스 담당 요청값. API `g.bundle.story.setClueSpot(clue, x, y)`). 막힌 칸이면 4칸 안 걸을 수 있는 칸. E 조사 → STORY `clue`(lines) · found · 일기장. 지난 생에 본 단서는 마지막 줄 `repeatLast`(외상 장부는 '지난 생에 만취 처치').
+- 무기 한마디 런당 장면 1회(`gameState.narrative`): firstKill(ENEMY_DIED) · crisis(첫 HP 30% 이하, 튜토리얼 중 제외, holdMs 1500) · bossBefore(BOSS_INTRO, holdMs = lineGapMs) · bossKill(BOSS_FALLEN + 900ms, rewardInMs 로 자름).
+- 메타 `lopad.meta` `diary`: lives · deaths · bossKills · clues · lastName · pastLives(최근 12). 옛 메타는 런 수로 채운다.
+- 계약 `src/contract/ui.ts`: `StoryKind` + `voice`·`speech`·`clue`·`event`, `UiStoryLine` + `speaker?`·`weapon?`·`lines?`·`holdMs?`, `UiResult.smudgeLine?`. 시스템 `UiRelay.story(kind, text, extra)` · `UiRelay.speech(speaker, text)`.
+- 디버그: `__lopad.bundle.clue(id)` · `__lopad.bundle.story()`(런 상태·놓인 단서·일기장·최근 자막 24).
+
+### 검증
+- 검사: tsc 통과, eslint 통과, 테스트 836/837(실패 1 = `awakenSheets.test` — 아트 작업 중인 단검 연격 시트 크기, 이 작업과 무관), prettier 경고 2 = `PlayerStrikes.ts`·`BorderView.ts`(다른 작업 트리 파일). 새 테스트 `build/floor1.test`·`narrative/diary.test`, `bundle2.test` 1층판으로 갱신.
+- 헤드리스(빌드 사본): 탄생지 단서 조사·두 번째 생 repeatLast · 첫 처치·위기·보스 앞·보스 처치 한마디 · 국경 초소 장부·새 휴식 메모 · 보스 처치 뒤 외상 장부 · 1층 노드 정보(성소·숨은 노드·접두어 밖 없음, 이벤트 1층 5종) · 첫 생 의식 전체 → 사망(smudgeLine·일기장 사망 1) → 두 번째 생 덧쓰기(지난 이름 미리 채움·resultSame)·시험 건너뜀(감각 +0)·튜토리얼 생략. 오류 0.
+- 남은 것: 층 전환 세이브에 `gameState.narrative` 는 남기지 않는다(1층 범위). 엘리트 접두어 대상 적에 신규 적(행상·짐꾼) 넣기는 C1 판단 대기.
+
+### 추가 (조율 지시): UI 계약 §17 보스 필드 · 처치 뒤 BGM
+- `contract/ui.ts`: `UI_EVENTS.BOSS_BREAK 'ui:boss-break'` `UiBossBreak { kind: cup|pillar|cask|stumble|finisher; label?; text? }` — 파훼마다(시스템 reel → stumble)·결정타 때 (`scenes/game/bossUi.ts`, 이름 `BOSS_FX.BREAK_LABELS`). `UiBossInfo.introMs?`(BOSS_STARTED — 등장 연출 길이, BossFlow 가 같은 이벤트를 먼저 받아 정함) · `finisher?`(BOSS_DIED). 스냅샷 `boss` = `UiBossSnapshot`: 선택 `phaseName`·`phaseNames`·`phaseMarks`([0.65, 0.3])·`broken {leftMs,totalMs}|null`(`Boss.brokenWindow`)·`candles {x,y,lit}[]`(논리 960×540 화면, `worldToLogicalScreen`)·`dark`.
+- UI `BOSS_DIED` 는 그 프레임 끝(`UiRelay.emitState`)에 낸다 — 결정타 BOSS_BREAK finisher 가 BOSS_DIED 뒤 같은 프레임에 와서, 바로 내면 finisher 를 실을 수 없다.
+- BGM: `BOSS_DIED` 에서 보스 곡을 0.9초 페이드아웃(`AUDIO.BOSS_DEFEAT_FADE_MS`)하고 보상 메뉴가 끝날 때(`EXIT_OPENED`)까지 정적, 그 뒤 층 곡. 노드·층 진입·새 보스면 풀린다(`audio.outroSilence`, 요약에 표시). 이전엔 처치 순간 f1_jan 으로 교차해 처치 연출 위로 전투 곡이 돌아왔다. 헤드리스: 처치 연출 내내 bgm null·silence true.
+- 아트가 보스 시트를 1.5배 네이티브(288×360, `renderScaleHint 1.0`)로 다시 그려 작업 트리에 넣어 `renderScale` 1.5 → **1.0**(이중 확대 방지). 판정은 시트 크기 × bodyFromArt 0.7×0.4 = 그대로 50×36. 배율 코드는 남겨 둔다(시트가 바뀌면 데이터 한 줄).
+
+## 61라운드 단계 2 · 시스템 C1: 1층 구조(4단)·적 등장 순서·신규 적 2종·방 다양화·상점 상인·외벽 재로드·무기 소리 이벤트·첫 로딩 (2026-10-05)
+근거: `decisions/2026-10-05-round-61-autonomous-stage1.md` P3, `review-2026-10-05-stage1-design-audit.md` SY-4·SY-5, `review-2026-10-05-stage1-playtest.md` #7·#12·#15, 계약 art §23·§24, sound §9 '61 단계 2·3 음향', ui §17(ENEMY_INTRO). 인터뷰 없이 판단(자율 모드).
+열람(자율 모드 고지): 아트 시트 JSON `assets/sprites/enemies/v3/{peddler,porter}_*.json`·`structures/v3/porter_*`·`structures/v3/{cask,tutorial_sign*}.json`·`tiles/v3/stage1_*_props.json`(앵커·타이밍·hitSuggestion·variantTag·lightByState 확인), `assets/audio/manifest.json`(새 효과음 트리거 이름) — 계약이 'JSON 기준'이라고 한 값을 읽으려고.
+
+### 1. 1층 길이 — 잔 구간 4단 × 2갈래 (`data/route.json` floors.stage1.columns)
+| 단 | 종류(줄 순서만 시드로 섞음) | 새로 나오는 적 | 웨이브(처치) |
+|---|---|---|---|
+| 버려진 길(여정) | 전투 | 징집병 | 3·4·5 (12) |
+| 단1 | 전투 / 전투 | 사수 | 4·5·6 (15) |
+| 단2 | 전투 / 이벤트 | 결사병 | 4·5·5 (14) |
+| 단3 | 전투 / 전투 | 독주 행상·술통 짐꾼 | 4·4·5 (13) — 마지막 웨이브가 섞임 |
+| 단4 | 상점 / 쉼터 | — | — |
+- **왜 SY-4 와 다르게 이벤트를 단2 로**: SY-4 원안(단3 = 전투/이벤트)이면 이벤트를 고른 길은 행상·짐꾼을 한 번도 못 보고 보스로 간다 — 신규 적은 보스 '불붙은 술'·'술통 되치기' 예습이라 **어느 길로 가도 단3 에서 만나야** 한다. 노드 구성(전투 5·상점·쉼터·이벤트)은 원안과 같다. '단4 섞임'은 단4 가 상점/쉼터라 전투가 없어서 단3 마지막 웨이브(징집병·결사병·행상·짐꾼)로 옮겼다. 위험 노드(2차 묶음 `risk.laneCols [1,2]`)는 단2·단3 전투 중 하나.
+- 지역: `regionByCol` 에 양조 구역 한 칸 추가(단3·단4 양조, 보스 연회장 = 8열). 노드 지도 열 7 → 8.
+- 코드: `route.ts` `RouteColumnDef`·`columns` 검증(pool 합 = 단 종류 수) · `generateRoute` 단마다 섞기 · `nodeWaves(stage, node)`(단 웨이브 → 노드 종류 웨이브) · `maxBattleWaves`(엘리트 접두어 미리 굴리는 수). `directorHost` 가 노드 웨이브를, `WorldSetup.createFloorExtras` 가 최대 웨이브 수를 쓴다.
+- 적 HP ×1.5(징집병 20→30·사수 14→21·결사병 30→45): 1층 잡몹이 칼·대검 1~2타에 죽어 웨이브가 '닿기 전에 끝나는' 문제(첫 타격 손맛 #8 과도 연결). 공격력은 단계 1 하향값 그대로. 웨이브 사이 숨 `ENEMY_INCOMING.WAVE_DELAY_MS` 0 → 900(예고 표시 → 등장).
+
+### floorSim 추정 (공격 5 기본기, 보스 = 지금 bosses.json — 시스템 D 작업 중)
+| 무기 | 길 | 1층 시간 | 처치 | 받는 피해 | 메뉴 | 보스 |
+|---|---|---|---|---|---|---|
+| 단검 | 전투 많음 / 보통 | 7.4분 / 6.8분 | 55 / 41 | 210 / 126 | 8 / 7 | 107초 |
+| 칼 | 〃 | 6.6 / 6.4 | 55 / 41 | 143 / 84 | 8 / 7 | 116초 |
+| 대검 | 〃 | 6.7 / 6.4 | 55 / 41 | 145 / 86 | 8 / 7 | 119초 |
+| 활 | 〃 | 8.2 / 7.4 | 55 / 41 | 241 / 143 | 8 / 7 | 127초 |
+- 4종 평균 **약 7.0분** (전 3.3분) — 목표 10~12분에 못 미친다. 판단: 4단·노드당 처치 12~16·웨이브 3 상한 안에서 남은 손잡이는 적 내구뿐인데, HP ×2.2 까지 올려도 평균 7.7분이고 받는 피해(활 350)가 단계 1 '초반 피해 과다' 수정을 되돌린다. 그래서 ×1.5 에서 멈췄다. 추정은 처치 하나 약 2.5~3초(자리 잡기 0.4초·공격 비율 0.6)로 낙관적이고, 성소 도전·이벤트 전투·구조물 도전·줍기·글 읽기는 넣지 않았다 — **실제 플레이 런 로그(`__lopad.runlog.dump()` byKind)로 노드당 시간을 맞춘 뒤** 모자라면 (a) 5단, (b) 단 전투 웨이브 4개, (c) SIM 가정 보정 중 하나를 고른다(프로듀서 판단 요청).
+- floorSim 개편: 길 = 단마다 고른 종류(`FLOOR_PATHS` maxBattle = 전투·전투·엘리트 전투·쉼터, normal = 전투·이벤트·전투·상점), 엘리트 길(웨이브마다 한 마리 HP ×2.5), 메뉴 수(전투 보상 + 개성 임계 + 비전투 + 보스), '보스 목표 대입'(`SIM.BOSS_TARGET_MS` 105초) 합계. 신규 적 위협 = `nodeSim.enemyThreat`(행상 = 폭발 + 불 한 틱 · 쿨다운, 짐꾼 = 술통 · 쿨다운, 행상은 근접 무기가 쫓아감).
+
+### 2. 적 등장 순서 · 새 적 소개
+- 위 표대로 단마다 하나씩 처음 나온다(`route.test` 가 지킨다).
+- 소개: 그 런에서 처음 나온 적 종류마다 웨이브가 나올 때 한 번 `UI_EVENTS.ENEMY_INTRO` `{ id, name, desc }`(계약 §17 — UI 자막). 문구 = `enemies.json` `intro`(한 줄 요령, 스토리 파트가 바꿔도 됨). 런 시드가 바뀌면 처음부터(`systems/enemyIntro.ts`, 모듈 단위 — 노드 씬이 바뀌어도 이어진다). 탄생 전장 튜토리얼 적은 구조물 도전 경로라 세지 않는다 → 징집병 소개는 버려진 길에서.
+
+### 3. 신규 적 2종 (`data/enemies.json` peddler·porter, 형식 `data/enemyTypes.ts`)
+| | 독주 행상 `throw` | 술통 짐꾼 `roll` |
+|---|---|---|
+| HP·속도·접촉 | 32 · 2.4칸/초 · 4 | 60 · 1.8칸/초 · 8 |
+| 이동 | 3.5~5칸 유지, 3.5칸 안 물러남, **2칸 안 도망(×1.15, 던지지 않음)** | 계속 다가감 (1.5~6칸이면 굴릴 준비) |
+| 준비(예고) | attack 0~4 = 심지(550ms, 시트 releaseFrame), 착탄 자리 원 예고(반경 1.5칸, 놓음 + 비행 시간) | attack 0~4 = 버팀·당겨 감기(530ms), 진행 직선 예고 10칸 — 놓기 전까지 주인공을 따라 돈다(결사병 규칙) |
+| 놓음 | `throwHandAnchors[방향][5]` 손에서 `fire_bottle_thrown` 포물선(0.7초, 꼭대기 1.5칸 + 손 높이) | `barrelSpawnAnchors[방향][5]` 에 `porter_rolling_barrel` (행 = 방향, 열 = 굴러간 거리 / circumferencePx) |
+| 결과 | `fire_bottle_burst`(반경 안 주인공 6) → `fire_pool` 4초(0.5초마다 3, 적은 안 다침) · 술 웅덩이에 닿으면 술불 | 직선 5칸/초·판정 0.34칸·최대 10칸 · 주인공에 닿으면 9 후 깨짐 · **치면(근접 판정·화살·패링) `_returned` 로 바뀌어 공격 방향으로 ×1.3** → 적에 닿으면 24 + 경직 0.7초 후 깨짐 · 벽·단단한 구조물(걸을 수 없는 칸)·최대 거리에서 깨짐 → `porter_barrel_break`(마지막 프레임에) → `pool_liquor` 반경 1칸 6초 |
+| 쿨다운 | 2.6초 | 3.2초 |
+- 둘 다 쓰러지면 그 자리에 술 웅덩이(`deathPool` 1칸 6초). 술 웅덩이 = 감속 0.3·미끄러움 0.35, 불이 닿으면(행상 병·화염 술병·불붙은 무기) 3초 동안 주인공 3 · **적 6** 틱 — 적을 술 위로 끌어 행상 병으로 태우는 불 연계.
+- 경직·사망이면 준비를 끊고 예고를 지운다(쿨다운 절반 뒤 다시).
+- 코드: `objects/enemy/hazardBrains.ts`(PeddlerBrain·PorterBrain — Enemy 는 `brain` 에 위임), `systems/hazards/EnemyHazards.ts`(병 비행·폭발·불, 술통 굴림·되치기·깨짐, 술 웅덩이 — 씬 update delta 로만 진행 = 히트스톱·정지에 함께 멈춤), 순수 계산 `hazardMath.ts`(+테스트). `MobContext.hazards`, `PlayerStrikes` 근접 판정 → `hazards.onMeleeSwing`, 화살 → `hazards.tickShots`. 디버그 `__lopad.hazards()`.
+- 엘리트 외곽선: 시트(`<적>_<동작>_elite`)는 EliteArt 가 시트 이름으로 자동 연결 — **2차 묶음 접두어의 `enemies` 목록에 peddler·porter 가 들어가면** 로드·표시된다(bundle2.json = 시스템 C2 소유, 보고).
+- 음향(계약 sound 61 단계 2·3): `ENEMY_TELEGRAPH{peddler|porter}` → peddler_wick·porter_windup, `ENEMY_ATTACK{phase}` throw·burst(bottle_burst)·push(+porter_barrel_roll 루프)·return·break·spill, 굴러가는 술통이 다 없어지면 `phase:rollEnd` → 루프 80ms 페이드. 피격·사망은 `<id>_hurt/death` 가 enemy_hurt/death 를 대체(`audioMap.ENEMY_OWN_SFX`). 페이로드 `EnemyAttackPayload.phase`·`kind: throw|roll` 추가.
+- 로드: 짐꾼 술통 구조물 시트 3종을 부팅 묶음에(`sheetSets.enemyStructureSheets`), 적 시트는 적 표에서 자동.
+
+### 4. 방 다양화 (플레이 점검 #7)
+- 전투 노드 세트 후보 4종(`kinds.battle.setPieceVariants`): 광장(기존 `battle`) · **통로**(`battle_lane` 위아래 긴 담 + 길 바닥 + 가로등 — 사수·돌진이 길을 따라) · **마당**(`battle_yard` 가운데 증류기·술통 섬을 담이 반쯤) · **기둥 숲**(`battle_pillars` 한 칸 기둥 5~7 — 시야·탄을 끊음). 노드 자리 순번(단 × 2 + 줄)으로 돌려 같은 길의 이웃 단은 늘 다른 세트(`pickSetPiece`). 버려진 길은 광장/기둥 숲.
+- 노드마다 크기 후보(`arena.variety.sizes` — 전투 32×20·36×18·30×22·34×20, 이벤트·쉼터·상점도), 시작·출구 줄 ±3칸 이동(출구는 반대쪽 — 가로지르는 동선), 세트 좌우·상하 뒤집기(`structures/setpieceMirror.ts`). 보스·탄생 전장은 그대로. 외벽 띠 높이가 크기마다 달라 같은 지역도 다른 방으로 보인다.
+- 계약 art §24 장면 묶음(`variantTag`): 노드마다 지역 장면 하나 또는 없음(`pickPropScene` — 이웃 단은 대개 다름)을 골라 그 장면 소품만 더한다(`tileskin.inPropScene`, `TileWorld` opts.propScene). 보스방은 장면 소품 없음(보스 패턴과 겹치는 엄폐 방지).
+- 계약 art §24 상태별 광원 `lightByState`(술통·튜토리얼 표지판): 객체 = 그 광원, 문자열 = 시트 light, null·없는 상태 = 꺼짐(`world/structureLight.ts`, StructureView 가 상태 바뀔 때 갈아 끼움).
+
+### 5. 상점 상인 (플레이 점검 #12)
+- 상점 노드에 상인(독주 행상 idle, 아래를 봄, 등불 광원)을 상점 칸 윗변에 세운다(`scenes/game/ShopKeeper.ts`). 가까이 가면 `UiInteractable` E 안내(종류는 NPC 상인 계열 `mapSeller`, 이름 = STORY.names.shop, 행동 '거래한다'), E 로 상점 열기 — 상인 곁을 떠나면 닫힌다. 칸을 밟아 여는 기존 길도 그대로.
+
+### 6. 외벽 텍스처 중복 로드 (`Texture key already in use: border_outer_*`)
+- 원인: 외벽 그림을 씬 로더로 받다가 노드를 빨리 넘기면 씬 로더가 초기화되는데, 날아가던 요청은 살아 있어 새 BorderView 가 같은 키를 또 받고 둘 다 텍스처로 올렸다. 수정: 모듈 단위 로더(`BorderView.loadBorderTexture` — 키마다 약속 하나, 끝나면 그 지역이 아직 필요할 때만 올림). 헤드리스: 양조 → 외곽 → 양조 노드 이동 오류 0.
+
+### 7. 무기 쪽 이벤트
+- `PLAYER_DAMAGED{guarded:true}`: 일반 가드로 막고 남은 피해(PlayerDefense). 대검이면 `guard_block_heavy`, 아니면 `guard_block`.
+- `PLAYER_COMBO_FINISH{weapon}`: 연격 마지막 타가 처음 맞힌 순간 한 번(`shared.isComboFinish` — 대쉬 공격·기본기·차지 제외, 활은 이 경로가 아님).
+
+### 8. 첫 로딩 줄이기
+- 부팅 그림 4.26MB 중 보스 묶음(보스 몸 14시트·보스 이펙트·보스방 구조물, 약 2MB)을 빼고 **보스 노드에 들어갈 때** Game preload 가 읽는다(`sheetSets.bossSheetRequests`·`sheetLoader.preloadBossSheets` — `?boss` 포함, 폴백 별칭도 그때). 부팅 요청에서 보스 묶음 24개가 빠진다(실제 파일 기준 부팅 그림 4.26MB 중 약 2MB).
+- 로드 범위 밖 층 전용 BGM(2~8층 floor_low·mid·high)을 부팅에서 뺀다(Preloader `outOfScopeBgm`).
+- 남은 큰 몫: 효과음 약 240개(작지만 수가 많음 — 디코드). 무기별 효과음을 무기 묶음처럼 나누는 것은 다음 정리 후보.
+
+### 검증
+- tsc·eslint·prettier 통과. 테스트 835/836 — 실패 1 = `awakenSheets.test`(아트 작업 트리의 단검 연격 시트 틀 변경, 이 작업과 무관). 새 테스트 `hazardMath.test`·`setpieceMirror.test`(방 다양화·장면)·`enemyIntro.test`·`structureLight.test`, `route.test`(4단·단 웨이브·새 적 순서)·`routeArena.test`·`border.test`·`scope.test`·`sheetSets.test`·`audioDefs.test` 갱신. vite build 통과.
+- 헤드리스(빌드 사본, swiftshader 2fps): 양조 전투에 행상·짐꾼 소환 → 던짐·폭발·굴림 동작, 노드 이동 반복 오류 0, 상점 노드 상인 E 안내·상점 열림. 낮은 FPS 에서는 Phaser 가 프레임 delta 를 줄여 병·술통이 물리처럼 느려진다(실기 확인 필요).

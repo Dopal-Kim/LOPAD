@@ -27,6 +27,8 @@ export interface Candle {
   readonly rect: Phaser.Geom.Rectangle;
   view: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics;
   hint: Phaser.GameObjects.Arc;
+  /** 61라운드: 다시 켤 수 있는 촛대 반짝임 (어둠 위 네 갈래 별) */
+  glint: Phaser.GameObjects.Graphics;
   body: Phaser.GameObjects.Zone;
   light: LightSource | null;
   /** 시트 전환 애니 (lit→fall→fallen_unlit · fallen→relight→relit): 남은 프레임과 시각 */
@@ -67,6 +69,13 @@ export class CandleSet {
       .setStrokeStyle(1, BOSS_FX.CANDLE.HINT_COLOR, 1)
       .setDepth(DEPTH.LIGHTMAP + 0.05)
       .setVisible(false);
+    const G = BOSS_FX.CANDLE.GLINT;
+    const glint = this.scene.add
+      .graphics()
+      .setPosition(x, y - G.LIFT_PX)
+      .setDepth(DEPTH.LIGHTMAP + 0.05)
+      .setVisible(false);
+    drawGlint(glint, G.SIZE, G.COLOR);
     const c: Candle = {
       id,
       tx,
@@ -77,6 +86,7 @@ export class CandleSet {
       rect: new Phaser.Geom.Rectangle(tx * TILE - 2, ty * TILE - TILE, TILE + 4, TILE * 2),
       view: this.scene.add.graphics(),
       hint,
+      glint,
       body,
       light: null,
       anim: null,
@@ -99,6 +109,7 @@ export class CandleSet {
     c.view.destroy();
     c.view = this.draw(c, prev);
     c.hint.setVisible(c.state === 'fallen');
+    c.glint.setVisible(c.state === 'fallen');
     const reg = lightRegistryOf(this.scene);
     reg.remove(c.light);
     const L = c.state === 'lit' ? this.P.light : c.state === 'relit' ? this.P.relitLight : this.P.emberLight;
@@ -164,8 +175,15 @@ export class CandleSet {
   /** 쓰러진 촛대 안내 깜빡임 */
   update(time: number): void {
     const on = Math.floor(time / BOSS_FX.CANDLE.HINT_MS) % 2 === 0;
+    const G = BOSS_FX.CANDLE.GLINT;
     for (const c of this.list) {
-      if (c.state === 'fallen') c.hint.setAlpha(on ? 1 : 0.35);
+      if (c.state === 'fallen') {
+        c.hint.setAlpha(on ? 1 : 0.35);
+        // 반짝임: 촛대마다 어긋난 위상으로 커졌다 작아진다 (0..1..0)
+        const t = (((time + c.id * G.STAGGER_MS) % G.PERIOD_MS) + G.PERIOD_MS) % G.PERIOD_MS;
+        const k = Math.sin((t / G.PERIOD_MS) * Math.PI);
+        c.glint.setScale(G.MIN_SCALE + (1 - G.MIN_SCALE) * k).setAlpha(0.35 + 0.65 * k);
+      }
       const a = c.anim;
       if (!a || time < a.nextAt || !(c.view instanceof Phaser.GameObjects.Sprite)) continue;
       a.i++;
@@ -201,9 +219,21 @@ export class CandleSet {
       reg.remove(c.light);
       c.view.destroy();
       c.hint.destroy();
+      c.glint.destroy();
       c.body.destroy();
     }
     this.solids.destroy(true);
     this.list.length = 0;
   }
+}
+
+/** 네 갈래 별 (가운데 원점, 반지름 r) */
+function drawGlint(g: Phaser.GameObjects.Graphics, r: number, color: number): void {
+  const w = Math.max(1, r * 0.28);
+  g.fillStyle(color, 1);
+  g.fillTriangle(0, -r, -w, 0, w, 0);
+  g.fillTriangle(0, r, -w, 0, w, 0);
+  g.fillTriangle(-r, 0, 0, -w, 0, w);
+  g.fillTriangle(r, 0, 0, -w, 0, w);
+  g.fillCircle(0, 0, w);
 }

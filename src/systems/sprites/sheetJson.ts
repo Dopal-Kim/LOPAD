@@ -379,9 +379,9 @@ export function sheetScale(def: Pick<SheetJson, 'scale'>): number {
  * 53라운드 v3 적(주인공과 같은 1.5배 그림): 피격 연출(섬광·숫자)을 바디 중심에서 그림 중심(피벗 높이의 절반)으로 올리는
  * 거리(월드). 판정·바디는 그대로. v3 가 아니면 0 (구 시트·v2 는 기존 자리)
  */
-export function v3HitLift(def: Pick<SheetJson, 'pivot' | 'pixelScale'>, bodyH: number): number {
+export function v3HitLift(def: Pick<SheetJson, 'pivot' | 'pixelScale'>, bodyH: number, drawScale = 1): number {
   if (!(typeof def.pixelScale === 'number' && def.pixelScale <= SPRITES.V3_PIXEL_SCALE)) return 0;
-  return Math.max(0, (def.pivot.y * artScale(def)) / 2 - bodyH / 2);
+  return Math.max(0, (def.pivot.y * artScale(def) * drawScale) / 2 - bodyH / 2);
 }
 
 /**

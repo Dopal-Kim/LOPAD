@@ -68,7 +68,18 @@ export const BOSS_FX = {
     HINT_COLOR: 0xffd890,
     HINT_MS: 600,
     HINT_RADIUS: 9,
+    /**
+     * 61라운드 점검 #6: 쓰러진(다시 켤 수 있는) 촛대 반짝임 — 어둠 위 네 갈래 별. 크기(월드 px)·발에서 위로·한 번 반짝이는 주기 ms·
+     * 촛대마다 어긋나는 위상 ms·최소 배율
+     */
+    GLINT: { COLOR: 0xfff0c0, SIZE: 6, LIFT_PX: 12, PERIOD_MS: 1100, STAGGER_MS: 270, MIN_SCALE: 0.45 },
   },
+  /** 61라운드 처치 연출: 시체(죽음 그림)를 보상 메뉴까지 남겨 두는 여유 ms (show.defeat.rewardAtMs 에 더한다) */
+  CORPSE_EXTRA_HOLD_MS: 1500,
+  /** 61라운드 계약 §17: 파훼·결정타 짧은 이름 (UI_EVENTS.BOSS_BREAK label) */
+  BREAK_LABELS: { cup: '잔 깨기', pillar: '기둥 충돌', cask: '술통 되치기', stumble: '넘어뜨림', finisher: '결정타' },
+  /** 61라운드 처치 연출 섬광 색 */
+  DEFEAT_FLASH: 0xfff4e0,
   /** 굴러가는 술통 임시 그림 · 회전(라디안/px) */
   CASK: { BODY: 0x7a4a1a, BAND: 0x3a2410, SPIN_PER_PX: 0.12, DEPTH_LIFT: 0 },
   /** 횃불 투사체: 색 · 포물선 높이(월드 px) · 크기 */

@@ -190,8 +190,13 @@ export class BossPose implements BossPoseApi {
     return { def, col: idx % def.frames, row, dir };
   }
 
+  /** 시트 도트 → 월드 배율 (61라운드: 보스 renderScale = visual.drawScale 포함) */
+  private scaleOf(def: SheetJson): number {
+    return artScale(def) * this.visual.drawScale;
+  }
+
   private toWorld(def: SheetJson, x: number, y: number): Vec {
-    const s = artScale(def);
+    const s = this.scaleOf(def);
     return { x: this.host.x + (x - def.pivot.x) * s, y: this.host.y + (y - def.pivot.y) * s };
   }
 
@@ -201,12 +206,12 @@ export class BossPose implements BossPoseApi {
     if (f && r && r.w > 0 && r.h > 0) {
       // 계약 §15 {x, y, w, h}: x·y = 사각형 왼쪽 위 (시트 도트) — 아트 확인 질문 (보고서)
       const a = this.toWorld(f.def, r.x, r.y);
-      const s = artScale(f.def);
+      const s = this.scaleOf(f.def);
       return { x: a.x, y: a.y, w: r.w * s, h: r.h * s };
     }
     return {
       x: this.host.x - fallback.w / 2,
-      y: this.host.y - fallback.lift - fallback.h / 2,
+      y: this.host.y - fallback.lift * this.visual.drawScale - fallback.h / 2,
       w: fallback.w,
       h: fallback.h,
     };

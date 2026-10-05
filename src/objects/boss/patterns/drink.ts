@@ -64,6 +64,7 @@ class DrinkRun implements PatternRun {
     if (this.broken) {
       // 잔이 깨짐: 보스 경직으로 끝 (화면 패턴 없음)
       this.cleanup();
+      h.markBroken(P.breakStunMs);
       h.emitAction('cupBreak');
       return {
         finish: true,
@@ -121,17 +122,22 @@ export const drinkPattern: BossPatternModule = {
   start: (host, ctx) => new DrinkRun(host, ctx),
 };
 
-/** 페이즈 전환 들이켜기 (Q1): 멈춰 들이켬, invulnerable 이면 그동안 피해 무시 (임시값 — 보고서 질문) */
+/**
+ * 페이즈 전환 들이켜기 (Q1): 멈춰 들이켬, invulnerable 이면 그동안 피해 무시.
+ * 61라운드 P6: 끝나면 `next` (인사불성 = 등불 끄기 확정 — 국면 진입 때 한 번)
+ */
 class PhaseDrinkRun implements PatternRun {
   readonly state = 'phaseDrink';
   private readonly until: number;
+  private readonly next: BossPatternName | undefined;
 
   constructor(
     private readonly host: BossHost,
     ctx: MobContext,
   ) {
-    const P = host.params<{ durationMs: number; invulnerable?: boolean }>('phaseDrink');
+    const P = host.params<{ durationMs: number; invulnerable?: boolean; next?: BossPatternName }>('phaseDrink');
     this.until = ctx.time + P.durationMs;
+    this.next = P.next;
     host.setVelocity(0, 0);
     if (P.invulnerable) host.setInvulnerable(this.until);
     // 아트 v3 phase_drink 한 번(전환 길이에 맞춤) → 없으면 drink 들이켜기 루프
@@ -147,7 +153,7 @@ class PhaseDrinkRun implements PatternRun {
     this.host.setVelocity(0, 0);
     if (ctx.time < this.until) return null;
     this.cancel();
-    return { finish: true };
+    return { finish: true, next: this.next };
   }
 
   cancel(): void {
@@ -163,7 +169,10 @@ export const phaseDrinkPattern: BossPatternModule = {
   start: (host, ctx) => new PhaseDrinkRun(host, ctx),
 };
 
-/** 세상이 돈다 (Q7): 카메라 기울기 시작 → 곧바로 3연 취권(next). 방이 없으면(시험장 등) 효과만 생략 */
+/**
+ * 세상이 돈다 (Q7): 카메라 기울기 시작 → 곧바로 next. 방이 없으면(시험장 등) 효과만 생략.
+ * 61라운드 P6: 국면 전환 연출로만 쓴다 (국면 enterPattern = spin → phaseDrink). 설정 tilt 0 이면 기울기만 빠진다
+ */
 export const spinPattern: BossPatternModule = {
   name: 'spin',
   start(host, ctx) {

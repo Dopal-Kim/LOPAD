@@ -1,5 +1,6 @@
 /** 시스템 파트: 계약 스냅샷 생성 (UI 파트는 import 금지). */
 import { gameState } from '../core/GameState';
+import { tagOn } from '../data/build';
 import { ECONOMY, STORY } from '../data';
 import type { FloorLayout } from '../systems/mapgen';
 import type {
@@ -19,6 +20,7 @@ import type {
   UiElite,
   UiNodeTrial,
   UiSettings,
+  UiBossSnapshot,
 } from './ui';
 import { DEFAULT_SETTINGS } from '../systems/settings';
 import { weaponVerbs } from '../systems/weapon/verbs';
@@ -28,6 +30,8 @@ export interface SnapshotContext {
   visited: ReadonlySet<string>;
   cleared: ReadonlySet<string>;
   bossName: string | null;
+  /** 61라운드 (계약 §17): 보스 선택 필드 (국면·파훼 창·촛대·어둠). 생략 시 없음 */
+  bossExtra?: Partial<UiBossSnapshot> | null;
   paused: boolean;
   menu: UiMenu | null;
   /** 45라운드: 활성 전투 방 여부 · 달리는 중 · 워프 상태 (targets 는 방 id) */
@@ -106,7 +110,13 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     },
     boss:
       gameState.bossMaxHp > 0
-        ? { name: ctx.bossName ?? '보스', hp: gameState.bossHp, maxHp: gameState.bossMaxHp, phase: gameState.bossPhase }
+        ? {
+            ...(ctx.bossExtra ?? {}),
+            name: ctx.bossName ?? '보스',
+            hp: gameState.bossHp,
+            maxHp: gameState.bossMaxHp,
+            phase: gameState.bossPhase,
+          }
         : null,
     stats: {
       attack: gameState.attack,
@@ -120,7 +130,8 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
         name: d?.name ?? id,
         level,
         description: d?.description ?? '',
-        tags: [...(d?.tags ?? [])],
+        // 61라운드 P4: 이 층에서 꺼진 태그는 빼고
+        tags: (d?.tags ?? []).filter((t) => tagOn(t, gameState.build.floor)),
         maxLevel: gameState.passives.maxLevel,
       };
     }),

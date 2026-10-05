@@ -1,17 +1,25 @@
 {
+  "_note61": "61라운드 P4 빌드 축 1층판: 태그 floor(1층 노출 6 = 간파·돌파·급소·연쇄·중량·취기 — 4동사 좌 연격=연쇄·급소 / 우 시그니처=간파 / Space 대쉬=돌파 / 좌 홀드 강공=중량 + 층 테마 취기) · 세트 6단계 floor 2 · evolve.maxTierByFloor(1층 런은 1단까지, 2단은 시험장) · dual.absorbOnFloors(그 층에선 이중 개성을 보상 칸 대신 갈래에 흡수 — 1단 갈래를 고르는 순간 일반 짝 자동, 취기 짝은 취기 tier1Score 점 도달 순간 자동). 그 층에서 꺼진 태그는 점수 0",
   "_note": "57라운드 빌드 축 1차 (Q22~Q37 · Q38 취기 A안). 이름은 전부 자리표시(_tmpName — 정식명은 스토리 파트), 수치는 설계안 초안(데모로 조정). 설계안 decisions/design-2026-10-04-build-axis.md 1.4 · build-axis-chwigi.md 2장 A안",
   "tags": [
-    { "id": "insight", "name": "간파", "_tmpName": true, "event": "완벽 성공 — 패링·퍼펙트 가드·완벽 놓기·완벽 회피" },
-    { "id": "breach", "name": "돌파", "_tmpName": true, "event": "이동기 — 대쉬·그림자 걸음·돌진" },
-    { "id": "vital", "name": "급소", "_tmpName": true, "event": "치명" },
-    { "id": "scar", "name": "상흔", "_tmpName": true, "event": "출혈·화상" },
-    { "id": "chain", "name": "연쇄", "_tmpName": true, "event": "처치" },
-    { "id": "ranged", "name": "원격", "_tmpName": true, "event": "투사체·충격파" },
-    { "id": "weight", "name": "중량", "_tmpName": true, "event": "강공" },
-    { "id": "mark", "name": "표식", "_tmpName": true, "event": "표식·낙인" },
-    { "id": "endure", "name": "버팀", "_tmpName": true, "event": "위기·피해 감소" },
+    {
+      "id": "insight",
+      "floor": 1,
+      "name": "간파",
+      "_tmpName": true,
+      "event": "완벽 성공 — 패링·퍼펙트 가드·완벽 놓기·완벽 회피"
+    },
+    { "id": "breach", "floor": 1, "name": "돌파", "_tmpName": true, "event": "이동기 — 대쉬·그림자 걸음·돌진" },
+    { "id": "vital", "floor": 1, "name": "급소", "_tmpName": true, "event": "치명" },
+    { "id": "scar", "floor": 2, "name": "상흔", "_tmpName": true, "event": "출혈·화상" },
+    { "id": "chain", "floor": 1, "name": "연쇄", "_tmpName": true, "event": "처치" },
+    { "id": "ranged", "floor": 2, "name": "원격", "_tmpName": true, "event": "투사체·충격파" },
+    { "id": "weight", "floor": 1, "name": "중량", "_tmpName": true, "event": "강공" },
+    { "id": "mark", "floor": 2, "name": "표식", "_tmpName": true, "event": "표식·낙인" },
+    { "id": "endure", "floor": 2, "name": "버팀", "_tmpName": true, "event": "위기·피해 감소" },
     {
       "id": "drunk",
+      "floor": 1,
       "name": "취기",
       "_tmpName": true,
       "event": "마시기·술 웅덩이·취기 상태 (1층 '잔' 테마 태그)",
@@ -31,6 +39,7 @@
     "insight": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "간파 2",
         "_tmpName": true,
         "description": "완벽 성공 후 1초 안 다음 공격 1회 치명 확정",
@@ -38,6 +47,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "간파 4 · 반향",
         "_tmpName": true,
         "description": "완벽 성공 시 앞 120°·2.5칸에 막은 피해 ×2 (최소 공격 ×1.0)",
@@ -45,6 +55,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "간파 6 · 정적",
         "_tmpName": true,
         "description": "완벽 성공 3회마다 1초 정적 — 적·탄 40% 감속",
@@ -55,6 +66,7 @@
     "breach": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "돌파 2",
         "_tmpName": true,
         "description": "대쉬·그림자 걸음 쿨 −20%",
@@ -62,6 +74,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "돌파 4",
         "_tmpName": true,
         "description": "대쉬·돌진·그림자 걸음 경로에 베기 판정 1회 (공격 ×0.8)",
@@ -69,6 +82,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "돌파 6",
         "_tmpName": true,
         "description": "대쉬 2회 충전",
@@ -78,6 +92,7 @@
     "vital": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "급소 2",
         "_tmpName": true,
         "description": "치명 확률 +8%p",
@@ -85,6 +100,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "급소 4",
         "_tmpName": true,
         "description": "치명 피해 ×1.5 → ×2.0",
@@ -92,6 +108,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "급소 6 · 금",
         "_tmpName": true,
         "description": "치명타를 맞은 적에 '금' 1초 — 그 적 다음 타격 치명 확정",
@@ -101,6 +118,7 @@
     "scar": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "상흔 2",
         "_tmpName": true,
         "description": "출혈·화상 지속시간 +50%",
@@ -108,6 +126,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "상흔 4 · 끓음",
         "_tmpName": true,
         "description": "출혈과 화상이 함께 걸린 적은 남은 지속 피해가 즉시 폭발 (반경 1.5칸)",
@@ -115,6 +134,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "상흔 6",
         "_tmpName": true,
         "description": "지속 피해로 죽은 적의 지속 피해가 반경 3칸 적 2명에게 옮겨붙음",
@@ -124,6 +144,7 @@
     "chain": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "연쇄 2",
         "_tmpName": true,
         "description": "처치 후 2초 공격 속도 +15%",
@@ -131,6 +152,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "연쇄 4",
         "_tmpName": true,
         "description": "처치 시 무기 자원 회복: 칼 검기 1/3단 · 대검 울분 +10% · 단검 과열 −20% · 활 화살 +1·숨 +1/3",
@@ -145,6 +167,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "연쇄 6 · 살기",
         "_tmpName": true,
         "description": "3초 안 3처치 → 살기 5초: 피해 +25%, 개성 획득 ×2",
@@ -161,6 +184,7 @@
     "ranged": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "원격 2",
         "_tmpName": true,
         "description": "투사체·충격파 사거리·속도 +20%",
@@ -168,6 +192,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "원격 4",
         "_tmpName": true,
         "description": "투사체·충격파 관통 +1 (이미 무한 관통이면 피해 +15%)",
@@ -175,6 +200,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "원격 6",
         "_tmpName": true,
         "description": "투사체 적중 시 25% 확률로 2발 분열 (각 ×0.4)",
@@ -184,6 +210,7 @@
     "weight": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "중량 2",
         "_tmpName": true,
         "description": "강공 피해 +20%",
@@ -191,6 +218,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "중량 4",
         "_tmpName": true,
         "description": "강공 적중 경직 +0.3초 · 밀쳐냄 1칸",
@@ -198,6 +226,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "중량 6",
         "_tmpName": true,
         "description": "강공 동작 중 받는 피해 50% 감소 · 끊기지 않음",
@@ -207,6 +236,7 @@
     "mark": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "표식 2",
         "_tmpName": true,
         "description": "같은 적 3타마다 표식 1 (최대 3, 표식당 받는 피해 +5%). 단검은 낙인 최대 5 → 7",
@@ -214,6 +244,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "표식 4",
         "_tmpName": true,
         "description": "표식 3 이상 적이 죽으면 표식이 가까운 적에게 옮겨감",
@@ -221,6 +252,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "표식 6 · 기폭",
         "_tmpName": true,
         "description": "표식 3 이상 적에게 강공 적중 시 기폭 (공격 ×2.0, 반경 2칸). 단검은 낙인 기폭 피해 +40%",
@@ -230,6 +262,7 @@
     "endure": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "버팀 2",
         "_tmpName": true,
         "description": "피격 직후 1초 받는 피해 −30%",
@@ -237,6 +270,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "버팀 4",
         "_tmpName": true,
         "description": "칼·대검 그로기 1.5 → 1.0초 / 단검·활은 층당 1회 HP 30% 이하 진입 시 1초 무적 + 2초 이동 +30%",
@@ -244,6 +278,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "버팀 6",
         "_tmpName": true,
         "description": "층당 1회 HP 0 → HP 25%로 버팀 (1초 무적)",
@@ -253,6 +288,7 @@
     "drunk": [
       {
         "threshold": 2,
+        "floor": 1,
         "name": "한 잔",
         "_tmpName": true,
         "description": "마시기 사건 시 취기 상태 5초: 피격 경직·밀려남 없음(피해는 그대로). 술 웅덩이 위 처치도 마시기",
@@ -260,6 +296,7 @@
       },
       {
         "threshold": 4,
+        "floor": 1,
         "name": "취보",
         "_tmpName": true,
         "description": "취기 중 처음 받는 공격 1회 = 휘청: 피해 0·0.4초 무적·반 칸 미끄러짐, 0.6초 안 첫 공격 +50%",
@@ -267,6 +304,7 @@
       },
       {
         "threshold": 6,
+        "floor": 2,
         "name": "술바다",
         "_tmpName": true,
         "description": "취기 중 처치한 자리에 술 웅덩이(반경 1.2칸, 6초). 취기 중 대쉬가 지나간 웅덩이는 술불, 이웃으로 번짐. 취기 상한 10초",
@@ -285,7 +323,8 @@
     "repeatThreshold": 200,
     "reinforceMaxAwakened": 5,
     "pactBenefitMult": 1.5,
-    "pactExtraNodes": 1
+    "pactExtraNodes": 1,
+    "maxTierByFloor": { "1": 1 }
   },
   "awaken": {
     "_note": "57 Q33·설계안 3.1 A: 2단 + 그 2단 태그 중 하나 6점 + 5층 보스 처치 이후",
@@ -311,7 +350,9 @@
   "dual": {
     "_note": "57 Q27: 1단 + 짝 태그 2점 / 2단 + 짝 태그 4점 → 다음 보상 3지선다 1칸 확정. 이중 개성은 태그 점수 없음",
     "tier1Score": 2,
-    "tier2Score": 4
+    "tier2Score": 4,
+    "absorbOnFloors": [1],
+    "absorbText": "{branch} 강화 — {name}: {description}"
   },
   "drunk": {
     "_note": "취기 QC-0: 카운터 '취기 n단'과 하나로 합침 — HUD drunk 하나. 기본 5초, 마시기마다 새로 고침(합산 아님)",

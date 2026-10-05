@@ -64,6 +64,8 @@ export interface AudioSummary {
   bgmFading: number;
   floor: number | null;
   state: string | null;
+  /** 61라운드: 보스 처치 뒤 정적 중 */
+  outroSilence: boolean;
   paused: boolean;
   loops: string[];
   /** 루프 끝(loopEndSample)에 맞춰 버퍼를 자른 소리 */
@@ -111,6 +113,8 @@ export class AudioSystem {
   private dying: BgmTrack[] = [];
   private floor: number | null = null;
   private state: string | null = null;
+  /** 61라운드: 보스 처치 뒤 정적 (처치 연출·보상 메뉴 동안 — EXIT_OPENED·노드·층 진입에 풀림) */
+  private outroSilence = false;
   private paused = false;
   private recent: AudioSummary['recent'] = [];
   private muted = false;
@@ -140,6 +144,7 @@ export class AudioSystem {
     EventBus.on(Events.BOSS_PHASE, this.onBossPhase, this);
     EventBus.on(Events.NODE_ENTERED, this.onNodeEntered, this);
     EventBus.on(Events.BOSS_DIED, this.onBossDied, this);
+    EventBus.on(Events.EXIT_OPENED, this.endOutroSilence, this);
     EventBus.on(Events.PLAYER_DIED, this.onRunEnding, this);
     EventBus.on(Events.ENDING_CHOSEN, this.onRunEnding, this);
     EventBus.on(Events.RUN_ENDED, this.onRunEnded, this);
@@ -459,6 +464,7 @@ export class AudioSystem {
       volumes: { ...this.vol },
       scene: this.floorScene,
       bossPhase: this.bossPhase,
+      outroSilence: this.outroSilence,
       lazyLoading: this.lazy.inFlight,
       ducks: this.bank.activeDucks,
       bgmDuck: Number(this.bank.bgmGain.toFixed(3)),
@@ -496,6 +502,7 @@ export class AudioSystem {
   }
 
   private onStageStarted(p: { stageIndex: number }): void {
+    this.outroSilence = false;
     this.stopAllLoops();
     // 61라운드 §9: 층 시작 = 여정부터 (노드 진입이 곧 장면을 정한다)
     this.floorScene = 'journey';
@@ -506,12 +513,14 @@ export class AudioSystem {
 
   /** 61라운드 §9: 노드 → 장면(여정·전투), 보스 노드면 국면 곡 미리 */
   private onNodeEntered(p: NodeEnteredPayload): void {
+    this.outroSilence = false;
     this.floorScene = floorSceneOfNode(p.kind);
     if (p.kind === 'boss' && this.floor !== null) this.prefetchFloor(this.floor, true);
     this.refreshBgm();
   }
 
   private onBossStarted(p: { boss: string }): void {
+    this.outroSilence = false;
     this.bossPhase = 1;
     this.setState(bossBgmState(this.manifest, p.boss));
   }
@@ -523,8 +532,18 @@ export class AudioSystem {
     this.refreshBgm(true);
   }
 
+  /** 61라운드: 보스 곡을 페이드아웃하고 보상 메뉴가 끝날 때까지 정적 (층 곡이 처치 연출 위로 바로 돌아오지 않게) */
   private onBossDied(): void {
-    if (isBossState(this.state)) this.setState(null);
+    if (!isBossState(this.state)) return;
+    this.state = null;
+    this.outroSilence = true;
+    this.retire(AUDIO.BOSS_DEFEAT_FADE_MS);
+  }
+
+  private endOutroSilence(): void {
+    if (!this.outroSilence) return;
+    this.outroSilence = false;
+    this.refreshBgm();
   }
 
   private onRunEnding(): void {
@@ -540,6 +559,10 @@ export class AudioSystem {
   private refreshBgm(phaseChange = false): void {
     const sm = this.game?.sound;
     if (!sm) return;
+    if (this.outroSilence) {
+      if (this.bgm) this.retire(AUDIO.BOSS_DEFEAT_FADE_MS);
+      return;
+    }
     const want = resolveBgmFor(this.manifest, this.floor, this.state, this.floorScene, this.bossPhase);
     const target = want ? this.targetVolume(want) : 0;
     if (this.bgm && this.bgm.id === want) {
@@ -670,6 +693,7 @@ export class AudioSystem {
     EventBus.off(Events.BOSS_PHASE, this.onBossPhase, this);
     EventBus.off(Events.NODE_ENTERED, this.onNodeEntered, this);
     EventBus.off(Events.BOSS_DIED, this.onBossDied, this);
+    EventBus.off(Events.EXIT_OPENED, this.endOutroSilence, this);
     EventBus.off(Events.PLAYER_DIED, this.onRunEnding, this);
     EventBus.off(Events.ENDING_CHOSEN, this.onRunEnding, this);
     EventBus.off(Events.RUN_ENDED, this.onRunEnded, this);

@@ -8,7 +8,8 @@
  * (d) 숨은 노드 — 층 확률(1층 50%)로 잔 일반 전투 노드 하나에 단서, 그 노드 다음(같은 단 아래 칸)에 숨은 노드.
  * (c) 이벤트 내용 — 런 안 중복 없이 서사형 가중으로 미리 고른다 (지도 정보로 이름 공개).
  */
-import { BUNDLE2, byStage } from '../../data/bundle2';
+import { BUNDLE2, byStage, eventsOn, prefixIdsOn } from '../../data/bundle2';
+import { floorOfStage, onFloor, type FloorScope } from '../../data/floorScope';
 import type { ElitePrefixId, Grade, HiddenContent, MapInfoId, RewardKind, RiskKind } from '../../data/bundle2Types';
 import type { UiRoute, UiRouteNode } from '../../contract/ui';
 import { Rng, hashSeed } from '../rng';
@@ -71,18 +72,26 @@ export function weightedPick<T extends string>(rng: Rng, weights: Partial<Record
   return entries[entries.length - 1][0];
 }
 
-/** 이벤트 고르기: 런 안 중복 없음, 서사형 가중 ×narrativeMult. 다 썼으면 처음부터 */
-export function pickEvent(rng: Rng, used: readonly string[], exclude: readonly string[] = []): string | null {
+/** 이벤트 고르기: 런 안 중복 없음, 서사형 가중 ×narrativeMult. 다 썼으면 처음부터. 61라운드 P5: 이 층에서 나오는 것만 (1층 5종) */
+export function pickEvent(
+  rng: Rng,
+  used: readonly string[],
+  exclude: readonly string[] = [],
+  floor: FloorScope = null,
+): string | null {
   const E = BUNDLE2.events;
-  let pool = E.items.filter((e) => !used.includes(e.id) && !exclude.includes(e.id));
-  if (pool.length === 0) pool = E.items.filter((e) => !exclude.includes(e.id));
+  const items = eventsOn(floor);
+  let pool = items.filter((e) => !used.includes(e.id) && !exclude.includes(e.id));
+  if (pool.length === 0) pool = items.filter((e) => !exclude.includes(e.id));
   const weights: Record<string, number> = {};
   for (const e of pool) weights[e.id] = e.narrative ? E.narrativeMult : 1;
   return weightedPick(rng, weights);
 }
 
-function rollPrefixes(rng: Rng, n: number): ElitePrefixId[] {
-  const ids = BUNDLE2.elite.prefixes.map((p) => p.id);
+/** 61라운드 P5: 이 층에서 붙는 접두어만 (1층 3종) */
+function rollPrefixes(rng: Rng, n: number, floor: FloorScope): ElitePrefixId[] {
+  const ids = prefixIdsOn(floor);
+  if (ids.length === 0) return [];
   return Array.from({ length: n }, () => ids[Math.floor(rng.next() * ids.length)]);
 }
 
@@ -102,6 +111,7 @@ export function generateExtras(
   waveCount: number,
 ): FloorExtras {
   const B = BUNDLE2;
+  const floor = floorOfStage(g.stageId);
   const rng = new Rng(hashSeed(`${String(seed)}:bundle2`));
   const nodes: Record<string, NodeExtra> = {};
   for (const n of g.nodes) nodes[n.id] = emptyExtra();
@@ -114,7 +124,7 @@ export function generateExtras(
     const n = riskCands.splice(Math.floor(rng.next() * riskCands.length), 1)[0];
     const kind = weightedPick<RiskKind>(rng, B.risk.kinds) ?? 'elite';
     nodes[n.id].risk = kind;
-    if (kind === 'elite') nodes[n.id].prefixes = rollPrefixes(rng, Math.max(1, waveCount) * B.risk.elitePerWave);
+    if (kind === 'elite') nodes[n.id].prefixes = rollPrefixes(rng, Math.max(1, waveCount) * B.risk.elitePerWave, floor);
   }
   // 상점 앞 단 (링크에 상점이 있는 전투)
   for (const n of lane)
@@ -141,16 +151,16 @@ export function generateExtras(
     }
   }
   for (const n of g.nodes) if (n.kind === 'road') nodes[n.id].reward = B.rewards.road;
-  // (f) 도전 성소 — 잔 일반 전투 (위험 아님)
+  // (f) 도전 성소 — 잔 일반 전투 (위험 아님). 61라운드 P5: 1층에서 끔 ('완' 등급으로 통합)
   for (const n of lane)
-    if (n.kind === 'battle' && !nodes[n.id].risk && rng.chance(B.shrine.chance)) {
+    if (onFloor(B.shrine, floor) && n.kind === 'battle' && !nodes[n.id].risk && rng.chance(B.shrine.chance)) {
       nodes[n.id].shrine = true;
-      nodes[n.id].prefixes = rollPrefixes(rng, B.shrine.eliteExtra);
+      nodes[n.id].prefixes = rollPrefixes(rng, B.shrine.eliteExtra, floor);
     }
   // (c) 이벤트 내용
   const picked: string[] = [];
   for (const n of lane.filter((x) => x.kind === 'event')) {
-    const id = pickEvent(rng, [...usedEvents, ...picked]);
+    const id = pickEvent(rng, [...usedEvents, ...picked], [], floor);
     nodes[n.id].eventId = id;
     if (id) picked.push(id);
   }
@@ -158,7 +168,8 @@ export function generateExtras(
   let hidden: HiddenNodeInfo | null = null;
   const lanes = Math.max(1, ...lane.map((n) => n.row + 1));
   const srcCands = lane.filter((n) => n.kind === 'battle' && !nodes[n.id].risk && n.links.length > 0);
-  if (srcCands.length > 0 && rng.chance(byStage(B.hidden.chance, g.stageId))) {
+  // 61라운드 P5: 숨은 노드는 1층에서 끔
+  if (onFloor(B.hidden, floor) && srcCands.length > 0 && rng.chance(byStage(B.hidden.chance, g.stageId))) {
     const src = srcCands[Math.floor(rng.next() * srcCands.length)];
     const content = weightedPick<HiddenContent>(rng, B.hidden.contents) ?? 'treasure';
     const id = `h${src.col}r${lanes}`;

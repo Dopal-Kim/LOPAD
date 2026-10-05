@@ -97,6 +97,14 @@ export const Events = {
   BOSS_SCREEN: 'boss:screen',
   /** 보스 돌진이 벽에 부딪혀 경직 (화면 흔들림·음향 훅, 35라운드) */
   BOSS_WALL_HIT: 'boss:wall-hit',
+  /**
+   * 61라운드 등장·처치 연출 (scenes/game/BossFlow): 등장 시작(`BossIntroPayload`, BOSS_STARTED 직후 — 무기 한마디 bossBefore 자리) ·
+   * 전투 시작(`{ id }`) · 보스 대사 한 줄(`BossSpeechPayload`) · 쓰러짐 대사 뒤(`BossFallenPayload` — 무기 한마디 bossKill 자리)
+   */
+  BOSS_INTRO: 'boss:intro',
+  BOSS_FIGHT: 'boss:fight',
+  BOSS_SPEECH: 'boss:speech',
+  BOSS_FALLEN: 'boss:fallen',
   GOLD_CHANGED: 'gold:changed',
   POTION_CHANGED: 'potion:changed',
   STAT_REWARD: 'stat:reward',
@@ -363,6 +371,8 @@ export type PlayerSkillPayload = {
   stage?: number;
   /** 대치 일격 준비 반짝임 자리 (칼집 입구 — 월드) */
   at?: { x: number; y: number };
+  /** 61라운드 칼 발도(iai release): 소모한 검기 단 (0~5 — 음향 katana_iai_ki{n}) */
+  kenkiStage?: number;
 };
 /** 56라운드 2단계 활 화살비: 원 중심·반지름·시트 행 · 발사 시각(좌클릭부터) · 낙하 · 피해 배율 */
 export type ArrowRainPayload = {
@@ -418,8 +428,18 @@ export type PlayerSecondaryPayload = {
 /** 60라운드: elite = 엘리트였음 (음향 elite_die) */
 export type EnemyDiedPayload = { id: string; elite?: boolean };
 export type EnemyDamagedPayload = { id: string; amount: number; crit: boolean; died: boolean; tick: boolean };
-export type EnemyAttackPayload = { id: string; kind: 'contact' | 'dash' | 'shot' };
-export type EnemyTelegraphPayload = { id: string; kind: 'dash' | 'shot' };
+/**
+ * 61라운드 단계 2: throw = 독주 행상 화염 술병 · roll = 술통 짐꾼 술통. phase = 음향 구분(계약 sound 61-2 — `enemy:<id>`·`phase:<단계>`):
+ * throw 놓음 · burst 착지 폭발 · push 술통 놓음(굴림 루프 시작) · return 되치기 · break 깨짐 · spill 술 퍼짐 · rollEnd 굴러가는 술통 없음(루프 끝)
+ */
+export type EnemyAttackPhase = 'throw' | 'burst' | 'push' | 'return' | 'break' | 'spill' | 'rollEnd';
+export type EnemyAttackPayload = {
+  id: string;
+  kind: 'contact' | 'dash' | 'shot' | 'throw' | 'roll';
+  phase?: EnemyAttackPhase;
+};
+/** 61라운드 단계 2: throw = 행상 심지 불붙임(놓기 전까지) · roll = 짐꾼 밀기 준비 */
+export type EnemyTelegraphPayload = { id: string; kind: 'dash' | 'shot' | 'throw' | 'roll' };
 /** 35라운드 2단계: reload = 사수 재장전 시작, block = 결사병 방패로 막음, pack = 징집병 집단 돌격 시작 */
 export type EnemyBehaviorPayload = { id: string; kind: 'reload' | 'block' | 'pack' };
 /** 보스 패턴 이름 (54라운드: 단일 출처 data/bossPatterns.ts) */
@@ -452,6 +472,12 @@ export type BossLoopKind = 'gulp' | 'roll' | 'fire';
 export type BossLoopPayload = { loop: BossLoopKind; on: boolean };
 export type BossScreenPayload = { effect: 'tilt' | 'dark'; on: boolean };
 export type BossWallHitPayload = { id: string; x: number; y: number };
+/** 61라운드: durationMs = 등장 연출 전체(전투 시작까지) · lineGapMs = 첫 자막(층 등장)까지 남은 틈 (무기 한마디 자리) */
+export type BossIntroPayload = { id: string; durationMs: number; lineGapMs: number };
+/** 61라운드: key = 'intro' · 'phase2' · 'phase3' · 'break.<cup|pillar|cask|reel>' · 'defeat' */
+export type BossSpeechPayload = { id: string; key: string; speaker: string; text: string };
+/** 61라운드: finisher = 파훼 경직 중 결정타로 끝냈는지 · rewardInMs = 보상 메뉴까지 남은 ms (무기 한마디 자리) */
+export type BossFallenPayload = { id: string; finisher: boolean; rewardInMs: number };
 export type MenuEventPayload = { id: string; reopen?: boolean; key?: string; selected?: boolean };
 export type RunEndedPayload = { cleared: boolean };
 export type ComboFinishPayload = { weapon: string };

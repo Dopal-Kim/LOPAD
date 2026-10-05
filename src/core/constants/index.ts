@@ -8,6 +8,7 @@ export * from './assets';
 export * from './world';
 export * from './feel';
 export * from './enemy';
+export { ENEMY_HAZARD, SHOP_KEEPER } from './enemyHazards';
 export * from './player';
 export * from './scenes';
 export { BOSS_FX } from './boss';

@@ -116,6 +116,8 @@ export interface DebugApi {
   lastSlam: () => unknown;
   /** 활성 방에 적 추가 (집단 돌격 검증용) */
   spawnEnemy: (id: string, x: number, y: number) => boolean;
+  /** 61라운드 단계 2: 행상 화염 술병·짐꾼 술통·술 웅덩이 (던짐·굴림·되치기·깨짐 수, 지금 굴러가는 술통) */
+  hazards: () => unknown;
   /** 보스 HP 를 내려 페이즈 전환 (피해 처리 경로) */
   setBossHp: (hp: number) => boolean;
   /** 42라운드: 활성 잔상 궤적(샘플 좌표) */
@@ -204,6 +206,10 @@ export interface BundleDebugApi {
   elite: (prefix?: string) => boolean;
   /** 지도 정보 공짜로 (nextTier · fullFloor · hiddenLocated) */
   intel: (id: string) => boolean;
+  /** 61라운드 P8: 이 노드의 서사 단서를 E 조사한 것처럼 (birthMask · gateLedger · bossLedger — 놓인 것만) */
+  clue: (id: string) => boolean;
+  /** 61라운드 P8: 서사 런 상태 · 놓인 단서 · 일기장 이력 */
+  story: () => unknown;
 }
 
 /** 57라운드 빌드 축 검증 훅 (`__lopad.build.*`) */
@@ -243,6 +249,8 @@ export interface BossDebugApi {
   geom: () => unknown;
   /** 세상이 돈다 화면 효과만 바로 (1층 spin 수치, opts 로 흐림·길이 덮어쓰기 — 검증용) */
   tilt: (opts?: { blur?: number; durationMs?: number }) => unknown;
+  /** 61라운드 등장·처치 연출 상태 (단계·경과·대사·미룬 보상) */
+  flow: () => unknown;
 }
 
 export interface StructureDebugInfo {
@@ -389,6 +397,7 @@ export function exposeDebug(api: {
   behavior: () => unknown[];
   lastSlam: () => unknown;
   spawnEnemy: (id: string, x: number, y: number) => boolean;
+  hazards: () => unknown;
   setBossHp: (hp: number) => boolean;
   trails: () => unknown;
   screen: () => unknown;
@@ -498,6 +507,7 @@ export function exposeDebug(api: {
     behavior: () => api.behavior(),
     lastSlam: () => api.lastSlam(),
     spawnEnemy: (id, x, y) => api.spawnEnemy(id, x, y),
+    hazards: () => api.hazards(),
     setBossHp: (hp) => api.setBossHp(hp),
     trails: () => api.trails(),
     screen: () => api.screen(),

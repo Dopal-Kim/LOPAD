@@ -21,6 +21,7 @@ import {
   type TagId,
 } from './buildTypes';
 import type { WeaponEvolution, WeaponTable } from './types';
+import { byFloor, onFloor, type FloorScope } from './floorScope';
 
 const THRESHOLDS: readonly SetThreshold[] = [2, 4, 6];
 
@@ -37,7 +38,11 @@ export function validateBuild(b: BuildData): BuildData {
   const ids = b.tags.map((t) => t.id);
   if (ids.length !== TAG_IDS.length || !TAG_IDS.every((t) => ids.includes(t)))
     fail(`build.tags 는 ${TAG_IDS.join('·')} ${TAG_IDS.length}개`);
-  for (const t of b.tags) if (!t.name) fail(`build.tags.${t.id}.name 없음`);
+  for (const t of b.tags) {
+    if (!t.name) fail(`build.tags.${t.id}.name 없음`);
+    if (t.floor !== undefined && !(Number.isInteger(t.floor) && t.floor >= 1))
+      fail(`build.tags.${t.id}.floor 는 1 이상 정수`);
+  }
   const S = b.scoring;
   for (const k of ['perPassive', 'passiveMaxLevelBonus', 'perBranchNode', 'reinforceTagMax'] as const)
     num(S[k], `build.scoring.${k}`);
@@ -187,4 +192,45 @@ export function curseDef(id: string): CurseDef | undefined {
 /** 층(1부터)의 테마 태그 (1층 = 취기). 없으면 null */
 export function themeTagOf(floor: number): TagId | null {
   return BUILD.tags.find((t) => t.themeFloor === floor)?.id ?? null;
+}
+
+// --- 61라운드 P4 빌드 축 1층판 (층 노출 — `data/floorScope`) ---
+
+/** 이 층에서 켜진 태그인가 (층 null = 제한 없음) */
+export function tagOn(id: TagId, floor: FloorScope): boolean {
+  return onFloor(
+    BUILD.tags.find((t) => t.id === id),
+    floor,
+  );
+}
+
+/** 이 층에서 켜진 태그 목록 (TAG_IDS 순서) */
+export function tagsOn(floor: FloorScope): TagId[] {
+  return TAG_IDS.filter((t) => tagOn(t, floor));
+}
+
+/** 이 층에서 켜진 세트 임계 (1층판 = 2·4) */
+export function setThresholdsOn(tag: TagId, floor: FloorScope): SetThreshold[] {
+  return BUILD.sets[tag].filter((s) => onFloor(s, floor)).map((s) => s.threshold);
+}
+
+/** 이 층에서 나오는 저주인가 */
+export function curseOn(def: CurseDef | undefined, floor: FloorScope): boolean {
+  return Boolean(def) && onFloor(def, floor);
+}
+
+/** 이 층에서 이 길(riskNode · event · structure · pact)로 저주를 얻을 수 있나 */
+export function curseSourceOn(source: string, floor: FloorScope): boolean {
+  const list = byFloor(CURSES.sourcesByFloor, floor, null as string[] | null);
+  return !list || list.includes(source);
+}
+
+/** 이 층 런의 갈래 최대 단 (없으면 제한 없음 = Infinity) */
+export function maxTierOn(floor: FloorScope): number {
+  return byFloor(BUILD.evolve.maxTierByFloor, floor, Infinity);
+}
+
+/** 이 층에서 이중 개성을 갈래에 흡수하나 (보상 칸 없음) */
+export function dualAbsorbOn(floor: FloorScope): boolean {
+  return floor !== null && (BUILD.dual.absorbOnFloors ?? []).includes(floor);
 }

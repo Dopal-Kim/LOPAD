@@ -90,14 +90,20 @@ export class BorderView {
       return;
     }
     const t0 = performance.now();
-    const load = scene.load;
-    for (const f of missing)
-      load.image(borderTextureKey(def.region, f), `${ASSETS.URL}/${borderFileRel(def.region, f)}`);
-    load.once(Phaser.Loader.Events.COMPLETE, () => {
+    // 61라운드 단계 2: 씬 로더 대신 모듈 단위로 받는다 — 노드를 빨리 넘기면 씬 로더가 초기화돼도 앞 요청이 살아 있어
+    // 같은 키를 두 번 받아 'Texture key already in use: border_<지역>_*' 가 나던 문제 (같은 키는 한 번만, 끝나면 이어 쓴다)
+    void Promise.all(
+      missing.map((f) =>
+        loadBorderTexture(
+          scene.textures,
+          borderTextureKey(def.region, f),
+          `${ASSETS.URL}/${borderFileRel(def.region, f)}`,
+        ),
+      ),
+    ).then(() => {
       this.loadMs = performance.now() - t0;
       if (!this.destroyed) this.build();
     });
-    if (!load.isLoading()) load.start();
   }
 
   private key(file: string): string {
@@ -333,8 +339,38 @@ export class BorderView {
   }
 }
 
+/** 받는 중인 외벽 그림 (텍스처 키 → 끝나면 텍스처가 있는지) */
+const pendingBorder = new Map<string, Promise<boolean>>();
+/** 지금 필요한 지역 — 받는 사이 다른 지역으로 넘어갔으면 다 받은 그림을 올리지 않는다 (GPU 메모리) */
+let wantedBorderRegion: string | null = null;
+
+/**
+ * 외벽 그림 한 장을 받아 텍스처로 올린다 (이미 있으면 바로 true · 받는 중이면 같은 약속). 실패하면 false — BorderView 가 벽 타일로.
+ * 텍스처 키는 `border_<지역>_<파일>` 이라 지역은 키에서 읽는다
+ */
+function loadBorderTexture(textures: Phaser.Textures.TextureManager, key: string, url: string): Promise<boolean> {
+  if (textures.exists(key)) return Promise.resolve(true);
+  const had = pendingBorder.get(key);
+  if (had) return had;
+  const region = [...borderDefs.keys()].find((r) => key.startsWith(borderTextureKey(r, ''))) ?? null;
+  const p = new Promise<boolean>((resolve) => {
+    if (typeof Image === 'undefined') return resolve(false);
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => {
+      if (!textures.exists(key) && (region === null || region === wantedBorderRegion)) textures.addImage(key, img);
+      resolve(textures.exists(key));
+    };
+    img.onerror = () => resolve(false);
+    img.src = url;
+  }).finally(() => pendingBorder.delete(key));
+  pendingBorder.set(key, p);
+  return p;
+}
+
 /** 지금 지역(keep)이 아닌 테두리 텍스처를 내린다 (GPU 메모리 — 한 지역 약 75MB) */
 export function releaseBorderTextures(scene: Phaser.Scene, keep: string | null): void {
+  wantedBorderRegion = keep;
   for (const def of borderDefs.values()) {
     if (def.region === keep) continue;
     for (const f of borderFiles(def)) {

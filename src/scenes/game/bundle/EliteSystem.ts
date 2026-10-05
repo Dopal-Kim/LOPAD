@@ -7,6 +7,8 @@
  */
 import Phaser from 'phaser';
 import { EventBus, Events, type ElitePrefixPayload, type EliteSpawnedPayload } from '../../../core/EventBus';
+import { gameState } from '../../../core/GameState';
+import { floorItems } from '../../../data/floorScope';
 import { BUNDLE2, prefixDef } from '../../../data/bundle2';
 import type { ElitePrefixDef, ElitePrefixId } from '../../../data/bundle2Types';
 import type { UiElite } from '../../../contract/ui';
@@ -32,7 +34,10 @@ export class EliteSystem {
 
   /** 이 적에 붙을 수 있는 접두어 (원하는 것이 안 맞으면 붙을 수 있는 것 중 무작위) */
   pickFor(mob: Mob, want: ElitePrefixId | null): ElitePrefixDef | null {
-    const ok = BUNDLE2.elite.prefixes.filter((p) => p.enemies.includes(mob.spriteId));
+    // 61라운드 P5: 이 층에서 붙는 접두어만 (1층 3종 — 시험장은 전부)
+    const ok = floorItems(BUNDLE2.elite.prefixes, gameState.build.floor).filter((p) =>
+      p.enemies.includes(mob.spriteId),
+    );
     if (ok.length === 0) return null;
     const w = want ? ok.find((p) => p.id === want) : undefined;
     return w ?? ok[Math.floor(this.g.rng.next() * ok.length)];

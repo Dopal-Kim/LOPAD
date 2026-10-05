@@ -6,7 +6,7 @@ import { CELL_H, CELL_W, type Rect } from '../systems/mapgen/types';
 import { QuarterView } from './QuarterView';
 import { planBigProps, type BigPropPlacement } from './bigProps';
 import { planCanal, planDecals, type CanalPlan, type DecalPlacement } from './floorFeatures';
-import { TileSkin, edgeVoidTiles, isOpenId, planProps, roomTypeMap } from './tileskin';
+import { TileSkin, edgeVoidTiles, inPropScene, isOpenId, planProps, roomTypeMap } from './tileskin';
 
 export type DoorState = 'open' | 'closed' | 'locked';
 
@@ -60,6 +60,8 @@ export class TileWorld {
       fixedBigProps?: { name: string; tx: number; ty: number; w: number; h: number }[];
       /** 이 방에서 무작위로 놓지 않을 큰 소품 이름 */
       excludeBigProps?: readonly string[];
+      /** 61라운드 계약 art §24 방 변주 장면 (`variantTag`) — 그 장면 소품만 더한다. null·없음 = 장면 소품 없음 */
+      propScene?: string | null;
     } = {},
   ) {
     const isOpen = (x: number, y: number) => isOpenId(layout.tiles[y]?.[x]);
@@ -106,8 +108,9 @@ export class TileWorld {
     const exclude = new Set(opts.excludeBigProps ?? []);
     this.bigPropArt = new Set(skin.quarter ? propSkin.bigProps.map((b) => b.name) : []);
     // 53라운드 Q59: 배치는 아트 placement 힌트 · avoidNearBorder 로 (bigPropRules)
+    const propScene = opts.propScene ?? null;
     const bigShapes = skin.quarter
-      ? propSkin.bigProps
+      ? inPropScene(propSkin.bigProps, propScene)
           .filter((b) => !exclude.has(b.name))
           .map((b) => ({
             name: b.name,
@@ -130,9 +133,10 @@ export class TileWorld {
           else avoid.add(`${x},${y}`);
         }
     // 화로는 큰 소품 규칙(광장 1~2)으로만 놓는다
+    const sceneProps = inPropScene(propSkin.props, propScene);
     const smallProps = this.bigProps.some((b) => b.name === 'brazier')
-      ? propSkin.props.filter((p) => p.name !== 'brazier')
-      : propSkin.props;
+      ? sceneProps.filter((p) => p.name !== 'brazier')
+      : sceneProps;
     const placedProps = smallProps.length > 0 ? planProps(layout, smallProps, propSeed, undefined, avoid) : [];
     // v3 소품 시트의 단단한 소품은 시트 인덱스가 바닥 타일셋과 달라 소품 레이어 대신 큰 소품처럼 칸을 막는다
     if (separateProps) for (const p of placedProps) if (p.solid) blockTile(p.x, p.y);

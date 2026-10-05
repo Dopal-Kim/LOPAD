@@ -11,7 +11,10 @@ import { BUNDLE_FX, TILE } from '../../../core/Constants';
 import { EventBus, Events } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { ECONOMY, STORY } from '../../../data';
-import { BUNDLE2, consumableDef, eventDef } from '../../../data/bundle2';
+import { BUNDLE2, consumableDef, eventDef, eventIntro } from '../../../data/bundle2';
+import { onFloor } from '../../../data/floorScope';
+import { optionLabel } from '../../../systems/bundle2/eventText';
+import { bossKilledBefore, diaryNow, diaryReadLine, hasPastLife } from '../../../systems/narrative/diary';
 import type { ConsumableId, EventDef, EventOption, MapInfoId } from '../../../data/bundle2Types';
 import { UI_EVENTS, __system, type UiHiddenNodeFound, type UiMenuLine } from '../../../contract/ui';
 import { curseDef } from '../../../data/build';
@@ -74,7 +77,9 @@ export class EventNode {
       g.time.delayedCall(Math.max(0, enterLockUntil - g.time.now) + BUNDLE_FX.MENU_AFTER_ENTER_MS, () => {
         if (g.scene.isActive()) fn();
       });
-    if (BUNDLE2.mapInfo.sellerKinds.includes(node.kind)) this.placeSeller();
+    // 61라운드 P5: 지도 정보는 1층에서 끔 (국경 초소 탁자에는 서사 소품 성문 출입 장부 — StoryBeats)
+    if (BUNDLE2.mapInfo.sellerKinds.includes(node.kind) && onFloor(BUNDLE2.mapInfo, gameState.build.floor))
+      this.placeSeller();
     if (this.hiddenContent === 'treasure') return void after(() => this.treasure());
     const def = this.def;
     if (!def) return;
@@ -208,15 +213,25 @@ export class EventNode {
     this.openOptions(def);
   }
 
-  private menu(def: EventDef, lines: UiMenuLine[], onPick: (key: string) => void, footer = def.text): void {
+  /** 이벤트 메뉴 (마지막 줄 '0' = 지나간다 — 61라운드: pass 선택지가 있으면 그 문구, 고르면 결과 문장과 함께 끝) */
+  private menu(
+    def: EventDef,
+    lines: UiMenuLine[],
+    onPick: (key: string) => void,
+    footer = eventIntro(def),
+    pass?: EventOption,
+  ): void {
     const g = this.g;
     g.menu.open(
       'event',
       def.name,
-      [...lines, { key: PASS, label: BUNDLE2.events.passLabel, enabled: true }],
+      [...lines, { key: PASS, label: pass?.label ?? BUNDLE2.events.passLabel, enabled: true }],
       (key) => {
-        if (key === PASS) return g.menu.close();
-        onPick(key);
+        if (key !== PASS) return onPick(key);
+        g.menu.close();
+        if (!pass) return;
+        this.finish();
+        g.ui.story('event', pass.result ?? '');
       },
       footer,
       { cancelKey: PASS },
@@ -228,25 +243,71 @@ export class EventNode {
     if (state) this.props.setState(EVENT_PROP, state);
   }
 
-  private optionLine(o: EventOption): UiMenuLine {
-    const ok = !o.needPotion || gameState.potions > 0;
-    return { key: o.key, label: o.label, enabled: ok };
+  /** 고를 수 있나 (독주가 필요한 선택지 · 저주를 주는 선택지는 저주가 없을 때만) */
+  private optionOk(o: EventOption): boolean {
+    if (o.needPotion && gameState.potions <= 0) return false;
+    if (o.effects.some((e) => e.kind === 'curse') && gameState.build.curse !== null) return false;
+    return true;
   }
 
-  /** 선택지형 (E3·E4·E5·E9 · E8 기도 뒤) */
+  private optionLine(o: EventOption): UiMenuLine {
+    return { key: o.key, label: optionLabel(o), enabled: this.optionOk(o) };
+  }
+
+  /** 선택지형 (61라운드 1층 5종: E3·E4·E5·E8·E9) — 고르면 결과 문장(STORY event) → 효과 */
   private openOptions(def: EventDef): void {
-    const footer = def.showTree ? `${def.text}\n${gameState.weapon.options.map((n) => n.name).join(' · ')}` : def.text;
+    const intro = eventIntro(def);
+    // E4: 다음 갈래 미리보기 (이 층 런에서 고를 수 있는 단까지만)
+    const tree = def.showTree
+      ? this.g.buildMenus
+          .runOptions()
+          .map((n) => n.name)
+          .join(' · ')
+      : '';
+    const opts = def.options ?? [];
     this.menu(
       def,
-      (def.options ?? []).map((o) => this.optionLine(o)),
+      opts.filter((o) => !o.pass).map((o) => this.optionLine(o)),
       (key) => {
-        const o = def.options?.find((x) => x.key === key);
-        if (!o || (o.needPotion && gameState.potions <= 0)) return;
-        this.g.menu.close();
-        this.finish(USED_STATE[def.id]?.[o.key] ?? 'used');
-        chain(effectSteps(this.g, o.effects, def.lore ?? ''));
+        const o = opts.find((x) => x.key === key && !x.pass);
+        if (o && this.optionOk(o)) this.pick(def, o);
       },
-      footer,
+      tree ? `${intro}\n${tree}` : intro,
+      opts.find((o) => o.pass),
+    );
+  }
+
+  /** 선택지 고름: 소품 상태 → (기도 holdMs) → 결과 문장 → 효과 차례대로 */
+  private pick(def: EventDef, o: EventOption): void {
+    const g = this.g;
+    g.menu.close();
+    if (o.propState === 'remove') {
+      this.done = true;
+      this.props.remove(EVENT_PROP);
+    } else this.finish(o.propState ?? 'used');
+    const lore = o.effects.some((e) => e.kind === 'diaryRead') ? this.diaryLine(def) : (def.lore ?? '');
+    const run = () => {
+      if (o.afterState) this.props.setState(EVENT_PROP, o.afterState);
+      g.ui.story('event', o.result ?? '');
+      chain(effectSteps(g, o.effects, lore));
+    };
+    if (o.holdMs) g.time.delayedCall(o.holdMs, () => g.scene.isActive() && run());
+    else run();
+  }
+
+  /** E4 지난 생의 기록: 만취를 쓰러뜨린 생 → 지난 생 한 줄 → 첫 생 */
+  private diaryLine(def: EventDef): string {
+    const t = def.diaryRead;
+    if (!t) return '';
+    const d = diaryNow();
+    const stage = gameState.stageId;
+    return diaryReadLine(
+      t,
+      {
+        bossKilledBefore: bossKilledBefore(d, stage, gameState.narrative.bossKilled.has(stage)),
+        hasPastLife: hasPastLife(d),
+      },
+      this.g.rng.next(),
     );
   }
 
@@ -455,8 +516,3 @@ export class EventNode {
     this.casks = [];
   }
 }
-
-/** 선택지별 소품 상태 (E9 장부: 긋기 crossed · 태우기 burnt) */
-const USED_STATE: Record<string, Record<string, string>> = {
-  droppedLedger: { return: 'idle', sign: 'crossed', burn: 'burnt' },
-};

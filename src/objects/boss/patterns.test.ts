@@ -89,6 +89,7 @@ function harness(opts: { phase?: number; force?: BossPatternName[] } = {}) {
     paint: () => {},
     restoreColor: () => {},
     setInvulnerable: (u) => (invulnUntil = u),
+    markBroken: (ms) => ev(`broken:${ms}`),
     addSummoned: () => {},
     emitTelegraph: (n) => ev(`telegraph:${n}`),
     emitAttack: (n) => ev(`attack:${n}`),
@@ -165,18 +166,24 @@ function harness(opts: { phase?: number; force?: BossPatternName[] } = {}) {
   };
 }
 
-describe('1층 데이터 (Q1·Q5·Q10)', () => {
-  it('HP 300 · 3페이즈 100~60 / 60~25 / 25~ · 부채꼴·소환 없음', () => {
-    expect(DEF.hp).toBe(300);
-    expect(DEF.phases.map((p) => p.hpFraction)).toEqual([1, 0.6, 0.25]);
+describe('1층 데이터 (61라운드 P6 재구성)', () => {
+  it('HP 1100 · 국면 100~65 / 65~30 / 30~ · 국면마다 패턴 추가 · 부채꼴·소환 없음', () => {
+    expect(DEF.hp).toBe(1100);
+    expect(DEF.phases.map((p) => p.hpFraction)).toEqual([1, 0.65, 0.3]);
     for (const p of DEF.phases) {
       expect(p.pick).not.toContain('fan');
       expect(p.pick).not.toContain('summon');
+      // 세상이 돈다·등불 끄기는 고르는 패턴이 아니다 (국면 전환 연출·3국면 진입 확정)
+      expect(p.pick).not.toContain('spin');
+      expect(p.pick).not.toContain('lightsOut');
     }
-    expect(DEF.phases[0].pick).toEqual(['dash', 'slam', 'caskRoll', 'drink']);
-    expect(DEF.phases[1].pick).toEqual(expect.arrayContaining(['drunkDash', 'fireSpill']));
+    expect(DEF.phases[0].pick).toEqual(['dash', 'slam', 'caskRoll']);
+    expect(DEF.phases[1].pick).toEqual(['dash', 'slam', 'caskRoll', 'drink', 'fireSpill']);
+    expect(DEF.phases[2].pick).toEqual([...DEF.phases[1].pick, 'drunkDash']);
     expect(DEF.phases[2].intervalMs).toBeLessThan(DEF.phases[1].intervalMs);
-    expect(DEF.phases[1].enterPattern).toBe('phaseDrink');
+    expect(DEF.phases[1].enterPattern).toBe('spin');
+    expect(DEF.phases[2].enterPattern).toBe('spin');
+    expect(DEF.breakDamageMult).toBe(1.5);
   });
 });
 
@@ -194,13 +201,13 @@ describe('한 잔 더 (Q6)', () => {
     expect(h.brain.params<{ speedTiles: number }>('dash').speedTiles).toBe(20);
   });
 
-  it('만취: 다 마시면 세상이 돈다 → 곧바로 3연 취권', () => {
+  it('만취: 다 마시면 다음 패턴 강화 (화면 패턴은 부르지 않는다 — 61라운드)', () => {
     const h = harness({ phase: 2, force: ['drink'] });
     const P = h.brain.params<{ liftMs: number; gulpMs: number; finishMs: number }>('drink');
     h.tick(DEF.phases[1].intervalMs + P.liftMs + P.gulpMs + P.finishMs + 100);
-    expect(h.events('tilt:')).toEqual([expect.objectContaining({ e: 'tilt:6000:8' })]);
-    const begins = h.events('begin:').map((r) => r.e);
-    expect(begins.slice(0, 3)).toEqual(['begin:drink', 'begin:spin', 'begin:drunkDash']);
+    expect(h.events('tilt:')).toHaveLength(0);
+    expect(h.events('begin:spin')).toHaveLength(0);
+    expect(h.brain.empowered).toBe(true);
   });
 
   it('들이켜는 동안 잔을 맞히면 3초 경직, 화면 패턴 취소', () => {
@@ -211,18 +218,18 @@ describe('한 잔 더 (Q6)', () => {
     h.hitCup();
     h.tick(50);
     expect(h.events('stun:')).toEqual([expect.objectContaining({ e: 'stun:3000' })]);
+    expect(h.events('broken:')).toEqual([expect.objectContaining({ e: 'broken:3000' })]);
     expect(h.events('action:cupBreak')).toHaveLength(1);
     expect(h.events('loop:gulp:false')).toHaveLength(1);
     expect(h.events('tilt:')).toHaveLength(0);
     expect(h.events('begin:spin')).toHaveLength(0);
   });
 
-  it('인사불성: 다 마시면 세상이 돈다·등불 끄기 중 하나 (등불 끄기는 쿨타임)', () => {
+  it('인사불성: 다 마셔도 등불 끄기는 없다 (3국면 진입 때 한 번 확정)', () => {
     const h = harness({ phase: 3, force: ['drink'] });
-    h.brain.setReadyAt('spin', 1e9);
     const P = h.brain.params<{ liftMs: number; gulpMs: number; finishMs: number }>('drink');
     h.tick(DEF.phases[2].intervalMs + P.liftMs + P.gulpMs + P.finishMs + 100);
-    expect(h.events('begin:lightsOut')).toHaveLength(1);
+    expect(h.events('begin:lightsOut')).toHaveLength(0);
   });
 });
 
@@ -249,6 +256,7 @@ describe('3연 취권 돌진 (Q9)', () => {
       'action:reelDash:1',
       'action:reelDash:2',
     ]);
+    expect(h.events('broken:')).toEqual([expect.objectContaining({ e: `broken:${P.fallMs}` })]);
     h.tick(P.fallMs);
     expect(h.brain.state).toBe('approach');
   });
@@ -261,19 +269,46 @@ describe('3연 취권 돌진 (Q9)', () => {
     h.tick(20);
     expect(h.events('wall')).toHaveLength(1);
     expect(h.brain.state).toBe('wallStun');
+    const P = h.brain.params<{ wallStunMs: number }>('drunkDash');
+    expect(h.events('broken:')).toEqual([expect.objectContaining({ e: `broken:${P.wallStunMs}` })]);
   });
 });
 
-describe('페이즈 전환 들이켜기 (Q1)', () => {
-  it('60% 아래로 → 진행 중 패턴을 끊고 phaseDrink, 그동안 무적(임시값)', () => {
+describe('국면 전환 (Q1 → 61라운드 P6)', () => {
+  it('65% 아래로 → 진행 중 패턴을 끊고 세상이 돈다(2.2초) + 들이켜기(무적), 화면 패턴은 그 뒤 없음', () => {
     const h = harness({ force: ['dash'] });
     h.tick(DEF.phases[0].intervalMs + 100);
     expect(h.brain.current).toBe('dash');
-    expect(h.brain.checkPhase(0.59)).toBe(true);
+    expect(h.brain.checkPhase(0.64)).toBe(true);
     h.tick(20);
     expect(h.brain.current).toBe('phaseDrink');
     expect(h.invulnUntil).toBeGreaterThan(h.time);
     expect(h.events('phase:2')).toHaveLength(1);
+    expect(h.events('tilt:')).toEqual([expect.objectContaining({ e: 'tilt:2200:8' })]);
+    const D = h.brain.params<{ durationMs: number }>('phaseDrink');
+    h.brain.force(null);
+    h.tick(D.durationMs + 40);
+    expect(h.events('begin:lightsOut')).toHaveLength(0);
+  });
+
+  it('30% 아래로 → 세상이 돈다 → 들이켜기 → 등불 끄기 확정 → 어둠 속 3연 취권', () => {
+    const h = harness({ phase: 2 });
+    h.tick(100);
+    expect(h.brain.checkPhase(0.29)).toBe(true);
+    h.tick(20);
+    expect(h.events('phase:3')).toHaveLength(1);
+    const D = h.brain.params<{ durationMs: number }>('phaseDrink');
+    const L = h.brain.params<{ telegraphMs: number }>('lightsOut');
+    h.tick(D.durationMs + L.telegraphMs + 60);
+    const begins = h.events('begin:').map((r) => r.e);
+    expect(begins).toEqual(
+      expect.arrayContaining(['begin:spin', 'begin:phaseDrink', 'begin:lightsOut', 'begin:drunkDash']),
+    );
+    const order = ['begin:spin', 'begin:phaseDrink', 'begin:lightsOut', 'begin:drunkDash'].map((e) =>
+      begins.indexOf(e),
+    );
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+    expect(h.events('dark:')).toHaveLength(1);
   });
 });
 
@@ -304,7 +339,7 @@ describe('술독 굴리기 · 불붙은 술 · 등불 끄기 (Q3·Q8)', () => {
     const h = harness({ phase: 3, force: ['lightsOut'] });
     const P = h.brain.params<{ telegraphMs: number; durationMs: number }>('lightsOut');
     h.tick(DEF.phases[2].intervalMs + P.telegraphMs + 40);
-    expect(h.events('dark:')).toEqual([expect.objectContaining({ e: 'dark:12000:#1c1c26' })]);
+    expect(h.events('dark:')).toEqual([expect.objectContaining({ e: 'dark:12000:#2a2a36' })]);
     expect(h.events('area:')).toHaveLength(1);
     expect(h.events('begin:drunkDash')).toHaveLength(1);
   });

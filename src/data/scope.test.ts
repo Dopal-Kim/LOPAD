@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BOSSES, RUN, STAGES } from '.';
-import { bootSheetRequests } from '../systems/sprites/sheetSets';
+import { bootSheetRequests, bossSheetRequests } from '../systems/sprites/sheetSets';
 import { bossIdsInScope, floorLoaded, loadFloorCount } from './scope';
 
 const raw = (order: string[], loadFloors?: number) => ({
@@ -23,8 +23,10 @@ describe('61라운드 로드 범위 (stages.json run.loadFloors)', () => {
     expect(bossIdsInScope()).toEqual([STAGES.stage1.boss]);
     expect(RUN.order).toHaveLength(8);
     expect(Object.keys(BOSSES)).toContain('emperor');
-    const bootNames = new Set(bootSheetRequests().map((r) => r.name));
-    expect(bootNames.has('emperor')).toBe(false);
-    expect(bootNames.has(STAGES.stage1.boss)).toBe(true);
+    // 61라운드 단계 2: 보스 시트는 부팅이 아니라 보스 묶음(보스 노드 preload)
+    const bossNames = new Set(bossSheetRequests().map((r) => r.name));
+    expect(bossNames.has('emperor')).toBe(false);
+    expect(bossNames.has(STAGES.stage1.boss)).toBe(true);
+    expect(new Set(bootSheetRequests().map((r) => r.name)).has(STAGES.stage1.boss)).toBe(false);
   });
 });

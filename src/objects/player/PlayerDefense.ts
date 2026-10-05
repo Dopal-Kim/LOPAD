@@ -138,6 +138,8 @@ export class PlayerDefense {
       amount,
       source,
       ...(armored || absorbed ? { armored: true } : {}),
+      // 61라운드 계약 sound §9: 일반 가드로 막고 남은 피해 → 음향 guard_block
+      ...(outcome.kind === 'guarded' ? { guarded: true } : {}),
     };
     EventBus.emit(Events.PLAYER_DAMAGED, payload);
     if (gameState.hp <= 0) {

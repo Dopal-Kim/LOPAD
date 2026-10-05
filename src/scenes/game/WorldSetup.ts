@@ -8,19 +8,19 @@ import { gameState } from '../../core/GameState';
 import { BOSSES, LIGHTING } from '../../data';
 import type { LightingAmbient } from '../../data/types';
 import { generateFloor, type FloorLayout } from '../../systems/mapgen';
-import { RouteState, generateRoute, kindDef, regionIdOf, routeEnabled } from '../../systems/route';
+import { RouteState, generateRoute, kindDef, maxBattleWaves, regionIdOf, routeEnabled } from '../../systems/route';
 import { Lighting } from '../../systems/lighting/Lighting';
 import { lightingAmbientFor } from '../../systems/lighting/lightMath';
 import { Rng, hashSeed } from '../../systems/rng';
 import { decorateRoute, generateExtras } from '../../systems/bundle2/routeExtras';
-import { planNodeArena, setPieceTiles } from '../../systems/routeArena';
+import { pickPropScene, planNodeArena, setPieceTiles } from '../../systems/routeArena';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { planStructures, structureTiles, type StructurePlacement } from '../../systems/structures/placement';
 import { BorderView, releaseBorderTextures } from '../../world/BorderView';
 import { borderFor, borderGaps, floorRectOf, type BorderDef } from '../../world/border';
 import { SetPieceView } from '../../world/SetPieceView';
 import { pillarSheet } from '../../systems/boss/BossArena';
-import { TileSkin, propSkinFor, skinFor, tileSkins } from '../../world/tileskin';
+import { TileSkin, propSceneTags, propSkinFor, skinFor, tileSkins } from '../../world/tileskin';
 import { TileWorld } from '../../world/TileWorld';
 import type { Game } from '../Game';
 import { urlParams } from './shared';
@@ -70,7 +70,8 @@ export class WorldSetup {
    */
   private createFloorExtras(route: RouteState): void {
     const B = gameState.bundle;
-    const waves = kindDef('battle').waves?.length ?? gameState.stage.trial.waves.length;
+    // 61라운드 P3: 단마다 웨이브가 다르면 가장 긴 것만큼 (엘리트 길 접두어 = 웨이브마다 1)
+    const waves = maxBattleWaves(gameState.stageId, gameState.stage.trial.waves.length);
     B.floor = generateExtras(route.graph, gameState.floorSeed, B.usedEvents, waves);
     route.decorate = (base, st) => (B.floor ? decorateRoute(base, B.floor, st.graph) : base);
   }
@@ -136,6 +137,8 @@ export class WorldSetup {
           h: r.h,
         })),
         excludeBigProps: arena?.setPiece.excludeBigProps ?? [],
+        // 61라운드 계약 art §24: 방 변주 장면 (소품 시트 variantTag)
+        propScene: arena ? pickPropScene(propSceneTags(propSkinFor(arena.tileset)), g.node, gameState.floorSeed) : null,
       },
     );
     g.border = this.createBorder(borderDef, layout);

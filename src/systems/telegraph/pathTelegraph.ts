@@ -104,6 +104,16 @@ export class PathTelegraphs {
     for (const m of [...this.paths]) this.updateOne(m, time);
   }
 
+  /** 61라운드: 그림 개체 전부 (어둠 위로 올리기 — TelegraphFx.setAboveDark) */
+  forEachObject(fn: (o: { depth: number; setDepth(d: number): unknown }) => void): void {
+    for (const m of this.paths) {
+      for (const s of m.segs) fn(s);
+      if (m.gfx) fn(m.gfx);
+      fn(m.tip);
+      if (m.aura) fn(m.aura);
+    }
+  }
+
   /** 히트스톱: 오라 시트 애니 정지 */
   setPaused(on: boolean): void {
     for (const p of this.paths)

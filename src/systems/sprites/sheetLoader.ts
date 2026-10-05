@@ -12,7 +12,9 @@ import { sheetJsonCandidates } from './spriteMeta';
 import { normalizeStructureSheet, sheetToWorldUnits, type SheetDef } from './sheetJson';
 import { sheetTextureKey, type SheetRequest } from './sheetPaths';
 import { readSheetJson as parseSheetJson, type AtlasData } from './sheetAtlas';
-import { awakenSheetRequests, weaponSheetRequests } from './sheetSets';
+import { awakenSheetRequests, bossSheetRequests, weaponSheetRequests } from './sheetSets';
+import { SPRITES } from '../../core/Constants';
+import { BOSSES } from '../../data';
 
 export interface PendingSheet {
   req: SheetRequest;
@@ -184,6 +186,28 @@ function releaseWeaponSheets(scene: Phaser.Scene, prevId: string, nextId: string
   const drop = prev.filter((r) => !keep.has(sheetTextureKey(r.name, r.action)));
   spriteLibrary.removeSheets(scene, drop);
   if (loadedAwaken === prevId) loadedAwaken = null;
+}
+
+/** 61라운드 단계 2: 보스 묶음을 올렸는지 (한 번 올리면 게임 동안 둔다 — 1층 범위) */
+let bossLoaded = false;
+
+/**
+ * 61라운드 단계 2 첫 로딩 줄이기: 보스 노드에 들어갈 때(Game preload) 보스 묶음을 읽는다. 이미 있으면 false.
+ * 끝나면 자기 시트가 없는 보스를 폴백 시트에 잇는다 (결정 로그 J)
+ */
+export function preloadBossSheets(scene: Phaser.Scene): boolean {
+  if (bossLoaded) return false;
+  return queueRequests(scene, bossSheetRequests(), () => {
+    bossLoaded = true;
+    aliasBossFallbacks();
+  });
+}
+
+/** 자기 시트가 없는 보스는 폴백 시트를 쓴다 (2~7층 보스 = stage1 시트 + 층 램프 스왑) */
+export function aliasBossFallbacks(): void {
+  for (const id of Object.keys(BOSSES))
+    if (!spriteLibrary.has(id) && spriteLibrary.has(SPRITES.BOSS_FALLBACK_SHEET))
+      spriteLibrary.alias(id, SPRITES.BOSS_FALLBACK_SHEET);
 }
 
 /** 디버그: 지금 올라가 있는 런 무기 시트 (각성 오버레이면 + '+awaken') */

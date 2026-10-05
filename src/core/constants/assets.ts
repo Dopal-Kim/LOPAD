@@ -53,6 +53,8 @@ export const AUDIO = {
   PAUSE_DUCK_DB: -6,
   /** 런 종료(사망·엔딩) 시 BGM 페이드아웃 */
   RUN_END_FADE_MS: 1200,
+  /** 61라운드: 보스 처치 순간 BGM 페이드아웃 ms — 보상 메뉴가 끝날 때(EXIT_OPENED)까지 정적, 그 뒤 층 곡 */
+  BOSS_DEFEAT_FADE_MS: 900,
   /** 음소거 저장 키. 49라운드 계약 §11.3: M 키 토글은 없앴다 (M = UI 지도, 음소거는 Esc 메뉴 → uiCommands.setMuted) */
   MUTE_STORAGE_KEY: 'lopad.mute',
   /** 디버그 요약에 남기는 최근 효과음 수 */

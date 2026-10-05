@@ -142,7 +142,7 @@ export class IaiHold {
     };
     const m = p.strikeMods(time, false);
     p.visual.release();
-    emitSkill('iai', 'release');
+    emitSkill('iai', 'release', { kenkiStage: kenki.stages });
     emitHoldVerb('iai_draw');
     const payload = emitPlayerAttack(
       p,

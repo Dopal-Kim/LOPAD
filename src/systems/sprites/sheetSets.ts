@@ -6,6 +6,7 @@
  * 부팅 묶음 + 모든 무기 묶음 = 57라운드 전 부팅 목록 (sheetSets.test 가 확인).
  * 61라운드 P9: 보스 시트는 로드 범위(`data/scope` — stages.json run.loadFloors) 안 층의 보스만. 범위 밖 보스는 Preloader 의 폴백 별칭.
  */
+import { ENEMY_HAZARD } from '../../core/Constants';
 import { ENEMIES, WEAPONS } from '../../data';
 import { bossIdsInScope } from '../../data/scope';
 import { AWAKENINGS } from '../../data/build';
@@ -92,17 +93,39 @@ export function requestKey(r: SheetRequest): string {
 let bootCache: SheetRequest[] | null = null;
 let bootKeys: Set<string> | null = null;
 
-/** 부팅 묶음: 무기와 무관한 시트 전부 */
+/** 61라운드 단계 2: 술통 짐꾼 술통 시트 (계약 art §23 — 구조물 v3: 굴림 · 되친 술통 · 깨짐). 짐꾼이 적 표에 있을 때만 */
+export function enemyStructureSheets(): string[] {
+  if (!Object.values(ENEMIES).some((e) => e.behavior === 'roll')) return [];
+  return [ENEMY_HAZARD.BARREL, ENEMY_HAZARD.BARREL_RETURNED, ENEMY_HAZARD.BARREL_BREAK];
+}
+
+/**
+ * 부팅 묶음: 무기와 무관한 시트 전부 — 61라운드 단계 2(첫 로딩 줄이기): 보스 묶음(`bossSheetRequests`)은 빼고 보스 노드에 들어갈 때
+ * (Game preload) 읽는다
+ */
 export function bootSheetRequests(): SheetRequest[] {
   bootCache ??= dedupe([
-    ...requestsFor(Object.keys(ENEMIES), bossIdsInScope(), {}, bossFxSheets(), [
-      ...allStructureSprites(),
-      ...bossStructureSheets(),
-    ]),
+    ...requestsFor(Object.keys(ENEMIES), [], {}, [], [...allStructureSprites(), ...enemyStructureSheets()]),
     // 60라운드 2차 묶음 (계약 art §22): 소품 · 월드 소모품 · 엘리트 외곽선
     ...bundleSheetRequests(),
   ]);
   return bootCache;
+}
+
+let bossCache: SheetRequest[] | null = null;
+
+/**
+ * 61라운드 단계 2: 보스 묶음 — 로드 범위 층 보스의 몸 시트·보스 이펙트·보스방 구조물(술통·촛대·기둥). 부팅 묶음에 이미 있는 것은 뺀다.
+ * 1층 부팅 그림의 약 40%(보스 몸 14시트 약 1.8MB)를 첫 로딩에서 덜어낸다
+ */
+export function bossSheetRequests(): SheetRequest[] {
+  if (!bossCache) {
+    const boot = new Set(bootSheetRequests().map(requestKey));
+    bossCache = dedupe(requestsFor([], bossIdsInScope(), {}, bossFxSheets(), bossStructureSheets())).filter(
+      (r) => !boot.has(requestKey(r)),
+    );
+  }
+  return bossCache;
 }
 
 /** 무기 묶음: 그 무기만 쓰는 시트 (부팅 묶음에 있는 것은 뺀다). 모르는 무기면 빈 목록 */
@@ -184,6 +207,7 @@ export function allSheetRequests(): SheetRequest[] {
     ...requestsFor(Object.keys(ENEMIES), bossIdsInScope(), WEAPONS, bossFxSheets(), [
       ...allStructureSprites(),
       ...bossStructureSheets(),
+      ...enemyStructureSheets(),
     ]),
     ...bundleSheetRequests(),
   ]);

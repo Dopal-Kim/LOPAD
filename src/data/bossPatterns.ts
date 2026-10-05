@@ -123,7 +123,8 @@ export const BOSS_PATTERN_SCHEMAS: Record<BossPatternName, PatternSchema> = {
     str: ['darkAmbient'],
     optName: ['next'],
   },
-  phaseDrink: { num: ['durationMs'], optBool: ['invulnerable'] },
+  // 61라운드: 국면 진입 들이켜기 뒤 이어지는 패턴 (인사불성 = 등불 끄기 확정)
+  phaseDrink: { num: ['durationMs'], optBool: ['invulnerable'], optName: ['next'] },
 };
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {

@@ -5,7 +5,20 @@
  */
 import { EventBus, Events, type CurseGainedPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
-import { AWAKENINGS, BUILD, CURSES, DUAL_TRAITS, curseDef, themeTagOf } from '../../../data/build';
+import {
+  AWAKENINGS,
+  BUILD,
+  CURSES,
+  DUAL_TRAITS,
+  curseDef,
+  curseOn,
+  curseSourceOn,
+  dualAbsorbOn,
+  maxTierOn,
+  tagOn,
+  themeTagOf,
+} from '../../../data/build';
+import type { WeaponEvolution } from '../../../data/types';
 import { ECONOMY, STORY, WEAPON_RULES } from '../../../data';
 import { UI_EVENTS, __system, type UiMenuLine, type UiRarity, type UiTagId } from '../../../contract/ui';
 import type { DualTraitDef } from '../../../data/buildTypes';
@@ -50,13 +63,27 @@ export class BuildMenus {
     return { ready: r.ready, done: gameState.build.awakened, condition: A.condition };
   }
 
+  /** 61라운드 P4: 이 층 런에서 고를 수 있는 다음 갈래 (1층 런은 1단까지 — 2단은 시험장) */
+  runOptions(): WeaponEvolution[] {
+    const w = gameState.weapon;
+    const floor = gameState.build.floor;
+    return this.g.lab || w.stage < maxTierOn(floor) ? w.options : [];
+  }
+
+  /** 61라운드 P4: 피의 계약 칸에서 뽑을 저주 (이 층 저주 · 이 층에서 계약 길이 열려 있을 때만 — 1층은 없음) */
+  private pactPool(): string[] {
+    const floor = gameState.build.floor;
+    if (!curseSourceOn('pact', floor)) return [];
+    return CURSES.pactPool.filter((id) => curseOn(curseDef(id), floor));
+  }
+
   slots(): EvolveSlot[] {
     const w = gameState.weapon;
     return evolveSlots({
-      options: w.options,
+      options: this.runOptions(),
       canReinforce: w.canReinforce,
       curseActive: gameState.build.curse !== null,
-      pactAvailable: CURSES.pactPool.length > 0,
+      pactAvailable: this.pactPool().length > 0,
       awaken: this.awakenState(),
     });
   }
@@ -151,7 +178,7 @@ export class BuildMenus {
 
   private applyPact(): void {
     this.closeChoice();
-    this.g.build.grantPactCurse();
+    this.g.build.grantPactCurse(this.pactPool());
   }
 
   /** 최종 각성 (57 Q33): 강화 상한 5, 각성 규칙(공통 + 2단별) 켜짐 */
@@ -176,8 +203,9 @@ export class BuildMenus {
 
   // --- 패시브 3지선다 · 2택 (이중 개성 확정 칸) ---
 
-  /** 지금 보상 칸에 나올 이중 개성 (조건 충족·미획득, 데이터 순서 첫 번째) */
+  /** 지금 보상 칸에 나올 이중 개성 (조건 충족·미획득, 데이터 순서 첫 번째). 61라운드 P4: 흡수 층(1층)이면 칸 없음 — BuildRuntime 이 자동 */
   pendingDual(): DualTraitDef | null {
+    if (dualAbsorbOn(gameState.build.floor)) return null;
     const w = gameState.weapon;
     const list = eligibleDualTraits(
       DUAL_TRAITS,
@@ -219,6 +247,7 @@ export class BuildMenus {
       guaranteed: opts.guaranteed,
       themeTag: theme,
       themeMult: BUILD.pool.themeWeightMult,
+      floor: gameState.build.floor,
     });
     if (!dual && picks.length === 0) {
       onDone();
@@ -265,7 +294,8 @@ export class BuildMenus {
       label: `${p.name}${lv > 0 ? ` (Lv${lv} → ${lv + 1})` : ''}`,
       enabled: true,
       detail: p.description,
-      tags: [...p.tags] as UiTagId[],
+      // 61라운드 P4: 이 층에서 꺼진 태그는 보이지 않는다 (점수도 없다)
+      tags: p.tags.filter((t) => tagOn(t, gameState.build.floor)) as UiTagId[],
       ...(rarity ? { rarity } : {}),
     };
   }
@@ -273,7 +303,10 @@ export class BuildMenus {
   // --- 구조물 저주 줄 (57 Q37 획득 경로: 카운터·장부대·묘 — curses.json sources) ---
 
   private structureCurse(kind: string) {
-    return CURSES.items.find((c) => c.sources.includes(kind)) ?? null;
+    // 61라운드 P4: 1층은 구조물에서 저주를 주지 않는다 (위험 노드·E9 만)
+    const floor = gameState.build.floor;
+    if (!curseSourceOn('structure', floor)) return null;
+    return CURSES.items.find((c) => c.sources.includes(kind) && curseOn(c, floor)) ?? null;
   }
 
   structureCurseLine(kind: string, key: string): UiMenuLine | null {
@@ -309,7 +342,8 @@ export class BuildMenus {
       onDone();
       return false;
     }
-    const pool = CURSES.items.map((c) => c.id);
+    // 61라운드 P4: 이 층 저주만 (1층 3종)
+    const pool = CURSES.items.filter((c) => curseOn(c, gameState.build.floor)).map((c) => c.id);
     const pick = ids ? [...ids] : [];
     while (!ids && pick.length < 2 && pick.length < pool.length) {
       const id = pool[Math.floor(g.rng.next() * pool.length)];

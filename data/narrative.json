@@ -1,0 +1,47 @@
+{
+  "_note": "61라운드 P8 서사 연결 — 시스템 수치·배치 (문장은 story.json clues·weaponVoice·boss1·nameSmudge, 이벤트 문장은 bundle2.json events). 판단 기록 parts/system/CHANGELOG.md '61라운드 단계 2 C2'",
+  "voice": {
+    "_note": "무기 한마디(원한의 목소리) 장면 5종 — 런당 1회. crisis = 런에서 처음 HP crisisHpRatio 이하(튜토리얼 중 제외), 표시 crisisHoldMs. bossKill = 보스 쓰러짐 대사 뒤(BOSS_FALLEN) + bossKillDelayMs (보상 메뉴 rewardInMs 보다 짧게)",
+    "crisisHpRatio": 0.3,
+    "crisisHoldMs": 1500,
+    "bossKillDelayMs": 900
+  },
+  "props": [
+    {
+      "clue": "birthMask",
+      "sheet": "clue_masked_corpse",
+      "name": "가면 쓴 시체",
+      "node": "birth",
+      "anchor": "spawn",
+      "offset": [2, 1]
+    },
+    {
+      "clue": "gateLedger",
+      "sheet": "clue_gate_register",
+      "name": "성문 출입 장부",
+      "node": "post",
+      "anchor": "center",
+      "offset": [3, -2]
+    },
+    {
+      "clue": "bossLedger",
+      "sheet": "clue_tab_ledgers",
+      "name": "만취의 외상 장부",
+      "node": "boss",
+      "anchor": "center",
+      "offset": [9, -8],
+      "after": "bossDied"
+    }
+  ],
+  "diary": {
+    "_note": "메타 세이브 lopad.meta diary — 지난 생 기록은 최근 pastLivesMax 개",
+    "pastLivesMax": 12
+  },
+  "ritual": {
+    "_note": "P7 시작 의식 (두 번째 생부터): 번진 이름 덧쓰기(Enter = 지난 이름 그대로) + 3획 · 회피 시험은 선택(trialKey), 건너뛰면 시작 감각 +0 · 튜토리얼 생략. 문구는 시스템 자리표시(스토리 문장은 story.json nameSmudge)",
+    "trialKey": "T",
+    "trialPrompt": "회피 시험 — [{key}] 치른다 (시작 감각 +0~3) · [Enter] 건너뛴다",
+    "trialSkipped": "회피 시험을 건너뛰었다 · 시작 감각 +0",
+    "namePrompt": "[Enter] 덧쓴다 · 글자를 고치면 고쳐 쓴다"
+  }
+}

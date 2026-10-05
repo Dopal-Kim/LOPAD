@@ -62,6 +62,14 @@ export function isMeleeStrike(p: PlayerAttackPayload): boolean {
   return p.comboIndex !== undefined || p.charge !== undefined;
 }
 
+/**
+ * 61라운드 계약 sound §9 `PLAYER_COMBO_FINISH`: 연격의 마지막 타인가 (대쉬 공격·차지·기본기 제외 — 연격 번호가 있고 마지막 번호)
+ */
+export function isComboFinish(p: PlayerAttackPayload): boolean {
+  if (p.dashSlash || p.comboIndex === undefined || p.move) return false;
+  return p.comboIndex === (p.comboCount ?? 1) - 1 && (p.comboCount ?? 1) > 1;
+}
+
 /** 주소 옵션 (`?debug`·`?nobirth` 등). 브라우저 밖(테스트)에서는 빈 값 */
 export function urlParams(): URLSearchParams {
   if (typeof location === 'undefined') return new URLSearchParams();

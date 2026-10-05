@@ -19,16 +19,29 @@ export type EventEffect =
       value: number;
     }
   | { kind: 'potionFill' | 'lore'; value: number }
+  /** 61라운드 E4 '지난 생의 기록을 읽는다' — 일기장 이력으로 한 줄 (EventDef.diaryRead) */
+  | { kind: 'diaryRead'; value: number }
   | { kind: 'shopDiscount'; value: number }
   | { kind: 'passive'; choices: number; rarities: string[] }
   | { kind: 'curse'; id: string };
 
 export interface EventOption {
   key: string;
+  /** 61라운드: {gold} · {trait} · {sense} · {hp} · {discount} · {curse} 는 효과 값으로 채운다 */
   label: string;
   /** 독주가 있어야 고를 수 있음 */
   needPotion?: boolean;
   effects: EventEffect[];
+  /** 61라운드: 지나가는 선택지 — 메뉴 '0' 줄(그만두기) 자리에 이 label, 고르면 result 만 */
+  pass?: boolean;
+  /** 61라운드: 고른 뒤 결과 문장 (STORY kind 'event') */
+  result?: string;
+  /** 61라운드: 고른 뒤 소품 상태 (E8 기도 pray · E9 장부 crossed·burnt · remove = 소품을 지움). 없으면 used (지나가기는 그대로) */
+  propState?: string;
+  /** 61라운드: holdMs 가 끝난 뒤 소품 상태 (E8 pray → used) */
+  afterState?: string;
+  /** 61라운드: 효과 전에 기다림 ms (E8 고개를 숙인다 — 기도 연출) */
+  holdMs?: number;
 }
 
 export interface EventDef {
@@ -37,11 +50,20 @@ export interface EventDef {
   name: string;
   _tmpName?: boolean;
   kind: 'merchant' | 'curse' | 'story' | 'trade' | 'challenge' | 'ambush';
+  /** 61라운드 P5: 처음 나오는 층 (없으면 1) — 1층 5종 */
+  floor?: number;
   narrative?: boolean;
   /** 전투장 소품 (structures/v3 시트 id) — 없으면 시트 없이 메뉴만 */
   prop?: string;
-  text: string;
+  /** 옛 한 줄 (2층 이후 이벤트) — 61라운드 이벤트는 intro */
+  text?: string;
+  /** 61라운드 스토리 팩: 메뉴 본문 줄들 */
+  intro?: string[];
   options?: EventOption[];
+  /** 61라운드 E3: 독주를 건넨 뒤 다음 전투 노드 끝(전표와 함께) 문장 */
+  laterResult?: string;
+  /** 61라운드 E4: 지난 생의 기록 — 만취 처치 기록 / 지난 생 무작위 한 줄 / 첫 생 */
+  diaryRead?: { bossKilledBefore: string; tips: string[]; empty: string };
   /** E1 행상 */
   discount?: number;
   stock?: { consumable: number; potion: number };
@@ -62,6 +84,8 @@ export interface EventDef {
 
 export interface ElitePrefixDef {
   id: ElitePrefixId;
+  /** 61라운드 P5: 처음 나오는 층 (없으면 1) — 1층 3종 */
+  floor?: number;
   name: string;
   _tmpName?: boolean;
   /** elite_emblem 행 (rowsAre kinds) */
@@ -73,6 +97,8 @@ export interface ElitePrefixDef {
 
 export interface ConsumableDef {
   id: ConsumableId;
+  /** 61라운드 P5: 처음 나오는 층 (없으면 1) — 1층 = 화염 술병 */
+  floor?: number;
   name: string;
   _tmpName?: boolean;
   kind: 'throw' | 'drink';
@@ -115,6 +141,8 @@ export interface Bundle2Data {
   };
   events: { narrativeMult: number; items: EventDef[]; passLabel: string };
   hidden: {
+    /** 61라운드 P5: 처음 켜지는 층 (1층 끔) */
+    floor?: number;
     chance: Record<string, number>;
     contents: Record<HiddenContent, number>;
     treasure: { gold: number; passive: { choices: number; rarities: string[] } };
@@ -122,6 +150,8 @@ export interface Bundle2Data {
     name: string;
   };
   mapInfo: {
+    /** 61라운드 P5: 처음 켜지는 층 (1층 끔) */
+    floor?: number;
     items: { id: MapInfoId; name: string; price: number }[];
     sellerKinds: string[];
     sellerName: string;
@@ -135,6 +165,8 @@ export interface Bundle2Data {
     labels: Record<string, string | boolean>;
   };
   shrine: {
+    /** 61라운드 P5: 처음 켜지는 층 (1층 끔 — 등급 '완'으로 통합) */
+    floor?: number;
     chance: number;
     preTrialMs: number;
     eliteExtra: number;
@@ -146,7 +178,8 @@ export interface Bundle2Data {
     timeLimitMs: Record<string, number>;
     hitAllowance: number;
     perfect: { gold: number; personality: number };
-    good: { gold: number };
+    /** 61라운드 P5: '양' 은 floor 2 (1층은 '완' 하나) */
+    good: { gold: number; floor?: number };
     riskMult: number;
     text: Record<string, string | boolean>;
   };

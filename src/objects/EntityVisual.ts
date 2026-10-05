@@ -64,6 +64,8 @@ export class EntityVisual {
   facing: Facing = 'down';
   /** spawnCorpse 가 남긴 시체 스프라이트 (사라지면 null) — 54라운드 Q28 보스 불길이 죽음 그림을 따라간다 */
   corpse: Phaser.GameObjects.Sprite | null = null;
+  /** 61라운드 보스 처치 연출: 죽음 그림 마지막 프레임을 이만큼 남긴다 (없으면 SPRITES.CORPSE_HOLD_MS) */
+  corpseHoldMs: number | null = null;
   /** 현재 재생 중인 애니 키 (디버그) */
   current: string | null = null;
   /** 마지막 oneShot 의 2번째 프레임 시작까지 ms (재생 속도 반영). 시트가 없으면 0 */
@@ -183,7 +185,8 @@ export class EntityVisual {
    * 그림 중심 = 피벗 높이의 절반. 판정·바디는 그대로. 구 시트·v2 는 0 (기존 자리 그대로)
    */
   get hitLiftPx(): number {
-    return this.fitDef ? v3HitLift(this.fitDef, this.bodyH) : 0;
+    // 61라운드: 그림 배율(보스 renderScale·엘리트)만큼 그림 중심도 올라간다
+    return this.fitDef ? v3HitLift(this.fitDef, this.bodyH, this.drawScale) : 0;
   }
 
   /** 디버그: 발밑 그림자 자리·크기 (없으면 null) */
@@ -515,7 +518,7 @@ export class EntityVisual {
     scene.tweens.add({
       targets,
       alpha: 0,
-      delay: animDurationMs(def) + SPRITES.CORPSE_HOLD_MS,
+      delay: animDurationMs(def) + (this.corpseHoldMs ?? SPRITES.CORPSE_HOLD_MS),
       duration: SPRITES.CORPSE_FADE_MS,
       onComplete: () => {
         corpse.destroy();

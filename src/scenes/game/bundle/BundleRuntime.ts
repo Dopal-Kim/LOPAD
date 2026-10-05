@@ -21,6 +21,7 @@ import { EventNode } from './EventNode';
 import { NodeFlow } from './NodeFlow';
 import { ShopMenu } from './ShopMenu';
 import { randomConsumable } from './bundleRewards';
+import { StoryBeats } from '../story/StoryBeats';
 
 type Sub = [event: string, fn: (p: never) => void];
 
@@ -32,6 +33,8 @@ export class BundleRuntime {
   readonly flow: NodeFlow;
   readonly events: EventNode;
   readonly breaks: BossBreaks;
+  /** 61라운드 P8 서사 연결 (서사 소품·무기 한마디·일기장) — 보스 담당은 `story.setClueSpot` */
+  readonly story: StoryBeats;
   private readonly subs: Sub[];
 
   constructor(private readonly g: Game) {
@@ -42,6 +45,7 @@ export class BundleRuntime {
     this.flow = new NodeFlow(g, this.props, this.elites);
     this.events = new EventNode(g, this.props, this.flow, this.shop);
     this.breaks = new BossBreaks(g);
+    this.story = new StoryBeats(g, this.props);
     this.subs = [
       [Events.TRIAL_STARTED, () => this.flow.onTrialStarted(g.time.now)],
       [Events.PLAYER_DAMAGED, () => this.flow.onPlayerDamaged()],
@@ -60,6 +64,7 @@ export class BundleRuntime {
   onEnter(enterLockUntil: number): void {
     this.flow.onEnter(enterLockUntil);
     this.events.onEnter(enterLockUntil);
+    this.story.onEnter();
   }
 
   /** 메뉴·연출·전환 중 */
@@ -154,12 +159,14 @@ export class BundleRuntime {
       breaks: this.breaks.debug(),
       elites: this.elites.debug(),
       consumables: this.consumables.debug(now),
+      story: this.story.debug(),
     };
   }
 
   destroy(): void {
     for (const [e, fn] of this.subs) EventBus.off(e, fn, this);
     this.events.destroy();
+    this.story.destroy();
     this.breaks.destroy();
     this.elites.destroy();
     this.consumables.destroy();

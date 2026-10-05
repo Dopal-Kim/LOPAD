@@ -1,7 +1,7 @@
 {
   "dummy": {
     "name": "징집병",
-    "hp": 20,
+    "hp": 30,
     "attack": 7,
     "speedTiles": 3,
     "attackIntervalMs": 1200,
@@ -16,11 +16,12 @@
       "speedMult": 1.25,
       "durationMs": 2000,
       "cooldownMs": 4000
-    }
+    },
+    "intro": "떼로 몰려와 몸으로 부딪친다. 둘러싸이기 전에 쳐라."
   },
   "archer": {
     "name": "사수",
-    "hp": 14,
+    "hp": 21,
     "attack": 6,
     "speedTiles": 2.5,
     "attackIntervalMs": 1500,
@@ -44,11 +45,12 @@
       }
     },
     "personalityValue": 10,
-    "gold": 5
+    "gold": 5,
+    "intro": "거리를 두고 쏜다. 붉은 조준선을 피해 파고들어라."
   },
   "charger": {
     "name": "결사병",
-    "hp": 30,
+    "hp": 45,
     "attack": 12,
     "speedTiles": 2,
     "attackIntervalMs": 1000,
@@ -69,6 +71,88 @@
     "shield": {
       "frontDeg": 60,
       "reduction": 0.5
-    }
+    },
+    "intro": "앞은 방패로 막는다. 돌진을 흘리고 등 뒤를 쳐라."
+  },
+  "peddler": {
+    "name": "독주 행상",
+    "intro": "불붙은 술병을 던진다. 떨어질 자리를 벗어나 거리를 좁혀라.",
+    "hp": 32,
+    "attack": 4,
+    "speedTiles": 2.4,
+    "attackIntervalMs": 1400,
+    "behavior": "throw",
+    "size": [14, 16],
+    "color": "#c07a30",
+    "throw": {
+      "keepMinTiles": 3.5,
+      "keepMaxTiles": 5,
+      "fleeTiles": 2,
+      "fleeSpeedMult": 1.15,
+      "rangeTiles": [2.5, 6],
+      "cooldownMs": 2600,
+      "flightMs": 700,
+      "arcTiles": 1.5,
+      "burstRadiusTiles": 1.5,
+      "burstAttack": 6,
+      "poolMs": 4000,
+      "poolTickMs": 500,
+      "poolAttack": 3
+    },
+    "deathPool": {
+      "radiusTiles": 1,
+      "ms": 6000
+    },
+    "liquor": {
+      "playerSlow": 0.3,
+      "enemySlow": 0.3,
+      "slip": 0.35,
+      "fireMs": 3000,
+      "fireTickMs": 500,
+      "firePlayerAttack": 3,
+      "fireMobAttack": 6
+    },
+    "personalityValue": 12,
+    "gold": 6
+  },
+  "porter": {
+    "name": "술통 짐꾼",
+    "intro": "술통을 굴린다. 굴러오는 술통을 쳐서 되돌려 보내라.",
+    "hp": 60,
+    "attack": 8,
+    "speedTiles": 1.8,
+    "attackIntervalMs": 1300,
+    "behavior": "roll",
+    "size": [18, 18],
+    "color": "#7a5a30",
+    "roll": {
+      "triggerTiles": 6,
+      "minTiles": 1.5,
+      "cooldownMs": 3200,
+      "speedTiles": 5,
+      "radiusTiles": 0.34,
+      "maxTiles": 10,
+      "attack": 9,
+      "returnSpeedMult": 1.3,
+      "returnDamage": 24,
+      "returnStunMs": 700,
+      "breakPoolTiles": 1,
+      "breakPoolMs": 6000
+    },
+    "deathPool": {
+      "radiusTiles": 1,
+      "ms": 6000
+    },
+    "liquor": {
+      "playerSlow": 0.3,
+      "enemySlow": 0.3,
+      "slip": 0.35,
+      "fireMs": 3000,
+      "fireTickMs": 500,
+      "firePlayerAttack": 3,
+      "fireMobAttack": 6
+    },
+    "personalityValue": 14,
+    "gold": 8
   }
 }

@@ -4,25 +4,152 @@
     "stage1": {
       "journey": ["birth", "road", "post"],
       "lanes": 2,
-      "laneLength": 3,
+      "laneLength": 4,
       "pool": {
-        "battle": 3,
+        "battle": 5,
         "shop": 1,
         "rest": 1,
         "event": 1
       },
       "crossChance": 0.35,
-      "regionByCol": ["waste", "waste", "gate", "outer", "outer", "brewery", "hall"],
+      "regionByCol": ["waste", "waste", "gate", "outer", "outer", "brewery", "brewery", "hall"],
       "names": {
         "birth": ["황폐한 탄생지"],
         "road": ["버려진 길"],
         "post": ["국경 초소"],
-        "battle": ["주정뱅이 골목", "술통 하역장", "밀주 뒷거리", "깨진 술잔 광장"],
+        "battle": ["주정뱅이 골목", "술통 하역장", "밀주 뒷거리", "깨진 술잔 광장", "증류 탑 아래"],
         "shop": ["외상 장터"],
         "rest": ["불 꺼진 선술집"],
         "event": ["낡은 양조 창고"],
         "boss": ["양조장"]
-      }
+      },
+      "_noteR61": "61라운드 P3: 잔 구간 4단 × 2갈래 — 단1 전투/전투(사수 첫 등장) · 단2 전투/이벤트(결사병) · 단3 전투/전투(독주 행상·술통 짐꾼 — 어느 길로 가도 보스 예습, 2차 묶음 위험 노드가 단2·단3 전투 중 하나) · 단4 상점/쉼터. 웨이브 = 단마다 3개, 처치 13~15 (버려진 길 12). 근거 parts/system/CHANGELOG.md 61라운드 단계 2",
+      "columns": [
+        {
+          "kinds": ["battle", "battle"],
+          "waves": [
+            [
+              {
+                "enemy": "dummy",
+                "count": 3
+              },
+              {
+                "enemy": "archer",
+                "count": 1
+              }
+            ],
+            [
+              {
+                "enemy": "dummy",
+                "count": 3
+              },
+              {
+                "enemy": "archer",
+                "count": 2
+              }
+            ],
+            [
+              {
+                "enemy": "dummy",
+                "count": 4
+              },
+              {
+                "enemy": "archer",
+                "count": 2
+              }
+            ]
+          ]
+        },
+        {
+          "kinds": ["battle", "event"],
+          "waves": [
+            [
+              {
+                "enemy": "dummy",
+                "count": 3
+              },
+              {
+                "enemy": "charger",
+                "count": 1
+              }
+            ],
+            [
+              {
+                "enemy": "dummy",
+                "count": 3
+              },
+              {
+                "enemy": "archer",
+                "count": 2
+              }
+            ],
+            [
+              {
+                "enemy": "dummy",
+                "count": 2
+              },
+              {
+                "enemy": "charger",
+                "count": 2
+              },
+              {
+                "enemy": "archer",
+                "count": 1
+              }
+            ]
+          ]
+        },
+        {
+          "kinds": ["battle", "battle"],
+          "waves": [
+            [
+              {
+                "enemy": "dummy",
+                "count": 3
+              },
+              {
+                "enemy": "peddler",
+                "count": 1
+              }
+            ],
+            [
+              {
+                "enemy": "dummy",
+                "count": 2
+              },
+              {
+                "enemy": "archer",
+                "count": 1
+              },
+              {
+                "enemy": "porter",
+                "count": 1
+              }
+            ],
+            [
+              {
+                "enemy": "dummy",
+                "count": 2
+              },
+              {
+                "enemy": "charger",
+                "count": 1
+              },
+              {
+                "enemy": "peddler",
+                "count": 1
+              },
+              {
+                "enemy": "porter",
+                "count": 1
+              }
+            ]
+          ]
+        },
+        {
+          "kinds": ["shop", "rest"]
+        }
+      ]
     },
     "stage2": {
       "journey": [],
@@ -149,6 +276,38 @@
       "gapWidth": [2, 4],
       "cornerMarginTiles": 3,
       "keepClearTiles": 2
+    },
+    "variety": {
+      "_note": "61라운드 단계 2 방 다양화(플레이 점검 #7): 노드마다 크기·시작/출구 줄·세트 배치 좌우/상하 뒤집기를 노드 자리로 고른다(보스·탄생 제외). 임시값",
+      "sizes": {
+        "battle": [
+          [32, 20],
+          [36, 18],
+          [30, 22],
+          [34, 20]
+        ],
+        "road": [
+          [32, 20],
+          [34, 18]
+        ],
+        "event": [
+          [28, 18],
+          [30, 20],
+          [26, 20]
+        ],
+        "rest": [
+          [28, 18],
+          [30, 20],
+          [32, 18]
+        ],
+        "shop": [
+          [32, 18],
+          [30, 20]
+        ],
+        "post": [[30, 18]]
+      },
+      "spawnShiftTiles": [-3, 3],
+      "mirror": true
     }
   },
   "setPieces": {
@@ -383,7 +542,8 @@
           "color": "#6e5434",
           "sprite": ["set_{region}_crates", "set_{region}_barrel_stack"]
         }
-      ]
+      ],
+      "_note": "49라운드 광장 (61라운드부터 전투 노드 세트 후보 중 하나 — kinds.battle.setPieceVariants)"
     },
     "boss": {
       "decor": [
@@ -573,6 +733,184 @@
         [12, 0]
       ],
       "excludeBigProps": ["pillar", "candelabra_stand"]
+    },
+    "battle_lane": {
+      "_note": "61라운드 통로: 위아래 긴 담(가운데 틈)이 가운데 길을 만든다 — 사수가 길 끝에서 쏘고 결사병 돌진이 길을 따라온다",
+      "clearRadius": 1,
+      "cover": {
+        "count": [3, 4],
+        "anchors": [
+          [-8, -4],
+          [2, -4],
+          [-8, 4],
+          [2, 4],
+          [-3, -7],
+          [-3, 7]
+        ],
+        "shapes": [
+          [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0]
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [2, 0]
+          ]
+        ],
+        "decor": {
+          "name": "barrel_stack",
+          "color": "#6a4a2c",
+          "sprite": ["set_{region}_barrel_stack", "set_brewery_barrel_stack"]
+        }
+      },
+      "fillerNear": {
+        "radius": 2
+      },
+      "slots": [
+        {
+          "kinds": ["cask", "still"],
+          "anchor": 1,
+          "at": [4, 1]
+        }
+      ],
+      "decor": [
+        {
+          "name": "street",
+          "at": [0, 0],
+          "size": [20, 3],
+          "floor": true,
+          "color": "#2e2a26"
+        },
+        {
+          "name": "lamppost",
+          "at": [-11, -2],
+          "size": [1, 1],
+          "color": "#a8743a",
+          "sprite": ["set_{region}_lamppost", "set_outer_lamppost"]
+        },
+        {
+          "name": "lamppost",
+          "at": [11, 2],
+          "size": [1, 1],
+          "color": "#a8743a",
+          "sprite": ["set_{region}_lamppost", "set_outer_lamppost"]
+        }
+      ]
+    },
+    "battle_yard": {
+      "_note": "61라운드 마당: 가운데 증류기·술통 섬을 담이 반쯤 두른다 — 섬을 끼고 도는 싸움",
+      "clearRadius": 0,
+      "cover": {
+        "count": [2, 3],
+        "anchors": [
+          [-2, -3],
+          [1, 2],
+          [-3, 1],
+          [2, -2]
+        ],
+        "shapes": [
+          [
+            [0, 0],
+            [1, 0]
+          ],
+          [
+            [0, 0],
+            [0, 1]
+          ],
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1]
+          ]
+        ],
+        "decor": {
+          "name": "crates",
+          "color": "#6e5434",
+          "sprite": ["set_{region}_crates", "set_{region}_barrel_stack", "set_brewery_barrel_stack"]
+        }
+      },
+      "fillerNear": {
+        "radius": 3
+      },
+      "slots": [
+        {
+          "kinds": ["still", "stakeBell", "cask"],
+          "at": [0, 0]
+        }
+      ],
+      "decor": [
+        {
+          "name": "yard",
+          "at": [0, 0],
+          "size": [9, 7],
+          "floor": true,
+          "color": "#3a3028"
+        },
+        {
+          "name": "stall",
+          "at": [-10, -5],
+          "size": [3, 1],
+          "color": "#7a4a2a",
+          "sprite": ["set_{region}_stall", "set_outer_stall"]
+        },
+        {
+          "name": "stall_side",
+          "at": [10, 5],
+          "size": [2, 1],
+          "color": "#7a4a2a",
+          "sprite": ["set_{region}_stall_side", "set_outer_stall_side"]
+        }
+      ]
+    },
+    "battle_pillars": {
+      "_note": "61라운드 기둥 숲: 한 칸 기둥·술통 더미가 흩어져 시야와 탄을 끊는다 — 사수·독주 행상을 찾아가는 싸움",
+      "clearRadius": 2,
+      "cover": {
+        "count": [5, 7],
+        "anchors": [
+          [-9, -5],
+          [-5, -1],
+          [-8, 4],
+          [-2, -6],
+          [-1, 5],
+          [3, -3],
+          [4, 3],
+          [8, -5],
+          [9, 1],
+          [7, 6]
+        ],
+        "shapes": [
+          [[0, 0]],
+          [
+            [0, 0],
+            [0, 1]
+          ]
+        ],
+        "decor": {
+          "name": "barrel_stack",
+          "color": "#5e4630",
+          "sprite": ["set_{region}_barrel_stack", "set_brewery_barrel_stack"]
+        }
+      },
+      "slots": [
+        {
+          "kinds": ["stakeBell", "cask", "still"],
+          "anchor": 0,
+          "at": [2, 0]
+        }
+      ],
+      "decor": [
+        {
+          "name": "brazier",
+          "at": [0, 0],
+          "size": [1, 1],
+          "color": "#a8743a",
+          "sprite": ["set_{region}_brazier", "set_gate_brazier"]
+        }
+      ]
     }
   },
   "tutorial": {
@@ -694,8 +1032,21 @@
             "enemy": "dummy",
             "count": 3
           }
+        ],
+        [
+          {
+            "enemy": "dummy",
+            "count": 4
+          }
+        ],
+        [
+          {
+            "enemy": "dummy",
+            "count": 5
+          }
         ]
-      ]
+      ],
+      "setPieceVariants": ["battle", "battle_pillars"]
     },
     "post": {
       "type": "journey",
@@ -711,7 +1062,8 @@
       "floor": "trial",
       "structures": ["crate", "cask", "still", "stakeBell", "roulette", "dogRing"],
       "budget": [1, 2],
-      "setPiece": "battle"
+      "setPiece": "battle",
+      "setPieceVariants": ["battle", "battle_lane", "battle_yard", "battle_pillars"]
     },
     "rest": {
       "type": "rest",

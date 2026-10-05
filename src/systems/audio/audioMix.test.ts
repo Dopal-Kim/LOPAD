@@ -80,7 +80,14 @@ describe('61라운드 계약 sound §9 믹싱', () => {
     const mix = mixingOf(manifest);
     expect(voiceLimitsOf(mix)).toMatchObject({ maxSfx: 12, maxUi: 2, perGroupMax: 3 });
     const rules = parseDucking(mix.ducking);
-    expect(rules).toHaveLength(3);
+    // 61라운드 단계 3: 파훼·결정타 → 효과음 우선순위 2 이하 −4dB 300ms (이름 목록 규칙)
+    expect(rules).toHaveLength(4);
+    for (const g of ['sfx/boss1_break_cup', 'sfx/boss1_break_reel', 'sfx/break_finisher']) {
+      const br = ducksFor(rules, { group: g, priority: 3 });
+      expect(br, g).toHaveLength(1);
+      expect(br[0]).toMatchObject({ db: -4, holdMs: 300, target: { bus: 'sfx', maxPriority: 2 } });
+    }
+    expect(ducksFor(rules, { group: 'sfx/break_count', priority: 3 })).toHaveLength(0);
     const boss = ducksFor(rules, { group: 'sfx/boss1_spin', priority: 4 });
     expect(boss.map((r) => r.target.bus).sort()).toEqual(['bgm', 'sfx']);
     const hurt = ducksFor(rules, { group: 'sfx/hit_player', priority: 3 });

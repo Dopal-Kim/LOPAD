@@ -95,10 +95,14 @@ export interface TagDef {
   event: string;
   /** 층 테마 태그면 그 층 (1 = 취기) */
   themeFloor?: number;
+  /** 61라운드 P4: 처음 켜지는 층 (없으면 1) — 그 전 층에서는 점수 0·표시 안 함 (`data/floorScope`) */
+  floor?: number;
 }
 
 export interface SetStageDef {
   threshold: SetThreshold;
+  /** 61라운드 P4: 처음 켜지는 층 (없으면 1) — 1층판은 2·4단계만 */
+  floor?: number;
   name: string;
   _tmpName?: boolean;
   description: string;
@@ -132,12 +136,26 @@ export interface BuildData {
   scoring: BuildScoring;
   sets: Record<TagId, SetStageDef[]>;
   events: { perfectEvadeWindowMs: number; perfectEvadeThreatRadiusTiles: number; crisisHpRatio: number };
-  evolve: { repeatThreshold: number; reinforceMaxAwakened: number; pactBenefitMult: number; pactExtraNodes: number };
+  evolve: {
+    repeatThreshold: number;
+    reinforceMaxAwakened: number;
+    pactBenefitMult: number;
+    pactExtraNodes: number;
+    /** 61라운드 P4: 층별 런 갈래 최대 단 (`{ "1": 1 }` = 1층 런은 1단까지 — 2단은 시험장). 없는 층은 제한 없음 */
+    maxTierByFloor?: Record<string, number>;
+  };
   awaken: { tagScore: number; afterBossFloor: number; condition: string };
   personality: { normalKillMult: number };
   pool: { themeWeightMult: number };
   acquisition: { bossChoices: number; chestChoices: number; nodeChoices: number; shopRarities: string[] };
-  dual: { tier1Score: number; tier2Score: number };
+  dual: {
+    tier1Score: number;
+    tier2Score: number;
+    /** 61라운드 P4: 이중 개성을 보상 칸 대신 갈래에 흡수하는 층 (일반 짝 = 1단 획득 순간, 취기 짝 = 취기 tier1Score 점) */
+    absorbOnFloors?: number[];
+    /** 흡수 알림 문구 ({branch} · {name} · {description}) */
+    absorbText?: string;
+  };
   drunk: { liquorPool: LiquorPoolParams };
 }
 
@@ -159,6 +177,8 @@ export interface DualTraitDef {
 
 export interface CurseDef {
   id: string;
+  /** 61라운드 P4: 처음 나오는 층 (없으면 1) — 1층 3종 */
+  floor?: number;
   name: string;
   _tmpName?: boolean;
   benefit: string;
@@ -199,6 +219,8 @@ export interface CurseDef {
 
 export interface CursesData {
   pactPool: string[];
+  /** 61라운드 P4: 층별 저주 획득 길 (riskNode · event · structure · pact). 없는 층은 전부 */
+  sourcesByFloor?: Record<string, string[]>;
   items: CurseDef[];
 }
 

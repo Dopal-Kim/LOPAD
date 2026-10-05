@@ -22,6 +22,8 @@ import { applyStatReward, findReward } from '../../systems/economy';
 import { markUnderstood, metaStore, recordRun } from '../../systems/meta';
 import type { KillKind } from '../../systems/senses';
 import { deathLine, evolutionLine, fill, floorText } from '../../systems/story';
+import { NARRATIVE, NARRATIVE_STORY } from '../../data/narrative';
+import { recordLifeEnd, updateDiary } from '../../systems/narrative/diary';
 import { UI_SCENES } from '../../ui';
 import type { TileWorld } from '../../world/TileWorld';
 import type { Game } from '../Game';
@@ -133,7 +135,9 @@ export class Progression {
 
   /** 개성 임계 도달 → 다른 메뉴(보스 보상 등)가 닫힌 뒤 3지선다 (게임 정지) */
   maybeOpenEvolveMenu(): void {
-    if (gameState.weapon.choicePending && !this.g.menu.isOpen && !this.g.frozen) this.g.buildMenus.openEvolveMenu();
+    // 61라운드: 보스 등장·처치 연출 중에는 미룬다 (연출 → 보상 → 3지선다 순)
+    if (gameState.weapon.choicePending && !this.g.menu.isOpen && !this.g.frozen && !this.g.bossFlow?.busy)
+      this.g.buildMenus.openEvolveMenu();
   }
 
   applyEvolution(id: string): void {
@@ -293,6 +297,22 @@ export class Progression {
       cleared,
     });
     metaStore.write(meta);
+    // 61라운드 P7·P8 일기장: 지난 생 기록 · 사망 수 (시험장 제외)
+    if (!this.g.lab)
+      updateDiary((d) =>
+        recordLifeEnd(
+          d,
+          {
+            name: gameState.playerName,
+            weapon: w.id,
+            floor: gameState.floorReached,
+            kills: gameState.kills,
+            cleared,
+            bosses: [...gameState.narrative.bossKilled],
+          },
+          NARRATIVE.diary.pastLivesMax,
+        ),
+      );
     // 47라운드 C3 묘 '기록한다' 영혼은 이미 메타에 적립 — 결과 화면에 합산만
     gameState.lastSoulGain = gained + gameState.bonusSouls;
   }
@@ -330,6 +350,8 @@ export class Progression {
         ? STORY.endings[gameState.ending ?? 'destroy']
         : deathLine(gameState.playerName, gameState.floorReached, gameState.kills),
       ending: cleared ? (gameState.ending ?? 'destroy') : undefined,
+      // 61라운드 P7: 사망 문장 뒤 '이름이 번진다.' (UI 가 이름 번짐 연출과 함께)
+      smudgeLine: cleared ? undefined : NARRATIVE_STORY.nameSmudge.onDeath,
     };
     this.debugLastResult = result;
     EventBus.emit(Events.RUN_ENDED, { cleared } satisfies RunEndedPayload);

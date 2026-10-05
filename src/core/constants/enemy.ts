@@ -1,10 +1,10 @@
 /** 적·보스 공격 양상 연출·소환 예고 (57라운드 B6: core/Constants.ts 에서 분리) */
 
 /**
- * 53라운드 Q49 적 소환 예고 (UI 는 튜토리얼에서만 '주의' 경고): 예고 뒤 소환까지 ms. 임시값 —
- * 튜토리얼 전투(탄생 전장)만 기다리고, 일반 시련 웨이브는 0(예고와 동시에 소환 — 전투 박자 그대로)
+ * 53라운드 Q49 적 소환 예고 (UI 는 튜토리얼에서만 '주의' 경고): 예고 뒤 소환까지 ms. 임시값.
+ * 61라운드 단계 2: 일반 시련 웨이브도 같은 숨(0 → 900) — 1층 노드가 웨이브 3개라 웨이브 사이 박자를 둔다
  */
-export const ENEMY_INCOMING = { TUTORIAL_DELAY_MS: 900, WAVE_DELAY_MS: 0 };
+export const ENEMY_INCOMING = { TUTORIAL_DELAY_MS: 900, WAVE_DELAY_MS: 900 };
 
 /**
  * 61라운드 플레이 점검 '공격 토큰': 일반 적의 접촉 공격은 무리 전체에서 이 간격에 한 번만 (무리에 둘러싸여도 한꺼번에 맞지 않는다 —
@@ -17,6 +17,11 @@ export const ENEMY_CONTACT_TOKEN = { GAP_MS: 900 };
  * 수치(예고 시간·사거리·재장전 등)는 data/enemies.json·bosses.json, 여기는 연출·시트 이름만.
  */
 export const ENEMY_FX = {
+  /**
+   * 61라운드 점검 #6: 보스 등불 끄기 동안 예고를 바닥 깊이(DEPTH.FX_GROUND 0.95)에서 라이트맵(DEPTH.LIGHTMAP 2) 바로 위로
+   * 올리는 깊이 차 (0.95 + 1.07 = 2.02 — 빛 번짐 2.01 위, 촛대 안내 2.05 아래)
+   */
+  DARK_LIFT: 1.07,
   /** 예고 마커 시트 (계약 §3, anchor hitbox_center). 없으면 Graphics 점선/원 플레이스홀더 */
   TELEGRAPH_IDS: { LINE: 'telegraph_line', CIRCLE: 'telegraph_circle', CONE: 'telegraph_cone' },
   /** 적 탄·보스 탄·총구 화염 시트 */

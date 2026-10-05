@@ -9,6 +9,7 @@ import { metaBonus, metaStore, type MetaBonus } from '../systems/meta';
 import { PassiveSet } from '../systems/passives';
 import { BuildState } from '../systems/build/BuildState';
 import { BundleState } from '../systems/bundle2/BundleState';
+import { NarrativeState } from '../systems/narrative/NarrativeState';
 import { BUILD } from '../data/build';
 import type { RouteState } from '../systems/route';
 import type { StructureFloorCarry } from '../systems/structures/StructureSystem';
@@ -37,6 +38,8 @@ class GameState {
   build = new BuildState();
   /** 60라운드 2차 묶음 런 상태 (이벤트·소모품·예약·층 노드 정보) */
   bundle = new BundleState();
+  /** 61라운드 P8 서사 런 상태 (무기 한마디 장면 1회 · 이번 생에 읽은 단서 · 만취 대사 1회) */
+  narrative = new NarrativeState();
   /** 보상 선택 중 (출구는 끝난 뒤 열림) */
   rewardPending = false;
   /** 런 시작 시 적용된 영구 강화 */
@@ -124,6 +127,7 @@ class GameState {
     this.passives = new PassiveSet();
     this.build = new BuildState();
     this.bundle = new BundleState();
+    this.narrative = new NarrativeState();
     this.weapon = new WeaponState(wid, WEAPONS[wid]); // 사망 시 무기 초기화 (기획 3장)
     this.birthPending = true;
     this.scar = this.nextScar;
@@ -146,7 +150,8 @@ class GameState {
   }
 
   private resetStage(): void {
-    this.build.onFloorStart();
+    // 61라운드 P4: 층 노출 범위 (시험장은 LabMode 가 null 로)
+    this.build.onFloorStart(this.floorReached);
     this.bundle.onFloorStart();
     this.trialsCleared = 0;
     this.trialsTotal = 0;
@@ -227,6 +232,7 @@ class GameState {
     const weaponId = WEAPONS[d.weapon.id] ? d.weapon.id : PLAYER_DATA.startWeapon;
     this.weapon = new WeaponState(weaponId, WEAPONS[weaponId]);
     this.build.restore(d.build);
+    this.build.setFloor(this.floorReached);
     this.bundle.restore(d.bundle);
     if (this.build.awakened) this.weapon.reinforceCapOverride = BUILD.evolve.reinforceMaxAwakened;
     this.weapon.restore(d.weapon);

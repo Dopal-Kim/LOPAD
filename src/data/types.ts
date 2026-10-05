@@ -1,4 +1,6 @@
+import type { DeathPoolParams, LiquorPoolParams, RollParams, ThrowParams } from './enemyTypes';
 import type { BossPatternName, PatternParams } from './bossPatterns';
+import type { BossDarkLights, BossShowDef } from './bossShowTypes';
 export type { BossPatternName, PatternParams } from './bossPatterns';
 import type { ComboDef } from './comboTypes';
 import type { BowDrawDef, IssenDef, WeaponGaugeDef } from './weaponKitTypes';
@@ -94,7 +96,8 @@ export interface PlayerData {
   perfectGuard?: { windowMs: number };
 }
 
-export type EnemyBehavior = 'chase' | 'ranged' | 'charge';
+/** 61라운드 단계 2: throw = 독주 행상(화염 술병) · roll = 술통 짐꾼(술통 굴림) — 수치 형식은 `enemyTypes.ts` */
+export type EnemyBehavior = 'chase' | 'ranged' | 'charge' | 'throw' | 'roll';
 
 export interface RangedParams {
   keepMinTiles: number;
@@ -153,6 +156,14 @@ export interface EnemyDef {
   /** 35라운드 2단계 보조 행동 (행동 종류와 무관하게 선택) */
   shield?: ShieldParams;
   pack?: PackParams;
+  /** 61라운드 단계 2 신규 적: 독주 행상 투척 · 술통 짐꾼 굴림 · 쓰러진 자리 술 웅덩이 */
+  throw?: ThrowParams;
+  roll?: RollParams;
+  deathPool?: DeathPoolParams;
+  /** 이 적이 남기는 술 웅덩이(깨진 술통·사망) 성질 — 없으면 술 웅덩이 없음 */
+  liquor?: LiquorPoolParams;
+  /** 61라운드 단계 2: 이번 런에 처음 나올 때 띄우는 짧은 소개 (STORY notice) */
+  intro?: string;
   /** 처치 시 얻는 개성 수치 (임시, 11라운드) */
   personalityValue: number;
   /** 처치 시 떨어지는 골드 기준값 (13라운드) */
@@ -273,6 +284,8 @@ export interface BossArenaParams {
   darkTelegraphLightMult: number;
   /** 54라운드 Q18 보스 불타기 (없으면 불타지 않음) */
   onFire?: BossOnFireParams;
+  /** 61라운드: 등불 끄기 동안 주인공·보스 최소 광원 */
+  darkLights?: BossDarkLights;
 }
 
 /**
@@ -299,6 +312,13 @@ export interface BossDef {
   approachSpeedTiles: number;
   /** 54라운드 Q13~Q16: 판정 크기 = idle 시트 한 프레임 월드 크기 × 이 비율 (시트가 있을 때만, 없으면 size) */
   bodyFromArt?: { w: number; h: number };
+  /** 61라운드 존재감: 그림·판정 배율 (기본 1) · 시작 자리 (보스방 가운데 + 칸) · 파훼 경직 동안 받는 피해 배율 */
+  renderScale?: number;
+  spawnOffsetTiles?: [number, number];
+  breakDamageMult?: number;
+  /** 61라운드 등장·처치 연출 (없으면 연출 없이 바로 전투·보상) · 대사 = data/story.json 의 이 키 (BossLines) */
+  show?: BossShowDef;
+  linesKey?: string;
   /** 54라운드 Q4: 패턴 수치 (공통). 페이즈 patterns 가 덮어쓴다 */
   patterns: Partial<Record<BossPatternName, PatternParams>>;
   phases: BossPhase[];

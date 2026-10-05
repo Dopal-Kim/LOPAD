@@ -9,11 +9,13 @@ import {
   __system,
   type StoryKind,
   type UiEnemyIncoming,
+  type UiStoryLine,
   type UiGroggy,
   type UiTutorialStep,
   type UiWarpState,
 } from '../../contract/ui';
-import type { EnemyIncomingPayload } from '../../core/EventBus';
+import type { BossBreakPayload, EnemyIncomingPayload } from '../../core/EventBus';
+import { bossSnapshotExtra, uiBossBreak } from './bossUi';
 import { buildSnapshot } from '../../contract/snapshot';
 import { audio } from '../../systems/audio/audio';
 import { settings } from '../../systems/settings';
@@ -21,14 +23,34 @@ import { floorText } from '../../systems/story';
 import type { WarpDenyReason } from '../../systems/traversal';
 import type { Game } from '../Game';
 
+/** 디버그용으로 남기는 최근 자막 수 */
+const UI_RELAY_STORY_KEEP = 24;
+
 export class UiRelay {
   bossName: string | null = null;
+  /** 61라운드: BOSS_DIED 는 그 프레임 끝(emitState)에 낸다 — 같은 프레임 뒤에 오는 결정타(BOSS_BREAK finisher)를 싣기 위해 */
+  private bossDiedPending = false;
 
   constructor(private readonly g: Game) {}
 
-  /** 스토리 자막 (계약 STORY 이벤트) */
-  story(kind: StoryKind, text: string): void {
-    if (text) __system.emit(UI_EVENTS.STORY, { kind, text });
+  /**
+   * 스토리 자막 (계약 STORY 이벤트). 61라운드 P8: extra = speech 화자(speaker) · voice 무기(weapon) · clue 줄(lines) · 표시 시간(holdMs).
+   * 보스 대사는 `speech(speaker, text)`, 무기 한마디·단서는 `scenes/game/story/StoryBeats`
+   */
+  story(kind: StoryKind, text: string, extra: Omit<UiStoryLine, 'kind' | 'text'> = {}): void {
+    if (!text) return;
+    const line: UiStoryLine = { kind, text, ...extra };
+    __system.emit(UI_EVENTS.STORY, line);
+    this.recentStory.push(line);
+    if (this.recentStory.length > UI_RELAY_STORY_KEEP) this.recentStory.shift();
+  }
+
+  /** 디버그: 최근 자막 (`__lopad.bundle.story().recent`) */
+  readonly recentStory: UiStoryLine[] = [];
+
+  /** 61라운드 P8: 군주의 말 (계약 STORY kind 'speech') — 예 `speech(STORY_NARRATIVE.boss1.speaker, …intro)` */
+  speech(speaker: string, text: string): void {
+    this.story('speech', text, { speaker });
   }
 
   snapshot() {
@@ -39,12 +61,13 @@ export class UiRelay {
       visited: g.visitedRooms,
       cleared: g.clearedRooms,
       bossName: this.bossName,
+      bossExtra: bossSnapshotExtra(g),
       paused: false,
       menu: g.menu.menu,
       inCombat: g.director.inCombat,
       sprinting: g.player.sprinting,
       warp: this.warpState(),
-      interactable: g.structures?.interactable() ?? g.bundle?.interactable() ?? null,
+      interactable: g.structures?.interactable() ?? g.economy?.keeperInteractable() ?? g.bundle?.interactable() ?? null,
       statuses: g.build ? g.build.statuses(g.structures?.statuses() ?? []) : (g.structures?.statuses() ?? []),
       structureRooms: g.structures?.structureRooms(),
       route: gameState.route?.toUi() ?? null,
@@ -77,6 +100,7 @@ export class UiRelay {
 
   /** 매 프레임 UI 상태 */
   emitState(): void {
+    if (this.bossDiedPending) this.flushBossDied();
     __system.emit(UI_EVENTS.STATE, this.snapshot());
   }
 
@@ -134,14 +158,16 @@ export class UiRelay {
     __system.emit(UI_EVENTS.WEAPON_EVOLVED, { name: p.name });
   }
 
+  /** 보스 이름표·체력줄 (61라운드: 층 등장 자막은 BossFlow 가 등장 연출 시간표에 맞춰 낸다) */
   relayBossStarted(p: { boss: string }): void {
     this.bossName = BOSSES[p.boss]?.name ?? '보스';
-    this.story('boss', floorText(gameState.stageId)?.bossIntro ?? '');
     __system.emit(UI_EVENTS.BOSS_STARTED, {
       name: this.bossName,
       hp: gameState.bossHp,
       maxHp: gameState.bossMaxHp,
       phase: gameState.bossPhase,
+      // 61라운드 §17: 등장 연출 길이 (BossFlow 가 같은 BOSS_STARTED 를 먼저 받아 정해 둔다)
+      introMs: this.g.bossFlow?.introMs ?? 0,
     });
   }
 
@@ -151,11 +177,23 @@ export class UiRelay {
   }
 
   relayBossDied(): void {
+    this.bossDiedPending = true;
+  }
+
+  private flushBossDied(): void {
+    this.bossDiedPending = false;
     __system.emit(UI_EVENTS.BOSS_DIED, {
       name: this.bossName ?? '보스',
       hp: 0,
       maxHp: gameState.bossMaxHp,
       phase: gameState.bossPhase,
+      finisher: this.g.bossFlow?.finished ?? false,
     });
+  }
+
+  /** 61라운드 §17: 파훼·결정타 → UI (파훼는 매번, 결정타는 처치 때 1회) */
+  relayBossBreak(p: BossBreakPayload): void {
+    const b = uiBossBreak(p.kind);
+    if (b) __system.emit(UI_EVENTS.BOSS_BREAK, b);
   }
 }

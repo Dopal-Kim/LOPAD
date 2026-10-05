@@ -90,6 +90,12 @@ export class TelegraphFx {
   };
   /** 54라운드 꺾은선 예고 */
   private readonly paths: PathTelegraphs;
+  /**
+   * 61라운드 점검 #6: 보스 등불 끄기 동안 예고를 라이트맵 위로 (어둠에 묻히지 않게). 개체별 원래 깊이를 기억해 두고
+   * 켜져 있는 동안 + DARK_LIFT, 끄면 원래대로
+   */
+  private aboveDark = false;
+  private readonly baseDepth = new WeakMap<object, number>();
 
   constructor(private readonly scene: Phaser.Scene) {
     this.paths = new PathTelegraphs(scene, this.style);
@@ -191,8 +197,41 @@ export class TelegraphFx {
     return this.paths.create(points, durationMs, opts);
   }
 
+  /** 61라운드: 예고를 어둠(라이트맵) 위로 올리기 · 내리기 */
+  setAboveDark(on: boolean): void {
+    if (this.aboveDark === on) return;
+    this.aboveDark = on;
+    this.liftAll();
+  }
+
+  get isAboveDark(): boolean {
+    return this.aboveDark;
+  }
+
+  private liftAll(): void {
+    const lift = (o: { depth: number; setDepth(d: number): unknown } | undefined | null) => {
+      if (!o) return;
+      let base = this.baseDepth.get(o);
+      if (base === undefined) {
+        if (!this.aboveDark) return;
+        base = o.depth;
+        this.baseDepth.set(o, base);
+      }
+      const want = this.aboveDark ? base + ENEMY_FX.DARK_LIFT : base;
+      if (o.depth !== want) o.setDepth(want);
+    };
+    for (const m of this.markers) {
+      lift(m.obj);
+      lift(m.tip);
+      lift(m.closing);
+      lift(m.aura);
+    }
+    this.paths.forEachObject(lift);
+  }
+
   /** 매 프레임: 만료·진행도 프레임·깜빡임(마감 직전 가속)·닫히는 원 */
   update(time: number): void {
+    if (this.aboveDark) this.liftAll();
     if (this.paused) return;
     this.paths.update(time);
     const B = ENEMY_FX.BOLD;

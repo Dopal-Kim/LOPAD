@@ -42,7 +42,7 @@ export class ServiceKinds {
       c.used(s, d.text.actionKey);
       return;
     }
-    const pick = gameState.passives.rollChoices(c.host.rng, ECONOMY.rarity, 1)[0];
+    const pick = gameState.passives.rollChoices(c.host.rng, ECONOMY.rarity, 1, { floor: gameState.build.floor })[0];
     if (pick) {
       gameState.passives.add(pick.id);
       EventBus.emit(Events.PASSIVE_GAINED, { id: pick.id, level: gameState.passives.level(pick.id) });

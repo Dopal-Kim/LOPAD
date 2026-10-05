@@ -4,7 +4,7 @@
  */
 import { EventBus, Events } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
-import { BUNDLE2, CONSUMABLE_IDS } from '../../../data/bundle2';
+import { BUNDLE2, CONSUMABLE_IDS, consumableIdsOn } from '../../../data/bundle2';
 import type { EventEffect, RewardKind } from '../../../data/bundle2Types';
 import { rewardGold } from '../../../systems/bundle2/BundleState';
 import type { Game } from '../../Game';
@@ -22,9 +22,11 @@ export function chain(steps: readonly Step[], onDone: () => void = () => {}): vo
   run();
 }
 
-/** 무작위 층 소모품 id */
+/** 무작위 층 소모품 id (61라운드 P5: 이 층에서 나오는 것 — 1층 = 화염 술병) */
 export function randomConsumable(g: Game) {
-  return CONSUMABLE_IDS[Math.floor(g.rng.next() * CONSUMABLE_IDS.length)];
+  const ids = consumableIdsOn(gameState.build.floor);
+  const list = ids.length > 0 ? ids : CONSUMABLE_IDS;
+  return list[Math.floor(g.rng.next() * list.length)];
 }
 
 /** 소모품 하나 (칸이 가득이면 대신 전표 fallbackGold) */
@@ -140,6 +142,10 @@ export function effectStep(g: Game, e: EventEffect, lore = ''): Step {
         );
       case 'lore':
         g.ui.story('notice', lore);
+        return next();
+      case 'diaryRead':
+        // 61라운드 E4: 일기장 이력으로 한 줄 (EventNode 가 lore 로 넘긴다)
+        g.ui.story('event', lore);
         return next();
       case 'shopDiscount':
         B.shopDiscount = Math.max(B.shopDiscount, e.value);

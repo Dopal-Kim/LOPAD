@@ -193,9 +193,10 @@ export class GameCombat {
     // 방패 막기(35라운드 2단계): 정면에서 온 공격은 피해 감소, 섬광만, 넉백·피 없음. 틱 피해는 막지 않는다
     const block = opts.tick || opts.ignoreGuard ? 0 : mob.guardReduction(nx, ny, now);
     if (block > 0) dmg = Math.max(1, Math.round(dmg * (1 - block)));
-    // 60라운드 엘리트 접두어 (통 갑옷 −30% — 첫 강공 적중에 깨짐)
-    if (mob.damageTakenMult !== 1) {
-      dmg = Math.max(1, Math.round(dmg * mob.damageTakenMult));
+    // 60라운드 엘리트 접두어 (통 갑옷 −30% — 첫 강공 적중에 깨짐) · 61라운드 보스 파훼 경직 ×breakDamageMult
+    const takenMult = mob.damageTakenMultAt(now);
+    if (takenMult !== 1) {
+      dmg = Math.max(1, Math.round(dmg * takenMult));
       if (mob.damageTakenMult < 1 && !opts.tick) g.bundle?.elites.onArmorBlock(mob);
     }
     if (mob.elite && opts.heavy && !opts.tick) g.bundle?.elites.onHeavyHit(mob);

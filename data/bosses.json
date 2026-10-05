@@ -1,15 +1,21 @@
 {
   "stage1": {
-    "_note": "54라운드 '만취' 3페이즈 (결정 round-54 Q1·Q5·Q6·Q10). 새 패턴 수치는 전부 임시값(데모로 조정) — parts/system/CHANGELOG.md 54라운드 절 표",
+    "_note": "54라운드 '만취' 3국면 → 61라운드 P6 재구성(90~120초): HP 1100 · 국면 100~65 얼큰(돌진·내리찍기·술통) / 65~30 만취(+한 잔 더·불붙은 술) / 30~ 인사불성(+3연 취권, 진입 때 등불 끄기 확정) · 세상이 돈다 = 국면 전환 연출만 · 파훼 경직 동안 받는 피해 ×breakDamageMult. 이유·수치 표는 parts/system/CHANGELOG.md 61라운드 보스 절",
     "name": "양조장주 '만취(滿醉)'",
-    "hp": 300,
+    "hp": 1100,
     "size": [40, 40],
     "bodyFromArt": {
-      "w": 1.0,
-      "h": 0.6
+      "w": 0.7,
+      "h": 0.4
     },
+    "_renderScale": "61라운드 점검 #6 존재감: 그림 배율(판정은 bodyFromArt × 시트 크기 × 이 배율). 아트가 1.5배 네이티브 시트(288×360, renderScaleHint 1.0)를 내서 1.0 — 시트만으로 주인공 대비 약 1.9배. 옛 192×240 시트로 돌아가면 1.5",
+    "renderScale": 1.0,
+    "_spawnOffsetTiles": "61라운드: 시작 자리 = 보스방 가운데 + [dx, dy] 칸 (주인공 쪽으로 당겨 첫 화면 안쪽)",
+    "spawnOffsetTiles": [-4, 0],
+    "_breakDamageMult": "61라운드 P6: 파훼(잔·기둥·술통 되치기·취권 넘어짐)로 무너진 동안 받는 피해 배율",
+    "breakDamageMult": 1.5,
     "color": "#b02060",
-    "contactAttack": 12,
+    "contactAttack": 10,
     "contactIntervalMs": 800,
     "approachSpeedTiles": 2,
     "personalityValue": 50,
@@ -19,8 +25,8 @@
         "telegraphMs": 700,
         "speedTiles": 16,
         "durationMs": 600,
-        "attack": 20,
-        "wallStunMs": 1000,
+        "attack": 16,
+        "wallStunMs": 1600,
         "empowered": {
           "telegraphMs": 550,
           "speedTiles": 20
@@ -29,7 +35,7 @@
       "slam": {
         "telegraphMs": 800,
         "radiusTiles": 2.5,
-        "attack": 20,
+        "attack": 16,
         "cooldownMs": 4000,
         "empowered": {
           "radiusTiles": 3.5
@@ -40,12 +46,12 @@
         "speedTiles": 9,
         "bounces": 3,
         "maxTiles": 40,
-        "attack": 14,
+        "attack": 12,
         "radiusPx": 7,
         "radiusFromArt": 1,
         "puddleEveryTiles": 1,
         "puddleMs": 9000,
-        "bossHitDamage": 30,
+        "bossHitDamage": 60,
         "bossHitStunMs": 1500,
         "cooldownMs": 6000,
         "count": 1,
@@ -67,23 +73,24 @@
         "triggers": []
       },
       "spin": {
-        "durationMs": 6000,
+        "_note": "61라운드 P6: 국면 전환 연출만 (설정 tilt 로 끔). 진입 = spin → phaseDrink(무적 들이켜기) 순, 기울기는 그 2초 동안",
+        "durationMs": 2200,
         "tiltDeg": 8,
         "periodMs": 2000,
-        "rampMs": 600,
+        "rampMs": 500,
         "cooldownMs": 0,
         "blur": 1,
-        "next": "drunkDash"
+        "next": "phaseDrink"
       },
       "drunkDash": {
         "telegraphSeqMs": [600, 350, 350],
         "speedTiles": 17,
         "durationMs": 550,
-        "attack": 20,
-        "wallStunMs": 1200,
+        "attack": 16,
+        "wallStunMs": 1800,
         "repeat": 3,
         "bendRatio": 0.35,
-        "fallMs": 2000,
+        "fallMs": 2200,
         "cooldownMs": 5000,
         "leanDeg": 12
       },
@@ -97,7 +104,7 @@
         "spreadMsPerCell": 120,
         "fireMs": 3500,
         "fireTickMs": 500,
-        "firePlayerAttack": 10,
+        "firePlayerAttack": 8,
         "cooldownMs": 9000,
         "arms": 1,
         "armSpreadDeg": 40
@@ -105,12 +112,12 @@
       "lightsOut": {
         "telegraphMs": 900,
         "radiusTiles": 3,
-        "attack": 16,
+        "attack": 14,
         "fadeMs": 700,
         "durationMs": 12000,
         "cooldownMs": 20000,
         "toppleGapMs": 110,
-        "darkAmbient": "#1c1c26",
+        "darkAmbient": "#2a2a36",
         "next": "drunkDash"
       },
       "phaseDrink": {
@@ -123,39 +130,34 @@
         "name": "얼큰",
         "hpFraction": 1,
         "intervalMs": 2300,
-        "pick": ["dash", "slam", "caskRoll", "drink"]
+        "pick": ["dash", "slam", "caskRoll"]
       },
       {
         "name": "만취",
-        "hpFraction": 0.6,
+        "hpFraction": 0.65,
         "intervalMs": 2000,
-        "pick": ["dash", "slam", "caskRoll", "drink", "drunkDash", "fireSpill"],
-        "enterPattern": "phaseDrink",
+        "pick": ["dash", "slam", "caskRoll", "drink", "fireSpill"],
+        "enterPattern": "spin",
         "patterns": {
           "dash": {
             "telegraphMs": 600,
             "speedTiles": 18
-          },
-          "drink": {
-            "empowerNext": false,
-            "triggers": ["spin"]
           }
         }
       },
       {
         "name": "인사불성",
-        "hpFraction": 0.25,
-        "intervalMs": 1500,
-        "pick": ["dash", "slam", "caskRoll", "drink", "drunkDash", "fireSpill"],
-        "enterPattern": "phaseDrink",
+        "hpFraction": 0.3,
+        "intervalMs": 1600,
+        "pick": ["dash", "slam", "caskRoll", "drink", "fireSpill", "drunkDash"],
+        "enterPattern": "spin",
         "patterns": {
           "dash": {
             "telegraphMs": 500,
             "speedTiles": 19
           },
-          "drink": {
-            "empowerNext": false,
-            "triggers": ["spin", "lightsOut"]
+          "phaseDrink": {
+            "next": "lightsOut"
           },
           "drunkDash": {
             "telegraphSeqMs": [500, 300, 300]
@@ -191,9 +193,9 @@
           "offsetY": 6
         },
         "emberLight": {
-          "color": "#ff6a20",
-          "radius": 22,
-          "intensity": 0.6,
+          "color": "#ff8a30",
+          "radius": 40,
+          "intensity": 0.8,
           "flicker": 0.35,
           "offsetY": 2
         },
@@ -208,12 +210,55 @@
         "lingerMs": 1000,
         "footWidthRatio": 0.5,
         "footHeightPx": 6,
-        "touchAttack": 10,
+        "touchAttack": 8,
         "touchTickMs": 500,
         "touchPadPx": 3
       },
-      "pillarSprite": ["boss1_pillar"]
-    }
+      "pillarSprite": ["boss1_pillar"],
+      "_darkLights": "61라운드 점검 #6 소등 가독성: 등불 끄기 동안 주인공·보스에 붙는 최소 광원 (월드 px, offsetY = 발에서 위로)",
+      "darkLights": {
+        "player": {
+          "color": "#d8c8a8",
+          "radius": 96,
+          "intensity": 0.55,
+          "flicker": 0.04,
+          "offsetY": 12
+        },
+        "boss": {
+          "color": "#e89a5a",
+          "radius": 84,
+          "intensity": 0.6,
+          "flicker": 0.12,
+          "offsetY": 26
+        }
+      }
+    },
+    "_show": "61라운드 점검 #5·#6 등장·처치 연출 (ms, 등장 0 = 보스방 진입). 등장: 카메라가 보스로 → 층 등장 자막 → boss1.intro → 카메라 복귀 → 전투. 처치: 히트스톱 → 슬로모 → 쓰러짐 → boss1.defeat → (무기 한마디) → 보상 메뉴",
+    "show": {
+      "intro": {
+        "panMs": 700,
+        "floorLineAtMs": 1500,
+        "speechAtMs": 3100,
+        "returnAtMs": 4700,
+        "returnMs": 500,
+        "fightAtMs": 5200
+      },
+      "defeat": {
+        "hitstopMs": 240,
+        "slowMs": 1300,
+        "slowScale": 0.35,
+        "flashMs": 180,
+        "flashAlpha": 0.55,
+        "shakePx": 7,
+        "shakeMs": 450,
+        "panMs": 500,
+        "speechAtMs": 1500,
+        "fallenAtMs": 3600,
+        "rewardAtMs": 5200
+      }
+    },
+    "_linesKey": "61라운드 대사 = data/story.json 의 이 키 (스토리 텍스트 팩 boss1.* — 화자·등장·국면·파훼 첫 1회·쓰러짐)",
+    "linesKey": "boss1"
   },
   "stage2": {
     "name": "판돈 백작",

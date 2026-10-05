@@ -13,6 +13,18 @@
 import { ENEMY_INCOMING, ROUTE_FX, SIM, TILE } from '../../core/Constants';
 import type { EnemyDef, WaveEntry, WeaponDef } from '../../data/types';
 import { baselineDps, bowTapDps, expectedHit, sustainedSpeed } from '../weapon/dps';
+import { estimateBossFight, type BossSimDef } from './bossSim';
+
+/**
+ * 61라운드 단계 2: 적 한 마리의 위협 = 주 공격 피해 · 간격 (행상 = 투척 폭발 + 불 웅덩이 한 틱 · 쿨다운, 짐꾼 = 술통 · 쿨다운,
+ * 그 밖 = 접촉·사격). 근접 무기가 쫓아가야 하는 적(사수·행상)은 chase
+ */
+export function enemyThreat(e: EnemyDef): { attack: number; intervalMs: number; chase: boolean } {
+  if (e.behavior === 'throw' && e.throw)
+    return { attack: e.throw.burstAttack + e.throw.poolAttack, intervalMs: e.throw.cooldownMs, chase: true };
+  if (e.behavior === 'roll' && e.roll) return { attack: e.roll.attack, intervalMs: e.roll.cooldownMs, chase: false };
+  return { attack: e.attack, intervalMs: e.attackIntervalMs, chase: e.behavior === 'ranged' };
+}
 
 /** 무기 데이터 그대로 (DPS 는 무기 쪽 `systems/weapon/dps.ts` 기준선과 같은 식) */
 export type SimWeapon = WeaponDef;
@@ -118,6 +130,8 @@ export interface NodeSimInput {
   spawnDistTiles: number;
   /** 일반 처치 개성 배율 (BUILD.personality.normalKillMult) */
   personalityKillMult?: number;
+  /** 61라운드: 엘리트 길 — 웨이브마다 한 마리가 HP × eliteHpMult (없으면 엘리트 없음) */
+  eliteHpMult?: number;
 }
 
 /** 전투 노드 하나 */
@@ -135,7 +149,7 @@ export function estimateBattleNode(input: NodeSimInput): NodeEstimate {
     if (list.length === 0) continue;
     const n = list.length;
     // 첫 접근: 스폰 거리 → 사거리까지, 플레이어·가장 빠른 근접 적이 서로 다가감 (원거리 무기는 거의 없음)
-    const fastest = Math.max(...list.map((e) => (e.behavior === 'ranged' ? 0 : e.speedTiles)));
+    const fastest = Math.max(...list.map((e) => (enemyThreat(e).chase ? 0 : e.speedTiles)));
     const engageMs =
       dps.kind === 'ranged'
         ? 0
@@ -143,10 +157,12 @@ export function estimateBattleNode(input: NodeSimInput): NodeEstimate {
     const targets = Math.max(1, Math.min(dps.targets, (n + 1) / 2));
     // 처치 순서: 약한 적부터 (실제로는 다가오는 순)
     const ttks = list
-      .map((e) => {
-        const hp = Math.round(e.hp * input.enemyScale.hp);
+      .map((e, i) => {
+        // 엘리트 길: 웨이브 첫 적이 엘리트 (실제는 무작위 한 마리)
+        const elite = i === 0 && input.eliteHpMult ? input.eliteHpMult : 1;
+        const hp = Math.round(e.hp * input.enemyScale.hp * elite);
         const shield = e.shield ? 1 - e.shield.reduction * SIM.SHIELD_FRONT_SHARE : 1;
-        const chase = dps.kind === 'melee' && e.behavior === 'ranged' ? SIM.CHASE_RANGED_MS : 0;
+        const chase = dps.kind === 'melee' && enemyThreat(e).chase ? SIM.CHASE_RANGED_MS : 0;
         return { e, ms: timeToKill(p, w, hp, shield) / uptime / targets + SIM.REPOSITION_MS + chase };
       })
       .sort((a, b) => a.ms - b.ms);
@@ -155,8 +171,9 @@ export function estimateBattleNode(input: NodeSimInput): NodeEstimate {
     for (const k of ttks) {
       t += k.ms;
       // 이 적은 웨이브 시작부터 t 까지 살아 있다
-      const atk = Math.max(1, Math.round(k.e.attack * input.enemyScale.attack) - p.defense);
-      dmgTaken += (t / k.e.attackIntervalMs) * SIM.HIT_RATE * atk;
+      const th = enemyThreat(k.e);
+      const atk = Math.max(1, Math.round(th.attack * input.enemyScale.attack) - p.defense);
+      dmgTaken += (t / th.intervalMs) * SIM.HIT_RATE * atk;
       personality += k.e.personalityValue * (input.personalityKillMult ?? 1);
       gold += k.e.gold;
     }
@@ -177,11 +194,11 @@ export function estimateBattleNode(input: NodeSimInput): NodeEstimate {
   };
 }
 
-/** 보스 노드 시간 (ms): HP / (단일 DPS × 보스 공격 비율) + 국면 전환 연출 */
-export function estimateBossMs(p: SimPlayer, w: SimWeapon, boss: { hp: number; phases: unknown[] }): number {
-  const d = weaponDps(p, w).dps;
-  if (d <= 0) return Infinity;
-  return Math.round((boss.hp / (d * SIM.UPTIME.boss)) * 1000 + (boss.phases.length - 1) * SIM.BOSS_PHASE_MS);
+/** 보스 노드 시간 (ms): 61라운드 P6 — 파훼 피해 창·활 공격 비율·등장·처치 연출 포함 (`bossSim.ts`) */
+export function estimateBossMs(p: SimPlayer, w: SimWeapon, boss: BossSimDef): number {
+  const d = weaponDps(p, w);
+  if (d.dps <= 0) return Infinity;
+  return estimateBossFight(d.dps, d.kind, boss).totalMs;
 }
 
 /** 플레이어 기본값 (공격·방어·치명 = player.json, 치명 배율 = economy) */

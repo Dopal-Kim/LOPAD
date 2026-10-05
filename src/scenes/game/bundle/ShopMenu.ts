@@ -8,6 +8,7 @@ import { EventBus, Events } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { ECONOMY, STORY } from '../../../data';
 import { BUNDLE2, consumableDef } from '../../../data/bundle2';
+import { onFloor } from '../../../data/floorScope';
 import type { MapInfoId } from '../../../data/bundle2Types';
 import type { UiCost, UiMenuLine } from '../../../contract/ui';
 import type { ShopStock } from '../../../systems/bundle2/BundleState';
@@ -58,10 +59,14 @@ export class ShopMenu {
 
   private roll(): ShopStock['display'] {
     const P = gameState.passives;
+    const floor = gameState.build.floor;
+    // 61라운드 P4·P5: 이 층 풀의 패시브 · 이 층 소모품만
     const pool = P.defs
-      .filter((d) => P.level(d.id) < P.maxLevel && BUNDLE2.shop.passivePrices[d.rarity] !== undefined)
+      .filter(
+        (d) => P.level(d.id) < P.maxLevel && BUNDLE2.shop.passivePrices[d.rarity] !== undefined && onFloor(d, floor),
+      )
       .map((d) => ({ id: d.id, rarity: d.rarity }));
-    return rollDisplay(this.g.rng, pool, this.priceMult());
+    return rollDisplay(this.g.rng, pool, this.priceMult(), floor);
   }
 
   /** 61라운드 #3: 가격은 줄 label 이 아니라 이 필드로만 (고정 4칸·행상도 같은 꼴) */
@@ -128,7 +133,8 @@ export class ShopMenu {
   /** 지도 정보 줄 (상점 노드 · 국경 초소 지도 장수 메뉴 공용) */
   mapInfoLines(prefix: string): UiMenuLine[] {
     const ex = gameState.bundle.floor;
-    if (!ex) return [];
+    // 61라운드 P5: 지도 정보 구매는 1층에서 끔
+    if (!ex || !onFloor(BUNDLE2.mapInfo, gameState.build.floor)) return [];
     return BUNDLE2.mapInfo.items.map((it) => {
       const bought = ex.intel[it.id];
       const price = Math.round(it.price * (this.g.build?.shopPriceMult() ?? 1));

@@ -45,4 +45,6 @@ export const BUNDLE_FX = {
   CASK_GOAL: '술통 {n}개',
   CASK_FAIL_TEXT: '술통이 남았다',
   PRAY_LABEL: '손을 모은다',
+  /** 61라운드 P8 서사 소품: 기본 자리가 막혀 있으면 걸을 수 있는 칸을 찾는 반경 (칸) */
+  STORY_SPOT_SEARCH_TILES: 4,
 } as const;

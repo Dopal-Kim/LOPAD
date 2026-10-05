@@ -20,7 +20,8 @@ import {
 } from './route';
 import { STRUCTURE_DEFS, availableOn } from './structures/data';
 import type { PlanOptions } from './structures/placement';
-import { planSetPiece, type SetPiecePlan } from './structures/setpiece';
+import { planSetPiece, type SetPieceDef, type SetPiecePlan } from './structures/setpiece';
+import { mirrorSetPiece, type Mirror } from './structures/setpieceMirror';
 import type { TutorialDef } from './tutorial';
 
 export interface NodeArenaPlan {
@@ -37,6 +38,69 @@ export interface NodeArenaPlan {
   structureNode: NonNullable<PlanOptions['node']>;
   /** 조작 안내 노드면 그 정의 */
   tutorial: TutorialDef | null;
+  /** 61라운드 단계 2 방 다양화: 고른 크기·시작 줄 이동·세트 뒤집기 (디버그) */
+  variety: { size: [number, number]; shift: number; mirror: Mirror };
+}
+
+/** 노드 자리 순번 (단 × 2 + 줄) — 같은 길의 이웃 단은 다른 후보를 고르게 */
+const slotOf = (node: Pick<RouteNode, 'col' | 'row'>) => node.col * 2 + node.row;
+
+/**
+ * 61라운드 단계 2 방 다양화 (플레이 점검 #7): 크기 후보·시작/출구 줄 이동·세트 뒤집기를 노드 자리와 층 시드로 고른다.
+ * 보스·튜토리얼 노드와 노드 없음(갈림 대기)은 그대로
+ */
+export function arenaVariety(
+  node: Pick<RouteNode, 'id' | 'kind' | 'col' | 'row'> | null,
+  floorSeed: number | string,
+  file: RouteFile = ROUTE,
+): { size: [number, number]; shift: number; mirror: Mirror } {
+  const kind: RouteKind = node?.kind ?? 'birth';
+  const base = arenaSize(kind, file);
+  const V = file.arena.variety;
+  const fixed = { size: base, shift: 0, mirror: { x: false, y: false } };
+  if (!node || !V || kind === 'boss' || kindDef(kind, file).tutorial) return fixed;
+  const h = hashSeed(`${String(floorSeed)}:${node.id}:variety`);
+  const sizes = V.sizes?.[kind] ?? [];
+  const size = sizes.length > 0 ? sizes[(h + slotOf(node)) % sizes.length] : base;
+  const [lo, hi] = V.spawnShiftTiles ?? [0, 0];
+  const shift = hi > lo ? lo + (Math.floor(h / 7) % (hi - lo + 1)) : lo;
+  const mirror = V.mirror
+    ? { x: ((node.col + node.row + h) & 1) === 1, y: ((Math.floor(node.col / 2) + node.row + (h >> 1)) & 1) === 1 }
+    : fixed.mirror;
+  return { size: [size[0], size[1]], shift, mirror };
+}
+
+/**
+ * 61라운드 계약 art §24 방 변주 장면 (소품 시트 `variantTag`): 장면 이름 + '없음' 을 노드 자리 순번으로 돌려 고른다
+ * (같은 길 이웃 단이 다른 장면). 보스·튜토리얼은 없음 (보스방 패턴과 겹치는 엄폐를 두지 않는다)
+ */
+export function pickPropScene(
+  tags: readonly string[],
+  node: Pick<RouteNode, 'id' | 'kind' | 'col' | 'row'> | null,
+  floorSeed: number | string,
+  file: RouteFile = ROUTE,
+): string | null {
+  if (!node || tags.length === 0 || node.kind === 'boss' || kindDef(node.kind, file).tutorial) return null;
+  const options = [...tags, null];
+  return options[(hashSeed(`${String(floorSeed)}:propscene`) + slotOf(node)) % options.length];
+}
+
+/**
+ * 61라운드 단계 2: 노드의 세트 배치 템플릿 id — 지역 덮어쓰기 → 종류 후보(`setPieceVariants`, 층 시드 기준 자리 순번으로 돌려
+ * 같은 길의 이웃 단과 겹치지 않게) → 종류 기본 `setPiece`
+ */
+export function pickSetPiece(
+  node: Pick<RouteNode, 'kind' | 'col' | 'row'>,
+  region: RegionDef | null,
+  floorSeed: number | string,
+  file: RouteFile = ROUTE,
+): string | null {
+  const d = kindDef(node.kind, file);
+  const over = region?.setPieces?.[node.kind];
+  if (over) return over;
+  const list = d.setPieceVariants ?? [];
+  if (list.length > 0) return list[(hashSeed(`${String(floorSeed)}:setpiece`) + slotOf(node)) % list.length];
+  return d.setPiece ?? null;
 }
 
 /**
@@ -57,7 +121,8 @@ export function planNodeArena(
 ): NodeArenaPlan {
   const kind: RouteKind = node?.kind ?? 'birth';
   const d = kindDef(kind, file);
-  const [w, h] = arenaSize(kind, file);
+  const variety = arenaVariety(node, floorSeed, file);
+  const [w, h] = variety.size;
   const A = file.arena;
   const regionId = regionIdOf(stageId, node?.col ?? 0, file);
   const region = regionId ? (entries(file.regions)[regionId] ?? null) : null;
@@ -77,6 +142,7 @@ export function planNodeArena(
     exitInset: A.exitInsetTiles,
     spawnExactCenter: kind === 'birth' && node !== null,
     shopCenter: Boolean(node && d.shopTiles),
+    spawnShiftY: variety.shift,
     edge: edge ?? undefined,
     seed,
   });
@@ -89,8 +155,9 @@ export function planNodeArena(
   if (node && d.shopTiles) reserve.push({ x: arena.shop.x - c, y: arena.shop.y - c, w: c * 2 + 2, h: c * 2 + 2 });
 
   // 54라운드 Q11: 지역이 노드 종류별 템플릿을 덮어쓸 수 있다 (연회장 보스방 = boss_hall)
-  const templateId = node ? (region?.setPieces?.[kind] ?? d.setPiece ?? null) : null;
-  const template = templateId ? (entries(file.setPieces)[templateId] ?? null) : null;
+  const templateId = node ? pickSetPiece(node, region, floorSeed, file) : null;
+  const raw: SetPieceDef | null = templateId ? (entries(file.setPieces)[templateId] ?? null) : null;
+  const template = raw ? mirrorSetPiece(raw, variety.mirror) : null;
   const tutorial = node && d.tutorial && file.tutorial ? file.tutorial : null;
   const kinds = border ? d.structures.filter((k) => STRUCTURE_DEFS.get(k)?.place !== 'cellar') : d.structures;
   const allowed = new Set(kinds);
@@ -128,6 +195,7 @@ export function planNodeArena(
       fillerNear: setPiece.fillerNear,
     },
     tutorial,
+    variety,
   };
 }
 

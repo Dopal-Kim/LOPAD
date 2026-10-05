@@ -45,6 +45,7 @@ import type { BorderView } from '../world/BorderView';
 import type { SetPieceView } from '../world/SetPieceView';
 import type { NodeArenaPlan } from '../systems/routeArena';
 import { TutorialDirector } from '../systems/tutorialDirector';
+import { diaryNow, inFirstLife } from '../systems/narrative/diary';
 import type { FxPool } from '../systems/fx/fx';
 import { HitStop, PauseClock, Shake } from '../systems/feel';
 import type { RibbonRenderer } from '../systems/fx/ribbon';
@@ -58,6 +59,7 @@ import { PackCharge } from '../systems/packCharge';
 import { audio } from '../systems/audio/audio';
 import { StructureSystem } from '../systems/structures/StructureSystem';
 import { LiquorPools } from '../systems/hazards/LiquorPools';
+import { EnemyHazards } from '../systems/hazards/EnemyHazards';
 import { BossArena } from '../systems/boss/BossArena';
 import { BOSSES } from '../data';
 import { propSkinFor } from '../world/tileskin';
@@ -80,10 +82,11 @@ import { createDirector } from './game/directorHost';
 import { SENSE_BONUS_MAX, urlParams, type GameInitData } from './game/shared';
 import { AnchorDebug } from './game/AnchorDebug';
 import { runWeaponFor } from './game/runWeapon';
-import { preloadWeaponSheets } from '../systems/sprites/sheetLoader';
+import { preloadBossSheets, preloadWeaponSheets } from '../systems/sprites/sheetLoader';
 import { BuildRuntime } from './game/build/BuildRuntime';
 import { BuildMenus } from './game/build/BuildMenus';
 import { BundleRuntime } from './game/bundle/BundleRuntime';
+import { BossFlow } from './game/BossFlow';
 
 export type { GameInitData } from './game/shared';
 
@@ -109,6 +112,8 @@ export class Game extends Phaser.Scene {
   structures: StructureSystem;
   /** 54라운드: 술 웅덩이·불바다 (구조물·보스방 공용) */
   pools: LiquorPools;
+  /** 61라운드 단계 2: 일반 적 위험물 (독주 행상 화염 술병 · 술통 짐꾼 술통 · 술 웅덩이) */
+  hazards: EnemyHazards;
   /** 54라운드: 보스방 환경 (보스 정의에 arena 가 있는 보스 노드에서만) */
   bossArena: BossArena | null = null;
   inputSystem: InputSystem;
@@ -169,6 +174,8 @@ export class Game extends Phaser.Scene {
   buildMenus: BuildMenus;
   /** 60라운드 2차 묶음: 노드 보상·위험·성소·등급·이벤트·숨은 노드·상점 진열·엘리트·소모품·보스 파훼 (런 상태는 gameState.bundle) */
   bundle: BundleRuntime;
+  /** 61라운드 보스 등장·처치 연출 · 보스 대사 (scenes/game/BossFlow) */
+  bossFlow: BossFlow | null = null;
 
   initData: GameInitData = {};
   private senseBonus = 0;
@@ -197,7 +204,11 @@ export class Game extends Phaser.Scene {
   preload(): void {
     // 60라운드: 같은 런의 각성 런이면 각성 외형 오버레이도 (새 런은 아님 — 이어하기는 create 에서 BuildRuntime 이)
     const awaken = this.initData.mode !== 'new' && gameState.build.awakened;
-    if (!preloadWeaponSheets(this, runWeaponFor(this.initData, this.lab, this.saveSlot), awaken)) return;
+    // 61라운드 단계 2 첫 로딩 줄이기: 보스 몸·보스방 시트는 보스 노드에 들어갈 때 (`?boss` 바로 가기 포함)
+    const toBoss = !this.lab && (Boolean(this.initData.bossJump) || gameState.route?.current?.kind === 'boss');
+    const boss = toBoss && preloadBossSheets(this);
+    const weapon = preloadWeaponSheets(this, runWeaponFor(this.initData, this.lab, this.saveSlot), awaken);
+    if (!boss && !weapon) return;
     const at = screenFixed(this.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2);
     const label = this.add
       .text(at.x, at.y, WEAPON_LOAD.TEXT, { font: WEAPON_LOAD.FONT, color: WEAPON_LOAD.COLOR })
@@ -218,6 +229,7 @@ export class Game extends Phaser.Scene {
     this.birth = new BirthFlow(this);
     this.ui = new UiRelay(this);
     this.feedback = new WeaponFeedback(this);
+    this.bossFlow = new BossFlow(this);
     this.labMode = this.lab ? new LabMode(this, this.initData) : null;
     this.frozen = false;
     this.hitStopped = false;
@@ -263,6 +275,18 @@ export class Game extends Phaser.Scene {
       fx: this.fx,
       hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, o),
       onKill: (m, kind) => this.progress.onKill(m, kind),
+    });
+    this.hazards = new EnemyHazards({
+      scene: this,
+      world: this.world,
+      player: this.player,
+      mobs: this.mobs,
+      fx: this.fx,
+      pools: this.pools,
+      telegraph: this.telegraph,
+      hitMob: (m, dmg, o) => this.combat.hitMob(m, dmg, o),
+      onKill: (m, kind) => this.progress.onKill(m, kind),
+      shake: (px, ms) => this.shake.add(this.time.now, px, ms),
     });
     this.createStructures(structurePlan);
     this.bundle = new BundleRuntime(this);
@@ -370,7 +394,9 @@ export class Game extends Phaser.Scene {
             : 0,
       },
     );
+    // 61라운드 P7: 튜토리얼 표식은 첫 생만 (두 번째 생부터 생략 — 일기장 이력)
     if (urlParams().has('notutorial')) this.tutorial.skip();
+    else if (!inFirstLife(diaryNow())) this.tutorial.skip(true);
   }
 
   private createStructures(plan: StructurePlacement[]): void {
@@ -440,6 +466,7 @@ export class Game extends Phaser.Scene {
         onKill: (m, kind) => this.progress.onKill(m, kind),
         shake: (px, ms) => this.shake.add(this.time.now, px, ms),
         propSkin: propSkinFor(this.nodeArena.tileset),
+        telegraphAboveDark: (on) => this.telegraph.setAboveDark(on),
       },
       id,
       def,
@@ -463,6 +490,7 @@ export class Game extends Phaser.Scene {
       [Events.BOSS_STARTED, ui.relayBossStarted, ui],
       [Events.BOSS_PHASE, ui.relayBossPhase, ui],
       [Events.BOSS_DIED, ui.relayBossDied, ui],
+      [Events.BOSS_BREAK, ui.relayBossBreak, ui],
       [Events.PLAYER_GUARD_RELEASED, m.onGuardReleased, m],
       [Events.PLAYER_SHADOW_STEP, m.onShadowStep, m],
       [Events.PLAYER_DASHED, m.onPlayerDashed, m],
@@ -514,6 +542,8 @@ export class Game extends Phaser.Scene {
       return;
     }
 
+    // 61라운드 보스 등장·처치 연출 시간표 (실시간 — 히트스톱·정지 중에도)
+    this.bossFlow?.update(time, delta);
     // 개성 임계 도달 → 다른 메뉴(보스 보상 등)가 닫힌 뒤 3지선다 (게임 정지)
     this.progress.maybeOpenEvolveMenu();
     if (this.frozen) {
@@ -539,11 +569,14 @@ export class Game extends Phaser.Scene {
 
     const raw = this.inputSystem.read();
     // 구조물 메뉴 동안 입력 잠금 (47라운드 계약 §9.3) · 48라운드: 노드 진입 직후(밝아지는 동안)·다음 노드 선택 중·전환 중에도 잠금
-    let input = this.structures.inputLocked || this.route.locked(time) ? neutralInput(raw) : raw;
+    // 61라운드: 보스 등장·처치 연출 동안도 잠금
+    let input =
+      this.structures.inputLocked || this.route.locked(time) || this.bossFlow?.inputLocked ? neutralInput(raw) : raw;
     if (input.potionPressed) this.economy.usePotion();
     this.structures.update(input, time, delta);
     this.bundle.update(input, time);
     this.pools.update(time);
+    this.hazards.update(delta);
     this.bossArena?.update(input, time, delta);
     input = this.structures.adjustAim(input, time);
     this.player.sprintAllowed = !this.director.inCombat;
@@ -559,7 +592,7 @@ export class Game extends Phaser.Scene {
     if (this.route.checkFloorExit()) return;
 
     this.updateActors(time, delta);
-    this.economy.updateShop();
+    this.economy.updateShop(input.interactPressed);
     this.ui.emitState();
     this.updateDebugText();
   }
@@ -580,6 +613,7 @@ export class Game extends Phaser.Scene {
       summon: c.summon,
       pack: this.pack,
       arena: this.bossArena,
+      hazards: this.hazards,
     };
     for (const child of [...this.mobs.getChildren()]) (child as Mob).update(ctx);
     this.bundle.lateUpdate(time);
@@ -589,6 +623,7 @@ export class Game extends Phaser.Scene {
     for (const child of this.playerShots.getChildren()) (child as Projectile).tick(time);
     this.structures.tickShots(this.playerShots.getChildren() as Projectile[]);
     this.bossArena?.tickShots(this.playerShots.getChildren() as Projectile[]);
+    this.hazards.tickShots(this.playerShots.getChildren() as Projectile[]);
     this.strikes.update(time, delta);
     this.fx.update(time);
     this.ribbons.update();
@@ -670,8 +705,11 @@ export class Game extends Phaser.Scene {
     this.aimLine.destroy();
     this.structures.destroy();
     this.bundle.destroy();
+    this.bossFlow?.destroy();
+    this.bossFlow = null;
     this.bossArena?.destroy();
     this.bossArena = null;
+    this.hazards.destroy();
     this.pools.destroy();
     this.fx.destroy();
     this.lighting.destroy();

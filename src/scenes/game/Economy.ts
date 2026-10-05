@@ -8,7 +8,9 @@ import type { Mob } from '../../objects/Mob';
 import type { Pickup } from '../../objects/Pickup';
 import { goldCost, rollGold, shopPrice } from '../../systems/economy';
 import { kindDef } from '../../systems/route';
+import type { UiInteractable } from '../../contract/ui';
 import type { Game } from '../Game';
+import { ShopKeeper } from './ShopKeeper';
 
 /** 53라운드 UI 요청 B1: 상점 메뉴 그만두기 key (UI 가 Esc·닫기를 select('shop', '0') 으로 보낸다) */
 export const SHOP_CANCEL_KEY = '0';
@@ -17,6 +19,9 @@ export class Economy {
   shopOpen = false;
   /** Esc 로 닫은 뒤 상점 칸을 벗어날 때까지 다시 열지 않는다 */
   private shopDismissed = false;
+  /** 61라운드 단계 2: 상점 노드 상인 (E 로 연다) · 상인 E 로 연 상점인지 (상인 곁을 떠나면 닫는다) */
+  private keeper: ShopKeeper | null = null;
+  private keeperOpened = false;
 
   constructor(private readonly g: Game) {}
 
@@ -83,18 +88,35 @@ export class Economy {
 
   // --- 상점 ---
 
-  /** 상점 타일 위에 서 있으면 메뉴를 열고, 벗어나면 닫는다 */
-  updateShop(): void {
+  /** 상점 타일 위에 서 있으면 메뉴를 열고, 벗어나면 닫는다 · 61라운드: 상점 노드 상인 곁에서 E 로도 연다 */
+  updateShop(interactPressed = false): void {
     const g = this.g;
     // 48라운드: 상점 노드는 들어서면 바로 (보스 뒤 상점은 출구가 열린 뒤)
     const shopNode = g.nodeKind !== null && Boolean(kindDef(g.nodeKind).shopTiles);
     if (!gameState.exitOpen && !shopNode) return;
+    if (shopNode && !this.keeper && g.layout?.arena) this.keeper = new ShopKeeper(g, g.layout.arena.shop);
     if (gameState.route?.choosing) return;
     const onTile = g.world.isShopAt(g.player.x, g.player.y);
+    const nearKeeper = this.keeper?.near() ?? false;
+    if (!nearKeeper) this.keeperOpened = false;
+    if (interactPressed && nearKeeper && !this.shopOpen && !g.menu.isOpen) {
+      this.keeperOpened = true;
+      this.shopDismissed = false;
+      this.openShop();
+      return;
+    }
+    const here = onTile || this.keeperOpened;
     // 53라운드 UI 요청 B1: Esc(cancelKey)로 닫았으면 상점 칸을 벗어났다 다시 들어설 때 연다
     if (!onTile) this.shopDismissed = false;
     if (onTile && !this.shopOpen && !this.shopDismissed && !g.menu.isOpen) this.openShop();
-    else if (!onTile && this.shopOpen) this.closeShop();
+    else if (!here && this.shopOpen) this.closeShop();
+  }
+
+  /** 61라운드 단계 2: 상점 상인 E 안내 (상인 반경 밖·상점 노드가 아니면 null) */
+  keeperInteractable(): UiInteractable | null {
+    const g = this.g;
+    if (!this.keeper) return null;
+    return this.keeper.interactable(g.layout?.rooms[0]?.id ?? '', !this.shopOpen && !g.menu.isOpen);
   }
 
   /** 고정 4칸 가격 (60라운드: 2차 묶음 상점이 있으면 E9 할인까지 — ShopMenu.fixedPrice) */
@@ -146,6 +168,7 @@ export class Economy {
 
   closeShop(): void {
     this.shopOpen = false;
+    this.keeperOpened = false;
     this.g.menu.close();
     EventBus.emit(Events.SHOP_CLOSED);
   }

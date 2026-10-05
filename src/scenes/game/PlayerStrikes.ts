@@ -8,7 +8,13 @@
  */
 import Phaser from 'phaser';
 import { COLORS, DEPTH, ENEMY_FX, FEEL, MOVE_FX, PROTOTYPE } from '../../core/Constants';
-import type { PlayerAttackPayload, PlayerChargePayload } from '../../core/EventBus';
+import {
+  EventBus,
+  Events,
+  type ComboFinishPayload,
+  type PlayerAttackPayload,
+  type PlayerChargePayload,
+} from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
@@ -27,7 +33,7 @@ import { IssenStrikes } from './IssenStrikes';
 import { CrackLineStrikes, crackOrigin } from './CrackLineStrikes';
 import { MoveStrikes } from './MoveStrikes';
 import { ArrowRain } from './ArrowRain';
-import { HIT_ORIGIN_UP_PX, isFinisher, isMeleeStrike, rotatesLeft, shapeFacing } from './shared';
+import { HIT_ORIGIN_UP_PX, isComboFinish, isFinisher, isMeleeStrike, rotatesLeft, shapeFacing } from './shared';
 
 /** 디버그로 남기는 최근 판정 수 */
 const SWING_LOG_MAX = 12;
@@ -183,6 +189,8 @@ export class PlayerStrikes {
     g.structures.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
     // 54라운드: 보스방 — 약점 잔 · 술통 방향 바꾸기 · 쓰러진 촛대 다시 켜기
     g.bossArena?.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
+    // 61라운드 단계 2: 술통 짐꾼 술통 되치기
+    g.hazards?.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
     // 베기 시트가 있으면 판정 사각형은 보이지 않게(판정만), 없으면 기존 플레이스홀더 표시
     // 그림이 있는가: 베기 시트, 내리찍기 충격 시트, 이 공격의 휘두름 이펙트(SwingFx 가 고른 것). 옛 진화 시트는 57 Q42 로 끔
     const hasSwingArt =
@@ -263,7 +271,11 @@ export class PlayerStrikes {
       }
       hit.add(mob);
       swingLog.hits += 1;
-      this.strikeMob(mob, p, swingLog.hits === 1 && !follow && !secondWave);
+      const first = swingLog.hits === 1 && !follow && !secondWave;
+      // 61라운드 계약 sound §9: 연격 마지막 타가 처음 맞힌 순간 한 번 (활은 이 경로가 아님)
+      if (first && isComboFinish(p))
+        EventBus.emit(Events.PLAYER_COMBO_FINISH, { weapon: weapon.id } satisfies ComboFinishPayload);
+      this.strikeMob(mob, p, first);
     });
     // 분쇄: 충격파 범위의 적 투사체 소멸
     const clear =

@@ -152,6 +152,7 @@ export function exposeGameDebug(g: Game): void {
       return gameState.weapon.path.length > before;
     },
     spawnEnemy: (id, x, y) => Boolean(g.director.spawnExtra(id, x, y)),
+    hazards: () => g.hazards.summary(),
     warpInfo: () => ({
       ...g.ui.warpState(),
       inCombat: g.director.inCombat,

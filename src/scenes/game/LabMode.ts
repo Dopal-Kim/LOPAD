@@ -39,6 +39,8 @@ export class LabMode {
   prepareRun(): boolean {
     gameState.startRun(LAB.SEED, labWeaponFor(this.init), gameState.playerName);
     gameState.birthPending = false;
+    // 61라운드 P4: 시험장은 층 노출 제한 없음 (태그 10·세트 6단계·2단·각성 전부)
+    gameState.build.setFloor(null);
     // 51라운드 검증: `?branch=<1단>[,<2단>]` 로 갈래를 바로 (트리에 없는 id 는 restore 가 거른다)
     const branch = urlParams().get('branch');
     if (branch) gameState.weapon.restore({ path: branch.split(','), reinforce: 0 });

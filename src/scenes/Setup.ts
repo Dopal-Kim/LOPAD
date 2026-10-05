@@ -34,6 +34,15 @@ import { setMenuSelect } from '../contract/host';
 import { EventBus, Events } from '../core/EventBus';
 import { audio } from '../systems/audio/audio';
 import { UI_EVENTS, __system } from '../contract/ui';
+import { NARRATIVE, NARRATIVE_STORY, voiceLine } from '../data/narrative';
+import {
+  isFirstLife,
+  koreanCount,
+  readDiary,
+  recordBirth,
+  updateDiary,
+  type DiaryRecord,
+} from '../systems/narrative/diary';
 
 type Phase = 'meta' | 'name' | 'strokes' | 'sear' | 'trial' | 'fate';
 
@@ -87,6 +96,19 @@ export class Setup extends Phaser.Scene {
   private dashQueued = false;
   private readonly onEscKey = oncePerKeyEvent<KeyboardEvent>(() => this.onEsc());
 
+  /**
+   * 61라운드 P7 시작 의식 단축: 첫 생만 전체(이름 → 3획 → 회피 시험 → 튜토리얼). 두 번째 생부터 번진 이름 덧쓰기(Enter = 지난 이름) +
+   * 3획, 회피 시험은 선택(T — Enter 는 건너뜀, 시작 감각 +0), 튜토리얼은 Game 이 생략. 판정 = 메타 일기장 이력 (`?ritual=full` 은 전체 강제)
+   */
+  private diary: DiaryRecord = readDiary({ runs: 0, clears: 0 });
+  private firstLife = true;
+  /** 덧쓰기 결과 한 줄 (3획 안내 위에) */
+  private smudgeResult = '';
+  /** 회피 시험 선택 (두 번째 생부터): null = 아직 */
+  private trialChoice: 'trial' | 'skip' | null = null;
+  /** 타오름이 검게 덮였는데 선택을 기다리는 중 */
+  private searPeaked = false;
+
   /** 53라운드 UI 요청 B4: 회피 시험에서 Esc → 3획부터 다시 (씬을 다시 열어 시험 카메라·경기장을 깨끗이) */
   private resumeAt: { back: 'strokes'; playerName: string } | null = null;
 
@@ -115,6 +137,13 @@ export class Setup extends Phaser.Scene {
     this.features = undefined;
     this.weaponId = undefined;
     this.scar = undefined;
+    this.diary = readDiary(metaStore.read());
+    this.firstLife =
+      isFirstLife(this.diary) ||
+      (typeof location !== 'undefined' && new URLSearchParams(location.search).get('ritual') === 'full');
+    this.smudgeResult = '';
+    this.trialChoice = null;
+    this.searPeaked = false;
     // 새 런은 1층: 이전 런이 바꿔 둔 층 변형을 원본으로 (시트·예고 색)
     spriteLibrary.activate(this, 1);
     this.label = this.add
@@ -169,6 +198,9 @@ export class Setup extends Phaser.Scene {
     // 53라운드: 같은 keydown 객체 재전달(Phaser 3.90 큐 재처리)로 두 단계 물러나지 않게 (keyEvents)
     kb.on('keydown-ESC', this.onEscKey);
     this.events.once('shutdown', () => this.input.keyboard?.off('keydown-ESC', this.onEscKey));
+    // 61라운드 P7: 두 번째 생부터 회피 시험 선택 키 (타오름 중)
+    kb.on('keydown', this.onRitualKey);
+    this.events.once('shutdown', () => this.input.keyboard?.off('keydown', this.onRitualKey));
     const resume = this.resumeAt;
     this.resumeAt = null;
     if (resume) {
@@ -269,7 +301,7 @@ export class Setup extends Phaser.Scene {
     if (this.phase !== 'meta') return; // 메뉴 선택과 keydown 이 둘 다 Enter 를 전달하므로 한 번만
     this.menu.close();
     this.phase = 'name';
-    this.label.setText(`${STORY.diary.first}\n\n이름을 적고 Enter`);
+    this.label.setText(this.firstLife ? `${STORY.diary.first}\n\n이름을 적고 Enter` : this.smudgeIntro());
     const kb = this.input.keyboard!;
     kb.disableGlobalCapture();
     this.nameInput = this.add
@@ -284,17 +316,34 @@ export class Setup extends Phaser.Scene {
     node.maxLength = NAME_MAX;
     node.placeholder = '이름';
     node.id = 'lopad-name';
+    // 61라운드 P7: 두 번째 생부터 지난 이름을 미리 채운다 (Enter = 덧쓴다)
+    if (!this.firstLife && this.diary.lastName) node.value = this.diary.lastName;
     node.addEventListener('keydown', (e) => {
       e.stopPropagation();
       if (e.key === 'Enter') this.finishName(node.value);
       else if (e.key === 'Escape') this.backToMeta();
     });
     node.focus();
+    if (node.value) node.select();
+  }
+
+  /** 61라운드 P7: 두 번째 생 일기장 첫 장 (번진 이름 · 처음 돌아왔을 때 한 번 · 세 번째 생부터 겹 수 · 덧쓰기 안내) */
+  private smudgeIntro(): string {
+    const N = NARRATIVE_STORY.nameSmudge;
+    const lines: string[] = [];
+    if (this.diary.lives === 1) lines.push(N.returnFirst);
+    lines.push(N.diaryOpen);
+    if (this.diary.deaths >= 2) lines.push(fill(N.layers, { lives: koreanCount(this.diary.deaths) }));
+    return `${lines.join('\n')}\n\n${N.prompt}\n${NARRATIVE.ritual.namePrompt}`;
   }
 
   private finishName(raw: string): void {
     if (this.phase !== 'name') return;
     this.playerName = raw.trim().slice(0, NAME_MAX);
+    if (!this.firstLife) {
+      const N = NARRATIVE_STORY.nameSmudge;
+      this.smudgeResult = this.playerName === this.diary.lastName.trim() ? N.resultSame : N.resultChanged;
+    }
     this.nameInput?.destroy();
     this.nameInput = undefined;
     this.input.keyboard?.enableGlobalCapture();
@@ -393,16 +442,41 @@ export class Setup extends Phaser.Scene {
     this.decideWeapon();
     this.time.delayedCall(STROKE_FX.HOLD_AFTER_LAST_MS, () => {
       if (this.phase !== 'sear') return;
-      this.label.setText('');
+      // 61라운드 P7: 두 번째 생부터 회피 시험은 선택 — 타오르는 동안 고른다
+      this.label.setText(
+        this.firstLife ? '' : fill(NARRATIVE.ritual.trialPrompt, { key: NARRATIVE.ritual.trialKey.toUpperCase() }),
+      );
       const fx = this.strokeFx;
-      if (!fx) return this.beginTrial();
+      if (!fx) return this.afterSear();
       fx.sear(
-        () => this.beginTrial(),
+        () => this.afterSear(),
         () => {
           if (this.strokeFx === fx) this.strokeFx = undefined;
         },
       );
     });
+  }
+
+  /** 타오름이 검게 덮인 순간: 첫 생이거나 시험을 골랐으면 시험, 건너뛰면 운명, 아직이면 기다린다 */
+  private afterSear(): void {
+    if (this.phase !== 'sear') return;
+    if (this.firstLife || this.trialChoice === 'trial') return this.beginTrial();
+    if (this.trialChoice === 'skip') return this.decideFate();
+    this.searPeaked = true;
+  }
+
+  /** 61라운드 P7: 회피 시험 선택 키 (두 번째 생부터, 타오름 중) — T 치른다 · Enter 건너뛴다 */
+  private readonly onRitualKey = (e: KeyboardEvent): void => {
+    if (this.firstLife || this.phase !== 'sear' || this.trialChoice) return;
+    if (e.key === 'Enter') this.chooseTrial(false);
+    else if (e.key.toLowerCase() === NARRATIVE.ritual.trialKey.toLowerCase()) this.chooseTrial(true);
+  };
+
+  private chooseTrial(take: boolean): void {
+    if (this.trialChoice || this.phase !== 'sear') return;
+    this.trialChoice = take ? 'trial' : 'skip';
+    this.label.setText('');
+    if (this.searPeaked) this.afterSear();
   }
 
   /** 3획 특징 → 운명 무기 (회피 시험과 무관) + 상흔 저장 형식 (53라운드 Q4 준비) */
@@ -415,8 +489,9 @@ export class Setup extends Phaser.Scene {
 
   private updateLabel(): void {
     if (this.phase === 'strokes') {
+      const head = this.smudgeResult && this.strokes.length === 0 ? `${this.smudgeResult}\n\n` : '';
       this.label.setText(
-        `${STORY.diary.beforeFate}  (${this.strokes.length}/${PERSONALITY.strokes.count})\n마우스를 누른 채 긋고 떼면 한 획`,
+        `${head}${STORY.diary.beforeFate}  (${this.strokes.length}/${PERSONALITY.strokes.count})\n마우스를 누른 채 긋고 떼면 한 획`,
       );
     }
   }
@@ -483,8 +558,19 @@ export class Setup extends Phaser.Scene {
         features: this.features ?? null,
         weapon: this.weaponId ?? null,
         scar: this.scar ?? null,
+        ritual: {
+          firstLife: this.firstLife,
+          trialChoice: this.trialChoice,
+          smudgeResult: this.smudgeResult,
+          diary: this.diary,
+        },
       }),
       {
+        /** 61라운드 P7: 회피 시험 고르기 (두 번째 생부터, 타오름 중) — true 치른다 · false 건너뛴다 */
+        chooseTrial: (take = false) => {
+          this.chooseTrial(take);
+          return this.trialChoice;
+        },
         /** 메타·이름 단계를 건너뛰고 획 단계로 */
         skipToStrokes: (name = 'debug') => {
           if (this.phase === 'meta') this.beginName();
@@ -570,13 +656,19 @@ export class Setup extends Phaser.Scene {
     if (!this.weaponId || !this.features) this.decideWeapon();
     const f = this.features!;
     const id = this.weaponId!;
+    const skipped = this.trialChoice === 'skip' && !this.trialResult;
     const r = this.trialResult ?? gradeTrial([]);
-    const senseBonus = r.bonus;
+    const senseBonus = skipped ? 0 : r.bonus;
     const w = WEAPONS[id];
     __system.emit(UI_EVENTS.FATE_DECIDED, { weaponName: w.name, features: f });
     EventBus.emit(Events.FATE_DECIDED, { weapon: id });
+    // 61라운드 P7·P8: 일기장에 이 생을 적는다 (다시 태어난 수·이름) → 무기 한마디 '첫 집어 듦' (운명 자막 바로 뒤)
+    updateDiary((d) => recordBirth(d, this.playerName));
+    const voice = voiceLine(id, 'pickup');
+    if (voice) __system.emit(UI_EVENTS.STORY, { kind: 'voice', text: voice, weapon: id });
+    const trialLine = skipped ? NARRATIVE.ritual.trialSkipped : `시작 감각 +${senseBonus}  (시험 등급 ${r.grade})`;
     this.label.setText(
-      `${this.playerName || '―'}\n\n${fill(STORY.diary.fate, { weapon: w.name })}\n시작 감각 +${senseBonus}  (시험 등급 ${r.grade})\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)})`,
+      `${this.playerName || '―'}\n\n${fill(STORY.diary.fate, { weapon: w.name })}${voice ? `\n“${voice}”` : ''}\n${trialLine}\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)})`,
     );
     const data = { mode: 'new' as const, weapon: id, playerName: this.playerName, senseBonus };
     this.startData = data;

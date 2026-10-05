@@ -119,6 +119,8 @@ export interface BossHost {
   paint(color: number): void;
   restoreColor(): void;
   setInvulnerable(until: number): void;
+  /** 61라운드 P6: 파훼로 무너짐 — ms 동안 받는 피해 × breakDamageMult (잔 깨짐·기둥 충돌·취권 넘어짐·술통 되치기) */
+  markBroken(ms: number): void;
   /** 소환한 수 (디버그) */
   addSummoned(n: number): void;
   emitTelegraph(name: BossPatternName): void;

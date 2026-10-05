@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { WEAPONS } from '../../data';
-import { allSheetRequests, bootSheetRequests, requestKey, weaponSheetRequests } from './sheetSets';
+import { allSheetRequests, bootSheetRequests, bossSheetRequests, requestKey, weaponSheetRequests } from './sheetSets';
 
 describe('57라운드 A2 로드 묶음 (부팅 + 고른 무기)', () => {
   const ids = Object.keys(WEAPONS);
 
   it('부팅 묶음 + 모든 무기 묶음 = 예전 부팅 목록 (빠지거나 늘어난 시트 없음)', () => {
     const before = new Set(allSheetRequests().map(requestKey));
-    const after = new Set([...bootSheetRequests(), ...ids.flatMap(weaponSheetRequests)].map(requestKey));
+    const after = new Set(
+      [...bootSheetRequests(), ...bossSheetRequests(), ...ids.flatMap(weaponSheetRequests)].map(requestKey),
+    );
     expect([...after].sort()).toEqual([...before].sort());
   });
 
@@ -43,6 +45,15 @@ describe('57라운드 A2 로드 묶음 (부팅 + 고른 무기)', () => {
       expect(names(bootSheetRequests())).not.toContain(n);
       for (const o of ids.filter((x) => x !== 'dagger')) expect(names(weaponSheetRequests(o))).not.toContain(n);
     }
+  });
+
+  it('61라운드 단계 2: 보스 몸·보스방 시트는 부팅 묶음이 아니라 보스 묶음 (보스 노드 preload)', () => {
+    const boot = bootSheetRequests();
+    expect(boot.some((r) => r.category === 'bosses')).toBe(false);
+    const boss = bossSheetRequests();
+    expect(boss.some((r) => r.category === 'bosses')).toBe(true);
+    const bootKeys = new Set(boot.map(requestKey));
+    expect(boss.every((r) => !bootKeys.has(requestKey(r)))).toBe(true);
   });
 
   it('모르는 무기는 빈 목록', () => {

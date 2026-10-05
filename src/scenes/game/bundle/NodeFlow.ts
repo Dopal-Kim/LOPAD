@@ -7,7 +7,8 @@
 import { BUNDLE_FX, TILE } from '../../../core/Constants';
 import { EventBus, Events, type ChallengeEventPayload, type NodeGradedPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
-import { BUNDLE2, byStage } from '../../../data/bundle2';
+import { BUNDLE2, byStage, eventDef } from '../../../data/bundle2';
+import { onFloor } from '../../../data/floorScope';
 import {
   UI_EVENTS,
   __system,
@@ -191,6 +192,8 @@ export class NodeFlow {
     if (B.laterGold > 0) {
       this.g.economy.addGold(B.laterGold);
       B.laterGold = 0;
+      // 61라운드 E3: 독주를 받은 징집병이 갚으러 온다 (전표와 함께 문장)
+      this.g.ui.story('event', eventDef('conscript')?.laterResult ?? '');
     }
     if (ex) {
       const mult = ex.risk ? BUNDLE2.risk.rewardMult : 1;
@@ -266,7 +269,8 @@ export class NodeFlow {
     const G = BUNDLE2.grade;
     const limit = byStage(G.timeLimitMs, gameState.stageId);
     const elapsed = now - this.trialStart;
-    const grade = gradeOf(this.hits, elapsed, limit, G.hitAllowance);
+    // 61라운드 P5: 1층은 '완' 하나 (양 floor 2)
+    const grade = gradeOf(this.hits, elapsed, limit, G.hitAllowance, onFloor(G.good, gameState.build.floor));
     const r = gradeReward(grade, Boolean(this.ex?.risk));
     if (r.gold > 0) this.g.economy.addGold(r.gold);
     if (r.personality > 0) this.g.progress.gainPersonality(r.personality);

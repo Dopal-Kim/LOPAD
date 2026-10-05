@@ -1,9 +1,12 @@
 {
   "_note": "57라운드 Q36·Q37 대가형 저주 이득 (설계안 4.2 · 취기 QC-8): 지속 = 노드 수 (보스 노드도 1노드, 층을 넘어도 남은 노드 유지), 동시 1개, 정화 없음. 획득 = 위험 노드(2차 묶음) · 1층 구조물(카운터·장부대·화로·묘) · 이벤트(2차 묶음) · 개성 '피의 계약' 칸. 이름 자리표시(_tmpName)",
+  "_note61": "61라운드 P4: 1층 저주 3종(만취 서약·외상·깨진 잔, floor 1), 나머지 floor 2. sourcesByFloor = 그 층에서 저주를 얻는 길 (1층 = 위험 노드 저주 길 + 이벤트 E9 — 구조물·피의 계약 칸은 2층부터)",
+  "sourcesByFloor": { "1": ["riskNode", "event"] },
   "pactPool": ["drunkOath", "credit", "brokenCup", "burningTongue", "bareOath", "bruise"],
   "items": [
     {
       "id": "drunkOath",
+      "floor": 1,
       "markRow": "drunk_oath",
       "name": "만취 서약",
       "_tmpName": true,
@@ -16,6 +19,7 @@
     },
     {
       "id": "credit",
+      "floor": 1,
       "markRow": "debt",
       "name": "외상",
       "_tmpName": true,
@@ -28,6 +32,7 @@
     },
     {
       "id": "brokenCup",
+      "floor": 1,
       "markRow": "broken_cup",
       "name": "깨진 잔",
       "_tmpName": true,
@@ -40,6 +45,7 @@
     },
     {
       "id": "burningTongue",
+      "floor": 2,
       "markRow": "burning_tongue",
       "name": "불붙은 혀",
       "_tmpName": true,
@@ -53,6 +59,7 @@
     },
     {
       "id": "bareOath",
+      "floor": 2,
       "markRow": "bare_hand",
       "name": "맨손 맹세",
       "_tmpName": true,
@@ -66,6 +73,7 @@
     },
     {
       "id": "cursedChest",
+      "floor": 2,
       "markRow": "cursed_chest",
       "name": "저주 궤짝",
       "_tmpName": true,
@@ -78,6 +86,7 @@
     },
     {
       "id": "bruise",
+      "floor": 2,
       "markRow": "bruise",
       "name": "피멍",
       "_tmpName": true,

@@ -251,10 +251,11 @@ describe('53라운드 Q6 외벽 테두리 (border.json → 배치)', () => {
     expect(ev2.structureNode.kinds.some((k) => STRUCTURE_DEFS.get(k)?.place === 'cellar')).toBe(true);
   });
 
-  it('Q7 노드 전투장 기본 크기 32×20 (보스는 따로)', () => {
+  it('Q7 노드 전투장 기본 크기 32×20 (보스는 따로) · 61라운드 단계 2: 전투 노드는 크기 후보 중 하나', () => {
     expect(ROUTE.arena.default).toEqual([32, 20]);
     const plan = planNodeArena(battle(3), 'stage1', 'size', ROUTE);
-    expect(plan.layout.rooms[0].interior.w).toBe(32);
-    expect(plan.layout.rooms[0].interior.h).toBe(20);
+    const I = plan.layout.rooms[0].interior;
+    expect(ROUTE.arena.variety!.sizes!.battle).toContainEqual([I.w, I.h]);
+    expect(plan.variety.size).toEqual([I.w, I.h]);
   });
 });

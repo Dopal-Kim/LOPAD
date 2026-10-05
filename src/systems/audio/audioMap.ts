@@ -13,8 +13,10 @@ import {
   type BossActionKind,
   type BossActionPayload,
   type BossAttackPayload,
+  type BossBreakPayload,
   type BossLoopKind,
   type BossLoopPayload,
+  type BossPhasePayload,
   type BossTelegraphPayload,
   type EnemyAttackPayload,
   type EnemyDamagedPayload,
@@ -32,10 +34,28 @@ import {
   type WeaponResourcePayload,
 } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
+import { BUNDLE2 } from '../../data/bundle2';
 import { t, type AudioTrigger } from './audioTrigger';
 import { MOVE_AUDIO_TRIGGERS } from './audioMoves';
 import { BUILD_AUDIO_TRIGGERS, BUILD_SFX, hasBranch, isRapidVolley, katanaThrustSfx } from './audioBuild';
 export type { AudioTrigger } from './audioTrigger';
+
+/** 61 단계 2·3 음향: 전용 소리가 있는 적 (공용 enemy_hurt·enemy_death·<id>_telegraph 대신) */
+export const ENEMY_OWN_SFX: Record<string, { hurt?: string; death?: string; telegraph?: string }> = {
+  peddler: { hurt: 'sfx/peddler_hurt', death: 'sfx/peddler_death', telegraph: 'sfx/peddler_wick' },
+  porter: { hurt: 'sfx/porter_hurt', death: 'sfx/porter_death', telegraph: 'sfx/porter_windup' },
+};
+/** 61 단계 2: ENEMY_ATTACK phase → 효과음 (행상 착탄은 화염 술병 소모품과 같은 bottle_burst) */
+export const ENEMY_PHASE_SFX: Record<string, string> = {
+  throw: 'sfx/peddler_throw',
+  burst: 'sfx/bottle_burst',
+  push: 'sfx/porter_push',
+  return: 'sfx/barrel_return',
+  break: 'sfx/porter_barrel_break',
+  spill: 'sfx/porter_liquor_spill',
+};
+const ENEMY_ROLL_LOOP = 'sfx/porter_barrel_roll';
+const ENEMY_ROLL_LOOP_FADE_MS = 80;
 
 export const SFX = {
   swing: (weaponId: string) => `sfx/swing_${weaponId}`,
@@ -54,6 +74,8 @@ export const SFX = {
   hitPlayer: 'sfx/hit_player',
   /** 61라운드 계약 sound §9 */
   guardBlock: 'sfx/guard_block',
+  /** 61 단계 2·3: 대검 일반 가드 막음 (guard_block 대신) */
+  guardBlockHeavy: 'sfx/guard_block_heavy',
   comboFinish: 'sfx/combo_finish',
   playerDeath: 'sfx/player_death',
   enemyTelegraph: (id: string) => `sfx/${id}_telegraph`,
@@ -86,7 +108,6 @@ export const SFX = {
     drinkLift: 'sfx/boss1_drink_lift',
     drinkGulp: 'sfx/boss1_drink_gulp',
     drinkFinish: 'sfx/boss1_drink_finish',
-    cupShatter: 'sfx/boss1_cup_shatter',
     spinStart: 'sfx/boss1_spin_start',
     reelTelegraph: 'sfx/boss1_reel_telegraph',
     reelDash: 'sfx/boss1_reel_dash',
@@ -101,6 +122,20 @@ export const SFX = {
     candleTopple: 'sfx/boss1_candle_topple',
     candleRelight: 'sfx/boss1_candle_relight',
     phaseDrink: 'sfx/boss1_phase_drink',
+    // 61라운드 단계 2·3 음향 (계약 sound §9 — 대체 관계: entrance↔boss_start · die↔boss_die · phase_drink/blackout↔boss_phase ·
+    // dash_telegraph↔boss_telegraph · break_reel↔fall(파훼 인정 시). cup_shatter 는 보관 — 연결 끊음)
+    entrance: 'sfx/boss1_entrance',
+    phaseBlackout: 'sfx/boss1_phase_blackout',
+    die: 'sfx/boss1_die',
+    dashTelegraph: 'sfx/boss1_dash_telegraph',
+    dash: 'sfx/boss1_dash',
+    slamTelegraph: 'sfx/boss1_slam_telegraph',
+    slam: 'sfx/boss1_slam',
+    breakCup: 'sfx/boss1_break_cup',
+    breakPillar: 'sfx/boss1_break_pillar',
+    breakBarrel: 'sfx/boss1_break_barrel',
+    breakReel: 'sfx/boss1_break_reel',
+    barrelReturn: 'sfx/barrel_return',
   },
 } as const;
 
@@ -197,16 +232,20 @@ export function bossActionSfx(action: BossActionKind): string | null {
     case 'drinkFinish':
       return B.drinkFinish;
     case 'cupBreak':
-      return B.cupShatter;
+      // 61라운드: 잔 깨짐 소리는 파훼(BOSS_BREAK cup → boss1_break_cup)가 맡는다 (cup_shatter 보관)
+      return null;
     case 'reelTelegraph':
       return B.reelTelegraph;
     case 'reelDash':
       return B.reelDash;
     case 'fall':
-      return B.fall;
+      // 61라운드: 넘어짐은 파훼(reel)로 인정 → BOSS_BREAK reel → boss1_break_reel 이 대신 (1층 파훼 종류에 reel 이 없으면 fall)
+      return BUNDLE2.break.kinds.includes('reel') ? null : B.fall;
     case 'kick':
-    case 'caskRedirect':
       return B.barrelKick;
+    case 'caskRedirect':
+      // 61라운드: 술통 되치기 = 파훼 cask → boss1_break_barrel 과 함께 되돌아가는 소리
+      return B.barrelReturn;
     case 'caskBounce':
       return B.barrelBounce;
     case 'caskBreak':
@@ -221,6 +260,32 @@ export function bossActionSfx(action: BossActionKind): string | null {
       return B.candleTopple;
     case 'candleRelight':
       return B.candleRelight;
+    default:
+      return null;
+  }
+}
+
+/** 61라운드: 1층 보스 id */
+function isBoss1(id: string | undefined): boolean {
+  return id === 'stage1';
+}
+
+/** 61라운드: 결정타(BOSS_BREAK finisher — BOSS_DIED 직후 같은 프레임)의 break_finisher 뒤에 boss1_die 를 겹친다 (ms) */
+export const BOSS1_DIE_DELAY_MS = 120;
+
+/** 61라운드 파훼 종류 → 1층 파훼 효과음 (finisher 는 null — audioBuild 의 break_finisher) */
+export function breakSfx(kind: string): string | null {
+  const B = SFX.boss1;
+  switch (kind) {
+    case 'cup':
+      return B.breakCup;
+    case 'pillar':
+      return B.breakPillar;
+    case 'cask':
+    case 'barrel':
+      return B.breakBarrel;
+    case 'reel':
+      return B.breakReel;
     default:
       return null;
   }
@@ -446,39 +511,74 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   }),
   t<EnemyDamagedPayload>({
     event: Events.ENEMY_DAMAGED,
-    note: '적 피격 보조음 enemy_hurt (틱 포함, 피격음과 겹침)',
-    sfx: SFX.enemyHurt,
+    note: '적 피격 보조음 enemy_hurt (틱 포함, 피격음과 겹침) · 61 단계 2: 행상·짐꾼은 전용 <id>_hurt 로 대체',
+    sfx: (p) => ENEMY_OWN_SFX[p.id]?.hurt ?? SFX.enemyHurt,
   }),
-  t<{ elite?: boolean }>({
+  t<{ id?: string; elite?: boolean }>({
     event: Events.ENEMY_DIED,
     note: '일반 적 사망 (60라운드 엘리트 = elite_die)',
-    sfx: (p) => (p?.elite ? [BUILD_SFX.eliteDie, SFX.enemyDeath] : SFX.enemyDeath),
+    sfx: (p) => {
+      const own = ENEMY_OWN_SFX[p?.id ?? '']?.death ?? SFX.enemyDeath;
+      return p?.elite ? [BUILD_SFX.eliteDie, own] : own;
+    },
   }),
   t<PlayerDamagedPayload>({
     event: Events.PLAYER_DAMAGED,
     note: '주인공 피격 · 61라운드 §9: 가드로 막은 피격(guarded)은 guard_block',
-    sfx: (p) => (p?.guarded ? SFX.guardBlock : SFX.hitPlayer),
+    sfx: (p) =>
+      p?.guarded ? (gameState.weapon?.id === 'greatsword' ? SFX.guardBlockHeavy : SFX.guardBlock) : SFX.hitPlayer,
   }),
   t({ event: Events.PLAYER_COMBO_FINISH, note: '61라운드 §9: 연격 마지막 타 적중 (활 제외)', sfx: SFX.comboFinish }),
   t({ event: Events.PLAYER_DIED, note: '주인공 사망', sfx: SFX.playerDeath }),
   t<EnemyTelegraphPayload>({
     event: Events.ENEMY_TELEGRAPH,
-    note: '적 돌진 예고 → sfx/<적id>_telegraph (결사병 charger_telegraph)',
-    sfx: (p) => SFX.enemyTelegraph(p.id),
+    note: '적 돌진 예고 → sfx/<적id>_telegraph (결사병 charger_telegraph) · 61 단계 2: 행상 심지 peddler_wick · 짐꾼 porter_windup',
+    sfx: (p) => ENEMY_OWN_SFX[p.id]?.telegraph ?? SFX.enemyTelegraph(p.id),
   }),
   t<EnemyAttackPayload>({
     event: Events.ENEMY_ATTACK,
     note: '적 공격 실행 → dash 는 sfx/<적id>_dash(결사병), shot 은 sfx/<적id>_shot(사수, 총구 프레임에 맞춘 발사 시점). 접촉 공격은 없음',
+    when: (p) => !p.phase,
     sfx: (p) => (p.kind === 'dash' ? SFX.enemyDash(p.id) : p.kind === 'shot' ? SFX.enemyShot(p.id) : null),
+  }),
+  t<EnemyAttackPayload>({
+    event: Events.ENEMY_ATTACK,
+    note: '61 단계 2 행상·짐꾼 단계(phase): throw·burst(bottle_burst)·push·return·break·spill (ENEMY_PHASE_SFX)',
+    when: (p) => Boolean(p.phase && p.phase !== 'rollEnd'),
+    sfx: (p) => ENEMY_PHASE_SFX[p.phase ?? ''] ?? null,
+  }),
+  t<EnemyAttackPayload>({
+    event: Events.ENEMY_ATTACK,
+    note: '61 단계 2 짐꾼 술통 놓음 → porter_barrel_roll 루프 (되친 술통도 같은 루프)',
+    when: (p) => p.phase === 'push',
+    loop: ENEMY_ROLL_LOOP,
+  }),
+  t<EnemyAttackPayload>({
+    event: Events.ENEMY_ATTACK,
+    note: '61 단계 2 굴러가는 술통이 다 깨짐 → 굴림 루프 80ms 페이드',
+    when: (p) => p.phase === 'rollEnd',
+    stop: [ENEMY_ROLL_LOOP],
+    stopFadeMs: ENEMY_ROLL_LOOP_FADE_MS,
   }),
 
   // --- 보스 ---
-  t({ event: Events.BOSS_STARTED, note: '보스 등장', sfx: SFX.bossStart }),
+  t<{ boss: string }>({
+    event: Events.BOSS_STARTED,
+    note: '보스 등장 (61라운드: 1층 = boss1_entrance, 그 밖 boss_start)',
+    sfx: (p) => (p.boss === 'stage1' ? SFX.boss1.entrance : SFX.bossStart),
+  }),
   t<BossTelegraphPayload>({
     event: Events.BOSS_TELEGRAPH,
-    note: '보스 돌진 예고',
-    when: (p) => p.attack === 'dash',
-    sfx: SFX.bossTelegraph,
+    note: '보스 돌진·내리찍기 예고 (61라운드: 1층 = boss1_dash_telegraph · boss1_slam_telegraph)',
+    when: (p) => p.attack === 'dash' || (p.attack === 'slam' && isBoss1(p.id)),
+    sfx: (p) =>
+      isBoss1(p.id) ? (p.attack === 'dash' ? SFX.boss1.dashTelegraph : SFX.boss1.slamTelegraph) : SFX.bossTelegraph,
+  }),
+  t<BossAttackPayload>({
+    event: Events.BOSS_ATTACK,
+    note: '61라운드 1층 돌진·내리찍기 실행 → boss1_dash · boss1_slam',
+    when: (p) => isBoss1(p.id) && (p.attack === 'dash' || p.attack === 'slam'),
+    sfx: (p) => (p.attack === 'dash' ? SFX.boss1.dash : SFX.boss1.slam),
   }),
   t<BossAttackPayload>({
     event: Events.BOSS_ATTACK,
@@ -486,10 +586,15 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => p.attack === 'fan',
     sfx: SFX.bossFan,
   }),
-  t({
+  t<BossPhasePayload>({
     event: Events.BOSS_PHASE,
-    note: '보스 국면 전환 (54라운드: 1층 보스는 들이켜기 boss1_phase_drink)',
-    sfx: () => (gameState.stage?.boss === 'stage1' ? SFX.boss1.phaseDrink : SFX.bossPhase),
+    note: '보스 국면 전환 (61라운드 1층: 2국면 boss1_phase_drink · 3국면 boss1_phase_blackout, 그 밖 boss_phase)',
+    sfx: (p) =>
+      gameState.stage?.boss === 'stage1'
+        ? p.phase >= 3
+          ? SFX.boss1.phaseBlackout
+          : SFX.boss1.phaseDrink
+        : SFX.bossPhase,
   }),
   // --- 54라운드 1층 보스 '만취' 새 패턴 ---
   t<BossAttackPayload>({
@@ -526,7 +631,17 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     stopOf: (p) => [bossLoopSfx(p.loop)],
     stopFadeMs: BOSS_LOOP_FADE_MS,
   }),
-  t({ event: Events.BOSS_DIED, note: '보스 사망', sfx: SFX.bossDie }),
+  t<{ id: string }>({
+    event: Events.BOSS_DIED,
+    note: '보스 사망 (61라운드 1층 = boss1_die — 결정타면 break_finisher 뒤에 겹치게 지연)',
+    sfx: (p) => (isBoss1(p.id) ? SFX.boss1.die : SFX.bossDie),
+    delayMs: (p) => (isBoss1(p.id) ? BOSS1_DIE_DELAY_MS : 0),
+  }),
+  t<BossBreakPayload>({
+    event: Events.BOSS_BREAK,
+    note: '61라운드 1층 파훼 종류별 → boss1_break_cup·pillar·barrel·reel (결정타·새 종류 수는 audioBuild)',
+    sfx: (p) => breakSfx(p.kind),
+  }),
 
   // --- 맵·월드 ---
   t({ event: Events.TRIAL_STARTED, note: '시련 방 문 잠김', sfx: SFX.doorClose }),

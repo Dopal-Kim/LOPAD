@@ -17,6 +17,8 @@ import { Rng, hashSeed } from '../systems/rng';
 /** 52라운드 Q11 큰 소품 JSON (계약 §12, 시트 도트 px) */
 export interface BigPropJson {
   name: string;
+  /** 61라운드 계약 art §24 방 변주 장면 묶음 (있으면 그 장면을 고른 방에만) */
+  variantTag?: string;
   rect: { x: number; y: number; w: number; h: number };
   pivot: { x: number; y: number };
   footprint?: [number, number];
@@ -34,6 +36,8 @@ export interface BigPropJson {
 export interface PropDef {
   index: number;
   name: string;
+  /** 61라운드 계약 art §24 방 변주 장면 묶음 (있으면 그 장면을 고른 방에만) */
+  variantTag?: string;
   solid: boolean;
   /** 50라운드 계약 §9: 광원 (반경·offset = 시트 도트 px, offset = 타일 칸 안 좌표) */
   light?: LightSpec & { offset?: LightOffset };
@@ -618,4 +622,17 @@ function blockedTiles(room: Room, rules: typeof PROPS_RULES): Set<string> {
     for (const t of d.tiles)
       mark(t.x - rules.DOOR_CLEAR, t.y - rules.DOOR_CLEAR, t.x + rules.DOOR_CLEAR, t.y + rules.DOOR_CLEAR);
   return b;
+}
+
+/** 61라운드 계약 art §24: 소품 시트의 방 변주 장면 묶음 이름 (작은·큰 소품, 정렬·중복 제거) */
+export function propSceneTags(skin: Pick<TileSkin, 'props' | 'bigProps'> | null | undefined): string[] {
+  if (!skin) return [];
+  const out = new Set<string>();
+  for (const p of [...skin.props, ...skin.bigProps]) if (typeof p.variantTag === 'string') out.add(p.variantTag);
+  return [...out].sort();
+}
+
+/** 장면 거르기: 장면이 없는 소품은 늘, 장면이 붙은 소품은 고른 장면일 때만 (scene = null 이면 장면 소품 없음) */
+export function inPropScene<T extends { variantTag?: string }>(list: readonly T[], scene: string | null): T[] {
+  return list.filter((p) => typeof p.variantTag !== 'string' || p.variantTag === scene);
 }

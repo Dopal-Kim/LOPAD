@@ -1,6 +1,7 @@
 import passivesJson from '../../data/passives.json';
 import { isBuildStatKey, isTagId, type BuildStatKey, type RuleDef, type TagId } from '../data/buildTypes';
 import type { Rng } from './rng';
+import { onFloor, type FloorScope } from '../data/floorScope';
 
 /**
  * 패시브 (기획 6장: 보스 보상 → 57라운드 Q29 보스·궤짝 2택·상점 진열·노드 보상·저주). 희귀도 가중으로 뽑아 1개 선택.
@@ -24,6 +25,8 @@ export interface PassiveDef {
   rule?: RuleDef;
   lowHpThreshold?: number;
   _tmpName?: boolean;
+  /** 61라운드 P4: 처음 풀에 들어오는 층 (없으면 1) — `data/floorScope` */
+  floor?: number;
 }
 
 export interface PassivesConfig {
@@ -83,6 +86,8 @@ export interface RollOptions {
   exclude?: readonly string[];
   /** 60라운드 Q30: 처음 count 개는 이 희귀도에서 확정, 나머지는 일반 확률 (rarities 와 함께 쓰지 않는다) */
   guaranteed?: { rarities: readonly string[]; count: number };
+  /** 61라운드 P4: 이 층 풀만 (패시브 floor ≤ 층). 없거나 null = 전부 */
+  floor?: FloorScope;
 }
 
 export class PassiveSet {
@@ -173,7 +178,8 @@ export class PassiveSet {
       (p) =>
         this.level(p.id) < this.cfg.maxLevel &&
         (!opts.rarities || opts.rarities.includes(p.rarity)) &&
-        !(opts.exclude ?? []).includes(p.id),
+        !(opts.exclude ?? []).includes(p.id) &&
+        onFloor(p, opts.floor ?? null),
     );
     const out: PassiveDef[] = [];
     const G = opts.guaranteed;

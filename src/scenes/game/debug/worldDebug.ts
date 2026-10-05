@@ -91,6 +91,8 @@ export function worldDebug(
         const ex = gameState.bundle.floor;
         return ex ? buyIntel(ex, id as MapInfoId) : false;
       },
+      clue: (id) => g.bundle.story.read(id),
+      story: () => g.bundle.story.debug(),
     },
     boss: {
       info: () => findBoss(g)?.debugInfo ?? null,
@@ -122,6 +124,7 @@ export function worldDebug(
         });
         return g.bossArena.screen.summary();
       },
+      flow: () => g.bossFlow?.summary() ?? null,
     },
     setBossHp: (hp) => {
       for (const m of g.mobs.getChildren() as Mob[]) {

@@ -103,9 +103,13 @@ export class TutorialDirector {
   }
 
   /** 디버그: 안내 전부 건너뛰기 */
-  skip(): void {
+  skip(silent = false): void {
     this.pendingFight = null;
-    this.apply(this.machine.skip());
+    const events = this.machine.skip();
+    if (!silent) return this.apply(events);
+    // 61라운드 P7: 두 번째 생부터 조용히 (안내 끝 문구 없이 출구만)
+    this.host.highlightSign?.(null);
+    this.host.onDone?.();
   }
 
   private act(kind: 'dash' | 'secondary' | 'hold'): void {

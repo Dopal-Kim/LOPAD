@@ -14,7 +14,9 @@ import {
 } from '../../../core/EventBus';
 import { BUILD_ART } from '../../../core/Constants';
 import { gameState } from '../../../core/GameState';
-import { BUILD, CURSES, DUAL_TRAITS, curseDef, tagName } from '../../../data/build';
+import { BUILD, CURSES, DUAL_TRAITS, curseDef, dualAbsorbOn, tagName } from '../../../data/build';
+import { absorbedDualTraits } from '../../../systems/build/evolveSlots';
+import { fill } from '../../../systems/story';
 import { TAG_IDS, type BuildStatKey, type TagId } from '../../../data/buildTypes';
 import { ECONOMY } from '../../../data';
 import {
@@ -366,9 +368,9 @@ export class BuildRuntime {
     return true;
   }
 
-  /** 피의 계약 칸: 계약 풀에서 무작위 저주 하나 (pact) */
-  grantPactCurse(): boolean {
-    const id = pickPactCurse(CURSES.pactPool, this.g.rng.next());
+  /** 피의 계약 칸: 계약 풀에서 무작위 저주 하나 (pact). 61라운드: pool = 이 층에서 나오는 것 (BuildMenus) */
+  grantPactCurse(pool: readonly string[] = CURSES.pactPool): boolean {
+    const id = pickPactCurse(pool, this.g.rng.next());
     return id ? this.grantCurse(id, { pact: true }) : false;
   }
 
@@ -406,6 +408,24 @@ export class BuildRuntime {
     return true;
   }
 
+  /** 61라운드 P4: 흡수 층(1층)이면 이중 개성을 갈래에 자동으로 (합산이 바뀔 때만 본다) */
+  private absorbRef: BuildMods | null = null;
+
+  private absorbDuals(): void {
+    const m = this.mods;
+    if (m === this.absorbRef) return;
+    this.absorbRef = m;
+    if (this.g.lab || !dualAbsorbOn(gameState.build.floor)) return;
+    const w = gameState.weapon;
+    const owned = new Set(gameState.build.dualOwned);
+    for (const d of absorbedDualTraits(DUAL_TRAITS, w.id, w.path, m.scores, owned, BUILD.dual.tier1Score)) {
+      if (!this.addDualTrait(d.id)) continue;
+      const branch = w.nodes.find((n) => n.id === d.branch)?.name ?? d.branch;
+      const text = BUILD.dual.absorbText ?? '{branch} — {name}: {description}';
+      this.g.ui.story('notice', fill(text, { branch, name: d.name, description: d.description }));
+    }
+  }
+
   // --- 매 프레임 ---
 
   /**
@@ -427,6 +447,7 @@ export class BuildRuntime {
   update(time: number): void {
     this.syncFxAliases();
     this.syncStages();
+    this.absorbDuals();
     if (this.mods.flags.drunkAlways && !this.drunk.active(time)) this.drink('counter', true);
     this.combat.update(time);
     this.perfect.update(time);

@@ -150,7 +150,11 @@ export function allocateVoice(
 
 // --- 덕킹 ---
 
-export type DuckTrigger = { kind: 'priority'; level: number } | { kind: 'group'; group: string };
+export type DuckTrigger =
+  | { kind: 'priority'; level: number }
+  | { kind: 'group'; group: string }
+  /** 61라운드: 괄호 안 이름 목록 (`(boss1_break_*·break_finisher)`) — `*` 로 끝나면 앞부분 일치 */
+  | { kind: 'groups'; groups: string[] };
 export type DuckTarget = { bus: 'bgm' } | { bus: 'sfx'; maxPriority: number };
 
 export interface DuckRule {
@@ -170,11 +174,17 @@ export function parseDucking(rules: readonly AudioDuckRule[] | undefined): DuckR
     if (!r || typeof r.db !== 'number') continue;
     const pm = /priority\s*(\d+)/.exec(r.when);
     const gm = /(sfx\/[\w/]+)/.exec(r.when);
+    const names = (/\(([^)]*)\)/.exec(r.when)?.[1] ?? '')
+      .split(/[·,]/)
+      .map((n) => n.trim())
+      .filter((n) => /^[\w/]+\*?$/.test(n));
     const trigger: DuckTrigger | null = gm
       ? { kind: 'group', group: gm[1] }
       : pm
         ? { kind: 'priority', level: Number(pm[1]) }
-        : null;
+        : names.length > 0
+          ? { kind: 'groups', groups: names.map((n) => (n.startsWith('sfx/') ? n : `sfx/${n}`)) }
+          : null;
     const tm = /priority\s*[≤<]=?\s*(\d+)/.exec(r.target);
     const target: DuckTarget | null =
       r.target.trim() === 'bgm' ? { bus: 'bgm' } : tm ? { bus: 'sfx', maxPriority: Number(tm[1]) } : null;
@@ -194,9 +204,13 @@ export function parseDucking(rules: readonly AudioDuckRule[] | undefined): DuckR
 
 /** 이 소리가 켜는 덕킹 규칙 */
 export function ducksFor(rules: readonly DuckRule[], e: { group: string; priority: number }): DuckRule[] {
-  return rules.filter((r) =>
-    r.trigger.kind === 'group' ? r.trigger.group === e.group : e.priority >= r.trigger.level,
-  );
+  return rules.filter((r) => {
+    const t = r.trigger;
+    if (t.kind === 'group') return t.group === e.group;
+    if (t.kind === 'groups')
+      return t.groups.some((g) => (g.endsWith('*') ? e.group.startsWith(g.slice(0, -1)) : g === e.group));
+    return e.priority >= t.level;
+  });
 }
 
 export interface ActiveDuck {

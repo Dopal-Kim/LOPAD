@@ -12,8 +12,30 @@ export class GameCamera {
   private readonly center = new Phaser.Math.Vector2();
   /** 53라운드 Q8: 북쪽 끝에서 카메라를 위로 올린 양 (월드, 보간 중) */
   private lookUp = 0;
+  /**
+   * 61라운드 보스 등장·처치 연출: 주인공 대신 이 점을 본다 (rateMs = 약 95% 다가가는 시간). 풀면 returnMs 동안 데드존 없이
+   * 주인공 쪽으로 돌아간다 (`setFocus(null, ms)`)
+   */
+  private focus: { x: number; y: number; rateMs: number } | null = null;
+  private returnUntil = 0;
+  private returnMs = 0;
 
   constructor(private readonly g: Game) {}
+
+  setFocus(at: { x: number; y: number } | null, ms: number): void {
+    if (at) {
+      this.focus = { x: at.x, y: at.y, rateMs: Math.max(1, ms) };
+      return;
+    }
+    if (!this.focus) return;
+    this.focus = null;
+    this.returnMs = Math.max(1, ms);
+    this.returnUntil = this.g.time.now + ms;
+  }
+
+  get focusing(): boolean {
+    return this.focus !== null;
+  }
 
   update(force: boolean, deltaMs = 0): void {
     const g = this.g;
@@ -27,11 +49,13 @@ export class GameCamera {
     const halfH = cam.height / (2 * zoom);
     const dzX = CAMERA.DEADZONE_X / lz;
     const dzY = CAMERA.DEADZONE_Y / lz;
-    const px = g.player.x;
-    const py = g.player.y;
+    const px = this.focus?.x ?? g.player.x;
+    const py = this.focus?.y ?? g.player.y;
     let tx = px;
     let ty = py;
-    if (!force) {
+    // 61라운드 연출 초점·복귀: 데드존 없이, 지수 접근 (rateMs 에 약 95%)
+    const steer = force ? 0 : (this.focus?.rateMs ?? (g.time.now < this.returnUntil ? this.returnMs : 0));
+    if (!force && steer <= 0) {
       // 데드존: 중심에서 이만큼 벗어나야 따라간다 (화면 px 기준)
       const cx = this.center.x;
       const cy = this.center.y;
@@ -42,6 +66,10 @@ export class GameCamera {
     ty = clampCenter(ty, region.top, region.bottom, halfH);
     if (force) {
       this.center.set(tx, ty);
+    } else if (steer > 0) {
+      const k = 1 - Math.exp((-3 * deltaMs) / steer);
+      this.center.x += (tx - this.center.x) * k;
+      this.center.y += (ty - this.center.y) * k;
     } else {
       // 60fps 기준 lerp 비율을 프레임 시간에 맞춰 보정
       const t = 1 - Math.pow(1 - CAMERA.FOLLOW_LERP, deltaMs / (1000 / 60));

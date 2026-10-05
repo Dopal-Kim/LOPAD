@@ -52,6 +52,8 @@ export const UI_EVENTS = {
   BIRTH_DONE: 'ui:birth-done',
   /** 53라운드 Q49: 적 소환 예고 (`UiEnemyIncoming`) — 소환 delayMs 전에 모든 전투에서. UI 경고는 튜토리얼만 */
   ENEMY_INCOMING: 'ui:enemy-incoming',
+  /** 61라운드 단계 2 (계약 §17): 이번 런에 처음 나온 적 종류 소개 (`UiEnemyIntro`) — 그 적이 처음 나온 웨이브에 한 번 */
+  ENEMY_INTRO: 'ui:enemy-intro',
   /** 53라운드: 튜토리얼 단계 안내 (`UiTutorialStep`) — 안내 문구가 뜰 때 */
   TUTORIAL_STEP: 'ui:tutorial-step',
   /** 57라운드 §14.11: 세트 단계가 오르거나 내림 (`UiTagSetChanged`) */
@@ -70,6 +72,8 @@ export const UI_EVENTS = {
   HIDDEN_NODE_FOUND: 'ui:hidden-node-found',
   /** §14.11: 소모품 사용 (`UiConsumableUsed`) */
   CONSUMABLE_USED: 'ui:consumable-used',
+  /** 61라운드 단계 3 (계약 §17): 보스 파훼·결정타 (`UiBossBreak`) */
+  BOSS_BREAK: 'ui:boss-break',
 } as const;
 
 /**
@@ -162,6 +166,13 @@ export type UiChoiceKind = 'branchA' | 'branchB' | 'reinforce' | 'bloodPact' | '
 export type UiRarity = 'common' | 'rare' | 'epic' | 'legendary';
 
 /** 53라운드 Q49: 적 소환 예고. delayMs = 소환까지 남은 ms (0 = 바로) · count = 마리 수 */
+/** 61라운드 단계 2 (계약 §17): 새 적 소개 자막 — id = 적 id, name = 표시 이름, desc = 한 줄 요령 */
+export interface UiEnemyIntro {
+  id?: string;
+  name: string;
+  desc?: string;
+}
+
 export interface UiEnemyIncoming {
   roomId: string;
   delayMs: number;
@@ -229,10 +240,24 @@ export interface UiRouteEntered {
   name: string;
 }
 
-export type StoryKind = 'floor' | 'boss' | 'rest' | 'notice' | 'evolution' | 'death';
+/**
+ * 61라운드 P8 계약 추가 (프로듀서 계약 문서 갱신 대상): voice 원한(무기)의 목소리 · speech 군주의 말(speaker) ·
+ * clue 단서 조사(lines 여러 줄을 차례로) · event 이벤트 결과 문장(이벤트 메뉴를 닫은 뒤)
+ */
+export type StoryKind =
+  'floor' | 'boss' | 'rest' | 'notice' | 'evolution' | 'death' | 'voice' | 'speech' | 'clue' | 'event';
 export interface UiStoryLine {
   kind: StoryKind;
+  /** 한 줄 (clue 는 lines 를 '\n' 으로 이은 것) */
   text: string;
+  /** 61 speech: 화자 이름 (예 '만취') — UI 가 '만취: …' 로 */
+  speaker?: string;
+  /** 61 voice: 말하는 무기 id (katana · greatsword · dagger · bow — 무기 빛 색·아이콘). 화자 이름은 붙이지 않는다 */
+  weapon?: string;
+  /** 61 clue: 조사 문장 줄들 (순서대로 이어서 띄운다) */
+  lines?: string[];
+  /** 61: 표시 시간 힌트 ms (voice crisis = 전투 중이라 짧게 1500). 없으면 UI 기본 */
+  holdMs?: number;
 }
 
 export type RoomType = 'start' | 'trial' | 'rest' | 'boss';
@@ -582,7 +607,7 @@ export interface UiSnapshot {
   bossUnlocked: boolean;
   exitOpen: boolean;
   weapon: { name: string; evolutionName: string | null; personality: number; threshold: number; secondaryName: string };
-  boss: { name: string; hp: number; maxHp: number; phase: number } | null;
+  boss: UiBossSnapshot | null;
   stats: { attack: number; defense: number; crit: number; sense: number };
   /** 57라운드 §14.1: 태그(1~2개)·최대 레벨 추가 */
   passives: { name: string; level: number; description: string; tags: UiTagId[]; maxLevel: number }[];
@@ -730,6 +755,8 @@ export interface UiResult {
   line: string;
   /** 클리어 시 고른 엔딩 (23라운드). 사망이면 없음 */
   ending?: 'destroy' | 'understand';
+  /** 61라운드 P7: 사망 문장 뒤 이름 번짐 한 줄 ('이름이 번진다.' — 이름 글자 번짐 연출과 함께). 클리어면 없음 */
+  smudgeLine?: string;
 }
 
 export interface UiBossInfo {
@@ -737,6 +764,33 @@ export interface UiBossInfo {
   hp: number;
   maxHp: number;
   phase: number;
+  /** 61라운드 (계약 §17): BOSS_STARTED — 등장 연출 길이 ms (전투 시작까지, 0 = 연출 없음) */
+  introMs?: number;
+  /** 61라운드: BOSS_DIED — 파훼 경직 중 결정타로 끝냈는지 */
+  finisher?: boolean;
+}
+
+/** 61라운드 (계약 §17): 보스 파훼(잔·기둥·술통·취권 넘어짐)·결정타. label = 짧은 이름, text = 알림 문구 */
+export interface UiBossBreak {
+  kind: 'cup' | 'pillar' | 'cask' | 'stumble' | 'finisher';
+  label?: string;
+  text?: string;
+}
+
+/** 스냅샷 보스 (61라운드 계약 §17 선택 필드: 국면 이름·눈금 · 파훼 경직 창 · 촛대(논리 960×540 화면 좌표) · 어둠) */
+export interface UiBossSnapshot {
+  name: string;
+  hp: number;
+  maxHp: number;
+  phase: number;
+  phaseName?: string;
+  phaseNames?: string[];
+  /** 체력 비율 눈금 (국면이 바뀌는 비율, 예 [0.65, 0.3]) */
+  phaseMarks?: number[];
+  /** 파훼로 무너진 동안 (받는 피해 증가 창) — 아니면 null/생략 */
+  broken?: { leftMs: number; totalMs: number } | null;
+  candles?: { x: number; y: number; lit: boolean }[];
+  dark?: boolean;
 }
 
 /** 세계관 문구 (스토리 파트 텍스트 팩 2차, 29라운드). 키가 없으면 UI 는 기본 문구를 쓴다 */

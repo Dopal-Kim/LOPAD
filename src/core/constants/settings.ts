@@ -43,7 +43,12 @@ export const VRAM = {
  */
 export const SIM = {
   /** 전투 시간 중 실제로 때리는 비율 (나머지 = 피하기·자리 잡기) */
-  UPTIME: { melee: 0.6, ranged: 0.7, boss: 0.45 },
+  UPTIME: { melee: 0.6, ranged: 0.7, boss: 0.45, bossRanged: 0.6 },
+  /**
+   * 61라운드 P6 보스 파훼: 싸움 시간 중 파훼로 무너진 비율(잔 3초·기둥 1.6초·술통 1.5초·넘어짐 2.2초가 100초에 몇 번) ·
+   * 그동안 때리는 비율 (서 있는 과녁이라 높다). 받는 피해 배율은 data breakDamageMult
+   */
+  BOSS_BREAK: { SHARE: 0.12, UPTIME: 0.9 },
   /** 휘두름 하나가 맞히는 적 수 = 1 + 호(도)/360 × 이 값 (살아 있는 수의 절반을 넘지 않음). 찌르기(호 없음)·화살 = 1 */
   CROWD_DENSITY: 2,
   /** 처치 사이 자리 잡기 (ms, 연격은 이 사이에 끊겨 1타부터) */
@@ -65,4 +70,6 @@ export const SIM = {
   NONCOMBAT_MS: { shop: 25000, rest: 15000, event: 20000, post: 15000, birth: 40000 },
   /** 보스 국면 전환 연출(무적·들이켜기) 한 번 (ms) */
   BOSS_PHASE_MS: 3000,
+  /** 61라운드 P6 보스 '만취' 목표 길이 90~120초의 가운데 (층 추정 '보스 목표 대입' 합계용) */
+  BOSS_TARGET_MS: 105000,
 } as const;

@@ -46,6 +46,8 @@ export interface ArenaSpec {
   spawnExactCenter?: boolean;
   /** 49라운드 6: 상점 2×2 를 전투장 중앙에 (특수 노드 기능은 중앙) */
   shopCenter?: boolean;
+  /** 61라운드 단계 2 방 다양화: 시작점·출구 줄을 가운데에서 위(−)·아래(+)로 옮기는 칸 (안쪽 3칸 여유를 넘지 않게 자른다) */
+  spawnShiftY?: number;
   /** 49라운드: 들쭉날쭉한 가장자리 (없으면 48라운드 사각 벽) */
   edge?: ArenaEdge;
   /** 가장자리가 깎지 않을 사각형 (타일, 시작점·출구는 자동) */
@@ -55,6 +57,8 @@ export interface ArenaSpec {
 
 /** 48라운드 spawnCenter: 중앙에서 왼쪽으로 떨어진 칸 (기존 동작 유지) */
 const SPAWN_CENTER_OFFSET = 4;
+/** 61라운드: 시작·출구 줄 이동의 위아래 여유 (가장자리에서 이만큼 안쪽까지만) */
+const SHIFT_MARGIN = 4;
 
 /** 전투장 내부 중앙 타일 */
 export function arenaCenter(interior: Rect): { x: number; y: number } {
@@ -72,11 +76,14 @@ export function generateArena(spec: ArenaSpec): FloorLayout {
   const interior: Rect = { x: ix, y: iy, w: spec.w, h: spec.h };
   const center = arenaCenter(interior);
   const midY = iy + Math.floor(spec.h / 2);
+  const maxShift = Math.max(0, Math.floor(spec.h / 2) - SHIFT_MARGIN);
+  const shift = Math.max(-maxShift, Math.min(maxShift, Math.round(spec.spawnShiftY ?? 0)));
   const spawn = {
     x: spec.spawnExactCenter ? center.x : spec.spawnCenter ? center.x - SPAWN_CENTER_OFFSET : ix + spec.spawnInset,
-    y: midY,
+    y: spec.spawnExactCenter || spec.spawnCenter ? midY : midY + shift,
   };
-  const exit = { x: ix + spec.w - spec.exitInset - 2, y: midY - 1 };
+  // 출구는 시작 줄과 반대쪽으로 (가로지르는 동선)
+  const exit = { x: ix + spec.w - spec.exitInset - 2, y: midY - 1 - (spec.spawnExactCenter ? 0 : shift) };
   const shop = spec.shopCenter ? { x: center.x - 1, y: center.y - 1 } : { x: center.x - 1, y: iy + 2 };
 
   for (let y = iy; y < iy + spec.h; y++) for (let x = ix; x < ix + spec.w; x++) tiles[y][x] = TileId.Floor;

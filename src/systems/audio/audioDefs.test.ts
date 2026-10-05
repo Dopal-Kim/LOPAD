@@ -24,11 +24,14 @@ import {
 import {
   AUDIO_TRIGGERS,
   CHARGE_SFX,
+  ENEMY_OWN_SFX,
+  ENEMY_PHASE_SFX,
   FOLLOW_UP_SFX,
   SFX,
   WEAPON_SFX,
   bossActionSfx,
   bossLoopSfx,
+  breakSfx,
   chargeSfxIds,
   weaponSfxIds,
   staticSfxIds,
@@ -37,6 +40,17 @@ import { Events, type BossActionKind } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { MOVE_SFX, moveSfxIds, pickFlurryVariant } from './audioMoves';
 import { ARCHIVED_SFX, BUILD_SFX, buildSfxIds } from './audioBuild';
+
+/** 61라운드: 이벤트·페이로드에 걸리는 트리거들의 효과음 id (조건·페이로드 함수 풀이) */
+function sfxFor(event: string, payload: unknown): string[] {
+  const out: string[] = [];
+  for (const tr of AUDIO_TRIGGERS) {
+    if (tr.event !== event || (tr.when && !tr.when(payload as never))) continue;
+    const v = typeof tr.sfx === 'function' ? tr.sfx(payload as never) : tr.sfx;
+    for (const id of Array.isArray(v) ? v : v ? [v] : []) out.push(id);
+  }
+  return out;
+}
 
 // audioMap → EventBus 가 Phaser 를 import 하므로(window 필요) 이벤트 이미터만 node 것으로 대체한다
 vi.mock('phaser', () => ({ default: { Events: { EventEmitter } } }));
@@ -205,10 +219,20 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       SFX.menuSelect,
       SFX.enemyDeath,
       SFX.dash,
+      // 61라운드 보스 단계 3: 1층 밖 보스의 등장·예고·사망(페이로드로 고름) · 칼 발도 검기 단별
+      SFX.bossStart,
+      SFX.bossTelegraph,
+      SFX.bossDie,
+      ...[1, 2, 3, 4, 5].map((n) => MOVE_SFX.katanaIaiKi(n)),
       // 61라운드 계약 sound §9: 피격·가드 막기 · 연격 마무리
       SFX.hitPlayer,
       SFX.guardBlock,
       SFX.comboFinish,
+      // 61라운드 단계 2: 적 보조음(행상·짐꾼은 전용) · 행상·짐꾼 단계 · 대검 가드
+      SFX.enemyHurt,
+      SFX.guardBlockHeavy,
+      ...Object.values(ENEMY_OWN_SFX).flatMap((o) => [o.hurt, o.death, o.telegraph].filter((x): x is string => !!x)),
+      ...Object.values(ENEMY_PHASE_SFX),
     ]);
     // 60라운드 Q6 보관 3종은 연결하지 않는다
     for (const id of ARCHIVED_SFX) expect(used.has(id), id).toBe(false);
@@ -258,6 +282,20 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
     // BOSS_ATTACK spin · BOSS_PHASE(1층) 은 트리거 표에서 직접
     reached.add(SFX.boss1.spinStart);
     reached.add(SFX.boss1.phaseDrink);
+    // 61라운드 단계 3: 파훼 종류별 · 등장·3국면·사망 · 1국면 돌진/내리찍기 예고·실행 · 술통 되치기
+    for (const k of ['cup', 'pillar', 'cask', 'reel']) reached.add(breakSfx(k)!);
+    for (const [ev, p] of [
+      [Events.BOSS_STARTED, { boss: 'stage1' }],
+      [Events.BOSS_DIED, { id: 'stage1' }],
+      [Events.BOSS_TELEGRAPH, { id: 'stage1', attack: 'dash' }],
+      [Events.BOSS_TELEGRAPH, { id: 'stage1', attack: 'slam' }],
+      [Events.BOSS_ATTACK, { id: 'stage1', attack: 'dash' }],
+      [Events.BOSS_ATTACK, { id: 'stage1', attack: 'slam' }],
+    ] as const)
+      for (const id of sfxFor(ev, p)) reached.add(id);
+    reached.add(SFX.boss1.phaseBlackout);
+    // 넘어짐 boss1_fall 은 1층 파훼 종류에 reel 이 없을 때의 대신 소리 (지금은 boss1_break_reel)
+    reached.add(SFX.boss1.fall);
     expect([...reached].sort()).toEqual(Object.values(SFX.boss1).sort());
     expect(bossActionSfx('bossIgnite')).toBe(SFX.boss1.ignite);
   });

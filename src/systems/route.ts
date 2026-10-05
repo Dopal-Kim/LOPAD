@@ -37,6 +37,11 @@ export interface RouteKindDef {
   shopTiles?: boolean;
   /** 49라운드 7: 세트 배치 템플릿 id (data/route.json setPieces) */
   setPiece?: string;
+  /**
+   * 61라운드 단계 2 방 다양화: 세트 배치 후보 (있으면 setPiece 대신 — 노드 자리로 골라 이웃 단과 겹치지 않게, `pickSetPiece`).
+   * 지역 setPieces 덮어쓰기가 있으면 그것이 우선
+   */
+  setPieceVariants?: string[];
   /** 49라운드 3: 조작 안내 노드 (탄생 전장) */
   tutorial?: boolean;
 }
@@ -55,11 +60,20 @@ export interface RegionDef {
   setPieces?: Partial<Record<RouteKind, string>>;
 }
 
+/** 61라운드 P3: 잔 구간 한 단 — 노드 종류(갈래 수만큼, 줄 순서만 시드로 섞는다) · 이 단 전투 노드의 웨이브 */
+export interface RouteColumnDef {
+  kinds: LaneKind[];
+  /** 이 단 전투(battle) 노드 웨이브 (없으면 층 trial.waves) */
+  waves?: WaveEntry[][];
+}
+
 export interface RouteFloorDef {
   journey: RouteKind[];
   lanes: number;
   laneLength: number;
   pool: Record<LaneKind, number>;
+  /** 61라운드 P3: 단마다 종류를 정한다 (있으면 pool 은 그 합과 같아야 하고, 단 안 줄 순서만 섞는다) */
+  columns?: RouteColumnDef[];
   crossChance: number;
   names: Partial<Record<RouteKind, string[]>>;
   /** 49라운드: 단계(col) → 지역 id. 모자라면 마지막 값 */
@@ -77,6 +91,18 @@ export interface RouteArenaDef {
   clearTiles: number;
   /** 49라운드: 들쭉날쭉한 가장자리 기본값 (없으면 48라운드 사각 벽) */
   edge?: ArenaEdge;
+  /** 61라운드 단계 2 방 다양화: 노드마다 크기·시작 줄·세트 뒤집기 (`routeArena.arenaVariety`) */
+  variety?: ArenaVarietyDef;
+}
+
+/** 61라운드 단계 2 방 다양화 (시드 결정적, 보스·튜토리얼 노드는 제외) */
+export interface ArenaVarietyDef {
+  /** 노드 종류별 전투장 크기 후보 [w, h] (없으면 arena.default) */
+  sizes?: Partial<Record<RouteKind, [number, number][]>>;
+  /** 시작점·출구 줄을 가운데에서 위아래로 옮기는 칸 [min, max] */
+  spawnShiftTiles?: [number, number];
+  /** 세트 배치를 좌우·상하로 뒤집을 수 있다 */
+  mirror?: boolean;
 }
 
 export interface RouteFile {
@@ -150,6 +176,22 @@ export function validateRoute(f: RouteFile): RouteFile {
     if (!(fl.lanes >= 1) || !(fl.laneLength >= 1)) fail(`floors.${id}.lanes/laneLength 는 1 이상`);
     const total = LANE_KINDS.reduce((a, k) => a + (fl.pool?.[k] ?? 0), 0);
     if (total !== fl.lanes * fl.laneLength) fail(`floors.${id}.pool 합(${total}) ≠ lanes × laneLength`);
+    if (fl.columns) {
+      if (fl.columns.length !== fl.laneLength) fail(`floors.${id}.columns 수 ≠ laneLength`);
+      const count: Record<string, number> = {};
+      fl.columns.forEach((c, i) => {
+        if (!Array.isArray(c.kinds) || c.kinds.length !== fl.lanes) fail(`floors.${id}.columns[${i}].kinds 수 ≠ lanes`);
+        for (const k of c.kinds) {
+          if (!LANE_KINDS.includes(k)) fail(`floors.${id}.columns[${i}] 알 수 없는 종류: ${k}`);
+          count[k] = (count[k] ?? 0) + 1;
+        }
+        for (const w of c.waves ?? [])
+          for (const e of w)
+            if (typeof e.enemy !== 'string' || !(e.count >= 1)) fail(`floors.${id}.columns[${i}].waves 항목 형식`);
+      });
+      for (const k of LANE_KINDS)
+        if ((count[k] ?? 0) !== (fl.pool[k] ?? 0)) fail(`floors.${id}.pool.${k} ≠ columns 의 ${k} 수`);
+    }
     if (!(fl.crossChance >= 0 && fl.crossChance <= 1)) fail(`floors.${id}.crossChance 는 0..1`);
     for (const r of fl.regionByCol ?? [])
       if (!entries(f.regions)[r]) fail(`floors.${id}.regionByCol 알 수 없는 지역: ${r}`);
@@ -166,7 +208,13 @@ export function validateRoute(f: RouteFile): RouteFile {
   for (const k of KINDS) {
     const sp = f.kinds[k].setPiece;
     if (sp !== undefined && !pieces[sp]) fail(`kinds.${k}.setPiece 알 수 없음: ${sp}`);
+    for (const v of f.kinds[k].setPieceVariants ?? [])
+      if (!pieces[v]) fail(`kinds.${k}.setPieceVariants 알 수 없음: ${v}`);
   }
+  for (const [k, list] of Object.entries(A.variety?.sizes ?? {}))
+    for (const sz of list ?? [])
+      if (!Array.isArray(sz) || sz.length !== 2 || sz.some((n) => !(n >= 12)))
+        fail(`arena.variety.sizes.${k} 는 [w, h] (12 이상) 목록`);
   for (const [id, t] of Object.entries(pieces)) {
     for (const sl of t.slots ?? [])
       if (!Array.isArray(sl.kinds) || sl.kinds.length === 0) fail(`setPieces.${id}.slots[].kinds 비어 있음`);
@@ -254,7 +302,8 @@ export function generateRoute(stageId: string, seed: number | string, file: Rout
 
   let best: RouteGraph | null = null;
   for (let attempt = 0; attempt < 40; attempt++) {
-    const kinds = rng.shuffle([...pool]);
+    // 61라운드 P3: 단마다 종류가 정해져 있으면 줄 순서만 섞는다
+    const kinds = F.columns ? F.columns.flatMap((c) => rng.shuffle([...c.kinds])) : rng.shuffle([...pool]);
     const cross: boolean[][] = [];
     for (let c = 0; c < L - 1; c++) cross.push(Array.from({ length: R }, () => rng.chance(F.crossChance)));
     const nodes: RouteNode[] = [];
@@ -407,6 +456,31 @@ export class RouteState {
 /** 노드 세부 종류의 정의 */
 export function kindDef(kind: RouteKind, file: RouteFile = ROUTE): RouteKindDef {
   return file.kinds[kind];
+}
+
+/**
+ * 61라운드 P3: 이 노드의 전용 웨이브 — 잔 구간 전투면 그 단의 `columns[].waves`, 아니면 노드 종류 웨이브(버려진 길).
+ * 없으면 undefined (층 trial.waves)
+ */
+export function nodeWaves(
+  stageId: string,
+  node: Pick<RouteNode, 'kind' | 'col'>,
+  file: RouteFile = ROUTE,
+): WaveEntry[][] | undefined {
+  const F = file.floors[stageId];
+  if (F?.columns && node.kind === 'battle') {
+    const w = F.columns[node.col - F.journey.length]?.waves;
+    if (w && w.length > 0) return w;
+  }
+  return file.kinds[node.kind]?.waves;
+}
+
+/** 이 층 전투 노드의 최대 웨이브 수 (엘리트 접두어를 미리 굴릴 개수) — 단 웨이브가 없으면 fallback */
+export function maxBattleWaves(stageId: string, fallback: number, file: RouteFile = ROUTE): number {
+  const F = file.floors[stageId];
+  const lens = (F?.columns ?? []).map((c) => c.waves?.length ?? 0).filter((n) => n > 0);
+  const base = file.kinds.battle.waves?.length ?? fallback;
+  return lens.length > 0 ? Math.max(...lens) : base;
 }
 
 /** 전투장 크기 [w, h] (타일) */

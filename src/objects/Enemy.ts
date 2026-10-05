@@ -14,6 +14,8 @@ import type { TelegraphHandle } from '../systems/telegraph';
 import { anchorOffset } from '../systems/sprites/spriteMeta';
 import type { Facing } from '../systems/sprites/spriteDefs';
 import { Mob, type MobContext } from './Mob';
+import { PeddlerBrain, PorterBrain, type BrainBody } from './enemy/hazardBrains';
+import type { EnemyHazardApi } from '../systems/hazards/enemyHazardTypes';
 
 type ChargeState = 'approach' | 'telegraph' | 'dash' | 'cooldown';
 type RangedState = 'move' | 'aim' | 'reload';
@@ -40,6 +42,10 @@ export class Enemy extends Mob {
   private packActive = false;
 
   private readonly stageScale: EnemyScale;
+  /** 61라운드 단계 2: 독주 행상·술통 짐꾼 행동 (그 밖의 적은 null) */
+  private readonly brain: PeddlerBrain | PorterBrain | null;
+  /** 마지막으로 받은 위험물 창구 (쓰러질 때 술 웅덩이) */
+  private hazards: EnemyHazardApi | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number, id: string, scale: EnemyScale = { hp: 1, attack: 1 }) {
     const def = ENEMIES[id];
@@ -48,7 +54,16 @@ export class Enemy extends Mob {
     this.def = def;
     this.id = id;
     this.stageScale = scale;
-    this.once(Phaser.GameObjects.Events.DESTROY, () => this.clearMarker());
+    this.brain =
+      def.behavior === 'throw'
+        ? new PeddlerBrain(this.brainBody())
+        : def.behavior === 'roll'
+          ? new PorterBrain(this.brainBody())
+          : null;
+    this.once(Phaser.GameObjects.Events.DESTROY, () => {
+      this.clearMarker();
+      this.brain?.interrupt(0);
+    });
   }
 
   /** 스테이지 배율이 적용된 공격력 */
@@ -56,8 +71,41 @@ export class Enemy extends Mob {
     return Math.round(base * this.stageScale.attack);
   }
 
+  /** 61라운드 단계 2 행동이 몸에 요구하는 것 */
+  private brainBody(): BrainBody {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return {
+      get x() {
+        return self.x;
+      },
+      get y() {
+        return self.y;
+      },
+      get body() {
+        return self.body;
+      },
+      get visual() {
+        return self.visual;
+      },
+      get def() {
+        return self.def;
+      },
+      get attackRateMult() {
+        return self.attackRateMult;
+      },
+      get active() {
+        return self.active;
+      },
+      attackScale: () => self.stageScale.attack,
+      moveTo: (x, y, speed) => self.moveToward(x, y, speed),
+      attackAnim: (time) => self.playAttack(time),
+    };
+  }
+
   /** 디버그: 행동 상태 */
   get behaviorState(): string {
+    if (this.brain) return this.brain.state;
     if (this.def.behavior === 'charge') return this.chargeState;
     if (this.def.behavior === 'ranged') return this.rangedState;
     return this.packActive ? 'pack' : 'chase';
@@ -71,6 +119,11 @@ export class Enemy extends Mob {
     if (this.isKnockedBack(ctx.time)) return;
     if (this.isStunned(ctx.time)) {
       this.body.setVelocity(0, 0);
+      return;
+    }
+    this.hazards = ctx.hazards ?? null;
+    if (this.brain) {
+      this.brain.think(ctx);
       return;
     }
     switch (this.def.behavior) {
@@ -111,11 +164,17 @@ export class Enemy extends Mob {
 
   protected onDeath(): void {
     this.clearMarker();
+    this.brain?.interrupt(this.scene.time.now);
+    // 61라운드 단계 2: 독주 행상·술통 짐꾼은 쓰러진 자리에 술 웅덩이 (불이 닿으면 술불)
+    const P = this.def.deathPool;
+    if (P && this.def.liquor && this.hazards)
+      this.hazards.liquorPool(this.x, this.y, P.radiusTiles * TILE, P.ms, this.def.liquor, this.stageScale.attack);
     EventBus.emit(Events.ENEMY_DIED, { id: this.id, elite: this.elite !== null } satisfies EnemyDiedPayload);
   }
 
   protected onStunned(): void {
     this.clearMarker();
+    this.brain?.interrupt(this.scene.time.now);
     if (this.def.behavior === 'charge') this.chargeState = 'approach';
     if (this.def.behavior === 'ranged' && this.rangedState === 'aim') this.rangedState = 'move';
   }

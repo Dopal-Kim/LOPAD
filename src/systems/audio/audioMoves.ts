@@ -10,6 +10,8 @@ export const MOVE_SFX = {
   /** 대치 일격 유지 루프 (누르는 동안) · 발도 (뗀 순간) */
   katanaIaiHold: 'sfx/katana_iai_hold',
   katanaIaiRelease: 'sfx/katana_iai_release',
+  /** 61라운드 발도 검기 단별 (n ≥ 1 이면 katana_iai_release 대신) */
+  katanaIaiKi: (n: number) => `sfx/katana_iai_ki${Math.min(5, Math.max(1, Math.round(n)))}`,
   gsTackle: 'sfx/gs_tackle',
   gsBraceUpswing: 'sfx/gs_brace_upswing',
   gsLeap: 'sfx/gs_leap',
@@ -70,7 +72,13 @@ export const MOVE_AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => p.move === 'iai' && (p.phase === 'release' || p.phase === 'cancel'),
     stop: [MOVE_SFX.katanaIaiHold],
     stopFadeMs: MOVE_SFX.iaiHoldFadeOutMs,
-    sfx: (p) => (p.phase === 'release' ? MOVE_SFX.katanaIaiRelease : null),
+    // 61라운드 음향: 검기를 소모한 발도는 단별 katana_iai_ki{n} (대체 — 둘 다 울리지 않음)
+    sfx: (p) =>
+      p.phase !== 'release'
+        ? null
+        : (p.kenkiStage ?? 0) >= 1
+          ? MOVE_SFX.katanaIaiKi(p.kenkiStage ?? 1)
+          : MOVE_SFX.katanaIaiRelease,
   }),
   t<PlayerSkillPayload>({
     event: Events.PLAYER_SKILL,

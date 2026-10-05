@@ -16,6 +16,7 @@ import {
   type TagId,
 } from '../../data/buildTypes';
 import type { WeaponEvolution } from '../../data/types';
+import { onFloor, type FloorScope } from '../../data/floorScope';
 import type { PassiveSet } from '../passives';
 import { scaledBenefit, type CurseState } from './curses';
 import { setStage, tagScores, type TagScores } from './tagScore';
@@ -66,6 +67,8 @@ export interface BuildModsInput {
   curse: CurseState | null;
   /** 영구 태그 보너스 (불붙은 혀) */
   permanentTags: Partial<Record<TagId, number>>;
+  /** 61라운드 P4 층 노출: 이 층에서 꺼진 태그는 점수 0, 꺼진 세트 단계(1층판 6단계)는 켜지지 않는다. 없거나 null = 제한 없음 */
+  floor?: FloorScope;
 }
 
 function zeroStats(): Record<BuildStatKey, number> {
@@ -98,8 +101,24 @@ export function computeBuildMods(i: BuildModsInput): BuildMods {
     },
     D.scoring,
   );
+  const floor = i.floor ?? null;
   const stages = {} as Record<TagId, 0 | SetThreshold>;
-  for (const t of TAG_IDS) stages[t] = setStage(scores[t], D.scoring.thresholds);
+  for (const t of TAG_IDS) {
+    if (
+      !onFloor(
+        D.tags.find((d) => d.id === t),
+        floor,
+      )
+    )
+      scores[t] = 0;
+    const allowed = D.scoring.thresholds.filter((th) =>
+      onFloor(
+        D.sets[t].find((st) => st.threshold === th),
+        floor,
+      ),
+    );
+    stages[t] = setStage(scores[t], allowed);
+  }
 
   const stats = zeroStats();
   const rules: ActiveRule[] = [];
@@ -109,7 +128,7 @@ export function computeBuildMods(i: BuildModsInput): BuildMods {
   // 세트 (2/4/6 누적)
   for (const t of TAG_IDS) {
     for (const st of D.sets[t]) {
-      if (stages[t] < st.threshold) continue;
+      if (stages[t] < st.threshold || !onFloor(st, floor)) continue;
       if (st.effect.kind === 'stat') {
         for (const [k, v] of Object.entries(st.effect.stats ?? {})) stats[k as BuildStatKey] += v ?? 0;
       } else addRule(rules, st.effect, 'set', `${t}${st.threshold}`);

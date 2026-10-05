@@ -1,7 +1,8 @@
 /**
  * 60라운드 (e) 상점 진열 · (f) 성과 등급 · (h) 파훼 기록 — Phaser 의존 없는 계산.
  */
-import { BUNDLE2, CONSUMABLE_IDS, consumableDef } from '../../data/bundle2';
+import { BUNDLE2, consumableDef, consumableIdsOn } from '../../data/bundle2';
+import type { FloorScope } from '../../data/floorScope';
 import type { BreakKind, Grade } from '../../data/bundle2Types';
 import type { Rng } from '../rng';
 import { weightedPick } from './routeExtras';
@@ -17,7 +18,12 @@ export interface PassiveCandidate {
  * 진열 3칸 굴리기 — 패시브 display.passive 칸(희귀도 가중 50/35/15, 전설 없음, 같은 것 두 번 없음) + 층 소모품 display.consumable 칸.
  * priceMult = 저주 외상 +20% · E9 할인 등 (호출 쪽 곱)
  */
-export function rollDisplay(rng: Rng, pool: readonly PassiveCandidate[], priceMult: number): ShopStock['display'] {
+export function rollDisplay(
+  rng: Rng,
+  pool: readonly PassiveCandidate[],
+  priceMult: number,
+  floor: FloorScope = null,
+): ShopStock['display'] {
   const S = BUNDLE2.shop;
   const out: ShopStock['display'] = [];
   const taken = new Set<string>();
@@ -37,8 +43,10 @@ export function rollDisplay(rng: Rng, pool: readonly PassiveCandidate[], priceMu
       sold: false,
     });
   }
-  for (let i = 0; i < S.display.consumable && CONSUMABLE_IDS.length > 0; i++) {
-    const id = CONSUMABLE_IDS[Math.floor(rng.next() * CONSUMABLE_IDS.length)];
+  // 61라운드 P5: 이 층 소모품만 (1층 = 화염 술병)
+  const ids = consumableIdsOn(floor);
+  for (let i = 0; i < S.display.consumable && ids.length > 0; i++) {
+    const id = ids[Math.floor(rng.next() * ids.length)];
     out.push({ kind: 'consumable', id, price: Math.round((consumableDef(id)?.price ?? 0) * priceMult), sold: false });
   }
   return out;
@@ -50,12 +58,21 @@ export function rerollPrice(rerolls: number, priceMult = 1): number {
   return Math.round(P[Math.min(rerolls, P.length - 1)] * priceMult);
 }
 
-/** 성과 등급: 무피격(허용 피격 수 이하) + 제한 시간 안 → 완 / 하나 → 양 / 없음 */
-export function gradeOf(hits: number, elapsedMs: number, timeLimitMs: number, allowance = 0): Grade | null {
+/**
+ * 성과 등급: 무피격(허용 피격 수 이하) + 제한 시간 안 → 완 / 하나 → 양 / 없음.
+ * 61라운드 P5: good = false 면 '양' 없이 '완' 하나 (1층 — 성소와 통합)
+ */
+export function gradeOf(
+  hits: number,
+  elapsedMs: number,
+  timeLimitMs: number,
+  allowance = 0,
+  good = true,
+): Grade | null {
   const noHit = hits <= allowance;
   const inTime = elapsedMs <= timeLimitMs;
   if (noHit && inTime) return 'perfect';
-  if (noHit || inTime) return 'good';
+  if (good && (noHit || inTime)) return 'good';
   return null;
 }
 

@@ -1,15 +1,14 @@
 import Phaser from 'phaser';
-import { ASSETS, COLORS, FEEL, SCENES, SPRITES, TEXTURES, TILE } from '../core/Constants';
+import { ASSETS, COLORS, FEEL, SCENES, TEXTURES, TILE } from '../core/Constants';
 import { TileId } from '../systems/mapgen';
 import { SaveSlot, browserStorage } from '../systems/save';
-import { BOSSES, RUN, WEAPONS } from '../data';
+import { RUN, WEAPONS } from '../data';
 import { floorLoaded } from '../data/scope';
 import { metaStore } from '../systems/meta';
 import { audio } from '../systems/audio/audio';
 import { ensureFont } from '../systems/fonts';
 import { audioFileRels, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audio/audioDefs';
 import { isLazyBgm } from '../systems/audio/audioMix';
-import { spriteLibrary } from '../systems/sprites/sprites';
 import type { SheetDef } from '../systems/sprites/spriteDefs';
 import {
   queueSheetImage,
@@ -148,6 +147,8 @@ export class Preloader extends Phaser.Scene {
       if (!entry || typeof entry.id !== 'string' || typeof entry.file !== 'string') continue;
       const rels = audioFileRels(entry).filter(exists);
       if (rels.length === 0) continue;
+      // 61라운드 단계 2 첫 로딩 줄이기: 로드 범위 밖 층 전용 BGM(2~8층 floor_low·mid·high)은 부팅에서 뺀다 (범위를 넓히면 다시 읽힌다)
+      if (outOfScopeBgm(entry)) continue;
       if (lazyOk && isLazyBgm(entry)) {
         lazy.set(
           entry.id,
@@ -198,11 +199,7 @@ export class Preloader extends Phaser.Scene {
     const audioQueue = this.queueAudio();
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
       registerSheets(this, sheets);
-      // 자기 시트가 없는 보스는 폴백 시트를 쓴다 (결정 로그 J: 2~7층 보스 = stage1 시트 + 층 램프 스왑)
-      for (const id of Object.keys(BOSSES)) {
-        if (!spriteLibrary.has(id) && spriteLibrary.has(SPRITES.BOSS_FALLBACK_SHEET))
-          spriteLibrary.alias(id, SPRITES.BOSS_FALLBACK_SHEET);
-      }
+      // 61라운드 단계 2: 보스 시트는 보스 노드에서 읽는다 (sheetLoader.preloadBossSheets — 폴백 별칭도 그때)
       for (const t of tiles) if (this.textures.exists(t.key)) tileSkins.set(t.floor, new TileSkin(t.key, t.json, true));
       for (const t of regionTiles)
         if (this.textures.exists(t.key))
@@ -271,4 +268,9 @@ export class Preloader extends Phaser.Scene {
     }
     canvas.refresh();
   }
+}
+
+/** 층 목록(floors)이 있는 BGM 인데 그 층이 전부 로드 범위(stages.json run.loadFloors) 밖이면 true */
+function outOfScopeBgm(e: { kind?: string; floors?: number[] }): boolean {
+  return e.kind === 'bgm' && Array.isArray(e.floors) && e.floors.length > 0 && !e.floors.some((f) => floorLoaded(f));
 }

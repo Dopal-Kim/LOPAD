@@ -67,8 +67,8 @@ describe('헤드리스 수치 추정 (61라운드 P9)', () => {
         const f = estimateFloor(id, 'stage1', path);
         expect(f.totalMs).toBeGreaterThan(0);
         rows.push(
-          `   ${path.padEnd(9)} ${(f.totalMs / 60000).toFixed(1)}분 처치 ${f.kills} 받는 피해 ${f.damageTaken} 개성 ${f.personality}(메뉴 ${f.personalityMenus}) | ` +
-            f.nodes.map((n) => `${n.kind} ${(n.ms / 1000).toFixed(0)}s/${n.kills}`).join(' · '),
+          `   ${path.padEnd(9)} ${(f.totalMs / 60000).toFixed(1)}분(보스 목표 대입 ${(f.withBossTargetMs / 60000).toFixed(1)}분) 처치 ${f.kills} 받는 피해 ${f.damageTaken} 개성 ${f.personality}(개성 메뉴 ${f.personalityMenus}·메뉴 ${f.menus}) | ` +
+            f.nodes.map((n) => `${n.kind}${n.elite ? '*' : ''} ${(n.ms / 1000).toFixed(0)}s/${n.kills}`).join(' · '),
         );
       }
     }

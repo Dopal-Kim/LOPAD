@@ -42,6 +42,12 @@ export class Boss extends Mob implements BossHost, BossBody {
   summoned = 0;
   /** 페이즈 전환 들이켜기 동안 피해 무시 (54라운드 임시값) */
   private invulnerableUntil = 0;
+  /** 61라운드 등장 연출 동안: 패턴·이동·접촉 공격 없음, 피해 무시 (BossFlow 가 깨운다) */
+  private dormant = false;
+  /** 61라운드 P6: 파훼로 무너진 동안 (이 시각까지 받는 피해 × breakDamageMult) */
+  private brokenUntil = 0;
+  /** 지금 파훼 창이 시작된 시각 (UI 게이지 전체 길이) */
+  private brokenFrom = 0;
   private readonly posVec = { x: 0, y: 0 };
   private readonly centerVec = { x: 0, y: 0 };
 
@@ -49,13 +55,16 @@ export class Boss extends Mob implements BossHost, BossBody {
     const def = BOSSES[id];
     if (!def) throw new Error(`[boss] 정의 없음: ${id}`);
     // 54라운드 Q13~Q16: v3 그림이 있으면 판정 크기를 그림 크기에 비례 (bodyFromArt, 없으면 data size)
+    // 61라운드 점검 #6: 그림·판정을 renderScale 배로 (시트 그대로 확대)
+    const k = def.renderScale ?? 1;
     const idle = spriteLibrary.sheet(id, 'idle');
     const body = bossBodySize(
       def.size,
       def.bodyFromArt,
-      idle ? { frameWidth: idle.frameWidth, frameHeight: idle.frameHeight, scale: artScale(idle) } : null,
+      idle ? { frameWidth: idle.frameWidth, frameHeight: idle.frameHeight, scale: artScale(idle) * k } : null,
     );
     super(scene, x, y, id, body, def.color, def.hp);
+    if (k !== 1) this.visual.setDrawScale(k);
     this.def = def;
     this.id = id;
     this.rng = new Rng(hashSeed(`${gameState.floorSeed}:boss:${id}`));
@@ -105,6 +114,8 @@ export class Boss extends Mob implements BossHost, BossBody {
       pattern: this.brain.current,
       empowerPending: this.brain.empowered,
       runEmpowered: this.brain.runEmpowered,
+      dormant: this.dormant,
+      brokenLeftMs: this.brokenLeftMs,
       forced: this.brain.forcedList,
       nextPatternAt: this.brain.nextPatternAt,
       invulnerable: this.isImmune(this.scene.time.now),
@@ -155,7 +166,29 @@ export class Boss extends Mob implements BossHost, BossBody {
     if (target < this.hp) this.takeDamage(this.hp - target);
   }
 
+  /** 61라운드 등장 연출: 잠재우기 (BossFlow — BOSS_STARTED 처리기에서 바로) */
+  setDormant(on: boolean): void {
+    this.dormant = on;
+    if (on) this.body.setVelocity(0, 0);
+  }
+
+  get isDormant(): boolean {
+    return this.dormant;
+  }
+
+  /** 61라운드: 전투 시작 — 첫 패턴은 지금 + 국면 간격. 디버그로 2국면 이상에서 시작했으면 국면 곡·카드를 맞춘다 */
+  wake(now: number): void {
+    if (!this.dormant) return;
+    this.dormant = false;
+    this.brain.scheduleNext(now);
+    if (this.brain.phaseIndex > 0) this.emitPhase(this.brain.phaseIndex);
+  }
+
   protected think(ctx: MobContext): void {
+    if (this.dormant) {
+      this.body.setVelocity(0, 0);
+      return;
+    }
     if (this.isKnockedBack(ctx.time)) return;
     if (this.brain.nextPatternAt === 0) this.brain.scheduleNext(ctx.time);
     if (this.isStunned(ctx.time)) {
@@ -187,14 +220,38 @@ export class Boss extends Mob implements BossHost, BossBody {
     return this.def.contactIntervalMs;
   }
 
-  /** 넘어져 있는 동안(접촉 공격력 0)은 접촉 공격 자체를 하지 않는다 */
+  /** 넘어져 있는 동안(접촉 공격력 0)·등장 연출 동안은 접촉 공격 자체를 하지 않는다 */
   override tryContactAttack(time: number): number {
-    if (this.brain.contactAttack() <= 0) return 0;
+    if (this.dormant || this.brain.contactAttack() <= 0) return 0;
     return super.tryContactAttack(time);
   }
 
   override isImmune(time: number): boolean {
-    return time < this.invulnerableUntil;
+    return this.dormant || time < this.invulnerableUntil;
+  }
+
+  /** 61라운드 P6: 파훼로 무너진 동안 받는 피해 × breakDamageMult (엘리트 배율과 곱) */
+  override damageTakenMultAt(now: number): number {
+    const base = super.damageTakenMultAt(now);
+    return now < this.brokenUntil ? base * (this.def.breakDamageMult ?? 1) : base;
+  }
+
+  markBroken(ms: number): void {
+    const now = this.scene.time.now;
+    if (now + ms <= this.brokenUntil) return;
+    if (now >= this.brokenUntil) this.brokenFrom = now;
+    this.brokenUntil = now + ms;
+  }
+
+  /** 61라운드 계약 §17: 파훼 창 (UI 스냅샷 boss.broken) — 아니면 null */
+  brokenWindow(now: number): { leftMs: number; totalMs: number } | null {
+    if (now >= this.brokenUntil) return null;
+    return { leftMs: Math.round(this.brokenUntil - now), totalMs: Math.round(this.brokenUntil - this.brokenFrom) };
+  }
+
+  /** 디버그: 파훼 피해 창이 남은 ms */
+  get brokenLeftMs(): number {
+    return Math.max(0, Math.round(this.brokenUntil - this.scene.time.now));
   }
 
   override takeDamage(amount: number, info: DamageInfo = {}): boolean {

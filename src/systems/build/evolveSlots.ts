@@ -46,7 +46,11 @@ export function evolveSlots(i: EvolveSlotInput): EvolveSlot[] {
     {
       kind: 'bloodPact',
       enabled: !i.curseActive && i.pactAvailable,
-      ...(i.curseActive ? { reason: '저주는 동시에 하나' } : {}),
+      ...(i.curseActive
+        ? { reason: '저주는 동시에 하나' }
+        : !i.pactAvailable
+          ? { reason: '이 층에서는 열리지 않는다' }
+          : {}),
     },
     i.awaken.done
       ? { kind: 'awaken', enabled: false, reason: '각성 완료' }
@@ -100,6 +104,28 @@ export function eligibleDualTraits(
     const want = depth === 0 ? need.tier1Score : need.tier2Score;
     return scores[d.tag as TagId] >= want;
   });
+}
+
+/**
+ * 61라운드 P4 '갈래에 흡수' (흡수 층 — 1층): 보상 칸 없이 자동으로 붙는 이중 개성.
+ * 1단 갈래의 일반 짝 = 그 갈래가 경로에 있으면 바로 · 취기 짝 = 취기 점수 tier1Score 이상. 2단 짝은 없음 (1층 런은 1단까지)
+ */
+export function absorbedDualTraits(
+  defs: readonly DualTraitDef[],
+  weapon: string,
+  path: readonly string[],
+  scores: TagScores,
+  owned: ReadonlySet<string>,
+  tier1Score: number,
+): DualTraitDef[] {
+  return defs.filter(
+    (d) =>
+      d.weapon === weapon &&
+      !owned.has(d.id) &&
+      d.live !== false &&
+      path.indexOf(d.branch) === 0 &&
+      (d.tag !== 'drunk' || scores.drunk >= tier1Score),
+  );
 }
 
 /** 1단 짝인가 (경로 첫 노드) */

@@ -11,6 +11,7 @@ import {
   type ElitePrefixId,
   type EventDef,
 } from './bundle2Types';
+import { floorItems, type FloorScope } from './floorScope';
 
 function fail(msg: string): never {
   throw new Error(`[data] bundle2: ${msg}`);
@@ -30,7 +31,11 @@ export function validateBundle2(d: Bundle2Data): Bundle2Data {
   for (const e of d.events.items) {
     if (!e.id || ids.has(e.id)) fail(`events.items 중복·빈 id: ${e.id}`);
     ids.add(e.id);
+    if (!e.text && !(e.intro && e.intro.length > 0)) fail(`events.${e.id}: text 또는 intro 필요`);
     for (const o of e.options ?? []) if (!o.key || o.key === '0') fail(`events.${e.id}.options key 는 '0' 이 아닌 값`);
+    if ((e.options ?? []).filter((o) => o.pass).length > 1) fail(`events.${e.id}: pass 선택지는 하나`);
+    if ((e.options ?? []).some((o) => o.effects.some((x) => x.kind === 'diaryRead')) && !e.diaryRead)
+      fail(`events.${e.id}.diaryRead 없음`);
     if (e.kind === 'challenge' && !e.challenge) fail(`events.${e.id}.challenge 없음`);
     if (e.kind === 'ambush' && !(e.ambush && e.ambush.length > 0)) fail(`events.${e.id}.ambush 없음`);
   }
@@ -59,6 +64,28 @@ export function consumableDef(id: string): ConsumableDef | undefined {
 
 export const CONSUMABLE_IDS: readonly ConsumableId[] = BUNDLE2.consumables.items.map((c) => c.id);
 export const PREFIX_IDS: readonly ElitePrefixId[] = BUNDLE2.elite.prefixes.map((p) => p.id);
+
+// --- 61라운드 P5 노드 부가 정리 (층 노출 — `data/floorScope`) ---
+
+/** 이 층에서 나오는 소모품 (1층 = 화염 술병) */
+export function consumableIdsOn(floor: FloorScope): ConsumableId[] {
+  return floorItems(BUNDLE2.consumables.items, floor).map((c) => c.id);
+}
+
+/** 이 층에서 붙는 엘리트 접두어 (1층 3종) */
+export function prefixIdsOn(floor: FloorScope): ElitePrefixId[] {
+  return floorItems(BUNDLE2.elite.prefixes, floor).map((p) => p.id);
+}
+
+/** 이 층에서 나오는 이벤트 (1층 5종) */
+export function eventsOn(floor: FloorScope): EventDef[] {
+  return floorItems(BUNDLE2.events.items, floor);
+}
+
+/** 이벤트 메뉴 본문 (intro 줄 또는 옛 text) */
+export function eventIntro(e: EventDef): string {
+  return e.intro?.join('\n') ?? e.text ?? '';
+}
 
 /** 층(stage id)별 값 (없으면 stage1 → 첫 값) */
 export function byStage(rec: Record<string, number>, stageId: string): number {

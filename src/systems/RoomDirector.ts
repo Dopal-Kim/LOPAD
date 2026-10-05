@@ -9,6 +9,7 @@ import {
 } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import type { StageDef, WaveEntry } from '../data/types';
+import { BOSSES } from '../data';
 import { Boss } from '../objects/Boss';
 import { Enemy } from '../objects/Enemy';
 import type { Mob } from '../objects/Mob';
@@ -369,7 +370,12 @@ export class RoomDirector {
     this.states.set(room.id, 'active');
     this.host.world.setRoomDoors(room, 'closed');
     const c = this.host.world.roomCenter(room);
-    const boss = new Boss(this.host.mobs.scene, c.x, c.y, this.host.stage.boss);
+    // 61라운드 점검 #6: 시작 자리를 주인공 쪽으로 당긴다 (bosses.json spawnOffsetTiles — 걸을 수 없으면 가운데)
+    const off = BOSSES[this.host.stage.boss]?.spawnOffsetTiles;
+    const sx = c.x + (off?.[0] ?? 0) * TILE;
+    const sy = c.y + (off?.[1] ?? 0) * TILE;
+    const at = this.host.world.isWalkableAt(sx, sy) ? { x: sx, y: sy } : c;
+    const boss = new Boss(this.host.mobs.scene, at.x, at.y, this.host.stage.boss);
     this.host.mobs.add(boss);
     this.alive.add(boss);
     EventBus.emit(Events.BOSS_STARTED, { roomId: room.id, boss: this.host.stage.boss });

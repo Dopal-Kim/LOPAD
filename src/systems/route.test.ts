@@ -4,10 +4,13 @@ import {
   RouteState,
   entryNodes,
   generateRoute,
+  maxBattleWaves,
   minBattlesOnAnyPath,
+  nodeWaves,
   routeEnabled,
   type RouteGraph,
 } from './route';
+import { ENEMIES } from '../data';
 import { generateArena } from './mapgen/arena';
 import { TileId } from './mapgen/types';
 import { planStructures } from './structures/placement';
@@ -48,22 +51,55 @@ describe('48라운드 노드 지도 (route)', () => {
     expect(kinds.size).toBeGreaterThan(1);
   });
 
-  it('1층: 여정 3(탄생지→버려진 길→국경 초소) + 갈래 6(전투 3·상점·휴식·이벤트) + 보스', () => {
+  it('1층: 여정 3(탄생지→버려진 길→국경 초소) + 잔 4단×2(61 P3: 전투/전투 · 전투/이벤트 · 전투/전투 · 상점/쉼터) + 보스', () => {
+    const want = [
+      ['battle', 'battle'],
+      ['battle', 'event'],
+      ['battle', 'battle'],
+      ['rest', 'shop'],
+    ];
     for (let i = 0; i < 30; i++) {
       const g = generateRoute('stage1', `run${i}:0`);
-      expect(g.nodes).toHaveLength(10);
+      expect(g.nodes).toHaveLength(12);
       expect(g.nodes.filter((n) => n.col < 3).map((n) => n.kind)).toEqual(['birth', 'road', 'post']);
       expect(g.nodes.filter((n) => n.col < 3).every((n) => n.type === 'journey')).toBe(true);
-      const lane = g.nodes.filter((n) => n.col >= 3 && n.col <= 5);
-      expect(lane).toHaveLength(6);
-      const count = (k: string) => lane.filter((n) => n.kind === k).length;
-      expect([count('battle'), count('shop'), count('rest'), count('event')]).toEqual([3, 1, 1, 1]);
+      for (let c = 0; c < 4; c++)
+        expect(
+          g.nodes
+            .filter((n) => n.col === 3 + c)
+            .map((n) => n.kind)
+            .sort(),
+        ).toEqual(want[c]);
       const boss = g.nodes.filter((n) => n.kind === 'boss');
       expect(boss).toHaveLength(1);
-      expect(boss[0].col).toBe(6);
+      expect(boss[0].col).toBe(7);
       expect(entryNodes(g).map((n) => n.kind)).toEqual(['birth']);
       expect(g.nodes.every((n) => n.name.length > 0)).toBe(true);
     }
+  });
+
+  it('61 P3: 잔 구간 전투 웨이브 = 그 단 웨이브 (새 적은 단마다 처음 나온다) · 버려진 길은 징집병만', () => {
+    const g = generateRoute('stage1', 'waves:0');
+    const enemiesAt = (col: number) =>
+      new Set((nodeWaves('stage1', { kind: 'battle', col }) ?? []).flatMap((w) => w.map((e) => e.enemy)));
+    expect([...new Set((nodeWaves('stage1', { kind: 'road', col: 1 }) ?? []).flat().map((e) => e.enemy))]).toEqual([
+      'dummy',
+    ]);
+    expect(enemiesAt(3).has('archer')).toBe(true);
+    expect(enemiesAt(3).has('charger')).toBe(false);
+    expect(enemiesAt(4).has('charger')).toBe(true);
+    expect(enemiesAt(5).has('peddler') && enemiesAt(5).has('porter')).toBe(true);
+    for (const col of [3, 4, 5]) {
+      const waves = nodeWaves('stage1', { kind: 'battle', col })!;
+      expect(waves.length).toBeGreaterThanOrEqual(2);
+      expect(waves.length).toBeLessThanOrEqual(3);
+      const kills = waves.flat().reduce((a, e) => a + e.count, 0);
+      expect(kills).toBeGreaterThanOrEqual(12);
+      expect(kills).toBeLessThanOrEqual(16);
+      for (const e of waves.flat()) expect(ENEMIES[e.enemy], e.enemy).toBeDefined();
+    }
+    expect(maxBattleWaves('stage1', 2)).toBe(3);
+    expect(g.nodes.filter((n) => n.kind === 'battle')).toHaveLength(5);
   });
 
   it('2층: 여정 없이 갈래 6 + 보스, 진입은 두 갈래', () => {

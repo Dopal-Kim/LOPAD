@@ -24,6 +24,7 @@ import type { FxPool } from '../fx/fx';
 import { cellsAlong } from '../hazards/liquorNet';
 import type { LiquorPools, PoolSpec } from '../hazards/LiquorPools';
 import type { Lighting } from '../lighting/Lighting';
+import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 import { spriteLibrary } from '../sprites/sprites';
 import { STRUCTURE_ACTION, artScale, structureStateFrames } from '../sprites/spriteDefs';
 import type { TileWorld } from '../../world/TileWorld';
@@ -50,6 +51,8 @@ export interface BossArenaHost {
   onKill(m: Mob, kind: 'environment'): void;
   shake(px: number, ms: number): void;
   propSkin: TileSkin | null;
+  /** 61라운드 점검 #6: 등불 끄기 동안 예고를 어둠 위로 (TelegraphFx.setAboveDark) */
+  telegraphAboveDark?(on: boolean): void;
 }
 
 export interface BossArenaPlan {
@@ -87,6 +90,8 @@ export class BossArena implements BossArenaApi {
   private readonly wpGfx: Phaser.GameObjects.Graphics;
   private wpHitToken = {};
   private darkUntil = 0;
+  /** 61라운드 점검 #6: 어둠 동안 주인공·보스 최소 광원 */
+  private darkLights: LightSource[] = [];
   private timers: Phaser.Time.TimerEvent[] = [];
   private loops = { fire: false, roll: false };
   /** 술통 자국·쏟아짐 웅덩이 불 수치 (보스 fireSpill 공통값) */
@@ -147,8 +152,12 @@ export class BossArena implements BossArenaApi {
       hitBoss: (dmg, stunMs, dx, dy) => {
         const b = this.boss();
         if (!b) return;
+        // 61라운드 P6: 되친 술통에 맞아 비틀거리는 동안도 파훼 피해 창 (맞은 그 한 방은 창 밖)
         if (host.hitMob(b, dmg, { crit: false, dirX: dx, dirY: dy })) host.onKill(b, 'environment');
-        else b.stun(host.scene.time.now, stunMs, 'hit');
+        else {
+          b.stun(host.scene.time.now, stunMs, 'hit');
+          (b as Mob & { markBroken?: (ms: number) => void }).markBroken?.(stunMs);
+        }
       },
       onBounce: () => {
         this.action('caskBounce');
@@ -209,12 +218,34 @@ export class BossArena implements BossArenaApi {
       this.timers.push(t);
     });
     this.timers.push(this.host.scene.time.delayedCall(p.durationMs, () => this.restoreLight(p.fadeMs)));
+    this.addDarkLights();
+    this.host.telegraphAboveDark?.(true);
     EventBus.emit(Events.BOSS_SCREEN, { effect: 'dark', on: true } satisfies BossScreenPayload);
+  }
+
+  /** 61라운드 점검 #6: 어둠 속에서도 주인공·보스 실루엣이 읽히게 최소 광원 (data arena.darkLights) */
+  private addDarkLights(): void {
+    this.removeDarkLights();
+    const D = this.A.darkLights;
+    if (!D) return;
+    const reg = lightRegistryOf(this.host.scene);
+    const p = this.host.player;
+    if (D.player) this.darkLights.push(reg.add(D.player, { x: p.x, y: p.y, anchor: p }));
+    const b = this.boss();
+    if (D.boss && b) this.darkLights.push(reg.add(D.boss, { x: b.x, y: b.y, anchor: b }));
+  }
+
+  private removeDarkLights(): void {
+    const reg = lightRegistryOf(this.host.scene);
+    for (const l of this.darkLights) reg.remove(l);
+    this.darkLights = [];
   }
 
   /** 12초 뒤 저절로 복구: 주변광 · 촛대를 다시 세운다 */
   private restoreLight(fadeMs: number): void {
     this.darkUntil = 0;
+    this.removeDarkLights();
+    this.host.telegraphAboveDark?.(false);
     const L = this.host.lighting();
     L?.setAmbient(null, fadeMs);
     if (L) L.telegraphGain = 1;
@@ -614,6 +645,7 @@ export class BossArena implements BossArenaApi {
     const pools = this.host.pools.of('boss');
     return {
       dark: this.dark,
+      darkLights: this.darkLights.length,
       darkRemainingMs: this.dark ? Math.max(0, Math.round(this.darkUntil - this.now)) : 0,
       screen: this.screen.summary(),
       candles: this.candles.list.map((c) => ({ id: c.id, tx: c.tx, ty: c.ty, state: c.state })),
@@ -665,6 +697,8 @@ export class BossArena implements BossArenaApi {
     for (const t of this.timers) t.remove(false);
     this.timers = [];
     if (this.dark) this.host.lighting()?.setAmbient(null, 0);
+    this.removeDarkLights();
+    this.host.telegraphAboveDark?.(false);
     this.screen.destroy();
     this.candles.destroy();
     this.casks.destroy();
