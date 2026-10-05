@@ -564,3 +564,10 @@ interface UiSettings {
 - 함께 바뀐 표시: `carry` 는 늘 null(F 넣기/뽑기 삭제), 단검 `resource` 는 null(가속은 숨김, 보이는 자원은 낙인), 활 `gauge`(숨)는 저격 갈래일 때만. 튜토리얼에 '좌클릭 길게' 단계(`PLAYER_HOLD_VERB` 로 완료).
 - **(61 시스템 구현)** 기본값 상수 `UI_DEFAULT_SETTINGS`, `UiSnapshot.settings` 는 필수(타이틀 등 게임 씬이 없을 때도 저장값). 메타 세이브 키 `lopad.meta.settings`.
 - **(61 시스템 구현) 메뉴 줄 표기 규칙**: `UiMenuLine.label` 에는 가격·희귀도·내부 id 를 넣지 않는다. 가격은 `line.price`(`label` 포함), 희귀도는 `line.rarity`, 선택 값 `line.key`(`d1`·`reroll`·`m:<id>` 등)는 그리지 않고 UI 가 번호 단축키로 보여 준다. 등급 노드의 보상 메뉴는 평가 카드 뒤 1.6초(`GRADE_CARD_HOLD_MS`)에 열린다. 튜토리얼 패널은 기존 `pause()`/`resume()` 사용.
+
+## 17. 서사 표시·보스 UI (61라운드 단계 2·3)
+- `STORY.kind`: `voice`(원한의 한마디 — `weapon`, 화자 이름 없음), `speech`(군주 대사 — `speaker`), `clue`(조사 기록 — `lines` 여러 줄, Enter·Esc·클릭으로 닫음, 게임 멈추지 않음), `event`(이벤트 문장). 선택 필드 `holdMs`·`scene`·`title`. UI 는 STORY 를 큐로 한 차례씩 띄운다(보스 앞 '한마디 → 등장 자막 → 군주 대사').
+- `UiResult.smudgeLine`: 사망 결과 화면의 이름 번짐 문구.
+- 이벤트 `UI_EVENTS.BOSS_BREAK` = `'ui:boss-break'` `{ kind: 'cup'|'pillar'|'cask'|'stumble'|'finisher'; label?; text? }`, `UI_EVENTS.ENEMY_INTRO` = `'ui:enemy-intro'` `{ id?; name; desc? }`, `BOSS_DIED.finisher?: boolean`.
+- 스냅샷 `boss` 선택 필드: `phaseName`·`phaseNames`·`phaseMarks`(체력 비율 눈금), `broken`(boolean 또는 `{leftMs,totalMs}`), `candles: {x,y,lit}[]`(논리 960×540 화면 좌표), `dark`.
+- 보스 처치: UI 는 처치 카드·처치 대사가 끝날 때까지(최대 4.5초) 보상 메뉴를 기다린다. 시스템이 연출 뒤 메뉴를 열면 그 순서를 따른다.
