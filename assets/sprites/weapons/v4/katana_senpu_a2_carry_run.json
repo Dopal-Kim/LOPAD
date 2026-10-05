@@ -1,0 +1,158 @@
+{
+ "image": "katana_senpu_a2_carry_run.png",
+ "action": "katana_senpu_a2_carry_run",
+ "version": "v4-r61-growth",
+ "frameWidth": 264,
+ "frameHeight": 264,
+ "framesPerDirection": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.38,
+ "frameDurationsMs": [
+  65,
+  65,
+  65,
+  65,
+  65,
+  65,
+  65,
+  65
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 4,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 132,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 84,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_run",
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 36,
+  "y": 32
+ },
+ "weapon": "katana",
+ "branch": "senpu",
+ "branchName": "선풍",
+ "branchLine": "무리 한가운데로 파고드는 칼",
+ "sameFrameAs": "weapons/v3/katana_carry_run_awaken",
+ "loopFrames": 8,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v4/katana_senpu_a1_carry_run",
+ "depth": "above_a1",
+ "awakenStage": 2,
+ "design": "칼끝 너머 가는 바람 갈고리 연장(+12) · 지느러미 셋째(칼끝 쪽) · 첫 지느러미가 커짐",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'katana_carry_run' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → katana_senpu_a1_carry_run(1차) → katana_senpu_a2_carry_run(2차 덧붙임) → katana_senpu_a2_glow_carry_run(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "glowSheet": "weapons/v4/katana_senpu_a2_glow_carry_run",
+ "pathTint": {
+  "whirl": [
+   196,
+   228,
+   255
+  ],
+  "zangetsu": [
+   255,
+   212,
+   110
+  ]
+ },
+ "trailTint": {
+  "whirl": [
+   196,
+   228,
+   255
+  ],
+  "zangetsu": [
+   255,
+   212,
+   110
+  ]
+ },
+ "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
+ "glowFrames": [],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_senpu_a2_carry_run.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 264,
+   "frameHeight": 264,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 29,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":173,"y":167,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "1":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":174,"y":169,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "2":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":170,"y":167,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "3":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":170,"y":164,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "4":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":169,"y":170,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "5":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":152,"y":171,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "6":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":153,"y":166,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "7":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":154,"y":163,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "8":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":180,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "9":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":181,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "10":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":179,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "11":{"frame":{"x":22,"y":0,"w":8,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":180,"w":8,"h":6},"sourceSize":{"w":264,"h":264}},
+  "12":{"frame":{"x":22,"y":0,"w":8,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":188,"w":8,"h":6},"sourceSize":{"w":264,"h":264}},
+  "13":{"frame":{"x":22,"y":0,"w":8,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":189,"w":8,"h":6},"sourceSize":{"w":264,"h":264}},
+  "14":{"frame":{"x":22,"y":0,"w":8,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":184,"w":8,"h":6},"sourceSize":{"w":264,"h":264}},
+  "15":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":179,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "16":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":178,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "17":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":181,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "18":{"frame":{"x":11,"y":0,"w":9,"h":5},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":179,"w":9,"h":5},"sourceSize":{"w":264,"h":264}},
+  "19":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":175,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "20":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":178,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "21":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":181,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "22":{"frame":{"x":11,"y":0,"w":9,"h":5},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":179,"w":9,"h":5},"sourceSize":{"w":264,"h":264}},
+  "23":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":175,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "24":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":172,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "25":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":173,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "26":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":169,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "27":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":167,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "28":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":172,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "29":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":173,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "30":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":91,"y":169,"w":9,"h":6},"sourceSize":{"w":264,"h":264}},
+  "31":{"frame":{"x":0,"y":0,"w":9,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":167,"w":9,"h":6},"sourceSize":{"w":264,"h":264}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_senpu_a2_carry_run.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 30,
+   "h": 6
+  },
+  "scale": "1"
+ }
+}

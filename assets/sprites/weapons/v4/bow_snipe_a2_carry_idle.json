@@ -1,0 +1,148 @@
+{
+ "image": "bow_snipe_a2_carry_idle.png",
+ "action": "bow_snipe_a2_carry_idle",
+ "version": "v4-r61-growth",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "framesPerDirection": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 4.92,
+ "frameDurationsMs": [
+  200,
+  200,
+  180,
+  220,
+  200,
+  220
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 6,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 128,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 80,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_idle_free",
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 32,
+  "y": 32
+ },
+ "weapon": "bow",
+ "branch": "snipe",
+ "branchName": "저격",
+ "branchLine": "한 발의 활",
+ "sameFrameAs": "weapons/v3/bow_carry_idle_awaken",
+ "loopFrames": 6,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v4/bow_snipe_a1_carry_idle",
+ "depth": "above_a1",
+ "awakenStage": 2,
+ "design": "조준기 앞으로 뻗는 안정 막대(+11, 끝 추) · 조준기 양옆 십자 날개 2 (메모리 상한으로 2차 덧붙임은 조준기 둘레에 모음)",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'bow_carry_idle' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → bow_snipe_a1_carry_idle(1차) → bow_snipe_a2_carry_idle(2차 덧붙임) → bow_snipe_a2_glow_carry_idle(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "glowSheet": "weapons/v4/bow_snipe_a2_glow_carry_idle",
+ "pathTint": {
+  "surehit": [
+   255,
+   80,
+   80
+  ],
+  "pierce": [
+   192,
+   230,
+   255
+  ]
+ },
+ "trailTint": {
+  "surehit": [
+   255,
+   80,
+   80
+  ],
+  "pierce": [
+   192,
+   230,
+   255
+  ]
+ },
+ "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
+ "glowFrames": [],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_snipe_a2_carry_idle.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 6,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":123,"y":0,"w":22,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":164,"w":22,"h":18},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":147,"y":0,"w":22,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":163,"w":22,"h":18},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":73,"y":0,"w":23,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":162,"w":23,"h":18},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":171,"y":0,"w":22,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":162,"w":22,"h":18},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":195,"y":0,"w":22,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":163,"w":22,"h":18},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":325,"y":0,"w":22,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":164,"w":22,"h":17},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":349,"y":0,"w":18,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":159,"w":18,"h":17},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":285,"y":0,"w":18,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":158,"w":18,"h":18},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":369,"y":0,"w":18,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":103,"y":158,"w":18,"h":17},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":389,"y":0,"w":18,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":158,"w":18,"h":17},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":305,"y":0,"w":18,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":158,"w":18,"h":18},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":0,"y":0,"w":23,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":82,"y":165,"w":23,"h":19},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":50,"y":0,"w":21,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":158,"w":21,"h":19},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":219,"y":0,"w":20,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":158,"w":20,"h":18},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":241,"y":0,"w":20,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":157,"w":20,"h":18},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":241,"y":0,"w":20,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":157,"w":20,"h":18},"sourceSize":{"w":256,"h":256}},
+  "16":{"frame":{"x":219,"y":0,"w":20,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":158,"w":20,"h":18},"sourceSize":{"w":256,"h":256}},
+  "17":{"frame":{"x":50,"y":0,"w":21,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":158,"w":21,"h":19},"sourceSize":{"w":256,"h":256}},
+  "18":{"frame":{"x":98,"y":0,"w":23,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":155,"w":23,"h":18},"sourceSize":{"w":256,"h":256}},
+  "19":{"frame":{"x":25,"y":0,"w":23,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":154,"w":23,"h":19},"sourceSize":{"w":256,"h":256}},
+  "20":{"frame":{"x":263,"y":0,"w":20,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":120,"y":154,"w":20,"h":18},"sourceSize":{"w":256,"h":256}},
+  "21":{"frame":{"x":263,"y":0,"w":20,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":120,"y":154,"w":20,"h":18},"sourceSize":{"w":256,"h":256}},
+  "22":{"frame":{"x":25,"y":0,"w":23,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":154,"w":23,"h":19},"sourceSize":{"w":256,"h":256}},
+  "23":{"frame":{"x":98,"y":0,"w":23,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":155,"w":23,"h":18},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_snipe_a2_carry_idle.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 407,
+   "h": 19
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,146 @@
+{
+ "image": "katana_kabuto_a2_glow_carry_drawn_walk.png",
+ "action": "katana_kabuto_a2_glow_carry_drawn_walk",
+ "version": "v4-r61-growth",
+ "frameWidth": 264,
+ "frameHeight": 264,
+ "framesPerDirection": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 12.5,
+ "frameDurationsMs": [
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 3,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 132,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 84,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_walk",
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 36,
+  "y": 32
+ },
+ "weapon": "katana",
+ "branch": "kabuto",
+ "branchName": "투구가르기",
+ "branchLine": "한 놈을 쪼개는 칼",
+ "sameFrameAs": "weapons/v3/katana_carry_drawn_walk_awaken",
+ "loopFrames": 8,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v4/katana_kabuto_a2_carry_drawn_walk",
+ "depth": "above_a2",
+ "awakenStage": 2,
+ "design": "날선 전체 백열 줄(맥동이 칼끝으로) + 날 가운데 쪼개는 점선 + 뿔 끝",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'katana_carry_drawn_walk' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → katana_kabuto_a1_carry_drawn_walk(1차) → katana_kabuto_a2_carry_drawn_walk(2차 덧붙임) → katana_kabuto_a2_glow_carry_drawn_walk(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "tintable": true,
+ "pathTint": {
+  "ittou": [
+   255,
+   92,
+   72
+  ],
+  "meikyo": [
+   200,
+   240,
+   255
+  ]
+ },
+ "tintRule": "회백 마스크(X0·무채 G11~G13). 고른 2차 길의 pathTint 를 setTint(곱)로 입혀 a2 위에 그린다. 블렌드 보통(NORMAL) 권장 — ADD 는 어둠 속에서 과함",
+ "glowFrames": [],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_kabuto_a2_glow_carry_drawn_walk.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 264,
+   "frameHeight": 264,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":172,"y":45,"w":31,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":84,"y":183,"w":31,"h":40},"sourceSize":{"w":264,"h":264}},
+  "1":{"frame":{"x":0,"y":131,"w":33,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":179,"w":33,"h":41},"sourceSize":{"w":264,"h":264}},
+  "2":{"frame":{"x":141,"y":0,"w":33,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":175,"w":33,"h":43},"sourceSize":{"w":264,"h":264}},
+  "3":{"frame":{"x":62,"y":0,"w":32,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":84,"y":175,"w":32,"h":44},"sourceSize":{"w":264,"h":264}},
+  "4":{"frame":{"x":0,"y":0,"w":30,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":177,"w":30,"h":45},"sourceSize":{"w":264,"h":264}},
+  "5":{"frame":{"x":32,"y":0,"w":28,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":175,"w":28,"h":45},"sourceSize":{"w":264,"h":264}},
+  "6":{"frame":{"x":176,"y":0,"w":28,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":177,"w":28,"h":43},"sourceSize":{"w":264,"h":264}},
+  "7":{"frame":{"x":96,"y":40,"w":30,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":180,"w":30,"h":43},"sourceSize":{"w":264,"h":264}},
+  "8":{"frame":{"x":142,"y":192,"w":25,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":154,"y":167,"w":25,"h":20},"sourceSize":{"w":264,"h":264}},
+  "9":{"frame":{"x":0,"y":174,"w":29,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":153,"y":164,"w":29,"h":23},"sourceSize":{"w":264,"h":264}},
+  "10":{"frame":{"x":170,"y":87,"w":28,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":153,"y":167,"w":28,"h":25},"sourceSize":{"w":264,"h":264}},
+  "11":{"frame":{"x":113,"y":192,"w":27,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":152,"y":173,"w":27,"h":26},"sourceSize":{"w":264,"h":264}},
+  "12":{"frame":{"x":73,"y":193,"w":27,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":177,"w":27,"h":26},"sourceSize":{"w":264,"h":264}},
+  "13":{"frame":{"x":31,"y":196,"w":26,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":173,"w":26,"h":24},"sourceSize":{"w":264,"h":264}},
+  "14":{"frame":{"x":169,"y":192,"w":24,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":153,"y":167,"w":24,"h":23},"sourceSize":{"w":264,"h":264}},
+  "15":{"frame":{"x":0,"y":199,"w":26,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":153,"y":165,"w":26,"h":21},"sourceSize":{"w":264,"h":264}},
+  "16":{"frame":{"x":123,"y":128,"w":38,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":63,"y":165,"w":38,"h":29},"sourceSize":{"w":264,"h":264}},
+  "17":{"frame":{"x":35,"y":166,"w":36,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":163,"w":36,"h":28},"sourceSize":{"w":264,"h":264}},
+  "18":{"frame":{"x":75,"y":161,"w":36,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":163,"w":36,"h":30},"sourceSize":{"w":264,"h":264}},
+  "19":{"frame":{"x":162,"y":159,"w":36,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":166,"w":36,"h":31},"sourceSize":{"w":264,"h":264}},
+  "20":{"frame":{"x":123,"y":159,"w":37,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":169,"w":37,"h":31},"sourceSize":{"w":264,"h":264}},
+  "21":{"frame":{"x":35,"y":133,"w":38,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":166,"w":38,"h":31},"sourceSize":{"w":264,"h":264}},
+  "22":{"frame":{"x":82,"y":128,"w":39,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":164,"w":39,"h":31},"sourceSize":{"w":264,"h":264}},
+  "23":{"frame":{"x":163,"y":128,"w":38,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":63,"y":163,"w":38,"h":29},"sourceSize":{"w":264,"h":264}},
+  "24":{"frame":{"x":0,"y":47,"w":42,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":145,"y":171,"w":42,"h":39},"sourceSize":{"w":264,"h":264}},
+  "25":{"frame":{"x":128,"y":87,"w":40,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":170,"w":40,"h":39},"sourceSize":{"w":264,"h":264}},
+  "26":{"frame":{"x":87,"y":85,"w":39,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":153,"y":170,"w":39,"h":41},"sourceSize":{"w":264,"h":264}},
+  "27":{"frame":{"x":0,"y":88,"w":39,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":158,"y":172,"w":39,"h":41},"sourceSize":{"w":264,"h":264}},
+  "28":{"frame":{"x":41,"y":90,"w":39,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":174,"w":39,"h":41},"sourceSize":{"w":264,"h":264}},
+  "29":{"frame":{"x":44,"y":47,"w":41,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":171,"w":41,"h":41},"sourceSize":{"w":264,"h":264}},
+  "30":{"frame":{"x":128,"y":45,"w":42,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":155,"y":169,"w":42,"h":40},"sourceSize":{"w":264,"h":264}},
+  "31":{"frame":{"x":96,"y":0,"w":43,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":169,"w":43,"h":38},"sourceSize":{"w":264,"h":264}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_kabuto_a2_glow_carry_drawn_walk.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 204,
+   "h": 220
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,188 @@
+{
+ "image": "dagger_twin_a2_backstab.png",
+ "action": "dagger_twin_a2_backstab",
+ "version": "v4-r61-growth",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "framesPerDirection": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 17.86,
+ "frameDurationsMs": [
+  40,
+  50,
+  70,
+  30,
+  50,
+  60,
+  70,
+  50,
+  60,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 5,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 128,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 80,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_dagger_backstab",
+ "framesBasis": "player_dagger_backstab 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "total": 560,
+  "hitAt": 190,
+  "activeEndAt": 240,
+  "hitsAt": [
+   190
+  ],
+  "cancelAt": 420
+ },
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 32,
+  "y": 32
+ },
+ "weapon": "dagger",
+ "branch": "twin",
+ "branchName": "쌍격",
+ "branchLine": "둘이 싸우는 단검",
+ "sameFrameAs": "weapons/v3/dagger_backstab_awaken",
+ "loopFrames": 6,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v4/dagger_twin_a1_backstab",
+ "depth": "above_a1",
+ "awakenStage": 2,
+ "design": "앞으로 꺾인 X자 막이 날개 2 · 둘째 날 끝 연장 + 미늘",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'dagger_backstab' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → dagger_twin_a1_backstab(1차) → dagger_twin_a2_backstab(2차 덧붙임) → dagger_twin_a2_glow_backstab(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "glowSheet": "weapons/v4/dagger_twin_a2_glow_backstab",
+ "pathTint": {
+  "frenzy": [
+   192,
+   226,
+   255
+  ],
+  "bleed": [
+   255,
+   72,
+   92
+  ]
+ },
+ "trailTint": {
+  "frenzy": [
+   192,
+   226,
+   255
+  ],
+  "bleed": [
+   255,
+   72,
+   92
+  ]
+ },
+ "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
+ "glowFrames": [
+  4
+ ],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_twin_a2_backstab.png)",
+  "grid": {
+   "columns": 10,
+   "rows": 4,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 40
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [
+   10,
+   13,
+   14,
+   15,
+   16,
+   22,
+   28
+  ],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":34,"y":67,"w":22,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":131,"w":22,"h":39},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":106,"y":119,"w":21,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":108,"w":21,"h":37},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":0,"y":139,"w":22,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":108,"w":22,"h":37},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":103,"y":77,"w":22,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":136,"w":22,"h":40},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":0,"y":99,"w":22,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":149,"w":22,"h":38},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":58,"y":94,"w":22,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":154,"w":22,"h":38},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":82,"y":119,"w":22,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":123,"y":151,"w":22,"h":37},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":48,"y":134,"w":27,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":134,"w":27,"h":29},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":0,"y":187,"w":34,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":144,"w":34,"h":20},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":82,"y":94,"w":19,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":105,"y":145,"w":19,"h":19},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":82,"y":115,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":48,"y":108,"w":7,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":114,"w":7,"h":19},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":69,"y":196,"w":4,"h":4},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":142,"y":130,"w":4,"h":4},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":82,"y":115,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":82,"y":115,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":82,"y":115,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "16":{"frame":{"x":82,"y":115,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "17":{"frame":{"x":103,"y":158,"w":19,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":131,"y":114,"w":19,"h":19},"sourceSize":{"w":256,"h":256}},
+  "18":{"frame":{"x":103,"y":179,"w":10,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":151,"w":10,"h":12},"sourceSize":{"w":256,"h":256}},
+  "19":{"frame":{"x":75,"y":192,"w":26,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":131,"y":152,"w":26,"h":19},"sourceSize":{"w":256,"h":256}},
+  "20":{"frame":{"x":103,"y":193,"w":6,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":143,"w":6,"h":14},"sourceSize":{"w":256,"h":256}},
+  "21":{"frame":{"x":115,"y":179,"w":7,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":128,"w":7,"h":13},"sourceSize":{"w":256,"h":256}},
+  "22":{"frame":{"x":82,"y":115,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "23":{"frame":{"x":47,"y":165,"w":26,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":81,"y":130,"w":26,"h":29},"sourceSize":{"w":256,"h":256}},
+  "24":{"frame":{"x":34,"y":0,"w":31,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":134,"w":31,"h":32},"sourceSize":{"w":256,"h":256}},
+  "25":{"frame":{"x":32,"y":34,"w":31,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":137,"w":31,"h":31},"sourceSize":{"w":256,"h":256}},
+  "26":{"frame":{"x":0,"y":0,"w":32,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":137,"w":32,"h":32},"sourceSize":{"w":256,"h":256}},
+  "27":{"frame":{"x":36,"y":196,"w":31,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":128,"w":31,"h":12},"sourceSize":{"w":256,"h":256}},
+  "28":{"frame":{"x":82,"y":115,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "29":{"frame":{"x":111,"y":194,"w":9,"h":8},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":147,"w":9,"h":8},"sourceSize":{"w":256,"h":256}},
+  "30":{"frame":{"x":103,"y":38,"w":24,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":139,"y":123,"w":24,"h":37},"sourceSize":{"w":256,"h":256}},
+  "31":{"frame":{"x":24,"y":108,"w":22,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":132,"y":102,"w":22,"h":38},"sourceSize":{"w":256,"h":256}},
+  "32":{"frame":{"x":24,"y":148,"w":21,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":130,"y":104,"w":21,"h":37},"sourceSize":{"w":256,"h":256}},
+  "33":{"frame":{"x":100,"y":0,"w":27,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":124,"w":27,"h":36},"sourceSize":{"w":256,"h":256}},
+  "34":{"frame":{"x":0,"y":34,"w":30,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":155,"y":133,"w":30,"h":33},"sourceSize":{"w":256,"h":256}},
+  "35":{"frame":{"x":67,"y":0,"w":31,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":157,"y":137,"w":31,"h":32},"sourceSize":{"w":256,"h":256}},
+  "36":{"frame":{"x":0,"y":69,"w":32,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":156,"y":135,"w":32,"h":28},"sourceSize":{"w":256,"h":256}},
+  "37":{"frame":{"x":65,"y":38,"w":36,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":146,"y":126,"w":36,"h":26},"sourceSize":{"w":256,"h":256}},
+  "38":{"frame":{"x":77,"y":158,"w":24,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":147,"w":24,"h":32},"sourceSize":{"w":256,"h":256}},
+  "39":{"frame":{"x":65,"y":66,"w":36,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":146,"w":36,"h":26},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_twin_a2_backstab.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 127,
+   "h": 211
+  },
+  "scale": "1"
+ }
+}

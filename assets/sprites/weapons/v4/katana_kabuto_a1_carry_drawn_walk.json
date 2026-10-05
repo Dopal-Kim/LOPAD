@@ -1,0 +1,133 @@
+{
+ "image": "katana_kabuto_a1_carry_drawn_walk.png",
+ "action": "katana_kabuto_a1_carry_drawn_walk",
+ "version": "v4-r61-growth",
+ "frameWidth": 264,
+ "frameHeight": 264,
+ "framesPerDirection": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 12.5,
+ "frameDurationsMs": [
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 17,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 132,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 84,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_walk",
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 36,
+  "y": 32
+ },
+ "weapon": "katana",
+ "branch": "kabuto",
+ "branchName": "투구가르기",
+ "branchLine": "한 놈을 쪼개는 칼",
+ "sameFrameAs": "weapons/v3/katana_carry_drawn_walk_awaken",
+ "loopFrames": 8,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v3/katana_carry_drawn_walk",
+ "depth": "above_weapon",
+ "awakenStage": 1,
+ "design": "날 폭 5 → 9.2(등 −5.2 곧은 등줄 · 날선 +4)의 두꺼운 쇳덩이 날, 칼끝은 등 쪽이 긴 끌 모양 · 등에 이 빠진 홈 3 · 네모난 투박한 쇠 코등이(15×5, 모서리 깎임, 황동 못 2) · 황동 칼자루 머리 / 색: 재 → 검은 무쇠(G2~G7, 망치 자국) + 황동 날선(4층 OCH)",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'katana_carry_drawn_walk' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → katana_kabuto_a1_carry_drawn_walk(1차) → katana_kabuto_a2_carry_drawn_walk(2차 덧붙임) → katana_kabuto_a2_glow_carry_drawn_walk(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "glowRule": "glowFrames(무기 시트 판정 순간)에 가장 밝음",
+ "glowFrames": [],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_kabuto_a1_carry_drawn_walk.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 264,
+   "frameHeight": 264,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":182,"w":35,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":84,"y":173,"w":35,"h":55},"sourceSize":{"w":264,"h":264}},
+  "1":{"frame":{"x":0,"y":123,"w":38,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":169,"w":38,"h":57},"sourceSize":{"w":264,"h":264}},
+  "2":{"frame":{"x":144,"y":0,"w":38,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":165,"w":38,"h":59},"sourceSize":{"w":264,"h":264}},
+  "3":{"frame":{"x":0,"y":0,"w":37,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":84,"y":164,"w":37,"h":61},"sourceSize":{"w":264,"h":264}},
+  "4":{"frame":{"x":39,"y":0,"w":34,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":167,"w":34,"h":61},"sourceSize":{"w":264,"h":264}},
+  "5":{"frame":{"x":75,"y":0,"w":33,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":165,"w":33,"h":61},"sourceSize":{"w":264,"h":264}},
+  "6":{"frame":{"x":110,"y":0,"w":32,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":166,"w":32,"h":60},"sourceSize":{"w":264,"h":264}},
+  "7":{"frame":{"x":150,"y":122,"w":34,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":170,"w":34,"h":57},"sourceSize":{"w":264,"h":264}},
+  "8":{"frame":{"x":144,"y":298,"w":36,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":164,"w":36,"h":29},"sourceSize":{"w":264,"h":264}},
+  "9":{"frame":{"x":145,"y":263,"w":38,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":160,"w":38,"h":33},"sourceSize":{"w":264,"h":264}},
+  "10":{"frame":{"x":145,"y":181,"w":36,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":145,"y":159,"w":36,"h":39},"sourceSize":{"w":264,"h":264}},
+  "11":{"frame":{"x":145,"y":222,"w":33,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":165,"w":33,"h":39},"sourceSize":{"w":264,"h":264}},
+  "12":{"frame":{"x":50,"y":239,"w":32,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":168,"w":32,"h":41},"sourceSize":{"w":264,"h":264}},
+  "13":{"frame":{"x":142,"y":367,"w":32,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":145,"y":168,"w":32,"h":35},"sourceSize":{"w":264,"h":264}},
+  "14":{"frame":{"x":144,"y":329,"w":29,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":159,"w":29,"h":36},"sourceSize":{"w":264,"h":264}},
+  "15":{"frame":{"x":46,"y":380,"w":33,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":146,"y":163,"w":33,"h":29},"sourceSize":{"w":264,"h":264}},
+  "16":{"frame":{"x":0,"y":328,"w":47,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":63,"y":161,"w":47,"h":39},"sourceSize":{"w":264,"h":264}},
+  "17":{"frame":{"x":49,"y":340,"w":45,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":159,"w":45,"h":38},"sourceSize":{"w":264,"h":264}},
+  "18":{"frame":{"x":96,"y":341,"w":44,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":73,"y":158,"w":44,"h":40},"sourceSize":{"w":264,"h":264}},
+  "19":{"frame":{"x":0,"y":369,"w":44,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":159,"w":44,"h":44},"sourceSize":{"w":264,"h":264}},
+  "20":{"frame":{"x":98,"y":294,"w":44,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":83,"y":162,"w":44,"h":45},"sourceSize":{"w":264,"h":264}},
+  "21":{"frame":{"x":0,"y":282,"w":47,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":160,"w":47,"h":44},"sourceSize":{"w":264,"h":264}},
+  "22":{"frame":{"x":49,"y":294,"w":47,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":158,"w":47,"h":44},"sourceSize":{"w":264,"h":264}},
+  "23":{"frame":{"x":0,"y":239,"w":48,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":63,"y":158,"w":48,"h":41},"sourceSize":{"w":264,"h":264}},
+  "24":{"frame":{"x":91,"y":181,"w":51,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":136,"y":162,"w":51,"h":55},"sourceSize":{"w":264,"h":264}},
+  "25":{"frame":{"x":40,"y":181,"w":49,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":139,"y":160,"w":49,"h":56},"sourceSize":{"w":264,"h":264}},
+  "26":{"frame":{"x":110,"y":62,"w":47,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":145,"y":160,"w":47,"h":58},"sourceSize":{"w":264,"h":264}},
+  "27":{"frame":{"x":0,"y":63,"w":47,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":161,"w":47,"h":58},"sourceSize":{"w":264,"h":264}},
+  "28":{"frame":{"x":49,"y":63,"w":47,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":163,"w":47,"h":58},"sourceSize":{"w":264,"h":264}},
+  "29":{"frame":{"x":98,"y":122,"w":50,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":161,"w":50,"h":57},"sourceSize":{"w":264,"h":264}},
+  "30":{"frame":{"x":40,"y":123,"w":51,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":146,"y":159,"w":51,"h":56},"sourceSize":{"w":264,"h":264}},
+  "31":{"frame":{"x":91,"y":238,"w":52,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":140,"y":160,"w":52,"h":54},"sourceSize":{"w":264,"h":264}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_kabuto_a1_carry_drawn_walk.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 184,
+   "h": 413
+  },
+  "scale": "1"
+ }
+}

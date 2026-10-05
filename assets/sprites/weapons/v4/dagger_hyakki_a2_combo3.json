@@ -1,0 +1,174 @@
+{
+ "image": "dagger_hyakki_a2_combo3.png",
+ "action": "dagger_hyakki_a2_combo3",
+ "version": "v4-r61-growth",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "framesPerDirection": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 28.57,
+ "frameDurationsMs": [
+  30,
+  30,
+  20,
+  20,
+  35,
+  35,
+  55,
+  55
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 3,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 128,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 80,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_dagger_combo3",
+ "framesBasis": "player_dagger_combo3 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 60,
+  "cancelAt": null,
+  "total": 280,
+  "activeEndAt": 100
+ },
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 32,
+  "y": 32
+ },
+ "weapon": "dagger",
+ "branch": "hyakki",
+ "branchName": "백귀",
+ "branchLine": "사냥하는 단검",
+ "sameFrameAs": "weapons/v3/dagger_combo3_awaken",
+ "loopFrames": 6,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v4/dagger_hyakki_a1_combo3",
+ "depth": "above_a1",
+ "awakenStage": 2,
+ "design": "코등이 양쪽에서 뒤로 휘어 솟는 뼈빛 도깨비 뿔 2",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'dagger_combo3' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → dagger_hyakki_a1_combo3(1차) → dagger_hyakki_a2_combo3(2차 덧붙임) → dagger_hyakki_a2_glow_combo3(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "glowSheet": "weapons/v4/dagger_hyakki_a2_glow_combo3",
+ "pathTint": {
+  "nightwalk": [
+   172,
+   132,
+   255
+  ],
+  "onibi": [
+   100,
+   240,
+   220
+  ]
+ },
+ "trailTint": {
+  "nightwalk": [
+   172,
+   132,
+   255
+  ],
+  "onibi": [
+   100,
+   240,
+   220
+  ]
+ },
+ "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
+ "glowFrames": [],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_hyakki_a2_combo3.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [
+   0,
+   9,
+   10,
+   13,
+   14,
+   15,
+   17,
+   23
+  ],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":14,"y":24,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":17,"y":0,"w":17,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":147,"w":17,"h":20},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":24,"y":91,"w":21,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":156,"w":21,"h":11},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":73,"y":80,"w":22,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":157,"w":22,"h":11},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":0,"y":91,"w":22,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":158,"w":22,"h":11},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":0,"y":61,"w":19,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":152,"w":19,"h":16},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":56,"y":22,"w":19,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":148,"w":19,"h":18},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":36,"y":0,"w":17,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":144,"w":17,"h":20},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":21,"y":78,"w":25,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":147,"w":25,"h":11},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":14,"y":24,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":14,"y":24,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":0,"y":79,"w":19,"h":7},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":134,"w":19,"h":7},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":47,"y":91,"w":18,"h":7},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":135,"w":18,"h":7},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":14,"y":24,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":14,"y":24,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":14,"y":24,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "16":{"frame":{"x":0,"y":24,"w":12,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":141,"w":12,"h":19},"sourceSize":{"w":256,"h":256}},
+  "17":{"frame":{"x":14,"y":24,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "18":{"frame":{"x":55,"y":0,"w":17,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":137,"w":17,"h":20},"sourceSize":{"w":256,"h":256}},
+  "19":{"frame":{"x":74,"y":61,"w":16,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":140,"w":16,"h":17},"sourceSize":{"w":256,"h":256}},
+  "20":{"frame":{"x":56,"y":42,"w":16,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":140,"w":16,"h":18},"sourceSize":{"w":256,"h":256}},
+  "21":{"frame":{"x":74,"y":42,"w":17,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":140,"w":17,"h":17},"sourceSize":{"w":256,"h":256}},
+  "22":{"frame":{"x":44,"y":62,"w":19,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":142,"w":19,"h":14},"sourceSize":{"w":256,"h":256}},
+  "23":{"frame":{"x":14,"y":24,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "24":{"frame":{"x":0,"y":0,"w":15,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":125,"y":145,"w":15,"h":22},"sourceSize":{"w":256,"h":256}},
+  "25":{"frame":{"x":48,"y":78,"w":23,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":136,"y":147,"w":23,"h":11},"sourceSize":{"w":256,"h":256}},
+  "26":{"frame":{"x":74,"y":0,"w":17,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":154,"y":137,"w":17,"h":20},"sourceSize":{"w":256,"h":256}},
+  "27":{"frame":{"x":37,"y":22,"w":17,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":154,"y":139,"w":17,"h":19},"sourceSize":{"w":256,"h":256}},
+  "28":{"frame":{"x":17,"y":22,"w":18,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":153,"y":140,"w":18,"h":19},"sourceSize":{"w":256,"h":256}},
+  "29":{"frame":{"x":77,"y":22,"w":18,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":142,"w":18,"h":18},"sourceSize":{"w":256,"h":256}},
+  "30":{"frame":{"x":14,"y":43,"w":21,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":135,"y":145,"w":21,"h":16},"sourceSize":{"w":256,"h":256}},
+  "31":{"frame":{"x":21,"y":61,"w":21,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":134,"y":144,"w":21,"h":15},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_hyakki_a2_combo3.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 95,
+   "h": 102
+  },
+  "scale": "1"
+ }
+}

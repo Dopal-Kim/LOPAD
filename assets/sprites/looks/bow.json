@@ -1,0 +1,96 @@
+{
+ "weapon": "bow",
+ "version": "v4-r61-growth",
+ "angleDeg": -42,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "size": [
+  192,
+  192
+ ],
+ "displayScale": 2,
+ "note": "UI 각성 선택 화면·성장도 나무용 정지 그림(무기만·손 없음·투명). 같은 무기는 모두 같은 위치·같은 정수 배율 2 — 겹쳐 비교 가능. a2 = 덧붙임까지(빛 없음), a2_glow = 빛 마스크(회백) → UI 가 pathTint 로 곱해(setTint) a2 위에 겹침. a2_<길> = 길 강조색을 미리 구운 완성 그림(바로 쓰기)",
+ "base": "bow_base.png",
+ "branches": {
+  "rapid": {
+   "name": "속사",
+   "line": "쏟아붓는 활",
+   "a1": "bow_rapid_a1.png",
+   "a2": "bow_rapid_a2.png",
+   "a2Glow": "bow_rapid_a2_glow.png",
+   "pathTint": {
+    "split": [
+     120,
+     236,
+     220
+    ],
+    "endless": [
+     255,
+     212,
+     110
+    ]
+   },
+   "pathNames": {
+    "split": "연궁",
+    "endless": "무한통"
+   },
+   "a2ByPath": {
+    "split": "bow_rapid_a2_split.png",
+    "endless": "bow_rapid_a2_endless.png"
+   }
+  },
+  "snipe": {
+   "name": "저격",
+   "line": "한 발의 활",
+   "a1": "bow_snipe_a1.png",
+   "a2": "bow_snipe_a2.png",
+   "a2Glow": "bow_snipe_a2_glow.png",
+   "pathTint": {
+    "surehit": [
+     255,
+     80,
+     80
+    ],
+    "pierce": [
+     192,
+     230,
+     255
+    ]
+   },
+   "pathNames": {
+    "surehit": "필중",
+    "pierce": "천공"
+   },
+   "a2ByPath": {
+    "surehit": "bow_snipe_a2_surehit.png",
+    "pierce": "bow_snipe_a2_pierce.png"
+   }
+  },
+  "meteor": {
+   "name": "유성",
+   "line": "하늘을 부르는 활",
+   "a1": "bow_meteor_a1.png",
+   "a2": "bow_meteor_a2.png",
+   "a2Glow": "bow_meteor_a2_glow.png",
+   "pathTint": {
+    "starfall": [
+     200,
+     222,
+     255
+    ],
+    "comet": [
+     255,
+     150,
+     70
+    ]
+   },
+   "pathNames": {
+    "starfall": "성우",
+    "comet": "혜성"
+   },
+   "a2ByPath": {
+    "starfall": "bow_meteor_a2_starfall.png",
+    "comet": "bow_meteor_a2_comet.png"
+   }
+  }
+ }
+}

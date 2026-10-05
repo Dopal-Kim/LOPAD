@@ -1,0 +1,150 @@
+{
+ "image": "katana_kabuto_a2_glow_fall.png",
+ "action": "katana_kabuto_a2_glow_fall",
+ "version": "v4-r61-growth",
+ "frameWidth": 264,
+ "frameHeight": 264,
+ "framesPerDirection": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.91,
+ "frameDurationsMs": [
+  70,
+  50,
+  40,
+  30,
+  60,
+  130,
+  60
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 3,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 132,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 84,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_katana_fall",
+ "framesBasis": "player_katana_fall 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "total": 440,
+  "hitAt": 120,
+  "activeEndAt": 160,
+  "cancelAt": 380
+ },
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 36,
+  "y": 32
+ },
+ "weapon": "katana",
+ "branch": "kabuto",
+ "branchName": "투구가르기",
+ "branchLine": "한 놈을 쪼개는 칼",
+ "sameFrameAs": "weapons/v3/katana_fall_awaken",
+ "loopFrames": 8,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v4/katana_kabuto_a2_fall",
+ "depth": "above_a2",
+ "awakenStage": 2,
+ "design": "날선 전체 백열 줄(맥동이 칼끝으로) + 날 가운데 쪼개는 점선 + 뿔 끝",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'katana_fall' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → katana_kabuto_a1_fall(1차) → katana_kabuto_a2_fall(2차 덧붙임) → katana_kabuto_a2_glow_fall(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "tintable": true,
+ "pathTint": {
+  "ittou": [
+   255,
+   92,
+   72
+  ],
+  "meikyo": [
+   200,
+   240,
+   255
+  ]
+ },
+ "tintRule": "회백 마스크(X0·무채 G11~G13). 고른 2차 길의 pathTint 를 setTint(곱)로 입혀 a2 위에 그린다. 블렌드 보통(NORMAL) 권장 — ADD 는 어둠 속에서 과함",
+ "glowFrames": [
+  2
+ ],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_kabuto_a2_glow_fall.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 4,
+   "frameWidth": 264,
+   "frameHeight": 264,
+   "frameCount": 28
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":88,"y":0,"w":40,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":99,"w":40,"h":40},"sourceSize":{"w":264,"h":264}},
+  "1":{"frame":{"x":91,"y":220,"w":36,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":131,"w":36,"h":26},"sourceSize":{"w":264,"h":264}},
+  "2":{"frame":{"x":101,"y":277,"w":23,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":125,"y":165,"w":23,"h":22},"sourceSize":{"w":264,"h":264}},
+  "3":{"frame":{"x":37,"y":123,"w":38,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":81,"y":170,"w":38,"h":39},"sourceSize":{"w":264,"h":264}},
+  "4":{"frame":{"x":43,"y":44,"w":44,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":170,"w":44,"h":39},"sourceSize":{"w":264,"h":264}},
+  "5":{"frame":{"x":43,"y":0,"w":43,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":171,"w":43,"h":42},"sourceSize":{"w":264,"h":264}},
+  "6":{"frame":{"x":0,"y":48,"w":41,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":170,"w":41,"h":41},"sourceSize":{"w":264,"h":264}},
+  "7":{"frame":{"x":0,"y":0,"w":41,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":79,"w":41,"h":46},"sourceSize":{"w":264,"h":264}},
+  "8":{"frame":{"x":89,"y":85,"w":38,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":91,"w":38,"h":41},"sourceSize":{"w":264,"h":264}},
+  "9":{"frame":{"x":0,"y":182,"w":8,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":112,"y":162,"w":8,"h":10},"sourceSize":{"w":264,"h":264}},
+  "10":{"frame":{"x":38,"y":253,"w":30,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":142,"w":30,"h":23},"sourceSize":{"w":264,"h":264}},
+  "11":{"frame":{"x":0,"y":248,"w":36,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":158,"y":158,"w":36,"h":20},"sourceSize":{"w":264,"h":264}},
+  "12":{"frame":{"x":54,"y":197,"w":35,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":158,"y":154,"w":35,"h":28},"sourceSize":{"w":264,"h":264}},
+  "13":{"frame":{"x":35,"y":278,"w":30,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":155,"y":158,"w":30,"h":16},"sourceSize":{"w":264,"h":264}},
+  "14":{"frame":{"x":104,"y":248,"w":21,"h":27},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":110,"w":21,"h":27},"sourceSize":{"w":264,"h":264}},
+  "15":{"frame":{"x":39,"y":227,"w":31,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":74,"y":129,"w":31,"h":24},"sourceSize":{"w":264,"h":264}},
+  "16":{"frame":{"x":0,"y":197,"w":52,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":143,"w":52,"h":24},"sourceSize":{"w":264,"h":264}},
+  "17":{"frame":{"x":0,"y":223,"w":37,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":146,"w":37,"h":23},"sourceSize":{"w":264,"h":264}},
+  "18":{"frame":{"x":70,"y":274,"w":29,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":151,"w":29,"h":23},"sourceSize":{"w":264,"h":264}},
+  "19":{"frame":{"x":72,"y":248,"w":30,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":152,"w":30,"h":24},"sourceSize":{"w":264,"h":264}},
+  "20":{"frame":{"x":0,"y":270,"w":33,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":152,"w":33,"h":21},"sourceSize":{"w":264,"h":264}},
+  "21":{"frame":{"x":92,"y":171,"w":22,"h":47},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":139,"y":72,"w":22,"h":47},"sourceSize":{"w":264,"h":264}},
+  "22":{"frame":{"x":77,"y":128,"w":36,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":155,"y":93,"w":36,"h":41},"sourceSize":{"w":264,"h":264}},
+  "23":{"frame":{"x":37,"y":171,"w":53,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":171,"y":140,"w":53,"h":24},"sourceSize":{"w":264,"h":264}},
+  "24":{"frame":{"x":43,"y":85,"w":44,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":164,"w":44,"h":36},"sourceSize":{"w":264,"h":264}},
+  "25":{"frame":{"x":0,"y":138,"w":35,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":146,"y":173,"w":35,"h":42},"sourceSize":{"w":264,"h":264}},
+  "26":{"frame":{"x":0,"y":91,"w":35,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":145,"y":173,"w":35,"h":45},"sourceSize":{"w":264,"h":264}},
+  "27":{"frame":{"x":89,"y":42,"w":39,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":170,"w":39,"h":41},"sourceSize":{"w":264,"h":264}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_kabuto_a2_glow_fall.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 128,
+   "h": 299
+  },
+  "scale": "1"
+ }
+}

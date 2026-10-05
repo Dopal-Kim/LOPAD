@@ -1,0 +1,118 @@
+{
+ "image": "bow_snipe_a1_carry_dash.png",
+ "action": "bow_snipe_a1_carry_dash",
+ "version": "v4-r61-growth",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "framesPerDirection": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.83,
+ "frameDurationsMs": [
+  30,
+  40,
+  60,
+  60,
+  50
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 10,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 128,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 80,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_dash",
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 32,
+  "y": 32
+ },
+ "weapon": "bow",
+ "branch": "snipe",
+ "branchName": "저격",
+ "branchLine": "한 발의 활",
+ "sameFrameAs": "weapons/v3/bow_carry_dash_awaken",
+ "loopFrames": 6,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v3/bow_carry_dash",
+ "depth": "above_weapon",
+ "awakenStage": 1,
+ "design": "활대 양 끝이 바깥으로 12 더 길게 뻗은 긴 활(장궁, 끝이 살짝 뒤로) · 줌통 앞 기둥 위 고리 조준기(지름 7, 붉은 점) / 색: 재 → 흉갑 쇠(SL) + 은백 끝 + 진홍 렌즈",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'bow_carry_dash' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → bow_snipe_a1_carry_dash(1차) → bow_snipe_a2_carry_dash(2차 덧붙임) → bow_snipe_a2_glow_carry_dash(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "glowRule": "glowFrames(무기 시트 판정 순간)에 가장 밝음",
+ "glowFrames": [],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_snipe_a1_carry_dash.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":28,"y":72,"w":20,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":153,"w":20,"h":59},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":0,"y":86,"w":26,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":130,"w":26,"h":83},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":0,"y":171,"w":24,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":130,"w":24,"h":83},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":0,"y":0,"w":25,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":130,"w":25,"h":84},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":27,"y":0,"w":21,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":146,"w":21,"h":70},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":26,"y":187,"w":18,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":144,"w":18,"h":51},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":19,"y":883,"w":16,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":143,"w":16,"h":51},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":0,"y":936,"w":16,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":143,"w":16,"h":51},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":28,"y":133,"w":17,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":143,"w":17,"h":52},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":0,"y":883,"w":17,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":149,"w":17,"h":51},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":0,"y":472,"w":47,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":132,"w":47,"h":70},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":0,"y":256,"w":48,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":130,"w":48,"h":70},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":0,"y":328,"w":48,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":84,"y":126,"w":48,"h":70},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":0,"y":544,"w":48,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":125,"w":48,"h":69},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":0,"y":400,"w":48,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":126,"w":48,"h":70},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":0,"y":749,"w":47,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":131,"w":47,"h":65},"sourceSize":{"w":256,"h":256}},
+  "16":{"frame":{"x":0,"y":816,"w":47,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":129,"w":47,"h":65},"sourceSize":{"w":256,"h":256}},
+  "17":{"frame":{"x":0,"y":615,"w":48,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":126,"w":48,"h":65},"sourceSize":{"w":256,"h":256}},
+  "18":{"frame":{"x":0,"y":682,"w":48,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":125,"y":128,"w":48,"h":65},"sourceSize":{"w":256,"h":256}},
+  "19":{"frame":{"x":0,"y":989,"w":34,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":147,"w":34,"h":42},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_snipe_a1_carry_dash.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 48,
+   "h": 1031
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,89 @@
+{
+ "image": "katana_mangetsu_a1_spin.png",
+ "action": "katana_mangetsu_a1_spin",
+ "version": "v4-r61-growth",
+ "frameWidth": 264,
+ "frameHeight": 264,
+ "frames": 15,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.85,
+ "frameDurationsMs": [
+  50,
+  70,
+  70,
+  70,
+  70,
+  70,
+  40,
+  40,
+  40,
+  40,
+  40,
+  50,
+  110,
+  60,
+  70
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 14,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 132,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 84,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_katana_spin",
+ "framesBasis": "player_katana_spin 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "total": 890,
+  "hitAt": 440,
+  "activeEndAt": 600,
+  "cancelAt": 760
+ },
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 36,
+  "y": 32
+ },
+ "weapon": "katana",
+ "branch": "mangetsu",
+ "branchName": "만월",
+ "branchLine": "받아치는 칼",
+ "sameFrameAs": "weapons/v3/katana_spin_awaken",
+ "loopFrames": 8,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v3/katana_spin",
+ "depth": "above_weapon",
+ "awakenStage": 1,
+ "design": "60라운드 최종 각성 '월인' 재사용 — 날 55 → 빛날 포함 95도트(초승달처럼 등 쪽으로 크게 휨), 코등이 = 지름 15 보름달 원반(차고 기움), 달 조각 3개가 칼등 위에 뜸 / 색: 재·호박 → 은백(8층 램프). 손잡이→칼끝으로 쓸려가는 X1 앞줄(0~55%), 뒤이어 빛날이 칼끝에서 자람(55~100%). 순환 = 은빛 맥동이 코등이→빛날 끝으로 흐르고 원반이 8프레임에 한 번 차고 기움",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'katana_spin' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → katana_mangetsu_a1_spin(1차) → katana_mangetsu_a2_spin(2차 덧붙임) → katana_mangetsu_a2_glow_spin(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "reusedFrom": "weapons/v3/katana_spin_awaken",
+ "glowRule": "glowFrames(무기 시트 판정 순간)에 가장 밝음",
+ "glowFrames": [
+  7,
+  8,
+  9,
+  10
+ ]
+}

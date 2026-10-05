@@ -223,7 +223,7 @@ def atlas_loader(rev, rel_dir):
 
 
 def verify_sprites(args, orig):
-    atlases = sorted(glob(os.path.join(args.root, "*", "v3", "*.json")))
+    atlases = sorted(glob(os.path.join(args.root, "*", "v3", "*.json")) + glob(os.path.join(args.root, "*", "v4", "*.json")))  # 61 단계 4: v4(각성 외형) 포함
     pairs, fmt_errs, no_orig = [], 0, []
     based = load_baseline() if not args.src else {}
     apairs = []  # (rel, 현재 경로, 기준 커밋, 기준 아틀라스, 현재 아틀라스)
@@ -341,7 +341,7 @@ def rebase(args, orig):
     rev = subprocess.run(["git", "-C", ROOT, "rev-parse", args.rev], capture_output=True, text=True, check=True).stdout.strip()
     data = json.load(open(BASELINE, encoding="utf-8")) if os.path.exists(BASELINE) else {}
     sheets = dict(data.get("sheets", {}))
-    atlases = sorted(glob(os.path.join(args.root, "*", "v3", "*.json")))
+    atlases = sorted(glob(os.path.join(args.root, "*", "v3", "*.json")) + glob(os.path.join(args.root, "*", "v4", "*.json")))  # 61 단계 4: v4(각성 외형) 포함
     moved, skipped = [], []
     for ap_ in atlases:
         rel = os.path.relpath(ap_, args.root)

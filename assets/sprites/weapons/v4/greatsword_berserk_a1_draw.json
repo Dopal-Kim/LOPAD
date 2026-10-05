@@ -1,0 +1,130 @@
+{
+ "image": "greatsword_berserk_a1_draw.png",
+ "action": "greatsword_berserk_a1_draw",
+ "version": "v4-r61-growth",
+ "frameWidth": 320,
+ "frameHeight": 336,
+ "framesPerDirection": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 17.5,
+ "frameDurationsMs": [
+  45,
+  45,
+  55,
+  55,
+  45,
+  45,
+  110
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 13,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 159,
+  "y": 241
+ },
+ "playerFrameOffset": {
+  "x": 111,
+  "y": 103
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_greatsword_draw",
+ "framesBasis": "player_greatsword_draw 프레임 번호 (몸·무기 공통)",
+ "weaponSheetPivot": {
+  "x": 119,
+  "y": 209
+ },
+ "pivotDelta": {
+  "x": 40,
+  "y": 32
+ },
+ "weapon": "greatsword",
+ "branch": "berserk",
+ "branchName": "광전",
+ "branchLine": "몰아치는 대검",
+ "sameFrameAs": "weapons/v3/greatsword_draw_awaken",
+ "loopFrames": 10,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v3/greatsword_draw",
+ "depth": "above_weapon",
+ "awakenStage": 1,
+ "design": "60라운드 최종 각성 '핏빛 거암검' 재사용 + 보정: 날을 두 번 감은 쇠사슬(u 34·62) · 코등이에서 늘어져 흔들리는 사슬 — G-A 와 같음 — 날 90×폭 9 → 108×최대 19의 들쭉날쭉한 바위 판 · 등날 바위 가시 4개 · 갈래 균열 5줄 · 깨진 바위 촉. 균열은 비어 있으면 검은 틈, 차면 피 / 색: 녹슨 쇠 → 검붉은 현무암(G2~G7 + 마른 피 얼룩 CRI2) + 균열 속 피(진홍 CRI3~7, 젖은 반사 X1 점). 전환: 균열이 먼저 갈라져 검게 열리고(5~45%) 피가 스미며 판이 부풂(35~100%). 순환 10프레임(80ms) = 피가 손잡이→칼끝으로 균열을 채움(0~5) → 넘쳐 터짐(6: 균열 끝마다 피 줄기·방울 분출) → 흘러내리며 빠짐(7~9, 날 아래로 방울)",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'greatsword_draw' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → greatsword_berserk_a1_draw(1차) → greatsword_berserk_a2_draw(2차 덧붙임) → greatsword_berserk_a2_glow_draw(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "reusedFrom": "weapons/v3/greatsword_draw_awaken",
+ "glowRule": "glowFrames(무기 시트 판정 순간)에 가장 밝음",
+ "glowFrames": [],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 greatsword_berserk_a1_draw.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 4,
+   "frameWidth": 320,
+   "frameHeight": 336,
+   "frameCount": 28
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":349,"y":152,"w":46,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":165,"y":168,"w":46,"h":64},"sourceSize":{"w":320,"h":336}},
+  "1":{"frame":{"x":119,"y":262,"w":60,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":158,"y":127,"w":60,"h":32},"sourceSize":{"w":320,"h":336}},
+  "2":{"frame":{"x":0,"y":110,"w":29,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":140,"y":75,"w":29,"h":61},"sourceSize":{"w":320,"h":336}},
+  "3":{"frame":{"x":236,"y":159,"w":111,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":96,"w":111,"h":64},"sourceSize":{"w":320,"h":336}},
+  "4":{"frame":{"x":390,"y":0,"w":34,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":117,"w":34,"h":38},"sourceSize":{"w":320,"h":336}},
+  "5":{"frame":{"x":349,"y":218,"w":53,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":109,"y":168,"w":53,"h":46},"sourceSize":{"w":320,"h":336}},
+  "6":{"frame":{"x":252,"y":0,"w":102,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":191,"w":102,"h":78},"sourceSize":{"w":320,"h":336}},
+  "7":{"frame":{"x":33,"y":0,"w":84,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":140,"w":84,"h":104},"sourceSize":{"w":320,"h":336}},
+  "8":{"frame":{"x":149,"y":90,"w":85,"h":74},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":139,"w":85,"h":74},"sourceSize":{"w":320,"h":336}},
+  "9":{"frame":{"x":397,"y":152,"w":31,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":130,"w":31,"h":24},"sourceSize":{"w":320,"h":336}},
+  "10":{"frame":{"x":127,"y":166,"w":103,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":165,"y":92,"w":103,"h":58},"sourceSize":{"w":320,"h":336}},
+  "11":{"frame":{"x":119,"y":0,"w":28,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":44,"w":28,"h":91},"sourceSize":{"w":320,"h":336}},
+  "12":{"frame":{"x":390,"y":40,"w":38,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":171,"y":130,"w":38,"h":37},"sourceSize":{"w":320,"h":336}},
+  "13":{"frame":{"x":232,"y":225,"w":91,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":171,"y":188,"w":91,"h":45},"sourceSize":{"w":320,"h":336}},
+  "14":{"frame":{"x":0,"y":0,"w":31,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":157,"y":147,"w":31,"h":108},"sourceSize":{"w":320,"h":336}},
+  "15":{"frame":{"x":346,"y":80,"w":80,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":162,"y":134,"w":80,"h":70},"sourceSize":{"w":320,"h":336}},
+  "16":{"frame":{"x":0,"y":220,"w":112,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":158,"y":103,"w":112,"h":41},"sourceSize":{"w":320,"h":336}},
+  "17":{"frame":{"x":221,"y":0,"w":29,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":140,"y":58,"w":29,"h":84},"sourceSize":{"w":320,"h":336}},
+  "18":{"frame":{"x":33,"y":106,"w":92,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":79,"w":92,"h":67},"sourceSize":{"w":320,"h":336}},
+  "19":{"frame":{"x":181,"y":272,"w":100,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":144,"w":100,"h":29},"sourceSize":{"w":320,"h":336}},
+  "20":{"frame":{"x":325,"y":266,"w":62,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":182,"w":62,"h":37},"sourceSize":{"w":320,"h":336}},
+  "21":{"frame":{"x":356,"y":0,"w":32,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":134,"y":151,"w":32,"h":69},"sourceSize":{"w":320,"h":336}},
+  "22":{"frame":{"x":114,"y":226,"w":95,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":132,"w":95,"h":34},"sourceSize":{"w":320,"h":336}},
+  "23":{"frame":{"x":0,"y":175,"w":120,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":108,"w":120,"h":43},"sourceSize":{"w":320,"h":336}},
+  "24":{"frame":{"x":397,"y":178,"w":31,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":127,"w":31,"h":17},"sourceSize":{"w":320,"h":336}},
+  "25":{"frame":{"x":252,"y":80,"w":92,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":172,"y":81,"w":92,"h":77},"sourceSize":{"w":320,"h":336}},
+  "26":{"frame":{"x":0,"y":263,"w":117,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":156,"y":161,"w":117,"h":34},"sourceSize":{"w":320,"h":336}},
+  "27":{"frame":{"x":149,"y":0,"w":70,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":187,"w":70,"h":88},"sourceSize":{"w":320,"h":336}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "greatsword_berserk_a1_draw.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 428,
+   "h": 303
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,96 @@
+{
+ "weapon": "greatsword",
+ "version": "v4-r61-growth",
+ "angleDeg": -42,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "size": [
+  192,
+  192
+ ],
+ "displayScale": 1,
+ "note": "UI 각성 선택 화면·성장도 나무용 정지 그림(무기만·손 없음·투명). 같은 무기는 모두 같은 위치·같은 정수 배율 1 — 겹쳐 비교 가능. a2 = 덧붙임까지(빛 없음), a2_glow = 빛 마스크(회백) → UI 가 pathTint 로 곱해(setTint) a2 위에 겹침. a2_<길> = 길 강조색을 미리 구운 완성 그림(바로 쓰기)",
+ "base": "greatsword_base.png",
+ "branches": {
+  "crush": {
+   "name": "파쇄",
+   "line": "뛰어올라 땅을 깨는 대검",
+   "a1": "greatsword_crush_a1.png",
+   "a2": "greatsword_crush_a2.png",
+   "a2Glow": "greatsword_crush_a2_glow.png",
+   "pathTint": {
+    "quake": [
+     255,
+     168,
+     60
+    ],
+    "echo": [
+     110,
+     232,
+     214
+    ]
+   },
+   "pathNames": {
+    "quake": "지진",
+    "echo": "반향"
+   },
+   "a2ByPath": {
+    "quake": "greatsword_crush_a2_quake.png",
+    "echo": "greatsword_crush_a2_echo.png"
+   }
+  },
+  "weight": {
+   "name": "중압",
+   "line": "맞받아치는 벽",
+   "a1": "greatsword_weight_a1.png",
+   "a2": "greatsword_weight_a2.png",
+   "a2Glow": "greatsword_weight_a2_glow.png",
+   "pathTint": {
+    "giant": [
+     255,
+     210,
+     100
+    ],
+    "congest": [
+     232,
+     70,
+     84
+    ]
+   },
+   "pathNames": {
+    "giant": "거인",
+    "congest": "울혈"
+   },
+   "a2ByPath": {
+    "giant": "greatsword_weight_a2_giant.png",
+    "congest": "greatsword_weight_a2_congest.png"
+   }
+  },
+  "berserk": {
+   "name": "광전",
+   "line": "몰아치는 대검",
+   "a1": "greatsword_berserk_a1.png",
+   "a2": "greatsword_berserk_a2.png",
+   "a2Glow": "greatsword_berserk_a2_glow.png",
+   "pathTint": {
+    "bloodwind": [
+     255,
+     64,
+     64
+    ],
+    "ironpeak": [
+     170,
+     204,
+     255
+    ]
+   },
+   "pathNames": {
+    "bloodwind": "혈풍",
+    "ironpeak": "철산"
+   },
+   "a2ByPath": {
+    "bloodwind": "greatsword_berserk_a2_bloodwind.png",
+    "ironpeak": "greatsword_berserk_a2_ironpeak.png"
+   }
+  }
+ }
+}

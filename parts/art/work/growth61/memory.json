@@ -1,0 +1,117 @@
+{
+ "branches": {
+  "katana_senpu": {
+   "a1MB": 3.38,
+   "a2MB": 1.93,
+   "a2GlowMB": 3.14,
+   "totalMB": 8.44,
+   "awakenSetMB": 6.85,
+   "awakenSetLiveMB": 6.85,
+   "ratio": 1.233
+  },
+  "katana_kabuto": {
+   "a1MB": 3.92,
+   "a2MB": 2.01,
+   "a2GlowMB": 2.11,
+   "totalMB": 8.05,
+   "awakenSetMB": 6.85,
+   "awakenSetLiveMB": 6.85,
+   "ratio": 1.175
+  },
+  "katana_mangetsu": {
+   "a1MB": 6.84,
+   "a2MB": 1.41,
+   "a2GlowMB": 1.09,
+   "totalMB": 9.34,
+   "awakenSetMB": 6.85,
+   "awakenSetLiveMB": 6.85,
+   "ratio": 1.363
+  },
+  "greatsword_crush": {
+   "a1MB": 14.58,
+   "a2MB": 7.9,
+   "a2GlowMB": 7.71,
+   "totalMB": 30.19,
+   "awakenSetMB": 21.72,
+   "awakenSetLiveMB": 20.02,
+   "ratio": 1.39
+  },
+  "greatsword_weight": {
+   "a1MB": 16.83,
+   "a2MB": 9.1,
+   "a2GlowMB": 2.87,
+   "totalMB": 28.8,
+   "awakenSetMB": 21.72,
+   "awakenSetLiveMB": 20.02,
+   "ratio": 1.326
+  },
+  "greatsword_berserk": {
+   "a1MB": 23.25,
+   "a2MB": 1.78,
+   "a2GlowMB": 0.89,
+   "totalMB": 25.92,
+   "awakenSetMB": 21.72,
+   "awakenSetLiveMB": 20.02,
+   "ratio": 1.193
+  },
+  "dagger_twin": {
+   "a1MB": 0.69,
+   "a2MB": 0.76,
+   "a2GlowMB": 0.8,
+   "totalMB": 2.25,
+   "awakenSetMB": 1.84,
+   "awakenSetLiveMB": 1.84,
+   "ratio": 1.222
+  },
+  "dagger_gale": {
+   "a1MB": 0.69,
+   "a2MB": 0.67,
+   "a2GlowMB": 0.92,
+   "totalMB": 2.28,
+   "awakenSetMB": 1.84,
+   "awakenSetLiveMB": 1.84,
+   "ratio": 1.239
+  },
+  "dagger_hyakki": {
+   "a1MB": 1.86,
+   "a2MB": 0.32,
+   "a2GlowMB": 0.32,
+   "totalMB": 2.5,
+   "awakenSetMB": 1.84,
+   "awakenSetLiveMB": 1.84,
+   "ratio": 1.358
+  },
+  "bow_rapid": {
+   "a1MB": 2.53,
+   "a2MB": 1.61,
+   "a2GlowMB": 1.81,
+   "totalMB": 5.95,
+   "awakenSetMB": 4.49,
+   "awakenSetLiveMB": 4.49,
+   "ratio": 1.325
+  },
+  "bow_snipe": {
+   "a1MB": 3.14,
+   "a2MB": 0.47,
+   "a2GlowMB": 0.14,
+   "totalMB": 3.74,
+   "awakenSetMB": 4.49,
+   "awakenSetLiveMB": 4.49,
+   "ratio": 0.834
+  },
+  "bow_meteor": {
+   "a1MB": 4.49,
+   "a2MB": 0.72,
+   "a2GlowMB": 0.65,
+   "totalMB": 5.85,
+   "awakenSetMB": 4.49,
+   "awakenSetLiveMB": 4.49,
+   "ratio": 1.304
+  }
+ },
+ "fx": {
+  "awaken1_crack": 1.313,
+  "awaken2_bloom": 1.006
+ },
+ "rule": "갈래 하나(a1+a2+a2_glow) ≤ 기존 _awaken 세트 × 1.5 (아틀라스 페이지 RGBA 기준)"
+}

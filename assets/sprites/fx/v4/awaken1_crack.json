@@ -1,0 +1,133 @@
+{
+ "image": "awaken1_crack.png",
+ "action": "awaken1_crack",
+ "version": "v4-r61-growth",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "framesPerDirection": 12,
+ "directions": [
+  "main"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.0,
+ "frameDurationsMs": [
+  60,
+  60,
+  60,
+  70,
+  70,
+  50,
+  50,
+  60,
+  70,
+  80,
+  80,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "anchor": "player_pivot",
+ "offsetDots": {
+  "x": 0,
+  "y": -60
+ },
+ "pivot": {
+  "x": 128,
+  "y": 128
+ },
+ "followPlayer": true,
+ "axisDeg": -40,
+ "rotate": "allowed",
+ "rotateRule": "그림의 무기 축 = 화면 −40°(오른쪽 위). 무기 쥔 방향에 맞추려면 (무기 각도 − (−40°)) 만큼 회전, 아니면 그대로",
+ "tintable": true,
+ "tintRule": "회백(X0·무채 G)만 — 시스템이 갈래·길 강조색을 setTint(곱)로 입힌다(1차 = 갈래 대표색, 2차 = pathTint[길]). 흰 그대로도 됨",
+ "depth": "above_player",
+ "drawOver": "lightmap",
+ "weapon": "all",
+ "p12": "61 단계 4 P12 — 계약 art §26",
+ "usage": "1차 각성 순간(게임 정지 0.8초) — 1회. 4프레임(번쩍)에 a1 오버레이를 켠다(그 전은 기본 무기)",
+ "durationMs": 800,
+ "frameRoles": {
+  "crack": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "flash": [
+   4
+  ],
+  "shatter": [
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11
+  ]
+ },
+ "swapFrame": 4,
+ "swapRule": "swapFrame 시작에 무기 오버레이를 기본 → <무기>_<갈래>_a1 로 바꾼다",
+ "sfxHint": "0 금 가는 소리 · 4 깨짐",
+ "shakeHint": {
+  "frame": 4,
+  "px": 4,
+  "ms": 160
+ },
+ "glowFrames": [
+  4,
+  5
+ ],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 awaken1_crack.png)",
+  "grid": {
+   "columns": 12,
+   "rows": 1,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 12
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":239,"y":376,"w":114,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":80,"w":114,"h":96},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":258,"y":104,"w":114,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":80,"w":114,"h":96},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":207,"y":616,"w":114,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":80,"w":114,"h":96},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":180,"y":714,"w":114,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":80,"w":114,"h":96},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":180,"y":812,"w":114,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":80,"w":114,"h":96},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":258,"y":0,"w":121,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":67,"y":77,"w":121,"h":102},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":239,"y":257,"w":135,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":60,"y":69,"w":135,"h":117},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":207,"y":479,"w":154,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":50,"y":60,"w":154,"h":135},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":0,"y":668,"w":178,"h":159},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":48,"w":178,"h":159},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":0,"y":479,"w":205,"h":187},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":34,"w":205,"h":187},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":0,"y":257,"w":237,"h":220},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":18,"w":237,"h":220},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":0,"y":0,"w":256,"h":255},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":1,"w":256,"h":255},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "awaken1_crack.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 379,
+   "h": 908
+  },
+  "scale": "1"
+ }
+}

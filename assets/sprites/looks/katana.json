@@ -1,0 +1,96 @@
+{
+ "weapon": "katana",
+ "version": "v4-r61-growth",
+ "angleDeg": -36,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "size": [
+  192,
+  192
+ ],
+ "displayScale": 2,
+ "note": "UI 각성 선택 화면·성장도 나무용 정지 그림(무기만·손 없음·투명). 같은 무기는 모두 같은 위치·같은 정수 배율 2 — 겹쳐 비교 가능. a2 = 덧붙임까지(빛 없음), a2_glow = 빛 마스크(회백) → UI 가 pathTint 로 곱해(setTint) a2 위에 겹침. a2_<길> = 길 강조색을 미리 구운 완성 그림(바로 쓰기)",
+ "base": "katana_base.png",
+ "branches": {
+  "senpu": {
+   "name": "선풍",
+   "line": "무리 한가운데로 파고드는 칼",
+   "a1": "katana_senpu_a1.png",
+   "a2": "katana_senpu_a2.png",
+   "a2Glow": "katana_senpu_a2_glow.png",
+   "pathTint": {
+    "whirl": [
+     196,
+     228,
+     255
+    ],
+    "zangetsu": [
+     255,
+     212,
+     110
+    ]
+   },
+   "pathNames": {
+    "whirl": "회오리",
+    "zangetsu": "잔월"
+   },
+   "a2ByPath": {
+    "whirl": "katana_senpu_a2_whirl.png",
+    "zangetsu": "katana_senpu_a2_zangetsu.png"
+   }
+  },
+  "kabuto": {
+   "name": "투구가르기",
+   "line": "한 놈을 쪼개는 칼",
+   "a1": "katana_kabuto_a1.png",
+   "a2": "katana_kabuto_a2.png",
+   "a2Glow": "katana_kabuto_a2_glow.png",
+   "pathTint": {
+    "ittou": [
+     255,
+     92,
+     72
+    ],
+    "meikyo": [
+     200,
+     240,
+     255
+    ]
+   },
+   "pathNames": {
+    "ittou": "일도양단",
+    "meikyo": "명경"
+   },
+   "a2ByPath": {
+    "ittou": "katana_kabuto_a2_ittou.png",
+    "meikyo": "katana_kabuto_a2_meikyo.png"
+   }
+  },
+  "mangetsu": {
+   "name": "만월",
+   "line": "받아치는 칼",
+   "a1": "katana_mangetsu_a1.png",
+   "a2": "katana_mangetsu_a2.png",
+   "a2Glow": "katana_mangetsu_a2_glow.png",
+   "pathTint": {
+    "sakugetsu": [
+     176,
+     150,
+     255
+    ],
+    "hozuki": [
+     255,
+     226,
+     140
+    ]
+   },
+   "pathNames": {
+    "sakugetsu": "삭월",
+    "hozuki": "보름"
+   },
+   "a2ByPath": {
+    "sakugetsu": "katana_mangetsu_a2_sakugetsu.png",
+    "hozuki": "katana_mangetsu_a2_hozuki.png"
+   }
+  }
+ }
+}

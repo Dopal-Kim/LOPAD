@@ -1,0 +1,191 @@
+{
+ "image": "bow_rapid_a2_arrow_rain.png",
+ "action": "bow_rapid_a2_arrow_rain",
+ "version": "v4-r61-growth",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "framesPerDirection": 12,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 18.75,
+ "frameDurationsMs": [
+  50,
+  60,
+  40,
+  40,
+  40,
+  40,
+  40,
+  40,
+  40,
+  70,
+  80,
+  100
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 9,
+ "semiTransparent": false,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "pivot": {
+  "x": 128,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 80,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_bow_arrow_rain",
+ "framesBasis": "player_bow_arrow_rain 프레임 번호(몸·무기·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "total": 640,
+  "releasesAt": [
+   110,
+   230,
+   350
+  ],
+  "cancelAt": 390
+ },
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 32,
+  "y": 32
+ },
+ "weapon": "bow",
+ "branch": "rapid",
+ "branchName": "속사",
+ "branchLine": "쏟아붓는 활",
+ "sameFrameAs": "weapons/v3/bow_arrow_rain_awaken",
+ "loopFrames": 6,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v4/bow_rapid_a1_arrow_rain",
+ "depth": "above_a1",
+ "awakenStage": 2,
+ "design": "활대 양 끝 바퀴(도르래 캠, 살 4) · 아래 활대에 화살통 상자 + 깃 3",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'bow_arrow_rain' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → bow_rapid_a1_arrow_rain(1차) → bow_rapid_a2_arrow_rain(2차 덧붙임) → bow_rapid_a2_glow_arrow_rain(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "glowSheet": "weapons/v4/bow_rapid_a2_glow_arrow_rain",
+ "pathTint": {
+  "split": [
+   120,
+   236,
+   220
+  ],
+  "endless": [
+   255,
+   212,
+   110
+  ]
+ },
+ "trailTint": {
+  "split": [
+   120,
+   236,
+   220
+  ],
+  "endless": [
+   255,
+   212,
+   110
+  ]
+ },
+ "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
+ "glowFrames": [],
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_rapid_a2_arrow_rain.png)",
+  "grid": {
+   "columns": 12,
+   "rows": 4,
+   "frameWidth": 256,
+   "frameHeight": 256,
+   "frameCount": 48
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [
+   14,
+   20
+  ],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":30,"y":1280,"w":19,"h":74},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":134,"y":83,"w":19,"h":74},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":0,"y":1064,"w":26,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":80,"w":26,"h":62},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":0,"y":1128,"w":26,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":129,"y":77,"w":26,"h":61},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":0,"y":944,"w":35,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":123,"y":82,"w":35,"h":54},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":0,"y":1193,"w":28,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":126,"y":85,"w":28,"h":55},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":0,"y":1280,"w":28,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":81,"w":28,"h":54},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":0,"y":877,"w":30,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":75,"w":30,"h":65},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":32,"y":877,"w":25,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":129,"y":78,"w":25,"h":65},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":28,"y":1064,"w":25,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":130,"y":75,"w":25,"h":64},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":28,"y":1130,"w":26,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":129,"y":77,"w":26,"h":61},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":33,"y":1356,"w":13,"h":73},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":110,"w":13,"h":73},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":17,"y":1356,"w":14,"h":73},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":110,"w":14,"h":73},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":51,"y":1280,"w":10,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":111,"y":86,"w":10,"h":16},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":38,"y":528,"w":12,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":111,"y":81,"w":12,"h":17},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":60,"y":0,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":30,"y":1193,"w":29,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":68,"w":29,"h":53},"sourceSize":{"w":256,"h":256}},
+  "16":{"frame":{"x":38,"y":484,"w":14,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":112,"y":80,"w":14,"h":42},"sourceSize":{"w":256,"h":256}},
+  "17":{"frame":{"x":16,"y":1431,"w":30,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":100,"w":30,"h":18},"sourceSize":{"w":256,"h":256}},
+  "18":{"frame":{"x":38,"y":547,"w":7,"h":6},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":72,"w":7,"h":6},"sourceSize":{"w":256,"h":256}},
+  "19":{"frame":{"x":16,"y":1451,"w":12,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":110,"y":82,"w":12,"h":17},"sourceSize":{"w":256,"h":256}},
+  "20":{"frame":{"x":60,"y":0,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
+  "21":{"frame":{"x":37,"y":991,"w":7,"h":7},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":95,"w":7,"h":7},"sourceSize":{"w":256,"h":256}},
+  "22":{"frame":{"x":38,"y":647,"w":13,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":89,"w":13,"h":46},"sourceSize":{"w":256,"h":256}},
+  "23":{"frame":{"x":37,"y":944,"w":14,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":89,"w":14,"h":45},"sourceSize":{"w":256,"h":256}},
+  "24":{"frame":{"x":0,"y":484,"w":36,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":88,"w":36,"h":69},"sourceSize":{"w":256,"h":256}},
+  "25":{"frame":{"x":0,"y":0,"w":58,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":92,"w":58,"h":53},"sourceSize":{"w":256,"h":256}},
+  "26":{"frame":{"x":0,"y":232,"w":57,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":88,"w":57,"h":52},"sourceSize":{"w":256,"h":256}},
+  "27":{"frame":{"x":0,"y":434,"w":56,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":90,"w":56,"h":48},"sourceSize":{"w":256,"h":256}},
+  "28":{"frame":{"x":0,"y":340,"w":61,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":96,"w":61,"h":45},"sourceSize":{"w":256,"h":256}},
+  "29":{"frame":{"x":0,"y":387,"w":61,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":91,"w":61,"h":45},"sourceSize":{"w":256,"h":256}},
+  "30":{"frame":{"x":0,"y":171,"w":51,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":86,"w":51,"h":59},"sourceSize":{"w":256,"h":256}},
+  "31":{"frame":{"x":0,"y":55,"w":54,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":92,"w":54,"h":56},"sourceSize":{"w":256,"h":256}},
+  "32":{"frame":{"x":0,"y":113,"w":54,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":84,"y":87,"w":54,"h":56},"sourceSize":{"w":256,"h":256}},
+  "33":{"frame":{"x":0,"y":286,"w":57,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":84,"y":87,"w":57,"h":52},"sourceSize":{"w":256,"h":256}},
+  "34":{"frame":{"x":48,"y":1356,"w":12,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":99,"w":12,"h":72},"sourceSize":{"w":256,"h":256}},
+  "35":{"frame":{"x":0,"y":1336,"w":15,"h":73},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":99,"w":15,"h":73},"sourceSize":{"w":256,"h":256}},
+  "36":{"frame":{"x":0,"y":647,"w":36,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":90,"w":36,"h":62},"sourceSize":{"w":256,"h":256}},
+  "37":{"frame":{"x":0,"y":711,"w":56,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":110,"y":100,"w":56,"h":39},"sourceSize":{"w":256,"h":256}},
+  "38":{"frame":{"x":0,"y":837,"w":56,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":95,"w":56,"h":38},"sourceSize":{"w":256,"h":256}},
+  "39":{"frame":{"x":0,"y":1250,"w":55,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":112,"y":100,"w":55,"h":28},"sourceSize":{"w":256,"h":256}},
+  "40":{"frame":{"x":0,"y":1000,"w":60,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":103,"w":60,"h":31},"sourceSize":{"w":256,"h":256}},
+  "41":{"frame":{"x":0,"y":1033,"w":60,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":109,"y":99,"w":60,"h":29},"sourceSize":{"w":256,"h":256}},
+  "42":{"frame":{"x":0,"y":792,"w":50,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":94,"w":50,"h":43},"sourceSize":{"w":256,"h":256}},
+  "43":{"frame":{"x":0,"y":555,"w":53,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":98,"w":53,"h":44},"sourceSize":{"w":256,"h":256}},
+  "44":{"frame":{"x":0,"y":601,"w":52,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":93,"w":52,"h":44},"sourceSize":{"w":256,"h":256}},
+  "45":{"frame":{"x":0,"y":752,"w":57,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":94,"w":57,"h":38},"sourceSize":{"w":256,"h":256}},
+  "46":{"frame":{"x":48,"y":1430,"w":12,"h":71},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":157,"y":97,"w":12,"h":71},"sourceSize":{"w":256,"h":256}},
+  "47":{"frame":{"x":0,"y":1411,"w":14,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":157,"y":98,"w":14,"h":70},"sourceSize":{"w":256,"h":256}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bow_rapid_a2_arrow_rain.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 61,
+   "h": 1501
+  },
+  "scale": "1"
+ }
+}

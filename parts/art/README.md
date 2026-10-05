@@ -48,6 +48,7 @@ python3 parts/art/work/fx_concept/build.py     # 42라운드 FX 콘셉트 시트
 python3 parts/art/work/fx_prod/build_a.py      # 43라운드 양산 A: 칼 7·대검 7·공통 10 시트 + preview_a*.png (fx_concept/build.py 를 import, player/weapons/enemies/bosses/tiles png 를 읽는다)
 python3 parts/art/work/fx_prod/build_b.py      # 43라운드 양산 B: 단검·활·보조 23 시트 + preview_b*.png (player/enemies/weapons/tiles png 를 읽는다)
 python3 parts/art/work/struct61/build.py        # 61라운드 단계 2: 구조물 v1→v3 26시트(아틀라스) · 1층 5지역 타일 임시 칸 재작업 · 방 변주 소품 17 (--dry, --only structs,tiles,props)
+python3 parts/art/work/growth61/build.py       # 61라운드 단계 4(P12): 무기 1차·2차 각성 외형 — looks 정지 그림 · weapons/v4 오버레이 531 · fx/v4 각성 연출 2 (단계: looks sheets fx publish verify memory preview)
 ```
 **이펙트 재빌드 순서 주의 (43라운드)**: `weapons/build.py`·`combat_fx/build.py`·`evolution_fx/build.py` 는 옛 이펙트를 같은 id 로 `assets/sprites/fx/` 에 쓴다. 이 셋을 다시 돌렸다면 반드시 그 뒤에 `fx_prod/build_a.py` → `fx_prod/build_b.py` 를 돌려 양산본으로 덮는다 (blood·knock_dust·player_hit 는 `combat_fx` 만 만든다). 팔레트 `fx` 블록이나 주인공 시트(실루엣 마스크: player_dash·idle)가 바뀌어도 fx_prod 두 스크립트를 다시 돌린다. `fx_prod/build_a.py` 가 `fx_concept/build.py` 를 import 하므로 콘셉트 생성기는 지우지 않는다.
 팔레트 생성기는 `ui`·`fx` 블록을 상수로 들고 있으므로 재생성해도 두 블록이 사라지지 않는다 (38라운드 UI NOTES 의 요청 반영).
@@ -264,3 +265,51 @@ python3 parts/art/work/struct61/build.py        # 61라운드 단계 2: 구조�
 - `atlas57/verify.py --all`: 시트 792 중 형식 차이는 이번에 의도적으로 바꾼 4시트(`fx/v3/{boss1_onfire,boss1_onfire_down,boss1_cup_shatter}`·`structures/v3/boss1_candelabra`)의 기준 차이뿐, 새 5시트(`_rim_lite`)는 형식 통과, 픽셀 불일치 0. 커밋 뒤 `python3 parts/art/work/atlas57/verify.py --rebase --only boss1_onfire boss1_onfire_down boss1_cup_shatter boss1_candelabra` 로 기준 이동.
 - `npx vitest run src/systems/sprites` 9파일 77건 통과(읽기만). 반투명 0(촛대 접지 그림자 제외)·가장자리 0(촛대 54 그림 제외) 빌드 assert, 새 색 0.
 - 미리보기: `boss61/out/preview_native_{boss1_onfire,boss1_onfire_down,boss1_cup_shatter}.png` · `boss61/out/preview_boss1_candelabra.png`.
+
+## 61라운드 단계 4 (2026-10-05, 자율 모드) — P12 무기 1차·2차 각성 외형 · 작업 폴더 `work/growth61/`
+설계 기준 `decisions/2026-10-05-P12-weapon-growth.md`, 계약 art §26. 단일 소스 `growth61/build.py`(단계 looks·sheets·fx·publish·verify·memory·preview). 기존 도구는 읽기만(awaken60 prod_overlay·prod_common·kit60, combo56_res/overlay, build57, atlas57). 임시 폴더는 전용 `growth61/out/_atlas_tmp_growth61`. 보스 촛대·onfire·림 lite 시트와 `work/boss61` 은 건드리지 않음.
+
+### 만든 것
+- **미리보기 정지 그림** `assets/sprites/looks/` 64장 + 무기별 `<weapon>.json`(pathTint·이름·한 줄 양상·배율): `<weapon>_base`, `<weapon>_<갈래>_a1`, `_a2`(덧붙임까지, 빛 없음), `_a2_glow`(빛 마스크 회백 — UI 가 tint), `_a2_<길>`(길 색을 미리 구운 완성 그림). 192×192 투명·무기만. 무기마다 같은 위치·같은 정수 배율(칼 ×2 −36° · 대검 ×1 · 단검 ×3 · 활 ×2 −42°) — 겹쳐 비교 가능. 그림은 awaken60 base.py 설계 도트로 합성한 무기 프레임에 **시트와 같은 렌더 경로**를 돌린 것(게임 오버레이와 같은 모양).
+- **1차·2차 오버레이** `assets/sprites/weapons/v4/<weapon>_<갈래>_{a1,a2,a2_glow}_<동작>` = 59 시트 × 12 갈래 × 3층 = 531 (트림 아틀라스). 틀·피벗·프레임·ms·행 = 기존 `weapons/v3/<시트>_awaken`(같은 PAD, `pivotDelta`·`weaponSheetPivot`·`playerFrameOffset` 동일), JSON `sameFrameAs` 로 표시. 시트 목록 = 기존 각성 오버레이 60 − 폐기 `greatsword_guard_rush`(§25).
+  - 그리는 순서: 무기 → `a1` → `a2` → `a2_glow`(pathTint 곱) → `_ki`/`_grudge`. 기존 `_awaken` 대신.
+  - `a2`·`a2_glow` JSON: `pathTint{길: RGB}`·`trailTint`(같은 값 — 2차 뒤 기존 휘두름 fx 를 물들임, 새 궤적 시트 없음)·`glowSheet`·`tintable`·`tintRule`.
+- **각성 연출 fx** `fx/v4/awaken1_crack`(256×256·피벗 (128,128), 12프레임 800ms, glow [4,5], `swapFrame 4` = a1 켬) · `fx/v4/awaken2_bloom`(같은 틀, 14프레임 1000ms, glow [6,7], `swapFrame 6` = a2 켬). 회백만 — 갈래·길 색 tint. 축 −40°(`rotate allowed`), `anchor player_pivot` + `offsetDots (0,−60)` 제안.
+
+### 갈래 외형 (실루엣이 갈래 한 줄 양상으로 읽히게)
+| 무기 | 갈래 | 1차(a1) | 2차 덧붙임(a2) / 빛(a2_glow) | pathTint |
+|---|---|---|---|---|
+| 칼 | 선풍 | 넓고 크게 휜 언월 날(끝이 등 쪽 갈고리) · 등 바람 지느러미 2 · 손잡이 술, 청록 강철 | 칼끝 바람 갈고리 연장 · 지느러미 셋째 / 날을 감는 나선 바람 줄 | 회오리 청백 · 잔월 금 |
+| 칼 | 투구가르기 | 두꺼운 곧은 쇳덩이 날 · 끌 칼끝 · 네모 투박한 코등이 · 황동 날선 | 투구 뿔 2 · 등 쇠 징 3 / 날선 백열 · 가운데 쪼개는 점선 | 일도양단 진홍 · 명경 청백 |
+| 칼 | 만월 | 60라운드 월인 재사용 | 코등이 뒤 초승달 고리 · 달 구슬 3 / 고리 테·구슬 | 삭월 보라 · 보름 금 |
+| 대검 | 파쇄 | 끝으로 넓어지는 바위 쐐기 · 깨진 망치 면 · 호박 균열 | 망치 면 바위 뿔 2 · 떠도는 바위 4 / 균열 그물 | 지진 호박 · 반향 청록 |
+| 대검 | 중압 | 방패 같은 철판 날(폭 18) · 황동 못 줄 · 넓게 굽은 막이 | 테 가시 3쌍 · 황동 보주 / 보주·밑동 홈 | 거인 금 · 울혈 진홍 |
+| 대검 | 광전 | 60라운드 핏빛 거암검 + 감긴 쇠사슬 2 · 늘어진 사슬(보정) | 등 현무암 뿔 · 사슬 끝 가시 추 / 늘어진 사슬이 달아오름 | 혈풍 진홍 · 철산 강철청 |
+| 단검 | 쌍격 | 등 쪽 둘째 갈래 날(쌍날) + 가로막이, 은백 | X자 막이 날개 · 갈래 끝 연장·미늘 / 날선 쪽 '분신 날' 윤곽 | 난무 청백 · 출혈 진홍 |
+| 단검 | 질풍 | 잎 날 · 고리 손잡이 · ±30° 부채 날 2(부채 셋), 녹청 | 부채 다섯 · 고리 바람 끈 / 부채 바람 줄 | 비도 연두 · 열풍 주황 |
+| 단검 | 백귀 | 60라운드 귀화 재사용 | 뼈빛 도깨비 뿔 2 / 코등이 둘레 혼불 2 | 야행 보라 · 귀화 청록 |
+| 활 | 속사 | 리커브 갈고리 끝 · 줌통 앞 화살촉 부채 3, 황토 나무 | 도르래 캠 2 · 화살통 상자 / 캠 심·촉 끝·받침 고리 | 연궁 청록 · 무한통 금 |
+| 활 | 저격 | 끝 +12 긴 활대 · 고리 조준기(붉은 렌즈), 쇠 | 안정 막대·추 · 조준기 십자 날개 / 렌즈·점선 조준줄 | 필중 진홍 · 천공 청백 |
+| 활 | 유성 | 60라운드 혜성 날개 재사용 | 줌통 뒤 별 고리 / 별 끝 5 · 도는 빛 호 | 성우 청백 · 혜성 주황 |
+
+### see → critique → fix
+1. 정지 그림 1차: 투구가르기 무쇠가 어두운 바탕에 묻히고 네모 코등이가 안 읽힘 → 무쇠 한 단 밝게·황동 날선 띠 넓게·코등이 15→19 + 큰 못. 정지 그림이 ×1 로 작음 → 무기마다 기울기를 찾아 가장 큰 정수 배율(칼 ×2).
+2. 2차: 파쇄 맴도는 바위 하나가 날 속에 묻힘 → 머리 양옆 4개로. 광전 정지 그림이 '빈 균열' 위상이라 붉은 날이 안 보임 → 정지 그림 위상 400ms(피가 찬 순간).
+3. fx: 껍질 조각 씨앗 두 개가 붙어 흰 덩어리 → 씨앗 간격 하한. 꽃핌 가시가 가늘고 칼끝 쪽은 다 자라기 전에 사라짐 → 캡슐 굵기·시차 0.07→0.03·끝 마름모 꽃잎.
+4. 메모리(아래): 만월·저격·유성·백귀·중압·광전의 2차 덧붙임·빛이 날 전체에 걸쳐 1.5배를 넘음 → 2차 부분을 한 곳(코등이 둘레·조준기 둘레·밑동)에 모음.
+
+### 메모리 (아틀라스 페이지 RGBA, `growth61/memory.json`)
+갈래 하나(a1+a2+a2_glow) / 기존 `_awaken` 세트: 칼 선풍 8.44 · 투구 8.05 · 만월 9.34 (/6.85, 최대 ×1.36) · 대검 파쇄 30.19 · 중압 28.80 · 광전 25.92 (/21.72, 최대 ×1.39) · 단검 2.25 · 2.28 · 2.50 (/1.84, 최대 ×1.36) · 활 5.95 · 3.74 · 5.85 (/4.49, 최대 ×1.32). **모두 1.5배 이하.** fx 2종 합 0.1MB 미만.
+
+### 검증
+- `growth61/build.py verify`: 533 시트(오버레이 531 + fx 2) 형식 + 격자 원본과 전 프레임 대조 오류 0 (`verify_log.txt`).
+- `atlas57/verify.py --all`: 시트 1325, 형식 오류 0, 기존 시트 픽셀 불일치 0. **verify.py 는 v4 폴더도 보도록 glob 한 줄 확장**(v4 는 기준 커밋이 없어 형식만).
+- 미리보기: `growth61/preview_{katana,greatsword,dagger,bow}.png`(정지 그림 줄 base → a1 3 → a2 3×2색 + 게임 합성 몸·무기·a1·a2·tint 빛), `growth61/preview_fx.png`(흰 그대로 / tint 예).
+- 격자 원본 `growth61/out/grid/`(awaken60 과 같은 보관 방식, verify 원본).
+
+### 시스템 전달
+- 런에서는 고른 갈래의 `a1_*`(1차 뒤) + `a2_*`·`a2_glow_*`(2차 뒤)만 로드. `a2_glow` 는 `setTint(pathTint[길])`, 보통 블렌드. 2차 휘두름 궤적은 기존 fx 에 `trailTint[길]`.
+- 1차 각성 연출: 정지 중 `awaken1_crack` 재생, `swapFrame 4` 에 무기 오버레이를 a1 로. 2차: `awaken2_bloom`, `swapFrame 6` 에 a2·glow 켬. tint 색은 갈래 대표색(1차) / pathTint(2차) 권장.
+- 셋째 갈래 a1(만월·광전·백귀·유성)은 기존 `_awaken` 과 같은 그림(광전만 사슬 추가) — 옛 `_awaken` 은 지우지 않음(시스템 전환 뒤 정리 판단).
+- 판정·틀은 원 무기 시트 기준 그대로(오버레이는 그림만).
+

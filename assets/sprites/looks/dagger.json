@@ -1,0 +1,96 @@
+{
+ "weapon": "dagger",
+ "version": "v4-r61-growth",
+ "angleDeg": -42,
+ "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "size": [
+  192,
+  192
+ ],
+ "displayScale": 3,
+ "note": "UI 각성 선택 화면·성장도 나무용 정지 그림(무기만·손 없음·투명). 같은 무기는 모두 같은 위치·같은 정수 배율 3 — 겹쳐 비교 가능. a2 = 덧붙임까지(빛 없음), a2_glow = 빛 마스크(회백) → UI 가 pathTint 로 곱해(setTint) a2 위에 겹침. a2_<길> = 길 강조색을 미리 구운 완성 그림(바로 쓰기)",
+ "base": "dagger_base.png",
+ "branches": {
+  "twin": {
+   "name": "쌍격",
+   "line": "둘이 싸우는 단검",
+   "a1": "dagger_twin_a1.png",
+   "a2": "dagger_twin_a2.png",
+   "a2Glow": "dagger_twin_a2_glow.png",
+   "pathTint": {
+    "frenzy": [
+     192,
+     226,
+     255
+    ],
+    "bleed": [
+     255,
+     72,
+     92
+    ]
+   },
+   "pathNames": {
+    "frenzy": "난무",
+    "bleed": "출혈"
+   },
+   "a2ByPath": {
+    "frenzy": "dagger_twin_a2_frenzy.png",
+    "bleed": "dagger_twin_a2_bleed.png"
+   }
+  },
+  "gale": {
+   "name": "질풍",
+   "line": "치고 빠지는 단검",
+   "a1": "dagger_gale_a1.png",
+   "a2": "dagger_gale_a2.png",
+   "a2Glow": "dagger_gale_a2_glow.png",
+   "pathTint": {
+    "flyblade": [
+     172,
+     255,
+     150
+    ],
+    "hotwind": [
+     255,
+     150,
+     60
+    ]
+   },
+   "pathNames": {
+    "flyblade": "비도",
+    "hotwind": "열풍"
+   },
+   "a2ByPath": {
+    "flyblade": "dagger_gale_a2_flyblade.png",
+    "hotwind": "dagger_gale_a2_hotwind.png"
+   }
+  },
+  "hyakki": {
+   "name": "백귀",
+   "line": "사냥하는 단검",
+   "a1": "dagger_hyakki_a1.png",
+   "a2": "dagger_hyakki_a2.png",
+   "a2Glow": "dagger_hyakki_a2_glow.png",
+   "pathTint": {
+    "nightwalk": [
+     172,
+     132,
+     255
+    ],
+    "onibi": [
+     100,
+     240,
+     220
+    ]
+   },
+   "pathNames": {
+    "nightwalk": "야행",
+    "onibi": "귀화"
+   },
+   "a2ByPath": {
+    "nightwalk": "dagger_hyakki_a2_nightwalk.png",
+    "onibi": "dagger_hyakki_a2_onibi.png"
+   }
+  }
+ }
+}
