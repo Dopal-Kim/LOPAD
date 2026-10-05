@@ -558,3 +558,7 @@ interface UiSettings {
 ```
 - UI 가 설정 화면(일시정지 메뉴의 한 항목, 타이틀에서도 열림)을 그리고 값을 바꾼다. 시스템 명령 `setSettings(s: UiSettings)` 로 넘기고, 시스템은 즉시 적용(카메라 흔들림 배율·섬광·기울기·피해 숫자·음량 버스)한다. 저장은 시스템 세이브(메타 영역)에, 부팅 때 `UiSnapshot.settings` 로 UI 에 알려 준다.
 - 기존 §11.3 `setMuted` 는 유지(`master` 0 과 별개의 빠른 음소거).
+
+## 16. 무기 4동사 (61라운드 P1)
+- 스냅샷 `weaponVerbs: UiWeaponVerbs` — 현재 무기의 4칸(`UiVerbSlot`: 좌 연격 · 우 시그니처 · Space 대쉬(+대쉬 공격) · 좌 홀드 고유 기술)마다 `UiWeaponVerb`(키 이름·동작 이름·한 줄 설명). 1단 갈래는 동작을 **더하지 않고 같은 칸의 기본 동작을 대신**하므로 갈래를 얻으면 해당 칸 이름이 바뀐다. 정확한 필드는 `src/contract/ui.ts` 가 기준.
+- 함께 바뀐 표시: `carry` 는 늘 null(F 넣기/뽑기 삭제), 단검 `resource` 는 null(가속은 숨김, 보이는 자원은 낙인), 활 `gauge`(숨)는 저격 갈래일 때만. 튜토리얼에 '좌클릭 길게' 단계(`PLAYER_HOLD_VERB` 로 완료).
