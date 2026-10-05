@@ -324,8 +324,12 @@ def emblems(heads):
 
 
 # ---------------------------------------------------------------- 이름표
-NW, NH = 192, 30
+# 60라운드 Q36: 글자 칸 24도트 이상 — 높이 30 → 40, textArea h 16 → 24(테 안쪽 빈 띠 29도트, 글자 칸 위아래 2·3도트 여유).
+#   UI 가 Galmuri11 12px 를 scale 0.5 로 얹는다(글자 높이 ≈ 24도트). 9-slice 26/26·글자색·pivot(아래 가운데) 규칙은 그대로.
+NW, NH = 192, 40
 NSL, NSR = 26, 26
+TEXT_H = 24
+TEXT_AREA = None   # nameplate() 가 채움(미리보기용)
 
 
 def nameplate():
@@ -361,21 +365,28 @@ def nameplate():
     # 아래 그림자(반투명)
     for x in range(NSL - 6, NW - NSR + 6):
         c.px(x, y1 + 2, (10, 11, 16, 90))
+    band0, band1 = y0 + 2, y1 - 2                       # 바느질 테 안쪽 빈 띠
+    ty = band0 + (band1 - band0 + 1 - TEXT_H) // 2
     m = {
         "pivot": {"x": NW // 2, "y": NH - 2},
         "anchor": "enemy_head",
         "anchorRule": "이름표 pivot(아래 가운데) = 문장 pivot 위 64 도트(문장 머리 위) — 또는 시스템 배치. 글자 가운데 = (pivot.x, textCenterY)",
         "nineSlice": {"leftWidth": NSL, "rightWidth": NSR, "topHeight": 0, "bottomHeight": 0,
                       "note": "가로만 늘림(Phaser NineSlice 또는 3조각). 가운데 영역은 가로 반복해도 이음새 없음"},
-        "textArea": {"x": NSL, "y": 7, "w": NW - NSL - NSR, "h": 16},
-        "textCenterY": 15,
+        "textArea": {"x": NSL, "y": ty, "w": NW - NSL - NSR, "h": TEXT_H},
+        "textCenterY": ty + TEXT_H // 2,
+        "textBand": {"y": band0, "h": band1 - band0 + 1, "note": "바느질 테 안쪽 빈 띠(글자가 넘쳐도 테를 덮지 않는 한계)"},
         "textColorSuggest": tohex(A[25]),
-        "textNote": "글자(예 '불붙은 결사병', 임시 이름)는 시스템/UI 가 위에 쓴다 — 권장 글자색 호박 25(자체 발광), 그림자 SL0",
+        "textNote": "글자(예 '불붙은 결사병', 임시 이름)는 시스템/UI 가 위에 쓴다 — 권장 글자색 호박 25(자체 발광), 그림자 SL0. "
+                    "60 Q36: 글자 칸 24도트(= Galmuri11 12px × scale 0.5 의 글자 높이) — 30 → 40 높이 판",
+        "r60q36": "60라운드 Q36 — 엘리트 이름표 글자 칸 24도트 이상 판(이전: 192×30, textArea h 16 · y 7, textCenterY 15)",
         "minWidth": NSL + NSR + 16,
         "usage": "엘리트 이름표 바탕(월드, 머리 위). UI 화면용 패널은 UI 파트 몫",
         "depth": "above",
         "emissiveColors": EMISSIVE_HEX,
         "paletteSwap": True,
     }
+    global TEXT_AREA
+    TEXT_AREA = dict(m["textArea"])
     write_sheet("fx", "elite_nameplate", [c.im], NW, NH, m, rows=1, durations=[100], loop=False)
     return c.im

@@ -1,0 +1,169 @@
+{
+ "image": "dagger_combo3_double_awaken.png",
+ "action": "dagger_combo3_double_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 384,
+ "frameHeight": 384,
+ "framesPerDirection": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.0,
+ "frameDurationsMs": [
+  40,
+  40,
+  30,
+  40,
+  50,
+  60,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 13,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "anchor": "player_pivot",
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
+ "weapon": "dagger",
+ "branch": "쌍격(雙擊) 1단 A — 연격 변화",
+ "bodySheet": "player_dagger_combo3",
+ "spawn": "body_ms",
+ "spawnAtMs": 20,
+ "impactFrame": 1,
+ "hitFrames": [
+  1,
+  3
+ ],
+ "hitsAtBodyMs": [
+  60,
+  130
+ ],
+ "dirTransform": "rotate",
+ "depth": "above",
+ "thrust": [
+  {
+   "lengthPx": 156,
+   "widthPx": 36,
+   "angleDeg": -7,
+   "fromPx": 14
+  },
+  {
+   "lengthPx": 170,
+   "widthPx": 40,
+   "angleDeg": 7,
+   "fromPx": 14
+  }
+ ],
+ "thrustNote": "두 찌르기 = 판정 2회(각 낙인 +1 → 3타 합 낙인 +2, 설계안 2.4). 길이·폭은 56 3타(168·40) 기준 참고값",
+ "bodyNote": "몸·무기 시트는 dagger_combo3 그대로(한 번 찌르는 동작) — 두 번째 찌르기는 fx 로만 보임. 몸까지 2연으로 바꿀지는 인터뷰 항목",
+ "frameRoles": [
+  "pre 1",
+  "찌르기 1(판정)",
+  "1 마름 · pre 2",
+  "찌르기 2(판정)",
+  "decay",
+  "decay",
+  "decay(재)"
+ ],
+ "design": "쌍격 × 귀화 합친 궤적: 엇갈린 두 찌르기(−7°·+7°, 70ms 간격)를 귀화 각성 궤적 규칙으로 — 보라(VIO2~11), 식는 꼬리 청록 불티, 획 위로 핥는 불혀 + 두 판정 순간(f1·f3)마다 도깨비 얼굴",
+ "glowFrames": [
+  1,
+  3
+ ],
+ "hitOriginInFrame": {
+  "x": 189,
+  "y": 186
+ },
+ "awakenOf": "fx/v3/dagger_combo3_double",
+ "awakeningTrail": true,
+ "branchAwaken": true,
+ "combines": {
+  "branch": "fx/v3/dagger_combo3_double",
+  "awakenTrail": "fx/v3/dagger_combo3_awaken",
+  "base": "fx/v3/dagger_combo3"
+ },
+ "swapRule": "쌍격(雙擊) 갈래 + 각성 런에서 'dagger_combo3_double'(기본 'dagger_combo3' 의 갈래 교체 시트) 대신 이 시트(같은 틀·프레임·ms·피벗·행·판정 — 1:1 교체). 각성만 있는 런 = 'dagger_combo3_awaken', 갈래만 있는 런 = 'dagger_combo3_double'. 60 Q33 합친 그림",
+ "swapPriority": [
+  "dagger_combo3_double_awaken",
+  "dagger_combo3_double",
+  "dagger_combo3_awaken",
+  "dagger_combo3"
+ ],
+ "swapPriorityNote": "갈래·각성 둘 다 → 갈래만 → 각성만 → 기본 순으로 첫 조건이 맞는 시트",
+ "r60q33": "60라운드 Q33 — 갈래 그림과 각성 궤적이 겹치는 동작은 둘을 합친 그림(decisions/2026-10-05-round-60-parallel-production.md)",
+ "effectRule": "60라운드 각성 궤적 규칙(prod_fx.restyle) — 갈래 시트 픽셀을 밝기 순위로 각성 램프에 옮기고 장식만 더함. 반투명 없음. 틀·피벗 불변",
+ "pivot": {
+  "x": 189,
+  "y": 226
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo3_double_awaken.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 4,
+   "frameWidth": 384,
+   "frameHeight": 384,
+   "frameCount": 28
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":169,"y":171,"w":10,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":191,"y":197,"w":10,"h":60},"sourceSize":{"w":384,"h":384}},
+  "1":{"frame":{"x":324,"y":0,"w":32,"h":155},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":191,"y":199,"w":32,"h":155},"sourceSize":{"w":384,"h":384}},
+  "2":{"frame":{"x":184,"y":0,"w":40,"h":163},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":179,"y":199,"w":40,"h":163},"sourceSize":{"w":384,"h":384}},
+  "3":{"frame":{"x":0,"y":0,"w":62,"h":170},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":157,"y":199,"w":62,"h":170},"sourceSize":{"w":384,"h":384}},
+  "4":{"frame":{"x":392,"y":154,"w":54,"h":146},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":157,"y":230,"w":54,"h":146},"sourceSize":{"w":384,"h":384}},
+  "5":{"frame":{"x":128,"y":0,"w":54,"h":169},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":157,"y":209,"w":54,"h":169},"sourceSize":{"w":384,"h":384}},
+  "6":{"frame":{"x":448,"y":154,"w":21,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":168,"y":221,"w":21,"h":134},"sourceSize":{"w":384,"h":384}},
+  "7":{"frame":{"x":169,"y":233,"w":10,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":177,"y":113,"w":10,"h":60},"sourceSize":{"w":384,"h":384}},
+  "8":{"frame":{"x":358,"y":0,"w":32,"h":155},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":155,"y":18,"w":32,"h":155},"sourceSize":{"w":384,"h":384}},
+  "9":{"frame":{"x":282,"y":0,"w":40,"h":159},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":14,"w":40,"h":159},"sourceSize":{"w":384,"h":384}},
+  "10":{"frame":{"x":64,"y":0,"w":62,"h":170},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":159,"y":3,"w":62,"h":170},"sourceSize":{"w":384,"h":384}},
+  "11":{"frame":{"x":392,"y":0,"w":54,"h":152},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":167,"y":2,"w":54,"h":152},"sourceSize":{"w":384,"h":384}},
+  "12":{"frame":{"x":226,"y":0,"w":54,"h":162},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":167,"y":14,"w":54,"h":162},"sourceSize":{"w":384,"h":384}},
+  "13":{"frame":{"x":448,"y":0,"w":21,"h":152},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":189,"y":17,"w":21,"h":152},"sourceSize":{"w":384,"h":384}},
+  "14":{"frame":{"x":324,"y":358,"w":58,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":185,"w":58,"h":13},"sourceSize":{"w":384,"h":384}},
+  "15":{"frame":{"x":162,"y":398,"w":155,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":185,"w":155,"h":35},"sourceSize":{"w":384,"h":384}},
+  "16":{"frame":{"x":0,"y":355,"w":160,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":174,"w":160,"h":48},"sourceSize":{"w":384,"h":384}},
+  "17":{"frame":{"x":184,"y":165,"w":170,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":154,"w":170,"h":70},"sourceSize":{"w":384,"h":384}},
+  "18":{"frame":{"x":150,"y":296,"w":149,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":158,"w":149,"h":57},"sourceSize":{"w":384,"h":384}},
+  "19":{"frame":{"x":301,"y":302,"w":165,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":163,"w":165,"h":54},"sourceSize":{"w":384,"h":384}},
+  "20":{"frame":{"x":0,"y":302,"w":141,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":165,"w":141,"h":30},"sourceSize":{"w":384,"h":384}},
+  "21":{"frame":{"x":324,"y":373,"w":58,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":202,"y":173,"w":58,"h":11},"sourceSize":{"w":384,"h":384}},
+  "22":{"frame":{"x":319,"y":398,"w":155,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":202,"y":152,"w":155,"h":32},"sourceSize":{"w":384,"h":384}},
+  "23":{"frame":{"x":162,"y":358,"w":160,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":202,"y":158,"w":160,"h":38},"sourceSize":{"w":384,"h":384}},
+  "24":{"frame":{"x":181,"y":237,"w":170,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":202,"y":161,"w":170,"h":57},"sourceSize":{"w":384,"h":384}},
+  "25":{"frame":{"x":0,"y":237,"w":148,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":227,"y":161,"w":148,"h":63},"sourceSize":{"w":384,"h":384}},
+  "26":{"frame":{"x":0,"y":172,"w":167,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":204,"y":164,"w":167,"h":63},"sourceSize":{"w":384,"h":384}},
+  "27":{"frame":{"x":0,"y":334,"w":143,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":216,"y":193,"w":143,"h":17},"sourceSize":{"w":384,"h":384}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_combo3_double_awaken.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 474,
+   "h": 433
+  },
+  "scale": "1"
+ }
+}

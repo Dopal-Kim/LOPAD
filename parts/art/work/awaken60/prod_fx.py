@@ -7,6 +7,7 @@
     bow_meteor_arrow       혜성: 금빛 혜성 화살이 불꽃 깃을 끌고 떨어져 큰 별·불꽃 고리
   각성 순간 전환(새 키): <무기>_awaken_in — 주인공 머리 위에서 무기가 원래 색 → 각성 색으로 바뀌는 8×60ms + 머묾·사라짐
   각성 전용 궤적(새 키): <기본 fx>_awaken — 기본 연격 fx 와 같은 틀·프레임·ms·피벗(교체만 하면 됨), 그림은 각성 색·장식
+  갈래 × 각성 합친 궤적(60 Q33): katana_fall_wide_awaken · dagger_combo3_double_awaken — 갈래 시트 틀·프레임·ms·피벗 그대로 + 각성 궤적 규칙
 """
 import json
 import math
@@ -539,7 +540,8 @@ def _lum_rank(frames):
     return {c: i / n for i, c in enumerate(srt)}
 
 
-def restyle(weapon, im, rank, i, glow_frame, nframes):
+def restyle(weapon, im, rank, i, glow_frame, nframes, lift=0):
+    """lift = 램프 최저 단계(합친 궤적에서 갈래의 어두운 보조 획이 바탕에 묻히지 않게, 0 = 기존 규칙 그대로)."""
     px = im.load()
     W, H = im.size
     cv = Cv(W, H)
@@ -552,7 +554,7 @@ def restyle(weapon, im, rank, i, glow_frame, nframes):
             if not c[3]:
                 continue
             q = rank[c[:3]]
-            k = min(len(ramp) - 1, int(q * len(ramp)))
+            k = max(lift, min(len(ramp) - 1, int(q * len(ramp))))
             col = ramp[k]
             if not glow_frame and col in (X0,):
                 col = ramp[-2]
@@ -677,9 +679,54 @@ def trail_job(arg):
     return write_fx(name, frames, rows, ms, (j["pivot"]["x"], j["pivot"]["y"]), meta, glow=glow, fit="none")
 
 
+# =============================================================================
+# 갈래 × 각성 합친 궤적 — <갈래 fx>_awaken (60라운드 Q33: 갈래 그림과 각성 궤적이 같은 동작에서 겹치는 두 곳)
+#   갈래 시트의 틀·프레임·ms·피벗·행·판정 그대로 + 그 무기 각성 궤적 스타일(restyle 동일 규칙)
+# =============================================================================
+COMBOS = {
+    "katana_fall_wide": dict(weapon="katana", trail="katana_fall", branchName="선풍(旋風)",
+                             lift={1: 2, 2: 2, 3: 1},          # 안쪽 바람 획(갈래 고유)이 SIL2 로 묻히지 않게 획이 보이는 동안만 SIL6/SIL4 이상
+
+                             design="선풍 × 월인 합친 궤적: 선풍 2타 180° 내려베기 붓획(+안쪽 바람 획)을 월인 각성 궤적 규칙으로 — 은백(SIL2~10)·X1/X0 심, "
+                                    "밝은 획 둘레 체크 빛 번짐 + 흩어지는 초승달 조각. 안쪽 바람 획은 f1~f3 동안 은빛 중간색(SIL6/SIL4) 이상으로 올림"),
+    "dagger_combo3_double": dict(weapon="dagger", trail="dagger_combo3", branchName="쌍격(雙擊)",
+                                 design="쌍격 × 귀화 합친 궤적: 엇갈린 두 찌르기(−7°·+7°, 70ms 간격)를 귀화 각성 궤적 규칙으로 — 보라(VIO2~11), "
+                                        "식는 꼬리 청록 불티, 획 위로 핥는 불혀 + 두 판정 순간(f1·f3)마다 도깨비 얼굴"),
+}
+COMBO_DROP = ("replaces", "replaceRule", "glowRule", "effectRule", "r57")
+
+
+def combo_job(base):
+    c = COMBOS[base]
+    meta, j = old_meta(base)
+    for k in COMBO_DROP:
+        meta.pop(k, None)
+    name = base + "_awaken"
+    rows = j["directions"]
+    ms = j["frameDurationsMs"]
+    glow = set(j.get("glowFrames") or [])
+    jj, fr = K57.grid_frames("fx/v3/" + base)
+    rank = _lum_rank(fr)
+    lift = c.get("lift", {})
+    frames = {d: [restyle(c["weapon"], im, rank, i, i in glow, len(fr[d]), lift.get(i, 0)) for i, im in enumerate(fr[d])] for d in rows}
+    meta.update(
+        awakenOf="fx/v3/" + base, awakeningTrail=True, branchAwaken=True,
+        combines={"branch": "fx/v3/" + base, "awakenTrail": "fx/v3/%s_awaken" % c["trail"], "base": "fx/v3/" + c["trail"]},
+        swapRule=("%s 갈래 + 각성 런에서 '%s'(기본 '%s' 의 갈래 교체 시트) 대신 이 시트(같은 틀·프레임·ms·피벗·행·판정 — 1:1 교체). "
+                  "각성만 있는 런 = '%s_awaken', 갈래만 있는 런 = '%s'. 60 Q33 합친 그림"
+                  % (c["branchName"], base, c["trail"], c["trail"], base)),
+        swapPriority=["%s_awaken" % base, base, "%s_awaken" % c["trail"], c["trail"]],
+        swapPriorityNote="갈래·각성 둘 다 → 갈래만 → 각성만 → 기본 순으로 첫 조건이 맞는 시트",
+        r60q33="60라운드 Q33 — 갈래 그림과 각성 궤적이 겹치는 동작은 둘을 합친 그림(decisions/2026-10-05-round-60-parallel-production.md)",
+        design=c["design"],
+        effectRule="60라운드 각성 궤적 규칙(prod_fx.restyle) — 갈래 시트 픽셀을 밝기 순위로 각성 램프에 옮기고 장식만 더함. 반투명 없음. 틀·피벗 불변")
+    return write_fx(name, frames, rows, ms, (j["pivot"]["x"], j["pivot"]["y"]), meta, glow=glow, fit="none")
+
+
 JOBS = ([("sig", n) for n in ("katana_fullmoon", "greatsword_landslide", "dagger_hundred_ghosts", "bow_meteor_arrow")]
         + [("in", w) for w in ("katana", "greatsword", "dagger", "bow")]
-        + [("trail", (w, b)) for w, lst in TRAILS.items() for b in lst])
+        + [("trail", (w, b)) for w, lst in TRAILS.items() for b in lst]
+        + [("combo", b) for b in COMBOS])
 
 
 def job(arg):
@@ -688,6 +735,8 @@ def job(arg):
         return sig_job(a)
     if kind == "in":
         return in_job(a)
+    if kind == "combo":
+        return combo_job(a)
     return trail_job(a)
 
 

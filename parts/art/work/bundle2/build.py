@@ -64,6 +64,10 @@ def main():
             prev_elite.append((cv, None))
         prev_elite.append((hero0, hpiv))
 
+    elif want("elite_nameplate"):                       # 이름표만(60 Q36) — 문장·외곽선은 다시 쓰지 않는다
+        npl = elite.nameplate()
+        nameplate_preview(elite, gridsheet, Image, npl, os.path.join(HERE, "preview_nameplate.png"))
+
     # ---- 구조물·소품
     for fn in structs.ALL:
         if want(fn.__name__):
@@ -118,6 +122,57 @@ def main():
         with open(sp, "w", encoding="utf-8") as f:
             json.dump(dict(sorted(stats.items())), f, ensure_ascii=False, indent=1)
             f.write("\n")
+
+
+def nameplate_preview(elite, gridsheet, Image, npl, out):
+    """이름표 확인: 9-slice 늘림 3폭(글자 칸 테두리 표시 + 모의 글자) · 엘리트 결사병 머리 위 합성. ×4, 긴 변 8000 이하."""
+    from PIL import ImageDraw, ImageFont
+    ta = elite.TEXT_AREA
+    L, R = elite.NSL, elite.NSR
+
+    def stretch(w):
+        im = Image.new("RGBA", (w, elite.NH), (0, 0, 0, 0))
+        im.alpha_composite(npl.crop((0, 0, L, elite.NH)), (0, 0))
+        mid = npl.crop((L, 0, elite.NW - R, elite.NH))
+        for x in range(L, w - R, mid.width):
+            im.alpha_composite(mid.crop((0, 0, min(mid.width, w - R - x), elite.NH)), (x, 0))
+        im.alpha_composite(npl.crop((elite.NW - R, 0, elite.NW, elite.NH)), (w - R, 0))
+        return im
+
+    try:
+        font = ImageFont.load_default(size=22)        # 모의 글자(Galmuri11 12px × 2 도트 ≈ 24 도트 높이 대용)
+    except TypeError:
+        font = ImageFont.load_default()
+    items = []
+    for w, txt, box in ((192, "Burning Charger", True), (120, "Drunk", False), (300, "Ringleader Archer gq", False), (192, "", True)):
+        im = stretch(w)
+        if txt:
+            t = Image.new("RGBA", im.size, (0, 0, 0, 0))
+            d = ImageDraw.Draw(t)
+            cy = ta["y"] + ta["h"] // 2
+            d.text((w // 2 + 1, cy + 1), txt, font=font, fill=(26, 24, 30, 255), anchor="mm")
+            d.text((w // 2, cy), txt, font=font, fill=elite.A[25], anchor="mm")
+            im.alpha_composite(t)
+        if box:
+            d = ImageDraw.Draw(im)
+            d.rectangle((ta["x"], ta["y"], w - R - 1, ta["y"] + ta["h"] - 1), outline=(0, 255, 255, 255))
+        items.append((im, None))
+    jp = os.path.join(b2.SPR, "enemies", "v3", "charger_idle.json")
+    g, em_ = gridsheet.open_grid(jp), gridsheet.load_meta(jp)
+    f0 = g.crop((0, 0, em_["frameWidth"], em_["frameHeight"]))
+    o = elite.outline_frame(f0); o.alpha_composite(f0)
+    ej = os.path.join(b2.SPR, "fx", "v3", "elite_emblem.json")
+    eg, emm = gridsheet.open_grid(ej), gridsheet.load_meta(ej)
+    emb = eg.crop((0, 2 * emm["frameHeight"], emm["frameWidth"], 3 * emm["frameHeight"]))
+    heads = elite.head_tops()
+    cv = Image.new("RGBA", (max(em_["frameWidth"], elite.NW) + 8, em_["frameHeight"] + 120), (0, 0, 0, 0))
+    ox = (cv.width - em_["frameWidth"]) // 2
+    cv.alpha_composite(o, (ox, 120))
+    py = 120 + em_["pivot"]["y"] - heads["charger"] - 10
+    cv.alpha_composite(emb, (ox + em_["pivot"]["x"] - elite.EPIV[0], py - elite.EPIV[1]))
+    cv.alpha_composite(items[0][0], (ox + em_["pivot"]["x"] - elite.NW // 2, max(0, py - elite.EPIV[1] - elite.NH - 4)))
+    items.append((cv, None))
+    print("preview_nameplate", b2.preview(out, items, k=4, max_w=700))
 
 
 def fx2_mock(fx2, elite, gridsheet, Image, made):

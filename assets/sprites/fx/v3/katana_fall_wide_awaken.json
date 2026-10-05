@@ -1,0 +1,159 @@
+{
+ "image": "katana_fall_wide_awaken.png",
+ "action": "katana_fall_wide_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 328,
+ "frameHeight": 368,
+ "framesPerDirection": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 19.05,
+ "frameDurationsMs": [
+  50,
+  25,
+  30,
+  60,
+  70,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "anchor": "player_pivot",
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
+ "weapon": "katana",
+ "branch": "선풍(旋風) 1단 A — 연격 변화",
+ "bodySheet": "player_katana_fall",
+ "spawn": "body_ms",
+ "spawnAtMs": 70,
+ "impactAtBodyMs": 120,
+ "impactFrame": 1,
+ "dirTransform": "rotate",
+ "followPlayer": false,
+ "hitShape": {
+  "type": "arc",
+  "startDeg": -100.0,
+  "endDeg": 80.0,
+  "radiusR": 1.0,
+  "innerR": 0.0,
+  "damageScale": 1.2,
+  "note": "설계안 2.2: 2타 내려베기 호 130°→180°(56 실제 110°에서 180°), 판정 ×1.2 — 참고값, 시스템 데이터 기준"
+ },
+ "drawnArc": {
+  "fromDeg": -100.0,
+  "toDeg": 80.0,
+  "radiusDots": 152.0,
+  "brushWidthDots": 10,
+  "heightDots": [
+   41,
+   2
+  ]
+ },
+ "frameRoles": [
+  "pre",
+  "draw(머리 55% · 판정)",
+  "draw(끝까지 · 안쪽 바람 획)",
+  "decay",
+  "decay",
+  "decay(재)"
+ ],
+ "design": "선풍 × 월인 합친 궤적: 선풍 2타 180° 내려베기 붓획(+안쪽 바람 획)을 월인 각성 궤적 규칙으로 — 은백(SIL2~10)·X1/X0 심, 밝은 획 둘레 체크 빛 번짐 + 흩어지는 초승달 조각. 안쪽 바람 획은 f1~f3 동안 은빛 중간색(SIL6/SIL4) 이상으로 올림",
+ "glowFrames": [
+  1,
+  2
+ ],
+ "hitOriginInFrame": {
+  "x": 163,
+  "y": 192
+ },
+ "awakenOf": "fx/v3/katana_fall_wide",
+ "awakeningTrail": true,
+ "branchAwaken": true,
+ "combines": {
+  "branch": "fx/v3/katana_fall_wide",
+  "awakenTrail": "fx/v3/katana_fall_awaken",
+  "base": "fx/v3/katana_fall"
+ },
+ "swapRule": "선풍(旋風) 갈래 + 각성 런에서 'katana_fall_wide'(기본 'katana_fall' 의 갈래 교체 시트) 대신 이 시트(같은 틀·프레임·ms·피벗·행·판정 — 1:1 교체). 각성만 있는 런 = 'katana_fall_awaken', 갈래만 있는 런 = 'katana_fall_wide'. 60 Q33 합친 그림",
+ "swapPriority": [
+  "katana_fall_wide_awaken",
+  "katana_fall_wide",
+  "katana_fall_awaken",
+  "katana_fall"
+ ],
+ "swapPriorityNote": "갈래·각성 둘 다 → 갈래만 → 각성만 → 기본 순으로 첫 조건이 맞는 시트",
+ "r60q33": "60라운드 Q33 — 갈래 그림과 각성 궤적이 겹치는 동작은 둘을 합친 그림(decisions/2026-10-05-round-60-parallel-production.md)",
+ "effectRule": "60라운드 각성 궤적 규칙(prod_fx.restyle) — 갈래 시트 픽셀을 밝기 순위로 각성 램프에 옮기고 장식만 더함. 반투명 없음. 틀·피벗 불변",
+ "pivot": {
+  "x": 163,
+  "y": 232
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_fall_wide_awaken.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 328,
+   "frameHeight": 368,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":528,"y":689,"w":6,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":307,"y":125,"w":6,"h":48},"sourceSize":{"w":328,"h":368}},
+  "1":{"frame":{"x":697,"y":762,"w":136,"h":197},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":177,"y":125,"w":136,"h":197},"sourceSize":{"w":328,"h":368}},
+  "2":{"frame":{"x":0,"y":0,"w":310,"h":202},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":125,"w":310,"h":202},"sourceSize":{"w":328,"h":368}},
+  "3":{"frame":{"x":0,"y":204,"w":308,"h":183},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":143,"w":308,"h":183},"sourceSize":{"w":328,"h":368}},
+  "4":{"frame":{"x":0,"y":389,"w":270,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":214,"w":270,"h":114},"sourceSize":{"w":328,"h":368}},
+  "5":{"frame":{"x":348,"y":824,"w":110,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":215,"w":110,"h":113},"sourceSize":{"w":328,"h":368}},
+  "6":{"frame":{"x":536,"y":689,"w":6,"h":47},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":130,"w":6,"h":47},"sourceSize":{"w":328,"h":368}},
+  "7":{"frame":{"x":180,"y":689,"w":166,"h":158},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":19,"w":166,"h":158},"sourceSize":{"w":328,"h":368}},
+  "8":{"frame":{"x":0,"y":523,"w":311,"h":158},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":19,"w":311,"h":158},"sourceSize":{"w":328,"h":368}},
+  "9":{"frame":{"x":310,"y":350,"w":296,"h":171},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":19,"w":296,"h":171},"sourceSize":{"w":328,"h":368}},
+  "10":{"frame":{"x":313,"y":523,"w":235,"h":164},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":23,"w":235,"h":164},"sourceSize":{"w":328,"h":368}},
+  "11":{"frame":{"x":180,"y":849,"w":82,"h":127},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":240,"y":63,"w":82,"h":127},"sourceSize":{"w":328,"h":368}},
+  "12":{"frame":{"x":0,"y":505,"w":45,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":295,"w":45,"h":9},"sourceSize":{"w":328,"h":368}},
+  "13":{"frame":{"x":348,"y":689,"w":178,"h":133},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":171,"w":178,"h":133},"sourceSize":{"w":328,"h":368}},
+  "14":{"frame":{"x":654,"y":0,"w":179,"h":273},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":31,"w":179,"h":273},"sourceSize":{"w":328,"h":368}},
+  "15":{"frame":{"x":654,"y":275,"w":165,"h":265},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":38,"w":165,"h":265},"sourceSize":{"w":328,"h":368}},
+  "16":{"frame":{"x":697,"y":542,"w":140,"h":218},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":41,"w":140,"h":218},"sourceSize":{"w":328,"h":368}},
+  "17":{"frame":{"x":0,"y":860,"w":122,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":41,"w":122,"h":84},"sourceSize":{"w":328,"h":368}},
+  "18":{"frame":{"x":124,"y":860,"w":50,"h":8},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":3,"w":50,"h":8},"sourceSize":{"w":328,"h":368}},
+  "19":{"frame":{"x":0,"y":683,"w":178,"h":175},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":3,"w":178,"h":175},"sourceSize":{"w":328,"h":368}},
+  "20":{"frame":{"x":312,"y":0,"w":179,"h":347},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":3,"w":179,"h":347},"sourceSize":{"w":328,"h":368}},
+  "21":{"frame":{"x":493,"y":0,"w":159,"h":348},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":157,"y":9,"w":159,"h":348},"sourceSize":{"w":328,"h":368}},
+  "22":{"frame":{"x":550,"y":542,"w":145,"h":261},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":177,"y":99,"w":145,"h":261},"sourceSize":{"w":328,"h":368}},
+  "23":{"frame":{"x":528,"y":805,"w":126,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":177,"y":242,"w":126,"h":122},"sourceSize":{"w":328,"h":368}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_fall_wide_awaken.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 837,
+   "h": 976
+  },
+  "scale": "1"
+ }
+}

@@ -181,6 +181,26 @@
  },
  {
   "cat": "fx",
+  "name": "dagger_combo3_double_awaken",
+  "replaced": false,
+  "src": [
+   2688,
+   1536
+  ],
+  "pages": [
+   [
+    "dagger_combo3_double_awaken.png",
+    474,
+    433
+   ]
+  ],
+  "gpuBeforeMB": 15.75,
+  "gpuAfterMB": 0.78,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
   "name": "dagger_flurry_awaken",
   "replaced": false,
   "src": [
@@ -376,6 +396,26 @@
   ],
   "gpuBeforeMB": 9.6,
   "gpuAfterMB": 1.35,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_fall_wide_awaken",
+  "replaced": false,
+  "src": [
+   1968,
+   1472
+  ],
+  "pages": [
+   [
+    "katana_fall_wide_awaken.png",
+    837,
+    976
+   ]
+  ],
+  "gpuBeforeMB": 11.05,
+  "gpuAfterMB": 3.12,
   "empty": 0,
   "deduped": 0
  },

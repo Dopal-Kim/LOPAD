@@ -296,13 +296,13 @@
  "fx/v3/elite_nameplate": {
   "frame": [
    192,
-   30
+   40
   ],
   "frames": 1,
   "rows": 1,
   "page": [
    190,
-   26
+   36
   ],
   "opaqueColors": 11,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"

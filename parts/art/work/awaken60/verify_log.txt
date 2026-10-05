@@ -7,6 +7,7 @@ fx       dagger_awaken_in                         OK
 fx       dagger_combo1_awaken                     OK
 fx       dagger_combo2_awaken                     OK
 fx       dagger_combo3_awaken                     OK
+fx       dagger_combo3_double_awaken              OK
 fx       dagger_flurry_awaken                     OK
 fx       dagger_hundred_ghosts                    OK
 fx       greatsword_awaken_in                     OK
@@ -17,6 +18,7 @@ fx       greatsword_sweep_ccw_awaken              OK
 fx       greatsword_sweep_cw_awaken               OK
 fx       katana_awaken_in                         OK
 fx       katana_fall_awaken                       OK
+fx       katana_fall_wide_awaken                  OK
 fx       katana_fullmoon                          OK
 fx       katana_issen_line_t1_awaken              OK
 fx       katana_issen_line_t2_awaken              OK
@@ -85,4 +87,4 @@ weapons  katana_sheathe_awaken                    OK
 weapons  katana_special_awaken                    OK
 weapons  katana_spin_awaken                       OK
 weapons  katana_thrust_awaken                     OK
-검사 87 시트 · 오류 0
+검사 89 시트 · 오류 0

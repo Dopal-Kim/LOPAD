@@ -2,7 +2,7 @@
  "image": "elite_nameplate.png",
  "action": "elite_nameplate",
  "frameWidth": 192,
- "frameHeight": 30,
+ "frameHeight": 40,
  "framesPerDirection": 1,
  "directions": [
   "any"
@@ -16,7 +16,7 @@
  "pixelScale": 0.5,
  "pivot": {
   "x": 96,
-  "y": 28
+  "y": 38
  },
  "anchor": "enemy_head",
  "anchorRule": "이름표 pivot(아래 가운데) = 문장 pivot 위 64 도트(문장 머리 위) — 또는 시스템 배치. 글자 가운데 = (pivot.x, textCenterY)",
@@ -31,11 +31,17 @@
   "x": 26,
   "y": 7,
   "w": 140,
-  "h": 16
+  "h": 24
  },
- "textCenterY": 15,
+ "textCenterY": 19,
+ "textBand": {
+  "y": 5,
+  "h": 29,
+  "note": "바느질 테 안쪽 빈 띠(글자가 넘쳐도 테를 덮지 않는 한계)"
+ },
  "textColorSuggest": "#eecc78",
- "textNote": "글자(예 '불붙은 결사병', 임시 이름)는 시스템/UI 가 위에 쓴다 — 권장 글자색 호박 25(자체 발광), 그림자 SL0",
+ "textNote": "글자(예 '불붙은 결사병', 임시 이름)는 시스템/UI 가 위에 쓴다 — 권장 글자색 호박 25(자체 발광), 그림자 SL0. 60 Q36: 글자 칸 24도트(= Galmuri11 12px × scale 0.5 의 글자 높이) — 30 → 40 높이 판",
+ "r60q36": "60라운드 Q36 — 엘리트 이름표 글자 칸 24도트 이상 판(이전: 192×30, textArea h 16 · y 7, textCenterY 15)",
  "minWidth": 68,
  "usage": "엘리트 이름표 바탕(월드, 머리 위). UI 화면용 패널은 UI 파트 몫",
  "depth": "above",
@@ -59,7 +65,7 @@
    "columns": 1,
    "rows": 1,
    "frameWidth": 192,
-   "frameHeight": 30,
+   "frameHeight": 40,
    "frameCount": 1
   },
   "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
@@ -71,7 +77,7 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":0,"w":190,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":3,"w":190,"h":26},"sourceSize":{"w":192,"h":30}}
+  "0":{"frame":{"x":0,"y":0,"w":190,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":3,"w":190,"h":36},"sourceSize":{"w":192,"h":40}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -80,7 +86,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 190,
-   "h": 26
+   "h": 36
   },
   "scale": "1"
  }

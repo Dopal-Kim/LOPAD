@@ -124,3 +124,47 @@ def fx_preview(out, names, rows_max=2, scale=2, bg=(18, 17, 20, 255)):
         sh = sh.resize((int(sh.width * kk), int(sh.height * kk)), Image.NEAREST)
     sh.save(out)
     return sh.size
+
+
+def combo_preview(out, combos, dirs=("right", "down"), bg=(18, 17, 20, 255)):
+    """60 Q33 합친 궤적 대조: 조합마다 [갈래 시트(assets) | 각성 궤적(기본 동작, out/grid) | 합친 시트(out/grid)] × 방향. 청록 점 = 피벗."""
+    blocks = []
+    for base, trail in combos:
+        bj, bf = P.K57.grid_frames("fx/v3/" + base)
+        tj, tf = grid(os.path.join(P.STAGE_FX, trail + "_awaken"))
+        cj, cf = grid(os.path.join(P.STAGE_FX, base + "_awaken"))
+        lanes = [("branch " + base, bj, bf), ("awaken " + trail + "_awaken", tj, tf), ("COMBINED " + base + "_awaken", cj, cf)]
+        W = max(j["frameWidth"] for _, j, _ in lanes)
+        H = max(j["frameHeight"] for _, j, _ in lanes)
+        n = max(len(f[dirs[0]]) for _, _, f in lanes)
+        img = Image.new("RGBA", (n * (W + 4) + 230, 22 + len(dirs) * len(lanes) * (H + 18)), bg)
+        dr = ImageDraw.Draw(img)
+        dr.text((4, 4), "%s_awaken  %dx%d  colors=%s glow=%s ms=%s pivot=%s" % (base, cj["frameWidth"], cj["frameHeight"], cj.get("colors"),
+                                                                              cj.get("glowFrames"), cj["frameDurationsMs"], cj.get("pivot")), fill=(230, 230, 230))
+        y = 22
+        for d in dirs:
+            for lab, j, fr in lanes:
+                dr.text((4, y + 4), "%s\n%s %dx%d" % (lab, d, j["frameWidth"], j["frameHeight"]), fill=(170, 170, 170))
+                pv = j.get("pivot") or {"x": 0, "y": 0}
+                for c, f in enumerate(fr[d]):
+                    t = Image.new("RGBA", (W, H), K6.hexrgb(K6.BG) + (255,))
+                    ox, oy = W // 2 - pv["x"], H * 2 // 3 - pv["y"]        # 피벗을 같은 자리에 맞춰 비교
+                    t.alpha_composite(f, (max(0, ox), max(0, oy)))
+                    t.putpixel((W // 2, H * 2 // 3), (0, 255, 255, 255))
+                    img.alpha_composite(t, (230 + c * (W + 4), y))
+                    dr.text((230 + c * (W + 4) + 2, y + H + 2), "f%d %dms%s" % (c, j["frameDurationsMs"][c], " glow" if c in (j.get("glowFrames") or []) else ""),
+                            fill=(150, 150, 150))
+                y += H + 18
+        blocks.append(img)
+    W_ = max(b.width for b in blocks)
+    H_ = sum(b.height + 6 for b in blocks)
+    sh = Image.new("RGBA", (W_, H_), (10, 10, 12, 255))
+    y = 0
+    for b in blocks:
+        sh.alpha_composite(b, (0, y))
+        y += b.height + 6
+    if max(sh.size) > 8000:
+        kk = 8000 / max(sh.size)
+        sh = sh.resize((int(sh.width * kk), int(sh.height * kk)), Image.NEAREST)
+    sh.save(out)
+    return sh.size
