@@ -594,3 +594,8 @@
 - 짐꾼 `push`: 놓음 프레임 5(530ms), `barrelSpawnAnchors[방향][5]` 에 `structures/v3/porter_rolling_barrel`(행 = 방향 × 8, 60ms 루프, `circumferencePx`·`diameterPx`·`lengthPx` 논리 px). 되치기 시 같은 프레임 번호의 `porter_rolling_barrel_returned` 로 교체. 벽·단단한 구조물에 닿으면 `porter_barrel_break`(8프레임, `stateHold` 7) → `fx/v3/pool_liquor`(불이 닿으면 `pool_liquor_fire`).
 - `elite_*` fx 의 `headTopByEnemy`·`bodyBoxByEnemy` 에 peddler 118·porter 116 추가.
 - **서사 소품**(E 조사, states `idle`/`found`, 64도트 칸): `structures/v3/clue_masked_corpse`(탄생지 가면 시체, footprint [2,1], 통과), `clue_gate_register`(성문 초소 출입 장부, solid), `clue_tab_ledgers`(보스방 외상 장부 더미, solid — 기둥 뒤 구석 배치). `markAnchor`·`lightByState` 는 JSON.
+
+## 24. 61라운드 단계 2 — 구조물 v3·타일 재작업·방 변주 소품
+- **구조물 v1 → v3(64도트) 26종, id 그대로**: 구조물 데이터 9(`crate_f1`·`chest`·`grave`·`bonfire`·`barrel`·`ledger`·`cask`·`counter`·`cellar_wall`) + 세트·튜토리얼 17(`set_*` 8, `battlefield_{banner,weapon,fallen,dummy}`, `tutorial_sign` 와 `_move/_attack/_dash/_skill`). 상태 이름·프레임 수·시각·footprint·solid·depth·interact·술통 굴림 키는 v1 과 같음, 피벗 = footprint 아래 가운데(도트, pixelScale 0.5). 광원은 시트 JSON 이 `lighting.json` 대체 기본값보다 우선, `cask`·튜토리얼 표지판은 `lightByState`. `counter` 에 선택 키 `markAnchors`. 2층 전용(카드 탁자·룰렛·칩 교환·개 싸움판·판돈 종·전당포·`crate_f2`)은 동결.
+- **1층 5지역 타일셋**: `upscaled60` 칸 전부 다시 그림(JSON `redrawn61`, `upscaled60` 은 빈 목록). 인덱스·키·`tileLights` offset·데칼 rect 불변. 옛 v2 소품 칸(13~20·64~79)은 v3 props 시트가 대체 — 새 키 `supersededByPropsSheet`.
+- **방 변주 소품 17종**: `tiles/v3/stage1_<region>_props` 아래쪽에 추가(기존 rect·픽셀 불변). 새 항목 `added61: true`·`variantTag`(장면 묶음: `outer_wreck`·`outer_backyard`·`brewery_store`·`brewery_works`·`hall_brawl`·`waste_dead`·`waste_volley`·`gate_checkpoint`), 큰 소품 `maxPerRoom: 1`. 엄폐용: `overturned_table`·`pavise_row`·`chain_posts`, 통과: `laundry_line`.

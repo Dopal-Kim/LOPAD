@@ -357,6 +357,81 @@
    "solid": true,
    "occludeAbove": 20,
    "placement": "floor"
+  },
+  {
+   "name": "notice_post",
+   "index": 128,
+   "rect": {
+    "x": 0,
+    "y": 512,
+    "w": 96,
+    "h": 208
+   },
+   "pivot": {
+    "x": 48,
+    "y": 200
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 50,
+   "placement": "floor (문·길 옆)",
+   "note": "61라운드 방 변주: 방문(수배·징집) 붙은 기둥 — 글자 없음, 줄만",
+   "maxPerRoom": 1,
+   "added61": true,
+   "variantTag": "gate_checkpoint"
+  },
+  {
+   "name": "spear_rack",
+   "index": 130,
+   "rect": {
+    "x": 128,
+    "y": 512,
+    "w": 96,
+    "h": 192
+   },
+   "pivot": {
+    "x": 48,
+    "y": 184
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 50,
+   "placement": "floor (벽 앞·초소 둘레)",
+   "note": "61라운드 방 변주: 경비 창 거치대 + 방패",
+   "maxPerRoom": 1,
+   "added61": true,
+   "variantTag": "gate_checkpoint"
+  },
+  {
+   "name": "chain_posts",
+   "index": 132,
+   "rect": {
+    "x": 256,
+    "y": 512,
+    "w": 160,
+    "h": 112
+   },
+   "pivot": {
+    "x": 80,
+    "y": 104
+   },
+   "footprint": [
+    2,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 30,
+   "placement": "floor (길목 가로막기)",
+   "note": "61라운드 방 변주: 돌 말뚝 2 + 늘어진 쇠사슬 — 낮은 막힘",
+   "maxPerRoom": 1,
+   "added61": true,
+   "variantTag": "gate_checkpoint"
   }
  ],
  "bigPropsNote": "계약 §12 bigProps 규칙 배치용. rect 로 자른다. lights[] 가 있으면 light 대신 여러 광원(연회 탁자 촛대).",
@@ -372,5 +447,6 @@
  ],
  "emissiveNote": "이 색 픽셀은 자체 발광(불꽃·등불·촛불·끓는 술). 조명 곱하기 뒤 가산 레이어로 다시 그린다(목업 방식)",
  "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
- "source": "parts/art/work/props_v3/build.py (53라운드 Q12)"
+ "source": "parts/art/work/props_v3/build.py (53라운드 Q12) + parts/art/work/struct61/build.py (61라운드 방 다양화 소품)",
+ "added61Note": "61라운드 방 다양화 소품 군: 시트 아래(y ≥ 512)에 덧붙임 — 기존 항목 rect·그림 불변. added61 = 새 항목, variantTag = 방 배치 변주 묶음 제안(같은 태그끼리 한 방에 모아 두면 장면이 됨: 예 hall_brawl = 엎어진 식탁 + 부서진 의자 + 엎어진 쟁반)"
 }

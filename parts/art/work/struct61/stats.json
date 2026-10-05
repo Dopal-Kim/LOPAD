@@ -1,0 +1,500 @@
+{
+ "structs": {
+  "crate_f1": {
+   "size": [
+    128,
+    128
+   ],
+   "frames": 6,
+   "pivot": [
+    64,
+    120
+   ],
+   "colors": 19,
+   "semiPx": 1160
+  },
+  "chest": {
+   "size": [
+    192,
+    160
+   ],
+   "frames": 2,
+   "pivot": [
+    96,
+    152
+   ],
+   "colors": 20,
+   "semiPx": 2518
+  },
+  "grave": {
+   "size": [
+    128,
+    176
+   ],
+   "frames": 4,
+   "pivot": [
+    64,
+    168
+   ],
+   "colors": 24,
+   "semiPx": 3076
+  },
+  "bonfire": {
+   "size": [
+    192,
+    192
+   ],
+   "frames": 5,
+   "pivot": [
+    96,
+    176
+   ],
+   "colors": 23,
+   "semiPx": 5590
+  },
+  "barrel": {
+   "size": [
+    128,
+    128
+   ],
+   "frames": 9,
+   "pivot": [
+    64,
+    120
+   ],
+   "colors": 23,
+   "semiPx": 2488
+  },
+  "ledger": {
+   "size": [
+    128,
+    192
+   ],
+   "frames": 2,
+   "pivot": [
+    64,
+    184
+   ],
+   "colors": 30,
+   "semiPx": 1402
+  },
+  "cask": {
+   "size": [
+    192,
+    176
+   ],
+   "frames": 7,
+   "pivot": [
+    96,
+    168
+   ],
+   "colors": 24,
+   "semiPx": 14049
+  },
+  "counter": {
+   "size": [
+    256,
+    176
+   ],
+   "frames": 4,
+   "pivot": [
+    128,
+    168
+   ],
+   "colors": 30,
+   "semiPx": 10616
+  },
+  "cellar_wall": {
+   "size": [
+    64,
+    64
+   ],
+   "frames": 11,
+   "pivot": [
+    32,
+    64
+   ],
+   "colors": 23,
+   "semiPx": 0
+  },
+  "set_waste_fire_ring": {
+   "size": [
+    256,
+    192
+   ],
+   "frames": 1,
+   "pivot": [
+    128,
+    192
+   ],
+   "colors": 18,
+   "semiPx": 0
+  },
+  "set_outer_plaza": {
+   "size": [
+    256,
+    192
+   ],
+   "frames": 1,
+   "pivot": [
+    128,
+    192
+   ],
+   "colors": 10,
+   "semiPx": 0
+  },
+  "set_outer_stall": {
+   "size": [
+    192,
+    192
+   ],
+   "frames": 1,
+   "pivot": [
+    96,
+    186
+   ],
+   "colors": 22,
+   "semiPx": 976
+  },
+  "set_outer_lamppost": {
+   "size": [
+    96,
+    224
+   ],
+   "frames": 4,
+   "pivot": [
+    34,
+    218
+   ],
+   "colors": 20,
+   "semiPx": 604
+  },
+  "set_gate_brazier": {
+   "size": [
+    128,
+    176
+   ],
+   "frames": 4,
+   "pivot": [
+    64,
+    168
+   ],
+   "colors": 15,
+   "semiPx": 2468
+  },
+  "set_brewery_barrel_stack": {
+   "size": [
+    192,
+    176
+   ],
+   "frames": 1,
+   "pivot": [
+    96,
+    168
+   ],
+   "colors": 14,
+   "semiPx": 1779
+  },
+  "set_hall_rug": {
+   "size": [
+    256,
+    192
+   ],
+   "frames": 1,
+   "pivot": [
+    128,
+    192
+   ],
+   "colors": 8,
+   "semiPx": 0
+  },
+  "set_hall_long_table": {
+   "size": [
+    224,
+    176
+   ],
+   "frames": 1,
+   "pivot": [
+    112,
+    168
+   ],
+   "colors": 36,
+   "semiPx": 2655
+  },
+  "battlefield_banner": {
+   "size": [
+    128,
+    208
+   ],
+   "frames": 5,
+   "pivot": [
+    64,
+    200
+   ],
+   "colors": 12,
+   "semiPx": 595
+  },
+  "battlefield_weapon": {
+   "size": [
+    128,
+    176
+   ],
+   "frames": 3,
+   "pivot": [
+    64,
+    168
+   ],
+   "colors": 16,
+   "semiPx": 354
+  },
+  "battlefield_fallen": {
+   "size": [
+    160,
+    96
+   ],
+   "frames": 2,
+   "pivot": [
+    80,
+    88
+   ],
+   "colors": 17,
+   "semiPx": 0
+  },
+  "battlefield_dummy": {
+   "size": [
+    128,
+    176
+   ],
+   "frames": 5,
+   "pivot": [
+    64,
+    168
+   ],
+   "colors": 19,
+   "semiPx": 412
+  },
+  "tutorial_sign": {
+   "size": [
+    128,
+    96
+   ],
+   "frames": 6,
+   "pivot": [
+    64,
+    88
+   ],
+   "colors": 10,
+   "semiPx": 0
+  },
+  "tutorial_sign_move": {
+   "size": [
+    128,
+    96
+   ],
+   "frames": 6,
+   "pivot": [
+    64,
+    88
+   ],
+   "colors": 11,
+   "semiPx": 0
+  },
+  "tutorial_sign_attack": {
+   "size": [
+    128,
+    96
+   ],
+   "frames": 6,
+   "pivot": [
+    64,
+    88
+   ],
+   "colors": 11,
+   "semiPx": 0
+  },
+  "tutorial_sign_dash": {
+   "size": [
+    128,
+    96
+   ],
+   "frames": 6,
+   "pivot": [
+    64,
+    88
+   ],
+   "colors": 11,
+   "semiPx": 0
+  },
+  "tutorial_sign_skill": {
+   "size": [
+    128,
+    96
+   ],
+   "frames": 6,
+   "pivot": [
+    64,
+    88
+   ],
+   "colors": 11,
+   "semiPx": 0
+  }
+ },
+ "atlas": [
+  [
+   "structures",
+   "crate_f1",
+   "[768, 128]",
+   "[(443, 99)]"
+  ],
+  [
+   "structures",
+   "chest",
+   "[384, 160]",
+   "[(141, 212)]"
+  ],
+  [
+   "structures",
+   "grave",
+   "[512, 176]",
+   "[(101, 290)]"
+  ],
+  [
+   "structures",
+   "bonfire",
+   "[960, 192]",
+   "[(141, 574)]"
+  ],
+  [
+   "structures",
+   "barrel",
+   "[1152, 128]",
+   "[(213, 255)]"
+  ],
+  [
+   "structures",
+   "ledger",
+   "[256, 192]",
+   "[(109, 276)]"
+  ],
+  [
+   "structures",
+   "cask",
+   "[1344, 176]",
+   "[(157, 939)]"
+  ],
+  [
+   "structures",
+   "counter",
+   "[1024, 176]",
+   "[(906, 138)]"
+  ],
+  [
+   "structures",
+   "cellar_wall",
+   "[704, 64]",
+   "[(64, 629)]"
+  ],
+  [
+   "structures",
+   "set_waste_fire_ring",
+   "[256, 192]",
+   "[(228, 142)]"
+  ],
+  [
+   "structures",
+   "set_outer_plaza",
+   "[256, 192]",
+   "[(236, 164)]"
+  ],
+  [
+   "structures",
+   "set_outer_stall",
+   "[192, 192]",
+   "[(177, 186)]"
+  ],
+  [
+   "structures",
+   "set_outer_lamppost",
+   "[384, 224]",
+   "[(68, 790)]"
+  ],
+  [
+   "structures",
+   "set_gate_brazier",
+   "[512, 176]",
+   "[(68, 590)]"
+  ],
+  [
+   "structures",
+   "set_brewery_barrel_stack",
+   "[192, 176]",
+   "[(181, 152)]"
+  ],
+  [
+   "structures",
+   "set_hall_rug",
+   "[256, 192]",
+   "[(228, 167)]"
+  ],
+  [
+   "structures",
+   "set_hall_long_table",
+   "[224, 176]",
+   "[(201, 136)]"
+  ],
+  [
+   "structures",
+   "battlefield_banner",
+   "[640, 208]",
+   "[(76, 943)]"
+  ],
+  [
+   "structures",
+   "battlefield_weapon",
+   "[384, 176]",
+   "[(73, 357)]"
+  ],
+  [
+   "structures",
+   "battlefield_fallen",
+   "[320, 96]",
+   "[(136, 145)]"
+  ],
+  [
+   "structures",
+   "battlefield_dummy",
+   "[640, 176]",
+   "[(166, 300)]"
+  ],
+  [
+   "structures",
+   "tutorial_sign",
+   "[768, 96]",
+   "[(104, 329)]"
+  ],
+  [
+   "structures",
+   "tutorial_sign_move",
+   "[768, 96]",
+   "[(104, 329)]"
+  ],
+  [
+   "structures",
+   "tutorial_sign_attack",
+   "[768, 96]",
+   "[(104, 329)]"
+  ],
+  [
+   "structures",
+   "tutorial_sign_dash",
+   "[768, 96]",
+   "[(104, 329)]"
+  ],
+  [
+   "structures",
+   "tutorial_sign_skill",
+   "[768, 96]",
+   "[(104, 329)]"
+  ]
+ ]
+}

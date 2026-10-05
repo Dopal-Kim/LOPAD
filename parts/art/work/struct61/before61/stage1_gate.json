@@ -1,0 +1,357 @@
+{
+ "image": "stage1_gate.png",
+ "version": "60라운드 Q9 B안 — 64도트 = 1칸(pixelScale 0.5). 이전: v2 (53라운드 — 4지역 쿼터뷰 바닥, 외곽 v2 규칙)",
+ "stage": 1,
+ "region": "gate",
+ "name": "잔(盞) — 성문 v2 (쿼터뷰)",
+ "tileWidth": 64,
+ "tileHeight": 64,
+ "columns": 8,
+ "rows": 9,
+ "indexFormula": "row * columns + column",
+ "pixelScale": 0.5,
+ "wallHeightTiles": 2,
+ "quarter": true,
+ "tiles": {
+  "0": [
+   7,
+   7,
+   7,
+   58,
+   59
+  ],
+  "1": [
+   0,
+   0,
+   1,
+   1,
+   3,
+   3,
+   2
+  ],
+  "2": [
+   5,
+   5,
+   22,
+   21,
+   63
+  ],
+  "3": [
+   8
+  ],
+  "4": [
+   9
+  ],
+  "5": [
+   10
+  ],
+  "6": [
+   4
+  ],
+  "7": [
+   11
+  ],
+  "8": [
+   12
+  ]
+ },
+ "tilesNote": "목록 안 중복 = 가중치. 바닥 0~3 은 공유 주기 잡음으로 가장자리가 같아 어떤 변형끼리 붙어도 이어진다",
+ "tileIdNames": {
+  "0": "void",
+  "1": "floor",
+  "2": "wall",
+  "3": "door_open",
+  "4": "door_closed",
+  "5": "door_locked",
+  "6": "corridor",
+  "7": "exit",
+  "8": "shop"
+ },
+ "walls": {
+  "front": {
+   "lower": [
+    5,
+    5,
+    22,
+    21,
+    63
+   ],
+   "upper": [
+    40,
+    40,
+    41,
+    42
+   ]
+  },
+  "top": 6,
+  "topAboveFront": 47,
+  "left": 48,
+  "right": 49,
+  "bottom": 50,
+  "corner_tl": 48,
+  "corner_tr": 49,
+  "corner_bl": 51,
+  "corner_br": 52,
+  "stoneSet": {
+   "lower": [
+    43,
+    43,
+    46
+   ],
+   "upper": [
+    44
+   ],
+   "top": 45,
+   "note": "낮은 경비 돌담(엄폐)"
+  },
+  "note": "성벽 큰 돌(내부 장애물). 52라운드 '성문만 앞면 3칸'은 테두리 북 띠가 맡는다 — 내부 장애물은 2칸"
+ },
+ "wallsNote": "벽은 최소(53라운드): 외벽은 Gemini 테두리 assets/tiles/border/gate/border.json 이 덮는다. 이 타일은 전투장 안 장애물 벽(앞면 2칸 + 윗면)과 엄폐 담(stoneSet) 전용. 쌓는 규칙은 외곽 v2(walls.stacking)와 같다",
+ "floorShadows": {
+  "n": 53,
+  "w": 54,
+  "e": 55,
+  "nw": 56,
+  "ne": 57
+ },
+ "floorFeatures": {
+  "wheelRut": 60,
+  "grate": 61,
+  "lightPuddle": 62,
+  "note": "선택. wheelRut 은 가로로 이어짐"
+ },
+ "roomFloors": {
+  "start": [
+   23,
+   24,
+   25,
+   26
+  ],
+  "trial": [
+   27,
+   28,
+   29,
+   30
+  ],
+  "rest": [
+   31,
+   32,
+   33,
+   34
+  ],
+  "boss": [
+   35,
+   36,
+   37,
+   38
+  ]
+ },
+ "roomFloorMix": 0.02,
+ "roomFloorsNote": "start = 포석·짚, trial = 깨진 포석·문빛 웅덩이, rest = 진흙·짚, boss = 성문 앞 큰 판석(_0 잔 문양)",
+ "props": [],
+ "propsSheet": "../v3/stage1_gate_props.json",
+ "propsNote": "13~20 은 비움 — 소품은 v3 시트(2배 밀도, pixelScale 0.5)의 props·bigProps 를 쓴다(계약 문구 초안 참고)",
+ "decals": [
+  {
+   "name": "wheel_ruts",
+   "rect": {
+    "x": 0,
+    "y": 512,
+    "w": 192,
+    "h": 64
+   },
+   "index": 64,
+   "footprint": [
+    3,
+    1
+   ],
+   "note": "진창 깊은 바퀴 자국(성문 앞 길)"
+  },
+  {
+   "name": "light_puddles",
+   "rect": {
+    "x": 192,
+    "y": 512,
+    "w": 128,
+    "h": 64
+   },
+   "index": 67,
+   "footprint": [
+    2,
+    1
+   ],
+   "note": "문빛을 받은 물웅덩이(층 램프, 비발광)"
+  }
+ ],
+ "decalsNote": "바닥 데칼(선택): rect 로 잘라 바닥 위·소품 아래에 반투명 겹침. footprint = 칸 수. 통과 가능",
+ "tileLights": {
+  "21": {
+   "color": "#eebb6d",
+   "radius": 180,
+   "intensity": 0.65,
+   "flicker": {
+    "amp": 0.15,
+    "hz": 6
+   },
+   "offset": {
+    "x": 32,
+    "y": 18
+   }
+  }
+ },
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "border": "../border/gate/border.json",
+ "names": {
+  "0": "floor_0",
+  "1": "floor_1",
+  "2": "floor_2",
+  "3": "floor_3",
+  "4": "corridor",
+  "5": "wall_front_lower",
+  "6": "wall_top",
+  "7": "void",
+  "8": "door_open",
+  "9": "door_closed",
+  "10": "door_locked",
+  "11": "exit",
+  "12": "shop",
+  "21": "wall_front_lower_lit",
+  "22": "wall_front_lower_b",
+  "23": "start_0",
+  "24": "start_1",
+  "25": "start_2",
+  "26": "start_3",
+  "27": "trial_0",
+  "28": "trial_1",
+  "29": "trial_2",
+  "30": "trial_3",
+  "31": "rest_0",
+  "32": "rest_1",
+  "33": "rest_2",
+  "34": "rest_3",
+  "35": "boss_0",
+  "36": "boss_1",
+  "37": "boss_2",
+  "38": "boss_3",
+  "40": "wall_front_upper",
+  "41": "wall_front_upper_b",
+  "42": "wall_front_upper_c",
+  "43": "cover_lower",
+  "44": "cover_upper",
+  "45": "cover_top",
+  "46": "cover_lower_b",
+  "47": "wall_top_eave",
+  "48": "wall_top_edge_e",
+  "49": "wall_top_edge_w",
+  "50": "wall_top_edge_n",
+  "51": "wall_top_corner_ne",
+  "52": "wall_top_corner_nw",
+  "53": "floor_shadow_n",
+  "54": "floor_shadow_w",
+  "55": "floor_shadow_e",
+  "56": "floor_shadow_nw",
+  "57": "floor_shadow_ne",
+  "58": "void_b",
+  "59": "void_c",
+  "60": "floor_feature_a",
+  "61": "floor_feature_b",
+  "62": "floor_feature_c",
+  "63": "wall_front_lower_c",
+  "13": "reserved_prop(v3 시트 사용)",
+  "14": "reserved_prop(v3 시트 사용)",
+  "15": "reserved_prop(v3 시트 사용)",
+  "16": "reserved_prop(v3 시트 사용)",
+  "17": "reserved_prop(v3 시트 사용)",
+  "18": "reserved_prop(v3 시트 사용)",
+  "19": "reserved_prop(v3 시트 사용)",
+  "20": "reserved_prop(v3 시트 사용)"
+ },
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL·NT (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "source": "parts/art/work/floor1q60/floors64_build.py (60라운드 Q9·Q10 — 지역 재질 64도트). 이전: parts/art/work/floors_v2/build.py (53라운드)",
+ "pixelScaleNote": "60라운드 Q9 B안: 칸 = 64도트 = 논리 32px. rect·pivot·occludeAbove·light.radius·light.offset 은 도트 단위(이전 32 판의 2배). 인덱스 표·키는 그대로(계약 §9·§11·§12)",
+ "redrawn60": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  29,
+  30,
+  31,
+  32,
+  33,
+  34,
+  35,
+  36,
+  37,
+  38,
+  43,
+  44,
+  45,
+  46,
+  60,
+  61,
+  62
+ ],
+ "upscaled60": [
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22,
+  39,
+  40,
+  41,
+  42,
+  47,
+  48,
+  49,
+  50,
+  51,
+  52,
+  53,
+  54,
+  55,
+  56,
+  57,
+  58,
+  59,
+  63,
+  64,
+  65,
+  66,
+  67,
+  68,
+  69,
+  70,
+  71
+ ],
+ "upscaledNote": "upscaled60 칸은 32 그림을 2배로 키운 임시(문·장애물 벽·그늘·void·수로·데칼 등) — P3 에서 64 설계로 다시 그림"
+}
