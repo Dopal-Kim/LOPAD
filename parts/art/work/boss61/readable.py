@@ -493,8 +493,63 @@ CW, CH, CPIV = P.CW, P.CH, P.CPIV
 TIPS = [(209, 190), (209, 202), (209, 213)]      # 누운 촛대 초 끝(심지) — 시트 도트
 
 
+STAND_WICKS = [(40, 63), (52, 61), (64, 52), (76, 61), (88, 63)]   # 서 있는 촛대 심지(시트 도트, 0 프레임 불꽃 바로 아래 검은 점)
+UNLIT_MS = [110, 150, 190, 1000]
+
+
+def _smoke(cv, x0, y0, ln, ph, drift, start=0, amp=1.6, broken_from=0.7, thick=0.0):
+    """심지에서 오르는 연기 한 가닥: 1 도트 굵기 물결 줄, 아래 밝은 회색 → 위 어두운 회색, 위 끝은 끊어지며 사라짐.
+    start = 심지에서 떨어진 거리(떨어져 나간 연기)."""
+    prev = None
+    for j in range(start, ln):
+        f = j / max(1, ln - 1)
+        x = x0 + amp * f * math.sin(0.42 * j + ph) + drift * f * f
+        y = y0 - 1 - j
+        col = G[7] if f < 0.3 else (G[6] if f < 0.62 else G[5])
+        if f >= broken_from and (j % 3 == 2 or (f > 0.88 and j % 2)):
+            prev = None
+            continue
+        xi = int(round(x))
+        cv.put(xi, y, col)
+        if f < thick:                                         # 아랫부분은 2 도트(갓 꺼진 연기는 밑동이 굵다)
+            cv.put(xi + (1 if math.sin(0.42 * j + ph) >= 0 else -1), y, G[6] if f < thick * 0.5 else G[5])
+        if prev is not None and abs(xi - prev) > 1:          # 끊김 없이 이어지게 사이 칸
+            cv.put((xi + prev) // 2, y, col)
+        prev = xi
+
+
+def unlit_standing_frames():
+    """61라운드 단계 4: '서 있지만 꺼진' 촛대 — 10 꺼진 직후(심지 5 잔불 + 짧은 연기 5) → 11 연기 3가닥이 길게 오르고 잔불이 식음 →
+    12 가운데 한 가닥만 떨어져 올라가 흩어짐 → 13 유지(불꽃만 없는 0 프레임). 촛대 그림 = 54라운드 candelabra_upright(False) 그대로."""
+    out = P.candelabra_upright(False)
+    frames = []
+    for i in range(4):
+        cv = Canvas(CW, CH)
+        P.contact(cv, 64, 214, 24, 5)
+        P.rot_place(out, 0, 48, 202, cv.im, (64, 216))
+        c = Cv.wrap(cv.im)
+        if i == 0:
+            for k, (x, y) in enumerate(STAND_WICKS):
+                c.put(x, y, A[23]); c.put(x, y - 1, A[21]); c.put(x + 1, y, A[19]); c.put(x - 1, y, A[19])
+                _smoke(c, x, y - 2, 10 + (k % 2) * 3, k * 1.7, (-1) ** k, broken_from=0.8, thick=0.5)
+        elif i == 1:
+            for k, (x, y) in enumerate(STAND_WICKS):
+                c.put(x, y, A[21] if k == 2 else (A[19] if k in (1, 3) else A[18]))
+                if k in (1, 2, 3):
+                    _smoke(c, x, y - 1, [22, 32, 24][k - 1], 0.9 + k, [-3, 2, 4][k - 1], start=1, thick=0.3)
+                else:
+                    _smoke(c, x, y - 1, 5, k, 0, start=1, amp=0.6)
+        elif i == 2:
+            x, y = STAND_WICKS[2]
+            c.put(x, y, A[19])
+            _smoke(c, x, y - 1, 46, 2.3, 6, start=7, amp=2.4, broken_from=0.6, thick=0.25)
+        frames.append(cv.im)
+    return frames
+
+
 def candelabra_fix():
-    """54라운드 relight·relit 프레임의 불꽃이 초 끝에서 약 40 도트 떨어져 떠 있던 것을 고침: 0~6 그대로, 7~9 를 초 끝(TIPS)에서 다시 그림."""
+    """54라운드 relight·relit 프레임의 불꽃이 초 끝에서 약 40 도트 떨어져 떠 있던 것을 고침: 0~6 그대로, 7~9 를 초 끝(TIPS)에서 다시 그림.
+    61라운드 단계 4: 10~13 '서 있지만 꺼진(unlit_standing)' 상태를 뒤에 덧붙임(0~9 번호 불변)."""
     src = gridsheet.open_grid(os.path.join(P.ROOT, "assets/sprites/structures/v3/boss1_candelabra.json"))
     frames = [src.crop((i * CW, 0, (i + 1) * CW, CH)) for i in range(10)]
     base = frames[6]
@@ -509,16 +564,29 @@ def candelabra_fix():
     f8 = Canvas(CW, CH); f8.paste(base, 0, 0); c8 = Cv.wrap(f8.im); sparks(c8, 6, 2); P.lying_flames(f8, [(x + 1, y) for x, y in TIPS], 0, 1.0)
     f9 = Canvas(CW, CH); f9.paste(base, 0, 0); P.lying_flames(f9, [(x + 1, y) for x, y in TIPS], 1, 1.25)
     frames[7:10] = [f7.im, f8.im, f9.im]
+    frames = frames[:10] + unlit_standing_frames()
     m = gridsheet.load_meta(os.path.join(P.ROOT, "assets/sprites/structures/v3/boss1_candelabra.json"))
+    ms = list(m["frameDurationsMs"][:10]) + UNLIT_MS
     keep = {k: v for k, v in m.items() if k not in ("image", "frameWidth", "frameHeight", "frames", "directions", "frameDurationsMs", "loop", "pixelScale", "action", "layout", "frameIndex")}
+    keep["states"] = {k: v for k, v in keep["states"].items() if k != "unlit_standing"}
+    keep["states"]["unlit_standing"] = [10, 11, 12, 13]
+    keep["stateHold"] = dict(keep["stateHold"], unlit_standing=13)
+    keep["solidByState"] = dict(keep["solidByState"], unlit_standing=True)
+    keep["lightByState"] = dict(keep["lightByState"], unlit_standing=None)
+    keep["unlitStanding61"] = ("61라운드 단계 4: 서 있는 채 꺼진 촛대(3국면 소등 등 — 쓰러지지 않고 불만 꺼짐). 10 = 꺼진 직후 심지 잔불 + 짧은 연기, "
+                               "11 = 연기 3가닥이 오름, 12 = 가운데 한 가닥만 떨어져 흩어짐, 13 = 유지(불꽃만 없는 0 프레임 그림, stateHold). "
+                               "광원 없음(lightByState null), solid. 다시 켤 때는 lit(0)으로 바로 — 켜는 순간 효과는 boss1_flame_snuff 역재생 대신 "
+                               "시스템 광원 페이드로 충분. 지금까지 쓰던 'lit 그림을 어둡게 칠하기' 대체")
     keep["lightByState"]["relight"]["offset"] = {"x": 210, "y": 196}
     keep["lightByState"]["relit"]["offset"] = {"x": 210, "y": 194}
     keep["wickAnchors"] = {"fallen": [{"x": x, "y": y} for x, y in TIPS],
-                           "note": "누운 촛대(fall 4 · fallen_unlit · relight · relit) 초 끝 심지 — 시트 도트. flipX 면 x → 256 − x"}
+                           "standing": [{"x": x, "y": y} for x, y in STAND_WICKS],
+                           "note": ("fallen = 누운 촛대(fall 4 · fallen_unlit · relight · relit) 초 끝 심지, standing = 서 있는 촛대(lit · unlit_standing) 초 5개 심지 "
+                                    "— 시트 도트. flipX 면 x → 256 − x. 서 있는 채 끌 때 boss1_flame_snuff 를 standing 심지에(불꽃 뿌리 = 심지 바로 위)")}
     keep["fix61"] = "61라운드: relight·relit(7~9) 불꽃을 초 끝 심지 위치로 옮김(54라운드 그림은 초 끝에서 약 40 도트 오른쪽에 떠 있었음). 0~6 프레임 픽셀 그대로"
     keep["relightCue"] = "fx/v3/boss1_candle_glint — fallen_unlit 동안(다시 켤 수 있음) 이 시트 위에 같은 피벗·flipX 로 겹침"
     keep["version"] = "v3-r61"
-    return "structures", "boss1_candelabra", [frames], CW, CH, keep, m["frameDurationsMs"], False
+    return "structures", "boss1_candelabra", [frames], CW, CH, keep, ms, False
 
 
 def candle_glint():

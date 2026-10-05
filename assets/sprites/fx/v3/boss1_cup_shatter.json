@@ -34,9 +34,9 @@
  "palette": "v3 이펙트: 주인공 재·호박 램프(#3f271d~#f4de9b = 1층 램프 A17~A26) + 백열 X0 #ffffff / X1 #fff4dc + 술통 널(WD)·쇠테(G). paletteSwap none",
  "drawOver": "lightmap",
  "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
- "source": "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)",
+ "source": "parts/art/work/boss61/native.py (61라운드 단계 4 — 1.5배 네이티브 재그림)",
  "note": "약점 술통 잔이 부서짐(54라운드 Q6 '한 잔 더' · Q13 술통 잔): 0 = 백열 섬광 + 통에 금(판정 프레임), 1~ = 널 조각이 회전하며 튀고 쇠테 2개가 벌어져 떨어짐 · 나뭇조각 · 술 덩어리가 솟았다 떨어짐",
- "colors": 17,
+ "colors": 19,
  "anchorNote": "pivot = 술통 잔 중심. 보스 drink 시트 cupAnchors 사각형(왼쪽 위 x,y + w,h) 가운데(x + w/2, y + h/2 — 시트 도트 → 보스 피벗 기준 환산)에 놓는다",
  "glowFrames": [
   0
@@ -52,13 +52,13 @@
  ],
  "nativeScale": 1.5,
  "renderScaleHint": 1.0,
- "nativeNote": "61라운드: 보스 1.5배 네이티브 잔(약 44×55)에 맞춰 54라운드 그림을 최근접 1.5배(임시) — 피벗 1.5배",
+ "nativeNote": "61라운드 단계 4: 1.5배 네이티브 재그림 — 1.5배 보스 잔(약 44×55 · 쇠테 3줄)에 맞춰 새로 그림(최근접 확대 아님). 널 조각 4~5 도트 폭(밝은 면·본색·그늘·결·어두운 테) · 쇠테 2 도트 띠 3줄 · 술 방울 밝은 점. 틀 192×192 · 피벗 (96,90) · 8프레임 · ms · glowFrames [0] 그대로",
  "previousSize": {
-  "frameWidth": 192,
-  "frameHeight": 240,
+  "frameWidth": 128,
+  "frameHeight": 128,
   "pivot": {
-   "x": 96,
-   "y": 220
+   "x": 64,
+   "y": 60
   }
  },
  "atlas": {
@@ -81,14 +81,14 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":343,"y":164,"w":55,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":63,"w":55,"h":55},"sourceSize":{"w":192,"h":192}},
-  "1":{"frame":{"x":269,"y":164,"w":72,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":62,"w":72,"h":48},"sourceSize":{"w":192,"h":192}},
-  "2":{"frame":{"x":308,"y":93,"w":82,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":52,"w":82,"h":69},"sourceSize":{"w":192,"h":192}},
-  "3":{"frame":{"x":308,"y":0,"w":96,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":48,"w":96,"h":91},"sourceSize":{"w":192,"h":192}},
-  "4":{"frame":{"x":146,"y":111,"w":121,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":52,"w":121,"h":108},"sourceSize":{"w":192,"h":192}},
-  "5":{"frame":{"x":0,"y":89,"w":144,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":62,"w":144,"h":122},"sourceSize":{"w":192,"h":192}},
-  "6":{"frame":{"x":157,"y":0,"w":149,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":83,"w":149,"h":109},"sourceSize":{"w":192,"h":192}},
-  "7":{"frame":{"x":0,"y":0,"w":155,"h":87},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":105,"w":155,"h":87},"sourceSize":{"w":192,"h":192}}
+  "0":{"frame":{"x":164,"y":86,"w":82,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":39,"w":82,"h":82},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":164,"y":170,"w":76,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":59,"y":58,"w":76,"h":63},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":164,"y":0,"w":87,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":42,"w":87,"h":84},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":136,"y":364,"w":106,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":33,"w":106,"h":101},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":0,"y":364,"w":134,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":33,"w":134,"h":110},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":0,"y":247,"w":162,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":41,"w":162,"h":115},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":0,"y":0,"w":162,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":49,"w":162,"h":122},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":0,"y":124,"w":162,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":67,"w":162,"h":121},"sourceSize":{"w":192,"h":192}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -96,8 +96,8 @@
   "image": "boss1_cup_shatter.png",
   "format": "RGBA8888",
   "size": {
-   "w": 404,
-   "h": 219
+   "w": 251,
+   "h": 474
   },
   "scale": "1"
  }

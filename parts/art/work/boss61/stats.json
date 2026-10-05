@@ -46,8 +46,8 @@
    224
   ],
   "rows": 1,
-  "cols": 10,
-  "colors": 20
+  "cols": 14,
+  "colors": 21
  },
  "boss1_candle_glint": {
   "cat": "fx",
@@ -108,5 +108,77 @@
   "rows": 1,
   "cols": 8,
   "colors": 11
+ },
+ "boss1_onfire": {
+  "cat": "fx",
+  "frame": [
+   288,
+   360
+  ],
+  "rows": 4,
+  "cols": 16
+ },
+ "boss1_onfire_down": {
+  "cat": "fx",
+  "frame": [
+   288,
+   360
+  ],
+  "rows": 1,
+  "cols": 16
+ },
+ "boss1_cup_shatter": {
+  "cat": "fx",
+  "frame": [
+   192,
+   192
+  ],
+  "rows": 1,
+  "cols": 8
+ },
+ "stage1_idle_rim_lite": {
+  "cat": "bosses",
+  "frame": [
+   144,
+   180
+  ],
+  "rows": 4,
+  "cols": 8
+ },
+ "stage1_walk_rim_lite": {
+  "cat": "bosses",
+  "frame": [
+   144,
+   180
+  ],
+  "rows": 4,
+  "cols": 8
+ },
+ "stage1_attack_rim_lite": {
+  "cat": "bosses",
+  "frame": [
+   144,
+   180
+  ],
+  "rows": 4,
+  "cols": 13
+ },
+ "stage1_stagger_dash_rim_lite": {
+  "cat": "bosses",
+  "frame": [
+   144,
+   180
+  ],
+  "rows": 4,
+  "cols": 14
+ },
+ "stage1_hurt_rim_lite": {
+  "cat": "bosses",
+  "frame": [
+   144,
+   180
+  ],
+  "rows": 4,
+  "cols": 3
  }
 }

@@ -236,3 +236,31 @@ python3 parts/art/work/struct61/build.py        # 61라운드 단계 2: 구조�
 - 반투명 0·가장자리 0·팔레트(무기 fx = 주인공 30색 + X0/X1, 14색 이하, glowFrames 밖 백열 0) 빌드 assert. 보스 몸 37~40색.
 - `atlas57/verify.py`: 형식 오류 33시트는 모두 이번에 의도적으로 다시 그린 시트의 기준(baseline) 차이 — 보스 14 `stage1_*`, `fx/v3/{boss1_onfire,boss1_onfire_down,bow_arrow,dagger_combo1~3,greatsword_{sweep_cw,sweep_ccw,cleave,charge_swing},hit_dagger,hit_dagger_heavy}`, `structures/v3/{boss1_candelabra,boss1_pillar}`, `fx/v3/boss1_cup_shatter`, `fx/v3/{dagger_combo1~3_awaken,bow_arrow_awaken}`. 새 시트는 형식만(통과). 커밋 뒤 `python3 parts/art/work/atlas57/verify.py --rebase --only <위 이름들>` 로 기준을 옮기면 0.
 - 미리보기(긴 변 8000 이하): `boss61/preview_readability.png` · `preview_finale.png` · `preview_boss_hires.png`(1.5배 intro·idle·attack·hurt + 어둠 림 켬/끔) · `boss61/out/preview_*.png` · `weapons61/preview_weapons.png`(전/후 비교) · `weapons61/out/preview_*.png`. 고치기 전 무기 그림 `weapons61/prev/fx/v3/`.
+
+## 61라운드 단계 4 — 아트(보스 '만취' 마무리) · 작업 폴더 `work/boss61/`
+- 근거: `decisions/2026-10-05-round-61-autonomous-stage1.md` 단계 4 배분(꺼진 촛대·onfire·잔 깨짐 네이티브·가벼운 림 → 아트). 자율 모드 — 아트가 정하고 이유를 적는다. 다른 파트 파일은 읽지 않음. 무기 그림은 건드리지 않음(각성 외형 재설계 대기).
+- 빌드: `python3 parts/art/work/boss61/native.py [onfire] [down] [cup] [rimlite] [--dry]`(약 25초) · 촛대는 `python3 parts/art/work/boss61/build.py --only boss1_candelabra`(`readable.candelabra_fix` 가 10~13 을 덧붙임 — 다시 돌려도 같은 결과).
+
+### 1. 서 있는 꺼진 촛대 — `structures/v3/boss1_candelabra` 10 → 14프레임(0~9 픽셀 불변 대조 확인)
+- `unlit_standing [10,11,12,13]`, `stateHold 13`, ms 110·150·190·1000, `solidByState true`, `lightByState null`. 10 = 꺼진 직후 심지 5 잔불(A23/A21) + 밑동 2도트 짧은 연기 5 → 11 = 가운데 셋만 22~32 도트 연기가 오르고 잔불 식음 → 12 = 가운데 한 가닥이 떨어져 46 도트 위로 흩어짐 → 13 = 불꽃만 없는 0 프레임 그림(유지).
+- `wickAnchors.standing`(초 5개 심지, 시트 도트) 추가 — 서 있는 채 끌 때 `boss1_flame_snuff` 를 놓을 자리.
+- 자기 비평: 1회차 연기 1도트·잔불 1점이 어둠에서 안 보임 → 밑동 2도트·잔불 십자 4점. 12 프레임 옆 가닥 두 개가 점선 잡음처럼 보여 → '한 가닥'만.
+
+### 2. 네이티브 재그림(틀·피벗·프레임·ms·광원 키 그대로)
+- `fx/v3/boss1_onfire`(288×360·피벗 (144,330)·4행×16)·`boss1_onfire_down`(1행×16): 54라운드 연료장·번짐(onfire.py·onfire_down.py 함수 import)은 원 좌표 192×240 에서 만들고, 불꽃은 288×360 각 도트에서 원 좌표로 연속 표본(세기장 쌍선형 + 같은 물결·무늬 식 + 밀도용 짧은 주기 한 겹)해 다시 문턱 → 최근접 1.5배의 1·2칸 계단이 없어지고 혀 끝이 1도트 단위. 몸 윤곽은 1.5배 idle·walk / fall·death 에서 다시 잼, `frameOffsets` 도 1.5배 판에서 다시 잼(예: fall 2 −64 → −66, death 9 −6 → −7). 불티는 머리 + 식은 꼬리 2도트, 재는 2~3도트. 13색. anchorNote 의 옛 '192×240, 피벗 (96,220)' → '288×360, 피벗 (144,330)'.
+  - 자기 비평: 1회차에 점화·꺼짐 프레임에서 높이 컷을 래스터에도 걸어 불 윗면이 평평하게 잘림 → 54 와 같이 연료만 컷(혀 모양 유지).
+- `fx/v3/boss1_cup_shatter`(192×192·피벗 (96,90)·8 × 40~120ms·glowFrames [0]): 1.5배 잔(약 44×55·쇠테 3줄)에 맞춰 새로 그림 — 0 = 가운데서 잔 테두리까지 들쭉날쭉한 백열 금 5갈래 + 십자 섬광, 1~7 = 4.5도트 폭 휜 널 9장(밝은 면·본색·그늘·결·어두운 테, 3장은 쇠테 조각) · 쇠테 2줄 + 부러진 반쪽 호(2도트 띠) · 술 방울(밝은 점) · 나뭇조각. `previousSize` 를 54 원본(128×128·(64,60))으로 바로잡음. 19색.
+  - 자기 비평: 1회차 0 프레임이 금·쇠테 직선으로 격자(우리)처럼 보임 → 방사형 금만. 널이 너무 어두운 덩이 → 한 단 밝은 널 램프. 쇠테 3개 동심 타원이 바닥 고리처럼 보임 → 2줄 + 반쪽 호. 마지막 칸 조각이 틀 아래 가장자리에 닿음 → 아래로 튄 조각은 원근상 짧게.
+
+### 3. 가벼운 림 — `bosses/v3/stage1_{idle,walk,attack,stagger_dash,hurt}_rim_lite`(새 시트 5)
+- 144×180·피벗 (72,165)·`pixelScale 1.0`(논리 크기·논리 피벗이 원 림·보스와 같음), 같은 방향 4행·프레임 수·ms·loop. 보스 프레임을 2×2 다수결로 줄인 실루엣의 안쪽 가장자리 1도트(= 원 판 2도트): 위·오른쪽 A23(모서리 A25), 아래·왼쪽 A21 성긴 점선(3칸에 1 — 반 해상도 점이 2도트라 원 림의 격자 점선보다 성기게).
+- 겹침 규칙(JSON `drawRule`): 보스와 같은 프레임 번호·시각·flip, origin = 피벗/프레임 = (0.5, 0.91667)(보스와 같음), 표시 배율 = 보스 배율 × 2(`liteScale 2` — pixelScale 을 읽는 로더면 자동), depth above_target, drawOver lightmap. `_rim` 과 둘 중 하나만 로드.
+- 메모리(아틀라스 페이지 RGBA): 원 림 5시트 41.6MB → 가벼운 림 10.6MB(약 1/4).
+
+### 4. 허수아비 broken 사용 시점(제안)
+- `structures/v3/tutorial_dummy` 의 `broken [21..25]` 은 튜토리얼에서 '공격' 표지 과제를 끝낸 순간(정해진 타수 또는 강공격 1회) 한 번 재생해 쓰러진 채 유지 → 다음 표지로 넘어가는 신호. 그 밖에는 쓰러뜨리지 않고 hit·hit_heavy 만(무한 연습용).
+
+### 검증
+- `atlas57/verify.py --all`: 시트 792 중 형식 차이는 이번에 의도적으로 바꾼 4시트(`fx/v3/{boss1_onfire,boss1_onfire_down,boss1_cup_shatter}`·`structures/v3/boss1_candelabra`)의 기준 차이뿐, 새 5시트(`_rim_lite`)는 형식 통과, 픽셀 불일치 0. 커밋 뒤 `python3 parts/art/work/atlas57/verify.py --rebase --only boss1_onfire boss1_onfire_down boss1_cup_shatter boss1_candelabra` 로 기준 이동.
+- `npx vitest run src/systems/sprites` 9파일 77건 통과(읽기만). 반투명 0(촛대 접지 그림자 제외)·가장자리 0(촛대 54 그림 제외) 빌드 assert, 새 색 0.
+- 미리보기: `boss61/out/preview_native_{boss1_onfire,boss1_onfire_down,boss1_cup_shatter}.png` · `boss61/out/preview_boss1_candelabra.png`.

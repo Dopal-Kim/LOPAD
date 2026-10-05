@@ -3,7 +3,7 @@
  "action": "boss1_candelabra",
  "frameWidth": 256,
  "frameHeight": 224,
- "framesPerDirection": 10,
+ "framesPerDirection": 14,
  "directions": [
   "any"
  ],
@@ -19,6 +19,10 @@
   1000,
   80,
   80,
+  1000,
+  110,
+  150,
+  190,
   1000
  ],
  "loop": false,
@@ -33,7 +37,8 @@
   "fall": true,
   "fallen_unlit": false,
   "relight": false,
-  "relit": false
+  "relit": false,
+  "unlit_standing": true
  },
  "pivot": {
   "x": 64,
@@ -62,11 +67,18 @@
   ],
   "relit": [
    9
+  ],
+  "unlit_standing": [
+   10,
+   11,
+   12,
+   13
   ]
  },
  "stateHold": {
   "fallen_unlit": 6,
-  "relit": 9
+  "relit": 9,
+  "unlit_standing": 13
  },
  "lightByState": {
   "lit": {
@@ -109,7 +121,8 @@
     "x": 210,
     "y": 194
    }
-  }
+  },
+  "unlit_standing": null
  },
  "light": {
   "color": "#f4de9b",
@@ -129,7 +142,7 @@
  "floor": "stage1",
  "palette": "parts/art/palette/lopad.json gray + 1층 램프 16~27 + v2 재질 SL·WD·PL — 새 색 없음. 연회장 소품 v3(tiles/v3/stage1_hall_props)와 같은 재질 램프. floor: stage1(층 테마 구조물 — 1층 램프로 그림)",
  "source": "parts/art/work/boss1_v3/props.py (54라운드 Q8·Q11 — 1층 보스방)",
- "colors": 20,
+ "colors": 21,
  "wickAnchors": {
   "fallen": [
    {
@@ -145,20 +158,43 @@
     "y": 213
    }
   ],
-  "note": "누운 촛대(fall 4 · fallen_unlit · relight · relit) 초 끝 심지 — 시트 도트. flipX 면 x → 256 − x"
+  "standing": [
+   {
+    "x": 40,
+    "y": 63
+   },
+   {
+    "x": 52,
+    "y": 61
+   },
+   {
+    "x": 64,
+    "y": 52
+   },
+   {
+    "x": 76,
+    "y": 61
+   },
+   {
+    "x": 88,
+    "y": 63
+   }
+  ],
+  "note": "fallen = 누운 촛대(fall 4 · fallen_unlit · relight · relit) 초 끝 심지, standing = 서 있는 촛대(lit · unlit_standing) 초 5개 심지 — 시트 도트. flipX 면 x → 256 − x. 서 있는 채 끌 때 boss1_flame_snuff 를 standing 심지에(불꽃 뿌리 = 심지 바로 위)"
  },
  "fix61": "61라운드: relight·relit(7~9) 불꽃을 초 끝 심지 위치로 옮김(54라운드 그림은 초 끝에서 약 40 도트 오른쪽에 떠 있었음). 0~6 프레임 픽셀 그대로",
  "relightCue": "fx/v3/boss1_candle_glint — fallen_unlit 동안(다시 켤 수 있음) 이 시트 위에 같은 피벗·flipX 로 겹침",
+ "unlitStanding61": "61라운드 단계 4: 서 있는 채 꺼진 촛대(3국면 소등 등 — 쓰러지지 않고 불만 꺼짐). 10 = 꺼진 직후 심지 잔불 + 짧은 연기, 11 = 연기 3가닥이 오름, 12 = 가운데 한 가닥만 떨어져 흩어짐, 13 = 유지(불꽃만 없는 0 프레임 그림, stateHold). 광원 없음(lightByState null), solid. 다시 켤 때는 lit(0)으로 바로 — 켜는 순간 효과는 boss1_flame_snuff 역재생 대신 시스템 광원 페이드로 충분. 지금까지 쓰던 'lit 그림을 어둡게 칠하기' 대체",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
   "source": "parts/art/work/atlas57/build.py (원 격자 시트 boss1_candelabra.png)",
   "grid": {
-   "columns": 10,
+   "columns": 14,
    "rows": 1,
    "frameWidth": 256,
    "frameHeight": 224,
-   "frameCount": 10
+   "frameCount": 14
   },
   "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
   "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
@@ -169,16 +205,20 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":213,"y":178,"w":55,"h":174},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":46,"w":55,"h":174},"sourceSize":{"w":256,"h":224}},
-  "1":{"frame":{"x":270,"y":178,"w":97,"h":172},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":48,"w":97,"h":172},"sourceSize":{"w":256,"h":224}},
-  "2":{"frame":{"x":213,"y":0,"w":154,"h":176},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":46,"w":154,"h":176},"sourceSize":{"w":256,"h":224}},
-  "3":{"frame":{"x":0,"y":338,"w":196,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":126,"w":196,"h":98},"sourceSize":{"w":256,"h":224}},
-  "4":{"frame":{"x":0,"y":0,"w":211,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":142,"w":211,"h":82},"sourceSize":{"w":256,"h":224}},
-  "5":{"frame":{"x":0,"y":84,"w":211,"h":80},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":144,"w":211,"h":80},"sourceSize":{"w":256,"h":224}},
-  "6":{"frame":{"x":0,"y":301,"w":211,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":189,"w":211,"h":35},"sourceSize":{"w":256,"h":224}},
-  "7":{"frame":{"x":0,"y":166,"w":211,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":181,"w":211,"h":43},"sourceSize":{"w":256,"h":224}},
-  "8":{"frame":{"x":0,"y":211,"w":211,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":181,"w":211,"h":43},"sourceSize":{"w":256,"h":224}},
-  "9":{"frame":{"x":0,"y":256,"w":211,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":181,"w":211,"h":43},"sourceSize":{"w":256,"h":224}}
+  "0":{"frame":{"x":270,"y":394,"w":55,"h":174},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":46,"w":55,"h":174},"sourceSize":{"w":256,"h":224}},
+  "1":{"frame":{"x":156,"y":0,"w":97,"h":172},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":48,"w":97,"h":172},"sourceSize":{"w":256,"h":224}},
+  "2":{"frame":{"x":0,"y":0,"w":154,"h":176},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":46,"w":154,"h":176},"sourceSize":{"w":256,"h":224}},
+  "3":{"frame":{"x":0,"y":178,"w":196,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":126,"w":196,"h":98},"sourceSize":{"w":256,"h":224}},
+  "4":{"frame":{"x":0,"y":278,"w":211,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":142,"w":211,"h":82},"sourceSize":{"w":256,"h":224}},
+  "5":{"frame":{"x":0,"y":362,"w":211,"h":80},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":144,"w":211,"h":80},"sourceSize":{"w":256,"h":224}},
+  "6":{"frame":{"x":0,"y":579,"w":211,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":189,"w":211,"h":35},"sourceSize":{"w":256,"h":224}},
+  "7":{"frame":{"x":0,"y":444,"w":211,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":181,"w":211,"h":43},"sourceSize":{"w":256,"h":224}},
+  "8":{"frame":{"x":0,"y":489,"w":211,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":181,"w":211,"h":43},"sourceSize":{"w":256,"h":224}},
+  "9":{"frame":{"x":0,"y":534,"w":211,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":181,"w":211,"h":43},"sourceSize":{"w":256,"h":224}},
+  "10":{"frame":{"x":270,"y":214,"w":55,"h":178},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":42,"w":55,"h":178},"sourceSize":{"w":256,"h":224}},
+  "11":{"frame":{"x":213,"y":214,"w":55,"h":200},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":20,"w":55,"h":200},"sourceSize":{"w":256,"h":224}},
+  "12":{"frame":{"x":255,"y":0,"w":55,"h":212},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":8,"w":55,"h":212},"sourceSize":{"w":256,"h":224}},
+  "13":{"frame":{"x":213,"y":416,"w":55,"h":168},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":52,"w":55,"h":168},"sourceSize":{"w":256,"h":224}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -186,8 +226,8 @@
   "image": "boss1_candelabra.png",
   "format": "RGBA8888",
   "size": {
-   "w": 367,
-   "h": 436
+   "w": 325,
+   "h": 614
   },
   "scale": "1"
  }

@@ -3,7 +3,7 @@
 
 사용: python3 parts/art/work/boss61/hires_build.py [body] [onfire] [rim] [preview]   (인자 없으면 전부, 순서대로)
   body    : assets/sprites/bosses/v3/stage1_<동작>(15종 = 54라운드 14 + intro) 를 288×360 · 피벗 (144,330) 으로 다시 그림
-  onfire  : fx/v3/boss1_onfire·boss1_onfire_down 을 같은 틀로(불길은 최근접 1.5배 — 임시, 아래 NOTE)
+  onfire  : fx/v3/boss1_onfire·boss1_onfire_down 을 같은 틀로(불길은 최근접 1.5배 — 임시. 61 단계 4 에서 native.py 가 네이티브로 대체 — 틀이 이미 1.5배면 건너뜀)
   rim     : bosses/v3/stage1_<동작>_rim(어둠 3국면용 실루엣 림라이트 — idle·walk·stagger_dash·hurt·attack)
 몸·무기 판정에 쓰는 앵커(cupAnchors·handAnchors·footAnchors·impactAnchors·bellyAnchors)는 새 판에서 다시 잰 값(1.5배 좌표).
 """
