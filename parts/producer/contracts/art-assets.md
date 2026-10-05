@@ -126,7 +126,8 @@
 - **(57라운드 → §19)** v3 시트의 로드 형식은 격자 `spritesheet` 가 아니라 **트림 아틀라스**(§19.2·§19.3). 픽셀 크기·피벗·프레임 수·ms 등 이 절의 규격은 그대로이고, 저장 형식만 바뀐다.
 - 주인공 v3: ~~64×96~~ **96×144(53라운드 Q1 → §13)**, 피벗 = 발 중앙(아트가 JSON `pivot` 으로 명시), 색 예산 30. 프레임: idle 6 · walk 8 · run 8 · 연격 타당 6~8 · dash 5 · hurt 3 · death 10(재로 무너지고 일기장만 남음).
 - 보스 v3: ~~128×192(화면 64×96)~~ **1층 보스 192×240(화면 96×120), 피벗 (96,220)(54라운드 Q14·Q22 → §15)**. 이펙트 v3: 기존 크기 ×2, 같은 생성 스크립트로 재출력.
-- ~~타일·구조물·세트는 32px(v2) 유지.~~ → **(60라운드 Q9 B안) 지역 바닥·엄폐 담·구조물도 64도트 = 1칸(`pixelScale 0.5`)으로 전환**. 아트가 2배 밀도 설계로 다시 만들어 넣는 시트부터 적용하고, 시스템은 타일셋·구조물 JSON 의 `pixelScale` 을 읽어 0.5(64도트 칸)를 처리한다. 인덱스 표·키는 그대로(§9·§12).
+- ~~타일·구조물·세트는 32px(v2) 유지.~~ → **(60라운드 Q9 B안) 지역 바닥·엄폐 담·구조물도 64도트 = 1칸(`pixelScale 0.5`)으로 전환**. 아트가 2배 밀도 설계로 다시 만들어 넣는 시트부터 적용하고, 시스템은 타일셋·구조물 JSON 의 `pixelScale` 을 읽어 0.5(64도트 칸)를 처리한다. 인덱스 표·키는 그대로(§9·§12). **(60라운드 P1 반영)** 1층 5지역 타일셋(`tiles/v2/stage1_<region>`)이 `tileWidth`/`tileHeight` 64·`pixelScale 0.5` 가 됐고, 도트 단위 길이(`tileLights` radius·offset, `decals[].rect`, `props`·`bigProps` 의 rect·pivot·occludeAbove·light radius·offset)도 모두 2배다 — 시스템은 pixelScale 로 환산한다. 새로 그린 칸은 JSON `redrawn60`, 2배 확대 임시본은 `upscaled60`.
+- **(60라운드 P1)** 1층 적 3종(dummy·archer·charger) attack 10프레임(분할 [3,1,3,3])·hurt 4프레임([70,30,30,30], flashFrame 0). 판정 시각·총 길이는 그대로. 시스템은 프레임 번호를 하드코딩하지 않고 JSON `phaseFrames`·`impactFrame`/`fireFrame`·앵커 배열·`frameDurationsMs` 를 읽는다. `elite_emblem.headTopByEnemy` dummy 119·archer 120·charger 139.
 
 ## 12. §9 쿼터뷰 타일셋 키 정리 (52라운드 Q9 · 시스템 질문 정리)
 현재 아트 산출물(`tiles/v2/stage1_outer.json`)과 시스템 해석기가 맞춘 형태를 정식으로 한다.
@@ -558,6 +559,10 @@
 - **갈래 런 교체 규칙**: `katana_fall_wide`↔`katana_fall`, `dagger_combo3_double`↔`dagger_combo3`, `aim_charge_quick`↔`aim_charge`, `dagger_hotwind_burst`↔`dagger_overheat_burst`(같은 규격·1:1 교체).
 - **각성 오버레이 규칙**: 검기·울분 오버레이와 같은 규칙(같은 프레임 번호·시각·피벗). 그리는 순서 무기 → `_awaken` → `_ki`/`_grudge`. 각성 런에서만.
   - **(60라운드 Q15~Q21 재디자인)** 각성 외형을 다시 만든다: 칼 = 월인(K-A), 대검 = 핏빛 거암검(G-A 바탕, 피가 균열에서 터짐), 단검 = 귀화(D-A), 활 = 혜성 날개(B-A). **각성 시트만 틀 확대**(칼·단검·활 256 안팎, 대검 320×336 안팎) — 프레임 번호·시각은 같고 틀·피벗은 각 JSON 이 기준(시스템이 원 무기 시트와의 피벗 차이를 보정). 각성 무기 색 상한 24. 각성 궤적은 기존 연격 fx 와 별개인 **각성 전용 fx**. 각성 순간 색 전환 ≈ 420ms(8×60ms), 각성 상태 순환 6~12프레임.
+  - **(60라운드 제작 결과)** 각성 오버레이 JSON 에 `pivot`·`playerFrameOffset`·`weaponSheetPivot`(원 무기 피벗)·`pivotDelta` 가 있다. 각성 오버레이는 `pivot` 을 주인공 피벗에 맞춰 그린다(= 원 무기 피벗 + `pivotDelta`). 틀: 칼 192 → 264×264(Δ 36,32) / 단검·활 192 → 256×256(Δ 32,32) / 대검 가로 +80·세로 +64(Δ 40,32; 240×272 → 320×336, 240×296 → 320×360, 280×312 → 360×376, 248×288 → 328×352). 프레임 번호·시각은 원 시트와 같다.
+  - **각성 순간 fx** `<무기>_awaken_in`(katana·greatsword·dagger·bow) 12프레임 — 각성을 얻은 순간 1회(followPlayer, anchor `player_pivot`), 같은 순간부터 `_awaken` 오버레이를 켠다.
+  - **각성 전용 궤적** `<기본 fx>_awaken` 19종 — 각성 런에서 기본 fx 대신 1:1 교체(JSON `swapRule`, 틀·ms·피벗·행 동일): 칼 `katana_rise`·`katana_fall`·`katana_spin`·`katana_thrust`·`katana_issen_line_t1~t4` / 대검 `greatsword_sweep_cw`·`_ccw`·`greatsword_cleave`·`greatsword_charge_swing` / 단검 `dagger_combo1~3`·`dagger_flurry` / 활 `bow_arrow`·`bow_arrow_rapid`·`bow_arrow_snipe`(화살 3종은 꼬리 때문에 틀이 길다: 120×24 피벗 (96,12) / 128×24 (112,12) / 186×24 (162,12), rotate·drawnFacing 동일).
+  - 시그니처 4종(`katana_fullmoon`·`greatsword_landslide`·`dagger_hundred_ghosts`·`bow_meteor_arrow`)은 이름·행·프레임·ms·앵커가 같고 그림·틀·피벗만 바뀜(JSON 기준).
 - **새 앵커 이름(§18.11 추가)**: `path_point`, `crack_end`, `player_pivot_ground`, `clone_pivot`, `ground_point`, `aim_cursor`, `line_start`, `dodge_start_pivot`. 머리 꼭대기 앵커가 없는 동작은 주인공 피벗 위 124 도트 × 렌더 배율(1.25).
 - **행 규약 `rowsAre`**: `stacks`(`katana_mirror_ki`·`bow_link_stack`·`status_mark`), `stages`(`set_flash` 2/4/6, `greatsword_giant_ring` lv4), `kinds`(`curse_mark`).
 - **반복 타일**: `bow_skypierce_line`(`tile: true`, 주기 64 도트, 트림 안 함).
