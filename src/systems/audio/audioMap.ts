@@ -369,8 +369,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   // --- 56라운드 무기 피드백 (WEAPON_SFX) ---
   t<PlayerChargePayload>({
     event: Events.PLAYER_CHARGE,
-    note: '58라운드 Q3 휘둘러 내리찍은 자리에서 커서까지 균열 → 60라운드 gs_crack_line_lv<n> (내리찍기 + 40ms, 1~3단만 — 60 Q40 거인 4단은 charge_slam_lv4 하나만 · gs_crack·gs_plunge 는 보관)',
-    when: (p) => p.phase === 'release' && p.stage > 0 && p.stage <= BUILD_SFX.tiers,
+    note: '58라운드 Q3 휘둘러 내리찍은 자리에서 커서까지 균열 → 60라운드 gs_crack_line_lv<n> (내리찍기 + 40ms, 1~3단만 — 60 Q40 거인 4단은 charge_slam_lv4 하나만 · 중압(weight) 런은 균열 대신 원형 진동이라 무음 · gs_crack·gs_plunge 는 보관)',
+    when: (p) => p.phase === 'release' && p.stage > 0 && p.stage <= BUILD_SFX.tiers && !hasBranch('weight'),
     sfx: (p) => BUILD_SFX.gsCrackLine(p.stage),
     delayMs: (p) => (p.impactDelayMs ?? 0) + WEAPON_SFX.crackDelayMs,
   }),

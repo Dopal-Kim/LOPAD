@@ -34,6 +34,7 @@ import {
   staticSfxIds,
 } from './audioMap';
 import { Events, type BossActionKind } from '../../core/EventBus';
+import { gameState } from '../../core/GameState';
 import { MOVE_SFX, moveSfxIds, pickFlurryVariant } from './audioMoves';
 import { ARCHIVED_SFX, BUILD_SFX, buildSfxIds } from './audioBuild';
 
@@ -324,7 +325,7 @@ describe('56라운드 무기 피드백 효과음 (WEAPON_SFX)', () => {
     ]);
   });
 
-  it('60라운드 차지 휘둘러 내리찍기 = charge_slam + 균열 gs_crack_line_lv<n>(40ms 뒤, 60 Q40 4단 = charge_slam_lv4 하나만) — gs_crack·gs_plunge 보관', () => {
+  it('60라운드 차지 휘둘러 내리찍기 = charge_slam + 균열 gs_crack_line_lv<n>(40ms 뒤, 60 Q40 4단·중압 런 = charge_slam 만) — gs_crack·gs_plunge 보관', () => {
     const release = { phase: 'release', stage: 3, impactDelayMs: 180 };
     expect(ids(Events.PLAYER_CHARGE, release)).toEqual([CHARGE_SFX.slam(3), BUILD_SFX.gsCrackLine(3)]);
     const crack = fire(Events.PLAYER_CHARGE, release).find(
@@ -333,6 +334,14 @@ describe('56라운드 무기 피드백 효과음 (WEAPON_SFX)', () => {
     expect(crack?.delayMs?.(release)).toBe(220);
     const four = { phase: 'release', stage: 4, impactDelayMs: 0 };
     expect(ids(Events.PLAYER_CHARGE, four)).toEqual([CHARGE_SFX.slam(4)]);
+    // 60 Q40 보충: 중압(weight) 런은 균열이 안 보이므로 1~3단에서도 균열 소리 없음
+    const path = gameState.weapon.path;
+    gameState.weapon.path = ['weight'];
+    try {
+      expect(ids(Events.PLAYER_CHARGE, release)).toEqual([CHARGE_SFX.slam(3)]);
+    } finally {
+      gameState.weapon.path = path;
+    }
   });
 
   it('퍼펙트 가드 · 그로기 · 검기 단 · 일섬 · 활 약한/완벽 놓기', () => {

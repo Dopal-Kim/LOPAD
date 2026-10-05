@@ -247,7 +247,7 @@ export const SOUND_ID_ALIASES: Readonly<Record<string, string>> = {
   'PLAYER_CHARGE{weapon:greatsword,phase:stage|release,stage:4}':
     'PLAYER_CHARGE{phase:stage,stage:4} · {phase:release,stage:4,impactDelayMs} (weapon 키 없음 — 차지는 대검만, 4단은 거인 런만)',
   'BRANCH_EFFECT{branch:giant,effect:ring}':
-    'BRANCH_EFFECT{branch:weight,effect:ring,stack:1~3} (60 Q40 — 중압 1~3단 원형 진동 순간, gs_quake_ring) · 거인 4단은 이벤트 없음(charge_slam_lv4 하나만, gs_crack_line 도 없음)',
+    'BRANCH_EFFECT{branch:weight,effect:ring,stack:1~3} (60 Q40 — 중압 1~3단 원형 진동 순간, gs_quake_ring · 중압 런은 gs_crack_line 없음) · 거인 4단은 이벤트 없음(charge_slam_lv4 하나만, gs_crack_line 도 없음)',
   'WEAPON_GAUGE{gauge:kenki,event:stage}':
     'WEAPON_GAUGE{weapon:katana,gauge:kenki,event:stage,stage:n} 오를 때만 · 일섬 소모 = {event:consume,stage:소모 단 수} · 갈래 수단(선풍·투구가르기)의 1단 소모는 이벤트 없음',
   'PLAYER_SKILL{weapon:dagger,move:brand|overheat,phase:burst}':
