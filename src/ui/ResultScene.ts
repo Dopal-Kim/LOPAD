@@ -156,7 +156,7 @@ export class ResultScene extends Phaser.Scene {
       { stageIndex, detailWrap: innerW - 40 },
     );
     this.list.setLines([
-      { key: '1', label: uiText('result', 'retry', '다시 태어난다 (영혼 → 개성 선택)'), enabled: true },
+      { key: '1', label: uiText('result', 'retry', '다시 태어난다 (영혼 → 유산)'), enabled: true },
       { key: '2', label: uiText('result', 'toTitle', '일기장을 덮는다'), enabled: true },
     ]);
     const stampKey = r.cleared ? KIT.stampClear : KIT.stampDead;

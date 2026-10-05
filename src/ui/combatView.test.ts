@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { UiWeaponGauge, UiWeaponResource } from '../contract/ui';
-import { bossLeft, combatRows, curseShort, hpLow, personalityRatio, pickResources } from './combatView';
+import { HP_TRAIL_START, bossLeft, combatRows, curseShort, hpLow, hpTrailStep, pickResources } from './combatView';
 import { COMBAT_HUD } from './themeR61';
 
 const gauge: UiWeaponGauge = { kind: 'kenki', label: '검기', value: 100, max: 300, stage: 1 };
@@ -21,16 +21,15 @@ describe('combatView', () => {
     expect(hpLow(5, 0, 0.3)).toBe(false);
   });
 
-  it('개성 진행 비율', () => {
-    expect(personalityRatio({ personality: 30, threshold: 100 })).toBe(0.3);
-    expect(personalityRatio({ personality: 130, threshold: 100 })).toBe(1);
-    expect(personalityRatio({ personality: 5, threshold: 0 })).toBe(0);
-  });
-
   it('행 배치: 2배 눈금·보조 줄이 있으면 묶음이 커진다', () => {
-    const a = combatRows(COMBAT_HUD, { big: false, sub: false });
-    const b = combatRows(COMBAT_HUD, { big: true, sub: false });
-    const c = combatRows(COMBAT_HUD, { big: true, sub: true });
+    const a = combatRows(COMBAT_HUD, { big: false, sub: false, growth: false });
+    const b = combatRows(COMBAT_HUD, { big: true, sub: false, growth: false });
+    const c = combatRows(COMBAT_HUD, { big: true, sub: true, growth: false });
+    const d = combatRows(COMBAT_HUD, { big: true, sub: true, growth: true });
+    expect(a.growth).toBeNull();
+    expect(d.growth).toBeGreaterThan(d.sub!);
+    expect(d.slots).toBeGreaterThan(d.growth!);
+    expect(d.h - c.h).toBe(COMBAT_HUD.growthRowH + COMBAT_HUD.rowGap);
     expect(a.sub).toBeNull();
     expect(b.h - a.h).toBe(COMBAT_HUD.bigRowH - COMBAT_HUD.rowH);
     expect(c.sub).not.toBeNull();
@@ -49,5 +48,24 @@ describe('combatView', () => {
   it('보스 막대는 가운데, 묶음과 겹치면 오른쪽으로 비킨다', () => {
     expect(bossLeft(960, 320, 300, 12)).toBe(334);
     expect(bossLeft(960, 320, 200, 12)).toBe(320);
+  });
+
+  it('체력 피격 잔상: 맞으면 머물렀다 줄고, 연타는 보이는 자리에서 다시, 회복은 바로 따라간다', () => {
+    const spec = { holdMs: 400, fallMs: 400 };
+    let { trail, ghost } = hpTrailStep(HP_TRAIL_START, 1, 0, spec);
+    expect(ghost).toBe(1);
+    ({ trail, ghost } = hpTrailStep(trail, 0.6, 100, spec));
+    expect(ghost).toBe(1);
+    expect(hpTrailStep(trail, 0.6, 500, spec).ghost).toBe(1);
+    expect(hpTrailStep(trail, 0.6, 700, spec).ghost).toBeCloseTo(0.8);
+    expect(hpTrailStep(trail, 0.6, 900, spec).ghost).toBe(0.6);
+    // 줄어드는 중 또 맞음: 0.8 에서 다시 머문다
+    ({ trail, ghost } = hpTrailStep(trail, 0.4, 700, spec));
+    expect(ghost).toBeCloseTo(0.8);
+    expect(hpTrailStep(trail, 0.4, 1500, spec).ghost).toBe(0.4);
+    // 회복이 잔상을 넘으면 잔상 없음
+    ({ trail, ghost } = hpTrailStep(trail, 0.9, 800, spec));
+    expect(ghost).toBe(0.9);
+    expect(hpTrailStep(trail, 0.9, 2000, spec).ghost).toBe(0.9);
   });
 });

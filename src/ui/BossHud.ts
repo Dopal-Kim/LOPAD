@@ -32,7 +32,8 @@ type Glow = Parameters<GlowText['setGlowStyle']>[0];
 /**
  * 61라운드 단계 3 보스 UI (P6·P10, 플레이 점검 #5·#6) — CombatHud 에서 보스 막대를 옮겨 와 한 곳에 모았다.
  *  - 보스 막대 (아래 가운데, 전투 묶음과 겹치면 비킴): 이름 · 국면 이름, **국면 눈금**(1층 65%·30%), 무너진 동안 '무너짐' 깜빡임.
- *  - 이름 카드 (BOSS_STARTED): 층 제목(흐림) · 보스 이름 2배 · 괘선 · 국면 띠 '얼큰 → 만취 → 인사불성'.
+ *  - 이름 카드 (BOSS_ROAR — 61 단계 4, 등장 연출의 포효 순간. BOSS_STARTED 때는 띄우지 않는다): 층 제목(흐림) · 보스 이름 2배 · 괘선 ·
+ *    국면 띠 '얼큰 → 만취 → 인사불성'.
  *  - 국면 카드 (BOSS_PHASE): 'n국면' · 국면 이름 2배 · 국면 띠 (어둠 국면이면 촛대 안내 한 줄).
  *  - 파훼·결정타 문구 (BOSS_BREAK, 계약 추가 예정): '파훼' 2배 + 파훼 이름 · '무너진 동안 더 아프다' / '결정타'.
  *  - 촛대 안내 (어둠 국면, 스냅샷 `boss.candles` 가 있을 때): 화면 안 꺼진 촛대 위 까딱이는 표지, 화면 밖은 가장자리 화살.
@@ -63,7 +64,7 @@ export class BossHud {
     stageIndex: number,
   ) {
     this.si = stageIndex;
-    this.gauge = new Gauge(scene, 0, 0, B.barW, 'boss', stageIndex).setVisible(false);
+    this.gauge = new Gauge(scene, 0, 0, B.barW, 'health').setVisible(false);
     this.ticks = scene.add.graphics();
     this.bossIcon = icon(scene, 0, 0, ICON.boss).setVisible(false);
     this.nameText = new GlowText(scene, 0, 0, '', 'ink_accent', { stageIndex }).setVisible(false);
@@ -87,7 +88,6 @@ export class BossHud {
   setStageIndex(si: number): void {
     if (si === this.si) return;
     this.si = si;
-    this.gauge.setStage(this.scene, si);
     this.nameText.setStageIndex(si);
     this.brokenText.setStageIndex(si);
     this.tickSig = '';
@@ -128,12 +128,20 @@ export class BossHud {
     this.drawCandles(look, now, !overlay);
   }
 
-  /** BOSS_STARTED: 이름 카드 (층 제목 · 이름 · 국면 띠) */
-  started(p: unknown, s: UiSnapshot): void {
+  /** BOSS_STARTED: 지난 보스전 카드만 치운다 — 이름 카드는 포효(BOSS_ROAR) 때 (61 단계 4 §17.1) */
+  started(): void {
+    this.clearCards();
+    debugExpose('bossCard', null);
+  }
+
+  /** BOSS_ROAR `{ name }`: 이름 카드 (층 제목 · 이름 · 국면 띠). 등장 연출의 포효 프레임에 한 번 (introMs 0 이면 시작 직후) */
+  roared(p: unknown, s: UiSnapshot): void {
     const e = readBossEvent(p);
     const name = e.name || s.boss?.name || '';
     if (!name) return;
     this.clearCards();
+    const given = p && typeof p === 'object' && typeof (p as { phase?: unknown }).phase === 'number';
+    const phase = given ? e.phase : Math.max(1, Math.round(s.boss?.phase ?? 1));
     const names = phaseNamesFor(this.si, (s.boss as unknown as { phaseNames?: unknown } | null)?.phaseNames);
     const box = this.scene.add.container(0, B.nameCard.top).setDepth(B.depth);
     let y = 0;
@@ -149,10 +157,10 @@ export class BossHud {
     );
     box.add(g);
     y += 6;
-    if (names.length > 1) y = this.addStrip(box, names, e.phase, y);
+    if (names.length > 1) y = this.addStrip(box, names, phase, y);
     this.addBand(box, y);
     this.nameCard = new TimedCard(this.scene, box, B.nameCard);
-    debugExpose('bossCard', { kind: 'name', name, phase: e.phase });
+    debugExpose('bossCard', { kind: 'name', name, phase });
   }
 
   /** BOSS_PHASE: 국면 카드 (1국면은 이름 카드가 대신한다) */

@@ -39,7 +39,7 @@ export const SETTINGS_UI = {
 /**
  * 전투 HUD 다이어트 — 왼쪽 아래 전투 묶음 (데드셀·세피리아처럼 한쪽 구석에 체력·자원·소모품을 모은다).
  * 1행 체력(굵은 막대 + 수치) · 2행 무기 아이콘 + 고유 자원 하나(눈금 2배) · (자원이 둘이면 3행 작게) · 아래 행 독주·소모품·전표.
- * 맨 아래 2px 개성 진행선(글 없음 — 수치는 Tab·일기장).
+ * 자원 줄 아래 각성 게이지 한 줄(61 단계 4 P12 — 숫자 · 눈금 · 다음 눈금까지 남은 수).
  */
 export const COMBAT_HUD = {
   /** 왼쪽·아래 여백 */
@@ -65,12 +65,8 @@ export const COMBAT_HUD = {
   gaugeScale: 2,
   /** 아래 행: 묶음 사이 간격 */
   slotGap: 14,
-  /** 개성 진행선: 두께·묶음 아래 끝에서 */
-  personalityH: 2,
-  personalityInset: 5,
-  personalityOn: { gray: 9 },
-  personalityFull: { slot: 22 },
-  personalityOff: { gray: 3 },
+  /** 61 단계 4 P12 각성 게이지 줄 높이 (옛 2px 개성 진행선 대체 — GrowthHud) */
+  growthRowH: 16,
   // 보스 막대는 61 단계 3 에서 themeStory.ts BOSS_UI 로 옮겼다
 } as const;
 
@@ -104,7 +100,8 @@ export const KEY_GUIDE = {
 export const PEEK = {
   x: 16,
   y: 34,
-  leftW: 236,
+  /** 61 단계 4 P12: 성장도 나무(기본 → 갈래 → 길)가 들어가게 236 → 288 */
+  leftW: 288,
   rightW: 300,
   /** 두 장 사이 */
   gap: 6,
@@ -113,4 +110,18 @@ export const PEEK = {
   /** 전투 묶음 위로 띄울 여백 */
   bottomGap: 10,
   depth: 70,
+} as const;
+
+/**
+ * 61 단계 4 (계약 §17.1) 체력 막대 — 플레이어·보스·엘리트 체력은 층·지역과 무관하게 늘 붉은색.
+ * 색은 팔레트 `floors` 의 '적' 램프 값만 쓴다(새 색 없음): 채움 = 슬롯 23, 잃은 부분 = 19, 피격 잔상 = 26.
+ * HUD 막대는 회색 띠(gauge_fill_gray)에 곱 틴트, 엘리트 이름표 2px 선은 그대로 칠한다.
+ * 잔상: 맞은 뒤 `holdMs` 머물렀다가 `fallMs` 동안 지금 체력까지 줄어든다 (회복하면 바로 따라간다).
+ */
+export const HEALTH_BAR = {
+  fill: '#ca3941',
+  lost: '#751f33',
+  ghost: '#ee9e99',
+  holdMs: 450,
+  fallMs: 400,
 } as const;

@@ -29,7 +29,6 @@ export const R61_TEXT = {
   curseUnitKill: '처치',
   // ---- Tab 빌드 보기 (누르고 있는 동안)
   peekWeapon: '{name}',
-  peekPersonality: '개성 {n}/{max}',
   peekKeys: '조작',
   peekFoot: 'Tab 을 떼면 닫힌다 · Esc 일기장에 더 적혀 있다',
   /** 조작 안내 줄 (노드 지도 층·시험장) */

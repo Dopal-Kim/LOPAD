@@ -2,9 +2,10 @@ import Phaser from 'phaser';
 import { UI_SCREEN, type UiElite } from '../contract/ui';
 import { plateMidW, platePos, plateTextCenter, readPlateJson, slice3, type PlateSlices } from './eliteView';
 import { GlowText } from './glow';
-import { ELITE_PLATE_TEX, accentHex } from './kit';
-import { GRAY, hexToNum } from './theme';
+import { ELITE_PLATE_TEX } from './kit';
+import { hexToNum } from './theme';
 import { ELITE_PLATE } from './themeBuild';
+import { HEALTH_BAR } from './themeR61';
 
 interface Plate {
   name: string;
@@ -158,14 +159,9 @@ export class ElitePlates {
 
   private drawHp(p: Plate, ratio: number): void {
     const g = p.hp.clear();
-    g.fillStyle(hexToNum(GRAY[2]), 1).fillRect(p.hpX, p.hpY, p.hpW, ELITE_PLATE.hpH);
+    // 61 단계 4 (§17.1): 체력 선도 늘 붉은색 — 잃은 부분 어두운 적, 남은 체력 적
+    g.fillStyle(hexToNum(HEALTH_BAR.lost), 1).fillRect(p.hpX, p.hpY, p.hpW, ELITE_PLATE.hpH);
     const fw = Math.round(p.hpW * ratio);
-    if (fw > 0)
-      g.fillStyle(hexToNum(accentHex(this.scene, this.stageIndex, ELITE_PLATE.hpSlot)), 1).fillRect(
-        p.hpX,
-        p.hpY,
-        fw,
-        ELITE_PLATE.hpH,
-      );
+    if (fw > 0) g.fillStyle(hexToNum(HEALTH_BAR.fill), 1).fillRect(p.hpX, p.hpY, fw, ELITE_PLATE.hpH);
   }
 }

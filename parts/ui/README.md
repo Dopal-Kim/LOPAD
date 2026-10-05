@@ -1,5 +1,48 @@
 # 게임 UI 파트 — 작업 기록
 
+## 61라운드 (2026-10-05) · 단계 4 — 무기 성장 UI (P12, 계약 §18)
+결정: `decisions/2026-10-05-P12-weapon-growth.md`(자율 모드 — 세부는 UI 판단). 계약: `contracts/ui-system-interface.md` §18 + 시스템 G 가 작업 트리에 넣은 `UiGrowth*`·`UiSnapshot.growth`·메뉴 줄 `kind`/`branch`/`path`/`verb`·`GROWTH_GAIN`/`AWAKEN`/`TRAIT_GAINED`. 시스템 코드 열람 없음.
+
+### 화면
+- **HUD 각성 게이지** (`GrowthHud.GrowthGauge`, 전투 묶음의 무기·자원 줄 아래 한 줄 — 옛 2px 개성 진행선 대체): 아이콘 칸 마름모 · 게이지 숫자 · 막대 120px + 눈금(작은 ◇ = 개성 발현·단련, 큰 ◆ = 1차·2차 각성; 지난 것 채움, 다음 것 밝은 테) · '1차 각성까지 40'(없으면 '모든 눈금'). `ui:growth-gain` → 찬 부분 흰 반짝(0.32초) + 숫자 강조색(0.42초). 마름모는 글꼴 대신 Graphics(Galmuri 에 ◇◆ 가 없을 수 있음).
+- **선택 카드** (`GrowthCards.ts`, `evolve` 메뉴의 줄이 모두 성장 칸이고 2~3장일 때):
+  - 개성 발현: 바뀌는 키 그림 2배 + 강조 밑줄 + 그 칸의 지금 동작 이름(스냅샷 4동사) · 이름 2배 · 괘선 · 한 문장 · 이 층에서 켜진 태그만(1층 6태그 표 `LIVE_TAGS_BY_STAGE`).
+  - 1차 각성: 무기 1차 모양 그림(`branch.lookKey`, 없으면 무기 이름 글자) · 이름 2배 · [키] '{동작} 바뀜' · 한 줄 양상 · '2차 각성 길' 두 줄(이름 · 한 줄).
+  - 2차 각성(2장, 카드 252px): 길 그림(`path.lookKey`, 없으면 내 갈래 그림) · 이름 · (길이 바꾸는 칸이 있으면 키) · 한 줄.
+  - 단련 눈금 메뉴 [단련 / 개성 / 개성]: 단련 카드는 이름 · 설명 · 단련 눈금 마름모(n/최대, 숫자 없음).
+  - 고르기·들림·흔들림은 3지선다 카드와 같은 껍데기(`cardShell.ts` — 60 Q38 카드에서 떼어 내 두 화면이 같이 쓴다), 페이지 틀도 `cardPage` 하나.
+- **처음 안내 카드** (`growth.firstTime.trait/awaken1/awaken2` 가 true 인 메뉴 앞에 한 장): 어둠 + 종이 · 제목 · 그림(1차 = 무기 기본 모양, 2차 = 내 갈래 모양, 없으면 큰 마름모) · 두 줄 · 'Enter · 클릭 — 고르러 간다'. 닫으면 카드가 그려진다(같은 실행에서 같은 종류는 한 번). 본 기록은 시스템 메타.
+- **각성 배너** (`ui:awaken`): 어둠 띠 + '1차 각성'(흐림) · 모양 그림 · 이름 2배(강조) · 한 줄, 위 118, 2.5초. **개성 알림** (`ui:trait-gained`): 위 가운데 잉크 칩 — 키 그림 · '개성 발현 · 이름' · 한 문장, 2.7초.
+- **Tab 성장도** (`GrowthTree.ts`, 빌드 보기 왼쪽 장 — 폭 236 → 288): '성장도' · '각성 게이지 n · 다음 눈금까지' · 나무(기본 → 갈래 3 → 길 6; 지나온 길 강조 2px · 다음에 고를 것 또렷 · 닫힌 것 흐림) · '얻은 개성'(키 그림 + 이름, 6줄 넘으면 '외 n'). 제목은 '무기 · 갈래 · 길'. 나무가 길어 전투 묶음에 닿으면 조작 키캡 칸을 뺀다(화면 아래 키캡 띠에 같은 안내). 옛 '개성 n/m' 막대 삭제.
+- **겹치는 말 정리**: 일기장 무기 줄 '(개성 n/max)' → '무기: 이름 · 갈래 · 길 (각성 게이지 n)', 결과 화면 '영혼 → 개성 선택' → '영혼 → 유산', 성과 보상 '+n 개성' → '+n 각성', 3지선다 머리표 '개성' → '개성 발현'. 이중 개성 표시(일기장 빌드 쪽·배너·DUAL_TRAIT_GAINED 구독) 삭제(61 G 폐지).
+
+### 소유 코드
+- 신규: `growthView.ts`(순수 — 게이지 눈금 자리·남은 수, 키 칸, 켜진 태그, 카드 데이터, 안내 종류, 나무 상태·자리, 이벤트 읽기 + 테스트 15), `GrowthHud.ts`, `GrowthCards.ts`, `GrowthTree.ts`, `growthArt.ts`(마름모·모양 그림·키 배율), `cardShell.ts`, `textGrowth.ts`(`growthText`), `themeGrowth.ts`.
+- 변경: `CombatHud.ts`·`combatView.ts`(각성 게이지 줄, 개성 진행선·`personalityRatio` 삭제), `MenuChoiceCards.ts`(cardShell·cardPage 로 줄임), `MenuScene.ts`, `HudScene.ts`(GrowthLayer), `BuildPeek.ts`, `PauseScene.ts`, `ResultScene.ts`, `buildView.ts`·`BuildLayer.ts`·`textBuild.ts`(이중 개성 삭제·성장 칸 이름).
+
+### 검증
+`npx tsc --noEmit` UI 오류 0(남은 104건은 시스템 G 진행 중 파일), `npx eslint src/ui`·`npx vitest run src/ui`(23 파일 170개)·prettier 통과. 헤드리스(HEAD 시스템 + 작업 트리 UI·계약 사본, `?debug=1&uidebug=1&lab&weapon=katana`, 가짜 growth·메뉴·이벤트, 스크립트·캡처 `scratchpad/r61g/`): HUD 게이지(0·1·2단계, 반짝), Tab 성장도(1·2단계), 개성 안내 → 카드, 1차 각성 안내(클릭) → 카드 · → 이동, 2차 각성 2장, 단련 메뉴, 각성 배너, 개성 알림. 페이지 오류 0. 실제 런 연결은 시스템 G 완료 후.
+
+### 남은 것
+- 안내 카드 '일기장에 다시 보기'(P12 문서) — 일기장 쪽 자리·조작은 다음에.
+- 시스템이 각성 때 옛 `WEAPON_EVOLVED` 도 보내면 배너가 둘(각성 배너 + 진화 이름) — 보내지 않으면 문제 없음.
+- 색에 안 쓰는 `stageIndex` 배선 정리(약 40 파일)는 이번에도 못 했다.
+
+## 61라운드 (2026-10-05) · 단계 4 — UI 색 고정 · 보스 이름 카드를 포효에 (계약 §17.1)
+결정: `decisions/2026-10-05-round-61-autonomous-stage1.md`(자율 모드), 도영 님 데모 피드백 '체력·인터페이스 색이 지역마다 바뀐다'. 계약: `contracts/ui-system-interface.md` §17.1. 시스템 코드 열람 없음.
+
+### 화면
+- **UI 색 고정**: 원인 = 강조 램프 슬롯(16~27)을 스냅샷 `stageIndex` 로 팔레트 `floors[i]` 에서 골랐다(글자 할로·강조 글·테두리·커서·노드 아이콘·게이지 띠 전부). `kit.accentHex` 가 이제 층과 무관하게 **기본 램프 하나**(팔레트 1층 '잔', 폴백 `FLOOR1_RAMP`)만 돌려준다 — `stageIndex` 인자는 옛 호출 모양으로만 남고 색에 쓰지 않는다. 노드 아이콘 층 사본(`nodeIconKey`) 삭제, `Gauge.setStage` 삭제.
+- **체력 막대는 늘 붉은색** (`themeR61.HEALTH_BAR`, 팔레트 '적' 램프 값만 — 새 색 없음): 플레이어·보스 막대 = 새 게이지 종류 `health`(보스 틀 14px) — 잃은 부분(어두운 적, 슬롯 19) 위에 **피격 잔상**(밝은 적, 26)과 채움(적, 23). 잔상은 맞은 뒤 0.45초 머물고 0.4초 동안 줄어든다, 줄어드는 중 또 맞으면 보이는 자리에서 다시 머문다, 회복은 바로 따라간다(`combatView.hpTrailStep` + 테스트). 엘리트 이름표 2px 체력 선도 적/어두운 적.
+- **보스 이름 카드 = 포효 순간**: `UI_EVENTS.BOSS_ROAR`(`{ name }`) 에 이름 카드. `BOSS_STARTED` 는 지난 카드만 치우고 카드를 띄우지 않는다. 국면 띠의 '지금' 은 페이로드 `phase` 가 없으면 스냅샷 `boss.phase`.
+
+### 소유 코드
+- 변경: `kit.ts`(accentHex 고정 · Gauge `health` 종류/잔상 · nodeIconKey 삭제), `combatView.ts`(+`hpTrailStep`), `themeR61.ts`(+`HEALTH_BAR`), `CombatHud.ts`·`BossHud.ts`(health 게이지, setStage 제거 · `started`/`roared`), `HudNarrative.ts`(BOSS_ROAR 구독), `EliteHud.ts`·`themeBuild.ts`(hpSlot 제거), `RouteMap.ts`·`RouteSide.ts`(노드 아이콘 원본 키), `theme.ts`(주석).
+- 남은 정리(다음 기회): 색에 더는 안 쓰는 `stageIndex` 배선(GlowText·각 HUD 의 `setStageIndex`, 약 40 파일)은 무기 성장 화면 재설계와 겹쳐 이번엔 두었다. 보스 국면 이름·어둠 국면 표(`themeStory *_BY_FLOOR`)는 색이 아니라 그대로 `stageIndex` 로 찾는다.
+
+### 검증
+`npx tsc --noEmit` — UI 오류는 `HudNarrative.ts` 의 `UI_EVENTS.BOSS_ROAR` 1건뿐(시스템이 계약 코드에 상수를 넣으면 사라짐; 상수를 넣은 사본 트리에서는 0). `npx eslint .` 통과, `npx vitest run` 848/849(실패 1 = `src/systems/audio/audioDefs.test.ts`, 시스템·음향 몫), prettier 통과. 헤드리스 Playwright(1920×1080, 사본 트리 + 계약 상수, `?debug=1&uidebug=1&lab&weapon=katana`, 스크립트·캡처 `scratchpad/r61s4/`): 다섯 지역(황무지·외곽 거리·성문·양조 구역·연회장)에 `stageIndex` 를 0~4 로 일부러 바꿔도 HUD 묶음·메뉴 패널·오른쪽 위 띠 픽셀이 모두 같음(차이 0), 보스방(stageIndex 5)도 같은 색. 전/후 비교 `compare_before_after.png`. BOSS_STARTED 뒤 카드 없음 → BOSS_ROAR 에 이름 카드. 페이지 오류 0. (잔상 캡처는 헤드리스 스크린샷이 1초 넘게 걸려 사본에서만 머묾을 6초로 늘려 찍었다.)
+
 ## 61라운드 (2026-10-05) · 단계 2·3 — 서사 표시(P8) · 보스 UI(P10) · 노드 지도 늦은 그림 버그 · 신규 적 소개
 결정: `decisions/2026-10-05-round-61-autonomous-stage1.md` P6·P8·P10(자율 모드 — 세부는 UI 판단, 이유를 아래에 적는다). 계약: `contracts/ui-system-interface.md` §1(`BOSS_STARTED`·`BOSS_PHASE`·`BOSS_DIED`·`STORY`) + 시스템이 작업 트리에 넣은 `UiStoryLine.kind` 4종(`voice`·`speech`·`clue`·`event`)·`speaker`·`weapon`·`lines`·`holdMs`, `UiResult.smudgeLine`(계약 문서 갱신 대상). 문장 톤: `parts/story/text-pack-61-stage1.md`(읽기 — 서사 문장은 시스템이 STORY 로 내려주고 UI 는 틀 낱말만). 시스템 코드 열람 없음(`src/contract/ui.ts` 읽기만).
 

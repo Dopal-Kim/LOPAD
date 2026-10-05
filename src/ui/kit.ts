@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { ACCENT_FIRST_SLOT, FLOOR1_RAMP, FONT, FONT_FILES, GRAY, LAYOUT, hexToNum } from './theme';
+import { HP_TRAIL_START, hpTrailStep, type HpTrail } from './combatView';
 import { coverCrop } from './routeView';
+import { HEALTH_BAR } from './themeR61';
 
 /**
  * UI 키트 로더·조립 헬퍼 (계약 `contracts/ui-art-kit.md` v0.4 §2·§4).
@@ -95,7 +97,7 @@ export const weaponIconKey = (id: string): string => `ui-weapon-${id}`;
  * (journey, battle, shop, rest, event, boss), 행 0 = 기본 · 1 = 지나옴(식음) · 2 = 잠김(흐림).
  * 아트 산출물 사본 `assets/ui/kit/node_icons.png` (48라운드 복사). `available` 을 false 로 두면 Graphics 마름모 +
  * 키트 글리프 폴백으로 그린다 (없는 파일을 읽어 404 를 내지 않게 플래그로 둔다).
- * 강조 1점(슬롯 20~22)은 1층 램프로 그려져 있다 — 2층부터 `nodeIconKey` 가 그 층 램프로 바꾼 사본을 만든다.
+ * 강조 1점(슬롯 20~22)은 기본 램프 그대로 쓴다 (61 단계 4 §17.1: 층마다 색을 바꾸지 않는다 — 예전 `nodeIconKey` 층 사본 삭제).
  */
 export const NODE_ICON_SHEET: {
   key: string;
@@ -110,39 +112,6 @@ export const NODE_ICON_SHEET: {
   order: ['journey', 'battle', 'shop', 'rest', 'event', 'boss'],
   available: true,
 };
-
-/** 노드 아이콘 시트 텍스처 키 (층 강조색 적용). 1층·시트 없음이면 원본 키. 프레임 = 행 × 6 + 열 */
-export function nodeIconKey(scene: Phaser.Scene, stageIndex: number): string {
-  const base = NODE_ICON_SHEET.key;
-  if (stageIndex <= 0 || !scene.textures.exists(base)) return base;
-  const key = `${base}@${stageIndex}`;
-  if (scene.textures.exists(key)) return key;
-  const src = scene.textures.get(base).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
-  const tex = scene.textures.createCanvas(key, src.width, src.height);
-  if (!tex) return base;
-  const ctx = tex.getContext();
-  ctx.drawImage(src, 0, 0);
-  const img = ctx.getImageData(0, 0, src.width, src.height);
-  const swap = new Map<number, number>();
-  for (let slot = ACCENT_FIRST_SLOT; slot <= ACCENT_FIRST_SLOT + 11; slot++)
-    swap.set(hexToNum(accentHex(scene, 0, slot)), hexToNum(accentHex(scene, stageIndex, slot)));
-  const d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    if (d[i + 3] === 0) continue;
-    const to = swap.get((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
-    if (to === undefined) continue;
-    d[i] = (to >> 16) & 255;
-    d[i + 1] = (to >> 8) & 255;
-    d[i + 2] = to & 255;
-  }
-  ctx.putImageData(img, 0, 0);
-  const n = NODE_ICON_SHEET.size;
-  const cols = Math.floor(src.width / n);
-  const rows = Math.floor(src.height / n);
-  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) tex.add(r * cols + c, 0, c * n, r * n, n, n);
-  tex.refresh();
-  return key;
-}
 
 /**
  * 60라운드 계약 §14.9 엘리트 이름표 (아트 `art-assets.md` §22 `fx/v3/elite_nameplate` 트림 아틀라스의 사본
@@ -353,20 +322,23 @@ export function fontFamily(kind: keyof typeof FONT): string {
 }
 
 // ---------------------------------------------------------------------------------------------
-// 팔레트: 층 강조 램프
+// 팔레트: UI 강조 램프 (기본 하나)
 interface PaletteJson {
   floors?: { floor: number; ramp: string[] }[];
 }
-let paletteCache: PaletteJson | null = null;
+let baseRamp: readonly string[] | null = null;
 
-/** 층(0부터) 강조 램프 슬롯(16~27) 색. 팔레트가 없으면 1층 램프 */
-export function accentHex(scene: Phaser.Scene, stageIndex: number, slot: number): string {
-  if (!paletteCache && scene.cache.json.exists(KIT.palette))
-    paletteCache = scene.cache.json.get(KIT.palette) as PaletteJson;
-  const floors = paletteCache?.floors ?? [];
+/**
+ * UI 강조 램프 슬롯(16~27) 색. 61 단계 4 (계약 §17.1): HUD·메뉴의 테두리·글자·강조색은 **기본 팔레트 하나**(팔레트 1층 '잔'
+ * 램프, 없으면 `FLOOR1_RAMP`)로 고정 — 층·지역이 바뀌어도 같은 색이다. `_stageIndex` 는 옛 호출 모양을 남긴 것뿐 색에 쓰지 않는다.
+ */
+export function accentHex(scene: Phaser.Scene, _stageIndex: number, slot: number): string {
+  if (!baseRamp && scene.cache.json.exists(KIT.palette)) {
+    const ramp = (scene.cache.json.get(KIT.palette) as PaletteJson).floors?.[0]?.ramp;
+    if (ramp && ramp.length >= FLOOR1_RAMP.length) baseRamp = ramp;
+  }
   const idx = Math.max(0, Math.min(ACCENT_FIRST_SLOT + 11, slot) - ACCENT_FIRST_SLOT);
-  const ramp = floors[Math.max(0, Math.min(floors.length - 1, stageIndex))]?.ramp;
-  return ramp?.[idx] ?? FLOOR1_RAMP[idx];
+  return (baseRamp ?? FLOOR1_RAMP)[idx];
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -556,54 +528,73 @@ export function cursor(scene: Phaser.Scene, light = false): Phaser.GameObjects.S
 }
 
 // ---------------------------------------------------------------------------------------------
-// 게이지: 틀 9-slice + 채움 1×8 가로 늘림. 층 램프 틴트는 gray 띠 × 램프 23(light1) 곱 틴트
+// 게이지: 틀 9-slice + 채움 1×8 가로 늘림. 색은 gray 띠 × 팔레트 색 곱 틴트
+/**
+ * 게이지 종류: `frame` = 얇은 틀 + 그려진 amber 띠, `gray` = 얇은 틀 + 회색 띠(자원 게이지가 `setFillSlot` 로 색을 고른다),
+ * `health` = 보스 틀(14px) 체력 막대 — 61 단계 4 (§17.1) 층과 무관하게 늘 붉은색: 잃은 부분(어두운 적) 위에
+ * 피격 잔상(밝은 적)과 채움(적)을 겹친다 (`HEALTH_BAR`).
+ */
+export type GaugeKind = 'frame' | 'gray' | 'health';
+
 export class Gauge {
   private frame: NinePanel;
   private fill: Phaser.GameObjects.Image;
+  /** health 만: 잃은 부분 · 피격 잔상 */
+  private lost: Phaser.GameObjects.Image | null = null;
+  private ghost: Phaser.GameObjects.Image | null = null;
+  private trail: HpTrail = HP_TRAIL_START;
   private innerW: number;
-  private tintSlot: number | null;
+  private fillH: number;
   constructor(
-    scene: Phaser.Scene,
+    private scene: Phaser.Scene,
     private x: number,
     private y: number,
     w: number,
-    kind: 'frame' | 'boss' | 'gray',
-    stageIndex = 0,
+    kind: GaugeKind,
   ) {
-    const spec = kind === 'boss' ? SLICE.gaugeBoss : SLICE.gaugeFrame;
-    const key = kind === 'boss' ? KIT.gaugeBoss : KIT.gaugeFrame;
-    this.frame = new NinePanel(scene, x, y, key, spec, w, spec.h);
+    const health = kind === 'health';
+    const spec = health ? SLICE.gaugeBoss : SLICE.gaugeFrame;
+    this.frame = new NinePanel(scene, x, y, health ? KIT.gaugeBoss : KIT.gaugeFrame, spec, w, spec.h);
     this.innerW = w - spec.fillInsetX * 2;
-    this.tintSlot = kind === 'gray' ? null : 23;
-    // 1층은 그려진 amber 띠 그대로, 다른 층은 gray 띠에 그 층 램프 23 을 곱한다 (gauge_fill_gray.json)
-    const authored = kind !== 'gray' && stageIndex === 0;
-    this.fill = scene.add
-      .image(x + spec.fillInsetX, y + spec.fillInsetY, authored ? KIT.gaugeFill : KIT.gaugeFillGray)
-      .setOrigin(0, 0);
-    if (!authored && this.tintSlot !== null) this.fill.setTint(hexToNum(accentHex(scene, stageIndex, this.tintSlot)));
+    this.fillH = spec.h - spec.fillInsetY * 2;
+    const strip = (tex: string, color: string | null): Phaser.GameObjects.Image => {
+      const im = scene.add.image(x + spec.fillInsetX, y + spec.fillInsetY, tex).setOrigin(0, 0);
+      if (color) im.setTint(hexToNum(color));
+      return im;
+    };
+    if (health) {
+      this.lost = strip(KIT.gaugeFillGray, HEALTH_BAR.lost).setDisplaySize(this.innerW, this.fillH);
+      this.ghost = strip(KIT.gaugeFillGray, HEALTH_BAR.ghost).setVisible(false);
+    }
+    this.fill = strip(kind === 'frame' ? KIT.gaugeFill : KIT.gaugeFillGray, health ? HEALTH_BAR.fill : null);
     this.set(0);
   }
 
-  /** 층이 바뀌면 채움 띠 색을 바꾼다 */
-  setStage(scene: Phaser.Scene, stageIndex: number): void {
-    if (this.tintSlot === null) return;
-    if (stageIndex === 0) {
-      this.fill.setTexture(KIT.gaugeFill).clearTint();
-    } else {
-      this.fill.setTexture(KIT.gaugeFillGray).setTint(hexToNum(accentHex(scene, stageIndex, this.tintSlot)));
-    }
+  private get strips(): Phaser.GameObjects.Image[] {
+    return [this.lost, this.ghost, this.fill].filter((im): im is Phaser.GameObjects.Image => im !== null);
   }
 
+  /** 채움 비율. health 는 줄어든 만큼 잔상을 남긴다 (HUD 씬 시간 기준) */
   set(ratio: number): this {
     const r = Math.max(0, Math.min(1, ratio));
     const w = Math.round(this.innerW * r);
-    this.fill.setVisible(w > 0);
-    if (w > 0) this.fill.setDisplaySize(w, 8);
+    const on = this.frame.visible;
+    this.fill.setVisible(on && w > 0);
+    if (w > 0) this.fill.setDisplaySize(w, this.fillH);
+    if (this.ghost) {
+      const step = hpTrailStep(this.trail, r, this.scene.time.now, HEALTH_BAR);
+      this.trail = step.trail;
+      const gw = Math.round(this.innerW * step.ghost);
+      this.ghost.setVisible(on && gw > w);
+      if (gw > w) this.ghost.setDisplaySize(gw, this.fillH);
+    }
     return this;
   }
 
   setVisible(v: boolean): this {
     this.frame.setVisible(v);
+    this.lost?.setVisible(v);
+    this.ghost?.setVisible(v && this.ghost.displayWidth > this.fill.displayWidth);
     this.fill.setVisible(v && this.fill.displayWidth > 0);
     return this;
   }
@@ -613,13 +604,13 @@ export class Gauge {
     const dx = x - this.x;
     this.x = x;
     this.frame.setX(this.frame.x + dx);
-    this.fill.setX(this.fill.x + dx);
+    for (const im of this.strips) im.setX(im.x + dx);
     return this;
   }
 
   setDepth(d: number): this {
     this.frame.setDepth(d);
-    this.fill.setDepth(d);
+    for (const im of this.strips) im.setDepth(d);
     return this;
   }
 
@@ -629,11 +620,11 @@ export class Gauge {
     const dy = y - this.y;
     this.y = y;
     this.frame.setY(this.frame.y + dy);
-    this.fill.setY(this.fill.y + dy);
+    for (const im of this.strips) im.setY(im.y + dy);
     return this;
   }
 
-  /** 49라운드: 채움 띠 색을 층 강조 슬롯으로 (null = 회색 띠 그대로). 자원 게이지용 */
+  /** 49라운드: 채움 띠 색을 기본 강조 램프 슬롯으로 (null = 회색 띠 그대로). 자원 게이지용 */
   setFillSlot(scene: Phaser.Scene, stageIndex: number, slot: number | null): this {
     this.fill.setTexture(KIT.gaugeFillGray);
     if (slot === null) this.fill.clearTint();

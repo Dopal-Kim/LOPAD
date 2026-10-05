@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import type { UiNodeType, UiRoute, UiRouteNode } from '../contract/ui';
 import { intelLine, nodeInfoLines, rewardLegend } from './bundleView';
 import { GlowText } from './glow';
-import { NODE_ICON_SHEET, derivedTexture, ensureImage, keyartKey, keyartUrl, nodeIconKey, rule } from './kit';
+import { NODE_ICON_SHEET, derivedTexture, ensureImage, keyartKey, keyartUrl, rule } from './kit';
 import { regionArtKey } from './regionView';
 import { makeGlyph, nodeStateName, nodeTypeName } from './routeGlyph';
 import type { LateInsert } from './routeSheet';
@@ -114,7 +114,7 @@ export class RouteSide {
       const iw = useSheet ? 32 : 16;
       if (useSheet) {
         const col = Math.max(0, NODE_ICON_SHEET.order.indexOf(t));
-        scene.add.image(lx, ly, nodeIconKey(scene, si), col).setOrigin(0, 0);
+        scene.add.image(lx, ly, NODE_ICON_SHEET.key, col).setOrigin(0, 0);
       } else {
         const glyph = makeGlyph(scene, t, si) as Phaser.GameObjects.GameObject &
           Phaser.GameObjects.Components.Transform;

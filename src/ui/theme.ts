@@ -29,7 +29,7 @@ export const GRAY = [
 /** UI 전용 세피아 램프 S0~S5 (`ui.ramp`, v0.4) */
 export const SEPIA = ['#1f1813', '#30261e', '#403227', '#503f32', '#6a5645', '#c6a58b'] as const;
 
-/** 1층 '잔' 강조 램프 (슬롯 16~27 → 인덱스 0~11). 팔레트 JSON 을 못 읽었을 때의 폴백 */
+/** UI 기본 강조 램프 = 1층 '잔' 램프 (슬롯 16~27 → 인덱스 0~11). 61 단계 4 부터 모든 층에서 이 하나만 쓴다. 팔레트 JSON 을 못 읽었을 때의 폴백 */
 export const FLOOR1_RAMP = [
   '#1a110f',
   '#3f271d',
@@ -63,7 +63,7 @@ export const FONT_FILES: Record<string, string> = {
 
 /**
  * 발광 글자 스타일 (계약 1.2절 표). `halo`/`shade` 가 없으면 그 ring 을 그리지 않는다.
- * `accentSlot` 이 있으면 현재 층 강조 램프의 그 슬롯 색을 쓴다 (문자열 색은 무시).
+ * `accentSlot` 이 있으면 강조 램프의 그 슬롯 색을 쓴다 (문자열 색은 무시). 61 단계 4 (§17.1): 램프는 층과 무관하게 기본 하나(`accentHex`).
  */
 export interface GlowStyle {
   body: string | { accentSlot: number };

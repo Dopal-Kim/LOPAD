@@ -55,10 +55,12 @@ export class HudNarrative {
   subscribe(on: On): void {
     const snap = (): UiSnapshot => withDebug(uiCommands.getUiSnapshot());
     on(UI_EVENTS.STORY, (p: unknown) => this.onStory(p));
-    on(UI_EVENTS.BOSS_STARTED, (p: unknown) => {
+    on(UI_EVENTS.BOSS_STARTED, () => {
       this.finisherSeen = false;
-      this.boss?.started(p, snap());
+      this.boss?.started();
     });
+    // 61 단계 4 (§17.1): 보스 이름 카드는 포효 순간에
+    on(UI_EVENTS.BOSS_ROAR, (p: unknown) => this.boss?.roared(p, snap()));
     on(UI_EVENTS.BOSS_PHASE, (p: unknown) => this.boss?.phase(p, snap()));
     on(R61_EVENTS.BOSS_BREAK, (p: unknown) => {
       if ((p as { kind?: unknown } | null)?.kind === 'finisher') this.finisherSeen = true;

@@ -10,6 +10,8 @@ import { menuLines, wideMenu } from './menuView';
 import { choiceLines, isChoiceCardMenu } from './choiceCardView';
 import { menuCloseButton, showFaceDownCards, type CardPage, type CardRow } from './MenuCards';
 import { showChoiceCards } from './MenuChoiceCards';
+import { guideLook, guideShown, markGuideShown, showGrowthCards, showGrowthGuide } from './GrowthCards';
+import { guideKind, isGrowthMenu } from './growthView';
 import { r53Text, r60Text } from './text';
 import { SelectList } from './widgets';
 import { menuWaitMs } from './uiSequence';
@@ -31,8 +33,9 @@ const ESC_STAY_HOLD_MS = 1400;
  * evolve·ending 은 페이지 최소 폭 520.
  * 47라운드(계약 §9.4): `cancelKey` 가 있으면 Esc·오른쪽 위 닫기 버튼이 `select(id, cancelKey)`.
  * 같은 메뉴(id·structureId)가 다시 오면 커서 자리를 지킨 채 다시 그린다. `cards`(패 탁자)는 엎어진 패 n장으로 그린다(MenuCards.ts).
- * 60라운드 Q38: 개성·보상·패시브 3지선다(그만두기를 뺀 칸이 3)는 카드 3장(MenuChoiceCards.ts) — 화면을 넘으면 목록.
- * 60라운드(계약 §14.4·§14.6·§14.7): 줄 만들기는 menuView.ts — 칸 종류(〔강화〕·〔피의 계약〕·〔각성〕·〔이중 개성〕)·희귀도·태그·
+ * 60라운드 Q38: 보상·패시브 3지선다(그만두기를 뺀 칸이 3)는 카드 3장(MenuChoiceCards.ts) — 화면을 넘으면 목록.
+ * 61 단계 4 P12(§18): evolve 의 성장 칸(개성 발현·1차/2차 각성·단련)은 GrowthCards.ts — 처음이면 안내 카드 한 장 먼저.
+ * 60라운드(계약 §14.4·§14.6·§14.7): 줄 만들기는 menuView.ts — 칸 종류(〔개성 발현〕·〔단련〕 …)·희귀도·태그·
  * 잠김 조건, 상점 묶음 머리글·가격·팔림. 새 메뉴 id `curse`(필수)·`event`('0')·`mapInfo`('0')·`consumableSwap`(필수)도 같은 목록.
  * 줄이 많아 페이지가 화면을 넘으면 설명을 접고 커서 줄 설명만 목록 아래에 보인다.
  */
@@ -43,6 +46,8 @@ export class MenuScene extends Phaser.Scene {
   private alive = false;
   /** 카드 화면 (패 탁자·3지선다 카드)의 고르기 */
   private cardRow?: CardRow;
+  /** 61 단계 4 P12: 무기 성장 처음 안내 카드를 치우는 함수 (떠 있을 때만) */
+  private guideCancel?: () => void;
   private onOpen = (m: UiMenu) => {
     this.pendingClose = false;
     this.show(m);
@@ -157,7 +162,20 @@ export class MenuScene extends Phaser.Scene {
     const snap = withDebug(uiCommands.getUiSnapshot());
     const ctx = { stageIndex: Math.max(0, snap.stageIndex), keepCursor, send: (key: string) => this.send(m, key) };
     let page: CardPage | null = null;
-    if (m.id === 'cards' && cardLines.length >= CARD_MIN && cardLines.length <= CARD_MAX) {
+    if (isGrowthMenu(m)) {
+      // 61 단계 4 P12: 무기 성장 카드 — 메타 기준 처음이면 안내 카드 한 장 뒤에
+      const gk = guideKind(m, snap.growth);
+      if (gk && !guideShown(gk)) {
+        markGuideShown(gk);
+        this.guideCancel = showGrowthGuide(this, gk, guideLook(gk, snap), () => {
+          this.guideCancel = undefined;
+          if (this.alive && this.drawn === m) this.show(m);
+        });
+        return;
+      }
+      page = showGrowthCards(this, m, snap, ctx, MENU_MAX_PAGE_H);
+      if (!page) this.children.removeAll(true);
+    } else if (m.id === 'cards' && cardLines.length >= CARD_MIN && cardLines.length <= CARD_MAX) {
       page = showFaceDownCards(this, m, cardLines, ctx);
     } else if (isChoiceCardMenu(m)) {
       page = showChoiceCards(this, m, buildOf(snap), ctx, MENU_MAX_PAGE_H);
@@ -235,6 +253,8 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private clearCards(): void {
+    this.guideCancel?.();
+    this.guideCancel = undefined;
     this.cardRow?.destroy();
     this.cardRow = undefined;
   }

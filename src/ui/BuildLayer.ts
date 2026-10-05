@@ -3,7 +3,6 @@ import type {
   UiConsumableUsed,
   UiCurse,
   UiCurseEnded,
-  UiDualTrait,
   UiNodeGraded,
   UiPerfectSuccess,
   UiSnapshot,
@@ -42,7 +41,7 @@ export interface BuildLayerFrame {
 /**
  * 57·60라운드 계약 §14 HUD 묶음 (HudScene 이 하나 만들고 STATE·이벤트를 넘긴다):
  * 빌드 칩(태그·세트·저주) · 완벽 성공 문구 · 엘리트 이름표 · 성과 진행 칩 · 성과 도장 카드, 그리고 §14.11 이벤트 알림
- * (세트 단계·이중 개성·저주·숨은 길·소모품 사용 → 토스트·배너). 소모품 칸은 하단 묶음 안이라 HudScene 이 그린다.
+ * (세트 단계·저주·숨은 길·소모품 사용 → 토스트·배너 — 개성 알림은 61 단계 4 GrowthHud). 소모품 칸은 하단 묶음 안이라 HudScene 이 그린다.
  */
 export class BuildLayer {
   private chips: BuildChips;
@@ -90,10 +89,6 @@ export class BuildLayer {
     const t = setChangeToast(p, p?.tag ? this.stages.get(p.tag) : undefined, r60Text);
     if (p?.tag && typeof p.stage === 'number') this.stages.set(p.tag, p.stage);
     if (t) this.hooks.toast(t.tone, t.text);
-  }
-
-  dualTraitGained(p: UiDualTrait): void {
-    if (p?.name) this.hooks.banner(fill(r60Text('dualGained'), { name: p.name }));
   }
 
   curseGained(p: UiCurse): void {

@@ -7,7 +7,7 @@ import { RegionCard } from './RegionCard';
 import { regionArtKey, regionChanged } from './regionView';
 import { regionText } from './text';
 
-/** 가운데 배너 차례: 글자 배너(층 제목·노드 이름·진화·이중 개성) 또는 50라운드 지역 카드 */
+/** 가운데 배너 차례: 글자 배너(층 제목·노드 이름·진화) 또는 50라운드 지역 카드 */
 export type BannerItem =
   { kind: 'text'; text: string } | { kind: 'region'; region: string; art: string | null; desc: string };
 /** 글자 배너 대기 상한 (지역 카드는 상한과 관계없이 넣는다) */

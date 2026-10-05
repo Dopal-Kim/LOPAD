@@ -113,7 +113,7 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
     expect(g.stamp).toBe('完');
     expect(g.text).toBe('');
     expect(g.conds).toBe('무피격 ○  ·  제한 시간 ×');
-    expect(g.deltas).toBe('+20 전표  +15 개성');
+    expect(g.deltas).toBe('+20 전표  +15 각성');
   });
 
   it('소모품 칸', () => {

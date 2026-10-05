@@ -18,9 +18,6 @@ export const R60_TEXT = {
   setUpPlain: '{name} 세트 {stage}단',
   setDown: '{name} 세트가 {stage}단으로 내려갔다',
   setOff: '{name} 세트가 꺼졌다',
-  // ---- §14.2 이중 개성
-  dualGained: '이중 개성 — {name}',
-  dualPair: '짝 {branch} · {tag} {tier}단',
   // ---- §14.3 저주
   curseHead: '저주',
   curseNodes: '{n}노드 남음',
@@ -80,7 +77,7 @@ export const R60_TEXT = {
   gradeOk: '○',
   gradeNg: '×',
   deltaGold: '+{n} {gold}',
-  deltaPersonality: '+{n} 개성',
+  deltaPersonality: '+{n} 각성',
   // ---- §14.8 소모품
   consumableEmpty: '빈 칸',
   consumableUsed: '{name} — 남은 {left}',
@@ -89,7 +86,6 @@ export const R60_TEXT = {
   // ---- 일기장 빌드 쪽
   buildTitle: '빌드',
   buildTags: '태그·세트',
-  buildDual: '이중 개성',
   buildCurse: '저주',
   buildPassives: '패시브',
   buildConsumable: '소모품',
@@ -114,19 +110,25 @@ export const TAG_NAME: Record<UiTagId, string> = {
 
 /** 개성·보상 칸 종류 이름 (§14.4) */
 export const CHOICE_KIND_NAME: Record<UiChoiceKind, string> = {
+  // 61 단계 4 P12 (§18) 무기 성장 칸
+  trait: '개성 발현',
+  awaken1: '1차 각성',
+  awaken2: '2차 각성',
+  temper: '단련',
+  passive: '패시브',
+  curse: '저주',
+  // 아래 여섯은 61 G 로 폐지(더 오지 않는다) — 계약 유니온에 남아 있는 동안만 둔다
   branchA: '갈래 A',
   branchB: '갈래 B',
   reinforce: '강화',
   bloodPact: '피의 계약',
   awaken: '각성',
   dual: '이중 개성',
-  passive: '패시브',
-  curse: '저주',
 };
 
 /** 3지선다 카드 머리표 — 줄에 `kind` 가 없을 때 메뉴 id 로 (60 Q38) */
 export const CHOICE_MENU_HEAD: Readonly<Record<string, string>> = {
-  evolve: '개성',
+  evolve: '개성 발현',
   reward: '보상',
   passive: '패시브',
 };

@@ -9,7 +9,6 @@ import {
   type UiConsumableUsed,
   type UiCurse,
   type UiCurseEnded,
-  type UiDualTrait,
   type UiMenu,
   type UiNodeGraded,
   type UiPerfectSuccess,
@@ -25,6 +24,7 @@ import {
   type UiWarpDone,
 } from '../contract/ui';
 import { BuildLayer } from './BuildLayer';
+import { GrowthLayer } from './GrowthHud';
 import { BuildPeek } from './BuildPeek';
 import { KeyGuide } from './keyGuide';
 import { snapshotVerbItems } from './keyGuideView';
@@ -109,6 +109,7 @@ export class HudScene extends Phaser.Scene {
    * 보스 막대(국면 눈금)·이름·국면·파훼·처치 카드·촛대 안내 (HudNarrative.ts)
    */
   private narr?: HudNarrative;
+  private growthLayer?: GrowthLayer;
   /** 61라운드 P10: Tab 빌드 보기 (누르고 있는 동안) */
   private peek?: BuildPeek;
   /** 61라운드 P1: 무기 시험장 아래 가운데 4동사 키캡 안내 */
@@ -206,6 +207,12 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.banners.text(p.stageName));
     // 61 단계 2·3: STORY 자막 차례·보스 카드·신규 적 소개 (HudNarrative.ts)
     this.narr.subscribe((e, h) => this.on(e, h));
+    // 61 단계 4 P12 무기 성장: 각성 게이지 반짝 · 각성 배너 · 개성 알림 (GrowthHud.ts)
+    this.growthLayer = new GrowthLayer(this, {
+      gain: (now) => this.combat?.growthGain(now),
+      snapshot: () => withDebug(uiCommands.getUiSnapshot()),
+    });
+    this.growthLayer.subscribe((e, h) => this.on(e, h));
     // 53라운드 계약: 튜토리얼 단계 카드 · 적 등장 예고('주의' 경고, Q49·Q60)
     this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
     this.on(UI_EVENTS.ENEMY_INCOMING, (p: unknown) => this.guide?.enemyIncoming(p, Math.max(0, this.stageIndex)));
@@ -273,7 +280,6 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.MENU_OPEN, (m: UiMenu) => this.ensureStructureMenu(m));
     // 57·60라운드 §14.11: 빌드 축·2차 묶음 알림 (모두 연출용 — 값은 STATE 로도 온다)
     this.on(UI_EVENTS.TAG_SET_CHANGED, (p: UiTagSetChanged) => this.buildLayer?.tagSetChanged(p));
-    this.on(UI_EVENTS.DUAL_TRAIT_GAINED, (p: UiDualTrait) => this.buildLayer?.dualTraitGained(p));
     this.on(UI_EVENTS.CURSE_GAINED, (p: UiCurse) => this.buildLayer?.curseGained(p));
     this.on(UI_EVENTS.CURSE_ENDED, (p: UiCurseEnded) => this.buildLayer?.curseEnded(p));
     this.on(UI_EVENTS.PERFECT_SUCCESS, (p: UiPerfectSuccess) => this.buildLayer?.perfect(p));
@@ -294,6 +300,8 @@ export class HudScene extends Phaser.Scene {
       this.combat = undefined;
       this.narr?.destroy();
       this.narr = undefined;
+      this.growthLayer?.destroy();
+      this.growthLayer = undefined;
       this.labGuide = undefined;
       this.peek?.destroy();
       this.peek = undefined;

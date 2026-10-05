@@ -111,10 +111,9 @@ export const ELITE_PLATE = {
   aboveHead: 37,
   /** 글자 좌우 여백 (도트) — 가운데 칸이 이만큼 넓어진다 */
   textPadDots: 6,
-  /** 체력 선 (이름표 아래 1px 띄워 2px) */
+  /** 체력 선 (이름표 아래 1px 띄워 2px, 색은 themeR61 HEALTH_BAR) */
   hpH: 2,
   hpGap: 1,
-  hpSlot: 23,
   /** 화면 가장자리 여백 */
   margin: 4,
   depth: 30,

@@ -172,8 +172,8 @@ export interface DiaryLine {
 type DiarySnap = Pick<UiSnapshot, 'passives' | 'consumable'> & { build?: UiBuildState | null };
 
 /**
- * 57·60라운드 일기장(일시정지) 빌드 쪽: 태그·세트 / 이중 개성 / 저주 / 패시브(Lv·최대·태그) / 소모품.
- * 쪽이 넘치면 접는다: compact 1 = 꺼진 세트 효과·이중 개성 설명을 뺀다, 2 = 세트 효과·저주 이득/저주 줄도 뺀다.
+ * 57·60라운드 일기장(일시정지) 빌드 쪽: 태그·세트 / 저주 / 패시브(Lv·최대·태그) / 소모품 (이중 개성은 61 G 로 폐지 — 개성은 Tab 성장도).
+ * 쪽이 넘치면 접는다: compact 1 = 꺼진 세트 효과를 뺀다, 2 = 세트 효과·저주 이득/저주 줄도 뺀다.
  */
 export function diaryLines(s: DiarySnap, compact: 0 | 1 | 2, tx: Tx = defaultTx): DiaryLine[] {
   const b = buildOf(s);
@@ -190,14 +190,6 @@ export function diaryLines(s: DiarySnap, compact: 0 | 1 | 2, tx: Tx = defaultTx)
     const off = t.effects.filter((e) => !e.active).map((e) => `${e.threshold} ${e.name}`);
     if (on.length) out.push({ text: `  ${on.join(' · ')}`, style: 'body', gap: 0 });
     if (off.length && compact < 1) out.push({ text: `  ${off.join(' · ')}`, style: 'faint', gap: 0 });
-  }
-  if (b.dualTraits.length) {
-    head('buildDual');
-    for (const d of b.dualTraits) {
-      const pair = fill(tx('dualPair'), { branch: d.branchName, tag: tagName(d.tag, b), tier: d.tier });
-      out.push({ text: `${d.name}  ${pair}`, style: 'body', gap: 0 });
-      if (compact < 1 && d.description) out.push({ text: `  ${d.description}`, style: 'faint', gap: 0 });
-    }
   }
   if (b.curse) {
     head('buildCurse');

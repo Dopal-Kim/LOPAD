@@ -3,7 +3,7 @@ import { UI_SCREEN, type UiRoute, type UiRouteNode } from '../contract/ui';
 import { nodeLook } from './bundleView';
 import { debugExpose } from './debug';
 import { GlowText } from './glow';
-import { NODE_ICON_SHEET, accentHex, book, cursor, nodeIconKey, rule } from './kit';
+import { NODE_ICON_SHEET, accentHex, book, cursor, rule } from './kit';
 import { RouteConfirm, eventStamp, hasDepth } from './RouteConfirm';
 import { gradeMark, rewardBadge, riskBadge, riskRing, smudgeMark } from './routeMarks';
 import { FIGURE_H, FIGURE_W, FIG_UNIT, diamondRing, drawFigure, makeGlyph, pixelDiamond } from './routeGlyph';
@@ -422,7 +422,7 @@ export class RouteMap {
         const col = Math.max(0, NODE_ICON_SHEET.order.indexOf(n.type));
         const row = n.state === 'cleared' ? 1 : n.state === 'passed' || n.state === 'locked' ? 2 : 0;
         sheet = scene.add
-          .image(-ICON_HALF, -ICON_HALF, nodeIconKey(scene, si), row * NODE_ICON_SHEET.order.length + col)
+          .image(-ICON_HALF, -ICON_HALF, NODE_ICON_SHEET.key, row * NODE_ICON_SHEET.order.length + col)
           .setOrigin(0, 0);
         parts.push(sheet);
       } else parts.push(makeGlyph(scene, n.type, si));
