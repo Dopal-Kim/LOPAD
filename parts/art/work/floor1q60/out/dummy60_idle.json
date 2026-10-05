@@ -1,0 +1,58 @@
+{
+ "image": "dummy60_idle.png",
+ "action": "idle",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "frameDurationsMs": [
+  220,
+  220,
+  220,
+  180,
+  220,
+  220
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "oldTiming": {
+  "frameDurationsMs": [
+   220,
+   220,
+   220,
+   180,
+   220,
+   220
+  ],
+  "framesMap": [
+   [
+    0
+   ],
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ],
+   [
+    4
+   ],
+   [
+    5
+   ]
+  ]
+ },
+ "note": "60라운드 Q4 샘플(검수용, assets 미반영). 구 프레임 시작 ms 불변"
+}

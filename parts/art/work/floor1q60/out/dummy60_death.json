@@ -1,0 +1,66 @@
+{
+ "image": "dummy60_death.png",
+ "action": "death",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "frames": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "frameDurationsMs": [
+  90,
+  55,
+  55,
+  55,
+  55,
+  60,
+  60,
+  70,
+  70,
+  200
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "oldTiming": {
+  "frameDurationsMs": [
+   90,
+   110,
+   110,
+   120,
+   140,
+   200
+  ],
+  "framesMap": [
+   [
+    0
+   ],
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    8
+   ],
+   [
+    9
+   ]
+  ]
+ },
+ "note": "60라운드 Q4 샘플(검수용, assets 미반영). 구 프레임 시작 ms 불변"
+}

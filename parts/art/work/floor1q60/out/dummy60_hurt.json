@@ -1,0 +1,43 @@
+{
+ "image": "dummy60_hurt.png",
+ "action": "hurt",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "frames": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "frameDurationsMs": [
+  70,
+  30,
+  30,
+  30
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "oldTiming": {
+  "frameDurationsMs": [
+   70,
+   90
+  ],
+  "framesMap": [
+   [
+    0
+   ],
+   [
+    1,
+    2,
+    3
+   ]
+  ]
+ },
+ "note": "60라운드 Q4 샘플(검수용, assets 미반영). 구 프레임 시작 ms 불변",
+ "flashFrame": 0
+}

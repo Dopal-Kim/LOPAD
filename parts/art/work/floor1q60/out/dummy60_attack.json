@@ -1,0 +1,81 @@
+{
+ "image": "dummy60_attack.png",
+ "action": "attack",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "frames": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  50,
+  37,
+  37,
+  36,
+  40,
+  40,
+  40
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "oldTiming": {
+  "frameDurationsMs": [
+   120,
+   50,
+   110,
+   120
+  ],
+  "framesMap": [
+   [
+    0,
+    1,
+    2
+   ],
+   [
+    3
+   ],
+   [
+    4,
+    5,
+    6
+   ],
+   [
+    7,
+    8,
+    9
+   ]
+  ]
+ },
+ "note": "60라운드 Q4 샘플(검수용, assets 미반영). 구 프레임 시작 ms 불변",
+ "phaseFrames": {
+  "windup": [
+   0,
+   1,
+   2
+  ],
+  "swing": [
+   3
+  ],
+  "impact": [
+   4,
+   5,
+   6
+  ],
+  "recover": [
+   7,
+   8,
+   9
+  ]
+ },
+ "impactFrame": 4
+}
