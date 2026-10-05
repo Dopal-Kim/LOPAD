@@ -35,6 +35,7 @@ import wave
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import encode  # noqa: E402  (배포 형식 인코딩·검증)
+import mixing  # noqa: E402  (61라운드 믹싱 권장값·우선순위)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 # 합성 WAV = 작업 캐시(저장소·빌드 결과에 넣지 않음), 배포 파일 = OGG·M4A
@@ -490,6 +491,27 @@ def dc_remove(seg):
         return seg
     m = sum(seg) / len(seg)
     return [x - m for x in seg]
+
+
+def write_wav_stereo(path, L, R, sr, gain=None):
+    """스테레오 16 bit WAV(61라운드 1층 BGM). gain=None 이면 두 채널 함께 피크 -6 dBFS 로 정규화,
+    값이 있으면 그 이득을 그대로 곱한다(보스 국면 곡처럼 여러 파일이 같은 이득을 써야 할 때)."""
+    L, R = dc_remove(L), dc_remove(R)
+    if gain is None:
+        m = max(max(abs(x) for x in L), max(abs(x) for x in R))
+        gain = PEAK / m if m > 1e-9 else 1.0
+    q = lambda x: int(max(-32767, min(32767, round(x * gain * 32767))))  # noqa: E731
+    ints = array.array('h', [0]) * (2 * len(L))
+    ints[0::2] = array.array('h', [q(x) for x in L])
+    ints[1::2] = array.array('h', [q(x) for x in R])
+    if sys.byteorder == 'big':
+        ints.byteswap()
+    with wave.open(path, 'wb') as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes(ints.tobytes())
+    return len(L) / sr
 
 
 def write_wav(path, seg, sr):
@@ -2812,6 +2834,7 @@ sys.modules.setdefault('build', sys.modules[__name__])
 import sfx_bundle2  # noqa: E402,F401  2차 묶음 25 (엘리트·성소·등급·리롤·소모품·이벤트·숨은 노드·지도 정보·파훼·증류 화로)
 import sfx_branch2  # noqa: E402,F401  2단 갈래 16종 → 32 파일
 import sfx_passive  # noqa: E402,F401  패시브 9종 → 10 파일
+import sfx_core61  # noqa: E402,F401  61라운드 P11 핵심 20종 품질 패스(같은 키 다시 등록 — 순서·시드 유지) + 새 2종 + 변주
 import listen_index  # noqa: E402  들어보기 페이지용 목록(listen_index.json)
 
 
@@ -2823,9 +2846,12 @@ import listen_index  # noqa: E402  들어보기 페이지용 목록(listen_index
 BGM = {}
 
 
-def bgm(name, note, gain_db=0.0, floors=None):
+def bgm(name, note, gain_db=0.0, floors=None, sr=None, use=None, group=None):
+    """sr: 합성 샘플레이트(기본 SR_BGM). use: manifest 에 옮길 쓰임 정보(61라운드 1층 곡 — floor·state·phase).
+    group: 병렬 빌드에서 한 작업으로 묶을 이름(재료를 공유하는 보스 국면 곡)."""
     def deco(fn):
-        BGM[name] = dict(fn=fn, note=note, gain_db=gain_db, floors=floors or [])
+        BGM[name] = dict(fn=fn, note=note, gain_db=gain_db, floors=floors or [], sr=sr or SR_BGM,
+                         use=use, group=group or name)
         return fn
     return deco
 
@@ -2866,7 +2892,7 @@ def _bgm_title(sr, rng):
     return reverb(buf, sr, size=1.6, decay=0.85, wet=0.45, loop=True)
 
 
-@bgm('floor_low', '1~2층(술독·도박장). 저음 드론 위에 취한 류트 아르페지오와 손북. A 단조, 96 BPM', -0.5, floors=[1, 2])
+@bgm('floor_low', '2층(도박장) — 61라운드부터 1층은 전용 곡 f1_jan. 저음 드론 위에 취한 류트 아르페지오와 손북. A 단조, 96 BPM', -0.5, floors=[2])
 def _bgm_floor_low(sr, rng):
     bpm = 96.0
     beat = 60.0 / bpm
@@ -3067,6 +3093,9 @@ def _bgm_emperor(sr, rng):
     return reverb(buf, sr, size=1.8, decay=0.88, wet=0.5, loop=True)
 
 
+import bgm_floor1  # noqa: E402,F401  61라운드 P11 1층 전용 3곡(벽 밖 · 잔 거리 · 만취 3국면) — 44.1 kHz 스테레오
+
+
 # ---------------------------------------------------------------------------
 # 빌드 · 검증
 # ---------------------------------------------------------------------------
@@ -3088,17 +3117,42 @@ def build_sfx(names=None):
     return out
 
 
+def _render_bgm(name):
+    """곡 하나 합성 → 작업 캐시 WAV. 시드 = 5000 + 등록 순서. 모노(리스트) 또는 스테레오((L, R, 이득))."""
+    i = list(BGM).index(name)
+    spec = BGM[name]
+    rng = random.Random(5000 + i)
+    res = spec['fn'](spec['sr'], rng)
+    path = os.path.join(BGM_WAV_DIR, name + '.wav')
+    if isinstance(res, tuple):
+        dur = write_wav_stereo(path, res[0], res[1], spec['sr'], res[2] if len(res) > 2 else None)
+    else:
+        dur = write_wav(path, res, spec['sr'])
+    return name, path, dur
+
+
+def _render_bgm_group(names):
+    return [_render_bgm(nm) for nm in names]
+
+
 def build_bgm(names=None):
+    """BGM 합성. 61라운드 1층 곡은 44.1 kHz 스테레오 60~96 s 라 오래 걸려 group 단위로 병렬(최대 3 프로세스).
+    곡마다 시드가 고정이라 병렬이어도 결과는 같다."""
     os.makedirs(BGM_WAV_DIR, exist_ok=True)
-    out = []
-    for i, (name, spec) in enumerate(BGM.items()):
+    groups = {}
+    for name, spec in BGM.items():
         if names and name not in names:
             continue
-        rng = random.Random(5000 + i)
-        buf = spec['fn'](SR_BGM, rng)
-        path = os.path.join(BGM_WAV_DIR, name + '.wav')
-        dur = write_wav(path, buf, SR_BGM)
-        out.append((name, path, dur))
+        groups.setdefault(spec['group'], []).append(name)
+    jobs = list(groups.values())
+    if len(jobs) > 1 and (os.cpu_count() or 1) > 1:
+        import multiprocessing
+        with multiprocessing.get_context('fork').Pool(min(3, len(jobs), os.cpu_count() or 1)) as pool:
+            res = pool.map(_render_bgm_group, jobs, chunksize=1)
+    else:
+        res = [_render_bgm_group(j) for j in jobs]
+    out = sorted((r for grp in res for r in grp), key=lambda r: list(BGM).index(r[0]))
+    for name, path, dur in out:
         print('  bgm  %-20s %6.3fs' % (name, dur))
     return out
 
@@ -3115,16 +3169,23 @@ def wav_info(path):
         a.byteswap()
     peak = max(abs(x) for x in a) if len(a) else 0
     clipped = sum(1 for x in a if abs(x) >= 32767)
-    seam = abs(a[-1] - a[0]) / 32767.0 if len(a) else 0.0
-    step = max((abs(a[i] - a[i - 1]) for i in range(1, len(a))), default=1) / 32767.0
-    seam_ratio = seam / step if step else 0.0
+    seam_ratio = 0.0
+    seam = 0.0
+    for c in range(ch):                       # 스테레오는 채널마다 따로(가장 나쁜 값)
+        x = a[c::ch]
+        sm = abs(x[-1] - x[0]) / 32767.0 if len(x) else 0.0
+        step = max((abs(x[i] - x[i - 1]) for i in range(1, len(x))), default=1) / 32767.0
+        seam = max(seam, sm)
+        seam_ratio = max(seam_ratio, sm / step if step else 0.0)
     db = 20 * math.log10(peak / 32767.0) if peak else -999
     return dict(sr=sr, ch=ch, frames=nf, dur=nf / sr, peak_db=db, clipped=clipped,
                 seam=seam, seam_ratio=seam_ratio, bytes=os.path.getsize(path))
 
 
 def parse_trigger(t):
-    """'EVENT{k:v,flag}' → {event, when}. when 은 조건 문자열 목록(시스템이 해석)."""
+    """'EVENT{k:v,flag}' → {event, when}. when 은 조건 문자열 목록(시스템이 해석). None(변주) → None."""
+    if t is None:
+        return None
     if '{' not in t:
         return dict(event=t, when=[])
     ev, rest = t.split('{', 1)
@@ -3167,9 +3228,38 @@ def _asset_path(kind, name, fmt):
     return 'assets/audio/%s/%s.%s' % (kind, name, fmt)
 
 
+def _variant_groups():
+    """{원본 id: [원본 id, 변주 id ...]} (61라운드 변주)."""
+    out = {}
+    for name, spec in SFX.items():
+        if spec.get('variant_of'):
+            out.setdefault('sfx/' + spec['variant_of'], ['sfx/' + spec['variant_of']]).append('sfx/' + name)
+    return out
+
+
+def _bgm_floor_state():
+    """BGM spec 의 use(floor·state·phase) → {층: {journey, combat, boss, bossPhases}} (61라운드 1층 전용 곡)."""
+    out = {}
+    for name, spec in BGM.items():
+        u = spec.get('use')
+        if not u:
+            continue
+        d = out.setdefault(str(u['floor']), {})
+        if u['state'] == 'boss':
+            d.setdefault('bossPhases', []).append((u.get('phase', 1), 'bgm/' + name))
+        else:
+            d[u['state']] = 'bgm/' + name
+    for d in out.values():
+        if 'bossPhases' in d:
+            d['bossPhases'] = [i for _, i in sorted(d['bossPhases'])]
+            d['boss'] = d['bossPhases'][0]
+    return out
+
+
 def write_manifest():
     items = _items()
     _need_cache(items)
+    variants = {k[4:]: v for k, v in _variant_groups().items()}   # 원본 이름 → id 목록
     entries = []
     for kind, name, wav_path, out_dir, loop in items:
         info = wav_info(wav_path)
@@ -3188,12 +3278,20 @@ def write_manifest():
             e['loopEndSample'] = info['frames']
         if kind == 'sfx':
             spec = SFX[name]
+            base = SFX[spec.get('variant_of', name)]
             e['gainDb'] = spec['gain_db']
             e['trigger'] = parse_trigger(spec['trigger'])
+            e['priority'] = mixing.priority(base, parse_trigger(base['trigger'])['event'])
+            if spec.get('variant_of'):
+                e['variantOf'] = 'sfx/' + spec['variant_of']
+            elif name in variants:
+                e['variants'] = variants[name]
         else:
             spec = BGM[name]
             e['gainDb'] = spec['gain_db']
             e['floors'] = spec['floors']
+            if spec.get('use'):
+                e['use'] = spec['use']
         e['note'] = spec['note']
         entries.append(e)
     prof = encode.PROFILE
@@ -3209,16 +3307,25 @@ def write_manifest():
                      '디코더가 끝 패딩을 남겨 버퍼가 samples 보다 길면 AudioBufferSourceNode.loopEnd = '
                      'loopEndSample / sampleRate 로 지정한다(M4A 를 쓰는 브라우저 대비).',
             encode=dict(bgm=dict(oggQuality=prof['bgm']['ogg_q'], m4aKbps=prof['bgm']['m4a_kbps']),
+                        bgmStereo=dict(oggQuality=prof['bgm']['ogg_q'], m4aKbps=prof['bgm']['m4a_kbps'] * 2),
                         sfx=dict(oggQuality=prof['sfx']['ogg_q'], m4aKbps=prof['sfx']['m4a_kbps'])),
             source=dict(container='wav', dir='parts/sound/work/wav/',
                         note='합성 원본. 배포·저장소에 넣지 않으며 build.py 로 바이트 단위 재생성(결정적).'),
             bitDepth=16, peakDbfs=PEAK_DBFS,
-            sfxSampleRate=SR_SFX, bgmSampleRate=SR_BGM, channels=1),
+            sfxSampleRate=SR_SFX, bgmSampleRate=SR_BGM, channels=1,
+            perEntryNote='61라운드 1층 전용 곡(bgm/f1_*)은 44.1 kHz 스테레오(channels 2). 위 bgmSampleRate·channels 는 '
+                         '기존 곡 기준값이고, 루프 초 계산 등은 항목의 sampleRate·channels 를 쓴다.'),
         mixing=dict(masterDb=0.0, sfxBusDb=0.0, bgmBusDb=-8.0,
                     bgmCrossfadeMs=1200, bgmBossDuckDb=-3.0,
-                    note='gainDb 는 버스 기준 상대값(dB). BGM 의 gainDb 는 곡 간 RMS 를 약 -21 dBFS 로 맞추는 보정값. 같은 효과음 20ms 내 중복 재생은 1회로 묶기 권장.'),
-        bgmByFloor={str(f): 'bgm/' + name for name, spec in BGM.items() for f in spec['floors']},
+                    note='gainDb 는 버스 기준 상대값(dB). BGM 의 gainDb 는 곡 간 RMS 를 약 -21 dBFS 로 맞추는 보정값. 같은 효과음 20ms 내 중복 재생은 1회로 묶기 권장.',
+                    **mixing.settings(_variant_groups())),
+        bgmByFloor=dict(sorted(((str(f), 'bgm/' + name) for name, spec in BGM.items() for f in spec['floors']),
+                               key=lambda kv: int(kv[0]))),
         bgmByState=dict(title='bgm/title', boss='bgm/boss', emperor='bgm/emperor'),
+        bgmByFloorState=_bgm_floor_state(),
+        bgmByFloorStateNote='층별 상태 곡(61라운드). 찾는 순서: bgmByFloorState[층][상태] → 없으면 bgmByFloor[층](전투) · '
+                            'bgmByState[상태]. 상태 journey = 전투 전 여정, combat = 전투 노드(= bgmByFloor[층]), '
+                            'boss = 보스 1국면, bossPhases = BOSS_PHASE 마다 다음 곡(mixing.bgmPhase*).',
         entries=entries)
     with open(MANIFEST, 'w', encoding='utf-8') as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)

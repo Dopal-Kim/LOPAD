@@ -92,3 +92,10 @@ interface SoundEntry {
 ## 8. 계약 범위
 - 시스템이 의존하는 것은 `assets/audio/manifest.json` 과 그 안에 적힌 오디오 파일뿐이다. 음향 작업 폴더(`parts/sound/**`)의 스크립트·원본은 계약이 아니다(바뀌어도 시스템에 영향 없음).
 - UI 는 소리를 직접 다루지 않는다(음소거는 `ui-system-interface.md` §11.3 `setMuted`).
+
+## 9. 61라운드 (1층 BGM·핵심 효과음·믹싱)
+- **BGM**: 새 최상위 키 `bgmByFloorState` = `{"1": {"journey": "bgm/f1_outside", "combat": "bgm/f1_jan", "boss": "bgm/f1_boss_p1", "bossPhases": ["bgm/f1_boss_p1","bgm/f1_boss_p2","bgm/f1_boss_p3"]}}`. `bgmByFloor["1"]` = `bgm/f1_jan`(키 유지). 보스 국면 전환(`BOSS_PHASE`)은 다음 곡을 **현재 재생 위치에서** 시작해 800ms 교차 페이드(`mixing.bgmPhaseCrossfadeMs`·`bgmPhaseSyncPosition`). 새 BGM 은 44.1kHz 스테레오 — 루프 길이는 각 항목 `sampleRate` 로 계산. BGM 항목 `use`(floor·state·phase). `floor_low` 는 2층 전용.
+- **효과음 필드**: 모든 효과음 `priority`(0 UI ~ 4 보스 예고), 원본 `variants`(원본 포함 목록), 변주 `variantOf`·`trigger: null` — 원본 트리거가 오면 목록에서 직전과 다른 것을 골라 재생 속도 ±3%.
+- **`mixing` 새 키**: `dedupeMs`·`voices`(효과음 12·UI 2·같은 소리 3)·`priority`·`ducking`(우선순위 4 → 효과음 −6·BGM −3dB, 주인공 피격 → 효과음 −3dB 150ms)·`variation`·`masterLimiter`·`bgmPhase*`·`bgmJourneyNote`·`variantGroups`. 넘치면 우선순위 낮고 오래된 것부터 끊음(루프 제외).
+- **새 트리거 제안**: `PLAYER_DAMAGED{guarded:true}` → `guard_block`, `PLAYER_ATTACK{finisher:true}`(연격 마지막 타 적중, 활 제외) → `combo_finish`.
+- 용량: 브라우저 1곳 OGG 약 9.4MB — 1층 BGM 은 지연 로드 권장.

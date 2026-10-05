@@ -1,40 +1,233 @@
 {
   "version": 1,
   "generatedBy": "parts/sound/work/build.py → listen_index.py (manifest 기준)",
-  "note": "들어보기 페이지 입력. 경로는 저장소 루트 기준. gainDb 는 SFX/BGM 버스 기준 권장 상대 음량(manifest 와 같음) — 청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. round \"60\" = 60라운드 새 소리, status \"archived\" = 보관(시스템 연결 끊음).",
+  "note": "들어보기 페이지 입력. 경로는 저장소 루트 기준. gainDb 는 SFX/BGM 버스 기준 권장 상대 음량(manifest 와 같음) — 청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. round \"60\" = 60라운드 새 소리, \"61\" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, status \"archived\" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.",
   "mixing": {
     "masterDb": 0.0,
     "sfxBusDb": 0.0,
     "bgmBusDb": -8.0,
     "bgmCrossfadeMs": 1200,
     "bgmBossDuckDb": -3.0,
-    "note": "gainDb 는 버스 기준 상대값(dB). BGM 의 gainDb 는 곡 간 RMS 를 약 -21 dBFS 로 맞추는 보정값. 같은 효과음 20ms 내 중복 재생은 1회로 묶기 권장."
+    "note": "gainDb 는 버스 기준 상대값(dB). BGM 의 gainDb 는 곡 간 RMS 를 약 -21 dBFS 로 맞추는 보정값. 같은 효과음 20ms 내 중복 재생은 1회로 묶기 권장.",
+    "dedupeMs": 20,
+    "voices": {
+      "maxSfx": 12,
+      "maxUi": 2,
+      "perGroupMax": 3,
+      "perGroupOverrides": {
+        "sfx/hit_enemy": 4,
+        "sfx/hit_enemy_crit": 2,
+        "sfx/enemy_death": 3,
+        "sfx/hit_player": 2,
+        "sfx/dash": 1,
+        "sfx/swing_katana": 2,
+        "sfx/swing_greatsword": 2,
+        "sfx/swing_dagger": 3,
+        "sfx/bow_shot": 3,
+        "sfx/pickup_gold": 3,
+        "sfx/guard_block": 2,
+        "sfx/parry": 1,
+        "sfx/combo_finish": 1
+      },
+      "steal": "lowest-priority-oldest",
+      "note": "동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). loop 항목은 빼앗지 않는다(상태가 끝날 때 시스템이 멈춤) — 대신 같은 id 는 1개만. UI 는 별도 상한 maxUi."
+    },
+    "priority": {
+      "tiers": [
+        {
+          "level": 4,
+          "name": "telegraph",
+          "label": "보스 예고·보스 신호",
+          "events": [
+            "BOSS_TELEGRAPH",
+            "BOSS_STARTED",
+            "BOSS_PHASE",
+            "BOSS_DIED"
+          ]
+        },
+        {
+          "level": 3,
+          "name": "hurt",
+          "label": "주인공 피격·방어 판정·적 공격 예고",
+          "events": [
+            "PLAYER_DAMAGED",
+            "PARRY_SUCCESS",
+            "PERFECT_GUARD",
+            "PERFECT_SUCCESS",
+            "ENEMY_TELEGRAPH",
+            "RUN_ENDED"
+          ]
+        },
+        {
+          "level": 2,
+          "name": "hit",
+          "label": "타격·처치·공격 동작(주인공·적·보스)",
+          "events": [
+            "(그 밖의 combat·boss 분류)"
+          ]
+        },
+        {
+          "level": 1,
+          "name": "ambient",
+          "label": "환경·획득·이벤트·패시브·상태 부가음",
+          "events": [
+            "PASSIVE_PROC",
+            "STATUS_CHANGED",
+            "(world·pickup·event 분류)"
+          ]
+        },
+        {
+          "level": 0,
+          "name": "ui",
+          "label": "UI — 별도 버스, 상한·빼앗기 대상 아님",
+          "events": [
+            "UI_MENU_*",
+            "(ui 분류)"
+          ]
+        }
+      ],
+      "note": "각 효과음 항목의 priority 필드에 이미 계산돼 있다(변주는 원본과 같음). 숫자가 클수록 먼저."
+    },
+    "ducking": [
+      {
+        "when": "priority 4 재생 시작",
+        "target": "sfx priority ≤ 2",
+        "db": -6.0,
+        "attackMs": 15,
+        "releaseMs": 250,
+        "hold": "그 소리 길이 동안",
+        "note": "보스 예고음이 묻히지 않게"
+      },
+      {
+        "when": "priority 4 재생 시작",
+        "target": "bgm",
+        "db": -3.0,
+        "attackMs": 30,
+        "releaseMs": 400,
+        "hold": "그 소리 길이 동안",
+        "note": "bgmBossDuckDb 위에 더해짐"
+      },
+      {
+        "when": "sfx/hit_player 그룹 재생",
+        "target": "sfx priority ≤ 2",
+        "db": -3.0,
+        "attackMs": 5,
+        "releaseMs": 180,
+        "hold": "150 ms",
+        "note": "맞은 순간이 또렷하게"
+      }
+    ],
+    "variation": {
+      "policy": "random-no-repeat",
+      "rateJitter": 0.03,
+      "applyTo": "priority 1~3 의 짧은 효과음(loop·UI·BGM 제외)",
+      "note": "원본 트리거가 오면 variants 목록에서 직전과 다른 하나를 고르고, 재생 속도를 1 ± rateJitter 로 흔든다(피치 ±약 50 cent). 변주 없는 소리도 rateJitter 만 적용 — 같은 소리 반복 피로를 줄인다. 이전 권장(±4 %)을 ±3 % 로 줄임(변주가 생겨서)."
+    },
+    "masterLimiter": {
+      "thresholdDb": -3.0,
+      "kneeDb": 6.0,
+      "ratio": 12.0,
+      "attackMs": 3,
+      "releaseMs": 120,
+      "note": "Web Audio DynamicsCompressorNode 를 마스터 끝에 하나. 61라운드 타격음이 같은 피크에서 짧은 구간 음량이 커져(약 +4~7 dB) 몰릴 때 찌그러짐을 막는다."
+    },
+    "bgmPhaseCrossfadeMs": 800,
+    "bgmPhaseSyncPosition": true,
+    "bgmPhaseNote": "bgmByFloorState[층].bossPhases 의 곡들은 길이·박자 격자가 같다. BOSS_PHASE 에서 다음 곡을 지금 곡의 재생 위치(초)에서 시작해 bgmPhaseCrossfadeMs 로 교차 페이드하면 층이 더해지는 것처럼 들린다. 위치를 못 맞추면 처음부터 + bgmCrossfadeMs 로 바꿔도 된다.",
+    "bgmJourneyNote": "bgmByFloorState[층].journey = 그 층의 전투 전 여정(벽 밖 · 탄생지 · 버려진 길 · 국경 초소)과 휴식·지도 화면. 전투 노드에 들어가면 bgmByFloor[층](= combat)으로 bgmCrossfadeMs 교차 페이드.",
+    "variantGroups": {
+      "sfx/hit_enemy": [
+        "sfx/hit_enemy",
+        "sfx/hit_enemy_v2",
+        "sfx/hit_enemy_v3"
+      ],
+      "sfx/hit_enemy_crit": [
+        "sfx/hit_enemy_crit",
+        "sfx/hit_enemy_crit_v2"
+      ],
+      "sfx/enemy_death": [
+        "sfx/enemy_death",
+        "sfx/enemy_death_v2",
+        "sfx/enemy_death_v3"
+      ],
+      "sfx/hit_player": [
+        "sfx/hit_player",
+        "sfx/hit_player_v2",
+        "sfx/hit_player_v3"
+      ],
+      "sfx/dash": [
+        "sfx/dash",
+        "sfx/dash_v2",
+        "sfx/dash_v3"
+      ],
+      "sfx/guard_block": [
+        "sfx/guard_block",
+        "sfx/guard_block_v2"
+      ],
+      "sfx/combo_finish": [
+        "sfx/combo_finish",
+        "sfx/combo_finish_v2"
+      ],
+      "sfx/parry": [
+        "sfx/parry",
+        "sfx/parry_v2"
+      ],
+      "sfx/swing_katana": [
+        "sfx/swing_katana",
+        "sfx/swing_katana_v2",
+        "sfx/swing_katana_v3"
+      ],
+      "sfx/swing_greatsword": [
+        "sfx/swing_greatsword",
+        "sfx/swing_greatsword_v2",
+        "sfx/swing_greatsword_v3"
+      ],
+      "sfx/swing_dagger": [
+        "sfx/swing_dagger",
+        "sfx/swing_dagger_v2",
+        "sfx/swing_dagger_v3"
+      ],
+      "sfx/bow_shot": [
+        "sfx/bow_shot",
+        "sfx/bow_shot_v2",
+        "sfx/bow_shot_v3"
+      ],
+      "sfx/pickup_gold": [
+        "sfx/pickup_gold",
+        "sfx/pickup_gold_v2",
+        "sfx/pickup_gold_v3"
+      ],
+      "sfx/menu_move": [
+        "sfx/menu_move",
+        "sfx/menu_move_v2"
+      ]
+    }
   },
   "groups": [
     {
       "id": "combat",
       "label": "전투 공통",
-      "count": 10
+      "count": 22
     },
     {
       "id": "weapon_katana",
       "label": "무기별 · 칼",
-      "count": 15
+      "count": 17
     },
     {
       "id": "weapon_greatsword",
       "label": "무기별 · 대검",
-      "count": 19
+      "count": 21
     },
     {
       "id": "weapon_dagger",
       "label": "무기별 · 단검",
-      "count": 10
+      "count": 12
     },
     {
       "id": "weapon_bow",
       "label": "무기별 · 활",
-      "count": 10
+      "count": 12
     },
     {
       "id": "branch1",
@@ -64,7 +257,7 @@
     {
       "id": "enemy",
       "label": "적",
-      "count": 5
+      "count": 7
     },
     {
       "id": "boss",
@@ -84,17 +277,17 @@
     {
       "id": "pickup",
       "label": "획득·상점",
-      "count": 4
+      "count": 6
     },
     {
       "id": "ui",
       "label": "UI·연출",
-      "count": 7
+      "count": 8
     },
     {
       "id": "bgm",
       "label": "BGM",
-      "count": 6
+      "count": 11
     },
     {
       "id": "archived",
@@ -102,7 +295,7 @@
       "count": 3
     }
   ],
-  "total": 215,
+  "total": 245,
   "entries": [
     {
       "key": "hit_enemy",
@@ -110,18 +303,25 @@
       "kind": "sfx",
       "group": "combat",
       "subgroup": "",
-      "desc": "적 피격",
-      "note": "적 피격. 날이 박히는 짧은 타격 + 몸통 둔탁음",
+      "desc": "적 피격(61라운드 품질 패스)",
+      "note": "적 피격(61라운드 품질 패스). 짧은 넓은 대역 '딱' + 날이 지나가는 고역 '샥' + 피치가 떨어지는 몸통 '퍽'(230→85 Hz) + 살·천 노이즈 + 낮은 무게 + 젖은 꼬리. 금속 울림 없음. 변주 v2·v3 와 번갈아. 권장 음량 0 → -3 dB(같은 피크에서 짧은 구간 음량이 약 +7 dB 커져 일부만 되돌림)",
       "trigger": "ENEMY_DAMAGED",
-      "durationMs": 150,
-      "samples": 6615,
+      "durationMs": 200,
+      "samples": 8820,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
-      "gainDb": 0,
+      "gainDb": -3,
       "ogg": "assets/audio/sfx/hit_enemy.ogg",
       "m4a": "assets/audio/sfx/hit_enemy.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variants": [
+        "sfx/hit_enemy",
+        "sfx/hit_enemy_v2",
+        "sfx/hit_enemy_v3"
+      ]
     },
     {
       "key": "hit_enemy_crit",
@@ -129,18 +329,24 @@
       "kind": "sfx",
       "group": "combat",
       "subgroup": "",
-      "desc": "급소 적중",
-      "note": "급소 적중. 피격음 위에 밝은 강철 울림",
+      "desc": "급소 적중(61라운드 품질 패스 — 강철 울림 제거)",
+      "note": "급소 적중(61라운드 품질 패스 — 강철 울림 제거). 겹으로 꺾이는 '딱-딱' + 밝게 베는 '샤악' + 깊은 몸통(200→62 Hz) + 으스러지는 살 결(샘플 홀드) + 아래로 떨어지는 '쿵' + 번쩍이는 고역 공기. 작은 방 울림",
       "trigger": "ENEMY_DAMAGED{crit:true}",
-      "durationMs": 250,
-      "samples": 11025,
+      "durationMs": 360,
+      "samples": 15876,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/hit_enemy_crit.ogg",
       "m4a": "assets/audio/sfx/hit_enemy_crit.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variants": [
+        "sfx/hit_enemy_crit",
+        "sfx/hit_enemy_crit_v2"
+      ]
     },
     {
       "key": "hit_player",
@@ -148,18 +354,25 @@
       "kind": "sfx",
       "group": "combat",
       "subgroup": "",
-      "desc": "주인공 피격(60라운드 Q22 재제작 — 쇳소리 울림 제거)",
-      "note": "주인공 피격(60라운드 Q22 재제작 — 쇳소리 울림 제거). 몸에 꽂히는 둔탁한 충격 + 가죽·천이 눌리는 짧은 퍽 + 뼈에 울리는 낮은 쿵 + 숨이 밀려 나가는 짧은 바람(노이즈, 목소리 아님)",
+      "desc": "주인공 피격(60 Q22 재제작 → 61라운드 품질 패스, 금속 울림 없음)",
+      "note": "주인공 피격(60 Q22 재제작 → 61라운드 품질 패스, 금속 울림 없음). 둔한 '딱' + 몸에 꽂히는 충격(150→58 Hz) + 가죽·천 '퍽' + 뼈에 울리는 저음 + 숨 밀림(노이즈) + 귀가 먹먹해지는 고역 하강 + 0.11 s 밀려 디딤. 적 피격보다 낮고 둔해 구별된다. 변주 v2·v3",
       "trigger": "PLAYER_DAMAGED",
-      "durationMs": 340,
-      "samples": 14994,
+      "durationMs": 420,
+      "samples": 18522,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/hit_player.ogg",
       "m4a": "assets/audio/sfx/hit_player.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 3,
+      "variants": [
+        "sfx/hit_player",
+        "sfx/hit_player_v2",
+        "sfx/hit_player_v3"
+      ]
     },
     {
       "key": "parry",
@@ -167,18 +380,24 @@
       "kind": "sfx",
       "group": "combat",
       "subgroup": "",
-      "desc": "패링 성공",
-      "note": "패링 성공. 강철이 맞부딪히는 밝은 울림(오래 남는다)",
+      "desc": "패링 성공(61라운드 품질 패스 — 1.5 kHz 대 오래 남던 울림 제거)",
+      "note": "패링 성공(61라운드 품질 패스 — 1.5 kHz 대 오래 남던 울림 제거). 맞부딪히는 날카로운 '창' + 손에 오는 충격 + 2.9 kHz 위 짧은 쇳소리(0.07 s 감쇠) + 날이 미끄러지는 상승 스침 + 불똥. 변주 v2",
       "trigger": "PARRY_SUCCESS",
-      "durationMs": 600,
-      "samples": 26460,
+      "durationMs": 570,
+      "samples": 25137,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/parry.ogg",
       "m4a": "assets/audio/sfx/parry.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 3,
+      "variants": [
+        "sfx/parry",
+        "sfx/parry_v2"
+      ]
     },
     {
       "key": "guard_hold",
@@ -192,12 +411,14 @@
       "durationMs": 600,
       "samples": 26460,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -10,
       "ogg": "assets/audio/sfx/guard_hold.ogg",
       "m4a": "assets/audio/sfx/guard_hold.m4a",
       "round": "",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 26460
     },
@@ -213,12 +434,14 @@
       "durationMs": 480,
       "samples": 21168,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/guard_push.ogg",
       "m4a": "assets/audio/sfx/guard_push.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dash",
@@ -226,18 +449,25 @@
       "kind": "sfx",
       "group": "combat",
       "subgroup": "",
-      "desc": "대쉬",
-      "note": "대쉬. 짧은 상승 바람 + 발 디딤(60라운드 Q22: 권장 음량 -3 → -5 dB, 파일은 그대로)",
+      "desc": "대쉬(61라운드 품질 패스, 60 Q22 음량 -5 dB 유지)",
+      "note": "대쉬(61라운드 품질 패스, 60 Q22 음량 -5 dB 유지). 박차는 발 + 흙 긁힘 + 몸이 가르는 부드러운 바람(450→1.7k) + 옷자락 펄럭 + 끝 착지 톡. 날카로운 고역을 줄여 자주 들어도 덜 거슬리게. 변주 v2·v3. 권장 음량 -5 → -3 dB: 파일 자체가 고역을 줄여 약 3 dB 작아졌으므로, 합쳐서 60 Q22 판(-5 dB)보다 약 1 dB 작다",
       "trigger": "PLAYER_DASH",
-      "durationMs": 230,
-      "samples": 10143,
+      "durationMs": 270,
+      "samples": 11907,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
-      "gainDb": -5,
+      "gainDb": -3,
       "ogg": "assets/audio/sfx/dash.ogg",
       "m4a": "assets/audio/sfx/dash.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variants": [
+        "sfx/dash",
+        "sfx/dash_v2",
+        "sfx/dash_v3"
+      ]
     },
     {
       "key": "perfect_guard",
@@ -245,18 +475,20 @@
       "kind": "sfx",
       "group": "combat",
       "subgroup": "",
-      "desc": "퍼펙트 가드(가드 누른 직후 0.15s 안 피격 → 피해 0, 튕겨내지 않음)",
-      "note": "퍼펙트 가드(가드 누른 직후 0.15s 안 피격 → 피해 0, 튕겨내지 않음). 충격이 흡수되는 짧은 둔탁음 + 맑게 오래 남는 금속 울림(A5·D6). 'PERFECT GUARD' 문구와 같은 프레임",
+      "desc": "퍼펙트 가드(61라운드 품질 패스 — 880 Hz 종 울림 제거)",
+      "note": "퍼펙트 가드(61라운드 품질 패스 — 880 Hz 종 울림 제거). 충격이 흡수되는 깊은 '훔'(100→40 Hz) + 날카로운 '딱' + 위로 번뜩이는 '키잉' 스침(5→9 kHz) + 3.5 kHz 위의 짧은 쇳빛 + 불똥 + 희미한 고역 잔광. 'PERFECT GUARD' 문구와 같은 프레임",
       "trigger": "PERFECT_GUARD",
-      "durationMs": 950,
-      "samples": 41895,
+      "durationMs": 870,
+      "samples": 38367,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/perfect_guard.ogg",
       "m4a": "assets/audio/sfx/perfect_guard.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 3
     },
     {
       "key": "groggy_start",
@@ -270,12 +502,14 @@
       "durationMs": 1380,
       "samples": 60858,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/groggy_start.ogg",
       "m4a": "assets/audio/sfx/groggy_start.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "perfect_evade",
@@ -289,12 +523,284 @@
       "durationMs": 620,
       "samples": 27342,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/perfect_evade.ogg",
       "m4a": "assets/audio/sfx/perfect_evade.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 3
+    },
+    {
+      "key": "hit_enemy_v2",
+      "id": "sfx/hit_enemy_v2",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "적 피격 변주 2 — 몸통을 조금 낮게(205→76 Hz), 살 대역 600 Hz, 날 6.2k→2.3k",
+      "note": "적 피격 변주 2 — 몸통을 조금 낮게(205→76 Hz), 살 대역 600 Hz, 날 6.2k→2.3k",
+      "trigger": "변주 — sfx/hit_enemy 트리거에서 번갈아",
+      "durationMs": 200,
+      "samples": 8820,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -3,
+      "ogg": "assets/audio/sfx/hit_enemy_v2.ogg",
+      "m4a": "assets/audio/sfx/hit_enemy_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/hit_enemy"
+    },
+    {
+      "key": "hit_enemy_v3",
+      "id": "sfx/hit_enemy_v3",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "적 피격 변주 3 — 몸통을 조금 높게(255→94 Hz), 살 대역 780 Hz, 날 7.8k→2.9k, 꼬리 짧게",
+      "note": "적 피격 변주 3 — 몸통을 조금 높게(255→94 Hz), 살 대역 780 Hz, 날 7.8k→2.9k, 꼬리 짧게",
+      "trigger": "변주 — sfx/hit_enemy 트리거에서 번갈아",
+      "durationMs": 180,
+      "samples": 7938,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -3,
+      "ogg": "assets/audio/sfx/hit_enemy_v3.ogg",
+      "m4a": "assets/audio/sfx/hit_enemy_v3.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/hit_enemy"
+    },
+    {
+      "key": "hit_enemy_crit_v2",
+      "id": "sfx/hit_enemy_crit_v2",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "급소 적중 변주 2 — 몸통 185→56 Hz, 겹 간격 14 ms, 날 9k→3.2k",
+      "note": "급소 적중 변주 2 — 몸통 185→56 Hz, 겹 간격 14 ms, 날 9k→3.2k",
+      "trigger": "변주 — sfx/hit_enemy_crit 트리거에서 번갈아",
+      "durationMs": 360,
+      "samples": 15876,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": 0,
+      "ogg": "assets/audio/sfx/hit_enemy_crit_v2.ogg",
+      "m4a": "assets/audio/sfx/hit_enemy_crit_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/hit_enemy_crit"
+    },
+    {
+      "key": "hit_player_v2",
+      "id": "sfx/hit_player_v2",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "주인공 피격 변주 2 — 몸통 138→54 Hz, 살 500 Hz, 밀림 0.13 s",
+      "note": "주인공 피격 변주 2 — 몸통 138→54 Hz, 살 500 Hz, 밀림 0.13 s",
+      "trigger": "변주 — sfx/hit_player 트리거에서 번갈아",
+      "durationMs": 420,
+      "samples": 18522,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": 0,
+      "ogg": "assets/audio/sfx/hit_player_v2.ogg",
+      "m4a": "assets/audio/sfx/hit_player_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 3,
+      "variantOf": "sfx/hit_player"
+    },
+    {
+      "key": "hit_player_v3",
+      "id": "sfx/hit_player_v3",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "주인공 피격 변주 3 — 몸통 165→62 Hz, 살 610 Hz, 밀림 0.095 s",
+      "note": "주인공 피격 변주 3 — 몸통 165→62 Hz, 살 610 Hz, 밀림 0.095 s",
+      "trigger": "변주 — sfx/hit_player 트리거에서 번갈아",
+      "durationMs": 420,
+      "samples": 18522,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": 0,
+      "ogg": "assets/audio/sfx/hit_player_v3.ogg",
+      "m4a": "assets/audio/sfx/hit_player_v3.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 3,
+      "variantOf": "sfx/hit_player"
+    },
+    {
+      "key": "dash_v2",
+      "id": "sfx/dash_v2",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "대쉬 변주 2 — 바람 400→1.5k, 펄럭 24 Hz, 착지 0.21 s",
+      "note": "대쉬 변주 2 — 바람 400→1.5k, 펄럭 24 Hz, 착지 0.21 s",
+      "trigger": "변주 — sfx/dash 트리거에서 번갈아",
+      "durationMs": 270,
+      "samples": 11907,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -3,
+      "ogg": "assets/audio/sfx/dash_v2.ogg",
+      "m4a": "assets/audio/sfx/dash_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/dash"
+    },
+    {
+      "key": "dash_v3",
+      "id": "sfx/dash_v3",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "대쉬 변주 3 — 바람 520→1.9k, 펄럭 38 Hz, 착지 0.19 s",
+      "note": "대쉬 변주 3 — 바람 520→1.9k, 펄럭 38 Hz, 착지 0.19 s",
+      "trigger": "변주 — sfx/dash 트리거에서 번갈아",
+      "durationMs": 270,
+      "samples": 11907,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -3,
+      "ogg": "assets/audio/sfx/dash_v3.ogg",
+      "m4a": "assets/audio/sfx/dash_v3.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/dash"
+    },
+    {
+      "key": "guard_block",
+      "id": "sfx/guard_block",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "61라운드 새 — 일반 가드로 공격을 막음(피해 감소, 퍼펙트 아님)",
+      "note": "61라운드 새 — 일반 가드로 공격을 막음(피해 감소, 퍼펙트 아님). 짧은 '딱' + 팔로 받아내는 둔탁한 충격(150→55 Hz) + 날에 닿는 아주 짧은 '틱'(울림 없음) + 날끼리 긁힘 + 밀려나는 저음 + 뒤꿈치 밀림. 퍼펙트 가드보다 둔하고 짧다",
+      "trigger": "PLAYER_DAMAGED{guarded:true}",
+      "durationMs": 400,
+      "samples": 17640,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/guard_block.ogg",
+      "m4a": "assets/audio/sfx/guard_block.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 3,
+      "variants": [
+        "sfx/guard_block",
+        "sfx/guard_block_v2"
+      ]
+    },
+    {
+      "key": "combo_finish",
+      "id": "sfx/combo_finish",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "61라운드 새 — 연격 마무리 타(칼 3타·대검 4타·단검 3타) 적중 때 그 무기 휘두름·적 피격 위에 겹치는 무게",
+      "note": "61라운드 새 — 연격 마무리 타(칼 3타·대검 4타·단검 3타) 적중 때 그 무기 휘두름·적 피격 위에 겹치는 무게. 공기 터짐 + 깊은 '쿵'(95→34 Hz) + 저역 압력 + 흙 튐 + 짧은 방 울림. 활은 쓰지 않음",
+      "trigger": "PLAYER_ATTACK{finisher:true}",
+      "durationMs": 500,
+      "samples": 22050,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -3,
+      "ogg": "assets/audio/sfx/combo_finish.ogg",
+      "m4a": "assets/audio/sfx/combo_finish.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variants": [
+        "sfx/combo_finish",
+        "sfx/combo_finish_v2"
+      ]
+    },
+    {
+      "key": "guard_block_v2",
+      "id": "sfx/guard_block_v2",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "가드 막음 변주 2 — 충격 135→50 Hz, 날 틱 2.6 kHz, 긁힘 3.2 kHz",
+      "note": "가드 막음 변주 2 — 충격 135→50 Hz, 날 틱 2.6 kHz, 긁힘 3.2 kHz",
+      "trigger": "변주 — sfx/guard_block 트리거에서 번갈아",
+      "durationMs": 400,
+      "samples": 17640,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/guard_block_v2.ogg",
+      "m4a": "assets/audio/sfx/guard_block_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 3,
+      "variantOf": "sfx/guard_block"
+    },
+    {
+      "key": "combo_finish_v2",
+      "id": "sfx/combo_finish_v2",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "연격 마무리 변주 2 — 쿵 85→32 Hz, 압력 260 Hz",
+      "note": "연격 마무리 변주 2 — 쿵 85→32 Hz, 압력 260 Hz",
+      "trigger": "변주 — sfx/combo_finish 트리거에서 번갈아",
+      "durationMs": 500,
+      "samples": 22050,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -3,
+      "ogg": "assets/audio/sfx/combo_finish_v2.ogg",
+      "m4a": "assets/audio/sfx/combo_finish_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/combo_finish"
+    },
+    {
+      "key": "parry_v2",
+      "id": "sfx/parry_v2",
+      "kind": "sfx",
+      "group": "combat",
+      "subgroup": "",
+      "desc": "패링 변주 2 — 쇳소리 3.3 kHz, 스침 3.8→8.8 kHz, 충격 150→70 Hz",
+      "note": "패링 변주 2 — 쇳소리 3.3 kHz, 스침 3.8→8.8 kHz, 충격 150→70 Hz",
+      "trigger": "변주 — sfx/parry 트리거에서 번갈아",
+      "durationMs": 570,
+      "samples": 25137,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": 0,
+      "ogg": "assets/audio/sfx/parry_v2.ogg",
+      "m4a": "assets/audio/sfx/parry_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 3,
+      "variantOf": "sfx/parry"
     },
     {
       "key": "swing_katana",
@@ -302,18 +808,25 @@
       "kind": "sfx",
       "group": "weapon_katana",
       "subgroup": "",
-      "desc": "사무라이 칼 휘두름",
-      "note": "사무라이 칼 휘두름. 얇고 빠른 강철 바람",
+      "desc": "칼 휘두름(61라운드 품질 패스 — 2.4 kHz 쇳소리 제거)",
+      "note": "칼 휘두름(61라운드 품질 패스 — 2.4 kHz 쇳소리 제거). 날이 가르는 고역 바람(6.2k→2k) + 팔·몸의 낮은 바람(1.3k→550) + 날 끝 '시'. 변주 v2·v3",
       "trigger": "PLAYER_ATTACK{weapon:katana}",
-      "durationMs": 200,
-      "samples": 8820,
+      "durationMs": 220,
+      "samples": 9702,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/swing_katana.ogg",
       "m4a": "assets/audio/sfx/swing_katana.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variants": [
+        "sfx/swing_katana",
+        "sfx/swing_katana_v2",
+        "sfx/swing_katana_v3"
+      ]
     },
     {
       "key": "parry_perfect",
@@ -321,18 +834,20 @@
       "kind": "sfx",
       "group": "weapon_katana",
       "subgroup": "",
-      "desc": "칼 패링 성공 강조(기존 parry 위에 겹쳐 재생, 'PARRY' 문구·검기 1단 충전과 같은 프레임)",
-      "note": "칼 패링 성공 강조(기존 parry 위에 겹쳐 재생, 'PARRY' 문구·검기 1단 충전과 같은 프레임). 2 kHz 위 대역만: 날카로운 '키잉' + 위로 번뜩이는 스침 + 짧은 울림",
+      "desc": "칼 패링 성공 강조(61라운드 품질 패스, 기존 parry 위에 겹쳐 재생, 'PARRY' 문구·검기 1단 충전과 같은 프레임)",
+      "note": "칼 패링 성공 강조(61라운드 품질 패스, 기존 parry 위에 겹쳐 재생, 'PARRY' 문구·검기 1단 충전과 같은 프레임). 1.8 kHz 위만: 위로 번뜩이는 '키잉' 스침(4→11 kHz) + 4.2 kHz 짧은 쇳빛 + 불똥 + 딸깍",
       "trigger": "PARRY_SUCCESS{weapon:katana,emphasis:true}",
-      "durationMs": 790,
-      "samples": 34839,
+      "durationMs": 630,
+      "samples": 27783,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/parry_perfect.ogg",
       "m4a": "assets/audio/sfx/parry_perfect.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 3
     },
     {
       "key": "kenki_stage1",
@@ -346,12 +861,14 @@
       "durationMs": 520,
       "samples": 22932,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/kenki_stage1.ogg",
       "m4a": "assets/audio/sfx/kenki_stage1.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "kenki_stage2",
@@ -365,12 +882,14 @@
       "durationMs": 720,
       "samples": 31752,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/kenki_stage2.ogg",
       "m4a": "assets/audio/sfx/kenki_stage2.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "kenki_stage3",
@@ -384,12 +903,14 @@
       "durationMs": 980,
       "samples": 43218,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/kenki_stage3.ogg",
       "m4a": "assets/audio/sfx/kenki_stage3.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "issen_dash",
@@ -403,12 +924,14 @@
       "durationMs": 390,
       "samples": 17199,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/issen_dash.ogg",
       "m4a": "assets/audio/sfx/issen_dash.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "issen_burst",
@@ -422,12 +945,14 @@
       "durationMs": 830,
       "samples": 36603,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/issen_burst.ogg",
       "m4a": "assets/audio/sfx/issen_burst.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "shadow_clone",
@@ -441,12 +966,14 @@
       "durationMs": 650,
       "samples": 28665,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/shadow_clone.ogg",
       "m4a": "assets/audio/sfx/shadow_clone.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_counter",
@@ -460,12 +987,14 @@
       "durationMs": 470,
       "samples": 20727,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/katana_counter.ogg",
       "m4a": "assets/audio/sfx/katana_counter.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_iai_hold",
@@ -479,12 +1008,14 @@
       "durationMs": 2000,
       "samples": 88200,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -12,
       "ogg": "assets/audio/sfx/katana_iai_hold.ogg",
       "m4a": "assets/audio/sfx/katana_iai_hold.m4a",
       "round": "",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 88200
     },
@@ -500,12 +1031,14 @@
       "durationMs": 680,
       "samples": 29988,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/katana_iai_release.ogg",
       "m4a": "assets/audio/sfx/katana_iai_release.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_thrust",
@@ -519,12 +1052,14 @@
       "durationMs": 280,
       "samples": 12348,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/katana_thrust.ogg",
       "m4a": "assets/audio/sfx/katana_thrust.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_thrust_ki1",
@@ -538,12 +1073,14 @@
       "durationMs": 470,
       "samples": 20727,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/katana_thrust_ki1.ogg",
       "m4a": "assets/audio/sfx/katana_thrust_ki1.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_thrust_ki2",
@@ -557,12 +1094,14 @@
       "durationMs": 580,
       "samples": 25578,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/katana_thrust_ki2.ogg",
       "m4a": "assets/audio/sfx/katana_thrust_ki2.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_thrust_ki3",
@@ -576,12 +1115,58 @@
       "durationMs": 780,
       "samples": 34398,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/katana_thrust_ki3.ogg",
       "m4a": "assets/audio/sfx/katana_thrust_ki3.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
+    },
+    {
+      "key": "swing_katana_v2",
+      "id": "sfx/swing_katana_v2",
+      "kind": "sfx",
+      "group": "weapon_katana",
+      "subgroup": "",
+      "desc": "칼 휘두름 변주 2 — 5.6k→1.8k, 0.2 s",
+      "note": "칼 휘두름 변주 2 — 5.6k→1.8k, 0.2 s",
+      "trigger": "변주 — sfx/swing_katana 트리거에서 번갈아",
+      "durationMs": 230,
+      "samples": 10143,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/swing_katana_v2.ogg",
+      "m4a": "assets/audio/sfx/swing_katana_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/swing_katana"
+    },
+    {
+      "key": "swing_katana_v3",
+      "id": "sfx/swing_katana_v3",
+      "kind": "sfx",
+      "group": "weapon_katana",
+      "subgroup": "",
+      "desc": "칼 휘두름 변주 3 — 6.8k→2.3k, 0.17 s",
+      "note": "칼 휘두름 변주 3 — 6.8k→2.3k, 0.17 s",
+      "trigger": "변주 — sfx/swing_katana 트리거에서 번갈아",
+      "durationMs": 200,
+      "samples": 8820,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/swing_katana_v3.ogg",
+      "m4a": "assets/audio/sfx/swing_katana_v3.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/swing_katana"
     },
     {
       "key": "swing_greatsword",
@@ -589,18 +1174,25 @@
       "kind": "sfx",
       "group": "weapon_greatsword",
       "subgroup": "",
-      "desc": "대검 휘두름",
-      "note": "대검 휘두름. 무겁고 낮은 바람, 끝에 둔탁한 무게",
+      "desc": "대검 휘두름(61라운드 품질 패스)",
+      "note": "대검 휘두름(61라운드 품질 패스). 올랐다 내려가는 무거운 바람(250→900→220 Hz) + 칼 질량의 낮은 울림(75→48 Hz) + 가죽 손잡이 + 끝에 디딤. 변주 v2·v3",
       "trigger": "PLAYER_ATTACK{weapon:greatsword}",
-      "durationMs": 390,
-      "samples": 17199,
+      "durationMs": 460,
+      "samples": 20286,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/swing_greatsword.ogg",
       "m4a": "assets/audio/sfx/swing_greatsword.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variants": [
+        "sfx/swing_greatsword",
+        "sfx/swing_greatsword_v2",
+        "sfx/swing_greatsword_v3"
+      ]
     },
     {
       "key": "charge_start",
@@ -614,12 +1206,14 @@
       "durationMs": 300,
       "samples": 13230,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/charge_start.ogg",
       "m4a": "assets/audio/sfx/charge_start.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "charge_stage1",
@@ -633,12 +1227,14 @@
       "durationMs": 570,
       "samples": 25137,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/charge_stage1.ogg",
       "m4a": "assets/audio/sfx/charge_stage1.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "charge_stage2",
@@ -652,12 +1248,14 @@
       "durationMs": 770,
       "samples": 33957,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/charge_stage2.ogg",
       "m4a": "assets/audio/sfx/charge_stage2.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "charge_stage3",
@@ -671,12 +1269,14 @@
       "durationMs": 1030,
       "samples": 45423,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/charge_stage3.ogg",
       "m4a": "assets/audio/sfx/charge_stage3.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "charge_loop",
@@ -690,12 +1290,14 @@
       "durationMs": 1000,
       "samples": 44100,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -12,
       "ogg": "assets/audio/sfx/charge_loop.ogg",
       "m4a": "assets/audio/sfx/charge_loop.m4a",
       "round": "",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 44100
     },
@@ -711,12 +1313,14 @@
       "durationMs": 600,
       "samples": 26460,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/charge_slam_lv1.ogg",
       "m4a": "assets/audio/sfx/charge_slam_lv1.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "charge_slam_lv2",
@@ -730,12 +1334,14 @@
       "durationMs": 800,
       "samples": 35280,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/charge_slam_lv2.ogg",
       "m4a": "assets/audio/sfx/charge_slam_lv2.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "charge_slam_lv3",
@@ -749,12 +1355,14 @@
       "durationMs": 1400,
       "samples": 61740,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/charge_slam_lv3.ogg",
       "m4a": "assets/audio/sfx/charge_slam_lv3.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "utbun_full",
@@ -768,12 +1376,14 @@
       "durationMs": 1130,
       "samples": 49833,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/utbun_full.ogg",
       "m4a": "assets/audio/sfx/utbun_full.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_drag",
@@ -787,12 +1397,14 @@
       "durationMs": 380,
       "samples": 16758,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/gs_drag.ogg",
       "m4a": "assets/audio/sfx/gs_drag.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_tackle",
@@ -806,12 +1418,14 @@
       "durationMs": 520,
       "samples": 22932,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/gs_tackle.ogg",
       "m4a": "assets/audio/sfx/gs_tackle.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_brace_upswing",
@@ -825,12 +1439,14 @@
       "durationMs": 580,
       "samples": 25578,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/gs_brace_upswing.ogg",
       "m4a": "assets/audio/sfx/gs_brace_upswing.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_leap",
@@ -844,12 +1460,14 @@
       "durationMs": 530,
       "samples": 23373,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/gs_leap.ogg",
       "m4a": "assets/audio/sfx/gs_leap.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_leap_slam",
@@ -863,12 +1481,14 @@
       "durationMs": 930,
       "samples": 41013,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/gs_leap_slam.ogg",
       "m4a": "assets/audio/sfx/gs_leap_slam.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_guard_rush",
@@ -882,12 +1502,14 @@
       "durationMs": 630,
       "samples": 27783,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/gs_guard_rush.ogg",
       "m4a": "assets/audio/sfx/gs_guard_rush.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_crack_line_lv1",
@@ -901,12 +1523,14 @@
       "durationMs": 730,
       "samples": 32193,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/gs_crack_line_lv1.ogg",
       "m4a": "assets/audio/sfx/gs_crack_line_lv1.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_crack_line_lv2",
@@ -920,12 +1544,14 @@
       "durationMs": 790,
       "samples": 34839,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/gs_crack_line_lv2.ogg",
       "m4a": "assets/audio/sfx/gs_crack_line_lv2.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_crack_line_lv3",
@@ -939,12 +1565,58 @@
       "durationMs": 850,
       "samples": 37485,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/gs_crack_line_lv3.ogg",
       "m4a": "assets/audio/sfx/gs_crack_line_lv3.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
+    },
+    {
+      "key": "swing_greatsword_v2",
+      "id": "sfx/swing_greatsword_v2",
+      "kind": "sfx",
+      "group": "weapon_greatsword",
+      "subgroup": "",
+      "desc": "대검 휘두름 변주 2 — 바람 220→800→200, 0.42 s",
+      "note": "대검 휘두름 변주 2 — 바람 220→800→200, 0.42 s",
+      "trigger": "변주 — sfx/swing_greatsword 트리거에서 번갈아",
+      "durationMs": 480,
+      "samples": 21168,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -1,
+      "ogg": "assets/audio/sfx/swing_greatsword_v2.ogg",
+      "m4a": "assets/audio/sfx/swing_greatsword_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/swing_greatsword"
+    },
+    {
+      "key": "swing_greatsword_v3",
+      "id": "sfx/swing_greatsword_v3",
+      "kind": "sfx",
+      "group": "weapon_greatsword",
+      "subgroup": "",
+      "desc": "대검 휘두름 변주 3 — 바람 280→1000→240, 0.38 s",
+      "note": "대검 휘두름 변주 3 — 바람 280→1000→240, 0.38 s",
+      "trigger": "변주 — sfx/swing_greatsword 트리거에서 번갈아",
+      "durationMs": 440,
+      "samples": 19404,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -1,
+      "ogg": "assets/audio/sfx/swing_greatsword_v3.ogg",
+      "m4a": "assets/audio/sfx/swing_greatsword_v3.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/swing_greatsword"
     },
     {
       "key": "swing_dagger",
@@ -952,18 +1624,25 @@
       "kind": "sfx",
       "group": "weapon_dagger",
       "subgroup": "",
-      "desc": "단검",
-      "note": "단검. 아주 짧고 높은 스침",
+      "desc": "단검 찌르기·스침(61라운드 품질 패스)",
+      "note": "단검 찌르기·스침(61라운드 품질 패스). 아주 짧은 고역 '슉'(8.5k→3.2k) + 손목의 작은 바람 + 끝 '틱'. 변주 v2·v3",
       "trigger": "PLAYER_ATTACK{weapon:dagger}",
       "durationMs": 110,
       "samples": 4851,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/swing_dagger.ogg",
       "m4a": "assets/audio/sfx/swing_dagger.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variants": [
+        "sfx/swing_dagger",
+        "sfx/swing_dagger_v2",
+        "sfx/swing_dagger_v3"
+      ]
     },
     {
       "key": "shadowstep",
@@ -977,12 +1656,14 @@
       "durationMs": 420,
       "samples": 18522,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/shadowstep.ogg",
       "m4a": "assets/audio/sfx/shadowstep.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "brand_apply",
@@ -996,12 +1677,14 @@
       "durationMs": 190,
       "samples": 8379,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -7,
       "ogg": "assets/audio/sfx/brand_apply.ogg",
       "m4a": "assets/audio/sfx/brand_apply.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "brand_burst",
@@ -1015,12 +1698,14 @@
       "durationMs": 790,
       "samples": 34839,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/brand_burst.ogg",
       "m4a": "assets/audio/sfx/brand_burst.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "overheat_burst",
@@ -1034,12 +1719,14 @@
       "durationMs": 1500,
       "samples": 66150,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/overheat_burst.ogg",
       "m4a": "assets/audio/sfx/overheat_burst.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_backstab",
@@ -1053,12 +1740,14 @@
       "durationMs": 480,
       "samples": 21168,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/dagger_backstab.ogg",
       "m4a": "assets/audio/sfx/dagger_backstab.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_flurry1",
@@ -1072,12 +1761,14 @@
       "durationMs": 70,
       "samples": 3087,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/dagger_flurry1.ogg",
       "m4a": "assets/audio/sfx/dagger_flurry1.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_flurry2",
@@ -1091,12 +1782,14 @@
       "durationMs": 70,
       "samples": 3087,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/dagger_flurry2.ogg",
       "m4a": "assets/audio/sfx/dagger_flurry2.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_flurry3",
@@ -1110,12 +1803,14 @@
       "durationMs": 70,
       "samples": 3087,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/dagger_flurry3.ogg",
       "m4a": "assets/audio/sfx/dagger_flurry3.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_flurry4",
@@ -1129,12 +1824,58 @@
       "durationMs": 70,
       "samples": 3087,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/dagger_flurry4.ogg",
       "m4a": "assets/audio/sfx/dagger_flurry4.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
+    },
+    {
+      "key": "swing_dagger_v2",
+      "id": "sfx/swing_dagger_v2",
+      "kind": "sfx",
+      "group": "weapon_dagger",
+      "subgroup": "",
+      "desc": "단검 변주 2 — 7.6k→2.8k, 0.1 s",
+      "note": "단검 변주 2 — 7.6k→2.8k, 0.1 s",
+      "trigger": "변주 — sfx/swing_dagger 트리거에서 번갈아",
+      "durationMs": 120,
+      "samples": 5292,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -3,
+      "ogg": "assets/audio/sfx/swing_dagger_v2.ogg",
+      "m4a": "assets/audio/sfx/swing_dagger_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/swing_dagger"
+    },
+    {
+      "key": "swing_dagger_v3",
+      "id": "sfx/swing_dagger_v3",
+      "kind": "sfx",
+      "group": "weapon_dagger",
+      "subgroup": "",
+      "desc": "단검 변주 3 — 9.4k→3.6k, 0.08 s",
+      "note": "단검 변주 3 — 9.4k→3.6k, 0.08 s",
+      "trigger": "변주 — sfx/swing_dagger 트리거에서 번갈아",
+      "durationMs": 100,
+      "samples": 4410,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -3,
+      "ogg": "assets/audio/sfx/swing_dagger_v3.ogg",
+      "m4a": "assets/audio/sfx/swing_dagger_v3.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/swing_dagger"
     },
     {
       "key": "bow_shot",
@@ -1142,18 +1883,25 @@
       "kind": "sfx",
       "group": "weapon_bow",
       "subgroup": "",
-      "desc": "활 발사",
-      "note": "활 발사. 시위 튕김 + 화살 바람",
+      "desc": "활 짧게 쏘기(61라운드 품질 패스)",
+      "note": "활 짧게 쏘기(61라운드 품질 패스). 시위 '퉁'(165 Hz, 짧게) + 활대 '텅' + 팔찌 가죽 + 멀어지는 화살 바람(3.2k→1.5k) + 깃 떨림. 변주 v2·v3",
       "trigger": "PLAYER_ATTACK{weapon:bow}",
-      "durationMs": 300,
-      "samples": 13230,
+      "durationMs": 320,
+      "samples": 14112,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/bow_shot.ogg",
       "m4a": "assets/audio/sfx/bow_shot.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variants": [
+        "sfx/bow_shot",
+        "sfx/bow_shot_v2",
+        "sfx/bow_shot_v3"
+      ]
     },
     {
       "key": "bow_aimed",
@@ -1167,12 +1915,14 @@
       "durationMs": 480,
       "samples": 21168,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/bow_aimed.ogg",
       "m4a": "assets/audio/sfx/bow_aimed.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_draw",
@@ -1186,12 +1936,14 @@
       "durationMs": 600,
       "samples": 26460,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -8,
       "ogg": "assets/audio/sfx/bow_draw.ogg",
       "m4a": "assets/audio/sfx/bow_draw.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "breath_focus",
@@ -1205,12 +1957,14 @@
       "durationMs": 980,
       "samples": 43218,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/breath_focus.ogg",
       "m4a": "assets/audio/sfx/breath_focus.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_release_weak",
@@ -1224,12 +1978,14 @@
       "durationMs": 210,
       "samples": 9261,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/bow_release_weak.ogg",
       "m4a": "assets/audio/sfx/bow_release_weak.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_release_perfect",
@@ -1243,12 +1999,14 @@
       "durationMs": 500,
       "samples": 22050,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/bow_release_perfect.ogg",
       "m4a": "assets/audio/sfx/bow_release_perfect.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "arrow_rain_launch",
@@ -1262,12 +2020,14 @@
       "durationMs": 780,
       "samples": 34398,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/arrow_rain_launch.ogg",
       "m4a": "assets/audio/sfx/arrow_rain_launch.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "arrow_rain_impact",
@@ -1281,12 +2041,14 @@
       "durationMs": 630,
       "samples": 27783,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/arrow_rain_impact.ogg",
       "m4a": "assets/audio/sfx/arrow_rain_impact.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_full_draw",
@@ -1300,12 +2062,14 @@
       "durationMs": 150,
       "samples": 6615,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/bow_full_draw.ogg",
       "m4a": "assets/audio/sfx/bow_full_draw.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_strain",
@@ -1319,14 +2083,60 @@
       "durationMs": 1000,
       "samples": 44100,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -10,
       "ogg": "assets/audio/sfx/bow_strain.ogg",
       "m4a": "assets/audio/sfx/bow_strain.m4a",
       "round": "",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 44100
+    },
+    {
+      "key": "bow_shot_v2",
+      "id": "sfx/bow_shot_v2",
+      "kind": "sfx",
+      "group": "weapon_bow",
+      "subgroup": "",
+      "desc": "활 변주 2 — 시위 155 Hz, 화살 3k→1.4k",
+      "note": "활 변주 2 — 시위 155 Hz, 화살 3k→1.4k",
+      "trigger": "변주 — sfx/bow_shot 트리거에서 번갈아",
+      "durationMs": 320,
+      "samples": 14112,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/bow_shot_v2.ogg",
+      "m4a": "assets/audio/sfx/bow_shot_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/bow_shot"
+    },
+    {
+      "key": "bow_shot_v3",
+      "id": "sfx/bow_shot_v3",
+      "kind": "sfx",
+      "group": "weapon_bow",
+      "subgroup": "",
+      "desc": "활 변주 3 — 시위 176 Hz, 화살 3.4k→1.6k",
+      "note": "활 변주 3 — 시위 176 Hz, 화살 3.4k→1.6k",
+      "trigger": "변주 — sfx/bow_shot 트리거에서 번갈아",
+      "durationMs": 320,
+      "samples": 14112,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/bow_shot_v3.ogg",
+      "m4a": "assets/audio/sfx/bow_shot_v3.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/bow_shot"
     },
     {
       "key": "katana_spin_ready",
@@ -1340,12 +2150,14 @@
       "durationMs": 320,
       "samples": 14112,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/katana_spin_ready.ogg",
       "m4a": "assets/audio/sfx/katana_spin_ready.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_spin",
@@ -1359,12 +2171,14 @@
       "durationMs": 520,
       "samples": 22932,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/katana_spin.ogg",
       "m4a": "assets/audio/sfx/katana_spin.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_guardbreak_hold",
@@ -1378,12 +2192,14 @@
       "durationMs": 1000,
       "samples": 44100,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -11,
       "ogg": "assets/audio/sfx/katana_guardbreak_hold.ogg",
       "m4a": "assets/audio/sfx/katana_guardbreak_hold.m4a",
       "round": "",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 44100
     },
@@ -1399,12 +2215,14 @@
       "durationMs": 770,
       "samples": 33957,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/katana_guardbreak.ogg",
       "m4a": "assets/audio/sfx/katana_guardbreak.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_quake_ring",
@@ -1418,12 +2236,14 @@
       "durationMs": 1000,
       "samples": 44100,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/gs_quake_ring.ogg",
       "m4a": "assets/audio/sfx/gs_quake_ring.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_shatter_snuff",
@@ -1437,12 +2257,14 @@
       "durationMs": 270,
       "samples": 11907,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/gs_shatter_snuff.ogg",
       "m4a": "assets/audio/sfx/gs_shatter_snuff.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_fan_throw",
@@ -1456,12 +2278,14 @@
       "durationMs": 340,
       "samples": 14994,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/dagger_fan_throw.ogg",
       "m4a": "assets/audio/sfx/dagger_fan_throw.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_cross_clone",
@@ -1475,12 +2299,14 @@
       "durationMs": 620,
       "samples": 27342,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/dagger_cross_clone.ogg",
       "m4a": "assets/audio/sfx/dagger_cross_clone.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_rapid1",
@@ -1494,12 +2320,14 @@
       "durationMs": 130,
       "samples": 5733,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/bow_rapid1.ogg",
       "m4a": "assets/audio/sfx/bow_rapid1.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_rapid2",
@@ -1513,12 +2341,14 @@
       "durationMs": 130,
       "samples": 5733,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/bow_rapid2.ogg",
       "m4a": "assets/audio/sfx/bow_rapid2.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_rapid3",
@@ -1532,12 +2362,14 @@
       "durationMs": 130,
       "samples": 5733,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/bow_rapid3.ogg",
       "m4a": "assets/audio/sfx/bow_rapid3.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_pierce",
@@ -1551,12 +2383,14 @@
       "durationMs": 260,
       "samples": 11466,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/bow_pierce.ogg",
       "m4a": "assets/audio/sfx/bow_pierce.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_whirl_loop",
@@ -1570,12 +2404,14 @@
       "durationMs": 960,
       "samples": 42336,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/katana_whirl_loop.ogg",
       "m4a": "assets/audio/sfx/katana_whirl_loop.m4a",
       "round": "60",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 42336
     },
@@ -1591,12 +2427,14 @@
       "durationMs": 320,
       "samples": 14112,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/katana_whirl_reflect.ogg",
       "m4a": "assets/audio/sfx/katana_whirl_reflect.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_moon_trail",
@@ -1610,12 +2448,14 @@
       "durationMs": 1550,
       "samples": 68355,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/katana_moon_trail.ogg",
       "m4a": "assets/audio/sfx/katana_moon_trail.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_cleave_crack",
@@ -1629,12 +2469,14 @@
       "durationMs": 620,
       "samples": 27342,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/katana_cleave_crack.ogg",
       "m4a": "assets/audio/sfx/katana_cleave_crack.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_execute",
@@ -1648,12 +2490,14 @@
       "durationMs": 740,
       "samples": 32634,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/katana_execute.ogg",
       "m4a": "assets/audio/sfx/katana_execute.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "katana_mirror_parry",
@@ -1667,12 +2511,14 @@
       "durationMs": 520,
       "samples": 22932,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/katana_mirror_parry.ogg",
       "m4a": "assets/audio/sfx/katana_mirror_parry.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "kenki_stage4",
@@ -1686,12 +2532,14 @@
       "durationMs": 1290,
       "samples": 56889,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/kenki_stage4.ogg",
       "m4a": "assets/audio/sfx/kenki_stage4.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "kenki_stage5",
@@ -1705,12 +2553,14 @@
       "durationMs": 1190,
       "samples": 52479,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/kenki_stage5.ogg",
       "m4a": "assets/audio/sfx/kenki_stage5.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_quake_fork",
@@ -1724,12 +2574,14 @@
       "durationMs": 650,
       "samples": 28665,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/gs_quake_fork.ogg",
       "m4a": "assets/audio/sfx/gs_quake_fork.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_echo_counter",
@@ -1743,12 +2595,14 @@
       "durationMs": 900,
       "samples": 39690,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/gs_echo_counter.ogg",
       "m4a": "assets/audio/sfx/gs_echo_counter.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "charge_stage4",
@@ -1762,12 +2616,14 @@
       "durationMs": 1540,
       "samples": 67914,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/charge_stage4.ogg",
       "m4a": "assets/audio/sfx/charge_stage4.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "charge_slam_lv4",
@@ -1781,12 +2637,14 @@
       "durationMs": 1900,
       "samples": 83790,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/charge_slam_lv4.ogg",
       "m4a": "assets/audio/sfx/charge_slam_lv4.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "gs_congest_loop",
@@ -1800,12 +2658,14 @@
       "durationMs": 750,
       "samples": 33075,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -10,
       "ogg": "assets/audio/sfx/gs_congest_loop.ogg",
       "m4a": "assets/audio/sfx/gs_congest_loop.m4a",
       "round": "60",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 33075
     },
@@ -1821,12 +2681,14 @@
       "durationMs": 1250,
       "samples": 55125,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/gs_congest_burst.ogg",
       "m4a": "assets/audio/sfx/gs_congest_burst.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_frenzy_in",
@@ -1840,12 +2702,14 @@
       "durationMs": 440,
       "samples": 19404,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/dagger_frenzy_in.ogg",
       "m4a": "assets/audio/sfx/dagger_frenzy_in.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_frenzy_out",
@@ -1859,12 +2723,14 @@
       "durationMs": 520,
       "samples": 22932,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/dagger_frenzy_out.ogg",
       "m4a": "assets/audio/sfx/dagger_frenzy_out.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_bleed",
@@ -1878,12 +2744,14 @@
       "durationMs": 720,
       "samples": 31752,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/dagger_bleed.ogg",
       "m4a": "assets/audio/sfx/dagger_bleed.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_brand_hop",
@@ -1897,12 +2765,14 @@
       "durationMs": 360,
       "samples": 15876,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/dagger_brand_hop.ogg",
       "m4a": "assets/audio/sfx/dagger_brand_hop.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_flyknife_throw",
@@ -1916,12 +2786,14 @@
       "durationMs": 440,
       "samples": 19404,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/dagger_flyknife_throw.ogg",
       "m4a": "assets/audio/sfx/dagger_flyknife_throw.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_knife_stick",
@@ -1935,12 +2807,14 @@
       "durationMs": 380,
       "samples": 16758,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -7,
       "ogg": "assets/audio/sfx/dagger_knife_stick.ogg",
       "m4a": "assets/audio/sfx/dagger_knife_stick.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_knife_step",
@@ -1954,12 +2828,14 @@
       "durationMs": 470,
       "samples": 20727,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/dagger_knife_step.ogg",
       "m4a": "assets/audio/sfx/dagger_knife_step.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "dagger_hotwind_loop",
@@ -1973,12 +2849,14 @@
       "durationMs": 1120,
       "samples": 49392,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -12,
       "ogg": "assets/audio/sfx/dagger_hotwind_loop.ogg",
       "m4a": "assets/audio/sfx/dagger_hotwind_loop.m4a",
       "round": "60",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 49392
     },
@@ -1994,12 +2872,14 @@
       "durationMs": 1750,
       "samples": 77175,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/dagger_hotwind_burst.ogg",
       "m4a": "assets/audio/sfx/dagger_hotwind_burst.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_arrow_split",
@@ -2013,12 +2893,14 @@
       "durationMs": 260,
       "samples": 11466,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/bow_arrow_split.ogg",
       "m4a": "assets/audio/sfx/bow_arrow_split.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_arrow_recall",
@@ -2032,12 +2914,14 @@
       "durationMs": 470,
       "samples": 20727,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/bow_arrow_recall.ogg",
       "m4a": "assets/audio/sfx/bow_arrow_recall.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_deadeye_lock",
@@ -2051,12 +2935,14 @@
       "durationMs": 620,
       "samples": 27342,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/bow_deadeye_lock.ogg",
       "m4a": "assets/audio/sfx/bow_deadeye_lock.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_deadeye_hold",
@@ -2070,12 +2956,14 @@
       "durationMs": 720,
       "samples": 31752,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -14,
       "ogg": "assets/audio/sfx/bow_deadeye_hold.ogg",
       "m4a": "assets/audio/sfx/bow_deadeye_hold.m4a",
       "round": "60",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 31752
     },
@@ -2091,12 +2979,14 @@
       "durationMs": 470,
       "samples": 20727,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/bow_link1.ogg",
       "m4a": "assets/audio/sfx/bow_link1.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_link2",
@@ -2110,12 +3000,14 @@
       "durationMs": 570,
       "samples": 25137,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/bow_link2.ogg",
       "m4a": "assets/audio/sfx/bow_link2.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_link3",
@@ -2129,12 +3021,14 @@
       "durationMs": 830,
       "samples": 36603,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/bow_link3.ogg",
       "m4a": "assets/audio/sfx/bow_link3.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_link_break",
@@ -2148,12 +3042,14 @@
       "durationMs": 380,
       "samples": 16758,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -7,
       "ogg": "assets/audio/sfx/bow_link_break.ogg",
       "m4a": "assets/audio/sfx/bow_link_break.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bow_skypierce",
@@ -2167,12 +3063,14 @@
       "durationMs": 1300,
       "samples": 57330,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/bow_skypierce.ogg",
       "m4a": "assets/audio/sfx/bow_skypierce.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "set_tier1",
@@ -2186,12 +3084,14 @@
       "durationMs": 700,
       "samples": 30870,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/set_tier1.ogg",
       "m4a": "assets/audio/sfx/set_tier1.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "set_tier2",
@@ -2205,12 +3105,14 @@
       "durationMs": 950,
       "samples": 41895,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/set_tier2.ogg",
       "m4a": "assets/audio/sfx/set_tier2.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "set_tier3",
@@ -2224,12 +3126,14 @@
       "durationMs": 1400,
       "samples": 61740,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/set_tier3.ogg",
       "m4a": "assets/audio/sfx/set_tier3.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "dual_trait",
@@ -2243,12 +3147,14 @@
       "durationMs": 1500,
       "samples": 66150,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/dual_trait.ogg",
       "m4a": "assets/audio/sfx/dual_trait.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "curse_take",
@@ -2262,12 +3168,14 @@
       "durationMs": 1300,
       "samples": 57330,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/curse_take.ogg",
       "m4a": "assets/audio/sfx/curse_take.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "curse_end",
@@ -2281,12 +3189,14 @@
       "durationMs": 1000,
       "samples": 44100,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/curse_end.ogg",
       "m4a": "assets/audio/sfx/curse_end.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "blood_pact",
@@ -2300,12 +3210,14 @@
       "durationMs": 1800,
       "samples": 79380,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/blood_pact.ogg",
       "m4a": "assets/audio/sfx/blood_pact.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "awaken_katana",
@@ -2319,12 +3231,14 @@
       "durationMs": 2600,
       "samples": 114660,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/awaken_katana.ogg",
       "m4a": "assets/audio/sfx/awaken_katana.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "awaken_greatsword",
@@ -2338,12 +3252,14 @@
       "durationMs": 2600,
       "samples": 114660,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/awaken_greatsword.ogg",
       "m4a": "assets/audio/sfx/awaken_greatsword.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "awaken_dagger",
@@ -2357,12 +3273,14 @@
       "durationMs": 2600,
       "samples": 114660,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/awaken_dagger.ogg",
       "m4a": "assets/audio/sfx/awaken_dagger.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "awaken_bow",
@@ -2376,12 +3294,14 @@
       "durationMs": 2600,
       "samples": 114660,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/awaken_bow.ogg",
       "m4a": "assets/audio/sfx/awaken_bow.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "mark_stack",
@@ -2395,12 +3315,14 @@
       "durationMs": 180,
       "samples": 7938,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -8,
       "ogg": "assets/audio/sfx/mark_stack.ogg",
       "m4a": "assets/audio/sfx/mark_stack.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boil_burst",
@@ -2414,12 +3336,14 @@
       "durationMs": 820,
       "samples": 36162,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/boil_burst.ogg",
       "m4a": "assets/audio/sfx/boil_burst.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "stillness",
@@ -2433,12 +3357,14 @@
       "durationMs": 1100,
       "samples": 48510,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/stillness.ogg",
       "m4a": "assets/audio/sfx/stillness.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "drunk_ignite",
@@ -2452,12 +3378,14 @@
       "durationMs": 620,
       "samples": 27342,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/drunk_ignite.ogg",
       "m4a": "assets/audio/sfx/drunk_ignite.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "drunk_sway",
@@ -2471,12 +3399,14 @@
       "durationMs": 470,
       "samples": 20727,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/drunk_sway.ogg",
       "m4a": "assets/audio/sfx/drunk_sway.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "endure_trigger",
@@ -2490,12 +3420,14 @@
       "durationMs": 1020,
       "samples": 44982,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/endure_trigger.ogg",
       "m4a": "assets/audio/sfx/endure_trigger.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "passive_glass_shard",
@@ -2509,12 +3441,14 @@
       "durationMs": 320,
       "samples": 14112,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -8,
       "ogg": "assets/audio/sfx/passive_glass_shard.ogg",
       "m4a": "assets/audio/sfx/passive_glass_shard.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "passive_ember_sleeve",
@@ -2528,12 +3462,14 @@
       "durationMs": 570,
       "samples": 25137,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -8,
       "ogg": "assets/audio/sfx/passive_ember_sleeve.ogg",
       "m4a": "assets/audio/sfx/passive_ember_sleeve.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "passive_blood_scent",
@@ -2547,12 +3483,14 @@
       "durationMs": 470,
       "samples": 20727,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/passive_blood_scent.ogg",
       "m4a": "assets/audio/sfx/passive_blood_scent.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "passive_domino",
@@ -2566,12 +3504,14 @@
       "durationMs": 340,
       "samples": 14994,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -7,
       "ogg": "assets/audio/sfx/passive_domino.ogg",
       "m4a": "assets/audio/sfx/passive_domino.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "passive_mirror_clone",
@@ -2585,12 +3525,14 @@
       "durationMs": 470,
       "samples": 20727,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -5,
       "ogg": "assets/audio/sfx/passive_mirror_clone.ogg",
       "m4a": "assets/audio/sfx/passive_mirror_clone.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "passive_ember_heart",
@@ -2604,12 +3546,14 @@
       "durationMs": 820,
       "samples": 36162,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/passive_ember_heart.ogg",
       "m4a": "assets/audio/sfx/passive_ember_heart.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "passive_spilled_drink",
@@ -2623,12 +3567,14 @@
       "durationMs": 420,
       "samples": 18522,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -7,
       "ogg": "assets/audio/sfx/passive_spilled_drink.ogg",
       "m4a": "assets/audio/sfx/passive_spilled_drink.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "passive_liquor_spray",
@@ -2642,12 +3588,14 @@
       "durationMs": 570,
       "samples": 25137,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/passive_liquor_spray.ogg",
       "m4a": "assets/audio/sfx/passive_liquor_spray.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "passive_fire_breath",
@@ -2661,12 +3609,14 @@
       "durationMs": 870,
       "samples": 38367,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/passive_fire_breath.ogg",
       "m4a": "assets/audio/sfx/passive_fire_breath.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "passive_drunk_fist",
@@ -2680,12 +3630,14 @@
       "durationMs": 520,
       "samples": 22932,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/passive_drunk_fist.ogg",
       "m4a": "assets/audio/sfx/passive_drunk_fist.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "elite_appear",
@@ -2699,12 +3651,14 @@
       "durationMs": 1300,
       "samples": 57330,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/elite_appear.ogg",
       "m4a": "assets/audio/sfx/elite_appear.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "elite_armor_break",
@@ -2718,12 +3672,14 @@
       "durationMs": 820,
       "samples": 36162,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/elite_armor_break.ogg",
       "m4a": "assets/audio/sfx/elite_armor_break.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "elite_enrage",
@@ -2737,12 +3693,14 @@
       "durationMs": 920,
       "samples": 40572,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/elite_enrage.ogg",
       "m4a": "assets/audio/sfx/elite_enrage.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "elite_drink",
@@ -2756,12 +3714,14 @@
       "durationMs": 770,
       "samples": 33957,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/elite_drink.ogg",
       "m4a": "assets/audio/sfx/elite_drink.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "elite_leader_down",
@@ -2775,12 +3735,14 @@
       "durationMs": 1170,
       "samples": 51597,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/elite_leader_down.ogg",
       "m4a": "assets/audio/sfx/elite_leader_down.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "elite_die",
@@ -2794,12 +3756,14 @@
       "durationMs": 1020,
       "samples": 44982,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/elite_die.ogg",
       "m4a": "assets/audio/sfx/elite_die.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "shrine_activate",
@@ -2813,12 +3777,14 @@
       "durationMs": 1700,
       "samples": 74970,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/shrine_activate.ogg",
       "m4a": "assets/audio/sfx/shrine_activate.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "shrine_clear",
@@ -2832,12 +3798,14 @@
       "durationMs": 1400,
       "samples": 61740,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/shrine_clear.ogg",
       "m4a": "assets/audio/sfx/shrine_clear.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "shrine_fail",
@@ -2851,12 +3819,14 @@
       "durationMs": 1270,
       "samples": 56007,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/shrine_fail.ogg",
       "m4a": "assets/audio/sfx/shrine_fail.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "grade_perfect",
@@ -2870,12 +3840,14 @@
       "durationMs": 1350,
       "samples": 59535,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/grade_perfect.ogg",
       "m4a": "assets/audio/sfx/grade_perfect.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "grade_good",
@@ -2889,12 +3861,14 @@
       "durationMs": 850,
       "samples": 37485,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/grade_good.ogg",
       "m4a": "assets/audio/sfx/grade_good.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "shop_reroll",
@@ -2908,12 +3882,14 @@
       "durationMs": 640,
       "samples": 28224,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/shop_reroll.ogg",
       "m4a": "assets/audio/sfx/shop_reroll.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "map_info_buy",
@@ -2927,12 +3903,14 @@
       "durationMs": 920,
       "samples": 40572,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/map_info_buy.ogg",
       "m4a": "assets/audio/sfx/map_info_buy.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "bottle_throw",
@@ -2946,12 +3924,14 @@
       "durationMs": 470,
       "samples": 20727,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/bottle_throw.ogg",
       "m4a": "assets/audio/sfx/bottle_throw.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "bottle_burst",
@@ -2965,12 +3945,14 @@
       "durationMs": 920,
       "samples": 40572,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/bottle_burst.ogg",
       "m4a": "assets/audio/sfx/bottle_burst.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "strong_drink",
@@ -2984,12 +3966,14 @@
       "durationMs": 1020,
       "samples": 44982,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/strong_drink.ogg",
       "m4a": "assets/audio/sfx/strong_drink.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "cold_water",
@@ -3003,12 +3987,14 @@
       "durationMs": 1070,
       "samples": 47187,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/cold_water.ogg",
       "m4a": "assets/audio/sfx/cold_water.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "event_enter",
@@ -3022,12 +4008,14 @@
       "durationMs": 1600,
       "samples": 70560,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/event_enter.ogg",
       "m4a": "assets/audio/sfx/event_enter.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "event_choice",
@@ -3041,12 +4029,14 @@
       "durationMs": 750,
       "samples": 33075,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/event_choice.ogg",
       "m4a": "assets/audio/sfx/event_choice.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "hidden_node_found",
@@ -3060,12 +4050,14 @@
       "durationMs": 1450,
       "samples": 63945,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/hidden_node_found.ogg",
       "m4a": "assets/audio/sfx/hidden_node_found.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "break_count",
@@ -3079,12 +4071,14 @@
       "durationMs": 750,
       "samples": 33075,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/break_count.ogg",
       "m4a": "assets/audio/sfx/break_count.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "break_finisher",
@@ -3098,12 +4092,14 @@
       "durationMs": 1900,
       "samples": 83790,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/break_finisher.ogg",
       "m4a": "assets/audio/sfx/break_finisher.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "still_ignite",
@@ -3117,12 +4113,14 @@
       "durationMs": 1170,
       "samples": 51597,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/still_ignite.ogg",
       "m4a": "assets/audio/sfx/still_ignite.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "fire_weapon_loop",
@@ -3136,12 +4134,14 @@
       "durationMs": 1000,
       "samples": 44100,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -14,
       "ogg": "assets/audio/sfx/fire_weapon_loop.ogg",
       "m4a": "assets/audio/sfx/fire_weapon_loop.m4a",
       "round": "60",
       "status": "active",
+      "priority": 1,
       "loopStartSample": 0,
       "loopEndSample": 44100
     },
@@ -3157,12 +4157,14 @@
       "durationMs": 530,
       "samples": 23373,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/fire_weapon_end.ogg",
       "m4a": "assets/audio/sfx/fire_weapon_end.m4a",
       "round": "60",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "enemy_death",
@@ -3170,18 +4172,25 @@
       "kind": "sfx",
       "group": "enemy",
       "subgroup": "",
-      "desc": "일반 적 사망",
-      "note": "일반 적 사망. 짧은 신음 비슷한 노이즈 + 몸이 떨어지는 둔탁음",
+      "desc": "일반 적 처치(61라운드 품질 패스)",
+      "note": "일반 적 처치(61라운드 품질 패스). 마지막 타격 몸통 → 숨이 빠지는 노이즈(목소리 아님) → 0.13 s 몸이 땅에 '쿵' + 흙·자갈 + 장비 덜그럭(나무·가죽) → 한 번 튐 + 먼지. 변주 v2·v3",
       "trigger": "ENEMY_DIED",
-      "durationMs": 450,
-      "samples": 19845,
+      "durationMs": 680,
+      "samples": 29988,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/enemy_death.ogg",
       "m4a": "assets/audio/sfx/enemy_death.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variants": [
+        "sfx/enemy_death",
+        "sfx/enemy_death_v2",
+        "sfx/enemy_death_v3"
+      ]
     },
     {
       "key": "charger_telegraph",
@@ -3195,12 +4204,14 @@
       "durationMs": 600,
       "samples": 26460,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/charger_telegraph.ogg",
       "m4a": "assets/audio/sfx/charger_telegraph.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 3
     },
     {
       "key": "charger_dash",
@@ -3214,12 +4225,14 @@
       "durationMs": 430,
       "samples": 18963,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/charger_dash.ogg",
       "m4a": "assets/audio/sfx/charger_dash.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "archer_shot",
@@ -3233,12 +4246,14 @@
       "durationMs": 600,
       "samples": 26460,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/archer_shot.ogg",
       "m4a": "assets/audio/sfx/archer_shot.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "enemy_hurt",
@@ -3252,12 +4267,58 @@
       "durationMs": 100,
       "samples": 4410,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/enemy_hurt.ogg",
       "m4a": "assets/audio/sfx/enemy_hurt.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
+    },
+    {
+      "key": "enemy_death_v2",
+      "id": "sfx/enemy_death_v2",
+      "kind": "sfx",
+      "group": "enemy",
+      "subgroup": "",
+      "desc": "처치 변주 2 — 쓰러짐 0.16 s·튐 0.31 s, 몸통 100→36 Hz, 덜그럭 둘",
+      "note": "처치 변주 2 — 쓰러짐 0.16 s·튐 0.31 s, 몸통 100→36 Hz, 덜그럭 둘",
+      "trigger": "변주 — sfx/enemy_death 트리거에서 번갈아",
+      "durationMs": 680,
+      "samples": 29988,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/enemy_death_v2.ogg",
+      "m4a": "assets/audio/sfx/enemy_death_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/enemy_death"
+    },
+    {
+      "key": "enemy_death_v3",
+      "id": "sfx/enemy_death_v3",
+      "kind": "sfx",
+      "group": "enemy",
+      "subgroup": "",
+      "desc": "처치 변주 3 — 쓰러짐 0.11 s·튐 0.24 s, 몸통 120→42 Hz, 덜그럭 셋(빠르게)",
+      "note": "처치 변주 3 — 쓰러짐 0.11 s·튐 0.24 s, 몸통 120→42 Hz, 덜그럭 셋(빠르게)",
+      "trigger": "변주 — sfx/enemy_death 트리거에서 번갈아",
+      "durationMs": 680,
+      "samples": 29988,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -2,
+      "ogg": "assets/audio/sfx/enemy_death_v3.ogg",
+      "m4a": "assets/audio/sfx/enemy_death_v3.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 2,
+      "variantOf": "sfx/enemy_death"
     },
     {
       "key": "boss_start",
@@ -3271,12 +4332,14 @@
       "durationMs": 1600,
       "samples": 70560,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/boss_start.ogg",
       "m4a": "assets/audio/sfx/boss_start.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 4
     },
     {
       "key": "boss_phase",
@@ -3290,12 +4353,14 @@
       "durationMs": 1300,
       "samples": 57330,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/boss_phase.ogg",
       "m4a": "assets/audio/sfx/boss_phase.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 4
     },
     {
       "key": "boss_telegraph",
@@ -3309,12 +4374,14 @@
       "durationMs": 650,
       "samples": 28665,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/boss_telegraph.ogg",
       "m4a": "assets/audio/sfx/boss_telegraph.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 4
     },
     {
       "key": "boss_fan",
@@ -3328,12 +4395,14 @@
       "durationMs": 350,
       "samples": 15435,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/boss_fan.ogg",
       "m4a": "assets/audio/sfx/boss_fan.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss_die",
@@ -3347,12 +4416,14 @@
       "durationMs": 2200,
       "samples": 97020,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/boss_die.ogg",
       "m4a": "assets/audio/sfx/boss_die.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 4
     },
     {
       "key": "boss1_drink_lift",
@@ -3366,12 +4437,14 @@
       "durationMs": 500,
       "samples": 22050,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/boss1_drink_lift.ogg",
       "m4a": "assets/audio/sfx/boss1_drink_lift.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 4
     },
     {
       "key": "boss1_drink_gulp",
@@ -3385,12 +4458,14 @@
       "durationMs": 2000,
       "samples": 88200,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/boss1_drink_gulp.ogg",
       "m4a": "assets/audio/sfx/boss1_drink_gulp.m4a",
       "round": "",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 88200
     },
@@ -3406,12 +4481,14 @@
       "durationMs": 1000,
       "samples": 44100,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/boss1_drink_finish.ogg",
       "m4a": "assets/audio/sfx/boss1_drink_finish.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_cup_shatter",
@@ -3425,12 +4502,14 @@
       "durationMs": 1200,
       "samples": 52920,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/boss1_cup_shatter.ogg",
       "m4a": "assets/audio/sfx/boss1_cup_shatter.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_spin_start",
@@ -3444,12 +4523,14 @@
       "durationMs": 2200,
       "samples": 97020,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/boss1_spin_start.ogg",
       "m4a": "assets/audio/sfx/boss1_spin_start.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_reel_telegraph",
@@ -3463,12 +4544,14 @@
       "durationMs": 300,
       "samples": 13230,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/boss1_reel_telegraph.ogg",
       "m4a": "assets/audio/sfx/boss1_reel_telegraph.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 4
     },
     {
       "key": "boss1_reel_dash",
@@ -3482,12 +4565,14 @@
       "durationMs": 440,
       "samples": 19404,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/boss1_reel_dash.ogg",
       "m4a": "assets/audio/sfx/boss1_reel_dash.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_fall",
@@ -3501,12 +4586,14 @@
       "durationMs": 1100,
       "samples": 48510,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/boss1_fall.ogg",
       "m4a": "assets/audio/sfx/boss1_fall.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_barrel_kick",
@@ -3520,12 +4607,14 @@
       "durationMs": 550,
       "samples": 24255,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/boss1_barrel_kick.ogg",
       "m4a": "assets/audio/sfx/boss1_barrel_kick.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_barrel_roll",
@@ -3539,12 +4628,14 @@
       "durationMs": 1200,
       "samples": 52920,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/boss1_barrel_roll.ogg",
       "m4a": "assets/audio/sfx/boss1_barrel_roll.m4a",
       "round": "",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 52920
     },
@@ -3560,12 +4651,14 @@
       "durationMs": 500,
       "samples": 22050,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/boss1_barrel_bounce.ogg",
       "m4a": "assets/audio/sfx/boss1_barrel_bounce.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_liquor_splash",
@@ -3579,12 +4672,14 @@
       "durationMs": 700,
       "samples": 30870,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/boss1_liquor_splash.ogg",
       "m4a": "assets/audio/sfx/boss1_liquor_splash.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_torch_throw",
@@ -3598,12 +4693,14 @@
       "durationMs": 600,
       "samples": 26460,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/boss1_torch_throw.ogg",
       "m4a": "assets/audio/sfx/boss1_torch_throw.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_ignite",
@@ -3617,12 +4714,14 @@
       "durationMs": 1100,
       "samples": 48510,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/boss1_ignite.ogg",
       "m4a": "assets/audio/sfx/boss1_ignite.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_fire_loop",
@@ -3636,12 +4735,14 @@
       "durationMs": 2000,
       "samples": 88200,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": true,
       "gainDb": -8,
       "ogg": "assets/audio/sfx/boss1_fire_loop.ogg",
       "m4a": "assets/audio/sfx/boss1_fire_loop.m4a",
       "round": "",
       "status": "active",
+      "priority": 2,
       "loopStartSample": 0,
       "loopEndSample": 88200
     },
@@ -3657,12 +4758,14 @@
       "durationMs": 1000,
       "samples": 44100,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/boss1_candle_topple.ogg",
       "m4a": "assets/audio/sfx/boss1_candle_topple.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 2
     },
     {
       "key": "boss1_candle_relight",
@@ -3676,12 +4779,14 @@
       "durationMs": 700,
       "samples": 30870,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/boss1_candle_relight.ogg",
       "m4a": "assets/audio/sfx/boss1_candle_relight.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "boss1_phase_drink",
@@ -3695,12 +4800,14 @@
       "durationMs": 1800,
       "samples": 79380,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/boss1_phase_drink.ogg",
       "m4a": "assets/audio/sfx/boss1_phase_drink.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 4
     },
     {
       "key": "door_close",
@@ -3714,12 +4821,14 @@
       "durationMs": 450,
       "samples": 19845,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/door_close.ogg",
       "m4a": "assets/audio/sfx/door_close.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "door_open",
@@ -3727,18 +4836,20 @@
       "kind": "sfx",
       "group": "world",
       "subgroup": "",
-      "desc": "방 클리어, 문 열림",
-      "note": "방 클리어, 문 열림. 걸쇠 풀림 + 나무 삐걱",
+      "desc": "방 클리어 · 문 열림(61라운드 품질 패스, 0.7 → 1.1 s)",
+      "note": "방 클리어 · 문 열림(61라운드 품질 패스, 0.7 → 1.1 s). 나무 빗장 들어 올림 + 쇠 걸쇠 '철컥'(울림 짧게) + 나무 문 삐걱 + 문이 미는 낮은 바람 + 벽에 닿는 '쿵', 돌방 울림",
       "trigger": "ROOM_CLEARED",
-      "durationMs": 700,
-      "samples": 30870,
+      "durationMs": 1100,
+      "samples": 48510,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/door_open.ogg",
       "m4a": "assets/audio/sfx/door_open.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "boss_unlock",
@@ -3752,12 +4863,14 @@
       "durationMs": 1200,
       "samples": 52920,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/boss_unlock.ogg",
       "m4a": "assets/audio/sfx/boss_unlock.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "exit_open",
@@ -3771,12 +4884,14 @@
       "durationMs": 1400,
       "samples": 61740,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/exit_open.ogg",
       "m4a": "assets/audio/sfx/exit_open.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "level_enter",
@@ -3790,12 +4905,14 @@
       "durationMs": 1800,
       "samples": 79380,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/level_enter.ogg",
       "m4a": "assets/audio/sfx/level_enter.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "save",
@@ -3809,12 +4926,14 @@
       "durationMs": 550,
       "samples": 24255,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -8,
       "ogg": "assets/audio/sfx/save.ogg",
       "m4a": "assets/audio/sfx/save.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 0
     },
     {
       "key": "trial_clear",
@@ -3828,12 +4947,14 @@
       "durationMs": 800,
       "samples": 35280,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/trial_clear.ogg",
       "m4a": "assets/audio/sfx/trial_clear.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "pickup_gold",
@@ -3841,18 +4962,25 @@
       "kind": "sfx",
       "group": "pickup",
       "subgroup": "",
-      "desc": "동전 획득",
-      "note": "동전 획득. 작은 금속 두 번 울림",
+      "desc": "동전 획득(61라운드 품질 패스)",
+      "note": "동전 획득(61라운드 품질 패스). 높고 짧은 동전 두 번(3.8k·4.75k, 0.035 s 감쇠) + 주머니에 들어가는 '툭'·가죽 스침. 변주 v2·v3(동전 수·음높이 다름)",
       "trigger": "GOLD_CHANGED{delta>0}",
-      "durationMs": 270,
-      "samples": 11907,
+      "durationMs": 320,
+      "samples": 14112,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/pickup_gold.ogg",
       "m4a": "assets/audio/sfx/pickup_gold.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 1,
+      "variants": [
+        "sfx/pickup_gold",
+        "sfx/pickup_gold_v2",
+        "sfx/pickup_gold_v3"
+      ]
     },
     {
       "key": "pickup_potion",
@@ -3860,18 +4988,20 @@
       "kind": "sfx",
       "group": "pickup",
       "subgroup": "",
-      "desc": "물약 획득",
-      "note": "물약 획득. 유리병 맑은 울림 + 액체 흔들림",
+      "desc": "물약 획득(61라운드 품질 패스)",
+      "note": "물약 획득(61라운드 품질 패스). 유리병 짧은 '틱'(2.6 kHz, 울림 짧게) + 병 속 출렁 + 마개 '톡' + 허리춤에 거는 가죽 스침. 권장 음량 -4 → -2 dB(울림을 줄여 짧은 구간 음량이 약 5 dB 작아진 만큼 일부 보정)",
       "trigger": "ITEM_PICKUP{item:potion}",
-      "durationMs": 350,
-      "samples": 15435,
+      "durationMs": 420,
+      "samples": 18522,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
-      "gainDb": -4,
+      "gainDb": -2,
       "ogg": "assets/audio/sfx/pickup_potion.ogg",
       "m4a": "assets/audio/sfx/pickup_potion.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "potion_use",
@@ -3885,12 +5015,14 @@
       "durationMs": 500,
       "samples": 22050,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -3,
       "ogg": "assets/audio/sfx/potion_use.ogg",
       "m4a": "assets/audio/sfx/potion_use.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "shop_buy",
@@ -3904,12 +5036,58 @@
       "durationMs": 450,
       "samples": 19845,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/shop_buy.ogg",
       "m4a": "assets/audio/sfx/shop_buy.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
+    },
+    {
+      "key": "pickup_gold_v2",
+      "id": "sfx/pickup_gold_v2",
+      "kind": "sfx",
+      "group": "pickup",
+      "subgroup": "",
+      "desc": "동전 변주 2 — 세 번(3.5k·4.2k·5k), 간격 45 ms",
+      "note": "동전 변주 2 — 세 번(3.5k·4.2k·5k), 간격 45 ms",
+      "trigger": "변주 — sfx/pickup_gold 트리거에서 번갈아",
+      "durationMs": 320,
+      "samples": 14112,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -4,
+      "ogg": "assets/audio/sfx/pickup_gold_v2.ogg",
+      "m4a": "assets/audio/sfx/pickup_gold_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 1,
+      "variantOf": "sfx/pickup_gold"
+    },
+    {
+      "key": "pickup_gold_v3",
+      "id": "sfx/pickup_gold_v3",
+      "kind": "sfx",
+      "group": "pickup",
+      "subgroup": "",
+      "desc": "동전 변주 3 — 두 번(4.1k·3.6k, 내려감), 간격 70 ms",
+      "note": "동전 변주 3 — 두 번(4.1k·3.6k, 내려감), 간격 70 ms",
+      "trigger": "변주 — sfx/pickup_gold 트리거에서 번갈아",
+      "durationMs": 320,
+      "samples": 14112,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -4,
+      "ogg": "assets/audio/sfx/pickup_gold_v3.ogg",
+      "m4a": "assets/audio/sfx/pickup_gold_v3.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 1,
+      "variantOf": "sfx/pickup_gold"
     },
     {
       "key": "menu_move",
@@ -3917,18 +5095,24 @@
       "kind": "sfx",
       "group": "ui",
       "subgroup": "",
-      "desc": "메뉴 이동",
-      "note": "메뉴 이동. 나무를 톡 건드리는 작은 소리",
+      "desc": "메뉴 이동(61라운드 품질 패스)",
+      "note": "메뉴 이동(61라운드 품질 패스). 마른 나무 '톡'(1150 Hz, 7 ms 감쇠) — 더 둥글게. 변주 v2(1030 Hz)와 번갈아 쓰면 커서가 걷는 느낌",
       "trigger": "UI_MENU_MOVE",
-      "durationMs": 70,
-      "samples": 3087,
+      "durationMs": 80,
+      "samples": 3528,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -8,
       "ogg": "assets/audio/sfx/menu_move.ogg",
       "m4a": "assets/audio/sfx/menu_move.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 0,
+      "variants": [
+        "sfx/menu_move",
+        "sfx/menu_move_v2"
+      ]
     },
     {
       "key": "menu_select",
@@ -3936,18 +5120,20 @@
       "kind": "sfx",
       "group": "ui",
       "subgroup": "",
-      "desc": "메뉴 선택",
-      "note": "메뉴 선택. 도장 찍는 둔탁음 + 짧은 쇠 틱",
+      "desc": "메뉴 선택(61라운드 품질 패스 — 쇠 틱 제거)",
+      "note": "메뉴 선택(61라운드 품질 패스 — 쇠 틱 제거). 도장 '쿵'(220→95 Hz) + 종이 '탁' + 나무 '톡'",
       "trigger": "UI_MENU_SELECT",
-      "durationMs": 150,
-      "samples": 6615,
+      "durationMs": 170,
+      "samples": 7497,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -6,
       "ogg": "assets/audio/sfx/menu_select.ogg",
       "m4a": "assets/audio/sfx/menu_select.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 0
     },
     {
       "key": "menu_cancel",
@@ -3955,18 +5141,20 @@
       "kind": "sfx",
       "group": "ui",
       "subgroup": "",
-      "desc": "메뉴 닫기/뒤로",
-      "note": "메뉴 닫기/뒤로. 종이 넘기는 짧은 스침",
+      "desc": "메뉴 닫기·뒤로(61라운드 품질 패스)",
+      "note": "메뉴 닫기·뒤로(61라운드 품질 패스). 종이를 넘기는 짧은 '사락'(3k→1.2k) + 아래로 놓는 작은 '톡'",
       "trigger": "UI_MENU_CANCEL",
-      "durationMs": 140,
-      "samples": 6174,
+      "durationMs": 150,
+      "samples": 6615,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -8,
       "ogg": "assets/audio/sfx/menu_cancel.ogg",
       "m4a": "assets/audio/sfx/menu_cancel.m4a",
-      "round": "",
-      "status": "active"
+      "round": "61",
+      "status": "active",
+      "priority": 0
     },
     {
       "key": "evolve",
@@ -3980,12 +5168,14 @@
       "durationMs": 1600,
       "samples": 70560,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/evolve.ogg",
       "m4a": "assets/audio/sfx/evolve.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "reinforce",
@@ -3999,12 +5189,14 @@
       "durationMs": 600,
       "samples": 26460,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/reinforce.ogg",
       "m4a": "assets/audio/sfx/reinforce.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "fate_decided",
@@ -4018,12 +5210,14 @@
       "durationMs": 1300,
       "samples": 57330,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -2,
       "ogg": "assets/audio/sfx/fate_decided.ogg",
       "m4a": "assets/audio/sfx/fate_decided.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 1
     },
     {
       "key": "player_death",
@@ -4037,12 +5231,36 @@
       "durationMs": 2400,
       "samples": 105840,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/player_death.ogg",
       "m4a": "assets/audio/sfx/player_death.m4a",
       "round": "",
-      "status": "active"
+      "status": "active",
+      "priority": 3
+    },
+    {
+      "key": "menu_move_v2",
+      "id": "sfx/menu_move_v2",
+      "kind": "sfx",
+      "group": "ui",
+      "subgroup": "",
+      "desc": "메뉴 이동 변주 2 — 1030 Hz",
+      "note": "메뉴 이동 변주 2 — 1030 Hz",
+      "trigger": "변주 — sfx/menu_move 트리거에서 번갈아",
+      "durationMs": 80,
+      "samples": 3528,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -8,
+      "ogg": "assets/audio/sfx/menu_move_v2.ogg",
+      "m4a": "assets/audio/sfx/menu_move_v2.m4a",
+      "round": "61",
+      "status": "active",
+      "priority": 0,
+      "variantOf": "sfx/menu_move"
     },
     {
       "key": "title",
@@ -4056,6 +5274,7 @@
       "durationMs": 32000,
       "samples": 705600,
       "sampleRate": 22050,
+      "channels": 1,
       "loop": true,
       "gainDb": 1.0,
       "ogg": "assets/audio/bgm/title.ogg",
@@ -4071,12 +5290,13 @@
       "kind": "bgm",
       "group": "bgm",
       "subgroup": "",
-      "desc": "1~2층(술독·도박장)",
-      "note": "1~2층(술독·도박장). 저음 드론 위에 취한 류트 아르페지오와 손북. A 단조, 96 BPM",
-      "trigger": "층 1,2",
+      "desc": "2층(도박장) — 61라운드부터 1층은 전용 곡 f1_jan",
+      "note": "2층(도박장) — 61라운드부터 1층은 전용 곡 f1_jan. 저음 드론 위에 취한 류트 아르페지오와 손북. A 단조, 96 BPM",
+      "trigger": "층 2",
       "durationMs": 30000,
       "samples": 661500,
       "sampleRate": 22050,
+      "channels": 1,
       "loop": true,
       "gainDb": -0.5,
       "ogg": "assets/audio/bgm/floor_low.ogg",
@@ -4098,6 +5318,7 @@
       "durationMs": 28800,
       "samples": 635040,
       "sampleRate": 22050,
+      "channels": 1,
       "loop": true,
       "gainDb": 3.5,
       "ogg": "assets/audio/bgm/floor_mid.ogg",
@@ -4119,6 +5340,7 @@
       "durationMs": 32000,
       "samples": 705600,
       "sampleRate": 22050,
+      "channels": 1,
       "loop": true,
       "gainDb": -2.5,
       "ogg": "assets/audio/bgm/floor_high.ogg",
@@ -4140,6 +5362,7 @@
       "durationMs": 27429,
       "samples": 604800,
       "sampleRate": 22050,
+      "channels": 1,
       "loop": true,
       "gainDb": 1.5,
       "ogg": "assets/audio/bgm/boss.ogg",
@@ -4161,6 +5384,7 @@
       "durationMs": 32000,
       "samples": 705600,
       "sampleRate": 22050,
+      "channels": 1,
       "loop": true,
       "gainDb": -3.5,
       "ogg": "assets/audio/bgm/emperor.ogg",
@@ -4169,6 +5393,139 @@
       "status": "active",
       "loopStartSample": 0,
       "loopEndSample": 705600
+    },
+    {
+      "key": "f1_outside",
+      "id": "bgm/f1_outside",
+      "kind": "bgm",
+      "group": "bgm",
+      "subgroup": "",
+      "desc": "1층 벽 밖(탄생지·버려진 길·국경 초소)",
+      "note": "1층 벽 밖(탄생지·버려진 길·국경 초소). 96 s 루프, 44.1 kHz 스테레오. 좌우가 따로 부는 바람(돌풍 3겹 · 가는 휘파람) + 아주 낮은 A1·E2 드론 + 먼 포성 8번(언덕 메아리) + 바람에 흔들리는 쇠고리·녹슨 삐걱 + 멀리서 류트 네 음 두 번 + 중반의 서늘한 고음 한 가닥. 박자 없음, 비어 있는 시간이 대부분. 권장 음량 +3.5 dB = RMS 약 -23 dBFS(전투 곡보다 2 dB 작게 — 적막)",
+      "trigger": "1층 여정(벽 밖)",
+      "durationMs": 96000,
+      "samples": 4233600,
+      "sampleRate": 44100,
+      "channels": 2,
+      "loop": true,
+      "gainDb": 3.5,
+      "ogg": "assets/audio/bgm/f1_outside.ogg",
+      "m4a": "assets/audio/bgm/f1_outside.m4a",
+      "round": "61",
+      "status": "active",
+      "use": {
+        "floor": 1,
+        "state": "journey"
+      },
+      "loopStartSample": 0,
+      "loopEndSample": 4233600
+    },
+    {
+      "key": "f1_jan",
+      "id": "bgm/f1_jan",
+      "kind": "bgm",
+      "group": "bgm",
+      "subgroup": "",
+      "desc": "1층 잔 거리(전투 노드)",
+      "note": "1층 잔 거리(전투 노드). 96 s 루프(80마디), 44.1 kHz 스테레오, A 단조 3/4 150 BPM. 술집 골목의 비틀린 왈츠: 콘트라베이스 1박 + 손풍금 2·3박(빈 왈츠처럼 2박이 살짝 이르고 3박이 늦음), 취한 바이올린 주제(아래에서 미끄러져 들어가는 음, 끝이 처지는 음), 손북·숟가락·탬버린·술병. 구성 A(골목) → B(주제) → C(긴장: 삼전음 드론, 활 떨기, 타악 증가) → B'(주제 + 류트 대선율 + 옥타브 아래 바이올린) → D(쉼·쌓기: 낮은 반복음 → 반음계 상승 + 롤). 권장 음량 +3.5 dB = RMS 약 -21 dBFS",
+      "trigger": "1층 전투",
+      "durationMs": 96000,
+      "samples": 4233600,
+      "sampleRate": 44100,
+      "channels": 2,
+      "loop": true,
+      "gainDb": 3.5,
+      "ogg": "assets/audio/bgm/f1_jan.ogg",
+      "m4a": "assets/audio/bgm/f1_jan.m4a",
+      "round": "61",
+      "status": "active",
+      "use": {
+        "floor": 1,
+        "state": "combat"
+      },
+      "loopStartSample": 0,
+      "loopEndSample": 4233600
+    },
+    {
+      "key": "f1_boss_p1",
+      "id": "bgm/f1_boss_p1",
+      "kind": "bgm",
+      "group": "bgm",
+      "subgroup": "",
+      "desc": "1층 보스 '만취' 1국면",
+      "note": "1층 보스 '만취' 1국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 1국면(기본): 비틀거리는 베이스 오스티나토(e0 근음·e2 옥타브·e3 5음·e5 반음) + 손풍금 찌르기 + 손북·숟가락 + 취한 바이올린 주제 둘 + D 구간 반음씩 내려가며 도는 8분음 + 낮은 뿔나팔 + D1 드론. 권장 음량 0 dB(세 국면 공통) — RMS 1국면 -22.8 · 2국면 -21.1 · 3국면 -20.2 dBFS",
+      "trigger": "1층 보스 1국면",
+      "durationMs": 72000,
+      "samples": 3175200,
+      "sampleRate": 44100,
+      "channels": 2,
+      "loop": true,
+      "gainDb": 0.0,
+      "ogg": "assets/audio/bgm/f1_boss_p1.ogg",
+      "m4a": "assets/audio/bgm/f1_boss_p1.m4a",
+      "round": "61",
+      "status": "active",
+      "use": {
+        "floor": 1,
+        "state": "boss",
+        "phase": 1
+      },
+      "loopStartSample": 0,
+      "loopEndSample": 3175200
+    },
+    {
+      "key": "f1_boss_p2",
+      "id": "bgm/f1_boss_p2",
+      "kind": "bgm",
+      "group": "bgm",
+      "subgroup": "",
+      "desc": "1층 보스 '만취' 2국면",
+      "note": "1층 보스 '만취' 2국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 2국면(타악 추가): 1국면 + 큰 북(e0, 홀수 마디 e3) · 술통 '통'(e1·e4, 좌우) · 탬버린 8분음 · 스네어 e3 · 8마디 끝 북·스네어 몰아치기 · 숨 고르기 구간의 심장 박동 북",
+      "trigger": "1층 보스 2국면",
+      "durationMs": 72000,
+      "samples": 3175200,
+      "sampleRate": 44100,
+      "channels": 2,
+      "loop": true,
+      "gainDb": 0.0,
+      "ogg": "assets/audio/bgm/f1_boss_p2.ogg",
+      "m4a": "assets/audio/bgm/f1_boss_p2.m4a",
+      "round": "61",
+      "status": "active",
+      "use": {
+        "floor": 1,
+        "state": "boss",
+        "phase": 2
+      },
+      "loopStartSample": 0,
+      "loopEndSample": 3175200
+    },
+    {
+      "key": "f1_boss_p3",
+      "id": "bgm/f1_boss_p3",
+      "kind": "bgm",
+      "group": "bgm",
+      "subgroup": "",
+      "desc": "1층 보스 '만취' 3국면",
+      "note": "1층 보스 '만취' 3국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 3국면(왜곡·불): 2국면 전체를 0.5 Hz 로 울렁이게(±0.6 % 음높이, 좌우 엇갈림 — '세상이 돈다') + 옥타브 위 왜곡 베이스 + 삼전음 뿔나팔(D+G#) + 8마디 끝 상승 소음 + 좌우를 도는 불길·타닥",
+      "trigger": "1층 보스 3국면",
+      "durationMs": 72000,
+      "samples": 3175200,
+      "sampleRate": 44100,
+      "channels": 2,
+      "loop": true,
+      "gainDb": 0.0,
+      "ogg": "assets/audio/bgm/f1_boss_p3.ogg",
+      "m4a": "assets/audio/bgm/f1_boss_p3.m4a",
+      "round": "61",
+      "status": "active",
+      "use": {
+        "floor": 1,
+        "state": "boss",
+        "phase": 3
+      },
+      "loopStartSample": 0,
+      "loopEndSample": 3175200
     },
     {
       "key": "katana_echo",
@@ -4182,12 +5539,14 @@
       "durationMs": 250,
       "samples": 11025,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -4,
       "ogg": "assets/audio/sfx/katana_echo.ogg",
       "m4a": "assets/audio/sfx/katana_echo.m4a",
       "round": "",
-      "status": "archived"
+      "status": "archived",
+      "priority": 2
     },
     {
       "key": "gs_plunge",
@@ -4201,12 +5560,14 @@
       "durationMs": 690,
       "samples": 30429,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": -1,
       "ogg": "assets/audio/sfx/gs_plunge.ogg",
       "m4a": "assets/audio/sfx/gs_plunge.m4a",
       "round": "",
-      "status": "archived"
+      "status": "archived",
+      "priority": 2
     },
     {
       "key": "gs_crack",
@@ -4220,12 +5581,14 @@
       "durationMs": 1000,
       "samples": 44100,
       "sampleRate": 44100,
+      "channels": 1,
       "loop": false,
       "gainDb": 0,
       "ogg": "assets/audio/sfx/gs_crack.ogg",
       "m4a": "assets/audio/sfx/gs_crack.m4a",
       "round": "",
-      "status": "archived"
+      "status": "archived",
+      "priority": 2
     }
   ]
 }

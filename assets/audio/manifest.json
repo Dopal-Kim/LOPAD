@@ -19,6 +19,10 @@
         "oggQuality": 4,
         "m4aKbps": 64
       },
+      "bgmStereo": {
+        "oggQuality": 4,
+        "m4aKbps": 128
+      },
       "sfx": {
         "oggQuality": 4,
         "m4aKbps": 96
@@ -33,7 +37,8 @@
     "peakDbfs": -6.0,
     "sfxSampleRate": 44100,
     "bgmSampleRate": 22050,
-    "channels": 1
+    "channels": 1,
+    "perEntryNote": "61라운드 1층 전용 곡(bgm/f1_*)은 44.1 kHz 스테레오(channels 2). 위 bgmSampleRate·channels 는 기존 곡 기준값이고, 루프 초 계산 등은 항목의 sampleRate·channels 를 쓴다."
   },
   "mixing": {
     "masterDb": 0.0,
@@ -41,10 +46,203 @@
     "bgmBusDb": -8.0,
     "bgmCrossfadeMs": 1200,
     "bgmBossDuckDb": -3.0,
-    "note": "gainDb 는 버스 기준 상대값(dB). BGM 의 gainDb 는 곡 간 RMS 를 약 -21 dBFS 로 맞추는 보정값. 같은 효과음 20ms 내 중복 재생은 1회로 묶기 권장."
+    "note": "gainDb 는 버스 기준 상대값(dB). BGM 의 gainDb 는 곡 간 RMS 를 약 -21 dBFS 로 맞추는 보정값. 같은 효과음 20ms 내 중복 재생은 1회로 묶기 권장.",
+    "dedupeMs": 20,
+    "voices": {
+      "maxSfx": 12,
+      "maxUi": 2,
+      "perGroupMax": 3,
+      "perGroupOverrides": {
+        "sfx/hit_enemy": 4,
+        "sfx/hit_enemy_crit": 2,
+        "sfx/enemy_death": 3,
+        "sfx/hit_player": 2,
+        "sfx/dash": 1,
+        "sfx/swing_katana": 2,
+        "sfx/swing_greatsword": 2,
+        "sfx/swing_dagger": 3,
+        "sfx/bow_shot": 3,
+        "sfx/pickup_gold": 3,
+        "sfx/guard_block": 2,
+        "sfx/parry": 1,
+        "sfx/combo_finish": 1
+      },
+      "steal": "lowest-priority-oldest",
+      "note": "동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). loop 항목은 빼앗지 않는다(상태가 끝날 때 시스템이 멈춤) — 대신 같은 id 는 1개만. UI 는 별도 상한 maxUi."
+    },
+    "priority": {
+      "tiers": [
+        {
+          "level": 4,
+          "name": "telegraph",
+          "label": "보스 예고·보스 신호",
+          "events": [
+            "BOSS_TELEGRAPH",
+            "BOSS_STARTED",
+            "BOSS_PHASE",
+            "BOSS_DIED"
+          ]
+        },
+        {
+          "level": 3,
+          "name": "hurt",
+          "label": "주인공 피격·방어 판정·적 공격 예고",
+          "events": [
+            "PLAYER_DAMAGED",
+            "PARRY_SUCCESS",
+            "PERFECT_GUARD",
+            "PERFECT_SUCCESS",
+            "ENEMY_TELEGRAPH",
+            "RUN_ENDED"
+          ]
+        },
+        {
+          "level": 2,
+          "name": "hit",
+          "label": "타격·처치·공격 동작(주인공·적·보스)",
+          "events": [
+            "(그 밖의 combat·boss 분류)"
+          ]
+        },
+        {
+          "level": 1,
+          "name": "ambient",
+          "label": "환경·획득·이벤트·패시브·상태 부가음",
+          "events": [
+            "PASSIVE_PROC",
+            "STATUS_CHANGED",
+            "(world·pickup·event 분류)"
+          ]
+        },
+        {
+          "level": 0,
+          "name": "ui",
+          "label": "UI — 별도 버스, 상한·빼앗기 대상 아님",
+          "events": [
+            "UI_MENU_*",
+            "(ui 분류)"
+          ]
+        }
+      ],
+      "note": "각 효과음 항목의 priority 필드에 이미 계산돼 있다(변주는 원본과 같음). 숫자가 클수록 먼저."
+    },
+    "ducking": [
+      {
+        "when": "priority 4 재생 시작",
+        "target": "sfx priority ≤ 2",
+        "db": -6.0,
+        "attackMs": 15,
+        "releaseMs": 250,
+        "hold": "그 소리 길이 동안",
+        "note": "보스 예고음이 묻히지 않게"
+      },
+      {
+        "when": "priority 4 재생 시작",
+        "target": "bgm",
+        "db": -3.0,
+        "attackMs": 30,
+        "releaseMs": 400,
+        "hold": "그 소리 길이 동안",
+        "note": "bgmBossDuckDb 위에 더해짐"
+      },
+      {
+        "when": "sfx/hit_player 그룹 재생",
+        "target": "sfx priority ≤ 2",
+        "db": -3.0,
+        "attackMs": 5,
+        "releaseMs": 180,
+        "hold": "150 ms",
+        "note": "맞은 순간이 또렷하게"
+      }
+    ],
+    "variation": {
+      "policy": "random-no-repeat",
+      "rateJitter": 0.03,
+      "applyTo": "priority 1~3 의 짧은 효과음(loop·UI·BGM 제외)",
+      "note": "원본 트리거가 오면 variants 목록에서 직전과 다른 하나를 고르고, 재생 속도를 1 ± rateJitter 로 흔든다(피치 ±약 50 cent). 변주 없는 소리도 rateJitter 만 적용 — 같은 소리 반복 피로를 줄인다. 이전 권장(±4 %)을 ±3 % 로 줄임(변주가 생겨서)."
+    },
+    "masterLimiter": {
+      "thresholdDb": -3.0,
+      "kneeDb": 6.0,
+      "ratio": 12.0,
+      "attackMs": 3,
+      "releaseMs": 120,
+      "note": "Web Audio DynamicsCompressorNode 를 마스터 끝에 하나. 61라운드 타격음이 같은 피크에서 짧은 구간 음량이 커져(약 +4~7 dB) 몰릴 때 찌그러짐을 막는다."
+    },
+    "bgmPhaseCrossfadeMs": 800,
+    "bgmPhaseSyncPosition": true,
+    "bgmPhaseNote": "bgmByFloorState[층].bossPhases 의 곡들은 길이·박자 격자가 같다. BOSS_PHASE 에서 다음 곡을 지금 곡의 재생 위치(초)에서 시작해 bgmPhaseCrossfadeMs 로 교차 페이드하면 층이 더해지는 것처럼 들린다. 위치를 못 맞추면 처음부터 + bgmCrossfadeMs 로 바꿔도 된다.",
+    "bgmJourneyNote": "bgmByFloorState[층].journey = 그 층의 전투 전 여정(벽 밖 · 탄생지 · 버려진 길 · 국경 초소)과 휴식·지도 화면. 전투 노드에 들어가면 bgmByFloor[층](= combat)으로 bgmCrossfadeMs 교차 페이드.",
+    "variantGroups": {
+      "sfx/hit_enemy": [
+        "sfx/hit_enemy",
+        "sfx/hit_enemy_v2",
+        "sfx/hit_enemy_v3"
+      ],
+      "sfx/hit_enemy_crit": [
+        "sfx/hit_enemy_crit",
+        "sfx/hit_enemy_crit_v2"
+      ],
+      "sfx/enemy_death": [
+        "sfx/enemy_death",
+        "sfx/enemy_death_v2",
+        "sfx/enemy_death_v3"
+      ],
+      "sfx/hit_player": [
+        "sfx/hit_player",
+        "sfx/hit_player_v2",
+        "sfx/hit_player_v3"
+      ],
+      "sfx/dash": [
+        "sfx/dash",
+        "sfx/dash_v2",
+        "sfx/dash_v3"
+      ],
+      "sfx/guard_block": [
+        "sfx/guard_block",
+        "sfx/guard_block_v2"
+      ],
+      "sfx/combo_finish": [
+        "sfx/combo_finish",
+        "sfx/combo_finish_v2"
+      ],
+      "sfx/parry": [
+        "sfx/parry",
+        "sfx/parry_v2"
+      ],
+      "sfx/swing_katana": [
+        "sfx/swing_katana",
+        "sfx/swing_katana_v2",
+        "sfx/swing_katana_v3"
+      ],
+      "sfx/swing_greatsword": [
+        "sfx/swing_greatsword",
+        "sfx/swing_greatsword_v2",
+        "sfx/swing_greatsword_v3"
+      ],
+      "sfx/swing_dagger": [
+        "sfx/swing_dagger",
+        "sfx/swing_dagger_v2",
+        "sfx/swing_dagger_v3"
+      ],
+      "sfx/bow_shot": [
+        "sfx/bow_shot",
+        "sfx/bow_shot_v2",
+        "sfx/bow_shot_v3"
+      ],
+      "sfx/pickup_gold": [
+        "sfx/pickup_gold",
+        "sfx/pickup_gold_v2",
+        "sfx/pickup_gold_v3"
+      ],
+      "sfx/menu_move": [
+        "sfx/menu_move",
+        "sfx/menu_move_v2"
+      ]
+    }
   },
   "bgmByFloor": {
-    "1": "bgm/floor_low",
+    "1": "bgm/f1_jan",
     "2": "bgm/floor_low",
     "3": "bgm/floor_mid",
     "4": "bgm/floor_mid",
@@ -58,6 +256,19 @@
     "boss": "bgm/boss",
     "emperor": "bgm/emperor"
   },
+  "bgmByFloorState": {
+    "1": {
+      "journey": "bgm/f1_outside",
+      "combat": "bgm/f1_jan",
+      "bossPhases": [
+        "bgm/f1_boss_p1",
+        "bgm/f1_boss_p2",
+        "bgm/f1_boss_p3"
+      ],
+      "boss": "bgm/f1_boss_p1"
+    }
+  },
+  "bgmByFloorStateNote": "층별 상태 곡(61라운드). 찾는 순서: bgmByFloorState[층][상태] → 없으면 bgmByFloor[층](전투) · bgmByState[상태]. 상태 journey = 전투 전 여정, combat = 전투 노드(= bgmByFloor[층]), boss = 보스 1국면, bossPhases = BOSS_PHASE 마다 다음 곡(mixing.bgmPhase*).",
   "entries": [
     {
       "id": "sfx/swing_katana",
@@ -70,8 +281,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 8820,
-      "durationMs": 200,
+      "samples": 9702,
+      "durationMs": 220,
       "loop": false,
       "gainDb": -2,
       "trigger": {
@@ -80,7 +291,13 @@
           "weapon:katana"
         ]
       },
-      "note": "사무라이 칼 휘두름. 얇고 빠른 강철 바람"
+      "priority": 2,
+      "variants": [
+        "sfx/swing_katana",
+        "sfx/swing_katana_v2",
+        "sfx/swing_katana_v3"
+      ],
+      "note": "칼 휘두름(61라운드 품질 패스 — 2.4 kHz 쇳소리 제거). 날이 가르는 고역 바람(6.2k→2k) + 팔·몸의 낮은 바람(1.3k→550) + 날 끝 '시'. 변주 v2·v3"
     },
     {
       "id": "sfx/swing_greatsword",
@@ -93,8 +310,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 17199,
-      "durationMs": 390,
+      "samples": 20286,
+      "durationMs": 460,
       "loop": false,
       "gainDb": -1,
       "trigger": {
@@ -103,7 +320,13 @@
           "weapon:greatsword"
         ]
       },
-      "note": "대검 휘두름. 무겁고 낮은 바람, 끝에 둔탁한 무게"
+      "priority": 2,
+      "variants": [
+        "sfx/swing_greatsword",
+        "sfx/swing_greatsword_v2",
+        "sfx/swing_greatsword_v3"
+      ],
+      "note": "대검 휘두름(61라운드 품질 패스). 올랐다 내려가는 무거운 바람(250→900→220 Hz) + 칼 질량의 낮은 울림(75→48 Hz) + 가죽 손잡이 + 끝에 디딤. 변주 v2·v3"
     },
     {
       "id": "sfx/swing_dagger",
@@ -126,7 +349,13 @@
           "weapon:dagger"
         ]
       },
-      "note": "단검. 아주 짧고 높은 스침"
+      "priority": 2,
+      "variants": [
+        "sfx/swing_dagger",
+        "sfx/swing_dagger_v2",
+        "sfx/swing_dagger_v3"
+      ],
+      "note": "단검 찌르기·스침(61라운드 품질 패스). 아주 짧은 고역 '슉'(8.5k→3.2k) + 손목의 작은 바람 + 끝 '틱'. 변주 v2·v3"
     },
     {
       "id": "sfx/bow_shot",
@@ -139,8 +368,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 13230,
-      "durationMs": 300,
+      "samples": 14112,
+      "durationMs": 320,
       "loop": false,
       "gainDb": -2,
       "trigger": {
@@ -149,7 +378,13 @@
           "weapon:bow"
         ]
       },
-      "note": "활 발사. 시위 튕김 + 화살 바람"
+      "priority": 2,
+      "variants": [
+        "sfx/bow_shot",
+        "sfx/bow_shot_v2",
+        "sfx/bow_shot_v3"
+      ],
+      "note": "활 짧게 쏘기(61라운드 품질 패스). 시위 '퉁'(165 Hz, 짧게) + 활대 '텅' + 팔찌 가죽 + 멀어지는 화살 바람(3.2k→1.5k) + 깃 떨림. 변주 v2·v3"
     },
     {
       "id": "sfx/bow_aimed",
@@ -173,6 +408,7 @@
           "phase:release"
         ]
       },
+      "priority": 2,
       "note": "조준 사격 발사. 깊은 시위 + 꿰뚫는 바람"
     },
     {
@@ -197,6 +433,7 @@
           "phase:start"
         ]
       },
+      "priority": 2,
       "note": "조준 사격 시위 당기기(600ms 차지에 맞춤). 삐걱이는 나무·현"
     },
     {
@@ -210,15 +447,21 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 6615,
-      "durationMs": 150,
+      "samples": 8820,
+      "durationMs": 200,
       "loop": false,
-      "gainDb": 0,
+      "gainDb": -3,
       "trigger": {
         "event": "ENEMY_DAMAGED",
         "when": []
       },
-      "note": "적 피격. 날이 박히는 짧은 타격 + 몸통 둔탁음"
+      "priority": 2,
+      "variants": [
+        "sfx/hit_enemy",
+        "sfx/hit_enemy_v2",
+        "sfx/hit_enemy_v3"
+      ],
+      "note": "적 피격(61라운드 품질 패스). 짧은 넓은 대역 '딱' + 날이 지나가는 고역 '샥' + 피치가 떨어지는 몸통 '퍽'(230→85 Hz) + 살·천 노이즈 + 낮은 무게 + 젖은 꼬리. 금속 울림 없음. 변주 v2·v3 와 번갈아. 권장 음량 0 → -3 dB(같은 피크에서 짧은 구간 음량이 약 +7 dB 커져 일부만 되돌림)"
     },
     {
       "id": "sfx/hit_enemy_crit",
@@ -231,8 +474,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 11025,
-      "durationMs": 250,
+      "samples": 15876,
+      "durationMs": 360,
       "loop": false,
       "gainDb": 0,
       "trigger": {
@@ -241,7 +484,12 @@
           "crit:true"
         ]
       },
-      "note": "급소 적중. 피격음 위에 밝은 강철 울림"
+      "priority": 2,
+      "variants": [
+        "sfx/hit_enemy_crit",
+        "sfx/hit_enemy_crit_v2"
+      ],
+      "note": "급소 적중(61라운드 품질 패스 — 강철 울림 제거). 겹으로 꺾이는 '딱-딱' + 밝게 베는 '샤악' + 깊은 몸통(200→62 Hz) + 으스러지는 살 결(샘플 홀드) + 아래로 떨어지는 '쿵' + 번쩍이는 고역 공기. 작은 방 울림"
     },
     {
       "id": "sfx/hit_player",
@@ -254,15 +502,21 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 14994,
-      "durationMs": 340,
+      "samples": 18522,
+      "durationMs": 420,
       "loop": false,
       "gainDb": 0,
       "trigger": {
         "event": "PLAYER_DAMAGED",
         "when": []
       },
-      "note": "주인공 피격(60라운드 Q22 재제작 — 쇳소리 울림 제거). 몸에 꽂히는 둔탁한 충격 + 가죽·천이 눌리는 짧은 퍽 + 뼈에 울리는 낮은 쿵 + 숨이 밀려 나가는 짧은 바람(노이즈, 목소리 아님)"
+      "priority": 3,
+      "variants": [
+        "sfx/hit_player",
+        "sfx/hit_player_v2",
+        "sfx/hit_player_v3"
+      ],
+      "note": "주인공 피격(60 Q22 재제작 → 61라운드 품질 패스, 금속 울림 없음). 둔한 '딱' + 몸에 꽂히는 충격(150→58 Hz) + 가죽·천 '퍽' + 뼈에 울리는 저음 + 숨 밀림(노이즈) + 귀가 먹먹해지는 고역 하강 + 0.11 s 밀려 디딤. 적 피격보다 낮고 둔해 구별된다. 변주 v2·v3"
     },
     {
       "id": "sfx/parry",
@@ -275,15 +529,20 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 26460,
-      "durationMs": 600,
+      "samples": 25137,
+      "durationMs": 570,
       "loop": false,
       "gainDb": 0,
       "trigger": {
         "event": "PARRY_SUCCESS",
         "when": []
       },
-      "note": "패링 성공. 강철이 맞부딪히는 밝은 울림(오래 남는다)"
+      "priority": 3,
+      "variants": [
+        "sfx/parry",
+        "sfx/parry_v2"
+      ],
+      "note": "패링 성공(61라운드 품질 패스 — 1.5 kHz 대 오래 남던 울림 제거). 맞부딪히는 날카로운 '창' + 손에 오는 충격 + 2.9 kHz 위 짧은 쇳소리(0.07 s 감쇠) + 날이 미끄러지는 상승 스침 + 불똥. 변주 v2"
     },
     {
       "id": "sfx/guard_hold",
@@ -309,6 +568,7 @@
           "phase:hold"
         ]
       },
+      "priority": 2,
       "note": "가드 유지 루프. 낮은 긴장 울림 + 강철 떨림(누르는 동안 반복)"
     },
     {
@@ -333,6 +593,7 @@
           "phase:release"
         ]
       },
+      "priority": 2,
       "note": "가드 해제 밀치기. 낮은 폭발적 압력 + 바람"
     },
     {
@@ -356,6 +617,7 @@
           "kind:shadowstep"
         ]
       },
+      "priority": 2,
       "note": "그림자 걸음. 숨 빨려드는 역방향 바람 + 낮은 음이 꺼진다"
     },
     {
@@ -369,15 +631,21 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 10143,
-      "durationMs": 230,
+      "samples": 11907,
+      "durationMs": 270,
       "loop": false,
-      "gainDb": -5,
+      "gainDb": -3,
       "trigger": {
         "event": "PLAYER_DASH",
         "when": []
       },
-      "note": "대쉬. 짧은 상승 바람 + 발 디딤(60라운드 Q22: 권장 음량 -3 → -5 dB, 파일은 그대로)"
+      "priority": 2,
+      "variants": [
+        "sfx/dash",
+        "sfx/dash_v2",
+        "sfx/dash_v3"
+      ],
+      "note": "대쉬(61라운드 품질 패스, 60 Q22 음량 -5 dB 유지). 박차는 발 + 흙 긁힘 + 몸이 가르는 부드러운 바람(450→1.7k) + 옷자락 펄럭 + 끝 착지 톡. 날카로운 고역을 줄여 자주 들어도 덜 거슬리게. 변주 v2·v3. 권장 음량 -5 → -3 dB: 파일 자체가 고역을 줄여 약 3 dB 작아졌으므로, 합쳐서 60 Q22 판(-5 dB)보다 약 1 dB 작다"
     },
     {
       "id": "sfx/pickup_gold",
@@ -390,8 +658,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 11907,
-      "durationMs": 270,
+      "samples": 14112,
+      "durationMs": 320,
       "loop": false,
       "gainDb": -4,
       "trigger": {
@@ -400,7 +668,13 @@
           "delta>0"
         ]
       },
-      "note": "동전 획득. 작은 금속 두 번 울림"
+      "priority": 1,
+      "variants": [
+        "sfx/pickup_gold",
+        "sfx/pickup_gold_v2",
+        "sfx/pickup_gold_v3"
+      ],
+      "note": "동전 획득(61라운드 품질 패스). 높고 짧은 동전 두 번(3.8k·4.75k, 0.035 s 감쇠) + 주머니에 들어가는 '툭'·가죽 스침. 변주 v2·v3(동전 수·음높이 다름)"
     },
     {
       "id": "sfx/pickup_potion",
@@ -413,17 +687,18 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 15435,
-      "durationMs": 350,
+      "samples": 18522,
+      "durationMs": 420,
       "loop": false,
-      "gainDb": -4,
+      "gainDb": -2,
       "trigger": {
         "event": "ITEM_PICKUP",
         "when": [
           "item:potion"
         ]
       },
-      "note": "물약 획득. 유리병 맑은 울림 + 액체 흔들림"
+      "priority": 1,
+      "note": "물약 획득(61라운드 품질 패스). 유리병 짧은 '틱'(2.6 kHz, 울림 짧게) + 병 속 출렁 + 마개 '톡' + 허리춤에 거는 가죽 스침. 권장 음량 -4 → -2 dB(울림을 줄여 짧은 구간 음량이 약 5 dB 작아진 만큼 일부 보정)"
     },
     {
       "id": "sfx/potion_use",
@@ -446,6 +721,7 @@
           "source:potion"
         ]
       },
+      "priority": 1,
       "note": "물약 마심. 병 뚜껑, 꿀꺽 두 번, 짧은 숨"
     },
     {
@@ -467,6 +743,7 @@
         "event": "SHOP_PURCHASE",
         "when": []
       },
+      "priority": 1,
       "note": "상점 구매. 동전 몇 개 떨어지고 나무 좌판 두드림"
     },
     {
@@ -490,6 +767,7 @@
           "type:trial"
         ]
       },
+      "priority": 1,
       "note": "시련 방 문 잠김. 두꺼운 나무 문 + 쇠 걸쇠"
     },
     {
@@ -503,15 +781,16 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 30870,
-      "durationMs": 700,
+      "samples": 48510,
+      "durationMs": 1100,
       "loop": false,
       "gainDb": -3,
       "trigger": {
         "event": "ROOM_CLEARED",
         "when": []
       },
-      "note": "방 클리어, 문 열림. 걸쇠 풀림 + 나무 삐걱"
+      "priority": 1,
+      "note": "방 클리어 · 문 열림(61라운드 품질 패스, 0.7 → 1.1 s). 나무 빗장 들어 올림 + 쇠 걸쇠 '철컥'(울림 짧게) + 나무 문 삐걱 + 문이 미는 낮은 바람 + 벽에 닿는 '쿵', 돌방 울림"
     },
     {
       "id": "sfx/boss_unlock",
@@ -535,6 +814,7 @@
           "bossUnlocked"
         ]
       },
+      "priority": 1,
       "note": "본영 문 열림. 쇠사슬 세 번 + 무거운 울림"
     },
     {
@@ -559,6 +839,7 @@
           "exitOpened"
         ]
       },
+      "priority": 1,
       "note": "오르는 길 열림. 돌이 미끄러지는 긴 마찰 + 낮게 울리는 종"
     },
     {
@@ -580,6 +861,7 @@
         "event": "STAGE_STARTED",
         "when": []
       },
+      "priority": 1,
       "note": "층 진입. 멀리서 북 한 번, 바람, 낮은 드론이 잠깐 부푼다"
     },
     {
@@ -604,6 +886,7 @@
           "saved"
         ]
       },
+      "priority": 0,
       "note": "기록 저장. 깃펜이 종이를 긁는 짧은 소리 두 번"
     },
     {
@@ -617,15 +900,20 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 3087,
-      "durationMs": 70,
+      "samples": 3528,
+      "durationMs": 80,
       "loop": false,
       "gainDb": -8,
       "trigger": {
         "event": "UI_MENU_MOVE",
         "when": []
       },
-      "note": "메뉴 이동. 나무를 톡 건드리는 작은 소리"
+      "priority": 0,
+      "variants": [
+        "sfx/menu_move",
+        "sfx/menu_move_v2"
+      ],
+      "note": "메뉴 이동(61라운드 품질 패스). 마른 나무 '톡'(1150 Hz, 7 ms 감쇠) — 더 둥글게. 변주 v2(1030 Hz)와 번갈아 쓰면 커서가 걷는 느낌"
     },
     {
       "id": "sfx/menu_select",
@@ -638,15 +926,16 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 6615,
-      "durationMs": 150,
+      "samples": 7497,
+      "durationMs": 170,
       "loop": false,
       "gainDb": -6,
       "trigger": {
         "event": "UI_MENU_SELECT",
         "when": []
       },
-      "note": "메뉴 선택. 도장 찍는 둔탁음 + 짧은 쇠 틱"
+      "priority": 0,
+      "note": "메뉴 선택(61라운드 품질 패스 — 쇠 틱 제거). 도장 '쿵'(220→95 Hz) + 종이 '탁' + 나무 '톡'"
     },
     {
       "id": "sfx/menu_cancel",
@@ -659,15 +948,16 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 6174,
-      "durationMs": 140,
+      "samples": 6615,
+      "durationMs": 150,
       "loop": false,
       "gainDb": -8,
       "trigger": {
         "event": "UI_MENU_CANCEL",
         "when": []
       },
-      "note": "메뉴 닫기/뒤로. 종이 넘기는 짧은 스침"
+      "priority": 0,
+      "note": "메뉴 닫기·뒤로(61라운드 품질 패스). 종이를 넘기는 짧은 '사락'(3k→1.2k) + 아래로 놓는 작은 '톡'"
     },
     {
       "id": "sfx/evolve",
@@ -688,6 +978,7 @@
         "event": "WEAPON_EVOLVED",
         "when": []
       },
+      "priority": 1,
       "note": "개성 변화. 낮게 부푸는 드론 위로 종 같은 상승 아르페지오(이질적·신비)"
     },
     {
@@ -709,6 +1000,7 @@
         "event": "WEAPON_REINFORCED",
         "when": []
       },
+      "priority": 1,
       "note": "무기 강화. 모루 위 망치질 한 번 + 쇠 울림"
     },
     {
@@ -730,6 +1022,7 @@
         "event": "FATE_DECIDED",
         "when": []
       },
+      "priority": 1,
       "note": "운명(무기) 결정. 일기장 덮는 둔탁음 + 낮은 종 한 번"
     },
     {
@@ -754,6 +1047,7 @@
           "trialClear"
         ]
       },
+      "priority": 1,
       "note": "시련 끝. 짧은 북 두 번, 낮은 울림"
     },
     {
@@ -775,6 +1069,7 @@
         "event": "BOSS_STARTED",
         "when": []
       },
+      "priority": 4,
       "note": "보스 등장. 큰 북 한 번 + 낮은 쇠 울림 + 서늘한 고음 한 가닥"
     },
     {
@@ -796,6 +1091,7 @@
         "event": "BOSS_PHASE",
         "when": []
       },
+      "priority": 4,
       "note": "보스 국면 전환. 낮은 북 + 불협 쇳소리 부풀기"
     },
     {
@@ -819,6 +1115,7 @@
           "attack:dash"
         ]
       },
+      "priority": 4,
       "note": "보스 돌진 예고(≈650ms). 낮게 울리며 올라가는 으르렁 + 쇠 긁힘"
     },
     {
@@ -842,6 +1139,7 @@
           "attack:fan"
         ]
       },
+      "priority": 2,
       "note": "보스 부채꼴 투사체. 짧은 투척음 연속 3개"
     },
     {
@@ -863,6 +1161,7 @@
         "event": "BOSS_DIED",
         "when": []
       },
+      "priority": 4,
       "note": "군주 쓰러짐. 긴 낮은 추락음 + 금속 조각 흩어짐 + 정적"
     },
     {
@@ -876,15 +1175,21 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 19845,
-      "durationMs": 450,
+      "samples": 29988,
+      "durationMs": 680,
       "loop": false,
       "gainDb": -2,
       "trigger": {
         "event": "ENEMY_DIED",
         "when": []
       },
-      "note": "일반 적 사망. 짧은 신음 비슷한 노이즈 + 몸이 떨어지는 둔탁음"
+      "priority": 2,
+      "variants": [
+        "sfx/enemy_death",
+        "sfx/enemy_death_v2",
+        "sfx/enemy_death_v3"
+      ],
+      "note": "일반 적 처치(61라운드 품질 패스). 마지막 타격 몸통 → 숨이 빠지는 노이즈(목소리 아님) → 0.13 s 몸이 땅에 '쿵' + 흙·자갈 + 장비 덜그럭(나무·가죽) → 한 번 튐 + 먼지. 변주 v2·v3"
     },
     {
       "id": "sfx/player_death",
@@ -907,6 +1212,7 @@
           "reason:death"
         ]
       },
+      "priority": 3,
       "note": "주인공 사망. 느리게 꺼지는 저음, 멀어지는 심장 박동 두 번, 바람"
     },
     {
@@ -930,6 +1236,7 @@
           "enemy:charger"
         ]
       },
+      "priority": 3,
       "note": "결사병 돌진 예고(600ms). 갑옷 덜그럭 + 빨라지는 발 디딤"
     },
     {
@@ -953,6 +1260,7 @@
           "enemy:charger"
         ]
       },
+      "priority": 2,
       "note": "결사병 돌진. 무거운 바람 + 갑옷 소리"
     },
     {
@@ -976,6 +1284,7 @@
           "enemy:archer"
         ]
       },
+      "priority": 2,
       "note": "사수 화승총 발사. 날카로운 격발 + 낮은 폭음 + 화약 연기 쉿"
     },
     {
@@ -999,6 +1308,7 @@
           "aux:true"
         ]
       },
+      "priority": 2,
       "note": "적이 맞고 내는 짧은 숨(피격음과 겹쳐 쓰는 보조음)"
     },
     {
@@ -1024,6 +1334,7 @@
           "phase:lift"
         ]
       },
+      "priority": 4,
       "note": "만취 큰 잔 들기. 옷 스침 + 유리잔 부딪힘 + 잔 속 술 출렁"
     },
     {
@@ -1051,6 +1362,7 @@
           "phase:gulp"
         ]
       },
+      "priority": 2,
       "note": "만취 꿀꺽꿀꺽 루프(2.0s, 마시는 2초 동안). 0.4초 간격 꿀꺽 5번 + 술 흐름 + 잔 속 거품. 잔이 깨지면 즉시 정지"
     },
     {
@@ -1076,6 +1388,7 @@
           "phase:finish"
         ]
       },
+      "priority": 2,
       "note": "만취 다 마심. '크아' 숨(노이즈 포먼트, 목소리 아님) + 잔 내려놓는 '탁'"
     },
     {
@@ -1101,6 +1414,7 @@
           "phase:broken"
         ]
       },
+      "priority": 2,
       "note": "약점 적중: 큰 잔 깨짐 + 술을 뒤집어씀(첨벙 + 물방울). 3초 경직 시작"
     },
     {
@@ -1126,6 +1440,7 @@
           "phase:start"
         ]
       },
+      "priority": 2,
       "note": "'세상이 돈다' 시작. 2초 주기로 울렁이며 내려가는 저음 스윕 + 소용돌이 바람 + 희미한 이질 고음"
     },
     {
@@ -1150,6 +1465,7 @@
           "attack:reel"
         ]
       },
+      "priority": 4,
       "note": "3연 취권 돌진 예고(타당 1회, 최단 예고 300ms 에 맞춰 0.30s). 휘청이는 으르렁 + 엇박 발 끌림"
     },
     {
@@ -1174,6 +1490,7 @@
           "attack:reel"
         ]
       },
+      "priority": 2,
       "note": "3연 취권 돌진(타당 1회). 휘는 궤적처럼 흔들리는 무거운 바람 + 쿵 디딤 + 옷 펄럭. 1·2·3타 rate 1.0/1.06/1.12 권장"
     },
     {
@@ -1199,6 +1516,7 @@
           "phase:fall"
         ]
       },
+      "priority": 2,
       "note": "3연 돌진 뒤 넘어짐 '쿵'(2초 경직 시작). 큰 몸통 충격 + 한 번 튐 + 잔·소품 굴러감 + 먼지"
     },
     {
@@ -1224,6 +1542,7 @@
           "phase:kick"
         ]
       },
+      "priority": 2,
       "note": "술통 걷어차기. 장화 타격 + 속 빈 나무통 울림 + 쇠테 틱 + 통 속 술 출렁"
     },
     {
@@ -1251,6 +1570,7 @@
           "phase:roll"
         ]
       },
+      "priority": 2,
       "note": "굴러가는 술통 루프(1.2s). 나무통 덜컹(0.12s 간격) + 낮은 굴림 + 속 술 출렁. 통이 멈추거나 부서지면 정지"
     },
     {
@@ -1276,6 +1596,7 @@
           "phase:bounce"
         ]
       },
+      "priority": 2,
       "note": "술통이 벽·기둥에 튕김. 돌에 부딪히는 나무통 + 속 빈 울림 + 쇠테 덜그럭 + 술 출렁"
     },
     {
@@ -1301,6 +1622,7 @@
           "phase:splash"
         ]
       },
+      "priority": 2,
       "note": "술 뿌리기 '첨벙'. 휙 던지는 바람 + 바닥에 퍼지는 물소리 + 물방울"
     },
     {
@@ -1326,6 +1648,7 @@
           "phase:throw"
         ]
       },
+      "priority": 2,
       "note": "횃불 던지기. 빙글 도는 불 바람(9Hz 맥동) + 타닥"
     },
     {
@@ -1351,6 +1674,7 @@
           "phase:ignite"
         ]
       },
+      "priority": 2,
       "note": "술 웅덩이 점화 '화르륵'. 낮은 펑 + 치솟는 불길 + 타닥"
     },
     {
@@ -1378,6 +1702,7 @@
           "phase:burn"
         ]
       },
+      "priority": 2,
       "note": "불 번짐 루프(2.0s). 일렁이는 낮은 불길 + 쉿 + 무작위 타닥. 웅덩이가 꺼지면 정지"
     },
     {
@@ -1403,6 +1728,7 @@
           "phase:topple"
         ]
       },
+      "priority": 2,
       "note": "촛대 쓰러짐(불 꺼짐). 쇠 촛대 넘어지는 쨍그랑 + 한 번 튐 + 불꽃 '훅' 꺼짐 + 내려앉는 저음"
     },
     {
@@ -1428,6 +1754,7 @@
           "phase:relight"
         ]
       },
+      "priority": 1,
       "note": "촛대 다시 켜기(타격·E). 쇠 촛대 틱 + 불꽃이 '화륵' 붙음 + 작은 타닥"
     },
     {
@@ -1451,6 +1778,7 @@
           "boss:1"
         ]
       },
+      "priority": 4,
       "note": "만취 페이즈 전환 들이켜기(선택, boss_phase 대신 또는 뒤에). 잔 출렁 + 빠른 꿀꺽 3번 + 큰 '크아' + 낮은 북"
     },
     {
@@ -1475,6 +1803,7 @@
           "phase:start"
         ]
       },
+      "priority": 2,
       "note": "대검 홀드 차지 시작(홀드 인식 0.18s 시점). 무거운 칼을 들어 올리는 쇳소리 + 숨처럼 차오르는 노이즈(목소리 아님)"
     },
     {
@@ -1500,6 +1829,7 @@
           "stage:1"
         ]
       },
+      "priority": 2,
       "note": "차지 1단(0.4 s, 60라운드 Q22 재제작 — 종소리 없음). 기를 모으는 느낌: 안으로 빨려드는 공기 + 낮게 차오르는 압력(55→70 Hz) + 손잡이 가죽 삐걱"
     },
     {
@@ -1525,6 +1855,7 @@
           "stage:2"
         ]
       },
+      "priority": 2,
       "note": "차지 2단(0.8 s, 60라운드 Q22 재제작 — 종소리 없음). 힘을 다해 모으는 느낌: 더 깊고 거세게 빨려드는 공기 + 9 Hz 로 떨리며 올라가는 압력(60→95 Hz) + 쇠가 버티는 낮은 끼익 + 발밑 자갈 떨림"
     },
     {
@@ -1550,6 +1881,7 @@
           "stage:3"
         ]
       },
+      "priority": 2,
       "note": "차지 3단(1.2 s, 최대 · 60라운드 Q22 재제작 — 종소리 없음). 힘을 다 짜내 공격 타이밍을 알림: 파일 0 s 에 또렷한 '척'(쥔 손·갑옷이 조여 붙는 단단한 딸깍 + 짧은 쿵) + 위로 터지는 공기 '파앗' → 12 Hz 로 떨리며 끓어 넘치는 압력(97 Hz) + 잔불 타닥. 0 s 신호가 '지금 놓아라'"
     },
     {
@@ -1577,6 +1909,7 @@
           "until:release"
         ]
       },
+      "priority": 2,
       "note": "차지 유지 루프(1.0s). 낮은 웅웅 + 느린 맥놀이 + 희미한 호박 험. start 에 페이드인 시작, release·피격 취소 시 정지"
     },
     {
@@ -1602,6 +1935,7 @@
           "stage:1"
         ]
       },
+      "priority": 2,
       "note": "차지 1단 내려찍기(판정 프레임에 재생). 지면 강타 + 돌 깨짐 + 칼날 쇳소리"
     },
     {
@@ -1627,6 +1961,7 @@
           "stage:2"
         ]
       },
+      "priority": 2,
       "note": "차지 2단 내려찍기. 1단보다 낮고 무거운 강타 + 부스러기 더 많이"
     },
     {
@@ -1652,6 +1987,7 @@
           "stage:3"
         ]
       },
+      "priority": 2,
       "note": "차지 3단 내려찍기(막타, 충격파 링). 가장 무거운 강타 + 바깥으로 퍼지는 충격파 꼬리 + 땅울림 + 백열 쇳소리"
     },
     {
@@ -1677,6 +2013,7 @@
           "phase:echo"
         ]
       },
+      "priority": 2,
       "note": "[보관 — 60라운드 Q6: 파일·manifest 항목 유지, 시스템 연결 끊음] 칼 3타 잔상 베기(본 타격 150ms 뒤 같은 호, 피해 50%). 같은 호를 다시 긋는 얇고 날카로운 바람 + 짧은 잔향 반복"
     },
     {
@@ -1690,15 +2027,16 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 41895,
-      "durationMs": 950,
+      "samples": 38367,
+      "durationMs": 870,
       "loop": false,
       "gainDb": 0,
       "trigger": {
         "event": "PERFECT_GUARD",
         "when": []
       },
-      "note": "퍼펙트 가드(가드 누른 직후 0.15s 안 피격 → 피해 0, 튕겨내지 않음). 충격이 흡수되는 짧은 둔탁음 + 맑게 오래 남는 금속 울림(A5·D6). 'PERFECT GUARD' 문구와 같은 프레임"
+      "priority": 3,
+      "note": "퍼펙트 가드(61라운드 품질 패스 — 880 Hz 종 울림 제거). 충격이 흡수되는 깊은 '훔'(100→40 Hz) + 날카로운 '딱' + 위로 번뜩이는 '키잉' 스침(5→9 kHz) + 3.5 kHz 위의 짧은 쇳빛 + 불똥 + 희미한 고역 잔광. 'PERFECT GUARD' 문구와 같은 프레임"
     },
     {
       "id": "sfx/parry_perfect",
@@ -1711,8 +2049,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 34839,
-      "durationMs": 790,
+      "samples": 27783,
+      "durationMs": 630,
       "loop": false,
       "gainDb": -2,
       "trigger": {
@@ -1722,7 +2060,8 @@
           "emphasis:true"
         ]
       },
-      "note": "칼 패링 성공 강조(기존 parry 위에 겹쳐 재생, 'PARRY' 문구·검기 1단 충전과 같은 프레임). 2 kHz 위 대역만: 날카로운 '키잉' + 위로 번뜩이는 스침 + 짧은 울림"
+      "priority": 3,
+      "note": "칼 패링 성공 강조(61라운드 품질 패스, 기존 parry 위에 겹쳐 재생, 'PARRY' 문구·검기 1단 충전과 같은 프레임). 1.8 kHz 위만: 위로 번뜩이는 '키잉' 스침(4→11 kHz) + 4.2 kHz 짧은 쇳빛 + 불똥 + 딸깍"
     },
     {
       "id": "sfx/groggy_start",
@@ -1745,6 +2084,7 @@
           "event:groggy"
         ]
       },
+      "priority": 2,
       "note": "그로기 시작(칼·대검 기력 0, 1.5s). 기운이 빠지는 하강음 + 거친 숨 헐떡임 두 번(노이즈 포먼트, 목소리 아님) + 무릎이 꺾이는 둔탁음 + 갑옷 처짐"
     },
     {
@@ -1770,6 +2110,7 @@
           "stage:1"
         ]
       },
+      "priority": 2,
       "note": "검기 1단 도달(재빛 칼날, 60라운드 Q22 재제작). 지글지글 타기 시작: 칼날을 스치는 첫 불씨 + 지짐 쉿 + 잔 타닥"
     },
     {
@@ -1795,6 +2136,7 @@
           "stage:2"
         ]
       },
+      "priority": 2,
       "note": "검기 2단 도달(호박빛, 60라운드 Q22 재제작). 본격적으로 타오름: 불이 붙는 '훅' + 컷오프가 열리며 치솟는 불길 + 지짐 + 촘촘한 타닥"
     },
     {
@@ -1820,6 +2162,7 @@
           "stage:3"
         ]
       },
+      "priority": 2,
       "note": "검기 3단 도달(백열, 그림자 분신 준비 · 60라운드 Q22 재제작). 빛남: 타오르는 바탕 위로 번쩍 오르는 고역 + 일렁이는 반짝임 + 아주 작은 맑은 빛 한 겹(A7·E8 근처 지속음, 종 아님) + 타닥, 짧은 울림"
     },
     {
@@ -1844,6 +2187,7 @@
           "event:full"
         ]
       },
+      "priority": 2,
       "note": "울분 가득(대검, 가득 차는 순간 1회만 · 반복음 없음 — 56라운드 Q47). 낮게 끓어오르는 잔불 + 불씨 '훅' 치솟음 + 타닥 + 칼이 달아오르는 쇳소리"
     },
     {
@@ -1868,6 +2212,7 @@
           "event:apply"
         ]
       },
+      "priority": 2,
       "note": "낙인 1스택(단검). 살짝 지지는 '칙' + 작은 틱. 등 뒤 2스택(back:true)일 때는 같은 소리를 rate 1.1 로 1회 권장"
     },
     {
@@ -1892,6 +2237,7 @@
           "phase:burst"
         ]
       },
+      "priority": 2,
       "note": "낙인 기폭(그림자 걸음으로 대상 뒤 이동 시 전부 폭발). 숨 들이켜듯 빨려드는 짧은 역바람 → 재 폭발 '펑' + 지지는 꼬리. 파일 0.06s 가 폭발 순간"
     },
     {
@@ -1916,6 +2262,7 @@
           "phase:burst"
         ]
       },
+      "priority": 2,
       "note": "과열 100% 자동 폭발(단검, 주변 낙인 일괄 폭발 + 식힘). 엇갈린 재 폭발 4번 + 낮은 폭음 + 길게 식는 증기 쉿"
     },
     {
@@ -1940,6 +2287,7 @@
           "event:focusStart"
         ]
       },
+      "priority": 2,
       "note": "숨(활) 가득 → 감속 정밀 조준 진입. 길게 빨려드는 바람(목소리 아님) + 소리가 먹먹해지며 내려앉는 저음 + 아주 희미한 고음 한 가닥"
     },
     {
@@ -1965,6 +2313,7 @@
           "phase:dash"
         ]
       },
+      "priority": 2,
       "note": "일섬 돌진(앞으로 4칸, 적 관통, 무적). 칼집 딸깍 + 공기를 찢는 아주 빠른 고역 바람 + 발 디딤. 발도 순간 = 0s"
     },
     {
@@ -1990,6 +2339,7 @@
           "phase:burst"
         ]
       },
+      "priority": 2,
       "note": "일섬 선이 터짐(돌진 후 잠시 뒤, _solo 선 끝 폭발 연출과 같은 프레임). 선을 따라 촘촘히 번지는 날카로운 파열 + 낮은 폭음 + 밝은 칼날 울림"
     },
     {
@@ -2015,6 +2365,7 @@
           "phase:clone"
         ]
       },
+      "priority": 2,
       "note": "그림자 분신 질주(검기 3단 일섬, 일섬 0.2s 뒤 출발 → 0.37s 뒤 도착 베기). 빨려드는 어두운 역바람(이질) + 낮게 겹친 일섬 찢김 + 도착 시 0.37s 에 낮은 베기 '슥'"
     },
     {
@@ -2039,6 +2390,7 @@
           "move:counter"
         ]
       },
+      "priority": 2,
       "note": "간파 반격(패링 직후 0.4s 안 좌클릭). 짧게 숨 죽인 정적 뒤 날카롭고 빠른 일격 + 밝은 칼날 울림 + 단단한 적중 머리"
     },
     {
@@ -2066,6 +2418,7 @@
           "phase:hold"
         ]
       },
+      "priority": 2,
       "note": "대치 일격 납도 대치 루프(2.0s, 좌클릭 누르는 동안). 낮게 조여 오는 울림 + 칼집 속 희미한 칼날 험 + 느린 맥박. 아주 작게"
     },
     {
@@ -2091,6 +2444,7 @@
           "phase:release"
         ]
       },
+      "priority": 2,
       "note": "대치 일격 발도(좌클릭 떼는 순간). 코이구치 딸깍 → 30ms 뒤 번개 같은 발도 바람 + 단단한 칼날 울림 + 낮은 무게. 넣기 첫 타 치명과 연결"
     },
     {
@@ -2116,6 +2470,7 @@
           "mode:plunge"
         ]
       },
+      "priority": 2,
       "note": "[보관 — 60라운드 Q6: 파일·manifest 항목 유지, 시스템 연결 끊음] 땅 꽂기(개성 발현 후 차지 = 휘두르지 않고 칼을 땅에 꽂음). 쇠가 흙·돌을 파고드는 '푹' + 무거운 둔탁음 + 칼날 떨림. 파일 0s = 꽂히는 순간, 뒤이어 gs_crack"
     },
     {
@@ -2142,6 +2497,7 @@
           "part:crack"
         ]
       },
+      "priority": 2,
       "note": "[보관 — 60라운드 Q6: 파일·manifest 항목 유지, 시스템 연결 끊음] 균열 충격파(꽂은 자리에서 마우스 방향으로 뻗는 균열). 앞으로 달려가는 돌 갈라짐 + 낮은 폭음 + 멀어지는 땅울림. gs_plunge 와 같은 프레임 또는 40ms 뒤"
     },
     {
@@ -2167,6 +2523,7 @@
           "phase:recover"
         ]
       },
+      "priority": 2,
       "note": "대검 3타 뒤 몸이 끌려감(짧게, 56라운드 Q46: 3타에만). 칼끝이 돌바닥을 긁는 쇳소리 + 자갈 + 미끄러지는 장화"
     },
     {
@@ -2191,6 +2548,7 @@
           "move:tackle"
         ]
       },
+      "priority": 2,
       "note": "어깨 태클(대검 대쉬 공격). 무거운 박차기 + 낮은 돌진 바람 + 갑옷 덜그럭 + 어깨 몸통 충돌 '쿵'(0.16s). 적중 시 hit_enemy 를 겹쳐 재생"
     },
     {
@@ -2215,6 +2573,7 @@
           "move:brace_upswing"
         ]
       },
+      "priority": 2,
       "note": "버티기 올려베기(가드 중 좌클릭, 맞아도 안 끊김). 발을 박는 디딤 + 쇠 긁으며 들어 올림 → 아래에서 위로 치솟는 무거운 바람. 울분 소모 강화 시 rate 0.92 + utbun_full 의 불씨 겹침 권장"
     },
     {
@@ -2240,6 +2599,7 @@
           "phase:takeoff"
         ]
       },
+      "priority": 2,
       "note": "공중제비 도약(차지 중 스페이스, 차지 단계 유지). 무겁게 박차는 디딤 + 갑옷 출렁 + 몸이 도는 바람 2회(공중제비)"
     },
     {
@@ -2265,6 +2625,7 @@
           "phase:land"
         ]
       },
+      "priority": 2,
       "note": "도약 착지 찍기(판정 프레임 = 0s). 몸무게가 실린 착지 + 지면 강타 + 갑옷 쿵 + 흙먼지. 차지 1단 이상이면 charge_slam_lvN 을 같은 프레임에 겹쳐 재생(0단이면 이것만)"
     },
     {
@@ -2289,6 +2650,7 @@
           "move:guard_rush"
         ]
       },
+      "priority": 2,
       "note": "막다가 떼면 돌진(퍼펙트 가드 직후 우클릭 떼기, 밀쳐내기 대체). 가드를 풀며 터지는 압력 + 앞으로 밀고 나가는 무거운 바람 + 연속 디딤 + 갑옷"
     },
     {
@@ -2313,6 +2675,7 @@
           "move:backstab"
         ]
       },
+      "priority": 2,
       "note": "등 뒤 치명 찌르기(그림자 걸음 직후 좌클릭). 짧은 숨 같은 정적 → 깊이 파고드는 찌르기 + 날 박힘 + 밝은 치명 울림. 적중 프레임 = 0.04s"
     },
     {
@@ -2338,6 +2701,7 @@
           "variant:1"
         ]
       },
+      "priority": 2,
       "note": "고속 난타(좌클릭 홀드) 짧은 찌르기 변주 1/4. 찌를 때마다 1~4 중 무작위(직전과 다른 것) + ±3% rate 권장"
     },
     {
@@ -2363,6 +2727,7 @@
           "variant:2"
         ]
       },
+      "priority": 2,
       "note": "고속 난타 변주 2/4(조금 낮고 둔탁)"
     },
     {
@@ -2388,6 +2753,7 @@
           "variant:3"
         ]
       },
+      "priority": 2,
       "note": "고속 난타 변주 3/4(높고 가벼움)"
     },
     {
@@ -2413,6 +2779,7 @@
           "variant:4"
         ]
       },
+      "priority": 2,
       "note": "고속 난타 변주 4/4(짧은 쇠 스침이 섞임)"
     },
     {
@@ -2438,6 +2805,7 @@
           "power:weak"
         ]
       },
+      "priority": 2,
       "note": "일찍 놓은 약한 화살. 덜 당긴 시위의 둔하고 짧은 '퉁' + 힘없이 흔들리는 바람 + 연기 같은 쉿"
     },
     {
@@ -2463,6 +2831,7 @@
           "power:perfect"
         ]
       },
+      "priority": 2,
       "note": "완벽 놓기(가득 당긴 직후 0.15s 안). 깊고 단단한 시위 + 맑은 '팅'(A5) + 길게 꿰뚫는 바람 + 짧은 울림. 화살 미소모·숨 회복과 같은 프레임"
     },
     {
@@ -2488,6 +2857,7 @@
           "phase:launch"
         ]
       },
+      "priority": 2,
       "note": "화살비 발사(당긴 채 좌클릭, 하늘로 3발). 빠른 시위 세 번(0/0.06/0.12s) + 하늘로 솟아 멀어지는 바람"
     },
     {
@@ -2513,6 +2883,7 @@
           "phase:impact"
         ]
       },
+      "priority": 2,
       "note": "화살비 낙하(커서 원 범위). 짧게 내려꽂히는 휘파람(0~0.1s) → 흙에 꽂히는 '툭' 셋(0.1/0.16/0.23s) + 화살대 떨림. 첫 꽂힘 = 0.1s"
     },
     {
@@ -2537,6 +2908,7 @@
           "phase:full"
         ]
       },
+      "priority": 2,
       "note": "활 가득 당김 알림(완벽 놓기 창 0.15s 시작 순간, 파일 0ms = 가득 찬 순간). 활대가 멈추는 짧은 나무 '톡' + 딸깍 + 팽팽한 시위 '틱' + 아주 작은 A6 쇠 반짝임"
     },
     {
@@ -2563,6 +2935,7 @@
           "phase:strain"
         ]
       },
+      "priority": 2,
       "note": "활을 너무 오래 쥐어 조준선이 흔들리는 동안의 루프(1.0s, 이음매 없음). 한계까지 당긴 시위의 떨리는 험(95/98 Hz 맥놀이) + 불규칙하게 떨리는 나무 삐걱 + 드문 작은 삐걱 딸깍. 아주 작게, 흔들림 시작에 페이드인 · 놓으면 즉시 페이드아웃"
     },
     {
@@ -2587,6 +2960,7 @@
           "delta>0"
         ]
       },
+      "priority": 1,
       "note": "태그 세트 2단계 켜짐(태그 공용). 걸쇠가 맞물리는 '철컥' + 맑은 종 D5 한 번. 단계가 오를 때만(내려갈 때 없음)"
     },
     {
@@ -2611,6 +2985,7 @@
           "delta>0"
         ]
       },
+      "priority": 1,
       "note": "태그 세트 4단계 켜짐(태그 공용). 걸쇠 두 번 + 종 D5·A5 + 낮은 자물쇠 몸통"
     },
     {
@@ -2635,6 +3010,7 @@
           "delta>0"
         ]
       },
+      "priority": 1,
       "note": "태그 세트 6단계 켜짐(태그 공용, 최대). 무거운 자물쇠 '철컹' + 종 D5·A5·D6 쌓임 + 낮은 북 + 서늘한 고음 한 가닥 + 울림"
     },
     {
@@ -2656,6 +3032,7 @@
         "event": "DUAL_TRAIT_GAINED",
         "when": []
       },
+      "priority": 1,
       "note": "이중 개성 획득(갈래 × 태그). 서로 어긋난 두 종(A4 ±1.5%)이 0.45 s 동안 미끄러져 한 음으로 겹치고, 겹치는 순간 D5 종이 피어남 + 바람. 개성(evolve) 계열 '이질'"
     },
     {
@@ -2677,6 +3054,7 @@
         "event": "CURSE_GAINED",
         "when": []
       },
+      "priority": 1,
       "note": "저주 계약(받음). 깃펜 긁기 → 밀랍 도장 '꾹' + 쇠사슬 감김 3 + 낮은 삼전음(D2–G#2) 드론이 몸에 붙음"
     },
     {
@@ -2698,6 +3076,7 @@
         "event": "CURSE_ENDED",
         "when": []
       },
+      "priority": 1,
       "note": "저주 기간 끝(해제). 족쇄 풀리는 딸깍 + 쇠사슬이 바닥에 떨어짐 + 길게 빠지는 숨(노이즈) + 삼전음이 5도(D–A)로 풀림"
     },
     {
@@ -2721,6 +3100,7 @@
           "source:bloodPact"
         ]
       },
+      "priority": 1,
       "note": "개성 '피의 계약' 칸 선택(저주 + 이득 1.5배). 날이 손바닥을 긋는 짧은 찢김 → 핏방울 3 + 심장 두 번 + 어두운 D4 종 + 짙은 삼전음 드론. 이때는 curse_take 대신 이것만"
     },
     {
@@ -2744,6 +3124,7 @@
           "kind:perfectEvade"
         ]
       },
+      "priority": 3,
       "note": "완벽 회피(적 공격 판정 직전 0.15 s 안 대쉬·그림자 걸음). 1.2 kHz 위 대역만(대쉬·그림자 걸음과 겹쳐 재생): 스쳐 지나가는 날 바람(가까워졌다 멀어짐) + 맑은 '팅' A6 + D7 반짝임. '완벽 회피' 문구와 같은 프레임"
     },
     {
@@ -2768,6 +3149,7 @@
           "weapon:katana"
         ]
       },
+      "priority": 1,
       "note": "최종 각성 — 칼(만월, 임시 이름). 공용 각성 뼈대(모여드는 바람·D 드론 → 0.9 s 북 + 종 아르페지오) + 달빛 칼날 울림 A5·D6(떨림) + 초승달 베기 '시잉'. 파일 0.9 s = 정점(무기 변형 그림 전환과 같은 프레임 권장)"
     },
     {
@@ -2792,6 +3174,7 @@
           "weapon:greatsword"
         ]
       },
+      "priority": 1,
       "note": "최종 각성 — 대검(산붕, 임시 이름). 공용 각성 뼈대 + 0.9 s 산이 무너지는 강타(×1.6) + 오래 굴러 내리는 바위·자갈 + 호박빛 '징' D4·A4. 파일 0.9 s = 정점"
     },
     {
@@ -2816,6 +3199,7 @@
           "weapon:dagger"
         ]
       },
+      "priority": 1,
       "note": "최종 각성 — 단검(백귀, 임시 이름). 공용 각성 뼈대 + 엇갈려 빨려드는 어두운 역바람 3겹(그림자 셋) → 0.9 s 부터 세 번 교차 베기 + 재 폭발 작게 셋. 파일 0.9 s = 정점"
     },
     {
@@ -2840,6 +3224,7 @@
           "weapon:bow"
         ]
       },
+      "priority": 1,
       "note": "최종 각성 — 활(유성, 임시 이름). 깊은 시위 '둥' → 하늘에서 떨어지는 휘파람(0.35~0.9 s) → 0.9 s 유성 낙하 폭음 + 공용 각성 종 + 흩어지는 불티. 파일 0.9 s = 정점"
     },
     {
@@ -2865,6 +3250,7 @@
           "phase:ready"
         ]
       },
+      "priority": 2,
       "note": "회전 베기 준비 완료(좌클릭 0.4 s 홀드 도달, 반짝임 fx 와 같은 프레임). 칼을 고쳐 쥐는 딸깍 + 짧은 칼날 울림 A5. 투구가르기 0.6 s 도달 알림에도 rate 0.667(→D5) 로 재사용 권장"
     },
     {
@@ -2890,6 +3276,7 @@
           "phase:release"
         ]
       },
+      "priority": 2,
       "note": "회전 베기(360°, 반경 2.5칸) 떼는 순간. 발 돌림 스침 → 한 바퀴 도는 칼바람(대역이 올라갔다 내려옴) + 찢김 + 칼날 울림 D5. 검기 소모 2회전은 같은 파일을 0.28 s 뒤 rate 1.05 로 한 번 더"
     },
     {
@@ -2916,6 +3303,7 @@
           "phase:hold"
         ]
       },
+      "priority": 2,
       "note": "가드 불가 내려베기 홀드 루프(1.0 s, 좌클릭 누르는 동안). 달아오르는 칼: 낮은 D3 웅웅 + 6 Hz 떨리는 칼날 험 A5 + 열기 노이즈 + 잔불 타닥(이음매 없음). 홀드 시작에 150 ms 페이드인, 떼거나 취소하면 60 ms 페이드아웃. 0.6 s 까지 rate 1.0→1.06 올리면 달아오름이 쌓임(선택)"
     },
     {
@@ -2941,6 +3329,7 @@
           "phase:strike"
         ]
       },
+      "priority": 2,
       "note": "가드 불가 내려베기(정면 쐐기 3칸, 가드·방패 무시). 0~0.1 s 내려오는 무거운 칼바람 → 0.1 s 판정: 방패·갑옷이 쪼개지는 쇳소리 + 둔탁한 강타 + 밝은 칼날 울림 D5. 판정 프레임 100 ms 앞에서 재생"
     },
     {
@@ -2965,6 +3354,7 @@
           "combo:3"
         ]
       },
+      "priority": 2,
       "note": "칼 3연격 3타 찌르기(58라운드 Q1, 휘두르지 않고 곧게 뻗음). 반 발 디딤 + 앞으로 곧게 뚫는 좁은 '쉭' + 칼끝 틱. 검기 소모 시 위에 katana_thrust_ki1~3 를 겹침"
     },
     {
@@ -2990,6 +3380,7 @@
           "kenkiStage:1"
         ]
       },
+      "priority": 2,
       "note": "3타 찌르기 검기 1단 소모 겹침(재빛, 사거리 1.5R). 앞으로 뻗는 찢김 + 칼날 울림 A4 — katana_thrust 와 같은 프레임"
     },
     {
@@ -3015,6 +3406,7 @@
           "kenkiStage:2"
         ]
       },
+      "priority": 2,
       "note": "3타 찌르기 검기 2단 소모 겹침(호박빛, 1.7R). 더 길게 뻗는 찢김 + 칼날 울림 D5"
     },
     {
@@ -3040,6 +3432,7 @@
           "kenkiStage:3"
         ]
       },
+      "priority": 2,
       "note": "3타 찌르기 검기 3단 소모 겹침(백열, 1.9R). 가장 길고 밝은 찢김 + 칼날 울림 A5 + 백열 고음 + 짧은 울림"
     },
     {
@@ -3066,6 +3459,7 @@
           "part:crack"
         ]
       },
+      "priority": 2,
       "note": "휘둘러 내리찍기 균열 진행(차지 1단, 3칸). 찍은 자리에서 커서 쪽으로 달려가는 갈라짐(칸당 0.06 s, 멀어질수록 어둡게) + 끝 '툭' + 땅울림. charge_slam_lv1 과 같은 판정 프레임에 겹침. 커서·벽이 가까워 짧게 끝나면 그 시점에 80 ms 페이드아웃. 균열이 보일 때만(중압 런·거인 4단에서는 울리지 않음 · 60라운드 Q40)"
     },
     {
@@ -3092,6 +3486,7 @@
           "part:crack"
         ]
       },
+      "priority": 2,
       "note": "균열 진행(차지 2단, 4칸). 1단과 같은 재료, 0.24 s 동안 달려감. 균열이 보일 때만(중압 런·거인 4단에서는 울리지 않음)"
     },
     {
@@ -3118,6 +3513,7 @@
           "part:crack"
         ]
       },
+      "priority": 2,
       "note": "균열 진행(차지 3단, 5칸). 0.30 s 동안 달려감, 가장 길다. 균열이 보일 때만(중압 런·거인 4단에서는 울리지 않음)"
     },
     {
@@ -3143,6 +3539,7 @@
           "stack:1|2|3"
         ]
       },
+      "priority": 2,
       "note": "중압(대검 1단 B) 1~3단 원형 진동 — 기본 균열 대신(찍은 자리 중심, 중압 런에서는 gs_crack_line 없음 · 60라운드 Q40). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, stack 1/2/3 에 따라 gain +0/+1.5/+3 dB 권장. 거인 4단에서는 울리지 않음(charge_slam_lv4 하나만)"
     },
     {
@@ -3168,6 +3565,7 @@
           "phase:snuff"
         ]
       },
+      "priority": 2,
       "note": "파쇄(대검 1단 A) 균열이 적 투사체를 소멸. 짧게 으스러지는 '빠직'(돌·나무·쇠 파편) + 작은 먼지 '푹'. 투사체마다(20 ms 규칙으로 동시 다발은 1회)"
     },
     {
@@ -3192,6 +3590,7 @@
           "move:fan_throw"
         ]
       },
+      "priority": 2,
       "note": "질풍(단검 1단 B) 부채꼴 투척(대쉬 직후 0.3 s 안 좌클릭, 3자루 30°). 손목 딸깍 + 25 ms 간격으로 날아가는 높은 바람 셋(음높이 조금씩 다름) + 칼날 틱"
     },
     {
@@ -3216,6 +3615,7 @@
           "move:cross_clone"
         ]
       },
+      "priority": 2,
       "note": "쌍격(단검 1단 A) 그림자 분신 교차 베기 — 낙인 기폭 때 분신이 반대편에서. 0.16 s 빨려드는 어두운 역바람(분신 나타남, 이질) → 0.16 s·0.19 s 엇갈린 두 베기(X) + 쇠 틱 + 낮은 몸통. brand_burst 와 같은 프레임에 겹침"
     },
     {
@@ -3241,6 +3641,7 @@
           "variant:1"
         ]
       },
+      "priority": 2,
       "note": "속사(활 1단 A) 연사 한 발 — 변주 1/3. 초당 5발에 맞춘 짧은 시위 '틱' + 짧은 화살 바람(0.13 s, bow_shot 의 1/2 길이). 발마다 1~3 중 직전과 다른 것 + ±3% rate"
     },
     {
@@ -3266,6 +3667,7 @@
           "variant:2"
         ]
       },
+      "priority": 2,
       "note": "속사 연사 변주 2/3(조금 낮고 둔함)"
     },
     {
@@ -3291,6 +3693,7 @@
           "variant:3"
         ]
       },
+      "priority": 2,
       "note": "속사 연사 변주 3/3(조금 높고 가벼움)"
     },
     {
@@ -3316,6 +3719,7 @@
           "phase:pass"
         ]
       },
+      "priority": 2,
       "note": "저격(활 1단 B) 관통 화살이 적을 뚫고 지나감(적마다, 최대 3). 날이 박혔다 빠지는 '퍽' + 계속 뻗어 나가는 높은 바람. 적중 피격음(hit_enemy)과 겹침"
     },
     {
@@ -3339,6 +3743,7 @@
           "delta>0"
         ]
       },
+      "priority": 2,
       "note": "공용 표식 1 쌓임(표식 세트 2, 같은 적 3타마다, 최대 3). 붉은 분필 긋는 짧은 '슥' + 나무 틱. 단검 낙인(brand_apply, 지짐)과 구분. 표식 2·3 에서 rate 1.06·1.12 권장"
     },
     {
@@ -3362,6 +3767,7 @@
           "kind:boil"
         ]
       },
+      "priority": 2,
       "note": "끓음 폭발(상흔 세트 4: 출혈 + 화상이 함께 걸린 적의 남은 지속 피해가 즉시 터짐, 반경 1.5칸). 0.14 s 빨라지는 거품 끓음 → 젖은 재 폭발 '퍽' + 핏방울·지짐. 파일 0.14 s = 폭발"
     },
     {
@@ -3386,6 +3792,7 @@
           "effect:stillness"
         ]
       },
+      "priority": 2,
       "note": "정적(간파 세트 6: 완벽 성공 3회마다 1 s 동안 적·탄 40% 감속). 짧게 빨려드는 숨(노이즈) → 0.12 s 맑은 '틱' + 유리처럼 얼어붙는 A5·D6 + 먹먹하게 내려앉는 저음. 활 숨(breath_focus)보다 짧고 차갑다"
     },
     {
@@ -3407,6 +3814,7 @@
         "event": "POOL_IGNITED",
         "when": []
       },
+      "priority": 2,
       "note": "술 웅덩이 점화(술불, 취기). 작은 '훅' + 낮은 펑 + 빠르게 번지는 불길 + 타닥 — 보스 boss1_ignite(1.1 s)보다 짧고 가볍다(여러 웅덩이 연쇄 대비). 번질 때마다 80~150 ms 시차 권장, 타는 동안은 boss1_fire_loop 1개 재사용"
     },
     {
@@ -3428,6 +3836,7 @@
         "event": "DRUNK_SWAY",
         "when": []
       },
+      "priority": 2,
       "note": "취기 휘청(취기 세트 4 '취보': 취기 중 첫 피격 1회 피해 0·0.4 s 무적·반 칸 비틀 미끄러짐). 7 Hz 로 일렁이는 바람 + 장화 미끄러짐 + 몸 안 술 출렁 + 작은 잔 '팅'. 피격음 대신 재생"
     },
     {
@@ -3449,6 +3858,7 @@
         "event": "ENDURE_TRIGGERED",
         "when": []
       },
+      "priority": 2,
       "note": "버팀 발동(버팀 세트 4 위기 무적·세트 6 HP 0 버팀·패시브 '마지막 잔'). 무거운 심장 박동 두 번 + 발을 박는 강철 버팀 + 차오르는 숨(노이즈, 목소리 아님) + 낮은 D2. 무적 시작 프레임"
     },
     {
@@ -3470,6 +3880,7 @@
         "event": "ELITE_SPAWNED",
         "when": []
       },
+      "priority": 2,
       "note": "엘리트 등장(접두어 공용, 2차 묶음 g). 0.12 s 차오르는 바람 → 전쟁 북 두 번 + 갑옷 덜그럭 + 낮은 뿔나팔 A2·E3 + 호박빛 쇠 울림 A4. 호박 외곽선·이름표가 켜지는 프레임에 재생(파일 0.12 s = 북)"
     },
     {
@@ -3494,6 +3905,7 @@
           "phase:break"
         ]
       },
+      "priority": 2,
       "note": "엘리트 접두어 '통 갑옷' 깨짐(첫 강공 적중 → 일반 상태). 술통 판자가 쪼개지는 크랙 여럿 + 속 빈 통 공명(230·520 Hz) + 쇠테 '쨍' + 나무 조각 흩어짐. 깨짐 fx 와 같은 프레임"
     },
     {
@@ -3518,6 +3930,7 @@
           "phase:trigger"
         ]
       },
+      "priority": 2,
       "note": "엘리트 접두어 '성난' 발동(HP 50% 이하 → 공격·이동 +40%). 낮은 으르렁(거친 저역 노이즈, 목소리 아님) + 빨라지는 심장 둘 + 열기 '훅' + 위로 긁는 쇠. 붉은 눈 빛 켜지는 프레임"
     },
     {
@@ -3542,6 +3955,7 @@
           "phase:drink"
         ]
       },
+      "priority": 2,
       "note": "엘리트 접두어 '들이켜는' 마시기(주변 적이 죽을 때 HP +15%·크기 +5%, 최대 3회). 잔 틱 → 빠른 꿀꺽 둘 + 짧은 '크아'(노이즈) + 몸이 커지는 낮은 부풂. 3회째는 rate 0.94 로 더 무겁게(선택)"
     },
     {
@@ -3566,6 +3980,7 @@
           "phase:death"
         ]
       },
+      "priority": 2,
       "note": "엘리트 접두어 '패거리 두목' 쓰러짐(주변 적 1 s 경직). 깃 장식 깃대가 부러지는 '뚝' + 천이 내려앉음 + 낮게 오래 맥놀이 치는 둔한 종 D3(멍해짐). enemy_death·elite_die 위에 겹침"
     },
     {
@@ -3589,6 +4004,7 @@
           "elite:true"
         ]
       },
+      "priority": 2,
       "note": "엘리트 처치(보상 개성·전표 ×3). 무거운 몸 쓰러짐 + 갑옷 무너짐 셋 + 동전이 쏟아지는 소리 + 꺼지는 호박빛 종 A4. 일반 enemy_death 대신(또는 위에) 재생"
     },
     {
@@ -3612,6 +4028,7 @@
           "kind:warFlag"
         ]
       },
+      "priority": 1,
       "note": "도전 성소 발동(전장 깃발을 세움 → 엘리트 1 + 마지막 웨이브 +1). 깃대를 땅에 박는 '쿵' + 깃발 천이 펼쳐지는 펄럭 + 멀리 울리는 뿔나팔 D3 + 짧은 북 연타 → 북 한 번"
     },
     {
@@ -3636,6 +4053,7 @@
           "outcome:clear"
         ]
       },
+      "priority": 1,
       "note": "도전 성소 성공(전표 +25 + 노드 보상 한 번 더). 북 두 번 + 깃발 펄럭 + 종 D5 → A5 + 동전 반짝임"
     },
     {
@@ -3660,6 +4078,7 @@
           "outcome:fail"
         ]
       },
+      "priority": 1,
       "note": "도전 성소 실패(조건은 시스템 정의 대기). 삐걱이다 부러지는 깃대 + 쓰러지는 '쿵' + 천이 털썩 + 반음 내려앉는 뿔나팔 D3→C#3 + 둔한 북"
     },
     {
@@ -3683,6 +4102,7 @@
           "grade:perfect"
         ]
       },
+      "priority": 1,
       "note": "노드 성과 등급 완(完) = 무피격 + 제한 시간 안(전표 +20 · 개성 +15). 무거운 일기장 도장 '꾹' + 종 D5·A5·D6 차례로 + 동전 둘. 도장 연출 프레임"
     },
     {
@@ -3706,6 +4126,7 @@
           "grade:good"
         ]
       },
+      "priority": 1,
       "note": "노드 성과 등급 양(良) = 무피격·제한 시간 중 하나(전표 +10). 가벼운 도장 + 종 A4 한 번 + 동전 하나"
     },
     {
@@ -3729,6 +4150,7 @@
           "group:reroll"
         ]
       },
+      "priority": 1,
       "note": "상점 진열 리롤(전표 15 → 25 → 35, 진열 3칸 새로). 좌판 천을 걷어 다시 펼치는 휙 + 물건이 뒤섞이는 나무·쇠 딸깍 + 동전 둘. shop_buy 대신"
     },
     {
@@ -3752,6 +4174,7 @@
           "group:mapInfo"
         ]
       },
+      "priority": 1,
       "note": "지도 정보 구매(다음 단 공개 10 / 층 전체 25 / 숨은 노드 위치 20 — 국경 초소 지도 장수·상점 노드). 동전 둘 + 지도 펼치는 바스락 + 깃펜이 길을 긋는 두 획"
     },
     {
@@ -3775,6 +4198,7 @@
           "id:fireBottle"
         ]
       },
+      "priority": 2,
       "note": "소모품 '화염 술병' 투척(누르면 커서 방향 즉시). 심지에 불붙는 '칙' + 팔 휘두름 + 빙글 도는 병 속 술 출렁(9 Hz). 착탄은 bottle_burst"
     },
     {
@@ -3798,6 +4222,7 @@
           "id:fireBottle"
         ]
       },
+      "priority": 2,
       "note": "화염 술병 착탄(반경 1.5칸 불 웅덩이 4 s). 유리 깨짐 + 술 첨벙 + 0.04 s 불 '화륵' + 타닥. 웅덩이가 타는 동안은 boss1_fire_loop 1개 재사용(가장 가까운 불 기준)"
     },
     {
@@ -3821,6 +4246,7 @@
           "id:strongDrink"
         ]
       },
+      "priority": 1,
       "note": "소모품 '깡술 한 모금'(8 s 공격 +20% · 받는 피해 +10% · 경직 없음). 코르크 '퐁' + 빠른 꿀꺽 셋 + 짧은 '크아'(노이즈, 목소리 아님) + 속이 달아오르는 낮은 불 '훅' + 심장 한 번. 독주(potion_use)보다 거칠고 뜨겁다"
     },
     {
@@ -3844,6 +4270,7 @@
           "id:coldWater"
         ]
       },
+      "priority": 1,
       "note": "소모품 '냉수 한 바가지'(그로기 해제·기력 50% / 과열 0 / 탄창·숨 가득, 3 s 기울기 무시). 나무 바가지가 통에 닿는 '톡' + 물 뜨는 출렁 → 머리에 끼얹는 '촤악' + 물방울 + 맑은 '팅' A6 + 길게 내쉬는 숨(노이즈)"
     },
     {
@@ -3865,6 +4292,7 @@
         "event": "EVENT_NODE_ENTERED",
         "when": []
       },
+      "priority": 1,
       "note": "이벤트 노드 진입('?' 노드, 1층 9종 중 하나). 촛불이 흔들리는 바람 + 일기장 쪽 넘김 + 낮게 부푸는 D2·A2 드론 + 멀리 종 F4 한 번 + 희미한 고음. 월드 이벤트라 돌방 울림"
     },
     {
@@ -3888,6 +4316,7 @@
           "menu:event"
         ]
       },
+      "priority": 1,
       "note": "이벤트 선택지 확정('지나간다'는 menu_cancel). 깃펜 한 획 + 가벼운 도장 + 낮은 종 D4. 이벤트 메뉴에서는 menu_select 대신"
     },
     {
@@ -3909,6 +4338,7 @@
         "event": "HIDDEN_NODE_FOUND",
         "when": []
       },
+      "priority": 1,
       "note": "숨은 노드 발견(단서 소품 조사 → 지도에 숨은 길). 속 빈 벽을 두 번 두드림 + 돌이 밀리는 마찰 + 깃펜이 길을 긋는 소리 + 위로 오르는 종 D5·F5·A5(작게)"
     },
     {
@@ -3932,6 +4362,7 @@
           "distinct:true"
         ]
       },
+      "priority": 2,
       "note": "약점 파훼 다양성 +1(이번 보스전에서 처음 성공한 파훼 종류 — 잔·기둥·술통·취권). 일기장에 표 긋는 '슥' + 나무 틱 + 맑은 종 A5. n번째마다 rate 1.0 / 1.059 / 1.189 / 1.335(A5→B♭5→C6→D6, D 단조) 권장. 파훼 자체 소리(boss1_cup_shatter 등) 뒤 120 ms"
     },
     {
@@ -3955,6 +4386,7 @@
           "kind:finisher"
         ]
       },
+      "priority": 2,
       "note": "결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격)"
     },
     {
@@ -3976,6 +4408,7 @@
         "event": "STRUCTURE_FIRE",
         "when": []
       },
+      "priority": 1,
       "note": "증류 화로 통과 → 무기에 불(fireWeapon 6 s). 증류기 끓는 거품 + 화로가 '후욱' 숨 쉬듯 타오름 + 칼날에 불이 옮겨붙는 '화륵' + 달아오르는 쇠 험 D4 + 타닥. 이어서 fire_weapon_loop"
     },
     {
@@ -4002,6 +4435,7 @@
           "phase:start"
         ]
       },
+      "priority": 1,
       "note": "불 무기 지속 루프(1.0 s, fireWeapon 6 s 동안). 칼날을 핥는 낮은 불길(2·5 Hz 일렁임) + 아주 작은 쉿 + 드문 타닥 + 희미한 D4 쇠 험. 시작 200 ms 페이드인, 상태 끝(fire_weapon_end)에서 150 ms 페이드아웃. 전투음 아래에 깔리게 작게"
     },
     {
@@ -4026,6 +4460,7 @@
           "phase:end"
         ]
       },
+      "priority": 1,
       "note": "불 무기 꺼짐(6 s 끝). 식는 쇠의 증기 쉿(5k→2k) + 작은 '푸' + 마지막 타닥 둘. fire_weapon_loop 를 150 ms 페이드아웃하며 같은 프레임"
     },
     {
@@ -4053,6 +4488,7 @@
           "phase:hold"
         ]
       },
+      "priority": 2,
       "note": "회오리 지속 회전 루프(0.96 s = 한 바퀴 240 ms × 4, fx katana_whirl_loop 와 같은 주기). 바퀴마다 올라갔다 내려오는 칼바람 + 바퀴 시작(= 판정, fx f0)마다 작은 칼날 틱 + 낮게 도는 바람. katana_spin 1회 뒤 이어서, 떼면 80 ms 페이드아웃"
     },
     {
@@ -4078,6 +4514,7 @@
           "phase:reflect"
         ]
       },
+      "priority": 2,
       "note": "회오리 회전 중 적 투사체 되받아침(fx katana_whirl_reflect, impactFrame 0). 칼날에 맞는 맑은 '팅' + 칼날 울림 D6 + 되돌아 나가는 바람(2k→6.5k). 투사체마다(20 ms 규칙)"
     },
     {
@@ -4102,6 +4539,7 @@
           "effect:trail"
         ]
       },
+      "priority": 2,
       "note": "잔월 달 궤적이 깔림(검기 쓴 일섬·회전 뒤, 궤적 한 줄에 1회 — 초승달 조각마다 아님). fx katana_moon_trail 수명에 맞춤: 0~0.1 s 생김 '시잉'(A4, 어둡게) → 0.1·0.4·0.7·1.0 s 작은 틱(0.3 s 피해 틱) + 은은한 A5 험 → 1.3 s 재로 부서짐. 시스템 지속이 1.2 s 와 다르면 끝에서 페이드아웃"
     },
     {
@@ -4127,6 +4565,7 @@
           "phase:cleave"
         ]
       },
+      "priority": 2,
       "note": "일도양단 균열 4칸 더(fx katana_cleave_crack: 몸 hitAt + 40 ms, 칸당 30 ms → 0.12 s 끝). 빠르게 달리는 굵은 갈라짐 12 + 끝 '툭' + 돌 조각·불티. katana_guardbreak 재생 시작 + 140 ms(그 파일 0.1 s = 판정)"
     },
     {
@@ -4151,6 +4590,7 @@
           "effect:execute"
         ]
       },
+      "priority": 2,
       "note": "일도양단 처형(HP 30% 이하 일반 적, fx katana_execute impactFrame 0 · 히트스톱 80 ms). 세로로 가르는 '쉭' + 칼끝 틱 → 0.08 s 두 쪽으로 갈라지는 젖은 재 폭발 둘 + 밝은 칼날 울림 D6 + 둔탁한 바닥. 보스·엘리트(×1.5)는 이 소리 없음"
     },
     {
@@ -4175,6 +4615,7 @@
           "effect:parry"
         ]
       },
+      "priority": 2,
       "note": "명경 패링 = 검기 2단 충전(fx katana_mirror_parry: 거울 면 → 두 조각이 주인공 쪽으로). 1 kHz 위만: 거울 '팅'(유리 A6·E7 근처) → 0.08~0.2 s 날아드는 두 조각 바람 → 0.2 s 닿는 칼날 틱 둘. parry + parry_perfect 위에 겹침(같은 프레임)"
     },
     {
@@ -4200,6 +4641,7 @@
           "stage:4"
         ]
       },
+      "priority": 2,
       "note": "검기 4단 도달(명경 전용, 상한 5 · 60라운드 Q25 재제작 — 칼날 울림 없음). 3단 '빛남' 위에 불꽃이 맺히는 지속 고역 반짝임 + 호흡 같은 맥동(1.6 Hz) + 반짝 터지는 불꽃 알갱이. 오를 때만"
     },
     {
@@ -4225,6 +4667,7 @@
           "stage:5"
         ]
       },
+      "priority": 2,
       "note": "검기 5단 도달(명경 최대 — 다음 일섬 분신 2체 · 60라운드 Q25 재제작 — 칼날 울림 없음). 빛이 고리로 이어지는 반짝임 다섯 번(발밑 초승달 다섯, 0.12 s 부터 70 ms 간격, 점점 높게) → 0.47 s 고리가 닫히며 짧은 백열 '화악' + 타닥. 5단 일섬 = 기존 shadow_clone 두 번(+90 ms)"
     },
     {
@@ -4249,6 +4692,7 @@
           "effect:fork"
         ]
       },
+      "priority": 2,
       "note": "지진 세 갈래(fx greatsword_quake_fork: 파쇄 균열 앞머리가 끝에 닿은 순간, 30 ms × 3 = 0.09 s 에 2칸 끝). 세 줄이 동시에 터져 나가는 갈라짐(조금씩 어긋남) + 끝 '툭' 셋 + 땅울림. gs_crack_line_lvN 재생 + 균열 달리는 시간(칸 × 0.06 s) 뒤"
     },
     {
@@ -4273,6 +4717,7 @@
           "effect:counter"
         ]
       },
+      "priority": 2,
       "note": "반향 반격(퍼펙트 가드 + 울분 30% 이상, fx greatsword_echo_counter impactFrame 0 → 30 ms × 3 = 3칸). 땅이 되받아치는 낮은 '둥' + 70 ms 간격으로 두 번 메아리치는 징 D4 + 앞으로 달리는 균열 3칸. perfect_guard 와 같은 프레임에 겹침(울분 30% 미만이면 재생 안 함)"
     },
     {
@@ -4297,6 +4742,7 @@
           "stage:4"
         ]
       },
+      "priority": 2,
       "note": "차지 4단 도달(거인 전용, 1.6 s · fx greatsword_charge_flash_lv4 · 60라운드 Q25 재제작 — 징 없음). 3단 '척' 신호를 더 무겁게: 파일 0 s 에 낮은 '척' + 쿵 두 겹(0 s · 0.09 s) + 위로 터지는 공기 → 땅이 갈라지는 저음(낮은 균열 + 자갈) + 15 Hz 로 떨리며 버티는 압력, 거인이 한계를 넘는 느낌. 오를 때만"
     },
     {
@@ -4321,6 +4767,7 @@
           "stage:4"
         ]
       },
+      "priority": 2,
       "note": "차지 4단 내려찍기(거인, ×3.8 · fx greatsword_giant_ring 반경 5칸: 0~0.15 s 퍼짐 → 0.15~0.38 s 끌어당김 → 가라앉음). 가장 무거운 강타(×1.9) + 퍼져 나가는 바람 링 → 안으로 빨려드는 바람 → 0.38 s 짓눌림 '쿵' + 오래 가는 땅울림 + 자갈 + 백열 쇳소리. 거인 4단 내려찍기 소리는 이것 하나뿐 — charge_slam_lv3·gs_quake_ring·gs_crack_line_lv3 모두 울리지 않음(60라운드 Q40)"
     },
     {
@@ -4347,6 +4794,7 @@
           "effect:hold"
         ]
       },
+      "priority": 2,
       "note": "울혈 맺힘 루프(0.75 s = fx greatsword_congest_aura 한 바퀴, 그로기 1.5 s 동안 2바퀴). 바퀴마다 무거운 심장 한 번 + 피가 몰리는 낮은 D2 웅웅(한 번 부풂) + 드문 잔불 타닥. groggy_start 와 함께 시작, 그로기 끝에 60 ms 페이드아웃. 멈춤 = BRANCH_EFFECT{branch:clot,effect:end 또는 burst}"
     },
     {
@@ -4371,6 +4819,7 @@
           "effect:burst"
         ]
       },
+      "priority": 2,
       "note": "울혈 폭발(그로기가 풀리는 순간 울분 100% → 전부 소모, 차지 2단 위력 · fx greatsword_congest_burst 반경 2.25칸 · 흔들림 180 ms). 0.04 s 빨려드는 숨 → 핏빛 재 폭발 '퍽'(×1.4) + 강타 + 치솟는 불기둥 + 길게 식는 연기 쉿. 파일 0.04 s = 폭발"
     },
     {
@@ -4395,6 +4844,7 @@
           "effect:clone_in"
         ]
       },
+      "priority": 2,
       "note": "난무 분신 나타남(낙인 5스택 기폭 뒤, fx dagger_frenzy_clone_in 0.22 s). 재 알갱이가 모여드는 빨려드는 어두운 역바람 + 점점 촘촘해지는 재 틱 → 0.22 s 형태가 잡히는 딸깍 + 낮은 몸통. 분신 연격음 = swing_dagger 를 rate 0.94 · -6 dB 로 따라 재생(권장)"
     },
     {
@@ -4419,6 +4869,7 @@
           "effect:clone_out"
         ]
       },
+      "priority": 2,
       "note": "난무 분신 사라짐(3 s 끝, fx dagger_frenzy_clone_out 0.41 s). 발부터 재로 부서져 흩어지는 알갱이 + 위로 빠지는 바람 + 아주 낮게 꺼지는 숨"
     },
     {
@@ -4443,6 +4894,7 @@
           "effect:bleed"
         ]
       },
+      "priority": 2,
       "note": "출혈 시작(기폭 = 60% + 4 s 출혈, fx dagger_brand_bleed). 젖은 찢김 + 핏방울 넷 + 옅은 지짐. brand_burst 와 같은 프레임에 겹침(그 파일 0.06 s = 폭발이라 같은 시작). 0.5 s 출혈 틱에는 소리 없음(피격 번쩍임만)"
     },
     {
@@ -4467,6 +4919,7 @@
           "effect:transfer"
         ]
       },
+      "priority": 2,
       "note": "출혈 낙인이 옮겨감(출혈 중 처치 → 반경 3칸 적 1명, fx dagger_brand_hop 이동 약 0.2 s). 꼬리를 끄는 지짐 바람(혜성 '츠츠') → 0.2 s 도착 '칙'(brand_apply 결). 도착에 brand_apply 를 따로 울리지 않아도 됨"
     },
     {
@@ -4492,6 +4945,7 @@
           "branch:flyknife"
         ]
       },
+      "priority": 2,
       "note": "비도 투척 다섯 자루(45°, dagger_fan_throw 의 5자루판). 손목 딸깍 + 18 ms 간격 높은 바람 다섯(음높이 모두 다름) + 칼날 틱. 비도 런에서는 dagger_fan_throw 대신"
     },
     {
@@ -4516,6 +4970,7 @@
           "effect:stick"
         ]
       },
+      "priority": 2,
       "note": "비도 단검이 바닥에 박힘(fx dagger_stuck_blade f0, 2 s 유지). 짧게 꽂히는 '톡' + 날이 떠는 쇠 울림(30 Hz 떨림). 다섯이 거의 함께 떨어지면 20 ms 규칙으로 묶이므로 30~60 ms 시차 권장"
     },
     {
@@ -4540,6 +4995,7 @@
           "effect:step"
         ]
       },
+      "priority": 2,
       "note": "비도: 박힌 단검 자리로 그림자 걸음(과열 −10%). 도착 순간 단검을 뽑아 드는 '칭'(위로 긁는 쇠) + 단검이 재로 부서짐 + 낮은 몸통. 기존 shadowstep 의 끝 딸깍(0.26 s)에 맞춰 겹침"
     },
     {
@@ -4566,6 +5022,7 @@
           "effect:trail_start"
         ]
       },
+      "priority": 2,
       "note": "열풍 달아오른 질주 루프(1.12 s = fx dagger_hotwind_trail 280 ms × 4). 발 뒤로 흘러가는 낮은 불혀(3.57 Hz 일렁임) + 열 아지랑이 쉿 + 드문 타닥. 과열 50% 이상 + 이동 중일 때만, 멈추거나 50% 미만이면 120 ms 페이드아웃. 멈춤 = BRANCH_EFFECT{branch:heatwave,effect:trail_end}"
     },
     {
@@ -4591,6 +5048,7 @@
           "branch:heatwave"
         ]
       },
+      "priority": 2,
       "note": "열풍 과열 폭발(반경 ×2 · 화상 3 s · 무적 0.5 s, fx dagger_hotwind_burst — dagger_overheat_burst 를 교체하듯 이 소리가 overheat_burst 를 교체). 큰 재 폭발(×1.8) + 엇갈린 작은 폭발 여섯 + 사방으로 눕는 불혀 '화르륵' + 길게 식는 증기"
     },
     {
@@ -4615,6 +5073,7 @@
           "effect:split"
         ]
       },
+      "priority": 2,
       "note": "연궁 분열(연사 3발마다, fx bow_arrow_split impactFrame 0 · ±12°). 갈림목의 작은 '팅' + 위·아래로 벌어지는 짧은 바람 둘. 그 발의 bow_rapidN 위에 겹침. 패시브 '흩어진 촉'의 벽·사거리 끝 분열에도 재사용 권장"
     },
     {
@@ -4639,6 +5098,7 @@
           "effect:recall"
         ]
       },
+      "priority": 2,
       "note": "무한통 화살 회수(박힌 화살 밟기 +1 · 처치 +3, fx bow_arrow_recall). 화살통에 화살대가 떨어져 들어가는 나무 딸깍 넷 + 위로 솟는 불씨 블립 다섯 + 작게 오르는 바람. 처치 +3 은 같은 파일 한 번"
     },
     {
@@ -4663,6 +5123,7 @@
           "effect:lock"
         ]
       },
+      "priority": 2,
       "note": "필중 조준 다 좁혀짐(fx bow_deadeye_scope 진행도 100% = f5). 괄호 넷이 좁혀 드는 빨라지는 틱(점점 높게) → 0.15 s 맑은 '딸깍-팅' + 아주 희미한 D7 + 낮은 심장 한 번. 이 뒤 완벽 놓기 = 치명 확정. 이어서 bow_deadeye_hold"
     },
     {
@@ -4689,6 +5150,7 @@
           "effect:hold_start"
         ]
       },
+      "priority": 2,
       "note": "필중 조준 유지 루프(0.72 s = fx bow_deadeye_scope 루프 360 ms × 2). 멈춘 공기의 좁은 숨결(900 Hz) + 360 ms 마다 아주 작은 맥박 + 희미한 D7 한 가닥. 놓거나 취소하면(BRANCH_EFFECT{branch:deadeye,effect:hold_end}) 60 ms 페이드아웃. 숨 감속 중 다른 소리 아래 깔리게 아주 작게"
     },
     {
@@ -4714,6 +5176,7 @@
           "stack:1"
         ]
       },
+      "priority": 2,
       "note": "천공 연결 1스택(완벽 놓기 연속, fx bow_link_stack 행 1). 화살촉 '틱' + 팽팽한 시위 하모닉 D5 + 유리 반짝임. bow_release_perfect 위에 겹침"
     },
     {
@@ -4739,6 +5202,7 @@
           "stack:2"
         ]
       },
+      "priority": 2,
       "note": "천공 연결 2스택. 시위 하모닉 A5 + 반짝임"
     },
     {
@@ -4764,6 +5228,7 @@
           "stack:3"
         ]
       },
+      "priority": 2,
       "note": "천공 연결 3스택(다음 화살 = 벽 관통 + 선 폭발). 시위 하모닉 D6 + 걸쇠 '철컥'(고리가 이어짐) + 종 D5, 짧은 울림"
     },
     {
@@ -4788,6 +5253,7 @@
           "effect:link_break"
         ]
       },
+      "priority": 2,
       "note": "천공 연결 끊김(완벽 놓기를 놓쳐 스택 0). 힘 빠진 낮은 시위 '퉁'(D3, 둔하게) + 내려앉는 짧은 음 + 작은 나무 틱. 1스택 이상일 때만"
     },
     {
@@ -4812,6 +5278,7 @@
           "effect:line"
         ]
       },
+      "priority": 2,
       "note": "천공 3스택 화살(벽 관통 + 지나간 선이 0.5 s 뒤 터짐, fx bow_skypierce_line burstAtMs 500). 하늘을 찢는 화살 비명(3k→9k) + 0.06 s 벽을 뚫는 돌·나무 '퍽' + 선 위를 흐르는 가는 반짝임 → 0.5 s 선을 따라 번지는 파열 아홉 + 낮은 폭음 + 칼날 울림 D6(일섬 선 결). 파일 0.5 s = 선 폭발"
     },
     {
@@ -4835,6 +5302,7 @@
           "passive:brokenShard"
         ]
       },
+      "priority": 1,
       "note": "패시브 #10 '깨진 잔 조각'(타격 12% 출혈) 발동. 작은 유리 조각 둘이 '찰캉' + 젖은 틱. 그 타격의 hit_enemy 위에 작게"
     },
     {
@@ -4858,6 +5326,7 @@
           "passive:burningSleeve"
         ]
       },
+      "priority": 1,
       "note": "패시브 #11 '불붙은 소매'(대쉬 경로에 불씨 1 s+) 발동. 소매에서 번지는 짧은 불 '화륵' + 뒤로 남는 타닥. dash 위에 겹침"
     },
     {
@@ -4881,6 +5350,7 @@
           "passive:bloodScent"
         ]
       },
+      "priority": 1,
       "note": "패시브 #18 '피 냄새'(지속 피해 중인 적 처치 → 지속 피해가 다른 적에게 옮겨붙음) 발동. 갈라져 날아가는 젖은 바람 둘 → 0.24 s 도착하는 지짐·핏방울"
     },
     {
@@ -4904,6 +5374,7 @@
           "passive:domino"
         ]
       },
+      "priority": 1,
       "note": "패시브 #20 '도미노'(처치 시 가장 가까운 적에게 재 파편 1발) 발동. 쓰러진 자리의 작은 재 '푹' + 날아가는 짧은 바람 + 0.2 s 박히는 틱"
     },
     {
@@ -4927,6 +5398,7 @@
           "passive:brokenMirror"
         ]
       },
+      "priority": 1,
       "note": "패시브 #24 '깨진 거울'(대쉬 후 0.5 s 안 첫 공격을 그림자 분신이 한 번 더) 발동. 깨진 거울 '팅'(유리) + 짧게 빨려드는 어두운 역바람 → 0.14 s 분신 베기(어둡게) + 쇠 틱. 칼 shadow_clone(칼날 울림)과 유리 결로 구분"
     },
     {
@@ -4950,6 +5422,7 @@
           "passive:emberHeart"
         ]
       },
+      "priority": 1,
       "note": "패시브 #25 '잔불 심장'(전설, 강공 적중 지점에 불 웅덩이 2~4 s) 발동. 심장 한 번 '쿵' + 피어오르는 불 '훅' + 타닥. 웅덩이가 타는 동안 boss1_fire_loop 1개 재사용(가까운 것 기준)"
     },
     {
@@ -4973,6 +5446,7 @@
           "passive:spilledDrink"
         ]
       },
+      "priority": 1,
       "note": "패시브 #26 '엎지른 술'(처치 시 15~30% 술 웅덩이) 발동. 쏟아지는 술 '철퍽' + 물방울 + 작은 잔 '팅'. 보스 boss1_liquor_splash 보다 짧고 작다"
     },
     {
@@ -4996,6 +5470,7 @@
           "passive:harshBreath"
         ]
       },
+      "priority": 1,
       "note": "패시브 #28 '독한 숨'(마시기 직후 3 s 안 첫 공격 = 앞 원뿔 2칸 술 뿜기, 맞은 자리 웅덩이) 발동. 입술 '프'(노이즈, 목소리 아님) → 넓게 퍼지는 술 안개 '푸쉬' + 흩어지는 물방울. 그 공격의 휘두름 위에 겹침"
     },
     {
@@ -5020,6 +5495,7 @@
           "fire:true"
         ]
       },
+      "priority": 1,
       "note": "패시브 #28 '독한 숨' 술불 위에서 뿜음 = 화염 뿜기(×1.5). 술 안개 '푸쉬'에 불이 붙어 0.05 s 부터 낮게 으르렁대는 불길 + 타닥. passive_liquor_spray 대신"
     },
     {
@@ -5043,7 +5519,524 @@
           "passive:drunkFist"
         ]
       },
+      "priority": 1,
       "note": "패시브 #29 '취권'(영웅, 취기 중 대쉬 직후 공격 = 휘는 궤적 2칸 비틀 돌진 베기, 연속 3회) 한 번. 7 Hz 로 휘는 무거운 바람 + 술 출렁 → 0.22 s 베기 + 둔탁한 디딤. 1·2·3회 rate 1.0/1.06/1.12, 3회째 뒤 0.5 s 비틀 경직에 drunk_sway 재사용 권장(보스 '3연 취권' 오마주)"
+    },
+    {
+      "id": "sfx/hit_enemy_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_enemy_v2.ogg",
+      "files": [
+        "assets/audio/sfx/hit_enemy_v2.ogg",
+        "assets/audio/sfx/hit_enemy_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 8820,
+      "durationMs": 200,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/hit_enemy",
+      "note": "적 피격 변주 2 — 몸통을 조금 낮게(205→76 Hz), 살 대역 600 Hz, 날 6.2k→2.3k"
+    },
+    {
+      "id": "sfx/hit_enemy_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_enemy_v3.ogg",
+      "files": [
+        "assets/audio/sfx/hit_enemy_v3.ogg",
+        "assets/audio/sfx/hit_enemy_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 7938,
+      "durationMs": 180,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/hit_enemy",
+      "note": "적 피격 변주 3 — 몸통을 조금 높게(255→94 Hz), 살 대역 780 Hz, 날 7.8k→2.9k, 꼬리 짧게"
+    },
+    {
+      "id": "sfx/hit_enemy_crit_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_enemy_crit_v2.ogg",
+      "files": [
+        "assets/audio/sfx/hit_enemy_crit_v2.ogg",
+        "assets/audio/sfx/hit_enemy_crit_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 15876,
+      "durationMs": 360,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/hit_enemy_crit",
+      "note": "급소 적중 변주 2 — 몸통 185→56 Hz, 겹 간격 14 ms, 날 9k→3.2k"
+    },
+    {
+      "id": "sfx/enemy_death_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_death_v2.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_death_v2.ogg",
+        "assets/audio/sfx/enemy_death_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 29988,
+      "durationMs": 680,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/enemy_death",
+      "note": "처치 변주 2 — 쓰러짐 0.16 s·튐 0.31 s, 몸통 100→36 Hz, 덜그럭 둘"
+    },
+    {
+      "id": "sfx/enemy_death_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_death_v3.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_death_v3.ogg",
+        "assets/audio/sfx/enemy_death_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 29988,
+      "durationMs": 680,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/enemy_death",
+      "note": "처치 변주 3 — 쓰러짐 0.11 s·튐 0.24 s, 몸통 120→42 Hz, 덜그럭 셋(빠르게)"
+    },
+    {
+      "id": "sfx/hit_player_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_player_v2.ogg",
+      "files": [
+        "assets/audio/sfx/hit_player_v2.ogg",
+        "assets/audio/sfx/hit_player_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 18522,
+      "durationMs": 420,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 3,
+      "variantOf": "sfx/hit_player",
+      "note": "주인공 피격 변주 2 — 몸통 138→54 Hz, 살 500 Hz, 밀림 0.13 s"
+    },
+    {
+      "id": "sfx/hit_player_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_player_v3.ogg",
+      "files": [
+        "assets/audio/sfx/hit_player_v3.ogg",
+        "assets/audio/sfx/hit_player_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 18522,
+      "durationMs": 420,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 3,
+      "variantOf": "sfx/hit_player",
+      "note": "주인공 피격 변주 3 — 몸통 165→62 Hz, 살 610 Hz, 밀림 0.095 s"
+    },
+    {
+      "id": "sfx/dash_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dash_v2.ogg",
+      "files": [
+        "assets/audio/sfx/dash_v2.ogg",
+        "assets/audio/sfx/dash_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 11907,
+      "durationMs": 270,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/dash",
+      "note": "대쉬 변주 2 — 바람 400→1.5k, 펄럭 24 Hz, 착지 0.21 s"
+    },
+    {
+      "id": "sfx/dash_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/dash_v3.ogg",
+      "files": [
+        "assets/audio/sfx/dash_v3.ogg",
+        "assets/audio/sfx/dash_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 11907,
+      "durationMs": 270,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/dash",
+      "note": "대쉬 변주 3 — 바람 520→1.9k, 펄럭 38 Hz, 착지 0.19 s"
+    },
+    {
+      "id": "sfx/guard_block",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/guard_block.ogg",
+      "files": [
+        "assets/audio/sfx/guard_block.ogg",
+        "assets/audio/sfx/guard_block.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 17640,
+      "durationMs": 400,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PLAYER_DAMAGED",
+        "when": [
+          "guarded:true"
+        ]
+      },
+      "priority": 3,
+      "variants": [
+        "sfx/guard_block",
+        "sfx/guard_block_v2"
+      ],
+      "note": "61라운드 새 — 일반 가드로 공격을 막음(피해 감소, 퍼펙트 아님). 짧은 '딱' + 팔로 받아내는 둔탁한 충격(150→55 Hz) + 날에 닿는 아주 짧은 '틱'(울림 없음) + 날끼리 긁힘 + 밀려나는 저음 + 뒤꿈치 밀림. 퍼펙트 가드보다 둔하고 짧다"
+    },
+    {
+      "id": "sfx/combo_finish",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/combo_finish.ogg",
+      "files": [
+        "assets/audio/sfx/combo_finish.ogg",
+        "assets/audio/sfx/combo_finish.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 22050,
+      "durationMs": 500,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "PLAYER_ATTACK",
+        "when": [
+          "finisher:true"
+        ]
+      },
+      "priority": 2,
+      "variants": [
+        "sfx/combo_finish",
+        "sfx/combo_finish_v2"
+      ],
+      "note": "61라운드 새 — 연격 마무리 타(칼 3타·대검 4타·단검 3타) 적중 때 그 무기 휘두름·적 피격 위에 겹치는 무게. 공기 터짐 + 깊은 '쿵'(95→34 Hz) + 저역 압력 + 흙 튐 + 짧은 방 울림. 활은 쓰지 않음"
+    },
+    {
+      "id": "sfx/guard_block_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/guard_block_v2.ogg",
+      "files": [
+        "assets/audio/sfx/guard_block_v2.ogg",
+        "assets/audio/sfx/guard_block_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 17640,
+      "durationMs": 400,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": null,
+      "priority": 3,
+      "variantOf": "sfx/guard_block",
+      "note": "가드 막음 변주 2 — 충격 135→50 Hz, 날 틱 2.6 kHz, 긁힘 3.2 kHz"
+    },
+    {
+      "id": "sfx/combo_finish_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/combo_finish_v2.ogg",
+      "files": [
+        "assets/audio/sfx/combo_finish_v2.ogg",
+        "assets/audio/sfx/combo_finish_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 22050,
+      "durationMs": 500,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/combo_finish",
+      "note": "연격 마무리 변주 2 — 쿵 85→32 Hz, 압력 260 Hz"
+    },
+    {
+      "id": "sfx/parry_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/parry_v2.ogg",
+      "files": [
+        "assets/audio/sfx/parry_v2.ogg",
+        "assets/audio/sfx/parry_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 25137,
+      "durationMs": 570,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 3,
+      "variantOf": "sfx/parry",
+      "note": "패링 변주 2 — 쇳소리 3.3 kHz, 스침 3.8→8.8 kHz, 충격 150→70 Hz"
+    },
+    {
+      "id": "sfx/swing_katana_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/swing_katana_v2.ogg",
+      "files": [
+        "assets/audio/sfx/swing_katana_v2.ogg",
+        "assets/audio/sfx/swing_katana_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 10143,
+      "durationMs": 230,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/swing_katana",
+      "note": "칼 휘두름 변주 2 — 5.6k→1.8k, 0.2 s"
+    },
+    {
+      "id": "sfx/swing_katana_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/swing_katana_v3.ogg",
+      "files": [
+        "assets/audio/sfx/swing_katana_v3.ogg",
+        "assets/audio/sfx/swing_katana_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 8820,
+      "durationMs": 200,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/swing_katana",
+      "note": "칼 휘두름 변주 3 — 6.8k→2.3k, 0.17 s"
+    },
+    {
+      "id": "sfx/swing_greatsword_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/swing_greatsword_v2.ogg",
+      "files": [
+        "assets/audio/sfx/swing_greatsword_v2.ogg",
+        "assets/audio/sfx/swing_greatsword_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 21168,
+      "durationMs": 480,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/swing_greatsword",
+      "note": "대검 휘두름 변주 2 — 바람 220→800→200, 0.42 s"
+    },
+    {
+      "id": "sfx/swing_greatsword_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/swing_greatsword_v3.ogg",
+      "files": [
+        "assets/audio/sfx/swing_greatsword_v3.ogg",
+        "assets/audio/sfx/swing_greatsword_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 19404,
+      "durationMs": 440,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/swing_greatsword",
+      "note": "대검 휘두름 변주 3 — 바람 280→1000→240, 0.38 s"
+    },
+    {
+      "id": "sfx/swing_dagger_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/swing_dagger_v2.ogg",
+      "files": [
+        "assets/audio/sfx/swing_dagger_v2.ogg",
+        "assets/audio/sfx/swing_dagger_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 5292,
+      "durationMs": 120,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/swing_dagger",
+      "note": "단검 변주 2 — 7.6k→2.8k, 0.1 s"
+    },
+    {
+      "id": "sfx/swing_dagger_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/swing_dagger_v3.ogg",
+      "files": [
+        "assets/audio/sfx/swing_dagger_v3.ogg",
+        "assets/audio/sfx/swing_dagger_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 4410,
+      "durationMs": 100,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/swing_dagger",
+      "note": "단검 변주 3 — 9.4k→3.6k, 0.08 s"
+    },
+    {
+      "id": "sfx/bow_shot_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bow_shot_v2.ogg",
+      "files": [
+        "assets/audio/sfx/bow_shot_v2.ogg",
+        "assets/audio/sfx/bow_shot_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/bow_shot",
+      "note": "활 변주 2 — 시위 155 Hz, 화살 3k→1.4k"
+    },
+    {
+      "id": "sfx/bow_shot_v3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bow_shot_v3.ogg",
+      "files": [
+        "assets/audio/sfx/bow_shot_v3.ogg",
+        "assets/audio/sfx/bow_shot_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/bow_shot",
+      "note": "활 변주 3 — 시위 176 Hz, 화살 3.4k→1.6k"
+    },
+    {
+      "id": "sfx/pickup_gold_v2",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/pickup_gold_v2.ogg",
+      "files": [
+        "assets/audio/sfx/pickup_gold_v2.ogg",
+        "assets/audio/sfx/pickup_gold_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/pickup_gold",
+      "note": "동전 변주 2 — 세 번(3.5k·4.2k·5k), 간격 45 ms"
+    },
+    {
+      "id": "sfx/pickup_gold_v3",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/pickup_gold_v3.ogg",
+      "files": [
+        "assets/audio/sfx/pickup_gold_v3.ogg",
+        "assets/audio/sfx/pickup_gold_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/pickup_gold",
+      "note": "동전 변주 3 — 두 번(4.1k·3.6k, 내려감), 간격 70 ms"
+    },
+    {
+      "id": "sfx/menu_move_v2",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/menu_move_v2.ogg",
+      "files": [
+        "assets/audio/sfx/menu_move_v2.ogg",
+        "assets/audio/sfx/menu_move_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 3528,
+      "durationMs": 80,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": null,
+      "priority": 0,
+      "variantOf": "sfx/menu_move",
+      "note": "메뉴 이동 변주 2 — 1030 Hz"
     },
     {
       "id": "bgm/title",
@@ -5083,10 +6076,9 @@
       "loopEndSample": 661500,
       "gainDb": -0.5,
       "floors": [
-        1,
         2
       ],
-      "note": "1~2층(술독·도박장). 저음 드론 위에 취한 류트 아르페지오와 손북. A 단조, 96 BPM"
+      "note": "2층(도박장) — 61라운드부터 1층은 전용 곡 f1_jan. 저음 드론 위에 취한 류트 아르페지오와 손북. A 단조, 96 BPM"
     },
     {
       "id": "bgm/floor_mid",
@@ -5175,6 +6167,131 @@
       "gainDb": -3.5,
       "floors": [],
       "note": "황제 '평'. 조용하고 정연한 단선율(플루트 풍), 희미한 패드, 시계처럼 규칙적인 틱. D 장조, 60 BPM"
+    },
+    {
+      "id": "bgm/f1_outside",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/f1_outside.ogg",
+      "files": [
+        "assets/audio/bgm/f1_outside.ogg",
+        "assets/audio/bgm/f1_outside.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "samples": 4233600,
+      "durationMs": 96000,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 4233600,
+      "gainDb": 3.5,
+      "floors": [],
+      "use": {
+        "floor": 1,
+        "state": "journey"
+      },
+      "note": "1층 벽 밖(탄생지·버려진 길·국경 초소). 96 s 루프, 44.1 kHz 스테레오. 좌우가 따로 부는 바람(돌풍 3겹 · 가는 휘파람) + 아주 낮은 A1·E2 드론 + 먼 포성 8번(언덕 메아리) + 바람에 흔들리는 쇠고리·녹슨 삐걱 + 멀리서 류트 네 음 두 번 + 중반의 서늘한 고음 한 가닥. 박자 없음, 비어 있는 시간이 대부분. 권장 음량 +3.5 dB = RMS 약 -23 dBFS(전투 곡보다 2 dB 작게 — 적막)"
+    },
+    {
+      "id": "bgm/f1_jan",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/f1_jan.ogg",
+      "files": [
+        "assets/audio/bgm/f1_jan.ogg",
+        "assets/audio/bgm/f1_jan.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "samples": 4233600,
+      "durationMs": 96000,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 4233600,
+      "gainDb": 3.5,
+      "floors": [
+        1
+      ],
+      "use": {
+        "floor": 1,
+        "state": "combat"
+      },
+      "note": "1층 잔 거리(전투 노드). 96 s 루프(80마디), 44.1 kHz 스테레오, A 단조 3/4 150 BPM. 술집 골목의 비틀린 왈츠: 콘트라베이스 1박 + 손풍금 2·3박(빈 왈츠처럼 2박이 살짝 이르고 3박이 늦음), 취한 바이올린 주제(아래에서 미끄러져 들어가는 음, 끝이 처지는 음), 손북·숟가락·탬버린·술병. 구성 A(골목) → B(주제) → C(긴장: 삼전음 드론, 활 떨기, 타악 증가) → B'(주제 + 류트 대선율 + 옥타브 아래 바이올린) → D(쉼·쌓기: 낮은 반복음 → 반음계 상승 + 롤). 권장 음량 +3.5 dB = RMS 약 -21 dBFS"
+    },
+    {
+      "id": "bgm/f1_boss_p1",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/f1_boss_p1.ogg",
+      "files": [
+        "assets/audio/bgm/f1_boss_p1.ogg",
+        "assets/audio/bgm/f1_boss_p1.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "samples": 3175200,
+      "durationMs": 72000,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 3175200,
+      "gainDb": 0.0,
+      "floors": [],
+      "use": {
+        "floor": 1,
+        "state": "boss",
+        "phase": 1
+      },
+      "note": "1층 보스 '만취' 1국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 1국면(기본): 비틀거리는 베이스 오스티나토(e0 근음·e2 옥타브·e3 5음·e5 반음) + 손풍금 찌르기 + 손북·숟가락 + 취한 바이올린 주제 둘 + D 구간 반음씩 내려가며 도는 8분음 + 낮은 뿔나팔 + D1 드론. 권장 음량 0 dB(세 국면 공통) — RMS 1국면 -22.8 · 2국면 -21.1 · 3국면 -20.2 dBFS"
+    },
+    {
+      "id": "bgm/f1_boss_p2",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/f1_boss_p2.ogg",
+      "files": [
+        "assets/audio/bgm/f1_boss_p2.ogg",
+        "assets/audio/bgm/f1_boss_p2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "samples": 3175200,
+      "durationMs": 72000,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 3175200,
+      "gainDb": 0.0,
+      "floors": [],
+      "use": {
+        "floor": 1,
+        "state": "boss",
+        "phase": 2
+      },
+      "note": "1층 보스 '만취' 2국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 2국면(타악 추가): 1국면 + 큰 북(e0, 홀수 마디 e3) · 술통 '통'(e1·e4, 좌우) · 탬버린 8분음 · 스네어 e3 · 8마디 끝 북·스네어 몰아치기 · 숨 고르기 구간의 심장 박동 북"
+    },
+    {
+      "id": "bgm/f1_boss_p3",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/f1_boss_p3.ogg",
+      "files": [
+        "assets/audio/bgm/f1_boss_p3.ogg",
+        "assets/audio/bgm/f1_boss_p3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "samples": 3175200,
+      "durationMs": 72000,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 3175200,
+      "gainDb": 0.0,
+      "floors": [],
+      "use": {
+        "floor": 1,
+        "state": "boss",
+        "phase": 3
+      },
+      "note": "1층 보스 '만취' 3국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 3국면(왜곡·불): 2국면 전체를 0.5 Hz 로 울렁이게(±0.6 % 음높이, 좌우 엇갈림 — '세상이 돈다') + 옥타브 위 왜곡 베이스 + 삼전음 뿔나팔(D+G#) + 8마디 끝 상승 소음 + 좌우를 도는 불길·타닥"
     }
   ]
 }

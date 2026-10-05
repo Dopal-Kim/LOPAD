@@ -35,7 +35,7 @@ ARCHIVED = {'katana_echo', 'gs_plunge', 'gs_crack'}
 
 EXPLICIT = {
     'combat': ['hit_enemy', 'hit_enemy_crit', 'hit_player', 'dash', 'parry', 'guard_hold', 'guard_push',
-               'perfect_guard', 'groggy_start', 'perfect_evade'],
+               'perfect_guard', 'groggy_start', 'perfect_evade', 'guard_block', 'combo_finish'],
     'weapon_katana': ['swing_katana', 'parry_perfect', 'kenki_stage1', 'kenki_stage2', 'kenki_stage3', 'issen_dash',
                       'issen_burst', 'shadow_clone', 'katana_counter', 'katana_iai_hold', 'katana_iai_release',
                       'katana_thrust', 'katana_thrust_ki1', 'katana_thrust_ki2', 'katana_thrust_ki3'],
@@ -120,6 +120,8 @@ def _group_of(name, kind, sfx_specs):
         return 'bgm'
     if name in ARCHIVED:
         return 'archived'
+    if sfx_specs.get(name, {}).get('variant_of'):          # 61라운드 변주 = 원본과 같은 분류
+        return _group_of(sfx_specs[name]['variant_of'], kind, sfx_specs)
     mod = sfx_specs[name]['fn'].__module__ if name in sfx_specs else ''
     if mod in NEW_MODULES:
         return NEW_MODULES[mod]
@@ -129,6 +131,27 @@ def _group_of(name, kind, sfx_specs):
     if name.startswith('boss1_'):
         return 'boss1'
     raise KeyError('listen_index: 분류가 없는 소리 %s — EXPLICIT 에 추가하세요' % name)
+
+
+def _bgm_where(e):
+    """BGM 이 쓰이는 곳 한 줄: 61라운드 층 전용 곡은 use(floor·state·phase), 기존 곡은 floors 또는 bgmByState."""
+    u = e.get('use')
+    if u:
+        return '%d층 %s' % (u['floor'], {'journey': '여정(벽 밖)', 'combat': '전투', 'boss': '보스'}.get(u['state'], u['state'])) + \
+            (' %d국면' % u['phase'] if 'phase' in u else '')
+    if e.get('floors'):
+        return '층 ' + ','.join(str(x) for x in e['floors'])
+    return 'bgmByState'
+
+
+def _round(name, kind, sfx_specs):
+    """새로 만들거나 다시 만든 라운드: '61' = 61라운드 품질 패스·변주·1층 BGM, '60' = 60라운드 모듈."""
+    if kind == 'bgm':
+        return '61' if name.startswith('f1_') else ''
+    spec = sfx_specs[name]
+    if spec.get('redone') == '61' or spec['fn'].__module__ == 'sfx_core61':
+        return '61'
+    return '60' if spec['fn'].__module__ in NEW_MODULES else ''
 
 
 def write(root, manifest_path, sfx_specs, out_path=None):
@@ -144,15 +167,20 @@ def write(root, manifest_path, sfx_specs, out_path=None):
         trig = None
         if t:
             trig = t['event'] + ('{%s}' % ','.join(t['when']) if t['when'] else '')
+        elif e.get('variantOf'):
+            trig = '변주 — %s 트리거에서 번갈아' % e['variantOf']
         item = dict(
             key=name, id=e['id'], kind=kind, group=g, subgroup=SUBGROUP.get(name, ''),
             desc=_first_sentence(e['note']), note=e['note'],
-            trigger=trig if kind == 'sfx' else ('층 ' + ','.join(str(x) for x in e.get('floors', [])) if e.get('floors') else 'bgmByState'),
+            trigger=trig if kind == 'sfx' else _bgm_where(e),
             durationMs=e['durationMs'], samples=e['samples'], sampleRate=e['sampleRate'],
-            loop=e['loop'], gainDb=e['gainDb'],
+            channels=e['channels'], loop=e['loop'], gainDb=e['gainDb'],
             ogg=e['files'][0], m4a=e['files'][1],
-            round='60' if (kind == 'sfx' and sfx_specs[name]['fn'].__module__ in NEW_MODULES) else '',
+            round=_round(name, kind, sfx_specs),
             status='archived' if name in ARCHIVED else 'active')
+        for k in ('priority', 'variants', 'variantOf', 'use'):
+            if k in e:
+                item[k] = e[k]
         if e['loop']:
             item['loopStartSample'] = e['loopStartSample']
             item['loopEndSample'] = e['loopEndSample']
@@ -167,7 +195,8 @@ def write(root, manifest_path, sfx_specs, out_path=None):
         generatedBy='parts/sound/work/build.py → listen_index.py (manifest 기준)',
         note='들어보기 페이지 입력. 경로는 저장소 루트 기준. gainDb 는 SFX/BGM 버스 기준 권장 상대 음량(manifest 와 같음) — '
              '청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. '
-             'round "60" = 60라운드 새 소리, status "archived" = 보관(시스템 연결 끊음).',
+             'round "60" = 60라운드 새 소리, "61" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, '
+             'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],
         groups=[dict(id=g, label=label, count=counts.get(g, 0)) for g, label in GROUPS],
         total=len(entries),

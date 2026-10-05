@@ -48,23 +48,30 @@ LOOP_PAD = 2048  # M4A 루프 감싸기 패딩(샘플). AAC 프레임 1024 × 2
 # WAV 입출력
 # ---------------------------------------------------------------------------
 
-def read_wav(path):
+def read_wav_ch(path):
+    """(인터리브 샘플, 샘플레이트, 채널 수). 61라운드 1층 BGM 은 스테레오."""
     with wave.open(path, 'rb') as w:
         sr = w.getframerate()
+        ch = w.getnchannels()
         raw = w.readframes(w.getnframes())
     a = array.array('h')
     a.frombytes(raw)
     if sys.byteorder == 'big':
         a.byteswap()
+    return a, sr, ch
+
+
+def read_wav(path):
+    a, sr, _ = read_wav_ch(path)
     return a, sr
 
 
-def _write_wav(path, a, sr):
+def _write_wav(path, a, sr, ch=1):
     b = array.array('h', a)
     if sys.byteorder == 'big':
         b.byteswap()
     with wave.open(path, 'wb') as w:
-        w.setnchannels(1)
+        w.setnchannels(ch)
         w.setsampwidth(2)
         w.setframerate(sr)
         w.writeframes(b.tobytes())
@@ -149,16 +156,18 @@ def encode_file(kind, wav_path, out_dir, loop):
     _ff(['-i', wav_path, '-c:a', 'libvorbis', '-q:a', str(prof['ogg_q']),
          '-page_duration', str(prof['ogg_page_us'])] + BITEXACT + [out['ogg']])
 
-    a, sr = read_wav(wav_path)
+    a, sr, ch = read_wav_ch(wav_path)
     # ffmpeg 6.1 기본 twoloop 코더는 저역 과도(예: guard_push 28 Hz)에서 피크가 +5.7 dB 튀어 fast 코더 사용
-    aac = ['-c:a', 'aac', '-b:a', '%dk' % prof['m4a_kbps'], '-aac_coder', 'fast', '-aac_pns', '0',
+    # 스테레오(61라운드 1층 BGM)는 채널당 같은 비트레이트 = 프로필 × 채널 수 (BGM 64 → 128 kbps)
+    aac = ['-c:a', 'aac', '-b:a', '%dk' % (prof['m4a_kbps'] * ch), '-aac_coder', 'fast', '-aac_pns', '0',
            '-movie_timescale', str(sr)] + BITEXACT
-    if loop and len(a) > LOOP_PAD:
-        n = len(a)
-        padded = a[n - LOOP_PAD:] + a + a[:LOOP_PAD]
+    if loop and len(a) // ch > LOOP_PAD:
+        n = len(a) // ch
+        pad = LOOP_PAD * ch
+        padded = a[len(a) - pad:] + a + a[:pad]
         with tempfile.TemporaryDirectory() as td:
             tmp = os.path.join(td, name + '.wav')
-            _write_wav(tmp, padded, sr)
+            _write_wav(tmp, padded, sr, ch)
             _ff(['-i', tmp] + aac + [out['m4a']])
         _mp4_trim(out['m4a'], LOOP_PAD, n)
     else:
@@ -170,9 +179,9 @@ def encode_file(kind, wav_path, out_dir, loop):
 # 디코딩 (검증용)
 # ---------------------------------------------------------------------------
 
-def decode_ffmpeg(path, sr):
+def decode_ffmpeg(path, sr, ch=1):
     r = subprocess.run([FFMPEG, '-hide_banner', '-loglevel', 'error', '-i', path,
-                        '-f', 's16le', '-ac', '1', '-ar', str(sr), '-'],
+                        '-f', 's16le', '-ac', str(ch), '-ar', str(sr), '-'],
                        capture_output=True, check=True)
     a = array.array('h')
     a.frombytes(r.stdout)
@@ -267,23 +276,30 @@ def front_lag(o, d, lags=(-2048, -1024, 0, 1024, 2048), span=8192):
     return best[0] if best else 0
 
 
+def _seam_ch(o, d, ch):
+    """채널마다 seam_ratio → (가장 큰 튐 비율, 그 채널의 이음매 오차)."""
+    if ch == 1:
+        return seam_ratio(o, d)
+    return max(seam_ratio(o[c::ch], d[c::ch]) for c in range(ch))
+
+
 def check_encoded(kind, wav_path, enc, loop):
-    """하나의 WAV 와 인코딩 결과를 대조. 돌려주기: (지표 dict, 문제 목록)."""
-    o, sr = read_wav(wav_path)
-    n = len(o)
-    r = dict(sr=sr, samples=n, loop=loop)
+    """하나의 WAV 와 인코딩 결과를 대조. 돌려주기: (지표 dict, 문제 목록). 길이·이음매는 프레임(채널 묶음) 단위."""
+    o, sr, ch = read_wav_ch(wav_path)
+    n = len(o) // ch
+    r = dict(sr=sr, samples=n, loop=loop, ch=ch)
     bad = []
 
     p = enc['ogg']
     r['ogg_kb'] = os.path.getsize(p) / 1024
-    d = decode_ffmpeg(p, sr)
-    r['ogg_ff'] = len(d) - n
+    d = decode_ffmpeg(p, sr, ch)
+    r['ogg_ff'] = len(d) // ch - n
     ref = decode_vorbisfile(p)
-    r['ogg_vf'] = None if ref is None else len(ref) - n
+    r['ogg_vf'] = None if ref is None else len(ref) // ch - n
     use = ref if ref is not None else d
     r['ogg_peak'] = peak_db(use)
     r['ogg_clip'] = clipped(use)
-    r['ogg_seam'] = seam_ratio(o, use) if loop else None
+    r['ogg_seam'] = _seam_ch(o, use, ch) if loop else None
     if r['ogg_ff'] != 0 or (r['ogg_vf'] not in (None, 0)):
         bad.append('ogg 길이')
     if r['ogg_clip']:
@@ -296,12 +312,12 @@ def check_encoded(kind, wav_path, enc, loop):
     seg, media, mvts, mdts = mp4_edit(p)
     r['m4a_elst'] = seg
     r['m4a_media'] = media
-    d = decode_ffmpeg(p, sr)
-    r['m4a_tail'] = len(d) - n          # ffmpeg 6.1 은 elst 끝 자르기를 안 해 끝 패딩이 남는다
-    r['m4a_lag'] = front_lag(o, d)
-    r['m4a_peak'] = peak_db(d[:n])
-    r['m4a_clip'] = clipped(d[:n])
-    r['m4a_seam'] = seam_ratio(o, d) if loop else None
+    d = decode_ffmpeg(p, sr, ch)
+    r['m4a_tail'] = len(d) // ch - n    # ffmpeg 6.1 은 elst 끝 자르기를 안 해 끝 패딩이 남는다
+    r['m4a_lag'] = max((front_lag(o[c::ch], d[c::ch]) for c in range(ch)), key=abs)
+    r['m4a_peak'] = peak_db(d[:n * ch])
+    r['m4a_clip'] = clipped(d[:n * ch])
+    r['m4a_seam'] = _seam_ch(o, d, ch) if loop else None
     if seg != n or mvts != sr or mdts != sr:
         bad.append('m4a elst')
     if r['m4a_lag'] != 0 or r['m4a_tail'] < 0:

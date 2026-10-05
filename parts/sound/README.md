@@ -5,17 +5,20 @@
 |---|---|
 | `parts/sound/sound-design.md` | 음향 바이블: 톤, 악기(합성 방식), 층별 BGM 매핑, 효과음 표(트리거 제안) |
 | `parts/sound/work/build.py` | **단일 소스.** 효과음·BGM 합성 → OGG·M4A 인코딩 → 매니페스트 → 검증을 전부 재생성. 합성은 파이썬 표준 라이브러리만, 고정 시드로 결정적 |
-| `parts/sound/work/sfx_bundle2.py` · `sfx_branch2.py` · `sfx_passive.py` | 60라운드 효과음 정의(2차 묶음 25 · 2단 갈래 32 · 패시브 10). `build.py` 가 이 순서로 import 해 등록한다(시드 = 등록 순서) — 새 효과음은 `sfx_passive.py` 끝에만 |
+| `parts/sound/work/sfx_bundle2.py` · `sfx_branch2.py` · `sfx_passive.py` | 60라운드 효과음 정의(2차 묶음 25 · 2단 갈래 32 · 패시브 10). `build.py` 가 이 순서로 import 해 등록한다(시드 = 등록 순서) |
+| `parts/sound/work/sfx_core61.py` | 61라운드 P11 핵심 20종 품질 패스(같은 키 18종을 `redo()` 로 다시 등록 — 순서·시드 유지) + 새 2종(`guard_block`·`combo_finish`) + 변주 23. **마지막 모듈 — 새 효과음은 이 파일 끝에만** |
+| `parts/sound/work/bgm_floor1.py` | 61라운드 P11 1층 전용 BGM 5파일(벽 밖 · 잔 거리 · 만취 3국면), 44.1 kHz 스테레오. 기존 6곡 뒤에 등록 |
+| `parts/sound/work/mixing.py` | 61라운드 믹싱 권장값(동시 재생 상한·우선순위·덕킹·변주·리미터·보스 국면 교차) → manifest `mixing`, 항목별 `priority` |
 | `parts/sound/work/listen_index.py` → `listen_index.json` | 청취 검수(들어보기) 페이지용 목록: 전 효과음·BGM 의 분류·한 줄 설명·트리거·길이·루프·ogg/m4a 경로. 매니페스트를 쓸 때마다 함께 재생성 |
 | `parts/sound/work/encode.py` | 배포 형식 인코딩·검증(57라운드 Q17). ffmpeg(libvorbis·aac), bitexact 로 결정적 |
 | `parts/sound/work/wav/{sfx,bgm}/*.wav` | 합성 원본 **작업 캐시**(git 제외, `work/.gitignore`). `build.py` 로 바이트 단위 재생성 — 저장소·빌드 결과에 넣지 않는다 |
-| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 209종(29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37 + 60라운드 2차 묶음 25·2단 갈래 32·패시브 10 — 그중 `gs_plunge`·`gs_crack`·`katana_echo` 는 보관), 원본 44.1 kHz / mono / 피크 -6 dBFS |
-| `assets/audio/bgm/*.{ogg,m4a}` | BGM 6곡, 원본 22.05 kHz / mono, 27~32 s 루프, 피크 -6 dBFS |
+| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 **234종**(61라운드: 핵심 18종 다시 만듦 + 새 2 + 변주 23. 그 전 209종 = 29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37 + 60라운드 2차 묶음 25·2단 갈래 32·패시브 10 — 그중 `gs_plunge`·`gs_crack`·`katana_echo` 는 보관), 원본 44.1 kHz / mono / 피크 -6 dBFS |
+| `assets/audio/bgm/*.{ogg,m4a}` | BGM 11파일: 기존 6곡(22.05 kHz / mono, 27~32 s 루프) + 61라운드 1층 전용 5파일(`f1_outside`·`f1_jan` 96 s, `f1_boss_p1~3` 72 s — 44.1 kHz / **stereo**). 피크 -6 dBFS(보스 p1·p2 는 공통 이득이라 더 낮음) |
 | `assets/audio/manifest.json` | 시스템 파트가 읽을 목록(계약 초안): 파일(`file` 1순위 + `files` 형식별)·샘플 수·길이·루프 구간·권장 음량·트리거 이벤트 제안·층별 BGM 매핑 |
 
 ## 사용법
 ```
-python3 parts/sound/work/build.py            # 전부: 합성 → 인코딩 → 매니페스트 → 검증 표 (약 80초)
+python3 parts/sound/work/build.py            # 전부: 합성 → 인코딩 → 매니페스트 → 검증 표 (약 7분 — 61라운드 1층 스테레오 BGM 이 대부분, 3 프로세스 병렬)
 python3 parts/sound/work/build.py sfx        # 효과음만 (+인코딩·매니페스트)
 python3 parts/sound/work/build.py bgm        # BGM 만 (+인코딩·매니페스트)
 python3 parts/sound/work/build.py sfx parry  # 특정 소리만
@@ -24,7 +27,7 @@ python3 parts/sound/work/build.py verify     # 검증(WAV 피크·클리핑·경
 python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.json)만 다시
 ```
 새로 받은 저장소에는 WAV 캐시가 없으므로 `encode`·`manifest`·`verify` 전에 `build.py`(전부)를 한 번 돌린다.
-새 효과음은 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 **마지막 모듈(`sfx_passive.py`) 끝**에 추가하면 매니페스트·들어보기 목록까지 자동 반영된다(`build.py` 본문 중간이나 앞 모듈에 끼우면 시드가 밀려 뒤 소리가 바뀐다). 새 소리의 분류는 `listen_index.py` 의 `EXPLICIT`/`SUBGROUP` 에 적는다(60라운드 모듈 소리는 모듈 이름으로 자동). BGM 은 `@bgm(...)`.
+새 효과음은 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 **마지막 모듈(`sfx_core61.py`) 끝**에 추가하면 매니페스트·들어보기 목록까지 자동 반영된다(`build.py` 본문 중간이나 앞 모듈에 끼우면 시드가 밀려 뒤 소리가 바뀐다). 새 소리의 분류는 `listen_index.py` 의 `EXPLICIT`/`SUBGROUP` 에 적는다(60라운드 모듈 소리는 모듈 이름으로 자동). BGM 은 `@bgm(...)`.
 
 ## 자율 결정 (29라운드, 도영 님 부재 중 권장안으로 결정 — 복귀 후 검토)
 음향 파트 개시 BLANK(`parts/sound/CLAUDE.md`, GDD 8장) 네 항목을 아래와 같이 정했다. 근거는 `parts/producer/decisions/2026-10-01-round-29-autonomous-demo.md` 의 자율 진행 지시.
@@ -134,12 +137,60 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 - `brand_burst`·`overheat_burst`·`dagger_hotwind_burst`: `weapon:dagger` 조건 뺌(불필요). kenki `event:stage` 는 이미 delta 조건 없음.
 - `sound-design.md` 표 트리거 칸·연결 메모도 맞췄다.
 
+## 추가 (61라운드 P11 — 1층 BGM 3곡 · 핵심 효과음 20종 품질 패스 · 믹싱, 2026-10-05 자율 모드)
+근거: `parts/producer/decisions/2026-10-05-round-61-autonomous-stage1.md` P11(자율 모드 — 인터뷰 없이 판단, 이유를 여기 기록), 점검 `review-2026-10-05-stage1-design-audit.md` SD-1·SD-2·SD-4, 60 Q22 청취 메모. 분위기 참고 `parts/story/world-bible.md` §0. 도구는 그대로(표준 라이브러리 합성 + ffmpeg, 외부 샘플 없음).
+
+**1. 1층 전용 BGM — 5파일 (`work/bgm_floor1.py`, 설계표 `sound-design.md` 3-1)**
+| id | 길이 | 형식 | 쓰는 곳 | gainDb | RMS(정규화 후) |
+|---|---|---|---|---|---|
+| `bgm/f1_outside` | 96 s | 44.1 kHz 스테레오 | 벽 밖 여정(탄생지·버려진 길·국경 초소) — `bgmByFloorState.1.journey` | +3.5 | -26.5 dBFS |
+| `bgm/f1_jan` | 96 s (3/4 150 BPM 80마디) | 〃 | 1층 전투 — `bgmByFloor.1`(기존 키, `floor_low` 대체) = `bgmByFloorState.1.combat` | +3.5 | -24.5 |
+| `bgm/f1_boss_p1` | 72 s (6/8 72마디) | 〃 | 만취 1국면 — `bgmByFloorState.1.boss` = `bossPhases[0]` | 0 | -22.8 |
+| `bgm/f1_boss_p2` | 72 s | 〃 | 2국면 = p1 + 타악 — `bossPhases[1]` | 0 | -21.1 |
+| `bgm/f1_boss_p3` | 72 s | 〃 | 3국면 = p2 울렁임 + 왜곡·불 — `bossPhases[2]` | 0 | -20.2 |
+
+판단과 이유:
+- **보스 = 루프 3개(스템 아님)**: 스템은 시스템이 세 소스를 샘플 단위로 맞춰 재생해야 한다. 완성 믹스 3개 + 같은 길이·박자·바탕·**공통 이득**(p1·p2 피크 -9.65·-6.37 dBFS)이면 기존 교차 페이드만으로 동작하고, 재생 위치를 이어 주면 '층이 쌓이는' 느낌이 된다(`mixing.bgmPhaseCrossfadeMs` 800, `bgmPhaseSyncPosition`).
+- **인트로 없음**(점검 SD-1 은 '루프 + 인트로'): 기존 단일 파일 루프 방식을 지켰다. 보스 진입은 `boss_start` 효과음이 인트로 역할.
+- **키**: `bgmByFloor.1` 은 기존 키 그대로 새 곡을 가리켜 시스템이 바꾸지 않아도 1층 전투가 새 곡이 된다. `bgmByState.boss` 는 `bgm/boss` 그대로(2~7층 공용) — 1층 보스·여정은 **새 최상위 키 `bgmByFloorState`** 로만 알 수 있다(시스템 연결 필요). `floor_low` 는 2층 전용으로(`floors` [1,2] → [2], 오디오 불변).
+- **스테레오 44.1 kHz**: 파이프라인을 스테레오 대응으로 넓혔다(`write_wav_stereo`, `wav_info`·`encode.py` 의 길이·이음매·정렬을 채널별로). 모노 경로는 그대로 — 기존 파일 md5 불변으로 확인. M4A 는 채널당 64 kbps(= 128 kbps), OGG q4.
+- **용량**: 새 5파일이 OGG 6.11 MB / M4A 6.36 MB. 브라우저 한 곳이 받는 소리 전체 OGG 3.05 → **9.36 MB**(M4A 10.03 MB). 1층 곡은 1층에서만 쓰므로 **층 진입 때 지연 로드** 권장(시스템 판단).
+- 빌드 시간: 곡이 길고 스테레오라 BGM 합성이 늘어 `build_bgm` 을 group 단위 3 프로세스 병렬로 바꿨다(곡마다 시드 고정 → 결과 동일, 재실행 md5 일치 확인).
+
+**2. 핵심 효과음 20종 품질 패스 + 변주 23 (`work/sfx_core61.py`, 표 `sound-design.md` 4-8)**
+- 다시 만든 같은 키 18: `hit_enemy` · `hit_enemy_crit` · `enemy_death` · `hit_player` · `dash` · `perfect_guard` · `parry` · `parry_perfect` · `swing_katana` · `swing_greatsword` · `swing_dagger` · `bow_shot` · `pickup_gold` · `pickup_potion` · `door_open` · `menu_move` · `menu_select` · `menu_cancel`.
+- 새 키 2: `guard_block`(`PLAYER_DAMAGED{guarded:true}`, -2 dB), `combo_finish`(`PLAYER_ATTACK{finisher:true}`, -3 dB) — **트리거 제안, 시스템 확정 필요**.
+- 변주 23: `hit_enemy_v2·v3`, `hit_enemy_crit_v2`, `enemy_death_v2·v3`, `hit_player_v2·v3`, `dash_v2·v3`, `guard_block_v2`, `combo_finish_v2`, `parry_v2`, `swing_katana_v2·v3`, `swing_greatsword_v2·v3`, `swing_dagger_v2·v3`, `bow_shot_v2·v3`, `pickup_gold_v2·v3`, `menu_move_v2`. manifest: 변주 항목 `trigger: null` + `variantOf`, 원본 항목 `variants`(원본 포함), `mixing.variantGroups`.
+- 권장 음량 변경 3: `hit_enemy` 0 → -3(짧은 구간 음량 +7 dB 중 일부 되돌림), `dash` -5 → -3(파일이 약 3 dB 작아져 합쳐서 Q22 판보다 약 1 dB 작음 — Q22 '조금 더 줄여' 유지), `pickup_potion` -4 → -2(울림을 줄여 약 5 dB 작아진 만큼 일부 보정).
+- 방향(Q22 '프라이팬 같은 금속성' 지양): 오래 남는 중역 금속 울림을 모두 뺐고(`hit_enemy_crit` 1.8 kHz, `parry` 1.5·2.6 kHz 0.22 s, `perfect_guard` 880·1175 Hz 종, `menu_select` 1.3 kHz, `swing_katana` 2.4 kHz), 무게는 85~250 Hz 몸통 + 300 Hz '퍽'(노트북 스피커에서도 들리게), 날카로움은 짧은 '딱' + 고역 '샥'. 대역별 시간 분석(30 ms 창, 1 kHz 대역)으로 확인: 옛 `parry` 는 300 ms 에도 -28 dBFS 로 울렸고, 새 `parry` 는 150 ms 에 -42, 새 `hit_enemy` 는 60 ms 에 -36 dBFS 아래.
+- `menu_move` 는 0.06 s 로 만들었다가 ffmpeg 6.1 OGG 디코더가 끝을 128 샘플 잘라 검증에 걸려 **0.08 s** 로(소리는 0.05 s 안에 끝).
+- 안 고친 것: 차지·검기 단계(Q22·Q25 에서 이미), 보스 효과음(단계 3 P6 과 함께), `guard_hold`·`guard_push`(P1 4동사의 가드 입력 확정 후).
+
+**3. 믹싱 권장값 (`work/mixing.py` → manifest `mixing` + 효과음 항목별 `priority`, 표 `sound-design.md` 5장)**
+- 동시 재생 상한 `voices.maxSfx` 12(UI 별도 2), 같은 그룹(원본 + 변주) 기본 3 + 예외, 빼앗기 = 낮은 우선순위·오래된 것부터(loop 제외).
+- 우선순위 4 보스 예고·신호 > 3 피격·방어 판정(적 예고 포함) > 2 타격·공격 > 1 환경·획득·부가음, 0 UI. 분포: 4 = 7개, 3 = 12, 2 = 158, 1 = 52, 0 = 5.
+- 덕킹(우선순위 4 → SFX -6 dB·BGM -3 dB, 피격 → SFX -3 dB 150 ms), 변주 선택(직전과 다른 것) + 재생 속도 ±3 %, 마스터 리미터, 보스 국면 교차.
+
+**검증·불변**
+- `build.py verify`: 245개(효과음 234 + BGM 11) **문제 0**. 새 루프 이음매 튐 비율 OGG / M4A: `f1_outside` 0.10 / 0.17, `f1_jan` 0.30 / 0.58, `f1_boss_p1` 0.28 / 0.12, `f1_boss_p2` 0.23 / 0.28, `f1_boss_p3` 0.62 / 0.24(≤ 1 통과). OGG 길이 차 0(ffmpeg·libvorbisfile), M4A elst = 샘플 수.
+- 총 WAV 91.42 MB → 배포 19.39 MB(OGG 9.36 / M4A 10.03 MB). 효과음만 OGG 2.28 MB.
+- md5(작업 시작 전 대조): WAV 캐시·OGG·M4A 646개 중 **591개 바이트 불변**, 바뀐 것은 위 18종 × 3(54) + manifest, 새 파일 90개(효과음 25 + BGM 5, × 3). 전체 `build.py` 재실행 결과도 같음.
+- `listen_index.json` 245항목 재생성(변주는 원본 분류, `round: "61"`, `priority`·`variants`·`variantOf`·`use`·`channels` 추가).
+
+**시스템에 전달할 것(계약 `sound-assets.md` 갱신은 프로듀서 소관)**
+1. 새 최상위 키 `bgmByFloorState`(`{"1": {journey, combat, boss, bossPhases[3]}}`) + `bgmByFloorStateNote`. `bgmByFloor`·`bgmByState` 의 키는 그대로(값만 `bgmByFloor.1` → `bgm/f1_jan`).
+2. BGM 항목에 `use`(floor·state·phase), 새 곡은 `sampleRate` 44100 · `channels` 2 — 루프 초는 항목의 sampleRate 로 계산(format 의 `bgmSampleRate`·`channels` 는 기존 곡 기준, `format.perEntryNote`).
+3. 효과음 항목에 `priority`(0~4), 원본에 `variants`, 변주에 `variantOf` + `trigger: null`(트리거를 직접 묶지 말 것 — 원본 트리거에서 고른다).
+4. `mixing` 새 키: `dedupeMs`·`voices`·`priority`·`ducking`·`variation`·`masterLimiter`·`bgmPhaseCrossfadeMs`·`bgmPhaseSyncPosition`·`bgmPhaseNote`·`bgmJourneyNote`·`variantGroups`.
+5. 새 트리거 제안: `PLAYER_DAMAGED{guarded:true}` → `guard_block`, `PLAYER_ATTACK{finisher:true}`(마지막 타 **적중** 때, 활 제외) → `combo_finish`.
+
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).
 - 60라운드 읽기(지시 범위): 아트 fx JSON 26개 `assets/sprites/fx/v3/{katana_whirl_loop,katana_whirl_reflect,katana_moon_trail,katana_cleave_crack,katana_execute,katana_mirror_ki,katana_mirror_parry,greatsword_quake_fork,greatsword_echo_counter,greatsword_giant_ring,greatsword_charge_flash_lv4,greatsword_congest_aura,greatsword_congest_burst,dagger_frenzy_clone_in,dagger_frenzy_clone_out,dagger_brand_bleed,dagger_brand_hop,dagger_stuck_blade,dagger_hotwind_trail,dagger_hotwind_burst,bow_arrow_split,bow_arrow_stuck,bow_arrow_recall,bow_deadeye_scope,bow_link_stack,bow_skypierce_line}.json` — 계약 `art-assets.md` §21 이 타이밍 기준으로 가리키는 런타임 데이터(타이밍 필드만 참고).
+- 61라운드 읽기(자율 모드, 지시 범위): `parts/story/world-bible.md` §0(분위기), 공개 자료 `parts/producer/decisions/2026-10-05-round-61-autonomous-stage1.md`·`review-2026-10-05-stage1-design-audit.md`(SD-1·SD-2·SD-4, SY-1 무기 4동사 표)·`2026-10-05-round-60-parallel-production.md`(Q22)·`parts/producer/contracts/sound-assets.md`. 다른 파트 소유 경로(src·data·assets/sprites 등)는 읽지 않았다.
 - 쓰기: `parts/sound/**`, `assets/audio/**` 만.
 
 ## 미완료 · 보류
-- 실제 청취 검수는 도영 님 복귀 후(컨테이너에서 재생 불가, 수치 검증만 수행).
+- 실제 청취 검수는 도영 님 복귀 후(컨테이너에서 재생 불가, 수치 검증만 수행). **61라운드 새 BGM 5파일·품질 패스 20종·변주 23 도 청취 전** — 데모에서 들어보고 피드백으로 다듬는다.
 - 시스템 파트의 오디오 로더·트리거 연동은 시스템 소유 — 매니페스트 초안을 전달만 한다.
 - 진화별 전용 효과음, 엔딩 2종 음악, 층별 BGM 세분화는 `sound-design.md` 6장 참조.
