@@ -176,4 +176,8 @@ def main(only=None):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or None)
+    # 60라운드 Q9 B안: assets/tiles/v2/stage1_<지역> 은 64도트 판(parts/art/work/floor1q60/floors64_build.py)이 현행.
+    # 이 53라운드 32도트 빌드는 그것을 덮어쓰므로 --legacy 없이는 멈춘다(입력 원본은 floor1q60/before/tiles 사본).
+    if "--legacy" not in sys.argv:
+        sys.exit("floors_v2/build.py 는 53라운드 32도트 판 보관용입니다(현행 = floor1q60/floors64_build.py --assets). 다시 만들려면 --legacy")
+    main([a for a in sys.argv[1:] if a != "--legacy"] or None)

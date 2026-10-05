@@ -1,0 +1,527 @@
+{
+ "image": "stage1_outer.png",
+ "version": "v2 (50라운드 시범)",
+ "stage": 1,
+ "region": "outer",
+ "name": "잔(盞) — 외곽 거리 v2 (쿼터뷰)",
+ "tileWidth": 32,
+ "tileHeight": 32,
+ "columns": 8,
+ "rows": 10,
+ "indexFormula": "row * columns + column",
+ "pixelScale": 1,
+ "wallHeightTiles": 2,
+ "tiles": {
+  "0": [
+   7,
+   7,
+   7,
+   58,
+   59
+  ],
+  "1": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "2": [
+   5,
+   5,
+   5,
+   21,
+   22,
+   63,
+   63
+  ],
+  "3": [
+   8
+  ],
+  "4": [
+   9
+  ],
+  "5": [
+   10
+  ],
+  "6": [
+   4
+  ],
+  "7": [
+   11
+  ],
+  "8": [
+   12
+  ]
+ },
+ "tilesNote": "목록 안 중복 = 가중치(좌표 해시 균등 선택 가정). tiles['2'] 는 벽 앞면 아랫단 변형(5·21·22 + v2 63).",
+ "tileIdNames": {
+  "0": "void",
+  "1": "floor",
+  "2": "wall",
+  "3": "door_open",
+  "4": "door_closed",
+  "5": "door_locked",
+  "6": "corridor",
+  "7": "exit",
+  "8": "shop"
+ },
+ "walls": {
+  "front": {
+   "lower": [
+    5,
+    5,
+    5,
+    21,
+    22,
+    63,
+    63
+   ],
+   "upper": [
+    40,
+    40,
+    40,
+    41,
+    41,
+    42
+   ]
+  },
+  "wallFrontUpper": 40,
+  "top": 6,
+  "topAboveFront": 47,
+  "left": 48,
+  "right": 49,
+  "bottom": 50,
+  "corner_tl": 48,
+  "corner_tr": 49,
+  "corner_bl": 51,
+  "corner_br": 52,
+  "variants": [
+   5,
+   21,
+   22,
+   63
+  ],
+  "stoneSet": {
+   "lower": [
+    43,
+    43,
+    46
+   ],
+   "upper": [
+    44
+   ],
+   "top": 45,
+   "note": "돌담 세트(선택). 같은 벽 구간 전체를 이 세트로 바꿔 쓴다(칸마다 섞지 말 것)"
+  },
+  "stacking": "바닥과 맞닿은 북쪽 벽(앞면이 보이는 벽): 바닥 바로 위 칸 = front.lower, 그 위 칸 = front.upper, 그 위 = topAboveFront(처마) → 나머지 top. 앞면 2칸(64px)은 캐릭터를 가린다(Y 정렬, 벽 기준선 = 아랫단 밑변). 서·동·남 경계는 앞면 없이 윗면만: 서쪽 경계 = left(48, 동쪽 가장자리), 동쪽 = right(49), 남쪽 = bottom(50), 남쪽 모서리 = corner_bl/br. 문(8~10)은 아랫단 자리에 둔다(위 칸은 front.upper).",
+  "note": "계약 §9: walls.front = 앞면 세로 2칸, walls.top = 윗면(6). §9 문구의 '24~ 이후 새 인덱스' 는 roomFloors(23~38)와 겹쳐 40번부터 배정 — 확인 요청"
+ },
+ "floorShadows": {
+  "n": 53,
+  "w": 54,
+  "e": 55,
+  "nw": 56,
+  "ne": 57,
+  "note": "반투명(알파 4단 계단) 겹침. 바닥 위·소품 아래. 북쪽 벽 발치 12px, 서·동 8px. 시스템이 지원하지 않으면 생략 가능"
+ },
+ "floorFeatures": {
+  "drain": 60,
+  "drainGrate": 61,
+  "gravel": 62,
+  "note": "선택. drain 은 가로로 이어지는 배수로(같은 행에 연속 배치)"
+ },
+ "roomFloors": {
+  "start": [
+   23,
+   24,
+   25,
+   26
+  ],
+  "trial": [
+   27,
+   28,
+   29,
+   30
+  ],
+  "rest": [
+   31,
+   32,
+   33,
+   34
+  ],
+  "boss": [
+   35,
+   36,
+   37,
+   38
+  ]
+ },
+ "roomFloorMix": 0.02,
+ "roomFloorsNote": "v3 의미 유지. start = 그을음·흙·자갈, trial = 배수구·금, rest = 다진 흙·짚, boss = 광장 큰 포석(_0 잔 각인).",
+ "props": [
+  {
+   "index": 13,
+   "name": "barrel",
+   "solid": true,
+   "maxPerRoom": 3,
+   "weight": 0.9,
+   "pivot": {
+    "x": 16,
+    "y": 30
+   },
+   "occludeAbove": 10
+  },
+  {
+   "index": 14,
+   "name": "crate",
+   "solid": true,
+   "maxPerRoom": 2,
+   "weight": 0.8,
+   "pivot": {
+    "x": 16,
+    "y": 30
+   },
+   "occludeAbove": 10
+  },
+  {
+   "index": 15,
+   "name": "puddle",
+   "solid": false,
+   "maxPerRoom": 3,
+   "weight": 1.0,
+   "depth": "floor"
+  },
+  {
+   "index": 16,
+   "name": "lantern",
+   "solid": true,
+   "maxPerRoom": 2,
+   "weight": 0.6,
+   "pivot": {
+    "x": 16,
+    "y": 30
+   },
+   "occludeAbove": 12,
+   "light": {
+    "color": "#e8b858",
+    "radius": 120,
+    "intensity": 0.9,
+    "flicker": {
+     "amp": 0.08,
+     "hz": 5
+    },
+    "offset": {
+     "x": 16,
+     "y": 20
+    }
+   }
+  },
+  {
+   "index": 17,
+   "name": "brazier",
+   "solid": true,
+   "maxPerRoom": 1,
+   "weight": 0.5,
+   "pivot": {
+    "x": 16,
+    "y": 30
+   },
+   "occludeAbove": 12,
+   "light": {
+    "color": "#eecc78",
+    "radius": 190,
+    "intensity": 1.2,
+    "flicker": {
+     "amp": 0.15,
+     "hz": 7
+    },
+    "offset": {
+     "x": 16,
+     "y": 10
+    }
+   }
+  },
+  {
+   "index": 18,
+   "name": "sacks",
+   "solid": true,
+   "maxPerRoom": 1,
+   "weight": 0.6,
+   "pivot": {
+    "x": 16,
+    "y": 30
+   },
+   "occludeAbove": 10
+  },
+  {
+   "index": 19,
+   "name": "tipped_barrel",
+   "solid": true,
+   "maxPerRoom": 1,
+   "weight": 0.4,
+   "pivot": {
+    "x": 13,
+    "y": 26
+   },
+   "occludeAbove": 8
+  },
+  {
+   "index": 20,
+   "name": "debris",
+   "solid": false,
+   "maxPerRoom": 3,
+   "weight": 1.0,
+   "depth": "floor"
+  }
+ ],
+ "propsNote": "32×32, 배경 투명, pivot = 바닥 접점(Y 정렬 기준). occludeAbove(px) = 피벗 위 이 높이부터 캐릭터를 가림(§9). light 는 offset(시트 칸 좌표)에서 광원.",
+ "bigProps": [
+  {
+   "name": "lamp_post",
+   "rect": {
+    "x": 0,
+    "y": 256,
+    "w": 32,
+    "h": 64
+   },
+   "index": 64,
+   "pivot": {
+    "x": 13,
+    "y": 62
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 16,
+   "placement": "floor",
+   "light": {
+    "color": "#e8b858",
+    "radius": 150,
+    "intensity": 1.0,
+    "flicker": {
+     "amp": 0.06,
+     "hz": 4
+    },
+    "offset": {
+     "x": 24,
+     "y": 22
+    }
+   }
+  },
+  {
+   "name": "crate_stack",
+   "rect": {
+    "x": 32,
+    "y": 256,
+    "w": 32,
+    "h": 64
+   },
+   "index": 65,
+   "pivot": {
+    "x": 16,
+    "y": 62
+   },
+   "footprint": [
+    1,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 12,
+   "placement": "floor"
+  },
+  {
+   "name": "stall",
+   "rect": {
+    "x": 64,
+    "y": 256,
+    "w": 64,
+    "h": 64
+   },
+   "index": 66,
+   "pivot": {
+    "x": 32,
+    "y": 62
+   },
+   "footprint": [
+    2,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 22,
+   "placement": "floor (방 가장자리 권장)"
+  },
+  {
+   "name": "well",
+   "rect": {
+    "x": 128,
+    "y": 256,
+    "w": 64,
+    "h": 64
+   },
+   "index": 68,
+   "pivot": {
+    "x": 32,
+    "y": 61
+   },
+   "footprint": [
+    2,
+    1
+   ],
+   "solid": true,
+   "occludeAbove": 26,
+   "placement": "floor"
+  },
+  {
+   "name": "washing_line",
+   "rect": {
+    "x": 192,
+    "y": 256,
+    "w": 64,
+    "h": 32
+   },
+   "index": 70,
+   "pivot": {
+    "x": 0,
+    "y": 0
+   },
+   "solid": false,
+   "placement": "wallUpper — 앞면 윗단(40~42) 위 겹침, 가로 이어붙임",
+   "depth": "above_wall"
+  },
+  {
+   "name": "washing_line_b",
+   "rect": {
+    "x": 192,
+    "y": 288,
+    "w": 64,
+    "h": 32
+   },
+   "index": 78,
+   "pivot": {
+    "x": 0,
+    "y": 0
+   },
+   "solid": false,
+   "placement": "wallUpper",
+   "depth": "above_wall"
+  }
+ ],
+ "bigPropsNote": "v2 신규(선택): rect 로 자르는 큰 소품. index 는 rect 왼쪽 위 칸. 시스템이 모르면 무시해도 된다(인덱스 소품 13~20 은 단독으로 동작).",
+ "tileLights": {
+  "21": {
+   "color": "#e2a33c",
+   "radius": 70,
+   "intensity": 0.55,
+   "offset": {
+    "x": 16,
+    "y": 26
+   }
+  },
+  "22": {
+   "color": "#dc8e23",
+   "radius": 46,
+   "intensity": 0.45,
+   "offset": {
+    "x": 26,
+    "y": 30
+   }
+  }
+ },
+ "tileLightsNote": "v2 제안(선택): 불 켜진 창(21)·문틈(22) 칸을 약한 광원으로 등록",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "emissiveNote": "이 색 픽셀은 자체 발광(등불 불꽃·창 불빛·눈빛). 시스템 조명이 곱하기 방식이면 이 색만 가산 레이어로 다시 그려 어둠에 묻히지 않게(목업 방식)",
+ "names": {
+  "0": "floor_0",
+  "1": "floor_1",
+  "2": "floor_2",
+  "3": "floor_3",
+  "4": "corridor_setts",
+  "5": "wall_front_lower_plain",
+  "6": "wall_top_roof",
+  "7": "void_roofs",
+  "8": "door_open",
+  "9": "door_closed",
+  "10": "door_locked",
+  "11": "exit_steps",
+  "12": "shop_deck",
+  "13": "prop_barrel",
+  "14": "prop_crate",
+  "15": "prop_puddle",
+  "16": "prop_lantern",
+  "17": "prop_brazier",
+  "18": "prop_sacks",
+  "19": "prop_tipped_barrel",
+  "20": "prop_debris",
+  "21": "wall_front_lower_window_lit",
+  "22": "wall_front_lower_door",
+  "23": "start_0",
+  "24": "start_1",
+  "25": "start_2",
+  "26": "start_3",
+  "27": "trial_0",
+  "28": "trial_1",
+  "29": "trial_2",
+  "30": "trial_3",
+  "31": "rest_0",
+  "32": "rest_1",
+  "33": "rest_2",
+  "34": "rest_3",
+  "35": "boss_0",
+  "36": "boss_1",
+  "37": "boss_2",
+  "38": "boss_3",
+  "39": "reserve",
+  "40": "wall_front_upper_plain",
+  "41": "wall_front_upper_window",
+  "42": "wall_front_upper_sign",
+  "43": "stone_front_lower",
+  "44": "stone_front_upper",
+  "45": "stone_top",
+  "46": "stone_front_lower_ring",
+  "47": "wall_top_roof_eave",
+  "48": "wall_top_edge_e",
+  "49": "wall_top_edge_w",
+  "50": "wall_top_edge_n",
+  "51": "wall_top_corner_ne",
+  "52": "wall_top_corner_nw",
+  "53": "floor_shadow_n",
+  "54": "floor_shadow_w",
+  "55": "floor_shadow_e",
+  "56": "floor_shadow_nw",
+  "57": "floor_shadow_ne",
+  "58": "void_chimney",
+  "59": "void_gap",
+  "60": "floor_drain",
+  "61": "floor_drain_grate",
+  "62": "floor_gravel",
+  "63": "wall_front_lower_window_dark",
+  "64": "big:lamp_post",
+  "65": "big:crate_stack",
+  "66": "big:stall",
+  "67": "big:stall",
+  "68": "big:well",
+  "69": "big:well",
+  "70": "big:washing_line",
+  "71": "big:washing_line",
+  "72": "big:lamp_post",
+  "73": "big:crate_stack",
+  "74": "big:stall",
+  "75": "big:stall",
+  "76": "big:well",
+  "77": "big:well",
+  "78": "big:washing_line_b",
+  "79": "big:washing_line_b"
+ },
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 제안 parts/art/work/v2_outer/palette_v2_proposal.json (SL·WD·PL·NT, 임시·고정색)",
+ "source": "parts/art/work/v2_outer/build.py (50라운드 시범)"
+}

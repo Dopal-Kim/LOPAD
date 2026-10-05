@@ -1,0 +1,63 @@
+{
+ "image": "dagger_hundred_ghosts.png",
+ "action": "dagger_hundred_ghosts",
+ "version": "v3-r60-awaken",
+ "frameWidth": 216,
+ "frameHeight": 184,
+ "frames": 9,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.98,
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  30,
+  50,
+  60,
+  70,
+  90,
+  110
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 16,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "weapon": "dagger",
+ "awakening": "백귀(百鬼) — 귀화",
+ "anchor": "hitbox_center",
+ "followTarget": false,
+ "depth": "above",
+ "spawn": "brand_detonate",
+ "spawnNote": "각성 '백귀' 런에서 낙인 기폭마다 dagger_brand_burst 와 함께 1회 — 분신 3체(설계안 3.4)",
+ "impactFrame": 3,
+ "damageNote": "분신 3체 피해는 시스템 데이터",
+ "frameRoles": [
+  "세 도깨비불 다가옴",
+  "다가옴",
+  "다가옴",
+  "세 갈래 베기(백열)",
+  "꿰뚫고 나감",
+  "흩어짐",
+  "불티",
+  "불티",
+  "불티"
+ ],
+ "design": "세 방향에서 얼굴 달린 보라 도깨비불(청록 불꼬리)이 날아들어 대상 한가운데서 세 갈래 초승달 베기(X1 심) → 꿰뚫고 나가 청록·보라 불티로 흩어짐",
+ "previousDesign": "57라운드 build57 재·호박판(60 Q15~Q21 로 교체)",
+ "pivot": {
+  "x": 99,
+  "y": 72
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21",
+ "glowFrames": [
+  3
+ ]
+}

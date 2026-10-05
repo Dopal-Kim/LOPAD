@@ -1,0 +1,1742 @@
+[
+ {
+  "cat": "fx",
+  "name": "bow_arrow_awaken",
+  "replaced": false,
+  "src": [
+   120,
+   24
+  ],
+  "pages": [
+   [
+    "bow_arrow_awaken.png",
+    109,
+    14
+   ]
+  ],
+  "gpuBeforeMB": 0.01,
+  "gpuAfterMB": 0.01,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "bow_arrow_rapid_awaken",
+  "replaced": false,
+  "src": [
+   256,
+   24
+  ],
+  "pages": [
+   [
+    "bow_arrow_rapid_awaken.png",
+    235,
+    15
+   ]
+  ],
+  "gpuBeforeMB": 0.02,
+  "gpuAfterMB": 0.01,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "bow_arrow_snipe_awaken",
+  "replaced": false,
+  "src": [
+   372,
+   24
+  ],
+  "pages": [
+   [
+    "bow_arrow_snipe_awaken.png",
+    344,
+    15
+   ]
+  ],
+  "gpuBeforeMB": 0.03,
+  "gpuAfterMB": 0.02,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "bow_awaken_in",
+  "replaced": false,
+  "src": [
+   1344,
+   176
+  ],
+  "pages": [
+   [
+    "bow_awaken_in.png",
+    322,
+    93
+   ]
+  ],
+  "gpuBeforeMB": 0.9,
+  "gpuAfterMB": 0.11,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "bow_meteor_arrow",
+  "replaced": true,
+  "src": [
+   2016,
+   344
+  ],
+  "pages": [
+   [
+    "bow_meteor_arrow.png",
+    192,
+    526
+   ]
+  ],
+  "gpuBeforeMB": 2.65,
+  "gpuAfterMB": 0.39,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "dagger_awaken_in",
+  "replaced": false,
+  "src": [
+   960,
+   184
+  ],
+  "pages": [
+   [
+    "dagger_awaken_in.png",
+    133,
+    109
+   ]
+  ],
+  "gpuBeforeMB": 0.67,
+  "gpuAfterMB": 0.06,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "dagger_combo1_awaken",
+  "replaced": false,
+  "src": [
+   1312,
+   1376
+  ],
+  "pages": [
+   [
+    "dagger_combo1_awaken.png",
+    146,
+    303
+   ]
+  ],
+  "gpuBeforeMB": 6.89,
+  "gpuAfterMB": 0.17,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "dagger_combo2_awaken",
+  "replaced": false,
+  "src": [
+   1344,
+   1344
+  ],
+  "pages": [
+   [
+    "dagger_combo2_awaken.png",
+    147,
+    359
+   ]
+  ],
+  "gpuBeforeMB": 6.89,
+  "gpuAfterMB": 0.2,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "dagger_combo3_awaken",
+  "replaced": false,
+  "src": [
+   2000,
+   1600
+  ],
+  "pages": [
+   [
+    "dagger_combo3_awaken.png",
+    176,
+    309
+   ]
+  ],
+  "gpuBeforeMB": 12.21,
+  "gpuAfterMB": 0.21,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "dagger_flurry_awaken",
+  "replaced": false,
+  "src": [
+   3360,
+   1376
+  ],
+  "pages": [
+   [
+    "dagger_flurry_awaken.png",
+    209,
+    944
+   ]
+  ],
+  "gpuBeforeMB": 17.64,
+  "gpuAfterMB": 0.75,
+  "empty": 4,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "dagger_hundred_ghosts",
+  "replaced": true,
+  "src": [
+   1944,
+   184
+  ],
+  "pages": [
+   [
+    "dagger_hundred_ghosts.png",
+    231,
+    615
+   ]
+  ],
+  "gpuBeforeMB": 1.36,
+  "gpuAfterMB": 0.54,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_awaken_in",
+  "replaced": false,
+  "src": [
+   2304,
+   200
+  ],
+  "pages": [
+   [
+    "greatsword_awaken_in.png",
+    313,
+    234
+   ]
+  ],
+  "gpuBeforeMB": 1.76,
+  "gpuAfterMB": 0.28,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_charge_swing_awaken",
+  "replaced": false,
+  "src": [
+   3976,
+   4608
+  ],
+  "pages": [
+   [
+    "greatsword_charge_swing_awaken.png",
+    1524,
+    1427
+   ]
+  ],
+  "gpuBeforeMB": 69.89,
+  "gpuAfterMB": 8.3,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_cleave_awaken",
+  "replaced": false,
+  "src": [
+   3408,
+   4608
+  ],
+  "pages": [
+   [
+    "greatsword_cleave_awaken.png",
+    632,
+    1908
+   ]
+  ],
+  "gpuBeforeMB": 59.91,
+  "gpuAfterMB": 4.6,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_landslide",
+  "replaced": true,
+  "src": [
+   5840,
+   4736
+  ],
+  "pages": [
+   [
+    "greatsword_landslide.png",
+    774,
+    3399
+   ]
+  ],
+  "gpuBeforeMB": 105.51,
+  "gpuAfterMB": 10.04,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_sweep_ccw_awaken",
+  "replaced": false,
+  "src": [
+   2640,
+   3584
+  ],
+  "pages": [
+   [
+    "greatsword_sweep_ccw_awaken.png",
+    1207,
+    2070
+   ]
+  ],
+  "gpuBeforeMB": 36.09,
+  "gpuAfterMB": 9.53,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "greatsword_sweep_cw_awaken",
+  "replaced": false,
+  "src": [
+   2640,
+   3584
+  ],
+  "pages": [
+   [
+    "greatsword_sweep_cw_awaken.png",
+    1217,
+    2066
+   ]
+  ],
+  "gpuBeforeMB": 36.09,
+  "gpuAfterMB": 9.59,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_awaken_in",
+  "replaced": false,
+  "src": [
+   1824,
+   200
+  ],
+  "pages": [
+   [
+    "katana_awaken_in.png",
+    490,
+    91
+   ]
+  ],
+  "gpuBeforeMB": 1.39,
+  "gpuAfterMB": 0.17,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_fall_awaken",
+  "replaced": false,
+  "src": [
+   1872,
+   1344
+  ],
+  "pages": [
+   [
+    "katana_fall_awaken.png",
+    838,
+    421
+   ]
+  ],
+  "gpuBeforeMB": 9.6,
+  "gpuAfterMB": 1.35,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_fullmoon",
+  "replaced": true,
+  "src": [
+   2160,
+   240
+  ],
+  "pages": [
+   [
+    "katana_fullmoon.png",
+    210,
+    1892
+   ]
+  ],
+  "gpuBeforeMB": 1.98,
+  "gpuAfterMB": 1.52,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_issen_line_t1_awaken",
+  "replaced": false,
+  "src": [
+   2976,
+   1024
+  ],
+  "pages": [
+   [
+    "katana_issen_line_t1_awaken.png",
+    134,
+    1179
+   ]
+  ],
+  "gpuBeforeMB": 11.62,
+  "gpuAfterMB": 0.6,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_issen_line_t2_awaken",
+  "replaced": false,
+  "src": [
+   4416,
+   1504
+  ],
+  "pages": [
+   [
+    "katana_issen_line_t2_awaken.png",
+    199,
+    1178
+   ]
+  ],
+  "gpuBeforeMB": 25.34,
+  "gpuAfterMB": 0.89,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_issen_line_t3_awaken",
+  "replaced": false,
+  "src": [
+   5952,
+   2016
+  ],
+  "pages": [
+   [
+    "katana_issen_line_t3_awaken.png",
+    268,
+    1111
+   ]
+  ],
+  "gpuBeforeMB": 45.77,
+  "gpuAfterMB": 1.14,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_issen_line_t4_awaken",
+  "replaced": false,
+  "src": [
+   7488,
+   2496
+  ],
+  "pages": [
+   [
+    "katana_issen_line_t4_awaken.png",
+    421,
+    939
+   ]
+  ],
+  "gpuBeforeMB": 71.3,
+  "gpuAfterMB": 1.51,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_rise_awaken",
+  "replaced": false,
+  "src": [
+   1920,
+   1312
+  ],
+  "pages": [
+   [
+    "katana_rise_awaken.png",
+    248,
+    1350
+   ]
+  ],
+  "gpuBeforeMB": 9.61,
+  "gpuAfterMB": 1.28,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_spin_awaken",
+  "replaced": false,
+  "src": [
+   2688,
+   1216
+  ],
+  "pages": [
+   [
+    "katana_spin_awaken.png",
+    1222,
+    1691
+   ]
+  ],
+  "gpuBeforeMB": 12.47,
+  "gpuAfterMB": 7.88,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "fx",
+  "name": "katana_thrust_awaken",
+  "replaced": false,
+  "src": [
+   2640,
+   1760
+  ],
+  "pages": [
+   [
+    "katana_thrust_awaken.png",
+    199,
+    307
+   ]
+  ],
+  "gpuBeforeMB": 17.72,
+  "gpuAfterMB": 0.23,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_arrow_rain_awaken",
+  "replaced": true,
+  "src": [
+   3072,
+   1024
+  ],
+  "pages": [
+   [
+    "bow_arrow_rain_awaken.png",
+    449,
+    486
+   ]
+  ],
+  "gpuBeforeMB": 12.0,
+  "gpuAfterMB": 0.83,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_carry_dash_awaken",
+  "replaced": true,
+  "src": [
+   1280,
+   1024
+  ],
+  "pages": [
+   [
+    "bow_carry_dash_awaken.png",
+    56,
+    1163
+   ]
+  ],
+  "gpuBeforeMB": 5.0,
+  "gpuAfterMB": 0.25,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_carry_idle_awaken",
+  "replaced": true,
+  "src": [
+   1536,
+   1024
+  ],
+  "pages": [
+   [
+    "bow_carry_idle_awaken.png",
+    117,
+    541
+   ]
+  ],
+  "gpuBeforeMB": 6.0,
+  "gpuAfterMB": 0.24,
+  "empty": 0,
+  "deduped": 2
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_carry_run_awaken",
+  "replaced": true,
+  "src": [
+   2048,
+   1024
+  ],
+  "pages": [
+   [
+    "bow_carry_run_awaken.png",
+    176,
+    553
+   ]
+  ],
+  "gpuBeforeMB": 8.0,
+  "gpuAfterMB": 0.37,
+  "empty": 2,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_carry_walk_awaken",
+  "replaced": true,
+  "src": [
+   2048,
+   1024
+  ],
+  "pages": [
+   [
+    "bow_carry_walk_awaken.png",
+    200,
+    483
+   ]
+  ],
+  "gpuBeforeMB": 8.0,
+  "gpuAfterMB": 0.37,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_draw_hold_awaken",
+  "replaced": true,
+  "src": [
+   3584,
+   1024
+  ],
+  "pages": [
+   [
+    "bow_draw_hold_awaken.png",
+    233,
+    1026
+   ]
+  ],
+  "gpuBeforeMB": 14.0,
+  "gpuAfterMB": 0.91,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_rapid_loop_awaken",
+  "replaced": true,
+  "src": [
+   3072,
+   1024
+  ],
+  "pages": [
+   [
+    "bow_rapid_loop_awaken.png",
+    246,
+    773
+   ]
+  ],
+  "gpuBeforeMB": 12.0,
+  "gpuAfterMB": 0.73,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_release_awaken",
+  "replaced": true,
+  "src": [
+   1024,
+   1024
+  ],
+  "pages": [
+   [
+    "bow_release_awaken.png",
+    596,
+    106
+   ]
+  ],
+  "gpuBeforeMB": 4.0,
+  "gpuAfterMB": 0.24,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "bow_reload_awaken",
+  "replaced": true,
+  "src": [
+   2560,
+   1024
+  ],
+  "pages": [
+   [
+    "bow_reload_awaken.png",
+    180,
+    799
+   ]
+  ],
+  "gpuBeforeMB": 10.0,
+  "gpuAfterMB": 0.55,
+  "empty": 7,
+  "deduped": 3
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_backstab_awaken",
+  "replaced": true,
+  "src": [
+   2560,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_backstab_awaken.png",
+    53,
+    1239
+   ]
+  ],
+  "gpuBeforeMB": 10.0,
+  "gpuAfterMB": 0.25,
+  "empty": 7,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_carry_dash_awaken",
+  "replaced": true,
+  "src": [
+   1280,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_carry_dash_awaken.png",
+    90,
+    241
+   ]
+  ],
+  "gpuBeforeMB": 5.0,
+  "gpuAfterMB": 0.08,
+  "empty": 6,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_carry_idle_awaken",
+  "replaced": true,
+  "src": [
+   1536,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_carry_idle_awaken.png",
+    34,
+    1017
+   ]
+  ],
+  "gpuBeforeMB": 6.0,
+  "gpuAfterMB": 0.13,
+  "empty": 0,
+  "deduped": 2
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_carry_run_awaken",
+  "replaced": true,
+  "src": [
+   2048,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_carry_run_awaken.png",
+    119,
+    340
+   ]
+  ],
+  "gpuBeforeMB": 8.0,
+  "gpuAfterMB": 0.15,
+  "empty": 1,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_carry_walk_awaken",
+  "replaced": true,
+  "src": [
+   2048,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_carry_walk_awaken.png",
+    36,
+    1403
+   ]
+  ],
+  "gpuBeforeMB": 8.0,
+  "gpuAfterMB": 0.19,
+  "empty": 1,
+  "deduped": 1
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_combo1_awaken",
+  "replaced": true,
+  "src": [
+   1536,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_combo1_awaken.png",
+    153,
+    264
+   ]
+  ],
+  "gpuBeforeMB": 6.0,
+  "gpuAfterMB": 0.15,
+  "empty": 4,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_combo2_awaken",
+  "replaced": true,
+  "src": [
+   1536,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_combo2_awaken.png",
+    95,
+    425
+   ]
+  ],
+  "gpuBeforeMB": 6.0,
+  "gpuAfterMB": 0.15,
+  "empty": 3,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_combo3_awaken",
+  "replaced": true,
+  "src": [
+   2048,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_combo3_awaken.png",
+    108,
+    493
+   ]
+  ],
+  "gpuBeforeMB": 8.0,
+  "gpuAfterMB": 0.2,
+  "empty": 5,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_fan_throw_awaken",
+  "replaced": true,
+  "src": [
+   1536,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_fan_throw_awaken.png",
+    150,
+    205
+   ]
+  ],
+  "gpuBeforeMB": 6.0,
+  "gpuAfterMB": 0.12,
+  "empty": 0,
+  "deduped": 4
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_flurry_awaken",
+  "replaced": true,
+  "src": [
+   2560,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_flurry_awaken.png",
+    192,
+    329
+   ]
+  ],
+  "gpuBeforeMB": 10.0,
+  "gpuAfterMB": 0.24,
+  "empty": 5,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "dagger_special_awaken",
+  "replaced": true,
+  "src": [
+   2304,
+   1024
+  ],
+  "pages": [
+   [
+    "dagger_special_awaken.png",
+    124,
+    375
+   ]
+  ],
+  "gpuBeforeMB": 9.0,
+  "gpuAfterMB": 0.18,
+  "empty": 9,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_brace_upswing_awaken",
+  "replaced": true,
+  "src": [
+   3960,
+   3008
+  ],
+  "pages": [
+   [
+    "greatsword_brace_upswing_awaken.png",
+    408,
+    1235
+   ]
+  ],
+  "gpuBeforeMB": 45.44,
+  "gpuAfterMB": 1.92,
+  "empty": 2,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_carry_dash_awaken",
+  "replaced": true,
+  "src": [
+   1600,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_carry_dash_awaken.png",
+    353,
+    195
+   ]
+  ],
+  "gpuBeforeMB": 8.2,
+  "gpuAfterMB": 0.26,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_carry_drawn_dash_awaken",
+  "replaced": true,
+  "src": [
+   1600,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_carry_drawn_dash_awaken.png",
+    498,
+    142
+   ]
+  ],
+  "gpuBeforeMB": 8.2,
+  "gpuAfterMB": 0.27,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_carry_drawn_idle_awaken",
+  "replaced": true,
+  "src": [
+   1920,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_carry_drawn_idle_awaken.png",
+    284,
+    419
+   ]
+  ],
+  "gpuBeforeMB": 9.84,
+  "gpuAfterMB": 0.45,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_carry_drawn_run_awaken",
+  "replaced": true,
+  "src": [
+   2560,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_carry_drawn_run_awaken.png",
+    154,
+    750
+   ]
+  ],
+  "gpuBeforeMB": 13.12,
+  "gpuAfterMB": 0.44,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_carry_drawn_walk_awaken",
+  "replaced": true,
+  "src": [
+   2560,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_carry_drawn_walk_awaken.png",
+    326,
+    558
+   ]
+  ],
+  "gpuBeforeMB": 13.12,
+  "gpuAfterMB": 0.69,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_carry_idle_awaken",
+  "replaced": true,
+  "src": [
+   1920,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_carry_idle_awaken.png",
+    66,
+    1129
+   ]
+  ],
+  "gpuBeforeMB": 9.84,
+  "gpuAfterMB": 0.28,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_carry_run_awaken",
+  "replaced": true,
+  "src": [
+   2560,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_carry_run_awaken.png",
+    189,
+    593
+   ]
+  ],
+  "gpuBeforeMB": 13.12,
+  "gpuAfterMB": 0.43,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_carry_walk_awaken",
+  "replaced": true,
+  "src": [
+   2560,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_carry_walk_awaken.png",
+    193,
+    575
+   ]
+  ],
+  "gpuBeforeMB": 13.12,
+  "gpuAfterMB": 0.42,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_charge_awaken",
+  "replaced": true,
+  "src": [
+   2240,
+   2880
+  ],
+  "pages": [
+   [
+    "greatsword_charge_awaken.png",
+    262,
+    1165
+   ]
+  ],
+  "gpuBeforeMB": 24.61,
+  "gpuAfterMB": 1.16,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_charge_swing_awaken",
+  "replaced": true,
+  "src": [
+   3608,
+   2816
+  ],
+  "pages": [
+   [
+    "greatsword_charge_swing_awaken.png",
+    512,
+    879
+   ]
+  ],
+  "gpuBeforeMB": 38.76,
+  "gpuAfterMB": 1.72,
+  "empty": 1,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_cleave_awaken",
+  "replaced": true,
+  "src": [
+   3840,
+   2880
+  ],
+  "pages": [
+   [
+    "greatsword_cleave_awaken.png",
+    516,
+    1154
+   ]
+  ],
+  "gpuBeforeMB": 42.19,
+  "gpuAfterMB": 2.27,
+  "empty": 4,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_draw_awaken",
+  "replaced": true,
+  "src": [
+   2240,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_draw_awaken.png",
+    281,
+    383
+   ]
+  ],
+  "gpuBeforeMB": 11.48,
+  "gpuAfterMB": 0.41,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_guard_rush_awaken",
+  "replaced": true,
+  "src": [
+   3240,
+   3008
+  ],
+  "pages": [
+   [
+    "greatsword_guard_rush_awaken.png",
+    511,
+    874
+   ]
+  ],
+  "gpuBeforeMB": 37.18,
+  "gpuAfterMB": 1.7,
+  "empty": 3,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_leap_slam_awaken",
+  "replaced": true,
+  "src": [
+   4680,
+   3008
+  ],
+  "pages": [
+   [
+    "greatsword_leap_slam_awaken.png",
+    555,
+    946
+   ]
+  ],
+  "gpuBeforeMB": 53.7,
+  "gpuAfterMB": 2.0,
+  "empty": 1,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_sheathe_awaken",
+  "replaced": true,
+  "src": [
+   2240,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_sheathe_awaken.png",
+    101,
+    1022
+   ]
+  ],
+  "gpuBeforeMB": 11.48,
+  "gpuAfterMB": 0.39,
+  "empty": 2,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_special_awaken",
+  "replaced": true,
+  "src": [
+   3840,
+   1344
+  ],
+  "pages": [
+   [
+    "greatsword_special_awaken.png",
+    254,
+    1161
+   ]
+  ],
+  "gpuBeforeMB": 19.69,
+  "gpuAfterMB": 1.12,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_sweep_ccw_awaken",
+  "replaced": true,
+  "src": [
+   3520,
+   2880
+  ],
+  "pages": [
+   [
+    "greatsword_sweep_ccw_awaken.png",
+    350,
+    1516
+   ]
+  ],
+  "gpuBeforeMB": 38.67,
+  "gpuAfterMB": 2.02,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_sweep_cw_awaken",
+  "replaced": true,
+  "src": [
+   3520,
+   2880
+  ],
+  "pages": [
+   [
+    "greatsword_sweep_cw_awaken.png",
+    349,
+    1511
+   ]
+  ],
+  "gpuBeforeMB": 38.67,
+  "gpuAfterMB": 2.01,
+  "empty": 1,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "greatsword_tackle_awaken",
+  "replaced": true,
+  "src": [
+   3240,
+   3008
+  ],
+  "pages": [
+   [
+    "greatsword_tackle_awaken.png",
+    326,
+    1413
+   ]
+  ],
+  "gpuBeforeMB": 37.18,
+  "gpuAfterMB": 1.76,
+  "empty": 2,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_carry_dash_awaken",
+  "replaced": true,
+  "src": [
+   1320,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_carry_dash_awaken.png",
+    56,
+    163
+   ]
+  ],
+  "gpuBeforeMB": 5.32,
+  "gpuAfterMB": 0.03,
+  "empty": 0,
+  "deduped": 1
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_carry_drawn_dash_awaken",
+  "replaced": true,
+  "src": [
+   1320,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_carry_drawn_dash_awaken.png",
+    154,
+    342
+   ]
+  ],
+  "gpuBeforeMB": 5.32,
+  "gpuAfterMB": 0.2,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_carry_drawn_idle_awaken",
+  "replaced": true,
+  "src": [
+   1584,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_carry_drawn_idle_awaken.png",
+    192,
+    485
+   ]
+  ],
+  "gpuBeforeMB": 6.38,
+  "gpuAfterMB": 0.36,
+  "empty": 0,
+  "deduped": 2
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_carry_drawn_run_awaken",
+  "replaced": true,
+  "src": [
+   2112,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_carry_drawn_run_awaken.png",
+    97,
+    664
+   ]
+  ],
+  "gpuBeforeMB": 8.51,
+  "gpuAfterMB": 0.25,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_carry_drawn_walk_awaken",
+  "replaced": true,
+  "src": [
+   2112,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_carry_drawn_walk_awaken.png",
+    67,
+    2017
+   ]
+  ],
+  "gpuBeforeMB": 8.51,
+  "gpuAfterMB": 0.52,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_carry_idle_awaken",
+  "replaced": true,
+  "src": [
+   1584,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_carry_idle_awaken.png",
+    55,
+    167
+   ]
+  ],
+  "gpuBeforeMB": 6.38,
+  "gpuAfterMB": 0.04,
+  "empty": 0,
+  "deduped": 5
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_carry_run_awaken",
+  "replaced": true,
+  "src": [
+   2112,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_carry_run_awaken.png",
+    53,
+    218
+   ]
+  ],
+  "gpuBeforeMB": 8.51,
+  "gpuAfterMB": 0.04,
+  "empty": 0,
+  "deduped": 2
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_carry_walk_awaken",
+  "replaced": true,
+  "src": [
+   2112,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_carry_walk_awaken.png",
+    48,
+    206
+   ]
+  ],
+  "gpuBeforeMB": 8.51,
+  "gpuAfterMB": 0.04,
+  "empty": 0,
+  "deduped": 8
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_counter_awaken",
+  "replaced": true,
+  "src": [
+   2112,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_counter_awaken.png",
+    328,
+    362
+   ]
+  ],
+  "gpuBeforeMB": 8.51,
+  "gpuAfterMB": 0.45,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_draw_awaken",
+  "replaced": true,
+  "src": [
+   1584,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_draw_awaken.png",
+    206,
+    228
+   ]
+  ],
+  "gpuBeforeMB": 6.38,
+  "gpuAfterMB": 0.18,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_fall_awaken",
+  "replaced": true,
+  "src": [
+   1848,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_fall_awaken.png",
+    217,
+    500
+   ]
+  ],
+  "gpuBeforeMB": 7.44,
+  "gpuAfterMB": 0.41,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_guardbreak_awaken",
+  "replaced": true,
+  "src": [
+   3960,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_guardbreak_awaken.png",
+    240,
+    1049
+   ]
+  ],
+  "gpuBeforeMB": 15.95,
+  "gpuAfterMB": 0.96,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_iai_awaken",
+  "replaced": true,
+  "src": [
+   3960,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_iai_awaken.png",
+    170,
+    498
+   ]
+  ],
+  "gpuBeforeMB": 15.95,
+  "gpuAfterMB": 0.32,
+  "empty": 0,
+  "deduped": 1
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_issen_awaken",
+  "replaced": true,
+  "src": [
+   3168,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_issen_awaken.png",
+    311,
+    334
+   ]
+  ],
+  "gpuBeforeMB": 12.76,
+  "gpuAfterMB": 0.4,
+  "empty": 0,
+  "deduped": 1
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_issen_dash_awaken",
+  "replaced": true,
+  "src": [
+   3168,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_issen_dash_awaken.png",
+    147,
+    625
+   ]
+  ],
+  "gpuBeforeMB": 12.76,
+  "gpuAfterMB": 0.35,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_rise_awaken",
+  "replaced": true,
+  "src": [
+   2112,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_rise_awaken.png",
+    165,
+    739
+   ]
+  ],
+  "gpuBeforeMB": 8.51,
+  "gpuAfterMB": 0.47,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_sheathe_awaken",
+  "replaced": true,
+  "src": [
+   2112,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_sheathe_awaken.png",
+    92,
+    551
+   ]
+  ],
+  "gpuBeforeMB": 8.51,
+  "gpuAfterMB": 0.19,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_special_awaken",
+  "replaced": true,
+  "src": [
+   2376,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_special_awaken.png",
+    374,
+    342
+   ]
+  ],
+  "gpuBeforeMB": 9.57,
+  "gpuAfterMB": 0.49,
+  "empty": 0,
+  "deduped": 0
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_spin_awaken",
+  "replaced": true,
+  "src": [
+   3960,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_spin_awaken.png",
+    246,
+    774
+   ]
+  ],
+  "gpuBeforeMB": 15.95,
+  "gpuAfterMB": 0.73,
+  "empty": 0,
+  "deduped": 4
+ },
+ {
+  "cat": "weapons",
+  "name": "katana_thrust_awaken",
+  "replaced": true,
+  "src": [
+   2640,
+   1056
+  ],
+  "pages": [
+   [
+    "katana_thrust_awaken.png",
+    103,
+    1080
+   ]
+  ],
+  "gpuBeforeMB": 10.63,
+  "gpuAfterMB": 0.42,
+  "empty": 0,
+  "deduped": 0
+ }
+]

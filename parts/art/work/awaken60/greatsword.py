@@ -462,3 +462,159 @@ class GC(GSBase):
 
 
 CONCEPTS = [GA(), GB(), GC()]
+
+
+# =============================================================================
+# G-A2 핏빛 거암검 (60라운드 Q15 결정: G-A 형태 + 용암 대신 '적을 죽이며 쌓인 피가 균열에서 터져 나옴')
+# =============================================================================
+BLOOD_FILL = [0.12, 0.26, 0.42, 0.58, 0.74, 0.9, 1.0, 0.72, 0.46, 0.24]     # 순환 10프레임: 차오름 0~5 → 터짐 6 → 빠짐 7~9
+
+
+class GBlood(GA):
+    key, name, title = "G-A2", "산붕", "핏빛 거암검: 부푼 바위 판의 균열에 베어 낸 피가 차오르다가 넘쳐 터져 나온다"
+    form = "G-A 와 같음 — 날 90×폭 9 → 108×최대 19의 들쭉날쭉한 바위 판 · 등날 바위 가시 4개 · 갈래 균열 5줄 · 깨진 바위 촉. 균열은 비어 있으면 검은 틈, 차면 피"
+    color = ("녹슨 쇠 → 검붉은 현무암(G2~G7 + 마른 피 얼룩 CRI2) + 균열 속 피(진홍 CRI3~7, 젖은 반사 X1 점). 전환: 균열이 먼저 갈라져 검게 열리고(5~45%) 피가 스미며 판이 부풂(35~100%). "
+             "순환 10프레임(80ms) = 피가 손잡이→칼끝으로 균열을 채움(0~5) → 넘쳐 터짐(6: 균열 끝마다 피 줄기·방울 분출) → 흘러내리며 빠짐(7~9, 날 아래로 방울)")
+    fx = "궤적 = 진홍 초승달(바깥 테 CRI7 + 젖은 반사 X1 점) · 머리 바깥으로 튀는 핏방울 14개 · 안쪽은 성긴 피 안개(CRI1·CRI2) · 궤적 아래로 떨어지는 방울"
+    tn = 10
+    loop_ms = 80
+    hero_t = 6
+    bg = [CRI[0], CRI[1]]
+    ramps_after = [("현무암 G2~G7", G[2:8]), ("피 CRI 1~7", CRI[1:8]), ("젖은 반사", [X1])]
+    ENDS = [(43, -8, -1), (61, 5.5, 1), (82, -7, -1), (97, 5, 1), (104, 0.2, 0)]   # 균열 끝(설계 u, v, 바깥 방향)
+
+    def fill(self, f):
+        if f.p < 1:
+            return 0.55 * smooth(0.2, 0.9, f.p)
+        return BLOOD_FILL[f.t % 10]
+
+    def burst(self, f):
+        return f.p >= 1 and (f.t % 10) == 6
+
+    def blood(self, u, d, f, glow, x=0, y=0, Lc=111):
+        us = (u - 9) / max(1.0, Lc - 9)
+        fl = self.fill(f)
+        if us > fl:
+            return G[1] if d < 0.75 else G[2]                      # 빈 균열(검은 틈)
+        if abs(us - fl) * Lc < 1.6 and fl < 1:
+            return CRI[7]                                          # 차오르는 앞줄
+        if d < 0.75:
+            if (glow or self.burst(f)) and h2(x, y, 231) > 0.82:
+                return X1
+            return CRI[7] if (glow or self.burst(f)) else CRI[6] if h2(x // 2, y // 2, 232) > 0.35 else CRI[5]
+        return CRI[3]
+
+    def px(self, u, v, x, y, f):
+        hilt = B.gs_hilt(u, v)
+        if u < 3 and hilt:
+            if f.p > 0.6 and 0 <= u < 3 and abs(v - 0.3 * u) < 0.6:
+                return (CRI[5], True)
+            return (hilt, True)
+        sg = smooth(0.35, 1.0, f.p)
+        Lc = 93 + 18 * sg
+        cb = B.gs_blade(u, v, f.glow)
+        sl = self.slab(u, v, sg, Lc)
+        if cb is None and sl is None:
+            return None
+        un = sl[0] if sl else clamp((u - 3) / 90)
+        if u >= 9:
+            d = self.fiss(u, v, sg, Lc)
+            if d < (2.3 if self.burst(f) else 1.6):
+                stf = stage(f.p, 0.05 + 0.4 * un)
+                if stf == 0:
+                    return (CRI[7], False)
+                if stf > 0:
+                    return (self.blood(u, d, f, f.glow, x, y, Lc), True)
+            elif d < 3.2 and f.p > 0.5 and h2(x, y, 233) > 0.72:
+                return (CRI[2], True)                              # 균열 둘레 마른 피
+        st = stage(f.p, 0.3 + 0.35 * un + 0.06 * h2(x, y, 9))
+        if st < 0 or sl is None:
+            return (cb, True) if cb else None
+        if st == 0:
+            return (G[6], True)
+        un, dn, wt, wb = sl
+        if v < -wt + 1.1:
+            lv = 7
+        elif dn < 0.3:
+            lv = 5
+        elif dn < 0.6:
+            lv = 4
+        elif dn < 0.85:
+            lv = 3
+        else:
+            lv = 2
+        if h2(x // 2, y // 2, 13) > 0.82:
+            lv -= 1
+        return (G[max(1, lv)], True)
+
+    def extra(self, cv, g, ang, f):
+        if f.p < 0.7:
+            return
+        sg = smooth(0.35, 1.0, f.p)
+        sc = (93 + 18 * sg - 3) / 90.0
+        cyc = f.t % 10
+        for k, (eu, ev, side) in enumerate(self.ENDS):
+            u0 = 3 + (eu - 3) * sc
+            if self.burst(f) or f.glow:
+                for m in range(10):
+                    dist = 3 + 2.0 * m + 3 * h2(k, m, 241)
+                    lat = (h2(k, m, 242) - 0.5) * (4 + m)
+                    if side == 0:
+                        uu, vv = u0 + dist, lat * 0.6
+                    else:
+                        uu, vv = u0 + lat * 0.5, ev + side * dist
+                    x, y = self.W(g, ang, uu, vv * f.flip, f)
+                    y += 0.08 * dist * dist
+                    c = X1 if m == 0 and h2(k, 1, 243) > 0.5 else CRI[7] if m < 2 else CRI[6] if m < 5 else CRI[4]
+                    cv.put(x, y, c, 2, False)
+                    if m < 4:                                   # 굵은 피 줄기(앞쪽 방울은 2~3도트)
+                        x2, y2 = self.W(g, ang, uu - (0 if side else 1.2), (vv - side * 1.2) * f.flip, f)
+                        cv.put(x2, y2 + 0.08 * dist * dist, CRI[6], 2, False)
+                        cv.put(x + 1, y, CRI[5], 2, False)
+            elif cyc >= 7 and side > 0:
+                x, y = self.W(g, ang, u0, (ev + 1) * f.flip, f)
+                yy = y + 2 + (cyc - 7) * 4 + 2 * (k % 2)
+                cv.put(x, yy, CRI[6], 2, False)
+                cv.put(x, yy + 1, CRI[4], 2, False)
+        if cyc in (3, 4, 5) and f.p >= 1:
+            for k, u in enumerate((40, 70)):
+                x, y = self.W(g, ang, u * sc, 7 * f.flip, f)
+                cv.put(x, y + 1 + (cyc - 3) * 2, CRI[5], 2, False)
+
+    def trail(self, cv, S, r1, r2, a0, a1, f, g, ang):
+        def fn(tn, rn, x, y):
+            q = crescent(tn, rn, x, y, head=0.58, seed=251)
+            if q is None:
+                if rn > 0.2 and rn < 1 and tn > 0.15 and h2(x, y, 252) > 0.93:
+                    return CRI[2] if h2(x, y, 253) > 0.5 else CRI[1]       # 피 안개
+                return None
+            q = q + 0.1 * (vnoise(x * 0.3 + y * 0.12, 6) - 0.5)
+            if q > 0.9:
+                return X1 if (tn > 0.6 and h2(x, y, 254) > 0.75) else CRI[7]
+            if q > 0.66:
+                return CRI[6] if tn > 0.3 else CRI[5]
+            if q > 0.42:
+                return CRI[4]
+            if q > 0.22:
+                return CRI[2]
+            return CRI[1] if h2(x // 2, y // 2, 255) > 0.5 else None
+        cv.smear(S, r1, r2 + 3, a0, a1, fn, z=-3)
+        for j in range(14):
+            t = 0.45 + 0.55 * h2(j, 1, 256)
+            a = a0 + (a1 - a0) * t
+            r = r2 + 3 + 12 * h2(j, 2, 256) * t
+            x, y = S[0] + r * math.cos(a), S[1] + r * math.sin(a) + 3 * (1 - t) * j % 5
+            c = X1 if j % 5 == 0 else CRI[6] if j % 2 else CRI[4]
+            cv.put(x, y, c, -1, False)
+            if j % 3 == 0:
+                cv.put(x + 1, y, CRI[5], -1, False)
+                cv.put(x, y + 1, CRI[4], -1, False)
+        for j in range(5):
+            a = a0 + (a1 - a0) * (0.3 + 0.13 * j)
+            r = r1 + (r2 - r1) * (0.6 + 0.3 * h2(j, 4, 257))
+            x, y = S[0] + r * math.cos(a), S[1] + r * math.sin(a) + 6 + 4 * j
+            cv.put(x, y, CRI[6], -1, False)
+            cv.put(x, y + 1, CRI[4], -1, False)
+
+
+BLOOD = GBlood()

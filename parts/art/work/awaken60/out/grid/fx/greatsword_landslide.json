@@ -1,0 +1,107 @@
+{
+ "image": "greatsword_landslide.png",
+ "action": "greatsword_landslide",
+ "version": "v3-r60-awaken",
+ "frameWidth": 584,
+ "frameHeight": 592,
+ "frames": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right",
+  "down-right",
+  "down-left",
+  "up-right",
+  "up-left"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.71,
+ "frameDurationsMs": [
+  30,
+  30,
+  30,
+  40,
+  50,
+  60,
+  80,
+  100,
+  120,
+  140
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 15,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "weapon": "greatsword",
+ "awakening": "산붕(山崩) — 핏빛 거암검",
+ "anchor": "slam_point",
+ "dirTransform": "drawn8",
+ "directionRows": [
+  "down",
+  "up",
+  "left",
+  "right",
+  "down-right",
+  "down-left",
+  "up-right",
+  "up-left"
+ ],
+ "directionRowsNote": "대검 8방향 행 순서(계약 §18.3) — 몸 시트에서 고른 행 번호를 그대로. 바위 가시는 늘 화면 위로 솟음(회전하지 않음)",
+ "anchorNote": "pivot = 칼끝이 바닥에 닿은 자리(4타 내려찍기 impactCircle 중심 · 차지 slamAnchors)",
+ "depth": "Y 정렬 권장(바위가 서 있음) — 단순화하면 above",
+ "spawn": "awaken_fourth_slam",
+ "spawnNote": "각성 '산붕' 런에서 관성 순환 4타 내려찍기마다 꽂아내리기 충격파 대신 이 시트 1회(설계안 3.4)",
+ "impactFrame": 0,
+ "hitShape": {
+  "type": "rect",
+  "fromPx": 0,
+  "lengthPx": 256,
+  "halfWidthPx": 40,
+  "groups": [
+   [
+    0,
+    1,
+    2
+   ],
+   [
+    3,
+    4,
+    5
+   ],
+   [
+    6,
+    7,
+    8
+   ]
+  ],
+  "note": "가시 세 무리가 30ms 간격으로 솟음(앞머리 = 무리) — 길이 4칸 참고값"
+ },
+ "frameRoles": [
+  "첫 무리 솟음 · 피 분출",
+  "둘째",
+  "셋째",
+  "다 솟음",
+  "버팀",
+  "피 고임",
+  "무너짐",
+  "무너짐",
+  "무너짐",
+  "피 안개"
+ ],
+ "design": "찍은 자리에서 조준 방향으로 현무암 가시 아홉 개가 세 무리로 솟고, 솟는 순간 가시마다 피가 뿜어 오름(핏줄기가 가시를 타고 오름) · 4칸 균열에 피가 차오름 → 가시가 무너지며 핏물 웅덩이·피 안개·돌",
+ "previousDesign": "57라운드 build57 재·호박판(60 Q15~Q21 로 교체)",
+ "pivot": {
+  "x": 282,
+  "y": 352
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21",
+ "glowFrames": [
+  0
+ ]
+}

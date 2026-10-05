@@ -1,8 +1,8 @@
 {
  "image": "katana_fullmoon.png",
  "action": "katana_fullmoon",
- "version": "v3-r57-build",
- "frameWidth": 280,
+ "version": "v3-r60-awaken",
+ "frameWidth": 216,
  "frameHeight": 240,
  "framesPerDirection": 10,
  "directions": [
@@ -27,18 +27,14 @@
  "pixelScale": 0.5,
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
- "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
- "colors": 13,
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 11,
  "semiTransparent": false,
- "source": "parts/art/work/build57/build.py awaken (57라운드 최종 각성 — 무기 변형 오버레이 · 시그니처 fx)",
- "pivot": {
-  "x": 138,
-  "y": 173
- },
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
  "anchor": "player_pivot",
  "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
  "weapon": "katana",
- "awakening": "만월(滿月)",
+ "awakening": "만월(滿月) — 월인",
  "followPlayer": false,
  "depth": "above",
  "spawn": "awaken_issen_chain",
@@ -46,28 +42,27 @@
  "impactFrame": 1,
  "frameRoles": [
   "달이 떠오름",
-  "첫 일섬(백열)",
+  "첫 초승달 일섬(백열)",
   "둘째 일섬 · 큰 별(백열)",
   "셋째 일섬",
-  "만월",
-  "재로",
-  "재로",
-  "재로",
-  "재로",
-  "재"
+  "보름달",
+  "부서짐",
+  "부서짐",
+  "달 조각",
+  "달 조각",
+  "흩어짐"
  ],
- "design": "주인공 뒤로 떠오르는 은재·호박 만월(열린 붓 원 — 위 왼쪽 틈) + 안쪽 점선 달무리·달 바다 점, 그 위를 가로지르는 연속 일섬 세 줄 → 재로 흩어짐",
- "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
- "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
+ "design": "주인공 뒤로 은빛 보름달 고리(두께 7, 안쪽 성긴 달빛 점·달 바다)가 떠오르고, 초승달 일섬 세 줄이 차례로 가로지름(첫 프레임 X0 심) → 고리가 픽셀 단위로 빠지며 달 조각(초승 글리프)으로 부서져 떨어짐",
+ "previousDesign": "57라운드 build57 재·호박판(60 Q15~Q21 로 교체)",
+ "pivot": {
+  "x": 107,
+  "y": 171
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21",
  "glowFrames": [
   1,
   2
  ],
- "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
- "hitOriginInFrame": {
-  "x": 138,
-  "y": 133
- },
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -75,7 +70,7 @@
   "grid": {
    "columns": 10,
    "rows": 1,
-   "frameWidth": 280,
+   "frameWidth": 216,
    "frameHeight": 240,
    "frameCount": 10
   },
@@ -88,16 +83,16 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":2222,"y":0,"w":53,"h":71},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":125,"y":71,"w":53,"h":71},"sourceSize":{"w":280,"h":240}},
-  "1":{"frame":{"x":1995,"y":0,"w":225,"h":162},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":29,"w":225,"h":162},"sourceSize":{"w":280,"h":240}},
-  "2":{"frame":{"x":517,"y":0,"w":253,"h":214},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":3,"w":253,"h":214},"sourceSize":{"w":280,"h":240}},
-  "3":{"frame":{"x":243,"y":0,"w":272,"h":214},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":272,"h":214},"sourceSize":{"w":280,"h":240}},
-  "4":{"frame":{"x":772,"y":0,"w":243,"h":214},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":3,"w":243,"h":214},"sourceSize":{"w":280,"h":240}},
-  "5":{"frame":{"x":1017,"y":0,"w":243,"h":209},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":8,"w":243,"h":209},"sourceSize":{"w":280,"h":240}},
-  "6":{"frame":{"x":1750,"y":0,"w":243,"h":202},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":15,"w":243,"h":202},"sourceSize":{"w":280,"h":240}},
-  "7":{"frame":{"x":1505,"y":0,"w":243,"h":203},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":14,"w":243,"h":203},"sourceSize":{"w":280,"h":240}},
-  "8":{"frame":{"x":0,"y":0,"w":241,"h":217},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":14,"w":241,"h":217},"sourceSize":{"w":280,"h":240}},
-  "9":{"frame":{"x":1262,"y":0,"w":241,"h":204},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":17,"w":241,"h":204},"sourceSize":{"w":280,"h":240}}
+  "0":{"frame":{"x":0,"y":1820,"w":72,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":71,"w":72,"h":72},"sourceSize":{"w":216,"h":240}},
+  "1":{"frame":{"x":0,"y":1662,"w":159,"h":156},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":29,"w":159,"h":156},"sourceSize":{"w":216,"h":240}},
+  "2":{"frame":{"x":0,"y":429,"w":208,"h":208},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":208,"h":208},"sourceSize":{"w":216,"h":240}},
+  "3":{"frame":{"x":0,"y":639,"w":208,"h":208},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":208,"h":208},"sourceSize":{"w":216,"h":240}},
+  "4":{"frame":{"x":0,"y":849,"w":208,"h":208},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":208,"h":208},"sourceSize":{"w":216,"h":240}},
+  "5":{"frame":{"x":0,"y":216,"w":210,"h":211},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":210,"h":211},"sourceSize":{"w":216,"h":240}},
+  "6":{"frame":{"x":0,"y":1059,"w":208,"h":208},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":208,"h":208},"sourceSize":{"w":216,"h":240}},
+  "7":{"frame":{"x":0,"y":1269,"w":208,"h":208},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":208,"h":208},"sourceSize":{"w":216,"h":240}},
+  "8":{"frame":{"x":0,"y":0,"w":208,"h":214},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":208,"h":214},"sourceSize":{"w":216,"h":240}},
+  "9":{"frame":{"x":0,"y":1479,"w":184,"h":181},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":51,"w":184,"h":181},"sourceSize":{"w":216,"h":240}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -105,8 +100,8 @@
   "image": "katana_fullmoon.png",
   "format": "RGBA8888",
   "size": {
-   "w": 2275,
-   "h": 217
+   "w": 210,
+   "h": 1892
   },
   "scale": "1"
  }

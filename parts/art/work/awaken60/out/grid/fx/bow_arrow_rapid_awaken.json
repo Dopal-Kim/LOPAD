@@ -1,0 +1,109 @@
+{
+ "image": "bow_arrow_rapid_awaken.png",
+ "action": "bow_arrow_rapid_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 128,
+ "frameHeight": 24,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 25.0,
+ "frameDurationsMs": [
+  40,
+  40
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 8,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "weapon": "bow",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "depth": "above",
+ "branch": "rapid",
+ "branchLabel": "속사",
+ "replaces": "fx/bow_arrow (속사 갈래 기본 화살)",
+ "spawn": "loop_move",
+ "secondaryVariants": {
+  "volley": {
+   "label": "연궁",
+   "colorSwap": [
+    {
+     "from": "#5c554e",
+     "to": "#756c62",
+     "fromSlot": "hero.ash.S1",
+     "toSlot": "hero.ash.S2",
+     "role": "속도선 한 단 밝게"
+    },
+    {
+     "from": "#756c62",
+     "to": "#90857a",
+     "fromSlot": "hero.ash.S2",
+     "toSlot": "hero.ash.S3",
+     "role": "대 한 단 밝게"
+    }
+   ],
+   "note": "연사 폭주: 잔상이 더 밝음 + bow_muzzle_rapid 매 발",
+   "sheet": "fx/bow_arrow_rapid_volley",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
+  },
+  "quiver": {
+   "label": "무한통",
+   "colorSwap": [
+    {
+     "from": "#90857a",
+     "to": "#eecc78",
+     "fromSlot": "hero.ash.S3",
+     "toSlot": "hero.A25",
+     "role": "대 윗면 → 호박(장전 실체화 색)"
+    }
+   ],
+   "note": "탄창 대폭: 화살대에 호박 실체화 빛 한 줄",
+   "sheet": "fx/bow_arrow_rapid_quiver",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
+  }
+ },
+ "pivotNote": "피벗 (12,3) = 화살 몸 중심(8px 화살의 가운데). 잔상은 뒤(왼쪽)로 그려져 있음",
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "혜성 화살(혜성 날개 각성): X0·X1 혜성 머리 + 금빛 화살대 + 피벗 뒤로 64도트 금빛 불꼬리(끝은 끊긴 불티) — 화살 중심 피벗은 그대로, 틀만 뒤로 김",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [],
+ "branchDesignV3": "속사 rapid  = 짧은 재 화살 + 뒤로 끊긴 '유령 촉'(> 꺾쇠) 2~3개(앞 것은 호박, 뒤 것은 재) + 3줄 속도 토막 — 짧고 잦은 깜빡임",
+ "secondarySheets": {
+  "volley": "fx/bow_arrow_rapid_volley",
+  "quiver": "fx/bow_arrow_rapid_quiver"
+ },
+ "secondarySheetsNote": "55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.",
+ "note": "v3 (53라운드 Q5): 속사 rapid  = 짧은 재 화살 + 뒤로 끊긴 '유령 촉'(> 꺾쇠) 2~3개(앞 것은 호박, 뒤 것은 재) + 3줄 속도 토막 — 짧고 잦은 깜빡임",
+ "legacy": {
+  "image": "../bow_arrow_rapid.png.png",
+  "frameWidth": 16,
+  "frameHeight": 6,
+  "pivot": {
+   "x": 12,
+   "y": 3
+  },
+  "pixelScale": 2,
+  "note": "짧고 빠른 잔상 화살 16×6: 8px 화살(X0 촉 · X1 코어 자루 · W2 그늘 · W3 깃) + 뒤로 끊긴 잔상 2개(W2/W1 → W1/W0). 2프레임 40ms 루프 = 잔상이 1px 엇갈려 깜빡임.",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+  "secondary": "fx.weapons.bow"
+ },
+ "awakenOf": "fx/v3/bow_arrow_rapid",
+ "awakeningTrail": true,
+ "swapRule": "각성한 런에서 'bow_arrow_rapid' 대신 이 시트(같은 틀·프레임·ms·피벗·행 — 1:1 교체, 60 Q21 각성 전용 궤적)",
+ "awakeningTrailNote": "화살은 기본 시트보다 틀이 길다(꼬리). pivot = 화살 중심(원 시트와 같은 자리), rotate·drawnFacing 같음",
+ "pivot": {
+  "x": 112,
+  "y": 12
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21"
+}

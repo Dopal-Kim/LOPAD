@@ -1,0 +1,142 @@
+{
+ "image": "dagger_flurry_awaken.png",
+ "action": "dagger_flurry_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 336,
+ "frameHeight": 344,
+ "frames": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.41,
+ "frameDurationsMs": [
+  40,
+  40,
+  45,
+  45,
+  45,
+  45,
+  45,
+  45,
+  60,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 13,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "r56": "56라운드 Q40~Q43 새 기본기(작업 E2)",
+ "weapon": "dagger",
+ "anchor": "player_pivot",
+ "hitOriginInFrame": {
+  "x": 168,
+  "y": 168
+ },
+ "depth": "above",
+ "bodySheet": "player_dagger_flurry",
+ "spawn": "body_ms",
+ "spawnAtMs": 0,
+ "spawnNote": "몸 시트와 같은 10프레임·같은 ms — 몸 f0 시작에 같이 시작하고 몸과 같은 프레임 번호를 같은 시각에 표시",
+ "loopFrames": [
+  2,
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "loopRange": [
+  2,
+  7
+ ],
+ "hitFrames": [
+  2,
+  4,
+  6
+ ],
+ "activeFrames": [
+  2,
+  4,
+  6
+ ],
+ "impactFrame": 2,
+ "thrust": {
+  "lengthPx": 144,
+  "widthPx": 48,
+  "angleDeg": 0,
+  "fromPx": 16
+ },
+ "hitShape": {
+  "type": "rect",
+  "lengthPx": 144,
+  "widthPx": 48,
+  "fromPx": 16,
+  "angleDeg": 0,
+  "note": "§17 판정 모양 rect(찌르기)"
+ },
+ "timingMs": {
+  "total": 490,
+  "hitAt": 80,
+  "activeEndAt": 305,
+  "hitsAt": [
+   80,
+   170,
+   260
+  ],
+  "cancelAt": null,
+  "loopStartAt": 80,
+  "loopMs": 270,
+  "startMs": 80,
+  "endMs": 140
+ },
+ "frameRoles": [
+  "start",
+  "start",
+  "stab",
+  "retract",
+  "stab",
+  "retract",
+  "stab",
+  "retract",
+  "end",
+  "end"
+ ],
+ "stabAngles": {
+  "2": -10,
+  "4": 12,
+  "6": 0
+ },
+ "loopNote": "몸 loopRange 와 같이 반복. 루프 프레임은 이전 찌르기 획이 나이대로 마르는 모습까지 그려 이음새 없음(f7 → f2). 떼면 몸과 같이 f8~f9",
+ "heatLevel": 1,
+ "heatLabel": "1단(과열 0~39%) — 재 테 + 호박 심의 가는 붓획",
+ "heatVariants": {
+  "1": "dagger_flurry",
+  "2": "dagger_flurry_heat2",
+  "3": "dagger_flurry_heat3"
+ },
+ "heatRule": "임시 제안: 과열 0~39% = dagger_flurry, 40~79% = _heat2, 80~100% = _heat3. 단계가 바뀌면 같은 프레임 번호로 시트만 바꿔 이어 재생(세 시트 프레임·ms·피벗 기준 동일). 100% 자동 폭발은 기존 과열 규칙(Q13~Q20)",
+ "design": "귀화 궤적: 기본 획을 보라(VIO2~11)로, 식는 꼬리는 청록, 획 위로 핥는 불혀 + 판정 순간 도깨비 얼굴",
+ "designRef": "parts/art/work/gemini/weapon_moves/sheet_dagger.png 6번(분위기만, 도트 직접)",
+ "glowFrames": [
+  2,
+  4,
+  6
+ ],
+ "awakenOf": "fx/v3/dagger_flurry",
+ "awakeningTrail": true,
+ "swapRule": "각성한 런에서 'dagger_flurry' 대신 이 시트(같은 틀·프레임·ms·피벗·행 — 1:1 교체, 60 Q21 각성 전용 궤적)",
+ "pivot": {
+  "x": 168,
+  "y": 208
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21"
+}

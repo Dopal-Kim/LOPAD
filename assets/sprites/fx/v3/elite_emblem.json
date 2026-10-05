@@ -57,9 +57,9 @@
  "anchor": "enemy_head",
  "anchorRule": "문장 pivot(아래 끈 끝) = 적 pivot 위 headTopByEnemy[적] + 10 도트(엘리트 ×1.15 면 headTop×1.15). 적이 좌우로 뒤집혀도 문장은 뒤집지 않는다",
  "headTopByEnemy": {
-  "dummy": 117,
+  "dummy": 119,
   "archer": 120,
-  "charger": 131
+  "charger": 139
  },
  "headTopNote": "적 v3 idle 전 프레임의 불투명 꼭대기 — 피벗에서 위로 도트. 동작마다 머리가 움직여도 문장은 고정 높이(흔들림 방지)",
  "bob": {

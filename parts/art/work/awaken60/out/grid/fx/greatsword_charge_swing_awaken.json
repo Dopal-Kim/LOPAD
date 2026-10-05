@@ -1,0 +1,90 @@
+{
+ "image": "greatsword_charge_swing_awaken.png",
+ "action": "greatsword_charge_swing_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 568,
+ "frameHeight": 576,
+ "frames": 7,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right",
+  "down-right",
+  "down-left",
+  "up-right",
+  "up-left"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 17.95,
+ "frameDurationsMs": [
+  50,
+  50,
+  40,
+  40,
+  60,
+  70,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 7,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "anchor": "player_pivot",
+ "hitOriginInFrame": {
+  "x": 283,
+  "y": 283
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "weapon": "greatsword",
+ "move": "greatsword_charge_swing",
+ "brushStroke": true,
+ "design": "핏빛 궤적: 기본 획을 진홍(CRI1~7)·젖은 반사 X1 로, 획 바깥으로 튀는 핏방울 26개(시간에 따라 멀어지며 떨어짐) + 성긴 피 안개",
+ "r58": "58라운드 Q3 — 꽂기 대체: 마우스 방향으로 휘둘러 내리찍기",
+ "drawnSwing": {
+  "radiusDots": 150.0,
+  "lateralStartDots": 62.0,
+  "fromDeg": 215,
+  "toDeg": 0,
+  "groundEndDots": 265.2,
+  "note": "세로면 각 215°(오른쪽 뒤 낮게) → 90°(머리 위) → 0°(앞 바닥) — 옆 거리는 시작 62 도트에서 0 으로"
+ },
+ "spawn": "body_ms",
+ "spawnAtMs": 150,
+ "impactAtBodyMs": 290,
+ "impactFrame": 3,
+ "spawnRule": "spawnAtMs = 몸 hitAt − sum(frameDurationsMs[:impactFrame])",
+ "frameRoles": [
+  "pre(오른쪽 뒤에서 시작)",
+  "draw(옆을 돌아 올라감)",
+  "draw(머리 위를 넘음)",
+  "impact(앞 바닥 · 지면 붓획 · 머리 백열)",
+  "decay",
+  "decay",
+  "decay(재)"
+ ],
+ "holdFrame": 4,
+ "holdNote": "히트스톱 정지 칸 = 다 그어진 다음 칸(56 Q37)",
+ "companions": {
+  "crackLine": "fx/v3/greatsword_charge_crack_line_t1~t5 (찍은 자리 → 커서)",
+  "groundCrack": "fx/v3/greatsword_ground_crack 행 m/m/l"
+ },
+ "dirTransform": "drawn8",
+ "directionNote": "8행 = 대검 몸 행 순서(down, up, left, right, down-right, down-left, up-right, up-left). 조준각 그림을 각 행 각도로 회전해 다시 래스터",
+ "glowFrames": [
+  3
+ ],
+ "awakenOf": "fx/v3/greatsword_charge_swing",
+ "awakeningTrail": true,
+ "swapRule": "각성한 런에서 'greatsword_charge_swing' 대신 이 시트(같은 틀·프레임·ms·피벗·행 — 1:1 교체, 60 Q21 각성 전용 궤적)",
+ "pivot": {
+  "x": 283,
+  "y": 323
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21"
+}

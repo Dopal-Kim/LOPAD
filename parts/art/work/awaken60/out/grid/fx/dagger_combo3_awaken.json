@@ -1,0 +1,96 @@
+{
+ "image": "dagger_combo3_awaken.png",
+ "action": "dagger_combo3_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 400,
+ "frameHeight": 400,
+ "frames": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 17.86,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 13,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "weapon": "dagger",
+ "comboIndex": 3,
+ "comboLength": 3,
+ "nextCombo": null,
+ "hitFrames": [
+  1
+ ],
+ "activeFrames": [
+  1
+ ],
+ "cancelFromFrame": null,
+ "framesBasis": "player_dagger_combo3 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 60,
+  "cancelAt": null,
+  "total": 280
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트(구 10px ×4)",
+ "hitNote": "56라운드 Q4 — 판정 길이 ×1.5 참고값(시스템 데이터 기준). 붓획 끝 = lengthPx",
+ "thrust": {
+  "lengthPx": 168,
+  "widthPx": 40,
+  "angleDeg": 0,
+  "fromPx": 16
+ },
+ "thrustNote": "몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 56라운드 Q4: 수평 사거리 ×1.5(112 → 168 도트)",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "impactFrame": 1,
+ "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
+ "depth": "above",
+ "pivotNote": "pivot = 발. 찌르기 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "shake": {
+  "px": 1,
+  "ms": 40
+ },
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "귀화 궤적: 기본 획을 보라(VIO2~11)로, 식는 꼬리는 청록, 획 위로 핥는 불혀 + 판정 순간 도깨비 얼굴",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [
+  1
+ ],
+ "hitOriginInFrame": {
+  "x": 199,
+  "y": 196
+ },
+ "brushStroke": true,
+ "r56": "56라운드 Q11 붓획",
+ "previousThrust": {
+  "lengthPx": 112,
+  "widthPx": 40,
+  "angleDeg": 0,
+  "fromPx": 16
+ },
+ "previous": "prev55: 재 송곳니 바늘 찌르기 — parts/art/work/combo56_fx/prev55/fx/dagger_combo3.png",
+ "awakenOf": "fx/v3/dagger_combo3",
+ "awakeningTrail": true,
+ "swapRule": "각성한 런에서 'dagger_combo3' 대신 이 시트(같은 틀·프레임·ms·피벗·행 — 1:1 교체, 60 Q21 각성 전용 궤적)",
+ "pivot": {
+  "x": 199,
+  "y": 236
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21"
+}

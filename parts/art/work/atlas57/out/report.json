@@ -11282,25 +11282,25 @@
    "name": "archer_attack",
    "src": "assets/sprites/enemies/v3/archer_attack.png",
    "srcSize": [
-    672,
+    960,
     576
    ],
-   "frames": 28,
+   "frames": 40,
    "empty": 0,
    "deduped": 0,
    "pages": [
     [
      "archer_attack.png",
-     204,
-     1014
+     311,
+     997
     ]
    ],
-   "gpuBefore": 1548288,
-   "gpuAfter": 827424,
-   "fileBefore": 54998,
-   "fileAfter": 25429,
-   "jsonBefore": 2791,
-   "jsonAfter": 8128,
+   "gpuBefore": 2211840,
+   "gpuAfter": 1240268,
+   "fileBefore": 77512,
+   "fileAfter": 40018,
+   "jsonBefore": 3290,
+   "jsonAfter": 10569,
    "cat": "enemies"
   },
   {
@@ -11322,35 +11322,35 @@
    ],
    "gpuBefore": 2211840,
    "gpuAfter": 1133544,
-   "fileBefore": 83793,
-   "fileAfter": 33750,
-   "jsonBefore": 1574,
-   "jsonAfter": 8794,
+   "fileBefore": 86774,
+   "fileAfter": 34618,
+   "jsonBefore": 1656,
+   "jsonAfter": 8876,
    "cat": "enemies"
   },
   {
    "name": "archer_hurt",
    "src": "assets/sprites/enemies/v3/archer_hurt.png",
    "srcSize": [
-    288,
+    384,
     576
    ],
-   "frames": 12,
+   "frames": 16,
    "empty": 0,
    "deduped": 0,
    "pages": [
     [
      "archer_hurt.png",
-     540,
+     730,
      127
     ]
    ],
-   "gpuBefore": 663552,
-   "gpuAfter": 274320,
-   "fileBefore": 23878,
-   "fileAfter": 9954,
-   "jsonBefore": 1422,
-   "jsonAfter": 4174,
+   "gpuBefore": 884736,
+   "gpuAfter": 370840,
+   "fileBefore": 33810,
+   "fileAfter": 13613,
+   "jsonBefore": 1516,
+   "jsonAfter": 4908,
    "cat": "enemies"
   },
   {
@@ -11366,16 +11366,16 @@
    "pages": [
     [
      "archer_idle.png",
-     40,
-     3005
+     1000,
+     125
     ]
    ],
    "gpuBefore": 1327104,
-   "gpuAfter": 480800,
-   "fileBefore": 37155,
-   "fileAfter": 16107,
-   "jsonBefore": 1521,
-   "jsonAfter": 6211,
+   "gpuAfter": 500000,
+   "fileBefore": 44313,
+   "fileAfter": 18238,
+   "jsonBefore": 1603,
+   "jsonAfter": 6276,
    "cat": "enemies"
   },
   {
@@ -11391,41 +11391,41 @@
    "pages": [
     [
      "archer_walk.png",
-     400,
-     496
+     210,
+     979
     ]
    ],
    "gpuBefore": 1769472,
-   "gpuAfter": 793600,
-   "fileBefore": 50573,
-   "fileAfter": 26512,
-   "jsonBefore": 1585,
-   "jsonAfter": 7574,
+   "gpuAfter": 822360,
+   "fileBefore": 56104,
+   "fileAfter": 27913,
+   "jsonBefore": 1667,
+   "jsonAfter": 7650,
    "cat": "enemies"
   },
   {
    "name": "charger_attack",
    "src": "assets/sprites/enemies/v3/charger_attack.png",
    "srcSize": [
-    1024,
+    1280,
     704
    ],
-   "frames": 32,
+   "frames": 40,
    "empty": 0,
    "deduped": 0,
    "pages": [
     [
      "charger_attack.png",
-     334,
-     1048
+     373,
+     1192
     ]
    ],
-   "gpuBefore": 2883584,
-   "gpuAfter": 1400128,
-   "fileBefore": 88175,
-   "fileAfter": 42564,
-   "jsonBefore": 3004,
-   "jsonAfter": 9024,
+   "gpuBefore": 3604480,
+   "gpuAfter": 1778464,
+   "fileBefore": 115616,
+   "fileAfter": 55290,
+   "jsonBefore": 3356,
+   "jsonAfter": 10679,
    "cat": "enemies"
   },
   {
@@ -11442,40 +11442,40 @@
     [
      "charger_death.png",
      100,
-     4009
+     4006
     ]
    ],
    "gpuBefore": 3604480,
-   "gpuAfter": 1603600,
-   "fileBefore": 110890,
-   "fileAfter": 45133,
-   "jsonBefore": 1614,
-   "jsonAfter": 8947,
+   "gpuAfter": 1602400,
+   "fileBefore": 118260,
+   "fileAfter": 47538,
+   "jsonBefore": 1681,
+   "jsonAfter": 9010,
    "cat": "enemies"
   },
   {
    "name": "charger_hurt",
    "src": "assets/sprites/enemies/v3/charger_hurt.png",
    "srcSize": [
-    384,
+    512,
     704
    ],
-   "frames": 12,
+   "frames": 16,
    "empty": 0,
    "deduped": 0,
    "pages": [
     [
      "charger_hurt.png",
-     135,
-     810
+     1154,
+     142
     ]
    ],
-   "gpuBefore": 1081344,
-   "gpuAfter": 437400,
-   "fileBefore": 32439,
-   "fileAfter": 14466,
-   "jsonBefore": 1461,
-   "jsonAfter": 4234,
+   "gpuBefore": 1441792,
+   "gpuAfter": 655472,
+   "fileBefore": 46382,
+   "fileAfter": 20279,
+   "jsonBefore": 1540,
+   "jsonAfter": 4955,
    "cat": "enemies"
   },
   {
@@ -11491,16 +11491,16 @@
    "pages": [
     [
      "charger_idle.png",
-     218,
-     1042
+     240,
+     1083
     ]
    ],
    "gpuBefore": 2162688,
-   "gpuAfter": 908624,
-   "fileBefore": 46568,
-   "fileAfter": 22254,
-   "jsonBefore": 1560,
-   "jsonAfter": 6282,
+   "gpuAfter": 1039680,
+   "fileBefore": 64941,
+   "fileAfter": 32277,
+   "jsonBefore": 1627,
+   "jsonAfter": 6348,
    "cat": "enemies"
   },
   {
@@ -11516,41 +11516,41 @@
    "pages": [
     [
      "charger_walk.png",
-     262,
-     1183
+     331,
+     1065
     ]
    ],
    "gpuBefore": 2883584,
-   "gpuAfter": 1239784,
-   "fileBefore": 68934,
-   "fileAfter": 38034,
-   "jsonBefore": 1624,
-   "jsonAfter": 7651,
+   "gpuAfter": 1410060,
+   "fileBefore": 84556,
+   "fileAfter": 45162,
+   "jsonBefore": 1691,
+   "jsonAfter": 7714,
    "cat": "enemies"
   },
   {
    "name": "dummy_attack",
    "src": "assets/sprites/enemies/v3/dummy_attack.png",
    "srcSize": [
-    672,
+    960,
     576
    ],
-   "frames": 28,
+   "frames": 40,
    "empty": 0,
    "deduped": 0,
    "pages": [
     [
      "dummy_attack.png",
-     309,
-     718
+     260,
+     1206
     ]
    ],
-   "gpuBefore": 1548288,
-   "gpuAfter": 887448,
-   "fileBefore": 67441,
-   "fileAfter": 30574,
-   "jsonBefore": 1761,
-   "jsonAfter": 7103,
+   "gpuBefore": 2211840,
+   "gpuAfter": 1254240,
+   "fileBefore": 111391,
+   "fileAfter": 49339,
+   "jsonBefore": 1927,
+   "jsonAfter": 9200,
    "cat": "enemies"
   },
   {
@@ -11566,41 +11566,41 @@
    "pages": [
     [
      "dummy_death.png",
-     78,
-     3971
+     397,
+     774
     ]
    ],
    "gpuBefore": 2211840,
-   "gpuAfter": 1238952,
-   "fileBefore": 98008,
-   "fileAfter": 38873,
-   "jsonBefore": 1593,
-   "jsonAfter": 8797,
+   "gpuAfter": 1229112,
+   "fileBefore": 109130,
+   "fileAfter": 43516,
+   "jsonBefore": 1701,
+   "jsonAfter": 8923,
    "cat": "enemies"
   },
   {
    "name": "dummy_hurt",
    "src": "assets/sprites/enemies/v3/dummy_hurt.png",
    "srcSize": [
-    288,
+    384,
     576
    ],
-   "frames": 12,
+   "frames": 16,
    "empty": 0,
    "deduped": 0,
    "pages": [
     [
      "dummy_hurt.png",
-     644,
-     124
+     917,
+     125
     ]
    ],
-   "gpuBefore": 663552,
-   "gpuAfter": 319424,
-   "fileBefore": 28730,
-   "fileAfter": 11914,
-   "jsonBefore": 1441,
-   "jsonAfter": 4192,
+   "gpuBefore": 884736,
+   "gpuAfter": 458500,
+   "fileBefore": 43936,
+   "fileAfter": 17462,
+   "jsonBefore": 1561,
+   "jsonAfter": 4951,
    "cat": "enemies"
   },
   {
@@ -11616,16 +11616,16 @@
    "pages": [
     [
      "dummy_idle.png",
-     179,
-     852
+     334,
+     485
     ]
    ],
    "gpuBefore": 1327104,
-   "gpuAfter": 610032,
-   "fileBefore": 49879,
-   "fileAfter": 22736,
-   "jsonBefore": 1540,
-   "jsonAfter": 6230,
+   "gpuAfter": 647960,
+   "fileBefore": 60972,
+   "fileAfter": 26829,
+   "jsonBefore": 1648,
+   "jsonAfter": 6342,
    "cat": "enemies"
   },
   {
@@ -11641,16 +11641,16 @@
    "pages": [
     [
      "dummy_walk.png",
-     224,
-     955
+     402,
+     590
     ]
    ],
    "gpuBefore": 1769472,
-   "gpuAfter": 855680,
-   "fileBefore": 63400,
-   "fileAfter": 31492,
-   "jsonBefore": 1604,
-   "jsonAfter": 7589,
+   "gpuAfter": 948720,
+   "fileBefore": 81856,
+   "fileAfter": 37975,
+   "jsonBefore": 1712,
+   "jsonAfter": 7699,
    "cat": "enemies"
   },
   {

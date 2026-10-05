@@ -1,15 +1,15 @@
 {
  "image": "stage1_outer.png",
- "version": "v2 (50라운드 시범)",
+ "version": "60라운드 Q9 B안 — 64도트 = 1칸(pixelScale 0.5). 이전: v2 (50라운드 시범)",
  "stage": 1,
  "region": "outer",
  "name": "잔(盞) — 외곽 거리 v2 (쿼터뷰)",
- "tileWidth": 32,
- "tileHeight": 32,
+ "tileWidth": 64,
+ "tileHeight": 64,
  "columns": 8,
  "rows": 10,
  "indexFormula": "row * columns + column",
- "pixelScale": 1,
+ "pixelScale": 0.5,
  "wallHeightTiles": 2,
  "tiles": {
   "0": [
@@ -166,10 +166,10 @@
    "maxPerRoom": 3,
    "weight": 0.9,
    "pivot": {
-    "x": 16,
-    "y": 30
+    "x": 32,
+    "y": 60
    },
-   "occludeAbove": 10
+   "occludeAbove": 20
   },
   {
    "index": 14,
@@ -178,10 +178,10 @@
    "maxPerRoom": 2,
    "weight": 0.8,
    "pivot": {
-    "x": 16,
-    "y": 30
+    "x": 32,
+    "y": 60
    },
-   "occludeAbove": 10
+   "occludeAbove": 20
   },
   {
    "index": 15,
@@ -198,21 +198,21 @@
    "maxPerRoom": 2,
    "weight": 0.6,
    "pivot": {
-    "x": 16,
-    "y": 30
+    "x": 32,
+    "y": 60
    },
-   "occludeAbove": 12,
+   "occludeAbove": 24,
    "light": {
     "color": "#e8b858",
-    "radius": 120,
+    "radius": 240,
     "intensity": 0.9,
     "flicker": {
      "amp": 0.08,
      "hz": 5
     },
     "offset": {
-     "x": 16,
-     "y": 20
+     "x": 32,
+     "y": 40
     }
    }
   },
@@ -223,21 +223,21 @@
    "maxPerRoom": 1,
    "weight": 0.5,
    "pivot": {
-    "x": 16,
-    "y": 30
+    "x": 32,
+    "y": 60
    },
-   "occludeAbove": 12,
+   "occludeAbove": 24,
    "light": {
     "color": "#eecc78",
-    "radius": 190,
+    "radius": 380,
     "intensity": 1.2,
     "flicker": {
      "amp": 0.15,
      "hz": 7
     },
     "offset": {
-     "x": 16,
-     "y": 10
+     "x": 32,
+     "y": 20
     }
    }
   },
@@ -248,10 +248,10 @@
    "maxPerRoom": 1,
    "weight": 0.6,
    "pivot": {
-    "x": 16,
-    "y": 30
+    "x": 32,
+    "y": 60
    },
-   "occludeAbove": 10
+   "occludeAbove": 20
   },
   {
    "index": 19,
@@ -260,10 +260,10 @@
    "maxPerRoom": 1,
    "weight": 0.4,
    "pivot": {
-    "x": 13,
-    "y": 26
+    "x": 26,
+    "y": 52
    },
-   "occludeAbove": 8
+   "occludeAbove": 16
   },
   {
    "index": 20,
@@ -280,106 +280,106 @@
    "name": "lamp_post",
    "rect": {
     "x": 0,
-    "y": 256,
-    "w": 32,
-    "h": 64
+    "y": 512,
+    "w": 64,
+    "h": 128
    },
    "index": 64,
    "pivot": {
-    "x": 13,
-    "y": 62
+    "x": 26,
+    "y": 124
    },
    "footprint": [
     1,
     1
    ],
    "solid": true,
-   "occludeAbove": 16,
+   "occludeAbove": 32,
    "placement": "floor",
    "light": {
     "color": "#e8b858",
-    "radius": 150,
+    "radius": 300,
     "intensity": 1.0,
     "flicker": {
      "amp": 0.06,
      "hz": 4
     },
     "offset": {
-     "x": 24,
-     "y": 22
+     "x": 48,
+     "y": 44
     }
    }
   },
   {
    "name": "crate_stack",
    "rect": {
-    "x": 32,
-    "y": 256,
-    "w": 32,
-    "h": 64
+    "x": 64,
+    "y": 512,
+    "w": 64,
+    "h": 128
    },
    "index": 65,
    "pivot": {
-    "x": 16,
-    "y": 62
+    "x": 32,
+    "y": 124
    },
    "footprint": [
     1,
     1
    ],
    "solid": true,
-   "occludeAbove": 12,
+   "occludeAbove": 24,
    "placement": "floor"
   },
   {
    "name": "stall",
    "rect": {
-    "x": 64,
-    "y": 256,
-    "w": 64,
-    "h": 64
+    "x": 128,
+    "y": 512,
+    "w": 128,
+    "h": 128
    },
    "index": 66,
    "pivot": {
-    "x": 32,
-    "y": 62
+    "x": 64,
+    "y": 124
    },
    "footprint": [
     2,
     1
    ],
    "solid": true,
-   "occludeAbove": 22,
+   "occludeAbove": 44,
    "placement": "floor (방 가장자리 권장)"
   },
   {
    "name": "well",
    "rect": {
-    "x": 128,
-    "y": 256,
-    "w": 64,
-    "h": 64
+    "x": 256,
+    "y": 512,
+    "w": 128,
+    "h": 128
    },
    "index": 68,
    "pivot": {
-    "x": 32,
-    "y": 61
+    "x": 64,
+    "y": 122
    },
    "footprint": [
     2,
     1
    ],
    "solid": true,
-   "occludeAbove": 26,
+   "occludeAbove": 52,
    "placement": "floor"
   },
   {
    "name": "washing_line",
    "rect": {
-    "x": 192,
-    "y": 256,
-    "w": 64,
-    "h": 32
+    "x": 384,
+    "y": 512,
+    "w": 128,
+    "h": 64
    },
    "index": 70,
    "pivot": {
@@ -393,10 +393,10 @@
   {
    "name": "washing_line_b",
    "rect": {
-    "x": 192,
-    "y": 288,
-    "w": 64,
-    "h": 32
+    "x": 384,
+    "y": 576,
+    "w": 128,
+    "h": 64
    },
    "index": 78,
    "pivot": {
@@ -412,20 +412,20 @@
  "tileLights": {
   "21": {
    "color": "#e2a33c",
-   "radius": 70,
+   "radius": 140,
    "intensity": 0.55,
    "offset": {
-    "x": 16,
-    "y": 26
+    "x": 32,
+    "y": 52
    }
   },
   "22": {
    "color": "#dc8e23",
-   "radius": 46,
+   "radius": 92,
    "intensity": 0.45,
    "offset": {
-    "x": 26,
-    "y": 30
+    "x": 52,
+    "y": 60
    }
   }
  },
@@ -523,5 +523,91 @@
   "79": "big:washing_line_b"
  },
  "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 제안 parts/art/work/v2_outer/palette_v2_proposal.json (SL·WD·PL·NT, 임시·고정색)",
- "source": "parts/art/work/v2_outer/build.py (50라운드 시범)"
+ "source": "parts/art/work/floor1q60/floors64_build.py (60라운드 Q9·Q10 — 지역 재질 64도트). 이전: parts/art/work/v2_outer/build.py (50라운드 시범)",
+ "pixelScaleNote": "60라운드 Q9 B안: 칸 = 64도트 = 논리 32px. rect·pivot·occludeAbove·light.radius·light.offset 은 도트 단위(이전 32 판의 2배). 인덱스 표·키는 그대로(계약 §9·§11·§12)",
+ "redrawn60": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  29,
+  30,
+  31,
+  32,
+  33,
+  34,
+  35,
+  36,
+  37,
+  38,
+  43,
+  44,
+  45,
+  46,
+  60,
+  61,
+  62
+ ],
+ "upscaled60": [
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22,
+  39,
+  40,
+  41,
+  42,
+  47,
+  48,
+  49,
+  50,
+  51,
+  52,
+  53,
+  54,
+  55,
+  56,
+  57,
+  58,
+  59,
+  63,
+  64,
+  65,
+  66,
+  67,
+  68,
+  69,
+  70,
+  71,
+  72,
+  73,
+  74,
+  75,
+  76,
+  77,
+  78,
+  79
+ ],
+ "upscaledNote": "upscaled60 칸은 32 그림을 2배로 키운 임시(문·장애물 벽·그늘·void·수로·데칼 등) — P3 에서 64 설계로 다시 그림"
 }

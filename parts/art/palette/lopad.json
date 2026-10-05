@@ -373,6 +373,43 @@
    "W2 body (main band)",
    "W3 body light (next to the core)"
   ],
-  "budget": "per fx: gray <=2 + core 2 + floor accent <=3 + secondary 4 = <=11 colours. Boss/enemy telegraphs use floor ramp + core only (no weapon secondary)."
+  "budget": "per fx: gray <=2 + core 2 + floor accent <=3 + secondary 4 = <=11 colours. Boss/enemy telegraphs use floor ramp + core only (no weapon secondary).",
+  "decision_r60": "2026-10-05 round-60 Q19(도영 님 원문: \"무기 이펙트 재 호박 규칙 없애고, 각성 무기, 각성 fx에도 예외 허용하고 진짜 초기에 부여받는 첫번째 무기만 해당 규칙이 있는 거고 나머지는 다 적용 아니야\") — 53라운드 Q61 '무기 이펙트는 주인공 재·호박색만' 규칙 폐지. 재·호박 제한은 런 시작 때 처음 받는 기본 무기(각성·강화·갈래 이전)와 그 기본 이펙트에만 남는다. 갈래·강화·각성 무기와 그 fx 는 LOPAD 팔레트 안에서 고유색 허용(층 램프를 고정색으로 사용 — paletteSwap none, 지역 교체 없음). 각성 무기 색 상한 24(60 Q21).",
+  "awaken_r60": {
+   "rule": "각성 오버레이·각성 fx(60 Q15~Q21): 아래 램프를 고정색으로 쓴다(층 진입 시 교체하지 않음). 백열 X0/X1 은 판정 순간과 각성 순환 맥동에 사용.",
+   "katana_월인": {
+    "ramp": "floor 8 silver white (SIL 1~11)",
+    "core": [
+     "#fff4dc",
+     "#ffffff"
+    ],
+    "source": "parts/art/work/awaken60 (K-A)"
+   },
+   "greatsword_핏빛거암검": {
+    "ramp": "floor 7 crimson 1~7 (#381b25~#ca3941) + gray 1~7 현무암",
+    "core": [
+     "#fff4dc"
+    ],
+    "note": "분홍기 도는 CRI 8 이상은 피에 쓰지 않음(젖은 반사는 X1 점)",
+    "source": "parts/art/work/awaken60 (G-A2)"
+   },
+   "dagger_귀화": {
+    "ramp": "floor 5 violet (VIO 1~11) + floor 3 teal 3~11(불끝·식는 꼬리)",
+    "core": [
+     "#fff4dc"
+    ],
+    "source": "parts/art/work/awaken60 (D-A)"
+   },
+   "bow_혜성날개": {
+    "ramp": "floor 6 gold (GOLD 4~10) + floor 1 amber 3~5",
+    "core": [
+     "#fff4dc",
+     "#ffffff"
+    ],
+    "source": "parts/art/work/awaken60 (B-A)"
+   },
+   "colorCap": 24
+  },
+  "coreNote": " (60라운드 Q19: 재·호박 제한은 기본 무기에만 — 각성은 decision_r60·awaken_r60 참고)"
  }
 }

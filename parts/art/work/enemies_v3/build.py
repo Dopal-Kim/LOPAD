@@ -81,4 +81,8 @@ def mock(idle):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["dummy", "archer", "charger"])
+    # 60라운드 Q8: 적 3종은 parts/art/work/floor1q60/enemy_build.py 보강판이 현행. 이 53라운드 빌드를 돌리면 assets 를 옛 그림(격자)으로
+    # 덮으므로 --legacy 없이는 멈춘다(모듈 import 는 floor1q60 이 그대로 쓴다).
+    if "--legacy" not in sys.argv:
+        sys.exit("enemies_v3/build.py 는 53라운드 판 보관용입니다(현행 = floor1q60/enemy_build.py --assets). 다시 만들려면 --legacy")
+    main([a for a in sys.argv[1:] if a != "--legacy"] or ["dummy", "archer", "charger"])

@@ -123,3 +123,10 @@ python3 parts/art/work/fx_prod/build_b.py      # 43라운드 양산 B: 단검·�
 - 다시 만들지 않게: 지운 시트를 쓰던 빌드 스크립트 `player/build.py` · `enemies/build.py` · `weapons/build.py` · `combos/build.py` · `carry/build.py` · `birth/build.py` · `v2_outer/build.py`(전체 빌드, `tiles` 모드 제외)는 `--legacy` 없이 실행하면 멈춘다(`birth/build_soil_v1.py` 와 같은 방식). 모듈 import 는 그대로.
 - 지운 시트를 미리보기·목업 입력으로 읽던 스크립트 26개에는 첫머리에 `[53라운드 보관]`/`[53라운드]` 주석을 달았다(재실행 시 그 단계는 FileNotFoundError). v3 타이밍 assert 는 `hero_v3/old_sheets`·`enemies_v3/old_sheets` JSON 사본으로 그대로 동작.
 - `assets/sprites/enemies/v3/*.json` 15개: `oldTiming.sheet`(기록) 옆에 `oldTiming.sheetDeleted`(사본 경로) 추가 — `enemies_v3/eexport.py` 도 같은 필드를 쓰도록 반영.
+
+## 60라운드 Q8~Q11 (2026-10-05) — 1층 품질 보강 P1 (적 3종 + 바닥 5지역 + 엄폐 담) · 작업 폴더 `work/floor1q60/`
+- 결정: `decisions/2026-10-05-round-60-parallel-production.md` Q8~Q11, 계약 §11(B안 64도트 칸).
+- **적 3종** `enemy_build.py --assets` (모듈 `drunk60.py`·`musket60.py`·`bulwark60.py`·공용 연출 `fx60.py`, 리그·렌더러는 `enemies_v3`·`hero_v3/v3kit` import 만): 명도 층·표면 디테일·동작 폭·2차 동작, 공격 7(결사병 8)→10 = [3,1,3,3], 피격 3→4 = [1,3](구 프레임 시작 ms 불변 = 판정 시각 불변, `eanim.check_timing` assert), 징집병 술병 반짝임 A23 발광·천모자 청회, 사수 정면 조준 비스듬히, 결사병 망치 분리·내리찍기 잔상·바닥 금. 색 32/39/37. 뒤이어 `atlas57/build.py --in-place --cats enemies` → `bundle2/build.py --only elite`(엘리트 외곽선 15시트·문장 headTop 갱신).
+- **바닥·담 64도트** `floors64_build.py --assets` (도구 `fk64.py`, 지역 설계 `regions64.py`): `assets/tiles/v2/stage1_<지역>` 를 64도트 칸·`pixelScale 0.5` 로 교체(경로·인덱스 표·키 유지, 도트 단위 길이 2배). 새로 그린 칸 = 0~4·23~38·43~46·60~62(JSON `redrawn60`), 나머지는 32 그림 2배 임시(`upscaled60`, P3). 원본 32 판 사본 `floor1q60/before/tiles/`.
+- 옛 빌드 보호: `enemies_v3/build.py`·`floors_v2/build.py`·`v2_outer/build.py tiles` 는 `--legacy` 없이 멈춘다.
+- 미리보기: `floor1q60/preview_enemies_before_after.png`·`preview_enemy_attack_before_after.png`·`preview_tiles_regions_before_after.png`·`preview_mock_regions.png`·`preview_mock_<지역>.png`·`preview_mock_zoom_<지역>.png`, `out/preview_<적>_<동작>_x2.png`·`_x3.gif`, `out/preview_tiles64_<지역>.png`·`preview_floor64_<지역>.png`.

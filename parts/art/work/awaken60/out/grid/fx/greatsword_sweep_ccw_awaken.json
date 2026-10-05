@@ -1,0 +1,179 @@
+{
+ "image": "greatsword_sweep_ccw_awaken.png",
+ "action": "greatsword_sweep_ccw_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 440,
+ "frameHeight": 448,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right",
+  "down-right",
+  "down-left",
+  "up-right",
+  "up-left"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 24.0,
+ "frameDurationsMs": [
+  40,
+  45,
+  45,
+  40,
+  40,
+  40
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 7,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "weapon": "greatsword",
+ "design": "핏빛 궤적: 기본 획을 진홍(CRI1~7)·젖은 반사 X1 로, 획 바깥으로 튀는 핏방울 26개(시간에 따라 멀어지며 떨어짐) + 성긴 피 안개",
+ "bodySheet": "player_greatsword_sweep_ccw",
+ "weaponSheet": "weapons/v3/greatsword_sweep_ccw",
+ "comboSet": "G-C 관성 순환",
+ "dirTransform": "drawn8",
+ "dirTransformNote": "56라운드 Q6 · 작업 B 대검 8방향 — 8행을 직접 그림(행 순서 = 몸·무기 시트: down, up, left, right, down-right, down-left, up-right, up-left). 대각 행 = 조준 방향 45°(화면각 down-right 45° · down-left 135° · up-right -45° · up-left -135°)로 §17 각도를 회전해 다시 그린 것(이미지 회전 아님). 시스템은 몸 시트와 같은 행을 고르면 된다",
+ "anchor": "player_pivot",
+ "hitOriginInFrame": {
+  "x": 217,
+  "y": 225
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗)에 맞춘다. 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "spawn": "body_ms",
+ "spawnAtMs": 340,
+ "impactAtBodyMs": 380,
+ "hitShape": {
+  "type": "arc",
+  "startDeg": 75,
+  "endDeg": -75,
+  "radiusR": 1.0,
+  "innerR": 0.35,
+  "note": "수평 초승달 150° (§17, H1 역방향)",
+  "R": {
+   "world": 51,
+   "dots": 204
+  },
+  "outerRadiusPx": 204.0,
+  "innerRadiusPx": 71.4,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "impactFrame": 1,
+ "timingNote": "spawnAtMs = 몸 시트 시작 기준 이 시트를 띄우는 시각. impactFrame 시작 = 몸 hitAt(판정). 관성 공속은 몸·fx 를 같은 배율로 재생",
+ "drawnArc": {
+  "fromDeg": 75,
+  "toDeg": -75,
+  "radiusDots": 204.0,
+  "brushWidthDots": 24,
+  "heightDots": [
+   8,
+   8
+  ],
+  "note": "붓획 바깥 가장자리 ≈ 판정 반경"
+ },
+ "frameRoles": [
+  "pre(붓 끝 닿음)",
+  "draw(머리 55%)",
+  "draw(끝까지 · 붓털 갈라짐)",
+  "decay(시작부터 마름)",
+  "decay",
+  "decay(재)"
+ ],
+ "glowFrames": [
+  1,
+  2
+ ],
+ "brushStroke": true,
+ "r56": "56라운드 Q11 붓획",
+ "previous": "prev55: 55라운드 부분 초승달(같은 이름) — parts/art/work/combo56_fx/prev55/fx/greatsword_sweep_ccw.png",
+ "bodyTimingSource": "player_greatsword_sweep_ccw v3-r56",
+ "spawnRule": "spawnAtMs = 몸 hitAt − sum(frameDurationsMs[:impactFrame]) (빌드 때 현재 몸 JSON 으로 계산). 몸 타이밍이 바뀌면 이 규칙으로 다시 계산하면 그림이 맞는다",
+ "directionRows": [
+  {
+   "row": 0,
+   "direction": "down",
+   "screenDeg": 90.0,
+   "body": "정면"
+  },
+  {
+   "row": 1,
+   "direction": "up",
+   "screenDeg": -90.0,
+   "body": "뒷면"
+  },
+  {
+   "row": 2,
+   "direction": "left",
+   "screenDeg": 180.0,
+   "body": "측면"
+  },
+  {
+   "row": 3,
+   "direction": "right",
+   "screenDeg": 0.0,
+   "body": "측면"
+  },
+  {
+   "row": 4,
+   "direction": "down-right",
+   "screenDeg": 45.0,
+   "body": "정면 3/4"
+  },
+  {
+   "row": 5,
+   "direction": "down-left",
+   "screenDeg": 135.0,
+   "body": "정면 3/4"
+  },
+  {
+   "row": 6,
+   "direction": "up-right",
+   "screenDeg": -45.0,
+   "body": "뒷면 3/4"
+  },
+  {
+   "row": 7,
+   "direction": "up-left",
+   "screenDeg": -135.0,
+   "body": "뒷면 3/4"
+  }
+ ],
+ "directionRowsNote": "56라운드 Q30: 이펙트도 8행 시트로 통일 — 행 = 몸·무기 시트와 같은 directionRows(down, up, left, right, down-right, down-left, up-right, up-left). 몸 시트에서 고른 행 번호를 이 시트에도 그대로 쓴다. 대각 행(4~7)은 작업 A 가 조준 45° 로 다시 그린 붓획(별도 _diag 시트는 만들지 않음)",
+ "timingCheck": {
+  "bodyHitAt": 380,
+  "bodyImpactFrame": 5,
+  "bodyFrameStartsMs": [
+   0,
+   60,
+   140,
+   250,
+   320,
+   380,
+   420,
+   470,
+   540,
+   630,
+   720
+  ],
+  "fxImpactFrame": 1,
+  "spawnAtMs": 340,
+  "rule": "spawnAtMs + sum(fx frameDurationsMs[:impactFrame]) = 몸 hitAt",
+  "checkedBy": "parts/art/work/combo56_res/gs8.py"
+ },
+ "awakenOf": "fx/v3/greatsword_sweep_ccw",
+ "awakeningTrail": true,
+ "swapRule": "각성한 런에서 'greatsword_sweep_ccw' 대신 이 시트(같은 틀·프레임·ms·피벗·행 — 1:1 교체, 60 Q21 각성 전용 궤적)",
+ "pivot": {
+  "x": 217,
+  "y": 265
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21"
+}

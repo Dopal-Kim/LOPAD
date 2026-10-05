@@ -1,0 +1,70 @@
+{
+ "image": "bow_meteor_arrow.png",
+ "action": "bow_meteor_arrow",
+ "version": "v3-r60-awaken",
+ "frameWidth": 224,
+ "frameHeight": 344,
+ "frames": 9,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.07,
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  30,
+  50,
+  60,
+  80,
+  100,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "weapon": "bow",
+ "awakening": "유성(流星) — 혜성 날개",
+ "anchor": "hitbox_center",
+ "followTarget": false,
+ "depth": "above",
+ "spawn": "awaken_perfect_release",
+ "anchorNote": "pivot = 떨어지는 자리(완벽 놓기 화살이 맞은 적 발밑 · 화살비는 낙하점)",
+ "impactFrame": 3,
+ "impactAtMs": 120,
+ "spawnNote": "각성 '유성' 런에서 완벽 놓기 화살마다 하늘에서 1발 추가(설계안 3.4) — 적중 지점에 생성, f3 시작(120ms 뒤)이 판정",
+ "hitShape": {
+  "type": "circle",
+  "radiusPx": 56,
+  "note": "착탄 반경 참고값"
+ },
+ "frameRoles": [
+  "혜성 낙하",
+  "낙하",
+  "닿기 직전",
+  "착탄(큰 별)",
+  "고리·꽃잎 퍼짐",
+  "퍼짐",
+  "식음",
+  "불티",
+  "불티"
+ ],
+ "design": "왼쪽 위 하늘에서 금빛 혜성 화살(X0 머리 · 150도트 꼬리 · 양옆 불꽃 깃)이 떨어져 꽂히며 큰 네 갈래 별 → 금빛 불꽃 고리가 퍼지고 불꽃 꽃잎 6장이 바깥으로 튐 · 그을린 자국",
+ "previousDesign": "57라운드 build57 재·호박판(60 Q15~Q21 로 교체)",
+ "pivot": {
+  "x": 128,
+  "y": 303
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21",
+ "glowFrames": [
+  2,
+  3
+ ]
+}

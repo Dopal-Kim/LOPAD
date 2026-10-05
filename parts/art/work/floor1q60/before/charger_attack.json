@@ -1,0 +1,236 @@
+{
+ "image": "charger_attack.png",
+ "action": "attack",
+ "frameWidth": 128,
+ "frameHeight": 176,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.0,
+ "frameDurationsMs": [
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  70,
+  70
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 64,
+  "y": 170
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray G00~15 + 1층 램프 16~27, 런타임 스왑 — 술·문장·불씨·눈빛만) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색). 새 색 없음",
+ "source": "parts/art/work/enemies_v3/build.py (53라운드 Q33 — 적 v3)",
+ "note": "v3 결사병(통 투구·파비스·망치) · 53라운드 Q33 '조금 더 크게' = 몸 1.15배(임시), 128×176 도트 = 화면 64×88. 개념 gemini/concept_char/raw_enemies_b.jpg",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0"
+ ],
+ "oldTiming": {
+  "sheet": "enemies/v2/charger_attack.json",
+  "sheetDeleted": "53라운드 삭제됨(보관) — 사본 parts/art/work/enemies_v3/old_sheets/charger_v2_attack.json",
+  "frames": 4,
+  "frameDurationsMs": [
+   180,
+   60,
+   120,
+   140
+  ],
+  "framesMap": [
+   [
+    0,
+    1,
+    2
+   ],
+   [
+    3
+   ],
+   [
+    4,
+    5
+   ],
+   [
+    6,
+    7
+   ]
+  ],
+  "note": "구 프레임 k 의 시작 ms = 새 프레임 framesMap[k][0] 의 시작 ms (assert). 전체 길이 같음"
+ },
+ "phaseFrames": {
+  "telegraph": [
+   0,
+   1,
+   2
+  ],
+  "charge": [
+   3
+  ],
+  "smash": [
+   4,
+   5
+  ],
+  "recover": [
+   6,
+   7
+  ]
+ },
+ "phaseStartMs": {
+  "telegraph": 0,
+  "charge": 180,
+  "smash": 240,
+  "recover": 360
+ },
+ "phaseNote": "v2 phaseFrames(telegraph 0 · charge 1 · smash 2 · recover 3)와 같은 시각. 돌진 거리·시간은 시스템",
+ "impactFrame": 4,
+ "hammerFaceAnchors": {
+  "down": [
+   [
+    41.6,
+    39.9
+   ],
+   [
+    45.8,
+    23.2
+   ],
+   [
+    45.8,
+    23.2
+   ],
+   [
+    42.7,
+    30.5
+   ],
+   [
+    59.7,
+    169.6
+   ],
+   [
+    59.7,
+    169.6
+   ],
+   [
+    31.3,
+    141.8
+   ],
+   [
+    35.3,
+    66.3
+   ]
+  ],
+  "up": [
+   [
+    86.4,
+    41.9
+   ],
+   [
+    82.2,
+    27.3
+   ],
+   [
+    82.2,
+    27.3
+   ],
+   [
+    85.3,
+    24.9
+   ],
+   [
+    68.3,
+    123.5
+   ],
+   [
+    68.3,
+    123.5
+   ],
+   [
+    96.7,
+    102.3
+   ],
+   [
+    92.7,
+    61.6
+   ]
+  ],
+  "left": [
+   [
+    66.7,
+    32.8
+   ],
+   [
+    69.7,
+    18.7
+   ],
+   [
+    69.7,
+    18.7
+   ],
+   [
+    56.2,
+    20.0
+   ],
+   [
+    -0.1,
+    145.0
+   ],
+   [
+    -0.1,
+    145.0
+   ],
+   [
+    9.2,
+    110.3
+   ],
+   [
+    57.5,
+    53.6
+   ]
+  ],
+  "right": [
+   [
+    61.3,
+    48.9
+   ],
+   [
+    58.3,
+    31.8
+   ],
+   [
+    58.3,
+    31.8
+   ],
+   [
+    71.8,
+    35.3
+   ],
+   [
+    128.1,
+    148.1
+   ],
+   [
+    128.1,
+    148.1
+   ],
+   [
+    118.8,
+    133.8
+   ],
+   [
+    70.5,
+    74.3
+   ]
+  ]
+ }
+}

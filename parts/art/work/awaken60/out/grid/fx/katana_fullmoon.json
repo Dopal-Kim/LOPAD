@@ -1,0 +1,66 @@
+{
+ "image": "katana_fullmoon.png",
+ "action": "katana_fullmoon",
+ "version": "v3-r60-awaken",
+ "frameWidth": 216,
+ "frameHeight": 240,
+ "frames": 10,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 13.16,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  70,
+  80,
+  90,
+  100,
+  110,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "anchor": "player_pivot",
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
+ "weapon": "katana",
+ "awakening": "만월(滿月) — 월인",
+ "followPlayer": false,
+ "depth": "above",
+ "spawn": "awaken_issen_chain",
+ "spawnNote": "각성 '만월' 런에서 검기를 쓴 대쉬 일섬의 연속 일섬(최대 3회)이 끝난 순간, 마지막 도착 피벗에 1회. 각성 획득 연출로도 1회(시스템 선택)",
+ "impactFrame": 1,
+ "frameRoles": [
+  "달이 떠오름",
+  "첫 초승달 일섬(백열)",
+  "둘째 일섬 · 큰 별(백열)",
+  "셋째 일섬",
+  "보름달",
+  "부서짐",
+  "부서짐",
+  "달 조각",
+  "달 조각",
+  "흩어짐"
+ ],
+ "design": "주인공 뒤로 은빛 보름달 고리(두께 7, 안쪽 성긴 달빛 점·달 바다)가 떠오르고, 초승달 일섬 세 줄이 차례로 가로지름(첫 프레임 X0 심) → 고리가 픽셀 단위로 빠지며 달 조각(초승 글리프)으로 부서져 떨어짐",
+ "previousDesign": "57라운드 build57 재·호박판(60 Q15~Q21 로 교체)",
+ "pivot": {
+  "x": 107,
+  "y": 171
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21",
+ "glowFrames": [
+  1,
+  2
+ ]
+}

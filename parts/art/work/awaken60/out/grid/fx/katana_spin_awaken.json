@@ -1,0 +1,106 @@
+{
+ "image": "katana_spin_awaken.png",
+ "action": "katana_spin_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 336,
+ "frameHeight": 304,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 19.05,
+ "frameDurationsMs": [
+  40,
+  40,
+  40,
+  40,
+  40,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "anchor": "player_pivot",
+ "hitOriginInFrame": {
+  "x": 165,
+  "y": 155
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗)에 맞춘다. 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "brushStroke": true,
+ "r57": "57라운드 Q22~Q37 갈래 1단 수단(설계안 2.2~2.5 · 6.2)",
+ "weapon": "katana",
+ "bodySheet": "player_katana_spin",
+ "spawn": "body_ms",
+ "spawnAtMs": 400,
+ "impactAtBodyMs": 440,
+ "impactFrame": 1,
+ "spawnRule": "spawnAtMs = 몸 hitAt − frameDurationsMs[0] (= 몸 releaseFrame f6 시작). fx f1~f4 = 몸 회전 f7~f10(같은 40ms)",
+ "spawnAtReleaseMs": 0,
+ "spawnNote": "좌클릭을 뗀 순간(몸 releaseFrame 시작)에 1회 — 주인공 발을 따라감(회전 중 이동은 시스템). 검기 2회전이면 2회째 회전 시작(f7 재생 시작)에 한 번 더(설계안 2.2)",
+ "followPlayer": true,
+ "hitShape": {
+  "type": "arc",
+  "startDeg": -120,
+  "endDeg": 240,
+  "radiusR": 1.053,
+  "innerR": 0.0,
+  "note": "360° 원(반경 2.5칸 = 40 월드 px = 160 도트). arc −120°→+240° = 왼쪽 뒤에서 시작해 화면 시계 방향으로 한 바퀴",
+  "R": {
+   "world": 38,
+   "dots": 152
+  },
+  "outerRadiusPx": 160.1,
+  "innerRadiusPx": 0.0,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "groundKy": 0.85,
+ "drawnArc": {
+  "fromDeg": -50.0,
+  "toDeg": 278.0,
+  "radiusDots": 160.0,
+  "brushWidthDots": 11.0,
+  "groundKy": 0.85,
+  "note": "조준 기준 −50° → +278°(화면 시계 방향 328°) — 시작 쪽에 32° 틈(닫힌 원 금지). 바닥 타원(세로 ×0.85) 허리 높이"
+ },
+ "frameRoles": [
+  "pre(붓 끝 닿음 — 뗌)",
+  "draw(판정 · 앞)",
+  "draw(판정 · 오른쪽 반)",
+  "draw(판정 · 뒤)",
+  "draw(판정 · 한 바퀴 — 붓털 갈라짐)",
+  "decay",
+  "decay",
+  "decay(재)"
+ ],
+ "design": "월인 궤적: 기본 획을 은백(SIL2~10)·X1/X0 심으로, 밝은 획 둘레 체크 빛 번짐 + 흩어지는 초승달 조각",
+ "designRef": "parts/art/work/gemini/weapon_moves/sheet_katana.png 7번",
+ "dirTransform": "drawn4",
+ "directionNote": "4행 = 몸 시트 행 순서(down, up, left, right) — 조준 0° 그림을 행 각도로 회전해 다시 래스터(left = 180°, §17)",
+ "glowFrames": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "awakenOf": "fx/v3/katana_spin",
+ "awakeningTrail": true,
+ "swapRule": "각성한 런에서 'katana_spin' 대신 이 시트(같은 틀·프레임·ms·피벗·행 — 1:1 교체, 60 Q21 각성 전용 궤적)",
+ "pivot": {
+  "x": 165,
+  "y": 195
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21"
+}

@@ -1,0 +1,114 @@
+{
+ "image": "bow_arrow_snipe_awaken.png",
+ "action": "bow_arrow_snipe_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 186,
+ "frameHeight": 24,
+ "frames": 2,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.0,
+ "frameDurationsMs": [
+  50,
+  50
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 8,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "weapon": "bow",
+ "anchor": "projectile",
+ "rotate": true,
+ "drawnFacing": "right",
+ "depth": "above",
+ "branch": "snipe",
+ "branchLabel": "저격",
+ "spawn": "loop_move",
+ "secondaryVariants": {
+  "pierce": {
+   "label": "관통",
+   "overlay": {
+    "sheet": "fx/pierce",
+    "loop": true,
+    "note": "관통 꼬리를 lv 꼬리 위에 겹침(재활용)"
+   },
+   "sheet": "fx/bow_arrow_snipe_pierce",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
+  },
+  "deadeye": {
+   "label": "필중",
+   "colorSwap": [
+    {
+     "from": "#e2a33c",
+     "to": "#eecc78",
+     "fromSlot": "hero.A23",
+     "toSlot": "hero.A25",
+     "role": "꼬리 실 한 단 밝게"
+    },
+    {
+     "from": "#eecc78",
+     "to": "#fff4dc",
+     "fromSlot": "hero.A25",
+     "toSlot": "X1",
+     "role": "밝은 실 → 백열"
+    }
+   ],
+   "overlay": {
+    "sheet": "fx/crit_burst",
+    "onHit": true,
+    "minLevel": 3
+   },
+   "note": "원거리일수록 피해 급증: lv3 에서 꼬리가 백열, 적중 시 crit_burst",
+   "sheet": "fx/bow_arrow_snipe_deadeye",
+   "colorSwapUse": "fallback — sheet 가 있으면 colorSwap 을 적용하지 않는다(그림에 이미 반영)"
+  }
+ },
+ "tailSheets": [
+  "fx/bow_arrow_snipe_lv1",
+  "fx/bow_arrow_snipe_lv2",
+  "fx/bow_arrow_snipe_lv3"
+ ],
+ "replaces": "fx/bow_arrow (저격 갈래 기본 화살)",
+ "pivotNote": "피벗 (18,2) = 화살 무게 중심(앞 3/4)",
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "design": "혜성 화살(혜성 날개 각성): X0·X1 혜성 머리 + 금빛 화살대 + 피벗 뒤로 90도트 금빛 불꼬리(끝은 끊긴 불티) — 화살 중심 피벗은 그대로, 틀만 뒤로 김",
+ "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
+ "glowFrames": [],
+ "branchDesignV3": "저격 snipe  = 긴 재 화살 + 대를 감는 호박 나선 실(2프레임 회전) / 꼬리 lv1~3 = 곧은 심 + 뒤로 퍼지는 음속 고리 ')' 1·2·3개",
+ "secondarySheets": {
+  "pierce": "fx/bow_arrow_snipe_pierce",
+  "deadeye": "fx/bow_arrow_snipe_deadeye"
+ },
+ "secondarySheetsNote": "55라운드 Q9: 2단 갈래 획득 시 이 시트 대신 secondarySheets[<2단 id>] 를 재생. 틀이 사방 32 도트 넓고(근접) 피벗이 그만큼 옮겨져 있다 — 2단 시트 JSON 의 frameWidth/Height·pivot 을 쓸 것. runtime(overlay·shake 등)은 2단 시트 JSON 의 runtime 을 따른다.",
+ "note": "v3 (53라운드 Q5): 저격 snipe  = 긴 재 화살 + 대를 감는 호박 나선 실(2프레임 회전) / 꼬리 lv1~3 = 곧은 심 + 뒤로 퍼지는 음속 고리 ')' 1·2·3개",
+ "legacy": {
+  "image": "../bow_arrow_snipe.png.png",
+  "frameWidth": 24,
+  "frameHeight": 5,
+  "pivot": {
+   "x": 18,
+   "y": 2
+  },
+  "pixelScale": 2,
+  "note": "길고 날카로운 빛줄기 화살 24×5: 몸 전체를 관통하는 1px 백열 코어(X0/X1 반짝임이 앞으로 흐름) + 가운데 W3/W2 · W2/W1 결 + 짧은 V 깃 + 끝 글린트. 2프레임 50ms 루프.",
+  "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3 fixed)",
+  "secondary": "fx.weapons.bow"
+ },
+ "awakenOf": "fx/v3/bow_arrow_snipe",
+ "awakeningTrail": true,
+ "swapRule": "각성한 런에서 'bow_arrow_snipe' 대신 이 시트(같은 틀·프레임·ms·피벗·행 — 1:1 교체, 60 Q21 각성 전용 궤적)",
+ "awakeningTrailNote": "화살은 기본 시트보다 틀이 길다(꼬리). pivot = 화살 중심(원 시트와 같은 자리), rotate·drawnFacing 같음",
+ "pivot": {
+  "x": 162,
+  "y": 12
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21"
+}

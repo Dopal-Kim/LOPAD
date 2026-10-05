@@ -460,6 +460,9 @@ def build():
 
 if __name__ == "__main__":
     if sys.argv[1:] == ["tiles"]:
+        # 60라운드 Q9 B안: 외곽 타일셋은 floor1q60/floors64_build.py 64도트 판이 현행 — 이 32도트 출력은 그것을 덮어쓴다.
+        sys.exit("v2_outer 'tiles' 는 53라운드 32도트 판입니다(현행 = floor1q60/floors64_build.py --assets). 다시 만들려면 'tiles --legacy'")
+    if sys.argv[1:] == ["tiles", "--legacy"]:
         # 타일셋만 다시 만듦(53라운드 바닥 톤 갱신) — 캐릭터·무기·적 v2 시트는 건드리지 않는다
         preview_tiles(export_tiles()[0])
     elif "--legacy" in sys.argv:

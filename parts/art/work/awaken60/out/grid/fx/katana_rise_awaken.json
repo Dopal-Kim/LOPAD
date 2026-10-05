@@ -1,0 +1,103 @@
+{
+ "image": "katana_rise_awaken.png",
+ "action": "katana_rise_awaken",
+ "version": "v3-r60-awaken",
+ "frameWidth": 320,
+ "frameHeight": 328,
+ "frames": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 20.34,
+ "frameDurationsMs": [
+  30,
+  25,
+  30,
+  60,
+  70,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 11,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "weapon": "katana",
+ "design": "월인 궤적: 기본 획을 은백(SIL2~10)·X1/X0 심으로, 밝은 획 둘레 체크 빛 번짐 + 흩어지는 초승달 조각",
+ "bodySheet": "player_katana_rise",
+ "weaponSheet": "weapons/v3/katana_rise",
+ "comboSet": "K-A 발도 초승달",
+ "dirTransform": "rotate",
+ "dirTransformNote": "§17 각도(조준 0°, 화면 시계 +)를 모든 방향에 회전으로 적용 — left = right 를 180° 회전(구 fx 의 좌우 반전 아님). 몸 시트의 휘두름 방향과 같다",
+ "anchor": "player_pivot",
+ "hitOriginInFrame": {
+  "x": 156,
+  "y": 183
+ },
+ "pivotNote": "pivot = 주인공 발(몸 피벗)에 맞춘다. 판정 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "spawn": "body_ms",
+ "spawnBodyFrame": 2,
+ "spawnAtMs": 120,
+ "impactAtBodyMs": 150,
+ "hitShape": {
+  "type": "arc",
+  "startDeg": 70,
+  "endDeg": -40,
+  "radiusR": 1.0,
+  "innerR": 0.0,
+  "note": "비대칭 호 110° (§17 대각) · 56라운드 Q1 사거리 ×1.15(R 38)",
+  "R": {
+   "world": 38,
+   "dots": 152
+  },
+  "outerRadiusPx": 152.0,
+  "innerRadiusPx": 0.0,
+  "units": "…Px = 도트(pixelScale 0.5, 월드 px = 도트 / 4). 각도: 조준 0°, 화면 시계 + (§17). 원점 = 판정 원점(피벗 위 40 도트)",
+  "reference": "참고값 — 시스템 데이터(§17)가 기준"
+ },
+ "impactFrame": 1,
+ "timingNote": "spawnAtMs = 몸 시트(56 템포) 시작 기준. impactFrame 시작 = 몸 hitAt. 소멸 프레임은 잔심(정지 포즈) 동안 남는다",
+ "drawnArc": {
+  "fromDeg": 70,
+  "toDeg": -40,
+  "radiusDots": 152.0,
+  "brushWidthDots": 9,
+  "heightDots": [
+   5,
+   37
+  ],
+  "note": "붓획 바깥 가장자리 ≈ 판정 반경(R 152 = 38 월드 px, Q1 ×1.15)"
+ },
+ "frameRoles": [
+  "pre(붓 끝 닿음)",
+  "draw(머리 55%)",
+  "draw(끝까지 · 붓털 갈라짐)",
+  "decay(시작부터 마름)",
+  "decay",
+  "decay(재)"
+ ],
+ "glowFrames": [
+  1,
+  2
+ ],
+ "brushStroke": true,
+ "r56": "56라운드 Q11 붓획",
+ "previous": "prev55: 55라운드 부분 초승달(같은 이름) — parts/art/work/combo56_fx/prev55/fx/katana_rise.png",
+ "spawnRule": "spawnAtMs = 몸 hitAt − sum(frameDurationsMs[:impactFrame]) (빌드 때 현재 몸 JSON 으로 계산). 몸 타이밍이 바뀌면 이 규칙으로 다시 계산하면 그림이 맞는다",
+ "awakenOf": "fx/v3/katana_rise",
+ "awakeningTrail": true,
+ "swapRule": "각성한 런에서 'katana_rise' 대신 이 시트(같은 틀·프레임·ms·피벗·행 — 1:1 교체, 60 Q21 각성 전용 궤적)",
+ "pivot": {
+  "x": 156,
+  "y": 223
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21"
+}

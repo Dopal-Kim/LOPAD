@@ -1,9 +1,9 @@
 {
  "image": "greatsword_carry_idle_awaken.png",
  "action": "greatsword_carry_idle_awaken",
- "version": "v3-r57-build",
- "frameWidth": 240,
- "frameHeight": 272,
+ "version": "v3-r60-awaken",
+ "frameWidth": 320,
+ "frameHeight": 336,
  "framesPerDirection": 6,
  "directions": [
   "down",
@@ -26,29 +26,40 @@
  "pixelScale": 0.5,
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
- "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
- "colors": 9,
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 13,
  "semiTransparent": false,
- "source": "parts/art/work/build57/build.py awaken (57라운드 최종 각성 — 무기 변형 오버레이 · 시그니처 fx)",
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
  "pivot": {
-  "x": 119,
-  "y": 209
+  "x": 159,
+  "y": 241
  },
  "playerFrameOffset": {
-  "x": 71,
-  "y": 71
+  "x": 111,
+  "y": 103
  },
  "anchor": "player_pivot",
  "bodySheet": "player_idle_free",
+ "weaponSheetPivot": {
+  "x": 119,
+  "y": 209
+ },
+ "pivotDelta": {
+  "x": 40,
+  "y": 32
+ },
  "overlayOf": "weapons/v3/greatsword_carry_idle",
  "depth": "above_weapon",
  "weapon": "greatsword",
- "awakening": "산붕(山崩)",
- "design": "대검 날이 바위(흙 B1~B3·재 S2, 테 B0)로 바뀌고 용암 금 3줄이 맥박, 등날 한쪽에 바위 조각 4개가 솟음(형태) + 떨어지는 돌가루",
- "drawRule": "무기 시트 'greatsword_carry_idle' 를 그린 바로 위에 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각·같은 피벗(주인공 피벗 + playerFrameOffset)으로 겹친다. 각성한 런에서만. 검기·울분 오버레이가 있으면 그 위(무기 → _awaken → _ki/_grudge)",
- "r57": "57라운드 Q22~Q37 최종 각성(설계안 3.4 A안 — 무기당 1종, 무기 외형 변형) · 1층 단계는 무기 시험장에서만",
+ "awakening": "산붕(山崩) — 핏빛 거암검",
+ "design": "G-A 와 같음 — 날 90×폭 9 → 108×최대 19의 들쭉날쭉한 바위 판 · 등날 바위 가시 4개 · 갈래 균열 5줄 · 깨진 바위 촉. 균열은 비어 있으면 검은 틈, 차면 피 / 색: 녹슨 쇠 → 검붉은 현무암(G2~G7 + 마른 피 얼룩 CRI2) + 균열 속 피(진홍 CRI3~7, 젖은 반사 X1 점). 전환: 균열이 먼저 갈라져 검게 열리고(5~45%) 피가 스미며 판이 부풂(35~100%). 순환 10프레임(80ms) = 피가 손잡이→칼끝으로 균열을 채움(0~5) → 넘쳐 터짐(6: 균열 끝마다 피 줄기·방울 분출) → 흘러내리며 빠짐(7~9, 날 아래로 방울)",
+ "drawRule": "무기 시트 'greatsword_carry_idle' 를 그린 바로 위에 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 틀이 원 무기 시트보다 크다(60 Q20): 이 시트의 pivot = 주인공 피벗 자리(원 무기 pivot + pivotDelta), playerFrameOffset 도 같은 만큼 큼 → 주인공 피벗에 이 pivot 을 맞추면 무기와 정확히 겹친다. 각성한 런에서만. 검기·울분 오버레이가 있으면 그 위(무기 → _awaken → _ki/_grudge)",
+ "loopFrames": 10,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod 10 — 시트마다 같은 속도로 맥동(60 Q21 '각성 상태 순환 6~12프레임')",
+ "glowRule": "glowFrames(무기 시트 판정 순간)에 가장 밝음(X0). 60 Q19 로 각성은 재·호박·백열 위치 규칙의 예외 — 순환 맥동에도 X1 사용",
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21",
  "glowFrames": [],
- "glowRule": "백열(X1·A26)은 무기 시트 glowFrames(판정 순간)만 — 그 밖 A25 이하, 빌드 검사 통과",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -56,8 +67,8 @@
   "grid": {
    "columns": 6,
    "rows": 4,
-   "frameWidth": 240,
-   "frameHeight": 272,
+   "frameWidth": 320,
+   "frameHeight": 336,
    "frameCount": 24
   },
   "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
@@ -69,30 +80,30 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":21,"y":897,"w":26,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":165,"w":26,"h":21},"sourceSize":{"w":240,"h":272}},
-  "1":{"frame":{"x":21,"y":866,"w":20,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":142,"y":164,"w":20,"h":29},"sourceSize":{"w":240,"h":272}},
-  "2":{"frame":{"x":21,"y":920,"w":19,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":164,"w":19,"h":24},"sourceSize":{"w":240,"h":272}},
-  "3":{"frame":{"x":0,"y":924,"w":19,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":164,"w":19,"h":24},"sourceSize":{"w":240,"h":272}},
-  "4":{"frame":{"x":21,"y":837,"w":26,"h":27},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":144,"y":164,"w":26,"h":27},"sourceSize":{"w":240,"h":272}},
-  "5":{"frame":{"x":0,"y":893,"w":19,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":165,"w":19,"h":29},"sourceSize":{"w":240,"h":272}},
-  "6":{"frame":{"x":0,"y":161,"w":49,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":125,"w":49,"h":72},"sourceSize":{"w":240,"h":272}},
-  "7":{"frame":{"x":0,"y":309,"w":48,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":125,"w":48,"h":72},"sourceSize":{"w":240,"h":272}},
-  "8":{"frame":{"x":0,"y":383,"w":46,"h":74},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":125,"w":46,"h":74},"sourceSize":{"w":240,"h":272}},
-  "9":{"frame":{"x":0,"y":81,"w":48,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":125,"w":48,"h":78},"sourceSize":{"w":240,"h":272}},
-  "10":{"frame":{"x":0,"y":235,"w":49,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":76,"y":125,"w":49,"h":72},"sourceSize":{"w":240,"h":272}},
-  "11":{"frame":{"x":0,"y":0,"w":50,"h":79},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":125,"w":50,"h":79},"sourceSize":{"w":240,"h":272}},
-  "12":{"frame":{"x":0,"y":860,"w":19,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":179,"w":19,"h":31},"sourceSize":{"w":240,"h":272}},
-  "13":{"frame":{"x":29,"y":653,"w":20,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":141,"w":20,"h":64},"sourceSize":{"w":240,"h":272}},
-  "14":{"frame":{"x":24,"y":585,"w":22,"h":66},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":143,"w":22,"h":66},"sourceSize":{"w":240,"h":272}},
-  "15":{"frame":{"x":0,"y":585,"w":22,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":143,"w":22,"h":70},"sourceSize":{"w":240,"h":272}},
-  "16":{"frame":{"x":29,"y":719,"w":20,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":141,"w":20,"h":64},"sourceSize":{"w":240,"h":272}},
-  "17":{"frame":{"x":0,"y":821,"w":19,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":116,"y":179,"w":19,"h":37},"sourceSize":{"w":240,"h":272}},
-  "18":{"frame":{"x":23,"y":785,"w":21,"h":50},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":127,"w":21,"h":50},"sourceSize":{"w":240,"h":272}},
-  "19":{"frame":{"x":0,"y":657,"w":27,"h":53},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":126,"w":27,"h":53},"sourceSize":{"w":240,"h":272}},
-  "20":{"frame":{"x":0,"y":524,"w":30,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":125,"w":30,"h":59},"sourceSize":{"w":240,"h":272}},
-  "21":{"frame":{"x":0,"y":459,"w":30,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":125,"w":30,"h":63},"sourceSize":{"w":240,"h":272}},
-  "22":{"frame":{"x":0,"y":712,"w":27,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":126,"w":27,"h":51},"sourceSize":{"w":240,"h":272}},
-  "23":{"frame":{"x":0,"y":765,"w":21,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":104,"y":127,"w":21,"h":54},"sourceSize":{"w":240,"h":272}}
+  "0":{"frame":{"x":29,"y":1098,"w":28,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":182,"y":193,"w":28,"h":30},"sourceSize":{"w":320,"h":336}},
+  "1":{"frame":{"x":37,"y":1032,"w":28,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":183,"y":192,"w":28,"h":31},"sourceSize":{"w":320,"h":336}},
+  "2":{"frame":{"x":0,"y":1065,"w":28,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":183,"y":192,"w":28,"h":31},"sourceSize":{"w":320,"h":336}},
+  "3":{"frame":{"x":0,"y":691,"w":28,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":183,"y":192,"w":28,"h":39},"sourceSize":{"w":320,"h":336}},
+  "4":{"frame":{"x":30,"y":1065,"w":28,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":182,"y":192,"w":28,"h":31},"sourceSize":{"w":320,"h":336}},
+  "5":{"frame":{"x":0,"y":1098,"w":27,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":183,"y":192,"w":27,"h":31},"sourceSize":{"w":320,"h":336}},
+  "6":{"frame":{"x":0,"y":109,"w":64,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":148,"w":64,"h":97},"sourceSize":{"w":320,"h":336}},
+  "7":{"frame":{"x":0,"y":406,"w":66,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":149,"w":66,"h":96},"sourceSize":{"w":320,"h":336}},
+  "8":{"frame":{"x":0,"y":208,"w":64,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":148,"w":64,"h":97},"sourceSize":{"w":320,"h":336}},
+  "9":{"frame":{"x":0,"y":0,"w":66,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":149,"w":66,"h":107},"sourceSize":{"w":320,"h":336}},
+  "10":{"frame":{"x":0,"y":307,"w":64,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":148,"w":64,"h":97},"sourceSize":{"w":320,"h":336}},
+  "11":{"frame":{"x":0,"y":504,"w":66,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":107,"y":149,"w":66,"h":96},"sourceSize":{"w":320,"h":336}},
+  "12":{"frame":{"x":0,"y":732,"w":25,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":160,"y":208,"w":25,"h":36},"sourceSize":{"w":320,"h":336}},
+  "13":{"frame":{"x":31,"y":602,"w":26,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":160,"y":169,"w":26,"h":82},"sourceSize":{"w":320,"h":336}},
+  "14":{"frame":{"x":37,"y":770,"w":29,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":158,"y":171,"w":29,"h":78},"sourceSize":{"w":320,"h":336}},
+  "15":{"frame":{"x":0,"y":602,"w":29,"h":87},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":158,"y":171,"w":29,"h":87},"sourceSize":{"w":320,"h":336}},
+  "16":{"frame":{"x":31,"y":686,"w":26,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":160,"y":169,"w":26,"h":82},"sourceSize":{"w":320,"h":336}},
+  "17":{"frame":{"x":37,"y":994,"w":25,"h":36},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":160,"y":208,"w":25,"h":36},"sourceSize":{"w":320,"h":336}},
+  "18":{"frame":{"x":0,"y":850,"w":31,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":138,"y":151,"w":31,"h":70},"sourceSize":{"w":320,"h":336}},
+  "19":{"frame":{"x":33,"y":850,"w":31,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":150,"w":31,"h":70},"sourceSize":{"w":320,"h":336}},
+  "20":{"frame":{"x":0,"y":994,"w":35,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":132,"y":149,"w":35,"h":69},"sourceSize":{"w":320,"h":336}},
+  "21":{"frame":{"x":0,"y":770,"w":35,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":132,"y":149,"w":35,"h":78},"sourceSize":{"w":320,"h":336}},
+  "22":{"frame":{"x":0,"y":922,"w":31,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":150,"w":31,"h":70},"sourceSize":{"w":320,"h":336}},
+  "23":{"frame":{"x":33,"y":922,"w":31,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":138,"y":151,"w":31,"h":70},"sourceSize":{"w":320,"h":336}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -100,8 +111,8 @@
   "image": "greatsword_carry_idle_awaken.png",
   "format": "RGBA8888",
   "size": {
-   "w": 50,
-   "h": 948
+   "w": 66,
+   "h": 1129
   },
   "scale": "1"
  }

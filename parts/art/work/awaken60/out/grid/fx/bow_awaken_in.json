@@ -1,0 +1,67 @@
+{
+ "image": "bow_awaken_in.png",
+ "action": "bow_awaken_in",
+ "version": "v3-r60-awaken",
+ "frameWidth": 112,
+ "frameHeight": 176,
+ "frames": 12,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.29,
+ "frameDurationsMs": [
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  100,
+  100,
+  80,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
+ "colors": 16,
+ "semiTransparent": false,
+ "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "anchor": "player_pivot",
+ "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
+ "weapon": "bow",
+ "awakening": "유성",
+ "followPlayer": true,
+ "depth": "above",
+ "spawn": "awaken_acquired",
+ "spawnNote": "최종 각성을 얻은 순간 1회(진화 메뉴를 닫은 직후 주인공 머리 위). 같은 순간부터 무기 시트 위에 <무기 시트>_awaken 오버레이를 켠다(60 Q21 각성 순간 색 전환 8×60ms)",
+ "frameRoles": [
+  "원래 무기",
+  "색 전환 1",
+  "색 전환 2",
+  "색 전환 3",
+  "색 전환 4",
+  "색 전환 5",
+  "색 전환 6",
+  "각성 완료(번쩍)",
+  "고리 퍼짐",
+  "머묾",
+  "사라짐",
+  "사라짐"
+ ],
+ "design": "주인공 머리 위(피벗 위 150도트)에 각성 무기가 나타나 시안의 전환 방식으로 원래 색 → 각성 색(8×60ms) → 번쩍·고리 → 픽셀 단위로 사라짐. 전환: 재·호박 → 금(6층 GOLD) + 백열. 줌통에서 활대 끝으로 X1 앞줄이 퍼지며 금으로(0~55%), 이어 깃이 펼쳐짐(55~100%). 순환 6프레임 = 깃 길이·혀가 일렁, 핵 맥동. 당김 정도에 따라 시위 GOLD10 → 가득 X1",
+ "pivot": {
+  "x": 56,
+  "y": 168
+ },
+ "r60": "60라운드 Q15~Q21 — 각성 외형 재디자인(시안 parts/art/work/awaken60/out/*_preview.png), 계약 art §21",
+ "glowFrames": [
+  7
+ ]
+}

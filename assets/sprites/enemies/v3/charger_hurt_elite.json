@@ -3,7 +3,7 @@
  "action": "charger_hurt_elite",
  "frameWidth": 128,
  "frameHeight": 176,
- "framesPerDirection": 3,
+ "framesPerDirection": 4,
  "directions": [
   "down",
   "up",
@@ -14,8 +14,9 @@
  "frameIndex": "row * columns + column (§19 아틀라스 키)",
  "frameDurationsMs": [
   70,
-  45,
-  45
+  30,
+  30,
+  30
  ],
  "loop": false,
  "pixelScale": 0.5,
@@ -53,11 +54,11 @@
   "format": "phaser-json-hash",
   "source": "parts/art/work/atlas57/build.py (원 격자 시트 charger_hurt_elite.png)",
   "grid": {
-   "columns": 3,
+   "columns": 4,
    "rows": 4,
    "frameWidth": 128,
    "frameHeight": 176,
-   "frameCount": 12
+   "frameCount": 16
   },
   "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
   "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
@@ -68,18 +69,22 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":541,"w":89,"h":130},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":46,"w":89,"h":130},"sourceSize":{"w":128,"h":176}},
-  "1":{"frame":{"x":0,"y":136,"w":88,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":41,"w":88,"h":135},"sourceSize":{"w":128,"h":176}},
-  "2":{"frame":{"x":0,"y":273,"w":89,"h":132},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":44,"w":89,"h":132},"sourceSize":{"w":128,"h":176}},
-  "3":{"frame":{"x":0,"y":0,"w":89,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":42,"w":89,"h":134},"sourceSize":{"w":128,"h":176}},
-  "4":{"frame":{"x":0,"y":673,"w":88,"h":130},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":46,"w":88,"h":130},"sourceSize":{"w":128,"h":176}},
-  "5":{"frame":{"x":0,"y":407,"w":89,"h":132},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":44,"w":89,"h":132},"sourceSize":{"w":128,"h":176}},
-  "6":{"frame":{"x":91,"y":288,"w":54,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":37,"w":54,"h":139},"sourceSize":{"w":128,"h":176}},
-  "7":{"frame":{"x":91,"y":0,"w":56,"h":143},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":33,"w":56,"h":143},"sourceSize":{"w":128,"h":176}},
-  "8":{"frame":{"x":91,"y":145,"w":54,"h":141},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":35,"w":54,"h":141},"sourceSize":{"w":128,"h":176}},
-  "9":{"frame":{"x":91,"y":562,"w":54,"h":132},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":42,"y":44,"w":54,"h":132},"sourceSize":{"w":128,"h":176}},
-  "10":{"frame":{"x":91,"y":429,"w":56,"h":131},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":45,"w":56,"h":131},"sourceSize":{"w":128,"h":176}},
-  "11":{"frame":{"x":90,"y":696,"w":54,"h":132},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":44,"w":54,"h":132},"sourceSize":{"w":128,"h":176}}
+  "0":{"frame":{"x":0,"y":0,"w":91,"h":137},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":39,"w":91,"h":137},"sourceSize":{"w":128,"h":176}},
+  "1":{"frame":{"x":93,"y":0,"w":91,"h":136},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":40,"w":91,"h":136},"sourceSize":{"w":128,"h":176}},
+  "2":{"frame":{"x":92,"y":403,"w":88,"h":129},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":47,"w":88,"h":129},"sourceSize":{"w":128,"h":176}},
+  "3":{"frame":{"x":0,"y":139,"w":90,"h":133},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":43,"w":90,"h":133},"sourceSize":{"w":128,"h":176}},
+  "4":{"frame":{"x":93,"y":138,"w":91,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":42,"w":91,"h":134},"sourceSize":{"w":128,"h":176}},
+  "5":{"frame":{"x":92,"y":274,"w":91,"h":127},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":49,"w":91,"h":127},"sourceSize":{"w":128,"h":176}},
+  "6":{"frame":{"x":0,"y":406,"w":88,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":50,"w":88,"h":126},"sourceSize":{"w":128,"h":176}},
+  "7":{"frame":{"x":0,"y":274,"w":90,"h":130},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":46,"w":90,"h":130},"sourceSize":{"w":128,"h":176}},
+  "8":{"frame":{"x":0,"y":534,"w":64,"h":145},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":31,"w":64,"h":145},"sourceSize":{"w":128,"h":176}},
+  "9":{"frame":{"x":66,"y":534,"w":64,"h":143},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":33,"w":64,"h":143},"sourceSize":{"w":128,"h":176}},
+  "10":{"frame":{"x":0,"y":681,"w":60,"h":137},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":39,"w":60,"h":137},"sourceSize":{"w":128,"h":176}},
+  "11":{"frame":{"x":132,"y":534,"w":62,"h":141},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":35,"w":62,"h":141},"sourceSize":{"w":128,"h":176}},
+  "12":{"frame":{"x":132,"y":677,"w":64,"h":132},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":44,"w":64,"h":132},"sourceSize":{"w":128,"h":176}},
+  "13":{"frame":{"x":66,"y":679,"w":64,"h":131},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":45,"w":64,"h":131},"sourceSize":{"w":128,"h":176}},
+  "14":{"frame":{"x":62,"y":812,"w":60,"h":126},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":50,"w":60,"h":126},"sourceSize":{"w":128,"h":176}},
+  "15":{"frame":{"x":132,"y":811,"w":62,"h":130},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":46,"w":62,"h":130},"sourceSize":{"w":128,"h":176}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -87,8 +92,8 @@
   "image": "charger_hurt_elite.png",
   "format": "RGBA8888",
   "size": {
-   "w": 147,
-   "h": 828
+   "w": 196,
+   "h": 941
   },
   "scale": "1"
  }
