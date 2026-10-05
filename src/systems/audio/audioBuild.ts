@@ -147,7 +147,8 @@ export const BRANCH_EFFECT_SFX: Readonly<Record<string, string>> = {
   'zangetsu:trail': BUILD_SFX.katanaMoonTrail,
   'cleave:execute': BUILD_SFX.katanaExecute,
   'meikyo:parry': BUILD_SFX.katanaMirrorParry,
-  'giant:ring': BUILD_SFX.gsQuakeRing,
+  /** 60 Q40: 중압 1~3단 원형 진동 (stack = 단). 거인 4단은 이벤트 없음 — charge_slam_lv4 하나만 */
+  'weight:ring': BUILD_SFX.gsQuakeRing,
   'quake:fork': BUILD_SFX.gsQuakeFork,
   'resonance:counter': BUILD_SFX.gsEchoCounter,
   'clot:burst': BUILD_SFX.gsCongestBurst,
@@ -198,7 +199,7 @@ export const SOUND_ID_ALIASES: Readonly<Record<string, string>> = {
     'BRANCH_EFFECT{branch:heatwave,effect:trail_start|trail_end} · PLAYER_SKILL{move:overheat}',
   'BREATH_FOCUS{branch:deadeye}': 'BRANCH_EFFECT{branch:deadeye,effect:lock|hold_start|hold_end}',
   'PLAYER_ATTACK{move:rapid}': 'PLAYER_ATTACKED (속사 연사 — attackTags rapidVolley, 1→2→3 순환)',
-  'PLAYER_CHARGE{part:quake|fork}': 'BRANCH_EFFECT{branch:giant,effect:ring} · {branch:quake,effect:fork}',
+  'PLAYER_CHARGE{part:quake|fork}': 'BRANCH_EFFECT{branch:weight,effect:ring,stack:1~3} · {branch:quake,effect:fork}',
   'PERFECT_GUARD{branch:echo}': 'BRANCH_EFFECT{branch:resonance,effect:counter}',
   'PARRY_SUCCESS{branch:mirror}': 'BRANCH_EFFECT{branch:meikyo,effect:parry}',
   'PLAYER_SECONDARY{target:knife}': 'BRANCH_EFFECT{branch:flyknife,effect:step}',
@@ -213,7 +214,7 @@ export const SOUND_ID_ALIASES: Readonly<Record<string, string>> = {
     'BRANCH_EFFECT{branch:deadeye,effect:hold_start} 루프 시작 · {effect:hold_end} 루프 끝',
   'BRANCH_EFFECT{branch:clot,effect:hold}':
     'BRANCH_EFFECT{branch:clot,effect:hold} 루프 시작 · {effect:end|burst} 루프 끝 (일치)',
-  'PLAYER_CHARGE{branch:giant,part:quake}': 'BRANCH_EFFECT{branch:giant,effect:ring}',
+  'PLAYER_CHARGE{branch:giant,part:quake}': '없음 (60 Q40 — 거인 4단은 charge_slam_lv4 하나만)',
   'PLAYER_CHARGE{branch:quake,part:fork}': 'BRANCH_EFFECT{branch:quake,effect:fork}',
   'PARRY_SUCCESS{weapon:katana,branch:meikyo}': 'BRANCH_EFFECT{branch:meikyo,effect:parry}',
   'PERFECT_GUARD{weapon:greatsword,branch:resonance}': 'BRANCH_EFFECT{branch:resonance,effect:counter}',
@@ -246,7 +247,7 @@ export const SOUND_ID_ALIASES: Readonly<Record<string, string>> = {
   'PLAYER_CHARGE{weapon:greatsword,phase:stage|release,stage:4}':
     'PLAYER_CHARGE{phase:stage,stage:4} · {phase:release,stage:4,impactDelayMs} (weapon 키 없음 — 차지는 대검만, 4단은 거인 런만)',
   'BRANCH_EFFECT{branch:giant,effect:ring}':
-    'BRANCH_EFFECT{branch:giant,effect:ring} = 거인 4단 내려찍기만 (중압 1~3단 진동에는 이벤트 없음) — charge_slam_lv4 와 같은 순간',
+    'BRANCH_EFFECT{branch:weight,effect:ring,stack:1~3} (60 Q40 — 중압 1~3단 원형 진동 순간, gs_quake_ring) · 거인 4단은 이벤트 없음(charge_slam_lv4 하나만, gs_crack_line 도 없음)',
   'WEAPON_GAUGE{gauge:kenki,event:stage}':
     'WEAPON_GAUGE{weapon:katana,gauge:kenki,event:stage,stage:n} 오를 때만 · 일섬 소모 = {event:consume,stage:소모 단 수} · 갈래 수단(선풍·투구가르기)의 1단 소모는 이벤트 없음',
   'PLAYER_SKILL{weapon:dagger,move:brand|overheat,phase:burst}':

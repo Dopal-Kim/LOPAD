@@ -154,7 +154,8 @@ export class GreatswordBranch {
 
   /**
    * 중압 원형 진동 (+ 짓눌린 숨 울분 · 술독 짓누르기 웅덩이 모으기). 거인 차지 4단(57 Q43)이면 반경 = ringRadiusTiles(5칸)·
-   * 그림 `greatsword_giant_ring`(행 lv4)
+   * 그림 `greatsword_giant_ring`(행 lv4). 음향(60 Q40): 1~3단 = `BRANCH_EFFECT{branch:weight,effect:ring,stack:단}` → gs_quake_ring ·
+   * 거인 4단 = 이벤트 없음 (charge_slam_lv4 하나만)
    */
   private quakeRing(at: { x: number; y: number }, stageIdx: number, stage = stageIdx + 1): void {
     const k = this.k;
@@ -164,7 +165,7 @@ export class GreatswordBranch {
     const giant = rt.rule('giant');
     const lv4 = Boolean(giant) && stage >= 4;
     const r = lv4 ? T(param(giant!, 'ringRadiusTiles')) : T(k.mp(id, 'radiusTiles', stageIdx));
-    if (lv4) k.effect('giant', 'ring');
+    if (!lv4) k.effect(id, 'ring', Math.min(3, Math.max(1, stage)));
     const pull = T(k.mp(id, 'pullTiles'));
     // fx greatsword_quake_ring (행 lv1~3 = 차지 단계, 중심 slam_point, 바닥 깊이) — 그림 반경에 판정 반경을 맞춘다
     const ringId = lv4 ? BUILD_ART.GIANT_RING : k.mpStr(id, 'ringFx');

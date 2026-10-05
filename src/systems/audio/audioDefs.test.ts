@@ -324,7 +324,7 @@ describe('56라운드 무기 피드백 효과음 (WEAPON_SFX)', () => {
     ]);
   });
 
-  it('60라운드 차지 휘둘러 내리찍기 = charge_slam + 균열 gs_crack_line_lv<n>(40ms 뒤, 4단 = lv3) — gs_crack·gs_plunge 보관', () => {
+  it('60라운드 차지 휘둘러 내리찍기 = charge_slam + 균열 gs_crack_line_lv<n>(40ms 뒤, 60 Q40 4단 = charge_slam_lv4 하나만) — gs_crack·gs_plunge 보관', () => {
     const release = { phase: 'release', stage: 3, impactDelayMs: 180 };
     expect(ids(Events.PLAYER_CHARGE, release)).toEqual([CHARGE_SFX.slam(3), BUILD_SFX.gsCrackLine(3)]);
     const crack = fire(Events.PLAYER_CHARGE, release).find(
@@ -332,7 +332,7 @@ describe('56라운드 무기 피드백 효과음 (WEAPON_SFX)', () => {
     );
     expect(crack?.delayMs?.(release)).toBe(220);
     const four = { phase: 'release', stage: 4, impactDelayMs: 0 };
-    expect(ids(Events.PLAYER_CHARGE, four)).toEqual([CHARGE_SFX.slam(4), BUILD_SFX.gsCrackLine(3)]);
+    expect(ids(Events.PLAYER_CHARGE, four)).toEqual([CHARGE_SFX.slam(4)]);
   });
 
   it('퍼펙트 가드 · 그로기 · 검기 단 · 일섬 · 활 약한/완벽 놓기', () => {

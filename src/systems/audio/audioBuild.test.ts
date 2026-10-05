@@ -60,6 +60,12 @@ describe('60라운드 효과음 연결 (audioBuild)', () => {
     expect(ids(Events.BRANCH_EFFECT, burst)).toEqual([BUILD_SFX.gsCongestBurst]);
   });
 
+  it('60 Q40 중압 1~3단 원형 진동 = gs_quake_ring · 거인 4단 ring 은 무음', () => {
+    for (const stack of [1, 2, 3])
+      expect(ids(Events.BRANCH_EFFECT, { branch: 'weight', effect: 'ring', stack })).toEqual([BUILD_SFX.gsQuakeRing]);
+    expect(ids(Events.BRANCH_EFFECT, { branch: 'giant', effect: 'ring' })).toEqual([]);
+  });
+
   it('패시브 발동 (독한 숨 술불 = fire_breath)', () => {
     expect(ids(Events.PASSIVE_PROC, { passive: 'domino' })).toEqual([PASSIVE_SFX.domino]);
     expect(ids(Events.PASSIVE_PROC, { passive: 'harshBreath', fire: true })).toEqual(['sfx/passive_fire_breath']);
