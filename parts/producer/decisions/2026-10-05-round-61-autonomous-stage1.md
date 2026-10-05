@@ -72,3 +72,4 @@
 - **단계 4 진행**: 커밋 03f4783(시스템 F·G)·6cde884(UI)·babc144(음향)·a3e76f8·da4dcc2(아트)·P12 설계·계약 UI §17.1/§18, art §25/§26, sound §10. 검사 878 통과. 무기 성장 그림 https://claude.ai/artifact/EpDLnisNqsHB36etPsJhqb
   - 프로듀서 판단(에이전트 보고 추인): 근접 맞음 판정을 몸통 기둥으로(칼·대검 포함), 화살비 0.52초부터 끊기, 처치 게이지 배율 0.6(sim: 1차 단1, 2차 단2~3 — 보스 전), 광전 폭주 5초·끊기지 않음·공속 +30%, 개성 무기당 14장(8+갈래 2×3).
   - 남은 것: UI 카드 화면이 실제 런에서 옛 텍스트 메뉴로 뜨는 문제(조사 중), 성장 소리(awaken1·awaken2·꼬리·trait_manifest·growth_tick) 제작 중.
+- **단계 4 데모**: 버전 7 배포(https://claude.ai/artifact/6ufiNh3cAZMLch6tkDrjhT). 묶음 파일이 16MB 를 넘어 2조각(json-bundle-0/1)으로 나눔. 커밋 2a…까지 검사 878 통과. 다음 확인 거리(시스템): 1층에서 꺼진 '원격' 태그가 갈래 태그로 점수에 잡힘(Tab·일기장 표시), 실제 런 `growth.firstTime` 메타 기록.
