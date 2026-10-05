@@ -1,0 +1,387 @@
+/**
+ * 단검 갈래 (60라운드 6-1 — BranchStrikes 에서 분리): 1단 쌍격(낙인 기폭 분신 교차)·질풍(부채꼴 투척) /
+ * 2단 난무(분신 상주)·출혈(기폭 → 출혈)·비도(5자루 + 박힌 단검 그림자 걸음)·열풍(과열 반전 — 57 Q43 과열 범위 ×2·화상·무적) /
+ * 각성 백귀(기폭마다 분신 3체).
+ * 그림 (계약 art §20·§21): `dagger_fan_throw`·`dagger_thrown` · `dagger_cross_clone` · `dagger_frenzy_clone_in`·`_out` ·
+ * `dagger_brand_bleed`·`dagger_brand_hop` · `dagger_stuck_blade` · `dagger_hotwind_trail`·(`dagger_hotwind_burst` = 과열 폭발 교체) ·
+ * `dagger_hundred_ghosts` · `dagger_gale_wind`(질풍 1단 연격 변화 — 이동 중 90ms 마다).
+ */
+import Phaser from 'phaser';
+import { BUILD_ART, BUILD_FX, DEPTH, TILE } from '../../../../core/Constants';
+import { EventBus, Events, type PlayerAttackPayload, type PlayerSkillPayload } from '../../../../core/EventBus';
+import { gameState } from '../../../../core/GameState';
+import type { Mob } from '../../../../objects/Mob';
+import type { Projectile } from '../../../../objects/Projectile';
+import { param } from '../../../../systems/build/buildMods';
+import type { FxHandle } from '../../../../systems/fx/fx';
+import { facingOf } from '../../../../systems/sprites/spriteDefs';
+import { PLAYER_RENDER_SCALE } from '../../../../systems/weapon/playerScale';
+import { sheetLoopRange } from '../BuildArt';
+import { T, type BranchKit, type Dir } from './BranchKit';
+
+/** 비도: 박힌 단검 (그림 = dagger_stuck_blade 수명 시트, 없으면 작은 사각형) */
+interface StuckKnife {
+  x: number;
+  y: number;
+  until: number;
+  gfx: Phaser.GameObjects.Rectangle | null;
+  fx: FxHandle | null;
+}
+
+export class DaggerBranch {
+  private throwReadyAt = -Infinity;
+  private stuck: StuckKnife[] = [];
+  /** 열풍 자국 루프 중 (음향 켜기·끄기) */
+  private trailOn = false;
+  private danceUntil = -Infinity;
+  /** 난무 상주 분신 자리 (나타남·사라짐 그림) */
+  private danceAt: { x: number; y: number; dir: string } | null = null;
+  private galeNextAt = -Infinity;
+
+  constructor(private readonly k: BranchKit) {}
+
+  private skill(move: PlayerSkillPayload['move'], phase: PlayerSkillPayload['phase']): void {
+    EventBus.emit(Events.PLAYER_SKILL, { weapon: 'dagger', move, phase } satisfies PlayerSkillPayload);
+  }
+
+  /** 질풍: 부채꼴 투척 (대쉬 직후 좌클릭) — 적중 시 낙인. 비도 5개·45° + 박힌 단검 */
+  fanThrow(dir: Dir): void {
+    const k = this.k;
+    const g = k.g;
+    const rt = k.rt;
+    const pl = g.player;
+    const id = 'gale';
+    const now = k.now;
+    if (now < this.throwReadyAt) return;
+    const wind = rt.rule('windBlade');
+    const fly = rt.rule('flyknife');
+    const count = fly ? param(fly, 'count', 5) : wind ? param(wind, 'count', 5) : k.mp(id, 'count');
+    const spread = fly ? param(fly, 'spreadDeg', 45) : k.mp(id, 'spreadDeg');
+    this.throwReadyAt = now + k.mp(id, 'cooldownMs') - (wind ? param(wind, 'cooldownCutMs') : 0);
+    const res = pl.resource;
+    if (res?.kind === 'heat') res.heatBy(res.max * (k.mp(id, 'heat') / 100), now);
+    const sm = rt.combat.shotMods();
+    const speed = k.mp(id, 'speedTiles') * sm.speedMult;
+    const life = (T(k.mp(id, 'rangeTiles')) / (speed * TILE)) * 1000 * (1 + rt.stat('projectileRangeMult'));
+    const { dmg, crit } = g.combat.rollDamage(k.mp(id, 'damageMult'), false, 'dashAttack');
+    const bottle = rt.rule('liquorThrow');
+    const base = Math.atan2(dir.y, dir.x);
+    const sprite = k.mpStr(id, 'projectile');
+    // 몸 dagger_fan_throw (releaseFrame 시작 = 투사체 생성) · fx 는 그보다 조금 앞 (아트 spawnAtMs)
+    k.body(id, 1, dir, 220);
+    this.skill('fan_throw', 'release');
+    g.time.delayedCall(k.mp(id, 'throwFxAtMs'), () => {
+      if (g.scene.isActive()) k.playFx(k.mpStr(id, 'throwFx'), pl.x, pl.y, dir, { follow: true });
+    });
+    const release = () => {
+      if (!g.scene.isActive()) return;
+      for (let i = 0; i < count; i++) {
+        const t = count === 1 ? 0 : i / (count - 1) - 0.5;
+        const a = base + ((spread * Math.PI) / 180) * t;
+        const isBottle = Boolean(bottle) && i === Math.floor(count / 2);
+        const s = rt.fx.shot(pl.x + Math.cos(a) * 6, pl.y - 6 + Math.sin(a) * 6, Math.cos(a), Math.sin(a), dmg, {
+          tag: isBottle ? 'bottle' : 'fanThrow',
+          speedTiles: speed,
+          lifeMs: life,
+          pierce: sm.pierceAdd,
+          crit,
+          ...(isBottle ? { tint: BUILD_FX.COLOR.LIQUOR } : sprite ? { sprite } : { tint: BUILD_FX.COLOR.THROW }),
+        });
+        if (s && (fly || isBottle)) s.onEnd = (shot) => this.onThrowEnd(shot);
+      }
+    };
+    const at = k.mp(id, 'releaseAtMs');
+    if (at > 0) g.time.delayedCall(at, release);
+    else release();
+    k.last = { move: 'fanThrow', count, t: Math.round(now) };
+    rt.record('fanThrow', count);
+  }
+
+  /** 던진 단검·술병이 끝남 (벽·사거리) — 비도 박힘 · 술병 웅덩이 */
+  private onThrowEnd(shot: Projectile): void {
+    if (shot.buildTag === 'bottle') this.bottleSplash(shot.x, shot.y);
+    else this.stick(shot.x, shot.y, shot.body.velocity.x < 0);
+  }
+
+  /** 빌드 투사체 적중 */
+  onShotHit(shot: Projectile, mob: Mob, died: boolean): void {
+    if (shot.buildTag !== 'fanThrow' && shot.buildTag !== 'bottle') return;
+    if (!died) this.k.g.strikes.brands.onHit(mob, shot.body.velocity.x, shot.body.velocity.y);
+    if (shot.buildTag === 'bottle') this.bottleSplash(mob.x, mob.y);
+    else if (this.k.rt.rule('flyknife')) this.stick(mob.x, mob.y, shot.body.velocity.x < 0);
+  }
+
+  private bottleSplash(x: number, y: number): void {
+    const k = this.k;
+    const b = k.rt.rule('liquorThrow');
+    if (!b) return;
+    const pool = k.rt.fx.liquorPool(x, y, T(param(b, 'radiusTiles', 1)), 6000);
+    const res = k.g.player.resource;
+    if (res?.kind === 'heat' && res.value >= res.max * param(b, 'fireHeat', 0.5)) k.g.pools.ignite(pool);
+  }
+
+  /** 박힌 단검 (dagger_stuck_blade: 세워 그림, 왼쪽으로 던졌으면 flipX · 박힘 → 루프 → 수명 끝에 부서짐) */
+  private stick(x: number, y: number, flipX: boolean): void {
+    const k = this.k;
+    const fly = k.rt.rule('flyknife');
+    if (!fly) return;
+    const ms = param(fly, 'stuckMs');
+    const g = k.g;
+    const range = sheetLoopRange(g.fx.sheet(BUILD_ART.STUCK_BLADE));
+    const fx = g.fx.has(BUILD_ART.STUCK_BLADE)
+      ? g.fx.play(BUILD_ART.STUCK_BLADE, x, y, {
+          flipX,
+          depth: DEPTH.PICKUP,
+          durationMs: ms,
+          hooks: false,
+          ...(range ? { loopRange: range } : {}),
+        })
+      : null;
+    k.effect('flyknife', 'stick');
+    const s = BUILD_FX.STUCK_KNIFE_PX;
+    const gfx = fx ? null : g.add.rectangle(x, y, s, s, BUILD_FX.COLOR.THROW, 0.9).setDepth(DEPTH.PICKUP);
+    this.stuck.push({ x, y, until: k.now + ms, gfx, fx });
+  }
+
+  /** 비도: 그림자 걸음이 박힌 단검으로 (가장 최근) — 쓰면 과열 −10%. 없으면 null. 도착 그림은 shadowstep_ghost(MotionFx) */
+  takeStuckKnife(): { x: number; y: number } | null {
+    const k = this.k;
+    const fly = k.rt.rule('flyknife');
+    if (!fly || this.stuck.length === 0) return null;
+    const knife = this.stuck.pop()!;
+    this.removeKnife(knife);
+    k.effect('flyknife', 'step');
+    const res = k.g.player.resource;
+    if (res?.kind === 'heat' && !res.overheated)
+      res.value = Math.max(0, res.value - res.max * param(fly, 'heatRefund'));
+    return { x: knife.x, y: knife.y };
+  }
+
+  private removeKnife(knife: StuckKnife): void {
+    knife.gfx?.destroy();
+    this.k.g.fx.finish(knife.fx);
+  }
+
+  /** 낙인 기폭 배율 (쌍격 +30%, 표식 6 +40%) */
+  brandBurstMult(): number {
+    const k = this.k;
+    let m = 1;
+    if (k.rt.hasBranch('twin')) m *= 1 + k.mp('twin', 'burstBonus');
+    const det = k.rt.rule('markDetonate');
+    if (det) m *= 1 + param(det, 'brandBurstMult');
+    return m;
+  }
+
+  /** 출혈(2단 β): 기폭 즉시 비율 (나머지는 출혈) — 없으면 1 */
+  brandImmediateRatio(): number {
+    const r = this.k.rt.rule('brandBleed');
+    return r ? param(r, 'immediate', 1) : 1;
+  }
+
+  /** 낙인 기폭 뒤 (BrandMarks.explode): 쌍격 분신 교차 · 쌍낙인 · 난무 · 출혈 · 각성 백귀 */
+  onBrandBurst(mob: Mob, marks: number, dmg: number, died: boolean): void {
+    const k = this.k;
+    const g = k.g;
+    const rt = k.rt;
+    const at = { x: mob.body.center.x, y: mob.body.center.y };
+    const pl = g.player;
+    const back = { x: at.x - pl.x, y: at.y - pl.y };
+    const bl = Math.hypot(back.x, back.y) || 1;
+    // 출혈: 나머지를 출혈로 (dagger_brand_bleed — 출혈 동안 적 몸에 루프)
+    const bleed = rt.rule('brandBleed');
+    if (bleed && !died && mob.active) {
+      const rest = dmg * (1 / Math.max(0.01, param(bleed, 'immediate', 1)) - 1);
+      const ticks = Math.max(1, Math.round(param(bleed, 'bleedMs') / param(bleed, 'tickMs')));
+      const fast = rt.rule('fastBleed');
+      const tickMs = param(bleed, 'tickMs') * (fast ? param(fast, 'tickMult', 1) : 1);
+      const ms = ticks * tickMs * (1 + rt.stat('dotDurationMult'));
+      rt.dots.apply(mob, 'bleed', k.now, ms, tickMs, Math.max(1, Math.round(rest / ticks)));
+      rt.art.timedOnMob('bleed', BUILD_ART.BRAND_BLEED, mob, ms);
+      k.effect('bleed', 'bleed');
+    }
+    // 쌍격: 반대편 분신 교차 베기 (×cloneMult)
+    if (rt.hasBranch('twin')) {
+      const cx = at.x + (back.x / bl) * TILE;
+      const cy = at.y + (back.y / bl) * TILE;
+      // fx dagger_cross_clone: 대상 히트박스 중심, 행 = 주인공이 그 적을 바라보는 방향, 생성 + 120ms 교차 베기
+      const drawn = k.playFx(k.mpStr('twin', 'cloneFx'), at.x, at.y, { x: back.x / bl, y: back.y / bl });
+      this.skill('cross_clone', 'clone');
+      g.time.delayedCall(k.mp('twin', 'cloneDelayMs'), () => {
+        if (!g.scene.isActive()) return;
+        if (!drawn) rt.fx.clone(cx, cy);
+        if (mob.active) rt.fx.raw(mob, dmg * k.mp('twin', 'cloneMult'), { dirX: -back.x, dirY: -back.y, heavy: true });
+        rt.record('twinClone', marks);
+        const tb = rt.rule('twinBrand');
+        if (tb) {
+          const next = rt.fx.nearest(at.x, at.y, T(param(tb, 'rangeTiles')), new Set([mob]));
+          if (next) this.hopBrands(at, next, param(tb, 'brands', 2), back);
+        }
+      });
+    }
+    // 난무: 5스택 기폭 뒤 분신이 남아 연격을 따라 함 (각성 백귀 난무 = 6초) — 나타남 dagger_frenzy_clone_in (대상 건너편)
+    const dance = rt.rule('dance');
+    if (dance && marks >= param(dance, 'minMarks', 5)) {
+      const long = rt.rule('danceLong');
+      const fresh = k.now >= this.danceUntil;
+      this.danceUntil = k.now + (long ? param(long, 'ms') : param(dance, 'ms'));
+      const pos = { x: at.x + (back.x / bl) * TILE, y: mob.y + (back.y / bl) * TILE };
+      const dir = facingOf(-back.x, -back.y, 'down');
+      if (fresh) {
+        rt.art.once(BUILD_ART.FRENZY_IN, pos.x, pos.y, { dir, scaleMult: PLAYER_RENDER_SCALE });
+        k.effect('dance', 'clone_in');
+      }
+      this.danceAt = { ...pos, dir };
+    }
+    // 각성 백귀: 기폭마다 분신 3체 (dagger_hundred_ghosts — 대상 히트박스 중심 1회, 그리면 분신 윤곽 대신)
+    const demons = rt.rule('hundredDemons');
+    if (demons) {
+      const n = param(demons, 'clones', 3);
+      const drawn = rt.art.once(BUILD_ART.HUNDRED_GHOSTS, at.x, at.y, { scaleMult: PLAYER_RENDER_SCALE });
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        g.time.delayedCall(80 * (i + 1), () => {
+          if (!g.scene.isActive()) return;
+          if (!drawn) rt.fx.clone(at.x + Math.cos(a) * TILE, at.y + Math.sin(a) * TILE);
+          for (const m of rt.fx.inCircle(at.x, at.y, T(1.5)))
+            rt.fx.damage(m, param(demons, 'cloneMult'), { dirX: -Math.cos(a), dirY: -Math.sin(a) });
+        });
+      }
+    }
+  }
+
+  /** 쌍낙인: 낙인이 다음 적으로 옮겨감 (dagger_brand_hop 이 날아가 도착하면 낙인 n) */
+  private hopBrands(from: { x: number; y: number }, to: Mob, n: number, dir: { x: number; y: number }): void {
+    const g = this.k.g;
+    this.k.effect('twinBrand', 'transfer');
+    const land = () => {
+      if (!g.scene.isActive() || !to.active) return;
+      for (let i = 0; i < n; i++) g.strikes.brands.onHit(to, dir.x, dir.y);
+    };
+    if (!g.fx.has(BUILD_ART.BRAND_HOP)) {
+      land();
+      return;
+    }
+    const c = to.body.center;
+    const h = g.fx.play(BUILD_ART.BRAND_HOP, from.x, from.y, {
+      angle: Math.atan2(c.y - from.y, c.x - from.x),
+      depth: DEPTH.HIT_FX,
+      hooks: false,
+      durationMs: BUILD_ART.BRAND_HOP_MS,
+    });
+    if (h) g.tweens.add({ targets: h.sprite, x: c.x, y: c.y, duration: BUILD_ART.BRAND_HOP_MS });
+    g.time.delayedCall(BUILD_ART.BRAND_HOP_MS, land);
+  }
+
+  /** 난무 분신: 연격을 반대편에서 따라 함 (×damageMult) */
+  onAttack(p: PlayerAttackPayload): void {
+    const k = this.k;
+    const dance = k.rt.rule('dance');
+    if (!dance || k.now >= this.danceUntil || p.comboIndex === undefined) return;
+    const g = k.g;
+    const pl = g.player;
+    const reach = gameState.weapon.hitbox.reach * 1.4;
+    g.time.delayedCall(param(dance, 'delayMs', 120), () => {
+      if (!g.scene.isActive()) return;
+      const t = k.rt.fx.nearest(pl.x, pl.y, reach * 2);
+      if (!t) return;
+      const cx = t.x + (t.x - pl.x);
+      const cy = t.y + (t.y - pl.y);
+      k.rt.fx.clone(cx, cy);
+      this.danceAt = { x: cx, y: cy, dir: facingOf(pl.x - t.x, pl.y - t.y, 'down') };
+      k.rt.fx.damage(t, p.damageMult * param(dance, 'damageMult'), { dirX: pl.x - t.x, dirY: pl.y - t.y });
+    });
+  }
+
+  /** 이동기 (대쉬·그림자 걸음) — 열풍: 과열 +10% */
+  onPlayerMove(): void {
+    const k = this.k;
+    const hw = k.rt.rule('heatwave');
+    const res = k.g.player?.resource;
+    if (hw && res?.kind === 'heat') res.heatBy(res.max * param(hw, 'heatPerMove'), k.now);
+  }
+
+  /** 열풍: 과열 50% 이상이면 이동·공속 +20% */
+  heatwaveMult(): number {
+    const k = this.k;
+    const hw = k.rt.rule('heatwave');
+    const res = k.g.player?.resource;
+    if (!hw || res?.kind !== 'heat' || res.overheated) return 1;
+    return res.value >= res.max * param(hw, 'hasteFrom') ? 1 + param(hw, 'haste') : 1;
+  }
+
+  /** 열풍 과열 폭발 범위 배율 (57 Q43 — 설계안 2.4 '폭발 범위 ×2', 데이터 burstRangeMult). 열풍이 아니면 1 */
+  overheatRangeMult(): number {
+    const hw = this.k.rt.rule('heatwave');
+    return hw ? param(hw, 'burstRangeMult', 1) : 1;
+  }
+
+  /** 과열 100% 폭발 (BrandMarks.onOverheat 뒤): 열풍 = 반경 안 적 화상 burnMs · 주인공 무적 invulnMs */
+  onOverheat(radiusPx: number): void {
+    const k = this.k;
+    const hw = k.rt.rule('heatwave');
+    if (!hw) return;
+    const pl = k.g.player;
+    pl.grantInvulnerable(k.now + param(hw, 'invulnMs'));
+    for (const m of k.rt.fx.inCircle(pl.x, pl.y, radiusPx))
+      k.rt.combat.applyDot(
+        m,
+        'burn',
+        param(hw, 'burnMs'),
+        param(hw, 'burnTickMs', 500),
+        param(hw, 'burnTickMult', 0.15),
+      );
+    k.rt.record('heatwaveBurst');
+  }
+
+  update(now: number): void {
+    const k = this.k;
+    if (this.stuck.length > 0) {
+      for (const s of this.stuck) if (now >= s.until) s.gfx?.destroy();
+      this.stuck = this.stuck.filter((s) => now < s.until);
+    }
+    // 난무 분신이 사라짐 (dagger_frenzy_clone_out)
+    if (this.danceAt && now >= this.danceUntil) {
+      k.effect('dance', 'clone_out');
+      k.rt.art.once(BUILD_ART.FRENZY_OUT, this.danceAt.x, this.danceAt.y, {
+        dir: this.danceAt.dir,
+        scaleMult: PLAYER_RENDER_SCALE,
+      });
+      this.danceAt = null;
+    }
+    const pl = k.g.player;
+    if (!pl) return;
+    const moving = pl.moving || pl.action === 'dash';
+    // 열풍: 과열 50% 이상 + 이동 중 → dagger_hotwind_trail (행 = 이동 방향)
+    const trail = this.heatwaveMult() > 1 && moving;
+    if (trail) k.rt.art.playerLoop('hotwind', BUILD_ART.HOTWIND_TRAIL, pl.facingDir, { below: true });
+    else k.rt.art.stopPlayerLoop('hotwind');
+    // 음향 dagger_hotwind_loop 켜기·끄기 (바뀔 때만)
+    if (trail !== this.trailOn) {
+      this.trailOn = trail;
+      k.effect('heatwave', trail ? 'trail_start' : 'trail_end');
+    }
+    // 질풍 1단 연격 변화: 이동 중 90ms 마다 발 피벗에 재 실루엣 (따라가지 않음, 행 = 이동 방향)
+    if (k.rt.hasBranch('gale') && moving && now >= this.galeNextAt && k.g.fx.has(BUILD_ART.GALE_WIND)) {
+      this.galeNextAt = now + BUILD_ART.GALE_WIND_INTERVAL_MS;
+      k.g.fx.play(BUILD_ART.GALE_WIND, pl.x, pl.y, {
+        dir: pl.facingDir,
+        depth: pl.depth - DEPTH.OVERLAY_STEP,
+        scaleMult: PLAYER_RENDER_SCALE,
+        hooks: false,
+      });
+    }
+  }
+
+  debug(): Record<string, unknown> {
+    return {
+      stuck: this.stuck.length,
+      dance: this.k.now < this.danceUntil,
+      throwReadyIn: Math.max(0, Math.round(this.throwReadyAt - this.k.now)),
+    };
+  }
+
+  destroy(): void {
+    for (const s of this.stuck) this.removeKnife(s);
+    this.stuck = [];
+  }
+}

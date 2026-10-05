@@ -3,7 +3,7 @@
  * 쐐기 끝점 충격원 중심)에서 조준 방향으로 균열이 커서까지 이어진다. 길이 = min(최대(차지 단계 칸 수 × 울분), 커서까지, 벽까지).
  * 앞머리가 지나간 칸만 판정(적마다 1회). 그림 = fx `greatsword_charge_crack_line`(그림 표 `crack_line` fx — 회전 시트면 길이에 맞춰
  * 배율), 없으면 앞머리가 지나간 칸마다 땅 균열(crackFx 행 s)을 작게. 시각은 플레이 시계(히트스톱 동안 멈춤).
- * 앞머리 시간표·판정은 `systems/weapon/plungeWave`(충격파와 같은 앞머리 규칙).
+ * 앞머리 시간표·판정은 `systems/weapon/crackWave`(충격파와 같은 앞머리 규칙).
  */
 import { COLORS, DEPTH } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
@@ -20,7 +20,7 @@ import {
   waveHit,
   waveTimeline,
   type WaveTimeline,
-} from '../../systems/weapon/plungeWave';
+} from '../../systems/weapon/crackWave';
 import { artScale, rowDirFor } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 import type { MobStrike } from './IssenStrikes';

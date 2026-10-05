@@ -10,7 +10,7 @@
  * 2층 도박 `kinds/gambleKinds.ts` · E 안내·실행 `interact.ts` · HUD 상태 `status.ts`.
  */
 import type Phaser from 'phaser';
-import { EventBus, Events, type PlayerSecondaryPayload } from '../../core/EventBus';
+import { EventBus, Events, type PlayerSecondaryPayload, type StatusChangedPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { UiInteractable, UiStatus } from '../../contract/ui';
 import type { Mob } from '../../objects/Mob';
@@ -73,6 +73,19 @@ export class StructureSystem {
     this.strike.update(time, delta);
     this.gamble.updateRing(time);
     this.interact.update(input, delta);
+    this.syncFireStatus();
+  }
+
+  /** 60라운드 음향 훅: 불붙은 무기 켜짐·꺼짐 (STATUS_CHANGED — fire_weapon_loop · fire_weapon_end) */
+  private fireWas = false;
+  private syncFireStatus(): void {
+    const on = this.c.fireActive;
+    if (on === this.fireWas) return;
+    this.fireWas = on;
+    EventBus.emit(Events.STATUS_CHANGED, {
+      id: 'fireWeapon',
+      phase: on ? 'start' : 'end',
+    } satisfies StatusChangedPayload);
   }
 
   /** 1-5 취기: 조준점을 플레이어 둘레로 흔든다 */

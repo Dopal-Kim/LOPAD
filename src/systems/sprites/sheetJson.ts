@@ -333,7 +333,7 @@ export function sheetToWorldUnits<T extends SheetJson>(json: T): T {
 
 /** 53라운드 Q62: 바닥 램프 교체 제외 시트 — 이펙트 분류 전체 또는 JSON `paletteSwap: "none"` */
 export function paletteSwapExempt(def: Pick<SheetJson, 'paletteSwap'> & { category?: SpriteCategory }): boolean {
-  return def.category === 'fx' || def.paletteSwap === 'none';
+  return def.category === 'fx' || def.category === 'items' || def.paletteSwap === 'none';
 }
 
 export interface SheetDef extends SheetJson {

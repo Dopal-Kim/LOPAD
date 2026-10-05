@@ -3,14 +3,12 @@
  * 매 프레임 `update` 가 틱을 처리한다.
  */
 import type Phaser from 'phaser';
-import { COLORS, DEPTH, entityDepth } from '../../core/Constants';
+import { COLORS, DEPTH } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
 import type { FxHandle } from '../../systems/fx/fx';
-import { facingOf } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
-import { pathFx } from './shared';
 
 /** 잔월: 남아 있는 베기 궤적 (지속 피해 영역) */
 interface DotZone {
@@ -40,12 +38,8 @@ export class StrikeDots {
 
   constructor(private readonly g: Game) {}
 
-  /** 잔월: 판정 사각형 자리에 지속 피해 영역 + 남는 궤적 그림 (2차 시트 → 거합 꼬리 → 사각형) */
-  leaveTrailDot(
-    p: PlayerAttackPayload,
-    r: { cx: number; cy: number; w: number; h: number },
-    swingFx: string | null,
-  ): void {
+  /** 잔월(옛 mods.trailDot): 판정 사각형 자리에 지속 피해 영역 + 남는 궤적 윤곽 */
+  leaveTrailDot(p: PlayerAttackPayload, r: { cx: number; cy: number; w: number; h: number }): void {
     const g = this.g;
     const T = gameState.weapon.mods.trailDot!;
     const now = g.time.now;
@@ -61,35 +55,9 @@ export class StrikeDots {
       dmg,
     };
     this.dotZones.push(dot);
-    const zangetsu = pathFx(g.fx, 'zangetsu');
-    const dir = facingOf(p.dirX, p.dirY, g.player.facingDir);
-    if (zangetsu && swingFx) {
-      // 잔월(2차 전용 시트): 거합이 끝난 자리(고정)에 루프, 한 바퀴 = 틱 간격이 되도록 틱을 루프 시작에 맞춘다. 바닥 깊이
-      const start = p.swingDelayMs + g.fx.durationOf(swingFx);
-      const linger = T.lingerMs - start;
-      if (linger > 0) {
-        const at = { x: p.x, y: p.y };
-        g.time.delayedCall(start, () => {
-          if (!g.scene.isActive()) return;
-          g.fx.play(zangetsu, at.x, at.y, { dir, depth: DEPTH.FX_GROUND, durationMs: linger });
-          dot.nextAt = g.time.now + dot.tickMs;
-        });
-      }
-    } else if (swingFx === 'iai') {
-      // 잔월(시트 없음): 거합 이펙트의 꼬리(마지막 3프레임)를 본 재생이 끝난 뒤 남은 시간 동안 반복
-      const start = p.swingDelayMs + g.fx.durationOf('iai');
-      const linger = T.lingerMs - start;
-      if (linger > 0) {
-        const at = { x: p.x, y: p.y, depth: entityDepth(p.y) + DEPTH.OVERLAY_STEP * 2 };
-        g.time.delayedCall(start, () => {
-          if (g.scene.isActive())
-            g.fx.play('iai', at.x, at.y, { dir, depth: at.depth, durationMs: linger, tailFrames: 3 });
-        });
-      }
-    } else {
-      const rect = g.add.rectangle(r.cx, r.cy, r.w, r.h, COLORS.TRAIL_DOT, 0.35).setDepth(DEPTH.ATTACK);
-      g.tweens.add({ targets: rect, alpha: 0, duration: T.lingerMs, onComplete: () => rect.destroy() });
-    }
+    // 60라운드 (57 Q42): 옛 잔월·거합 진화 그림은 끔 — 남는 궤적은 윤곽 사각형
+    const rect = g.add.rectangle(r.cx, r.cy, r.w, r.h, COLORS.TRAIL_DOT, 0.35).setDepth(DEPTH.ATTACK);
+    g.tweens.add({ targets: rect, alpha: 0, duration: T.lingerMs, onComplete: () => rect.destroy() });
   }
 
   /** 출혈(2차): 적중한 적에 지속 피해를 건다 (재적중이면 횟수를 채우고 루프를 다시 시작) */
@@ -118,16 +86,9 @@ export class StrikeDots {
       });
   }
 
-  /** 출혈(2차): 적 히트박스 중심에 붙어 루프 (한 바퀴 = 틱 간격, 아트 JSON). 시트가 없으면 null */
-  private playBleedFx(mob: Mob): FxHandle | null {
-    const id = pathFx(this.g.fx, 'bleed');
-    if (!id) return null;
-    const c = mob.body.center;
-    return this.g.fx.play(id, c.x, c.y, {
-      follow: mob,
-      followOffset: { x: c.x - mob.x, y: c.y - mob.y },
-      depthOffset: DEPTH.OVERLAY_STEP * 3,
-    });
+  /** 출혈(옛 mods.bleed): 60라운드 (57 Q42) 옛 진화 루프 그림은 끔 — 피격 번쩍임만 */
+  private playBleedFx(_mob: Mob): FxHandle | null {
+    return null;
   }
 
   update(time: number): void {

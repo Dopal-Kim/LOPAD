@@ -103,7 +103,8 @@ export class BrandMarks {
     const d = this.def;
     if (!book || !d) return;
     const p = this.g.player;
-    const r = d.overheatBurstRadiusTiles * TILE;
+    // 60라운드 열풍(단검 2단): 과열 폭발 범위 ×burstRangeMult · 반경 안 화상 · 무적
+    const r = d.overheatBurstRadiusTiles * TILE * (this.g.build?.branch.overheatRangeMult() ?? 1);
     const dist = (m: Mob) => Math.hypot(m.x - p.x, m.y - p.y);
     const list = book.takeWhere((m) => m.active && dist(m) <= r).sort((a, b) => dist(a[0]) - dist(b[0]));
     const skill: PlayerSkillPayload = { weapon: gameState.weapon.id, move: 'overheat', phase: 'burst' };
@@ -122,6 +123,7 @@ export class BrandMarks {
       if (at <= 0) this.explode(mob, marks, 'overheat');
       else g.time.delayedCall(at, () => this.explode(mob, marks, 'overheat'));
     });
+    g.build?.branch.onOverheat(r);
   }
 
   private burst(mob: Mob, cause: string): void {

@@ -10,6 +10,8 @@ export interface PlayerBuildHooks {
   onIgnoredHit(time: number): void;
   /** 받는 피해 조정 */
   adjustDamage(amount: number, time: number): number;
+  /** 60라운드: 맞으면서 버티는 중 (거인 차지 — 끊기지 않음 · 흡수 fx greatsword_brace_absorb, 울분 없음) */
+  absorbing(time: number): boolean;
   /** 가드 피해 감소 추가 (굳은살 칼·대검) */
   guardReductionAdd(): number;
   /** HP 0 직전 — true 면 버텼다 (HP 를 채움) */

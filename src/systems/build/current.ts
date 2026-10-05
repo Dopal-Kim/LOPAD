@@ -4,7 +4,8 @@
 import { gameState } from '../../core/GameState';
 import { BUILD } from '../../data/build';
 import type { BuildStatKey } from '../../data/buildTypes';
-import type { BuildMods } from './buildMods';
+import type { ComboChargeDef, ComboChargeStageDef } from '../../data/comboTypes';
+import { param, ruleOf, type BuildMods } from './buildMods';
 
 export function currentBuild(): BuildMods {
   return gameState.build.mods(gameState.passives, gameState.weapon);
@@ -33,4 +34,26 @@ export function resourceAdjust(): { maxMult: number; coolMult: number; groggyMs:
     coolMult: m.flags.coolMult,
     groggyMs: m.flags.groggyMs > 0 ? m.flags.groggyMs : endureGroggy,
   };
+}
+
+/**
+ * 60라운드 (57 Q43 '거인 차지 4단'): 대검 2단 거인(rule giant) 런이면 차지 단계에 4단을 더한다 — stage4Ms(1.6초)·피해 stage4Mult(×3.8)·
+ * 그림 키 stage4Art (없으면 마지막 단계 그림). 쐐기 길이·충격원은 마지막 단계와 같고, 진동 반경 5칸(ringRadiusTiles)은 중압 원형 진동이.
+ * 거인이 아니면 데이터 단계 그대로
+ */
+export function chargeStages(def: ComboChargeDef): ComboChargeStageDef[] {
+  const giant = ruleOf(currentBuild(), 'giant');
+  const last = def.stages[def.stages.length - 1];
+  if (!giant || !last || !(param(giant, 'stage4Ms') > last.atMs)) return def.stages;
+  const art = giant.params.stage4Art;
+  return [
+    ...def.stages,
+    {
+      ...last,
+      atMs: param(giant, 'stage4Ms'),
+      damageMult: param(giant, 'stage4Mult', last.damageMult),
+      art: typeof art === 'string' ? art : last.art,
+      followUps: undefined,
+    },
+  ];
 }

@@ -119,7 +119,8 @@ export class GameCombat {
   };
 
   /** 보스 소환 → 방 상태 머신이 적을 추가하고 처치 대기 목록에 넣는다 */
-  readonly summon = (enemyId: string, x: number, y: number): boolean => this.g.director.spawnExtra(enemyId, x, y);
+  readonly summon = (enemyId: string, x: number, y: number): boolean =>
+    Boolean(this.g.director.spawnExtra(enemyId, x, y));
 
   // --- 피해 계산 · 적 피격 ---
 
@@ -152,7 +153,8 @@ export class GameCombat {
         passiveMult *
         (crit ? critMult : 1) *
         g.structures.damageMult(kind, crit) *
-        (B?.combat.damageMultFor(target) ?? 1),
+        (B?.combat.damageMultFor(target) ?? 1) *
+        (g.bundle?.consumables.attackMult(g.time.now) ?? 1),
     );
     return { dmg, crit };
   }
@@ -189,6 +191,12 @@ export class GameCombat {
     // 방패 막기(35라운드 2단계): 정면에서 온 공격은 피해 감소, 섬광만, 넉백·피 없음. 틱 피해는 막지 않는다
     const block = opts.tick || opts.ignoreGuard ? 0 : mob.guardReduction(nx, ny, now);
     if (block > 0) dmg = Math.max(1, Math.round(dmg * (1 - block)));
+    // 60라운드 엘리트 접두어 (통 갑옷 −30% — 첫 강공 적중에 깨짐)
+    if (mob.damageTakenMult !== 1) {
+      dmg = Math.max(1, Math.round(dmg * mob.damageTakenMult));
+      if (mob.damageTakenMult < 1 && !opts.tick) g.bundle?.elites.onArmorBlock(mob);
+    }
+    if (mob.elite && opts.heavy && !opts.tick) g.bundle?.elites.onHeavyHit(mob);
     const died = mob.takeDamage(dmg, { crit: opts.crit, tick: opts.tick });
     if (opts.tick) {
       g.numbers.show(hitX, hitY, dmg, 'tick');

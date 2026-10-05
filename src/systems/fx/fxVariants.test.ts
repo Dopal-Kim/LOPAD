@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEPTH, entityDepth, fxLitDepth } from '../../core/Constants';
-import { WEAPONS } from '../../data';
-import { branchComboFxId, composeSwaps, meleeBranchFxSheetIds, resolveFxVariant, swapTag } from './fxVariants';
+import { branchComboFxId, composeSwaps, resolveFxVariant, swapTag } from './fxVariants';
 import { paletteSwapExempt } from '../sprites/spriteDefs';
 
 /** 아트 v3 JSON 형태를 줄인 예 (계약 §10: secondaryVariants · heatVariants) */
@@ -40,12 +39,8 @@ const snipe = {
 };
 
 describe('53라운드 무기 이펙트 v3 변주 (계약 §10)', () => {
-  it('근접 1단 갈래 시트 id · 로드 목록 (근접 무기 × 1단 갈래 × 3타, 활 제외)', () => {
+  it('근접 1단 갈래 시트 id (60라운드: 로드 목록에서는 빠짐 — 57 Q42 옛 진화 이펙트 끔)', () => {
     expect(branchComboFxId('katana', 2, 'iai')).toBe('katana_combo2_iai');
-    const ids = meleeBranchFxSheetIds(WEAPONS);
-    for (const id of ['katana_combo1_iai', 'katana_combo3_batto', 'greatsword_combo2_crush', 'dagger_combo3_gale'])
-      expect(ids).toContain(id);
-    expect(ids.some((id) => id.startsWith('bow_'))).toBe(false);
   });
 
   it('2단 갈래: 색 교체(소문자 정규화) · 섬광·잔상 덮어쓰기 · 마지막 프레임 유지', () => {

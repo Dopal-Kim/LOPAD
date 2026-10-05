@@ -23,14 +23,13 @@ import {
   tailFxIds,
 } from '../../systems/fx/branchFx';
 import type { FxHandle } from '../../systems/fx/fx';
-import { pickTierSheet } from '../../systems/fx/fxTier';
 import { isHeavyStrike } from '../../systems/hitFeel';
-import { resolveFxVariant, runtimeFxVariant, type FxVariant } from '../../systems/fx/fxVariants';
+import { runtimeFxVariant, type FxVariant } from '../../systems/fx/fxVariants';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { FX_ACTION, artScale, facingOf, fxDrawScale } from '../../systems/sprites/spriteDefs';
 import { arrowFxId, perfectReleaseFxId } from '../../systems/fx/fxIds';
 import type { Game } from '../Game';
-import { HIT_ORIGIN_UP_PX, pathFx } from './shared';
+import { HIT_ORIGIN_UP_PX } from './shared';
 import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 
 /** 저격 화살 한 발의 상태 (발사점·사거리·단계·꼬리) */
@@ -64,9 +63,9 @@ export class BowShots {
     return gameState.weapon.path[0];
   }
 
-  /** 2단 갈래 변주 (경로 두 번째 노드의 secondaryVariants). 없으면 null */
-  private variantOf(id: string): FxVariant | null {
-    return resolveFxVariant(this.g.fx.sheet(id), { secondary: gameState.weapon.path[1] ?? null });
+  /** 2단 갈래 변주 — 60라운드 (57 Q42): 옛 2단 색 교체·전용 시트는 끔 (2단 갈래 fx 는 계약 art §21, build/branch) */
+  private variantOf(_id: string): FxVariant | null {
+    return null;
   }
 
   /** 조준선 시트 (갈래 조준선이 있으면 그것 — AimLine 이 로드 여부를 다시 본다) */
@@ -94,23 +93,16 @@ export class BowShots {
     else release();
   }
 
-  /** 화살 시트: 2단 전용 → 1단 갈래(+ 색 교체 대체) → 중시(옛 2차) → 기본 */
+  /**
+   * 화살 시트: 1단 갈래 화살(속사·저격 — 51·52라운드 시트) → 기본. 60라운드 (57 Q42): 옛 2단 전용 시트·색 교체·중시(옛 2차)는 끔
+   */
   private arrowSheet(aimed: boolean): { id: string; branch: boolean; tier2: boolean; variant: FxVariant | null } {
     const fx = this.g.fx;
     const w = gameState.weapon.id;
     const b = this.first;
     const tier1 = b ? branchArrowFxId(w, aimed, b) : null;
-    if (tier1 && fx.has(tier1)) {
-      const pick = pickTierSheet(
-        tier1,
-        true,
-        { secondary: gameState.weapon.path[1] ?? null },
-        { has: (id) => fx.has(id), sheet: (id) => fx.sheet(id) },
-      );
-      return { id: pick.id, branch: true, tier2: pick.tier === 'secondary', variant: pick.variant };
-    }
-    const heavy = aimed ? pathFx(fx, 'heavyarrow') : null;
-    return { id: heavy ?? arrowFxId(w, aimed), branch: false, tier2: false, variant: null };
+    if (tier1 && fx.has(tier1)) return { id: tier1, branch: true, tier2: false, variant: null };
+    return { id: arrowFxId(w, aimed), branch: false, tier2: false, variant: null };
   }
 
   /**
@@ -165,8 +157,6 @@ export class BowShots {
     const origin = def
       ? { originX: def.pivot.x / def.frameWidth, originY: def.pivot.y / def.frameHeight, scale: fxDrawScale(def) }
       : {};
-    // 옛 갈래 꼬리 (섬광·추적·관통 루프) — 갈래 화살 시트가 없을 때만
-    const legacyTail = arrow.branch ? null : pathFx(g.fx, 'flash', 'seek', 'pierce');
     // 저격: 거리 단계 (aimedOnly 면 조준 사격만). 53라운드 Q16: 모든 화살 levelMults, 조준 사격은 aimedLevelMults
     const S = mods.snipe && (!mods.snipe.aimedOnly || aimed) ? mods.snipe : null;
     const snipeMults = S ? (aimed && S.aimedLevelMults ? S.aimedLevelMults : S.levelMults) : null;
@@ -174,13 +164,11 @@ export class BowShots {
     const critFromLevel = snipeCritFromLevel(S, aimed);
     // 산탄·폭우(화기류 때 재사용): 부채꼴 (조준 사격은 한 발). 발사 이펙트는 발사점에 1회
     const spread = !aimed && mods.spread ? mods.spread : { count: 1, spreadDeg: 0 };
-    const burstFx = pathFx(g.fx, 'rain', 'scatter');
     const reach = weapon.hitbox.reach;
     // 화살이 생기는 점 (arrowSpawnAnchors — 없으면 조준 방향 reach)
     const so = this.spawnOffset(p.dirX, p.dirY);
     const ax = p.x + (so ? so.x : p.dirX * reach);
     const ay = p.y + (so ? so.y : p.dirY * reach);
-    if (spread.count > 1 && burstFx) g.fx.play(burstFx, ax, ay, { angle: base, depth: DEPTH.PROJECTILE });
     // 속사: 발사 섬광 (화살이 생기는 점 = arrow_spawn, 1회 재생 — 간격이 짧으면 처음부터 다시)
     // 56라운드 Q9: 완벽 놓기 섬광 (화살이 생기는 점, 발사 각도)
     const perfectFx = perfectReleaseFxId(weapon.id);
@@ -220,16 +208,6 @@ export class BowShots {
       if (weak && !weakSheet && D) shot.setTint(D.weakArrowTint);
       if (mods.homingTurnDeg) shot.homingTurn = Phaser.Math.DegToRad(mods.homingTurnDeg);
       if (aimed && mods.aimedShotStunMs) shot.hitStunMs = mods.aimedShotStunMs;
-      // 중시: 적중 시 번개 낙하(heavyarrow_hit, 섬광·흔들림은 시트 JSON)
-      if (!arrow.branch && aimed && pathFx(g.fx, 'heavyarrow') && g.fx.has('heavyarrow_hit'))
-        shot.impactFx = 'heavyarrow_hit';
-      if (legacyTail)
-        g.fx.play(legacyTail, shot.x, shot.y, {
-          angle: a,
-          follow: shot,
-          followRotation: true,
-          depth: DEPTH.PROJECTILE - 0.01,
-        });
       // 2단 갈래 따라가는 겹침 (관통: fx/pierce 를 저격 꼬리 위·화살 아래에)
       for (const o of variant?.followOverlays ?? [])
         if (g.fx.has(o))

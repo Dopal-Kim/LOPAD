@@ -7,10 +7,8 @@
  * - 없으면 1단 시트 + `resolveFxVariant`(colorSwap·overlay·덮어쓰기) — 52·53라운드 대체 경로.
  * 활 화살·저격 꼬리도 같은 규칙(2단 화살 JSON `tailSheets` 가 2단 꼬리를 가리킨다).
  */
-import { branchSheetIds, stripFxPrefix } from './branchFx';
-import { type FxWeaponShape } from './fxIds';
-import { branchComboFxId, resolveFxVariant, runtimeFxVariant, type FxVariant } from './fxVariants';
-import { COMBO_HITS } from '../sprites/spriteDefs';
+import { stripFxPrefix } from './branchFx';
+import { resolveFxVariant, runtimeFxVariant, type FxVariant } from './fxVariants';
 
 /** 고르기에 필요한 시트 JSON 필드 (SheetJson 에 섞여 온다) */
 export interface TierSheetFields {
@@ -69,21 +67,4 @@ export function pickTierSheet(
     tier: isBranch ? 'branch' : 'base',
     variant: resolveFxVariant(def, { secondary: isBranch ? (opts.secondary ?? null) : null, heat }),
   };
-}
-
-/**
- * 2단 전용 시트 로드 목록 (Preloader — 없는 파일은 매니페스트가 거른다): 근접 `<무기>_combo<n>_<1단>_<2단>`,
- * 활 `<1단 갈래 시트>_<2단>` (화살·조준 화살·저격 꼬리)
- */
-export function tier2FxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
-  const out = new Set<string>();
-  for (const [id, w] of Object.entries(weapons))
-    for (const b of w.personality.branches) {
-      const tier1 =
-        w.kind === 'melee'
-          ? Array.from({ length: COMBO_HITS }, (_, i) => branchComboFxId(id, i + 1, b.id))
-          : branchSheetIds(id, b.id);
-      for (const s of b.next ?? []) for (const t of tier1) out.add(`${t}_${s.id}`);
-    }
-  return [...out];
 }

@@ -4,6 +4,7 @@
   "items": [
     {
       "id": "drunkOath",
+      "markRow": "drunk_oath",
       "name": "만취 서약",
       "_tmpName": true,
       "benefit": "공격력 +30% · 취기 점수 +1 · 취기 상태 유지",
@@ -15,6 +16,7 @@
     },
     {
       "id": "credit",
+      "markRow": "debt",
       "name": "외상",
       "_tmpName": true,
       "benefit": "전표 +100 즉시",
@@ -26,6 +28,7 @@
     },
     {
       "id": "brokenCup",
+      "markRow": "broken_cup",
       "name": "깨진 잔",
       "_tmpName": true,
       "benefit": "개성 +60 즉시 (갈래를 앞당김)",
@@ -37,6 +40,7 @@
     },
     {
       "id": "burningTongue",
+      "markRow": "burning_tongue",
       "name": "불붙은 혀",
       "_tmpName": true,
       "benefit": "상흔 태그 +1점(영구) · 타격 10% 화상(영구)",
@@ -49,6 +53,7 @@
     },
     {
       "id": "bareOath",
+      "markRow": "bare_hand",
       "name": "맨손 맹세",
       "_tmpName": true,
       "benefit": "영웅 패시브 1개 (3지선다)",
@@ -61,6 +66,7 @@
     },
     {
       "id": "cursedChest",
+      "markRow": "cursed_chest",
       "name": "저주 궤짝",
       "_tmpName": true,
       "benefit": "희귀 이상 패시브 2택",
@@ -72,6 +78,7 @@
     },
     {
       "id": "bruise",
+      "markRow": "bruise",
       "name": "피멍",
       "_tmpName": true,
       "benefit": "무기 자원 최대치 +30% (영구 — 기력·과열 한계·탄창)",

@@ -22,6 +22,8 @@ export interface MoveStrikeDef {
   hit: ComboHitDef;
   /** 기력 소모 (기력 무기만, 없으면 0) */
   staminaCost?: number;
+  /** 60라운드 (58 Q10): false 면 대쉬 공격 기본 배율(player.dash.attackDamageMult)을 곱하지 않는다 — 대쉬 일섬. 없으면 곱함 */
+  useDashAttackMult?: boolean;
 }
 
 /** 칼 간파 반격 (Q40·Q55): 패링 성공 직후 windowMs 안 좌클릭 — 조준 방향의 해부 왼쪽으로 비켜서며 반격 */

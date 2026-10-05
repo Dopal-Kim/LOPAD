@@ -1,0 +1,8 @@
+{
+  "_note": "60라운드 (57 Q42 '옛 2단 그림(wide·assassin·pierce 등)은 빌드에서 빼고 보관'): assets/ 상대 경로 정규식 — 일치하는 파일은 빌드 복사·에셋 목록(manifest)에서 빠진다(원본은 assets/ 에 보관, 아트 파트 소유). 옛 진화 2단 노드 id 시트 · 근접 2단 전용 연격 시트(<무기>_combo<n>_<1단>_<2단>) · 활 2단 화살·꼬리. 새 2단 갈래 fx(계약 art §21)는 이름이 달라 해당 없음. 옛 1단 진화 시트(iai·batto·crush·weight·twin·gale 등)는 로드만 끄고 빌드에는 남김(결정 범위 밖 — 보고 인터뷰 후보)",
+  "patterns": [
+    "^sprites/fx/(?:v3/)?(?:wide|zangetsu|dashcrit|longinvuln|pulverize|quake|giant|ironwall|assassin|afterimage|bleed|dance|pierce)(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
+    "^sprites/fx/(?:v3/)?(?:katana_combo\\d_(?:iai_(?:wide|zangetsu)|batto_(?:dashcrit|longinvuln))|greatsword_combo\\d_(?:crush_(?:pulverize|quake)|weight_(?:giant|ironwall))|dagger_combo\\d_(?:gale_(?:afterimage|assassin)|twin_(?:bleed|dance)))(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
+    "^sprites/fx/(?:v3/)?bow_arrow_(?:aimed_)?(?:rapid_(?:quiver|volley)|snipe_(?:lv\\d_)?(?:deadeye|pierce))(?:[-_]p?\\d+)?\\.(?:json|png|webp)$"
+  ]
+}

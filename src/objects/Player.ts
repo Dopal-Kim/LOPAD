@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, FEEDBACK, KEYS, PROTOTYPE, TILE } from '../core/Constants';
-import { EventBus, Events, type PlayerAttackPayload } from '../core/EventBus';
+import { EventBus, Events, type PlayerAttackPayload, type PlayerHealedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { PLAYER_DATA } from '../data';
 import type { SecondaryDef, WeaponCarryDef, WeaponFirstStrikeDef } from '../data/types';
@@ -107,6 +107,8 @@ export class Player extends Phaser.GameObjects.Sprite {
   private facing = new Phaser.Math.Vector2(1, 0);
   private dashVel = new Phaser.Math.Vector2();
   private lastAimAngle = 0;
+  /** 60라운드: 마지막 조준점 (월드 — 커서 앵커 aim_cursor fx · 소모품 투척) */
+  readonly aimPoint = { x: 0, y: 0 };
   /** 피격 넉백(35라운드): 가해자 반대 방향으로 선형 감쇠. 경과는 update 의 시간 차로 누적(히트스톱 중엔 update 가 없다) */
   private shoveState: { vx: number; vy: number; elapsed: number; ms: number } | null = null;
   /** 49라운드 무기 자원·휴대 · 48라운드 무기를 든 자세 · 55라운드 근접 연격 입력 */
@@ -184,6 +186,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.overlay.update();
     // 56라운드 Q14·Q15: 검기·울분 무기 오버레이 (시트가 없으면 칼날 곱 틴트)
     this.overlay.setGauge(this.gauges.overlay, this.gauges.bladeTint);
+    this.overlay.setAwaken(gameState.build.awakened);
     this.scar.update(time);
   }
 
@@ -346,6 +349,8 @@ export class Player extends Phaser.GameObjects.Sprite {
     const D = PLAYER_DATA.dash;
     if (input.aimX !== this.x || input.aimY !== this.y)
       this.lastAimAngle = Math.atan2(input.aimY - this.y, input.aimX - this.x);
+    this.aimPoint.x = input.aimX;
+    this.aimPoint.y = input.aimY;
     const P = PLAYER_DATA.parry;
     const mods = gameState.weapon.mods;
     this.ownClock += Math.max(0, delta);
@@ -522,6 +527,7 @@ export class Player extends Phaser.GameObjects.Sprite {
   strikeMods(
     time: number,
     allowDash: boolean,
+    noDashBase = false,
   ): { mult: number; forceCrit: boolean; primed: boolean; isDashAttack: boolean } {
     const D = PLAYER_DATA.dash;
     const mods = gameState.weapon.mods;
@@ -529,7 +535,9 @@ export class Player extends Phaser.GameObjects.Sprite {
     let mult = 1;
     let forceCrit = false;
     if (isDashAttack) {
-      mult *= D.attackDamageMult * (1 + gameState.passives.total('dashAttackMult')) * (mods.dashAttackMult ?? 1);
+      // 60라운드 (58 Q10): 대쉬 일섬은 기본 대쉬 배율(×1.5) 없이 패시브·갈래 배율만
+      const base = noDashBase ? 1 : D.attackDamageMult;
+      mult *= base * (1 + gameState.passives.total('dashAttackMult')) * (mods.dashAttackMult ?? 1);
       forceCrit = Boolean(mods.dashAttackForceCrit);
       this.dashEndedAt = -Infinity; // 대쉬 공격은 1회
     }
@@ -556,7 +564,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     more?: AttackExtra,
   ): PlayerAttackPayload {
     const D = PLAYER_DATA.dash;
-    const m = this.strikeMods(time, allowDash);
+    const m = this.strikeMods(time, allowDash, Boolean(combo?.noDashBaseMult));
     const mult = (combo ? combo.hit.damageMult : 1) * m.mult * (first?.damageMult ?? 1);
     const size = (m.isDashAttack ? D.attackSizeMult : 1) * (combo ? combo.hit.sizeMult : 1);
     return this.emitAttack(
@@ -694,10 +702,16 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.flash(COLORS.PLAYER_SHADOW);
   }
 
-  heal(amount: number): void {
+  /** 회복. source = 회복 출처 (60라운드 음향 potion_use — 독주만 'potion') */
+  heal(amount: number, source?: PlayerHealedPayload['source']): void {
     const before = gameState.hp;
     gameState.hp = Math.min(gameState.maxHp, gameState.hp + amount);
-    EventBus.emit(Events.PLAYER_HEALED, { hp: gameState.hp, maxHp: gameState.maxHp, amount: gameState.hp - before });
+    EventBus.emit(Events.PLAYER_HEALED, {
+      hp: gameState.hp,
+      maxHp: gameState.maxHp,
+      amount: gameState.hp - before,
+      ...(source ? { source } : {}),
+    } satisfies PlayerHealedPayload);
   }
 
   /** 피격 넉백 중인지 (디버그) */

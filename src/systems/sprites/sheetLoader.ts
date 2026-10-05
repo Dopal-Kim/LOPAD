@@ -12,7 +12,7 @@ import { sheetJsonCandidates } from './spriteMeta';
 import { normalizeStructureSheet, sheetToWorldUnits, type SheetDef } from './sheetJson';
 import { sheetTextureKey, type SheetRequest } from './sheetPaths';
 import { readSheetJson as parseSheetJson, type AtlasData } from './sheetAtlas';
-import { weaponSheetRequests } from './sheetSets';
+import { awakenSheetRequests, weaponSheetRequests } from './sheetSets';
 
 export interface PendingSheet {
   req: SheetRequest;
@@ -23,8 +23,9 @@ export interface PendingSheet {
 
 /** 아트 산출물 파일 목록 (Preloader 가 매니페스트를 읽어 넣는다 — 없으면 null = 전부 있다고 본다) */
 let manifest: Set<string> | null = null;
-/** 지금 시트가 올라가 있는 런 무기 */
+/** 지금 시트가 올라가 있는 런 무기 · 각성 오버레이가 올라가 있는 무기 */
 let loadedWeapon: string | null = null;
+let loadedAwaken: string | null = null;
 
 export function setAssetManifest(files: Set<string> | null): void {
   manifest = files;
@@ -67,7 +68,9 @@ export function queueSheetImage(scene: Phaser.Scene, p: PendingSheet): SheetDef 
   const read = readSheetJson(scene.cache.json.get(p.jsonKey));
   if (!read) return null;
   // 구조물 시트(계약 §5)는 fps·loop·directions·pivot 을 생략할 수 있다. 50라운드: 메모 길이는 월드 단위로 (pixelScale)
-  const json = sheetToWorldUnits(p.req.category === 'structures' ? normalizeStructureSheet(read.json) : read.json);
+  const json = sheetToWorldUnits(
+    p.req.category === 'structures' || p.req.category === 'items' ? normalizeStructureSheet(read.json) : read.json,
+  );
   const textureKey = sheetTextureKey(p.req.name, p.req.action);
   const imageUrl = `${ASSETS.URL}/${p.dir}${json.image}`;
   if (!scene.textures.exists(textureKey)) {
@@ -102,20 +105,16 @@ export function registerSheets(scene: Phaser.Scene, defs: readonly SheetDef[]): 
 }
 
 /**
- * 57라운드 A2: 런 무기의 시트를 이 씬의 preload 에서 로드한다 (Game·WeaponLab — 런 시작·이어하기·시험장 무기 교체).
- * 이미 그 무기면 아무것도 하지 않는다. 다른 무기가 올라가 있으면 그 무기만의 시트를 먼저 내린다(GPU 메모리).
- * JSON 이 읽히는 대로 이미지를 같은 로드에 이어 붙이고, 로드가 끝나면(씬 create 전) 등록한다. 로드할 파일이 있으면 true
+ * 요청 목록을 이 씬의 로더에 이어 붙인다: JSON 이 읽히는 대로 이미지를 같은 로드에 넣고, 로드가 끝나면 등록한 뒤 done.
+ * 로드할 파일이 없으면 바로 등록·done 하고 false
  */
-export function preloadWeaponSheets(scene: Phaser.Scene, weaponId: string): boolean {
-  if (loadedWeapon === weaponId) return false;
-  if (loadedWeapon) releaseWeaponSheets(scene, loadedWeapon, weaponId);
-  loadedWeapon = null;
+function queueRequests(scene: Phaser.Scene, reqs: readonly SheetRequest[], done: () => void): boolean {
   const defs: SheetDef[] = [];
   const onJson = (p: PendingSheet) => {
     const d = queueSheetImage(scene, p);
     if (d) defs.push(d);
   };
-  const pending = queueSheetJsons(scene, weaponSheetRequests(weaponId));
+  const pending = queueSheetJsons(scene, reqs);
   const waiting: string[] = [];
   for (const p of pending) {
     if (scene.cache.json.exists(p.jsonKey)) onJson(p);
@@ -129,7 +128,7 @@ export function preloadWeaponSheets(scene: Phaser.Scene, weaponId: string): bool
     // 404 로 오지 않은 JSON 의 1회 처리기가 다음 로드에 남지 않게
     for (const ev of waiting) scene.load.removeAllListeners(ev);
     registerSheets(scene, defs);
-    loadedWeapon = weaponId;
+    done();
   };
   if (scene.load.list.size === 0) {
     finish();
@@ -139,14 +138,55 @@ export function preloadWeaponSheets(scene: Phaser.Scene, weaponId: string): bool
   return true;
 }
 
-/** 다른 무기로 바뀔 때: 이전 무기만 쓰던 시트를 내린다 (새 무기도 쓰는 시트는 남긴다) */
-function releaseWeaponSheets(scene: Phaser.Scene, prevId: string, nextId: string): void {
-  const keep = new Set(weaponSheetRequests(nextId).map((r) => sheetTextureKey(r.name, r.action)));
-  const drop = weaponSheetRequests(prevId).filter((r) => !keep.has(sheetTextureKey(r.name, r.action)));
-  spriteLibrary.removeSheets(scene, drop);
+/**
+ * 57라운드 A2: 런 무기의 시트를 이 씬의 preload 에서 로드한다 (Game·WeaponLab — 런 시작·이어하기·시험장 무기 교체).
+ * 이미 그 무기면 아무것도 하지 않는다. 다른 무기가 올라가 있으면 그 무기만의 시트를 먼저 내린다(GPU 메모리).
+ * 60라운드: awaken 이면 최종 각성 오버레이(`<무기 동작>_awaken`, 계약 art §21 — 각성 런에서만)도 같이.
+ * JSON 이 읽히는 대로 이미지를 같은 로드에 이어 붙이고, 로드가 끝나면(씬 create 전) 등록한다. 로드할 파일이 있으면 true
+ */
+export function preloadWeaponSheets(scene: Phaser.Scene, weaponId: string, awaken = false): boolean {
+  const wantAwaken = awaken && loadedAwaken !== weaponId;
+  if (loadedWeapon === weaponId && !wantAwaken) return false;
+  const reqs: SheetRequest[] = [];
+  if (loadedWeapon !== weaponId) {
+    if (loadedWeapon) releaseWeaponSheets(scene, loadedWeapon, weaponId);
+    loadedWeapon = null;
+    reqs.push(...weaponSheetRequests(weaponId));
+  }
+  if (wantAwaken) reqs.push(...awakenSheetRequests(weaponId));
+  const had = loadedWeapon;
+  return queueRequests(scene, reqs, () => {
+    loadedWeapon = had ?? weaponId;
+    if (wantAwaken) loadedAwaken = weaponId;
+  });
 }
 
-/** 디버그: 지금 올라가 있는 런 무기 시트 */
+/**
+ * 60라운드: 런 도중 각성했을 때 (create 뒤 — 시험장 a 키·개성 '각성' 칸) 각성 오버레이를 바로 로드한다. 이미 있으면 done 만.
+ * 로드가 끝나기 전까지 오버레이는 없다(무기 그림만)
+ */
+export function loadAwakenSheets(scene: Phaser.Scene, weaponId: string, done: () => void = () => {}): void {
+  if (loadedAwaken === weaponId) {
+    done();
+    return;
+  }
+  const started = queueRequests(scene, awakenSheetRequests(weaponId), () => {
+    loadedAwaken = weaponId;
+    done();
+  });
+  if (started && !scene.load.isLoading()) scene.load.start();
+}
+
+/** 다른 무기로 바뀔 때: 이전 무기만 쓰던 시트를 내린다 (새 무기도 쓰는 시트는 남긴다) — 각성 오버레이 포함 */
+function releaseWeaponSheets(scene: Phaser.Scene, prevId: string, nextId: string): void {
+  const keep = new Set(weaponSheetRequests(nextId).map((r) => sheetTextureKey(r.name, r.action)));
+  const prev = [...weaponSheetRequests(prevId), ...(loadedAwaken === prevId ? awakenSheetRequests(prevId) : [])];
+  const drop = prev.filter((r) => !keep.has(sheetTextureKey(r.name, r.action)));
+  spriteLibrary.removeSheets(scene, drop);
+  if (loadedAwaken === prevId) loadedAwaken = null;
+}
+
+/** 디버그: 지금 올라가 있는 런 무기 시트 (각성 오버레이면 + '+awaken') */
 export function loadedWeaponSheets(): string | null {
-  return loadedWeapon;
+  return loadedWeapon && loadedAwaken === loadedWeapon ? `${loadedWeapon}+awaken` : loadedWeapon;
 }

@@ -1,10 +1,9 @@
 /**
  * Game 씬 분리 모듈(50라운드 1단계)이 함께 쓰는 형식·작은 함수.
- * 씬 시작 데이터 · 판정 원점 · 연격 마지막 타 판정 · 개성 경로 이펙트 고르기 · 주소 옵션.
+ * 씬 시작 데이터 · 판정 원점 · 연격 마지막 타 판정 · 주소 옵션 (60라운드: 옛 개성 경로 이펙트 고르기 pathFx 삭제 — 57 Q42).
  */
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import type { FxPool } from '../../systems/fx/fx';
 import { PLAYER_HIT_ORIGIN_UP_PX } from '../../systems/weapon/playerScale';
 
 /**
@@ -57,22 +56,6 @@ export function rotatesLeft(p: PlayerAttackPayload): boolean {
 /** 55라운드: 근접 연격 타(연격 번호가 있거나 차지 내려찍기) — 판정을 몸 판정 프레임(swingDelayMs)에, 위치는 그때 몸 */
 export function isMeleeStrike(p: PlayerAttackPayload): boolean {
   return p.comboIndex !== undefined || p.charge !== undefined;
-}
-
-/**
- * 현재 개성 경로에 있고 시트가 로드된 첫 후보 id. 2차 노드를 앞에, 그것이 대신하는 1차 노드를 뒤에 적는다
- * (예: `pathFx(fx, 'wide', 'iai')` = 만월이 있으면 만월, 아니면 거합). 아무것도 없으면 null → 호출 쪽 플레이스홀더
- */
-export function pathFx(fx: FxPool, ...candidates: string[]): string | null {
-  const path = gameState.weapon.path;
-  for (const id of candidates) if (path.includes(id) && fx.has(id)) return id;
-  return null;
-}
-
-/** 1차 진화 이펙트 id = 경로의 첫 노드. 시트가 없으면 null (질풍·발도술 루프 판정용) */
-export function evolutionFxId(fx: FxPool): string | null {
-  const first = gameState.weapon.path[0];
-  return first && fx.has(first) ? first : null;
 }
 
 /** 주소 옵션 (`?debug`·`?nobirth` 등). 브라우저 밖(테스트)에서는 빈 값 */

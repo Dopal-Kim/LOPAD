@@ -4,8 +4,16 @@
  * 반경 안 적 탄, 그 자리 가까이서 공격한 적(ENEMY_ATTACK·BOSS_ATTACK). 월드 문구 'PERFECT EVADE'(§13 방식).
  * 세트 간파 2(치명 확정)·4(반향)·6(정적) · 아슬아슬 · 이중 개성 물 위의 달 · 각성 만월 명경(패링 일섬) · 갈래 반향(BranchStrikes).
  */
-import { BUILD_FX, TILE } from '../../../core/Constants';
-import { EventBus, Events, type BossAttackPayload } from '../../../core/EventBus';
+import { BUILD_ART, BUILD_FX, TILE } from '../../../core/Constants';
+import {
+  EventBus,
+  Events,
+  type BossAttackPayload,
+  type PerfectSuccessPayload,
+  type SetEffectPayload,
+} from '../../../core/EventBus';
+import { facingOf } from '../../../systems/sprites/spriteDefs';
+import { PLAYER_RENDER_SCALE } from '../../../systems/weapon/playerScale';
 import { gameState } from '../../../core/GameState';
 import { BUILD } from '../../../data/build';
 import { UI_EVENTS, __system, type UiPerfectSuccess } from '../../../contract/ui';
@@ -46,6 +54,7 @@ export class BuildPerfect {
     const now = this.now;
     this.last = { kind, t: Math.round(now) };
     __system.emit(UI_EVENTS.PERFECT_SUCCESS, { kind } satisfies UiPerfectSuccess);
+    EventBus.emit(Events.PERFECT_SUCCESS, { kind } satisfies PerfectSuccessPayload);
     this.rt.record('perfect', kind);
     const pl = this.g.player;
     const fx = pl.facingVec;
@@ -72,7 +81,7 @@ export class BuildPerfect {
       this.count += 1;
       if (this.count >= param(still, 'every', 3)) {
         this.count = 0;
-        this.startStill(param(still, 'ms'), param(still, 'slow'));
+        this.startStill(param(still, 'ms'), param(still, 'slow'), T(param(still, 'radiusTiles', 0)));
       }
     }
     if (kind === 'parry') this.onParry(dx, dy);
@@ -115,10 +124,14 @@ export class BuildPerfect {
     return true;
   }
 
-  /** 완벽 회피 확정 → 문구·완벽 성공 */
+  /** 완벽 회피 확정 → 문구·완벽 성공 · perfect_dodge (회피가 시작된 발 자리 고정, 행 = 이동 방향) */
   onEvade(): void {
     this.evades += 1;
     this.rt.fx.callout(BUILD_FX.TEXT.PERFECT_EVADE);
+    const o = this.rt.evade.origin;
+    const pl = this.g.player;
+    const dir = facingOf(pl.x - o.x, pl.y - o.y, pl.facingDir);
+    this.rt.art.once(BUILD_ART.PERFECT_DODGE, o.x, o.y, { dir, scaleMult: PLAYER_RENDER_SCALE });
     this.onPerfect('perfectEvade');
   }
 
@@ -158,23 +171,60 @@ export class BuildPerfect {
     return best;
   }
 
-  /** 정적: 물리 배속을 늦춘다 (활 숨 집중과 같은 방식 — 집중 중이면 건너뜀). 주인공은 제 속도 */
-  private startStill(ms: number, slow: number): void {
+  /**
+   * 정적 (간파 6): radiusPx > 0 이면 (60 Q3 아트 제안 채택 — 정적 파동 반경 약 5.6칸, 데이터 radiusTiles) 반경 안 적·적 탄만
+   * slow 만큼 감속 (`status_slowed` 표시, 파동 `set_stasis_wave` — 주인공 발, 바닥). 반경이 없으면 예전처럼 물리 배속 전체
+   * (활 숨 집중과 같은 방식 — 집중 중이면 건너뜀). 주인공은 제 속도
+   */
+  private startStill(ms: number, slow: number, radiusPx = 0): void {
     const g = this.g;
+    const pl = g.player;
+    EventBus.emit(Events.SET_EFFECT, { tag: 'insight', effect: 'stillness' } satisfies SetEffectPayload);
+    this.stillUntil = this.now + ms;
+    if (radiusPx > 0) {
+      if (
+        !this.rt.art.once(BUILD_ART.STASIS_WAVE, pl.x, pl.y, { depth: pl.depth - 1e-6, scaleMult: PLAYER_RENDER_SCALE })
+      )
+        this.rt.fx.ring(pl.x, pl.y, radiusPx, BUILD_FX.STILL_FLASH.COLOR);
+      const k = Math.max(0, 1 - slow);
+      for (const m of this.rt.fx.inCircle(pl.x, pl.y, radiusPx)) {
+        m.statusSlowUntil = this.now + ms;
+        m.statusSlowMult = k;
+      }
+      for (const child of g.projectiles.getChildren()) {
+        const pr = child as Projectile;
+        if (!pr.active || pr.reflected || pr.owner !== 'enemy') continue;
+        if (Math.hypot(pr.x - pl.x, pr.y - pl.y) > radiusPx) continue;
+        pr.body.velocity.scale(k);
+        this.slowedShots.push({ shot: pr, k });
+      }
+      g.screenFx.flash(BUILD_FX.STILL_FLASH.COLOR, BUILD_FX.STILL_FLASH.MS, BUILD_FX.STILL_FLASH.ALPHA);
+      this.stillOn = true;
+      this.stillLocal = true;
+      this.rt.record('stillness');
+      return;
+    }
     if (g.feedback.focusScale !== 1) return;
     const world = g.physics.world;
     const ts = 1 / Math.max(0.1, 1 - slow);
     if (world) world.timeScale = ts;
-    g.player.timeComp = ts;
+    pl.timeComp = ts;
     this.stillOn = true;
-    this.stillUntil = this.now + ms;
+    this.stillLocal = false;
     g.screenFx.flash(BUILD_FX.STILL_FLASH.COLOR, BUILD_FX.STILL_FLASH.MS, BUILD_FX.STILL_FLASH.ALPHA);
     this.rt.record('stillness');
   }
 
+  /** 반경 정적으로 늦춘 적 탄 (끝날 때 속도 되돌림) · 반경 정적인가 */
+  private slowedShots: { shot: Projectile; k: number }[] = [];
+  private stillLocal = false;
+
   private endStill(): void {
     if (!this.stillOn) return;
     this.stillOn = false;
+    for (const { shot, k } of this.slowedShots) if (shot.active && k > 0) shot.body.velocity.scale(1 / k);
+    this.slowedShots = [];
+    if (this.stillLocal) return;
     const g = this.g;
     if (g.feedback.focusScale !== 1) return;
     if (g.physics.world) g.physics.world.timeScale = 1;

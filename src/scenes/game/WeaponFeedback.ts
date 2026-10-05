@@ -36,6 +36,11 @@ export class WeaponFeedback {
     this.callouts = new WorldCallouts(g);
   }
 
+  /** 월드 문구 (60라운드: 결정타 등 — 그 자리 위) */
+  worldText(x: number, y: number, text: string): void {
+    this.callouts.show(x, y, text);
+  }
+
   /** 몸 위 문구 */
   private callout(text: string): void {
     const p = this.g.player;

@@ -22,6 +22,9 @@ import { loadedWeaponSheets } from '../../systems/sprites/sheetLoader';
 import type { Game } from '../Game';
 import type { GameInitData } from './shared';
 import { RES, logicalZoomOf } from '../../systems/display';
+import { CONSUMABLE_IDS } from '../../data/bundle2';
+import type { ConsumableId, ElitePrefixId, MapInfoId } from '../../data/bundle2Types';
+import { buyIntel } from '../../systems/bundle2/routeExtras';
 
 /** 53라운드 Q4 검증용 견본 상흔 (정규화 3획: 긴 사선 · 갈래 · 짧은 가로) */
 const DEBUG_SCAR = {
@@ -244,7 +247,7 @@ export function exposeGameDebug(g: Game): void {
       g.progress.applyEvolution(id);
       return gameState.weapon.path.length > before;
     },
-    spawnEnemy: (id, x, y) => g.director.spawnExtra(id, x, y),
+    spawnEnemy: (id, x, y) => Boolean(g.director.spawnExtra(id, x, y)),
     warpInfo: () => ({
       ...g.ui.warpState(),
       inCombat: g.director.inCombat,
@@ -445,6 +448,20 @@ export function exposeGameDebug(g: Game): void {
       openEvolveMenu: () => {
         gameState.weapon.choicePending = true;
         g.buildMenus.openEvolveMenu();
+      },
+    },
+    bundle: {
+      info: () => g.bundle.debug(),
+      gain: (id) => (CONSUMABLE_IDS as readonly string[]).includes(id) && g.bundle.consumables.gain(id as ConsumableId),
+      elite: (prefix) => {
+        const p = g.player;
+        const mobs = (g.mobs.getChildren() as Mob[]).filter((m) => m.active && !m.isBoss && !m.elite);
+        mobs.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
+        return mobs[0] ? g.bundle.elites.makeElite(mobs[0], (prefix as ElitePrefixId | undefined) ?? null) : false;
+      },
+      intel: (id) => {
+        const ex = gameState.bundle.floor;
+        return ex ? buyIntel(ex, id as MapInfoId) : false;
       },
     },
     boss: {

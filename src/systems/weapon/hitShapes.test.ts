@@ -157,10 +157,11 @@ describe('55라운드 데이터 (계약 §17 수치)', () => {
     expect(c.hits[1].step!.px).toBe(12);
     expect(c.momentum).toMatchObject({ perHit: 0.05, max: 0.2, idleResetMs: 1000 });
     expect(c.charge!.stages.map((s) => [s.atMs, s.lengthMult])).toEqual([
-      [400, 1.3],
-      [800, 1.5],
-      [1200, 1.8],
+      [400, 1.0],
+      [800, 1.1],
+      [1200, 1.2],
     ]);
+    // 58라운드 Q8: 내려찍기 쐐기 ×1.0~1.2 — 먼 적은 균열이 맞힌다
     // 56라운드 Q10: 기본 차지는 충격파 링 없음 · 58라운드 Q3: 균열이 커서까지 3/4/5칸 (꽂아내리기 대체)
     expect(c.charge!.stages.every((s) => !s.followUps)).toBe(true);
     expect(c.charge!.crackLine?.tilesByStage).toEqual([3, 4, 5]);

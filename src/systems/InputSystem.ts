@@ -33,6 +33,8 @@ export interface InputState {
   reloadPressed: boolean;
   /** 51라운드 Q4: 이 프레임에 넣기/뽑기 키(F)를 누름 — 칼·대검 */
   carryPressed: boolean;
+  /** 60라운드: 이 프레임에 소모품 키(KEYS.CONSUMABLE)를 누름 */
+  consumablePressed: boolean;
 }
 
 /** 입력 잠금(워프 연출 등): 조준만 남기고 이동·동작 입력을 비운 사본 */
@@ -53,6 +55,7 @@ export function neutralInput(s: InputState): InputState {
     interactHeld: false,
     reloadPressed: false,
     carryPressed: false,
+    consumablePressed: false,
   };
 }
 
@@ -79,6 +82,7 @@ export class InputSystem {
       interact: kb.addKey(KEYS.INTERACT),
       reload: kb.addKey(KEYS.RELOAD),
       carry: kb.addKey(KEYS.CARRY),
+      consumable: kb.addKey(KEYS.CONSUMABLE),
     };
     scene.input.mouse?.disableContextMenu();
     this.onPointerDown = (p) => {
@@ -132,6 +136,7 @@ export class InputSystem {
       interactHeld: this.keys.interact.isDown,
       reloadPressed: reload,
       carryPressed: Phaser.Input.Keyboard.JustDown(this.keys.carry),
+      consumablePressed: Phaser.Input.Keyboard.JustDown(this.keys.consumable),
     };
     this.attackQueued = false;
     this.secondaryQueued = false;

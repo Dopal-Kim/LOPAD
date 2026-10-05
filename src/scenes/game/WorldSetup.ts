@@ -12,6 +12,7 @@ import { RouteState, generateRoute, kindDef, regionIdOf, routeEnabled } from '..
 import { Lighting } from '../../systems/lighting/Lighting';
 import { lightingAmbientFor } from '../../systems/lighting/lightMath';
 import { Rng, hashSeed } from '../../systems/rng';
+import { decorateRoute, generateExtras } from '../../systems/bundle2/routeExtras';
 import { planNodeArena, setPieceTiles } from '../../systems/routeArena';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { planStructures, structureTiles, type StructurePlacement } from '../../systems/structures/placement';
@@ -34,8 +35,10 @@ export class WorldSetup {
   enterRoute(floor: number, slice: string | undefined): string {
     const g = this.g;
     g.routeMode = !g.lab && routeEnabled(gameState.stageId);
-    if (g.routeMode && !gameState.route)
+    if (g.routeMode && !gameState.route) {
       gameState.route = new RouteState(generateRoute(gameState.stageId, gameState.floorSeed), floor);
+      this.createFloorExtras(gameState.route);
+    }
     const route = g.routeMode ? gameState.route : null;
     if (route && !route.currentId && slice) this.jumpToSlice(route, slice);
     // 54라운드 디버그: ?boss · ?bossPhase · ?bossPattern = 이 층 보스 노드로 바로 (새 런만)
@@ -59,6 +62,17 @@ export class WorldSetup {
           })
         : null;
     return nodeSalt;
+  }
+
+  /**
+   * 60라운드 2차 묶음: 층 노드 정보(보상·위험·성소·접두어·이벤트·숨은 노드) — 층 그래프를 만들 때 한 번 (층 시드 결정적).
+   * 노드 지도 UI 에 계약 §14.5 필드를 얹는다 (RouteState.decorate)
+   */
+  private createFloorExtras(route: RouteState): void {
+    const B = gameState.bundle;
+    const waves = kindDef('battle').waves?.length ?? gameState.stage.trial.waves.length;
+    B.floor = generateExtras(route.graph, gameState.floorSeed, B.usedEvents, waves);
+    route.decorate = (base, st) => (B.floor ? decorateRoute(base, B.floor, st.graph) : base);
   }
 
   /** 54라운드 `?boss`: 보스 노드를 현재 노드로 (탄생 생략) */

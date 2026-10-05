@@ -1,7 +1,7 @@
 /**
  * 56라운드 무기 피드백 데이터 형식 (data/weapons.json — 결정 2026-10-04-round-56 Q1~Q39). 모든 수치는 임시값(보고서 표).
  * - 무기별 고유 자원 `gauge`: 칼 검기(劍氣) 3단 · 대검 울분(鬱憤) · 단검 낙인(烙印) · 활 숨(呼吸) (Q13~Q20)
- * - 칼 3타 일섬 `issen` (Q2·Q3·Q28·Q29) · 대검 개성 발현 후 차지 = 꽂아내리기 `plunge` (Q10)
+ * - 칼 일섬 `issen` (Q2·Q3·Q28·Q29 — 58 Q1 대쉬 일섬) · (대검 꽂아내리기 `plunge` 는 58 Q11 로 삭제)
  * - 활 우클릭 당김·놓기 `draw` (Q9·Q20) — 계약 art §18(56라운드) 시트 메모와 함께 쓴다
  */
 
@@ -99,27 +99,6 @@ export interface IssenDef {
   burstAtLineMs: number;
   /** 그림자 분신 (검기 3단 소모 시에만, Q28): 몸 기준 출발 · 이동 시간 · 피해 시각(도착 때 선 전체 1회, Q29) · 피해 배율 */
   shadow: { sheet: string; startAtMs: number; travelMs: number; hitAtMs: number; damageScale: number };
-}
-
-/** 대검 꽂아내리기 (개성 발현 후 차지, Q10): 휘두르지 않고 칼을 땅에 꽂아 마우스 방향 충격파 + 균열 */
-export interface PlungeDef {
-  /** 그림 이름 표(`combo.art`) 키 — 몸 greatsword_charge_plunge */
-  art: string;
-  durationMs: number;
-  hitAtMs: number;
-  /** 꽂힌 자리 작은 충격원: 반지름 = R × 값 · 피해 배율 */
-  plantRadiusRatio: number;
-  plantDamageMult: number;
-  /** 충격파 (fx greatsword_plunge_wave, 마우스 방향 직사각형): 차지 단계별 길이 = R × 값 · 반폭 월드 px · 피해 배율 · 앞머리 진행 ms(시트 없을 때) */
-  wave: {
-    sheet: string;
-    lengthMultByStage: number[];
-    halfWidthPx: number;
-    damageMult: number;
-    travelMs: number;
-  };
-  /** 균열 행 (greatsword_ground_crack s·m·l) */
-  crackRow: string;
 }
 
 /** 활 우클릭 당김·놓기 (Q9·Q20): 누르면 당김, 떼면 발사, 자동 발사 없음 */

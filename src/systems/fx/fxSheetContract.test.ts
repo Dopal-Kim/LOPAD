@@ -8,8 +8,6 @@ import { describe, expect, it } from 'vitest';
 import { WEAPONS } from '../../data';
 import { parseAshKinds, parseAshRecipes } from './ashParticleMath';
 import { weaponHitFxIds } from './fxIds';
-import { secondarySheetId, tier2FxSheetIds } from './fxTier';
-import { branchComboFxId } from './fxVariants';
 import { animDurationMs, artScale, frameDurations, fxHoldFrame, type SheetJson } from '../sprites/spriteDefs';
 import { readSheetJson } from '../sprites/sheetAtlas';
 
@@ -60,25 +58,6 @@ describe.skipIf(!present)('계약 §16 (55라운드) — 아트 v3 JSON', () => 
       expect(def.frames, id).toBe(4);
       expect(def.frameHeight, id).toBeGreaterThanOrEqual(2);
       expect(def.frameHeight, id).toBeLessThanOrEqual(3);
-    }
-  });
-
-  it('2단 전용 시트: 1단 JSON 이 가리키는 시트가 로드 목록에 있다 (Q16)', () => {
-    const load = new Set(tier2FxSheetIds(WEAPONS));
-    for (const [w, def] of Object.entries(WEAPONS)) {
-      if (def.kind !== 'melee') continue;
-      for (const b of def.personality.branches)
-        for (let n = 1; n <= 3; n++) {
-          const tier1 = branchComboFxId(w, n, b.id);
-          const j = read(tier1);
-          if (!j) continue;
-          for (const s of b.next ?? []) {
-            const id = secondarySheetId(tier1, j, s.id);
-            expect(load.has(id), id).toBe(true);
-            const t2 = read(id);
-            if (t2) expect(t2.hitRadiusPx ?? null, id).toBe(j.hitRadiusPx ?? null); // 판정 필드는 1단과 같다
-          }
-        }
     }
   });
 });

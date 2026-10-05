@@ -77,7 +77,7 @@ export class Economy {
     if (this.g.build && !this.g.build.potionAllowed()) return;
     gameState.potions -= 1;
     EventBus.emit(Events.POTION_USED, { potions: gameState.potions });
-    this.g.player.heal(ECONOMY.drops.potion.heal);
+    this.g.player.heal(ECONOMY.drops.potion.heal, 'potion');
     EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
   }
 
@@ -97,12 +97,22 @@ export class Economy {
     else if (!onTile && this.shopOpen) this.closeShop();
   }
 
+  /** 고정 4칸 가격 (60라운드: 2차 묶음 상점이 있으면 E9 할인까지 — ShopMenu.fixedPrice) */
+  private price(it: (typeof ECONOMY.shop.items)[number]): number {
+    return (
+      this.g.bundle?.shop.fixedPrice(it) ??
+      Math.round(shopPrice(it, gameState.stageIndex) * this.g.build.shopPriceMult())
+    );
+  }
+
   private openShop(): void {
     this.shopOpen = true;
     EventBus.emit(Events.SHOP_OPENED);
+    const shop = this.g.bundle?.shop;
+    shop?.onOpen();
     const render = () => {
-      const lines = ECONOMY.shop.items.map((it, i) => {
-        const price = Math.round(shopPrice(it, gameState.stageIndex) * this.g.build.shopPriceMult());
+      const fixed = ECONOMY.shop.items.map((it, i) => {
+        const price = this.price(it);
         const full = it.id === 'potion' && gameState.potions >= this.potionCarry;
         const name = it.id === 'potion' ? `${STORY.names.potion} +1` : it.name;
         return {
@@ -111,6 +121,8 @@ export class Economy {
           enabled: gameState.gold >= price && !full,
         };
       });
+      // 60라운드 (e) 진열 3칸 · 진열 바꾸기 · 궤짝 덤 · 지도 정보 (계약 §14.6 group)
+      const lines = shop ? shop.lines(fixed) : fixed;
       this.g.menu.open(
         'shop',
         `${STORY.names.shop}  (${STORY.names.gold} ${gameState.gold}, ${STORY.names.potion} ${gameState.potions})`,
@@ -120,6 +132,7 @@ export class Economy {
             this.shopDismissed = true;
             return this.closeShop();
           }
+          if (shop?.select(key, render, () => this.closeShop())) return;
           const item = ECONOMY.shop.items[Number(key) - 1];
           if (item) this.buy(item.id, render);
         },
@@ -138,14 +151,14 @@ export class Economy {
 
   private buy(id: 'heal' | 'sense' | 'stat' | 'potion', rerender: () => void): void {
     const item = ECONOMY.shop.items.find((i) => i.id === id)!;
-    const price = Math.round(shopPrice(item, gameState.stageIndex) * this.g.build.shopPriceMult());
+    const price = this.price(item);
     if (gameState.gold < price) return;
     gameState.gold -= price;
     EventBus.emit(Events.GOLD_CHANGED, { gold: gameState.gold, delta: -price });
     EventBus.emit(Events.SHOP_BOUGHT, { id, price });
     switch (id) {
       case 'heal':
-        this.g.player.heal(Math.round(gameState.maxHp * ECONOMY.shop.healFraction));
+        this.g.player.heal(Math.round(gameState.maxHp * ECONOMY.shop.healFraction), 'shop');
         rerender();
         break;
       case 'potion':

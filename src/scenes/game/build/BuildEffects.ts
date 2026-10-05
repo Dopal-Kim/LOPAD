@@ -1,14 +1,15 @@
 /**
  * 57라운드 빌드 축 월드 도우미 (씬 쪽): 범위 판정(원·원뿔·선) · 피해 · 술 웅덩이·불 웅덩이 · 빌드 투사체 · 플레이스홀더 연출.
- * 갈래 수단·세트·패시브·저주의 그림은 아트 시트가 오기 전까지 이 윤곽으로 그린다 (계약 art §18.6 예정 키는 BranchStrikes 머리말).
+ * 갈래 수단·세트·패시브·저주의 그림은 계약 art §21 시트(BuildArt·build/branch)가 있으면 그것, 없으면 이 윤곽으로 그린다.
  */
 import Phaser from 'phaser';
-import { BUILD_FX, DEPTH, TILE } from '../../../core/Constants';
+import { BUILD_ART, BUILD_FX, DEPTH, TILE } from '../../../core/Constants';
 import { BUILD } from '../../../data/build';
 import type { Mob } from '../../../objects/Mob';
 import type { Projectile, ProjectileVisual } from '../../../objects/Projectile';
 import { spriteLibrary } from '../../../systems/sprites/sprites';
-import { FX_ACTION, fxDrawScale } from '../../../systems/sprites/spriteDefs';
+import { FX_ACTION, artScale, fxDrawScale } from '../../../systems/sprites/spriteDefs';
+import { sheetLoopRange } from './BuildArt';
 import type { Pool } from '../../../systems/hazards/LiquorPools';
 import type { Game } from '../../Game';
 import type { DamageKind } from '../GameCombat';
@@ -154,7 +155,23 @@ export class BuildEffects {
       linkGapPx: L.linkGapTiles * TILE,
       color: BUILD_FX.COLOR.LIQUOR,
       alpha: BUILD_FX.LIQUOR_ALPHA,
+      sheets: this.liquorSheets(),
     });
+  }
+
+  /** 60라운드 계약 art §21 술 웅덩이 그림 (pool_liquor · pool_liquor_fire — 반경 1칸 = 64 도트) */
+  private liquorSheets(): NonNullable<Parameters<Game['pools']['add']>[1]['sheets']> | undefined {
+    const fx = this.g.fx;
+    const def = fx.sheet(BUILD_ART.POOL_LIQUOR);
+    if (!def) return undefined;
+    const dots = (def as unknown as { radiusPx?: number }).radiusPx;
+    return {
+      pool: BUILD_ART.POOL_LIQUOR,
+      fire: BUILD_ART.POOL_LIQUOR_FIRE,
+      radiusPx: dots ? dots * artScale(def) : TILE,
+      loop: sheetLoopRange(def),
+      fireLoop: sheetLoopRange(fx.sheet(BUILD_ART.POOL_LIQUOR_FIRE)),
+    };
   }
 
   /** 불 웅덩이 (잔불 심장·불씨): 바로 불, ms 동안 tickMs 마다 공격 × tickMult */
@@ -265,6 +282,25 @@ export class BuildEffects {
       .setOrigin(v.originX ?? 0.5, v.originY ?? 0.5)
       .clearTint();
     if (v.anim && this.g.anims.exists(v.anim)) shot.play(v.anim, true);
+    return true;
+  }
+
+  /**
+   * 반복 타일 선 (계약 art §21 `tile: true` — bow_skypierce_line 주기 64 도트, 트림 안 함): 선 시작부터 주기마다 같은 시트를
+   * 이어 깔고 진행 각도로 회전. 시트가 없으면 false
+   */
+  tileLine(id: string, x: number, y: number, dirX: number, dirY: number, len: number): boolean {
+    const fx = this.g.fx;
+    const def = fx.sheet(id);
+    if (!def || !fx.has(id)) return false;
+    const l = Math.hypot(dirX, dirY) || 1;
+    const ux = dirX / l;
+    const uy = dirY / l;
+    const period = Math.max(1, def.frameWidth * fxDrawScale(def));
+    const angle = Math.atan2(uy, ux);
+    const n = Math.max(1, Math.ceil(len / period));
+    for (let i = 0; i < n; i++)
+      fx.play(id, x + ux * period * i, y + uy * period * i, { angle, depth: DEPTH.HIT_FX, hooks: i === 0 });
     return true;
   }
 

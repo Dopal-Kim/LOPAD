@@ -21,9 +21,9 @@ import { Projectile } from '../objects/Projectile';
 import { Pickup } from '../objects/Pickup';
 import { InputSystem, neutralInput } from '../systems/InputSystem';
 import type { FloorLayout } from '../systems/mapgen';
-import { kindDef, type RouteKind, type RouteNode } from '../systems/route';
+import type { RouteKind, RouteNode } from '../systems/route';
 import type { Lighting } from '../systems/lighting/Lighting';
-import { RoomDirector } from '../systems/RoomDirector';
+import type { RoomDirector } from '../systems/RoomDirector';
 import type { Rng } from '../systems/rng';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { TextMenu } from '../systems/TextMenu';
@@ -72,12 +72,14 @@ import { RouteFlow } from './game/RouteFlow';
 import { WeaponFeedback } from './game/WeaponFeedback';
 import { UiRelay } from './game/UiRelay';
 import { WorldSetup } from './game/WorldSetup';
+import { createDirector } from './game/directorHost';
 import { SENSE_BONUS_MAX, urlParams, type GameInitData } from './game/shared';
 import { AnchorDebug } from './game/AnchorDebug';
 import { runWeaponFor } from './game/runWeapon';
 import { preloadWeaponSheets } from '../systems/sprites/sheetLoader';
 import { BuildRuntime } from './game/build/BuildRuntime';
 import { BuildMenus } from './game/build/BuildMenus';
+import { BundleRuntime } from './game/bundle/BundleRuntime';
 
 export type { GameInitData } from './game/shared';
 
@@ -161,6 +163,8 @@ export class Game extends Phaser.Scene {
   /** 57라운드 빌드 축: 태그 세트·패시브 규칙·이중 개성·갈래 수단·각성·저주 (런 상태는 gameState.build) · 선택 메뉴 */
   build: BuildRuntime;
   buildMenus: BuildMenus;
+  /** 60라운드 2차 묶음: 노드 보상·위험·성소·등급·이벤트·숨은 노드·상점 진열·엘리트·소모품·보스 파훼 (런 상태는 gameState.bundle) */
+  bundle: BundleRuntime;
 
   initData: GameInitData = {};
   private senseBonus = 0;
@@ -187,7 +191,9 @@ export class Game extends Phaser.Scene {
    * 전환 암전 안에서 짧게 '불러오는 중' 을 보이고 로드가 끝나면(create 전) 지운다
    */
   preload(): void {
-    if (!preloadWeaponSheets(this, runWeaponFor(this.initData, this.lab, this.saveSlot))) return;
+    // 60라운드: 같은 런의 각성 런이면 각성 외형 오버레이도 (새 런은 아님 — 이어하기는 create 에서 BuildRuntime 이)
+    const awaken = this.initData.mode !== 'new' && gameState.build.awakened;
+    if (!preloadWeaponSheets(this, runWeaponFor(this.initData, this.lab, this.saveSlot), awaken)) return;
     const at = screenFixed(this.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2);
     const label = this.add
       .text(at.x, at.y, WEAPON_LOAD.TEXT, { font: WEAPON_LOAD.FONT, color: WEAPON_LOAD.COLOR })
@@ -242,21 +248,8 @@ export class Game extends Phaser.Scene {
     this.menu = new TextMenu(this);
     this.wirePhysics();
 
-    // 방 상태 머신
-    const kd = this.nodeKind ? kindDef(this.nodeKind) : null;
-    this.director = new RoomDirector({
-      world: this.world,
-      stage: gameState.stage,
-      rng: this.rng,
-      player: this.player,
-      mobs: this.mobs,
-      heal: (f) => this.player.heal(Math.round(gameState.maxHp * f)),
-      onRunCleared: () => this.progress.beginEnding(),
-      onStageCleared: (room) => this.progress.beginStageReward(room),
-      isLastStage: () => gameState.isLastStage,
-      waveMods: (room) => this.structures?.waveMods(room) ?? { hpMult: 1, countMult: 1, extra: 0 },
-      waves: kd?.waves,
-    });
+    // 방 상태 머신 (scenes/game/directorHost)
+    this.director = createDirector(this);
     if (gameState.route && this.routeMode) this.route.syncProgress();
     this.createTutorial();
     this.pools = new LiquorPools({
@@ -268,6 +261,7 @@ export class Game extends Phaser.Scene {
       onKill: (m, kind) => this.progress.onKill(m, kind),
     });
     this.createStructures(structurePlan);
+    this.bundle = new BundleRuntime(this);
     this.createBossArena();
     this.inputSystem = new InputSystem(this);
 
@@ -297,7 +291,10 @@ export class Game extends Phaser.Scene {
     this.cameras.main.setZoom(worldZoom(CAMERA.ZOOM));
     this.cam.update(true);
     this.lighting = worldSetup.createLighting();
-    if (this.routeMode) this.route.enterNode();
+    if (this.routeMode) {
+      this.route.enterNode();
+      this.bundle.onEnter(this.route.enterLockUntil);
+    }
     this.labMode?.setup();
     this.createDebugText();
     this.anchorDebug = urlParams().has('anchors') ? new AnchorDebug(this) : null;
@@ -527,6 +524,7 @@ export class Game extends Phaser.Scene {
     let input = this.structures.inputLocked || this.route.locked(time) ? neutralInput(raw) : raw;
     if (input.potionPressed) this.economy.usePotion();
     this.structures.update(input, time, delta);
+    this.bundle.update(input, time);
     this.pools.update(time);
     this.bossArena?.update(input, time, delta);
     input = this.structures.adjustAim(input, time);
@@ -566,6 +564,7 @@ export class Game extends Phaser.Scene {
       arena: this.bossArena,
     };
     for (const child of [...this.mobs.getChildren()]) (child as Mob).update(ctx);
+    this.bundle.lateUpdate(time);
     this.telegraph.update(time);
     for (const child of this.projectiles.getChildren()) (child as Projectile).tick(time);
     for (const child of this.pickups.getChildren()) (child as Pickup).tick(time);
@@ -652,6 +651,7 @@ export class Game extends Phaser.Scene {
     this.screenFx.destroy();
     this.aimLine.destroy();
     this.structures.destroy();
+    this.bundle.destroy();
     this.bossArena?.destroy();
     this.bossArena = null;
     this.pools.destroy();

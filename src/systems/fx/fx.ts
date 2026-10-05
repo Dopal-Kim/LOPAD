@@ -56,6 +56,8 @@ interface FxState {
   timed: FxTimed[];
   /** 50라운드: 이 이펙트의 광원 (시트 JSON light · fallback · 무기 이펙트 순간광) */
   light?: LightSource;
+  /** 60라운드 `loopRange` 수명 시트: 끝낼 때 재생할 사라짐 구간 (루프 끝 다음 열부터 마지막 열) — 없으면 페이드 */
+  outro?: { anim: string };
   /** 55라운드: 히트스톱 정지 프레임 열 · 그 프레임으로 건너뛰어 멈췄는지 */
   hitstopFrame?: number;
   heldAt?: Phaser.Animations.AnimationFrame;
@@ -67,6 +69,8 @@ export class FxPool {
   private readonly states = new Map<Phaser.GameObjects.Sprite, FxState>();
   private nextToken = 1;
   hooks: FxHooks = {};
+  /** 60라운드 계약 art §21 갈래 런 교체 규칙 (원 시트 id → 교체 시트 id, 교체 시트가 로드돼 있을 때만) */
+  private readonly aliases = new Map<string, string>();
 
   constructor(private readonly scene: Phaser.Scene) {
     this.group = scene.add.group({
@@ -76,36 +80,56 @@ export class FxPool {
     });
   }
 
-  /** 이펙트 시트가 로드돼 있는지 */
-  has(id: string): boolean {
+  /**
+   * 60라운드 계약 art §21 갈래 런 교체 (`katana_fall_wide`↔`katana_fall` 등, 같은 규격 1:1): 지금 런의 교체 표로 바꾼다.
+   * 이후 has·sheet·play 등은 원 id 로 불러도 교체 시트를 쓴다 (교체 시트가 없으면 원 시트)
+   */
+  setAliases(map: Readonly<Record<string, string>>): void {
+    this.aliases.clear();
+    for (const [from, to] of Object.entries(map)) if (from !== to) this.aliases.set(from, to);
+  }
+
+  /** 교체 표를 거친 실제 시트 id */
+  resolve(id: string): string {
+    const to = this.aliases.get(id);
+    return to && this.loaded(to) ? to : id;
+  }
+
+  private loaded(id: string): boolean {
     const texture = spriteLibrary.textureKey(id, FX_ACTION);
     return Boolean(texture && this.scene.textures.exists(texture));
   }
 
+  /** 이펙트 시트가 로드돼 있는지 */
+  has(id: string): boolean {
+    return this.loaded(this.resolve(id));
+  }
+
   /** 시트 자연 재생 길이 ms (없으면 0) */
   durationOf(id: string): number {
-    const def = spriteLibrary.sheet(id, FX_ACTION);
+    const def = spriteLibrary.sheet(this.resolve(id), FX_ACTION);
     return def ? animDurationMs(def) : 0;
   }
 
   /** 시트 프레임 수 (없으면 0) */
   framesOf(id: string): number {
-    return spriteLibrary.sheet(id, FX_ACTION)?.frames ?? 0;
+    return spriteLibrary.sheet(this.resolve(id), FX_ACTION)?.frames ?? 0;
   }
 
   /** 시트 JSON (없으면 null) */
   sheet(id: string): SheetJson | null {
-    return spriteLibrary.sheet(id, FX_ACTION) ?? null;
+    return spriteLibrary.sheet(this.resolve(id), FX_ACTION) ?? null;
   }
 
   /** 예비 프레임 보정: 타격 프레임(`fxImpactFrame`)이 spawn 시점에 오도록 먼저 시작해야 하는 ms */
   leadMs(id: string): number {
-    const def = spriteLibrary.sheet(id, FX_ACTION);
+    const def = spriteLibrary.sheet(this.resolve(id), FX_ACTION);
     if (!def) return 0;
     return frameStarts(def)[fxImpactFrame(def)] ?? 0;
   }
 
-  play(id: string, x: number, y: number, opts: FxPlayOptions = {}): FxHandle | null {
+  play(rawId: string, x: number, y: number, opts: FxPlayOptions = {}): FxHandle | null {
+    const id = this.resolve(rawId);
     const def = spriteLibrary.sheet(id, FX_ACTION);
     // 계약 §10 색 교체 변주가 있으면 그 텍스처·애니 (만들 수 없으면 원본)
     const swapped = opts.variant?.swaps.length
@@ -182,7 +206,10 @@ export class FxPool {
         opts.loopFrom !== undefined && opts.loopFrom > 0 && opts.loopFrom < def.frames ? opts.loopFrom : null;
       if (loopFrom !== null && !opts.tailFrames)
         sprite.chain(this.tailAnim(id, key, texture, def.frames - loopFrom, opts.dir ?? 'down'));
-      const loop = Boolean(def.loop) || Boolean(opts.tailFrames) || loopFrom !== null;
+      // 60라운드 수명 시트 (계약 art §21 loopRange): 앞 구간 1회 → [a, b] 반복 → 끝낼 때(finish·durationMs) 뒤 구간 1회
+      const range = !opts.tailFrames && loopFrom === null ? this.validRange(def, opts.loopRange) : null;
+      if (range) this.startRange(sprite, state, id, key, texture, def, range, opts.dir ?? 'down');
+      const loop = Boolean(def.loop) || Boolean(opts.tailFrames) || loopFrom !== null || range !== null;
       if (!loop) {
         const hold = opts.holdLastMs ?? opts.variant?.holdLastMs ?? 0;
         sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
@@ -256,18 +283,96 @@ export class FxPool {
   /** 4방향 루프 이펙트의 방향 바꾸기 (질풍: 플레이어 방향을 따른다) */
   setDir(h: FxHandle | null, id: string, dir: string): void {
     if (!h || !this.isActive(h)) return;
-    const key = spriteLibrary.animKey(id, FX_ACTION, dir);
+    const key = spriteLibrary.animKey(this.resolve(id), FX_ACTION, dir);
     if (key && h.sprite.anims.currentAnim?.key !== key) h.sprite.play(key, true);
   }
 
   /** 고정 프레임 이펙트(진행도 주도)의 열 바꾸기 */
   setFrame(h: FxHandle | null, id: string, column: number, dir: string = 'down'): void {
     if (!h || !this.isActive(h)) return;
-    const def = spriteLibrary.sheet(id, FX_ACTION);
+    const def = spriteLibrary.sheet(this.resolve(id), FX_ACTION);
     if (!def) return;
     const row = frameIndices(def, dir)[0] ?? 0;
     const frame = row + Math.max(0, Math.min(def.frames - 1, column));
     if (h.sprite.frame.name !== String(frame)) h.sprite.setFrame(frame);
+  }
+
+  /**
+   * 60라운드 수명 시트 끝내기: `loopRange` 로 시작한 이펙트면 사라짐 구간(루프 끝 다음 열부터)을 한 번 재생하고 비활성,
+   * 아니면 페이드 (stop 과 같다)
+   */
+  finish(h: FxHandle | null): void {
+    if (!h || !this.isActive(h)) return;
+    const st = this.states.get(h.sprite)!;
+    if (!st.outro) {
+      this.fadeOut(h.sprite);
+      return;
+    }
+    this.playOutro(h.sprite, st);
+  }
+
+  private playOutro(sprite: Phaser.GameObjects.Sprite, st: FxState): void {
+    const outro = st.outro;
+    if (!outro) return;
+    st.outro = undefined;
+    st.expireAt = Infinity;
+    const token = st.token;
+    sprite.anims.chain();
+    sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
+    sprite.play(outro.anim, true);
+    sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (this.states.get(sprite)?.token === token) this.release(sprite);
+    });
+  }
+
+  private validRange(def: SheetJson, r: readonly [number, number] | undefined): [number, number] | null {
+    if (!r) return null;
+    const [a, b] = r;
+    return Number.isInteger(a) && Number.isInteger(b) && a >= 0 && b >= a && b < def.frames ? [a, b] : null;
+  }
+
+  /** 수명 시트: 앞 구간(0..a-1)을 이미 재생 중인 애니 대신 걸고 [a, b] 반복을 잇는다. 뒤 구간이 있으면 outro 로 */
+  private startRange(
+    sprite: Phaser.GameObjects.Sprite,
+    st: FxState,
+    id: string,
+    key: string,
+    texture: string,
+    def: SheetJson,
+    [a, b]: [number, number],
+    dir: string,
+  ): void {
+    const loopAnim = this.rangeAnim(id, key, texture, a, b, dir, true);
+    if (a > 0) {
+      sprite.play(this.rangeAnim(id, key, texture, 0, a - 1, dir, false), true);
+      sprite.chain(loopAnim);
+    } else sprite.play(loopAnim, true);
+    if (b + 1 < def.frames) st.outro = { anim: this.rangeAnim(id, key, texture, b + 1, def.frames - 1, dir, false) };
+  }
+
+  /** 열 구간 애니 (키 `<애니>#r<from>-<to>[L]`, 텍스처 변형별로 1회 생성) */
+  private rangeAnim(
+    id: string,
+    key: string,
+    texture: string,
+    from: number,
+    to: number,
+    dir: string,
+    loop: boolean,
+  ): string {
+    const rk = `${key}#r${from}-${to}${loop ? 'L' : ''}`;
+    if (!this.scene.anims.exists(rk)) {
+      const def = spriteLibrary.sheet(id, FX_ACTION)!;
+      const all = frameIndices(def, dir);
+      const durations = frameDurations(def);
+      this.scene.anims.create({
+        key: rk,
+        frames: all.slice(from, to + 1).map((frame, i) => ({ key: texture, frame, duration: durations[from + i] })),
+        frameRate: def.fps,
+        repeat: loop ? -1 : 0,
+      });
+    }
+    return rk;
   }
 
   /** 종료. `holdMs` 뒤에 끝내고, fade 가 false 면 페이드 없이 즉시 비활성 */
@@ -302,7 +407,8 @@ export class FxPool {
         if (st.followRotation) sprite.setRotation(f.rotation);
       }
       if (time >= st.expireAt) {
-        if (st.noFade) this.release(sprite);
+        if (st.outro) this.playOutro(sprite, st);
+        else if (st.noFade) this.release(sprite);
         else this.fadeOut(sprite);
       }
     }

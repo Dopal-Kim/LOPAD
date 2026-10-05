@@ -7,8 +7,8 @@
  * - 단검 가열: 갈래 시트 JSON `heatVariants.colorSwap[<k>]` + `playbackRateHint[<k>]` (기본 시트는 별도 heat 시트)
  * 필드가 없거나 형식이 틀리면 조용히 무시한다 (원본 그대로).
  */
-import { COMBO_HITS, type FxFlashSpec, type FxShakeSpec, type FxTrailSpec } from '../sprites/spriteDefs';
-import { comboFxId, type FxWeaponShape } from './fxIds';
+import { type FxFlashSpec, type FxShakeSpec, type FxTrailSpec } from '../sprites/spriteDefs';
+import { comboFxId } from './fxIds';
 
 /** 정확 색 교체 한 쌍 ('#rrggbb') */
 export interface ColorSwap {
@@ -44,17 +44,6 @@ export interface FxVariant {
 /** 1단 갈래 근접 연격 이펙트 `<무기>_combo<n>_<갈래>` */
 export function branchComboFxId(weaponId: string, n: number, branch: string): string {
   return `${comboFxId(weaponId, n)}_${branch}`;
-}
-
-/** 근접 무기 1단 갈래 연격 이펙트 전부 (Preloader 로드 목록 — 없는 파일은 매니페스트가 거른다) */
-export function meleeBranchFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
-  const out: string[] = [];
-  for (const [id, w] of Object.entries(weapons)) {
-    if (w.kind !== 'melee') continue;
-    for (const b of w.personality.branches)
-      for (let n = 1; n <= COMBO_HITS; n++) out.push(branchComboFxId(id, n, b.id));
-  }
-  return out;
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/;

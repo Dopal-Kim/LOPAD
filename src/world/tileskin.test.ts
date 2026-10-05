@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { STAGES } from '../data';
+import { TILE } from '../core/Constants';
 import { TileId, generateFloor } from '../systems/mapgen';
 import { PROPS_RULES, TileSkin, pickVariant, planProps, roomTypeMap, wallKind, type TilesetJson } from './tileskin';
 
@@ -205,5 +206,16 @@ describe('37·40라운드: 방 종류별 바닥 · 벽 변형 · 소품 상한·
     const corridor = layout.tiles.findIndex((row) => row.includes(TileId.Corridor));
     const cx = layout.tiles[corridor].indexOf(TileId.Corridor);
     expect(types.get(`${cx},${corridor}`)).toBeUndefined();
+  });
+});
+
+describe('60라운드 Q9 B안: 64도트 = 1칸 (pixelScale 0.5)', () => {
+  it('pixelScale 0.5 시트의 한 칸(64 도트)이 월드 한 칸(TILE)', () => {
+    const v3 = { ...stage1, pixelScale: 0.5, tileWidth: 64, tileHeight: 64 } as TilesetJson;
+    const skin = new TileSkin('tiles_stage1', v3, true);
+    expect(64 * skin.worldScale).toBe(TILE);
+    // pixelScale 이 없으면 칸 크기로 (64px 칸 = 0.25)
+    const noPs = new TileSkin('tiles_stage1', { ...stage1, tileWidth: 64 } as TilesetJson, true);
+    expect(64 * noPs.worldScale).toBe(TILE);
   });
 });

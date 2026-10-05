@@ -64,6 +64,12 @@ export const UI_EVENTS = {
   CURSE_ENDED: 'ui:curse-ended',
   /** 57라운드 §14.11: 완벽 성공 사건 (`UiPerfectSuccess`) — 완벽 회피 = 적 공격 판정 직전 0.15초 안 대쉬·그림자 걸음 */
   PERFECT_SUCCESS: 'ui:perfect-success',
+  /** 60라운드 §14.11: 성과 등급 노드 종료 (`UiNodeGraded`) */
+  NODE_GRADED: 'ui:node-graded',
+  /** §14.11: 단서 조사로 숨은 길 열림 (`UiHiddenNodeFound`) */
+  HIDDEN_NODE_FOUND: 'ui:hidden-node-found',
+  /** §14.11: 소모품 사용 (`UiConsumableUsed`) */
+  CONSUMABLE_USED: 'ui:consumable-used',
 } as const;
 
 /**
@@ -189,13 +195,33 @@ export interface UiRouteNode {
   region?: string;
   /** 49라운드: 장소 설명 한두 줄 (자리표시) */
   desc?: string;
+  /** 60라운드 §14.5 (아래 7개 — 시스템은 늘 채운다, 선택 표기는 UI 기존 코드·테스트 호환): 공개된 보상 (null = 아직 비공개·상점·휴식, 'unknown' = '?' 이벤트·숨김) */
+  reward?: UiNodeRewardKind | null;
+  /** §14.5: 위험 노드 (엘리트 길 / 저주 길, 1층 1개) */
+  risk?: 'elite' | 'curse' | null;
+  /** §14.5: 진입 확인에 붙일 위험 한 줄 (위험 노드 아니면 '') */
+  riskText?: string;
+  /** §14.5: 엘리트 접두어 이름 (지도 정보로 공개된 경우만) */
+  prefixes?: string[] | null;
+  /** §14.5: 이벤트 내용 이름 (지도 정보로 공개된 경우만) */
+  eventName?: string | null;
+  /** §14.5: 숨은 노드 — 얼룩만 / 위치 표시(지도 정보) / 조사로 길 열림. 일반 노드는 null */
+  hidden?: 'smudge' | 'located' | 'found' | null;
+  /** §14.5: 지나온 노드의 성과 도장 */
+  grade?: UiNodeGrade | null;
 }
+/** 60라운드 §14.5: 보상 미리보기 아이콘 7종 (설계안 a.1) */
+export type UiNodeRewardKind = 'gold' | 'passive' | 'personality' | 'consumable' | 'statPoint' | 'curse' | 'unknown';
+/** §14.5: 완(完) · 양(良) */
+export type UiNodeGrade = 'perfect' | 'good';
 export interface UiRoute {
   floor: number;
   nodes: UiRouteNode[];
   currentId: string | null;
   /** true = 다음 노드를 골라야 함 (시스템이 게임 입력 잠금) */
   choosing: boolean;
+  /** 60라운드 §14.5: 산 지도 정보 3품목 (시스템은 늘 채운다 — 선택 표기는 UI 기존 코드 호환) */
+  intel?: { nextTier: boolean; fullFloor: boolean; hiddenLocated: boolean };
 }
 export interface UiRouteEntered {
   id: string;
@@ -275,6 +301,12 @@ export interface UiMenuLine {
   rarity?: UiRarity;
   /** §14.4: 잠긴 칸 — 각성 조건 안내. locked 면 enabled = false */
   locked?: { condition: string } | null;
+  /** 60라운드 §14.6: 상점 줄 묶음 — 고정 4칸 / 진열 3칸 / 리롤 / 궤짝 덤 / 지도 정보 */
+  group?: 'fixed' | 'display' | 'reroll' | 'chest' | 'mapInfo';
+  /** §14.6: 가격 (리롤은 15 → 25 → 35) */
+  price?: UiCost;
+  /** §14.6: 팔림 (enabled = false) */
+  soldOut?: boolean;
 }
 
 /**
@@ -287,8 +319,11 @@ export type UiStructureMenuId = 'cards' | 'exchange' | 'pawn' | 'grave' | 'ledge
 /** 'evolve' 는 27라운드 개성 3지선다, 'ending' 은 23라운드 엔딩 2지선다 (계약 추가분, 승인 대기) */
 /** 49라운드: 무기 시험장 메뉴 (계약 §11.4) */
 export type UiLabMenuId = 'lab' | 'labBranch';
-/** 57라운드 §14.7: 저주 2택 (필수 — cancelKey 없음). event·mapInfo·consumableSwap 은 2차 묶음 */
-export type UiBuildMenuId = 'curse';
+/**
+ * 57라운드 §14.7: 저주 2택 (필수 — cancelKey 없음). 60라운드 2차 묶음: event 이벤트 노드('0' 지나간다) · mapInfo 지도 장수 ·
+ * consumableSwap 소모품 바꾸기(필수)
+ */
+export type UiBuildMenuId = 'curse' | 'event' | 'mapInfo' | 'consumableSwap';
 export type UiMenuId =
   'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending' | UiStructureMenuId | UiLabMenuId | UiBuildMenuId;
 
@@ -372,7 +407,9 @@ export type UiStructureKind =
   | 'dogRing'
   | 'stakeBell'
   | 'roulette'
-  | 'pawn';
+  | 'pawn'
+  /** 60라운드 §14.10: 도전 성소 C4 전장 깃발 (E, 첫 웨이브 전 비전투에만) */
+  | 'warFlag';
 
 /** 47라운드: 상호작용 비용 표시 (계약 §9.1) */
 export interface UiCost {
@@ -484,8 +521,8 @@ export interface UiStructureResult {
 export interface UiChallengeStarted {
   /** 구조물 인스턴스 id */
   id: string;
-  /** dogRing 투견 링 · cardTable 흉패 소환 */
-  kind: 'dogRing' | 'cardTable';
+  /** dogRing 투견 링 · cardTable 흉패 소환 · 60라운드 warFlag 도전 성소 */
+  kind: 'dogRing' | 'cardTable' | 'warFlag';
   roomId: string;
   /** 도전 이름 (자리표시) */
   label: string;
@@ -497,7 +534,7 @@ export interface UiChallengeStarted {
 
 export interface UiChallengeCleared {
   id: string;
-  kind: 'dogRing' | 'cardTable';
+  kind: 'dogRing' | 'cardTable' | 'warFlag';
   roomId: string;
   /** clear 달성 · flawless 무피격 달성 · timeout 시간 초과(판돈 몰수, 사망 아님) */
   outcome: 'clear' | 'flawless' | 'timeout';
@@ -559,6 +596,59 @@ export interface UiSnapshot {
   groggy: UiGroggy | null;
   /** 57라운드: 태그·세트 · 이중 개성 · 저주 (계약 §14.1) */
   build: UiBuildState;
+  /** 60라운드 §14.8: 소모품 칸 (소모품 칸이 없는 모드면 null) */
+  consumable: UiConsumableSlot | null;
+  /** 60라운드 §14.9: 화면 안의 살아 있는 엘리트 */
+  elites: UiElite[];
+  /** 60라운드 §14.10: 잔 구간 전투·위험 노드 진행 중에만 */
+  nodeTrial: UiNodeTrial | null;
+}
+
+/** 60라운드 §14.8 소모품 칸 */
+export interface UiConsumableSlot {
+  /** 사용 키 이름 (시스템이 읽음 — 독주 Q 와 별개) */
+  key: string;
+  /** 같은 종류 최대 max. 빈 칸이면 null */
+  item: { id: string; name: string; description: string; kind: 'throw' | 'drink'; count: number; max: number } | null;
+}
+
+/** 60라운드 §14.9 엘리트 이름표 */
+export interface UiElite {
+  id: string;
+  /** 이름표 문구 (예 '불붙은 결사병', 자리표시) */
+  name: string;
+  prefixes: string[];
+  hp: number;
+  maxHp: number;
+  /** 머리 위 화면 좌표 (논리 960×540 px, 카메라 반영 — §9.1 screen 과 같은 규칙) */
+  screen: { x: number; y: number };
+}
+
+/** 60라운드 §14.10 노드 성과 진행 */
+export interface UiNodeTrial {
+  timeLimitMs: number;
+  elapsedMs: number;
+  hitTaken: boolean;
+}
+
+/** 60라운드 §14.10 노드 성과 등급 결과 (NODE_GRADED) */
+export interface UiNodeGraded {
+  nodeId: string;
+  grade: UiNodeGrade | null;
+  noHit: boolean;
+  inTime: boolean;
+  deltas: { gold?: number; personality?: number };
+  text: string;
+}
+
+/** 60라운드 §14.11 숨은 길 열림 · 소모품 사용 */
+export interface UiHiddenNodeFound {
+  nodeId: string;
+}
+export interface UiConsumableUsed {
+  id: string;
+  name: string;
+  left: number;
 }
 
 export interface UiResult {
@@ -658,6 +748,9 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   gauge: null,
   groggy: null,
   build: { tags: [], dualTraits: [], curse: null },
+  consumable: null,
+  elites: [],
+  nodeTrial: null,
 };
 
 export const uiCommands = {

@@ -89,7 +89,8 @@ export function wantedSheets(
 
 /** `sprites/<분류>/<이름>_<동작>.json` (매니페스트·URL 공통 상대 경로). 이펙트는 `sprites/fx/<이름>.json` */
 export function sheetJsonPath(r: SheetRequest): string {
-  if (r.category === 'fx' || r.category === 'structures') return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}.json`;
+  if (r.category === 'fx' || r.category === 'structures' || r.category === 'items')
+    return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}.json`;
   return `${ASSETS.SPRITES_DIR}/${r.category}/${r.name}_${r.action}.json`;
 }
 

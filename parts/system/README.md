@@ -1008,3 +1008,17 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 ### 트림 아틀라스 대비
 - `sprites/sheetAtlas`: 시트 JSON 의 `frames` 가 배열·객체면 트림 아틀라스(Phaser `load.atlas`), 숫자면 기존 spritesheet. 프레임 번호·피벗·앵커는 칸(sourceSize) 기준 그대로. 층 변형·색 교체 텍스처는 원본 프레임(잘린 영역 + trim)을 그대로 옮긴다(`copyFrames`). `tile: true` 시트는 잘라내지 않는다.
 - WebGL 에서 격자 시트와 같은 시트의 트림 아틀라스를 24프레임 × (기본·좌우 반전·2배·복사 텍스처) 그려 픽셀 차 0 확인.
+
+## 60라운드: 갈래 디벨롭 반영 · 아트 §20~§22.1·음향 104종 연결 · 2차 묶음 구조 (2026-10-05)
+근거: 결정 58라운드 Q8~Q11 · 57 Q43 · 60라운드 Q3·Q6·Q9, 계약 art §20~§22.1 · sound §5·§6. 수치는 데이터(데모로 조정).
+
+### 구조 (6-1 정리)
+- `scenes/game/build/BranchStrikes` = 무기별 갈래 파사드 → `build/branch/{BranchKit,KatanaBranch,GreatswordBranch,DaggerBranch,BowBranch}`. 상태·표식·화상 등 지속 그림은 `build/BuildArt`.
+- 2차 묶음: 데이터 `data/bundle2.json`(`src/data/bundle2*`) · 순수 계산 `systems/bundle2/{routeExtras,BundleState,consumableSlot,shopStock,bundleSheets}` · 씬 `scenes/game/bundle/{BundleRuntime,NodeFlow,EventNode,BossBreaks,EliteSystem,Consumables,ShopMenu,BundleProps,bundleRewards}`. 런 상태 `gameState.bundle`(세이브), 층 노드 정보 `gameState.bundle.floor`(층 생성 때 결정적 — `WorldSetup.createFloorExtras`, 지도 UI 는 `RouteState.decorate`).
+- 방 상태 머신 생성은 `scenes/game/directorHost`(훅 holdTrial·extraWaves·onWaveSpawned·waveMods(index,total)).
+- 음향: `systems/audio/audioBuild`(빌드 37 + 묶음·갈래·패시브 67, 보관 3종 `ARCHIVED_SFX` 미연결, 음향 임시 id ↔ 시스템 id `SOUND_ID_ALIASES`).
+
+### 로드
+- 각성 오버레이(`<무기 동작>_awaken`)는 각성 런만(`preloadWeaponSheets(…, awaken)` · `loadAwakenSheets`), 피벗은 오버레이 JSON.
+- 갈래 fx 는 노드 `art.fx`·`replaceFx`(fx 별칭) — 옛 갈래·조합·tier2 시트는 읽지 않음, 옛 2단 시트는 빌드에서 뺌(`data/buildExclude.json`).
+- §22: 소품(`structures/v3`) · 월드 소모품(분류 `items` — `sprites/items/<이름>.json`) · 엘리트 외곽선(`enemies/v3/<적>_<동작>_elite`)은 부팅 묶음.

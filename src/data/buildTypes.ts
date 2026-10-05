@@ -170,6 +170,8 @@ export interface CurseDef {
   /** combat = 전투가 있는 노드만 셈 (맨손 맹세 '다음 전투 노드 1개') */
   nodeFilter?: 'combat';
   sources: string[];
+  /** 60라운드 계약 art §21 저주 표시 `curse_mark` 행 (rowsAre kinds) */
+  markRow?: string;
   benefits: {
     attackMult?: number;
     tagBonus?: Partial<Record<TagId, number>>;
@@ -211,6 +213,8 @@ export interface AwakeningDef {
   common: AwakeningPart;
   /** 2단 노드 id → 덧붙는 규칙 */
   rules: Record<string, AwakeningPart & { description: string }>;
+  /** 60라운드 계약 art §21 시그니처 fx (무기 묶음에 로드 — 무기 외형 오버레이 `_awaken` 은 각성 런에서만) */
+  art?: { fx: string[] };
 }
 
 /** 갈래 노드 연격 한 타 변화 (1단 — 설계안 2.2~2.5 '연격 변화') */

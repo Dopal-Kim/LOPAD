@@ -124,7 +124,7 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
     expect(sheetJsonPath({ category: 'fx', name: 'iai', action: FX_ACTION })).toBe('sprites/fx/iai.json');
   });
 
-  it('이펙트 목록 (계약 §3·§3.1): 근접 slash, 원거리 arrow·arrow_aimed, 1차 진화 id', () => {
+  it('이펙트 목록 (계약 §3·§3.1): 근접 slash, 원거리 arrow·arrow_aimed (60라운드: 옛 진화 노드 id 시트는 빠짐 — 57 Q42)', () => {
     const ids = fxSheetIds({
       katana: { kind: 'melee', personality: { branches: [{ id: 'iai' }, { id: 'batto' }] } },
       bow: { kind: 'ranged', personality: { branches: [{ id: 'pierce' }, { id: 'scatter' }] } },
@@ -134,18 +134,14 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'katana_combo1',
       'katana_combo2',
       'katana_combo3',
-      'iai',
-      'batto',
       'bow_arrow',
       'bow_arrow_aimed',
-      'pierce',
-      'scatter',
     ]);
     expect(slashFxId('dagger')).toBe('dagger_slash');
     expect(arrowFxId('bow', true)).toBe('bow_arrow_aimed');
   });
 
-  it('2차 진화 노드(next)·보조 연출·피격·적 양상 시트가 전체 목록에 들어간다 (35라운드 3단계)', async () => {
+  it('보조 연출·피격·적 양상 시트가 전체 목록에 들어가고 옛 진화 노드(1·2단) 시트는 빠진다 (60라운드 — 57 Q42)', async () => {
     const { allFxSheetIds, SECONDARY_FX_IDS } = await import('../fx/fxIds');
     const { fxDepthHint } = await import('./spriteDefs');
     const weapons = {
@@ -155,24 +151,14 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       },
     };
     const ids = fxSheetIds(weapons);
-    expect(ids).toEqual([
-      'katana_slash',
-      'katana_combo1',
-      'katana_combo2',
-      'katana_combo3',
-      'iai',
-      'wide',
-      'zangetsu',
-      'batto',
-    ]);
+    expect(ids).toEqual(['katana_slash', 'katana_combo1', 'katana_combo2', 'katana_combo3']);
     const all = allFxSheetIds(weapons);
+    for (const old of ['iai', 'wide', 'zangetsu', 'batto', 'heavyarrow_hit']) expect(all).not.toContain(old);
     for (const id of [
       ...SECONDARY_FX_IDS,
       'hit_burst',
       'telegraph_aura',
       'boss_slam',
-      'heavyarrow_hit',
-      'wide',
       // 55라운드 계약 §16
       'hit_katana',
       'hit_katana_heavy',

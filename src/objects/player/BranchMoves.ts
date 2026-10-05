@@ -29,6 +29,8 @@ export class BranchMoves {
     sustain: boolean;
     /** 홀드 자세: 0 = 아직 · 1 = 들어가는 열 재생 중 · 2 = 루프 */
     pose: 0 | 1 | 2;
+    /** 60라운드: 'hold' 국면을 냈는가 (음향 홀드 루프 — 끝은 release·cancel) */
+    held: boolean;
   } | null = null;
   /** 속사 연사 몸 루프 중 */
   private volleyPose = false;
@@ -89,13 +91,25 @@ export class BranchMoves {
     const pd = this.pending;
     if (!pd) {
       if (input.attackPressed && canStrike && p.gear.drawn && !p.inDashWindow(time)) {
-        this.pending = { pressAt: time, move, holdMs: this.num('holdMs'), ready: false, sustain: false, pose: 0 };
+        this.pending = {
+          pressAt: time,
+          move,
+          holdMs: this.num('holdMs'),
+          ready: false,
+          sustain: false,
+          pose: 0,
+          held: false,
+        };
         return { ...input, attackPressed: false, attackHeld: false };
       }
       return input;
     }
     const dir = this.aim(input);
     if (input.attackHeld) {
+      if (!pd.held && time - pd.pressAt >= POSE_AFTER_MS) {
+        pd.held = true;
+        this.emit(pd.move, 'hold', dir.x, dir.y);
+      }
       this.holdPose(pd, dir, time);
       if (!pd.ready && time - pd.pressAt >= pd.holdMs) {
         pd.ready = true;
@@ -125,6 +139,7 @@ export class BranchMoves {
       this.emit(pd.move, 'release', dir.x, dir.y);
       return { ...input, attackPressed: false };
     }
+    if (pd.held) this.emit(pd.move, 'cancel', dir.x, dir.y);
     // 짧게 뗌 = 일반 연격 한 번
     return { ...input, attackPressed: true };
   }
@@ -243,7 +258,9 @@ export class BranchMoves {
   }
 
   cancel(): void {
-    if (this.pending?.sustain) this.emit('spin', 'end', 0, 0);
+    const pd = this.pending;
+    if (pd?.sustain) this.emit('spin', 'end', 0, 0);
+    else if (pd?.held) this.emit(pd.move, 'cancel', 0, 0);
     this.pending = null;
   }
 

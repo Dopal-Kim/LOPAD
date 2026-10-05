@@ -4,9 +4,19 @@
  * 일은 나눠서: 타격·처치·투사체 = `BuildCombat`, 피격·버팀·취보 = `BuildDefense`, 완벽 성공·정적 = `BuildPerfect`,
  * 갈래 수단 = `BranchStrikes`, 월드 도우미·플레이스홀더 = `BuildEffects`. UI 이벤트(계약 §14.11)도 여기서.
  */
-import { EventBus, Events, type PlayerAttackPayload, type StructureEventPayload } from '../../../core/EventBus';
+import {
+  EventBus,
+  Events,
+  type CurseGainedPayload,
+  type PlayerAttackPayload,
+  type StructureEventPayload,
+  type TagSetChangedPayload,
+  type WeaponEvolvedPayload,
+} from '../../../core/EventBus';
+import { BUILD_ART } from '../../../core/Constants';
 import { gameState } from '../../../core/GameState';
-import { BUILD, CURSES, DUAL_TRAITS, curseDef, tagName } from '../../../data/build';
+import { AWAKENINGS, BUILD, CURSES, DUAL_TRAITS, curseDef, tagName } from '../../../data/build';
+import { loadAwakenSheets } from '../../../systems/sprites/sheetLoader';
 import { TAG_IDS, type BuildStatKey, type TagId } from '../../../data/buildTypes';
 import { ECONOMY } from '../../../data';
 import {
@@ -27,6 +37,7 @@ import { CurseState, pickPactCurse, scaledBenefit } from '../../../systems/build
 import { DotBook, DrunkTimer, EvadeTracker, MarkBook } from '../../../systems/build/statusBooks';
 import type { Game } from '../../Game';
 import { BranchStrikes } from './BranchStrikes';
+import { BuildArt } from './BuildArt';
 import { BuildCombat } from './BuildCombat';
 import { BuildDefense } from './BuildDefense';
 import { BuildEffects } from './BuildEffects';
@@ -39,6 +50,8 @@ type Sub = [event: string, fn: (p: never) => void];
 
 export class BuildRuntime {
   readonly fx: BuildEffects;
+  /** 60라운드 계약 art §21 상태·세트·저주 시트 */
+  readonly art: BuildArt;
   readonly combat: BuildCombat;
   readonly defense: BuildDefense;
   readonly perfect: BuildPerfect;
@@ -59,6 +72,7 @@ export class BuildRuntime {
 
   constructor(private readonly g: Game) {
     this.fx = new BuildEffects(g);
+    this.art = new BuildArt(g, this);
     this.combat = new BuildCombat(g, this);
     this.defense = new BuildDefense(g, this);
     this.perfect = new BuildPerfect(g, this);
@@ -90,6 +104,26 @@ export class BuildRuntime {
       this.onNodeEntered(g.nodeKind === 'battle' || g.nodeKind === 'boss' || g.nodeKind === 'road');
     // 만취 서약: 취기 상태 유지
     if (this.mods.flags.drunkAlways) this.drink('counter', true);
+    // 60라운드: 각성 런이면 각성 외형 오버레이 (preload 에서 못 읽었으면 지금)
+    if (gameState.build.awakened) loadAwakenSheets(g, gameState.weapon.id);
+  }
+
+  /**
+   * 60라운드 최종 각성 획득 (개성 '각성' 칸·시험장 a): 각성 외형 오버레이(계약 art §21 `_awaken`) 로드 + 시그니처 fx 1회
+   * (아트: 만월은 '각성 획득 연출로도 1회 — 시스템 선택'). emit = 시험장처럼 WEAPON_EVOLVED 를 따로 내지 않은 곳이면 true
+   */
+  onAwakened(emit = true): void {
+    const w = gameState.weapon;
+    loadAwakenSheets(this.g, w.id);
+    const sig = AWAKENINGS[w.id]?.art?.fx?.[0];
+    if (sig) this.afterMenu(() => this.art.onPlayer(sig));
+    if (emit)
+      EventBus.emit(Events.WEAPON_EVOLVED, {
+        weapon: w.id,
+        stage: w.stage + 1,
+        name: AWAKENINGS[w.id]?.name ?? w.displayName,
+        kind: 'awaken',
+      } satisfies WeaponEvolvedPayload);
   }
 
   // --- 합산 읽기 ---
@@ -301,7 +335,7 @@ export class BuildRuntime {
   /**
    * 저주 받기 (구조물·위험 노드·이벤트·피의 계약). 동시 1개 — 이미 있으면 false. pact = 개성 '피의 계약' 칸(이득 ×1.5, 지속 +1)
    */
-  grantCurse(id: string, opts: { pact?: boolean } = {}): boolean {
+  grantCurse(id: string, opts: { pact?: boolean; source?: CurseGainedPayload['source'] } = {}): boolean {
     const def = curseDef(id);
     if (!def || gameState.build.curse) return false;
     const pact = Boolean(opts.pact);
@@ -330,6 +364,10 @@ export class BuildRuntime {
     gameState.build.touch();
     if (B.drunkAlways) this.drink('counter', true);
     __system.emit(UI_EVENTS.CURSE_GAINED, uiCurse(c));
+    EventBus.emit(Events.CURSE_GAINED, {
+      id,
+      source: pact ? 'bloodPact' : (opts.source ?? 'other'),
+    } satisfies CurseGainedPayload);
     this.g.ui.story('notice', `${def.name} — ${def.benefit} / ${def.penalty}`);
     this.record('curse', { id, pact });
     // 패시브 고르기 이득 (맨손 맹세 영웅 3지선다 · 저주 궤짝 희귀 이상 2택)
@@ -354,6 +392,7 @@ export class BuildRuntime {
     }
     gameState.build.touch();
     __system.emit(UI_EVENTS.CURSE_ENDED, { id: c.id, name: c.def.name } satisfies UiCurseEnded);
+    EventBus.emit(Events.CURSE_ENDED, { id: c.id });
     this.record('curseEnd', c.id);
   }
 
@@ -370,18 +409,37 @@ export class BuildRuntime {
     if (!gameState.build.addDual(id)) return false;
     const d = DUAL_TRAITS.find((x) => x.id === id);
     if (d) __system.emit(UI_EVENTS.DUAL_TRAIT_GAINED, uiDualTrait(d, gameState.weapon));
+    EventBus.emit(Events.DUAL_TRAIT_GAINED, { id });
+    // dual_trait_get: 보상 화면을 닫고 전투로 돌아온 뒤 (메뉴가 닫힐 때까지 미룸)
+    this.afterMenu(() => this.art.onPlayer(BUILD_ART.DUAL_GET));
     this.record('dual', id);
     return true;
   }
 
   // --- 매 프레임 ---
 
+  /** 60라운드 계약 art §21 갈래 런 교체 규칙 (경로 노드 art.replaceFx → FxPool) — 경로가 바뀔 때만 */
+  private aliasSig: string | null = null;
+
+  private syncFxAliases(): void {
+    const w = gameState.weapon;
+    const sig = `${w.id}:${w.path.join('/')}`;
+    if (sig === this.aliasSig) return;
+    this.aliasSig = sig;
+    const map: Record<string, string> = {};
+    for (const n of w.nodes) Object.assign(map, n.art?.replaceFx ?? {});
+    this.g.fx.setAliases(map);
+  }
+
   update(time: number): void {
+    this.syncFxAliases();
     this.syncStages();
     if (this.mods.flags.drunkAlways && !this.drunk.active(time)) this.drink('counter', true);
     this.combat.update(time);
     this.perfect.update(time);
     this.branch.update(time);
+    this.art.update(time);
+    this.flushAfterMenu();
     // 플레이어 속도·공속 배율 (Player·MeleeDriver 가 읽는다)
     const pl = this.g.player;
     if (pl) {
@@ -396,7 +454,8 @@ export class BuildRuntime {
     const st = this.mods.stages;
     for (const t of TAG_IDS) {
       if (st[t] === this.stages[t]) continue;
-      const up = st[t] > this.stages[t];
+      const prev = this.stages[t];
+      const up = st[t] > prev;
       this.stages[t] = st[t];
       const eff = BUILD.sets[t].find((s) => s.threshold === st[t]);
       const payload: UiTagSetChanged = {
@@ -406,9 +465,35 @@ export class BuildRuntime {
         effectName: eff?.name ?? '',
       };
       __system.emit(UI_EVENTS.TAG_SET_CHANGED, payload);
+      EventBus.emit(Events.TAG_SET_CHANGED, {
+        tag: t,
+        stage: st[t],
+        prev,
+        delta: st[t] - prev,
+      } satisfies TagSetChangedPayload);
+      // set_flash (행 = 단계 2·4·6): 오른 단계만, 보상 화면을 닫고 전투로 돌아온 뒤
+      if (up && st[t] > 0) {
+        const row = String(st[t]);
+        this.afterMenu(() => this.art.onPlayer(BUILD_ART.SET_FLASH, { dir: row }));
+      }
       if (up && eff) this.g.ui.story('notice', `${eff.name} — ${eff.description}`);
       this.record('set', { tag: t, stage: st[t] });
     }
+  }
+
+  // --- 메뉴가 닫힌 뒤 연출 (보상 화면 → 전투 복귀) ---
+
+  private pendingAfterMenu: (() => void)[] = [];
+
+  private afterMenu(fn: () => void): void {
+    this.pendingAfterMenu.push(fn);
+  }
+
+  private flushAfterMenu(): void {
+    if (this.pendingAfterMenu.length === 0 || this.g.frozen || this.g.menu.isOpen) return;
+    const list = this.pendingAfterMenu;
+    this.pendingAfterMenu = [];
+    for (const fn of list) fn();
   }
 
   /** 계약 §14.1 스냅샷 */
@@ -478,6 +563,9 @@ export class BuildRuntime {
     this.subs = [];
     this.perfect.destroy();
     this.branch.destroy();
+    this.art.destroy();
+    this.pendingAfterMenu = [];
+    this.g.fx.setAliases({});
     this.combat.destroy();
     this.marks.clear();
     this.dots.clear();

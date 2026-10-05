@@ -28,6 +28,11 @@ export type ComboStrike = {
   extraFollowUps?: ComboFollowUpDef[];
   /** 56라운드 Q5: 판정 순간 땅 균열 행 (s·m·l) */
   crack?: string;
+  /**
+   * 60라운드 (58 Q10): 대쉬 공격 기본 배율(player.dash.attackDamageMult ×1.5)을 곱하지 않는다 — 칼 대쉬 일섬은 일섬 자체 피해 ×
+   * 갈래 배율만 (데이터 `useDashAttackMult: false`)
+   */
+  noDashBaseMult?: boolean;
 };
 
 /** 조준 방향 단위벡터 (커서가 몸 위면 바라보는 방향) · 커서까지 거리 */

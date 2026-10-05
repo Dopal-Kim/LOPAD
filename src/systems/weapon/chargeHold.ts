@@ -3,7 +3,7 @@
  * → 떼면 그 단계의 차지 내려찍기. holdMs 전에 떼면 일반 연격(tap). 단계에 닿기 전에 떼도 일반 연격(stage 0 — tap 과 같게).
  * 차지 시계는 누른 때와 행동 가능해진 때(직전 타 다음 타 허용) 중 늦은 쪽부터. Phaser 의존 없음.
  */
-import type { ComboChargeDef } from '../../data/types';
+import type { ComboChargeDef, ComboChargeStageDef } from '../../data/types';
 
 export type ChargePhase = 'idle' | 'pending' | 'charging';
 
@@ -24,7 +24,11 @@ export class ChargeHold {
   private origin = 0;
   private stage_ = 0;
 
-  constructor(private readonly def: ComboChargeDef) {}
+  /** stagesOf = 지금 단계 목록 (60라운드: 거인 4단처럼 런 상태로 늘어날 수 있다 — 없으면 데이터 단계) */
+  constructor(
+    private readonly def: ComboChargeDef,
+    private readonly stagesOf: () => readonly ComboChargeStageDef[] = () => def.stages,
+  ) {}
 
   get phase(): ChargePhase {
     return this.phase_;
@@ -69,13 +73,13 @@ export class ChargeHold {
 
   /** 단계 수 */
   get stageCount(): number {
-    return this.def.stages.length;
+    return this.stagesOf().length;
   }
 
   /** 경과 ms → 단계 (0 = 아직, 1..n) */
   stageAt(elapsedMs: number): number {
     let s = 0;
-    for (const st of this.def.stages) if (elapsedMs >= st.atMs) s += 1;
+    for (const st of this.stagesOf()) if (elapsedMs >= st.atMs) s += 1;
     return s;
   }
 

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WEAPONS } from '../../data';
-import { pickTierSheet, secondarySheetId, tier2FxSheetIds, type TierSheetFields } from './fxTier';
+import { pickTierSheet, secondarySheetId, type TierSheetFields } from './fxTier';
 import { mergeVariants, runtimeFxVariant } from './fxVariants';
 
 /** 아트 v3 1단·2단 JSON 을 줄인 예 (계약 §10 55라운드 Q16) */
@@ -92,16 +91,5 @@ describe('fxTier: 2단 전용 시트 → 1단 → 기본 (55라운드 Q16)', () 
     ]);
     expect(m.followOverlays).toEqual(['x']);
     expect(m.playbackRate).toBe(1.2);
-  });
-
-  it('로드 목록: 근접 2단 연격 · 활 2단 화살·꼬리', () => {
-    const ids = tier2FxSheetIds(WEAPONS);
-    // 57라운드 갈래 재설계: 2단 id 가 바뀐 노드는 새 id 로 (그림이 없으면 1단 → 기본으로 내려간다)
-    expect(ids).toContain('katana_combo1_iai_vortex');
-    expect(ids).toContain('greatsword_combo3_weight_giant');
-    expect(ids).toContain('dagger_combo2_gale_flyknife');
-    expect(ids).toContain('bow_arrow_snipe_skypierce');
-    expect(ids).toContain('bow_arrow_aimed_rapid_volley');
-    expect(ids).toContain('bow_arrow_snipe_lv3_deadeye');
   });
 });

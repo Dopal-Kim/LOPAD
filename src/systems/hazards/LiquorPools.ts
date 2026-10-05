@@ -11,6 +11,7 @@
  */
 import Phaser from 'phaser';
 import { BOSS_FX, DEPTH, STRUCTURE_FX, entityDepth } from '../../core/Constants';
+import { EventBus, Events, type PoolIgnitedPayload } from '../../core/EventBus';
 import type { Mob } from '../../objects/Mob';
 import type { FxPool } from '../fx/fx';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
@@ -36,6 +37,17 @@ export interface PoolSpec {
   alpha: number;
   /** 불붙을 때 (번져서 붙은 것이면 viaSpread) */
   onIgnite?: (p: Pool, viaSpread: boolean) => void;
+  /**
+   * 60라운드 계약 art §21 취기 술 웅덩이 그림: 웅덩이 `pool_liquor`(퍼짐 → 루프 → 마름) · 불 `pool_liquor_fire`(같은 피벗으로 교체,
+   * 점화 → 루프 → 꺼짐). radiusPx = 그림 반경(월드 px — 시트 radiusPx 도트 × 배율). 있으면 점화 때 POOL_IGNITED (음향 drunk_ignite)
+   */
+  sheets?: {
+    pool: string;
+    fire: string;
+    radiusPx: number;
+    loop: readonly [number, number] | undefined;
+    fireLoop: readonly [number, number] | undefined;
+  };
 }
 
 export interface Pool {
@@ -50,6 +62,8 @@ export interface Pool {
   gfx: Phaser.GameObjects.Rectangle;
   fireGfx: Phaser.GameObjects.Rectangle | null;
   fireFx: ReturnType<FxPool['play']>[];
+  /** 60라운드: 웅덩이 그림 (sheets.pool) */
+  poolFx: ReturnType<FxPool['play']>;
   ember: Phaser.GameObjects.Arc | null;
   light: LightSource | null;
 }
@@ -103,9 +117,22 @@ export class LiquorPools {
       gfx,
       fireGfx: null,
       fireFx: [],
+      poolFx: null,
       ember: null,
       light: null,
     };
+    const sh = spec.sheets;
+    if (sh && this.host.fx.has(sh.pool)) {
+      p.poolFx = this.host.fx.play(sh.pool, rect.centerX, rect.centerY, {
+        depth: STRUCTURE_FX.FLOOR_DEPTH,
+        belowLighting: true,
+        durationMs: spec.lifeMs,
+        hooks: false,
+        scaleMult: sh.radiusPx > 0 ? rect.width / 2 / sh.radiusPx : 1,
+        ...(sh.loop ? { loopRange: sh.loop } : {}),
+      });
+      if (p.poolFx) gfx.setAlpha(0);
+    }
     this.pools.push(p);
     return p;
   }
@@ -128,6 +155,8 @@ export class LiquorPools {
     p.nextTick = now + s.fireTickMs;
     this.drawFire(p);
     s.onIgnite?.(p, viaSpread);
+    if (s.sheets)
+      EventBus.emit(Events.POOL_IGNITED, { x: p.rect.centerX, y: p.rect.centerY } satisfies PoolIgnitedPayload);
     if (s.spreadMsPerCell !== null) this.spreadFrom(p, now);
   }
 
@@ -185,6 +214,22 @@ export class LiquorPools {
   private drawFire(p: Pool): void {
     const fx = this.host.fx;
     const s = p.spec;
+    // 60라운드: 취기 술 웅덩이는 같은 피벗의 pool_liquor_fire 로 교체
+    const sh = s.sheets;
+    if (sh && p.poolFx && fx.has(sh.fire)) {
+      fx.stop(p.poolFx, 0, false);
+      p.poolFx = null;
+      p.fireFx.push(
+        fx.play(sh.fire, p.rect.centerX, p.rect.centerY, {
+          depth: entityDepth(p.rect.centerY),
+          belowLighting: true,
+          durationMs: s.fireMs,
+          scaleMult: sh.radiusPx > 0 ? p.rect.width / 2 / sh.radiusPx : 1,
+          ...(sh.fireLoop ? { loopRange: sh.fireLoop } : {}),
+        }),
+      );
+      return;
+    }
     if (fx.has(s.fireFx)) {
       // 발 기준 앞뒤 정렬 (Q26): 깊이 = 그 장의 피벗 y (라이트맵 아래 — 빛은 시트 광원)
       const at = (y: number, durationMs: number, scaleMult?: number) =>
@@ -293,10 +338,11 @@ export class LiquorPools {
 
   private release(p: Pool): void {
     p.gfx.destroy();
+    if (p.poolFx) this.host.fx.finish(p.poolFx);
     p.fireGfx?.destroy();
     p.ember?.destroy();
     if (p.light) lightRegistryOf(this.host.scene).remove(p.light);
-    for (const h of p.fireFx) if (this.host.fx.isActive(h)) this.host.fx.stop(h);
+    for (const h of p.fireFx) if (this.host.fx.isActive(h)) this.host.fx.finish(h);
   }
 
   destroy(): void {

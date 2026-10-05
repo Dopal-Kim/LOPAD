@@ -6,25 +6,26 @@
  * 부팅 묶음 + 모든 무기 묶음 = 57라운드 전 부팅 목록 (sheetSets.test 가 확인).
  */
 import { BOSSES, ENEMIES, WEAPONS } from '../../data';
+import { AWAKENINGS } from '../../data/build';
 import type { WeaponTable } from '../../data/types';
 import { bossFxSheets, bossStructureSheets } from '../boss/bossSheets';
 import { branchFxSheetIds } from '../fx/branchFx';
 import { allFxSheetIds } from '../fx/fxIds';
-import { tier2FxSheetIds } from '../fx/fxTier';
-import { meleeBranchFxSheetIds } from '../fx/fxVariants';
 import { allStructureSprites } from '../structures/data';
+import { bundleSheetRequests } from '../bundle2/bundleSheets';
 import { comboArtNames } from '../weapon/comboArt';
 import { gaugeOverlaySuffix } from './spriteActions';
 import { sheetId, wantedSheets, type SheetRequest } from './sheetPaths';
 
-/** 무기 표에서 유도하는 이펙트 시트 id (연격·갈래·2단 전용 + 공용 고정 목록 — 빈 표면 공용만) */
+/**
+ * 무기 표에서 유도하는 이펙트 시트 id (연격·활 1단 화살·갈래 수단 그림 + 공용 고정 목록 — 빈 표면 공용만).
+ * 60라운드 (57 Q42): 옛 진화 이펙트(갈래 id 시트·근접 1단 갈래 연격 시트·2단 전용 시트)는 로드하지 않는다
+ */
 function fxIdsFor(weapons: WeaponTable): string[] {
   return [
     ...allFxSheetIds(weapons),
     ...branchFxSheetIds(weapons),
-    ...meleeBranchFxSheetIds(weapons),
-    ...tier2FxSheetIds(weapons),
-    ...Object.values(weapons).flatMap((w) => branchMoveArt(w).fx),
+    ...Object.entries(weapons).flatMap(([id, w]) => [...branchMoveArt(w).fx, ...(AWAKENINGS[id]?.art?.fx ?? [])]),
   ];
 }
 
@@ -90,12 +91,14 @@ let bootKeys: Set<string> | null = null;
 
 /** 부팅 묶음: 무기와 무관한 시트 전부 */
 export function bootSheetRequests(): SheetRequest[] {
-  bootCache ??= dedupe(
-    requestsFor(Object.keys(ENEMIES), Object.keys(BOSSES), {}, bossFxSheets(), [
+  bootCache ??= dedupe([
+    ...requestsFor(Object.keys(ENEMIES), Object.keys(BOSSES), {}, bossFxSheets(), [
       ...allStructureSprites(),
       ...bossStructureSheets(),
     ]),
-  );
+    // 60라운드 2차 묶음 (계약 art §22): 소품 · 월드 소모품 · 엘리트 외곽선
+    ...bundleSheetRequests(),
+  ]);
   return bootCache;
 }
 
@@ -107,12 +110,27 @@ export function weaponSheetRequests(weaponId: string): SheetRequest[] {
   return dedupe(requestsFor([], [], pick([weaponId]), [], [])).filter((r) => !boot.has(requestKey(r)));
 }
 
+/** 각성 오버레이 접미 (계약 art §21 `<무기 시트>_awaken`) */
+export const AWAKEN_OVERLAY_SUFFIX = 'awaken';
+
+/**
+ * 60라운드 계약 art §21 최종 각성 무기 외형 오버레이: 무기 묶음의 무기 동작(휴대·연격·새 동작 — 자원 오버레이 제외)마다
+ * `<동작>_awaken`. 각성 런에서만 로드 (`sheetLoader.preloadWeaponSheets(…, awaken)`·`loadAwakenSheets`). 없는 파일은 매니페스트가 거른다
+ */
+export function awakenSheetRequests(weaponId: string): SheetRequest[] {
+  const gauge = /_(?:ki|grudge)\d$/;
+  return weaponSheetRequests(weaponId)
+    .filter((r) => r.category === 'weapons' && r.name === weaponId && !gauge.test(r.action))
+    .map((r) => ({ ...r, action: `${r.action}_${AWAKEN_OVERLAY_SUFFIX}` }));
+}
+
 /** 57라운드 전 부팅 목록 (모든 무기) — 회귀 테스트용 */
 export function allSheetRequests(): SheetRequest[] {
-  return dedupe(
-    requestsFor(Object.keys(ENEMIES), Object.keys(BOSSES), WEAPONS, bossFxSheets(), [
+  return dedupe([
+    ...requestsFor(Object.keys(ENEMIES), Object.keys(BOSSES), WEAPONS, bossFxSheets(), [
       ...allStructureSprites(),
       ...bossStructureSheets(),
     ]),
-  );
+    ...bundleSheetRequests(),
+  ]);
 }

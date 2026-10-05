@@ -3,7 +3,8 @@
  * 취기 4 취보(휘청 — 피해 0) · 버팀 2(피격 직후 감소)·4(위기)·6(HP 0 버팀) · 중량 6·끌어내린 무게(강공 중 감소·끊기지 않음) ·
  * 굳은살(가드 감소 / 대쉬 직후 감소) · 마지막 잔 · 저주(받는 피해 +50%·저주 궤짝 피격 HP 손실) · 울혈·각성 산붕 거인.
  */
-import { BUILD_FX, TILE } from '../../../core/Constants';
+import { BUILD_ART, BUILD_FX, TILE } from '../../../core/Constants';
+import { EventBus, Events, type EndureTriggeredPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { BUILD } from '../../../data/build';
 import { param } from '../../../systems/build/buildMods';
@@ -36,6 +37,9 @@ export class BuildDefense implements PlayerBuildHooks {
     const dy = len > 0 ? source!.dirY / len : -p.facingVec.y;
     p.startLunge(dx, dy, (Number(st.slideTiles) || 0) * TILE, 160, time);
     this.rt.fx.callout(BUILD_FX.TEXT.STAGGER);
+    // drunk_sway (피해 0·무적·미끄러짐 순간 1회) · 음향 drunk_sway (피격음 대신)
+    this.rt.art.onPlayer(BUILD_ART.DRUNK_SWAY);
+    EventBus.emit(Events.DRUNK_SWAY);
     this.rt.record('stagger');
     this.last = 'stagger';
     return true;
@@ -54,17 +58,30 @@ export class BuildDefense implements PlayerBuildHooks {
   }
 
   uninterruptible(): boolean {
-    return this.heavyActive() && this.rt.stat('heavyUninterruptible') > 0;
+    return (this.heavyActive() && this.rt.stat('heavyUninterruptible') > 0) || this.giantCharging();
+  }
+
+  /** 거인(대검 2단): 차지 중 끊기지 않음 (57 Q43 — 설계안 2.3 '차지 중 끊기지 않음') */
+  private giantCharging(): boolean {
+    return Boolean(this.rt.rule('giant') && this.g.player?.melee.charging);
+  }
+
+  absorbing(_time: number): boolean {
+    return this.giantCharging();
   }
 
   adjustDamage(amount: number, time: number): number {
-    let a = amount * this.rt.damageTakenMult();
+    // 60라운드 깡술 한 모금: 받는 피해 +10%
+    let a = amount * this.rt.damageTakenMult() * (this.g.bundle?.consumables.damageTakenMult(time) ?? 1);
     const hg = this.rt.rule('hurtGuard');
     if (hg && time - this.hurtAt <= param(hg, 'ms')) a *= 1 - param(hg, 'reduction');
     if (this.heavyActive()) {
       a *= Math.max(0, 1 + this.rt.stat('heavyDamageTaken'));
       const giant = this.rt.rule('giantArmor');
       if (giant && this.g.player.melee.charging) a *= Math.max(0, 1 + param(giant, 'damageTaken'));
+      // 거인: 차지 중 받는 피해 −50% (내려찍기 중은 갈래 mods.superArmorReduction)
+      const g2 = this.rt.rule('giant');
+      if (g2 && this.g.player.melee.charging) a *= Math.max(0, 1 + param(g2, 'damageTaken'));
     }
     const callus = this.rt.rule('callus');
     const w = gameState.weapon.def;
@@ -85,6 +102,8 @@ export class BuildDefense implements PlayerBuildHooks {
       gameState.hp = Math.max(1, Math.round(gameState.maxHp * param(ls, 'hpRatio')));
       p.grantInvulnerable(time + param(ls, 'invulnMs'));
       this.rt.fx.callout(BUILD_FX.TEXT.LAST_STAND);
+      this.rt.art.onPlayer(BUILD_ART.LAST_STAND);
+      EventBus.emit(Events.ENDURE_TRIGGERED, { source: 'lastStand' } satisfies EndureTriggeredPayload);
       this.rt.record('lastStand');
       return true;
     }
@@ -93,6 +112,8 @@ export class BuildDefense implements PlayerBuildHooks {
       gameState.hp = Math.max(1, Math.round(gameState.maxHp * param(cup, 'hpRatio')));
       p.grantInvulnerable(time + param(cup, 'invulnMs'));
       this.rt.fx.callout(BUILD_FX.TEXT.LAST_STAND);
+      this.rt.art.onPlayer(BUILD_ART.LAST_STAND);
+      EventBus.emit(Events.ENDURE_TRIGGERED, { source: 'lastCup' } satisfies EndureTriggeredPayload);
       this.rt.drink('lastCup');
       this.rt.record('lastCup');
       return true;
@@ -101,7 +122,7 @@ export class BuildDefense implements PlayerBuildHooks {
   }
 
   noFlinch(time: number): boolean {
-    return this.rt.drunk.active(time) || this.uninterruptible();
+    return this.rt.drunk.active(time) || this.uninterruptible() || (this.g.bundle?.consumables.noFlinch(time) ?? false);
   }
 
   perfectWindowAddMs(baseMs: number): number {
@@ -149,6 +170,7 @@ export class BuildDefense implements PlayerBuildHooks {
       this.g.player.grantInvulnerable(now + param(crisis, 'invulnMs'));
       this.rt.combat.crisisHasteUntil = now + param(crisis, 'hasteMs');
       this.g.screenFx.flash(BUILD_FX.CRISIS_FLASH.COLOR, BUILD_FX.CRISIS_FLASH.MS, BUILD_FX.CRISIS_FLASH.ALPHA);
+      EventBus.emit(Events.ENDURE_TRIGGERED, { source: 'crisis' } satisfies EndureTriggeredPayload);
       this.rt.record('crisis');
     }
   }

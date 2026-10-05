@@ -1,7 +1,7 @@
 import type { BossPatternName, PatternParams } from './bossPatterns';
 export type { BossPatternName, PatternParams } from './bossPatterns';
 import type { ComboDef } from './comboTypes';
-import type { BowDrawDef, IssenDef, PlungeDef, WeaponGaugeDef } from './weaponKitTypes';
+import type { BowDrawDef, IssenDef, WeaponGaugeDef } from './weaponKitTypes';
 export type * from './weaponKitTypes';
 export type * from './moveTypes';
 import type { WeaponMovesDef } from './moveTypes';
@@ -489,7 +489,15 @@ export interface WeaponEvolution {
   live?: boolean;
   _tmpName?: boolean;
   /** 57라운드 갈래 수단 그림 (로드 목록): body = 몸·무기 동작 이름(`player_<무기>_<이름>`·`weapons/<무기>_<이름>`), fx = 이펙트 id */
-  art?: { body?: string[]; fx?: string[] };
+  art?: {
+    body?: string[];
+    fx?: string[];
+    /**
+     * 60라운드 계약 art §21 갈래 런 교체 규칙 (원 fx id → 교체 fx id, 같은 규격 1:1 — 이 노드가 경로에 있으면 FxPool.setAliases).
+     * 교체 시트는 fx 목록에도 넣어 무기 묶음에 로드한다
+     */
+    replaceFx?: Record<string, string>;
+  };
 }
 
 /** 우클릭 보조 동작 (27라운드 Q1). 무기마다 1종 */
@@ -680,8 +688,6 @@ export interface WeaponDef {
   gauge?: WeaponGaugeDef;
   /** 56라운드 Q2: 칼 3타 일섬 (연격 타 `move: "issen"`) */
   issen?: IssenDef;
-  /** 56라운드 Q10: 대검 개성 발현(충격파 갈래) 후 차지 = 꽂아내리기 */
-  plunge?: PlungeDef;
   /** 56라운드 Q9: 활 우클릭 당김·놓기 */
   draw?: BowDrawDef;
   /** 56라운드 2단계: 새 기본기 (간파 반격·대치 일격·태클·버티기·도약 찍기·돌진·등 뒤 찌르기·난타·화살비) */

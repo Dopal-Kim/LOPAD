@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, DEPTH, ENEMY_FX, TILE, entityDepth } from '../core/Constants';
 import {
   EventBus,
+  type EnemyDiedPayload,
   Events,
   type EnemyAttackPayload,
   type EnemyBehaviorPayload,
@@ -110,7 +111,7 @@ export class Enemy extends Mob {
 
   protected onDeath(): void {
     this.clearMarker();
-    EventBus.emit(Events.ENEMY_DIED, { id: this.id });
+    EventBus.emit(Events.ENEMY_DIED, { id: this.id, elite: this.elite !== null } satisfies EnemyDiedPayload);
   }
 
   protected onStunned(): void {
@@ -173,7 +174,7 @@ export class Enemy extends Mob {
       if (ctx.time >= this.rangedUntil) {
         this.rangedState = 'move';
         this.shotsFired = 0;
-        this.nextShotAt = ctx.time + this.def.attackIntervalMs * 0.5;
+        this.nextShotAt = ctx.time + (this.def.attackIntervalMs * 0.5) / Math.max(0.1, this.attackRateMult);
       }
       return;
     }
@@ -200,7 +201,7 @@ export class Enemy extends Mob {
       this.body.setVelocity(0, 0);
     }
     if (ctx.time >= this.nextShotAt && dist <= R.keepMaxTiles * TILE * 1.5) {
-      this.nextShotAt = ctx.time + this.def.attackIntervalMs;
+      this.nextShotAt = ctx.time + this.def.attackIntervalMs / Math.max(0.1, this.attackRateMult);
       const tele = R.telegraphMs ?? 0;
       if (tele > 0) {
         this.rangedState = 'aim';

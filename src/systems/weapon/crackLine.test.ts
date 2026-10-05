@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { WEAPONS } from '../../data';
-import { crackTiles, waveFrontRatio, waveHit, waveTimeline } from './plungeWave';
+import { crackTiles, waveFrontRatio, waveHit, waveTimeline } from './crackWave';
 import { pickMove } from './moves';
 
 describe('58라운드 Q3 대검 차지 균열 (꽂아내리기 대체)', () => {

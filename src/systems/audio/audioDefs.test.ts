@@ -35,6 +35,7 @@ import {
 } from './audioMap';
 import { Events, type BossActionKind } from '../../core/EventBus';
 import { MOVE_SFX, moveSfxIds, pickFlurryVariant } from './audioMoves';
+import { ARCHIVED_SFX, BUILD_SFX, buildSfxIds } from './audioBuild';
 
 // audioMap → EventBus 가 Phaser 를 import 하므로(window 필요) 이벤트 이미터만 node 것으로 대체한다
 vi.mock('phaser', () => ({ default: { Events: { EventEmitter } } }));
@@ -197,9 +198,21 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       // 56라운드 무기 피드백 · 2단계 새 기본기
       ...weaponSfxIds(),
       ...moveSfxIds(),
+      // 60라운드 빌드 37 + 2차 묶음·갈래·패시브 67 · 페이로드로 고르게 된 기존 id
+      ...buildSfxIds(),
+      SFX.shopBuy,
+      SFX.menuSelect,
+      SFX.enemyDeath,
+      SFX.dash,
     ]);
-    const unused = manifest.entries.filter((e) => e.kind === 'sfx' && !used.has(e.id)).map((e) => e.id);
+    // 60라운드 Q6 보관 3종은 연결하지 않는다
+    for (const id of ARCHIVED_SFX) expect(used.has(id), id).toBe(false);
+    const unused = manifest.entries
+      .filter((e) => e.kind === 'sfx' && !used.has(e.id) && !ARCHIVED_SFX.includes(e.id))
+      .map((e) => e.id);
     expect(unused).toEqual([]);
+    // 60라운드 새 id 는 전부 매니페스트에 있다
+    for (const id of buildSfxIds()) expect(idx.has(id), id).toBe(true);
     expect(AUDIO_TRIGGERS.length).toBeGreaterThan(30);
   });
 
@@ -281,10 +294,11 @@ describe('55라운드 Q32 차지·잔상 효과음 매핑 (CHARGE_SFX · FOLLOW_
     expect(sfxOf(atk, { kind: 'attack', charge: 2, swingDelayMs: 100 })).toBeNull();
   });
 
-  it('후속 판정: 칼 잔상 베기 → katana_echo, 대검 링 → 없음', () => {
+  it('후속 판정: 60라운드 Q6 칼 잔상 베기 katana_echo 는 보관(무음), 대검 링 → 없음', () => {
     const tr = fire(Events.PLAYER_FOLLOW_UP, { weapon: 'katana', id: 'echo' });
     expect(tr).toHaveLength(1);
-    expect(sfxOf(tr[0], { weapon: 'katana', id: 'echo' })).toEqual(FOLLOW_UP_SFX['katana:echo']);
+    expect(FOLLOW_UP_SFX['katana:echo']).toBeUndefined();
+    expect(sfxOf(tr[0], { weapon: 'katana', id: 'echo' })).toBeNull();
     expect(sfxOf(tr[0], { weapon: 'greatsword', id: 'ring' })).toBeNull();
   });
 });
@@ -310,11 +324,15 @@ describe('56라운드 무기 피드백 효과음 (WEAPON_SFX)', () => {
     ]);
   });
 
-  it('58라운드 Q3 차지 휘둘러 내리찍기 = charge_slam + 균열 gs_crack(40ms 뒤) — 꽂아내리기 gs_plunge 없음', () => {
+  it('60라운드 차지 휘둘러 내리찍기 = charge_slam + 균열 gs_crack_line_lv<n>(40ms 뒤, 4단 = lv3) — gs_crack·gs_plunge 보관', () => {
     const release = { phase: 'release', stage: 3, impactDelayMs: 180 };
-    expect(ids(Events.PLAYER_CHARGE, release)).toEqual([CHARGE_SFX.slam(3), WEAPON_SFX.gsCrack]);
-    const crack = fire(Events.PLAYER_CHARGE, release).find((tr) => tr.sfx === WEAPON_SFX.gsCrack);
+    expect(ids(Events.PLAYER_CHARGE, release)).toEqual([CHARGE_SFX.slam(3), BUILD_SFX.gsCrackLine(3)]);
+    const crack = fire(Events.PLAYER_CHARGE, release).find(
+      (tr) => typeof tr.sfx === 'function' && tr.sfx(release) === BUILD_SFX.gsCrackLine(3),
+    );
     expect(crack?.delayMs?.(release)).toBe(220);
+    const four = { phase: 'release', stage: 4, impactDelayMs: 0 };
+    expect(ids(Events.PLAYER_CHARGE, four)).toEqual([CHARGE_SFX.slam(4), BUILD_SFX.gsCrackLine(3)]);
   });
 
   it('퍼펙트 가드 · 그로기 · 검기 단 · 일섬 · 활 약한/완벽 놓기', () => {

@@ -1,5 +1,5 @@
 /**
- * 앞머리가 나아가는 판정 (Phaser 의존 없음) — 56라운드 Q10 꽂아내리기 충격파에서 시작, 58라운드 Q3 차지 균열(CrackLineStrikes)이 쓴다.
+ * 앞머리가 나아가는 판정 (Phaser 의존 없음) — 58라운드 Q3 차지 균열(CrackLineStrikes). (56라운드 꽂아내리기 충격파에서 시작 — 58 Q11 삭제)
  * fx 시트 메모 `hitShape.frontPxByFrame`(도트, 프레임마다 앞머리 거리)·`activeFrames`·`frameDurationsMs` → 시간에 따른 앞머리
  * 비율(0..1). 앞머리가 지나간 칸만 맞는다. 메모가 없으면 travelMs 동안 선형.
  */

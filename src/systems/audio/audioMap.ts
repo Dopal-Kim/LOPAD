@@ -33,6 +33,7 @@ import {
 import { gameState } from '../../core/GameState';
 import { t, type AudioTrigger } from './audioTrigger';
 import { MOVE_AUDIO_TRIGGERS } from './audioMoves';
+import { BUILD_AUDIO_TRIGGERS, BUILD_SFX, hasBranch, isRapidVolley, katanaThrustSfx } from './audioBuild';
 export type { AudioTrigger } from './audioTrigger';
 
 export const SFX = {
@@ -106,7 +107,7 @@ export const SFX = {
 export const CHARGE_SFX = {
   /** 홀드 인식(holdMs) — 차지 시작 */
   start: 'sfx/charge_start',
-  /** 단계 도달 n = 1..3 */
+  /** 단계 도달 n = 1..4 (60라운드 거인 4단) */
   stage: (n: number): readonly string[] => [`sfx/charge_stage${n}`],
   /** 차지 유지 루프 (시작 페이드 인 · 떼거나 취소 시 페이드 아웃) */
   loop: 'sfx/charge_loop',
@@ -117,15 +118,16 @@ export const CHARGE_SFX = {
   loopFadeOutMs: 120,
   /** 피격 취소 (음향 권장 60ms) */
   loopFadeOutHurtMs: 60,
-  stages: 3,
-  /** 56라운드: 차지 유지음 음높이 — 단계 1·2·3 (시작 = 1.0) */
-  loopRates: [1.0, 1.03, 1.06],
+  stages: 4,
+  /** 56라운드: 차지 유지음 음높이 — 단계 1·2·3 (시작 = 1.0) · 60라운드 거인 4단 1.09 */
+  loopRates: [1.0, 1.03, 1.06, 1.09],
 } as const;
 
-/** 55라운드 §17 후속 판정 → 효과음 (키 `<무기>:<followUps[].id>`). 없는 항목은 무음 — 대검 3단 링은 charge_slam_lv3 에 포함 */
-export const FOLLOW_UP_SFX: Readonly<Record<string, readonly string[]>> = {
-  'katana:echo': ['sfx/katana_echo'],
-};
+/**
+ * 55라운드 §17 후속 판정 → 효과음 (키 `<무기>:<followUps[].id>`). 없는 항목은 무음 — 대검 3단 링은 charge_slam_lv3 에 포함.
+ * 60라운드 Q6: 칼 잔상 베기 katana_echo 는 보관(연결하지 않음 — audioBuild ARCHIVED_SFX)
+ */
+export const FOLLOW_UP_SFX: Readonly<Record<string, readonly string[]>> = {};
 
 /**
  * 56라운드 무기 피드백 효과음 (음향 매니페스트 sfx/<키> — 파일이 없는 키는 조용히 건너뛴다). **키 이름이 바뀌면 여기만 고친다.**
@@ -143,8 +145,6 @@ export const WEAPON_SFX = {
   issenDash: 'sfx/issen_dash',
   issenBurst: 'sfx/issen_burst',
   shadowClone: 'sfx/shadow_clone',
-  gsPlunge: 'sfx/gs_plunge',
-  gsCrack: 'sfx/gs_crack',
   gsDrag: 'sfx/gs_drag',
   bowReleaseWeak: 'sfx/bow_release_weak',
   bowReleasePerfect: 'sfx/bow_release_perfect',
@@ -158,8 +158,8 @@ export const WEAPON_SFX = {
   crackDelayMs: 40,
   /** 낙인 등 뒤 2스택 재생 속도 (음향 권장) */
   brandBackRate: 1.1,
-  /** 검기 단 수 */
-  kenkiStages: 3,
+  /** 검기 단 수 (60라운드: 4·5 단 — 각성 등) */
+  kenkiStages: 5,
 } as const;
 
 /** 56라운드 효과음 전부 (검기 단 포함) — 매니페스트 점검 */
@@ -264,9 +264,19 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     sfx: (p) => {
       const w = gameState.weapon.def;
       // 56라운드 Q9: 약한 화살은 bow_release_weak 가 대신 (PLAYER_SECONDARY release)
-      if (w.kind === 'ranged') return p.kind === 'aimed' ? (p.bowPower === 'weak' ? null : SFX.bowAimed) : SFX.bowShot;
+      // 60라운드: 속사 연사는 bow_rapid1~3 (audioBuild) 이 대신
+      if (w.kind === 'ranged')
+        return p.kind === 'aimed'
+          ? p.bowPower === 'weak'
+            ? null
+            : SFX.bowAimed
+          : isRapidVolley()
+            ? null
+            : SFX.bowShot;
       // 56라운드 2단계 새 기본기는 전용 소리(PLAYER_SKILL — audioMoves)가 대신
       if (p.charge !== undefined || p.move) return null;
+      // 60라운드: 칼 3타 찌르기 = katana_thrust(검기 단 _ki1~3)
+      if (gameState.weapon.id === 'katana' && p.art === 'thrust') return katanaThrustSfx(p.kenkiStage);
       return SFX.swing(gameState.weapon.id);
     },
     delayMs: (p) => (gameState.weapon.def.kind === 'ranged' ? p.releaseDelayMs : p.swingDelayMs),
@@ -359,9 +369,9 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   // --- 56라운드 무기 피드백 (WEAPON_SFX) ---
   t<PlayerChargePayload>({
     event: Events.PLAYER_CHARGE,
-    note: '58라운드 Q3 휘둘러 내리찍은 자리에서 커서까지 균열 → gs_crack (내리찍기 + 40ms, 56라운드 꽂아내리기 균열음 재사용 — gs_plunge 는 쓰지 않음)',
+    note: '58라운드 Q3 휘둘러 내리찍은 자리에서 커서까지 균열 → 60라운드 gs_crack_line_lv<n> (내리찍기 + 40ms, 4단은 lv3 — gs_crack·gs_plunge 는 보관)',
     when: (p) => p.phase === 'release' && p.stage > 0,
-    sfx: WEAPON_SFX.gsCrack,
+    sfx: (p) => BUILD_SFX.gsCrackLine(Math.min(BUILD_SFX.tiers, p.stage)),
     delayMs: (p) => (p.impactDelayMs ?? 0) + WEAPON_SFX.crackDelayMs,
   }),
   t({ event: Events.PLAYER_PERFECT_GUARD, note: '56라운드 Q7 퍼펙트 가드', sfx: WEAPON_SFX.perfectGuard }),
@@ -407,7 +417,9 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
         : p.move === 'brand'
           ? WEAPON_SFX.brandBurst
           : p.move === 'overheat'
-            ? WEAPON_SFX.overheatBurst
+            ? hasBranch('heatwave')
+              ? [BUILD_SFX.daggerHotwindBurst, WEAPON_SFX.overheatBurst]
+              : WEAPON_SFX.overheatBurst
             : p.move === 'drag'
               ? WEAPON_SFX.gsDrag
               : null,
@@ -433,7 +445,11 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     note: '적 피격 보조음 enemy_hurt (틱 포함, 피격음과 겹침)',
     sfx: SFX.enemyHurt,
   }),
-  t({ event: Events.ENEMY_DIED, note: '일반 적 사망', sfx: SFX.enemyDeath }),
+  t<{ elite?: boolean }>({
+    event: Events.ENEMY_DIED,
+    note: '일반 적 사망 (60라운드 엘리트 = elite_die)',
+    sfx: (p) => (p?.elite ? [BUILD_SFX.eliteDie, SFX.enemyDeath] : SFX.enemyDeath),
+  }),
   t({ event: Events.PLAYER_DAMAGED, note: '주인공 피격', sfx: SFX.hitPlayer }),
   t({ event: Events.PLAYER_DIED, note: '주인공 사망', sfx: SFX.playerDeath }),
   t<EnemyTelegraphPayload>({
@@ -530,8 +546,18 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => p.kind === 'potion',
     sfx: SFX.pickupPotion,
   }),
-  t({ event: Events.POTION_USED, note: '물약 사용 (휴식·상점 회복에는 없음)', sfx: SFX.potionUse }),
-  t({ event: Events.SHOP_BOUGHT, note: '상점 구매', sfx: SFX.shopBuy }),
+  t<{ source?: string }>({
+    event: Events.PLAYER_HEALED,
+    note: '60라운드: 독주 회복만 potion_use (PLAYER_HEALED{source:potion} — 휴식·상점·이벤트 회복에는 없음)',
+    when: (p) => p?.source === 'potion',
+    sfx: SFX.potionUse,
+  }),
+  t<{ group?: string }>({
+    event: Events.SHOP_BOUGHT,
+    note: '상점 구매 (60라운드: 진열 바꾸기 shop_reroll · 지도 정보 map_info_buy)',
+    sfx: (p) =>
+      p?.group === 'reroll' ? BUILD_SFX.shopReroll : p?.group === 'mapInfo' ? BUILD_SFX.mapInfoBuy : SFX.shopBuy,
+  }),
 
   // --- 연출·UI ---
   t({ event: Events.FATE_DECIDED, note: '운명(무기) 결정', sfx: SFX.fateDecided }),
@@ -540,7 +566,12 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     note: '엔딩 선택 — 전용 자산이 없어 fate_decided(일기장 덮는 소리) 재사용 (임시)',
     sfx: SFX.fateDecided,
   }),
-  t({ event: Events.WEAPON_EVOLVED, note: '개성 변화', sfx: SFX.evolve }),
+  t<{ kind?: string }>({
+    event: Events.WEAPON_EVOLVED,
+    note: '개성 변화 (최종 각성은 awaken_<무기> — audioBuild)',
+    when: (p) => p?.kind !== 'awaken',
+    sfx: SFX.evolve,
+  }),
   t({ event: Events.WEAPON_REINFORCED, note: '무기 강화', sfx: SFX.reinforce }),
   t<MenuEventPayload>({
     event: Events.MENU_OPENED,
@@ -548,7 +579,11 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => !p.reopen,
     sfx: SFX.menuMove,
   }),
-  t({ event: Events.MENU_SELECTED, note: '메뉴 선택', sfx: SFX.menuSelect }),
+  t<MenuEventPayload>({
+    event: Events.MENU_SELECTED,
+    note: '메뉴 선택 (60라운드 이벤트 노드 메뉴 = event_choice)',
+    sfx: (p) => (p?.id === 'event' ? [BUILD_SFX.eventChoice, SFX.menuSelect] : SFX.menuSelect),
+  }),
 
   // --- 47라운드 상호작용 구조물 (전부 기존 효과음 임시 연결) ---
   t<StructureEventPayload>({
@@ -569,8 +604,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   }),
   t<StructureFirePayload>({
     event: Events.STRUCTURE_FIRE,
-    note: '불붙음: 독주 웅덩이 boss_fan · 무기·화살 dash (임시)',
-    sfx: (p) => (p.target === 'pool' ? SFX.bossFan : p.target === 'burn' ? null : SFX.dash),
+    note: '불붙음: 독주 웅덩이 boss_fan(임시) · 무기·화살 = 60라운드 증류기 점화 still_ignite',
+    sfx: (p) => (p.target === 'pool' ? SFX.bossFan : p.target === 'burn' ? null : [BUILD_SFX.stillIgnite, SFX.dash]),
   }),
   t<StructureBellPayload>({
     event: Events.STRUCTURE_BELL,
@@ -578,10 +613,16 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     sfx: (p) => (p.confirmed ? SFX.bossPhase : SFX.bossTelegraph),
   }),
   t({ event: Events.STRUCTURE_ROULETTE, note: '룰렛 회전 → menu_move (임시)', sfx: SFX.menuMove }),
-  t({ event: Events.CHALLENGE_STARTED, note: '투견 링·흉패 도전 시작 → door_close (임시)', sfx: SFX.doorClose }),
+  t<ChallengeEventPayload>({
+    event: Events.CHALLENGE_STARTED,
+    note: '투견 링·흉패 도전 시작 → door_close (임시 — 성소 깃발은 audioBuild)',
+    when: (p) => p.kind !== 'warFlag',
+    sfx: SFX.doorClose,
+  }),
   t<ChallengeEventPayload>({
     event: Events.CHALLENGE_CLEARED,
-    note: '도전 끝: 시간 초과 menu_cancel · 그 외 trial_clear (임시)',
+    note: '도전 끝: 시간 초과 menu_cancel · 그 외 trial_clear (임시 — 성소 깃발은 audioBuild)',
+    when: (p) => p.kind !== 'warFlag',
     sfx: (p) => (p.outcome === 'timeout' ? SFX.menuCancel : SFX.trialClear),
   }),
   t<MenuEventPayload>({
@@ -590,6 +631,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => !p.selected,
     sfx: SFX.menuCancel,
   }),
+  // --- 60라운드 빌드·갈래·패시브·2차 묶음 (audioBuild) ---
+  ...BUILD_AUDIO_TRIGGERS,
 ];
 
 /** 표에 등장하는 고정 효과음 id (매니페스트 대조 테스트용) */

@@ -13,7 +13,6 @@ import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
 import { hitShapeBounds, shapeCenterPoint, shapeHit, type Pt } from '../../systems/weapon/hitShapes';
-import type { FxHandle } from '../../systems/fx/fx';
 import { facingOf, radiusFitScale } from '../../systems/sprites/spriteDefs';
 import { slamFxId, slashFxId } from '../../systems/fx/fxIds';
 import { isBackswing, isHeavyStrike } from '../../systems/hitFeel';
@@ -26,10 +25,9 @@ import { SwingFx } from './SwingFx';
 import { BrandMarks } from './BrandMarks';
 import { IssenStrikes } from './IssenStrikes';
 import { CrackLineStrikes, crackOrigin } from './CrackLineStrikes';
-import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 import { MoveStrikes } from './MoveStrikes';
 import { ArrowRain } from './ArrowRain';
-import { HIT_ORIGIN_UP_PX, evolutionFxId, isFinisher, isMeleeStrike, pathFx, rotatesLeft, shapeFacing } from './shared';
+import { HIT_ORIGIN_UP_PX, isFinisher, isMeleeStrike, rotatesLeft, shapeFacing } from './shared';
 
 /** 디버그로 남기는 최근 판정 수 */
 const SWING_LOG_MAX = 12;
@@ -62,7 +60,6 @@ export class PlayerStrikes {
   get debugSwingFx(): unknown {
     return this.swing.debugLast;
   }
-  private giantFx: FxHandle | null = null;
 
   constructor(private readonly g: Game) {
     this.bow = new BowShots(g);
@@ -76,10 +73,6 @@ export class PlayerStrikes {
     this.brands = new BrandMarks(g);
     this.moves = new MoveStrikes(g, this.swing, strike);
     this.rain = new ArrowRain(g);
-  }
-
-  private pathFx(...candidates: string[]): string | null {
-    return pathFx(this.g.fx, ...candidates);
   }
 
   onPlayerAttacked(p: PlayerAttackPayload): void {
@@ -114,7 +107,6 @@ export class PlayerStrikes {
     const combo = isMeleeStrike(p);
     const finisher = isFinisher(p);
     this.swing.play(p);
-    this.playGiantFx(p);
     const strike = () => {
       if (!this.schedule.live) return;
       // 49라운드 내리찍기: 착지점 = 그 순간 발 피벗 + 시트 impactOffsetPx
@@ -132,20 +124,6 @@ export class PlayerStrikes {
     const hitDelay = combo ? p.swingDelayMs : 0;
     if (hitDelay > 0) g.time.delayedCall(hitDelay, strike);
     else strike();
-  }
-
-  /** 거인(2차): 공격 애니 동안 플레이어 아래에서 슈퍼아머 오라 루프 (공격 애니 = 쿨다운에 맞춤) */
-  private playGiantFx(p: PlayerAttackPayload): void {
-    const g = this.g;
-    const id = this.pathFx('giant');
-    if (!id) return;
-    if (g.fx.isActive(this.giantFx)) g.fx.stop(this.giantFx, 0, false);
-    this.giantFx = g.fx.play(id, g.player.x, g.player.y, {
-      follow: g.player,
-      depthOffset: -DEPTH.OVERLAY_STEP,
-      durationMs: p.durationMs ?? gameState.weapon.hitbox.cooldownMs,
-      scaleMult: PLAYER_RENDER_SCALE,
-    });
   }
 
   // --- 근접 이펙트 ---
@@ -207,13 +185,9 @@ export class PlayerStrikes {
     // 54라운드: 보스방 — 약점 잔 · 술통 방향 바꾸기 · 쓰러진 촛대 다시 켜기
     g.bossArena?.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
     // 베기 시트가 있으면 판정 사각형은 보이지 않게(판정만), 없으면 기존 플레이스홀더 표시
-    const evoFx = evolutionFxId(g.fx);
-    const swingFx = this.pathFx('wide', 'iai', 'dance', 'twin');
-    // 그림이 있는가: 베기·진화 시트, 내리찍기 충격 시트, 이 공격의 휘두름 이펙트(SwingFx 가 고른 것)
+    // 그림이 있는가: 베기 시트, 내리찍기 충격 시트, 이 공격의 휘두름 이펙트(SwingFx 가 고른 것). 옛 진화 시트는 57 Q42 로 끔
     const hasSwingArt =
-      g.fx.has(slashFxId(weapon.id)) ||
-      swingFx !== null ||
-      (p.slam ? g.fx.has(slamFxId(weapon.id)) : this.swing.lastFxLoaded);
+      g.fx.has(slashFxId(weapon.id)) || (p.slam ? g.fx.has(slamFxId(weapon.id)) : this.swing.lastFxLoaded);
     // 연격 판정은 모양이라 사각형 플레이스홀더를 그리지 않는다 (시트가 없으면 모양 윤곽)
     const zone = g.add.rectangle(cx, cy, w, h, COLORS.ATTACK, hasSwingArt || shape ? 0 : 0.6).setDepth(DEPTH.ATTACK);
     if (shape) {
@@ -243,26 +217,19 @@ export class PlayerStrikes {
         this.overlay.placeholder(ox, oy, p.dirX, p.dirY, shape, facing);
     }
     // 궤적·충격파: 시트가 있으면 시트, 없으면 Graphics 플레이스홀더
-    if (mods.slashTrail && !swingFx) this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
+    if (mods.slashTrail) this.drawSlashTrail(cx, cy, p.dirX, p.dirY, Math.max(w, h));
     if (mods.shockwave && finisher) {
       // 49라운드 내리찍기: fx/<무기>_slam 이 파쇄(crush) 대신 (섬광·흔들림은 시트). 지진·분쇄 2차 이펙트는 그 위에 그대로
       const slamFx =
         p.slam && !secondWave && shape?.kind === 'arc'
           ? this.playSlamImpactFx(cx, cy, shape.radius, p.dirX, p.dirY)
           : false;
-      // 지진(quake)·분쇄(pulverize) 가 파쇄(crush) 대신. quake 는 1단에서 한 번(3프레임 = 2단 시점), 2단은 다시 안 그린다
-      const shockFx = slamFx ? this.pathFx('quake', 'pulverize') : this.pathFx('quake', 'pulverize', 'crush');
-      // 55라운드: 내려찍기 쐐기는 충격파를 끝점에
+      // 55라운드: 내려찍기 쐐기는 충격파를 끝점에 (옛 지진·분쇄·파쇄 진화 시트는 57 Q42 로 끔 — 윤곽)
       const sx = impact?.x ?? cx;
       const sy = impact?.y ?? cy;
-      if (shockFx === 'quake' && secondWave) {
-        /* 1단에서 재생한 quake 의 3~5프레임이 2단 링 */
-      } else if (shockFx) g.fx.play(shockFx, sx, sy, { depth: DEPTH.FX_GROUND });
-      else if (!slamFx) g.combat.drawShockwave(sx, sy, Math.max(w, h));
+      if (!slamFx) g.combat.drawShockwave(sx, sy, Math.max(w, h));
       if (!slamFx) g.shake.add(g.time.now, FEEL.SHAKE.SHOCKWAVE.PX, FEEL.SHAKE.SHOCKWAVE.MS);
     }
-    // 중압: 적중 판정 시작에 히트박스 중심 아래 6px (피벗 = 바닥 타격점)
-    if (evoFx === 'weight') g.fx.play('weight', cx, cy + PROTOTYPE.WEIGHT_FX_DROP_PX, { depth: DEPTH.ATTACK });
     g.physics.add.existing(zone);
     (zone.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
 
@@ -308,7 +275,7 @@ export class PlayerStrikes {
           })
         : null;
     // 잔월: 궤적이 남아 지속 피해
-    if (mods.trailDot) this.dots.leaveTrailDot(p, { cx, cy, w, h }, swingFx);
+    if (mods.trailDot) this.dots.leaveTrailDot(p, { cx, cy, w, h });
 
     // 판정 영역은 물리 한 단계는 살아 있어야 겹침이 잡힌다 — 프레임이 판정 시간보다 길면(느린 기기) 한 프레임 + 여유만큼 (56라운드 2단계)
     g.time.delayedCall(Math.max(activeMs, g.game.loop.delta + 1), () => {
@@ -346,8 +313,6 @@ export class PlayerStrikes {
     // 57라운드 빌드 축: 강공 피해·일회성 배율·확정 치명 (BuildCombat)
     const bb = g.build.combat.strikeBonus(mob, p);
     const { dmg, crit } = g.combat.rollDamage(p.damageMult * bb.mult, p.forceCrit || bb.forceCrit, p.kind, mob);
-    // 2차 전용 치명 이펙트: 급소(대쉬 베기 적중) → dashcrit, 암살(그림자 걸음 직후) → assassin. 둘 다 crit_burst 대신
-    const critFx = p.primed ? this.pathFx('assassin') : p.kind === 'dashAttack' ? this.pathFx('dashcrit') : null;
     // 51라운드 Q4: 대검 끌어내기 첫 타 = 크게 밀쳐냄
     const knockMult = p.knockbackMult;
     // 55라운드 Q10·Q30: 막타(데이터 heavy — 칼 3타·잔상, 대검 차지 내려찍기 · 대쉬 공격) · 판정 호가 반대로 훑는 타는 되돌아 휘두름(스파크 반전)
@@ -360,7 +325,8 @@ export class PlayerStrikes {
       crit,
       dirX: p.dirX,
       dirY: p.dirY,
-      critFx: p.noImpactFx ? null : critFx,
+      // 옛 2차 전용 치명 이펙트(dashcrit·assassin)는 57 Q42 로 끔 — 공용 crit_burst
+      critFx: null,
       knockMult,
       heavy,
       backswing,

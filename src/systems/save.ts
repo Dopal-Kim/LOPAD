@@ -5,6 +5,7 @@
  */
 import type { ScarData } from './setup/scar';
 import type { BuildSave } from './build/BuildState';
+import type { BundleSave } from './bundle2/BundleState';
 
 export const SAVE_VERSION = 5;
 export const SAVE_KEY = 'lopad.save';
@@ -30,6 +31,8 @@ export interface SaveData {
   scar?: ScarData;
   /** 57라운드 빌드 축: 이중 개성·저주·각성·영구 보너스 (선택 항목 — 이전 세이브는 없음, 버전 그대로) */
   build?: BuildSave;
+  /** 60라운드 2차 묶음: 나온 이벤트·소모품 칸·이벤트 예약 (선택 항목 — 이전 세이브는 없음, 버전 그대로) */
+  bundle?: BundleSave;
   savedAt: number;
 }
 

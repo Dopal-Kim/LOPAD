@@ -5,8 +5,15 @@
  * 장교의 견장·깨진 거울·잔불 심장·엎지른 술·독한 숨·취권) · 갈래 연격 한 타 변화 · 저주 화상(불붙은 혀).
  */
 import Phaser from 'phaser';
-import { BUILD_FX, DEPTH, TILE } from '../../../core/Constants';
-import type { PlayerAttackPayload } from '../../../core/EventBus';
+import { BUILD_ART, BUILD_FX, DEPTH, TILE } from '../../../core/Constants';
+import {
+  EventBus,
+  Events,
+  type MarkChangedPayload,
+  type PassiveProcPayload,
+  type PlayerAttackPayload,
+  type StatusBurstPayload,
+} from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { BUILD, curseDef } from '../../../data/build';
 import { PLAYER_DATA } from '../../../data';
@@ -119,9 +126,19 @@ export class BuildCombat {
     const reach = gameState.weapon.hitbox.reach;
     const x0 = pl.x + p.dirX * reach;
     const y0 = pl.y + p.dirY * reach;
-    this.rt.fx.lineFx(x0, y0, p.dirX, p.dirY, len, half, BUILD_FX.COLOR.CRACK);
+    // 60라운드 계약 art §21 greatsword_cleave_crack (V 끝점 충격원 중심, 조준 방향 회전 — 판정 길이에 맞춤)
+    if (!this.rt.art.lineFx(BUILD_ART.CLEAVE_COMBO_CRACK, x0, y0, p.dirX, p.dirY, len))
+      this.rt.fx.lineFx(x0, y0, p.dirX, p.dirY, len, half, BUILD_FX.COLOR.CRACK);
     for (const m of this.rt.fx.inLine(x0, y0, p.dirX, p.dirY, len, half))
       this.rt.fx.damage(m, p.damageMult * C.damageMult, { dirX: p.dirX, dirY: p.dirY, kind: 'attack' });
+  }
+
+  /** 60라운드 음향 훅: 패시브 발동 (PASSIVE_PROC — passive = 패시브 id, fire = 술불 위 독한 숨) */
+  private proc(r: { id: string }, fire?: boolean): void {
+    EventBus.emit(Events.PASSIVE_PROC, {
+      passive: r.id,
+      ...(fire !== undefined ? { fire } : {}),
+    } satisfies PassiveProcPayload);
   }
 
   /** 깨진 거울: 대쉬 후 windowMs 안 첫 공격을 분신이 delayMs 뒤 한 번 더 (×damageMult) */
@@ -135,6 +152,7 @@ export class BuildCombat {
     const reach = gameState.weapon.hitbox.reach * 1.6;
     this.g.time.delayedCall(param(r, 'delayMs'), () => {
       if (!this.g.scene.isActive()) return;
+      this.proc(r);
       this.rt.fx.clone(at.x, at.y);
       this.rt.fx.coneFx(at.x, at.y, p.dirX, p.dirY, reach, 120, BUILD_FX.COLOR.CLONE);
       for (const m of this.rt.fx.inCone(at.x, at.y, p.dirX, p.dirY, reach, 120))
@@ -163,6 +181,7 @@ export class BuildCombat {
       this.rt.fx.damage(m, mult, { dirX: p.dirX, dirY: p.dirY });
       this.rt.fx.liquorPool(c.x, c.y, T(1), 6000);
     }
+    this.proc(r, onFire);
     this.rt.record('liquorBreath', { onFire });
   }
 
@@ -182,6 +201,7 @@ export class BuildCombat {
     // 휘는 궤적: 진행 방향에서 ±25° 기울인 돌진
     const a = Math.atan2(p.dirY, p.dirX) + side * 0.44;
     pl.startLunge(Math.cos(a), Math.sin(a), dist, 160, now);
+    this.proc(r);
     const radius = T(param(r, 'radiusTiles', 1.2));
     const mult = param(r, 'damageMult');
     this.g.time.delayedCall(140, () => {
@@ -266,7 +286,10 @@ export class BuildCombat {
     }
     if (died) return;
     for (const c of this.comboChange(p.comboIndex)) {
-      if (c.stunMs) mob.stun(now, c.stunMs, 'hit');
+      if (c.stunMs) {
+        mob.stun(now, c.stunMs, 'hit');
+        this.rt.art.stagger(mob, c.stunMs);
+      }
       if (c.brandBonus) for (let i = 0; i < c.brandBonus; i++) this.g.strikes.brands.onHit(mob, p.dirX, p.dirY);
     }
     this.onHitCommon(mob, p.dirX, p.dirY, strong);
@@ -282,12 +305,18 @@ export class BuildCombat {
     if (mark2 || fallback) {
       const set2 = BUILD.sets.mark[0].effect;
       const hits = mark2 ? param(mark2, 'hits', 3) : param(fallback!, 'hits', 3);
+      const before = this.rt.marks.marks(mob);
       this.rt.marks.hit(mob, now, hits, Number(set2.max) || 3);
+      const after = this.rt.marks.marks(mob);
+      if (after !== before)
+        EventBus.emit(Events.MARK_CHANGED, { marks: after, delta: after - before } satisfies MarkChangedPayload);
     }
     // 출혈 (깨진 잔 조각) · 화상 (불붙은 혀 영구)
     const bleed = this.rt.rule('bleedOnHit');
-    if (bleed && this.g.rng.chance(param(bleed, 'chance')))
+    if (bleed && this.g.rng.chance(param(bleed, 'chance'))) {
       this.applyDot(mob, 'bleed', param(bleed, 'ms'), param(bleed, 'tickMs'), param(bleed, 'tickMult'));
+      this.proc(bleed);
+    }
     const burnChance = gameState.build.permanentBurnChance;
     if (burnChance > 0 && this.g.rng.chance(burnChance)) {
       const B = curseDef('burningTongue')?.burn;
@@ -298,11 +327,13 @@ export class BuildCombat {
     const impact = this.rt.rule('heavyImpact');
     if (impact) {
       mob.stun(now, param(impact, 'stunMs'), 'hit');
+      this.rt.art.stagger(mob, param(impact, 'stunMs'));
       if (!mob.isBoss) mob.shove(dirX, dirY, T(param(impact, 'knockTiles')), 160);
     }
     // 잔불 심장: 강공 적중 지점 불 웅덩이
     const ember = this.rt.rule('emberHeart');
     if (ember) {
+      this.proc(ember);
       const c = mob.body.center;
       this.rt.fx.firePatch(
         c.x,
@@ -338,7 +369,9 @@ export class BuildCombat {
       const total = this.rt.dots.take(mob, now);
       const c = mob.body.center;
       const r = T(param(boil, 'radiusTiles'));
-      this.rt.fx.ring(c.x, c.y, r, BUILD_FX.COLOR.BURN);
+      // status_boil (반지름 96 도트) — 없으면 윤곽
+      if (!this.rt.art.onceAtMob(BUILD_ART.BOIL, mob)) this.rt.fx.ring(c.x, c.y, r, BUILD_FX.COLOR.BURN);
+      EventBus.emit(Events.STATUS_BURST, { kind: 'boil', x: c.x, y: c.y } satisfies StatusBurstPayload);
       for (const m of this.rt.fx.inCircle(c.x, c.y, r)) this.rt.fx.raw(m, total, { dirX: 0, dirY: 0, tick: true });
       this.rt.record('boil', total);
     }
@@ -438,6 +471,9 @@ export class BuildCombat {
         this.bloodlustUntil = now + param(bl, 'ms');
         this.killTimes = [];
         this.rt.record('bloodlust');
+        // chain_bloodlust 루프 + set_flash(6행) 시작
+        this.rt.art.bloodlustUntil = this.bloodlustUntil;
+        this.rt.art.onPlayer(BUILD_ART.SET_FLASH, { dir: '6' });
       }
     }
     // 연쇄 4: 무기 자원 회복
@@ -460,6 +496,8 @@ export class BuildCombat {
       (hadDot && kind === 'environment' && this.rt.rule('dotSpread')
         ? param(this.rt.rule('dotSpread')!, 'count', 2)
         : 0) + (hadDot && this.rt.rule('dotKillSpread') ? param(this.rt.rule('dotKillSpread')!, 'count', 1) : 0);
+    const scent = hadDot ? this.rt.rule('dotKillSpread') : null;
+    if (scent) this.proc(scent);
     if (spreadN > 0) {
       const used = new Set([mob]);
       for (let i = 0; i < spreadN; i++) {
@@ -473,6 +511,7 @@ export class BuildCombat {
     const dom = this.rt.rule('killShard');
     if (dom) {
       const m = this.rt.fx.nearest(at.x, at.y, T(param(dom, 'rangeTiles', 8)), new Set([mob]));
+      if (m) this.proc(dom);
       if (m)
         this.rt.fx.shot(at.x, at.y, m.x - at.x, m.y - at.y, this.attack * param(dom, 'damageMult'), {
           tag: 'shard',
@@ -484,8 +523,10 @@ export class BuildCombat {
     const onPool = this.rt.fx.onPool(at.x, at.y);
     if (onPool && this.rt.stage('drunk') >= 2) this.rt.drink('poolKill');
     const spill = this.rt.rule('spillPool');
-    if (spill && this.g.rng.chance(param(spill, 'chance')))
+    if (spill && this.g.rng.chance(param(spill, 'chance'))) {
       this.rt.fx.liquorPool(at.x, at.y, T(param(spill, 'radiusTiles', 1)), param(spill, 'ms'));
+      this.proc(spill);
+    }
     const sea = this.rt.rule('drunkSea');
     if (sea && this.rt.drunkActive)
       this.rt.fx.liquorPool(at.x, at.y, T(param(sea, 'poolRadiusTiles')), param(sea, 'poolMs'));
@@ -527,6 +568,7 @@ export class BuildCombat {
     // 불붙은 소매: 경로 불씨
     const sleeve = this.rt.rule('dashEmbers');
     if (sleeve && len > 0) {
+      this.proc(sleeve);
       const ms = param(sleeve, 'ms');
       const l = Math.hypot(dirX, dirY) || 1;
       const steps = Math.max(1, Math.round(len / TILE));

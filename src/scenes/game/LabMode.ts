@@ -176,6 +176,8 @@ export class LabMode {
     gameState.build.touch();
     w.reinforceCapOverride = on ? BUILD.evolve.reinforceMaxAwakened : null;
     if (!on) w.restore({ path: w.path, reinforce: w.reinforce });
+    // 60라운드: 각성 외형 오버레이(계약 art §21)는 각성 런에서만 — 켜면 그때 로드 · 시그니처 fx·효과음
+    if (on) this.g.build.onAwakened();
   }
 
   private closeMenu(): void {

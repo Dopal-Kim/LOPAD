@@ -81,8 +81,10 @@ export class Progression {
     gameState.kills += 1;
     // 47라운드: 판돈 종·룰렛 '배수 판' 배율
     const km = g.structures.killMods();
+    // 60라운드 엘리트: 처치 개성·전표 ×rewardMult
+    const em = g.bundle?.rewardMult(mob) ?? 1;
     // 57라운드: 외상 저주 처치 전표 0
-    g.economy.dropLoot(mob, km.goldMult * g.build.killGoldMult());
+    g.economy.dropLoot(mob, km.goldMult * g.build.killGoldMult() * em);
     // 57라운드 2차 묶음 S3-A: 일반 처치 개성 절반 (보스 그대로) · 연쇄 6 살기 ×2
     const normal = mob.isBoss ? 1 : BUILD.personality.normalKillMult;
     this.gainPersonality(
@@ -91,7 +93,8 @@ export class Progression {
           normal *
           (1 + gameState.passives.total('personalityMult')) *
           km.personalityMult *
-          g.build.combat.personalityMult(),
+          g.build.combat.personalityMult() *
+          em,
       ),
     );
     // 57라운드 빌드 축: 처치 사건 (연쇄·표식·상흔·취기·저주 궤짝·갈래)
@@ -101,6 +104,8 @@ export class Progression {
     if (gameState.senses.recordKill(kind)) {
       EventBus.emit(Events.SENSE_GAINED, { kind, sense: gameState.senses.sense });
     }
+    // 60라운드 2차 묶음: 엘리트 드롭·접두어 사망 규칙·보스 결정타 (방 상태 머신보다 먼저 — 보스 부하 정리 전)
+    g.bundle?.onKill(mob);
     g.director.onMobDied(mob);
   }
 
@@ -175,7 +180,7 @@ export class Progression {
     const g = this.g;
     g.setFrozen(true);
     g.player.body.setVelocity(0, 0);
-    g.motion.stopGale();
+    g.motion.stopLoops();
     const E = STORY.endings;
     const lines = [
       { key: '1', label: E.choice[0], enabled: true, detail: E.destroy },
@@ -244,7 +249,8 @@ export class Progression {
 
   /** 보스 보상 패시브 3지선다 — 57라운드: BuildMenus (이중 개성 확정 칸 · 태그 · 1층 테마 가중) */
   private openPassiveChooser(onDone: () => void): void {
-    this.g.buildMenus.openPassiveMenu('boss', {}, onDone);
+    // 60라운드 (h) 파훼 n ≥ 4: 보스 패시브 희귀 이상 보장
+    this.g.buildMenus.openPassiveMenu('boss', { rarities: this.g.bundle?.breaks.bossRarities() }, onDone);
   }
 
   private applyReward(id: StatKey): void {

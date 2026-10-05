@@ -98,7 +98,7 @@ export class EntityVisual {
     private readonly bodyH: number,
     placeholderColor: number,
     /** 58라운드 Q2: 그림만 이 배율 (주인공 1.25 — 바디·피벗·그림자 자리는 그대로, 발 피벗 기준으로 커진다) */
-    readonly drawScale = 1,
+    public drawScale = 1,
   ) {
     const scene = host.scene;
     this.baseTint = placeholderColor;
@@ -141,6 +141,14 @@ export class EntityVisual {
     host.body.updateBounds();
     host.body.setSize(this.bodyW / s, this.bodyH / s, false);
     this.applyOrigin();
+  }
+
+  /** 60라운드 엘리트 ×1.15: 그림 배율을 바꾸고 지금 시트로 다시 맞춘다 (바디는 월드 크기 그대로) */
+  setDrawScale(k: number): void {
+    if (k === this.drawScale) return;
+    this.drawScale = k;
+    this.fitKey = '';
+    if (this.fitFrame) this.fit(this.fitFrame);
   }
 
   /** 원점 = 피벗(+ 공중 높이) · 바디 오프셋도 같은 만큼 — 바디 월드 위치는 그대로 */

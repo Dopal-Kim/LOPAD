@@ -1,6 +1,8 @@
 /**
  * 우클릭 보조 동작 결과(27라운드: 가드 밀쳐내기 · 그림자 걸음) · 대쉬 시작 연출·잔상 피해 ·
- * 유지형 연출(질풍 루프 · 조준 점선·차지 게이지 · 대쉬 잔상 · 달리기 먼지, 35·45라운드).
+ * 유지형 연출(조준 점선·차지 게이지 · 대쉬 잔상 · 달리기 먼지, 35·45라운드).
+ * 60라운드 (57 Q42): 옛 진화 이펙트(질풍 gale 루프·발도 batto·허보 longinvuln·잔상 afterimage·철벽 ironwall) 끔 —
+ * 갈래 1단 연격 변화 fx(계약 art §21, 씬 build/branch)가 대신한다.
  */
 import Phaser from 'phaser';
 import {
@@ -22,12 +24,9 @@ import type { FxHandle } from '../../systems/fx/fx';
 import { fxWeaponColor, hexToInt } from '../../systems/palette';
 import { facingOf, progressFrame } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
-import { evolutionFxId, pathFx } from './shared';
 import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
 
 export class MotionFx {
-  /** 질풍: 이동·대쉬 중 루프 이펙트 */
-  private galeFx: FxHandle | null = null;
   private aimChargeFx: FxHandle | null = null;
   private lastAimReady = false;
   private dashTrailNextAt = 0;
@@ -40,14 +39,12 @@ export class MotionFx {
   /** 매 프레임 (일반 진행) */
   update(time: number): void {
     this.updateSprintDust(time);
-    this.updateGale();
     this.updateAimFx(time);
     this.updateDashTrail(time);
   }
 
   /** 정지·선택·전환 중: 유지형 연출을 끈다 */
   stopLoops(): void {
-    this.stopGale();
     this.stopAimFx(false);
   }
 
@@ -66,7 +63,7 @@ export class MotionFx {
     const now = g.time.now;
     const radius = S.pushRadiusTiles * TILE;
     const counter = gameState.weapon.mods.guardCounterMult ?? 0;
-    // 가드 밀쳐내기 충격파(guard_wave, 발 피벗·바라보는 방향·바닥 깊이) + 철벽이면 ironwall 벽 섬광(위) 동시. 시트가 없으면 링
+    // 가드 밀쳐내기 충격파(guard_wave, 발 피벗·바라보는 방향·바닥 깊이). 시트가 없으면 링
     const dir = g.player.facingDir;
     if (g.fx.has('guard_wave')) g.fx.play('guard_wave', p.x, p.y, { dir, depth: DEPTH.FX_GROUND });
     else {
@@ -76,16 +73,6 @@ export class MotionFx {
       g.tweens.add({ targets: ring, alpha: 0, duration: PROTOTYPE.GUARD_PUSH_MS, onComplete: () => ring.destroy() });
     }
     g.structures.onPush(p.x, p.y, radius);
-    const ironwall = counter > 0 ? pathFx(g.fx, 'ironwall') : null;
-    if (ironwall) {
-      // 55라운드 계약 §16: depthByDirection {"up": "below"} — 등 뒤(위 방향)면 주인공 뒤에 (그 깊이는 라이트맵 아래)
-      const below = g.fx.sheet(ironwall)?.depthByDirection?.[dir] === 'below';
-      g.fx.play(ironwall, p.x, p.y, {
-        dir,
-        depth: entityDepth(p.y) + DEPTH.OVERLAY_STEP * (below ? -1 : 3),
-        belowLighting: below,
-      });
-    }
     for (const child of [...g.mobs.getChildren()]) {
       const m = child as Mob;
       if (!m.active) continue;
@@ -182,8 +169,7 @@ export class MotionFx {
   }
 
   /**
-   * 대쉬 시작: 출발 먼지(dash_dust, 고정) · 발도술(플레이어 아래, 따라감, JSON 리본) · 허보(longinvuln, 따라감, 위, JSON 리본) ·
-   * 잔상(afterimage, 출발점 고정 분신) · 잔상 피해 영역(대쉬 경로)
+   * 대쉬 시작: 출발 먼지(dash_dust, 고정) · 잔상 피해 영역(대쉬 경로). (옛 발도술·허보·잔상 진화 fx 는 57 Q42 로 끔)
    */
   onPlayerDashed(p: { dirX: number; dirY: number; x: number; y: number }): void {
     const g = this.g;
@@ -191,20 +177,7 @@ export class MotionFx {
     const now = g.time.now;
     if (g.fx.has('dash_dust')) g.fx.play('dash_dust', p.x, p.y, { dir, depth: DEPTH.FX_GROUND });
     this.dashTrailNextAt = now; // 첫 dash_trail 은 다음 update 에서
-    // 대쉬 베기 리본은 batto·longinvuln 시트 JSON trail 이 그린다(fx-design §6.1: 대쉬 베기만). 허보가 있으면 리본은 허보 쪽 하나만
-    const longinvuln = pathFx(g.fx, 'longinvuln');
-    if (evolutionFxId(g.fx) === 'batto') {
-      g.fx.play('batto', p.x, p.y, { dir, follow: g.player, depth: DEPTH.FX_GROUND, hooks: !longinvuln });
-    }
-    if (longinvuln) g.fx.play(longinvuln, p.x, p.y, { dir, follow: g.player, depthOffset: DEPTH.OVERLAY_STEP * 3 });
     g.structures.onDash(p.x, p.y, p.dirX, p.dirY, PLAYER_DATA.dash.distanceTiles * TILE);
-    const afterimage = pathFx(g.fx, 'afterimage');
-    if (afterimage)
-      g.fx.play(afterimage, p.x, p.y, {
-        dir,
-        depth: entityDepth(p.y) - DEPTH.OVERLAY_STEP,
-        scaleMult: PLAYER_RENDER_SCALE,
-      });
     const mult = gameState.weapon.mods.dashTrailDamageMult;
     if (!mult) return;
     const D = PLAYER_DATA.dash;
@@ -233,25 +206,6 @@ export class MotionFx {
   }
 
   // --- 유지형 연출 ---
-
-  /** 질풍: 이동·대쉬 중 플레이어 아래에서 바람 루프, 멈추면 끈다 */
-  private updateGale(): void {
-    const g = this.g;
-    const want =
-      evolutionFxId(g.fx) === 'gale' && (g.player.moving || g.player.action === 'dash') && !gameState.gameOver;
-    if (!want) {
-      this.stopGale();
-      return;
-    }
-    const dir = g.player.facingDir;
-    if (g.fx.isActive(this.galeFx)) g.fx.setDir(this.galeFx, 'gale', dir);
-    else this.galeFx = g.fx.play('gale', g.player.x, g.player.y, { dir, follow: g.player, depth: DEPTH.FX_GROUND });
-  }
-
-  stopGale(): void {
-    if (this.g.fx.isActive(this.galeFx)) this.g.fx.stop(this.galeFx);
-    this.galeFx = null;
-  }
 
   /**
    * 조준 중: aim_line(몸 중심 → 커서, 길이 AIM_LINE_TILES) + aim_charge(진행도 프레임 = min(5, floor(progress×5))).

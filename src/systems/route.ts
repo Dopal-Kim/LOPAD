@@ -380,10 +380,28 @@ export class RouteState {
         state: this.stateOf(n),
         // 49라운드 계약 §11.2: 지역 이름·장소 설명 (지역이 없는 층은 생략)
         ...(region ? { region: region.name, desc: regionDesc(region, n.kind) } : {}),
+        // 60라운드 §14.5 기본값 (2차 묶음 decorate 가 채운다)
+        reward: null,
+        risk: null,
+        riskText: '',
+        prefixes: null,
+        eventName: null,
+        hidden: null,
+        grade: null,
       };
     });
-    return { floor: this.floor, nodes, currentId: this.currentId, choosing: this.choosing };
+    const base: UiRoute = {
+      floor: this.floor,
+      nodes,
+      currentId: this.currentId,
+      choosing: this.choosing,
+      intel: { nextTier: false, fullFloor: false, hiddenLocated: false },
+    };
+    return this.decorate ? this.decorate(base, this) : base;
   }
+
+  /** 60라운드 2차 묶음: 계약 §14.5 필드를 얹는 함수 (systems/bundle2 — 층 노드 정보). 없으면 기본값 그대로 */
+  decorate: ((base: UiRoute, st: RouteState) => UiRoute) | null = null;
 }
 
 /** 노드 세부 종류의 정의 */

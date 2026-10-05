@@ -1,4 +1,13 @@
-import { createReadStream, cpSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import {
+  createReadStream,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 
@@ -25,13 +34,28 @@ const MIME: Record<string, string> = {
   woff: 'font/woff',
 };
 
-function listFiles(dir: string, base = dir): string[] {
+/**
+ * 60라운드 (57 Q42): 빌드에서 뺄 에셋 (`data/buildExclude.json` patterns — assets/ 상대 경로 정규식). 원본은 보관(복사·목록에서만 제외)
+ */
+function loadExcludes(root: string): RegExp[] {
+  const file = resolve(root, 'data/buildExclude.json');
+  if (!existsSync(file)) return [];
+  const raw = JSON.parse(readFileSync(file, 'utf8')) as { patterns?: string[] };
+  return (raw.patterns ?? []).map((p) => new RegExp(p));
+}
+
+const excluded = (rel: string, ex: readonly RegExp[]) => ex.some((r) => r.test(rel));
+
+function listFiles(dir: string, ex: readonly RegExp[] = [], base = dir): string[] {
   if (!existsSync(dir)) return [];
   const out: string[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...listFiles(full, base));
-    else if (entry.isFile()) out.push(relative(base, full).split('\\').join('/'));
+    if (entry.isDirectory()) out.push(...listFiles(full, ex, base));
+    else if (entry.isFile()) {
+      const rel = relative(base, full).split('\\').join('/');
+      if (!excluded(rel, ex)) out.push(rel);
+    }
   }
   return out.sort();
 }
@@ -53,7 +77,7 @@ function gameAssets(): Plugin {
         const rel = decodeURIComponent(url.slice(GAME_ASSET_URL.length).split('?')[0]);
         if (rel === MANIFEST) {
           res.setHeader('Content-Type', MIME.json);
-          res.end(JSON.stringify({ files: listFiles(srcDir) }));
+          res.end(JSON.stringify({ files: listFiles(srcDir, loadExcludes(root)) }));
           return;
         }
         const file = resolve(srcDir, rel);
@@ -70,8 +94,13 @@ function gameAssets(): Plugin {
       const srcDir = resolve(root, GAME_ASSET_DIR);
       const dest = resolve(root, outDir, GAME_ASSET_URL.replace(/\//g, ''));
       mkdirSync(dest, { recursive: true });
-      if (existsSync(srcDir)) cpSync(srcDir, dest, { recursive: true });
-      writeFileSync(join(dest, MANIFEST), JSON.stringify({ files: listFiles(srcDir) }));
+      const ex = loadExcludes(root);
+      if (existsSync(srcDir))
+        cpSync(srcDir, dest, {
+          recursive: true,
+          filter: (src) => statSync(src).isDirectory() || !excluded(relative(srcDir, src).split('\\').join('/'), ex),
+        });
+      writeFileSync(join(dest, MANIFEST), JSON.stringify({ files: listFiles(srcDir, ex) }));
     },
   };
 }

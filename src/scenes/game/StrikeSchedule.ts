@@ -6,15 +6,13 @@
  * - 지진 충격파 2단 (마무리 타만)
  * 모두 씬 시계(`time.delayedCall`)라 히트스톱 동안 멈춘다. 판정 한 번 자체는 PlayerStrikes.meleeSwing.
  */
-import { FEEL, PROTOTYPE } from '../../core/Constants';
+import { PROTOTYPE } from '../../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload, type PlayerFollowUpPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { ComboFollowUpDef } from '../../data/types';
 import type { Pt } from '../../systems/weapon/hitShapes';
-import { hitFrameOffsets } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 import type { SwingFx } from './SwingFx';
-import { pathFx } from './shared';
 
 /** 판정 한 번의 옵션: 지진 2단 · 55라운드 후속 판정(원점·모양 덮어쓰기) */
 export interface SwingOpts {
@@ -82,15 +80,13 @@ export class StrikeSchedule {
     });
   }
 
-  /** 쌍격·난무: 추가 타격. 시트 hitFrames 가 있으면 그 프레임 시작 간격(43라운드 B), 없으면 TWIN_DELAY_MS 간격 */
+  /** 옛 mods.hits 추가 타격: TWIN_DELAY_MS 간격 (60라운드 — 57 Q42 옛 쌍격·난무 진화 시트 시각은 끔) */
   private extraHits(at: PlayerAttackPayload): void {
     const g = this.g;
     const hits = Math.max(1, gameState.weapon.mods.hits ?? 1);
     if (hits <= 1) return;
-    const multiFx = pathFx(g.fx, 'dance', 'twin');
-    const offsets = FEEL.SYNC_HIT_FRAMES && multiFx ? hitFrameOffsets(g.fx.sheet(multiFx), hits) : null;
     for (let i = 1; i < hits; i++) {
-      g.time.delayedCall(offsets?.[i] ?? PROTOTYPE.TWIN_DELAY_MS * i, () => {
+      g.time.delayedCall(PROTOTYPE.TWIN_DELAY_MS * i, () => {
         if (this.live) this.swingOnce(this.here(at));
       });
     }

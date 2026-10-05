@@ -185,6 +185,11 @@ export class BossArena implements BossArenaApi {
     EventBus.emit(Events.BOSS_SCREEN, { effect: 'tilt', on: true } satisfies BossScreenPayload);
   }
 
+  /** 60라운드 소모품 냉수: 이 시각까지 '세상이 돈다' 기울기 무시 */
+  suppressTilt(until: number): void {
+    this.screen.suppressUntil = Math.max(this.screen.suppressUntil, until);
+  }
+
   get tilting(): boolean {
     return this.screen.active;
   }

@@ -10,6 +10,7 @@ import type { ComboChargeDef, ComboHitDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
 import { artScale, rowDirFor } from '../../systems/sprites/spriteDefs';
 import { weaponRangeScale } from '../../systems/weapon/playerScale';
+import { chargeStages } from '../../systems/build/current';
 import type { Player } from '../Player';
 import { strikeBodyAction } from './attackEmit';
 import { aimVector, type ComboStrike } from './heavyMoves';
@@ -49,7 +50,9 @@ export function releaseCharge(
   const w = gameState.weapon;
   const combo = p.combo!;
   const res = p.resource;
-  const st = C.stages[Math.min(stage, C.stages.length) - 1];
+  // 60라운드: 거인 4단 포함 (chargeStages)
+  const stages = chargeStages(C);
+  const st = stages[Math.min(stage, stages.length) - 1];
   combo.reset();
   if (res?.def.kind === 'stamina') res.spend(res.def.cost.slam, time);
   const first = p.gear.firstStrike;

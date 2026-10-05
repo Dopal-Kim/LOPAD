@@ -18,6 +18,7 @@ import { comboRadius, comboShape, resolveHitShape, type HitShape } from '../../s
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import type { FxVariant } from '../../systems/fx/fxVariants';
 import { pickSwingFx } from '../../systems/weapon/swingSelect';
+import { chargeStages } from '../../systems/build/current';
 import {
   artScale,
   comboAction,
@@ -36,7 +37,7 @@ import { crackShake } from './swingShake';
 import type { Game } from '../Game';
 import { planBladeTip } from './bladeTip';
 import { HIT_ORIGIN_BASE_PX, PLAYER_RENDER_SCALE, weaponRangeScale } from '../../systems/weapon/playerScale';
-import { HIT_ORIGIN_UP_PX, isFinisher, isMeleeStrike, pathFx } from './shared';
+import { HIT_ORIGIN_UP_PX, isFinisher, isMeleeStrike } from './shared';
 
 /** 56라운드 §18.11: 생성 순간의 주인공 발에 고정되는 앵커 (따라가지 않음) — 대치 일격 fx 등 */
 const WORLD_FIXED_ANCHORS: readonly string[] = ['release_pivot', 'dash_start_pivot', 'leap_start_pivot'];
@@ -141,11 +142,11 @@ export class SwingFx {
         comboN: p.comboIndex !== undefined ? p.comboIndex + 1 : null,
         ...(art.listed ? { comboId: art.id } : {}),
         finisher: isFinisher(p),
-        path: weapon.path,
+        // 60라운드 (57 Q42): 옛 진화 이펙트(갈래 연격 시트·2단 변주·진화 베기)는 끔 — 갈래 1단 연격 변화는 fx 교체 규칙(FxPool.setAliases)
+        path: [],
         heat: p.heatStage ?? 0,
         reuseId: p.dashSlash && DS ? (body?.fxReuse?.id ?? comboFxId(weapon.id, DS.fxCombo)) : null,
-        // 2차가 1차를 대신한다: 만월(wide) → 거합(iai), 난무(dance) → 쌍격(twin)
-        evoId: pathFx(g.fx, 'wide', 'iai', 'dance', 'twin'),
+        evoId: null,
       },
       { has: (id) => g.fx.has(id), sheet: (id) => g.fx.sheet(id) },
     );
@@ -248,7 +249,7 @@ export class SwingFx {
     const g = this.g;
     const C = gameState.weapon.def.combo?.charge;
     if (!C || stage < 1) return false;
-    const key = C.stages[stage - 1]?.art ?? C.holdArt ?? C.hit.art;
+    const key = chargeStages(C)[stage - 1]?.art ?? C.holdArt ?? C.hit.art;
     const names = artCandidates(gameState.weapon.def.combo, key ?? '', 'flashFx');
     const w = gameState.weapon.id;
     const name = pickArt(names, (n) => g.fx.has(`${w}_${n}`));

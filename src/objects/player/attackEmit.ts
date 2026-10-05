@@ -105,6 +105,9 @@ export function emitPlayerAttack(
   // 49라운드 과열: 가열 단계 (이펙트 강화)
   const res = p.gear.resource;
   if (res?.kind === 'heat') payload.heatStage = res.stage;
+  // 60라운드 음향: 칼 검기 단 (찌르기 katana_thrust_ki<n>)
+  const kenki = p.gauges.kenki;
+  if (kenki) payload.kenkiStage = kenki.stage;
   if (extra) Object.assign(payload, extra);
   EventBus.emit(Events.PLAYER_ATTACKED, payload);
   return payload;

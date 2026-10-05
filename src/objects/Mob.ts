@@ -54,12 +54,24 @@ export interface DamageInfo {
 export abstract class Mob extends Phaser.GameObjects.Sprite {
   declare body: Body;
   hp: number;
-  readonly maxHp: number;
+  /** 60라운드: 엘리트 HP ×2.5 로 늘릴 수 있다 (`scaleMaxHp`) */
+  maxHp: number;
   readonly visual: EntityVisual;
   /** 적·보스 id (= 시트 이름). 이벤트 페이로드에 쓴다 */
   readonly spriteId: string;
   /** 47라운드: 이동 속도 배율 (독주 웅덩이 등 환경). 일반 적만, AI 가 정한 속도에 곱한다 */
   speedMult = 1;
+  /** 60라운드 2차 묶음 엘리트 접두어 (없으면 null — 엘리트 아님). 규칙은 씬 EliteSystem */
+  elite: { prefix: string; name: string } | null = null;
+  /** 60라운드 엘리트 접두어 효과: 받는 피해 배율(통 갑옷) · 경직 면역 · 피격 경직 배율(고주망태) · 이동·공격 속도 배율(성난·두목) */
+  damageTakenMult = 1;
+  stunImmune = false;
+  hitStunMult = 1;
+  eliteSpeedMult = 1;
+  attackRateMult = 1;
+  /** 60라운드 정적(간파 6) 감속: 이 시각까지 이동 속도 × statusSlowMult (웅덩이 speedMult 와 따로 — 둘 다 곱한다) */
+  statusSlowUntil = -Infinity;
+  statusSlowMult = 1;
   /** 마지막으로 본 플레이어 위치 (대기 방향용) */
   private targetX = 0;
   private targetY = 0;
@@ -129,6 +141,8 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     } else {
       this.think(ctx);
       if (this.speedMult !== 1 && !this.isBoss) this.body.velocity.scale(this.speedMult);
+      if (ctx.time < this.statusSlowUntil) this.body.velocity.scale(this.statusSlowMult);
+      if (this.eliteSpeedMult !== 1) this.body.velocity.scale(this.eliteSpeedMult);
       if (sh) {
         const f = this.stepShove(ctx.delta);
         if (f > 0) this.body.setVelocity(this.body.velocity.x + sh.vx * f, this.body.velocity.y + sh.vy * f);
@@ -265,7 +279,10 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   }
 
   /** 패링·중압 등으로 경직. 경직 중엔 움직이지도 공격하지도 않는다 */
-  stun(time: number, ms: number, source: 'parry' | 'hit' = 'parry'): void {
+  stun(time: number, ms0: number, source: 'parry' | 'hit' = 'parry'): void {
+    // 60라운드 엘리트: 통 갑옷 경직 면역 · 고주망태 피격 경직 절반 (패링 경직은 그대로)
+    if (this.stunImmune && source === 'hit') return;
+    const ms = source === 'hit' ? ms0 * this.hitStunMult : ms0;
     if (!this.isStunned(time) || source === 'parry') this.stunSource = source;
     this.stunnedUntil = Math.max(this.stunnedUntil, time + ms);
     this.shoveState = null;
@@ -283,7 +300,7 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   tryContactAttack(time: number): number {
     if (this.isStunned(time)) return 0;
     if (time < this.nextContactAt) return 0;
-    this.nextContactAt = time + this.contactIntervalMs();
+    this.nextContactAt = time + this.contactIntervalMs() / Math.max(0.1, this.attackRateMult);
     // 프레임 유지 중(보스 돌진·예고)에는 접촉 공격 애니로 덮지 않는다
     if (!this.visual.held) this.playAttack(time);
     EventBus.emit(Events.ENEMY_ATTACK, { id: this.spriteId, kind: 'contact' } satisfies EnemyAttackPayload);
@@ -317,6 +334,17 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   }
 
   protected onDeath(): void {}
+
+  /** 60라운드 엘리트: 최대 HP 를 배율로 늘리고 가득 채운다 */
+  scaleMaxHp(mult: number): void {
+    this.maxHp = Math.max(1, Math.round(this.maxHp * mult));
+    this.hp = this.maxHp;
+  }
+
+  /** 60라운드 들이켜는: 최대 HP 비율만큼 회복 */
+  healRatio(ratio: number): void {
+    this.hp = Math.min(this.maxHp, this.hp + Math.round(this.maxHp * ratio));
+  }
 
   /** 외부 효과(출혈 등)의 짧은 색 표시 */
   flashColor(color: number): void {

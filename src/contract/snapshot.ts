@@ -15,6 +15,9 @@ import type {
   UiWeaponGauge,
   UiWeaponResource,
   UiBuildState,
+  UiConsumableSlot,
+  UiElite,
+  UiNodeTrial,
 } from './ui';
 
 export interface SnapshotContext {
@@ -45,6 +48,10 @@ export interface SnapshotContext {
   groggy?: UiGroggy | null;
   /** 57라운드 (계약 §14.1): 태그·세트·이중 개성·저주. 생략 시 빈 값 */
   build?: UiBuildState | null;
+  /** 60라운드 (계약 §14.8~14.10): 소모품 칸 · 엘리트 이름표 · 노드 성과 진행. 생략 시 null / [] / null */
+  consumable?: UiConsumableSlot | null;
+  elites?: readonly UiElite[];
+  nodeTrial?: UiNodeTrial | null;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -146,5 +153,10 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
           curse: ctx.build.curse ? { ...ctx.build.curse } : null,
         }
       : { tags: [], dualTraits: [], curse: null },
+    consumable: ctx.consumable
+      ? { ...ctx.consumable, item: ctx.consumable.item ? { ...ctx.consumable.item } : null }
+      : null,
+    elites: (ctx.elites ?? []).map((e) => ({ ...e, prefixes: [...e.prefixes], screen: { ...e.screen } })),
+    nodeTrial: ctx.nodeTrial ? { ...ctx.nodeTrial } : null,
   };
 }

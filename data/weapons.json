@@ -158,7 +158,9 @@
             "art": {
               "_note": "57 갈래 아트 (branch57): 몸·무기 katana_spin(+ki1~3) 15프레임, 홀드 루프 f2~5, 뗌 f6, 뗀 뒤 40ms 판정 · fx katana_spin(뗀 순간, 2회전은 다시) · katana_spin_ready(0.4초 준비 반짝임)",
               "body": ["spin"],
-              "fx": ["katana_spin", "katana_spin_ready"]
+              "fx": ["katana_spin", "katana_spin_ready", "katana_fall_wide"],
+              "replaceFx": { "katana_fall": "katana_fall_wide" },
+              "_note60": "60라운드 계약 art §21: 1단 연격 변화 — 2타 fx katana_fall 을 katana_fall_wide 로 1:1 교체(replaceFx)"
             },
             "comboChange": [
               {
@@ -186,6 +188,10 @@
                     "moveMult": 0.6,
                     "staminaPerSec": 0.3
                   }
+                },
+                "art": {
+                  "fx": ["katana_whirl_loop", "katana_whirl_reflect"],
+                  "_note60": "60라운드 계약 art §21: 지속 회전 루프 · 탄 되받아침"
                 }
               },
               {
@@ -205,6 +211,10 @@
                     "tickMs": 300,
                     "tickMult": 0.3
                   }
+                },
+                "art": {
+                  "fx": ["katana_moon_trail"],
+                  "_note60": "60라운드 계약 art §21: 달 궤적 (48 도트 간격, 접선 회전)"
                 }
               }
             ]
@@ -262,6 +272,10 @@
                     "executeRatio": 0.3,
                     "bossMult": 1.5
                   }
+                },
+                "art": {
+                  "fx": ["katana_cleave_crack", "katana_execute"],
+                  "_note60": "60라운드 계약 art §21: 균열(뗀 자리·4행, 판정 + 40ms) · 처형. 균열 4칸 = 60 Q3 아트 제안 채택(rule crackTiles)"
                 }
               },
               {
@@ -282,7 +296,11 @@
                     "clones": 2
                   }
                 },
-                "live": false
+                "live": false,
+                "art": {
+                  "fx": ["katana_mirror_ki", "katana_mirror_parry"],
+                  "_note60": "60라운드 계약 art §21: 검기 단수 발밑 고리(rowsAre stacks 1~5) · 패링. 명경은 검기 통합 뒤 켬(live false)"
+                }
               }
             ]
           }
@@ -334,8 +352,9 @@
           "lunge": { "px": 10, "fromMs": 220, "ms": 110, "easing": "easeOut" }
         },
         "issenDash": {
-          "_note": "58라운드 Q1 일섬 = 대쉬 공격 전용: 대쉬 후 attackWindowMs(0.3초) 안 좌클릭 → 4칸 일섬 돌진(무적·관통, 기하·선·분신은 무기 데이터 issen — 56 Q28·Q29 그대로). 몸 player_katana_issen_dash(없으면 issen) 시간 740/250. 대쉬 공격 배율(player.dash.attackDamageMult)·발도술 갈래 대쉬 공격 배율이 곱해진다. 피해·기력 임시값",
+          "_note": "58라운드 Q1 일섬 = 대쉬 공격 전용: 대쉬 후 attackWindowMs(0.3초) 안 좌클릭 → 4칸 일섬 돌진(무적·관통, 기하·선·분신은 무기 데이터 issen — 56 Q28·Q29 그대로). 몸 player_katana_issen_dash(없으면 issen) 시간 740/250. 58 Q10(60라운드 적용): 대쉬 공격 기본 배율(player.dash.attackDamageMult ×1.5)은 빼고(useDashAttackMult false) 일섬 자체 피해 2.0(임시) × 갈래 배율(대쉬 공격 갈래·패시브)·검기만. 피해·기력 임시값",
           "art": "issen_dash",
+          "useDashAttackMult": false,
           "staminaCost": 16,
           "hit": {
             "damageMult": 2.0,
@@ -504,6 +523,14 @@
             "crackFx": ["ground_crack"],
             "crackRow": "l"
           },
+          "charge4": {
+            "body": ["charge_swing", "charge_slam", "slam", "combo3"],
+            "fx": ["charge_swing", "charge_slam_lv3"],
+            "impactFx": ["cleave_impact", "slam"],
+            "flashFx": ["charge_flash_lv4", "charge_flash_lv3"],
+            "crackFx": ["ground_crack"],
+            "crackRow": "l"
+          },
           "ring": { "fx": ["charge_ring"] },
           "crack_line": {
             "fx": [
@@ -515,12 +542,6 @@
             ],
             "crackFx": ["ground_crack"],
             "crackRow": "s"
-          },
-          "plunge": {
-            "body": ["charge_plunge", "charge_slam", "slam"],
-            "fx": [],
-            "crackFx": ["ground_crack"],
-            "crackRow": "l"
           },
           "tackle": { "body": ["tackle"], "fx": [] },
           "brace": { "body": ["brace_upswing"], "fx": ["brace_upswing"] },
@@ -582,16 +603,17 @@
           "moveMult": 0.35,
           "holdArt": "charge",
           "stages": [
-            { "atMs": 400, "lengthMult": 1.3, "damageMult": 1.2, "impactMult": 1.0, "art": "charge1" },
-            { "atMs": 800, "lengthMult": 1.5, "damageMult": 1.5, "impactMult": 1.15, "art": "charge2" },
+            { "atMs": 400, "lengthMult": 1.0, "damageMult": 1.2, "impactMult": 1.0, "art": "charge1" },
+            { "atMs": 800, "lengthMult": 1.1, "damageMult": 1.5, "impactMult": 1.15, "art": "charge2" },
             {
               "atMs": 1200,
-              "lengthMult": 1.8,
+              "lengthMult": 1.2,
               "damageMult": 2.0,
               "impactMult": 1.3,
               "art": "charge3"
             }
           ],
+          "_noteQ8": "58라운드 Q8(60라운드 적용): 내려찍기 쐐기 길이 = R × 단계 lengthMult 1.0/1.1/1.2 (옛 1.3/1.5/1.8) — 쐐기는 가까운 적만, 먼 적은 균열(crackLine 3/4/5칸)이 맞힌다. 데모로 조정",
           "hit": {
             "damageMult": 1.5,
             "sizeMult": 1.0,
@@ -615,8 +637,8 @@
             "tileCrackScale": 0.45
           }
         },
-        "_note58": "58라운드 Q3: 차지 = 휘둘러 내리찍기 + 균열이 커서까지(charge.crackLine) — 꽂아내리기(plunge) 폐기(어느 갈래든). 단계 쐐기 길이·피해는 그대로(임시)",
-        "_note56": "56라운드 Q5·Q25 무게: 아트 combo56_body 새 시트 시간 그대로(H 820/380 · V 920/440 · 차지 내려찍기 700/180 · 꽂아내리기 800/280, 3타 약 2.6초 — 55라운드 Q29 '약 2초' 대체), 몸 시트 holdFrames(선딜 버팀)·dragFrames(끌림 — dragStepPx 를 방향키와 무관하게 미끄러짐). Q6 8방향(조준각 8분할 행). Q10 기본 차지 = 충격파 링 없는 강한 내려찍기, 개성 발현(충격파 갈래) 후 차지 = 꽂아내리기(plunge). 균열 crackRow: V s(관성 최대 m) · 차지 1·2단 m · 3단 l · 꽂아내리기 l"
+        "_note58": "58라운드 Q3: 차지 = 휘둘러 내리찍기 + 균열이 커서까지(charge.crackLine) — 꽂아내리기 폐기(어느 갈래든, Q11 코드·데이터 삭제). Q8: 단계 쐐기 길이 ×1.0~1.2 (charge._noteQ8)",
+        "_note56": "56라운드 Q5·Q25 무게: 아트 combo56_body 새 시트 시간 그대로(H 820/380 · V 920/440 · 차지 내려찍기 700/180, 3타 약 2.6초 — 55라운드 Q29 '약 2초' 대체), 몸 시트 holdFrames(선딜 버팀)·dragFrames(끌림 — dragStepPx 를 방향키와 무관하게 미끄러짐). Q6 8방향(조준각 8분할 행). Q10 기본 차지 = 충격파 링 없는 강한 내려찍기(꽂아내리기는 58 Q11 삭제). 균열 crackRow: V s(관성 최대 m) · 차지 1·2단 m · 3단 l"
       },
       "secondary": {
         "kind": "guard",
@@ -661,8 +683,10 @@
                 "greatsword_shatter_crack_t3",
                 "greatsword_shatter_crack_t4",
                 "greatsword_shatter_crack_t5",
-                "greatsword_shatter_snuff"
-              ]
+                "greatsword_shatter_snuff",
+                "greatsword_cleave_crack"
+              ],
+              "_note60": "60라운드 계약 art §21: 4타(V) 균열 2칸 그림 greatsword_cleave_crack (comboChange crack)"
             },
             "comboChange": [
               {
@@ -689,9 +713,13 @@
                   "params": {
                     "splitDeg": 25,
                     "damageMult": 0.6,
-                    "lengthTiles": 2.5,
+                    "lengthTiles": 2,
                     "widthTiles": 1
                   }
+                },
+                "art": {
+                  "fx": ["greatsword_quake_fork"],
+                  "_note60": "60라운드 계약 art §21: 균열 끝 3갈래 greatsword_quake_fork. 갈래 각 2칸 = 60 Q3 아트 제안 채택(rule lengthTiles)"
                 }
               },
               {
@@ -711,6 +739,10 @@
                     "widthTiles": 1,
                     "damageMult": 1.8
                   }
+                },
+                "art": {
+                  "fx": ["greatsword_echo_counter"],
+                  "_note60": "60라운드 계약 art §21: 퍼펙트 가드 반격 greatsword_echo_counter"
                 }
               }
             ]
@@ -750,7 +782,8 @@
               {
                 "id": "giant",
                 "name": "거인 (巨人)",
-                "description": "차지·내려찍기 중 끊기지 않고 받는 피해 −50% (차지 4단 1.6초 ×3.8·진동 반경 5칸은 차지 작업과 합친 뒤)",
+                "description": "차지·내려찍기 중 끊기지 않고 받는 피해 −50%, 차지 4단(1.6초 ×3.8·진동 반경 5칸)",
+                "_note60": "57 Q43 거인 차지 4단 (60라운드 연결): 차지 단계에 4단을 더함(systems/build/current chargeStages) — 그림 키 stage4Art(charge4: 번쩍임 greatsword_charge_flash_lv4), 진동 = greatsword_giant_ring(lv4, 반경 ringRadiusTiles), 차지 중 끊기지 않음·피해 damageTaken·흡수 greatsword_brace_absorb. 4단 피격 판정 배율 ringMult(임시 1.0)",
                 "damageMult": 1.0,
                 "hitboxMult": 1.0,
                 "mods": {
@@ -762,9 +795,15 @@
                   "params": {
                     "stage4Ms": 1600,
                     "stage4Mult": 3.8,
+                    "stage4Art": "charge4",
                     "ringRadiusTiles": 5,
+                    "ringMult": 1.0,
                     "damageTaken": -0.5
                   }
+                },
+                "art": {
+                  "fx": ["greatsword_giant_ring", "greatsword_charge_flash_lv4", "greatsword_brace_absorb"],
+                  "_note60": "60라운드 계약 art §21: 차지 4단 진동 lv4 · 4단 번쩍임 · 피격 흡수(재사용)"
                 }
               },
               {
@@ -781,33 +820,21 @@
                   "params": {
                     "grudgeOnGroggy": 0.5,
                     "perfectWindowMult": 2,
-                    "burstRadiusTiles": 3,
+                    "burstRadiusTiles": 2.25,
                     "burstMult": 2.25
                   }
+                },
+                "art": {
+                  "fx": ["greatsword_congest_aura", "greatsword_congest_burst"],
+                  "_note60": "60라운드 계약 art §21: 그로기 오라 · 폭발(반지름 144 도트). 폭발 반경 2.25칸 = 60 Q3 아트 제안 채택(rule burstRadiusTiles)"
                 }
               }
             ]
           }
         ]
       },
-      "plunge": {
-        "_note": "56라운드 Q10 (임시값): 충격파 갈래(파쇄 — mods.shockwave) 발현 후 차지를 떼면 휘두르지 않고 칼을 꽂아(몸 시트 plantAnchors) 마우스 방향 충격파(fx greatsword_plunge_wave — 앞머리가 지나간 칸만) + 꽂힌 자리 작은 충격원 + 균열 l. 피해 = 차지 hit × 단계 배율 × 울분 보너스 × 각 배율",
-        "art": "plunge",
-        "durationMs": 800,
-        "hitAtMs": 280,
-        "plantRadiusRatio": 0.45,
-        "plantDamageMult": 1.0,
-        "wave": {
-          "sheet": "greatsword_plunge_wave",
-          "lengthMultByStage": [1.4, 1.7, 2.0],
-          "halfWidthPx": 13,
-          "damageMult": 0.8,
-          "travelMs": 220
-        },
-        "crackRow": "l"
-      },
       "gauge": {
-        "_note": "56라운드 Q15 울분(鬱憤) (임시값): 가드로 줄인 피해 × blockGainMult(퍼펙트 가드 = 원래 피해 × perfectMult, 그로기 중 가드 × groggyMult) 가 쌓이고, 차지 내려찍기·꽂아내리기가 전부 소모해 피해 +slamDamageBonus·판정 길이 +slamRangeBonus (가득 기준, 비율만큼)",
+        "_note": "56라운드 Q15 울분(鬱憤) (임시값): 가드로 줄인 피해 × blockGainMult(퍼펙트 가드 = 원래 피해 × perfectMult, 그로기 중 가드 × groggyMult) 가 쌓이고, 차지 내려찍기가 전부 소모해 피해 +slamDamageBonus·판정 길이 +slamRangeBonus (가득 기준, 비율만큼)",
         "kind": "grudge",
         "label": "울분",
         "max": 100,
@@ -1016,7 +1043,9 @@
             },
             "art": {
               "_note": "57 갈래 아트: fx dagger_cross_clone (대상 히트박스 중심, 생성 + 120ms 교차 베기)",
-              "fx": ["dagger_cross_clone"]
+              "fx": ["dagger_cross_clone", "dagger_combo3_double", "dagger_brand_hop"],
+              "replaceFx": { "dagger_combo3": "dagger_combo3_double" },
+              "_note60": "60라운드 계약 art §21: 1단 연격 변화 — 3타 fx dagger_combo3 → dagger_combo3_double 1:1 교체 · 쌍낙인 옮겨감 dagger_brand_hop"
             },
             "comboChange": [
               {
@@ -1041,6 +1070,10 @@
                     "damageMult": 0.4,
                     "delayMs": 120
                   }
+                },
+                "art": {
+                  "fx": ["dagger_frenzy_clone_in", "dagger_frenzy_clone_out"],
+                  "_note60": "60라운드 계약 art §21: 분신 나타남·사라짐 (상주 분신 색 교체 shadowPalette 는 아직 반투명 복사)"
                 }
               },
               {
@@ -1059,6 +1092,10 @@
                     "tickMs": 500,
                     "radiusTiles": 3
                   }
+                },
+                "art": {
+                  "fx": ["dagger_brand_bleed"],
+                  "_note60": "60라운드 계약 art §21: 출혈 루프 dagger_brand_bleed"
                 }
               }
             ]
@@ -1093,7 +1130,8 @@
             "art": {
               "_note": "57 갈래 아트: 몸·무기 dagger_fan_throw (releaseFrame 2 = 100ms, fanDeg ±15) · fx dagger_fan_throw · 투사체 dagger_thrown",
               "body": ["fan_throw"],
-              "fx": ["dagger_fan_throw", "dagger_thrown"]
+              "fx": ["dagger_fan_throw", "dagger_thrown", "dagger_gale_wind"],
+              "_note60": "60라운드 계약 art §21: 이동 중 90ms 마다 재 실루엣 dagger_gale_wind"
             },
             "next": [
               {
@@ -1113,6 +1151,10 @@
                     "stuckMs": 2000,
                     "heatRefund": 0.1
                   }
+                },
+                "art": {
+                  "fx": ["dagger_stuck_blade"],
+                  "_note60": "60라운드 계약 art §21: 박힌 단검 dagger_stuck_blade (비도 투척 = dagger_thrown ×5 재사용)"
                 }
               },
               {
@@ -1133,8 +1175,15 @@
                     "haste": 0.2,
                     "burstRangeMult": 2,
                     "burnMs": 3000,
-                    "invulnMs": 500
+                    "invulnMs": 500,
+                    "burnTickMs": 500,
+                    "burnTickMult": 0.15
                   }
+                },
+                "art": {
+                  "fx": ["dagger_hotwind_trail", "dagger_hotwind_burst"],
+                  "replaceFx": { "dagger_overheat_burst": "dagger_hotwind_burst" },
+                  "_note60": "60라운드 계약 art §21: 과열 50%+ 이동 루프 · 과열 폭발 dagger_overheat_burst → dagger_hotwind_burst 1:1 교체"
                 }
               }
             ]
@@ -1274,7 +1323,10 @@
             },
             "art": {
               "_note": "57 갈래 아트: 몸·무기 bow_rapid_loop (루프 f2~9 = 400ms 2발, releaseFrames 4·8) + 기존 rapid 화살",
-              "body": ["rapid_loop"]
+              "body": ["rapid_loop"],
+              "fx": ["aim_charge_quick"],
+              "replaceFx": { "aim_charge": "aim_charge_quick" },
+              "_note60": "60라운드 계약 art §21: 1단 연격 변화 — 충전 고리 aim_charge → aim_charge_quick 1:1 교체"
             },
             "next": [
               {
@@ -1293,6 +1345,10 @@
                     "spreadDeg": 14,
                     "moveMult": 0.8
                   }
+                },
+                "art": {
+                  "fx": ["bow_arrow_split", "bow_arrow_rapid"],
+                  "_note60": "60라운드 계약 art §21: 분열 순간 bow_arrow_split · 갈라진 화살 = bow_arrow_rapid(재사용)"
                 }
               },
               {
@@ -1310,8 +1366,13 @@
                   "kind": "quiver",
                   "params": {
                     "killArrows": 3,
-                    "pickupArrows": 1
+                    "pickupArrows": 1,
+                    "stuckMs": 6000
                   }
+                },
+                "art": {
+                  "fx": ["bow_arrow_stuck", "bow_arrow_recall"],
+                  "_note60": "60라운드 계약 art §21: 떨어진 화살 · 회수"
                 }
               }
             ]
@@ -1341,7 +1402,8 @@
             },
             "art": {
               "_note": "57 갈래 아트: 완벽 놓기 화살 bow_arrow_pierce (bow_arrow 대신) · 꿰뚫을 때마다 bow_arrow_pierce_hit",
-              "fx": ["bow_arrow_pierce", "bow_arrow_pierce_hit"]
+              "fx": ["bow_arrow_pierce", "bow_arrow_pierce_hit", "bow_snipe_full"],
+              "_note60": "60라운드 계약 art §21: 가득 당김 순간 bow_snipe_full"
             },
             "next": [
               {
@@ -1365,6 +1427,10 @@
                   "params": {
                     "focusMs": 2000
                   }
+                },
+                "art": {
+                  "fx": ["bow_deadeye_scope"],
+                  "_note60": "60라운드 계약 art §21: 정밀 조준(숨 집중) 커서 스코프"
                 }
               },
               {
@@ -1386,6 +1452,10 @@
                     "lineMult": 0.8,
                     "lineWidthTiles": 0.8
                   }
+                },
+                "art": {
+                  "fx": ["bow_link_stack", "bow_skypierce_line"],
+                  "_note60": "60라운드 계약 art §21: 연결 스택 고리(rowsAre stacks 1~3) · 3스택 선(tile: true 반복)"
                 }
               }
             ]

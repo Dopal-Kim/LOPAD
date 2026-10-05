@@ -18,6 +18,7 @@ import { gameState } from '../../core/GameState';
 import { PLAYER_DATA } from '../../data';
 import type { ComboHitDef } from '../../data/types';
 import { ChargeHold } from '../../systems/weapon/chargeHold';
+import { chargeStages } from '../../systems/build/current';
 import { ComboTracker } from '../../systems/weapon/combo';
 import { artCandidates, pickArt } from '../../systems/weapon/comboArt';
 import type { InputState } from '../../systems/InputSystem';
@@ -62,7 +63,8 @@ export class MeleeDriver {
       const c = w.def.kind === 'melee' ? w.def.combo : undefined;
       this.tracker = c ? new ComboTracker(c) : null;
       this.momentum_ = c?.momentum ? new Momentum(c.momentum) : null;
-      this.charge_ = c?.charge ? new ChargeHold(c.charge) : null;
+      const charge = c?.charge;
+      this.charge_ = charge ? new ChargeHold(charge, () => chargeStages(charge)) : null;
     }
     return this.tracker;
   }

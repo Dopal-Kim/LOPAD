@@ -48,7 +48,8 @@
         "name": "간파 6 · 정적",
         "_tmpName": true,
         "description": "완벽 성공 3회마다 1초 정적 — 적·탄 40% 감속",
-        "effect": { "kind": "perfectStillness", "every": 3, "ms": 1000, "slow": 0.4 }
+        "effect": { "kind": "perfectStillness", "every": 3, "ms": 1000, "slow": 0.4, "radiusTiles": 5.6 },
+        "_note60": "60 Q3 아트 제안 채택: 정적 파동 반경 약 5.6칸(set_stasis_wave) — 반경 안 적·적 탄만 감속, 데모로 조정"
       }
     ],
     "breach": [

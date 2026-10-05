@@ -43,7 +43,7 @@ export class UiRelay {
       inCombat: g.director.inCombat,
       sprinting: g.player.sprinting,
       warp: this.warpState(),
-      interactable: g.structures?.interactable() ?? null,
+      interactable: g.structures?.interactable() ?? g.bundle?.interactable() ?? null,
       statuses: g.build ? g.build.statuses(g.structures?.statuses() ?? []) : (g.structures?.statuses() ?? []),
       structureRooms: g.structures?.structureRooms(),
       route: gameState.route?.toUi() ?? null,
@@ -57,6 +57,10 @@ export class UiRelay {
       groggy: this.groggy(now),
       // 57라운드 (계약 §14.1): 태그·세트 · 이중 개성 · 저주
       build: g.build?.toUi() ?? null,
+      // 60라운드 (계약 §14.8~§14.10): 소모품 칸 · 엘리트 이름표 · 노드 성과 진행
+      consumable: g.bundle?.consumableUi() ?? null,
+      elites: g.bundle?.elitesUi() ?? [],
+      nodeTrial: g.bundle?.nodeTrialUi() ?? null,
     });
   }
 

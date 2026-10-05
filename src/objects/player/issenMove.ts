@@ -32,8 +32,15 @@ export function startIssen(p: Player, input: InputState, time: number, def: Move
   const kenki = p.gauges.consumeKenki();
   const base = { ...def.hit, art: def.hit.art ?? def.art };
   const hit = { ...base, damageMult: base.damageMult * kenki.damageMult };
-  const strike: ComboStrike = { index: 0, count: 1, hit, durationMs: hit.durationMs, heavy: true };
-  // 대쉬 공격 배율·발도술 갈래(대쉬 공격 배율·급소)는 fireAttack 의 대쉬 공격 판정으로
+  const strike: ComboStrike = {
+    index: 0,
+    count: 1,
+    hit,
+    durationMs: hit.durationMs,
+    heavy: true,
+    ...(def.useDashAttackMult === false ? { noDashBaseMult: true } : {}),
+  };
+  // 60라운드 (58 Q10): 일섬 자체 피해 × 갈래 배율(대쉬 공격 갈래 배율·급소)만 — 기본 대쉬 배율 ×1.5 는 데이터로 뺀다
   const payload = p.fireAttack(snapped, time, strike, true, first, {
     issen: { facing, dirX: v.x, dirY: v.y, kenki: kenki.stages, clone: kenki.clone },
   });

@@ -47,6 +47,27 @@ export class WeaponResource {
     return this.def.max;
   }
 
+  /**
+   * 60라운드 소모품 '냉수 한 바가지': 기력 = 그로기·바닥 해제 + 최대 × staminaRatio 이상 / 과열 0 (냉각 끝) / 탄창 가득 (장전 끝)
+   */
+  refresh(staminaRatio: number): void {
+    const d = this.def;
+    if (d.kind === 'stamina') {
+      this.exhausted = false;
+      this.groggyUntil = -Infinity;
+      this.value = Math.max(this.value, d.max * staminaRatio);
+      this.lastUseAt = -Infinity;
+    } else if (d.kind === 'ammo') {
+      this.reloadStart = -1;
+      this.value = d.max;
+    } else {
+      this.value = 0;
+      this.atMaxMs = 0;
+      this.overheatStart = -1;
+      this.overheatFrom = 0;
+    }
+  }
+
   /** 매 프레임. dtMs = 이번 프레임 길이 */
   tick(now: number, dtMs: number): void {
     const d = this.def;

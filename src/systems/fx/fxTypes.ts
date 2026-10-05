@@ -34,6 +34,11 @@ export interface FxPlayOptions {
   durationMs?: number;
   /** 시트의 마지막 `tailFrames` 프레임만 루프 (잔월: 거합 4~6프레임 반복) */
   tailFrames?: number;
+  /**
+   * 60라운드 수명 시트 (계약 art §21 JSON `loopRange`): 0..a-1 한 번 → [a, b] 반복 → `finish`·`durationMs` 만료 때 b+1..끝 한 번 뒤 끝.
+   * 형식이 틀리면 무시
+   */
+  loopRange?: readonly [number, number];
   /** 56라운드: 처음부터 한 번 재생한 뒤 이 열부터 끝까지 반복 (낙인 표식 찍힘 0~1 → 2~5 루프). 멈추려면 stop / follow 해제 */
   loopFrom?: number;
   /** 일회성 재생이 끝난 뒤 마지막 프레임을 이 시간만큼 유지하고 페이드 (피 바닥 얼룩) */

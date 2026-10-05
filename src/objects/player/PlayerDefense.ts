@@ -113,8 +113,10 @@ export class PlayerDefense {
     p.flashColor(COLORS.PLAYER_HURT);
     // 56라운드 2단계 Q54·Q61 버티기 올려베기 슈퍼아머: 피해는 그대로, 끊기지 않음(넉백·피격 자세 없음), 맞은 피해는 울분으로
     const armored = p.moves.superArmor;
+    // 60라운드: 거인 차지 — 맞으면서 끝까지 모은다 (흡수 그림만, 울분 없음)
+    const absorbed = !armored && Boolean(p.buildHooks?.absorbing(time));
     // 57라운드: 취기 상태·강공 중 끊기지 않음 — 피해는 그대로, 경직·밀려남 없음
-    const steady = armored || p.buildNoFlinch;
+    const steady = armored || absorbed || p.buildNoFlinch;
     if (armored) p.gauges.onGuardBlock(amount, 'normal');
     else if (!steady) {
       // 55라운드 Q23: 피격 → 대검 관성 초기화·차지 취소 · 2단계 유지형(대치 일격·난타) 끊김
@@ -132,7 +134,7 @@ export class PlayerDefense {
       maxHp: gameState.maxHp,
       amount,
       source,
-      ...(armored ? { armored: true } : {}),
+      ...(armored || absorbed ? { armored: true } : {}),
     };
     EventBus.emit(Events.PLAYER_DAMAGED, payload);
     if (gameState.hp <= 0) {

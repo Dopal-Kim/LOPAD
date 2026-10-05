@@ -60,6 +60,10 @@ export class WeaponOverlay {
   private gauge: { suffix: string; level: number } | null = null;
   private gaugeSprite: Phaser.GameObjects.Sprite | null = null;
   gaugeAction: string | null = null;
+  /** 60라운드 계약 art §21 최종 각성 외형 오버레이 (`<무기 동작>_awaken`, 각성 런에서만) — 그리는 순서 무기 → 각성 → 검기·울분 */
+  private awaken = false;
+  private awakenSprite: Phaser.GameObjects.Sprite | null = null;
+  awakenAction: string | null = null;
   /** 56라운드 Q12: 적중 순간 무기 번쩍임 사본 (더하기 혼합) · 그 트윈 */
   private glint: Phaser.GameObjects.Sprite | null = null;
   private glintTween: Phaser.Tweens.Tween | null = null;
@@ -85,6 +89,7 @@ export class WeaponOverlay {
       this.glintTween?.stop();
       this.glint?.destroy();
       this.gaugeSprite?.destroy();
+      this.awakenSprite?.destroy();
       this.sprite.destroy();
     });
   }
@@ -92,6 +97,11 @@ export class WeaponOverlay {
   /** 56라운드 2단계: 공중 높이 (몸 EntityVisual.setLift 와 같은 값) */
   setLift(px: number): void {
     this.lift = px;
+  }
+
+  /** 60라운드: 각성 외형 오버레이 켜기 (각성 런) */
+  setAwaken(on: boolean): void {
+    this.awaken = on;
   }
 
   /** 56라운드 Q14·Q15: 자원 오버레이 단계 (null = 없음) · 오버레이 시트가 없을 때 칼날 곱 틴트 */
@@ -294,6 +304,9 @@ export class WeaponOverlay {
       .setAlpha(this.host.alpha)
       .setDepth(this.host.depth + (below ? -DEPTH.OVERLAY_STEP : DEPTH.OVERLAY_STEP))
       .setVisible(this.host.visible);
+    // 60라운드 각성 오버레이 (같은 프레임 번호·시각·피벗 — 무기 위, 검기·울분 아래)
+    if (!place) this.showAwaken(action, dir, column);
+    else this.hideAwaken();
     // 56라운드 Q14·Q15 자원 오버레이 (같은 프레임 번호·같은 피벗으로 무기 위) — 시트가 없으면 칼날 곱 틴트
     const shownGauge = !place && this.showGauge(action, dir, column);
     if (this.bladeTint !== null && !place && !shownGauge) this.sprite.setTint(this.bladeTint);
@@ -331,9 +344,42 @@ export class WeaponOverlay {
     return true;
   }
 
+  /** 각성 오버레이 시트 `<무기 동작>_awaken` 를 겹친다 (계약 §21 — 검기·울분 오버레이와 같은 규칙) */
+  private showAwaken(action: string, dir: Dir8, column: number): void {
+    const id = gameState.weapon.id;
+    const name = this.awaken ? `${action}_awaken` : null;
+    const odef = name ? this.sheetOf(id, name) : undefined;
+    if (!name || !odef) {
+      this.hideAwaken();
+      return;
+    }
+    let o = this.awakenSprite;
+    if (!o) {
+      o = this.sprite.scene.add.sprite(0, 0, '__DEFAULT').setVisible(false);
+      this.awakenSprite = o;
+    }
+    const tex = spriteLibrary.textureKey(id, name)!;
+    if (o.texture.key !== tex) o.setTexture(tex, 0);
+    const pv = overlayPivot(odef, this.body);
+    o.setOrigin(pv.x / odef.frameWidth, pv.y / odef.frameHeight)
+      .setFrame(frameAt(odef, dir, Math.min(column, odef.frames - 1)))
+      .setScale(artScale(odef) * this.drawScale)
+      .setPosition(this.sprite.x, this.sprite.y)
+      .setAlpha(this.sprite.alpha)
+      .setDepth(this.sprite.depth + DEPTH.OVERLAY_STEP * 0.125)
+      .setVisible(this.sprite.visible);
+    this.awakenAction = name;
+  }
+
+  private hideAwaken(): void {
+    if (this.awakenSprite?.visible) this.awakenSprite.setVisible(false);
+    this.awakenAction = null;
+  }
+
   hide(): void {
     if (this.sprite.visible) this.sprite.setVisible(false);
     if (this.gaugeSprite?.visible) this.gaugeSprite.setVisible(false);
+    this.hideAwaken();
     this.frame = -1;
     this.action = null;
     this.carry = null;

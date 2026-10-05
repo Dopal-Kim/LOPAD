@@ -189,6 +189,20 @@ export interface DebugApi {
   boss: BossDebugApi;
   /** 57라운드 빌드 축 검증 */
   build: BuildDebugApi;
+  /** 60라운드 2차 묶음 검증 */
+  bundle: BundleDebugApi;
+}
+
+/** 60라운드 2차 묶음 검증 훅 (`__lopad.bundle.*`) */
+export interface BundleDebugApi {
+  /** 층 노드 정보 · 런 상태 · 노드 흐름 · 이벤트 · 파훼 · 엘리트 · 소모품 */
+  info: () => unknown;
+  /** 소모품 얻기 (fireBottle · strongDrink · coldWater) */
+  gain: (id: string) => boolean;
+  /** 가장 가까운 일반 적을 엘리트로 (접두어 id — 없으면 무작위) */
+  elite: (prefix?: string) => boolean;
+  /** 지도 정보 공짜로 (nextTier · fullFloor · hiddenLocated) */
+  intel: (id: string) => boolean;
 }
 
 /** 57라운드 빌드 축 검증 훅 (`__lopad.build.*`) */
@@ -409,6 +423,7 @@ export function exposeDebug(api: {
   injectScar: (scar?: unknown) => boolean;
   boss: BossDebugApi;
   build: BuildDebugApi;
+  bundle: BundleDebugApi;
 }): void {
   if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
   const dbg: DebugApi = {
@@ -565,6 +580,7 @@ export function exposeDebug(api: {
     injectScar: (scar) => api.injectScar(scar),
     boss: api.boss,
     build: api.build,
+    bundle: api.bundle,
     doorsOf: (roomId) =>
       api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };

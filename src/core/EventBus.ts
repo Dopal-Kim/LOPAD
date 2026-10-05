@@ -128,6 +128,52 @@ export const Events = {
   STRUCTURE_ROULETTE: 'structure:roulette',
   CHALLENGE_STARTED: 'challenge:started',
   CHALLENGE_CLEARED: 'challenge:cleared',
+  // --- 60라운드 빌드 축 (음향 sound §6 요청 — 이름이 UI 계약 §14.11 과 겹치는 것은 그 이름. UI 는 uiBus 쪽을 듣는다) ---
+  /** 세트 단계 변화 (`TagSetChangedPayload`) — UI_EVENTS.TAG_SET_CHANGED 와 같은 시점 */
+  TAG_SET_CHANGED: 'build:tag-set-changed',
+  /** 이중 개성 획득 (`{ id }`) */
+  DUAL_TRAIT_GAINED: 'build:dual-trait-gained',
+  /** 저주 받음 (`CurseGainedPayload` — source bloodPact = 개성 '피의 계약' 칸) */
+  CURSE_GAINED: 'build:curse-gained',
+  /** 저주 기간 끝 (`{ id }`) */
+  CURSE_ENDED: 'build:curse-ended',
+  /** 완벽 성공 (`PerfectSuccessPayload`) — 패링·퍼펙트 가드·완벽 놓기·완벽 회피 */
+  PERFECT_SUCCESS: 'build:perfect-success',
+  /** 공용 표식 변화 (`MarkChangedPayload` — 표식 태그 status_mark) */
+  MARK_CHANGED: 'build:mark-changed',
+  /** 상태 즉시 폭발 (`StatusBurstPayload` — 끓음 boil) */
+  STATUS_BURST: 'build:status-burst',
+  /** 세트 효과 발동 (`SetEffectPayload` — 간파 6 정적 stillness) */
+  SET_EFFECT: 'build:set-effect',
+  /** 술 웅덩이 점화 (`PoolIgnitedPayload` — 취기 술불) */
+  POOL_IGNITED: 'build:pool-ignited',
+  /** 취기 휘청 (취기 4 취보 — 피격 1회를 흘림) */
+  DRUNK_SWAY: 'build:drunk-sway',
+  /** 버팀 발동 (`EndureTriggeredPayload` — 버팀 4 위기·6 HP 0 버팀·패시브 마지막 잔) */
+  ENDURE_TRIGGERED: 'build:endure-triggered',
+  /** 갈래 효과 순간 (`BranchEffectPayload` — 음향 BRANCH_EFFECT{branch,effect,stack?}) */
+  BRANCH_EFFECT: 'build:branch-effect',
+  /** 패시브 발동 (`PassiveProcPayload` — 음향 PASSIVE_PROC{passive,fire?}, passive = 패시브 id) */
+  PASSIVE_PROC: 'build:passive-proc',
+  /** 상태 켜짐·꺼짐 (`StatusChangedPayload` — 불붙은 무기 fireWeapon) */
+  STATUS_CHANGED: 'status:changed',
+  // --- 60라운드 2차 묶음 ---
+  /** 엘리트 등장 (`EliteSpawnedPayload` — scenes/game/bundle/EliteSystem) */
+  ELITE_SPAWNED: 'elite:spawned',
+  /** 엘리트 접두어 사건 (`ElitePrefixPayload` — 통 갑옷 break · 성난 trigger · 들이켜는 drink · 두목 death) */
+  ELITE_PREFIX: 'elite:prefix',
+  /** 소모품 사용 (`{ id }`) — UI_EVENTS.CONSUMABLE_USED 와 같은 시점 */
+  CONSUMABLE_USED: 'consumable:used',
+  /** 던진 소모품 착탄 (`{ id }`) */
+  CONSUMABLE_IMPACT: 'consumable:impact',
+  /** 보스 약점 파훼 성공 (`BossBreakPayload`) */
+  BOSS_BREAK: 'boss:break',
+  /** 노드 성과 등급 (`{ grade }`) — UI_EVENTS.NODE_GRADED 와 같은 시점 */
+  NODE_GRADED: 'node:graded',
+  /** 숨은 길 열림 (`{ nodeId }`) */
+  HIDDEN_NODE_FOUND: 'node:hidden-found',
+  /** 이벤트 노드 진입 (`{ id }` — 이벤트 내용 id) */
+  EVENT_NODE_ENTERED: 'node:event-entered',
 } as const;
 
 export type PlayerAttackPayload = {
@@ -161,6 +207,8 @@ export type PlayerAttackPayload = {
   dashSlash?: { arcDeg: number };
   /** 49라운드: 단검 가열 단계 0..3 (이펙트 강화) */
   heatStage?: number;
+  /** 60라운드: 칼 검기 단 (음향 katana_thrust_ki<n>) */
+  kenkiStage?: number;
   /** 51라운드 Q4: 넣은 채 첫 타 보너스 이름 (발도·끌어내기) · 적중 넉백 배율 */
   firstStrike?: string;
   knockbackMult?: number;
@@ -253,7 +301,6 @@ export type PlayerSkillPayload = {
     | 'drag'
     | 'brand'
     | 'overheat'
-    | 'plunge'
     // 56라운드 2단계 새 기본기 (음향 매니페스트 trigger.when 의 move 값)
     | 'counter'
     | 'iai'
@@ -263,7 +310,15 @@ export type PlayerSkillPayload = {
     | 'guard_rush'
     | 'backstab'
     | 'flurry'
-    | 'arrow_rain';
+    | 'arrow_rain'
+    // 60라운드 갈래 1단 수단 판정 순간 (음향 sound §6 — 씬 build/branch 가 낸다)
+    | 'spin'
+    | 'guardbreak'
+    | 'crack'
+    | 'fan_throw'
+    | 'cross_clone'
+    | 'pierce'
+    | 'whirl';
   phase:
     | 'dash'
     | 'clone'
@@ -280,7 +335,16 @@ export type PlayerSkillPayload = {
     | 'impact'
     | 'stab'
     | 'ready'
-    | 'end';
+    | 'end'
+    | 'strike'
+    | 'snuff'
+    | 'pass'
+    | 'reflect'
+    | 'cleave';
+  /** 60라운드: 같은 동작의 몇 번째 재생 (회전 베기 2회전 = 2 — 음향 rate) */
+  variant?: number;
+  /** 60라운드: 판정 프레임까지 ms (가드 불가 내려베기 — 음향은 판정 100ms 앞) */
+  impactDelayMs?: number;
   /** 울분 소모 강화판 (버티기 올려베기) */
   rage?: boolean;
   /** 도약 찍기 착지: 유지한 차지 단계 (1 이상이면 차지 내려찍기 소리 겹침) */
@@ -339,6 +403,8 @@ export type PlayerSecondaryPayload = {
   phase: 'start' | 'ready' | 'cancel' | 'block' | 'release' | 'strain';
   power?: 'weak' | 'perfect' | 'full' | 'strained';
 };
+/** 60라운드: elite = 엘리트였음 (음향 elite_die) */
+export type EnemyDiedPayload = { id: string; elite?: boolean };
 export type EnemyDamagedPayload = { id: string; amount: number; crit: boolean; died: boolean; tick: boolean };
 export type EnemyAttackPayload = { id: string; kind: 'contact' | 'dash' | 'shot' };
 export type EnemyTelegraphPayload = { id: string; kind: 'dash' | 'shot' };
@@ -391,7 +457,8 @@ export type PlayerDamagedPayload = {
 export type RoomEnteredPayload = { roomId: string; type: string };
 export type TrialClearedPayload = { roomId: string; cleared: number; total: number };
 export type BossPhasePayload = { phase: number; hp: number; maxHp: number };
-export type WeaponEvolvedPayload = { weapon: string; stage: number; name: string };
+/** 60라운드: kind = 갈래(branch, 기본) / 최종 각성(awaken — 음향 awaken_<무기>) */
+export type WeaponEvolvedPayload = { weapon: string; stage: number; name: string; kind?: 'branch' | 'awaken' };
 export type WeaponReinforcedPayload = { weapon: string; reinforce: number; name: string };
 /** 47라운드 구조물 이벤트 (내부, 음향 훅). kind = 계약 UiStructureKind */
 export type StructureEventPayload = { id: string; kind: string; roomId: string; actionKey?: string };
@@ -399,8 +466,9 @@ export type StructureFirePayload = { target: 'weapon' | 'arrow' | 'pool' | 'burn
 export type StructureBellPayload = { id: string; confirmed: boolean; rings: number };
 export type ChallengeEventPayload = {
   id: string;
-  kind: 'dogRing' | 'cardTable';
-  outcome?: 'clear' | 'flawless' | 'timeout';
+  /** 60라운드: warFlag = 도전 성소 깃발 */
+  kind: 'dogRing' | 'cardTable' | 'warFlag';
+  outcome?: 'clear' | 'flawless' | 'timeout' | 'fail';
 };
 
 /** 53라운드 Q49: 적 소환 예고 (방 · 소환까지 ms · 마리 수) */
@@ -410,13 +478,46 @@ export interface EnemyIncomingPayload {
   count?: number;
 }
 
-/** 57라운드 갈래 1단 수단 국면: ready = 홀드 완료(번쩍임) · release = 뗌·발동 · sustain = 회오리 지속 회전 틱 · end = 끝 */
+/**
+ * 57라운드 갈래 1단 수단 국면: hold = 홀드 자세 시작(60라운드 — 음향 홀드 루프) · ready = 홀드 완료(번쩍임) · release = 뗌·발동 ·
+ * sustain = 회오리 지속 회전 틱 · end = 끝 · cancel = 홀드가 발동 없이 끝남(짧게 뗌·대쉬·가드 — 60라운드)
+ */
 export type PlayerBranchMovePayload = {
   weapon: string;
   move: 'spin' | 'unblockable' | 'fanThrow';
-  phase: 'ready' | 'release' | 'sustain' | 'end';
+  phase: 'hold' | 'ready' | 'release' | 'sustain' | 'end' | 'cancel';
   x: number;
   y: number;
   dirX: number;
   dirY: number;
 };
+
+// --- 60라운드 빌드 축 이벤트 페이로드 (음향 트리거 조건 키 — sound §6) ---
+export type TagSetChangedPayload = { tag: string; stage: number; prev: number; delta: number };
+export type CurseGainedPayload = {
+  id: string;
+  /** bloodPact = 개성 '피의 계약' 칸 · riskNode = 위험 노드 저주 길 · event · structure · 그 밖 */
+  source: 'bloodPact' | 'riskNode' | 'event' | 'structure' | 'other';
+};
+export type PerfectSuccessPayload = { kind: 'parry' | 'perfectGuard' | 'perfectRelease' | 'perfectEvade' };
+export type MarkChangedPayload = { marks: number; delta: number };
+export type StatusBurstPayload = { kind: 'boil'; x: number; y: number };
+export type SetEffectPayload = { tag: string; effect: 'stillness' };
+export type PoolIgnitedPayload = { x: number; y: number };
+export type EndureTriggeredPayload = { source: 'crisis' | 'lastStand' | 'lastCup' };
+export type BranchEffectPayload = { branch: string; effect: string; stack?: number };
+export type PassiveProcPayload = { passive: string; fire?: boolean };
+export type StatusChangedPayload = { id: 'fireWeapon'; phase: 'start' | 'end' };
+/** 회복 (60라운드: source — 독주 'potion' 만 음향 potion_use) */
+export type PlayerHealedPayload = {
+  hp: number;
+  maxHp: number;
+  amount: number;
+  source?: 'potion' | 'rest' | 'shop' | 'event';
+};
+export type BossBreakPayload = { kind: string; distinct: boolean; count: number };
+/** 60라운드 엘리트 (scenes/game/bundle/EliteSystem): prefix = 접두어 id (data/bundle2.json elite.prefixes) */
+export type EliteSpawnedPayload = { id: string; prefix: string };
+export type ElitePrefixPayload = { prefix: string; phase: 'break' | 'trigger' | 'drink' | 'death'; count?: number };
+export type ConsumablePayload = { id: string };
+export type NodeGradedPayload = { grade: 'perfect' | 'good' | null };

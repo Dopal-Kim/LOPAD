@@ -3,7 +3,7 @@
  * 이후 200마다 [강화 / 피의 계약 / 각성(잠김)]) · 패시브 3지선다·2택 (보스·궤짝·저주 이득·노드 보상·상점 진열 훅 — 이중 개성 대기 시
  * 첫 칸 확정, Q27) · 저주 2택. 메뉴 그리기는 UI(MENU_OPEN), 시스템 임시 텍스트는 TextMenu.
  */
-import { EventBus, Events } from '../../../core/EventBus';
+import { EventBus, Events, type CurseGainedPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { AWAKENINGS, BUILD, CURSES, DUAL_TRAITS, curseDef, themeTagOf } from '../../../data/build';
 import { ECONOMY, STORY, WEAPON_RULES } from '../../../data';
@@ -166,9 +166,10 @@ export class BuildMenus {
     w.reinforceCapOverride = BUILD.evolve.reinforceMaxAwakened;
     g.screenFx.evolve();
     const name = `${w.displayName} · ${A.name}`;
-    EventBus.emit(Events.WEAPON_EVOLVED, { weapon: w.id, stage: w.stage + 1, name });
+    EventBus.emit(Events.WEAPON_EVOLVED, { weapon: w.id, stage: w.stage + 1, name, kind: 'awaken' });
     __system.emit(UI_EVENTS.WEAPON_EVOLVED, { name });
     g.ui.story('evolution', `${A.name} — ${A.description}`);
+    g.build.onAwakened(false);
     g.build.record('awaken', w.id);
     return true;
   }
@@ -286,13 +287,17 @@ export class BuildMenus {
 
   grantStructureCurse(kind: string): boolean {
     const d = this.structureCurse(kind);
-    return d ? this.g.build.grantCurse(d.id) : false;
+    return d ? this.g.build.grantCurse(d.id, { source: 'structure' }) : false;
   }
 
   // --- 저주 2택 (위험 노드 '저주 길'·이벤트 — 2차 묶음 훅) ---
 
   /** 저주 2택 (필수 — cancelKey 없음). ids 가 없으면 7종에서 무작위 2개 */
-  openCurseMenu(ids?: readonly string[], onDone: () => void = () => {}): boolean {
+  openCurseMenu(
+    ids?: readonly string[],
+    onDone: () => void = () => {},
+    source: CurseGainedPayload['source'] = 'other',
+  ): boolean {
     const g = this.g;
     if (gameState.build.curse) {
       onDone();
@@ -322,7 +327,7 @@ export class BuildMenus {
       if (!d) return;
       g.menu.close();
       g.setFrozen(false);
-      g.build.grantCurse(d.id);
+      g.build.grantCurse(d.id, { source });
       onDone();
     });
     return true;

@@ -1,5 +1,5 @@
 /**
- * 56라운드 무기 데이터 검증 (gauge · issen · plunge · draw · 기력 groggyMs · 2단계 moves) — data/index.ts validateWeaponExtras 가 부른다.
+ * 56라운드 무기 데이터 검증 (gauge · issen · draw · 기력 groggyMs · 2단계 moves — 58 Q11 꽂아내리기 삭제) — data/index.ts validateWeaponExtras 가 부른다.
  */
 import type { WeaponDef } from './types';
 import { validateMoves } from './validateMoves';
@@ -59,17 +59,6 @@ export function validateWeaponKit(w: WeaponDef, path: string): void {
     nums(i.shadow, ['startAtMs', 'travelMs', 'hitAtMs', 'damageScale'], `${path}.issen.shadow`);
     if (!(i.dashEndMs > i.dashStartMs))
       throw new Error(`[data] ${path}.issen.dashEndMs 는 dashStartMs 보다 커야 합니다`);
-  }
-  const p = w.plunge;
-  if (p) {
-    str(p.art, `${path}.plunge.art`);
-    nums(p, ['durationMs', 'hitAtMs', 'plantRadiusRatio', 'plantDamageMult'], `${path}.plunge`);
-    str(p.wave?.sheet, `${path}.plunge.wave.sheet`);
-    nums(p.wave, ['halfWidthPx', 'damageMult', 'travelMs'], `${path}.plunge.wave`);
-    if (!Array.isArray(p.wave.lengthMultByStage) || p.wave.lengthMultByStage.length === 0)
-      throw new Error(`[data] ${path}.plunge.wave.lengthMultByStage 는 숫자 배열`);
-    p.wave.lengthMultByStage.forEach((v, n) => num(v, `${path}.plunge.wave.lengthMultByStage[${n}]`));
-    str(p.crackRow, `${path}.plunge.crackRow`);
   }
   const d = w.draw;
   // 57라운드 B3: 옛 조준 사격 경로 삭제 — 조준 사격(활)은 당김 데이터가 반드시 있어야 한다

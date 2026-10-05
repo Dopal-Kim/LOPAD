@@ -1,6 +1,7 @@
 /** 시트 분류·동작 이름 규칙 (계약 art-assets §1·§3·§6·§7, 57라운드 B7: spriteDefs 에서 분리). Phaser 의존 없음. */
 
-export type SpriteCategory = 'player' | 'enemies' | 'bosses' | 'weapons' | 'fx' | 'structures';
+/** 60라운드: items = 월드 아이템 (계약 art §22 `items/v3/consumable_f1` — 구조물 시트 형식, 경로 `sprites/items/<이름>.json`) */
+export type SpriteCategory = 'player' | 'enemies' | 'bosses' | 'weapons' | 'fx' | 'structures' | 'items';
 
 /** 계약 §1 동작 목록 (+ 52라운드 Q13 달리기 `run` — 없으면 walk) */
 export const PLAYER_ACTIONS = ['idle', 'walk', 'run', 'attack', 'dash', 'hurt', 'death'] as const;

@@ -46,8 +46,14 @@ export interface RoomDirectorHost {
   /** 마지막 층이 아니면 보스 방에 출구를 연다 */
   onStageCleared(room: Room): void;
   isLastStage(): boolean;
-  /** 47라운드: 시련 웨이브 배율 (웨이브를 낼 때마다 묻는다) */
-  waveMods?(room: Room): WaveMods;
+  /** 47라운드: 시련 웨이브 배율 (웨이브를 낼 때마다 묻는다 — 60라운드: 몇 번째 웨이브인지도 넘긴다) */
+  waveMods?(room: Room, index: number, total: number): WaveMods;
+  /** 60라운드 2차 묶음 도전 성소: true 인 동안 시련을 시작하지 않는다 (들어선 뒤 깃발을 세울 시간) */
+  holdTrial?(room: Room): boolean;
+  /** 60라운드 E3 '앙갚음': 웨이브를 더 붙인다 (마지막 웨이브를 한 번 더) */
+  extraWaves?(): number;
+  /** 60라운드 엘리트: 웨이브 적이 나온 직후 (엘리트 변환·추가) */
+  onWaveSpawned?(room: Room, index: number, total: number, enemies: Enemy[]): void;
   /** 48라운드 노드 전투장: 이 노드 전용 웨이브 (버려진 길 = 쉬운 전투). 없으면 층 trial.waves */
   waves?: WaveEntry[][];
 }
@@ -65,6 +71,8 @@ export class RoomDirector {
   private challenge: { roomId: string; onDone: () => void } | null = null;
   /** 53라운드 Q49: 예고 뒤 소환 대기 (도전 중단·씬 정리 때 취소) */
   private pendingSpawn: Phaser.Time.TimerEvent | null = null;
+  /** 60라운드: 들어섰지만 시작을 미룬 시련 방 (도전 성소) */
+  private heldRoom: Room | null = null;
 
   constructor(private host: RoomDirectorHost) {
     for (const r of host.world.layout.rooms) this.states.set(r.id, 'idle');
@@ -72,9 +80,12 @@ export class RoomDirector {
     gameState.trialsTotal = host.stage.layout.trialCount;
   }
 
-  /** 시련 웨이브 목록 (48라운드: 노드 전용 웨이브가 있으면 그것) */
+  /** 시련 웨이브 목록 (48라운드: 노드 전용 웨이브가 있으면 그것 · 60라운드: 덧붙인 웨이브 = 마지막 웨이브 반복) */
   private get waves(): WaveEntry[][] {
-    return this.host.waves ?? this.host.stage.trial.waves;
+    const base = this.host.waves ?? this.host.stage.trial.waves;
+    const extra = Math.max(0, Math.floor(this.host.extraWaves?.() ?? 0));
+    if (extra === 0 || base.length === 0) return base;
+    return [...base, ...Array.from({ length: extra }, () => base[base.length - 1])];
   }
 
   /** 디버그용: 현재 활성 방의 남은 적 수와 웨이브 번호 */
@@ -98,6 +109,11 @@ export class RoomDirector {
 
   /** 매 프레임: 플레이어가 어느 방 내부에 있는지 추적 */
   update(): void {
+    if (this.heldRoom && !this.host.holdTrial?.(this.heldRoom) && this.states.get(this.heldRoom.id) === 'idle') {
+      const r = this.heldRoom;
+      this.heldRoom = null;
+      this.startTrial(r);
+    }
     const cell = this.host.world.cellAt(this.host.player.x, this.host.player.y);
     const room = this.host.world.roomAtCell(cell);
     if (!room) return;
@@ -115,7 +131,8 @@ export class RoomDirector {
         this.states.set(room.id, 'cleared');
         break;
       case 'trial':
-        this.startTrial(room);
+        if (this.host.holdTrial?.(room)) this.heldRoom = room;
+        else this.startTrial(room);
         break;
       case 'rest':
         this.states.set(room.id, 'cleared');
@@ -131,9 +148,9 @@ export class RoomDirector {
    * 보스 소환(35라운드 2단계): 활성 방에 적을 추가한다. 걸을 수 없는 자리면 방 안 무작위 지점으로.
    * 처치 대기 목록에 들어가므로 보스가 죽으면 함께 정리된다
    */
-  spawnExtra(enemyId: string, x: number, y: number): boolean {
+  spawnExtra(enemyId: string, x: number, y: number): Enemy | null {
     const room = this.activeRoom;
-    if (!room) return false;
+    if (!room) return null;
     let p = { x, y };
     if (!this.host.world.isWalkableAt(x, y) || !this.host.world.isInsideRoom(room, x, y)) {
       const q = this.host.world.randomPointInRoom(room, this.host.rng, this.host.player, 2);
@@ -142,7 +159,7 @@ export class RoomDirector {
     const e = new Enemy(this.host.mobs.scene, p.x, p.y, enemyId, this.host.stage.enemyScale);
     this.host.mobs.add(e);
     this.alive.add(e);
-    return true;
+    return e;
   }
 
   /** 방 진행 상태 */
@@ -297,15 +314,20 @@ export class RoomDirector {
   }
 
   private spawnWave(room: Room, index: number): void {
-    const mods = this.host.waveMods?.(room) ?? { hpMult: 1, countMult: 1, extra: 0 };
+    const total = this.waves.length;
+    const mods = this.host.waveMods?.(room, index, total) ?? { hpMult: 1, countMult: 1, extra: 0 };
     const wave = scaleWave(this.waves[index], mods.countMult, mods.extra);
     const scale = { hp: this.host.stage.enemyScale.hp * mods.hpMult, attack: this.host.stage.enemyScale.attack };
-    EventBus.emit(Events.TRIAL_WAVE, { roomId: room.id, wave: index + 1, total: this.waves.length });
+    EventBus.emit(Events.TRIAL_WAVE, { roomId: room.id, wave: index + 1, total });
     const count = wave.reduce((a, w) => a + w.count, 0);
-    this.announce(room.id, ENEMY_INCOMING.WAVE_DELAY_MS, count, () => this.spawnEntries(room, wave, scale));
+    this.announce(room.id, ENEMY_INCOMING.WAVE_DELAY_MS, count, () => {
+      const spawned = this.spawnEntries(room, wave, scale);
+      this.host.onWaveSpawned?.(room, index, total, spawned);
+    });
   }
 
-  private spawnEntries(room: Room, wave: readonly WaveEntry[], scale: { hp: number; attack: number }): void {
+  private spawnEntries(room: Room, wave: readonly WaveEntry[], scale: { hp: number; attack: number }): Enemy[] {
+    const out: Enemy[] = [];
     for (const entry of wave) {
       for (let i = 0; i < entry.count; i++) {
         const p = this.host.world.randomPointInRoom(
@@ -317,8 +339,10 @@ export class RoomDirector {
         const e = new Enemy(this.host.mobs.scene, p.x, p.y, entry.enemy, scale);
         this.host.mobs.add(e);
         this.alive.add(e);
+        out.push(e);
       }
     }
+    return out;
   }
 
   private clearTrial(room: Room): void {

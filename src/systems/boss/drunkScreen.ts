@@ -19,6 +19,8 @@ export class DrunkScreen {
   private readonly webgl: boolean;
   private blurFx: Phaser.FX.Controller | null = null;
   private lowFrames = 0;
+  /** 60라운드 소모품 '냉수 한 바가지': 이 시각까지 기울기 무시 (패턴은 그대로) */
+  suppressUntil = -Infinity;
   /** 디버그: 지금 기울기 (도) · fps 가 낮아 흐림을 뗐는지 */
   angleDeg = 0;
   blurDropped = false;
@@ -46,7 +48,7 @@ export class DrunkScreen {
       this.stop();
       return;
     }
-    this.angleDeg = tiltAt(t, p) * feelSettings.tilt;
+    this.angleDeg = time < this.suppressUntil ? 0 : tiltAt(t, p) * feelSettings.tilt;
     this.guardFps();
     this.scene.cameras.main.setRotation((this.angleDeg * Math.PI) / 180);
   }
