@@ -577,3 +577,37 @@ interface UiSettings {
 ### 17.1 (61 단계 4) 보스 포효·UI 색 고정
 - 이벤트 `UI_EVENTS.BOSS_ROAR` = `'ui:boss-roar'` `{ name }` — 등장 연출의 포효 프레임(현재 3.8초)에 한 번. UI 는 보스 이름 카드를 이 순간 띄운다(BOSS_STARTED 즉시 띄우지 않음). `introMs` 가 0 이면 시스템이 BOSS_STARTED 직후 바로 낸다.
 - UI 색: 체력 막대는 항상 붉은색, HUD·메뉴 테두리·글자색은 기본 팔레트 하나로 고정 — 층 테마(`theme`·지역 색)로 바꾸지 않는다. 스냅샷에 테마 값이 와도 UI 는 색에 쓰지 않는다.
+
+## 18. 무기 성장 — 각성 게이지·개성 발현·1차/2차 각성 (61 단계 4, P12)
+설계 기준: `parts/producer/decisions/2026-10-05-P12-weapon-growth.md`. §14.4 의 `branchA`/`branchB`/`reinforce`/`bloodPact`/`awaken`/`dual` 칸과 '개성 n/max' 표시는 **이 절로 대체**(코드 상수는 시스템이 정리하며, 옛 kind 는 더 오지 않는다).
+```ts
+type UiGrowthMarkKind = 'trait' | 'awaken1' | 'awaken2' | 'temper';
+interface UiGrowthMark { at: number; kind: UiGrowthMarkKind; done: boolean }
+interface UiGrowthTrait { id: string; name: string; line: string; verb: UiVerbSlot; tag?: UiTagId }
+interface UiGrowthPath { id: string; name: string; line: string; lookKey?: string }   // 2차 길
+interface UiGrowthBranch {                                                               // 1차 갈래
+  id: string; name: string; line: string;   // line = 한 줄 양상 ('무리 한가운데로 파고드는 칼')
+  verb: UiVerbSlot;                          // 1차 각성 때 바뀌는 칸
+  lookKey?: string;                          // 1차 모양 미리보기 텍스처 키(시스템이 로드해 둔 것)
+  paths: [UiGrowthPath, UiGrowthPath];
+}
+interface UiGrowth {
+  gauge: number;                 // 누적, 줄지 않음
+  marks: UiGrowthMark[];         // 이번 층 눈금(지난 것 done)
+  next: UiGrowthMark | null;     // 다음 눈금 (null = 더 없음)
+  stage: 0 | 1 | 2;              // 각성 단계
+  weaponName: string;
+  baseLookKey?: string;
+  branches: UiGrowthBranch[];    // 이 무기의 갈래 3 (성장도 나무용, 항상 전체)
+  branch: string | null;         // 고른 1차 갈래 id
+  path: string | null;           // 고른 2차 길 id
+  traits: UiGrowthTrait[];       // 얻은 개성
+  temper: { n: number; max: number };
+  firstTime: { trait: boolean; awaken1: boolean; awaken2: boolean }; // true = 메타 기준 처음(안내 카드 띄움)
+}
+// UiSnapshot.growth: UiGrowth | null  (무기 없을 때 null)
+```
+- 메뉴(`UiMenu.kind: 'evolve'` 유지): 줄 `kind` 는 `'trait'`(개성 3장 — `line.verb`·`line.tags` 채움), `'awaken1'`(갈래 3장 — `line.branch: UiGrowthBranch`), `'awaken2'`(길 2장 — `line.path: UiGrowthPath`), `'temper'`(단련). 단련 눈금 메뉴 = [`temper` / `trait` / `trait`]. 라벨에 수치·내부 용어를 넣지 않는다.
+- 이벤트: `UI_EVENTS.GROWTH_GAIN` = `'ui:growth-gain'` `{ amount, gauge }`(HUD 반짝), `UI_EVENTS.AWAKEN` = `'ui:awaken'` `{ stage: 1|2; weapon; branch; path?; name; line; lookKey? }` — 각성 연출 시작(시스템이 게임을 0.8/1.0초 멈춤; UI 는 이름·한 줄 배너). 개성 획득은 기존 notice 대신 `UI_EVENTS.TRAIT_GAINED` = `'ui:trait-gained'` `UiGrowthTrait`.
+- UI: HUD 무기 칸 아래 각성 게이지(숫자·눈금 ◇/◆·다음 눈금까지 남은 수), 선택 화면(갈래 카드 = 모양 그림 + 바뀌는 키캡 강조 + 한 줄 + 2차 길 미리보기), 성장도 나무(Tab 빌드 보기 안), 처음 안내 카드(`firstTime`).
+- 안내 카드를 본 기록은 시스템 메타(`diary.guides`)에 둔다 — UI 는 닫을 때 `UI_COMMANDS`... 대신 메뉴 닫힘으로 시스템이 기록(시스템 판단으로 구현, 필요하면 이 줄 갱신).

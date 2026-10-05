@@ -625,3 +625,13 @@
 - **폐기(파일은 남김, 시스템 빌드·로드에서 제외)**: `fx/v3/greatsword_guard_rush`·`player/v3/player_greatsword_guard_rush`·`weapons/v3/greatsword_guard_rush`(+`_awaken`·`_grudge1~3`), `fx/v3/katana_issen_shadow`, `fx/v3/katana_thrust_ki1~3`·`weapons/v3/katana_thrust_ki1~3`, `fx/v3/dagger_overheat_cool`, `fx/v3/dagger_combo1~3_heat1~3`(가속 시트로 대체).
 - **VRAM 주의**: 보스방 보스 관련 시트 약 71 → **약 232MB**(아틀라스 페이지 RGBA 기준 — 몸 15동작 약 156·림 5 약 42·불타는 오버레이 약 14·파훼·결정타 fx 약 21. 아트 README 의 '몸 142MB'는 intro 제외 값). 보스방에서 고른 무기 시트와 겹치면 500MB 목표 초과 가능 → **지연 로드 권장**: intro 는 등장 뒤 해제, 림은 3국면 진입 때, `death`·쓰러짐 fx 는 처치 때.
 - 아트 검증: `atlas57/verify.py` 의 형식 차이 29시트는 의도적 재작업의 기준 차이(커밋 뒤 `--rebase --only` 로 기준 이동). 옛 빌드 스크립트 `boss1_v3/{build,props,onfire,onfire_down}.py` 는 `--legacy` 없이 멈춤(192×240 덮어쓰기 방지).
+
+## 26. 무기 1차·2차 각성 외형 (61 단계 4, P12)
+설계 기준: `parts/producer/decisions/2026-10-05-P12-weapon-growth.md`. §21(최종 각성 외형)은 셋째 갈래의 1차 외형으로 흡수.
+- **1차 외형**: 무기 4 × 갈래 3 = 12종. 기존 무기 각성 오버레이(`weapons/v3/<weapon>_*_awaken`)와 **같은 구조·같은 시트 목록·같은 틀·피벗·프레임·ms**로 `weapons/v4/<weapon>_<branch>_a1*` (예 `katana_senpu_a1`, 동작 접미어는 기존 오버레이 접미어 그대로). 셋째 갈래(만월·광전·백귀·유성)는 기존 `_awaken` 을 재사용·보정해도 된다.
+- **2차 외형**: 갈래당 1종 = 12종, 1차 외형 **위에 겹치는** 덧붙임 오버레이 `weapons/v4/<weapon>_<branch>_a2*`(같은 틀·프레임). 두 길은 메타 `pathTint: { <pathId>: [r,g,b] }` 로 강조색만 다르게(시스템이 tint 로 적용할 부분은 별도 마스크 시트 `_a2_glow*` 로 분리해도 됨 — 메타에 명시).
+- **휘두름 궤적**: 2차에서 갈래 색 궤적 — 기존 fx 를 `pathTint` 로 물들이는 것으로 충분하면 새 시트 없음(메타 `trailTint`).
+- **미리보기 정지 그림**: `looks/<weapon>_base.png`, `looks/<weapon>_<branch>_a1.png`, `looks/<weapon>_<branch>_a2.png`(+ 메타 pathTint) — UI 선택 화면·성장도 나무용, 무기만(손 없음), 192×192, 투명 배경.
+- **각성 연출 fx**: `fx/v4/awaken1_crack`(무기가 금 가며 깨어남, 0.8초), `fx/v4/awaken2_bloom`(새 부분이 돋으며 빛, 1.0초) — 무기 공통, 갈래 색은 tint.
+- 갈래 id(영문, 시스템·아트 공통): 칼 `senpu`·`kabuto`·`mangetsu` / 대검 `crush`·`weight`·`berserk` / 단검 `twin`·`gale`·`hyakki` / 활 `rapid`·`snipe`·`meteor`. 길 id: 칼 `whirl`·`zangetsu` / `ittou`·`meikyo` / `sakugetsu`·`hozuki`(보름) · 대검 `quake`·`echo` / `giant`·`congest` / `bloodwind`·`ironpeak` · 단검 `frenzy`·`bleed` / `flyblade`·`hotwind` / `nightwalk`·`onibi` · 활 `split`·`endless` / `surehit`·`pierce` / `starfall`·`comet`.
+- 메모리: 런에서는 고른 갈래의 a1·a2 만 로드(시스템).
