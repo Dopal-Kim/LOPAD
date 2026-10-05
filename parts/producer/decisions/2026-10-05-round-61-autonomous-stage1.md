@@ -59,3 +59,6 @@
   - 보스 렌더 배율은 아트 1.5배 원본 시트에 맞춰 1.0(게임 확대 안 함).
   - 보스 처치 뒤 BGM은 보상 메뉴가 끝날 때(EXIT_OPENED)까지 정적.
   - 상점 상인 E 안내는 당분간 `mapSeller` kind 재사용(1층에서 지도 장수는 꺼져 있어 겹치지 않음).
+- **단계 2·3 완료**: 커밋 6137553·f7d7c70(시스템)·cca71ad(UI)·f636ef0·65e1132(아트)·eaf0eec·6e3314c(음향)·42a89cd·29808c2(프로듀서·계약 art §25, sound §6·§9, UI §17). 검사 848 통과, verify 형식 0·픽셀 불일치 0. 데모 갱신 https://claude.ai/artifact/6ufiNh3cAZMLch6tkDrjhT (버전 6). 보스방 VRAM 실측 최고: 대검 485(림은 tintFill)·칼 425·단검 343·활 340MB. sim: 1층 6.4~7.4분, 보스 96~117초.
+  - 프로듀서 판단: 3국면 잔은 2타에 깨짐(struck 그림 사용), 기둥 금은 3단에서 멈춤(무너뜨리지 않음).
+  - 다음 손볼 것(피드백과 함께): 보스 이름 카드를 포효(`BOSS_ACTION introRoar`, 3.8초)에 맞추기(UI·계약), 새 BOSS_ACTION(introRoar·cupStruck·pillarCrack·flameSnuff) 소리 연결, 서 있는 꺼진 촛대 그림, boss1_onfire·cup_shatter 네이티브 재그림, 대검용 가벼운 림, BossArena.ts 소등 처리 분리, 1층 실측 길이 확인 후 웨이브 보정.
