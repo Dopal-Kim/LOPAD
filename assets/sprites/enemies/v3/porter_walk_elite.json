@@ -1,0 +1,120 @@
+{
+ "image": "porter_walk_elite.png",
+ "action": "porter_walk_elite",
+ "frameWidth": 160,
+ "frameHeight": 192,
+ "framesPerDirection": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  140,
+  140,
+  140,
+  140,
+  140,
+  140,
+  140,
+  140
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "pivot": {
+  "x": 80,
+  "y": 166
+ },
+ "role": "elite_outline",
+ "baseSheet": "enemies/v3/porter_walk",
+ "enemy": "porter",
+ "draw": "적 스프라이트 바로 아래(같은 컨테이너, 같은 프레임 번호·피벗·flip·scale). 엘리트 크기 ×1.15 도 같이 적용",
+ "ringColors": [
+  "#eecc78",
+  "#e2a33c",
+  "#b0611a"
+ ],
+ "ringNote": "안쪽 2겹(#eecc78·#e2a33c) = 자체 발광 — 조명 위 가산 레이어로. 바깥 겹(#b0611a) 은 체커(부드러운 가장자리, 비발광)",
+ "emissiveColors": [
+  "#eecc78",
+  "#e2a33c"
+ ],
+ "paletteSwap": true,
+ "paletteSwapNote": "층 램프 16~27 로 그림 → 런타임 층 스왑 대상(그 층 강조색 외곽선)",
+ "pulse": {
+  "alphaMin": 0.65,
+  "alphaMax": 1.0,
+  "periodMs": 1200,
+  "note": "제안 — 시스템 알파 맥동(그림은 한 장)"
+ },
+ "regenerate": "적 시트를 다시 그리면 parts/art/work/bundle2/build.py --only elite_outline 로 다시 만든다",
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "source": "parts/art/work/bundle2/build.py (57라운드 Q38 2차 묶음 · 60라운드 Q4)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 porter_walk_elite.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 160,
+   "frameHeight": 192,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":1053,"w":65,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":65,"w":65,"h":118},"sourceSize":{"w":160,"h":192}},
+  "1":{"frame":{"x":140,"y":934,"w":68,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":67,"w":68,"h":116},"sourceSize":{"w":160,"h":192}},
+  "2":{"frame":{"x":140,"y":1052,"w":67,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":68,"w":67,"h":115},"sourceSize":{"w":160,"h":192}},
+  "3":{"frame":{"x":0,"y":934,"w":68,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":66,"w":68,"h":117},"sourceSize":{"w":160,"h":192}},
+  "4":{"frame":{"x":67,"y":1053,"w":65,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":65,"w":65,"h":118},"sourceSize":{"w":160,"h":192}},
+  "5":{"frame":{"x":210,"y":1004,"w":68,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":67,"w":68,"h":116},"sourceSize":{"w":160,"h":192}},
+  "6":{"frame":{"x":209,"y":1122,"w":67,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":68,"w":67,"h":115},"sourceSize":{"w":160,"h":192}},
+  "7":{"frame":{"x":70,"y":934,"w":68,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":66,"w":68,"h":117},"sourceSize":{"w":160,"h":192}},
+  "8":{"frame":{"x":220,"y":254,"w":65,"h":127},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":51,"w":65,"h":127},"sourceSize":{"w":160,"h":192}},
+  "9":{"frame":{"x":220,"y":0,"w":68,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":52,"w":68,"h":125},"sourceSize":{"w":160,"h":192}},
+  "10":{"frame":{"x":220,"y":512,"w":67,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":52,"w":67,"h":122},"sourceSize":{"w":160,"h":192}},
+  "11":{"frame":{"x":220,"y":760,"w":68,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":52,"w":68,"h":120},"sourceSize":{"w":160,"h":192}},
+  "12":{"frame":{"x":220,"y":383,"w":65,"h":127},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":51,"w":65,"h":127},"sourceSize":{"w":160,"h":192}},
+  "13":{"frame":{"x":220,"y":127,"w":68,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":52,"w":68,"h":125},"sourceSize":{"w":160,"h":192}},
+  "14":{"frame":{"x":220,"y":636,"w":67,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":52,"w":67,"h":122},"sourceSize":{"w":160,"h":192}},
+  "15":{"frame":{"x":218,"y":882,"w":68,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":52,"w":68,"h":120},"sourceSize":{"w":160,"h":192}},
+  "16":{"frame":{"x":0,"y":234,"w":107,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":60,"w":107,"h":116},"sourceSize":{"w":160,"h":192}},
+  "17":{"frame":{"x":0,"y":0,"w":108,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":60,"w":108,"h":115},"sourceSize":{"w":160,"h":192}},
+  "18":{"frame":{"x":110,"y":0,"w":108,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":60,"w":108,"h":115},"sourceSize":{"w":160,"h":192}},
+  "19":{"frame":{"x":0,"y":586,"w":107,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":60,"w":107,"h":115},"sourceSize":{"w":160,"h":192}},
+  "20":{"frame":{"x":109,"y":234,"w":107,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":60,"w":107,"h":116},"sourceSize":{"w":160,"h":192}},
+  "21":{"frame":{"x":0,"y":470,"w":108,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":62,"w":108,"h":114},"sourceSize":{"w":160,"h":192}},
+  "22":{"frame":{"x":0,"y":703,"w":108,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":63,"w":108,"h":113},"sourceSize":{"w":160,"h":192}},
+  "23":{"frame":{"x":0,"y":818,"w":107,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":62,"w":107,"h":114},"sourceSize":{"w":160,"h":192}},
+  "24":{"frame":{"x":0,"y":352,"w":107,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":60,"w":107,"h":116},"sourceSize":{"w":160,"h":192}},
+  "25":{"frame":{"x":110,"y":470,"w":108,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":62,"w":108,"h":114},"sourceSize":{"w":160,"h":192}},
+  "26":{"frame":{"x":110,"y":703,"w":108,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":63,"w":108,"h":113},"sourceSize":{"w":160,"h":192}},
+  "27":{"frame":{"x":109,"y":818,"w":107,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":62,"w":107,"h":114},"sourceSize":{"w":160,"h":192}},
+  "28":{"frame":{"x":109,"y":352,"w":107,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":60,"w":107,"h":116},"sourceSize":{"w":160,"h":192}},
+  "29":{"frame":{"x":0,"y":117,"w":108,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":60,"w":108,"h":115},"sourceSize":{"w":160,"h":192}},
+  "30":{"frame":{"x":110,"y":117,"w":108,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":60,"w":108,"h":115},"sourceSize":{"w":160,"h":192}},
+  "31":{"frame":{"x":109,"y":586,"w":107,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":60,"w":107,"h":115},"sourceSize":{"w":160,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "porter_walk_elite.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 288,
+   "h": 1237
+  },
+  "scale": "1"
+ }
+}

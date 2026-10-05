@@ -59,6 +59,20 @@
    "w": 53,
    "h": 50,
    "scale": 1.1
+  },
+  "peddler": {
+   "cx": 0,
+   "cy": -70,
+   "w": 36,
+   "h": 50,
+   "scale": 0.75
+  },
+  "porter": {
+   "cx": 0,
+   "cy": -70,
+   "w": 45,
+   "h": 50,
+   "scale": 0.94
   }
  },
  "bodyBoxNote": "적 v3 idle 첫 프레임 몸통(피벗 위 45~95 도트 줄) 가로 범위 — 도트, 피벗 기준. 적 시트를 다시 그리면 build.py --only elite_barrel 로 다시 잼",

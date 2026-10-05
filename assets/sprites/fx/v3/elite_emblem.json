@@ -59,7 +59,9 @@
  "headTopByEnemy": {
   "dummy": 119,
   "archer": 120,
-  "charger": 139
+  "charger": 139,
+  "peddler": 118,
+  "porter": 116
  },
  "headTopNote": "적 v3 idle 전 프레임의 불투명 꼭대기 — 피벗에서 위로 도트. 동작마다 머리가 움직여도 문장은 고정 높이(흔들림 방지)",
  "bob": {

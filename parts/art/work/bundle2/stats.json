@@ -4,11 +4,11 @@
    96,
    144
   ],
-  "frames": 28,
+  "frames": 40,
   "rows": 4,
   "page": [
-   903,
-   268
+   883,
+   396
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -32,10 +32,10 @@
    96,
    144
   ],
-  "frames": 12,
+  "frames": 16,
   "rows": 4,
   "page": [
-   612,
+   826,
    130
   ],
   "opaqueColors": 3,
@@ -49,8 +49,8 @@
   "frames": 24,
   "rows": 4,
   "page": [
-   46,
-   3095
+   1144,
+   129
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -63,7 +63,7 @@
   "frames": 32,
   "rows": 4,
   "page": [
-   898,
+   918,
    252
   ],
   "opaqueColors": 3,
@@ -74,11 +74,11 @@
    128,
    176
   ],
-  "frames": 32,
+  "frames": 40,
   "rows": 4,
   "page": [
-   440,
-   831
+   388,
+   1241
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -91,8 +91,8 @@
   "frames": 40,
   "rows": 4,
   "page": [
-   313,
-   1468
+   430,
+   1076
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -102,11 +102,11 @@
    128,
    176
   ],
-  "frames": 12,
+  "frames": 16,
   "rows": 4,
   "page": [
-   147,
-   828
+   196,
+   941
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -119,8 +119,8 @@
   "frames": 24,
   "rows": 4,
   "page": [
-   236,
-   1069
+   253,
+   1151
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -133,8 +133,8 @@
   "frames": 32,
   "rows": 4,
   "page": [
-   507,
-   668
+   281,
+   1376
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -144,11 +144,11 @@
    96,
    144
   ],
-  "frames": 28,
+  "frames": 40,
   "rows": 4,
   "page": [
-   325,
-   744
+   274,
+   1214
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -161,7 +161,7 @@
   "frames": 40,
   "rows": 4,
   "page": [
-   260,
+   263,
    1308
   ],
   "opaqueColors": 3,
@@ -172,11 +172,11 @@
    96,
    144
   ],
-  "frames": 12,
+  "frames": 16,
   "rows": 4,
   "page": [
-   363,
-   250
+   210,
+   619
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -189,8 +189,8 @@
   "frames": 24,
   "rows": 4,
   "page": [
-   195,
-   878
+   244,
+   754
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
@@ -203,8 +203,148 @@
   "frames": 32,
   "rows": 4,
   "page": [
-   66,
-   3936
+   69,
+   3914
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/peddler_attack_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 40,
+  "rows": 4,
+  "page": [
+   247,
+   1221
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/peddler_death_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 40,
+  "rows": 4,
+  "page": [
+   305,
+   991
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/peddler_hurt_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 16,
+  "rows": 4,
+  "page": [
+   898,
+   127
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/peddler_idle_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 24,
+  "rows": 4,
+  "page": [
+   57,
+   2932
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/peddler_walk_elite": {
+  "frame": [
+   96,
+   144
+  ],
+  "frames": 32,
+  "rows": 4,
+  "page": [
+   62,
+   3796
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/porter_attack_elite": {
+  "frame": [
+   160,
+   192
+  ],
+  "frames": 40,
+  "rows": 4,
+  "page": [
+   325,
+   1485
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/porter_death_elite": {
+  "frame": [
+   160,
+   192
+  ],
+  "frames": 40,
+  "rows": 4,
+  "page": [
+   552,
+   968
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/porter_hurt_elite": {
+  "frame": [
+   160,
+   192
+  ],
+  "frames": 16,
+  "rows": 4,
+  "page": [
+   186,
+   1010
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/porter_idle_elite": {
+  "frame": [
+   160,
+   192
+  ],
+  "frames": 24,
+  "rows": 4,
+  "page": [
+   768,
+   366
+  ],
+  "opaqueColors": 3,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "enemies/v3/porter_walk_elite": {
+  "frame": [
+   160,
+   192
+  ],
+  "frames": 32,
+  "rows": 4,
+  "page": [
+   288,
+   1237
   ],
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"

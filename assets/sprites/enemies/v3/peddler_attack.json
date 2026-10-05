@@ -1,0 +1,792 @@
+{
+ "image": "peddler_attack.png",
+ "action": "attack",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 10.58,
+ "frameDurationsMs": [
+  100,
+  100,
+  100,
+  120,
+  130,
+  45,
+  60,
+  80,
+  100,
+  110
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray G00~15 + 1층 램프 16~27, 런타임 스왑 — 술·불씨·놋쇠·발광만) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색). 새 색 없음",
+ "source": "parts/art/work/enemies61/enemy_build.py (61라운드 P3 — 신규 적, 리그 enemies_v3 공용)",
+ "note": "v3 독주 행상(61라운드 P3 신규) · 96×144 도트 = 화면 48×72 · 삿갓·등 술병 상자·매단 놋쇠 등(발광)·청회 목도리 · 거리 두고 화염 술병 포물선 투척(보스 '불붙은 술' 예습). 이벤트 E1 떠돌이 행상 NPC 와 그림 공유(idle)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0"
+ ],
+ "version": "v3-r61",
+ "actionName": "throw",
+ "phaseFrames": {
+  "light": [
+   0,
+   1
+  ],
+  "windup": [
+   2,
+   3,
+   4
+  ],
+  "release": [
+   5
+  ],
+  "follow": [
+   6,
+   7
+  ],
+  "reload": [
+   8,
+   9
+  ]
+ },
+ "phaseStartMs": {
+  "light": 0,
+  "windup": 200,
+  "release": 550,
+  "follow": 595,
+  "reload": 735
+ },
+ "releaseFrame": 5,
+ "fireFrame": 5,
+ "releaseAtMs": 550,
+ "throwHandAnchors": {
+  "down": [
+   [
+    29.0,
+    52.7
+   ],
+   [
+    30.0,
+    59.4
+   ],
+   [
+    29.0,
+    56.6
+   ],
+   [
+    28.0,
+    51.1
+   ],
+   [
+    27.0,
+    51.0
+   ],
+   [
+    39.0,
+    75.9
+   ],
+   [
+    51.8,
+    104.8
+   ],
+   [
+    43.5,
+    104.6
+   ],
+   [
+    38.0,
+    49.8
+   ],
+   [
+    35.8,
+    81.7
+   ]
+  ],
+  "up": [
+   [
+    67.0,
+    51.3
+   ],
+   [
+    66.0,
+    56.6
+   ],
+   [
+    67.0,
+    59.4
+   ],
+   [
+    68.0,
+    56.9
+   ],
+   [
+    69.0,
+    59.0
+   ],
+   [
+    57.0,
+    60.1
+   ],
+   [
+    44.2,
+    90.4
+   ],
+   [
+    52.5,
+    94.6
+   ],
+   [
+    58.0,
+    54.2
+   ],
+   [
+    60.2,
+    81.7
+   ]
+  ],
+  "left": [
+   [
+    46.0,
+    45.2
+   ],
+   [
+    44.0,
+    51.5
+   ],
+   [
+    52.0,
+    51.2
+   ],
+   [
+    56.0,
+    46.8
+   ],
+   [
+    59.0,
+    47.4
+   ],
+   [
+    26.0,
+    64.8
+   ],
+   [
+    28.1,
+    99.0
+   ],
+   [
+    34.0,
+    98.0
+   ],
+   [
+    54.0,
+    48.4
+   ],
+   [
+    47.9,
+    77.3
+   ]
+  ],
+  "right": [
+   [
+    50.0,
+    58.8
+   ],
+   [
+    52.0,
+    64.5
+   ],
+   [
+    44.0,
+    64.8
+   ],
+   [
+    40.0,
+    61.2
+   ],
+   [
+    37.0,
+    62.6
+   ],
+   [
+    70.0,
+    71.2
+   ],
+   [
+    67.9,
+    96.2
+   ],
+   [
+    62.0,
+    101.2
+   ],
+   [
+    42.0,
+    55.6
+   ],
+   [
+    48.1,
+    86.1
+   ]
+  ]
+ },
+ "throwHandNote": "프레임별 오른손(던지는 손) 위치 — 시트 도트 좌표(원 프레임, §19.2). 투사체 fx/v3/fire_bottle_thrown 은 releaseFrame 시작 시각에 throwHandAnchors[방향][releaseFrame] 에서 생성 (그 프레임부터 시트의 손은 비어 있다)",
+ "bottleAnchors": {
+  "down": [
+   [
+    27.8,
+    58.9
+   ],
+   [
+    28.1,
+    64.6
+   ],
+   [
+    28.4,
+    62.0
+   ],
+   [
+    27.4,
+    55.5
+   ],
+   [
+    26.1,
+    54.4
+   ],
+   null,
+   null,
+   null,
+   [
+    38.0,
+    44.1
+   ],
+   [
+    34.8,
+    88.0
+   ]
+  ],
+  "up": [
+   [
+    68.2,
+    56.6
+   ],
+   [
+    67.9,
+    62.6
+   ],
+   [
+    67.6,
+    65.7
+   ],
+   [
+    68.6,
+    63.2
+   ],
+   [
+    69.9,
+    65.0
+   ],
+   null,
+   null,
+   null,
+   [
+    58.0,
+    48.0
+   ],
+   [
+    61.2,
+    86.9
+   ]
+  ],
+  "left": [
+   [
+    44.8,
+    50.5
+   ],
+   [
+    45.2,
+    56.4
+   ],
+   [
+    53.2,
+    56.8
+   ],
+   [
+    58.7,
+    51.9
+   ],
+   [
+    62.6,
+    51.8
+   ],
+   null,
+   null,
+   null,
+   [
+    53.4,
+    42.4
+   ],
+   [
+    46.5,
+    82.7
+   ]
+  ],
+  "right": [
+   [
+    51.2,
+    65.0
+   ],
+   [
+    50.8,
+    70.7
+   ],
+   [
+    42.8,
+    70.9
+   ],
+   [
+    37.3,
+    66.7
+   ],
+   [
+    33.4,
+    67.6
+   ],
+   null,
+   null,
+   null,
+   [
+    42.6,
+    49.6
+   ],
+   [
+    49.5,
+    92.2
+   ]
+  ]
+ },
+ "bottleNote": "손에 든 병 몸통 중심(놓은 뒤 null)",
+ "wickAnchors": {
+  "down": [
+   [
+    30.0,
+    47.4
+   ],
+   [
+    31.6,
+    55.0
+   ],
+   [
+    29.5,
+    51.9
+   ],
+   [
+    28.5,
+    47.4
+   ],
+   [
+    27.8,
+    48.1
+   ],
+   null,
+   null,
+   null,
+   [
+    38.0,
+    54.8
+   ],
+   [
+    36.6,
+    76.3
+   ]
+  ],
+  "up": [
+   [
+    66.0,
+    46.7
+   ],
+   [
+    64.4,
+    51.3
+   ],
+   [
+    66.5,
+    54.0
+   ],
+   [
+    67.5,
+    51.4
+   ],
+   [
+    68.2,
+    53.8
+   ],
+   null,
+   null,
+   null,
+   [
+    58.0,
+    59.5
+   ],
+   [
+    59.4,
+    77.2
+   ]
+  ],
+  "left": [
+   [
+    47.0,
+    40.6
+   ],
+   [
+    42.9,
+    47.3
+   ],
+   [
+    51.0,
+    46.3
+   ],
+   [
+    53.6,
+    42.4
+   ],
+   [
+    55.9,
+    43.6
+   ],
+   null,
+   null,
+   null,
+   [
+    54.5,
+    53.6
+   ],
+   [
+    49.2,
+    72.6
+   ]
+  ],
+  "right": [
+   [
+    49.0,
+    53.5
+   ],
+   [
+    53.1,
+    59.1
+   ],
+   [
+    45.0,
+    59.6
+   ],
+   [
+    42.4,
+    56.4
+   ],
+   [
+    40.1,
+    58.2
+   ],
+   null,
+   null,
+   null,
+   [
+    41.5,
+    60.8
+   ],
+   [
+    46.8,
+    80.8
+   ]
+  ]
+ },
+ "wickNote": "심지 불 위치(발광). light 0~windup 4 동안 작은 광원 제안 #eecc78 반경 40 도트 세기 0.6 — 던지기 예고(어둠 속에서 불이 먼저 보임)",
+ "lampAnchors": {
+  "down": [
+   [
+    29.8,
+    43.7
+   ],
+   [
+    27.6,
+    47.1
+   ],
+   [
+    27.5,
+    42.7
+   ],
+   [
+    26.6,
+    41.0
+   ],
+   [
+    26.0,
+    42.8
+   ],
+   [
+    39.2,
+    44.6
+   ],
+   [
+    41.7,
+    49.0
+   ],
+   [
+    37.7,
+    46.6
+   ],
+   [
+    28.7,
+    46.1
+   ],
+   [
+    31.2,
+    44.1
+   ]
+  ],
+  "up": [
+   [
+    66.2,
+    45.8
+   ],
+   [
+    68.4,
+    44.6
+   ],
+   [
+    68.5,
+    46.4
+   ],
+   [
+    69.4,
+    47.9
+   ],
+   [
+    70.0,
+    50.9
+   ],
+   [
+    56.8,
+    41.1
+   ],
+   [
+    54.3,
+    41.4
+   ],
+   [
+    58.3,
+    42.0
+   ],
+   [
+    67.3,
+    43.4
+   ],
+   [
+    64.8,
+    43.4
+   ]
+  ],
+  "left": [
+   [
+    50.8,
+    38.2
+   ],
+   [
+    44.6,
+    38.5
+   ],
+   [
+    53.2,
+    37.2
+   ],
+   [
+    57.5,
+    36.7
+   ],
+   [
+    59.3,
+    38.9
+   ],
+   [
+    43.2,
+    39.7
+   ],
+   [
+    37.4,
+    42.9
+   ],
+   [
+    41.7,
+    40.6
+   ],
+   [
+    44.3,
+    37.8
+   ],
+   [
+    47.0,
+    37.7
+   ]
+  ],
+  "right": [
+   [
+    45.2,
+    51.3
+   ],
+   [
+    51.4,
+    53.2
+   ],
+   [
+    42.8,
+    51.9
+   ],
+   [
+    38.5,
+    52.2
+   ],
+   [
+    36.7,
+    54.8
+   ],
+   [
+    52.8,
+    46.0
+   ],
+   [
+    58.6,
+    47.5
+   ],
+   [
+    54.3,
+    48.0
+   ],
+   [
+    51.7,
+    51.7
+   ],
+   [
+    49.0,
+    49.8
+   ]
+  ]
+ },
+ "telegraph": {
+  "fromFrame": 0,
+  "toFrame": 4,
+  "ms": 550,
+  "note": "심지에 불을 붙이는 순간부터 놓기 전까지 = 예고. 첫 프레임에 착탄 지점 예고(telegraph_circle 반경 1.5칸)를 띄우는 것을 제안"
+ },
+ "projectile": {
+  "sheet": "fx/v3/fire_bottle_thrown",
+  "burst": "fx/v3/fire_bottle_burst",
+  "pool": "fx/v3/fire_pool",
+  "spawnFrame": 5,
+  "spawnAnchor": "throwHandAnchors",
+  "note": "플레이어 소모품 화염 술병과 같은 fx(계약 §22.1 sharedWith). 포물선·그림자는 시스템"
+ },
+ "hitSuggestion": {
+  "preferredRangeTiles": [
+   3.5,
+   5.0
+  ],
+  "throwRangeTiles": [
+   2.5,
+   6.0
+  ],
+  "flightMs": 700,
+  "arcApexTiles": 1.5,
+  "burstRadiusTiles": 1.5,
+  "poolDurationMs": 4000,
+  "cooldownMs": 2600,
+  "fleeIfPlayerWithinTiles": 2.0,
+  "note": "판정·수치 제안값(기준은 시스템 data). 착탄 반경 = fire_bottle_burst radiusPx 96 도트 = 1.5칸. 거리를 두고 물러나며 던지는 겁 많은 행상"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 peddler_attack.png)",
+  "grid": {
+   "columns": 10,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 40
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":111,"y":240,"w":54,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":32,"w":54,"h":111},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":479,"y":239,"w":54,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":36,"w":54,"h":107},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":98,"y":0,"w":49,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":23,"w":49,"h":121},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":0,"y":0,"w":48,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":19,"w":48,"h":125},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":50,"y":0,"w":46,"h":124},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":20,"w":46,"h":124},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":596,"y":239,"w":49,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":38,"w":49,"h":106},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":155,"y":123,"w":41,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":43,"w":41,"h":101},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":53,"y":126,"w":42,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":40,"w":42,"h":104},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":0,"y":244,"w":46,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":32,"w":46,"h":111},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":167,"y":240,"w":52,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":32,"w":52,"h":111},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":561,"y":0,"w":54,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":23,"w":54,"h":118},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":452,"y":0,"w":54,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":22,"w":54,"h":119},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":670,"y":0,"w":49,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":25,"w":49,"h":118},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":614,"y":120,"w":48,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":26,"w":48,"h":117},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":254,"y":122,"w":46,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":29,"w":46,"h":114},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":149,"y":0,"w":49,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":20,"w":49,"h":121},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":664,"y":120,"w":41,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":23,"w":41,"h":117},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":408,"y":0,"w":42,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":22,"w":42,"h":120},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":360,"y":0,"w":46,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":21,"w":46,"h":120},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":200,"y":0,"w":52,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":21,"w":52,"h":120},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":561,"y":120,"w":51,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":26,"w":51,"h":117},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":98,"y":123,"w":55,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":28,"w":55,"h":115},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":254,"y":0,"w":51,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":23,"w":51,"h":120},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":307,"y":0,"w":51,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":23,"w":51,"h":120},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":707,"y":238,"w":53,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":25,"w":53,"h":116},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":359,"y":122,"w":58,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":31,"w":58,"h":112},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":417,"y":239,"w":60,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":36,"w":60,"h":107},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":53,"y":240,"w":56,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":32,"w":56,"h":111},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":721,"y":119,"w":52,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":26,"w":52,"h":117},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":452,"y":121,"w":52,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":27,"w":52,"h":116},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":0,"y":127,"w":51,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":28,"w":51,"h":115},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":302,"y":122,"w":55,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":30,"w":55,"h":113},"sourceSize":{"w":96,"h":144}},
+  "32":{"frame":{"x":617,"y":0,"w":51,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":25,"w":51,"h":118},"sourceSize":{"w":96,"h":144}},
+  "33":{"frame":{"x":508,"y":0,"w":51,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":24,"w":51,"h":119},"sourceSize":{"w":96,"h":144}},
+  "34":{"frame":{"x":721,"y":0,"w":53,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":26,"w":53,"h":117},"sourceSize":{"w":96,"h":144}},
+  "35":{"frame":{"x":254,"y":238,"w":58,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":30,"w":58,"h":111},"sourceSize":{"w":96,"h":144}},
+  "36":{"frame":{"x":535,"y":239,"w":59,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":34,"w":59,"h":106},"sourceSize":{"w":96,"h":144}},
+  "37":{"frame":{"x":359,"y":236,"w":56,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":31,"w":56,"h":112},"sourceSize":{"w":96,"h":144}},
+  "38":{"frame":{"x":506,"y":121,"w":52,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":27,"w":52,"h":116},"sourceSize":{"w":96,"h":144}},
+  "39":{"frame":{"x":200,"y":122,"w":52,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":27,"w":52,"h":116},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "peddler_attack.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 774,
+   "h": 355
+  },
+  "scale": "1"
+ }
+}

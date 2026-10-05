@@ -17,7 +17,7 @@ from b2 import (Canvas, Rand, G, A, SL, WD, PL, X, write_sheet, shade_mask, mask
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../atlas57"))
 import gridsheet  # noqa: E402
 
-ENEMIES = ["dummy", "archer", "charger"]
+ENEMIES = ["dummy", "archer", "charger", "peddler", "porter"]   # 61라운드: 독주 행상·술통 짐꾼 추가
 ACTIONS = ["idle", "walk", "attack", "hurt", "death"]
 # 링 색(안 → 밖). 안쪽 2겹은 자체 발광(어둠에서도 읽힘), 바깥 겹은 어두운 호박 체커(부드러운 가장자리).
 RING = [A[25], A[23], A[20]]

@@ -30,7 +30,9 @@
  "headTopByEnemy": {
   "dummy": 119,
   "archer": 120,
-  "charger": 139
+  "charger": 139,
+  "peddler": 118,
+  "porter": 116
  },
  "followTarget": true,
  "depth": "above",

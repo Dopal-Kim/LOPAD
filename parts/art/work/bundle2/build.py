@@ -59,7 +59,7 @@ def main():
             ox = (cv.width - m["frameWidth"]) // 2
             cv.alpha_composite(o, (ox, 110))
             py = 110 + m["pivot"]["y"] - heads[e] - 10
-            cv.alpha_composite(em[2 * [1, 0, 2][i]], (ox + m["pivot"]["x"] - elite.EPIV[0], py - elite.EPIV[1]))
+            cv.alpha_composite(em[2 * [1, 0, 2, 4, 3][i % 5]], (ox + m["pivot"]["x"] - elite.EPIV[0], py - elite.EPIV[1]))
             cv.alpha_composite(npl, (ox + m["pivot"]["x"] - elite.NW // 2, max(0, py - elite.EPIV[1] - 34)))
             prev_elite.append((cv, None))
         prev_elite.append((hero0, hpiv))

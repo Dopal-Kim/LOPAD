@@ -1,0 +1,48 @@
+{
+ "image": "porter_walk.png",
+ "action": "walk",
+ "frameWidth": 160,
+ "frameHeight": 192,
+ "frames": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 7.14,
+ "frameDurationsMs": [
+  140,
+  140,
+  140,
+  140,
+  140,
+  140,
+  140,
+  140
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 80,
+  "y": 166
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray G00~15 + 1층 램프 16~27, 런타임 스왑 — 술·불씨·놋쇠·발광만) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색). 새 색 없음",
+ "source": "parts/art/work/enemies61/enemy_build.py (61라운드 P3 — 신규 적, 리그 enemies_v3 공용)",
+ "note": "v3 술통 짐꾼(61라운드 P3 신규) · 160×192 도트 = 화면 80×96(몸은 결사병급, 틀은 앞 술통·등 지게 때문에 넓음) · 민머리 수건·맨팔·청회 조끼·지게에 예비 술통 · 앞 술통을 밀며 걷고, 뒤로 당겨 감았다가 굴려 보냄(보스 '술통 되치기' 예습)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0"
+ ],
+ "version": "v3-r61",
+ "stride": {
+  "px": 52,
+  "cycleMs": 1120,
+  "note": "발 한 주기 이동(발 진폭 12 × 4 × 몸 배율 1.1 ≈ 52 도트) = 앞 술통 반 바퀴(지름 약 33 도트 × π / 2). 이 비율로 재생하면 술통이 미끄러지지 않고 구른다"
+ }
+}

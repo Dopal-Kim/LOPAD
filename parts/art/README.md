@@ -130,3 +130,26 @@ python3 parts/art/work/fx_prod/build_b.py      # 43라운드 양산 B: 단검·�
 - **바닥·담 64도트** `floors64_build.py --assets` (도구 `fk64.py`, 지역 설계 `regions64.py`): `assets/tiles/v2/stage1_<지역>` 를 64도트 칸·`pixelScale 0.5` 로 교체(경로·인덱스 표·키 유지, 도트 단위 길이 2배). 새로 그린 칸 = 0~4·23~38·43~46·60~62(JSON `redrawn60`), 나머지는 32 그림 2배 임시(`upscaled60`, P3). 원본 32 판 사본 `floor1q60/before/tiles/`.
 - 옛 빌드 보호: `enemies_v3/build.py`·`floors_v2/build.py`·`v2_outer/build.py tiles` 는 `--legacy` 없이 멈춘다.
 - 미리보기: `floor1q60/preview_enemies_before_after.png`·`preview_enemy_attack_before_after.png`·`preview_tiles_regions_before_after.png`·`preview_mock_regions.png`·`preview_mock_<지역>.png`·`preview_mock_zoom_<지역>.png`, `out/preview_<적>_<동작>_x2.png`·`_x3.gif`, `out/preview_tiles64_<지역>.png`·`preview_floor64_<지역>.png`.
+
+## 61라운드 (2026-10-05, 자율 모드) — P3 신규 적 2종 · P8 서사 소품 3종 · 작업 폴더 `work/enemies61/`
+- 결정: `decisions/2026-10-05-round-61-autonomous-stage1.md` P3·P8, 계약 §11·§14·§15·§19·§22. 인터뷰 없이 아트가 정하고 이유를 여기 적는다(61라운드 운영 규칙).
+- 빌드: `python3 parts/art/work/enemies61/build.py` (적 → 구조물 → 아틀라스) → `python3 parts/art/work/bundle2/build.py --only elite` (엘리트 외곽선) → `python3 parts/art/work/enemies61/preview61.py`. `--dry` 는 assets 를 건드리지 않음.
+- 모듈: `kit61.py`(상자·누운/선 술통·심지 불·놋쇠 등 — 3D 리그 위 소품), `peddler61.py`·`porter61.py`(리그 = enemies_v3 `erig`·`human`·`eanim` import 만), `enemy_build.py`(타이밍·JSON·아틀라스), `barrel61.py`(굴러가는 술통 — boss1_v3 `props.barrel_side/end` import), `clues61.py`(서사 소품 — bundle2 `b2`·`structs` import), `preview61.py`.
+
+### 판단과 이유
+- **id**: 독주 행상 = `peddler`, 술통 짐꾼 = `porter`(영문 짧은 명사, 기존 dummy·archer·charger 와 같은 결).
+- **공격 시트 이름 = `<id>_attack`**(던지기·밀기). 이유: 시스템 적 로더·엘리트 외곽선(ACTIONS 5종)이 `attack` 을 이미 읽으므로 파일만 넣어도 폴백 없이 붙는다. 동작 이름은 JSON `actionName`(`throw`·`push`), 단계는 `phaseFrames` 로 준다.
+- **타이밍**: 옛 시트가 없는 신규 적이라 `enemy_build.py TIMING` 이 기준. 60라운드 P1 원칙(공격 10 · 피격 4 [70,30,30,30] flashFrame 0 · 사망 10 · 대기 6 · 걷기 8). 예고 길이를 충분히(행상 550ms · 짐꾼 530ms) — 보스 패턴을 '가르치는' 적이므로 읽을 시간을 준다.
+- **독주 행상 외형**: 넓은 삿갓(몸보다 넓은 원뿔 — 가장 먼저 읽히는 실루엣) · 등의 바랜 회색 술병 상자(병목 6 + 잔 낙인 + X 새끼줄) · 상자 모서리 장대에 매단 놋쇠 등(자체 발광, 모든 방향에서 어깨 위로 보이게 1회차 '허리 뒤' 위치에서 옮김) · 청회 목도리로 입 가림 · 삿갓 그늘 속 눈 반짝임 1점씩 · 흰 행전. 두루마기는 2회차에 한 단 밝힘(WD4, 어둠 목업에서 징집병과 같은 명도대). 던지기 = 등에 심지를 대 불붙임(0·1) → 어깨 옆으로 감아올림(2~4, 1회차 '머리 뒤'는 정면에서 병이 가려져 옮김) → 놓음(5, 팔 잔상 4겹) → 따라감(6·7) → 어깨 너머 상자에서 새 병(8·9, 대기 자세로 이어짐 = 병이 갑자기 생기지 않음).
+- **술통 짐꾼 외형**: 결사병급 덩치(몸 배율 1.1) · 민머리 꼰 수건(뒤 매듭 꼬리 2차 동작) · 수염 · 걷어 올린 밝은 소매 · 청회 조끼 사이 맨가슴 · 숯빛 바지 · 지게 + 예비 술통. 대기·걷기는 앞 술통 위에 두 팔을 뻗어 얹고 숙인 자세(lean 38°) — 1회차(맨팔·갈색 바지·lean 45°·술통 r18)는 몸·술통·바지가 한 갈색 덩어리라 소매·바지·쇠테 명도를 갈랐고, 술통을 r15·길이 42 로 줄이고 4 도트 앞으로 뺐다(발과 겹침). 공격 = 버팀(0·1) → 당겨 감기 roll_windup(2~4) → 밀기 push(5, 속도선·먼지, 술통은 투사체로) → 따라감(6) → 지게의 예비 술통을 머리 위로 들어 앞에 내려놓음 reload(7~9). 예비 술통은 대기로 돌아오면 지게에 다시 보인다(짐꾼 = 무한 보급 설정 — 앞 술통이 갑자기 생기는 것보다 덜 튐).
+- **틀**: 행상 96×144 피벗 (48,138)(징집병과 같음). 짐꾼 **160×192 피벗 (80,166)** — 앞 술통이 카메라 쪽으로 나와 피벗 아래 26 도트가 필요하고 지게·술통이 옆으로 넓다(시스템은 JSON 을 읽음, §14 '크기는 적마다 다를 수 있음').
+- **걷기 stride**(52 Q10): 짐꾼 = 앞 술통 반 바퀴/주기(52 도트 · 1120ms) — 이 비율로 재생하면 술통이 미끄러지지 않고 구른다(술통 그림의 마개 구멍은 리그 술통에서 빼서 반 바퀴로 이음새 없이 루프). 행상 48 도트 · 1040ms(제안).
+- **굴러가는 술통**은 보스 술통 규약(§15 `boss1_rolling_barrel`)을 그대로 따라 `structures/v3/porter_rolling_barrel`(행 = 굴러가는 방향, 8프레임 = 한 바퀴, `circumferencePx` 논리 px). **되친 술통** `_returned` 를 따로 둔 이유: 보스 '술통 되치기' 예습의 핵심이 "내가 친 술통은 내 편"을 즉시 읽게 하는 것 — 쇠테 호박 발광 + 호박 테두리 + 불티(자체 발광, 광원 70). 깨짐 `porter_barrel_break` 는 1·2 프레임에 두 쪽으로 벌어지는 단계를 넣음(1회차는 통이 한 프레임에 사라짐) → 마지막 프레임 뒤 `fx/v3/pool_liquor`(불 닿으면 `pool_liquor_fire`) — 행상 화염병과 엮이는 불 연계.
+- **엘리트**: `bundle2/elite.py`·`fx2.py` 의 `ENEMIES` 에 두 적 추가 → 외곽선 10시트 생성, `elite_emblem`·`elite_drunk_vapor`·`elite_guzzle_drink` 의 `headTopByEnemy`(peddler 118 · porter 116), `elite_barrel_armor(_break)` 의 `bodyBoxByEnemy` 에 두 적 키가 더해짐(기존 값·기존 PNG 변화 없음 — git 으로 확인). `bundle2/build.py` 미리보기의 3적 고정 색인을 5적으로.
+- **서사 소품(P8)**: `clue_masked_corpse`(탄생지) — '같은 문양의 가면'(점검 AR-3)을 **가면 이마의 바랜 잔(盞) 문양**(결사병 방패·행상 상자 낙인과 같은 모양)으로 해석, found 에서 호박빛. 술병은 징집병 술병과 같은 호박 병·헝겊 마개, 냄새 김이 병과 가면 양쪽에서 올라와 섞임. 군복은 무채 회색(1층 사람들의 갈색·청회와 다른 옷). 2회차: 둥근 '웃는 얼굴'처럼 보이던 가면을 이마 넓고 턱 좁은 방패꼴 + 콧날 + 찢은 눈 틈으로. `clue_gate_register`(국경 초소) — 장부 두 쪽 모두 왼쪽 2/3 칸에만 이름 줄, 오른쪽 1/3 은 칸도 줄도 없음 → found 에서 호박 점선이 '없는 칸'을 둘러 보여 줌(글자 없이 그림만으로). 책상 촛불 광원. `clue_tab_ledgers`(보스방) — 쌓인 장부·펼친 장부·흩어진 쪽·엎어진 잔, found = 맨 끝 줄(방금 쓴 듯한 이름) 호박빛(2회차에 2줄 굵기로). 문양 해석·문장은 스토리 파트 확인 대상.
+- 그림 공유: 행상 `peddler_idle` 은 이벤트 E1 '떠돌이 행상' NPC 로 그대로 쓸 수 있다(점검 AR-2).
+
+### 검증
+- 반투명 0(적 시트 assert), 색: 행상 39 · 짐꾼 33 (새 색 없음 — gray + 1층 램프 + SL·WD·PL).
+- `atlas57/verify.py`: 시트 734개 중 형식 오류 5 = 위 엘리트 fx JSON 5개의 **의도한 메타 키 추가**(`headTopByEnemy`·`bodyBoxByEnemy`)가 커밋된 기준(baseline.json)과 다르다는 표시뿐. 새 시트 28개는 형식 통과(원본 없음 → 형식만). 커밋 뒤 `python3 parts/art/work/atlas57/verify.py --rebase --only elite_barrel_armor elite_drunk_vapor elite_emblem elite_guzzle_drink` 로 기준을 옮기면 0.
+- 미리보기(긴 변 8000 이하): `enemies61/preview_lineup.png`(주인공·기존 3적·신규 2적·엘리트, 4방향 3배) · `preview_mock_lit.png`(어둠 조명 1배) · `preview_attack_strip.png`(공격 핵심 프레임 4배) · `preview_barrels.png` · `preview_clues.png` · `out/preview_<id>_<동작>_x2.png`·`_x3.gif` · `bundle2/preview_elite.png`.

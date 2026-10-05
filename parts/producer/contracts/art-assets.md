@@ -587,3 +587,10 @@
 - `elite_ringleader_link` 64×24, 6프레임 루프, 반복 타일(`tile: true`, 주기 64, 트림 안 함, `rotate`, 쐐기가 +x 로 흐름) — 두목 pivot 위 60 → 강화 대상 pivot 위 60. `elite_ringleader_aura` 136×56 루프, 강화 대상 발밑(`depth: floor`). 두목 사망 시 둘 다 끄고 주변 적에 `status_stagger`.
 - `elite_guzzle_trail` 72×28, 4프레임 루프 투사체(죽은 적 → 엘리트 머리, 0.35초·호 30도트 제안) → `elite_guzzle_drink` 128×128, 9프레임 1회(`healFrame 4` 에 HP·크기 증가 적용 제안).
 - `fire_bottle_thrown` 56×56, 8프레임 루프(회전은 그림에 포함, 왼쪽이면 flipX, 광원 70, 포물선·그림자 원은 시스템) → 착지 `fire_bottle_burst` 240×184, 10프레임 1회(`radiusPx 96` = 1.5칸, 광원 260, `lightByPhase`, `shake`) → `fire_pool` 로 넘김. 플레이어 소모품·독주 행상 공용(`sharedWith`).
+
+## 23. 61라운드 1층 신규 적·서사 소품
+- **적 id `peddler`(독주 행상)·`porter`(술통 짐꾼)**: `enemies/v3/<id>_{idle,walk,attack,hurt,death}` + 엘리트 외곽선 `_elite`. 공격 시트 이름은 `attack`, 실제 동작 이름은 JSON `actionName`(`throw`/`push`). 행상 96×144 피벗 (48,138), 짐꾼 160×192 피벗 (80,166). attack 10·hurt 4(flashFrame 0)·death 10. 세부(phaseFrames·frameDurationsMs·stride)는 JSON 기준.
+- 행상 `throw`: `releaseFrame`=`fireFrame` 5(550ms), 프레임별 `throwHandAnchors`·`bottleAnchors`·`wickAnchors`·`lampAnchors`. 프레임 5 손 위치에서 `fire_bottle_thrown` → `fire_bottle_burst` → `fire_pool`(§22.1).
+- 짐꾼 `push`: 놓음 프레임 5(530ms), `barrelSpawnAnchors[방향][5]` 에 `structures/v3/porter_rolling_barrel`(행 = 방향 × 8, 60ms 루프, `circumferencePx`·`diameterPx`·`lengthPx` 논리 px). 되치기 시 같은 프레임 번호의 `porter_rolling_barrel_returned` 로 교체. 벽·단단한 구조물에 닿으면 `porter_barrel_break`(8프레임, `stateHold` 7) → `fx/v3/pool_liquor`(불이 닿으면 `pool_liquor_fire`).
+- `elite_*` fx 의 `headTopByEnemy`·`bodyBoxByEnemy` 에 peddler 118·porter 116 추가.
+- **서사 소품**(E 조사, states `idle`/`found`, 64도트 칸): `structures/v3/clue_masked_corpse`(탄생지 가면 시체, footprint [2,1], 통과), `clue_gate_register`(성문 초소 출입 장부, solid), `clue_tab_ledgers`(보스방 외상 장부 더미, solid — 기둥 뒤 구석 배치). `markAnchor`·`lightByState` 는 JSON.

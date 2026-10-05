@@ -27,7 +27,7 @@ from b2 import (Canvas, Rand, G, A, SL, WD, PL, X, CLEAR, R_WOOD, R_IRON, contac
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../atlas57"))
 import gridsheet  # noqa: E402
 
-ENEMIES = ["dummy", "archer", "charger"]
+ENEMIES = ["dummy", "archer", "charger", "peddler", "porter"]   # 61라운드: 독주 행상·술통 짐꾼 추가
 FXNOTE = {
     "drawOver": "lightmap", "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
 }

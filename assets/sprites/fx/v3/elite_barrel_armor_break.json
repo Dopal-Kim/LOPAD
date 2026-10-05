@@ -49,6 +49,20 @@
    "w": 53,
    "h": 50,
    "scale": 1.1
+  },
+  "peddler": {
+   "cx": 0,
+   "cy": -70,
+   "w": 36,
+   "h": 50,
+   "scale": 0.75
+  },
+  "porter": {
+   "cx": 0,
+   "cy": -70,
+   "w": 45,
+   "h": 50,
+   "scale": 0.94
   }
  },
  "spawn": "elite_armor_break",
