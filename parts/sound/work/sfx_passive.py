@@ -28,7 +28,7 @@ def _shard(sr, rng, f, tau=0.03):
     return metal(sr, 0.14, f, rng, partials=GLASS, tau=tau, jitter=0.02)
 
 
-@sfx('passive_glass_shard', 'PASSIVE_PROC{passive:brokenGlass}', "패시브 #10 '깨진 잔 조각'(타격 12% 출혈) 발동. 작은 유리 조각 둘이 '찰캉' + 젖은 틱. 그 타격의 hit_enemy 위에 작게", -8)
+@sfx('passive_glass_shard', 'PASSIVE_PROC{passive:brokenShard}', "패시브 #10 '깨진 잔 조각'(타격 12% 출혈) 발동. 작은 유리 조각 둘이 '찰캉' + 젖은 틱. 그 타격의 hit_enemy 위에 작게", -8)
 def _passive_glass_shard(sr, rng):
     s = zeros(sec(sr, 0.3))
     mix_into(s, _shard(sr, rng, 3100), 0, 0.5)
@@ -108,7 +108,7 @@ def _passive_spilled_drink(sr, rng):
     return tail(s, sr, 0.02)
 
 
-@sfx('passive_liquor_spray', 'PASSIVE_PROC{passive:strongBreath}', "패시브 #28 '독한 숨'(마시기 직후 3 s 안 첫 공격 = 앞 원뿔 2칸 술 뿜기, 맞은 자리 웅덩이) 발동. 입술 '프'(노이즈, 목소리 아님) → 넓게 퍼지는 술 안개 '푸쉬' + 흩어지는 물방울. 그 공격의 휘두름 위에 겹침", -3)
+@sfx('passive_liquor_spray', 'PASSIVE_PROC{passive:harshBreath}', "패시브 #28 '독한 숨'(마시기 직후 3 s 안 첫 공격 = 앞 원뿔 2칸 술 뿜기, 맞은 자리 웅덩이) 발동. 입술 '프'(노이즈, 목소리 아님) → 넓게 퍼지는 술 안개 '푸쉬' + 흩어지는 물방울. 그 공격의 휘두름 위에 겹침", -3)
 def _passive_liquor_spray(sr, rng):
     dur = 0.55
     s = zeros(sec(sr, dur))
@@ -121,7 +121,7 @@ def _passive_liquor_spray(sr, rng):
     return tail(s, sr, 0.02)
 
 
-@sfx('passive_fire_breath', 'PASSIVE_PROC{passive:strongBreath,fire:true}', "패시브 #28 '독한 숨' 술불 위에서 뿜음 = 화염 뿜기(×1.5). 술 안개 '푸쉬'에 불이 붙어 0.05 s 부터 낮게 으르렁대는 불길 + 타닥. passive_liquor_spray 대신", -2)
+@sfx('passive_fire_breath', 'PASSIVE_PROC{passive:harshBreath,fire:true}', "패시브 #28 '독한 숨' 술불 위에서 뿜음 = 화염 뿜기(×1.5). 술 안개 '푸쉬'에 불이 붙어 0.05 s 부터 낮게 으르렁대는 불길 + 타닥. passive_liquor_spray 대신", -2)
 def _passive_fire_breath(sr, rng):
     dur = 0.85
     s = zeros(sec(sr, dur))

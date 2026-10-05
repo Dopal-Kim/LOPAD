@@ -87,7 +87,7 @@ def _katana_whirl_reflect(sr, rng):
 
 # ---- 잔월(殘月) 2단 A-β: 검기를 쓴 일섬·회전이 지나간 자리에 달 궤적 1.2 s(0.3 s 마다 피해) ----
 
-@sfx('katana_moon_trail', 'BRANCH_EFFECT{branch:moon,effect:trail}', "잔월 달 궤적이 깔림(검기 쓴 일섬·회전 뒤, 궤적 한 줄에 1회 — 초승달 조각마다 아님). fx katana_moon_trail 수명에 맞춤: 0~0.1 s 생김 '시잉'(A4, 어둡게) → 0.1·0.4·0.7·1.0 s 작은 틱(0.3 s 피해 틱) + 은은한 A5 험 → 1.3 s 재로 부서짐. 시스템 지속이 1.2 s 와 다르면 끝에서 페이드아웃", -6)
+@sfx('katana_moon_trail', 'BRANCH_EFFECT{branch:zangetsu,effect:trail}', "잔월 달 궤적이 깔림(검기 쓴 일섬·회전 뒤, 궤적 한 줄에 1회 — 초승달 조각마다 아님). fx katana_moon_trail 수명에 맞춤: 0~0.1 s 생김 '시잉'(A4, 어둡게) → 0.1·0.4·0.7·1.0 s 작은 틱(0.3 s 피해 틱) + 은은한 A5 험 → 1.3 s 재로 부서짐. 시스템 지속이 1.2 s 와 다르면 끝에서 페이드아웃", -6)
 def _katana_moon_trail(sr, rng):
     dur = 1.55
     s = zeros(sec(sr, dur))
@@ -132,7 +132,7 @@ def _katana_execute(sr, rng):
 
 # ---- 명경(明鏡) 2단 B-β: 검기 상한 5단, 패링 시 2단 충전, 5단 일섬 = 분신 2체 ----
 
-@sfx('katana_mirror_parry', 'PARRY_SUCCESS{weapon:katana,branch:mirror}', "명경 패링 = 검기 2단 충전(fx katana_mirror_parry: 거울 면 → 두 조각이 주인공 쪽으로). 1 kHz 위만: 거울 '팅'(유리 A6·E7 근처) → 0.08~0.2 s 날아드는 두 조각 바람 → 0.2 s 닿는 칼날 틱 둘. parry + parry_perfect 위에 겹침(같은 프레임)", -3)
+@sfx('katana_mirror_parry', 'PARRY_SUCCESS{weapon:katana,branch:meikyo}', "명경 패링 = 검기 2단 충전(fx katana_mirror_parry: 거울 면 → 두 조각이 주인공 쪽으로). 1 kHz 위만: 거울 '팅'(유리 A6·E7 근처) → 0.08~0.2 s 날아드는 두 조각 바람 → 0.2 s 닿는 칼날 틱 둘. parry + parry_perfect 위에 겹침(같은 프레임)", -3)
 def _katana_mirror_parry(sr, rng):
     dur = 0.5
     s = zeros(sec(sr, dur))
@@ -160,12 +160,12 @@ def _kenki_hi(sr, rng, stage):
     return reverb(tail(s, sr, 0.04), sr, size=0.6, decay=0.55, wet=0.18)
 
 
-@sfx('kenki_stage4', 'KENKI_CHANGED{stage:4,delta>0}', "검기 4단 도달(명경 전용, 상한 5). kenki_stage1~3(A4·D5·A5) 다음 단 — 칼날 울림 D6 + 아래 옥타브 D5, 백열 고음. 오를 때만", -4)
+@sfx('kenki_stage4', 'WEAPON_GAUGE{stage:4,delta>0}', "검기 4단 도달(명경 전용, 상한 5). kenki_stage1~3(A4·D5·A5) 다음 단 — 칼날 울림 D6 + 아래 옥타브 D5, 백열 고음. 오를 때만", -4)
 def _kenki_stage4(sr, rng):
     return _kenki_hi(sr, rng, 4)
 
 
-@sfx('kenki_stage5', 'KENKI_CHANGED{stage:5,delta>0}', "검기 5단 도달(명경 최대 — 다음 일섬 분신 2체). 칼날 울림 A6 + A5 + D5 쌓임 + 발밑 다섯 초승달이 이어지는 작은 틱 다섯, 울림. 5단 일섬 = 기존 shadow_clone 두 번(+90 ms)", -3)
+@sfx('kenki_stage5', 'WEAPON_GAUGE{stage:5,delta>0}', "검기 5단 도달(명경 최대 — 다음 일섬 분신 2체). 칼날 울림 A6 + A5 + D5 쌓임 + 발밑 다섯 초승달이 이어지는 작은 틱 다섯, 울림. 5단 일섬 = 기존 shadow_clone 두 번(+90 ms)", -3)
 def _kenki_stage5(sr, rng):
     return _kenki_hi(sr, rng, 5)
 
@@ -188,7 +188,7 @@ def _gs_quake_fork(sr, rng):
 
 # ---- 반향(反響) 2단 A-β: 퍼펙트 가드 순간 울분 30% 소모해 균열 즉발 반격(차지 1단 위력, 3칸) ----
 
-@sfx('gs_echo_counter', 'PERFECT_GUARD{weapon:greatsword,branch:echo}', "반향 반격(퍼펙트 가드 + 울분 30% 이상, fx greatsword_echo_counter impactFrame 0 → 30 ms × 3 = 3칸). 땅이 되받아치는 낮은 '둥' + 70 ms 간격으로 두 번 메아리치는 징 D4 + 앞으로 달리는 균열 3칸. perfect_guard 와 같은 프레임에 겹침(울분 30% 미만이면 재생 안 함)", 0)
+@sfx('gs_echo_counter', 'PERFECT_GUARD{weapon:greatsword,branch:resonance}', "반향 반격(퍼펙트 가드 + 울분 30% 이상, fx greatsword_echo_counter impactFrame 0 → 30 ms × 3 = 3칸). 땅이 되받아치는 낮은 '둥' + 70 ms 간격으로 두 번 메아리치는 징 D4 + 앞으로 달리는 균열 3칸. perfect_guard 와 같은 프레임에 겹침(울분 30% 미만이면 재생 안 함)", 0)
 def _gs_echo_counter(sr, rng):
     dur = 0.9
     s = zeros(sec(sr, dur))
@@ -243,7 +243,7 @@ def _charge_slam_lv4(sr, rng):
 
 # ---- 울혈(鬱血) 2단 B-β: 그로기 진입 시 울분 +50%, 그로기 중 퍼펙트 가드 창 2배, 풀리는 순간 울분 100% 면 자동 진동 폭발 ----
 
-@sfx('gs_congest_loop', 'GROGGY{weapon:greatsword,branch:congest,phase:hold}', "울혈 맺힘 루프(0.75 s = fx greatsword_congest_aura 한 바퀴, 그로기 1.5 s 동안 2바퀴). 바퀴마다 무거운 심장 한 번 + 피가 몰리는 낮은 D2 웅웅(한 번 부풂) + 드문 잔불 타닥. groggy_start 와 함께 시작, 그로기 끝에 60 ms 페이드아웃", -10, loop=True)
+@sfx('gs_congest_loop', 'BRANCH_EFFECT{branch:clot,effect:hold}', "울혈 맺힘 루프(0.75 s = fx greatsword_congest_aura 한 바퀴, 그로기 1.5 s 동안 2바퀴). 바퀴마다 무거운 심장 한 번 + 피가 몰리는 낮은 D2 웅웅(한 번 부풂) + 드문 잔불 타닥. groggy_start 와 함께 시작, 그로기 끝에 60 ms 페이드아웃", -10, loop=True)
 def _gs_congest_loop(sr, rng):
     dur = 0.75
     n = sec(sr, dur)
@@ -258,7 +258,7 @@ def _gs_congest_loop(sr, rng):
     return s
 
 
-@sfx('gs_congest_burst', 'GROGGY{weapon:greatsword,branch:congest,phase:end,burst:true}', "울혈 폭발(그로기가 풀리는 순간 울분 100% → 전부 소모, 차지 2단 위력 · fx greatsword_congest_burst 반경 2.25칸 · 흔들림 180 ms). 0.04 s 빨려드는 숨 → 핏빛 재 폭발 '퍽'(×1.4) + 강타 + 치솟는 불기둥 + 길게 식는 연기 쉿. 파일 0.04 s = 폭발", 0)
+@sfx('gs_congest_burst', 'BRANCH_EFFECT{branch:clot,effect:burst}', "울혈 폭발(그로기가 풀리는 순간 울분 100% → 전부 소모, 차지 2단 위력 · fx greatsword_congest_burst 반경 2.25칸 · 흔들림 180 ms). 0.04 s 빨려드는 숨 → 핏빛 재 폭발 '퍽'(×1.4) + 강타 + 치솟는 불기둥 + 길게 식는 연기 쉿. 파일 0.04 s = 폭발", 0)
 def _gs_congest_burst(sr, rng):
     dur = 1.25
     s = zeros(sec(sr, dur))
@@ -282,7 +282,7 @@ def _gs_congest_burst(sr, rng):
 
 # ---- 난무(亂舞) 2단 A-α: 낙인 5스택 기폭 뒤 분신 3 s 상주(연격을 반대편에서 따라 함) ----
 
-@sfx('dagger_frenzy_in', 'BRANCH_EFFECT{branch:frenzy,effect:clone_in}', "난무 분신 나타남(낙인 5스택 기폭 뒤, fx dagger_frenzy_clone_in 0.22 s). 재 알갱이가 모여드는 빨려드는 어두운 역바람 + 점점 촘촘해지는 재 틱 → 0.22 s 형태가 잡히는 딸깍 + 낮은 몸통. 분신 연격음 = swing_dagger 를 rate 0.94 · -6 dB 로 따라 재생(권장)", -3)
+@sfx('dagger_frenzy_in', 'BRANCH_EFFECT{branch:dance,effect:clone_in}', "난무 분신 나타남(낙인 5스택 기폭 뒤, fx dagger_frenzy_clone_in 0.22 s). 재 알갱이가 모여드는 빨려드는 어두운 역바람 + 점점 촘촘해지는 재 틱 → 0.22 s 형태가 잡히는 딸깍 + 낮은 몸통. 분신 연격음 = swing_dagger 를 rate 0.94 · -6 dB 로 따라 재생(권장)", -3)
 def _dagger_frenzy_in(sr, rng):
     dur = 0.42
     s = zeros(sec(sr, dur))
@@ -299,7 +299,7 @@ def _dagger_frenzy_in(sr, rng):
     return reverb(tail(s, sr, 0.02), sr, size=0.5, decay=0.45, wet=0.18)
 
 
-@sfx('dagger_frenzy_out', 'BRANCH_EFFECT{branch:frenzy,effect:clone_out}', "난무 분신 사라짐(3 s 끝, fx dagger_frenzy_clone_out 0.41 s). 발부터 재로 부서져 흩어지는 알갱이 + 위로 빠지는 바람 + 아주 낮게 꺼지는 숨", -6)
+@sfx('dagger_frenzy_out', 'BRANCH_EFFECT{branch:dance,effect:clone_out}', "난무 분신 사라짐(3 s 끝, fx dagger_frenzy_clone_out 0.41 s). 발부터 재로 부서져 흩어지는 알갱이 + 위로 빠지는 바람 + 아주 낮게 꺼지는 숨", -6)
 def _dagger_frenzy_out(sr, rng):
     dur = 0.5
     s = zeros(sec(sr, dur))
@@ -314,7 +314,7 @@ def _dagger_frenzy_out(sr, rng):
 
 # ---- 출혈(出血) 2단 A-β: 기폭 = 즉시 60% + 4 s 출혈, 출혈 중 처치되면 남은 낙인이 반경 3칸 적 1명에게 옮겨감 ----
 
-@sfx('dagger_bleed', 'BRAND_BURST{branch:bleed}', "출혈 시작(기폭 = 60% + 4 s 출혈, fx dagger_brand_bleed). 젖은 찢김 + 핏방울 넷 + 옅은 지짐. brand_burst 와 같은 프레임에 겹침(그 파일 0.06 s = 폭발이라 같은 시작). 0.5 s 출혈 틱에는 소리 없음(피격 번쩍임만)", -3)
+@sfx('dagger_bleed', 'BRAND_BURST{branch:twinBrand}', "출혈 시작(기폭 = 60% + 4 s 출혈, fx dagger_brand_bleed). 젖은 찢김 + 핏방울 넷 + 옅은 지짐. brand_burst 와 같은 프레임에 겹침(그 파일 0.06 s = 폭발이라 같은 시작). 0.5 s 출혈 틱에는 소리 없음(피격 번쩍임만)", -3)
 def _dagger_bleed(sr, rng):
     dur = 0.7
     s = zeros(sec(sr, dur))
@@ -325,7 +325,7 @@ def _dagger_bleed(sr, rng):
     return tail(s, sr, 0.02)
 
 
-@sfx('dagger_brand_hop', 'BRANCH_EFFECT{branch:bleed,effect:transfer}', "출혈 낙인이 옮겨감(출혈 중 처치 → 반경 3칸 적 1명, fx dagger_brand_hop 이동 약 0.2 s). 꼬리를 끄는 지짐 바람(혜성 '츠츠') → 0.2 s 도착 '칙'(brand_apply 결). 도착에 brand_apply 를 따로 울리지 않아도 됨", -6)
+@sfx('dagger_brand_hop', 'BRANCH_EFFECT{branch:twinBrand,effect:transfer}', "출혈 낙인이 옮겨감(출혈 중 처치 → 반경 3칸 적 1명, fx dagger_brand_hop 이동 약 0.2 s). 꼬리를 끄는 지짐 바람(혜성 '츠츠') → 0.2 s 도착 '칙'(brand_apply 결). 도착에 brand_apply 를 따로 울리지 않아도 됨", -6)
 def _dagger_brand_hop(sr, rng):
     dur = 0.34
     s = zeros(sec(sr, dur))
@@ -379,7 +379,7 @@ def _dagger_knife_step(sr, rng):
 
 # ---- 열풍(熱風) 2단 B-β: 이동기마다 과열↑, 50% 이상 빨라짐, 100% 폭발 ×2 + 화상 + 무적 0.5 s ----
 
-@sfx('dagger_hotwind_loop', 'OVERHEAT{weapon:dagger,branch:hotwind,over50:true,moving:true}', "열풍 달아오른 질주 루프(1.12 s = fx dagger_hotwind_trail 280 ms × 4). 발 뒤로 흘러가는 낮은 불혀(3.57 Hz 일렁임) + 열 아지랑이 쉿 + 드문 타닥. 과열 50% 이상 + 이동 중일 때만, 멈추거나 50% 미만이면 120 ms 페이드아웃", -12, loop=True)
+@sfx('dagger_hotwind_loop', 'BRANCH_EFFECT{branch:heatwave,effect:trail}', "열풍 달아오른 질주 루프(1.12 s = fx dagger_hotwind_trail 280 ms × 4). 발 뒤로 흘러가는 낮은 불혀(3.57 Hz 일렁임) + 열 아지랑이 쉿 + 드문 타닥. 과열 50% 이상 + 이동 중일 때만, 멈추거나 50% 미만이면 120 ms 페이드아웃", -12, loop=True)
 def _dagger_hotwind_loop(sr, rng):
     dur = 1.12
     n = sec(sr, dur)
@@ -392,7 +392,7 @@ def _dagger_hotwind_loop(sr, rng):
     return s
 
 
-@sfx('dagger_hotwind_burst', 'OVERHEAT{full:true,branch:hotwind}', "열풍 과열 폭발(반경 ×2 · 화상 3 s · 무적 0.5 s, fx dagger_hotwind_burst — dagger_overheat_burst 를 교체하듯 이 소리가 overheat_burst 를 교체). 큰 재 폭발(×1.8) + 엇갈린 작은 폭발 여섯 + 사방으로 눕는 불혀 '화르륵' + 길게 식는 증기", 0)
+@sfx('dagger_hotwind_burst', 'BRANCH_EFFECT{branch:heatwave,effect:burst}', "열풍 과열 폭발(반경 ×2 · 화상 3 s · 무적 0.5 s, fx dagger_hotwind_burst — dagger_overheat_burst 를 교체하듯 이 소리가 overheat_burst 를 교체). 큰 재 폭발(×1.8) + 엇갈린 작은 폭발 여섯 + 사방으로 눕는 불혀 '화르륵' + 길게 식는 증기", 0)
 def _dagger_hotwind_burst(sr, rng):
     dur = 1.75
     s = zeros(sec(sr, dur))
@@ -414,7 +414,7 @@ def _dagger_hotwind_burst(sr, rng):
 
 # ---- 연궁(連弓) 2단 A-α: 연사 3발마다 1발이 2갈래로 분열 ----
 
-@sfx('bow_arrow_split', 'PLAYER_ATTACK{weapon:bow,move:rapid,branch:split,phase:split}', "연궁 분열(연사 3발마다, fx bow_arrow_split impactFrame 0 · ±12°). 갈림목의 작은 '팅' + 위·아래로 벌어지는 짧은 바람 둘. 그 발의 bow_rapidN 위에 겹침. 패시브 '흩어진 촉'의 벽·사거리 끝 분열에도 재사용 권장", -5)
+@sfx('bow_arrow_split', 'PLAYER_ATTACK{weapon:bow,move:rapid,branch:volley,phase:split}', "연궁 분열(연사 3발마다, fx bow_arrow_split impactFrame 0 · ±12°). 갈림목의 작은 '팅' + 위·아래로 벌어지는 짧은 바람 둘. 그 발의 bow_rapidN 위에 겹침. 패시브 '흩어진 촉'의 벽·사거리 끝 분열에도 재사용 권장", -5)
 def _bow_arrow_split(sr, rng):
     s = zeros(sec(sr, 0.24))
     mix_into(s, metal(sr, 0.1, 3500, rng, partials=GLASS, tau=0.02, jitter=0.01), 0, 0.4)
@@ -446,7 +446,7 @@ def _bow_arrow_recall(sr, rng):
 
 # ---- 필중(必中) 2단 B-α: 정밀 조준 1.2 → 2.0 s, 정밀 조준 중 완벽 놓기 = 치명 확정 ----
 
-@sfx('bow_deadeye_lock', 'BREATH_FOCUS{weapon:bow,branch:deadeye,phase:full}', "필중 조준 다 좁혀짐(fx bow_deadeye_scope 진행도 100% = f5). 괄호 넷이 좁혀 드는 빨라지는 틱(점점 높게) → 0.15 s 맑은 '딸깍-팅' + 아주 희미한 D7 + 낮은 심장 한 번. 이 뒤 완벽 놓기 = 치명 확정. 이어서 bow_deadeye_hold", -4)
+@sfx('bow_deadeye_lock', 'BRANCH_EFFECT{branch:deadeye,effect:lock}', "필중 조준 다 좁혀짐(fx bow_deadeye_scope 진행도 100% = f5). 괄호 넷이 좁혀 드는 빨라지는 틱(점점 높게) → 0.15 s 맑은 '딸깍-팅' + 아주 희미한 D7 + 낮은 심장 한 번. 이 뒤 완벽 놓기 = 치명 확정. 이어서 bow_deadeye_hold", -4)
 def _bow_deadeye_lock(sr, rng):
     dur = 0.6
     s = zeros(sec(sr, dur))
@@ -463,7 +463,7 @@ def _bow_deadeye_lock(sr, rng):
     return reverb(tail(s, sr, 0.02), sr, size=0.6, decay=0.5, wet=0.15)
 
 
-@sfx('bow_deadeye_hold', 'BREATH_FOCUS{weapon:bow,branch:deadeye,phase:hold}', "필중 조준 유지 루프(0.72 s = fx bow_deadeye_scope 루프 360 ms × 2). 멈춘 공기의 좁은 숨결(900 Hz) + 360 ms 마다 아주 작은 맥박 + 희미한 D7 한 가닥. 놓거나 취소하면 60 ms 페이드아웃. 숨 감속 중 다른 소리 아래 깔리게 아주 작게", -14, loop=True)
+@sfx('bow_deadeye_hold', 'BRANCH_EFFECT{branch:deadeye,effect:hold}', "필중 조준 유지 루프(0.72 s = fx bow_deadeye_scope 루프 360 ms × 2). 멈춘 공기의 좁은 숨결(900 Hz) + 360 ms 마다 아주 작은 맥박 + 희미한 D7 한 가닥. 놓거나 취소하면 60 ms 페이드아웃. 숨 감속 중 다른 소리 아래 깔리게 아주 작게", -14, loop=True)
 def _bow_deadeye_hold(sr, rng):
     dur = 0.72
     n = sec(sr, dur)

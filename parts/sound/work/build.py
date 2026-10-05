@@ -770,7 +770,7 @@ def _pickup_potion(sr, rng):
     return tail(g, sr, 0.05)
 
 
-@sfx('potion_use', 'PLAYER_HEALED', '물약 마심. 병 뚜껑, 꿀꺽 두 번, 짧은 숨', -3, category='pickup')
+@sfx('potion_use', 'PLAYER_HEALED{source:potion}', '물약 마심. 병 뚜껑, 꿀꺽 두 번, 짧은 숨', -3, category='pickup')
 def _potion_use(sr, rng):
     s = zeros(sec(sr, 0.5))
     mix_into(s, click(sr, rng, 0.004, 3500), 0, 0.7)
@@ -1774,17 +1774,17 @@ def _kenki(sr, rng, stage):
     return reverb(tail(s, sr, 0.03), sr, size=0.6, decay=0.5, wet=0.18)
 
 
-@sfx('kenki_stage1', 'KENKI_CHANGED{stage:1,delta>0}', "검기 1단 도달(재빛 칼날, 60라운드 Q22 재제작). 지글지글 타기 시작: 칼날을 스치는 첫 불씨 + 지짐 쉿 + 잔 타닥", -6)
+@sfx('kenki_stage1', 'WEAPON_GAUGE{stage:1,delta>0}', "검기 1단 도달(재빛 칼날, 60라운드 Q22 재제작). 지글지글 타기 시작: 칼날을 스치는 첫 불씨 + 지짐 쉿 + 잔 타닥", -6)
 def _kenki_stage1(sr, rng):
     return _kenki(sr, rng, 1)
 
 
-@sfx('kenki_stage2', 'KENKI_CHANGED{stage:2,delta>0}', "검기 2단 도달(호박빛, 60라운드 Q22 재제작). 본격적으로 타오름: 불이 붙는 '훅' + 컷오프가 열리며 치솟는 불길 + 지짐 + 촘촘한 타닥", -5)
+@sfx('kenki_stage2', 'WEAPON_GAUGE{stage:2,delta>0}', "검기 2단 도달(호박빛, 60라운드 Q22 재제작). 본격적으로 타오름: 불이 붙는 '훅' + 컷오프가 열리며 치솟는 불길 + 지짐 + 촘촘한 타닥", -5)
 def _kenki_stage2(sr, rng):
     return _kenki(sr, rng, 2)
 
 
-@sfx('kenki_stage3', 'KENKI_CHANGED{stage:3,delta>0}', "검기 3단 도달(백열, 그림자 분신 준비 · 60라운드 Q22 재제작). 빛남: 타오르는 바탕 위로 번쩍 오르는 고역 + 일렁이는 반짝임 + 아주 작은 맑은 빛 한 겹(A7·E8 근처 지속음, 종 아님) + 타닥, 짧은 울림", -4)
+@sfx('kenki_stage3', 'WEAPON_GAUGE{stage:3,delta>0}', "검기 3단 도달(백열, 그림자 분신 준비 · 60라운드 Q22 재제작). 빛남: 타오르는 바탕 위로 번쩍 오르는 고역 + 일렁이는 반짝임 + 아주 작은 맑은 빛 한 겹(A7·E8 근처 지속음, 종 아님) + 타닥, 짧은 울림", -4)
 def _kenki_stage3(sr, rng):
     return _kenki(sr, rng, 3)
 
@@ -2567,17 +2567,17 @@ def _thrust_ki(sr, rng, stage):
     return tail(s, sr, 0.02)
 
 
-@sfx('katana_thrust_ki1', 'PLAYER_ATTACK{weapon:katana,combo:3,kenki:1}', "3타 찌르기 검기 1단 소모 겹침(재빛, 사거리 1.5R). 앞으로 뻗는 찢김 + 칼날 울림 A4 — katana_thrust 와 같은 프레임", -5)
+@sfx('katana_thrust_ki1', 'PLAYER_ATTACK{weapon:katana,combo:3,kenkiStage:1}', "3타 찌르기 검기 1단 소모 겹침(재빛, 사거리 1.5R). 앞으로 뻗는 찢김 + 칼날 울림 A4 — katana_thrust 와 같은 프레임", -5)
 def _katana_thrust_ki1(sr, rng):
     return _thrust_ki(sr, rng, 1)
 
 
-@sfx('katana_thrust_ki2', 'PLAYER_ATTACK{weapon:katana,combo:3,kenki:2}', "3타 찌르기 검기 2단 소모 겹침(호박빛, 1.7R). 더 길게 뻗는 찢김 + 칼날 울림 D5", -4)
+@sfx('katana_thrust_ki2', 'PLAYER_ATTACK{weapon:katana,combo:3,kenkiStage:2}', "3타 찌르기 검기 2단 소모 겹침(호박빛, 1.7R). 더 길게 뻗는 찢김 + 칼날 울림 D5", -4)
 def _katana_thrust_ki2(sr, rng):
     return _thrust_ki(sr, rng, 2)
 
 
-@sfx('katana_thrust_ki3', 'PLAYER_ATTACK{weapon:katana,combo:3,kenki:3}', "3타 찌르기 검기 3단 소모 겹침(백열, 1.9R). 가장 길고 밝은 찢김 + 칼날 울림 A5 + 백열 고음 + 짧은 울림", -3)
+@sfx('katana_thrust_ki3', 'PLAYER_ATTACK{weapon:katana,combo:3,kenkiStage:3}', "3타 찌르기 검기 3단 소모 겹침(백열, 1.9R). 가장 길고 밝은 찢김 + 칼날 울림 A5 + 백열 고음 + 짧은 울림", -3)
 def _katana_thrust_ki3(sr, rng):
     return _thrust_ki(sr, rng, 3)
 
@@ -2620,7 +2620,7 @@ def _gs_crack_line_lv3(sr, rng):
     return _crack_line(sr, rng, 5)
 
 
-@sfx('gs_quake_ring', 'PLAYER_CHARGE{weapon:greatsword,phase:release,branch:pressure,part:quake}', "중압(대검 1단 B) 원형 진동 — 기본 균열 대신(찍은 자리 중심). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, 반경(단계)에 따라 gain +0/+1.5/+3 dB 권장", 0)
+@sfx('gs_quake_ring', 'PLAYER_CHARGE{weapon:greatsword,phase:release,branch:giant,part:quake}', "중압(대검 1단 B) 원형 진동 — 기본 균열 대신(찍은 자리 중심). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, 반경(단계)에 따라 gain +0/+1.5/+3 dB 권장", 0)
 def _gs_quake_ring(sr, rng):
     dur = 1.0
     n = sec(sr, dur)

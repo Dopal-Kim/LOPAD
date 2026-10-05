@@ -442,7 +442,9 @@
       "gainDb": -3,
       "trigger": {
         "event": "PLAYER_HEALED",
-        "when": []
+        "when": [
+          "source:potion"
+        ]
       },
       "note": "물약 마심. 병 뚜껑, 꿀꺽 두 번, 짧은 숨"
     },
@@ -1761,7 +1763,7 @@
       "loop": false,
       "gainDb": -6,
       "trigger": {
-        "event": "KENKI_CHANGED",
+        "event": "WEAPON_GAUGE",
         "when": [
           "stage:1",
           "delta>0"
@@ -1785,7 +1787,7 @@
       "loop": false,
       "gainDb": -5,
       "trigger": {
-        "event": "KENKI_CHANGED",
+        "event": "WEAPON_GAUGE",
         "when": [
           "stage:2",
           "delta>0"
@@ -1809,7 +1811,7 @@
       "loop": false,
       "gainDb": -4,
       "trigger": {
-        "event": "KENKI_CHANGED",
+        "event": "WEAPON_GAUGE",
         "when": [
           "stage:3",
           "delta>0"
@@ -2976,7 +2978,7 @@
         "when": [
           "weapon:katana",
           "combo:3",
-          "kenki:1"
+          "kenkiStage:1"
         ]
       },
       "note": "3타 찌르기 검기 1단 소모 겹침(재빛, 사거리 1.5R). 앞으로 뻗는 찢김 + 칼날 울림 A4 — katana_thrust 와 같은 프레임"
@@ -3001,7 +3003,7 @@
         "when": [
           "weapon:katana",
           "combo:3",
-          "kenki:2"
+          "kenkiStage:2"
         ]
       },
       "note": "3타 찌르기 검기 2단 소모 겹침(호박빛, 1.7R). 더 길게 뻗는 찢김 + 칼날 울림 D5"
@@ -3026,7 +3028,7 @@
         "when": [
           "weapon:katana",
           "combo:3",
-          "kenki:3"
+          "kenkiStage:3"
         ]
       },
       "note": "3타 찌르기 검기 3단 소모 겹침(백열, 1.9R). 가장 길고 밝은 찢김 + 칼날 울림 A5 + 백열 고음 + 짧은 울림"
@@ -3129,7 +3131,7 @@
         "when": [
           "weapon:greatsword",
           "phase:release",
-          "branch:pressure",
+          "branch:giant",
           "part:quake"
         ]
       },
@@ -3528,7 +3530,7 @@
       "trigger": {
         "event": "ELITE_PREFIX",
         "when": [
-          "prefix:drinker",
+          "prefix:guzzler",
           "phase:drink"
         ]
       },
@@ -3552,7 +3554,7 @@
       "trigger": {
         "event": "ELITE_PREFIX",
         "when": [
-          "prefix:leader",
+          "prefix:ringleader",
           "phase:death"
         ]
       },
@@ -3852,10 +3854,8 @@
       "loop": false,
       "gainDb": -3,
       "trigger": {
-        "event": "ROOM_ENTERED",
-        "when": [
-          "type:event"
-        ]
+        "event": "EVENT_NODE_ENTERED",
+        "when": []
       },
       "note": "이벤트 노드 진입('?' 노드, 1층 9종 중 하나). 촛불이 흔들리는 바람 + 일기장 쪽 넘김 + 낮게 부푸는 D2·A2 드론 + 멀리 종 F4 한 번 + 희미한 고음. 월드 이벤트라 돌방 울림"
     },
@@ -3942,9 +3942,9 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "BOSS_DIED",
+        "event": "BOSS_BREAK",
         "when": [
-          "finisher:true"
+          "kind:finisher"
         ]
       },
       "note": "결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격)"
@@ -3965,10 +3965,8 @@
       "loop": false,
       "gainDb": -2,
       "trigger": {
-        "event": "STRUCTURE_USED",
-        "when": [
-          "kind:still"
-        ]
+        "event": "STRUCTURE_FIRE",
+        "when": []
       },
       "note": "증류 화로 통과 → 무기에 불(fireWeapon 6 s). 증류기 끓는 거품 + 화로가 '후욱' 숨 쉬듯 타오름 + 칼날에 불이 옮겨붙는 '화륵' + 달아오르는 쇠 험 D4 + 타닥. 이어서 fire_weapon_loop"
     },
@@ -4092,7 +4090,7 @@
       "trigger": {
         "event": "BRANCH_EFFECT",
         "when": [
-          "branch:moon",
+          "branch:zangetsu",
           "effect:trail"
         ]
       },
@@ -4166,7 +4164,7 @@
         "event": "PARRY_SUCCESS",
         "when": [
           "weapon:katana",
-          "branch:mirror"
+          "branch:meikyo"
         ]
       },
       "note": "명경 패링 = 검기 2단 충전(fx katana_mirror_parry: 거울 면 → 두 조각이 주인공 쪽으로). 1 kHz 위만: 거울 '팅'(유리 A6·E7 근처) → 0.08~0.2 s 날아드는 두 조각 바람 → 0.2 s 닿는 칼날 틱 둘. parry + parry_perfect 위에 겹침(같은 프레임)"
@@ -4187,7 +4185,7 @@
       "loop": false,
       "gainDb": -4,
       "trigger": {
-        "event": "KENKI_CHANGED",
+        "event": "WEAPON_GAUGE",
         "when": [
           "stage:4",
           "delta>0"
@@ -4211,7 +4209,7 @@
       "loop": false,
       "gainDb": -3,
       "trigger": {
-        "event": "KENKI_CHANGED",
+        "event": "WEAPON_GAUGE",
         "when": [
           "stage:5",
           "delta>0"
@@ -4264,7 +4262,7 @@
         "event": "PERFECT_GUARD",
         "when": [
           "weapon:greatsword",
-          "branch:echo"
+          "branch:resonance"
         ]
       },
       "note": "반향 반격(퍼펙트 가드 + 울분 30% 이상, fx greatsword_echo_counter impactFrame 0 → 30 ms × 3 = 3칸). 땅이 되받아치는 낮은 '둥' + 70 ms 간격으로 두 번 메아리치는 징 D4 + 앞으로 달리는 균열 3칸. perfect_guard 와 같은 프레임에 겹침(울분 30% 미만이면 재생 안 함)"
@@ -4337,11 +4335,10 @@
       "loopEndSample": 33075,
       "gainDb": -10,
       "trigger": {
-        "event": "GROGGY",
+        "event": "BRANCH_EFFECT",
         "when": [
-          "weapon:greatsword",
-          "branch:congest",
-          "phase:hold"
+          "branch:clot",
+          "effect:hold"
         ]
       },
       "note": "울혈 맺힘 루프(0.75 s = fx greatsword_congest_aura 한 바퀴, 그로기 1.5 s 동안 2바퀴). 바퀴마다 무거운 심장 한 번 + 피가 몰리는 낮은 D2 웅웅(한 번 부풂) + 드문 잔불 타닥. groggy_start 와 함께 시작, 그로기 끝에 60 ms 페이드아웃"
@@ -4362,12 +4359,10 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "GROGGY",
+        "event": "BRANCH_EFFECT",
         "when": [
-          "weapon:greatsword",
-          "branch:congest",
-          "phase:end",
-          "burst:true"
+          "branch:clot",
+          "effect:burst"
         ]
       },
       "note": "울혈 폭발(그로기가 풀리는 순간 울분 100% → 전부 소모, 차지 2단 위력 · fx greatsword_congest_burst 반경 2.25칸 · 흔들림 180 ms). 0.04 s 빨려드는 숨 → 핏빛 재 폭발 '퍽'(×1.4) + 강타 + 치솟는 불기둥 + 길게 식는 연기 쉿. 파일 0.04 s = 폭발"
@@ -4390,7 +4385,7 @@
       "trigger": {
         "event": "BRANCH_EFFECT",
         "when": [
-          "branch:frenzy",
+          "branch:dance",
           "effect:clone_in"
         ]
       },
@@ -4414,7 +4409,7 @@
       "trigger": {
         "event": "BRANCH_EFFECT",
         "when": [
-          "branch:frenzy",
+          "branch:dance",
           "effect:clone_out"
         ]
       },
@@ -4438,7 +4433,7 @@
       "trigger": {
         "event": "BRAND_BURST",
         "when": [
-          "branch:bleed"
+          "branch:twinBrand"
         ]
       },
       "note": "출혈 시작(기폭 = 60% + 4 s 출혈, fx dagger_brand_bleed). 젖은 찢김 + 핏방울 넷 + 옅은 지짐. brand_burst 와 같은 프레임에 겹침(그 파일 0.06 s = 폭발이라 같은 시작). 0.5 s 출혈 틱에는 소리 없음(피격 번쩍임만)"
@@ -4461,7 +4456,7 @@
       "trigger": {
         "event": "BRANCH_EFFECT",
         "when": [
-          "branch:bleed",
+          "branch:twinBrand",
           "effect:transfer"
         ]
       },
@@ -4558,12 +4553,10 @@
       "loopEndSample": 49392,
       "gainDb": -12,
       "trigger": {
-        "event": "OVERHEAT",
+        "event": "BRANCH_EFFECT",
         "when": [
-          "weapon:dagger",
-          "branch:hotwind",
-          "over50:true",
-          "moving:true"
+          "branch:heatwave",
+          "effect:trail"
         ]
       },
       "note": "열풍 달아오른 질주 루프(1.12 s = fx dagger_hotwind_trail 280 ms × 4). 발 뒤로 흘러가는 낮은 불혀(3.57 Hz 일렁임) + 열 아지랑이 쉿 + 드문 타닥. 과열 50% 이상 + 이동 중일 때만, 멈추거나 50% 미만이면 120 ms 페이드아웃"
@@ -4584,10 +4577,10 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "OVERHEAT",
+        "event": "BRANCH_EFFECT",
         "when": [
-          "full:true",
-          "branch:hotwind"
+          "branch:heatwave",
+          "effect:burst"
         ]
       },
       "note": "열풍 과열 폭발(반경 ×2 · 화상 3 s · 무적 0.5 s, fx dagger_hotwind_burst — dagger_overheat_burst 를 교체하듯 이 소리가 overheat_burst 를 교체). 큰 재 폭발(×1.8) + 엇갈린 작은 폭발 여섯 + 사방으로 눕는 불혀 '화르륵' + 길게 식는 증기"
@@ -4612,7 +4605,7 @@
         "when": [
           "weapon:bow",
           "move:rapid",
-          "branch:split",
+          "branch:volley",
           "phase:split"
         ]
       },
@@ -4658,11 +4651,10 @@
       "loop": false,
       "gainDb": -4,
       "trigger": {
-        "event": "BREATH_FOCUS",
+        "event": "BRANCH_EFFECT",
         "when": [
-          "weapon:bow",
           "branch:deadeye",
-          "phase:full"
+          "effect:lock"
         ]
       },
       "note": "필중 조준 다 좁혀짐(fx bow_deadeye_scope 진행도 100% = f5). 괄호 넷이 좁혀 드는 빨라지는 틱(점점 높게) → 0.15 s 맑은 '딸깍-팅' + 아주 희미한 D7 + 낮은 심장 한 번. 이 뒤 완벽 놓기 = 치명 확정. 이어서 bow_deadeye_hold"
@@ -4685,11 +4677,10 @@
       "loopEndSample": 31752,
       "gainDb": -14,
       "trigger": {
-        "event": "BREATH_FOCUS",
+        "event": "BRANCH_EFFECT",
         "when": [
-          "weapon:bow",
           "branch:deadeye",
-          "phase:hold"
+          "effect:hold"
         ]
       },
       "note": "필중 조준 유지 루프(0.72 s = fx bow_deadeye_scope 루프 360 ms × 2). 멈춘 공기의 좁은 숨결(900 Hz) + 360 ms 마다 아주 작은 맥박 + 희미한 D7 한 가닥. 놓거나 취소하면 60 ms 페이드아웃. 숨 감속 중 다른 소리 아래 깔리게 아주 작게"
@@ -4835,7 +4826,7 @@
       "trigger": {
         "event": "PASSIVE_PROC",
         "when": [
-          "passive:brokenGlass"
+          "passive:brokenShard"
         ]
       },
       "note": "패시브 #10 '깨진 잔 조각'(타격 12% 출혈) 발동. 작은 유리 조각 둘이 '찰캉' + 젖은 틱. 그 타격의 hit_enemy 위에 작게"
@@ -4996,7 +4987,7 @@
       "trigger": {
         "event": "PASSIVE_PROC",
         "when": [
-          "passive:strongBreath"
+          "passive:harshBreath"
         ]
       },
       "note": "패시브 #28 '독한 숨'(마시기 직후 3 s 안 첫 공격 = 앞 원뿔 2칸 술 뿜기, 맞은 자리 웅덩이) 발동. 입술 '프'(노이즈, 목소리 아님) → 넓게 퍼지는 술 안개 '푸쉬' + 흩어지는 물방울. 그 공격의 휘두름 위에 겹침"
@@ -5019,7 +5010,7 @@
       "trigger": {
         "event": "PASSIVE_PROC",
         "when": [
-          "passive:strongBreath",
+          "passive:harshBreath",
           "fire:true"
         ]
       },

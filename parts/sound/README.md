@@ -105,6 +105,13 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 - `dash`: **파일은 그대로, manifest `gainDb` -3 → -5 dB**.
 - 확인 필요(바꾸지 않음): `charge_stage4`·`kenki_stage4`·`kenki_stage5` 가 새 흐름과 어긋남 — 고칠 안은 `sound-design.md` 4-7.
 
+## 추가 (시스템 효과음 연결 — 트리거 이름 맞춤, 2026-10-05)
+시스템이 확정한 id·이벤트 이름(메인 세션 전달, 계약 `sound-assets.md` §6)으로 manifest `trigger` 32항목을 기계적으로 고쳤다. 오디오·다른 필드는 그대로(WAV·OGG·M4A 645개 md5 불변, `build.py verify` 215개 문제 0).
+- 패시브 `brokenGlass`→`brokenShard`, `strongBreath`→`harshBreath` · 접두어 `drinker`→`guzzler`, `leader`→`ringleader` · 갈래 `moon`→`zangetsu`, `mirror`→`meikyo`, `echo`→`resonance`, `congest`→`clot`, `frenzy`→`dance`, `hotwind`→`heatwave`, `split`→`volley`, `pressure`→`giant`, `bleed`→`twinBrand`.
+- 이벤트: `event_enter` → `EVENT_NODE_ENTERED`, `break_finisher` → `BOSS_BREAK{kind:finisher}`, `still_ignite` → `STRUCTURE_FIRE`(target weapon·arrow 둘 다라 조건 없음), `kenki_stage1~5` → `WEAPON_GAUGE{stage:N,delta>0}`, `katana_thrust_ki1~3` 조건 `kenki:` → `kenkiStage:`, `potion_use` → `PLAYER_HEALED{source:potion}`.
+- 갈래 조건이던 GROGGY·OVERHEAT·BREATH_FOCUS 6항목 → `BRANCH_EFFECT`. effect 값은 음향 임시(시스템 확인 필요): `gs_congest_loop` hold · `gs_congest_burst` burst · `dagger_hotwind_loop` trail · `dagger_hotwind_burst` burst · `bow_deadeye_lock` lock · `bow_deadeye_hold` hold.
+- `sound-design.md` 표의 트리거 칸도 같이 맞췄다.
+
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).
 - 60라운드 읽기(지시 범위): 아트 fx JSON 26개 `assets/sprites/fx/v3/{katana_whirl_loop,katana_whirl_reflect,katana_moon_trail,katana_cleave_crack,katana_execute,katana_mirror_ki,katana_mirror_parry,greatsword_quake_fork,greatsword_echo_counter,greatsword_giant_ring,greatsword_charge_flash_lv4,greatsword_congest_aura,greatsword_congest_burst,dagger_frenzy_clone_in,dagger_frenzy_clone_out,dagger_brand_bleed,dagger_brand_hop,dagger_stuck_blade,dagger_hotwind_trail,dagger_hotwind_burst,bow_arrow_split,bow_arrow_stuck,bow_arrow_recall,bow_deadeye_scope,bow_link_stack,bow_skypierce_line}.json` — 계약 `art-assets.md` §21 이 타이밍 기준으로 가리키는 런타임 데이터(타이밍 필드만 참고).

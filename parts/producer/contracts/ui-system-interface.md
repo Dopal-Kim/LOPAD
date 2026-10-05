@@ -520,6 +520,9 @@ interface UiNodeGraded {
 ```
 - 노드 종료 시 `NODE_GRADED`(14.11) — UI 가 일기장 도장 연출. 지도에는 `UiRouteNode.grade` 로 남는다. 보상은 메뉴 없이 자동 지급(설계안 0.3-3).
 - 도전 성소(C4 전장 깃발): `UiStructureKind` 에 `'warFlag'` 추가(E, 첫 웨이브 전 비전투에만), 시작·종료는 기존 `CHALLENGE_STARTED`·`CHALLENGE_CLEARED`(kind 에 `'warFlag'` 추가).
+- **(60라운드 Q32)** `UiStructureKind` 에 `'clue'`(숨은 노드 단서 — E 로 살펴보기 → 지도에 길 공개), `'eventProp'`(이벤트 노드 소품 — E 로 이벤트 메뉴), `'mapSeller'`(국경 초소 지도 장수 — E 로 `mapInfo` 메뉴) 추가. 안내는 다른 E형 구조물과 같이 `UiSnapshot.interactable` 로 간다.
+- **(60라운드 시스템 구현 메모)** UI 가 처리할 메뉴 id: `curse`(저주 2택, 저주 길 진입·피의 계약), `event`(이벤트 선택지, '0' 지나가기 / 저주 길 클리어 보상 2택도 이 id), `mapInfo`(지도 정보 3품목, '0' 닫기), `consumableSwap`(소모품 교체 '바꾼다/그대로 둔다', 필수 선택). 숨은 노드는 처음부터 지도에 있고 같은 단의 아래 줄에 `state: 'locked'`, `hidden: 'smudge'` 로 오며, 길이 열리면 갈라지는 노드의 `links` 에 들어간다. 엘리트 이름표는 UI 가 `UiSnapshot.elites` 로 그린다(아트 `elite_nameplate` 시트 사용, §14.9). 보스 파훼 결정타는 UI 이벤트가 아니라 시스템 내부 `BOSS_BREAK{kind:'finisher'}`.
+- **(60라운드 시스템 구현 메모)** `UiRouteNode` 의 reward·risk·riskText·prefixes·eventName·hidden·grade 와 `UiRoute.intel` 은 이 절에서 필수지만, 기존 UI 코드·테스트가 이 필드 없이 노드를 만들어 코드(`src/contract/ui.ts`)에서는 임시로 선택(`?`)이다. 시스템은 늘 채운다. UI 가 테스트를 고친 뒤 필수로 되돌린다.
 
 ### 14.11 이벤트 (시스템 → UI)
 | 이벤트 | 값 | 페이로드 | 시점 |

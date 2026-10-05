@@ -142,7 +142,7 @@ def _elite_enrage(sr, rng):
     return tail(s, sr, 0.02)
 
 
-@sfx('elite_drink', 'ELITE_PREFIX{prefix:drinker,phase:drink}', "엘리트 접두어 '들이켜는' 마시기(주변 적이 죽을 때 HP +15%·크기 +5%, 최대 3회). 잔 틱 → 빠른 꿀꺽 둘 + 짧은 '크아'(노이즈) + 몸이 커지는 낮은 부풂. 3회째는 rate 0.94 로 더 무겁게(선택)", -4)
+@sfx('elite_drink', 'ELITE_PREFIX{prefix:guzzler,phase:drink}', "엘리트 접두어 '들이켜는' 마시기(주변 적이 죽을 때 HP +15%·크기 +5%, 최대 3회). 잔 틱 → 빠른 꿀꺽 둘 + 짧은 '크아'(노이즈) + 몸이 커지는 낮은 부풂. 3회째는 rate 0.94 로 더 무겁게(선택)", -4)
 def _elite_drink(sr, rng):
     dur = 0.75
     s = zeros(sec(sr, dur))
@@ -155,7 +155,7 @@ def _elite_drink(sr, rng):
     return tail(s, sr, 0.02)
 
 
-@sfx('elite_leader_down', 'ELITE_PREFIX{prefix:leader,phase:death}', "엘리트 접두어 '패거리 두목' 쓰러짐(주변 적 1 s 경직). 깃 장식 깃대가 부러지는 '뚝' + 천이 내려앉음 + 낮게 오래 맥놀이 치는 둔한 종 D3(멍해짐). enemy_death·elite_die 위에 겹침", -2)
+@sfx('elite_leader_down', 'ELITE_PREFIX{prefix:ringleader,phase:death}', "엘리트 접두어 '패거리 두목' 쓰러짐(주변 적 1 s 경직). 깃 장식 깃대가 부러지는 '뚝' + 천이 내려앉음 + 낮게 오래 맥놀이 치는 둔한 종 D3(멍해짐). enemy_death·elite_die 위에 겹침", -2)
 def _elite_leader_down(sr, rng):
     dur = 1.15
     s = zeros(sec(sr, dur))
@@ -363,7 +363,7 @@ def _cold_water(sr, rng):
 # (c) 이벤트 노드 · (d) 숨은 노드
 # ---------------------------------------------------------------------------
 
-@sfx('event_enter', 'ROOM_ENTERED{type:event}', "이벤트 노드 진입('?' 노드, 1층 9종 중 하나). 촛불이 흔들리는 바람 + 일기장 쪽 넘김 + 낮게 부푸는 D2·A2 드론 + 멀리 종 F4 한 번 + 희미한 고음. 월드 이벤트라 돌방 울림", -3, category='world')
+@sfx('event_enter', 'EVENT_NODE_ENTERED', "이벤트 노드 진입('?' 노드, 1층 9종 중 하나). 촛불이 흔들리는 바람 + 일기장 쪽 넘김 + 낮게 부푸는 D2·A2 드론 + 멀리 종 F4 한 번 + 희미한 고음. 월드 이벤트라 돌방 울림", -3, category='world')
 def _event_enter(sr, rng):
     dur = 1.6
     n = sec(sr, dur)
@@ -421,7 +421,7 @@ def _break_count(sr, rng):
     return reverb(s, sr, size=0.6, decay=0.5, wet=0.15)
 
 
-@sfx('break_finisher', 'BOSS_DIED{finisher:true}', "결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격)", 0, category='boss')
+@sfx('break_finisher', 'BOSS_BREAK{kind:finisher}', "결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격)", 0, category='boss')
 def _break_finisher(sr, rng):
     dur = 1.9
     s = zeros(sec(sr, dur))
@@ -446,7 +446,7 @@ def _break_finisher(sr, rng):
 # 증류 화로 (1-2, 통과형 → 불 무기 6 s, 저주 '불붙은 혀' 획득처)
 # ---------------------------------------------------------------------------
 
-@sfx('still_ignite', 'STRUCTURE_USED{kind:still}', "증류 화로 통과 → 무기에 불(fireWeapon 6 s). 증류기 끓는 거품 + 화로가 '후욱' 숨 쉬듯 타오름 + 칼날에 불이 옮겨붙는 '화륵' + 달아오르는 쇠 험 D4 + 타닥. 이어서 fire_weapon_loop", -2, category='world')
+@sfx('still_ignite', 'STRUCTURE_FIRE', "증류 화로 통과 → 무기에 불(fireWeapon 6 s). 증류기 끓는 거품 + 화로가 '후욱' 숨 쉬듯 타오름 + 칼날에 불이 옮겨붙는 '화륵' + 달아오르는 쇠 험 D4 + 타닥. 이어서 fire_weapon_loop", -2, category='world')
 def _still_ignite(sr, rng):
     dur = 1.15
     s = zeros(sec(sr, dur))
