@@ -48,7 +48,7 @@ const TRAILS: Record<(typeof WEAPONS)[number], string[]> = {
   bow: ['bow_arrow', 'bow_arrow_rapid', 'bow_arrow_snipe'],
 };
 const ARROWS = new Set(TRAILS.bow);
-/** 60 Q33 갈래 × 각성 합친 그림 (아트 제작 중 — 원 = 갈래 그림, 교체 표에서는 갈래 교체보다 우선) */
+/** 60 Q33 갈래 × 각성 합친 그림 (계약 art §21 — awakenOf = 갈래 시트, swapPriority 갈래+각성 → 갈래 → 각성 → 기본) */
 const MERGED: Record<string, { weapon: (typeof WEAPONS)[number]; from: string; branch: string }> = {
   katana_fall_wide_awaken: { weapon: 'katana', from: 'katana_fall', branch: 'katana_fall_wide' },
   dagger_combo3_double_awaken: { weapon: 'dagger', from: 'dagger_combo3', branch: 'dagger_combo3_double' },
@@ -62,25 +62,47 @@ describe('60 Q33 갈래 + 각성 교체 표 (데이터만)', () => {
       ...WEAPON_TABLE[w].personality.branches.flatMap((a) => [a, ...(a.next ?? [])]).map((n) => n.art?.replaceFx ?? {}),
     ) as Record<string, string>;
 
-  it('합친 그림은 각성 묶음에 요청되고, 갈래 + 각성이면 합친 그림 → 갈래 그림 순 후보', () => {
+  it('합친 그림은 각성 묶음에 요청되고, 갈래 + 각성이면 합친 그림 → 갈래 그림 → 각성 궤적 순 후보', () => {
     for (const [merged, m] of Object.entries(MERGED)) {
       expect(awakenSheetRequests(m.weapon).map(requestKey), merged).toContain(`fx/${merged}_${FX_ACTION}`);
       const replace = replaceOf(m.weapon);
       expect(replace[m.from], merged).toBe(m.branch);
       const table = fxSwapTable(awakenFxAliases(m.weapon), replace);
-      expect(table[m.from], merged).toEqual([merged, m.branch]);
-      // 갈래만(각성 아님): 지금처럼 갈래 그림 / 각성만(갈래 아님): 각성 궤적
+      expect(table[m.from], merged).toEqual([merged, m.branch, `${m.from}_awaken`]);
+      // 갈래만(각성 아님): 갈래 그림 / 각성만(갈래 아님): 각성 궤적
       expect(fxSwapTable({}, replace)[m.from]).toEqual([m.branch]);
       expect(fxSwapTable(awakenFxAliases(m.weapon), {})[m.from]).toEqual([`${m.from}_awaken`]);
     }
   });
 
-  it('합친 그림이 없는 갈래 교체(각성 궤적 이름이 없는 것)는 갈래 그림 하나', () => {
-    expect(fxSwapTable({ a: 'a_awaken' }, { a: 'b' })).toEqual({ a: ['b'] });
+  it('후보 순서: 합친 그림 이름이 없으면 갈래 → 각성 궤적, 각성 아님이면 갈래 하나', () => {
+    expect(fxSwapTable({ a: 'a_awaken' }, { a: 'b' })).toEqual({ a: ['b', 'a_awaken'] });
     expect(fxSwapTable({ a: 'a_awaken', b: 'b_awaken' }, { a: 'b' })).toEqual({
-      a: ['b_awaken', 'b'],
+      a: ['b_awaken', 'b', 'a_awaken'],
       b: ['b_awaken'],
     });
+    expect(fxSwapTable({}, { a: 'b' })).toEqual({ a: ['b'] });
+  });
+});
+
+describe.skipIf(!existsSync(`${ROOT}/fx/v3/katana_fall_wide_awaken.json`))('60 Q33 합친 그림 (실제 JSON)', () => {
+  it('JSON swapPriority = 교체 표 후보 + 원 fx · awakenOf = 갈래 시트 · 갈래 시트와 1:1 (틀·프레임·ms·피벗·행·판정)', () => {
+    for (const [merged, m] of Object.entries(MERGED)) {
+      const aw = read(`fx/v3/${merged}`);
+      const base = read(`fx/v3/${m.branch}`);
+      expect(aw && base, merged).toBeTruthy();
+      const table = fxSwapTable(awakenFxAliases(m.weapon), { [m.from]: m.branch });
+      expect(aw!.swapPriority, merged).toEqual([...table[m.from], m.from]);
+      expect(aw!.awakenOf, merged).toBe(`fx/v3/${m.branch}`);
+      expect([aw!.frameWidth, aw!.frameHeight], merged).toEqual([base!.frameWidth, base!.frameHeight]);
+      expect(aw!.frames, merged).toBe(base!.frames);
+      expect(aw!.frameDurationsMs, merged).toEqual(base!.frameDurationsMs);
+      expect(aw!.pivot, merged).toEqual(base!.pivot);
+      expect(aw!.directions, merged).toEqual(base!.directions);
+      expect(aw!.anchor, merged).toBe(base!.anchor);
+      expect(aw!.impactFrame ?? null, merged).toBe(base!.impactFrame ?? null);
+      expect(existsSync(`${ROOT}/fx/v3/${merged}.png`), merged).toBe(true);
+    }
   });
 });
 const present = existsSync(`${ROOT}/fx/v3/katana_awaken_in.json`);
