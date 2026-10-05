@@ -137,6 +137,27 @@ export function awakenFxAliases(weaponId: string): Record<string, string> {
 }
 
 /**
+ * 60라운드 Q33 FxPool 교체 표 (원 fx id → 후보 시트 id 목록, 로드된 첫 후보를 쓰고 없으면 원 시트):
+ * - 각성 런: 무기 fx 마다 각성 궤적 `<fx>_awaken` (`awakenFxAliases`)
+ * - 갈래 런 교체(경로 노드 `art.replaceFx`, 원 → 갈래 그림)는 각성 궤적보다 우선(Q33 '그 전까지 갈래 그림 우선')
+ * - 갈래 + 각성: 계약 art §21 '60라운드 Q33' JSON `swapPriority` 순서 — 합친 그림 `<갈래 그림>_awaken`(`katana_fall_wide_awaken`·
+ *   `dagger_combo3_double_awaken`) → 갈래 그림 → 원 fx 의 각성 궤적 → (아무것도 없으면) 원 fx. 합친 그림 요청은 갈래 그림이 무기 fx 라서
+ *   `awakenSheetRequests` 에 이미 들어 있다 (각성 런에서만 로드)
+ */
+export function fxSwapTable(
+  awakenAliases: Readonly<Record<string, string>>,
+  branchReplace: Readonly<Record<string, string>>,
+): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const [from, to] of Object.entries(awakenAliases)) out[from] = [to];
+  for (const [from, to] of Object.entries(branchReplace)) {
+    const list = [awakenAliases[to], to, awakenAliases[from]].filter((id): id is string => Boolean(id));
+    out[from] = [...new Set(list)];
+  }
+  return out;
+}
+
+/**
  * 60라운드 계약 art §21 최종 각성 무기 외형 오버레이: 무기 묶음의 무기 동작(휴대·연격·새 동작 — 자원 오버레이 제외)마다
  * `<동작>_awaken` + 각성 순간 fx `<무기>_awaken_in` + 각성 전용 궤적 `<fx>_awaken`(`awakenFxAliases`).
  * 각성 런에서만 로드 (`sheetLoader.preloadWeaponSheets(…, awaken)`·`loadAwakenSheets`). 없는 파일은 매니페스트가 거른다

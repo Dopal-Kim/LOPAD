@@ -272,7 +272,8 @@ export class KatanaBranch {
         const delay = param(cl, 'fxDelayMs', 40);
         if (!g.fx.has(BUILD_ART.CLEAVE_CRACK)) rt.fx.lineFx(ex, ey, dir.x, dir.y, cl2, ch, BUILD_FX.COLOR.CRACK);
         else g.time.delayedCall(delay, () => g.scene.isActive() && crackFx());
-        this.skill({ move: 'guardbreak', phase: 'cleave' });
+        // 음향 katana_cleave_crack = 균열 fx 시작(판정 + fxDelayMs)에 — manifest '가드 불가 내려베기 재생 + 140ms'
+        this.skill({ move: 'guardbreak', phase: 'cleave', impactDelayMs: delay });
         for (const mob of rt.fx.inLine(ex, ey, dir.x, dir.y, cl2, ch))
           if (!this.execute(mob, dir))
             k.strike(mob, k.payload(ex, ey, dir, param(cl, 'crackMult'), 'unblockable', { ignoreGuard: true }), dir);

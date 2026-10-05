@@ -33,6 +33,7 @@ import { uiBuild, uiCurse, uiDualTrait } from '../../../systems/build/BuildState
 import { currentBuild } from '../../../systems/build/current';
 import { CurseState, pickPactCurse, scaledBenefit } from '../../../systems/build/curses';
 import { DotBook, DrunkTimer, EvadeTracker, MarkBook } from '../../../systems/build/statusBooks';
+import { fxSwapTable } from '../../../systems/sprites/sheetSets';
 import type { Game } from '../../Game';
 import { AwakenFlow } from './AwakenFlow';
 import { BranchStrikes } from './BranchStrikes';
@@ -409,7 +410,7 @@ export class BuildRuntime {
 
   /**
    * 60라운드 계약 art §21 fx 교체 표 (FxPool): 각성 런의 각성 궤적(`AwakenFlow.aliases`) 위에 갈래 런 교체 규칙(경로 노드
-   * art.replaceFx)을 덮는다 — 경로·각성이 바뀔 때만
+   * art.replaceFx)을 덮는다 — 경로·각성이 바뀔 때만. Q33: 갈래 + 각성이면 합친 그림(`<갈래 그림>_awaken`)이 있을 때 그것 (`fxSwapTable`)
    */
   private aliasSig: string | null = null;
 
@@ -418,9 +419,9 @@ export class BuildRuntime {
     const sig = `${w.id}:${w.path.join('/')}:${gameState.build.awakened ? 'awaken' : ''}`;
     if (sig === this.aliasSig) return;
     this.aliasSig = sig;
-    const map: Record<string, string> = { ...this.awaken.aliases() };
-    for (const n of w.nodes) Object.assign(map, n.art?.replaceFx ?? {});
-    this.g.fx.setAliases(map);
+    const replace: Record<string, string> = {};
+    for (const n of w.nodes) Object.assign(replace, n.art?.replaceFx ?? {});
+    this.g.fx.setAliases(fxSwapTable(this.awaken.aliases(), replace));
   }
 
   update(time: number): void {

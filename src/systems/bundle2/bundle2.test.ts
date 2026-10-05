@@ -78,7 +78,7 @@ describe('층 노드 정보 (routeExtras)', () => {
     for (const n of lane) expect(n.reward).toBeNull();
     buyIntel(ex, 'fullFloor');
     const full = decorateRoute(base, ex, g);
-    expect(full.intel?.fullFloor).toBe(true);
+    expect(full.intel.fullFloor).toBe(true);
     for (const n of full.nodes) {
       const e = ex.nodes[n.id];
       if (e?.reward && !e.eventId && !e.hiddenContent && e.risk !== 'curse') expect(n.reward).toBe(e.reward);

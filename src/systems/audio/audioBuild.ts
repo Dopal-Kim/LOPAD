@@ -230,6 +230,27 @@ export const SOUND_ID_ALIASES: Readonly<Record<string, string>> = {
   'OVERHEAT{full:true}': 'PLAYER_SKILL{weapon:dagger,move:overheat,phase:burst}',
   'BREATH_FOCUS{phase:start}': 'WEAPON_GAUGE{weapon:bow,gauge:breath,event:focusStart}',
   'GROGGY{phase:start}': 'WEAPON_RESOURCE{event:groggy}',
+  // --- 60라운드 Q33~Q35 후속 확인 (dada3f8 기준 manifest): 아래는 시스템 실제 — 일치하는 것은 '(일치)' ---
+  'BRANCH_EFFECT{branch:twinBrand,effect:transfer}':
+    'BRANCH_EFFECT{branch:twinBrand,effect:transfer} (일치 — twinBrand = 이중 개성 id, 쌍격 분신 교차 뒤 낙인이 옮겨갈 때)',
+  'PLAYER_SKILL{weapon:katana,move:guardbreak,phase:strike}':
+    'PLAYER_SKILL{weapon:katana,move:guardbreak,phase:strike,impactDelayMs} (일치 — 뗀 순간 발행, 판정 100ms 앞에 재생)',
+  'PLAYER_SKILL{weapon:katana,move:guardbreak,phase:cleave}':
+    'PLAYER_SKILL{weapon:katana,move:guardbreak,phase:cleave,impactDelayMs} (일치 — 판정 순간 발행, impactDelayMs(40) 뒤 재생 = strike 재생 + 140ms)',
+  'BRANCH_EFFECT{branch:zangetsu,effect:trail}':
+    'BRANCH_EFFECT{branch:zangetsu,effect:trail} (일치 — 궤적 한 줄에 1회)',
+  'BRANCH_EFFECT{branch:dance,effect:clone_in|clone_out}':
+    'BRANCH_EFFECT{branch:dance,effect:clone_in} 새로 나타날 때만 · {effect:clone_out} 지속 끝 (일치)',
+  'PLAYER_SKILL{weapon:katana,move:whirl,phase:hold|reflect}':
+    'PLAYER_SKILL{weapon:katana,move:whirl,phase:hold} 루프 시작 · {phase:end} 루프 끝 · {phase:reflect} 탄마다 (일치)',
+  'PLAYER_CHARGE{weapon:greatsword,phase:stage|release,stage:4}':
+    'PLAYER_CHARGE{phase:stage,stage:4} · {phase:release,stage:4,impactDelayMs} (weapon 키 없음 — 차지는 대검만, 4단은 거인 런만)',
+  'BRANCH_EFFECT{branch:giant,effect:ring}':
+    'BRANCH_EFFECT{branch:giant,effect:ring} = 거인 4단 내려찍기만 (중압 1~3단 진동에는 이벤트 없음) — charge_slam_lv4 와 같은 순간',
+  'WEAPON_GAUGE{gauge:kenki,event:stage}':
+    'WEAPON_GAUGE{weapon:katana,gauge:kenki,event:stage,stage:n} 오를 때만 · 일섬 소모 = {event:consume,stage:소모 단 수} · 갈래 수단(선풍·투구가르기)의 1단 소모는 이벤트 없음',
+  'PLAYER_SKILL{weapon:dagger,move:brand|overheat,phase:burst}':
+    'PLAYER_SKILL{weapon:dagger,…} (weapon 조건 없어도 됨 — 낙인·과열은 단검만 발행, payload 에는 늘 weapon:dagger)',
 };
 
 /** 속사 연사 n번째 (1→2→3 순환) */
@@ -346,9 +367,10 @@ export const BUILD_AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   }),
   t<PlayerSkillPayload>({
     event: Events.PLAYER_SKILL,
-    note: '일도양단 균열',
+    note: '일도양단 균열 (균열 fx 시작 = 판정 + impactDelayMs)',
     when: skill('guardbreak', 'cleave'),
     sfx: BUILD_SFX.katanaCleaveCrack,
+    delayMs: (p) => Math.max(0, p.impactDelayMs ?? 0),
   }),
   t<PlayerSkillPayload>({
     event: Events.PLAYER_SKILL,

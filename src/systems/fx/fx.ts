@@ -69,8 +69,8 @@ export class FxPool {
   private readonly states = new Map<Phaser.GameObjects.Sprite, FxState>();
   private nextToken = 1;
   hooks: FxHooks = {};
-  /** 60라운드 계약 art §21 갈래 런 교체 규칙 (원 시트 id → 교체 시트 id, 교체 시트가 로드돼 있을 때만) */
-  private readonly aliases = new Map<string, string>();
+  /** 60라운드 계약 art §21 갈래 런 교체 규칙 (원 시트 id → 후보 교체 시트 id 목록 — 로드된 첫 후보, Q33 `fxSwapTable`) */
+  private readonly aliases = new Map<string, readonly string[]>();
 
   constructor(private readonly scene: Phaser.Scene) {
     this.group = scene.add.group({
@@ -82,17 +82,19 @@ export class FxPool {
 
   /**
    * 60라운드 계약 art §21 갈래 런 교체 (`katana_fall_wide`↔`katana_fall` 등, 같은 규격 1:1): 지금 런의 교체 표로 바꾼다.
-   * 이후 has·sheet·play 등은 원 id 로 불러도 교체 시트를 쓴다 (교체 시트가 없으면 원 시트)
+   * 이후 has·sheet·play 등은 원 id 로 불러도 교체 시트를 쓴다 (값이 목록이면 로드된 첫 후보, 하나도 없으면 원 시트)
    */
-  setAliases(map: Readonly<Record<string, string>>): void {
+  setAliases(map: Readonly<Record<string, string | readonly string[]>>): void {
     this.aliases.clear();
-    for (const [from, to] of Object.entries(map)) if (from !== to) this.aliases.set(from, to);
+    for (const [from, to] of Object.entries(map)) {
+      const list = (typeof to === 'string' ? [to] : to).filter((t) => t !== from);
+      if (list.length) this.aliases.set(from, list);
+    }
   }
 
   /** 교체 표를 거친 실제 시트 id */
   resolve(id: string): string {
-    const to = this.aliases.get(id);
-    return to && this.loaded(to) ? to : id;
+    return this.aliases.get(id)?.find((t) => this.loaded(t)) ?? id;
   }
 
   private loaded(id: string): boolean {

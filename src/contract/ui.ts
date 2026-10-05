@@ -195,20 +195,20 @@ export interface UiRouteNode {
   region?: string;
   /** 49라운드: 장소 설명 한두 줄 (자리표시) */
   desc?: string;
-  /** 60라운드 §14.5 (아래 7개 — 시스템은 늘 채운다, 선택 표기는 UI 기존 코드·테스트 호환): 공개된 보상 (null = 아직 비공개·상점·휴식, 'unknown' = '?' 이벤트·숨김) */
-  reward?: UiNodeRewardKind | null;
+  /** 60라운드 §14.5 (아래 7개 필수): 공개된 보상 (null = 아직 비공개·상점·휴식, 'unknown' = '?' 이벤트·숨김) */
+  reward: UiNodeRewardKind | null;
   /** §14.5: 위험 노드 (엘리트 길 / 저주 길, 1층 1개) */
-  risk?: 'elite' | 'curse' | null;
+  risk: 'elite' | 'curse' | null;
   /** §14.5: 진입 확인에 붙일 위험 한 줄 (위험 노드 아니면 '') */
-  riskText?: string;
+  riskText: string;
   /** §14.5: 엘리트 접두어 이름 (지도 정보로 공개된 경우만) */
-  prefixes?: string[] | null;
+  prefixes: string[] | null;
   /** §14.5: 이벤트 내용 이름 (지도 정보로 공개된 경우만) */
-  eventName?: string | null;
+  eventName: string | null;
   /** §14.5: 숨은 노드 — 얼룩만 / 위치 표시(지도 정보) / 조사로 길 열림. 일반 노드는 null */
-  hidden?: 'smudge' | 'located' | 'found' | null;
+  hidden: 'smudge' | 'located' | 'found' | null;
   /** §14.5: 지나온 노드의 성과 도장 */
-  grade?: UiNodeGrade | null;
+  grade: UiNodeGrade | null;
 }
 /** 60라운드 §14.5: 보상 미리보기 아이콘 7종 (설계안 a.1) */
 export type UiNodeRewardKind = 'gold' | 'passive' | 'personality' | 'consumable' | 'statPoint' | 'curse' | 'unknown';
@@ -220,8 +220,8 @@ export interface UiRoute {
   currentId: string | null;
   /** true = 다음 노드를 골라야 함 (시스템이 게임 입력 잠금) */
   choosing: boolean;
-  /** 60라운드 §14.5: 산 지도 정보 3품목 (시스템은 늘 채운다 — 선택 표기는 UI 기존 코드 호환) */
-  intel?: { nextTier: boolean; fullFloor: boolean; hiddenLocated: boolean };
+  /** 60라운드 §14.5: 산 지도 정보 3품목 */
+  intel: { nextTier: boolean; fullFloor: boolean; hiddenLocated: boolean };
 }
 export interface UiRouteEntered {
   id: string;

@@ -1032,3 +1032,10 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 - Q30 저주 길 보상 패시브 3택: 영웅 이상 `passiveGuaranteed`(1)개 확정 + 나머지 일반 확률 (`RollOptions.guaranteed`).
 - Q32 단서·이벤트 소품·지도 장수 = E 조사 (`UiStructureKind` clue·eventProp·mapSeller, 전투 중이면 reason combat). '가까이 가면 메뉴' 방식은 없앴다.
 - 음향 manifest 남은 불일치는 `audioBuild.SOUND_ID_ALIASES` 아래 블록(키 = manifest 지금 값, 값 = 시스템 실제).
+
+### 60라운드 Q33~Q35 후속 (2026-10-05)
+- Q35 빌드 제외 추가(`data/buildExclude.json`): 컨셉 fx `fx/concept_*` 11종 · 더 옛 진화 fx 원본 `flash`·`heavyarrow`·`heavyarrow_hit`·`rain`·`scatter`·`seek`(루트·v3) — 40파일 약 0.10MB. 산탄 계열은 계약 art §10 대로 원본 보관(화기류 도입 때 제외 해제). 무기 아이콘 4종 유지. `buildExclude.test` 가 로드 후보 경로(부팅·모든 무기·각성, 갈래×각성 합친 그림 포함)가 안 빠지는지·비슷한 이름(muzzle_flash·parry_flash·telegraph_*)이 남는지 확인.
+- Q34 각성 순간: `AwakenFlow` 그대로(각성 순간 fx `<무기>_awaken_in` 1회 + 같은 순간 오버레이, 시그니처 fx 는 각성 순간 시트가 없을 때만 대신).
+- Q33 갈래 × 각성 합친 그림: FxPool 교체 표가 후보 목록을 받는다(`fx.setAliases(원 → [후보…])`, 로드된 첫 후보). 표는 `sheetSets.fxSwapTable(각성 궤적, 경로 replaceFx)` — 갈래 + 각성이면 `<갈래 그림>_awaken`(`katana_fall_wide_awaken`·`dagger_combo3_double_awaken`) → 없으면 갈래 그림(지금처럼). 합친 그림은 갈래 그림이 무기 fx 라 각성 묶음 요청에 이미 들어 있다. `awakenSheets.test` 가 데이터만으로 확인(19종 궤적 비교에서는 합친 그림 제외).
+- UI 계약 §14.5: `UiRouteNode` reward·risk·riskText·prefixes·eventName·hidden·grade, `UiRoute.intel` 필수로 되돌림.
+- 음향: `katana_cleave_crack` 은 균열 fx 시작(판정 + `fxDelayMs` 40)에 재생(`PLAYER_SKILL{…cleave,impactDelayMs}`). 확인한 실제 이름은 `audioBuild.SOUND_ID_ALIASES` 마지막 블록.

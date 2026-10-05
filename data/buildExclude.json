@@ -1,5 +1,5 @@
 {
-  "_note": "60라운드 (57 Q42 '옛 2단 그림(wide·assassin·pierce 등)은 빌드에서 빼고 보관'): assets/ 상대 경로 정규식 — 일치하는 파일은 빌드 복사·에셋 목록(manifest)에서 빠진다(원본은 assets/ 에 보관, 아트 파트 소유). 옛 진화 2단 노드 id 시트 · 근접 2단 전용 연격 시트(<무기>_combo<n>_<1단>_<2단>) · 활 2단 화살·꼬리. 새 2단 갈래 fx(계약 art §21)는 이름이 달라 해당 없음. 60라운드 Q28: 옛 1단 진화 시트(iai·batto·crush·weight·gale·twin — 노드 id 시트·<무기>_combo<n>_<1단> 연격 시트)와 꽂아내리기 그림(greatsword_plunge_wave · 몸·무기 *_charge_plunge*, 자원 단계 포함)도 뺀다(로드하지 않는 것만 — buildExclude.test 가 확인).",
+  "_note": "60라운드 (57 Q42 '옛 2단 그림(wide·assassin·pierce 등)은 빌드에서 빼고 보관'): assets/ 상대 경로 정규식 — 일치하는 파일은 빌드 복사·에셋 목록(manifest)에서 빠진다(원본은 assets/ 에 보관, 아트 파트 소유). 옛 진화 2단 노드 id 시트 · 근접 2단 전용 연격 시트(<무기>_combo<n>_<1단>_<2단>) · 활 2단 화살·꼬리. 새 2단 갈래 fx(계약 art §21)는 이름이 달라 해당 없음. 60라운드 Q28: 옛 1단 진화 시트(iai·batto·crush·weight·gale·twin — 노드 id 시트·<무기>_combo<n>_<1단> 연격 시트)와 꽂아내리기 그림(greatsword_plunge_wave · 몸·무기 *_charge_plunge*, 자원 단계 포함)도 뺀다(로드하지 않는 것만 — buildExclude.test 가 확인). 60라운드 Q35: 컨셉 fx(fx/concept_* 11종)와 더 옛 진화 fx 원본(flash·heavyarrow·heavyarrow_hit·rain·scatter·seek — 루트·v3, 로드하지 않음)도 뺀다. 산탄 계열(scatter·rain·seek)은 계약 art §10 대로 원본 보관(화기류 도입 때 제외 해제). 무기 아이콘 4종(weapons/*_icon)은 UI 사용 확인 전까지 유지.",
   "patterns": [
     "^sprites/fx/(?:v3/)?(?:wide|zangetsu|dashcrit|longinvuln|pulverize|quake|giant|ironwall|assassin|afterimage|bleed|dance|pierce)(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
     "^sprites/fx/(?:v3/)?(?:katana_combo\\d_(?:iai_(?:wide|zangetsu)|batto_(?:dashcrit|longinvuln))|greatsword_combo\\d_(?:crush_(?:pulverize|quake)|weight_(?:giant|ironwall))|dagger_combo\\d_(?:gale_(?:afterimage|assassin)|twin_(?:bleed|dance)))(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
@@ -7,6 +7,8 @@
     "^sprites/fx/(?:v3/)?(?:iai|batto|crush|weight|gale|twin)(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
     "^sprites/fx/(?:v3/)?(?:katana_combo\\d_(?:iai|batto)|greatsword_combo\\d_(?:crush|weight)|dagger_combo\\d_(?:gale|twin))(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
     "^sprites/fx/(?:v3/)?greatsword_plunge_wave(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
-    "^sprites/(?:weapons|player)/(?:v\\d/)?(?:player_)?greatsword_charge_plunge(?:_grudge\\d)?(?:[-_]p?\\d+)?\\.(?:json|png|webp)$"
+    "^sprites/(?:weapons|player)/(?:v\\d/)?(?:player_)?greatsword_charge_plunge(?:_grudge\\d)?(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
+    "^sprites/fx/(?:v3/)?concept_[A-Za-z0-9_-]+\\.(?:json|png|webp)$",
+    "^sprites/fx/(?:v3/)?(?:flash|heavyarrow|heavyarrow_hit|rain|scatter|seek)(?:[-_]p?\\d+)?\\.(?:json|png|webp)$"
   ]
 }
