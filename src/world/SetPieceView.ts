@@ -18,7 +18,12 @@ interface DecorItem {
   d: DecorPlacement;
   view: StructureView | null;
   shape: Phaser.GameObjects.Rectangle | null;
+  /** 그린 시트 이름 (없으면 null) */
+  sheet: string | null;
 }
+
+/** 61 E 허수아비 v3 (아트 2 `tutorial_dummy`): 맞음 그림이 기울기를 그린다 — 이 상태가 있으면 회전·흰 점멸 대신 상태 재생 */
+const DUMMY_HEAVY_STATE = 'hit_heavy';
 
 const hex = (c: string) => Phaser.Display.Color.HexStringToColor(c).color;
 
@@ -34,6 +39,8 @@ export class SetPieceView {
   private readonly wisps: Shape[] = [];
   private readonly tweens: Phaser.Tweens.Tween[] = [];
   private signPulse: Phaser.Tweens.Tween | null = null;
+  /** 허수아비 맞음 → 대기 복귀 예약 (마지막 맞음만) */
+  private readonly dummyHitToken = new Map<DecorItem, number>();
   private readonly V: SetPieceViewDef;
 
   constructor(
@@ -69,7 +76,7 @@ export class SetPieceView {
     if (sheet) {
       const view = new StructureView(this.scene, { sheet, rect, color: d.color, label: '', floor: d.floor });
       if (view.hasState('active')) view.setState('active');
-      return { d, view, shape: null };
+      return { d, view, shape: null, sheet };
     }
     const V = this.V;
     const alpha =
@@ -88,7 +95,7 @@ export class SetPieceView {
       shape = this.scene.add.rectangle(rect.centerX, rect.centerY, rect.width, rect.height, hex(d.color), alpha);
     }
     shape.setDepth(d.floor || d.role === 'sign' ? STRUCTURE_FX.FLOOR_DEPTH : entityDepth(rect.bottom));
-    return { d, view: null, shape };
+    return { d, view: null, shape, sheet: null };
   }
 
   private makeWisp(x: number, y: number, i: number, n: number): void {
@@ -123,9 +130,13 @@ export class SetPieceView {
    * 허수아비 맞음: 흔들림(dirX 쪽으로 넘어갔다 돌아옴 — strength 배, 대검 ≈ 2) · 61라운드 플레이 점검: 흰 점멸 flashMs.
    * dirX 가 0 이면 옛 방향(왼쪽)
    */
-  pokeDummy(index: number, strength = 1, dirX = 0, flashMs = 0): void {
+  pokeDummy(index: number, strength = 1, dirX = 0, flashMs = 0, heavy = false): void {
     const s = this.dummies[index];
     if (!s) return;
+    if (s.view?.hasState(DUMMY_HEAVY_STATE)) {
+      this.playDummyHit(s, s.view, heavy, dirX);
+      return;
+    }
     if (s.view?.hasState('hit')) s.view.setState('hit');
     const target = s.view?.sprite ?? s.shape;
     if (!target) return;
@@ -145,10 +156,36 @@ export class SetPieceView {
     }
   }
 
-  /** 허수아비 중심 (월드 px — 맞음 불꽃 자리). 없으면 null */
+  /**
+   * 61 E 허수아비 v3: 맞음(hit) · 막타·강공(hit_heavy) 1회 → 대기. 그림은 왼쪽에서 맞아 오른쪽으로 밀리는 기준 — 오른쪽에서 맞으면 flipX.
+   * 첫 칸이 하얗게 번쩍이는 그림이라(flashFrames) 흰 점멸·회전을 따로 하지 않는다
+   */
+  private playDummyHit(s: DecorItem, view: StructureView, heavy: boolean, dirX: number): void {
+    const state = heavy ? DUMMY_HEAVY_STATE : 'hit';
+    view.setState(state);
+    view.sprite?.setFlipX(dirX < 0);
+    const def = s.sheet ? spriteLibrary.sheet(s.sheet, STRUCTURE_ACTION) : undefined;
+    const frames = def?.states?.[state] ?? [];
+    const ms = frames.reduce((a, f) => a + (def?.frameDurationsMs?.[f] ?? 100), 0);
+    const token = (this.dummyHitToken.get(s) ?? 0) + 1;
+    this.dummyHitToken.set(s, token);
+    this.scene.time.delayedCall(ms, () => {
+      if (this.dummyHitToken.get(s) === token && view.sprite?.active) view.setState('idle');
+    });
+  }
+
+  /** 허수아비 중심 (월드 px — 맞음 불꽃 자리: 시트 anchors.hitCenter, 없으면 그림 가운데). 없으면 null */
   dummyCenter(index: number): { x: number; y: number } | null {
-    const t = this.dummies[index]?.view?.sprite ?? this.dummies[index]?.shape;
+    const s = this.dummies[index];
+    const t = s?.view?.sprite ?? s?.shape;
     if (!t) return null;
+    const def = s.sheet ? spriteLibrary.sheet(s.sheet, STRUCTURE_ACTION) : undefined;
+    const hc = (def?.anchors as { hitCenter?: { x: number; y: number } } | undefined)?.hitCenter;
+    if (def && hc && t instanceof Phaser.GameObjects.Sprite) {
+      const k = artScale(def);
+      const dx = t.flipX ? def.frameWidth - hc.x : hc.x;
+      return { x: t.x + (dx - def.pivot.x) * k, y: t.y + (hc.y - def.pivot.y) * k };
+    }
     const b = t.getBounds();
     return { x: b.centerX, y: b.centerY };
   }

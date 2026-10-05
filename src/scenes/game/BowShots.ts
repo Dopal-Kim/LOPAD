@@ -22,7 +22,8 @@ import {
   stripFxPrefix,
   tailFxIds,
 } from '../../systems/fx/branchFx';
-import type { FxHandle } from '../../systems/fx/fx';
+import type { FxHandle, FxPool } from '../../systems/fx/fx';
+import { lightRegistryOf, type LightSource } from '../../systems/lighting/lightRegistry';
 import { isHeavyStrike } from '../../systems/hitFeel';
 import { runtimeFxVariant, type FxVariant } from '../../systems/fx/fxVariants';
 import { spriteLibrary } from '../../systems/sprites/sprites';
@@ -56,6 +57,8 @@ export class BowShots {
   private lastShotAt = -Infinity;
   private rapidCount = 0;
   private readonly snipes = new Map<Projectile, SnipeShot>();
+  /** 61 E 화살 광원 (풀 재사용 때 앞 광원을 뗀다) */
+  private readonly lights = new Map<Projectile, LightSource>();
 
   constructor(private readonly g: Game) {}
 
@@ -208,6 +211,7 @@ export class BowShots {
       shot.heavy = isHeavyStrike(p);
       g.build.onArrowSpawn(shot, p);
       if (weak && !weakSheet && D) shot.setTint(D.weakArrowTint);
+      this.attachLight(shot, def);
       if (mods.homingTurnDeg) shot.homingTurn = Phaser.Math.DegToRad(mods.homingTurnDeg);
       if (aimed && mods.aimedShotStunMs) shot.hitStunMs = mods.aimedShotStunMs;
       // 2단 갈래 따라가는 겹침 (관통: fx/pierce 를 저격 꼬리 위·화살 아래에)
@@ -255,6 +259,18 @@ export class BowShots {
       dmg,
       crit,
     };
+  }
+
+  /**
+   * 61 E: 화살 시트 JSON 에 광원이 있으면(아트 2 bow_arrow 불티 꼬리 — 어두운 방·3국면 소등) 화살을 따라가는 작은 광원.
+   * 풀에서 다시 쓰는 화살이면 앞 광원을 먼저 뗀다 (광원 목록은 대상이 비활성이 되면 스스로도 지운다)
+   */
+  private attachLight(shot: Projectile, def: ReturnType<FxPool['sheet']>): void {
+    const reg = lightRegistryOf(this.g);
+    reg.remove(this.lights.get(shot));
+    this.lights.delete(shot);
+    if (!def?.light || def.light.radius <= 0) return;
+    this.lights.set(shot, reg.add(def.light, { x: shot.x, y: shot.y, anchor: shot, dx: 0, dy: 0 }));
   }
 
   /** 저격 꼬리: 단계가 바뀌면 시트만 교체 (같은 피벗, 화살 아래 깊이) */

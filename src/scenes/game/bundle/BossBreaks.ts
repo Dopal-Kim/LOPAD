@@ -5,6 +5,7 @@
  * ② 결정타 — 파훼 경직 중 마지막 일격(보스가 경직 중 / 파훼 경직 창 안에서 죽음) → 전표 +50 · 개성 +30.
  * 보스 노드에서만. 사건은 BOSS_BREAK (`BossBreakPayload` — 결정타는 kind 'finisher').
  */
+import type Phaser from 'phaser';
 import { BUNDLE_FX } from '../../../core/Constants';
 import { EventBus, Events, type BossActionPayload, type BossBreakPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
@@ -93,7 +94,10 @@ export class BossBreaks {
     this.g.economy.addGold(F.gold);
     this.g.progress.gainPersonality(F.personality);
     const text = BUNDLE2.break.text.finisher;
-    this.g.feedback.worldText(mob.x, mob.body.top, typeof text === 'string' ? text : BUNDLE_FX.FINISHER_TEXT);
+    // 61 E 버그 수정: 처치된 보스는 이미 파괴돼 바디가 없다 (결정타마다 TypeError — 헤드리스에서 발견) → 발 자리
+    const body = mob.body as Phaser.Physics.Arcade.Body | null | undefined;
+    const top = body ? body.top : mob.y;
+    this.g.feedback.worldText(mob.x, top, typeof text === 'string' ? text : BUNDLE_FX.FINISHER_TEXT);
     EventBus.emit(Events.BOSS_BREAK, {
       kind: 'finisher',
       distinct: false,

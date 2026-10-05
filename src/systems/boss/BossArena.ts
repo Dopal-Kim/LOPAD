@@ -4,19 +4,20 @@
  * Game 이 보스 노드(보스 정의에 arena 가 있을 때)에서만 만들고, 매 프레임 update · 근접 판정·화살 훅을 넘긴다.
  */
 import Phaser from 'phaser';
-import { BOSS_FX, DEPTH, TILE, entityDepth } from '../../core/Constants';
+import { BOSS_FX, DEPTH, TILE } from '../../core/Constants';
 import {
   EventBus,
   Events,
   type BossActionPayload,
   type BossLoopPayload,
   type BossScreenPayload,
+  type BossWallHitPayload,
 } from '../../core/EventBus';
 import { resolvePatternParams } from '../../data/bossPatterns';
 import type { BossArenaParams, BossDef } from '../../data/types';
 import type { Mob } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
-import type { BossArenaApi, Vec } from '../../objects/boss/types';
+import type { BossArenaApi, Vec, WeakPointSpec } from '../../objects/boss/types';
 import { traceBounces } from '../../objects/boss/curve';
 import type { FireSpillParams } from '../../objects/boss/patterns/fireSpill';
 import type { InputState } from '../InputSystem';
@@ -26,11 +27,16 @@ import type { LiquorPools, PoolSpec } from '../hazards/LiquorPools';
 import type { Lighting } from '../lighting/Lighting';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 import { spriteLibrary } from '../sprites/sprites';
-import { STRUCTURE_ACTION, artScale, structureStateFrames } from '../sprites/spriteDefs';
+import { STRUCTURE_ACTION, artScale } from '../sprites/spriteDefs';
 import type { TileWorld } from '../../world/TileWorld';
 import type { TileSkin } from '../../world/tileskin';
 import { BossBurn } from './bossBurn';
-import { CandleSet } from './candles';
+import { BossRim } from './bossRim';
+import { BossVram } from './bossVram';
+import { BreakDaze } from './breakDaze';
+import { CandleSet, type Candle } from './candles';
+import { CupWeakPoint } from './cupWeakPoint';
+import { PillarSet } from './pillars';
 import { DrunkScreen } from './drunkScreen';
 import { caskRadiusFromArt } from './caskMath';
 import { RollingCasks } from './rollingCasks';
@@ -62,20 +68,10 @@ export interface BossArenaPlan {
   centerX: number;
 }
 
-interface WeakPoint {
-  rect: () => { x: number; y: number; w: number; h: number };
-  onHit: () => void;
-  drawCup?: boolean;
-}
-
-/** 잔 깨짐 흔들림 · 술통 튕김 흔들림 (논리 px, ms) */
-const CUP_BREAK_SHAKE = { PX: 4, MS: 160 };
+/** 술통 튕김 흔들림 (논리 px, ms) */
 const CASK_BOUNCE_SHAKE = { PX: 2, MS: 90 };
 
-/** 로드된 기둥 구조물 시트 이름 (없으면 null) */
-export function pillarSheet(A: Pick<BossArenaParams, 'pillarSprite'>): string | null {
-  return A.pillarSprite?.find((s) => spriteLibrary.has(s, STRUCTURE_ACTION)) ?? null;
-}
+export { pillarSheet } from './pillars';
 
 export class BossArena implements BossArenaApi {
   private readonly A: BossArenaParams;
@@ -84,11 +80,14 @@ export class BossArena implements BossArenaApi {
   readonly screen: DrunkScreen;
   /** 54라운드 Q18 보스 불타기 (보스 정의 arena.onFire 가 있을 때만) */
   readonly burn: BossBurn | null;
-  private readonly pillarViews: (Phaser.GameObjects.Graphics | Phaser.GameObjects.Sprite)[] = [];
+  private readonly pillars: PillarSet;
   private readonly torches: TorchFlights;
-  private wp: WeakPoint | null = null;
-  private readonly wpGfx: Phaser.GameObjects.Graphics;
-  private wpHitToken = {};
+  /** 약점 잔 (61 E: 분리 + 파훼 표시 cup_glint) */
+  private readonly cup: CupWeakPoint;
+  /** 61 E: 파훼 창 머리 위 고리 · 소등 림라이트 · 보스방 VRAM 지연 로드 */
+  private readonly daze: BreakDaze;
+  readonly rim: BossRim;
+  readonly vram: BossVram;
   private darkUntil = 0;
   /** 61라운드 점검 #6: 어둠 동안 주인공·보스 최소 광원 */
   private darkLights: LightSource[] = [];
@@ -97,7 +96,7 @@ export class BossArena implements BossArenaApi {
   /** 술통 자국·쏟아짐 웅덩이 불 수치 (보스 fireSpill 공통값) */
   private readonly fireDefaults: FireSpillParams;
   /** 디버그 */
-  debug = { cupHits: 0, relit: 0, caskKicks: 0, caskRedirects: 0, torches: 0, ignites: 0 };
+  debug = { relit: 0, caskKicks: 0, caskRedirects: 0, torches: 0, ignites: 0 };
   /** 디버그: 마지막 근접 판정 사각형 (잔 판정 확인용) */
   private lastSwing: {
     x: number;
@@ -117,6 +116,7 @@ export class BossArena implements BossArenaApi {
   ) {
     this.A = def.arena!;
     EventBus.on(Events.BOSS_DIED, this.onBossDied, this);
+    EventBus.on(Events.BOSS_WALL_HIT, this.onWallHit, this);
     this.fireDefaults = (resolvePatternParams(def, 0, 'fireSpill') ?? {
       puddleMs: 8000,
       fireMs: 3000,
@@ -181,8 +181,26 @@ export class BossArena implements BossArenaApi {
           this.A.onFire,
         )
       : null;
-    this.wpGfx = host.scene.add.graphics().setDepth(DEPTH.LIGHTMAP + 0.06);
-    this.drawPillars(plan.pillars);
+    this.cup = new CupWeakPoint({
+      scene: host.scene,
+      fx: host.fx,
+      boss: () => this.boss(),
+      shake: (px, ms) => host.shake(px, ms),
+      onStruck: () => this.action('cupStruck'),
+    });
+    this.pillars = new PillarSet(host.scene, host.world, this.A, plan.pillars);
+    this.daze = new BreakDaze(host.fx, bossId);
+    this.vram = new BossVram(
+      {
+        scene: host.scene,
+        users: () => {
+          const b = this.boss();
+          return [b, b?.visual.corpse, ...this.rim.sprites];
+        },
+      },
+      bossId,
+    );
+    this.rim = new BossRim(host.scene, bossId, () => this.vram.rimReady);
   }
 
   // =====================================================================
@@ -219,6 +237,7 @@ export class BossArena implements BossArenaApi {
     });
     this.timers.push(this.host.scene.time.delayedCall(p.durationMs, () => this.restoreLight(p.fadeMs)));
     this.addDarkLights();
+    this.rim.setOn(true);
     this.host.telegraphAboveDark?.(true);
     EventBus.emit(Events.BOSS_SCREEN, { effect: 'dark', on: true } satisfies BossScreenPayload);
   }
@@ -245,6 +264,7 @@ export class BossArena implements BossArenaApi {
   private restoreLight(fadeMs: number): void {
     this.darkUntil = 0;
     this.removeDarkLights();
+    this.rim.setOn(false);
     this.host.telegraphAboveDark?.(false);
     const L = this.host.lighting();
     L?.setAmbient(null, fadeMs);
@@ -361,10 +381,8 @@ export class BossArena implements BossArenaApi {
     if (this.host.fx.has(id)) this.host.fx.play(id, x, y, depth === undefined ? {} : { depth });
   }
 
-  setWeakPoint(wp: WeakPoint | null): void {
-    this.wp = wp;
-    this.wpHitToken = {};
-    if (!wp) this.wpGfx.clear();
+  setWeakPoint(wp: WeakPointSpec | null): void {
+    this.cup.set(wp);
   }
 
   // =====================================================================
@@ -375,10 +393,10 @@ export class BossArena implements BossArenaApi {
   onMeleeSwing(x: number, y: number, w: number, h: number, dirX: number, dirY: number): void {
     const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
     // 잔 판정은 화살과 같은 사각형 (잔 둘레 + 상체 윗변까지 — 54라운드 Q20, 몸 폭만큼 — Q24)
-    const cup = this.wp ? this.cupHitRect() : null;
+    const cup = this.cup.hitRect();
     const cupHit = cup !== null && Phaser.Geom.Intersects.RectangleToRectangle(r, cup);
     this.lastSwing = { x: r.x, y: r.y, w, h, cup: cup && { x: cup.x, y: cup.y, w: cup.width, h: cup.height }, cupHit };
-    if (cupHit) this.hitCup();
+    if (cupHit) this.cup.hit();
     for (const c of this.casks.inRect(r)) if (this.casks.redirect(c, dirX, dirY, this.now)) this.onRedirect();
     for (const c of this.candles.list)
       if (c.state === 'fallen' && Phaser.Geom.Intersects.RectangleToRectangle(r, c.rect)) this.relight(c);
@@ -386,7 +404,7 @@ export class BossArena implements BossArenaApi {
 
   /** 플레이어 화살이 보스 몸에 맞은 순간 (물리 겹침이 화살을 먼저 지우므로): 잔 판정 안이면 잔도 깨진다 */
   onShotHitBoss(x: number, y: number): void {
-    if (this.wp && this.cupHitRect().contains(x, y)) this.hitCup();
+    if (this.cup.hitRect()?.contains(x, y)) this.cup.hit();
   }
 
   /** 플레이어 화살: 같은 판정 */
@@ -394,11 +412,11 @@ export class BossArena implements BossArenaApi {
     for (const s of shots) {
       if (!s.active || s.owner !== 'player') continue;
       // 지난 프레임 위치 → 지금 위치 선분으로 (빠른 화살이 작은 잔을 건너뛰지 않게)
-      if (this.wp) {
+      const cup = this.cup.hitRect();
+      if (cup) {
         const p = s.body.prev;
         const seg = new Phaser.Geom.Line(p.x + s.body.halfWidth, p.y + s.body.halfHeight, s.x, s.y);
-        if (Phaser.Geom.Intersects.LineToRectangle(seg, this.cupHitRect()) && s.registerHit(this.wpHitToken))
-          this.hitCup();
+        if (Phaser.Geom.Intersects.LineToRectangle(seg, cup) && s.registerHit(this.cup.hitToken)) this.cup.hit();
       }
       const c = this.casks.at(s.x, s.y, 2);
       if (c && s.registerHit(c)) {
@@ -412,46 +430,23 @@ export class BossArena implements BossArenaApi {
 
   /** 디버그: 지금 약점 잔 사각형 · 맞힘 판정 사각형 (없으면 null) */
   debugCup(): { rect: { x: number; y: number; w: number; h: number }; hit: Record<string, number> } | null {
-    if (!this.wp) return null;
-    const h = this.cupHitRect();
-    return { rect: this.wp.rect(), hit: { x: h.x, y: h.y, w: h.width, h: h.height } };
+    const rect = this.cup.rect();
+    const h = this.cup.hitRect();
+    return rect && h ? { rect, hit: { x: h.x, y: h.y, w: h.width, h: h.height } } : null;
+  }
+
+  /** 디버그: i 번째 기둥 균열 한 단 (새 단, 없으면 null) */
+  debugCrack(i: number): number | null {
+    const stage = this.pillars.crackIndex(i);
+    if (stage !== null) this.action('pillarCrack', stage);
+    return stage;
   }
 
   /** 디버그: 약점 잔을 맞힌 것으로 */
   debugHitCup(): boolean {
-    if (!this.wp) return false;
-    this.hitCup();
+    if (!this.cup.active) return false;
+    this.cup.hit();
     return true;
-  }
-
-  /**
-   * 잔 맞힘 판정 사각형: 잔 + 둘레 여유, 아래로는 보스 바디 윗변 + 바디 높이 × HIT_DOWN_RATIO 까지 (머리 높이 잔을 몸 높이
-   * 근접 판정이 닿게). 54라운드 Q24: 좌우는 잔 폭과 **보스 바디 폭** 중 넓은 쪽 — 몸에 맞닿은 옆에서 베어도 닿는다.
-   * 그림 크기가 바뀌어도 바디 기준이라 그대로
-   */
-  private cupHitRect(): Phaser.Geom.Rectangle {
-    const cr = this.wp!.rect();
-    const C = BOSS_FX.CUP;
-    const b = this.boss();
-    const pad = C.HIT_PAD_PX;
-    const left = Math.min(cr.x - pad, b ? b.body.x : Infinity);
-    const right = Math.max(cr.x + cr.w + pad, b ? b.body.right : -Infinity);
-    const bottom = Math.max(cr.y + cr.h + pad, b ? b.body.y + b.body.height * C.HIT_DOWN_RATIO : 0);
-    return new Phaser.Geom.Rectangle(left, cr.y - pad, right - left, bottom - (cr.y - pad));
-  }
-
-  private hitCup(): void {
-    const wp = this.wp;
-    if (!wp) return;
-    const cr = wp.rect();
-    this.wp = null;
-    this.wpGfx.clear();
-    this.debug.cupHits++;
-    if (this.host.fx.has(BOSS_FX.SHEETS.CUP_SHATTER))
-      this.playFx(BOSS_FX.SHEETS.CUP_SHATTER, cr.x + cr.w / 2, cr.y + cr.h / 2, DEPTH.HIT_FX);
-    else this.shards(cr.x + cr.w / 2, cr.y + cr.h / 2);
-    this.host.shake(CUP_BREAK_SHAKE.PX, CUP_BREAK_SHAKE.MS);
-    wp.onHit();
   }
 
   private onRedirect(): void {
@@ -484,42 +479,16 @@ export class BossArena implements BossArenaApi {
     this.casks.update(delta);
     this.burn?.update(time);
     this.torches.update(time);
-    this.drawWeakPoint(time);
+    this.cup.update(time);
+    this.pillars.update(time);
+    const b = this.boss() as (Mob & { brokenWindow?: (now: number) => { leftMs: number } | null }) | null;
+    this.daze.update(
+      b?.brokenWindow ? { sprite: b, brokenWindow: (now) => b.brokenWindow?.(now) ?? null } : null,
+      time,
+    );
+    this.rim.update(b);
+    this.vram.update();
     this.syncLoops();
-  }
-
-  /** 약점 잔: 깜빡이는 테두리 (+ 시트 앵커가 없으면 임시 잔) — 어둠 위 깊이 */
-  private drawWeakPoint(time: number): void {
-    const wp = this.wp;
-    const g = this.wpGfx;
-    g.clear();
-    if (!wp) return;
-    const r = wp.rect();
-    const C = BOSS_FX.CUP;
-    if (wp.drawCup) {
-      g.fillStyle(C.FILL, 1).fillRect(r.x, r.y, r.w, r.h);
-      g.fillStyle(C.LIQUOR, 1).fillRect(r.x + 1, r.y + 1, r.w - 2, Math.max(1, r.h * 0.35));
-    }
-    if (Math.floor(time / C.BLINK_MS) % 2 === 0) {
-      g.lineStyle(C.EDGE_WIDTH, C.EDGE, 1).strokeRect(r.x - 1, r.y - 1, r.w + 2, r.h + 2);
-    }
-  }
-
-  private shards(x: number, y: number): void {
-    const S = BOSS_FX.SHARDS;
-    const sc = this.host.scene;
-    for (let i = 0; i < S.COUNT; i++) {
-      const a = (i / S.COUNT) * Math.PI * 2;
-      const r = sc.add.rectangle(x, y, S.SIZE, S.SIZE, S.COLOR, 1).setDepth(DEPTH.HIT_FX);
-      sc.tweens.add({
-        targets: r,
-        x: x + Math.cos(a) * S.SPEED_PX * (S.LIFE_MS / 1000),
-        y: y + Math.sin(a) * S.SPEED_PX * (S.LIFE_MS / 1000) + 6,
-        alpha: 0,
-        duration: S.LIFE_MS,
-        onComplete: () => r.destroy(),
-      });
-    }
   }
 
   /** 루프 효과음: 굴러가는 술통 · 불 웅덩이 (여러 개여도 하나) */
@@ -590,39 +559,28 @@ export class BossArena implements BossArenaApi {
     });
   }
 
-  /** 기둥: 구조물 시트(boss1_pillar) → 지역 소품 시트(QuarterView 가 그림) → 임시 기둥 (몸·윗면) */
-  private drawPillars(rects: BossArenaPlan['pillars']): void {
-    const sheet = pillarSheet(this.A);
-    if (sheet) {
-      const def = spriteLibrary.sheet(sheet, STRUCTURE_ACTION)!;
-      const tex = spriteLibrary.textureKey(sheet, STRUCTURE_ACTION)!;
-      const frame = structureStateFrames(def, 'idle')[0] ?? 0;
-      for (const r of rects) {
-        const x = (r.x + r.w / 2) * TILE;
-        const bottom = (r.y + r.h) * TILE;
-        this.pillarViews.push(
-          this.host.scene.add
-            .sprite(x, bottom, tex, frame)
-            .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-            .setScale(artScale(def))
-            .setDepth(entityDepth(bottom)),
-        );
-      }
-      return;
-    }
-    if (this.host.world.hasBigPropArt(this.A.pillarProp)) return;
-    const P = BOSS_FX.PILLAR;
-    for (const r of rects) {
-      const x = r.x * TILE;
-      const bottom = (r.y + r.h) * TILE;
-      const w = r.w * TILE;
-      const top = bottom - P.HEIGHT_PX;
-      const g = this.host.scene.add.graphics().setDepth(entityDepth(bottom));
-      g.fillStyle(P.BODY, 1).fillRect(x, top, w, P.HEIGHT_PX);
-      g.fillStyle(P.TOP, 1).fillRect(x, top, w, r.h * TILE * 0.5);
-      g.lineStyle(1, P.EDGE, 1).strokeRect(x, top, w, P.HEIGHT_PX);
-      this.pillarViews.push(g);
-    }
+  /** 61 E: 보스 돌진이 벽에 막힘 — 그 자리가 기둥이면 균열 한 단 (BOSS_ACTION pillarCrack index = 새 단) */
+  private onWallHit(p: BossWallHitPayload): void {
+    const b = this.boss();
+    const body = b ? { x: b.body.x, y: b.body.y, w: b.body.width, h: b.body.height } : { x: p.x, y: p.y, w: 1, h: 1 };
+    const stage = this.pillars.crackAt(body);
+    if (stage !== null) this.action('pillarCrack', stage);
+  }
+
+  /**
+   * 61 E 처치 때 방 불 끄기 대상: 켜진 촛대(서 있음·다시 켬) — 보스에서 먼 순서. 촛대의 불꽃 자리와 함께
+   */
+  snuffTargets(from: Vec): { candle: Candle; at: Vec }[] {
+    return this.candles.list
+      .filter((c) => c.state === 'lit' || c.state === 'relit')
+      .map((candle) => ({ candle, at: this.candles.flamePoint(candle) }))
+      .sort((a, b) => Math.hypot(b.at.x - from.x, b.at.y - from.y) - Math.hypot(a.at.x - from.x, a.at.y - from.y));
+  }
+
+  /** 촛대 하나 끄기 (광원 없음 · 서 있는 그림 어둡게) */
+  snuff(c: Candle): void {
+    this.candles.set(c, 'out');
+    this.action('flameSnuff', c.id);
   }
 
   private boss(): Mob | null {
@@ -669,7 +627,12 @@ export class BossArena implements BossArenaApi {
         .map((p) => p.fireFx.map((h) => (h ? h.sprite.depth : null))),
       pending: pools.filter((p) => p.igniteAt > 0).length,
       flying: this.torches.count,
-      weakPoint: this.wp ? this.wp.rect() : null,
+      weakPoint: this.cup.rect(),
+      cupHits: this.cup.hits,
+      pillars: this.pillars.summary(),
+      daze: this.daze.showing,
+      rim: { on: this.rim.on, mode: this.rim.mode },
+      vram: this.vram.summary(),
       lighting: this.host.lighting()?.summary() ?? null,
       burn: this.burn?.summary() ?? null,
       lastSwing: this.lastSwing,
@@ -680,6 +643,7 @@ export class BossArena implements BossArenaApi {
   /** 보스가 쓰러지면 화면 효과·약점·술통을 거둔다 (웅덩이·불은 제 수명대로) */
   private onBossDied(): void {
     this.setWeakPoint(null);
+    this.daze.stop();
     if (this.screen.active) {
       this.screen.stop();
       EventBus.emit(Events.BOSS_SCREEN, { effect: 'tilt', on: false } satisfies BossScreenPayload);
@@ -694,6 +658,7 @@ export class BossArena implements BossArenaApi {
 
   destroy(): void {
     EventBus.off(Events.BOSS_DIED, this.onBossDied, this);
+    EventBus.off(Events.BOSS_WALL_HIT, this.onWallHit, this);
     for (const t of this.timers) t.remove(false);
     this.timers = [];
     if (this.dark) this.host.lighting()?.setAmbient(null, 0);
@@ -704,8 +669,11 @@ export class BossArena implements BossArenaApi {
     this.casks.destroy();
     this.burn?.destroy();
     this.torches.destroy();
-    for (const g of this.pillarViews) g.destroy();
-    this.wpGfx.destroy();
+    this.pillars.destroy();
+    this.cup.destroy();
+    this.daze.destroy();
+    this.rim.destroy();
+    this.vram.destroy();
     if (this.loops.roll) EventBus.emit(Events.BOSS_LOOP, { loop: 'roll', on: false } satisfies BossLoopPayload);
     if (this.loops.fire) EventBus.emit(Events.BOSS_LOOP, { loop: 'fire', on: false } satisfies BossLoopPayload);
   }

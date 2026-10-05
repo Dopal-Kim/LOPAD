@@ -1,6 +1,6 @@
 {
   "stage1": {
-    "_note": "54라운드 '만취' 3국면 → 61라운드 P6 재구성(90~120초): HP 1100 · 국면 100~65 얼큰(돌진·내리찍기·술통) / 65~30 만취(+한 잔 더·불붙은 술) / 30~ 인사불성(+3연 취권, 진입 때 등불 끄기 확정) · 세상이 돈다 = 국면 전환 연출만 · 파훼 경직 동안 받는 피해 ×breakDamageMult. 이유·수치 표는 parts/system/CHANGELOG.md 61라운드 보스 절",
+    "_note": "54라운드 '만취' 3국면 → 61라운드 P6 재구성(90~120초): HP 1100 · 국면 100~65 얼큰(돌진·내리찍기·술통) / 65~30 만취(+한 잔 더·불붙은 술) / 30~ 인사불성(+3연 취권, 진입 때 등불 끄기 확정) · 세상이 돈다 = 국면 전환 연출만 · 파훼 경직 동안 받는 피해 ×breakDamageMult · 61 E: 인사불성 잔은 두 번 맞혀야 깨짐(cupHits 2 — 첫 맞음 = struck 표시). 이유·수치 표는 parts/system/CHANGELOG.md 61라운드 보스 절",
     "name": "양조장주 '만취(滿醉)'",
     "hp": 1100,
     "size": [40, 40],
@@ -159,6 +159,9 @@
           "phaseDrink": {
             "next": "lightsOut"
           },
+          "drink": {
+            "cupHits": 2
+          },
           "drunkDash": {
             "telegraphSeqMs": [500, 300, 300]
           },
@@ -233,7 +236,7 @@
         }
       }
     },
-    "_show": "61라운드 점검 #5·#6 등장·처치 연출 (ms, 등장 0 = 보스방 진입). 등장: 카메라가 보스로 → 층 등장 자막 → boss1.intro → 카메라 복귀 → 전투. 처치: 히트스톱 → 슬로모 → 쓰러짐 → boss1.defeat → (무기 한마디) → 보상 메뉴",
+    "_show": "61라운드 점검 #5·#6 등장·처치 연출 (ms, 등장 0 = 보스방 진입). 등장: 카메라가 보스로 → 층 등장 자막 → boss1.intro → 카메라 복귀 → 전투. 처치: 히트스톱 → 슬로모 → 쓰러짐 → boss1.defeat → (무기 한마디) → 보상 메뉴. 61 E 아트 등장 동작: 뒤에서 walkLoops 걸음만큼 걸어 들어옴 → 딸꾹·건배(대사 동안 유지) → roarAtMs 포효 · 처치 snuffAtMs 부터 방 촛불을 먼 순서로 끔(쓰러짐 파편은 처치 0 에)",
     "show": {
       "intro": {
         "panMs": 700,
@@ -241,7 +244,9 @@
         "speechAtMs": 3100,
         "returnAtMs": 4700,
         "returnMs": 500,
-        "fightAtMs": 5200
+        "fightAtMs": 5200,
+        "walkLoops": 2,
+        "roarAtMs": 3800
       },
       "defeat": {
         "hitstopMs": 240,
@@ -254,7 +259,8 @@
         "panMs": 500,
         "speechAtMs": 1500,
         "fallenAtMs": 3600,
-        "rewardAtMs": 5200
+        "rewardAtMs": 5200,
+        "snuffAtMs": 2300
       }
     },
     "_linesKey": "61라운드 대사 = data/story.json 의 이 키 (스토리 텍스트 팩 boss1.* — 화자·등장·국면·파훼 첫 1회·쓰러짐)",

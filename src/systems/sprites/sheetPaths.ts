@@ -6,6 +6,7 @@ import {
   BOSS_EXTRA_ACTIONS,
   FX_ACTION,
   GAUGE_OVERLAY_LEVELS,
+  GAUGE_OVERLAY_SKIP,
   gaugeOverlayAction,
   GROGGY_ACTION,
   MOB_ACTIONS,
@@ -78,7 +79,7 @@ export function wantedSheets(
     for (const action of acts) out.push({ category: 'weapons', name, action });
     const suffix = gaugeOverlay[name];
     if (suffix)
-      for (const action of acts)
+      for (const action of acts.filter((a) => !GAUGE_OVERLAY_SKIP.includes(a)))
         for (let lv = 1; lv <= GAUGE_OVERLAY_LEVELS; lv++)
           out.push({ category: 'weapons', name, action: gaugeOverlayAction(action, suffix, lv) });
   }

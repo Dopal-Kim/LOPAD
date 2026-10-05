@@ -26,6 +26,12 @@ export interface BossIntroShow {
   returnMs: number;
   /** 전투 시작 (보스 패턴·입력 풀림) */
   fightAtMs: number;
+  /**
+   * 61 E 아트 등장 동작(`<보스>_intro` — 있을 때만): 걸음 반복 횟수(그만큼 뒤에서 걸어 들어옴 = 보폭 × 횟수) · 포효 시각
+   * (그 전까지 건배 유지 반복, 포효 열에 BOSS_ACTION introRoar)
+   */
+  walkLoops?: number;
+  roarAtMs?: number;
 }
 
 /** 처치 연출 (ms, 0 = 마지막 일격) */
@@ -47,6 +53,8 @@ export interface BossDefeatShow {
   fallenAtMs: number;
   /** 보상 메뉴(감각 → 능력치 → 패시브) */
   rewardAtMs: number;
+  /** 61 E: 방 불(촛대)을 보스에서 먼 순서로 끄기 시작 (없으면 끄지 않음) */
+  snuffAtMs?: number;
 }
 
 export interface BossShowDef {
@@ -116,6 +124,10 @@ export function validateBossShow(
     for (const k of ['panMs', 'floorLineAtMs', 'speechAtMs', 'returnAtMs', 'returnMs', 'fightAtMs'] as const)
       num(I?.[k], `${at}.show.intro.${k}`);
     if (I.fightAtMs < I.returnAtMs) throw new Error(`[data] ${at}.show.intro.fightAtMs 는 returnAtMs 뒤`);
+    if (I.walkLoops !== undefined) num(I.walkLoops, `${at}.show.intro.walkLoops`);
+    if (I.roarAtMs !== undefined) num(I.roarAtMs, `${at}.show.intro.roarAtMs`);
+    if (I.roarAtMs !== undefined && I.roarAtMs > I.fightAtMs)
+      throw new Error(`[data] ${at}.show.intro.roarAtMs 는 fightAtMs 전`);
     const D = s.defeat;
     for (const k of [
       'hitstopMs',
@@ -134,6 +146,9 @@ export function validateBossShow(
     if (D.slowScale > 1) throw new Error(`[data] ${at}.show.defeat.slowScale 는 1 이하`);
     if (!(D.speechAtMs <= D.fallenAtMs && D.fallenAtMs <= D.rewardAtMs))
       throw new Error(`[data] ${at}.show.defeat 순서: speechAtMs ≤ fallenAtMs ≤ rewardAtMs`);
+    if (D.snuffAtMs !== undefined) num(D.snuffAtMs, `${at}.show.defeat.snuffAtMs`);
+    if (D.snuffAtMs !== undefined && D.snuffAtMs > D.rewardAtMs)
+      throw new Error(`[data] ${at}.show.defeat.snuffAtMs 는 rewardAtMs 전`);
   }
   if (b.linesKey !== undefined && typeof b.linesKey !== 'string') throw new Error(`[data] ${at}.linesKey 는 문자열`);
   const dl = b.arena?.darkLights;

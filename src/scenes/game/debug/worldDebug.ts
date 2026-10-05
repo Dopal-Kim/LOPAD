@@ -111,6 +111,7 @@ export function worldDebug(
         return true;
       },
       hitCup: () => g.bossArena?.debugHitCup() ?? false,
+      crackPillar: (i) => g.bossArena?.debugCrack(i) ?? null,
       geom: () => {
         const b = findBoss(g);
         return b ? { ...b.debugGeom, cup: g.bossArena?.debugCup() ?? null } : null;

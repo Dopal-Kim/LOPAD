@@ -2,9 +2,12 @@
  * 54라운드 Q3 술독 굴리기 — 굴러가는 술통. 벽·기둥(걸을 수 없는 칸)에 bounces 번 튕기고, 다음 벽이나 maxTiles 에서 깨져 웅덩이를 남긴다.
  * 지나간 칸마다 술 웅덩이(미끄러움·감속). 플레이어에 닿으면 피해 후 깨짐. 플레이어가 치면(근접·화살) 친 방향으로 바뀌고(주인 = 플레이어)
  * 보스에 맞으면 보스 피해·경직 후 깨짐. 그림: 구조물 술통 시트(cask, 상태 active) → 임시 원.
+ * 61라운드 E (아트 2): 되칠 수 있는 동안(보스가 찬 술통) 같은 프레임의 테(`boss1_rolling_barrel_rim`, 조명 위)를 겹치고,
+ * 되친 순간 같은 행·열로 `boss1_rolling_barrel_returned`(호박 발광 + 광원)로 바꿔 이어 굴린다.
  */
 import Phaser from 'phaser';
-import { BOSS_FX, TILE, entityDepth } from '../../core/Constants';
+import { BOSS_ART, BOSS_FX, DEPTH, TILE, entityDepth } from '../../core/Constants';
+import { lightFor, lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 import { spriteLibrary } from '../sprites/sprites';
 import { STRUCTURE_ACTION, artScale, facingOf, structureStateFrames } from '../sprites/spriteDefs';
 import { caskCircumferenceWorld } from './caskMath';
@@ -49,6 +52,9 @@ export interface Cask {
   owner: 'boss' | 'player';
   readonly p: CaskParams;
   view: Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics;
+  /** 61 E: 되칠 수 있음 테 (보스 술통 동안만) · 되친 술통 광원 */
+  rim: Phaser.GameObjects.Sprite | null;
+  light: LightSource | null;
   /** 다시 맞을 수 있는 시각 (한 번 친 뒤 잠깐) */
   hitReadyAt: number;
   /** 굴러간 거리 합 (회전 프레임) */
@@ -82,6 +88,8 @@ export class RollingCasks {
       owner: 'boss',
       p,
       view: this.makeView(x, y, p.radiusPx),
+      rim: this.makeRim(x, y),
+      light: null,
       hitReadyAt: 0,
       rolled: 0,
       dead: false,
@@ -116,6 +124,32 @@ export class RollingCasks {
     return g;
   }
 
+  /** 되칠 수 있음 테 (술통 시트와 같은 틀·피벗 — 프레임은 spin 이 맞춘다). 시트가 없으면 null */
+  private makeRim(x: number, y: number): Phaser.GameObjects.Sprite | null {
+    const id = BOSS_ART.SHEETS.CASK_RIM;
+    const def = spriteLibrary.sheet(id, STRUCTURE_ACTION);
+    const tex = spriteLibrary.textureKey(id, STRUCTURE_ACTION);
+    if (!def || !tex || !spriteLibrary.has(BOSS_FX.SHEETS.CASK, STRUCTURE_ACTION)) return null;
+    return this.host.scene.add
+      .sprite(x, y, tex, 0)
+      .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
+      .setScale(artScale(def))
+      .setDepth(DEPTH.LIGHTMAP + DEPTH.LIGHT_LAYER_STEP * 1.5);
+  }
+
+  /** 되친 순간: 테를 떼고 술통 그림을 되친 술통(같은 행·열)으로, 광원을 붙인다 */
+  private toReturned(c: Cask): void {
+    c.rim?.destroy();
+    c.rim = null;
+    const id = BOSS_ART.SHEETS.CASK_RETURNED;
+    const def = spriteLibrary.sheet(id, STRUCTURE_ACTION);
+    const tex = spriteLibrary.textureKey(id, STRUCTURE_ACTION);
+    if (!def || !tex || !(c.view instanceof Phaser.GameObjects.Sprite) || c.light) return;
+    c.view.setTexture(tex, c.view.frame.name);
+    const L = lightFor(id, def);
+    if (L) c.light = lightRegistryOf(this.host.scene).add(L, { x: c.x, y: c.y, anchor: c.view });
+  }
+
   /** 플레이어가 침: 친 방향으로, 주인 = 플레이어 */
   redirect(c: Cask, dirX: number, dirY: number, now: number): boolean {
     if (c.dead || now < c.hitReadyAt) return false;
@@ -128,6 +162,7 @@ export class RollingCasks {
     c.bouncesLeft = Math.max(REDIRECT_MIN_BOUNCES, c.bouncesLeft);
     c.traveled = 0;
     c.hitReadyAt = now + REDIRECT_COOLDOWN_MS;
+    this.toReturned(c);
     return true;
   }
 
@@ -188,16 +223,19 @@ export class RollingCasks {
     }
     c.view.setPosition(c.x, c.y).setDepth(entityDepth(c.y + c.p.radiusPx));
     this.spin(c, dist);
+    if (c.rim && c.view instanceof Phaser.GameObjects.Sprite) c.rim.setPosition(c.x, c.y).setFrame(c.view.frame.name);
   }
 
   /** 회전 그림: v3 시트면 (방향 행, 굴러간 거리 / 둘레) 프레임, 아니면 스프라이트 회전 */
   private spin(c: Cask, dist: number): void {
     c.rolled += dist;
     const def = spriteLibrary.sheet(BOSS_FX.SHEETS.CASK, STRUCTURE_ACTION);
+    const key = c.view instanceof Phaser.GameObjects.Sprite ? c.view.texture.key : null;
     if (
       def &&
       c.view instanceof Phaser.GameObjects.Sprite &&
-      c.view.texture.key === spriteLibrary.textureKey(BOSS_FX.SHEETS.CASK, STRUCTURE_ACTION)
+      (key === spriteLibrary.textureKey(BOSS_FX.SHEETS.CASK, STRUCTURE_ACTION) ||
+        key === spriteLibrary.textureKey(BOSS_ART.SHEETS.CASK_RETURNED, STRUCTURE_ACTION))
     ) {
       const dir = facingOf(c.dx, c.dy, 'down');
       const row = Math.max(0, def.directions.indexOf(dir));
@@ -209,9 +247,17 @@ export class RollingCasks {
     c.view.setRotation(c.view.rotation + dist * BOSS_FX.CASK.SPIN_PER_PX * (c.dx >= 0 ? 1 : -1));
   }
 
+  private dropView(c: Cask): void {
+    c.view.destroy();
+    c.rim?.destroy();
+    c.rim = null;
+    lightRegistryOf(this.host.scene).remove(c.light);
+    c.light = null;
+  }
+
   private shatter(c: Cask): void {
     c.dead = true;
-    c.view.destroy();
+    this.dropView(c);
     this.host.splash(c.x, c.y, c.p.puddleMs);
     this.host.onBreak();
   }
@@ -234,7 +280,7 @@ export class RollingCasks {
   }
 
   destroy(): void {
-    for (const c of this.list) c.view.destroy();
+    for (const c of this.list) this.dropView(c);
     this.list.length = 0;
   }
 }

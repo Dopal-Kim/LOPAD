@@ -75,6 +75,7 @@ export const BOSS_PATTERN_SCHEMAS: Record<BossPatternName, PatternSchema> = {
   },
   drink: {
     num: ['liftMs', 'gulpMs', 'finishMs', 'breakStunMs', 'cooldownMs', 'cupW', 'cupH', 'cupLiftPx'],
+    optNum: ['cupHits'],
     optBool: ['empowerNext'],
     optNames: ['triggers'],
   },

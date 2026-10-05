@@ -9,6 +9,12 @@
     "^sprites/fx/(?:v3/)?greatsword_plunge_wave(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
     "^sprites/(?:weapons|player)/(?:v\\d/)?(?:player_)?greatsword_charge_plunge(?:_grudge\\d)?(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
     "^sprites/fx/(?:v3/)?concept_[A-Za-z0-9_-]+\\.(?:json|png|webp)$",
-    "^sprites/fx/(?:v3/)?(?:flash|heavyarrow|heavyarrow_hit|rain|scatter|seek)(?:[-_]p?\\d+)?\\.(?:json|png|webp)$"
-  ]
+    "^sprites/fx/(?:v3/)?(?:flash|heavyarrow|heavyarrow_hit|rain|scatter|seek)(?:[-_]p?\\d+)?\\.(?:json|png|webp)$",
+    "^sprites/(?:fx|weapons|player)/(?:v3/)?(?:player_)?greatsword_guard_rush(?:_awaken|_grudge\\d)?\\.(?:json|png|webp)$",
+    "^sprites/fx/(?:v3/)?katana_issen_shadow\\.(?:json|png|webp)$",
+    "^sprites/(?:fx|weapons)/(?:v3/)?katana_thrust_ki\\d\\.(?:json|png|webp)$",
+    "^sprites/fx/(?:v3/)?dagger_overheat_cool\\.(?:json|png|webp)$",
+    "^sprites/fx/(?:v3/)?dagger_combo\\d_heat\\d(?:_awaken)?\\.(?:json|png|webp)$"
+  ],
+  "_note61E": "61라운드 E (아트 2 '이제 안 쓰는 그림' — 로드 목록에서 뺐고 빌드에서도 뺀다, 원본은 assets/ 에 보관): 대검 막다가 떼면 돌진 greatsword_guard_rush(몸·무기·fx, 각성·울분 단 포함) · 칼 명경 그림자 일섬 katana_issen_shadow · 칼 찌르기 검기 katana_thrust_ki1~3(fx·무기) · 단검 과열 식음 dagger_overheat_cool · 단검 옛 가열 연격 dagger_combo<n>_heat<k>(각성 포함 — 가속 _accel2·3 으로 대체)"
 }

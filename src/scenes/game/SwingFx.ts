@@ -13,7 +13,7 @@ import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { HitShapeSpec } from '../../data/types';
 import { artCandidates, pickArt } from '../../systems/weapon/comboArt';
-import { comboFxId, slamFxId } from '../../systems/fx/fxIds';
+import { comboFxId, kenkiFxId, slamFxId } from '../../systems/fx/fxIds';
 import { comboRadius, comboShape, resolveHitShape, type HitShape } from '../../systems/weapon/hitShapes';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import type { FxVariant } from '../../systems/fx/fxVariants';
@@ -144,13 +144,15 @@ export class SwingFx {
         finisher: isFinisher(p),
         // 60라운드 (57 Q42): 옛 진화 이펙트(갈래 연격 시트·2단 변주·진화 베기)는 끔 — 갈래 1단 연격 변화는 fx 교체 규칙(FxPool.setAliases)
         path: [],
-        heat: p.heatStage ?? 0,
+        heat: p.accelStage ?? 0,
         reuseId: p.dashSlash && DS ? (body?.fxReuse?.id ?? comboFxId(weapon.id, DS.fxCombo)) : null,
         evoId: null,
       },
       { has: (id) => g.fx.has(id), sheet: (id) => g.fx.sheet(id) },
     );
-    const id = pick.id;
+    // 61 E 칼 발도: 소모한 검기 단 그림 (`katana_iai_ki1~3`, 없으면 기본 발도)
+    const ki = p.kenkiStage ? kenkiFxId(pick.id, p.kenkiStage) : null;
+    const id = ki && g.fx.has(ki) ? ki : pick.id;
     this.lastFxLoaded = g.fx.has(id);
     const scaleMult = pick.heatScale * hb;
     // 56라운드 Q6: 8행 이펙트 시트(대검 붓획)는 몸과 같은 8분할 행

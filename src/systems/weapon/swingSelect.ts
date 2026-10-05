@@ -1,10 +1,10 @@
 /**
  * 근접 휘두름 이펙트 시트 고르기 (53라운드 SwingFx 규칙 + 55라운드 Q16 2단 전용 시트). Phaser 의존 없음.
  * 우선순위: 대쉬 공격 재사용(갈래 시트 우선) → 1단 갈래 연격 시트(`<무기>_combo<n>_<갈래>`, 2단이면 2단 전용 시트) →
- * 가열 시트 → 기본 연격(마지막 타는 진화 베기) → 진화 베기 → `<무기>_slash`.
+ * 가속 단계 시트(61 E `<연격 fx>_accel<k>`, k ≥ 2) → 기본 연격(마지막 타는 진화 베기) → 진화 베기 → `<무기>_slash`.
  */
 import { WEAPON_FX } from '../../core/Constants';
-import { comboFxId, heatComboFxId, slashFxId } from '../fx/fxIds';
+import { accelFxId, comboFxId, slashFxId } from '../fx/fxIds';
 import { pickTierSheet, type FxTier, type TierLookup } from '../fx/fxTier';
 import { branchComboFxId, resolveFxVariant, type FxVariant } from '../fx/fxVariants';
 
@@ -14,14 +14,14 @@ export interface SwingPickInput {
   comboN: number | null;
   /**
    * 55라운드 §17: 연격 기본 이펙트 id (그림 이름 표에서 고른 `<무기>_<이름>`, 로드 안 됐을 수 있음).
-   * 있으면 comboN 대신 — 갈래 `<id>_<1단>`·가열 `<id>_heat<k>` 도 이 id 에서
+   * 있으면 comboN 대신 — 갈래 `<id>_<1단>`·가속 `<id>_accel<k>` 도 이 id 에서
    */
   comboId?: string | null;
   /** 연격 마지막 타 (진화 베기 자리) */
   finisher: boolean;
   /** 개성 경로 (1단, 2단) */
   path: readonly string[];
-  /** 단검 가열 단계 (0 = 없음) */
+  /** 61 E 단검 가속 단계 (0 = 기본 시트, 2·3 = `_accel<k>` — 공속 배율로 정한다: `accelFxLevel`) */
   heat: number;
   /** 대검 대쉬 공격이 재사용하는 연격 이펙트 id (없으면 null) */
   reuseId: string | null;
@@ -36,6 +36,16 @@ export interface SwingPick {
   variant: FxVariant | null;
   /** 가열 시트도 변주도 없을 때 가열 단계만큼 키우는 배율 (없으면 1) */
   heatScale: number;
+}
+
+/**
+ * 61 E: 공속 배율 → 가속 단계 (0 = 기본 시트 · 2·3 = `_accel2·3` — 아트 단계 1 은 기본 시트라 0 으로 둔다).
+ * 경계 = WEAPON_FX.ACCEL_FX_MULTS (≥ 1.08 → 2, ≥ 1.18 → 3)
+ */
+export function accelFxLevel(speedMult: number): number {
+  let k = 1;
+  for (const b of WEAPON_FX.ACCEL_FX_MULTS) if (speedMult >= b) k++;
+  return k >= 2 ? k : 0;
 }
 
 /** 1단 갈래 시트 `<id>_<1단>` (연격 id 는 `<무기>_combo<n>_<1단>`)가 로드돼 있으면 그 id, 아니면 그대로 */
@@ -60,12 +70,7 @@ export function pickSwingFx(input: SwingPickInput, lookup: TierLookup): SwingPic
   const comboId = input.comboId !== undefined ? input.comboId : comboN !== null ? comboFxId(w, comboN) : null;
   const branchId = comboId ? branchOf(comboId, w, first, has) : null;
   const branchSheet = branchId !== null && branchId !== comboId;
-  const heatId =
-    comboId && heat > 0 && !branchSheet
-      ? comboN !== null && input.comboId === undefined
-        ? heatComboFxId(w, comboN, heat)
-        : `${comboId}_heat${heat}`
-      : null;
+  const heatId = comboId && heat >= 2 && !branchSheet ? accelFxId(comboId, heat) : null;
   const heatSheet = heatId !== null && has(heatId);
   const baseId = comboId && has(comboId) ? (finisher && evoId ? evoId : comboId) : (evoId ?? slashFxId(w));
   let pick: { id: string; tier: FxTier; variant: FxVariant | null };
@@ -75,8 +80,8 @@ export function pickSwingFx(input: SwingPickInput, lookup: TierLookup): SwingPic
     const id = heatSheet && !(finisher && evoId) ? heatId! : baseId;
     pick = { id, tier: 'base', variant: resolveFxVariant(lookup.sheet(id), { secondary, heat }) };
   }
-  // 가열: 단계 시트가 없고 시트 JSON 에도 가열 변주가 없으면 그림을 키운다
-  const heatVariant = heat > 0 && resolveFxVariant(lookup.sheet(pick.id), { heat }) !== null;
-  const heatScale = heat > 0 && !heatSheet && !heatVariant ? 1 + WEAPON_FX.HEAT_SCALE_PER_STAGE * heat : 1;
+  // 가속: 단계 시트가 없고 시트 JSON 에도 가열 변주가 없으면 그림을 키운다 (단계 1 = 그대로)
+  const heatVariant = heat > 1 && resolveFxVariant(lookup.sheet(pick.id), { heat }) !== null;
+  const heatScale = heat > 1 && !heatSheet && !heatVariant ? 1 + WEAPON_FX.HEAT_SCALE_PER_STAGE * (heat - 1) : 1;
   return { ...pick, heatScale };
 }

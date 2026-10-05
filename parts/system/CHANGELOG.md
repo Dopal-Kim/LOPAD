@@ -1321,3 +1321,65 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 ### 검증
 - tsc·eslint·prettier 통과. 테스트 835/836 — 실패 1 = `awakenSheets.test`(아트 작업 트리의 단검 연격 시트 틀 변경, 이 작업과 무관). 새 테스트 `hazardMath.test`·`setpieceMirror.test`(방 다양화·장면)·`enemyIntro.test`·`structureLight.test`, `route.test`(4단·단 웨이브·새 적 순서)·`routeArena.test`·`border.test`·`scope.test`·`sheetSets.test`·`audioDefs.test` 갱신. vite build 통과.
 - 헤드리스(빌드 사본, swiftshader 2fps): 양조 전투에 행상·짐꾼 소환 → 던짐·폭발·굴림 동작, 노드 이동 반복 오류 0, 상점 노드 상인 E 안내·상점 열림. 낮은 FPS 에서는 Phaser 가 프레임 delta 를 줄여 병·술통이 물리처럼 느려진다(실기 확인 필요).
+
+## 61라운드 단계 3 E: 아트 2 신규 그림 연결 · 보스방 VRAM 지연 로드 (2026-10-05)
+근거: `decisions/2026-10-05-round-61-autonomous-stage1.md`(자율 모드), 아트 README 「61라운드 단계 2·3 — 아트 2」 절 + 각 시트 JSON(계약 art §25 는 프로듀서 작성 중 — JSON 이 기준). 열람(자율 모드 고지): `assets/sprites/**` 새 시트 JSON 메타, `parts/art/README.md` 아트 2 절. dagger 각성 시트는 아트가 고치는 중이라 이름만 참조.
+
+### 보스 '만취' 그림
+- **등장 동작** `bosses/v3/stage1_intro` (`scenes/game/BossIntroArt` + 순수 시간표 `systems/boss/introArt`): 보스를 주인공 반대쪽으로 보폭(stride 86 도트) × `show.intro.walkLoops`(2) 만큼 물려 세우고 걸음 열(walkLoop 0~7)을 반복하며 생성 자리까지 걸어 들어옴(막힌 칸이면 덜 물림) → 딸꾹·건배 올림(8~9) → 건배 유지(toastLoop 10~11, 등장 대사 3.1초가 이 동안) → `roarAtMs` 3.8초 포효(12~15, `BOSS_ACTION introRoar` — 음향·이름 카드 자리) → 대기. 카메라는 걸어 들어올 자리를 비춘다. introMs 5200 그대로. 시트가 없으면 예전처럼 대기 그림.
+- **림라이트** `stage1_{idle,walk,attack,stagger_dash,hurt}_rim` (`systems/boss/bossRim`): 3국면 소등 동안만, 보스가 지금 그리는 동작의 림 시트를 같은 프레임 번호·원점·배율로 조명 위(라이트맵 + 0.015)에 겹친다. 림이 없는 동작·로드 전·VRAM 예산 초과면 보스 그림 사본을 호박 채움색(#e2a33c) ADD α0.3 로 대신(아트 권장 대체).
+- **파훼 표시**
+  - 잔 `fx/v3/boss1_cup_glint` (`systems/boss/cupWeakPoint` — BossArena 에서 약점 잔을 떼어 냄): 깰 수 있는 동안 glint 행 반복(잔 중심을 따라감, 그 프레임 cupAnchors.visible false 면 숨김), 맞았지만 안 깨짐 = struck 행 1회(350ms), 깨짐 = cup_shatter. **인사불성 잔은 두 번 맞혀야 깨짐**(`phases[2].patterns.drink.cupHits 2` — struck 이 실제로 쓰이게, 3국면 '어둠 속 두 번'으로 난도 한 칸). 같은 휘두름 중복 방지 120ms.
+  - 기둥 `structures/v3/boss1_pillar` 균열 3단 (`systems/boss/pillars` — 기둥 그림도 BossArena 에서 분리): 보스 돌진이 벽에 막힐 때(BOSS_WALL_HIT) 바디가 기둥 칸에서 20px 안이면 그 기둥 +1단 → `crack<n>` 1회 후 `crack<n>_idle`. **3단 이후는 무너뜨리지 않고 3단 유지**(다시 부딪히면 `crack3_hit` → 3단 정지) — 무너짐 그림이 없고 3국면 엄폐가 사라지면 소등·취권 국면이 지나치게 어려워져서. `BOSS_ACTION pillarCrack{index = 새 단}`.
+  - 술통 `boss1_rolling_barrel_rim`(되칠 수 있는 보스 술통 동안 늘 — 같은 프레임, 조명 위) · 되친 순간 `boss1_rolling_barrel_returned`(같은 행·열로 교체 + 시트 광원) (`rollingCasks`).
+  - 촛대 `fx/v3/boss1_candle_glint`: 쓰러진(다시 켤 수 있는) 촛대에 같은 틀·피벗·flipX 로 반복(없으면 예전 네 갈래 별).
+  - 파훼 창 `fx/v3/boss1_break_daze` (`systems/boss/breakDaze`): 피해 ×1.5 창 동안 머리 위(시트 headTopAnchors[동작][방향][열] — 없는 동작은 idle 같은 방향 0 열).
+- **결정타·처치** (`scenes/game/BossFinale`, BossFlow 가 부른다)
+  - 결정타(BOSS_BREAK finisher): `boss1_finisher_slash`(각도 = 주인공 → 보스) + `boss1_finisher_burst` 같은 점(보스 피벗 위 150 도트) 동시 · 섬광 #fff4dc 70ms α0.6(설정 섬광 끔이면 없음) · 흔들림 10px 320ms(설정 배율) · 확대 ×1.08 260ms(설정 흔들림 0 이면 없음). 히트스톱·슬로모는 처치 연출(240ms·×0.35 1.3초)이 이미 더 길어 아트 제안(180·×0.3 420)은 겹쳐 쓰지 않음.
+  - 처치 0(death 0 프레임): `boss1_defeat_shatter` 를 보스 피벗에(왼쪽을 보면 flipX), 마지막 칸은 보상 메뉴까지 유지 후 페이드 없이 끔.
+  - `show.defeat.snuffAtMs` 2.3초부터 방의 켜진 촛대를 보스에서 먼 순서로 60/90/75ms 간격 `boss1_flame_snuff`(불꽃 자리 = 촛대 시트 light.offset) + 촛대 광원 끔(새 상태 `out` — 서 있는 꺼진 그림이 없어 lit 그림을 어둡게 #5a5048). 그 뒤 5.2초 보상 메뉴. `BOSS_ACTION flameSnuff{index}`.
+- **버그 수정**: 결정타 처치 때 `BossBreaks.onBossKilled` 가 파괴된 보스의 `body.top` 을 읽어 TypeError(결정타마다 — 헤드리스에서 발견) → 바디가 없으면 발 자리.
+
+### 무기 그림
+- 단검 가속 단계: 타를 낼 때 공속 배율(가속 speedMult × 빌드 공속)이 ≥1.08 → `<연격 fx>_accel2`, ≥1.18 → `_accel3`(`WEAPON_FX.ACCEL_FX_MULTS`, 페이로드 `accelStage`, `swingSelect.accelFxLevel`). 옛 `_heat1~3` 은 로드·선택하지 않음(시트가 없으면 예전처럼 키움).
+- 활 화살 `bow_arrow`(4프레임 루프 — 기존 루프 경로) + 시트 광원(r56)을 화살에 붙임(`BowShots.attachLight`, 풀 재사용 때 앞 광원을 뗌).
+- 활 화살비 = 서서 시작 판 `bow_arrow_rain_stand`(몸·무기, 좌 홀드는 서서 시작이라 교체): 발사 = 시트 releaseFrames [4,7,10] 시작(= releasesAt 240/360/480), 데이터 `durationMs 770`·`releasesAtMs [240,360,480]`(대체값)·`firstDropAtMs 560 → 690`(마지막 발사 뒤 같은 간격). 옛 `arrow_rain` 몸·무기 시트는 로드하지 않음. cancelAt 520 은 아직 안 씀(지금 동작은 끝까지 잠금).
+- 칼 발도 검기 단: `PLAYER_ATTACKED{kenkiStage n}` 의 발도 그림을 `katana_iai_ki{min(n,3)}`(없으면 기본 발도).
+- 튜토리얼 허수아비 `structures/v3/tutorial_dummy`(route.json tutorial.dummySprite 첫 후보, 옛 battlefield_dummy 는 뺌): 맞음 hit / 막타·강공·넉백 배율 ≥1.5 무기(대검) hit_heavy 1회 → idle, 오른쪽에서 맞으면 flipX, 기울기·흰 점멸은 그림이 하므로 회전 트윈·채움 점멸 생략, 적중 fx·숫자 자리 = anchors.hitCenter. broken 은 아직 쓰지 않음.
+
+### 폐기 시트 (로드 목록에서 빼고 `data/buildExclude.json` 으로 빌드에서도 뺌)
+- 대검 `greatsword_guard_rush`(몸·무기·fx·각성·울분 단) · 칼 `katana_issen_shadow` · 칼 `katana_thrust_ki1~3`(무기 오버레이 — `GAUGE_OVERLAY_SKIP ['thrust']`, fx) · 단검 `dagger_overheat_cool` · 단검 `dagger_combo<n>_heat<k>`(각성 포함). 앞의 셋·식음은 이미 로드 목록에 없었고 이번에 빌드 제외만 더함.
+
+### 보스방 VRAM (목표 런 최고 500MB — 61 P9)
+- 보스 관련 텍스처 합 약 234MB(몸 15 + 등장 + 림 5 + fx). 묶음을 나눴다 (`systems/boss/bossSheets`, `systems/boss/bossVram`, `systems/sprites/lazySheets`):
+  - **보스 묶음**(보스 노드 preload): 몸 동작(등장 포함, phase_drink 제외) + 보스방 fx·구조물 + 파훼 표시 작은 시트(glint·daze·candle_glint·술통 테·되친 술통).
+  - **등장 동작**: 전투 시작(BOSS_FIGHT) 뒤 보스가 그 텍스처를 더 그리지 않으면 내림(14.6MB).
+  - **국면 전환 들이켜기 phase_drink**(14.2MB): 등장 동작을 내린 뒤 올리고, 3국면 소등 시작에 내림(그 뒤엔 국면 전환이 없다). 없을 때는 들이켜기 루프로 대체(기존 폴백).
+  - **결정타·쓰러짐·불 끄기 fx**(12.9MB): 3국면 소등 시작(phase_drink 를 내린 뒤) — 소등이 없는 보스는 마지막 국면 진입 5초 뒤, 그것도 없으면 처치 때.
+  - **림 5장**(41.5MB): 소등 시작에 지금 VRAM + 결정타 fx(아직이면) + 42MB 가 500MB 안이면 올리고 아니면 tintFill 대체만. 소등이 끝나면 내림.
+  - **노드 전환**: 보스 노드에서는 일반 적 몸·엘리트 외곽선 시트(약 53MB)를 내리고(보스가 부하를 부르지 않으면), 다른 노드에서는 다시 올리고 보스 묶음·지연 묶음을 내린다(다음 런 1층 전투에 보스 시트가 남지 않게).
+  - **런 무기 묶음에서 2단 갈래 그림 제외**(1층판은 1단까지 — `runAllowsTier2`, 시험장은 전부): 대검 약 12MB.
+  - **1층판에서 꺼진 세트 단계 fx 제외**: 간파 6 정적 파동 `set_stasis_wave`(13.9MB, floor 2 — `floorGatedFxIds`).
+  - 내리기는 그 텍스처를 그리는 스프라이트(보스·시체·림)가 없을 때까지 프레임마다 미룬다. 씬 도중 로드는 게임 스텝에서도 로더 큐를 민다(`keepLoaderMoving` — 메뉴·일시정지로 씬이 멈춰도).
+- 실측(빌드 미리보기 헤드리스, `?boss&debug=1&new=1&seed=e61&weapon=<무기>`, 2·3국면·소등·처치까지, `__lopad.boss.arena().vram`):
+
+| 무기 | 등장 | 전투(1·2국면 최고) | 3국면 소등 | 보스방 최고 | 림 | 전(작업 전 같은 조건) |
+|---|---|---|---|---|---|---|
+| 대검 | 481.3 | 485.1 | 483.9 | **485.1** | tintFill(예산) | 558.7(+새 시트 시 약 616) |
+| 칼 | 380.7 | 384.6 | 424.9 | **424.9** | 시트 | — |
+| 단검 | 268.6 | 302.5 | 342.8 | **342.8** | 시트 | — |
+| 활 | 296.1 | 300.0 | 340.3 | **340.3** | 시트 | — |
+
+  일반 노드(첫 노드, 보스 묶음 없음): 대검 약 379 · 칼 약 278 · 단검 약 196 · 활 약 194(set_stasis_wave 제외 반영 추정). 4096 초과 0.
+- 디버그: `__lopad.boss.arena()` 에 `cupHits`·`pillars`·`daze`·`rim{on,mode}`·`vram{rimReady,finaleReady,pending,peakMb,loader,log}`, `__lopad.boss.crackPillar(i)`, `__lopad.boss.flow()` 에 `introArt`·`finale`.
+
+### 조율 확인 (음향 동기화 질문)
+- `ENEMY_TELEGRAPH`/`ENEMY_ATTACK` 의 `id` = 적 종류 id(conscript·archer·charger·peddler·porter …, 접촉은 그림 이름 spriteId) — 별도 `enemy` 필드는 같은 값이라 더하지 않음.
+- `boss:intro` 페이로드에 `floor`(1부터 층 번호) 추가 — `id` 는 보스 id(`stage1`).
+- `BOSS_BREAK{distinct:true}` 는 그대로 나온다(`BossBreaks.record` — 서로 다른 파훼 첫 발생).
+- `exit_open` 은 이미 `EXIT_OPENED` 에 걸려 있다(`audioMap` — STORY notice 쪽 연결 없음).
+
+### 검사
+- `tsc --noEmit` · `eslint .` · `vitest run` 119 파일 848 통과 · 바뀐 파일 prettier · `vite build` 통과. 새 테스트: `introArt.test`(등장 시간표) · `bossArt.test`(균열 단·머리 꼭대기 표·림 예산·발도 검기 그림) · `sheetSets.test`(2단 그림·정적 파동·보스 묶음 나눔) · `swingSelect.test`(가속 단계) · `buildExclude.test`(폐기 시트).
+- 헤드리스(빌드, 4무기): 등장 walk→raise→toast→roar→전투, 기둥 균열 1→2→3→3, 잔 struck·깨짐·daze, 소등 림(칼·단검·활 시트 / 대검 tintFill), 결정타(일섬+충격)·쓰러짐 파편·촛대 4개 끄기·보상, 콘솔 오류 0.
+- sim: bossSim 단검 96·칼 106·대검 108·활 117초(변화 없음) · floorSim 보통 길 단검 6.8·칼 6.4·대검 6.4·활 7.4분.

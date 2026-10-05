@@ -12,7 +12,7 @@ import { sheetJsonCandidates } from './spriteMeta';
 import { normalizeStructureSheet, sheetToWorldUnits, type SheetDef } from './sheetJson';
 import { sheetTextureKey, type SheetRequest } from './sheetPaths';
 import { readSheetJson as parseSheetJson, type AtlasData } from './sheetAtlas';
-import { awakenSheetRequests, bossSheetRequests, weaponSheetRequests } from './sheetSets';
+import { awakenSheetRequests, runAllowsTier2, weaponSheetRequests } from './sheetSets';
 import { SPRITES } from '../../core/Constants';
 import { BOSSES } from '../../data';
 
@@ -110,7 +110,7 @@ export function registerSheets(scene: Phaser.Scene, defs: readonly SheetDef[]): 
  * 요청 목록을 이 씬의 로더에 이어 붙인다: JSON 이 읽히는 대로 이미지를 같은 로드에 넣고, 로드가 끝나면 등록한 뒤 done.
  * 로드할 파일이 없으면 바로 등록·done 하고 false
  */
-function queueRequests(scene: Phaser.Scene, reqs: readonly SheetRequest[], done: () => void): boolean {
+export function queueRequests(scene: Phaser.Scene, reqs: readonly SheetRequest[], done: () => void): boolean {
   const defs: SheetDef[] = [];
   const onJson = (p: PendingSheet) => {
     const d = queueSheetImage(scene, p);
@@ -142,23 +142,19 @@ function queueRequests(scene: Phaser.Scene, reqs: readonly SheetRequest[], done:
 
 /**
  * 57라운드 A2: 런 무기의 시트를 이 씬의 preload 에서 로드한다 (Game·WeaponLab — 런 시작·이어하기·시험장 무기 교체).
- * 이미 그 무기면 아무것도 하지 않는다. 다른 무기가 올라가 있으면 그 무기만의 시트를 먼저 내린다(GPU 메모리).
+ * 다른 무기가 올라가 있으면 그 무기만의 시트를 먼저 내린다(GPU 메모리). 이미 올라간 시트는 다시 받지 않는다.
  * 60라운드: awaken 이면 최종 각성 오버레이(`<무기 동작>_awaken`, 계약 art §21 — 각성 런에서만)도 같이.
+ * 61 E: lab(시험장)이 아니고 로드 범위 층에서 2단 갈래가 닫혀 있으면 2단 갈래 그림은 올리지 않는다 (`runAllowsTier2`).
  * JSON 이 읽히는 대로 이미지를 같은 로드에 이어 붙이고, 로드가 끝나면(씬 create 전) 등록한다. 로드할 파일이 있으면 true
  */
-export function preloadWeaponSheets(scene: Phaser.Scene, weaponId: string, awaken = false): boolean {
+export function preloadWeaponSheets(scene: Phaser.Scene, weaponId: string, awaken = false, lab = true): boolean {
   const wantAwaken = awaken && loadedAwaken !== weaponId;
-  if (loadedWeapon === weaponId && !wantAwaken) return false;
-  const reqs: SheetRequest[] = [];
-  if (loadedWeapon !== weaponId) {
-    if (loadedWeapon) releaseWeaponSheets(scene, loadedWeapon, weaponId);
-    loadedWeapon = null;
-    reqs.push(...weaponSheetRequests(weaponId));
-  }
-  if (wantAwaken) reqs.push(...awakenSheetRequests(weaponId));
-  const had = loadedWeapon;
+  if (loadedWeapon !== weaponId && loadedWeapon) releaseWeaponSheets(scene, loadedWeapon, weaponId);
+  const has = (r: SheetRequest) => scene.textures.exists(sheetTextureKey(r.name, r.action));
+  const reqs = weaponSheetRequests(weaponId, lab || runAllowsTier2()).filter((r) => !has(r));
+  if (wantAwaken) reqs.push(...awakenSheetRequests(weaponId).filter((r) => !has(r)));
+  loadedWeapon = weaponId;
   return queueRequests(scene, reqs, () => {
-    loadedWeapon = had ?? weaponId;
     if (wantAwaken) loadedAwaken = weaponId;
   });
 }
@@ -186,21 +182,6 @@ function releaseWeaponSheets(scene: Phaser.Scene, prevId: string, nextId: string
   const drop = prev.filter((r) => !keep.has(sheetTextureKey(r.name, r.action)));
   spriteLibrary.removeSheets(scene, drop);
   if (loadedAwaken === prevId) loadedAwaken = null;
-}
-
-/** 61라운드 단계 2: 보스 묶음을 올렸는지 (한 번 올리면 게임 동안 둔다 — 1층 범위) */
-let bossLoaded = false;
-
-/**
- * 61라운드 단계 2 첫 로딩 줄이기: 보스 노드에 들어갈 때(Game preload) 보스 묶음을 읽는다. 이미 있으면 false.
- * 끝나면 자기 시트가 없는 보스를 폴백 시트에 잇는다 (결정 로그 J)
- */
-export function preloadBossSheets(scene: Phaser.Scene): boolean {
-  if (bossLoaded) return false;
-  return queueRequests(scene, bossSheetRequests(), () => {
-    bossLoaded = true;
-    aliasBossFallbacks();
-  });
 }
 
 /** 자기 시트가 없는 보스는 폴백 시트를 쓴다 (2~7층 보스 = stage1 시트 + 층 램프 스왑) */

@@ -83,12 +83,24 @@ export interface BossPoseApi {
    * 그 프레임 점이 null 이면 바로 앞 점, 방향은 재생 중인 행 또는 지금 방향). 없으면 null
    */
   anchor(action: string, key: 'footAnchors' | 'handAnchors', at?: 'impactFrame' | 'releaseFrame'): Vec | null;
+  /** 61 E: 지금 프레임의 잔이 보이는지 (drink 시트 cupAnchors visible — 앵커가 없으면 true) */
+  cupVisible(): boolean;
   /** drink 시트에 cupAnchors 가 있는지 (없으면 방이 임시 잔을 그린다) */
   readonly cupArt: boolean;
   /** 35라운드 소환 뒤 멈춤: attack frame 3 길이 (없으면 0) */
   recoverHoldMs(): number;
   /** 지금 보는 방향 */
   readonly facing: Facing;
+}
+
+/** 약점 잔 등록 내용 (setWeakPoint) */
+export interface WeakPointSpec {
+  rect: () => { x: number; y: number; w: number; h: number };
+  onHit: () => void;
+  drawCup?: boolean;
+  /** 깨지기까지 맞혀야 하는 수 (기본 1) */
+  hits?: number;
+  visible?: () => boolean;
 }
 
 /** 보스 본체가 패턴에 열어 주는 창구 */
@@ -167,8 +179,9 @@ export interface BossArenaApi {
   caskRadiusPx(fallbackPx: number, ratio: number): number;
   /** 횃불 던지기: flightMs 뒤 to 에 떨어져 그 자리 웅덩이에 불 (웅덩이가 없으면 꺼짐) */
   throwTorch(from: Vec, to: Vec, flightMs: number): void;
-  /** 약점(잔) 등록: 근접 판정·화살이 rect() 에 닿으면 onHit 한 번. null 이면 해제 */
-  setWeakPoint(
-    wp: { rect: () => { x: number; y: number; w: number; h: number }; onHit: () => void; drawCup?: boolean } | null,
-  ): void;
+  /**
+   * 약점(잔) 등록: 근접 판정·화살이 rect() 에 닿을 때마다 1회 — hits 번(기본 1) 맞으면 onHit (깨짐). 그 전 맞음은 struck 표시.
+   * visible = 지금 프레임에 잔이 보이는지 (61 E 파훼 표시 cup_glint — 없으면 늘 보임). null 이면 해제
+   */
+  setWeakPoint(wp: WeakPointSpec | null): void;
 }

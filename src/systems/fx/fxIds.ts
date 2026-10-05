@@ -7,7 +7,7 @@ import type { ComboDef, WeaponMovesDef } from '../../data/types';
 import { moveFxNames } from '../../data/moveTypes';
 import { comboArtNames } from '../weapon/comboArt';
 import { BIRTH_FX, COMBO_HITS } from '../sprites/spriteDefs';
-import { BUILD_ART, FEEDBACK } from '../../core/Constants';
+import { BUILD_ART, FEEDBACK, WEAPON_FX } from '../../core/Constants';
 
 /** 연격 베기 이펙트 `fx/<무기>_combo<n>` */
 export function comboFxId(weaponId: string, n: number): string {
@@ -18,7 +18,7 @@ export function comboFxId(weaponId: string, n: number): string {
 export interface FxWeaponShape {
   kind: 'melee' | 'ranged';
   personality: { branches: { id: string; next?: { id: string }[] }[] };
-  /** 49라운드: 과열 무기면 가열 단계별 연격 이펙트, 내리찍기가 있으면 내리찍기 이펙트 */
+  /** 49라운드: 과열(61: 가속) 무기면 가속 단계별 연격 이펙트, 내리찍기가 있으면 내리찍기 이펙트 */
   resource?: { kind: string };
   slam?: unknown;
   /** 55라운드 §17: 연격 그림 이름 표 (휘두름·바닥 충격 이펙트 `fx/<무기>_<이름>`) */
@@ -43,6 +43,19 @@ export function gaugeFxIds(w: Pick<FxWeaponShape, 'gauge'>): string[] {
   return [BRAND.MARK_SHEET, BRAND.BURST_SHEET, OVERHEAT.SHEET];
 }
 
+/** 61 E 칼 발도 검기 단 이펙트 `fx/<무기>_iai_ki<n>` (n = 1..3, 소모한 검기 단 — 3 이상은 3) */
+export function kenkiFxId(baseFxId: string, stages: number): string | null {
+  const n = Math.min(WEAPON_FX.KENKI_FX.LEVELS, Math.floor(stages));
+  return n >= 1 ? `${baseFxId}_ki${n}` : null;
+}
+
+/** 검기 단 이펙트 목록 (고유 자원이 검기인 무기만) */
+export function kenkiFxIds(id: string, w: Pick<FxWeaponShape, 'gauge'>): string[] {
+  if (w.gauge?.kind !== 'kenki') return [];
+  const base = `${id}_${WEAPON_FX.KENKI_FX.ART}`;
+  return Array.from({ length: WEAPON_FX.KENKI_FX.LEVELS }, (_, i) => `${base}_ki${i + 1}`);
+}
+
 /** 56라운드 Q9 완벽 놓기 섬광 `fx/<무기>_perfect_release` */
 export function perfectReleaseFxId(weaponId: string): string {
   return `${weaponId}_perfect_release`;
@@ -54,16 +67,19 @@ export function weaponKitFxIds(id: string, w: FxWeaponShape): string[] {
   if (w.issen) for (const s of w.issen.lineSheets) out.push(s, `${s}${w.issen.soloSuffix}`);
   if (w.draw) out.push(w.draw.weakArrowSheet, perfectReleaseFxId(id));
   for (const n of moveFxNames(w.moves)) out.push(`${id}_${n}`);
-  out.push(...gaugeFxIds(w));
+  out.push(...gaugeFxIds(w), ...kenkiFxIds(id, w));
   return out;
 }
 
-/** 49라운드 §7.2 과열 단계 수 (fx/<무기>_combo<n>_heat<k>, k = 1..3) */
-export const HEAT_STAGES = 3;
+/**
+ * 61라운드 E 단검 가속 단계 연격 이펙트 (아트 2 `fx/v3/<연격 fx>_accel<k>`, k = 2·3 — 단계 1 = 기본 시트).
+ * 옛 과열 단계 `_heat1~3`(49라운드, 보라)은 쓰지 않는다
+ */
+export const ACCEL_FX_LEVELS: readonly number[] = [2, 3];
 
-/** 과열 단계별 연격 이펙트 `fx/<무기>_combo<n>_heat<k>` */
-export function heatComboFxId(weaponId: string, n: number, k: number): string {
-  return `${comboFxId(weaponId, n)}_heat${k}`;
+/** 가속 단계 연격 이펙트 id: 연격 fx id 에 `_accel<k>` */
+export function accelFxId(comboFxIdValue: string, k: number): string {
+  return `${comboFxIdValue}_accel${k}`;
 }
 
 /** 대검 내리찍기 이펙트 `fx/<무기>_slam` */
@@ -97,9 +113,9 @@ export function fxSheetIds(weapons: Record<string, FxWeaponShape>): string[] {
       out.add(slashFxId(id));
       // 48라운드 §6.1 연격 베기 이펙트
       for (let n = 1; n <= COMBO_HITS; n++) out.add(comboFxId(id, n));
-      // 49라운드 §7.2: 단검 가열 단계 · 대검 내리찍기
+      // 61 E: 단검 가속 단계 (옛 49라운드 가열 시트 대신) · 49라운드 대검 내리찍기
       if (w.resource?.kind === 'heat')
-        for (let n = 1; n <= COMBO_HITS; n++) for (let k = 1; k <= HEAT_STAGES; k++) out.add(heatComboFxId(id, n, k));
+        for (let n = 1; n <= COMBO_HITS; n++) for (const k of ACCEL_FX_LEVELS) out.add(accelFxId(comboFxId(id, n), k));
       if (w.slam) out.add(slamFxId(id));
       for (const n of comboArtNames(w.combo).fx) out.add(`${id}_${n}`);
     } else {

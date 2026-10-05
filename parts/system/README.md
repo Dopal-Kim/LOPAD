@@ -20,14 +20,14 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 ## 2. 부팅 흐름
 
 `main.ts` → Phaser.Game(`config.ts`) → `installContractHost`(계약 명령 구현) → `audio.attach` → `settings.load`(계약 §15 설정 적용) → `runLogRecorder.attach`(런 로그) → `installBootDebug`(`?debug`).
-씬: `Boot` → `Preloader`(매니페스트 → 시트·타일셋·외벽·음향 JSON → 그림·소리, 부팅 묶음만 — 무기 묶음은 Game preload, 61 단계 2: 보스 묶음은 보스 노드 Game preload) → UI 타이틀 / `Setup`(개성 선택 의식) / `Game`(런) / `WeaponLab`(Game 의 시험장 모드) / `GameOver`(UI 결과 화면이 없을 때의 임시 화면).
+씬: `Boot` → `Preloader`(매니페스트 → 시트·타일셋·외벽·음향 JSON → 그림·소리, 부팅 묶음만 — 무기 묶음은 Game preload, 61 단계 2: 보스 묶음은 보스 노드 Game preload, 61 E: 노드 종류별 묶음 올리고 내리기 `sprites/lazySheets.prepareNodeSheets`) → UI 타이틀 / `Setup`(개성 선택 의식) / `Game`(런) / `WeaponLab`(Game 의 시험장 모드) / `GameOver`(UI 결과 화면이 없을 때의 임시 화면).
 
 ## 3. 폴더별 책임
 
 ### `src/core/`
 - `EventBus.ts` — 시스템 내부 이벤트(`domain:action`)와 페이로드 형식. UI 로 가는 이벤트는 따로(`contract/ui.ts uiBus`).
 - `GameState.ts` — 런 상태 싱글턴(`startRun`·`applySave`·`toSave`·층 이동). 메타 보너스는 시작 때 읽음.
-- `Constants.ts` → `constants/*` 도메인별(display·colors·assets·world·feel·enemy·player·scenes·boss·moves·build·bundle·settings). 엔진·연출 값은 여기, 게임 수치는 `data/*.json`.
+- `Constants.ts` → `constants/*` 도메인별(display·colors·assets·world·feel·enemy·player·scenes·boss·bossArt·moves·build·bundle·settings). 엔진·연출 값은 여기, 게임 수치는 `data/*.json`.
 
 ### `src/contract/` (UI 경계)
 - `ui.ts` — 계약 본문(이벤트·스냅샷·메뉴·명령). UI 가 import 하는 유일한 시스템 파일.
@@ -41,7 +41,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 
 ### `src/scenes/`
 - `Game.ts` — 런 씬 생애주기만(모듈 생성 → 런 준비 → 노드 진입 → 월드 → 플레이어 → 풀·연출 → 물리 배선 → 방 상태 머신 → 구조물 → 계약 연결 → 디버그 → 이벤트 표). 실제 일은 `scenes/game/*` 모듈:
-  - 진행: `Progression`(런 시작 모드·세이브·처치 → 개성·3지선다·스테이지 보상·엔딩·사망·정산·결과) · `BossFlow`(61: 보스 등장·처치 연출 시간표 · 보스 대사 · 보상 미루기 — 데이터 `bosses.json show`·`linesKey`) · `RouteFlow`(노드 진입·클리어 → 출구 → 노드 선택·전환) · `BirthFlow`(탄생 연출) · `LabMode`(무기 시험장) · `Economy`(드랍·상점, 61: 상점 상인 `ShopKeeper` E) · `directorHost`(방 상태 머신 생성)
+  - 진행: `Progression`(런 시작 모드·세이브·처치 → 개성·3지선다·스테이지 보상·엔딩·사망·정산·결과) · `BossFlow`(61: 보스 등장·처치 연출 시간표 · 보스 대사 · 보상 미루기 — 데이터 `bosses.json show`·`linesKey`; 61 E: 등장 동작 `BossIntroArt` · 결정타·쓰러짐 파편·불 끄기 `BossFinale`) · `RouteFlow`(노드 진입·클리어 → 출구 → 노드 선택·전환) · `BirthFlow`(탄생 연출) · `LabMode`(무기 시험장) · `Economy`(드랍·상점, 61: 상점 상인 `ShopKeeper` E) · `directorHost`(방 상태 머신 생성)
   - 전투: `GameCombat`(피해 계산 `rollDamage`·적 피격 공통 경로 `hitMob`·접촉·투사체) · `PlayerStrikes`·`MoveStrikes`·`IssenStrikes`·`CrackLineStrikes`·`BowShots`·`ArrowRain`·`BrandMarks`·`StrikeSchedule`·`StrikeDots`
   - 연출: `SwingFx`·`MotionFx`·`WeaponFeedback`·`FxWiring`·`GameCamera`·`swingShake`·`bladeTip`·`HitShapeOverlay`·`AnchorDebug`
   - 빌드 축 `build/*`(BuildRuntime·BuildCombat(+`combat/*`)·BuildMenus·BuildEffects·BuildDefense·BuildPerfect·AwakenFlow·BuildArt, 무기별 갈래 `branch/*`) · 2차 묶음 `bundle/*`(BundleRuntime·NodeFlow·EventNode·BossBreaks·EliteSystem(+EliteArt)·Consumables·ShopMenu·BundleProps·bundleRewards)
@@ -55,9 +55,9 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 
 ### `src/systems/` (Phaser 의존을 줄인 규칙·계산 — 대부분 단위 테스트가 붙어 있다)
 - 런·진행: `route`(노드 지도 생성·검증, 61: 단마다 종류·웨이브 `columns`·`nodeWaves`) · `routeArena`(노드 전투장, 61: 방 다양화 `arenaVariety`·세트 후보 `pickSetPiece`·소품 장면 `pickPropScene`) · `enemyIntro`(새 적 소개) · `RoomDirector`(방 상태 머신·웨이브) · `save`(런 세이브 `lopad.save`) · `meta`(메타 세이브 `lopad.meta`: 영혼·강화·도감·**설정·런 로그**) · `personality` · `passives` · `senses` · `economy` · `story` · `tutorial`/`tutorialDirector` · `birth` · `traversal` · `TextMenu`(메뉴 브로커)
-- 전투 감각: `feel`(히트스톱·흔들림·넉백·`feelSettings` 배율) · `hitFeel` · `Combat`·`defense` · `packCharge` · `weapon/*`(연격·판정 모양 `hitShapes`·자원·고유 자원·활 당김·4동사 `verbs` 등) · `telegraph/*` · `hazards/*`(술 웅덩이 `LiquorPools` · 61 신규 적 위험물 `EnemyHazards` — 화염 술병·술통 굴림·되치기, 계산 `hazardMath`) · `boss/*`(보스 전장·불타기·'세상이 돈다' `drunkScreen`)
+- 전투 감각: `feel`(히트스톱·흔들림·넉백·`feelSettings` 배율) · `hitFeel` · `Combat`·`defense` · `packCharge` · `weapon/*`(연격·판정 모양 `hitShapes`·자원·고유 자원·활 당김·4동사 `verbs` 등) · `telegraph/*` · `hazards/*`(술 웅덩이 `LiquorPools` · 61 신규 적 위험물 `EnemyHazards` — 화염 술병·술통 굴림·되치기, 계산 `hazardMath`) · `boss/*`(보스 전장 `BossArena`·불타기·'세상이 돈다' `drunkScreen` · 61 E: 약점 잔 `cupWeakPoint`·기둥 균열 `pillars`·파훼 고리 `breakDaze`·소등 림 `bossRim`·보스방 VRAM 지연 로드 `bossVram`·로드 묶음 `bossSheets`·등장 시간표 `introArt`·순수 규칙 `bossArtRules`)
 - 빌드 축 `build/*` · 2차 묶음 `bundle2/*` · 구조물 `structures/*`(StructureSystem 창구 + core·kinds·interact·placement·setpiece)
-- 그림·소리: `sprites/*`(시트 경로·로드 묶음 `sheetSets`·애니 등록) · `fx/*`(FxPool·섬광 `screenFx`·피해 숫자·리본·잔상 · 씬 종료 중 반납 검사 `fxRelease` · 피해 숫자 합치기/비켜 띄우기 `damageNumberLayout`) · `lighting/*` · `strokeFx/*`(3획 연출) · `dodgeTrial/*`(회피 시험) · `audio/*`(오디오 매니저 `audio` · 이벤트 → 효과음 표 `audioMap`·`audioBuild` · 61 믹싱 규칙 `audioMix`·목소리 상한/덕킹 `audioVoices`·층 BGM 지연 로드 `audioLazy`) · `palette` · `display`(1920×1080 캔버스·논리 960×540) · `fonts`
+- 그림·소리: `sprites/*`(시트 경로·로드 묶음 `sheetSets`·애니 등록 · 61 E 노드별 묶음·씬 도중 로드/해제 `lazySheets`) · `fx/*`(FxPool·섬광 `screenFx`·피해 숫자·리본·잔상 · 씬 종료 중 반납 검사 `fxRelease` · 피해 숫자 합치기/비켜 띄우기 `damageNumberLayout`) · `lighting/*` · `strokeFx/*`(3획 연출) · `dodgeTrial/*`(회피 시험) · `audio/*`(오디오 매니저 `audio` · 이벤트 → 효과음 표 `audioMap`·`audioBuild` · 61 믹싱 규칙 `audioMix`·목소리 상한/덕킹 `audioVoices`·층 BGM 지연 로드 `audioLazy`) · `palette` · `display`(1920×1080 캔버스·논리 960×540) · `fonts`
 - 61라운드 도구: `settings`(계약 §15 설정 적용·저장) · `runlog/*`(런 로그) · `sim/*`(헤드리스 수치 추정) · `vram`(텍스처 VRAM 추정)
 - 기타: `mapgen/*`(방+복도 층 — 노드 지도 이전 층 형식) · `setup/*`(개성 선택 계산) · `rng` · `mathUtil` · `keyEvents` · `InputSystem`
 
@@ -100,7 +100,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 
 - **런 로그**: 데모 플레이 뒤 `?debug=1` 로 열고 `__lopad.runlog.dump()` → `saved`(끝난 런들) · `byKind`(노드 종류별 평균 시간·처치·피격·피해·메뉴) · `current`(진행 중).
 - **수치 추정**: `npx vitest run src/systems/sim --silent=false` → 무기 4종 DPS 와 1층 길 3종(전투 많음·보통·적음)의 노드별 시간·처치·받는 피해. 보스 싸움 길이는 `sim/bossSim.ts`(파훼 피해 창·활 공격 비율 — `bossSim.test` 가 4무기 90~120초를 지킨다). 가정값은 `core/constants/settings.ts SIM`.
-- **VRAM**: `__lopad.vram()` → `mb`(고유 텍스처 추정 합) · `over4096` · `top` · `byGroup` · `dupImages`. 목표 런당 500MB 이하(61 P9).
+- **VRAM**: `__lopad.vram()` → `mb`(고유 텍스처 추정 합) · `over4096` · `top` · `byGroup` · `dupImages`. 목표 런당 500MB 이하(61 P9). 보스방은 `__lopad.boss.arena().vram`(지연 로드 기록·최고값 — 61 E 묶음 나눔은 CHANGELOG 61 E 절).
 
 ## 7. 61라운드 무기 4동사 (구조)
 

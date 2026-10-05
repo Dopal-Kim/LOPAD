@@ -9,6 +9,7 @@ import Phaser from 'phaser';
 import { EventBus, Events, type PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { artCandidates, hitArtKey, pickArt } from '../../systems/weapon/comboArt';
+import { accelFxLevel } from '../../systems/weapon/swingSelect';
 import type { InputState } from '../../systems/InputSystem';
 import { facingOf, rowDirFor } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
@@ -102,9 +103,12 @@ export function emitPlayerAttack(
     if (combo.momentum !== undefined) payload.momentum = combo.momentum;
     if (combo.crack) payload.crack = combo.crack;
   }
-  // 49라운드 과열: 가열 단계 (이펙트 강화)
+  // 49라운드 과열(61 가속): 단계 (난타·낙인) · 61 E 가속 그림 단계 = 이 타를 낼 때 공속 배율(가속 × 빌드 공속)
   const res = p.gear.resource;
-  if (res?.kind === 'heat') payload.heatStage = res.stage;
+  if (res?.kind === 'heat') {
+    payload.heatStage = res.stage;
+    payload.accelStage = accelFxLevel(res.speedMult * p.buildAttackSpeed);
+  }
   // 60라운드 음향 칼 검기 단: 61라운드부터 검기를 소모한 동작(좌 홀드 발도)만 extra.kenkiStage 로 싣는다 — 찌르기는 늘 0
   if (extra) Object.assign(payload, extra);
   EventBus.emit(Events.PLAYER_ATTACKED, payload);

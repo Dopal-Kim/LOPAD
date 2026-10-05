@@ -19,6 +19,8 @@ export const BOSS_EXTRA_ACTIONS = [
   'throw',
   'throw_torch',
   'phase_drink',
+  // 61라운드 E 아트 2: 등장(걸어 들어옴·건배·포효) — 보스 묶음, 전투 시작 때 내린다 (systems/boss/bossSheets)
+  'intro',
 ] as const;
 
 /** 계약 §3.1 손에 든 무기 오버레이 동작 */
@@ -62,10 +64,10 @@ export const GROGGY_ACTION = 'groggy';
 export const GROGGY_CARRY = 'carry_groggy';
 
 /**
- * 56라운드 Q9 활 당김 유지·놓기 (몸 `player_<무기>_draw_hold`·`_release`, 무기 같은 이름) · 2단계 화살비 `arrow_rain`(Q43)
- * — 다른 무기는 매니페스트가 거른다
+ * 56라운드 Q9 활 당김 유지·놓기 (몸 `player_<무기>_draw_hold`·`_release`, 무기 같은 이름) · 화살비 — 61라운드 E: 좌 홀드는 서서
+ * 시작하므로 아트 2 서서 시작 판 `arrow_rain_stand`(옛 당긴 채 시작 `arrow_rain` 은 로드하지 않음) — 다른 무기는 매니페스트가 거른다
  */
-export const BOW_DRAW_MOTIONS = ['draw_hold', 'release', 'arrow_rain'] as const;
+export const BOW_DRAW_MOTIONS = ['draw_hold', 'release', 'arrow_rain_stand'] as const;
 
 export type WeaponMotion = (typeof WEAPON_MOTIONS)[number];
 
@@ -176,6 +178,12 @@ export const FX_ACTION = 'fx';
 
 /** 56라운드 고유 자원 오버레이 단계 수 (검기 3단 · 울분 3단) */
 export const GAUGE_OVERLAY_LEVELS = 3;
+
+/**
+ * 61라운드 E: 고유 자원 오버레이를 붙이지 않는 무기 동작 — 칼 찌르기(검기는 좌 홀드 발도만 소모, 아트 2 '이제 안 쓰는 그림'
+ * `weapons/v3/katana_thrust_ki1~3`)
+ */
+export const GAUGE_OVERLAY_SKIP: readonly string[] = ['thrust'];
 
 /** 56라운드 고유 자원 오버레이 무기 동작 `<무기 동작>_<접미><단>` (`katana_rise_ki2`·`greatsword_cleave_grudge1` — 무기 시트 이름) */
 export function gaugeOverlayAction(weaponAction: string, suffix: string, level: number): string {

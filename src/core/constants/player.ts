@@ -102,4 +102,11 @@ export const CARRY = {
 export const WEAPON_FX = {
   /** 단검 과열: 가열 단계 시트가 없을 때 연격 이펙트 배율 = 1 + 단계 × 값 */
   HEAT_SCALE_PER_STAGE: 0.12,
+  /**
+   * 61라운드 E 단검 가속 단계 이펙트 (아트 2 `<연격 fx>_accel2·3`, 옛 `_heat1~3` 대체): 타를 낼 때 공속 배율(가속 × 빌드 공속)이
+   * 이 값 이상이면 단계 2·3. 단계 1 = 기본 시트
+   */
+  ACCEL_FX_MULTS: [1.08, 1.18] as readonly number[],
+  /** 61라운드 E 칼 발도 검기 단 이펙트 (아트 2 `fx/v3/katana_iai_ki1~3` — 소모한 검기 단, 3 이상은 3): 대상 그림 이름 · 단 수 */
+  KENKI_FX: { ART: 'iai', LEVELS: 3 },
 } as const;

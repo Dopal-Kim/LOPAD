@@ -8,6 +8,7 @@
  * 처치 (BOSS_DIED): 히트스톱 · 섬광 · 흔들림 → 슬로모(물리·트윈·죽음 그림) → 쓰러짐 대사(lines.defeat) → `BOSS_FALLEN`
  *   (무기 한마디 bossKill 자리) → 보상 메뉴 (방 상태 머신의 층 보상을 `after` 로 미뤄 두었다가 이때 연다).
  * `show` 가 없는 보스·`?nobossintro`·시험장은 연출 없이 기존처럼 바로 전투·보상.
+ * 61 E (아트 2): 등장 동작 재생은 `BossIntroArt`(걸어 들어옴·건배·포효), 결정타·쓰러짐 파편·방 불 끄기는 `BossFinale`.
  */
 import { BOSS_FX } from '../../core/Constants';
 import {
@@ -38,6 +39,8 @@ import {
 } from '../../systems/boss/bossShow';
 import { floorText } from '../../systems/story';
 import type { Game } from '../Game';
+import { BossFinale } from './BossFinale';
+import { BossIntroArt } from './BossIntroArt';
 import { urlParams } from './shared';
 
 type Mode = 'idle' | 'intro' | 'fight' | 'defeat' | 'done';
@@ -70,6 +73,9 @@ export class BossFlow {
   private slow: { world: number; tweens: number } | null = null;
   /** 디버그 */
   readonly log: { t: number; e: string }[] = [];
+  /** 61 E 등장 동작 (등장 시트가 있을 때) · 결정타·쓰러짐·불 끄기 */
+  private introArt: BossIntroArt | null = null;
+  private readonly finale: BossFinale;
 
   private readonly subs: [string, (p: never) => void][] = [
     [Events.BOSS_STARTED, (p: { boss: string }) => this.onStarted(p)],
@@ -80,6 +86,7 @@ export class BossFlow {
   ];
 
   constructor(private readonly g: Game) {
+    this.finale = new BossFinale(g);
     for (const [e, fn] of this.subs) EventBus.on(e, fn, this);
   }
 
@@ -143,9 +150,11 @@ export class BossFlow {
     this.introMs = show.intro.fightAtMs;
     this.boss.setDormant(true);
     this.g.player.body.setVelocity(0, 0);
+    this.introArt = BossIntroArt.create(this.g, this.boss, show.intro);
     this.intro = new StepClock(introSteps(show.intro));
     EventBus.emit(Events.BOSS_INTRO, {
       id: this.id,
+      floor: gameState.floorReached,
       durationMs: show.intro.fightAtMs,
       lineGapMs: show.intro.floorLineAtMs,
     } satisfies BossIntroPayload);
@@ -156,7 +165,11 @@ export class BossFlow {
     this.mark(step);
     switch (step) {
       case 'pan':
-        if (this.boss?.active) this.g.cam.setFocus({ x: this.boss.x, y: this.boss.y - this.boss.body.height }, I.panMs);
+        if (this.boss?.active) {
+          // 61 E: 걸어 들어오는 동안에도 멈출 자리(시작 자리)를 비춘다
+          const at = this.introArt?.target ?? this.boss;
+          this.g.cam.setFocus({ x: at.x, y: at.y - this.boss.body.height }, I.panMs);
+        }
         break;
       case 'floorLine':
         this.g.ui.story('boss', floorText(gameState.stageId)?.bossIntro ?? '');
@@ -169,6 +182,8 @@ export class BossFlow {
         break;
       case 'fight':
         this.mode = 'fight';
+        this.introArt?.finish();
+        this.introArt = null;
         this.boss?.wake(now);
         EventBus.emit(Events.BOSS_FIGHT, { id: this.id });
         break;
@@ -201,6 +216,7 @@ export class BossFlow {
   private onBreak(p: BossBreakPayload): void {
     if (p.kind === 'finisher') {
       this.finisher = true;
+      if (this.mode === 'defeat') this.finale.onFinisher();
       return;
     }
     if (this.mode === 'fight' && p.distinct) this.speak(`break.${p.kind}`, true);
@@ -227,6 +243,7 @@ export class BossFlow {
     this.mark(step);
     switch (step) {
       case 'hit':
+        this.finale.onDefeat(this.boss?.active ? this.boss : null, D.snuffAtMs);
         g.hitStop.request(now, D.hitstopMs, true);
         g.screenFx.flash(BOSS_FX.DEFEAT_FLASH, D.flashMs, D.flashAlpha);
         g.shake.add(now, D.shakePx, D.shakeMs);
@@ -250,6 +267,7 @@ export class BossFlow {
         break;
       case 'reward': {
         this.setSlow(1);
+        this.finale.onReward();
         this.mode = 'done';
         g.cam.setFocus(null, D.panMs);
         const fn = this.pending;
@@ -293,8 +311,13 @@ export class BossFlow {
 
   private step(now: number): void {
     const t = this.elapsed;
-    if (this.mode === 'intro' && this.intro) for (const s of this.intro.due(t)) this.runIntro(s, now);
-    else if (this.mode === 'defeat' && this.defeat) for (const s of this.defeat.due(t)) this.runDefeat(s, now);
+    if (this.mode === 'intro' && this.intro) {
+      this.introArt?.update(t, now);
+      for (const s of this.intro.due(t)) this.runIntro(s, now);
+    } else if (this.mode === 'defeat' && this.defeat) {
+      for (const s of this.defeat.due(t)) this.runDefeat(s, now);
+      this.finale.update(t);
+    }
   }
 
   private findBoss(): Boss | null {
@@ -312,12 +335,16 @@ export class BossFlow {
       slow: this.slow !== null,
       said: [...this.said],
       log: [...this.log],
+      introArt: this.introArt?.summary() ?? null,
+      finale: this.finale.summary(),
     };
   }
 
   destroy(): void {
     for (const [e, fn] of this.subs) EventBus.off(e, fn, this);
     this.setSlow(1);
+    this.finale.destroy();
+    this.introArt = null;
     this.pending = null;
     this.boss = null;
     this.visual = null;

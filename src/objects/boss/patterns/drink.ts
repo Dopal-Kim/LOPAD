@@ -19,6 +19,8 @@ export interface DrinkParams {
   cupW: number;
   cupH: number;
   cupLiftPx: number;
+  /** 61 E: 깨지기까지 맞혀야 하는 수 (기본 1 — 그 전 맞음은 struck 표시) */
+  cupHits?: number;
   empowerNext?: boolean;
   triggers?: BossPatternName[];
 }
@@ -82,6 +84,8 @@ class DrinkRun implements PatternRun {
         this.arena?.setWeakPoint({
           rect: () => h.pose.cupRect({ w: P.cupW, h: P.cupH, lift: P.cupLiftPx }),
           drawCup: !h.pose.cupArt,
+          hits: P.cupHits,
+          visible: () => h.pose.cupVisible(),
           onHit: () => {
             if (this.state === 'drinkGulp') this.broken = true;
           },

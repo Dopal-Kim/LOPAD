@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { WEAPONS } from '../../data';
-import { allSheetRequests, bootSheetRequests, bossSheetRequests, requestKey, weaponSheetRequests } from './sheetSets';
+import { bossLazyRequests } from '../boss/bossSheets';
+import { bossIdsInScope } from '../../data/scope';
+import {
+  allSheetRequests,
+  bootSheetRequests,
+  bossSheetRequests,
+  floorGatedFxIds,
+  requestKey,
+  runAllowsTier2,
+  weaponSheetRequests,
+} from './sheetSets';
 
 describe('57라운드 A2 로드 묶음 (부팅 + 고른 무기)', () => {
   const ids = Object.keys(WEAPONS);
@@ -8,7 +18,12 @@ describe('57라운드 A2 로드 묶음 (부팅 + 고른 무기)', () => {
   it('부팅 묶음 + 모든 무기 묶음 = 예전 부팅 목록 (빠지거나 늘어난 시트 없음)', () => {
     const before = new Set(allSheetRequests().map(requestKey));
     const after = new Set(
-      [...bootSheetRequests(), ...bossSheetRequests(), ...ids.flatMap(weaponSheetRequests)].map(requestKey),
+      [
+        ...bootSheetRequests(),
+        ...bossSheetRequests(),
+        ...bossLazyRequests(bossIdsInScope()),
+        ...ids.flatMap((id) => weaponSheetRequests(id)),
+      ].map(requestKey),
     );
     expect([...after].sort()).toEqual([...before].sort());
   });
@@ -58,5 +73,29 @@ describe('57라운드 A2 로드 묶음 (부팅 + 고른 무기)', () => {
 
   it('모르는 무기는 빈 목록', () => {
     expect(weaponSheetRequests('nope')).toEqual([]);
+  });
+
+  it('61 E VRAM: 1층판에서 꺼진 세트 단계 fx(간파 6 정적 파동)는 어느 묶음에도 없다', () => {
+    expect(floorGatedFxIds().has('set_stasis_wave')).toBe(true);
+    const all = [...bootSheetRequests(), ...ids.flatMap((id) => weaponSheetRequests(id))];
+    expect(all.some((r) => r.name === 'set_stasis_wave')).toBe(false);
+  });
+
+  it('61 E VRAM: 1층 런은 2단 갈래 그림을 올리지 않는다 (시험장은 전부)', () => {
+    expect(runAllowsTier2()).toBe(false);
+    const run = new Set(weaponSheetRequests('greatsword', false).map(requestKey));
+    const lab = weaponSheetRequests('greatsword', true).map(requestKey);
+    expect(run.has('fx/greatsword_giant_ring_fx')).toBe(false);
+    expect(lab).toContain('fx/greatsword_giant_ring_fx');
+    expect(run.has('fx/greatsword_quake_ring_fx')).toBe(true);
+  });
+
+  it('61 E 보스 묶음: 파훼 표시 작은 시트는 보스 묶음, 등장 동작도 보스 묶음, 국면 전환 들이켜기·림·결정타는 지연 묶음', () => {
+    const boss = bossSheetRequests().map(requestKey);
+    for (const k of ['fx/boss1_cup_glint_fx', 'fx/boss1_break_daze_fx', 'structures/boss1_rolling_barrel_rim_st'])
+      expect(boss).toContain(k);
+    expect(boss).toContain('bosses/stage1_intro');
+    for (const k of ['bosses/stage1_phase_drink', 'bosses/stage1_idle_rim', 'fx/boss1_finisher_slash_fx'])
+      expect(boss).not.toContain(k);
   });
 });

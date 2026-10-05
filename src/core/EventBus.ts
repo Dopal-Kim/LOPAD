@@ -226,6 +226,8 @@ export type PlayerAttackPayload = {
   dashSlash?: { arcDeg: number };
   /** 49라운드: 단검 가열 단계 0..3 (이펙트 강화) */
   heatStage?: number;
+  /** 61 E: 단검 가속 그림 단계 (0 = 기본 · 2·3 = `<연격 fx>_accel<k>` — 타를 낼 때 공속 배율 ≥ 1.08 / ≥ 1.18) */
+  accelStage?: number;
   /** 60라운드: 칼 검기 단 — 61라운드: 이 공격이 소모한 검기 단 (좌 홀드 발도만, 없으면 0) */
   kenkiStage?: number;
   /** 적중 넉백 배율 (61라운드: 넣은 채 첫 타 보너스 이름 firstStrike 삭제) */
@@ -465,7 +467,12 @@ export type BossActionKind =
   | 'bossIgnite'
   | 'candleTopple'
   | 'candleRelight'
-  | 'phaseDrink';
+  | 'phaseDrink'
+  // 61라운드 E (아트 2): 잔을 맞혔지만 아직 안 깨짐 · 기둥 균열 단계(index = 새 단) · 등장 포효(이름 카드 자리) · 방 불 하나 꺼짐
+  | 'cupStruck'
+  | 'pillarCrack'
+  | 'introRoar'
+  | 'flameSnuff';
 /** index = 3연 취권 몇 번째 타(0부터) */
 export type BossActionPayload = { id: string; action: BossActionKind; index?: number };
 export type BossLoopKind = 'gulp' | 'roll' | 'fire';
@@ -473,7 +480,8 @@ export type BossLoopPayload = { loop: BossLoopKind; on: boolean };
 export type BossScreenPayload = { effect: 'tilt' | 'dark'; on: boolean };
 export type BossWallHitPayload = { id: string; x: number; y: number };
 /** 61라운드: durationMs = 등장 연출 전체(전투 시작까지) · lineGapMs = 첫 자막(층 등장)까지 남은 틈 (무기 한마디 자리) */
-export type BossIntroPayload = { id: string; durationMs: number; lineGapMs: number };
+/** 61 E: floor = 1부터 세는 층 번호 (음향 층 구분 — id 는 보스 id 'stage1') */
+export type BossIntroPayload = { id: string; floor: number; durationMs: number; lineGapMs: number };
 /** 61라운드: key = 'intro' · 'phase2' · 'phase3' · 'break.<cup|pillar|cask|reel>' · 'defeat' */
 export type BossSpeechPayload = { id: string; key: string; speaker: string; text: string };
 /** 61라운드: finisher = 파훼 경직 중 결정타로 끝냈는지 · rewardInMs = 보상 메뉴까지 남은 ms (무기 한마디 자리) */

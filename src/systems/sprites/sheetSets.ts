@@ -6,12 +6,20 @@
  * 부팅 묶음 + 모든 무기 묶음 = 57라운드 전 부팅 목록 (sheetSets.test 가 확인).
  * 61라운드 P9: 보스 시트는 로드 범위(`data/scope` — stages.json run.loadFloors) 안 층의 보스만. 범위 밖 보스는 Preloader 의 폴백 별칭.
  */
-import { ENEMY_HAZARD } from '../../core/Constants';
+import { BUILD_ART, ENEMY_HAZARD } from '../../core/Constants';
 import { ENEMIES, WEAPONS } from '../../data';
 import { bossIdsInScope } from '../../data/scope';
-import { AWAKENINGS } from '../../data/build';
+import { AWAKENINGS, BUILD, maxTierOn } from '../../data/build';
+import { onFloor } from '../../data/floorScope';
+import { loadFloorCount } from '../../data/scope';
 import type { WeaponTable } from '../../data/types';
-import { bossFxSheets, bossStructureSheets } from '../boss/bossSheets';
+import {
+  BOSS_DEFERRED_ACTIONS,
+  bossFinaleRequests,
+  bossFxSheets,
+  bossRimRequests,
+  bossStructureSheets,
+} from '../boss/bossSheets';
 import { branchFxSheetIds } from '../fx/branchFx';
 import { allFxSheetIds } from '../fx/fxIds';
 import { allStructureSprites } from '../structures/data';
@@ -25,20 +33,31 @@ import { FX_ACTION } from './spriteActions';
  * 무기 표에서 유도하는 이펙트 시트 id (연격·활 1단 화살·갈래 수단 그림 + 공용 고정 목록 — 빈 표면 공용만).
  * 60라운드 (57 Q42): 옛 진화 이펙트(갈래 id 시트·근접 1단 갈래 연격 시트·2단 전용 시트)는 로드하지 않는다
  */
-function fxIdsFor(weapons: WeaponTable): string[] {
+function fxIdsFor(weapons: WeaponTable, tier2 = true): string[] {
   return [
     ...allFxSheetIds(weapons),
     ...branchFxSheetIds(weapons),
-    ...Object.entries(weapons).flatMap(([id, w]) => [...branchMoveArt(w).fx, ...(AWAKENINGS[id]?.art?.fx ?? [])]),
+    ...Object.entries(weapons).flatMap(([id, w]) => [
+      ...branchMoveArt(w, tier2).fx,
+      ...(AWAKENINGS[id]?.art?.fx ?? []),
+    ]),
   ];
 }
 
-/** 57라운드 갈래 수단 그림 (1단 노드 `art`): 몸·무기 동작 이름 · 이펙트 id */
-export function branchMoveArt(w: WeaponTable[string]): { body: string[]; fx: string[] } {
+/**
+ * 61라운드 E (VRAM): 런에서 2단 갈래를 열 수 있는 층이 로드 범위에 있는지 (build.json evolve.maxTierByFloor — 1층판은 1단까지).
+ * 없으면 런 무기 묶음에서 2단 갈래 그림을 뺀다 (시험장은 전부)
+ */
+export function runAllowsTier2(): boolean {
+  return Array.from({ length: loadFloorCount() }, (_, i) => maxTierOn(i + 1)).some((t) => t >= 2);
+}
+
+/** 57라운드 갈래 수단 그림 (1단 노드 `art` — tier2 면 2단 노드 것도): 몸·무기 동작 이름 · 이펙트 id */
+export function branchMoveArt(w: WeaponTable[string], tier2 = true): { body: string[]; fx: string[] } {
   const body: string[] = [];
   const fx: string[] = [];
   for (const a of w.personality.branches)
-    for (const n of [a, ...(a.next ?? [])]) {
+    for (const n of [a, ...(tier2 ? (a.next ?? []) : [])]) {
       for (const b of n.art?.body ?? []) if (!body.includes(b)) body.push(b);
       for (const f of n.art?.fx ?? []) if (!fx.includes(f)) fx.push(f);
     }
@@ -56,15 +75,16 @@ function requestsFor(
   weapons: WeaponTable,
   extraFx: string[],
   structures: string[],
+  tier2 = true,
 ) {
   return wantedSheets(
     enemyIds,
     bossIds,
     Object.keys(weapons),
-    [...fxIdsFor(weapons), ...extraFx],
+    [...fxIdsFor(weapons, tier2), ...extraFx],
     structures,
     Object.fromEntries(
-      Object.entries(weapons).map(([id, w]) => [id, [...comboArtNames(w.combo).body, ...branchMoveArt(w).body]]),
+      Object.entries(weapons).map(([id, w]) => [id, [...comboArtNames(w.combo).body, ...branchMoveArt(w, tier2).body]]),
     ),
     Object.fromEntries(
       Object.entries(weapons).flatMap(([id, w]) => {
@@ -77,7 +97,9 @@ function requestsFor(
 
 function dedupe(reqs: SheetRequest[]): SheetRequest[] {
   const seen = new Set<string>();
+  const gated = floorGatedFxIds();
   return reqs.filter((r) => {
+    if (r.category === 'fx' && gated.has(r.name)) return false;
     const k = `${r.category}/${sheetId(r.name, r.action)}`;
     if (seen.has(k)) return false;
     seen.add(k);
@@ -97,6 +119,18 @@ let bootKeys: Set<string> | null = null;
 export function enemyStructureSheets(): string[] {
   if (!Object.values(ENEMIES).some((e) => e.behavior === 'roll')) return [];
   return [ENEMY_HAZARD.BARREL, ENEMY_HAZARD.BARREL_RETURNED, ENEMY_HAZARD.BARREL_BREAK];
+}
+
+/**
+ * 61 E (VRAM): 로드 범위 층에서 꺼진 세트 단계만 쓰는 이펙트 — 간파 6 '정적' 파동(`set_stasis_wave`, 약 14MB)은 1층판에서 floor 2.
+ * 그 단계가 켜지는 층이 로드 범위에 들어오면 다시 부팅 묶음에 들어간다
+ */
+export function floorGatedFxIds(): Set<string> {
+  const floor = loadFloorCount();
+  const stillOn = Object.values(BUILD.sets).some((tiers) =>
+    tiers.some((t) => t.effect.kind === 'perfectStillness' && onFloor(t, floor)),
+  );
+  return stillOn ? new Set() : new Set([BUILD_ART.STASIS_WAVE]);
 }
 
 /**
@@ -121,19 +155,23 @@ let bossCache: SheetRequest[] | null = null;
 export function bossSheetRequests(): SheetRequest[] {
   if (!bossCache) {
     const boot = new Set(bootSheetRequests().map(requestKey));
+    // 61 E: 국면 전환 들이켜기는 전투 시작 뒤 지연 로드 (systems/boss/bossVram)
     bossCache = dedupe(requestsFor([], bossIdsInScope(), {}, bossFxSheets(), bossStructureSheets())).filter(
-      (r) => !boot.has(requestKey(r)),
+      (r) => !boot.has(requestKey(r)) && !(r.category === 'bosses' && BOSS_DEFERRED_ACTIONS.includes(r.action)),
     );
   }
   return bossCache;
 }
 
-/** 무기 묶음: 그 무기만 쓰는 시트 (부팅 묶음에 있는 것은 뺀다). 모르는 무기면 빈 목록 */
-export function weaponSheetRequests(weaponId: string): SheetRequest[] {
+/**
+ * 무기 묶음: 그 무기만 쓰는 시트 (부팅 묶음에 있는 것은 뺀다). 모르는 무기면 빈 목록.
+ * tier2 = false 면 2단 갈래 그림을 뺀다 (61 E — 1층 런, `runAllowsTier2`)
+ */
+export function weaponSheetRequests(weaponId: string, tier2 = true): SheetRequest[] {
   if (!WEAPONS[weaponId]) return [];
   bootKeys ??= new Set(bootSheetRequests().map(requestKey));
   const boot = bootKeys;
-  return dedupe(requestsFor([], [], pick([weaponId]), [], [])).filter((r) => !boot.has(requestKey(r)));
+  return dedupe(requestsFor([], [], pick([weaponId]), [], [], tier2)).filter((r) => !boot.has(requestKey(r)));
 }
 
 /** 각성 오버레이 접미 (계약 art §21 `<무기 시트>_awaken`) */
@@ -201,9 +239,11 @@ export function awakenSheetRequests(weaponId: string): SheetRequest[] {
   return dedupe([...overlays, ...fx]);
 }
 
-/** 57라운드 전 부팅 목록 (모든 무기) — 회귀 테스트용 */
+/** 57라운드 전 부팅 목록 (모든 무기) + 61 E 보스 지연 묶음(림·결정타 fx) — 회귀·빌드 제외 테스트용 */
 export function allSheetRequests(): SheetRequest[] {
   return dedupe([
+    ...bossRimRequests(bossIdsInScope()),
+    ...bossFinaleRequests(),
     ...requestsFor(Object.keys(ENEMIES), bossIdsInScope(), WEAPONS, bossFxSheets(), [
       ...allStructureSprites(),
       ...bossStructureSheets(),

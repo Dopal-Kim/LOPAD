@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { WEAPON_FX } from '../../core/Constants';
 import type { TierSheetFields } from '../fx/fxTier';
-import { pickSwingFx, type SwingPickInput } from './swingSelect';
+import { accelFxLevel, pickSwingFx, type SwingPickInput } from './swingSelect';
 
 const base: SwingPickInput = {
   weaponId: 'katana',
@@ -52,13 +52,18 @@ describe('swingSelect: 휘두름 이펙트 고르기 (2단 → 1단 → 기본, 
     expect(pickSwingFx({ ...input, path: ['crush', 'quake'] }, lookup(gs)).id).toBe('greatsword_combo2_crush_quake');
   });
 
-  it('가열: 단계 시트가 있으면 그것, 없으면 기본 시트를 키운다. 갈래 시트 heatVariants 면 키우지 않는다', () => {
+  it('61 E 가속: 단계 시트(_accel2·3)가 있으면 그것, 없으면 기본 시트를 키운다. 갈래 시트 heatVariants 면 키우지 않는다', () => {
     const d = { ...base, weaponId: 'dagger', heat: 2 };
-    expect(pickSwingFx(d, lookup(['dagger_combo1', 'dagger_combo1_heat2']))).toMatchObject({
-      id: 'dagger_combo1_heat2',
+    expect(pickSwingFx(d, lookup(['dagger_combo1', 'dagger_combo1_accel2']))).toMatchObject({
+      id: 'dagger_combo1_accel2',
       heatScale: 1,
     });
-    expect(pickSwingFx(d, lookup(['dagger_combo1'])).heatScale).toBeCloseTo(1 + WEAPON_FX.HEAT_SCALE_PER_STAGE * 2);
+    expect(pickSwingFx({ ...d, heat: 3 }, lookup(['dagger_combo1', 'dagger_combo1_accel3'])).id).toBe(
+      'dagger_combo1_accel3',
+    );
+    // 옛 가열 시트는 고르지 않는다
+    expect(pickSwingFx(d, lookup(['dagger_combo1', 'dagger_combo1_heat2'])).id).toBe('dagger_combo1');
+    expect(pickSwingFx(d, lookup(['dagger_combo1'])).heatScale).toBeCloseTo(1 + WEAPON_FX.HEAT_SCALE_PER_STAGE);
     const sheets = {
       dagger_combo1_twin: { heatVariants: { colorSwap: { '2': [{ from: '#8b4d22', to: '#d67a11' }] } } },
     };
@@ -72,5 +77,14 @@ describe('swingSelect: 휘두름 이펙트 고르기 (2단 → 1단 → 기본, 
       'iai',
     );
     expect(pickSwingFx({ ...base, comboN: null }, lookup(['katana_slash'])).id).toBe('katana_slash');
+  });
+
+  it('61 E 공속 배율 → 가속 단계 (≥1.08 → 2, ≥1.18 → 3, 그 밖 기본 0)', () => {
+    expect(accelFxLevel(1)).toBe(0);
+    expect(accelFxLevel(1.079)).toBe(0);
+    expect(accelFxLevel(1.08)).toBe(2);
+    expect(accelFxLevel(1.1)).toBe(2);
+    expect(accelFxLevel(1.18)).toBe(3);
+    expect(accelFxLevel(1.25 * 1.1)).toBe(3);
   });
 });

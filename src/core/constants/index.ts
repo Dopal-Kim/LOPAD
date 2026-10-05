@@ -12,6 +12,7 @@ export { ENEMY_HAZARD, SHOP_KEEPER } from './enemyHazards';
 export * from './player';
 export * from './scenes';
 export { BOSS_FX } from './boss';
+export { BOSS_ART } from './bossArt';
 export { MOVE_FX } from './moves';
 export { BUILD_FX, BUILD_ART } from './build';
 export { BUNDLE_FX } from './bundle';

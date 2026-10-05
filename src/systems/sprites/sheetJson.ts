@@ -133,6 +133,14 @@ export interface SheetJson extends BranchSheetFields {
   cupAnchors?: unknown;
   /** 54라운드 계약 §15 보스 v3 kick: 프레임별 발 좌표 (술통 시작점) */
   footAnchors?: unknown;
+  /** 61라운드 E 아트 2 `fx/v3/boss1_break_daze`: 보스 동작 → 방향 → 열별 머리 꼭대기 [x, y] (보스 시트 도트) */
+  headTopAnchors?: unknown;
+  /** 61라운드 E 아트 2 구조물(허수아비 `tutorial_dummy`): 이름 → 점 {x, y} (시트 도트 — hitCenter·headTop) */
+  anchors?: unknown;
+  /** 61라운드 E 아트 2: 등장 걸음 반복 열 [처음, 끝] · 건배 유지 열 [처음, 끝] · 포효 열 (보스 intro — 보폭은 stride) */
+  walkLoop?: number[];
+  toastLoop?: number[];
+  roarFrame?: number;
   /** 54라운드 아트 v3 보스: 예고 동안 유지할 열 (attack·stagger_dash). 55라운드 적중 스파크: 히트스톱 중 정지 프레임 */
   holdFrame?: number;
   // --- 55라운드 계약 §16 (타격감·움직임·갈래) ---

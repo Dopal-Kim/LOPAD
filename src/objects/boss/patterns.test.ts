@@ -58,6 +58,7 @@ function harness(opts: { phase?: number; force?: BossPatternName[] } = {}) {
     anchor: () => null,
     recoverHoldMs: () => 0,
     cupArt: false,
+    cupVisible: () => true,
     facing: 'down',
   };
   const host: BossHost = {

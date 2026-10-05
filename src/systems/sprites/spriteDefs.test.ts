@@ -14,7 +14,7 @@ import {
   wantedSheets,
   type SheetJson,
 } from './spriteDefs';
-import { arrowFxId, fxSheetIds, heatComboFxId, slamFxId, slashFxId } from '../fx/fxIds';
+import { accelFxId, arrowFxId, comboFxId, fxSheetIds, slamFxId, slashFxId } from '../fx/fxIds';
 import { WEAPONS } from '../../data';
 
 const walk: SheetJson = {
@@ -78,7 +78,7 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       // 56라운드 Q9 활 당김 유지·놓기 (다른 무기는 매니페스트가 거른다)
       'katana_draw_hold',
       'katana_release',
-      'katana_arrow_rain',
+      'katana_arrow_rain_stand',
       // 53라운드 Q19: 무기별 기본 자세 변형 (_free · 무기 id 접미)
       'idle_free',
       'idle_katana',
@@ -110,7 +110,7 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'reload',
       'draw_hold',
       'release',
-      'arrow_rain',
+      'arrow_rain_stand',
       'carry_groggy',
     ]);
     expect(sheetJsonPath({ category: 'player', name: 'player', action: 'katana_combo2' })).toBe(
@@ -287,10 +287,12 @@ describe('49라운드 무기 휴대·동작 (계약 art §7.1·7.2)', () => {
     expect(overlayDepthAt({}, 'left', 0)).toBe('above');
   });
 
-  it('이펙트: 단검 가열 단계 3 × 연격 3 · 대검 내리찍기', () => {
+  it('이펙트: 단검 가속 단계 2·3 × 연격 3 (61 E — 옛 가열 _heat 없음) · 대검 내리찍기', () => {
     const ids = fxSheetIds(WEAPONS);
-    expect(ids).toContain(heatComboFxId('dagger', 1, 1));
-    expect(ids).toContain('dagger_combo3_heat3');
+    expect(ids).toContain(accelFxId(comboFxId('dagger', 1), 2));
+    expect(ids).toContain('dagger_combo3_accel3');
+    expect(ids).not.toContain('dagger_combo1_heat1');
+    expect(ids).not.toContain('dagger_combo3_heat3');
     expect(ids).toContain(slamFxId('greatsword'));
     expect(ids).not.toContain('katana_combo1_heat1');
   });

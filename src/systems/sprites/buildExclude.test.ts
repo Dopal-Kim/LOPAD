@@ -42,6 +42,16 @@ describe('빌드 제외 (data/buildExclude.json)', () => {
       'sprites/fx/rain.json',
       'sprites/fx/scatter.png',
       'sprites/fx/seek.json',
+      // 61 E 아트 2 '이제 안 쓰는 그림'
+      'sprites/fx/v3/greatsword_guard_rush.json',
+      'sprites/player/v3/player_greatsword_guard_rush.png',
+      'sprites/weapons/v3/greatsword_guard_rush_grudge2.json',
+      'sprites/weapons/v3/greatsword_guard_rush_awaken.png',
+      'sprites/fx/v3/katana_issen_shadow.json',
+      'sprites/fx/v3/katana_thrust_ki1.png',
+      'sprites/weapons/v3/katana_thrust_ki3.json',
+      'sprites/fx/v3/dagger_overheat_cool.png',
+      'sprites/fx/v3/dagger_combo2_heat3.json',
     ])
       expect(excluded(rel), rel).toBe(true);
     // 새 갈래·각성 시트는 남는다
@@ -51,6 +61,11 @@ describe('빌드 제외 (data/buildExclude.json)', () => {
       'sprites/fx/v3/katana_rise_awaken.json',
       'sprites/fx/v3/katana_fall_wide_awaken.json',
       'sprites/fx/v3/dagger_combo3_double_awaken.json',
+      // 61 E 새 그림 (가속 단계 · 발도 검기 단 · 무기 휴대 검기)
+      'sprites/fx/v3/dagger_combo1_accel2.json',
+      'sprites/fx/v3/katana_iai_ki2.png',
+      'sprites/weapons/v3/katana_iai_ki1.json',
+      'sprites/fx/v3/dagger_flurry_heat2.json',
       // 이름이 비슷한 쓰는 시트 (Q35 패턴이 넘치지 않는지)
       'sprites/fx/v3/muzzle_flash.json',
       'sprites/fx/v3/parry_flash.png',

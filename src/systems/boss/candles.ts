@@ -4,17 +4,20 @@
  * → 임시 그림(받침·불꽃). 쓰러진 촛대는 다시 켤 자리 안내(깜빡이는 고리)가 어둠 위에 보인다.
  */
 import Phaser from 'phaser';
-import { BOSS_FX, DEPTH, QUARTER, RENDER, TILE, entityDepth } from '../../core/Constants';
+import { BOSS_ART, BOSS_FX, DEPTH, QUARTER, RENDER, TILE, entityDepth } from '../../core/Constants';
 import type { BossArenaParams } from '../../data/types';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 import { spriteLibrary } from '../sprites/sprites';
-import { STRUCTURE_ACTION, artScale, frameDurations, structureStateFrames } from '../sprites/spriteDefs';
+import { FX_ACTION, STRUCTURE_ACTION, artScale, frameDurations, structureStateFrames } from '../sprites/spriteDefs';
 import type { TileSkin } from '../../world/tileskin';
 
-export type CandleState = 'lit' | 'fallen' | 'relit';
+/** 61 E: out = 보스 처치 때 꺼짐 (서 있음 · 광원 없음 — 서 있는 꺼진 그림이 없어 lit 그림을 어둡게) */
+export type CandleState = 'lit' | 'fallen' | 'relit' | 'out';
 
 /** 상태 → 시트 상태 이름 (계약 §15) */
-const SHEET_STATE: Record<CandleState, string> = { lit: 'lit', fallen: 'fallen_unlit', relit: 'relit' };
+const SHEET_STATE: Record<CandleState, string> = { lit: 'lit', fallen: 'fallen_unlit', relit: 'relit', out: 'lit' };
+/** 꺼진(out) 촛대 그림 곱 틴트 */
+const OUT_TINT = 0x5a5048;
 
 export interface Candle {
   readonly id: number;
@@ -27,8 +30,8 @@ export interface Candle {
   readonly rect: Phaser.Geom.Rectangle;
   view: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics;
   hint: Phaser.GameObjects.Arc;
-  /** 61라운드: 다시 켤 수 있는 촛대 반짝임 (어둠 위 네 갈래 별) */
-  glint: Phaser.GameObjects.Graphics;
+  /** 61라운드: 다시 켤 수 있는 촛대 반짝임 (어둠 위) — 61 E 아트 `fx/v3/boss1_candle_glint`(촛대와 같은 틀·피벗·flipX), 없으면 네 갈래 별 */
+  glint: Phaser.GameObjects.Graphics | Phaser.GameObjects.Sprite;
   body: Phaser.GameObjects.Zone;
   light: LightSource | null;
   /** 시트 전환 애니 (lit→fall→fallen_unlit · fallen→relight→relit): 남은 프레임과 시각 */
@@ -69,13 +72,7 @@ export class CandleSet {
       .setStrokeStyle(1, BOSS_FX.CANDLE.HINT_COLOR, 1)
       .setDepth(DEPTH.LIGHTMAP + 0.05)
       .setVisible(false);
-    const G = BOSS_FX.CANDLE.GLINT;
-    const glint = this.scene.add
-      .graphics()
-      .setPosition(x, y - G.LIFT_PX)
-      .setDepth(DEPTH.LIGHTMAP + 0.05)
-      .setVisible(false);
-    drawGlint(glint, G.SIZE, G.COLOR);
+    const glint = this.makeGlint(x, y);
     const c: Candle = {
       id,
       tx,
@@ -95,6 +92,33 @@ export class CandleSet {
     return c;
   }
 
+  /** 다시 켤 자리 반짝임: 아트 시트가 있으면 촛대 피벗에 같은 flipX 로 반복, 없으면 네 갈래 별 */
+  private makeGlint(x: number, y: number): Candle['glint'] {
+    const id = BOSS_ART.SHEETS.CANDLE_GLINT;
+    const def = spriteLibrary.sheet(id, FX_ACTION);
+    const tex = spriteLibrary.textureKey(id, FX_ACTION);
+    const anim = spriteLibrary.animKey(id, FX_ACTION, 'down');
+    if (def && tex && anim) {
+      const spr = this.scene.add
+        .sprite(x, y, tex, 0)
+        .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
+        .setScale(artScale(def))
+        .setFlipX(x < this.centerX)
+        .setDepth(DEPTH.LIGHTMAP + 0.05)
+        .setVisible(false);
+      spr.play(anim);
+      return spr;
+    }
+    const G = BOSS_FX.CANDLE.GLINT;
+    const g = this.scene.add
+      .graphics()
+      .setPosition(x, y - G.LIFT_PX)
+      .setDepth(DEPTH.LIGHTMAP + 0.05)
+      .setVisible(false);
+    drawGlint(g, G.SIZE, G.COLOR);
+    return g;
+  }
+
   /** 상태 바꾸기 (그림·충돌·광원) */
   set(c: Candle, state: CandleState): void {
     if (c.state === state) return;
@@ -104,7 +128,7 @@ export class CandleSet {
   }
 
   private apply(c: Candle, prev?: CandleState): void {
-    const standing = c.state === 'lit';
+    const standing = c.state === 'lit' || c.state === 'out';
     (c.body.body as Phaser.Physics.Arcade.StaticBody).enable = standing;
     c.view.destroy();
     c.view = this.draw(c, prev);
@@ -112,8 +136,15 @@ export class CandleSet {
     c.glint.setVisible(c.state === 'fallen');
     const reg = lightRegistryOf(this.scene);
     reg.remove(c.light);
-    const L = c.state === 'lit' ? this.P.light : c.state === 'relit' ? this.P.relitLight : this.P.emberLight;
-    c.light = reg.add(L, { x: c.x, y: c.y });
+    const L =
+      c.state === 'lit'
+        ? this.P.light
+        : c.state === 'relit'
+          ? this.P.relitLight
+          : c.state === 'fallen'
+            ? this.P.emberLight
+            : null;
+    c.light = L ? reg.add(L, { x: c.x, y: c.y }) : null;
   }
 
   private draw(c: Candle, prev?: CandleState): Candle['view'] {
@@ -137,12 +168,14 @@ export class CandleSet {
               final,
             }
           : null;
-      return sc.add
+      const spr = sc.add
         .sprite(c.x, c.y, tex, c.anim ? trFrames[0] : final)
         .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
         .setScale(artScale(def))
         .setFlipX(c.x < this.centerX)
         .setDepth(depth);
+      if (c.state === 'out') spr.setTint(OUT_TINT);
+      return spr;
     }
     // 2) 지역 소품 시트의 서 있는 촛대 (쓰러지면 눕힌다)
     const prop = this.propSkin?.bigProps.find((b) => b.name === this.P.propName);
@@ -156,15 +189,16 @@ export class CandleSet {
         .setOrigin(prop.pivot.x / prop.rect.w, prop.pivot.y / prop.rect.h)
         .setScale(this.propSkin.worldScale)
         .setDepth(depth);
-      if (c.state !== 'lit') img.setRotation(Math.PI / 2).setTint(BOSS_FX.CANDLE.FALLEN);
+      if (c.state === 'out') img.setTint(OUT_TINT);
+      else if (c.state !== 'lit') img.setRotation(Math.PI / 2).setTint(BOSS_FX.CANDLE.FALLEN);
       return img;
     }
     // 3) 임시 그림
     const K = BOSS_FX.CANDLE;
     const g = sc.add.graphics().setDepth(depth);
-    if (c.state === 'lit') {
+    if (c.state === 'lit' || c.state === 'out') {
       g.fillStyle(K.STAND, 1).fillRect(c.x - K.W / 2, c.y - K.H, K.W, K.H);
-      g.fillStyle(K.FLAME, 1).fillCircle(c.x, c.y - K.H - K.FLAME_R, K.FLAME_R);
+      if (c.state === 'lit') g.fillStyle(K.FLAME, 1).fillCircle(c.x, c.y - K.H - K.FLAME_R, K.FLAME_R);
     } else {
       g.fillStyle(K.FALLEN, 1).fillRect(c.x - K.H / 2, c.y - K.W, K.H, K.W);
       if (c.state === 'relit') g.fillStyle(K.FLAME, 1).fillCircle(c.x + K.H / 2, c.y - K.W - K.FLAME_R, K.FLAME_R);
@@ -182,7 +216,8 @@ export class CandleSet {
         // 반짝임: 촛대마다 어긋난 위상으로 커졌다 작아진다 (0..1..0)
         const t = (((time + c.id * G.STAGGER_MS) % G.PERIOD_MS) + G.PERIOD_MS) % G.PERIOD_MS;
         const k = Math.sin((t / G.PERIOD_MS) * Math.PI);
-        c.glint.setScale(G.MIN_SCALE + (1 - G.MIN_SCALE) * k).setAlpha(0.35 + 0.65 * k);
+        if (c.glint instanceof Phaser.GameObjects.Graphics)
+          c.glint.setScale(G.MIN_SCALE + (1 - G.MIN_SCALE) * k).setAlpha(0.35 + 0.65 * k);
       }
       const a = c.anim;
       if (!a || time < a.nextAt || !(c.view instanceof Phaser.GameObjects.Sprite)) continue;
@@ -195,6 +230,17 @@ export class CandleSet {
         a.nextAt = time + a.ms[a.i];
       }
     }
+  }
+
+  /** 61 E 처치 때 불 끄기: 불꽃 자리 (광원 위치 — 없으면 촛대 발 위) */
+  flamePoint(c: Candle): { x: number; y: number } {
+    const def = this.sheet ? spriteLibrary.sheet(this.sheet, STRUCTURE_ACTION) : undefined;
+    const off = (def?.light as { offset?: { x: number; y: number } } | undefined)?.offset;
+    if (!def || !off) return { x: c.x, y: c.y - TILE };
+    const k = artScale(def);
+    // flipX 는 틀 안에서 뒤집힌다 (원점 비율 그대로) — 도트 x → 틀 폭 − x
+    const dx = c.x < this.centerX ? def.frameWidth - off.x : off.x;
+    return { x: c.x + (dx - def.pivot.x) * k, y: c.y + (off.y - def.pivot.y) * k };
   }
 
   /** 점에서 가장 가까운 쓰러진 촛대 (rangePx 안) */

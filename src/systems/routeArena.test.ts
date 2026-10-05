@@ -56,7 +56,8 @@ describe('49라운드 지역 흐름 (4-2·6, 계약 ui §11.2·art §7.3)', () =
     const ids = routeSetPieceSprites();
     expect(ids).toContain('set_waste_stones');
     expect(ids).toContain('set_outer_stall');
-    expect(ids).toContain('battlefield_dummy');
+    expect(ids).toContain('tutorial_dummy');
+    expect(ids).not.toContain('battlefield_dummy');
     expect(ids).toContain('battlefield_tutorial_sign');
     expect(ids).toContain('battlefield_weapon');
   });

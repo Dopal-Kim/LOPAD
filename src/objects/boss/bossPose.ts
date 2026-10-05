@@ -217,6 +217,14 @@ export class BossPose implements BossPoseApi {
     };
   }
 
+  cupVisible(): boolean {
+    const f = this.frameOf('drink');
+    if (!f) return true;
+    const v = anchorAt(f.def.cupAnchors, f.dir, f.col, f.def.frames, f.row);
+    if (v === null || v === undefined) return false;
+    return !(typeof v === 'object' && (v as { visible?: unknown }).visible === false);
+  }
+
   anchor(action: string, key: 'footAnchors' | 'handAnchors', at?: 'impactFrame' | 'releaseFrame'): Vec | null {
     const f = this.frameOf(action);
     if (!at) {

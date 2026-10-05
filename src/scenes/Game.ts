@@ -82,7 +82,8 @@ import { createDirector } from './game/directorHost';
 import { SENSE_BONUS_MAX, urlParams, type GameInitData } from './game/shared';
 import { AnchorDebug } from './game/AnchorDebug';
 import { runWeaponFor } from './game/runWeapon';
-import { preloadBossSheets, preloadWeaponSheets } from '../systems/sprites/sheetLoader';
+import { preloadWeaponSheets } from '../systems/sprites/sheetLoader';
+import { prepareNodeSheets } from '../systems/sprites/lazySheets';
 import { BuildRuntime } from './game/build/BuildRuntime';
 import { BuildMenus } from './game/build/BuildMenus';
 import { BundleRuntime } from './game/bundle/BundleRuntime';
@@ -204,10 +205,11 @@ export class Game extends Phaser.Scene {
   preload(): void {
     // 60라운드: 같은 런의 각성 런이면 각성 외형 오버레이도 (새 런은 아님 — 이어하기는 create 에서 BuildRuntime 이)
     const awaken = this.initData.mode !== 'new' && gameState.build.awakened;
-    // 61라운드 단계 2 첫 로딩 줄이기: 보스 몸·보스방 시트는 보스 노드에 들어갈 때 (`?boss` 바로 가기 포함)
+    // 61라운드 단계 2 첫 로딩 줄이기: 보스 몸·보스방 시트는 보스 노드에 들어갈 때 (`?boss` 바로 가기 포함).
+    // 61 E VRAM: 보스 노드에서는 일반 적 시트를 내리고, 다른 노드에서는 보스 묶음을 내린다 (lazySheets)
     const toBoss = !this.lab && (Boolean(this.initData.bossJump) || gameState.route?.current?.kind === 'boss');
-    const boss = toBoss && preloadBossSheets(this);
-    const weapon = preloadWeaponSheets(this, runWeaponFor(this.initData, this.lab, this.saveSlot), awaken);
+    const boss = prepareNodeSheets(this, toBoss, toBoss ? gameState.stage.boss : null);
+    const weapon = preloadWeaponSheets(this, runWeaponFor(this.initData, this.lab, this.saveSlot), awaken, this.lab);
     if (!boss && !weapon) return;
     const at = screenFixed(this.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2);
     const label = this.add
