@@ -12,10 +12,19 @@
 그 커밋에 없는(이후 새로 만든) 시트는 픽셀 대조 없이 형식만 본다 — 새 시트는 build.py --in-place 가 변환 때 전 프레임을 대조한다.
 --src <폴더> 를 주면 git 대신 그 폴더(격자 시트 사본)를 원본으로 쓴다.
 
+기준 갱신(60라운드): GRID_REV 뒤에 다시 그린 시트(58라운드 대검 3/4 대각 리그 등)와 새로 만든 시트는
+baseline.json 의 `sheets{시트: 커밋}` 에 적힌 커밋의 **아틀라스**를 기준으로 삼는다(그 커밋의 아틀라스를 프레임별로
+되살려 현재 아틀라스와 RGBA 대조, 메타 필드도 그 커밋 기준). baseline.json 에 없는 시트는 예전처럼 GRID_REV 격자와 대조
+(GRID_REV 에도 없으면 형식만). 시트를 의도적으로 다시 그려 커밋했으면 기준을 옮긴다:
+  python3 verify.py --rebase [--rev HEAD] [--only 이름부분 ...]
+  --only 없이 돌리면 "현재 기준과 어긋나는 시트 + 기준이 없는 시트" 중 rev 에 커밋된 것만 자동으로 옮긴다
+  (rev 의 파일과 작업 트리 파일이 다른 시트는 옮기지 않고 알린다 — 커밋 안 된 변경을 기준으로 삼지 않기 위함).
+
 외벽 (--border): assets/tiles/border/<지역>/border.json 의 모든 그림 참조가 .webp 로 존재하는지, PNG 가 남지 않았는지,
    텍스처 ≤ max 인지, pieces[] 를 이어 붙인 그림이 원 PNG 와 같은지(albedo: 알파 오차 0·PSNR ≥ --psnr, 발광·알파: 무손실 0 차이).
 
 사용: python3 verify.py [--root assets/sprites] [--all] [--n 20] [--seed 57] [--git-rev 5bfcf2e | --src 폴더] [--border] [--max 4096]
+      python3 verify.py --rebase [--rev HEAD] [--only 이름부분 ...]   (기준 갱신 → baseline.json)
 """
 from __future__ import annotations
 
@@ -35,6 +44,18 @@ ROOT = os.path.abspath(os.path.join(HERE, "../../../.."))
 SRC = os.path.join(ROOT, "assets", "sprites")
 BORDER = os.path.join(ROOT, "assets", "tiles", "border")
 GRID_REV = "5bfcf2e"  # 격자 시트·외벽 PNG 가 assets 에 남아 있던 마지막 커밋(57라운드 Q38 교체 직전)
+BASELINE = os.path.join(HERE, "baseline.json")  # 시트별 아틀라스 기준 커밋(60라운드 기준 갱신)
+
+
+def load_baseline():
+    if not os.path.exists(BASELINE):
+        return {}
+    return json.load(open(BASELINE, encoding="utf-8")).get("sheets", {})
+
+
+def git_bytes(rev, rel):
+    r = subprocess.run(["git", "-C", ROOT, "show", f"{rev}:{rel}"], capture_output=True)
+    return r.stdout if r.returncode == 0 else None
 
 
 # ---------------------------------------------------------------- 원본 읽기
@@ -79,9 +100,10 @@ def frame_table(atlas: dict):
     return {k: (atlas["meta"]["image"], v) for k, v in atlas["frames"].items()}
 
 
-def rebuild(atlas_dir, image_name, e, cache):
+def rebuild(atlas_dir, image_name, e, cache, loader=None):
     if image_name not in cache:
-        cache[image_name] = Image.open(os.path.join(atlas_dir, image_name)).convert("RGBA")
+        cache[image_name] = (loader(image_name) if loader else
+                             Image.open(os.path.join(atlas_dir, image_name)).convert("RGBA"))
     a = cache[image_name]
     f, s, ss = e["frame"], e["spriteSourceSize"], e["sourceSize"]
     crop = a.crop((f["x"], f["y"], f["x"] + f["w"], f["y"] + f["h"]))
@@ -175,12 +197,63 @@ def compare_sheet(sheet, meta, atlas, atlas_dir, indices=None):
     return bad
 
 
+def compare_atlas(base, base_loader, atlas, atlas_dir, indices=None):
+    """기준 아틀라스(커밋)와 현재 아틀라스를 프레임별 비교 → 불일치 프레임 수(격자 크기가 다르면 전부 불일치)."""
+    gb, g = base["atlas"]["grid"], atlas["atlas"]["grid"]
+    n = g["columns"] * g["rows"]
+    if (gb["columns"], gb["rows"], gb["frameWidth"], gb["frameHeight"]) != (g["columns"], g["rows"], g["frameWidth"], g["frameHeight"]):
+        return n if indices is None else len(indices)
+    tb, tc = frame_table(base), frame_table(atlas)
+    cb, cc, bad = {}, {}, 0
+    for i in (range(n) if indices is None else indices):
+        ib, eb = tb[str(i)]
+        ic, ec = tc[str(i)]
+        if norm_bytes(rebuild(None, ib, eb, cb, base_loader)) != norm_bytes(rebuild(atlas_dir, ic, ec, cc)):
+            bad += 1
+    return bad
+
+
+def atlas_loader(rev, rel_dir):
+    def load(name):
+        b = git_bytes(rev, f"{rel_dir}/{name}")
+        if b is None:
+            raise FileNotFoundError(f"{rev}:{rel_dir}/{name}")
+        return Image.open(io.BytesIO(b)).convert("RGBA")
+    return load
+
+
 def verify_sprites(args, orig):
     atlases = sorted(glob(os.path.join(args.root, "*", "v3", "*.json")))
     pairs, fmt_errs, no_orig = [], 0, []
+    based = load_baseline() if not args.src else {}
+    apairs = []  # (rel, 현재 경로, 기준 커밋, 기준 아틀라스, 현재 아틀라스)
     for ap_ in atlases:
         rel = os.path.relpath(ap_, args.root)
         atlas = json.load(open(ap_, encoding="utf-8"))
+        if rel in based:
+            rev = based[rel]
+            b = git_bytes(rev, f"assets/sprites/{rel}")
+            base = json.loads(b.decode("utf-8")) if b else None
+            if base is None or "atlas" not in base:
+                errs = [f"기준 커밋 {rev} 에 아틀라스 없음"]
+            elif "atlas" not in atlas:
+                errs = ["아틀라스 아님(격자 그대로)"]
+            else:
+                errs = check_format(grid_meta_of(base), atlas, args.max)
+                if base["atlas"]["grid"] != atlas["atlas"]["grid"]:
+                    errs.append("격자(grid) 변경 — 다시 그렸으면 --rebase")
+            if "atlas" in atlas and not errs:
+                for img, size in ([(t["image"], t["size"]) for t in atlas["textures"]] if "textures" in atlas
+                                  else [(atlas["meta"]["image"], atlas["meta"]["size"])]):
+                    p = os.path.join(os.path.dirname(ap_), img)
+                    if not os.path.exists(p) or Image.open(p).size != (size["w"], size["h"]):
+                        errs.append(f"텍스처 파일 없음/크기 불일치 {img}")
+            if errs:
+                fmt_errs += len(errs)
+                print("형식 오류", rel, errs[:5])
+            else:
+                apairs.append((rel, ap_, rev, base, atlas))
+            continue
         src_meta = orig.json(f"assets/sprites/{rel}")
         if src_meta is not None and "atlas" in src_meta:
             src_meta = None  # 원본 커밋에서도 이미 아틀라스 → 픽셀 원본 없음
@@ -201,7 +274,12 @@ def verify_sprites(args, orig):
             print("형식 오류", rel, errs[:5])
         if src_meta is not None and "atlas" in atlas:
             pairs.append((rel, ap_, src_meta, atlas))
-    print(f"형식 점검: 시트 {len(atlases)}개, 오류 {fmt_errs}" + (f" (원본 없음 {len(no_orig)}개: 형식만)" if no_orig else ""))
+    print(f"형식 점검: 시트 {len(atlases)}개, 오류 {fmt_errs}" + (f" (원본 없음 {len(no_orig)}개: 형식만)" if no_orig else "")
+          + (f" (아틀라스 기준 {len(apairs)}개: baseline.json)" if based else ""))
+    missing = sorted(set(based) - {os.path.relpath(a, args.root) for a in atlases})
+    if missing:
+        fmt_errs += len(missing)
+        print(f"기준에 있는데 시트가 없음 {len(missing)}개: {missing[:5]}")
 
     jobs = {}
     if args.all:
@@ -225,8 +303,95 @@ def verify_sprites(args, orig):
             bad_sheets.append(f"{rel}({b})")
         if not args.all:
             print(f"{'OK ' if not b else 'DIFF'} {rel[:-5]} #{','.join(map(str, idx))}")
-    print(f"픽셀 비교: 시트 {len(jobs)}개 {total}프레임 중 불일치 {bad}" + (f" — {', '.join(bad_sheets[:10])}" if bad_sheets else ""))
+    print(f"픽셀 비교(격자 {orig.rev or orig.src_dir}): 시트 {len(jobs)}개 {total}프레임 중 불일치 {bad}" + (f" — {', '.join(bad_sheets[:10])}" if bad_sheets else ""))
+
+    if apairs:
+        rnd = random.Random(args.seed + 1)
+        abad = atotal = 0
+        abad_sheets = []
+        sel = {}
+        if args.all:
+            for p in apairs:
+                sel[p[0]] = (p, None)
+        else:
+            for _ in range(args.n):
+                p = rnd.choice(apairs)
+                g = p[4]["atlas"]["grid"]
+                sel.setdefault(p[0], (p, []))[1].append(rnd.randrange(g["columns"] * g["rows"]))
+        for rel, ((_, ap_, rev, base, atlas), idx) in sel.items():
+            g = atlas["atlas"]["grid"]
+            n = g["columns"] * g["rows"] if idx is None else len(idx)
+            b = compare_atlas(base, atlas_loader(rev, os.path.dirname(f"assets/sprites/{rel}")), atlas, os.path.dirname(ap_), idx)
+            atotal += n
+            abad += b
+            if b:
+                abad_sheets.append(f"{rel}({b})")
+            if not args.all:
+                print(f"{'OK ' if not b else 'DIFF'} {rel[:-5]} @{rev[:7]} #{','.join(map(str, idx))}")
+        revs = sorted({p[2][:7] for p in apairs})
+        print(f"픽셀 비교(아틀라스 기준 {','.join(revs)}): 시트 {len(sel)}개 {atotal}프레임 중 불일치 {abad}"
+              + (f" — {', '.join(abad_sheets[:10])}" if abad_sheets else ""))
+        bad += abad
     return bad, fmt_errs
+
+
+def rebase(args, orig):
+    """기준 갱신: 지정(또는 자동 선별) 시트의 기준을 rev 커밋의 아틀라스로 옮겨 baseline.json 에 쓴다."""
+    rev = subprocess.run(["git", "-C", ROOT, "rev-parse", args.rev], capture_output=True, text=True, check=True).stdout.strip()
+    data = json.load(open(BASELINE, encoding="utf-8")) if os.path.exists(BASELINE) else {}
+    sheets = dict(data.get("sheets", {}))
+    atlases = sorted(glob(os.path.join(args.root, "*", "v3", "*.json")))
+    moved, skipped = [], []
+    for ap_ in atlases:
+        rel = os.path.relpath(ap_, args.root)
+        if args.only and not any(o in rel for o in args.only):
+            continue
+        relp = f"assets/sprites/{rel}"
+        cur = json.load(open(ap_, encoding="utf-8"))
+        bj = git_bytes(rev, relp)
+        if bj is None or "atlas" not in cur:
+            continue
+        committed = json.loads(bj.decode("utf-8"))
+        if "atlas" not in committed:
+            continue
+        pages = [t["image"] for t in cur["textures"]] if "textures" in cur else [cur["meta"]["image"]]
+        dirty = committed != cur or any(
+            git_bytes(rev, f"{os.path.dirname(relp)}/{img}") != open(os.path.join(os.path.dirname(ap_), img), "rb").read()
+            for img in pages)
+        if dirty:
+            skipped.append(rel)
+            continue
+        if not args.only:
+            if rel in sheets:
+                if sheets[rel] == rev:
+                    continue
+                old = json.loads(git_bytes(sheets[rel], relp).decode("utf-8"))
+                if (old.get("atlas", {}).get("grid") == cur["atlas"]["grid"] and
+                        compare_atlas(old, atlas_loader(sheets[rel], os.path.dirname(relp)), cur, os.path.dirname(ap_)) == 0
+                        and not check_format(grid_meta_of(old), cur, args.max)):
+                    continue  # 기준과 같다 → 그대로
+            else:
+                src_meta = orig.json(relp)
+                if src_meta is not None and "atlas" not in src_meta:
+                    sheet = orig.image(relp[:-5] + ".png")
+                    if not check_format(src_meta, cur, args.max) and compare_sheet(sheet, src_meta, cur, os.path.dirname(ap_)) == 0:
+                        continue  # 격자 기준과 같다 → 격자 기준 유지
+        sheets[rel] = rev
+        moved.append(rel)
+    data = {
+        "_doc": "atlas57/verify.py 시트별 픽셀 기준. 여기 적힌 시트는 해당 커밋의 아틀라스와 대조, 없는 시트는 gridRev 격자와 대조. 갱신: verify.py --rebase",
+        "gridRev": GRID_REV,
+        "sheets": dict(sorted(sheets.items())),
+    }
+    with open(BASELINE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=1)
+        f.write("\n")
+    print(f"기준 갱신 @{rev[:7]}: 옮김 {len(moved)}개, 커밋과 작업 트리가 달라 건너뜀 {len(skipped)}개, 기준 총 {len(sheets)}개")
+    for r in moved[:20]:
+        print("  옮김", r)
+    for r in skipped[:20]:
+        print("  건너뜀(미커밋 변경)", r)
+    return 0
 
 
 # ---------------------------------------------------------------- 외벽
@@ -359,9 +524,14 @@ def main():
     ap.add_argument("--src", default=None, help="원 격자 시트 폴더(주면 git 대신 사용)")
     ap.add_argument("--border", action="store_true", help="외벽 WebP 점검도 한다")
     ap.add_argument("--psnr", type=float, default=38.0)
+    ap.add_argument("--rebase", action="store_true", help="기준 갱신(baseline.json)")
+    ap.add_argument("--rev", default="HEAD", help="--rebase 기준 커밋")
+    ap.add_argument("--only", nargs="*", default=None, help="--rebase 대상 시트 이름 부분")
     args = ap.parse_args()
 
     orig = Originals(args.src, None if args.src else args.git_rev)
+    if args.rebase:
+        return rebase(args, orig)
     bad, fmt = verify_sprites(args, orig)
     if args.border:
         b2, f2 = verify_border(args, orig)
