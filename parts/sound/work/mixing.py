@@ -8,10 +8,10 @@ build.write_manifest() 가 부른다. 시스템이 이 값을 읽어 적용한�
 
 TIERS = [
     dict(level=4, name='telegraph', label='보스 예고·보스 신호',
-         events=['BOSS_TELEGRAPH', 'BOSS_STARTED', 'BOSS_PHASE', 'BOSS_DIED']),
+         events=['BOSS_TELEGRAPH', 'BOSS_STARTED', 'BOSS_PHASE', 'BOSS_DIED', 'boss:intro']),
     dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)',
          events=['PLAYER_DAMAGED', 'PARRY_SUCCESS', 'PERFECT_GUARD', 'PERFECT_SUCCESS', 'ENEMY_TELEGRAPH', 'RUN_ENDED',
-                 'BOSS_BREAK']),
+                 'BOSS_BREAK', 'ui:boss-break']),
     dict(level=2, name='hit', label='타격·처치·공격 동작(주인공·적·보스)',
          events=['(그 밖의 combat·boss 분류)']),
     dict(level=1, name='ambient', label='환경·획득·이벤트·패시브·상태 부가음',
@@ -59,7 +59,7 @@ def settings(variant_groups):
                  hold='그 소리 길이 동안', note='bgmBossDuckDb 위에 더해짐'),
             dict(when='sfx/hit_player 그룹 재생', target='sfx priority ≤ 2', db=-3.0, attackMs=5, releaseMs=180,
                  hold='150 ms', note='맞은 순간이 또렷하게'),
-            dict(when='BOSS_BREAK 소리 재생(boss1_break_*·break_finisher)', target='sfx priority ≤ 2', db=-4.0,
+            dict(when='파훼 소리 재생(ui:boss-break → boss1_break_*·break_finisher, BOSS_BREAK → break_count)', target='sfx priority ≤ 2', db=-4.0,
                  attackMs=5, releaseMs=300, hold='300 ms',
                  note='61-2: 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게'),
         ],
@@ -80,5 +80,10 @@ def settings(variant_groups):
                      '들린다. 위치를 못 맞추면 처음부터 + bgmCrossfadeMs 로 바꿔도 된다.',
         bgmJourneyNote='bgmByFloorState[층].journey = 그 층의 전투 전 여정(벽 밖 · 탄생지 · 버려진 길 · 국경 초소)과 '
                        '휴식·지도 화면. 전투 노드에 들어가면 bgmByFloor[층](= combat)으로 bgmCrossfadeMs 교차 페이드.',
+        bgmBossDefeat=dict(
+            fadeOutOn='BOSS_DIED', fadeOutMs=900, silentUntil='EXIT_OPENED', resume='floorState',
+            note='61라운드: 보스 처치(BOSS_DIED)에서 보스 곡을 900 ms 페이드아웃 → 보상 메뉴가 끝나 출구가 열릴 때'
+                 '(EXIT_OPENED)까지 BGM 정적(효과음 boss1_die·break_finisher 만 들림) → 그 층 곡으로 복귀'
+                 '(bgmByFloorState[층] 의 현재 상태 곡, 없으면 bgmByFloor[층]). 복귀는 교차가 아니라 bgmCrossfadeMs 페이드인.'),
         variantGroups=variant_groups,
     )

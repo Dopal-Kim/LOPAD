@@ -178,7 +178,7 @@ def table_slam(sr, rng, g=1.0):
 #    throw: 등불로 심지에 불 → 프레임 5(550 ms) 손에서 놓음 → fire_bottle_thrown → fire_bottle_burst → fire_pool
 # ===========================================================================
 
-@sfx('peddler_wick', 'ENEMY_TELEGRAPH{enemy:peddler}', "61-2 새 — 독주 행상 투척 예고(throw 시작 = 프레임 0, 놓음 550 ms 까지). 등불 갓이 '톡' → 0.12 s 심지가 등불에 닿아 불붙는 '푸슉' → 놓는 순간(0.55 s)까지 점점 커지는 심지 지글거림·타닥 + 0.3 s 부터 팔을 젖히는 옷 바람 + 병 속 술 출렁. 소리가 커지다 끊기는 곳 = 병이 날아가는 순간(피하기 신호)", -3)
+@sfx('peddler_wick', 'ENEMY_TELEGRAPH{kind:throw}', "61-2 새 — 독주 행상 투척 예고(throw 시작 = 프레임 0, 놓음 550 ms 까지). 등불 갓이 '톡' → 0.12 s 심지가 등불에 닿아 불붙는 '푸슉' → 놓는 순간(0.55 s)까지 점점 커지는 심지 지글거림·타닥 + 0.3 s 부터 팔을 젖히는 옷 바람 + 병 속 술 출렁. 소리가 커지다 끊기는 곳 = 병이 날아가는 순간(피하기 신호)", -3)
 def _peddler_wick(sr, rng):
     dur = 0.6
     rel = 0.55
@@ -203,7 +203,7 @@ def _peddler_wick(sr, rng):
     return s
 
 
-@sfx('peddler_throw', 'ENEMY_ATTACK{enemy:peddler,phase:throw}', "61-2 새 — 독주 행상 병 놓음(throw 프레임 5 = 550 ms, fire_bottle_thrown 이 생기는 프레임). 짧게 내뱉는 숨 + 팔 휘두르는 '휙'(1.6k→500) + 빙글 도는 병(9 Hz) + 심지 불이 펄럭이며 멀어짐. 착탄은 bottle_burst 재사용(같은 그림·같은 불 웅덩이), 웅덩이는 boss1_fire_loop", -3)
+@sfx('peddler_throw', 'ENEMY_ATTACK{kind:throw,phase:throw}', "61-2 새 — 독주 행상 병 놓음(throw 프레임 5 = 550 ms, fire_bottle_thrown 이 생기는 프레임). 짧게 내뱉는 숨 + 팔 휘두르는 '휙'(1.6k→500) + 빙글 도는 병(9 Hz) + 심지 불이 펄럭이며 멀어짐. 착탄은 bottle_burst 재사용(같은 그림·같은 불 웅덩이) — 시스템 트리거 ENEMY_ATTACK{kind:throw,phase:burst} → sfx/bottle_burst(시스템 audioMap), 웅덩이는 boss1_fire_loop", -3)
 def _peddler_throw(sr, rng):
     dur = 0.52
     n = sec(sr, dur)
@@ -258,7 +258,7 @@ def _peddler_death(sr, rng):
 #    되치기 = porter_rolling_barrel_returned / 벽·단단한 구조물 → porter_barrel_break(8프레임) → pool_liquor
 # ===========================================================================
 
-@sfx('porter_windup', 'ENEMY_TELEGRAPH{enemy:porter}', "61-2 새 — 술통 짐꾼 밀기 예고(push 시작 = 프레임 0, 놓음 530 ms 까지). 발을 디디는 '쿵' + 어깨를 통에 대는 나무 '톡' → 0.08 s 부터 커지는 '끄응' 힘주는 숨(노이즈, 목소리 아님) + 통이 눌려 삐걱 + 발이 흙에 밀림 + 통 속 술 출렁. 0.53 s 에 끊김 = 통이 굴러 나오는 순간", -3)
+@sfx('porter_windup', 'ENEMY_TELEGRAPH{kind:roll}', "61-2 새 — 술통 짐꾼 밀기 예고(push 시작 = 프레임 0, 놓음 530 ms 까지). 발을 디디는 '쿵' + 어깨를 통에 대는 나무 '톡' → 0.08 s 부터 커지는 '끄응' 힘주는 숨(노이즈, 목소리 아님) + 통이 눌려 삐걱 + 발이 흙에 밀림 + 통 속 술 출렁. 0.53 s 에 끊김 = 통이 굴러 나오는 순간", -3)
 def _porter_windup(sr, rng):
     dur = 0.58
     rel = 0.53
@@ -278,7 +278,7 @@ def _porter_windup(sr, rng):
     return s
 
 
-@sfx('porter_push', 'ENEMY_ATTACK{enemy:porter,phase:push}', "61-2 새 — 술통 짐꾼 술통 놓음(push 프레임 5 = 530 ms, porter_rolling_barrel 이 생기는 프레임). 내뱉는 '흡' + 어깨로 밀어내는 둔탁한 '쿵'(140→55 Hz) + 속 빈 통 울림 + 굴러 나가며 빨라지는 덜컹 셋 + 출렁. 이어서 porter_barrel_roll 루프", -1)
+@sfx('porter_push', 'ENEMY_ATTACK{kind:roll,phase:push}', "61-2 새 — 술통 짐꾼 술통 놓음(push 프레임 5 = 530 ms, porter_rolling_barrel 이 생기는 프레임). 내뱉는 '흡' + 어깨로 밀어내는 둔탁한 '쿵'(140→55 Hz) + 속 빈 통 울림 + 굴러 나가며 빨라지는 덜컹 셋 + 출렁. 이어서 porter_barrel_roll 루프", -1)
 def _porter_push(sr, rng):
     dur = 0.5
     s = zeros(sec(sr, dur))
@@ -295,7 +295,7 @@ def _porter_push(sr, rng):
     return softclip(s, 1.5)
 
 
-@sfx('porter_barrel_roll', 'ENEMY_ATTACK{enemy:porter,phase:roll}', "61-2 새 — 짐꾼 술통 굴러가는 루프(0.96 s = 그림 한 바퀴 0.48 s × 2, 60 ms × 8 프레임과 같은 주기). 판자 덜컹 0.12 s 간격(한 바퀴마다 강세) + 낮은 굴림 + 통 속 출렁 + 자갈 바스락. 통이 멈추거나 깨지면 80 ms 페이드아웃. 되치기 뒤(returned)도 같은 루프. 보스 boss1_barrel_roll 보다 가볍고 빠름", -6, loop=True)
+@sfx('porter_barrel_roll', 'ENEMY_ATTACK{kind:roll,phase:push}', "61-2 새 — 짐꾼 술통 굴러가는 루프(0.96 s = 그림 한 바퀴 0.48 s × 2, 60 ms × 8 프레임과 같은 주기). 판자 덜컹 0.12 s 간격(한 바퀴마다 강세) + 낮은 굴림 + 통 속 출렁 + 자갈 바스락. 시작 = porter_push 와 같은 트리거(phase:push, 놓는 순간 함께 재생), 정지 = ENEMY_ATTACK{kind:roll,phase:rollEnd} 에서 80 ms 페이드아웃(멈춤·깨짐 모두). 되치기(phase:return) 뒤에도 끊지 않고 같은 루프. 보스 boss1_barrel_roll 보다 가볍고 빠름", -6, loop=True)
 def _porter_barrel_roll(sr, rng):
     dur = 0.96
     n = sec(sr, dur)
@@ -324,7 +324,7 @@ def _tang(sr, rng, g=1.0):
     return s
 
 
-@sfx('barrel_return', 'ENEMY_ATTACK{enemy:porter,phase:return}', "61-2 새 — 술통 되치기 '탕'(굴러오는 통을 쳐서 되돌린 순간 = porter_rolling_barrel_returned 로 바뀌는 프레임). 넓은 '딱' + 단단한 나무 몸통(270→115 Hz) + 짧게 울리는 속 빈 통(300·680 Hz) + 쇠테 덜컥 + 거꾸로 밀려 나가는 바람(700→2.2k) + 위로 번뜩이는 짧은 공기(울림 없음). **보스 술통 되치기(BOSS_ATTACK{boss:1,attack:barrel,phase:return})에도 같은 id 재사용** — 짐꾼에서 배운 소리 = 보스 파훼 신호", 0)
+@sfx('barrel_return', 'ENEMY_ATTACK{kind:roll,phase:return}', "61-2 새 — 술통 되치기 '탕'(굴러오는 통을 쳐서 되돌린 순간 = porter_rolling_barrel_returned 로 바뀌는 프레임). 넓은 '딱' + 단단한 나무 몸통(270→115 Hz) + 짧게 울리는 속 빈 통(300·680 Hz) + 쇠테 덜컥 + 거꾸로 밀려 나가는 바람(700→2.2k) + 위로 번뜩이는 짧은 공기(울림 없음). **보스 술통 되치기(BOSS_ATTACK{boss:1,attack:barrel,phase:return})에도 같은 id 재사용** — 짐꾼에서 배운 소리 = 보스 파훼 신호", 0)
 def _barrel_return(sr, rng):
     dur = 0.55
     s = zeros(sec(sr, dur))
@@ -336,7 +336,7 @@ def _barrel_return(sr, rng):
     return reverb(tail(s, sr, 0.02), sr, size=0.5, decay=0.45, wet=0.12)
 
 
-@sfx('porter_barrel_break', 'ENEMY_ATTACK{enemy:porter,phase:break}', "61-2 새 — 짐꾼 술통이 벽·단단한 구조물에 깨짐(porter_barrel_break 8프레임 시작). 부딪는 '쾅'(140→45 Hz) + 속 빈 통 마지막 울림 + 판자 쪼개짐 10 + 쇠테 둘이 떨어져 덜컥·굴러감(낮게) + 술이 한꺼번에 쏟아짐 + 나무 조각 흩어짐. 웅덩이가 퍼질 때 porter_liquor_spill", -1)
+@sfx('porter_barrel_break', 'ENEMY_ATTACK{kind:roll,phase:break}', "61-2 새 — 짐꾼 술통이 벽·단단한 구조물에 깨짐(porter_barrel_break 8프레임 시작). 부딪는 '쾅'(140→45 Hz) + 속 빈 통 마지막 울림 + 판자 쪼개짐 10 + 쇠테 둘이 떨어져 덜컥·굴러감(낮게) + 술이 한꺼번에 쏟아짐 + 나무 조각 흩어짐. 웅덩이가 퍼질 때 porter_liquor_spill", -1)
 def _porter_barrel_break(sr, rng):
     dur = 0.95
     s = zeros(sec(sr, dur))
@@ -354,7 +354,7 @@ def _porter_barrel_break(sr, rng):
     return reverb(s, sr, size=0.6, decay=0.45, wet=0.12)
 
 
-@sfx('porter_liquor_spill', 'ENEMY_ATTACK{enemy:porter,phase:spill}', "61-2 새 — 깨진 술통의 술이 바닥에 퍼짐(fx pool_liquor 가 생기는 프레임, break stateHold 뒤). 넓게 번지는 물결 '쏴아'(1.8k→600) + 꿀렁 셋 + 물방울. 불이 닿으면 기존 drunk_ignite(POOL_IGNITED) → boss1_fire_loop", -6)
+@sfx('porter_liquor_spill', 'ENEMY_ATTACK{kind:roll,phase:spill}', "61-2 새 — 깨진 술통의 술이 바닥에 퍼짐(fx pool_liquor 가 생기는 프레임, break stateHold 뒤). 넓게 번지는 물결 '쏴아'(1.8k→600) + 꿀렁 셋 + 물방울. 불이 닿으면 기존 drunk_ignite(POOL_IGNITED) → boss1_fire_loop", -6)
 def _porter_liquor_spill(sr, rng):
     dur = 0.85
     n = sec(sr, dur)
@@ -420,9 +420,9 @@ def winded(sr, rng, g=1.0):
     return scale(breath(sr, rng, 0.45, (620, 420), (1100, 900), 0.5, 0.02, 0.8, 1.2), g)
 
 
-# ---- 파훼 4종 (BOSS_BREAK{kind}) -------------------------------------------------
+# ---- 파훼 4종 (ui:boss-break{kind:cup|pillar|cask|stumble}) -------------------------------------------------
 
-@sfx('boss1_break_cup', 'BOSS_BREAK{kind:cup}', "61-2 새 — 파훼 · 잔 깨짐(한 잔 더 마시는 중 큰 잔 약점 적중 → 경직). 도자기 몸통이 갈라지는 둔탁한 '빡' + 짧은 조각(3 kHz 위, 감쇠 짧게) + 술을 뒤집어쓰는 '촤악' + 물방울 + 파훼 공통 신호(쾅 → 꺼지는 '부웅' → 주저앉는 '쿵') + 0.35 s 사레들린 기침 둘(노이즈). boss1_cup_shatter 를 대신함", 0, category='boss')
+@sfx('boss1_break_cup', 'ui:boss-break{kind:cup}', "61-2 새 — 파훼 · 잔 깨짐(한 잔 더 마시는 중 큰 잔 약점 적중 → 경직). 도자기 몸통이 갈라지는 둔탁한 '빡' + 짧은 조각(3 kHz 위, 감쇠 짧게) + 술을 뒤집어쓰는 '촤악' + 물방울 + 파훼 공통 신호(쾅 → 꺼지는 '부웅' → 주저앉는 '쿵') + 0.35 s 사레들린 기침 둘(노이즈). boss1_cup_shatter 를 대신함", 0, category='boss')
 def _boss1_break_cup(sr, rng):
     dur = 1.5
     s = zeros(sec(sr, dur))
@@ -438,7 +438,7 @@ def _boss1_break_cup(sr, rng):
     return reverb(s, sr, size=0.8, decay=0.55, wet=0.16)
 
 
-@sfx('boss1_break_pillar', 'BOSS_BREAK{kind:pillar}', "61-2 새 — 파훼 · 기둥 무너짐(돌진하다 기둥에 정면 충돌 → 경직). 머리로 들이받는 큰 '쿵'(120→38 Hz) + 기둥 나무가 쪼개짐 + 파훼 공통 신호 → 0.15~0.6 s 기둥이 기우는 낮은 삐걱 신음 → 0.62 s 무너지는 '와르르'(큰 몸통 + 판자 + 돌 부스러기 18) + 먼지. 돌방 울림", 0, category='boss')
+@sfx('boss1_break_pillar', 'ui:boss-break{kind:pillar}', "61-2 새 — 파훼 · 기둥 무너짐(돌진하다 기둥에 정면 충돌 → 경직). 머리로 들이받는 큰 '쿵'(120→38 Hz) + 기둥 나무가 쪼개짐 + 파훼 공통 신호 → 0.15~0.6 s 기둥이 기우는 낮은 삐걱 신음 → 0.62 s 무너지는 '와르르'(큰 몸통 + 판자 + 돌 부스러기 18) + 먼지. 돌방 울림", 0, category='boss')
 def _boss1_break_pillar(sr, rng):
     dur = 1.9
     n = sec(sr, dur)
@@ -464,7 +464,7 @@ def _boss1_break_pillar(sr, rng):
     return reverb(s, sr, size=1.1, decay=0.62, wet=0.2)
 
 
-@sfx('boss1_break_barrel', 'BOSS_BREAK{kind:barrel}', "61-2 새 — 파훼 · 술통 되치기(되돌린 술통이 만취에게 박혀 터짐 → 경직). 통이 몸에 박히는 '콰직'(판자 9 + 속 빈 통 마지막 울림 + 쇠테 덜컥 둘) + 술이 한꺼번에 터져 뒤집어씀 + 파훼 공통 신호 + 0.3 s 숨이 턱 막힌 '허억'(노이즈). 되치기 순간의 '탕'은 barrel_return(짐꾼과 같은 소리)", 0, category='boss')
+@sfx('boss1_break_barrel', 'ui:boss-break{kind:cask}', "61-2 새 — 파훼 · 술통 되치기(되돌린 술통이 만취에게 박혀 터짐 → 경직). 통이 몸에 박히는 '콰직'(판자 9 + 속 빈 통 마지막 울림 + 쇠테 덜컥 둘) + 술이 한꺼번에 터져 뒤집어씀 + 파훼 공통 신호 + 0.3 s 숨이 턱 막힌 '허억'(노이즈). 되치기 순간의 '탕'은 barrel_return(짐꾼과 같은 소리)", 0, category='boss')
 def _boss1_break_barrel(sr, rng):
     dur = 1.5
     s = zeros(sec(sr, dur))
@@ -480,7 +480,7 @@ def _boss1_break_barrel(sr, rng):
     return reverb(s, sr, size=0.8, decay=0.55, wet=0.15)
 
 
-@sfx('boss1_break_reel', 'BOSS_BREAK{kind:reel}', "61-2 새 — 파훼 · 취권 꺾임(3연 취권 돌진을 받아쳐 꺾음 → 경직). 받아치는 '딱' + 채찍 같은 '샥' → 몸이 비틀려 도는 바람(7 Hz 로 휘며 내려감) + 파훼 공통 신호 → 0.32 s 크게 나뒹구는 '쿵'(boss1_fall 보다 큼) + 바닥 잔·소품 튐 + 먼지. 파훼로 인정된 넘어짐이면 boss1_fall 대신", 0, category='boss')
+@sfx('boss1_break_reel', 'ui:boss-break{kind:stumble}', "61-2 새 — 파훼 · 취권 꺾임(3연 취권 돌진을 받아쳐 꺾음 → 경직). 받아치는 '딱' + 채찍 같은 '샥' → 몸이 비틀려 도는 바람(7 Hz 로 휘며 내려감) + 파훼 공통 신호 → 0.32 s 크게 나뒹구는 '쿵'(boss1_fall 보다 큼) + 바닥 잔·소품 튐 + 먼지. 파훼로 인정된 넘어짐이면 boss1_fall 대신. 시스템 내부 이름 reel → UI 이벤트 kind stumble", 0, category='boss')
 def _boss1_break_reel(sr, rng):
     dur = 1.6
     s = zeros(sec(sr, dur))
@@ -557,7 +557,7 @@ def _boss1_die(sr, rng):
     return reverb(s, sr, size=1.4, decay=0.78, wet=0.32)
 
 
-@sfx('boss1_entrance', 'BOSS_STARTED{boss:1}', "61-2 새 — 만취 등장(1층 보스 등장 연출, boss_start 대신 — 1층 BGM 인트로 역할). 큰 잔을 탁자에 내리치는 '탁!' + 잔들 덜그럭 + 큰 북 '둥' → 울렁이며 깔리는 낮은 불협(D2·G#2 톱니, 0.5 Hz 맥놀이) → 0.55·1.15 s 무거운 걸음 둘 + 마루 삐걱 → 1.4 s 크게 내뱉는 '크아'(노이즈) → 1.6 s 등불이 확 살아나는 '화륵'. 돌방 울림", 0, category='boss')
+@sfx('boss1_entrance', 'boss:intro', "61-2 새 — 만취 등장(1층 보스 등장 연출 boss:intro, boss_start 대신 — 1층 BGM 인트로 역할. 보스 1국면 곡은 boss:fight 부터 권장). 큰 잔을 탁자에 내리치는 '탁!' + 잔들 덜그럭 + 큰 북 '둥' → 울렁이며 깔리는 낮은 불협(D2·G#2 톱니, 0.5 Hz 맥놀이) → 0.55·1.15 s 무거운 걸음 둘 + 마루 삐걱 → 1.4 s 크게 내뱉는 '크아'(노이즈) → 1.6 s 등불이 확 살아나는 '화륵'. 돌방 울림", 0, category='boss')
 def _boss1_entrance(sr, rng):
     dur = 2.7
     s = zeros(sec(sr, dur))
@@ -782,7 +782,7 @@ def _boss1_slam(sr, rng):
     return reverb(s, sr, size=1.0, decay=0.6, wet=0.2)
 
 
-archive('boss1_cup_shatter', '61-2: 파훼 · 잔 깨짐은 boss1_break_cup(BOSS_BREAK{kind:cup})으로 대체, 시스템 연결 끊음')
+archive('boss1_cup_shatter', '61-2: 파훼 · 잔 깨짐은 boss1_break_cup(ui:boss-break{kind:cup})으로 대체, 시스템 연결 끊음')
 
 
 # ===========================================================================

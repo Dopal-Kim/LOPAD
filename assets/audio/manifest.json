@@ -84,7 +84,8 @@
             "BOSS_TELEGRAPH",
             "BOSS_STARTED",
             "BOSS_PHASE",
-            "BOSS_DIED"
+            "BOSS_DIED",
+            "boss:intro"
           ]
         },
         {
@@ -98,7 +99,8 @@
             "PERFECT_SUCCESS",
             "ENEMY_TELEGRAPH",
             "RUN_ENDED",
-            "BOSS_BREAK"
+            "BOSS_BREAK",
+            "ui:boss-break"
           ]
         },
         {
@@ -160,7 +162,7 @@
         "note": "맞은 순간이 또렷하게"
       },
       {
-        "when": "BOSS_BREAK 소리 재생(boss1_break_*·break_finisher)",
+        "when": "파훼 소리 재생(ui:boss-break → boss1_break_*·break_finisher, BOSS_BREAK → break_count)",
         "target": "sfx priority ≤ 2",
         "db": -4.0,
         "attackMs": 5,
@@ -187,6 +189,13 @@
     "bgmPhaseSyncPosition": true,
     "bgmPhaseNote": "bgmByFloorState[층].bossPhases 의 곡들은 길이·박자 격자가 같다. BOSS_PHASE 에서 다음 곡을 지금 곡의 재생 위치(초)에서 시작해 bgmPhaseCrossfadeMs 로 교차 페이드하면 층이 더해지는 것처럼 들린다. 위치를 못 맞추면 처음부터 + bgmCrossfadeMs 로 바꿔도 된다.",
     "bgmJourneyNote": "bgmByFloorState[층].journey = 그 층의 전투 전 여정(벽 밖 · 탄생지 · 버려진 길 · 국경 초소)과 휴식·지도 화면. 전투 노드에 들어가면 bgmByFloor[층](= combat)으로 bgmCrossfadeMs 교차 페이드.",
+    "bgmBossDefeat": {
+      "fadeOutOn": "BOSS_DIED",
+      "fadeOutMs": 900,
+      "silentUntil": "EXIT_OPENED",
+      "resume": "floorState",
+      "note": "61라운드: 보스 처치(BOSS_DIED)에서 보스 곡을 900 ms 페이드아웃 → 보상 메뉴가 끝나 출구가 열릴 때(EXIT_OPENED)까지 BGM 정적(효과음 boss1_die·break_finisher 만 들림) → 그 층 곡으로 복귀(bgmByFloorState[층] 의 현재 상태 곡, 없으면 bgmByFloor[층]). 복귀는 교차가 아니라 bgmCrossfadeMs 페이드인."
+    },
     "variantGroups": {
       "sfx/hit_enemy": [
         "sfx/hit_enemy",
@@ -1430,7 +1439,7 @@
         ]
       },
       "priority": 2,
-      "note": "[보관 — 61-2: 파훼 · 잔 깨짐은 boss1_break_cup(BOSS_BREAK{kind:cup})으로 대체, 시스템 연결 끊음] 약점 적중: 큰 잔 깨짐 + 술을 뒤집어씀(첨벙 + 물방울). 3초 경직 시작"
+      "note": "[보관 — 61-2: 파훼 · 잔 깨짐은 boss1_break_cup(ui:boss-break{kind:cup})으로 대체, 시스템 연결 끊음] 약점 적중: 큰 잔 깨짐 + 술을 뒤집어씀(첨벙 + 물방울). 3초 경직 시작"
     },
     {
       "id": "sfx/boss1_spin_start",
@@ -4379,7 +4388,7 @@
         ]
       },
       "priority": 3,
-      "note": "약점 파훼 다양성 +1(이번 보스전에서 처음 성공한 파훼 종류 — 잔·기둥·술통·취권). 일기장에 표 긋는 '슥' + 나무 틱 + 맑은 종 A5. n번째마다 rate 1.0 / 1.059 / 1.189 / 1.335(A5→B♭5→C6→D6, D 단조) 권장. 파훼 자체 소리(boss1_cup_shatter 등) 뒤 120 ms"
+      "note": "약점 파훼 다양성 +1(이번 보스전에서 처음 성공한 파훼 종류 — 잔·기둥·술통·취권). 일기장에 표 긋는 '슥' + 나무 틱 + 맑은 종 A5. n번째마다 rate 1.0 / 1.059 / 1.189 / 1.335(A5→B♭5→C6→D6, D 단조) 권장. 파훼 자체 소리(boss1_break_* — ui:boss-break{kind:cup|pillar|cask|stumble}) 뒤 120 ms"
     },
     {
       "id": "sfx/break_finisher",
@@ -4397,7 +4406,7 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "BOSS_BREAK",
+        "event": "ui:boss-break",
         "when": [
           "kind:finisher"
         ]
@@ -5762,17 +5771,15 @@
       "loop": false,
       "gainDb": -3,
       "trigger": {
-        "event": "PLAYER_ATTACK",
-        "when": [
-          "finisher:true"
-        ]
+        "event": "PLAYER_COMBO_FINISH",
+        "when": []
       },
       "priority": 2,
       "variants": [
         "sfx/combo_finish",
         "sfx/combo_finish_v2"
       ],
-      "note": "61라운드 새 — 연격 마무리 타(칼 3타·대검 4타·단검 3타) 적중 때 그 무기 휘두름·적 피격 위에 겹치는 무게. 공기 터짐 + 깊은 '쿵'(95→34 Hz) + 저역 압력 + 흙 튐 + 짧은 방 울림. 활은 쓰지 않음"
+      "note": "61라운드 새 — 연격 마무리 타(칼 3타·대검 4타·단검 3타)의 첫 적중 1회(PLAYER_COMBO_FINISH{weapon}) 때 그 무기 휘두름·적 피격 위에 겹치는 무게. 공기 터짐 + 깊은 '쿵'(95→34 Hz) + 저역 압력 + 흙 튐 + 짧은 방 울림. 활은 쓰지 않음"
     },
     {
       "id": "sfx/guard_block_v2",
@@ -6072,7 +6079,7 @@
       "trigger": {
         "event": "ENEMY_TELEGRAPH",
         "when": [
-          "enemy:peddler"
+          "kind:throw"
         ]
       },
       "priority": 3,
@@ -6096,12 +6103,12 @@
       "trigger": {
         "event": "ENEMY_ATTACK",
         "when": [
-          "enemy:peddler",
+          "kind:throw",
           "phase:throw"
         ]
       },
       "priority": 2,
-      "note": "61-2 새 — 독주 행상 병 놓음(throw 프레임 5 = 550 ms, fire_bottle_thrown 이 생기는 프레임). 짧게 내뱉는 숨 + 팔 휘두르는 '휙'(1.6k→500) + 빙글 도는 병(9 Hz) + 심지 불이 펄럭이며 멀어짐. 착탄은 bottle_burst 재사용(같은 그림·같은 불 웅덩이), 웅덩이는 boss1_fire_loop"
+      "note": "61-2 새 — 독주 행상 병 놓음(throw 프레임 5 = 550 ms, fire_bottle_thrown 이 생기는 프레임). 짧게 내뱉는 숨 + 팔 휘두르는 '휙'(1.6k→500) + 빙글 도는 병(9 Hz) + 심지 불이 펄럭이며 멀어짐. 착탄은 bottle_burst 재사용(같은 그림·같은 불 웅덩이) — 시스템 트리거 ENEMY_ATTACK{kind:throw,phase:burst} → sfx/bottle_burst(시스템 audioMap), 웅덩이는 boss1_fire_loop"
     },
     {
       "id": "sfx/peddler_hurt",
@@ -6170,7 +6177,7 @@
       "trigger": {
         "event": "ENEMY_TELEGRAPH",
         "when": [
-          "enemy:porter"
+          "kind:roll"
         ]
       },
       "priority": 3,
@@ -6194,7 +6201,7 @@
       "trigger": {
         "event": "ENEMY_ATTACK",
         "when": [
-          "enemy:porter",
+          "kind:roll",
           "phase:push"
         ]
       },
@@ -6221,12 +6228,12 @@
       "trigger": {
         "event": "ENEMY_ATTACK",
         "when": [
-          "enemy:porter",
-          "phase:roll"
+          "kind:roll",
+          "phase:push"
         ]
       },
       "priority": 2,
-      "note": "61-2 새 — 짐꾼 술통 굴러가는 루프(0.96 s = 그림 한 바퀴 0.48 s × 2, 60 ms × 8 프레임과 같은 주기). 판자 덜컹 0.12 s 간격(한 바퀴마다 강세) + 낮은 굴림 + 통 속 출렁 + 자갈 바스락. 통이 멈추거나 깨지면 80 ms 페이드아웃. 되치기 뒤(returned)도 같은 루프. 보스 boss1_barrel_roll 보다 가볍고 빠름"
+      "note": "61-2 새 — 짐꾼 술통 굴러가는 루프(0.96 s = 그림 한 바퀴 0.48 s × 2, 60 ms × 8 프레임과 같은 주기). 판자 덜컹 0.12 s 간격(한 바퀴마다 강세) + 낮은 굴림 + 통 속 출렁 + 자갈 바스락. 시작 = porter_push 와 같은 트리거(phase:push, 놓는 순간 함께 재생), 정지 = ENEMY_ATTACK{kind:roll,phase:rollEnd} 에서 80 ms 페이드아웃(멈춤·깨짐 모두). 되치기(phase:return) 뒤에도 끊지 않고 같은 루프. 보스 boss1_barrel_roll 보다 가볍고 빠름"
     },
     {
       "id": "sfx/barrel_return",
@@ -6246,7 +6253,7 @@
       "trigger": {
         "event": "ENEMY_ATTACK",
         "when": [
-          "enemy:porter",
+          "kind:roll",
           "phase:return"
         ]
       },
@@ -6271,7 +6278,7 @@
       "trigger": {
         "event": "ENEMY_ATTACK",
         "when": [
-          "enemy:porter",
+          "kind:roll",
           "phase:break"
         ]
       },
@@ -6296,7 +6303,7 @@
       "trigger": {
         "event": "ENEMY_ATTACK",
         "when": [
-          "enemy:porter",
+          "kind:roll",
           "phase:spill"
         ]
       },
@@ -6368,7 +6375,7 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "BOSS_BREAK",
+        "event": "ui:boss-break",
         "when": [
           "kind:cup"
         ]
@@ -6392,7 +6399,7 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "BOSS_BREAK",
+        "event": "ui:boss-break",
         "when": [
           "kind:pillar"
         ]
@@ -6416,9 +6423,9 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "BOSS_BREAK",
+        "event": "ui:boss-break",
         "when": [
-          "kind:barrel"
+          "kind:cask"
         ]
       },
       "priority": 3,
@@ -6440,13 +6447,13 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "BOSS_BREAK",
+        "event": "ui:boss-break",
         "when": [
-          "kind:reel"
+          "kind:stumble"
         ]
       },
       "priority": 3,
-      "note": "61-2 새 — 파훼 · 취권 꺾임(3연 취권 돌진을 받아쳐 꺾음 → 경직). 받아치는 '딱' + 채찍 같은 '샥' → 몸이 비틀려 도는 바람(7 Hz 로 휘며 내려감) + 파훼 공통 신호 → 0.32 s 크게 나뒹구는 '쿵'(boss1_fall 보다 큼) + 바닥 잔·소품 튐 + 먼지. 파훼로 인정된 넘어짐이면 boss1_fall 대신"
+      "note": "61-2 새 — 파훼 · 취권 꺾임(3연 취권 돌진을 받아쳐 꺾음 → 경직). 받아치는 '딱' + 채찍 같은 '샥' → 몸이 비틀려 도는 바람(7 Hz 로 휘며 내려감) + 파훼 공통 신호 → 0.32 s 크게 나뒹구는 '쿵'(boss1_fall 보다 큼) + 바닥 잔·소품 튐 + 먼지. 파훼로 인정된 넘어짐이면 boss1_fall 대신. 시스템 내부 이름 reel → UI 이벤트 kind stumble"
     },
     {
       "id": "sfx/boss1_die",
@@ -6488,13 +6495,11 @@
       "loop": false,
       "gainDb": 0,
       "trigger": {
-        "event": "BOSS_STARTED",
-        "when": [
-          "boss:1"
-        ]
+        "event": "boss:intro",
+        "when": []
       },
       "priority": 4,
-      "note": "61-2 새 — 만취 등장(1층 보스 등장 연출, boss_start 대신 — 1층 BGM 인트로 역할). 큰 잔을 탁자에 내리치는 '탁!' + 잔들 덜그럭 + 큰 북 '둥' → 울렁이며 깔리는 낮은 불협(D2·G#2 톱니, 0.5 Hz 맥놀이) → 0.55·1.15 s 무거운 걸음 둘 + 마루 삐걱 → 1.4 s 크게 내뱉는 '크아'(노이즈) → 1.6 s 등불이 확 살아나는 '화륵'. 돌방 울림"
+      "note": "61-2 새 — 만취 등장(1층 보스 등장 연출 boss:intro, boss_start 대신 — 1층 BGM 인트로 역할. 보스 1국면 곡은 boss:fight 부터 권장). 큰 잔을 탁자에 내리치는 '탁!' + 잔들 덜그럭 + 큰 북 '둥' → 울렁이며 깔리는 낮은 불협(D2·G#2 톱니, 0.5 Hz 맥놀이) → 0.55·1.15 s 무거운 걸음 둘 + 마루 삐걱 → 1.4 s 크게 내뱉는 '크아'(노이즈) → 1.6 s 등불이 확 살아나는 '화륵'. 돌방 울림"
     },
     {
       "id": "sfx/boss1_phase_blackout",

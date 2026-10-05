@@ -320,7 +320,7 @@ def _guard_block(sr, rng):
     return _block(sr, rng)
 
 
-@sfx('combo_finish', 'PLAYER_ATTACK{finisher:true}', "61라운드 새 — 연격 마무리 타(칼 3타·대검 4타·단검 3타) 적중 때 그 무기 휘두름·적 피격 위에 겹치는 무게. 공기 터짐 + 깊은 '쿵'(95→34 Hz) + 저역 압력 + 흙 튐 + 짧은 방 울림. 활은 쓰지 않음", -3)
+@sfx('combo_finish', 'PLAYER_COMBO_FINISH', "61라운드 새 — 연격 마무리 타(칼 3타·대검 4타·단검 3타)의 첫 적중 1회(PLAYER_COMBO_FINISH{weapon}) 때 그 무기 휘두름·적 피격 위에 겹치는 무게. 공기 터짐 + 깊은 '쿵'(95→34 Hz) + 저역 압력 + 흙 튐 + 짧은 방 울림. 활은 쓰지 않음", -3)
 def _combo_finish(sr, rng):
     return _finish(sr, rng)
 

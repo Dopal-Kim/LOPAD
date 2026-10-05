@@ -411,7 +411,7 @@ def _hidden_node_found(sr, rng):
 # (h) 약점 파훼 처치 보너스 (두 겹: 다양성 + 결정타)
 # ---------------------------------------------------------------------------
 
-@sfx('break_count', 'BOSS_BREAK{distinct:true}', "약점 파훼 다양성 +1(이번 보스전에서 처음 성공한 파훼 종류 — 잔·기둥·술통·취권). 일기장에 표 긋는 '슥' + 나무 틱 + 맑은 종 A5. n번째마다 rate 1.0 / 1.059 / 1.189 / 1.335(A5→B♭5→C6→D6, D 단조) 권장. 파훼 자체 소리(boss1_cup_shatter 등) 뒤 120 ms", -3, category='boss')
+@sfx('break_count', 'BOSS_BREAK{distinct:true}', "약점 파훼 다양성 +1(이번 보스전에서 처음 성공한 파훼 종류 — 잔·기둥·술통·취권). 일기장에 표 긋는 '슥' + 나무 틱 + 맑은 종 A5. n번째마다 rate 1.0 / 1.059 / 1.189 / 1.335(A5→B♭5→C6→D6, D 단조) 권장. 파훼 자체 소리(boss1_break_* — ui:boss-break{kind:cup|pillar|cask|stumble}) 뒤 120 ms", -3, category='boss')
 def _break_count(sr, rng):
     dur = 0.75
     s = zeros(sec(sr, dur))
@@ -421,7 +421,7 @@ def _break_count(sr, rng):
     return reverb(s, sr, size=0.6, decay=0.5, wet=0.15)
 
 
-@sfx('break_finisher', 'BOSS_BREAK{kind:finisher}', "결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격)", 0, category='boss')
+@sfx('break_finisher', 'ui:boss-break{kind:finisher}', "결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격)", 0, category='boss')
 def _break_finisher(sr, rng):
     dur = 1.9
     s = zeros(sec(sr, dur))

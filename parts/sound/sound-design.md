@@ -370,7 +370,7 @@
 | event_choice | 이벤트 노드 | 0.75 s | - | `UI_MENU_SELECT{menu:event}` | 이벤트 선택지 확정('지나간다'는 menu_cancel). 깃펜 한 획 + 가벼운 도장 + 낮은 종 D4. 이벤트 메뉴에서는 menu_select 대신 | -4 |
 | hidden_node_found | 숨은 노드 | 1.45 s | - | `HIDDEN_NODE_FOUND` | 숨은 노드 발견(단서 소품 조사 → 지도에 숨은 길). 속 빈 벽을 두 번 두드림 + 돌이 밀리는 마찰 + 깃펜이 길을 긋는 소리 + 위로 오르는 종 D5·F5·A5(작게) | -2 |
 | break_count | 약점 파훼 · 다양성 | 0.75 s | - | `BOSS_BREAK{distinct:true}` | 약점 파훼 다양성 +1(이번 보스전에서 처음 성공한 파훼 종류 — 잔·기둥·술통·취권). 일기장에 표 긋는 '슥' + 나무 틱 + 맑은 종 A5. n번째마다 rate 1.0 / 1.059 / 1.189 / 1.335(A5→B♭5→C6→D6, D 단조) 권장. 파훼 자체 소리(boss1_cup_shatter 등) 뒤 120 ms | -3 |
-| break_finisher | 약점 파훼 · 결정타 | 1.90 s | - | `BOSS_BREAK{kind:finisher}` | 결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격) | 0 |
+| break_finisher | 약점 파훼 · 결정타 | 1.90 s | - | `ui:boss-break{kind:finisher}`(61-2 동기화, 옛 `BOSS_BREAK{kind:finisher}`) | 결정타(파훼 경직 중 마지막 일격 → 전표 +50 · 개성 +30 · 도감 기록). 0.08 s 빨려드는 역바람 → 밝은 칼날 울림 D6 + 쪼개지는 쇠 + 큰 징 D3 + 종 D5·A5·D6, 길게 울림. boss_die 와 같은 프레임에 겹침(대역이 위·아래로 나뉨, 파일 0.08 s = 일격) | 0 |
 | still_ignite | 증류 화로 | 1.17 s | - | `STRUCTURE_FIRE` | 증류 화로 통과 → 무기에 불(fireWeapon 6 s). 증류기 끓는 거품 + 화로가 '후욱' 숨 쉬듯 타오름 + 칼날에 불이 옮겨붙는 '화륵' + 달아오르는 쇠 험 D4 + 타닥. 이어서 fire_weapon_loop | -2 |
 | fire_weapon_loop | 증류 화로 | 1.00 s | 루프 | `STATUS_CHANGED{id:fireWeapon,phase:start}` | 불 무기 지속 루프(1.0 s, fireWeapon 6 s 동안). 칼날을 핥는 낮은 불길(2·5 Hz 일렁임) + 아주 작은 쉿 + 드문 타닥 + 희미한 D4 쇠 험. 시작 200 ms 페이드인, 상태 끝(fire_weapon_end)에서 150 ms 페이드아웃. 전투음 아래에 깔리게 작게 | -14 |
 | fire_weapon_end | 증류 화로 | 0.53 s | - | `STATUS_CHANGED{id:fireWeapon,phase:end}` | 불 무기 꺼짐(6 s 끝). 식는 쇠의 증기 쉿(5k→2k) + 작은 '푸' + 마지막 타닥 둘. fire_weapon_loop 를 150 ms 페이드아웃하며 같은 프레임 | -6 |
@@ -488,7 +488,7 @@
 | 20 | `menu_cancel` | 0.15 s | -8 | - | 종이 '사락'(3k→1.2k) + 내려놓는 작은 '톡' |
 
 - **안 고친 것**: 차지·검기 단계(60 Q22·Q25 에서 이미 다시 만듦), 보스 효과음(단계 3 P6 에서 패턴과 함께), `guard_hold`·`guard_push`(P1 4동사에서 가드 입력이 어떻게 남는지 시스템 확정 후).
-- **새 트리거(제안, 시스템 확정 필요)**: `guard_block` = `PLAYER_DAMAGED{guarded:true}`(일반 가드로 받은 피격), `combo_finish` = `PLAYER_ATTACK{finisher:true}`(연격 마지막 타가 **적중**했을 때 — 칼 3타·대검 4타·단검 3타, 활 제외).
+- **트리거(61-2 시스템 확정)**: `guard_block` = `PLAYER_DAMAGED{guarded:true}`(일반 가드로 받은 피격, 대검이면 `guard_block_heavy`), `combo_finish` = `PLAYER_COMBO_FINISH{weapon}`(연격 마지막 타의 **첫 적중 1회** — 칼 3타·대검 4타·단검 3타, 활 해당 없음). ~~`PLAYER_ATTACK{finisher:true}`~~
 
 ### 4-9. 61라운드 단계 2·3 — 신규 적 2종 · 보스 '만취' 패스(P6) · 발도 검기 단수 · 가드 (새 29 + 다시 11 + 보관 1)
 근거: `parts/producer/decisions/2026-10-05-round-61-autonomous-stage1.md`(자율 모드 — 인터뷰 없이 판단, 이유는 README 61-2 절), 점검 SY-5(신규 적 = 보스 예습)·SY-8(보스 재구성)·SY-1(4동사), 계약 `art-assets.md` §23 프레임 타이밍. 코드 `work/sfx_stage61.py`(이제 **마지막 모듈**). 원칙은 4-8 그대로(0.7~2 kHz 오래 남는 금속 울림 금지, 무게 = 떨어지는 몸통, 목소리 없음 — 적의 숨·'끙'도 노이즈 포먼트).
@@ -496,28 +496,28 @@
 **신규 적 — 독주 행상 `peddler` (throw 놓음 = 프레임 5 = 550 ms)**
 | id | 길이 | gainDb | 트리거 제안 | 질감 |
 |---|---|---|---|---|
-| `peddler_wick` | 0.60 s | -3 | `ENEMY_TELEGRAPH{enemy:peddler}` (throw 프레임 0) | 등불 갓 '톡' → 0.12 s 심지 불붙는 '푸슉' → **0.55 s 까지 커지는 지글거림** + 팔 젖힘 바람 + 병 속 출렁 → 0.55 s 에 뚝 끊김(= 병이 날아가는 순간) |
-| `peddler_throw` | 0.52 s | -3 | `ENEMY_ATTACK{enemy:peddler,phase:throw}` (프레임 5) | '흡' 숨 + 팔 '휙'(1.6k→500) + 9 Hz 로 도는 병 + 펄럭이며 멀어지는 심지 불 |
-| (착탄) `bottle_burst` **재사용** | 0.92 s | -1 | `ENEMY_ATTACK{enemy:peddler,phase:impact}` → 같은 id | 아트가 같은 fx 사슬(fire_bottle_burst → fire_pool)을 쓰므로 소리도 같게 — 플레이어 화염 술병과 같은 물건임을 귀로도. 웅덩이는 `boss1_fire_loop` 1개 |
-| `peddler_hurt` | 0.28 s | -5 | `ENEMY_DAMAGED{enemy:peddler,aux:true}` (enemy_hurt 대신) | 짧은 '흑' 숨 + 등짐 술병 '짤그락'(3 kHz 위, 20 ms) + 출렁 + 옷 |
-| `peddler_death` | 1.00 s | -2 | `ENEMY_DIED{enemy:peddler}` (enemy_death 대신) | 숨 빠짐 + 비틀 → 0.18 s '쿵' + 등짐 병 깨짐(짧게) + 술 쏟아짐 '꿀렁' → 병 하나 데굴데굴 |
+| `peddler_wick` | 0.60 s | -3 | `ENEMY_TELEGRAPH{kind:throw}` (throw 프레임 0) | 등불 갓 '톡' → 0.12 s 심지 불붙는 '푸슉' → **0.55 s 까지 커지는 지글거림** + 팔 젖힘 바람 + 병 속 출렁 → 0.55 s 에 뚝 끊김(= 병이 날아가는 순간) |
+| `peddler_throw` | 0.52 s | -3 | `ENEMY_ATTACK{kind:throw,phase:throw}` (프레임 5) | '흡' 숨 + 팔 '휙'(1.6k→500) + 9 Hz 로 도는 병 + 펄럭이며 멀어지는 심지 불 |
+| (착탄) `bottle_burst` **재사용** | 0.92 s | -1 | `ENEMY_ATTACK{kind:throw,phase:burst}` → 같은 id(시스템 audioMap) | 아트가 같은 fx 사슬(fire_bottle_burst → fire_pool)을 쓰므로 소리도 같게 — 플레이어 화염 술병과 같은 물건임을 귀로도. 웅덩이는 `boss1_fire_loop` 1개 |
+| `peddler_hurt` | 0.28 s | -5 | `ENEMY_DAMAGED{enemy:peddler,aux:true}` (enemy_hurt 대신 — 시스템 audioMap 처리) | 짧은 '흑' 숨 + 등짐 술병 '짤그락'(3 kHz 위, 20 ms) + 출렁 + 옷 |
+| `peddler_death` | 1.00 s | -2 | `ENEMY_DIED{enemy:peddler}` (enemy_death 대신 — 시스템 audioMap 처리) | 숨 빠짐 + 비틀 → 0.18 s '쿵' + 등짐 병 깨짐(짧게) + 술 쏟아짐 '꿀렁' → 병 하나 데굴데굴 |
 
 **신규 적 — 술통 짐꾼 `porter` (push 놓음 = 프레임 5 = 530 ms, 굴러가는 통 60 ms × 8 = 0.48 s 한 바퀴)**
 | id | 길이 | gainDb | 트리거 제안 | 질감 |
 |---|---|---|---|---|
-| `porter_windup` | 0.58 s | -3 | `ENEMY_TELEGRAPH{enemy:porter}` (push 프레임 0) | 디딤 '쿵' + 어깨가 통에 '톡' → 커지는 '끄응'(노이즈) + 통 삐걱 + 발 밀림 + 출렁 → **0.53 s 에 끊김** |
-| `porter_push` | 0.50 s | -1 | `ENEMY_ATTACK{enemy:porter,phase:push}` (프레임 5) | '흡' + 어깨로 미는 '쿵'(140→55 Hz) + 속 빈 통 + 빨라지는 덜컹 셋 |
-| `porter_barrel_roll` | 0.96 s **루프** | -6 | `ENEMY_ATTACK{enemy:porter,phase:roll}` (멈춤·깨짐에 80 ms 페이드아웃) | 그림 한 바퀴 0.48 s × 2: 덜컹 0.12 s 간격 + 바퀴마다 강세 + 굴림 + 출렁 + 자갈. 되치기 뒤에도 같은 루프 |
-| `barrel_return` | 0.57 s | 0 | `ENEMY_ATTACK{enemy:porter,phase:return}` + **보스 `BOSS_ATTACK{boss:1,attack:barrel,phase:return}` 에도 같은 id** | 되치기 '탕': 넓은 '딱' + 단단한 나무 몸통(270→115) + 짧게 울리는 통(300·680 Hz) + 쇠테 덜컥 + 거꾸로 밀려 나가는 바람 + 짧은 번뜩 공기. **짐꾼에서 배운 소리 = 보스 파훼 신호** |
-| `porter_barrel_break` | 0.95 s | -1 | `ENEMY_ATTACK{enemy:porter,phase:break}` | '쾅' + 판자 쪼개짐 10 + 쇠테 둘 덜컥·굴러감(낮게) + 술 한꺼번에 쏟아짐 + 나무 조각 |
-| `porter_liquor_spill` | 0.85 s | -6 | `ENEMY_ATTACK{enemy:porter,phase:spill}` (pool_liquor 생김) | 번지는 '쏴아'(1.8k→600) + 꿀렁 셋 + 물방울. 불이 닿으면 기존 `drunk_ignite` |
-| `porter_hurt` | 0.32 s | -4 | `ENEMY_DAMAGED{enemy:porter,aux:true}` (enemy_hurt 대신) | 낮은 '읍' 끙(노이즈) + 큰 몸통 '퍽' + 멜빵 삐걱 + 등 나무틀 '톡' |
-| `porter_death` | 1.15 s | -1 | `ENEMY_DIED{enemy:porter}` (enemy_death 대신) | 긴 '끄으' 숨 → 0.16 s 무릎 → 0.34 s 큰 몸 '쿠웅'(95→32) + 나무틀·멜빵 + 쇠테 → 튐 + 먼지 |
+| `porter_windup` | 0.58 s | -3 | `ENEMY_TELEGRAPH{kind:roll}` (push 프레임 0) | 디딤 '쿵' + 어깨가 통에 '톡' → 커지는 '끄응'(노이즈) + 통 삐걱 + 발 밀림 + 출렁 → **0.53 s 에 끊김** |
+| `porter_push` | 0.50 s | -1 | `ENEMY_ATTACK{kind:roll,phase:push}` (프레임 5) | '흡' + 어깨로 미는 '쿵'(140→55 Hz) + 속 빈 통 + 빨라지는 덜컹 셋 |
+| `porter_barrel_roll` | 0.96 s **루프** | -6 | 시작 `ENEMY_ATTACK{kind:roll,phase:push}`(porter_push 와 함께) · 정지 `phase:rollEnd` 에서 80 ms 페이드아웃 | 그림 한 바퀴 0.48 s × 2: 덜컹 0.12 s 간격 + 바퀴마다 강세 + 굴림 + 출렁 + 자갈. 되치기 뒤에도 같은 루프 |
+| `barrel_return` | 0.57 s | 0 | `ENEMY_ATTACK{kind:roll,phase:return}` + **보스 `BOSS_ATTACK{boss:1,attack:barrel,phase:return}` 에도 같은 id** | 되치기 '탕': 넓은 '딱' + 단단한 나무 몸통(270→115) + 짧게 울리는 통(300·680 Hz) + 쇠테 덜컥 + 거꾸로 밀려 나가는 바람 + 짧은 번뜩 공기. **짐꾼에서 배운 소리 = 보스 파훼 신호** |
+| `porter_barrel_break` | 0.95 s | -1 | `ENEMY_ATTACK{kind:roll,phase:break}` | '쾅' + 판자 쪼개짐 10 + 쇠테 둘 덜컥·굴러감(낮게) + 술 한꺼번에 쏟아짐 + 나무 조각 |
+| `porter_liquor_spill` | 0.85 s | -6 | `ENEMY_ATTACK{kind:roll,phase:spill}` (pool_liquor 생김) | 번지는 '쏴아'(1.8k→600) + 꿀렁 셋 + 물방울. 불이 닿으면 기존 `drunk_ignite` |
+| `porter_hurt` | 0.32 s | -4 | `ENEMY_DAMAGED{enemy:porter,aux:true}` (enemy_hurt 대신 — 시스템 audioMap 처리) | 낮은 '읍' 끙(노이즈) + 큰 몸통 '퍽' + 멜빵 삐걱 + 등 나무틀 '톡' |
+| `porter_death` | 1.15 s | -1 | `ENEMY_DIED{enemy:porter}` (enemy_death 대신 — 시스템 audioMap 처리) | 긴 '끄으' 숨 → 0.16 s 무릎 → 0.34 s 큰 몸 '쿠웅'(95→32) + 나무틀·멜빵 + 쇠테 → 튐 + 먼지 |
 
 **보스 '만취' (P6: 얼큰 → 만취 → 인사불성)**
 | id | 길이 | gainDb | 트리거 제안 | 질감 |
 |---|---|---|---|---|
-| `boss1_entrance` **새** | 2.70 s | 0 | `BOSS_STARTED{boss:1}` (boss_start 대신) | 큰 잔 탁자 '탁!' + 잔들 덜그럭 + 큰 북 → 울렁이는 낮은 불협(D2·G#2) → 무거운 걸음 둘 → 1.4 s 큰 '크아' → 1.6 s 등불 '화륵' |
+| `boss1_entrance` **새** | 2.70 s | 0 | 시스템 EventBus `boss:intro` (boss_start 대신. 보스 곡은 `boss:fight` 부터 권장) | 큰 잔 탁자 '탁!' + 잔들 덜그럭 + 큰 북 → 울렁이는 낮은 불협(D2·G#2) → 무거운 걸음 둘 → 1.4 s 큰 '크아' → 1.6 s 등불 '화륵' |
 | `boss1_phase_drink` 다시 | 2.70 s | 0 | `BOSS_PHASE{boss:1,phase:2}` (**phase:2 로 좁힘**) | 얼큰 → 만취: 꿀꺽 셋(낮고 굵게) → 0.85 s '크아' + 북 둘 + '세상이 돈다' 울렁임 1.8 s(0.5 Hz = 기울기 2 s) |
 | `boss1_phase_blackout` **새** | 3.10 s | 0 | `BOSS_PHASE{boss:1,phase:3}` | 만취 → 인사불성: 단지째 꿀꺽 다섯 + 흘러넘침 → 단지 내던짐 '와장창'(짧게) + 가장 깊은 '크아아' + 심장 셋(점점 크게) + 더 깊고 느린 울렁임(52→38 Hz). 소등은 이어지는 `boss1_candle_topple` |
 | `boss1_spin_start` 다시 | 2.20 s | -2 | 그대로(`attack:spin,phase:start`) | 2.9 kHz 이질 고음 제거, 울렁임 + 휘청 발 끌림. 국면 전환 소리에 같은 울렁임이 들어 있어 별도 연출용 |
@@ -536,12 +536,12 @@
 **파훼 4종 + 결정타 + 쓰러짐** — 4종은 **같은 '파훼 공통 신호'**(넓은 '쾅' → 아래로 꺼지는 '부웅' 220→55 Hz → 0.14 s 주저앉는 '쿵' + 저역 압력) 위에 재료가 다르다: 같은 뼈대를 들으면 '무너뜨렸다'를 배운다.
 | id | 길이 | gainDb | 트리거 제안 | 재료 |
 |---|---|---|---|---|
-| `boss1_break_cup` | 1.50 s | 0 | `BOSS_BREAK{kind:cup}` | 도자기 몸통 '빡' + 짧은 조각 + 술을 뒤집어씀 + 물방울 + 사레 기침 둘(노이즈) |
-| `boss1_break_pillar` | 1.90 s | 0 | `BOSS_BREAK{kind:pillar}` | 들이받는 '쿵' + 나무 쪼개짐 → 기우는 낮은 신음 → 0.62 s 무너지는 '와르르' + 먼지 |
-| `boss1_break_barrel` | 1.50 s | 0 | `BOSS_BREAK{kind:barrel}` | 통이 몸에 박혀 '콰직'(판자 9·쇠테 둘) + 술 터짐 + 0.3 s '허억'. 되치기 순간은 `barrel_return` |
-| `boss1_break_reel` | 1.60 s | 0 | `BOSS_BREAK{kind:reel}` (파훼 넘어짐이면 boss1_fall 대신) | 받아치는 '딱' + 채찍 '샥' → 비틀려 도는 바람 → 0.32 s 크게 나뒹굶 + 소품 + 먼지 |
-| `break_finisher` 다시 | 2.10 s | 0 | 그대로(`BOSS_BREAK{kind:finisher}`) | 칼날 울림·쪼개지는 쇠·징·종 **제거** → 0.08 s 역바람 → 겹 '딱-딱' + 날 '샥' + 150→32 Hz 몸통 + 큰 북 + 0.9 s 이어지는 낮은 울림(무게만) + 흙·돌 → 0.3 s 두 번째 '둥'. 큰 돌방 |
-| `boss1_die` **새** | 3.30 s | 0 | `BOSS_DIED{boss:1}` (boss_die 대신) | 첫 0.3 s 조용(결정타가 앞에) → 비틀 걸음 → 잔 미끄러져 데굴 → 무릎 → 1.05 s 탁자를 쓸며 '쿠웅' + 소품·술 → 마지막 긴 숨 → 낮은 울림이 꺼지며 정적 |
+| `boss1_break_cup` | 1.50 s | 0 | `ui:boss-break{kind:cup}` | 도자기 몸통 '빡' + 짧은 조각 + 술을 뒤집어씀 + 물방울 + 사레 기침 둘(노이즈) |
+| `boss1_break_pillar` | 1.90 s | 0 | `ui:boss-break{kind:pillar}` | 들이받는 '쿵' + 나무 쪼개짐 → 기우는 낮은 신음 → 0.62 s 무너지는 '와르르' + 먼지 |
+| `boss1_break_barrel` | 1.50 s | 0 | `ui:boss-break{kind:cask}` | 통이 몸에 박혀 '콰직'(판자 9·쇠테 둘) + 술 터짐 + 0.3 s '허억'. 되치기 순간은 `barrel_return` |
+| `boss1_break_reel` | 1.60 s | 0 | `ui:boss-break{kind:stumble}` (내부 reel. 파훼 넘어짐이면 boss1_fall 대신) | 받아치는 '딱' + 채찍 '샥' → 비틀려 도는 바람 → 0.32 s 크게 나뒹굶 + 소품 + 먼지 |
+| `break_finisher` 다시 | 2.10 s | 0 | `ui:boss-break{kind:finisher}` | 칼날 울림·쪼개지는 쇠·징·종 **제거** → 0.08 s 역바람 → 겹 '딱-딱' + 날 '샥' + 150→32 Hz 몸통 + 큰 북 + 0.9 s 이어지는 낮은 울림(무게만) + 흙·돌 → 0.3 s 두 번째 '둥'. 큰 돌방 |
+| `boss1_die` **새** | 3.30 s | 0 | `BOSS_DIED{boss:1}` (boss_die 대신. 같은 순간 보스 곡 0.9 s 페이드아웃 → `EXIT_OPENED` 까지 BGM 정적) | 첫 0.3 s 조용(결정타가 앞에) → 비틀 걸음 → 잔 미끄러져 데굴 → 무릎 → 1.05 s 탁자를 쓸며 '쿠웅' + 소품·술 → 마지막 긴 숨 → 낮은 울림이 꺼지며 정적 |
 
 **칼 발도 — 검기 소모 단수별 (`kenkiStage`)** — `katana_iai_release`(0단) **대신** 재생. 단수가 오를수록 몸통이 낮아지고(1단 163→66 Hz … 5단 115→42 Hz), 아래 무게·저역 압력·길이·울림이 커진다. 색은 검기 단계음과 같다. 쇳빛은 3.7~4.5 kHz 위 0.05 s 감쇠로만(옛 발도의 880 Hz 칼날 울림 없음).
 | id | 길이 | gainDb | 트리거 제안 | 단수 색 |
@@ -560,7 +560,9 @@
 | `guard_block` | 0.40 s | -2 | 그대로 — **칼(및 그 밖)** | 바이트 그대로(61 P11 판, 아직 청취 전) |
 | `guard_block_heavy` **새** | 0.50 s | -1 | `PLAYER_DAMAGED{guarded:true,weapon:greatsword}` (대검이면 guard_block 대신) | 칼 면으로 받는 큰 충격(120→44) + 넓적한 '훔' + 짧은 날 틱 + 뒤로 밀리는 발·흙 |
 
-**믹싱(5장 갱신)**: `BOSS_BREAK` 를 우선순위 3(방어 판정급)으로 — 파훼·결정타·`break_count` 가 2 → 3. 덕킹 한 줄 추가: BOSS_BREAK 소리 재생 → SFX(≤ 2) -4 dB 300 ms(한 방이 앞에 서게). 같은 소리 상한: `guard_block_heavy` 2 · `peddler_hurt`·`porter_hurt` 2 · `barrel_return` 2.
+**트리거 동기화(61-2 시스템 확정 반영)**: 행상·짐꾼 공격은 `enemy:` 대신 `kind:throw|roll` + `phase:throw|burst|push|return|break|spill|rollEnd`(착탄 = `burst`, 짐꾼 통 굴림에는 별도 `roll` 단계가 없어 루프는 `push` 에서 시작해 `rollEnd` 에서 멈춤). 파훼는 UI 이벤트 `ui:boss-break` kind `cup|pillar|cask|stumble|finisher`(내부 `reel` → `stumble`). `break_count` 는 다양성 값(`distinct`)이 UI payload 에 없어 시스템 내부 `BOSS_BREAK{distinct:true}` 그대로. 보스 등장 = `boss:intro`. 보스 처치 BGM = `mixing.bgmBossDefeat`(`BOSS_DIED` 900 ms 페이드아웃 → `EXIT_OPENED` 까지 정적 → 층 곡 복귀).
+
+**믹싱(5장 갱신)**: `BOSS_BREAK`(= `ui:boss-break`) 를 우선순위 3(방어 판정급)으로 — 파훼·결정타·`break_count` 가 2 → 3. 덕킹 한 줄 추가: BOSS_BREAK 소리 재생 → SFX(≤ 2) -4 dB 300 ms(한 방이 앞에 서게). 같은 소리 상한: `guard_block_heavy` 2 · `peddler_hurt`·`porter_hurt` 2 · `barrel_return` 2.
 
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).
@@ -572,11 +574,12 @@
 | `voices.maxSfx` | **12** (UI 는 별도 `maxUi` 2) | 1층 웨이브(노드당 12~16 처치, 2~3 웨이브)에서 타격·처치·부가음이 몰린다. 8 은 변주·겹침(피격 + `enemy_hurt` + 패시브)에서 예고음까지 빼앗길 위험 |
 | `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
 | `voices.steal` | `lowest-priority-oldest` (30 ms 페이드). loop 항목은 빼앗지 않음(같은 id 1개) | 새 소리보다 낮거나 같은 우선순위 중 가장 오래된 것부터 |
-| `priority` (항목별 필드) | **4 보스 예고·신호**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`) > **2 타격·공격**(그 밖의 combat·boss) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`), 0 UI | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
-| `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) BOSS_BREAK 소리 → SFX(≤2) -4 dB 300 ms** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
+| `priority` (항목별 필드) | **4 보스 예고·신호**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`) > **2 타격·공격**(그 밖의 combat·boss) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`), 0 UI | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
+| `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) 파훼 소리(`ui:boss-break`·`BOSS_BREAK`) → SFX(≤2) -4 dB 300 ms** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
 | `variation` | 변주 목록에서 직전과 다른 것 + 재생 속도 1 ± 0.03 (loop·UI·BGM 제외) | 반복 피로. 변주가 생겨 ±4 % → ±3 % |
 | `masterLimiter` | 문턱 -3 dB, knee 6, ratio 12, attack 3 ms, release 120 ms (DynamicsCompressorNode) | 새 타격음이 같은 피크에서 짧은 구간 음량이 커져 몰릴 때 찌그러짐 방지 |
 | `bgmPhaseCrossfadeMs` · `bgmPhaseSyncPosition` | 800 · true | 보스 국면 곡을 재생 위치 그대로 이어 교차(3-1) |
+| `bgmBossDefeat` (61-2) | `BOSS_DIED` 에서 900 ms 페이드아웃 → `EXIT_OPENED` 까지 정적 → 층 상태 곡 복귀(`resume: floorState`) | 처치 연출(`boss1_die`·결정타)만 들리게, 보상 메뉴는 고요하게(61라운드 프로듀서 판단) |
 
 ## 6. 다음 단계 (복귀 후 인터뷰 대상)
 1. 톤 방향 확인: "건조·재료 중심·마법은 이질"이 맞는지, 더 멜로딕한 BGM 을 원하는지.

@@ -228,6 +228,30 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 4. 연결 끊기: `boss1_cup_shatter`(보관). 루프 새 1(`porter_barrel_roll`, 멈춤·깨짐에 80 ms 페이드아웃)·길이 바뀜 1(`guard_hold` 0.6 → 1.2 s — 루프 구간은 manifest `loopEndSample`).
 5. 믹싱: `BOSS_BREAK` 우선순위 3(manifest `priority` 이미 반영), `mixing.ducking` 에 BOSS_BREAK 줄, `perGroupOverrides` 4개 추가.
 
+## 추가 (61라운드 단계 2·3 — 트리거 이름 동기화, 2026-10-05 자율 모드)
+시스템이 확정한 실제 이름(시스템 보고)에 맞춰 manifest `trigger` 를 고쳤다. 오디오 파일은 바이트 그대로 — `build.py manifest` 로 manifest·`listen_index.json` 만 다시 썼다. 코드 `work/sfx_stage61.py`·`sfx_core61.py`·`sfx_bundle2.py`(트리거 문자열·note), `work/mixing.py`(우선순위 표·덕킹 문구·`bgmBossDefeat`). 위 61-2 절의 '트리거 제안' 표는 당시 기록으로 두고, 지금 값은 이 절과 `sound-design.md` 4-9 가 기준이다.
+
+| 키 | 옛 제안 | 확정(manifest) |
+|---|---|---|
+| `peddler_wick` | `ENEMY_TELEGRAPH{enemy:peddler}` | `ENEMY_TELEGRAPH{kind:throw}` |
+| `peddler_throw` | `ENEMY_ATTACK{enemy:peddler,phase:throw}` | `ENEMY_ATTACK{kind:throw,phase:throw}` |
+| (착탄) `bottle_burst` 재사용 | `ENEMY_ATTACK{enemy:peddler,phase:impact}` | `ENEMY_ATTACK{kind:throw,phase:burst}` — manifest 항목은 하나라 트리거는 소모품(`CONSUMABLE_IMPACT{id:fireBottle}`) 그대로, 행상 착탄은 시스템 audioMap 이 같은 id 재생 |
+| `porter_windup` | `ENEMY_TELEGRAPH{enemy:porter}` | `ENEMY_TELEGRAPH{kind:roll}` |
+| `porter_push` | `ENEMY_ATTACK{enemy:porter,phase:push}` | `ENEMY_ATTACK{kind:roll,phase:push}` |
+| `porter_barrel_roll`(루프) | `ENEMY_ATTACK{enemy:porter,phase:roll}` | 시작 `ENEMY_ATTACK{kind:roll,phase:push}`(porter_push 와 함께) · 정지 `phase:rollEnd` 80 ms 페이드(note) |
+| `barrel_return` · `porter_barrel_break` · `porter_liquor_spill` | `{enemy:porter,phase:return\|break\|spill}` | `{kind:roll,phase:return\|break\|spill}` |
+| `peddler_hurt`·`_death`·`porter_hurt`·`_death` | `ENEMY_DAMAGED/DIED{enemy:<id>}` | 그대로(공용 소리 대체는 시스템 audioMap 처리) |
+| `boss1_break_cup`·`_pillar`·`_barrel`·`_reel` | `BOSS_BREAK{kind:cup\|pillar\|barrel\|reel}` | `ui:boss-break{kind:cup\|pillar\|cask\|stumble}` (id·파일 이름은 그대로) |
+| `break_finisher` | `BOSS_BREAK{kind:finisher}` | `ui:boss-break{kind:finisher}` |
+| `break_count` | `BOSS_BREAK{distinct:true}` | 그대로 — `ui:boss-break` payload 에 `distinct` 가 없어 내부 `BOSS_BREAK` 유지(시스템 확인 필요) |
+| `boss1_entrance` | `BOSS_STARTED{boss:1}` | `boss:intro`(조건 없음 — payload 미확인) |
+| `boss1_die` | `BOSS_DIED{boss:1}` | 그대로 |
+| `combo_finish` | `PLAYER_ATTACK{finisher:true}` | `PLAYER_COMBO_FINISH`(payload `weapon`, 마지막 타 첫 적중 1회, 활 없음) |
+| `guard_block` · `guard_block_heavy` | `PLAYER_DAMAGED{guarded:true}` · `{guarded:true,weapon:greatsword}` | 그대로 |
+
+- 우선순위: `mixing.priority.tiers` 에 `boss:intro`(4)·`ui:boss-break`(3) 를 더해 값 불변(`boss1_entrance` 4, 파훼 4종·결정타 3, `combo_finish` 2).
+- BGM: `mixing.bgmBossDefeat` 새 키 = `{fadeOutOn: BOSS_DIED, fadeOutMs: 900, silentUntil: EXIT_OPENED, resume: floorState}`(61라운드 프로듀서 판단 '보스 처치 뒤 EXIT_OPENED 까지 정적'). 보스 곡 시작은 `boss:fight` 권장(등장 소리 `boss1_entrance` 가 인트로) — note 에만 적음. `boss:speech`·`boss:fallen` 에는 붙인 소리 없음.
+
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).
 - 60라운드 읽기(지시 범위): 아트 fx JSON 26개 `assets/sprites/fx/v3/{katana_whirl_loop,katana_whirl_reflect,katana_moon_trail,katana_cleave_crack,katana_execute,katana_mirror_ki,katana_mirror_parry,greatsword_quake_fork,greatsword_echo_counter,greatsword_giant_ring,greatsword_charge_flash_lv4,greatsword_congest_aura,greatsword_congest_burst,dagger_frenzy_clone_in,dagger_frenzy_clone_out,dagger_brand_bleed,dagger_brand_hop,dagger_stuck_blade,dagger_hotwind_trail,dagger_hotwind_burst,bow_arrow_split,bow_arrow_stuck,bow_arrow_recall,bow_deadeye_scope,bow_link_stack,bow_skypierce_line}.json` — 계약 `art-assets.md` §21 이 타이밍 기준으로 가리키는 런타임 데이터(타이밍 필드만 참고).
@@ -237,6 +261,6 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 
 ## 미완료 · 보류
 - 실제 청취 검수는 도영 님 복귀 후(컨테이너에서 재생 불가, 수치 검증만 수행). **61-2 새 29·다시 11 도 청취 전.**
-- 61-2: 행상·짐꾼 death 시트의 쓰러짐 프레임 시각 미확인(소리는 행상 0.18 s · 짐꾼 0.34 s 가정) — 데모에서 어긋나면 시각만 옮겨 다시 만든다. 트리거 이름 전부 시스템 확정 대기. **61라운드 새 BGM 5파일·품질 패스 20종·변주 23 도 청취 전** — 데모에서 들어보고 피드백으로 다듬는다.
+- 61-2: 행상·짐꾼 death 시트의 쓰러짐 프레임 시각 미확인(소리는 행상 0.18 s · 짐꾼 0.34 s 가정) — 데모에서 어긋나면 시각만 옮겨 다시 만든다. 트리거 이름은 시스템 확정값으로 동기화함(위 절) — 남은 확인: `break_count` 의 `distinct` 이벤트, `boss:intro` payload, 행상·짐꾼 `ENEMY_*` 에 `enemy` 필드 유무. **61라운드 새 BGM 5파일·품질 패스 20종·변주 23 도 청취 전** — 데모에서 들어보고 피드백으로 다듬는다.
 - 시스템 파트의 오디오 로더·트리거 연동은 시스템 소유 — 매니페스트 초안을 전달만 한다.
 - 진화별 전용 효과음, 엔딩 2종 음악, 층별 BGM 세분화는 `sound-design.md` 6장 참조.
