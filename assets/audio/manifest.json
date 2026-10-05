@@ -254,15 +254,15 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 15435,
-      "durationMs": 350,
+      "samples": 14994,
+      "durationMs": 340,
       "loop": false,
       "gainDb": 0,
       "trigger": {
         "event": "PLAYER_DAMAGED",
         "when": []
       },
-      "note": "주인공 피격. 무거운 충격 + 갑옷 쇳소리 + 저역 울림"
+      "note": "주인공 피격(60라운드 Q22 재제작 — 쇳소리 울림 제거). 몸에 꽂히는 둔탁한 충격 + 가죽·천이 눌리는 짧은 퍽 + 뼈에 울리는 낮은 쿵 + 숨이 밀려 나가는 짧은 바람(노이즈, 목소리 아님)"
     },
     {
       "id": "sfx/parry",
@@ -372,12 +372,12 @@
       "samples": 10143,
       "durationMs": 230,
       "loop": false,
-      "gainDb": -3,
+      "gainDb": -5,
       "trigger": {
         "event": "PLAYER_DASH",
         "when": []
       },
-      "note": "대쉬. 짧은 상승 바람 + 발 디딤"
+      "note": "대쉬. 짧은 상승 바람 + 발 디딤(60라운드 Q22: 권장 음량 -3 → -5 dB, 파일은 그대로)"
     },
     {
       "id": "sfx/pickup_gold",
@@ -1486,8 +1486,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 27342,
-      "durationMs": 620,
+      "samples": 25137,
+      "durationMs": 570,
       "loop": false,
       "gainDb": -6,
       "trigger": {
@@ -1498,7 +1498,7 @@
           "stage:1"
         ]
       },
-      "note": "차지 1단(0.4s). 낮은 호박빛 '징'(D4) 한 번"
+      "note": "차지 1단(0.4 s, 60라운드 Q22 재제작 — 종소리 없음). 기를 모으는 느낌: 안으로 빨려드는 공기 + 낮게 차오르는 압력(55→70 Hz) + 손잡이 가죽 삐걱"
     },
     {
       "id": "sfx/charge_stage2",
@@ -1511,8 +1511,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 36162,
-      "durationMs": 820,
+      "samples": 33957,
+      "durationMs": 770,
       "loop": false,
       "gainDb": -4,
       "trigger": {
@@ -1523,7 +1523,7 @@
           "stage:2"
         ]
       },
-      "note": "차지 2단(0.8s). 한 단 높은 '징'(A4), 1단보다 조금 밝고 길다"
+      "note": "차지 2단(0.8 s, 60라운드 Q22 재제작 — 종소리 없음). 힘을 다해 모으는 느낌: 더 깊고 거세게 빨려드는 공기 + 9 Hz 로 떨리며 올라가는 압력(60→95 Hz) + 쇠가 버티는 낮은 끼익 + 발밑 자갈 떨림"
     },
     {
       "id": "sfx/charge_stage3",
@@ -1536,8 +1536,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 55125,
-      "durationMs": 1250,
+      "samples": 45423,
+      "durationMs": 1030,
       "loop": false,
       "gainDb": -2,
       "trigger": {
@@ -1548,7 +1548,7 @@
           "stage:3"
         ]
       },
-      "note": "차지 3단(1.2s, 최대). 가장 높고 밝은 '징'(D5) + 아래 옥타브 겹침 + 백열 고음 반짝임, 가장 길게"
+      "note": "차지 3단(1.2 s, 최대 · 60라운드 Q22 재제작 — 종소리 없음). 힘을 다 짜내 공격 타이밍을 알림: 파일 0 s 에 또렷한 '척'(쥔 손·갑옷이 조여 붙는 단단한 딸깍 + 짧은 쿵) + 위로 터지는 공기 '파앗' → 12 Hz 로 떨리며 끓어 넘치는 압력(97 Hz) + 잔불 타닥. 0 s 신호가 '지금 놓아라'"
     },
     {
       "id": "sfx/charge_loop",
@@ -1756,8 +1756,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 20727,
-      "durationMs": 470,
+      "samples": 22932,
+      "durationMs": 520,
       "loop": false,
       "gainDb": -6,
       "trigger": {
@@ -1767,7 +1767,7 @@
           "delta>0"
         ]
       },
-      "note": "검기 1단 도달(재빛 칼날). 낮고 어두운 칼날 울림 A4 '시잉'"
+      "note": "검기 1단 도달(재빛 칼날, 60라운드 Q22 재제작). 지글지글 타기 시작: 칼날을 스치는 첫 불씨 + 지짐 쉿 + 잔 타닥"
     },
     {
       "id": "sfx/kenki_stage2",
@@ -1780,8 +1780,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 27342,
-      "durationMs": 620,
+      "samples": 31752,
+      "durationMs": 720,
       "loop": false,
       "gainDb": -5,
       "trigger": {
@@ -1791,7 +1791,7 @@
           "delta>0"
         ]
       },
-      "note": "검기 2단 도달(호박빛). 한 단 높고 밝은 칼날 울림 D5 + 아래 옥타브"
+      "note": "검기 2단 도달(호박빛, 60라운드 Q22 재제작). 본격적으로 타오름: 불이 붙는 '훅' + 컷오프가 열리며 치솟는 불길 + 지짐 + 촘촘한 타닥"
     },
     {
       "id": "sfx/kenki_stage3",
@@ -1804,8 +1804,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 39249,
-      "durationMs": 890,
+      "samples": 43218,
+      "durationMs": 980,
       "loop": false,
       "gainDb": -4,
       "trigger": {
@@ -1815,7 +1815,7 @@
           "delta>0"
         ]
       },
-      "note": "검기 3단 도달(백열, 그림자 분신 준비). 가장 높고 밝은 칼날 울림 A5 + 미세 떨림 + 백열 고음, 짧은 울림"
+      "note": "검기 3단 도달(백열, 그림자 분신 준비 · 60라운드 Q22 재제작). 빛남: 타오르는 바탕 위로 번쩍 오르는 고역 + 일렁이는 반짝임 + 아주 작은 맑은 빛 한 겹(A7·E8 근처 지속음, 종 아님) + 타닥, 짧은 울림"
     },
     {
       "id": "sfx/utbun_full",

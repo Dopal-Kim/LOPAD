@@ -682,13 +682,18 @@ def _hit_enemy_crit(sr, rng):
     return tail(h, sr, 0.1)
 
 
-@sfx('hit_player', 'PLAYER_DAMAGED', '주인공 피격. 무거운 충격 + 갑옷 쇳소리 + 저역 울림', 0)
+@sfx('hit_player', 'PLAYER_DAMAGED', '주인공 피격(60라운드 Q22 재제작 — 쇳소리 울림 제거). 몸에 꽂히는 둔탁한 충격 + 가죽·천이 눌리는 짧은 퍽 + 뼈에 울리는 낮은 쿵 + 숨이 밀려 나가는 짧은 바람(노이즈, 목소리 아님)', 0)
 def _hit_player(sr, rng):
-    h = thud(sr, 0.3, 120, 38, 0.08)
-    mix_into(h, burst(sr, 0.1, rng, fc=900, q=0.7, tau=0.025), 0, 0.8)
-    mix_into(h, metal(sr, 0.25, 900, rng, tau=0.06, jitter=0.03), sec(sr, 0.004), 0.35)
-    h = softclip(h, 1.6)
-    return tail(h, sr, 0.05)
+    # Q22 '너무 팅팅거린다, 프라이팬 같다' → 울리는 금속(metal 900 Hz)을 빼고 몸통·가죽·숨으로만
+    h = thud(sr, 0.3, 105, 36, 0.07)
+    mix_into(h, burst(sr, 0.07, rng, fc=650, q=0.6, tau=0.018, mode='low'), 0, 0.9)  # 가죽·천 눌림 '퍽'
+    mix_into(h, burst(sr, 0.03, rng, fc=1600, q=0.7, tau=0.007), 0, 0.45)  # 맞는 순간의 짧은 타격 머리
+    mix_into(h, lowpass(thud(sr, 0.2, 70, 34, 0.06), sr, 220), sec(sr, 0.01), 0.7)  # 뼈에 울리는 저음
+    n = sec(sr, 0.16)
+    hf = svf(noise(sr, 0.16, rng), sr, sweep(sr, n, 900, 500), 1.0, 'band')
+    mix_into(h, mul(hf, env_adsr(sr, 0.16, 0.01, 0.0, 1.0, 0.12)), sec(sr, 0.02), 0.3)  # 숨 밀림
+    h = softclip(h, 1.8)
+    return tail(h, sr, 0.04)
 
 
 @sfx('parry', 'PARRY_SUCCESS', '패링 성공. 강철이 맞부딪히는 밝은 울림(오래 남는다)', 0)
@@ -738,7 +743,7 @@ def _shadowstep(sr, rng):
     return reverb(tail(nz, sr, 0.1), sr, size=0.5, decay=0.5, wet=0.2)
 
 
-@sfx('dash', 'PLAYER_DASH', '대쉬. 짧은 상승 바람 + 발 디딤', -3)
+@sfx('dash', 'PLAYER_DASH', '대쉬. 짧은 상승 바람 + 발 디딤(60라운드 Q22: 권장 음량 -3 → -5 dB, 파일은 그대로)', -5)
 def _dash(sr, rng):
     w = whoosh(sr, 0.2, rng, 700, 3200, q=1.1, a=0.2, r=0.5)
     mix_into(w, thud(sr, 0.06, 150, 80, 0.015), 0, 0.5)
@@ -1476,28 +1481,67 @@ def _charge_start(sr, rng):
     return s
 
 
-@sfx('charge_stage1', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:1}', "차지 1단(0.4s). 낮은 호박빛 '징'(D4) 한 번", -6)
+def _gather(sr, rng, dur, f0, f1, q=1.1):
+    """기를 모음: 안으로 빨려드는 공기(노이즈 밴드가 위로 차오름)."""
+    n = sec(sr, dur)
+    g = svf(noise(sr, dur, rng), sr, sweep(sr, n, f0, f1), q, 'band')
+    return mul(g, [((i / n) ** 1.4) * (1.0 if i < n * 0.85 else (n - i) / (n * 0.15)) for i in range(n)])
+
+
+def _strain(sr, dur, f0, f1, shake, depth):
+    """힘을 주는 낮은 압력음: 저역통과 톱니 피치 상승 + shake Hz 떨림(버티는 몸)."""
+    n = sec(sr, dur)
+    p = lowpass(lowpass(tone(sr, dur, f0, f1, kind='saw'), sr, 260), sr, 400)
+    return mul(p, [(1 - depth) + depth * (0.5 + 0.5 * math.sin(TAU * shake * i / sr)) for i in range(n)])
+
+
+@sfx('charge_stage1', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:1}', "차지 1단(0.4 s, 60라운드 Q22 재제작 — 종소리 없음). 기를 모으는 느낌: 안으로 빨려드는 공기 + 낮게 차오르는 압력(55→70 Hz) + 손잡이 가죽 삐걱", -6)
 def _charge_stage1(sr, rng):
-    s = jing(sr, 0.6, AMBER_D[1], rng, bright=0.0, tau=0.32)
+    dur = 0.55
+    s = zeros(sec(sr, dur))
+    mix_into(s, _gather(sr, rng, 0.5, 300, 1300), 0, 0.6)
+    mix_into(s, mul(_strain(sr, 0.5, 55, 70, 5.0, 0.2), env_adsr(sr, 0.5, 0.25, 0.0, 1.0, 0.2)), 0, 0.8)
+    cr = svf(noise(sr, 0.12, rng), sr, 1100, 3.0, 'band')
+    cr = mul(cr, [0.5 + 0.5 * math.sin(TAU * 32 * i / sr) for i in range(len(cr))])
+    mix_into(s, mul(cr, env_adsr(sr, 0.12, 0.03, 0.0, 1.0, 0.06)), sec(sr, 0.05), 0.25)  # 가죽 삐걱
     return tail(s, sr, 0.02)
 
 
-@sfx('charge_stage2', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:2}', "차지 2단(0.8s). 한 단 높은 '징'(A4), 1단보다 조금 밝고 길다", -4)
+@sfx('charge_stage2', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:2}', "차지 2단(0.8 s, 60라운드 Q22 재제작 — 종소리 없음). 힘을 다해 모으는 느낌: 더 깊고 거세게 빨려드는 공기 + 9 Hz 로 떨리며 올라가는 압력(60→95 Hz) + 쇠가 버티는 낮은 끼익 + 발밑 자갈 떨림", -4)
 def _charge_stage2(sr, rng):
-    s = jing(sr, 0.8, AMBER_D[2], rng, bright=0.35, tau=0.42)
-    mix_into(s, jing(sr, 0.6, AMBER_D[1], rng, bright=0.0, tau=0.3), sec(sr, 0.004), 0.25)
-    return tail(s, sr, 0.02)
+    dur = 0.75
+    s = zeros(sec(sr, dur))
+    mix_into(s, _gather(sr, rng, 0.65, 220, 1800, q=0.9), 0, 0.75)
+    mix_into(s, mul(_strain(sr, 0.7, 60, 95, 9.0, 0.45), env_adsr(sr, 0.7, 0.2, 0.0, 1.0, 0.25)), 0, 1.0)
+    n = sec(sr, 0.45)
+    gr = svf(noise(sr, 0.45, rng), sr, sweep(sr, n, 380, 620), 4.0, 'band')
+    gr = mul(gr, [0.4 + 0.6 * abs(math.sin(TAU * 13 * i / sr)) for i in range(n)])
+    mix_into(s, mul(gr, env_adsr(sr, 0.45, 0.12, 0.0, 1.0, 0.15)), sec(sr, 0.12), 0.3)  # 쇠가 버티는 끼익
+    tr = svf(noise(sr, 0.6, rng), sr, 160, 0.8, 'low')
+    tr = mul(tr, [0.5 + 0.5 * math.sin(TAU * 9 * i / sr) for i in range(len(tr))])
+    mix_into(s, mul(tr, env_adsr(sr, 0.6, 0.2, 0.0, 1.0, 0.2)), 0, 0.45)  # 땅 떨림
+    mix_into(s, gravel(sr, rng, 0.6, 6, 0.15, 0.55, 0.15), 0)
+    return softclip(tail(s, sr, 0.02), 1.2)
 
 
-@sfx('charge_stage3', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:3}', "차지 3단(1.2s, 최대). 가장 높고 밝은 '징'(D5) + 아래 옥타브 겹침 + 백열 고음 반짝임, 가장 길게", -2)
+@sfx('charge_stage3', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:3}', "차지 3단(1.2 s, 최대 · 60라운드 Q22 재제작 — 종소리 없음). 힘을 다 짜내 공격 타이밍을 알림: 파일 0 s 에 또렷한 '척'(쥔 손·갑옷이 조여 붙는 단단한 딸깍 + 짧은 쿵) + 위로 터지는 공기 '파앗' → 12 Hz 로 떨리며 끓어 넘치는 압력(97 Hz) + 잔불 타닥. 0 s 신호가 '지금 놓아라'", -2)
 def _charge_stage3(sr, rng):
-    dur = 1.2
-    s = jing(sr, dur, AMBER_D[3], rng, bright=1.0, tau=0.6)
-    mix_into(s, jing(sr, 1.0, AMBER_D[1], rng, bright=0.3, tau=0.5), sec(sr, 0.004), 0.4)
-    hi = mul(tone(sr, 0.9, 3520, 3560), env_adsr(sr, 0.9, 0.05, 0.0, 1.0, 0.7))
-    mix_into(s, hi, sec(sr, 0.02), 0.035)  # 백열 신호(Q27)
-    mix_into(s, whoosh(sr, 0.35, rng, 2500, 7000, q=1.0, a=0.1, r=0.8), 0, 0.12)
-    return reverb(tail(s, sr, 0.05), sr, size=0.7, decay=0.55, wet=0.15)
+    dur = 1.0
+    s = zeros(sec(sr, dur))
+    mix_into(s, click(sr, rng, 0.005, 3200), 0, 1.0)  # 조여 붙는 '척'
+    mix_into(s, burst(sr, 0.03, rng, fc=1300, q=0.9, tau=0.006), 0, 0.8)
+    mix_into(s, thud(sr, 0.18, 130, 48, 0.035), 0, 1.0)
+    mix_into(s, burst(sr, 0.12, rng, fc=350, q=0.6, tau=0.025, mode='low'), 0, 0.6)
+    n = sec(sr, 0.18)
+    up = svf(noise(sr, 0.18, rng), sr, sweep(sr, n, 1500, 7000), 1.1, 'band')
+    mix_into(s, mul(up, env_adsr(sr, 0.18, 0.005, 0.0, 1.0, 0.16)), 0, 0.55)  # '파앗'
+    mix_into(s, mul(_strain(sr, 0.85, 97, 92, 12.0, 0.55), env_adsr(sr, 0.85, 0.01, 0.15, 0.6, 0.6)), sec(sr, 0.02), 0.9)
+    boil = svf(noise(sr, 0.8, rng), sr, 240, 0.8, 'low')
+    boil = mul(boil, [0.45 + 0.55 * math.sin(TAU * 12 * i / sr) for i in range(len(boil))])
+    mix_into(s, mul(boil, env_adsr(sr, 0.8, 0.02, 0.1, 0.6, 0.6)), sec(sr, 0.02), 0.5)  # 끓어 넘침
+    mix_into(s, crackle(sr, rng, 0.7, 10, 0.3), sec(sr, 0.05))
+    s = softclip(s, 1.4)
+    return reverb(tail(s, sr, 0.03), sr, size=0.6, decay=0.5, wet=0.12)
 
 
 @sfx('charge_loop', 'PLAYER_CHARGE{weapon:greatsword,phase:start,until:release}', "차지 유지 루프(1.0s). 낮은 웅웅 + 느린 맥놀이 + 희미한 호박 험. start 에 페이드인 시작, release·피격 취소 시 정지", -12, loop=True)
@@ -1689,31 +1733,58 @@ def _groggy_start(sr, rng):
     return tail(s, sr, 0.03)
 
 
+def _kenki_flame(sr, rng, dur, f0, f1, a):
+    n = sec(sr, dur)
+    fl = svf(noise(sr, dur, rng), sr, sweep(sr, n, f0, f1), 0.7, 'low')
+    return mul(fl, env_adsr(sr, dur, a, dur * 0.2, 0.55, dur * 0.55))
+
+
 def _kenki(sr, rng, stage):
-    f = [0, 440.0, 587.33, 880.0][stage]
-    bright = [0, 0.0, 0.45, 1.0][stage]
-    dur = [0, 0.45, 0.6, 0.85][stage]
-    s = blade_ring(sr, dur, f, rng, bright=bright, tau=0.18 + 0.08 * stage, vib=0.0015 * stage)
-    if stage >= 2:
-        mix_into(s, blade_ring(sr, dur * 0.8, f * 0.5, rng, bright=0.0, tau=0.2), sec(sr, 0.004), 0.3)
-    if stage == 3:
-        hi = mul(tone(sr, 0.6, 3520, 3540), env_adsr(sr, 0.6, 0.03, 0.0, 1.0, 0.5))
-        mix_into(s, hi, sec(sr, 0.02), 0.03)  # 백열
-        return reverb(tail(s, sr, 0.04), sr, size=0.5, decay=0.5, wet=0.15)
-    return tail(s, sr, 0.02)
+    """검기 단계(60라운드 Q22 재제작): 1 지글지글 타기 시작 → 2 본격적으로 타오름 → 3 빛남. 울리는 칼날 종소리는 쓰지 않는다."""
+    if stage == 1:
+        dur = 0.5
+        s = zeros(sec(sr, dur))
+        mix_into(s, sizzle(sr, rng, 0.45, fc=5200, tau=0.16, q=0.9), 0, 0.7)  # 지글지글
+        mix_into(s, crackle(sr, rng, 0.42, 9, 0.35), sec(sr, 0.02))
+        n = sec(sr, 0.08)
+        sc = svf(noise(sr, 0.08, rng), sr, sweep(sr, n, 2500, 6000), 2.0, 'band')
+        mix_into(s, mul(sc, env_adsr(sr, 0.08, 0.02, 0.0, 1.0, 0.05)), 0, 0.3)  # 칼날을 스치는 첫 불씨
+        return tail(s, sr, 0.02)
+    if stage == 2:
+        dur = 0.7
+        s = zeros(sec(sr, dur))
+        mix_into(s, thud(sr, 0.15, 95, 50, 0.04), 0, 0.5)  # 불이 붙는 '훅'
+        mix_into(s, _kenki_flame(sr, rng, 0.62, 260, 2600, 0.05), 0, 1.0)  # 타오름
+        mix_into(s, sizzle(sr, rng, 0.5, fc=4600, tau=0.18), sec(sr, 0.04), 0.4)
+        mix_into(s, crackle(sr, rng, 0.6, 18, 0.4), sec(sr, 0.03))
+        return softclip(tail(s, sr, 0.02), 1.2)
+    dur = 0.95
+    s = zeros(sec(sr, dur))
+    mix_into(s, _kenki_flame(sr, rng, 0.8, 400, 3200, 0.03), 0, 0.6)  # 타오르는 바탕
+    n = sec(sr, 0.35)
+    gl = svf(noise(sr, 0.35, rng), sr, sweep(sr, n, 3000, 9500), 2.2, 'band')
+    mix_into(s, mul(gl, env_adsr(sr, 0.35, 0.12, 0.0, 1.0, 0.2)), 0, 0.5)  # 빛이 번쩍 오름
+    m = sec(sr, 0.75)
+    sp = svf(noise(sr, 0.75, rng), sr, 7500, 1.5, 'band')
+    sp = mul(sp, [0.35 + 0.65 * abs(math.sin(TAU * 17 * i / sr)) * abs(math.sin(TAU * 5.3 * i / sr)) for i in range(m)])
+    mix_into(s, mul(sp, env_adsr(sr, 0.75, 0.15, 0.0, 1.0, 0.45)), sec(sr, 0.1), 0.35)  # 반짝임
+    for f in (3520.0, 3535.0, 5274.0):  # 맑은 빛 한 겹(종이 아닌 지속 사인, 아주 작게)
+        mix_into(s, mul(tone(sr, 0.7, f), env_adsr(sr, 0.7, 0.15, 0.0, 1.0, 0.45)), sec(sr, 0.12), 0.012)
+    mix_into(s, crackle(sr, rng, 0.8, 12, 0.3), sec(sr, 0.03))
+    return reverb(tail(s, sr, 0.03), sr, size=0.6, decay=0.5, wet=0.18)
 
 
-@sfx('kenki_stage1', 'KENKI_CHANGED{stage:1,delta>0}', "검기 1단 도달(재빛 칼날). 낮고 어두운 칼날 울림 A4 '시잉'", -6)
+@sfx('kenki_stage1', 'KENKI_CHANGED{stage:1,delta>0}', "검기 1단 도달(재빛 칼날, 60라운드 Q22 재제작). 지글지글 타기 시작: 칼날을 스치는 첫 불씨 + 지짐 쉿 + 잔 타닥", -6)
 def _kenki_stage1(sr, rng):
     return _kenki(sr, rng, 1)
 
 
-@sfx('kenki_stage2', 'KENKI_CHANGED{stage:2,delta>0}', "검기 2단 도달(호박빛). 한 단 높고 밝은 칼날 울림 D5 + 아래 옥타브", -5)
+@sfx('kenki_stage2', 'KENKI_CHANGED{stage:2,delta>0}', "검기 2단 도달(호박빛, 60라운드 Q22 재제작). 본격적으로 타오름: 불이 붙는 '훅' + 컷오프가 열리며 치솟는 불길 + 지짐 + 촘촘한 타닥", -5)
 def _kenki_stage2(sr, rng):
     return _kenki(sr, rng, 2)
 
 
-@sfx('kenki_stage3', 'KENKI_CHANGED{stage:3,delta>0}', "검기 3단 도달(백열, 그림자 분신 준비). 가장 높고 밝은 칼날 울림 A5 + 미세 떨림 + 백열 고음, 짧은 울림", -4)
+@sfx('kenki_stage3', 'KENKI_CHANGED{stage:3,delta>0}', "검기 3단 도달(백열, 그림자 분신 준비 · 60라운드 Q22 재제작). 빛남: 타오르는 바탕 위로 번쩍 오르는 고역 + 일렁이는 반짝임 + 아주 작은 맑은 빛 한 겹(A7·E8 근처 지속음, 종 아님) + 타닥, 짧은 울림", -4)
 def _kenki_stage3(sr, rng):
     return _kenki(sr, rng, 3)
 

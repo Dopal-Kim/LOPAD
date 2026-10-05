@@ -64,7 +64,7 @@
 | guard_hold | 0.60 s **루프** | `PLAYER_SECONDARY` guard hold | 62 Hz 톱니 저역 + 10 Hz 떨리는 럼블 + 희미한 쇠 험 | -10 |
 | guard_push | 0.48 s | `PLAYER_SECONDARY` guard release | 95→28 Hz 압력 + 바람 | 0 |
 | shadowstep | 0.42 s | `PLAYER_SECONDARY` shadowstep | 역방향 바람(600→4.5k 상승) + 꺼지는 저음, 끝에 딸깍 | -2 |
-| dash | 0.23 s | `PLAYER_DASH` | 700→3.2k 바람 + 발 디딤 | -3 |
+| dash | 0.23 s | `PLAYER_DASH` | 700→3.2k 바람 + 발 디딤 | ~~-3~~ → **-5** (60 Q22, 파일 그대로) |
 
 ### 4-1-1. 대검 홀드 차지 · 칼 3타 잔상 베기 (55라운드, 9종)
 결정 근거: `parts/producer/decisions/2026-10-03-round-55-weapon-fx-overhaul.md` Q22(칼 잔상 베기 150 ms 뒤)·Q24(차지 0.4/0.8/1.2 s 3단)·Q27(3단만 백열)·Q30(막타 = 차지 내려찍기만)·Q32(음향 병행 제작). 기존 방식(build.py 절차 합성, 44.1 kHz/16 bit/mono, 피크 -6 dBFS, 목소리 없음) 그대로. 트리거는 **제안**(시스템 이벤트 후보 `PLAYER_CHARGE {phase: start|stage|release, stage}`).
@@ -72,9 +72,9 @@
 | id | 길이 | 루프 | 트리거 제안 | 질감 | gainDb |
 |---|---|---|---|---|---|
 | charge_start | 0.30 s | - | `PLAYER_CHARGE` weapon:greatsword phase:start | 손잡이 고쳐 쥠 + 1.6k→4.2k 쇠 긁힘(34 Hz 떨림) + 760 Hz 쇠 울림 + 420→1500 Hz 숨처럼 차오르는 노이즈(목소리 아님) + 58→88 Hz 무게 | -4 |
-| charge_stage1 | 0.62 s | - | `PLAYER_CHARGE` phase:stage stage:1 (0.4 s) | 호박빛 '징' D4(294 Hz), 비조화 배음, 첫 0.12 s 음높이 +1.2% 휘어 오름, 어둡게(LP 2.2k) | -6 |
-| charge_stage2 | 0.82 s | - | `PLAYER_CHARGE` phase:stage stage:2 (0.8 s) | '징' A4(440 Hz) + D4 겹침, 윗배음 조금 열림 | -4 |
-| charge_stage3 | 1.25 s | - | `PLAYER_CHARGE` phase:stage stage:3 (1.2 s) | '징' D5(587 Hz), 가장 밝게(LP 8.2k) + 아래 옥타브 D4 + 3.5k 백열 반짝임 + 상승 바람, 작은 울림 | -2 |
+| charge_stage1 | 0.57 s | - | `PLAYER_CHARGE` phase:stage stage:1 (0.4 s) | **60 Q22 재제작(종 없음)** 기를 모음: 빨려드는 공기(300→1.3k) + 차오르는 낮은 압력 55→70 Hz + 손잡이 가죽 삐걱 | -6 |
+| charge_stage2 | 0.77 s | - | `PLAYER_CHARGE` phase:stage stage:2 (0.8 s) | **60 Q22 재제작** 힘을 다해 모음: 더 거센 빨려듦 + 9 Hz 로 떨리며 오르는 압력 60→95 Hz + 쇠가 버티는 끼익 + 땅 떨림·자갈 | -4 |
+| charge_stage3 | 1.03 s | - | `PLAYER_CHARGE` phase:stage stage:3 (1.2 s) | **60 Q22 재제작** 다 짜내 공격 타이밍 알림: 0 s 단단한 '척'(딸깍 + 쿵) + 위로 터지는 '파앗' → 12 Hz 로 떨리며 끓어 넘치는 압력 + 잔불 타닥. 0 s 가 '지금 놓아라' 신호 | -2 |
 | charge_loop | 1.00 s | 루프 | `PLAYER_CHARGE` phase:start 부터 release·취소까지 | 55 Hz 톱니 저역 + 110/113 Hz 3 Hz 맥놀이 + 4 Hz 떨리는 럼블 + 희미한 D4 험(정수 주기·랩어라운드) | -12 |
 | charge_slam_lv1 | 0.60 s | - | `PLAYER_CHARGE` phase:release stage:1 | 125→36 Hz 강타 + 저역 폭발 + 1.8k 돌 깨짐 + 640 Hz 칼날 쇳소리 + 부스러기 6 | -2 |
 | charge_slam_lv2 | 0.80 s | - | `PLAYER_CHARGE` phase:release stage:2 | 115→30 Hz 더 무거운 강타(×1.3) + 저역 럼블 + 부스러기 10 | -2 |
@@ -83,7 +83,7 @@
 
 설계 메모:
 - **내려찍기는 단계별 파일 3개**(재생 속도 변주 안 씀). 근거: ① 3단은 충격파 꼬리가 붙어 구조가 다르다 — 속도만으로는 못 만든다. ② 재생 속도를 올리면 음높이가 올라가 더 가볍게 들린다(단계가 오를수록 무거워져야 하는 것과 반대). ③ 아트 fx `greatsword_charge_slam_lv1~3` 와 1:1 대응. 용량 증가는 3개 합쳐 약 240 KB.
-- 단계 '징'은 D4→A4→D5(5도·4도 상승)로 D 단조 BGM 과 부딪치지 않는다. 앞 단계 꼬리가 다음 단계와 겹쳐도 협화.
+- ~~단계 '징'은 D4→A4→D5~~ → 60라운드 Q22 로 차지 단계음은 종·징 없이 '기를 모음 → 힘을 다해 모음 → 다 짜내 타이밍 알림'(공기·압력·떨림)으로 바뀌었다. 단계가 오를수록 압력음 음높이(55→70 / 60→95 / 97 Hz)·떨림 속도(5 / 9 / 12 Hz)가 오른다.
 - 0.18 s 홀드 인식 전에 떼거나 1단(0.4 s) 전에 떼었을 때의 소리는 정하지 않았다 — 기존 `swing_greatsword`(일반 내려찍기)로 두는 것을 권장.
 
 연결 권장:
@@ -96,7 +96,7 @@
 ### 4-1-2. 56라운드 가드·자원·무기별 새 공격 수단 (34종 + 검수 후 2종 = 36종)
 결정 근거: `parts/producer/decisions/2026-10-04-round-56-weapon-feedback.md` Q2·Q3·Q7~Q10·Q13~Q20·Q28~Q29·Q40~Q43, 검수 Q44~Q47(아래 '검수 결정' 참고). 도영 님 평가 "효과음 괜찮아"(기존 톤 유지). 기존 방식(build.py 절차 합성, 44.1 kHz/16 bit/mono, 피크 -6 dBFS, 목소리 없음) 그대로, `katana_echo` 뒤에 추가 — 기존 75개 파일 바이트 불변(md5 대조). 트리거는 **제안**(시스템이 실제 이벤트 이름으로 확정).
 
-새 재료·음색 규칙:
+새 재료·음색 규칙(검기 단계음 1~3 은 60 Q22 로 '불' 재료로 재제작 — 아래 표 행 참고):
 - **검기(칼) = '칼날 울림'**(`blade_ring`: 위로 긁는 쇠 스침 + 하모닉에 가까운 얇은 배음). 대검 차지의 비조화 '징'(`jing`)과 귀로 구분된다. 단계 A4 → D5 → A5(재 → 호박 → 백열, 윗배음·고역이 단계마다 열림).
 - **찢김**(`tear`): 70~95 Hz 로 거칠게 떨리는 밴드 스윕 노이즈 — 일섬·발도·간파의 '공기 찢김'. 일반 휘두름(`whoosh`)보다 날카롭다.
 - **재·낙인**(`sizzle`, `ash_pop`): 지짐 쉿 + 재 폭발 '펑'. 마법음이 아니라 '불·재' 재료로 둔다(그림자 분신만 이질 허용).
@@ -108,9 +108,9 @@
 | perfect_guard | 0.95 s | - | `PERFECT_GUARD` | 흡수된 작은 둔탁음 + 맑은 종형 금속 A5·D6 + 4.4k 반짝임, 작은 울림 | 0 |
 | parry_perfect | 0.79 s | - | `PARRY_SUCCESS` weapon:katana (기존 `parry` 위에 겹침) | 1.8k 위 대역만: 칼날 울림 A6 '키잉' + 3.1k 쇠 + 위로 번뜩이는 스침 | -2 |
 | groggy_start | 1.38 s | - | `GROGGY` phase:start | 220→70 Hz 기운 빠짐 + 헐떡임 2회(노이즈 포먼트) + 무릎 꺾임 둔탁음 + 갑옷 처짐 | -1 |
-| kenki_stage1 | 0.47 s | - | `KENKI_CHANGED` stage:1 | 칼날 울림 A4, 어둡게(재) | -6 |
-| kenki_stage2 | 0.62 s | - | `KENKI_CHANGED` stage:2 | 칼날 울림 D5 + 아래 옥타브, 조금 밝게(호박) | -5 |
-| kenki_stage3 | 0.89 s | - | `KENKI_CHANGED` stage:3 | 칼날 울림 A5 + 미세 떨림 + 3.5k 백열 고음, 작은 울림 | -4 |
+| kenki_stage1 | 0.52 s | - | `KENKI_CHANGED` stage:1 | **60 Q22 재제작** 지글지글 타기 시작: 첫 불씨 스침 + 지짐 쉿 + 잔 타닥 | -6 |
+| kenki_stage2 | 0.72 s | - | `KENKI_CHANGED` stage:2 | **60 Q22 재제작** 본격적으로 타오름: 불 붙는 '훅' + 치솟는 불길(260→2.6k) + 지짐 + 촘촘한 타닥 | -5 |
+| kenki_stage3 | 0.98 s | - | `KENKI_CHANGED` stage:3 | **60 Q22 재제작** 빛남: 타오르는 바탕 + 번쩍 오르는 고역(3k→9.5k) + 일렁이는 반짝임 + 아주 작은 맑은 지속음(종 아님) | -4 |
 | utbun_full | 1.13 s | - | `UTBUN_CHANGED` full:true (가득 차는 순간 1회만, Q47) | 끓어오르는 저역 잔불 + 0.3 s 불씨 '훅' + 타닥 18 + 달아오른 D4 쇠 험 | -3 |
 | brand_apply | 0.19 s | - | `BRAND_CHANGED` delta>0 | 5.6k 지짐 '칙' + 틱 | -7 |
 | brand_burst | 0.79 s | - | `BRAND_BURST` | 60 ms 빨려드는 역바람 → 재 폭발 '펑'(0.06 s) + 지짐 꼬리 | -1 |
@@ -237,7 +237,7 @@
 | hit_enemy | 0.15 s | `ENEMY_DAMAGED` | 2.2k 타격 + 160→60 몸통 | 0 |
 | hit_enemy_crit | 0.25 s | `ENEMY_DAMAGED` crit:true | hit_enemy + 1.8k 강철 울림 | 0 |
 | enemy_hurt | 0.10 s | `ENEMY_DAMAGED` (보조, 겹쳐 재생) | 1.2k→700 짧은 숨 노이즈 | -6 |
-| hit_player | 0.35 s | `PLAYER_DAMAGED` | 120→38 충격 + 갑옷 쇳소리, 소프트클립 | 0 |
+| hit_player | 0.34 s | `PLAYER_DAMAGED` | **60 Q22 재제작** 쇳소리 울림 제거 — 105→36 몸통 충격 + 가죽·천 눌림 '퍽' + 뼈에 울리는 저음 + 숨 밀림(노이즈) | 0 |
 | enemy_death | 0.45 s | `ENEMY_DIED` | 신음 노이즈(900→350) + 몸 떨어짐 | -2 |
 | charger_telegraph | 0.60 s | `ENEMY_TELEGRAPH` enemy:charger | 갑옷 덜그럭 + 가속하는 발 디딤 + 상승 저음 (`telegraphMs` 600) | -3 |
 | charger_dash | 0.43 s | `ENEMY_ATTACK` enemy:charger | 무거운 바람 + 갑옷 | -2 |
@@ -390,6 +390,8 @@
 | bow_link3 | 활 · 천공 | 0.83 s | - | `BRANCH_EFFECT{branch:skypierce,effect:link,stack:3}` | 천공 연결 3스택(다음 화살 = 벽 관통 + 선 폭발). 시위 하모닉 D6 + 걸쇠 '철컥'(고리가 이어짐) + 종 D5, 짧은 울림 | -4 |
 | bow_link_break | 활 · 천공 | 0.38 s | - | `BRANCH_EFFECT{branch:skypierce,effect:link_break}` | 천공 연결 끊김(완벽 놓기를 놓쳐 스택 0). 힘 빠진 낮은 시위 '퉁'(D3, 둔하게) + 내려앉는 짧은 음 + 작은 나무 틱. 1스택 이상일 때만 | -7 |
 | bow_skypierce | 활 · 천공 | 1.30 s | - | `BRANCH_EFFECT{branch:skypierce,effect:line}` | 천공 3스택 화살(벽 관통 + 지나간 선이 0.5 s 뒤 터짐, fx bow_skypierce_line burstAtMs 500). 하늘을 찢는 화살 비명(3k→9k) + 0.06 s 벽을 뚫는 돌·나무 '퍽' + 선 위를 흐르는 가는 반짝임 → 0.5 s 선을 따라 번지는 파열 아홉 + 낮은 폭음 + 칼날 울림 D6(일섬 선 결). 파일 0.5 s = 선 폭발 | -1 |
+
+**60라운드 Q22 뒤 확인 필요(이번엔 바꾸지 않음)**: `charge_stage4`(징 A5)·`kenki_stage4`·`kenki_stage5`(칼날 울림 D6·A6)는 종·울림 계열이라 Q22 로 바뀐 1~3단 흐름(차지 = 공기·압력·떨림, 검기 = 지글 → 타오름 → 빛남)과 어긋난다. 고칠 안: 차지 4단 = 3단의 '척' 신호를 더 무겁게(쿵 2겹 + 땅 갈라지는 저음 + 15 Hz 떨림, 거인의 한계를 넘는 느낌), 검기 4단 = 빛남 위에 '불꽃이 맺히는' 지속 고역 반짝임 + 호흡처럼 맥동, 5단 = 빛이 고리로 이어지는 반짝임 다섯(초승달 다섯 fx 와 맞춤) + 짧은 백열 '화악'. 원본은 그대로 둔다.
 
 #### 4-7-3. 패시브 (9종 → 10)
 | id | 분류 | 길이 | 루프 | 트리거 제안 | 소리·연결 | gainDb |
