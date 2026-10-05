@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { UiSnapshot } from '../contract/ui';
+import type { UiNodeType, UiSnapshot } from '../contract/ui';
+import { routeNode, routeOf } from './fixtures';
 import {
   incomingWarns,
   isTutorialNode,
@@ -11,13 +12,13 @@ import {
   tutorialRows,
 } from './tutorialView';
 
-const route = (type: string) =>
-  ({
+const route = (type: string): UiSnapshot['route'] =>
+  routeOf({
     floor: 1,
     currentId: 'n0',
     choosing: false,
-    nodes: [{ id: 'n0', type, name: '탄생지', col: 0, row: 0, links: [], state: 'current' }],
-  }) as unknown as UiSnapshot['route'];
+    nodes: [routeNode({ id: 'n0', type: type as UiNodeType, name: '탄생지', state: 'current' })],
+  });
 
 const T = (k: string, v?: Record<string, string>) =>
   ({ tutMove: '이동', keyLeftClick: '좌클릭', keyRightClick: '우클릭', keySpace: 'Space' })[k] ??

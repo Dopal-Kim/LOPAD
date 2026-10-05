@@ -1,16 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { UiRoute, UiRouteNode } from '../contract/ui';
+import type { UiRouteNode } from '../contract/ui';
+import { routeNode, routeOf } from './fixtures';
 import { cycle, dottedPoints, hasRoute, layoutRoute, linkKind, remainingSteps, sortNodes } from './routeView';
 
-const n = (id: string, col: number, row: number, state: UiRouteNode['state'] = 'locked'): UiRouteNode => ({
-  id,
-  type: 'battle',
-  name: id,
-  col,
-  row,
-  links: [],
-  state,
-});
+const n = (id: string, col: number, row: number, state: UiRouteNode['state'] = 'locked'): UiRouteNode =>
+  routeNode({ id, col, row, state });
 
 describe('routeView', () => {
   const nodes = [n('a', 0, 0, 'cleared'), n('b', 1, 0, 'current'), n('c', 2, 0), n('d', 2, 1), n('e', 3, 0)];
@@ -43,7 +37,7 @@ describe('routeView', () => {
   });
 
   it('남은 단계', () => {
-    const r: UiRoute = { floor: 1, nodes, currentId: 'b', choosing: false };
+    const r = routeOf({ floor: 1, nodes, currentId: 'b', choosing: false });
     expect(remainingSteps(r)).toBe(2);
     expect(remainingSteps({ ...r, currentId: null })).toBe(4);
     expect(hasRoute(r)).toBe(true);

@@ -9,8 +9,9 @@ import {
 } from '../contract/ui';
 import { GlowText } from './glow';
 import { NinePanel, accentHex, inkPanel } from './kit';
-import { bubblePos, formatSec, holdSec, timerRatio } from './structView';
+import { bubblePos, formatSec, holdSec, interactWords, timerRatio } from './structView';
 import { fill, structText } from './text';
+import { STRUCT_KIND_TEXT } from './textBuild';
 import { GRAY, SEPIA, STRUCT, type SwatchRef, hexToNum } from './theme';
 
 /**
@@ -101,13 +102,14 @@ export class InteractBubble {
     // GlowText 상자는 글자 + 사방 2px 링. 링이 패널 안쪽 여백에 걸치도록 pad-2 에서 시작
     let y = pad - 2;
     const x = pad - 2;
-    this.nameT.setText(it.name).setPosition(x, y);
+    const words = interactWords(it, STRUCT_KIND_TEXT);
+    this.nameT.setText(words.name).setPosition(x, y);
     y += this.nameT.displayHeight;
     const frame = it.hold
       ? fill(structText('keyHold'), { key: it.key, sec: holdSec(it.hold.durationMs) })
       : fill(structText('keyTap'), { key: it.key });
     this.actT
-      .setText(`${frame} ${it.action}`)
+      .setText(`${frame} ${words.action}`)
       .setGlowStyle(it.usable ? 'ink_body' : 'ink_faint')
       .setPosition(x, y);
     const costLabel = it.cost && it.cost.kind !== 'none' ? it.cost.label : '';
@@ -283,7 +285,8 @@ export class ResultToasts {
     private bottom: number,
   ) {}
 
-  push(r: UiStructureResult, stageIndex: number): void {
+  /** 60라운드: §14.11 알림(세트 단계·저주·숨은 길·소모품)도 같은 토스트로 — tone·text 만 쓴다 */
+  push(r: Pick<UiStructureResult, 'tone' | 'text'>, stageIndex: number): void {
     if (!r.text) return;
     const scene = this.scene;
     const pad = 6;

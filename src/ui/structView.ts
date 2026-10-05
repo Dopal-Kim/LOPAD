@@ -60,3 +60,15 @@ export function cardFocusMove(idx: number, n: number, key: string): number {
   if (down) return n;
   return idx;
 }
+
+/**
+ * 60라운드 §14.10 (Q32): E 안내 이름·행동 — 시스템 문자열(계약 §9.8)을 그대로 쓰고, 비었을 때만 종류별 기본 문구.
+ * kind 는 문자열로 받는다 — `clue`·`eventProp`·`mapSeller` 가 계약 코드 `UiStructureKind` 에 생기기 전에도 그대로 동작
+ */
+export function interactWords(
+  it: { kind: string; name: string; action: string },
+  fallback: Readonly<Record<string, { name: string; action: string }>>,
+): { name: string; action: string } {
+  const fb = fallback[it.kind];
+  return { name: it.name || fb?.name || '', action: it.action || fb?.action || '' };
+}

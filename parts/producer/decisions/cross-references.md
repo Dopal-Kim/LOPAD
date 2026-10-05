@@ -31,3 +31,4 @@
 - 57라운드 Q38: #21 추가 — 빌드 축·2차 묶음 UI 계약(§14 초안). Q38 "설계 요소들 모두 진행"을 근거로 적용 예정이며, §14 의 필드·이름은 프로듀서 제안이라 구현 중 바뀌면 계약부터 고친다.
 | 22 | 2026-10-04 | 시스템·프로듀서 | 음향 | `assets/audio/manifest.json` | 계약 `sound-assets.md` 기반 상시 승인(읽기·로드) | 계약 변경은 재인터뷰 | 도영 님, 57라운드 Q38 |
 | 23 | 2026-10-05 | 음향 | 아트 | `assets/sprites/fx/v3/` 2단 갈래 fx JSON 26개 | 타이밍 필드(frameDurationsMs·spawnAtMs·burstAtMs)만 읽기 — 계약 `art-assets.md` §21 이 타이밍 기준으로 가리키는 런타임 데이터 | 메인 세션 지시로 열람(60라운드 음향 작업), 도영 님께 사후 고지 · 60라운드 작업 기간 | 60라운드 |
+| 24 | 2026-10-05 | UI | 아트 | `assets/sprites/fx/v3/elite_nameplate.{png,json}` (계약 `ui-system-interface.md` §14.9 · `art-assets.md` §22) | 엘리트 이름표 바탕 읽기·`assets/ui/elite/` 로 복사(사본 수정 금지) | 계약 기반 — 아트가 시트를 바꾸면 UI 가 사본 갱신, 60라운드 사후 고지 | 60라운드 |

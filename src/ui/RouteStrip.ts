@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import type { UiNodeState, UiRoute } from '../contract/ui';
+import { isSmudged, nodeSig } from './bundleView';
 import { GlowText } from './glow';
 import { KIT, NinePanel, SLICE, accentHex } from './kit';
-import { diamondRing, pixelDiamond } from './RouteMap';
+import { diamondRing, pixelDiamond } from './routeGlyph';
 import { dottedPoints, layoutRoute, linkKind, remainingSteps } from './routeView';
 import { fill, routeText } from './text';
 import { GRAY, ROUTE, hexToNum } from './theme';
@@ -38,7 +39,7 @@ export class RouteStrip {
 
   /** 다시 그린다. 틀 크기가 바뀌었으면 true (HUD 가 아래 안내 줄을 옮긴다) */
   render(route: UiRoute, stageIndex: number): boolean {
-    const key = `${stageIndex}|${route.currentId}|${route.nodes.map((n) => `${n.id}:${n.col},${n.row}:${n.state}:${n.links.join('+')}`).join(',')}`;
+    const key = `${stageIndex}|${route.currentId}|${route.nodes.map(nodeSig).join(',')}`;
     if (key === this.lastKey) return false;
     this.lastKey = key;
     const S = ROUTE.strip;
@@ -91,6 +92,11 @@ export class RouteStrip {
     for (const n of route.nodes) {
       const p = L.pos.get(n.id);
       if (!p) continue;
+      // 60라운드 §14.5: 숨은 노드 얼룩은 흐린 점 하나 (길이 열리면 보통 노드)
+      if (isSmudged(n)) {
+        g.fillStyle(hexToNum(GRAY[5]), 1).fillRect(p.x, p.y, 1, 1);
+        continue;
+      }
       const lk = look[n.state];
       // 지금 노드는 한 칸 크게 (고리를 두르면 작은 크기에서 체크 무늬처럼 보였다)
       const rr = n.state === 'current' ? S.r + 1 : S.r;

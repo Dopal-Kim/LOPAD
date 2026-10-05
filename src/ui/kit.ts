@@ -144,6 +144,17 @@ export function nodeIconKey(scene: Phaser.Scene, stageIndex: number): string {
   return key;
 }
 
+/**
+ * 60라운드 계약 §14.9 엘리트 이름표 (아트 `art-assets.md` §22 `fx/v3/elite_nameplate` 트림 아틀라스의 사본
+ * `assets/ui/elite/`). 그림은 이미지로, 조각 정보(frames·nineSlice·textCenterY)는 JSON 으로 읽어 eliteView 가 나눈다.
+ */
+export const ELITE_PLATE_TEX = {
+  key: 'ui-elite-nameplate',
+  json: 'ui-elite-nameplate-json',
+  png: 'assets-game/ui/elite/elite_nameplate.png',
+  jsonUrl: 'assets-game/ui/elite/elite_nameplate.json',
+} as const;
+
 /** 49라운드: 지도 배경 일러스트 텍스처 키 (`assets/ui/map_bg_<floor>.png`, theme `MAP_BG_FLOORS` 에 있는 층만 읽는다) */
 export const mapBgKey = (floor: number): string => `ui-map-bg-${floor}`;
 export const mapBgUrl = (floor: number): string => `assets-game/ui/map_bg_${floor}.png`;
@@ -273,6 +284,8 @@ export function preloadKit(scene: Phaser.Scene): void {
       frameHeight: NODE_ICON_SHEET.size,
     });
   if (!scene.cache.json.exists(KIT.palette)) scene.load.json(KIT.palette, `${BASE}palette.json`);
+  if (!scene.textures.exists(ELITE_PLATE_TEX.key)) scene.load.image(ELITE_PLATE_TEX.key, ELITE_PLATE_TEX.png);
+  if (!scene.cache.json.exists(ELITE_PLATE_TEX.json)) scene.load.json(ELITE_PLATE_TEX.json, ELITE_PLATE_TEX.jsonUrl);
   for (const id of Object.values(WEAPON_ICON_IDS)) {
     const key = weaponIconKey(id);
     if (!scene.textures.exists(key)) scene.load.image(key, `assets-game/ui/weapons/${id}_icon.png`);

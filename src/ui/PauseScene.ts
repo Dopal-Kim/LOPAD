@@ -8,6 +8,7 @@ import { UI_SCENE_KEYS } from './keys';
 import { hasRoute } from './routeView';
 import { controlsLine, r49Text, r53Text, uiText } from './text';
 import { GRAY, LAYOUT, ROUTE, hexToNum } from './theme';
+import { buildPage } from './PauseBuild';
 import { buildHowToPanel } from './TutorialHud';
 import { SelectList } from './widgets';
 
@@ -15,6 +16,8 @@ const PAGE_W = 440;
 /** 53라운드 Q50: '싸우는 법' 항목 한 줄만큼 높였다 */
 const PAGE_H = 282 + LAYOUT.row;
 const PAD = 24;
+/** 60라운드: 두 쪽 펼침 쪽 높이 상한 (화면 540 - 책 틀 32 - 여백) */
+const MAX_PAGE_H = UI_SCREEN.HEIGHT - 32 - 16;
 /** '싸우는 법' 패널 깊이 (일기장 위) */
 const HOWTO_DEPTH = 50;
 
@@ -26,6 +29,8 @@ const PAUSE_KEY = { resume: '1', sound: '2', howTo: '3', leave: '4' } as const;
  * '더 쓴다 (Esc)' / '소리 끄기·켜기' / '일기장을 덮는다' → 확인 '적지 않은 것은 남지 않는다. 그래도 덮는다 — 예' / '더 쓴다'
  * 49라운드(계약 §11.3·§11.4): 소리 항목 → `setMuted`, 상태는 `snapshot.muted`. 무기 시험장(`lab`)이면 제목 '무기 시험장',
  * '계속한다 (Esc)' / 소리 / '시험장을 나간다'(확인 없이 toTitle).
+ * 60라운드(계약 §14): 두 쪽 펼침 — 오른쪽 쪽 '빌드'(PauseBuild.ts: 태그·세트·이중 개성·저주·패시브 Lv/최대·태그·소모품).
+ *   패시브 줄은 왼쪽 쪽에서 오른쪽으로 옮겼다.
  * 53라운드 Q50: '싸우는 법' 항목 — 튜토리얼 안내 패널을 화면 가운데에 다시 띄운다(일기장 위). Esc·Enter·클릭으로 닫으면
  * 일기장으로 돌아온다 (Esc 한 단계 뒤로).
  */
@@ -97,8 +102,12 @@ export class PauseScene extends Phaser.Scene {
     this.lab = Boolean(s.lab);
     const W = UI_SCREEN.WIDTH;
     const H = UI_SCREEN.HEIGHT;
-    const bk = book(this, Math.round(W / 2), Math.round(H / 2), PAGE_W, PAGE_H, 1, 'pause');
+    // 60라운드 §14: 오른쪽 쪽 '빌드'(태그·세트·이중 개성·저주·패시브·소모품) — 글을 먼저 재고 두 쪽 높이를 맞춘다
+    const right = buildPage(this, PAGE_W - PAD * 2, s, stageIndex, MAX_PAGE_H - 14 - 14);
+    const pageH = Math.min(MAX_PAGE_H, Math.max(PAGE_H, right.h + 14 + 14));
+    const bk = book(this, Math.round(W / 2), Math.round(H / 2), PAGE_W, pageH, 2, 'pause');
     const pg = bk.pages[0];
+    right.place(bk.pages[1].x + PAD, bk.pages[1].y + 14);
     const innerW = PAGE_W - PAD * 2;
     let y = pg.y + 14;
     const titleText = this.lab ? r49Text('labPauseTitle') : uiText('pause', 'title', '일기장');
@@ -123,7 +132,7 @@ export class PauseScene extends Phaser.Scene {
           }`,
       `공격 ${s.stats.attack}   방어 ${s.stats.defense}   치명타 ${s.stats.crit}%   감각 ${s.stats.sense}`,
       `무기: ${s.weapon.name}${evo}   (개성 ${s.weapon.personality}/${s.weapon.threshold})`,
-      `패시브: ${s.passives.length ? s.passives.map((p) => `${p.name}${p.level > 1 ? ` Lv${p.level}` : ''}`).join(', ') : '―'}`,
+      // 패시브는 60라운드부터 오른쪽 '빌드' 쪽에 (Lv/최대·태그와 함께)
     ];
     for (const t of lines) {
       if (!t) continue;

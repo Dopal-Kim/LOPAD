@@ -1,25 +1,26 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, UI_SCREEN, uiBus, uiCommands, type UiMenu, type UiMenuLine } from '../contract/ui';
-import { debugSelect, isDebugMenu } from './debug';
+import { buildOf } from './buildView';
+import { debugSelect, isDebugMenu, withDebug } from './debug';
 import { GlowText } from './glow';
 import { accentHex, book, cursor as makeCursor, fontsReady, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { resolveMenuEsc } from './escNav';
 import { takeKey } from './keyGate';
-import { menuIndent } from './resourceView';
+import { menuLines, wideMenu } from './menuView';
 import { cardFocusMove } from './structView';
 import { r53Text, structText } from './text';
+import { r60Text } from './text';
 import { LAYOUT, SEPIA, STRUCT, hexToNum } from './theme';
 import { SelectList } from './widgets';
 
 /** 카드 메뉴로 그릴 수 있는 카드 장수 (그 밖이면 일반 목록) */
 const CARD_MIN = 2;
 const CARD_MAX = 4;
-/** 49라운드 무기 시험장 메뉴 (계약 §11.4): 넓은 페이지 + 갈래 들여쓰기 */
-const LAB_MENUS: ReadonlySet<string> = new Set(['lab', 'labBranch']);
-/** 갈래 한 단계 들여쓰기 px · 트리 기호 */
-const LAB_INDENT = 14;
-const LAB_BRANCH_MARK = '└ ';
+/** 60라운드: 페이지(책 틀 안) 높이 상한 — 넘으면 설명을 접는다 (화면 540 - 틀 32 - 여백) */
+const MENU_MAX_PAGE_H = UI_SCREEN.HEIGHT - 32 - 24;
+/** 접은 설명 한 칸 높이 (3줄) */
+const COMPACT_DETAIL_H = 3 * 16 + 6;
 /** Esc 머무름 안내가 떠 있는 시간 (임시값) */
 const ESC_STAY_HOLD_MS = 1400;
 
@@ -39,6 +40,9 @@ interface CardView {
  * evolve·ending 은 페이지 최소 폭 520.
  * 47라운드(계약 §9.4): `cancelKey` 가 있으면 Esc·오른쪽 위 닫기 버튼이 `select(id, cancelKey)`.
  * 같은 메뉴(id·structureId)가 다시 오면 커서 자리를 지킨 채 다시 그린다. `cards`(패 탁자)는 엎어진 패 n장으로 그린다.
+ * 60라운드(계약 §14.4·§14.6·§14.7): 줄 만들기는 menuView.ts — 칸 종류(〔강화〕·〔피의 계약〕·〔각성〕·〔이중 개성〕)·희귀도·태그·
+ * 잠김 조건, 상점 묶음 머리글·가격·팔림. 새 메뉴 id `curse`(필수)·`event`('0')·`mapInfo`('0')·`consumableSwap`(필수)도 같은 목록.
+ * 줄이 많아 페이지가 화면을 넘으면 설명을 접고 커서 줄 설명만 목록 아래에 보인다.
  */
 export class MenuScene extends Phaser.Scene {
   private menu?: UiMenu;
@@ -164,33 +168,11 @@ export class MenuScene extends Phaser.Scene {
   private showList(m: UiMenu, keepCursor: number): void {
     const W = UI_SCREEN.WIDTH;
     const H = UI_SCREEN.HEIGHT;
-    const stageIndex = Math.max(0, uiCommands.getUiSnapshot().stageIndex);
-    // evolve 의 라벨은 '이름 — 설명' 형식으로 올 수 있고 detail 에 같은 설명이 들어 있다 (시스템 29라운드).
-    // 설명을 두 번 보이지 않도록 라벨 끝의 ' — 설명' 을 떼고 아래 줄(detail)로만 보인다.
-    const lab = LAB_MENUS.has(m.id);
-    const lines = m.lines.map((l) => {
-      const suffix = l.detail ? ` — ${l.detail}` : '';
-      const dup = Boolean(suffix) && l.label.endsWith(suffix);
-      let label = dup ? l.label.slice(0, -suffix.length) : l.label;
-      let indent = 0;
-      // 49라운드: 시험장 갈래 트리 — 라벨 앞 공백·트리 기호·key 구분자로 깊이를 추정해 들여쓴다 (그만두기 줄 제외)
-      if (lab && l.key !== m.cancelKey) {
-        const ind = menuIndent({ key: l.key, label });
-        if (ind.depth > 0) {
-          label = `${LAB_BRANCH_MARK}${ind.label}`;
-          indent = (ind.depth - 1) * LAB_INDENT + LAB_INDENT;
-        } else label = ind.label;
-      }
-      return {
-        key: l.key,
-        label,
-        enabled: l.enabled,
-        detail: l.detail && (dup || !l.label.includes(l.detail)) ? l.detail : undefined,
-        indent,
-      };
-    });
-
-    const wide = m.id === 'evolve' || m.id === 'ending' || lab;
+    const snap = withDebug(uiCommands.getUiSnapshot());
+    const stageIndex = Math.max(0, snap.stageIndex);
+    // 줄 만들기(evolve 설명 중복 제거·시험장 들여쓰기·§14.4 칸 종류·잠김·§14.6 가격·팔림·묶음 머리글)는 menuView.ts
+    const lines = menuLines(m, buildOf(snap), r60Text);
+    const wide = wideMenu(m);
     const minW = wide ? 520 : 420;
     const maxW = W - 64;
     const padX = 24;
@@ -210,9 +192,20 @@ export class MenuScene extends Phaser.Scene {
     const contentW = Math.max(this.list.maxWidth() + 8, title.displayWidth + closeRoom, footer?.displayWidth ?? 0);
     const pageW = Math.min(maxW, Math.max(minW, contentW + padX * 2));
     const titleH = title.displayHeight;
-    const listH = this.list.height();
     const footerH = footer ? footer.displayHeight + 10 : 0;
-    const pageH = 16 + titleH + 8 + 4 + 14 + listH + 10 + footerH + 16;
+    let listH = this.list.height();
+    // 60라운드 §14.6: 상점처럼 줄이 많아 페이지가 화면을 넘으면 설명을 접고, 커서 줄의 설명만 목록 아래 한 칸에 보인다
+    let focusDetail: GlowText | null = null;
+    let focusH = 0;
+    const baseH = 16 + titleH + 8 + 4 + 14 + 10 + footerH + 16;
+    if (baseH + listH > MENU_MAX_PAGE_H && lines.some((l) => l.detail)) {
+      this.list.setLines(lines.map((l) => ({ ...l, detail: undefined })));
+      this.list.setCursorIndex(keepCursor);
+      listH = this.list.height();
+      focusDetail = new GlowText(this, 0, 0, '', 'page_faint', { wrap: maxW - padX * 2 - 16 }).setDepth(1);
+      focusH = COMPACT_DETAIL_H;
+    }
+    const pageH = baseH + listH + focusH;
     const bk = book(this, Math.round(W / 2), Math.round(H / 2), pageW, pageH, 1, `menu:${m.id}`);
     const pg = bk.pages[0];
     let y = pg.y + 16;
@@ -223,6 +216,12 @@ export class MenuScene extends Phaser.Scene {
     y += 4 + 14;
     this.list.setPosition(pg.x + padX, y).setDepth(1);
     y += listH + 10;
+    if (focusDetail) {
+      const fd = focusDetail;
+      fd.setPosition(pg.x + padX + 16, y - 4);
+      this.list.setOnCursor((i) => fd.setText(lines[i]?.detail ?? ''));
+      y += focusH;
+    }
     footer?.placeCenter(pg.x + pageW / 2, y);
     this.pageBottom = { x: pg.x + pageW / 2, y: pg.y + pageH };
     if (m.id === 'meta') this.input.keyboard?.once('keydown-ENTER', () => uiCommands.select('meta', 'enter'));

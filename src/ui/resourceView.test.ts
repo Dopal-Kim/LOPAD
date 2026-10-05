@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { UiRouteNode } from '../contract/ui';
+import { routeNode } from './fixtures';
 import {
   ammoCells,
   heatStage,
@@ -72,15 +73,7 @@ describe('replaceMuteHint', () => {
   });
 });
 
-const node = (id: string, col: number, row: number): UiRouteNode => ({
-  id,
-  type: 'battle',
-  name: id,
-  col,
-  row,
-  links: [],
-  state: 'locked',
-});
+const node = (id: string, col: number, row: number): UiRouteNode => routeNode({ id, col, row });
 
 describe('layoutPerspective (49라운드 입체 지도)', () => {
   const opts = { rowMax: 150, farScale: 0.6, ease: 0.5, minGap: 30, padTop: 40, padBottom: 20 };

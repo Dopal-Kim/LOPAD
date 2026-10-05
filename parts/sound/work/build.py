@@ -1716,7 +1716,7 @@ def _parry_perfect(sr, rng):
     return reverb(tail(s, sr, 0.04), sr, size=0.5, decay=0.5, wet=0.2)
 
 
-@sfx('groggy_start', 'GROGGY{phase:start}', "그로기 시작(칼·대검 기력 0, 1.5s). 기운이 빠지는 하강음 + 거친 숨 헐떡임 두 번(노이즈 포먼트, 목소리 아님) + 무릎이 꺾이는 둔탁음 + 갑옷 처짐", -1)
+@sfx('groggy_start', 'WEAPON_RESOURCE{event:groggy}', "그로기 시작(칼·대검 기력 0, 1.5s). 기운이 빠지는 하강음 + 거친 숨 헐떡임 두 번(노이즈 포먼트, 목소리 아님) + 무릎이 꺾이는 둔탁음 + 갑옷 처짐", -1)
 def _groggy_start(sr, rng):
     dur = 1.35
     n = sec(sr, dur)
@@ -1774,22 +1774,22 @@ def _kenki(sr, rng, stage):
     return reverb(tail(s, sr, 0.03), sr, size=0.6, decay=0.5, wet=0.18)
 
 
-@sfx('kenki_stage1', 'WEAPON_GAUGE{stage:1,delta>0}', "검기 1단 도달(재빛 칼날, 60라운드 Q22 재제작). 지글지글 타기 시작: 칼날을 스치는 첫 불씨 + 지짐 쉿 + 잔 타닥", -6)
+@sfx('kenki_stage1', 'WEAPON_GAUGE{gauge:kenki,event:stage,stage:1}', "검기 1단 도달(재빛 칼날, 60라운드 Q22 재제작). 지글지글 타기 시작: 칼날을 스치는 첫 불씨 + 지짐 쉿 + 잔 타닥", -6)
 def _kenki_stage1(sr, rng):
     return _kenki(sr, rng, 1)
 
 
-@sfx('kenki_stage2', 'WEAPON_GAUGE{stage:2,delta>0}', "검기 2단 도달(호박빛, 60라운드 Q22 재제작). 본격적으로 타오름: 불이 붙는 '훅' + 컷오프가 열리며 치솟는 불길 + 지짐 + 촘촘한 타닥", -5)
+@sfx('kenki_stage2', 'WEAPON_GAUGE{gauge:kenki,event:stage,stage:2}', "검기 2단 도달(호박빛, 60라운드 Q22 재제작). 본격적으로 타오름: 불이 붙는 '훅' + 컷오프가 열리며 치솟는 불길 + 지짐 + 촘촘한 타닥", -5)
 def _kenki_stage2(sr, rng):
     return _kenki(sr, rng, 2)
 
 
-@sfx('kenki_stage3', 'WEAPON_GAUGE{stage:3,delta>0}', "검기 3단 도달(백열, 그림자 분신 준비 · 60라운드 Q22 재제작). 빛남: 타오르는 바탕 위로 번쩍 오르는 고역 + 일렁이는 반짝임 + 아주 작은 맑은 빛 한 겹(A7·E8 근처 지속음, 종 아님) + 타닥, 짧은 울림", -4)
+@sfx('kenki_stage3', 'WEAPON_GAUGE{gauge:kenki,event:stage,stage:3}', "검기 3단 도달(백열, 그림자 분신 준비 · 60라운드 Q22 재제작). 빛남: 타오르는 바탕 위로 번쩍 오르는 고역 + 일렁이는 반짝임 + 아주 작은 맑은 빛 한 겹(A7·E8 근처 지속음, 종 아님) + 타닥, 짧은 울림", -4)
 def _kenki_stage3(sr, rng):
     return _kenki(sr, rng, 3)
 
 
-@sfx('utbun_full', 'UTBUN_CHANGED{full:true}', "울분 가득(대검, 가득 차는 순간 1회만 · 반복음 없음 — 56라운드 Q47). 낮게 끓어오르는 잔불 + 불씨 '훅' 치솟음 + 타닥 + 칼이 달아오르는 쇳소리", -3)
+@sfx('utbun_full', 'WEAPON_GAUGE{gauge:grudge,event:full}', "울분 가득(대검, 가득 차는 순간 1회만 · 반복음 없음 — 56라운드 Q47). 낮게 끓어오르는 잔불 + 불씨 '훅' 치솟음 + 타닥 + 칼이 달아오르는 쇳소리", -3)
 def _utbun_full(sr, rng):
     dur = 1.1
     n = sec(sr, dur)
@@ -1809,7 +1809,7 @@ def _utbun_full(sr, rng):
     return tail(s, sr, 0.03)
 
 
-@sfx('brand_apply', 'BRAND_CHANGED{delta>0}', "낙인 1스택(단검). 살짝 지지는 '칙' + 작은 틱. 등 뒤 2스택일 때는 같은 소리를 rate 1.1 로 1회 권장", -7)
+@sfx('brand_apply', 'WEAPON_GAUGE{gauge:brand,event:apply}', "낙인 1스택(단검). 살짝 지지는 '칙' + 작은 틱. 등 뒤 2스택(back:true)일 때는 같은 소리를 rate 1.1 로 1회 권장", -7)
 def _brand_apply(sr, rng):
     s = sizzle(sr, rng, 0.17, fc=5600, tau=0.05, q=1.0)
     mix_into(s, click(sr, rng, 0.003, 4200), 0, 0.6)
@@ -1817,7 +1817,7 @@ def _brand_apply(sr, rng):
     return tail(s, sr, 0.02)
 
 
-@sfx('brand_burst', 'BRAND_BURST', "낙인 기폭(그림자 걸음으로 대상 뒤 이동 시 전부 폭발). 숨 들이켜듯 빨려드는 짧은 역바람 → 재 폭발 '펑' + 지지는 꼬리. 파일 0.06s 가 폭발 순간", -1)
+@sfx('brand_burst', 'PLAYER_SKILL{weapon:dagger,move:brand,phase:burst}', "낙인 기폭(그림자 걸음으로 대상 뒤 이동 시 전부 폭발). 숨 들이켜듯 빨려드는 짧은 역바람 → 재 폭발 '펑' + 지지는 꼬리. 파일 0.06s 가 폭발 순간", -1)
 def _brand_burst(sr, rng):
     dur = 0.75
     s = zeros(sec(sr, dur))
@@ -1831,7 +1831,7 @@ def _brand_burst(sr, rng):
     return reverb(tail(s, sr, 0.04), sr, size=0.5, decay=0.45, wet=0.12)
 
 
-@sfx('overheat_burst', 'OVERHEAT{full:true}', "과열 100% 자동 폭발(단검, 주변 낙인 일괄 폭발 + 식힘). 엇갈린 재 폭발 4번 + 낮은 폭음 + 길게 식는 증기 쉿", 0)
+@sfx('overheat_burst', 'PLAYER_SKILL{weapon:dagger,move:overheat,phase:burst}', "과열 100% 자동 폭발(단검, 주변 낙인 일괄 폭발 + 식힘). 엇갈린 재 폭발 4번 + 낮은 폭음 + 길게 식는 증기 쉿", 0)
 def _overheat_burst(sr, rng):
     dur = 1.5
     n = sec(sr, dur)
@@ -1847,7 +1847,7 @@ def _overheat_burst(sr, rng):
     return reverb(s, sr, size=0.8, decay=0.55, wet=0.15)
 
 
-@sfx('breath_focus', 'BREATH_FOCUS{phase:start}', "숨(활) 가득 → 감속 정밀 조준 진입. 길게 빨려드는 바람(목소리 아님) + 소리가 먹먹해지며 내려앉는 저음 + 아주 희미한 고음 한 가닥", -3)
+@sfx('breath_focus', 'WEAPON_GAUGE{gauge:breath,event:focusStart}', "숨(활) 가득 → 감속 정밀 조준 진입. 길게 빨려드는 바람(목소리 아님) + 소리가 먹먹해지며 내려앉는 저음 + 아주 희미한 고음 한 가닥", -3)
 def _breath_focus(sr, rng):
     dur = 0.95
     n = sec(sr, dur)
@@ -2507,7 +2507,7 @@ def _katana_spin(sr, rng):
     return tail(s, sr, 0.02)
 
 
-@sfx('katana_guardbreak_hold', 'PLAYER_SKILL{weapon:katana,move:guardbreak,phase:hold}', "가드 불가 내려베기 홀드 루프(1.0 s, 좌클릭 누르는 동안). 달아오르는 칼: 낮은 D3 웅웅 + 6 Hz 떨리는 칼날 험 A5 + 열기 노이즈 + 잔불 타닥(이음매 없음). 홀드 시작에 150 ms 페이드인, 떼거나 취소하면 60 ms 페이드아웃. 0.6 s 까지 rate 1.0→1.06 올리면 달아오름이 쌓임(선택)", -11, loop=True)
+@sfx('katana_guardbreak_hold', 'PLAYER_BRANCH_MOVE{move:unblockable,phase:hold}', "가드 불가 내려베기 홀드 루프(1.0 s, 좌클릭 누르는 동안). 달아오르는 칼: 낮은 D3 웅웅 + 6 Hz 떨리는 칼날 험 A5 + 열기 노이즈 + 잔불 타닥(이음매 없음). 홀드 시작에 150 ms 페이드인, 떼거나 취소하면 60 ms 페이드아웃. 0.6 s 까지 rate 1.0→1.06 올리면 달아오름이 쌓임(선택)", -11, loop=True)
 def _katana_guardbreak_hold(sr, rng):
     dur = 1.0
     n = sec(sr, dur)
@@ -2620,7 +2620,7 @@ def _gs_crack_line_lv3(sr, rng):
     return _crack_line(sr, rng, 5)
 
 
-@sfx('gs_quake_ring', 'PLAYER_CHARGE{weapon:greatsword,phase:release,branch:giant,part:quake}', "중압(대검 1단 B) 원형 진동 — 기본 균열 대신(찍은 자리 중심). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, 반경(단계)에 따라 gain +0/+1.5/+3 dB 권장", 0)
+@sfx('gs_quake_ring', 'BRANCH_EFFECT{branch:giant,effect:ring}', "중압(대검 1단 B) 원형 진동 — 기본 균열 대신(찍은 자리 중심). 땅이 12 Hz 로 떨리는 낮은 진동 + 안으로 빨려드는 바람(적을 끌어당김) → 0.32 s 끌려온 적이 짓눌리는 '쿵'(경직) + 자갈. charge_slam_lvN 과 같은 프레임에 겹침, 반경(단계)에 따라 gain +0/+1.5/+3 dB 권장", 0)
 def _gs_quake_ring(sr, rng):
     dur = 1.0
     n = sec(sr, dur)

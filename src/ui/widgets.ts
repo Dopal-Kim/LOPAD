@@ -12,6 +12,10 @@ export interface SelectLine {
   detail?: string;
   /** 49라운드: 들여쓰기 px (무기 시험장 갈래 트리) */
   indent?: number;
+  /** 60라운드 §14.6: 이 줄 위에 그릴 묶음 머리글 (상점 고정·진열·리롤 등, page_faint) */
+  header?: string;
+  /** 60라운드 §14.4·§14.6: 못 고르는 줄의 꼬리 글 (기본 '(불가)' — 잠김·팔림) */
+  note?: string;
 }
 
 /** 선택 목록 줄 간격 (계약 1.2절: 글꼴 높이 + 4 이상) */
@@ -33,6 +37,7 @@ export interface SelectListOptions {
 export class SelectList {
   private items: GlowText[] = [];
   private details: (GlowText | null)[] = [];
+  private headers: (GlowText | null)[] = [];
   private cursorIdx = 0;
   private lines: SelectLine[] = [];
   private cursorSprite: Phaser.GameObjects.Sprite;
@@ -73,13 +78,18 @@ export class SelectList {
 
   /** 항목 높이 합 (패널 크기 계산용). detail 줄 수를 모르면 1줄로 센다 */
   static measure(lines: SelectLine[]): number {
-    return lines.reduce((h, l) => h + SELECT_ROW.line + (l.detail ? SELECT_ROW.detail + SELECT_ROW.gap : 0), 0);
+    return lines.reduce(
+      (h, l) =>
+        h + (l.header ? SELECT_ROW.detail : 0) + SELECT_ROW.line + (l.detail ? SELECT_ROW.detail + SELECT_ROW.gap : 0),
+      0,
+    );
   }
 
   /** 실제 그린 높이 (detail 이 여러 줄로 접힌 경우 포함) */
   height(): number {
     let h = 0;
     this.items.forEach((_, i) => {
+      if (this.headers[i]) h += SELECT_ROW.detail;
       h += SELECT_ROW.line;
       const d = this.details[i];
       if (d) h += d.textH + 4 + SELECT_ROW.gap;
@@ -91,11 +101,17 @@ export class SelectList {
     this.lines = lines;
     for (const t of this.items) t.destroy();
     for (const d of this.details) d?.destroy();
+    for (const d of this.headers) d?.destroy();
     this.items = [];
     this.details = [];
+    this.headers = [];
     let y = this.y;
     lines.forEach((l, i) => {
       const ind = Math.max(0, Math.round(l.indent ?? 0));
+      if (l.header) {
+        this.headers.push(new GlowText(this.scene, this.x + 4 + ind, y, l.header, 'page_faint'));
+        y += SELECT_ROW.detail;
+      } else this.headers.push(null);
       const t = new GlowText(this.scene, this.x + 14 + ind, y, this.itemLabel(l), this.unselStyle(), {
         stageIndex: this.stageIndex,
       }).makeInteractive();
@@ -122,6 +138,7 @@ export class SelectList {
     let w = 0;
     for (const t of this.items) w = Math.max(w, t.x - this.x + t.textW + 4);
     for (const d of this.details) if (d) w = Math.max(w, d.x - this.x + d.textW + 4);
+    for (const d of this.headers) if (d) w = Math.max(w, d.x - this.x + d.textW + 4);
     return w;
   }
 
@@ -133,6 +150,7 @@ export class SelectList {
     this.y = y;
     for (const t of this.items) t.setPosition(t.x + dx, t.y + dy);
     for (const d of this.details) d?.setPosition(d.x + dx, d.y + dy);
+    for (const d of this.headers) d?.setPosition(d.x + dx, d.y + dy);
     this.render();
     return this;
   }
@@ -140,9 +158,18 @@ export class SelectList {
   setDepth(d: number): this {
     for (const t of this.items) t.setDepth(d);
     for (const t of this.details) t?.setDepth(d);
+    for (const t of this.headers) t?.setDepth(d);
     this.cursorSprite.setDepth(d + 1);
     return this;
   }
+
+  /** 60라운드: 커서가 옮겨질 때 알림 (접은 설명을 목록 아래 한 칸에 보일 때) */
+  setOnCursor(fn: ((index: number) => void) | null): this {
+    this.onCursor = fn ?? undefined;
+    this.onCursor?.(this.cursorIdx);
+    return this;
+  }
+  private onCursor?: (index: number) => void;
 
   /** 입력 받기 켜기·끄기 */
   setEnabled(on: boolean): this {
@@ -163,7 +190,7 @@ export class SelectList {
   }
 
   private itemLabel(l: SelectLine): string {
-    return `[${l.key}] ${l.label}${l.enabled ? '' : '  (불가)'}`;
+    return `[${l.key}] ${l.label}${l.enabled ? '' : `  ${l.note ?? '(불가)'}`}`;
   }
   private selStyle(): TextStyleName {
     return this.surface === 'page' ? 'page_selected' : 'ink_body';
@@ -178,8 +205,10 @@ export class SelectList {
   }
 
   private setCursor(i: number): void {
+    const moved = i !== this.cursorIdx;
     this.cursorIdx = i;
     this.render();
+    if (moved) this.onCursor?.(i);
   }
 
   private choose(i: number): void {
@@ -207,8 +236,10 @@ export class SelectList {
     if (this.onKeyDown) this.scene.input.keyboard?.off('keydown', this.onKeyDown);
     for (const t of this.items) t.destroy();
     for (const d of this.details) d?.destroy();
+    for (const d of this.headers) d?.destroy();
     this.cursorSprite.destroy();
     this.items = [];
     this.details = [];
+    this.headers = [];
   }
 }

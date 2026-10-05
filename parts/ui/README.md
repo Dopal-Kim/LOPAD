@@ -1,5 +1,36 @@
 # 게임 UI 파트 — 작업 기록
 
+## 60라운드 (2026-10-05) · 계약 §14 전체 — 빌드 축(태그·세트·이중 개성·저주·3지선다 칸) · 2차 묶음(노드 지도·상점·소모품·엘리트 이름표·성과 등급)
+결정: 57라운드 Q38 '모두 진행', 60라운드 Q12(이름표 문장 위 2단)·Q27(소모품 C)·Q32(E 조사 kind). 계약: `contracts/ui-system-interface.md` **§14**(승인 #21) + `src/contract/ui.ts`(시스템 추가분만 import). 아트: `art-assets.md` §22 `fx/v3/elite_nameplate` → `assets/ui/elite/` 사본(수정 금지). 시스템 코드 열람 없음.
+
+### 화면
+- **HUD 빌드 칩** (좌상단, 구조물 상태 칩 아래): 저주 칩(손실 띠 슬롯 19 · '저주' · 이름(강조) · '3노드 남음'/'12처치 남음') → 태그 칩 최대 4개(점수 높은 순, 시스템 정렬) = 임시 글리프(이름 첫 글자 상자, 세트가 켜지면 테 강조) · 이름 · '점수 · n단' · 세트 임계 2·4·6 마름모 3칸.
+- **완벽 성공 (§14.11)**: 간파 칩이 한 번 깜빡. 하단 묶음 위 가운데 'PERFECT EVADE'·'PERFECT RELEASE'(ink_accent, 0.52초 뒤 떠오르며 사라짐). 패링·퍼펙트 가드는 시스템 월드 문구(§13)가 있어 HUD 문구는 기본 끔(`PERFECT.hudKinds`).
+- **소모품 칸 (§14.8)**: 1행 독주 Q 오른쪽 — 병 그림(투척은 불씨 마개) + 'n/m' + 키(`consumable.key`, C). 빈 칸이면 병 윤곽 + '빈 칸'(자리가 모자라면 윤곽 + 키만). 칸이 없는 모드(null)는 숨김.
+- **엘리트 이름표 (§14.9)**: `elites[]` 마다 아트 바탕(가로 3조각 캡 26 · 가운데 반복 · 캡 26, scale 0.5 = 도트 밀도 그대로) + 이름(새 글자 스타일 `plate_name` = 슬롯 25 + 그늘 G00) + 아래 체력 선(슬롯 23). 머리 위 점에서 37px 위가 이름표 아래 끝(문장 위 2단). 오버레이 중 숨김, id 로 재사용.
+- **성과 진행 칩 (§14.10 `nodeTrial`)**: 상단 가운데(도전 판이 있으면 그 아래) '32초 · 무피격'/'피격' + 시간 선(남은 25% 이하 강조). 시험장에서는 숨김.
+- **성과 도장 (`NODE_GRADED`)**: 상단 가운데 종이 쪽지 — 왼쪽 도장 完·良(2배, 바랜 잉크 α0.85, 위에서 6px 내려와 찍힘) / 결과 문구 · '무피격 ○ · 제한 시간 ×' · '+20 전표 +15 개성'. 2.4초.
+- **§14.11 알림 → 우하단 토스트**(구조물 결과와 같은 자리): 세트 단계 오름(획득)·내림/꺼짐(손실), 저주 받음(+저주 한 줄)·풀림, 숨은 길 드러남, 소모품 사용('이름 — 남은 n'). 이중 개성 획득은 가운데 배너.
+- **메뉴 (§14.4·§14.6·§14.7, `menuView.ts`)**: 칸 종류가 섞인 메뉴(개성 3지선다·이중 개성 칸이 낀 보상)는 라벨 앞 〔갈래 A〕〔강화〕〔피의 계약〕〔각성〕〔이중 개성〕 등, 아래 줄 희귀도·태그, 잠긴 칸은 '잠김 — 조건' + '(잠김)'. 상점은 묶음이 바뀌는 줄 위에 머리글(늘 파는 것·오늘의 진열·진열 바꾸기·덤·지도 정보), 가격(`price.label`)이 라벨에 없으면 덧붙임, 팔린 줄 '(팔림)'. 페이지가 화면을 넘으면 설명을 접고 커서 줄 설명만 목록 아래 한 칸. 새 id `curse`(필수 — Esc 머무름)·`event`('0')·`mapInfo`('0')·`consumableSwap`(필수)은 같은 목록으로, 구조물 메뉴 안전망에도 넣음.
+- **노드 지도 (§14.5)**: 보상 미리보기 표(아이콘 오른쪽 아래, 임시 글자 전·패·개·병·점·저·?), 위험 노드 = 바깥 마름모 테(슬롯 21) + 왼쪽 위 표(투·잔), 성과 도장 完·良(아이콘 오른쪽 위), 숨은 노드 `smudge` = 발광 잉크 얼룩(고를 수 없음, 이름 없음, 보기 모드에서 살펴보기만) / `located` = 얼룩 + 점선 고리 + '?'. 오른쪽 칸 '살펴보는 곳' 아래 보상·위험(+위험 한 줄)·접두어·이벤트 내용·도장 줄(범례 위를 넘으면 '…'), 범례 위에 보상 글자 범례·'산 지도 정보 · 다음 단 …'. '넘어가시겠습니까?' 창에 `riskText`(강조). HUD 노드 띠는 숨은 노드를 흐린 점 하나로.
+- **E 안내 (§14.10 Q32)**: 말풍선은 시스템 `name`·`action` 그대로, 비었을 때만 종류별 기본 문구(`warFlag` 전장 깃발/깃발을 세운다, `clue` 수상한 자국/살펴본다, `eventProp` 눈길 가는 것/다가간다, `mapSeller` 지도 장수/지도를 본다). kind 를 문자열로 찾으므로 `clue`·`eventProp`·`mapSeller` 가 계약 코드에 생기면 바로 쓰인다.
+- **일기장 (Esc)**: 두 쪽 펼침 — 오른쪽 '빌드' 쪽(태그·세트(점수·단계·다음 임계·켜진/꺼진 효과) / 이중 개성(짝 갈래·태그·단, 설명) / 저주(남은 기간·이득·저주) / 패시브(Lv/최대·태그) / 소모품). 넘치면 꺼진 효과·설명 → 효과·저주 줄 순으로 접고, 그래도 넘치면 '…'. 패시브 줄은 왼쪽 쪽에서 옮김.
+
+### 소유 코드·에셋 추가·변경 (6-1 정리 먼저)
+- **분리**: `RouteMap.ts` 1045 → 596줄(`routeGlyph.ts` 글리프·마름모·주인공, `RouteConfirm.ts` 확인 창, `RouteSide.ts` 오른쪽 칸, `routeSheet.ts` 양피지·일러스트), `HudScene.ts` 1085 → 986줄(`HudBanners.ts` 배너 차례·지역 카드, `HudBirth.ts` 탄생 연출), `MenuScene` 줄 만들기 → `menuView.ts`, `fill` → `fmt.ts`(순수 모듈이 Phaser 없이 쓰게).
+- **신규**: `BuildLayer.ts`(§14 HUD 묶음·이벤트), `BuildHud.ts`(빌드 칩·완벽 성공), `ConsumableHud.ts`, `EliteHud.ts`, `TrialHud.ts`(성과 칩·도장 카드), `PauseBuild.ts`, `routeMarks.ts`, 순수 계산 `buildView.ts`·`bundleView.ts`·`eliteView.ts`·`menuView.ts`(+테스트 4개, 24개), `textBuild.ts`(R60 문구·이름 표, 데이터만), `themeBuild.ts`(§14 수치), `fixtures.ts`(테스트용 노드 — §14.5 필드를 모두 채움).
+- **변경**: `widgets.ts`(SelectList 머리글·꼬리 글·커서 알림), `StructureHud.ts`(E 기본 문구, 토스트 tone·text 만), `kit.ts`(이름표 읽기), `theme.ts`(`plate_name`), `text.ts`(`r60Text`), `structView.ts`(`interactWords`), `RouteStrip.ts`, `PauseScene.ts`, 테스트 4개(routeView·regionView·resourceView·tutorialView → `fixtures`).
+- **에셋**: `assets/ui/elite/elite_nameplate.png/.json`(+README).
+
+### 검증
+`npx tsc --noEmit`·`npx eslint .`·`npx vitest run`(89 파일 682개, UI 13 파일 95개)·`npx vite build` 통과. 계약 코드의 §14.5 선택 필드 8개를 필수로 바꾼 사본(UI + `contract/ui.ts` 만)에서도 tsc 통과. 헤드리스 Playwright(1920×1080, `vite preview`, `?debug=1&uidebug=1&lab&weapon=katana`, 스크립트·캡처 `scratchpad/r60/`): 가짜 build·consumable·elites·nodeTrial·interactable(warFlag) → HUD 칩·이름표·소모품·PERFECT EVADE·세트 토스트, NODE_GRADED·CURSE_GAINED, 메뉴 6종(evolve·shop·curse·event·mapInfo·consumableSwap), Esc 일기장 두 쪽, 가짜 route(보상·위험·도장·smudge·intel) M 지도·고르기·위험 확인 창. 페이지 오류 0(WebGL 드라이버 경고만). 실제 런 탄생 경로는 헤드리스로 들어가지 못해(개성 획 그리기) 타입·논리 동일로만 확인.
+
+### 임시값 (도영 님 검토 대상)
+- 문구 전부(`textBuild.ts` R60_TEXT·이름 표), 임시 글자 글리프(보상 7·위험 2·태그 첫 글자·병 그림), 수치 전부(`themeBuild.ts`).
+- 판단: ① 이름표 scale 0.5(아트 도트 밀도) — 글자(Galmuri11 1배)가 바탕 글자 칸(8px)보다 커서 테를 조금 덮는다. ② `screen` 을 머리 꼭대기로 읽고 37px 위에 이름표. ③ HUD 완벽 성공 문구는 회피·놓기만. ④ 일기장 두 쪽 펼침(928px)·패시브를 오른쪽으로. ⑤ 숨은 노드 얼룩 = 발광 잉크 얼룩(`stain_blot`, 손때 얼룩은 그림 위에서 안 보였다). ⑥ 성과 칩·이름표는 오버레이 중 숨김, 성과 칩은 시험장에서 숨김. ⑦ 저주 남은 기간은 HUD 칩·일기장에만(노드 띠 표시는 §14.12 범위 밖).
+
+---
+
 ## 56라운드 (2026-10-04) · 무기 고유 자원·그로기 HUD
 결정: `decisions/2026-10-04-round-56-weapon-feedback.md` Q13~Q20·Q48·Q58. 계약: `contracts/ui-system-interface.md` **§13**(승인 #20) — `UiSnapshot.gauge`(`UiWeaponGauge`)·`groggy`(`UiGroggy`), 칼 `secondaryName` '가드·패링'. 타입은 `src/contract/ui.ts`(시스템 추가분)만 import, UI 쪽 복제 정의 없음. 시스템 코드 열람 없음.
 

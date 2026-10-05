@@ -182,7 +182,7 @@ interface UiInteractable {
   screen: { x: number; y: number }; // 구조물 윗변 중앙의 화면 좌표 (게임 캔버스 픽셀, 카메라 반영)
 }
 ```
-- `interactable` 이 나오는 종류: `chest`·`grave`·`campfire`·`ledger`·`agingBarrel`·`counter`·`cardTable`·`exchange`·`dogRing`·`pawn`. 타격·통과·자동형(`crate`·`cask`·`still`·`hiddenWall`·`stakeBell`·`roulette`)은 안내가 없고 이벤트(§9.6)로만 알린다.
+- `interactable` 이 나오는 종류: `chest`·`grave`·`campfire`·`ledger`·`agingBarrel`·`counter`·`cardTable`·`exchange`·`dogRing`·`pawn` + (60라운드) `warFlag`·`clue`·`eventProp`·`mapSeller`. 타격·통과·자동형(`crate`·`cask`·`still`·`hiddenWall`·`stakeBell`·`roulette`)은 안내가 없고 이벤트(§9.6)로만 알린다.
 - E 를 누르면 바로 실행되는 종류: `chest`(지불·개봉) · `campfire`(불씨 전부 사용) · `agingBarrel`(넣기 / 꺼내기) · `dogRing`(판돈 걸고 도전 시작). 비용은 `cost` 로 미리 보여 준다.
 - E 를 누르면 메뉴(§9.4)가 열리는 종류: `cardTable`·`exchange`·`pawn`·`ledger`·`counter`, 그리고 `grave`(2초 누르기가 끝나면).
 
@@ -389,7 +389,7 @@ interface UiBuildState {
 // UiSnapshot.build: UiBuildState
 ```
 - **패시브 목록에 태그**: 기존 `UiSnapshot.passives[]` 항목에 `tags: UiTagId[]`(1~2개)·`maxLevel: number`(현행 3)를 더한다. 이중 개성은 태그 점수를 주지 않으므로 `passives` 가 아니라 `build.dualTraits` 에 둔다.
-- 세트 단계가 바뀌면 이벤트 `TAG_SET_CHANGED`(14.8).
+- 세트 단계가 바뀌면 이벤트 `TAG_SET_CHANGED`(14.11).
 
 ### 14.2 이중 개성 (`UiDualTrait`)
 ```ts
@@ -474,7 +474,7 @@ interface UiMenuLine {
 | id | 여는 때 | 줄 | `cancelKey` |
 |---|---|---|---|
 | `curse` | 저주 길 진입·이벤트 등 저주 2택 | `kind: 'curse'` 2줄 (`detail` = 이득·저주·지속) | 없음(필수) — 저주 길은 진입 확인에서 이미 동의 |
-| `event` | 이벤트 노드 (1층 9종) | 선택지 + 마지막 줄 '지나간다'(`'0'`) — §9.4 구조물 메뉴 틀 | `'0'` |
+| `event` | 이벤트 노드 (1층 9종) · 저주 길 클리어 보상 2택(60라운드) | 선택지 + 마지막 줄 '지나간다'(`'0'`) — §9.4 구조물 메뉴 틀 | `'0'` |
 | `mapInfo` | 국경 초소 지도 장수 | 3품목(`price`) + 그만두기 | `'0'` |
 | `consumableSwap` | 소모품 칸이 찬 상태에서 다른 종류 획득 | '바꾼다' / '그대로 둔다' | 없음(필수) |
 - `UiMenuId` 유니온에 위 4개를 더한다.
@@ -482,7 +482,7 @@ interface UiMenuLine {
 ### 14.8 소모품 칸 (`UiSnapshot.consumable`)
 ```ts
 interface UiConsumableSlot {
-  key: string;               // 사용 키 이름 (시스템이 읽음 — 새 키, 독주 Q 와 별개)
+  key: string;               // 사용 키 이름 (시스템이 읽음 — 60라운드 Q27 확정 'C', 독주 Q 와 별개)
   item: { id: string; name: string; description: string; kind: 'throw' | 'drink'; count: number; max: number } | null; // 같은 종류 최대 2. 빈 칸이면 null
 }
 // UiSnapshot.consumable: UiConsumableSlot | null   (소모품 칸이 없는 모드면 null)

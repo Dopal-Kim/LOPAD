@@ -2,6 +2,8 @@ import { uiCommands, type UiText } from '../contract/ui';
 import { firstSentence } from './regionView';
 import { replaceMuteHint } from './resourceView';
 import { withControlExtras } from './structView';
+import { R60_TEXT, type R60TextKey } from './textBuild';
+import { fill } from './fmt';
 
 /**
  * 세계관 문구 조회 (계약 §4 getUiText, 29라운드). 키가 없거나 비면 기본 문구를 쓴다.
@@ -14,10 +16,8 @@ export function uiText(section: Section, key: string, fallback: string): string 
   return typeof v === 'string' && v.length > 0 ? v : fallback;
 }
 
-/** `{name}` 꼴 치환자를 채운다. 값이 없는 치환자는 그대로 둔다 */
-export function fill(template: string, vars: Record<string, string | number>): string {
-  return template.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m));
-}
+/** `{name}` 꼴 치환자 (fmt.ts — 순수 계산 모듈도 쓴다) */
+export { fill } from './fmt';
 
 const DEFAULT_CONTROLS = 'WASD 이동 · 좌클릭 공격 · 우클릭 {secondary} · 스페이스 대쉬 · Q 물약 · Esc 일시정지';
 
@@ -263,4 +263,9 @@ export type R56TextKey = keyof typeof R56_TEXT;
 
 export function r56Text(key: R56TextKey): string {
   return uiText('hud', key, R56_TEXT[key]);
+}
+
+/** 57·60라운드 §14 문구 (textBuild.ts R60_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
+export function r60Text(key: R60TextKey): string {
+  return uiText('hud', key, R60_TEXT[key]);
 }

@@ -118,6 +118,14 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 - 갈래 조건이던 GROGGY·OVERHEAT·BREATH_FOCUS 6항목 → `BRANCH_EFFECT`. effect 값은 음향 임시(시스템 확인 필요): `gs_congest_loop` hold · `gs_congest_burst` burst · `dagger_hotwind_loop` trail · `dagger_hotwind_burst` burst · `bow_deadeye_lock` lock · `bow_deadeye_hold` hold.
 - `sound-design.md` 표의 트리거 칸도 같이 맞췄다.
 
+## 추가 (시스템 실제 이벤트 이름 2차 맞춤, 2026-10-05)
+시스템이 확정한 실제 이벤트·페이로드(메인 세션 전달)로 manifest `trigger` **22항목**을 기계적으로 고쳤다. 오디오 불변(WAV·OGG·M4A 645개 md5 동일), `build.py verify` 215개 문제 0, `listen_index.json` 재생성.
+- 게이지 `WEAPON_GAUGE{weapon,gauge:kenki|grudge|brand|breath,event:stage|full|consume|apply|focusStart|focusEnd,stage?,delta?,marks?,back?}`: `kenki_stage1~5` → `gauge:kenki,event:stage,stage:N`(오를 때만 — `delta>0` 조건 뺌), `utbun_full` → `gauge:grudge,event:full`, `brand_apply` → `gauge:brand,event:apply`(등 뒤 = `back`), `breath_focus` → `gauge:breath,event:focusStart`. `groggy_start` → `WEAPON_RESOURCE{event:groggy}`.
+- 폭발: `overheat_burst` → `PLAYER_SKILL{weapon:dagger,move:overheat,phase:burst}`, `brand_burst` → `PLAYER_SKILL{weapon:dagger,move:brand,phase:burst}`, `dagger_hotwind_burst` → 같은 과열 폭발 + `branch:heatwave`.
+- 갈래: `gs_quake_fork` → `BRANCH_EFFECT{quake,fork}`, `gs_quake_ring` → `{giant,ring}`, `dagger_knife_step` → `{flyknife,step}`, `katana_mirror_parry` → `{meikyo,parry}`, `gs_echo_counter` → `{resonance,counter}`, `dagger_bleed` → `{bleed,bleed}`, `bow_arrow_split` → `{volley,split}`, `katana_guardbreak_hold` → `PLAYER_BRANCH_MOVE{move:unblockable,phase:hold}`.
+- 루프 시작·멈춤: `dagger_hotwind_loop` → `effect:trail_start`(멈춤 `trail_end`), `bow_deadeye_hold` → `effect:hold_start`(멈춤 `hold_end`), `gs_congest_loop` 트리거 그대로(멈춤 `effect:end|burst`). manifest 트리거는 한 개라 멈춤 이벤트는 해당 `note` 끝에 적었다(`brand_apply` note 에 `back:true` 표기도 추가).
+- `sound-design.md` 표 트리거 칸도 맞췄다.
+
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).
 - 60라운드 읽기(지시 범위): 아트 fx JSON 26개 `assets/sprites/fx/v3/{katana_whirl_loop,katana_whirl_reflect,katana_moon_trail,katana_cleave_crack,katana_execute,katana_mirror_ki,katana_mirror_parry,greatsword_quake_fork,greatsword_echo_counter,greatsword_giant_ring,greatsword_charge_flash_lv4,greatsword_congest_aura,greatsword_congest_burst,dagger_frenzy_clone_in,dagger_frenzy_clone_out,dagger_brand_bleed,dagger_brand_hop,dagger_stuck_blade,dagger_hotwind_trail,dagger_hotwind_burst,bow_arrow_split,bow_arrow_stuck,bow_arrow_recall,bow_deadeye_scope,bow_link_stack,bow_skypierce_line}.json` — 계약 `art-assets.md` §21 이 타이밍 기준으로 가리키는 런타임 데이터(타이밍 필드만 참고).

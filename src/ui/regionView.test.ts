@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { UiRoute } from '../contract/ui';
+import { routeNode, routeOf } from './fixtures';
 import { cardAlpha, findNode, firstSentence, regionArtKey, regionChanged } from './regionView';
 import { MAP_PATHS, REGION_CARD } from './theme';
 import { coverCrop, fitContain, layoutOnPath, pathSampler } from './routeView';
@@ -28,12 +28,12 @@ describe('regionView (50라운드 지역 카드)', () => {
   });
 
   it('노드 찾기', () => {
-    const r: UiRoute = {
+    const r = routeOf({
       floor: 1,
       currentId: 'a',
       choosing: false,
-      nodes: [{ id: 'a', type: 'journey', name: 'A', col: 0, row: 0, links: [], state: 'current', region: '황무지' }],
-    };
+      nodes: [routeNode({ id: 'a', type: 'journey', name: 'A', state: 'current', region: '황무지' })],
+    });
     expect(findNode(r, 'a')?.region).toBe('황무지');
     expect(findNode(r, 'x')).toBeNull();
     expect(findNode(null, 'a')).toBeNull();
@@ -87,15 +87,7 @@ describe('routeView (50라운드 일러스트 지도)', () => {
   it('노드는 길을 따라: 첫 단계 = 길 시작, 마지막 = 보스, 갈래는 길에 수직으로 벌어짐', () => {
     const spec = MAP_PATHS[1];
     const rect = { x: 0, y: 0, w: spec.srcW, h: spec.srcH };
-    const N = (id: string, col: number, row: number) => ({
-      id,
-      type: 'battle' as const,
-      name: id,
-      col,
-      row,
-      links: [],
-      state: 'locked' as const,
-    });
+    const N = (id: string, col: number, row: number) => routeNode({ id, col, row });
     const nodes = [N('s', 0, 0), N('a', 3, 0), N('b', 3, 1), N('boss', 6, 0)];
     const L = layoutOnPath(nodes, rect, spec);
     const first = spec.points[0];
@@ -118,7 +110,7 @@ describe('routeView (50라운드 일러스트 지도)', () => {
 
   it('화면 사각형으로 줄이면 좌표도 같은 비율', () => {
     const spec = MAP_PATHS[1];
-    const nodes = [{ id: 'boss', type: 'boss' as const, name: '', col: 0, row: 0, links: [], state: 'locked' as const }];
+    const nodes = [routeNode({ id: 'boss', type: 'boss', name: '' })];
     const L = layoutOnPath(nodes, { x: 10, y: 20, w: 480, h: 270 }, { ...spec, points: [[855, 220]] });
     expect(L.pos.get('boss')).toMatchObject({ x: 10 + 428, y: 20 + 110 });
   });

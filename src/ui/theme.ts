@@ -119,6 +119,15 @@ export const TEXT_STYLES = {
     halo: { color: { accentSlot: 20 }, alpha: 0.5 },
     shade: { color: GRAY[0], alpha: 1 },
   },
+  /**
+   * 60라운드 §14.9 엘리트 이름표 글자 (아트 JSON 권장 #eecc78 = 1층 램프 슬롯 25, 자체 발광) — 할로 없이 그늘 G00.
+   * 월드 위 이름표 전용 (종이·HUD 글자 아님)
+   */
+  plate_name: {
+    body: { accentSlot: 25 },
+    bodyAlpha: 1,
+    shade: { color: GRAY[0], alpha: 1 },
+  },
 } as const satisfies Record<string, GlowStyle>;
 export type TextStyleName = keyof typeof TEXT_STYLES;
 
