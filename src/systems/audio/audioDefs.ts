@@ -25,8 +25,16 @@ export interface AudioEntry {
   /** 버스 기준 상대 음량 dB */
   gainDb: number;
   /** 음향 파트의 트리거 제안 (코드는 audioMap 을 쓴다) */
-  trigger?: { event: string; when: string[] };
+  trigger?: { event: string; when: string[] } | null;
   floors?: number[];
+  /** 61라운드 계약 sound §9: 효과음 우선순위 0(UI)~4(보스 예고) */
+  priority?: number;
+  /** §9: 원본 항목의 변주 목록(원본 포함) · 변주 항목의 원본 id */
+  variants?: string[];
+  variantOf?: string;
+  /** §9: BGM 쓰임 (층·상태·국면) */
+  use?: { floor?: number; state?: string; phase?: number };
+  channels?: number;
 }
 
 export interface AudioMixing {
@@ -35,6 +43,40 @@ export interface AudioMixing {
   bgmBusDb: number;
   bgmCrossfadeMs: number;
   bgmBossDuckDb: number;
+  /** 61라운드 §9 (없으면 audioMix 기본값) */
+  dedupeMs?: number;
+  voices?: AudioVoiceLimits;
+  ducking?: AudioDuckRule[];
+  variation?: { rateJitter?: number };
+  masterLimiter?: { thresholdDb: number; kneeDb: number; ratio: number; attackMs: number; releaseMs: number };
+  bgmPhaseCrossfadeMs?: number;
+  bgmPhaseSyncPosition?: boolean;
+}
+
+/** §9 동시 재생 상한 (그룹 = 원본 id — 변주 포함) */
+export interface AudioVoiceLimits {
+  maxSfx?: number;
+  maxUi?: number;
+  perGroupMax?: number;
+  perGroupOverrides?: Record<string, number>;
+}
+
+/** §9 덕킹 규칙 (매니페스트 문장형 when/target 을 audioMix.parseDucking 이 해석) */
+export interface AudioDuckRule {
+  when: string;
+  target: string;
+  db: number;
+  attackMs?: number;
+  releaseMs?: number;
+  hold?: string;
+}
+
+/** §9 층별 상태 곡: 여정 · 전투 · 보스(국면별) */
+export interface FloorStateBgm {
+  journey?: string;
+  combat?: string;
+  boss?: string;
+  bossPhases?: string[];
 }
 
 export interface AudioManifest {
@@ -42,6 +84,8 @@ export interface AudioManifest {
   mixing?: Partial<AudioMixing>;
   bgmByFloor?: Record<string, string>;
   bgmByState?: Record<string, string>;
+  /** 61라운드 §9 */
+  bgmByFloorState?: Record<string, FloorStateBgm>;
   entries: AudioEntry[];
 }
 

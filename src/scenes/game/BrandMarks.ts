@@ -1,12 +1,13 @@
 /**
- * 56라운드 Q16·Q18 단검 낙인(烙印): 같은 적을 칠 때마다 표식(등 뒤 2, 최대 5, 과열 단계면 더 빨리) → 그림자 걸음으로 그 적 뒤에 서면
- * 전부 폭발 · 과열 100% → 주변 낙인 일괄 폭발. 표식 = fx `dagger_brand_mark`(행 = 스택 1~5, 적 머리 위, 찍힘 0~1 → 2~5 반복),
- * 폭발 = `dagger_brand_burst`(행 s·m·l = 스택), 과열 = `dagger_overheat_burst`(주인공 발) 뒤 가까운 적부터 40ms 간격.
+ * 56라운드 Q16·Q18 단검 낙인(烙印): 같은 적을 칠 때마다 표식(등 뒤 2, 최대 5, 가속 단계면 더 빨리) → 그림자 걸음으로 그 적 뒤에 서면
+ * 전부 폭발 · (61라운드: 기본 과열 폭발 삭제 — 2단 열풍의 가속 가득 폭발만 `burstAround`). 표식 = fx `dagger_brand_mark`(행 = 스택 1~5,
+ * 적 머리 위, 찍힘 0~1 → 2~5 반복), 폭발 = `dagger_brand_burst`(행 s·m·l = 스택), 둘레 폭발 = `dagger_overheat_burst`(주인공 발) 뒤
+ * 가까운 적부터 40ms 간격.
  * 시트가 없으면 작은 호박 마름모(Graphics)·플레이스홀더.
  * 장부 규칙은 `systems/weapon/weaponGauge.BrandBook`(Phaser 의존 없음).
  */
 import Phaser from 'phaser';
-import { DEPTH, FEEDBACK, TILE } from '../../core/Constants';
+import { DEPTH, FEEDBACK } from '../../core/Constants';
 import type { FxHandle } from '../../systems/fx/fx';
 import { crackShake, type ShakeHint } from './swingShake';
 import { EventBus, Events, type PlayerSkillPayload, type WeaponGaugePayload } from '../../core/EventBus';
@@ -97,14 +98,13 @@ export class BrandMarks {
     if (target) this.burst(target, 'shadowstep');
   }
 
-  /** 과열 100% → 반경 안 낙인 일괄 폭발 */
-  onOverheat(): void {
+  /** 둘레 폭발 (2단 열풍 — 가속 100%): 반경 radiusPx 안 낙인 일괄 폭발. 화상·무적은 열풍 쪽(DaggerBranch) */
+  burstAround(radiusPx: number): void {
     const book = this.ledger;
     const d = this.def;
     if (!book || !d) return;
     const p = this.g.player;
-    // 60라운드 열풍(단검 2단): 과열 폭발 범위 ×burstRangeMult · 반경 안 화상 · 무적
-    const r = d.overheatBurstRadiusTiles * TILE * (this.g.build?.branch.overheatRangeMult() ?? 1);
+    const r = radiusPx;
     const dist = (m: Mob) => Math.hypot(m.x - p.x, m.y - p.y);
     const list = book.takeWhere((m) => m.active && dist(m) <= r).sort((a, b) => dist(a[0]) - dist(b[0]));
     const skill: PlayerSkillPayload = { weapon: gameState.weapon.id, move: 'overheat', phase: 'burst' };
@@ -123,7 +123,6 @@ export class BrandMarks {
       if (at <= 0) this.explode(mob, marks, 'overheat');
       else g.time.delayedCall(at, () => this.explode(mob, marks, 'overheat'));
     });
-    g.build?.branch.onOverheat(r);
   }
 
   private burst(mob: Mob, cause: string): void {

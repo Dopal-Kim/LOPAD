@@ -28,7 +28,7 @@ import { pickMove } from '../../systems/weapon/moves';
 import type { Player } from '../Player';
 import { releaseCharge } from './chargeRelease';
 import { startDashSlash, startSlam, type ComboStrike } from './heavyMoves';
-import { applyThrust, thrustLunge } from './thrustMove';
+import { thrustLunge } from './thrustMove';
 
 /** 56라운드 Q46: 대검 끌림음은 3타(연격 번호 2 — H2)에만 */
 const DRAG_SFX_HIT = 2;
@@ -245,13 +245,10 @@ export class MeleeDriver {
     const mods = gameState.weapon.mods;
     const slam = closing && W.slam && mods.shockwave ? W.slam : null;
     const m = mom?.onHit(time);
-    if (res?.def.kind === 'stamina') {
-      const C = res.def.cost;
-      res.spend(slam ? C.slam : dashWindow ? C.dashAttack : (C.hits[Math.min(idx, C.hits.length - 1)] ?? 0), time);
-    }
+    // 61라운드 SY-2: 일반 연격은 기력을 쓰지 않는다 (대쉬 공격·옛 충격파 내려찍기만)
+    if (res?.def.kind === 'stamina' && (slam || dashWindow))
+      res.spend(slam ? res.def.cost.hold : res.def.cost.dashAttack, time);
     if (res?.kind === 'heat') res.heatUp(idx, time);
-    // 51라운드 Q4: 넣은 채 첫 타 보너스 (칼 발도 = 확정 치명, 대검 끌어내기 = 크게 밀쳐냄)
-    const first = p.gear.firstStrike;
     p.gear.markDrawn(time);
     if (slam) {
       startSlam(p, input, time, { index: idx, count: combo.hits.length, hit, durationMs: hit.durationMs }, slam);
@@ -260,7 +257,7 @@ export class MeleeDriver {
     // 56라운드 Q5: 판정 순간 땅 균열 (그림 표 crackRow — 관성 최대면 crackRowAtMax)
     const artEntry = hit.art ? W.combo?.art?.[hit.art] : undefined;
     const crack = (m?.atMax ? artEntry?.crackRowAtMax : undefined) ?? artEntry?.crackRow;
-    let strike: ComboStrike = {
+    const strike: ComboStrike = {
       index: idx,
       count: combo.hits.length,
       hit,
@@ -270,16 +267,15 @@ export class MeleeDriver {
       ...(m?.atMax && mom ? { shapeScale: { impactMult: mom.impactMult } } : {}),
       ...(crack ? { crack } : {}),
     };
-    // 58라운드 Q1: 전용 연격 타 (공격 수단 표 — 칼 3타 찌르기: 검기 소모 → 판정·피해·fx 단수)
+    // 58라운드 Q1: 전용 연격 타 (공격 수단 표 — 칼 3타 찌르기: 내딛기. 61라운드: 검기는 쓰지 않는다 — 발도만 소모)
     const thrust =
       hit.move === 'thrust' &&
       pickMove(gameState.weapon.id, 'comboFinisher', gameState.weapon.path, (mv) => mv.id === hit.move) !== null;
-    if (thrust) strike = applyThrust(p, strike).strike;
     const weight = W.weight;
     p.slowUntil(
       time + Math.max(hit.activeMs, PLAYER_DATA.attackSlowMinMs, weight ? strike.durationMs + weight.postSlowMs : 0),
     );
-    const payload = p.fireAttack(input, time, strike, dashWindow, first);
+    const payload = p.fireAttack(input, time, strike, dashWindow);
     if (thrust) thrustLunge(p, payload, strike.durationMs, time);
     this.afterStrike(payload, strike.hit, time, closing, moving);
   }

@@ -172,8 +172,7 @@ export class BranchKit {
 
   /** 갈래·강화 판정 배율 (그림 배율 = 판정 배율, 55 Q15) */
   hitScale(): number {
-    const reach = gameState.weapon.hitbox.reach / Math.max(1, gameState.weapon.def.hitbox.reach);
-    return reach * (gameState.weapon.def.kind === 'melee' ? PLAYER_HIT_SCALE : 1);
+    return gameState.weapon.rangeMult * (gameState.weapon.def.kind === 'melee' ? PLAYER_HIT_SCALE : 1);
   }
 
   /**

@@ -3,13 +3,13 @@
  * - 기력(stamina, 칼·대검): 공격·대쉬·강한 타가 소모, 마지막 소모 뒤 regenDelayMs 가 지나면 회복.
  *   0 이 되면 exhausted — max × recoverRatio 까지 차야 풀린다. exhausted 동안 이동 감속·강한 타 불가.
  * - 화살 탄창(ammo, 활): 한 발마다 1, 비면 자동 장전(reloadMs). 수동 장전은 탄창이 덜 찼을 때.
- * - 과열(heat, 단검): 공격마다 가열, 마지막 가열 뒤 decayDelayMs 가 지나면 식는다. 경계(stages)를 넘을 때마다
- *   단계 +1(공격 속도 배율 speedMults). 최대 열을 overheatHoldMs 동안 유지하면 과열 → cooldownMs 냉각(공격 불가).
- * 계약 §11.1 `UiWeaponResource` 로 내보낸다.
+ * - 가속(heat, 단검 — 61라운드 SY-2 '과열'을 벌칙 없는 가속으로): 공격마다 오르고, 마지막 공격 뒤 decayDelayMs 가 지나면 식는다.
+ *   경계(stages)를 넘을 때마다 단계 +1(공격 속도 배율 speedMults). 과열·폭발·식힘 벌칙 없음.
+ * 계약 §11.1 `UiWeaponResource` 로 내보낸다 (`hidden` 자원은 null — 단검 가속).
  * 56라운드 Q7·Q19: 기력에 `groggyMs` 가 있으면 0 = 그로기 — 그 시간 동안 회복 없음·공격 불가(가드만), 지나야만 풀리고
- * 기력 = max × recoverRatio. Q18: 과열 `cooling`(단검 낙인 연동)이 있으면 식는 동안 공격은 되고 느려진다.
+ * 기력 = max × recoverRatio. 61라운드: 기력은 대쉬·가드·강공만 소모(일반 연격 무소모) — 그로기는 드물게.
  */
-import type { HeatResourceDef, StaminaResourceDef, WeaponMods, WeaponResourceDef } from '../../data/types';
+import type { StaminaResourceDef, WeaponMods, WeaponResourceDef } from '../../data/types';
 import type { UiWeaponResource } from '../../contract/ui';
 import { clamp01 } from '../mathUtil';
 
@@ -21,21 +21,10 @@ export class WeaponResource {
   private lastUseAt = -Infinity;
   /** 탄창: 장전 시작 시각 (-1 = 장전 중 아님) */
   private reloadStart = -1;
-  /** 과열: 최대 열 유지 누적 ms · 과열 시작 시각 (-1 = 아님) */
-  private atMaxMs = 0;
-  private overheatStart = -1;
-  /** 과열 시작 순간의 열 (냉각 동안 선형으로 0 까지) */
-  private overheatFrom = 0;
-  /** 51라운드 Q4: 기력 회복 배율 (무기를 넣은 동안 > 1). 호출 쪽이 매 프레임 넣는다 */
-  regenMult = 1;
   /** 56라운드: 그로기가 풀리는 시각 (그로기 규칙이 아니거나 그로기가 아니면 -Infinity) */
   private groggyUntil = -Infinity;
 
-  constructor(
-    readonly def: WeaponResourceDef,
-    /** 56라운드 Q18: 과열 냉각 동안 공격 허용 + 공격 속도·이동 배율 (없으면 49라운드 — 냉각 동안 공격 불가) */
-    private readonly cooling: { speedMult: number; moveMult: number } | null = null,
-  ) {
+  constructor(readonly def: WeaponResourceDef) {
     this.value = def.kind === 'heat' ? 0 : def.max;
   }
 
@@ -48,7 +37,7 @@ export class WeaponResource {
   }
 
   /**
-   * 60라운드 소모품 '냉수 한 바가지': 기력 = 그로기·바닥 해제 + 최대 × staminaRatio 이상 / 과열 0 (냉각 끝) / 탄창 가득 (장전 끝)
+   * 60라운드 소모품 '냉수 한 바가지': 기력 = 그로기·바닥 해제 + 최대 × staminaRatio 이상 / 가속 0 / 탄창 가득 (장전 끝)
    */
   refresh(staminaRatio: number): void {
     const d = this.def;
@@ -62,9 +51,6 @@ export class WeaponResource {
       this.value = d.max;
     } else {
       this.value = 0;
-      this.atMaxMs = 0;
-      this.overheatStart = -1;
-      this.overheatFrom = 0;
     }
   }
 
@@ -83,38 +69,17 @@ export class WeaponResource {
         return;
       }
       if (now - this.lastUseAt >= d.regenDelayMs && this.value < d.max)
-        this.value = Math.min(d.max, this.value + (d.regenPerSec * this.regenMult * dt) / 1000);
+        this.value = Math.min(d.max, this.value + (d.regenPerSec * dt) / 1000);
       if (this.exhausted && this.value >= d.max * d.recoverRatio) this.exhausted = false;
     } else if (d.kind === 'ammo') {
       if (this.reloadStart >= 0 && now - this.reloadStart >= d.reloadMs) {
         this.reloadStart = -1;
         this.value = d.max;
       }
-    } else {
-      this.tickHeat(d, now, dt);
-    }
-  }
-
-  private tickHeat(d: HeatResourceDef, now: number, dt: number): void {
-    if (this.overheatStart >= 0) {
-      const p = (now - this.overheatStart) / d.cooldownMs;
-      if (p >= 1) {
-        this.overheatStart = -1;
-        this.value = 0;
-        this.atMaxMs = 0;
-      } else this.value = this.overheatFrom * (1 - p);
-      return;
-    }
-    if (now - this.lastUseAt >= d.decayDelayMs && this.value > 0)
+    } else if (now - this.lastUseAt >= d.decayDelayMs && this.value > 0) {
+      // 가속: 멈추면 식는다 (벌칙 없음)
       this.value = Math.max(0, this.value - (d.decayPerSec * dt) / 1000);
-    if (this.value >= d.max) {
-      this.atMaxMs += dt;
-      if (this.atMaxMs >= d.overheatHoldMs) {
-        this.overheatStart = now;
-        this.overheatFrom = this.value;
-        this.atMaxMs = 0;
-      }
-    } else this.atMaxMs = 0;
+    }
   }
 
   // --- 기력 ---
@@ -155,9 +120,8 @@ export class WeaponResource {
     return !this.isExhausted;
   }
 
-  /** 이동 속도 배율 (기력 바닥 감속 · 56라운드 Q18 과열 식는 동안) */
+  /** 이동 속도 배율 (기력 바닥 감속) */
   get moveMult(): number {
-    if (this.def.kind === 'heat') return this.cooling && this.overheated ? this.cooling.moveMult : 1;
     return this.def.kind === 'stamina' && this.exhausted ? this.def.exhaustedMoveMult : 1;
   }
 
@@ -194,50 +158,44 @@ export class WeaponResource {
     return clamp01((now - this.reloadStart) / this.def.reloadMs);
   }
 
-  // --- 과열 ---
+  // --- 가속 (단검) ---
 
-  /** 연격 n 번째 타(0부터) 가열 */
+  /** 연격 n 번째 타(0부터) 가속 */
   heatUp(hitIndex: number, now: number): void {
     const d = this.def;
-    if (d.kind !== 'heat' || this.overheatStart >= 0) return;
+    if (d.kind !== 'heat') return;
     const g = d.gainPerHit[Math.min(hitIndex, d.gainPerHit.length - 1)] ?? 0;
     this.lastUseAt = now;
     this.value = Math.min(d.max, this.value + g);
   }
 
-  /** 56라운드 2단계 고속 난타: 찌르기마다 정해진 양만큼 가열 (과열 냉각 중엔 없음) */
+  /** 56라운드 2단계 고속 난타: 찌르기마다 정해진 양만큼 가속 */
   heatBy(amount: number, now: number): void {
     const d = this.def;
-    if (d.kind !== 'heat' || this.overheatStart >= 0 || amount <= 0) return;
+    if (d.kind !== 'heat' || amount <= 0) return;
     this.lastUseAt = now;
     this.value = Math.min(d.max, this.value + amount);
   }
 
-  get overheated(): boolean {
-    return this.def.kind === 'heat' && this.overheatStart >= 0;
-  }
-
-  /** 가열 단계 0..stages.length (과열 냉각 중엔 0) */
+  /** 가속 단계 0..stages.length */
   get stage(): number {
     const d = this.def;
-    if (d.kind !== 'heat' || this.overheatStart >= 0) return 0;
+    if (d.kind !== 'heat') return 0;
     let s = 0;
     for (const b of d.stages) if (this.value >= b) s++;
     return s;
   }
 
-  /** 공격 속도 배율 (과열 단계 · 56라운드 Q18 식는 동안 느려짐) */
+  /** 공격 속도 배율 (가속 단계) */
   get speedMult(): number {
     const d = this.def;
     if (d.kind !== 'heat') return 1;
-    if (this.overheated) return this.cooling?.speedMult ?? 1;
     return d.speedMults[Math.min(this.stage, d.speedMults.length - 1)] ?? 1;
   }
 
-  /** 냉각 진행도 0..1 */
-  cooldownProgress(now: number): number {
-    if (this.def.kind !== 'heat' || this.overheatStart < 0) return 0;
-    return clamp01((now - this.overheatStart) / this.def.cooldownMs);
+  /** 가속 비율 0..1 (단검 가속 — 열풍 2단 규칙) */
+  get ratio(): number {
+    return clamp01(this.value / Math.max(1, this.def.max));
   }
 
   // --- 공통 ---
@@ -245,14 +203,15 @@ export class WeaponResource {
   /** 지금 공격(연격 한 타·화살 한 발)을 시작할 수 있는가 */
   canAttack(): boolean {
     if (this.def.kind === 'ammo') return this.canFire();
-    if (this.def.kind === 'heat') return !this.overheated || this.cooling !== null;
+    if (this.def.kind === 'heat') return true;
     // 56라운드 Q7: 그로기 중 공격 불가
     return !this.isGroggy;
   }
 
-  /** 계약 §11.1 게이지 */
-  toUi(now: number): UiWeaponResource {
+  /** 계약 §11.1 게이지 (61라운드: `hidden` 자원은 null — 단검 가속은 보이지 않고 낙인만 보인다) */
+  toUi(now: number): UiWeaponResource | null {
     const d = this.def;
+    if (d.hidden) return null;
     const base = { kind: d.kind, label: d.label, max: d.max };
     if (d.kind === 'stamina') return { ...base, value: round1(this.value), state: staminaState(d, this) };
     if (d.kind === 'ammo') {
@@ -260,8 +219,6 @@ export class WeaponResource {
         return { ...base, value: Math.floor(this.value), state: 'reloading', progress: this.reloadProgress(now) };
       return { ...base, value: Math.floor(this.value), state: this.value <= d.lowCount ? 'low' : 'ok' };
     }
-    if (this.overheated)
-      return { ...base, value: round1(this.value), state: 'overheat', progress: this.cooldownProgress(now), stage: 0 };
     return { ...base, value: round1(this.value), state: 'ok', stage: this.stage };
   }
 
@@ -275,10 +232,8 @@ export class WeaponResource {
       groggy: this.isGroggy,
       groggyLeftMs: this.groggyLeftMs(now),
       reloading: this.reloading,
-      overheated: this.overheated,
       stage: this.stage,
       speedMult: this.speedMult,
-      atMaxMs: this.atMaxMs,
       ui: this.toUi(now),
     };
   }
@@ -317,8 +272,8 @@ export function effectiveResource(
     };
   }
   if (def.kind === 'heat') {
-    if (maxMult === 1 && cool === 1) return def;
-    return { ...def, max: def.max * maxMult, cooldownMs: def.cooldownMs * cool };
+    if (maxMult === 1) return def;
+    return { ...def, max: def.max * maxMult };
   }
   const groggy = def.groggyMs !== undefined && adj.groggyMs ? adj.groggyMs : def.groggyMs;
   if (maxMult === 1 && groggy === def.groggyMs) return def;

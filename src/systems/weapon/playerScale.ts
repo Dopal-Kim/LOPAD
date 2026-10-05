@@ -18,8 +18,7 @@ export const HIT_ORIGIN_BASE_PX = 10;
 /** 판정 원점 = 발 위 이만큼 (몸 그림 배율만큼 올라간다) */
 export const PLAYER_HIT_ORIGIN_UP_PX = HIT_ORIGIN_BASE_PX * PLAYER_RENDER_SCALE;
 
-/** 갈래·강화 판정 배율 (현재 reach / 기본 reach) × 근접 무기면 주인공 판정 배율 */
-export function weaponRangeScale(w: Pick<WeaponState, 'def' | 'hitbox'>): number {
-  const base = w.def.hitbox.reach > 0 ? w.hitbox.reach / w.def.hitbox.reach : 1;
-  return base * (w.def.kind === 'melee' ? PLAYER_HIT_SCALE : 1);
+/** 갈래·강화 판정 배율 (WeaponState.rangeMult) × 근접 무기면 주인공 판정 배율 */
+export function weaponRangeScale(w: Pick<WeaponState, 'def' | 'rangeMult'>): number {
+  return w.rangeMult * (w.def.kind === 'melee' ? PLAYER_HIT_SCALE : 1);
 }

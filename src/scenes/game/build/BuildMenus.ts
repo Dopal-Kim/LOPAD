@@ -262,7 +262,7 @@ export class BuildMenus {
     return {
       key,
       kind: 'passive',
-      label: `[${p.rarity}] ${p.name}${lv > 0 ? ` (Lv${lv} → ${lv + 1})` : ''}`,
+      label: `${p.name}${lv > 0 ? ` (Lv${lv} → ${lv + 1})` : ''}`,
       enabled: true,
       detail: p.description,
       tags: [...p.tags] as UiTagId[],

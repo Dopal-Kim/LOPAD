@@ -49,6 +49,8 @@ export const Events = {
    * 단검 부채꼴 투척(대쉬 직후 좌클릭) — 입력은 Player(BranchMoves), 판정·연출은 씬(build/BranchStrikes). 음향 훅 후보
    */
   PLAYER_BRANCH_MOVE: 'player:branch-move',
+  /** 61라운드 P1: 4동사 '좌 홀드' 기술이 나갔다 (`PlayerHoldVerbPayload` — 튜토리얼 홀드 단계·런 로그) */
+  PLAYER_HOLD_VERB: 'player:hold-verb',
   /** 49라운드 무기 휴대: 칼집·등에서 뽑음 / 넣음(납도) — 음향 훅 후보 (`WeaponCarryPayload`) */
   PLAYER_WEAPON_DRAWN: 'player:weapon-drawn',
   PLAYER_WEAPON_SHEATHED: 'player:weapon-sheathed',
@@ -174,6 +176,15 @@ export const Events = {
   HIDDEN_NODE_FOUND: 'node:hidden-found',
   /** 이벤트 노드 진입 (`{ id }` — 이벤트 내용 id) */
   EVENT_NODE_ENTERED: 'node:event-entered',
+  /**
+   * 61라운드 계약 sound §9: 연격 마지막 타가 적에 맞은 순간 (`ComboFinishPayload`, 활 제외 — 한 휘두름에 1회) → 음향 combo_finish.
+   * 내는 곳 = 무기 연격 적중 처리(무기 쪽 에이전트 담당)
+   */
+  PLAYER_COMBO_FINISH: 'player:combo-finish',
+  /** 61라운드 P9 런 로그: 런 시작 (`RunStartedPayload` — 새 런 · 세이브 이어하기). 시험장은 내지 않는다 */
+  RUN_STARTED: 'run:started',
+  /** 61라운드 P9 런 로그: 노드 지도 노드 진입 (`NodeEnteredPayload`) — UI_EVENTS.ROUTE_NODE_ENTERED 와 같은 시점 */
+  NODE_ENTERED: 'node:entered',
 } as const;
 
 export type PlayerAttackPayload = {
@@ -207,10 +218,9 @@ export type PlayerAttackPayload = {
   dashSlash?: { arcDeg: number };
   /** 49라운드: 단검 가열 단계 0..3 (이펙트 강화) */
   heatStage?: number;
-  /** 60라운드: 칼 검기 단 (음향 katana_thrust_ki<n>) */
+  /** 60라운드: 칼 검기 단 — 61라운드: 이 공격이 소모한 검기 단 (좌 홀드 발도만, 없으면 0) */
   kenkiStage?: number;
-  /** 51라운드 Q4: 넣은 채 첫 타 보너스 이름 (발도·끌어내기) · 적중 넉백 배율 */
-  firstStrike?: string;
+  /** 적중 넉백 배율 (61라운드: 넣은 채 첫 타 보너스 이름 firstStrike 삭제) */
   knockbackMult?: number;
   /** 55라운드 §17: 이 타의 판정 모양 (데이터 — 진화·강화·크기 배율은 받는 쪽이 R 로) · 끝점 충격원 배율(관성 최대) */
   hitShape?: HitShapeSpec;
@@ -228,7 +238,8 @@ export type PlayerAttackPayload = {
   /** 56라운드 Q5: 판정 순간 땅 균열 행 (greatsword_ground_crack s·m·l — 끝점 충격원 중심) */
   crack?: string;
   /** 56라운드 Q2 칼 일섬: 4방향 돌진 · 검기 소모 단 · 분신 (판정·선·분신은 IssenStrikes) */
-  issen?: { facing: 'down' | 'up' | 'left' | 'right'; dirX: number; dirY: number; kenki: number; clone: boolean };
+  /** 칼 대쉬 일섬 (61라운드: 검기·그림자 분신 없음 — 분신 없는 선) */
+  issen?: { facing: 'down' | 'up' | 'left' | 'right'; dirX: number; dirY: number };
   /**
    * 58라운드 Q3 대검 차지 균열 (CrackLineStrikes): 판정 순간 찍은 자리에서 조준 방향으로 커서까지(최대 maxTiles 칸·벽까지),
    * 앞머리가 지나간 칸만 판정. 찍은 자리 = 발 피벗 + startOffset(몸 시트 slamAnchors) — 없으면 쐐기 끝점 충격원 중심
@@ -247,15 +258,15 @@ export type PlayerAttackPayload = {
   /** 56라운드: 화살 관통 (가득 이상). 없으면 조준 사격 = 무한 관통(기존) */
   pierce?: boolean;
   /**
-   * 56라운드 2단계 새 기본기 (공격 수단 표 id — counter·iai_draw·tackle·brace_upswing·leap_slam·guard_rush·backstab·flurry).
+   * 56라운드 2단계 새 기본기 (공격 수단 표 id — counter·iai_draw·tackle·brace_upswing·leap_slam·backstab·flurry).
    * 휘두름 소리는 PLAYER_SKILL 이 대신한다
    */
   move?: string;
   /** 단검 등 뒤 찌르기 (Q55): 공용 적중·치명 fx 를 띄우지 않는다 — 전용 섬광(휘두름 fx)만 */
   noImpactFx?: boolean;
   /**
-   * 태클·막다가 떼면 돌진 (Q55): 판정이 몸과 함께 이동(공격 시작부터 fromMs~toMs, 적마다 1회) · 맞은 적을 밀고 감(carryPx) ·
-   * 첫 접촉 fx(몸을 따라감) · 돌진 출발 고정 바닥 fx(땅 홈, groundAtMs 에)
+   * 태클 (Q55): 판정이 몸과 함께 이동(공격 시작부터 fromMs~toMs, 적마다 1회) · 맞은 적을 밀고 감(carryPx) ·
+   * 첫 접촉 fx(몸을 따라감) · (groundFx = 옛 '막다가 떼면 돌진' 바닥 fx — 61라운드 삭제, 남은 필드)
    */
   rush?: {
     /** 돌진 구간 (공격 시작부터) · 거리 — 밀고 가는 거리 = 남은 돌진 + carryExtraPx */
@@ -293,6 +304,8 @@ export type WeaponGaugePayload = {
   marks?: number;
   back?: boolean;
 };
+/** 61라운드 P1: 좌 홀드 기술 (move = 공격 수단 표 id — iai_draw·spin·unblockable·charge_swing·flurry·arrow_rain·rapid_volley) */
+export type PlayerHoldVerbPayload = { weapon: string; move: string };
 /** 56라운드 무기 전용 동작 국면 (음향 매니페스트 PLAYER_SKILL move·phase) */
 export type PlayerSkillPayload = {
   weapon: string;
@@ -307,7 +320,6 @@ export type PlayerSkillPayload = {
     | 'tackle'
     | 'brace_upswing'
     | 'leap'
-    | 'guard_rush'
     | 'backstab'
     | 'flurry'
     | 'arrow_rain'
@@ -414,7 +426,7 @@ export type EnemyBehaviorPayload = { id: string; kind: 'reload' | 'block' | 'pac
 export type BossPattern = BossPatternName;
 export type BossAttackPayload = { id: string; attack: BossPattern };
 export type BossTelegraphPayload = { id: string; attack: BossPattern };
-/** 54라운드 보스 패턴 국면 (음향 매니페스트 트리거 대응표는 parts/system/README.md 54라운드 절) */
+/** 54라운드 보스 패턴 국면 (음향 매니페스트 트리거 대응표는 parts/system/CHANGELOG.md 54라운드 절) */
 export type BossActionKind =
   | 'drinkLift'
   | 'drinkFinish'
@@ -442,6 +454,11 @@ export type BossScreenPayload = { effect: 'tilt' | 'dark'; on: boolean };
 export type BossWallHitPayload = { id: string; x: number; y: number };
 export type MenuEventPayload = { id: string; reopen?: boolean; key?: string; selected?: boolean };
 export type RunEndedPayload = { cleared: boolean };
+export type ComboFinishPayload = { weapon: string };
+/** 61라운드 P9: continued = 세이브 이어하기 (그 전 노드 기록은 없음) */
+export type RunStartedPayload = { seed: string; weapon: string; stageIndex: number; continued: boolean };
+/** 61라운드 P9: kind = 노드 종류(birth·road·post·battle·shop·rest·event·boss …), type = 계약 UiNodeType */
+export type NodeEnteredPayload = { id: string; kind: string; type: string; name: string; stageIndex: number };
 /** 56라운드 2단계: quiet = 밀쳐내기 없이 끝 (퍼펙트 가드 직후 돌진 · 가드 중 반격·올려베기 — 밀쳐내기·그 소리 없음) */
 export type GuardReleasedPayload = { x: number; y: number; quiet?: boolean };
 export type ShadowStepPayload = { x: number; y: number; facingX: number; facingY: number };
@@ -453,6 +470,8 @@ export type PlayerDamagedPayload = {
   source?: { dirX: number; dirY: number };
   /** 56라운드 2단계: 슈퍼아머(버티기 올려베기)로 받음 — 동작이 끊기지 않음, 흡수 fx */
   armored?: boolean;
+  /** 61라운드 계약 sound §9: 가드로 막고 남은 피해 — 음향 guard_block (hit_player 대신). 내는 곳 = PlayerDefense(무기 쪽) */
+  guarded?: boolean;
 };
 export type RoomEnteredPayload = { roomId: string; type: string };
 export type TrialClearedPayload = { roomId: string; cleared: number; total: number };

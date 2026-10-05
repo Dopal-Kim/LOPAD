@@ -1,6 +1,7 @@
 /**
- * 56라운드 2단계 활 화살비 (Q43·Q52·Q55, 계약 art §18.9) — 플레이어 쪽: 우클릭으로 가득 당긴 채 좌클릭 → 몸·무기 `bow_arrow_rain`
- * (3발 연속 발사 640ms) · 탄창 소모 · PLAYER_ARROW_RAIN(예고 원 중심 = 커서). 솟는 화살·예고 원·낙하점 판정은 씬(ArrowRain).
+ * 활 화살비 (56라운드 2단계 Q43·Q52·Q55, 계약 art §18.9 → 61라운드 P1 좌 홀드) — 플레이어 쪽: 좌클릭을 holdMs 넘게 누르면 →
+ * 몸·무기 `bow_arrow_rain` (3발 연속 발사 640ms) · 탄창 소모 · PLAYER_ARROW_RAIN(예고 원 중심 = 커서).
+ * 솟는 화살·예고 원·낙하점 판정은 씬(ArrowRain).
  */
 import { EventBus, Events, type ArrowRainPayload, type PlayerSecondaryPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
@@ -13,12 +14,14 @@ import type { Player } from '../Player';
 export function startArrowRain(p: Player, input: InputState, time: number): boolean {
   const w = gameState.weapon;
   const def = w.def.moves?.arrowRain;
-  if (!def || !pickMove(w.id, 'drawAttack', w.path, (m) => m.id === 'arrow_rain')) return false;
+  if (!def || !pickMove(w.id, 'attackHold', w.path, (m) => m.id === 'arrow_rain')) return false;
   const res = p.resource;
   if (res?.kind === 'ammo' && (res.reloading || res.value < def.ammoCost)) return false;
-  // 당김을 끝낸다 (당김·흔들림 소리 정지 · 숨 집중 끝)
-  EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'cancel' } satisfies PlayerSecondaryPayload);
-  p.gauges.endFocus(time);
+  // 당기던 중이면 당김을 끝낸다 (당김·흔들림 소리 정지 · 숨 집중 끝)
+  if (p.action === 'aim') {
+    EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'cancel' } satisfies PlayerSecondaryPayload);
+    p.gauges.endFocus(time);
+  }
   const dx = input.aimX - p.x;
   const dy = input.aimY - p.y;
   const facing = facingOf(dx, dy, p.visual.facing);

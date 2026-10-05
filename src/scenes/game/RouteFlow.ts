@@ -3,7 +3,7 @@
  * 그리고 층 출구(방+복도 층·보스 노드 → 다음 층).
  */
 import { ROUTE_FX, TILE } from '../../core/Constants';
-import { EventBus, Events } from '../../core/EventBus';
+import { EventBus, Events, type NodeEnteredPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { UI_EVENTS, __system, type UiRouteEntered } from '../../contract/ui';
 import { minBattlesOnAnyPath } from '../../systems/route';
@@ -43,12 +43,21 @@ export class RouteFlow {
     this.enterLockUntil = now + ROUTE_FX.ENTER_LOCK_MS;
     this.syncProgress();
     const node = g.node;
-    if (node)
+    if (node) {
       __system.emit(UI_EVENTS.ROUTE_NODE_ENTERED, {
         id: node.id,
         type: node.type,
         name: node.name,
       } satisfies UiRouteEntered);
+      // 61라운드 P9 런 로그 (시험장은 노드 지도가 없어 오지 않는다)
+      EventBus.emit(Events.NODE_ENTERED, {
+        id: node.id,
+        kind: g.nodeKind ?? node.type,
+        type: node.type,
+        name: node.name,
+        stageIndex: gameState.stageIndex,
+      } satisfies NodeEnteredPayload);
+    }
     if (g.nodeKind === 'birth' && gameState.birthPending && !urlParams().has('nobirth')) g.birth.start();
     else if (g.nodeKind === 'birth') gameState.birthPending = false;
     if (!node) g.time.delayedCall(ROUTE_FX.ENTER_LOCK_MS, () => this.openChooser());

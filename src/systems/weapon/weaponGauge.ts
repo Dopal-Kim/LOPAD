@@ -6,40 +6,61 @@
  */
 import type { BrandGaugeDef, BreathGaugeDef, GrudgeGaugeDef, KenkiGaugeDef, WeaponGaugeDef } from '../../data/types';
 
-/** 칼 검기: 단(0..stages) = floor(값 / perStage) */
+/** 칼 검기 규칙 덮어쓰기 (2단 명경 — 상한 5단 · 패링 2단 · 타격으로는 차지 않음) */
+export interface KenkiRule {
+  stages: number;
+  parryGainStages: number;
+  hitGain: boolean;
+}
+
+/** 칼 검기: 단(0..stages) = floor(값 / perStage). 61라운드: 좌 홀드 발도가 전부 소모 */
 export class KenkiGauge {
   value = 0;
+  private rule: KenkiRule | null = null;
   constructor(readonly def: KenkiGaugeDef) {}
 
+  /** 명경 같은 규칙 전환 (null = 데이터 기본). 상한이 줄면 값을 자른다 */
+  setRule(rule: KenkiRule | null): void {
+    this.rule = rule;
+    this.value = Math.min(this.value, this.max);
+  }
+
+  /** 지금 단 상한 */
+  get stages(): number {
+    return this.rule?.stages ?? this.def.stages;
+  }
+
   get max(): number {
-    return this.def.stages * this.def.perStage;
+    return this.stages * this.def.perStage;
   }
 
   get stage(): number {
-    return Math.min(this.def.stages, Math.floor(this.value / this.def.perStage + 1e-9));
+    return Math.min(this.stages, Math.floor(this.value / this.def.perStage + 1e-9));
   }
 
-  /** 근접 적중 1회 → 단이 바뀌었으면 새 단 (아니면 null) */
+  /** 근접 적중 1회 → 단이 바뀌었으면 새 단 (아니면 null). 명경이면 타격으로 차지 않는다 */
   gainHit(): number | null {
+    if (this.rule && !this.rule.hitGain) return null;
     return this.add(this.def.gainPerHit);
   }
 
   /** 패링 성공 → 단을 즉시 채운다 (다음 단 경계까지 올린 뒤 남은 단만큼) */
   gainParry(): number | null {
     const before = this.stage;
-    const target = Math.min(this.def.stages, before + this.def.parryGainStages) * this.def.perStage;
+    const gain = this.rule?.parryGainStages ?? this.def.parryGainStages;
+    const target = Math.min(this.stages, before + gain) * this.def.perStage;
     this.value = Math.max(this.value, Math.min(this.max, target));
     return this.stage !== before ? this.stage : null;
   }
 
-  /** 일섬: 전부 소모 → 소모한 단 수 · 피해 배율 · 분신 여부 */
-  consume(): { stages: number; damageMult: number; clone: boolean } {
+  /** 발도: 전부 소모 → 소모한 단 수 · 피해 배율 · 확정 치명(critAtStages 이상) */
+  consume(): { stages: number; damageMult: number; crit: boolean } {
     const stages = this.stage;
     this.value = 0;
     return {
       stages,
-      damageMult: 1 + stages * this.def.issenDamagePerStage,
-      clone: stages >= this.def.cloneAtStages,
+      damageMult: 1 + stages * this.def.damagePerStage,
+      crit: stages >= this.def.critAtStages,
     };
   }
 
@@ -165,7 +186,7 @@ export class BrandBook<K> {
     const e = this.entries.get(target) ?? { marks: 0, carry: 0, lastAt: now };
     const before = e.marks;
     const base = opts.back ? d.backGain : d.perHit;
-    const gain = base * (1 + Math.max(0, opts.heatStage) * d.heatGainPerStage) + e.carry;
+    const gain = base * (1 + Math.max(0, opts.heatStage) * d.tempoGainPerStage) + e.carry;
     const whole = Math.floor(gain + 1e-9);
     e.carry = gain - whole;
     e.marks = Math.min(d.max, e.marks + whole);

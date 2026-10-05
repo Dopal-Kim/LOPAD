@@ -8,6 +8,7 @@ import {
   EventBus,
   Events,
   type RunEndedPayload,
+  type RunStartedPayload,
   type WeaponEvolvedPayload,
   type WeaponReinforcedPayload,
 } from '../../core/EventBus';
@@ -52,6 +53,7 @@ export class Progression {
       // 49라운드 Q2: 회피 시험 등급 보상 — 시작 감각 +0~3 (Setup 이 senseBonus 로 넘긴다)
       gameState.senses.sense += senseBonus;
       g.saveSlot.clear();
+      this.emitRunStarted(false);
     } else {
       const save = continueSave(g.saveSlot);
       if (save) {
@@ -60,9 +62,20 @@ export class Progression {
         gameState.startRun(pickSeed());
         g.saveSlot.clear();
       }
+      this.emitRunStarted(Boolean(save));
     }
     EventBus.emit(Events.STAGE_STARTED, { stageIndex: gameState.stageIndex, stageId: gameState.stageId });
     return true;
+  }
+
+  /** 61라운드 P9 런 로그 시작 (새 런 · 이어하기) */
+  private emitRunStarted(continued: boolean): void {
+    EventBus.emit(Events.RUN_STARTED, {
+      seed: gameState.seed,
+      weapon: gameState.weapon.id,
+      stageIndex: gameState.stageIndex,
+      continued,
+    } satisfies RunStartedPayload);
   }
 
   /** 스테이지 전환 세이브: 런당 최대 maxSaves 회 */

@@ -118,14 +118,6 @@ export class BranchStrikes {
     this.dagger.onBrandBurst(mob, marks, dmg, died);
   }
 
-  overheatRangeMult(): number {
-    return this.dagger.overheatRangeMult();
-  }
-
-  onOverheat(radiusPx: number): void {
-    this.dagger.onOverheat(radiusPx);
-  }
-
   // --- 투사체 ---
 
   onShotHit(shot: Projectile, mob: Mob, died: boolean): void {

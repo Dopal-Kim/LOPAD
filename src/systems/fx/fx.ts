@@ -29,6 +29,7 @@ import {
   type SheetJson,
 } from '../sprites/spriteDefs';
 import type { FxFollowTarget, FxHandle, FxHooks, FxPlayOptions } from './fxTypes';
+import { isDestroyedSprite, resetPooledSprite, type ReleasableSprite } from './fxRelease';
 
 export type { FxFollowTarget, FxHandle, FxHooks, FxPlayOptions, FxTrailRequest } from './fxTypes';
 
@@ -380,6 +381,11 @@ export class FxPool {
   /** 종료. `holdMs` 뒤에 끝내고, fade 가 false 면 페이드 없이 즉시 비활성 */
   stop(h: FxHandle | null, holdMs = 0, fade = true): void {
     if (!h || !this.isActive(h)) return;
+    // 61라운드 P0: 파괴된 스프라이트(씬 종료 중)는 페이드·예약 없이 상태만 정리
+    if (isDestroyedSprite(h.sprite as unknown as ReleasableSprite)) {
+      this.release(h.sprite);
+      return;
+    }
     const st = this.states.get(h.sprite)!;
     if (holdMs > 0) {
       st.expireAt = Math.min(st.expireAt, this.scene.time.now + holdMs);
@@ -524,10 +530,8 @@ export class FxPool {
     st?.stopTrail?.();
     if (st?.light) lightRegistryOf(this.scene).remove(st.light);
     this.states.delete(sprite);
-    sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
-    sprite.anims.chain();
-    sprite.anims.stop();
-    sprite.setActive(false).setVisible(false).setAlpha(1).setRotation(0).setScale(1).setFlipY(false).clearTint();
+    // 61라운드 P0: 씬 종료 중이면 스프라이트가 이미 파괴됐을 수 있다 (상태만 지우고 끝)
+    resetPooledSprite(sprite as unknown as ReleasableSprite, Phaser.Animations.Events.ANIMATION_COMPLETE);
   }
 
   /** 마지막 n 프레임만 반복하는 애니 (키 `<애니>#tail<n>`, 텍스처 변형별로 1회 생성) */

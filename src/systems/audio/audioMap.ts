@@ -22,6 +22,7 @@ import {
   type MenuEventPayload,
   type PlayerAttackPayload,
   type PlayerChargePayload,
+  type PlayerDamagedPayload,
   type PlayerFollowUpPayload,
   type PlayerSecondaryPayload,
   type PlayerSkillPayload,
@@ -51,6 +52,9 @@ export const SFX = {
   enemyHurt: 'sfx/enemy_hurt',
   enemyDeath: 'sfx/enemy_death',
   hitPlayer: 'sfx/hit_player',
+  /** 61라운드 계약 sound §9 */
+  guardBlock: 'sfx/guard_block',
+  comboFinish: 'sfx/combo_finish',
   playerDeath: 'sfx/player_death',
   enemyTelegraph: (id: string) => `sfx/${id}_telegraph`,
   enemyDash: (id: string) => `sfx/${id}_dash`,
@@ -184,7 +188,7 @@ export function chargeSfxIds(): string[] {
 /** 54라운드: 3연 취권 n타(0부터) 재생 속도 (음향 권장 1.0 / 1.06 / 1.12) */
 export const REEL_RATES = [1, 1.06, 1.12] as const;
 
-/** 54라운드: 보스 패턴 국면 → 효과음 (null = 없음). 대응표는 parts/system/README.md 54라운드 절 */
+/** 54라운드: 보스 패턴 국면 → 효과음 (null = 없음). 대응표는 parts/system/CHANGELOG.md 54라운드 절 */
 export function bossActionSfx(action: BossActionKind): string | null {
   const B = SFX.boss1;
   switch (action) {
@@ -450,7 +454,12 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     note: '일반 적 사망 (60라운드 엘리트 = elite_die)',
     sfx: (p) => (p?.elite ? [BUILD_SFX.eliteDie, SFX.enemyDeath] : SFX.enemyDeath),
   }),
-  t({ event: Events.PLAYER_DAMAGED, note: '주인공 피격', sfx: SFX.hitPlayer }),
+  t<PlayerDamagedPayload>({
+    event: Events.PLAYER_DAMAGED,
+    note: '주인공 피격 · 61라운드 §9: 가드로 막은 피격(guarded)은 guard_block',
+    sfx: (p) => (p?.guarded ? SFX.guardBlock : SFX.hitPlayer),
+  }),
+  t({ event: Events.PLAYER_COMBO_FINISH, note: '61라운드 §9: 연격 마지막 타 적중 (활 제외)', sfx: SFX.comboFinish }),
   t({ event: Events.PLAYER_DIED, note: '주인공 사망', sfx: SFX.playerDeath }),
   t<EnemyTelegraphPayload>({
     event: Events.ENEMY_TELEGRAPH,

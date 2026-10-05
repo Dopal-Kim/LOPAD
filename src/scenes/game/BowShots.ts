@@ -135,7 +135,7 @@ export class BowShots {
     const weak = p.bowPower === 'weak';
     const pierce =
       (aimed && p.pierce !== false) || mods.pierceInfinite ? Infinity : (mods.pierce ?? 0) + (weak ? 0 : bb.pierceAdd);
-    const size = weapon.hitbox.width * p.sizeMult * bb.sizeMult;
+    const size = R.arrowSizePx * weapon.rangeMult * p.sizeMult * bb.sizeMult;
     const speed = R.projectileSpeedTiles * TILE * (mods.projectileSpeedMult ?? 1) * bb.speedMult;
     const base = Math.atan2(p.dirY, p.dirX);
     // 56라운드 Q26: 약한 화살 전용 그림(없으면 기본 화살을 어둡게)
@@ -166,7 +166,7 @@ export class BowShots {
     const critFromLevel = snipeCritFromLevel(S, aimed);
     // 산탄·폭우(화기류 때 재사용): 부채꼴 (조준 사격은 한 발). 발사 이펙트는 발사점에 1회
     const spread = !aimed && mods.spread ? mods.spread : { count: 1, spreadDeg: 0 };
-    const reach = weapon.hitbox.reach;
+    const reach = weapon.reachPx;
     // 화살이 생기는 점 (arrowSpawnAnchors — 없으면 조준 방향 reach)
     const so = this.spawnOffset(p.dirX, p.dirY);
     const ax = p.x + (so ? so.x : p.dirX * reach);

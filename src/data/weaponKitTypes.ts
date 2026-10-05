@@ -5,7 +5,7 @@
  * - 활 우클릭 당김·놓기 `draw` (Q9·Q20) — 계약 art §18(56라운드) 시트 메모와 함께 쓴다
  */
 
-/** 칼 검기 3단: 타격으로 조금씩 · 패링 성공 시 1단 즉시 · 일섬이 전부 소모해 강화, 3단이면 그림자 분신 */
+/** 칼 검기 3단: 타격으로 조금씩 · 패링 성공 시 1단 즉시 · 61라운드: 좌 홀드 발도가 전부 소모해 강화, critAtStages 이상이면 확정 치명 */
 export interface KenkiGaugeDef {
   kind: 'kenki';
   label: string;
@@ -16,10 +16,10 @@ export interface KenkiGaugeDef {
   gainPerHit: number;
   /** 패링 성공 시 즉시 채우는 단 수 */
   parryGainStages: number;
-  /** 일섬이 소모한 단마다 피해 배율 + (1 + 단 × 값) */
-  issenDamagePerStage: number;
-  /** 이 단 이상을 소모하면 그림자 분신 (Q28: 3단만) */
-  cloneAtStages: number;
+  /** 발도가 소모한 단마다 피해 배율 + (1 + 단 × 값) */
+  damagePerStage: number;
+  /** 이 단 이상을 소모하면 확정 치명 (옛 F 넣기 '발도 치명'을 흡수) */
+  critAtStages: number;
 }
 
 /** 대검 울분: 가드로 막은 피해가 쌓임(퍼펙트 2배, 그로기 중 가드가 가장 많이) · 차지 내려찍기·꽂아내리기가 전부 소모 */
@@ -38,7 +38,7 @@ export interface GrudgeGaugeDef {
   slamRangeBonus: number;
 }
 
-/** 단검 낙인: 같은 적 타격마다 표식(등 뒤 2) · 그림자 걸음으로 그 적 뒤 → 전부 폭발 · 과열 연동 (Q16·Q18) */
+/** 단검 낙인: 같은 적 타격마다 표식(등 뒤 2) · 그림자 걸음으로 그 적 뒤 → 전부 폭발 · 가속 단계가 획득을 늘린다 (61라운드: 과열 폭발·식힘 삭제) */
 export interface BrandGaugeDef {
   kind: 'brand';
   label: string;
@@ -49,25 +49,22 @@ export interface BrandGaugeDef {
   backGain: number;
   /** 등 뒤 판정: 적이 바라보는 방향과 공격 방향 사이 각이 이 값(도) 이하 */
   backAngleDeg: number;
-  /** 과열 단계마다 표식 획득 배율 + 값 (과열이 차면 낙인이 더 빨리) */
-  heatGainPerStage: number;
+  /** 가속 단계마다 표식 획득 배율 + 값 (빨리 찌를수록 낙인이 더 빨리) */
+  tempoGainPerStage: number;
   /** 폭발 피해 = 공격력 × 표식 수 × 값 */
   burstDamagePerMark: number;
-  /** 과열 100%: 이 반경(칸) 안의 낙인 일괄 폭발 */
-  overheatBurstRadiusTiles: number;
-  /** 식는 동안(과열 냉각) 공격 속도·이동 배율 — 공격은 막지 않는다 (Q18 '잠깐 느려짐') */
-  coolingSpeedMult: number;
-  coolingMoveMult: number;
   /** 마지막 표식 뒤 이 시간이 지나면 그 적의 표식이 사라진다 */
   lifeMs: number;
   /** 56라운드 Q59: 그림자 걸음 착지 뒤 이 시간 동안은 방향과 무관하게 등 뒤로 인정 (없으면 0) */
   backAfterShadowStepMs?: number;
 }
 
-/** 활 숨: 완벽 놓기마다 회복 · 가득 차면 다음 당김이 짧은 감속 정밀 조준 (Q17) */
+/** 활 숨: 완벽 놓기마다 회복 · 가득 차면 다음 당김이 짧은 감속 정밀 조준 (Q17) — 61라운드: 저격 갈래에서만 */
 export interface BreathGaugeDef {
   kind: 'breath';
   label: string;
+  /** 이 1단 갈래가 경로에 있을 때만 켠다 (없으면 늘) */
+  branch?: string;
   max: number;
   perfectGain: number;
   /** 집중(감속 정밀 조준) 시간 · 그동안 물리 배속(0.4 = 40% 속도) · 완벽 놓기 창 배율 */
@@ -92,13 +89,11 @@ export interface IssenDef {
   hitBackPx: number;
   hitExtraPx: number;
   hitWidthPx: number;
-  /** 일섬 선 시트 (fx id, t1~t4 순서) · 분신 없는 선 접미 */
+  /** 일섬 선 시트 (fx id, t1~t4 순서) · 분신 없는 선 접미 (61라운드: 일섬은 검기를 쓰지 않아 늘 분신 없는 선) */
   lineSheets: string[];
   soloSuffix: string;
   /** 분신 없는 선 끝 폭발(연출만) — 선 시트 시각 */
   burstAtLineMs: number;
-  /** 그림자 분신 (검기 3단 소모 시에만, Q28): 몸 기준 출발 · 이동 시간 · 피해 시각(도착 때 선 전체 1회, Q29) · 피해 배율 */
-  shadow: { sheet: string; startAtMs: number; travelMs: number; hitAtMs: number; damageScale: number };
 }
 
 /** 활 우클릭 당김·놓기 (Q9·Q20): 누르면 당김, 떼면 발사, 자동 발사 없음 */

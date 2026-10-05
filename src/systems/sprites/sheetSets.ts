@@ -4,8 +4,10 @@
  * - 무기 묶음: 그 무기의 몸 동작·자세 변형·무기 오버레이(고유 자원 단계 포함)·무기 유도 이펙트 — 런 시작(Game 씬 preload)
  *   또는 시험장 무기 교체 때 그 무기만 로드한다. 부팅 묶음에 이미 있는 시트는 빠진다.
  * 부팅 묶음 + 모든 무기 묶음 = 57라운드 전 부팅 목록 (sheetSets.test 가 확인).
+ * 61라운드 P9: 보스 시트는 로드 범위(`data/scope` — stages.json run.loadFloors) 안 층의 보스만. 범위 밖 보스는 Preloader 의 폴백 별칭.
  */
-import { BOSSES, ENEMIES, WEAPONS } from '../../data';
+import { ENEMIES, WEAPONS } from '../../data';
+import { bossIdsInScope } from '../../data/scope';
 import { AWAKENINGS } from '../../data/build';
 import type { WeaponTable } from '../../data/types';
 import { bossFxSheets, bossStructureSheets } from '../boss/bossSheets';
@@ -93,7 +95,7 @@ let bootKeys: Set<string> | null = null;
 /** 부팅 묶음: 무기와 무관한 시트 전부 */
 export function bootSheetRequests(): SheetRequest[] {
   bootCache ??= dedupe([
-    ...requestsFor(Object.keys(ENEMIES), Object.keys(BOSSES), {}, bossFxSheets(), [
+    ...requestsFor(Object.keys(ENEMIES), bossIdsInScope(), {}, bossFxSheets(), [
       ...allStructureSprites(),
       ...bossStructureSheets(),
     ]),
@@ -179,7 +181,7 @@ export function awakenSheetRequests(weaponId: string): SheetRequest[] {
 /** 57라운드 전 부팅 목록 (모든 무기) — 회귀 테스트용 */
 export function allSheetRequests(): SheetRequest[] {
   return dedupe([
-    ...requestsFor(Object.keys(ENEMIES), Object.keys(BOSSES), WEAPONS, bossFxSheets(), [
+    ...requestsFor(Object.keys(ENEMIES), bossIdsInScope(), WEAPONS, bossFxSheets(), [
       ...allStructureSprites(),
       ...bossStructureSheets(),
     ]),

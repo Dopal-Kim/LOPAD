@@ -50,13 +50,21 @@ export const KEYS = {
   RELOAD: 'R',
   /** 49라운드 계약 §11.4: 무기 시험장 메뉴(무기·개성 갈래) 열기 (임시) */
   LAB_MENU: 'L',
-  /** 51라운드 Q4: 무기 넣기/뽑기 (칼·대검 — 넣은 채 첫 타 보너스, 넣은 동안 기력 회복↑) */
-  CARRY: 'F',
   /**
    * 60라운드 2차 묶음 (i) 소모품 키 — **임시, 인터뷰 대기**. 설계안 QI-3 추천은 R 이지만 게임 중 R 은 활 수동 장전(RELOAD)이라 겹친다
    * (설계안 후보 R / C / X). 정해지면 이 값만 바꾼다
    */
   CONSUMABLE: 'C',
+} as const;
+
+/**
+ * 61라운드 P1 4동사 키캡 표시 (스냅샷 `weaponVerbs[].key` · 튜토리얼 안내). 좌 = 연격 · 우 = 시그니처 · 스페이스 = 대쉬 · 좌 홀드 = 고유 자원 기술
+ */
+export const VERB_KEYS = {
+  attack: '좌클릭',
+  signature: '우클릭',
+  dash: 'Space',
+  hold: '좌클릭 길게',
 } as const;
 
 /**

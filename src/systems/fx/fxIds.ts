@@ -23,8 +23,8 @@ export interface FxWeaponShape {
   slam?: unknown;
   /** 55라운드 §17: 연격 그림 이름 표 (휘두름·바닥 충격 이펙트 `fx/<무기>_<이름>`) */
   combo?: Pick<ComboDef, 'art'>;
-  /** 56라운드: 일섬 선·분신 · 활 약한 화살 */
-  issen?: { lineSheets: string[]; soloSuffix: string; shadow: { sheet: string } };
+  /** 56라운드: 일섬 선 (61라운드: 그림자 분신 삭제) · 활 약한 화살 */
+  issen?: { lineSheets: string[]; soloSuffix: string };
   draw?: { weakArrowSheet: string };
   /** 56라운드 2단계 새 기본기 보조 fx (`<무기>_<이름>`) */
   moves?: WeaponMovesDef;
@@ -33,13 +33,14 @@ export interface FxWeaponShape {
 }
 
 /**
- * 57라운드 Q38: 고유 자원 전용 fx — 낙인(brand, 단검): 표식·폭발 · 과열 폭발·식음. 예전엔 공용 보조 연출 목록(부팅 묶음)에
- * 있었지만 그 자원을 쓰는 무기만 쓰므로 무기 묶음으로 (재생 쪽 `BrandMarks`·`WeaponFeedback` 도 gauge.kind 'brand' 일 때만)
+ * 57라운드 Q38: 고유 자원 전용 fx — 낙인(brand, 단검): 표식·폭발 · 가속 가득 폭발(2단 열풍). 예전엔 공용 보조 연출 목록(부팅 묶음)에
+ * 있었지만 그 자원을 쓰는 무기만 쓰므로 무기 묶음으로 (재생 쪽 `BrandMarks` 도 gauge.kind 'brand' 일 때만).
+ * 61라운드: 과열 식음(`dagger_overheat_cool`)은 과열·식힘 벌칙을 지워 로드하지 않는다
  */
 export function gaugeFxIds(w: Pick<FxWeaponShape, 'gauge'>): string[] {
   if (w.gauge?.kind !== 'brand') return [];
   const { BRAND, OVERHEAT } = FEEDBACK;
-  return [BRAND.MARK_SHEET, BRAND.BURST_SHEET, OVERHEAT.SHEET, OVERHEAT.COOL_SHEET];
+  return [BRAND.MARK_SHEET, BRAND.BURST_SHEET, OVERHEAT.SHEET];
 }
 
 /** 56라운드 Q9 완벽 놓기 섬광 `fx/<무기>_perfect_release` */
@@ -47,13 +48,10 @@ export function perfectReleaseFxId(weaponId: string): string {
   return `${weaponId}_perfect_release`;
 }
 
-/** 56라운드 이펙트: 일섬 선 t1~t4(+분신 없는 _solo)·그림자 분신 · 활 약한 화살·완벽 놓기 섬광 · 2단계 새 기본기 보조 fx */
+/** 56라운드 이펙트: 일섬 선 t1~t4(+분신 없는 _solo) · 활 약한 화살·완벽 놓기 섬광 · 2단계 새 기본기 보조 fx */
 export function weaponKitFxIds(id: string, w: FxWeaponShape): string[] {
   const out: string[] = [];
-  if (w.issen) {
-    for (const s of w.issen.lineSheets) out.push(s, `${s}${w.issen.soloSuffix}`);
-    out.push(w.issen.shadow.sheet);
-  }
+  if (w.issen) for (const s of w.issen.lineSheets) out.push(s, `${s}${w.issen.soloSuffix}`);
   if (w.draw) out.push(w.draw.weakArrowSheet, perfectReleaseFxId(id));
   for (const n of moveFxNames(w.moves)) out.push(`${id}_${n}`);
   out.push(...gaugeFxIds(w));

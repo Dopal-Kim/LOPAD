@@ -1,10 +1,11 @@
 /**
- * 49라운드 무기 자원(기력·탄창·과열) + 무기 휴대(칼집·등·손, 뽑기·넣기) 상태. 무기가 바뀌면 새로 시작한다.
+ * 49라운드 무기 자원(기력·탄창·가속) + 무기 휴대(칼집·등·손, 뽑기·넣기) 상태. 무기가 바뀌면 새로 시작한다.
  * 상태 변화는 WEAPON_RESOURCE · PLAYER_WEAPON_DRAWN/SHEATHED 로 알린다(음향 훅).
+ * 61라운드: F 넣기/뽑기·넣은 채 첫 타 보너스 삭제 — 칼은 좌 홀드 발도가 칼집에 넣고(`sheatheQuiet`), 다음 공격이 다시 뽑는다.
  */
 import { EventBus, Events, type WeaponCarryPayload, type WeaponResourcePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import type { WeaponCarryDef, WeaponFirstStrikeDef } from '../../data/types';
+import type { WeaponCarryDef } from '../../data/types';
 import { frameDurations, motionAction } from '../../systems/sprites/spriteDefs';
 import { WeaponResource, effectiveResource } from '../../systems/weapon/weaponResource';
 import { resourceAdjust } from '../../systems/build/current';
@@ -13,7 +14,7 @@ import type { WeaponResourceDef } from '../../data/types';
 /** 자원 정의가 바뀌었는지 (장전·식힘·그로기 시간) */
 function resourceKeyPart(def: WeaponResourceDef): string {
   if (def.kind === 'ammo') return String(def.reloadMs);
-  if (def.kind === 'heat') return String(def.cooldownMs);
+  if (def.kind === 'heat') return String(def.max);
   return String(def.groggyMs ?? '');
 }
 import type { Player } from '../Player';
@@ -42,10 +43,7 @@ export class PlayerGear {
       const sameWeapon = this.trackerWeapon.split('|')[0] === w.id;
       const prev = this.tracker;
       this.trackerWeapon = key;
-      // 56라운드 Q18: 단검 낙인 연동 — 과열 식는 동안 공격 가능·느려짐
-      const g = w.def.gauge;
-      const cooling = g?.kind === 'brand' ? { speedMult: g.coolingSpeedMult, moveMult: g.coolingMoveMult } : null;
-      this.tracker = def ? new WeaponResource(def, cooling) : null;
+      this.tracker = def ? new WeaponResource(def) : null;
       if (sameWeapon && prev && this.tracker) {
         // 탄창이 커지면 늘어난 만큼 채워 준다
         const grow = Math.max(0, this.tracker.max - prev.max);
@@ -64,25 +62,11 @@ export class PlayerGear {
     return this.carryMode !== 'hand' && !this.drawn;
   }
 
-  /** 넣은 상태 첫 타 보너스 (넣은 상태가 아니거나 데이터가 없으면 null) */
-  get firstStrike(): WeaponFirstStrikeDef | null {
-    return this.sheathed ? (gameState.weapon.def.carry?.firstStrike ?? null) : null;
-  }
-
   /**
-   * 51라운드 Q4 F 키: 넣기/뽑기 (칼집·등 무기만). 몸·무기 `<무기>_draw` / `<무기>_sheathe` 시트 1회 (같은 열 겹침).
-   * 반환: 새 상태와 동작 길이 ms (시트가 없으면 0). 손에 드는 무기면 null
+   * 61라운드 칼 발도: 칼집에 넣은 상태로 (소리·이벤트 없음 — 발도 동작 그림이 납도까지 그린다). 다음 공격의 markDrawn 이 다시 뽑는다
    */
-  toggle(time: number): { drawn: boolean; ms: number } | null {
-    if (this.carryMode === 'hand') return null;
-    const next = !this.drawn;
-    const visual = this.p.visual;
-    const act = motionAction(gameState.weapon.id, next ? 'draw' : 'sheathe');
-    const ms = visual.hasAction(act) ? visual.oneShot(act, visual.facing, time) : 0;
-    this.drawn = next;
-    if (next) this.lastAttackAt = time;
-    this.emitCarry(next ? Events.PLAYER_WEAPON_DRAWN : Events.PLAYER_WEAPON_SHEATHED);
-    return { drawn: next, ms };
+  sheatheQuiet(): void {
+    if (this.carryMode !== 'hand') this.drawn = false;
   }
 
   /** 휴대 위치 (데이터 carry 가 없으면 손) */
@@ -90,11 +74,9 @@ export class PlayerGear {
     return gameState.weapon.def.carry?.mode ?? 'hand';
   }
 
-  /** 자원 진행 + 상태 변화 이벤트 (기력 바닥·회복 / 장전 끝 / 과열·냉각 끝 / 가열 단계) */
+  /** 자원 진행 + 상태 변화 이벤트 (기력 바닥·회복 / 장전 끝 / 가속 단계) */
   tick(res: WeaponResource, time: number, delta: number): void {
-    // 51라운드 Q4: 넣은 동안 기력이 빨리 찬다
-    res.regenMult = this.sheathed ? (gameState.weapon.def.carry?.sheathedRegenMult ?? 1) : 1;
-    const before = { ex: res.isExhausted, rl: res.reloading, oh: res.overheated };
+    const before = { ex: res.isExhausted, rl: res.reloading };
     res.tick(time, delta);
     const emit = (event: WeaponResourcePayload['event'], stage?: number) => {
       this.lastEvent = event;
@@ -107,8 +89,6 @@ export class PlayerGear {
     };
     if (before.ex && !res.isExhausted) emit('recovered');
     if (before.rl && !res.reloading) emit('reloadDone');
-    if (before.oh && !res.overheated) emit('cooled');
-    if (!before.oh && res.overheated) emit('overheat');
     // 소모·가열(공격 시점)로 생긴 변화는 다음 프레임에 잡는다
     if (!this.prevExhausted && res.isExhausted) emit(res.isGroggy ? 'groggy' : 'exhausted');
     this.prevExhausted = res.isExhausted;

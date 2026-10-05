@@ -3,9 +3,15 @@
  * PLAYER_ATTACKED 를 받은 씬이 그대로) · 이동 구간(내딛기·비켜섬·돌진·도약 — 플레이어 시계) · 몸 시트 열 구간.
  * 각 무기 실행기(`katanaMoves`·`greatswordMoves`·`daggerMoves`)와 `BasicMoves` 가 쓴다.
  */
-import { EventBus, Events, type PlayerAttackPayload, type PlayerSkillPayload } from '../../core/EventBus';
+import {
+  EventBus,
+  Events,
+  type PlayerAttackPayload,
+  type PlayerHoldVerbPayload,
+  type PlayerSkillPayload,
+} from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import type { ComboHitDef, MoveStrikeDef, MoveTravelDef, WeaponFirstStrikeDef } from '../../data/types';
+import type { ComboHitDef, MoveStrikeDef, MoveTravelDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
 import type { Player, PlayerAction } from '../Player';
 import type { AttackExtra } from './attackEmit';
@@ -55,6 +61,12 @@ export function aimDir(p: Player, input: InputState): { x: number; y: number } {
   return d > 0 ? { x: dx / d, y: dy / d } : { x: p.facingVec.x, y: p.facingVec.y };
 }
 
+/** 61라운드 P1: 좌 홀드 기술이 나갔다 (튜토리얼 홀드 단계·런 로그) — move = 공격 수단 표 id */
+export function emitHoldVerb(move: string): void {
+  const payload: PlayerHoldVerbPayload = { weapon: gameState.weapon.id, move };
+  EventBus.emit(Events.PLAYER_HOLD_VERB, payload);
+}
+
 /** PLAYER_SKILL (음향 훅 — 매니페스트 trigger.when 의 move·phase) */
 export function emitSkill(move: PlayerSkillPayload['move'], phase: PlayerSkillPayload['phase'], more = {}): void {
   const payload: PlayerSkillPayload = { weapon: gameState.weapon.id, move, phase, ...more };
@@ -70,8 +82,8 @@ export interface MoveStrikeOpts {
   art?: string;
   /** 대쉬 공격으로 친다 (태클 — 대쉬 공격 배율·확정 치명 갈래) */
   allowDash?: boolean;
-  /** 넣은 채 첫 타 보너스 (대치 일격 = 발도 치명 · 태클 = 끌어내기) */
-  first?: WeaponFirstStrikeDef | null;
+  /** 확정 치명 (칼 발도 검기 단수) */
+  forceCrit?: boolean;
   extra?: AttackExtra;
   /** 동작 상태 (기본 skill — 이동 잠금) */
   action?: PlayerAction;
@@ -81,8 +93,6 @@ export interface MoveStrikeOpts {
   shapeScale?: ComboStrike['shapeScale'];
   /** 판정 순간 땅 균열 행 */
   crack?: string;
-  /** 칼·대검을 뽑은 상태로 바꾸지 않는다 (대치 일격 — 칼집에 넣은 채 끝) */
-  keepSheathed?: boolean;
 }
 
 /**
@@ -100,8 +110,7 @@ export function fireMoveStrike(
   if (res?.def.kind === 'stamina' && def.staminaCost) res.spend(def.staminaCost, time);
   p.combo?.reset();
   p.clearLunges();
-  if (!opts.keepSheathed) p.gear.markDrawn(time);
-  else p.gear.lastAttackAt = time;
+  p.gear.markDrawn(time);
   const hit: ComboHitDef = { ...def.hit, ...opts.hit, art: opts.art ?? def.hit.art ?? def.art };
   const strike: ComboStrike = {
     index: 0,
@@ -112,10 +121,14 @@ export function fireMoveStrike(
     ...(opts.shapeScale ? { shapeScale: opts.shapeScale } : {}),
     ...(opts.crack ? { crack: opts.crack } : {}),
   };
-  const payload = p.fireAttack(input, time, strike, Boolean(opts.allowDash), opts.first ?? null, {
-    ...opts.extra,
-    move: opts.move,
-  });
+  const payload = p.fireAttack(
+    input,
+    time,
+    strike,
+    Boolean(opts.allowDash),
+    { ...opts.extra, move: opts.move },
+    Boolean(opts.forceCrit),
+  );
   const total = Math.max(payload.durationMs ?? hit.durationMs, p.visual.lastDurationMs);
   p.setAction(opts.action ?? 'skill', time + total);
   p.slowUntil(time + total);

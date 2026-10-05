@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
-import { COLORS, FEEDBACK, KEYS, PROTOTYPE, TILE } from '../core/Constants';
+import { COLORS, FEEDBACK, PROTOTYPE, TILE } from '../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload, type PlayerHealedPayload } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { PLAYER_DATA } from '../data';
-import type { SecondaryDef, WeaponCarryDef, WeaponFirstStrikeDef } from '../data/types';
+import type { SecondaryDef, WeaponCarryDef } from '../data/types';
 import type { InputState } from '../systems/InputSystem';
 import { GROGGY_ACTION, facingOf, motionAction, type Facing } from '../systems/sprites/spriteDefs';
 import type { ComboTracker } from '../systems/weapon/combo';
@@ -458,20 +458,6 @@ export class Player extends Phaser.GameObjects.Sprite {
     // 56라운드 2단계 새 기본기 (간파 반격·대치 일격·버티기·도약 찍기·등 뒤 찌르기·고속 난타) — 처리했으면 이번 프레임 끝
     if (this.moves.update(input, time, canStrike, dir.lengthSq() > 0)) return;
 
-    // 51라운드 Q4: F = 넣기/뽑기 (칼·대검). 동작 동안 다른 행동은 잠그고 느리게 걷는다
-    if (input.carryPressed && canStrike) {
-      const r = this.gear.toggle(time);
-      if (r) {
-        this.melee.reset();
-        this.lunges = [];
-        if (r.ms > 0) {
-          this.setAction('draw', time + r.ms);
-          this.slowUntil(time + r.ms);
-        }
-        return;
-      }
-    }
-
     // 대쉬
     if (input.dashPressed && canStrike && time >= this.dashReadyAt && this.dashReady(time)) {
       const d = dir.lengthSq() > 0 ? dir : this.facing;
@@ -487,7 +473,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       if (D.invulnerable) {
         this.invulnerableUntil = Math.max(this.invulnerableUntil, time + D.durationMs + (mods.dashInvulnExtraMs ?? 0));
       }
-      // 49라운드 기력: 대쉬 소모 (바닥나도 대쉬는 된다 — 회피 수단은 남긴다, 임시)
+      // 49라운드 기력: 대쉬 소모 (바닥나도 대쉬는 된다 — 회피 수단은 남긴다). 61라운드: 기력은 대쉬·가드·강공만
       if (res?.def.kind === 'stamina') res.spend(res.def.cost.dash, time);
       this.lunges = [];
       this.setAction('dash', time + D.durationMs);
@@ -516,7 +502,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       // 51라운드 Q2·Q3: 시위 당김(drawMs)이 보이게 · 다음 발 간격 (속사 배율 반영)
       const T = gameState.weapon.shotTiming;
       this.attackReadyAt = time + T.cooldownMs / Math.max(0.1, this.buildAttackSpeed);
-      this.attackSlowUntil = time + Math.max(gameState.weapon.hitbox.activeMs, PLAYER_DATA.attackSlowMinMs, T.drawMs);
+      this.attackSlowUntil = time + Math.max(PLAYER_DATA.attackSlowMinMs, T.drawMs);
       this.fireAttack(input, time, null, true);
       this.gear.markDrawn(time);
       if (res?.kind === 'ammo' && res.fire(time)) this.gear.onReloadStart(time);
@@ -553,19 +539,20 @@ export class Player extends Phaser.GameObjects.Sprite {
 
   /**
    * 공격 1회 (대쉬 공격·그림자 걸음 직후 확정 치명 판정 포함). combo 가 있으면 그 타의 배율·길이.
-   * 49라운드: allowDash 가 false(기력 바닥)면 대쉬 직후라도 일반 공격. MeleeDriver 도 쓴다
+   * 49라운드: allowDash 가 false(기력 바닥)면 대쉬 직후라도 일반 공격. MeleeDriver 도 쓴다.
+   * 61라운드: 넣은 채 첫 타 보너스(F) 삭제 — forceCrit 은 칼 발도 검기 단수 같은 동작 쪽 조건
    */
   fireAttack(
     input: InputState,
     time: number,
     combo: ComboStrike | null,
     allowDash = true,
-    first: WeaponFirstStrikeDef | null = null,
     more?: AttackExtra,
+    forceCrit = false,
   ): PlayerAttackPayload {
     const D = PLAYER_DATA.dash;
     const m = this.strikeMods(time, allowDash, Boolean(combo?.noDashBaseMult));
-    const mult = (combo ? combo.hit.damageMult : 1) * m.mult * (first?.damageMult ?? 1);
+    const mult = (combo ? combo.hit.damageMult : 1) * m.mult;
     const size = (m.isDashAttack ? D.attackSizeMult : 1) * (combo ? combo.hit.sizeMult : 1);
     return this.emitAttack(
       input,
@@ -573,12 +560,10 @@ export class Player extends Phaser.GameObjects.Sprite {
       m.isDashAttack ? 'dashAttack' : 'attack',
       mult,
       size,
-      m.forceCrit || Boolean(first?.forceCrit),
+      m.forceCrit || forceCrit,
       m.primed,
       combo,
-      first || more
-        ? { ...(first ? { firstStrike: first.label, knockbackMult: first.knockbackMult } : {}), ...more }
-        : undefined,
+      more,
     );
   }
 
@@ -614,12 +599,6 @@ export class Player extends Phaser.GameObjects.Sprite {
     } else this.lunges = [l];
   }
 
-  /** 53라운드 계약 `UiSnapshot.carry`: 넣고 뽑는 무기(칼·대검)만, 손에 드는 무기는 null */
-  carryUi(): { drawn: boolean; firstStrike: string | null; key: 'F' } | null {
-    if (this.gear.carryMode === 'hand') return null;
-    return { drawn: this.gear.drawn, firstStrike: this.gear.firstStrike?.label ?? null, key: KEYS.CARRY };
-  }
-
   /** 디버그 (49라운드): 자원·휴대·내딛기 상태 */
   debugWeapon(time: number): Record<string, unknown> {
     return {
@@ -629,8 +608,6 @@ export class Player extends Phaser.GameObjects.Sprite {
         mode: this.gear.carryMode,
         drawn: this.gear.drawn,
         sheathed: this.gear.sheathed,
-        firstStrike: this.gear.firstStrike?.label ?? null,
-        regenMult: this.resource?.regenMult ?? 1,
         overlay: this.overlay.carry,
         lastAttackAt: this.gear.lastAttackAt,
       },

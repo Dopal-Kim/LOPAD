@@ -15,4 +15,6 @@ export const MOVE_FX = {
   RAIN_PLACEHOLDER_MS: 220,
   /** 착지 링 시트가 없을 때 링 그림 색 */
   RING_PLACEHOLDER_COLOR: 0xc9a46a,
+  /** 61라운드 P9: 판정 모양이 없는 근접 판정(옛 hitbox 대체 — 거의 안 씀)의 판정 유지 ms */
+  FALLBACK_ACTIVE_MS: 100,
 } as const;

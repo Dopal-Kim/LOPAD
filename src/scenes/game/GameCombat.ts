@@ -3,7 +3,7 @@
  * 플레이어 공격의 모양·연출은 PlayerStrikes, 처치 보상은 Progression.
  */
 import Phaser from 'phaser';
-import { DEPTH, ENEMY_FX, FEEDBACK, FEEL, PROTOTYPE, COLORS } from '../../core/Constants';
+import { DEPTH, ENEMY_CONTACT_TOKEN, ENEMY_FX, FEEDBACK, FEEL, PROTOTYPE, COLORS } from '../../core/Constants';
 import type { BossWallHitPayload, PlayerDamagedPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { ECONOMY, PLAYER_DATA } from '../../data';
@@ -45,6 +45,8 @@ export interface HitOptions {
 export class GameCombat {
   /** 디버그: 최근 보스 내리찍기 */
   debugLastSlam: unknown = null;
+  /** 61라운드 공격 토큰: 다음 일반 적 접촉 공격이 허용되는 시각 */
+  private contactTokenAt = -Infinity;
 
   constructor(private readonly g: Game) {}
 
@@ -236,7 +238,12 @@ export class GameCombat {
     }
     if (!died && opts.knock !== false) {
       const K = FEEL.KNOCKBACK;
-      const dist = (opts.crit ? K.CRIT_PX : K.HIT_PX) * (isBoss ? K.BOSS_MULT : 1) * (opts.knockMult ?? 1);
+      // 61라운드 플레이 점검: 무기 무게만큼 (feel.knockbackMult — 대검 크게, 단검 작게)
+      const dist =
+        (opts.crit ? K.CRIT_PX : K.HIT_PX) *
+        (isBoss ? K.BOSS_MULT : 1) *
+        (opts.knockMult ?? 1) *
+        (feel?.knockbackMult ?? 1);
       mob.shove(nx, ny, dist, K.MS, isBoss, isBoss ? undefined : (m, dx, dy) => this.onShoveEnd(m, dx, dy));
     }
     return died;
@@ -327,8 +334,13 @@ export class GameCombat {
       }
       return;
     }
+    // 61라운드 공격 토큰: 일반 적 접촉 공격은 무리 전체에서 GAP_MS 에 한 번 (토큰이 없으면 공격 주기도 쓰지 않고 기다린다)
+    const boss = mob.isBoss;
+    if (!boss && now < this.contactTokenAt) return;
     const attack = mob.tryContactAttack(now);
-    if (attack > 0) player.takeHit(attack, now, source);
+    if (attack <= 0) return;
+    if (!boss) this.contactTokenAt = now + ENEMY_CONTACT_TOKEN.GAP_MS;
+    player.takeHit(attack, now, source);
   }
 
   onProjectileHit(pr: Projectile): void {

@@ -1,5 +1,5 @@
 {
-  "_note": "48라운드 노드 지도 진행 (1~2층 한정). 이름은 전부 자리표시(스토리 후속), 수치는 임시값 — parts/system/README.md 48라운드 절. 49라운드: regions(지역 흐름 4-2·지도 6)·setPieces(세트 배치 7)·tutorial(탄생 전장 3) 추가 — README 49라운드 지역·세트 배치 절",
+  "_note": "48라운드 노드 지도 진행 (1~2층 한정). 이름은 전부 자리표시(스토리 후속), 수치는 임시값 — parts/system/CHANGELOG.md 48라운드 절. 49라운드: regions(지역 흐름 4-2·지도 6)·setPieces(세트 배치 7)·tutorial(탄생 전장 3) 추가 — README 49라운드 지역·세트 배치 절",
   "floors": {
     "stage1": {
       "journey": ["birth", "road", "post"],
@@ -621,6 +621,15 @@
         "text": "{name} — {description} (우클릭)",
         "keys": ["우클릭"],
         "signName": "skill"
+      },
+      {
+        "id": "hold",
+        "action": "hold",
+        "count": 1,
+        "sign": [10, -2],
+        "text": "{holdName} — {holdHint} (좌클릭 길게)",
+        "keys": ["좌클릭 길게"],
+        "signName": "attack"
       },
       {
         "id": "fight",

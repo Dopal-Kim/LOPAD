@@ -6,7 +6,7 @@ import { gameState } from '../../core/GameState';
 import { ECONOMY, STORY } from '../../data';
 import type { Mob } from '../../objects/Mob';
 import type { Pickup } from '../../objects/Pickup';
-import { rollGold, shopPrice } from '../../systems/economy';
+import { goldCost, rollGold, shopPrice } from '../../systems/economy';
 import { kindDef } from '../../systems/route';
 import type { Game } from '../Game';
 
@@ -117,8 +117,9 @@ export class Economy {
         const name = it.id === 'potion' ? `${STORY.names.potion} +1` : it.name;
         return {
           key: String(i + 1),
-          label: `${name}  ${price} ${STORY.names.gold}`,
+          label: name,
           enabled: gameState.gold >= price && !full,
+          price: goldCost(price, gameState.gold, STORY.names.gold),
         };
       });
       // 60라운드 (e) 진열 3칸 · 진열 바꾸기 · 궤짝 덤 · 지도 정보 (계약 §14.6 group)

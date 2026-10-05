@@ -69,14 +69,14 @@ describe('55라운드 Q18 대검 G-C 순환', () => {
 describe('55라운드 Q23 관성', () => {
   const def = WEAPONS.greatsword.combo!.momentum!;
 
-  it('이어지는 타마다 +5%, 최대 +20%, 최대일 때 충격원 배율', () => {
+  it('이어지는 타마다 +5%, 최대 +10% (61라운드 SY-3 — 옛 +20%), 최대일 때 충격원 배율', () => {
     const m = new Momentum(def);
     const speeds: number[] = [];
     for (let i = 0; i < 7; i++) {
       m.input(i * 600);
       speeds.push(Number(m.onHit(i * 600).speedMult.toFixed(2)));
     }
-    expect(speeds).toEqual([1, 1.05, 1.1, 1.15, 1.2, 1.2, 1.2]);
+    expect(speeds).toEqual([1, 1.05, 1.1, 1.1, 1.1, 1.1, 1.1]);
     expect(m.atMax).toBe(true);
     expect(m.impactMult).toBe(def.maxImpactMult);
   });

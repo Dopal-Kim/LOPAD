@@ -139,8 +139,7 @@ export class KillRules {
     const br = pl.gauges.breath;
     if (br && n('breath')) br.value = Math.min(br.max, br.value + n('breath'));
     const res = pl.resource;
-    if (res?.kind === 'heat' && n('heat') && !res.overheated)
-      res.value = Math.max(0, Math.min(res.max, res.value + res.max * n('heat')));
+    if (res?.kind === 'heat' && n('heat')) res.value = Math.max(0, Math.min(res.max, res.value + res.max * n('heat')));
     if (res?.kind === 'ammo' && n('ammo')) res.value = Math.min(res.max, res.value + n('ammo'));
   }
 

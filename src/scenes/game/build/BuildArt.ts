@@ -249,11 +249,18 @@ export class BuildArt {
     else this.stopPlayerLoop('bloodlust');
   }
 
+  /**
+   * 61라운드 P0: 표를 먼저 비우고(정리 중 다시 들어와도 같은 손잡이를 두 번 멈추지 않게) 그다음 멈춘다. 씬 종료 중이면 스프라이트가 이미
+   * 파괴돼 있어 FxPool 이 상태만 지운다 (fx.ts release 파괴 검사)
+   */
   destroy(): void {
-    for (const slots of this.mobLoops.values()) for (const l of slots.values()) this.g.fx.stop(l.handle, 0, false);
+    const handles = [
+      ...[...this.mobLoops.values()].flatMap((slots) => [...slots.values()].map((l) => l.handle)),
+      ...[...this.playerLoops.values()].map((l) => l.handle),
+    ];
     this.mobLoops.clear();
-    for (const l of this.playerLoops.values()) this.g.fx.stop(l.handle, 0, false);
     this.playerLoops.clear();
     this.staggerUntil.clear();
+    for (const h of handles) this.g.fx.stop(h, 0, false);
   }
 }

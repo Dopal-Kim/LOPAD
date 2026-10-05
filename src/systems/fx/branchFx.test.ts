@@ -134,17 +134,15 @@ describe('51라운드 Q3 템포 · Q4 넣기/뽑기', () => {
     expect(hit('katana')).toBeGreaterThan(hit('dagger'));
   });
 
-  it('넣은 동안 기력 회복 배율', () => {
+  it('61라운드: F 넣기/뽑기 삭제 — 휴대는 그림 위치만 (넣은 채 첫 타·넣은 동안 회복 없음)', () => {
+    for (const id of ['katana', 'greatsword']) {
+      const c = WEAPONS[id].carry! as unknown as Record<string, unknown>;
+      expect(c.firstStrike).toBeUndefined();
+      expect(c.sheathedRegenMult).toBeUndefined();
+    }
     const r = new WeaponResource(WEAPONS.katana.resource!);
     r.spend(50, 0);
     r.tick(1000, 1000);
-    const normal = r.value;
-    const r2 = new WeaponResource(WEAPONS.katana.resource!);
-    r2.spend(50, 0);
-    r2.regenMult = WEAPONS.katana.carry!.sheathedRegenMult!;
-    r2.tick(1000, 1000);
-    expect(r2.value).toBeGreaterThan(normal);
-    expect(WEAPONS.katana.carry!.firstStrike?.forceCrit).toBe(true);
-    expect(WEAPONS.greatsword.carry!.firstStrike?.knockbackMult).toBeGreaterThan(1);
+    expect(r.value).toBeGreaterThan(50);
   });
 });

@@ -89,8 +89,8 @@ export class PlayerDefense {
     if (outcome.kind === 'perfect') {
       // 56라운드 Q7: 피해 완전 무시, 튕겨내지 않음 (가드 유지) — 무적 시간도 주지 않는다(다음 타는 다시 판정)
       p.gauges.onGuardBlock(outcome.blocked, 'perfect');
-      // 2단계 Q41: 막다가 떼면 돌진 창 시작
-      p.moves.perfectGuardAt = time;
+      // 61라운드 중압: 막은 직후 우클릭을 떼면 버티기 올려베기 (창 시작)
+      p.moves.blockedAt = time;
       p.flashColor(COLORS.PLAYER_PARRY);
       const payload: PerfectGuardPayload = { x: p.x, y: p.y, attack, ...toward(source) };
       EventBus.emit(Events.PLAYER_PERFECT_GUARD, payload);
@@ -104,6 +104,9 @@ export class PlayerDefense {
     let amount = p.buildHooks ? p.buildHooks.adjustDamage(outcome.amount, time) : outcome.amount;
     if (outcome.kind === 'guarded') {
       p.gauges.onGuardBlock(outcome.blocked, outcome.groggy ? 'groggy' : 'normal');
+      p.moves.blockedAt = time;
+      // 61라운드 SY-2: 가드로 막으면 기력 소모 (퍼펙트·패링은 0 — 그로기 중이면 이미 바닥)
+      if (res?.def.kind === 'stamina') res.spend(res.def.cost.guardBlock, time);
       EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'guard', phase: 'block' } satisfies PlayerSecondaryPayload);
     }
     if (mods.superArmorReduction && p.inAttackSlow(time)) amount = Math.round(amount * (1 - mods.superArmorReduction));

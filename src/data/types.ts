@@ -21,15 +21,6 @@ export interface PlayerStats {
   sense: number;
 }
 
-export interface AttackHitbox {
-  width: number;
-  height: number;
-  /** 플레이어 중심에서 히트박스 중심까지 거리(px) */
-  reach: number;
-  activeMs: number;
-  cooldownMs: number;
-}
-
 export type {
   ArcShapeSpec,
   ComboArtEntry,
@@ -92,6 +83,8 @@ export interface PlayerData {
   sprint: SprintParams;
   /** 기본 무기 id (개성 선택 결과가 없을 때) */
   startWeapon: string;
+  /** 61라운드 플레이 점검: 런 시작 물약 수 (없으면 0) — 1층 첫 전투의 회복 여유 */
+  startPotions?: number;
   /** 공격 후 감속이 적용되는 최소 시간 */
   attackSlowMinMs: number;
   /**
@@ -374,6 +367,10 @@ export interface Affinity {
 export interface WeaponRanged {
   projectileSpeedTiles: number;
   projectileLifeMs: number;
+  /** 61라운드 P9 (옛 hitbox 대체): 짧게 쏘기 다음 발 간격 ms · 화살 판정 크기 px · 화살이 생기는 거리 px(몸 시트 arrowSpawnAnchors 가 없을 때) */
+  cooldownMs: number;
+  arrowSizePx: number;
+  spawnPx: number;
   /** 이 시간 안에 연사하면 위력이 rapidDecay 씩 줄고 rapidMin 까지 */
   rapidWindowMs: number;
   rapidDecay: number;
@@ -485,9 +482,8 @@ export interface WeaponEvolution {
   moveParams?: Record<string, unknown>;
   comboChange?: ComboChangeDef[];
   rule?: RuleDef;
-  /** false = 데이터만 (효과 일부 미연결) */
-  live?: boolean;
-  _tmpName?: boolean;
+  /** 61라운드 P1: 이 1단 갈래가 바꾸는 4동사 (없는 칸은 무기 기본 동사) */
+  verbs?: Partial<WeaponVerbsDef>;
   /** 57라운드 갈래 수단 그림 (로드 목록): body = 몸·무기 동작 이름(`player_<무기>_<이름>`·`weapons/<무기>_<이름>`), fx = 이펙트 id */
   art?: {
     body?: string[];
@@ -560,8 +556,13 @@ export interface StaminaResourceDef {
    * 풀리면 기력 = max × recoverRatio (임시). 없으면 49라운드 규칙(recoverRatio 까지 차면 풀림)
    */
   groggyMs?: number;
-  /** 소모량: 연격 타별 · 대쉬 · 대쉬 공격 · 내리찍기 */
-  cost: { hits: number[]; dash: number; dashAttack: number; slam: number };
+  /**
+   * 61라운드 P1·SY-2 소모량 — 일반 연격은 소모하지 않는다: 대쉬 · 대쉬 공격(기본 대쉬 베기) · 좌 홀드 강공(차지 내려찍기) ·
+   * 가드로 막은 한 번(퍼펙트·패링은 0). 전용 동작은 동작 데이터의 staminaCost
+   */
+  cost: { dash: number; dashAttack: number; hold: number; guardBlock: number };
+  /** HUD 에 보이지 않는 자원 (스냅샷 resource = null) */
+  hidden?: boolean;
 }
 
 export interface AmmoResourceDef {
@@ -573,6 +574,7 @@ export interface AmmoResourceDef {
   reloadMs: number;
   /** 이 수 이하면 low */
   lowCount: number;
+  hidden?: boolean;
 }
 
 export interface HeatResourceDef {
@@ -588,10 +590,8 @@ export interface HeatResourceDef {
   stages: number[];
   /** 단계별 공격 속도 배율 (길이 = stages + 1) */
   speedMults: number[];
-  /** 최대 열을 이만큼 유지하면 과열 */
-  overheatHoldMs: number;
-  /** 과열 냉각 시간 (공격 불가, 열이 0 으로 내려간다) */
-  cooldownMs: number;
+  /** 61라운드 SY-2: 단검 '가속' — 과열·폭발·식힘 벌칙 없음, HUD 에 보이지 않음(낙인만 보인다) */
+  hidden?: boolean;
 }
 
 export type WeaponResourceDef = StaminaResourceDef | AmmoResourceDef | HeatResourceDef;
@@ -601,22 +601,8 @@ export interface WeaponCarryDef {
   mode: 'sheath' | 'back' | 'hand';
   /** 칼집·등에서 뽑는 동작 시간 (0 = 첫 타가 곧 뽑기 — 칼 발도) */
   drawMs: number;
-  /** 마지막 공격 뒤 이만큼 지나면 넣는다 (sheath·back). 0 = 자동으로 넣지 않음 (51라운드 Q4: F 키로만) */
+  /** 마지막 공격 뒤 이만큼 지나면 넣는다 (sheath·back). 0 = 자동으로 넣지 않음 (61라운드: F 넣기/뽑기 삭제 — 칼 발도가 좌 홀드로) */
   sheatheAfterMs: number;
-  /** 51라운드 Q4: 넣은 동안 기력 회복 배율 (없으면 1) */
-  sheathedRegenMult?: number;
-  /** 51라운드 Q4: 넣은 상태에서 첫 타 보너스 — 칼 발도 = 확정 치명, 대검 끌어내기 = 크게 밀쳐냄 */
-  firstStrike?: WeaponFirstStrikeDef;
-}
-
-/** 51라운드 Q4: 넣은 상태 첫 타 보너스 (임시값) */
-export interface WeaponFirstStrikeDef {
-  /** 표시·디버그 이름 (예 '발도') */
-  label: string;
-  forceCrit?: boolean;
-  /** 적중 넉백 거리 배율 */
-  knockbackMult?: number;
-  damageMult?: number;
 }
 
 /** 49라운드 Q4: 대검 무게감 (임시값) */
@@ -664,6 +650,8 @@ export interface WeaponFeelDef {
   ribbon?: string;
   /** Q8: 흔들림은 막타·치명타만, 이 무기는 모든 적중에 (대검) */
   shakeEveryHit?: boolean;
+  /** 61라운드 플레이 점검: 적중 넉백 거리 배율 (무기 무게 — 대검 크게, 단검 작게. 없으면 1) */
+  knockbackMult?: number;
 }
 
 export interface WeaponDef {
@@ -692,11 +680,12 @@ export interface WeaponDef {
   draw?: BowDrawDef;
   /** 56라운드 2단계: 새 기본기 (간파 반격·대치 일격·태클·버티기·도약 찍기·돌진·등 뒤 찌르기·난타·화살비) */
   moves?: WeaponMovesDef;
-  hitbox: AttackHitbox;
   /** 48라운드: 근접 3연격 (없으면 기존 단일 공격 + cooldownMs) */
   combo?: ComboDef;
   ranged?: WeaponRanged;
   secondary: SecondaryDef;
+  /** 61라운드 P1: 4동사 표시 이름 (좌 연격 · 우 시그니처 · 스페이스 대쉬 · 좌 홀드 고유 자원 기술) — 키는 Constants */
+  verbs: WeaponVerbsDef;
   affinity: Affinity;
   personality: {
     /** 단계별 임계 (오름차순). thresholds[i] 에 도달하면 i+1 차 선택 */
@@ -706,12 +695,25 @@ export interface WeaponDef {
   };
 }
 
+/** 61라운드 P1: 4동사 칸 */
+export type WeaponVerbSlot = 'attack' | 'signature' | 'dash' | 'hold';
+
+/** 동사 하나의 표시 (이름 · 한 줄 설명) */
+export interface WeaponVerbDef {
+  name: string;
+  hint: string;
+}
+
+export type WeaponVerbsDef = Record<WeaponVerbSlot, WeaponVerbDef>;
+
 /** 개성 공통 규칙 (강화 선택지) */
 export interface WeaponRules {
   /** 강화 1회당 피해·범위 배율 증가 (0.15 = +15%) */
   reinforceBonus: number;
   /** 강화 최대 누적 횟수 */
   reinforceMax: number;
+  /** 61라운드 P2 수치 기준선: 이 공격력에서 무기별 DPS 목표 [하한, 상한] (`systems/weapon/dps` 테스트가 지킨다) */
+  dpsBaseline?: { attack: number; targets: Record<string, [number, number]> };
 }
 
 export interface WeaponsFile {

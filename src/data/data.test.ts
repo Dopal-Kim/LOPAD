@@ -50,7 +50,9 @@ describe('data/*.json', () => {
       const names = [...P.branches, ...P.branches.flatMap((b) => b.next!)].map((n) => n.name);
       expect(new Set(names).size).toBe(6);
     }
-    expect(WEAPON_RULES).toEqual({ reinforceBonus: 0.15, reinforceMax: 3 });
+    expect(WEAPON_RULES).toMatchObject({ reinforceBonus: 0.15, reinforceMax: 3 });
+    // 61라운드 P2 DPS 기준선 (systems/weapon/dps.test)
+    expect(WEAPON_RULES.dpsBaseline?.attack).toBe(5);
   });
 
   it('무기 데이터 오류를 거부한다: 임계 역순, 선택지 수, 모르는 효과 키', () => {
@@ -59,7 +61,7 @@ describe('data/*.json', () => {
     a.katana.personality.thresholds = [200, 100];
     expect(() => validateWeapons(a)).toThrow(/오름차순/);
     const b = clone();
-    b.bow.personality.branches = b.bow.personality.branches.slice(0, 1);
+    b.dagger.personality.branches = b.dagger.personality.branches.slice(0, 1);
     expect(() => validateWeapons(b)).toThrow(/2개/);
     const c = clone();
     c.dagger.personality.branches[0].next = c.dagger.personality.branches[0].next!.slice(0, 1);
@@ -70,5 +72,15 @@ describe('data/*.json', () => {
     const e = clone();
     (e.katana as unknown as { secondary: unknown }).secondary = { kind: 'kick', name: 'x' };
     expect(() => validateWeapons(e)).toThrow(/secondary.kind/);
+    // 61라운드: 4동사 표시 · 숨 갈래 · 옛 hitbox 대신 연격 반경
+    const f = clone();
+    delete (f.katana.verbs as Partial<typeof f.katana.verbs>).hold;
+    expect(() => validateWeapons(f)).toThrow(/verbs.hold/);
+    const g = clone();
+    (g.bow.gauge as { branch?: string }).branch = 'nope';
+    expect(() => validateWeapons(g)).toThrow(/gauge.branch/);
+    const h = clone();
+    delete h.dagger.combo!.radiusPx;
+    expect(() => validateWeapons(h)).toThrow(/radiusPx/);
   });
 });

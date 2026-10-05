@@ -33,7 +33,8 @@ import { t, type AudioTrigger } from './audioTrigger';
 const s = (name: string): string => `sfx/${name}`;
 
 /** 보관 (60라운드 Q6 — 파일·manifest 항목은 남기되 연결하지 않음) */
-export const ARCHIVED_SFX: readonly string[] = [s('gs_plunge'), s('gs_crack'), s('katana_echo')];
+/** 61라운드: 대검 '막다가 떼면 돌진' 삭제 → gs_guard_rush 보관 */
+export const ARCHIVED_SFX: readonly string[] = [s('gs_plunge'), s('gs_crack'), s('katana_echo'), s('gs_guard_rush')];
 
 export const BUILD_SFX = {
   setTier: (n: number) => s(`set_tier${n}`),

@@ -29,7 +29,7 @@ const STAMINA: StaminaResourceDef = {
   lowRatio: 0.3,
   recoverRatio: 0.35,
   exhaustedMoveMult: 0.5,
-  cost: { hits: [20, 20, 30], dash: 10, dashAttack: 25, slam: 40 },
+  cost: { dash: 10, dashAttack: 25, hold: 40, guardBlock: 10 },
   groggyMs: 1500,
 };
 
@@ -74,43 +74,36 @@ describe('56라운드 Q7·Q19 그로기 (기력 groggyMs)', () => {
   });
 });
 
-describe('56라운드 Q18 과열 식는 동안 (낙인 연동)', () => {
+describe('61라운드 SY-2 단검 가속 (옛 과열 — 벌칙 없음)', () => {
   const HEAT: HeatResourceDef = {
     kind: 'heat',
-    label: '열기',
+    label: '가속',
     max: 100,
     gainPerHit: [50],
-    decayPerSec: 0,
+    decayPerSec: 100,
     decayDelayMs: 1000,
     stages: [30, 60, 90],
-    speedMults: [1, 1.1, 1.2, 1.3],
-    overheatHoldMs: 0,
-    cooldownMs: 1000,
+    speedMults: [1, 1.1, 1.2, 1.25],
+    hidden: true,
   };
-  it('100% 즉시 과열 → 식는 동안 공격 가능·느려짐', () => {
-    const r = new WeaponResource(HEAT, { speedMult: 0.7, moveMult: 0.85 });
-    r.heatUp(0, 0);
-    r.heatUp(0, 10);
-    r.tick(20, 10);
-    expect(r.overheated).toBe(true);
-    expect(r.canAttack()).toBe(true);
-    expect(r.speedMult).toBe(0.7);
-    expect(r.moveMult).toBe(0.85);
-    r.tick(1100, 1080);
-    expect(r.overheated).toBe(false);
-    expect(r.moveMult).toBe(1);
-  });
-  it('냉각 규칙이 없으면 49라운드처럼 공격 불가', () => {
+  it('100% 에 닿아도 과열·식힘 없이 최대 공속, 멈추면 식는다 · HUD 에는 보이지 않는다', () => {
     const r = new WeaponResource(HEAT);
     r.heatUp(0, 0);
     r.heatUp(0, 10);
     r.tick(20, 10);
-    expect(r.canAttack()).toBe(false);
+    expect(r.value).toBe(100);
+    expect(r.canAttack()).toBe(true);
+    expect(r.speedMult).toBe(1.25);
+    expect(r.moveMult).toBe(1);
+    expect(r.toUi(20)).toBeNull();
+    r.tick(1500, 500);
+    expect(r.value).toBe(50);
+    expect(r.stage).toBe(1);
   });
 });
 
 describe('56라운드 고유 자원', () => {
-  it('검기 3단: 타격으로 조금씩, 패링 1단 즉시, 일섬이 전부 소모 (3단 = 분신)', () => {
+  it('검기 3단: 타격으로 조금씩, 패링 1단 즉시, 61라운드: 좌 홀드 발도가 전부 소모 (3단 = 확정 치명)', () => {
     const k = new KenkiGauge({
       kind: 'kenki',
       label: '검기',
@@ -118,8 +111,8 @@ describe('56라운드 고유 자원', () => {
       perStage: 100,
       gainPerHit: 40,
       parryGainStages: 1,
-      issenDamagePerStage: 0.25,
-      cloneAtStages: 3,
+      damagePerStage: 0.25,
+      critAtStages: 3,
     });
     expect(k.gainHit()).toBeNull();
     expect(k.gainHit()).toBeNull();
@@ -129,10 +122,23 @@ describe('56라운드 고유 자원', () => {
     expect(k.gainParry()).toBe(3);
     expect(k.gainParry()).toBeNull();
     const c = k.consume();
-    expect(c).toEqual({ stages: 3, damageMult: 1.75, clone: true });
+    expect(c).toEqual({ stages: 3, damageMult: 1.75, crit: true });
     expect(k.stage).toBe(0);
     k.gainParry();
-    expect(k.consume().clone).toBe(false);
+    expect(k.consume().crit).toBe(false);
+  });
+
+  it('명경 규칙(2단): 상한 5단 · 패링 2단 · 타격으로는 차지 않음', () => {
+    const k = new KenkiGauge(WEAPONS.katana.gauge as never);
+    k.setRule({ stages: 5, parryGainStages: 2, hitGain: false });
+    expect(k.gainHit()).toBeNull();
+    expect(k.value).toBe(0);
+    expect(k.gainParry()).toBe(2);
+    expect(k.gainParry()).toBe(4);
+    expect(k.gainParry()).toBe(5);
+    expect(k.consume().stages).toBe(5);
+    k.setRule(null);
+    expect(k.max).toBe(300);
   });
 
   it('울분: 가드로 막은 피해 누적(퍼펙트 2배·그로기 3배), 차지가 전부 소모', () => {
@@ -186,11 +192,8 @@ describe('56라운드 고유 자원', () => {
       perHit: 1,
       backGain: 2,
       backAngleDeg: 70,
-      heatGainPerStage: 0.5,
+      tempoGainPerStage: 0.5,
       burstDamagePerMark: 0.6,
-      overheatBurstRadiusTiles: 4,
-      coolingSpeedMult: 0.7,
-      coolingMoveMult: 0.85,
       lifeMs: 1000,
     };
     const book = new BrandBook<string>(def);
@@ -219,6 +222,8 @@ describe('56라운드 고유 자원', () => {
     expect(makeGauge(WEAPONS.katana.gauge)).toBeInstanceOf(KenkiGauge);
     expect(makeGauge(WEAPONS.greatsword.gauge)).toBeInstanceOf(GrudgeGauge);
     expect(makeGauge(WEAPONS.bow.gauge)).toBeInstanceOf(BreathGauge);
+    // 61라운드 SY-2: 활 숨은 저격 갈래에서만 (PlayerGauges 가 gauge.branch 로 거른다)
+    expect(WEAPONS.bow.gauge?.kind === 'breath' && WEAPONS.bow.gauge.branch).toBe('snipe');
     expect(WEAPONS.dagger.gauge?.kind).toBe('brand');
     expect(makeGauge(WEAPONS.dagger.gauge)).toBeNull();
   });
@@ -288,30 +293,47 @@ describe('56라운드 Q2 일섬 기하', () => {
   });
 });
 
-describe('56라운드 Q40~Q43 공격 수단 표', () => {
-  it('구현된 수단만 고른다 · 갈래 수단은 그 갈래가 경로에 있을 때만 열린다', () => {
+describe('61라운드 P1 4동사 공격 수단 표', () => {
+  it('기본기: 무기마다 좌 홀드 기술 하나 · 시그니처 후속 · 대쉬 공격', () => {
     expect(pickMove('katana', 'comboFinisher', [])?.id).toBe('thrust');
     expect(pickMove('katana', 'dashAttack', [])?.id).toBe('issen');
-    // 2단계: 기본기 9종 live · 갈래 수단(회전 베기 등)은 그림 대기
     expect(pickMove('katana', 'afterParry', [])?.id).toBe('counter');
-    expect(pickMove('katana', 'sheathedHoldRelease', [])?.id).toBe('iai_draw');
+    expect(pickMove('katana', 'attackHold', [])?.id).toBe('iai_draw');
+    expect(pickMove('greatsword', 'attackHold', [])?.id).toBe('charge_swing');
     expect(pickMove('greatsword', 'dashAttack', [])?.id).toBe('tackle');
-    expect(pickMove('greatsword', 'guardAttack', [])?.id).toBe('brace_upswing');
-    expect(pickMove('greatsword', 'chargeDash', [])?.id).toBe('leap_slam');
-    expect(pickMove('greatsword', 'perfectGuardRelease', [])?.id).toBe('guard_rush');
     expect(pickMove('dagger', 'afterShadowStep', [])?.id).toBe('backstab');
     expect(pickMove('dagger', 'attackHold', [])?.id).toBe('flurry');
-    expect(pickMove('bow', 'drawAttack', [])?.id).toBe('arrow_rain');
-    // 57라운드: 갈래 수단은 기존 시트·플레이스홀더로 live (관통 화살은 56 Q9 '가득 이상 관통'과 겹쳐 대기)
-    expect(pickMove('katana', 'branchAttack', ['iai'])?.id).toBe('spin');
-    expect(pickMove('katana', 'branchAttack', ['batto'])?.id).toBe('unblockable');
-    expect(pickMove('bow', 'attackHold', ['rapid'])?.id).toBe('rapid_volley');
+    expect(pickMove('bow', 'attackHold', [])?.id).toBe('arrow_rain');
+    // 기본에서 뺀 계기: 버티기·도약은 갈래, 돌진은 삭제
+    expect(pickMove('greatsword', 'guardRelease', [])).toBeNull();
+    expect(MOVES.some((m) => m.id === 'guard_rush')).toBe(false);
+    for (const w of ['katana', 'greatsword', 'dagger', 'bow'])
+      expect(availableMoves(w, []).filter((m) => m.verb === 'hold')).toHaveLength(1);
+  });
+
+  it('1단 갈래 = 같은 계기의 기본 동작을 대신하는 새 동작', () => {
+    expect(pickMove('katana', 'attackHold', ['iai'])?.id).toBe('spin');
+    expect(pickMove('katana', 'attackHold', ['batto'])?.id).toBe('unblockable');
+    expect(pickMove('katana', 'attackHold', ['iai'], (m) => m.id === 'iai_draw')).toBeNull();
+    expect(pickMove('greatsword', 'dashAttack', ['crush'])?.id).toBe('leap_slam');
+    expect(pickMove('greatsword', 'guardRelease', ['weight'])?.id).toBe('brace_upswing');
+    expect(pickMove('greatsword', 'dashAttack', ['weight'])?.id).toBe('tackle');
     expect(pickMove('dagger', 'dashAttack', ['gale'])?.id).toBe('fan_throw');
-    expect(pickMove('bow', 'perfectRelease', ['snipe'])).toBeNull();
+    expect(pickMove('dagger', 'brandBurst', ['twin'])?.id).toBe('clone_cross');
+    expect(pickMove('bow', 'attackHold', ['rapid'])?.id).toBe('rapid_volley');
+    expect(pickMove('bow', 'attackHold', ['rapid'], (m) => m.id === 'arrow_rain')).toBeNull();
+    expect(pickMove('bow', 'perfectRelease', ['snipe'])?.id).toBe('pierce_arrow');
     expect(availableMoves('katana', []).some((m) => m.id === 'spin')).toBe(false);
-    expect(availableMoves('katana', ['iai']).some((m) => m.id === 'spin')).toBe(true);
-    expect(pickMove('greatsword', 'chargeRelease', ['crush'], () => false)).toBeNull();
     expect(new Set(MOVES.map((m) => m.id)).size).toBe(MOVES.length);
+  });
+
+  it('1단 갈래마다 새 동작이 정확히 하나 · 갈래 노드 verbs 가 그 칸을 바꾼다', () => {
+    for (const [id, w] of Object.entries(WEAPONS))
+      for (const b of w.personality.branches) {
+        const opened = MOVES.filter((m) => m.weapon === id && m.branch === b.id);
+        expect(opened, `${id}.${b.id}`).toHaveLength(1);
+        expect(Object.keys(b.verbs ?? {}), `${id}.${b.id}.verbs`).toEqual([opened[0].verb]);
+      }
   });
 });
 

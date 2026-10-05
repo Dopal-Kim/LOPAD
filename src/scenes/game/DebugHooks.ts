@@ -131,7 +131,7 @@ export function exposeGameDebug(g: Game): void {
         options: w.options.map((o) => ({ id: o.id, name: o.name })),
         mods: { ...w.mods },
         damageMult: w.damageMult,
-        hitboxWidth: w.hitbox.width,
+        reachPx: w.reachPx,
         secondary: w.def.secondary.name,
         frozen: g.frozen,
       };

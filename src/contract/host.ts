@@ -4,6 +4,8 @@ import { SCENES } from '../core/Constants';
 import { STORY } from '../data';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { audio } from '../systems/audio/audio';
+import { settings } from '../systems/settings';
+import { runLogRecorder } from '../systems/runlog/runLogRecorder';
 import { UI_EVENTS, __system, type UiMenuId, type UiSnapshot, type UiWarpDenied, type UiWarpDenyReason } from './ui';
 import { UI_SCENES } from '../ui';
 
@@ -27,7 +29,18 @@ let chooseCanceler: (() => boolean) | null = null;
 const PAUSABLE = [SCENES.GAME, SCENES.WEAPON_LAB];
 
 export function installContractHost(game: Phaser.Game): void {
+  /**
+   * 61라운드 플레이 점검 #2: UI 안내 패널이 거는 '게임 멈춤'(이유별) · 플레이어 일시정지. 둘 중 하나라도 있으면 게임 씬을 멈춘다.
+   * 멈춤은 PAUSED/RESUMED 를 내지 않는다(일시정지 메뉴와 별개)
+   */
+  const holds = new Set<string>();
+  let userPaused = false;
+  const pausableKey = (state: 'active' | 'paused') =>
+    PAUSABLE.find((k) => game.scene.keys[k] && (state === 'active' ? game.scene.isActive(k) : game.scene.isPaused(k)));
   const stopAllUiAndGame = () => {
+    holds.clear();
+    userPaused = false;
+    runLogRecorder.setPaused('hold', false);
     for (const key of [
       SCENES.GAME,
       SCENES.WEAPON_LAB,
@@ -46,22 +59,39 @@ export function installContractHost(game: Phaser.Game): void {
     getSnapshot: () => null,
     select: (menuId, key) => menuSelect?.(menuId, key),
     pause: () => {
-      const key = PAUSABLE.find((k) => game.scene.keys[k] && game.scene.isActive(k));
+      const key = pausableKey('active') ?? (holds.size > 0 ? pausableKey('paused') : undefined);
       if (key) {
-        game.scene.pause(key);
+        if (game.scene.isActive(key)) game.scene.pause(key);
+        userPaused = true;
         audio.setPaused(true);
         __system.emit(UI_EVENTS.PAUSED, {});
       }
     },
     resume: () => {
-      const key = PAUSABLE.find((k) => game.scene.keys[k] && game.scene.isPaused(k));
+      const key = pausableKey('paused');
       if (key) {
-        game.scene.resume(key);
+        userPaused = false;
+        // 안내 패널 멈춤이 남아 있으면 씬은 그대로 멈춰 둔다
+        if (holds.size === 0) game.scene.resume(key);
         audio.setPaused(false);
         __system.emit(UI_EVENTS.RESUMED, {});
       }
     },
+    setGameHold: (reason, on) => {
+      if (on) {
+        holds.add(reason);
+        const key = pausableKey('active');
+        if (key) game.scene.pause(key);
+      } else {
+        holds.delete(reason);
+        const key = pausableKey('paused');
+        if (key && holds.size === 0 && !userPaused) game.scene.resume(key);
+      }
+      runLogRecorder.setPaused('hold', holds.size > 0);
+    },
+    isGameHeld: () => holds.size > 0,
     startNewRun: () => {
+      runLogRecorder.abandon();
       saveSlot.clear();
       stopAllUiAndGame();
       audio.setPaused(false);
@@ -95,15 +125,22 @@ export function installContractHost(game: Phaser.Game): void {
     chooseNode: (id) => nodeChooser?.(id) ?? false,
     cancelChoose: () => chooseCanceler?.() ?? false,
     setMuted: (muted) => audio.setMute(muted),
+    // 61라운드 §15: 설정 — 즉시 적용(감각 배율·음량 버스) + 메타 세이브
+    getSettings: () => settings.current(),
+    setSettings: (s) => {
+      settings.set(s);
+    },
     startWeaponLab: () => {
       // 49라운드 계약 §11.4: 시스템 무기 시험장 씬 (scenes/WeaponLab.ts — Game 의 lab 모드). Esc = 타이틀
       if (!game.scene.keys[SCENES.WEAPON_LAB]) return;
+      runLogRecorder.abandon();
       stopAllUiAndGame();
       audio.setPaused(false);
       game.scene.start(SCENES.WEAPON_LAB);
     },
     getText: () => ({ ...STORY.ui, controls: STORY.controls }),
     toTitle: () => {
+      runLogRecorder.abandon();
       stopAllUiAndGame();
       audio.setPaused(false);
       audio.stopAllLoops();

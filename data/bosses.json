@@ -1,6 +1,6 @@
 {
   "stage1": {
-    "_note": "54라운드 '만취' 3페이즈 (결정 round-54 Q1·Q5·Q6·Q10). 새 패턴 수치는 전부 임시값(데모로 조정) — parts/system/README.md 54라운드 절 표",
+    "_note": "54라운드 '만취' 3페이즈 (결정 round-54 Q1·Q5·Q6·Q10). 새 패턴 수치는 전부 임시값(데모로 조정) — parts/system/CHANGELOG.md 54라운드 절 표",
     "name": "양조장주 '만취(滿醉)'",
     "hp": 300,
     "size": [40, 40],
@@ -9,7 +9,7 @@
       "h": 0.6
     },
     "color": "#b02060",
-    "contactAttack": 20,
+    "contactAttack": 12,
     "contactIntervalMs": 800,
     "approachSpeedTiles": 2,
     "personalityValue": 50,
@@ -19,7 +19,7 @@
         "telegraphMs": 700,
         "speedTiles": 16,
         "durationMs": 600,
-        "attack": 25,
+        "attack": 20,
         "wallStunMs": 1000,
         "empowered": {
           "telegraphMs": 550,
@@ -29,7 +29,7 @@
       "slam": {
         "telegraphMs": 800,
         "radiusTiles": 2.5,
-        "attack": 25,
+        "attack": 20,
         "cooldownMs": 4000,
         "empowered": {
           "radiusTiles": 3.5
@@ -40,7 +40,7 @@
         "speedTiles": 9,
         "bounces": 3,
         "maxTiles": 40,
-        "attack": 18,
+        "attack": 14,
         "radiusPx": 7,
         "radiusFromArt": 1,
         "puddleEveryTiles": 1,
@@ -79,7 +79,7 @@
         "telegraphSeqMs": [600, 350, 350],
         "speedTiles": 17,
         "durationMs": 550,
-        "attack": 25,
+        "attack": 20,
         "wallStunMs": 1200,
         "repeat": 3,
         "bendRatio": 0.35,
@@ -105,7 +105,7 @@
       "lightsOut": {
         "telegraphMs": 900,
         "radiusTiles": 3,
-        "attack": 20,
+        "attack": 16,
         "fadeMs": 700,
         "durationMs": 12000,
         "cooldownMs": 20000,

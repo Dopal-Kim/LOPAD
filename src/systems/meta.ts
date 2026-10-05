@@ -1,5 +1,7 @@
 import metaJson from '../../data/meta.json';
 import { browserStorage, type StorageLike } from './save';
+import type { UiSettings } from '../contract/ui';
+import type { RunLogSummary } from './runlog/runLog';
 
 /**
  * 메타 진행 (기획 3장): 런이 끝나면 성장량에 따라 '영혼'을 받고, 영혼으로 영구 강화를 산다.
@@ -42,6 +44,10 @@ export interface MetaData {
   codex: Record<string, CodexEntry>;
   /** 엔딩 '이해한다' 를 한 번이라도 골랐는지 (23라운드 엔딩 2종, 도감 기록) */
   understood?: boolean;
+  /** 61라운드 계약 §15 설정 (선택 항목 — 읽을 때 systems/settings 가 다듬는다) */
+  settings?: Partial<UiSettings>;
+  /** 61라운드 P9 런 로그: 끝난 런 요약 최근 N개 (오래된 것부터, systems/runlog) */
+  runLogs?: RunLogSummary[];
 }
 
 export interface RunSummary {

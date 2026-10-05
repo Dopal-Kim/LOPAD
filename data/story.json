@@ -125,7 +125,7 @@
   },
   "reinforce": ["같은 손. 조금 더 깊게 들어간다.", "두 번째다. 손이 외웠다.", "세 번째. 더는 깊어질 곳이 없다."],
   "reinforceBanner": "{evolution} · 강화 {n}/3",
-  "controls": "WASD 이동 · 좌클릭 공격 · 우클릭 {secondary} · 스페이스 대쉬 · Q 잔의 독주 · Esc 일시정지",
+  "controls": "WASD 이동 · 좌클릭 연격 · 좌클릭 길게 고유 기술 · 우클릭 {secondary} · 스페이스 대쉬 · Q 잔의 독주 · Esc 일시정지",
   "enemies": {
     "dummy": {
       "name": "징집병",

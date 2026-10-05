@@ -31,8 +31,6 @@ export interface InputState {
   interactHeld: boolean;
   /** 49라운드: 이 프레임에 수동 장전 키(R)를 누름 — 활 탄창 */
   reloadPressed: boolean;
-  /** 51라운드 Q4: 이 프레임에 넣기/뽑기 키(F)를 누름 — 칼·대검 */
-  carryPressed: boolean;
   /** 60라운드: 이 프레임에 소모품 키(KEYS.CONSUMABLE)를 누름 */
   consumablePressed: boolean;
 }
@@ -54,7 +52,6 @@ export function neutralInput(s: InputState): InputState {
     interactPressed: false,
     interactHeld: false,
     reloadPressed: false,
-    carryPressed: false,
     consumablePressed: false,
   };
 }
@@ -81,7 +78,6 @@ export class InputSystem {
       sprint: kb.addKey(KEYS.SPRINT),
       interact: kb.addKey(KEYS.INTERACT),
       reload: kb.addKey(KEYS.RELOAD),
-      carry: kb.addKey(KEYS.CARRY),
       consumable: kb.addKey(KEYS.CONSUMABLE),
     };
     scene.input.mouse?.disableContextMenu();
@@ -135,7 +131,6 @@ export class InputSystem {
       interactPressed: Phaser.Input.Keyboard.JustDown(this.keys.interact),
       interactHeld: this.keys.interact.isDown,
       reloadPressed: reload,
-      carryPressed: Phaser.Input.Keyboard.JustDown(this.keys.carry),
       consumablePressed: Phaser.Input.Keyboard.JustDown(this.keys.consumable),
     };
     this.attackQueued = false;

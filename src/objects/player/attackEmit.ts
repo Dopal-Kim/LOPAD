@@ -14,11 +14,11 @@ import { facingOf, rowDirFor } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 import type { ComboStrike } from './heavyMoves';
 
-/** 51라운드 Q4: 넣은 채 첫 타 보너스 표시 (발도·끌어내기) · 56라운드 전용 동작·새 기본기 필드 */
+/** 넉백 배율 · 56라운드 전용 동작·새 기본기 필드 (61라운드: 넣은 채 첫 타 보너스 삭제) */
 export type AttackExtra = Pick<
   PlayerAttackPayload,
-  | 'firstStrike'
   | 'knockbackMult'
+  | 'kenkiStage'
   | 'bowPower'
   | 'pierce'
   | 'crack'
@@ -60,7 +60,7 @@ export function emitPlayerAttack(
   // 공격 애니는 조준 방향으로. 연격이면 그 타의 시트(없으면 attack)를 그 타 길이에, 아니면 다음 공격 가능 시점(쿨다운)에 맞춰
   const action = combo ? strikeBodyAction(p, combo) : 'attack';
   const shot = gameState.weapon.def.kind === 'ranged' ? gameState.weapon.shotTiming : null;
-  const fit = combo ? combo.durationMs : (shot?.cooldownMs ?? gameState.weapon.hitbox.cooldownMs);
+  const fit = combo ? combo.durationMs : (shot?.cooldownMs ?? gameState.weapon.shotTiming.cooldownMs);
   // 56라운드 Q6: 8행 시트(대검 연격·차지)는 조준각 8분할 행, 4행 시트는 기존 4방향
   const aimDir = rowDirFor(visual.sheet(action), aim.x, aim.y, visual.facing);
   // 51라운드 Q3: 판정·발사 프레임 시각을 따로 맞춘다 (연격 hitAtMs = 예비 동작, 활 drawMs = 시위 당김)
@@ -105,9 +105,7 @@ export function emitPlayerAttack(
   // 49라운드 과열: 가열 단계 (이펙트 강화)
   const res = p.gear.resource;
   if (res?.kind === 'heat') payload.heatStage = res.stage;
-  // 60라운드 음향: 칼 검기 단 (찌르기 katana_thrust_ki<n>)
-  const kenki = p.gauges.kenki;
-  if (kenki) payload.kenkiStage = kenki.stage;
+  // 60라운드 음향 칼 검기 단: 61라운드부터 검기를 소모한 동작(좌 홀드 발도)만 extra.kenkiStage 로 싣는다 — 찌르기는 늘 0
   if (extra) Object.assign(payload, extra);
   EventBus.emit(Events.PLAYER_ATTACKED, payload);
   return payload;

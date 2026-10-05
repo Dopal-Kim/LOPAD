@@ -1,8 +1,9 @@
 /**
- * 56라운드 2단계 칼 새 기본기 (Q40·Q53·Q55·Q60, 계약 art §18.7):
+ * 칼 동작 (56라운드 2단계 Q40·Q53·Q55·Q60, 계약 art §18.7 → 61라운드 P1 4동사):
  * - 간파 반격 `katana_counter` — 패링 성공 직후 창 안 좌클릭: 조준 방향의 해부 왼쪽(화면 반시계 90°)으로 비켜서며 비대칭 호 반격
- * - 대치 일격 `katana_iai` — F 로 넣은 채 좌클릭을 누르는 동안 들어감(1회) → 유지 루프, 떼는 순간 발도 일격(언제 떼도 같은 일격,
- *   넣기 첫 타 치명). 판정·끝은 뗀 시각 기준, 0.5초 반짝임·납도 딸깍 터짐은 연출만, 칼집에 넣은 채 끝
+ * - 발도 `katana_iai` (옛 '대치 일격' + F 넣기 상태) — **좌 홀드**: 누름이 holdMs 를 넘으면 칼집에 손을 얹는 자세(들어감 1회 →
+ *   유지 루프), 떼는 순간 발도 일격(언제 떼도 같은 일격). 검기를 전부 소모해 단마다 피해 +, critAtStages 이상이면 확정 치명
+ *   (옛 '넣은 채 첫 타 = 발도 치명'을 흡수). 판정·끝은 뗀 시각 기준, 반짝임·납도 딸깍 터짐은 연출만, 칼집에 넣은 채 끝
  */
 import { gameState } from '../../core/GameState';
 import type { CounterMoveDef, IaiMoveDef } from '../../data/types';
@@ -12,7 +13,7 @@ import { artScale, facingOf, frameDurations, type Facing } from '../../systems/s
 import type { Player } from '../Player';
 import { emitPlayerAttack } from './attackEmit';
 import type { ComboStrike } from './heavyMoves';
-import { addTravel, aimDir, emitSkill, fireMoveStrike } from './moveStrike';
+import { addTravel, aimDir, emitHoldVerb, emitSkill, fireMoveStrike } from './moveStrike';
 
 /** 간파 반격 시작. 반환 = 동작 길이 ms */
 export function startCounter(p: Player, input: InputState, time: number, def: CounterMoveDef, moving: boolean): number {
@@ -59,6 +60,8 @@ export class IaiHold {
     this.action = moveBodyAction(p, def.art);
     p.combo?.reset();
     p.clearLunges();
+    // 칼집에 손을 얹은 자세 = 넣은 상태 (발도 뒤에도 넣은 채 — 다음 공격이 다시 뽑는다)
+    p.gear.sheatheQuiet();
     // 들어감 열 1회 (시트 holdFrames 앞 열) → 다음 프레임부터 유지 루프
     const sheet = this.action ? p.visual.sheet(this.action) : undefined;
     const hold = cols(sheet?.holdFrames ?? sheet?.loopFrames, []);
@@ -112,7 +115,7 @@ export class IaiHold {
     if (this.p.action === 'skill') this.p.setAction('normal', 0);
   }
 
-  /** 뗌: releaseFrame 부터 끝까지 제 시간 재생, 판정 = 뗀 뒤 release.hitMs (언제 떼도 같은 일격 — Q53) */
+  /** 뗌: releaseFrame 부터 끝까지 제 시간 재생, 판정 = 뗀 뒤 release.hitMs (언제 떼도 같은 일격 — Q53). 검기 전부 소모 */
   private release(input: InputState, time: number, moving: boolean): void {
     if (this.released) return;
     this.released = true;
@@ -126,24 +129,34 @@ export class IaiHold {
     const R = def.release;
     // 뗀 뒤 시간표가 곧 이 타 (판정 = hitMs, 끝 = totalMs) — 시트가 없으면 같은 값으로 한 번 재생
     const hit = { ...def.hit, durationMs: R.totalMs, hitAtMs: R.hitMs, cancelFromMs: R.totalMs, activeMs: R.activeMs };
-    const strike: ComboStrike = { index: 0, count: 1, hit, durationMs: R.totalMs, heavy: hit.heavy ?? true };
-    const first = p.gear.firstStrike;
+    // 61라운드: 검기 전부 소모 → 피해 배율 · 확정 치명 · (명경) 분신 잔상 베기
+    const kenki = p.gauges.consumeKenki();
+    const clones = p.gauges.meikyoClones(kenki.stages);
+    const strike: ComboStrike = {
+      index: 0,
+      count: 1,
+      hit,
+      durationMs: R.totalMs,
+      heavy: hit.heavy ?? true,
+      ...(clones.length > 0 ? { extraFollowUps: clones } : {}),
+    };
     const m = p.strikeMods(time, false);
     p.visual.release();
     emitSkill('iai', 'release');
+    emitHoldVerb('iai_draw');
     const payload = emitPlayerAttack(
       p,
       input,
       time,
       {
         kind: 'attack',
-        damageMult: hit.damageMult * m.mult * (first?.damageMult ?? 1),
+        damageMult: hit.damageMult * m.mult * kenki.damageMult,
         sizeMult: hit.sizeMult,
-        forceCrit: m.forceCrit || Boolean(first?.forceCrit),
+        forceCrit: m.forceCrit || kenki.crit,
         primed: m.primed,
       },
       strike,
-      { move: 'iai_draw', ...(first ? { firstStrike: first.label, knockbackMult: first.knockbackMult } : {}) },
+      { move: 'iai_draw', kenkiStage: kenki.stages },
       frames,
     );
     // Q55: 칼집에 넣은 채 끝 (뽑은 상태로 바꾸지 않는다)

@@ -14,6 +14,7 @@ import { chargeStages } from '../../systems/build/current';
 import type { Player } from '../Player';
 import { strikeBodyAction } from './attackEmit';
 import { aimVector, type ComboStrike } from './heavyMoves';
+import { emitHoldVerb } from './moveStrike';
 
 /** MeleeDriver 가 넘기는 것: 내딛기·정지 처리 */
 export type AfterStrike = (payload: PlayerAttackPayload, hit: ComboHitDef, time: number, moving: boolean) => void;
@@ -54,8 +55,9 @@ export function releaseCharge(
   const stages = chargeStages(C);
   const st = stages[Math.min(stage, stages.length) - 1];
   combo.reset();
-  if (res?.def.kind === 'stamina') res.spend(res.def.cost.slam, time);
-  const first = p.gear.firstStrike;
+  // 61라운드 SY-2: 좌 홀드 강공 기력
+  if (res?.def.kind === 'stamina') res.spend(res.def.cost.hold, time);
+  emitHoldVerb('charge_swing');
   p.gear.markDrawn(time);
   // 56라운드 Q15: 울분 전부 소모 → 피해·범위
   const grudge = p.gauges.consumeGrudge();
@@ -87,7 +89,6 @@ export function releaseCharge(
     time,
     strike,
     false,
-    first,
     CL && tiles > 0
       ? {
           crackLine: {

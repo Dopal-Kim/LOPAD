@@ -18,8 +18,8 @@ export interface TutorialHost {
   startFight(spawns: TutorialFightDef['spawns'], at: Pt & { radiusTiles: number }, onDone: () => void): boolean;
   /** 지금 표식 강조 (null = 끔) */
   highlightSign?(index: number | null): void;
-  /** 허수아비 흔들림 */
-  pokeDummy?(index: number): void;
+  /** 허수아비 맞음 (attack = 그 공격 — 판정 순간·히트스톱·불꽃) */
+  pokeDummy?(index: number, attack?: PlayerAttackPayload): void;
   /** 53라운드: 단계 안내 (UI_EVENTS.TUTORIAL_STEP) — 안내 문구가 뜰 때 */
   step?(info: { index: number; total: number; text: string; keys: string[] }): void;
   /** 모든 단계 끝 (출구 열기 허용) */
@@ -37,8 +37,10 @@ export interface TutorialLayout {
 export interface TutorialOptions {
   /** 원거리 무기 (활) — 조준 원뿔로 허수아비 맞힘 판정 */
   ranged: boolean;
-  /** 문구 치환 ({name}·{description} = 보조 동작) */
+  /** 문구 치환 ({name}·{description} = 보조 동작 · {holdName}·{holdHint} = 좌 홀드 기술) */
   vars?: Record<string, string>;
+  /** 61라운드: 근접 무기의 실제 판정 거리 px (허수아비 맞음 판정 — 갈래·강화로 바뀌므로 함수) */
+  meleeReachPx?: () => number;
 }
 
 const tileCenter = (p: Pt): Pt => ({ x: (p.x + 0.5) * TILE, y: (p.y + 0.5) * TILE });
@@ -53,13 +55,15 @@ export class TutorialDirector {
 
   private readonly onAttack = (p: PlayerAttackPayload) => {
     if (!this.machine.started) return;
-    this.apply(this.machine.attack(p, this.player, this.opts.ranged));
+    this.apply(this.machine.attack(p, this.player, this.opts.ranged, this.opts.meleeReachPx?.() ?? 0), p);
   };
   private readonly onDash = () => this.act('dash');
   private readonly onSecondary = (p: PlayerSecondaryPayload) => {
     if (p.phase === 'start' || p.phase === 'ready' || p.phase === 'block') this.act('secondary');
   };
   private readonly onSecondaryAny = () => this.act('secondary');
+  /** 61라운드 P1: 좌 홀드 기술 (발도·차지·난타·화살비 …) */
+  private readonly onHoldVerb = () => this.act('hold');
 
   constructor(
     def: TutorialDef,
@@ -82,6 +86,7 @@ export class TutorialDirector {
     EventBus.on(Events.PLAYER_PARRIED, this.onSecondaryAny, this);
     EventBus.on(Events.PLAYER_PARRY_FAILED, this.onSecondaryAny, this);
     EventBus.on(Events.PLAYER_GUARD_RELEASED, this.onSecondaryAny, this);
+    EventBus.on(Events.PLAYER_HOLD_VERB, this.onHoldVerb, this);
   }
 
   get done(): boolean {
@@ -103,7 +108,7 @@ export class TutorialDirector {
     this.apply(this.machine.skip());
   }
 
-  private act(kind: 'dash' | 'secondary'): void {
+  private act(kind: 'dash' | 'secondary' | 'hold'): void {
     if (!this.machine.started) return;
     this.apply(this.machine.action(kind));
   }
@@ -117,7 +122,8 @@ export class TutorialDirector {
     this.pendingFight = ok ? null : f;
   }
 
-  private apply(events: TutorialEvent[]): void {
+  /** attack = 이 이벤트를 만든 공격 (허수아비 맞음 연출이 판정 순간·무기 손맛에 맞춘다) */
+  private apply(events: TutorialEvent[], attack?: PlayerAttackPayload): void {
     for (const e of events) {
       switch (e.type) {
         case 'step':
@@ -136,7 +142,7 @@ export class TutorialDirector {
           this.tryFight(e.fight);
           break;
         case 'dummyHit':
-          this.host.pokeDummy?.(e.index);
+          this.host.pokeDummy?.(e.index, attack);
           break;
         case 'done':
           this.host.highlightSign?.(null);
@@ -156,5 +162,6 @@ export class TutorialDirector {
     EventBus.off(Events.PLAYER_PARRIED, this.onSecondaryAny, this);
     EventBus.off(Events.PLAYER_PARRY_FAILED, this.onSecondaryAny, this);
     EventBus.off(Events.PLAYER_GUARD_RELEASED, this.onSecondaryAny, this);
+    EventBus.off(Events.PLAYER_HOLD_VERB, this.onHoldVerb, this);
   }
 }

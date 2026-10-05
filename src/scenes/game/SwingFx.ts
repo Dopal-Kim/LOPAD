@@ -55,7 +55,7 @@ export class SwingFx {
     return this.g.scene.isActive() && !this.g.frozen && !gameState.gameOver;
   }
 
-  /** 판정 배율 = 갈래·강화 (현재 reach / 기본 reach) × 58라운드 주인공 판정 배율 — 휘두름 그림도 이만큼 */
+  /** 판정 배율 = 갈래·강화 (WeaponState.rangeMult) × 58라운드 주인공 판정 배율 — 휘두름 그림도 이만큼 */
   private get hbScale(): number {
     return weaponRangeScale(gameState.weapon);
   }
@@ -65,7 +65,7 @@ export class SwingFx {
     const w = gameState.weapon;
     const c = w.def.combo;
     if (!c) return null;
-    return resolveHitShape(spec, comboRadius(c, w.def.hitbox) * this.hbScale * p.sizeMult, p.shapeScale);
+    return resolveHitShape(spec, comboRadius(c) * this.hbScale * p.sizeMult, p.shapeScale);
   }
 
   /** 48라운드: 연격 한 타의 판정 모양 (아트 메모가 있으면 그린 대로 — 타 크기 배율은 빼고 대쉬 배율만). 연격이 아니면 null */
@@ -83,7 +83,7 @@ export class SwingFx {
     if (p.dashSlash) {
       const dm = p.bodyAction ? spriteLibrary.sheet('player', p.bodyAction) : undefined;
       const drawnDs = Boolean(dm && typeof dm.hitRadiusPx === 'number');
-      const ds = comboShape(c, w.def.hitbox, hbScale * (drawnDs ? 1 : p.sizeMult), drawnDs ? dm : null);
+      const ds = comboShape(c, hbScale * (drawnDs ? 1 : p.sizeMult), drawnDs ? dm : null);
       if (ds.kind !== 'arc' || (drawnDs && typeof dm!.arcDeg === 'number')) return ds;
       const half = p.dashSlash.arcDeg / 2;
       return { ...ds, arcDeg: p.dashSlash.arcDeg, centerDeg: 0, fromDeg: -half, toDeg: half };
@@ -96,7 +96,7 @@ export class SwingFx {
     const drawn = Boolean(memo && (typeof memo.hitRadiusPx === 'number' || memo.thrust));
     const hitSize = c.hits[p.comboIndex]?.sizeMult ?? 1;
     const size = drawn ? p.sizeMult / hitSize : p.sizeMult;
-    const shape = comboShape(c, w.def.hitbox, hbScale * size, drawn ? memo : null);
+    const shape = comboShape(c, hbScale * size, drawn ? memo : null);
     // 아트 메모에 휘두름 방향이 없으면 짝수 번째 타(2타)는 반대로
     if (shape.kind === 'arc' && !(memo && typeof memo.arcFromDeg === 'number') && p.comboIndex % 2 === 1)
       return { ...shape, fromDeg: shape.toDeg, toDeg: shape.fromDeg };

@@ -7,6 +7,12 @@
 export const ENEMY_INCOMING = { TUTORIAL_DELAY_MS: 900, WAVE_DELAY_MS: 0 };
 
 /**
+ * 61라운드 플레이 점검 '공격 토큰': 일반 적의 접촉 공격은 무리 전체에서 이 간격에 한 번만 (무리에 둘러싸여도 한꺼번에 맞지 않는다 —
+ * 첫 전투가 '배우는 전투'가 되게). 보스·패링 창은 예외. 돌진·탄은 따로 (예고가 있다)
+ */
+export const ENEMY_CONTACT_TOKEN = { GAP_MS: 900 };
+
+/**
  * 적·보스 공격 양상 (35라운드 2단계 임시값, 결정 로그 round-35 "시스템 반영 기록 2단계").
  * 수치(예고 시간·사거리·재장전 등)는 data/enemies.json·bosses.json, 여기는 연출·시트 이름만.
  */

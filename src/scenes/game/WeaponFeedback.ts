@@ -27,7 +27,6 @@ export class WeaponFeedback {
   /** 디버그: 숨 집중 물리 배속 적용 중 */
   focusScale = 1;
   /** 과열 식는 동안 루프 · 그로기 소용돌이 */
-  private coolFx: FxHandle | null = null;
   private swirlFx: FxHandle | null = null;
   /** 디버그: 마지막 가드 fx */
   lastGuardFx: { kind: string; ok: boolean } | null = null;
@@ -95,22 +94,6 @@ export class WeaponFeedback {
   onResource(p: WeaponResourcePayload): void {
     const g = this.g;
     if (p.weapon !== gameState.weapon.id) return;
-    const O = FEEDBACK.OVERHEAT;
-    if (p.event === 'overheat') {
-      g.strikes.brands.onOverheat();
-      if (gameState.weapon.def.gauge?.kind === 'brand' && g.fx.has(O.COOL_SHEET)) {
-        g.fx.stop(this.coolFx, 0, false);
-        this.coolFx = g.fx.play(O.COOL_SHEET, g.player.x, g.player.y, {
-          follow: g.player,
-          depthOffset: DEPTH.OVERLAY_STEP * 3,
-          scaleMult: PLAYER_RENDER_SCALE,
-        });
-      }
-    }
-    if (p.event === 'cooled') {
-      g.fx.stop(this.coolFx, 0, false);
-      this.coolFx = null;
-    }
     if (p.event === 'groggy') this.startSwirl();
     if (p.event === 'recovered') {
       g.fx.stop(this.swirlFx, 0, false);

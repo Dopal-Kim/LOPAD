@@ -5,7 +5,11 @@
  * - BGM 은 층(`bgmByFloor`)·상태(`bgmByState`: title / boss / emperor)로 정하고 크로스페이드한다.
  * - 버스: SFX 0 dB, BGM -8 dB, 보스전 BGM -3 dB, entry.gainDb 가산. 같은 효과음 20ms 중복 1회, swing·hit 류 ±4% 피치.
  * - 음소거는 `setMute()` (localStorage `lopad.mute`) — 49라운드 계약 §11.3: Esc 메뉴 설정 → uiCommands.setMuted.
+ * - 61라운드 계약 §15 음량: `setVolumes({master, bgm, sfx})` — master = 사운드 매니저 전체 음량, bgm·sfx = 버스 배율(0~1).
+ *   즉시 반영(BGM 은 페이드 없이 목표 음량으로, 돌고 있는 루프 효과음도). 저장은 systems/settings(메타 세이브).
  *   M 키 토글은 없앴다 (M = UI 지도). 디버그 요약은 `summary()`.
+ * - 61라운드 계약 sound §9: 층 장면 BGM(`bgmByFloorState` — 여정·전투·보스 국면, 국면은 재생 위치 유지 교차 페이드), 층 전용 곡 지연 로드
+ *   (`audioLazy`), 효과음 변주·속도 흔들기·동시 재생 상한·덕킹(`audioVoices`/`audioMix`), 마스터 리미터.
  * 게임 수명 동안 하나(main.ts 에서 attach). 씬 재시작과 무관하게 BGM 이 이어진다.
  */
 import Phaser from 'phaser';
@@ -16,13 +20,10 @@ import {
   EMPTY_AUDIO_MANIFEST,
   bgmGain,
   bossBgmState,
-  hasPitchVariance,
   indexEntries,
   isBossState,
   loopEndFrames,
   mixingOf,
-  pitchRate,
-  resolveBgm,
   sfxGain,
   SfxDedupe,
   type AudioEntry,
@@ -30,6 +31,21 @@ import {
   type AudioMixing,
 } from './audioDefs';
 import { AUDIO_TRIGGERS, type AudioTrigger } from './audioMap';
+import {
+  dedupeMsOf,
+  floorSceneOfNode,
+  floorStateBgmIds,
+  groupOf,
+  jitterApplies,
+  jitterRate,
+  pickVariant,
+  rateJitterOf,
+  resolveBgmFor,
+  type FloorScene,
+} from './audioMix';
+import { VoiceBank } from './audioVoices';
+import { LazyAudio } from './audioLazy';
+import type { BossPhasePayload, NodeEnteredPayload } from '../../core/EventBus';
 
 /** 실제 구현체(WebAudio / HTML5 / NoAudio)는 모두 setVolume 을 가진다 */
 type Snd = Phaser.Sound.BaseSound & { setVolume(value: number): unknown };
@@ -55,6 +71,15 @@ export interface AudioSummary {
   voices: number;
   recent: { id: string; at: number; rate: number; delayMs: number }[];
   mute: boolean;
+  /** 61라운드 §15 음량 배율 */
+  volumes: { master: number; bgm: number; sfx: number };
+  /** 61라운드 §9: 층 장면 · 보스 국면 · 지연 로드 중 · 덕킹 수 · BGM 덕킹 게인 */
+  scene: string;
+  bossPhase: number;
+  lazyLoading: string[];
+  ducks: number;
+  bgmDuck: number;
+  limiter: boolean;
 }
 
 export class AudioSystem {
@@ -66,8 +91,15 @@ export class AudioSystem {
   /** 루프 끝에 맞춰 자른 버퍼 (디버그) */
   private readonly trimmed = new Set<string>();
   private readonly missing = new Set<string>();
-  private readonly dedupe = new SfxDedupe();
-  private voices: Snd[] = [];
+  private dedupe = new SfxDedupe();
+  /** 61라운드 §9 목소리 상한·덕킹 */
+  private readonly bank = new VoiceBank((snd) => this.kill(snd));
+  /** 변주 그룹별 직전 재생 id */
+  private readonly lastVariant = new Map<string, string>();
+  private floorScene: FloorScene = 'combat';
+  private bossPhase = 1;
+  private readonly lazy = new LazyAudio();
+  private limiter: DynamicsCompressorNode | null = null;
   private readonly loops = new Map<string, Snd>();
   /** 56라운드: 루프별 재생 속도 (디버그·검증) */
   private readonly loopRates = new Map<string, number>();
@@ -82,6 +114,10 @@ export class AudioSystem {
   private paused = false;
   private recent: AudioSummary['recent'] = [];
   private muted = false;
+  /** 61라운드 §15: 음량 배율 (master = 매니저 전체, bgm·sfx = 버스) */
+  private vol = { master: 1, bgm: 1, sfx: 1 };
+  /** 루프 효과음의 버스 배율 전 음량 (음량 변경 때 다시 곱한다) */
+  private readonly loopBase = new Map<string, number>();
   private readonly storage = browserStorage();
   private onGesture?: () => void;
   private readonly triggerHandlers: { event: string; fn: (p: unknown) => void }[] = [];
@@ -92,6 +128,7 @@ export class AudioSystem {
     this.game = game;
     this.muted = this.storage?.getItem(AUDIO.MUTE_STORAGE_KEY) === '1';
     this.applyMute();
+    this.applyMasterVolume();
     game.events.on(Phaser.Core.Events.STEP, this.step, this);
     for (const tr of AUDIO_TRIGGERS) {
       const fn = (p: unknown) => this.onTrigger(tr, p);
@@ -100,6 +137,8 @@ export class AudioSystem {
     }
     EventBus.on(Events.STAGE_STARTED, this.onStageStarted, this);
     EventBus.on(Events.BOSS_STARTED, this.onBossStarted, this);
+    EventBus.on(Events.BOSS_PHASE, this.onBossPhase, this);
+    EventBus.on(Events.NODE_ENTERED, this.onNodeEntered, this);
     EventBus.on(Events.BOSS_DIED, this.onBossDied, this);
     EventBus.on(Events.PLAYER_DIED, this.onRunEnding, this);
     EventBus.on(Events.ENDING_CHOSEN, this.onRunEnding, this);
@@ -124,7 +163,64 @@ export class AudioSystem {
     this.trimmed.clear();
     for (const k of loadedKeys) if (this.entries.has(k)) this.loaded.add(k);
     for (const k of this.loaded) this.applyLoopEnd(this.entries.get(k)!);
+    this.dedupe = new SfxDedupe(dedupeMsOf(this.mix));
+    this.bank.configure(this.mix);
+    this.installLimiter();
     this.refreshBgm();
+  }
+
+  /**
+   * 61라운드 §9: 층 전용 BGM 지연 로드 후보 (Preloader 가 부팅 때 읽지 않은 항목 → 형식별 URL 후보). WebAudio 일 때만 —
+   * 그 밖이면 Preloader 가 부팅 때 읽는다
+   */
+  registerLazy(urls: ReadonlyMap<string, readonly string[]>): void {
+    this.lazy.register(urls);
+  }
+
+  /** 층 장면 곡을 미리 (boss = 국면 곡까지) */
+  private prefetchFloor(floor: number, withBoss: boolean): void {
+    const sm = this.game?.sound;
+    if (!(sm instanceof Phaser.Sound.WebAudioSoundManager)) return;
+    const fs = this.manifest.bgmByFloorState?.[String(floor)];
+    const ids = withBoss
+      ? floorStateBgmIds(this.manifest, floor)
+      : [fs?.journey, fs?.combat].filter((x): x is string => typeof x === 'string');
+    for (const id of ids) {
+      if (this.loaded.has(id)) continue;
+      void this.lazy.load(id, sm, this.game!).then((ok) => {
+        if (!ok) {
+          this.missing.add(id);
+          return;
+        }
+        this.loaded.add(id);
+        this.missing.delete(id);
+        const e = this.entries.get(id);
+        if (e) this.applyLoopEnd(e);
+        this.refreshBgm();
+      });
+    }
+  }
+
+  /** §9 masterLimiter: 마스터 음량 노드 뒤에 압축기 하나 (WebAudio 만, 한 번) */
+  private installLimiter(): void {
+    const L = this.mix.masterLimiter;
+    const sm = this.game?.sound;
+    if (!L || !(sm instanceof Phaser.Sound.WebAudioSoundManager)) return;
+    const ctx = sm.context;
+    if (!this.limiter) {
+      const node = sm as unknown as { masterVolumeNode?: AudioNode };
+      if (!node.masterVolumeNode || typeof ctx.createDynamicsCompressor !== 'function') return;
+      this.limiter = ctx.createDynamicsCompressor();
+      node.masterVolumeNode.disconnect();
+      node.masterVolumeNode.connect(this.limiter);
+      this.limiter.connect(ctx.destination);
+    }
+    const c = this.limiter;
+    c.threshold.value = L.thresholdDb;
+    c.knee.value = L.kneeDb;
+    c.ratio.value = L.ratio;
+    c.attack.value = L.attackMs / 1000;
+    c.release.value = L.releaseMs / 1000;
   }
 
   /**
@@ -159,6 +255,32 @@ export class AudioSystem {
     this.applyMute();
   }
 
+  /** 61라운드 §15 음량 (0~1). 게임 시작 전에 불러도 되고(attach 때 적용), 바뀌면 바로 반영 */
+  setVolumes(v: { master: number; bgm: number; sfx: number }): void {
+    const c = (x: number) => (Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 1);
+    this.vol = { master: c(v.master), bgm: c(v.bgm), sfx: c(v.sfx) };
+    this.applyMasterVolume();
+    this.bank.setSfxMult(this.vol.sfx, this.now());
+    for (const [id, snd] of this.loops) {
+      if (this.fading.some((f) => f.snd === snd)) continue;
+      snd.setVolume((this.loopBase.get(id) ?? 1) * this.vol.sfx);
+    }
+    // BGM: 페이드 중이 아니면 새 목표로 바로 (슬라이더를 끄는 동안 늦지 않게)
+    const t = this.bgm;
+    if (t && !t.dying) {
+      const target = this.targetVolume(t.id);
+      if (t.fade) t.fade.to = target;
+      else {
+        t.volume = target;
+        t.sound.setVolume(target * this.bank.bgmGain);
+      }
+    }
+  }
+
+  get volumes(): { master: number; bgm: number; sfx: number } {
+    return { ...this.vol };
+  }
+
   // --- 효과음 ---
 
   /** 게임 씬이 지연 효과음을 자기 시계로 예약하게 한다 (씬 종료 때 null) */
@@ -174,29 +296,41 @@ export class AudioSystem {
       return true;
     }
     const sm = this.game?.sound;
-    const entry = this.entries.get(id);
-    if (!sm || !entry) {
+    const req = this.entries.get(id);
+    if (!sm || !req) {
       this.missing.add(id);
       return false;
     }
-    if (!this.loaded.has(id)) {
-      this.missing.add(id);
+    // 61라운드 §9 변주: 원본 트리거 → variants 중 로드된 것, 직전과 다른 것
+    const group = groupOf(req);
+    const loadedVariants = (req.variants ?? []).filter((v) => this.loaded.has(v));
+    const pick =
+      loadedVariants.length > 0 ? (pickVariant(loadedVariants, this.lastVariant.get(group), Math.random()) ?? id) : id;
+    const entry = this.entries.get(pick) ?? req;
+    if (!this.loaded.has(pick)) {
+      this.missing.add(pick);
       return false;
     }
     const now = this.now();
-    if (!this.dedupe.allow(id, now)) return false;
-    const rate = (hasPitchVariance(id) ? pitchRate(Math.random()) : 1) * (opts.rate ?? 1);
+    if (!this.dedupe.allow(group, now)) return false;
+    const priority = entry.priority ?? req.priority ?? (entry.category === 'ui' ? 0 : 2);
+    const ui = priority === 0 || entry.category === 'ui';
+    if (!this.bank.admit({ group, priority, ui })) return false;
+    const jitter = jitterApplies({ ...entry, priority }) ? jitterRate(Math.random(), rateJitterOf(this.mix)) : 1;
+    const rate = jitter * (opts.rate ?? 1);
     const delayMs = Math.max(0, opts.delayMs ?? 0);
-    this.pruneVoices();
-    while (this.voices.length >= AUDIO.MAX_SFX_VOICES) {
-      const oldest = this.voices.shift();
-      this.kill(oldest);
-    }
-    const snd = sm.add(id, { volume: sfxGain(this.mix, entry), rate, loop: false, delay: delayMs / 1000 }) as Snd;
+    const base = sfxGain(this.mix, entry);
+    const snd = sm.add(pick, {
+      volume: base * this.bank.gainFor(priority, now),
+      rate,
+      loop: false,
+      delay: delayMs / 1000,
+    }) as Snd;
     snd.once(Phaser.Sound.Events.COMPLETE, () => this.kill(snd));
     snd.play();
-    this.voices.push(snd);
-    this.recent.push({ id, at: Math.round(now), rate: Number(rate.toFixed(3)), delayMs });
+    this.lastVariant.set(group, pick);
+    this.bank.add({ snd, id: pick, group, priority, ui, at: now, base }, entry.durationMs + delayMs, now);
+    this.recent.push({ id: pick, at: Math.round(now), rate: Number(rate.toFixed(3)), delayMs });
     if (this.recent.length > AUDIO.RECENT_SFX) this.recent.shift();
     return true;
   }
@@ -209,10 +343,12 @@ export class AudioSystem {
       if (!entry || !this.loaded.has(id)) this.missing.add(id);
       return;
     }
-    const volume = sfxGain(this.mix, entry);
+    const base = sfxGain(this.mix, entry);
+    const volume = base * this.vol.sfx;
     const snd = sm.add(id, { volume: fadeInMs > 0 ? 0 : volume, loop: true }) as Snd;
     snd.play();
     this.loops.set(id, snd);
+    this.loopBase.set(id, base);
     if (fadeInMs > 0) this.fading.push({ snd, from: 0, to: volume, at: this.now(), ms: fadeInMs });
   }
 
@@ -233,6 +369,7 @@ export class AudioSystem {
     const snd = this.loops.get(id);
     if (!snd) return;
     this.loops.delete(id);
+    this.loopBase.delete(id);
     // 페이드 인 중이면 그 항목을 버리고 지금 볼륨에서 내린다
     this.fading = this.fading.filter((f) => f.snd !== snd);
     if (fadeMs > 0 && snd.isPlaying)
@@ -249,12 +386,9 @@ export class AudioSystem {
   /** 해당 id 의 재생 중인 효과음(일회성·루프) 전부 정지 */
   stopSfx(id: string): void {
     this.stopLoop(id);
-    const keep: Snd[] = [];
-    for (const v of this.voices) {
-      if (v.key === id) this.kill(v);
-      else keep.push(v);
-    }
-    this.voices = keep;
+    this.bank.stopId(id);
+    // 변주로 재생된 것도 (원본 id 로 멈추면 그 그룹 전부)
+    for (const v of this.entries.get(id)?.variants ?? []) if (v !== id) this.bank.stopId(v);
   }
 
   stopAllLoops(): void {
@@ -319,9 +453,16 @@ export class AudioSystem {
       paused: this.paused,
       loops: [...this.loops.keys()],
       loopTrimmed: [...this.trimmed],
-      voices: this.voices.filter((v) => v.isPlaying).length,
+      voices: this.bank.playing,
       recent: [...this.recent],
       mute: this.muted,
+      volumes: { ...this.vol },
+      scene: this.floorScene,
+      bossPhase: this.bossPhase,
+      lazyLoading: this.lazy.inFlight,
+      ducks: this.bank.activeDucks,
+      bgmDuck: Number(this.bank.bgmGain.toFixed(3)),
+      limiter: this.limiter !== null,
     };
   }
 
@@ -356,11 +497,30 @@ export class AudioSystem {
 
   private onStageStarted(p: { stageIndex: number }): void {
     this.stopAllLoops();
+    // 61라운드 §9: 층 시작 = 여정부터 (노드 진입이 곧 장면을 정한다)
+    this.floorScene = 'journey';
+    this.bossPhase = 1;
+    this.prefetchFloor(p.stageIndex + 1, false);
     this.setFloor(p.stageIndex + 1);
   }
 
+  /** 61라운드 §9: 노드 → 장면(여정·전투), 보스 노드면 국면 곡 미리 */
+  private onNodeEntered(p: NodeEnteredPayload): void {
+    this.floorScene = floorSceneOfNode(p.kind);
+    if (p.kind === 'boss' && this.floor !== null) this.prefetchFloor(this.floor, true);
+    this.refreshBgm();
+  }
+
   private onBossStarted(p: { boss: string }): void {
+    this.bossPhase = 1;
     this.setState(bossBgmState(this.manifest, p.boss));
+  }
+
+  /** 61라운드 §9: 국면 곡 — 지금 재생 위치에서 bgmPhaseCrossfadeMs 교차 페이드 */
+  private onBossPhase(p: BossPhasePayload): void {
+    if (!isBossState(this.state)) return;
+    this.bossPhase = Math.max(1, p.phase);
+    this.refreshBgm(true);
   }
 
   private onBossDied(): void {
@@ -377,10 +537,10 @@ export class AudioSystem {
     if (this.bgm) this.fadeOutBgm();
   }
 
-  private refreshBgm(): void {
+  private refreshBgm(phaseChange = false): void {
     const sm = this.game?.sound;
     if (!sm) return;
-    const want = resolveBgm(this.manifest, this.floor, this.state);
+    const want = resolveBgmFor(this.manifest, this.floor, this.state, this.floorScene, this.bossPhase);
     const target = want ? this.targetVolume(want) : 0;
     if (this.bgm && this.bgm.id === want) {
       if (Math.abs(this.bgm.volume - target) > 1e-4 || (this.bgm.fade && this.bgm.fade.to !== target)) {
@@ -388,7 +548,13 @@ export class AudioSystem {
       }
       return;
     }
-    this.retire(this.mix.bgmCrossfadeMs);
+    // 지연 로드 중인 곡이면 지금 곡을 유지하고 도착하면 다시 (prefetchFloor → refreshBgm)
+    if (want && !this.loaded.has(want) && this.lazy.isLoading(want)) return;
+    // 61라운드 §9: 국면 전환은 지금 재생 위치에서 짧게 교차
+    const sync = phaseChange && this.mix.bgmPhaseSyncPosition !== false && this.bgm !== null;
+    const ms = sync ? (this.mix.bgmPhaseCrossfadeMs ?? this.mix.bgmCrossfadeMs) : this.mix.bgmCrossfadeMs;
+    const seekFrom = sync ? this.bgm!.sound : null;
+    this.retire(ms);
     if (!want) return;
     const entry = this.entries.get(want);
     if (!entry || !this.loaded.has(want)) {
@@ -396,12 +562,15 @@ export class AudioSystem {
       return;
     }
     const snd = sm.add(want, { loop: true, volume: 0 }) as Snd;
-    snd.play();
+    const dur = entry.durationMs / 1000;
+    const pos = seekFrom && dur > 0 ? (seekFrom as unknown as { seek: number }).seek % dur : 0;
+    if (pos > 0) snd.play({ seek: pos });
+    else snd.play();
     this.bgm = {
       id: want,
       sound: snd,
       volume: 0,
-      fade: { from: 0, to: target, startAt: this.now(), ms: this.mix.bgmCrossfadeMs },
+      fade: { from: 0, to: target, startAt: this.now(), ms },
       dying: false,
     };
   }
@@ -409,7 +578,7 @@ export class AudioSystem {
   private targetVolume(id: string): number {
     const entry = this.entries.get(id);
     if (!entry) return 0;
-    return bgmGain(this.mix, entry, { bossDuck: isBossState(this.state), pauseDuck: this.paused });
+    return bgmGain(this.mix, entry, { bossDuck: isBossState(this.state), pauseDuck: this.paused }) * this.vol.bgm;
   }
 
   /** 현재 BGM 을 페이드아웃 목록으로 넘긴다 */
@@ -424,6 +593,11 @@ export class AudioSystem {
 
   private step(): void {
     const now = this.now();
+    // 61라운드 §9 덕킹: 효과음 봉투 적용 · BGM 덕킹이 바뀌면 지금 곡에 바로
+    const prevDuck = this.bank.bgmGain;
+    const duck = this.bank.update(now);
+    if (Math.abs(duck - prevDuck) > 1e-4 && this.bgm && !this.bgm.fade)
+      this.bgm.sound.setVolume(this.bgm.volume * duck);
     if (this.fading.length > 0) {
       this.fading = this.fading.filter((f) => {
         const k = Math.min(1, (now - f.at) / f.ms);
@@ -452,12 +626,8 @@ export class AudioSystem {
     if (!f) return;
     const k = f.ms <= 0 ? 1 : Math.min(1, (now - f.startAt) / f.ms);
     t.volume = f.from + (f.to - f.from) * k;
-    t.sound.setVolume(t.volume);
+    t.sound.setVolume(t.volume * (t.dying ? 1 : this.bank.bgmGain));
     if (k >= 1) t.fade = null;
-  }
-
-  private pruneVoices(): void {
-    this.voices = this.voices.filter((v) => v.isPlaying && !v.pendingRemove);
   }
 
   private kill(snd: Snd | undefined): void {
@@ -470,6 +640,11 @@ export class AudioSystem {
   private applyMute(): void {
     const sm = this.game?.sound;
     if (sm) sm.mute = this.muted;
+  }
+
+  private applyMasterVolume(): void {
+    const sm = this.game?.sound;
+    if (sm) sm.volume = this.vol.master;
   }
 
   private resumeContext(): void {
@@ -492,6 +667,8 @@ export class AudioSystem {
     this.triggerHandlers.length = 0;
     EventBus.off(Events.STAGE_STARTED, this.onStageStarted, this);
     EventBus.off(Events.BOSS_STARTED, this.onBossStarted, this);
+    EventBus.off(Events.BOSS_PHASE, this.onBossPhase, this);
+    EventBus.off(Events.NODE_ENTERED, this.onNodeEntered, this);
     EventBus.off(Events.BOSS_DIED, this.onBossDied, this);
     EventBus.off(Events.PLAYER_DIED, this.onRunEnding, this);
     EventBus.off(Events.ENDING_CHOSEN, this.onRunEnding, this);

@@ -16,6 +16,7 @@ import {
 import type { EnemyIncomingPayload } from '../../core/EventBus';
 import { buildSnapshot } from '../../contract/snapshot';
 import { audio } from '../../systems/audio/audio';
+import { settings } from '../../systems/settings';
 import { floorText } from '../../systems/story';
 import type { WarpDenyReason } from '../../systems/traversal';
 import type { Game } from '../Game';
@@ -51,7 +52,8 @@ export class UiRelay {
       resource: g.player?.resource?.toUi(now) ?? null,
       muted: audio.isMuted,
       lab: g.lab,
-      carry: g.player?.carryUi() ?? null,
+      // 61라운드: F 넣기/뽑기 삭제 — 칼 발도는 좌 홀드 (스냅샷 weaponVerbs)
+      carry: null,
       // 56라운드 (계약 §13): 무기 고유 자원 · 그로기
       gauge: g.player?.gauges.toUi(now) ?? g.strikes?.brands.toUi() ?? null,
       groggy: this.groggy(now),
@@ -61,6 +63,8 @@ export class UiRelay {
       consumable: g.bundle?.consumableUi() ?? null,
       elites: g.bundle?.elitesUi() ?? [],
       nodeTrial: g.bundle?.nodeTrialUi() ?? null,
+      // 61라운드 (계약 §15): 설정
+      settings: settings.current(),
     });
   }
 

@@ -6,7 +6,7 @@ export const TILE = 16;
 /**
  * 50라운드 렌더 배율 (결정 round-50 Q2 '캐릭터 32×48·타일 32×32·카메라 확대 1배(화면상 크기 유사)', 계약 art §9).
  * 설계: 월드 좌표·판정·속도는 그대로 두고 **렌더 배율만** 바꾼다. 월드 1단위 = 논리 화면 WORLD_TO_SCREEN px (= 게임 카메라 논리
- * 배율 CAMERA.ZOOM). 근거는 parts/system/README.md 50라운드 절.
+ * 배율 CAMERA.ZOOM). 근거는 parts/system/CHANGELOG.md 50라운드 절.
  *
  * 52라운드 Q8 (계약 art §11): 내부 렌더 1920×1080. 논리 화면(UI 배치·좌표 기준)은 960×540 그대로이고 캔버스만 RESOLUTION 배 —
  * 모든 카메라가 RESOLUTION 배를 더 곱한다(`systems/display.ts`). 도트 1개 = 실제 px: 기존(pixelScale 없음) 4 · v2(1) 2 · v3(0.5) 1.

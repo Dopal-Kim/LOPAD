@@ -21,6 +21,7 @@
  */
 import Phaser from 'phaser';
 import { GAME } from '../../core/Constants';
+import { cameraShake } from '../feel';
 import { CANVAS_H, CANVAS_W, RES } from '../display';
 import { PALETTE } from '../../data';
 import { fxCoreColor, hexToInt, rampFor } from '../palette';
@@ -282,7 +283,7 @@ export class StrokeFx {
       STROKE_FX.SPARKS.KEY,
       this.rnd,
     );
-    this.scene.cameras.main.shake(STROKE_FX.SEAR.IGNITE_MS, STROKE_FX.SEAR.SHAKE_INTENSITY);
+    cameraShake(this.scene.cameras.main, STROKE_FX.SEAR.IGNITE_MS, STROKE_FX.SEAR.SHAKE_INTENSITY);
   }
 
   /** 디버그: 마무리 시계를 ms 에 멈춘다 (null = 풀고 그 자리부터 계속). 시작 전에 걸어 둘 수도 있다 */
@@ -567,7 +568,7 @@ export class StrokeFx {
     if (speed < K.MIN_SPEED || now - this.lastShakeAt < K.THROTTLE_MS) return;
     this.lastShakeAt = now;
     const r = Math.min(1, (speed - K.MIN_SPEED) / (STROKE_FX.WIDTH.SPEED_REF - K.MIN_SPEED));
-    this.scene.cameras.main.shake(K.MS, K.INTENSITY[0] + (K.INTENSITY[1] - K.INTENSITY[0]) * r);
+    cameraShake(this.scene.cameras.main, K.MS, K.INTENSITY[0] + (K.INTENSITY[1] - K.INTENSITY[0]) * r);
     this.shakes += 1;
   }
 

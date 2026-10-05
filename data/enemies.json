@@ -2,9 +2,9 @@
   "dummy": {
     "name": "징집병",
     "hp": 20,
-    "attack": 10,
+    "attack": 7,
     "speedTiles": 3,
-    "attackIntervalMs": 800,
+    "attackIntervalMs": 1200,
     "behavior": "chase",
     "size": [16, 16],
     "color": "#d04040",
@@ -13,7 +13,7 @@
     "pack": {
       "minCount": 3,
       "rangeTiles": 6,
-      "speedMult": 1.4,
+      "speedMult": 1.25,
       "durationMs": 2000,
       "cooldownMs": 4000
     }
@@ -21,7 +21,7 @@
   "archer": {
     "name": "사수",
     "hp": 14,
-    "attack": 8,
+    "attack": 6,
     "speedTiles": 2.5,
     "attackIntervalMs": 1500,
     "behavior": "ranged",
@@ -49,9 +49,9 @@
   "charger": {
     "name": "결사병",
     "hp": 30,
-    "attack": 15,
+    "attack": 12,
     "speedTiles": 2,
-    "attackIntervalMs": 800,
+    "attackIntervalMs": 1000,
     "behavior": "charge",
     "size": [18, 18],
     "color": "#8040c0",
@@ -61,8 +61,8 @@
       "dashSpeedTiles": 14,
       "dashMs": 400,
       "cooldownMs": 1200,
-      "dashAttack": 15,
-      "idleAttack": 6
+      "dashAttack": 12,
+      "idleAttack": 5
     },
     "personalityValue": 12,
     "gold": 7,

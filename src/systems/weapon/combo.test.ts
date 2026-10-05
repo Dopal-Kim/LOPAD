@@ -92,9 +92,10 @@ describe('48라운드 판정 모양', () => {
     // 55라운드 §17: 칼·단검 3연격, 대검 G-C 순환 4타(H1·V·H2·V)
     for (const id of ['katana', 'dagger']) expect(WEAPONS[id].combo!.hits).toHaveLength(3);
     expect(WEAPONS.greatsword.combo!.hits).toHaveLength(4);
-    // 1.5배 히트박스 (47라운드 칼 24×16 리치 14 → 36×24 리치 21)
-    expect(WEAPONS.katana.hitbox).toMatchObject({ width: 36, height: 24, reach: 21 });
-    expect(WEAPONS.bow.hitbox).toMatchObject({ width: 6, height: 6, reach: 12 });
+    // 61라운드 P9: 옛 hitbox 삭제 — 판정 기준은 연격 반경 하나, 활은 ranged 간격·화살 크기
+    for (const id of ['katana', 'greatsword', 'dagger']) expect(WEAPONS[id].combo!.radiusPx).toBeGreaterThan(0);
+    expect(WEAPONS.bow.ranged).toMatchObject({ arrowSizePx: 6, spawnPx: 12 });
+    expect('hitbox' in WEAPONS.katana).toBe(false);
     // 대검 내려찍기 V 가 수평 H 보다 크다(피해), 칼 2타는 1타보다 빠르다
     const gs = WEAPONS.greatsword.combo!.hits;
     expect(gs[1].damageMult).toBeGreaterThan(gs[0].damageMult);
@@ -104,13 +105,13 @@ describe('48라운드 판정 모양', () => {
 
   it('모양: 아트 메모가 데이터보다 우선, 배율 적용, left 는 좌우 반전', () => {
     const k = WEAPONS.katana;
-    const s1 = comboShape(k.combo!, k.hitbox, 1);
+    const s1 = comboShape(k.combo!, 1);
     // 56라운드 Q1 사거리 ×1.15 (반경 33 → 38)
     expect(s1).toMatchObject({ kind: 'arc', radius: 38, arcDeg: 140 });
-    const s2 = comboShape(k.combo!, k.hitbox, 1.5, { hitRadiusPx: 20, arcDeg: 90, arcFromDeg: 65, arcToDeg: -25 });
+    const s2 = comboShape(k.combo!, 1.5, { hitRadiusPx: 20, arcDeg: 90, arcFromDeg: 65, arcToDeg: -25 });
     expect(s2).toMatchObject({ kind: 'arc', radius: 30, arcDeg: 90, centerDeg: 20 });
     const d = WEAPONS.dagger;
-    const t = comboShape(d.combo!, d.hitbox, 2, { thrust: { lengthPx: 24, widthPx: 8, angleDeg: -8, fromPx: 4 } });
+    const t = comboShape(d.combo!, 2, { thrust: { lengthPx: 24, widthPx: 8, angleDeg: -8, fromPx: 4 } });
     expect(t).toMatchObject({ kind: 'thrust', length: 48, width: 16, angleDeg: -8, fromPx: 8 });
     // 비대칭 호(중심 +20° = 아래쪽으로 치우침): right 면 아래가, left 면 반전돼 역시 아래가 맞는다 (left 는 180-θ)
     if (s2.kind !== 'arc') throw new Error('arc');

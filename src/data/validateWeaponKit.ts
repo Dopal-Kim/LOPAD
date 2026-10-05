@@ -6,20 +6,9 @@ import { validateMoves } from './validateMoves';
 import { num, nums, str } from './validateUtil';
 
 const GAUGE_NUMERIC: Record<string, readonly string[]> = {
-  kenki: ['stages', 'perStage', 'gainPerHit', 'parryGainStages', 'issenDamagePerStage', 'cloneAtStages'],
+  kenki: ['stages', 'perStage', 'gainPerHit', 'parryGainStages', 'damagePerStage', 'critAtStages'],
   grudge: ['max', 'blockGainMult', 'perfectMult', 'groggyMult', 'slamDamageBonus', 'slamRangeBonus'],
-  brand: [
-    'max',
-    'perHit',
-    'backGain',
-    'backAngleDeg',
-    'heatGainPerStage',
-    'burstDamagePerMark',
-    'overheatBurstRadiusTiles',
-    'coolingSpeedMult',
-    'coolingMoveMult',
-    'lifeMs',
-  ],
+  brand: ['max', 'perHit', 'backGain', 'backAngleDeg', 'tempoGainPerStage', 'burstDamagePerMark', 'lifeMs'],
   breath: ['max', 'perfectGain', 'focusMs', 'focusTimeScale', 'focusPerfectWindowMult'],
 };
 
@@ -32,6 +21,11 @@ export function validateWeaponKit(w: WeaponDef, path: string): void {
     if (!keys) throw new Error(`[data] ${path}.gauge.kind 알 수 없음`);
     str(g.label, `${path}.gauge.label`);
     nums(g, keys, `${path}.gauge`);
+    if (g.kind === 'breath' && g.branch !== undefined) {
+      str(g.branch, `${path}.gauge.branch`);
+      if (!w.personality.branches.some((b) => b.id === g.branch))
+        throw new Error(`[data] ${path}.gauge.branch '${g.branch}' 는 1단 갈래 id 여야 합니다`);
+    }
   }
   const i = w.issen;
   if (i) {
@@ -55,8 +49,6 @@ export function validateWeaponKit(w: WeaponDef, path: string): void {
       throw new Error(`[data] ${path}.issen.lineSheets 는 비어 있지 않은 배열`);
     i.lineSheets.forEach((s, n) => str(s, `${path}.issen.lineSheets[${n}]`));
     if (typeof i.soloSuffix !== 'string') throw new Error(`[data] ${path}.issen.soloSuffix 없음`);
-    str(i.shadow?.sheet, `${path}.issen.shadow.sheet`);
-    nums(i.shadow, ['startAtMs', 'travelMs', 'hitAtMs', 'damageScale'], `${path}.issen.shadow`);
     if (!(i.dashEndMs > i.dashStartMs))
       throw new Error(`[data] ${path}.issen.dashEndMs 는 dashStartMs 보다 커야 합니다`);
   }

@@ -16,7 +16,7 @@ import type { ConsumableId, EventDef, EventOption, MapInfoId } from '../../../da
 import { UI_EVENTS, __system, type UiHiddenNodeFound, type UiMenuLine } from '../../../contract/ui';
 import { curseDef } from '../../../data/build';
 import { revealHidden } from '../../../systems/bundle2/routeExtras';
-import { shopPrice } from '../../../systems/economy';
+import { goldCost, shopPrice } from '../../../systems/economy';
 import { StructureView } from '../../../world/StructureView';
 import type { Game } from '../../Game';
 import type { BundleProps } from './BundleProps';
@@ -312,8 +312,9 @@ export class EventNode {
         const full = s.kind === 'potion' && gameState.potions >= g.economy.potionCarry;
         return {
           key: String(i + 1),
-          label: `${name}  ${s.sold ? String(BUNDLE2.shop.labels.soldOut) : `${s.price} ${STORY.names.gold}`}`,
+          label: s.sold ? `${name}  ${String(BUNDLE2.shop.labels.soldOut)}` : name,
           enabled: !s.sold && !full && gameState.gold >= s.price,
+          price: goldCost(s.price, gameState.gold, STORY.names.gold),
           group: 'display' as const,
           soldOut: s.sold,
         };

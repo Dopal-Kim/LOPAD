@@ -140,8 +140,6 @@ export function startDashSlash(p: Player, input: InputState, time: number, W: We
   const hf = sheetUsed?.hitFrames?.[0];
   const impact = hf !== undefined ? visual.frameStartMs(hf) : visual.lastImpactMs;
   if (res?.def.kind === 'stamina') res.spend(res.def.cost.dashAttack, time);
-  // 53라운드 Q15: 넣은 채 대쉬 공격도 첫 타 보너스 (대검 끌어내기 = 크게 밀쳐냄)
-  const first = p.gear.firstStrike;
   p.gear.markDrawn(time);
   combo.reset();
   p.setAction('dashslash', time + total);
@@ -154,10 +152,10 @@ export function startDashSlash(p: Player, input: InputState, time: number, W: We
     y: p.y,
     dirX: aim.x,
     dirY: aim.y,
-    damageMult: last.damageMult * m.mult * (first?.damageMult ?? 1),
+    damageMult: last.damageMult * m.mult,
     sizeMult: D.attackSizeMult,
     kind: 'dashAttack',
-    forceCrit: m.forceCrit || Boolean(first?.forceCrit),
+    forceCrit: m.forceCrit,
     primed: m.primed,
     swingDelayMs: impact,
     releaseDelayMs: 0,
@@ -168,7 +166,6 @@ export function startDashSlash(p: Player, input: InputState, time: number, W: We
     bodyAction,
     bodyFrameStartsMs: [...visual.lastFrameStarts],
     dashSlash: { arcDeg: DS.arcDeg },
-    ...(first ? { firstStrike: first.label, knockbackMult: first.knockbackMult } : {}),
   };
   EventBus.emit(Events.PLAYER_ATTACKED, payload);
 }

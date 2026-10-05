@@ -5,6 +5,7 @@ import {
   DEBUG,
   DEPTH,
   ENEMY_INCOMING,
+  FEEL,
   GAME,
   PROTOTYPE,
   SCENES,
@@ -27,6 +28,9 @@ import type { RoomDirector } from '../systems/RoomDirector';
 import type { Rng } from '../systems/rng';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { TextMenu } from '../systems/TextMenu';
+import { weaponVerbs } from '../systems/weapon/verbs';
+import { weaponRangeScale } from '../systems/weapon/playerScale';
+import { dummyHitFeel } from './game/DummyHitFeel';
 import { UI_EVENTS, __system } from '../contract/ui';
 import {
   setChooseCanceler,
@@ -87,7 +91,7 @@ export type { GameInitData } from './game/shared';
 type Subscription = [event: string, fn: (p: never) => void, ctx: object];
 
 /**
- * 메인 플레이 씬 (50라운드 1단계: 책임별 분리 — 구조 지도는 parts/system/README.md 50라운드 절).
+ * 메인 플레이 씬 (50라운드 1단계: 책임별 분리 — 구조 지도는 parts/system/CHANGELOG.md 50라운드 절).
  * 이 파일은 씬 생애주기(만들기·매 프레임 순서·정리)와 공유 상태만 갖고, 일은 `scenes/game/*` 모듈이 한다.
  * 모듈은 create() 마다 새로 만들어져 노드·층 재시작 때 상태가 깨끗하다.
  */
@@ -333,6 +337,8 @@ export class Game extends Phaser.Scene {
     const tut = this.nodeArena?.tutorial;
     if (!tut || !this.nodeArena) return;
     const sec = gameState.weapon.def.secondary;
+    const w = gameState.weapon;
+    const holdVerb = weaponVerbs(w.id, w.def, w.nodes).verbs.find((v) => v.slot === 'hold');
     const roomId = this.layout!.rooms[0].id;
     const sp = this.nodeArena.setPiece;
     this.tutorial = new TutorialDirector(
@@ -345,11 +351,23 @@ export class Game extends Phaser.Scene {
           this.director.startChallenge(roomId, spawns, onDone, at, ENEMY_INCOMING.TUTORIAL_DELAY_MS),
         step: (info) => this.ui.tutorialStep(info),
         highlightSign: (i) => this.setPieceView?.highlightSign(i),
-        pokeDummy: (i) => this.setPieceView?.pokeDummy(i),
+        // 61라운드 플레이 점검: 판정 순간에 불꽃·히트스톱·점멸·무기 무게만큼 흔들림
+        pokeDummy: (i, attack) => dummyHitFeel(this, i, attack),
       },
       {
         ranged: gameState.weapon.def.kind === 'ranged',
-        vars: { name: sec.name, description: ('description' in sec ? sec.description : undefined) ?? '' },
+        vars: {
+          name: sec.name,
+          description: ('description' in sec ? sec.description : undefined) ?? '',
+          // 61라운드 P1: 좌 홀드 기술 (갈래가 바꿨으면 그 이름)
+          holdName: holdVerb?.name ?? '',
+          holdHint: holdVerb?.hint ?? '',
+        },
+        // 61라운드: 허수아비 맞음 판정 = 무기의 실제 판정 거리 (쐐기 길이 여유 TUTORIAL_REACH_MULT)
+        meleeReachPx: () =>
+          gameState.weapon.def.kind === 'melee'
+            ? gameState.weapon.baseReachPx * weaponRangeScale(gameState.weapon) * FEEL.TUTORIAL_REACH_MULT
+            : 0,
       },
     );
     if (urlParams().has('notutorial')) this.tutorial.skip();

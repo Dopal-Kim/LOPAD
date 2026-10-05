@@ -13,7 +13,7 @@ import type { UiCost, UiMenuLine } from '../../../contract/ui';
 import type { ShopStock } from '../../../systems/bundle2/BundleState';
 import { buyIntel } from '../../../systems/bundle2/routeExtras';
 import { rerollPrice, rollDisplay } from '../../../systems/bundle2/shopStock';
-import { shopPrice } from '../../../systems/economy';
+import { goldCost, shopPrice } from '../../../systems/economy';
 import type { Game } from '../../Game';
 
 export type ShopBoughtPayload = {
@@ -64,13 +64,9 @@ export class ShopMenu {
     return rollDisplay(this.g.rng, pool, this.priceMult());
   }
 
-  private cost(amount: number): UiCost {
-    return {
-      kind: 'gold',
-      amount,
-      label: `${amount}${STORY.names.gold}`,
-      affordable: gameState.gold >= amount,
-    };
+  /** 61라운드 #3: 가격은 줄 label 이 아니라 이 필드로만 (고정 4칸·행상도 같은 꼴) */
+  cost(amount: number): UiCost {
+    return goldCost(amount, gameState.gold, STORY.names.gold);
   }
 
   /** 상점을 열 때 (Economy.openShop): 다음 상점 할인을 이 상점에 쓴다 */
@@ -96,9 +92,7 @@ export class ShopMenu {
           : (consumableDef(d.id)?.description ?? '');
       out.push({
         key: `d${i + 1}`,
-        label: d.sold
-          ? `${name}  ${label('soldOut')}`
-          : `${d.kind === 'passive' ? `[${d.rarity}] ` : ''}${name}${lv > 0 ? ` (Lv${lv} → ${lv + 1})` : ''}  ${d.price} ${STORY.names.gold}`,
+        label: d.sold ? `${name}  ${label('soldOut')}` : `${name}${lv > 0 ? ` (Lv${lv} → ${lv + 1})` : ''}`,
         enabled: !d.sold && gameState.gold >= d.price,
         detail,
         group: 'display',
@@ -110,7 +104,7 @@ export class ShopMenu {
     const rp = rerollPrice(s.rerolls, this.priceMult());
     out.push({
       key: 'reroll',
-      label: `${label('reroll')}  ${rp} ${STORY.names.gold}`,
+      label: label('reroll'),
       enabled: gameState.gold >= rp,
       group: 'reroll',
       price: this.cost(rp),
@@ -119,7 +113,7 @@ export class ShopMenu {
       const cp = Math.round(BUNDLE2.shop.chest.price * this.priceMult());
       out.push({
         key: 'chest',
-        label: s.chestUsed ? `${label('chest')}  ${label('soldOut')}` : `${label('chest')}  ${cp} ${STORY.names.gold}`,
+        label: s.chestUsed ? `${label('chest')}  ${label('soldOut')}` : label('chest'),
         enabled: !s.chestUsed && gameState.gold >= cp,
         detail: `패시브 ${BUNDLE2.shop.chest.choices}택`,
         group: 'chest',
@@ -140,7 +134,7 @@ export class ShopMenu {
       const price = Math.round(it.price * (this.g.build?.shopPriceMult() ?? 1));
       return {
         key: `${prefix}${it.id}`,
-        label: bought ? `${it.name}  ${label('soldOut')}` : `${it.name}  ${price} ${STORY.names.gold}`,
+        label: bought ? `${it.name}  ${label('soldOut')}` : it.name,
         enabled: !bought && gameState.gold >= price,
         group: 'mapInfo',
         price: this.cost(price),

@@ -37,6 +37,7 @@
     "decelMs": 120
   },
   "startWeapon": "katana",
+  "startPotions": 1,
   "attackSlowMinMs": 120,
   "perfectGuard": { "windowMs": 150 }
 }

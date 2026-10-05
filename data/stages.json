@@ -1,7 +1,9 @@
 {
   "run": {
     "order": ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6", "stage7", "stage8"],
-    "maxSaves": 2
+    "maxSaves": 2,
+    "_noteLoad": "61라운드 P4·P9: 부팅 때 로드할 층 수 (1층 한정 작업 — 2~8층 데이터는 지우지 않고 로드 경로에서만 뺀다. 2층 이상에 가면 층 타일셋·보스 그림은 기존 폴백). 다음 층 개발 때 올린다",
+    "loadFloors": 1
   },
   "stages": {
     "stage1": {

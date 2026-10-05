@@ -334,22 +334,19 @@ export interface ShapeMemo {
 }
 
 /** 연격 공통 판정 반경 px (R, 배율 전) — `radiusPx` 없으면 reach + width/2 */
-export function comboRadius(def: Pick<ComboDef, 'radiusPx'>, base: { reach: number; width: number }): number {
-  return def.radiusPx ?? base.reach + base.width / 2;
+export function comboRadius(def: Pick<ComboDef, 'radiusPx'>): number {
+  return def.radiusPx ?? 0;
 }
 
 /**
- * 48라운드 연격 공통 판정 모양: 아트 메모(hitRadiusPx·arcDeg·thrust)가 있으면 그것, 없으면 데이터(arc 반경 = reach + width/2, thrust 길이·폭).
- * scale = 진화·강화 배율(현재 reach / 기본 reach) × 타·대쉬 크기 배율
+ * 48라운드 연격 공통 판정 모양: 아트 메모(hitRadiusPx·arcDeg·thrust)가 있으면 그것, 없으면 데이터(arc 반경 = combo.radiusPx,
+ * thrust 길이·폭 — 없으면 길이 R·폭 R/4). scale = 진화·강화 배율(WeaponState.rangeMult) × 타·대쉬 크기 배율.
+ * 61라운드 P9: 옛 hitbox(reach·width) 인자 삭제 — 판정 기준은 combo.radiusPx 하나
  */
-export function comboShape(
-  def: ComboDef,
-  base: { reach: number; width: number },
-  scale: number,
-  memo?: ShapeMemo | null,
-): HitShape {
+export function comboShape(def: ComboDef, scale: number, memo?: ShapeMemo | null): HitShape {
   if (def.shape === 'thrust') {
-    const t = memo?.thrust ?? def.thrust ?? { lengthPx: base.reach + base.width / 2, widthPx: base.width / 2 };
+    const R = comboRadius(def);
+    const t = memo?.thrust ?? def.thrust ?? { lengthPx: R, widthPx: R / 4 };
     return {
       kind: 'thrust',
       length: t.lengthPx * scale,
@@ -358,7 +355,7 @@ export function comboShape(
       fromPx: (memo?.thrust?.fromPx ?? 0) * scale,
     };
   }
-  const radius = typeof memo?.hitRadiusPx === 'number' ? memo.hitRadiusPx : comboRadius(def, base);
+  const radius = typeof memo?.hitRadiusPx === 'number' ? memo.hitRadiusPx : comboRadius(def);
   const arcDeg = typeof memo?.arcDeg === 'number' ? memo.arcDeg : (def.arcDeg ?? 120);
   const from = typeof memo?.arcFromDeg === 'number' ? memo.arcFromDeg : -arcDeg / 2;
   const to = typeof memo?.arcToDeg === 'number' ? memo.arcToDeg : arcDeg / 2;

@@ -3,10 +3,12 @@ import { ASSETS, COLORS, FEEL, SCENES, SPRITES, TEXTURES, TILE } from '../core/C
 import { TileId } from '../systems/mapgen';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { BOSSES, RUN, WEAPONS } from '../data';
+import { floorLoaded } from '../data/scope';
 import { metaStore } from '../systems/meta';
 import { audio } from '../systems/audio/audio';
 import { ensureFont } from '../systems/fonts';
 import { audioFileRels, audioManifestRel, isAudioManifest, type AudioManifest } from '../systems/audio/audioDefs';
+import { isLazyBgm } from '../systems/audio/audioMix';
 import { spriteLibrary } from '../systems/sprites/sprites';
 import type { SheetDef } from '../systems/sprites/spriteDefs';
 import {
@@ -91,7 +93,9 @@ export class Preloader extends Phaser.Scene {
     const dirOf = (rel: string) => rel.slice(0, rel.lastIndexOf('/') + 1);
     this.pendingSheets = queueSheetJsons(this, bootSheetRequests());
     this.pendingTiles = [];
+    // 61라운드 P9: 층 타일셋은 로드 범위(stages.json run.loadFloors) 안 층만 — 범위 밖 층은 플레이스홀더 타일
     for (let floor = 1; floor <= RUN.order.length; floor++) {
+      if (!floorLoaded(floor)) continue;
       const rel = tilesetJsonPath(floor);
       if (!exists(rel)) continue;
       const jsonKey = `json_${tilesetTextureKey(floor)}`;
@@ -137,10 +141,20 @@ export class Preloader extends Phaser.Scene {
     if (!isAudioManifest(json)) return null;
     const exists = (rel: string) => this.manifest === null || this.manifest.has(rel);
     const keys: string[] = [];
+    // 61라운드 계약 sound §9: 층 전용 BGM(use.floor)은 WebAudio 면 지연 로드 (audio.registerLazy → 층·노드 진입 때)
+    const lazyOk = this.sound instanceof Phaser.Sound.WebAudioSoundManager;
+    const lazy = new Map<string, string[]>();
     for (const entry of json.entries) {
       if (!entry || typeof entry.id !== 'string' || typeof entry.file !== 'string') continue;
       const rels = audioFileRels(entry).filter(exists);
       if (rels.length === 0) continue;
+      if (lazyOk && isLazyBgm(entry)) {
+        lazy.set(
+          entry.id,
+          rels.map((rel) => `${ASSETS.URL}/${rel}`),
+        );
+        continue;
+      }
       keys.push(entry.id);
       if (!this.cache.audio.exists(entry.id))
         this.load.audio(
@@ -148,6 +162,7 @@ export class Preloader extends Phaser.Scene {
           rels.map((rel) => `${ASSETS.URL}/${rel}`),
         );
     }
+    audio.registerLazy(lazy);
     return { manifest: json, keys };
   }
 

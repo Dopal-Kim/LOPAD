@@ -25,7 +25,9 @@ describe('58라운드 Q3 대검 차지 균열 (꽂아내리기 대체)', () => {
   it('데이터: 단계 3/4/5칸 · 어느 갈래든 휘둘러 내리찍기 (꽂아내리기 없음)', () => {
     const cl = WEAPONS.greatsword.combo!.charge!.crackLine!;
     expect(cl.tilesByStage).toEqual([3, 4, 5]);
-    expect(pickMove('greatsword', 'chargeRelease', [])?.id).toBe('charge_swing');
-    expect(pickMove('greatsword', 'chargeRelease', ['crush'], (m) => m.id === 'plunge')).toBeNull();
+    // 61라운드 P1: 차지 = 좌 홀드 (어느 갈래든)
+    expect(pickMove('greatsword', 'attackHold', [])?.id).toBe('charge_swing');
+    expect(pickMove('greatsword', 'attackHold', ['crush'])?.id).toBe('charge_swing');
+    expect(pickMove('greatsword', 'attackHold', ['crush'], (m) => m.id === 'plunge')).toBeNull();
   });
 });

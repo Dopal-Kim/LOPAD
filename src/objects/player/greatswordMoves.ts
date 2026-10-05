@@ -1,9 +1,10 @@
 /**
- * 56라운드 2단계 대검 새 기본기 (Q41·Q54·Q55·Q61·Q63, 계약 art §18.8) — 모두 기본기:
- * - 어깨 태클 `greatsword_tackle` — 대쉬 공격 교체: 돌진 40, 판정이 몸과 함께 이동·적을 밀고 감, fx 는 첫 접촉 순간
- * - 버티기 올려베기 `greatsword_brace_upswing` — 가드 중 좌클릭: 슈퍼아머 0.46초(피해 그대로·울분으로 쌓임), 울분 소모 시 ember ×1.5·60°
- * - 공중제비 도약 찍기 `greatsword_leap_slam` — 차지 중 스페이스: 차지 단계 유지, 착지 쐐기 + 끝 충격원 + 링 0.6R, 공중 무적 없음
- * - 막다가 떼면 돌진 `greatsword_guard_rush` — 퍼펙트 가드 직후 우클릭을 떼면 밀쳐내기 대신 돌진 56, 적을 밀고 감, 땅 홈 fx
+ * 대검 동작 (56라운드 2단계 Q41·Q54·Q55·Q61·Q63, 계약 art §18.8 → 61라운드 P1 4동사):
+ * - 어깨 태클 `greatsword_tackle` — 기본 대쉬 공격: 돌진 40, 판정이 몸과 함께 이동·적을 밀고 감, fx 는 첫 접촉 순간
+ * - 버티기 올려베기 `greatsword_brace_upswing` — 중압 갈래: 막은 직후 우클릭을 떼면. 슈퍼아머 0.46초(피해 그대로·울분으로 쌓임),
+ *   울분 소모 시 ember ×1.5·60°
+ * - 공중제비 도약 찍기 `greatsword_leap_slam` — 파쇄 갈래: 대쉬 공격이 태클 대신. 착지 쐐기 + 끝 충격원 + 링 0.6R, 공중 무적 없음
+ * ('막다가 떼면 돌진'은 61라운드에 삭제 — 가드 우클릭 한 동사에 겹치던 입력)
  * 판정·fx 는 씬(PlayerStrikes·MoveStrikes)이 PLAYER_ATTACKED `move` 로.
  */
 import { gameState } from '../../core/GameState';
@@ -13,21 +14,13 @@ import { weaponRangeScale } from '../../systems/weapon/playerScale';
 import type { Player } from '../Player';
 import { addTravel, aimDir, emitSkill, fireMoveStrike } from './moveStrike';
 
-/** 돌진형 공통 (태클·돌진): 판정이 몸과 함께 · 돌진 구간 · 밀고 감 */
-function startRush(
-  p: Player,
-  input: InputState,
-  time: number,
-  def: RushMoveDef,
-  move: string,
-  dashAttack: boolean,
-): number {
+/** 어깨 태클 (대쉬 공격 자리): 판정이 몸과 함께 · 돌진 구간 · 밀고 감 */
+export function startTackle(p: Player, input: InputState, time: number, def: RushMoveDef): number {
+  emitSkill('tackle', 'start');
   const a = aimDir(p, input);
-  const first = dashAttack ? p.gear.firstStrike : null;
   const { total } = fireMoveStrike(p, input, time, def, {
-    move,
-    allowDash: dashAttack,
-    first,
+    move: 'tackle',
+    allowDash: true,
     extra: {
       rush: {
         dashFromMs: def.dash.fromMs,
@@ -35,24 +28,11 @@ function startRush(
         dashPx: def.dash.px,
         carryExtraPx: def.carryExtraPx,
         ...(def.contactFx ? { contactFx: def.contactFx } : {}),
-        ...(def.groundFx ? { groundFx: def.groundFx } : {}),
       },
     },
   });
   addTravel(p, a.x, a.y, def.dash, time);
   return total;
-}
-
-/** 어깨 태클 (대쉬 공격 자리) */
-export function startTackle(p: Player, input: InputState, time: number, def: RushMoveDef): number {
-  emitSkill('tackle', 'start');
-  return startRush(p, input, time, def, 'tackle', true);
-}
-
-/** 막다가 떼면 돌진 (퍼펙트 가드 직후 뗌) */
-export function startGuardRush(p: Player, input: InputState, time: number, def: RushMoveDef): number {
-  emitSkill('guard_rush', 'start');
-  return startRush(p, input, time, def, 'guard_rush', false);
 }
 
 /**
@@ -83,27 +63,21 @@ export function startBrace(
   return { total, rage };
 }
 
-/**
- * 공중제비 도약 찍기: 차지 단계(0~3)로 쐐기 길이·균열 행·피해(차지 단계 배율), 도약은 플레이어 시계 이동(벽에 막히면 그 자리 착지).
- * 반환 = 동작 길이 ms
- */
-export function startLeap(p: Player, input: InputState, time: number, def: LeapMoveDef, stage: number): number {
+/** 공중제비 도약 찍기 (파쇄 갈래 — 대쉬 공격 자리): 착지 쐐기·균열 행·피해는 데이터, 도약은 플레이어 시계 이동(벽에 막히면 그 자리 착지). 반환 = 동작 길이 ms */
+export function startLeap(p: Player, input: InputState, time: number, def: LeapMoveDef): number {
   const a = aimDir(p, input);
-  const C = gameState.weapon.def.combo?.charge;
-  const st = stage > 0 ? C?.stages[Math.min(stage, C.stages.length) - 1] : undefined;
-  const pick = <T>(list: readonly T[]): T => list[Math.min(stage, list.length - 1)];
   const grudge = def.consumesGrudge ? p.gauges.consumeGrudge() : { damageMult: 1, rangeMult: 1 };
-  const lengthMult = pick(def.lengthMultByStage) * grudge.rangeMult;
   const R = currentRadius();
   emitSkill('leap', 'takeoff');
   const { total } = fireMoveStrike(p, input, time, def, {
     move: 'leap_slam',
-    hit: { damageMult: def.hit.damageMult * (st?.damageMult ?? 1) * grudge.damageMult },
-    shapeScale: { lengthMult },
-    crack: pick(def.crackRowByStage),
+    allowDash: true,
+    hit: { damageMult: def.hit.damageMult * grudge.damageMult },
+    shapeScale: { lengthMult: def.lengthMult * grudge.rangeMult },
+    crack: def.crackRow,
     extra: {
       leap: {
-        stage,
+        stage: 0,
         ringRadiusPx: R * def.landingRing.radiusMult,
         ringDamageMult: def.landingRing.damageMult,
         spiralFx: def.spiralFx,
@@ -119,6 +93,5 @@ export function startLeap(p: Player, input: InputState, time: number, def: LeapM
 /** 현재 판정 반경 R (combo.radiusPx × 갈래·강화 배율 × 58라운드 주인공 판정 배율) */
 function currentRadius(): number {
   const w = gameState.weapon;
-  const base = w.def.combo?.radiusPx ?? w.def.hitbox.reach + w.def.hitbox.width / 2;
-  return base * weaponRangeScale(w);
+  return (w.def.combo?.radiusPx ?? 0) * weaponRangeScale(w);
 }

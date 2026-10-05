@@ -92,11 +92,11 @@ describe.skipIf(!present)('60라운드 P1 — 1층 적 attack 10·hurt 4 프레�
     });
   }
 
-  it('엘리트 문장·술 김·마시기 headTopByEnemy 새 값 (dummy 119 · archer 120 · charger 139)', () => {
+  it('엘리트 문장·술 김·마시기 headTopByEnemy (dummy 119 · archer 120 · charger 139 · 61라운드 계약 art §23 peddler 118 · porter 116)', () => {
     for (const id of ['elite_emblem', 'elite_drunk_vapor', 'elite_guzzle_drink']) {
       const def = read(`fx/v3/${id}`);
       if (!def) continue;
-      expect(def.headTopByEnemy, id).toEqual({ dummy: 119, archer: 120, charger: 139 });
+      expect(def.headTopByEnemy, id).toEqual({ dummy: 119, archer: 120, charger: 139, peddler: 118, porter: 116 });
     }
   });
 });

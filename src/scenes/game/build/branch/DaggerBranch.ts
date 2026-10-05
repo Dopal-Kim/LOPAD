@@ -143,7 +143,7 @@ export class DaggerBranch {
     this.stuck.push({ x, y, until: k.now + ms, gfx, fx });
   }
 
-  /** 비도: 그림자 걸음이 박힌 단검으로 (가장 최근) — 쓰면 과열 −10%. 없으면 null. 도착 그림은 shadowstep_ghost(MotionFx) */
+  /** 비도: 그림자 걸음이 박힌 단검으로 (가장 최근) — 쓰면 가속 +10%(61라운드: 과열이 없어져 식힘 → 가속). 없으면 null. 도착 그림은 shadowstep_ghost(MotionFx) */
   takeStuckKnife(): { x: number; y: number } | null {
     const k = this.k;
     const fly = k.rt.rule('flyknife');
@@ -152,8 +152,7 @@ export class DaggerBranch {
     this.removeKnife(knife);
     k.effect('flyknife', 'step');
     const res = k.g.player.resource;
-    if (res?.kind === 'heat' && !res.overheated)
-      res.value = Math.max(0, res.value - res.max * param(fly, 'heatRefund'));
+    if (res?.kind === 'heat') res.heatBy(res.max * param(fly, 'heatRefund'), k.now);
     return { x: knife.x, y: knife.y };
   }
 
@@ -279,7 +278,7 @@ export class DaggerBranch {
     if (!dance || k.now >= this.danceUntil || p.comboIndex === undefined) return;
     const g = k.g;
     const pl = g.player;
-    const reach = gameState.weapon.hitbox.reach * 1.4;
+    const reach = gameState.weapon.reachPx;
     g.time.delayedCall(param(dance, 'delayMs', 120), () => {
       if (!g.scene.isActive()) return;
       const t = k.rt.fx.nearest(pl.x, pl.y, reach * 2);
@@ -300,26 +299,27 @@ export class DaggerBranch {
     if (hw && res?.kind === 'heat') res.heatBy(res.max * param(hw, 'heatPerMove'), k.now);
   }
 
-  /** 열풍: 과열 50% 이상이면 이동·공속 +20% */
+  /** 열풍: 가속 50% 이상이면 이동·공속 +20% */
   heatwaveMult(): number {
     const k = this.k;
     const hw = k.rt.rule('heatwave');
     const res = k.g.player?.resource;
-    if (!hw || res?.kind !== 'heat' || res.overheated) return 1;
+    if (!hw || res?.kind !== 'heat') return 1;
     return res.value >= res.max * param(hw, 'hasteFrom') ? 1 + param(hw, 'haste') : 1;
   }
 
-  /** 열풍 과열 폭발 범위 배율 (57 Q43 — 설계안 2.4 '폭발 범위 ×2', 데이터 burstRangeMult). 열풍이 아니면 1 */
-  overheatRangeMult(): number {
-    const hw = this.k.rt.rule('heatwave');
-    return hw ? param(hw, 'burstRangeMult', 1) : 1;
-  }
-
-  /** 과열 100% 폭발 (BrandMarks.onOverheat 뒤): 열풍 = 반경 안 적 화상 burnMs · 주인공 무적 invulnMs */
-  onOverheat(radiusPx: number): void {
+  /**
+   * 열풍 가속 가득 폭발 (61라운드: 기본 과열 폭발이 없어져 열풍만): 가속 100% 에 닿으면 반경 burstRadiusTiles 안 낙인 일괄 폭발 ·
+   * 적 화상 burnMs · 주인공 무적 invulnMs → 가속 0 부터 다시
+   */
+  private heatwaveTick(): void {
     const k = this.k;
     const hw = k.rt.rule('heatwave');
-    if (!hw) return;
+    const res = k.g.player?.resource;
+    if (!hw || res?.kind !== 'heat' || res.value < res.max) return;
+    res.refresh(0);
+    const radiusPx = param(hw, 'burstRadiusTiles', 8) * TILE;
+    k.g.strikes.brands.burstAround(radiusPx);
     const pl = k.g.player;
     pl.grantInvulnerable(k.now + param(hw, 'invulnMs'));
     for (const m of k.rt.fx.inCircle(pl.x, pl.y, radiusPx))
@@ -335,6 +335,7 @@ export class DaggerBranch {
 
   update(now: number): void {
     const k = this.k;
+    this.heatwaveTick();
     if (this.stuck.length > 0) {
       for (const s of this.stuck) if (now >= s.until) s.gfx?.destroy();
       this.stuck = this.stuck.filter((s) => now < s.until);

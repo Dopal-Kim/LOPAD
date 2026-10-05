@@ -1,10 +1,11 @@
 /**
- * 57라운드 갈래 1단 수단 입력 (Player 쪽 — 판정·연출은 씬 `build/BranchStrikes`, PLAYER_BRANCH_MOVE):
- * - 칼 선풍·투구가르기: **좌클릭 홀드** (Q30) — 0.4 / 0.6초 넘게 누르고 떼면 회전 베기 / 가드 불가 내려베기. 짧게 떼면 일반 연격
- *   (누름을 뗄 때까지 미룬다 — 대검 차지와 같은 규칙). 넣은 칼(F)·대쉬 직후는 기존 동작(대치 일격·대쉬 공격)이 받는다.
- *   회오리(2단): 홀드 완료 뒤 계속 쥐면 지속 회전.
+ * 좌 홀드 입력 거르기 + 57라운드 갈래 1단 수단 입력 (Player 쪽 — 판정·연출은 씬 `build/BranchStrikes`, PLAYER_BRANCH_MOVE).
+ * 61라운드 P1 4동사: 좌 홀드 = 고유 자원 기술, 1단 갈래는 같은 칸의 기술을 '바꾼다'.
+ * - 칼 좌 홀드: 누름을 뗄 때까지 미룬다(짧게 떼면 일반 연격 — 대검 차지와 같은 규칙).
+ *   기본 = 발도(holdMs 를 넘기면 `BasicMoves.startIai` 로 넘김) · 선풍 = 회전 베기 · 투구가르기 = 가드 불가 내려베기
+ *   (0.4 / 0.6초 넘게 쥐고 떼면). 대쉬 직후 누름은 대쉬 공격(일섬)이 받는다. 회오리(2단): 홀드 완료 뒤 계속 쥐면 지속 회전.
  * - 단검 질풍: **대쉬 공격 교체** (Q31) — 대쉬 직후 창 안 좌클릭 = 부채꼴 투척.
- * - 활 속사: 좌클릭 홀드 연사 (초당 5발 ×0.45, 이동 ×0.5) — 첫 발은 일반 사격.
+ * - 활 속사: 좌 홀드가 화살비 대신 연사 (초당 5발 ×0.45, 이동 ×0.5) — 첫 발은 일반 사격.
  */
 import { EventBus, Events, type PlayerBranchMovePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
@@ -12,8 +13,10 @@ import type { InputState } from '../../systems/InputSystem';
 import { withAttackTag } from '../../systems/build/attackTags';
 import { frameDurations, rowDirFor } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
+import { emitHoldVerb } from './moveStrike';
 
-type HoldMove = 'spin' | 'unblockable';
+/** 칼 좌 홀드 기술: 갈래 수단(회전 베기·투구가르기) 또는 기본 발도 */
+type HoldMove = 'spin' | 'unblockable' | 'iai';
 
 /** 지속 회전으로 넘어가는 추가 홀드 ms (회오리) */
 const SUSTAIN_EXTRA_MS = 250;
@@ -36,6 +39,8 @@ export class BranchMoves {
   private volleyPose = false;
   private volleyFrom = -Infinity;
   private volleyNextAt = -Infinity;
+  /** 이번 홀드에서 연사를 시작했는가 (좌 홀드 알림 1회) */
+  private volleyOn = false;
   /** 디버그 */
   lastEvent: string | null = null;
 
@@ -69,11 +74,13 @@ export class BranchMoves {
     return len > 0 ? { x: dx / len, y: dy / len } : { x: this.p.facingVec.x, y: this.p.facingVec.y };
   }
 
-  /** 칼 홀드 갈래 (1단 노드의 move) */
-  private get holdMove(): HoldMove | null {
+  /** 칼 좌 홀드 기술 (1단 노드의 move 가 있으면 그것, 없으면 기본 발도) · 문턱 ms */
+  private get holdMove(): { move: HoldMove; holdMs: number } | null {
     if (gameState.weapon.id !== 'katana') return null;
     const m = this.node()?.move;
-    return m === 'spin' || m === 'unblockable' ? m : null;
+    if (m === 'spin' || m === 'unblockable') return { move: m, holdMs: this.num('holdMs') };
+    const iai = gameState.weapon.def.moves?.iai;
+    return iai && this.p.moves.iaiOpen ? { move: 'iai', holdMs: iai.holdMs } : null;
   }
 
   /** 홀드 중 (차지처럼 연격을 미룸) */
@@ -85,16 +92,16 @@ export class BranchMoves {
    * 연격 입력 거르기 (Player → MeleeDriver 직전): 칼 홀드 갈래면 누름을 미루고, 짧게 떼면 그 순간 누름을 넘긴다
    */
   filter(input: InputState, time: number, canStrike: boolean): InputState {
-    const move = this.holdMove;
+    const hold = this.holdMove;
     const p = this.p;
-    if (!move) return input;
+    if (!hold) return input;
     const pd = this.pending;
     if (!pd) {
-      if (input.attackPressed && canStrike && p.gear.drawn && !p.inDashWindow(time)) {
+      if (input.attackPressed && canStrike && !p.inDashWindow(time)) {
         this.pending = {
           pressAt: time,
-          move,
-          holdMs: this.num('holdMs'),
+          move: hold.move,
+          holdMs: hold.holdMs,
           ready: false,
           sustain: false,
           pose: 0,
@@ -105,6 +112,18 @@ export class BranchMoves {
       return input;
     }
     const dir = this.aim(input);
+    // 기본 발도: 문턱을 넘기면 발도 자세(BasicMoves 의 유지형)로 넘긴다 — 뗌·발도는 그쪽이
+    if (pd.move === 'iai') {
+      if (!input.attackHeld) {
+        this.pending = null;
+        return { ...input, attackPressed: true };
+      }
+      if (time - pd.pressAt >= pd.holdMs && canStrike) {
+        this.pending = null;
+        p.moves.startIai(input, time);
+      }
+      return { ...input, attackPressed: false, attackHeld: false };
+    }
     if (input.attackHeld) {
       if (!pd.held && time - pd.pressAt >= POSE_AFTER_MS) {
         pd.held = true;
@@ -137,6 +156,7 @@ export class BranchMoves {
     }
     if (pd.ready && canStrike) {
       this.emit(pd.move, 'release', dir.x, dir.y);
+      emitHoldVerb(pd.move);
       return { ...input, attackPressed: false };
     }
     if (pd.held) this.emit(pd.move, 'cancel', dir.x, dir.y);
@@ -183,7 +203,7 @@ export class BranchMoves {
   /** 단검 투척 · 활 연사. 처리했으면 true (Player 는 이번 프레임 끝) */
   update(input: InputState, time: number, canStrike: boolean): boolean {
     const p = this.p;
-    if (this.pending && (input.dashPressed || input.secondaryPressed || !p.gear.drawn)) this.cancel();
+    if (this.pending && (input.dashPressed || input.secondaryPressed)) this.cancel();
     const w = gameState.weapon;
     const m = this.node()?.move;
     // 단검 질풍: 대쉬 직후 좌클릭 = 부채꼴 투척 (대쉬 공격 교체)
@@ -204,11 +224,14 @@ export class BranchMoves {
     if (input.attackPressed) this.volleyFrom = time;
     if (!input.attackHeld || !canStrike) {
       this.volleyFrom = input.attackHeld ? this.volleyFrom : -Infinity;
+      if (!input.attackHeld) this.volleyOn = false;
       p.branchMoveMult = 1;
       this.endVolleyPose(input, time);
       return false;
     }
     if (time - this.volleyFrom < this.num('holdMs')) return false;
+    if (!this.volleyOn) emitHoldVerb('rapid_volley');
+    this.volleyOn = true;
     const volley2 = this.node(1)?.id === 'volley';
     const r2 = this.node(1)?.rule?.params;
     const slow = volley2 && typeof r2?.moveMult === 'number' ? r2.moveMult : this.num('moveMult');
@@ -260,7 +283,7 @@ export class BranchMoves {
   cancel(): void {
     const pd = this.pending;
     if (pd?.sustain) this.emit('spin', 'end', 0, 0);
-    else if (pd?.held) this.emit(pd.move, 'cancel', 0, 0);
+    else if (pd?.held && pd.move !== 'iai') this.emit(pd.move, 'cancel', 0, 0);
     this.pending = null;
   }
 

@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { gameState } from '../core/GameState';
+import { bootDebugApi, type BootDebugApi } from './boot';
 import { UI_EVENTS, uiBus, uiCommands, type UiMenuId, type UiWarpDenied } from '../contract/ui';
 import type { Mob } from '../objects/Mob';
 import type { RoomDirector } from '../systems/RoomDirector';
@@ -584,5 +585,6 @@ export function exposeDebug(api: {
     doorsOf: (roomId) =>
       api.world.room(roomId).doors.map((d) => d.tiles.map((t) => ({ ...t, id: api.world.tileIdAt(t.x, t.y) }))),
   };
-  (window as unknown as { __lopad: DebugApi }).__lopad = dbg;
+  // 61라운드 P9: 런 로그 · VRAM · 설정 (게임 씬과 무관 — debug/boot)
+  (window as unknown as { __lopad: DebugApi & BootDebugApi }).__lopad = Object.assign(dbg, bootDebugApi());
 }

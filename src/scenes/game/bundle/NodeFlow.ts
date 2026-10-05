@@ -185,7 +185,8 @@ export class NodeFlow {
     this.trialDone = true;
     const ex = this.ex;
     const steps: Step[] = [];
-    if (this.graded && this.trialStart >= 0) this.grade(now);
+    const graded = this.graded && this.trialStart >= 0;
+    if (graded) this.grade(now);
     const B = gameState.bundle;
     if (B.laterGold > 0) {
       this.g.economy.addGold(B.laterGold);
@@ -217,7 +218,12 @@ export class NodeFlow {
         if (ex.reward) steps.push(...rewardSteps(this.g, ex.reward, 1));
       }
     }
-    chain(steps);
+    // 61라운드 #11: 등급 카드가 먼저 — 카드를 읽을 시간 뒤에 보상 메뉴 (씬이 끝났으면 열지 않음)
+    if (graded && steps.length > 0)
+      this.g.time.delayedCall(BUNDLE_FX.GRADE_CARD_HOLD_MS, () => {
+        if (this.g.scene.isActive()) chain(steps);
+      });
+    else chain(steps);
   }
 
   /** 저주 길 보상: 패시브 3택(영웅 이상 1개 확정 + 나머지 일반 확률 — 60 Q30) 또는 전표 100 (고르기) */

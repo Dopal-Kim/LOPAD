@@ -1,10 +1,12 @@
 /**
  * 56라운드 Q13~Q20 무기 고유 자원 (칼 검기 · 대검 울분 · 활 숨) — 무기가 바뀌면 새로 시작한다. 단검 낙인은 적마다라 씬(BrandMarks).
  * 변화는 WEAPON_GAUGE 로 알린다(음향·월드 연출·디버그). HUD 는 계약 §13 `UiSnapshot.gauge`(`toUi`, 단검 낙인은 BrandMarks.toUi).
+ * 61라운드 SY-2: 활 숨은 저격 갈래에서만(`gauge.branch`) · 칼 검기는 좌 홀드 발도만 소모 · 2단 명경이면 검기 규칙 전환(상한 5단 등).
  */
 import { FEEDBACK } from '../../core/Constants';
 import { EventBus, Events, type WeaponGaugePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
+import type { ComboFollowUpDef } from '../../data/types';
 import type { UiWeaponGauge } from '../../contract/ui';
 import {
   BreathGauge,
@@ -23,14 +25,56 @@ export class PlayerGauges {
   /** 숨 집중 중이었는가 (끝 알림 경계) */
   private focusOn = false;
 
-  /** 현재 무기의 고유 자원 (없으면 null) */
+  /** 현재 무기의 고유 자원 (없으면 null). 갈래 조건(`gauge.branch`)·명경 규칙이 바뀌면 다시 맞춘다 */
   get gauge(): WeaponGauge | null {
     const w = gameState.weapon;
-    if (this.currentWeapon !== w.id) {
-      this.currentWeapon = w.id;
-      this.current = makeGauge(w.def.gauge);
+    const def = w.def.gauge;
+    const open = !(def?.kind === 'breath' && def.branch !== undefined && !w.path.includes(def.branch));
+    const mk = this.meikyoParams();
+    const key = `${w.id}|${open ? 1 : 0}|${mk ? 'meikyo' : ''}`;
+    if (this.currentWeapon !== key) {
+      const sameWeapon = this.currentWeapon.split('|')[0] === w.id;
+      const prev = this.current;
+      this.currentWeapon = key;
+      this.current = open ? makeGauge(def) : null;
+      if (this.current instanceof KenkiGauge) {
+        this.current.setRule(mk ? { stages: mk.stages, parryGainStages: mk.parryGainStages, hitGain: false } : null);
+        // 같은 무기에서 규칙만 바뀌면 쌓인 검기를 잇는다
+        if (sameWeapon && prev instanceof KenkiGauge) this.current.value = Math.min(prev.value, this.current.max);
+      }
     }
     return this.current;
+  }
+
+  /** 2단 명경 규칙 값 (경로에 없으면 null) */
+  private meikyoParams(): {
+    stages: number;
+    parryGainStages: number;
+    clones: number;
+    delayMs: number;
+    mult: number;
+  } | null {
+    const r = gameState.weapon.nodes.find((n) => n.rule?.kind === 'meikyo')?.rule;
+    if (!r) return null;
+    const n = (k: string, d: number) => (typeof r.params?.[k] === 'number' ? (r.params[k] as number) : d);
+    return {
+      stages: n('stages', 5),
+      parryGainStages: n('parryGainStages', 2),
+      clones: n('clones', 0),
+      delayMs: n('cloneDelayMs', 150),
+      mult: n('cloneMult', 0.5),
+    };
+  }
+
+  /** 명경: 상한까지 모은 발도에 붙는 분신 잔상 베기 (아니면 빈 배열) */
+  meikyoClones(stages: number): ComboFollowUpDef[] {
+    const mk = this.meikyoParams();
+    if (!mk || stages < mk.stages) return [];
+    return Array.from({ length: mk.clones }, (_, i) => ({
+      id: 'echo',
+      delayMs: mk.delayMs * (i + 1),
+      damageMult: mk.mult,
+    }));
   }
 
   get kenki(): KenkiGauge | null {
@@ -62,10 +106,10 @@ export class PlayerGauges {
     if (k && st !== null && st !== undefined) this.emit({ gauge: 'kenki', event: 'stage', stage: st });
   }
 
-  /** 일섬: 검기 전부 소모 (칼이 아니면 단 0) */
-  consumeKenki(): { stages: number; damageMult: number; clone: boolean } {
+  /** 발도: 검기 전부 소모 (칼이 아니면 단 0) */
+  consumeKenki(): { stages: number; damageMult: number; crit: boolean } {
     const k = this.kenki;
-    if (!k) return { stages: 0, damageMult: 1, clone: false };
+    if (!k) return { stages: 0, damageMult: 1, crit: false };
     const c = k.consume();
     if (c.stages > 0) this.emit({ gauge: 'kenki', event: 'consume', stage: c.stages });
     return c;

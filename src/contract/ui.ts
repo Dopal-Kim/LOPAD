@@ -369,6 +369,27 @@ export interface UiWeaponGauge {
   focusing?: boolean;
 }
 
+/**
+ * 61라운드 P1 계약 추가 (프로듀서 계약 문서 갱신 대상): 무기 4동사 — 좌 = 연격 · 우 = 시그니처 · 스페이스 = 대쉬(+대쉬 공격) ·
+ * 좌 홀드 = 고유 자원 기술. 칸 순서는 attack · signature · dash · hold 고정. 1단 갈래가 바꾼 칸은 그 동작 이름·hint 와 branch(갈래 이름).
+ * key = 키캡 표시 문자열 (예 '좌클릭' · '우클릭' · 'Space' · '좌클릭 길게'). UI 는 이것으로 키캡 안내를 그린다
+ */
+export type UiVerbSlot = 'attack' | 'signature' | 'dash' | 'hold';
+export interface UiWeaponVerb {
+  slot: UiVerbSlot;
+  key: string;
+  /** 동작 이름 (예 '3연격', '가드 · 패링', '대쉬 · 일섬', '발도') */
+  name: string;
+  /** 한 줄 설명 */
+  hint: string;
+  /** 이 칸을 바꾼 1단 갈래 이름 (기본 동사면 null) */
+  branch: string | null;
+}
+export interface UiWeaponVerbs {
+  weapon: string;
+  verbs: UiWeaponVerb[];
+}
+
 /** 56라운드 계약 §13: 그로기(기력 0 → 1.5초, 시간으로만 회복). 칼·대검만, 그 밖은 null */
 export interface UiGroggy {
   active: boolean;
@@ -588,16 +609,18 @@ export interface UiSnapshot {
   statuses: UiStatus[];
   /** 48라운드: 노드 지도. 노드 지도를 쓰지 않는 층이면 null (계약 §10.1) */
   route: UiRoute | null;
-  /** 49라운드: 무기 자원 게이지. 없으면 null (계약 §11.1) */
+  /** 49라운드: 무기 자원 게이지. 없으면 null (계약 §11.1). 61라운드: 단검 '가속'은 보이지 않는 자원이라 null */
   resource: UiWeaponResource | null;
   /** 49라운드: 음소거 상태 (계약 §11.3) */
   muted: boolean;
   /** 49라운드: 무기 시험장 안이면 true (계약 §11.4) */
   lab: boolean;
-  /** 53라운드: 넣기/뽑기 상태 (F). 손에 드는 무기면 null */
+  /** 53라운드: 넣기/뽑기 상태 (F). 61라운드: F 넣기/뽑기를 지워 늘 null (칼 발도는 좌 홀드 — weaponVerbs) */
   carry: UiCarry | null;
-  /** 56라운드: 무기 고유 자원. 없으면 null (계약 §13) */
+  /** 56라운드: 무기 고유 자원. 없으면 null (계약 §13). 61라운드: 활 숨은 저격 갈래일 때만 */
   gauge: UiWeaponGauge | null;
+  /** 61라운드 P1: 무기 4동사 (키캡 안내). 게임 씬 밖이면 null */
+  weaponVerbs: UiWeaponVerbs | null;
   /** 56라운드: 그로기 상태. 칼·대검만, 그 밖은 null (계약 §13) */
   groggy: UiGroggy | null;
   /** 57라운드: 태그·세트 · 이중 개성 · 저주 (계약 §14.1) */
@@ -608,7 +631,41 @@ export interface UiSnapshot {
   elites: UiElite[];
   /** 60라운드 §14.10: 잔 구간 전투·위험 노드 진행 중에만 */
   nodeTrial: UiNodeTrial | null;
+  /** 61라운드 §15: 설정 (시스템 세이브 메타 영역에 저장된 값 — 타이틀에서도 들어 있다) */
+  settings: UiSettings;
 }
+
+/**
+ * 61라운드 §15 설정. UI 가 설정 화면에서 바꾸고 `uiCommands.setSettings` 로 넘긴다. 시스템이 즉시 적용하고 메타 세이브에 저장한다.
+ * 범위 밖 값은 시스템이 잘라 쓴다(0~1). 기본값 = `UI_DEFAULT_SETTINGS`
+ */
+export interface UiSettings {
+  /** 화면 흔들림 배율 0~1 (기본 1) */
+  shake: number;
+  /** 섬광(피격·결정타 화면 번쩍임) 켜기 (기본 true) */
+  flash: boolean;
+  /** 보스 '세상이 돈다' 화면 기울기 켜기 (기본 true) */
+  tilt: boolean;
+  /** 피해 숫자 표시 (기본 true) */
+  damageNumbers: boolean;
+  /** 전체 음량 0~1 (기본 1) */
+  master: number;
+  /** 배경음 0~1 (기본 1) */
+  bgm: number;
+  /** 효과음 0~1 (기본 1) */
+  sfx: number;
+}
+
+/** 61라운드 §15 설정 기본값 */
+export const UI_DEFAULT_SETTINGS: Readonly<UiSettings> = Object.freeze({
+  shake: 1,
+  flash: true,
+  tilt: true,
+  damageNumbers: true,
+  master: 1,
+  bgm: 1,
+  sfx: 1,
+});
 
 /** 60라운드 §14.8 소모품 칸 */
 export interface UiConsumableSlot {
@@ -712,6 +769,12 @@ interface SystemImpl {
   cancelChoose: () => boolean;
   setMuted: (muted: boolean) => void;
   startWeaponLab: () => void;
+  /** 61라운드 플레이 점검 #2 */
+  setGameHold: (reason: string, on: boolean) => void;
+  isGameHeld: () => boolean;
+  /** 61라운드 §15 */
+  getSettings: () => UiSettings;
+  setSettings: (s: UiSettings) => void;
 }
 
 let impl: SystemImpl | null = null;
@@ -752,11 +815,13 @@ const EMPTY_SNAPSHOT: UiSnapshot = {
   lab: false,
   carry: null,
   gauge: null,
+  weaponVerbs: null,
   groggy: null,
   build: { tags: [], dualTraits: [], curse: null },
   consumable: null,
   elites: [],
   nodeTrial: null,
+  settings: { ...UI_DEFAULT_SETTINGS },
 };
 
 export const uiCommands = {
@@ -785,7 +850,10 @@ export const uiCommands = {
     impl?.toTitle();
   },
   getUiSnapshot(): UiSnapshot {
-    return impl?.getSnapshot() ?? EMPTY_SNAPSHOT;
+    const snap = impl?.getSnapshot();
+    if (snap) return snap;
+    // 61라운드 §15: 게임 씬이 없을 때(타이틀)도 저장된 설정을 알려 준다
+    return impl ? { ...EMPTY_SNAPSHOT, settings: impl.getSettings() } : EMPTY_SNAPSHOT;
   },
   /** 세계관 문구. 시스템 미등록 시 빈 객체 */
   getUiText(): UiText {
@@ -820,6 +888,26 @@ export const uiCommands = {
   /** 49라운드: 무기 시험장 진입 (타이틀에서, 계약 §11.4) */
   startWeaponLab(): void {
     impl?.startWeaponLab();
+  },
+  /**
+   * 61라운드 §15: 설정 적용·저장. 시스템이 즉시 반영(흔들림 배율·섬광·기울기·피해 숫자·음량 버스)하고 메타 세이브에 쓴다.
+   * 다음 스냅샷의 `settings` 가 잘라 쓴 실제 값이다. `setMuted` 와 별개(빠른 음소거는 그대로)
+   */
+  setSettings(s: UiSettings): void {
+    impl?.setSettings(s);
+  },
+  /**
+   * 61라운드 플레이 점검 #2 (계약 추가 요청 — 프로듀서 계약 문서 갱신 대상): UI 안내 패널(튜토리얼 '싸우는 법' 카드 등)이 떠 있는 동안
+   * 게임 진행을 멈춘다. reason 별로 켜고 끈다(같은 reason 을 두 번 켜도 하나). 모든 reason 이 꺼지고 일시정지 메뉴도 닫혀 있어야 다시 움직인다.
+   * 일시정지 메뉴와 달리 PAUSED/RESUMED 이벤트·BGM 덕킹이 없다. 타이틀·새 런·이어하기·시험장으로 가면 시스템이 모두 푼다.
+   * 멈춘 동안 게임 씬이 STATE 를 내지 않으니 패널은 스스로 그린다
+   */
+  setGameHold(reason: string, on: boolean): void {
+    impl?.setGameHold(reason, on);
+  },
+  /** 지금 안내 패널 멈춤이 하나라도 걸려 있는가 */
+  isGameHeld(): boolean {
+    return impl?.isGameHeld() ?? false;
   },
 };
 

@@ -18,7 +18,10 @@ import type {
   UiConsumableSlot,
   UiElite,
   UiNodeTrial,
+  UiSettings,
 } from './ui';
+import { DEFAULT_SETTINGS } from '../systems/settings';
+import { weaponVerbs } from '../systems/weapon/verbs';
 
 export interface SnapshotContext {
   layout: FloorLayout | null;
@@ -41,7 +44,7 @@ export interface SnapshotContext {
   resource?: UiWeaponResource | null;
   muted?: boolean;
   lab?: boolean;
-  /** 53라운드: 넣기/뽑기 (칼·대검만). 생략 시 null */
+  /** 53라운드: 넣기/뽑기 (61라운드: F 삭제 — 늘 null). 생략 시 null */
   carry?: UiCarry | null;
   /** 56라운드 (계약 §13): 무기 고유 자원 · 그로기 (칼·대검만). 생략 시 null */
   gauge?: UiWeaponGauge | null;
@@ -52,6 +55,8 @@ export interface SnapshotContext {
   consumable?: UiConsumableSlot | null;
   elites?: readonly UiElite[];
   nodeTrial?: UiNodeTrial | null;
+  /** 61라운드 (계약 §15): 설정. 생략 시 기본값 */
+  settings?: UiSettings;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -145,6 +150,8 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
     lab: ctx.lab ?? false,
     carry: ctx.carry ? { ...ctx.carry } : null,
     gauge: ctx.gauge ? { ...ctx.gauge } : null,
+    // 61라운드 P1: 무기 4동사 (갈래가 바꾼 칸 포함)
+    weaponVerbs: weaponVerbs(w.id, w.def, w.nodes),
     groggy: ctx.groggy ? { ...ctx.groggy } : null,
     build: ctx.build
       ? {
@@ -158,5 +165,6 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
       : null,
     elites: (ctx.elites ?? []).map((e) => ({ ...e, prefixes: [...e.prefixes], screen: { ...e.screen } })),
     nodeTrial: ctx.nodeTrial ? { ...ctx.nodeTrial } : null,
+    settings: { ...(ctx.settings ?? DEFAULT_SETTINGS) },
   };
 }

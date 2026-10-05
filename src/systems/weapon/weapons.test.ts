@@ -54,7 +54,7 @@ describe('WeaponState (27라운드 분기 트리 → 57라운드 갈래 24노드
     expect(w.reinforce).toBe(1);
     expect(w.personality).toBe(0);
     expect(w.damageMult).toBeCloseTo(dmg1 * 1.15);
-    expect(w.hitbox.width).toBeCloseTo(WEAPONS.greatsword.hitbox.width * 1.15);
+    expect(w.reachPx).toBeCloseTo(WEAPONS.greatsword.combo!.radiusPx! * 1.15);
     expect(w.threshold).toBe(200); // 다음 임계 그대로
     expect(w.options.map((o) => o.id)).toEqual(['giant', 'clot']); // 다시 3지선다
     expect(w.displayName).toBe('대검 · 중압 (重壓) +1');

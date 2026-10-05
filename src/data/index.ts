@@ -31,6 +31,8 @@ import type {
   WeaponResourceDef,
   WeaponRules,
   WeaponTable,
+  WeaponVerbSlot,
+  WeaponVerbsDef,
   WeaponsFile,
 } from './types';
 
@@ -229,6 +231,24 @@ const SECONDARY_NUMERIC: Record<SecondaryDef['kind'], string[]> = {
   aimedshot: ['chargeMs', 'damageMult', 'moveMult', 'cooldownMs'],
 };
 
+const VERB_SLOTS: readonly WeaponVerbSlot[] = ['attack', 'signature', 'dash', 'hold'];
+
+/** 61라운드 P1 4동사 표시: 무기는 4칸 모두, 갈래는 바꾸는 칸만 */
+function validateVerbs(v: Partial<WeaponVerbsDef> | undefined, path: string, all: boolean): void {
+  if (!v || typeof v !== 'object') throw new Error(`[data] ${path} 없음`);
+  for (const k of Object.keys(v))
+    if (!VERB_SLOTS.includes(k as WeaponVerbSlot)) throw new Error(`[data] ${path}.${k} 알 수 없는 동사 칸`);
+  for (const slot of VERB_SLOTS) {
+    const d = v[slot];
+    if (!d) {
+      if (all) throw new Error(`[data] ${path}.${slot} 없음`);
+      continue;
+    }
+    if (typeof d.name !== 'string' || !d.name) throw new Error(`[data] ${path}.${slot}.name 없음`);
+    if (typeof d.hint !== 'string') throw new Error(`[data] ${path}.${slot}.hint 는 문자열`);
+  }
+}
+
 function validateEvolution(ev: WeaponEvolution, path: string, ids: Set<string>, depth: number, maxDepth: number): void {
   if (typeof ev.id !== 'string' || !ev.id) throw new Error(`[data] ${path}.id 없음`);
   if (ids.has(ev.id)) throw new Error(`[data] ${path}.id 중복: ${ev.id}`);
@@ -236,6 +256,7 @@ function validateEvolution(ev: WeaponEvolution, path: string, ids: Set<string>, 
   if (typeof ev.name !== 'string' || !ev.name) throw new Error(`[data] ${path}.name 없음`);
   assertNumber(ev.damageMult, `${path}.damageMult`);
   assertNumber(ev.hitboxMult, `${path}.hitboxMult`);
+  if (ev.verbs !== undefined) validateVerbs(ev.verbs, `${path}.verbs`, false);
   if (!ev.mods || typeof ev.mods !== 'object') throw new Error(`[data] ${path}.mods 없음`);
   for (const k of Object.keys(ev.mods)) if (!MOD_KEYS.has(k)) throw new Error(`[data] ${path}.mods.${k} 알 수 없음`);
   if (depth < maxDepth) {
@@ -257,10 +278,17 @@ export function validateWeapons(t: WeaponTable): WeaponTable {
       assertNumber(val, `weapons.${id}.affinity.${k}`);
       if (val < 0 || val > 1) throw new Error(`[data] weapons.${id}.affinity.${k} 는 0..1`);
     }
-    for (const [k, val] of Object.entries(w.hitbox)) assertNumber(val, `weapons.${id}.hitbox.${k}`);
+    // 61라운드 P9: 옛 hitbox 삭제 — 근접은 연격 반경 combo.radiusPx, 원거리는 ranged 의 간격·화살 크기가 기준
+    if (w.kind === 'melee' && !(typeof w.combo?.radiusPx === 'number' && w.combo.radiusPx > 0))
+      throw new Error(`[data] weapons.${id}.combo.radiusPx 는 근접 무기에 필수 (판정 기준 R)`);
+    if (w.ranged)
+      for (const k of ['projectileSpeedTiles', 'projectileLifeMs', 'cooldownMs', 'arrowSizePx', 'spawnPx'] as const)
+        assertNumber(w.ranged[k], `weapons.${id}.ranged.${k}`);
+    validateVerbs(w.verbs, `weapons.${id}.verbs`, true);
     // 55라운드 타격감 (선택)
     if (w.feel) {
       assertNumber(w.feel.hitstopMs, `weapons.${id}.feel.hitstopMs`);
+      if (w.feel.knockbackMult !== undefined) assertNumber(w.feel.knockbackMult, `weapons.${id}.feel.knockbackMult`);
       if (w.feel.ribbon !== undefined && typeof w.feel.ribbon !== 'string')
         throw new Error(`[data] weapons.${id}.feel.ribbon 은 문자열`);
     }
@@ -294,7 +322,7 @@ export function validateWeapons(t: WeaponTable): WeaponTable {
 const RESOURCE_NUMERIC: Record<WeaponResourceDef['kind'], string[]> = {
   stamina: ['max', 'regenPerSec', 'regenDelayMs', 'lowRatio', 'recoverRatio', 'exhaustedMoveMult'],
   ammo: ['max', 'reloadMs', 'lowCount'],
-  heat: ['max', 'decayPerSec', 'decayDelayMs', 'overheatHoldMs', 'cooldownMs'],
+  heat: ['max', 'decayPerSec', 'decayDelayMs'],
 };
 
 /** 49라운드: 무기 자원 · 휴대 · 대검 무게감·내리찍기·대쉬 공격 (모두 선택 필드) */
@@ -310,10 +338,11 @@ export function validateWeaponExtras(w: WeaponDef, path: string): void {
       if (!Array.isArray(v) || v.length === 0) throw new Error(`[data] ${p} 는 숫자 배열이어야 합니다`);
       v.forEach((x, i) => assertNumber(x, `${p}[${i}]`));
     };
-    if (r.kind === 'stamina') {
-      nums(r.cost?.hits, `${path}.resource.cost.hits`);
-      for (const k of ['dash', 'dashAttack', 'slam'] as const) assertNumber(r.cost[k], `${path}.resource.cost.${k}`);
-    }
+    if (r.kind === 'stamina')
+      for (const k of ['dash', 'dashAttack', 'hold', 'guardBlock'] as const)
+        assertNumber(r.cost?.[k], `${path}.resource.cost.${k}`);
+    if (r.hidden !== undefined && typeof r.hidden !== 'boolean')
+      throw new Error(`[data] ${path}.resource.hidden 은 true·false`);
     if (r.kind === 'heat') {
       nums(r.gainPerHit, `${path}.resource.gainPerHit`);
       nums(r.stages, `${path}.resource.stages`);
@@ -327,9 +356,6 @@ export function validateWeaponExtras(w: WeaponDef, path: string): void {
     if (!['sheath', 'back', 'hand'].includes(c.mode)) throw new Error(`[data] ${path}.carry.mode 알 수 없음`);
     assertNumber(c.drawMs, `${path}.carry.drawMs`);
     assertNumber(c.sheatheAfterMs, `${path}.carry.sheatheAfterMs`);
-    if (c.sheathedRegenMult !== undefined) assertNumber(c.sheathedRegenMult, `${path}.carry.sheathedRegenMult`);
-    if (c.firstStrike && (typeof c.firstStrike.label !== 'string' || !c.firstStrike.label))
-      throw new Error(`[data] ${path}.carry.firstStrike.label 없음`);
   }
   const blocks: [string, object | undefined, string[]][] = [
     ['weight', w.weight, ['stepPx', 'stepMs', 'postSlowMs', 'finisherStopMs']],
@@ -344,6 +370,14 @@ export function validateWeaponExtras(w: WeaponDef, path: string): void {
 export function validateWeaponRules(r: WeaponRules): WeaponRules {
   assertNumber(r.reinforceBonus, 'weapons.rules.reinforceBonus');
   assertNumber(r.reinforceMax, 'weapons.rules.reinforceMax');
+  if (r.dpsBaseline) {
+    assertNumber(r.dpsBaseline.attack, 'weapons.rules.dpsBaseline.attack');
+    for (const [id, t] of Object.entries(r.dpsBaseline.targets)) {
+      if (!Array.isArray(t) || t.length !== 2 || !(t[0] <= t[1]))
+        throw new Error(`[data] weapons.rules.dpsBaseline.targets.${id} 는 [하한, 상한]`);
+      t.forEach((x, i) => assertNumber(x, `weapons.rules.dpsBaseline.targets.${id}[${i}]`));
+    }
+  }
   return r;
 }
 

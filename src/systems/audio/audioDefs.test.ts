@@ -205,11 +205,22 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       SFX.menuSelect,
       SFX.enemyDeath,
       SFX.dash,
+      // 61라운드 계약 sound §9: 피격·가드 막기 · 연격 마무리
+      SFX.hitPlayer,
+      SFX.guardBlock,
+      SFX.comboFinish,
     ]);
     // 60라운드 Q6 보관 3종은 연결하지 않는다
     for (const id of ARCHIVED_SFX) expect(used.has(id), id).toBe(false);
     const unused = manifest.entries
-      .filter((e) => e.kind === 'sfx' && !used.has(e.id) && !ARCHIVED_SFX.includes(e.id))
+      // 61라운드 §9: 변주(variantOf)는 원본 트리거가 고른다 — 원본이 쓰이면 쓰인 것
+      .filter(
+        (e) =>
+          e.kind === 'sfx' &&
+          !used.has(e.id) &&
+          !(e.variantOf && used.has(e.variantOf)) &&
+          !ARCHIVED_SFX.includes(e.id),
+      )
       .map((e) => e.id);
     expect(unused).toEqual([]);
     // 60라운드 새 id 는 전부 매니페스트에 있다

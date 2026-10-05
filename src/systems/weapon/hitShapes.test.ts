@@ -113,19 +113,19 @@ describe('55라운드 §17 판정 모양 — wedge · rect · ring', () => {
 });
 
 describe('55라운드 데이터 (계약 §17 수치)', () => {
-  it('칼 K-A: 1타 +70→−40 · 2타 −70→+40 · 58라운드 Q1 3타 = 찌르기(검기 단수별 직사각) · 일섬은 대쉬 공격(무기 데이터 issen), 반경 38', () => {
+  it('칼 K-A: 1타 +70→−40 · 2타 −70→+40 · 3타 = 찌르기(직사각, 61라운드: 검기 소모 없음) · 일섬은 대쉬 공격(무기 데이터 issen), 반경 38', () => {
     const c = WEAPONS.katana.combo!;
-    const R = comboRadius(c, WEAPONS.katana.hitbox);
+    const R = comboRadius(c);
     expect(R).toBe(38);
     expect(c.hits.slice(0, 2).map((h) => h.hitShape)).toMatchObject([
       { kind: 'arc', fromDeg: 70, toDeg: -40 },
       { kind: 'arc', fromDeg: -70, toDeg: 40 },
     ]);
     expect(c.hits[2]).toMatchObject({ move: 'thrust', heavy: true, art: 'thrust' });
-    // 아트 player_katana_thrust hitShape.byKiLevel (도트 ÷ 152): 끝 197.6 / 228 / 258.4 / 288.8
-    const byKi = WEAPONS.katana.moves!.thrust!.byKi;
-    expect(byKi.map((l) => Math.round((l.fromMult + l.lengthMult) * 152))).toEqual([198, 228, 258, 289]);
-    expect(byKi.map((l) => l.art)).toEqual(['thrust', 'thrust_ki1', 'thrust_ki2', 'thrust_ki3']);
+    // 아트 player_katana_thrust hitShape (도트 ÷ 152): 끝 197.6 — 61라운드: 검기 단수별 판정(byKi)은 지웠다
+    const t = c.hits[2].hitShape!;
+    expect(t.kind === 'rect' ? Math.round(((t.fromMult ?? 0) + t.lengthMult) * 152) : 0).toBe(198);
+    expect(WEAPONS.katana.moves!.thrust!.lunge).toBeDefined();
     expect(WEAPONS.katana.moves!.issenDash!.hit).toMatchObject({ durationMs: 740, hitAtMs: 250, art: 'issen_dash' });
     expect(WEAPONS.katana.issen).toMatchObject({
       distancePx: 64,
@@ -134,8 +134,9 @@ describe('55라운드 데이터 (계약 §17 수치)', () => {
       hitFromMs: 250,
       hitToMs: 330,
     });
-    // 55라운드 발도 초승달·잔상 그림은 그림 표에 남겨 둔다 (Q35 재사용 후보)
-    expect(c.art?.crescent).toBeDefined();
+    // 61라운드: 쓰지 않는 그림 키(초승달·잔상·찌르기 검기 단수)는 그림 표에서 뺐다 (로드 줄임)
+    expect(c.art?.crescent).toBeUndefined();
+    expect(c.art?.iai_draw).toBeDefined();
     expect(c.leftTransform).toBe('rotate');
     // 내딛기 1·2타 4~6
     for (const i of [0, 1]) expect(c.hits[i].step!.px).toBeGreaterThanOrEqual(4);
@@ -144,7 +145,7 @@ describe('55라운드 데이터 (계약 §17 수치)', () => {
 
   it('대검 G-C: H1 시계 150° → V 쐐기 40° ×1.3 + 충격원 0.35R → H2 반시계 → V, 순환·관성·차지', () => {
     const c = WEAPONS.greatsword.combo!;
-    expect(comboRadius(c, WEAPONS.greatsword.hitbox)).toBe(51);
+    expect(comboRadius(c)).toBe(51);
     expect(c.loop).toBe(true);
     const [h1, v, h2, v2] = c.hits.map((h) => h.hitShape!);
     expect(h1).toMatchObject({ kind: 'arc', fromDeg: -75, toDeg: 75 });
@@ -155,7 +156,8 @@ describe('55라운드 데이터 (계약 §17 수치)', () => {
     expect(c.hits.map((h) => Boolean(h.heavy))).toEqual([false, false, false, false]);
     expect(c.charge!.hit.heavy).toBe(true);
     expect(c.hits[1].step!.px).toBe(12);
-    expect(c.momentum).toMatchObject({ perHit: 0.05, max: 0.2, idleResetMs: 1000 });
+    // 61라운드 SY-3: 관성 최대 +10% (옛 +20%)
+    expect(c.momentum).toMatchObject({ perHit: 0.05, max: 0.1, idleResetMs: 1000 });
     expect(c.charge!.stages.map((s) => [s.atMs, s.lengthMult])).toEqual([
       [400, 1.0],
       [800, 1.1],

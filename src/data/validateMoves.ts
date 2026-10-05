@@ -26,17 +26,7 @@ function strike(m: MoveStrikeDef, path: string, art: Record<string, unknown> | u
 }
 
 export function validateMoves(m: WeaponMovesDef, path: string, art: Record<string, unknown> | undefined): void {
-  if (m.thrust) {
-    const t = m.thrust;
-    if (!Array.isArray(t.byKi) || t.byKi.length === 0) throw new Error(`[data] ${path}.thrust.byKi 비어 있음`);
-    t.byKi.forEach((l, i) => {
-      const lp = `${path}.thrust.byKi[${i}]`;
-      nums(l, ['fromMult', 'lengthMult', 'widthMult', 'damageMult'], lp);
-      str(l.art, `${lp}.art`);
-      if (art && !(l.art in art)) throw new Error(`[data] ${lp}.art '${l.art}' 이 combo.art 표에 없음`);
-    });
-    if (t.lunge) travel(t.lunge, `${path}.thrust.lunge`);
-  }
+  if (m.thrust?.lunge) travel(m.thrust.lunge, `${path}.thrust.lunge`);
   if (m.issenDash) strike(m.issenDash, `${path}.issenDash`, art);
   if (m.counter) {
     strike(m.counter, `${path}.counter`, art);
@@ -45,25 +35,22 @@ export function validateMoves(m: WeaponMovesDef, path: string, art: Record<strin
   }
   if (m.iai) {
     strike(m.iai, `${path}.iai`, art);
+    num(m.iai.holdMs, `${path}.iai.holdMs`);
     num(m.iai.readyAfterHoldMs, `${path}.iai.readyAfterHoldMs`);
     str(m.iai.readyFx, `${path}.iai.readyFx`);
     nums(m.iai.release, ['hitMs', 'activeMs', 'clickMs', 'totalMs'], `${path}.iai.release`);
     if (!(m.iai.release.hitMs < m.iai.release.totalMs))
       throw new Error(`[data] ${path}.iai.release.hitMs 는 totalMs 보다 작아야 합니다`);
   }
-  for (const key of ['tackle', 'guardRush'] as const) {
-    const r = m[key];
-    if (!r) continue;
-    strike(r, `${path}.${key}`, art);
-    travel(r.dash, `${path}.${key}.dash`);
-    num(r.carryExtraPx, `${path}.${key}.carryExtraPx`);
-    if (r.windowMs !== undefined) num(r.windowMs, `${path}.${key}.windowMs`);
+  if (m.tackle) {
+    strike(m.tackle, `${path}.tackle`, art);
+    travel(m.tackle.dash, `${path}.tackle.dash`);
+    num(m.tackle.carryExtraPx, `${path}.tackle.carryExtraPx`);
   }
-  if (m.guardRush && m.guardRush.windowMs === undefined) throw new Error(`[data] ${path}.guardRush.windowMs 없음`);
   if (m.brace) {
     const b = m.brace;
     strike(b, `${path}.brace`, art);
-    nums(b, ['superArmorMs', 'rageMinRatio'], `${path}.brace`);
+    nums(b, ['windowMs', 'superArmorMs', 'rageMinRatio'], `${path}.brace`);
     str(b.rageArt, `${path}.brace.rageArt`);
     if (art && !(b.rageArt in art))
       throw new Error(`[data] ${path}.brace.rageArt '${b.rageArt}' 이 combo.art 표에 없음`);
@@ -74,10 +61,8 @@ export function validateMoves(m: WeaponMovesDef, path: string, art: Record<strin
     const l = m.leap;
     strike(l, `${path}.leap`, art);
     travel(l.leap, `${path}.leap.leap`);
-    numList(l.lengthMultByStage, `${path}.leap.lengthMultByStage`);
-    if (!Array.isArray(l.crackRowByStage) || l.crackRowByStage.length === 0)
-      throw new Error(`[data] ${path}.leap.crackRowByStage 는 문자열 배열`);
-    l.crackRowByStage.forEach((r, i) => str(r, `${path}.leap.crackRowByStage[${i}]`));
+    num(l.lengthMult, `${path}.leap.lengthMult`);
+    str(l.crackRow, `${path}.leap.crackRow`);
     nums(l.landingRing, ['radiusMult', 'damageMult'], `${path}.leap.landingRing`);
     str(l.spiralFx, `${path}.leap.spiralFx`);
     if (typeof l.consumesGrudge !== 'boolean') throw new Error(`[data] ${path}.leap.consumesGrudge 는 true·false`);
@@ -86,7 +71,7 @@ export function validateMoves(m: WeaponMovesDef, path: string, art: Record<strin
   if (m.flurry) {
     const f = m.flurry;
     strike(f, `${path}.flurry`, art);
-    nums(f, ['holdMs', 'heatPerStab', 'moveMult'], `${path}.flurry`);
+    nums(f, ['holdMs', 'tempoPerStab', 'moveMult'], `${path}.flurry`);
     numList(f.heatBounds, `${path}.flurry.heatBounds`, 0);
     if (!Array.isArray(f.heatFx) || f.heatFx.length !== f.heatBounds.length + 1)
       throw new Error(`[data] ${path}.flurry.heatFx 는 heatBounds 수 + 1 개`);
@@ -98,6 +83,7 @@ export function validateMoves(m: WeaponMovesDef, path: string, art: Record<strin
     nums(
       a,
       [
+        'holdMs',
         'durationMs',
         'ammoCost',
         'markRadiusPx',

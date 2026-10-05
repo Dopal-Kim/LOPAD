@@ -60,6 +60,8 @@ export const FEEL = {
     /** 55라운드 Q8: 막타·대검·치명타 적중 흔들림 — 적중 시트 JSON `shakeHint` 가 없을 때 (임시) */
     HEAVY_HIT: { PX: 3, MS: 90 },
   },
+  /** 61라운드 플레이 점검: 튜토리얼 허수아비 맞음 거리 = 무기 판정 반경 × 이만큼 (대검 쐐기 끝 ×1.3 여유) */
+  TUTORIAL_REACH_MULT: 1.3,
   /** 55라운드 Q8 방향성 흔들림: 타격 방향으로 밀렸다가 반대로 튕기는 진동 횟수 (임시) */
   SHAKE_DIR: { CYCLES: 1.5 },
   /** 넉백: 공격 방향으로 거리 px, 선형 감쇠 ms (벽은 Arcade 충돌이 막는다) */
@@ -90,6 +92,11 @@ export const FEEL = {
     FONT_TIMEOUT_MS: 3000,
     /** 치명타 색: 층 램프 index (accent roles: 7 = light1 → 전체 슬롯 23) */
     CRIT_RAMP_INDEX: 7,
+    /**
+     * 61라운드 플레이 점검: 겹침 정리 (임시값). 같은 자리(반경 RADIUS_PX)에 MERGE_MS 안에 또 맞으면 숫자를 합쳐 다시 띄우고(일반·치명은 함께,
+     * 틱·주인공 피격은 따로), 합칠 수 없으면 근처 숫자 수만큼 위로 STEP_PX·좌우로 SPREAD_X 씩 비켜 띄운다
+     */
+    STACK: { RADIUS_PX: 14, MERGE_MS: 260, STEP_PX: 9, SPREAD_X: 7, MAX_STEPS: 4, POP_SCALE: 1.25, POP_MS: 90 },
   },
   /** 플레이스홀더 피격 이펙트 (시트가 없을 때) */
   PLACEHOLDER: {
@@ -251,8 +258,8 @@ export const FEEDBACK = {
     GAP_PX: 5,
     OFFSET_Y: 6,
   },
-  /** 단검 과열 100%: 전용 폭발 fx (주인공 발) · 식는 동안 루프 · 낙인 적 연쇄 간격 */
-  OVERHEAT: { SHEET: 'dagger_overheat_burst', COOL_SHEET: 'dagger_overheat_cool', CHAIN_MS: 40 },
+  /** 단검 가속 가득 폭발 (61라운드: 2단 열풍만 — 기본 과열 폭발·식힘 삭제): 전용 폭발 fx (주인공 발) · 낙인 적 연쇄 간격 */
+  OVERHEAT: { SHEET: 'dagger_overheat_burst', CHAIN_MS: 40 },
   /** 퍼펙트 가드·패링 fx (행 guard·parry, 맞닿은 점 = 판정 원점에서 공격자 쪽 6 월드 px, 공격자 방향 회전) */
   GUARD_FX: { SHEET: 'guard_perfect_fx', CONTACT_PX: 6 },
   /** 그로기: 몸 루프 · 머리 위 소용돌이 (머리 꼭대기 = 몸 JSON headTopAnchors, 없으면 OFFSET) */

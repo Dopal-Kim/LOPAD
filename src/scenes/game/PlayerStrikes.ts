@@ -7,7 +7,7 @@
  * 무기 그림 번쩍임(Q12)·검기 획득 · 내려찍기 땅 균열(Q5).
  */
 import Phaser from 'phaser';
-import { COLORS, DEPTH, ENEMY_FX, FEEL, PROTOTYPE } from '../../core/Constants';
+import { COLORS, DEPTH, ENEMY_FX, FEEL, MOVE_FX, PROTOTYPE } from '../../core/Constants';
 import type { PlayerAttackPayload, PlayerChargePayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
@@ -42,7 +42,7 @@ export class PlayerStrikes {
   /** 디버그: 마지막 차지 단계 번쩍임 이펙트를 재생했는가 */
   chargeFlashFx = false;
   /** 디버그 (51라운드 템포 실측): 최근 공격 시각 (게임 시간 ms) */
-  readonly attackLog: { time: number; kind: string; comboIndex: number | null; firstStrike: string | null }[] = [];
+  readonly attackLog: { time: number; kind: string; comboIndex: number | null; move: string | null }[] = [];
   readonly bow: BowShots;
   readonly dots: StrikeDots;
   /** 56라운드 일섬 · 꽂아내리기 · 낙인 */
@@ -82,7 +82,7 @@ export class PlayerStrikes {
       time: g.time.now,
       kind: p.kind,
       comboIndex: p.comboIndex ?? null,
-      firstStrike: p.firstStrike ?? null,
+      move: p.move ?? null,
     });
     if (this.attackLog.length > 40) this.attackLog.shift();
     const weapon = gameState.weapon;
@@ -149,7 +149,7 @@ export class PlayerStrikes {
     const g = this.g;
     const weapon = gameState.weapon;
     const mods = weapon.mods;
-    const hb = weapon.hitbox;
+    const reach = weapon.reachPx;
     const secondWave = Boolean(opts.secondWave);
     const follow = opts.follow ?? null;
     // 48라운드 3연격: 몸 중심(발 위 10px) 부채꼴·찌르기 판정. 물리 영역은 외접 사각형이고 겹친 적을 모양으로 다시 거른다
@@ -170,16 +170,15 @@ export class PlayerStrikes {
       w = Math.max(1, b.w);
       h = Math.max(1, b.h);
     } else {
-      cx = p.x + p.dirX * hb.reach * p.sizeMult;
-      cy = p.y + p.dirY * hb.reach * p.sizeMult;
-      // Arcade 바디는 축 정렬 사각형이라 지배적인 축에 맞춰 폭·높이를 바꿔 근사한다.
-      const horizontal = Math.abs(p.dirX) >= Math.abs(p.dirY);
-      w = (horizontal ? hb.width : hb.height) * p.sizeMult;
-      h = (horizontal ? hb.height : hb.width) * p.sizeMult;
+      // 61라운드 P9: 모양이 없는 판정(옛 hitbox 대체) — 조준 방향 R 앞에 R × R 사각형
+      cx = p.x + p.dirX * reach * p.sizeMult;
+      cy = p.y + p.dirY * reach * p.sizeMult;
+      w = reach * p.sizeMult;
+      h = reach * p.sizeMult;
     }
     // 후속 판정은 충격파 갈래·진화 베기를 다시 부르지 않는다
     const finisher = isFinisher(p) && !follow;
-    const activeMs = p.activeMs ?? hb.activeMs;
+    const activeMs = p.activeMs ?? MOVE_FX.FALLBACK_ACTIVE_MS;
     // 47라운드: 타격형 구조물·화로 점화·불붙은 무기의 웅덩이 점화
     g.structures.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
     // 54라운드: 보스방 — 약점 잔 · 술통 방향 바꾸기 · 쓰러진 촛대 다시 켜기

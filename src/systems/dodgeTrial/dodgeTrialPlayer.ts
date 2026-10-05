@@ -8,6 +8,7 @@ import Phaser from 'phaser';
 import { DEPTH, FEEL, TILE, entityDepth } from '../../core/Constants';
 import { PLAYER_DATA } from '../../data';
 import { audio } from '../audio/audio';
+import { cameraShake } from '../feel';
 import { SFX } from '../audio/audioMap';
 import { DODGE_TRIAL } from './dodgeTrial';
 import type { FxPool } from '../fx/fx';
@@ -219,7 +220,7 @@ export class TrialPlayer {
     this.fx.play(FEEL.FX_IDS.PLAYER_HIT, this.pos.x, this.pos.y, {
       depth: entityDepth(this.pos.y) + DEPTH.OVERLAY_STEP * 3,
     });
-    this.scene.cameras.main.shake(P.SHAKE_MS, P.SHAKE_INTENSITY);
+    cameraShake(this.scene.cameras.main, P.SHAKE_MS, P.SHAKE_INTENSITY);
     audio.playSfx(SFX.hitPlayer);
   }
 

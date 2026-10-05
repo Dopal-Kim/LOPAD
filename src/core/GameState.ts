@@ -117,7 +117,8 @@ class GameState {
     this.kills = 0;
     this.senses.reset();
     this.gold = 0;
-    this.potions = 0;
+    // 61라운드 플레이 점검: 시작 물약 (1층 첫 전투의 회복 여유)
+    this.potions = PLAYER_DATA.startPotions ?? 0;
     this.pointsPending = 0;
     this.bonus = { ...EMPTY_BONUS };
     this.passives = new PassiveSet();

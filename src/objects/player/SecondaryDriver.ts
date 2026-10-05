@@ -1,6 +1,7 @@
 /**
- * 우클릭 보조 동작 (56라운드 6-1 — Player.ts 에서 분리): 칼 패링 · 대검 가드(퍼펙트 가드 창 시작 시각) · 단검 그림자 걸음 ·
- * 활 당김·놓기(56라운드 Q9 — 누르면 당김, 떼면 발사, 자동 발사 없음, 가득 직후 완벽 놓기, 오래 쥐면 흔들림, 숨 집중).
+ * 우클릭 = 4동사의 '시그니처' (56라운드 6-1 — Player.ts 에서 분리): 칼 가드·패링 · 대검 가드(퍼펙트 가드 창 시작 시각, 떼면 밀쳐내기 —
+ * 61라운드 중압 갈래면 막은 직후 뗌 = 버티기 올려베기) · 단검 그림자 걸음 · 활 당김·놓기(56라운드 Q9 — 누르면 당김, 떼면 발사,
+ * 자동 발사 없음, 가득 직후 완벽 놓기, 오래 쥐면 흔들림, 61라운드: 숨 집중은 저격 갈래만).
  * 판정 규칙은 `systems/weapon/bowDraw`(Phaser 의존 없음). Player 는 행동 가능 여부만 정하고 여기에 맡긴다.
  */
 import Phaser from 'phaser';
@@ -18,7 +19,6 @@ import type { BowDrawDef } from '../../data/types';
 import { drawState, releaseShot, strainShakeRad, type DrawState } from '../../systems/weapon/bowDraw';
 import type { InputState } from '../../systems/InputSystem';
 import type { Player } from '../Player';
-import { startArrowRain } from './bowRain';
 
 export class SecondaryDriver {
   /** 보조 동작 쿨 (그림자 걸음·조준 사격) */
@@ -27,8 +27,6 @@ export class SecondaryDriver {
   private drawStartedAt = 0;
   private drawFull = false;
   private drawStrain = false;
-  /** 화살비 뒤 우클릭을 계속 쥐고 있으면 다시 당긴다 */
-  private rainResume = false;
   /** 디버그: 마지막 놓기 */
   lastRelease: { power: string; damageMult: number; refund: boolean; elapsedMs: number } | null = null;
 
@@ -73,19 +71,14 @@ export class SecondaryDriver {
   hold(input: InputState, time: number): void {
     const p = this.p;
     const S = p.secondary;
-    // 56라운드 2단계: 활 화살비 뒤 우클릭을 계속 쥐고 있으면 다시 당김
-    if (this.rainResume && p.action === 'normal') {
-      this.rainResume = false;
-      if (input.secondaryHeld && S.kind === 'aimedshot') this.beginDraw(time);
-    }
     if (p.action === 'guard' && !input.secondaryHeld) {
-      // 56라운드 2단계 Q41: 퍼펙트 가드 직후 떼면 밀쳐내기 대신 돌진 (밀쳐내기·그 소리 없음)
-      const rush = p.moves.guardRushReady(time);
+      // 61라운드 중압: 막은 직후 떼면 밀쳐내기 대신 버티기 올려베기 (밀쳐내기·그 소리 없음)
+      const brace = p.moves.braceReady(time);
       p.setAction('normal', 0);
-      const payload: GuardReleasedPayload = { x: p.x, y: p.y, ...(rush ? { quiet: true } : {}) };
+      const payload: GuardReleasedPayload = { x: p.x, y: p.y, ...(brace ? { quiet: true } : {}) };
       EventBus.emit(Events.PLAYER_GUARD_RELEASED, payload);
       p.visual.release();
-      if (rush) p.moves.startGuardRush(input, time);
+      if (brace) p.moves.startBraceRelease(input, time, input.moveX !== 0 || input.moveY !== 0);
       // 56라운드 Q48 칼 가드: 패링 자세의 회복 열 (대검은 가드 떼기·밀쳐내기 열)
       else
         p.poses.playSpecial(
@@ -108,11 +101,6 @@ export class SecondaryDriver {
     if (!this.drawStrain && this.drawStateAt(time)?.phase === 'strain') {
       this.drawStrain = true;
       EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'aimedshot', phase: 'strain' } satisfies PlayerSecondaryPayload);
-    }
-    // 56라운드 2단계 Q43: 가득 당긴 채 좌클릭 = 화살비
-    if (input.attackPressed && this.drawFull && startArrowRain(p, input, time)) {
-      this.rainResume = true;
-      return;
     }
     if (input.secondaryHeld) return;
     p.setAction('normal', 0);

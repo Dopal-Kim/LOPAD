@@ -49,6 +49,20 @@ export function setFeel(patch: Partial<FeelSettings>): FeelSettings {
 }
 
 /**
+ * 61라운드 §15: Phaser 카메라 내장 흔들림(`camera.shake`)을 직접 쓰는 곳(개성 선택 획·회피 시험)도 설정 배율을 따르게 —
+ * 배율을 곱한 세기, 0 이면 흔들지 않는다
+ */
+export function cameraShake(
+  cam: { shake(duration: number, intensity: number): unknown },
+  ms: number,
+  intensity: number,
+): void {
+  const k = feelSettings.shake;
+  if (k <= 0 || ms <= 0 || intensity <= 0) return;
+  cam.shake(ms, intensity * k);
+}
+
+/**
  * 히트스톱: 요청(`request`)이 들어오면 `until` 까지 정지. 마지막 시작 뒤 `MIN_GAP_MS` 안의 요청은 무시(연타 중첩 금지).
  * 더 긴 요청이 들어와 간격을 넘겼으면 종료 시각을 늘린다.
  */

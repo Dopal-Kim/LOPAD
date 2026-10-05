@@ -5,6 +5,7 @@
  */
 import type { WeaponDef, WeaponTable } from '../../data/types';
 import type { UiMenuLine, UiTagId } from '../../contract/ui';
+import { verbsLine, weaponVerbs } from './verbs';
 
 /** 그만두기 (닫기) key — 계약 §9.4 구조물 메뉴와 같은 관례 */
 export const LAB_CANCEL_KEY = '0';
@@ -55,7 +56,8 @@ export function labWeaponMenu(
       key,
       label: id === currentId ? `${w.name} (지금)` : w.name,
       enabled: true,
-      detail: `${w.secondary.name} · ${resourceLabel(w)}`,
+      // 61라운드 P1: 4동사 한 줄 · 보이는 자원
+      detail: `${verbsLine(weaponVerbs(id, w, []))} · ${resourceLabel(w)}`,
     });
   });
   lines.push({ key: LAB_TO_BRANCH_KEY, label: '개성 갈래 고르기', enabled: true });
@@ -63,9 +65,12 @@ export function labWeaponMenu(
   return { lines, choices };
 }
 
+/** 보이는 자원 이름 (61라운드 SY-2: 무기당 하나 — 고유 자원이 있으면 그것, 단검 가속처럼 숨은 자원은 빼고) */
 function resourceLabel(w: WeaponDef): string {
+  const g = w.gauge;
+  if (g && !(g.kind === 'breath' && g.branch)) return g.label;
   const r = w.resource;
-  if (!r) return '자원 없음';
+  if (!r || r.hidden) return '자원 없음';
   return r.label;
 }
 

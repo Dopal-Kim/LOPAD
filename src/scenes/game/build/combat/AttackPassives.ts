@@ -42,7 +42,8 @@ export class AttackPassives {
     const pl = this.g.player;
     const len = T(C.lengthTiles);
     const half = T(C.widthTiles) / 2;
-    const reach = gameState.weapon.hitbox.reach;
+    // 61라운드 P9: 옛 hitbox.reach 대신 판정 기준 거리(연격 반경)
+    const reach = gameState.weapon.reachPx;
     const x0 = pl.x + p.dirX * reach;
     const y0 = pl.y + p.dirY * reach;
     // 60라운드 계약 art §21 greatsword_cleave_crack (V 끝점 충격원 중심, 조준 방향 회전 — 판정 길이에 맞춤)
@@ -60,7 +61,7 @@ export class AttackPassives {
     const pl = this.g.player;
     const at = { x: pl.x - p.dirX * T(0.6), y: pl.y - p.dirY * T(0.6) };
     const mult = param(r, 'damageMult');
-    const reach = gameState.weapon.hitbox.reach * 1.6;
+    const reach = gameState.weapon.reachPx;
     this.g.time.delayedCall(param(r, 'delayMs'), () => {
       if (!this.g.scene.isActive()) return;
       emitProc(r);

@@ -1,5 +1,11 @@
 import type { EconomyData, ShopItem, StatKey, StatReward } from '../data/types';
 import type { Rng } from './rng';
+import type { UiCost } from '../contract/ui';
+
+/** 61라운드 #3: 메뉴 줄 가격 (줄 label 에는 넣지 않는다 — UI 가 이 값을 한 번 그린다). currency = 서사 이름(전표) */
+export function goldCost(amount: number, gold: number, currency: string): UiCost {
+  return { kind: 'gold', amount, label: `${amount}${currency}`, affordable: gold >= amount };
+}
 
 /** 플레이어가 런 중 얻은 능력치 보너스 (기본 스탯에 더해진다) */
 export interface StatBonus {

@@ -38,6 +38,8 @@ describe('buildSnapshot', () => {
     expect(s.interactable).toBeNull();
     expect(s.statuses).toEqual([]);
     expect(s.map.rooms.every((r) => r.structureDot === false)).toBe(true);
+    // 61라운드 P1: 무기 4동사 (지금 무기 — 칸 순서 고정)
+    expect(s.weaponVerbs?.verbs.map((v) => v.slot)).toEqual(['attack', 'signature', 'dash', 'hold']);
     // 53라운드: 넣기/뽑기 (생략 시 null, 주면 복사본)
     expect(s.carry).toBeNull();
     const carry = { drawn: false, firstStrike: '발도', key: 'F' as const };

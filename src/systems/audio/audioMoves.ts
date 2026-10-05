@@ -14,7 +14,6 @@ export const MOVE_SFX = {
   gsBraceUpswing: 'sfx/gs_brace_upswing',
   gsLeap: 'sfx/gs_leap',
   gsLeapSlam: 'sfx/gs_leap_slam',
-  gsGuardRush: 'sfx/gs_guard_rush',
   daggerBackstab: 'sfx/dagger_backstab',
   /** 고속 난타 찌르기 변주 1~4 (찌를 때마다 직전과 다른 것) */
   daggerFlurry: (n: number) => `sfx/dagger_flurry${n}`,
@@ -103,12 +102,6 @@ export const MOVE_AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     note: '2단계 대검 도약 착지 · 차지 1단 이상 → charge_slam_lv<n> 겹침',
     when: (p) => p.move === 'leap' && p.phase === 'land' && (p.stage ?? 0) > 0,
     sfx: (p) => chargeSlam(p.stage ?? 1),
-  }),
-  t<PlayerSkillPayload>({
-    event: Events.PLAYER_SKILL,
-    note: '2단계 대검 막다가 떼면 돌진 → gs_guard_rush',
-    when: skill('guard_rush', 'start'),
-    sfx: MOVE_SFX.gsGuardRush,
   }),
   t<PlayerSkillPayload>({
     event: Events.PLAYER_SKILL,

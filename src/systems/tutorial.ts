@@ -6,12 +6,12 @@
  * 행동은 단계가 켜진 동안이면 표식에 닿기 전에 해도 센다(익숙한 사람은 빨리 지나간다).
  * - arrive: 표식에 닿으면 완료
  * - hitDummy: 허수아비 근처를 공격 (근접 = 공격 지점·주인공에서 dummyHitTiles, 원거리 = 조준 원뿔 안 rangedHitTiles)
- * - dash · secondary: 그 동작을 하면
+ * - dash · secondary · hold: 그 동작을 하면 (hold = 61라운드 4동사 '좌 홀드' 기술 — PLAYER_HOLD_VERB)
  * - fight: 켜지면 약한 적 전투 요청(fight 이벤트), 전멸 알림(fightCleared)으로 완료
  * 마지막 단계가 끝나면 done (출구 열림은 호스트가).
  */
 
-export type TutorialAction = 'arrive' | 'hitDummy' | 'dash' | 'secondary' | 'fight';
+export type TutorialAction = 'arrive' | 'hitDummy' | 'dash' | 'secondary' | 'hold' | 'fight';
 
 export interface TutorialFightDef {
   /** 전장 중앙 기준 타일 오프셋 */
@@ -29,7 +29,7 @@ export interface TutorialStepDef {
   promptOnStart?: boolean;
   /** 49라운드 아트: 표식 시트 이름 조각 (`tutorial_sign_<signName>`, 없으면 id) */
   signName?: string;
-  /** 안내 문구 (자리표시). `{name}`·`{description}` = 무기 보조 동작 */
+  /** 안내 문구 (자리표시). `{name}`·`{description}` = 무기 보조 동작 · `{holdName}`·`{holdHint}` = 좌 홀드 기술 (61라운드) */
   text: string;
   /** 53라운드: 안내 패널 키 표시 (UI_EVENTS.TUTORIAL_STEP keys, 예 ['W','A','S','D']) */
   keys?: string[];
@@ -127,11 +127,14 @@ export class TutorialMachine {
     return out;
   }
 
-  /** 공격 1회 (근접·원거리 공통) */
-  attack(a: AttackInput, player: Pt, ranged: boolean): TutorialEvent[] {
+  /**
+   * 공격 1회 (근접·원거리 공통). meleeReachPx = 이 무기의 실제 판정 거리(61라운드 플레이 점검: 대검처럼 판정이 긴 무기가
+   * 허수아비를 맞혀도 세지 않던 문제) — dummyHitTiles 와 큰 쪽
+   */
+  attack(a: AttackInput, player: Pt, ranged: boolean, meleeReachPx = 0): TutorialEvent[] {
     const out: TutorialEvent[] = [];
     let hit = false;
-    const melee = this.def.dummyHitTiles * this.tilePx;
+    const melee = Math.max(this.def.dummyHitTiles * this.tilePx, meleeReachPx);
     const far = this.def.rangedHitTiles * this.tilePx;
     const cone = Math.cos((this.def.rangedConeDeg * Math.PI) / 180);
     this.dummies.forEach((d, i) => {
@@ -152,8 +155,8 @@ export class TutorialMachine {
     return out;
   }
 
-  /** 대쉬·보조 동작 */
-  action(kind: 'dash' | 'secondary'): TutorialEvent[] {
+  /** 대쉬·보조 동작·좌 홀드 기술 */
+  action(kind: 'dash' | 'secondary' | 'hold'): TutorialEvent[] {
     if (this.step?.action !== kind) return [];
     return this.count();
   }

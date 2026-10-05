@@ -1,5 +1,5 @@
 import { WEAPON_RULES } from '../../data';
-import type { AttackHitbox, WeaponDef, WeaponEvolution, WeaponMods, WeaponRules } from '../../data/types';
+import type { WeaponDef, WeaponEvolution, WeaponMods, WeaponRules } from '../../data/types';
 
 /** 세이브에 들어가는 무기 개성 상태 */
 export interface WeaponProgress {
@@ -110,17 +110,21 @@ export class WeaponState {
     return m * this.reinforceMult;
   }
 
-  get hitbox(): AttackHitbox {
+  /** 61라운드 P9 (옛 hitbox 대체): 판정 크기 배율 = 강화 × 경로 노드 hitboxMult */
+  get rangeMult(): number {
     let m = this.reinforceMult;
     for (const n of this.nodes) m *= n.hitboxMult;
-    const h = this.def.hitbox;
-    return {
-      width: h.width * m,
-      height: h.height * m,
-      reach: h.reach * m,
-      activeMs: h.activeMs,
-      cooldownMs: h.cooldownMs,
-    };
+    return m;
+  }
+
+  /** 판정 기준 거리 px (배율 전): 근접 = 연격 반경 `combo.radiusPx`, 원거리 = 화살이 생기는 거리 `ranged.spawnPx` */
+  get baseReachPx(): number {
+    return this.def.combo?.radiusPx ?? this.def.ranged?.spawnPx ?? 0;
+  }
+
+  /** 판정 기준 거리 px (강화·갈래 배율 반영) — 패시브·갈래 효과의 사거리 기준 */
+  get reachPx(): number {
+    return this.baseReachPx * this.rangeMult;
   }
 
   /**
@@ -131,7 +135,7 @@ export class WeaponState {
     const k = Math.max(0.1, this.mods.fireRateMult ?? 1);
     const R = this.def.ranged;
     return {
-      cooldownMs: this.def.hitbox.cooldownMs / k,
+      cooldownMs: (R?.cooldownMs ?? 0) / k,
       drawMs: (R?.drawMs ?? 0) / k,
       releaseFrame: R?.releaseFrame ?? 2,
     };

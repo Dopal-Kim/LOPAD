@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, GAME, PLACEHOLDER_UI } from '../core/Constants';
+import { COLORS, DEPTH, GAME, PLACEHOLDER_UI, RARITY_LABEL } from '../core/Constants';
 import { screenFixed } from './display';
 import { oncePerKeyEvent } from './keyEvents';
 import { EventBus, Events, type MenuEventPayload } from '../core/EventBus';
@@ -51,7 +51,14 @@ export class TextMenu {
       __system.emit(UI_EVENTS.MENU_OPEN, menu);
       return;
     }
-    const body = lines.map((l) => `[${l.key}] ${l.label}${l.enabled ? '' : '  (불가)'}`).join('\n');
+    // 61라운드 #3: 임시 텍스트 메뉴만 희귀도·가격을 덧붙인다 (UI 렌더러는 rarity·price 필드로 그린다)
+    const body = lines
+      .map((l, i) => {
+        const r = l.rarity ? `${RARITY_LABEL[l.rarity] ?? ''} ` : '';
+        const price = l.price && !l.soldOut ? `  ${l.price.label}` : '';
+        return `[${i + 1}] ${r}${l.label}${price}${l.enabled ? '' : '  (불가)'}`;
+      })
+      .join('\n');
     const at = screenFixed(this.scene.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2);
     this.text = this.scene.add
       .text(at.x, at.y, `${title}\n\n${body}${footer ? `\n\n${footer}` : ''}`, {

@@ -1,21 +1,20 @@
 /**
- * 56라운드 Q2·Q3·Q28·Q29 칼 3타 일섬 (씬 쪽): 돌진 시작에 출발 발 위치로 일섬 선(실제 이동 칸 수로 t1~t4, 분신 없으면 `_solo`),
- * 판정 구간 동안 출발점 → 지금 몸까지 쓸고 지나간 직사각형(적마다 1회), 검기 3단 소모면 그림자 분신이 같은 선을 달려
- * 도착 순간 선 위 적 전부에게 50% 1회. 분신이 없으면 선 끝 폭발은 연출만. 돌진 동안 칼끝 리본(Q38 돌진류만).
+ * 칼 대쉬 일섬 (56라운드 Q2·Q3·Q28·Q29 → 58 Q1 대쉬 공격 → 61라운드 P1): 돌진 시작에 출발 발 위치로 일섬 선(실제 이동 칸 수로 t1~t4,
+ * 분신 없는 `_solo` 선 — 61라운드에 검기 소모·그림자 분신을 뺐다, 검기는 좌 홀드 발도), 판정 구간 동안 출발점 → 지금 몸까지
+ * 쓸고 지나간 직사각형(적마다 1회). 선 끝 폭발은 연출만. 돌진 동안 칼끝 리본(Q38 돌진류만).
  * 시각은 씬 시계(히트스톱 동안 멈춤) · 몸 재생 배율 k 를 곱한다. 기하는 `systems/weapon/issenPath`.
  */
-import { FEEDBACK, entityDepth, fxLitDepth } from '../../core/Constants';
+import { FEEDBACK, fxLitDepth } from '../../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload, type PlayerSkillPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { PLAYER_DATA } from '../../data';
 import type { IssenDef } from '../../data/types';
 import type { Mob } from '../../objects/Mob';
-import type { FxFollowTarget, FxHandle } from '../../systems/fx/fxTypes';
-import { issenHit, lineTier, predictTravel, shadowAt } from '../../systems/weapon/issenPath';
+import { issenHit, lineTier, predictTravel } from '../../systems/weapon/issenPath';
 import type { Pt } from '../../systems/weapon/hitShapes';
 import type { Game } from '../Game';
 import { HIT_ORIGIN_UP_PX } from './shared';
-import { PLAYER_HIT_SCALE, PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
+import { PLAYER_HIT_SCALE } from '../../systems/weapon/playerScale';
 
 /** 일섬 한 번의 진행 상태 */
 interface IssenRun {
@@ -23,7 +22,6 @@ interface IssenRun {
   def: IssenDef;
   dir: Pt;
   facing: string;
-  clone: boolean;
   /** 몸 재생 배율 (시트를 늘였으면 시각도 늘인다) */
   k: number;
   /** 출발 발 위치 (돌진 시작에 정함) */
@@ -32,9 +30,6 @@ interface IssenRun {
   sweeping: boolean;
   hit: Set<Mob>;
   lineId: string | null;
-  /** 분신 따라가기 대상 · 출발 시각(플레이 시계) · 그 fx */
-  shadow: (FxFollowTarget & { bornAt: number }) | null;
-  shadowFx?: FxHandle | null;
 }
 
 /** 근접 타격 1회 (PlayerStrikes.strikeMob — first = 이 동작이 처음 맞힌 적: 무기 번쩍임·검기) */
@@ -65,17 +60,15 @@ export class IssenStrikes {
       def,
       dir: { x: is.dirX, y: is.dirY },
       facing: is.facing,
-      clone: is.clone,
       k,
       start: null,
       travel: 0,
       sweeping: false,
       hit: new Set(),
       lineId: null,
-      shadow: null,
     };
     this.run = run;
-    this.debugLast = { time: g.time.now, kenki: is.kenki, clone: is.clone, k, facing: is.facing };
+    this.debugLast = { time: g.time.now, k, facing: is.facing };
     const at = (ms: number, fn: () => void) =>
       g.time.delayedCall(ms * k, () => {
         if (this.live && this.run === run) fn();
@@ -88,10 +81,6 @@ export class IssenStrikes {
     });
     at(def.dashEndMs, () => this.dashEnd(run));
     at(def.dashStartMs + def.burstAtLineMs, () => this.emitSkill('burst'));
-    if (run.clone) {
-      at(def.shadow.startAtMs, () => this.shadowStart(run));
-      at(def.shadow.hitAtMs, () => this.shadowHit(run));
-    }
   }
 
   /** 돌진 시작: 출발점 고정 · 실제 이동 예측으로 선 고르기 · 칼끝 리본 */
@@ -112,7 +101,7 @@ export class IssenStrikes {
     const tier = lineTier(predicted, run.def.tilePx, run.def.lineSheets.length);
     const base = run.def.lineSheets[tier];
     const solo = `${base}${run.def.soloSuffix}`;
-    const id = run.clone ? base : g.fx.has(solo) ? solo : base;
+    const id = g.fx.has(solo) ? solo : base;
     run.lineId = g.fx.has(id) ? id : null;
     if (run.lineId)
       // 아트 depth below_player: 바닥 바로 위(주인공·적·분신 아래) — 이펙트 띠가 아니라 라이트맵 아래 깊이
@@ -172,70 +161,10 @@ export class IssenStrikes {
     return { backPx: run.def.hitBackPx * k, extraPx: run.def.hitExtraPx * k, widthPx: run.def.hitWidthPx * k };
   }
 
-  /** 분신 출발: 출발점 → 도착점(실제로 멈춘 자리)을 travelMs 동안 */
-  private shadowStart(run: IssenRun): void {
-    const g = this.g;
-    const s = run.start;
-    if (!s) return;
-    this.measure(run);
-    const sheet = run.def.shadow.sheet;
-    this.emitSkill('clone');
-    if (!g.fx.has(sheet)) return;
-    const follow = { x: s.x, y: s.y, active: true, depth: entityDepth(s.y), rotation: 0, bornAt: g.playNow() };
-    run.shadow = follow;
-    // Q51: 분신 깊이 = 발 기준 앞뒤 정렬 (라이트맵 아래 개체 깊이 — 매 프레임 update 가 갱신)
-    run.shadowFx = g.fx.play(sheet, s.x, s.y, {
-      dir: run.facing,
-      follow,
-      depth: entityDepth(s.y),
-      belowLighting: true,
-      // 58라운드 Q2: 분신 = 주인공 그림 배율 (일섬 선은 이동 거리 그대로라 배율 없음)
-      scaleMult: PLAYER_RENDER_SCALE,
-    });
-  }
-
-  /** 분신 도착: 선 위 적 전부 피해 × damageScale 1회 (Q29) */
-  private shadowHit(run: IssenRun): void {
-    const s = run.start;
-    if (!s) return;
-    this.measure(run);
-    const origin = { x: s.x, y: s.y - HIT_ORIGIN_UP_PX };
-    const geom = this.geom(run);
-    const p = { ...run.p, x: s.x, y: s.y, damageMult: run.p.damageMult * run.def.shadow.damageScale, forceCrit: false };
-    let n = 0;
-    for (const child of [...this.g.mobs.getChildren()]) {
-      const mob = child as Mob;
-      if (!mob.active) continue;
-      const b = mob.body;
-      if (
-        !issenHit(origin, run.dir, run.travel, geom, {
-          x: b.center.x,
-          y: b.center.y,
-          r: Math.min(b.halfWidth, b.halfHeight),
-        })
-      )
-        continue;
-      n += 1;
-      this.strike(mob, p, false);
-    }
-    this.debugLast = { ...this.debugLast, cloneHits: n, travel: Math.round(run.travel * 10) / 10 };
-  }
-
-  /** 매 프레임: 판정 쓸기 · 분신 위치 */
+  /** 매 프레임: 판정 쓸기 */
   update(): void {
     const run = this.run;
-    if (!run) return;
-    if (run.sweeping) this.sweep(run);
-    const sh = run.shadow;
-    const s = run.start;
-    if (sh && s) {
-      const to = { x: s.x + run.dir.x * run.travel, y: s.y + run.dir.y * run.travel };
-      const at = shadowAt(s, to, this.g.playNow() - sh.bornAt, run.def.shadow.travelMs * run.k);
-      sh.x = at.x;
-      sh.y = at.y;
-      sh.depth = entityDepth(at.y);
-      if (run.shadowFx && this.g.fx.isActive(run.shadowFx)) run.shadowFx.sprite.setDepth(sh.depth);
-    }
+    if (run?.sweeping) this.sweep(run);
   }
 
   private emitSkill(phase: PlayerSkillPayload['phase']): void {

@@ -119,19 +119,38 @@ export class SetPieceView {
     });
   }
 
-  /** 허수아비 흔들림 (맞음) */
-  pokeDummy(index: number): void {
+  /**
+   * 허수아비 맞음: 흔들림(dirX 쪽으로 넘어갔다 돌아옴 — strength 배, 대검 ≈ 2) · 61라운드 플레이 점검: 흰 점멸 flashMs.
+   * dirX 가 0 이면 옛 방향(왼쪽)
+   */
+  pokeDummy(index: number, strength = 1, dirX = 0, flashMs = 0): void {
     const s = this.dummies[index];
     if (!s) return;
     if (s.view?.hasState('hit')) s.view.setState('hit');
     const target = s.view?.sprite ?? s.shape;
     if (!target) return;
+    const side = dirX > 0 ? 1 : -1;
     this.scene.tweens.add({
       targets: target,
-      angle: { from: -this.V.dummyPokeDeg, to: 0 },
-      duration: this.V.dummyPokeMs,
-      ease: 'Sine.easeOut',
+      angle: { from: side * this.V.dummyPokeDeg * strength, to: 0 },
+      duration: this.V.dummyPokeMs * Math.max(1, strength),
+      ease: 'Back.easeOut',
     });
+    if (flashMs > 0 && 'setTintFill' in target) {
+      const t = target as Phaser.GameObjects.Sprite;
+      t.setTintFill(0xffffff);
+      this.scene.time.delayedCall(flashMs, () => {
+        if (t.active) t.clearTint();
+      });
+    }
+  }
+
+  /** 허수아비 중심 (월드 px — 맞음 불꽃 자리). 없으면 null */
+  dummyCenter(index: number): { x: number; y: number } | null {
+    const t = this.dummies[index]?.view?.sprite ?? this.dummies[index]?.shape;
+    if (!t) return null;
+    const b = t.getBounds();
+    return { x: b.centerX, y: b.centerY };
   }
 
   destroy(): void {

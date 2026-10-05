@@ -33,10 +33,12 @@ export interface CounterMoveDef extends MoveStrikeDef {
 }
 
 /**
- * 칼 대치 일격 (Q40·Q53·Q55·Q60): F 로 넣은 채 좌클릭을 누르는 동안 유지 루프, 떼면 발도(언제 떼도 같은 일격, 넣기 첫 타 치명).
- * 판정·끝은 뗀 시각 기준 (`release`). 유지 readyAfterHoldMs 의 반짝임(`readyFx`)은 연출만
+ * 칼 발도 (61라운드 P1 좌 홀드 — 옛 '대치 일격'·F 넣기): 좌클릭을 holdMs 넘게 누르면 칼집에 손을 얹은 유지 루프, 떼면 발도
+ * (언제 떼도 같은 일격, 검기 전부 소모해 강화). 판정·끝은 뗀 시각 기준 (`release`). 유지 readyAfterHoldMs 의 반짝임(`readyFx`)은 연출만
  */
 export interface IaiMoveDef extends MoveStrikeDef {
+  /** 이만큼 누르고 있으면 발도 자세 (그 전에 뗀 누름은 기본 연격) */
+  holdMs: number;
   readyAfterHoldMs: number;
   /** 준비 반짝임 fx (칼집 입구 koiguchiAnchors) */
   readyFx: string;
@@ -49,20 +51,21 @@ export interface IaiMoveDef extends MoveStrikeDef {
   };
 }
 
-/** 대검 어깨 태클·막다가 떼면 돌진 (Q41·Q55): 돌진하며 몸 앞 사각형이 함께 이동, 적마다 1회, 적을 밀고 감 */
+/** 대검 어깨 태클 (Q41·Q55): 돌진하며 몸 앞 사각형이 함께 이동, 적마다 1회, 적을 밀고 감 (61라운드: '막다가 떼면 돌진' 삭제) */
 export interface RushMoveDef extends MoveStrikeDef {
   dash: MoveTravelDef;
   /** 밀고 가는 적의 이동 (돌진 끝까지 남은 거리 + 이만큼 더) */
   carryExtraPx: number;
-  /** 막다가 떼면 돌진: 퍼펙트 가드 뒤 이 시간 안에 떼면 돌진 (태클은 없음) */
-  windowMs?: number;
-  /** 태클: 첫 접촉 순간 몸을 따라가는 fx · 돌진: 돌진 출발에 고정된 바닥 fx(땅 홈, 주인공 아래) */
+  /** 첫 접촉 순간 몸을 따라가는 fx */
   contactFx?: string;
-  groundFx?: string;
 }
 
-/** 대검 버티기 올려베기 (Q41·Q54·Q61): 가드 중 좌클릭 — 슈퍼아머(맞은 피해 그대로, 울분으로 쌓임) · 울분 소모 시 강화 */
+/**
+ * 대검 버티기 올려베기 (Q41·Q54·Q61 → 61라운드 중압 갈래): 가드로 막은 뒤 windowMs 안에 우클릭을 떼면 밀쳐내기 대신 —
+ * 슈퍼아머(맞은 피해 그대로, 울분으로 쌓임) · 울분 소모 시 강화
+ */
 export interface BraceMoveDef extends MoveStrikeDef {
+  windowMs: number;
   superArmorMs: number;
   /** 울분 소모판: 그림 키(ember fx) · 판정 모양 · 이 비율 이상 쌓였을 때만 소모 */
   rageArt: string;
@@ -72,12 +75,12 @@ export interface BraceMoveDef extends MoveStrikeDef {
   absorbFx: string;
 }
 
-/** 대검 공중제비 도약 찍기 (Q41·Q55): 차지 중 스페이스 — 차지 단계 유지, 착지 쐐기 + 끝 충격원 + 착지 링, 공중 무적 없음 */
+/** 대검 공중제비 도약 찍기 (Q41·Q55 → 61라운드 파쇄 갈래): 대쉬 공격 자리 — 착지 쐐기 + 끝 충격원 + 착지 링, 공중 무적 없음 */
 export interface LeapMoveDef extends MoveStrikeDef {
   leap: MoveTravelDef;
-  /** 차지 단계(0·1·2·3) → 쐐기 길이 배율 (0단은 첫 값) · 균열 행 */
-  lengthMultByStage: number[];
-  crackRowByStage: string[];
+  /** 착지 쐐기 길이 배율 · 균열 행 (61라운드: 차지 중 스페이스가 아니라 대쉬 공격 — 차지 단계 없음) */
+  lengthMult: number;
+  crackRow: string;
   /** 착지 발밑 링 판정 (반지름 = R × 값) · 피해 배율 */
   landingRing: { radiusMult: number; damageMult: number };
   /** 나선 fx (도약 출발 발에 고정 — 벽에 막혀 짧게 뛰면 생략) */
@@ -89,22 +92,24 @@ export interface LeapMoveDef extends MoveStrikeDef {
 /** 단검 등 뒤 치명 찌르기 (Q42·Q55): 그림자 걸음 직후 좌클릭 — 확정 치명, 전용 섬광만(공용 치명 fx 없음) */
 export type BackstabMoveDef = MoveStrikeDef;
 
-/** 단검 고속 난타 (Q42·Q55): 좌클릭 홀드 — 시작 → 루프(찌르기마다 판정) → 끝, 과열 단계로 fx 시트만 바꿈 */
+/** 단검 고속 난타 (Q42·Q55): 좌클릭 홀드 — 시작 → 루프(찌르기마다 판정) → 끝, 가속 단계로 fx 시트만 바꿈 */
 export interface FlurryMoveDef extends MoveStrikeDef {
   /** 이만큼 누르고 있으면 난타 시작 (그 전에 뗀 누름은 기본 연격) */
   holdMs: number;
-  /** 찌르기 한 번의 가열 · 이동 배율 */
-  heatPerStab: number;
+  /** 찌르기 한 번의 가속 · 이동 배율 */
+  tempoPerStab: number;
   moveMult: number;
   /** 과열 경계(비율, 오름차순) → fx 이름 (경계 수 + 1 개, 몸 프레임과 같은 열로 바꿔 낌) */
   heatBounds: number[];
   heatFx: string[];
 }
 
-/** 활 화살비 (Q43·Q52·Q55): 우클릭으로 가득 당긴 채 좌클릭 — 3발 연속 발사 → 커서 원 안 무작위 낙하점마다 작은 판정 */
+/** 활 화살비 (Q43·Q52·Q55 → 61라운드 좌 홀드): 좌클릭을 holdMs 넘게 누르면 — 3발 연속 발사 → 커서 원 안 무작위 낙하점마다 작은 판정 */
 export interface ArrowRainMoveDef {
   /** 몸·무기 동작 이름 (`player_<무기>_<이름>`) */
   art: string;
+  /** 좌클릭을 이만큼 누르고 있으면 화살비 (누른 순간의 한 발은 그대로 나간다) */
+  holdMs: number;
   durationMs: number;
   /** 몸 시트 releaseFrames 가 없을 때 발사 시각 */
   releasesAtMs: number[];
@@ -124,25 +129,14 @@ export interface ArrowRainMoveDef {
   fallFx: string;
 }
 
-/** 58라운드 Q1 칼 3타 찌르기: 검기 단수(0~3)별 판정 직사각형(R 배율)·피해 배율·그림 키 (검기 전부 소모) */
-export interface ThrustKiLevelDef {
-  fromMult: number;
-  lengthMult: number;
-  widthMult: number;
-  damageMult: number;
-  /** 그림 이름 표 키 (fx `katana_thrust(_ki<n>)`) */
-  art: string;
-}
-
-/** 58라운드 Q1 칼 3타 찌르기 (연격 타 `move: "thrust"`) — 판정·피해는 검기 단수, 내딛기는 방향키와 무관 */
+/** 칼 3타 찌르기 (연격 타 `move: "thrust"`) — 판정·피해는 연격 타 데이터, 내딛기만 여기 (방향키와 무관, 61라운드: 검기 소모 없음) */
 export interface ThrustMoveDef {
-  byKi: ThrustKiLevelDef[];
   lunge?: MoveTravelDef;
 }
 
 /** 무기별 새 기본기 (있는 것만) */
 export interface WeaponMovesDef {
-  /** 58라운드 Q1: 칼 3타 찌르기 · 대쉬 일섬(대쉬 공격 자리 — 기하는 무기 데이터 `issen`) */
+  /** 칼 3타 찌르기 내딛기 · 대쉬 일섬(대쉬 공격 자리 — 기하는 무기 데이터 `issen`) · 발도(좌 홀드) */
   thrust?: ThrustMoveDef;
   issenDash?: MoveStrikeDef;
   counter?: CounterMoveDef;
@@ -150,7 +144,6 @@ export interface WeaponMovesDef {
   tackle?: RushMoveDef;
   brace?: BraceMoveDef;
   leap?: LeapMoveDef;
-  guardRush?: RushMoveDef;
   backstab?: BackstabMoveDef;
   flurry?: FlurryMoveDef;
   arrowRain?: ArrowRainMoveDef;
@@ -162,9 +155,6 @@ export function moveFxNames(m: WeaponMovesDef | undefined): string[] {
   const out = [
     m.iai?.readyFx,
     m.tackle?.contactFx,
-    m.tackle?.groundFx,
-    m.guardRush?.contactFx,
-    m.guardRush?.groundFx,
     m.brace?.absorbFx,
     m.leap?.spiralFx,
     ...(m.flurry?.heatFx ?? []),

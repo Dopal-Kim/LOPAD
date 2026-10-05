@@ -1,9 +1,9 @@
 /**
  * 56라운드 2단계 단검 새 기본기 (Q42·Q55, 계약 art §18.9):
  * - 등 뒤 치명 찌르기 `dagger_backstab` — 그림자 걸음 직후 좌클릭: 기존 확정 치명(+암살 배율)을 전용 동작으로, 전용 섬광만
- * - 고속 난타 `dagger_flurry` — 좌클릭 홀드: 시작 열 1회 → 홀드 동안 루프(찌르기 열마다 판정, 초당 약 11타, 과열 빠르게) →
+ * - 고속 난타 `dagger_flurry` — 좌클릭 홀드: 시작 열 1회 → 홀드 동안 루프(찌르기 열마다 판정, 초당 약 11타, 가속 빠르게) →
  *   떼면 지금 찌르기의 당김 열까지 마치고 끝 열. 찌르기 시각은 몸 애니의 실제 열을 따른다(히트스톱에 함께 멈춤).
- *   fx 는 몸과 같은 열을 과열 단계 시트로 바꿔 낌 — 씬(MoveStrikes)이 `FlurryHold.view` 를 읽는다
+ *   fx 는 몸과 같은 열을 가속 단계 시트로 바꿔 낌 — 씬(MoveStrikes)이 `FlurryHold.view` 를 읽는다
  */
 import { EventBus, Events, type PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
@@ -32,7 +32,7 @@ function cols(v: unknown, fallback: number[]): number[] {
 export interface FlurryView {
   column: number;
   facing: Facing;
-  /** 과열 단계 fx 이름 (`<무기>_<이름>`) */
+  /** 가속 단계 fx 이름 (`<무기>_<이름>`) */
   fx: string;
 }
 
@@ -162,7 +162,7 @@ export class FlurryHold {
     const p = this.p;
     const def = this.def;
     const res = p.resource;
-    if (res?.kind === 'heat') res.heatBy(def.heatPerStab, time);
+    if (res?.kind === 'heat') res.heatBy(def.tempoPerStab, time);
     p.gear.lastAttackAt = time;
     this.stabs += 1;
     const hit = def.hit;
