@@ -66,6 +66,10 @@ export function isMeleeStrike(p: PlayerAttackPayload): boolean {
 export function urlParams(): URLSearchParams {
   if (typeof location === 'undefined') return new URLSearchParams();
   const own = new URLSearchParams(location.search);
+  if (own.toString() !== '') return own;
+  // 데모(아티팩트)는 주소 옵션을 못 넘기고 `#lab` 같은 해시 한 단어만 넘어온다 — 그 단어를 옵션 하나로 읽는다
+  const hash = location.hash.replace(/^#/, '');
+  if (/^[A-Za-z]+$/.test(hash)) return new URLSearchParams(hash);
   const demo = import.meta.env?.VITE_DEMO_QUERY;
-  return demo && own.toString() === '' ? new URLSearchParams(demo) : own;
+  return demo ? new URLSearchParams(demo) : own;
 }
