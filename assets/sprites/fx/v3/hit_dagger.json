@@ -1,15 +1,14 @@
 {
  "image": "hit_dagger.png",
  "action": "hit",
- "version": "v3",
  "frameWidth": 104,
  "frameHeight": 80,
- "pixelScale": 0.5,
+ "framesPerDirection": 4,
  "directions": [
   "any"
  ],
  "layout": "row = direction (directions order), column = frame index",
- "framesPerDirection": 4,
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
  "frameDurationsMs": [
   30,
   40,
@@ -17,6 +16,8 @@
   50
  ],
  "loop": false,
+ "pixelScale": 0.5,
+ "version": "v3-r61",
  "pivot": {
   "x": 30,
   "y": 40
@@ -31,7 +32,6 @@
  "variant": "normal",
  "useFor": "그 무기의 일반 적중(연격 1·2타, 활 일반 화살 등)",
  "replaces": "hit_burst (무기별로 바꿔 씀, 파일이 없으면 hit_burst)",
- "design": "작은 연속 별빛 — 4점 별이 공격 방향으로 하나씩 이어 터짐(앞 별은 식고 새 별이 밝게) + 작은 불씨 점",
  "hitstopMs": 30,
  "hitstopNote": "55라운드 Q6 무기별 히트스톱(막타·치명타 ×1.8) 참고값. 히트스톱 동안 이 시트는 holdFrame 에 멈춰 두기를 권장(판정 순간 백열이 보이도록).",
  "holdFrame": 0,
@@ -41,13 +41,16 @@
   0,
   1
  ],
- "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
  "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
  "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
- "source": "parts/art/work/fx_v3/build_feel.py",
- "colors": 9,
+ "source": "parts/art/work/weapons61/build.py dagger (61라운드 단검 연격 그림 보강)",
+ "design": "단검 적중 불꽃: 꿰뚫는 백열 점 + 진행 방향으로 길게 뻗는 섬광(0) → 앞쪽 부채꼴로 튀는 불꽃 줄기(13개)가 식으며 날아감 + 꿰뚫린 자리 점선 고리",
+ "glowRule": "백열 X0/X1·A26 은 0·1 프레임만",
+ "previous": "parts/art/work/weapons61/prev/fx/hit_dagger.png",
+ "r61": "61라운드 시스템 보고 — hit_dagger 불꽃",
+ "colors": 7,
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -68,10 +71,10 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":37,"w":42,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":21,"w":42,"h":38},"sourceSize":{"w":104,"h":80}},
-  "1":{"frame":{"x":44,"y":43,"w":42,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":15,"w":42,"h":34},"sourceSize":{"w":104,"h":80}},
-  "2":{"frame":{"x":0,"y":0,"w":50,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":22,"w":50,"h":35},"sourceSize":{"w":104,"h":80}},
-  "3":{"frame":{"x":52,"y":0,"w":40,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":18,"w":40,"h":41},"sourceSize":{"w":104,"h":80}}
+  "0":{"frame":{"x":0,"y":54,"w":54,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":25,"w":54,"h":31},"sourceSize":{"w":104,"h":80}},
+  "1":{"frame":{"x":74,"y":53,"w":51,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":21,"w":51,"h":37},"sourceSize":{"w":104,"h":80}},
+  "2":{"frame":{"x":0,"y":0,"w":72,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":13,"w":72,"h":52},"sourceSize":{"w":104,"h":80}},
+  "3":{"frame":{"x":74,"y":0,"w":62,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":13,"w":62,"h":51},"sourceSize":{"w":104,"h":80}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -79,8 +82,8 @@
   "image": "hit_dagger.png",
   "format": "RGBA8888",
   "size": {
-   "w": 92,
-   "h": 77
+   "w": 136,
+   "h": 90
   },
   "scale": "1"
  }

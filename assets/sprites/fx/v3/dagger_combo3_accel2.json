@@ -1,0 +1,144 @@
+{
+ "image": "dagger_combo3_accel2.png",
+ "action": "dagger_combo3",
+ "frameWidth": 544,
+ "frameHeight": 544,
+ "framesPerDirection": 5,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "fps": 17.86,
+ "pivot": {
+  "x": 272,
+  "y": 312
+ },
+ "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "weapon": "dagger",
+ "comboIndex": 3,
+ "comboLength": 3,
+ "nextCombo": null,
+ "hitFrames": [
+  1
+ ],
+ "activeFrames": [
+  1
+ ],
+ "cancelFromFrame": null,
+ "framesBasis": "player_dagger_combo3 프레임 번호 (무기·몸·이펙트 공통 기준 = 몸 시트)",
+ "timingMs": {
+  "hitAt": 60,
+  "cancelAt": null,
+  "total": 280
+ },
+ "hitOrigin": "몸 중심 = 피벗(발)에서 위로 40 도트(구 10px ×4)",
+ "hitNote": "56라운드 Q4 — 판정 길이 ×1.5 참고값(시스템 데이터 기준). 붓획 끝 = lengthPx",
+ "thrust": {
+  "lengthPx": 168,
+  "widthPx": 40,
+  "angleDeg": 0,
+  "fromPx": 16
+ },
+ "thrustNote": "몸 중심에서 정면(right 기준 angleDeg)으로 fromPx~lengthPx, 폭 widthPx 의 직사각 판정. 56라운드 Q4: 수평 사거리 ×1.5(112 → 168 도트)",
+ "anchor": "player_pivot",
+ "spawn": "attack_frame2",
+ "impactFrame": 1,
+ "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
+ "depth": "above",
+ "pivotNote": "pivot = 발. 찌르기 원점 = pivot 위 40 도트(hitOriginInFrame)",
+ "shake": {
+  "px": 1,
+  "ms": 40
+ },
+ "version": "v3-r61",
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
+ "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
+ "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
+ "glowFrames": [
+  1
+ ],
+ "hitOriginInFrame": {
+  "x": 272,
+  "y": 272
+ },
+ "source": "parts/art/work/weapons61/build.py dagger (61라운드 단검 연격 그림 보강)",
+ "design": "단검 3타 — 백열 창끝 렌즈(판정 끝 + 12 도트 뾰족) + 창끝 별 섬광 + 축을 따라 흐르는 속도선 + 창끝 앞 공기를 뚫는 납작 고리(1) → 창끝이 더 밀고 고리가 퍼짐(2, 히트스톱 정지 칸) → 마디로 끊기며 재·불티(3~)",
+ "glowRule": "백열 X0/X1·A26 은 판정 프레임 1 만(창끝 심·별·속도선 머리). 그 밖은 A25 이하",
+ "r61": "61라운드 시스템 보고 — 단검 연격 그림 보강(찌르기 궤적·가속 단계)",
+ "accelLevel": 2,
+ "accelOf": "dagger_combo3",
+ "accelVariants": {
+  "1": "dagger_combo3",
+  "2": "dagger_combo3_accel2",
+  "3": "dagger_combo3_accel3"
+ },
+ "accelRule": "가속(숨은 자원, 61 P1): 단계 1 = dagger_combo3 · 2 = _accel2 · 3 = _accel3. 경계는 시스템 데이터(제안: 공속 배율 ≥1.08 → 2, ≥1.18 → 3). 같은 프레임 번호·같은 ms·같은 피벗 — 연격 시작 때 그 순간 단계의 시트를 고른다(타 중간에 바꾸지 않아도 됨). 판정(thrust)은 그대로, 그림만 길어지고(×1.1 / ×1.2) 넓어지며 뒤로 밀린 잔상 창끝 0/1/2·속도선·공기 고리 1/2/3",
+ "visualLengthPx": 214,
+ "colors": 10,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo3_accel2.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 4,
+   "frameWidth": 544,
+   "frameHeight": 544,
+   "frameCount": 20
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":220,"y":626,"w":46,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":242,"y":288,"w":46,"h":108},"sourceSize":{"w":544,"h":544}},
+  "1":{"frame":{"x":182,"y":0,"w":79,"h":218},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":235,"y":280,"w":79,"h":218},"sourceSize":{"w":544,"h":544}},
+  "2":{"frame":{"x":0,"y":0,"w":89,"h":251},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":230,"y":256,"w":89,"h":251},"sourceSize":{"w":544,"h":544}},
+  "3":{"frame":{"x":191,"y":817,"w":71,"h":181},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":237,"y":292,"w":71,"h":181},"sourceSize":{"w":544,"h":544}},
+  "4":{"frame":{"x":81,"y":435,"w":83,"h":189},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":231,"y":292,"w":83,"h":189},"sourceSize":{"w":544,"h":544}},
+  "5":{"frame":{"x":73,"y":1146,"w":46,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":257,"y":149,"w":46,"h":108},"sourceSize":{"w":544,"h":544}},
+  "6":{"frame":{"x":0,"y":435,"w":79,"h":218},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":231,"y":46,"w":79,"h":218},"sourceSize":{"w":544,"h":544}},
+  "7":{"frame":{"x":91,"y":0,"w":89,"h":251},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":226,"y":38,"w":89,"h":251},"sourceSize":{"w":544,"h":544}},
+  "8":{"frame":{"x":0,"y":987,"w":71,"h":181},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":237,"y":72,"w":71,"h":181},"sourceSize":{"w":544,"h":544}},
+  "9":{"frame":{"x":166,"y":435,"w":83,"h":189},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":231,"y":64,"w":83,"h":189},"sourceSize":{"w":544,"h":544}},
+  "10":{"frame":{"x":121,"y":1146,"w":108,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":242,"w":108,"h":46},"sourceSize":{"w":544,"h":544}},
+  "11":{"frame":{"x":0,"y":655,"w":218,"h":79},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":235,"w":218,"h":79},"sourceSize":{"w":544,"h":544}},
+  "12":{"frame":{"x":0,"y":253,"w":251,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":230,"w":251,"h":89},"sourceSize":{"w":544,"h":544}},
+  "13":{"frame":{"x":73,"y":1000,"w":181,"h":71},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":72,"y":237,"w":181,"h":71},"sourceSize":{"w":544,"h":544}},
+  "14":{"frame":{"x":0,"y":817,"w":189,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":231,"w":189,"h":83},"sourceSize":{"w":544,"h":544}},
+  "15":{"frame":{"x":121,"y":1194,"w":108,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":288,"y":257,"w":108,"h":46},"sourceSize":{"w":544,"h":544}},
+  "16":{"frame":{"x":0,"y":736,"w":218,"h":79},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":280,"y":231,"w":218,"h":79},"sourceSize":{"w":544,"h":544}},
+  "17":{"frame":{"x":0,"y":344,"w":251,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":256,"y":226,"w":251,"h":89},"sourceSize":{"w":544,"h":544}},
+  "18":{"frame":{"x":73,"y":1073,"w":181,"h":71},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":292,"y":237,"w":181,"h":71},"sourceSize":{"w":544,"h":544}},
+  "19":{"frame":{"x":0,"y":902,"w":189,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":292,"y":231,"w":189,"h":83},"sourceSize":{"w":544,"h":544}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dagger_combo3_accel2.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 266,
+   "h": 1254
+  },
+  "scale": "1"
+ }
+}

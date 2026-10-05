@@ -1,0 +1,248 @@
+{
+ "dagger_combo1": {
+  "cat": "fx",
+  "frame": [
+   480,
+   480
+  ],
+  "rows": 4,
+  "cols": 4,
+  "colors": 7
+ },
+ "dagger_combo1_accel2": {
+  "cat": "fx",
+  "frame": [
+   480,
+   480
+  ],
+  "rows": 4,
+  "cols": 4,
+  "colors": 8
+ },
+ "dagger_combo1_accel3": {
+  "cat": "fx",
+  "frame": [
+   480,
+   480
+  ],
+  "rows": 4,
+  "cols": 4,
+  "colors": 8
+ },
+ "dagger_combo2": {
+  "cat": "fx",
+  "frame": [
+   480,
+   480
+  ],
+  "rows": 4,
+  "cols": 4,
+  "colors": 7
+ },
+ "dagger_combo2_accel2": {
+  "cat": "fx",
+  "frame": [
+   480,
+   480
+  ],
+  "rows": 4,
+  "cols": 4,
+  "colors": 8
+ },
+ "dagger_combo2_accel3": {
+  "cat": "fx",
+  "frame": [
+   480,
+   480
+  ],
+  "rows": 4,
+  "cols": 4,
+  "colors": 8
+ },
+ "dagger_combo3": {
+  "cat": "fx",
+  "frame": [
+   544,
+   544
+  ],
+  "rows": 4,
+  "cols": 5,
+  "colors": 9
+ },
+ "dagger_combo3_accel2": {
+  "cat": "fx",
+  "frame": [
+   544,
+   544
+  ],
+  "rows": 4,
+  "cols": 5,
+  "colors": 10
+ },
+ "dagger_combo3_accel3": {
+  "cat": "fx",
+  "frame": [
+   544,
+   544
+  ],
+  "rows": 4,
+  "cols": 5,
+  "colors": 10
+ },
+ "hit_dagger": {
+  "cat": "fx",
+  "frame": [
+   104,
+   80
+  ],
+  "rows": 1,
+  "cols": 4,
+  "colors": 7
+ },
+ "hit_dagger_heavy": {
+  "cat": "fx",
+  "frame": [
+   128,
+   96
+  ],
+  "rows": 1,
+  "cols": 5,
+  "colors": 7
+ },
+ "greatsword_sweep_cw": {
+  "cat": "fx",
+  "frame": [
+   440,
+   448
+  ],
+  "rows": 8,
+  "cols": 6,
+  "colors": 12
+ },
+ "greatsword_sweep_ccw": {
+  "cat": "fx",
+  "frame": [
+   440,
+   448
+  ],
+  "rows": 8,
+  "cols": 6,
+  "colors": 12
+ },
+ "greatsword_cleave": {
+  "cat": "fx",
+  "frame": [
+   568,
+   576
+  ],
+  "rows": 8,
+  "cols": 6,
+  "colors": 13
+ },
+ "greatsword_charge_swing": {
+  "cat": "fx",
+  "frame": [
+   568,
+   576
+  ],
+  "rows": 8,
+  "cols": 7,
+  "colors": 12
+ },
+ "bow_arrow": {
+  "cat": "fx",
+  "frame": [
+   128,
+   28
+  ],
+  "rows": 1,
+  "cols": 4,
+  "colors": 8
+ },
+ "tutorial_dummy": {
+  "cat": "structures",
+  "frame": [
+   272,
+   208
+  ],
+  "rows": 1,
+  "cols": 26,
+  "colors": 18
+ },
+ "player_bow_arrow_rain_stand": {
+  "cat": "player"
+ },
+ "bow_arrow_rain_stand": {
+  "cat": "weapons"
+ },
+ "katana_iai_ki1": {
+  "cat": "fx",
+  "frame": [
+   504,
+   504
+  ],
+  "rows": 4,
+  "cols": 11,
+  "colors": 13
+ },
+ "katana_iai_ki2": {
+  "cat": "fx",
+  "frame": [
+   504,
+   504
+  ],
+  "rows": 4,
+  "cols": 11,
+  "colors": 13
+ },
+ "katana_iai_ki3": {
+  "cat": "fx",
+  "frame": [
+   504,
+   504
+  ],
+  "rows": 4,
+  "cols": 11,
+  "colors": 13
+ },
+ "dagger_combo1_awaken": {
+  "cat": "fx",
+  "frame": [
+   480,
+   480
+  ],
+  "rows": 4,
+  "cols": 4,
+  "colors": 13
+ },
+ "dagger_combo2_awaken": {
+  "cat": "fx",
+  "frame": [
+   480,
+   480
+  ],
+  "rows": 4,
+  "cols": 4,
+  "colors": 13
+ },
+ "dagger_combo3_awaken": {
+  "cat": "fx",
+  "frame": [
+   544,
+   544
+  ],
+  "rows": 4,
+  "cols": 5,
+  "colors": 13
+ },
+ "bow_arrow_awaken": {
+  "cat": "fx",
+  "frame": [
+   152,
+   28
+  ],
+  "rows": 1,
+  "cols": 4,
+  "colors": 8
+ }
+}

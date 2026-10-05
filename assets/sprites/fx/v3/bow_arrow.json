@@ -1,41 +1,43 @@
 {
  "image": "bow_arrow.png",
  "action": "bow_arrow",
- "frameWidth": 48,
- "frameHeight": 24,
- "framesPerDirection": 1,
+ "frameWidth": 128,
+ "frameHeight": 28,
+ "framesPerDirection": 4,
  "directions": [
   "any"
  ],
  "layout": "row = direction (directions order), column = frame index",
  "frameIndex": "row * frames + column",
- "fps": 0,
  "frameDurationsMs": [
-  0
+  50,
+  50,
+  50,
+  50
  ],
- "loop": false,
+ "loop": true,
+ "pixelScale": 0.5,
  "pivot": {
-  "x": 24,
-  "y": 12
+  "x": 104,
+  "y": 14
  },
  "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
  "anchor": "projectile",
  "rotate": true,
  "drawnFacing": "right",
  "weapon": "bow",
- "version": "v3",
- "pixelScale": 0.5,
+ "version": "v3-r61",
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체에서 제외(시스템은 이 시트에 색 교체를 하지 않는다).",
- "source": "parts/art/work/fx_weapons_v3/build.py",
- "colors": 9,
  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
  "timingNote": "프레임 수·frameDurationsMs·loop·anchor·spawn·impact/hit/active/cancel 프레임·timingMs·arc 각도는 구 시트와 동일(판정 불변).",
- "design": "활 B 혼불 시위 + 재 화살(Q29) — 재 화살대·타는 촉, 재 연기·불티 꼬리, 조준 = 혼불 실",
  "designRef": "parts/art/work/gemini/concept_weapons (공격 이펙트 컷 분위기만, 도트는 직접)",
- "glowFrames": [],
- "glowRule": "53라운드 Q27·Q30 빛 규칙: 판정 프레임(glowFrames)에서만 백열 X0/X1·A26 — 무기 오버레이 glowRule(판정 프레임만 밝게)·bladeTipAnchors(칼끝) 와 같은 프레임. 나머지 프레임은 A25 이하로 식는다.",
- "note": "v3 (53라운드 Q5): 활 B 혼불 시위 + 재 화살(Q29) — 재 화살대·타는 촉, 재 연기·불티 꼬리, 조준 = 혼불 실",
+ "glowFrames": [
+  0,
+  1,
+  2,
+  3
+ ],
  "legacy": {
   "image": "../bow_arrow.png.png",
   "frameWidth": 12,
@@ -49,16 +51,40 @@
   "palette": "parts/art/palette/lopad.json (gray + floor 1 accent 16-27 runtime swap + fx block: core X0/X1 + weapon secondary W0-W3, fixed)",
   "secondary": "fx.weapons.bow"
  },
+ "anim": "loop_move",
+ "source": "parts/art/work/weapons61/build.py bow (61라운드 활 화살 가시성 · 서서 시작하는 화살비)",
+ "depth": "above",
+ "flipY": "allowed",
+ "glowRule": "투사체는 나는 동안 계속 판정 — 옛 그림의 촉 A26 을 그대로 둠(53라운드 그림과 같음)",
+ "design": "재 화살(옛 그림 — 대만 한 단 밝힘 + 혼불 실 한 줄) + 깃 뒤로 약 90 도트 끌리는 불티 꼬리(호박 A25 → A19 → 재) + 꼬리를 따라 깜빡이는 불씨 9점. 어두운 방에서도 화살이 지나간 길이 보이게(점검 61_bow_grid '화살이 가늘고 짧게 살아 있어 비행이 잘 보이지 않음')",
+ "axisNote": "옛 bow_arrow(48×24, 피벗 (24,12)) 와 같은 축 — 화살 픽셀은 피벗 기준 같은 자리, 꼬리 쪽(왼쪽)으로 80 도트·위아래 2 도트 넓힘",
+ "light": {
+  "color": "#e2a33c",
+  "radius": 56,
+  "intensity": 0.55,
+  "flicker": {
+   "amp": 0.2,
+   "hz": 12
+  },
+  "offset": {
+   "x": 96,
+   "y": 14
+  },
+  "note": "제안 — 날아가는 화살에 작은 광원(어둠 3국면·어두운 방). 시스템 광원 수 상한에 걸리면 생략"
+ },
+ "previous": "parts/art/work/weapons61/prev/fx/bow_arrow.png (48×24 한 장)",
+ "r61": "61라운드 시스템 보고 — 활 화살 가시성(어둠에서)",
+ "colors": 8,
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
   "source": "parts/art/work/atlas57/build.py (원 격자 시트 bow_arrow.png)",
   "grid": {
-   "columns": 1,
+   "columns": 4,
    "rows": 1,
-   "frameWidth": 48,
-   "frameHeight": 24,
-   "frameCount": 1
+   "frameWidth": 128,
+   "frameHeight": 28,
+   "frameCount": 4
   },
   "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
   "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
@@ -69,7 +95,10 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":0,"w":39,"h":8},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":8,"w":39,"h":8},"sourceSize":{"w":48,"h":24}}
+  "0":{"frame":{"x":0,"y":0,"w":119,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":10,"w":119,"h":10},"sourceSize":{"w":128,"h":28}},
+  "1":{"frame":{"x":241,"y":0,"w":118,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":10,"w":118,"h":9},"sourceSize":{"w":128,"h":28}},
+  "2":{"frame":{"x":361,"y":0,"w":119,"h":8},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":10,"w":119,"h":8},"sourceSize":{"w":128,"h":28}},
+  "3":{"frame":{"x":121,"y":0,"w":118,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":10,"w":118,"h":10},"sourceSize":{"w":128,"h":28}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -77,8 +106,8 @@
   "image": "bow_arrow.png",
   "format": "RGBA8888",
   "size": {
-   "w": 39,
-   "h": 8
+   "w": 480,
+   "h": 10
   },
   "scale": "1"
  }

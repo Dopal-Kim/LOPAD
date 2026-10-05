@@ -1,16 +1,14 @@
 {
  "image": "boss1_onfire_down.png",
  "action": "onfire_down",
- "frameWidth": 192,
- "frameHeight": 240,
+ "frameWidth": 288,
+ "frameHeight": 360,
  "framesPerDirection": 16,
  "directions": [
   "any"
  ],
- "rows": 1,
  "layout": "행 1개 = 전 방향 공통(54라운드 Q16 누운 그림 전 방향 공통), columns = frames — 보스 방향과 무관하게 0행",
  "frameIndex": "column",
- "fps": 12.12,
  "frameDurationsMs": [
   60,
   60,
@@ -30,6 +28,9 @@
   140
  ],
  "loop": true,
+ "pixelScale": 0.5,
+ "rows": 1,
+ "fps": 12.12,
  "loopRange": [
   4,
   11
@@ -65,8 +66,8 @@
  },
  "phaseNote": "boss1_onfire 와 열 배치·프레임 시간이 같다(ignite 0~3 · loop 4~11 · out 12~15). 누운 상태에서 불이 붙으면 ignite(바닥 고리 → 몸 위로), 꺼질 때 out(몸 위부터 꺼지고 바닥 고리가 마지막)",
  "pivot": {
-  "x": 96,
-  "y": 220
+  "x": 144,
+  "y": 330
  },
  "anchor": "boss_pivot",
  "useFor": {
@@ -116,19 +117,19 @@
   "fall": {
    "2": [
     0,
-    -43
+    -64
    ],
    "3": [
     0,
-    -12
+    -18
    ],
    "4": [
     0,
-    4
+    6
    ],
    "5": [
     0,
-    -6
+    -9
    ],
    "6": [
     0,
@@ -148,98 +149,97 @@
    ],
    "10": [
     0,
-    -29
+    -44
    ],
    "11": [
     0,
-    -17
+    -26
    ]
   },
   "death": {
    "8": [
     0,
-    -36
+    -54
    ],
    "9": [
     0,
-    -4
+    -6
    ],
    "10": [
     0,
-    -10
+    -15
    ],
    "11": [
     0,
-    -4
+    -6
    ],
    "12": [
     0,
-    -4
+    -6
    ],
    "13": [
     0,
-    -4
+    -6
    ]
   }
  },
  "useForNote": "보스 동작·프레임별 시트 선택. useFor = 이 시트(0행), standFor = boss1_onfire(보스 현재 방향 행). 규칙: 전 방향 공통 그림(넘어가는 중 fall 2~3 · 누움 fall 4~9 · 일어나 앉음/무릎 fall 10~11 · 넘어가는 중 death 8 · 누움 death 9~13) = 누운 불길, 방향별 그림(발 걸림 fall 0~1 · 일어섬 fall 12~16 · 맞고 무너짐 death 0~7) = 서 있는 불길. 그 밖의 동작은 전부 boss1_onfire. 두 시트는 같은 열 번호·같은 시간이므로 바꿔 낄 때 현재 열(단계·루프 위상)을 그대로 이어 쓴다(점화를 다시 하지 않음). frameOffsets = 그 보스 프레임에서 이 오버레이를 옮길 [dx, dy] 도트(몸 아랫선 맞춤, 없거나 [0,0] 이면 그대로) — 논리 px = 도트 × 0.5",
- "pixelScale": 0.5,
- "version": "v3",
+ "version": "v3-r61",
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
  "drawOver": "lightmap",
  "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
  "light": {
   "color": "#e8b858",
-  "radius": 230,
+  "radius": 345,
   "intensity": 0.85,
   "flicker": {
    "amp": 0.22,
    "hz": 8
   },
   "offset": [
-   96,
-   176
+   144,
+   264
   ]
  },
  "lightByPhase": {
   "ignite": {
    "color": "#e2a33c",
-   "radius": 150,
+   "radius": 225,
    "intensity": 0.6,
    "flicker": {
     "amp": 0.3,
     "hz": 10
    },
    "offset": [
-    96,
-    204
+    144,
+    306
    ]
   },
   "loop": {
    "color": "#e8b858",
-   "radius": 230,
+   "radius": 345,
    "intensity": 0.85,
    "flicker": {
     "amp": 0.22,
     "hz": 8
    },
    "offset": [
-    96,
-    176
+    144,
+    264
    ]
   },
   "out": {
    "color": "#d67a11",
-   "radius": 120,
+   "radius": 180,
    "intensity": 0.45,
    "flicker": {
     "amp": 0.35,
     "hz": 10
    },
    "offset": [
-    96,
-    208
+    144,
+    312
    ]
   }
  },
@@ -258,6 +258,17 @@
  "source": "parts/art/work/boss1_v3/onfire_down.py (54라운드 Q23 — 보스 누운 자세 불길)",
  "note": "54라운드 Q23 — 넘어짐(fall)·죽음(death) 누운 그림 위에 겹치는 불길. 누운 몸 윤곽(바닥 고리·좌우 가장자리·배 옆·팔·망토 단)을 따라 위로 솟고 얼굴은 비움(누워서도 웃거나 X 눈이 보이게). fall 의 치켜든 술통 잔도 가리지 않음",
  "colors": 13,
+ "nativeScale": 1.5,
+ "renderScaleHint": 1.0,
+ "nativeNote": "61라운드: 보스 시트 1.5배 네이티브에 맞춘 틀(288×360 · 피벗 (144,330)). 불길 그림은 54라운드 그림을 최근접 1.5배(임시) — 좌표 필드(light·lightByPhase·frameOffsets)는 1.5배",
+ "previousSize": {
+  "frameWidth": 192,
+  "frameHeight": 240,
+  "pivot": {
+   "x": 96,
+   "y": 220
+  }
+ },
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -265,8 +276,8 @@
   "grid": {
    "columns": 16,
    "rows": 1,
-   "frameWidth": 192,
-   "frameHeight": 240,
+   "frameWidth": 288,
+   "frameHeight": 360,
    "frameCount": 16
   },
   "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
@@ -278,22 +289,22 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":455,"w":125,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":187,"w":125,"h":41},"sourceSize":{"w":192,"h":240}},
-  "1":{"frame":{"x":134,"y":991,"w":118,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":167,"w":118,"h":61},"sourceSize":{"w":192,"h":240}},
-  "2":{"frame":{"x":137,"y":907,"w":124,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":146,"w":124,"h":82},"sourceSize":{"w":192,"h":240}},
-  "3":{"frame":{"x":0,"y":957,"w":132,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":114,"w":132,"h":114},"sourceSize":{"w":192,"h":240}},
-  "4":{"frame":{"x":0,"y":655,"w":132,"h":151},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":77,"w":132,"h":151},"sourceSize":{"w":192,"h":240}},
-  "5":{"frame":{"x":129,"y":336,"w":129,"h":160},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":68,"w":129,"h":160},"sourceSize":{"w":192,"h":240}},
-  "6":{"frame":{"x":129,"y":0,"w":130,"h":169},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":59,"w":130,"h":169},"sourceSize":{"w":192,"h":240}},
-  "7":{"frame":{"x":0,"y":498,"w":132,"h":155},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":73,"w":132,"h":155},"sourceSize":{"w":192,"h":240}},
-  "8":{"frame":{"x":0,"y":175,"w":127,"h":164},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":64,"w":127,"h":164},"sourceSize":{"w":192,"h":240}},
-  "9":{"frame":{"x":0,"y":0,"w":127,"h":173},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":55,"w":127,"h":173},"sourceSize":{"w":192,"h":240}},
-  "10":{"frame":{"x":129,"y":171,"w":132,"h":163},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":65,"w":132,"h":163},"sourceSize":{"w":192,"h":240}},
-  "11":{"frame":{"x":0,"y":808,"w":135,"h":147},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":39,"y":81,"w":135,"h":147},"sourceSize":{"w":192,"h":240}},
-  "12":{"frame":{"x":0,"y":341,"w":127,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":116,"w":127,"h":112},"sourceSize":{"w":192,"h":240}},
-  "13":{"frame":{"x":134,"y":641,"w":128,"h":131},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":97,"w":128,"h":131},"sourceSize":{"w":192,"h":240}},
-  "14":{"frame":{"x":137,"y":774,"w":122,"h":131},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":97,"w":122,"h":131},"sourceSize":{"w":192,"h":240}},
-  "15":{"frame":{"x":137,"y":498,"w":125,"h":141},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":87,"w":125,"h":141},"sourceSize":{"w":192,"h":240}}
+  "0":{"frame":{"x":205,"y":1355,"w":188,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":60,"y":281,"w":188,"h":61},"sourceSize":{"w":288,"h":360}},
+  "1":{"frame":{"x":0,"y":634,"w":176,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":65,"y":251,"w":176,"h":91},"sourceSize":{"w":288,"h":360}},
+  "2":{"frame":{"x":0,"y":509,"w":186,"h":123},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":219,"w":186,"h":123},"sourceSize":{"w":288,"h":360}},
+  "3":{"frame":{"x":0,"y":1429,"w":198,"h":171},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":60,"y":171,"w":198,"h":171},"sourceSize":{"w":288,"h":360}},
+  "4":{"frame":{"x":0,"y":977,"w":198,"h":227},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":115,"w":198,"h":227},"sourceSize":{"w":288,"h":360}},
+  "5":{"frame":{"x":192,"y":501,"w":193,"h":240},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":102,"w":193,"h":240},"sourceSize":{"w":288,"h":360}},
+  "6":{"frame":{"x":193,"y":0,"w":194,"h":253},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":59,"y":89,"w":194,"h":253},"sourceSize":{"w":288,"h":360}},
+  "7":{"frame":{"x":0,"y":743,"w":198,"h":232},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":110,"w":198,"h":232},"sourceSize":{"w":288,"h":360}},
+  "8":{"frame":{"x":0,"y":261,"w":190,"h":246},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":96,"w":190,"h":246},"sourceSize":{"w":288,"h":360}},
+  "9":{"frame":{"x":0,"y":0,"w":191,"h":259},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":83,"w":191,"h":259},"sourceSize":{"w":288,"h":360}},
+  "10":{"frame":{"x":193,"y":255,"w":198,"h":244},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":61,"y":98,"w":198,"h":244},"sourceSize":{"w":288,"h":360}},
+  "11":{"frame":{"x":0,"y":1206,"w":203,"h":221},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":121,"w":203,"h":221},"sourceSize":{"w":288,"h":360}},
+  "12":{"frame":{"x":200,"y":1429,"w":191,"h":168},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":67,"y":174,"w":191,"h":168},"sourceSize":{"w":288,"h":360}},
+  "13":{"frame":{"x":200,"y":957,"w":192,"h":197},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":145,"w":192,"h":197},"sourceSize":{"w":288,"h":360}},
+  "14":{"frame":{"x":205,"y":1156,"w":183,"h":197},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":68,"y":145,"w":183,"h":197},"sourceSize":{"w":288,"h":360}},
+  "15":{"frame":{"x":205,"y":743,"w":188,"h":212},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":130,"w":188,"h":212},"sourceSize":{"w":288,"h":360}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -301,8 +312,8 @@
   "image": "boss1_onfire_down.png",
   "format": "RGBA8888",
   "size": {
-   "w": 262,
-   "h": 1071
+   "w": 393,
+   "h": 1600
   },
   "scale": "1"
  }

@@ -1,0 +1,112 @@
+{
+ "boss1_cup_glint": {
+  "cat": "fx",
+  "frame": [
+   160,
+   160
+  ],
+  "rows": 2,
+  "cols": 8,
+  "colors": 7
+ },
+ "boss1_pillar": {
+  "cat": "structures",
+  "frame": [
+   160,
+   448
+  ],
+  "rows": 1,
+  "cols": 18,
+  "colors": 20
+ },
+ "boss1_rolling_barrel_rim": {
+  "cat": "structures",
+  "frame": [
+   160,
+   140
+  ],
+  "rows": 4,
+  "cols": 8,
+  "colors": 7
+ },
+ "boss1_rolling_barrel_returned": {
+  "cat": "structures",
+  "frame": [
+   160,
+   140
+  ],
+  "rows": 4,
+  "cols": 8,
+  "colors": 15
+ },
+ "boss1_candelabra": {
+  "cat": "structures",
+  "frame": [
+   256,
+   224
+  ],
+  "rows": 1,
+  "cols": 10,
+  "colors": 20
+ },
+ "boss1_candle_glint": {
+  "cat": "fx",
+  "frame": [
+   256,
+   224
+  ],
+  "rows": 1,
+  "cols": 8,
+  "colors": 6
+ },
+ "boss1_break_daze": {
+  "cat": "fx",
+  "frame": [
+   128,
+   56
+  ],
+  "rows": 1,
+  "cols": 8,
+  "colors": 11
+ },
+ "boss1_finisher_slash": {
+  "cat": "fx",
+  "frame": [
+   1280,
+   208
+  ],
+  "rows": 1,
+  "cols": 8,
+  "colors": 12
+ },
+ "boss1_finisher_burst": {
+  "cat": "fx",
+  "frame": [
+   480,
+   480
+  ],
+  "rows": 1,
+  "cols": 7,
+  "colors": 11
+ },
+ "boss1_defeat_shatter": {
+  "cat": "fx",
+  "frame": [
+   640,
+   520
+  ],
+  "rows": 1,
+  "cols": 12,
+  "colors": 17
+ },
+ "boss1_flame_snuff": {
+  "cat": "fx",
+  "frame": [
+   48,
+   104
+  ],
+  "rows": 1,
+  "cols": 8,
+  "colors": 11
+ }
+}

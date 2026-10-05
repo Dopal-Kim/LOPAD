@@ -147,4 +147,7 @@ def main(acts):
 
 
 if __name__ == "__main__":
+    if "--legacy" not in sys.argv:   # 61라운드: 보스 1.5배 네이티브·균열 기둥·고친 촛대는 boss61/ 이 만든다 — 이 빌드는 옛 판(192×240 등)으로 덮어씀
+        sys.exit("61라운드 이후 이 빌드는 assets 를 옛 그림으로 덮어씁니다. boss61/hires_build.py · boss61/build.py 를 쓰세요(꼭 필요하면 --legacy).")
+    sys.argv = [a for a in sys.argv if a != "--legacy"]
     main(sys.argv[1:] or ORDER)

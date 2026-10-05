@@ -1,0 +1,103 @@
+{
+ "image": "boss1_defeat_shatter.png",
+ "action": "boss1_defeat_shatter",
+ "frameWidth": 640,
+ "frameHeight": 520,
+ "framesPerDirection": 12,
+ "directions": [
+  "any"
+ ],
+ "layout": "1행",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  70,
+  70,
+  80,
+  90,
+  100,
+  110,
+  130,
+  160,
+  240
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "version": "v3-r61",
+ "paletteSwap": "none",
+ "drawOver": "lightmap",
+ "drawOverNote": "53라운드 Q63 — fx 는 조명 위에 그린다",
+ "palette": "1층 램프 A17~A27 + 백열 X0 #ffffff / X1 #fff4dc + 무채 G — 새 색 없음. paletteSwap none",
+ "source": "parts/art/work/boss61/build.py (61라운드 AR-5 파훼 가독성)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "pivot": {
+  "x": 320,
+  "y": 470
+ },
+ "anchor": "boss_pivot",
+ "depth": "above",
+ "glowFrames": [
+  0
+ ],
+ "stateHold": 11,
+ "spawn": "boss_death",
+ "spawnNote": "보스 death 시트 0 프레임 시작에 1회(보스와 같은 피벗). 앞치마·주머니의 술병 6·잔 3이 양옆 위로 튀어 회전하다 공중에서 깨지고 유리·널 조각이 바닥에 떨어져 눕고 술 얼룩이 번진다. 마지막 칸(파편·술 얼룩)은 시스템이 원하는 만큼 유지 후 끈다(반투명 금지 — 그냥 끔)",
+ "flipX": "allowed",
+ "pairsWith": "fx/v3/boss1_flame_snuff(방의 촛불·횃불이 차례로 꺼짐)",
+ "design": "쓰러짐: 가슴 백열 섬광(0) → 호박 유리 술병·작은 술통 잔이 양옆 위로 튀어 회전 → 공중에서 별 섬광과 함께 깨짐 → 유리·널 조각·술 방울이 떨어져 바닥에 눕고 술 얼룩",
+ "colors": 17,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 boss1_defeat_shatter.png)",
+  "grid": {
+   "columns": 12,
+   "rows": 1,
+   "frameWidth": 640,
+   "frameHeight": 520,
+   "frameCount": 12
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":374,"y":446,"w":81,"h":81},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":280,"y":244,"w":81,"h":81},"sourceSize":{"w":640,"h":520}},
+  "1":{"frame":{"x":1133,"y":342,"w":72,"h":74},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":285,"y":246,"w":72,"h":74},"sourceSize":{"w":640,"h":520}},
+  "2":{"frame":{"x":374,"y":393,"w":99,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":271,"y":224,"w":99,"h":51},"sourceSize":{"w":640,"h":520}},
+  "3":{"frame":{"x":479,"y":122,"w":142,"h":62},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":249,"y":202,"w":142,"h":62},"sourceSize":{"w":640,"h":520}},
+  "4":{"frame":{"x":893,"y":440,"w":191,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":223,"y":183,"w":191,"h":78},"sourceSize":{"w":640,"h":520}},
+  "5":{"frame":{"x":893,"y":342,"w":238,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":198,"y":174,"w":238,"h":96},"sourceSize":{"w":640,"h":520}},
+  "6":{"frame":{"x":893,"y":220,"w":299,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":168,"y":172,"w":299,"h":120},"sourceSize":{"w":640,"h":520}},
+  "7":{"frame":{"x":0,"y":393,"w":372,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":135,"y":170,"w":372,"h":139},"sourceSize":{"w":640,"h":520}},
+  "8":{"frame":{"x":479,"y":220,"w":412,"h":305},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":115,"y":185,"w":412,"h":305},"sourceSize":{"w":640,"h":520}},
+  "9":{"frame":{"x":0,"y":122,"w":477,"h":269},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":221,"w":477,"h":269},"sourceSize":{"w":640,"h":520}},
+  "10":{"frame":{"x":631,"y":0,"w":556,"h":218},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":272,"w":556,"h":218},"sourceSize":{"w":640,"h":520}},
+  "11":{"frame":{"x":0,"y":0,"w":629,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":373,"w":629,"h":120},"sourceSize":{"w":640,"h":520}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "boss1_defeat_shatter.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1205,
+   "h": 532
+  },
+  "scale": "1"
+ }
+}

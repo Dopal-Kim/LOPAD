@@ -1,15 +1,14 @@
 {
  "image": "boss1_cup_shatter.png",
  "action": "boss1_cup_shatter",
- "frameWidth": 128,
- "frameHeight": 128,
+ "frameWidth": 192,
+ "frameHeight": 192,
  "framesPerDirection": 8,
  "directions": [
   "any"
  ],
  "layout": "1행",
  "frameIndex": "column",
- "fps": 13.11,
  "frameDurationsMs": [
   40,
   50,
@@ -21,14 +20,15 @@
   120
  ],
  "loop": false,
+ "pixelScale": 0.5,
+ "fps": 13.11,
  "pivot": {
-  "x": 64,
-  "y": 60
+  "x": 96,
+  "y": 90
  },
  "anchor": "cup_anchor",
  "spawn": "drink_break_frame0",
- "version": "v3",
- "pixelScale": 0.5,
+ "version": "v3-r61",
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
  "palette": "v3 이펙트: 주인공 재·호박 램프(#3f271d~#f4de9b = 1층 램프 A17~A26) + 백열 X0 #ffffff / X1 #fff4dc + 술통 널(WD)·쇠테(G). paletteSwap none",
@@ -50,6 +50,17 @@
   "#ffffff",
   "#fff4dc"
  ],
+ "nativeScale": 1.5,
+ "renderScaleHint": 1.0,
+ "nativeNote": "61라운드: 보스 1.5배 네이티브 잔(약 44×55)에 맞춰 54라운드 그림을 최근접 1.5배(임시) — 피벗 1.5배",
+ "previousSize": {
+  "frameWidth": 192,
+  "frameHeight": 240,
+  "pivot": {
+   "x": 96,
+   "y": 220
+  }
+ },
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -57,8 +68,8 @@
   "grid": {
    "columns": 8,
    "rows": 1,
-   "frameWidth": 128,
-   "frameHeight": 128,
+   "frameWidth": 192,
+   "frameHeight": 192,
    "frameCount": 8
   },
   "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
@@ -70,14 +81,14 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":230,"y":111,"w":37,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":42,"w":37,"h":37},"sourceSize":{"w":128,"h":128}},
-  "1":{"frame":{"x":180,"y":111,"w":48,"h":32},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":41,"w":48,"h":32},"sourceSize":{"w":128,"h":128}},
-  "2":{"frame":{"x":206,"y":63,"w":55,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":35,"w":55,"h":46},"sourceSize":{"w":128,"h":128}},
-  "3":{"frame":{"x":206,"y":0,"w":64,"h":61},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":32,"w":64,"h":61},"sourceSize":{"w":128,"h":128}},
-  "4":{"frame":{"x":98,"y":75,"w":80,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":35,"w":80,"h":72},"sourceSize":{"w":128,"h":128}},
-  "5":{"frame":{"x":0,"y":60,"w":96,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":41,"w":96,"h":82},"sourceSize":{"w":128,"h":128}},
-  "6":{"frame":{"x":105,"y":0,"w":99,"h":73},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":55,"w":99,"h":73},"sourceSize":{"w":128,"h":128}},
-  "7":{"frame":{"x":0,"y":0,"w":103,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":70,"w":103,"h":58},"sourceSize":{"w":128,"h":128}}
+  "0":{"frame":{"x":343,"y":164,"w":55,"h":55},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":69,"y":63,"w":55,"h":55},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":269,"y":164,"w":72,"h":48},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":62,"w":72,"h":48},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":308,"y":93,"w":82,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":52,"w":82,"h":69},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":308,"y":0,"w":96,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":49,"y":48,"w":96,"h":91},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":146,"y":111,"w":121,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":52,"w":121,"h":108},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":0,"y":89,"w":144,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":62,"w":144,"h":122},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":157,"y":0,"w":149,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":83,"w":149,"h":109},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":0,"y":0,"w":155,"h":87},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":105,"w":155,"h":87},"sourceSize":{"w":192,"h":192}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -85,8 +96,8 @@
   "image": "boss1_cup_shatter.png",
   "format": "RGBA8888",
   "size": {
-   "w": 270,
-   "h": 148
+   "w": 404,
+   "h": 219
   },
   "scale": "1"
  }

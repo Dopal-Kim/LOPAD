@@ -47,6 +47,7 @@ python3 parts/art/work/player/preview_rimlight.py   # 림라이트 전후 비교
 python3 parts/art/work/fx_concept/build.py     # 42라운드 FX 콘셉트 시트 + 목업 (palette fx 블록, player/weapons/enemies/bosses/tiles png 를 읽는다)
 python3 parts/art/work/fx_prod/build_a.py      # 43라운드 양산 A: 칼 7·대검 7·공통 10 시트 + preview_a*.png (fx_concept/build.py 를 import, player/weapons/enemies/bosses/tiles png 를 읽는다)
 python3 parts/art/work/fx_prod/build_b.py      # 43라운드 양산 B: 단검·활·보조 23 시트 + preview_b*.png (player/enemies/weapons/tiles png 를 읽는다)
+python3 parts/art/work/struct61/build.py        # 61라운드 단계 2: 구조물 v1→v3 26시트(아틀라스) · 1층 5지역 타일 임시 칸 재작업 · 방 변주 소품 17 (--dry, --only structs,tiles,props)
 ```
 **이펙트 재빌드 순서 주의 (43라운드)**: `weapons/build.py`·`combat_fx/build.py`·`evolution_fx/build.py` 는 옛 이펙트를 같은 id 로 `assets/sprites/fx/` 에 쓴다. 이 셋을 다시 돌렸다면 반드시 그 뒤에 `fx_prod/build_a.py` → `fx_prod/build_b.py` 를 돌려 양산본으로 덮는다 (blood·knock_dust·player_hit 는 `combat_fx` 만 만든다). 팔레트 `fx` 블록이나 주인공 시트(실루엣 마스크: player_dash·idle)가 바뀌어도 fx_prod 두 스크립트를 다시 돌린다. `fx_prod/build_a.py` 가 `fx_concept/build.py` 를 import 하므로 콘셉트 생성기는 지우지 않는다.
 팔레트 생성기는 `ui`·`fx` 블록을 상수로 들고 있으므로 재생성해도 두 블록이 사라지지 않는다 (38라운드 UI NOTES 의 요청 반영).
@@ -153,3 +154,85 @@ python3 parts/art/work/fx_prod/build_b.py      # 43라운드 양산 B: 단검·�
 - 반투명 0(적 시트 assert), 색: 행상 39 · 짐꾼 33 (새 색 없음 — gray + 1층 램프 + SL·WD·PL).
 - `atlas57/verify.py`: 시트 734개 중 형식 오류 5 = 위 엘리트 fx JSON 5개의 **의도한 메타 키 추가**(`headTopByEnemy`·`bodyBoxByEnemy`)가 커밋된 기준(baseline.json)과 다르다는 표시뿐. 새 시트 28개는 형식 통과(원본 없음 → 형식만). 커밋 뒤 `python3 parts/art/work/atlas57/verify.py --rebase --only elite_barrel_armor elite_drunk_vapor elite_emblem elite_guzzle_drink` 로 기준을 옮기면 0.
 - 미리보기(긴 변 8000 이하): `enemies61/preview_lineup.png`(주인공·기존 3적·신규 2적·엘리트, 4방향 3배) · `preview_mock_lit.png`(어둠 조명 1배) · `preview_attack_strip.png`(공격 핵심 프레임 4배) · `preview_barrels.png` · `preview_clues.png` · `out/preview_<id>_<동작>_x2.png`·`_x3.gif` · `bundle2/preview_elite.png`.
+
+## 61라운드 단계 2 (2026-10-05, 자율 모드) — AR-4 구조물 64도트 · P3 임시 타일 재작업 · 방 다양화 소품 군 · 작업 폴더 `work/struct61/`
+- 결정: `decisions/2026-10-05-round-61-autonomous-stage1.md`(단계 2), 점검 `review-2026-10-05-stage1-design-audit.md` AR-4, 계약 §5·§11·§14·§19·§22. 인터뷰 없이 아트가 정하고 이유를 여기 적는다.
+- 빌드: `python3 parts/art/work/struct61/build.py` (구조물 → atlas57 트림 아틀라스 → 타일 → 소품 → 미리보기, 약 20초). `--dry` = assets 미변경, `--only structs|tiles|props`.
+  입력 사본: `struct61/before61/`(타일셋 5·소품 시트 5 — 60라운드 상태, 다시 돌려도 같은 결과). 모듈: `s61.py`(경로·조각 내기 `shatter`·대상 목록) · `structs61.py` · `sets61.py` · `tk61.py`(타일 공용: 블록 벽·가장자리·그늘·문) · `walls61.py`(지역 벽·공허·데칼·수로) · `tiles61_build.py` · `props61.py` · `preview61.py` · `quick.py`/`tilemock.py`(반복 검수용).
+
+### 점검 열람(자율 모드 고지 — 읽기만, 쓰기 없음)
+- 무엇을 1층에서 실제로 쓰는지 확인하려고 읽음: `data/structures.json`(구조물 16종의 floors·sprite), `data/route.json`(1층 지역·노드 종류별 구조물·setPieces decor 시트 후보·tutorial 표식), `data/lighting.json`(fallback 광원), `src/systems/structures/data.ts`·`setpieceSprites.ts`(로드 대상 목록), `src/systems/sprites/sheetLoader.ts`·`spriteMeta.ts`(v3 → 구 우선 로드)·`sheetJson.ts`(구조물 JSON 정규화·pixelScale), `src/world/StructureView.ts`·`SetPieceView.ts`(피벗·occludeAbove·상태), `src/systems/structures/core.ts`·`kinds/strikeKinds.ts`(숨은 벽 `_top`·술통 굴림 회전·상태 이름), `src/systems/lighting/lightRegistry.ts`(JSON light 우선), `src/world/tileskin.ts`(소품 시트 경로 규칙, grep).
+- 검사(실행만): `npx vitest run src/world/{quarterScale,bigPropsRegions,bigProps,border}.test.ts src/systems/sprites/v3Paths.test.ts src/systems/structures` → 84 중 83 통과. 실패 1건 `border.test.ts` 'Q7 노드 전투장 기본 크기 32×20'(기대 32, 실제 30)은 시스템의 전투장 크기 변경(route.json) 쪽 — 아트 산출물과 무관.
+
+### 1. 구조물 v1 → v3 64도트 (AR-4) — `assets/sprites/structures/v3/<같은 id>` 26시트, 트림 아틀라스
+- 대상 선정: 1층(stage1)에서 실제로 로드·배치되는 v1 시트만. 구조물 데이터 9 = `crate_f1`(C1, 1층 외형) · `chest` · `grave` · `bonfire` · `barrel`(1-1) · `ledger`(1-3) · `cask`(1-4) · `counter`(1-5) · `cellar_wall`(1-6). (`still` 은 60라운드 v3 가 이미 있음.) 세트·튜토리얼 17 = `set_waste_fire_ring` · `set_outer_plaza` · `set_outer_stall` · `set_outer_lamppost` · `set_gate_brazier` · `set_brewery_barrel_stack` · `set_hall_rug` · `set_hall_long_table` · `battlefield_{banner,weapon,fallen,dummy}` · `tutorial_sign` + `_move/_attack/_dash/_skill`.
+- 하지 않은 것(이유): `card_table`·`roulette`·`chip_exchange`·`dog_ring`·`bet_bell`·`pawn`·`crate_f2` = 데이터상 stage2 전용(1층 미배치, AR-6 1층 밖 동결). `set_outer_stall_side` = route 에서 부르지 않음. `battlefield_rubble`(탄생 전장 엄폐 담 decor 후보)은 v1 도 없어 플레이스홀더 — 필요하면 시스템 요청 시 추가.
+- 규칙: 상태 이름·프레임 수·`frameDurationsMs`·`footprint`·`solid`·`depth`·`interact`·특수 키(`rollDrawnFacing`·`rollRotate`)는 v1 과 같다. 칸 = 64도트, `pixelScale 0.5`, 피벗 = 발자국 아래 변 가운데(도트). 그림은 쿼터뷰 높이만큼 위로 커짐(occludeAbove 로 가림) — still v3 와 같은 규칙. 시트당 색 ≤ 81, 새 색 0(팔레트 검사), 반투명은 접지 그림자·그늘(10,11,16)만.
+- 판단: 독주 술통은 소품 술통과 구분되게 짙은 참나무 + 밝은 쇠테 2줄 + 그을린 잔 낙인 + 마개 호박 점. 부서짐(술동이·술통)은 그림을 보로노이 조각으로 나눠 흩뿌림(`shatter`) — 1회차는 조각이 공중에 떠 있어 마지막 두 프레임은 바닥에 내려앉게(`land`), 접지 그림자는 조각에 싣지 않음(섞인 색 방지). 모닥불 불꽃은 `pk.flame` 이 큰 크기에서 흰 양파꼴이 되어 주황 위주 갈래 불꽃(`warm_flame`, 백열은 밑동 몇 점)으로 새로 그림(3회차). 궤짝은 1회차가 나무 상자로 읽혀 둥근 뚜껑(모서리 깎기·윗등 빛)으로, 열린 궤짝은 뚜껑을 원근으로 납작하게. 묘는 1회차 '망치 머리가 자루 아래' 오류 → 자루가 흙에 박히고 메 머리가 위. 숨은 벽은 지역 벽과 섞이지 않게 '그을린 벽돌로 덧댄 칸'(양조 벽돌 재질) — 금·틈 호박 빛이 단서, 무너지면 대부분 투명.
+- 광원(JSON light 가 lighting.json fallback 보다 우선 — 도트 단위): bonfire 440 · grave(넋 불씨) 120 · set_gate_brazier 340 · set_hall_long_table 220 · tutorial_sign*(active 만) 160 · set_outer_lamppost(외곽 가로등과 같음) 300 · cask(ready 만 `lightByState`) 120.
+- 재사용: 외곽 노점·가로등·양조 술통 더미는 53라운드 바닥 소품 v3(props_v3) 그림을 그대로 — 같은 화면에서 크기·재질이 어긋나지 않게.
+
+### 2. 임시 2배 타일 재작업 (P3) — `assets/tiles/v2/stage1_<지역>` (경로·인덱스·키·tileLights·decals rect 그대로)
+- 다시 그린 칸(JSON `redrawn61`): 문 8~12(5지역 공용 그림) · 장애물 벽 앞면 아랫단 5·21·22·63 / 윗단 40·41·42 · 윗면 6 · 처마 47 · 가장자리 48~52 · 그늘 53~57(공용, 알파 6단) · 공허 7·58·59 · 지역 데칼(황무지 그을음·바퀴 자국 / 성문 바퀴 자국·문빛 웅덩이 / 양조 수로 64~66·다리 67·68·밝은 수로 69~71·술 자국 / 연회장 잔 문장 상감 4×4·술 줄기). `upscaled60` 은 이제 빈 목록.
+- 외곽 13~20·64~79(옛 v2 인덱스 소품·bigProps rect)는 v3 소품 시트가 대신하므로 다시 그리지 않음 — JSON `supersededByPropsSheet`(그림은 60 임시 그대로, 로드 호환용).
+- 지역 재질: 황무지 = 흙둑(지층·박힌 돌·뿌리·풀 처마) + 말뚝 울·꽂힌 횃불·박힌 해골 / 성문 = 큰 회색 마름돌 + 횃불 벽걸이·쇠고리·아치 배수구·십자 화살 구멍·잔 깃발 / 외곽 = 목조 회벽(X 버팀·돌 기단) + 불 켜진 창·문틈 빛·덧문 창·잔 간판, 윗면 = 지붕 널 / 양조 = 그을린 벽돌 + 화구·구리관·밸브·환기 창살, 윗면 = 회반죽 갓돌 / 연회장 = 광택 돌 판벽(징두리 몰딩·걸레받이) + 촛대 벽등·잔 부조·벽감 금잔·휘장·잔 깃발.
+- 이음: 앞면을 64×128 한 장으로 그려 두 칸에 줄눈이 이어지고, 모든 변형이 같은 '가장자리 줄눈'과 64 주기 잡음을 공유 → 아무 변형끼리 붙어도 이어짐. 수로 물결은 3프레임 위상(sin) 루프 — 64 가 3으로 안 나뉘어 밀기 대신 위상으로.
+- 자기 비평: 1회차 성문 윗면이 같은 판석 줄무늬로 되풀이 → 3장 배치·금 없음. 황무지 윗면이 위장 무늬 얼룩 → fk64.dirt(이음 보장) 갈색 흙. 양조 윗면이 앞면 벽돌과 같아 '위'가 안 읽힘 → 회반죽 갓돌(어둡게). 수로 1회차 지그재그 무늬 → 부드러운 위상 + 대비 낮춤. 가로 구리관이 칸 끝에서 잘림 → 양끝이 벽으로 꺾여 들어가는 플랜지.
+
+### 3. 방 다양화 소품 군 — `assets/tiles/v3/stage1_<지역>_props` 아래에 새 줄 덧붙임(기존 rect·그림 바이트 불변 assert)
+| 지역 | 소품(props, 128칸) | 큰 소품(bigProps) | variantTag |
+|---|---|---|---|
+| 외곽 | `fallen_sign`(바닥) | `broken_cart`(2×1) · `laundry_line`(3×1, 통과) | outer_wreck · outer_backyard |
+| 양조 | `liquor_sacks` · `bottle_crate` | `still_column`(1×1, 빛) · `mash_tub`(2×1) | brewery_works · brewery_store |
+| 연회장 | `broken_chair` · `spilled_platter`(바닥) · `fallen_candelabra`(바닥, 꺼짐) | `overturned_table`(2×1, 엄폐) | hall_brawl |
+| 황무지 | `arrows_stuck`(바닥) | `dead_tree`(1×1) · `pavise_row`(2×1, 엄폐) | waste_dead · waste_volley |
+| 성문 | — | `notice_post` · `chain_posts`(2×1) · `spear_rack` | gate_checkpoint |
+- 새 항목에 `added61: true` · `variantTag`(같은 태그끼리 한 방에 모으면 장면이 됨 — 시스템 방 변주 제안). 큰 소품 `maxPerRoom` 기본 1. 시트 높이: 황무지 384→768 · 성문 512→768 · 외곽 384→704 · 양조 448→832 · 연회장 448→768.
+- 판단: 외곽 빨래줄은 기존 `washing_line`(벽 윗단 겹침)과 달리 바닥에 세운 장대형(통과). 양조 증류탑 구리는 1회차가 너무 밝은 주황이라 램프 2단 낮춤. 연회장 엎어진 식탁은 1회차가 상자처럼 보여 앞치마 판 + 보는 쪽으로 뻗은 다리 4(마구리)로.
+
+### 검증
+- `atlas57/verify.py`: 시트 778 중 형식 오류 12시트(192건)는 모두 다른 아트 작업(무기 fx `fx/v3/{bow_arrow,dagger_combo1~3,greatsword_*,hit_dagger*}` · 보스 `structures/v3/boss1_{candelabra,pillar}`)의 진행 중 변경 — **이번 26시트는 형식 오류 0**(원본 없는 새 시트 → 형식만, 변환 때 전 프레임 대조 통과).
+- 팔레트: 이번 산출물 31장 새 색 0(외곽 타일셋의 (12,14,20)은 60라운드 임시 칸 13~20·72~77 에 원래 있던 색 — 대체된 칸).
+- 미리보기(긴 변 8000 이하): `struct61/preview_structs_v1_v3.png`(v1 4배 | v3 전 프레임, 발자국·피벗) · `preview_mock_lit.png`(양조 새 타일 + 구조물·소품·주인공, 위 낮 / 아래 어둠 조명) · `preview_props61.png` · `out/mock61_<지역>.png`(타일 전/후) · `out/board61_<지역>.png`(번호판).
+
+## 61라운드 단계 2·3 — 아트 2(보스 '만취' 가독성·마무리 연출·1.5배 네이티브 / 무기 그림 요청) · 작업 폴더 `work/boss61/`·`work/weapons61/`
+- 근거: `decisions/2026-10-05-round-61-autonomous-stage1.md`(자율 모드, 단계 2·3) · 설계 점검 AR-5 · 플레이 점검 P1-5·6·P2-8 · 시스템 61 보고(무기 그림 요청) · 시스템 D 보고(보스 1.5배·등장·림라이트). 인터뷰 없이 아트가 정하고 이유를 적는다. 계약 §15·§16·§18·§19 규격을 따름(새 키는 각 JSON 이 기준).
+- 열람(자율 모드 고지): 플레이 점검 스크린샷 `audit61/shots/{15,37,47,52,61,65,67,70,71}` — 보스 크기·어둠·무기 궤적 확인용. 다른 파트 파일은 읽지 않음.
+- 빌드(결정적): `python3 parts/art/work/boss61/hires_build.py`(보스 15동작 1.5배 + intro + 림 + 불타는 오버레이·잔 파편 1.5배, 약 7분) → `python3 parts/art/work/boss61/build.py`(파훼 표시·마무리 fx 11시트) → `python3 parts/art/work/weapons61/build.py`(무기 22시트 + 서서 화살비 2) → `python3 parts/art/work/boss61/preview61.py`. 아틀라스 변환은 `k61.to_atlas()`(이 작업 전용 임시 폴더 — 같은 시간에 도는 다른 아트 작업의 `props_v3/_atlas_tmp` 를 지우지 않게).
+- 옛 빌드 보호: `boss1_v3/{build,props,onfire,onfire_down}.py` 는 `--legacy` 없이 멈춘다(돌리면 192×240 보스·옛 기둥·옛 촛대로 덮어씀).
+
+### 보스 1.5배 네이티브(시스템 D) — `boss61/hires.py`·`hires_build.py`
+- 판단: 렌더 1.5배 최근접(점검 화면)은 픽셀 크기가 1·2칸으로 들쭉날쭉 → 54라운드 3D 골격·셰이딩 코드(b1body·b1acts)를 **그대로 import 하고 판 상수만** 192×240·피벗 (96,220)·SCALE 1.3 → **288×360·피벗 (144,330)·SCALE 1.95** 로 바꿔 다시 래스터(최근접 확대 아님). 덧칠 배율 K·잔 보임 기준 VIS_MIN(20 → 45)도 같이. 15동작 전부(섞이면 동작마다 밀도가 달라 보여서 '핵심 동작만'이 아니라 전부).
+- JSON: 좌표(피벗·cup/hand/foot/impact/bellyAnchors)는 새 판에서 다시 잰 값, walk `stride.px` 57 → 86. `pixelScale 0.5` 그대로(→ 화면 크기가 이미 1.5배) + **`nativeScale: 1.5`·`renderScaleHint: 1.0`**(시스템이 따로 곱하던 보스 배율을 1.0 으로) · `previousSize`. 색 37~40, 가장자리 0.
+- 등장 `stage1_intro`(새 동작, `boss61/intro.py`): 휘청 걸음 0~7(`walkLoop`, stride 86/1200ms) → 딸꾹 8 → 잔을 머리 위로 건배 9 → 10~11 유지(`toastLoop`) → 껄껄 포효 12(`roarFrame`, 이름 카드·포효음) → 13~15 대기로. 1회 2.32초, 루프로 약 5초를 채움.
+- 림라이트 `stage1_{idle,walk,attack,stagger_dash,hurt}_rim`: 실루엣 안쪽 가장자리 역광(위·오른쪽 2도트 A23/A21·모서리 A25, 아래·왼쪽 1도트 점선) — 보스와 같은 프레임 번호·피벗 위, `drawOver: lightmap`, 3국면 소등 동안만. 다른 동작은 시스템 tintFill 대체 권장(VRAM).
+- 함께 맞춘 것: `fx/v3/boss1_onfire`·`boss1_onfire_down`(288×360, 불길은 54 그림 최근접 1.5배 — 임시, 좌표 필드 1.5배), `boss1_cup_shatter`(192×192·피벗 (96,90), 최근접 1.5배 — 임시). 투사체(술 덩이·횃불)·`boss_slam`(판정 반경 있음)·술 튀김은 그대로.
+- **VRAM**: 보스 시트 63 → 약 142MB(몸 15) + 림 5시트 약 42MB + 불타는 오버레이 14MB. 보스방에서 고른 무기(대검 런 최고 473MB)와 겹치면 500MB 목표를 넘을 수 있음 → 시스템에 지연 로드 권장(intro 는 시작 뒤 해제, 림은 3국면 진입 때, death·쓰러짐 fx 는 처치 때).
+
+### 파훼 가독성(AR-5) — `boss61/readable.py`
+- `fx/v3/boss1_cup_glint`(160×160·피벗 (80,88), 행 glint 루프 8×70ms / struck 5칸): 잔 둘레 네 모서리 꺾쇠가 숨 쉬듯 벌어짐 + 위에서 아래를 가리키는 쐐기 + 비스듬한 빛 띠 + 4점 별. struck = 맞았지만 아직 안 깨짐. `cupAnchors` 중심에 둠.
+  - 1회차: 꺾쇠 8도트·2두께가 1배 화면에서 작음 → 11(1.5배 보스에 맞춰 15)·3두께 + 어두운 테, '여기를 쳐라' 쐐기 추가. 2회차: 1.5배 보스 잔(44×55)에 맞춰 전체 치수 1.5배.
+- `structures/v3/boss1_pillar` 균열 3단(0~2 프레임은 54 그대로 — 픽셀 대조 확인): crack1 [3,4,5]·crack1_hit [6,7] / crack2 [8,9,10]·[11,12] / crack3 [13,14,15]·[16,17], `stateHold`, `stages` 표. 1회차: 1단 금이 기존 얕은 금과 구분 안 됨·휘장 천에 금이 그어짐 → 돌(무채) 픽셀에만 · 충격 패인 자리(crater) · 2도트 금, 먼지를 둥근 덩이로. 3단 = 몸통을 가르는 4도트 틈 + 오른쪽 조각 2도트 어긋남 + 모서리 떨어짐 + 돌무더기. 무너짐 그림은 없음(필요하면 요청).
+- `structures/v3/boss1_rolling_barrel_rim`(되칠 수 있음 테, 술통과 같은 칸 위에 겹침): 실루엣 바깥 3도트 점선 마디가 흐름(A27/A26/A23) + 반짝 별. 1회차 얇은 연한 테 → 끊긴 마디로 바꿔 '빛나는 점선'으로 읽히게. `boss1_rolling_barrel_returned`(되친 술통 = 짐꾼 술통과 같은 말투: 쇠테 호박 발광·호박 테·불티, 광원 90).
+- `structures/v3/boss1_candelabra` 고침: 54라운드 relight·relit 불꽃이 초 끝에서 약 40도트 떠 있던 것을 초 끝(심지 `wickAnchors`)으로, 광원 offset 도 옮김(0~6 프레임 픽셀 그대로). `fx/v3/boss1_candle_glint`(촛대와 같은 틀·피벗·flipX): 꺼진 심지 3개가 엇갈려 숨 쉬는 잔불 + 오르는 불티 + 바닥 점선 고리(회전) + 별.
+- `fx/v3/boss1_break_daze`(128×56): 파훼로 무너진 동안(피해 ×1.5 창) 머리 위를 도는 작은 술통 잔 3 + 별 2, 기울어진 점선 고리. `headTopAnchors`(drink_break·fall·hurt·idle·attack·stagger_dash, 1.5배 판에서 잰 값).
+
+### 결정타·쓰러짐 — `boss61/finale.py`
+- `fx/v3/boss1_finisher_slash`(1280×208·피벗 (640,104), rotate·drawnFacing right): 백열 실선 + 별 섬광 → 화면 2/3를 가르는 휜 빛 렌즈 + 속도선 → 마디로 끊기며 재·불티. `systemHints`(히트스톱 180·슬로 0.3×420ms·섬광 70·흔들림 10px·줌 1.08 — 제안). 1회차 평평한 막대 → 휨(초승달)·붓결 떨림·끊긴 끝 뾰족·재로 부서짐. `boss1_finisher_burst`(480×480): 백열 원반 + 16갈래 쐐기 빛살 → 들쭉날쭉 충격 고리 + 굵은 불티(1회차 가는 선 고리 → 굵기 변화).
+- `fx/v3/boss1_defeat_shatter`(640×520·피벗 = 보스 피벗): 가슴 섬광 → 술병 6·잔 3이 양옆 위로 튀어 회전 → 공중에서 깨짐 → 유리·널 조각이 바닥에 눕고 술 얼룩. 1회차 한쪽으로만·작게 날아감 → 좌우 교대·포물선·착지 정지. `boss1_flame_snuff`(48×104): 촛불·횃불이 기울며 작아짐 → 잔불 → 뭉게 연기(1회차 점선 연기 → 겹친 덩이). 보스가 쓰러질 때 방 불을 하나씩 끄는 용도.
+
+### 무기 그림 요청 — `weapons61/`
+- 단검 `fx/v3/dagger_combo1~3` 다시 그림(가는 붓 선 → 백열 창끝 렌즈 + 창끝 별 + 속도선 + 창끝 앞 공기 고리, 판정·ms·행 그대로, 틀만 480/544로 커짐) + **가속 단계 `_accel2`·`_accel3`**(같은 프레임·ms·피벗 — 길이 ×1.1/×1.2, 뒤로 비켜 선 잔상 창끝 1/2, 공기 고리 2/3). 1회차 잔상 창끝이 본 창끝 밑에 숨음 → 옆으로 비켜 '두세 번 찌름'으로 읽히게. 옛 `_heat1~3`(보라, 56 이전)은 쓰지 않음.
+- `hit_dagger`·`_heavy`(틀 그대로): 별자리 반짝 → 꿰뚫는 백열 점 + 앞으로 긴 섬광 + 부채꼴 불꽃 줄기. 1회차 0 프레임이 옛 별보다 약함 → 굵은 쐐기 섬광.
+- 대검 `greatsword_sweep_cw·_ccw·cleave·charge_swing`: 56 붓획 위에 '휘두른 자리 잔상'(안쪽 디더 46/36/40 도트 + 바깥 가장자리 1~2 도트) — 프레임·행(drawn8)·glowFrames 그대로, VRAM 거의 같음.
+- 활 `bow_arrow`(48×24 한 장 → 128×28·피벗 (104,14) 4프레임 루프): 화살 그대로 + 약 90도트 불티 꼬리·깜빡 불씨, `light` 제안. `player/v3/player_bow_arrow_rain_stand`·`weapons/v3/bow_arrow_rain_stand`(14프레임 = 서 있음·들어 올려 화살 맺힘 2칸 + 기존 화살비 12칸, `releaseFrames [4,7,10]`, total 770ms) — combo56_moves_db 리그 import.
+- 각성 궤적 1:1 규칙(계약 §21, 시스템 테스트 `awakenSheets.test.ts`)에 맞춤: `fx/v3/dagger_combo1~3_awaken` 을 새 기본 틀·피벗(480×480·(240,280) / 544×544·(272,312))으로 평행 이동(60라운드 귀화 그림 그대로), `fx/v3/bow_arrow_awaken` 을 4프레임 50ms 루프·152×28·피벗 (128,14)(촉까지 24 도트 = 기본과 같음, 틀은 더 김) + 꼬리 불씨 깜빡임. 원본 `weapons61/prev/fx/v3/`. 각성 궤적 그림을 새 창끝 렌즈 말투로 다시 그리는 일은 AR-6(각성 아트 동결)에 따라 보류. 갈래 시트(`_gale`·`_twin`·…·`dagger_combo3_double(_awaken)`)는 원래부터 기본과 틀이 달라 그대로.
+- 칼 `fx/v3/katana_iai_ki1~3`(선택): 발도 붓획 둘레 기운 3/6/9도트 + 그림자 획 0/1/2줄 + 불꽃. katana_iai 와 같은 틀·프레임·ms.
+- 튜토리얼 허수아비 `structures/v3/tutorial_dummy`(272×208·피벗 (136,166), 64도트 칸 밀도, 옛 `battlefield_dummy` 16×32 대체 제안): idle 8 루프 · hit 6(번쩍 → 밀려 기울고 되돌아옴 + 짚 부스러기) · hit_heavy 7 · broken 5(꺾여 넘어져 누움). 기울기는 회전 대신 전단(픽셀 안 깨짐). 다른 구조물 작업과 이름이 겹치지 않게 새 이름.
+- 이제 안 쓰는 그림(지우지 않음, 시스템 빌드 제외): `fx/v3/greatsword_guard_rush`·`player/v3/player_greatsword_guard_rush`·`weapons/v3/greatsword_guard_rush(+_awaken·_grudge1~3)`, `fx/v3/katana_issen_shadow`, `fx/v3/katana_thrust_ki1~3`·`weapons/v3/katana_thrust_ki1~3`, `fx/v3/dagger_overheat_cool`, (가속으로 대체) `fx/v3/dagger_combo1~3_heat1~3`.
+
+### 검증
+- `npx vitest run src/systems/sprites` 9파일 74건 통과(시스템 테스트 읽기만).
+- 반투명 0·가장자리 0·팔레트(무기 fx = 주인공 30색 + X0/X1, 14색 이하, glowFrames 밖 백열 0) 빌드 assert. 보스 몸 37~40색.
+- `atlas57/verify.py`: 형식 오류 33시트는 모두 이번에 의도적으로 다시 그린 시트의 기준(baseline) 차이 — 보스 14 `stage1_*`, `fx/v3/{boss1_onfire,boss1_onfire_down,bow_arrow,dagger_combo1~3,greatsword_{sweep_cw,sweep_ccw,cleave,charge_swing},hit_dagger,hit_dagger_heavy}`, `structures/v3/{boss1_candelabra,boss1_pillar}`, `fx/v3/boss1_cup_shatter`, `fx/v3/{dagger_combo1~3_awaken,bow_arrow_awaken}`. 새 시트는 형식만(통과). 커밋 뒤 `python3 parts/art/work/atlas57/verify.py --rebase --only <위 이름들>` 로 기준을 옮기면 0.
+- 미리보기(긴 변 8000 이하): `boss61/preview_readability.png` · `preview_finale.png` · `preview_boss_hires.png`(1.5배 intro·idle·attack·hurt + 어둠 림 켬/끔) · `boss61/out/preview_*.png` · `weapons61/preview_weapons.png`(전/후 비교) · `weapons61/out/preview_*.png`. 고치기 전 무기 그림 `weapons61/prev/fx/v3/`.
