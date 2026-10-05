@@ -39,7 +39,7 @@ import {
 import { Events, type BossActionKind } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { MOVE_SFX, moveSfxIds, pickFlurryVariant } from './audioMoves';
-import { ARCHIVED_SFX, BUILD_SFX, buildSfxIds } from './audioBuild';
+import { ARCHIVED_SFX, BUILD_SFX, GROWTH_SFX, buildSfxIds } from './audioBuild';
 
 /** 61라운드: 이벤트·페이로드에 걸리는 트리거들의 효과음 id (조건·페이로드 함수 풀이) */
 function sfxFor(event: string, payload: unknown): string[] {
@@ -218,6 +218,12 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       SFX.shopBuy,
       // 61 G: 1차·2차 각성 폴백 (WEAPON_AWAKEN 페이로드로 고른다)
       SFX.evolve,
+      // 61 단계 4 P12: 각성·개성·게이지 (계약 sound §10)
+      GROWTH_SFX.awaken1,
+      GROWTH_SFX.awaken2,
+      GROWTH_SFX.traitManifest,
+      GROWTH_SFX.growthTick,
+      ...(['katana', 'greatsword', 'dagger', 'bow'] as const).map((w) => GROWTH_SFX.awakenTail(w)),
       SFX.menuSelect,
       SFX.enemyDeath,
       SFX.dash,
