@@ -103,7 +103,13 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 - `kenki_stage1~3`: 칼날 울림 제거 → 지글지글(지짐 + 잔 타닥) → 타오름(불 붙는 '훅' + 치솟는 불길) → 빛남(번쩍 오르는 고역 + 일렁이는 반짝임).
 - `hit_player`: 프라이팬 같던 900 Hz 금속 울림 제거 → 몸통 충격 + 가죽·천 '퍽' + 뼈 저음 + 숨 밀림.
 - `dash`: **파일은 그대로, manifest `gainDb` -3 → -5 dB**.
-- 확인 필요(바꾸지 않음): `charge_stage4`·`kenki_stage4`·`kenki_stage5` 가 새 흐름과 어긋남 — 고칠 안은 `sound-design.md` 4-7.
+- ~~확인 필요(바꾸지 않음): `charge_stage4`·`kenki_stage4`·`kenki_stage5` 가 새 흐름과 어긋남~~ → 60라운드 Q25 로 다시 만듦(아래 절).
+
+## 추가 (60라운드 Q25 4·5단 재제작, 2026-10-05)
+도영 님 결정 Q25: 고친 1~3단과 같은 방향으로. `sfx_branch2.py` 의 세 함수만 다시 썼다(`jing` 을 쓰는 다른 소리는 그대로). 바뀐 파일은 이 3종의 WAV·OGG·M4A 9개뿐이고 나머지는 md5 불변이다. manifest 는 이 3항목의 `note`·`samples`·`durationMs` 만 바뀌었고 `build.py verify` 215개 문제 0.
+- `charge_stage4`(1.54 s): 징을 빼고 3단 '척'을 더 무겁게 했다. 0 s 낮은 '척' + 쿵 두 겹(0 s · 0.09 s) + 위로 터지는 공기 → 땅이 갈라지는 저음(낮은 균열 0.3 s + 자갈) + 15 Hz 로 떨리는 압력·땅 떨림.
+- `kenki_stage4`(1.29 s): 칼날 울림을 뺐다. 3단 '빛남'(`_kenki(3)`) 위에 불꽃이 맺히는 지속 고역 반짝임(8.2k·10.5k) + 1.6 Hz 로 숨 쉬듯 맥동 + 불꽃 알갱이.
+- `kenki_stage5`(1.19 s): 칼날 울림을 뺐다. 빛이 고리로 이어지는 반짝임 다섯(0.12 s 부터 70 ms 간격 = 기존 초승달 다섯 타이밍, 점점 높게) → 0.47 s 짧은 백열 '화악' + 타닥.
 
 ## 추가 (시스템 효과음 연결 — 트리거 이름 맞춤, 2026-10-05)
 시스템이 확정한 id·이벤트 이름(메인 세션 전달, 계약 `sound-assets.md` §6)으로 manifest `trigger` 32항목을 기계적으로 고쳤다. 오디오·다른 필드는 그대로(WAV·OGG·M4A 645개 md5 불변, `build.py verify` 215개 문제 0).

@@ -19,6 +19,7 @@ build.py 가 sfx_bundle2 다음에 import 한다(시드 = 1000 + 등록 순서).
 from build import *  # noqa: F401,F403
 from build import GLASS, BLADE, AMBER_D, blade_ring, tear, sizzle, ash_pop, heavy_step, arrow_thunk, jing, \
     gravel, slam_impact, crackle, droplets, heartbeat, latch, tone_f  # noqa: F401
+from build import _kenki, _kenki_flame, _strain  # noqa: F401  (60라운드 Q25: 4·5단이 1~3단 재료를 이음)
 
 
 # ---------------------------------------------------------------------------
@@ -147,25 +148,61 @@ def _katana_mirror_parry(sr, rng):
 
 
 def _kenki_hi(sr, rng, stage):
-    f = {4: 1174.66, 5: 1760.0}[stage]
-    dur = {4: 0.95, 5: 1.15}[stage]
-    s = blade_ring(sr, dur, f, rng, bright=1.0, tau=0.32 + 0.06 * (stage - 4), vib=0.002)
-    mix_into(s, blade_ring(sr, dur * 0.85, f * 0.5, rng, bright=0.5, tau=0.28), sec(sr, 0.004), 0.35)
-    if stage == 5:
-        mix_into(s, blade_ring(sr, dur * 0.8, 587.33, rng, bright=0.2, tau=0.3), sec(sr, 0.008), 0.25)
-        for k in range(5):  # 다섯 초승달이 점선 고리로 이어짐
-            mix_into(s, mul(tone(sr, 0.06, 3520, 3500), env_exp(sr, 0.06, 0.015)), sec(sr, 0.12 + 0.07 * k), 0.06)
-    hi = mul(tone(sr, 0.7, 3520, 3540), env_adsr(sr, 0.7, 0.03, 0.0, 1.0, 0.6))
-    mix_into(s, hi, sec(sr, 0.02), 0.03)
+    """검기 4·5단(60라운드 Q25 재제작, 1~3단 '지글 → 타오름 → 빛남' 흐름을 이음). 칼날 울림·종 없음.
+    4 = 3단 '빛남' 위에 불꽃이 맺히는 지속 고역 반짝임 + 호흡 같은 맥동(1.6 Hz).
+    5 = 빛이 고리로 이어지는 반짝임 다섯 번(발밑 초승달 다섯, 0.12 s + 70 ms 간격) + 짧은 백열 '화악'."""
+    if stage == 4:
+        dur = 1.25
+        n = sec(sr, dur)
+        s = zeros(n)
+        mix_into(s, _kenki(sr, rng, 3), 0, 0.75)  # 3단 '빛남' 바탕
+        breath = [0.35 + 0.65 * (0.5 - 0.5 * math.cos(TAU * 1.6 * i / sr)) for i in range(n)]
+        fl = svf(noise(sr, dur, rng), sr, 1800, 0.7, 'low')
+        fl = mul(mul(fl, breath), env_adsr(sr, dur, 0.15, 0.0, 1.0, 0.35))
+        mix_into(s, fl, 0, 0.35)  # 숨 쉬듯 부푸는 불길
+        m = sec(sr, 1.0)
+        tw = [0.3 + 0.7 * abs(math.sin(TAU * 13 * i / sr)) * abs(math.sin(TAU * 4.1 * i / sr)) for i in range(m)]
+        for fc, g in ((8200, 0.3), (10500, 0.18)):  # 불꽃이 맺힌 지속 고역 반짝임
+            sp = svf(noise(sr, 1.0, rng), sr, fc, 2.0, 'band')
+            sp = mul(mul(mul(sp, tw), breath[:m]), env_adsr(sr, 1.0, 0.2, 0.0, 1.0, 0.35))
+            mix_into(s, sp, sec(sr, 0.15), g)
+        for _ in range(9):  # 맺혀 반짝 터지는 불꽃 알갱이
+            mix_into(s, burst(sr, 0.02, rng, fc=rng.uniform(6500, 9500), q=1.5, tau=0.004),
+                     sec(sr, rng.uniform(0.2, 1.05)), rng.uniform(0.15, 0.35))
+        for f in (3520.0, 3528.0, 5274.0):  # 3단과 같은 맑은 빛 한 겹, 맥동을 따라
+            mix_into(s, mul(mul(tone(sr, 1.0, f), breath[:m]), env_adsr(sr, 1.0, 0.2, 0.0, 1.0, 0.4)), sec(sr, 0.15), 0.012)
+        return reverb(tail(s, sr, 0.04), sr, size=0.6, decay=0.55, wet=0.18)
+    dur = 1.15
+    s = zeros(sec(sr, dur))
+    mix_into(s, _kenki_flame(sr, rng, 1.0, 350, 2800, 0.04), 0, 0.4)  # 타오르는 바탕(작게)
+    for k, fc in enumerate((4200, 5000, 5900, 7000, 8300)):  # 다섯 초승달이 고리로 이어짐
+        t0 = sec(sr, 0.12 + 0.07 * k)
+        m = sec(sr, 0.16)
+        gl = svf(noise(sr, 0.16, rng), sr, sweep(sr, m, fc * 0.7, fc * 1.25), 2.4, 'band')
+        mix_into(s, mul(gl, env_adsr(sr, 0.16, 0.012, 0.0, 1.0, 0.13)), t0, 0.45)
+        mix_into(s, click(sr, rng, 0.003, fc * 1.2), t0, 0.35)
+        mix_into(s, mul(tone(sr, 0.12, fc * 0.84), env_exp(sr, 0.12, 0.03)), t0, 0.015)
+    m = sec(sr, 0.4)
+    link = svf(noise(sr, 0.4, rng), sr, sweep(sr, m, 4500, 8500), 1.6, 'band')  # 반짝임 사이를 잇는 빛줄
+    mix_into(s, mul(link, env_adsr(sr, 0.4, 0.1, 0.0, 1.0, 0.15)), sec(sr, 0.12), 0.15)
+    t1 = sec(sr, 0.47)  # 고리가 닫히는 순간 백열 '화악'
+    m = sec(sr, 0.4)
+    wh = svf(noise(sr, 0.4, rng), sr, sweep(sr, m, 700, 7500), 0.7, 'low')
+    mix_into(s, mul(wh, env_adsr(sr, 0.4, 0.015, 0.08, 0.5, 0.3)), t1, 0.9)
+    mix_into(s, thud(sr, 0.12, 110, 60, 0.03), t1, 0.35)
+    gl = svf(noise(sr, 0.3, rng), sr, sweep(sr, sec(sr, 0.3), 3500, 10000), 2.0, 'band')
+    mix_into(s, mul(gl, env_adsr(sr, 0.3, 0.02, 0.0, 1.0, 0.25)), t1, 0.35)
+    mix_into(s, crackle(sr, rng, 0.6, 14, 0.35), t1)
+    s = softclip(s, 1.2)
     return reverb(tail(s, sr, 0.04), sr, size=0.6, decay=0.55, wet=0.18)
 
 
-@sfx('kenki_stage4', 'WEAPON_GAUGE{stage:4,delta>0}', "검기 4단 도달(명경 전용, 상한 5). kenki_stage1~3(A4·D5·A5) 다음 단 — 칼날 울림 D6 + 아래 옥타브 D5, 백열 고음. 오를 때만", -4)
+@sfx('kenki_stage4', 'WEAPON_GAUGE{stage:4,delta>0}', "검기 4단 도달(명경 전용, 상한 5 · 60라운드 Q25 재제작 — 칼날 울림 없음). 3단 '빛남' 위에 불꽃이 맺히는 지속 고역 반짝임 + 호흡 같은 맥동(1.6 Hz) + 반짝 터지는 불꽃 알갱이. 오를 때만", -4)
 def _kenki_stage4(sr, rng):
     return _kenki_hi(sr, rng, 4)
 
 
-@sfx('kenki_stage5', 'WEAPON_GAUGE{stage:5,delta>0}', "검기 5단 도달(명경 최대 — 다음 일섬 분신 2체). 칼날 울림 A6 + A5 + D5 쌓임 + 발밑 다섯 초승달이 이어지는 작은 틱 다섯, 울림. 5단 일섬 = 기존 shadow_clone 두 번(+90 ms)", -3)
+@sfx('kenki_stage5', 'WEAPON_GAUGE{stage:5,delta>0}', "검기 5단 도달(명경 최대 — 다음 일섬 분신 2체 · 60라운드 Q25 재제작 — 칼날 울림 없음). 빛이 고리로 이어지는 반짝임 다섯 번(발밑 초승달 다섯, 0.12 s 부터 70 ms 간격, 점점 높게) → 0.47 s 고리가 닫히며 짧은 백열 '화악' + 타닥. 5단 일섬 = 기존 shadow_clone 두 번(+90 ms)", -3)
 def _kenki_stage5(sr, rng):
     return _kenki_hi(sr, rng, 5)
 
@@ -204,18 +241,28 @@ def _gs_echo_counter(sr, rng):
 
 # ---- 거인(巨人) 2단 B-α: 차지 4단(1.6 s ×3.8, 진동 반경 5칸), 차지·꽂기 중 끊기지 않음 ----
 
-@sfx('charge_stage4', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:4}', "차지 4단 도달(거인 전용, 1.6 s · fx greatsword_charge_flash_lv4). charge_stage1~3(징 D4·A4·D5) 다음 단 — '징' A5 백열 + D5·D4 겹침 + 3.5k 반짝임 + 치솟는 바람 + 거인의 낮은 '쿵'. 오를 때만", -2)
+@sfx('charge_stage4', 'PLAYER_CHARGE{weapon:greatsword,phase:stage,stage:4}', "차지 4단 도달(거인 전용, 1.6 s · fx greatsword_charge_flash_lv4 · 60라운드 Q25 재제작 — 징 없음). 3단 '척' 신호를 더 무겁게: 파일 0 s 에 낮은 '척' + 쿵 두 겹(0 s · 0.09 s) + 위로 터지는 공기 → 땅이 갈라지는 저음(낮은 균열 + 자갈) + 15 Hz 로 떨리며 버티는 압력, 거인이 한계를 넘는 느낌. 오를 때만", -2)
 def _charge_stage4(sr, rng):
     dur = 1.5
     s = zeros(sec(sr, dur))
-    mix_into(s, jing(sr, 1.4, 880.0, rng, bright=1.0, tau=0.75, bend=0.016), 0, 0.5)
-    mix_into(s, jing(sr, 1.3, 587.33, rng, bright=0.7, tau=0.7), sec(sr, 0.006), 0.3)
-    mix_into(s, jing(sr, 1.2, 293.66, rng, bright=0.3, tau=0.7), sec(sr, 0.01), 0.3)
-    hi = mul(tone(sr, 0.9, 3520, 3560), env_adsr(sr, 0.9, 0.02, 0.0, 1.0, 0.8))
-    mix_into(s, hi, sec(sr, 0.02), 0.035)
-    mix_into(s, whoosh(sr, 0.5, rng, 600, 5500, q=0.9, a=0.6, r=0.35), 0, 0.2)
-    mix_into(s, lowpass(thud(sr, 0.4, 70, 34, 0.12), sr, 250), 0, 0.8)
-    return reverb(s, sr, size=0.9, decay=0.6, wet=0.22)
+    mix_into(s, click(sr, rng, 0.006, 2400), 0, 1.0)  # 더 무거운 '척'
+    mix_into(s, burst(sr, 0.04, rng, fc=900, q=0.9, tau=0.008), 0, 0.8)
+    mix_into(s, thud(sr, 0.25, 120, 40, 0.05), 0, 1.0)  # 쿵 1
+    mix_into(s, burst(sr, 0.15, rng, fc=300, q=0.6, tau=0.03, mode='low'), 0, 0.7)
+    mix_into(s, thud(sr, 0.35, 85, 28, 0.08), sec(sr, 0.09), 1.1)  # 쿵 2(더 깊게)
+    mix_into(s, burst(sr, 0.2, rng, fc=220, q=0.6, tau=0.045, mode='low'), sec(sr, 0.09), 0.7)
+    n = sec(sr, 0.22)
+    up = svf(noise(sr, 0.22, rng), sr, sweep(sr, n, 1000, 5500), 1.0, 'band')
+    mix_into(s, mul(up, env_adsr(sr, 0.22, 0.005, 0.0, 1.0, 0.2)), 0, 0.5)  # 위로 터지는 공기
+    mix_into(s, crack_run(sr, rng, 0.9, 0.3, 7, 1100, 450, 0.5, 0.45), sec(sr, 0.1), 0.85)  # 땅이 갈라지는 저음
+    mix_into(s, gravel(sr, rng, 0.9, 12, 0.1, 0.8, 0.2), 0)
+    mix_into(s, mul(_strain(sr, 1.3, 80, 72, 15.0, 0.65), env_adsr(sr, 1.3, 0.02, 0.15, 0.65, 0.8)), sec(sr, 0.03), 1.0)
+    sh = svf(noise(sr, 1.25, rng), sr, 180, 0.8, 'low')
+    sh = mul(sh, [0.4 + 0.6 * math.sin(TAU * 15 * i / sr) ** 2 for i in range(len(sh))])
+    mix_into(s, mul(sh, env_adsr(sr, 1.25, 0.03, 0.1, 0.7, 0.8)), sec(sr, 0.03), 0.6)  # 15 Hz 땅 떨림
+    mix_into(s, crackle(sr, rng, 1.0, 12, 0.25), sec(sr, 0.08))
+    s = softclip(s, 1.5)
+    return reverb(tail(s, sr, 0.04), sr, size=0.9, decay=0.55, wet=0.15)
 
 
 @sfx('charge_slam_lv4', 'PLAYER_CHARGE{weapon:greatsword,phase:release,stage:4}', "차지 4단 내려찍기(거인, ×3.8 · fx greatsword_giant_ring 반경 5칸: 0~0.15 s 퍼짐 → 0.15~0.38 s 끌어당김 → 가라앉음). 가장 무거운 강타(×1.9) + 퍼져 나가는 바람 링 → 안으로 빨려드는 바람 → 0.38 s 짓눌림 '쿵' + 오래 가는 땅울림 + 자갈 + 백열 쇳소리. 이 단에서는 charge_slam_lv3·gs_quake_ring 대신 이것 하나", 0)
