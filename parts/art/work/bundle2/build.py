@@ -8,6 +8,7 @@
 """
 import argparse
 import json
+import math
 import os
 import sys
 
@@ -25,6 +26,7 @@ def main():
     b2.DRY = args.dry
 
     import elite
+    import fx2
     import items
     import structs
     sys.path.insert(0, os.path.join(HERE, "../atlas57"))
@@ -75,6 +77,14 @@ def main():
         fr = items.consumables()
         prev_items += [(f, items.IPIV) for f in fr] + [(hero0, hpiv)]
 
+    # ---- 2단계 fx (60 Q13): 접두어별 fx + 화염 술병 — 엘리트 외곽선 시트와 별개
+    prev_fx2 = []
+    fx2_out = fx2.build_all(want, elite.head_tops())
+    for name, fr, piv in fx2_out:
+        prev_fx2 += [(f, piv) for f in fr]
+    if fx2_out:
+        prev_fx2 += fx2_mock(fx2, elite, gridsheet, Image, {n: f for n, f, _ in fx2_out})
+
     # ---- 아틀라스
     rep = [] if args.dry else b2.to_atlas()
     for cat, name, src, pages in rep:
@@ -85,13 +95,16 @@ def main():
         print("preview_elite", b2.preview(os.path.join(HERE, "preview_elite.png"), prev_elite, k=3, max_w=1500))
     if prev_struct:
         print("preview_structures", b2.preview(os.path.join(HERE, "preview_structures.png"), prev_struct, k=2, max_w=1800))
+    if prev_fx2:
+        print("preview_fx2", b2.preview(os.path.join(HERE, "preview_fx2.png"), prev_fx2, k=2, max_w=1900))
     if prev_items:
         print("preview_items", b2.preview(os.path.join(HERE, "preview_items.png"), prev_items, k=4, max_w=700, pad=8))
 
     # ---- 통계
     if not args.dry:
         sp = os.path.join(HERE, "stats.json")
-        stats = {}
+        stats = json.load(open(sp, encoding="utf-8")) if os.path.exists(sp) else {}
+        stats = {k: v for k, v in stats.items() if os.path.exists(os.path.join(b2.SPR, k + ".json"))}
         for cat, name in b2.WRITTEN:
             jp = os.path.join(b2.SPR, cat, "v3", name + ".json")
             m = json.load(open(jp, encoding="utf-8"))
@@ -99,12 +112,69 @@ def main():
             stats[f"{cat}/v3/{name}"] = {
                 "frame": [m["frameWidth"], m["frameHeight"]], "frames": m["atlas"]["grid"]["frameCount"],
                 "rows": m["atlas"]["grid"]["rows"], "page": [m["meta"]["size"]["w"], m["meta"]["size"]["h"]],
-                "opaqueColors": len({c[:3] for c in g.getdata() if c[3] == 255}),
+                "opaqueColors": len({c[:3] for c in g.get_flattened_data() if c[3] == 255}),
                 "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만",
             }
         with open(sp, "w", encoding="utf-8") as f:
             json.dump(dict(sorted(stats.items())), f, ensure_ascii=False, indent=1)
             f.write("\n")
+
+
+def fx2_mock(fx2, elite, gridsheet, Image, made):
+    """합성 목업: 적 위에 붙인 모습(통 갑옷·술 김·두목 연결·마시기) — 배치 규칙 확인용."""
+    heads = elite.head_tops()
+    boxes = fx2.body_boxes()
+    out = []
+
+    def enemy(e):
+        jp = os.path.join(b2.SPR, "enemies", "v3", f"{e}_idle.json")
+        g, m = gridsheet.open_grid(jp), gridsheet.load_meta(jp)
+        return g.crop((0, 0, m["frameWidth"], m["frameHeight"])), (m["pivot"]["x"], m["pivot"]["y"])
+
+    def put(cv, im, piv, at, scale=1.0):
+        if scale != 1.0:
+            im = im.resize((round(im.width * scale), round(im.height * scale)), Image.NEAREST)
+            piv = (round(piv[0] * scale), round(piv[1] * scale))
+        cv.alpha_composite(im, (at[0] - piv[0], at[1] - piv[1]))
+
+    if "elite_barrel_armor" in made:
+        for e in ("dummy", "charger"):
+            body, bp = enemy(e)
+            cv = Image.new("RGBA", (200, 230), (0, 0, 0, 0))
+            foot = (100, 210)
+            bx = boxes[e]
+            at = (foot[0] + bx["cx"], foot[1] + bx["cy"] + 22)
+            fr = made["elite_barrel_armor"]
+            put(cv, fr[0], fx2.APIV, at, bx["scale"])
+            put(cv, body, bp, foot)
+            put(cv, fr[3], fx2.APIV, at, bx["scale"])
+            out.append((cv, None))
+    if "elite_drunk_vapor" in made:
+        body, bp = enemy("archer")
+        cv = Image.new("RGBA", (160, 230), (0, 0, 0, 0))
+        foot = (80, 220)
+        put(cv, body, bp, foot)
+        put(cv, made["elite_drunk_vapor"][2], fx2.VPIV, (foot[0], foot[1] - heads["archer"] + 8))
+        out.append((cv, None))
+    if "elite_ringleader_link" in made:
+        lead, lp = enemy("dummy")
+        ally, ap = enemy("archer")
+        cv = Image.new("RGBA", (420, 200), (0, 0, 0, 0))
+        f1, f2 = (70, 180), (330, 160)
+        put(cv, made["elite_ringleader_aura"][1], fx2.RPIV, f2)
+        put(cv, lead, lp, f1)
+        put(cv, ally, ap, f2)
+        tile = made["elite_ringleader_link"][2]
+        x0, y0, x1, y1 = f1[0], f1[1] - 60, f2[0], f2[1] - 60
+        L = int(math.hypot(x1 - x0, y1 - y0))
+        strip = Image.new("RGBA", (L, tile.height), (0, 0, 0, 0))
+        for x in range(0, L, tile.width):
+            strip.alpha_composite(tile.crop((0, 0, min(tile.width, L - x), tile.height)), (x, 0))
+        ang = math.degrees(math.atan2(y1 - y0, x1 - x0))
+        rs = strip.rotate(-ang, resample=Image.NEAREST, expand=True)
+        cv.alpha_composite(rs, ((x0 + x1) // 2 - rs.width // 2, (y0 + y1) // 2 - rs.height // 2))
+        out.append((cv, None))
+    return out
 
 
 if __name__ == "__main__":

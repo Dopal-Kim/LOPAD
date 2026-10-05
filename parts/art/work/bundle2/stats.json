@@ -209,6 +209,48 @@
   "opaqueColors": 3,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
  },
+ "fx/v3/elite_barrel_armor": {
+  "frame": [
+   128,
+   112
+  ],
+  "frames": 6,
+  "rows": 2,
+  "page": [
+   442,
+   61
+  ],
+  "opaqueColors": 19,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "fx/v3/elite_barrel_armor_break": {
+  "frame": [
+   208,
+   176
+  ],
+  "frames": 9,
+  "rows": 1,
+  "page": [
+   292,
+   265
+  ],
+  "opaqueColors": 11,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "fx/v3/elite_drunk_vapor": {
+  "frame": [
+   112,
+   80
+  ],
+  "frames": 8,
+  "rows": 1,
+  "page": [
+   68,
+   568
+  ],
+  "opaqueColors": 9,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
  "fx/v3/elite_emblem": {
   "frame": [
    52,
@@ -223,6 +265,34 @@
   "opaqueColors": 20,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
  },
+ "fx/v3/elite_guzzle_drink": {
+  "frame": [
+   128,
+   128
+  ],
+  "frames": 9,
+  "rows": 1,
+  "page": [
+   195,
+   275
+  ],
+  "opaqueColors": 5,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "fx/v3/elite_guzzle_trail": {
+  "frame": [
+   72,
+   28
+  ],
+  "frames": 4,
+  "rows": 1,
+  "page": [
+   240,
+   14
+  ],
+  "opaqueColors": 6,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
  "fx/v3/elite_nameplate": {
   "frame": [
    192,
@@ -235,6 +305,62 @@
    26
   ],
   "opaqueColors": 11,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "fx/v3/elite_ringleader_aura": {
+  "frame": [
+   136,
+   56
+  ],
+  "frames": 6,
+  "rows": 1,
+  "page": [
+   686,
+   38
+  ],
+  "opaqueColors": 5,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "fx/v3/elite_ringleader_link": {
+  "frame": [
+   64,
+   24
+  ],
+  "frames": 6,
+  "rows": 1,
+  "page": [
+   196,
+   24
+  ],
+  "opaqueColors": 6,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "fx/v3/fire_bottle_burst": {
+  "frame": [
+   240,
+   184
+  ],
+  "frames": 10,
+  "rows": 1,
+  "page": [
+   193,
+   1018
+  ],
+  "opaqueColors": 14,
+  "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
+ },
+ "fx/v3/fire_bottle_thrown": {
+  "frame": [
+   56,
+   56
+  ],
+  "frames": 8,
+  "rows": 1,
+  "page": [
+   47,
+   253
+  ],
+  "opaqueColors": 16,
   "note": "반투명은 접지 그림자 1색(#0a0b10, 알파 변화)만"
  },
  "items/v3/consumable_f1": {

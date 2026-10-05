@@ -573,3 +573,11 @@
 - **구조물** `structures/v3/`: `challenge_banner`(C4 도전 성소, idle → raise 5 → active 6 루프 → cleared, 광원 220, `paletteSwap`), `still`(1-2 증류 화로 v3, v1 대체 우선 로드, `fireBox`, 광원 300), `event_last_cup`(E2), `event_tasting_tray`(E5), `event_peddler_mat`(E1·숨은 노드 행상, `slotAnchors` 3), `event_cache`(E7·숨은 보물방, idle/open/used), `event_offering_cup`(E8, pray 4 루프), `event_dropped_ledger`(E9, `depth: floor`), `clue_drain`·`clue_cracked_cask`(숨은 노드 단서, found 상태 발광).
 - **아이템** `items/v3/consumable_f1` 64×72, 3행 × 8(행 = 1층 소모품 3종 임시 id fire_bottle·strong_swig·cold_water), `anchor: ground`.
 - 재사용(새로 그리지 않음): E3 징집병 사망, E4 UI 일기장, E6 독주 술통 + `fire_pool`, E2·E5 카운터, E8 묘, E7 숨은 벽. 성과 등급(완·양)은 UI 몫(설계 f.2).
+
+### 22.1 2차 묶음 2단계 fx (60라운드 Q13)
+- 모두 `fx/v3/`, `pixelScale 0.5`, 트림 아틀라스, `drawOver: lightmap`. 엘리트 fx 는 `paletteSwap: true`(층 강조색, Q12), 화염 술병 fx 는 `paletteSwap: "none"`. 세부는 각 JSON 이 기준.
+- `elite_barrel_armor` 128×112, 2행(`back` = 적 아래·외곽선 위 / `front` = 적 위) × 3열(0 평소, 1·2 막아낸 맞음). `anchor: enemy_body`, scale = `bodyBoxByEnemy[적].scale` × 1.15, flipX 는 적과 같이. 첫 강공 적중 → 이 시트 끄고 `elite_barrel_armor_break`(208×176, 9프레임 1회, `flashFrame 0`, `shake`) 재생 → `elite_emblem` barrel_armor 행을 1열로.
+- `elite_drunk_vapor` 112×80, 8프레임 루프, `enemy_head`(headTop − 8, 문장 아래). 몸 흔들림·휘는 궤적은 코드 연출.
+- `elite_ringleader_link` 64×24, 6프레임 루프, 반복 타일(`tile: true`, 주기 64, 트림 안 함, `rotate`, 쐐기가 +x 로 흐름) — 두목 pivot 위 60 → 강화 대상 pivot 위 60. `elite_ringleader_aura` 136×56 루프, 강화 대상 발밑(`depth: floor`). 두목 사망 시 둘 다 끄고 주변 적에 `status_stagger`.
+- `elite_guzzle_trail` 72×28, 4프레임 루프 투사체(죽은 적 → 엘리트 머리, 0.35초·호 30도트 제안) → `elite_guzzle_drink` 128×128, 9프레임 1회(`healFrame 4` 에 HP·크기 증가 적용 제안).
+- `fire_bottle_thrown` 56×56, 8프레임 루프(회전은 그림에 포함, 왼쪽이면 flipX, 광원 70, 포물선·그림자 원은 시스템) → 착지 `fire_bottle_burst` 240×184, 10프레임 1회(`radiusPx 96` = 1.5칸, 광원 260, `lightByPhase`, `shake`) → `fire_pool` 로 넘김. 플레이어 소모품·독주 행상 공용(`sharedWith`).
