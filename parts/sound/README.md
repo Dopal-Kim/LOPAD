@@ -7,14 +7,16 @@
 | `parts/sound/work/build.py` | **단일 소스.** 효과음·BGM 합성 → OGG·M4A 인코딩 → 매니페스트 → 검증을 전부 재생성. 합성은 파이썬 표준 라이브러리만, 고정 시드로 결정적 |
 | `parts/sound/work/sfx_bundle2.py` · `sfx_branch2.py` · `sfx_passive.py` | 60라운드 효과음 정의(2차 묶음 25 · 2단 갈래 32 · 패시브 10). `build.py` 가 이 순서로 import 해 등록한다(시드 = 등록 순서) |
 | `parts/sound/work/sfx_core61.py` | 61라운드 P11 핵심 20종 품질 패스(같은 키 18종을 `redo()` 로 다시 등록 — 순서·시드 유지) + 새 2종(`guard_block`·`combo_finish`) + 변주 23 |
-| `parts/sound/work/sfx_stage61.py` | 61라운드 단계 2·3: 신규 적 2종(독주 행상·술통 짐꾼) 12 · 보스 '만취' 패스(새 11 + `redo()` 다시 9 + 보관 1) · 칼 발도 검기 단수 5 · 가드(다시 2 + 새 1). 6절 = 단계 4(보스 `BOSS_ACTION` 새 동작 6 + 변주 2 · 화살비 다시 2, round `61-4`), 7절 = P12 무기 성장(새 8 + 변주 2 · 옛 6 트리거 이동), 8절 = P13(새 5 + 변주 2 · `boss1_break_pillar` 다시, round `61-5`), 9절 = P13 개성 발동음 15 + 공명 2(round `61-5`). **마지막 모듈 — 새 효과음은 이 파일 끝에만** |
+| `parts/sound/work/sfx_stage61.py` | 61라운드 단계 2·3: 신규 적 2종(독주 행상·술통 짐꾼) 12 · 보스 '만취' 패스(새 11 + `redo()` 다시 9 + 보관 1) · 칼 발도 검기 단수 5 · 가드(다시 2 + 새 1). 6절 = 단계 4(보스 `BOSS_ACTION` 새 동작 6 + 변주 2 · 화살비 다시 2, round `61-4`), 7절 = P12 무기 성장(새 8 + 변주 2 · 옛 6 트리거 이동), 8절 = P13(새 5 + 변주 2 · `boss1_break_pillar` 다시, round `61-5`), 9절 = P13 개성 발동음 15 + 공명 2(round `61-5`). 61-5 까지의 마지막 모듈(1,700줄을 넘어 61-6 부터 새 모듈로 나눔) |
+| `parts/sound/work/sfx_p14.py` | 61라운드 단계 6 (P14): 그림 속 입구 전환 3(`transition_enter`·`_exit`·`_floor`) · 수련장 과제 종 `training_task`(+ 변주 2) · 방 도장 `training_stamp`, round `61-6`. **마지막 모듈 — 새 효과음은 이 파일 끝에만** |
+| `parts/sound/work/bgm_training.py` | 61라운드 단계 6 (P14) 수련장 곡 `training`(72 s, 44.1 kHz 스테레오) — `bgm_floor1` 의 악기·버스 재사용, manifest `bgmByState.training`. 1층 곡 뒤에 등록 |
 | `parts/sound/work/bgm_floor1.py` | 61라운드 P11 1층 전용 BGM 5파일(벽 밖 · 잔 거리 · 만취 3국면), 44.1 kHz 스테레오. 기존 6곡 뒤에 등록 |
 | `parts/sound/work/mixing.py` | 61라운드 믹싱 권장값(동시 재생 상한·우선순위·덕킹·변주·리미터·보스 국면 교차) → manifest `mixing`, 항목별 `priority` |
 | `parts/sound/work/listen_index.py` → `listen_index.json` | 청취 검수(들어보기) 페이지용 목록: 전 효과음·BGM 의 분류·한 줄 설명·트리거·길이·루프·ogg/m4a 경로. 매니페스트를 쓸 때마다 함께 재생성 |
 | `parts/sound/work/encode.py` | 배포 형식 인코딩·검증(57라운드 Q17). ffmpeg(libvorbis·aac), bitexact 로 결정적 |
 | `parts/sound/work/wav/{sfx,bgm}/*.wav` | 합성 원본 **작업 캐시**(git 제외, `work/.gitignore`). `build.py` 로 바이트 단위 재생성 — 저장소·빌드 결과에 넣지 않는다 |
-| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 **305종**(61라운드 단계 5 P13 개성: 행동 갈래 `trait_<act>` 15 + `resonance_on`·`resonance_proc` — 아래 '61-5 개성' 절. 그 전 288종 = 61라운드 단계 5 P13: 새 5 + 변주 2 · `boss1_break_pillar` 다시 — 아래 61-5 절. 그 전 281종 = 61라운드 단계 4: P12 무기 성장 새 8 + 변주 2 · 보스 `BOSS_ACTION` 새 6 + 변주 2, 화살비 다시 2 — 아래 61-4 절들. 그 전 263종 = 61라운드 단계 2·3: 새 29 + 다시 11 + `boss1_cup_shatter` 보관 — 아래 61-2 절. 그 전 234종 = 61라운드: 핵심 18종 다시 만듦 + 새 2 + 변주 23. 그 전 209종 = 29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37 + 60라운드 2차 묶음 25·2단 갈래 32·패시브 10 — 그중 `gs_plunge`·`gs_crack`·`katana_echo` 는 보관), 원본 44.1 kHz / mono / 피크 -6 dBFS |
-| `assets/audio/bgm/*.{ogg,m4a}` | BGM 11파일: 기존 6곡(22.05 kHz / mono, 27~32 s 루프) + 61라운드 1층 전용 5파일(`f1_outside`·`f1_jan` 96 s, `f1_boss_p1~3` 72 s — 44.1 kHz / **stereo**). 피크 -6 dBFS(보스 p1·p2 는 공통 이득이라 더 낮음) |
+| `assets/audio/sfx/*.{ogg,m4a}` | 효과음 **312종**(61라운드 단계 6 P14: 전환 3 + 수련장 2 + 변주 2 — 아래 '61-6' 절. 그 전 305종 = 61라운드 단계 5 P13 개성: 행동 갈래 `trait_<act>` 15 + `resonance_on`·`resonance_proc` — 아래 '61-5 개성' 절. 그 전 288종 = 61라운드 단계 5 P13: 새 5 + 변주 2 · `boss1_break_pillar` 다시 — 아래 61-5 절. 그 전 281종 = 61라운드 단계 4: P12 무기 성장 새 8 + 변주 2 · 보스 `BOSS_ACTION` 새 6 + 변주 2, 화살비 다시 2 — 아래 61-4 절들. 그 전 263종 = 61라운드 단계 2·3: 새 29 + 다시 11 + `boss1_cup_shatter` 보관 — 아래 61-2 절. 그 전 234종 = 61라운드: 핵심 18종 다시 만듦 + 새 2 + 변주 23. 그 전 209종 = 29라운드 42 + 54라운드 1층 보스 '만취' `boss1_*` 18 + 55라운드 대검 차지·칼 잔상 9 + 56라운드 가드·자원·무기 새 수단 34 + 56라운드 검수 활 2 + 57·58라운드 빌드 축·갈래 1단·찌르기·균열·상태 37 + 60라운드 2차 묶음 25·2단 갈래 32·패시브 10 — 그중 `gs_plunge`·`gs_crack`·`katana_echo` 는 보관), 원본 44.1 kHz / mono / 피크 -6 dBFS |
+| `assets/audio/bgm/*.{ogg,m4a}` | BGM **12파일**(61-6 수련장 `training` 72 s 44.1 kHz 스테레오 추가): 기존 6곡(22.05 kHz / mono, 27~32 s 루프) + 61라운드 1층 전용 5파일(`f1_outside`·`f1_jan` 96 s, `f1_boss_p1~3` 72 s — 44.1 kHz / **stereo**). 피크 -6 dBFS(보스 p1·p2 는 공통 이득이라 더 낮음) |
 | `assets/audio/manifest.json` | 시스템 파트가 읽을 목록(계약 초안): 파일(`file` 1순위 + `files` 형식별)·샘플 수·길이·루프 구간·권장 음량·트리거 이벤트 제안·층별 BGM 매핑 |
 
 ## 사용법
@@ -28,7 +30,7 @@ python3 parts/sound/work/build.py verify     # 검증(WAV 피크·클리핑·경
 python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.json)만 다시
 ```
 새로 받은 저장소에는 WAV 캐시가 없으므로 `encode`·`manifest`·`verify` 전에 `build.py`(전부)를 한 번 돌린다.
-새 효과음은 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 **마지막 모듈(`sfx_stage61.py`) 끝**에 추가하면 매니페스트·들어보기 목록까지 자동 반영된다(`build.py` 본문 중간이나 앞 모듈에 끼우면 시드가 밀려 뒤 소리가 바뀐다). 새 소리의 분류는 `listen_index.py` 의 `EXPLICIT`/`SUBGROUP` 에 적는다(60라운드 모듈 소리는 모듈 이름으로 자동). BGM 은 `@bgm(...)`.
+새 효과음은 `@sfx('이름', '트리거', '설명', gainDb)` 데코레이터 함수 하나를 **마지막 모듈(61-6 부터 `sfx_p14.py`) 끝**에 추가하면 매니페스트·들어보기 목록까지 자동 반영된다(`build.py` 본문 중간이나 앞 모듈에 끼우면 시드가 밀려 뒤 소리가 바뀐다). 새 소리의 분류는 `listen_index.py` 의 `EXPLICIT`/`SUBGROUP` 에 적는다(60라운드 모듈 소리는 모듈 이름으로 자동). BGM 은 `@bgm(...)`.
 
 ## 자율 결정 (29라운드, 도영 님 부재 중 권장안으로 결정 — 복귀 후 검토)
 음향 파트 개시 BLANK(`parts/sound/CLAUDE.md`, GDD 8장) 네 항목을 아래와 같이 정했다. 근거는 `parts/producer/decisions/2026-10-01-round-29-autonomous-demo.md` 의 자율 진행 지시.
@@ -335,6 +337,26 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 - `npx vitest run src/systems/audio`: 36 중 35 통과, 1 실패 = `audioDefs.test.ts` '쓰이지 않는 manifest 효과음 없음' — 새 17 id 전부. 시스템이 개성 후보 표(`trait_<act>` 15·`resonance_proc`·`resonance_on`)를 테스트 `used` 에 넣으면 통과(음향은 src 를 고치지 않음).
 - 청취 전(수치 검증만).
 
+## 추가 (61라운드 단계 6 — P14 그림 속 입구 전환 · 수련장, 2026-10-06 자율 모드)
+근거: 설계 `parts/producer/decisions/2026-10-06-P14-tutorial-color-transition.md` §1·§3, 계약 `sound-assets.md` §12(시스템 확정 줄), 시스템 확정 트리거 `src/systems/audio/audioTraining.ts`(읽기만). 도구 그대로(표준 라이브러리 합성 + ffmpeg). 코드 `work/sfx_p14.py`·`work/bgm_training.py`, 설계표 `sound-design.md` **3-2 · 4-14**.
+
+| id | 길이 | 트리거(manifest) | gainDb | 우선순위 |
+|---|---|---|---|---|
+| `transition_enter` | 1.45 s | `TRANSITION_BEGIN{mode:enterNode\|training}` — 1.10 s 어둠이 덮임 → 붓질 걷힘 | -2 | 3 |
+| `transition_exit` | 1.30 s | `TRANSITION_BEGIN{mode:exitRoom}` — 0 s 붓 한 획, 0.95 s 액자 '톡' | -2 | 3 |
+| `transition_floor` | 1.60 s | `TRANSITION_BEGIN{mode:floor}` — 1.22 s 덮임 + 낮은 '둥' | -2 | 3 |
+| `training_task` + `_v2`·`_v3` | 0.40 s | `TRAINING_TASK` (A5 · C6 · E6 번갈아) | -7 | 2 |
+| `training_stamp` | 0.60 s | `TRAINING_STAMP` — 0 s '쿡', 0.30 s 인주 '쩍' | -3 | 3 |
+| BGM `training` | 72 s 루프 | `bgmByState.training` | +1.8 (RMS ≈ -23) | — |
+
+- **재료**: 전환은 종이·바람·먹·붓·나무 액자만(쇠·화약 없음 — 그림 세계로 넘어가는 소리를 전투 재료와 가름). 과제 종은 거의 조화 배음(1·2·3)에 6.5 kHz 위를 깎아 자주 울려도 덜 날카롭게, 변주 3음은 수련장 곡과 같은 A 단조 화음. 도장은 딱 소리 없는 둔탁한 '쿡'(900 Hz 위 깎음) + 떼어낼 때 인주 끈적.
+- **수련장 곡**: `f1_jan` 과 같은 악기(콘트라베이스·손풍금·바이올린·류트·손북·A1 드론·바람)로 A 단조 3/4 90 BPM, 잔 거리 주제를 느리고 맑게(처지는 음 없음). 삼전음·몰아치기 없음.
+- **믹싱**(`work/mixing.py`): `TIERS` 3 에 `TRANSITION_BEGIN`·`TRAINING_STAMP`, 2 에 `TRAINING_TASK`(줍기류 1 보다 위 — 기존 '우선순위 ≥ 2 → 줍기류 -4 dB' 규칙이 걸림). `perGroupOverrides` 전환 3종 각 1 · `training_task` 2 · `training_stamp` 1. 덕킹 새 3줄: 전환음 → 효과음(≤2) -8 dB 소리 길이 동안, 전환음 → BGM -4 dB, 도장 → 효과음(≤1) -4 dB 300 ms. 새 키 `mixing.transition`(`skipFadeMs` 150 — 건너뛰면 전환음 페이드, floor 는 transition_floor 하나만). manifest `bgmByState.training` 추가(`build.py` 가 BGM spec 의 `state` 로 채움).
+- **검증·불변**: 작업 전 md5 948개(배포 OGG·M4A + WAV 캐시) 전부 그대로, 바뀐 것 = manifest·listen_index 만, 새 파일 24개(효과음 7 × WAV·OGG·M4A + BGM 1 × 3). 기존 316 항목 manifest 내용 동일(바뀐 최상위 = `format.perEntryNote`·`mixing`(priority·ducking·voices·variantGroups·transition)·`bgmByState`). `build.py verify` **324개(효과음 312 + BGM 12) 문제 0**, `training` 루프 이음매 OGG 0.14 · M4A 0.08(≤1 통과), 브라우저 1곳 OGG 11.35 MB / M4A 11.98 MB(수련장 곡 +1.2 MB — 지연 로드 권장). `listen_index.json` 324항목(새 분류 `p14` '그림 속 입구 전환 · 수련장', round `61-6`).
+- 수치(50 ms 창): enter 0~0.25 s 종이 -29~-35 dB(밝음 7 kHz) → 바람이 커지며 1.10 s 정점 -13 dB → 붓질 -22~-29 / exit 0~0.3 s 붓 -25 → 종이 결 -35~-40 → 0.95 s 액자 '톡' -19 / floor 1.22 s 정점 -13(낮은 대역) / stamp 0 s -12 → 0.35~0.4 s 인주 -27~-31 / task 0.35 s 에 -50.
+- `npx vitest run src/systems/audio`: 37 중 35 통과, 실패 2 — ① `audioDefs.test.ts` '쓰이지 않는 manifest 효과음 없음' = 새 7 id(`P14_SFX` 가 테스트 `used` 에 없음, 변주 v2·v3 은 `variantOf` 로 따라옴) ② `audioMix.test.ts` 덕킹 규칙 수 `toHaveLength(4)` → 지금 6(새 3줄 중 효과음 대상 2줄은 파서가 읽고, '전환음 → BGM' 줄은 읽지 않음 — 원 manifest 를 바꿔 넣어 본 결과). 음향은 src 를 고치지 않음.
+- 청취 전(수치 검증만).
+
 ## 교차 참조 (29라운드 전체 공개 하에 읽은 것)
 - 읽기: `parts/story/world-bible.md`, `parts/producer/contracts/story-text.md`, `parts/producer/contracts/ui-system-interface.md`(이벤트 이름), `parts/producer/contracts/art-assets.md`(매니페스트 관례), `data/weapons.json`, `data/enemies.json`, `data/bosses.json`, `data/stages.json`(층 순서).
 - 60라운드 읽기(지시 범위): 아트 fx JSON 26개 `assets/sprites/fx/v3/{katana_whirl_loop,katana_whirl_reflect,katana_moon_trail,katana_cleave_crack,katana_execute,katana_mirror_ki,katana_mirror_parry,greatsword_quake_fork,greatsword_echo_counter,greatsword_giant_ring,greatsword_charge_flash_lv4,greatsword_congest_aura,greatsword_congest_burst,dagger_frenzy_clone_in,dagger_frenzy_clone_out,dagger_brand_bleed,dagger_brand_hop,dagger_stuck_blade,dagger_hotwind_trail,dagger_hotwind_burst,bow_arrow_split,bow_arrow_stuck,bow_arrow_recall,bow_deadeye_scope,bow_link_stack,bow_skypierce_line}.json` — 계약 `art-assets.md` §21 이 타이밍 기준으로 가리키는 런타임 데이터(타이밍 필드만 참고).
@@ -344,11 +366,13 @@ python3 parts/sound/work/build.py listen     # 들어보기 목록(listen_index.
 - 61라운드 단계 4 P12 읽기: 공개 자료 `2026-10-05-P12-weapon-growth.md`·`contracts/sound-assets.md` §10·`art-assets.md` §26·`ui-system-interface.md` §18, 시스템(읽기만) `src/systems/audio/audioBuild.ts`(GROWTH_SFX·트리거)·`audioDefs.test.ts`·`audioBuild.test.ts`, 아트(읽기만, 프레임 시각) `assets/sprites/fx/v4/awaken1_crack.json`·`awaken2_bloom.json`. 수정 없음.
 - 61라운드 단계 5 P13 읽기: 공개 자료 `2026-10-06-P13-combat-variety.md`·`contracts/sound-assets.md` §9~§11, 시스템(읽기만, 지시 범위) `src/systems/audio/audioDrops.ts`(트리거·폴백·크기별 속도)·`audioDefs.test.ts`(미사용 id 검사)·`audioMap.ts`(GOLD_CHANGED·ITEM_PICKED 의 pickup_gold·pickup_potion 쓰임 확인). 수정 없음.
 - 61라운드 단계 5 P13 개성 읽기(지시 범위): 공개 자료 `contracts/sound-assets.md` §11, 시스템 `parts/system/notes/trait-art-requests-61s5.md`(§3 중심), `data/traits.json`(act 분포만). 수정 없음.
+- 61라운드 단계 6 P14 읽기(지시 범위): 공개 자료 `2026-10-06-P14-tutorial-color-transition.md`·`contracts/sound-assets.md` §12, 시스템(읽기만) `src/systems/audio/audioTraining.ts`(트리거·모드 매핑). `audioMix.test.ts` 덕킹 파싱은 소스를 열지 않고 manifest 를 바꿔 넣어 테스트 결과로만 확인. 수정 없음.
 - 쓰기: `parts/sound/**`, `assets/audio/**` 만.
 
 ## 미완료 · 보류
 - 실제 청취 검수는 도영 님 복귀 후(컨테이너에서 재생 불가, 수치 검증만 수행). **61-2 새 29·다시 11 도 청취 전. 61-4 새 8·다시 2 와 P12 성장 새 8·변주 2 도 청취 전.**
 - ~~61-4: `boss1_break_pillar` 의 '와르르'가 프로듀서 판단과 어긋날 수 있음~~ → 61-5 에서 와르르를 `boss1_pillar_collapse` 로 옮기고 break_pillar 를 다시 만듦. **61-5 새 5·변주 2·다시 1 도 청취 전.**
 - 61-2: 행상·짐꾼 death 시트의 쓰러짐 프레임 시각 미확인(소리는 행상 0.18 s · 짐꾼 0.34 s 가정) — 데모에서 어긋나면 시각만 옮겨 다시 만든다. 트리거 이름은 시스템 확정값으로 동기화함(위 절) — 남은 확인: `break_count` 의 `distinct` 이벤트, `boss:intro` payload, 행상·짐꾼 `ENEMY_*` 에 `enemy` 필드 유무. **61라운드 새 BGM 5파일·품질 패스 20종·변주 23 도 청취 전** — 데모에서 들어보고 피드백으로 다듬는다.
+- **61-6 새 7(전환 3 · 수련장 2 · 변주 2)과 수련장 BGM 도 청취 전.** 전환음 시간 축은 설계 수치(enter 1.1 s 덮임, exit ~1.3 s)에 맞춤 — UI 연출 실제 시각과 어긋나면 시각만 옮겨 다시 만든다.
 - 시스템 파트의 오디오 로더·트리거 연동은 시스템 소유 — 매니페스트 초안을 전달만 한다.
 - 진화별 전용 효과음, 엔딩 2종 음악, 층별 BGM 세분화는 `sound-design.md` 6장 참조.

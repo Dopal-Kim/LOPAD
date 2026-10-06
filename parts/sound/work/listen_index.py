@@ -26,6 +26,7 @@ GROUPS = [
     ('boss', '보스 공통'),
     ('boss1', "1층 보스 '만취'"),
     ('world', '맵·월드'),
+    ('p14', '그림 속 입구 전환 · 수련장 (61-6 P14)'),
     ('pickup', '획득·상점'),
     ('ui', 'UI·연출'),
     ('bgm', 'BGM'),
@@ -67,6 +68,7 @@ EXPLICIT = {
     'boss': ['boss_start', 'boss_phase', 'boss_telegraph', 'boss_fan', 'boss_die'],
     'world': ['level_enter', 'door_close', 'door_open', 'boss_unlock', 'exit_open', 'trial_clear', 'save'],
     'pickup': ['pickup_gold', 'pickup_potion', 'potion_use', 'shop_buy', 'voucher_drop', 'voucher_pickup', 'item_pickup'],
+    'p14': ['transition_enter', 'transition_exit', 'transition_floor', 'training_task', 'training_stamp'],
     'ui': ['menu_move', 'menu_select', 'menu_cancel', 'fate_decided', 'evolve', 'reinforce', 'player_death'],
 }
 
@@ -139,6 +141,10 @@ SUBGROUP = {
     'trait_ignite': '행동 갈래 · 점화', 'trait_deflect': '행동 갈래 · 되쳐내기', 'trait_shield': '행동 갈래 · 막아줌',
     'trait_spin': '행동 갈래 · 회전', 'trait_mark': '행동 갈래 · 표식', 'trait_burst': '행동 갈래 · 터짐',
     'resonance_on': '공명 · 켜짐', 'resonance_proc': '공명 · 발동',
+    # 61라운드 단계 6 — P14
+    'transition_enter': '그림 속 입구 · 노드·수련장 방', 'transition_exit': '그림 속 입구 · 나가기(액자)',
+    'transition_floor': '그림 속 입구 · 층(큰 그림)', 'training_task': '수련장 · 과제 완료',
+    'training_stamp': '수련장 · 방 도장',
     'evolve': '폴백 (61-4 대체)', 'dual_trait': '폴백 (61-4 대체)', 'awaken_katana': '폴백 (61-4 대체)',
     'awaken_greatsword': '폴백 (61-4 대체)', 'awaken_dagger': '폴백 (61-4 대체)', 'awaken_bow': '폴백 (61-4 대체)',
 }
@@ -180,24 +186,25 @@ def _group_of(name, kind, sfx_specs):
     raise KeyError('listen_index: 분류가 없는 소리 %s — EXPLICIT 에 추가하세요' % name)
 
 
-def _bgm_where(e):
-    """BGM 이 쓰이는 곳 한 줄: 61라운드 층 전용 곡은 use(floor·state·phase), 기존 곡은 floors 또는 bgmByState."""
+def _bgm_where(e, by_state=None):
+    """BGM 이 쓰이는 곳 한 줄: 61라운드 층 전용 곡은 use(floor·state·phase), 기존 곡은 floors 또는 bgmByState[상태]."""
     u = e.get('use')
     if u:
         return '%d층 %s' % (u['floor'], {'journey': '여정(벽 밖)', 'combat': '전투', 'boss': '보스'}.get(u['state'], u['state'])) + \
             (' %d국면' % u['phase'] if 'phase' in u else '')
     if e.get('floors'):
         return '층 ' + ','.join(str(x) for x in e['floors'])
-    return 'bgmByState'
+    states = [k for k, v in (by_state or {}).items() if v == e['id']]
+    return 'bgmByState.' + ','.join(states) if states else 'bgmByState'
 
 
 def _round(name, kind, sfx_specs):
     """새로 만들거나 다시 만든 라운드: '61-2' = 61라운드 단계 2·3(신규 적·보스 패스·발도·가드),
     '61' = 61라운드 품질 패스·변주·1층 BGM, '60' = 60라운드 모듈."""
     if kind == 'bgm':
-        return '61' if name.startswith('f1_') else ''
+        return '61' if name.startswith('f1_') else '61-6' if name == 'training' else ''
     spec = sfx_specs[name]
-    for r in ('61-5', '61-4'):
+    for r in ('61-6', '61-5', '61-4'):
         if spec.get('redone') == r or spec.get('round') == r:
             return r
     if spec.get('redone') == '61-2' or spec.get('archived') == '61-2' or spec['fn'].__module__ == 'sfx_stage61':
@@ -225,7 +232,7 @@ def write(root, manifest_path, sfx_specs, out_path=None):
         item = dict(
             key=name, id=e['id'], kind=kind, group=g, subgroup=SUBGROUP.get(name, ''),
             desc=_first_sentence(e['note']), note=e['note'],
-            trigger=trig if kind == 'sfx' else _bgm_where(e),
+            trigger=trig if kind == 'sfx' else _bgm_where(e, man.get('bgmByState')),
             durationMs=e['durationMs'], samples=e['samples'], sampleRate=e['sampleRate'],
             channels=e['channels'], loop=e['loop'], gainDb=e['gainDb'],
             ogg=e['files'][0], m4a=e['files'][1],
@@ -252,6 +259,7 @@ def write(root, manifest_path, sfx_specs, out_path=None):
              '"61-2" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), '
              '"61-4" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍, P12 무기 성장 — 각성·개성 발현·게이지), '
              '"61-5" = 61라운드 단계 5(P13 — 기둥 무너짐·기둥 부딪힘 다시·보스 포물선 술병·바닥 전표 떨어짐/줍기·소모품 줍기, 개성 발동 행동 갈래 15·공명 켜짐/발동 — 주 타격음 위 특색 층), '
+             '"61-6" = 61라운드 단계 6(P14 — 그림 속 입구 전환 enter·exit·floor, 수련장 과제 종·방 도장, 수련장 BGM training), '
              '설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],

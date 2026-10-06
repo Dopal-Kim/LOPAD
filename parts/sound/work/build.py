@@ -2827,7 +2827,7 @@ def _endure_trigger(sr, rng):
 
 # --- 60라운드: 2차 묶음 · 2단 갈래 16종 · 패시브 — 별도 모듈(CLAUDE.md 6-1 분리) ----------------------
 # 등록 순서 = 아래 import 순서(시드 = 1000 + 등록 순서). 기존 148개는 바이트 불변이어야 하므로 이 줄 위에는
-# 효과음을 더 넣지 않는다. 새 효과음은 마지막 모듈(sfx_stage61.py) 끝 — 또는 그 뒤 새 모듈 — 에만 추가한다.
+# 효과음을 더 넣지 않는다. 새 효과음은 마지막 모듈(61-6 부터 sfx_p14.py) 끝 — 또는 그 뒤 새 모듈 — 에만 추가한다.
 # 모듈은 `from build import *` 로 이 파일의 DSP 유틸을 쓴다: 스크립트로 실행될 때(__main__)도 같은 모듈 객체를
 # 쓰도록 'build' 이름을 먼저 걸어 둔다(두 번 실행되어 SFX 표가 갈라지는 것을 막음).
 sys.modules.setdefault('build', sys.modules[__name__])
@@ -2836,6 +2836,7 @@ import sfx_branch2  # noqa: E402,F401  2단 갈래 16종 → 32 파일
 import sfx_passive  # noqa: E402,F401  패시브 9종 → 10 파일
 import sfx_core61  # noqa: E402,F401  61라운드 P11 핵심 20종 품질 패스(같은 키 다시 등록 — 순서·시드 유지) + 새 2종 + 변주
 import sfx_stage61  # noqa: E402,F401  61라운드 단계 2·3: 신규 적 2종 · 보스 '만취' 패스(P6) · 발도 검기 단수 · 가드 다듬기
+import sfx_p14  # noqa: E402,F401  61라운드 단계 6(P14): 그림 속 입구 전환 3 · 수련장 과제·도장 2 + 변주 2 — 새 효과음은 이 모듈 끝에만
 import listen_index  # noqa: E402  들어보기 페이지용 목록(listen_index.json)
 
 
@@ -3095,6 +3096,7 @@ def _bgm_emperor(sr, rng):
 
 
 import bgm_floor1  # noqa: E402,F401  61라운드 P11 1층 전용 3곡(벽 밖 · 잔 거리 · 만취 3국면) — 44.1 kHz 스테레오
+import bgm_training  # noqa: E402,F401  61라운드 단계 6(P14) 수련장 곡(bgmByState.training) — 44.1 kHz 스테레오
 
 
 # ---------------------------------------------------------------------------
@@ -3315,7 +3317,7 @@ def write_manifest():
                         note='합성 원본. 배포·저장소에 넣지 않으며 build.py 로 바이트 단위 재생성(결정적).'),
             bitDepth=16, peakDbfs=PEAK_DBFS,
             sfxSampleRate=SR_SFX, bgmSampleRate=SR_BGM, channels=1,
-            perEntryNote='61라운드 1층 전용 곡(bgm/f1_*)은 44.1 kHz 스테레오(channels 2). 위 bgmSampleRate·channels 는 '
+            perEntryNote='61라운드 1층 전용 곡(bgm/f1_*)·61-6 수련장 곡(bgm/training)은 44.1 kHz 스테레오(channels 2). 위 bgmSampleRate·channels 는 '
                          '기존 곡 기준값이고, 루프 초 계산 등은 항목의 sampleRate·channels 를 쓴다.'),
         mixing=dict(masterDb=0.0, sfxBusDb=0.0, bgmBusDb=-8.0,
                     bgmCrossfadeMs=1200, bgmBossDuckDb=-3.0,
@@ -3323,7 +3325,8 @@ def write_manifest():
                     **mixing.settings(_variant_groups())),
         bgmByFloor=dict(sorted(((str(f), 'bgm/' + name) for name, spec in BGM.items() for f in spec['floors']),
                                key=lambda kv: int(kv[0]))),
-        bgmByState=dict(title='bgm/title', boss='bgm/boss', emperor='bgm/emperor'),
+        bgmByState=dict(title='bgm/title', boss='bgm/boss', emperor='bgm/emperor',
+                        **{spec['state']: 'bgm/' + name for name, spec in BGM.items() if spec.get('state')}),
         bgmByFloorState=_bgm_floor_state(),
         bgmByFloorStateNote='층별 상태 곡(61라운드). 찾는 순서: bgmByFloorState[층][상태] → 없으면 bgmByFloor[층](전투) · '
                             'bgmByState[상태]. 상태 journey = 전투 전 여정, combat = 전투 노드(= bgmByFloor[층]), '

@@ -38,7 +38,7 @@
     "sfxSampleRate": 44100,
     "bgmSampleRate": 22050,
     "channels": 1,
-    "perEntryNote": "61라운드 1층 전용 곡(bgm/f1_*)은 44.1 kHz 스테레오(channels 2). 위 bgmSampleRate·channels 는 기존 곡 기준값이고, 루프 초 계산 등은 항목의 sampleRate·channels 를 쓴다."
+    "perEntryNote": "61라운드 1층 전용 곡(bgm/f1_*)·61-6 수련장 곡(bgm/training)은 44.1 kHz 스테레오(channels 2). 위 bgmSampleRate·channels 는 기존 곡 기준값이고, 루프 초 계산 등은 항목의 sampleRate·channels 를 쓴다."
   },
   "mixing": {
     "masterDb": 0.0,
@@ -93,7 +93,12 @@
         "sfx/trait_mark": 2,
         "sfx/trait_burst": 2,
         "sfx/resonance_proc": 2,
-        "sfx/resonance_on": 1
+        "sfx/resonance_on": 1,
+        "sfx/transition_enter": 1,
+        "sfx/transition_exit": 1,
+        "sfx/transition_floor": 1,
+        "sfx/training_task": 2,
+        "sfx/training_stamp": 1
       },
       "layerMax": {
         "ids": [
@@ -139,7 +144,7 @@
         {
           "level": 3,
           "name": "hurt",
-          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)",
+          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·그림 속 입구 전환·수련장 도장(61-6)",
           "events": [
             "PLAYER_DAMAGED",
             "PARRY_SUCCESS",
@@ -152,15 +157,18 @@
             "BOSS_ACTION{action:cupStruck}",
             "BOSS_ACTION{action:pillarCrack}",
             "BOSS_ACTION{action:pillarCollapse}",
-            "BOSS_ACTION{action:lobThrow}"
+            "BOSS_ACTION{action:lobThrow}",
+            "TRANSITION_BEGIN",
+            "TRAINING_STAMP"
           ]
         },
         {
           "level": 2,
           "name": "hit",
-          "label": "타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)",
+          "label": "타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)·수련장 과제 완료(61-6)",
           "events": [
             "RESONANCE_ON",
+            "TRAINING_TASK",
             "(그 밖의 combat·boss 분류)"
           ]
         },
@@ -235,6 +243,33 @@
         "releaseMs": 200,
         "hold": "150 ms",
         "note": "61-5: 바닥 줍기류는 낮게 — 전투음(타격·피격·예고)이 날 때 떨어짐·줍기 소리를 잠깐 더 누른다. 처치 직후 전표가 쏟아질 때 처치음이 먼저 들리게(줍기류 priority 1 · 빼앗기 1순위)"
+      },
+      {
+        "when": "전환음 재생(transition_enter·transition_exit·transition_floor, 61-6)",
+        "target": "sfx priority ≤ 2",
+        "db": -8.0,
+        "attackMs": 40,
+        "releaseMs": 300,
+        "hold": "그 소리 길이 동안",
+        "note": "61-6: 그림 속 입구로 넘어가는 동안 남은 전투·줍기·개성 꼬리를 눌러 전환음이 앞에 서게. 줍기류(priority 1)는 위 줍기 규칙(−4 dB)과 겹치면 더 낮은 값 하나만(−8 dB)"
+      },
+      {
+        "when": "전환음 재생(transition_enter·transition_exit·transition_floor) — BGM",
+        "target": "bgm",
+        "db": -4.0,
+        "attackMs": 60,
+        "releaseMs": 500,
+        "hold": "그 소리 길이 동안",
+        "note": "61-6: 곡이 바뀌는 전환이면 시스템의 BGM 교차 페이드(bgmCrossfadeMs)를 이 덕킹 위에서 진행 — 새 곡이 들어올 때 덕킹이 풀리며(releaseMs) 방이 열리는 느낌. 같은 곡이 이어지면 덕킹만"
+      },
+      {
+        "when": "sfx/training_stamp 재생",
+        "target": "sfx priority ≤ 1",
+        "db": -4.0,
+        "attackMs": 5,
+        "releaseMs": 250,
+        "hold": "300 ms",
+        "note": "61-6: 도장 순간이 또렷하게(같은 때 울린 마지막 과제 종 training_task 는 priority 2 라 눌리지 않음)"
       }
     ],
     "variation": {
@@ -261,6 +296,10 @@
       "silentUntil": "EXIT_OPENED",
       "resume": "floorState",
       "note": "61라운드: 보스 처치(BOSS_DIED)에서 보스 곡을 900 ms 페이드아웃 → 보상 메뉴가 끝나 출구가 열릴 때(EXIT_OPENED)까지 BGM 정적(효과음 boss1_die·break_finisher 만 들림) → 그 층 곡으로 복귀(bgmByFloorState[층] 의 현재 상태 곡, 없으면 bgmByFloor[층]). 복귀는 교차가 아니라 bgmCrossfadeMs 페이드인."
+    },
+    "transition": {
+      "skipFadeMs": 150,
+      "note": "61-6 그림 속 입구 전환(TRANSITION_BEGIN): 연출을 건너뛰면(아무 키) 재생 중인 전환음을 skipFadeMs 로 페이드아웃(뚝 끊지 않음). mode floor 는 transition_floor 하나만(없으면 transition_enter) — 둘을 겹치지 않는다. 전환음은 시간 축이 UI 연출에 맞춰져 있다: enter 1.10 s · floor 1.22 s 에 어둠이 덮이고 그 뒤 붓질이 걷힘, exit 0.95 s 에 액자 닫힘 — 연출 시작과 같은 순간에 재생."
     },
     "variantGroups": {
       "sfx/hit_enemy": [
@@ -342,6 +381,11 @@
         "sfx/voucher_drop",
         "sfx/voucher_drop_v2",
         "sfx/voucher_drop_v3"
+      ],
+      "sfx/training_task": [
+        "sfx/training_task",
+        "sfx/training_task_v2",
+        "sfx/training_task_v3"
       ]
     }
   },
@@ -358,7 +402,8 @@
   "bgmByState": {
     "title": "bgm/title",
     "boss": "bgm/boss",
-    "emperor": "bgm/emperor"
+    "emperor": "bgm/emperor",
+    "training": "bgm/training"
   },
   "bgmByFloorState": {
     "1": {
@@ -7873,6 +7918,167 @@
       "note": "61-5 새 — 공명 발동(공명 효과가 터지는 순간 · TRAIT_PROC 에 resonance 가 있을 때. <공명 id> 전용 소리가 없을 때 이것). resonance_on 의 두 음(G6·D7)을 짧게: 0 · 0.04 s 두 '팅'(25·20 ms 감쇠) + 고역 반짝임 + 작은 바람. 0.35 s. 개성 발동음(trait_<act>)과 같은 특색 층 — 주 타격음을 대체하지 않음"
     },
     {
+      "id": "sfx/transition_enter",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/transition_enter.ogg",
+      "files": [
+        "assets/audio/sfx/transition_enter.ogg",
+        "assets/audio/sfx/transition_enter.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 63945,
+      "durationMs": 1450,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "TRANSITION_BEGIN",
+        "when": [
+          "mode:enterNode|training"
+        ]
+      },
+      "priority": 3,
+      "note": "61-6 새 — 그림 속 입구로 파고듦(노드·수련장 방 들어가기). 0 s 두루마리 종이 사각임(2.6~7 kHz 알갱이, 점점 성기게) → 안쪽으로 빨려드는 바람(250 Hz→1.9 kHz 로 오르며 점점 커짐) + 깊어지는 낮은 부풂(120→55 Hz) → 1.10 s 어둠이 덮이며 바람이 삼켜지고(70 ms 닫힘) 먹이 '툭' 스밈 + 젖은 먹 번짐(0.8~1.45 s) → 1.12·1.26 s 걷히는 붓질 두 획. 1.45 s(UI: 0~1.1 s 파고듦·덮임, 그 뒤 붓질 걷힘). 쇠·화약 재료 없음"
+    },
+    {
+      "id": "sfx/transition_exit",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/transition_exit.ogg",
+      "files": [
+        "assets/audio/sfx/transition_exit.ogg",
+        "assets/audio/sfx/transition_exit.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 57330,
+      "durationMs": 1300,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "TRANSITION_BEGIN",
+        "when": [
+          "mode:exitRoom"
+        ]
+      },
+      "priority": 3,
+      "note": "61-6 새 — 방 화면이 그림으로 굳어 액자에 들어감(출구로 나가기). 0 s 붓 한 획 '쓱'(털 결 떨림, 1.1→3.4 kHz 로 끌리다 2.2 kHz 로 빠짐, 0.40 s) → 0.22~0.95 s 굳어 가는 종이 결(마른 바스락, 점점 성기게) + 얇게 마르는 바람 → 0.95 s 액자 닫히는 나무 '톡' + 걸쇠 '틱'(18 ms 뒤) + 작은 방 울림. 1.30 s(그 뒤 줌 아웃해 두루마리 지도로)"
+    },
+    {
+      "id": "sfx/transition_floor",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/transition_floor.ogg",
+      "files": [
+        "assets/audio/sfx/transition_floor.ogg",
+        "assets/audio/sfx/transition_floor.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 70560,
+      "durationMs": 1600,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "TRANSITION_BEGIN",
+        "when": [
+          "mode:floor"
+        ]
+      },
+      "priority": 3,
+      "note": "61-6 새 — 큰 그림 입구(층 넘어가기, 다음 지역 키아트로 들어감). transition_enter 와 같은 틀을 더 깊고 낮게: 낮은 종이 사각임(2~5.5 kHz) → 더 낮게 빨려드는 바람(150 Hz→1.2 kHz, 1.22 s 동안) + 깊은 부풂(90→40 Hz) → 1.22 s 덮이며 멀리서 울리는 낮은 '둥'(95→38 Hz) + 더 크고 긴 먹 번짐(220~800 Hz, 0.85~1.6 s) → 1.24·1.38 s 느린 붓질 두 획. 1.60 s"
+    },
+    {
+      "id": "sfx/training_task",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/training_task.ogg",
+      "files": [
+        "assets/audio/sfx/training_task.ogg",
+        "assets/audio/sfx/training_task.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 17640,
+      "durationMs": 400,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": {
+        "event": "TRAINING_TASK",
+        "when": []
+      },
+      "priority": 2,
+      "variants": [
+        "sfx/training_task",
+        "sfx/training_task_v2",
+        "sfx/training_task_v3"
+      ],
+      "note": "61-6 새 — 수련장 과제 하나 완료(과제 목록 체크). 짧고 맑은 작은 종 A5(880 Hz, 배음 1·2·3 — 둥글게), 4 ms 부드러운 어택, 0.11 s 감쇠, 6.5 kHz 위 깎음. 0.40 s. 변주 _v2 C6 · _v3 E6(A 단조 화음 — 수련장 곡과 같은 조, 연달아 울리면 화음처럼)"
+    },
+    {
+      "id": "sfx/training_task_v2",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/training_task_v2.ogg",
+      "files": [
+        "assets/audio/sfx/training_task_v2.ogg",
+        "assets/audio/sfx/training_task_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 17640,
+      "durationMs": 400,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/training_task",
+      "note": "61-6 변주 — training_task C6(1046.5 Hz)"
+    },
+    {
+      "id": "sfx/training_task_v3",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/training_task_v3.ogg",
+      "files": [
+        "assets/audio/sfx/training_task_v3.ogg",
+        "assets/audio/sfx/training_task_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 17640,
+      "durationMs": 400,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/training_task",
+      "note": "61-6 변주 — training_task E6(1318.5 Hz)"
+    },
+    {
+      "id": "sfx/training_stamp",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/training_stamp.ogg",
+      "files": [
+        "assets/audio/sfx/training_stamp.ogg",
+        "assets/audio/sfx/training_stamp.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 26460,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "TRAINING_STAMP",
+        "when": []
+      },
+      "priority": 3,
+      "note": "61-6 새 — 수련장 방 도장(과제를 다 하면 인장을 찍음). 0 s 종이 눌림 바스락(짧게) + 인장이 꾹 찍히는 둔탁한 '쿡'(150→75 Hz, 3 ms 부드러운 어택, 900 Hz 위 깎음 — 딱 소리 없음) + 돌 인장 몸 '톡'(낮게) → 0.05 s 한 번 더 누름(더 낮게) → 0.30 s 떼어낼 때 인주 끈적 '쩍'(젖은 알갱이 14개, 1.5~3.5 kHz 밑) + 작은 흡착 '뽁'(280→520 Hz). 0.60 s"
+    },
+    {
       "id": "bgm/title",
       "kind": "bgm",
       "category": "bgm",
@@ -8126,6 +8332,26 @@
         "phase": 3
       },
       "note": "1층 보스 '만취' 3국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 3국면(왜곡·불): 2국면 전체를 0.5 Hz 로 울렁이게(±0.6 % 음높이, 좌우 엇갈림 — '세상이 돈다') + 옥타브 위 왜곡 베이스 + 삼전음 뿔나팔(D+G#) + 8마디 끝 상승 소음 + 좌우를 도는 불길·타닥"
+    },
+    {
+      "id": "bgm/training",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/training.ogg",
+      "files": [
+        "assets/audio/bgm/training.ogg",
+        "assets/audio/bgm/training.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "samples": 3175200,
+      "durationMs": 72000,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 3175200,
+      "gainDb": 1.8,
+      "floors": [],
+      "note": "수련장(61-6 P14, bgmByState.training). 72 s 루프(36마디), 44.1 kHz 스테레오, A 단조 3/4 90 BPM. 1층 잔 거리와 같은 악기 결을 고요하게: 류트 8분음 분산화음 + 콘트라베이스 1박 + 아주 작은 손북 + 손풍금 2박 한 번, 잔 거리 바이올린 주제를 느리고 맑게(미끄러짐 작게·처지는 음 없음), C 구간 손풍금 긴 화음 + 낮은 현 대선율, 끝 4마디는 류트만 남아 처음으로. 바닥에 A1 드론·좌우 바람, 마디 0·24 에 먼 종(A4) 한 번. 삼전음·몰아치기 없음(긴장 낮게). 권장 음량 +1.8 dB = RMS 약 -23 dBFS(벽 밖과 같은 조용한 층, 전투 곡보다 2 dB 작게)"
     }
   ]
 }

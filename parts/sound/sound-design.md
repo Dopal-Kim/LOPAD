@@ -63,6 +63,16 @@
 - **스테레오 44.1 kHz**: 기존 6곡(22.05 kHz 모노)은 그대로 둔다. M4A 는 채널당 같은 비트레이트(64 × 2 = 128 kbps), OGG 는 q4 그대로.
 - 루프: 음은 wrap=True, 지속 재료는 정수 주기, 필터·리버브는 루프 끝을 앞에 덧대 상태를 이어 처리(`_loopfx`, 덧댐 길이는 콤 꼬리가 -100 dB 밑으로 가는 시간). 이음매 검증은 README 61라운드 절.
 
+### 3-2. 수련장 곡 (61라운드 단계 6 P14, 44.1 kHz 스테레오)
+근거: 설계 `2026-10-06-P14-tutorial-color-transition.md` §1(수련장 = '이름이 번지기 전, 손이 기억하는 곳'), 계약 sound §12(`bgmByState.training`). 코드 `work/bgm_training.py`(1층 곡 뒤에 등록 → 기존 곡 바이트 불변).
+
+| 곡 | 길이 · 박자 | 쓰는 곳 (manifest) | 설계 | gainDb |
+|---|---|---|---|---|
+| `training` 수련장 | 72 s = 36마디, A 단조 **3/4 90 BPM** | `bgmByState.training` — 수련장 8방·두루마리 지도 | **1층 잔 거리와 같은 악기 결을 고요하게**: 류트 8분음 분산화음(왼쪽) + 콘트라베이스 1박(A·D 근음만, B·C 근음·5음) + 아주 작은 손북(B·C 1박만) + 손풍금 2박 한 번(왈츠의 흔적), 잔 거리 바이올린 주제를 느리고 맑게(미끄러짐 작게, 처지는 음 없음 — 취하지 않은 손). 구성 A 류트·바람(8: Am F Dm E) → B 주제(16) → C 손풍금 긴 화음 + 낮은 현 대선율(8: F C Dm E) → D 류트만 한 옥타브 위 + 주제 첫 조각 멀리(4) → 처음으로. 바닥 A1 드론·좌우 약한 바람, 마디 0·24 에 먼 종 A4(과제 종 `training_task` 와 같은 A). 삼전음·타악 몰아치기 없음 | +1.8 (RMS ≈ -23, 벽 밖과 같은 조용한 층) |
+
+- E7 대신 E 장3화음(7음 없음)으로 이끔음 긴장을 줄였다. 바이올린 음높이 흔들림 ±5 cent(잔 거리 ±12).
+- 수련장 8방 중 '술과 불'·'만취 그림자' 방은 전투가 세다. 지금은 한 곡으로 두고(설계 '긴장 낮게'), 데모에서 단조로우면 그 두 방만 `f1_jan` 으로 바꾸는 것을 시스템 상태 매핑으로 제안할 수 있다.
+
 ## 4. 효과음 표
 
 > **61라운드 품질 패스(4-8)로 다시 만든 18종**은 아래 표의 '질감' 설명이 옛판이다 — `swing_katana`·`swing_greatsword`·`swing_dagger`·`bow_shot`·`parry`·`dash`·`hit_enemy`·`hit_enemy_crit`·`hit_player`·`enemy_death`·`perfect_guard`·`parry_perfect`·`pickup_gold`·`pickup_potion`·`door_open`·`menu_move`·`menu_select`·`menu_cancel`. 현재 설명은 4-8 과 manifest `note`.
@@ -671,6 +681,26 @@
 - **변주 없음**: 같은 소리 동시 2 + 층 동시 3 + 시스템 '같은 개성 120 ms 안 한 번' + 재생 속도 ±3 % 로 반복 피로를 먼저 본다. 데모에서 pull·ignite(각 9장)가 거슬리면 변주를 붙인다.
 - 우선순위 1 이라 maxSfx(12)가 차면 가장 먼저 빼앗긴다 — 특색 층이 빠져도 주 타격음은 남는다.
 
+### 4-14. 61라운드 단계 6 — P14 그림 속 입구 전환 · 수련장 (계약 sound §12: 새 5 + 변주 2)
+근거: 설계 `2026-10-06-P14-tutorial-color-transition.md` §3(노드 입구로 카메라가 파고듦 → 입구 안 어둠이 덮음 → 먹 붓질이 걷히며 방 / 나갈 때 화면이 그림처럼 굳어 액자 → 줌 아웃 / 층 = 큰 그림 입구, 1.2~1.8 s, 건너뛰기 가능), 시스템 확정 트리거(`audioTraining.ts` — `TRANSITION_BEGIN{mode}`·`TRAINING_TASK`·`TRAINING_STAMP`). 코드 `work/sfx_p14.py`.
+
+**원칙**: 전환은 **종이·바람·먹·붓·나무 액자** 재료만(쇠·화약 없음) — 그림 세계로 넘어가는 소리를 전투 소리와 재료로 가른다. 시간 축은 UI 연출(enter 0~1.1 s 파고듦·덮임 → 붓질 걷힘)에 맞춰 연출 시작과 같은 순간에 재생한다.
+
+| id | 길이 | gainDb | 트리거(manifest) | 시간 축 · 재료 |
+|---|---|---|---|---|
+| `transition_enter` | 1.45 s | -2 | `TRANSITION_BEGIN{mode:enterNode\|training}` | 0 s 두루마리 종이 사각임(2.6~7 kHz 알갱이, 점점 성기게) → 안쪽으로 빨려드는 바람(250 Hz→1.9 kHz, 지수로 커짐) + 깊어지는 낮은 부풂(120→55 Hz) → **1.10 s 덮임**: 바람이 70 ms 에 삼켜지고 먹 '툭' 스밈 + 젖은 먹 번짐(0.8~1.45 s) → 1.12 · 1.26 s 걷히는 붓질 두 획 |
+| `transition_exit` | 1.30 s | -2 | `TRANSITION_BEGIN{mode:exitRoom}` | 0 s 붓 한 획 '쓱'(털 결 80~150 Hz 떨림, 1.1→3.4 kHz 끌림 → 붓 빠짐) → 0.22~0.95 s 굳어 가는 종이 결(마른 바스락) + 마르는 바람 → **0.95 s 액자 닫힘** 나무 '톡' + 18 ms 뒤 걸쇠 '틱' |
+| `transition_floor` | 1.60 s | -2 | `TRANSITION_BEGIN{mode:floor}` | enter 와 같은 틀을 더 깊고 낮게: 종이 2~5.5 kHz, 바람 150 Hz→1.2 kHz, 부풂 90→40 Hz → **1.22 s 덮임** + 멀리서 낮은 '둥'(95→38 Hz) + 더 크고 긴 먹 번짐 → 느린 붓질 두 획 |
+| `training_task` (+ `_v2`·`_v3`) | 0.40 s | -7 | `TRAINING_TASK` | 맑은 작은 종 A5 / C6 / E6(A 단조 화음 — 연달아 울리면 화음처럼): 배음 1·2·3(쇳소리 없이 둥글게), 4 ms 어택, τ 0.11 s, 6.5 kHz 위 깎음 |
+| `training_stamp` | 0.60 s | -3 | `TRAINING_STAMP` | 0 s 종이 눌림 바스락 + 인장 '쿡'(150→75 Hz, 3 ms 어택, 900 Hz 위 깎음) + 돌 인장 몸 '톡' → 0.05 s 한 번 더 누름 → 0.30 s 떼어낼 때 인주 끈적 '쩍'(젖은 알갱이 14) + 흡착 '뽁'(280→520 Hz) |
+
+판단과 이유:
+- **floor 는 floor 하나만**: 시스템 표 `floor: [transition_floor, transition_enter]` 는 후보(폴백) 순서로 읽고, 둘을 겹쳐 울리지 않는 것을 권장(`mixing.transition`).
+- **우선순위**: 전환 3(줍기류 1·타격 2 위 — 넘어가는 순간 남은 전투 꼬리를 -8 dB 로 누름), 도장 3, 과제 종 2(전투 중에도 빼앗기지 않게, 줍기류보다 위). 보스 예고(4)보다는 아래 — 전환 중에는 보스 예고가 오지 않는다.
+- **과제 종 변주 3**: 과제가 몰려 끝날 때(이동·대쉬 연달아) 같은 음 반복 대신 화음으로 들리게. 같은 소리 동시 2.
+- **건너뛰기**: 아무 키로 연출을 건너뛰면 전환음을 150 ms 페이드(`mixing.transition.skipFadeMs`) — 뚝 끊지 않는다.
+- 쇠 재료를 뺀 이유: 기존 `level_enter`(층 시작)·`door_*` 는 쇠·나무 문 재료다. 그림 입구 전환이 그와 겹쳐 울려도 서로 다른 재료라 구분된다(겹침 여부는 시스템 확인 사항).
+
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).
 - 같은 효과음이 20 ms 안에 여러 번 요청되면 1회만 재생(산탄·난무·충격파 중복 방지) — `dedupeMs: 20`, 변주는 원본 그룹으로 센다.
@@ -679,13 +709,14 @@
 | 키 | 값 | 이유 |
 |---|---|---|
 | `voices.maxSfx` | **12** (UI 는 별도 `maxUi` 2) | 1층 웨이브(노드당 12~16 처치, 2~3 웨이브)에서 타격·처치·부가음이 몰린다. 8 은 변주·겹침(피격 + `enemy_hurt` + 패시브)에서 예고음까지 빼앗길 위험 |
-| `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 · (61-2) `guard_block_heavy`·`peddler_hurt`·`porter_hurt`·`barrel_return` 2 · **(61-4) `boss1_flame_snuff` 4 · `boss1_cup_struck` 2** · **(61-5) `voucher_drop`·`voucher_pickup` 3 · `item_pickup` 2 · `boss1_pillar_collapse`·`boss1_lob_bottle` 1** · **(61-5 개성) `trait_<act>` 15종 각 2 · `resonance_proc` 2 · `resonance_on` 1, 층 전체 `layerMax` 3** | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
+| `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 · (61-2) `guard_block_heavy`·`peddler_hurt`·`porter_hurt`·`barrel_return` 2 · **(61-4) `boss1_flame_snuff` 4 · `boss1_cup_struck` 2** · **(61-5) `voucher_drop`·`voucher_pickup` 3 · `item_pickup` 2 · `boss1_pillar_collapse`·`boss1_lob_bottle` 1** · **(61-5 개성) `trait_<act>` 15종 각 2 · `resonance_proc` 2 · `resonance_on` 1, 층 전체 `layerMax` 3** · **(61-6) `transition_enter`·`_exit`·`_floor` 각 1 · `training_task` 2 · `training_stamp` 1** | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
 | `voices.steal` | `lowest-priority-oldest` (30 ms 페이드). loop 항목은 빼앗지 않음(같은 id 1개) | 새 소리보다 낮거나 같은 우선순위 중 가장 오래된 것부터 |
-| `priority` (항목별 필드) | **4 보스 예고·신호·무기 각성**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`·`WEAPON_AWAKEN`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`·(61-5) `BOSS_ACTION{action:pillarCollapse\|lobThrow}`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`·(61-5) `PICKUP_LANDED`·`PICKUP_COLLECTED`·`TRAIT_PROC`), 0 UI. (61-5) `RESONANCE_ON` 은 2. 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
-| `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) 파훼 소리(`ui:boss-break`·`BOSS_BREAK`) → SFX(≤2) -4 dB 300 ms**(61-5 기둥 무너짐도), **(61-5) 우선순위 ≥ 2 재생 → 줍기류(`voucher_drop`·`voucher_pickup`·`item_pickup`) -4 dB 150 ms** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
+| `priority` (항목별 필드) | **4 보스 예고·신호·무기 각성**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`·`WEAPON_AWAKEN`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`·(61-5) `BOSS_ACTION{action:pillarCollapse\|lobThrow}`·(61-6) `TRANSITION_BEGIN`·`TRAINING_STAMP`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`·(61-5) `PICKUP_LANDED`·`PICKUP_COLLECTED`·`TRAIT_PROC`), 0 UI. (61-5) `RESONANCE_ON` 은 2. (61-6) `TRAINING_TASK` 는 2. 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
+| `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) 파훼 소리(`ui:boss-break`·`BOSS_BREAK`) → SFX(≤2) -4 dB 300 ms**(61-5 기둥 무너짐도), **(61-5) 우선순위 ≥ 2 재생 → 줍기류(`voucher_drop`·`voucher_pickup`·`item_pickup`) -4 dB 150 ms**, **(61-6) 전환음 → SFX(≤2) -8 dB · BGM -4 dB(그 소리 길이 동안), 도장 → SFX(≤1) -4 dB 300 ms** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
 | `variation` | 변주 목록에서 직전과 다른 것 + 재생 속도 1 ± 0.03 (loop·UI·BGM 제외) | 반복 피로. 변주가 생겨 ±4 % → ±3 % |
 | `masterLimiter` | 문턱 -3 dB, knee 6, ratio 12, attack 3 ms, release 120 ms (DynamicsCompressorNode) | 새 타격음이 같은 피크에서 짧은 구간 음량이 커져 몰릴 때 찌그러짐 방지 |
 | `bgmPhaseCrossfadeMs` · `bgmPhaseSyncPosition` | 800 · true | 보스 국면 곡을 재생 위치 그대로 이어 교차(3-1) |
+| `transition` (61-6) | `skipFadeMs` 150, floor 는 `transition_floor` 하나만 | 건너뛰기에 뚝 끊기지 않게, 폴백 후보를 겹쳐 울리지 않게 |
 | `bgmBossDefeat` (61-2) | `BOSS_DIED` 에서 900 ms 페이드아웃 → `EXIT_OPENED` 까지 정적 → 층 상태 곡 복귀(`resume: floorState`) | 처치 연출(`boss1_die`·결정타)만 들리게, 보상 메뉴는 고요하게(61라운드 프로듀서 판단) |
 
 ## 6. 다음 단계 (복귀 후 인터뷰 대상)

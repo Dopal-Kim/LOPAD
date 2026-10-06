@@ -10,12 +10,14 @@ TIERS = [
     dict(level=4, name='telegraph', label='보스 예고·보스 신호·무기 각성(61-4)',
          events=['BOSS_TELEGRAPH', 'BOSS_STARTED', 'BOSS_PHASE', 'BOSS_DIED', 'boss:intro',
                  'BOSS_ACTION{action:introRoar}', 'WEAPON_AWAKEN']),
-    dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)',
+    dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·'
+                                   '그림 속 입구 전환·수련장 도장(61-6)',
          events=['PLAYER_DAMAGED', 'PARRY_SUCCESS', 'PERFECT_GUARD', 'PERFECT_SUCCESS', 'ENEMY_TELEGRAPH', 'RUN_ENDED',
                  'BOSS_BREAK', 'ui:boss-break', 'BOSS_ACTION{action:cupStruck}', 'BOSS_ACTION{action:pillarCrack}',
-                 'BOSS_ACTION{action:pillarCollapse}', 'BOSS_ACTION{action:lobThrow}']),
-    dict(level=2, name='hit', label='타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)',
-         events=['RESONANCE_ON', '(그 밖의 combat·boss 분류)']),
+                 'BOSS_ACTION{action:pillarCollapse}', 'BOSS_ACTION{action:lobThrow}',
+                 'TRANSITION_BEGIN', 'TRAINING_STAMP']),
+    dict(level=2, name='hit', label='타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)·수련장 과제 완료(61-6)',
+         events=['RESONANCE_ON', 'TRAINING_TASK', '(그 밖의 combat·boss 분류)']),
     dict(level=1, name='ambient', label='환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)',
          events=['PASSIVE_PROC', 'STATUS_CHANGED', 'BOSS_ACTION{action:flameSnuff}', 'PICKUP_LANDED', 'PICKUP_COLLECTED',
                  'TRAIT_PROC',
@@ -61,7 +63,9 @@ def settings(variant_groups):
                                'sfx/voucher_drop': 3, 'sfx/voucher_pickup': 3, 'sfx/item_pickup': 2,
                                'sfx/boss1_pillar_collapse': 1, 'sfx/boss1_lob_bottle': 1,
                                **{'sfx/trait_%s' % a: 2 for a in TRAIT_ACTS},
-                               'sfx/resonance_proc': 2, 'sfx/resonance_on': 1},
+                               'sfx/resonance_proc': 2, 'sfx/resonance_on': 1,
+                               'sfx/transition_enter': 1, 'sfx/transition_exit': 1, 'sfx/transition_floor': 1,
+                               'sfx/training_task': 2, 'sfx/training_stamp': 1},
             layerMax=dict(ids=['sfx/trait_%s' % a for a in TRAIT_ACTS], match='TRAIT_PROC 로 재생된 소리', max=3,
                           note='61-5: 개성 발동 특색 층(TRAIT_PROC 로 고른 trait_<act> 15종 + 개성별 trait_<무기>_<id> 가 생기면 그것도 — '
                                'trait_manifest(TRAIT_GAINED)는 아님) 전체를 '
@@ -89,6 +93,16 @@ def settings(variant_groups):
                  attackMs=10, releaseMs=200, hold='150 ms',
                  note='61-5: 바닥 줍기류는 낮게 — 전투음(타격·피격·예고)이 날 때 떨어짐·줍기 소리를 잠깐 더 누른다. '
                       '처치 직후 전표가 쏟아질 때 처치음이 먼저 들리게(줍기류 priority 1 · 빼앗기 1순위)'),
+            dict(when='전환음 재생(transition_enter·transition_exit·transition_floor, 61-6)', target='sfx priority ≤ 2',
+                 db=-8.0, attackMs=40, releaseMs=300, hold='그 소리 길이 동안',
+                 note='61-6: 그림 속 입구로 넘어가는 동안 남은 전투·줍기·개성 꼬리를 눌러 전환음이 앞에 서게. '
+                      '줍기류(priority 1)는 위 줍기 규칙(−4 dB)과 겹치면 더 낮은 값 하나만(−8 dB)'),
+            dict(when='전환음 재생(transition_enter·transition_exit·transition_floor) — BGM', target='bgm', db=-4.0, attackMs=60, releaseMs=500,
+                 hold='그 소리 길이 동안',
+                 note='61-6: 곡이 바뀌는 전환이면 시스템의 BGM 교차 페이드(bgmCrossfadeMs)를 이 덕킹 위에서 진행 — '
+                      '새 곡이 들어올 때 덕킹이 풀리며(releaseMs) 방이 열리는 느낌. 같은 곡이 이어지면 덕킹만'),
+            dict(when='sfx/training_stamp 재생', target='sfx priority ≤ 1', db=-4.0, attackMs=5, releaseMs=250,
+                 hold='300 ms', note='61-6: 도장 순간이 또렷하게(같은 때 울린 마지막 과제 종 training_task 는 priority 2 라 눌리지 않음)'),
         ],
         variation=dict(
             policy='random-no-repeat',
@@ -112,5 +126,11 @@ def settings(variant_groups):
             note='61라운드: 보스 처치(BOSS_DIED)에서 보스 곡을 900 ms 페이드아웃 → 보상 메뉴가 끝나 출구가 열릴 때'
                  '(EXIT_OPENED)까지 BGM 정적(효과음 boss1_die·break_finisher 만 들림) → 그 층 곡으로 복귀'
                  '(bgmByFloorState[층] 의 현재 상태 곡, 없으면 bgmByFloor[층]). 복귀는 교차가 아니라 bgmCrossfadeMs 페이드인.'),
+        transition=dict(
+            skipFadeMs=150,
+            note='61-6 그림 속 입구 전환(TRANSITION_BEGIN): 연출을 건너뛰면(아무 키) 재생 중인 전환음을 skipFadeMs 로 '
+                 '페이드아웃(뚝 끊지 않음). mode floor 는 transition_floor 하나만(없으면 transition_enter) — 둘을 겹치지 않는다. '
+                 '전환음은 시간 축이 UI 연출에 맞춰져 있다: enter 1.10 s · floor 1.22 s 에 어둠이 덮이고 그 뒤 붓질이 걷힘, '
+                 'exit 0.95 s 에 액자 닫힘 — 연출 시작과 같은 순간에 재생.'),
         variantGroups=variant_groups,
     )
