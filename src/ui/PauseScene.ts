@@ -147,11 +147,13 @@ export class PauseScene extends Phaser.Scene {
       // 48라운드: 노드 지도 층이면 시련 수 대신 지금 노드 이름 (49라운드: 지역 · 이름). 시험장이면 이 줄 없음
       this.lab
         ? ''
-        : `${s.playerName || '―'}   ${s.floorTitle || s.stageName}   ${
-            hasRoute(s.route)
-              ? [cur?.region, cur?.name].filter(Boolean).join(' · ')
-              : `시련 ${s.trialsCleared}/${s.trialsTotal}`
-          }`,
+        : this.inTraining
+          ? fill(trainingText('pauseWhere'), { name: s.playerName || '―', room: s.training?.roomName ?? '' })
+          : `${s.playerName || '―'}   ${s.floorTitle || s.stageName}   ${
+              hasRoute(s.route)
+                ? [cur?.region, cur?.name].filter(Boolean).join(' · ')
+                : `시련 ${s.trialsCleared}/${s.trialsTotal}`
+            }`,
       `공격 ${s.stats.attack}   방어 ${s.stats.defense}   치명타 ${s.stats.crit}%   감각 ${s.stats.sense}`,
       // 61 단계 4 P12: 옛 '(개성 n/max)' 대신 갈래·길과 각성 게이지
       s.growth
@@ -171,7 +173,7 @@ export class PauseScene extends Phaser.Scene {
       y += g.displayHeight + 2;
     }
     // 세이브 남음 (닫힌 일기장 아이콘) + 시드 (흐림). 시험장에서는 기록이 남지 않으므로 생략
-    if (!this.lab) {
+    if (!this.lab && !this.inTraining) {
       icon(this, pg.x + PAD, y - 1, ICON.save);
       new GlowText(this, pg.x + PAD + 20, y, `세이브 남음 ${s.savesLeft}`, 'page_body', { stageIndex });
       new GlowText(this, 0, y, `시드 ${s.seed}`, 'page_faint').placeRight(pg.x + PAGE_W - PAD, y);

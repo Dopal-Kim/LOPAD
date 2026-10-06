@@ -40,9 +40,10 @@ import type { RouteMap } from './RouteMap';
 import { RouteStrip } from './RouteStrip';
 import { hasRoute } from './routeView';
 import { ChallengePanel, InteractBubble, ResultToasts, StatusChips } from './StructureHud';
-import { fill, r49Text, r61Text, routeText, uiText, warpText } from './text';
+import { fill, r49Text, r61Text, routeText, trainingText, uiText, warpText } from './text';
 import { LAYOUT, STRUCT } from './theme';
 import { PEEK } from './themeR61';
+import { TRAINING_UI } from './themeTransition';
 import { TutorialGuide } from './TutorialHud';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 import { HudNarrative } from './HudNarrative';
@@ -191,7 +192,7 @@ export class HudScene extends Phaser.Scene {
     });
     this.growthLayer.subscribe((e, h) => this.on(e, h));
     // 61 단계 6 P14 수련장: 과제 체크 목록(오른쪽, 미니맵·지도 안내 아래) · 과제 완료 알림 · 방 도장
-    this.training = new TrainingLayer(this, { top: () => 12 + (this.minimap?.h ?? 0) + 6 + 34 });
+    this.training = new TrainingLayer(this, { top: () => TRAINING_UI.top });
     this.training.subscribe((e, h) => this.on(e, h));
     // 53라운드 계약: 튜토리얼 단계 카드 · 적 등장 예고('주의' 경고, Q49·Q60)
     this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
@@ -411,9 +412,9 @@ export class HudScene extends Phaser.Scene {
     this.time.delayedCall(1000, go);
   }
 
-  /** 61라운드: Tab 빌드 보기를 쓰는 곳 (노드 지도 층·무기 시험장). 그 밖의 층은 Tab = 워프 지도 */
+  /** 61라운드: Tab 빌드 보기를 쓰는 곳 (노드 지도 층·무기 시험장·61 단계 6 수련장). 그 밖의 층은 Tab = 워프 지도 */
   private peekMode(s: UiSnapshot): boolean {
-    return Boolean(s.lab) || hasRoute(s.route);
+    return Boolean(s.lab) || Boolean(s.training) || hasRoute(s.route);
   }
 
   /**
@@ -471,7 +472,8 @@ export class HudScene extends Phaser.Scene {
     }
     if (!this.built) return;
     const s = withDebug(uiCommands.getUiSnapshot());
-    if (s.lab) return;
+    // 시험장·수련장에는 노드·워프 지도가 없다 (수련장 지도는 시스템 메뉴)
+    if (s.lab || s.training) return;
     const otherUi =
       this.scene.isActive(UI_SCENE_KEYS.MENU) ||
       this.scene.isActive(UI_SCENE_KEYS.PAUSE) ||
@@ -683,18 +685,23 @@ export class HudScene extends Phaser.Scene {
     // 48라운드: 노드 지도 층이면 층 제목 옆에 지금 노드 이름, 우상단은 노드 띠, 'Tab 지도' 는 늘 보인다
     // 49라운드: 무기 시험장은 층 제목·노드 띠·지도 안내 대신 시험장 안내 한 줄
     const lab = Boolean(s.lab);
-    const route = !lab && hasRoute(s.route) ? s.route : null;
-    if (Boolean(route) !== this.routeMode || lab !== this.labMode) {
+    // 61 단계 6: 수련장 안에서도 런 정보(층·시련·미니맵·지도 안내)를 숨기고 수련장 방 이름 한 줄 + 아래 4동사 키캡 안내
+    const training = !lab && Boolean(s.training);
+    const quiet = lab || training;
+    const route = !quiet && hasRoute(s.route) ? s.route : null;
+    if (Boolean(route) !== this.routeMode || quiet !== this.labMode) {
       this.routeMode = Boolean(route);
-      this.labMode = lab;
-      this.minimap.setVisible(!this.routeMode && !lab);
+      this.labMode = quiet;
+      this.minimap.setVisible(!this.routeMode && !quiet);
       this.routeStrip?.setVisible(this.routeMode);
-      this.mapHint?.setVisible(!lab);
+      this.mapHint?.setVisible(!quiet);
       this.layoutTopRight();
     }
-    this.soundIcon?.setVisible(Boolean(s.muted) && !lab);
-    if (lab) {
-      this.floorText.setText(r49Text('labHud'));
+    this.soundIcon?.setVisible(Boolean(s.muted) && !quiet);
+    if (quiet) {
+      this.floorText.setText(
+        lab ? r49Text('labHud') : fill(trainingText('hudFloor'), { room: s.training?.roomName ?? '' }),
+      );
       this.warpHint?.setVisible(false);
     } else if (route) {
       this.route.prefetch(route, route.nodes.find((n) => n.id === route.currentId) ?? null);
@@ -717,7 +724,7 @@ export class HudScene extends Phaser.Scene {
     if (overlay) this.onTabUp();
     // 61라운드 P1: 무기 시험장에서는 아래 가운데에 4동사 키캡 안내 (무기를 바꾸면 따라 바뀐다)
     if (this.labGuide) {
-      const showGuide = lab && !overlay;
+      const showGuide = quiet && !overlay;
       this.labGuide.setVisible(showGuide);
       if (showGuide) {
         this.labGuide.setItems(snapshotVerbItems(s, (k) => r61Text(k)));

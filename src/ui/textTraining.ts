@@ -12,7 +12,11 @@ export const TRAINING_TEXT = {
   denyBoss: '본영 앞에서는 수련장에 갈 수 없다',
   denyBusy: '지금은 수련장에 갈 수 없다',
   // ---- 과제 목록
-  hudTitle: '수련장 · {room}',
+  /** 왼쪽 위 (층 제목 자리) */
+  hudFloor: '수련장 · {room} · Esc 일기장',
+  hudTitle: '{room}',
+  /** 일기장 첫 줄 (런 정보 대신) */
+  pauseWhere: '{name}   수련장 · {room}',
   hudCount: '{done}/{total}',
   hudStamped: '도장',
   taskDone: '과제 · {label}',

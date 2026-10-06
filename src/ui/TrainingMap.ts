@@ -111,7 +111,10 @@ function paintStampMark(g: Phaser.GameObjects.Graphics, x: number, y: number, s:
  * 고르면 그 자리를 적어 둔다(그림 속 입구 전환이 그 입구로 파고든다 — transitionState).
  */
 export function showTrainingMap(scene: Phaser.Scene, m: UiMenu, snap: UiSnapshot, ctx: CardPageCtx): CardPage | null {
-  const rooms = m.lines.filter((l) => l.key !== m.cancelKey && (l.room || l.key));
+  // 취소(나가기) 줄: cancelKey, 없으면 '0' 줄 (계약 §19 — 취소 키 '0')
+  const cancelKey = m.cancelKey ?? (m.lines.some((l) => l.key === '0') ? '0' : undefined);
+  m = { ...m, cancelKey };
+  const rooms = m.lines.filter((l) => l.key !== cancelKey);
   if (!rooms.length) return null;
   const W = UI_SCREEN.WIDTH;
   const H = UI_SCREEN.HEIGHT;
@@ -275,7 +278,8 @@ export function showTrainingChoice(scene: Phaser.Scene, m: UiMenu, ctx: CardPage
     const x = cx0 + i * (cw + gap);
     const g = scene.add.graphics();
     const art = scene.add.graphics();
-    const training = l.key === 'training';
+    // 계약 §19: '1' 수련장부터 / '2' 바로 벽 밖으로 (옛 키 'training'·'run' 도 읽는다)
+    const training = l.key === 'training' || (l.key !== 'run' && i === 0);
     // 그림 칸: 수련장 = 작은 입구, 런 = 지평선으로 열린 길
     const ax = cw / 2;
     const ay = 52;
