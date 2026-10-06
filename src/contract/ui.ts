@@ -576,7 +576,7 @@ export type UiLabMenuId = 'lab' | 'labBranch';
 export type UiBuildMenuId = 'curse' | 'event' | 'mapInfo' | 'consumableSwap';
 /**
  * 61 단계 6 (§19): training = 수련장 지도(방 고르기 — 줄 `room` = 방 id, cancelKey '0' = 수련장 나가기) ·
- * trainingChoice = 첫 생 '수련장부터 / 바로 벽 밖으로' (key 'training' · 'run')
+ * trainingChoice = 첫 생 '수련장부터 / 바로 벽 밖으로' (key '1' 수련장 · '2' 바로 런)
  */
 export type UiTrainingMenuId = 'training' | 'trainingChoice';
 export type UiMenuId =
