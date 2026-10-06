@@ -1,0 +1,55 @@
+{
+ "fx/v3 awaken": {
+  "sheets": 9,
+  "beforeMB": 18.0,
+  "afterMB": 12.37,
+  "ratio": 0.687
+ },
+ "fx/v3 base": {
+  "sheets": 33,
+  "beforeMB": 64.38,
+  "afterMB": 50.74,
+  "ratio": 0.788
+ },
+ "weapons/v3 awaken": {
+  "sheets": 20,
+  "beforeMB": 6.84,
+  "afterMB": 3.48,
+  "ratio": 0.509
+ },
+ "weapons/v3 base": {
+  "sheets": 25,
+  "beforeMB": 13.31,
+  "afterMB": 13.49,
+  "ratio": 1.013
+ },
+ "weapons/v3 ki": {
+  "sheets": 60,
+  "beforeMB": 11.4,
+  "afterMB": 5.98,
+  "ratio": 0.524
+ },
+ "weapons/v4 kabuto": {
+  "sheets": 60,
+  "beforeMB": 8.05,
+  "afterMB": 6.78,
+  "ratio": 0.843
+ },
+ "weapons/v4 mangetsu": {
+  "sheets": 60,
+  "beforeMB": 9.34,
+  "afterMB": 5.26,
+  "ratio": 0.563
+ },
+ "weapons/v4 senpu": {
+  "sheets": 60,
+  "beforeMB": 8.45,
+  "afterMB": 6.49,
+  "ratio": 0.769
+ },
+ "total": {
+  "beforeMB": 139.76,
+  "afterMB": 104.58,
+  "ratio": 0.748
+ }
+}

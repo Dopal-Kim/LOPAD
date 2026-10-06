@@ -1,7 +1,7 @@
 {
  "image": "hit_katana.png",
  "action": "hit",
- "version": "v3",
+ "version": "v3-r61s5",
  "frameWidth": 128,
  "frameHeight": 112,
  "pixelScale": 0.5,
@@ -32,7 +32,7 @@
  "variant": "normal",
  "useFor": "그 무기의 일반 적중(연격 1·2타, 활 일반 화살 등)",
  "replaces": "hit_burst (무기별로 바꿔 씀, 파일이 없으면 hit_burst)",
- "design": "가는 사선 섬광 — 적중점을 가르는 긴 바늘 선(뒤아래→앞위 62°) + 공격 방향 바늘 → 선이 가운데서 갈라져 미끄러짐 + 좁은 원뿔 불티 → 점선 토막·재 조각",
+ "design": "은선 적중 — 적중점을 앞위로 비스듬히 가르는 은빛 바늘 + 공격 방향 바늘 + 4갈래 별(판정) → 바늘이 가운데서 갈라져 양쪽으로 미끄러짐 → 마디로 끊겨 식음",
  "hitstopMs": 45,
  "hitstopNote": "55라운드 Q6 무기별 히트스톱(막타·치명타 ×1.8) 참고값. 히트스톱 동안 이 시트는 holdFrame 에 멈춰 두기를 권장(판정 순간 백열이 보이도록).",
  "holdFrame": 0,
@@ -43,12 +43,13 @@
   1
  ],
  "glowRule": "53라운드 Q65·Q66: 백열 X0/X1·A26 은 glowFrames(판정 순간)만, 나머지 프레임은 A25(#eecc78) 이하 재·호박색 (빌드 assert).",
- "palette": "parts/art/palette/lopad.json fx.v3_weapon_fx — 재 S0~S3·B0~B3 + 호박 A17~A26 + 백열 X0/X1 (주인공 재·호박 램프, 53라운드 Q61)",
+ "palette": "61 단계 5: 칼 fx 는 무채 16(G4~G14)·청강 SL·백열 X0/X1(glowFrames 만) + 호박 불티 A19~A25 — 53 Q61 '재·호박 잉크만'을 칼에 한해 은선 램프로 바꿈(대검·단검·활은 그대로). paletteSwap none",
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
  "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
- "source": "parts/art/work/fx_v3/build_feel.py",
- "colors": 12,
+ "source": "parts/art/work/katana61s5/build.py (61 단계 5 P13 §2 — 칼 재디자인 '은선', 무기+이펙트 함께)",
+ "colors": 11,
+ "r61s5": "61 단계 5 P13 §2 칼 재디자인(무기+이펙트 함께) — 틀·피벗·프레임·ms·행·판정 앵커(hitOriginInFrame·impactFrame 등)·glowFrames 그대로, 그림만 교체",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -69,11 +70,11 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":93,"y":0,"w":59,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":8,"w":59,"h":96},"sourceSize":{"w":128,"h":112}},
-  "1":{"frame":{"x":83,"y":111,"w":68,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":2,"w":68,"h":108},"sourceSize":{"w":128,"h":112}},
-  "2":{"frame":{"x":0,"y":111,"w":81,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":0,"w":81,"h":108},"sourceSize":{"w":128,"h":112}},
-  "3":{"frame":{"x":0,"y":0,"w":91,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":3,"w":91,"h":109},"sourceSize":{"w":128,"h":112}},
-  "4":{"frame":{"x":0,"y":221,"w":103,"h":56},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":33,"w":103,"h":56},"sourceSize":{"w":128,"h":112}}
+  "0":{"frame":{"x":214,"y":0,"w":90,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":11,"w":90,"h":91},"sourceSize":{"w":128,"h":112}},
+  "1":{"frame":{"x":67,"y":0,"w":73,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":10,"w":73,"h":93},"sourceSize":{"w":128,"h":112}},
+  "2":{"frame":{"x":306,"y":0,"w":64,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":12,"w":64,"h":89},"sourceSize":{"w":128,"h":112}},
+  "3":{"frame":{"x":142,"y":0,"w":70,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":10,"w":70,"h":93},"sourceSize":{"w":128,"h":112}},
+  "4":{"frame":{"x":0,"y":0,"w":65,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":8,"w":65,"h":97},"sourceSize":{"w":128,"h":112}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -81,8 +82,8 @@
   "image": "hit_katana.png",
   "format": "RGBA8888",
   "size": {
-   "w": 152,
-   "h": 277
+   "w": 370,
+   "h": 97
   },
   "scale": "1"
  }

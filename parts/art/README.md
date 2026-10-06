@@ -313,3 +313,151 @@ python3 parts/art/work/growth61/build.py       # 61라운드 단계 4(P12): 무�
 - 셋째 갈래 a1(만월·광전·백귀·유성)은 기존 `_awaken` 과 같은 그림(광전만 사슬 추가) — 옛 `_awaken` 은 지우지 않음(시스템 전환 뒤 정리 판단).
 - 판정·틀은 원 무기 시트 기준 그대로(오버레이는 그림만).
 
+
+## 61라운드 단계 5 (2026-10-06, 자율 모드) — P13 드랍 아이템 그림 · 보스방 기둥 무너짐 · 작업 폴더 `work/items61s5/`
+- 근거: 설계 `decisions/2026-10-06-P13-combat-variety.md` §3·§4, 계약 art §27(형식 §19). 인터뷰 없이 아트가 정하고 이유를 적는다. 무기·fx 파일은 건드리지 않음(같은 시간에 칼·단검 재디자인 작업 중). 아틀라스 임시 폴더는 전용 `items61s5/_atlas_tmp_<pid>`.
+- 열람(자율 모드 고지 — 읽기만): `data/economy.json`(drops·pickup.voucherSize), `data/bundle2.json`(rewards·consumables·dropLifeMs), `data/enemies.json`·`bosses.json`(gold·personalityValue), `data/structures.json`·`story.json`(물약 이름 '잔의 독주') — 바닥에 떨어지는 줍기 물건 종류를 목록화하려고. 1층 줍기 물건 = 전표(gold) · 물약(potion) · 화염 술병(consumable fireBottle). 깡술·냉수는 floor 2(1층 밖 동결) → 만들지 않음. 개성 수치(personalityValue)는 바닥 물건인지 데이터만으로 알 수 없어 만들지 않음(시스템 확인 대상).
+- 빌드(결정적, 약 5초): `python3 parts/art/work/items61s5/build.py [--dry] [--only voucher potion fire_bottle boss1_pillar]` → 격자 PNG+JSON → atlas57 트림 아틀라스 → 기둥 0~17 픽셀 불변 assert → 미리보기. 모듈: `kit5.py`(팔레트·검사·시트 쓰기·아틀라스) · `items5.py` · `pillar5.py` · `preview5.py` · `quick.py`/`quick_pillar.py`(반복 검수). 기둥 입력 사본 `before61s5/boss1_pillar_grid.png`·`_meta.json`(61 단계 2·3 상태 — 다시 돌려도 같은 결과).
+
+### 1. 드랍 아이템 — `assets/sprites/items/v3/{voucher,potion,fire_bottle}` (트림 아틀라스)
+| 시트 | 행(kinds) | 쉴 때 크기(도트) | 광원 제안 |
+|---|---|---|---|
+| `voucher` 전표 | `small`(낱장 2) · `mid`(끈 묶음 + 낱장) · `large`(묶음 3 무더기 + 낱장 2) | 26×14 · 34×20 · 48×30 | large 만 호박 36 |
+| `potion` 잔의 독주 | `potion` | 24×35 | 붉은 40 |
+| `fire_bottle` 화염 술병 | `fire_bottle` | 22×44(불 포함) | 불빛 64 · 깜빡임 |
+- 틀 **80×96 · 피벗 (40,88)** = 바닥 접점(그림자 가운데), `pixelScale 0.5`(64도트 = 1칸 → 화면에서 반 칸 안팎). 열 24 = `idle` 0~7(750ms 루프) · `spawn` 8~15(530ms 1회 → idle) · `pickup` 16~21(300ms 1회 → 제거) · `magnet` 22~23(루프). `states` 는 열 번호(`statesAre`), 프레임 번호 = row × 24 + column.
+- idle: 0~2도트 둥실(전표 0~1) + 빛 띠가 왼쪽 위 → 오른쪽 아래로 지나감(2~5) + 호박 별 반짝(3~6), 전표는 별 없는 칸에 모서리 한 점(자체 발광) — 어두운 바닥에서 자리 표시. spawn: 바닥 팝(백열, 열 8) → 늘어나며 솟음 → 꼭대기 22도트(열 11) → 떨어짐 → 착지 눌림 + 납작 먼지(열 14) → 제자리. 높이는 그림에 들어 있어 시스템은 흩뿌림 수평 이동만 tween 하면 된다. pickup: 눌림 → 위로 늘어나 빨려 듦(그림자 사라짐) → 백열 알맹이 + 8갈래 빛살(열 19) → 점선 고리·불티 → 남은 점. magnet: 그림자 없이 8도트 떠서 '위'로 늘어남 + 꼬리 속도선 — `magnet.rotateRule`(그린 축 위 → 주인공 쪽)로 돌리면 끌려가는 방향으로 늘어난다.
+- 메타: `shadow: true`(접지 그림자 포함 — 반투명 1색, 구조물과 같은 색) · `glowColumns [8,18,19]`·`glowFrames`(행별 번호) · `emissiveColors`(호박 A23~27·백열, 물약은 붉은 술 R8~R11 추가) · `light`(전표는 `lightByKind`) · `sizeDots` · `kindRule`(전표 행 고르기 — 경계는 `economy.json pickup.voucherSize` mid 6 · large 15 가 기준) · `replaces`(화염 술병: `consumable_f1` 행 fire_bottle 의 월드 드롭 용도 대체, 옛 시트는 지우지 않음).
+- 판단: **전표** = '잔(盞) 낙인 찍힌 종이 군표' — 바랜 회백 종이 + 호박 인쇄 테두리 + 그을린 잔 낙인(결사병 방패·행상 상자와 같은 모양) + 붉은 인주, 바닥에 누운 쿼터뷰(세로 0.78 눌림)와 묶음 옆면 종이 겹 줄. 금화가 아니라 종이 돈이라는 세계 설정을 따르되, 어두운 바닥에서 돈으로 읽히게 호박 테두리. **물약** = '잔의 독주'(데이터 이름)를 붉은 술로 — 화염 술병(목 긴 병·호박 술·헝겊 불)과 실루엣(둥근 몸·짧은 목)·색(붉은 속빛)이 모두 갈리게. 붉은 색은 lopad.json floors[6] '적' 램프(새 색 아님, paletteSwap 없음). **화염 술병** = consumable_f1 그림의 반 칸 판(목 긴 병 + 헝겊 심지 불).
+- see → critique → fix: 1회차 착지 먼지가 물건 아래 '다리'처럼 보임 → 납작하고 바깥으로 퍼진 덩이로. 흡수 팝의 십자 + 원이 조준점(⊕)처럼 보임 → 고리 없이 백열 알맹이 + 8갈래 빛살, 고리는 다음 칸 점선으로. 2회차 어둠 목업에서 베이지 종이가 연회장 갈색 바닥에 묻힘 → 종이를 회백(G12·G13)으로, 테두리를 호박으로, 별 없는 칸에 자체 발광 한 점. 화염 술병 헝겊이 회색이라 손가락처럼 보임 → 갈색 천 + 그을린 끝. 1회차 틀 64 폭에서 large 착지 눌림·먼지가 가장자리에 닿음 → 80 폭(트림 아틀라스라 빈 공간 부담 없음).
+
+### 2. 기둥 무너짐 — `structures/v3/boss1_pillar` 18 → 30 프레임 (0~17 픽셀 불변, 빌드 assert)
+- `collapse [18..27]`(1050ms 1회): 18 흔들림 + 금에서 먼지·부스러기 → 19 금 자리(impactPoint 높이)에서 윗동이 3도트 주저앉으며 2° 기욺, 옆으로 먼지 분출 → 20 아랫동 머리가 깨짐 → 21 윗동이 통째로 34 내려옴·6°, 먼지 기둥 → 22 윗동 아래 절반이 부서지고 주두와 머리만 먼지 기둥 속으로 → **23 땅에 부딪힘**(가장 큰 먼지, 삐죽 나온 주두 판, 옆으로 튀는 조각) → 24~27 먼지가 옆으로 퍼지며 낮아지고 얇아짐(바이어 문턱, 불투명) → 잔해가 드러남.
+- `rubble [28,29]`(28 = 남은 먼지·구르는 돌 220ms → 29 유지, `stateHold.rubble 29`, `rubble_idle [29]`): 기단 2단(모서리 깨짐·금) + 누운 기둥 드럼 2 + 주두 판 + 돌무더기 + 윗단 앞 모서리에 늘어진 찢긴 휘장(놋 잔 문양 조각) + 기단 밖 조각. 윗단 윗면 위로 약 10도트(기단 포함 약 40도트) — 낮은 잔해.
+- 메타(새 키 — 수치는 JSON 기준): `solidByState`(rubble·rubble_idle = false, 나머지 true) · `collapse {impactFrame 23, solidOffFrame 23(제안), dustFrames [23..27], ms 1050}` · `stateNext {collapse: rubble}` · `stages["4"] {enter collapse, then rubble, idle rubble_idle}` · `rubble {heightDots 40, occludeAbove 0, depthHint below_actors}` · `occludeAboveByState {rubble 0}` · `changed61s5`(바뀐 키 목록). 틀·피벗·footprint·0~17 의 states·ms 그대로.
+- 판단: 쓰러뜨리면(옆으로 눕힘) 기둥 길이(약 300도트)가 틀(160)과 발자국(2×2) 밖으로 나가 다른 칸을 덮으므로 **제자리에서 주저앉는 무너짐**으로. 잔해는 통과 가능하므로 액터 아래(바닥 소품 층) 그리기를 제안 — 어둠 목업에서 주인공이 잔해 위를 걸어도 어색하지 않음.
+- see → critique → fix: 1회차 윗동이 똑바로 서서 허공에 떠 내려옴(엘리베이터처럼) → 먼지 기둥을 솟게 해 떨어지는 머리를 받치고, 충돌 칸에 주두 판만 먼지 위로. 먼지가 밝은 흰 솜(G11·G12) → 베이지 갈색(PL1~3, 맨 위만 G9), 퍼질 때 고리(도넛) 모양 → 타원 안을 채우는 덩이. 잔해의 휘장이 갈색 상자(보물 상자로 오인)처럼 보임 → 납작한 찢긴 천 띠 + 접힌 틈의 금빛 한 줄. 드럼 세로 홈 대비가 나무 결처럼 보여 낮춤. 기울기 8°·13° 에서 주두가 틀 오른쪽 끝에 닿아 6°·9° + 왼쪽 이동.
+
+### 검증
+- 빌드 assert: 반투명 = 접지 그림자 색 하나 · 가장자리 잘림 0(불투명) · 새 색 0(팔레트 집합 검사) · glow 열 밖 백열 0 · 기둥 0~17 아틀라스 복원 = 입력 사본.
+- 색 수: voucher 21 · potion 34 · fire_bottle 30 · boss1_pillar 23.
+- `atlas57/verify.py --all`: 형식 오류는 `structures/v3/boss1_pillar` 1시트(프레임 수·`frameDurationsMs`·`states`·`stateHold` 등 의도한 변경의 기준 차이)뿐, 새 3시트(`items/v3/{voucher,potion,fire_bottle}`)는 형식 통과(원본 없음 → 형식만), 다른 시트 픽셀 불일치 0. 커밋 뒤 `python3 parts/art/work/atlas57/verify.py --rebase --only boss1_pillar voucher potion fire_bottle` 로 기준 이동.
+- 미리보기: `items61s5/preview_items.png`(3배: 행 = 전표 3 · 물약 · 화염 술병, 열 = idle | spawn | pickup | magnet, 흰 네모 = glow 열 + 아래 1배 띠) · `preview_items_dark.png`(연회장 바닥 + 주인공, 왼쪽 낮 / 오른쪽 어둠 + 주인공 광원, 아래 2배) · `preview_pillar.png`(crack3 + collapse 10 + rubble 2, 아래 핵심 칸 2배) · `preview_pillar_dark.png`(3단 기둥 | 잔해 위를 걷는 주인공, 낮 / 어둠).
+
+### 시스템 전달
+- 드랍 3시트: 생성 때 `spawn` 1회(수평 흩뿌림만 tween) → `idle` 루프 → 자석 범위에 들면 `magnet`(선택: 그린 축 위를 주인공 쪽으로 회전) → 획득 순간 `pickup` 1회 후 제거. 그림자는 그림에 있으니 따로 그리지 않음. 전표 행 = `economy.json pickup.voucherSize`. 광원은 제안(광원 상한이면 생략, emissive 만으로 보임).
+- 화염 술병 바닥 드롭은 `items/v3/fire_bottle` 로 바꾸기를 권장(옛 `consumable_f1` 은 진열대 등에서 계속 써도 됨 — 지우지 않음).
+- 기둥: 3단 다음 충돌 → `collapse`(23 에서 흔들림·소리·충돌 끄기 제안) → `rubble` → `rubble_idle` 유지. rubble 은 solid 아님, occludeAbove 0, 액터 아래 그리기 제안. 경로 찾기 장애물에서 빼기.
+
+## 61라운드 단계 5 — 단검 재디자인 '재 발톱(灰爪)' (P13 §2, 무기+이펙트 함께) · 작업 폴더 `work/dagger61s5/`
+근거: `decisions/2026-10-06-P13-combat-variety.md` §2, 계약 art §21·§25·§26·§27. 칼은 다른 아트 에이전트(파일 겹침 없음 — 이 작업은 이름에 `dagger` 가 든 시트·`hit_dagger*`·`shadowstep_ghost`·`looks/dagger*` 만 씀). Gemini 미사용(도트 직접).
+
+### 1. 고치기 전 자기 비평 (git `fb037b8` 기준, 전/후 그림 `preview_*.png` 위 칸)
+- **손에 든 무기**(`weapons/v3/dagger_*` 11): 재 껍데기 '송곳니'가 곧고 폭 9 도트의 잎/깃털 덩어리 — 날끝·날선이 없어 '칼'로 안 읽힘. 회색 몸 위 회색 날이라 대비가 낮고, 호박 균열이 점점이 흩어져 잡음처럼 보임. 손잡이는 주먹에 거의 다 가려 실루엣 표지가 없음. 역수인데 '손에 감기는' 느낌 없음.
+- **찌르기**(`fx/v3/dagger_combo1~3`, `_accel2/3`): 백열 창끝 렌즈가 굵은 원뿔 — 단검이 아니라 창. 가속 3단은 원뿔이 더 굵어져 불기둥처럼 됨. 공기 고리(납작 타원)가 훌라후프처럼 떠서 단검의 가벼움과 안 맞음. 잔상이 길고 몇 개 안 됨(짧고 많게의 반대).
+- **난타**(`dagger_flurry`·`_heat2/3`): 갈색 붓 한 획이 길게 남아 '빠른 X' 가 안 보임. 열 단계는 회색 연기 덩어리.
+- **그림자 걸음**(`shadowstep_ghost`): 갈색 재 실루엣이 점점이 흩어질 뿐 '그림자/잉크' 느낌 없음. 웅덩이는 작은 타원 하나.
+- **투척·부채 투척**(`dagger_thrown`·`dagger_fan_throw`): 투사체가 곧은 막대 + 회색 덩어리, 무기와 모양이 다름.
+- **낙인**(`dagger_brand_mark`): 셈 획(正 자 막대) — 적 몸의 '표식'이 아니라 숫자 세기 메모로 보임. **기폭**(`dagger_brand_burst`): 만화식 솜 연기·불덩이 — 단검 언어와 무관.
+- **갈래 fx**(`_twin`·`_gale`·2단): 쌍격 X 는 괜찮으나 질풍은 회오리 나선이 굵은 고리 다발. **적중**(`hit_dagger*`): 4점 별 + 긴 막대 — 무기 모양과 연결 없음.
+- **각성 외형**(`_awaken`·v4 a1/a2·looks): 모두 곧은 송곳니를 다시 칠한 것이라 '다른 무기'가 아니라 색만 다른 같은 덩어리. 질풍 잎 날은 좋았지만 기본과 언어가 다름, 쌍격은 각진 판자 두 장.
+
+### 2. 디자인 언어 '재 발톱' — 무기와 이펙트가 같은 곡선에서 나온다
+- **무기**: 손에 감기는 짧은 곡선 날(카람빗형, 역수). 볼록한 등 = 재빛 강철(외곽 G1 · 등 빛 G7~G9 · 몸 G4~G7), 오목한 안쪽 날선 = 호박 불씨 1 도트(A19→A21, 판정 칸 A23→A25·끝 A26), 날 밑동에 호박 혈관 한 줄(주인공 균열과 한 식구), 끝이 날선 쪽으로 휘는 발톱 끝, 손잡이 끝 **손가락 고리**(실루엣 표지, 무쇠 + 판정 칸 호박 한 점). 무기 색 16 이하(주인공 30색 안).
+- **이펙트**: 같은 발톱 곡선을 가늘게 늘인 **바늘 획**(백열 심은 끝에 맺힘, 끝이 휨) + 옆으로 비켜 선 **짧고 많은 잔상 획**(가속 3/6/9) + 끝의 **X 섬광**(단검 표지) → 식으며 작은 X 흉터·마디로 끊김·먹/재 부스러기. 뭉툭한 원뿔·공기 고리·솜 연기 없음.
+- **그림자 걸음** = 먹빛 실루엣이 아래부터 녹아 발밑 **먹 웅덩이로 번지고**(바닥을 타는 가닥), 위는 구멍이 나며 떠오름. **낙인** = 적 몸에 **새긴 발톱 자국**(먹 테두리 + 불씨 심): 1~3 나란한 자국 → 4 가로지르는 X → 5 감싸 닫는 발톱 고리(표식 완성). **기폭** = 자국이 부풀어 갈라짐 → 큰 X + 바깥 발톱 바늘 8 → 도는 발톱 고리 6 + 먹 튐 → 마르는 먹.
+- **갈래 외형**(같은 날 위 덧붙임 — 실루엣으로 갈래 한 줄 양상): 쌍격 = 은백 날 + 등 쪽 나란한 둘째 발톱 + 가로막이(a2: X 막이 날개 3·미늘, 빛: 날선 쪽 '분신 날' 윤곽) / 질풍 = 녹청 넓은 발톱 + 큰 바람 고리 + ±32° 작은 발톱 2(a2: ±62° 2 더·바람 끈 2, 빛: 부채 바람 줄·날선 맥동·고리 테) / 백귀 = 귀화(보라 날 + 청록 불혀 날선·청록 띠가 밑동→끝으로 오름 + 혼불 3점) = 기존 `_awaken`(a2: 뼈빛 도깨비 뿔 2, 빛: 코등이 둘레 혼불 2).
+
+### 3. 바뀐 시트 (171 아틀라스 + looks 16 PNG + `looks/dagger.json`) — 틀·프레임 수·ms·피벗·행·앵커·판정 필드 **전부 그대로**(`changed61s5` 없음)
+- `weapons/v3/dagger_{carry_idle,carry_walk,carry_run,carry_dash,combo1,combo2,combo3,flurry,special,backstab,fan_throw}` (11) + 각 `_awaken` (11)
+- `weapons/v4/dagger_{twin,gale,hyakki}_{a1,a2,a2_glow}_<동작 11>` (99)
+- `fx/v3/dagger_combo{1,2,3}` + `_accel2`·`_accel3`·`_awaken`·`_twin`·`_twin_dance`·`_twin_bleed`·`_gale`·`_gale_afterimage`·`_gale_assassin` (30), `dagger_combo3_double`(+`_awaken`), `dagger_flurry`(+`_heat2`·`_heat3`·`_awaken`), `dagger_backstab`, `hit_dagger`, `hit_dagger_heavy`
+- `fx/v3/shadowstep_ghost`, `dagger_thrown`, `dagger_fan_throw`, `dagger_brand_mark`, `dagger_brand_burst`, `dagger_brand_bleed`, `dagger_brand_hop`, `dagger_stuck_blade`, `dagger_cross_clone`, `dagger_hundred_ghosts`(0~2 칸 혼불은 옛 그림 그대로), `dagger_awaken_in`
+- `looks/dagger_*.png` 16 (같은 위치·배율 3, `angleDeg −42`)
+- **안 건드림**(이유): `fx/v3/dagger_hotwind_trail`·`dagger_hotwind_burst`·`dagger_overheat_burst`(불·열 메커니즘 그림 — 단검 날 언어와 무관), 안 쓰는 `dagger_combo*_heat1~3`·`dagger_overheat_cool`·`dagger_slash`(구), `dagger_frenzy_clone_in/out`·`dagger_gale_wind`(주인공 실루엣 잔상 — 재 실루엣 그대로 둬도 먹 그림자 걸음과 충돌 없음, 다음 묶음 후보).
+
+### 판정 기준 유지 (시스템 F 가 그림 기준으로 맞춘 값)
+- 판정 칸 발톱 끝 = **L × 가속 배율 + 10 도트**(L = fromPx + lengthPx = 160 · 184, 배율 1 / 1.1 / 1.2) — 옛 창끝(+12)과 2 도트 안. X 섬광까지 잰 그림 끝(오른쪽 행, 판정 칸): combo1 181→175 · accel2 199→191 · accel3 217→208 · combo3 205→200 · accel3 245→240 · 난타 164→163 · 쌍격 3타 169→171. `visualLengthPx`·`thrust`·`hitOriginInFrame` 값 그대로.
+- 무기: `gripAnchors`·`bladeTipAnchors`·`handAnchors`·`throwSpawnAnchors` 그대로 — 날은 쥔 곳→끝 앵커 사이에 그리고, 가림은 고치기 전 그 칸에서 날이 보이던 구간(축 방향)만 그림(몸 뒤·주먹 아래는 그대로 숨음).
+- 갈래 52라운드 틀(`_twin`·`_gale`, 판정 96/112)·`dagger_combo3_double`(57 틀): 옛 그림 끝(≈ 판정 끝)에 X 섬광 끝을 맞춤.
+
+### see → critique → fix (요지)
+1. 무기 1차: 곡선은 읽히나 폭 5 의 낫/깃털처럼 가늘고 어두움 → 폭 7~8 · 몸 G5~G7 로 밝힘 · 휨을 끝 쪽으로 몰아(발톱 끝) · 호박 혈관 추가. 손가락 고리가 주먹 가림 규칙에 걸려 안 보임 → 날 밑동이 보이면 고리도 그림.
+2. 숨은 칸(왼쪽 행 대기)에서 '녹는 먹' 처리를 잘못 켜 점박이 날이 생김 → 보이는 구간만 그리는 규칙 하나로 정리.
+3. 찌르기 1차: 획이 가늘고 X 가 작아 판정 순간 펀치 부족 → 획 폭 9/11·백열 심 층 넓힘·X 섬광 팔 11(겹 X), 잔상 획은 옆으로 더 벌려 '짧고 많게'가 각각 읽히게.
+4. 갈래·쌍격 3타·난타 틀 가장자리 넘침 → 옛 그림 끝 기준으로 길이 맞춤(위 표). 쌍격 분신의 옛 붓획 찌꺼기 → 몸 테가 아닌 호박 픽셀 제거 후 새 X.
+5. 낙인 5단 고리가 점선 → 끝이 갈고리로 말린 연속 고리로. 질풍 v4 메모리 ×1.22 → 바람 끈 짧게(×1.14).
+
+### 검증
+- `atlas57/verify.py --all`: 단검 쪽 오류 = 이번에 다시 그린 171 시트의 '메타 필드 변경(design·source·version·colors 등 설명 필드)'와 픽셀 차이뿐(틀·피벗·프레임·ms·앵커 필드 변경 0). 그 밖 오류는 같은 시각 칼 담당 작업(katana*) 것 — 단검 작업 밖 오류 0. 아틀라스 기준 578 시트 불일치 0.
+- `npx vitest run src/systems/sprites`: 9 파일 78 테스트 통과(각성 시트 1:1 규격 포함).
+- 각 시트 빌드 검사: 반투명 0 · 가장자리 0(각성 오버레이·각성 순간은 기존처럼 가장자리 허용) · fx 색 ≤14(주인공 30색 + X0/X1) · 판정 칸 밖 X0/X1/A26 0 · 무기 색 ≤16 · 각성 ≤24 · `_a2_glow` 는 X0·G11~G13 만.
+- 메모리(아틀라스 페이지 RGBA, `memory.json`): 합계 36.60 → 28.78MB(×0.79). fx 27.10→21.22 · 무기 0.62→0.66(×1.06) · 각성 1.86→0.76 · v4 쌍격 ×0.69 · 질풍 ×1.14 · 백귀 ×0.59. 모두 1.2배 이내.
+- 전/후: `preview_weapons.png`(11 시트, 쥔 곳 확대·몸 합성) · `preview_overlays.png`(각성·갈래 2차 tint 합성) · `preview_fx.png` · `preview_fx_branch.png` · `preview_misc.png` · `preview_looks.png` · `preview_fight.png`/`_2x`(몸+무기+fx 게임 합성).
+
+### 커밋 뒤 기준 이동 (rebase)
+`python3 parts/art/work/atlas57/verify.py --rebase --only dagger_ shadowstep_ghost hit_dagger`
+(패턴 `dagger_` 가 weapons/v3·v4·fx/v3 의 단검 171 시트 중 169 를, 나머지 2 = `shadowstep_ghost`·`hit_dagger`(+`_heavy`). looks 는 아틀라스 아님 — 대상 아님.)
+
+### 시스템 전달
+- **시스템 수정 없음이 목표** — 시트 이름·틀·프레임·ms·피벗·행·판정 필드·앵커 그대로. 단검 판정(찌르기 끝 160 도트, 가속 ×1.1/×1.2)은 그림 끝과 그대로 맞음.
+- `dagger_brand_mark` 행 의미 그대로(스택 1~5). 5스택 그림이 '닫힌 고리'라 5 = 기폭 가능 표시로 읽힘(UI 안내 문구와 맞추면 좋음).
+- `shadowstep_ghost` 는 출발점에 남는 먹 웅덩이가 발밑에 넓게(반경 약 28 도트) 번짐 — `depth below` 그대로 쓰면 됨.
+- 2차 휘두름 궤적은 기존처럼 기본 fx 에 a2 JSON `trailTint` 를 곱하면 됨(바늘 획이 가늘어져 tint 색이 더 또렷).
+- v4 갈래 오버레이 `version` 이 `v4-r61s5` 로 바뀜(growth61 재빌드가 이 시트를 덮지 않게 하는 표시 — growth61 은 `v4-r61-growth` 만 덮어씀).
+
+## 61라운드 단계 5 — 칼 재디자인 '은선(銀線)' (P13 §2, 무기+이펙트 함께) · 작업 폴더 `work/katana61s5/`
+- 근거: `decisions/2026-10-06-P13-combat-variety.md` §2, 계약 art §21·§25·§26·§27. 자율 모드 — 아트가 정하고 이유를 적는다. 다른 파트 파일은 읽지 않음(시스템 테스트는 실행만). Gemini 미사용(도트 직접).
+- 빌드(결정적): `python3 parts/art/work/katana61s5/build.py [weapons fx looks preview memory]`. 원본(고치기 전) = git `2aa9fe6`(`kcommon.SRC_REV`), 캐시·격자 원본·임시 폴더(`out/_atlas_tmp_k61s5_<pid>`)는 `out/`(git 제외). 단검 작업(`dagger61s5`)과 공용 스크립트·임시 폴더를 나누지 않음.
+
+### 비평(고치기 전, `preview_*.png` 의 '전' 줄)
+무기
+1. 날이 주인공 코트와 같은 재 회색(G3~G6) + 주인공 균열과 같은 호박 날선 → 어두운 바닥·몸 위에서 칼이 묻히고 '호박 막대'로 읽힘. 칼만의 색이 없음.
+2. 폭 5도트 균일, 칼끝(키사키)·하바키·요코테 없음 → 쇠자 같은 실루엣. 판정 칸에서 거의 수평이면 호박 띠가 사다리 계단.
+3. 흉갑 조각 코등이·붕대 손잡이·금 간 칼집이 1~2도트 덩어리로 뭉개짐 — 휴대 상태 칼집이 '갈색 막대 + 점'.
+4. 검기 `_ki`: 1단은 날선을 잿빛(S3)으로 오히려 탁하게, 2·3단은 호박 불꽃 혀가 날을 덮어 '불칼' — 대검 울분과 같은 말투.
+5. 각성 외형: 선풍(넓은 청록 언월+지느러미)·투구가르기(두꺼운 식칼)·만월(넓은 은 언월)이 모두 굵은 덩어리, 기본 칼과 폭·길이·실루엣이 달라 각성하면 다른 무기로 바뀜. 정지 그림(looks)도 같음.
+이펙트
+6. 칼 fx 가 대검·단검과 같은 재·호박 먹 붓획(몸통 7~9도트, 마른 붓 갈라짐) — 칼만의 차갑고 예리한 인상이 없고 '무거운 붓'.
+7. 소멸이 재 부스러기 디더 → 탁한 갈색 먼지. 8. 발도·일섬이 굵은 호박 막대 + 가시 — '한 줄 섬광'의 날카로움이 없고 늦게 터지는 베인 자국이 막대에 꽂힌 가시처럼 보임.
+9. 칼끝과 휘두름 호가 이어지지 않음. 10. 적중 섬광은 바늘 모양은 좋지만 호박 — 칼 궤적과 색이 다름.
+
+### 새 디자인 '은선' — 한 디자인 언어(차가운 연마 강철 + 가는 빛 + 호박 점)
+- **무기**(`kdesign.py`, 기존 칼 3D 경로 `hero_v3/katana3` + 55~58 자세를 그대로 부르고 칼 그리기 함수만 바꿔 끼움 — `ksrc.py`, 고치기 전 함수로 돌리면 25시트 전 프레임이 assets 와 바이트 동일함을 먼저 확인):
+  날 = 날선 1도트 백광(G13) · 청강 바탕(SL7 + 물결 하몬 G11) · 어두운 등 테(SL4), 밑동 4 → 몸 3 → 칼끝 2 → 1도트, 요코테 반짝, 휨 1.8. 하바키·카시라 = 호박 금 점, 코등이 = 둥근 검은 쇠(밝은 테 1점 + 금 1점), 손잡이 = 검은 끈 + 엇갈린 마름모 눈, 칼집 = 검은 옻칠(윤기 줄 1도트 + 반짝 점) + 금 입구테·끝 장식 + 짙은 호박 끈. 판정(glow) 칸 = 날 전체 백열(등은 SL6 로 남겨 실루엣 유지), heat1~3 = 호박으로 달아오름. 길이 37(55도트) 그대로(39 는 192 틀 가장자리에서 32칸 잘림) — 폭을 줄여 길어 보이게.
+  **칼끝 빛줄기**(`tipTrail`): 판정 칸과 다음 한 칸에 직전 칼끝 → 지금 칼끝을 어깨 중심 호로 잇는 30도트 이내 가는 선(판정 칸만 X1) — 칼끝과 fx 호를 잇는다.
+- **검기 `_ki1~3`**: 날선 바깥으로 평행한 1도트 빛줄기 1·2·3줄(3·6·8.5도트, 칼끝에서 날선으로 오므림, 위상 따라 끊김이 흐름) + 2단부터 날선 G14·칼끝 호박 불티, 3단은 날 전체 G12~G14(판정 칸만 X0/X1). 칼집 안 칸 = 칼집 윤기 줄이 밝아지고 2·3단은 입구에서 빛이 샘.
+- **각성 갈래**(기본 칼과 같은 날 폭·길이 위에 갈래 표지만): 선풍 = 청록 강철 + 칼등에서 뒤로 누운 바람 갈퀴 2(2차 셋째) + 청록 술 / 2차 날을 감는 1도트 나선 바람(빛). 투구가르기 = 끝까지 4도트 곧은 무쇠 날 + 끌 칼끝 + 황동 칼등 줄 + 네모 코등이 / 2차 황동 투구 뿔 2 + 쪼개는 점선(빛)·쇠 징. 만월 = 거울 은백 날 + 손 둘레 초승달 고리 코등이 / 2차 점선 테 + 도는 달 구슬 3(빛). `_awaken`(60 월인) = 만월 1차와 같은 그림(§26 '셋째 갈래 a1 = _awaken').
+- **fx**(`kfx.py`·`kfxsheets.py`): 고치기 전 그림에서 칸마다 경로(호 = 판정 원점 둘레 극좌표 반지름 중앙값 매끈화, 곧은 선 = 주축 1~99% 직선)와 머리·꼬리 범위를 따서(trace) 같은 자리·같은 칸 시각에 '은선 베기'로 다시 그림:
+  바깥(날선) 가장자리가 가장 밝은 1~3도트 틈, 머리(날끝)가 가장 밝고 뾰족, 꼬리 1도트 · 안쪽 1도트 잔상 실선(끊김 흐름) · 판정 머리 백열 + 접선으로 곧게 뻗는 섬광 바늘 + 첫 판정 칸 4갈래 별 · 호박 불티 몇 점 · 소멸 = 마디로 끊기며 법선으로 엇갈려 벌어지는 베인 자국 + 쇳가루 점.
+  찌르기 = 곧은 바늘 + 양옆 평행 잔상(검기 단수만큼) + 칼끝 앞 공기 고리. 발도 = 한 줄 섬광 → 잔심 동안 떨리는 가는 선 → 딸깍 칸에 늦게 터짐(두 줄 ±3 으로 갈라지며 비스듬한 베인 자국 열림, 백열 없음 Q55) → 마디 소멸. 일섬 = 같은 말투 + 분신 칸에 지나간 만큼 다시 밝아짐, `_solo` 터짐은 G13 이하. 가드 불가 내려베기 = 떨어지는 호 → 땅에 닿아 3칸 곧은 땅 틈(두 줄 + 베인 자국). 적중 = 앞위 사선 렌즈 바늘(가운데 4~5도트) + 공격 방향 바늘 + 별 → 가운데서 갈라져 양쪽으로 미끄러짐(막타 X 자). 각성 궤적 `_awaken` = 은 램프 + 획 바깥 작은 초승달 반짝.
+  보조 9장(갈래 2단 시험장 `katana_{whirl_loop,whirl_reflect,moon_trail,cleave_crack,execute,mirror_ki,mirror_parry}`, `katana_iai_ready`·`katana_spin_ready`)은 모양·타이밍 그대로 호박 잉크 → 은선 램프로 색만.
+- 색 판단: 칼만 무채 16 의 밝은 칸(G11~G14)·청강 SL7 을 씀 — 53 Q32 '주인공 30색'·53 Q61 '재·호박 잉크' 제한을 칼에 한해 풂(무채는 층 램프 교체 대상이 아니라 지역마다 같음). 호박(하바키·끈·불티)은 층 램프 교체 대상 그대로. 백열 X0/X1 은 glowFrames 만(빌드 검사), 각성 층은 60 Q19 예외 그대로.
+
+### see → critique → fix
+1. 무기 1차: 길이 39 → 틀 가장자리 32칸 잘림 → 37 유지·폭 축소. 끈 호박 점이 시끄러움 → 짙은 A18. 판정 백열 3줄이 흰 막대 → 등 SL6 유지. 바탕 무채만이라 몸 회색과 붙음 → 청강 SL7.
+2. 오버레이: 검기 빛줄기를 날 차선으로 그리니 대각에서 바코드 줄무늬 → L 자 모서리를 지운 1도트 선으로. 선풍 갈퀴·나선이 흩어진 점·번개처럼 → 선으로, 나선 진폭 3.4 → 3.0·주기 느리게, 갈퀴가 고드름처럼 늘어짐 → 짧고 뒤로 눕게.
+3. fx: 일섬·발도 경로를 붓 무게중심으로 따니 물결·끝 갈고리 → 직선 맞춤. 회전 베기 호가 붓 머리 덩이를 따라 꺾임 → 극좌표 반지름 매끈화. 내려베기 호가 옛 렌즈 곡선을 따라감 → 땅 닿기 전 칸에서만 호를 따고 땅 틈 시작점까지 이음. 적중 섬광이 1도트 회색으로 약함 → 렌즈 바늘·백열 코어·불티 늘림. 발도 터짐 베인 자국이 작은 틱 → 길이 26+·가운데 2도트·두 줄 ±3. 칼끝 빛줄기를 직전 2칸 칼끝 현으로 그리니 빈 공간을 가로지르는 철사 → 어깨 중심 짧은 호(30도트).
+4. 메모리: 검기·각성 층이 칼을 뽑은 칸에도 빈 칼집을 칠해 트림 상자가 칼집+칼날로 커짐(검기 ×2.39) → 칼집 층은 칼집에 든 칸만 → ×0.52.
+
+### 바뀐 시트(같은 이름·틀·피벗·프레임·ms·행·앵커, 그림만)
+- `weapons/v3/katana_{carry_idle,carry_walk,carry_run,carry_dash,carry_drawn_idle,carry_drawn_walk,carry_drawn_run,carry_drawn_dash,carry_groggy,combo1,combo2,combo3,draw,sheathe,special,rise,fall,issen,issen_dash,thrust,crescent,counter,iai,spin,guardbreak}` 25
+- `weapons/v3/katana_*_ki1~3` 60 · `weapons/v3/katana_*_awaken` 20 · `weapons/v4/katana_{senpu,kabuto,mangetsu}_{a1,a2,a2_glow}_*` 180(`version v4-r61s5-katana` — growth61 재빌드는 `v4-r61-growth` 만 덮으므로 이 시트에서 멈춤)
+- `fx/v3/katana_{rise,fall,counter,fall_wide,spin,thrust,thrust_ki1~3,iai,iai_ki1~3,guardbreak}` · `katana_issen_line_t1~t4`(+`_solo`) · `hit_katana`·`hit_katana_heavy` · `katana_{rise,fall,fall_wide,spin,thrust,issen_line_t1~t4}_awaken` 33 + 색만 9(위)
+- `looks/katana_*.png` 16 + `looks/katana.json`(구조 그대로, `baseDesign`·갈래 `design` 추가)
+- 그대로 둔 것: `fx/v3/katana_combo1~3*`·`katana_slash`(55 이전, 안 씀), `katana_crescent`·`_echo`(보관 Q35), `katana_issen_shadow`(폐기 §25), `katana_fullmoon`·`katana_awaken_in`(60 각성 — 이미 은 램프), `weapons/katana_icon`.
+
+### 메모리(아틀라스 페이지 RGBA, `katana61s5/memory.json`)
+무기 기본 13.31 → 13.49MB(×1.01) · 검기 11.40 → 5.98(×0.52) · `_awaken` 6.84 → 3.48 · v4 선풍 8.45 → 6.49 · 투구 8.05 → 6.78 · 만월 9.34 → 5.26 · fx 기본 64.38 → 50.74(×0.79) · fx 각성 18.00 → 12.37 · 합 139.8 → 104.6MB(×0.75). 모두 1.2배 이내.
+
+### 검증
+- `npx vitest run src/systems/sprites` 9파일 78건 통과(읽기만).
+- `atlas57/verify.py --all`: 형식 차이는 이번에 바꾼 칼 324시트의 메타 필드(version·source·design·colors·palette 등) 기준 차이뿐, 그 밖 시트 0. 픽셀 불일치도 바꾼 칼 시트뿐(기준 아틀라스 734시트 불일치 0). 빌드가 칸별 반투명 0·glowFrames 밖 백열 0·무기 틀 가장자리 0·칼끝 앵커(`bladeTipAnchors`) 일치를 검사.
+- 커밋 뒤 기준 이동: `python3 parts/art/work/atlas57/verify.py --rebase --only katana_ hit_katana`
+- 미리보기(전/후): `katana61s5/preview_weapons.png`(몸+무기 12동작 2방향) · `preview_overlays.png`(검기 1~3·각성·갈래 1차/2차) · `preview_fx.png`(fx 13장 오른쪽·아래) · `preview_hit.png` · `preview_fight.png`(몸+무기+fx 같은 시각 목업) · `preview_looks.png`.
+
+### 시스템 전달
+- **시스템 수정 불필요**: 시트 이름·틀·피벗·프레임 수·ms·행·판정 필드(`hitOriginInFrame`·`impactFrame`·`hitShape`·`drawnArc`·`drawnThrust`·`frameRoles`·`glowFrames`·`burstFrame` 등)·`bladeTipAnchors`·`koiguchiAnchors` 그대로 → `changed61s5` 없음.
+- 새 설명 키(읽지 않아도 됨): 무기 `tipTrail`·`previousDesign`·`colorNote`, fx `strokeStyle: "silver_slit"`(`brushStroke` 값은 그대로), `_awaken` `sameAs`.
+- 칼 무기 시트는 `frameStates` 가 glow 인 칸 모두 날 전체 백열(판정 칸이 둘인 `katana_combo2`·`katana_special` 등은 두 칸 다 흼 — 56 Q50 '첫 칸만 백열'과 어긋나 보이면 알려 주면 둘째 칸을 은빛으로 낮춤).
+- 2차 휘두름 `trailTint` 는 그대로 — 은선 fx 가 회백이라 길 색이 더 또렷하게 먹음.

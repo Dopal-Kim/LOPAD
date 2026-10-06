@@ -1,7 +1,7 @@
 {
  "image": "katana_iai_ready.png",
  "action": "katana_iai_ready",
- "version": "v3-r56-e1",
+ "version": "v3-r61s5",
  "frameWidth": 48,
  "frameHeight": 56,
  "framesPerDirection": 5,
@@ -22,10 +22,10 @@
  "pixelScale": 0.5,
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
- "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "palette": "61 단계 5: 칼 fx 는 무채 16(G4~G14)·청강 SL·백열 X0/X1(glowFrames 만) + 호박 불티 A19~A25 — 53 Q61 '재·호박 잉크만'을 칼에 한해 은선 램프로 바꿈(대검·단검·활은 그대로). paletteSwap none",
  "colors": 4,
  "semiTransparent": false,
- "source": "parts/art/work/combo56_moves_kg/build.py fx (56라운드 Q21·Q22·Q40 새 기본기 fx — 작업 E1)",
+ "source": "parts/art/work/katana61s5/build.py (61 단계 5 P13 §2 — 칼 재디자인 '은선', 무기+이펙트 함께)",
  "anchor": "koiguchi",
  "pivot": {
   "x": 21,
@@ -48,10 +48,13 @@
   "식음",
   "사라짐"
  ],
- "design": "칼집 입구에서 가는 가로 빛 한 줄 + 작은 네 갈래 반짝임 — '준비됨'(백열 없음, A25 이하)",
+ "design": "칼집 입구에서 가는 가로 빛 한 줄 + 작은 네 갈래 반짝임 — '준비됨'(백열 없음, A25 이하) · 61 단계 5: 호박 잉크 → 은선 램프로 색만 바꿈(모양·타이밍 그대로)",
  "directionNote": "1행 any — 방향 무관",
  "glowFrames": [],
  "glowRule": "53라운드 Q65 · 56라운드 Q11: 백열 X0/X1·A26 은 glowFrames(판정 순간)의 획 머리 몇 도트만. 획 몸은 A25 이하, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "r61s5": "61 단계 5 P13 §2 칼 재디자인(무기+이펙트 함께) — 틀·피벗·프레임·ms·행·판정 앵커(hitOriginInFrame·impactFrame 등)·glowFrames 그대로, 그림만 교체",
+ "strokeStyle": "silver_slit",
+ "strokeNote": "56 Q11 붓획 → 61 단계 5 은선 베기(가는 빛 틈 + 잔상 실선 + 베인 자국 소멸). drawnArc·frameRoles 의 기하·역할은 그대로",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",

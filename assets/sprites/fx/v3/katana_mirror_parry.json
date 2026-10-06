@@ -1,7 +1,7 @@
 {
  "image": "katana_mirror_parry.png",
  "action": "katana_mirror_parry",
- "version": "v3-r57-build",
+ "version": "v3-r61s5",
  "frameWidth": 136,
  "frameHeight": 80,
  "framesPerDirection": 6,
@@ -23,10 +23,10 @@
  "pixelScale": 0.5,
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
- "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
+ "palette": "61 단계 5: 칼 fx 는 무채 16(G4~G14)·청강 SL·백열 X0/X1(glowFrames 만) + 호박 불티 A19~A25 — 53 Q61 '재·호박 잉크만'을 칼에 한해 은선 램프로 바꿈(대검·단검·활은 그대로). paletteSwap none",
  "colors": 8,
  "semiTransparent": false,
- "source": "parts/art/work/build57/build.py branch (57라운드 2단 갈래 fx)",
+ "source": "parts/art/work/katana61s5/build.py (61 단계 5 P13 §2 — 칼 재디자인 '은선', 무기+이펙트 함께)",
  "pivot": {
   "x": 68,
   "y": 40
@@ -49,7 +49,7 @@
   "닿음",
   "재"
  ],
- "design": "맞닿은 자리에 선 세로 거울 면(가는 재 테 + 호박 + 몇 도트 백열)이 두 초승달 조각으로 갈라져 주인공 쪽으로 날아듦 = 검기 2단",
+ "design": "맞닿은 자리에 선 세로 거울 면(가는 재 테 + 호박 + 몇 도트 백열)이 두 초승달 조각으로 갈라져 주인공 쪽으로 날아듦 = 검기 2단 · 61 단계 5: 호박 잉크 → 은선 램프로 색만 바꿈(모양·타이밍 그대로)",
  "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
  "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
  "glowFrames": [
@@ -57,6 +57,7 @@
   1
  ],
  "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "r61s5": "61 단계 5 P13 §2 칼 재디자인(무기+이펙트 함께) — 틀·피벗·프레임·ms·행·판정 앵커(hitOriginInFrame·impactFrame 등)·glowFrames 그대로, 그림만 교체",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
