@@ -10,13 +10,15 @@ TIERS = [
     dict(level=4, name='telegraph', label='보스 예고·보스 신호·무기 각성(61-4)',
          events=['BOSS_TELEGRAPH', 'BOSS_STARTED', 'BOSS_PHASE', 'BOSS_DIED', 'boss:intro',
                  'BOSS_ACTION{action:introRoar}', 'WEAPON_AWAKEN']),
-    dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)',
+    dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)',
          events=['PLAYER_DAMAGED', 'PARRY_SUCCESS', 'PERFECT_GUARD', 'PERFECT_SUCCESS', 'ENEMY_TELEGRAPH', 'RUN_ENDED',
-                 'BOSS_BREAK', 'ui:boss-break', 'BOSS_ACTION{action:cupStruck}', 'BOSS_ACTION{action:pillarCrack}']),
+                 'BOSS_BREAK', 'ui:boss-break', 'BOSS_ACTION{action:cupStruck}', 'BOSS_ACTION{action:pillarCrack}',
+                 'BOSS_ACTION{action:pillarCollapse}', 'BOSS_ACTION{action:lobThrow}']),
     dict(level=2, name='hit', label='타격·처치·공격 동작(주인공·적·보스)',
          events=['(그 밖의 combat·boss 분류)']),
-    dict(level=1, name='ambient', label='환경·획득·이벤트·패시브·상태 부가음',
-         events=['PASSIVE_PROC', 'STATUS_CHANGED', 'BOSS_ACTION{action:flameSnuff}', '(world·pickup·event 분류)']),
+    dict(level=1, name='ambient', label='환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음',
+         events=['PASSIVE_PROC', 'STATUS_CHANGED', 'BOSS_ACTION{action:flameSnuff}', 'PICKUP_LANDED', 'PICKUP_COLLECTED',
+                 '(world·pickup·event 분류)']),
     dict(level=0, name='ui', label='UI — 별도 버스, 상한·빼앗기 대상 아님', events=['UI_MENU_*', '(ui 분류)']),
 ]
 _EV = {ev: t['level'] for t in TIERS for ev in t['events'] if not ev.startswith('(')}
@@ -51,7 +53,9 @@ def settings(variant_groups):
                                'sfx/pickup_gold': 3, 'sfx/guard_block': 2, 'sfx/parry': 1,
                                'sfx/combo_finish': 1, 'sfx/guard_block_heavy': 2, 'sfx/peddler_hurt': 2,
                                'sfx/porter_hurt': 2, 'sfx/barrel_return': 2,
-                               'sfx/boss1_flame_snuff': 4, 'sfx/boss1_cup_struck': 2},
+                               'sfx/boss1_flame_snuff': 4, 'sfx/boss1_cup_struck': 2,
+                               'sfx/voucher_drop': 3, 'sfx/voucher_pickup': 3, 'sfx/item_pickup': 2,
+                               'sfx/boss1_pillar_collapse': 1, 'sfx/boss1_lob_bottle': 1},
             steal='lowest-priority-oldest',
             note='동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 '
                  '30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). '
@@ -66,9 +70,14 @@ def settings(variant_groups):
                  hold='그 소리 길이 동안', note='bgmBossDuckDb 위에 더해짐'),
             dict(when='sfx/hit_player 그룹 재생', target='sfx priority ≤ 2', db=-3.0, attackMs=5, releaseMs=180,
                  hold='150 ms', note='맞은 순간이 또렷하게'),
-            dict(when='파훼 소리 재생(boss1_break_*·break_finisher)', target='sfx priority ≤ 2', db=-4.0,
-                 attackMs=5, releaseMs=300, hold='300 ms',
-                 note='61-2: 트리거 ui:boss-break(break_count 는 제외) · 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게'),
+            dict(when='파훼 소리 재생(boss1_break_*·break_finisher) · 기둥 무너짐(boss1_pillar_collapse, 61-5)',
+                 target='sfx priority ≤ 2', db=-4.0, attackMs=5, releaseMs=300, hold='300 ms',
+                 note='61-2: 트리거 ui:boss-break(break_count 는 제외) · 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게. '
+                      '61-5: 기둥 무너짐(BOSS_ACTION pillarCollapse)도 같은 규칙'),
+            dict(when='sfx priority ≥ 2 재생 시작', target='sfx/voucher_drop·voucher_pickup·item_pickup', db=-4.0,
+                 attackMs=10, releaseMs=200, hold='150 ms',
+                 note='61-5: 바닥 줍기류는 낮게 — 전투음(타격·피격·예고)이 날 때 떨어짐·줍기 소리를 잠깐 더 누른다. '
+                      '처치 직후 전표가 쏟아질 때 처치음이 먼저 들리게(줍기류 priority 1 · 빼앗기 1순위)'),
         ],
         variation=dict(
             policy='random-no-repeat',

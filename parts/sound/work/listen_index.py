@@ -62,7 +62,7 @@ EXPLICIT = {
               'porter_liquor_spill', 'porter_hurt', 'porter_death'],
     'boss': ['boss_start', 'boss_phase', 'boss_telegraph', 'boss_fan', 'boss_die'],
     'world': ['level_enter', 'door_close', 'door_open', 'boss_unlock', 'exit_open', 'trial_clear', 'save'],
-    'pickup': ['pickup_gold', 'pickup_potion', 'potion_use', 'shop_buy'],
+    'pickup': ['pickup_gold', 'pickup_potion', 'potion_use', 'shop_buy', 'voucher_drop', 'voucher_pickup', 'item_pickup'],
     'ui': ['menu_move', 'menu_select', 'menu_cancel', 'fate_decided', 'evolve', 'reinforce', 'player_death'],
 }
 
@@ -125,6 +125,10 @@ SUBGROUP = {
     'awaken_tail_katana': '무기 성장 · 각성 꼬리', 'awaken_tail_greatsword': '무기 성장 · 각성 꼬리',
     'awaken_tail_dagger': '무기 성장 · 각성 꼬리', 'awaken_tail_bow': '무기 성장 · 각성 꼬리',
     'trait_manifest': '무기 성장 · 개성 발현', 'growth_tick': '무기 성장 · 게이지',
+    # 61라운드 단계 5 — P13
+    'boss1_pillar_collapse': '기둥 무너짐 (61-5)', 'boss1_lob_bottle': '기둥 숨기 방지 (61-5)',
+    'voucher_drop': '바닥 줍기 · 전표 (61-5)', 'voucher_pickup': '바닥 줍기 · 전표 (61-5)',
+    'item_pickup': '바닥 줍기 · 소모품 (61-5)',
     'evolve': '폴백 (61-4 대체)', 'dual_trait': '폴백 (61-4 대체)', 'awaken_katana': '폴백 (61-4 대체)',
     'awaken_greatsword': '폴백 (61-4 대체)', 'awaken_dagger': '폴백 (61-4 대체)', 'awaken_bow': '폴백 (61-4 대체)',
 }
@@ -183,8 +187,9 @@ def _round(name, kind, sfx_specs):
     if kind == 'bgm':
         return '61' if name.startswith('f1_') else ''
     spec = sfx_specs[name]
-    if spec.get('redone') == '61-4' or spec.get('round') == '61-4':
-        return '61-4'
+    for r in ('61-5', '61-4'):
+        if spec.get('redone') == r or spec.get('round') == r:
+            return r
     if spec.get('redone') == '61-2' or spec.get('archived') == '61-2' or spec['fn'].__module__ == 'sfx_stage61':
         return '61-2'
     if spec.get('redone') == '61' or spec['fn'].__module__ == 'sfx_core61':
@@ -236,6 +241,7 @@ def write(root, manifest_path, sfx_specs, out_path=None):
              'round "60" = 60라운드 새 소리, "61" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, '
              '"61-2" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), '
              '"61-4" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍, P12 무기 성장 — 각성·개성 발현·게이지), '
+             '"61-5" = 61라운드 단계 5(P13 — 기둥 무너짐·기둥 부딪힘 다시·보스 포물선 술병·바닥 전표 떨어짐/줍기·소모품 줍기), '
              '설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],

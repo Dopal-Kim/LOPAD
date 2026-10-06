@@ -71,7 +71,12 @@
         "sfx/porter_hurt": 2,
         "sfx/barrel_return": 2,
         "sfx/boss1_flame_snuff": 4,
-        "sfx/boss1_cup_struck": 2
+        "sfx/boss1_cup_struck": 2,
+        "sfx/voucher_drop": 3,
+        "sfx/voucher_pickup": 3,
+        "sfx/item_pickup": 2,
+        "sfx/boss1_pillar_collapse": 1,
+        "sfx/boss1_lob_bottle": 1
       },
       "steal": "lowest-priority-oldest",
       "note": "동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). loop 항목은 빼앗지 않는다(상태가 끝날 때 시스템이 멈춤) — 대신 같은 id 는 1개만. UI 는 별도 상한 maxUi."
@@ -95,7 +100,7 @@
         {
           "level": 3,
           "name": "hurt",
-          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)",
+          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)",
           "events": [
             "PLAYER_DAMAGED",
             "PARRY_SUCCESS",
@@ -106,7 +111,9 @@
             "BOSS_BREAK",
             "ui:boss-break",
             "BOSS_ACTION{action:cupStruck}",
-            "BOSS_ACTION{action:pillarCrack}"
+            "BOSS_ACTION{action:pillarCrack}",
+            "BOSS_ACTION{action:pillarCollapse}",
+            "BOSS_ACTION{action:lobThrow}"
           ]
         },
         {
@@ -120,11 +127,13 @@
         {
           "level": 1,
           "name": "ambient",
-          "label": "환경·획득·이벤트·패시브·상태 부가음",
+          "label": "환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음",
           "events": [
             "PASSIVE_PROC",
             "STATUS_CHANGED",
             "BOSS_ACTION{action:flameSnuff}",
+            "PICKUP_LANDED",
+            "PICKUP_COLLECTED",
             "(world·pickup·event 분류)"
           ]
         },
@@ -169,13 +178,22 @@
         "note": "맞은 순간이 또렷하게"
       },
       {
-        "when": "파훼 소리 재생(boss1_break_*·break_finisher)",
+        "when": "파훼 소리 재생(boss1_break_*·break_finisher) · 기둥 무너짐(boss1_pillar_collapse, 61-5)",
         "target": "sfx priority ≤ 2",
         "db": -4.0,
         "attackMs": 5,
         "releaseMs": 300,
         "hold": "300 ms",
-        "note": "61-2: 트리거 ui:boss-break(break_count 는 제외) · 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게"
+        "note": "61-2: 트리거 ui:boss-break(break_count 는 제외) · 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게. 61-5: 기둥 무너짐(BOSS_ACTION pillarCollapse)도 같은 규칙"
+      },
+      {
+        "when": "sfx priority ≥ 2 재생 시작",
+        "target": "sfx/voucher_drop·voucher_pickup·item_pickup",
+        "db": -4.0,
+        "attackMs": 10,
+        "releaseMs": 200,
+        "hold": "150 ms",
+        "note": "61-5: 바닥 줍기류는 낮게 — 전투음(타격·피격·예고)이 날 때 떨어짐·줍기 소리를 잠깐 더 누른다. 처치 직후 전표가 쏟아질 때 처치음이 먼저 들리게(줍기류 priority 1 · 빼앗기 1순위)"
       }
     ],
     "variation": {
@@ -278,6 +296,11 @@
         "sfx/growth_tick",
         "sfx/growth_tick_v2",
         "sfx/growth_tick_v3"
+      ],
+      "sfx/voucher_drop": [
+        "sfx/voucher_drop",
+        "sfx/voucher_drop_v2",
+        "sfx/voucher_drop_v3"
       ]
     }
   },
@@ -715,7 +738,7 @@
         "sfx/pickup_gold_v2",
         "sfx/pickup_gold_v3"
       ],
-      "note": "동전 획득(61라운드 품질 패스). 높고 짧은 동전 두 번(3.8k·4.75k, 0.035 s 감쇠) + 주머니에 들어가는 '툭'·가죽 스침. 변주 v2·v3(동전 수·음높이 다름)"
+      "note": "동전 획득(61라운드 품질 패스). 높고 짧은 동전 두 번(3.8k·4.75k, 0.035 s 감쇠) + 주머니에 들어가는 '툭'·가죽 스침. 변주 v2·v3(동전 수·음높이 다름) — 61-5: 바닥 전표 줍기는 voucher_pickup(이 소리는 시련·보스 보너스 골드와 voucher_pickup 폴백)"
     },
     {
       "id": "sfx/pickup_potion",
@@ -739,7 +762,7 @@
         ]
       },
       "priority": 1,
-      "note": "물약 획득(61라운드 품질 패스). 유리병 짧은 '틱'(2.6 kHz, 울림 짧게) + 병 속 출렁 + 마개 '톡' + 허리춤에 거는 가죽 스침. 권장 음량 -4 → -2 dB(울림을 줄여 짧은 구간 음량이 약 5 dB 작아진 만큼 일부 보정)"
+      "note": "물약 획득(61라운드 품질 패스). 유리병 짧은 '틱'(2.6 kHz, 울림 짧게) + 병 속 출렁 + 마개 '톡' + 허리춤에 거는 가죽 스침. 권장 음량 -4 → -2 dB(울림을 줄여 짧은 구간 음량이 약 5 dB 작아진 만큼 일부 보정) — 61-5: 바닥 소모품 줍기는 item_pickup(이 소리는 물약 ITEM_PICKED·숙성 술통과 item_pickup 폴백)"
     },
     {
       "id": "sfx/potion_use",
@@ -1690,7 +1713,7 @@
         ]
       },
       "priority": 2,
-      "note": "횃불 던지기. 빙글 도는 불 바람(9Hz 맥동) + 타닥"
+      "note": "횃불 던지기. 빙글 도는 불 바람(9Hz 맥동) + 타닥 — 61-5: 보스 포물선 술병 던짐(BOSS_ACTION lobThrow)의 시스템 폴백(boss1_lob_bottle 이 없을 때)"
     },
     {
       "id": "sfx/boss1_ignite",
@@ -6411,8 +6434,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 83790,
-      "durationMs": 1900,
+      "samples": 48510,
+      "durationMs": 1100,
       "loop": false,
       "gainDb": 0,
       "trigger": {
@@ -6422,7 +6445,7 @@
         ]
       },
       "priority": 3,
-      "note": "61-2 새 — 파훼 · 기둥 무너짐(돌진하다 기둥에 정면 충돌 → 경직). 머리로 들이받는 큰 '쿵'(120→38 Hz) + 기둥 나무가 쪼개짐 + 파훼 공통 신호 → 0.15~0.6 s 기둥이 기우는 낮은 삐걱 신음 → 0.62 s 무너지는 '와르르'(큰 몸통 + 판자 + 돌 부스러기 18) + 먼지. 돌방 울림"
+      "note": "파훼 · 기둥 들이받음(61-5 다시 만듦 — 무너지는 '와르르'를 빼서 boss1_pillar_collapse 로 옮김. 기둥은 금 3단 다음 4번째 충돌에 무너진다). 돌진하다 돌기둥에 정면으로 박는 큰 '쿵'(120→38 Hz) + 돌 표면이 깨지는 거친 '빠직' + 파훼 공통 신호(쾅 → 꺼지는 '부웅' → 주저앉는 '쿵') + 0.06 s 기둥 속을 타고 오르는 짧은 '쩌억'(돌 결이 갈라짐) + 0.12~0.4 s 버티는 돌의 낮은 '그극' + 떨어지는 돌가루 몇. 1.1 s, 돌방 울림. 같은 프레임의 boss1_pillar_crack1~3(BOSS_ACTION pillarCrack) 이 위에 겹친다"
     },
     {
       "id": "sfx/boss1_break_barrel",
@@ -6929,7 +6952,7 @@
         ]
       },
       "priority": 3,
-      "note": "61-4 새 — 기둥 균열 3단(깊은 금 — 여기서 멈춤, 무너지지 않음). 2단 위에 기둥 속에서 울리는 깊은 돌 신음(70→48 Hz 톱니, 260→160 Hz 대역) + 아래 무게(64→34 Hz) + 더 많은 부스러기·먼지, '쩌억' 더 길게. 1.05 s"
+      "note": "61-4 새 — 기둥 균열 3단(깊은 금 — 61-5: 다음 4번째 충돌에 무너짐 → boss1_pillar_collapse. 시스템 폴백으로도 쓰임). 2단 위에 기둥 속에서 울리는 깊은 돌 신음(70→48 Hz 톱니, 260→160 Hz 대역) + 아래 무게(64→34 Hz) + 더 많은 부스러기·먼지, '쩌억' 더 길게. 1.05 s"
     },
     {
       "id": "sfx/boss1_flame_snuff",
@@ -7233,6 +7256,174 @@
       "priority": 1,
       "variantOf": "sfx/growth_tick",
       "note": "게이지 반짝 변주 3 — 2.45→2.9 kHz"
+    },
+    {
+      "id": "sfx/boss1_pillar_collapse",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_pillar_collapse.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_pillar_collapse.ogg",
+        "assets/audio/sfx/boss1_pillar_collapse.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 57330,
+      "durationMs": 1300,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "BOSS_ACTION",
+        "when": [
+          "boss:1",
+          "action:pillarCollapse"
+        ]
+      },
+      "priority": 3,
+      "note": "61-5 새 — 기둥 무너짐(금 3단 뒤 4번째 충돌 → 무너진 돌기둥이 땅에 닿는 순간, 그림 프레임 23). 파일 0 = 땅에 닿음: 무거운 '쿵'(85→28 Hz) + 아래 무게(55→26 Hz) + 저역 폭발 + 돌이 갈리는 '쩌억' → 0~0.75 s 쏟아지는 '와르르'(돌덩이 30, 처음은 크고 촘촘 → 점점 작고 드물게) + 0.17·0.36 s 기둥 토막이 한 번 더 '쿵'(작게 둘) → 0.2~1.3 s 피어오르는 먼지(1.2k→450 Hz) + 가라앉는 고운 돌가루 쉿. 1.3 s, 큰 돌방 울림. 기둥은 이제 낮은 잔해(통과 가능)"
+    },
+    {
+      "id": "sfx/boss1_lob_bottle",
+      "kind": "sfx",
+      "category": "boss",
+      "file": "assets/audio/sfx/boss1_lob_bottle.ogg",
+      "files": [
+        "assets/audio/sfx/boss1_lob_bottle.ogg",
+        "assets/audio/sfx/boss1_lob_bottle.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 37485,
+      "durationMs": 850,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "BOSS_ACTION",
+        "when": [
+          "boss:1",
+          "action:lobThrow",
+          "index:0"
+        ]
+      },
+      "priority": 3,
+      "note": "61-5 새 — 만취가 기둥 너머로 술병을 높이 던짐(플레이어가 기둥 뒤에 1.5 s 넘게 숨으면, 손에서 놓는 순간 · 병 여럿이면 첫 병만). 파일 0 = 놓음: 짧게 내뱉는 '흡' 숨(노이즈) + 크고 낮은 팔 휘두름(900→320 Hz) + 옷 펄럭 → 0.05~0.8 s 높이 솟으며 멀어지는 '휘익'(650→2.6 kHz 로 올라가며 작아짐, 7 Hz 로 도는 병) + 병 속 술 출렁(같은 7 Hz) + 아주 작은 심지 불 펄럭. 0.85 s. 착탄은 기존 bottle_burst(시스템 ENEMY_ATTACK{kind:throw,phase:burst} 와 같은 소리), 착탄 원 예고에는 소리 없음"
+    },
+    {
+      "id": "sfx/voucher_drop",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/voucher_drop.ogg",
+      "files": [
+        "assets/audio/sfx/voucher_drop.ogg",
+        "assets/audio/sfx/voucher_drop.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 11025,
+      "durationMs": 250,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "PICKUP_LANDED",
+        "when": [
+          "kind:voucher"
+        ]
+      },
+      "priority": 1,
+      "variants": [
+        "sfx/voucher_drop",
+        "sfx/voucher_drop_v2",
+        "sfx/voucher_drop_v3"
+      ],
+      "note": "61-5 새 — 종이 군표 묶음이 바닥에 떨어짐(파일 0 = 닿음). 작은 '툭'(210→120 Hz) + 종이 묶음 면 + 가장자리가 내려앉는 '팔락' 셋(3.2 kHz 대역, 점점 작게) + 바스락. 0.25 s, 울림 없음 — 여러 묶음이 겹쳐도 지저분하지 않게 머리는 둥글고 짧다. 무더기 크기별 재생 속도(small 1.12 · mid 1.0 · large 0.88)는 시스템. 변주 v2·v3 번갈아 + ±3 %"
+    },
+    {
+      "id": "sfx/voucher_drop_v2",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/voucher_drop_v2.ogg",
+      "files": [
+        "assets/audio/sfx/voucher_drop_v2.ogg",
+        "assets/audio/sfx/voucher_drop_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 11025,
+      "durationMs": 250,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/voucher_drop",
+      "note": "전표 떨어짐 변주 2 — 팔락 둘(빠르게), 조금 낮은 종이(2.8 kHz)"
+    },
+    {
+      "id": "sfx/voucher_drop_v3",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/voucher_drop_v3.ogg",
+      "files": [
+        "assets/audio/sfx/voucher_drop_v3.ogg",
+        "assets/audio/sfx/voucher_drop_v3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 11025,
+      "durationMs": 250,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": null,
+      "priority": 1,
+      "variantOf": "sfx/voucher_drop",
+      "note": "전표 떨어짐 변주 3 — 팔락 넷(잘게), 조금 높은 종이(3.6 kHz)"
+    },
+    {
+      "id": "sfx/voucher_pickup",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/voucher_pickup.ogg",
+      "files": [
+        "assets/audio/sfx/voucher_pickup.ogg",
+        "assets/audio/sfx/voucher_pickup.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 11025,
+      "durationMs": 250,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "PICKUP_COLLECTED",
+        "when": [
+          "kind:voucher"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 전표 줍기(바닥 전표 흡수·획득, pickup_gold 대체 — 시스템 폴백 pickup_gold). 종이 묶음을 손에 쥐는 맑고 짧은 '착'(두 겹, 4.5k·2.4 kHz) + 0.02 s 작은 종 '띵'(3.1 kHz + 위 배음, 0.07 s 감쇠 — 0.7~2 kHz 울림 없음) + 품에 넣는 아주 작은 '툭'·바스락. 0.25 s. 무더기 크기별 재생 속도(small 1.12 · mid 1.0 · large 0.88)는 시스템 — 큰 무더기일수록 낮고 묵직하게"
+    },
+    {
+      "id": "sfx/item_pickup",
+      "kind": "sfx",
+      "category": "pickup",
+      "file": "assets/audio/sfx/item_pickup.ogg",
+      "files": [
+        "assets/audio/sfx/item_pickup.ogg",
+        "assets/audio/sfx/item_pickup.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 13230,
+      "durationMs": 300,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "PICKUP_COLLECTED",
+        "when": [
+          "kind:consumable"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 바닥 소모품(병) 줍기(pickup_potion 대체 — 시스템 폴백 pickup_potion · 물약 ITEM_PICKED 는 pickup_potion 그대로). 병이 손에 닿는 유리 '팅'(3.0 kHz, 0.05 s 감쇠 — 울림 짧게) + 0.035 s 두 번째 작은 '틱'(병끼리) + 짧은 술 출렁(0.18 s) + 허리춤 가죽 스침. 0.3 s"
     },
     {
       "id": "bgm/title",

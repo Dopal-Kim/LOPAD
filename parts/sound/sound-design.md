@@ -537,7 +537,7 @@
 | id | 길이 | gainDb | 트리거 제안 | 재료 |
 |---|---|---|---|---|
 | `boss1_break_cup` | 1.50 s | 0 | `ui:boss-break{kind:cup}` | 도자기 몸통 '빡' + 짧은 조각 + 술을 뒤집어씀 + 물방울 + 사레 기침 둘(노이즈) |
-| `boss1_break_pillar` | 1.90 s | 0 | `ui:boss-break{kind:pillar}` | 들이받는 '쿵' + 나무 쪼개짐 → 기우는 낮은 신음 → 0.62 s 무너지는 '와르르' + 먼지 |
+| `boss1_break_pillar` | ~~1.90 s~~ → **1.10 s (61-5 다시)** | 0 | `ui:boss-break{kind:pillar}` | ~~들이받는 '쿵' + 나무 쪼개짐 → 기우는 낮은 신음 → 0.62 s 무너지는 '와르르' + 먼지~~ → 61-5: 들이받는 '쿵' + 돌 표면 '빠직' + 파훼 공통 신호 + 짧은 '쩌억' + 버티는 돌 '그극' + 돌가루(무너짐은 `boss1_pillar_collapse` 로 옮김, 4-12) |
 | `boss1_break_barrel` | 1.50 s | 0 | `ui:boss-break{kind:cask}` | 통이 몸에 박혀 '콰직'(판자 9·쇠테 둘) + 술 터짐 + 0.3 s '허억'. 되치기 순간은 `barrel_return` |
 | `boss1_break_reel` | 1.60 s | 0 | `ui:boss-break{kind:stumble}` (내부 reel. 파훼 넘어짐이면 boss1_fall 대신) | 받아치는 '딱' + 채찍 '샥' → 비틀려 도는 바람 → 0.32 s 크게 나뒹굶 + 소품 + 먼지 |
 | `break_finisher` 다시 | 2.10 s | 0 | `ui:boss-break{kind:finisher}` | 칼날 울림·쪼개지는 쇠·징·종 **제거** → 0.08 s 역바람 → 겹 '딱-딱' + 날 '샥' + 150→32 Hz 몸통 + 큰 북 + 0.9 s 이어지는 낮은 울림(무게만) + 흙·돌 → 0.3 s 두 번째 '둥'. 큰 돌방 |
@@ -620,6 +620,26 @@
 - **1차 = 단조·깨짐, 2차 = 장조·피어남**: 처음 듣는 사람도 '깨어남 → 꽃핌'의 단계 차이를 귀로 알게.
 - **게이지 '틱' 은 아주 작게(-12 dB)**: 처치마다 올 수 있어 처치음을 가리지 않게. 원하면 시스템이 `gauge` 비율로 재생 속도 1.0→1.12 를 올려 '차오름'을 들려줄 수 있다(제안).
 
+### 4-12. 61라운드 단계 5 — P13 기둥 무너짐 · 포물선 술병 · 바닥 줍기 (계약 sound §11: 새 5 + 변주 2, 다시 1)
+근거: `parts/producer/decisions/2026-10-06-P13-combat-variety.md` §3(기둥은 금 3단 다음 충돌에 무너짐 · 1.5 s 숨으면 포물선 술병)·§4(드랍 그림)·§5(기둥 무너짐 소리), 계약 `sound-assets.md` §11, 시스템 트리거 `src/systems/audio/audioDrops.ts`(읽기만 — `P13_SFX`·`VOUCHER_RATES`). 코드 `work/sfx_stage61.py` 8절.
+
+| id | 길이 | gainDb | 우선순위 | 트리거(manifest) | 질감 |
+|---|---|---|---|---|---|
+| `boss1_pillar_collapse` 새 | 1.30 s | 0 | 3 | `BOSS_ACTION{boss:1,action:pillarCollapse}` (파일 0 = 무너진 기둥이 땅에 닿는 그림 프레임 23) | 무거운 '쿵'(85→28 Hz) + 아래 무게 + 저역 폭발 + 돌 갈림 '쩌억' → 0~0.75 s 쏟아지는 '와르르'(돌덩이 30, 크고 촘촘 → 작고 드물게) + 0.17·0.36 s 토막 '쿵' 둘 → 먼지(1.2k→450 Hz) + 가라앉는 돌가루 쉿. 큰 돌방 울림 |
+| `boss1_break_pillar` **다시** | 1.90 → 1.10 s | 0 | 3 | `ui:boss-break{kind:pillar}` (그대로) | 4-9 표 참고 — 부딪힘·균열 위주, 와르르 뺌 |
+| `boss1_lob_bottle` 새 | 0.85 s | -2 | 3 | `BOSS_ACTION{boss:1,action:lobThrow,index:0}` (놓는 순간, 첫 병만) | '흡' 숨(노이즈) + 크고 낮은 팔 휘두름(900→320 Hz) + 옷 → 0.05~0.8 s 솟으며 멀어지는 '휘익'(650→2.6 kHz, 작아짐) + 7 Hz 로 도는 병 + 같은 7 Hz 술 출렁 + 아주 작은 심지 불 펄럭. 착탄 = `bottle_burst` 재사용 |
+| `voucher_drop` 새 (+ `_v2`·`_v3`) | 0.25 s | **-8** | 1 | `PICKUP_LANDED{kind:voucher}` (재생 속도 small 1.12 · mid 1.0 · large 0.88 = 시스템) | 작은 '툭'(210→120 Hz) + 종이 묶음 면 + 내려앉는 '팔락' 셋(3.2 kHz, v2 둘·2.8 kHz / v3 넷·3.6 kHz) + 바스락. 울림 없음, 0.16 s 안에 거의 끝 |
+| `voucher_pickup` 새 | 0.25 s | -4 | 1 | `PICKUP_COLLECTED{kind:voucher}` (속도 = 시스템) | 맑고 짧은 '착'(4.5k·2.4 kHz 두 겹) + 0.02 s 작은 종 '띵'(3.1 kHz, τ 0.07 s) + 품에 '툭'·바스락. `pickup_gold` 대체(폴백) |
+| `item_pickup` 새 | 0.30 s | -2 | 1 | `PICKUP_COLLECTED{kind:consumable}` | 유리 '팅'(3.0 kHz, τ 0.05 s) + 0.035 s 병끼리 작은 '틱' + 짧은 술 출렁 + 가죽 스침. `pickup_potion` 대체(폴백 — 물약 `ITEM_PICKED` 는 `pickup_potion` 그대로) |
+
+판단과 이유:
+- **무너짐은 '땅에 닿는 순간' 하나에**: 트리거가 그림 프레임 23(땅에 닿음)이라 파일 0 에 가장 큰 '쿵'을 두고, 기우는 소리(예전 break_pillar 의 0.15~0.6 s 신음)는 넣지 않았다 — 기울기는 부딪힘에서 무너짐까지의 그림이 맡고, 그 사이는 앞선 `break_pillar`·`pillar_crack` 꼬리가 채운다. 1.3 s(지시 1.0~1.4 s).
+- **`break_pillar` 를 돌로**: 예전 판은 '나무 쪼개짐'이었는데 기둥 균열 1~3(61-4)은 돌이다. 같은 기둥이니 부딪힘도 돌 표면 '빠직'·'쩌억'으로 맞췄다. 파훼 공통 신호(4종 같은 뼈대)는 그대로 — 귀로 배운 '무너뜨렸다' 신호는 바뀌지 않는다. 4번째 충돌에서는 `break_pillar`(부딪힘) → 그림 23프레임 뒤 `pillar_collapse`(땅) 순서.
+- **포물선 술병 = 솟아 멀어지는 소리**: 행상 `peddler_throw`(옆으로 '휙')와 달리 위로 높이 — 대역이 올라가며 작아진다. 우선순위 3(행상 예고와 같은 '피할 정보'). 착탄 원 예고에는 소리를 붙이지 않았다(착탄 `bottle_burst` 가 이미 크고, 원은 그림 정보).
+- **전표 떨어짐 = 겹쳐도 깨끗하게**: 처치 때 여러 묶음이 한꺼번에 떨어진다. 딱딱한 '딱' 대신 둥근 '툭', 울림 0, 변주 셋 번갈아 + ±3 % + 크기별 속도, 같은 그룹 동시 3, 권장 -8 dB. 종이는 2.8~3.6 kHz 대역 — 타격음의 몸통(85~300 Hz)·'샥'(5 kHz 위)과 덜 겹친다.
+- **줍기 = 맑지만 작게**: 전표 '착 + 띵', 소모품 '팅 + 출렁' — 둘 다 2 kHz 위 짧은 정보음(0.7~2 kHz 오래 남는 울림 없음, 61 원칙). 우선순위 1 이고 새 덕킹 규칙(우선순위 ≥ 2 재생 중 -4 dB 150 ms)으로 전투음 아래에 선다.
+- **옛 소리**: `pickup_gold`(시련·보스 보너스 골드 + `voucher_pickup` 폴백)·`pickup_potion`(물약 `ITEM_PICKED`·숙성 술통 + `item_pickup` 폴백)·`boss1_torch_throw`(`boss1_lob_bottle` 폴백)·`boss1_pillar_crack3`(`boss1_pillar_collapse` 폴백) 은 오디오 그대로, note 에 61-5 쓰임만 덧붙였다.
+
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).
 - 같은 효과음이 20 ms 안에 여러 번 요청되면 1회만 재생(산탄·난무·충격파 중복 방지) — `dedupeMs: 20`, 변주는 원본 그룹으로 센다.
@@ -628,10 +648,10 @@
 | 키 | 값 | 이유 |
 |---|---|---|
 | `voices.maxSfx` | **12** (UI 는 별도 `maxUi` 2) | 1층 웨이브(노드당 12~16 처치, 2~3 웨이브)에서 타격·처치·부가음이 몰린다. 8 은 변주·겹침(피격 + `enemy_hurt` + 패시브)에서 예고음까지 빼앗길 위험 |
-| `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 · (61-2) `guard_block_heavy`·`peddler_hurt`·`porter_hurt`·`barrel_return` 2 · **(61-4) `boss1_flame_snuff` 4 · `boss1_cup_struck` 2** | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
+| `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 · (61-2) `guard_block_heavy`·`peddler_hurt`·`porter_hurt`·`barrel_return` 2 · **(61-4) `boss1_flame_snuff` 4 · `boss1_cup_struck` 2** · **(61-5) `voucher_drop`·`voucher_pickup` 3 · `item_pickup` 2 · `boss1_pillar_collapse`·`boss1_lob_bottle` 1** | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
 | `voices.steal` | `lowest-priority-oldest` (30 ms 페이드). loop 항목은 빼앗지 않음(같은 id 1개) | 새 소리보다 낮거나 같은 우선순위 중 가장 오래된 것부터 |
-| `priority` (항목별 필드) | **4 보스 예고·신호·무기 각성**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`·`WEAPON_AWAKEN`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`), 0 UI. 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
-| `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) 파훼 소리(`ui:boss-break`·`BOSS_BREAK`) → SFX(≤2) -4 dB 300 ms** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
+| `priority` (항목별 필드) | **4 보스 예고·신호·무기 각성**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`·`WEAPON_AWAKEN`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`·(61-5) `BOSS_ACTION{action:pillarCollapse\|lobThrow}`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`·(61-5) `PICKUP_LANDED`·`PICKUP_COLLECTED`), 0 UI. 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
+| `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) 파훼 소리(`ui:boss-break`·`BOSS_BREAK`) → SFX(≤2) -4 dB 300 ms**(61-5 기둥 무너짐도), **(61-5) 우선순위 ≥ 2 재생 → 줍기류(`voucher_drop`·`voucher_pickup`·`item_pickup`) -4 dB 150 ms** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
 | `variation` | 변주 목록에서 직전과 다른 것 + 재생 속도 1 ± 0.03 (loop·UI·BGM 제외) | 반복 피로. 변주가 생겨 ±4 % → ±3 % |
 | `masterLimiter` | 문턱 -3 dB, knee 6, ratio 12, attack 3 ms, release 120 ms (DynamicsCompressorNode) | 새 타격음이 같은 피크에서 짧은 구간 음량이 커져 몰릴 때 찌그러짐 방지 |
 | `bgmPhaseCrossfadeMs` · `bgmPhaseSyncPosition` | 800 · true | 보스 국면 곡을 재생 위치 그대로 이어 교차(3-1) |

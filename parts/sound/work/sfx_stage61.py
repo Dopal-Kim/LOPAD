@@ -1003,7 +1003,7 @@ def _boss1_cup_struck(sr, rng):
     return reverb(s, sr, size=0.6, decay=0.45, wet=0.12)
 
 
-# ---- 기둥 균열 (BOSS_ACTION pillarCrack, index = 새 단 1~3 — 3단에서 멈춤, 무너지지 않음) ---------------------
+# ---- 기둥 균열 (BOSS_ACTION pillarCrack, index = 새 단 1~3 — 61-5 부터 4번째 충돌에 무너짐 → 8절 collapse) ---------
 
 def _pillar_crack(sr, rng, st):
     """돌기둥에 금이 감: 단이 오를수록 길고 낮고 깊다. 돌진 충돌(ui:boss-break{kind:pillar} 의 큰 '쿵')과 같은 프레임에
@@ -1325,3 +1325,195 @@ for _w in ('katana', 'greatsword', 'dagger', 'bow'):
 SFX['reinforce'] = dict(SFX['reinforce'], trigger='WEAPON_TEMPERED',
                         note='단련(61-4 P12: 옛 강화 WEAPON_REINFORCED → WEAPON_TEMPERED, 2차 각성 뒤 눈금마다 피해·범위 +10 %, 최대 3). '
                              + SFX['reinforce']['note'])
+
+
+# ===========================================================================
+# 8. 61라운드 단계 5 — P13(계약 sound §11): 기둥 무너짐 · 보스 포물선 술병 · 바닥 줍기(전표 떨어짐·줍기, 소모품 줍기)
+#    시스템 트리거(src/systems/audio/audioDrops.ts, 읽기만): BOSS_ACTION{action:pillarCollapse}(무너져 땅에 닿는 프레임 23) ·
+#    BOSS_ACTION{action:lobThrow,index:0}(놓는 순간, 병 여럿이면 첫 병만) · PICKUP_LANDED{kind:voucher,size} ·
+#    PICKUP_COLLECTED{kind:voucher,size} · PICKUP_COLLECTED{kind:consumable,id}. 전표 재생 속도(small 1.12 · mid 1.0 ·
+#    large 0.88)는 시스템이 곱한다 — 파일은 mid(1.0) 기준.
+#    기둥은 이제 금 3단 다음(4번째) 충돌에 무너진다: 부딪힘(ui:boss-break{kind:pillar}) = boss1_break_pillar(부딪힘·균열만),
+#    무너짐 = boss1_pillar_collapse(땅에 닿는 순간). 예전 break_pillar 의 '와르르'는 collapse 로 옮겼다.
+#    **이 절 아래에만 새 효과음을 붙인다**(시드 = 1000 + 등록 순서 — 위 소리는 바이트 불변).
+# ===========================================================================
+
+ROUND5 = '61-5'   # listen_index 의 round 값(61라운드 단계 5 · P13)
+
+
+def sfx5(name, trigger, note, gain_db=0.0, loop=False, category='combat'):
+    """sfx() + round 표시(61-5)."""
+    def deco(fn):
+        sfx(name, trigger, note, gain_db, loop=loop, category=category)(fn)
+        SFX[name]['round'] = ROUND5
+        return fn
+    return deco
+
+
+def variant5(base, k, note):
+    """sfx_core61.variant() + round 표시(61-5)."""
+    from sfx_core61 import variant
+
+    def deco(fn):
+        variant(base, k, note)(fn)
+        SFX['%s_v%d' % (base, k)]['round'] = ROUND5
+        return fn
+    return deco
+
+
+def stone_chunk(sr, rng, size=1.0):
+    """돌덩이 하나가 바닥에 떨어짐: 짧은 거친 '딱'(크기가 클수록 낮게) + 크기만큼 몸통 '쿵'."""
+    s = zeros(sec(sr, 0.12 + 0.1 * size))
+    fc = 2600 - 1500 * size
+    mix_into(s, crunch(burst(sr, 0.03, rng, fc=fc * rng.uniform(0.85, 1.15), q=0.8, tau=0.004 + 0.006 * size), 3 + int(4 * size)), 0, 0.8)
+    if size > 0.35:
+        mix_into(s, punch(sr, 230 - 100 * size, 90 - 40 * size, 0.08 + 0.12 * size, 0.02 + 0.03 * size, 1.4), 0, 0.5 * size)
+    return s
+
+
+# ---- 기둥 부딪힘 (ui:boss-break{kind:pillar}) — 다시: 무너짐을 빼고 부딪힘·균열 위주 -----------------------------
+
+@redo('boss1_break_pillar', "파훼 · 기둥 들이받음(61-5 다시 만듦 — 무너지는 '와르르'를 빼서 boss1_pillar_collapse 로 옮김. 기둥은 금 3단 다음 4번째 충돌에 무너진다). 돌진하다 돌기둥에 정면으로 박는 큰 '쿵'(120→38 Hz) + 돌 표면이 깨지는 거친 '빠직' + 파훼 공통 신호(쾅 → 꺼지는 '부웅' → 주저앉는 '쿵') + 0.06 s 기둥 속을 타고 오르는 짧은 '쩌억'(돌 결이 갈라짐) + 0.12~0.4 s 버티는 돌의 낮은 '그극' + 떨어지는 돌가루 몇. 1.1 s, 돌방 울림. 같은 프레임의 boss1_pillar_crack1~3(BOSS_ACTION pillarCrack) 이 위에 겹친다", round_=ROUND5)
+def _boss1_break_pillar61_5(sr, rng):
+    dur = 1.1
+    s = zeros(sec(sr, dur))
+    mix_into(s, punch(sr, 120, 38, 0.45, 0.12, 2.2), 0, 1.0)                              # 머리로 박는 '쿵'
+    mix_into(s, crunch(burst(sr, 0.07, rng, fc=1200, q=0.7, tau=0.016), 6), 0, 0.75)        # 돌 표면 '빠직'
+    mix_into(s, snap(sr, rng, 2800, 0.016, 0.0025), 0, 0.7)
+    break_sting(sr, rng, s, 0, 0.9)
+    mix_into(s, tear(sr, 0.22, rng, 1100, 420, rate=34.0, q=1.2), sec(sr, 0.06), 0.3)     # '쩌억'
+    ng = sec(sr, 0.28)                                                                    # 버티는 돌 '그극'
+    gr = svf(tone(sr, 0.28, 62, 50, kind='saw'), sr, sweep(sr, ng, 300, 200), 2.5, 'band')
+    gr = mul(gr, [0.55 + 0.45 * math.sin(TAU * 11 * i / sr) for i in range(ng)])
+    mix_into(s, mul(gr, env_adsr(sr, 0.28, 0.05, 0.0, 1.0, 0.18)), sec(sr, 0.12), 0.35)
+    mix_into(s, gravel(sr, rng, 0.7, 9, 0.05, 0.55, 0.2), 0)                              # 돌가루
+    dust = mul(svf(noise(sr, 0.5, rng), sr, 900, 0.7, 'low'), env_adsr(sr, 0.5, 0.04, 0.0, 1.0, 0.4))
+    mix_into(s, dust, sec(sr, 0.04), 0.12)
+    s = softclip(s, 1.7)
+    return reverb(s, sr, size=1.0, decay=0.6, wet=0.18)
+
+
+# ---- 기둥 무너짐 (BOSS_ACTION pillarCollapse — 파일 0 = 무너진 기둥이 땅에 닿는 프레임 23) ------------------------
+
+@sfx5('boss1_pillar_collapse', 'BOSS_ACTION{boss:1,action:pillarCollapse}', "61-5 새 — 기둥 무너짐(금 3단 뒤 4번째 충돌 → 무너진 돌기둥이 땅에 닿는 순간, 그림 프레임 23). 파일 0 = 땅에 닿음: 무거운 '쿵'(85→28 Hz) + 아래 무게(55→26 Hz) + 저역 폭발 + 돌이 갈리는 '쩌억' → 0~0.75 s 쏟아지는 '와르르'(돌덩이 30, 처음은 크고 촘촘 → 점점 작고 드물게) + 0.17·0.36 s 기둥 토막이 한 번 더 '쿵'(작게 둘) → 0.2~1.3 s 피어오르는 먼지(1.2k→450 Hz) + 가라앉는 고운 돌가루 쉿. 1.3 s, 큰 돌방 울림. 기둥은 이제 낮은 잔해(통과 가능)", 0, category='boss')
+def _boss1_pillar_collapse(sr, rng):
+    dur = 1.3
+    n = sec(sr, dur)
+    s = zeros(n)
+    mix_into(s, punch(sr, 85, 28, 0.6, 0.18, 2.2), 0, 1.0)                                # 땅에 닿는 '쿵'
+    mix_into(s, sub(sr, 55, 26, 0.8, 0.25), 0, 0.8)
+    mix_into(s, burst(sr, 0.5, rng, fc=220, q=0.6, tau=0.12, mode='low'), 0, 1.0)
+    mix_into(s, snap(sr, rng, 2200, 0.02, 0.004), 0, 0.6)
+    mix_into(s, crunch(burst(sr, 0.12, rng, fc=900, q=0.7, tau=0.03), 8), 0, 0.7)
+    mix_into(s, tear(sr, 0.35, rng, 800, 260, rate=30.0, q=1.1), sec(sr, 0.02), 0.35)     # 돌이 갈림
+    for k in range(30):                                                                   # '와르르'
+        u = (k + rng.uniform(0, 1)) / 30
+        t = 0.02 + 0.73 * u ** 1.6
+        size = max(0.1, (1 - u) * rng.uniform(0.6, 1.0))
+        mix_into(s, stone_chunk(sr, rng, size), sec(sr, t), (0.55 - 0.35 * u) * rng.uniform(0.7, 1.0))
+    for t, f0, f1, g in ((0.17, 105, 42, 0.55), (0.36, 125, 50, 0.4)):                     # 토막이 한 번 더
+        mix_into(s, punch(sr, f0, f1, 0.3, 0.07, 1.6), sec(sr, t), g)
+        mix_into(s, burst(sr, 0.15, rng, fc=300, q=0.6, tau=0.04, mode='low'), sec(sr, t), g * 0.6)
+    mix_into(s, gravel(sr, rng, dur, 22, 0.1, 0.95, 0.22), 0)
+    nd = sec(sr, 1.1)                                                                     # 먼지
+    dust = svf(noise(sr, 1.1, rng), sr, sweep(sr, nd, 1200, 450), 0.7, 'low')
+    mix_into(s, mul(dust, env_adsr(sr, 1.1, 0.12, 0.0, 1.0, 0.85)), sec(sr, 0.2), 0.3)
+    fine = svf(noise(sr, 0.9, rng), sr, 3800, 0.8, 'band')                                # 가라앉는 돌가루
+    mix_into(s, mul(fine, env_adsr(sr, 0.9, 0.25, 0.0, 1.0, 0.6)), sec(sr, 0.4), 0.06)
+    s = softclip(s, 1.6)
+    return reverb(s, sr, size=1.25, decay=0.66, wet=0.22)
+
+
+# ---- 포물선 술병 던지기 (BOSS_ACTION lobThrow index 0 — 손에서 놓는 순간. 착탄은 bottle_burst 재사용) ----------------
+
+@sfx5('boss1_lob_bottle', 'BOSS_ACTION{boss:1,action:lobThrow,index:0}', "61-5 새 — 만취가 기둥 너머로 술병을 높이 던짐(플레이어가 기둥 뒤에 1.5 s 넘게 숨으면, 손에서 놓는 순간 · 병 여럿이면 첫 병만). 파일 0 = 놓음: 짧게 내뱉는 '흡' 숨(노이즈) + 크고 낮은 팔 휘두름(900→320 Hz) + 옷 펄럭 → 0.05~0.8 s 높이 솟으며 멀어지는 '휘익'(650→2.6 kHz 로 올라가며 작아짐, 7 Hz 로 도는 병) + 병 속 술 출렁(같은 7 Hz) + 아주 작은 심지 불 펄럭. 0.85 s. 착탄은 기존 bottle_burst(시스템 ENEMY_ATTACK{kind:throw,phase:burst} 와 같은 소리), 착탄 원 예고에는 소리 없음", -2, category='boss')
+def _boss1_lob_bottle(sr, rng):
+    dur = 0.85
+    s = zeros(sec(sr, dur))
+    mix_into(s, breath(sr, rng, 0.13, (760, 560), (1300, 1100), 0.35, 0.004, chest=0.8), 0, 0.4)   # '흡'
+    mix_into(s, whoosh(sr, 0.26, rng, 900, 320, q=0.9, a=0.25, r=0.6), 0, 0.8)           # 큰 팔
+    mix_into(s, thud(sr, 0.1, 140, 70, 0.025), sec(sr, 0.01), 0.3)
+    mix_into(s, rustle(sr, rng, 0.18, 1400, 40), 0, 0.3)
+    rd = 0.75                                                                             # 솟아 멀어짐
+    nr = sec(sr, rd)
+    spin = [0.35 + 0.65 * abs(math.sin(math.pi * 7 * i / sr)) for i in range(nr)]
+    up = svf(noise(sr, rd, rng), sr, sweep(sr, nr, 650, 2600), 1.6, 'band')
+    away = env_adsr(sr, rd, 0.08, 0.0, 1.0, 0.62, curve=0.8)
+    mix_into(s, mul(mul(up, spin), away), sec(sr, 0.05), 0.6)
+    mix_into(s, mul(mul(slosh(sr, rng, rd, 420, 760), spin), away), sec(sr, 0.05), 0.4)   # 술 출렁
+    fl = svf(noise(sr, rd, rng), sr, sweep(sr, nr, 900, 500), 0.7, 'low')                 # 심지 불 펄럭
+    fl = mul(fl, [0.3 + 0.7 * abs(math.sin(math.pi * 7 * i / sr + 0.9)) for i in range(nr)])
+    mix_into(s, mul(fl, env_adsr(sr, rd, 0.05, 0.0, 1.0, 0.55)), sec(sr, 0.05), 0.18)
+    mix_into(s, crackle(sr, rng, 0.35, 4, 0.15), sec(sr, 0.06))
+    return reverb(s, sr, size=0.8, decay=0.5, wet=0.1)
+
+
+# ---- 전표 떨어짐 (PICKUP_LANDED{kind:voucher,size} — 파일 0 = 바닥에 닿음, 속도는 시스템이 크기별로) -----------------
+#  여러 묶음이 한꺼번에 떨어지므로: 머리는 작고 둥글게(딱딱한 '딱' 없음), 울림 없음, 0.25 s 안에 끝, 변주 셋을 번갈아.
+
+def _voucher_drop(sr, rng, flaps=(0.03, 0.07, 0.12), fc=3200, thud_f=(210, 120)):
+    dur = 0.25
+    s = zeros(sec(sr, dur))
+    mix_into(s, thud(sr, 0.06, thud_f[0], thud_f[1], 0.012), 0, 0.5)                      # 작은 '툭'
+    mix_into(s, burst(sr, 0.025, rng, fc=1600, q=0.6, tau=0.005), 0, 0.35)                 # 종이 묶음 면
+    for k, t in enumerate(flaps):                                                         # 팔락(가장자리가 내려앉음)
+        d = 0.045
+        f = svf(noise(sr, d, rng), sr, fc * rng.uniform(0.85, 1.15), 1.1, 'band')
+        mix_into(s, mul(f, env_adsr(sr, d, 0.006, 0.0, 1.0, 0.035)), sec(sr, t), (0.42 - 0.1 * k) * rng.uniform(0.85, 1.0))
+    mix_into(s, rustle(sr, rng, 0.14, 2600, 55), sec(sr, 0.02), 0.2)
+    return s
+
+
+@sfx5('voucher_drop', 'PICKUP_LANDED{kind:voucher}', "61-5 새 — 종이 군표 묶음이 바닥에 떨어짐(파일 0 = 닿음). 작은 '툭'(210→120 Hz) + 종이 묶음 면 + 가장자리가 내려앉는 '팔락' 셋(3.2 kHz 대역, 점점 작게) + 바스락. 0.25 s, 울림 없음 — 여러 묶음이 겹쳐도 지저분하지 않게 머리는 둥글고 짧다. 무더기 크기별 재생 속도(small 1.12 · mid 1.0 · large 0.88)는 시스템. 변주 v2·v3 번갈아 + ±3 %", -8, category='pickup')
+def _voucher_drop_mid(sr, rng):
+    return _voucher_drop(sr, rng)
+
+
+@variant5('voucher_drop', 2, "전표 떨어짐 변주 2 — 팔락 둘(빠르게), 조금 낮은 종이(2.8 kHz)")
+def _voucher_drop_v2(sr, rng):
+    return _voucher_drop(sr, rng, (0.025, 0.06), 2800, (190, 110))
+
+
+@variant5('voucher_drop', 3, "전표 떨어짐 변주 3 — 팔락 넷(잘게), 조금 높은 종이(3.6 kHz)")
+def _voucher_drop_v3(sr, rng):
+    return _voucher_drop(sr, rng, (0.02, 0.05, 0.085, 0.13), 3600, (230, 130))
+
+
+# ---- 전표 줍기 (PICKUP_COLLECTED{kind:voucher,size} — pickup_gold 대체, 속도는 시스템이 크기별로) -------------------
+
+@sfx5('voucher_pickup', 'PICKUP_COLLECTED{kind:voucher}', "61-5 새 — 전표 줍기(바닥 전표 흡수·획득, pickup_gold 대체 — 시스템 폴백 pickup_gold). 종이 묶음을 손에 쥐는 맑고 짧은 '착'(두 겹, 4.5k·2.4 kHz) + 0.02 s 작은 종 '띵'(3.1 kHz + 위 배음, 0.07 s 감쇠 — 0.7~2 kHz 울림 없음) + 품에 넣는 아주 작은 '툭'·바스락. 0.25 s. 무더기 크기별 재생 속도(small 1.12 · mid 1.0 · large 0.88)는 시스템 — 큰 무더기일수록 낮고 묵직하게", -4, category='pickup')
+def _voucher_pickup(sr, rng):
+    dur = 0.25
+    s = zeros(sec(sr, dur))
+    mix_into(s, mul(svf(noise(sr, 0.03, rng), sr, 4500, 1.0, 'band'), env_exp(sr, 0.03, 0.006)), 0, 0.7)   # '착'
+    mix_into(s, mul(svf(noise(sr, 0.04, rng), sr, 2400, 1.2, 'band'), env_exp(sr, 0.04, 0.008)), sec(sr, 0.004), 0.45)
+    pt = [(1.0, 1.0), (2.0, 0.35), (3.0, 0.12)]
+    mix_into(s, highpass(metal(sr, 0.2, 3100, rng, partials=pt, tau=0.07, jitter=0.003), sr, 2200), sec(sr, 0.02), 0.45)
+    mix_into(s, thud(sr, 0.05, 230, 150, 0.01), sec(sr, 0.05), 0.25)                      # 품에 '툭'
+    mix_into(s, rustle(sr, rng, 0.1, 2200, 50), sec(sr, 0.04), 0.18)
+    return s
+
+
+# ---- 소모품 줍기 (PICKUP_COLLECTED{kind:consumable,id} — pickup_potion 대체, 물약 ITEM_PICKED 는 pickup_potion 그대로) ----
+
+@sfx5('item_pickup', 'PICKUP_COLLECTED{kind:consumable}', "61-5 새 — 바닥 소모품(병) 줍기(pickup_potion 대체 — 시스템 폴백 pickup_potion · 물약 ITEM_PICKED 는 pickup_potion 그대로). 병이 손에 닿는 유리 '팅'(3.0 kHz, 0.05 s 감쇠 — 울림 짧게) + 0.035 s 두 번째 작은 '틱'(병끼리) + 짧은 술 출렁(0.18 s) + 허리춤 가죽 스침. 0.3 s", -2, category='pickup')
+def _item_pickup(sr, rng):
+    dur = 0.3
+    s = zeros(sec(sr, dur))
+    mix_into(s, highpass(metal(sr, 0.18, 3000, rng, partials=GLASS, tau=0.05, jitter=0.003), sr, 1800), 0, 0.6)  # '팅'
+    mix_into(s, highpass(metal(sr, 0.1, 3650, rng, partials=GLASS, tau=0.025, jitter=0.004), sr, 2200), sec(sr, 0.035), 0.25)
+    mix_into(s, click(sr, rng, 0.002, 5500), 0, 0.3)
+    mix_into(s, slosh(sr, rng, 0.18, 480, 950), sec(sr, 0.02), 0.45)                      # 술 출렁
+    mix_into(s, rustle(sr, rng, 0.1, 1300, 45), sec(sr, 0.15), 0.2)
+    return s
+
+
+# ---- 옛 소리 메모 갱신 (오디오·시드 그대로) ---------------------------------------------------------------------
+SFX['boss1_pillar_crack3'] = dict(SFX['boss1_pillar_crack3'], note=SFX['boss1_pillar_crack3']['note'].replace(
+    '(깊은 금 — 여기서 멈춤, 무너지지 않음)', '(깊은 금 — 61-5: 다음 4번째 충돌에 무너짐 → boss1_pillar_collapse. 시스템 폴백으로도 쓰임)'))
+SFX['pickup_gold'] = dict(SFX['pickup_gold'], note=SFX['pickup_gold']['note'] +
+                          ' — 61-5: 바닥 전표 줍기는 voucher_pickup(이 소리는 시련·보스 보너스 골드와 voucher_pickup 폴백)')
+SFX['pickup_potion'] = dict(SFX['pickup_potion'], note=SFX['pickup_potion']['note'] +
+                            ' — 61-5: 바닥 소모품 줍기는 item_pickup(이 소리는 물약 ITEM_PICKED·숙성 술통과 item_pickup 폴백)')
+SFX['boss1_torch_throw'] = dict(SFX['boss1_torch_throw'], note=SFX['boss1_torch_throw']['note'] +
+                                ' — 61-5: 보스 포물선 술병 던짐(BOSS_ACTION lobThrow)의 시스템 폴백(boss1_lob_bottle 이 없을 때)')
