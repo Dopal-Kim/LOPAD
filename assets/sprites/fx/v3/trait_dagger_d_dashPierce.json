@@ -1,0 +1,97 @@
+{
+ "image": "trait_dagger_d_dashPierce.png",
+ "action": "trait_dagger_d_dashPierce",
+ "version": "v3-r61s5-trait",
+ "frameWidth": 192,
+ "frameHeight": 48,
+ "framesPerDirection": 5,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 18.52,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트 재·호박(주인공 v3 30색) + 백열 X0/X1 + 61 단계 5 개성 묶음색: 청회 #9ab0d8·청백 #c8d8f0(어둠 쪽은 흉갑 SL 램프), 적갈 #b04848·#7a2e30(어둠 쪽 7층 램프 #381b25·#572030, 밝음 #e27774). 고정색(층 램프 교체 없음)",
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_db/build.py (61 단계 5 P13 — 개성 전투 fx 단검·활·공통)",
+ "pivot": {
+  "x": 6,
+  "y": 24
+ },
+ "anchor": "player_pivot",
+ "depth": "above",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "anchorNote": "pivot = 왼끝(주인공 피벗 높이 보정은 시스템 — 찌르기 높이). 꿴 자리 표시 u = 68·140 도트(약 1·2칸 앞)",
+ "pierceMarksU": [
+  68,
+  140
+ ],
+ "weapon": "dagger",
+ "trait": "d_dashPierce",
+ "spawn": "trait_proc",
+ "glowFrames": [
+  0,
+  1
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(발동·판정 순간)만. 그 밖 칸은 A25 이하 — 빌드 검사",
+ "frameRoles": [
+  "뻗음",
+  "꿰뚫음(X 둘)",
+  "자국 터짐",
+  "끊김",
+  "재"
+ ],
+ "design": "대쉬 찌르기 바늘이 길게 뻗어 두 적을 한 줄로 꿰는 관통선 — 꿴 두 자리(68·140 도트)에 X 섬광, 다음 칸에 위아래로 발톱 자국이 터지고 선은 마디로 끊김",
+ "r61s5": "61 단계 5 P13 개성 전투 fx — 요청 parts/system/notes/trait-art-requests-61s5.md §1, 계약 art §27",
+ "colors": 10,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_dagger_d_dashPierce.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 1,
+   "frameWidth": 192,
+   "frameHeight": 48,
+   "frameCount": 5
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":48,"w":121,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":17,"w":121,"h":14},"sourceSize":{"w":192,"h":48}},
+  "1":{"frame":{"x":0,"y":30,"w":183,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":16,"w":183,"h":16},"sourceSize":{"w":192,"h":48}},
+  "2":{"frame":{"x":0,"y":0,"w":153,"h":28},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":10,"w":153,"h":28},"sourceSize":{"w":192,"h":48}},
+  "3":{"frame":{"x":123,"y":48,"w":131,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":19,"w":131,"h":11},"sourceSize":{"w":192,"h":48}},
+  "4":{"frame":{"x":155,"y":0,"w":85,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":10,"w":85,"h":26},"sourceSize":{"w":192,"h":48}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_dagger_d_dashPierce.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 254,
+   "h": 62
+  },
+  "scale": "1"
+ }
+}

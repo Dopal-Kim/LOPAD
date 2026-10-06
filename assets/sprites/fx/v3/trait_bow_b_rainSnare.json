@@ -1,0 +1,91 @@
+{
+ "image": "trait_bow_b_rainSnare.png",
+ "action": "trait_bow_b_rainSnare",
+ "version": "v3-r61s5-trait",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 13.95,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  70,
+  90,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트 재·호박(주인공 v3 30색) + 백열 X0/X1 + 61 단계 5 개성 묶음색: 청회 #9ab0d8·청백 #c8d8f0(어둠 쪽은 흉갑 SL 램프), 적갈 #b04848·#7a2e30(어둠 쪽 7층 램프 #381b25·#572030, 밝음 #e27774). 고정색(층 램프 교체 없음)",
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_db/build.py (61 단계 5 P13 — 개성 전투 fx 단검·활·공통)",
+ "pivot": {
+  "x": 96,
+  "y": 104
+ },
+ "anchor": "floor",
+ "depth": "floor",
+ "weapon": "bow",
+ "trait": "b_rainSnare",
+ "spawn": "trait_proc",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(발동·판정 순간)만. 그 밖 칸은 A25 이하 — 빌드 검사",
+ "frameRoles": [
+  "펼침(별)",
+  "오므림",
+  "오므림",
+  "묶음(매듭)",
+  "남음",
+  "풀림"
+ ],
+ "design": "화살비 한가운데로 그물이 오므라듦 — 12각 청회 그물(바깥 고리·날줄·안쪽 씨줄) 끝마다 가운데를 가리키는 화살 여섯이 끌어당기며 반지름 88 → 24 로 좁혀 들고, 다 오므리면 가운데 매듭 반짝",
+ "r61s5": "61 단계 5 P13 개성 전투 fx — 요청 parts/system/notes/trait-art-requests-61s5.md §1, 계약 art §27",
+ "colors": 16,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_bow_b_rainSnare.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":190,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":50,"w":190,"h":109},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":192,"y":0,"w":163,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":59,"w":163,"h":91},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":357,"y":0,"w":123,"h":71},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":69,"w":123,"h":71},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":482,"y":0,"w":91,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":76,"w":91,"h":57},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":482,"y":59,"w":62,"h":39},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":85,"w":62,"h":39},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":357,"y":73,"w":73,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":61,"y":85,"w":73,"h":33},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_bow_b_rainSnare.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 573,
+   "h": 109
+  },
+  "scale": "1"
+ }
+}

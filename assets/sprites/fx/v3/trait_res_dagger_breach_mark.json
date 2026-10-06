@@ -1,0 +1,87 @@
+{
+ "image": "trait_res_dagger_breach_mark.png",
+ "action": "trait_res_dagger_breach_mark",
+ "version": "v3-r61s5-trait",
+ "frameWidth": 64,
+ "frameHeight": 64,
+ "framesPerDirection": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.0,
+ "frameDurationsMs": [
+  40,
+  50,
+  70,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트 재·호박(주인공 v3 30색) + 백열 X0/X1 + 61 단계 5 개성 묶음색: 청회 #9ab0d8·청백 #c8d8f0(어둠 쪽은 흉갑 SL 램프), 적갈 #b04848·#7a2e30(어둠 쪽 7층 램프 #381b25·#572030, 밝음 #e27774). 고정색(층 램프 교체 없음)",
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_db/build.py (61 단계 5 P13 — 개성 전투 fx 단검·활·공통)",
+ "pivot": {
+  "x": 32,
+  "y": 32
+ },
+ "anchor": "hitbox_center",
+ "depth": "above",
+ "weapon": "dagger",
+ "resonance": "res_dagger_breach",
+ "tag": "breach",
+ "part": "mark",
+ "spawn": "resonance_proc",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(발동·판정 순간)만. 그 밖 칸은 A25 이하 — 빌드 검사",
+ "frameRoles": [
+  "기어오름",
+  "새겨짐(X)",
+  "남음",
+  "식음"
+ ],
+ "design": "그림자 길을 밟은 적의 발밑에서 먹 가닥 셋이 기어올라 몸에 비스듬한 먹 테 발톱 자국 셋을 새김(가운데 자국만 백열) — 먹 방울이 흘러내림. 길 자체(2.5초 띠)는 시스템 윤곽",
+ "r61s5": "61 단계 5 P13 개성 전투 fx — 요청 parts/system/notes/trait-art-requests-61s5.md §1, 계약 art §27",
+ "colors": 9,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_res_dagger_breach_mark.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":131,"w":19,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":48,"w":19,"h":13},"sourceSize":{"w":64,"h":64}},
+  "1":{"frame":{"x":0,"y":0,"w":22,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":18,"w":22,"h":43},"sourceSize":{"w":64,"h":64}},
+  "2":{"frame":{"x":0,"y":45,"w":22,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":20,"w":22,"h":41},"sourceSize":{"w":64,"h":64}},
+  "3":{"frame":{"x":0,"y":88,"w":22,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":20,"w":22,"h":41},"sourceSize":{"w":64,"h":64}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_res_dagger_breach_mark.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 22,
+   "h": 144
+  },
+  "scale": "1"
+ }
+}

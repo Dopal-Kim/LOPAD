@@ -1,0 +1,103 @@
+{
+ "image": "trait_bow_b_perfectPin_impact.png",
+ "action": "trait_bow_b_perfectPin_impact",
+ "version": "v3-r61s5-trait",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "framesPerDirection": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 13.95,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  70,
+  90,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트 재·호박(주인공 v3 30색) + 백열 X0/X1 + 61 단계 5 개성 묶음색: 청회 #9ab0d8·청백 #c8d8f0(어둠 쪽은 흉갑 SL 램프), 적갈 #b04848·#7a2e30(어둠 쪽 7층 램프 #381b25·#572030, 밝음 #e27774). 고정색(층 램프 교체 없음)",
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_db/build.py (61 단계 5 P13 — 개성 전투 fx 단검·활·공통)",
+ "pivot": {
+  "x": 88,
+  "y": 64
+ },
+ "anchor": "contact",
+ "depth": "above",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "light": {
+  "color": "#fff4dc",
+  "radius": 48,
+  "intensity": 0.8,
+  "ms": 120
+ },
+ "anchorNote": "pivot = 박힌 자리(벽 면). 진행 각 = 화살 방향",
+ "weapon": "bow",
+ "trait": "b_perfectPin",
+ "part": "impact",
+ "spawn": "trait_proc",
+ "glowFrames": [
+  0,
+  1
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(발동·판정 순간)만. 그 밖 칸은 A25 이하 — 빌드 검사",
+ "frameRoles": [
+  "박힘(별)",
+  "되튐",
+  "파편",
+  "파편",
+  "먼지",
+  "금"
+ ],
+ "design": "화살째 밀려간 적이 벽에 박힘 — 벽 면 금 한가운데 굵은 화살이 꽂혀 남고(코앞 사격 충돌과 구별되는 표지), 왼쪽으로 반달·돌 파편",
+ "r61s5": "61 단계 5 P13 개성 전투 fx — 요청 parts/system/notes/trait-art-requests-61s5.md §1, 계약 art §27",
+ "colors": 13,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_bow_b_perfectPin_impact.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 128,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":62,"y":180,"w":66,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":36,"w":66,"h":59},"sourceSize":{"w":128,"h":128}},
+  "1":{"frame":{"x":0,"y":176,"w":60,"h":68},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":32,"w":60,"h":68},"sourceSize":{"w":128,"h":128}},
+  "2":{"frame":{"x":0,"y":96,"w":60,"h":78},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":27,"w":60,"h":78},"sourceSize":{"w":128,"h":128}},
+  "3":{"frame":{"x":62,"y":0,"w":60,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":22,"w":60,"h":88},"sourceSize":{"w":128,"h":128}},
+  "4":{"frame":{"x":62,"y":90,"w":60,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":22,"w":60,"h":88},"sourceSize":{"w":128,"h":128}},
+  "5":{"frame":{"x":0,"y":0,"w":60,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":22,"w":60,"h":94},"sourceSize":{"w":128,"h":128}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_bow_b_perfectPin_impact.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 128,
+   "h": 244
+  },
+  "scale": "1"
+ }
+}

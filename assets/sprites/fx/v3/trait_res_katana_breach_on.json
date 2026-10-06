@@ -1,0 +1,105 @@
+{
+ "image": "trait_res_katana_breach_on.png",
+ "action": "trait_res_katana_breach_on",
+ "version": "v3-r61s5-trait",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 7,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.56,
+ "frameDurationsMs": [
+  30,
+  40,
+  50,
+  60,
+  70,
+  90,
+  110
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "태그 색 램프(고정색, 층 교체 없음 — 60 Q19 각성 예외와 같은 방식): 청록 바람(3층 램프) + 백열 X0/X1(f2 만)",
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_db/build.py (61 단계 5 P13 — 개성 전투 fx 단검·활·공통)",
+ "pivot": {
+  "x": 96,
+  "y": 156
+ },
+ "anchor": "player_pivot",
+ "depth": "above",
+ "weapon": "katana",
+ "resonance": "res_katana_breach",
+ "tag": "breach",
+ "tagColor": "#64c7af",
+ "part": "on",
+ "followPlayer": true,
+ "spawn": "resonance_on",
+ "spawnNote": "공명이 켜진 뒤 전투로 돌아오면 주인공 둘레 1회(요청 노트 §1 공통). 이름 규칙: 공명 발동 fx trait_<공명 id>(무기 담당) 와 겹치지 않게 부위 _on",
+ "light": {
+  "color": "#eecc78",
+  "radius": 64,
+  "intensity": 0.8,
+  "ms": 300
+ },
+ "glowFrames": [
+  2
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(발동·판정 순간)만. 그 밖 칸은 A25 이하 — 빌드 검사",
+ "frameRoles": [
+  "두 고리",
+  "다가옴",
+  "겹침(빛기둥)",
+  "합쳐짐",
+  "퍼짐",
+  "식음",
+  "사라짐"
+ ],
+ "design": "공명 켜짐 — 돌파(breach) 태그 문양을 품은 바닥 고리 둘이 양옆에서 미끄러져 와 겹침 → 겹친 렌즈가 차오르며 두 교차점에 무기 표지(칼 /) + 빛기둥(f2) → 하나로 합쳐진 겹 고리가 퍼지고 머리 위에 태그 문양이 잠깐 뜸 → 점선으로 식음. 태그 색 = 청록 바람(3층 램프)",
+ "r61s5": "61 단계 5 P13 개성 전투 fx — 요청 parts/system/notes/trait-art-requests-61s5.md §1, 계약 art §27",
+ "colors": 8,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_res_katana_breach_on.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 1,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 7
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":403,"y":0,"w":163,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":133,"w":163,"h":40},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":546,"y":156,"w":135,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":140,"w":135,"h":33},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":568,"y":0,"w":111,"h":154},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":20,"w":111,"h":154},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":288,"y":0,"w":113,"h":168},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":40,"y":9,"w":113,"h":168},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":0,"y":0,"w":155,"h":178},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":7,"w":155,"h":178},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":157,"y":0,"w":129,"h":175},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":5,"w":129,"h":175},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":403,"y":42,"w":141,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":43,"w":141,"h":139},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_res_katana_breach_on.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 681,
+   "h": 189
+  },
+  "scale": "1"
+ }
+}

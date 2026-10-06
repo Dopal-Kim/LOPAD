@@ -1,0 +1,89 @@
+{
+ "image": "trait_res_bow_weight.png",
+ "action": "trait_res_bow_weight",
+ "version": "v3-r61s5-trait",
+ "frameWidth": 64,
+ "frameHeight": 96,
+ "framesPerDirection": 5,
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions(또는 JSON 이 밝힌 행 키), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.62,
+ "frameDurationsMs": [
+  40,
+  40,
+  60,
+  80,
+  100
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "v3 무기 이펙트 재·호박(주인공 v3 30색) + 백열 X0/X1 + 61 단계 5 개성 묶음색: 청회 #9ab0d8·청백 #c8d8f0(어둠 쪽은 흉갑 SL 램프), 적갈 #b04848·#7a2e30(어둠 쪽 7층 램프 #381b25·#572030, 밝음 #e27774). 고정색(층 램프 교체 없음)",
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_db/build.py (61 단계 5 P13 — 개성 전투 fx 단검·활·공통)",
+ "pivot": {
+  "x": 32,
+  "y": 64
+ },
+ "anchor": "hitbox_center",
+ "depth": "above",
+ "weapon": "bow",
+ "resonance": "res_bow_weight",
+ "tag": "weight",
+ "spawn": "resonance_proc",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(발동·판정 순간)만. 그 밖 칸은 A25 이하 — 빌드 검사",
+ "frameRoles": [
+  "낙하",
+  "꽂힘(별)",
+  "묶음",
+  "조임",
+  "남음"
+ ],
+ "design": "밀리거나 끌려온 적에게 위에서 굵은 말뚝 화살이 꽂힘 — 몸 중심에 청회 별 + 발치 청회 고리 번쩍 → 청회 묶음 고리 둘이 화살대를 따라 조여 내려옴",
+ "r61s5": "61 단계 5 P13 개성 전투 fx — 요청 parts/system/notes/trait-art-requests-61s5.md §1, 계약 art §27",
+ "colors": 16,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_res_bow_weight.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 1,
+   "frameWidth": 64,
+   "frameHeight": 96,
+   "frameCount": 5
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":27,"y":59,"w":13,"h":30},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":1,"w":13,"h":30},"sourceSize":{"w":64,"h":96}},
+  "1":{"frame":{"x":0,"y":0,"w":41,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":29,"w":41,"h":57},"sourceSize":{"w":64,"h":96}},
+  "2":{"frame":{"x":43,"y":0,"w":33,"h":54},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":29,"w":33,"h":54},"sourceSize":{"w":64,"h":96}},
+  "3":{"frame":{"x":0,"y":59,"w":25,"h":46},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":29,"w":25,"h":46},"sourceSize":{"w":64,"h":96}},
+  "4":{"frame":{"x":43,"y":56,"w":28,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":29,"w":28,"h":49},"sourceSize":{"w":64,"h":96}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_res_bow_weight.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 76,
+   "h": 105
+  },
+  "scale": "1"
+ }
+}
