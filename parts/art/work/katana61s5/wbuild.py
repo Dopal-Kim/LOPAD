@@ -11,7 +11,8 @@ import kcommon as C  # noqa: E402
 
 DESIGN_BASE = ("은선(銀線) 칼 (61 단계 5 P13 §2) — 얇고 긴 연마 강철 날(날선 1도트 백광 · 청강 바탕 + 물결 하몬 · 어두운 등 테, 밑동 4 → 몸 3 → 칼끝 1도트) "
                "· 요코테 반짝 · 호박 금 하바키·카시라 · 둥근 검은 쇠 코등이 · 검은 감은 끈 손잡이(마름모 눈) · 검은 옻칠 칼집(윤기 줄 · 금 입구테·끝 장식 · 짙은 호박 끈)")
-GLOW_BASE = ("판정(glow) 프레임 = 날 전체 백열(날선 X0 · 바탕 X1 · 등은 청강 SL6 로 남겨 실루엣 유지) — 56 Q50 '판정 순간 하얗게 번쩍'. "
+GLOW_BASE = ("판정(glow) 프레임 = 날 전체 백열(날선 X0 · 바탕 X1 · 등은 청강 SL6 로 남겨 실루엣 유지) — 56 Q50: 판정 칸이 이어지면 첫 칸만 백열, "
+             "둘째 칸부터 은빛(날선 G14 · 바탕 G12/G13 · 등 SL6, X0/X1 없음 — glowFrames 는 그대로). "
              "heat1~3(회전 베기·가드 불가 내려베기 모으기) = 날이 호박으로 달아오름. 평소 = 무채 G13/G11 · 청강 SL7~SL4(층 램프 교체와 무관한 고정 무채) + 호박 금 점")
 COLOR_NOTE = ("61 단계 5: 칼만 무채 16 의 밝은 칸(G11·G13, 판정 X0/X1)을 쓴다 — '재 칼날' 주인공 30색 제한(53 Q32)을 칼날에 한해 풀었다(자율 모드 아트 판단, README 61 단계 5). "
               "호박(A18~A26)은 층 램프 교체 대상 그대로")
@@ -142,12 +143,15 @@ def tip_trail(frames, tips, glow):
             px = im.load()
             W, H = im.size
             m = len(path)
-            hot = i in glow
+            hot = i in glow and (i - 1) not in glow          # 56 Q50: 첫 판정 칸만 X1
+            soft = i in glow and not hot
             for j, (x, y) in enumerate(path):
                 back = m - 1 - j                      # 칼끝에서 거리(도트)
                 if not (1 <= x < W - 1 and 1 <= y < H - 1) or px[x, y][3]:
                     continue
-                if hot:
+                if soft:
+                    c_ = G[13] if back < 14 else (G[11] if back < 24 else (SL[7] if back % 3 else None))
+                elif hot:
                     c_ = X1 if back < 5 else (G[13] if back < 14 else (G[11] if back < 24 else (SL[7] if back % 3 else None)))
                 else:
                     c_ = (G[11] if back < 8 else (G[9] if back < 20 else None)) if (j % 4) != 1 else None
@@ -175,8 +179,9 @@ def job(arg):
                     assert (t is None) == (o is None), (rel, d, i, t, o)
                     if t is not None:
                         assert abs(t[0] - o[0]) < 0.11 and abs(t[1] - o[1]) < 0.11, (rel, d, i, t, o)
+    first = {i for i in glow if (i - 1) not in glow}          # 56 Q50: 이어진 판정 칸은 첫 칸만 백열
     if kind in ("base", "ki"):                 # 각성 층은 60 Q19 예외(순환에도 X1) — 반투명만 검사
-        C.check(rel, frames, glow if (kind == "base" or lv == 3) else set(), HOT)
+        C.check(rel, frames, first if (kind == "base" or lv == 3) else set(), HOT)
     else:
         C.check(rel, frames)
     cols = C.colors(frames)

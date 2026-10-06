@@ -47,6 +47,7 @@ def install(K, hero):
         "edge": G[13], "edge_s": G[11], "ji": SL[7], "ji_hi": G[11], "shin": SL[6], "mune": SL[4], "tip": G[13], "yokote": G[13],
         "g_edge": X0, "g_ji": X1, "g_shin": G[11], "g_mune": SL[6], "g_tip": X0,
         "f_edge": G[11], "f_ji": G[6], "f_shin": SL[4], "f_mune": SL[2],
+        "s_edge": G[14], "s_ji": G[12], "s_ji_hi": G[13], "s_shin": G[9], "s_mune": SL[6], "s_tip": G[14],
         "h1_edge": A[25], "h1_ji": G[9], "h2_edge": A[25], "h2_ji": A[23], "h2_shin": A[21],
         "h3_edge": A[26], "h3_ji": A[25], "h3_shin": A[23], "h3_mune": A[21],
         "hab0": A[23], "hab1": A[21], "hab2": A[19],
@@ -62,6 +63,12 @@ def install(K, hero):
 
     def layer_():
         return V["layer"]
+
+    def first_glow():
+        """56 Q50: 판정 칸이 이어지면 첫 칸만 백열 — 앞 칸도 판정이면 False."""
+        gf = V.get("glowFrames")
+        i = V.get("i", 0)
+        return not (gf and i in gf and (i - 1) in gf)
 
     def br():
         return V["branch"]
@@ -108,6 +115,9 @@ def install(K, hero):
         if st == "glow":
             return P[{"edge": "g_edge", "edge_s": "g_edge", "tip": "g_tip", "yokote": "g_edge", "ji": "g_ji", "ji_hi": "g_ji",
                       "shin": "g_shin", "mune": "g_mune"}[r]]
+        if st == "silver":                    # 둘째 판정 칸부터: 은빛(백열 없음, 56 Q50)
+            return P[{"edge": "s_edge", "edge_s": "s_edge", "tip": "s_tip", "yokote": "s_edge", "ji": "s_ji", "ji_hi": "s_ji_hi",
+                      "shin": "s_shin", "mune": "s_mune"}[r]]
         if st == "fade":
             return P[{"edge": "f_edge", "edge_s": "f_edge", "tip": "f_edge", "yokote": "f_edge", "ji": "f_ji", "ji_hi": "f_ji",
                       "shin": "f_shin", "mune": "f_mune"}[r]]
@@ -200,6 +210,8 @@ def install(K, hero):
         blen = BLADE_LEN if visible is None else max(0.0, min(BLADE_LEN, visible))
         full = visible is None or visible >= BLADE_LEN - 1e-6
         st = state if state in ("glow", "fade", "heat1", "heat2", "heat3") else "steel"
+        if st == "glow" and not first_glow():
+            st = "silver" if layer_() == "base" else "steel"
         layer = layer_()
 
         def blade_col(t, lane, k):

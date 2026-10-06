@@ -52,7 +52,7 @@ def _set_i(i):
     if st:
         KD.V["phase"] = int(st[min(i, len(st) - 1)] / KD.V.get("loopMs", 80)) % KD.V["tn"]
     gf = KD.V.get("glowFrames")
-    KD.V["glowframe"] = bool(gf and i in gf)
+    KD.V["glowframe"] = bool(gf and i in gf and (i - 1) not in gf)     # 56 Q50: 이어진 판정 칸은 첫 칸만 백열
 
 
 def _katana_frame(d, fr, i, seed):

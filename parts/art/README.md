@@ -459,5 +459,5 @@ python3 parts/art/work/growth61/build.py       # 61라운드 단계 4(P12): 무�
 ### 시스템 전달
 - **시스템 수정 불필요**: 시트 이름·틀·피벗·프레임 수·ms·행·판정 필드(`hitOriginInFrame`·`impactFrame`·`hitShape`·`drawnArc`·`drawnThrust`·`frameRoles`·`glowFrames`·`burstFrame` 등)·`bladeTipAnchors`·`koiguchiAnchors` 그대로 → `changed61s5` 없음.
 - 새 설명 키(읽지 않아도 됨): 무기 `tipTrail`·`previousDesign`·`colorNote`, fx `strokeStyle: "silver_slit"`(`brushStroke` 값은 그대로), `_awaken` `sameAs`.
-- 칼 무기 시트는 `frameStates` 가 glow 인 칸 모두 날 전체 백열(판정 칸이 둘인 `katana_combo2`·`katana_special` 등은 두 칸 다 흼 — 56 Q50 '첫 칸만 백열'과 어긋나 보이면 알려 주면 둘째 칸을 은빛으로 낮춤).
+- (프로듀서 판단 반영, 56 Q50) 판정 칸이 이어지는 시트는 **첫 칸만 백열**, 둘째 칸부터 은빛(날선 G14 · 바탕 G12/G13 · 등 SL6, X0/X1 없음) — 기본 `katana_{combo2,guardbreak,iai,issen,issen_dash,special,spin,thrust}` 8 + 그 위 검기 3단·`_awaken`·v4 a1·a2_glow 56(칼끝 빛줄기·검기 3단·각성 빛 마스크도 첫 칸만 X0/X1). glowFrames·frameStates 값은 그대로(그림만). 빌드 검사: 이어진 판정 칸의 둘째부터 X0/X1 0. 기준 이동: `python3 parts/art/work/atlas57/verify.py --rebase --only katana_`
 - 2차 휘두름 `trailTint` 는 그대로 — 은선 fx 가 회백이라 길 색이 더 또렷하게 먹음.
