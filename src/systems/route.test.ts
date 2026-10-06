@@ -89,16 +89,17 @@ describe('48라운드 노드 지도 (route)', () => {
     expect(enemiesAt(3).has('charger')).toBe(false);
     expect(enemiesAt(4).has('charger')).toBe(true);
     expect(enemiesAt(5).has('peddler') && enemiesAt(5).has('porter')).toBe(true);
+    // 61 단계 5 (P13 §5): 1층 추정 9분 미만 → 단1·단3 웨이브 4 (처치 상한 20)
     for (const col of [3, 4, 5]) {
       const waves = nodeWaves('stage1', { kind: 'battle', col })!;
       expect(waves.length).toBeGreaterThanOrEqual(2);
-      expect(waves.length).toBeLessThanOrEqual(3);
+      expect(waves.length).toBeLessThanOrEqual(col === 4 ? 3 : 4);
       const kills = waves.flat().reduce((a, e) => a + e.count, 0);
       expect(kills).toBeGreaterThanOrEqual(12);
-      expect(kills).toBeLessThanOrEqual(16);
+      expect(kills).toBeLessThanOrEqual(20);
       for (const e of waves.flat()) expect(ENEMIES[e.enemy], e.enemy).toBeDefined();
     }
-    expect(maxBattleWaves('stage1', 2)).toBe(3);
+    expect(maxBattleWaves('stage1', 2)).toBe(4);
     expect(g.nodes.filter((n) => n.kind === 'battle')).toHaveLength(5);
   });
 

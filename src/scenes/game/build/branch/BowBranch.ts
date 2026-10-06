@@ -16,7 +16,7 @@ import {
 import type { Mob } from '../../../../objects/Mob';
 import type { Projectile } from '../../../../objects/Projectile';
 import { currentAttackTag } from '../../../../systems/build/attackTags';
-import { param } from '../../../../systems/build/buildMods';
+import { param, type ActiveRule } from '../../../../systems/build/buildMods';
 import type { FxHandle } from '../../../../systems/fx/fx';
 import { PLAYER_RENDER_SCALE } from '../../../../systems/weapon/playerScale';
 import { sheetLoopRange } from '../BuildArt';
@@ -157,9 +157,14 @@ export class BowBranch {
       });
     }
     if (p.bowPower === 'perfect' && k.rt.rule('fireArrow')) {
+      let lit = false;
       const tick = () => {
         if (!shot.active) return;
-        k.g.pools.igniteAt(shot.x, shot.y);
+        if (k.g.pools.igniteAt(shot.x, shot.y) && !lit) {
+          lit = true;
+          k.rt.traits.moves.fx('fireArrow', shot, { depth: DEPTH.FX_GROUND });
+          k.effect('fireArrow', 'ignite');
+        }
         k.g.time.delayedCall(40, tick);
       };
       tick();
@@ -175,8 +180,10 @@ export class BowBranch {
     if (k.rt.isPerfectShot(shot) && k.rt.hasBranch('snipe')) {
       const v = shot.body.velocity;
       const id = k.mpStr('snipe', 'pierceHitFx');
+      // 쓰러진 적은 바디가 없다 (61 단계 5 정리 — 발 자리 + 몸 절반)
+      const c = mob.body ? mob.body.center : { x: mob.x, y: mob.y - 8 };
       if (id && k.g.fx.has(id))
-        k.g.fx.play(id, mob.body.center.x, mob.body.center.y, {
+        k.g.fx.play(id, c.x, c.y, {
           angle: Math.atan2(v.y, v.x),
           flipY: v.x < 0,
           depth: DEPTH.HIT_FX,
@@ -194,12 +201,11 @@ export class BowBranch {
         const r = T(param(meteor, 'skyRadiusTiles', 0.8));
         if (!drawn) k.rt.fx.ring(c.x, c.y, r, BUILD_FX.COLOR.METEOR);
         this.skyLanded(c, r);
-        for (const m of k.rt.fx.inCircle(c.x, c.y, r)) {
-          // 개성 '별 표적': 하늘 화살에 맞은 적은 다음 한 번 치명
-          const mark = k.rt.rule('skyCrack');
-          if (mark && m.active) k.rt.combat.crackMob(m, param(mark, 'ms', 3000));
+        for (const m of k.rt.fx.inCircle(c.x, c.y, r))
           k.rt.fx.damage(m, param(meteor, 'skyMult'), { dirX: 0, dirY: 1 });
-        }
+        // 61 단계 5 (P13) 개성 '별 표적': 떨어진 자리로 둘레 적이 빨려 든다
+        const well = k.rt.rule('skyGravity');
+        if (well) this.skyWell(c, well);
       });
     }
   }
@@ -209,17 +215,32 @@ export class BowBranch {
     const k = this.k;
     const ig = k.rt.rule('skyIgnite');
     if (!ig) return;
-    for (const q of k.rt.fx.poolsNear(c.x, c.y, Math.max(r, T(param(ig, 'radiusTiles', 1))))) k.g.pools.ignite(q);
+    const n = k.rt.traits.moves.igniteCircle(c, Math.max(r, T(param(ig, 'radiusTiles', 1))));
+    if (n > 0) {
+      if (!k.rt.traits.moves.fx('b_starDrunk', c, { depth: DEPTH.FX_GROUND })) k.rt.traits.moves.sparks(c);
+      k.effect('b_starDrunk', 'ignite', n);
+    }
   }
 
-  /** 장교 사냥: 8칸 이상 거리 완벽 놓기 = 치명 확정 (BowShots 적중 배율) */
-  longPerfectCrit(shot: Projectile, mob: Mob): boolean {
-    const r = this.k.rt.rule('longPerfectCrit');
-    if (!r || !this.k.rt.isPerfectShot(shot)) return false;
-    return Math.hypot(mob.x - shot.originX, mob.y - shot.originY) >= T(param(r, 'minTiles'));
+  /** 별 표적 (61 단계 5): 하늘 화살 자리로 둘레 적을 빨아들여 한데 모은다 */
+  private skyWell(c: { x: number; y: number }, r: ActiveRule): void {
+    const k = this.k;
+    const moves = k.rt.traits.moves;
+    const rad = T(param(r, 'radiusTiles', 2.5));
+    const hits = k.rt.fx.inCircle(c.x, c.y, rad).filter((m) => !m.isBoss);
+    if (!moves.fx('b_starWell', c, { fallbacks: ['bow_link_stack'], depth: DEPTH.FX_GROUND }))
+      k.rt.fx.ring(c.x, c.y, rad, BUILD_FX.COLOR.METEOR, 300);
+    for (const m of hits) {
+      moves.chainLine(m, c, BUILD_FX.COLOR.METEOR, 260);
+      moves.pull(m, c, param(r, 'pullTiles', 1.6), 'b_starWell', {
+        stopTiles: 0.3,
+        endStunMs: param(r, 'stunMs', 400),
+      });
+    }
+    if (hits.length > 0) k.effect('b_starWell', 'pull', hits.length);
   }
 
-  /** 처치: 무한통 화살 +3 (적 발밑 bow_arrow_recall 1회) · 쏟아지는 비 */
+  /** 처치: 무한통 화살 +3 (적 발밑 bow_arrow_recall 1회) · 흩날리는 살 (61 단계 5) */
   onKill(mob: Mob): void {
     const k = this.k;
     const q = k.rt.rule('quiver');
@@ -228,8 +249,27 @@ export class BowBranch {
       k.rt.art.once(BUILD_ART.ARROW_RECALL, mob.x, mob.y, { scaleMult: PLAYER_RENDER_SCALE });
       k.effect('quiver', 'recall');
     }
-    const rain = k.rt.rule('volleyRefill');
-    if (rain) k.rt.combat.restoreResource({ ammo: param(rain, 'ammo') });
+    // 61 단계 5 (P13) 흩날리는 살: 연사로 쓰러뜨리면 쓰러진 자리에서 화살이 사방으로
+    const burst = k.rt.rule('volleyBurst');
+    if (burst && k.g.player.branchMoves.volleying) {
+      const n = param(burst, 'arrows', 6);
+      const at = { x: mob.x, y: mob.y - 6 };
+      const { dmg, crit } = k.g.combat.rollDamage(param(burst, 'damageMult', 0.35), false, 'other');
+      const speed = param(burst, 'speedTiles', 12);
+      const sprite = BUILD_ART.SPLIT_ARROW;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        k.rt.fx.shot(at.x, at.y, Math.cos(a), Math.sin(a), dmg, {
+          tag: 'scatter',
+          speedTiles: speed,
+          lifeMs: (param(burst, 'rangeTiles', 3) / speed) * 1000,
+          crit,
+          ...(k.g.fx.has(sprite) ? { sprite } : { tint: BUILD_FX.COLOR.METEOR }),
+        });
+      }
+      k.rt.traits.moves.fx('b_scatterVolley', at, { fallbacks: ['bow_arrow_split'] });
+      k.effect('b_scatterVolley', 'burst', n);
+    }
   }
 
   /** 무한통: 떨어진 화살 (bow_arrow_stuck 수명 시트) */

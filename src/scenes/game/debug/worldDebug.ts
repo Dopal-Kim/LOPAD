@@ -2,6 +2,7 @@
  * `?debug=1` 검증 훅 — 조명·쿼터뷰·외벽·상흔 · 빌드·2차 묶음·보스 (60라운드 6-1: DebugHooks 에서 분리, 동작 그대로)
  */
 import { nextMarkOf } from '../../../systems/growth/growth';
+import { EventBus } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import type { Boss } from '../../../objects/Boss';
 import type { Mob } from '../../../objects/Mob';
@@ -62,6 +63,17 @@ export function worldDebug(
       curse: (id, pact) => g.build.grantCurse(id, { pact: Boolean(pact) }),
       endCurse: () => g.build.endCurse(),
       trait: (id) => g.growth.gainTrait(id),
+      untrait: (id) => {
+        const w = gameState.weapon;
+        if (!w.traits.includes(id)) return false;
+        w.traits = w.traits.filter((t) => t !== id);
+        gameState.build.touch();
+        return true;
+      },
+      traits: () => g.build.traits.debug(),
+      moves: () => g.build.traits.moves,
+      liveMobs: () => g.build.fx.mobs(),
+      emit: (event, payload) => EventBus.emit(event, payload),
       perfect: (kind) => (kind === 'perfectEvade' ? g.build.perfect.onEvade() : g.build.perfect.onPerfect(kind, 10)),
       drink: () => g.build.drink('potion'),
       bossFloor: (n) => {

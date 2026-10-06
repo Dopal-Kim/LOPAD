@@ -250,10 +250,10 @@ export class BuildRuntime {
     return this.perfectShots.has(shot);
   }
 
-  /** 투사체 적중 배율 · 치명 (장교 사냥·금·견장 — 새로 치명이면 치명 피해 배율을 곱한다) */
+  /** 투사체 적중 배율 · 치명 (금·견장 — 새로 치명이면 치명 피해 배율을 곱한다) */
   shotHit(shot: Projectile, mob: Mob, crit: boolean): { mult: number; crit: boolean } {
     const b = this.combat.shotBonus(shot, mob);
-    const c = crit || b.forceCrit || this.branch.longPerfectCrit(shot, mob);
+    const c = crit || b.forceCrit;
     return { mult: b.mult * (c && !crit ? this.critDamageMult() : 1), crit: c };
   }
 
@@ -276,7 +276,7 @@ export class BuildRuntime {
   onShadowStep(fromX: number, fromY: number, toX: number, toY: number): void {
     this.evade.arm(this.now, fromX, fromY);
     this.combat.onMove(fromX, fromY, toX - fromX, toY - fromY, 'shadowstep', Math.hypot(toX - fromX, toY - fromY));
-    this.traits.onShadowStep();
+    this.traits.onShadowStep({ x: fromX, y: fromY }, { x: toX, y: toY });
   }
 
   // --- 마시기 · 취기 ---

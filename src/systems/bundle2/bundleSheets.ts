@@ -3,6 +3,7 @@
  * 월드 소모품(`items/v3/consumable_f1`) · 엘리트 외곽선(`enemies/v3/<적>_<동작>_elite` — 접두어가 붙을 수 있는 적만).
  * 이펙트(엘리트 문장·이름표·§22.1 접두어 fx·화염 술병)는 fxIds BUILD_STATUS_FX_IDS. 없는 파일은 매니페스트가 거른다. Phaser 의존 없음.
  */
+import { DROP_ART } from '../../core/Constants';
 import { BUNDLE2, eventsOn } from '../../data/bundle2';
 import { floorItems, onFloor, type FloorScope } from '../../data/floorScope';
 import { NARRATIVE } from '../../data/narrative';
@@ -47,6 +48,8 @@ export function bundleSheetRequests(): SheetRequest[] {
     action: STRUCTURE_ACTION,
   }));
   out.push({ category: 'items', name: ITEM_SHEET, action: ITEM_ACTION });
+  // 61 단계 5 (P13 §4) 바닥 줍기 물건 그림 (전표·물약·1층 소모품 — 없는 파일은 매니페스트가 거른다)
+  for (const name of DROP_ART.SHEETS) out.push({ category: 'items', name, action: ITEM_ACTION });
   for (const name of eliteEnemyIds())
     for (const a of MOB_ACTIONS) out.push({ category: 'enemies', name, action: eliteAction(a) });
   return out;

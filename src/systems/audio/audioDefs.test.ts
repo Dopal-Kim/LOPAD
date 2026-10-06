@@ -39,6 +39,7 @@ import {
 import { Events, type BossActionKind } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { MOVE_SFX, moveSfxIds, pickFlurryVariant } from './audioMoves';
+import { P13_SFX } from './audioDrops';
 import { ARCHIVED_SFX, BUILD_SFX, GROWTH_SFX, buildSfxIds } from './audioBuild';
 
 /** 61라운드: 이벤트·페이로드에 걸리는 트리거들의 효과음 id (조건·페이로드 함수 풀이) */
@@ -219,6 +220,12 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       // 61 G: 1차·2차 각성 폴백 (WEAPON_AWAKEN 페이로드로 고른다)
       SFX.evolve,
       // 61 단계 4 P12: 각성·개성·게이지 (계약 sound §10)
+      // 61 단계 5 P13: 기둥 무너짐·포물선 술병·드랍 (계약 sound §11)
+      P13_SFX.pillarCollapse,
+      P13_SFX.lobBottle,
+      P13_SFX.voucherDrop,
+      P13_SFX.voucherPickup,
+      P13_SFX.itemPickup,
       GROWTH_SFX.awaken1,
       GROWTH_SFX.awaken2,
       GROWTH_SFX.traitManifest,

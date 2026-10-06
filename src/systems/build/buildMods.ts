@@ -14,7 +14,7 @@ import {
   type TagId,
 } from '../../data/buildTypes';
 import type { WeaponEvolution } from '../../data/types';
-import type { TraitDef } from '../../data/growthTypes';
+import type { ResonanceDef, TraitDef } from '../../data/growthTypes';
 import { onFloor, type FloorScope } from '../../data/floorScope';
 import type { PassiveSet } from '../passives';
 import { scaledBenefit, type CurseState } from './curses';
@@ -62,6 +62,8 @@ export interface BuildModsInput {
   nodes: readonly WeaponEvolution[];
   /** 61 G P12: 얻은 개성 카드 (규칙 + 태그 점수) */
   traits: readonly TraitDef[];
+  /** 61 단계 5 (P13): 켜진 공명 (규칙만 — 태그 점수 없음) */
+  resonances?: readonly ResonanceDef[];
   curse: CurseState | null;
   /** 영구 태그 보너스 (불붙은 혀) */
   permanentTags: Partial<Record<TagId, number>>;
@@ -136,6 +138,7 @@ export function computeBuildMods(i: BuildModsInput): BuildMods {
   for (const n of i.nodes) if (n.rule) addRule(rules, n.rule, 'branch', n.id);
   // 개성 카드 (61 G P12)
   for (const t of i.traits) addRule(rules, t.effect, 'trait', t.id);
+  for (const r of i.resonances ?? []) addRule(rules, r.effect, 'trait', r.id);
   // 저주 (이득은 피의 계약이면 ×pactMult)
   const flags: BuildFlags = {
     noDash: false,

@@ -232,6 +232,26 @@ export class StrikeKinds {
     this.c.addSolid(s);
   }
 
+  /** 61 단계 5 (P13 개성): 이 점이 서 있는(구르지 않는) 술통 위인가 */
+  caskAt(x: number, y: number): boolean {
+    return this.c.list.some((s) => s.kind === 'cask' && s.state !== 'broken' && !s.rolling && s.rect.contains(x, y));
+  }
+
+  /** 61 단계 5 (P13 개성 — 불똥·처박기): 원 안 술통을 그 자리에서 터뜨린다 (술 웅덩이). 터뜨린 수 */
+  burstCasksIn(x: number, y: number, radiusPx: number): number {
+    let n = 0;
+    for (const s of this.c.list) {
+      if (s.kind !== 'cask' || s.state === 'broken') continue;
+      const r = s.rect;
+      if (Math.hypot(r.centerX - x, r.centerY - y) > radiusPx + r.width / 2) continue;
+      if (!s.rolling) this.c.removeBodies(s);
+      EventBus.emit(Events.STRUCTURE_HIT, this.c.evt(s));
+      this.shatterCask(s, this.c.now);
+      n += 1;
+    }
+    return n;
+  }
+
   private shatterCask(s: Inst, time: number): void {
     s.rolling = null;
     s.state = 'broken';

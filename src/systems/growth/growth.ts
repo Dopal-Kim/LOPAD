@@ -67,9 +67,15 @@ export function traitPool(weapon: string, branch: string | null, owned: readonly
 
 /**
  * 개성 제시 n장 (P12: 갈래 개성 우선 1장 — 갈래 개성이 남아 있으면 첫 장은 그중 하나). rnd() ∈ [0,1).
+ * 61 단계 5 (P13 공명): partnerTags(한 장 모자란 공명 태그)가 있으면 그 태그 카드 한 장을 넣는다(이미 들어 있으면 그대로).
  * 나머지는 같은 칸(verb)이 겹치지 않게 고르고, 모자라면 아무거나
  */
-export function pickTraits(pool: readonly TraitDef[], n: number, rnd: () => number): TraitDef[] {
+export function pickTraits(
+  pool: readonly TraitDef[],
+  n: number,
+  rnd: () => number,
+  partnerTags: readonly string[] = [],
+): TraitDef[] {
   const out: TraitDef[] = [];
   const take = (list: readonly TraitDef[]) => {
     const rest = list.filter((t) => !out.includes(t));
@@ -78,6 +84,8 @@ export function pickTraits(pool: readonly TraitDef[], n: number, rnd: () => numb
     return true;
   };
   take(pool.filter((t) => t.branch));
+  if (n > out.length && partnerTags.length > 0 && !out.some((t) => partnerTags.includes(t.tag)))
+    take(pool.filter((t) => partnerTags.includes(t.tag)));
   while (out.length < n) {
     const used = new Set(out.map((t) => t.verb));
     if (!take(pool.filter((t) => !used.has(t.verb)))) if (!take(pool)) break;

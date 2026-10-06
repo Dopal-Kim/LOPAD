@@ -4,6 +4,7 @@
  * 패시브·저주 시험 · 무기 바꾸기 · 닫기). 그만두기 = '0'.
  */
 import type { WeaponDef, WeaponTable } from '../../data/types';
+import type { TraitDef } from '../../data/growthTypes';
 import type { UiMenuLine, UiTagId } from '../../contract/ui';
 import { verbsLine, weaponVerbs } from './verbs';
 
@@ -19,6 +20,12 @@ export const LAB_NEXT_MARK_KEY = 'n';
 export const LAB_RESET_KEY = 'r';
 export const LAB_PASSIVE_KEY = 'p';
 export const LAB_CURSE_KEY = 'c';
+/** 61 단계 5 (P13): 개성 켜고 끄기 메뉴로 · 그 메뉴의 전부 켜기·전부 끄기·환경 놓기·적 부르기 */
+export const LAB_TRAITS_KEY = 't';
+export const LAB_TRAITS_ALL_KEY = 'a';
+export const LAB_TRAITS_NONE_KEY = 'x';
+export const LAB_ENV_KEY = 'w';
+export const LAB_ENEMIES_KEY = 'e';
 /** 시험장 게이지 한 번에 더하는 양 */
 export const LAB_GAUGE_STEP = 30;
 
@@ -30,7 +37,18 @@ export type LabBranchAction =
   | { kind: 'weapons' }
   | { kind: 'close' }
   | { kind: 'passive' }
-  | { kind: 'curse' };
+  | { kind: 'curse' }
+  | { kind: 'traits' };
+
+/** 61 단계 5 시험장 개성 메뉴 동작 */
+export type LabTraitAction =
+  | { kind: 'toggle'; id: string }
+  | { kind: 'all' }
+  | { kind: 'none' }
+  | { kind: 'env' }
+  | { kind: 'enemies' }
+  | { kind: 'back' }
+  | { kind: 'close' };
 
 /** 61 G labBranch 성장 줄 (게이지·다음 눈금·저주 상태) */
 export interface LabGrowthInfo {
@@ -130,6 +148,8 @@ export function labBranchMenu(
     lines.push({ key: LAB_RESET_KEY, label: '게이지·개성·단련 처음으로', enabled: true });
     actions.set(LAB_PASSIVE_KEY, { kind: 'passive' });
     lines.push({ key: LAB_PASSIVE_KEY, kind: 'passive', label: '패시브 3지선다 (빌드 시험)', enabled: true });
+    actions.set(LAB_TRAITS_KEY, { kind: 'traits' });
+    lines.push({ key: LAB_TRAITS_KEY, label: '개성 켜고 끄기 · 환경 · 적', enabled: true });
     actions.set(LAB_CURSE_KEY, { kind: 'curse' });
     lines.push({
       key: LAB_CURSE_KEY,
@@ -149,4 +169,47 @@ export function labBranchMenu(
 /** 갈래 깊이 표기 (UI 가 이걸로 들여쓴다, 계약 §11.4): 깊이 d → 공백 2칸 × (d − 1) + '└ ' */
 export function treePrefix(depth: number): string {
   return depth <= 0 ? '' : `${'  '.repeat(depth - 1)}└ `;
+}
+
+/**
+ * 61 단계 5 (P13) 시험장 개성 메뉴 줄: 이 무기 개성 14장 (key 't<n>' — 켜짐 ■ / 꺼짐 □, 다른 갈래 개성은 잠김) ·
+ * 공명 상태(고를 수 없는 줄) · 'a' 전부 켜기(지금 갈래까지) · 'x' 전부 끄기 · 'w' 술 웅덩이 놓기 · 'e' 적 부르기 · '9' 갈래 메뉴 · '0' 닫기
+ */
+export function labTraitMenu(
+  traits: readonly TraitDef[],
+  owned: readonly string[],
+  branch: string | null,
+  info: { branchNames: Record<string, string>; resonance: { name: string; line: string; on: boolean }[] },
+): { lines: UiMenuLine[]; actions: Map<string, LabTraitAction> } {
+  const lines: UiMenuLine[] = [];
+  const actions = new Map<string, LabTraitAction>();
+  traits.forEach((t, i) => {
+    const key = `t${i}`;
+    const locked = Boolean(t.branch && t.branch !== branch);
+    const on = owned.includes(t.id);
+    lines.push({
+      key,
+      kind: 'trait',
+      label: `${on ? '■' : '□'} ${t.name}${t.env ? ' · 환경' : ''}`,
+      enabled: !locked,
+      detail: locked ? `${info.branchNames[t.branch ?? ''] ?? t.branch} 갈래를 고르면 켤 수 있다` : t.line,
+      verb: t.verb,
+      tags: [t.tag as UiTagId],
+    });
+    if (!locked) actions.set(key, { kind: 'toggle', id: t.id });
+  });
+  info.resonance.forEach((r, i) =>
+    lines.push({ key: `r${i}`, label: `공명 ${r.on ? '켜짐' : '꺼짐'} · ${r.name}`, enabled: false, detail: r.line }),
+  );
+  const add = (key: string, label: string, a: LabTraitAction, detail?: string) => {
+    actions.set(key, a);
+    lines.push({ key, label, enabled: true, ...(detail ? { detail } : {}) });
+  };
+  add(LAB_TRAITS_ALL_KEY, '전부 켜기 (지금 갈래까지)', { kind: 'all' });
+  add(LAB_TRAITS_NONE_KEY, '전부 끄기', { kind: 'none' });
+  add(LAB_ENV_KEY, '술 웅덩이 놓기', { kind: 'env' }, '허수아비 둘레에 술 웅덩이 셋 (하나는 불)');
+  add(LAB_ENEMIES_KEY, '적 부르기', { kind: 'enemies' }, '움직이는 적 넷 (밀기·띄우기·묶기 시험)');
+  add(LAB_TO_WEAPONS_KEY, '갈래 · 게이지 메뉴로', { kind: 'back' });
+  add(LAB_CANCEL_KEY, '닫기', { kind: 'close' });
+  return { lines, actions };
 }

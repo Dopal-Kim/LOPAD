@@ -5,18 +5,18 @@
  *   (반지름 96 도트 = 1.5칸) → 불 웅덩이 4초 (0.5초마다 공격 ×0.3 + 고정 3) — 그림은 fire_pool 로 넘김 (계약 art §22.1)
  * - 깡술 한 모금: 8초 공격 +20% · 받는 피해 +10% · 피격 경직 없음 (취기 '마시기 사건')
  * - 냉수 한 바가지: 그로기 해제·기력 50% / 과열 0 / 탄창·숨 가득 · 3초 '세상이 돈다' 기울기 무시
- * 월드 드롭 = `items/v3/consumable_f1` (행 = 종류) — 밟으면 줍는다.
+ * 월드 드롭 = `items/v3/<종류>`(61 P13 §4 — 없으면 `consumable_f1` 행 = 종류) — 밟으면 줍는다.
  */
 import Phaser from 'phaser';
-import { BUILD_ART, BUNDLE_FX, DEPTH, KEYS } from '../../../core/Constants';
-import { EventBus, Events, type ConsumablePayload } from '../../../core/EventBus';
+import { BUILD_ART, BUNDLE_FX, DEPTH, DROP_ART, KEYS } from '../../../core/Constants';
+import { EventBus, Events, type ConsumablePayload, type PickupPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { BUNDLE2, consumableDef } from '../../../data/bundle2';
 import type { ConsumableDef, ConsumableId } from '../../../data/bundle2Types';
 import { UI_EVENTS, __system, type UiConsumableSlot, type UiConsumableUsed } from '../../../contract/ui';
 import { spriteLibrary } from '../../../systems/sprites/sprites';
 import { FX_ACTION, artScale } from '../../../systems/sprites/spriteDefs';
-import { ITEM_ACTION, ITEM_SHEET } from '../../../systems/bundle2/bundleSheets';
+import { DropVisual } from '../../../objects/drop/DropVisual';
 import type { Game } from '../../Game';
 import { T } from '../shared';
 
@@ -24,7 +24,9 @@ export type { ConsumablePayload } from '../../../core/EventBus';
 
 interface Drop {
   id: ConsumableId;
-  sprite: Phaser.GameObjects.GameObject & { x: number; y: number; destroy(): void };
+  view: DropVisual;
+  x: number;
+  y: number;
   until: number;
 }
 
@@ -32,6 +34,8 @@ export class Consumables {
   /** 깡술 끝 · 냉수 기울기 무시 끝 */
   private strongUntil = -Infinity;
   private drops: Drop[] = [];
+  /** 줍혀 팝을 재생 중인 그림 */
+  private popping: DropVisual[] = [];
 
   constructor(private readonly g: Game) {}
 
@@ -76,6 +80,7 @@ export class Consumables {
   update(pressed: boolean, now: number): void {
     if (pressed && !this.g.menu.isOpen && !this.g.frozen) this.use(now);
     this.pickDrops(now);
+    for (const v of this.popping) v.update(now);
   }
 
   private use(now: number): void {
@@ -206,25 +211,15 @@ export class Consumables {
 
   // --- 월드 드롭 ---
 
-  /** 바닥에 떨어진 소모품 (밟으면 줍는다) */
+  /** 바닥에 떨어진 소모품 (밟으면 줍는다) — 61 P13 §4: 그림 items/v3/<종류> → consumable_f1 행 → 임시 병 (DropVisual) */
   spawnDrop(x: number, y: number, id: ConsumableId): void {
     const g = this.g;
-    const def = spriteLibrary.sheet(ITEM_SHEET, ITEM_ACTION);
-    const tex = spriteLibrary.textureKey(ITEM_SHEET, ITEM_ACTION);
     const cdef = consumableDef(id);
-    let sprite: Drop['sprite'];
-    if (def && tex && g.textures.exists(tex) && cdef) {
-      const meta = def as unknown as { kinds?: string[] };
-      const row = Math.max(0, meta.kinds?.indexOf(cdef.kindRow) ?? 0);
-      const img = g.add
-        .sprite(x, y, tex, String(row * def.frames))
-        .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-        .setScale(artScale(def))
-        .setDepth(DEPTH.PICKUP);
-      g.tweens.add({ targets: img, y: y - 2, yoyo: true, repeat: -1, duration: 600 });
-      sprite = img;
-    } else sprite = g.add.rectangle(x, y, 6, 8, 0xe07a2a).setDepth(DEPTH.PICKUP);
-    this.drops.push({ id, sprite, until: g.time.now + BUNDLE2.consumables.dropLifeMs });
+    const view = new DropVisual(g);
+    view.show(x, y, cdef?.kindRow ?? id, null, g.time.now, () =>
+      EventBus.emit(Events.PICKUP_LANDED, { kind: 'consumable', value: 1, id } satisfies PickupPayload),
+    );
+    this.drops.push({ id, view, x, y, until: g.time.now + BUNDLE2.consumables.dropLifeMs });
   }
 
   private pickDrops(now: number): void {
@@ -232,10 +227,13 @@ export class Consumables {
     const pl = this.g.player;
     this.drops = this.drops.filter((d) => {
       if (now >= d.until) {
-        d.sprite.destroy();
+        d.view.destroy();
         return false;
       }
-      if (Math.hypot(pl.x - d.sprite.x, pl.y - d.sprite.y) > T(BUNDLE_FX.ITEM_PICK_TILES)) return true;
+      const left = d.until - now;
+      const blink = left < DROP_ART.EXPIRE_BLINK_MS && Math.floor(now / 120) % 2 === 1;
+      d.view.update(now, d.x, d.y, 0, 0, 1, blink ? 0.3 : 1);
+      if (Math.hypot(pl.x - d.x, pl.y - d.y) > T(BUNDLE_FX.ITEM_PICK_TILES)) return true;
       if (this.g.menu.isOpen) return true;
       const r = this.slot.tryGain(d.id);
       if (r === 'full') return true;
@@ -243,14 +241,24 @@ export class Consumables {
         this.gainSwapFromDrop(d);
         return false;
       }
-      d.sprite.destroy();
+      this.popDrop(d, now);
       EventBus.emit(Events.ITEM_PICKED, { kind: 'consumable', value: 1 });
       return false;
     });
   }
 
+  /** 획득 팝 (그림이 끝나면 지운다 — 팝 동안은 popping 목록에서 계속 돌린다) */
+  private popDrop(d: Drop, now: number): void {
+    EventBus.emit(Events.PICKUP_COLLECTED, { kind: 'consumable', value: 1, id: d.id } satisfies PickupPayload);
+    this.popping.push(d.view);
+    d.view.pop(now, () => {
+      this.popping = this.popping.filter((v) => v !== d.view);
+      d.view.destroy();
+    });
+  }
+
   private gainSwapFromDrop(d: Drop): void {
-    d.sprite.destroy();
+    this.popDrop(d, this.g.time.now);
     this.gain(d.id);
   }
 
@@ -271,7 +279,9 @@ export class Consumables {
   }
 
   destroy(): void {
-    for (const d of this.drops) d.sprite.destroy();
+    for (const d of this.drops) d.view.destroy();
+    for (const v of this.popping) v.destroy();
     this.drops = [];
+    this.popping = [];
   }
 }

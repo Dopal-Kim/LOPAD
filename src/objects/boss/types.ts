@@ -41,6 +41,8 @@ export interface PatternRun {
 
 export interface BossPatternModule {
   readonly name: BossPatternName;
+  /** 61 P13: true 면 패턴 간격을 기다리지 않고 조건이 맞는 즉시 시작 (진행 중인 패턴은 끊지 않음 — 포물선 술병) */
+  readonly urgent?: boolean;
   /** 쿨타임·pick 외 조건 (소환 상한 등). 없으면 늘 가능 */
   isReady?(host: BossHost, ctx: MobContext): boolean;
   /** 시작. 바로 끝나는 패턴(예고 없는 부채꼴·화면 패턴 방아쇠)은 PatternEnd 를 돌려준다 */
@@ -184,4 +186,10 @@ export interface BossArenaApi {
    * visible = 지금 프레임에 잔이 보이는지 (61 E 파훼 표시 cup_glint — 없으면 늘 보임). null 이면 해제
    */
   setWeakPoint(wp: WeakPointSpec | null): void;
+  /** 61 P13 §3: 주인공이 보스 기준으로 서 있는 기둥에 가려진 누적 ms (보이면 줄어듦) — 포물선 술병 방아쇠 */
+  readonly hiddenMs: number;
+  /** 포물선 술병을 던졌다 — 가려짐 누적을 비운다 */
+  coverReset(): void;
+  /** 보스 바디 중심 from → to 다음 점: 서 있는 기둥을 바디 반폭만큼 부풀려 막히면 모서리로 돈다 */
+  steer(from: Vec, to: Vec, halfW: number, halfH: number): Vec;
 }

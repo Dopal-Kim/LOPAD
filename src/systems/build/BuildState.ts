@@ -10,6 +10,7 @@ import { TAG_IDS, type TagId } from '../../data/buildTypes';
 import type { UiBuildState, UiCurse, UiTagState } from '../../contract/ui';
 import type { PassiveSet } from '../passives';
 import type { WeaponState } from '../weapon/weapons';
+import { activeResonances } from '../growth/resonance';
 import { computeBuildMods, type BuildMods } from './buildMods';
 import { CurseState, type CurseSave } from './curses';
 import { nextThreshold } from './tagScore';
@@ -77,6 +78,7 @@ export class BuildState {
       passives,
       nodes: weapon.nodes,
       traits: weapon.traitDefs,
+      resonances: activeResonances(weapon.id, weapon.traitDefs),
       curse: this.curse,
       permanentTags: this.permanentTags,
       floor: this.floor,

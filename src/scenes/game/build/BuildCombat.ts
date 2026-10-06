@@ -132,8 +132,6 @@ export class BuildCombat {
   /** 이 적에게 확정 치명인가 (급소 6 금 · 장교의 견장 최대 표식) — 쓰면 금은 사라진다 */
   forceCritOn(mob: Mob | undefined): boolean {
     if (!mob) return false;
-    // 61 G 개성: 비틀거리는 적 · 낙인 셋 이상 (TraitRules)
-    if (this.rt.traits?.forceCrit(mob)) return true;
     const until = this.cracked.get(mob);
     if (until !== undefined) {
       this.cracked.delete(mob);

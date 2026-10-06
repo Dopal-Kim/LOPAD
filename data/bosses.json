@@ -123,6 +123,21 @@
       "phaseDrink": {
         "durationMs": 1600,
         "invulnerable": true
+      },
+      "lobBottle": {
+        "_note": "61 단계 5 (P13 §3) 기둥 숨기 방지: 보스 기준으로 기둥에 가려진 누적(보이면 2배로 줄어듦)이 hiddenMs 를 넘으면 패턴 간격을 기다리지 않고 던진다. 착탄 원 예고 = windupMs + flightMs (1.3초). 병·폭발·불 웅덩이는 독주 행상 화염 술병과 같은 위험물. 인사불성은 2병(둘째는 물러날 자리)",
+        "hiddenMs": 1500,
+        "windupMs": 500,
+        "flightMs": 800,
+        "arcTiles": 6,
+        "burstRadiusTiles": 1.5,
+        "burstAttack": 10,
+        "poolMs": 4000,
+        "poolTickMs": 500,
+        "poolAttack": 4,
+        "count": 1,
+        "spreadTiles": 1.75,
+        "cooldownMs": 2500
       }
     },
     "phases": [
@@ -130,13 +145,13 @@
         "name": "얼큰",
         "hpFraction": 1,
         "intervalMs": 2300,
-        "pick": ["dash", "slam", "caskRoll"]
+        "pick": ["dash", "slam", "caskRoll", "lobBottle"]
       },
       {
         "name": "만취",
         "hpFraction": 0.65,
         "intervalMs": 2000,
-        "pick": ["dash", "slam", "caskRoll", "drink", "fireSpill"],
+        "pick": ["dash", "slam", "caskRoll", "drink", "fireSpill", "lobBottle"],
         "enterPattern": "spin",
         "patterns": {
           "dash": {
@@ -149,7 +164,7 @@
         "name": "인사불성",
         "hpFraction": 0.3,
         "intervalMs": 1600,
-        "pick": ["dash", "slam", "caskRoll", "drink", "fireSpill", "drunkDash"],
+        "pick": ["dash", "slam", "caskRoll", "drink", "fireSpill", "drunkDash", "lobBottle"],
         "enterPattern": "spin",
         "patterns": {
           "dash": {
@@ -167,6 +182,9 @@
           },
           "fireSpill": {
             "cooldownMs": 7000
+          },
+          "lobBottle": {
+            "count": 2
           }
         }
       }

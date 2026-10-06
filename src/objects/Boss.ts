@@ -277,8 +277,15 @@ export class Boss extends Mob implements BossHost, BossBody {
   // BossBody (두뇌 → 몸)
   // =====================================================================
 
+  /** 61 P13 §3: 보스방이면 서 있는 기둥을 돌아오는 웨이포인트로 (바디 중심 기준 — 발 피벗과의 차이만큼 옮겨 걷는다) */
   approach(ctx: MobContext): void {
-    this.moveToward(ctx.player.x, ctx.player.y, this.def.approachSpeedTiles * TILE);
+    const speed = this.def.approachSpeedTiles * TILE;
+    const arena = ctx.arena;
+    if (!arena) return this.moveToward(ctx.player.x, ctx.player.y, speed);
+    const c = this.body.center;
+    const wp = arena.steer(c, ctx.player, this.body.halfWidth, this.body.halfHeight);
+    if (wp === ctx.player) return this.moveToward(ctx.player.x, ctx.player.y, speed);
+    this.moveToward(wp.x + (this.x - c.x), wp.y + (this.y - c.y), speed);
   }
 
   stunSelf(time: number, ms: number, pose?: PatternEnd['stunPose']): void {

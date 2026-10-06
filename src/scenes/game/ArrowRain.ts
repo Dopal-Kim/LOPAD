@@ -152,8 +152,8 @@ export class ArrowRain {
       if (this.debugLast) this.debugLast.hits = (this.debugLast.hits as number) + 1;
       const died = g.combat.hitMob(mob, dmg, { crit, dirX: 0, dirY: 1, knock: false });
       if (died) g.progress.onKill(mob, 'attack');
-      // 61 G 개성 '화살 그물'·'이어지는 비'
-      g.build?.traits.onRainHit(mob, died, pt);
+      // 61 G 개성 '화살 그물'(61 단계 5: 화살비 한가운데로 끌어모음)·'이어지는 비'
+      g.build?.traits.onRainHit(mob, died, pt, { x: p.x, y: p.y });
     }
   }
 

@@ -41,7 +41,15 @@ export interface DebugApi {
     toTitle: () => void;
   };
   economy: () => unknown;
-  pickups: () => { kind: string; value: number; x: number; y: number }[];
+  pickups: () => {
+    kind: string;
+    value: number;
+    x: number;
+    y: number;
+    size?: string | null;
+    art?: string;
+    pull?: number;
+  }[];
   /** 플레이어를 향해 투사체 1발 (거리 px, 속도 px/s, 공격력) */
   fireAtPlayer: (distPx: number, speedPx: number, attack: number) => void;
   player: () => PlayerInfo;
@@ -226,6 +234,13 @@ export interface BuildDebugApi {
   endCurse: () => void;
   /** 61 G: 개성 카드 하나를 바로 얻는다 (traits.json id) */
   trait: (id: string) => boolean;
+  /** 61 단계 5: 개성 하나를 뺀다 · 개성 실행 상태(띄움·묶음·처박기·공명·발동 수) · 시스템 이벤트를 바로 낸다(검증용) */
+  untrait: (id: string) => boolean;
+  traits: () => unknown;
+  /** 61 단계 5 검증: 개성 실행 도구 (TraitMoves — launch·slam·pull·bind 를 직접) · 살아 있는 적 Mob 목록 */
+  moves: () => unknown;
+  liveMobs: () => unknown[];
+  emit: (event: string, payload?: unknown) => void;
   /** 완벽 성공 사건을 바로 일으킨다 */
   perfect: (kind: 'parry' | 'perfectGuard' | 'perfectRelease' | 'perfectEvade') => void;
   drink: () => void;
@@ -380,7 +395,15 @@ export function exposeDebug(api: {
   addPassive: (id: string) => boolean;
   scenes: () => string[];
   economy: () => unknown;
-  pickups: () => { kind: string; value: number; x: number; y: number }[];
+  pickups: () => {
+    kind: string;
+    value: number;
+    x: number;
+    y: number;
+    size?: string | null;
+    art?: string;
+    pull?: number;
+  }[];
   camera: () => CameraInfo;
   setPersonality: (value: number) => void;
   /** 61 G: 무기 성장 상태 (게이지·눈금·갈래·길·개성·단련·대기 눈금·최근 메뉴·각성 연출) */

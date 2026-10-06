@@ -1,16 +1,39 @@
 /**
- * 61 G 활 개성·셋째 갈래 '유성' 길 규칙: 코앞 사격 · 튕기는 화살 · 꿰어 박기 · 되튀는 화살 · 낙하 사격 · 구르며 장전 · 화살 그물 ·
- * 이어지는 비 / 혜성(완벽 놓기 화살이 꿰뚫으며 터짐). 유성 1차(하늘 화살)·성우(자동 화살비·넓은 화살비)·별 표적·술별·걸으며 연사는
- * BowBranch·ArrowRain·BranchMoves 가 실행한다.
+ * 활 개성·셋째 갈래 '유성' 길 규칙 (61 G → 61 단계 5 P13 전투 양상):
+ * 코앞 사격(가까운 적 → 벽·기둥·적에게 처박기) · 튕기는 화살 · 꿰어 박기(완벽 놓기 → 화살째 밀려 벽에 박힘/그 자리 묶음) ·
+ * 되튀는 화살 · 낙하 사격 · 화살 덫(대쉬 자리에 덫 → 밟은 적 묶음) · 화살 그물(화살비 한가운데로 끌어모아 묶음) · 이어지는 비 ·
+ * 흩날리는 살(연사 처치 → 사방으로 화살) · 꿰미(관통 화살에 꿰인 적들이 함께 끌려가 부딪침) / 혜성.
+ * 유성 1차(하늘 화살)·별 표적(하늘 화살 자리로 빨아들임)·술별·걸으며 연사·불화살은 BowBranch·ArrowRain·BranchMoves.
  */
-import { BUILD_ART, BUILD_FX, TILE } from '../../../../core/Constants';
+import Phaser from 'phaser';
+import { BUILD_ART, BUILD_FX, DEPTH, TILE, TRAIT_FX } from '../../../../core/Constants';
 import type { PlayerAttackPayload } from '../../../../core/EventBus';
 import type { Mob } from '../../../../objects/Mob';
 import type { Projectile } from '../../../../objects/Projectile';
-import { PLAYER_RENDER_SCALE } from '../../../../systems/weapon/playerScale';
+import type { ActiveRule } from '../../../../systems/build/buildMods';
+import type { FxHandle } from '../../../../systems/fx/fx';
+import { sheetLoopRange } from '../BuildArt';
 import { T, type Pt, type RuleKit } from './RuleKit';
 
+interface Trap {
+  at: Pt;
+  until: number;
+  fx: FxHandle | null;
+  gfx: Phaser.GameObjects.Graphics | null;
+}
+
+const unit = (x: number, y: number): Pt => {
+  const l = Math.hypot(x, y) || 1;
+  return { x: x / l, y: y / l };
+};
+
 export class BowRules {
+  private traps: Trap[] = [];
+  /** 꿰미: 관통 화살 → 꿴 적 차례 */
+  private readonly skewers = new WeakMap<Projectile, Mob[]>();
+  /** 공명(덫 비)이 듣는 '덫이 적을 묶음' */
+  onTrap: ((mob: Mob) => void) | null = null;
+
   constructor(private readonly k: RuleKit) {}
 
   /** 낙하 사격: 대쉬 사격이 솟았다가 앞쪽에 세 발로 떨어진다 */
@@ -19,8 +42,7 @@ export class BowRules {
     const r = k.rt.rule('dashRain');
     if (!r || p.kind !== 'dashAttack') return;
     const pl = k.g.player;
-    const l = Math.hypot(p.dirX, p.dirY) || 1;
-    const dir = { x: p.dirX / l, y: p.dirY / l };
+    const dir = unit(p.dirX, p.dirY);
     const n = k.p(r, 'drops', 3);
     const ahead = T(k.p(r, 'aheadTiles', 3));
     const base = { x: pl.x, y: pl.y };
@@ -29,23 +51,57 @@ export class BowRules {
       const at = { x: base.x + dir.x * ahead - dir.y * side, y: base.y + dir.y * ahead + dir.x * side };
       k.g.time.delayedCall(k.p(r, 'delayMs', 350) + i * 90, () => {
         if (!k.g.scene.isActive()) return;
-        const rad = T(k.p(r, 'radiusTiles', 1));
-        if (!k.rt.art.once(BUILD_ART.METEOR_ARROW, at.x, at.y, { scaleMult: PLAYER_RENDER_SCALE * 0.7 }))
-          k.rt.fx.ring(at.x, at.y, rad, BUILD_FX.COLOR.METEOR, 200);
-        for (const m of k.rt.fx.inCircle(at.x, at.y, rad)) k.hit(m, k.p(r, 'damageMult', 0.6), { x: 0, y: 1 });
+        this.skyArrow(at, T(k.p(r, 'radiusTiles', 1)), k.p(r, 'damageMult', 0.6), 'b_dropShot');
       });
     }
     k.fire('b_dropShot', 'rain');
   }
 
-  /** 구르며 장전: 화살이 바닥났을 때 대쉬 → 장전 끝 */
-  onDash(): void {
+  /** 하늘 화살 한 발 (개성 전용 fx → bow_meteor_arrow — 없으면 고리) */
+  skyArrow(at: Pt, r: number, mult: number, trait: string): Mob[] {
     const k = this.k;
-    if (!k.rt.rule('dashReload')) return;
-    const res = k.g.player.resource;
-    if (res?.kind !== 'ammo' || (res.value > 0 && !res.reloading)) return;
-    res.refresh(0);
-    k.fire('b_rollReload', 'reload');
+    if (!k.moves.fx(trait, at, { fallbacks: [BUILD_ART.METEOR_ARROW], scale: 0.7 }))
+      k.rt.fx.ring(at.x, at.y, r, BUILD_FX.COLOR.METEOR, 200);
+    const hits = k.rt.fx.inCircle(at.x, at.y, r);
+    for (const m of hits) k.hit(m, mult, { x: 0, y: 1 });
+    return hits;
+  }
+
+  /** 대쉬: 화살 덫 (떠난 자리) */
+  onDash(p: { x: number; y: number }): void {
+    const k = this.k;
+    const r = k.rt.rule('dashTrap');
+    if (!r) return;
+    const max = k.p(r, 'maxTraps', 3);
+    while (this.traps.length >= max) this.clearTrap(this.traps.shift()!);
+    const at = { x: p.x, y: p.y };
+    const ms = k.p(r, 'lifeMs', 6000);
+    const g = k.g;
+    const range = sheetLoopRange(g.fx.sheet(BUILD_ART.ARROW_STUCK));
+    const own = g.fx.has(`trait_bow_b_arrowTrap`) ? 'trait_bow_b_arrowTrap' : null;
+    const id = own ?? (g.fx.has(BUILD_ART.ARROW_STUCK) ? BUILD_ART.ARROW_STUCK : null);
+    const fx = id
+      ? g.fx.play(id, at.x, at.y, {
+          depth: DEPTH.PICKUP,
+          durationMs: ms,
+          hooks: false,
+          ...(range && !own ? { loopRange: range } : {}),
+        })
+      : null;
+    let gfx: Phaser.GameObjects.Graphics | null = null;
+    if (!fx) {
+      const D = TRAIT_FX.TRAP;
+      gfx = g.add.graphics().setDepth(DEPTH.PICKUP);
+      gfx.lineStyle(1, D.COLOR, 1);
+      for (const dx of [-D.PX, 0, D.PX]) gfx.lineBetween(at.x + dx, at.y, at.x + dx * 0.6, at.y - D.PX * 2);
+    }
+    this.traps.push({ at, until: k.now + ms, fx, gfx });
+    k.fire('b_arrowTrap', 'set');
+  }
+
+  private clearTrap(t: Trap): void {
+    this.k.g.fx.finish(t.fx);
+    t.gfx?.destroy();
   }
 
   onArrowSpawn(shot: Projectile, p: PlayerAttackPayload): void {
@@ -62,6 +118,8 @@ export class BowRules {
         this.bounceBack(s, k.p(bounce, 'damageMult', 0.6));
       };
     }
+    // 꿰미: 관통 화살이 꿴 적을 기억한다
+    if (k.rt.rule('skewerDrag') && !shot.buildTag && shot.pierceLeft > 0) this.skewers.set(shot, []);
   }
 
   private bounceBack(s: Projectile, mult: number): void {
@@ -78,6 +136,7 @@ export class BowRules {
       pierce: 1,
       tint: BUILD_FX.COLOR.METEOR,
     });
+    k.moves.fx('b_fullBounce', s, { fallbacks: ['hit_bow'] });
     k.fire('b_fullBounce', 'bounce');
   }
 
@@ -85,11 +144,19 @@ export class BowRules {
     const k = this.k;
     const own = !shot.buildTag;
     const perfect = k.rt.isPerfectShot(shot);
-    // 코앞 사격: 가까이 붙은 적은 밀쳐낸다
+    const v = shot.body.velocity;
+    // 코앞 사격: 가까이 붙은 적은 날려 벽·기둥·뒤의 적에게 처박는다
     const pb = k.rt.rule('pointBlankShove');
     if (pb && own && !died && Math.hypot(mob.x - shot.originX, mob.y - shot.originY) <= T(k.p(pb, 'rangeTiles', 2))) {
-      const v = shot.body.velocity;
-      k.push(mob, { x: v.x, y: v.y }, k.p(pb, 'knockTiles', 1.5));
+      k.moves.fx(
+        'b_pointBlank',
+        { x: mob.x, y: mob.y - 8 },
+        { angle: Math.atan2(v.y, v.x), fallbacks: ['hit_bow_heavy'] },
+      );
+      k.moves.slam(mob, { x: v.x, y: v.y }, k.p(pb, 'knockTiles', 2), 'b_pointBlank', {
+        slamMult: k.p(pb, 'slamMult', 0.5),
+        slamStunMs: k.p(pb, 'slamStunMs', 600),
+      });
       k.fire('b_pointBlank', 'push');
     }
     // 튕기는 화살: 짧게 쏜 화살로 쓰러뜨리면 가까운 적에게
@@ -102,19 +169,40 @@ export class BowRules {
           speedTiles: 14,
           rangeTiles: k.p(ric, 'rangeTiles', 4) + 1,
         });
+        k.moves.fx('b_ricochet', { x: mob.x, y: mob.y - 6 }, { fallbacks: ['hit_bow'] });
         k.fire('b_ricochet', 'bounce');
       }
     }
-    // 꿰어 박기: 완벽 놓기 화살에 맞은 적은 박혀 멈춘다
+    // 꿰어 박기: 완벽 놓기 화살에 맞은 적이 화살째 밀려가 벽에 박히거나 그 자리에 꽂힌다
     const pin = k.rt.rule('perfectPin');
-    if (pin && perfect && !died) {
-      k.stun(mob, k.p(pin, 'stunMs', 900));
-      k.fire('b_perfectPin', 'pin');
+    if (pin && perfect && !died) this.pinShot(mob, unit(v.x, v.y), pin);
+    // 꿰미: 먼저 꿴 적들이 지금 맞은 적에게 끌려와 부딪친다
+    const sk = this.skewers.get(shot);
+    const skew = k.rt.rule('skewerDrag');
+    if (sk && skew && mob.active) {
+      for (const m of sk) {
+        if (!m.active || m.isBoss) continue;
+        k.moves.chainLine(m, mob, TRAIT_FX.CHAIN_COLOR, 240);
+        k.moves.pull(m, mob, Math.hypot(m.x - mob.x, m.y - mob.y) / TILE, 'b_skewer', {
+          stopTiles: 0,
+          slamMult: k.p(skew, 'slamMult', 0.4),
+          slamStunMs: k.p(skew, 'slamStunMs', 700),
+        });
+      }
+      if (sk.length > 0) {
+        k.moves.fx(
+          'b_skewer',
+          { x: mob.x, y: mob.y - 8 },
+          { angle: Math.atan2(v.y, v.x), fallbacks: ['bow_arrow_pierce_hit'] },
+        );
+        k.fire('b_skewer', 'drag', { n: sk.length });
+      }
+      sk.push(mob);
     }
     // 혜성: 완벽 놓기 화살이 맞을 때마다 터진다
     const comet = k.rt.rule('comet');
     if (comet && perfect) {
-      const c = { x: mob.body.center.x, y: mob.body.center.y };
+      const c = mob.body ? { x: mob.body.center.x, y: mob.body.center.y } : { x: mob.x, y: mob.y - 8 };
       const r = T(k.p(comet, 'burstRadiusTiles', 1));
       k.rt.fx.ring(c.x, c.y, r, BUILD_FX.COLOR.METEOR, 200);
       for (const m of k.rt.fx.inCircle(c.x, c.y, r, new Set([mob])))
@@ -123,25 +211,88 @@ export class BowRules {
     }
   }
 
-  /** 화살비 한 발 적중 (ArrowRain): 화살 그물 · 이어지는 비 */
-  onRainHit(mob: Mob, died: boolean, at: Pt): void {
+  private pinShot(mob: Mob, u: Pt, pin: ActiveRule): void {
+    const k = this.k;
+    const stick = (at: Pt, ms: number) => {
+      const range = sheetLoopRange(k.g.fx.sheet(BUILD_ART.ARROW_STUCK));
+      const id = k.g.fx.has('trait_bow_b_perfectPin') ? 'trait_bow_b_perfectPin' : BUILD_ART.ARROW_STUCK;
+      if (k.g.fx.has(id))
+        k.g.fx.play(id, at.x, at.y, {
+          angle: Math.atan2(u.y, u.x),
+          depth: DEPTH.HIT_FX,
+          durationMs: ms,
+          hooks: false,
+          ...(range && id === BUILD_ART.ARROW_STUCK ? { loopRange: range } : {}),
+        });
+    };
+    k.moves.slam(
+      mob,
+      u,
+      k.p(pin, 'pinTiles', 2.5),
+      'b_perfectPin',
+      { slamMult: k.p(pin, 'slamMult', 0.5), slamStunMs: 0 },
+      (res) => {
+        if (!mob.active) return;
+        const wall = res.kind === 'wall';
+        const ms = wall ? k.p(pin, 'wallBindMs', 1600) : k.p(pin, 'bindMs', 1000);
+        k.moves.bind(mob, ms, 'b_perfectPin', wall ? res.at : null);
+        stick(wall ? res.at : { x: mob.x, y: mob.y - 6 }, ms);
+        k.fire('b_perfectPin', wall ? 'wall' : 'pin');
+      },
+    );
+  }
+
+  /** 화살비 한 발 적중 (ArrowRain): 화살 그물(한가운데로 끌어모아 묶음) · 이어지는 비 */
+  onRainHit(mob: Mob, died: boolean, _at: Pt, center: Pt): void {
     const k = this.k;
     const snare = k.rt.rule('rainSnare');
-    if (snare && !died) k.stun(mob, k.p(snare, 'stunMs', 500));
+    if (snare && !died && !k.moves.isBound(mob)) {
+      k.moves.fx('b_rainSnare', center, { depth: DEPTH.FX_GROUND });
+      k.moves.chainLine(mob, center, TRAIT_FX.BIND.COLOR, 220);
+      k.moves.pull(mob, center, k.p(snare, 'pullTiles', 1.5), 'b_rainSnare', { stopTiles: 0.3 });
+      k.g.time.delayedCall(180, () => {
+        if (k.g.scene.isActive() && mob.active) k.moves.bind(mob, k.p(snare, 'bindMs', 600), 'b_rainSnare', center);
+      });
+      k.fire('b_rainSnare', 'snare');
+    }
     const echo = k.rt.rule('rainKillEcho');
     if (echo && died) {
       const spot = { x: mob.x, y: mob.y };
       k.g.time.delayedCall(k.p(echo, 'delayMs', 250), () => {
         if (!k.g.scene.isActive()) return;
-        const r = T(k.p(echo, 'radiusTiles', 1.2));
-        if (!k.rt.art.once(BUILD_ART.METEOR_ARROW, spot.x, spot.y, { scaleMult: PLAYER_RENDER_SCALE * 0.7 }))
-          k.rt.fx.ring(spot.x, spot.y, r, BUILD_FX.COLOR.METEOR, 200);
-        for (const m of k.rt.fx.inCircle(spot.x, spot.y, r)) k.hit(m, k.p(echo, 'damageMult', 0.5), { x: 0, y: 1 });
+        this.skyArrow(spot, T(k.p(echo, 'radiusTiles', 1.2)), k.p(echo, 'damageMult', 0.5), 'b_rainEcho');
         k.fire('b_rainEcho', 'echo');
       });
     }
-    void at;
   }
 
-  update(_now: number): void {}
+  update(now: number): void {
+    if (this.traps.length === 0) return;
+    const k = this.k;
+    const r = k.rt.rule('dashTrap');
+    this.traps = this.traps.filter((t) => {
+      if (now >= t.until || !r) {
+        this.clearTrap(t);
+        return false;
+      }
+      const victim = k.rt.fx.inCircle(t.at.x, t.at.y, T(k.p(r, 'radiusTiles', 0.7)))[0];
+      if (!victim) return true;
+      // 덫 발동: 묶음 + 한 발
+      k.hit(victim, k.p(r, 'damageMult', 0.4), { x: 0, y: -1 });
+      if (victim.active) {
+        k.moves.bind(victim, k.p(r, 'bindMs', 1200), 'b_arrowTrap', t.at);
+        this.onTrap?.(victim);
+      }
+      k.moves.fx('b_arrowTrap', t.at, { part: 'snap', fallbacks: ['hit_bow_heavy', 'hit_bow'] });
+      k.fire('b_arrowTrap', 'snap');
+      this.clearTrap(t);
+      return false;
+    });
+  }
+
+  destroy(): void {
+    for (const t of this.traps) this.clearTrap(t);
+    this.traps = [];
+    this.onTrap = null;
+  }
 }

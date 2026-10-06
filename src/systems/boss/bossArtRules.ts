@@ -3,11 +3,15 @@
  * 기둥 균열 단계 · 파훼 고리 머리 꼭대기 표 조회 · 림 시트 VRAM 예산.
  */
 
-/** 다음 균열 단과 재생할 상태 이름 (단은 maxStage 에서 멈춘다 — 그 뒤로는 `crack<max>_hit`) */
-export function nextCrack(stage: number, maxStage: number): { stage: number; state: string } {
-  if (stage >= maxStage) return { stage: maxStage, state: `crack${maxStage}_hit` };
+/**
+ * 다음 균열 단과 재생할 상태 이름. 61 단계 5 (P13 §3): maxStage 다음 충돌은 무너짐(단 = maxStage + 1, state `collapse`).
+ * 이미 무너졌으면 null (잔해 — 더 부딪힐 것이 없다)
+ */
+export function nextCrack(stage: number, maxStage: number): { stage: number; state: string; collapse: boolean } | null {
+  if (stage > maxStage) return null;
+  if (stage === maxStage) return { stage: maxStage + 1, state: 'collapse', collapse: true };
   const n = stage + 1;
-  return { stage: n, state: `crack${n}` };
+  return { stage: n, state: `crack${n}`, collapse: false };
 }
 
 type HeadTable = Record<string, Record<string, ([number, number] | null)[]>>;

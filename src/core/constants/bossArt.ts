@@ -39,9 +39,26 @@ export const BOSS_ART = {
   /** 잔 맞음(안 깨짐) struck 행 재생 ms · 파훼 머리 위 고리를 머리 꼭대기에서 위로 (월드 px) */
   CUP_STRUCK_MS: 350,
   DAZE_LIFT_PX: 2,
-  /** 기둥 균열 최대 단 (3단 뒤로는 무너뜨리지 않고 crack3 유지 — 맞으면 crack3_hit) · 돌진 충돌을 그 기둥에 매기는 거리 (월드 px) */
+  /** 기둥 균열 최대 단 (61 P13 §3: 3단 다음 충돌에서 무너짐 — 단 4 = 잔해) · 돌진 충돌을 그 기둥에 매기는 거리 (월드 px) */
   PILLAR_MAX_STAGE: 3,
   PILLAR_HIT_REACH_PX: 20,
+  /**
+   * 61 P13 §3 기둥 무너짐. 시트에 `collapse`·`rubble` 상태가 있으면 그것(무너짐 1회 → 잔해 유지), 없으면 임시: crack3 그림을
+   * 보스 반대쪽으로 TILT_DEG 기울이며 MS 동안 사라지고(FADE_FROM 부터 투명) 낮은 돌무더기(RUBBLE)를 남긴다.
+   * 칸은 무너짐이 끝날 때 연다(걷기·투사체 통과). 흔들림은 설정 배율
+   */
+  PILLAR_COLLAPSE: {
+    TILT_DEG: 80,
+    MS: 520,
+    FADE_FROM: 0.55,
+    SHAKE_PX: 6,
+    SHAKE_MS: 260,
+    RUBBLE: { STONES: 7, BODY: 0x5b4a44, TOP: 0x7c6a5e, EDGE: 0x2a2220, MIN_R: 2.5, MAX_R: 5.5, SQUASH: 0.55 },
+  },
+  /** 61 P13 §3 가려짐: 보스 바디 중심 → 주인공 바디 중심 선이 서 있는 기둥 발자국(이만큼 부풀림)을 지나면 가려짐 · 보이면 줄어드는 배율 */
+  COVER: { PAD_PX: 1, DECAY: 2 },
+  /** 61 P13 §3 보스 우회 조향: 기둥을 보스 바디 반폭 + BODY_PAD 만큼 부풀려 모서리(MARGIN 밖)로 돈다 · 모서리 고집 · 닿음 거리 */
+  STEER: { BODY_PAD_PX: 2, MARGIN_PX: 3, STICK_PX: 12, REACH_PX: 6 },
   /** 결정타 일섬 중심 = 보스 피벗 위 이 도트 (시트 anchorNote 약 150) */
   FINISHER_LIFT_DOTS: 150,
   /** 방 불 끄기 (시작 시각은 data show.defeat.snuffAtMs): 간격 ms (아트 제안 60~90 — 차례로 번갈아) */

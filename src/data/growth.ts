@@ -11,10 +11,12 @@ import { isTagId } from './buildTypes';
 import type { WeaponTable, WeaponVerbSlot } from './types';
 import {
   GROWTH_MARK_KINDS,
+  TRAIT_ACTS,
   type GrowthBranchDef,
   type GrowthData,
   type GrowthMarkDef,
   type GrowthPathDef,
+  type ResonanceDef,
   type TraitDef,
 } from './growthTypes';
 
@@ -89,6 +91,7 @@ export function validateTraits(items: TraitDef[], g: GrowthData, weapons: Weapon
     if (t.branch && !g.weapons[t.weapon]?.branches.some((b) => b.id === t.branch)) fail(`${at}.branch 알 수 없음`);
     if (!t.name || !plainLine(t.line)) fail(`${at}: 이름·한 줄(숫자 없이) 필요`);
     if (!t.effect || typeof t.effect.kind !== 'string') fail(`${at}.effect.kind 없음`);
+    if (!(TRAIT_ACTS as readonly string[]).includes(t.act)) fail(`${at}.act 알 수 없음`);
   }
   // P12: 무기당 기본 8 (4동사 × 2) + 1차 갈래마다 2
   for (const wid of Object.keys(weapons)) {
@@ -98,13 +101,51 @@ export function validateTraits(items: TraitDef[], g: GrowthData, weapons: Weapon
     for (const b of g.weapons[wid].branches)
       if (mine.filter((t) => t.branch === b.id).length !== 2) fail(`traits: ${wid}.${b.id} 갈래 개성은 2장`);
   }
+  // P13 §1-2: 환경과 엮이는 개성 무기마다 2장 이상
+  for (const wid of Object.keys(weapons))
+    if (items.filter((t) => t.weapon === wid && t.env).length < 2) fail(`traits: ${wid} 환경 개성은 2장 이상`);
   return items;
+}
+
+/**
+ * 61 단계 5 (P13 §1-4) 공명 검증: 무기마다 2~3개 · 태그는 그 무기에서 한 런에 2장을 모을 수 있어야 한다
+ * (기본 개성 2장 이상 — 갈래 개성은 갈래 하나만 고르므로 다른 갈래끼리는 모이지 않는다)
+ */
+export function validateResonance(
+  list: ResonanceDef[],
+  traits: readonly TraitDef[],
+  weapons: WeaponTable,
+): ResonanceDef[] {
+  const ids = new Set<string>();
+  for (const r of list) {
+    const at = `traits.resonance.${r.id}`;
+    if (ids.has(r.id)) fail(`${at} 중복`);
+    ids.add(r.id);
+    if (!weapons[r.weapon]) fail(`${at}.weapon 알 수 없음`);
+    if (!isTagId(r.tag)) fail(`${at}.tag 알 수 없음`);
+    if (list.some((o) => o !== r && o.weapon === r.weapon && o.tag === r.tag))
+      fail(`${at}: 같은 무기·태그 공명은 하나`);
+    const base = traits.filter((t) => t.weapon === r.weapon && t.tag === r.tag && !t.branch);
+    if (base.length < 2) fail(`${at}: 기본 개성 두 장 이상이 이 태그여야 합니다`);
+    if (!r.name || !plainLine(r.line)) fail(`${at}: 이름·한 줄(숫자 없이) 필요`);
+    if (!r.effect || typeof r.effect.kind !== 'string') fail(`${at}.effect.kind 없음`);
+  }
+  for (const wid of Object.keys(weapons)) {
+    const n = list.filter((r) => r.weapon === wid).length;
+    if (n < 2 || n > 3) fail(`traits.resonance: ${wid} 공명은 2~3개`);
+  }
+  return list;
 }
 
 export const GROWTH: GrowthData = validateGrowth(growthJson as unknown as GrowthData, WEAPONS);
 export const TRAITS: readonly TraitDef[] = validateTraits(
   (traitsJson as unknown as { items: TraitDef[] }).items,
   GROWTH,
+  WEAPONS,
+);
+export const RESONANCES: readonly ResonanceDef[] = validateResonance(
+  (traitsJson as unknown as { resonance?: ResonanceDef[] }).resonance ?? [],
+  TRAITS,
   WEAPONS,
 );
 

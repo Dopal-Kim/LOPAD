@@ -1,9 +1,9 @@
 /**
  * 대검 갈래 (60라운드 6-1 — BranchStrikes 에서 분리): 차지 균열(58 Q3, 모든 갈래 공통)에 갈래 효과를 더한다.
  * 1단 파쇄(균열 그림 1:1 교체·탄 지움)·중압(균열 대신 원형 진동) / 2단 지진(끝에서 3갈래)·반향(퍼펙트 가드 균열 반격)·
- * 거인(차지 4단 — 57 Q43, 진동 반경 5칸)·울혈(그로기 울분·폭발) / 각성 산붕(4타 충격파 `greatsword_landslide`).
+ * 거인(차지 4단 — 57 Q43, 진동 반경 5칸)·울혈(그로기 울분·폭발). (옛 각성 산붕 '4타 충격파' mountainFall 은 61 G 에서 규칙이 없어져 61 단계 5 에 코드도 뺐다)
  * 그림 (계약 art §20·§21): `greatsword_shatter_crack_t1~5`·`_snuff` · `greatsword_quake_ring`(lv1~3)·`greatsword_giant_ring`(lv4) ·
- * `greatsword_quake_fork` · `greatsword_echo_counter` · `greatsword_congest_aura`·`_burst` · `greatsword_landslide`(8방향).
+ * `greatsword_quake_fork` · `greatsword_echo_counter` · `greatsword_congest_aura`·`_burst`.
  */
 import { BUILD_ART, BUILD_FX, DEPTH, TILE } from '../../../../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload, type PlayerSkillPayload } from '../../../../core/EventBus';
@@ -11,7 +11,7 @@ import type { Mob } from '../../../../objects/Mob';
 import type { Projectile } from '../../../../objects/Projectile';
 import { param, type ActiveRule } from '../../../../systems/build/buildMods';
 import type { FxHandle } from '../../../../systems/fx/fx';
-import { artScale, rowDirFor } from '../../../../systems/sprites/spriteDefs';
+import { artScale } from '../../../../systems/sprites/spriteDefs';
 import { PLAYER_RENDER_SCALE } from '../../../../systems/weapon/playerScale';
 import { T, type BranchKit, type Dir } from './BranchKit';
 
@@ -24,28 +24,6 @@ export class GreatswordBranch {
   private congestFx: FxHandle | null = null;
 
   constructor(private readonly k: BranchKit) {}
-
-  /** 공격 페이로드 (각성 산붕: 4타(V) 내려찍기마다 충격파 — greatsword_landslide 가 있으면 꽂아내리기 충격파 대신 그 시트) */
-  onAttack(p: PlayerAttackPayload): void {
-    const k = this.k;
-    const g = k.g;
-    const fall = k.rt.rule('mountainFall');
-    if (!fall || p.comboIndex !== param(fall, 'comboIndex', 3)) return;
-    g.time.delayedCall(Math.max(0, p.swingDelayMs), () => {
-      if (!g.scene.isActive()) return;
-      const pl = g.player;
-      const len = T(param(fall, 'waveTiles'));
-      const dir = { x: p.dirX, y: p.dirY };
-      const sheet = g.fx.sheet(BUILD_ART.LANDSLIDE);
-      const drawn =
-        sheet !== null &&
-        g.fx.play(BUILD_ART.LANDSLIDE, pl.x + dir.x * TILE, pl.y + dir.y * TILE, {
-          dir: rowDirFor(sheet, dir.x, dir.y, pl.facingDir),
-          scaleMult: PLAYER_RENDER_SCALE,
-        }) !== null;
-      k.line(pl.x, pl.y, dir, len, TILE * 0.6, param(fall, 'waveMult'), 'mountainFall', { outline: !drawn });
-    });
-  }
 
   /**
    * 대검 차지 균열 (58 Q3, CrackLineStrikes 가 판정 순간 부른다 — 갈래별 충격파 교체 지점):
@@ -137,8 +115,12 @@ export class GreatswordBranch {
       const dy = pr.y - start.y;
       const along = dx * dir.x + dy * dir.y;
       if (along < 0 || along > len || Math.abs(dx * dir.y - dy * dir.x) > half + 4) continue;
-      if (reflect) pr.reflect(1);
-      else {
+      if (reflect) {
+        pr.reflect(1);
+        // 61 단계 5 (P13) 개성 '갈라진 길' 발동 (음향 TRAIT_PROC)
+        k.rt.traits.moves.fx('splitRoad', pr, { fallbacks: ['katana_whirl_reflect', 'hit_spark'] });
+        k.effect('splitRoad', 'reflect');
+      } else {
         // 파쇄: 균열에 삼켜진 탄 자리 greatsword_shatter_snuff (+ 음향 gs_shatter_snuff)
         const snuff = k.mpStr('crush', 'snuffFx');
         if (snuff && k.g.fx.has(snuff)) k.g.fx.play(snuff, pr.x, pr.y, { depth: DEPTH.HIT_FX });
@@ -182,6 +164,8 @@ export class GreatswordBranch {
     }
     const mult = lv4 ? param(giant!, 'ringMult', 1) * k.mp(id, 'damageMult') : k.mp(id, 'damageMult');
     const hits = rt.fx.inCircle(at.x, at.y, r);
+    // 61 단계 5 (P13) 짓눌린 숨: 진동 한가운데로 끌어모아 서로 부딪치게 (끌어당기기 대신)
+    const gather = rt.rule('ringGather');
     for (const m of hits) {
       const d = { x: at.x - m.x, y: at.y - m.y };
       const died = k.strike(
@@ -192,20 +176,36 @@ export class GreatswordBranch {
           stunMs: k.mp(id, 'stunMs'),
         },
       );
-      if (!died && !m.isBoss && m.active) m.shove(d.x, d.y, Math.min(pull, Math.hypot(d.x, d.y)), 140);
+      if (died || m.isBoss || !m.active) continue;
+      if (gather) {
+        const moves = rt.traits.moves;
+        moves.chainLine(m, at, BUILD_FX.COLOR.RING, 240);
+        moves.pull(m, at, Math.hypot(d.x, d.y) / TILE, 'g_crushedBreath', {
+          stopTiles: 0.3,
+          slamMult: param(gather, 'slamMult', 0.4),
+          slamStunMs: param(gather, 'slamStunMs', 500),
+        });
+      } else m.shove(d.x, d.y, Math.min(pull, Math.hypot(d.x, d.y)), 140);
     }
-    const breath = rt.rule('ringGrudge');
-    const gr = g.player.gauges.grudge;
-    if (breath && gr) gr.value = Math.min(gr.max, gr.value + gr.max * param(breath, 'perHit') * hits.length);
+    if (gather && hits.length > 0) {
+      rt.traits.moves.fx('g_crushedBreath', at, { depth: DEPTH.FX_GROUND });
+      k.effect('g_crushedBreath', 'gather', hits.length);
+    }
     const jar = rt.rule('jarCrush');
     if (jar) {
       const pools = rt.fx.poolsNear(at.x, at.y, r);
       if (pools.length > 0) {
-        for (const q of pools) q.until = k.now;
+        for (const q of pools) {
+          rt.traits.moves.chainLine({ x: q.rect.centerX, y: q.rect.centerY }, at, BUILD_FX.COLOR.LIQUOR, 320);
+          q.until = k.now;
+        }
+        k.effect('jarCrush', 'gather', pools.length);
         const big = rt.fx.liquorPool(at.x, at.y, T(param(jar, 'radiusTiles')), 8000);
         const burstR = T(param(jar, 'burstRadiusTiles'));
         big.spec.onIgnite = () => {
-          rt.fx.ring(at.x, at.y, burstR, BUILD_FX.COLOR.BURN);
+          if (!rt.traits.moves.fx('jarCrush', at, { part: 'burst', fallbacks: ['fire_bottle_burst'] }))
+            rt.fx.ring(at.x, at.y, burstR, BUILD_FX.COLOR.BURN);
+          k.effect('jarCrush', 'burst');
           for (const m of rt.fx.inCircle(at.x, at.y, burstR))
             rt.fx.damage(m, param(jar, 'burstMult'), { dirX: 0, dirY: 0 });
         };

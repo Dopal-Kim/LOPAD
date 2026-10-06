@@ -1,11 +1,12 @@
 /**
  * 경제: 처치 드랍 · 줍기 · 골드 · 물약 · 상점 타일(메뉴 열기/닫기·구매).
  */
-import { EventBus, Events } from '../../core/EventBus';
+import { DROP_ART } from '../../core/Constants';
+import { EventBus, Events, type GoldChangedPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { ECONOMY, STORY } from '../../data';
 import type { Mob } from '../../objects/Mob';
-import type { Pickup } from '../../objects/Pickup';
+import type { Pickup, PickupMagnet } from '../../objects/Pickup';
 import { goldCost, rollGold, shopPrice } from '../../systems/economy';
 import { kindDef } from '../../systems/route';
 import type { UiInteractable } from '../../contract/ui';
@@ -39,24 +40,36 @@ export class Economy {
     const g = this.g;
     const pk = g.pickups.get() as Pickup | null;
     if (!pk) return;
-    const jx = (g.rng.next() - 0.5) * 12;
-    const jy = (g.rng.next() - 0.5) * 12;
-    pk.spawn(x + jx, y + jy, kind, value, ECONOMY.gold.dropLifeMs, g.time.now);
+    // 61 P13 §4: 떨군 자리에서 흩뿌려져 떨어진다 (그림만 날아가고 판정은 떨어질 자리)
+    const ang = g.rng.next() * Math.PI * 2;
+    const r = DROP_ART.SCATTER_MIN_PX + g.rng.next() * (DROP_ART.SCATTER_MAX_PX - DROP_ART.SCATTER_MIN_PX);
+    const to = this.g.world?.isWalkableAt(x + Math.cos(ang) * r, y + Math.sin(ang) * r)
+      ? { x: x + Math.cos(ang) * r, y: y + Math.sin(ang) * r }
+      : { x, y };
+    pk.spawn(to.x, to.y, kind, value, ECONOMY.gold.dropLifeMs, g.time.now, { x, y });
   }
 
   onPickup(pk: Pickup): void {
     if (!pk.active) return;
     if (pk.kind === 'gold') {
-      pk.deactivate();
+      pk.collect(this.g.time.now);
       // 47라운드 1-3: 빚이 있으면 일부 자동 상환
       const kept = this.g.structures.onGoldPickup(pk.value);
-      if (kept > 0) this.addGold(kept);
+      if (kept > 0) this.addGold(kept, 'pickup');
     } else if (gameState.potions < this.potionCarry) {
-      pk.deactivate();
+      pk.collect(this.g.time.now);
       gameState.potions += 1;
       EventBus.emit(Events.ITEM_PICKED, { kind: pk.kind, value: pk.value });
       EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
     }
+  }
+
+  /** 61 P13 §4 자석 흡수 대상: 주인공 바디 중심 · 물약은 가득이면 끌지 않는다 */
+  magnet(): PickupMagnet | null {
+    const pl = this.g.player;
+    if (!pl?.active || gameState.gameOver) return null;
+    const c = pl.body.center;
+    return { x: c.x, y: c.y, ok: (kind) => kind === 'gold' || gameState.potions < this.potionCarry };
   }
 
   /** 물약 최대 소지 = 기본 + 영구 강화 */
@@ -64,9 +77,13 @@ export class Economy {
     return ECONOMY.drops.potion.maxCarry + gameState.meta.potionCarry + (this.g.build?.potionMaxAdd() ?? 0);
   }
 
-  addGold(amount: number): void {
+  addGold(amount: number, source?: GoldChangedPayload['source']): void {
     gameState.gold += amount;
-    EventBus.emit(Events.GOLD_CHANGED, { gold: gameState.gold, delta: amount });
+    EventBus.emit(Events.GOLD_CHANGED, {
+      gold: gameState.gold,
+      delta: amount,
+      ...(source ? { source } : {}),
+    } satisfies GoldChangedPayload);
   }
 
   /** 47라운드 구조물 지불 (궤짝·잔·판돈 등) */

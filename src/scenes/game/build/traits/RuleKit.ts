@@ -1,6 +1,7 @@
 /**
  * 61 G 개성·셋째 갈래 규칙 공용 도우미: 규칙 수치 · 한 번 피해(빌드 배율·처치 경로) · 밀기·당기기·경직 · 분신 선 베기 · 투사체 ·
- * 음향 훅(BRANCH_EFFECT — branch = 개성 id 또는 갈래 노드 id). 그림이 없으면 윤곽 플레이스홀더(BuildEffects).
+ * 음향 훅(BRANCH_EFFECT — branch = 개성 id 또는 갈래 노드 id → 개성이면 TraitRules 가 TRAIT_PROC). 그림이 없으면 윤곽(BuildEffects).
+ * 61 단계 5 (P13): 보이는 새 행동(띄움·처박기·끌어당김·묶음·불똥)은 `moves`(TraitMoves). 개성 피해를 받은 적은 `traitHitAt`(공명).
  */
 import { BUILD_FX, TILE } from '../../../../core/Constants';
 import { EventBus, Events, type BranchEffectPayload, type PlayerAttackPayload } from '../../../../core/EventBus';
@@ -9,6 +10,7 @@ import type { Projectile } from '../../../../objects/Projectile';
 import { param, type ActiveRule } from '../../../../systems/build/buildMods';
 import type { Game } from '../../../Game';
 import type { BuildRuntime } from '../BuildRuntime';
+import { TraitMoves } from './TraitMoves';
 
 export type Pt = { x: number; y: number };
 
@@ -19,11 +21,17 @@ export class RuleKit {
   lastAttack: { p: PlayerAttackPayload; at: number } | null = null;
   /** 디버그: 마지막 규칙 발동 */
   last: Record<string, unknown> = {};
+  /** 61 단계 5: 보이는 새 행동 도구 */
+  readonly moves: TraitMoves;
+  /** 61 단계 5 공명: 개성 피해를 마지막으로 받은 시각 */
+  readonly traitHitAt = new WeakMap<Mob, number>();
 
   constructor(
     readonly g: Game,
     readonly rt: BuildRuntime,
-  ) {}
+  ) {
+    this.moves = new TraitMoves(this);
+  }
 
   get now(): number {
     return this.g.time.now;
@@ -43,7 +51,8 @@ export class RuleKit {
 
   /** 공격력 × mult 피해 (빌드 배율·치명 굴림 · 처치면 처치 경로). 처치면 true */
   hit(mob: Mob, mult: number, dir: Pt, o: { heavy?: boolean; forceCrit?: boolean } = {}): boolean {
-    if (!mob.active) return false;
+    if (!mob.active || mult <= 0) return false;
+    this.traitHitAt.set(mob, this.now);
     return this.rt.fx.damage(mob, mult, {
       dirX: dir.x,
       dirY: dir.y,
@@ -89,7 +98,7 @@ export class RuleKit {
     from: Pt,
     dir: Pt,
     mult: number,
-    o: { tag: string; speedTiles: number; rangeTiles: number; pierce?: number; tint?: number },
+    o: { tag: string; speedTiles: number; rangeTiles: number; pierce?: number; tint?: number; sprite?: string },
   ): Projectile | null {
     const { dmg, crit } = this.g.combat.rollDamage(mult, false, 'other');
     const sm = this.rt.combat.shotMods();
@@ -100,7 +109,7 @@ export class RuleKit {
       lifeMs: (o.rangeTiles / speed) * 1000,
       pierce: o.pierce ?? 0,
       crit,
-      tint: o.tint ?? BUILD_FX.COLOR.THROW,
+      ...(o.sprite && this.g.fx.has(o.sprite) ? { sprite: o.sprite } : { tint: o.tint ?? BUILD_FX.COLOR.THROW }),
     });
   }
 

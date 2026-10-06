@@ -633,7 +633,8 @@ export class Game extends Phaser.Scene {
     this.bundle.lateUpdate(time);
     this.telegraph.update(time);
     for (const child of this.projectiles.getChildren()) (child as Projectile).tick(time);
-    for (const child of this.pickups.getChildren()) (child as Pickup).tick(time);
+    const magnet = this.economy.magnet();
+    for (const child of this.pickups.getChildren()) (child as Pickup).tick(time, delta, magnet);
     for (const child of this.playerShots.getChildren()) (child as Projectile).tick(time);
     this.structures.tickShots(this.playerShots.getChildren() as Projectile[]);
     this.bossArena?.tickShots(this.playerShots.getChildren() as Projectile[]);

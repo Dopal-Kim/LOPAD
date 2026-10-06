@@ -5,7 +5,7 @@
  * 계약 UI §18: 스냅샷 `growth` · 이벤트 GROWTH_GAIN·AWAKEN·TRAIT_GAINED · firstTime = 메타 일기장 `diary.guides`.
  * 시스템 이벤트(음향 sound §10·런 로그): GROWTH_GAINED · GROWTH_MARK · TRAIT_GAINED · WEAPON_AWAKEN · WEAPON_TEMPERED.
  */
-import { ASSETS, BUILD_ART } from '../../../core/Constants';
+import { BUILD_ART } from '../../../core/Constants';
 import {
   EventBus,
   Events,
@@ -24,9 +24,9 @@ import { effectiveKind, pendingMarkOf, type GrowthMark } from '../../../systems/
 import { growthMenu, type GrowthChoice, type GrowthMenu } from '../../../systems/growth/growthMenu';
 import { GUIDE_KINDS, uiGrowth, uiTrait, type GuideKind } from '../../../systems/growth/uiGrowth';
 import { diaryNow, recordGuide, updateDiary } from '../../../systems/narrative/diary';
-import { assetListed } from '../../../systems/sprites/sheetLoader';
 import { evolutionLine, fill } from '../../../systems/story';
 import type { Game } from '../../Game';
+import { GrowthArt } from './GrowthArt';
 
 export class GrowthFlow {
   /** 디버그: 마지막 메뉴 · 최근 사건 */
@@ -36,10 +36,13 @@ export class GrowthFlow {
   private guides: string[];
   private open: { menu: GrowthMenu; mark: GrowthMark } | null = null;
 
+  private readonly art: GrowthArt;
+
   constructor(private readonly g: Game) {
     this.guides = [...diaryNow().guides];
-    // art §26 미리보기 (UI 선택 화면·성장도 나무) — 이 무기 것만, 작은 정지 그림
-    this.loadLooks();
+    // art §26 미리보기 (UI 선택 화면·성장도 나무) · §27 개성 카드 그림 — 이 무기 것만, 작은 정지 그림
+    this.art = new GrowthArt(g);
+    this.art.load(gameState.weapon.id);
   }
 
   private get floor() {
@@ -89,6 +92,7 @@ export class GrowthFlow {
       this.floor,
       () => g.rng.next(),
       (wid, b, s, p) => this.lookKey(wid, b, s, p),
+      (wid, id) => this.iconKey(wid, id),
     );
     if (!menu) {
       // 고를 것이 없다 (개성·단련을 다 얻음) — 눈금만 지나간다
@@ -140,7 +144,10 @@ export class GrowthFlow {
     const t = traitDef(id);
     if (!t || !w.addTrait(id)) return false;
     gameState.build.touch();
-    __system.emit(UI_EVENTS.TRAIT_GAINED, uiTrait(t));
+    __system.emit(
+      UI_EVENTS.TRAIT_GAINED,
+      uiTrait(t, (wid, tid) => this.iconKey(wid, tid)),
+    );
     EventBus.emit(Events.TRAIT_GAINED, {
       weapon: w.id,
       id,
@@ -211,38 +218,16 @@ export class GrowthFlow {
     updateDiary((d) => recordGuide(d, kind as GuideKind));
   }
 
-  // --- 미리보기 그림 (art §26 looks — 있으면 UI 가 쓴다) ---
-
-  /** art §26 미리보기 파일: `<무기>_base` · `<무기>_<갈래>_a1` · `<무기>_<갈래>_a2_<길>`(길 색을 구운 완성 그림) */
-  private lookFile(weapon: string, branch: string | null, stage: 0 | 1 | 2, path?: string): string {
-    if (!branch || stage === 0) return `${weapon}_base.png`;
-    return stage === 2 && path ? `${weapon}_${branch}_a2_${path}.png` : `${weapon}_${branch}_a${stage}.png`;
-  }
+  // --- 그림 (art §26 미리보기 · §27 개성 카드 — GrowthArt) ---
 
   /** 로드된 미리보기 텍스처 키 (없으면 undefined) */
   lookKey(weapon: string, branch: string | null, stage: 0 | 1 | 2, path?: string): string | undefined {
-    const key = `growth_look_${this.lookFile(weapon, branch, stage, path).replace('.png', '')}`;
-    return this.g.textures.exists(key) ? key : undefined;
+    return this.art.lookKey(weapon, branch, stage, path);
   }
 
-  /** 씬 시작 — 이 무기의 기본·갈래 3·길 6 미리보기를 (매니페스트에 있으면) 받아 둔다 */
-  private loadLooks(): void {
-    const g = this.g;
-    const w = gameState.weapon;
-    const files = [this.lookFile(w.id, null, 0)];
-    for (const b of GROWTH.weapons[w.id]?.branches ?? []) {
-      files.push(this.lookFile(w.id, b.id, 1));
-      for (const p of b.paths) files.push(this.lookFile(w.id, b.id, 2, p.id));
-    }
-    let queued = false;
-    for (const f of files) {
-      const rel = `${ASSETS.LOOKS_DIR}/${f}`;
-      const key = `growth_look_${f.replace('.png', '')}`;
-      if (g.textures.exists(key) || !assetListed(rel)) continue;
-      g.load.image(key, `${ASSETS.URL}/${rel}`);
-      queued = true;
-    }
-    if (queued && !g.load.isLoading()) g.load.start();
+  /** 로드된 개성 카드 그림 키 (없으면 undefined) */
+  iconKey(weapon: string, traitId: string): string | undefined {
+    return this.art.iconKey(weapon, traitId);
   }
 
   // --- 스냅샷 ---
@@ -251,6 +236,7 @@ export class GrowthFlow {
     return uiGrowth(gameState.weapon, this.floor, {
       guides: this.guides,
       look: (wid, b, s, p) => this.lookKey(wid, b, s, p),
+      icon: (wid, id) => this.iconKey(wid, id),
     });
   }
 

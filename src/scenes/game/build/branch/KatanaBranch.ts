@@ -9,7 +9,7 @@ import { EventBus, Events, type PlayerSkillPayload } from '../../../../core/Even
 import { gameState } from '../../../../core/GameState';
 import type { Mob } from '../../../../objects/Mob';
 import type { Projectile } from '../../../../objects/Projectile';
-import { param } from '../../../../systems/build/buildMods';
+import { param, type ActiveRule } from '../../../../systems/build/buildMods';
 import type { FxHandle } from '../../../../systems/fx/fx';
 import { facingOf } from '../../../../systems/sprites/spriteDefs';
 import { PLAYER_RENDER_SCALE } from '../../../../systems/weapon/playerScale';
@@ -57,7 +57,20 @@ export class KatanaBranch {
       const pools = rt.fx.poolsNear(pl.x, pl.y, T(param(whirl, 'pullTiles')));
       radius += Math.min(T(param(whirl, 'maxTiles')), pools.length * T(param(whirl, 'perPoolTiles')));
       if (pools.some((q) => g.pools.burning(q))) fireExtra = param(whirl, 'fireMult');
-      for (const q of pools) q.until = k.now;
+      // 61 단계 5 (P13): 빨려 드는 술 줄기 · 불붙은 술이면 불 회오리
+      const moves = rt.traits.moves;
+      for (const q of pools) {
+        moves.chainLine({ x: q.rect.centerX, y: q.rect.centerY }, { x: pl.x, y: pl.y }, BUILD_FX.COLOR.LIQUOR, 320);
+        q.until = k.now;
+      }
+      if (pools.length > 0) {
+        moves.fx('liquorWhirl', pl, {
+          part: fireExtra > 0 ? 'fire' : undefined,
+          fallbacks: fireExtra > 0 ? ['pool_liquor_fire', 'fire_pool'] : ['pool_liquor'],
+          depth: DEPTH.FX_GROUND,
+        });
+        k.effect('liquorWhirl', fireExtra > 0 ? 'fire' : 'whirl');
+      }
     }
     const res = pl.resource;
     if (res?.def.kind === 'stamina') res.spend(res.max * k.mp(id, 'staminaRatio'), k.now);
@@ -94,6 +107,8 @@ export class KatanaBranch {
       const gale = rt.rule('spinChain');
       if (gale && kills > 0) {
         const n = Math.min(kills, param(gale, 'maxExtra', 3));
+        k.effect('bloodGale', 'spin', n);
+        rt.traits.moves.fx('bloodGale', pl, { fallbacks: ['chain_bloodlust'], depth: DEPTH.FX_GROUND });
         for (let i = 1; i <= n; i++) g.time.delayedCall(param(gale, 'delayMs', 160) * i, () => hitAll(m * 0.7));
       }
       // 잔월: 검기를 쓴 회전이 지나간 자리에 달 궤적
@@ -236,27 +251,22 @@ export class KatanaBranch {
     this.skill({ move: 'guardbreak', phase: 'strike', impactDelayMs: windup });
     const len = T(k.mp(id, 'lengthTiles')) * k.hitScale();
     const half = (T(k.mp(id, 'widthTiles')) * k.hitScale()) / 2;
-    const helm = rt.rule('helmBreak');
+    const sparks = rt.rule('kabutoSparks');
     const release = { x: pl.x, y: pl.y };
     g.time.delayedCall(windup, () => {
       if (!g.scene.isActive()) return;
       const x0 = pl.x;
       const y0 = pl.y - HIT_ORIGIN_UP_PX;
       if (!drawnGb) rt.fx.lineFx(x0, y0, dir.x, dir.y, len, half, BUILD_FX.COLOR.UNBLOCKABLE);
-      let refunded = false;
       for (const mob of rt.fx.inLine(x0, y0, dir.x, dir.y, len, half)) {
-        const stunned = mob.isStunned(k.now);
-        const mult =
-          k.mp(id, 'damageMult') * gameState.weapon.reinforceMult * (helm && stunned ? param(helm, 'mult') : 1);
+        const mult = k.mp(id, 'damageMult') * gameState.weapon.reinforceMult;
         if (this.execute(mob, dir)) continue;
         k.strike(mob, k.payload(x0, y0, dir, mult, 'unblockable', { forceCrit: crit, ignoreGuard: true }), dir, {
           stunMs: k.mp(id, 'stunMs'),
         });
-        if (helm && stunned && !refunded && res?.def.kind === 'stamina') {
-          refunded = true;
-          res.value = Math.min(res.max, res.value + res.max * param(helm, 'staminaRefund'));
-        }
       }
+      // 61 단계 5 (P13) 불똥 내려베기: 내려친 선을 따라 불똥 — 술 웅덩이 점화 · 술통 터뜨림 · 끝에 작은 불씨
+      if (sparks) this.sparkLine(sparks, { x: pl.x, y: pl.y }, dir, len);
       // 일도양단: 끝에서 직선 균열 (60 Q3 아트 제안 4칸 채택 — 데이터 crackTiles) · katana_cleave_crack 은 뗀 자리·4행, 판정 + 40ms
       const cl = rt.rule('cleave');
       if (cl) {
@@ -281,6 +291,36 @@ export class KatanaBranch {
     });
     k.last = { move: 'unblockable', crit, len, t: Math.round(k.now) };
     rt.record('unblockable');
+  }
+
+  /** 불똥 내려베기 (61 단계 5 개성 k_sparkCleave): 발 자리에서 앞으로 len — 바닥 선 */
+  private sparkLine(r: ActiveRule, from: Dir, dir: Dir, len: number): void {
+    const k = this.k;
+    const rt = k.rt;
+    const moves = rt.traits.moves;
+    const half = T(param(r, 'widthTiles', 1.2)) / 2;
+    const lit = moves.igniteLine(from, dir, len, half);
+    const burst = moves.burstCasksOnLine(from, dir, len, half);
+    const n = Math.max(2, Math.round(len / TILE));
+    for (let i = 1; i <= n; i++) {
+      const at = { x: from.x + (dir.x * len * i) / n, y: from.y + (dir.y * len * i) / n };
+      k.g.time.delayedCall(i * 40, () => {
+        if (!k.g.scene.isActive()) return;
+        if (!moves.fx('k_sparkCleave', at, { part: 'spark', depth: DEPTH.FX_GROUND })) moves.sparks(at);
+      });
+    }
+    const end = { x: from.x + dir.x * len, y: from.y + dir.y * len };
+    if (!moves.fx('k_sparkCleave', end, { fallbacks: ['fire_pool'], depth: DEPTH.FX_GROUND }))
+      rt.fx.ring(end.x, end.y, T(param(r, 'emberTiles', 0.6)), BUILD_FX.COLOR.EMBER, 300);
+    rt.fx.firePatch(
+      end.x,
+      end.y,
+      T(param(r, 'emberTiles', 0.6)),
+      param(r, 'emberMs', 1200),
+      param(r, 'emberTickMs', 400),
+      param(r, 'emberMult', 0.15),
+    );
+    k.effect('k_sparkCleave', lit + burst > 0 ? 'ignite' : 'sparks');
   }
 
   /** 일도양단 처형: HP 비율 이하 일반 적 즉시 처치 (보스·엘리트는 피해 ×bossMult). 처리했으면 true */

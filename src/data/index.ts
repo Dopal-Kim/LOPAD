@@ -399,6 +399,12 @@ export function validateEconomy(e: EconomyData): EconomyData {
   for (const [k, val] of Object.entries(e.gold)) assertNumber(val, `economy.gold.${k}`);
   for (const k of ['chance', 'heal', 'maxCarry'] as const) assertNumber(e.drops.potion[k], `economy.drops.potion.${k}`);
   if (!(e.drops.potion.rarity in e.rarity)) throw new Error('[data] economy.drops.potion.rarity 가 rarity 표에 없음');
+  assertNumber(e.pickup?.magnetTiles, 'economy.pickup.magnetTiles');
+  assertNumber(e.pickup?.magnetMaxTiles, 'economy.pickup.magnetMaxTiles');
+  assertNumber(e.pickup?.voucherSize?.mid, 'economy.pickup.voucherSize.mid');
+  assertNumber(e.pickup?.voucherSize?.large, 'economy.pickup.voucherSize.large');
+  if (e.pickup.voucherSize.large < e.pickup.voucherSize.mid)
+    throw new Error('[data] economy.pickup.voucherSize.large 는 mid 이상');
   const raritySum = Object.values(e.rarity).reduce((a, b) => a + b, 0);
   if (raritySum !== 100) throw new Error(`[data] economy.rarity 합이 100 이어야 합니다 (현재 ${raritySum})`);
   if (e.shop.items.length === 0) throw new Error('[data] economy.shop.items 비어 있음');

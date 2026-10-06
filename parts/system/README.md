@@ -52,15 +52,15 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 ### `src/objects/`
 - `Player.ts` — 상태 머신(이동·달리기·대쉬·연격 입력·피격) + `player/*`(MeleeDriver 연격 · SecondaryDriver 우클릭 · BasicMoves/BranchMoves·무기별 moves 기본기 · PlayerDefense 피격·가드·패링 · PlayerGauges 고유 자원 · PlayerGear 무기 자원·휴대 · PlayerPoses 자세 · ScarOverlay 등 상흔).
 - `GrowthOverlay`(61 G 각성 외형 a1·a2·a2_glow — WeaponOverlay 가 쓴다)
-- `Mob.ts`(적·보스 공통 바탕) · `Enemy.ts`(일반 적 행동: 추격·사격·돌진·방패·집단 돌격 · 61: 독주 행상·술통 짐꾼은 `enemy/hazardBrains`) · `Boss.ts` + `boss/*`(패턴 상태 머신, `boss/patterns/*` 패턴별) · `Projectile` · `Pickup` · `LabDummy` · `EntityVisual`(시트 애니·그림자·시체) · `WeaponOverlay`(무기 오버레이).
+- `Mob.ts`(적·보스 공통 바탕) · `Enemy.ts`(일반 적 행동: 추격·사격·돌진·방패·집단 돌격 · 61: 독주 행상·술통 짐꾼은 `enemy/hazardBrains`) · `Boss.ts` + `boss/*`(패턴 상태 머신, `boss/patterns/*` 패턴별 — 61 P13 `lobBottle` 포물선 술병은 `urgent` 로 간격 무시) · `Projectile` · `Pickup`(판정) + `drop/DropVisual`(61 P13 바닥 줍기 그림 — items/v3 시트·임시 도형·그림자·흩뿌림·자석·팝, 소모품 드랍도 같이) · `LabDummy` · `EntityVisual`(시트 애니·그림자·시체) · `WeaponOverlay`(무기 오버레이).
 
 ### `src/systems/` (Phaser 의존을 줄인 규칙·계산 — 대부분 단위 테스트가 붙어 있다)
 - 런·진행: `route`(노드 지도 생성·검증, 61: 단마다 종류·웨이브 `columns`·`nodeWaves`) · `routeArena`(노드 전투장, 61: 방 다양화 `arenaVariety`·세트 후보 `pickSetPiece`·소품 장면 `pickPropScene`) · `enemyIntro`(새 적 소개) · `RoomDirector`(방 상태 머신·웨이브) · `save`(런 세이브 `lopad.save`) · `meta`(메타 세이브 `lopad.meta`: 영혼·강화·도감·**설정·런 로그**) · `personality` · `passives` · `senses` · `economy` · `story` · `tutorial`/`tutorialDirector` · `birth` · `traversal` · `TextMenu`(메뉴 브로커)
 - 근접 판정(61 단계 4): 방향 = 판정 원점(발 위 가슴)에서 커서로 · 맞음 = 바디에서 그림 몸통 중심까지(`weapon/hitShapes.shapeHitBody`) · 단검 가속 그림만큼 찌르기 길이(`reachMult`)
-- 전투 감각: `feel`(히트스톱·흔들림·넉백·`feelSettings` 배율) · `hitFeel` · `Combat`·`defense` · `packCharge` · `weapon/*`(연격·판정 모양 `hitShapes`·자원·고유 자원·활 당김·4동사 `verbs` 등) · `telegraph/*` · `hazards/*`(술 웅덩이 `LiquorPools` · 61 신규 적 위험물 `EnemyHazards` — 화염 술병·술통 굴림·되치기, 계산 `hazardMath`) · `boss/*`(보스 전장 `BossArena` — 61 단계 4: 소등(등불 끄기·처치 때 불 끄기·림)은 `arenaDarkness`·불타기·'세상이 돈다' `drunkScreen` · 61 E: 약점 잔 `cupWeakPoint`·기둥 균열 `pillars`·파훼 고리 `breakDaze`·소등 림 `bossRim`(원 림 / 가벼운 림 `_rim_lite` / tintFill — `bossVram.rimKind`)·보스방 VRAM 지연 로드 `bossVram`·로드 묶음 `bossSheets`·등장 시간표 `introArt`·순수 규칙 `bossArtRules`)
+- 전투 감각: `feel`(히트스톱·흔들림·넉백·`feelSettings` 배율) · `hitFeel` · `Combat`·`defense` · `packCharge` · `weapon/*`(연격·판정 모양 `hitShapes`·자원·고유 자원·활 당김·4동사 `verbs` 등) · `telegraph/*` · `hazards/*`(술 웅덩이 `LiquorPools` · 61 신규 적 위험물 `EnemyHazards` — 화염 술병·술통 굴림·되치기, 계산 `hazardMath`) · `boss/*`(보스 전장 `BossArena` — 61 단계 4: 소등(등불 끄기·처치 때 불 끄기·림)은 `arenaDarkness`·불타기·'세상이 돈다' `drunkScreen` · 61 E: 약점 잔 `cupWeakPoint`·기둥 균열·무너짐 `pillars`(61 단계 5 P13: 3단 다음 충돌 → 잔해, 칸 열기)·기둥 가려짐·보스 우회 조향 `pillarCover`(순수 기하 `pillarGeom`)·술 웅덩이 칸 `bossLiquor`·파훼 고리 `breakDaze`·소등 림 `bossRim`(원 림 / 가벼운 림 `_rim_lite` / tintFill — `bossVram.rimKind`)·보스방 VRAM 지연 로드 `bossVram`·로드 묶음 `bossSheets`·등장 시간표 `introArt`·순수 규칙 `bossArtRules`)
 - 무기 성장 `growth/*`(61 G P12 — 눈금 `growth`·메뉴 `growthMenu`·스냅샷 `uiGrowth`) · 빌드 축 `build/*` · 2차 묶음 `bundle2/*` · 구조물 `structures/*`(StructureSystem 창구 + core·kinds·interact·placement·setpiece)
-- 그림·소리: `sprites/*`(시트 경로·로드 묶음 `sheetSets`·애니 등록 · 61 E 노드별 묶음·씬 도중 로드/해제 `lazySheets`) · `fx/*`(FxPool·섬광 `screenFx`·피해 숫자·리본·잔상 · 씬 종료 중 반납 검사 `fxRelease` · 피해 숫자 합치기/비켜 띄우기 `damageNumberLayout`) · `lighting/*` · `strokeFx/*`(3획 연출) · `dodgeTrial/*`(회피 시험) · `audio/*`(오디오 매니저 `audio` · 이벤트 → 효과음 표 `audioMap`·`audioBuild` · 61 믹싱 규칙 `audioMix`·목소리 상한/덕킹 `audioVoices`·층 BGM 지연 로드 `audioLazy`) · `palette` · `display`(1920×1080 캔버스·논리 960×540) · `fonts`
-- 61라운드 도구: `settings`(계약 §15 설정 적용·저장) · `runlog/*`(런 로그) · `sim/*`(헤드리스 수치 추정) · `vram`(텍스처 VRAM 추정)
+- 그림·소리: `sprites/*`(시트 경로·로드 묶음 `sheetSets`·애니 등록 · 61 E 노드별 묶음·씬 도중 로드/해제 `lazySheets`) · `fx/*`(FxPool·섬광 `screenFx`·피해 숫자·리본·잔상 · 씬 종료 중 반납 검사 `fxRelease` · 피해 숫자 합치기/비켜 띄우기 `damageNumberLayout`) · `lighting/*` · `strokeFx/*`(3획 연출) · `dodgeTrial/*`(회피 시험) · `audio/*`(오디오 매니저 `audio` · 이벤트 → 효과음 표 `audioMap`·`audioBuild` · 61 믹싱 규칙 `audioMix`·목소리 상한/덕킹 `audioVoices`·층 BGM 지연 로드 `audioLazy` · 61 P13 기둥 무너짐·포물선 술병·줍기 `audioDrops`) · `palette` · `display`(1920×1080 캔버스·논리 960×540) · `fonts`
+- 61라운드 도구: `settings`(계약 §15 설정 적용·저장) · `runlog/*`(런 로그) · `sim/*`(헤드리스 수치 추정 — 61 P13 `pillarSim` 기둥 숨기 전략 시뮬) · `drops/*`(줍기 규칙: 전표 무더기 크기·시트 프레임·자석 걸음) · `vram`(텍스처 VRAM 추정)
 - 기타: `mapgen/*`(방+복도 층 — 노드 지도 이전 층 형식) · `setup/*`(개성 선택 계산) · `rng` · `mathUtil` · `keyEvents` · `InputSystem`
 
 ### `src/world/`
@@ -82,7 +82,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 | `stages.json` | 층 순서·세이브 횟수·**로드 층 수(`loadFloors`)** · 층별 적 배율·웨이브 |
 | `route.json` | 노드 지도(층 여정·갈래·노드 종류·지역·세트 배치·튜토리얼 · 61: 1층 `columns` 단별 종류·웨이브, `arena.variety` 방 다양화, 전투 세트 후보 `setPieceVariants`) |
 | `structures.json` | 상호작용 구조물 |
-| `economy.json` · `meta.json` | 드랍·상점·능력치 보상 · 영혼·영구 강화 |
+| `economy.json` · `meta.json` | 드랍·상점·능력치 보상(61 P13 `pickup` 자석·전표 무더기 경계) · 영혼·영구 강화 |
 | `personality.json` | 개성 선택 의식 가중 |
 | `build.json` · `passives.json` · `curses.json` | 빌드 축(태그·세트·패시브·저주 — 61 G: 이중 개성·최종 각성 파일 폐지) |
 | `bundle2.json` | 2차 묶음(노드 보상·위험·이벤트·숨은 노드·상점·성소·등급·엘리트·파훼·소모품) |
@@ -102,7 +102,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 ## 6. 61라운드 밸런스·성능 도구 사용법
 
 - **런 로그**: 데모 플레이 뒤 `?debug=1` 로 열고 `__lopad.runlog.dump()` → `saved`(끝난 런들) · `byKind`(노드 종류별 평균 시간·처치·피격·피해·메뉴) · `current`(진행 중).
-- **수치 추정**: `npx vitest run src/systems/sim --silent=false` → 무기 4종 DPS 와 1층 길 3종(전투 많음·보통·적음)의 노드별 시간·처치·받는 피해. 보스 싸움 길이는 `sim/bossSim.ts`(파훼 피해 창·활 공격 비율 — `bossSim.test` 가 4무기 90~120초를 지킨다). 가정값은 `core/constants/settings.ts SIM`.
+- **수치 추정**: `npx vitest run src/systems/sim --silent=false` → 무기 4종 DPS 와 1층 길 3종(전투 많음·보통·적음)의 노드별 시간·처치·받는 피해. 보스 싸움 길이는 `sim/bossSim.ts`(파훼 피해 창·활 공격 비율 — `bossSim.test` 가 4무기 90~120초를 지킨다). 기둥 숨기 전략 승률·시간은 `sim/pillarSim.ts`(`npx vitest run src/systems/sim/pillarSim --silent=false`). 가정값은 `core/constants/settings.ts SIM`.
 - **VRAM**: `__lopad.vram()` → `mb`(고유 텍스처 추정 합) · `over4096` · `top` · `byGroup` · `dupImages`. 목표 런당 500MB 이하(61 P9). 보스방은 `__lopad.boss.arena().vram`(지연 로드 기록·최고값 — 61 E 묶음 나눔은 CHANGELOG 61 E 절).
 
 ## 7. 61라운드 단계 4 무기 성장 (P12 · 계약 UI §18 · art §26 · sound §10)
@@ -114,9 +114,12 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 | `systems/growth/*` | 눈금 목록·대기 눈금·종류 보정 · 개성 풀/제시(갈래 개성 우선 1장) · 메뉴 줄 · 스냅샷 · 외형(`growthLookOf`) |
 | `scenes/game/growth/GrowthFlow` | 적립(`Progression.gainGrowth`)·메뉴·적용·이벤트·처음 안내(메타 `diary.guides`)·미리보기 그림(`sprites/looks`) |
 | `scenes/game/build/AwakenFlow` | 정지 0.8/1.0초 + `fx/v4/awaken1_crack`·`awaken2_bloom`(swapFrame 에 새 외형) · 고른 갈래·길만 지연 로드 · 2차 궤적 색 |
-| `scenes/game/build/traits/*` | 개성 카드·셋째 갈래(만월·광전·백귀·유성 계열) 규칙 실행 |
-| 이벤트 | 시스템 `GROWTH_GAINED`·`GROWTH_MARK`·`TRAIT_GAINED`·`WEAPON_AWAKEN`·`WEAPON_TEMPERED` / UI `ui:growth-gain`·`ui:awaken`·`ui:trait-gained` |
-| 디버그 | `__lopad.growth()` · `setPersonality(v)`(게이지를 v 까지) · `evolveTo(노드 id)` · `build.trait(id)` · `build.openEvolveMenu()`(다음 눈금까지) · 시험장 L → 갈래·게이지 |
+| `scenes/game/build/traits/*` | 개성 카드·셋째 갈래(만월·광전·백귀·유성 계열) 규칙 실행 · 61 단계 5(P13): 보이는 새 행동 `TraitMoves`(띄움·처박기·끌어당김·묶음·불똥 — 벽·기둥·적·술통 충돌) · 공명 `ResonanceRules` · 발동 이벤트·개성 fx 지연 로드(`TraitRules`) |
+| `data/traits.json` `act`·`env`·`resonance` → `systems/growth/resonance.ts`·`traitArt.ts` | 61 단계 5: 개성 행동 갈래·환경 표시 · 공명 9(같은 태그 2장) · 그림·소리 이름 규칙(`ui_traits/<무기>_<개성>` · `fx/v3/trait_<무기>_<개성>[_부위]` · `sfx/trait_<무기>_<개성>` → `sfx/trait_<act>`) — 요청 목록 `notes/trait-art-requests-61s5.md` |
+| `scenes/game/growth/GrowthArt` | art §26 미리보기 · §27 개성 카드 그림 로드·키 조회 (스냅샷 `iconKey`) |
+| `systems/sim/traitBudget.ts` | 개성·공명 하나의 추가 피해 추정 — P2 기준선 +25% 이하(테스트) |
+| 이벤트 | 시스템 `GROWTH_GAINED`·`GROWTH_MARK`·`TRAIT_GAINED`·`WEAPON_AWAKEN`·`WEAPON_TEMPERED` · 61 단계 5 `TRAIT_PROC`·`RESONANCE_ON` / UI `ui:growth-gain`·`ui:awaken`·`ui:trait-gained`·`ui:resonance` |
+| 디버그 | `__lopad.growth()` · `setPersonality(v)`(게이지를 v 까지) · `evolveTo(노드 id)` · `build.trait(id)`·`untrait(id)`·`traits()`·`emit(ev, p)` · `build.openEvolveMenu()`(다음 눈금까지) · 시험장 L → 갈래·게이지 → `t` 개성 켜고 끄기·술 웅덩이·움직이는 적 |
 
 ## 8. 61라운드 무기 4동사 (구조)
 

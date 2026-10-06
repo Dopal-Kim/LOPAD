@@ -67,4 +67,45 @@ export interface TraitDef {
   /** 조건 → 행동 변화 한 문장 */
   line: string;
   effect: RuleDef;
+  /**
+   * 61 단계 5 (P13) 발동 행동 갈래 — 음향 발동음 후보(`sfx/trait_<act>`)·아트 fx 요청 묶음·런 로그. 값은 `TRAIT_ACTS`
+   */
+  act: TraitAct;
+  /** 61 단계 5: 1층 환경(술 웅덩이·불·술통·벽·기둥)과 엮이는 개성 */
+  env?: boolean;
+}
+
+/** 61 단계 5 (P13) 개성 발동 행동 갈래 (보이는 새 행동의 종류) */
+export const TRAIT_ACTS = [
+  'launch',
+  'slam',
+  'pull',
+  'bind',
+  'clone',
+  'blink',
+  'wave',
+  'throw',
+  'rain',
+  'ignite',
+  'deflect',
+  'shield',
+  'spin',
+  'mark',
+  'burst',
+  'move',
+] as const;
+export type TraitAct = (typeof TRAIT_ACTS)[number];
+
+/**
+ * 61 단계 5 (P13) 공명: 같은 무기·같은 태그 개성 2장이 모이면 켜지는 엮임 효과 (무기마다 2~3개). effect = 실행 규칙
+ * (`currentBuild` 에 source 'trait'·id = 공명 id 로 들어간다 — 씬 build/traits/ResonanceRules)
+ */
+export interface ResonanceDef {
+  id: string;
+  weapon: string;
+  tag: TagId;
+  name: string;
+  /** 조건 → 행동 한 문장 (수치·내부 용어 없음) */
+  line: string;
+  effect: RuleDef;
 }

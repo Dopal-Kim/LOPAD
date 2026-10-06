@@ -3,10 +3,11 @@ import { kenkiFxId, kenkiFxIds } from '../fx/fxIds';
 import { headTopDot, nextCrack, rimFits } from './bossArtRules';
 
 describe('61 E 아트 2 보스 그림 연결 (순수 규칙)', () => {
-  it('기둥 균열: 충돌마다 한 단(crack1→2→3), 3단 뒤로는 무너뜨리지 않고 crack3_hit', () => {
-    expect(nextCrack(0, 3)).toEqual({ stage: 1, state: 'crack1' });
-    expect(nextCrack(2, 3)).toEqual({ stage: 3, state: 'crack3' });
-    expect(nextCrack(3, 3)).toEqual({ stage: 3, state: 'crack3_hit' });
+  it('기둥 균열: 충돌마다 한 단(crack1→2→3), 61 P13: 3단 다음 충돌에서 무너짐(단 4), 그 뒤는 없음', () => {
+    expect(nextCrack(0, 3)).toEqual({ stage: 1, state: 'crack1', collapse: false });
+    expect(nextCrack(2, 3)).toEqual({ stage: 3, state: 'crack3', collapse: false });
+    expect(nextCrack(3, 3)).toEqual({ stage: 4, state: 'collapse', collapse: true });
+    expect(nextCrack(4, 3)).toBeNull();
   });
 
   it('파훼 고리 머리 꼭대기: 동작·방향·열 → 없으면 idle 같은 방향 0 열 → 없으면 null', () => {

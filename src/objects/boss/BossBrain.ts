@@ -124,7 +124,15 @@ export class BossBrain {
       return;
     }
     this.body.approach(ctx);
-    if (ctx.time >= this.nextPatternAt) this.begin(this.choose(ctx), ctx);
+    const urgent = this.urgent(ctx);
+    if (urgent) this.begin(urgent, ctx);
+    else if (ctx.time >= this.nextPatternAt) this.begin(this.choose(ctx), ctx);
+  }
+
+  /** 61 P13: 조건이 맞으면 간격을 기다리지 않는 패턴 (pick 안 · 쿨타임 끝 — 디버그 강제 중에는 없음) */
+  private urgent(ctx: MobContext): BossPatternName | null {
+    if (this.forced) return null;
+    return this.phase.pick.find((p) => patternModule(p).urgent && this.isReady(p, ctx)) ?? null;
   }
 
   begin(p: BossPatternName, ctx: MobContext): void {

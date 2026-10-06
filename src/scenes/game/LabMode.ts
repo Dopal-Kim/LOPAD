@@ -22,6 +22,7 @@ import {
   labWeaponMenu,
 } from '../../systems/weapon/weaponLab';
 import type { Game } from '../Game';
+import { LabTraits } from './LabTraits';
 import { labWeaponFor } from './runWeapon';
 import { urlParams, type GameInitData } from './shared';
 
@@ -158,6 +159,16 @@ export class LabMode {
         if (a.kind === 'passive') {
           g.menu.close();
           if (!g.buildMenus.openPassiveMenu('lab', {}, () => this.openBranchMenu())) this.openBranchMenu();
+          return;
+        }
+        // 61 단계 5 (P13): 개성 켜고 끄기 · 환경 · 적
+        if (a.kind === 'traits') {
+          g.menu.close();
+          new LabTraits(
+            g,
+            () => this.openBranchMenu(),
+            () => this.closeMenu(),
+          ).open();
           return;
         }
         if (a.kind === 'curse') {

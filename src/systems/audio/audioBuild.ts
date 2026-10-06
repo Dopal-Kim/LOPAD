@@ -25,10 +25,13 @@ import {
   type StatusChangedPayload,
   type TagSetChangedPayload,
   type GrowthMarkPayload,
+  type TraitProcPayload,
   type WeaponAwakenPayload,
 } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { currentAttackTag } from '../build/attackTags';
+import type { TraitAct } from '../../data/growthTypes';
+import { RESONANCE_SFX, traitProcSfx } from '../growth/traitArt';
 import { t, type AudioTrigger } from './audioTrigger';
 
 const s = (name: string): string => `sfx/${name}`;
@@ -328,6 +331,18 @@ export const BUILD_AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     event: Events.TRAIT_GAINED,
     note: '개성 획득 → trait_manifest (옛 dual_trait_get 대체, 없으면 dual_trait)',
     sfx: () => [GROWTH_SFX.traitManifest, BUILD_SFX.dualTrait],
+  }),
+  // 61 단계 5 (P13 · sound §11): 개성 발동음 — 개성별 → 행동 갈래별 후보 (manifest 에 생기면 그때부터 난다, 없으면 무음)
+  t<TraitProcPayload>({
+    event: Events.TRAIT_PROC,
+    note: '개성 발동 → trait_<무기>_<개성> → trait_<act> · 공명 발동 → <공명 id> → resonance_proc (제작 대기)',
+    sfx: (p) =>
+      p.resonance ? [s(p.resonance), s('resonance_proc')] : traitProcSfx(p.weapon, p.trait, p.act as TraitAct),
+  }),
+  t({
+    event: Events.RESONANCE_ON,
+    note: '공명 켜짐 → resonance_on (없으면 trait_manifest → dual_trait)',
+    sfx: () => [...RESONANCE_SFX],
   }),
   t({
     event: Events.GROWTH_GAINED,

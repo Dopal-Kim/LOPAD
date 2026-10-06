@@ -8,6 +8,8 @@
   "drops": {
     "potion": { "chance": 0.1, "heal": 30, "maxCarry": 3, "rarity": "common" }
   },
+  "_pickup": "61 단계 5 (P13 §4) 바닥 줍기: 자석 흡수 반경·최고 속도 (칸) · 전표 무더기 크기 경계 (전표 값 이상이면 mid · large — 그림 행·줍는 소리 음정)",
+  "pickup": { "magnetTiles": 3, "magnetMaxTiles": 22, "voucherSize": { "mid": 6, "large": 15 } },
   "rarity": { "common": 50, "rare": 30, "epic": 15, "legendary": 5 },
   "shop": {
     "items": [

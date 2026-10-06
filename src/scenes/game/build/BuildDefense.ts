@@ -89,8 +89,6 @@ export class BuildDefense implements PlayerBuildHooks {
     const w = gameState.weapon.def;
     if (callus && w.secondary.kind !== 'guard' && time - this.rt.dashAt <= param(callus, 'dashMs'))
       a *= 1 - Math.min(0.9, param(callus, 'dashReduction'));
-    // 61 G 개성 '휘두르며 막기' (대검)
-    a = this.rt.traits.adjustDamage(a);
     return Math.max(1, Math.round(a));
   }
 

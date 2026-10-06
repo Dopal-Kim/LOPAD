@@ -23,6 +23,8 @@ export const BOSS_PATTERN_NAMES = [
   'fireSpill',
   'lightsOut',
   'phaseDrink',
+  // 61 단계 5 (P13 §3): 기둥 뒤에 숨은 주인공에게 포물선 술병 (가려짐 누적이 hiddenMs 를 넘으면 바로)
+  'lobBottle',
 ] as const;
 
 export type BossPatternName = (typeof BOSS_PATTERN_NAMES)[number];
@@ -126,6 +128,22 @@ export const BOSS_PATTERN_SCHEMAS: Record<BossPatternName, PatternSchema> = {
   },
   // 61라운드: 국면 진입 들이켜기 뒤 이어지는 패턴 (인사불성 = 등불 끄기 확정)
   phaseDrink: { num: ['durationMs'], optBool: ['invulnerable'], optName: ['next'] },
+  lobBottle: {
+    num: [
+      'hiddenMs',
+      'windupMs',
+      'flightMs',
+      'arcTiles',
+      'burstRadiusTiles',
+      'burstAttack',
+      'poolMs',
+      'poolTickMs',
+      'poolAttack',
+      'count',
+      'spreadTiles',
+      'cooldownMs',
+    ],
+  },
 };
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {

@@ -11,7 +11,7 @@
 import Phaser from 'phaser';
 import { BUILD_ART, DEPTH, ENEMY_HAZARD, TILE, entityDepth } from '../../core/Constants';
 import { EventBus, Events, type EnemyAttackPayload, type EnemyAttackPhase } from '../../core/EventBus';
-import type { LiquorPoolParams, RollParams, ThrowParams } from '../../data/enemyTypes';
+import type { LiquorPoolParams, RollParams } from '../../data/enemyTypes';
 import type { Mob } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
 import type { HitResult } from '../../objects/Player';
@@ -21,7 +21,7 @@ import { FX_ACTION, STRUCTURE_ACTION, artScale, facingOf, frameDurations } from 
 import type { TelegraphFx } from '../telegraph';
 import { caskCircumferenceWorld } from '../boss/caskMath';
 import type { LiquorPools, PoolSpec } from './LiquorPools';
-import type { EnemyHazardApi, HazardPt } from './enemyHazardTypes';
+import type { BottleParams, EnemyHazardApi, HazardPt } from './enemyHazardTypes';
 import { advanceBarrel, bottleArcAt, circleHitsRect, deflectDir, rollFrame, unit } from './hazardMath';
 
 export interface EnemyHazardHost {
@@ -46,11 +46,13 @@ interface Bottle {
   handPx: number;
   apexPx: number;
   elapsed: number;
-  p: ThrowParams;
+  p: BottleParams;
   attackScale: number;
   view: ReturnType<FxPool['play']>;
   dot: Phaser.GameObjects.Arc | null;
   shadow: Phaser.GameObjects.Ellipse;
+  /** 61 단계 5 (P13 개성 '쳐내기'): 주인공이 되쳐 보낸 술병 — 터지면 적만 다친다 */
+  owner?: 'enemy' | 'player';
 }
 
 interface Barrel {
@@ -86,7 +88,16 @@ export class EnemyHazards implements EnemyHazardApi {
   private readonly barrels: Barrel[] = [];
   private readonly breaking: Breaking[] = [];
   /** 디버그 */
-  readonly stats = { thrown: 0, bursts: 0, rolled: 0, deflected: 0, broken: 0, returnedHits: 0, pools: 0 };
+  readonly stats = {
+    thrown: 0,
+    bursts: 0,
+    rolled: 0,
+    deflected: 0,
+    broken: 0,
+    returnedHits: 0,
+    pools: 0,
+    returnedBottles: 0,
+  };
   private clock = 0;
 
   constructor(private readonly host: EnemyHazardHost) {}
@@ -98,7 +109,7 @@ export class EnemyHazards implements EnemyHazardApi {
 
   // --- 화염 술병 ---
 
-  throwBottle(from: HazardPt, handPx: number, to: HazardPt, p: ThrowParams, attackScale: number): void {
+  throwBottle(from: HazardPt, handPx: number, to: HazardPt, p: BottleParams, attackScale: number): void {
     const H = this.host;
     const start = bottleArcAt(0, from, to, p.arcTiles * TILE, handPx);
     const view = H.fx.has(BOTTLE_THROWN)
@@ -110,6 +121,30 @@ export class EnemyHazards implements EnemyHazardApi {
     const shadow = H.scene.add.ellipse(from.x, from.y, S.W, S.H, 0x000000, S.ALPHA).setDepth(DEPTH.SHADOW);
     this.bottles.push({ from, to, handPx, apexPx: p.arcTiles * TILE, elapsed: 0, p, attackScale, view, dot, shadow });
     this.stats.thrown++;
+  }
+
+  /**
+   * 61 단계 5 (P13 개성 '쳐내기'·공명): 날아가는 적 술병 중 (x,y) 반경 안 것을 되쳐 보낸다 — 지금 자리에서 던진 쪽(행상 자리)으로
+   * 다시 포물선, 터지면 적만 다친다. 되친 수
+   */
+  returnBottlesNear(x: number, y: number, radiusPx: number, attackMult = 1): number {
+    let n = 0;
+    for (const b of this.bottles) {
+      if (b.owner === 'player') continue;
+      const t = b.elapsed / Math.max(1, b.p.flightMs);
+      const at = bottleArcAt(t, b.from, b.to, b.apexPx, b.handPx);
+      if (Math.hypot(at.x - x, at.groundY - y) > radiusPx) continue;
+      const back = { x: b.from.x, y: b.from.y };
+      b.from = { x: at.x, y: at.groundY };
+      b.to = back;
+      b.handPx = Math.max(0, at.groundY - at.y);
+      b.elapsed = 0;
+      b.owner = 'player';
+      b.attackScale *= attackMult;
+      if (b.view) b.view.sprite.setFlipX(back.x < b.from.x);
+      n += 1;
+    }
+    return n;
   }
 
   private stepBottles(delta: number): void {
@@ -147,6 +182,10 @@ export class EnemyHazards implements EnemyHazardApi {
       H.fx.play(BOTTLE_BURST, x, y, { depth: DEPTH.HIT_FX, scaleMult: dots ? r / (dots * artScale(bd)) : 1 });
     this.stats.bursts++;
     sound('peddler', 'throw', 'burst');
+    if (b.owner === 'player') {
+      this.returnedBurst(b, r);
+      return;
+    }
     const c = H.player.body.center;
     if (Math.hypot(c.x - x, c.y - y) <= r + H.player.body.halfWidth) {
       const d = unit(c.x - x, c.y - y);
@@ -173,6 +212,43 @@ export class EnemyHazards implements EnemyHazardApi {
     });
     H.pools.ignite(pool);
     H.pools.igniteIn(rect);
+  }
+
+  /** 되친 술병이 터짐: 반경 안 적 피해 · 적만 태우는 불 웅덩이 · 술 웅덩이 점화 */
+  private returnedBurst(b: Bottle, r: number): void {
+    const H = this.host;
+    const { x, y } = b.to;
+    const dmg = Math.max(1, Math.round(b.p.burstAttack * b.attackScale));
+    for (const child of H.mobs.getChildren()) {
+      const m = child as Mob;
+      if (!m.active) continue;
+      const c = m.body.center;
+      if (Math.hypot(c.x - x, c.y - y) > r + m.body.halfWidth) continue;
+      const d = unit(c.x - x, c.y - y);
+      if (H.hitMob(m, dmg, { crit: false, dirX: d.x, dirY: d.y })) H.onKill(m, 'environment');
+    }
+    const side = r * 2;
+    const rect = new Phaser.Geom.Rectangle(x - r, y - r, side, side);
+    const tick = Math.max(1, Math.round(b.p.poolAttack * b.attackScale));
+    const pool = H.pools.add(rect, {
+      owner: 'structure',
+      lifeMs: b.p.poolMs,
+      playerSlow: 0,
+      enemySlow: 0,
+      slip: 0,
+      fireMs: b.p.poolMs,
+      fireTickMs: b.p.poolTickMs,
+      firePlayerAttack: 0,
+      fireMobDamage: () => tick,
+      fireFx: FIRE_POOL,
+      spreadMsPerCell: null,
+      linkGapPx: 0,
+      color: ENEMY_HAZARD.FIRE_COLOR,
+      alpha: ENEMY_HAZARD.FIRE_ALPHA,
+    });
+    H.pools.ignite(pool);
+    H.pools.igniteIn(rect);
+    this.stats.returnedBottles++;
   }
 
   // --- 술통 ---

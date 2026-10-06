@@ -761,6 +761,8 @@ export interface ShopItem {
 export interface EconomyData {
   gold: { variance: number; trialBonus: number; bossBonus: number; dropLifeMs: number };
   drops: { potion: { chance: number; heal: number; maxCarry: number; rarity: string } };
+  /** 61 P13 §4 바닥 줍기: 자석 흡수 반경·최고 속도(칸) · 전표 무더기 크기 경계(값 이상 → mid·large) */
+  pickup: { magnetTiles: number; magnetMaxTiles: number; voucherSize: { mid: number; large: number } };
   rarity: Record<string, number>;
   shop: { items: ShopItem[]; healFraction: number };
   statRewards: StatReward[];

@@ -1,5 +1,5 @@
 {
-  "_note": "61라운드 단계 4 P12 개성 (전투 방식을 바꾸는 카드): 무기당 기본 8 (4동사 × 2) + 1차 갈래마다 2 (branch = 그 갈래를 고른 뒤에만) = 14. 카드 = 조건 → 행동 변화 한 문장 (line, 수치·내부 용어 없음), verb = 바뀌는 키 칸, tag = 1층 태그 6 중 하나(태그 점수 +1). effect = 실행 규칙 (kind + 수치 — 씬 build/traits·branch). 옛 이중 개성 중 행동을 바꾸는 것은 id 그대로 옮겼다",
+  "_note": "61라운드 단계 5 P13 개성 (전투 양상을 바꾸는 카드 — 무기당 기본 8 (4동사 × 2) + 1차 갈래마다 2 = 14). 카드 = 조건 → 행동 한 문장(line, 수치·내부 용어 없음), verb = 바뀌는 키 칸, tag = 1층 태그 6 중 하나(태그 점수 +1), act = 발동 행동 갈래(음향 trait_<act> 후보·아트 fx 묶음), env = 1층 환경(술 웅덩이·불·술통·벽·기둥)과 엮임. effect = 실행 규칙 (kind + 수치 — 씬 build/traits·branch). resonance = 같은 무기 같은 태그 개성 2장으로 켜지는 공명(무기마다 2~3). 61 G 에서 바뀐 카드는 새 id (옛 세이브의 옛 id 는 버려진다)",
   "items": [
     {
       "id": "k_shadowThrust",
@@ -8,16 +8,29 @@
       "tag": "chain",
       "name": "그림자 찌르기",
       "line": "찌르기로 적을 쓰러뜨리면 그림자가 가장 가까운 적을 한 번 더 찌른다",
-      "effect": { "kind": "finisherKillEcho", "rangeTiles": 3, "damageMult": 0.8 }
+      "act": "clone",
+      "effect": {
+        "kind": "finisherKillEcho",
+        "rangeTiles": 3,
+        "damageMult": 0.8
+      }
     },
     {
-      "id": "k_stunCrit",
+      "id": "k_edgeLift",
       "weapon": "katana",
       "verb": "attack",
       "tag": "vital",
-      "name": "칼끝 겨누기",
-      "line": "비틀거리는 적을 베면 반드시 치명이 된다",
-      "effect": { "kind": "critOnStunned" }
+      "name": "칼등 띄우기",
+      "line": "비틀거리는 적을 베면 칼등으로 띄워 올리고, 떨어지는 적이 둘레를 덮친다",
+      "act": "launch",
+      "effect": {
+        "kind": "launchStunned",
+        "heightTiles": 1.4,
+        "airMs": 650,
+        "landRadiusTiles": 1.2,
+        "landMult": 0.6,
+        "cooldownMs": 900
+      }
     },
     {
       "id": "k_parryShove",
@@ -25,26 +38,49 @@
       "verb": "signature",
       "tag": "insight",
       "name": "흘려 밀기",
-      "line": "패링에 성공하면 막은 힘으로 둘레 적을 밀쳐낸다",
-      "effect": { "kind": "parryShove", "radiusTiles": 2, "knockTiles": 1.5, "stunMs": 300 }
+      "line": "패링하면 둘레 적을 밀쳐 벽·기둥이나 다른 적에게 처박는다",
+      "act": "slam",
+      "env": true,
+      "effect": {
+        "kind": "parryShove",
+        "radiusTiles": 2,
+        "knockTiles": 2.5,
+        "slamMult": 0.6,
+        "slamStunMs": 700
+      }
     },
     {
-      "id": "k_guardKenki",
+      "id": "k_bladeBind",
       "weapon": "katana",
       "verb": "signature",
       "tag": "insight",
-      "name": "막으며 벼리기",
-      "line": "가드로 막기만 해도 검기가 차오른다",
-      "effect": { "kind": "guardKenki", "kenkiStage": 0.34 }
+      "name": "칼 감기",
+      "line": "가드로 막으면 앞의 적을 칼로 감아 끌어당기고 비틀거리게 한다",
+      "act": "pull",
+      "effect": {
+        "kind": "guardBind",
+        "rangeTiles": 2.5,
+        "arcDeg": 120,
+        "pullTiles": 1.5,
+        "stunMs": 800,
+        "cooldownMs": 600
+      }
     },
     {
-      "id": "k_evadeKenki",
+      "id": "k_shadowVault",
       "weapon": "katana",
       "verb": "dash",
       "tag": "breach",
-      "name": "스치는 칼바람",
-      "line": "대쉬로 공격을 아슬아슬 피하면 검기가 한 단 찬다",
-      "effect": { "kind": "evadeKenki", "kenkiStage": 1 }
+      "name": "그림자 넘기",
+      "line": "대쉬로 공격을 아슬아슬 피하면 그 적의 등 뒤로 넘어가 벤다",
+      "act": "blink",
+      "effect": {
+        "kind": "evadeBehind",
+        "rangeTiles": 3,
+        "behindTiles": 1,
+        "damageMult": 0.9,
+        "radiusTiles": 1
+      }
     },
     {
       "id": "k_issenBack",
@@ -53,7 +89,13 @@
       "tag": "breach",
       "name": "물러서며 베기",
       "line": "일섬이 끝나면 뒤로 물러서며 둘레를 한 번 더 벤다",
-      "effect": { "kind": "issenBackstep", "backTiles": 1, "radiusTiles": 1.5, "damageMult": 0.6 }
+      "act": "spin",
+      "effect": {
+        "kind": "issenBackstep",
+        "backTiles": 1,
+        "radiusTiles": 1.5,
+        "damageMult": 0.6
+      }
     },
     {
       "id": "k_iaiWave",
@@ -62,16 +104,30 @@
       "tag": "weight",
       "name": "발도풍",
       "line": "검기를 가득 채운 발도는 앞으로 검풍이 날아간다",
-      "effect": { "kind": "iaiWave", "minStage": 3, "rangeTiles": 6, "speedTiles": 14, "damageMult": 1 }
+      "act": "wave",
+      "effect": {
+        "kind": "iaiWave",
+        "minStage": 3,
+        "rangeTiles": 6,
+        "speedTiles": 14,
+        "damageMult": 1
+      }
     },
     {
-      "id": "k_iaiRefund",
+      "id": "k_iaiChain",
       "weapon": "katana",
       "verb": "hold",
       "tag": "chain",
-      "name": "칼집 되돌림",
-      "line": "발도로 적을 쓰러뜨리면 검기 한 단이 돌아온다",
-      "effect": { "kind": "iaiKillRefund", "kenkiStage": 1, "windowMs": 600 }
+      "name": "연쇄 발도",
+      "line": "발도로 적을 쓰러뜨리면 가장 가까운 적 앞까지 단숨에 미끄러져 다가간다",
+      "act": "blink",
+      "effect": {
+        "kind": "iaiKillDash",
+        "windowMs": 600,
+        "rangeTiles": 5,
+        "stopTiles": 1,
+        "dashMs": 160
+      }
     },
     {
       "id": "bloodGale",
@@ -81,7 +137,12 @@
       "branch": "senpu",
       "name": "피바람",
       "line": "회전 베기로 적을 쓰러뜨리면 한 바퀴를 더 돈다",
-      "effect": { "kind": "spinChain", "maxExtra": 3, "delayMs": 160 }
+      "act": "spin",
+      "effect": {
+        "kind": "spinChain",
+        "maxExtra": 3,
+        "delayMs": 160
+      }
     },
     {
       "id": "liquorWhirl",
@@ -90,28 +151,52 @@
       "tag": "drunk",
       "branch": "senpu",
       "name": "술 회오리",
-      "line": "회전 베기가 둘레 술 웅덩이를 빨아들여 더 넓게 돈다",
-      "effect": { "kind": "liquorWhirl", "pullTiles": 3, "perPoolTiles": 0.5, "maxTiles": 1.5, "fireMult": 0.3 }
+      "line": "회전 베기가 둘레 술을 빨아들여 더 넓게 돌고, 불붙은 술이면 불길을 두른다",
+      "act": "spin",
+      "env": true,
+      "effect": {
+        "kind": "liquorWhirl",
+        "pullTiles": 3,
+        "perPoolTiles": 0.5,
+        "maxTiles": 1.5,
+        "fireMult": 0.3
+      }
     },
     {
-      "id": "helmBreak",
+      "id": "k_sparkCleave",
       "weapon": "katana",
       "verb": "hold",
       "tag": "weight",
       "branch": "kabuto",
-      "name": "투구째",
-      "line": "비틀거리는 적을 내려베면 더 깊이 쪼개고 기력이 돌아온다",
-      "effect": { "kind": "helmBreak", "mult": 1.5, "staminaRefund": 0.5 }
+      "name": "불똥 내려베기",
+      "line": "투구가르기를 내려치면 선을 따라 불똥이 튀어 술에 불이 붙고 술통이 터진다",
+      "act": "ignite",
+      "env": true,
+      "effect": {
+        "kind": "kabutoSparks",
+        "widthTiles": 1.2,
+        "emberTiles": 0.6,
+        "emberMs": 1200,
+        "emberTickMs": 400,
+        "emberMult": 0.15
+      }
     },
     {
-      "id": "k_kabutoCrack",
+      "id": "k_groundPin",
       "weapon": "katana",
       "verb": "hold",
       "tag": "vital",
       "branch": "kabuto",
-      "name": "갈라진 투구",
-      "line": "투구가르기에 맞고 버틴 적은 다음 한 번을 반드시 치명으로 맞는다",
-      "effect": { "kind": "unblockableCrack", "ms": 3000 }
+      "name": "땅에 박기",
+      "line": "투구가르기에 버틴 적은 땅에 박혀 묶이고, 다시 치면 멀리 튕겨 나간다",
+      "act": "bind",
+      "effect": {
+        "kind": "kabutoPin",
+        "bindMs": 1500,
+        "knockTiles": 3,
+        "slamMult": 0.6,
+        "slamStunMs": 600
+      }
     },
     {
       "id": "k_moonRelay",
@@ -121,17 +206,31 @@
       "branch": "mangetsu",
       "name": "달빛 잇기",
       "line": "달 분신이 벤 적이 쓰러지면 분신이 다음 적에게 옮겨 한 번 더 벤다",
-      "effect": { "kind": "moonRelay", "rangeTiles": 4, "damageMult": 0.8 }
+      "act": "clone",
+      "effect": {
+        "kind": "moonRelay",
+        "rangeTiles": 4,
+        "damageMult": 0.8
+      }
     },
     {
-      "id": "k_moonDouble",
+      "id": "k_moonPools",
       "weapon": "katana",
       "verb": "signature",
       "tag": "drunk",
       "branch": "mangetsu",
       "name": "취월",
-      "line": "취기 중 패링하면 달 분신이 둘 나온다",
-      "effect": { "kind": "moonDouble", "delayMs": 200 }
+      "line": "패링하면 둘레 술 웅덩이마다 달 분신이 비쳐 나와 함께 벤다",
+      "act": "clone",
+      "env": true,
+      "effect": {
+        "kind": "moonPools",
+        "poolRangeTiles": 4,
+        "maxClones": 3,
+        "rangeTiles": 3,
+        "damageMult": 0.5,
+        "delayMs": 260
+      }
     },
     {
       "id": "g_launch",
@@ -139,26 +238,51 @@
       "verb": "attack",
       "tag": "weight",
       "name": "날려 보내기",
-      "line": "넷째 타에 맞은 적은 크게 날아가 부딪친 적에게도 피해를 준다",
-      "effect": { "kind": "finisherLaunch", "comboIndex": 3, "knockTiles": 2.5, "splashTiles": 1, "damageMult": 0.5 }
+      "line": "넷째 타에 맞은 적은 크게 날아가 벽·기둥이나 부딪친 적까지 쓰러뜨린다",
+      "act": "slam",
+      "env": true,
+      "effect": {
+        "kind": "finisherLaunch",
+        "comboIndex": 3,
+        "knockTiles": 3,
+        "slamMult": 0.7,
+        "slamStunMs": 800
+      }
     },
     {
-      "id": "g_swingGuard",
+      "id": "g_swatBack",
       "weapon": "greatsword",
       "verb": "attack",
       "tag": "insight",
-      "name": "휘두르며 막기",
-      "line": "연격을 휘두르는 동안 처음 맞는 한 번은 가드처럼 막아 낸다",
-      "effect": { "kind": "swingGuard", "reduction": 0.7, "cooldownMs": 3000 }
+      "name": "쳐내기",
+      "line": "연격 휘두름에 걸린 화살·술병을 던진 적에게 되쳐 보낸다",
+      "act": "deflect",
+      "env": true,
+      "effect": {
+        "kind": "swingDeflect",
+        "reachTiles": 2.2,
+        "arcDeg": 150,
+        "returnMult": 1.5
+      }
     },
     {
-      "id": "g_perfectStun",
+      "id": "g_quakeGuard",
       "weapon": "greatsword",
       "verb": "signature",
       "tag": "insight",
-      "name": "되받는 벽",
-      "line": "퍼펙트 가드에 성공하면 공격한 적이 비틀거린다",
-      "effect": { "kind": "perfectGuardStun", "rangeTiles": 2.5, "arcDeg": 120, "stunMs": 900 }
+      "name": "되받는 땅울림",
+      "line": "퍼펙트 가드에 성공하면 충격이 땅을 타고 앞으로 번져 적들을 띄워 올린다",
+      "act": "launch",
+      "effect": {
+        "kind": "perfectQuake",
+        "lengthTiles": 4,
+        "widthTiles": 1.4,
+        "damageMult": 0.5,
+        "heightTiles": 1.2,
+        "airMs": 700,
+        "landRadiusTiles": 0.8,
+        "landMult": 0.3
+      }
     },
     {
       "id": "g_guardPull",
@@ -167,7 +291,12 @@
       "tag": "weight",
       "name": "끌어당기기",
       "line": "가드를 떼어 밀쳐낼 때 밀어내는 대신 앞으로 끌어당긴다",
-      "effect": { "kind": "guardPull", "radiusTiles": 2.5, "pullTiles": 1.5 }
+      "act": "pull",
+      "effect": {
+        "kind": "guardPull",
+        "radiusTiles": 2.5,
+        "pullTiles": 1.5
+      }
     },
     {
       "id": "g_shoulderFlip",
@@ -175,26 +304,51 @@
       "verb": "dash",
       "tag": "breach",
       "name": "어깨 너머",
-      "line": "태클에 걸린 적을 등 뒤로 넘긴다",
-      "effect": { "kind": "tackleFlip", "throwTiles": 2, "reachTiles": 1.4, "stunMs": 400 }
+      "line": "태클에 걸린 적을 등 뒤로 넘겨 바닥에 메친다",
+      "act": "slam",
+      "effect": {
+        "kind": "tackleFlip",
+        "throwTiles": 2,
+        "reachTiles": 1.4,
+        "stunMs": 500,
+        "landRadiusTiles": 0.8,
+        "landMult": 0.4
+      }
     },
     {
-      "id": "g_tackleStun",
+      "id": "g_ramWall",
       "weapon": "greatsword",
       "verb": "dash",
       "tag": "weight",
-      "name": "넘어뜨리기",
-      "line": "태클에 맞은 적은 넘어져 잠시 일어나지 못한다",
-      "effect": { "kind": "tackleStun", "reachTiles": 1.4, "stunMs": 1000 }
+      "name": "들이받기",
+      "line": "태클에 걸린 적을 밀고 나가 벽·기둥이나 다른 적에게 처박는다",
+      "act": "slam",
+      "env": true,
+      "effect": {
+        "kind": "tackleRam",
+        "reachTiles": 1.4,
+        "knockTiles": 3,
+        "slamMult": 0.8,
+        "slamStunMs": 900
+      }
     },
     {
-      "id": "g_chargeHold",
+      "id": "g_boilingSteel",
       "weapon": "greatsword",
       "verb": "hold",
-      "tag": "weight",
-      "name": "버티며 모으기",
-      "line": "차지를 모으는 동안 맞아도 차지가 끊기지 않는다",
-      "effect": { "kind": "chargeUnbroken" }
+      "tag": "drunk",
+      "name": "끓는 쇠",
+      "line": "차지를 모으면 둘레 술을 빨아들이고, 내려찍으면 균열을 따라 불길이 솟는다",
+      "act": "ignite",
+      "env": true,
+      "effect": {
+        "kind": "chargeSoak",
+        "pullTiles": 3.5,
+        "fireMs": 2500,
+        "fireTickMs": 400,
+        "fireMult": 0.2,
+        "widthTiles": 1
+      }
     },
     {
       "id": "g_crackPull",
@@ -203,7 +357,11 @@
       "tag": "chain",
       "name": "빨아들이는 균열",
       "line": "차지 균열이 양옆 적을 균열 위로 끌어당긴다",
-      "effect": { "kind": "crackPull", "sideTiles": 2 }
+      "act": "pull",
+      "effect": {
+        "kind": "crackPull",
+        "sideTiles": 2
+      }
     },
     {
       "id": "splitRoad",
@@ -213,7 +371,12 @@
       "branch": "crush",
       "name": "갈라진 길",
       "line": "균열 위에서는 빨라지고, 균열이 적 탄을 되받아친다",
-      "effect": { "kind": "splitRoad", "ms": 2000, "haste": 0.2 }
+      "act": "deflect",
+      "effect": {
+        "kind": "splitRoad",
+        "ms": 2000,
+        "haste": 0.2
+      }
     },
     {
       "id": "g_leapToss",
@@ -222,18 +385,32 @@
       "tag": "weight",
       "branch": "crush",
       "name": "띄워 올리기",
-      "line": "도약 찍기로 내려앉으면 둘레 적이 떠올라 잠시 움직이지 못한다",
-      "effect": { "kind": "leapStun", "radiusTiles": 2, "stunMs": 800 }
+      "line": "도약 찍기로 내려앉으면 둘레 적이 공중으로 떠올랐다가 떨어진다",
+      "act": "launch",
+      "effect": {
+        "kind": "leapStun",
+        "radiusTiles": 2,
+        "heightTiles": 1.6,
+        "airMs": 800,
+        "landRadiusTiles": 0.8,
+        "landMult": 0.35
+      }
     },
     {
-      "id": "crushedBreath",
+      "id": "g_crushedBreath",
       "weapon": "greatsword",
       "verb": "signature",
       "tag": "weight",
       "branch": "weight",
       "name": "짓눌린 숨",
-      "line": "진동에 맞은 적마다 울분이 차오른다",
-      "effect": { "kind": "ringGrudge", "perHit": 0.05 }
+      "line": "진동에 맞은 적들이 진동 한가운데로 끌려와 서로 부딪친다",
+      "act": "pull",
+      "effect": {
+        "kind": "ringGather",
+        "gatherMs": 220,
+        "slamMult": 0.4,
+        "slamStunMs": 500
+      }
     },
     {
       "id": "jarCrush",
@@ -243,7 +420,14 @@
       "branch": "weight",
       "name": "술독 짓누르기",
       "line": "진동이 술 웅덩이를 한데 모으고, 불이 붙으면 크게 터진다",
-      "effect": { "kind": "jarCrush", "radiusTiles": 2, "burstMult": 1.5, "burstRadiusTiles": 2 }
+      "act": "ignite",
+      "env": true,
+      "effect": {
+        "kind": "jarCrush",
+        "radiusTiles": 2,
+        "burstMult": 1.5,
+        "burstRadiusTiles": 2
+      }
     },
     {
       "id": "g_rageRoar",
@@ -252,36 +436,64 @@
       "tag": "chain",
       "branch": "berserk",
       "name": "포효",
-      "line": "폭주가 시작되면 둘레 적이 겁먹고 밀려난다",
-      "effect": { "kind": "rageRoar", "radiusTiles": 3, "knockTiles": 1.5, "stunMs": 600 }
+      "line": "폭주가 시작되면 둘레 적이 겁먹고 밀려나 벽·다른 적에 부딪친다",
+      "act": "slam",
+      "effect": {
+        "kind": "rageRoar",
+        "radiusTiles": 3,
+        "knockTiles": 2,
+        "stunMs": 600,
+        "slamMult": 0.4
+      }
     },
     {
-      "id": "g_rageDrunk",
+      "id": "g_rageFire",
       "weapon": "greatsword",
       "verb": "attack",
       "tag": "drunk",
       "branch": "berserk",
       "name": "술기운 폭주",
-      "line": "취기 중에는 울분이 반만 차도 폭주한다",
-      "effect": { "kind": "rageDrunk", "threshold": 0.5 }
+      "line": "폭주 중 밟은 술에 불이 붙고, 불타는 술 위에서는 폭주가 줄지 않는다",
+      "act": "ignite",
+      "env": true,
+      "effect": {
+        "kind": "rageFire",
+        "radiusTiles": 0.8,
+        "maxHoldMs": 4000
+      }
     },
     {
-      "id": "d_killRush",
+      "id": "d_pullThrow",
       "weapon": "dagger",
       "verb": "attack",
       "tag": "chain",
-      "name": "몰아치기",
-      "line": "찌르기로 적을 쓰러뜨리면 손이 단숨에 가장 빨라진다",
-      "effect": { "kind": "killMaxHeat", "windowMs": 400 }
+      "name": "뽑아 던지기",
+      "line": "찌르기로 적을 쓰러뜨리면 박혀 있던 단검을 뽑아 가장 가까운 적에게 던진다",
+      "act": "throw",
+      "effect": {
+        "kind": "killThrow",
+        "windowMs": 400,
+        "rangeTiles": 5,
+        "speedTiles": 16,
+        "damageMult": 0.7
+      }
     },
     {
-      "id": "d_brandCrit",
+      "id": "d_brandChain",
       "weapon": "dagger",
       "verb": "attack",
       "tag": "vital",
-      "name": "급소 낙인",
-      "line": "낙인이 셋 이상인 적을 찌르면 반드시 치명이 된다",
-      "effect": { "kind": "brandCrit", "min": 3 }
+      "name": "낙인 사슬",
+      "line": "낙인이 셋 이상인 적을 찌르면 사슬이 옆 적을 끌어와 서로 부딪치게 한다",
+      "act": "pull",
+      "effect": {
+        "kind": "brandChain",
+        "min": 3,
+        "rangeTiles": 4,
+        "slamMult": 0.5,
+        "slamStunMs": 600,
+        "cooldownMs": 700
+      }
     },
     {
       "id": "d_shadowKnot",
@@ -289,17 +501,28 @@
       "verb": "signature",
       "tag": "vital",
       "name": "그림자 매듭",
-      "line": "낙인이 셋 이상인 적에게 그림자 걸음하면 낙인이 터지고도 그대로 남는다",
-      "effect": { "kind": "brandKnot", "min": 3 }
+      "line": "낙인이 셋 이상인 적에게 그림자 걸음하면 낙인이 남고 그 적은 그림자에 묶인다",
+      "act": "bind",
+      "effect": {
+        "kind": "brandKnot",
+        "min": 3,
+        "bindMs": 1200
+      }
     },
     {
-      "id": "d_stepReset",
+      "id": "d_stepBack",
       "weapon": "dagger",
       "verb": "signature",
       "tag": "breach",
-      "name": "이어 걷기",
-      "line": "그림자 걸음 직후에는 대쉬가 바로 다시 준비된다",
-      "effect": { "kind": "stepDashReset" }
+      "name": "되짚어 걷기",
+      "line": "그림자 걸음 뒤 잠시 지나면 처음 자리로 되돌아오며 지나는 길의 적을 벤다",
+      "act": "blink",
+      "effect": {
+        "kind": "stepReturn",
+        "delayMs": 450,
+        "widthTiles": 0.9,
+        "damageMult": 0.6
+      }
     },
     {
       "id": "d_dashBrand",
@@ -308,7 +531,11 @@
       "tag": "breach",
       "name": "스치는 낙인",
       "line": "대쉬로 적을 스쳐 지나가면 그 적에게 낙인이 붙는다",
-      "effect": { "kind": "dashBrand", "radiusTiles": 0.8 }
+      "act": "mark",
+      "effect": {
+        "kind": "dashBrand",
+        "radiusTiles": 0.8
+      }
     },
     {
       "id": "d_dashPierce",
@@ -317,7 +544,13 @@
       "tag": "vital",
       "name": "꿰찌르기",
       "line": "대쉬 찌르기가 적을 꿰뚫어 뒤에 선 적까지 한 줄로 찌른다",
-      "effect": { "kind": "dashPierce", "lengthTiles": 2.5, "widthTiles": 0.8, "damageMult": 0.7 }
+      "act": "wave",
+      "effect": {
+        "kind": "dashPierce",
+        "lengthTiles": 2.5,
+        "widthTiles": 0.8,
+        "damageMult": 0.7
+      }
     },
     {
       "id": "d_flurryPull",
@@ -326,16 +559,30 @@
       "tag": "chain",
       "name": "휘감는 난타",
       "line": "고속 난타를 하는 동안 둘레 적이 조금씩 빨려 든다",
-      "effect": { "kind": "flurryPull", "radiusTiles": 2.5, "pullTiles": 0.5, "everyMs": 250 }
+      "act": "pull",
+      "effect": {
+        "kind": "flurryPull",
+        "radiusTiles": 2.5,
+        "pullTiles": 0.5,
+        "everyMs": 250
+      }
     },
     {
-      "id": "d_flurryBurst",
+      "id": "d_sparkFlurry",
       "weapon": "dagger",
       "verb": "hold",
-      "tag": "vital",
-      "name": "마무리 기폭",
-      "line": "고속 난타가 끝나면 가까운 적의 낙인이 터진다",
-      "effect": { "kind": "flurryDetonate", "rangeTiles": 2 }
+      "tag": "drunk",
+      "name": "불티 난타",
+      "line": "고속 난타가 끝나면 불티가 흩날려 둘레 술에 불을 붙이고 적을 태운다",
+      "act": "ignite",
+      "env": true,
+      "effect": {
+        "kind": "flurrySparks",
+        "radiusTiles": 2,
+        "burnMs": 1500,
+        "burnTickMs": 500,
+        "burnMult": 0.2
+      }
     },
     {
       "id": "twinBrand",
@@ -345,7 +592,12 @@
       "branch": "twin",
       "name": "쌍낙인",
       "line": "분신 교차 베기가 옆 적에게 낙인을 옮겨 붙인다",
-      "effect": { "kind": "twinBrand", "brands": 2, "rangeTiles": 2.5 }
+      "act": "mark",
+      "effect": {
+        "kind": "twinBrand",
+        "brands": 2,
+        "rangeTiles": 2.5
+      }
     },
     {
       "id": "d_cloneShield",
@@ -355,7 +607,11 @@
       "branch": "twin",
       "name": "분신 방패",
       "line": "분신 교차 베기 직후 처음 맞는 한 번은 분신이 대신 맞는다",
-      "effect": { "kind": "cloneShield", "windowMs": 1500 }
+      "act": "shield",
+      "effect": {
+        "kind": "cloneShield",
+        "windowMs": 1500
+      }
     },
     {
       "id": "d_galeReturn",
@@ -364,8 +620,13 @@
       "tag": "breach",
       "branch": "gale",
       "name": "돌아오는 칼",
-      "line": "던진 단검이 끝에 닿으면 손으로 되돌아오며 한 번 더 벤다",
-      "effect": { "kind": "throwReturn", "damageMult": 0.6 }
+      "line": "던진 단검이 끝에 닿으면 손으로 되돌아오며 처음 꿰인 적을 끌고 온다",
+      "act": "throw",
+      "effect": {
+        "kind": "throwReturn",
+        "damageMult": 0.6,
+        "dragTiles": 2
+      }
     },
     {
       "id": "liquorThrow",
@@ -375,27 +636,42 @@
       "branch": "gale",
       "name": "독주 투척",
       "line": "부채꼴 투척 가운데 한 자루가 술병이 되어 웅덩이를 만든다",
-      "effect": { "kind": "liquorThrow", "radiusTiles": 1, "fireHeat": 0.5 }
+      "act": "ignite",
+      "env": true,
+      "effect": {
+        "kind": "liquorThrow",
+        "radiusTiles": 1,
+        "fireHeat": 0.5
+      }
     },
     {
-      "id": "d_ghostBrand",
+      "id": "d_ghostBind",
       "weapon": "dagger",
       "verb": "signature",
       "tag": "vital",
       "branch": "hyakki",
       "name": "그림자 사냥",
-      "line": "그림자가 벤 적에게 낙인이 하나 남는다",
-      "effect": { "kind": "ghostBrand" }
+      "line": "그림자가 벤 적은 제 그림자에 발이 묶여 잠시 움직이지 못한다",
+      "act": "bind",
+      "effect": {
+        "kind": "ghostBind",
+        "bindMs": 900
+      }
     },
     {
-      "id": "d_ghostDrunk",
+      "id": "d_ghostFire",
       "weapon": "dagger",
       "verb": "signature",
       "tag": "drunk",
       "branch": "hyakki",
       "name": "취한 그림자",
-      "line": "취기 중 낙인이 터지면 그림자가 하나 더 나온다",
-      "effect": { "kind": "ghostDrunk" }
+      "line": "그림자가 덮치는 길에 놓인 술 웅덩이에 불이 옮겨 붙는다",
+      "act": "ignite",
+      "env": true,
+      "effect": {
+        "kind": "ghostIgnite",
+        "widthTiles": 0.8
+      }
     },
     {
       "id": "b_pointBlank",
@@ -403,8 +679,16 @@
       "verb": "attack",
       "tag": "weight",
       "name": "코앞 사격",
-      "line": "가까이 붙은 적을 쏘면 화살이 적을 밀쳐낸다",
-      "effect": { "kind": "pointBlankShove", "rangeTiles": 2, "knockTiles": 1.5 }
+      "line": "가까이 붙은 적을 쏘면 화살이 적을 날려 벽·기둥이나 뒤의 적에게 처박는다",
+      "act": "slam",
+      "env": true,
+      "effect": {
+        "kind": "pointBlankShove",
+        "rangeTiles": 2,
+        "knockTiles": 2,
+        "slamMult": 0.5,
+        "slamStunMs": 600
+      }
     },
     {
       "id": "b_ricochet",
@@ -413,7 +697,12 @@
       "tag": "chain",
       "name": "튕기는 화살",
       "line": "짧게 쏜 화살이 적을 쓰러뜨리면 가까운 적에게 튕겨 간다",
-      "effect": { "kind": "killRicochet", "rangeTiles": 4, "damageMult": 0.6 }
+      "act": "throw",
+      "effect": {
+        "kind": "killRicochet",
+        "rangeTiles": 4,
+        "damageMult": 0.6
+      }
     },
     {
       "id": "b_perfectPin",
@@ -421,8 +710,16 @@
       "verb": "signature",
       "tag": "insight",
       "name": "꿰어 박기",
-      "line": "완벽 놓기 화살에 맞은 적은 그 자리에 박혀 잠시 움직이지 못한다",
-      "effect": { "kind": "perfectPin", "stunMs": 900 }
+      "line": "완벽 놓기 화살에 맞은 적은 화살째 밀려가 벽에 박히거나 그 자리에 묶인다",
+      "act": "bind",
+      "env": true,
+      "effect": {
+        "kind": "perfectPin",
+        "pinTiles": 2.5,
+        "bindMs": 1000,
+        "wallBindMs": 1600,
+        "slamMult": 0.5
+      }
     },
     {
       "id": "b_fullBounce",
@@ -431,7 +728,11 @@
       "tag": "vital",
       "name": "되튀는 화살",
       "line": "가득 당겨 쏜 화살은 끝에 닿으면 한 번 되튀어 돌아온다",
-      "effect": { "kind": "fullBounce", "damageMult": 0.6 }
+      "act": "throw",
+      "effect": {
+        "kind": "fullBounce",
+        "damageMult": 0.6
+      }
     },
     {
       "id": "b_dropShot",
@@ -440,16 +741,32 @@
       "tag": "breach",
       "name": "낙하 사격",
       "line": "대쉬 사격이 하늘로 솟았다가 앞쪽에 세 발로 떨어진다",
-      "effect": { "kind": "dashRain", "aheadTiles": 3, "drops": 3, "radiusTiles": 1, "damageMult": 0.6, "delayMs": 350 }
+      "act": "rain",
+      "effect": {
+        "kind": "dashRain",
+        "aheadTiles": 3,
+        "drops": 3,
+        "radiusTiles": 1,
+        "damageMult": 0.6,
+        "delayMs": 350
+      }
     },
     {
-      "id": "b_rollReload",
+      "id": "b_arrowTrap",
       "weapon": "bow",
       "verb": "dash",
       "tag": "breach",
-      "name": "구르며 장전",
-      "line": "화살이 바닥났을 때 대쉬하면 구르는 동안 장전이 끝난다",
-      "effect": { "kind": "dashReload" }
+      "name": "화살 덫",
+      "line": "대쉬로 떠난 자리에 화살 덫이 박히고, 밟은 적은 그 자리에 묶인다",
+      "act": "bind",
+      "effect": {
+        "kind": "dashTrap",
+        "radiusTiles": 0.7,
+        "lifeMs": 6000,
+        "bindMs": 1200,
+        "damageMult": 0.4,
+        "maxTraps": 3
+      }
     },
     {
       "id": "b_rainSnare",
@@ -457,8 +774,13 @@
       "verb": "hold",
       "tag": "weight",
       "name": "화살 그물",
-      "line": "화살비에 맞은 적은 그 자리에 묶여 잠시 움직이지 못한다",
-      "effect": { "kind": "rainSnare", "stunMs": 500 }
+      "line": "화살비에 맞은 적이 화살비 한가운데로 끌려와 한데 묶인다",
+      "act": "pull",
+      "effect": {
+        "kind": "rainSnare",
+        "pullTiles": 1.5,
+        "bindMs": 600
+      }
     },
     {
       "id": "b_rainEcho",
@@ -467,17 +789,30 @@
       "tag": "chain",
       "name": "이어지는 비",
       "line": "화살비로 적을 쓰러뜨리면 그 자리에 화살이 한 다발 더 떨어진다",
-      "effect": { "kind": "rainKillEcho", "radiusTiles": 1.2, "damageMult": 0.5, "delayMs": 250 }
+      "act": "rain",
+      "effect": {
+        "kind": "rainKillEcho",
+        "radiusTiles": 1.2,
+        "damageMult": 0.5,
+        "delayMs": 250
+      }
     },
     {
-      "id": "pouringRain",
+      "id": "b_scatterVolley",
       "weapon": "bow",
       "verb": "hold",
       "tag": "chain",
       "branch": "rapid",
-      "name": "쏟아지는 비",
-      "line": "연사로 적을 쓰러뜨리면 화살이 한 발 돌아온다",
-      "effect": { "kind": "volleyRefill", "ammo": 1 }
+      "name": "흩날리는 살",
+      "line": "연사로 적을 쓰러뜨리면 쓰러진 자리에서 화살이 사방으로 흩어진다",
+      "act": "burst",
+      "effect": {
+        "kind": "volleyBurst",
+        "arrows": 6,
+        "rangeTiles": 3,
+        "speedTiles": 12,
+        "damageMult": 0.35
+      }
     },
     {
       "id": "b_rapidStride",
@@ -487,17 +822,26 @@
       "branch": "rapid",
       "name": "걸으며 연사",
       "line": "속사 연사 중에도 제 걸음으로 움직인다",
-      "effect": { "kind": "rapidStride" }
+      "act": "move",
+      "effect": {
+        "kind": "rapidStride"
+      }
     },
     {
-      "id": "officerHunt",
+      "id": "b_skewer",
       "weapon": "bow",
       "verb": "signature",
       "tag": "vital",
       "branch": "snipe",
-      "name": "장교 사냥",
-      "line": "멀리 있는 적을 완벽 놓기로 맞히면 반드시 치명이 된다",
-      "effect": { "kind": "longPerfectCrit", "minTiles": 8 }
+      "name": "꿰미",
+      "line": "관통 화살에 꿰인 적들이 화살 끝으로 함께 끌려가 서로 부딪친다",
+      "act": "pull",
+      "effect": {
+        "kind": "skewerDrag",
+        "dragMs": 260,
+        "slamMult": 0.4,
+        "slamStunMs": 700
+      }
     },
     {
       "id": "fireArrow",
@@ -507,17 +851,27 @@
       "branch": "snipe",
       "name": "불화살 한 발",
       "line": "완벽 놓기 화살이 지나간 술 웅덩이에 모두 불이 붙는다",
-      "effect": { "kind": "fireArrow" }
+      "act": "ignite",
+      "env": true,
+      "effect": {
+        "kind": "fireArrow"
+      }
     },
     {
-      "id": "b_starMark",
+      "id": "b_starWell",
       "weapon": "bow",
       "verb": "signature",
       "tag": "insight",
       "branch": "meteor",
       "name": "별 표적",
-      "line": "하늘 화살에 맞은 적은 다음 한 번을 반드시 치명으로 맞는다",
-      "effect": { "kind": "skyCrack", "ms": 3000 }
+      "line": "하늘 화살이 떨어진 자리로 둘레 적이 빨려 들어 한데 모인다",
+      "act": "pull",
+      "effect": {
+        "kind": "skyGravity",
+        "radiusTiles": 2.5,
+        "pullTiles": 1.6,
+        "stunMs": 400
+      }
     },
     {
       "id": "b_starDrunk",
@@ -527,7 +881,131 @@
       "branch": "meteor",
       "name": "술별",
       "line": "하늘 화살이 술 웅덩이에 떨어지면 불이 붙는다",
-      "effect": { "kind": "skyIgnite", "radiusTiles": 1 }
+      "act": "ignite",
+      "env": true,
+      "effect": {
+        "kind": "skyIgnite",
+        "radiusTiles": 1
+      }
+    }
+  ],
+  "resonance": [
+    {
+      "id": "res_katana_insight",
+      "weapon": "katana",
+      "tag": "insight",
+      "name": "되받는 달",
+      "line": "패링·가드로 밀치거나 끌어당긴 적에게 달 분신이 따라붙어 한 번 벤다",
+      "effect": {
+        "kind": "resDisplaceClone",
+        "damageMult": 0.5,
+        "delayMs": 200
+      }
+    },
+    {
+      "id": "res_katana_breach",
+      "weapon": "katana",
+      "tag": "breach",
+      "name": "칼바람 길",
+      "line": "대쉬로 지나간 길에 칼바람이 남아 잠시 뒤 그 길을 한 번 더 벤다",
+      "effect": {
+        "kind": "resDashTrail",
+        "delayMs": 350,
+        "widthTiles": 1,
+        "damageMult": 0.4,
+        "cooldownMs": 1000
+      }
+    },
+    {
+      "id": "res_katana_chain",
+      "weapon": "katana",
+      "tag": "chain",
+      "name": "끊이지 않는 칼",
+      "line": "개성 기술로 적을 쓰러뜨리면 쓰러진 자리에서 칼바람이 둘레로 퍼진다",
+      "effect": {
+        "kind": "resTraitKillBurst",
+        "radiusTiles": 1.5,
+        "damageMult": 0.4,
+        "windowMs": 300
+      }
+    },
+    {
+      "id": "res_greatsword_weight",
+      "weapon": "greatsword",
+      "tag": "weight",
+      "name": "무너뜨림",
+      "line": "날려 보내거나 들이받은 적이 처박히면 그 자리 바닥이 갈라져 둘레가 튀어 오른다",
+      "effect": {
+        "kind": "resSlamQuake",
+        "radiusTiles": 1.5,
+        "damageMult": 0.4,
+        "heightTiles": 0.9,
+        "airMs": 500,
+        "cooldownMs": 400
+      }
+    },
+    {
+      "id": "res_greatsword_insight",
+      "weapon": "greatsword",
+      "tag": "insight",
+      "name": "막고 되치는 대검",
+      "line": "퍼펙트 가드나 쳐내기에 성공하면 둘레에 날아오는 탄을 모두 되쳐 보낸다",
+      "effect": {
+        "kind": "resDeflectAll",
+        "radiusTiles": 3.5,
+        "returnMult": 1.5
+      }
+    },
+    {
+      "id": "res_dagger_vital",
+      "weapon": "dagger",
+      "tag": "vital",
+      "name": "얽힌 급소",
+      "line": "묶이거나 끌려온 적의 낙인이 터지면 사슬이 옆 적까지 뻗어 함께 묶는다",
+      "effect": {
+        "kind": "resBindSpread",
+        "rangeTiles": 3,
+        "bindMs": 900,
+        "windowMs": 2000
+      }
+    },
+    {
+      "id": "res_dagger_breach",
+      "weapon": "dagger",
+      "tag": "breach",
+      "name": "그림자 길",
+      "line": "대쉬·그림자 걸음이 지나간 길에 그림자가 남아 밟은 적에게 낙인을 붙인다",
+      "effect": {
+        "kind": "resShadowPath",
+        "ms": 2500,
+        "widthTiles": 0.8
+      }
+    },
+    {
+      "id": "res_bow_weight",
+      "weapon": "bow",
+      "tag": "weight",
+      "name": "말뚝 박기",
+      "line": "밀쳐 내거나 끌어모은 적에게 화살 한 발이 따라 꽂혀 그 자리에 묶는다",
+      "effect": {
+        "kind": "resPinFollow",
+        "bindMs": 800,
+        "damageMult": 0.4,
+        "delayMs": 160
+      }
+    },
+    {
+      "id": "res_bow_breach",
+      "weapon": "bow",
+      "tag": "breach",
+      "name": "덫 비",
+      "line": "화살 덫에 묶인 적 위로 하늘 화살이 저절로 떨어진다",
+      "effect": {
+        "kind": "resTrapRain",
+        "radiusTiles": 1,
+        "damageMult": 0.5,
+        "delayMs": 300
+      }
     }
   ]
 }

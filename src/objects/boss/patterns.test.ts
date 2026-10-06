@@ -28,7 +28,16 @@ function harness(opts: { phase?: number; force?: BossPatternName[] } = {}) {
   let weak: { onHit: () => void } | null = null;
   const boss = { x: 0, y: 0, blocked: false };
   const player = { x: 80, y: 0 };
+  const cover = { hiddenMs: 0 };
   const arena: BossArenaApi = {
+    get hiddenMs() {
+      return cover.hiddenMs;
+    },
+    coverReset: () => {
+      cover.hiddenMs = 0;
+      ev('cover:reset');
+    },
+    steer: (_f, to) => to,
     startTilt: (p) => ev(`tilt:${p.durationMs}:${p.tiltDeg}`),
     tilting: false,
     lightsOut: (p) => ev(`dark:${p.durationMs}:${p.darkAmbient}`),
@@ -136,6 +145,12 @@ function harness(opts: { phase?: number; force?: BossPatternName[] } = {}) {
       summon: () => true,
       pack: {},
       arena,
+      hazards: {
+        throwBottle: (_f: unknown, _h: number, to: { x: number; y: number }, p: { flightMs: number }) =>
+          ev(`bottle:${Math.round(to.x)},${Math.round(to.y)}:${p.flightMs}`),
+        rollBarrel: () => {},
+        liquorPool: () => {},
+      },
     }) as unknown as MobContext;
   const tick = (ms: number, each?: () => void) => {
     const end = time + ms;
@@ -163,6 +178,7 @@ function harness(opts: { phase?: number; force?: BossPatternName[] } = {}) {
       weak?.onHit();
     },
     boss,
+    cover,
     events: (prefix: string) => log.filter((r) => r.e.startsWith(prefix)),
   };
 }
@@ -178,9 +194,10 @@ describe('1층 데이터 (61라운드 P6 재구성)', () => {
       expect(p.pick).not.toContain('spin');
       expect(p.pick).not.toContain('lightsOut');
     }
-    expect(DEF.phases[0].pick).toEqual(['dash', 'slam', 'caskRoll']);
-    expect(DEF.phases[1].pick).toEqual(['dash', 'slam', 'caskRoll', 'drink', 'fireSpill']);
-    expect(DEF.phases[2].pick).toEqual([...DEF.phases[1].pick, 'drunkDash']);
+    // 61 P13 §3: 포물선 술병은 모든 국면 (기둥 뒤 가려짐이 쌓였을 때만 — 간격 무시)
+    expect(DEF.phases[0].pick).toEqual(['dash', 'slam', 'caskRoll', 'lobBottle']);
+    expect(DEF.phases[1].pick).toEqual(['dash', 'slam', 'caskRoll', 'drink', 'fireSpill', 'lobBottle']);
+    expect(DEF.phases[2].pick).toEqual(['dash', 'slam', 'caskRoll', 'drink', 'fireSpill', 'drunkDash', 'lobBottle']);
     expect(DEF.phases[2].intervalMs).toBeLessThan(DEF.phases[1].intervalMs);
     expect(DEF.phases[1].enterPattern).toBe('spin');
     expect(DEF.phases[2].enterPattern).toBe('spin');
@@ -343,5 +360,52 @@ describe('술독 굴리기 · 불붙은 술 · 등불 끄기 (Q3·Q8)', () => {
     expect(h.events('dark:')).toEqual([expect.objectContaining({ e: 'dark:12000:#2a2a36' })]);
     expect(h.events('area:')).toHaveLength(1);
     expect(h.events('begin:drunkDash')).toHaveLength(1);
+  });
+});
+
+describe('포물선 술병 (61 P13 §3 기둥 숨기 방지)', () => {
+  type Lob = { hiddenMs: number; windupMs: number; flightMs: number; cooldownMs: number; count: number };
+  it('가려짐 누적이 1.5초 미만이면 고르지 않는다', () => {
+    const h = harness();
+    h.cover.hiddenMs = 1400;
+    h.tick(DEF.phases[0].intervalMs * 4);
+    expect(h.events('begin:lobBottle')).toHaveLength(0);
+  });
+
+  it('1.5초 넘게 가려지면 패턴 간격을 기다리지 않고 바로 — 착탄 원 예고(0.6초 이상) → 놓기 → 누적 비움 · 쿨타임', () => {
+    const h = harness();
+    const P = h.brain.params<Lob>('lobBottle');
+    expect(P.hiddenMs).toBe(1500);
+    expect(P.windupMs + P.flightMs).toBeGreaterThanOrEqual(600);
+    h.tick(100);
+    h.cover.hiddenMs = 1600;
+    h.tick(32);
+    const begin = h.events('begin:lobBottle');
+    expect(begin).toHaveLength(1);
+    expect(begin[0].t).toBeLessThan(DEF.phases[0].intervalMs);
+    expect(h.events('telegraph:lobBottle')).toHaveLength(1);
+    h.tick(P.windupMs + 50);
+    const bottles = h.events('bottle:');
+    expect(bottles).toHaveLength(1);
+    expect(bottles[0].e).toBe(`bottle:80,0:${P.flightMs}`);
+    expect(h.events('action:lobThrow:0')).toHaveLength(1);
+    expect(h.events('cover:reset')).toHaveLength(1);
+    expect(h.cover.hiddenMs).toBe(0);
+    // 쿨타임 동안은 다시 가려져도 던지지 않는다
+    h.cover.hiddenMs = 2000;
+    h.tick(Math.min(P.cooldownMs, DEF.phases[0].intervalMs) - 100);
+    expect(h.events('begin:lobBottle')).toHaveLength(1);
+  });
+
+  it('인사불성: 두 병 — 둘째는 보스 → 주인공 방향으로 더 뒤 (물러날 자리)', () => {
+    const h = harness({ phase: 3 });
+    const P = h.brain.params<Lob>('lobBottle');
+    expect(P.count).toBe(2);
+    h.cover.hiddenMs = 1600;
+    h.tick(P.windupMs + 100);
+    const bottles = h.events('bottle:').map((r) => r.e);
+    expect(bottles).toHaveLength(2);
+    const x2 = Number(bottles[1].split(':')[1].split(',')[0]);
+    expect(x2).toBeGreaterThan(80);
   });
 });

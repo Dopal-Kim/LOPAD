@@ -296,6 +296,11 @@ export class BranchMoves {
     this.p.branchMoveMult = 1;
   }
 
+  /** 61 단계 5 (P13 개성 '흩날리는 살'): 속사 연사 중 */
+  get volleying(): boolean {
+    return this.volleyOn;
+  }
+
   debug(): Record<string, unknown> {
     return { pending: this.pending ? { ...this.pending } : null, last: this.lastEvent };
   }

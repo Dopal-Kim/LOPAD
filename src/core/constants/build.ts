@@ -93,7 +93,6 @@ export const BUILD_ART = {
   BOTTLE_BURST: 'fire_bottle_burst',
   // --- 최종 각성 시그니처 (무기당 1) ---
   FULLMOON: 'katana_fullmoon',
-  LANDSLIDE: 'greatsword_landslide',
   HUNDRED_GHOSTS: 'dagger_hundred_ghosts',
   METEOR_ARROW: 'bow_meteor_arrow',
   // --- 칼 2단 ---

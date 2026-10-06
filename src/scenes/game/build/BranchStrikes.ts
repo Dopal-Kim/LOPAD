@@ -73,7 +73,6 @@ export class BranchStrikes {
   /** 공격 페이로드 (BuildCombat.onAttack 에서) */
   onAttack(p: PlayerAttackPayload): void {
     const w = this.weapon;
-    if (w === 'greatsword') this.greatsword.onAttack(p);
     if (w === 'bow') this.bow.onAttack(p);
     if (w === 'dagger') this.dagger.onAttack(p);
   }
@@ -139,10 +138,6 @@ export class BranchStrikes {
 
   onArrowHit(shot: Projectile, mob: Mob): void {
     this.bow.onShotHit(shot, mob);
-  }
-
-  longPerfectCrit(shot: Projectile, mob: Mob): boolean {
-    return this.bow.longPerfectCrit(shot, mob);
   }
 
   // --- 처치 · 이동기 · 배율 ---

@@ -155,8 +155,9 @@ export class UiRelay {
     __system.emit(UI_EVENTS.TUTORIAL_STEP, info);
   }
 
-  relayGold(p: unknown): void {
-    __system.emit(UI_EVENTS.GOLD_CHANGED, p);
+  relayGold(p: { gold: number; delta: number }): void {
+    // 시스템 쪽 source(61 P13 전표 줍기 소리 구분)는 계약 밖이라 빼고 보낸다
+    __system.emit(UI_EVENTS.GOLD_CHANGED, { gold: p.gold, delta: p.delta });
   }
 
   /** 보스 이름표·체력줄 (61라운드: 층 등장 자막은 BossFlow 가 등장 연출 시간표에 맞춰 낸다) */

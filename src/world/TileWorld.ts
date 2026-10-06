@@ -223,6 +223,17 @@ export class TileWorld {
     return true;
   }
 
+  /** 61 P13 §3: 보스방 기둥이 무너짐 — 고정 큰 소품이 막던 칸을 다시 걸을 수 있게 (막힌 칸·타일 충돌 해제, 투사체도 통과) */
+  openArea(tx: number, ty: number, w: number, h: number): void {
+    for (let y = ty; y < ty + h; y++)
+      for (let x = tx; x < tx + w; x++) {
+        this.setBlocked(x, y, false);
+        const t = this.layer.getTileAt(x, y);
+        if (t && !this.skin.solidIndices.includes(t.index)) t.setCollision(false, false, false, false, false);
+      }
+    this.layer.calculateFacesWithin(tx - 1, ty - 1, w + 2, h + 2);
+  }
+
   /** 47라운드: 단단한 구조물 칸 표시 (on=false 면 해제 — 술통이 굴러가면) */
   setBlocked(tx: number, ty: number, on: boolean): void {
     if (on) this.blocked.add(`${tx},${ty}`);

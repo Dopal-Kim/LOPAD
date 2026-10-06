@@ -37,6 +37,7 @@ import { gameState } from '../../core/GameState';
 import { BUNDLE2 } from '../../data/bundle2';
 import { t, type AudioTrigger } from './audioTrigger';
 import { MOVE_AUDIO_TRIGGERS } from './audioMoves';
+import { DROP_AUDIO_TRIGGERS } from './audioDrops';
 import { BUILD_AUDIO_TRIGGERS, BUILD_SFX, hasBranch, isRapidVolley, katanaThrustSfx } from './audioBuild';
 export type { AudioTrigger } from './audioTrigger';
 
@@ -348,6 +349,8 @@ export function structureUseSfx(kind: string): string | null {
 export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   // --- 56라운드 2단계 새 기본기 (audioMoves) ---
   ...MOVE_AUDIO_TRIGGERS,
+  // --- 61 단계 5 (P13): 기둥 무너짐 · 포물선 술병 · 바닥 줍기 (audioDrops) ---
+  ...DROP_AUDIO_TRIGGERS,
   // --- 주인공 공격·보조 동작 ---
   t<PlayerAttackPayload>({
     event: Events.PLAYER_ATTACKED,
@@ -680,10 +683,10 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   t({ event: Events.STAGE_SAVED, note: '기록 저장', sfx: SFX.save }),
 
   // --- 획득·소모·상점 ---
-  t<{ delta: number }>({
+  t<{ delta: number; source?: string }>({
     event: Events.GOLD_CHANGED,
-    note: '골드 증가 (드랍·시련·보스 보너스)',
-    when: (p) => p.delta > 0,
+    note: '골드 증가 (시련·보스 보너스 — 61 P13: 바닥 전표 줍기는 PICKUP_COLLECTED 가 무더기 크기별로)',
+    when: (p) => p.delta > 0 && p.source !== 'pickup',
     sfx: SFX.pickupGold,
   }),
   t<{ kind: string }>({

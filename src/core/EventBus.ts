@@ -60,6 +60,12 @@ export const Events = {
   POTION_USED: 'potion:used',
   /** 바닥 드랍 획득 (물약 등 골드 이외) */
   ITEM_PICKED: 'item:picked',
+  /**
+   * 61 단계 5 (P13 §4) 바닥 줍기 물건 (`PickupPayload` — 음향 sound §11): 튀어나와 땅에 닿음(전표 떨어짐 소리) · 주워 흡수 팝(무더기 크기별 음정).
+   * 전표 줍기의 GOLD_CHANGED 는 source 'pickup' 이 붙어 기존 골드 소리와 겹치지 않는다
+   */
+  PICKUP_LANDED: 'pickup:landed',
+  PICKUP_COLLECTED: 'pickup:collected',
   SENSE_GAINED: 'sense:gained',
   /**
    * 61라운드 단계 4 P12 무기 성장 (음향 sound §10 트리거 · 런 로그): 각성 게이지가 오름 (`GrowthGainedPayload`)
@@ -73,6 +79,13 @@ export const Events = {
   WEAPON_AWAKEN: 'weapon:awaken',
   /** P12: 단련 (`WeaponTemperedPayload`, 옛 강화) */
   WEAPON_TEMPERED: 'weapon:tempered',
+  /**
+   * 61 단계 5 (P13 · sound §11): 개성이 전투에서 발동함 (`TraitProcPayload` — 음향 발동음 trait_<무기>_<개성> → trait_<act>, 런 로그 후보).
+   * 같은 개성은 짧은 간격(`TRAIT_FX.PROC_GATE_MS`) 안 한 번만
+   */
+  TRAIT_PROC: 'weapon:trait-proc',
+  /** P13: 공명이 켜짐 (`ResonanceOnPayload` — 같은 태그 개성 2장, 음향 resonance_on) */
+  RESONANCE_ON: 'weapon:resonance-on',
   ENEMY_DAMAGED: 'enemy:damaged',
   ENEMY_DIED: 'enemy:died',
   /** 적 공격 예고 (dash = 결사병 돌진, shot = 사수 조준 — 35라운드 2단계) */
@@ -325,6 +338,15 @@ export type WeaponGaugePayload = {
 };
 /** 61라운드 P1: 좌 홀드 기술 (move = 공격 수단 표 id — iai_draw·spin·unblockable·charge_swing·flurry·arrow_rain·rapid_volley) */
 export type PlayerHoldVerbPayload = { weapon: string; move: string };
+/** 61 P13 §4: kind = 전표 voucher · 물약 potion · 소모품 consumable(id = 소모품 id) · size = 전표 무더기 (small·mid·large) */
+export type PickupPayload = {
+  kind: 'voucher' | 'potion' | 'consumable';
+  size?: 'small' | 'mid' | 'large';
+  value: number;
+  id?: string;
+};
+/** 골드 변화 · 61 P13: source 'pickup' = 바닥 전표 줍기 (줍기 소리는 PICKUP_COLLECTED 가 낸다) */
+export type GoldChangedPayload = { gold: number; delta: number; source?: 'pickup' };
 /** 56라운드 무기 전용 동작 국면 (음향 매니페스트 PLAYER_SKILL move·phase) */
 export type PlayerSkillPayload = {
   weapon: string;
@@ -481,7 +503,10 @@ export type BossActionKind =
   | 'cupStruck'
   | 'pillarCrack'
   | 'introRoar'
-  | 'flameSnuff';
+  | 'flameSnuff'
+  // 61 단계 5 (P13 §3): 기둥 무너짐(index = 기둥 번호) · 포물선 술병 던짐(index = 몇 번째 병, 0부터 — 착탄은 행상 화염 술병과 같은 ENEMY_ATTACK burst)
+  | 'pillarCollapse'
+  | 'lobThrow';
 /** index = 3연 취권 몇 번째 타(0부터) */
 export type BossActionPayload = { id: string; action: BossActionKind; index?: number };
 export type BossLoopKind = 'gulp' | 'roll' | 'fire';
@@ -531,6 +556,9 @@ export type GrowthMarkPayload = {
 export type TraitGainedPayload = { weapon: string; id: string; verb: string; tag: string; branch?: string };
 export type WeaponAwakenPayload = { stage: 1 | 2; weapon: string; branch: string; path?: string; name: string };
 export type WeaponTemperedPayload = { weapon: string; temper: number; name: string };
+/** 61 단계 5 (P13): trait = 개성 id · act = 행동 갈래(data/growthTypes TRAIT_ACTS) · resonance = 공명이 낸 발동이면 공명 id */
+export type TraitProcPayload = { weapon: string; trait: string; act: string; resonance?: string };
+export type ResonanceOnPayload = { weapon: string; id: string; tag: string; name: string };
 /** 47라운드 구조물 이벤트 (내부, 음향 훅). kind = 계약 UiStructureKind */
 export type StructureEventPayload = { id: string; kind: string; roomId: string; actionKey?: string };
 export type StructureFirePayload = { target: 'weapon' | 'arrow' | 'pool' | 'burn' };

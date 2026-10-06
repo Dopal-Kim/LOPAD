@@ -1483,3 +1483,112 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 - `tsc --noEmit` · `eslint .` · `vitest run` 122 파일 878 통과(새 `growth/growth.test` 9) · 바뀐 파일 prettier · `vite build` 통과.
 - 헤드리스(vite preview, playwright swiftshader, 1920×1080, 스크래치 `g61/`): 무기 4종 새 런 — 게이지 30·90·150·220·290·360 마다 개성 3장 / 갈래 3장(lookKey 있음) / 개성 3장(갈래 개성 첫 장) / 길 2장(lookKey) / 개성 / [단련·개성·개성], 1차 `awaken1_crack`·2차 `awaken2_bloom` 정지(폴백 아님), 2차 뒤 오버레이 a1·a2·a2_glow 셋 다 켜짐. 시험장 8 조합(셋째 갈래 4 + 옛 갈래 4)에 개성 전부 넣고 연격·홀드·대쉬 공격·우클릭·완벽 성공 4종·울분 가득 → 규칙 발동 기록(만월 분신·보름·광전 시작·포효·철산·혜성·꿰어 박기 …). 콘솔 오류 0.
 - 남은 것: 첫 생 '싸우는 법' 안내판이 떠 있는 동안은 UI 가 게임을 멈춰 눈금 메뉴가 그 뒤로 미뤄진다(의도대로). UI 새 카드 화면은 이 빌드 헤드리스에서 옛 텍스트 메뉴 모양으로 보였다 — UI 쪽 조건 확인 요청.
+
+## 61라운드 단계 5 · 시스템 B2: 보스 기둥 숨기 방지 · 드랍 그림 · 다른 목표 (P13 §3·§4·§5) (2026-10-06)
+근거: `decisions/2026-10-06-P13-combat-variety.md` §3·§4·§5, 계약 art §27(+ 아트 6c4e90c 메타가 기준), sound §11. 자율 모드 — 세부는 시스템 판단(아래 '왜').
+열람(자율 모드 고지): `assets/sprites/structures/v3/boss1_pillar.json`(collapse·rubble·solidOffFrame), `assets/sprites/items/v3/{voucher,potion,fire_bottle}.json`(상태 열·행·shadow·magnet). 동시 작업: 시스템 T(개성·공명 — traits/*, growth*, ui.ts §18.1)의 파일은 건드리지 않았다(GreatswordBranch 는 옛 onAttack 만 뺐다).
+
+### 1. 보스 기둥 숨기 방지 (§3)
+- **무너짐**(`systems/boss/pillars`·`bossArtRules.nextCrack`): 균열 3단 다음 돌진 충돌 → 단 4 = 무너짐. 시트 `collapse`[18..27] → `rubble`[28,29](stateHold 29). **충돌은 solidOffFrame 23(땅에 부딪힘)에 끈다** — 그 순간 칸 열기(`TileWorld.openArea` — 막힌 칸·타일 충돌 해제, 걷기·투사체 통과) · 흔들림 6px/260ms · `BOSS_ACTION pillarCollapse{index}`(소리 자리) · 잔해를 액터 아래 깊이(DEPTH.PROPS, depthHint below_actors). 시트에 collapse 가 없으면 임시(crack3 을 보스 반대쪽으로 80° 기울이며 흐려짐 + 낮은 돌무더기 Graphics). 지역 소품이 그린 기둥(시트 없음)도 단계·칸 관리는 한다(그림은 못 지움).
+- 왜 23 에서 여나: 아트 제안 — 먼지 뒤에서 주인공이 기둥 자리로 들어가 보이는 것 방지. 무너지는 중(18~22)은 아직 단단하다(가려짐·우회에 포함).
+- **포물선 술병**(새 패턴 `lobBottle`, `objects/boss/patterns/lobBottle`): 보스 바디 중심 → 주인공 바디 중심 선이 서 있는 기둥 발자국을 지나면 '가려짐'(`systems/boss/pillarCover` + 순수 `pillarGeom`). 누적 = 가려지면 +dt, 보이면 −2dt(고개만 잠깐 내밀어 초기화하는 것 방지). 누적 ≥ `hiddenMs` 1500 이면 **패턴 간격을 기다리지 않고**(`BossPatternModule.urgent` — BossBrain 이 진행 중 패턴이 없을 때 pick·쿨타임 안에서 바로) 던진다: 착탄 원 예고 = windup 500 + 비행 800 = **1.3초** → 높은 포물선(6칸 — 기둥 그림 위로) → 폭발 + 불 웅덩이. 병·폭발·웅덩이는 독주 행상 화염 술병과 같은 위험물(`EnemyHazards.throwBottle` — 수치 형식 `BottleParams` 로 좁힘), 폭발 10 · 웅덩이 4/0.5초 · 4초, 쿨 2.5초, 던지면 누적을 비운다. 인사불성은 2병(둘째는 보스 → 주인공 방향 1.75칸 뒤 = 물러날 자리). 모든 국면 pick 에 추가(조건이 맞을 때만 고름). 이벤트 BOSS_TELEGRAPH/ATTACK `lobBottle` · `BOSS_ACTION lobThrow{index}`.
+- **우회 조향**(`Boss.approach` → `BossArenaApi.steer`): 서 있는 기둥을 보스 바디 반폭(+2)만큼 부풀려 앞이 막히면, 기둥 네 모서리 그래프에서 (보스 → 모서리 → … → 주인공) 최단의 첫 모서리로 걷는다(모서리 고집 12px — 떨림 방지, 모서리 6px 안이면 다음 모서리, 주인공이 기둥에 붙어 부풀린 사각형 안이면 그 변 바깥 자리를 목표로). 돌진은 그대로 직선(기둥에 부딪히는 것이 파훼).
+- BossArena 정리(6-1): 술 웅덩이 칸·술 방울을 `bossLiquor` 로, 가려짐·조향을 `pillarCover` 로 — 632 → 약 580줄.
+- **bossSim 기둥 숨기 시뮬**(`sim/pillarSim` + `pillarSim.test` 표, 연회장 실제 기둥 배치·보스 수치 그대로, 20ms 단위 두 개체 이동, 돌진·내리찍기만 — 나머지 패턴은 두 규칙에 같게 빠지므로 생략, 피하기 0.7, 24판 평균):
+
+| 무기 | 전략 | 규칙 | 승률 | 이긴 판 시간 | 받은 피해 | 가려진 비율 | 벽 경직 | 무너짐 | 술병 |
+|---|---|---|---|---|---|---|---|---|---|
+| 칼 | 기둥 숨기 | 옛 | 100% | 120.9초 | 0 | 92% | 32 | 0 | 0 |
+| 칼 | 기둥 숨기 | 새 | 92% | 147.4초 | 24 | 51% | 20.5 | 2.8 | 26.6 |
+| 대검 | 기둥 숨기 | 옛 | 100% | 123.5초 | 0 | 92% | 32.9 | 0 | 0 |
+| 대검 | 기둥 숨기 | 새 | 92% | 153.4초 | 27 | 52% | 20.8 | 2.9 | 28 |
+| 단검 | 기둥 숨기 | 옛 | 100% | 109.7초 | 0 | 92% | 29 | 0 | 0 |
+| 단검 | 기둥 숨기 | 새 | 83% | 139.2초 | 16 | 55% | 17.9 | 2.3 | 33.3 |
+| 3무기 | 붙어 싸움(기준) | 옛·새 같음 | 17~38% | 59~67초 | 98~103 | 0% | — | 0 | 0 |
+  - 옛 규칙의 숨기 = **피해 0 · 승률 100%**(보스가 기둥에 걸려 멈추고, 돌진 → 기둥 경직 → 때리고 복귀를 무한 반복) → 새 규칙: 받는 피해 16~27, 시간 +25~30초, 승률 83~92%, 기둥 2~3개가 무너져 후반엔 숨을 곳이 줄어든다. 붙어 싸우는 길에는 술병이 나오지 않는다(새·옛 결과 같음). '붙어 싸움' AI 는 단순해(치고 빠지기만) 실제보다 불리하다 — 절대값보다 옛/새 차이를 본다.
+- 헤드리스(빌드 미리보기, `?boss&debug=1&new=1&seed=e61&weapon=<칼·대검·단검>&nobossintro`, 스크래치 `b2/hide_*`): 보스를 기둥 왼쪽, 주인공을 오른쪽 바로 뒤에 두면 hiddenMs 가 쌓여 약 1.7초에 lobBottle(원 예고 + 병이 기둥 위로 날아감 → 불), 패턴 기록 caskRoll·dash·**lobBottle**·slam·**lobBottle**·caskRoll·**lobBottle**, 조향 웨이포인트(기둥 모서리)로 돌아옴. 균열 → 4번째 충돌에 collapse → rubble, 서 있을 때 왼쪽 걷기는 기둥 오른쪽 면(424)에서 멈추고 잔해가 되면 184 까지 통과. 콘솔 오류 0.
+- 디버그: `__lopad.boss.arena()` 에 `pillars[{stage,state,box}]` · `cover{hidden,hiddenMs,steered,waypoint}`.
+
+### 2. 드랍 그림 (§4)
+- `objects/drop/DropVisual`(공용 그림) + `objects/Pickup`(판정은 보이지 않는 작은 사각형 그대로) + `Consumables.spawnDrop`. 그림 우선순위: `items/v3/<id>`(전표 `voucher` 행 small/mid/large · `potion` · `fire_bottle`) → 소모품 `consumable_f1` 행(깡술·냉수) → 임시 도형(원형 동전 무더기 크기별 · 병 모양 종류 색 + 반짝 그림 한 장). 부팅 묶음에 시트 요청 추가(없는 파일은 매니페스트가 거른다).
+- 시트 쓰는 법(아트 메타): 프레임 = 행 × 24 + 열, idle 0~7 루프 · spawn 8~15(튀는 높이는 그림 — 시스템은 **떨군 자리 → 떨어질 자리 수평 흩뿌림만** 4~12px 를 spawn 길이 동안) · 땅에 닿으면 idle · magnet 22~23 반복을 **주인공 쪽으로 돌려**(atan2 + π/2) · 주우면 pickup 16~21 1회 후 숨김. 그림자는 그림에 있어 따로 그리지 않는다(meta shadow). 임시 도형은 바닥 그림자 타원 · 높이 곡선 튀어나옴 · 1.4초마다 반짝 · 자석 때 움직이는 축으로 늘어남(최대 45%) · 획득 팝(커지며 사라짐 + 고리).
+- 자석 흡수: 땅에 닿은 뒤 주인공 바디 중심 3칸 안이면 2칸/초에서 40칸/초² 로 가속(최고 22칸/초)해 끌려온다(물약은 가득이면 안 끌림). 데이터 `economy.json pickup`(magnetTiles 3 · magnetMaxTiles 22 · voucherSize mid 6 / large 15 — 1층 잡몹 전표 3~8 은 small·mid, 보스 전표는 large). 연출 값 `core/constants/drops.ts DROP_ART`. 광원(아트 제안)은 바닥에 많이 깔려 광원 상한을 먹으므로 쓰지 않았다(emissive 로 보임).
+- 이벤트(음향 §11): `PICKUP_LANDED 'pickup:landed'` · `PICKUP_COLLECTED 'pickup:collected'` `{kind: voucher|potion|consumable, size?, value, id?}`. 전표 줍기의 `GOLD_CHANGED` 에 `source:'pickup'`(골드 소리 겹침 방지 — UI 로는 gold·delta 만 중계).
+- 헤드리스(`?slice=outer`): 처치 드랍 6개 모두 art = items(전표 small·mid, 물약), 자석으로 물약이 회전 magnet 그림으로 끌려옴, 줍기 팝. 스크래치 `b2/drop_*`·`magnet_mid`.
+
+### 3. 다른 목표 (§5)
+- ① '원격' 태그 1층 표시: 실제 새 런(헤드리스, 대검 → 개성 → 1차 각성 **파쇄 = 원격·중량**) 스냅샷 `build.tags` = 돌파·중량만, 메뉴 줄·패시브 태그도 필터됨 — **시스템 스냅샷에서는 재현되지 않음**. 회귀 테스트 `build/floorTags.test`(1층 = 중량만 · 시험장 floor null = 원격도 — 시험장은 의도적으로 전부). 남은 가능성: 시험장에서 본 것, 또는 UI 쪽이 갈래 → 태그를 따로 잇는 경우 → UI 확인 요청.
+- ② 처음 안내 메타: 같은 헤드리스 런에서 개성 메뉴 고름 → `lopad.meta diary.guides = ['trait']`, 1차 각성 → `['trait','awaken1']`, 스냅샷 firstTime 도 false 로 — **정상 기록 확인**(첫 생 '싸우는 법' 안내판이 떠 있는 동안은 게임이 멈춰 메뉴가 그 뒤로 미뤄진다 — 의도).
+- ③ 1층 길이: 실제 데모 런 로그는 도영 님 브라우저 메타에만 있어 이 환경에서 읽을 수 없다 → floorSim(런 로그와 같은 노드 단위)으로 재계산. 보통 길 6.4~7.4분(칼·대검·단검·활) < 9분 → 결정(61 단계 1 P3 보정)대로 **단1·단3 웨이브 3 → 4**(route.json — 단1 4·5·6·**5** = 처치 20, 단3 4·4·5·**4**(징집병 2·행상·짐꾼) = 처치 17):
+
+| 무기 | 길 | 전 | 후 | 처치 전→후 | 보스 전 게이지(기대) |
+|---|---|---|---|---|---|
+| 단검 | 보통 / 전투 많음 | 7.0 / 7.6분 | 7.6 / 8.2분 | 41→50 / 55→64 | 267→318 / 342→393 |
+| 칼 | 〃 | 6.6 / 6.8 | 7.0 / 7.2 | 〃 | 〃 |
+| 대검 | 〃 | 6.6 / 6.9 | 7.1 / 7.3 | 〃 | 〃 |
+| 활 | 〃 | 7.6 / 8.4 | 8.2 / 9.0 | 〃 | 〃 |
+  - 추정은 여전히 9분 아래(줍기·글 읽기·메뉴 체류·피격 회복을 넣지 않은 낙관치). 다음 데모 뒤 `__lopad.runlog.dump()` 의 byKind 로 노드당 실제 시간을 받아 비교한다 — 모자라면 다음 손잡이는 5단 또는 단2 웨이브 4. 노드당 처치 상한 테스트 16 → 20(단1·단3 웨이브 4 허용).
+- ④ 옛 산붕 충격파: `GreatswordBranch.onAttack`(mountainFall 규칙 — 61 G 에서 데이터가 없어짐)·BranchStrikes 호출·`BUILD_ART.LANDSLIDE` 삭제(시트 파일은 아트 소유라 그대로, 로드 목록에는 원래 없음).
+- ⑤ BossArena 632 → 약 580줄(위 1 의 분리).
+
+### 음향 요청 (sound §11 — 트리거 확정, `systems/audio/audioDrops.ts`)
+| 소리 id | 트리거 | 없을 때 |
+|---|---|---|
+| `boss1_pillar_collapse` | `BOSS_ACTION {action:'pillarCollapse', index:기둥}` — 무너지는 시트 23 프레임(땅에 부딪힘, 충돌 4번째의 약 0.39초 뒤) | `boss1_pillar_crack3` |
+| `boss1_lob_bottle` | `BOSS_ACTION {action:'lobThrow', index:0}`(병이 여럿이면 첫 병만) — 놓는 순간. 착탄은 행상과 같은 `ENEMY_ATTACK{id:'peddler',kind:'throw',phase:'burst'}` | `boss1_torch_throw` |
+| `voucher_drop` | `PICKUP_LANDED {kind:'voucher', size}` — 재생 속도 small 1.12 · mid 1.0 · large 0.88 | 무음 |
+| `voucher_pickup` | `PICKUP_COLLECTED {kind:'voucher', size}` — 같은 음정 규칙 | `pickup_gold` |
+| `item_pickup` | `PICKUP_COLLECTED {kind:'consumable', id}` | `pickup_potion` |
+- 물약 줍기는 기존 `ITEM_PICKED{kind:'potion'}` → `pickup_potion` 유지. 전표 줍기의 옛 `GOLD_CHANGED` 골드 소리는 source 'pickup' 이면 내지 않는다(위 voucher_pickup 이 대신). `boss1_break_pillar`(돌진이 기둥에 막힌 파훼)는 그대로 — 와르르를 무너짐 쪽으로 옮기는 것은 음향 몫.
+
+### 검사
+- `tsc --noEmit` · `eslint .` · `vitest run` 128 파일 968 통과(새 `pillarGeom.test` 6 · `dropRules.test` 4 · `pillarSim.test` 2 · `floorTags.test` 1 · 패턴 술병 3 · 균열 무너짐) · 바뀐 파일 prettier(EnemyHazards 의 남은 경고 1줄은 시스템 T 의 stats 줄) · `vite build` 통과. 헤드리스는 위 1·2·3 (콘솔 오류 0).
+
+## 61라운드 단계 5 · 시스템 T: 개성 → 전투 양상 (P13 §1 — 개성 56장 다시 설계 · 공명 · 발동 이벤트 · 개성 그림 요청) (2026-10-06)
+근거: `decisions/2026-10-06-P13-combat-variety.md` §1, 계약 UI §18·§18.1, art §27, sound §11. 자율 모드 — 아래 '왜'가 판단 기록. 동시 작업 경계: 시스템 B2(보스 기둥·드랍·런 로그·태그 표시)의 BossArena·pillars·boss AI·Pickup·runlog 는 건드리지 않았다. 공용 파일(EventBus·debug/index·constants/index·EnemyHazards)은 서로의 줄을 지우지 않게 줄 단위로만 고쳤다.
+열람(자율 모드 고지): `assets/sprites/fx/v3` 파일 이름 목록(기존 fx 대체 후보를 고르려고 — 내용은 열지 않음).
+
+### 1. 개성 56장 점검 → 다시 설계 (`data/traits.json` · `scenes/game/build/traits/*` · `branch/*`)
+- 기준(P13 §1): ① 화면에서 구별되는 새 행동 ② 환경(술 웅덩이·불·술통·벽·기둥)과 엮기 무기마다 2장 이상 ③ 숫자만 다른 개성 금지. 옛 56장 중 **확정 치명·자원 되돌림·피해 감소·문턱 낮춤·경직만** 주던 22장은 새 행동으로 바꾸고 id 도 바꿨다(옛 세이브의 옛 id 는 `WeaponState.restore` 가 버린다). 나머지는 그대로 두되 버그(아래)와 보이는 그림·발동 이벤트를 붙였다.
+- 새 데이터 필드: `act`(발동 행동 갈래 — launch·slam·pull·bind·clone·blink·wave·throw·rain·ignite·deflect·shield·spin·mark·burst·move: 음향 발동음 후보·아트 묶음·런 로그) · `env`(환경 개성). 검증 `validateTraits`: act 알 수 없음 · 무기마다 env 2장 미만이면 실패.
+- 바뀐 카드(옛 → 새): 칼 칼끝 겨누기 → **칼등 띄우기**(비틀거리는 적 → 띄움·착지 충격) · 막으며 벼리기 → **칼 감기**(가드 → 앞 적 끌어당김) · 스치는 칼바람 → **그림자 넘기**(완벽 회피 → 적 등 뒤로 넘어가 벰) · 칼집 되돌림 → **연쇄 발도**(발도 처치 → 다음 적 앞으로 미끄러짐) · 투구째 → **불똥 내려베기**(투구가르기 선 → 술 웅덩이 점화·술통 터뜨림·끝 불씨) · 갈라진 투구 → **땅에 박기**(묶음 → 다시 치면 튕겨 나감) · 취월(취기 중 분신 둘) → **술 웅덩이마다 달 분신** / 대검 휘두르며 막기 → **쳐내기**(연격이 화살·술병을 되쳐 보냄) · 되받는 벽 → **되받는 땅울림**(퍼펙트 가드 → 앞줄 띄움) · 넘어뜨리기 → **들이받기**(태클 → 밀고 나가 처박기) · 버티며 모으기 → **끓는 쇠**(차지 중 웅덩이 흡수 → 균열 불길) · 짓눌린 숨(울분) → **진동 한가운데로 끌어모아 부딪침** · 술기운 폭주(문턱) → **폭주 중 웅덩이 점화·불 위에서 폭주 유지** / 단검 몰아치기 → **뽑아 던지기** · 급소 낙인 → **낙인 사슬**(낙인 셋 이상 적 → 옆 적을 끌어와 부딪침) · 이어 걷기 → **되짚어 걷기**(그림자 걸음 뒤 처음 자리로 되돌아오며 벰) · 마무리 기폭 → **불티 난타**(난타 끝 → 웅덩이 점화·화상) · 그림자 사냥(낙인) → **그림자에 묶임** · 취한 그림자(+1) → **그림자 길의 웅덩이 점화** / 활 구르며 장전 → **화살 덫** · 쏟아지는 비(장전) → **흩날리는 살**(연사 처치 → 사방 화살) · 장교 사냥(확정 치명) → **꿰미**(관통 화살에 꿰인 적들이 함께 끌려가 부딪침) · 별 표적(치명) → **하늘 화살 자리로 빨아들임**.
+- 손본 카드: 흘려 밀기·날려 보내기·코앞 사격·포효 = 단순 밀기 → **처박기**(벽·기둥·다른 적·술통에 닿으면 박힘 피해·경직, 술통은 터짐) · 꿰어 박기 = 경직 → **화살째 밀려 벽에 박힘 / 그 자리 묶음** · 화살 그물 = 경직 → **화살비 한가운데로 끌어모아 묶음** · 띄워 올리기 = 경직 → **실제로 띄움** · 어깨 너머 = **띄워 등 뒤로 메침**(들이받기와 함께면 등 뒤 벽에 처박힘) · 돌아오는 칼 = **꿰인 적을 끌고 옴** · 술 회오리·술독 짓누르기 = 빨려 드는 술 줄기·터짐 그림.
+- 버그: `Mob.stun` 이 밀기(shoveState)를 지워 **흘려 밀기·어깨 너머·포효의 밀기가 경직에 끊겨 거의 움직이지 않던 것**을 고침(밀기 끝 onEnd 에 경직). 낙인 폭발·완벽 놓기 혜성·저격 관통 그림이 **쓰러진(파괴된) 적의 바디를 읽어 예외**를 내던 것(헤드리스 smoke 에서 발견 — `DaggerBranch.onBrandBurst`·`DaggerRules`·`BowRules` 혜성·`BowBranch` 관통 fx)을 발 자리로 대체.
+- 정리: 쓰지 않게 된 규칙(critOnStunned·brandCrit·guardKenki·evadeKenki·iaiKillRefund·helmBreak·unblockableCrack·swingGuard·perfectGuardStun·tackleStun·chargeUnbroken·ringGrudge·rageDrunk·killMaxHeat·stepDashReset·flurryDetonate·ghostBrand·ghostDrunk·dashReload·volleyRefill·longPerfectCrit·skyCrack) 실행 코드와 `TraitRules.forceCrit`·`adjustDamage`·`BranchStrikes.longPerfectCrit` 삭제.
+
+### 2. 보이는 새 행동 도구 (`traits/TraitMoves.ts` — RuleKit.moves, branch/* 는 `rt.traits.moves`)
+- **띄움** `launch`: 그림만 포물선(EntityVisual.setLift — 바디·그림자는 바닥), 떠 있는 동안 경직, 착지 충격(둘레 피해·먼지·흔들림). 보스·경직 면역(통 갑옷) 제외.
+- **처박기** `slam`: 미는 길을 4px 마다 미리 훑어 걸을 수 없는 칸(벽·기둥·단단한 구조물) → 다른 적 → 서 있는 술통 순으로 닿는 곳에서 멈추고 박힘(피해·경직·흔들림·충돌 fx). 다른 적이면 둘 다 다치고 그 적은 반 칸 더 밀린다(서로 부딪힘). 술통이면 그 자리에서 터져 술 웅덩이(`StructureSystem.burstCasksIn` 새 API). 밀기가 다른 경직에 끊겨도 박힘은 시간에 맞춰 일어난다.
+- **끌어당김** `pull`(같은 길 검사 — 끌려오다 다른 적과 부딪침) · **묶음** `bind`(경직 + 발밑 고리·매듭 점, 묶인 자리까지 사슬 선) · 사슬 선·불똥 점(윤곽) · 원·선 위 웅덩이 점화 · 선 위 술통 터뜨리기.
+- 그림: `fx(trait, at, {part, fallbacks})` = 아트 전용 `trait_<무기>_<개성>[_part]` → 기존 fx 후보 → 윤곽. 공명 = `trait_<공명 id>`.
+- 적 술병 되치기: `EnemyHazards.returnBottlesNear(x,y,r,mult)` — 날아가는 술병을 지금 자리에서 던진 자리로 다시 포물선, 터지면 적만 다친다(적만 태우는 불 웅덩이).
+
+### 3. 공명 (P13 §1-4 · 계약 §18.1)
+- 정의 `data/traits.json resonance`(9 = 칼 3 · 대검 2 · 단검 2 · 활 2), 켜짐 = 같은 무기·같은 태그 개성 2장(`systems/growth/resonance.ts`), 합산에 규칙으로(`computeBuildMods` resonances — 태그 점수는 더하지 않음). 검증 `validateResonance`: 무기마다 2~3 · 같은 무기·태그 하나 · 그 태그의 **기본** 개성이 2장 이상(다른 갈래끼리는 모이지 않으므로).
+- 칼: 되받는 달(간파 — 밀치거나 끌어온 적에 달 분신) · 칼바람 길(돌파 — 대쉬 길에 칼바람) · 끊이지 않는 칼(연쇄 — 개성 피해로 쓰러진 자리에서 칼바람, 그 피해는 다시 잇지 않음) / 대검: 무너뜨림(중량 — 처박힌 자리 바닥이 갈라져 둘레가 튀어 오름) · 막고 되치는 대검(간파 — 퍼펙트 가드·쳐내기 → 둘레 탄 전부 되침) / 단검: 얽힌 급소(급소 — 묶이거나 끌려온 적의 낙인 폭발 → 옆 적까지 사슬 묶음) · 그림자 길(돌파 — 대쉬·그림자 걸음 길이 2.5초 남아 밟은 적에 낙인) / 활: 말뚝 박기(중량 — 밀쳐 내거나 끌어모은 적에 화살이 따라 꽂혀 묶음) · 덫 비(돌파 — 덫에 묶인 적 위로 하늘 화살).
+- 조합의 맛: 개성 제시(`pickTraits partnerTags`)가 한 장 모자란 공명 태그 카드를 한 장 넣는다(갈래 개성 우선 다음). 메뉴 줄 `line.resonance` = 이 카드로 켜지는 공명.
+- 켜지는 순간(`ResonanceRules.syncOn`): 시스템 `RESONANCE_ON` · UI `ui:resonance` · 알림 · 전투로 돌아온 뒤 주인공 둘레 고리(`trait_<공명 id>` → `set_flash` → 윤곽).
+
+### 4. 계약 (`src/contract/ui.ts` — §18.1)
+- `UiGrowthTrait.iconKey?`(키 `ui_traits/<무기>_<개성 id>`, 시스템이 로드한 것만 — `scenes/game/growth/GrowthArt`, 미리보기 그림 로드도 GrowthFlow 에서 이리로 분리) · `UiGrowth.resonance?: UiResonanceState[]`(이 무기 공명 전부 + active) · `UI_EVENTS.RESONANCE = 'ui:resonance'` `UiResonance{tag,name,line}`.
+- 시스템 추가(계약 문서 갱신 요청): 메뉴 줄 `UiMenuLine.trait?: UiGrowthTrait`(카드 그림 iconKey 포함) · `UiMenuLine.resonance?: UiResonance`(고르면 켜지는 공명).
+
+### 5. 이벤트 · 음향 (sound §11)
+- 시스템 `TRAIT_PROC 'weapon:trait-proc' {weapon, trait, act, resonance?}`: BRANCH_EFFECT 의 branch 가 지금 무기의 얻은 개성(또는 켜진 공명)이면 `TraitRules.onEffect` 가 낸다 — 같은 id 는 `TRAIT_FX.PROC_GATE_MS`(120ms) 안 한 번. `RESONANCE_ON 'weapon:resonance-on' {weapon, id, tag, name}`.
+- audioMap(`audioBuild`) 후보 방식: 발동 = `sfx/trait_<무기>_<개성>` → `sfx/trait_<act>` · 공명 발동 = `sfx/<공명 id>` → `sfx/resonance_proc` · 켜짐 = `sfx/resonance_on` → `trait_manifest` → `dual_trait`. manifest 에 생기면 그때부터 난다(지금은 켜짐만 dual_trait 소리).
+
+### 6. 그림 요청 (`parts/system/notes/trait-art-requests-61s5.md`)
+- 전투 fx 표(개성 56 + 공명 9 + 공통 2 — 이름·부위·모양·크기·프레임·루프·앵커·광원·지금 대체) · 카드 그림 56(파일·이름·한 줄 콘셉트). 얻은 개성·이 무기 공명의 fx 만 지연 로드(`TraitRules.loadFx` — 매니페스트에 없으면 아무것도 안 함), 카드 그림은 씬 시작에 이 무기 14장.
+
+### 7. 시험장 (`#lab` L → 각성 갈래·게이지 → `t` 개성 켜고 끄기)
+- `scenes/game/LabTraits` + `weaponLab.labTraitMenu`: 이 무기 개성 14장 바로 켜기/끄기(■/□ · 환경 표시 · 다른 갈래 개성은 잠김 안내) · 공명 상태 줄 · `a` 전부 켜기(지금 갈래까지) · `x` 전부 끄기 · `w` 술 웅덩이 셋(하나는 불) · `e` 움직이는 적 넷(징집병 둘·결사병·짐꾼 — 허수아비는 움직이지 않아 밀기·띄우기·묶기 시험용) · `9` 갈래 메뉴 · `0` 닫기. 메뉴 id 는 `labBranch` 그대로(계약 §11.4 — 제목만 다름).
+- 디버그: `__lopad.build.untrait(id)` · `build.traits()`(띄움·묶음·처박기 수·공명·발동 수) · `build.emit(event, payload)`.
+
+### 8. 밸런스 가드 (`systems/sim/traitBudget.ts` + test)
+- 개성·공명 하나가 P2 기준선(공격 5 단일 대상 지속 DPS) 대비 더하는 초당 피해 = 발동 빈도 가정(`RATES` — 패링 0.25/s·홀드 기술 0.33/s·처박기 성공 50%·웅덩이 있음 30% …) × 한 번 피해 배율 × 맞는 적 수. **최대 +11.4%(단검 낙인 사슬)**, 대부분 3~8% — 모두 +25% 이하(테스트가 지킨다). 피해 없는 행동 kind 는 목록으로 못 박아 새 kind 가 모델 없이 빠지지 않게.
+- floorSim·bossSim: 개성은 넣지 않는 추정이라 값 변화 없음 — `nodeSim.test`·`bossSim.test` 통과(아래 검사).
+
+### 검사
+- `tsc --noEmit` · `eslint .` · `vitest run` 128 파일 968 통과(새 `growth/resonance.test` 7 · `sim/traitBudget.test` 67 — 다른 시스템 작업 B2 의 새 테스트 포함 작업 트리) · 바뀐 파일만 prettier · `vite build` 통과. `nodeSim.test`·`bossSim.test` 통과(개성은 추정에 넣지 않아 값 변화 없음).
+- 헤드리스(vite dev, playwright swiftshader 1920×1080 · 약 9fps, 스크래치 `t61/`): 무기 4 × 1차 갈래 3 = 12 판, 시험장 `t → a`(개성 전부) `e`(움직이는 적) `w`(술 웅덩이) 뒤 16초 동안 연격·우클릭·홀드·대쉬·완벽 성공·가드 막음 섞어 치기 → **콘솔 오류 0**(처음 판에서 찾은 낙인 폭발 쓰러진 적 바디 예외는 고친 뒤 재확인). 발동 확인: 칼 흘려 밀기·칼 감기·그림자 넘기·칼등 띄우기·발도풍·불똥 내려베기·땅에 박기·취월 + 공명 되받는 달·끊이지 않는 칼 / 대검 끌어당기기·되받는 땅울림·포효·술기운 폭주·띄워 올리기 + 공명 무너뜨림 / 단검 뽑아 던지기·낙인 사슬·그림자 매듭·되짚어 걷기·휘감는 난타·불티 난타·그림자 사냥·취한 그림자 + 공명 그림자 길 / 활 되튀는 화살·꿰어 박기·이어지는 비·별 표적·술별·화살 그물·화살 덫 + 공명 말뚝 박기·덫 비. 처박기 벽·적(`slam_wall`·`slam_mob`)·띄움·묶음 수 확인, 스크린샷 `launch_mid`(뜬 적 + 바닥 그림자) · `bind`(발밑 고리 + 사슬) · `k_wall_*`(벽에 박힘) · `gs_leapToss_air` · `bow_trap_*` · `smoke_*`.
+- 헤드리스 9fps 에서는 키 입력(Space 대쉬)·대검 연격 4타가 자주 씹혀, 대쉬·넷째 타 계열(칼바람 길·날려 보내기·들이받기·어깨 너머·물러서며 베기)은 `build.emit`·`build.moves()` 직접 호출로 도구 동작(처박기·띄움)만 확인 — 실제 손맛은 데모에서 확인 항목으로 남김.

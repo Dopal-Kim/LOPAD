@@ -106,6 +106,8 @@ export class BrandMarks {
       } satisfies PlayerSkillPayload);
       this.g.build.record('rule:d_shadowKnot', marks);
       this.explode(target, marks, 'shadowstep');
+      // 61 단계 5 (P13): 그 적은 그림자에 묶인다
+      if (target.active) this.g.build.traits.onShadowKnot(target, Number(knot.params.bindMs) || 1200);
       return;
     }
     this.burst(target, 'shadowstep');

@@ -82,6 +82,8 @@ export const UI_EVENTS = {
   AWAKEN: 'ui:awaken',
   /** §18: 개성 하나를 얻었다 (`UiGrowthTrait`) — 옛 이중 개성 notice 대체 */
   TRAIT_GAINED: 'ui:trait-gained',
+  /** §18.1 (61 단계 5, P13): 같은 태그 개성 2장으로 공명이 켜졌다 (`UiResonance`) — `ui:trait-gained` 와 같은 알림 형식 */
+  RESONANCE: 'ui:resonance',
 } as const;
 
 /**
@@ -205,6 +207,19 @@ export interface UiGrowthTrait {
   line: string;
   verb: UiVerbSlot;
   tag?: UiTagId;
+  /** §18.1 (P13): 개성 카드 그림 텍스처 키 (`ui_traits/<무기>_<개성 id>` — 시스템이 로드한 것만, 없으면 생략 → 키캡) */
+  iconKey?: string;
+}
+/** §18.1 (P13) 공명: 같은 무기·같은 태그 개성 2장으로 켜지는 엮임 효과 */
+export interface UiResonance {
+  tag: UiTagId;
+  name: string;
+  /** 조건 → 행동 한 문장 */
+  line: string;
+}
+/** §18.1 `UiGrowth.resonance` 한 줄 (이 무기의 공명 전부 — active = 켜짐) */
+export interface UiResonanceState extends UiResonance {
+  active: boolean;
 }
 /** §18 2차 길 */
 export interface UiGrowthPath {
@@ -248,6 +263,8 @@ export interface UiGrowth {
   path: string | null;
   /** 얻은 개성 */
   traits: UiGrowthTrait[];
+  /** §18.1 (P13): 이 무기의 공명 2~3개 (켜짐 표시 — 성장도·Tab) */
+  resonance?: UiResonanceState[];
   temper: { n: number; max: number };
   /** true = 메타 기준 처음 (안내 카드) — 메뉴가 닫히면 시스템이 메타 `diary.guides` 에 기록 */
   firstTime: { trait: boolean; awaken1: boolean; awaken2: boolean };
@@ -438,6 +455,10 @@ export interface UiMenuLine {
   path?: UiGrowthPath;
   /** §18: `trait` 줄이 바꾸는 키 칸 */
   verb?: UiVerbSlot;
+  /** §18.1 (61 단계 5 시스템 추가): `trait` 줄의 개성 (카드 그림 iconKey 포함) */
+  trait?: UiGrowthTrait;
+  /** §18.1 (시스템 추가): 이 개성을 고르면 켜지는 공명 (없으면 생략) */
+  resonance?: UiResonance;
   /** 60라운드 §14.6: 상점 줄 묶음 — 고정 4칸 / 진열 3칸 / 리롤 / 궤짝 덤 / 지도 정보 */
   group?: 'fixed' | 'display' | 'reroll' | 'chest' | 'mapInfo';
   /** §14.6: 가격 (리롤은 15 → 25 → 35) */

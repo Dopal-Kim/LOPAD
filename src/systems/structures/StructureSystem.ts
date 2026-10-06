@@ -188,6 +188,15 @@ export class StructureSystem {
     this.strike.onPush(x, y, radiusPx);
   }
 
+  /** 61 단계 5 (P13 개성): 서 있는 술통 위인가 · 원 안 술통 터뜨리기 */
+  caskAt(x: number, y: number): boolean {
+    return this.strike.caskAt(x, y);
+  }
+
+  burstCasksIn(x: number, y: number, radiusPx: number): number {
+    return this.strike.burstCasksIn(x, y, radiusPx);
+  }
+
   tickShots(shots: readonly Projectile[]): void {
     this.strike.tickShots(shots);
   }

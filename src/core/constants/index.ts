@@ -15,6 +15,8 @@ export { BOSS_FX } from './boss';
 export { BOSS_ART } from './bossArt';
 export { MOVE_FX } from './moves';
 export { BUILD_FX, BUILD_ART } from './build';
+export { TRAIT_FX } from './traits';
 export { BUNDLE_FX } from './bundle';
+export { DROP_ART } from './drops';
 export { SETTINGS, RUNLOG, VRAM, SIM } from './settings';
 export { RARITY_LABEL } from './labels';

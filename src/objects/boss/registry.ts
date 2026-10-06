@@ -9,6 +9,7 @@ import { drunkDashPattern } from './patterns/drunkDash';
 import { fanPattern } from './patterns/fan';
 import { fireSpillPattern } from './patterns/fireSpill';
 import { lightsOutPattern } from './patterns/lightsOut';
+import { lobBottlePattern } from './patterns/lobBottle';
 import { slamPattern } from './patterns/slam';
 import { summonPattern } from './patterns/summon';
 import { volleyPattern } from './patterns/volley';
@@ -27,6 +28,7 @@ export const BOSS_PATTERNS: Record<BossPatternName, BossPatternModule> = {
   fireSpill: fireSpillPattern,
   lightsOut: lightsOutPattern,
   phaseDrink: phaseDrinkPattern,
+  lobBottle: lobBottlePattern,
 };
 
 export function patternModule(name: BossPatternName): BossPatternModule {

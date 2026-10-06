@@ -19,6 +19,9 @@ import { PLAYER_RENDER_SCALE } from '../../../../systems/weapon/playerScale';
 import { sheetLoopRange } from '../BuildArt';
 import { T, type BranchKit, type Dir } from './BranchKit';
 
+/** 61 단계 5: 돌아오는 칼 (되돌아오는 단검 — 꿰인 적을 끌고 온다) */
+const RETURN_TAG = 'returnKnife';
+
 /** 비도: 박힌 단검 (그림 = dagger_stuck_blade 수명 시트, 없으면 작은 사각형) */
 interface StuckKnife {
   x: number;
@@ -116,7 +119,7 @@ export class DaggerBranch {
     const { dmg, crit } = k.g.combat.rollDamage(mult, false, 'other');
     const sprite = k.mpStr('gale', 'projectile');
     k.rt.fx.shot(shot.x, shot.y, dx, dy, dmg, {
-      tag: 'fanThrow',
+      tag: RETURN_TAG,
       speedTiles: speed,
       lifeMs: (d / (speed * TILE)) * 1000,
       crit,
@@ -133,6 +136,22 @@ export class DaggerBranch {
 
   /** 빌드 투사체 적중 */
   onShotHit(shot: Projectile, mob: Mob, died: boolean): void {
+    // 61 단계 5 (P13) 돌아오는 칼: 되돌아오는 단검에 꿰인 적을 손 쪽으로 끌고 온다
+    if (shot.buildTag === RETURN_TAG) {
+      const back = this.k.rt.rule('throwReturn');
+      if (!died) this.k.g.strikes.brands.onHit(mob, shot.body.velocity.x, shot.body.velocity.y);
+      if (back && !died && mob.active) {
+        const pl = this.k.g.player;
+        this.k.rt.traits.moves.chainLine(mob, pl, BUILD_FX.COLOR.THROW, 220);
+        this.k.rt.traits.moves.fx('d_galeReturn', { x: mob.x, y: mob.y - 8 }, { fallbacks: ['dagger_brand_hop'] });
+        this.k.rt.traits.moves.pull(mob, pl, param(back, 'dragTiles', 2), 'd_galeReturn', {
+          stopTiles: 0.8,
+          endStunMs: 300,
+        });
+        this.k.effect('d_galeReturn', 'drag');
+      }
+      return;
+    }
     if (shot.buildTag !== 'fanThrow' && shot.buildTag !== 'bottle') return;
     if (!died) this.k.g.strikes.brands.onHit(mob, shot.body.velocity.x, shot.body.velocity.y);
     if (shot.buildTag === 'bottle') this.bottleSplash(mob.x, mob.y);
@@ -144,6 +163,8 @@ export class DaggerBranch {
     const b = k.rt.rule('liquorThrow');
     if (!b) return;
     const pool = k.rt.fx.liquorPool(x, y, T(param(b, 'radiusTiles', 1)), 6000);
+    k.rt.traits.moves.fx('liquorThrow', { x, y }, { fallbacks: ['fire_bottle_burst'], scale: 0.6 });
+    k.effect('liquorThrow', 'splash');
     const res = k.g.player.resource;
     if (res?.kind === 'heat' && res.value >= res.max * param(b, 'fireHeat', 0.5)) k.g.pools.ignite(pool);
   }
@@ -210,7 +231,8 @@ export class DaggerBranch {
     const k = this.k;
     const g = k.g;
     const rt = k.rt;
-    const at = { x: mob.body.center.x, y: mob.body.center.y };
+    // 61 단계 5: 낙인 폭발로 쓰러진 적은 이미 파괴돼 바디가 없다 (발 자리 + 몸 절반 높이로)
+    const at = mob.body ? { x: mob.body.center.x, y: mob.body.center.y } : { x: mob.x, y: mob.y - 8 };
     const pl = g.player;
     const back = { x: at.x - pl.x, y: at.y - pl.y };
     const bl = Math.hypot(back.x, back.y) || 1;
@@ -241,7 +263,10 @@ export class DaggerBranch {
         const tb = rt.rule('twinBrand');
         if (tb) {
           const next = rt.fx.nearest(at.x, at.y, T(param(tb, 'rangeTiles')), new Set([mob]));
-          if (next) this.hopBrands(at, next, param(tb, 'brands', 2), back);
+          if (next) {
+            rt.traits.moves.fx('twinBrand', { x: next.x, y: next.y - 8 }, { fallbacks: [] });
+            this.hopBrands(at, next, param(tb, 'brands', 2), back);
+          }
         }
       });
     }
@@ -262,18 +287,36 @@ export class DaggerBranch {
     // 각성 백귀: 기폭마다 분신 3체 (dagger_hundred_ghosts — 대상 히트박스 중심 1회, 그리면 분신 윤곽 대신)
     const demons = rt.rule('hundredDemons');
     if (demons) {
-      // 61 G 백귀: 기폭마다 그림자 clones (개성 '취한 그림자': 취기 중 +1)
-      const n = param(demons, 'clones', 1) + (rt.rule('ghostDrunk') && rt.drunkActive ? 1 : 0);
+      // 61 G 백귀: 기폭마다 그림자 clones — 둘레에서 대상 자리로 덮친다
+      const n = param(demons, 'clones', 1);
       const drawn = rt.art.once(BUILD_ART.HUNDRED_GHOSTS, at.x, at.y, { scaleMult: PLAYER_RENDER_SCALE });
+      const moves = rt.traits.moves;
+      const bind = rt.rule('ghostBind');
+      const fire = rt.rule('ghostIgnite');
       for (let i = 0; i < n; i++) {
         const a = (i / n) * Math.PI * 2;
         g.time.delayedCall(80 * (i + 1), () => {
           if (!g.scene.isActive()) return;
-          if (!drawn) rt.fx.clone(at.x + Math.cos(a) * TILE, at.y + Math.sin(a) * TILE);
+          const from = { x: at.x + Math.cos(a) * TILE, y: at.y + Math.sin(a) * TILE };
+          if (!drawn) rt.fx.clone(from.x, from.y);
+          // 61 단계 5 (P13) 개성 '취한 그림자': 덮치는 길의 술 웅덩이에 불
+          if (fire) {
+            const lit = moves.igniteLine(
+              from,
+              { x: at.x - from.x, y: at.y - from.y },
+              TILE,
+              T(param(fire, 'widthTiles', 0.8)) / 2,
+            );
+            if (lit + moves.igniteCircle(at, T(1)) > 0) {
+              moves.fx('d_ghostFire', at, { depth: DEPTH.FX_GROUND });
+              k.effect('d_ghostFire', 'ignite');
+            } else moves.sparks(from);
+          }
           for (const m of rt.fx.inCircle(at.x, at.y, T(1.5))) {
             rt.fx.damage(m, param(demons, 'cloneMult'), { dirX: -Math.cos(a), dirY: -Math.sin(a) });
-            // 61 G 개성 '그림자 사냥': 그림자가 벤 적에게 낙인 하나
-            if (rt.rule('ghostBrand') && m.active) g.strikes.brands.onHit(m, -Math.cos(a), -Math.sin(a));
+            // 개성 '그림자 사냥': 그림자가 벤 적은 제 그림자에 묶인다
+            if (bind && m.active && moves.bind(m, param(bind, 'bindMs', 900), 'd_ghostBind'))
+              k.effect('d_ghostBind', 'bind');
           }
         });
       }

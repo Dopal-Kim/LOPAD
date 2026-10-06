@@ -89,7 +89,15 @@ export function exposeGameDebug(g: Game): void {
     pickups: () =>
       (g.pickups.getChildren() as Pickup[])
         .filter((p) => p.active)
-        .map((p) => ({ kind: p.kind, value: p.value, x: p.x, y: p.y })),
+        .map((p) => ({
+          kind: p.kind,
+          value: p.value,
+          x: p.x,
+          y: p.y,
+          size: p.size,
+          art: p.view.source,
+          pull: p.pullSpeed,
+        })),
     camera: () => {
       const r = g.world.cameraRegion(g.player.x, g.player.y);
       const cam = g.cameras.main;
