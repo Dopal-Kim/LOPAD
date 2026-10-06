@@ -1,0 +1,92 @@
+{
+ "image": "map_training.png",
+ "width": 960,
+ "height": 540,
+ "pixelScale": 1.0,
+ "rooms": [
+  {
+   "index": 1,
+   "id": "breath",
+   "name": "걸음과 숨",
+   "x": 177,
+   "y": 425,
+   "r": 88,
+   "look": "모래 원·발자국·디딤돌"
+  },
+  {
+   "index": 2,
+   "id": "guard",
+   "name": "막고 받아치기",
+   "x": 151,
+   "y": 257,
+   "r": 98,
+   "look": "방패 걸린 울타리 마당·나무 벽"
+  },
+  {
+   "index": 3,
+   "id": "katana",
+   "name": "칼의 방",
+   "x": 291,
+   "y": 116,
+   "r": 84,
+   "weapon": "katana",
+   "look": "칼 걸이 정자"
+  },
+  {
+   "index": 4,
+   "id": "greatsword",
+   "name": "대검의 방",
+   "x": 499,
+   "y": 105,
+   "r": 49,
+   "weapon": "greatsword",
+   "look": "바위에 꽂힌 대검"
+  },
+  {
+   "index": 5,
+   "id": "dagger",
+   "name": "단검의 방",
+   "x": 692,
+   "y": 116,
+   "r": 63,
+   "weapon": "dagger",
+   "look": "단검 꽂힌 기둥 정자"
+  },
+  {
+   "index": 6,
+   "id": "bow",
+   "name": "활의 방",
+   "x": 829,
+   "y": 243,
+   "r": 77,
+   "weapon": "bow",
+   "look": "짚 과녁 넷"
+  },
+  {
+   "index": 7,
+   "id": "fire",
+   "name": "술과 불",
+   "x": 745,
+   "y": 383,
+   "r": 91,
+   "look": "술통 창고·모닥불"
+  },
+  {
+   "index": 8,
+   "id": "shadow",
+   "name": "만취 그림자",
+   "x": 478,
+   "y": 439,
+   "r": 105,
+   "look": "안개 속 연회장·잔 (기억 속 연습)"
+  }
+ ],
+ "hub": {
+  "x": 476,
+  "y": 267
+ },
+ "roomsNote": "x,y = 방 그림 덩어리 가운데(노드 표지·입구 줌 중심), r = 덩어리 대략 반지름(px). 순서 = P14 §1 방 1~8. id 는 아트 제안(시스템 수련장 방 id 가 정해지면 그쪽이 기준 — 순서·이름으로 맞추면 된다). hub = 가운데 문루(길이 시작되는 곳)",
+ "pathsNote": "모래 길은 그림에 들어 있다(hub → 각 방). 지도 자체에 점선 없음 — UI 연결선을 겹쳐 그려도 두 겹이 되지 않는다",
+ "palette": "세피아 S0~S4 축 + 명도 곡선 + 1층 램프(잔·불씨만) — map_bg_f1 과 같은 보정",
+ "source": "parts/art/work/paint61s6/build.py (61 단계 6 · P14 §3) · Gemini 원본 parts/art/work/gemini/paint61s6/map_training/raw_a.jpg (참고 이미지 map_bg_f1)"
+}

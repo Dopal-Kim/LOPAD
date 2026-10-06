@@ -1,0 +1,20 @@
+{
+ "id": "training_training",
+ "tag": "a",
+ "model": "gemini-3.1-flash-image",
+ "refs": [
+  "assets/sprites/ui/keyart_outer.png"
+ ],
+ "extra": null,
+ "time": "2026-10-06T03:58:10",
+ "http": 200,
+ "seconds": 9.0,
+ "finishReason": "STOP",
+ "modelVersion": "gemini-3.1-flash-image",
+ "ok": true,
+ "rawSize": [
+  1376,
+  768
+ ],
+ "prompt": "REFERENCE IMAGE: the attached image is an earlier piece of the same series. Match its rendering style, pixel density, palette and darkness - but paint a completely different scene as described below. Do not reuse its composition. Make it lighter, hazier and calmer than the reference.\n\nSTYLE (same series, but this is a calm memory scene): a key-art illustration for a 2D pixel-art roguelike, rendered as a detailed pixel-art scene painting with chunky, clearly readable shapes and flat shading (no soft airbrush, no photo texture). Limited palette: soft ash grays and pale warm grays, lighter and quieter than the rest of the series (early dawn haze, faded like a remembered place); ONE warm accent only - pale amber / gold (#d67a11, #e8b858, #faeec0) - for lanterns and dawn light. No blue, no green, no purple, no red. World: grounded Renaissance-era early-gunpowder setting. Mood: still, quiet, a little wistful. No text, no letters, no logos, no UI, no watermark, no frame or border.\n\nCOMPOSITION (strict - this picture is a scene-transition card, the camera will fly INTO the entrance): ONE entrance stands in the exact centre of a frontal, nearly symmetrical view. The entrance OPENING (doorway / gate arch / cave mouth / passage) is centred horizontally, about 22-30% of the image width wide and about 45-60% of the image height tall, its bottom edge about 80% down the image. The inside of the opening is deep near-black darkness that reads as a way in; only a faint glow far inside is allowed (described below). Nothing stands in front of or inside the opening - no people, no bars across it. The surroundings frame the entrance on both sides and above; ground in front leads the eye into it.\n\nSCENE: the gate of a quiet training yard in early dawn mist, remembered like an old memory: a simple timber gatehouse with a small tiled roof and open wooden doors onto darkness. Beside the gate, weapon racks with practice swords, a big sword, short daggers and a bow; a straw training dummy; raked sand ground with old footprints; a paper lantern glowing pale gold. Clean, peaceful, a little faded."
+}

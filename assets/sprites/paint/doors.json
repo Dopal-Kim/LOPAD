@@ -1,0 +1,197 @@
+{
+ "doors": {
+  "waste_battle": {
+   "image": "door_waste_battle.png",
+   "json": "door_waste_battle.json",
+   "doorRect": {
+    "x": 276,
+    "y": 145,
+    "w": 74,
+    "h": 94
+   },
+   "light": "#8b4d22"
+  },
+  "gate_rest": {
+   "image": "door_gate_rest.png",
+   "json": "door_gate_rest.json",
+   "doorRect": {
+    "x": 260,
+    "y": 138,
+    "w": 109,
+    "h": 97
+   },
+   "light": "#e8b858"
+  },
+  "gate_battle": {
+   "image": "door_gate_battle.png",
+   "json": "door_gate_battle.json",
+   "doorRect": {
+    "x": 301,
+    "y": 143,
+    "w": 97,
+    "h": 111
+   },
+   "light": "#d67a11"
+  },
+  "outer_battle": {
+   "image": "door_outer_battle.png",
+   "json": "door_outer_battle.json",
+   "doorRect": {
+    "x": 277,
+    "y": 129,
+    "w": 90,
+    "h": 136
+   },
+   "light": "#b0611a"
+  },
+  "outer_elite": {
+   "image": "door_outer_elite.png",
+   "json": "door_outer_elite.json",
+   "doorRect": {
+    "x": 262,
+    "y": 134,
+    "w": 119,
+    "h": 144
+   },
+   "light": "#d65457"
+  },
+  "outer_event": {
+   "image": "door_outer_event.png",
+   "json": "door_outer_event.json",
+   "doorRect": {
+    "x": 284,
+    "y": 151,
+    "w": 71,
+    "h": 124
+   },
+   "light": "#eecc78"
+  },
+  "outer_shop": {
+   "image": "door_outer_shop.png",
+   "json": "door_outer_shop.json",
+   "doorRect": {
+    "x": 274,
+    "y": 115,
+    "w": 95,
+    "h": 165
+   },
+   "light": "#e8b858"
+  },
+  "outer_rest": {
+   "image": "door_outer_rest.png",
+   "json": "door_outer_rest.json",
+   "doorRect": {
+    "x": 240,
+    "y": 109,
+    "w": 156,
+    "h": 180
+   },
+   "light": "#e8b858"
+  },
+  "brewery_battle": {
+   "image": "door_brewery_battle.png",
+   "json": "door_brewery_battle.json",
+   "doorRect": {
+    "x": 248,
+    "y": 144,
+    "w": 146,
+    "h": 152
+   },
+   "light": "#d67a11"
+  },
+  "brewery_elite": {
+   "image": "door_brewery_elite.png",
+   "json": "door_brewery_elite.json",
+   "doorRect": {
+    "x": 270,
+    "y": 143,
+    "w": 101,
+    "h": 135
+   },
+   "light": "#d65457"
+  },
+  "brewery_event": {
+   "image": "door_brewery_event.png",
+   "json": "door_brewery_event.json",
+   "doorRect": {
+    "x": 274,
+    "y": 109,
+    "w": 92,
+    "h": 145
+   },
+   "light": "#eecc78"
+  },
+  "brewery_shop": {
+   "image": "door_brewery_shop.png",
+   "json": "door_brewery_shop.json",
+   "doorRect": {
+    "x": 285,
+    "y": 100,
+    "w": 95,
+    "h": 192
+   },
+   "light": "#e8b858"
+  },
+  "brewery_rest": {
+   "image": "door_brewery_rest.png",
+   "json": "door_brewery_rest.json",
+   "doorRect": {
+    "x": 227,
+    "y": 97,
+    "w": 183,
+    "h": 188
+   },
+   "light": "#e8b858"
+  },
+  "hall_boss": {
+   "image": "door_hall_boss.png",
+   "json": "door_hall_boss.json",
+   "doorRect": {
+    "x": 292,
+    "y": 92,
+    "w": 54,
+    "h": 153
+   },
+   "light": "#d67a11"
+  },
+  "training_training": {
+   "image": "door_training_training.png",
+   "json": "door_training_training.json",
+   "doorRect": {
+    "x": 286,
+    "y": 151,
+    "w": 71,
+    "h": 110
+   },
+   "light": "#f4de9b"
+  },
+  "training_boss": {
+   "image": "door_training_boss.png",
+   "json": "door_training_boss.json",
+   "doorRect": {
+    "x": 271,
+    "y": 127,
+    "w": 102,
+    "h": 143
+   },
+   "light": "#eecc78"
+  }
+ },
+ "aliases": {
+  "waste_birth": "waste_battle",
+  "waste_road": "waste_battle",
+  "gate_post": "gate_rest",
+  "boss_boss": "hall_boss",
+  "hall_battle": "hall_boss"
+ },
+ "note": "61 단계 6 그림 속 입구 — 텍스처 키 제안 = 파일 이름(확장자 없이). 찾는 순서: door_<region>_<nodeKind> → aliases[<region>_<nodeKind>] → door_<region>_battle → (없으면 UI 대체: 지역 키아트·단색 — 계약 UI §19 doorKey 없음 규칙)",
+ "aliasesNote": "여정 노드(birth·road = 황무지 전투 문, post = 성문 초소 쉼터 동굴)와 계약 region 'boss'(= 연회장 보스 문)",
+ "size": [
+  640,
+  360
+ ],
+ "pixelScale": 1.0,
+ "usedFloor1": "data/route.json(읽기만, 61 단계 6): regionByCol waste·waste·gate·outer·outer·brewery·brewery·hall — outer 전투·이벤트, brewery 전투·상점·쉼터, hall 보스. 엘리트(도전 성소 위험 노드)는 outer·brewery 전투 자리. outer_shop·outer_rest·brewery_event·gate_battle 은 배치가 바뀔 때를 위한 예비",
+ "training": "수련장 방 입구 = door_training_training(방 1~7), 만취 그림자 방 = door_training_boss",
+ "source": "parts/art/work/paint61s6/build.py (61 단계 6 · P14 §3)"
+}

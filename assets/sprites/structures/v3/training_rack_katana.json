@@ -1,0 +1,139 @@
+{
+ "image": "training_rack_katana.png",
+ "action": "training_rack_katana",
+ "frameWidth": 176,
+ "frameHeight": 192,
+ "framesPerDirection": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction/kind (directions·rowsAre 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "id": "training_rack_katana",
+ "kind": "training",
+ "name": "칼 걸이(임시)",
+ "usage": "수련장 칼의 방 — 받침에 걸린 칼. 다가가 E 로 집으면 taken(빈 받침)",
+ "footprint": [
+  2,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "pivot": {
+  "x": 88,
+  "y": 184
+ },
+ "states": {
+  "idle": [
+   0
+  ],
+  "active": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "taken": [
+   5
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "active": true,
+  "taken": false
+ },
+ "stateFlow": "idle(멀리) → 주인공이 가까우면 active(무기 색 매듭이 흔들리고 날에 빛이 지나감, 루프) → E 로 집으면 taken(빈 받침, 매듭만 남음)",
+ "interact": "E",
+ "interactMark": {
+  "x": 88,
+  "y": 40
+ },
+ "weapon": "katana",
+ "weaponColor": "#8fe3ff",
+ "weaponColorRamp": [
+  "#456473",
+  "#5c8b9e",
+  "#8fe3ff"
+ ],
+ "weaponColorNote": "계약 art §28 무기 색표의 주 색(매듭·술·활성 빛 끝점만) — 무기 본체(강철·나무)는 기존 무기 그림 색",
+ "light": {
+  "color": "#8fe3ff",
+  "radius": 90,
+  "intensity": 0.35,
+  "offset": {
+   "x": 150,
+   "y": 70
+  }
+ },
+ "lightByState": {
+  "idle": null,
+  "active": "켜짐",
+  "taken": null
+ },
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc",
+  "#8fe3ff"
+ ],
+ "occludeAbove": 40,
+ "frameDurationsMs": [
+  200,
+  110,
+  110,
+  110,
+  110,
+  200
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "floor": "training",
+ "paletteSwap": false,
+ "version": "v3-r61s6",
+ "pivotNote": "pivot = 발자국 아래 변 가운데(바닥 접점). 도트 단위 — 시스템은 pixelScale 0.5 로 환산",
+ "palette": "parts/art/palette/lopad.json gray + 1층 램프 16~27 + v2 재질 SL·WD·PL + floors[6] '적' 램프(인주) + 무기 색 §28 매듭 3단(주 색 · 주 색×SL1 55% · 35% 섞음) — 그 밖 새 색 없음",
+ "source": "parts/art/work/paint61s6/tprops.py (61 단계 6 · P14 §1 수련장 소품)",
+ "colors": 29,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 training_rack_katana.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 176,
+   "frameHeight": 192,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":141,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":48,"w":141,"h":139},"sourceSize":{"w":176,"h":192}},
+  "1":{"frame":{"x":143,"y":0,"w":141,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":48,"w":141,"h":139},"sourceSize":{"w":176,"h":192}},
+  "2":{"frame":{"x":286,"y":0,"w":141,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":48,"w":141,"h":139},"sourceSize":{"w":176,"h":192}},
+  "3":{"frame":{"x":429,"y":0,"w":141,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":48,"w":141,"h":139},"sourceSize":{"w":176,"h":192}},
+  "4":{"frame":{"x":572,"y":0,"w":141,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":48,"w":141,"h":139},"sourceSize":{"w":176,"h":192}},
+  "5":{"frame":{"x":715,"y":0,"w":141,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":48,"w":141,"h":139},"sourceSize":{"w":176,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "training_rack_katana.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 856,
+   "h": 139
+  },
+  "scale": "1"
+ }
+}

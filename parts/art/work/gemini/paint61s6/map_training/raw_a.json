@@ -1,0 +1,20 @@
+{
+ "id": "map_training",
+ "tag": "a",
+ "model": "gemini-3.1-flash-image",
+ "refs": [
+  "assets/sprites/ui/map_bg_f1.png"
+ ],
+ "extra": null,
+ "time": "2026-10-06T03:58:17",
+ "http": 200,
+ "seconds": 8.6,
+ "finishReason": "STOP",
+ "modelVersion": "gemini-3.1-flash-image",
+ "ok": true,
+ "rawSize": [
+  1376,
+  768
+ ],
+ "prompt": "REFERENCE IMAGE: the attached image is the existing floor map of the same series. Match its rendering style, pixel density, palette and darkness - but paint a completely different scene as described below. Do not reuse its composition.\n\nSTYLE: a hand-drawn diary map on dark, dirty sepia parchment, ink line drawings with flat simple shading, chunky readable pixel-art-like line work, muted sepia browns and grays, a few pale amber/gold accents only. No other hues. No text, no letters, no numbers, no UI, no watermark.\n\nSCENE: an unrolled old paper scroll map (fills the whole image edge to edge, dark aged parchment, same parchment look as the attached reference map) of a quiet training ground compound seen from a high three-quarter bird's-eye view, drawn as small pictorial symbols in ink with a few pale gold accents. Eight small distinct training areas are spread around the scroll, connected by thin winding sandy paths, with generous empty paper space around each area for a map marker:\n1 (lower left) a sand ring with footprints and a few stepping stones - the first steps;\n2 (left middle) a small fenced yard with shields and a wooden practice wall;\n3 (top left) a dojo pavilion with a sword rack;\n4 (top centre) an open yard with a big two-handed sword planted in a stone;\n5 (top right) a narrow pavilion with daggers stuck in a wooden post;\n6 (right middle) an archery range with round straw targets;\n7 (lower right) a small storehouse with barrels and a fire pit;\n8 (bottom centre) a misty banquet-hall shape drawn faintly, half dissolved in mist, a large goblet symbol.\nIn the middle of the scroll a small gatehouse where the paths start. Keep a lot of open paper. No text, no letters, no numbers, no compass labels, no legend."
+}

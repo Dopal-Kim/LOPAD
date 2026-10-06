@@ -1,0 +1,51 @@
+{
+ "training_rack_katana": {
+  "frame": [
+   176,
+   192
+  ],
+  "colors": 29
+ },
+ "training_rack_greatsword": {
+  "frame": [
+   128,
+   208
+  ],
+  "colors": 22
+ },
+ "training_rack_dagger": {
+  "frame": [
+   128,
+   176
+  ],
+  "colors": 21
+ },
+ "training_rack_bow": {
+  "frame": [
+   128,
+   208
+  ],
+  "colors": 23
+ },
+ "training_task_sign": {
+  "frame": [
+   176,
+   192
+  ],
+  "colors": 23
+ },
+ "training_stamp_board": {
+  "frame": [
+   112,
+   176
+  ],
+  "colors": 19
+ },
+ "training_flag": {
+  "frame": [
+   112,
+   224
+  ],
+  "colors": 20
+ }
+}

@@ -1,0 +1,38 @@
+{
+ "width": 128,
+ "height": 128,
+ "pixelScale": 1.0,
+ "slice": {
+  "left": 44,
+  "right": 44,
+  "top": 44,
+  "bottom": 44
+ },
+ "sliceNote": "Phaser NineSlice(leftWidth, rightWidth, topHeight, bottomHeight) = 44 · 44 · 44 · 44. 변 조각은 늘림(결이 변을 따라 흘러 늘려도 이어짐), 모서리 44×44 는 그대로. 가운데(44..83)는 투명 — 그 자리에 굳힌 방 화면을 넣는다",
+ "content": {
+  "inset": 44,
+  "note": "그림이 들어가는 안쪽 = 바깥에서 44px 안(모든 변). 바깥 크기 = 그림 크기 + 88"
+ },
+ "layers": {
+  "wood": [
+   0,
+   23
+  ],
+  "shadow": [
+   24,
+   26
+  ],
+  "paper": [
+   27,
+   41
+  ],
+  "groove": [
+   42,
+   43
+  ]
+ },
+ "layersNote": "바깥에서 잰 거리(px): 낡은 나무 틀 0~23(쇠 모서리판·못은 모서리에만) · 틀 그림자 24~26 · 바랜 종이 매트 27~41 · 그림 홈 42~43",
+ "palette": "lopad gray + v2 재질 WD(나무) + UI 세피아 S0~S4(종이) + 1층 램프 어두운 칸 2점(녹) — 새 색 없음, 발광 없음",
+ "image": "frame.png",
+ "source": "parts/art/work/paint61s6/build.py (61 단계 6 · P14 §3) · fk_frame.py"
+}

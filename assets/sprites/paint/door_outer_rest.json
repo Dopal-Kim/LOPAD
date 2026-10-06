@@ -1,0 +1,35 @@
+{
+ "image": "door_outer_rest.png",
+ "width": 640,
+ "height": 360,
+ "pixelScale": 1.0,
+ "region": "outer",
+ "nodeKind": "rest",
+ "nameKo": "모닥불 동굴(쉼터)",
+ "doorRect": {
+  "x": 240,
+  "y": 109,
+  "w": 156,
+  "h": 180
+ },
+ "doorCenter": {
+  "x": 318,
+  "y": 199
+ },
+ "doorRectNote": "입구(문·성문·동굴 입구) 안쪽 어둠의 사각형, 그림 좌표(px, 왼쪽 위 원점). 카메라 줌 목표 = doorCenter, 화면(960×540, 그림 640×360 을 1.5배로 깔았다면 그 배율 포함)을 doorRect 가 다 덮을 때까지 = max(960/w, 540/h) 배로 확대하면 입구 안 어둠이 화면을 채운다",
+ "light": {
+  "color": "#e8b858",
+  "intensity": 0.75,
+  "note": "입구 안 빛 색(아트 제안) — 파고드는 동안 어둠 가운데 번지는 빛·먹 붓질 직전 바탕색 섞기에 쓴다"
+ },
+ "palette": "무채 G00~G15 축 + 1층 램프(16~27) 색조 맞춤(도트화·감색 없음 — 49라운드 키아트와 같은 방식)",
+ "source": "parts/art/work/paint61s6/build.py (61 단계 6 · P14 §3) · Gemini 원본 parts/art/work/gemini/paint61s6/outer_rest/raw_a.jpg",
+ "detect": {
+  "seed": [
+   320,
+   194
+  ],
+  "threshold": 8,
+  "pixels": 13046
+ }
+}
