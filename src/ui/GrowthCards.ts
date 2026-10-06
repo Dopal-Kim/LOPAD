@@ -15,6 +15,7 @@ import { fill, growthText, r60Text } from './text';
 import { SEPIA, hexToNum } from './theme';
 import { GROWTH_CARD as C, GROWTH_GUIDE as GD, RESONANCE_UI as RS, TRAIT_ICON as TI } from './themeGrowth';
 import type { VoiceWeaponId } from './themeStory';
+import { WEAPON_HUE } from './themeWeapon';
 
 /** 카드 안 줄 사이 */
 const GAP = { afterTab: 8, afterLook: 6, afterKey: 6, afterName: 6, afterRule: 8, afterLine: 6 } as const;
@@ -115,6 +116,8 @@ interface Face {
 function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 | 2, weapon: VoiceWeaponId): Face {
   const lookH = lv === 0 ? C.lookH : C.lookHCompact;
   const inner = cw - C.pad * 2;
+  // 61 단계 6 (P14 §2): 키 밑줄·길 점·단련 눈금은 무기 색
+  const hue = hexToNum(WEAPON_HUE[weapon].main);
   const cx = Math.round(cw / 2);
   const parts: Phaser.GameObjects.GameObject[] = [];
   const g = scene.add.graphics();
@@ -138,8 +141,8 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 
     if (icon) {
       parts.push(...icon);
       y += outer + TI.gapBelow;
-      if (d.verb) y = keyRow(scene, g, parts, d.verb, cx, y);
-    } else if (d.verb) y = bigKey(scene, g, parts, d.verb, cx, y);
+      if (d.verb) y = keyRow(scene, g, parts, d.verb, cx, y, hue);
+    } else if (d.verb) y = bigKey(scene, g, parts, d.verb, cx, y, hue);
   }
   // ---- 이름
   const name = new GlowText(scene, 0, 0, d.name, 'page_unsel', {
@@ -149,7 +152,7 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 
   });
   add(name, GAP.afterName);
   // 각성 카드: 바뀌는 키 한 줄 ([키] '… 바뀜')
-  if ((d.kind === 'awaken1' || d.kind === 'awaken2') && d.verb) y = keyRow(scene, g, parts, d.verb, cx, y);
+  if ((d.kind === 'awaken1' || d.kind === 'awaken2') && d.verb) y = keyRow(scene, g, parts, d.verb, cx, y, hue);
   // ---- 괘선 · 한 줄
   // (조인 단계에서는 괘선을 빼고 한 줄 아래 틈을 줄인다)
   if (lv === 0) {
@@ -170,7 +173,7 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 
     else y += 2;
     for (const p of d.paths) {
       const pn = new GlowText(scene, C.pad + 10, y, p.name, 'page_body');
-      diamond(g, C.pad + 4, y + Math.round(pn.displayHeight / 2), 3, swatch(scene, 0, { slot: C.pathDotSlot }), true);
+      diamond(g, C.pad + 4, y + Math.round(pn.displayHeight / 2), 3, hue, true);
       parts.push(pn);
       y += pn.displayHeight;
       if (p.line && lv < 2) {
@@ -188,7 +191,7 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 
     const x0 = Math.round(cx - (d.temper.max * step - C.pipGap) / 2) + r;
     for (let k = 0; k < d.temper.max; k++) {
       const on = k < d.temper.n;
-      diamond(g, x0 + k * step, y + r, r, on ? swatch(scene, 0, { slot: C.pipSlot }) : hexToNum(SEPIA[4]), on);
+      diamond(g, x0 + k * step, y + r, r, on ? hue : hexToNum(SEPIA[4]), on);
     }
     y += r * 2 + 1 + GAP.afterLine;
   }
@@ -203,12 +206,13 @@ function bigKey(
   verb: { key: string; name: string },
   cx: number,
   y: number,
+  hue: number,
 ): number {
   const k = scaledKey(scene, verb.key, C.keyScale);
   k.obj.setPosition(Math.round(cx - k.width / 2), y);
   parts.push(k.obj);
   y += k.height + 2;
-  g.fillStyle(swatch(scene, 0, { slot: C.keyLineSlot }), 1).fillRect(Math.round(cx - k.width / 2), y, k.width, 2);
+  g.fillStyle(hue, 1).fillRect(Math.round(cx - k.width / 2), y, k.width, 2);
   y += 2 + 2;
   if (verb.name) {
     const t = new GlowText(scene, 0, 0, verb.name, 'page_faint').placeCenter(cx, y);
@@ -272,6 +276,7 @@ function keyRow(
   verb: { key: string; name: string },
   cx: number,
   y: number,
+  hue: number,
 ): number {
   const k = scaledKey(scene, verb.key, 1);
   const label = verb.name ? fill(growthText('changes'), { verb: verb.name }) : '';
@@ -280,7 +285,7 @@ function keyRow(
   const x0 = Math.round(cx - w / 2);
   k.obj.setPosition(x0, y);
   parts.push(k.obj);
-  g.fillStyle(swatch(scene, 0, { slot: C.keyLineSlot }), 1).fillRect(x0, y + k.height + 1, k.width, 2);
+  g.fillStyle(hue, 1).fillRect(x0, y + k.height + 1, k.width, 2);
   if (t) {
     t.setPosition(x0 + k.width + 5, y);
     parts.push(t);

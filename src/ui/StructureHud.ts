@@ -27,6 +27,7 @@ import { GRAY, SEPIA, STRUCT, type SwatchRef, hexToNum } from './theme';
 export function swatch(scene: Phaser.Scene, stageIndex: number, ref: SwatchRef): number {
   if ('slot' in ref) return hexToNum(accentHex(scene, stageIndex, ref.slot));
   if ('gray' in ref) return hexToNum(GRAY[ref.gray]);
+  if ('hex' in ref) return hexToNum(ref.hex);
   return hexToNum(SEPIA[ref.sepia]);
 }
 

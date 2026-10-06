@@ -95,10 +95,8 @@ export class WeaponGaugeChip extends Phaser.GameObjects.Container {
       const ref = WGAUGE.kenki.colors[Math.min(k, WGAUGE.kenki.colors.length - 1)];
       return swatch(this.scene, si, ref);
     }
-    if (v.kind === 'brand') return swatch(this.scene, si, { slot: v.full ? WGAUGE.brand.full : WGAUGE.brand.on });
-    return v.focusing
-      ? swatch(this.scene, si, { slot: WGAUGE.breath.focus })
-      : swatch(this.scene, si, WGAUGE.breath.on);
+    if (v.kind === 'brand') return swatch(this.scene, si, v.full ? WGAUGE.brand.full : WGAUGE.brand.on);
+    return swatch(this.scene, si, v.focusing ? WGAUGE.breath.focus : WGAUGE.breath.on);
   }
 
   /** 마스크 칸 (검기 마름모·낙인 획·숨 방울). 부분 채움은 아래에서 위로. 끝 x 를 돌려준다 */
@@ -131,8 +129,8 @@ export class WeaponGaugeChip extends Phaser.GameObjects.Container {
   /** 울분: 이어진 3칸 막대, 왼쪽부터 채움. 끝 x 를 돌려준다 */
   private drawGrudge(v: GaugeView, x0: number, si: number): number {
     const s = WGAUGE.grudge;
-    const slot = s.stageSlots[Math.max(0, Math.min(s.stageSlots.length - 1, Math.max(1, v.stage) - 1))];
-    const on = swatch(this.scene, si, { slot });
+    const ref = s.stageColors[Math.max(0, Math.min(s.stageColors.length - 1, Math.max(1, v.stage) - 1))];
+    const on = swatch(this.scene, si, ref);
     const top = s.top;
     let x = x0;
     for (const fill of v.cells) {

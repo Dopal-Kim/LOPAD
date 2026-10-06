@@ -14,7 +14,6 @@ import {
   type UiPerfectSuccess,
   type UiRoute,
   type UiRouteEntered,
-  type UiRouteNode,
   type UiSnapshot,
   type UiStructureResult,
   type UiTagSetChanged,
@@ -27,41 +26,29 @@ import { BuildPeek } from './BuildPeek';
 import { KeyGuide } from './keyGuide';
 import { snapshotVerbItems } from './keyGuideView';
 import { CombatHud } from './CombatHud';
-import { cancelChooseCmd, chooseNodeCmd, debugExpose, installUiDebug, withDebug } from './debug';
+import { debugExpose, installUiDebug, withDebug } from './debug';
 import { GlowText } from './glow';
-import {
-  ICON,
-  NinePanel,
-  ensureImage,
-  fontsReady,
-  icon,
-  inkPanel,
-  keyartKey,
-  keyartUrl,
-  mapBgKey,
-  mapBgUrl,
-  preloadKit,
-  setupKit,
-} from './kit';
+import { ICON, NinePanel, fontsReady, icon, inkPanel, preloadKit, setupKit } from './kit';
 import { keyTaken, takeKey } from './keyGate';
 import { UI_SCENE_KEYS } from './keys';
 import { Minimap } from './Minimap';
 import { BannerQueue } from './HudBanners';
 import { BirthOverlay } from './HudBirth';
-import { findNode, regionArtKey } from './regionView';
-import { RouteMap } from './RouteMap';
+import { findNode } from './regionView';
+import { RouteControl } from './HudRoute';
+import type { RouteMap } from './RouteMap';
 import { RouteStrip } from './RouteStrip';
 import { hasRoute } from './routeView';
 import { ChallengePanel, InteractBubble, ResultToasts, StatusChips } from './StructureHud';
 import { fill, r49Text, r61Text, routeText, uiText, warpText } from './text';
-import { LAYOUT, MAP_BG_FLOORS, STRUCT } from './theme';
+import { LAYOUT, STRUCT } from './theme';
 import { PEEK } from './themeR61';
 import { TutorialGuide } from './TutorialHud';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 import { HudNarrative } from './HudNarrative';
-
-/** 노드를 고르거나 고르기를 취소한 뒤 '고를 차례인데 지도가 없음' 안전망을 쉬는 시간 (ms) — 스냅샷이 따라올 때까지 */
-const ROUTE_CANCEL_SUPPRESS_MS = 1500;
+import { TrainingLayer } from './TrainingHud';
+import { ensureTransitionScene } from './TransitionScene';
+import { transitionBusy } from './transitionState';
 
 /** 가운데 배너 깊이 (자막과 같은 층 — StoryHud STORY_UI.depth) */
 const CAPTION_DEPTH = 50;
@@ -94,6 +81,8 @@ export class HudScene extends Phaser.Scene {
    */
   private narr?: HudNarrative;
   private growthLayer?: GrowthLayer;
+  /** 61 단계 6 P14: 수련장 과제 목록·과제 알림·방 도장 */
+  private training?: TrainingLayer;
   /** 61라운드 P10: Tab 빌드 보기 (누르고 있는 동안) */
   private peek?: BuildPeek;
   /** 61라운드 P1: 무기 시험장 아래 가운데 4동사 키캡 안내 */
@@ -123,19 +112,18 @@ export class HudScene extends Phaser.Scene {
   private chips?: StatusChips;
   private toasts?: ResultToasts;
   private challenge?: ChallengePanel;
-  // 노드 지도 (48라운드)
-  private routeMap?: RouteMap;
+  // 노드 지도 (48라운드, 61 단계 6 RouteControl 로 분리)
+  private route!: RouteControl;
+  private get routeMap(): RouteMap | undefined {
+    return this.route?.map;
+  }
   private routeStrip?: RouteStrip;
   private routeMode = false;
   /** 49라운드: 음소거 중이면 'M 지도' 오른쪽에 icon_mute */
   private soundIcon?: Phaser.GameObjects.Image;
   private mapHint?: GlowText;
-  /** chooseNode 가 받아들여진 뒤 스냅샷이 아직 choosing 인 동안 다시 열지 않는다 */
-  private chooseSuppressUntil = 0;
   // 탄생 연출 (48라운드): HUD 를 숨기고 건너뛰기 안내만
   private birth!: BirthOverlay;
-  /** 50라운드: 큰 그림 미리 읽기 표시 */
-  private prefetchSig = '';
 
   constructor() {
     super(UI_SCENE_KEYS.HUD);
@@ -153,6 +141,12 @@ export class HudScene extends Phaser.Scene {
     this.glows = [];
     this.routeMode = false;
     this.labMode = false;
+    this.route = new RouteControl(this, {
+      closeWarp: (resume) => this.closeWarp(resume),
+      afterRelease: (key, fn) => this.afterRelease(key, fn),
+    });
+    // 61 단계 6 (§19): 그림 속 입구 전환 씬이 떠 있게
+    ensureTransitionScene(this);
     this.birth = new BirthOverlay(this, {
       onStart: () => {
         this.closeWarp(false);
@@ -166,9 +160,9 @@ export class HudScene extends Phaser.Scene {
         this.banners.next();
       },
     });
-    this.banners = new BannerQueue(this, () => this.built && !this.birth.active, CAPTION_DEPTH);
+    this.banners = new BannerQueue(this, () => this.built && !this.birth.active && !transitionBusy(), CAPTION_DEPTH);
     this.narr = new HudNarrative(this, {
-      canRun: () => this.built && !this.birth.active,
+      canRun: () => this.built && !this.birth.active && !transitionBusy(),
       menuOpen: () => this.scene.isActive(UI_SCENE_KEYS.MENU),
       combat: () => this.combat,
       stageIndex: () => Math.max(0, this.stageIndex),
@@ -182,7 +176,6 @@ export class HudScene extends Phaser.Scene {
           ),
         ),
     });
-    this.prefetchSig = '';
     installUiDebug(this);
     this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(withDebug(s)));
     this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) =>
@@ -197,6 +190,9 @@ export class HudScene extends Phaser.Scene {
       snapshot: () => withDebug(uiCommands.getUiSnapshot()),
     });
     this.growthLayer.subscribe((e, h) => this.on(e, h));
+    // 61 단계 6 P14 수련장: 과제 체크 목록(오른쪽, 미니맵·지도 안내 아래) · 과제 완료 알림 · 방 도장
+    this.training = new TrainingLayer(this, { top: () => 12 + (this.minimap?.h ?? 0) + 6 + 34 });
+    this.training.subscribe((e, h) => this.on(e, h));
     // 53라운드 계약: 튜토리얼 단계 카드 · 적 등장 예고('주의' 경고, Q49·Q60)
     this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
     this.on(UI_EVENTS.ENEMY_INCOMING, (p: unknown) => this.guide?.enemyIncoming(p, Math.max(0, this.stageIndex)));
@@ -239,6 +235,14 @@ export class HudScene extends Phaser.Scene {
       const s = withDebug(uiCommands.getUiSnapshot());
       this.banners.region(findNode(s.route, p?.id), s);
       if (p?.name) this.banners.text(p.name);
+    });
+    // 61 단계 6 (§19): 그림 속 입구 전환 — 덮이면 고른 뒤 남겨 둔 노드 지도를 치우고, 끝나면 미뤄 둔 자막·배너
+    this.on(UI_EVENTS.TRANSITION_COVERED, () => this.route.dropLeaving());
+    this.on(UI_EVENTS.TRANSITION_END, () => {
+      this.route.dropLeaving();
+      if (!this.built || this.birth.active) return;
+      this.narr?.story.tick(false);
+      this.banners.next();
     });
     this.on(UI_EVENTS.BIRTH_STARTED, () => this.startBirth());
     this.on(UI_EVENTS.BIRTH_DONE, () => {
@@ -286,6 +290,8 @@ export class HudScene extends Phaser.Scene {
       this.narr = undefined;
       this.growthLayer?.destroy();
       this.growthLayer = undefined;
+      this.training?.destroy();
+      this.training = undefined;
       this.labGuide = undefined;
       this.peek?.destroy();
       this.peek = undefined;
@@ -295,8 +301,7 @@ export class HudScene extends Phaser.Scene {
       this.guide = undefined;
       this.warpMap?.destroy();
       this.warpMap = undefined;
-      this.routeMap?.destroy();
-      this.routeMap = undefined;
+      this.route.destroy();
       this.routeStrip = undefined;
       this.endBirth();
       this.banners.destroy();
@@ -349,7 +354,7 @@ export class HudScene extends Phaser.Scene {
         // '넘어가시겠습니까?' 확인 창은 같은 Esc 를 '아니오'로 받는다 (RouteMap 이 이 처리기 다음에 받는다).
         // 확인 창이 닫힌 뒤 같은 Esc 가 다시 넘어와 고르기까지 취소하지 않게 여기서 소비한다 (keyGate.ts)
         takeKey(e);
-      } else if (takeKey(e)) this.cancelRouteChoose();
+      } else if (takeKey(e)) this.route.cancelChoose();
       return;
     }
     if (this.warpMap) {
@@ -380,21 +385,6 @@ export class HudScene extends Phaser.Scene {
    */
   private resumeAfterRelease(key: string): void {
     this.afterRelease(key, () => uiCommands.resume());
-  }
-
-  /**
-   * 53라운드 Q47: 노드 고르기 중 Esc — 지도를 닫고 `cancelChoose()` (주인공이 출구에서 한 걸음 물러나는 것은 시스템 몫).
-   * 취소는 재개와 같은 까닭으로 Esc 를 뗀 다음 프레임에 보낸다(취소로 풀린 게임 입력이 누르고 있는 Esc 를 받지 않게).
-   * 그 사이 스냅샷의 `route.choosing` 이 아직 true 라도 안전망이 지도를 다시 열지 않게 잠깐 막는다.
-   * 취소가 거부되면(이미 고르는 중이 아님) 그대로 둔다 — 다시 출구에 들어서면 ROUTE_CHOOSE_OPEN 이 다시 온다.
-   */
-  private cancelRouteChoose(): void {
-    this.closeRoute(false);
-    this.chooseSuppressUntil = this.time.now + ROUTE_CANCEL_SUPPRESS_MS;
-    this.afterRelease('Escape', () => {
-      const ok = cancelChooseCmd();
-      debugExpose('routeCancel', { ok, at: this.time.now });
-    });
   }
 
   /** 키를 뗀 다음 프레임에 `fn` (떼는 입력을 놓쳐도 1초 뒤). 그때 워프·노드 지도가 다시 떠 있거나 씬이 꺼졌으면 하지 않는다 */
@@ -489,8 +479,7 @@ export class HudScene extends Phaser.Scene {
     // 48라운드: 노드 지도 층이면 Tab = 노드 지도 보기 (워프 비활성, 계약 §10.2)
     if (hasRoute(s.route)) {
       if (otherUi || s.paused || s.menu || s.route.choosing) return;
-      this.routeMap = new RouteMap(this, s.route, 'view', this.routeOpts(s));
-      uiCommands.pause();
+      this.route.openView(s, s.route);
       return;
     }
     // 메뉴·개성 선택·보상·일시정지·워프 연출 중에는 조용히 무시
@@ -505,40 +494,14 @@ export class HudScene extends Phaser.Scene {
     uiCommands.pause();
   };
 
-  private routeOpts(s: UiSnapshot): ConstructorParameters<typeof RouteMap>[3] {
-    return {
-      stageIndex: Math.max(0, s.stageIndex),
-      floorTitle: s.floorTitle || s.stageName,
-      shopName: s.names?.shop,
-      onChoose: (id) => this.chooseRoute(id),
-    };
-  }
-
-  /** ROUTE_CHOOSE_OPEN: 노드 지도를 고르기 모드로 연다 (게임 입력은 시스템이 잠근다 — 정지하지 않는다) */
+  /** ROUTE_CHOOSE_OPEN: 노드 지도를 고르기 모드로 연다 (HudRoute.ts) */
   private openRouteChoose(r?: UiRoute | null): void {
-    if (!this.built) return;
-    const s = withDebug(uiCommands.getUiSnapshot());
-    const route = hasRoute(r) ? r : s.route;
-    if (!hasRoute(route)) return;
-    if (this.routeMap) this.closeRoute(this.routeMap.mode === 'view');
-    this.closeWarp(true);
-    this.routeMap = new RouteMap(this, route, 'choose', this.routeOpts(s));
+    if (this.built) this.route.openChoose(r);
   }
 
-  private chooseRoute(id: string): void {
-    if (!this.routeMap || this.routeMap.mode !== 'choose') return;
-    if (chooseNodeCmd(id)) {
-      this.chooseSuppressUntil = this.time.now + ROUTE_CANCEL_SUPPRESS_MS;
-      this.closeRoute(false);
-    } else this.routeMap.showMessage(routeText('chooseDenied'));
-  }
-
-  /** 노드 지도를 닫는다. resume=true 면 게임을 재개한다 (보기 모드를 Tab·Esc 로 닫을 때) */
+  /** 노드 지도를 닫는다. resume=true 면 게임을 재개한다 */
   private closeRoute(resume: boolean): void {
-    if (!this.routeMap) return;
-    this.routeMap.destroy();
-    this.routeMap = undefined;
-    if (resume) uiCommands.resume();
+    this.route.close(resume);
   }
 
   // ---- 탄생 연출 (48라운드 Q6, 계약 §10.3): HudBirth.ts
@@ -734,7 +697,7 @@ export class HudScene extends Phaser.Scene {
       this.floorText.setText(r49Text('labHud'));
       this.warpHint?.setVisible(false);
     } else if (route) {
-      this.prefetchRouteArt(route, route.nodes.find((n) => n.id === route.currentId) ?? null);
+      this.route.prefetch(route, route.nodes.find((n) => n.id === route.currentId) ?? null);
       const cur = route.nodes.find((n) => n.id === route.currentId);
       const where = cur ? [cur.region, cur.name].filter(Boolean).join(' · ') : '';
       this.floorText.setText(`${s.floorTitle || s.stageName}${where ? `   ${where}` : ''}`);
@@ -779,12 +742,13 @@ export class HudScene extends Phaser.Scene {
       },
       this.narr?.centerBottom() ?? UI_SCREEN.HEIGHT,
     );
+    this.training?.render(s, overlay);
     this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);
     // 53라운드: 튜토리얼 안내 — 다른 화면·배너·지역 카드·탄생 연출이 없을 때만 새로 띄운다
     const bannersIdle = this.banners.idle;
     this.guide?.update(s, !overlay && !this.birth.active && bannersIdle, si);
     // 48라운드 안전망: 고를 차례인데 지도가 없으면 연다 (이벤트를 놓쳤거나 메뉴가 닫힌 뒤)
-    if (route?.choosing && !overlay && !this.birth.active && this.time.now > this.chooseSuppressUntil)
+    if (route?.choosing && !overlay && !this.birth.active && !this.route.suppressed() && !transitionBusy())
       this.openRouteChoose(route);
     // 공지: 출구가 열렸으면 출구, 아니면 본영 문
     const kind = s.exitOpen ? 'exit' : s.bossUnlocked ? 'boss' : '';
@@ -817,19 +781,5 @@ export class HudScene extends Phaser.Scene {
     const text = this.guide.takeStep(p, withDebug(uiCommands.getUiSnapshot()), Math.max(0, this.stageIndex));
     if (text === null) return;
     this.narr?.story.dropSame(text);
-  }
-
-  /**
-   * 50라운드: 노드 지도 층의 큰 그림을 필요해진 때 한 번 읽어 둔다 — 그 층 지도 배경(MAP_BG_FLOORS), 지금 지역 키아트,
-   * 바로 다음 단계(지금 노드의 links) 지역 키아트(다음 지역 카드가 기다리지 않게). 층·지금 노드가 바뀔 때만 확인한다.
-   */
-  private prefetchRouteArt(route: UiRoute, cur: UiRouteNode | null): void {
-    const sig = `${route.floor}|${cur?.id ?? ''}`;
-    if (sig === this.prefetchSig) return;
-    this.prefetchSig = sig;
-    if (MAP_BG_FLOORS.includes(route.floor)) ensureImage(this, mapBgKey(route.floor), mapBgUrl(route.floor));
-    const next = cur ? route.nodes.filter((n) => cur.links.includes(n.id)) : [];
-    const arts = new Set([cur, ...next].map((n) => regionArtKey(n?.region)).filter((a): a is string => Boolean(a)));
-    for (const art of arts) ensureImage(this, keyartKey(art), keyartUrl(art));
   }
 }

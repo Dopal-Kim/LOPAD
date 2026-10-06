@@ -1,5 +1,41 @@
 # 게임 UI 파트 — 작업 기록
 
+## 61라운드 (2026-10-06) · 단계 6 — 그림 속 입구 전환 · 수련장 UI · 무기 색 (P14, 계약 §19 · 아트 §28)
+결정: `decisions/2026-10-06-P14-tutorial-color-transition.md`(자율 모드). 계약: `contracts/ui-system-interface.md` §19 + `src/contract/ui.ts`(시스템이 넣은 `UiTransitionBegin`(+`nodeId`)·`TRANSITION_*`·`UiTraining`(+`line`·`mapKey`)·`TRAINING_TASK`·`TRAINING_STAMP`·메뉴 `training`/`trainingChoice`·`startTraining`/`leaveTraining`). 그림은 아트 §28 마지막 줄 규격. 시스템 코드 열람 없음.
+
+### 그림 속 입구 전환 (`TransitionScene.ts` 새 UI 씬 `UiTransition`, 모든 UI 씬 위)
+- HUD·타이틀 create 에서 `ensureTransitionScene` 으로 띄워 둔다(`uiScenes` 에도 넣음, 등록이 없으면 직접 add). `ui:transition-begin` 때 맨 위로.
+- 시작: 렌더 직후 게임 캔버스를 논리 960×540 캔버스로 캡처(빈 버퍼면 `renderer.snapshot`) → 그림 준비 → 단계 진행. 셰이더 없음(캔버스 처리 + 선형 필터).
+- **enterNode·training**: 캡처한 지도 위 고른 노드(방) 자리에서 입구 그림이 작은 액자로 피어남(0.16초) → 입구 사각형으로 지수 줌 파고들기(0.72초, 목표가 제자리에서 화면 가운데로) → 마지막 38% 에 입구 안 어둠(G01 + 가운데 `light` 번짐)이 짙어져 덮임 → `ui:transition-covered` → READY 뒤 먹 붓질(아트 마스크 2 = 가운데에서 바깥)로 0.62초 걷힘 → `ui:transition-end`. 파고들 자리 = UI 가 고를 때 적어 둔 노드·방 화면 좌표(`transitionState`, id 확인) → 시스템 `from` → 화면 가운데.
+- **exitRoom**: 방 화면 캡처 → 출구(`from`)에서부터 붓 그림으로 굳음(0.38초: 밝기만 단계 줄임 + 채도 줄임 + 먹 윤곽 + 종이 결 + 가장자리 종이 번짐, 480×270 처리) → 액자(아트 `frame` 9-slice 0.5배, 좁으면 코드 액자)·종이/지도 바탕이 둘러짐(0.2초) → 줌 아웃 0.3배(0.56초) = 덮임 → READY 뒤 바탕이 붓질(마스크 0·1·3 돌려 씀)로 걷히고 액자 그림이 작아지며 사라짐.
+- **floor**: 종이 바탕 위 다음 지역 키아트 큰 액자(붓 그림 처리)가 떠오름 → 가운데로 파고듦(키아트 doorRect 는 아직 없음 — 아트 §28) → 같은 걷힘. `doorKey` 가 오면 그 그림.
+- 입구 그림: `doorKey` 텍스처(+ 같은 키 JSON `doorRect`·`light`) — 없으면 UI 가 `ui:paint/...` 사본 키로 직접 읽어 보고(최대 0.9초), 그래도 없으면 지역 키아트 + 코드로 그린 입구(아치·성문·문·동굴, 노드 종류별) 대체. 줌 끝 배율 = 1.25 × max(960/w, 540/h). 붓 마스크·액자도 시스템 키가 없으면 UI 사본 키(`paintArt.ts` — 같은 키를 두 곳에서 읽어 생기는 'key already in use' 방지).
+- 건너뛰기: 아무 키·클릭(시작 0.16초 뒤부터, `skippable`) — 덮기 전이면 바로 덮고, 덮였고 READY 면 0.14초에 걷음. 설정: 흔들림 배율(입구에 닿을 때 3px×배율), 섬광 끔이면 덮일 때 빛 번쩍임 없음.
+- READY 를 2초 넘게 못 받으면 오른쪽 아래 붓 점 '…'(덮개 유지), 10초 안전망 뒤 스스로 걷음(console.warn).
+- 노드 지도(`HudRoute.ts` — HudScene 에서 지도 다루기를 떼어 냄)·수련장 지도(MenuScene)는 고른 뒤 입력 없이 남아 있다가 덮이면 치움(전환이 오지 않으면 0.4초/0.3초 뒤). HUD 배너·지역 카드·자막은 전환 중 미루고 끝나면 이어 간다.
+
+### 수련장 UI
+- **과제 목록** (`TrainingHud.ts`, 오른쪽 미니맵·지도 안내 아래, 폭 232): '수련장 · 방 이름' + 진행 n/m(도장이면 작은 인주 도장) · 방 안내 한 줄(`line`) · 과제 줄 = 체크 칸 + 키캡(verb → 지금 무기 4동사 키, 없으면 기본 키) + 이름, 끝난 줄은 흐림 + 가운데 줄. 마당(`room` hall)·메뉴·지도 중 숨김.
+- `ui:training-task` → 그 줄 흰 반짝 + 위 가운데 칩 '과제 · 이름'(2.2초). `ui:training-stamp` → 가운데 인주 도장 '수련'(2.2배 → 1배, 흔들림 설정) + '방 · 도장' / '여덟 방 모두 도장'.
+- **수련장 지도** (`TrainingMap.ts`, 메뉴 `training`): 아트 `map_training`(+ rooms 메타, 방 id 는 index 순서로 대응) 두루마리 864×486 + 양끝 축, 방 자리 = 고리(그림이 있으면) / 작은 액자 입구(코드 두루마리) + 번호 + 이름 + 도장. 1~8·←→·Enter·클릭, Esc·0 = 나가기. 그림이 아직 안 읽혔으면 0.7초 뒤 UI 가 읽어 다시 그림.
+- **첫 생 선택** (메뉴 `trainingChoice`): 일기장 한 쪽 위 카드 2장(수련장 = 작은 입구 / 바로 벽 밖으로 = 열린 길).
+- 타이틀 '[3] 수련장'(무기 시험장 4·설정 5로 밀림), 일기장 '[5] 수련장'(수련장 안에서는 '수련장을 나간다' → `leaveTraining`, 덮기는 6). `startTraining` 거부(combat·boss·busy)면 사유 한 줄.
+
+### 무기 색 (`themeWeapon.ts`, 아트 §28 색표)
+칼 서리 #8fe3ff · 대검 용암 #ff5a2a · 단검 독 #c060ff · 활 비취 #40e0a0(보조는 팔레트 안). 원한의 한마디 세로 줄(+ 칼·대검·활 할로), 개성 카드·알림·성장도 그림 테두리, 성장 카드 키 밑줄·길 점·단련 눈금, Tab 성장도 지나온 길, HUD 각성 게이지 채움·지난 눈금·아이콘, 각성 배너 띠 위아래 1px, 고유 자원 칸(검기 서리·울분 2단 용암·낙인 독·숨 비취). HUD·메뉴 테두리·글자 기본색은 그대로(§17.1). `SwatchRef` 에 `{ hex }` 추가.
+
+### 소유 코드
+- 신규: `TransitionScene.ts`, `transitionView.ts`(+테스트 11), `transitionState.ts`, `paintFx.ts`, `paintArt.ts`, `themeTransition.ts`, `HudRoute.ts`, `TrainingHud.ts`, `TrainingMap.ts`, `trainingView.ts`(+테스트 5), `textTraining.ts`, `themeWeapon.ts`.
+- 변경: `HudScene.ts`(노드 지도 → RouteControl, 전환·수련장 배선, 835 → 약 790줄), `MenuScene.ts`, `RouteMap.ts`(`nodePos`·`freeze`), `TitleScene.ts`, `PauseScene.ts`, `keys.ts`·`index.ts`, `debug.ts`(`hasTexture`·`tune.transitionSlow`), `theme.ts`·`themeStory.ts`·`themeGrowth.ts`·`StructureHud.ts`·`growthArt.ts`·`GrowthCards.ts`·`GrowthTree.ts`·`GrowthHud.ts`·`GaugeHud.ts`(무기 색), `text.ts`.
+
+### 검증
+`npx tsc --noEmit` 0 · `npx eslint src/ui src/contract` · `npx vitest run src/ui`(25 파일 191) · prettier(바뀐 파일) 통과. 헤드리스 Playwright(1920×1080, 작업 트리 빌드 `vite preview`, 스크립트·캡처 `scratchpad/p14/`): 실제 흐름 타이틀 [3] → 수련장 지도(아트 그림·rooms 자리) → '막고 받아치기' → 전환(입구 그림 피어남 → 파고듦 → 덮임 → 붓질 걷힘, 이벤트 begin → covered → ready → end 순서) → 과제 목록·과제 알림 → 가짜 도장 → 일기장 '[5] 수련장을 나간다'. 시험장에서 가짜 exitRoom·enterNode(가짜 노드 지도에서 고른 자리)·floor·건너뛰기(덮기 전 키 → 바로 덮음, READY 뒤 키 → 짧게 걷음), 첫 생 선택 카드, 네 무기 한마디 줄·게이지·Tab 성장도 색. 페이지 오류 0.
+
+### 남은 것 / 확인 요청
+- 헤드리스에서 수련장 방·마당의 게임 화면이 검게 나온다(HUD 는 정상, 시험장 방은 정상) — 시스템 쪽 조명·카메라 확인 필요(UI 전환 씬이 덮는 것이 아님: 전환 끝에 덮개·캡처를 지우고, 시험장에서는 방이 보인다).
+- 층 키아트 입구 자리(doorRect)가 생기면 그쪽으로 파고들게 바로 바뀐다(지금은 가운데).
+- 전환 단계 길이·붓 그림 처리 세기·과제 목록 자리는 임시값(`themeTransition.ts`).
+
 ## 61라운드 (2026-10-06) · 단계 5 — 개성 그림 · 공명 표시 · 1층 꺼진 태그 (P13, 계약 §18.1)
 결정: `decisions/2026-10-06-P13-combat-variety.md`(자율 모드). 계약: `contracts/ui-system-interface.md` §18.1 + `src/contract/ui.ts`(`UiGrowthTrait.iconKey`·`UiResonance.iconKey`·`UiGrowth.resonance`·`UiMenuLine.trait/resonance`·`UI_EVENTS.RESONANCE`). 그림은 아트 65장(`ui_traits/<무기>_<개성>`·`ui_traits/res_<무기>_<태그>`, 시스템 로드). 시스템 코드 열람 없음.
 - **개성 카드 그림**: 개성 카드 위 = 그림 64(128 도트 → 0.5배) · G01 바탕 · 무기 빛 테두리 2px(원한의 한마디 세로 줄 색 `VOICE_LOOK.bar` — 칼 G13·대검 21·단검 G10·활 S5) · G00 한 줄, 그 아래 [키] '{동작} 바뀜'. 그림이 없거나 텍스처가 없으면 예전 큰 키캡. 테두리 무기는 그림 키의 무기 → 스냅샷 무기 이름.

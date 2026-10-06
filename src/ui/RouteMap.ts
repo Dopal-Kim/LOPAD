@@ -129,6 +129,22 @@ export class RouteMap {
     this.message.setText(text).placeRight(this.messageRight, this.message.y);
   }
 
+  /** 61 단계 6 (§19): 노드 아이콘 가운데 화면 좌표 — 그림 속 입구 전환이 파고들 자리 */
+  nodePos(id: string): { x: number; y: number } | null {
+    const v = this.views.find((x) => x.node.id === id);
+    return v ? { x: v.x, y: v.y } : null;
+  }
+
+  /** 61 단계 6: 고른 뒤 전환이 덮을 때까지 그대로 보이되 입력은 받지 않는다 */
+  freeze(): void {
+    if (this.destroyed) return;
+    this.closeConfirm();
+    this.chosen = true;
+    this.scene.input.keyboard?.off('keydown', this.onKeyDown);
+    this.scene.input.keyboard?.off('keyup', this.onKeyUp);
+    for (const v of this.views) v.box.disableInteractive();
+  }
+
   destroy(): void {
     if (this.destroyed) return;
     this.closeConfirm();

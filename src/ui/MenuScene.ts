@@ -15,6 +15,9 @@ import { guideKind, isGrowthMenu } from './growthView';
 import { r53Text, r60Text } from './text';
 import { SelectList } from './widgets';
 import { menuWaitMs } from './uiSequence';
+import { artTex } from './paintArt';
+import { ensureTrainingArt, showTrainingChoice, showTrainingMap } from './TrainingMap';
+import { transitionBusy, transitionOpening } from './transitionState';
 
 /** 카드 메뉴로 그릴 수 있는 카드 장수 (그 밖이면 일반 목록) */
 const CARD_MIN = 2;
@@ -23,6 +26,11 @@ const CARD_MAX = 4;
 const MENU_MAX_PAGE_H = UI_SCREEN.HEIGHT - 32 - 24;
 /** 접은 설명 한 칸 높이 (3줄) */
 const COMPACT_DETAIL_H = 3 * 16 + 6;
+/** 61 단계 6: 수련장 지도에서 방을 고른 뒤 전환 시작을 기다리는 시간 · 덮일 때까지 지도를 남기는 최대 시간 (ms) */
+const TRAINING_HOLD_WAIT_MS = 300;
+const TRAINING_HOLD_MAX_MS = 3000;
+/** 수련장 지도 그림을 시스템이 읽기를 기다리는 시간 (ms) — 그 뒤에도 없으면 UI 가 읽는다 */
+const TRAINING_ART_WAIT_MS = 700;
 /** Esc 머무름 안내가 떠 있는 시간 (임시값) */
 const ESC_STAY_HOLD_MS = 1400;
 
@@ -100,6 +108,8 @@ export class MenuScene extends Phaser.Scene {
 
   update(): void {
     if (this.pendingClose) {
+      // 61 단계 6: 수련장 지도에서 방을 골랐으면 그림 속 입구 전환이 지도를 덮을 때까지 남긴다 (그 입구로 파고든다)
+      if (this.holdForTransition()) return;
       this.pendingClose = false;
       this.scene.stop();
     }
@@ -141,8 +151,22 @@ export class MenuScene extends Phaser.Scene {
     this.menu = first;
   }
 
+  /** 61 단계 6: 수련장 지도에서 방을 보낸 시각 (같은 지도에서 두 번 보내지 않게, 전환이 덮을 때까지 지도를 남기게) */
+  private trainingSentAt = 0;
+
+  private holdForTransition(): boolean {
+    if (this.drawn?.id !== 'training' || !this.trainingSentAt) return false;
+    const since = this.time.now - this.trainingSentAt;
+    if (since < TRAINING_HOLD_WAIT_MS && !transitionBusy()) return true;
+    return transitionOpening() && since < TRAINING_HOLD_MAX_MS;
+  }
+
   /** 선택 전달 (UI 디버그 가짜 메뉴는 시스템으로 보내지 않는다) */
   private send(m: UiMenu, key: string): void {
+    if (m.id === 'training' && key !== m.cancelKey) {
+      if (this.trainingSentAt && this.time.now - this.trainingSentAt < TRAINING_HOLD_MAX_MS) return;
+      this.trainingSentAt = this.time.now;
+    }
     if (isDebugMenu(m)) debugSelect(m, key);
     else uiCommands.select(m.id, key);
   }
@@ -159,6 +183,7 @@ export class MenuScene extends Phaser.Scene {
     const keepCursor = same ? (this.list?.cursorIndex() ?? this.cardRow?.focusIndex() ?? 0) : 0;
     this.menu = m;
     this.drawn = m;
+    this.trainingSentAt = 0;
     this.stayHint = undefined;
     this.children.removeAll(true);
     this.list?.destroy();
@@ -187,6 +212,25 @@ export class MenuScene extends Phaser.Scene {
       }
       page = showGrowthCards(this, m, snap, ctx, MENU_MAX_PAGE_H);
       debugExpose('growthCards', { id: m.id, drawn: Boolean(page) });
+      if (!page) this.children.removeAll(true);
+    } else if (m.id === 'training') {
+      // 61 단계 6 P14: 수련장 지도 두루마리 (TrainingMap.ts)
+      page = showTrainingMap(this, m, snap, ctx);
+      if (!page) this.children.removeAll(true);
+      // 그림 지도가 아직 안 읽혔으면 읽은 뒤 같은 메뉴를 다시 그린다 (그동안은 코드 두루마리)
+      // (시스템이 막 읽는 중일 수 있어 조금 기다렸다가 그래도 없을 때만 UI 사본으로)
+      const key = snap.training?.mapKey || 'paint/map_training';
+      const drewArt = Boolean(artTex(this, key));
+      this.time.delayedCall(TRAINING_ART_WAIT_MS, () => {
+        if (!this.alive || this.drawn !== m) return;
+        const started = ensureTrainingArt(this, key, (ok) => {
+          if (ok && this.alive && this.drawn === m) this.show(m);
+        });
+        // 그 사이 시스템이 읽었으면 그림으로 다시 그린다
+        if (!started && !drewArt) this.show(m);
+      });
+    } else if (m.id === 'trainingChoice') {
+      page = showTrainingChoice(this, m, ctx);
       if (!page) this.children.removeAll(true);
     } else if (m.id === 'cards' && cardLines.length >= CARD_MIN && cardLines.length <= CARD_MAX) {
       page = showFaceDownCards(this, m, cardLines, ctx);

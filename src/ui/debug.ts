@@ -24,6 +24,8 @@ import { UI_SCENE_KEYS } from './keys';
  *   scenes()                    // 53라운드: 실행 중인 씬 키 (Esc 단계 확인용)
  *   events: [name, payload][]   // 53라운드: 받은 UI 이벤트 기록 (STATE 제외, 최근 200개)
  *   addTexture(key, canvas)     // 61 단계 5: 임시 그림 (아트가 아직 없는 개성 카드 그림 모의 확인용)
+ *   hasTexture(key)             // 61 단계 6: 텍스처가 읽혔는가
+ *   tune: { transitionSlow? }   // 61 단계 6: 그림 속 입구 전환을 n 배 느리게 (단계별 캡처용)
  * }
  */
 type Patch = Partial<UiSnapshot> | ((s: UiSnapshot) => Partial<UiSnapshot>);
@@ -55,6 +57,17 @@ interface DebugApi {
   events: [string, unknown][];
   /** 61 단계 5: 임시 그림 텍스처 (이미 있으면 바꾸지 않는다) */
   addTexture(key: string, canvas: HTMLCanvasElement): boolean;
+  /** 61 단계 6 */
+  hasTexture(key: string): boolean;
+  tune: Record<string, number>;
+}
+
+const tune: Record<string, number> = {};
+/** 61 단계 6: 디버그 조정 값 (꺼져 있거나 없으면 기본값) */
+export function debugTune(name: string, fallback: number): number {
+  if (!uiDebugEnabled()) return fallback;
+  const v = tune[name];
+  return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : fallback;
 }
 
 let enabled: boolean | null = null;
@@ -181,6 +194,8 @@ export function installUiDebug(scene: Phaser.Scene): void {
     snap: () => withDebug(uiCommands.getUiSnapshot()),
     events: eventLog,
     scenes: () => scenePlugin?.manager.getScenes(true).map((sc) => sc.sys.settings.key) ?? [],
+    hasTexture: (key) => scene.textures.exists(key),
+    tune,
     addTexture(key, canvas) {
       const tex = scene.textures;
       if (tex.exists(key)) return false;

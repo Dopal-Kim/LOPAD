@@ -18,6 +18,8 @@ import { swatch } from './StructureHud';
 import { fill, growthText } from './text';
 import { GRAY, hexToNum } from './theme';
 import { GROWTH_TREE as T, RESONANCE_UI as RS, TRAIT_ICON as TI } from './themeGrowth';
+import { WEAPON_HUE } from './themeWeapon';
+import { voiceWeapon } from './storyView';
 
 /**
  * 61 단계 4 P12 Tab 성장도 (빌드 보기 왼쪽 장 안, 옛 '개성 n/m' 막대 대체):
@@ -92,10 +94,10 @@ function drawTree(
   const lines = scene.add.graphics();
   const dots = scene.add.graphics();
   objs.push(lines, dots);
+  // 61 단계 6 (P14 §2): 지나온 길(밝힌 줄·점)은 무기 색
+  const litHue = hexToNum(WEAPON_HUE[voiceWeapon(opts.weaponName, g.weaponName)].main);
   const color = (st: TreeState): number =>
-    st === 'lit'
-      ? swatch(scene, 0, { slot: T.litSlot })
-      : swatch(scene, 0, { sepia: st === 'open' ? T.openSepia : T.shutSepia });
+    st === 'lit' ? litHue : swatch(scene, 0, { sepia: st === 'open' ? T.openSepia : T.shutSepia });
   const byId = new Map(tree.nodes.map((n) => [n.id, n]));
   const nx = (col: number): number => x + T.dotR + (T.colX[col] ?? 0);
   for (const n of tree.nodes) {

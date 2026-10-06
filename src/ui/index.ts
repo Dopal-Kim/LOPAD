@@ -4,7 +4,8 @@ import { MenuScene } from './MenuScene';
 import { PauseScene } from './PauseScene';
 import { ResultScene } from './ResultScene';
 import { TitleScene } from './TitleScene';
+import { TransitionScene } from './TransitionScene';
 import { UI_SCENE_KEYS } from './keys';
 
 export const UI_SCENES = UI_SCENE_KEYS;
-export const uiScenes = [TitleScene, HudScene, MenuScene, PauseScene, ResultScene];
+export const uiScenes = [TitleScene, HudScene, MenuScene, PauseScene, ResultScene, TransitionScene];

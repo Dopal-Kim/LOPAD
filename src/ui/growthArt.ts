@@ -128,7 +128,7 @@ export function pairPips(
   return x0 + (need - 1) * step + r;
 }
 
-/** 무기 빛 테두리 색 (원한의 한마디 세로 줄과 같은 색 — 칼 G13 · 대검 잉걸 21 · 단검 G10 · 활 S5) */
+/** 무기 빛 테두리 색 (원한의 한마디 세로 줄과 같은 색 — 61 단계 6 무기 색: 칼 서리 · 대검 용암 · 단검 독 · 활 비취) */
 export function weaponFrameColor(scene: Phaser.Scene, weapon: VoiceWeaponId): number {
   return swatch(scene, 0, VOICE_LOOK[weapon].bar);
 }

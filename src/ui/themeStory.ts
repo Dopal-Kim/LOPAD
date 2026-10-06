@@ -4,6 +4,8 @@
  * 색은 팔레트 안에서만 — 층 강조 램프 슬롯(16~27)·무채 G·세피아 S. 위치는 논리 960×540 px, 정수. 순수 계산 모듈도 import 한다.
  */
 
+import { WEAPON_HUE } from './themeWeapon';
+
 /** 무기 id (kit `WEAPON_ICON_IDS` 값과 같다) */
 export type VoiceWeaponId = 'katana' | 'greatsword' | 'dagger' | 'bow';
 
@@ -46,6 +48,7 @@ export const VOICE_UI = {
 
 /**
  * 무기별 목소리 모양 (텍스트 팩 B0 말투표):
+ *  61 단계 6 (P14 §2): 왼쪽 세로 줄은 무기 색(themeWeapon — 서리 #8fe3ff · 용암 #ff5a2a · 독 #c060ff · 비취 #40e0a0).
  *  칼 = 차가운 해라체 → 서늘한 회백(G13), 떨림 없음, 왼쪽에서 한 번에 베어 들어온다(slide).
  *  대검 = 투박한 반말 → 잉걸 주황(강조 21), 크게 내려앉고(drop) 처음 0.6초 묵직하게 흔들린다.
  *  단검 = 속삭이는 반말 → 흐린 회색(G10, 할로 없음), 한 글자씩(type) + 내내 잘게 떨린다.
@@ -55,7 +58,7 @@ export interface VoiceLook {
   /** `TEXT_STYLES` 의 목소리 스타일 */
   style: 'voice_katana' | 'voice_greatsword' | 'voice_dagger' | 'voice_bow';
   /** 왼쪽 세로 줄 색 */
-  bar: { slot: number } | { gray: number } | { sepia: number };
+  bar: { slot: number } | { gray: number } | { sepia: number } | { hex: string };
   /** 등장: slide 왼쪽에서 밀려옴 · drop 위에서 내려앉음 · type 한 글자씩 · word 낱말씩 */
   enter: 'slide' | 'drop' | 'type' | 'word';
   /** 등장 거리(px, slide·drop) 또는 글자·낱말 간격(ms, type·word) */
@@ -68,7 +71,7 @@ export interface VoiceLook {
 export const VOICE_LOOK: Record<VoiceWeaponId, VoiceLook> = {
   katana: {
     style: 'voice_katana',
-    bar: { gray: 13 },
+    bar: { hex: WEAPON_HUE.katana.main },
     enter: 'slide',
     enterValue: 10,
     jitterAmp: 0,
@@ -77,7 +80,7 @@ export const VOICE_LOOK: Record<VoiceWeaponId, VoiceLook> = {
   },
   greatsword: {
     style: 'voice_greatsword',
-    bar: { slot: 21 },
+    bar: { hex: WEAPON_HUE.greatsword.main },
     enter: 'drop',
     enterValue: 6,
     jitterAmp: 1,
@@ -86,7 +89,7 @@ export const VOICE_LOOK: Record<VoiceWeaponId, VoiceLook> = {
   },
   dagger: {
     style: 'voice_dagger',
-    bar: { gray: 10 },
+    bar: { hex: WEAPON_HUE.dagger.main },
     enter: 'type',
     enterValue: 45,
     jitterAmp: 1,
@@ -95,7 +98,7 @@ export const VOICE_LOOK: Record<VoiceWeaponId, VoiceLook> = {
   },
   bow: {
     style: 'voice_bow',
-    bar: { sepia: 5 },
+    bar: { hex: WEAPON_HUE.bow.main },
     enter: 'word',
     enterValue: 150,
     jitterAmp: 0,

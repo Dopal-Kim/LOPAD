@@ -19,11 +19,8 @@ export const GROWTH_HUD = {
   /** 눈금 마름모 반지름: 작은 눈금(◇ 개성 발현·단련) · 큰 눈금(◆ 각성) */
   tickR: 3,
   bigTickR: 4,
-  /** 막대 바탕 · 찬 부분 · 지난 작은 눈금 · 지난 큰 눈금 · 앞 눈금 테 (작은 G09, 큰 = 강조 20) */
+  /** 막대 바탕 · 앞 눈금 테 (작은 G09, 큰 = 강조 20). 찬 부분·지난 눈금·아이콘 마름모는 무기 색 (61 단계 6, themeWeapon) */
   trackGray: 3,
-  fillSlot: 22,
-  doneSlot: 22,
-  bigDoneSlot: 25,
   todoGray: 9,
   bigTodoSlot: 20,
   /** 다음 눈금 (깜빡이지 않고 한 칸 밝게) */
@@ -62,14 +59,9 @@ export const GROWTH_CARD = {
   shakeMs: 50,
   /** 머리표 띠 색 (강조 슬롯) */
   headSlot: { trait: 22, awaken1: 25, awaken2: 26, temper: 21 } as Readonly<Record<string, number>>,
-  /** 바뀌는 키 강조 밑줄 */
-  keyLineSlot: 22,
-  /** 2차 길 미리보기 줄 앞 마름모 */
-  pathDotSlot: 20,
   /** 단련 눈금 마름모 */
   pipR: 3,
   pipGap: 3,
-  pipSlot: 22,
 } as const;
 
 /**
@@ -137,8 +129,7 @@ export const GROWTH_TREE = {
   elbow: 10,
   rowH: 15,
   dotR: 3,
-  /** 지나온 길 선·점 (강조), 지금 고를 수 있는 것 (세피아 S5), 닫힌 것 (세피아 S3) */
-  litSlot: 22,
+  /** 지나온 길 선·점 = 무기 색(themeWeapon, 61 단계 6), 지금 고를 수 있는 것 (세피아 S5), 닫힌 것 (세피아 S3) */
   openSepia: 5,
   shutSepia: 4,
   /** 얻은 개성 목록 줄 높이 · 최대 줄 수 (넘치면 '외 n') */

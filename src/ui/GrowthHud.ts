@@ -10,6 +10,8 @@ import { fill, growthText } from './text';
 import { GRAY, hexToNum } from './theme';
 import { GROWTH_BANNER as BN, GROWTH_HUD as G, RESONANCE_UI as RS, TRAIT_ICON as TI } from './themeGrowth';
 import { TimedCard } from './timedCard';
+import { WEAPON_HUE } from './themeWeapon';
+import { voiceWeapon } from './storyView';
 
 /**
  * 61 단계 4 P12 HUD 각성 게이지 한 줄 (전투 묶음 무기·자원 줄 아래, 옛 2px 개성 진행선 대체):
@@ -50,10 +52,10 @@ export class GrowthGauge {
     const bx = Math.round(this.num.x + this.num.displayWidth + G.gap);
     const layout = gaugeLayout(g, G.barW, G.bigTickR);
     this.rem.setText(remainText(layout.remain, growthText)).setPosition(bx + G.barW + G.gap, y);
-    const sig = `${x}|${y}|${bx}|${layout.fillW}|${layout.ticks.map((t) => `${t.x}${t.state}`).join(',')}`;
+    const sig = `${g.weaponName}|${x}|${y}|${bx}|${layout.fillW}|${layout.ticks.map((t) => `${t.x}${t.state}`).join(',')}`;
     if (sig !== this.sig) {
       this.sig = sig;
-      this.draw(layout, x, y, bx, iconCol);
+      this.draw(layout, x, y, bx, iconCol, hexToNum(WEAPON_HUE[voiceWeapon(g.weaponName)].main));
     }
     return this.rem.x + this.rem.displayWidth;
   }
@@ -77,25 +79,32 @@ export class GrowthGauge {
     return this;
   }
 
-  private draw(layout: ReturnType<typeof gaugeLayout>, x: number, y: number, bx: number, iconCol: number): void {
+  /** hue = 무기 색 (61 단계 6 P14 §2 — 채움·지난 큰 눈금·아이콘 마름모) */
+  private draw(
+    layout: ReturnType<typeof gaugeLayout>,
+    x: number,
+    y: number,
+    bx: number,
+    iconCol: number,
+    hue: number,
+  ): void {
     const sc = this.scene;
     const cy = y + G.barY + Math.floor(G.barH / 2);
     // 아이콘 칸: 큰 마름모 (채움 = 강조 25, 테 = G00)
     const ic = this.icon.clear();
     const icx = x + Math.floor((iconCol - 4) / 2);
-    diamond(ic, icx, cy, 5, swatch(sc, 0, { slot: G.bigDoneSlot }), true);
+    diamond(ic, icx, cy, 5, hue, true);
     diamond(ic, icx, cy, 5, hexToNum(GRAY[0]), false);
     const g = this.bar.clear();
     g.fillStyle(swatch(sc, 0, { gray: G.trackGray }), 1).fillRect(bx, y + G.barY, G.barW, G.barH);
-    if (layout.fillW > 0)
-      g.fillStyle(swatch(sc, 0, { slot: G.fillSlot }), 1).fillRect(bx, y + G.barY, layout.fillW, G.barH);
+    if (layout.fillW > 0) g.fillStyle(hue, 1).fillRect(bx, y + G.barY, layout.fillW, G.barH);
     this.lastFill = { x: bx, y: y + G.barY, w: layout.fillW };
     for (const t of layout.ticks) {
       const r = t.big ? G.bigTickR : G.tickR;
       const tx = bx + t.x;
       // 바탕 G00 로 한 겹 깔아 막대 위에서 또렷하게
       diamond(g, tx, cy, r + 1, hexToNum(GRAY[0]), true);
-      if (t.state === 'done') diamond(g, tx, cy, r, swatch(sc, 0, { slot: t.big ? G.bigDoneSlot : G.doneSlot }), true);
+      if (t.state === 'done') diamond(g, tx, cy, r, hue, true);
       else {
         const edge = t.state === 'next' ? { slot: G.nextSlot } : t.big ? { slot: G.bigTodoSlot } : { gray: G.todoGray };
         diamond(g, tx, cy, r, swatch(sc, 0, edge), false);
@@ -156,6 +165,14 @@ export class GrowthLayer {
     }
     const band = sc.add.graphics().setDepth(BN.depth - 1);
     band.fillStyle(hexToNum(GRAY[0]), 0.5).fillRect(0, BN.awaken.top - 10, W, y + 20);
+    // 61 단계 6 (P14 §2): 띠 위·아래 1px 무기 색
+    const hue = hexToNum(
+      WEAPON_HUE[voiceWeapon(this.deps.snapshot().growth?.weaponName, this.deps.snapshot().weapon?.name)].main,
+    );
+    band
+      .fillStyle(hue, 1)
+      .fillRect(0, BN.awaken.top - 10, W, 1)
+      .fillRect(0, BN.awaken.top + y + 9, W, 1);
     band.setAlpha(0);
     sc.tweens.add({ targets: band, alpha: 1, duration: BN.awaken.inMs });
     sc.tweens.add({

@@ -6,6 +6,7 @@ import { R60_TEXT, type R60TextKey } from './textBuild';
 import { R61_TEXT, type R61TextKey } from './textR61';
 import { GROWTH_TEXT, type GrowthTextKey } from './textGrowth';
 import { STORY_TEXT, type StoryTextKey } from './textStory';
+import { TRAINING_TEXT, type TrainingTextKey } from './textTraining';
 import { fill } from './fmt';
 
 /**
@@ -284,4 +285,9 @@ export function storyText(key: StoryTextKey): string {
 /** 61 단계 4 P12 무기 성장 틀 문구 (textGrowth.ts GROWTH_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
 export function growthText(key: GrowthTextKey): string {
   return uiText('hud', key, GROWTH_TEXT[key]);
+}
+
+/** 61 단계 6 P14 수련장·그림 속 입구 틀 문구 (textTraining.ts TRAINING_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
+export function trainingText(key: TrainingTextKey): string {
+  return uiText('hud', key, TRAINING_TEXT[key]);
 }

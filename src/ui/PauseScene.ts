@@ -7,7 +7,7 @@ import { ICON, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit'
 import { UI_SCENE_KEYS } from './keys';
 import { hasRoute } from './routeView';
 import { diaryGrowthLines, growthRouteName } from './growthView';
-import { controlsLine, fill, growthText, r49Text, r53Text, r61Text, uiText } from './text';
+import { controlsLine, fill, growthText, r49Text, r53Text, r61Text, trainingText, uiText } from './text';
 import { GRAY, LAYOUT, ROUTE, hexToNum } from './theme';
 import { buildPage } from './PauseBuild';
 import { SettingsPanel } from './SettingsPanel';
@@ -17,16 +17,16 @@ import { buildHowToPanel } from './TutorialHud';
 import { SelectList } from './widgets';
 
 const PAGE_W = 440;
-/** 53라운드 Q50: '싸우는 법' 항목 한 줄만큼, 61라운드: 설정 한 줄 + 4동사 키캡 안내(2줄)만큼 높였다 */
-const PAGE_H = 282 + LAYOUT.row * 2 + 44;
+/** 53라운드 Q50: '싸우는 법' 항목 한 줄만큼, 61라운드: 설정 한 줄 + 4동사 키캡 안내(2줄)만큼, 61 단계 6: '수련장' 한 줄만큼 높였다 */
+const PAGE_H = 282 + LAYOUT.row * 3 + 44;
 const PAD = 24;
 /** 60라운드: 두 쪽 펼침 쪽 높이 상한 (화면 540 - 책 틀 32 - 여백) */
 const MAX_PAGE_H = UI_SCREEN.HEIGHT - 32 - 16;
 /** '싸우는 법' 패널 깊이 (일기장 위) */
 const HOWTO_DEPTH = 50;
 
-/** 일기장 항목 key (53라운드 Q50: 3 = 싸우는 법, 61라운드 §15: 4 = 설정, 덮기·나가기는 5) */
-const PAUSE_KEY = { resume: '1', sound: '2', howTo: '3', settings: '4', leave: '5' } as const;
+/** 일기장 항목 key (53라운드 Q50: 3 = 싸우는 법, 61라운드 §15: 4 = 설정, 61 단계 6 §19: 5 = 수련장(안에서는 나가기), 덮기·나가기는 6) */
+const PAUSE_KEY = { resume: '1', sound: '2', howTo: '3', settings: '4', training: '5', leave: '6' } as const;
 
 /**
  * 일시정지 = 일기장 한 페이지 (31라운드 채택 문구): 제목 '일기장', 이름·층·시련·세이브, 능력치, 무기, 패시브, 조작법,
@@ -46,6 +46,10 @@ export class PauseScene extends Phaser.Scene {
   private alive = false;
   private muted = false;
   private lab = false;
+  /** 61 단계 6: 수련장 안 (일기장 '수련장' 항목이 '수련장을 나간다' 로) */
+  private inTraining = false;
+  /** 61 단계 6: '수련장' 거부 사유 한 줄 */
+  private notice?: GlowText;
   /** '싸우는 법' 패널 (떠 있으면 일기장 목록 입력을 막는다) */
   private howTo?: Phaser.GameObjects.Container;
   private howToBlock?: Phaser.GameObjects.Rectangle;
@@ -117,6 +121,7 @@ export class PauseScene extends Phaser.Scene {
     this.stageIndex = stageIndex;
     this.muted = Boolean(s.muted);
     this.lab = Boolean(s.lab);
+    this.inTraining = Boolean(s.training);
     const W = UI_SCREEN.WIDTH;
     const H = UI_SCREEN.HEIGHT;
     // 60라운드 §14: 오른쪽 쪽 '빌드'(태그·세트·저주·패시브·소모품) — 글을 먼저 재고 두 쪽 높이를 맞춘다
@@ -178,6 +183,7 @@ export class PauseScene extends Phaser.Scene {
     this.list = new SelectList(this, pg.x + PAD, y, (key) => this.choose(key), { stageIndex, detailWrap: innerW - 40 });
     this.setList();
     y += this.list.height() + 10;
+    this.notice = new GlowText(this, pg.x + PAD, y - 10, '', 'page_faint', { wrap: innerW });
     // 61라운드 P1·P10: 무기 4동사 키캡 안내 (시스템 weaponVerbs, 없으면 지금 조작) — 2단
     const guide = new KeyGuide(this, pg.x + PAD, y, 'column', { surface: 'page', stageIndex, cols: 2 }).setItems(
       snapshotVerbItems(s, (k) => r61Text(k)),
@@ -257,6 +263,7 @@ export class PauseScene extends Phaser.Scene {
         { key: PAUSE_KEY.sound, label: this.soundLabel(), enabled: true },
         { key: PAUSE_KEY.howTo, label: r53Text('pauseHowTo'), enabled: true },
         { key: PAUSE_KEY.settings, label: r61Text('settingsItem'), enabled: true },
+        { key: PAUSE_KEY.training, label: trainingText('pauseItem'), enabled: true },
         { key: PAUSE_KEY.leave, label: r49Text('labLeave'), enabled: true },
       ]);
       this.list?.setCursorIndex(keep);
@@ -277,10 +284,31 @@ export class PauseScene extends Phaser.Scene {
             { key: PAUSE_KEY.sound, label: this.soundLabel(), enabled: true },
             { key: PAUSE_KEY.howTo, label: r53Text('pauseHowTo'), enabled: true },
             { key: PAUSE_KEY.settings, label: r61Text('settingsItem'), enabled: true },
+            {
+              key: PAUSE_KEY.training,
+              label: trainingText(this.inTraining ? 'pauseLeave' : 'pauseItem'),
+              enabled: true,
+            },
             { key: PAUSE_KEY.leave, label: uiText('pause', 'toTitle', '일기장을 덮는다'), enabled: true },
           ],
     );
     if (!this.confirm) this.list?.setCursorIndex(keep);
+  }
+
+  /**
+   * 61 단계 6 (§19): '수련장' — 런 중이면 런을 맡겨 두고 수련장으로(`startTraining`), 거부면 사유 한 줄. 수련장 안이면 나가기.
+   * 받아들여지면 시스템이 장면을 바꾼다(일기장은 RESUMED·씬 전환으로 닫힌다).
+   */
+  private training(): void {
+    if (this.inTraining) {
+      uiCommands.leaveTraining();
+      return;
+    }
+    const r = uiCommands.startTraining();
+    debugExpose('pauseTraining', { result: r });
+    if (r === 'ok') return;
+    const why = r === 'combat' ? 'denyCombat' : r === 'boss' ? 'denyBoss' : 'denyBusy';
+    this.notice?.setText(trainingText(why));
   }
 
   /** 소리 끄기·켜기 (계약 §11.3). 일시정지 중 스냅샷이 늦게 바뀔 수 있어 화면 상태는 여기서 뒤집는다 */
@@ -296,6 +324,7 @@ export class PauseScene extends Phaser.Scene {
       else if (key === PAUSE_KEY.sound) this.toggleSound();
       else if (key === PAUSE_KEY.howTo) this.showHowTo();
       else if (key === PAUSE_KEY.settings) this.openSettings();
+      else if (key === PAUSE_KEY.training) this.training();
       else if (this.lab) uiCommands.toTitle();
       else {
         this.confirm = true;

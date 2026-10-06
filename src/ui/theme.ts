@@ -1,4 +1,5 @@
 import type { MapPathSpec } from './routeView';
+import { WEAPON_HUE } from './themeWeapon';
 
 /**
  * UI 테마 (41라운드, 계약 `contracts/ui-art-kit.md` v0.4).
@@ -129,27 +130,27 @@ export const TEXT_STYLES = {
     shade: { color: GRAY[0], alpha: 1 },
   },
   /**
-   * 61라운드 단계 2 원한의 한마디 (STORY 'voice', 월드 위 잉크 글자) — 무기마다 글씨 색이 다르다. 팔레트 색·허용 알파만.
-   * 칼 = 서늘한 회백 G13 + 무채 할로 G07(0.5) · 대검 = 잉걸 강조 21 + 강조 18 할로(0.5) · 단검 = 흐린 G10 할로 없음(속삭임) ·
-   * 활 = 세피아 S5 + S4 할로(0.5)
+   * 61라운드 단계 2 원한의 한마디 (STORY 'voice', 월드 위 잉크 글자) — 무기마다 글씨 색이 다르다.
+   * 칼 = 서늘한 회백 G13 · 대검 = 잉걸 강조 21 · 단검 = 흐린 G10 할로 없음(속삭임) · 활 = 세피아 S5.
+   * 61 단계 6 (P14 §2): 할로를 무기 색(themeWeapon — 서리·용암·비취, α0.5)으로. 단검은 속삭임이라 할로 없이 세로 줄만 독 색
    */
   voice_katana: {
     body: GRAY[13],
     bodyAlpha: 1,
-    halo: { color: GRAY[7], alpha: 0.5 },
+    halo: { color: WEAPON_HUE.katana.main, alpha: 0.5 },
     shade: { color: GRAY[0], alpha: 1 },
   },
   voice_greatsword: {
     body: { accentSlot: 21 },
     bodyAlpha: 1,
-    halo: { color: { accentSlot: 18 }, alpha: 0.5 },
+    halo: { color: WEAPON_HUE.greatsword.main, alpha: 0.5 },
     shade: { color: GRAY[0], alpha: 1 },
   },
   voice_dagger: { body: GRAY[10], bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
   voice_bow: {
     body: SEPIA[5],
     bodyAlpha: 1,
-    halo: { color: SEPIA[4], alpha: 0.5 },
+    halo: { color: WEAPON_HUE.bow.main, alpha: 0.5 },
     shade: { color: GRAY[0], alpha: 1 },
   },
 } as const satisfies Record<string, GlowStyle>;
@@ -406,7 +407,7 @@ export const RES = {
 /**
  * 56라운드 무기 고유 자원 눈금 (계약 §13, 임시값). HUD 2행 무기 이름 바로 오른쪽: 라벨(ink_faint) + 칸.
  * 칸 모양은 문자열 행('.' 빈칸, 그 외 칠함). 꺼진 칸 = 테두리 G06 · 안쪽 G03 (열기 단계 눈금과 같은 문체).
- * 색은 팔레트 안에서만 — 유채색은 층 강조 슬롯(16~27), 무채 G.
+ * 색은 팔레트 안에서만 — 유채색은 층 강조 슬롯(16~27), 무채 G. 61 단계 6 (P14 §2): 켜진 칸은 무기 색(themeWeapon).
  */
 export const WGAUGE = {
   /** 무기 이름 끝 → 라벨, 라벨 → 첫 칸, 마지막 칸 → 개성 아이콘 사이 */
@@ -419,33 +420,33 @@ export const WGAUGE = {
   minGapSecondary: 8,
   /** 칸 위쪽 y (2행 글 상자 위에서. 개성 게이지 틀과 세로 가운데를 맞춤) */
   cellTop: 3,
-  /** 검기: 칼날 마름모 7×8, 간격 2. 칸 색 = 재 G11 → 호박 22 → 백열 27 */
+  /** 검기: 칼날 마름모 7×8, 간격 2. 칸 색 = 재 G11 → 서리(칼 색) → 백열 G15 */
   kenki: {
     mask: ['...x...', '..xxx..', '.xxxxx.', 'xxxxxxx', 'xxxxxxx', '.xxxxx.', '..xxx..', '...x...'],
     gap: 2,
-    colors: [{ gray: 11 }, { slot: 22 }, { slot: 27 }],
+    colors: [{ gray: 11 }, { hex: WEAPON_HUE.katana.main }, { gray: 15 }] as readonly SwatchRef[],
   },
-  /** 울분: 이어진 3칸 막대 14×6, 간격 1. 채움 색 = 지금 구간(1·2·3단) 강조 20 → 22 → 25 */
+  /** 울분: 이어진 3칸 막대 14×6, 간격 1. 채움 색 = 지금 구간(1·2·3단) 잉걸 21 → 용암(대검 색) → 백열 27 */
   grudge: {
     w: 14,
     h: 6,
     top: 4,
     gap: 1,
-    stageSlots: [20, 22, 25],
+    stageColors: [{ slot: 21 }, { hex: WEAPON_HUE.greatsword.main }, { slot: 27 }] as readonly SwatchRef[],
   },
-  /** 낙인: 셈 획 2×8, 간격 2. 켜짐 강조 22, 가득(최대 스택) 이면 전부 강조 25 */
+  /** 낙인: 셈 획 2×8, 간격 2. 켜짐 독(단검 색), 가득(최대 스택) 이면 전부 G14 */
   brand: {
     mask: ['xx', 'xx', 'xx', 'xx', 'xx', 'xx', 'xx', 'xx'],
     gap: 2,
-    on: 22,
-    full: 25,
+    on: { hex: WEAPON_HUE.dagger.main } as SwatchRef,
+    full: { gray: 14 } as SwatchRef,
   },
-  /** 숨: 방울 7×7, 간격 2. 켜짐 G12, 정밀 조준(focusing) 중 강조 25 + '집중' 깜빡임 */
+  /** 숨: 방울 7×7, 간격 2. 켜짐 비취(활 색), 정밀 조준(focusing) 중 G15 + '집중' 깜빡임 */
   breath: {
     mask: ['..xxx..', '.xxxxx.', 'xxxxxxx', 'xxxxxxx', 'xxxxxxx', '.xxxxx.', '..xxx..'],
     gap: 2,
-    on: { gray: 12 },
-    focus: 25,
+    on: { hex: WEAPON_HUE.bow.main } as SwatchRef,
+    focus: { gray: 15 } as SwatchRef,
   },
   /** 가득일 때 라벨을 ink_accent 로 */
   fullAccent: true,
@@ -474,7 +475,7 @@ export const GROGGY = {
  * 47라운드 상호작용 구조물 UI (임시값). 색은 팔레트 안에서만 — 유채색은 현재 층 강조 램프 슬롯(16~27),
  * 그 외 무채 G·세피아 S. `slot` 은 강조 램프 슬롯 번호, `gray`/`sepia` 는 고정색 인덱스.
  */
-export type SwatchRef = { slot: number } | { gray: number } | { sepia: number };
+export type SwatchRef = { slot: number } | { gray: number } | { sepia: number } | { hex: string };
 export const STRUCT = {
   /** 말풍선: 안쪽 여백·구조물 윗변과의 간격·화면 여백·depth(자막 50 아래) */
   bubblePad: 6,

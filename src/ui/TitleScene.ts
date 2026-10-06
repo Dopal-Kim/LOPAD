@@ -5,7 +5,8 @@ import { keyTaken, takeKey } from './keyGate';
 import { DARK_BG, KIT, fontsReady, preloadKit, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { SettingsPanel } from './SettingsPanel';
-import { controlsLine, r49Text, r61Text, uiText } from './text';
+import { controlsLine, r49Text, r61Text, trainingText, uiText } from './text';
+import { ensureTransitionScene } from './TransitionScene';
 import { SelectList } from './widgets';
 
 /**
@@ -16,6 +17,7 @@ export class TitleScene extends Phaser.Scene {
   private list?: SelectList;
   private alive = false;
   private settings?: SettingsPanel;
+  private notice?: GlowText;
 
   constructor() {
     super(UI_SCENE_KEYS.TITLE);
@@ -31,6 +33,8 @@ export class TitleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(DARK_BG);
     this.alive = true;
     this.settings = undefined;
+    // 61 단계 6 (§19): 타이틀 → 수련장도 그림 속 입구로 들어간다
+    ensureTransitionScene(this);
     this.input.keyboard?.on('keydown-ESC', this.onEsc);
     this.events.once('shutdown', () => {
       this.alive = false;
@@ -63,6 +67,14 @@ export class TitleScene extends Phaser.Scene {
     });
   }
 
+  /** 61 단계 6 (§19): 수련장 — 받아들여지지 않으면 목록 아래 한 줄 */
+  private startTraining(): void {
+    const r = uiCommands.startTraining();
+    if (r === 'ok') return;
+    const why = r === 'combat' ? 'denyCombat' : r === 'boss' ? 'denyBoss' : 'denyBusy';
+    this.notice?.setText(trainingText(why)).placeCenter(UI_SCREEN.WIDTH / 2, this.notice.y);
+  }
+
   private build(): void {
     const W = UI_SCREEN.WIDTH;
     const H = UI_SCREEN.HEIGHT;
@@ -84,8 +96,9 @@ export class TitleScene extends Phaser.Scene {
           if (hasSave) uiCommands.continueRun();
           else uiCommands.startNewRun();
         } else if (key === '2' && hasSave) uiCommands.startNewRun();
-        else if (key === '3') uiCommands.startWeaponLab();
-        else if (key === '4') this.openSettings();
+        else if (key === '3') this.startTraining();
+        else if (key === '4') uiCommands.startWeaponLab();
+        else if (key === '5') this.openSettings();
       },
       { surface: 'ink' },
     );
@@ -94,19 +107,22 @@ export class TitleScene extends Phaser.Scene {
         ? [
             { key: '1', label: uiText('title', 'continue', '이어 쓴다'), enabled: true },
             { key: '2', label: uiText('title', 'newRunDeleteSave', '다시 태어난다 (일기장을 찢는다)'), enabled: true },
-            { key: '3', label: r49Text('titleLab'), enabled: true },
-            { key: '4', label: r61Text('settingsItem'), enabled: true },
+            { key: '3', label: trainingText('titleItem'), enabled: true },
+            { key: '4', label: r49Text('titleLab'), enabled: true },
+            { key: '5', label: r61Text('settingsItem'), enabled: true },
           ]
         : [
             { key: '1', label: uiText('title', 'newRun', '다시 태어난다'), enabled: true },
             { key: '2', label: uiText('title', 'continueNoSave', '이어 쓴다 (적힌 것이 없다)'), enabled: false },
-            { key: '3', label: r49Text('titleLab'), enabled: true },
-            { key: '4', label: r61Text('settingsItem'), enabled: true },
+            { key: '3', label: trainingText('titleItem'), enabled: true },
+            { key: '4', label: r49Text('titleLab'), enabled: true },
+            { key: '5', label: r61Text('settingsItem'), enabled: true },
           ],
     );
     // 목록을 가운데에 (항목 폭 기준)
     const w = this.list.maxWidth();
     this.list.setPosition(Math.round(cx - w / 2), 320);
+    this.notice = new GlowText(this, 0, 320 + this.list.height() + 6, '', 'ink_faint');
     // 타이틀에선 무기가 정해지기 전이므로 {secondary} 는 '보조 동작' 으로 치환된다
     const controls = new GlowText(
       this,
