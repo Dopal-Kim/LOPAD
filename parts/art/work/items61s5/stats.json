@@ -1,0 +1,38 @@
+{
+ "voucher": {
+  "frame": [
+   80,
+   96
+  ],
+  "rows": 3,
+  "cols": 24,
+  "colors": 21
+ },
+ "potion": {
+  "frame": [
+   80,
+   96
+  ],
+  "rows": 1,
+  "cols": 24,
+  "colors": 34
+ },
+ "fire_bottle": {
+  "frame": [
+   80,
+   96
+  ],
+  "rows": 1,
+  "cols": 24,
+  "colors": 30
+ },
+ "boss1_pillar": {
+  "frame": [
+   160,
+   448
+  ],
+  "rows": 1,
+  "cols": 30,
+  "colors": 23
+ }
+}
