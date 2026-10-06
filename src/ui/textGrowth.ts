@@ -46,7 +46,24 @@ export const GROWTH_TEXT = {
   traitsHead: '얻은 개성',
   traitsNone: '아직 없다',
   traitsMore: '외 {n}',
+  // ---- §18.1 (61 단계 5 P13) 개성 그림 · 공명
+  /** 카드 공명 힌트 — {name} = 공명 이름 */
+  resHint: '이 카드로 「{name}」 공명',
+  /** 카드 공명 힌트 둘째 줄 — {tag} = 태그 이름 */
+  resHintTag: '{tag} 짝 카드',
+  /** 공명 알림 머리 — 개성 알림과 같은 틀 ('공명 · 이름') */
+  resGained: '공명',
+  /** 공명 알림 둘째 줄 — {tag} */
+  resPair: '{tag} 개성 두 장이 엮였다',
+  /** Tab 성장도 공명 칸 */
+  resHead: '공명',
+  resOn: '켜짐',
+  /** 꺼진 공명 진행 — {tag} {n}/{need} */
+  resProgress: '{tag} {n}/{need}',
   // ---- 일기장
   diaryWeapon: '무기: {name}{route}   (각성 게이지 {n})',
+  /** 61 단계 5: 일기장 개성·켜진 공명 한 줄씩 (없으면 줄 없음) — {names} = ' · ' 로 이은 이름 */
+  diaryTraits: '개성: {names}',
+  diaryResonance: '공명: {names}',
 } as const;
 export type GrowthTextKey = keyof typeof GROWTH_TEXT;

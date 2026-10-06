@@ -9,7 +9,7 @@ import type {
   UiTagSetChanged,
 } from '../contract/ui';
 import { BuildChips, PerfectPop } from './BuildHud';
-import { buildOf, perfectText, setChangeToast } from './buildView';
+import { buildOf, liveBuild, liveTagIds, perfectText, setChangeToast, tagFloor } from './buildView';
 import { ElitePlates } from './EliteHud';
 import { fill } from './text';
 import { r60Text } from './text';
@@ -53,6 +53,8 @@ export class BuildLayer {
   private stages = new Map<string, number>();
   private bundleTop = 0;
   private stageIndex = 0;
+  /** 61 단계 5: 태그를 보일 층 (꺼진 태그는 칩·토스트에서 뺀다) */
+  private floor = 1;
   private goldName = '';
 
   constructor(
@@ -71,7 +73,8 @@ export class BuildLayer {
     this.bundleTop = bundleTop;
     this.stageIndex = f.stageIndex;
     this.goldName = s.names?.gold ?? '';
-    const build = buildOf(s);
+    this.floor = tagFloor(s);
+    const build = liveBuild(buildOf(s), this.floor);
     for (const t of build.tags) if (!this.stages.has(t.id)) this.stages.set(t.id, t.stage);
     const lab = Boolean(s.lab);
     this.chips.render(build, f.stageIndex, f.chipsBottom + 4, Boolean(f.tabHint) && !f.overlay);
@@ -86,6 +89,7 @@ export class BuildLayer {
 
   // ---- §14.11 이벤트
   tagSetChanged(p: UiTagSetChanged): void {
+    if (p?.tag && !liveTagIds([p.tag], this.floor).length) return;
     const t = setChangeToast(p, p?.tag ? this.stages.get(p.tag) : undefined, r60Text);
     if (p?.tag && typeof p.stage === 'number') this.stages.set(p.tag, p.stage);
     if (t) this.hooks.toast(t.tone, t.text);

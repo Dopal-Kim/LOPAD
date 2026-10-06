@@ -1,6 +1,7 @@
 import type {
   UiBuildState,
   UiGrowth,
+  UiGrowthTrait,
   UiGrowthMarkKind,
   UiMenu,
   UiMenuLine,
@@ -8,12 +9,14 @@ import type {
   UiVerbSlot,
   UiWeaponVerbs,
 } from '../contract/ui';
-import { tagName } from './buildView';
+import { liveTagIds, tagName } from './buildView';
 import { choiceLines } from './choiceCardView';
 import { fill } from './fmt';
 import { menuHotkeys, splitLabel } from './menuView';
+import { voiceWeapon } from './storyView';
 import { GROWTH_TEXT, type GrowthTextKey } from './textGrowth';
-import { GROWTH_CARD, LIVE_TAGS_BY_STAGE, VERB_KEY_FALLBACK } from './themeGrowth';
+import { GROWTH_CARD, VERB_KEY_FALLBACK } from './themeGrowth';
+import type { VoiceWeaponId } from './themeStory';
 
 /**
  * 61 단계 4 P12 무기 성장 UI — 순수 계산 (Phaser 없음). 계약 §18:
@@ -115,12 +118,9 @@ export function verbKey(
   return key ? { key, name: '' } : null;
 }
 
-/** 이 층에서 켜진 태그만 (표를 모르는 층이면 그대로) */
-export function liveTags(tags: readonly UiTagId[] | null | undefined, stageIndex: number): UiTagId[] {
-  if (!Array.isArray(tags)) return [];
-  const live = LIVE_TAGS_BY_STAGE[stageIndex];
-  return live ? tags.filter((t) => live.includes(t)) : [...tags];
-}
+/** 이 층(1부터)에서 켜진 태그만 (표를 모르는 층이면 그대로) — `buildView.liveTagIds` */
+export const liveTags = (tags: readonly UiTagId[] | null | undefined, floor: number): UiTagId[] =>
+  liveTagIds(tags, floor);
 
 // ---------------------------------------------------------------------------------------------
 // 선택 카드
@@ -154,12 +154,17 @@ export interface GrowthCardData {
   paths: { name: string; line: string }[];
   /** 단련 카드의 단련 눈금 */
   temper: { n: number; max: number } | null;
+  /** §18.1 개성 카드 그림 텍스처 키 (`line.trait.iconKey` — 없으면 null, 키캡으로) */
+  icon: string | null;
+  /** §18.1 이 카드를 고르면 켜지는 공명 (같은 태그 짝 카드) — 이름 · 태그 이름 */
+  resonance: { name: string; tag: string } | null;
 }
 
 interface CardOpts {
   growth?: UiGrowth | null;
   verbs?: UiWeaponVerbs | null;
-  stageIndex?: number;
+  /** 태그를 보일 층 (1부터, `buildView.tagFloor`) — 없으면 1층 */
+  floor?: number;
   build?: UiBuildState | null;
   tx?: GrowthTx;
 }
@@ -194,11 +199,14 @@ function cardOf(l: UiMenuLine, hotkey: string, o: CardOpts): GrowthCardData {
     line: branch?.line || path?.line || detail,
     enabled: l.enabled && !l.locked && !l.soldOut,
     verb: verbKey(slot, o.verbs),
-    tags: liveTags(l.tags, o.stageIndex ?? 0).map((t) => tagName(t, o.build)),
+    tags: liveTags(l.tags, o.floor ?? 1).map((t) => tagName(t, o.build)),
     look,
     lookText: g?.weaponName ?? '',
     paths: branch?.paths ? branch.paths.map((p) => ({ name: p.name, line: p.line })) : [],
     temper: kind === 'temper' && g?.temper ? { n: g.temper.n, max: g.temper.max } : null,
+    icon: kind === 'trait' ? traitIcon(l.trait) : null,
+    resonance:
+      kind === 'trait' && l.resonance?.name ? { name: l.resonance.name, tag: tagName(l.resonance.tag, o.build) } : null,
   };
 }
 
@@ -319,6 +327,91 @@ export function growthRouteName(g: Pick<UiGrowth, 'branches' | 'branch' | 'path'
 }
 
 // ---------------------------------------------------------------------------------------------
+// §18.1 개성 그림 · 공명
+
+/** 개성(또는 공명) 카드 그림 키 — 문자열이 아니면 null (텍스처가 실제로 있는지는 그리는 쪽이 본다) */
+export function traitIcon(t: { iconKey?: unknown } | null | undefined): string | null {
+  const k = t && typeof t.iconKey === 'string' ? t.iconKey.trim() : '';
+  return k || null;
+}
+
+/**
+ * 그림 테두리 색을 고를 무기 — 그림 키 `ui_traits/<무기>_<개성 id>`·`ui_traits/res_<무기>_<태그>` 의 무기 → 스냅샷 무기
+ * 이름 → 칼. (키에 무기가 없으면 이름으로)
+ */
+export function iconWeapon(iconKey: string | null | undefined, ...names: (string | null | undefined)[]): VoiceWeaponId {
+  const m = /^ui_traits\/(?:res_)?([a-z]+)_/.exec(iconKey ?? '');
+  return voiceWeapon(m?.[1], ...names);
+}
+
+export interface ResonanceRow {
+  tag: UiTagId;
+  /** 태그 이름 ('연쇄') */
+  tagName: string;
+  name: string;
+  line: string;
+  active: boolean;
+  /** 이 태그 개성을 몇 장 얻었나 (켜졌으면 need) */
+  have: number;
+  /** 켜지는 데 드는 장 수 (같은 태그 2장) */
+  need: number;
+  /** 공명 카드 그림 키 (없으면 null) */
+  icon: string | null;
+}
+
+/** 공명이 켜지는 같은 태그 개성 장 수 (P13 '같은 태그 개성 2장') */
+export const RESONANCE_NEED = 2;
+
+/** Tab 성장도 공명 칸: 이 무기의 공명 전부 (켜진 것 먼저, 그다음 시스템 순서) — 진행은 얻은 개성의 태그로 센다 */
+export function resonanceRows(
+  g: Pick<UiGrowth, 'resonance' | 'traits'> | null | undefined,
+  build?: UiBuildState | null,
+): ResonanceRow[] {
+  const list = Array.isArray(g?.resonance) ? g.resonance : [];
+  const traits: UiGrowthTrait[] = Array.isArray(g?.traits) ? g.traits : [];
+  const rows = list
+    .filter((r) => r && typeof r.name === 'string' && r.name)
+    .map((r) => {
+      const active = Boolean(r.active);
+      const n = traits.filter((t) => t.tag === r.tag).length;
+      return {
+        tag: r.tag,
+        tagName: tagName(r.tag, build),
+        name: r.name,
+        line: r.line ?? '',
+        active,
+        have: active ? RESONANCE_NEED : Math.min(RESONANCE_NEED - 1, n),
+        need: RESONANCE_NEED,
+        icon: traitIcon(r),
+      };
+    });
+  return [...rows.filter((r) => r.active), ...rows.filter((r) => !r.active)];
+}
+
+/** 공명 진행 글: 켜짐 → '켜짐', 아니면 '연쇄 1/2' */
+export function resonanceProgress(
+  r: Pick<ResonanceRow, 'active' | 'tagName' | 'have' | 'need'>,
+  tx: GrowthTx = defaultTx,
+): string {
+  return r.active ? tx('resOn') : fill(tx('resProgress'), { tag: r.tagName, n: r.have, need: r.need });
+}
+
+/** 일기장 무기 줄 아래: '개성: A · B' · '공명: C' (켜진 공명만, 없으면 그 줄 없음) */
+export function diaryGrowthLines(
+  g: Pick<UiGrowth, 'traits' | 'resonance'> | null | undefined,
+  tx: GrowthTx = defaultTx,
+): string[] {
+  const traits = (Array.isArray(g?.traits) ? g.traits : []).map((t) => t.name).filter(Boolean);
+  const res = (Array.isArray(g?.resonance) ? g.resonance : []).filter((r) => r.active && r.name).map((r) => r.name);
+  const out: string[] = [];
+  // 일기장 왼쪽 쪽이 넘치지 않게 이름은 셋까지 (나머지 '외 n' — 전부는 Tab 성장도)
+  const names = traits.length > 3 ? [...traits.slice(0, 3), fill(tx('traitsMore'), { n: traits.length - 3 })] : traits;
+  if (traits.length) out.push(fill(tx('diaryTraits'), { names: names.join(' · ') }));
+  if (res.length) out.push(fill(tx('diaryResonance'), { names: res.join(' · ') }));
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------
 // 이벤트 페이로드 (모자라도 깨지지 않게 읽는다)
 
 const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
@@ -332,11 +425,35 @@ export function readAwaken(p: unknown): { stage: 1 | 2; name: string; line: stri
 }
 
 /** `ui:trait-gained` (UiGrowthTrait) → 알림 글. 이름이 없으면 null */
-export function readTrait(p: unknown): { name: string; line: string; verb: UiVerbSlot | null } | null {
+export function readTrait(
+  p: unknown,
+): { name: string; line: string; verb: UiVerbSlot | null; icon: string | null } | null {
   const o = p && typeof p === 'object' ? (p as Record<string, unknown>) : {};
   const name = str(o.name);
   if (!name) return null;
   const verb = str(o.verb);
   const slots: readonly string[] = ['attack', 'signature', 'dash', 'hold'];
-  return { name, line: str(o.line), verb: slots.includes(verb) ? (verb as UiVerbSlot) : null };
+  return {
+    name,
+    line: str(o.line),
+    verb: slots.includes(verb) ? (verb as UiVerbSlot) : null,
+    icon: traitIcon(o as { iconKey?: unknown }),
+  };
+}
+
+/** `ui:resonance` `{ tag, name, line, iconKey? }` → 알림 글. 이름이 없으면 null */
+export function readResonance(
+  p: unknown,
+  build?: UiBuildState | null,
+): { name: string; line: string; tag: string; icon: string | null } | null {
+  const o = p && typeof p === 'object' ? (p as Record<string, unknown>) : {};
+  const name = str(o.name);
+  if (!name) return null;
+  const tag = str(o.tag);
+  return {
+    name,
+    line: str(o.line),
+    tag: tag ? tagName(tag, build) : '',
+    icon: traitIcon(o as { iconKey?: unknown }),
+  };
 }

@@ -8,10 +8,13 @@ import {
   gradeStamp,
   gradedView,
   hudTags,
+  liveBuild,
+  liveTagIds,
   perfectText,
   scorePips,
   setChangeToast,
   tagChipValue,
+  tagFloor,
   tagName,
   trialView,
 } from './buildView';
@@ -161,5 +164,26 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
       '패시브',
       '―',
     ]);
+  });
+
+  it('61 단계 5: 1층에서 꺼진 태그(원격 등)는 칩·Tab·일기장에 보이지 않는다 (시험장 = 지도 없음 → 1층)', () => {
+    expect(tagFloor({ route: null })).toBe(1);
+    expect(tagFloor({ route: { floor: 2 } })).toBe(2);
+    expect(liveTagIds(['chain', 'ranged', 'scar'], 1)).toEqual(['chain']);
+    expect(liveTagIds(['ranged'], 2)).toEqual(['ranged']);
+    const b = build([tag('chain', 2, 2, '연쇄'), tag('ranged', 1, 0, '원격')]);
+    expect(liveBuild(b, 1).tags.map((t) => t.id)).toEqual(['chain']);
+    expect(liveBuild(b, 3).tags.length).toBe(2);
+    const s = {
+      passives: [
+        { name: '긴 팔', level: 1, description: '', tags: ['ranged' as const, 'chain' as const], maxLevel: 3 },
+      ],
+      consumable: null,
+      build: b,
+      route: null,
+    };
+    const lines = diaryLines(s, 0).map((l) => l.text);
+    expect(lines.some((t) => t.includes('원격'))).toBe(false);
+    expect(lines).toContain('긴 팔  Lv1/3  연쇄');
   });
 });

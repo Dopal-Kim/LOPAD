@@ -1,13 +1,14 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, UI_SCREEN, type UiGrowth, type UiSnapshot } from '../contract/ui';
 import { GlowText } from './glow';
-import { diamond, lookImage, scaledKey } from './growthArt';
-import { gaugeLayout, readAwaken, readTrait, remainText, verbKey } from './growthView';
+import { buildOf } from './buildView';
+import { diamond, lookImage, pairPips, scaledKey, traitIconCard, traitIconOuter } from './growthArt';
+import { gaugeLayout, iconWeapon, readAwaken, readResonance, readTrait, remainText, verbKey } from './growthView';
 import { inkPanel } from './kit';
 import { swatch } from './StructureHud';
-import { growthText } from './text';
+import { fill, growthText } from './text';
 import { GRAY, hexToNum } from './theme';
-import { GROWTH_BANNER as BN, GROWTH_HUD as G } from './themeGrowth';
+import { GROWTH_BANNER as BN, GROWTH_HUD as G, RESONANCE_UI as RS, TRAIT_ICON as TI } from './themeGrowth';
 import { TimedCard } from './timedCard';
 
 /**
@@ -111,6 +112,9 @@ export class GrowthLayer {
   private banner?: TimedCard;
   private band?: Phaser.GameObjects.Graphics;
   private toast?: TimedCard;
+  /** 개성 알림 아래 끝 (공명 알림이 그 아래에 붙는다) */
+  private toastBottom = 0;
+  private resToast?: TimedCard;
 
   constructor(
     private scene: Phaser.Scene,
@@ -121,6 +125,7 @@ export class GrowthLayer {
     on(UI_EVENTS.GROWTH_GAIN, () => this.deps.gain(this.scene.time.now));
     on(UI_EVENTS.AWAKEN, (p: unknown) => this.awaken(p));
     on(UI_EVENTS.TRAIT_GAINED, (p: unknown) => this.trait(p));
+    on(UI_EVENTS.RESONANCE, (p: unknown) => this.resonance(p));
     for (const e of [UI_EVENTS.RUN_ENDED, UI_EVENTS.STAGE_STARTED]) on(e, () => this.clear());
   }
 
@@ -163,44 +168,134 @@ export class GrowthLayer {
     this.banner = new TimedCard(sc, box, BN.awaken, () => this.dropBand());
   }
 
+  /**
+   * 개성 알림 (`ui:trait-gained`): 위 가운데 잉크 칩. §18.1 그림이 있으면 [그림 64 · 무기 빛 테두리] 오른쪽에
+   * '개성 발현 · 이름' / [키] 동작 / 한 문장, 없으면 지금처럼 [키] '개성 발현 · 이름' / 한 문장.
+   */
   trait(p: unknown): void {
     const t = readTrait(p);
     if (!t) return;
     this.toast?.cancel();
+    const snap = this.deps.snapshot();
+    const vk = verbKey(t.verb, snap.weaponVerbs);
+    const head = `${growthText('traitGained')} · ${t.name}`;
+    const weapon = iconWeapon(t.icon, snap.weapon?.name, snap.growth?.weaponName);
+    const chip = this.chip(BN.trait.top, t.icon, weapon, head, vk ? { key: vk.key, label: vk.name } : null, t.line);
+    this.toastBottom = BN.trait.top + chip.h;
+    this.toast = new TimedCard(this.scene, chip.box, BN.trait);
+  }
+
+  /**
+   * §18.1 공명 알림 (`ui:resonance` — 개성 알림과 같은 틀): 그림(`iconKey`, 없으면 짝 마름모 ◆◆) · '공명 · 이름' ·
+   * '연쇄 개성 두 장이 엮였다' · 한 문장. 같은 순간 개성 알림이 떠 있으면 그 아래에 붙는다.
+   */
+  resonance(p: unknown): void {
+    const snap = this.deps.snapshot();
+    const r = readResonance(p, buildOf(snap));
+    if (!r) return;
+    this.resToast?.cancel();
+    const top = this.toast?.alive ? this.toastBottom + RS.stackGap : BN.trait.top;
+    const weapon = iconWeapon(r.icon, snap.weapon?.name, snap.growth?.weaponName);
+    const sub = r.tag ? fill(growthText('resPair'), { tag: r.tag }) : '';
+    const chip = this.chip(top, r.icon, weapon, `${growthText('resGained')} · ${r.name}`, null, r.line, sub, true);
+    this.resToast = new TimedCard(this.scene, chip.box, BN.trait);
+  }
+
+  /**
+   * 알림 칩 하나 (개성·공명 공용). 그림이 있으면 왼쪽에 그림 칸, 없으면 머리 앞에 키(개성) 또는 짝 마름모(공명).
+   * 글: 머리(강조) / 둘째 줄(흐림 — 그림 칩의 키 줄 또는 공명 짝) / 한 문장.
+   */
+  private chip(
+    top: number,
+    icon: string | null,
+    weapon: Parameters<typeof traitIconCard>[4],
+    headText: string,
+    key: { key: string; label: string } | null,
+    lineText: string,
+    subText = '',
+    pairMark = false,
+  ): { box: Phaser.GameObjects.Container; h: number } {
     const sc = this.scene;
     const W = UI_SCREEN.WIDTH;
     const parts: Phaser.GameObjects.GameObject[] = [];
-    const vk = verbKey(t.verb, this.deps.snapshot().weaponVerbs);
-    const key = vk ? scaledKey(sc, vk.key, 1) : null;
-    const head = new GlowText(sc, 0, 0, `${growthText('traitGained')} · ${t.name}`, 'ink_accent');
-    const line = t.line ? new GlowText(sc, 0, 0, t.line, 'ink_body', { wrap: 360 }) : null;
-    const keyW = key ? key.width + 6 : 0;
-    const innerW = Math.max(keyW + head.displayWidth, line?.displayWidth ?? 0);
-    const w = innerW + BN.traitPadX * 2;
-    const h = BN.traitPadY * 2 + head.displayHeight + (line ? line.displayHeight + 2 : 0);
-    const x0 = Math.round(W / 2 - w / 2);
-    const panel = inkPanel(sc, 0, 0, w, Math.max(24, h));
-    parts.push(panel);
-    let cx = BN.traitPadX;
-    if (key) {
-      key.obj.setPosition(cx, BN.traitPadY);
-      parts.push(key.obj);
-      cx += keyW;
+    const px = BN.traitPadX;
+    const py = BN.traitPadY;
+    const art = icon && sc.textures.exists(icon) ? traitIconOuter(TI.size, TI.frame) : 0;
+    const textX = px + (art ? art + 8 : 0);
+    // 머리 앞 표식 (그림이 없을 때만): 키 그림 또는 짝 마름모
+    const keyObj = !art && key ? scaledKey(sc, key.key, 1) : null;
+    const pipsW = RS.pipR * 4 + RS.pipGap;
+    const markW = keyObj ? keyObj.width + 6 : !art && pairMark ? pipsW + 6 : 0;
+    const head = new GlowText(sc, 0, 0, headText, 'ink_accent');
+    // 그림 칩의 둘째 줄: [키] 동작 이름 (개성) 또는 공명 짝 글
+    const rowKey = art && key ? scaledKey(sc, key.key, 1) : null;
+    const rowLabel = art && key?.label ? key.label : '';
+    const sub = subText || rowLabel ? new GlowText(sc, 0, 0, subText || rowLabel, 'ink_faint') : null;
+    const line = lineText ? new GlowText(sc, 0, 0, lineText, 'ink_body', { wrap: art ? 300 : 360 }) : null;
+    const subW = (rowKey ? rowKey.width + 5 : 0) + (sub?.displayWidth ?? 0);
+    const textW = Math.max(markW + head.displayWidth, subW, line?.displayWidth ?? 0);
+    const subH = sub || rowKey ? Math.max(sub?.displayHeight ?? 0, rowKey?.height ?? 0) + 1 : 0;
+    const textH = head.displayHeight + subH + (line ? line.displayHeight + 2 : 0);
+    const w = textX + textW + px;
+    const h = Math.max(24, py * 2 + Math.max(textH, art));
+    parts.push(inkPanel(sc, 0, 0, w, h));
+    if (art) {
+      const o = TI.frame + 1;
+      const iconParts = traitIconCard(sc, icon, px + o, Math.round((h - art) / 2) + o, weapon);
+      if (iconParts) parts.push(...iconParts);
     }
-    head.setPosition(cx, BN.traitPadY - 1);
+    let y = py + (art ? Math.max(0, Math.round((art - textH) / 2)) : 0);
+    let x = textX;
+    if (keyObj) {
+      keyObj.obj.setPosition(x, y);
+      parts.push(keyObj.obj);
+      x += markW;
+    } else if (markW) {
+      const g = sc.add.graphics();
+      pairPips(
+        g,
+        x + RS.pipR,
+        y + Math.round(head.displayHeight / 2),
+        2,
+        2,
+        RS.pipR,
+        RS.pipGap,
+        swatch(sc, 0, { slot: RS.onSlot }),
+        swatch(sc, 0, { slot: RS.onSlot }),
+      );
+      parts.push(g);
+      x += markW;
+    }
+    head.setPosition(x, y - 1);
     parts.push(head);
+    y += head.displayHeight;
+    if (subH) {
+      let sx = textX;
+      if (rowKey) {
+        rowKey.obj.setPosition(sx, y);
+        parts.push(rowKey.obj);
+        sx += rowKey.width + 5;
+      }
+      if (sub) {
+        sub.setPosition(sx, y);
+        parts.push(sub);
+      }
+      y += subH;
+    }
     if (line) {
-      line.setPosition(BN.traitPadX, BN.traitPadY + head.displayHeight + 1);
+      line.setPosition(art ? textX : px, y + 1);
       parts.push(line);
     }
-    const box = sc.add.container(x0, BN.trait.top, parts).setDepth(BN.depth);
-    this.toast = new TimedCard(sc, box, BN.trait);
+    const box = sc.add.container(Math.round(W / 2 - w / 2), top, parts).setDepth(BN.depth);
+    return { box, h };
   }
 
   clear(): void {
     this.clearBanner();
     this.toast?.cancel();
     this.toast = undefined;
+    this.resToast?.cancel();
+    this.resToast = undefined;
   }
 
   destroy(): void {

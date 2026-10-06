@@ -7,9 +7,15 @@ import {
   guideKind,
   isGrowthMenu,
   liveTags,
+  diaryGrowthLines,
+  iconWeapon,
   readAwaken,
+  readResonance,
   readTrait,
   remainText,
+  resonanceProgress,
+  resonanceRows,
+  traitIcon,
   treeNodes,
   verbKey,
 } from './growthView';
@@ -98,7 +104,7 @@ describe('growthView 키 · 태그', () => {
   });
 
   it('1층에서 꺼진 태그는 뺀다', () => {
-    expect(liveTags(['insight', 'scar', 'drunk', 'ranged'], 0)).toEqual(['insight', 'drunk']);
+    expect(liveTags(['insight', 'scar', 'drunk', 'ranged'], 1)).toEqual(['insight', 'drunk']);
     expect(liveTags(['scar'], 5)).toEqual(['scar']);
   });
 });
@@ -143,7 +149,7 @@ describe('growthView 선택 카드', () => {
   });
 
   it('개성 카드: 키캡 · 한 문장 · 켜진 태그만', () => {
-    const c = growthCards(traitMenu, { verbs, stageIndex: 0 });
+    const c = growthCards(traitMenu, { verbs, floor: 1 });
     expect(c.map((x) => x.head)).toEqual(['개성 발현', '개성 발현', '개성 발현']);
     expect(c[0]).toMatchObject({ name: '물러서며 베기', line: 'Space 직후 좌: 뒤로 미끄러지며 벤다', tags: ['간파'] });
     expect(c[0].verb).toEqual({ key: 'Space', name: '대쉬 · 일섬' });
@@ -250,7 +256,93 @@ describe('growthView 이벤트', () => {
       name: '물러서며 베기',
       line: '뒤로',
       verb: 'dash',
+      icon: null,
     });
+    expect(readTrait({ name: 'x', verb: 'dash', iconKey: 'ui_traits/katana_x' })?.icon).toBe('ui_traits/katana_x');
     expect(readTrait({ name: 'x', verb: 'jump' })?.verb).toBeNull();
+  });
+});
+
+describe('growthView §18.1 개성 그림 · 공명', () => {
+  it('그림 키 · 테두리 무기', () => {
+    expect(traitIcon({ iconKey: ' ui_traits/dagger_a ' })).toBe('ui_traits/dagger_a');
+    expect(traitIcon({ iconKey: 3 })).toBeNull();
+    expect(traitIcon(undefined)).toBeNull();
+    expect(iconWeapon('ui_traits/greatsword_k_slam', '사무라이 칼')).toBe('greatsword');
+    expect(iconWeapon('ui_traits/res_moon', '단검')).toBe('dagger');
+    expect(iconWeapon('ui_traits/res_bow_chain', '단검')).toBe('bow');
+    expect(iconWeapon(null)).toBe('katana');
+  });
+
+  it('개성 카드: 그림 · 공명 힌트 (같은 태그 짝)', () => {
+    const m: UiMenu = {
+      id: 'evolve',
+      title: '개성 발현',
+      lines: [
+        {
+          key: '1',
+          label: '피바람',
+          enabled: true,
+          kind: 'trait',
+          verb: 'hold',
+          tags: ['chain'],
+          trait: {
+            id: 'k_blood',
+            name: '피바람',
+            line: '',
+            verb: 'hold',
+            tag: 'chain',
+            iconKey: 'ui_traits/katana_k_blood',
+          },
+          resonance: { tag: 'chain', name: '끊이지 않는 칼', line: '' },
+        },
+        { key: '2', label: '칼 감기', enabled: true, kind: 'trait', verb: 'signature', tags: ['insight'] },
+      ],
+    };
+    const c = growthCards(m, { verbs });
+    expect(c[0].icon).toBe('ui_traits/katana_k_blood');
+    expect(c[0].resonance).toEqual({ name: '끊이지 않는 칼', tag: '연쇄' });
+    expect(c[1].icon).toBeNull();
+    expect(c[1].resonance).toBeNull();
+  });
+
+  it('공명 칸: 켜진 것 먼저 · 꺼진 것은 얻은 같은 태그 개성 수', () => {
+    const g = growth({
+      traits: [
+        { id: 'a', name: 'A', line: '', verb: 'dash', tag: 'breach' },
+        { id: 'b', name: 'B', line: '', verb: 'hold', tag: 'chain' },
+        { id: 'c', name: 'C', line: '', verb: 'attack', tag: 'chain' },
+      ],
+      resonance: [
+        { tag: 'insight', name: '되받는 달', line: 'l1', active: false },
+        { tag: 'breach', name: '칼바람 길', line: 'l2', active: false },
+        { tag: 'chain', name: '끊이지 않는 칼', line: 'l3', active: true, iconKey: 'ui_traits/res_katana_chain' },
+      ],
+    });
+    const rows = resonanceRows(g);
+    expect(rows.map((r) => [r.name, r.have, r.active])).toEqual([
+      ['끊이지 않는 칼', 2, true],
+      ['되받는 달', 0, false],
+      ['칼바람 길', 1, false],
+    ]);
+    expect(rows[0].icon).toBe('ui_traits/res_katana_chain');
+    expect(rows[1].icon).toBeNull();
+    expect(resonanceProgress(rows[0])).toBe('켜짐');
+    expect(resonanceProgress(rows[2])).toBe('돌파 1/2');
+    expect(resonanceRows(growth())).toEqual([]);
+    expect(diaryGrowthLines(g)).toEqual(['개성: A · B · C', '공명: 끊이지 않는 칼']);
+    expect(diaryGrowthLines(growth())).toEqual([]);
+    const many = ['A', 'B', 'C', 'D', 'E'].map((n) => ({ id: n, name: n, line: '', verb: 'dash' as const }));
+    expect(diaryGrowthLines(growth({ traits: many }))).toEqual(['개성: A · B · C · 외 2']);
+  });
+
+  it('공명 알림 읽기', () => {
+    expect(readResonance({ tag: 'chain', name: '끊이지 않는 칼', line: 'l', iconKey: 'ui_traits/res_chain' })).toEqual({
+      name: '끊이지 않는 칼',
+      line: 'l',
+      tag: '연쇄',
+      icon: 'ui_traits/res_chain',
+    });
+    expect(readResonance({ tag: 'chain' })).toBeNull();
   });
 });

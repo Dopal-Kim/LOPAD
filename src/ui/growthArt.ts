@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { GlowText } from './glow';
 import { keyGlyph } from './keyGuide';
+import { swatch } from './StructureHud';
+import { GRAY, hexToNum } from './theme';
+import { TRAIT_ICON } from './themeGrowth';
+import { VOICE_LOOK, type VoiceWeaponId } from './themeStory';
 
 /**
  * 61 단계 4 P12 무기 성장 그리기 조각 (HUD 게이지·선택 카드·배너·성장도·안내 카드가 같이 쓴다).
@@ -65,4 +69,86 @@ export function scaledKey(
   const k = keyGlyph(scene, key);
   k.obj.setScale(scale);
   return { obj: k.obj, width: k.width * scale, height: 16 * scale };
+}
+
+/**
+ * §18.1 개성·공명 카드 그림 (아트 128×128 도트) — 칸 `size`×`size` 에 맞춰 줄이고(128 → 64 = 도트 그대로, 32 = 1/4),
+ * 어두운 바탕 · 무기 빛 테두리(`frame` px, 색 `color`) · 바깥 G00 한 줄을 UI 가 그린다. (x, y) = 그림 칸 왼쪽 위
+ * (테두리는 그 바깥). 텍스처가 없으면 null → 부르는 쪽이 키캡으로 대신한다. 테두리까지 포함한 바깥 크기 = size + 2(frame+1).
+ */
+export function traitIconBox(
+  scene: Phaser.Scene,
+  key: string | null | undefined,
+  x: number,
+  y: number,
+  size: number,
+  color: number,
+  frame: number,
+  backColor: number,
+): Phaser.GameObjects.GameObject[] | null {
+  if (!key || !scene.textures.exists(key)) return null;
+  const g = scene.add.graphics();
+  const o = frame + 1;
+  g.fillStyle(0x000000, 1).fillRect(x - o, y - o, size + o * 2, size + o * 2);
+  g.fillStyle(color, 1).fillRect(x - frame, y - frame, size + frame * 2, size + frame * 2);
+  g.fillStyle(backColor, 1).fillRect(x, y, size, size);
+  const img = scene.add.image(0, 0, key).setOrigin(0, 0);
+  const w = Math.max(1, img.width);
+  const h = Math.max(1, img.height);
+  const scale = size / Math.max(w, h);
+  img.setScale(scale);
+  img.setPosition(Math.round(x + (size - w * scale) / 2), Math.round(y + (size - h * scale) / 2));
+  return [g, img];
+}
+
+/** 테두리까지 포함한 그림 칸 바깥 한 변 */
+export function traitIconOuter(size: number, frame: number): number {
+  return size + (frame + 1) * 2;
+}
+
+/**
+ * 공명 짝 마름모 (`need` 개, 앞 `have` 개 채움) — 왼쪽 마름모 가운데 (x0, cy). 오른쪽 끝 x 를 돌려준다.
+ */
+export function pairPips(
+  g: Phaser.GameObjects.Graphics,
+  x0: number,
+  cy: number,
+  have: number,
+  need: number,
+  r: number,
+  gap: number,
+  on: number,
+  off: number,
+): number {
+  const step = r * 2 + gap;
+  for (let i = 0; i < need; i++) {
+    const filled = i < have;
+    diamond(g, x0 + i * step, cy, r, filled ? on : off, filled);
+  }
+  return x0 + (need - 1) * step + r;
+}
+
+/** 무기 빛 테두리 색 (원한의 한마디 세로 줄과 같은 색 — 칼 G13 · 대검 잉걸 21 · 단검 G10 · 활 S5) */
+export function weaponFrameColor(scene: Phaser.Scene, weapon: VoiceWeaponId): number {
+  return swatch(scene, 0, VOICE_LOOK[weapon].bar);
+}
+
+/** 카드·알림 크기 그림 (64 · 테두리 2) — 텍스처가 없으면 null */
+export function traitIconCard(
+  scene: Phaser.Scene,
+  key: string | null | undefined,
+  x: number,
+  y: number,
+  weapon: VoiceWeaponId,
+): Phaser.GameObjects.GameObject[] | null {
+  return traitIconBox(
+    scene,
+    key,
+    x,
+    y,
+    TRAIT_ICON.size,
+    weaponFrameColor(scene, weapon),
+    TRAIT_ICON.frame,
+    hexToNum(GRAY[TRAIT_ICON.backGray]),
+  );
 }

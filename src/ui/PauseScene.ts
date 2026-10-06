@@ -6,7 +6,7 @@ import { keyTaken, takeKey } from './keyGate';
 import { ICON, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { hasRoute } from './routeView';
-import { growthRouteName } from './growthView';
+import { diaryGrowthLines, growthRouteName } from './growthView';
 import { controlsLine, fill, growthText, r49Text, r53Text, r61Text, uiText } from './text';
 import { GRAY, LAYOUT, ROUTE, hexToNum } from './theme';
 import { buildPage } from './PauseBuild';
@@ -156,6 +156,8 @@ export class PauseScene extends Phaser.Scene {
             n: Math.floor(s.growth.gauge),
           })
         : `무기: ${s.weapon.name}${evo}`,
+      // 61 단계 5 §18.1: 얻은 개성 · 켜진 공명
+      ...diaryGrowthLines(s.growth, growthText),
       // 패시브는 60라운드부터 오른쪽 '빌드' 쪽에 (Lv/최대·태그와 함께)
     ];
     for (const t of lines) {

@@ -13,6 +13,7 @@ import type {
 } from '../contract/ui';
 import { fill } from './fmt';
 import { R60_TEXT, TAG_NAME, type R60TextKey } from './textBuild';
+import { LIVE_TAGS_BY_FLOOR } from './themeGrowth';
 
 /**
  * 57·60라운드 계약 §14.1~14.4·§14.8·§14.10·§14.11 순수 계산 (Phaser 없음 — 단위 테스트 대상).
@@ -28,6 +29,29 @@ export function buildOf(s: { build?: UiBuildState | null }): UiBuildState {
   const b = s.build;
   if (!b) return EMPTY_BUILD;
   return { tags: b.tags ?? [], dualTraits: b.dualTraits ?? [], curse: b.curse ?? null };
+}
+
+/**
+ * 61 단계 5: 태그를 보일 층 번호 (1부터) — 노드 지도 층 `route.floor`, 지도가 없으면(무기 시험장 — 시스템 floor 값이 비어
+ * 꺼진 태그도 점수로 내려온다) 1층. 지금 범위는 1스테이지뿐이다.
+ */
+export function tagFloor(s: { route?: { floor: number } | null }): number {
+  const f = s.route?.floor;
+  return typeof f === 'number' && Number.isFinite(f) && f >= 1 ? Math.floor(f) : 1;
+}
+
+/** 이 층에서 켜진 태그만 (표를 모르는 층이면 그대로) */
+export function liveTagIds(tags: readonly UiTagId[] | null | undefined, floor: number): UiTagId[] {
+  if (!Array.isArray(tags)) return [];
+  const live = LIVE_TAGS_BY_FLOOR[floor];
+  return live ? tags.filter((t) => live.includes(t)) : [...tags];
+}
+
+/** 이 층에서 꺼진 태그를 뺀 빌드 (HUD 칩·Tab·일기장 — 갈래·개성이 꺼진 태그 점수를 주더라도 보이지 않게) */
+export function liveBuild(b: UiBuildState, floor: number): UiBuildState {
+  const live = LIVE_TAGS_BY_FLOOR[floor];
+  if (!live) return b;
+  return { ...b, tags: b.tags.filter((t) => live.includes(t.id)) };
 }
 
 /** 태그 이름: 스냅샷 build.tags 의 이름 → 계약 자리표시 이름 → id */
@@ -169,14 +193,18 @@ export interface DiaryLine {
   gap: number;
 }
 
-type DiarySnap = Pick<UiSnapshot, 'passives' | 'consumable'> & { build?: UiBuildState | null };
+type DiarySnap = Pick<UiSnapshot, 'passives' | 'consumable'> & {
+  build?: UiBuildState | null;
+  route?: { floor: number } | null;
+};
 
 /**
  * 57·60라운드 일기장(일시정지) 빌드 쪽: 태그·세트 / 저주 / 패시브(Lv·최대·태그) / 소모품 (이중 개성은 61 G 로 폐지 — 개성은 Tab 성장도).
  * 쪽이 넘치면 접는다: compact 1 = 꺼진 세트 효과를 뺀다, 2 = 세트 효과·저주 이득/저주 줄도 뺀다.
  */
 export function diaryLines(s: DiarySnap, compact: 0 | 1 | 2, tx: Tx = defaultTx): DiaryLine[] {
-  const b = buildOf(s);
+  const floor = tagFloor(s);
+  const b = liveBuild(buildOf(s), floor);
   const out: DiaryLine[] = [];
   const head = (k: R60TextKey) => out.push({ text: tx(k), style: 'head', gap: out.length ? 6 : 0 });
   const none = () => out.push({ text: tx('buildNone'), style: 'faint', gap: 0 });
@@ -205,7 +233,9 @@ export function diaryLines(s: DiarySnap, compact: 0 | 1 | 2, tx: Tx = defaultTx)
   if (!passives.length) none();
   for (const p of passives) {
     const lv = fill(tx('passiveLevel'), { level: p.level, max: p.maxLevel || p.level });
-    const tags = (p.tags ?? []).map((t) => tagName(t, b)).join('·');
+    const tags = liveTagIds(p.tags, floor)
+      .map((t) => tagName(t, b))
+      .join('·');
     out.push({ text: `${p.name}  ${lv}${tags ? `  ${tags}` : ''}`, style: 'body', gap: 0 });
   }
   const c = consumableView(s.consumable, tx);

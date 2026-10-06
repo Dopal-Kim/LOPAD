@@ -23,6 +23,7 @@ import { UI_SCENE_KEYS } from './keys';
  *   snap()                      // 53라운드: 지금 스냅샷 (덮어쓰기 적용)
  *   scenes()                    // 53라운드: 실행 중인 씬 키 (Esc 단계 확인용)
  *   events: [name, payload][]   // 53라운드: 받은 UI 이벤트 기록 (STATE 제외, 최근 200개)
+ *   addTexture(key, canvas)     // 61 단계 5: 임시 그림 (아트가 아직 없는 개성 카드 그림 모의 확인용)
  * }
  */
 type Patch = Partial<UiSnapshot> | ((s: UiSnapshot) => Partial<UiSnapshot>);
@@ -52,6 +53,8 @@ interface DebugApi {
   scenes(): string[];
   /** 53라운드: 받은 UI 이벤트 기록 (STATE 제외) */
   events: [string, unknown][];
+  /** 61 단계 5: 임시 그림 텍스처 (이미 있으면 바꾸지 않는다) */
+  addTexture(key: string, canvas: HTMLCanvasElement): boolean;
 }
 
 let enabled: boolean | null = null;
@@ -178,6 +181,11 @@ export function installUiDebug(scene: Phaser.Scene): void {
     snap: () => withDebug(uiCommands.getUiSnapshot()),
     events: eventLog,
     scenes: () => scenePlugin?.manager.getScenes(true).map((sc) => sc.sys.settings.key) ?? [],
+    addTexture(key, canvas) {
+      const tex = scene.textures;
+      if (tex.exists(key)) return false;
+      return Boolean(tex.addCanvas(key, canvas));
+    },
   };
   (window as unknown as { __lopadUi?: DebugApi }).__lopadUi = api;
 }

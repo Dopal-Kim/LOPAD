@@ -1,19 +1,20 @@
 import Phaser from 'phaser';
 import { UI_SCREEN, type UiMenu, type UiSnapshot } from '../contract/ui';
-import { buildOf } from './buildView';
+import { buildOf, tagFloor } from './buildView';
 import { debugExpose } from './debug';
 import { cardPage, cardShell, type ShellSlot } from './cardShell';
 import { choiceHint } from './choiceCardView';
 import { GlowText } from './glow';
-import { diamond, lookImage, lookText, scaledKey } from './growthArt';
-import { growthCardW, growthCards, guideText, type GrowthCardData, type GuideKind } from './growthView';
+import { diamond, lookImage, lookText, pairPips, scaledKey, traitIconCard, traitIconOuter } from './growthArt';
+import { growthCardW, growthCards, guideText, iconWeapon, type GrowthCardData, type GuideKind } from './growthView';
 import { KIT, paperPage } from './kit';
 import { takeKey } from './keyGate';
 import type { CardPage, CardPageCtx } from './MenuCards';
 import { swatch } from './StructureHud';
 import { fill, growthText, r60Text } from './text';
 import { SEPIA, hexToNum } from './theme';
-import { GROWTH_CARD as C, GROWTH_GUIDE as GD } from './themeGrowth';
+import { GROWTH_CARD as C, GROWTH_GUIDE as GD, RESONANCE_UI as RS, TRAIT_ICON as TI } from './themeGrowth';
+import type { VoiceWeaponId } from './themeStory';
 
 /** 카드 안 줄 사이 */
 const GAP = { afterTab: 8, afterLook: 6, afterKey: 6, afterName: 6, afterRule: 8, afterLine: 6 } as const;
@@ -37,7 +38,7 @@ export function showGrowthCards(
   const data = growthCards(m, {
     growth: snap.growth,
     verbs: snap.weaponVerbs,
-    stageIndex: Math.max(0, snap.stageIndex),
+    floor: tagFloor(snap),
     build: buildOf(snap),
     tx: growthText,
   });
@@ -49,7 +50,9 @@ export function showGrowthCards(
   const tried: number[] = [];
   for (const lv of [0, 1, 2] as const) {
     const before = new Set(scene.children.list);
-    const faces = data.map((d) => cardFace(scene, d, cw, lv));
+    const faces = data.map((d) =>
+      cardFace(scene, d, cw, lv, iconWeapon(d.icon, snap.weapon?.name, snap.growth?.weaponName)),
+    );
     const ch = Math.max(C.minH, ...faces.map((f) => f.h));
     const page = cardPage(
       scene,
@@ -109,7 +112,7 @@ interface Face {
 }
 
 /** 카드 내용 (카드 왼쪽 위 기준 지역 좌표) */
-function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 | 2): Face {
+function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 | 2, weapon: VoiceWeaponId): Face {
   const lookH = lv === 0 ? C.lookH : C.lookHCompact;
   const inner = cw - C.pad * 2;
   const cx = Math.round(cw / 2);
@@ -128,8 +131,15 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 
     const img = lookImage(scene, d.look, cx, y, inner - 8, lookH);
     parts.push(img ?? lookText(scene, d.lookText || d.name, cx, y, lookH));
     y += lookH + GAP.afterLook;
-  } else if (d.kind === 'trait' && d.verb) {
-    y = bigKey(scene, g, parts, d.verb, cx, y);
+  } else if (d.kind === 'trait') {
+    // §18.1 카드 그림(64, 무기 빛 테두리) + 바뀌는 키 한 줄 — 그림이 없으면 지금처럼 큰 키 그림
+    const outer = traitIconOuter(TI.size, TI.frame);
+    const icon = traitIconCard(scene, d.icon, Math.round(cx - TI.size / 2), y + TI.frame + 1, weapon);
+    if (icon) {
+      parts.push(...icon);
+      y += outer + TI.gapBelow;
+      if (d.verb) y = keyRow(scene, g, parts, d.verb, cx, y);
+    } else if (d.verb) y = bigKey(scene, g, parts, d.verb, cx, y);
   }
   // ---- 이름
   const name = new GlowText(scene, 0, 0, d.name, 'page_unsel', {
@@ -149,8 +159,11 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 
   }
   if (d.line)
     add(new GlowText(scene, 0, 0, d.line, 'page_body', { wrap: inner, align: 'center' }), lv === 0 ? GAP.afterLine : 2);
-  if (d.tags.length && lv < 2)
+  // (공명 힌트가 있는 카드는 태그를 힌트 둘째 줄 '돌파 짝 카드' 로 보이므로 태그 줄을 따로 두지 않는다)
+  if (d.tags.length && lv < 2 && !d.resonance)
     add(new GlowText(scene, 0, 0, d.tags.join(' · '), 'page_faint', { wrap: inner, align: 'center' }), GAP.afterLine);
+  // ---- §18.1 공명 힌트: 이 카드가 같은 태그 짝을 맞춘다
+  if (d.resonance) y = resonanceHint(scene, g, parts, d.resonance, cx, y, inner, lv);
   // ---- 1차 각성: 2차 길 미리보기
   if (d.kind === 'awaken1' && d.paths.length) {
     if (lv === 0) add(new GlowText(scene, 0, 0, growthText('pathsHead'), 'page_faint'), 2);
@@ -203,6 +216,52 @@ function bigKey(
     y += t.displayHeight;
   }
   return y + GAP.afterKey;
+}
+
+/**
+ * 개성 카드 공명 힌트: 옅은 바탕 띠 안에 [◆◆] '이 카드로 「이름」 공명'(강조) / '연쇄 짝 카드'(흐림 — 태그 줄 대신이라
+ * 조인 단계에서도 남긴다). 아래 끝 y
+ */
+function resonanceHint(
+  scene: Phaser.Scene,
+  g: Phaser.GameObjects.Graphics,
+  parts: Phaser.GameObjects.GameObject[],
+  r: { name: string; tag: string },
+  cx: number,
+  y: number,
+  inner: number,
+  lv: 0 | 1 | 2,
+): number {
+  const after = lv === 0 ? GAP.afterLine : 2;
+  const pipsW = RS.pipR * 4 + RS.pipGap;
+  const head = new GlowText(scene, 0, 0, fill(growthText('resHint'), { name: r.name }), 'page_selected', {
+    wrap: inner - pipsW - 6 - RS.hintPad * 2,
+    align: 'center',
+  });
+  const sub = r.tag ? new GlowText(scene, 0, 0, fill(growthText('resHintTag'), { tag: r.tag }), 'page_faint') : null;
+  const h = RS.hintPad * 2 + head.displayHeight + (sub ? sub.displayHeight : 0);
+  g.fillStyle(hexToNum(SEPIA[1]), 0.55).fillRect(C.pad, y, inner, h);
+  const rowW = pipsW + 6 + head.displayWidth;
+  const x0 = Math.round(cx - rowW / 2);
+  const ty = y + RS.hintPad;
+  pairPips(
+    g,
+    x0 + RS.pipR,
+    ty + Math.round(Math.min(head.displayHeight, 16) / 2),
+    2,
+    2,
+    RS.pipR,
+    RS.pipGap,
+    swatch(scene, 0, { slot: RS.onSlot }),
+    swatch(scene, 0, { sepia: RS.offSepia }),
+  );
+  head.setPosition(x0 + pipsW + 6, ty);
+  parts.push(head);
+  if (sub) {
+    sub.placeCenter(cx, ty + head.displayHeight);
+    parts.push(sub);
+  }
+  return y + h + after;
 }
 
 /** 각성 카드: [키] '{동작} 바뀜' 한 줄 (키 아래 강조 밑줄). 아래 끝 y */

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { UiSnapshot } from '../contract/ui';
+import { buildOf } from './buildView';
 import { GlowText } from './glow';
 import { growthTree } from './GrowthTree';
 import { growthRouteName } from './growthView';
@@ -57,7 +58,11 @@ export class BuildPeek {
     y += name.displayHeight + 2;
     // 61 단계 4 P12: 성장도 (각성 게이지 · 다음 눈금 · 나무 · 얻은 개성) — 옛 '개성 n/m' 막대 대체
     if (s.growth) {
-      const tree = growthTree(sc, s.growth, s.weaponVerbs, xL, y, innerL);
+      const tree = growthTree(sc, s.growth, s.weaponVerbs, xL, y, innerL, {
+        weaponName: s.weapon?.name,
+        build: buildOf(s),
+        maxH: maxBottom - y - 6 - PEEK_FOOT_H - PEEK.top,
+      });
       texts.push(...tree.objects);
       y += tree.h + 6;
     }

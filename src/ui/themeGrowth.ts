@@ -72,6 +72,39 @@ export const GROWTH_CARD = {
   pipSlot: 22,
 } as const;
 
+/**
+ * §18.1 (61 단계 5 P13) 개성·공명 카드 그림 (아트 128×128 도트 = 화면 64px, 테두리는 UI 가 그린다):
+ * 어두운 바탕(G01) 위 그림 · 무기 빛 색 테두리(원한의 한마디 세로 줄과 같은 색 — `VOICE_LOOK.bar`) · 바깥 G00 한 줄.
+ */
+export const TRAIT_ICON = {
+  /** 카드·알림 그림 칸 (논리 px) */
+  size: 64,
+  /** Tab 성장도 목록 그림 칸 (그림 1/4 — 도트가 정수 배로 줄어든다) */
+  thumb: 32,
+  /** 무기 빛 테두리 두께 (카드·알림 / 목록) */
+  frame: 2,
+  thumbFrame: 1,
+  backGray: 1,
+  /** 카드: 그림 아래 → 키 줄 */
+  gapBelow: 6,
+} as const;
+
+/** 공명 (카드 힌트 · 알림 · Tab 성장도 칸) */
+export const RESONANCE_UI = {
+  /** 짝 마름모 (켜짐·얻음 = 채움 강조 25, 아직 = 테 S4) */
+  pipR: 3,
+  pipGap: 3,
+  onSlot: 25,
+  haveSlot: 22,
+  offSepia: 4,
+  /** 카드 힌트 바탕 (세피아 S1 · 알파 0.55) 안쪽 여백 */
+  hintPad: 3,
+  /** Tab 성장도 공명 줄 높이 · 한 줄 설명은 켜진 것만 */
+  rowH: 16,
+  /** 알림이 개성 알림 아래에 붙을 때 간격 */
+  stackGap: 6,
+} as const;
+
 /** 처음 안내 카드 (그림 + 두 줄) */
 export const GROWTH_GUIDE = {
   w: 400,
@@ -111,14 +144,19 @@ export const GROWTH_TREE = {
   /** 얻은 개성 목록 줄 높이 · 최대 줄 수 (넘치면 '외 n') */
   traitRowH: 18,
   traitMax: 6,
+  /** 그림이 있는 개성: 두 칸 격자 (그림 32 + 테두리) — 줄 사이 · 최대 장 수 · 켜진 공명 그림 줄 높이 */
+  traitGridGap: 3,
+  traitIconMax: 6,
+  traitIconRowH: 36,
 } as const;
 
 /**
- * 층마다 켜진 태그 (P12 '1층 태그 6': 간파·돌파·급소·연쇄·중량·취기). 카드에서 꺼진 태그는 보이지 않는다.
- * 키 = 스냅샷 `stageIndex`(0 = 1층). 없는 층은 모두 보인다.
+ * 층마다 켜진 태그 (P12 '1층 태그 6': 간파·돌파·급소·연쇄·중량·취기). 카드·Tab·일기장·HUD 칩에서 꺼진 태그는 보이지 않는다.
+ * 키 = 층 번호(1부터 — 스냅샷 `route.floor`, 노드 지도가 없는 무기 시험장은 1층, `buildView.tagFloor`). 없는 층은 모두 보인다.
+ * (61 단계 5: 예전 키 `stageIndex` 는 지역마다 바뀌는 값이라 층 번호로 바꿨다.)
  */
-export const LIVE_TAGS_BY_STAGE: Readonly<Record<number, readonly UiTagId[]>> = {
-  0: ['insight', 'breach', 'vital', 'chain', 'weight', 'drunk'],
+export const LIVE_TAGS_BY_FLOOR: Readonly<Record<number, readonly UiTagId[]>> = {
+  1: ['insight', 'breach', 'vital', 'chain', 'weight', 'drunk'],
 };
 
 /** 4동사 칸 → 키 이름 (스냅샷 `weaponVerbs` 에 그 칸이 없을 때) */
