@@ -7,7 +7,15 @@
 import type Phaser from 'phaser';
 import { ASSETS } from '../../../core/Constants';
 import { GROWTH, TRAITS } from '../../../data/growth';
-import { TRAIT_ICON_DIR, traitIconFile, traitIconKey } from '../../../systems/growth/traitArt';
+import {
+  TRAIT_ICON_DIR,
+  markIconLoaded,
+  resonanceIconFile,
+  resonanceIconKey,
+  traitIconFile,
+  traitIconKey,
+} from '../../../systems/growth/traitArt';
+import { resonancesOf } from '../../../systems/growth/resonance';
 import { assetListed } from '../../../systems/sprites/sheetLoader';
 
 /** art §26 미리보기 파일: `<무기>_base` · `<무기>_<갈래>_a1` · `<무기>_<갈래>_a2_<길>`(길 색을 구운 완성 그림) */
@@ -45,11 +53,18 @@ export class GrowthArt {
     for (const t of TRAITS)
       if (t.weapon === weapon)
         want.push({ key: traitIconKey(weapon, t.id), rel: `${TRAIT_ICON_DIR}/${traitIconFile(weapon, t.id)}` });
+    for (const r of resonancesOf(weapon))
+      want.push({ key: resonanceIconKey(r.id), rel: `${TRAIT_ICON_DIR}/${resonanceIconFile(r.id)}` });
     const s = this.scene;
     let queued = false;
     for (const w of want) {
-      if (s.textures.exists(w.key) || !assetListed(w.rel)) continue;
+      if (s.textures.exists(w.key)) {
+        markIconLoaded(w.key);
+        continue;
+      }
+      if (!assetListed(w.rel)) continue;
       s.load.image(w.key, `${ASSETS.URL}/${w.rel}`);
+      s.load.once(`filecomplete-image-${w.key}`, () => markIconLoaded(w.key));
       queued = true;
     }
     if (queued && !s.load.isLoading()) s.load.start();

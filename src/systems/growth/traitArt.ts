@@ -20,6 +20,23 @@ export function traitIconKey(weapon: string, traitId: string): string {
   return `ui_traits/${weapon}_${traitId}`;
 }
 
+/** 공명 카드 그림 (`sprites/ui_traits/<공명 id>.png` → 키 `ui_traits/<공명 id>` — 계약 UI §18.1) */
+export function resonanceIconFile(resId: string): string {
+  return `${resId}.png`;
+}
+export function resonanceIconKey(resId: string): string {
+  return `ui_traits/${resId}`;
+}
+
+/** 씬이 실제로 로드한 카드 그림 키 (Phaser 없는 스냅샷 쪽이 '로드된 것만' 넘기도록) */
+const loadedIcons = new Set<string>();
+export function markIconLoaded(key: string): void {
+  loadedIcons.add(key);
+}
+export function iconLoaded(key: string): boolean {
+  return loadedIcons.has(key);
+}
+
 /** 개성 전투 fx id (`fx/v3/trait_<무기>_<개성 id>[_<part>]`) · 공명은 `trait_<공명 id>[_<part>]` (공명 id 에 무기가 들어 있다) */
 export function traitFxId(weapon: string, traitId: string, part?: string): string {
   const base = traitId.startsWith('res_') ? `trait_${traitId}` : `trait_${weapon}_${traitId}`;

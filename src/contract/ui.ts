@@ -216,6 +216,8 @@ export interface UiResonance {
   name: string;
   /** 조건 → 행동 한 문장 */
   line: string;
+  /** §18.1 (61 단계 5): 공명 카드 그림 텍스처 키 (`ui_traits/<공명 id>` — 시스템이 로드한 것만) */
+  iconKey?: string;
 }
 /** §18.1 `UiGrowth.resonance` 한 줄 (이 무기의 공명 전부 — active = 켜짐) */
 export interface UiResonanceState extends UiResonance {

@@ -17,6 +17,7 @@ import type {
 import type { WeaponState } from '../weapon/weapons';
 import { effectiveKind, growthMarks } from './growth';
 import { activeResonances, resonancesOf } from './resonance';
+import { iconLoaded, resonanceIconKey } from './traitArt';
 
 /** 미리보기 키 조회 (stage 0 = 기본 · 1 = 1차 모양 · 2 = 2차 모양 — path 가 있으면 그 길 색 완성 그림). 로드돼 있지 않으면 undefined */
 export type LookKeyFn = (weapon: string, branch: string | null, stage: 0 | 1 | 2, path?: string) => string | undefined;
@@ -34,7 +35,8 @@ export function uiTrait(t: TraitDef, icon?: IconKeyFn): UiGrowthTrait {
 
 /** §18.1 공명 한 줄 (알림·카드) */
 export function uiResonance(r: ResonanceDef): UiResonance {
-  return { tag: r.tag as UiTagId, name: r.name, line: r.line };
+  const key = resonanceIconKey(r.id);
+  return { tag: r.tag as UiTagId, name: r.name, line: r.line, ...(iconLoaded(key) ? { iconKey: key } : {}) };
 }
 
 export function uiPath(weapon: string, b: GrowthBranchDef, p: GrowthPathDef, look?: LookKeyFn): UiGrowthPath {
