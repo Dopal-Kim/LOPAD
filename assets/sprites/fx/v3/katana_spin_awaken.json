@@ -29,7 +29,7 @@
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
  "palette": "61 단계 5: 칼 fx 는 무채 16(G4~G14)·청강 SL·백열 X0/X1(glowFrames 만) + 호박 불티 A19~A25 — 53 Q61 '재·호박 잉크만'을 칼에 한해 은선 램프로 바꿈(대검·단검·활은 그대로). paletteSwap none",
- "colors": 15,
+ "colors": 12,
  "semiTransparent": false,
  "source": "parts/art/work/katana61s5/build.py (61 단계 5 P13 §2 — 칼 재디자인 '은선', 무기+이펙트 함께)",
  "anchor": "player_pivot",
@@ -169,5 +169,6 @@
    "h": 2165
   },
   "scale": "1"
- }
+ },
+ "color61s6": "61 단계 6 P14 §2 칼 '서리' — 은선 램프(무채 G9~G14·청강 SL4~SL7)·호박 불티 → 서리 램프(머리·날선 #bff3ff · 몸 #8fe3ff · 꼬리 #5cc6ee→#1a3a58), 백열 X1 → 서리 흰빛 #e6fcff(판정 칸만), X0 코어 그대로. 각성 은 램프 → 서리꽃 은백. 모양·틀·프레임·ms 그대로"
 }

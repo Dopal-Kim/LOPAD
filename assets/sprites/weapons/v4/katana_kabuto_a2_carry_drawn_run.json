@@ -67,25 +67,25 @@
  "glowSheet": "weapons/v4/katana_kabuto_a2_glow_carry_drawn_run",
  "pathTint": {
   "ittou": [
-   255,
-   92,
-   72
+   80,
+   196,
+   255
   ],
   "meikyo": [
-   200,
-   240,
+   214,
+   248,
    255
   ]
  },
  "trailTint": {
   "ittou": [
-   255,
-   92,
-   72
+   80,
+   196,
+   255
   ],
   "meikyo": [
-   200,
-   240,
+   214,
+   248,
    255
   ]
  },
@@ -155,5 +155,6 @@
    "h": 346
   },
   "scale": "1"
- }
+ },
+ "pathTintNote": "61 단계 6 P14 §2 칼 '서리' — 2차 두 길 = 서리 계열 안 짙은 쪽 / 옅은 쪽"
 }

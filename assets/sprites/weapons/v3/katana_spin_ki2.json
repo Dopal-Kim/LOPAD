@@ -36,7 +36,7 @@
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
  "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
- "colors": 6,
+ "colors": 5,
  "semiTransparent": false,
  "source": "parts/art/work/katana61s5/build.py (61 단계 5 P13 §2 — 칼 재디자인 '은선', 무기+이펙트 함께)",
  "pivot": {
@@ -164,5 +164,6 @@
    "h": 200
   },
   "scale": "1"
- }
+ },
+ "color61s6": "61 단계 6 P14 §2 칼 '서리' 검기 — 빛줄기·날선·불티를 서리 램프로(1단 #5cc6ee~#8fe3ff · 3단 날 #e0faff/#bff3ff), 판정 칸 X1 → #e6fcff"
 }

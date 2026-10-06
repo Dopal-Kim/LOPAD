@@ -912,7 +912,7 @@
  "version": "v3-r61s5",
  "designPrevious": "B 재 껍데기 송곳니 (53라운드 Q28) — 자기 재 껍데기에서 부러낸 송곳니 조각 · 균열 혼불 · 백열 끝 · 붕대 손잡이 + 녹슨 못 · 역수",
  "r61s5": "61 단계 5 P13 §2 — 단검 재디자인(무기+이펙트 한 디자인 언어). 계약 art §27",
- "colors": 16,
+ "colors": 18,
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -985,5 +985,6 @@
    "h": 421
   },
   "scale": "1"
- }
+ },
+ "color61s6": "61 단계 6 P14 §2 단검 '독' — 판정 칸(glowFrames·frameStates glow)만 안쪽 날선 불씨·끝 반짝을 독 램프로(#8b4d22→#64289a … #eecc78→#ec9cff · A26→#f6c8ff · X1→#fbe0ff). 평소 칸의 호박 날선·혈관(주인공 균열과 한 식구)과 강철 날·손가락 고리는 그대로"
 }

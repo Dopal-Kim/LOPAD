@@ -19,14 +19,14 @@
    "a2Glow": "dagger_twin_a2_glow.png",
    "pathTint": {
     "frenzy": [
-     192,
-     226,
+     222,
+     150,
      255
     ],
     "bleed": [
      255,
-     72,
-     92
+     84,
+     196
     ]
    },
    "pathNames": {
@@ -46,14 +46,14 @@
    "a2Glow": "dagger_gale_a2_glow.png",
    "pathTint": {
     "flyblade": [
-     172,
-     255,
-     150
+     190,
+     150,
+     255
     ],
     "hotwind": [
      255,
-     150,
-     60
+     112,
+     220
     ]
    },
    "pathNames": {
@@ -73,14 +73,14 @@
    "a2Glow": "dagger_hyakki_a2_glow.png",
    "pathTint": {
     "nightwalk": [
-     172,
-     132,
+     150,
+     96,
      255
     ],
     "onibi": [
-     100,
-     240,
-     220
+     248,
+     120,
+     255
     ]
    },
    "pathNames": {
@@ -94,5 +94,6 @@
   }
  },
  "r61s5": "61 단계 5 P13 §2 — 단검 재디자인(무기+이펙트 한 디자인 언어). 계약 art §27",
- "design": "61 단계 5 '재 발톱' — 기본·갈래 1차/2차 모두 무기 시트와 같은 날(blade.paint)·덧붙임(overlays) 경로"
+ "design": "61 단계 5 '재 발톱' — 기본·갈래 1차/2차 모두 무기 시트와 같은 날(blade.paint)·덧붙임(overlays) 경로",
+ "color61s6": "61 단계 6 P14 §2 단검 '독' — 쌍격·백귀 날선 빛(청록) → 독 자홍, 2차 길 pathTint 를 독 계열 두 변주로, a2_<길> 다시 구움"
 }

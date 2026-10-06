@@ -79,26 +79,26 @@
  "glowSheet": "weapons/v4/dagger_twin_a2_glow_backstab",
  "pathTint": {
   "frenzy": [
-   192,
-   226,
+   222,
+   150,
    255
   ],
   "bleed": [
    255,
-   72,
-   92
+   84,
+   196
   ]
  },
  "trailTint": {
   "frenzy": [
-   192,
-   226,
+   222,
+   150,
    255
   ],
   "bleed": [
    255,
-   72,
-   92
+   84,
+   196
   ]
  },
  "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
@@ -194,5 +194,6 @@
    "h": 623
   },
   "scale": "1"
- }
+ },
+ "pathTintNote": "61 단계 6 P14 §2 단검 '독' — 2차 두 길 = 독 계열 안 두 변주(보라 / 자홍)"
 }

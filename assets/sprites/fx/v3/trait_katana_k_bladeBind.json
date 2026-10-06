@@ -19,7 +19,7 @@
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
  "palette": "61 단계 5 칼 '은선' 램프: 무채 16(G1~G14)·청강 SL·호박 불티 A17~A25 + 갈래 표지색(묶음 청회 #9ab0d8 램프·달 청백 #c8d8f0 램프·피 적갈 #b04848 램프·술/불 = pool_liquor(_fire) 1층 호박) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
- "colors": 17,
+ "colors": 14,
  "semiTransparent": false,
  "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
  "request": "parts/system/notes/trait-art-requests-61s5.md §1",
@@ -81,5 +81,6 @@
    "h": 291
   },
   "scale": "1"
- }
+ },
+ "color61s6": "61 단계 6 P14 §2 칼 '서리' — 은선 획·달 분신·호박 불티 → 서리 램프. 묶음 청회·먹 그림자·흙먼지·피·불·술은 그대로(메커니즘 색)"
 }

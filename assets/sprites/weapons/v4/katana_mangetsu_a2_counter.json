@@ -74,26 +74,26 @@
  "glowSheet": "weapons/v4/katana_mangetsu_a2_glow_counter",
  "pathTint": {
   "sakugetsu": [
+   130,
    176,
-   150,
    255
   ],
   "hozuki": [
-   255,
-   226,
-   140
+   176,
+   240,
+   255
   ]
  },
  "trailTint": {
   "sakugetsu": [
+   130,
    176,
-   150,
    255
   ],
   "hozuki": [
-   255,
-   226,
-   140
+   176,
+   240,
+   255
   ]
  },
  "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
@@ -166,5 +166,6 @@
    "h": 538
   },
   "scale": "1"
- }
+ },
+ "pathTintNote": "61 단계 6 P14 §2 칼 '서리' — 2차 두 길 = 서리 계열 안 짙은 쪽 / 옅은 쪽"
 }
