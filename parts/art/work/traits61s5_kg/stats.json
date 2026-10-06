@@ -1,0 +1,688 @@
+{
+ "trait_katana_k_shadowThrust": {
+  "page": [
+   1206,
+   19
+  ],
+  "mb": 0.087,
+  "png_kb": 1.6,
+  "colors": 21,
+  "frames": 6,
+  "size": [
+   256,
+   64
+  ]
+ },
+ "trait_katana_k_edgeLift_launch": {
+  "page": [
+   50,
+   508
+  ],
+  "mb": 0.097,
+  "png_kb": 4.0,
+  "colors": 18,
+  "frames": 5,
+  "size": [
+   96,
+   128
+  ]
+ },
+ "trait_katana_k_edgeLift_land": {
+  "page": [
+   614,
+   47
+  ],
+  "mb": 0.11,
+  "png_kb": 3.4,
+  "colors": 15,
+  "frames": 6,
+  "size": [
+   128,
+   64
+  ]
+ },
+ "trait_katana_k_parryShove": {
+  "page": [
+   334,
+   201
+  ],
+  "mb": 0.256,
+  "png_kb": 3.4,
+  "colors": 9,
+  "frames": 5,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "trait_katana_k_parryShove_impact": {
+  "page": [
+   305,
+   102
+  ],
+  "mb": 0.119,
+  "png_kb": 3.7,
+  "colors": 15,
+  "frames": 6,
+  "size": [
+   128,
+   128
+  ]
+ },
+ "trait_katana_k_bladeBind": {
+  "page": [
+   80,
+   291
+  ],
+  "mb": 0.089,
+  "png_kb": 2.1,
+  "colors": 17,
+  "frames": 5,
+  "size": [
+   96,
+   96
+  ]
+ },
+ "trait_katana_k_shadowVault_out": {
+  "page": [
+   506,
+   137
+  ],
+  "mb": 0.264,
+  "png_kb": 8.2,
+  "colors": 12,
+  "frames": 6,
+  "size": [
+   96,
+   144
+  ]
+ },
+ "trait_katana_k_shadowVault_in": {
+  "page": [
+   500,
+   144
+  ],
+  "mb": 0.275,
+  "png_kb": 7.6,
+  "colors": 16,
+  "frames": 6,
+  "size": [
+   128,
+   144
+  ]
+ },
+ "trait_katana_k_issenBack": {
+  "page": [
+   992,
+   139
+  ],
+  "mb": 0.526,
+  "png_kb": 4.7,
+  "colors": 13,
+  "frames": 6,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "trait_katana_k_iaiWave_launch": {
+  "page": [
+   167,
+   99
+  ],
+  "mb": 0.063,
+  "png_kb": 1.7,
+  "colors": 16,
+  "frames": 4,
+  "size": [
+   128,
+   128
+  ]
+ },
+ "trait_katana_k_iaiWave_wave": {
+  "page": [
+   201,
+   51
+  ],
+  "mb": 0.039,
+  "png_kb": 1.2,
+  "colors": 10,
+  "frames": 4,
+  "size": [
+   96,
+   64
+  ]
+ },
+ "trait_katana_k_iaiChain": {
+  "page": [
+   746,
+   21
+  ],
+  "mb": 0.06,
+  "png_kb": 2.0,
+  "colors": 12,
+  "frames": 5,
+  "size": [
+   192,
+   64
+  ]
+ },
+ "trait_katana_bloodGale": {
+  "page": [
+   372,
+   443
+  ],
+  "mb": 0.629,
+  "png_kb": 6.7,
+  "colors": 12,
+  "frames": 6,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "trait_katana_liquorWhirl": {
+  "page": [
+   501,
+   244
+  ],
+  "mb": 0.466,
+  "png_kb": 6.5,
+  "colors": 10,
+  "frames": 6,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "trait_katana_liquorWhirl_fire": {
+  "page": [
+   491,
+   245
+  ],
+  "mb": 0.459,
+  "png_kb": 9.1,
+  "colors": 6,
+  "frames": 6,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "trait_katana_k_sparkCleave": {
+  "page": [
+   59,
+   205
+  ],
+  "mb": 0.046,
+  "png_kb": 2.1,
+  "colors": 7,
+  "frames": 6,
+  "size": [
+   96,
+   64
+  ]
+ },
+ "trait_katana_k_sparkCleave_spark": {
+  "page": [
+   127,
+   20
+  ],
+  "mb": 0.01,
+  "png_kb": 0.5,
+  "colors": 9,
+  "frames": 4,
+  "size": [
+   48,
+   48
+  ]
+ },
+ "trait_katana_k_groundPin_bind": {
+  "page": [
+   270,
+   34
+  ],
+  "mb": 0.035,
+  "png_kb": 1.9,
+  "colors": 15,
+  "frames": 4,
+  "size": [
+   128,
+   64
+  ]
+ },
+ "trait_katana_k_groundPin_impact": {
+  "page": [
+   239,
+   180
+  ],
+  "mb": 0.164,
+  "png_kb": 3.8,
+  "colors": 19,
+  "frames": 6,
+  "size": [
+   128,
+   128
+  ]
+ },
+ "trait_katana_k_moonRelay": {
+  "page": [
+   235,
+   115
+  ],
+  "mb": 0.103,
+  "png_kb": 1.2,
+  "colors": 7,
+  "frames": 6,
+  "size": [
+   256,
+   64
+  ]
+ },
+ "trait_katana_k_moonPools": {
+  "page": [
+   491,
+   137
+  ],
+  "mb": 0.257,
+  "png_kb": 4.8,
+  "colors": 17,
+  "frames": 7,
+  "size": [
+   128,
+   160
+  ]
+ },
+ "trait_res_katana_insight": {
+  "page": [
+   309,
+   94
+  ],
+  "mb": 0.111,
+  "png_kb": 2.8,
+  "colors": 17,
+  "frames": 6,
+  "size": [
+   96,
+   144
+  ]
+ },
+ "trait_res_katana_breach": {
+  "page": [
+   64,
+   394
+  ],
+  "mb": 0.096,
+  "png_kb": 0.7,
+  "colors": 12,
+  "frames": 6,
+  "size": [
+   64,
+   64
+  ]
+ },
+ "trait_res_katana_chain": {
+  "page": [
+   278,
+   184
+  ],
+  "mb": 0.195,
+  "png_kb": 2.2,
+  "colors": 14,
+  "frames": 5,
+  "size": [
+   160,
+   160
+  ]
+ },
+ "trait_greatsword_g_launch_launch": {
+  "page": [
+   95,
+   280
+  ],
+  "mb": 0.101,
+  "png_kb": 2.8,
+  "colors": 12,
+  "frames": 5,
+  "size": [
+   128,
+   96
+  ]
+ },
+ "trait_greatsword_g_launch_impact": {
+  "page": [
+   451,
+   116
+  ],
+  "mb": 0.2,
+  "png_kb": 6.0,
+  "colors": 12,
+  "frames": 7,
+  "size": [
+   160,
+   160
+  ]
+ },
+ "trait_greatsword_g_swatBack": {
+  "page": [
+   87,
+   165
+  ],
+  "mb": 0.055,
+  "png_kb": 1.7,
+  "colors": 8,
+  "frames": 4,
+  "size": [
+   96,
+   96
+  ]
+ },
+ "trait_greatsword_g_quakeGuard": {
+  "page": [
+   1183,
+   58
+  ],
+  "mb": 0.262,
+  "png_kb": 3.8,
+  "colors": 15,
+  "frames": 6,
+  "size": [
+   256,
+   96
+  ]
+ },
+ "trait_greatsword_g_quakeGuard_launch": {
+  "page": [
+   45,
+   463
+  ],
+  "mb": 0.079,
+  "png_kb": 3.6,
+  "colors": 12,
+  "frames": 5,
+  "size": [
+   96,
+   128
+  ]
+ },
+ "trait_greatsword_g_quakeGuard_land": {
+  "page": [
+   599,
+   46
+  ],
+  "mb": 0.105,
+  "png_kb": 3.3,
+  "colors": 12,
+  "frames": 6,
+  "size": [
+   128,
+   64
+  ]
+ },
+ "trait_greatsword_g_guardPull": {
+  "page": [
+   185,
+   459
+  ],
+  "mb": 0.324,
+  "png_kb": 6.1,
+  "colors": 8,
+  "frames": 5,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "trait_greatsword_g_shoulderFlip_launch": {
+  "page": [
+   479,
+   118
+  ],
+  "mb": 0.216,
+  "png_kb": 4.9,
+  "colors": 13,
+  "frames": 5,
+  "size": [
+   128,
+   128
+  ]
+ },
+ "trait_greatsword_g_shoulderFlip_land": {
+  "page": [
+   671,
+   52
+  ],
+  "mb": 0.133,
+  "png_kb": 4.5,
+  "colors": 12,
+  "frames": 6,
+  "size": [
+   128,
+   64
+  ]
+ },
+ "trait_greatsword_g_shoulderFlip_impact": {
+  "page": [
+   412,
+   130
+  ],
+  "mb": 0.204,
+  "png_kb": 5.5,
+  "colors": 12,
+  "frames": 7,
+  "size": [
+   160,
+   160
+  ]
+ },
+ "trait_greatsword_g_ramWall_impact": {
+  "page": [
+   842,
+   125
+  ],
+  "mb": 0.401,
+  "png_kb": 7.3,
+  "colors": 12,
+  "frames": 7,
+  "size": [
+   160,
+   160
+  ]
+ },
+ "trait_greatsword_g_boilingSteel_soak": {
+  "page": [
+   179,
+   237
+  ],
+  "mb": 0.162,
+  "png_kb": 3.7,
+  "colors": 8,
+  "frames": 5,
+  "size": [
+   128,
+   128
+  ]
+ },
+ "trait_greatsword_g_boilingSteel_fire": {
+  "page": [
+   58,
+   399
+  ],
+  "mb": 0.088,
+  "png_kb": 2.6,
+  "colors": 6,
+  "frames": 6,
+  "size": [
+   64,
+   96
+  ]
+ },
+ "trait_greatsword_g_crackPull": {
+  "page": [
+   288,
+   23
+  ],
+  "mb": 0.025,
+  "png_kb": 1.3,
+  "colors": 9,
+  "frames": 4,
+  "size": [
+   96,
+   48
+  ]
+ },
+ "trait_greatsword_splitRoad": {
+  "page": [
+   45,
+   132
+  ],
+  "mb": 0.023,
+  "png_kb": 1.4,
+  "colors": 16,
+  "frames": 4,
+  "size": [
+   64,
+   64
+  ]
+ },
+ "trait_greatsword_g_leapToss_launch": {
+  "page": [
+   48,
+   455
+  ],
+  "mb": 0.083,
+  "png_kb": 3.7,
+  "colors": 11,
+  "frames": 5,
+  "size": [
+   96,
+   128
+  ]
+ },
+ "trait_greatsword_g_leapToss_land": {
+  "page": [
+   588,
+   49
+  ],
+  "mb": 0.11,
+  "png_kb": 3.1,
+  "colors": 12,
+  "frames": 6,
+  "size": [
+   128,
+   64
+  ]
+ },
+ "trait_greatsword_g_crushedBreath": {
+  "page": [
+   332,
+   155
+  ],
+  "mb": 0.196,
+  "png_kb": 5.7,
+  "colors": 12,
+  "frames": 6,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "trait_greatsword_g_crushedBreath_impact": {
+  "page": [
+   449,
+   106
+  ],
+  "mb": 0.182,
+  "png_kb": 5.3,
+  "colors": 12,
+  "frames": 6,
+  "size": [
+   128,
+   128
+  ]
+ },
+ "trait_greatsword_jarCrush_burst": {
+  "page": [
+   337,
+   458
+  ],
+  "mb": 0.589,
+  "png_kb": 12.1,
+  "colors": 14,
+  "frames": 7,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "trait_greatsword_g_rageRoar": {
+  "page": [
+   255,
+   631
+  ],
+  "mb": 0.614,
+  "png_kb": 11.5,
+  "colors": 6,
+  "frames": 6,
+  "size": [
+   256,
+   256
+  ]
+ },
+ "trait_greatsword_g_rageRoar_impact": {
+  "page": [
+   292,
+   104
+  ],
+  "mb": 0.116,
+  "png_kb": 3.7,
+  "colors": 15,
+  "frames": 6,
+  "size": [
+   128,
+   128
+  ]
+ },
+ "trait_greatsword_g_rageFire": {
+  "page": [
+   68,
+   210
+  ],
+  "mb": 0.054,
+  "png_kb": 2.2,
+  "colors": 9,
+  "frames": 5,
+  "size": [
+   96,
+   64
+  ]
+ },
+ "trait_res_greatsword_weight": {
+  "page": [
+   882,
+   81
+  ],
+  "mb": 0.273,
+  "png_kb": 7.2,
+  "colors": 14,
+  "frames": 6,
+  "size": [
+   192,
+   192
+  ]
+ },
+ "trait_res_greatsword_insight": {
+  "page": [
+   278,
+   684
+  ],
+  "mb": 0.725,
+  "png_kb": 7.1,
+  "colors": 7,
+  "frames": 5,
+  "size": [
+   256,
+   256
+  ]
+ }
+}

@@ -1,0 +1,83 @@
+{
+ "action": "trait_greatsword_g_guardPull",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.13,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "대검 붓획 램프(53 Q61): 재 S0~S3·B0~B3 + 혼불 호박 A17~A25 + 갈래 표지색(불 = pool_liquor_fire 계열, 포효 적갈 #b04848 램프) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 8,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "greatsword",
+ "anchor": "floor",
+ "pivot": {
+  "x": 96,
+  "y": 112
+ },
+ "depth": "below",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "끌어당김 = 바닥 고리가 안으로 오므라듦: 마른 붓 호박 고리(반지름 88 → 26) + 고리 위 안쪽을 가리키는 갈매기표 8 + 바깥에서 안으로 끌리는 흙 자국 줄 12 · 가운데로 모이는 먼지",
+ "replaces": "greatsword_brace_absorb",
+ "trait": "g_guardPull",
+ "part": "body",
+ "anchorNote": "pivot = 주인공 발(고리 중심, 바닥)",
+ "image": "trait_greatsword_g_guardPull.png",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 5,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_greatsword_g_guardPull.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 1,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 5
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":185,"h":109},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":58,"w":185,"h":109},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":0,"y":111,"w":181,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":67,"w":181,"h":91},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":0,"y":204,"w":181,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":67,"w":181,"h":91},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":0,"y":297,"w":165,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":71,"w":165,"h":83},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":0,"y":382,"w":153,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":74,"w":153,"h":77},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_greatsword_g_guardPull.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 185,
+   "h": 459
+  },
+  "scale": "1"
+ }
+}

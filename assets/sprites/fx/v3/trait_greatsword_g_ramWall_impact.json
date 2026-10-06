@@ -1,0 +1,100 @@
+{
+ "action": "trait_greatsword_g_ramWall_impact",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 14.89,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  70,
+  90,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "대검 붓획 램프(53 Q61): 재 S0~S3·B0~B3 + 혼불 호박 A17~A25 + 갈래 표지색(불 = pool_liquor_fire 계열, 포효 적갈 #b04848 램프) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 12,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "greatsword",
+ "anchor": "contact",
+ "pivot": {
+  "x": 110,
+  "y": 80
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "밀고 간 적이 처박힘(가장 큰 충돌): 벽면 굵은 호박 금 + 함몰 + 뒤로 남은 바닥 긁힌 자국 2줄(밀고 온 길, 들이받기 표지) + 파편·흙먼지·불티",
+ "replaces": "hit_burst·crush",
+ "trait": "g_ramWall",
+ "part": "impact",
+ "anchorNote": "pivot = 박힌 자리(벽 면·두 적 사이)",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "light": {
+  "color": "#fff4dc",
+  "radius": 64,
+  "intensity": 1.0,
+  "ms": 140,
+  "atFrame": 0
+ },
+ "lightNote": "radius = 도트(pixelScale 0.5 기준), ms = 켜 두는 시간(없으면 시트 수명 동안)",
+ "image": "trait_greatsword_g_ramWall_impact.png",
+ "frameWidth": 160,
+ "frameHeight": 160,
+ "framesPerDirection": 7,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_greatsword_g_ramWall_impact.png)",
+  "grid": {
+   "columns": 7,
+   "rows": 1,
+   "frameWidth": 160,
+   "frameHeight": 160,
+   "frameCount": 7
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":752,"y":0,"w":90,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":32,"w":90,"h":112},"sourceSize":{"w":160,"h":160}},
+  "1":{"frame":{"x":640,"y":0,"w":110,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":29,"w":110,"h":115},"sourceSize":{"w":160,"h":160}},
+  "2":{"frame":{"x":132,"y":0,"w":125,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":19,"w":125,"h":125},"sourceSize":{"w":160,"h":160}},
+  "3":{"frame":{"x":0,"y":0,"w":130,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":19,"w":130,"h":125},"sourceSize":{"w":160,"h":160}},
+  "4":{"frame":{"x":259,"y":0,"w":125,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":19,"w":125,"h":125},"sourceSize":{"w":160,"h":160}},
+  "5":{"frame":{"x":386,"y":0,"w":125,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":19,"w":125,"h":125},"sourceSize":{"w":160,"h":160}},
+  "6":{"frame":{"x":513,"y":0,"w":125,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":19,"w":125,"h":125},"sourceSize":{"w":160,"h":160}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_greatsword_g_ramWall_impact.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 842,
+   "h": 125
+  },
+  "scale": "1"
+ }
+}

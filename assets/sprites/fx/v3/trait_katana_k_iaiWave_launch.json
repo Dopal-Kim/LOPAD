@@ -1,0 +1,90 @@
+{
+ "action": "trait_katana_k_iaiWave_launch",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 17.39,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  80
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 5 칼 '은선' 램프: 무채 16(G1~G14)·청강 SL·호박 불티 A17~A25 + 갈래 표지색(묶음 청회 #9ab0d8 램프·달 청백 #c8d8f0 램프·피 적갈 #b04848 램프·술/불 = pool_liquor(_fire) 1층 호박) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 16,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "katana",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 30,
+  "y": 64
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "발도 순간 앞으로 터지는 은빛·청백 초승달(f0 한 줄 백열 섬광 → f1 굵은 렌즈 → f2 떨어져 나가며 가늘어짐 → 마디 소멸) + 앞쪽 속도선 3",
+ "replaces": "katana_crescent",
+ "trait": "k_iaiWave",
+ "part": "launch",
+ "anchorNote": "pivot = 초승달이 터지는 몸 가운데(발 위 40 도트). 주인공 발 피벗에 두려면 anchorOffsetDots (0,−40) 을 더한 뒤 진행 각도로 회전(제안)",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "anchorOffsetDots": {
+  "x": 0,
+  "y": -40
+ },
+ "image": "trait_katana_k_iaiWave_launch.png",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "framesPerDirection": 4,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_katana_k_iaiWave_launch.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 128,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":58,"y":0,"w":33,"h":93},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":18,"w":33,"h":93},"sourceSize":{"w":128,"h":128}},
+  "1":{"frame":{"x":0,"y":0,"w":56,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":65,"y":15,"w":56,"h":99},"sourceSize":{"w":128,"h":128}},
+  "2":{"frame":{"x":93,"y":0,"w":37,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":20,"w":37,"h":89},"sourceSize":{"w":128,"h":128}},
+  "3":{"frame":{"x":132,"y":0,"w":35,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":82,"y":23,"w":35,"h":83},"sourceSize":{"w":128,"h":128}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_katana_k_iaiWave_launch.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 167,
+   "h": 99
+  },
+  "scale": "1"
+ }
+}

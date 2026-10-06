@@ -1,0 +1,94 @@
+{
+ "action": "trait_greatsword_g_swatBack",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 21.05,
+ "frameDurationsMs": [
+  30,
+  40,
+  50,
+  70
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "대검 붓획 램프(53 Q61): 재 S0~S3·B0~B3 + 혼불 호박 A17~A25 + 갈래 표지색(불 = pool_liquor_fire 계열, 포효 적갈 #b04848 램프) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 8,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "greatsword",
+ "anchor": "projectile",
+ "pivot": {
+  "x": 40,
+  "y": 48
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "둔탁한 금속 섬광: 대검 면(세로 넓은 판) 모양으로 눌린 백열·호박 판 + 오른쪽(되돌아가는 쪽)으로 퍼지는 뭉툭한 짧은 광선 5 + 되돌아가는 굵은 붓 줄 2 · 둥근 '쾅' 호 → 불티",
+ "replaces": "katana_whirl_reflect·hit_spark",
+ "trait": "g_swatBack",
+ "part": "body",
+ "anchorNote": "pivot = 쳐 낸 투사체 자리. 오른쪽 = 되돌아가는 방향(던진 적 쪽)",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "light": {
+  "color": "#fff4dc",
+  "radius": 32,
+  "intensity": 0.9,
+  "ms": 60,
+  "atFrame": 0
+ },
+ "lightNote": "radius = 도트(pixelScale 0.5 기준), ms = 켜 두는 시간(없으면 시트 수명 동안)",
+ "image": "trait_greatsword_g_swatBack.png",
+ "frameWidth": 96,
+ "frameHeight": 96,
+ "framesPerDirection": 4,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_greatsword_g_swatBack.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":57,"y":108,"w":30,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":23,"w":30,"h":51},"sourceSize":{"w":96,"h":96}},
+  "1":{"frame":{"x":0,"y":108,"w":55,"h":57},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":20,"w":55,"h":57},"sourceSize":{"w":96,"h":96}},
+  "2":{"frame":{"x":0,"y":0,"w":67,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":14,"w":67,"h":69},"sourceSize":{"w":96,"h":96}},
+  "3":{"frame":{"x":0,"y":71,"w":68,"h":35},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":31,"w":68,"h":35},"sourceSize":{"w":96,"h":96}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_greatsword_g_swatBack.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 87,
+   "h": 165
+  },
+  "scale": "1"
+ }
+}

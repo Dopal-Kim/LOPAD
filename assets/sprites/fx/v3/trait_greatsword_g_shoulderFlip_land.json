@@ -1,0 +1,95 @@
+{
+ "action": "trait_greatsword_g_shoulderFlip_land",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 12.77,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  80,
+  100,
+  140
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "대검 붓획 램프(53 Q61): 재 S0~S3·B0~B3 + 혼불 호박 A17~A25 + 갈래 표지색(불 = pool_liquor_fire 계열, 포효 적갈 #b04848 램프) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 12,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "greatsword",
+ "anchor": "floor",
+ "pivot": {
+  "x": 64,
+  "y": 40
+ },
+ "depth": "below",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "등 뒤 바닥 메침 = 무거운 착지: 큰 흙먼지 고리(14 덩이) + 호박 금 7갈래 + f0 백열 충격 고리·별",
+ "replaces": "crush",
+ "trait": "g_shoulderFlip",
+ "part": "land",
+ "anchorNote": "pivot = 바닥 깊이(발 높이 바닥점)",
+ "light": {
+  "color": "#fff4dc",
+  "radius": 48,
+  "intensity": 0.85,
+  "ms": 100,
+  "atFrame": 0
+ },
+ "lightNote": "radius = 도트(pixelScale 0.5 기준), ms = 켜 두는 시간(없으면 시트 수명 동안)",
+ "image": "trait_greatsword_g_shoulderFlip_land.png",
+ "frameWidth": 128,
+ "frameHeight": 64,
+ "framesPerDirection": 6,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_greatsword_g_shoulderFlip_land.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 64,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":598,"y":0,"w":73,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":22,"w":73,"h":33},"sourceSize":{"w":128,"h":64}},
+  "1":{"frame":{"x":498,"y":0,"w":98,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":16,"w":98,"h":42},"sourceSize":{"w":128,"h":64}},
+  "2":{"frame":{"x":375,"y":0,"w":121,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":11,"w":121,"h":51},"sourceSize":{"w":128,"h":64}},
+  "3":{"frame":{"x":0,"y":0,"w":123,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":10,"w":123,"h":52},"sourceSize":{"w":128,"h":64}},
+  "4":{"frame":{"x":125,"y":0,"w":123,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":10,"w":123,"h":51},"sourceSize":{"w":128,"h":64}},
+  "5":{"frame":{"x":250,"y":0,"w":123,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":9,"w":123,"h":51},"sourceSize":{"w":128,"h":64}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_greatsword_g_shoulderFlip_land.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 671,
+   "h": 52
+  },
+  "scale": "1"
+ }
+}

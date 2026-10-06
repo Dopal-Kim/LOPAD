@@ -1,0 +1,99 @@
+{
+ "action": "trait_katana_liquorWhirl_fire",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.67,
+ "frameDurationsMs": [
+  40,
+  50,
+  50,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 5 칼 '은선' 램프: 무채 16(G1~G14)·청강 SL·호박 불티 A17~A25 + 갈래 표지색(묶음 청회 #9ab0d8 램프·달 청백 #c8d8f0 램프·피 적갈 #b04848 램프·술/불 = pool_liquor(_fire) 1층 호박) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 6,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "katana",
+ "anchor": "floor",
+ "pivot": {
+  "x": 96,
+  "y": 150
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "불붙은 술 회오리 — 같은 줄기가 pool_liquor_fire 호박 불길로 타오르고 둘레에 혓바닥 16(밑 둥글고 끝 뾰족) · f1 심만 백열에 가까운 호박",
+ "replaces": "pool_liquor_fire",
+ "trait": "liquorWhirl",
+ "part": "fire",
+ "anchorNote": "pivot = 바닥 깊이(발 높이 바닥점)",
+ "light": {
+  "color": "#e2a33c",
+  "radius": 96,
+  "intensity": 1.0,
+  "ms": 300,
+  "atFrame": 0,
+  "flicker": {
+   "amp": 0.2,
+   "hz": 9
+  }
+ },
+ "lightNote": "radius = 도트(pixelScale 0.5 기준), ms = 켜 두는 시간(없으면 시트 수명 동안)",
+ "image": "trait_katana_liquorWhirl_fire.png",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 6,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_katana_liquorWhirl_fire.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":168,"h":127},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":42,"w":168,"h":127},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":0,"y":129,"w":169,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":44,"w":169,"h":116},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":332,"y":0,"w":159,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":47,"w":159,"h":121},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":170,"y":0,"w":160,"h":124},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":42,"w":160,"h":124},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":332,"y":123,"w":157,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":53,"w":157,"h":117},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":171,"y":126,"w":150,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":50,"w":150,"h":111},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_katana_liquorWhirl_fire.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 491,
+   "h": 245
+  },
+  "scale": "1"
+ }
+}

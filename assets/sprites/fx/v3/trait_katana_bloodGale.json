@@ -1,0 +1,87 @@
+{
+ "action": "trait_katana_bloodGale",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 17.14,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  70,
+  90
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 5 칼 '은선' 램프: 무채 16(G1~G14)·청강 SL·호박 불티 A17~A25 + 갈래 표지색(묶음 청회 #9ab0d8 램프·달 청백 #c8d8f0 램프·피 적갈 #b04848 램프·술/불 = pool_liquor(_fire) 1층 호박) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 12,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "katana",
+ "anchor": "floor",
+ "pivot": {
+  "x": 96,
+  "y": 150
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  1
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "한 바퀴 더 도는 피바람 고리: 가는 적갈 바람 테 2줄(끊김이 돌며 흐름) + 테에 접선으로 박히는 짧고 날 선 피 칼날 8(꼬리 적갈 · 머리 은선, f1 백열) + 접선으로 줄지어 흩뿌리는 핏방울 — 술 회오리(굵은 액체 띠)와 달리 '잘게 끊긴 칼날 테'",
+ "replaces": "chain_bloodlust",
+ "trait": "bloodGale",
+ "part": "body",
+ "anchorNote": "pivot = 주인공 발. 고리 중심 = 발 위 40 도트(110)",
+ "image": "trait_katana_bloodGale.png",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 6,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_katana_bloodGale.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":314,"w":171,"h":129},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":46,"w":171,"h":129},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":179,"y":302,"w":179,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":43,"w":179,"h":135},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":183,"y":157,"w":189,"h":143},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":39,"w":189,"h":143},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":0,"y":0,"w":181,"h":158},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":33,"w":181,"h":158},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":0,"y":160,"w":177,"h":152},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":32,"w":177,"h":152},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":183,"y":0,"w":181,"h":155},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":34,"w":181,"h":155},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_katana_bloodGale.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 372,
+   "h": 443
+  },
+  "scale": "1"
+ }
+}

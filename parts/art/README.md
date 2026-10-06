@@ -49,6 +49,7 @@ python3 parts/art/work/fx_prod/build_a.py      # 43라운드 양산 A: 칼 7·�
 python3 parts/art/work/fx_prod/build_b.py      # 43라운드 양산 B: 단검·활·보조 23 시트 + preview_b*.png (player/enemies/weapons/tiles png 를 읽는다)
 python3 parts/art/work/struct61/build.py        # 61라운드 단계 2: 구조물 v1→v3 26시트(아틀라스) · 1층 5지역 타일 임시 칸 재작업 · 방 변주 소품 17 (--dry, --only structs,tiles,props)
 python3 parts/art/work/growth61/build.py       # 61라운드 단계 4(P12): 무기 1차·2차 각성 외형 — looks 정지 그림 · weapons/v4 오버레이 531 · fx/v4 각성 연출 2 (단계: looks sheets fx publish verify memory preview)
+python3 parts/art/work/traitcards61s5/build.py   # 61라운드 단계 5(P13): 개성 카드 그림 65장 128×128 — Gemini 콘셉트 raw → 도트(ui_traits/) · 이어서 preview.py(검사·무기별 모음)
 ```
 **이펙트 재빌드 순서 주의 (43라운드)**: `weapons/build.py`·`combat_fx/build.py`·`evolution_fx/build.py` 는 옛 이펙트를 같은 id 로 `assets/sprites/fx/` 에 쓴다. 이 셋을 다시 돌렸다면 반드시 그 뒤에 `fx_prod/build_a.py` → `fx_prod/build_b.py` 를 돌려 양산본으로 덮는다 (blood·knock_dust·player_hit 는 `combat_fx` 만 만든다). 팔레트 `fx` 블록이나 주인공 시트(실루엣 마스크: player_dash·idle)가 바뀌어도 fx_prod 두 스크립트를 다시 돌린다. `fx_prod/build_a.py` 가 `fx_concept/build.py` 를 import 하므로 콘셉트 생성기는 지우지 않는다.
 팔레트 생성기는 `ui`·`fx` 블록을 상수로 들고 있으므로 재생성해도 두 블록이 사라지지 않는다 (38라운드 UI NOTES 의 요청 반영).
@@ -461,3 +462,127 @@ python3 parts/art/work/growth61/build.py       # 61라운드 단계 4(P12): 무�
 - 새 설명 키(읽지 않아도 됨): 무기 `tipTrail`·`previousDesign`·`colorNote`, fx `strokeStyle: "silver_slit"`(`brushStroke` 값은 그대로), `_awaken` `sameAs`.
 - (프로듀서 판단 반영, 56 Q50) 판정 칸이 이어지는 시트는 **첫 칸만 백열**, 둘째 칸부터 은빛(날선 G14 · 바탕 G12/G13 · 등 SL6, X0/X1 없음) — 기본 `katana_{combo2,guardbreak,iai,issen,issen_dash,special,spin,thrust}` 8 + 그 위 검기 3단·`_awaken`·v4 a1·a2_glow 56(칼끝 빛줄기·검기 3단·각성 빛 마스크도 첫 칸만 X0/X1). glowFrames·frameStates 값은 그대로(그림만). 빌드 검사: 이어진 판정 칸의 둘째부터 X0/X1 0. 기준 이동: `python3 parts/art/work/atlas57/verify.py --rebase --only katana_`
 - 2차 휘두름 `trailTint` 는 그대로 — 은선 fx 가 회백이라 길 색이 더 또렷하게 먹음.
+
+## 61라운드 단계 5 — 개성 카드 그림 65장 (P13 §1, 계약 art §27) · 작업 폴더 `work/traitcards61s5/`
+- 근거: 요청 `parts/system/notes/trait-art-requests-61s5.md` §2(카드 목록·한 줄 콘셉트), `data/traits.json`(공명 9 이름·설명·태그 — 읽기만), 계약 art §27 마지막 줄(128×128 · pixelScale 0.5 · 투명 · '한 순간' 장면 · 키캡·숫자·글자·테두리 없음), 루트 §4(61 단계 5 에서 Gemini 범위가 개성 카드 그림으로 확대). 자율 모드 — 아트가 정하고 이유를 적는다. 개성 전투 fx(`fx/v3/trait_*`)는 다른 아트 작업(`traits61s5_*`) 몫이라 건드리지 않음.
+- 산출: `assets/sprites/ui_traits/<weapon>_<traitId>.png` 56 + `ui_traits/<공명 id>.png` 9(`res_katana_{insight,breach,chain}` · `res_greatsword_{weight,insight}` · `res_dagger_{vital,breach}` · `res_bow_{weight,breach}`). JSON 없음(정지 그림 한 장 — 키 = 파일 이름). 합 596KB, VRAM 65 × 64KB ≈ 4.2MB.
+- 빌드(결정적, 약 50초): `python3 parts/art/work/traitcards61s5/build.py [id ...] [--dry]` → `python3 parts/art/work/traitcards61s5/preview.py`(검사 + 무기별 모음). 입력 = `raw/<id>_<tag>.jpg`(Gemini 원본을 512 로 줄여 보관) + `build.py` 의 `CHOICE`(채택 태그)·`OPTS`·`FIX`(손 보정). 콘셉트 다시 받기: `gen.py [id ...] --tag <t> [--extra "..."]`(키 없이 프록시 호출, 기록 `prompts.json`). 모듈: `cards.py`(65장 목록·STYLE/CAST/무기별 색 언어·장면 문장) · `refs.py`(주인공·1층 적 4종·무기 looks 참고 시트 `ref/ref_<weapon>.png` — Gemini 에 함께 보냄) · `kit.py`(변환) · `quick.py`/`compare.py`(반복 검수).
+
+### 방법 — Gemini 콘셉트 → 도트
+1. **콘셉트**(gemini-3.1-flash-image, 1:1, 참고 시트 1장 동봉): 공통 STYLE(쿼터뷰 높은 3/4 시점 · 왼쪽 위 광원 · 2~3 인물이 화면의 70~80% · 굵은 외곽선·셀 2단 · 작은 중간 회색 판석 바닥 판 위의 장면 · 바깥은 순 마젠타) + CAST(재 껍데기 주인공·버킷 투구 방패병·삼각모 궁수·삿갓 행상·술통 짐꾼) + 무기별 색 언어 + 카드별 장면 문장. 호출 81회(성공 80, NO_IMAGE 1 재시도), 채택 b 52장 · c 13장.
+2. **변환**(`kit.card_pixels`): 마젠타 키(min(r,b)−g) + 번짐 제거 → 작은 찌꺼기 조각 제거 → 내용 상자를 정사각으로 → 중앙값 3 평탄화 → 무채(저채도)만 감마 1.25(바닥 판 가라앉힘) → **512 에서 카드 팔레트로 Lab 양자화**(채도 가중 1.6) → **블록 최빈값 축소 128**(블록에 발광색 ≥25% 면 발광색, 어두운 색 ≥30% 면 어두운 색 우선 — 외곽선·빛줄기·균열·눈빛 보존) → 외톨이 점 정리(밝은 반짝 점은 남김) → 바깥 1도트 외곽선 G01 → 틀 가장자리 1도트 비움.
+3. **손 보정**(`FIX` — 128 좌표 선·점선 호): 활 `b_rainSnare` 그물줄(원본 2px 청회 선이 축소에서 사라짐 → 바닥 화살 8개 고리 C0 + 무리로 모이는 살 C1 + 몸 감는 띠 2), 단검 `twinBrand` 낙인 옮김(왼쪽 → 오른쪽 병사 가슴을 잇는 붉은 점선 호 R0/R2 + 양쪽 발톱 자국 3줄 + 화살촉).
+- **카드 팔레트**(`kit.NAMED`, 무기별 허용 `kit.ALLOW`): 무채 16 + 1층 호박 램프 12 + v2 재질 SL 8·WD 6·PL 5 + 백열 X1 + 요청 노트 §0 색 규칙 3(사슬 적갈 R2 #b04848 · 묶음 청회 C1 #9ab0d8 · 달 청백 M0 #c8d8f0) + 그늘 3(R0 #3a1719 · R1 #6e2a2c · C0 #5a6a8a). 칼 = 기본 + R·C·M / 대검·단검 = 기본 + R / 활 = 기본 + C·M. 카드는 UI 위 정지 그림이라 층 램프 교체 대상이 아님(호박은 1층 램프 고정값).
+- **무기별 통일**: 칼 = 차가운 청강·은선 백광의 가는 호 + 달 분신 청백(M0) · 대검 = 무쇠 + 녹은 쇠 같은 호박·주황 균열·폭발 · 단검 = 먹빛 그림자·재 회색 + 호박 발톱 획·X 불티 + 검붉은 낙인 · 활 = 마른 나무 활 + 뼈빛 깃 + 바랜 금빛(A25~A27) 곧은 화살줄, 묶음은 청회. 네 무기 모두 같은 시점·광원·판석 바닥 판·인물 축척. 공명 9 = 같은 태그 두 개성의 동작이 한 장면에 이어지는 그림(예: 되받는 달 = 패링 밀침 + 칼 감기 끌어옴 옆에 달 분신, 덫 비 = 화살 덫 묶임 + 하늘 화살).
+
+### see → critique → fix
+1. 1차(LANCZOS 축소): Gemini 의 검은 외곽선이 녹아 주인공이 바닥에 묻히고, 큰 판석 디오라마에 인물이 작음 → 프롬프트에 '가까운 구도·인물 70~80%·작은 바닥 판·주인공보다 밝은 중간 회색 바닥' 추가, 축소는 어두운 선 우선.
+2. 2차: 바닥 판이 밝은 회색(G09~G10)으로 양자화돼 1배에서 시선을 가장 먼저 끎, 주인공 몸이 비슷한 어두운 색 여럿으로 얼룩 → 대비 등급 제거 · 무채만 감마 1.25 · 중앙값 평탄화 · 512 에서 먼저 팔레트로 양자화한 뒤 블록 최빈값(덩어리가 평평해지고 외곽선이 1도트로 남음). 발광 점(균열·눈·빛줄기)이 최빈값에서 지워짐 → 발광색 우선 규칙.
+3. 3차(65장 모음): 대검 `g_guardPull` 이 마젠타 대신 회색 바탕·적 없음, 13장이 잔해·인물 과다로 1배에서 안 읽힘(칼 bladeBind·groundPin·공명 칼바람 길, 대검 quakeGuard·shoulderFlip·ramWall·공명 무너뜨림, 단검 dashPierce·shadowKnot·twinBrand, 활 rainSnare·공명 말뚝 박기) → 장면 문장을 '옆모습·인물 둘·핵심 모양 하나'로 고쳐 c 로 다시 받고 b/c 비교 후 13장 모두 c 채택(나선 감기·무릎까지 박힌 구멍·칼바람 벽·어깨 너머 호·말뚝 화살 등 핵심이 1배에서 보임).
+4. 4차: 그물·낙인 옮김처럼 2px 선이 핵심인 카드는 축소로 사라짐 → 손 보정 선(위 3). 남은 약점: `b_skewer` 의 꿰는 화살이 무리 뒤로 가려 덜 읽힘, `b_starWell` 은 소용돌이가 바닥 판을 덮어 판이 없음, 대검 `g_rageFire`·`res_greatsword_insight` 는 오른쪽 인물이 틀에서 잘림(원본이 가장자리까지 그림) — 1배 판독에는 지장 없어 그대로 둠.
+5. 결정성: 외톨이 정리의 동률 처리가 `set` 순서(문자열 해시 무작위화)에 기대 실행마다 몇 점씩 달라짐 → 이웃 첫 등장 순으로 고정, `PYTHONHASHSEED` 를 바꿔 두 번 빌드해 65장 바이트 동일 확인.
+
+### 검증 (`preview.py` → `check.json`)
+- 65장 모두 128×128 RGBA · 알파 0/255 만 · 틀 가장자리 1도트 비어 있음 · 색 ⊂ 그 무기 허용 카드 팔레트 · 불투명 6,229~11,023 도트 — 실패 0. 장당 색 30~49(평균 40).
+- 미리보기: `traitcards61s5/preview_{katana,greatsword,dagger,bow}.png`(위 = 2배 카드를 세피아 S1 위, 아래 = 1배 띠 3줄(세피아 S1 · S3 · G02 바탕) — 게임 화면 64px 의 내부 렌더 크기).
+- `prompts.json`: 카드별 장면 문장·한 줄 콘셉트·공명 pair·생성 기록(태그·모델·시각·http·finishReason)·채택 태그·손 보정 수. 키·이미지 데이터 없음.
+
+### UI·시스템 전달
+- 키 `ui_traits/<weapon>_<traitId>` · `ui_traits/<공명 id>` — 정지 그림 128×128, `pixelScale 0.5`(화면 64px). 테두리·키캡·이름은 UI 가 그림. 공명 카드는 `UiResonance` 에 iconKey 칸이 아직 없음(요청 노트 §2 끝) — 파일은 `ui_traits/<공명 id>.png` 로 준비해 둠.
+
+## 61라운드 단계 5 — 개성 전투 fx (단검·활·공통) (P13 §1, 계약 art §27) · 작업 폴더 `work/traits61s5_db/`
+근거: 요청 원본 `parts/system/notes/trait-art-requests-61s5.md` §0·§1(읽기만, 프로듀서 허가), 계약 art §27. 자율 모드 — 아트가 정하고 이유를 적는다. 칼·대검 개성 fx·카드 그림은 다른 아트 담당(파일·임시 폴더 겹침 없음 — 이 작업은 `trait_dagger_*`·`trait_bow_*`·`trait_res_{dagger,bow}_*`·`trait_res_*_on`·`trait_common_chain` 만 씀, 임시 `out/_atlas_tmp_traits61s5_db`). Gemini 미사용(도트 직접).
+빌드(결정적): `python3 parts/art/work/traits61s5_db/build.py [--publish] [--set dagger bow common] [--only 이름부분]` → `out/grid`(격자 원본, git 제외) + 미리보기 → `--publish` 로 assets 트림 아틀라스(atlas57 convert_sheet·apply_in_place, 전 프레임 대조).
+
+### 만든 시트 51 (`assets/sprites/fx/v3/`, 이름·크기·프레임 수·루프·앵커·광원은 요청 표 그대로)
+- **단검 19**(공명 2 포함): `trait_dagger_d_pullThrow` · `d_brandChain`(+`_impact`) · `d_shadowKnot`(+`_bind`) · `d_stepBack_out`·`_in` · `d_dashBrand` · `d_dashPierce` · `d_flurryPull` · `d_sparkFlurry` · `twinBrand` · `d_cloneShield` · `d_galeReturn` · `liquorThrow` · `d_ghostBind_bind` · `d_ghostFire`, `trait_res_dagger_vital` · `trait_res_dagger_breach_mark`
+- **활 22**(공명 2·선택 요청 `b_rapidStride` 포함): `trait_bow_b_pointBlank`(+`_impact`) · `b_ricochet` · `b_perfectPin`(+`_bind`·`_impact`) · `b_fullBounce` · `b_dropShot` · `b_arrowTrap`(+`_snap`) · `b_rainSnare`(+`_bind`) · `b_rainEcho` · `b_scatterVolley` · `b_rapidStride` · `b_skewer`(+`_impact`) · `fireArrow` · `b_starWell` · `b_starDrunk`, `trait_res_bow_weight` · `trait_res_bow_breach`
+- **공통 10**: 공명 켜짐 고리 `trait_<공명 id>_on` 9(칼·대검 공명 포함 전부) + 묶음 사슬 타일 `trait_common_chain`(선택 요청)
+
+### 디자인 — 개성마다 한눈에 구별되는 고유 모양
+- **단검 = '재 발톱' 언어 그대로**(dagger61s5 의 `Frame.claw`·`xglint`·먹 번짐을 읽어 씀): 발톱 바늘 획 + 끝 X 섬광, 낙인 = 새긴 발톱 자국(먹 테 + 불씨 심), 그림자 = 먹(#141516·#1d2028) + 재 테(#45403b, 어두운 바닥에서 윤곽이 읽히게).
+  뽑아 던지기 = 상처에서 빠져나가는 휜 바늘 · 낙인 사슬 = 적갈 사슬 + 양끝 발톱 갈고리(충돌 = 마주 닿는 발톱 반달 + 큰 X) · 그림자 매듭 = 세 잎 먹 매듭이 조임(bind = 꼰 그림자 끈 고리 + 나비 매듭) ·
+  되짚어 걷기 = 실루엣이 6도트 가로 띠로 썰려 되감기듯 밀려남 + 머리 위 ↺ 발톱 고리(in = 띠가 모여 들고 마지막 바늘 + 가슴 X) · 스치는 낙인 = 가로로 누운 발톱 자국 · 꿰찌르기 = 긴 바늘 + 두 꿴 자리 X ·
+  휘감는 난타 = 안으로 감기는 4갈래 바람(안쪽 끝이 발톱 바늘) · 불티 난타 = 겹 X → 불꽃 발톱 8 · 쌍낙인 = 불씨 X + 재빛 그림자 X 두 벌 · 분신 방패 = 청회 망점 분신이 유리처럼 금 가고 각진 조각으로 깨짐 ·
+  돌아오는 칼 = 발톱을 J 로 만 낚싯바늘 · 독주 투척 = 술 왕관 + 유리 조각 + 번지는 술 자국 · 그림자 사냥 = 먹 웅덩이에서 솟은 손 둘이 발목을 쥠 · 취한 그림자 = 먹 가닥을 따라 솟는 불혀 ·
+  공명 얽힌 급소 = 낙인 완성 고리가 터져 네 방향 적갈 사슬 + 갈고리 · 공명 그림자 길 = 먹 가닥이 기어올라 새긴 자국 셋.
+- **활 = 활 화살·화살비 언어**(재 화살대 S1~S3 2도트 + 호박 연꼴 촉 + 갈매기 깃 >>, 불티 꼬리, 적중 = hit_bow 초승달 호): 코앞 사격 = 앞으로 열리는 겹 초승달 원뿔 · 처박힘 = 벽 면 세로 금 + 되튀는 반달 + 돌 파편 ·
+  튕기는 화살 = 꺾인 화살길 + 갈매기 깃 · 꿰어 박기 = 굵은 화살(3도트)이 꽂혀 꼬리가 떪(bind = 4방향 밧줄을 박힌 짧은 화살이 붙든 말뚝 고리, impact = 금 한가운데 화살이 꽂혀 남음) · 되튀는 화살 = 머리핀 호 ·
+  낙하 사격 = 갈매기 눈금 바닥 표식 + 가속 갈매기 줄 · 이어지는 비 = 끈에 묶인 다섯 발 다발(표식 없음) · 공명 덫 비 = 청회 덫 세모 위 낙하 · 화살 덫 = 세발로 선 화살 셋 + 청회 끈(snap = 접혀 우리 모양 + 나선 끈) ·
+  화살 그물 = 화살 여섯이 끌어당기는 12각 청회 그물이 오므라듦(bind = 마름모 그물 면) · 흩날리는 살 = 화살 꽃 · 걸으며 연사 = 작은 발밑 먼지 · 꿰미 = 꼬챙이 화살대 + 세로 초승달 고리가 끌림 ·
+  불화살 한 발 = 가로로 확 번지는 불혀 줄 + 앞머리 갈매기 불꽃 · 술별 = 둥글게 피는 불꽃 왕관 + 금빛 별 조각 · 별 표적 = 5갈래 별빛 소용돌이 · 공명 말뚝 박기 = 위에서 꽂히는 말뚝 화살 + 조여 내려오는 청회 고리.
+- **공명 켜짐 고리**(192×192·7f·player_pivot·금빛 r64 300ms): 태그 문양을 품은 바닥 고리 둘이 양옆에서 다가와 겹침 → 렌즈 + 두 교차점 무기 표지(칼 / · 대검 ▮ · 단검 X · 활 >) + 빛기둥(f2 판정·백열) → 합쳐진 겹 고리 + 바닥 빛살 12 + 머리 위 태그 문양 → 점선으로 식음.
+  태그 문양: 간파 = 눈, 돌파 = 위로 겹친 갈매기, 급소 = 마름모 X, 연쇄 = 엮인 고리, 중량 = 모루, 취기 = 물방울.
+- **묶음 사슬 타일** `trait_common_chain` 64×16, `tile: true`(트림 없음), 행 `bind`(청회)·`drag`(적갈) × 열 2(기본·팽팽 반짝), 주기 16 도트로 좌우가 이어짐. 낙인 사슬 본체와 같은 마디.
+
+### 색 판단
+- 재·호박(주인공 30색) + 백열 X0/X1(glowFrames 만, 빌드 검사)에 요청 색만 더함: 청회 `#9ab0d8`·청백 `#c8d8f0`(어둠 쪽은 흉갑 SL 램프 `#1d2028 #323743 #4e5563 #7e8693`), 적갈 `#b04848`·그늘 `#7a2e30`(어둠 쪽 7층 `#381b25 #572030`, 반짝 `#e27774`). 새 색 = `#9ab0d8 #c8d8f0 #b04848 #7a2e30` 4개 — 시스템 윤곽색과 같은 색이라 윤곽(대체)→전용 그림 전환 때 색이 튀지 않음. 불 = pool_liquor_fire 호박 램프.
+- 공명 켜짐 태그 색(고정색, 층 교체 없음 — 60 Q19 각성 예외와 같은 방식): 간파 청백(묶음 램프) · 돌파 청록(3층) · 급소 핏빛(7층) · 연쇄 금빛(6층) · 중량 황토(4층) · 취기 호박(1층). UI 태그 색이 따로 정해지면 `tk.TAG` 만 바꿔 다시 빌드.
+- 모든 시트 `paletteSwap: none`, 반투명 0, 틀 가장자리 1도트 비움(타일은 x 만 허용), 색 ≤16(공명 켜짐 ≤18).
+
+### see → critique → fix (요지)
+1. 1차: 사슬 마디가 4도트 구슬 → 분홍 염주처럼 읽힘 → 마디 고리 rx 0.8·ry 4.2 + 3도트 막대, 램프 테를 `#381b25` 로 낮춰 적갈이 분홍으로 안 뜨게. 낙인 사슬의 당김 꺾쇠가 잡음 → 불티로.
+2. 되짚어 걷기: 띠 윗줄 청회 점선이 화면 전체 주사선처럼 깔리고 ↺ 고리가 점선 → 띠마다 먹 끌림 줄·재 테로 바꾸고 고리를 연속 획(가운데 굵게)으로.
+3. 분신 방패: 깨진 조각이 먹색이라 바닥에서 사라짐 → 보로노이 칸으로 실루엣을 갈라 모양 그대로 벌어지고 작아지게(청회 모서리). 원형으로 깎이던 1안 폐기.
+4. 그림자 사냥: 먹 손가락이 먹 웅덩이에 묻혀 풀숲처럼 보임 → 손 둘·굵은 손목·발톱 곡선 손가락 셋(등 쪽 청회 빛줄) · 고리 2도트. 그림자 매듭 bind 의 납작 트레포일이 새 모양 → 꼰 끈 고리.
+5. 활 처박힘 금이 아래로 늘어진 뿌리처럼 보임 → 벽 면(세로)으로 납작한 번개 금 + 뒤로 짧은 가지, 금 색이 식어 가게(호박 → 재). 먼지 뭉치를 작고 재빛으로.
+6. 공명 켜짐 고리가 가늘어 축하 순간이 약함 → 고리 두께 4·위쪽 하이라이트·바닥 빛살 12·빛기둥 아래로 넓게·머리 위 문양 1.5배 + 바탕 원.
+7. 어두운 바닥 1배 점검(`preview_dark.png`, 바닥 밝기 0.32) — 먹 위주 시트(그림자 사냥·그림자 길 낙인)에 재·청회 테를 더해 통과.
+
+### 메모리(아틀라스 페이지 RGBA, `stats.json`)
+51시트 합 8.25MB · 가장 큰 것 `trait_res_*_on` 0.49MB(나머지 0.01~0.35MB). PNG 합 135KB. 개성·공명 fx 는 지연 로드라 한 런에 몇 장만.
+
+### 검증
+- 빌드 검사(시트마다): 반투명 0 · 가장자리 0 · glowFrames 밖 X0/X1/A26 0 · 허용 팔레트 밖 0 · 색 상한.
+- `atlas57/verify.py --all`: 형식 오류 0(새 시트 형식 통과 — 원본 없음 144개 중 51개가 이 작업), 기존 시트 픽셀 불일치 0(격자 186 · 아틀라스 기준 1098).
+- `npx vitest run src/systems/sprites` 9파일 78건 통과(실행만).
+- 미리보기: `traits61s5_db/preview_{dagger,bow,common}.png`(2배, 1층 연회장 바닥 위 · 분홍 점 = 피벗) · `preview_dark.png`(1배 = 1920 렌더 실제 크기, 더 어두운 바닥).
+
+### 커밋 뒤 기준 이동 (rebase)
+`python3 parts/art/work/atlas57/verify.py --rebase --only trait_dagger_ trait_bow_ trait_res_dagger_ trait_res_bow_ _insight_on _breach_on _chain_on _weight_on _vital_on trait_common_chain`
+(뒤 다섯 패턴 = `trait_res_*_on` 9장. 그냥 `_on` 은 `boss1_onfire` 와 겹쳐서 쓰지 말 것. 칼·대검 담당 시트 `trait_katana_*`·`trait_greatsword_*`·`trait_res_{katana,greatsword}_*`(on 제외)는 그쪽 패턴.)
+
+### 시스템 전달
+- 파일이 생겼으니 요청 노트 '지금 대체' → 전용 그림으로 바뀜(시스템 무수정 목표). 메타 키는 기존 fx/v3 그대로 + `weapon`·`trait`·`part`(·공명은 `resonance`·`tag`), `light{color,radius,intensity,ms}`, 수명 시트는 `loopRange`(+`endFrames`).
+- **이름 결정**: 공명 켜짐 고리는 `trait_<공명 id>_on`(부위 `on`) — 요청 표의 `trait_<공명 id>` 는 같은 이름의 공명 발동 fx(예 `trait_res_dagger_vital`)와 겹쳐서 부위를 붙임. 묶음 사슬 타일은 `trait_common_chain`(행 `bind`·`drag`, `tile: true`, pivot = 선 시작 (0,8), 회전해 x 로 반복).
+- 앵커 메모: `d_brandChain` 은 `contact`(두 적 사이 가운데, 노트 §0 contact 정의) + `rotate`(낙인 적 → 끌려오는 적). 192 도트(3칸) 그림 — 다른 거리는 scaleX(0.6~1.6) 또는 `trait_common_chain#drag` 를 깔고. `d_dashPierce` 꿴 자리 u = 68·140(`pierceMarksU`).
+- 수명 시트: `d_shadowKnot_bind`·`d_ghostBind_bind`·`b_perfectPin_bind`·`b_rainSnare_bind`·`b_arrowTrap` = `loopRange [0,3]`(끝낼 때 알파 페이드 120ms 권장), `b_perfectPin` = f0 박힘 → `loopRange [1,4]` → f5 사라짐(`endFrames [5]`).
+- 판정 칸: `b_dropShot`·`b_rainEcho`·`res_bow_breach` = `impactFrame 3`·`impactAtMs 120`.
+- 좌우: 회전 없는 방향성 시트는 `flipX: "allowed"` + `flipNote`(그림 기준 방향) — `d_stepBack_out/_in`·`d_dashBrand`·`d_cloneShield`·`d_galeReturn`·`d_ghostFire`·`b_ricochet`·`fireArrow`·`b_rapidStride`.
+- 다음 칸 이어 주기(`next`): `liquorThrow` → `pool_liquor`, `d_ghostFire`·`fireArrow`·`b_starDrunk` → `pool_liquor_fire`.
+- 반복 재생: `d_flurryPull` 250ms 마다(4칸 200ms, 칸마다 22° 돌아 이어 틀면 계속 감김).
+
+## 61라운드 단계 5 — 개성 fx(칼·대검) 49시트 (P13 §1, 계약 art §27) · 작업 폴더 `work/traits61s5_kg/`
+요청 원본 `parts/system/notes/trait-art-requests-61s5.md` §0·§1(칼·대검 표, 읽기만 — 프로듀서 허가)·`data/traits.json`(읽기만). 자율 모드. Gemini 미사용(도트 직접). 단검·활 개성 fx·카드 그림(`traitcards61s5`)·공명 켜짐 `_on` 시트는 다른 아트 작업 — 이 작업은 아래 49 이름만 씀, 공용 스크립트·임시 폴더 없음(`out/_atlas_tmp_tkg_<pid>`).
+- 빌드(결정적): `python3 parts/art/work/traits61s5_kg/build.py [--dry] [--only 이름부분…]` — 그림 → 검사 → `assets/sprites/fx/v3/<이름>` 트림 아틀라스 + 미리보기. 격자 원본 `out/grid/`(git 제외). 파일: `kit.py`(팔레트·캔버스·은선 획·금·먼지·불·검사·내보내기) · `shapes.py`(갈래 공용 모양) · `katana.py` · `greatsword.py` · `preview.py`.
+
+### 원칙 — 무기 말투 위에 '개성 갈래' 고유 모양
+- **칼 = '은선'**(칼 재디자인과 같은 말투): 가는 은빛 틈(바깥 가장자리 1도트가 가장 밝고, 머리만 굵고 뾰족, 꼬리 1도트) + 안쪽 끊긴 잔상 실선 + 마디로 끊기며 엇갈리는 소멸 + 호박 불티 점. 그림자 = 먹(SL1~2) 덩이에 은빛 윗테, 달 = 청백(#c8d8f0) 램프.
+- **대검 = 기존 붓획**: 재·호박 넓은 띠(시작 가늘고·가운데 굵고·끝 마른 붓 디더) + 굵은 줄기 호박 금(잔가지) + 갈색 흙먼지 덩이 + 돌 파편 + 불티.
+- **갈래 표지(한눈에 구별)**: 띄움 = 솟구치는 먼지 기둥 + 발밑 체커 그림자(줄어듦) + 위로 긋는 속도선 / 착지 = 납작한 원형 먼지 고리 + 바닥 금 / 처박힘 = 그림 오른쪽 세로 벽면에 눌린 섬광 + 면을 따라 세로로 번지는 금·함몰 + 뒤(왼쪽)로 튀는 파편·먼지 / 끌어당김 = 안쪽을 가리키는 갈매기표·오므라드는 고리·감겨 드는 나선 / 묶음 = 청회(#9ab0d8) 고리 + 말뚝 / 불 = pool_liquor_fire 호박 혓바닥 / 분신 = 썰린 먹 실루엣(칼 그림자)·청백 달 실루엣 / 술 = pool_liquor 짙은 호박 액체 띠.
+- 반투명 0, 백열 X0/X1·A26 은 glowFrames 만, 틀 가장자리 0(반복 타일은 위아래만), 색 6~21(빌드 검사). 피·포효 = 적갈 #b04848 램프(층 램프에 붉은색이 없어 요청 노트 '사슬 끌림 적갈'과 같은 계열로).
+
+### 시트(이름·크기·프레임·ms·루프·앵커·광원 = 요청 표 그대로; 표에 ms 가 없던 칸은 아트가 정함)
+칼 24: `trait_katana_k_shadowThrust`(먹 쐐기 분신 → 은선 직선 + 끝 별) · `_k_edgeLift_launch`(칼등 쳐올림 은선 호 + 재 먼지 기둥) / `_land`(재 먼지 고리 + 은회 금) · `_k_parryShove`(둘레로 밀려 나가는 은빛 반달 6) / `_impact`(벽면 은회 금) · `_k_bladeBind`(1.5바퀴 감겨 드는 은선 나선 → 가운데 X) · `_k_shadowVault_out`(먹 실루엣이 비스듬한 은선 4줄로 썰려 엇갈리며 흩어짐 — 단검 그림자 걸음의 '녹아내림'과 구별) / `_in`(띠가 모여 실루엣 → 돌아서 베는 낮은 초승달) · `_k_issenBack`(닫히는 360° 은선 원 + 끊긴 둘째 원 + 눈금 틈 8 — 회전 베기의 열린 호와 구별) · `_k_iaiWave_launch`(은·청백 초승달 터짐) / `_wave`(청백 초승달 투사체 루프, 광원 청백 r40) · `_k_iaiChain`(낮은 은선 3줄 + 먹 쐐기 잔상) · `_bloodGale`(적갈 바람 테 2줄 + 접선 피 칼날 8 + 핏방울 — 술 회오리의 굵은 액체 띠와 구별) · `_liquorWhirl`(술 줄기 3가닥 + 은선 머리) / `_fire`(불붙은 줄기 + 혓바닥 16, 주황 r96 300ms) · `_k_sparkCleave`(불씨 웅덩이 수명 `loopRange [1,4]`·`endFrames [5,5]`, 주황 r48) / `_spark`(부채꼴 불똥, r24 60ms) · `_k_groundPin_bind`(청회 고리 + 말뚝 4 + 은회 금, `loopRange [1,3]`) / `_impact`(끊긴 청회 고리 조각 + 벽면 금) · `_k_moonRelay`(청백 선 머리의 작은 초승달 → X 베기, 청백 r32) · `_k_moonPools`(수면 달 + 물결 → 솟는 청백 분신 → 초승달 베기, 청백 r48) · `trait_res_katana_insight`(적 왼쪽 반 칸 0.72배 달 분신이 적을 벰) · `trait_res_katana_breach`(64 반복 타일 `tile: true` — 끊긴 테 2줄 + '/' 칼날, 주기 32 이음새 확인) · `trait_res_katana_chain`(바람개비 은선 칼날 8).
+대검 25: `trait_greatsword_g_launch_launch`(등 뒤 활꼴 충격 + 뒤로 끌리는 붓 줄 3) / `_impact`(큰 벽면 금·함몰·파편 12, 백열 r64 140ms) · `_g_swatBack`(대검 면 모양 눌린 판 + 뭉툭한 광선, r32 60ms) · `_g_quakeGuard`(앞으로 자라는 굵은 호박 금 + 앞머리 흙 둔덕) / `_launch`(금 별 + 흙먼지 기둥 + 돌) / `_land` · `_g_guardPull`(오므라드는 고리 + 안쪽 갈매기표 8 + 끌리는 흙 자국) · `_g_shoulderFlip_launch`(반원 붓획, `flipX allowed`) / `_land`(무거운 착지, r48) / `_impact` · `_g_ramWall_impact`(벽면 금 + 밀고 온 긁힌 자국 2줄) · `_g_boilingSteel_soak`(감겨 드는 술 줄기 4 + 달아오르는 심) / `_fire`(균열 한 칸 불기둥 수명 `loopRange [1,4]`, r48) · `_g_crackPull`(끌린 홈 2줄 + 갈매기표) · `_splitRoad`(솟는 돌 쐐기 + 되받이 별) · `_g_leapToss_launch`(솟는 흙 쐐기 4 + 먼지 기둥) / `_land` · `_g_crushedBreath`(납작 눌린 붓 고리가 조여듦 + 눌림표 '‖' 12 → f5 쿵) / `_impact`(두 적 사이 양면 충돌) · `_jarCrush_burst`(백열 → 불덩이 + 술독 사금파리 + 바닥 불 고리 + 연기, 주황 r96 300ms) · `_g_rageRoar`(톱니 음파 고리 3겹 적갈, 붉은 r96 200ms) / `_impact`(적갈 불씨) · `_g_rageFire`(웅덩이에 번지는 혓바닥, r48) · `trait_res_greatsword_weight`(바닥 금 8갈래 + 튀어 오르는 판 10) · `trait_res_greatsword_insight`(360° 판 섬광 12 + 되침 광선, 백열 r96 100ms).
+- JSON 공통: `directions ["any"]`, `pixelScale 0.5`, `paletteSwap none`, `scale none`(시트 배율 그대로), `anchor`·`pivot`·`depth`·`glowFrames`·`trait`(공명은 `resonance`)·`part`(본체 = `body`)·`replaces`(지금 대체)·`design`. 회전 시트 `rotate true`·`drawnFacing right`·`flipY allowed`. 광원 `light {color, radius(도트), intensity, ms, atFrame}`(수명 시트는 ms 없이 `flicker`). 수명 시트 `loopRange`·`endFrames`·`lifeRule`.
+
+### see → critique → fix
+1. 1차: 먼지가 테두리 진한 원이라 '자갈'로 읽힘 → 작은 원 2~3개 겹친 구름 덩이 + 체커 보풀 + 윗테. 띄움 기둥이 구슬 꿰미 → 덩이 15개를 겹치고 흔들기. 벽 처박힘 금이 짧고 가늘어 안 읽힘 → 줄기 2도트·길이 34~54·가지 2단·가운데 함몰, 파편 크게.
+2. 먹 쐐기·실루엣이 어두운 바닥에 묻힘 → 바깥 테 SL5 + 윗테 은빛. 그림자 넘기 가로 줄이 바코드 → 비스듬한 은선(칼 베기 방향)으로 썰고 띠를 틈 따라 미끄러뜨림. 연쇄 발도 소멸 3줄이 사다리 → 줄마다 마디 길이·시작점 엇갈림.
+3. 피바람·술 회오리가 같은 '3가닥 고리'(색만 다름) → 피바람을 끊긴 바람 테 + 접선 칼날 8 + 줄지은 핏방울로 다시 그림, 술은 디더를 줄여 액체 띠로·나선으로 감겨 들게. 불꽃 행 반올림 줄무늬 → 정수 행 렌더. 포효 분홍기 → 적갈 한 단 어둡게. 공명 되받는 달이 적 위에 겹침 → 분신을 적 왼쪽 반 칸에, 피벗 = 적 몸 중심.
+
+### 검증
+- `atlas57/verify.py --all`: 형식 오류 0(새 49시트는 '원본 없음: 형식만'), 기존 시트 픽셀 불일치 0(격자 186 · 아틀라스 기준 1098).
+- 메모리(아틀라스 페이지 RGBA, `stats.json`): 칼 24시트 4.56MB · 대검 25시트 5.32MB, 한 장 0.01~0.73MB(가장 큰 것 `trait_res_greatsword_insight` 0.73 · `g_rageRoar` 0.61 · `jarCrush_burst` 0.59), PNG 합 206KB. 요청 권장(0.3~1.5MB 안팎) 이하.
+- 미리보기: `preview_katana.png`·`preview_greatsword.png`(전 칸 1배 = 1080p 화면 크기, 1층 연회장 바닥을 어둠 0.5 로 누른 위, 초록 십자 = 피벗, 노란 테 = glowFrames) · `preview_katana_scene.png`·`preview_greatsword_scene.png`(대표 칸을 주인공/적 정지 그림 위 앵커에 배치, 회전 시트는 0°·90°·210°).
+- 커밋 뒤 기준 이동: `python3 parts/art/work/atlas57/verify.py --rebase --only trait_katana_ trait_greatsword_ trait_res_katana_insight.json trait_res_katana_breach.json trait_res_katana_chain.json trait_res_greatsword_weight.json trait_res_greatsword_insight.json` (49시트 — 공명 이름은 `.json` 까지 써서 다른 작업의 `_on` 시트를 빼게)
+
+### 시스템 전달
+- 파일이 생겼으니 매니페스트에 오르면 대체 fx 대신 쓰임(요청 §0). 이름·부위는 표 그대로. 본체 시트의 `part` 는 `"body"`.
+- `trait_katana_k_iaiWave_launch`: 피벗 = 초승달이 터지는 몸 가운데. `anchorOffsetDots {x:0, y:-40}`(주인공 발 위 40) 을 더한 뒤 진행 각도로 회전 제안 — 다른 player_pivot 시트는 피벗 = 발 그대로.
+- 길이 있는 회전 선(`k_shadowThrust` 222 도트 · `k_moonRelay` 230 · `k_iaiChain` 172 · `g_quakeGuard` 236): 사거리와 다르면 x 배율로 맞춰도 됨(가는 선이라 티 적음) — `scale none` 은 '키우지 말 것'의 뜻.
+- `trait_res_katana_insight`: 피벗 = 적 몸 중심(contact), 분신이 적 왼쪽에 그려짐 — 적이 주인공 왼쪽에 있으면 `flipX`. `g_shoulderFlip_launch` 도 `flipX allowed`(그림 = 오른쪽에서 왼쪽으로 넘김).
+- `_impact` 는 오른쪽 = 처박힌 방향(벽 쪽), 피벗 = 박힌 면. `g_crushedBreath_impact` 는 양면 대칭.
+- 수명 시트(`k_sparkCleave`·`k_groundPin_bind`·`g_boilingSteel_fire`): 생김 1칸 → `loopRange` 반복 → `endFrames`(groundPin 은 없음 — 풀리면 `_impact`).
+- `trait_res_katana_breach` 는 `tile: true`·`tilePeriodDots 64`(트림 안 함), 피벗 (0,32) = 길 시작, 오른쪽 = 대쉬 방향.

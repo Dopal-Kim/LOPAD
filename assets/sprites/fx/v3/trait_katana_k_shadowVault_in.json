@@ -1,0 +1,87 @@
+{
+ "action": "trait_katana_k_shadowVault_in",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.22,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  80,
+  100
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 5 칼 '은선' 램프: 무채 16(G1~G14)·청강 SL·호박 불티 A17~A25 + 갈래 표지색(묶음 청회 #9ab0d8 램프·달 청백 #c8d8f0 램프·피 적갈 #b04848 램프·술/불 = pool_liquor(_fire) 1층 호박) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 16,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "katana",
+ "anchor": "player_pivot",
+ "pivot": {
+  "x": 64,
+  "y": 138
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  3
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "적 등 뒤에서 썰린 먹 띠가 엇갈림을 풀며 모여 실루엣이 됨(f0~f2) → f3 돌아서 베는 낮은 은선 초승달(머리 백열) → 실루엣 흩어짐·호 마디 소멸",
+ "replaces": "katana_counter",
+ "trait": "k_shadowVault",
+ "part": "in",
+ "anchorNote": "pivot (64,138) = 나타나는 자리의 주인공 발(몸 시트 피벗과 같은 높이)",
+ "image": "trait_katana_k_shadowVault_in.png",
+ "frameWidth": 128,
+ "frameHeight": 144,
+ "framesPerDirection": 6,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_katana_k_shadowVault_in.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 144,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":102,"h":136},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":7,"y":7,"w":102,"h":136},"sourceSize":{"w":128,"h":144}},
+  "1":{"frame":{"x":218,"y":0,"w":85,"h":129},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":13,"w":85,"h":129},"sourceSize":{"w":128,"h":144}},
+  "2":{"frame":{"x":305,"y":0,"w":75,"h":123},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":18,"w":75,"h":123},"sourceSize":{"w":128,"h":144}},
+  "3":{"frame":{"x":382,"y":0,"w":118,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":20,"w":118,"h":120},"sourceSize":{"w":128,"h":144}},
+  "4":{"frame":{"x":104,"y":0,"w":112,"h":130},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":12,"w":112,"h":130},"sourceSize":{"w":128,"h":144}},
+  "5":{"frame":{"x":382,"y":122,"w":114,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":60,"w":114,"h":22},"sourceSize":{"w":128,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_katana_k_shadowVault_in.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 500,
+   "h": 144
+  },
+  "scale": "1"
+ }
+}

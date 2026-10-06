@@ -1,0 +1,97 @@
+{
+ "action": "trait_res_katana_insight",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 16.22,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  80,
+  100
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 5 칼 '은선' 램프: 무채 16(G1~G14)·청강 SL·호박 불티 A17~A25 + 갈래 표지색(묶음 청회 #9ab0d8 램프·달 청백 #c8d8f0 램프·피 적갈 #b04848 램프·술/불 = pool_liquor(_fire) 1층 호박) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 17,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "katana",
+ "anchor": "contact",
+ "pivot": {
+  "x": 80,
+  "y": 98
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  2
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "공명 되받는 달 — 밀치거나 끌어온 적 옆(왼쪽 반 칸)에 작은(0.72배) 청백 달 분신: f0 머리 위 작은 초승달 표지 → f1 체커로 나타남 → f2 적 쪽으로 비스듬히 내려 베는 은선(머리 백열) → 바래며 초승달만 남음",
+ "replaces": "katana_fullmoon",
+ "resonance": "res_katana_insight",
+ "part": "body",
+ "anchorNote": "pivot (80,98) = 밀치거나 끌어온 적의 몸 중심(발 위 40 — contact 점). 분신은 그 왼쪽 약 44 도트, 분신 발 = pivot 아래 40",
+ "flipX": "allowed",
+ "flipXNote": "그림 = 분신이 적의 왼쪽에 서서 오른쪽(적)을 벰. 적이 주인공 왼쪽으로 밀렸으면 flipX 로 반대편에",
+ "light": {
+  "color": "#c8d8f0",
+  "radius": 32,
+  "intensity": 0.7,
+  "ms": 400,
+  "atFrame": 0
+ },
+ "lightNote": "radius = 도트(pixelScale 0.5 기준), ms = 켜 두는 시간(없으면 시트 수명 동안)",
+ "image": "trait_res_katana_insight.png",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 6,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_res_katana_insight.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 1,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":297,"y":0,"w":12,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":46,"w":12,"h":13},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":0,"y":0,"w":50,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":46,"w":50,"h":94},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":133,"y":0,"w":83,"h":90},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":50,"w":83,"h":90},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":218,"y":0,"w":77,"h":90},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":50,"w":77,"h":90},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":52,"y":0,"w":79,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":49,"w":79,"h":91},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":297,"y":0,"w":12,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":40,"w":12,"h":13},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_res_katana_insight.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 309,
+   "h": 94
+  },
+  "scale": "1"
+ }
+}

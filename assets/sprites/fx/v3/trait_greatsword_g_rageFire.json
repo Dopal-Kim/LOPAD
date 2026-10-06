@@ -1,0 +1,93 @@
+{
+ "action": "trait_greatsword_g_rageFire",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.15,
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  80,
+  100
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "대검 붓획 램프(53 Q61): 재 S0~S3·B0~B3 + 혼불 호박 A17~A25 + 갈래 표지색(불 = pool_liquor_fire 계열, 포효 적갈 #b04848 램프) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 9,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "greatsword",
+ "anchor": "floor",
+ "pivot": {
+  "x": 48,
+  "y": 44
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "발밑 술에 불이 옮겨 붙는 순간: 술 웅덩이(짙은 호박 납작 타원) 가운데 불똥(f0) → 바깥으로 번지며 솟는 혓바닥 3 → 6 → 낮아지며 불티",
+ "replaces": "점 윤곽",
+ "trait": "g_rageFire",
+ "part": "body",
+ "anchorNote": "pivot = 밟은 술 웅덩이 중심(주인공 발)",
+ "light": {
+  "color": "#e2a33c",
+  "radius": 48,
+  "intensity": 0.85,
+  "ms": 400,
+  "atFrame": 0
+ },
+ "lightNote": "radius = 도트(pixelScale 0.5 기준), ms = 켜 두는 시간(없으면 시트 수명 동안)",
+ "image": "trait_greatsword_g_rageFire.png",
+ "frameWidth": 96,
+ "frameHeight": 64,
+ "framesPerDirection": 5,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_greatsword_g_rageFire.png)",
+  "grid": {
+   "columns": 5,
+   "rows": 1,
+   "frameWidth": 96,
+   "frameHeight": 64,
+   "frameCount": 5
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":42,"w":67,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":12,"w":67,"h":42},"sourceSize":{"w":96,"h":64}},
+  "1":{"frame":{"x":0,"y":173,"w":67,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":17,"w":67,"h":37},"sourceSize":{"w":96,"h":64}},
+  "2":{"frame":{"x":0,"y":130,"w":67,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":13,"w":67,"h":41},"sourceSize":{"w":96,"h":64}},
+  "3":{"frame":{"x":0,"y":86,"w":67,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":12,"w":67,"h":42},"sourceSize":{"w":96,"h":64}},
+  "4":{"frame":{"x":0,"y":0,"w":68,"h":40},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":14,"w":68,"h":40},"sourceSize":{"w":96,"h":64}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_greatsword_g_rageFire.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 68,
+   "h": 210
+  },
+  "scale": "1"
+ }
+}

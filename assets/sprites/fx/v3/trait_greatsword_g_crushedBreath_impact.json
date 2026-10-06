@@ -1,0 +1,90 @@
+{
+ "action": "trait_greatsword_g_crushedBreath_impact",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.79,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  80,
+  110
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "대검 붓획 램프(53 Q61): 재 S0~S3·B0~B3 + 혼불 호박 A17~A25 + 갈래 표지색(불 = pool_liquor_fire 계열, 포효 적갈 #b04848 램프) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 12,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "greatsword",
+ "anchor": "contact",
+ "pivot": {
+  "x": 64,
+  "y": 64
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "모인 적끼리 부딪는 충돌: 두 적 사이 세로 면에 눌린 호박 섬광(양쪽으로 광선) + 면 금 + 양쪽으로 튀는 파편·흙먼지(벽 처박힘의 양면판)",
+ "replaces": "hit_burst",
+ "trait": "g_crushedBreath",
+ "part": "impact",
+ "anchorNote": "pivot = 두 적 사이. 오른쪽·왼쪽 = 부딪친 두 적(대칭이라 회전은 부딪친 축만 맞추면 됨)",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "image": "trait_greatsword_g_crushedBreath_impact.png",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "framesPerDirection": 6,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_greatsword_g_crushedBreath_impact.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 128,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":402,"y":0,"w":47,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":41,"y":18,"w":47,"h":88},"sourceSize":{"w":128,"h":128}},
+  "1":{"frame":{"x":350,"y":0,"w":50,"h":88},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":18,"w":50,"h":88},"sourceSize":{"w":128,"h":128}},
+  "2":{"frame":{"x":284,"y":0,"w":64,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":13,"w":64,"h":98},"sourceSize":{"w":128,"h":128}},
+  "3":{"frame":{"x":195,"y":0,"w":87,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":13,"w":87,"h":98},"sourceSize":{"w":128,"h":128}},
+  "4":{"frame":{"x":90,"y":0,"w":103,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":13,"w":103,"h":98},"sourceSize":{"w":128,"h":128}},
+  "5":{"frame":{"x":0,"y":0,"w":88,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":13,"w":88,"h":106},"sourceSize":{"w":128,"h":128}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_greatsword_g_crushedBreath_impact.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 449,
+   "h": 106
+  },
+  "scale": "1"
+ }
+}

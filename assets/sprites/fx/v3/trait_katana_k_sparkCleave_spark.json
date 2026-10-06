@@ -1,0 +1,91 @@
+{
+ "action": "trait_katana_k_sparkCleave_spark",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 21.05,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 5 칼 '은선' 램프: 무채 16(G1~G14)·청강 SL·호박 불티 A17~A25 + 갈래 표지색(묶음 청회 #9ab0d8 램프·달 청백 #c8d8f0 램프·피 적갈 #b04848 램프·술/불 = pool_liquor(_fire) 1층 호박) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 9,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "katana",
+ "anchor": "floor",
+ "pivot": {
+  "x": 24,
+  "y": 38
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "바닥을 긁으며 부채꼴로 튀는 불똥 줄(1도트 꼬리 + 밝은 머리) + 바닥 긁힌 은선 한 줄",
+ "replaces": "점 윤곽",
+ "trait": "k_sparkCleave",
+ "part": "spark",
+ "anchorNote": "pivot = 바닥 깊이(발 높이 바닥점)",
+ "light": {
+  "color": "#e2a33c",
+  "radius": 24,
+  "intensity": 0.8,
+  "ms": 60,
+  "atFrame": 0
+ },
+ "lightNote": "radius = 도트(pixelScale 0.5 기준), ms = 켜 두는 시간(없으면 시트 수명 동안)",
+ "image": "trait_katana_k_sparkCleave_spark.png",
+ "frameWidth": 48,
+ "frameHeight": 48,
+ "framesPerDirection": 4,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_katana_k_sparkCleave_spark.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 48,
+   "frameHeight": 48,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":104,"y":0,"w":23,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":29,"w":23,"h":14},"sourceSize":{"w":48,"h":48}},
+  "1":{"frame":{"x":74,"y":0,"w":28,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":24,"w":28,"h":16},"sourceSize":{"w":48,"h":48}},
+  "2":{"frame":{"x":33,"y":0,"w":39,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":21,"w":39,"h":19},"sourceSize":{"w":48,"h":48}},
+  "3":{"frame":{"x":0,"y":0,"w":31,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":20,"w":31,"h":20},"sourceSize":{"w":48,"h":48}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_katana_k_sparkCleave_spark.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 127,
+   "h": 20
+  },
+  "scale": "1"
+ }
+}

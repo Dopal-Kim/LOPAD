@@ -1,0 +1,90 @@
+{
+ "action": "trait_greatsword_g_rageRoar_impact",
+ "version": "v3-r61s5-trait",
+ "directions": [
+  "any"
+ ],
+ "layout": "rows = directions, columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 15.79,
+ "frameDurationsMs": [
+  40,
+  40,
+  50,
+  60,
+  80,
+  110
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역 바닥 팔레트 교체 제외",
+ "palette": "대검 붓획 램프(53 Q61): 재 S0~S3·B0~B3 + 혼불 호박 A17~A25 + 갈래 표지색(불 = pool_liquor_fire 계열, 포효 적갈 #b04848 램프) · 백열 X0/X1·A26 은 glowFrames 만. paletteSwap none",
+ "colors": 15,
+ "semiTransparent": false,
+ "source": "parts/art/work/traits61s5_kg/build.py (61 단계 5 P13 — 개성 전투 fx 칼·대검)",
+ "request": "parts/system/notes/trait-art-requests-61s5.md §1",
+ "weapon": "greatsword",
+ "anchor": "contact",
+ "pivot": {
+  "x": 88,
+  "y": 64
+ },
+ "depth": "above",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(요청 §0 — 시스템이 더 키우지 않음)",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "백열 X0/X1·A26 은 glowFrames 칸만(빌드 검사)",
+ "design": "포효에 밀려난 적 충돌 — 벽 처박힘 말투(작게) + 적갈 불씨 점(포효 표지)",
+ "replaces": "hit_burst",
+ "trait": "g_rageRoar",
+ "part": "impact",
+ "anchorNote": "pivot = 박힌 자리(벽 면·두 적 사이)",
+ "rotate": true,
+ "drawnFacing": "right",
+ "flipY": "allowed",
+ "image": "trait_greatsword_g_rageRoar_impact.png",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "framesPerDirection": 6,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_greatsword_g_rageRoar_impact.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 128,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":261,"y":0,"w":31,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":20,"w":31,"h":89},"sourceSize":{"w":128,"h":128}},
+  "1":{"frame":{"x":223,"y":0,"w":36,"h":89},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":20,"w":36,"h":89},"sourceSize":{"w":128,"h":128}},
+  "2":{"frame":{"x":179,"y":0,"w":42,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":57,"y":17,"w":42,"h":99},"sourceSize":{"w":128,"h":128}},
+  "3":{"frame":{"x":123,"y":0,"w":54,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":45,"y":17,"w":54,"h":99},"sourceSize":{"w":128,"h":128}},
+  "4":{"frame":{"x":58,"y":0,"w":63,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":17,"w":63,"h":99},"sourceSize":{"w":128,"h":128}},
+  "5":{"frame":{"x":0,"y":0,"w":56,"h":104},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":17,"w":56,"h":104},"sourceSize":{"w":128,"h":128}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_greatsword_g_rageRoar_impact.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 292,
+   "h": 104
+  },
+  "scale": "1"
+ }
+}
