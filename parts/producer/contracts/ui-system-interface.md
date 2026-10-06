@@ -616,3 +616,4 @@ interface UiGrowth {
 - `UiGrowthTrait.iconKey?: string` — 개성 카드 그림 텍스처 키(시스템이 로드). 카드·알림·성장도 목록에 그림을 함께 그린다(없으면 지금처럼 키캡).
 - `UiGrowth.resonance?: { tag: UiTagId; name: string; line: string; active: boolean }[]` — 같은 태그 개성 2장으로 켜지는 공명(성장도·Tab 에 표시, 켜질 때 `ui:trait-gained` 와 같은 알림 형식으로 `UI_EVENTS.RESONANCE` = `'ui:resonance'` `{ tag, name, line }`).
 - 드랍 아이템은 월드 그림이라 UI 무관.
+- (61 단계 5 확정) `UiMenuLine.trait?: UiGrowthTrait`(카드 그림 포함)·`UiMenuLine.resonance?`(이 카드를 고르면 켜지는 공명 — 카드에 '공명' 힌트), `UiResonance.iconKey?`(공명 카드 그림 `ui_traits/<공명 id>`, 시스템이 로드했을 때만). 카드 그림 크기 128×128 도트(화면 64px).
