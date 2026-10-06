@@ -58,7 +58,7 @@
  "spawnNote": "f0(예비 40ms)는 몸 시트 f1 시작(=판정) 40ms 전에 재생, f1 시작 = 판정. 몸 시트 1프레임째 길이 >= 40ms.",
  "depth": "above",
  "pivotNote": "pivot = 발. 찌르기 원점 = pivot 위 40 도트(hitOriginInFrame)",
- "version": "v3-r61",
+ "version": "v3-r61s5",
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62 — fx 는 지역 바닥 팔레트 교체 제외",
  "unitNote": "모든 길이 필드(pivot·hitRadiusPx·thrust·drawnRadiusPx·visualLengthPx)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5). 화면 크기는 구 시트(pixelScale 2)와 같다(도트 ×4). shake.px·scale·비율 필드는 그대로.",
@@ -70,9 +70,9 @@
   "x": 240,
   "y": 240
  },
- "source": "parts/art/work/weapons61/build.py dagger (61라운드 단검 연격 그림 보강)",
- "design": "단검 2타 — 백열 창끝 렌즈(판정 끝 + 12 도트 뾰족) + 창끝 별 섬광 + 축을 따라 흐르는 속도선 + 창끝 앞 공기를 뚫는 납작 고리(1) → 창끝이 더 밀고 고리가 퍼짐(2, 히트스톱 정지 칸) → 마디로 끊기며 재·불티(3~)",
- "glowRule": "백열 X0/X1·A26 은 판정 프레임 1 만(창끝 심·별·속도선 머리). 그 밖은 A25 이하",
+ "source": "parts/art/work/dagger61s5/build.py (61 단계 5 P13 — 단검 무기+이펙트 재디자인 '재 발톱')",
+ "design": "61 단계 5 '재 발톱' 찌르기 — 무기 날과 같은 발톱 곡선을 가늘게 늘인 바늘 획(백열 심은 끝에 맺힘, 끝이 휨) + 옆으로 비켜 선 짧고 많은 잔상 획 + 끝의 X 섬광(판정) → 다 그은 칸: 식는 획·작은 X 흉터·잔상이 앞으로 밀림 → 마디로 끊기며 먹·재 부스러기. 뭉툭한 원뿔·공기 고리 없음 · 가속 단계 = 같은 획이 길어지고(×1.1/×1.2) 조금 굵어지며 잔상 획 3/6/9 · 속도 틱 6/10/14 — 판정은 그대로",
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(판정 칸)만(획 심·X 섬광 가운데). 그 밖은 A25 이하",
  "r61": "61라운드 시스템 보고 — 단검 연격 그림 보강(찌르기 궤적·가속 단계)",
  "accelLevel": 3,
  "accelOf": "dagger_combo2",
@@ -81,9 +81,12 @@
   "2": "dagger_combo2_accel2",
   "3": "dagger_combo2_accel3"
  },
- "accelRule": "가속(숨은 자원, 61 P1): 단계 1 = dagger_combo2 · 2 = _accel2 · 3 = _accel3. 경계는 시스템 데이터(제안: 공속 배율 ≥1.08 → 2, ≥1.18 → 3). 같은 프레임 번호·같은 ms·같은 피벗 — 연격 시작 때 그 순간 단계의 시트를 고른다(타 중간에 바꾸지 않아도 됨). 판정(thrust)은 그대로, 그림만 길어지고(×1.1 / ×1.2) 넓어지며 뒤로 밀린 잔상 창끝 0/1/2·속도선·공기 고리 1/2/3",
+ "accelRule": "가속(숨은 자원, 61 P1): 단계 1 = dagger_combo2 · 2 = _accel2 · 3 = _accel3. 경계는 시스템 데이터(제안: 공속 배율 ≥1.08 → 2, ≥1.18 → 3). 같은 프레임 번호·같은 ms·같은 피벗 — 연격 시작 때 그 순간 단계의 시트를 고른다(타 중간에 바꾸지 않아도 됨). 판정(thrust)은 그대로, 그림만 길어지고(×1.1 / ×1.2) 넓어지며 잔상 획 3/6/9·속도 틱 6/10/14",
  "visualLengthPx": 204,
- "colors": 8,
+ "colors": 9,
+ "designPrevious": "단검 2타 — 백열 창끝 렌즈(판정 끝 + 12 도트 뾰족) + 창끝 별 섬광 + 축을 따라 흐르는 속도선 + 창끝 앞 공기를 뚫는 납작 고리(1) → 창끝이 더 밀고 고리가 퍼짐(2, 히트스톱 정지 칸) → 마디로 끊기며 재·불티(3~)",
+ "r61s5": "61 단계 5 P13 §2 — 단검 재디자인(무기+이펙트 한 디자인 언어). 계약 art §27",
+ "semiTransparent": false,
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -104,22 +107,22 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":422,"w":44,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":213,"y":255,"w":44,"h":106},"sourceSize":{"w":480,"h":480}},
-  "1":{"frame":{"x":0,"y":0,"w":85,"h":212},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":179,"y":242,"w":85,"h":212},"sourceSize":{"w":480,"h":480}},
-  "2":{"frame":{"x":174,"y":174,"w":94,"h":207},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":181,"y":254,"w":94,"h":207},"sourceSize":{"w":480,"h":480}},
-  "3":{"frame":{"x":96,"y":214,"w":76,"h":170},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":181,"y":259,"w":76,"h":170},"sourceSize":{"w":480,"h":480}},
-  "4":{"frame":{"x":46,"y":422,"w":44,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":224,"y":120,"w":44,"h":105},"sourceSize":{"w":480,"h":480}},
-  "5":{"frame":{"x":87,"y":0,"w":85,"h":212},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":217,"y":26,"w":85,"h":212},"sourceSize":{"w":480,"h":480}},
-  "6":{"frame":{"x":0,"y":214,"w":94,"h":206},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":206,"y":20,"w":94,"h":206},"sourceSize":{"w":480,"h":480}},
-  "7":{"frame":{"x":388,"y":0,"w":76,"h":169},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":224,"y":52,"w":76,"h":169},"sourceSize":{"w":480,"h":480}},
-  "8":{"frame":{"x":92,"y":464,"w":105,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":120,"y":213,"w":105,"h":44},"sourceSize":{"w":480,"h":480}},
-  "9":{"frame":{"x":174,"y":0,"w":212,"h":85},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":179,"w":212,"h":85},"sourceSize":{"w":480,"h":480}},
-  "10":{"frame":{"x":270,"y":270,"w":206,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":181,"w":206,"h":94},"sourceSize":{"w":480,"h":480}},
-  "11":{"frame":{"x":96,"y":386,"w":169,"h":76},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":52,"y":181,"w":169,"h":76},"sourceSize":{"w":480,"h":480}},
-  "12":{"frame":{"x":267,"y":444,"w":106,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":255,"y":224,"w":106,"h":44},"sourceSize":{"w":480,"h":480}},
-  "13":{"frame":{"x":174,"y":87,"w":212,"h":85},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":242,"y":217,"w":212,"h":85},"sourceSize":{"w":480,"h":480}},
-  "14":{"frame":{"x":270,"y":174,"w":207,"h":94},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":254,"y":206,"w":207,"h":94},"sourceSize":{"w":480,"h":480}},
-  "15":{"frame":{"x":270,"y":366,"w":170,"h":76},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":259,"y":224,"w":170,"h":76},"sourceSize":{"w":480,"h":480}}
+  "0":{"frame":{"x":183,"y":516,"w":23,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":215,"y":255,"w":23,"h":100},"sourceSize":{"w":480,"h":480}},
+  "1":{"frame":{"x":197,"y":0,"w":69,"h":193},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":183,"y":253,"w":69,"h":193},"sourceSize":{"w":480,"h":480}},
+  "2":{"frame":{"x":72,"y":260,"w":68,"h":185},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":182,"y":259,"w":68,"h":185},"sourceSize":{"w":480,"h":480}},
+  "3":{"frame":{"x":211,"y":260,"w":64,"h":180},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":181,"y":263,"w":64,"h":180},"sourceSize":{"w":480,"h":480}},
+  "4":{"frame":{"x":0,"y":337,"w":24,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":242,"y":126,"w":24,"h":99},"sourceSize":{"w":480,"h":480}},
+  "5":{"frame":{"x":0,"y":143,"w":70,"h":192},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":228,"y":35,"w":70,"h":192},"sourceSize":{"w":480,"h":480}},
+  "6":{"frame":{"x":142,"y":260,"w":67,"h":184},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":231,"y":37,"w":67,"h":184},"sourceSize":{"w":480,"h":480}},
+  "7":{"frame":{"x":211,"y":442,"w":65,"h":179},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":235,"y":38,"w":65,"h":179},"sourceSize":{"w":480,"h":480}},
+  "8":{"frame":{"x":72,"y":143,"w":99,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":126,"y":215,"w":99,"h":23},"sourceSize":{"w":480,"h":480}},
+  "9":{"frame":{"x":0,"y":0,"w":195,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":183,"w":195,"h":69},"sourceSize":{"w":480,"h":480}},
+  "10":{"frame":{"x":72,"y":195,"w":187,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":187,"w":187,"h":63},"sourceSize":{"w":480,"h":480}},
+  "11":{"frame":{"x":0,"y":516,"w":181,"h":64},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":181,"w":181,"h":64},"sourceSize":{"w":480,"h":480}},
+  "12":{"frame":{"x":182,"y":623,"w":100,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":255,"y":242,"w":100,"h":24},"sourceSize":{"w":480,"h":480}},
+  "13":{"frame":{"x":0,"y":71,"w":193,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":253,"y":228,"w":193,"h":70},"sourceSize":{"w":480,"h":480}},
+  "14":{"frame":{"x":0,"y":447,"w":185,"h":67},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":259,"y":231,"w":185,"h":67},"sourceSize":{"w":480,"h":480}},
+  "15":{"frame":{"x":0,"y":582,"w":180,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":263,"y":235,"w":180,"h":65},"sourceSize":{"w":480,"h":480}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -127,8 +130,8 @@
   "image": "dagger_combo2_accel3.png",
   "format": "RGBA8888",
   "size": {
-   "w": 477,
-   "h": 528
+   "w": 282,
+   "h": 647
   },
   "scale": "1"
  }

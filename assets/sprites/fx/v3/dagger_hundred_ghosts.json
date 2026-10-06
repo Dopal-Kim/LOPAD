@@ -1,7 +1,7 @@
 {
  "image": "dagger_hundred_ghosts.png",
  "action": "dagger_hundred_ghosts",
- "version": "v3-r60-awaken",
+ "version": "v3-r61s5",
  "frameWidth": 216,
  "frameHeight": 184,
  "framesPerDirection": 9,
@@ -27,9 +27,9 @@
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
  "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
- "colors": 16,
+ "colors": 14,
  "semiTransparent": false,
- "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "source": "parts/art/work/dagger61s5/build.py (61 단계 5 P13 — 단검 무기+이펙트 재디자인 '재 발톱')",
  "weapon": "dagger",
  "awakening": "백귀(百鬼) — 귀화",
  "anchor": "hitbox_center",
@@ -50,7 +50,7 @@
   "불티",
   "불티"
  ],
- "design": "세 방향에서 얼굴 달린 보라 도깨비불(청록 불꼬리)이 날아들어 대상 한가운데서 세 갈래 초승달 베기(X1 심) → 꿰뚫고 나가 청록·보라 불티로 흩어짐",
+ "design": "61 단계 5 백귀 — 세 방향에서 다가오는 혼불(옛 0~2 칸 그대로) → 한가운데서 세 갈래 발톱 베기(보라 몸·청록 심) + X 섬광 → 꿰뚫고 나가 청록·보라 부스러기",
  "previousDesign": "57라운드 build57 재·호박판(60 Q15~Q21 로 교체)",
  "pivot": {
   "x": 99,
@@ -60,6 +60,9 @@
  "glowFrames": [
   3
  ],
+ "designPrevious": "세 방향에서 얼굴 달린 보라 도깨비불(청록 불꼬리)이 날아들어 대상 한가운데서 세 갈래 초승달 베기(X1 심) → 꿰뚫고 나가 청록·보라 불티로 흩어짐",
+ "r61s5": "61 단계 5 P13 §2 — 단검 재디자인(무기+이펙트 한 디자인 언어). 계약 art §27",
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(판정 칸)만(획 심·X 섬광 가운데). 그 밖은 A25 이하",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -81,14 +84,14 @@
  },
  "frames": {
   "0":{"frame":{"x":0,"y":0,"w":206,"h":177},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":3,"w":206,"h":177},"sourceSize":{"w":216,"h":184}},
-  "1":{"frame":{"x":0,"y":179,"w":154,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":18,"w":154,"h":135},"sourceSize":{"w":216,"h":184}},
-  "2":{"frame":{"x":0,"y":524,"w":100,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":36,"w":100,"h":91},"sourceSize":{"w":216,"h":184}},
-  "3":{"frame":{"x":162,"y":409,"w":69,"h":72},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":66,"y":41,"w":69,"h":72},"sourceSize":{"w":216,"h":184}},
-  "4":{"frame":{"x":156,"y":179,"w":75,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":60,"y":38,"w":75,"h":70},"sourceSize":{"w":216,"h":184}},
-  "5":{"frame":{"x":115,"y":316,"w":113,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":19,"w":113,"h":91},"sourceSize":{"w":216,"h":184}},
-  "6":{"frame":{"x":102,"y":524,"w":98,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":44,"y":19,"w":98,"h":91},"sourceSize":{"w":216,"h":184}},
-  "7":{"frame":{"x":0,"y":316,"w":113,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":14,"w":113,"h":106},"sourceSize":{"w":216,"h":184}},
-  "8":{"frame":{"x":0,"y":424,"w":160,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":15,"w":160,"h":98},"sourceSize":{"w":216,"h":184}}
+  "1":{"frame":{"x":0,"y":304,"w":154,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":18,"w":154,"h":135},"sourceSize":{"w":216,"h":184}},
+  "2":{"frame":{"x":336,"y":276,"w":100,"h":91},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":36,"w":100,"h":91},"sourceSize":{"w":216,"h":184}},
+  "3":{"frame":{"x":305,"y":393,"w":128,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":2,"w":128,"h":119},"sourceSize":{"w":216,"h":184}},
+  "4":{"frame":{"x":156,"y":393,"w":147,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":2,"w":147,"h":118},"sourceSize":{"w":216,"h":184}},
+  "5":{"frame":{"x":169,"y":276,"w":165,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":8,"w":165,"h":115},"sourceSize":{"w":216,"h":184}},
+  "6":{"frame":{"x":0,"y":179,"w":167,"h":123},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":5,"w":167,"h":123},"sourceSize":{"w":216,"h":184}},
+  "7":{"frame":{"x":208,"y":139,"w":180,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":1,"w":180,"h":135},"sourceSize":{"w":216,"h":184}},
+  "8":{"frame":{"x":208,"y":0,"w":190,"h":137},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":1,"w":190,"h":137},"sourceSize":{"w":216,"h":184}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -96,8 +99,8 @@
   "image": "dagger_hundred_ghosts.png",
   "format": "RGBA8888",
   "size": {
-   "w": 231,
-   "h": 615
+   "w": 436,
+   "h": 512
   },
   "scale": "1"
  }

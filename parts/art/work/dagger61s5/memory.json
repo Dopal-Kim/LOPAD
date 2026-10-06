@@ -1,0 +1,1066 @@
+{
+ "rule": "아틀라스 페이지 RGBA(GPU 추정) 고치기 전 대비 ×1.2 이내",
+ "totalBeforeMB": 36.6,
+ "totalAfterMB": 28.78,
+ "totalRatio": 0.786,
+ "groups": {
+  "fx/v3": {
+   "beforeMB": 27.1,
+   "afterMB": 21.72,
+   "ratio": 0.802
+  },
+  "weapons/v3 awaken": {
+   "beforeMB": 1.86,
+   "afterMB": 0.76,
+   "ratio": 0.411
+  },
+  "weapons/v3 base": {
+   "beforeMB": 0.62,
+   "afterMB": 0.66,
+   "ratio": 1.062
+  },
+  "weapons/v4 gale": {
+   "beforeMB": 2.28,
+   "afterMB": 2.6,
+   "ratio": 1.142
+  },
+  "weapons/v4 hyakki": {
+   "beforeMB": 2.5,
+   "afterMB": 1.48,
+   "ratio": 0.593
+  },
+  "weapons/v4 twin": {
+   "beforeMB": 2.25,
+   "afterMB": 1.55,
+   "ratio": 0.689
+  }
+ },
+ "sheets": [
+  {
+   "sheet": "fx/v3/dagger_awaken_in",
+   "beforeMB": 0.055,
+   "afterMB": 0.045,
+   "ratio": 0.817
+  },
+  {
+   "sheet": "fx/v3/dagger_backstab",
+   "beforeMB": 0.498,
+   "afterMB": 0.189,
+   "ratio": 0.38
+  },
+  {
+   "sheet": "fx/v3/dagger_brand_bleed",
+   "beforeMB": 0.037,
+   "afterMB": 0.018,
+   "ratio": 0.485
+  },
+  {
+   "sheet": "fx/v3/dagger_brand_burst",
+   "beforeMB": 0.688,
+   "afterMB": 0.606,
+   "ratio": 0.881
+  },
+  {
+   "sheet": "fx/v3/dagger_brand_hop",
+   "beforeMB": 0.011,
+   "afterMB": 0.005,
+   "ratio": 0.503
+  },
+  {
+   "sheet": "fx/v3/dagger_brand_mark",
+   "beforeMB": 0.077,
+   "afterMB": 0.052,
+   "ratio": 0.674
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1",
+   "beforeMB": 0.605,
+   "afterMB": 0.364,
+   "ratio": 0.601
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1_accel2",
+   "beforeMB": 0.733,
+   "afterMB": 0.525,
+   "ratio": 0.717
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1_accel3",
+   "beforeMB": 0.928,
+   "afterMB": 0.678,
+   "ratio": 0.73
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1_awaken",
+   "beforeMB": 0.169,
+   "afterMB": 0.364,
+   "ratio": 2.156
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1_gale",
+   "beforeMB": 0.334,
+   "afterMB": 0.224,
+   "ratio": 0.671
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1_gale_afterimage",
+   "beforeMB": 0.486,
+   "afterMB": 0.29,
+   "ratio": 0.597
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1_gale_assassin",
+   "beforeMB": 0.647,
+   "afterMB": 0.298,
+   "ratio": 0.46
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1_twin",
+   "beforeMB": 0.142,
+   "afterMB": 0.211,
+   "ratio": 1.487
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1_twin_bleed",
+   "beforeMB": 0.343,
+   "afterMB": 0.211,
+   "ratio": 0.616
+  },
+  {
+   "sheet": "fx/v3/dagger_combo1_twin_dance",
+   "beforeMB": 0.344,
+   "afterMB": 0.279,
+   "ratio": 0.811
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2",
+   "beforeMB": 0.484,
+   "afterMB": 0.418,
+   "ratio": 0.864
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2_accel2",
+   "beforeMB": 0.662,
+   "afterMB": 0.548,
+   "ratio": 0.828
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2_accel3",
+   "beforeMB": 0.961,
+   "afterMB": 0.696,
+   "ratio": 0.724
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2_awaken",
+   "beforeMB": 0.201,
+   "afterMB": 0.418,
+   "ratio": 2.076
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2_gale",
+   "beforeMB": 0.333,
+   "afterMB": 0.216,
+   "ratio": 0.647
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2_gale_afterimage",
+   "beforeMB": 0.487,
+   "afterMB": 0.28,
+   "ratio": 0.575
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2_gale_assassin",
+   "beforeMB": 0.649,
+   "afterMB": 0.29,
+   "ratio": 0.447
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2_twin",
+   "beforeMB": 0.146,
+   "afterMB": 0.214,
+   "ratio": 1.465
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2_twin_bleed",
+   "beforeMB": 0.335,
+   "afterMB": 0.214,
+   "ratio": 0.637
+  },
+  {
+   "sheet": "fx/v3/dagger_combo2_twin_dance",
+   "beforeMB": 0.344,
+   "afterMB": 0.286,
+   "ratio": 0.832
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3",
+   "beforeMB": 0.796,
+   "afterMB": 0.53,
+   "ratio": 0.666
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_accel2",
+   "beforeMB": 1.272,
+   "afterMB": 0.714,
+   "ratio": 0.561
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_accel3",
+   "beforeMB": 1.495,
+   "afterMB": 0.933,
+   "ratio": 0.624
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_awaken",
+   "beforeMB": 0.207,
+   "afterMB": 0.53,
+   "ratio": 2.553
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_double",
+   "beforeMB": 0.755,
+   "afterMB": 0.883,
+   "ratio": 1.17
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_double_awaken",
+   "beforeMB": 0.783,
+   "afterMB": 0.883,
+   "ratio": 1.128
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_gale",
+   "beforeMB": 0.636,
+   "afterMB": 0.333,
+   "ratio": 0.524
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_gale_afterimage",
+   "beforeMB": 0.797,
+   "afterMB": 0.406,
+   "ratio": 0.51
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_gale_assassin",
+   "beforeMB": 1.174,
+   "afterMB": 0.459,
+   "ratio": 0.391
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_twin",
+   "beforeMB": 0.237,
+   "afterMB": 0.303,
+   "ratio": 1.275
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_twin_bleed",
+   "beforeMB": 0.536,
+   "afterMB": 0.311,
+   "ratio": 0.579
+  },
+  {
+   "sheet": "fx/v3/dagger_combo3_twin_dance",
+   "beforeMB": 0.446,
+   "afterMB": 0.35,
+   "ratio": 0.784
+  },
+  {
+   "sheet": "fx/v3/dagger_cross_clone",
+   "beforeMB": 1.674,
+   "afterMB": 1.801,
+   "ratio": 1.075
+  },
+  {
+   "sheet": "fx/v3/dagger_fan_throw",
+   "beforeMB": 0.48,
+   "afterMB": 0.191,
+   "ratio": 0.398
+  },
+  {
+   "sheet": "fx/v3/dagger_flurry",
+   "beforeMB": 0.716,
+   "afterMB": 0.749,
+   "ratio": 1.045
+  },
+  {
+   "sheet": "fx/v3/dagger_flurry_awaken",
+   "beforeMB": 0.753,
+   "afterMB": 0.749,
+   "ratio": 0.995
+  },
+  {
+   "sheet": "fx/v3/dagger_flurry_heat2",
+   "beforeMB": 0.906,
+   "afterMB": 1.021,
+   "ratio": 1.127
+  },
+  {
+   "sheet": "fx/v3/dagger_flurry_heat3",
+   "beforeMB": 1.545,
+   "afterMB": 1.149,
+   "ratio": 0.744
+  },
+  {
+   "sheet": "fx/v3/dagger_hundred_ghosts",
+   "beforeMB": 0.542,
+   "afterMB": 0.852,
+   "ratio": 1.571
+  },
+  {
+   "sheet": "fx/v3/dagger_stuck_blade",
+   "beforeMB": 0.029,
+   "afterMB": 0.014,
+   "ratio": 0.477
+  },
+  {
+   "sheet": "fx/v3/dagger_thrown",
+   "beforeMB": 0.006,
+   "afterMB": 0.004,
+   "ratio": 0.735
+  },
+  {
+   "sheet": "fx/v3/hit_dagger",
+   "beforeMB": 0.047,
+   "afterMB": 0.037,
+   "ratio": 0.788
+  },
+  {
+   "sheet": "fx/v3/hit_dagger_heavy",
+   "beforeMB": 0.121,
+   "afterMB": 0.085,
+   "ratio": 0.707
+  },
+  {
+   "sheet": "fx/v3/shadowstep_ghost",
+   "beforeMB": 0.444,
+   "afterMB": 0.498,
+   "ratio": 1.12
+  },
+  {
+   "sheet": "weapons/v3/dagger_backstab",
+   "beforeMB": 0.073,
+   "afterMB": 0.086,
+   "ratio": 1.172
+  },
+  {
+   "sheet": "weapons/v3/dagger_backstab_awaken",
+   "beforeMB": 0.25,
+   "afterMB": 0.095,
+   "ratio": 0.381
+  },
+  {
+   "sheet": "weapons/v3/dagger_carry_dash",
+   "beforeMB": 0.027,
+   "afterMB": 0.032,
+   "ratio": 1.187
+  },
+  {
+   "sheet": "weapons/v3/dagger_carry_dash_awaken",
+   "beforeMB": 0.083,
+   "afterMB": 0.038,
+   "ratio": 0.458
+  },
+  {
+   "sheet": "weapons/v3/dagger_carry_idle",
+   "beforeMB": 0.044,
+   "afterMB": 0.048,
+   "ratio": 1.077
+  },
+  {
+   "sheet": "weapons/v3/dagger_carry_idle_awaken",
+   "beforeMB": 0.132,
+   "afterMB": 0.065,
+   "ratio": 0.489
+  },
+  {
+   "sheet": "weapons/v3/dagger_carry_run",
+   "beforeMB": 0.049,
+   "afterMB": 0.057,
+   "ratio": 1.147
+  },
+  {
+   "sheet": "weapons/v3/dagger_carry_run_awaken",
+   "beforeMB": 0.154,
+   "afterMB": 0.07,
+   "ratio": 0.455
+  },
+  {
+   "sheet": "weapons/v3/dagger_carry_walk",
+   "beforeMB": 0.072,
+   "afterMB": 0.071,
+   "ratio": 0.981
+  },
+  {
+   "sheet": "weapons/v3/dagger_carry_walk_awaken",
+   "beforeMB": 0.193,
+   "afterMB": 0.093,
+   "ratio": 0.485
+  },
+  {
+   "sheet": "weapons/v3/dagger_combo1",
+   "beforeMB": 0.05,
+   "afterMB": 0.054,
+   "ratio": 1.074
+  },
+  {
+   "sheet": "weapons/v3/dagger_combo1_awaken",
+   "beforeMB": 0.154,
+   "afterMB": 0.058,
+   "ratio": 0.374
+  },
+  {
+   "sheet": "weapons/v3/dagger_combo2",
+   "beforeMB": 0.048,
+   "afterMB": 0.049,
+   "ratio": 1.037
+  },
+  {
+   "sheet": "weapons/v3/dagger_combo2_awaken",
+   "beforeMB": 0.154,
+   "afterMB": 0.055,
+   "ratio": 0.356
+  },
+  {
+   "sheet": "weapons/v3/dagger_combo3",
+   "beforeMB": 0.064,
+   "afterMB": 0.072,
+   "ratio": 1.12
+  },
+  {
+   "sheet": "weapons/v3/dagger_combo3_awaken",
+   "beforeMB": 0.203,
+   "afterMB": 0.081,
+   "ratio": 0.398
+  },
+  {
+   "sheet": "weapons/v3/dagger_fan_throw",
+   "beforeMB": 0.059,
+   "afterMB": 0.048,
+   "ratio": 0.819
+  },
+  {
+   "sheet": "weapons/v3/dagger_fan_throw_awaken",
+   "beforeMB": 0.117,
+   "afterMB": 0.038,
+   "ratio": 0.327
+  },
+  {
+   "sheet": "weapons/v3/dagger_flurry",
+   "beforeMB": 0.077,
+   "afterMB": 0.082,
+   "ratio": 1.065
+  },
+  {
+   "sheet": "weapons/v3/dagger_flurry_awaken",
+   "beforeMB": 0.241,
+   "afterMB": 0.091,
+   "ratio": 0.378
+  },
+  {
+   "sheet": "weapons/v3/dagger_special",
+   "beforeMB": 0.059,
+   "afterMB": 0.063,
+   "ratio": 1.068
+  },
+  {
+   "sheet": "weapons/v3/dagger_special_awaken",
+   "beforeMB": 0.177,
+   "afterMB": 0.081,
+   "ratio": 0.456
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_backstab",
+   "beforeMB": 0.094,
+   "afterMB": 0.111,
+   "ratio": 1.183
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_carry_dash",
+   "beforeMB": 0.035,
+   "afterMB": 0.042,
+   "ratio": 1.203
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_carry_idle",
+   "beforeMB": 0.045,
+   "afterMB": 0.072,
+   "ratio": 1.608
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_carry_run",
+   "beforeMB": 0.064,
+   "afterMB": 0.08,
+   "ratio": 1.241
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_carry_walk",
+   "beforeMB": 0.068,
+   "afterMB": 0.097,
+   "ratio": 1.425
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_combo1",
+   "beforeMB": 0.058,
+   "afterMB": 0.07,
+   "ratio": 1.2
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_combo2",
+   "beforeMB": 0.054,
+   "afterMB": 0.072,
+   "ratio": 1.325
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_combo3",
+   "beforeMB": 0.078,
+   "afterMB": 0.102,
+   "ratio": 1.312
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_fan_throw",
+   "beforeMB": 0.022,
+   "afterMB": 0.024,
+   "ratio": 1.111
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_flurry",
+   "beforeMB": 0.098,
+   "afterMB": 0.119,
+   "ratio": 1.217
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a1_special",
+   "beforeMB": 0.078,
+   "afterMB": 0.098,
+   "ratio": 1.252
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_backstab",
+   "beforeMB": 0.087,
+   "afterMB": 0.08,
+   "ratio": 0.921
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_carry_dash",
+   "beforeMB": 0.033,
+   "afterMB": 0.049,
+   "ratio": 1.469
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_carry_idle",
+   "beforeMB": 0.048,
+   "afterMB": 0.073,
+   "ratio": 1.513
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_carry_run",
+   "beforeMB": 0.068,
+   "afterMB": 0.1,
+   "ratio": 1.483
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_carry_walk",
+   "beforeMB": 0.07,
+   "afterMB": 0.098,
+   "ratio": 1.406
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_combo1",
+   "beforeMB": 0.053,
+   "afterMB": 0.057,
+   "ratio": 1.075
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_combo2",
+   "beforeMB": 0.057,
+   "afterMB": 0.061,
+   "ratio": 1.078
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_combo3",
+   "beforeMB": 0.071,
+   "afterMB": 0.09,
+   "ratio": 1.265
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_fan_throw",
+   "beforeMB": 0.019,
+   "afterMB": 0.03,
+   "ratio": 1.557
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_flurry",
+   "beforeMB": 0.092,
+   "afterMB": 0.101,
+   "ratio": 1.099
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_backstab",
+   "beforeMB": 0.131,
+   "afterMB": 0.098,
+   "ratio": 0.751
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_carry_dash",
+   "beforeMB": 0.044,
+   "afterMB": 0.038,
+   "ratio": 0.864
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_carry_idle",
+   "beforeMB": 0.07,
+   "afterMB": 0.085,
+   "ratio": 1.214
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_carry_run",
+   "beforeMB": 0.08,
+   "afterMB": 0.089,
+   "ratio": 1.115
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_carry_walk",
+   "beforeMB": 0.098,
+   "afterMB": 0.113,
+   "ratio": 1.148
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_combo1",
+   "beforeMB": 0.064,
+   "afterMB": 0.067,
+   "ratio": 1.044
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_combo2",
+   "beforeMB": 0.069,
+   "afterMB": 0.069,
+   "ratio": 1.009
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_combo3",
+   "beforeMB": 0.092,
+   "afterMB": 0.101,
+   "ratio": 1.1
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_fan_throw",
+   "beforeMB": 0.047,
+   "afterMB": 0.031,
+   "ratio": 0.653
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_flurry",
+   "beforeMB": 0.112,
+   "afterMB": 0.113,
+   "ratio": 1.009
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_glow_special",
+   "beforeMB": 0.109,
+   "afterMB": 0.093,
+   "ratio": 0.861
+  },
+  {
+   "sheet": "weapons/v4/dagger_gale_a2_special",
+   "beforeMB": 0.072,
+   "afterMB": 0.079,
+   "ratio": 1.095
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_backstab",
+   "beforeMB": 0.25,
+   "afterMB": 0.095,
+   "ratio": 0.381
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_carry_dash",
+   "beforeMB": 0.083,
+   "afterMB": 0.038,
+   "ratio": 0.458
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_carry_idle",
+   "beforeMB": 0.132,
+   "afterMB": 0.065,
+   "ratio": 0.489
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_carry_run",
+   "beforeMB": 0.154,
+   "afterMB": 0.07,
+   "ratio": 0.455
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_carry_walk",
+   "beforeMB": 0.193,
+   "afterMB": 0.093,
+   "ratio": 0.485
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_combo1",
+   "beforeMB": 0.154,
+   "afterMB": 0.058,
+   "ratio": 0.374
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_combo2",
+   "beforeMB": 0.154,
+   "afterMB": 0.055,
+   "ratio": 0.356
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_combo3",
+   "beforeMB": 0.203,
+   "afterMB": 0.081,
+   "ratio": 0.398
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_fan_throw",
+   "beforeMB": 0.117,
+   "afterMB": 0.038,
+   "ratio": 0.327
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_flurry",
+   "beforeMB": 0.241,
+   "afterMB": 0.091,
+   "ratio": 0.378
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a1_special",
+   "beforeMB": 0.177,
+   "afterMB": 0.081,
+   "ratio": 0.456
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_backstab",
+   "beforeMB": 0.039,
+   "afterMB": 0.033,
+   "ratio": 0.858
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_carry_dash",
+   "beforeMB": 0.016,
+   "afterMB": 0.022,
+   "ratio": 1.371
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_carry_idle",
+   "beforeMB": 0.024,
+   "afterMB": 0.023,
+   "ratio": 0.963
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_carry_run",
+   "beforeMB": 0.036,
+   "afterMB": 0.038,
+   "ratio": 1.066
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_carry_walk",
+   "beforeMB": 0.035,
+   "afterMB": 0.031,
+   "ratio": 0.863
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_combo1",
+   "beforeMB": 0.023,
+   "afterMB": 0.024,
+   "ratio": 1.026
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_combo2",
+   "beforeMB": 0.027,
+   "afterMB": 0.025,
+   "ratio": 0.931
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_combo3",
+   "beforeMB": 0.037,
+   "afterMB": 0.038,
+   "ratio": 1.02
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_fan_throw",
+   "beforeMB": 0.009,
+   "afterMB": 0.004,
+   "ratio": 0.456
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_flurry",
+   "beforeMB": 0.041,
+   "afterMB": 0.043,
+   "ratio": 1.043
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_backstab",
+   "beforeMB": 0.036,
+   "afterMB": 0.04,
+   "ratio": 1.104
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_carry_dash",
+   "beforeMB": 0.016,
+   "afterMB": 0.025,
+   "ratio": 1.557
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_carry_idle",
+   "beforeMB": 0.027,
+   "afterMB": 0.032,
+   "ratio": 1.181
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_carry_run",
+   "beforeMB": 0.035,
+   "afterMB": 0.048,
+   "ratio": 1.4
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_carry_walk",
+   "beforeMB": 0.04,
+   "afterMB": 0.043,
+   "ratio": 1.088
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_combo1",
+   "beforeMB": 0.024,
+   "afterMB": 0.028,
+   "ratio": 1.158
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_combo2",
+   "beforeMB": 0.025,
+   "afterMB": 0.031,
+   "ratio": 1.273
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_combo3",
+   "beforeMB": 0.034,
+   "afterMB": 0.046,
+   "ratio": 1.365
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_fan_throw",
+   "beforeMB": 0.011,
+   "afterMB": 0.011,
+   "ratio": 1.024
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_flurry",
+   "beforeMB": 0.035,
+   "afterMB": 0.056,
+   "ratio": 1.579
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_glow_special",
+   "beforeMB": 0.035,
+   "afterMB": 0.042,
+   "ratio": 1.196
+  },
+  {
+   "sheet": "weapons/v4/dagger_hyakki_a2_special",
+   "beforeMB": 0.035,
+   "afterMB": 0.034,
+   "ratio": 0.979
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_backstab",
+   "beforeMB": 0.086,
+   "afterMB": 0.088,
+   "ratio": 1.021
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_carry_dash",
+   "beforeMB": 0.033,
+   "afterMB": 0.037,
+   "ratio": 1.128
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_carry_idle",
+   "beforeMB": 0.051,
+   "afterMB": 0.051,
+   "ratio": 0.996
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_carry_run",
+   "beforeMB": 0.061,
+   "afterMB": 0.062,
+   "ratio": 1.024
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_carry_walk",
+   "beforeMB": 0.079,
+   "afterMB": 0.073,
+   "ratio": 0.92
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_combo1",
+   "beforeMB": 0.058,
+   "afterMB": 0.057,
+   "ratio": 0.994
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_combo2",
+   "beforeMB": 0.057,
+   "afterMB": 0.05,
+   "ratio": 0.882
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_combo3",
+   "beforeMB": 0.078,
+   "afterMB": 0.077,
+   "ratio": 0.993
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_fan_throw",
+   "beforeMB": 0.024,
+   "afterMB": 0.021,
+   "ratio": 0.875
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_flurry",
+   "beforeMB": 0.09,
+   "afterMB": 0.089,
+   "ratio": 0.991
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a1_special",
+   "beforeMB": 0.069,
+   "afterMB": 0.073,
+   "ratio": 1.063
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_backstab",
+   "beforeMB": 0.102,
+   "afterMB": 0.052,
+   "ratio": 0.511
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_carry_dash",
+   "beforeMB": 0.038,
+   "afterMB": 0.025,
+   "ratio": 0.662
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_carry_idle",
+   "beforeMB": 0.06,
+   "afterMB": 0.036,
+   "ratio": 0.603
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_carry_run",
+   "beforeMB": 0.065,
+   "afterMB": 0.047,
+   "ratio": 0.719
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_carry_walk",
+   "beforeMB": 0.082,
+   "afterMB": 0.046,
+   "ratio": 0.558
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_combo1",
+   "beforeMB": 0.06,
+   "afterMB": 0.033,
+   "ratio": 0.556
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_combo2",
+   "beforeMB": 0.062,
+   "afterMB": 0.037,
+   "ratio": 0.603
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_combo3",
+   "beforeMB": 0.086,
+   "afterMB": 0.05,
+   "ratio": 0.582
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_fan_throw",
+   "beforeMB": 0.019,
+   "afterMB": 0.005,
+   "ratio": 0.263
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_flurry",
+   "beforeMB": 0.105,
+   "afterMB": 0.059,
+   "ratio": 0.566
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_backstab",
+   "beforeMB": 0.098,
+   "afterMB": 0.05,
+   "ratio": 0.511
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_carry_dash",
+   "beforeMB": 0.035,
+   "afterMB": 0.017,
+   "ratio": 0.487
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_carry_idle",
+   "beforeMB": 0.066,
+   "afterMB": 0.041,
+   "ratio": 0.633
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_carry_run",
+   "beforeMB": 0.076,
+   "afterMB": 0.037,
+   "ratio": 0.488
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_carry_walk",
+   "beforeMB": 0.093,
+   "afterMB": 0.055,
+   "ratio": 0.596
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_combo1",
+   "beforeMB": 0.06,
+   "afterMB": 0.035,
+   "ratio": 0.572
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_combo2",
+   "beforeMB": 0.062,
+   "afterMB": 0.033,
+   "ratio": 0.53
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_combo3",
+   "beforeMB": 0.082,
+   "afterMB": 0.047,
+   "ratio": 0.567
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_fan_throw",
+   "beforeMB": 0.048,
+   "afterMB": 0.017,
+   "ratio": 0.351
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_flurry",
+   "beforeMB": 0.102,
+   "afterMB": 0.052,
+   "ratio": 0.514
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_glow_special",
+   "beforeMB": 0.077,
+   "afterMB": 0.042,
+   "ratio": 0.539
+  },
+  {
+   "sheet": "weapons/v4/dagger_twin_a2_special",
+   "beforeMB": 0.085,
+   "afterMB": 0.054,
+   "ratio": 0.632
+  }
+ ]
+}

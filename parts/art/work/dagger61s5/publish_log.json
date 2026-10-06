@@ -1,0 +1,2225 @@
+[
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_awaken_in",
+  "pages": [
+   [
+    "dagger_awaken_in.png",
+    296,
+    40
+   ]
+  ],
+  "gpuAfterMB": 0.0452
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_backstab",
+  "pages": [
+   [
+    "dagger_backstab.png",
+    205,
+    242
+   ]
+  ],
+  "gpuAfterMB": 0.1892
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_brand_bleed",
+  "pages": [
+   [
+    "dagger_brand_bleed.png",
+    16,
+    290
+   ]
+  ],
+  "gpuAfterMB": 0.0177
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_brand_burst",
+  "pages": [
+   [
+    "dagger_brand_burst.png",
+    309,
+    514
+   ]
+  ],
+  "gpuAfterMB": 0.6059
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_brand_hop",
+  "pages": [
+   [
+    "dagger_brand_hop.png",
+    100,
+    14
+   ]
+  ],
+  "gpuAfterMB": 0.0053
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_brand_mark",
+  "pages": [
+   [
+    "dagger_brand_mark.png",
+    67,
+    203
+   ]
+  ],
+  "gpuAfterMB": 0.0519
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1",
+  "pages": [
+   [
+    "dagger_combo1.png",
+    463,
+    206
+   ]
+  ],
+  "gpuAfterMB": 0.3638
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1_accel2",
+  "pages": [
+   [
+    "dagger_combo1_accel2.png",
+    179,
+    769
+   ]
+  ],
+  "gpuAfterMB": 0.5251
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1_accel3",
+  "pages": [
+   [
+    "dagger_combo1_accel3.png",
+    273,
+    651
+   ]
+  ],
+  "gpuAfterMB": 0.678
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1_awaken",
+  "pages": [
+   [
+    "dagger_combo1_awaken.png",
+    463,
+    206
+   ]
+  ],
+  "gpuAfterMB": 0.3638
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1_gale",
+  "pages": [
+   [
+    "dagger_combo1_gale.png",
+    96,
+    612
+   ]
+  ],
+  "gpuAfterMB": 0.2241
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1_gale_afterimage",
+  "pages": [
+   [
+    "dagger_combo1_gale_afterimage.png",
+    187,
+    407
+   ]
+  ],
+  "gpuAfterMB": 0.2903
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1_gale_assassin",
+  "pages": [
+   [
+    "dagger_combo1_gale_assassin.png",
+    284,
+    275
+   ]
+  ],
+  "gpuAfterMB": 0.2979
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1_twin",
+  "pages": [
+   [
+    "dagger_combo1_twin.png",
+    94,
+    589
+   ]
+  ],
+  "gpuAfterMB": 0.2112
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1_twin_bleed",
+  "pages": [
+   [
+    "dagger_combo1_twin_bleed.png",
+    94,
+    589
+   ]
+  ],
+  "gpuAfterMB": 0.2112
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo1_twin_dance",
+  "pages": [
+   [
+    "dagger_combo1_twin_dance.png",
+    291,
+    251
+   ]
+  ],
+  "gpuAfterMB": 0.2786
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2",
+  "pages": [
+   [
+    "dagger_combo2.png",
+    220,
+    498
+   ]
+  ],
+  "gpuAfterMB": 0.4179
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2_accel2",
+  "pages": [
+   [
+    "dagger_combo2_accel2.png",
+    353,
+    407
+   ]
+  ],
+  "gpuAfterMB": 0.5481
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2_accel3",
+  "pages": [
+   [
+    "dagger_combo2_accel3.png",
+    282,
+    647
+   ]
+  ],
+  "gpuAfterMB": 0.696
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2_awaken",
+  "pages": [
+   [
+    "dagger_combo2_awaken.png",
+    220,
+    498
+   ]
+  ],
+  "gpuAfterMB": 0.4179
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2_gale",
+  "pages": [
+   [
+    "dagger_combo2_gale.png",
+    96,
+    589
+   ]
+  ],
+  "gpuAfterMB": 0.2157
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2_gale_afterimage",
+  "pages": [
+   [
+    "dagger_combo2_gale_afterimage.png",
+    363,
+    202
+   ]
+  ],
+  "gpuAfterMB": 0.2797
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2_gale_assassin",
+  "pages": [
+   [
+    "dagger_combo2_gale_assassin.png",
+    249,
+    305
+   ]
+  ],
+  "gpuAfterMB": 0.2897
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2_twin",
+  "pages": [
+   [
+    "dagger_combo2_twin.png",
+    174,
+    322
+   ]
+  ],
+  "gpuAfterMB": 0.2137
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2_twin_bleed",
+  "pages": [
+   [
+    "dagger_combo2_twin_bleed.png",
+    174,
+    322
+   ]
+  ],
+  "gpuAfterMB": 0.2137
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo2_twin_dance",
+  "pages": [
+   [
+    "dagger_combo2_twin_dance.png",
+    280,
+    268
+   ]
+  ],
+  "gpuAfterMB": 0.2863
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3",
+  "pages": [
+   [
+    "dagger_combo3.png",
+    231,
+    601
+   ]
+  ],
+  "gpuAfterMB": 0.5296
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_accel2",
+  "pages": [
+   [
+    "dagger_combo3_accel2.png",
+    207,
+    904
+   ]
+  ],
+  "gpuAfterMB": 0.7138
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_accel3",
+  "pages": [
+   [
+    "dagger_combo3_accel3.png",
+    227,
+    1077
+   ]
+  ],
+  "gpuAfterMB": 0.9326
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_awaken",
+  "pages": [
+   [
+    "dagger_combo3_awaken.png",
+    231,
+    601
+   ]
+  ],
+  "gpuAfterMB": 0.5296
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_double",
+  "pages": [
+   [
+    "dagger_combo3_double.png",
+    415,
+    558
+   ]
+  ],
+  "gpuAfterMB": 0.8834
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_double_awaken",
+  "pages": [
+   [
+    "dagger_combo3_double_awaken.png",
+    415,
+    558
+   ]
+  ],
+  "gpuAfterMB": 0.8834
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_gale",
+  "pages": [
+   [
+    "dagger_combo3_gale.png",
+    198,
+    441
+   ]
+  ],
+  "gpuAfterMB": 0.3331
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_gale_afterimage",
+  "pages": [
+   [
+    "dagger_combo3_gale_afterimage.png",
+    337,
+    316
+   ]
+  ],
+  "gpuAfterMB": 0.4062
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_gale_assassin",
+  "pages": [
+   [
+    "dagger_combo3_gale_assassin.png",
+    294,
+    409
+   ]
+  ],
+  "gpuAfterMB": 0.4587
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_twin",
+  "pages": [
+   [
+    "dagger_combo3_twin.png",
+    210,
+    378
+   ]
+  ],
+  "gpuAfterMB": 0.3028
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_twin_bleed",
+  "pages": [
+   [
+    "dagger_combo3_twin_bleed.png",
+    275,
+    296
+   ]
+  ],
+  "gpuAfterMB": 0.3105
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_combo3_twin_dance",
+  "pages": [
+   [
+    "dagger_combo3_twin_dance.png",
+    292,
+    314
+   ]
+  ],
+  "gpuAfterMB": 0.3498
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_cross_clone",
+  "pages": [
+   [
+    "dagger_cross_clone.png",
+    324,
+    1457
+   ]
+  ],
+  "gpuAfterMB": 1.8008
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_fan_throw",
+  "pages": [
+   [
+    "dagger_fan_throw.png",
+    102,
+    491
+   ]
+  ],
+  "gpuAfterMB": 0.191
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_flurry",
+  "pages": [
+   [
+    "dagger_flurry.png",
+    147,
+    1335
+   ]
+  ],
+  "gpuAfterMB": 0.7486
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_flurry_awaken",
+  "pages": [
+   [
+    "dagger_flurry_awaken.png",
+    147,
+    1335
+   ]
+  ],
+  "gpuAfterMB": 0.7486
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_flurry_heat2",
+  "pages": [
+   [
+    "dagger_flurry_heat2.png",
+    297,
+    901
+   ]
+  ],
+  "gpuAfterMB": 1.0208
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_flurry_heat3",
+  "pages": [
+   [
+    "dagger_flurry_heat3.png",
+    1046,
+    288
+   ]
+  ],
+  "gpuAfterMB": 1.1492
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_hundred_ghosts",
+  "pages": [
+   [
+    "dagger_hundred_ghosts.png",
+    436,
+    512
+   ]
+  ],
+  "gpuAfterMB": 0.8516
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_stuck_blade",
+  "pages": [
+   [
+    "dagger_stuck_blade.png",
+    111,
+    33
+   ]
+  ],
+  "gpuAfterMB": 0.014
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "dagger_thrown",
+  "pages": [
+   [
+    "dagger_thrown.png",
+    123,
+    9
+   ]
+  ],
+  "gpuAfterMB": 0.0042
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "hit_dagger",
+  "pages": [
+   [
+    "hit_dagger.png",
+    72,
+    134
+   ]
+  ],
+  "gpuAfterMB": 0.0368
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "hit_dagger_heavy",
+  "pages": [
+   [
+    "hit_dagger_heavy.png",
+    361,
+    62
+   ]
+  ],
+  "gpuAfterMB": 0.0854
+ },
+ {
+  "cat": "fx",
+  "sub": "v3",
+  "name": "shadowstep_ghost",
+  "pages": [
+   [
+    "shadowstep_ghost.png",
+    1027,
+    127
+   ]
+  ],
+  "gpuAfterMB": 0.4975
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_backstab",
+  "pages": [
+   [
+    "dagger_backstab.png",
+    101,
+    223
+   ]
+  ],
+  "gpuAfterMB": 0.0859
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_backstab_awaken",
+  "pages": [
+   [
+    "dagger_backstab_awaken.png",
+    76,
+    329
+   ]
+  ],
+  "gpuAfterMB": 0.0954
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_carry_dash",
+  "pages": [
+   [
+    "dagger_carry_dash.png",
+    53,
+    159
+   ]
+  ],
+  "gpuAfterMB": 0.0321
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_carry_dash_awaken",
+  "pages": [
+   [
+    "dagger_carry_dash_awaken.png",
+    43,
+    231
+   ]
+  ],
+  "gpuAfterMB": 0.0379
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_carry_idle",
+  "pages": [
+   [
+    "dagger_carry_idle.png",
+    64,
+    196
+   ]
+  ],
+  "gpuAfterMB": 0.0479
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_carry_idle_awaken",
+  "pages": [
+   [
+    "dagger_carry_idle_awaken.png",
+    112,
+    151
+   ]
+  ],
+  "gpuAfterMB": 0.0645
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_carry_run",
+  "pages": [
+   [
+    "dagger_carry_run.png",
+    40,
+    371
+   ]
+  ],
+  "gpuAfterMB": 0.0566
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_carry_run_awaken",
+  "pages": [
+   [
+    "dagger_carry_run_awaken.png",
+    118,
+    156
+   ]
+  ],
+  "gpuAfterMB": 0.0702
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_carry_walk",
+  "pages": [
+   [
+    "dagger_carry_walk.png",
+    64,
+    291
+   ]
+  ],
+  "gpuAfterMB": 0.071
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_carry_walk_awaken",
+  "pages": [
+   [
+    "dagger_carry_walk_awaken.png",
+    76,
+    322
+   ]
+  ],
+  "gpuAfterMB": 0.0934
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_combo1",
+  "pages": [
+   [
+    "dagger_combo1.png",
+    42,
+    337
+   ]
+  ],
+  "gpuAfterMB": 0.054
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_combo1_awaken",
+  "pages": [
+   [
+    "dagger_combo1_awaken.png",
+    100,
+    151
+   ]
+  ],
+  "gpuAfterMB": 0.0576
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_combo2",
+  "pages": [
+   [
+    "dagger_combo2.png",
+    77,
+    168
+   ]
+  ],
+  "gpuAfterMB": 0.0493
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_combo2_awaken",
+  "pages": [
+   [
+    "dagger_combo2_awaken.png",
+    126,
+    114
+   ]
+  ],
+  "gpuAfterMB": 0.0548
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_combo3",
+  "pages": [
+   [
+    "dagger_combo3.png",
+    119,
+    159
+   ]
+  ],
+  "gpuAfterMB": 0.0722
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_combo3_awaken",
+  "pages": [
+   [
+    "dagger_combo3_awaken.png",
+    84,
+    252
+   ]
+  ],
+  "gpuAfterMB": 0.0807
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_fan_throw",
+  "pages": [
+   [
+    "dagger_fan_throw.png",
+    38,
+    332
+   ]
+  ],
+  "gpuAfterMB": 0.0481
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_fan_throw_awaken",
+  "pages": [
+   [
+    "dagger_fan_throw_awaken.png",
+    36,
+    279
+   ]
+  ],
+  "gpuAfterMB": 0.0383
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_flurry",
+  "pages": [
+   [
+    "dagger_flurry.png",
+    100,
+    214
+   ]
+  ],
+  "gpuAfterMB": 0.0816
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_flurry_awaken",
+  "pages": [
+   [
+    "dagger_flurry_awaken.png",
+    135,
+    177
+   ]
+  ],
+  "gpuAfterMB": 0.0912
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_special",
+  "pages": [
+   [
+    "dagger_special.png",
+    39,
+    421
+   ]
+  ],
+  "gpuAfterMB": 0.0626
+ },
+ {
+  "cat": "weapons",
+  "sub": "v3",
+  "name": "dagger_special_awaken",
+  "pages": [
+   [
+    "dagger_special_awaken.png",
+    39,
+    544
+   ]
+  ],
+  "gpuAfterMB": 0.0809
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_backstab",
+  "pages": [
+   [
+    "dagger_gale_a1_backstab.png",
+    115,
+    254
+   ]
+  ],
+  "gpuAfterMB": 0.1114
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_carry_dash",
+  "pages": [
+   [
+    "dagger_gale_a1_carry_dash.png",
+    47,
+    233
+   ]
+  ],
+  "gpuAfterMB": 0.0418
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_carry_idle",
+  "pages": [
+   [
+    "dagger_gale_a1_carry_idle.png",
+    75,
+    251
+   ]
+  ],
+  "gpuAfterMB": 0.0718
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_carry_run",
+  "pages": [
+   [
+    "dagger_gale_a1_carry_run.png",
+    225,
+    93
+   ]
+  ],
+  "gpuAfterMB": 0.0798
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_carry_walk",
+  "pages": [
+   [
+    "dagger_gale_a1_carry_walk.png",
+    78,
+    327
+   ]
+  ],
+  "gpuAfterMB": 0.0973
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_combo1",
+  "pages": [
+   [
+    "dagger_gale_a1_combo1.png",
+    261,
+    70
+   ]
+  ],
+  "gpuAfterMB": 0.0697
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_combo2",
+  "pages": [
+   [
+    "dagger_gale_a1_combo2.png",
+    140,
+    135
+   ]
+  ],
+  "gpuAfterMB": 0.0721
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_combo3",
+  "pages": [
+   [
+    "dagger_gale_a1_combo3.png",
+    79,
+    339
+   ]
+  ],
+  "gpuAfterMB": 0.1022
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_fan_throw",
+  "pages": [
+   [
+    "dagger_gale_a1_fan_throw.png",
+    39,
+    163
+   ]
+  ],
+  "gpuAfterMB": 0.0243
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_flurry",
+  "pages": [
+   [
+    "dagger_gale_a1_flurry.png",
+    119,
+    263
+   ]
+  ],
+  "gpuAfterMB": 0.1194
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a1_special",
+  "pages": [
+   [
+    "dagger_gale_a1_special.png",
+    91,
+    283
+   ]
+  ],
+  "gpuAfterMB": 0.0982
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_backstab",
+  "pages": [
+   [
+    "dagger_gale_a2_backstab.png",
+    110,
+    191
+   ]
+  ],
+  "gpuAfterMB": 0.0801
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_carry_dash",
+  "pages": [
+   [
+    "dagger_gale_a2_carry_dash.png",
+    53,
+    240
+   ]
+  ],
+  "gpuAfterMB": 0.0485
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_carry_idle",
+  "pages": [
+   [
+    "dagger_gale_a2_carry_idle.png",
+    143,
+    134
+   ]
+  ],
+  "gpuAfterMB": 0.0731
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_carry_run",
+  "pages": [
+   [
+    "dagger_gale_a2_carry_run.png",
+    139,
+    189
+   ]
+  ],
+  "gpuAfterMB": 0.1002
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_carry_walk",
+  "pages": [
+   [
+    "dagger_gale_a2_carry_walk.png",
+    390,
+    66
+   ]
+  ],
+  "gpuAfterMB": 0.0982
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_combo1",
+  "pages": [
+   [
+    "dagger_gale_a2_combo1.png",
+    111,
+    134
+   ]
+  ],
+  "gpuAfterMB": 0.0567
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_combo2",
+  "pages": [
+   [
+    "dagger_gale_a2_combo2.png",
+    108,
+    149
+   ]
+  ],
+  "gpuAfterMB": 0.0614
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_combo3",
+  "pages": [
+   [
+    "dagger_gale_a2_combo3.png",
+    140,
+    168
+   ]
+  ],
+  "gpuAfterMB": 0.0897
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_fan_throw",
+  "pages": [
+   [
+    "dagger_gale_a2_fan_throw.png",
+    33,
+    235
+   ]
+  ],
+  "gpuAfterMB": 0.0296
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_flurry",
+  "pages": [
+   [
+    "dagger_gale_a2_flurry.png",
+    92,
+    287
+   ]
+  ],
+  "gpuAfterMB": 0.1007
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_backstab",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_backstab.png",
+    113,
+    228
+   ]
+  ],
+  "gpuAfterMB": 0.0983
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_carry_dash",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_carry_dash.png",
+    106,
+    94
+   ]
+  ],
+  "gpuAfterMB": 0.038
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_carry_idle",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_carry_idle.png",
+    24,
+    932
+   ]
+  ],
+  "gpuAfterMB": 0.0853
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_carry_run",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_carry_run.png",
+    134,
+    174
+   ]
+  ],
+  "gpuAfterMB": 0.0889
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_carry_walk",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_carry_walk.png",
+    179,
+    165
+   ]
+  ],
+  "gpuAfterMB": 0.1127
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_combo1",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_combo1.png",
+    100,
+    176
+   ]
+  ],
+  "gpuAfterMB": 0.0671
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_combo2",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_combo2.png",
+    139,
+    131
+   ]
+  ],
+  "gpuAfterMB": 0.0695
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_combo3",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_combo3.png",
+    93,
+    284
+   ]
+  ],
+  "gpuAfterMB": 0.1008
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_fan_throw",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_fan_throw.png",
+    159,
+    51
+   ]
+  ],
+  "gpuAfterMB": 0.0309
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_flurry",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_flurry.png",
+    115,
+    258
+   ]
+  ],
+  "gpuAfterMB": 0.1132
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_glow_special",
+  "pages": [
+   [
+    "dagger_gale_a2_glow_special.png",
+    187,
+    131
+   ]
+  ],
+  "gpuAfterMB": 0.0934
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_gale_a2_special",
+  "pages": [
+   [
+    "dagger_gale_a2_special.png",
+    140,
+    147
+   ]
+  ],
+  "gpuAfterMB": 0.0785
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_backstab",
+  "pages": [
+   [
+    "dagger_hyakki_a1_backstab.png",
+    76,
+    329
+   ]
+  ],
+  "gpuAfterMB": 0.0954
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_carry_dash",
+  "pages": [
+   [
+    "dagger_hyakki_a1_carry_dash.png",
+    43,
+    231
+   ]
+  ],
+  "gpuAfterMB": 0.0379
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_carry_idle",
+  "pages": [
+   [
+    "dagger_hyakki_a1_carry_idle.png",
+    112,
+    151
+   ]
+  ],
+  "gpuAfterMB": 0.0645
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_carry_run",
+  "pages": [
+   [
+    "dagger_hyakki_a1_carry_run.png",
+    118,
+    156
+   ]
+  ],
+  "gpuAfterMB": 0.0702
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_carry_walk",
+  "pages": [
+   [
+    "dagger_hyakki_a1_carry_walk.png",
+    76,
+    322
+   ]
+  ],
+  "gpuAfterMB": 0.0934
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_combo1",
+  "pages": [
+   [
+    "dagger_hyakki_a1_combo1.png",
+    100,
+    151
+   ]
+  ],
+  "gpuAfterMB": 0.0576
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_combo2",
+  "pages": [
+   [
+    "dagger_hyakki_a1_combo2.png",
+    126,
+    114
+   ]
+  ],
+  "gpuAfterMB": 0.0548
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_combo3",
+  "pages": [
+   [
+    "dagger_hyakki_a1_combo3.png",
+    84,
+    252
+   ]
+  ],
+  "gpuAfterMB": 0.0807
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_fan_throw",
+  "pages": [
+   [
+    "dagger_hyakki_a1_fan_throw.png",
+    36,
+    279
+   ]
+  ],
+  "gpuAfterMB": 0.0383
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_flurry",
+  "pages": [
+   [
+    "dagger_hyakki_a1_flurry.png",
+    135,
+    177
+   ]
+  ],
+  "gpuAfterMB": 0.0912
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a1_special",
+  "pages": [
+   [
+    "dagger_hyakki_a1_special.png",
+    39,
+    544
+   ]
+  ],
+  "gpuAfterMB": 0.0809
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_backstab",
+  "pages": [
+   [
+    "dagger_hyakki_a2_backstab.png",
+    45,
+    193
+   ]
+  ],
+  "gpuAfterMB": 0.0331
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_carry_dash",
+  "pages": [
+   [
+    "dagger_hyakki_a2_carry_dash.png",
+    80,
+    72
+   ]
+  ],
+  "gpuAfterMB": 0.022
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_carry_idle",
+  "pages": [
+   [
+    "dagger_hyakki_a2_carry_idle.png",
+    408,
+    15
+   ]
+  ],
+  "gpuAfterMB": 0.0233
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_carry_run",
+  "pages": [
+   [
+    "dagger_hyakki_a2_carry_run.png",
+    48,
+    210
+   ]
+  ],
+  "gpuAfterMB": 0.0385
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_carry_walk",
+  "pages": [
+   [
+    "dagger_hyakki_a2_carry_walk.png",
+    22,
+    364
+   ]
+  ],
+  "gpuAfterMB": 0.0305
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_combo1",
+  "pages": [
+   [
+    "dagger_hyakki_a2_combo1.png",
+    149,
+    42
+   ]
+  ],
+  "gpuAfterMB": 0.0239
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_combo2",
+  "pages": [
+   [
+    "dagger_hyakki_a2_combo2.png",
+    39,
+    168
+   ]
+  ],
+  "gpuAfterMB": 0.025
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_combo3",
+  "pages": [
+   [
+    "dagger_hyakki_a2_combo3.png",
+    152,
+    65
+   ]
+  ],
+  "gpuAfterMB": 0.0377
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_fan_throw",
+  "pages": [
+   [
+    "dagger_hyakki_a2_fan_throw.png",
+    17,
+    60
+   ]
+  ],
+  "gpuAfterMB": 0.0039
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_flurry",
+  "pages": [
+   [
+    "dagger_hyakki_a2_flurry.png",
+    80,
+    140
+   ]
+  ],
+  "gpuAfterMB": 0.0427
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_backstab",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_backstab.png",
+    70,
+    149
+   ]
+  ],
+  "gpuAfterMB": 0.0398
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_carry_dash",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_carry_dash.png",
+    92,
+    72
+   ]
+  ],
+  "gpuAfterMB": 0.0253
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_carry_idle",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_carry_idle.png",
+    23,
+    366
+   ]
+  ],
+  "gpuAfterMB": 0.0321
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_carry_run",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_carry_run.png",
+    54,
+    235
+   ]
+  ],
+  "gpuAfterMB": 0.0484
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_carry_walk",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_carry_walk.png",
+    23,
+    490
+   ]
+  ],
+  "gpuAfterMB": 0.043
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_combo1",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_combo1.png",
+    42,
+    177
+   ]
+  ],
+  "gpuAfterMB": 0.0284
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_combo2",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_combo2.png",
+    64,
+    128
+   ]
+  ],
+  "gpuAfterMB": 0.0312
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_combo3",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_combo3.png",
+    24,
+    502
+   ]
+  ],
+  "gpuAfterMB": 0.046
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_fan_throw",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_fan_throw.png",
+    129,
+    22
+   ]
+  ],
+  "gpuAfterMB": 0.0108
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_flurry",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_flurry.png",
+    90,
+    162
+   ]
+  ],
+  "gpuAfterMB": 0.0556
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_glow_special",
+  "pages": [
+   [
+    "dagger_hyakki_a2_glow_special.png",
+    24,
+    456
+   ]
+  ],
+  "gpuAfterMB": 0.0417
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_hyakki_a2_special",
+  "pages": [
+   [
+    "dagger_hyakki_a2_special.png",
+    265,
+    34
+   ]
+  ],
+  "gpuAfterMB": 0.0344
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_backstab",
+  "pages": [
+   [
+    "dagger_twin_a1_backstab.png",
+    148,
+    156
+   ]
+  ],
+  "gpuAfterMB": 0.0881
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_carry_dash",
+  "pages": [
+   [
+    "dagger_twin_a1_carry_dash.png",
+    57,
+    172
+   ]
+  ],
+  "gpuAfterMB": 0.0374
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_carry_idle",
+  "pages": [
+   [
+    "dagger_twin_a1_carry_idle.png",
+    23,
+    580
+   ]
+  ],
+  "gpuAfterMB": 0.0509
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_carry_run",
+  "pages": [
+   [
+    "dagger_twin_a1_carry_run.png",
+    74,
+    220
+   ]
+  ],
+  "gpuAfterMB": 0.0621
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_carry_walk",
+  "pages": [
+   [
+    "dagger_twin_a1_carry_walk.png",
+    67,
+    285
+   ]
+  ],
+  "gpuAfterMB": 0.0728
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_combo1",
+  "pages": [
+   [
+    "dagger_twin_a1_combo1.png",
+    81,
+    186
+   ]
+  ],
+  "gpuAfterMB": 0.0575
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_combo2",
+  "pages": [
+   [
+    "dagger_twin_a1_combo2.png",
+    39,
+    338
+   ]
+  ],
+  "gpuAfterMB": 0.0503
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_combo3",
+  "pages": [
+   [
+    "dagger_twin_a1_combo3.png",
+    43,
+    471
+   ]
+  ],
+  "gpuAfterMB": 0.0773
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_fan_throw",
+  "pages": [
+   [
+    "dagger_twin_a1_fan_throw.png",
+    36,
+    152
+   ]
+  ],
+  "gpuAfterMB": 0.0209
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_flurry",
+  "pages": [
+   [
+    "dagger_twin_a1_flurry.png",
+    41,
+    571
+   ]
+  ],
+  "gpuAfterMB": 0.0893
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a1_special",
+  "pages": [
+   [
+    "dagger_twin_a1_special.png",
+    169,
+    114
+   ]
+  ],
+  "gpuAfterMB": 0.0735
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_backstab",
+  "pages": [
+   [
+    "dagger_twin_a2_backstab.png",
+    22,
+    623
+   ]
+  ],
+  "gpuAfterMB": 0.0523
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_carry_dash",
+  "pages": [
+   [
+    "dagger_twin_a2_carry_dash.png",
+    23,
+    287
+   ]
+  ],
+  "gpuAfterMB": 0.0252
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_carry_idle",
+  "pages": [
+   [
+    "dagger_twin_a2_carry_idle.png",
+    22,
+    433
+   ]
+  ],
+  "gpuAfterMB": 0.0363
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_carry_run",
+  "pages": [
+   [
+    "dagger_twin_a2_carry_run.png",
+    558,
+    22
+   ]
+  ],
+  "gpuAfterMB": 0.0468
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_carry_walk",
+  "pages": [
+   [
+    "dagger_twin_a2_carry_walk.png",
+    22,
+    548
+   ]
+  ],
+  "gpuAfterMB": 0.046
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_combo1",
+  "pages": [
+   [
+    "dagger_twin_a2_combo1.png",
+    23,
+    381
+   ]
+  ],
+  "gpuAfterMB": 0.0334
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_combo2",
+  "pages": [
+   [
+    "dagger_twin_a2_combo2.png",
+    24,
+    406
+   ]
+  ],
+  "gpuAfterMB": 0.0372
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_combo3",
+  "pages": [
+   [
+    "dagger_twin_a2_combo3.png",
+    23,
+    567
+   ]
+  ],
+  "gpuAfterMB": 0.0497
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_fan_throw",
+  "pages": [
+   [
+    "dagger_twin_a2_fan_throw.png",
+    63,
+    21
+   ]
+  ],
+  "gpuAfterMB": 0.005
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_flurry",
+  "pages": [
+   [
+    "dagger_twin_a2_flurry.png",
+    23,
+    676
+   ]
+  ],
+  "gpuAfterMB": 0.0593
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_backstab",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_backstab.png",
+    65,
+    201
+   ]
+  ],
+  "gpuAfterMB": 0.0498
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_carry_dash",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_carry_dash.png",
+    30,
+    149
+   ]
+  ],
+  "gpuAfterMB": 0.0171
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_carry_idle",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_carry_idle.png",
+    98,
+    111
+   ]
+  ],
+  "gpuAfterMB": 0.0415
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_carry_run",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_carry_run.png",
+    29,
+    334
+   ]
+  ],
+  "gpuAfterMB": 0.0369
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_carry_walk",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_carry_walk.png",
+    105,
+    138
+   ]
+  ],
+  "gpuAfterMB": 0.0553
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_combo1",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_combo1.png",
+    124,
+    73
+   ]
+  ],
+  "gpuAfterMB": 0.0345
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_combo2",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_combo2.png",
+    63,
+    137
+   ]
+  ],
+  "gpuAfterMB": 0.0329
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_combo3",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_combo3.png",
+    54,
+    227
+   ]
+  ],
+  "gpuAfterMB": 0.0468
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_fan_throw",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_fan_throw.png",
+    26,
+    170
+   ]
+  ],
+  "gpuAfterMB": 0.0169
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_flurry",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_flurry.png",
+    160,
+    86
+   ]
+  ],
+  "gpuAfterMB": 0.0525
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_glow_special",
+  "pages": [
+   [
+    "dagger_twin_a2_glow_special.png",
+    72,
+    152
+   ]
+  ],
+  "gpuAfterMB": 0.0417
+ },
+ {
+  "cat": "weapons",
+  "sub": "v4",
+  "name": "dagger_twin_a2_special",
+  "pages": [
+   [
+    "dagger_twin_a2_special.png",
+    23,
+    615
+   ]
+  ],
+  "gpuAfterMB": 0.054
+ }
+]

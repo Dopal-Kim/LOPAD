@@ -17,7 +17,7 @@
  ],
  "loop": false,
  "pixelScale": 0.5,
- "version": "v3-r61",
+ "version": "v3-r61s5",
  "pivot": {
   "x": 30,
   "y": 40
@@ -45,12 +45,14 @@
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
  "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
- "source": "parts/art/work/weapons61/build.py dagger (61라운드 단검 연격 그림 보강)",
- "design": "단검 적중 불꽃: 꿰뚫는 백열 점 + 진행 방향으로 길게 뻗는 섬광(0) → 앞쪽 부채꼴로 튀는 불꽃 줄기(13개)가 식으며 날아감 + 꿰뚫린 자리 점선 고리",
- "glowRule": "백열 X0/X1·A26 은 0·1 프레임만",
- "previous": "parts/art/work/weapons61/prev/fx/hit_dagger.png",
+ "source": "parts/art/work/dagger61s5/build.py (61 단계 5 P13 — 단검 무기+이펙트 재디자인 '재 발톱')",
+ "design": "61 단계 5 '재 발톱' 적중 — X 섬광 + 앞으로 긴 바늘 → 베인 발톱 자국 1 + 앞쪽 부채꼴 바늘 불티",
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(판정 칸)만(획 심·X 섬광 가운데). 그 밖은 A25 이하",
  "r61": "61라운드 시스템 보고 — hit_dagger 불꽃",
  "colors": 7,
+ "designPrevious": "단검 적중 불꽃: 꿰뚫는 백열 점 + 진행 방향으로 길게 뻗는 섬광(0) → 앞쪽 부채꼴로 튀는 불꽃 줄기(13개)가 식으며 날아감 + 꿰뚫린 자리 점선 고리",
+ "r61s5": "61 단계 5 P13 §2 — 단검 재디자인(무기+이펙트 한 디자인 언어). 계약 art §27",
+ "semiTransparent": false,
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -71,10 +73,10 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":54,"w":54,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":25,"w":54,"h":31},"sourceSize":{"w":104,"h":80}},
-  "1":{"frame":{"x":74,"y":53,"w":51,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":21,"w":51,"h":37},"sourceSize":{"w":104,"h":80}},
-  "2":{"frame":{"x":0,"y":0,"w":72,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":13,"w":72,"h":52},"sourceSize":{"w":104,"h":80}},
-  "3":{"frame":{"x":74,"y":0,"w":62,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":13,"w":62,"h":51},"sourceSize":{"w":104,"h":80}}
+  "0":{"frame":{"x":0,"y":119,"w":55,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":33,"w":55,"h":15},"sourceSize":{"w":104,"h":80}},
+  "1":{"frame":{"x":0,"y":86,"w":57,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":25,"w":57,"h":31},"sourceSize":{"w":104,"h":80}},
+  "2":{"frame":{"x":0,"y":0,"w":72,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":20,"w":72,"h":41},"sourceSize":{"w":104,"h":80}},
+  "3":{"frame":{"x":0,"y":43,"w":71,"h":41},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":20,"w":71,"h":41},"sourceSize":{"w":104,"h":80}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -82,8 +84,8 @@
   "image": "hit_dagger.png",
   "format": "RGBA8888",
   "size": {
-   "w": 136,
-   "h": 90
+   "w": 72,
+   "h": 134
   },
   "scale": "1"
  }

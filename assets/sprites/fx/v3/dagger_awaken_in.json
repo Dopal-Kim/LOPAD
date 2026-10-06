@@ -1,7 +1,7 @@
 {
  "image": "dagger_awaken_in.png",
  "action": "dagger_awaken_in",
- "version": "v3-r60-awaken",
+ "version": "v3-r61s5",
  "frameWidth": 80,
  "frameHeight": 184,
  "framesPerDirection": 12,
@@ -32,7 +32,7 @@
  "palette": "60라운드 Q19: 각성 무기·각성 fx 는 재·호박 제한 없음 — LOPAD 팔레트(lopad.json) 무채 16 + 층 램프(고정색으로 사용, 지역 교체 없음) + 주인공 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 각성 무기 색 상한 24",
  "colors": 24,
  "semiTransparent": false,
- "source": "parts/art/work/awaken60/prod_build.py (60라운드 Q15~Q21 최종 각성 재디자인 — 월인·핏빛 거암검·귀화·혜성 날개)",
+ "source": "parts/art/work/dagger61s5/build.py (61 단계 5 P13 — 단검 무기+이펙트 재디자인 '재 발톱')",
  "anchor": "player_pivot",
  "pivotNote": "pivot = 주인공 발(몸 피벗). 판정 원점 = pivot 위 40 도트",
  "weapon": "dagger",
@@ -55,7 +55,7 @@
   "사라짐",
   "사라짐"
  ],
- "design": "주인공 머리 위(피벗 위 150도트)에 각성 무기가 나타나 시안의 전환 방식으로 원래 색 → 각성 색(8×60ms) → 번쩍·고리 → 픽셀 단위로 사라짐. 전환: 재·호박 → 보라 도깨비불(5층 VIO) + 청록 불끝(3층 TEAL). 날은 칼끝부터 해시 문턱으로 타들어 가듯(용해) 보라로 바뀌고 불꽃이 손잡이 쪽에서 피어 커짐(30~100%). 순환 6프레임 = 불혀가 일렁이고, 청록 띠가 불꽃 밑동→끝으로 타고 올라감(색 순환)",
+ "design": "61 단계 5 각성 순간 — 머리 위 '재 발톱' 날이 끝부터 귀화(보라·청록)로 타들어 감(6칸) → 번쩍·X·고리 → 혼불과 머묾 → 픽셀 단위로 사라짐",
  "pivot": {
   "x": 39,
   "y": 173
@@ -64,6 +64,9 @@
  "glowFrames": [
   7
  ],
+ "designPrevious": "주인공 머리 위(피벗 위 150도트)에 각성 무기가 나타나 시안의 전환 방식으로 원래 색 → 각성 색(8×60ms) → 번쩍·고리 → 픽셀 단위로 사라짐. 전환: 재·호박 → 보라 도깨비불(5층 VIO) + 청록 불끝(3층 TEAL). 날은 칼끝부터 해시 문턱으로 타들어 가듯(용해) 보라로 바뀌고 불꽃이 손잡이 쪽에서 피어 커짐(30~100%). 순환 6프레임 = 불혀가 일렁이고, 청록 띠가 불꽃 밑동→끝으로 타고 올라감(색 순환)",
+ "r61s5": "61 단계 5 P13 §2 — 단검 재디자인(무기+이펙트 한 디자인 언어). 계약 art §27",
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(판정 칸)만(획 심·X 섬광 가운데). 그 밖은 A25 이하",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -84,18 +87,18 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":99,"w":37,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":19,"w":37,"h":9},"sourceSize":{"w":80,"h":184}},
-  "1":{"frame":{"x":96,"y":88,"w":37,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":19,"w":37,"h":9},"sourceSize":{"w":80,"h":184}},
-  "2":{"frame":{"x":96,"y":99,"w":37,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":19,"w":37,"h":9},"sourceSize":{"w":80,"h":184}},
-  "3":{"frame":{"x":39,"y":100,"w":37,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":19,"w":37,"h":9},"sourceSize":{"w":80,"h":184}},
-  "4":{"frame":{"x":51,"y":88,"w":43,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":18,"w":43,"h":10},"sourceSize":{"w":80,"h":184}},
-  "5":{"frame":{"x":0,"y":84,"w":49,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":15,"w":49,"h":13},"sourceSize":{"w":80,"h":184}},
-  "6":{"frame":{"x":74,"y":36,"w":56,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":3,"w":56,"h":25},"sourceSize":{"w":80,"h":184}},
-  "7":{"frame":{"x":74,"y":0,"w":58,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":3,"w":58,"h":34},"sourceSize":{"w":80,"h":184}},
-  "8":{"frame":{"x":0,"y":0,"w":72,"h":38},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":4,"w":72,"h":38},"sourceSize":{"w":80,"h":184}},
-  "9":{"frame":{"x":60,"y":63,"w":55,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":5,"w":55,"h":23},"sourceSize":{"w":80,"h":184}},
-  "10":{"frame":{"x":0,"y":64,"w":57,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":10,"w":57,"h":18},"sourceSize":{"w":80,"h":184}},
-  "11":{"frame":{"x":0,"y":40,"w":58,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":6,"w":58,"h":22},"sourceSize":{"w":80,"h":184}}
+  "0":{"frame":{"x":114,"y":22,"w":42,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":16,"w":42,"h":13},"sourceSize":{"w":80,"h":184}},
+  "1":{"frame":{"x":59,"y":24,"w":42,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":16,"w":42,"h":13},"sourceSize":{"w":80,"h":184}},
+  "2":{"frame":{"x":0,"y":27,"w":42,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":16,"w":42,"h":13},"sourceSize":{"w":80,"h":184}},
+  "3":{"frame":{"x":166,"y":21,"w":42,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":13,"w":42,"h":16},"sourceSize":{"w":80,"h":184}},
+  "4":{"frame":{"x":210,"y":0,"w":42,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":12,"w":42,"h":17},"sourceSize":{"w":80,"h":184}},
+  "5":{"frame":{"x":166,"y":0,"w":42,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":10,"w":42,"h":19},"sourceSize":{"w":80,"h":184}},
+  "6":{"frame":{"x":254,"y":0,"w":42,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":12,"w":42,"h":17},"sourceSize":{"w":80,"h":184}},
+  "7":{"frame":{"x":114,"y":0,"w":50,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":12,"w":50,"h":20},"sourceSize":{"w":80,"h":184}},
+  "8":{"frame":{"x":59,"y":0,"w":53,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":12,"w":53,"h":22},"sourceSize":{"w":80,"h":184}},
+  "9":{"frame":{"x":0,"y":0,"w":57,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":3,"y":11,"w":57,"h":25},"sourceSize":{"w":80,"h":184}},
+  "10":{"frame":{"x":210,"y":19,"w":42,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":12,"w":42,"h":17},"sourceSize":{"w":80,"h":184}},
+  "11":{"frame":{"x":254,"y":19,"w":42,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":16,"w":42,"h":12},"sourceSize":{"w":80,"h":184}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -103,8 +106,8 @@
   "image": "dagger_awaken_in.png",
   "format": "RGBA8888",
   "size": {
-   "w": 133,
-   "h": 109
+   "w": 296,
+   "h": 40
   },
   "scale": "1"
  }

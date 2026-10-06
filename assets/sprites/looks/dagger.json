@@ -1,8 +1,8 @@
 {
  "weapon": "dagger",
- "version": "v4-r61-growth",
+ "version": "v4-r61s5",
  "angleDeg": -42,
- "source": "parts/art/work/growth61/build.py (61라운드 단계 4 P12 — 무기 1차·2차 각성 외형)",
+ "source": "parts/art/work/dagger61s5/build.py (61 단계 5 P13 — 단검 무기+이펙트 재디자인 '재 발톱')",
  "size": [
   192,
   192
@@ -92,5 +92,7 @@
     "onibi": "dagger_hyakki_a2_onibi.png"
    }
   }
- }
+ },
+ "r61s5": "61 단계 5 P13 §2 — 단검 재디자인(무기+이펙트 한 디자인 언어). 계약 art §27",
+ "design": "61 단계 5 '재 발톱' — 기본·갈래 1차/2차 모두 무기 시트와 같은 날(blade.paint)·덧붙임(overlays) 경로"
 }

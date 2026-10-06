@@ -1,7 +1,7 @@
 {
  "image": "dagger_brand_hop.png",
  "action": "dagger_brand_hop",
- "version": "v3-r57-build",
+ "version": "v3-r61s5",
  "frameWidth": 96,
  "frameHeight": 24,
  "framesPerDirection": 4,
@@ -22,9 +22,9 @@
  "paletteSwap": "none",
  "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
  "palette": "v3 무기 이펙트(53라운드 Q5): 주인공 v3 30색 팔레트 안의 재(#2a1e17~#90857a)·혼불 호박(#3f271d~#f4de9b) + 백열 코어 X0 #ffffff / X1 #fff4dc. 호박은 주인공 고정색 — 층 램프 스왑 대상 아님(paletteSwap: none). 구 무기 보조색 W0~W3 은 쓰지 않는다.",
- "colors": 6,
+ "colors": 8,
  "semiTransparent": false,
- "source": "parts/art/work/build57/build.py branch (57라운드 2단 갈래 fx)",
+ "source": "parts/art/work/dagger61s5/build.py (61 단계 5 P13 — 단검 무기+이펙트 재디자인 '재 발톱')",
  "pivot": {
   "x": 48,
   "y": 12
@@ -45,11 +45,12 @@
   "날아감 루프",
   "날아감 루프"
  ],
- "design": "X 낙인 한 개가 호박 꼬리 줄을 끌며 날아감",
- "effectRule": "57라운드 빌드 축 — 재·호박 팔레트만(주인공 v3 30색 안), 반투명 없음. 흰 픽셀(X0/X1·A26)은 glowFrames(판정·발동 순간)의 몇 도트만, 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과. 연격·갈래 획은 56라운드 Q11 붓획(닫힌 원 금지)",
+ "design": "61 단계 5 낙인 옮김 — X 로 새긴 발톱 자국 하나가 짧은 잔상 획을 끌며 날아감",
  "r57": "57라운드 Q22~Q39 빌드 축(설계안 design-2026-10-04-build-axis.md · -chwigi.md)",
  "glowFrames": [],
- "glowRule": "53라운드 Q65: 백열 X0/X1·A26 은 glowFrames(판정 순간)만. 그 밖 프레임은 A25(#eecc78) 이하 — 빌드 검사 통과",
+ "glowRule": "백열 X0/X1·A26 은 glowFrames(판정 칸)만(획 심·X 섬광 가운데). 그 밖은 A25 이하",
+ "designPrevious": "X 낙인 한 개가 호박 꼬리 줄을 끌며 날아감",
+ "r61s5": "61 단계 5 P13 §2 — 단검 재디자인(무기+이펙트 한 디자인 언어). 계약 art §27",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -66,14 +67,14 @@
   "padding": 2,
   "noTrim": false,
   "emptyFrames": [],
-  "dedupedFrames": 0,
+  "dedupedFrames": 2,
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":0,"y":0,"w":49,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":5,"w":49,"h":14},"sourceSize":{"w":96,"h":24}},
-  "1":{"frame":{"x":102,"y":0,"w":48,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":5,"w":48,"h":14},"sourceSize":{"w":96,"h":24}},
-  "2":{"frame":{"x":152,"y":0,"w":47,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":5,"w":47,"h":14},"sourceSize":{"w":96,"h":24}},
-  "3":{"frame":{"x":51,"y":0,"w":49,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":4,"y":5,"w":49,"h":14},"sourceSize":{"w":96,"h":24}}
+  "0":{"frame":{"x":52,"y":0,"w":48,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":5,"w":48,"h":14},"sourceSize":{"w":96,"h":24}},
+  "1":{"frame":{"x":0,"y":0,"w":50,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":5,"w":50,"h":14},"sourceSize":{"w":96,"h":24}},
+  "2":{"frame":{"x":52,"y":0,"w":48,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":5,"w":48,"h":14},"sourceSize":{"w":96,"h":24}},
+  "3":{"frame":{"x":0,"y":0,"w":50,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":5,"w":50,"h":14},"sourceSize":{"w":96,"h":24}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -81,7 +82,7 @@
   "image": "dagger_brand_hop.png",
   "format": "RGBA8888",
   "size": {
-   "w": 199,
+   "w": 100,
    "h": 14
   },
   "scale": "1"
