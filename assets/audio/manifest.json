@@ -76,7 +76,46 @@
         "sfx/voucher_pickup": 3,
         "sfx/item_pickup": 2,
         "sfx/boss1_pillar_collapse": 1,
-        "sfx/boss1_lob_bottle": 1
+        "sfx/boss1_lob_bottle": 1,
+        "sfx/trait_launch": 2,
+        "sfx/trait_slam": 2,
+        "sfx/trait_pull": 2,
+        "sfx/trait_bind": 2,
+        "sfx/trait_clone": 2,
+        "sfx/trait_blink": 2,
+        "sfx/trait_wave": 2,
+        "sfx/trait_throw": 2,
+        "sfx/trait_rain": 2,
+        "sfx/trait_ignite": 2,
+        "sfx/trait_deflect": 2,
+        "sfx/trait_shield": 2,
+        "sfx/trait_spin": 2,
+        "sfx/trait_mark": 2,
+        "sfx/trait_burst": 2,
+        "sfx/resonance_proc": 2,
+        "sfx/resonance_on": 1
+      },
+      "layerMax": {
+        "ids": [
+          "sfx/trait_launch",
+          "sfx/trait_slam",
+          "sfx/trait_pull",
+          "sfx/trait_bind",
+          "sfx/trait_clone",
+          "sfx/trait_blink",
+          "sfx/trait_wave",
+          "sfx/trait_throw",
+          "sfx/trait_rain",
+          "sfx/trait_ignite",
+          "sfx/trait_deflect",
+          "sfx/trait_shield",
+          "sfx/trait_spin",
+          "sfx/trait_mark",
+          "sfx/trait_burst"
+        ],
+        "match": "TRAIT_PROC 로 재생된 소리",
+        "max": 3,
+        "note": "61-5: 개성 발동 특색 층(TRAIT_PROC 로 고른 trait_<act> 15종 + 개성별 trait_<무기>_<id> 가 생기면 그것도 — trait_manifest(TRAIT_GAINED)는 아님) 전체를 합쳐 동시 3까지. 넘치면 같은 층에서 가장 오래된 것을 30 ms 페이드로 끊는다(우선순위 1 이라 maxSfx 에서도 빼앗기 1순위). resonance_proc 은 이 층에 세지 않는다"
       },
       "steal": "lowest-priority-oldest",
       "note": "동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). loop 항목은 빼앗지 않는다(상태가 끝날 때 시스템이 멈춤) — 대신 같은 id 는 1개만. UI 는 별도 상한 maxUi."
@@ -119,21 +158,23 @@
         {
           "level": 2,
           "name": "hit",
-          "label": "타격·처치·공격 동작(주인공·적·보스)",
+          "label": "타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)",
           "events": [
+            "RESONANCE_ON",
             "(그 밖의 combat·boss 분류)"
           ]
         },
         {
           "level": 1,
           "name": "ambient",
-          "label": "환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음",
+          "label": "환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)",
           "events": [
             "PASSIVE_PROC",
             "STATUS_CHANGED",
             "BOSS_ACTION{action:flameSnuff}",
             "PICKUP_LANDED",
             "PICKUP_COLLECTED",
+            "TRAIT_PROC",
             "(world·pickup·event 분류)"
           ]
         },
@@ -7424,6 +7465,412 @@
       },
       "priority": 1,
       "note": "61-5 새 — 바닥 소모품(병) 줍기(pickup_potion 대체 — 시스템 폴백 pickup_potion · 물약 ITEM_PICKED 는 pickup_potion 그대로). 병이 손에 닿는 유리 '팅'(3.0 kHz, 0.05 s 감쇠 — 울림 짧게) + 0.035 s 두 번째 작은 '틱'(병끼리) + 짧은 술 출렁(0.18 s) + 허리춤 가죽 스침. 0.3 s"
+    },
+    {
+      "id": "sfx/trait_launch",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_launch.ogg",
+      "files": [
+        "assets/audio/sfx/trait_launch.ogg",
+        "assets/audio/sfx/trait_launch.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 18522,
+      "durationMs": 420,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:launch"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 띄움(칼등 띄우기 · 띄워 올리기 · 되받는 땅울림 등 — 적이 공중으로 떠오르는 순간). 주 타격음 위에 얹히는 특색 층: 위로 오르는 몸 '훕'(140→320 Hz, 8 ms 어택) + 솟는 바람(350→2.6 kHz) + 옷 펄럭 → 0.27 s 꼭대기에서 빠지는 바람. 0.40 s. 0 ms '딱' 없음·140 Hz 아래 깎음"
+    },
+    {
+      "id": "sfx/trait_slam",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_slam.ogg",
+      "files": [
+        "assets/audio/sfx/trait_slam.ogg",
+        "assets/audio/sfx/trait_slam.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 21609,
+      "durationMs": 490,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:slam"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 처박힘(흘려 밀기 · 날려 보내기 · 들이받기 · 코앞 사격 등 — 밀려간 적이 벽·기둥·다른 적에 부딪는 순간). 돌·벽 재료로 타격음과 갈림: 거친 돌 '빠직'(1.8 kHz 샘플 홀드, 6 ms 어택) + 낮은 '쿵'(180→70 Hz, 90 Hz 아래 깎음) + 흩어지는 돌 부스러기 + 먼지(1.2k→400). 0.45 s, 작은 돌방 울림"
+    },
+    {
+      "id": "sfx/trait_pull",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_pull.ogg",
+      "files": [
+        "assets/audio/sfx/trait_pull.ogg",
+        "assets/audio/sfx/trait_pull.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 18522,
+      "durationMs": 420,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:pull"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 끌어당김(칼 감기 · 끌어당기기 · 빨아들이는 균열 · 휘감는 난타 · 돌아오는 칼 등). 다가오는 바람 — 점점 커지며 대역이 내려옴(2.6k→600 Hz, 뒤로 감은 듯한 어택) + 팽팽한 가죽·사슬 삐걱(18 Hz 떨림) → 0.30 s 끌려와 닿는 작은 '툭'(260→140 Hz). 0.40 s"
+    },
+    {
+      "id": "sfx/trait_bind",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_bind.ogg",
+      "files": [
+        "assets/audio/sfx/trait_bind.ogg",
+        "assets/audio/sfx/trait_bind.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 18522,
+      "durationMs": 420,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:bind"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 묶음(땅에 박기 · 낙인 사슬 · 그림자 매듭 · 화살 덫 · 화살 그물 등 — 적이 그 자리에 묶이는 순간). 사슬 마디 다섯 '찰찰찰'(2.8→4.2 kHz 짧은 쇳빛, 점점 빠르게, 울림 없음) + 0.12 s 조여지는 끈 '끼익'(700→1.8 kHz 좁은 대역) → 0.26 s 잠기는 '턱'(300→160 Hz + 거친 딸깍). 0.40 s"
+    },
+    {
+      "id": "sfx/trait_clone",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_clone.ogg",
+      "files": [
+        "assets/audio/sfx/trait_clone.ogg",
+        "assets/audio/sfx/trait_clone.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 20727,
+      "durationMs": 470,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:clone"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 분신(그림자 찌르기 · 달빛 잇기 · 취월 등 — 그림자·달 분신이 나타나 한 번 더 벰). 어둡게 두 겹 '스슥'(900→2.4k, 70 ms 뒤 1.1k→2.9k 복사) + 숨 같은 그림자 바람(노이즈 포먼트) → 0.18 s 분신의 가는 베기 '샥'(6k→2.5k). 60 ms 메아리(2.5 kHz 저역통과)로 '복사본' 느낌. 0.45 s"
+    },
+    {
+      "id": "sfx/trait_blink",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_blink.ogg",
+      "files": [
+        "assets/audio/sfx/trait_blink.ogg",
+        "assets/audio/sfx/trait_blink.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:blink"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 순간이동(그림자 넘기 · 되짚어 걷기 · 연쇄 발도 등 — 사라졌다 다른 자리에 나타남). 사라짐 '휙'(1.5k→6k, 70 ms) + 빨려 드는 작은 '뿅'(1.2k→300 Hz 사인, 12 ms 감쇠) → 0.13 s 나타남: 거꾸로 부푸는 바람(5k→1.4k, 끝에서 뚝 끊김) + 작은 딸깍. 0.30 s"
+    },
+    {
+      "id": "sfx/trait_wave",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_wave.ogg",
+      "files": [
+        "assets/audio/sfx/trait_wave.ogg",
+        "assets/audio/sfx/trait_wave.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 24255,
+      "durationMs": 550,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:wave"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 검풍·파동(발도풍 · 포효 등 — 앞으로 날아가는 초승달 바람·음파). 발도 순간 가는 '쉭'(7.5k→3k) + 날아가며 멀어지는 찢긴 바람(3.8k→1.4 kHz, 55 Hz 떨림 — 도플러처럼 내려감) + 좁은 휘파람(2.6k→1.7k). 0.50 s, 점점 작아짐"
+    },
+    {
+      "id": "sfx/trait_throw",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_throw.ogg",
+      "files": [
+        "assets/audio/sfx/trait_throw.ogg",
+        "assets/audio/sfx/trait_throw.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:throw"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 투척(뽑아 던지기 · 독주 투척 등 — 손에서 날을 던짐). 손목 튕김 '틱'(7k→3.5k 짧은 스침 + 300→200 Hz 작은 '툭') + 도는 날의 '휘휘휘'(28 Hz 떨림, 2.2k→1.5 kHz 로 멀어지며 작아짐). 0.30 s"
+    },
+    {
+      "id": "sfx/trait_rain",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_rain.ogg",
+      "files": [
+        "assets/audio/sfx/trait_rain.ogg",
+        "assets/audio/sfx/trait_rain.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 25137,
+      "durationMs": 570,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:rain"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 낙하 화살(낙하 사격 · 이어지는 비 등 — 하늘에서 화살이 떨어짐). 내려오는 휘파람 셋(3.4k→1.9 kHz, 0·0.08·0.17 s, 다가올수록 커짐) → 0.22·0.30·0.39 s 땅에 꽂히는 작은 나무 '톡' 셋 + 흙. 0.55 s. 화살비(arrow_rain_*)보다 작고 짧게"
+    },
+    {
+      "id": "sfx/trait_ignite",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_ignite.ogg",
+      "files": [
+        "assets/audio/sfx/trait_ignite.ogg",
+        "assets/audio/sfx/trait_ignite.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 24255,
+      "durationMs": 550,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:ignite"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 점화(술 회오리 · 불똥 내려베기 · 끓는 쇠 · 불화살 · 술별 등 — 술 웅덩이·칼날에 불이 확 붙는 순간). 부드러운 '화륵'(200→2.4 kHz 로 열리는 불길, 30 ms 어택) + 작은 '훅'(160→90 Hz, 150 Hz 아래 깎아 타격음 몸통과 겹치지 않게) + 불똥·타닥. 0.50 s. 술불 지속(boss1_fire_loop·fire_weapon_loop)과 겹쳐도 머리만 들리게 짧게"
+    },
+    {
+      "id": "sfx/trait_deflect",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_deflect.ogg",
+      "files": [
+        "assets/audio/sfx/trait_deflect.ogg",
+        "assets/audio/sfx/trait_deflect.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14112,
+      "durationMs": 320,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:deflect"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 되쳐내기(쳐내기 · 갈라진 길 — 날아온 화살·술병을 되돌려 보냄). 비껴 맞는 짧은 쇳빛 '팅'(4.2 kHz, 30 ms 감쇠 — 울림 없음) + 긁고 올라가는 '스릉'(3.5k→8k) + 되돌아 날아가는 휘파람(2.4k→4.8k, 점점 작게). 0.30 s. 패링음(parry)보다 가볍고 높게"
+    },
+    {
+      "id": "sfx/trait_shield",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_shield.ogg",
+      "files": [
+        "assets/audio/sfx/trait_shield.ogg",
+        "assets/audio/sfx/trait_shield.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 19404,
+      "durationMs": 440,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:shield"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 막아줌(분신 방패 — 분신이 대신 맞고 깨져 흩어짐). 막힌 '텁'(220→120 Hz, 가죽 '퍽') + 어두운 조각(1.8~3.6 kHz, 4 kHz 위 깎음 — 유리처럼 밝지 않게) → 흩어지는 그림자 바람(2k→600 Hz) + 짧은 메아리. 0.42 s"
+    },
+    {
+      "id": "sfx/trait_spin",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_spin.ogg",
+      "files": [
+        "assets/audio/sfx/trait_spin.ogg",
+        "assets/audio/sfx/trait_spin.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 20727,
+      "durationMs": 470,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:spin"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 회전(물러서며 베기 · 피바람 등 — 둘레를 한 바퀴 더 도는 베기). 도는 바람(900→2.2k→1.2 kHz, 7 Hz 로 세 번 지나감) + 지날 때마다 가는 칼끝 '샥'(점점 작게). 0.45 s. 칼 회전 베기(katana_spin)보다 가볍고 짧게"
+    },
+    {
+      "id": "sfx/trait_mark",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_mark.ogg",
+      "files": [
+        "assets/audio/sfx/trait_mark.ogg",
+        "assets/audio/sfx/trait_mark.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 13230,
+      "durationMs": 300,
+      "loop": false,
+      "gainDb": -9,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:mark"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 표식(스치는 낙인 · 쌍낙인 — 적 몸에 낙인이 새겨지거나 옮겨 붙음). 아주 작은 신호 '팅'(3.5 kHz + 5도 위, 50 ms 감쇠) + 지지는 '츳'(5.2 kHz 쉿 + 미세 딸깍) + 작은 '톡'. 0.28 s. 낙인 쌓임(brand_apply·mark_stack)보다 작고 높게"
+    },
+    {
+      "id": "sfx/trait_burst",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/trait_burst.ogg",
+      "files": [
+        "assets/audio/sfx/trait_burst.ogg",
+        "assets/audio/sfx/trait_burst.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 21609,
+      "durationMs": 490,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "act:burst"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 개성 발동 · 터짐(술독 짓누르기 — 모인 술이 불붙어 터짐). 둥근 '펑'(200→70 Hz, 80 Hz 아래 깎음) + 저역 노이즈 폭발(1.2 kHz) + 작은 독 조각(2.4~5.2 kHz) + 0.02 s 불길 '화륵'(300→2 kHz) + 타닥. 0.45 s. 화염 술병(bottle_burst)보다 짧고 작게 — 특색 층"
+    },
+    {
+      "id": "sfx/resonance_on",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/resonance_on.ogg",
+      "files": [
+        "assets/audio/sfx/resonance_on.ogg",
+        "assets/audio/sfx/resonance_on.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 47628,
+      "durationMs": 1080,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "RESONANCE_ON",
+        "when": []
+      },
+      "priority": 2,
+      "note": "61-5 새 — 공명 켜짐(같은 태그 개성 두 장이 엮여 공명이 켜진 뒤 전투로 돌아올 때 1회 · 주인공 둘레 두 고리 fx 와 함께). 0~0.2 s 차오르는 바람 → 0.05 s 첫 종 G6 이 2 % 높은 데서 미끄러져 자리 잡음 → 0.17 s 둘째 종 D7 이 2 % 낮은 데서 올라와 자리 잡음(두 음이 5도로 맞물림) → 0.38 s 두 음이 함께 한 번 더 '팅'(맞물림 확정) + 가슴 '둥'(110→70 Hz, 작게) + 반짝임. 1.0 s, 종 감쇠 τ ≤ 0.3 s(오래 남는 쇠 울림 없음)"
+    },
+    {
+      "id": "sfx/resonance_proc",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/resonance_proc.ogg",
+      "files": [
+        "assets/audio/sfx/resonance_proc.ogg",
+        "assets/audio/sfx/resonance_proc.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 17640,
+      "durationMs": 400,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": {
+        "event": "TRAIT_PROC",
+        "when": [
+          "resonance"
+        ]
+      },
+      "priority": 1,
+      "note": "61-5 새 — 공명 발동(공명 효과가 터지는 순간 · TRAIT_PROC 에 resonance 가 있을 때. <공명 id> 전용 소리가 없을 때 이것). resonance_on 의 두 음(G6·D7)을 짧게: 0 · 0.04 s 두 '팅'(25·20 ms 감쇠) + 고역 반짝임 + 작은 바람. 0.35 s. 개성 발동음(trait_<act>)과 같은 특색 층 — 주 타격음을 대체하지 않음"
     },
     {
       "id": "bgm/title",

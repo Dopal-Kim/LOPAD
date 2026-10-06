@@ -14,16 +14,20 @@ TIERS = [
          events=['PLAYER_DAMAGED', 'PARRY_SUCCESS', 'PERFECT_GUARD', 'PERFECT_SUCCESS', 'ENEMY_TELEGRAPH', 'RUN_ENDED',
                  'BOSS_BREAK', 'ui:boss-break', 'BOSS_ACTION{action:cupStruck}', 'BOSS_ACTION{action:pillarCrack}',
                  'BOSS_ACTION{action:pillarCollapse}', 'BOSS_ACTION{action:lobThrow}']),
-    dict(level=2, name='hit', label='타격·처치·공격 동작(주인공·적·보스)',
-         events=['(그 밖의 combat·boss 분류)']),
-    dict(level=1, name='ambient', label='환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음',
+    dict(level=2, name='hit', label='타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)',
+         events=['RESONANCE_ON', '(그 밖의 combat·boss 분류)']),
+    dict(level=1, name='ambient', label='환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)',
          events=['PASSIVE_PROC', 'STATUS_CHANGED', 'BOSS_ACTION{action:flameSnuff}', 'PICKUP_LANDED', 'PICKUP_COLLECTED',
+                 'TRAIT_PROC',
                  '(world·pickup·event 분류)']),
     dict(level=0, name='ui', label='UI — 별도 버스, 상한·빼앗기 대상 아님', events=['UI_MENU_*', '(ui 분류)']),
 ]
+# 61-5 P13 개성 발동 행동 갈래(계약 sound §11 — 'move' 는 소리 없음)
+TRAIT_ACTS = ('launch', 'slam', 'pull', 'bind', 'clone', 'blink', 'wave', 'throw', 'rain', 'ignite', 'deflect',
+              'shield', 'spin', 'mark', 'burst')
 _EV = {ev: t['level'] for t in TIERS for ev in t['events'] if not ev.startswith('(')}
 # 61-4: 같은 이벤트 안에서 조건 하나로 등급이 갈리는 것(BOSS_ACTION 의 action) — 'EVENT{키:값}' 꼴로 위 표에 적는다.
-_AMBIENT_EVENTS = {'PASSIVE_PROC', 'STATUS_CHANGED'}
+_AMBIENT_EVENTS = {'PASSIVE_PROC', 'STATUS_CHANGED', 'TRAIT_PROC'}
 
 
 def priority(spec, event, when=()):
@@ -55,7 +59,14 @@ def settings(variant_groups):
                                'sfx/porter_hurt': 2, 'sfx/barrel_return': 2,
                                'sfx/boss1_flame_snuff': 4, 'sfx/boss1_cup_struck': 2,
                                'sfx/voucher_drop': 3, 'sfx/voucher_pickup': 3, 'sfx/item_pickup': 2,
-                               'sfx/boss1_pillar_collapse': 1, 'sfx/boss1_lob_bottle': 1},
+                               'sfx/boss1_pillar_collapse': 1, 'sfx/boss1_lob_bottle': 1,
+                               **{'sfx/trait_%s' % a: 2 for a in TRAIT_ACTS},
+                               'sfx/resonance_proc': 2, 'sfx/resonance_on': 1},
+            layerMax=dict(ids=['sfx/trait_%s' % a for a in TRAIT_ACTS], match='TRAIT_PROC 로 재생된 소리', max=3,
+                          note='61-5: 개성 발동 특색 층(TRAIT_PROC 로 고른 trait_<act> 15종 + 개성별 trait_<무기>_<id> 가 생기면 그것도 — '
+                               'trait_manifest(TRAIT_GAINED)는 아님) 전체를 '
+                               '합쳐 동시 3까지. 넘치면 같은 층에서 가장 오래된 것을 30 ms 페이드로 끊는다(우선순위 1 이라 '
+                               'maxSfx 에서도 빼앗기 1순위). resonance_proc 은 이 층에 세지 않는다'),
             steal='lowest-priority-oldest',
             note='동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 '
                  '30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). '

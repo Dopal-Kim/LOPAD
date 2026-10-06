@@ -640,6 +640,37 @@
 - **줍기 = 맑지만 작게**: 전표 '착 + 띵', 소모품 '팅 + 출렁' — 둘 다 2 kHz 위 짧은 정보음(0.7~2 kHz 오래 남는 울림 없음, 61 원칙). 우선순위 1 이고 새 덕킹 규칙(우선순위 ≥ 2 재생 중 -4 dB 150 ms)으로 전투음 아래에 선다.
 - **옛 소리**: `pickup_gold`(시련·보스 보너스 골드 + `voucher_pickup` 폴백)·`pickup_potion`(물약 `ITEM_PICKED`·숙성 술통 + `item_pickup` 폴백)·`boss1_torch_throw`(`boss1_lob_bottle` 폴백)·`boss1_pillar_crack3`(`boss1_pillar_collapse` 폴백) 은 오디오 그대로, note 에 61-5 쓰임만 덧붙였다.
 
+### 4-13. 61라운드 단계 5 — P13 개성 발동음 · 공명 (계약 sound §11 마지막 줄: 새 17)
+근거: 계약 `sound-assets.md` §11(발동음 후보 순서), 시스템 요청 `parts/system/notes/trait-art-requests-61s5.md` §3, 개성 목록 `data/traits.json`(읽기만 — act 분포: pull 9 · ignite 9 · slam 6 · bind 5 · throw 4 · launch·clone·blink·spin 3 · wave·rain·deflect·mark 2 · shield·burst·move 1). 코드 `work/sfx_stage61.py` 9절.
+
+**원칙 — 주 타격음 위의 '특색' 층**(주 타격음을 대체하지 않음): ① 0 ms 에 넓은 대역 '딱'을 두지 않는다(첫 5 ms 음량 -15~-65 dB, `hit_enemy` 는 -9 dB — 타격음 머리를 흐리지 않게) ② 120~150 Hz 아래를 깎는다(무게가 행동 자체인 slam 90 Hz · burst 80 Hz 만 예외) ③ 행동마다 다른 재료·대역 하나를 서명으로 ④ 0.7~2 kHz 오래 남는 쇠 울림 없음, 리버브 작게(wet ≤ 0.15) ⑤ 음량 -7~-9 dB · 우선순위 1 · 같은 소리 동시 2 · 층 전체 동시 3(`voices.layerMax`).
+
+| id | 길이 | gainDb | 트리거(manifest) | 서명(질감) |
+|---|---|---|---|---|
+| `trait_launch` | 0.42 s | -8 | `TRAIT_PROC{act:launch}` | 오르는 몸 '훕'(140→320 Hz) + 솟는 바람(350→2.6k) + 옷 펄럭 → 꼭대기 바람 |
+| `trait_slam` | 0.49 s | -7 | `TRAIT_PROC{act:slam}` | 돌 재료: 거친 '빠직'(샘플 홀드) + 낮은 '쿵'(180→70) + 돌 부스러기 + 먼지, 작은 돌방 |
+| `trait_pull` | 0.42 s | -8 | `TRAIT_PROC{act:pull}` | 다가오는 바람(커지며 2.6k→600 내려옴) + 팽팽한 삐걱 → 0.30 s 닿는 '툭' |
+| `trait_bind` | 0.42 s | -8 | `TRAIT_PROC{act:bind}` | 사슬 마디 다섯 '찰'(2.8→4.2k, 빨라짐) + 조이는 '끼익' → 0.26 s 잠기는 '턱' |
+| `trait_clone` | 0.47 s | -8 | `TRAIT_PROC{act:clone}` | 어두운 두 겹 '스슥'(70 ms 복사) + 그림자 숨 → 0.18 s 가는 '샥', 60 ms 메아리 |
+| `trait_blink` | 0.32 s | -8 | `TRAIT_PROC{act:blink}` | 사라짐 '휙' + 빨려 드는 '뿅' → 0.13 s 거꾸로 부푸는 바람(뚝 끊김) + 딸깍 |
+| `trait_wave` | 0.55 s | -8 | `TRAIT_PROC{act:wave}` | 발도 '쉭' + 멀어지는 찢긴 바람(3.8k→1.4k, 도플러) + 좁은 휘파람 |
+| `trait_throw` | 0.32 s | -8 | `TRAIT_PROC{act:throw}` | 손목 '틱' + 도는 날 '휘휘휘'(28 Hz, 멀어짐) |
+| `trait_rain` | 0.57 s | -8 | `TRAIT_PROC{act:rain}` | 내려오는 휘파람 셋 → 꽂히는 나무 '톡' 셋 + 흙 (화살비보다 작게) |
+| `trait_ignite` | 0.55 s | -7 | `TRAIT_PROC{act:ignite}` | 부드러운 '화륵'(200→2.4k) + 작은 '훅' + 불똥·타닥, 150 Hz 아래 깎음 |
+| `trait_deflect` | 0.32 s | -8 | `TRAIT_PROC{act:deflect}` | 비껴 맞는 '팅'(4.2k, 30 ms) + 오르는 '스릉' + 되돌아가는 휘파람(2.4k→4.8k) |
+| `trait_shield` | 0.44 s | -8 | `TRAIT_PROC{act:shield}` | 막힌 '텁' + 어두운 조각(4 kHz 위 깎음) → 흩어지는 그림자 바람 |
+| `trait_spin` | 0.47 s | -8 | `TRAIT_PROC{act:spin}` | 7 Hz 로 세 번 지나가는 도는 바람 + 작아지는 칼끝 '샥' 셋 |
+| `trait_mark` | 0.30 s | -9 | `TRAIT_PROC{act:mark}` | 작은 신호 '팅'(3.5k + 5도) + 지지는 '츳' + '톡' |
+| `trait_burst` | 0.49 s | -7 | `TRAIT_PROC{act:burst}` | 둥근 '펑'(200→70) + 저역 노이즈 폭발 + 작은 독 조각 + 불길 '화륵' + 타닥 |
+| `resonance_on` | 1.08 s | -3 | `RESONANCE_ON` (우선순위 2) | 두 종 G6·D7 이 어긋난 음에서 미끄러져 5도로 맞물림(0.05 · 0.17 s) → 0.38 s 함께 '팅' + 가슴 '둥' + 반짝임. τ ≤ 0.3 s |
+| `resonance_proc` | 0.40 s | -7 | `TRAIT_PROC{resonance}` | 같은 두 음을 짧게 '팅·팅'(0 · 0.04 s, 20~25 ms 감쇠) + 반짝임. 특색 층 |
+
+판단과 이유:
+- **'move'(걸으며 연사, 1장)는 소리 없음**: 연사 내내 걸려 있는 이동 개성이라 발동음을 붙이면 화살마다 울린다. 후보 순서대로 무음으로 떨어진다(계약 §11 의 16번째 갈래).
+- **공명 = 5도로 맞물리는 두 음**: `trait_manifest`(A5 두 종이 한 음으로 겹침)의 계보를 잇되 5도 위 두 음으로 '두 장이 엮였다'를 구분. 공명 켜짐은 전투 복귀 때 1회라 우선순위 2, 발동은 개성 층과 같은 1.
+- **변주 없음**: 같은 소리 동시 2 + 층 동시 3 + 시스템 '같은 개성 120 ms 안 한 번' + 재생 속도 ±3 % 로 반복 피로를 먼저 본다. 데모에서 pull·ignite(각 9장)가 거슬리면 변주를 붙인다.
+- 우선순위 1 이라 maxSfx(12)가 차면 가장 먼저 빼앗긴다 — 특색 층이 빠져도 주 타격음은 남는다.
+
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).
 - 같은 효과음이 20 ms 안에 여러 번 요청되면 1회만 재생(산탄·난무·충격파 중복 방지) — `dedupeMs: 20`, 변주는 원본 그룹으로 센다.
@@ -648,9 +679,9 @@
 | 키 | 값 | 이유 |
 |---|---|---|
 | `voices.maxSfx` | **12** (UI 는 별도 `maxUi` 2) | 1층 웨이브(노드당 12~16 처치, 2~3 웨이브)에서 타격·처치·부가음이 몰린다. 8 은 변주·겹침(피격 + `enemy_hurt` + 패시브)에서 예고음까지 빼앗길 위험 |
-| `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 · (61-2) `guard_block_heavy`·`peddler_hurt`·`porter_hurt`·`barrel_return` 2 · **(61-4) `boss1_flame_snuff` 4 · `boss1_cup_struck` 2** · **(61-5) `voucher_drop`·`voucher_pickup` 3 · `item_pickup` 2 · `boss1_pillar_collapse`·`boss1_lob_bottle` 1** | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
+| `voices.perGroupMax` | 3, 예외 `hit_enemy` 4 · `hit_enemy_crit` 2 · `enemy_death` 3 · `hit_player` 2 · `dash` 1 · `swing_katana`·`swing_greatsword` 2 · `swing_dagger`·`bow_shot` 3 · `pickup_gold` 3 · `guard_block` 2 · `parry` 1 · `combo_finish` 1 · (61-2) `guard_block_heavy`·`peddler_hurt`·`porter_hurt`·`barrel_return` 2 · **(61-4) `boss1_flame_snuff` 4 · `boss1_cup_struck` 2** · **(61-5) `voucher_drop`·`voucher_pickup` 3 · `item_pickup` 2 · `boss1_pillar_collapse`·`boss1_lob_bottle` 1** · **(61-5 개성) `trait_<act>` 15종 각 2 · `resonance_proc` 2 · `resonance_on` 1, 층 전체 `layerMax` 3** | 같은 소리 겹침은 소리를 키우기보다 흐리게 한다 |
 | `voices.steal` | `lowest-priority-oldest` (30 ms 페이드). loop 항목은 빼앗지 않음(같은 id 1개) | 새 소리보다 낮거나 같은 우선순위 중 가장 오래된 것부터 |
-| `priority` (항목별 필드) | **4 보스 예고·신호·무기 각성**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`·`WEAPON_AWAKEN`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`·(61-5) `BOSS_ACTION{action:pillarCollapse\|lobThrow}`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`·(61-5) `PICKUP_LANDED`·`PICKUP_COLLECTED`), 0 UI. 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
+| `priority` (항목별 필드) | **4 보스 예고·신호·무기 각성**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`·`WEAPON_AWAKEN`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`·(61-5) `BOSS_ACTION{action:pillarCollapse\|lobThrow}`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`·(61-5) `PICKUP_LANDED`·`PICKUP_COLLECTED`·`TRAIT_PROC`), 0 UI. (61-5) `RESONANCE_ON` 은 2. 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
 | `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) 파훼 소리(`ui:boss-break`·`BOSS_BREAK`) → SFX(≤2) -4 dB 300 ms**(61-5 기둥 무너짐도), **(61-5) 우선순위 ≥ 2 재생 → 줍기류(`voucher_drop`·`voucher_pickup`·`item_pickup`) -4 dB 150 ms** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
 | `variation` | 변주 목록에서 직전과 다른 것 + 재생 속도 1 ± 0.03 (loop·UI·BGM 제외) | 반복 피로. 변주가 생겨 ±4 % → ±3 % |
 | `masterLimiter` | 문턱 -3 dB, knee 6, ratio 12, attack 3 ms, release 120 ms (DynamicsCompressorNode) | 새 타격음이 같은 피크에서 짧은 구간 음량이 커져 몰릴 때 찌그러짐 방지 |

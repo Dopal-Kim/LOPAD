@@ -1517,3 +1517,247 @@ SFX['pickup_potion'] = dict(SFX['pickup_potion'], note=SFX['pickup_potion']['not
                             ' — 61-5: 바닥 소모품 줍기는 item_pickup(이 소리는 물약 ITEM_PICKED·숙성 술통과 item_pickup 폴백)')
 SFX['boss1_torch_throw'] = dict(SFX['boss1_torch_throw'], note=SFX['boss1_torch_throw']['note'] +
                                 ' — 61-5: 보스 포물선 술병 던짐(BOSS_ACTION lobThrow)의 시스템 폴백(boss1_lob_bottle 이 없을 때)')
+
+
+# ===========================================================================
+# 9. 61라운드 단계 5 — P13 개성 발동음(계약 sound §11 마지막 줄): 행동 갈래 trait_<act> 15 · 공명 켜짐·발동 2
+#    시스템 트리거: TRAIT_PROC{weapon,trait,act,resonance?}(같은 개성 120 ms 안 한 번) · RESONANCE_ON{weapon,id,tag,name}.
+#    후보 순서(시스템): trait_<무기>_<개성 id>(없음) → trait_<act> → 무음 / 공명 발동 <공명 id>(없음) → resonance_proc /
+#    공명 켜짐 resonance_on → trait_manifest. act 'move'(걸으며 연사, 이동 개성)는 일부러 소리 없음 — 계속 걸려 있는
+#    상태라 발동음이 연사마다 붙으면 시끄럽다.
+#    원칙: 주 타격음(hit_enemy 등)을 **대체하지 않는 '특색' 층**. 그래서 ① 0 ms 에 넓은 대역 '딱'을 두지 않는다(타격음의
+#    머리와 겹치면 흐려짐 — 대신 5~15 ms 부드러운 어택), ② 120~150 Hz 아래를 깎는다(타격음 몸통 85~250 Hz 와 쌓이지
+#    않게 — 무게가 행동의 핵심인 slam·burst 만 조금 남김), ③ 행동마다 다른 대역·재료 하나를 서명으로(띄움 = 오르는
+#    바람, 처박힘 = 돌 갈림, 끌어당김 = 다가오는 바람, 묶음 = 사슬 마디 …), ④ 0.7~2 kHz 오래 남는 쇠 울림 금지,
+#    울림(리버브) 작게. 음량은 버스 기준 -7~-9 dB(패시브 -3~-8 보다 아래쪽), 우선순위 1(빼앗기 1순위), 같은 소리 동시 2.
+#    **이 절 아래에만 새 효과음을 붙인다**(시드 = 1000 + 등록 순서).
+# ===========================================================================
+
+def _layer(s, sr, hp=140, tail_s=0.02):
+    """특색 층 마무리: 저역 깎기(타격음 몸통과 겹침 방지) + 끝 페이드."""
+    return tail(highpass(s, sr, hp), sr, tail_s)
+
+
+def _whistle(sr, rng, dur, f0, f1, q=9.0, a=0.6, r=0.3):
+    """좁은 대역 노이즈 휘파람(화살·검풍 바람 소리): 높은 Q 밴드 스윕."""
+    n = sec(sr, dur)
+    s = svf(noise(sr, dur, rng), sr, sweep(sr, n, f0, f1), q, 'band')
+    return mul(s, env_adsr(sr, dur, dur * a, 0.0, 1.0, dur * r))
+
+
+def _whir(sr, rng, dur, f0, f1, rate=28.0, q=2.5):
+    """도는 물체의 '휘휘휘': 밴드 노이즈 스윕 × rate Hz 진폭 떨림, 점점 작아짐."""
+    n = sec(sr, dur)
+    s = svf(noise(sr, dur, rng), sr, sweep(sr, n, f0, f1), q, 'band')
+    am = [0.25 + 0.75 * (0.5 + 0.5 * math.sin(TAU * rate * i / sr)) for i in range(n)]
+    return mul(mul(s, am), env_adsr(sr, dur, 0.012, 0.0, 1.0, dur * 0.85, curve=0.8))
+
+
+def _link(sr, rng, f, g=1.0):
+    """사슬 한 마디 '찰': 짧은 고역 쇳빛(울림 없음) + 딸깍."""
+    s = glint(sr, rng, f, 0.05, 0.011, partials=[(1.0, 1.0), (1.37, 0.6), (2.11, 0.35)])
+    mix_into(s, click(sr, rng, 0.003, f * 1.4), 0, 0.4)
+    return scale(s, g)
+
+
+def _ping(sr, f, dur, tau, fifth=True):
+    """작은 신호음: 사인(+ 5도 위) 빠른 감쇠. 표식·공명 발동."""
+    s = mul(tone(sr, dur, f), env_exp(sr, dur, tau))
+    if fifth:
+        mix_into(s, mul(tone(sr, dur, f * 1.5), env_exp(sr, dur, tau * 0.8)), 0, 0.5)
+    return fade_edges(s, sr, 0.003)
+
+
+@sfx5('trait_launch', 'TRAIT_PROC{act:launch}', "61-5 새 — 개성 발동 · 띄움(칼등 띄우기 · 띄워 올리기 · 되받는 땅울림 등 — 적이 공중으로 떠오르는 순간). 주 타격음 위에 얹히는 특색 층: 위로 오르는 몸 '훕'(140→320 Hz, 8 ms 어택) + 솟는 바람(350→2.6 kHz) + 옷 펄럭 → 0.27 s 꼭대기에서 빠지는 바람. 0.40 s. 0 ms '딱' 없음·140 Hz 아래 깎음", -8)
+def _trait_launch(sr, rng):
+    s = zeros(sec(sr, 0.40))
+    mix_into(s, mul(tone(sr, 0.16, 140, 320), env_adsr(sr, 0.16, 0.008, 0.0, 1.0, 0.13, curve=0.7)), 0, 0.5)
+    mix_into(s, whoosh(sr, 0.32, rng, 350, 2600, q=1.1, a=0.28, r=0.6), sec(sr, 0.01), 0.8)
+    mix_into(s, rustle(sr, rng, 0.2, 1400, 40), sec(sr, 0.05), 0.25)
+    mix_into(s, whoosh(sr, 0.1, rng, 2600, 4200, q=1.4, a=0.3, r=0.6), sec(sr, 0.27), 0.18)
+    return _layer(reverb(s, sr, size=0.6, decay=0.4, wet=0.1), sr)
+
+
+@sfx5('trait_slam', 'TRAIT_PROC{act:slam}', "61-5 새 — 개성 발동 · 처박힘(흘려 밀기 · 날려 보내기 · 들이받기 · 코앞 사격 등 — 밀려간 적이 벽·기둥·다른 적에 부딪는 순간). 돌·벽 재료로 타격음과 갈림: 거친 돌 '빠직'(1.8 kHz 샘플 홀드, 6 ms 어택) + 낮은 '쿵'(180→70 Hz, 90 Hz 아래 깎음) + 흩어지는 돌 부스러기 + 먼지(1.2k→400). 0.45 s, 작은 돌방 울림", -7)
+def _trait_slam(sr, rng):
+    s = zeros(sec(sr, 0.45))
+    c = crunch(burst(sr, 0.06, rng, fc=1800, q=0.8, tau=0.012), 5)
+    mix_into(s, mul(c, env_adsr(sr, 0.06, 0.006, 0.0, 1.0, 0.05)), 0, 0.7)
+    mix_into(s, punch(sr, 180, 70, 0.25, 0.06, 1.3), sec(sr, 0.004), 0.6)
+    mix_into(s, gravel(sr, rng, 0.4, 10, 0.02, 0.28, g=0.25), 0)
+    mix_into(s, lowpass(whoosh(sr, 0.35, rng, 1200, 400, q=0.7, a=0.15, r=0.7), sr, 2000), sec(sr, 0.04), 0.22)
+    return _layer(reverb(s, sr, size=0.8, decay=0.45, wet=0.14), sr, hp=90, tail_s=0.04)
+
+
+@sfx5('trait_pull', 'TRAIT_PROC{act:pull}', "61-5 새 — 개성 발동 · 끌어당김(칼 감기 · 끌어당기기 · 빨아들이는 균열 · 휘감는 난타 · 돌아오는 칼 등). 다가오는 바람 — 점점 커지며 대역이 내려옴(2.6k→600 Hz, 뒤로 감은 듯한 어택) + 팽팽한 가죽·사슬 삐걱(18 Hz 떨림) → 0.30 s 끌려와 닿는 작은 '툭'(260→140 Hz). 0.40 s", -8)
+def _trait_pull(sr, rng):
+    s = zeros(sec(sr, 0.40))
+    mix_into(s, whoosh(sr, 0.32, rng, 2600, 600, q=1.3, a=0.72, r=0.22), 0, 0.75)
+    mix_into(s, creak(sr, rng, 0.25, 90, 130, band=(700, 1400), trem=18.0), sec(sr, 0.03), 0.22)
+    mix_into(s, punch(sr, 260, 140, 0.08, 0.02, 1.2), sec(sr, 0.30), 0.4)
+    mix_into(s, flesh(sr, rng, 900, 0.06, 0.012), sec(sr, 0.30), 0.18)
+    return _layer(s, sr)
+
+
+@sfx5('trait_bind', 'TRAIT_PROC{act:bind}', "61-5 새 — 개성 발동 · 묶음(땅에 박기 · 낙인 사슬 · 그림자 매듭 · 화살 덫 · 화살 그물 등 — 적이 그 자리에 묶이는 순간). 사슬 마디 다섯 '찰찰찰'(2.8→4.2 kHz 짧은 쇳빛, 점점 빠르게, 울림 없음) + 0.12 s 조여지는 끈 '끼익'(700→1.8 kHz 좁은 대역) → 0.26 s 잠기는 '턱'(300→160 Hz + 거친 딸깍). 0.40 s", -8)
+def _trait_bind(sr, rng):
+    s = zeros(sec(sr, 0.40))
+    for k, (t, f) in enumerate(((0.0, 2800), (0.055, 3200), (0.095, 3500), (0.125, 3900), (0.148, 4200))):
+        mix_into(s, _link(sr, rng, f * rng.uniform(0.97, 1.03)), sec(sr, t), 0.5 - 0.04 * k)
+    n = sec(sr, 0.18)
+    sq = svf(noise(sr, 0.18, rng), sr, sweep(sr, n, 700, 1800), 3.0, 'band')
+    mix_into(s, mul(sq, env_adsr(sr, 0.18, 0.12, 0.0, 1.0, 0.05)), sec(sr, 0.10), 0.35)
+    mix_into(s, punch(sr, 300, 160, 0.07, 0.016, 1.3), sec(sr, 0.26), 0.45)
+    mix_into(s, crunch(click(sr, rng, 0.006, 2600), 3), sec(sr, 0.26), 0.3)
+    return _layer(reverb(s, sr, size=0.5, decay=0.35, wet=0.08), sr)
+
+
+@sfx5('trait_clone', 'TRAIT_PROC{act:clone}', "61-5 새 — 개성 발동 · 분신(그림자 찌르기 · 달빛 잇기 · 취월 등 — 그림자·달 분신이 나타나 한 번 더 벰). 어둡게 두 겹 '스슥'(900→2.4k, 70 ms 뒤 1.1k→2.9k 복사) + 숨 같은 그림자 바람(노이즈 포먼트) → 0.18 s 분신의 가는 베기 '샥'(6k→2.5k). 60 ms 메아리(2.5 kHz 저역통과)로 '복사본' 느낌. 0.45 s", -8)
+def _trait_clone(sr, rng):
+    s = zeros(sec(sr, 0.45))
+    mix_into(s, whoosh(sr, 0.2, rng, 900, 2400, q=0.9, a=0.4, r=0.5), 0, 0.5)
+    mix_into(s, whoosh(sr, 0.2, rng, 1100, 2900, q=0.9, a=0.4, r=0.5), sec(sr, 0.07), 0.4)
+    mix_into(s, breath(sr, rng, 0.3, f1=(500, 800), f2=(1500, 2200), rough=0.2, a=0.05), sec(sr, 0.02), 0.3)
+    mix_into(s, slice_(sr, rng, 6000, 2500, 0.1), sec(sr, 0.18), 0.35)
+    s = echo(s, sr, 0.06, fb=0.35, wet=0.3, lp=2500)
+    return _layer(s, sr, hp=180)
+
+
+@sfx5('trait_blink', 'TRAIT_PROC{act:blink}', "61-5 새 — 개성 발동 · 순간이동(그림자 넘기 · 되짚어 걷기 · 연쇄 발도 등 — 사라졌다 다른 자리에 나타남). 사라짐 '휙'(1.5k→6k, 70 ms) + 빨려 드는 작은 '뿅'(1.2k→300 Hz 사인, 12 ms 감쇠) → 0.13 s 나타남: 거꾸로 부푸는 바람(5k→1.4k, 끝에서 뚝 끊김) + 작은 딸깍. 0.30 s", -8)
+def _trait_blink(sr, rng):
+    s = zeros(sec(sr, 0.30))
+    mix_into(s, whoosh(sr, 0.07, rng, 1500, 6000, q=1.2, a=0.2, r=0.45), 0, 0.6)
+    mix_into(s, mul(tone(sr, 0.04, 1200, 300), env_exp(sr, 0.04, 0.012)), sec(sr, 0.03), 0.3)
+    mix_into(s, whoosh(sr, 0.09, rng, 5000, 1400, q=1.2, a=0.82, r=0.12), sec(sr, 0.13), 0.6)
+    mix_into(s, click(sr, rng, 0.003, 4500), sec(sr, 0.22), 0.3)
+    return _layer(reverb(s, sr, size=0.5, decay=0.3, wet=0.08), sr, hp=200)
+
+
+@sfx5('trait_wave', 'TRAIT_PROC{act:wave}', "61-5 새 — 개성 발동 · 검풍·파동(발도풍 · 포효 등 — 앞으로 날아가는 초승달 바람·음파). 발도 순간 가는 '쉭'(7.5k→3k) + 날아가며 멀어지는 찢긴 바람(3.8k→1.4 kHz, 55 Hz 떨림 — 도플러처럼 내려감) + 좁은 휘파람(2.6k→1.7k). 0.50 s, 점점 작아짐", -8)
+def _trait_wave(sr, rng):
+    s = zeros(sec(sr, 0.50))
+    mix_into(s, slice_(sr, rng, 7500, 3000, 0.08), 0, 0.4)
+    mix_into(s, tear(sr, 0.45, rng, 3800, 1400, rate=55.0, q=1.6), sec(sr, 0.02), 0.7)
+    mix_into(s, _whistle(sr, rng, 0.4, 2600, 1700, a=0.2, r=0.7), sec(sr, 0.03), 0.35)
+    return _layer(s, sr, hp=250, tail_s=0.05)
+
+
+@sfx5('trait_throw', 'TRAIT_PROC{act:throw}', "61-5 새 — 개성 발동 · 투척(뽑아 던지기 · 독주 투척 등 — 손에서 날을 던짐). 손목 튕김 '틱'(7k→3.5k 짧은 스침 + 300→200 Hz 작은 '툭') + 도는 날의 '휘휘휘'(28 Hz 떨림, 2.2k→1.5 kHz 로 멀어지며 작아짐). 0.30 s", -8)
+def _trait_throw(sr, rng):
+    s = zeros(sec(sr, 0.30))
+    mix_into(s, slice_(sr, rng, 7000, 3500, 0.05), 0, 0.4)
+    mix_into(s, punch(sr, 300, 200, 0.04, 0.01, 1.1), 0, 0.2)
+    mix_into(s, _whir(sr, rng, 0.26, 2200, 1500, rate=28.0), sec(sr, 0.02), 0.6)
+    return _layer(s, sr, hp=180)
+
+
+@sfx5('trait_rain', 'TRAIT_PROC{act:rain}', "61-5 새 — 개성 발동 · 낙하 화살(낙하 사격 · 이어지는 비 등 — 하늘에서 화살이 떨어짐). 내려오는 휘파람 셋(3.4k→1.9 kHz, 0·0.08·0.17 s, 다가올수록 커짐) → 0.22·0.30·0.39 s 땅에 꽂히는 작은 나무 '톡' 셋 + 흙. 0.55 s. 화살비(arrow_rain_*)보다 작고 짧게", -8)
+def _trait_rain(sr, rng):
+    s = zeros(sec(sr, 0.55))
+    for t, g in ((0.0, 0.45), (0.08, 0.4), (0.17, 0.35)):
+        mix_into(s, _whistle(sr, rng, 0.22, 3400 * rng.uniform(0.95, 1.05), 1900, a=0.85, r=0.1), sec(sr, t), g)
+    for t in (0.22, 0.30, 0.39):
+        mix_into(s, wood_tok(sr, rng, rng.uniform(900, 1300), 0.05, 0.01), sec(sr, t), 0.35)
+        mix_into(s, burst(sr, 0.04, rng, fc=1500, q=0.7, tau=0.01), sec(sr, t), 0.2)
+    return _layer(s, sr, hp=200)
+
+
+@sfx5('trait_ignite', 'TRAIT_PROC{act:ignite}', "61-5 새 — 개성 발동 · 점화(술 회오리 · 불똥 내려베기 · 끓는 쇠 · 불화살 · 술별 등 — 술 웅덩이·칼날에 불이 확 붙는 순간). 부드러운 '화륵'(200→2.4 kHz 로 열리는 불길, 30 ms 어택) + 작은 '훅'(160→90 Hz, 150 Hz 아래 깎아 타격음 몸통과 겹치지 않게) + 불똥·타닥. 0.50 s. 술불 지속(boss1_fire_loop·fire_weapon_loop)과 겹쳐도 머리만 들리게 짧게", -7)
+def _trait_ignite(sr, rng):
+    s = zeros(sec(sr, 0.50))
+    mix_into(s, flame(sr, rng, 0.45, 200, 2400, a=0.03), 0, 0.8)
+    mix_into(s, punch(sr, 160, 90, 0.12, 0.03, 1.2), sec(sr, 0.01), 0.3)
+    mix_into(s, crackle(sr, rng, 0.4, 10, 0.35), sec(sr, 0.06))
+    mix_into(s, sparks(sr, rng, 0.3, 6, 0.15), sec(sr, 0.04))
+    return _layer(s, sr, hp=150, tail_s=0.05)
+
+
+@sfx5('trait_deflect', 'TRAIT_PROC{act:deflect}', "61-5 새 — 개성 발동 · 되쳐내기(쳐내기 · 갈라진 길 — 날아온 화살·술병을 되돌려 보냄). 비껴 맞는 짧은 쇳빛 '팅'(4.2 kHz, 30 ms 감쇠 — 울림 없음) + 긁고 올라가는 '스릉'(3.5k→8k) + 되돌아 날아가는 휘파람(2.4k→4.8k, 점점 작게). 0.30 s. 패링음(parry)보다 가볍고 높게", -8)
+def _trait_deflect(sr, rng):
+    s = zeros(sec(sr, 0.30))
+    mix_into(s, glint(sr, rng, 4200, 0.12, 0.03), sec(sr, 0.004), 0.5)
+    mix_into(s, slice_(sr, rng, 3500, 8000, 0.06), 0, 0.35)
+    mix_into(s, punch(sr, 400, 250, 0.04, 0.01, 1.1), 0, 0.2)
+    mix_into(s, _whistle(sr, rng, 0.2, 2400, 4800, q=7.0, a=0.15, r=0.8), sec(sr, 0.04), 0.35)
+    return _layer(s, sr, hp=250)
+
+
+@sfx5('trait_shield', 'TRAIT_PROC{act:shield}', "61-5 새 — 개성 발동 · 막아줌(분신 방패 — 분신이 대신 맞고 깨져 흩어짐). 막힌 '텁'(220→120 Hz, 가죽 '퍽') + 어두운 조각(1.8~3.6 kHz, 4 kHz 위 깎음 — 유리처럼 밝지 않게) → 흩어지는 그림자 바람(2k→600 Hz) + 짧은 메아리. 0.42 s", -8)
+def _trait_shield(sr, rng):
+    s = zeros(sec(sr, 0.42))
+    mix_into(s, punch(sr, 220, 120, 0.09, 0.025, 1.2), sec(sr, 0.003), 0.45)
+    mix_into(s, lowpass(flesh(sr, rng, 700, 0.07, 0.016), sr, 1500), sec(sr, 0.003), 0.3)
+    mix_into(s, lowpass(glass_shards(sr, rng, 0.25, 6, 0.02, 0.15, 1800, 3600, 0.25), sr, 4000), 0)
+    mix_into(s, whoosh(sr, 0.3, rng, 2000, 600, q=0.9, a=0.2, r=0.7), sec(sr, 0.05), 0.35)
+    s = echo(s, sr, 0.05, fb=0.25, wet=0.2, lp=2200)
+    return _layer(s, sr, hp=130)
+
+
+@sfx5('trait_spin', 'TRAIT_PROC{act:spin}', "61-5 새 — 개성 발동 · 회전(물러서며 베기 · 피바람 등 — 둘레를 한 바퀴 더 도는 베기). 도는 바람(900→2.2k→1.2 kHz, 7 Hz 로 세 번 지나감) + 지날 때마다 가는 칼끝 '샥'(점점 작게). 0.45 s. 칼 회전 베기(katana_spin)보다 가볍고 짧게", -8)
+def _trait_spin(sr, rng):
+    dur = 0.45
+    n = sec(sr, dur)
+    fc = [900 + 1300 * math.sin(math.pi * min(1.0, i / (n * 0.55))) if i < n * 0.55 else
+          2200 - 1000 * (i - n * 0.55) / (n * 0.45) for i in range(n)]
+    w = svf(noise(sr, dur, rng), sr, fc, 1.2, 'band')
+    am = [0.3 + 0.7 * (0.5 - 0.5 * math.cos(TAU * 7.0 * i / sr)) for i in range(n)]
+    s = mul(mul(w, am), env_adsr(sr, dur, 0.02, 0.0, 1.0, dur * 0.6))
+    s = scale(s, 0.7)
+    for t, g in ((0.07, 0.28), (0.21, 0.22), (0.35, 0.15)):
+        mix_into(s, slice_(sr, rng, 6500, 3000, 0.06), sec(sr, t), g)
+    return _layer(s, sr, hp=200)
+
+
+@sfx5('trait_mark', 'TRAIT_PROC{act:mark}', "61-5 새 — 개성 발동 · 표식(스치는 낙인 · 쌍낙인 — 적 몸에 낙인이 새겨지거나 옮겨 붙음). 아주 작은 신호 '팅'(3.5 kHz + 5도 위, 50 ms 감쇠) + 지지는 '츳'(5.2 kHz 쉿 + 미세 딸깍) + 작은 '톡'. 0.28 s. 낙인 쌓임(brand_apply·mark_stack)보다 작고 높게", -9)
+def _trait_mark(sr, rng):
+    s = zeros(sec(sr, 0.28))
+    mix_into(s, _ping(sr, 3520, 0.15, 0.05), sec(sr, 0.006), 0.35)
+    mix_into(s, sizzle(sr, rng, 0.2, 5200, 0.05), sec(sr, 0.01), 0.4)
+    mix_into(s, punch(sr, 400, 300, 0.03, 0.008, 1.0), 0, 0.15)
+    return _layer(s, sr, hp=300)
+
+
+@sfx5('trait_burst', 'TRAIT_PROC{act:burst}', "61-5 새 — 개성 발동 · 터짐(술독 짓누르기 — 모인 술이 불붙어 터짐). 둥근 '펑'(200→70 Hz, 80 Hz 아래 깎음) + 저역 노이즈 폭발(1.2 kHz) + 작은 독 조각(2.4~5.2 kHz) + 0.02 s 불길 '화륵'(300→2 kHz) + 타닥. 0.45 s. 화염 술병(bottle_burst)보다 짧고 작게 — 특색 층", -7)
+def _trait_burst(sr, rng):
+    s = zeros(sec(sr, 0.45))
+    mix_into(s, punch(sr, 200, 70, 0.2, 0.05, 1.4), sec(sr, 0.005), 0.55)
+    b = burst(sr, 0.15, rng, fc=1200, q=0.7, tau=0.04)
+    mix_into(s, mul(b, env_adsr(sr, 0.15, 0.006, 0.0, 1.0, 0.12)), 0, 0.6)
+    mix_into(s, glass_shards(sr, rng, 0.3, 8, 0.01, 0.2, 2400, 5200, 0.22), 0)
+    mix_into(s, flame(sr, rng, 0.35, 300, 2000, a=0.03), sec(sr, 0.02), 0.4)
+    mix_into(s, crackle(sr, rng, 0.35, 8, 0.3), sec(sr, 0.06))
+    return _layer(reverb(s, sr, size=0.7, decay=0.4, wet=0.12), sr, hp=80, tail_s=0.04)
+
+
+# ---- 공명 (RESONANCE_ON 켜짐 · TRAIT_PROC{resonance} 발동) -------------------------------------------------------
+# 공명 = 같은 태그 개성 두 장이 엮임. 서명 = 두 음(G6·D7, 5도)이 어긋난 채 하나씩 울리다 한 자리에서 맞물림.
+# trait_manifest(A5 두 종이 한 음으로 겹침)와 같은 계보, 5도 위로 올려 '둘이 엮였다'를 구분.
+
+_RES_F = (1568.0, 2349.3)   # G6 · D7
+
+
+@sfx5('resonance_on', 'RESONANCE_ON', "61-5 새 — 공명 켜짐(같은 태그 개성 두 장이 엮여 공명이 켜진 뒤 전투로 돌아올 때 1회 · 주인공 둘레 두 고리 fx 와 함께). 0~0.2 s 차오르는 바람 → 0.05 s 첫 종 G6 이 2 % 높은 데서 미끄러져 자리 잡음 → 0.17 s 둘째 종 D7 이 2 % 낮은 데서 올라와 자리 잡음(두 음이 5도로 맞물림) → 0.38 s 두 음이 함께 한 번 더 '팅'(맞물림 확정) + 가슴 '둥'(110→70 Hz, 작게) + 반짝임. 1.0 s, 종 감쇠 τ ≤ 0.3 s(오래 남는 쇠 울림 없음)", -3, category='event')
+def _resonance_on(sr, rng):
+    dur = 1.0
+    s = zeros(sec(sr, dur))
+    f1, f2 = _RES_F
+    mix_into(s, whoosh(sr, 0.22, rng, 600, 3000, q=0.9, a=0.8, r=0.2), 0, 0.2)
+    mix_into(s, glide_bell(sr, 0.9, f1 * 1.02, f1, 0.25, rng, tau=0.3), sec(sr, 0.05), 0.32)
+    mix_into(s, glide_bell(sr, 0.8, f2 * 0.98, f2, 0.18, rng, tau=0.26), sec(sr, 0.17), 0.26)
+    t = sec(sr, 0.38)
+    mix_into(s, bell(sr, 0.6, f1, rng, tau=0.22), t, 0.24)
+    mix_into(s, bell(sr, 0.6, f2, rng, tau=0.2), t + sec(sr, 0.004), 0.2)
+    mix_into(s, lowpass(thud(sr, 0.25, 110, 70, 0.07), sr, 400), t, 0.4)
+    mix_into(s, sparks(sr, rng, 0.4, 7, 0.08, 6000, 11000), t + sec(sr, 0.03))
+    return tail(reverb(s, sr, size=1.0, decay=0.6, wet=0.24), sr, 0.08)
+
+
+@sfx5('resonance_proc', 'TRAIT_PROC{resonance}', "61-5 새 — 공명 발동(공명 효과가 터지는 순간 · TRAIT_PROC 에 resonance 가 있을 때. <공명 id> 전용 소리가 없을 때 이것). resonance_on 의 두 음(G6·D7)을 짧게: 0 · 0.04 s 두 '팅'(25·20 ms 감쇠) + 고역 반짝임 + 작은 바람. 0.35 s. 개성 발동음(trait_<act>)과 같은 특색 층 — 주 타격음을 대체하지 않음", -7)
+def _resonance_proc(sr, rng):
+    s = zeros(sec(sr, 0.35))
+    f1, f2 = _RES_F
+    mix_into(s, whoosh(sr, 0.12, rng, 1500, 4500, q=1.0, a=0.3, r=0.6), 0, 0.2)
+    mix_into(s, _ping(sr, f1, 0.2, 0.025, fifth=False), sec(sr, 0.006), 0.4)
+    mix_into(s, _ping(sr, f2, 0.2, 0.02, fifth=False), sec(sr, 0.046), 0.35)
+    mix_into(s, sparks(sr, rng, 0.2, 5, 0.1, 6000, 11000), sec(sr, 0.03))
+    return _layer(reverb(s, sr, size=0.7, decay=0.4, wet=0.15), sr, hp=400, tail_s=0.05)

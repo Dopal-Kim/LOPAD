@@ -19,6 +19,7 @@ GROUPS = [
     ('branch1', '갈래 1단'),
     ('branch2', '갈래 2단 (60라운드)'),
     ('build', '빌드 축 (세트·이중 개성·저주·각성·상태)'),
+    ('trait', '개성 발동 · 공명 (61-5 P13)'),
     ('passive', '패시브 (60라운드)'),
     ('bundle2', '2차 묶음 (60라운드)'),
     ('enemy', '적'),
@@ -56,6 +57,9 @@ EXPLICIT = {
               'stillness', 'drunk_ignite', 'drunk_sway', 'endure_trigger',
               'awaken1', 'awaken2', 'awaken_tail_katana', 'awaken_tail_greatsword', 'awaken_tail_dagger',
               'awaken_tail_bow', 'trait_manifest', 'growth_tick'],
+    'trait': ['trait_launch', 'trait_slam', 'trait_pull', 'trait_bind', 'trait_clone', 'trait_blink', 'trait_wave',
+              'trait_throw', 'trait_rain', 'trait_ignite', 'trait_deflect', 'trait_shield', 'trait_spin', 'trait_mark',
+              'trait_burst', 'resonance_on', 'resonance_proc'],
     'enemy': ['enemy_death', 'enemy_hurt', 'charger_telegraph', 'charger_dash', 'archer_shot',
               'peddler_wick', 'peddler_throw', 'peddler_hurt', 'peddler_death',
               'porter_windup', 'porter_push', 'porter_barrel_roll', 'barrel_return', 'porter_barrel_break',
@@ -129,6 +133,12 @@ SUBGROUP = {
     'boss1_pillar_collapse': '기둥 무너짐 (61-5)', 'boss1_lob_bottle': '기둥 숨기 방지 (61-5)',
     'voucher_drop': '바닥 줍기 · 전표 (61-5)', 'voucher_pickup': '바닥 줍기 · 전표 (61-5)',
     'item_pickup': '바닥 줍기 · 소모품 (61-5)',
+    'trait_launch': '행동 갈래 · 띄움', 'trait_slam': '행동 갈래 · 처박힘', 'trait_pull': '행동 갈래 · 끌어당김',
+    'trait_bind': '행동 갈래 · 묶음', 'trait_clone': '행동 갈래 · 분신', 'trait_blink': '행동 갈래 · 순간이동',
+    'trait_wave': '행동 갈래 · 검풍·파동', 'trait_throw': '행동 갈래 · 투척', 'trait_rain': '행동 갈래 · 낙하 화살',
+    'trait_ignite': '행동 갈래 · 점화', 'trait_deflect': '행동 갈래 · 되쳐내기', 'trait_shield': '행동 갈래 · 막아줌',
+    'trait_spin': '행동 갈래 · 회전', 'trait_mark': '행동 갈래 · 표식', 'trait_burst': '행동 갈래 · 터짐',
+    'resonance_on': '공명 · 켜짐', 'resonance_proc': '공명 · 발동',
     'evolve': '폴백 (61-4 대체)', 'dual_trait': '폴백 (61-4 대체)', 'awaken_katana': '폴백 (61-4 대체)',
     'awaken_greatsword': '폴백 (61-4 대체)', 'awaken_dagger': '폴백 (61-4 대체)', 'awaken_bow': '폴백 (61-4 대체)',
 }
@@ -241,7 +251,7 @@ def write(root, manifest_path, sfx_specs, out_path=None):
              'round "60" = 60라운드 새 소리, "61" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, '
              '"61-2" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), '
              '"61-4" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍, P12 무기 성장 — 각성·개성 발현·게이지), '
-             '"61-5" = 61라운드 단계 5(P13 — 기둥 무너짐·기둥 부딪힘 다시·보스 포물선 술병·바닥 전표 떨어짐/줍기·소모품 줍기), '
+             '"61-5" = 61라운드 단계 5(P13 — 기둥 무너짐·기둥 부딪힘 다시·보스 포물선 술병·바닥 전표 떨어짐/줍기·소모품 줍기, 개성 발동 행동 갈래 15·공명 켜짐/발동 — 주 타격음 위 특색 층), '
              '설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],
