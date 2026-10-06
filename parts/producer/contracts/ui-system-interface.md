@@ -617,3 +617,27 @@ interface UiGrowth {
 - `UiGrowth.resonance?: { tag: UiTagId; name: string; line: string; active: boolean }[]` — 같은 태그 개성 2장으로 켜지는 공명(성장도·Tab 에 표시, 켜질 때 `ui:trait-gained` 와 같은 알림 형식으로 `UI_EVENTS.RESONANCE` = `'ui:resonance'` `{ tag, name, line }`).
 - 드랍 아이템은 월드 그림이라 UI 무관.
 - (61 단계 5 확정) `UiMenuLine.trait?: UiGrowthTrait`(카드 그림 포함)·`UiMenuLine.resonance?`(이 카드를 고르면 켜지는 공명 — 카드에 '공명' 힌트), `UiResonance.iconKey?`(공명 카드 그림 `ui_traits/<공명 id>`, 시스템이 로드했을 때만). 카드 그림 크기 128×128 도트(화면 64px).
+
+## 19. 수련장·그림 속 입구 (61 단계 6, P14)
+설계: `parts/producer/decisions/2026-10-06-P14-tutorial-color-transition.md`.
+```ts
+// 그림 속 입구 전환 — UI 가 그리는 전환 씬, 시스템이 시작하고 가운데에서 장면을 바꾼다
+type UiTransitionMode = 'enterNode' | 'exitRoom' | 'floor' | 'training';
+interface UiTransitionBegin {
+  id: number;                 // 이번 전환 번호
+  mode: UiTransitionMode;
+  region: string;             // waste|outer|gate|hall|brewery|boss|training
+  nodeKind?: string;          // battle|elite|shop|rest|event|boss|training…
+  doorKey?: string;           // 입구 그림 텍스처 키(시스템이 로드) — 없으면 UI 가 지역 키아트·단색으로 대체
+  from?: { x: number; y: number }; // 화면 좌표(노드 지도에서 고른 노드 / 방 출구) — 줌 중심
+  skippable: boolean;
+}
+// UI_EVENTS.TRANSITION_BEGIN = 'ui:transition-begin' (시스템 → UI)
+// UI_EVENTS.TRANSITION_COVERED = 'ui:transition-covered' { id } (UI → 시스템: 화면이 다 덮임 — 이때 방/지도 교체)
+// UI_EVENTS.TRANSITION_READY = 'ui:transition-ready' { id } (시스템 → UI: 새 장면 준비됨 — 걷어내기 시작)
+// UI_EVENTS.TRANSITION_END = 'ui:transition-end' { id } (UI → 시스템: 끝 — 입력 재개)
+```
+- 'exitRoom' 은 UI 가 지금 화면을 캡처해 그림처럼 굳혀 액자에 넣고 줌 아웃 → 지도. 'enterNode' 는 지도의 노드 입구로 파고든 뒤 먹 붓질로 방을 드러냄. 건너뛰기(아무 키)·설정 존중. 덮인 상태에서 시스템이 2초 안에 READY 를 안 주면 UI 는 덮개를 유지(검은 화면 멈춤 방지 위해 READY 오면 즉시 진행).
+- 수련장 스냅샷 `UiSnapshot.training?: { room: string; roomName: string; tasks: { id: string; label: string; done: boolean; verb?: UiVerbSlot }[]; stamped: boolean; rooms: { id: string; name: string; stamped: boolean }[] } | null` — UI 는 과제 체크 목록(오른쪽), 방 도장, 수련장 지도(그림 두루마리)를 그린다. 과제 완료 순간 `UI_EVENTS.TRAINING_TASK = 'ui:training-task' { room, id, label }`.
+- 타이틀 메뉴 '수련장' 항목, 첫 생 '수련장부터 / 바로 런' 선택, 일기장 '수련장' 항목(UI 메뉴 → 시스템 명령 `UI_COMMANDS`/기존 메뉴 선택 방식 — 시스템 판단, 이 줄 갱신).
+- 무기 색: UI 의 무기 강조색(카드 테두리·원한의 한마디 줄 등)은 art §28 무기 색표를 따른다.
