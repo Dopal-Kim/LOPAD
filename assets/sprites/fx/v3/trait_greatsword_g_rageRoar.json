@@ -41,7 +41,7 @@
  "part": "body",
  "anchorNote": "pivot = 주인공 발. 음파 중심 = 머리(발 위 58 도트)",
  "light": {
-  "color": "#d65457",
+  "color": "#ff6a4a",
   "radius": 96,
   "intensity": 1.0,
   "ms": 200,
@@ -89,5 +89,14 @@
    "h": 631
   },
   "scale": "1"
+ },
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "greatsword",
+  "name": "용암",
+  "key": "#ff5a2a",
+  "secondary": "검붉은 재",
+  "how": "이펙트 호박·갈색 재·금빛 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

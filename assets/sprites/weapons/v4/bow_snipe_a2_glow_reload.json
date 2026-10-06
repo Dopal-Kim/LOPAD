@@ -70,14 +70,14 @@
  "tintable": true,
  "pathTint": {
   "surehit": [
-   255,
-   80,
-   80
+   36,
+   200,
+   132
   ],
   "pierce": [
-   192,
-   230,
-   255
+   196,
+   255,
+   228
   ]
  },
  "tintRule": "회백 마스크(X0·무채 G11~G13). 고른 2차 길의 pathTint 를 setTint(곱)로 입혀 a2 위에 그린다. 블렌드 보통(NORMAL) 권장 — ADD 는 어둠 속에서 과함",

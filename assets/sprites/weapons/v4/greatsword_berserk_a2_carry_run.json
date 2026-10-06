@@ -67,26 +67,26 @@
  "glowSheet": "weapons/v4/greatsword_berserk_a2_glow_carry_run",
  "pathTint": {
   "bloodwind": [
-   255,
-   64,
-   64
+   228,
+   40,
+   46
   ],
   "ironpeak": [
-   170,
-   204,
-   255
+   255,
+   198,
+   164
   ]
  },
  "trailTint": {
   "bloodwind": [
-   255,
-   64,
-   64
+   240,
+   137,
+   140
   ],
   "ironpeak": [
-   170,
-   204,
-   255
+   255,
+   224,
+   205
   ]
  },
  "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
@@ -154,5 +154,6 @@
    "h": 258
   },
   "scale": "1"
- }
+ },
+ "trailTintRule": "61 단계 6: trailTint = pathTint 를 흰색 쪽으로 45% — 궤적 fx 가 이미 무기 색(용암·비취)이라 곱해도 어두워지지 않게 색 기울기만"
 }

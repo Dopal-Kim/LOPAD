@@ -68,7 +68,7 @@
  "depth": "above",
  "pivotNote": "피벗 (64,74) = 발. 호·찌르기 원점 = 몸 중심 (64,64) (발 위 10px).",
  "trail": {
-  "color": "#8b4d22",
+  "color": "#96301e",
   "alpha": 0.7,
   "ms": 220,
   "fromFrame": 2,
@@ -79,7 +79,7 @@
   "ms": 90
  },
  "flash": {
-  "color": "#eecc78",
+  "color": "#ffb46c",
   "alpha": 0.12,
   "ms": 40,
   "atFrame": 1
@@ -94,8 +94,8 @@
    "label": "지진",
    "colorSwap": [
     {
-     "from": "#8b4d22",
-     "to": "#d67a11",
+     "from": "#96301e",
+     "to": "#ff5a2a",
      "fromSlot": "hero.A19",
      "toSlot": "hero.A21",
      "role": "녹빛 띠·균열 → 혼불"
@@ -112,15 +112,15 @@
    "label": "분쇄",
    "colorSwap": [
     {
-     "from": "#664a33",
-     "to": "#e2a33c",
+     "from": "#573a33",
+     "to": "#ff8448",
      "fromSlot": "hero.ash.B3",
      "toSlot": "hero.A23",
      "role": "파편 흙빛 → 달군 호박"
     },
     {
-     "from": "#4f3828",
-     "to": "#8b4d22",
+     "from": "#452c27",
+     "to": "#96301e",
      "fromSlot": "hero.ash.B2",
      "toSlot": "hero.A19",
      "role": "파편 그늘 → 녹빛"
@@ -254,5 +254,14 @@
    "h": 2289
   },
   "scale": "1"
+ },
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "greatsword",
+  "name": "용암",
+  "key": "#ff5a2a",
+  "secondary": "검붉은 재",
+  "how": "이펙트 호박·갈색 재·금빛 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

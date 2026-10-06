@@ -65,25 +65,25 @@
  "pathTint": {
   "giant": [
    255,
-   210,
-   100
+   152,
+   72
   ],
   "congest": [
-   232,
-   70,
-   84
+   196,
+   34,
+   50
   ]
  },
  "trailTint": {
   "giant": [
    255,
-   210,
-   100
+   198,
+   154
   ],
   "congest": [
-   232,
-   70,
-   84
+   223,
+   133,
+   142
   ]
  },
  "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
@@ -139,5 +139,15 @@
    "h": 436
   },
   "scale": "1"
+ },
+ "trailTintRule": "61 단계 6: trailTint = pathTint 를 흰색 쪽으로 45% — 궤적 fx 가 이미 무기 색(용암·비취)이라 곱해도 어두워지지 않게 색 기울기만",
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "greatsword",
+  "name": "용암",
+  "key": "#ff5a2a",
+  "secondary": "검붉은 재",
+  "how": "갈래 외형의 빛·장식 색 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

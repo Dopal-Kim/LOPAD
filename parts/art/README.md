@@ -50,6 +50,7 @@ python3 parts/art/work/fx_prod/build_b.py      # 43라운드 양산 B: 단검·�
 python3 parts/art/work/struct61/build.py        # 61라운드 단계 2: 구조물 v1→v3 26시트(아틀라스) · 1층 5지역 타일 임시 칸 재작업 · 방 변주 소품 17 (--dry, --only structs,tiles,props)
 python3 parts/art/work/growth61/build.py       # 61라운드 단계 4(P12): 무기 1차·2차 각성 외형 — looks 정지 그림 · weapons/v4 오버레이 531 · fx/v4 각성 연출 2 (단계: looks sheets fx publish verify memory preview)
 python3 parts/art/work/traitcards61s5/build.py   # 61라운드 단계 5(P13): 개성 카드 그림 65장 128×128 — Gemini 콘셉트 raw → 도트(ui_traits/) · 이어서 preview.py(검사·무기별 모음)
+python3 parts/art/work/paint61s6/build.py         # 61라운드 단계 6(P14): 그림 속 입구 16·먹 붓질 마스크 4·액자·수련장 지도·수련장 소품 7·수련장 타일 (--only doors,map,brush,frame,props,tiles,preview)
 ```
 **이펙트 재빌드 순서 주의 (43라운드)**: `weapons/build.py`·`combat_fx/build.py`·`evolution_fx/build.py` 는 옛 이펙트를 같은 id 로 `assets/sprites/fx/` 에 쓴다. 이 셋을 다시 돌렸다면 반드시 그 뒤에 `fx_prod/build_a.py` → `fx_prod/build_b.py` 를 돌려 양산본으로 덮는다 (blood·knock_dust·player_hit 는 `combat_fx` 만 만든다). 팔레트 `fx` 블록이나 주인공 시트(실루엣 마스크: player_dash·idle)가 바뀌어도 fx_prod 두 스크립트를 다시 돌린다. `fx_prod/build_a.py` 가 `fx_concept/build.py` 를 import 하므로 콘셉트 생성기는 지우지 않는다.
 팔레트 생성기는 `ui`·`fx` 블록을 상수로 들고 있으므로 재생성해도 두 블록이 사라지지 않는다 (38라운드 UI NOTES 의 요청 반영).
@@ -586,3 +587,145 @@ python3 parts/art/work/traitcards61s5/build.py   # 61라운드 단계 5(P13): �
 - `_impact` 는 오른쪽 = 처박힌 방향(벽 쪽), 피벗 = 박힌 면. `g_crushedBreath_impact` 는 양면 대칭.
 - 수명 시트(`k_sparkCleave`·`k_groundPin_bind`·`g_boilingSteel_fire`): 생김 1칸 → `loopRange` 반복 → `endFrames`(groundPin 은 없음 — 풀리면 `_impact`).
 - `trait_res_katana_breach` 는 `tile: true`·`tilePeriodDots 64`(트림 안 함), 피벗 (0,32) = 길 시작, 오른쪽 = 대쉬 방향.
+
+## 61라운드 단계 6 (2026-10-06, 자율 모드) — P14 그림 속 입구 · 먹 붓질 · 액자 · 수련장(지도·소품·타일) · 작업 폴더 `work/paint61s6/`
+근거: `decisions/2026-10-06-P14-tutorial-color-transition.md` §1·§3, 계약 art §28·UI §19, 루트 §4(Gemini 범위: 키아트·지도 일러스트 결의 그림), 1층 노드 종류는 `data/route.json` 읽기만. 무기 색(§28 표)은 다른 아트 작업 몫 — 이 작업은 `assets/sprites/paint/**`·`structures/v3/training_*`·`tiles/v2/stage1_training.*` 만 씀(겹침 없음). 무기 색은 수련장 무기 걸이 매듭에 주 색만 썼다.
+빌드: `python3 parts/art/work/paint61s6/build.py [--only doors,map,brush,frame,props,tiles,preview]` (결정적, 원본 고정). Gemini 다시 받기: `gen.py [id ...] --tag b [--extra "..."]` — 키 없이 호출(프록시가 붙임), 원본·프롬프트 전문은 `work/gemini/paint61s6/<id>/raw_<tag>.{jpg,json}`, 호출 기록 `gen_log.jsonl`(21회, 실패 0, 모델 gemini-3.1-flash-image 16:9). 프롬프트 틀은 `doors.py`(STYLE = 49 키아트 문체 그대로 · COMPOSITION = 정면·가운데 입구·입구 안 검은 어둠 · 지역 키아트를 참고 이미지로 첨부).
+
+### 1. 그림 속 입구 16장 — `paint/door_<region>_<kind>.png` 640×360 + `.json` + 목록 `paint/doors.json`
+| 지역 | 종류 | 그림 |
+|---|---|---|
+| waste | battle | 잿빛 전장에 홀로 선 무너진 성문(여정 birth·road 도 이것 — aliases) |
+| gate | rest · battle | 성벽 초소 바위 동굴 속 모닥불(post) · 창살 올린 성문 통로(예비) |
+| outer | battle · elite · event · shop · rest | 골목 입구 · 붉은 깃발 둘 걸린 성문 · 낡은 사당 문 · 주막 문과 등불 · 모닥불 굴 |
+| brewery | battle · elite · event · shop · rest | 양조 창고 하역문 · 붉은 깃발 쇠문 · 벽돌 사당 문 · 시음실 문과 등불 · 지하 저장고 굴 모닥불 |
+| hall | boss | 연회장 큰 두 문짝(잔 문양, 틈 속 불빛) — 계약 region `boss` 도 이것(aliases `boss_boss`) |
+| training | training · boss | 고요한 새벽 수련장 문(무기 걸이·허수아비) · 안개 속 기억의 연회장 문(만취 그림자 방) |
+- 실제 1층 사용(route.json): outer 전투·이벤트, brewery 전투·상점·쉼터, hall 보스, 여정 waste·gate. 엘리트(도전 성소 위험 노드)는 outer·brewery 전투 자리. outer_shop·outer_rest·brewery_event·gate_battle 은 지역 desc 문장이 있어 배치가 바뀔 때를 위한 예비.
+- 보정: 49 키아트와 같은 '색조 맞춤'(도트화·감색 없음) — 무채 G00~15 축 + 1층 램프, 엘리트만 '적' 램프(floors[6])를 둘째 강조 축으로 허용(붉은 깃발이 녹슨 주홍으로 남음). 다축 사영 `paint.tone_multi`.
+- 메타: `doorRect`(입구 안 어둠 사각형, 그림 px) · `doorCenter` · `light{color,intensity}`(입구 안 빛 색 제안) · `detect`(자동 검출 근거). 줌 = `max(960/w, 540/h)` 배면 어둠이 화면을 채움. 검출은 가운데 창의 가장 어두운 자리에서 흘려 채움, hall_boss 만 손 고정(두 문짝 사이 틈 292,92,54,153).
+- 찾는 순서 제안(`doors.json`): `door_<region>_<kind>` → `aliases` → `door_<region>_battle` → UI 대체(키아트·단색).
+
+### 2. 먹 붓질 마스크 — `paint/brush_reveal_{0..3}.png` 960×540 L + `brush_reveal.json`
+- 값 v = 걷히는 시각(검정 먼저). 진행도 p 에서 `v <= p·255` 가 새 장면. 붓 한 획씩: 획마다 시간 창(겹침 35%), 획 안에서는 붓이 지나간 순서로 커지고, 털마다 늦음(마른 붓 줄무늬·들쭉날쭉 가장자리). 단조 재배치(누적 분포 70%)로 걷히는 넓이가 시간에 고르게(값 2..250, 흰 255 없음).
+- 0 가로 획(위→아래) · 1 사선 · 2 가운데(입구 자리)부터 위아래로 · 3 세로 획. 부드러운 끝 `band 0.04`, 선택 먹 띠 `inkEdge`(G01).
+
+### 3. 액자 — `paint/frame.png` 128×128 9-slice(44·44·44·44) + `frame.json`
+- 바깥부터 낡은 나무 틀 0~23(쇠 모서리판·못·녹 점은 모서리 44 칸에만) · 틀 그림자 24~26 · 바랜 종이 매트 27~41(세피아, 변 조각은 변 방향 결만 — 늘려도 덩어리가 안 생김) · 그림 홈 42~43 · 가운데 투명. 그림이 들어가는 안쪽 = 바깥에서 44px.
+
+### 4. 수련장 지도 — `paint/map_training.png` 960×540 + `map_training.json`
+- Gemini(map_bg_f1 을 참고로 첨부) → map_bg_f1 과 같은 보정(명도 곡선 + 세피아 S0~S4 축 + 1층 램프). 가운데 문루에서 모래 길 8 갈래.
+- `rooms[]` = `{index, id, name, x, y, r, weapon?, look}` — 1 breath 걸음과 숨(177,425) · 2 guard 막고 받아치기(151,257) · 3 katana 칼의 방(291,116) · 4 greatsword 대검의 방(499,105) · 5 dagger 단검의 방(692,116) · 6 bow 활의 방(829,243) · 7 fire 술과 불(745,383) · 8 shadow 만취 그림자(478,439), `hub` (476,267). id 는 아트 제안(시스템 방 id 가 정해지면 그쪽 기준).
+
+### 5. 수련장 소품 7시트 — `structures/v3/training_*` (트림 아틀라스, 64도트 = 1칸, 6프레임 · ms 200/110×4/200)
+| 시트 | 틀 · 피벗 · 발자국 | 상태 |
+|---|---|---|
+| `training_rack_katana` | 176×192 · (88,184) · [2,1] | idle 0 · active 1~4 루프 · taken 5 |
+| `training_rack_greatsword` | 128×208 · (64,196) · [1,1] | 〃 |
+| `training_rack_dagger` | 128×176 · (64,164) · [1,1] | 〃 |
+| `training_rack_bow` | 128×208 · (64,196) · [1,1] | 〃 |
+| `training_task_sign` | 176×192 · (88,184) · [2,1] | idle 0 · active 1~4(등 켜짐) · done 5(붉은 잔 도장) |
+| `training_stamp_board` | 112×176 · (56,168) · [1,1] | blank 0 · stamp 1~4 1회(`stampFrame` 3) → stamped 5 |
+| `training_flag` | 112×224 · (56,208) · [1,1] 통과 | idle 0 · wave 1~4 루프 · reached 5(`ringAnchor`) |
+- 무기 걸이: 무기 모양은 looks 설계(은선 칼·대검·재 발톱 단검·반곡궁)를 받침 크기로 다시 그림. 무기 색은 매듭·술(주 색 + SL1 섞음 2단)과 active 빛 끝점, 광원 `lightByState.active` = 무기 색. 글자 없음(과제 글은 UI).
+- see → critique → fix: 1차 칼날 3도트가 선으로만 읽힘·매듭이 작아 무기 색이 안 보임·대검이 외곽선 없이 떠 보임 → 칼날 5도트·손잡이 7도트, 매듭 7×7 + 술 폭 5, 전 시트 바깥 1도트 SL0 외곽선, 대검 날 명도 한 단 낮춤. 2차 날 빛이 약함 → 빛 6점 + 대각 1점. 도장 판 1차 도장이 틀 위 끝에 닿음(가장자리 검사) → 높이 다시 잡음.
+
+### 6. 수련장 타일 — `tiles/v2/stage1_training.png/.json` (성문 v2 변주, 인덱스·키·벽 규칙·tileLights 그대로)
+- 바닥 0~3·통로 4(디딤돌)·방 바닥 start/trial(발자국)/rest(짚 멍석) = 새로 그린 갈퀴 자국 모래 마당(64 주기 물결 골, 변형 알갱이는 가장자리 4도트 밖). boss 와 나머지 칸 = 성문 칸을 램프 안 한 단 밝힘. 데칼 없음, 외벽은 성문 Gemini 테두리 재사용(`borderNote`).
+- see → critique → fix: 1차 잡음·골이 겹쳐 무늬가 지그재그 → 골만 남김. 2차 32 주기 밝은 얼룩이 칸마다 반복 → 얼룩 없앰, 변형별 알갱이만.
+
+### 검증 · 미리보기
+- `atlas57/verify.py --all`: training_* 7시트 형식 오류 0(새 시트 → 형식만). 전체 출력의 다른 오류(weapons/v4 pathTint·fx 픽셀)는 병행 중인 무기 색 작업분.
+- 미리보기 `work/paint61s6/preview_{doors,transition,brush,training_map,props,room_mock}.png` — transition = 그림 → 입구 2·4배 → 먹 붓질 25/50/80% → 방 → 액자.
+- 용량: `paint/` 약 4.9MB(입구 그림 PNG 평균 약 0.25MB). 텍스처 640×360 RGBA ≈ 0.9MB/장 — 전환 때 쓸 1~2장만 로드 권장.
+
+### 시스템·UI 전달
+- 텍스처 키 = 파일 이름(확장자 없이), `UiTransitionBegin.doorKey` 에 `door_<region>_<kind>`(없으면 `doors.json` aliases). 여정 birth·road → `waste_battle`, post → `gate_rest`, region `boss` → `hall_boss`.
+- 수련장: 방 입구 = `door_training_training`, 만취 그림자 방 = `door_training_boss`. 지도 노드 = `map_training.json rooms`. 바닥 = `tiles/v2/stage1_training.json`(성문과 같은 키). 소품 상태 흐름은 각 JSON `stateFlow`, 허수아비는 기존 `tutorial_dummy`.
+
+## 61라운드 단계 6 — 무기 색 정체성: 칼 '서리' · 단검 '독' (P14 §2, 계약 art §28) · 작업 폴더 `work/color61s6/`
+근거: `decisions/2026-10-06-P14-tutorial-color-transition.md` §2, 계약 art §28. 도영 님 "무기별 개성 나쁘지는 않은데 색이 너무 단조롭다". 자율 모드 — 아트가 정하고 이유를 적는다. Gemini 미사용. 대검 '용암'·활 '비취'·입구 그림은 다른 아트 작업(이 작업은 이름에 `katana`·`dagger` 가 든 시트와 `shadowstep_ghost` 만 씀, 임시 폴더 없음).
+- 빌드(결정적·멱등): `python3 parts/art/work/color61s6/build.py [kweapon dweapon fx overlay tint looks cards]` → `preview.py`(전 = git HEAD, 후 = 작업 트리). 원본 빌드(katana61s5·dagger61s5·traits61s5_*·traitcards61s5)를 다시 돌리면 그 뒤 이 스크립트를 다시 돌린다(새 색은 원래 색과 겹치지 않아 두 번 돌려도 그대로 — `ramps.check_lut` 검사).
+- 방법: 기존 빌드의 **램프만 바꾼 것과 같은 1:1 LUT**(`ramps.py`)를 아틀라스 페이지에 바로 적용(`recolor.py` — 알파·트림·프레임 사각형·규격 불변, 빌드 검사로 알파 변화 0 확인). 공용 빌드 파일(traits61s5_kg `kit.py`·traits61s5_db `tk.py`·traitcards61s5)은 대검·활 작업과 함께 쓰는 파일이라 고치지 않고 이 폴더의 후처리로 둠. 칼 기본 무기만 3D 경로를 다시 불러(`wkatana.py`, katana61s5 모듈을 그대로 import 하고 이 프로세스 안에서만 색을 바꿔 끼움) 판정 칸 날 빛·칼끝 빛줄기를 다시 그림.
+
+### 색 설계 (주 색 = 하이라이트·날선·궤적 머리, 어두운 쪽 = 보조색, 색상 이동 램프)
+- **칼 '서리'**: 머리·날선 `#bff3ff` · 몸(주 색) `#8fe3ff` · `#5cc6ee` · `#4cb2e0` · `#3d9ccf` · 꼬리 `#3584b8 → #2f78ac → #255a84 → #1c405f/#1a3a58`(어두울수록 푸르게), 판정 칸 흰 끝 `#e6fcff`(X1 자리), 검기 3단 `#e0faff`. 각성(달·은 램프)은 한 단 옅은 **서리꽃 은백**(`#f0fcff … #2a3f52`) — 기본 = 짙은 시안, 각성 = 흰 은빛 서리로 구별. 호박 불티 → 서리 반짝.
+- **단검 '독'**: 머리 `#ec9cff`(자홍 쪽) · 몸(주 색) `#c060ff` · `#9440d8` · `#64289a` · `#44206c` · `#2a1544`(어두울수록 남보라), 판정 칸 `#fbe0ff`/`#f6c8ff`. 재 부스러기·재 테 → **먹빛 보라**(`#867a96 … #1f1628`). 백귀 귀화(청록 불) → **독 불 자홍**(`#ffe2fb … #1c0c22`).
+- 그대로 둔 것(메커니즘 색): X0 백열 코어, 묶음 청회 `#9ab0d8`, 사슬·피 적갈, 먹 그림자, 흙먼지, 술·불(술 웅덩이 불·불티 난타·독주 투척·취한 그림자·칼 불씨 가르기·술 회오리, 단검 `hotwind_*`·`overheat_burst` = 열풍·과열 불 그림). 무기 본체(칼 강철 날·하바키·칼집, 단검 재빛 날·평소 칸 호박 날선·혈관, 갈래 1차 몸 재질 청록/녹청/황동/은)는 그대로.
+
+### 바뀐 시트 (틀·프레임 수·ms·피벗·행·앵커·판정 필드 그대로, 그림 색·설명 메타만)
+- 칼 fx 44(`fx/v3/katana_*` 쓰는 것 전부 + `hit_katana`·`_heavy`; 55 이전 `katana_combo1~3*`·`katana_slash`·보관 `crescent(_echo)`·폐기 `issen_shadow` 제외) · 개성 fx 25(`trait_katana_*` 22 + `trait_res_katana_{insight,breach,chain}` + `_on` 3 — 공명 켜짐 고리는 무기 색 고리, 태그는 문양으로 구별. 불만 있는 `k_sparkCleave`·`liquorWhirl_fire` 는 바뀐 픽셀 0 → 그대로)
+- 칼 무기: 기본 14(판정 칸이 있는 `katana_{rise,fall,counter,crescent,thrust,issen,issen_dash,iai,combo1~3,special,spin,guardbreak}` — 판정 칸 바탕 `#e6fcff`·속 `#8fe3ff`, 둘째 판정 칸 날선 `#bff3ff`·바탕 `#8fe3ff`, **칼끝 빛줄기** 머리 `#e6fcff` → `#8fe3ff` → `#5cc6ee` → `#3d9ccf` 점선; 평소 칸 픽셀 불변) · 검기 `_ki1~3` 60 · `_awaken` 16(월인 날선 G14 → `#bff3ff`, 반짝 X1 → `#e6fcff`; 날선이 안 보이는 휴대 4장은 변화 0 → 그대로)
+- 단검 fx 53(`fx/v3/dagger_*` + `hit_dagger*` + `shadowstep_ghost`; 안 쓰는 heat1·`dagger_slash`·`overheat_cool` 과 불 그림 3장 제외) · 개성 fx 18(`trait_dagger_*` 14 + `trait_res_dagger_{vital,breach_mark}` + `_on` 2)
+- 단검 무기: 기본 6(판정 칸만 — `dagger_{backstab,combo1,combo2,combo3,flurry,special}` 의 glowFrames·frameStates `glow` 칸 안쪽 날선 불씨 → 독; 중복 제거로 다른 칸과 같은 사각형을 쓰는 3칸은 건너뜀) · `_awaken` 11 · v4 `dagger_{twin,hyakki}_a1_*` 22(1차 날선 빛 청록 → 독 자홍 — `_awaken` = 백귀 1차와 같은 그림이라 함께)
+- **2차 길 pathTint·trailTint**(v4 a2·a2_glow JSON 186, `looks/<weapon>.json`) — 무기 색 계열 안 두 변주(빛 마스크 그림은 그대로 회백):
+  칼 선풍 회오리 `[120,236,255]` / 잔월 `[196,236,255]` · 투구가르기 일도양단 `[80,196,255]` / 명경 `[214,248,255]` · 만월 삭월 `[130,176,255]` / 보름 `[176,240,255]`;
+  단검 쌍격 난무 `[222,150,255]` / 출혈 `[255,84,196]` · 질풍 비도 `[190,150,255]` / 열풍 `[255,112,220]` · 백귀 야행 `[150,96,255]` / 귀화 `[248,120,255]`.
+- looks: `a2_<길>` 12장 다시 구움(옛 굽기 식 `a2 + tint(a2_glow)` 을 옛 색으로 돌려 바이트 동일 확인 후 새 색), 단검 쌍격·백귀 a1/a2 그림의 날선 빛 → 독.
+- 카드 그림 27(칼 17 · 단검 10, `cards.py`): 같은 색이 주인공 균열·술 웅덩이·흰 옷에도 쓰이는 장면 그림이라 **가늘고 긴 강조 획 덩어리만** 바꿈(칼 G11~G15·X1 → 서리, 달 분신 M0 → `#b4e6fa` / 단검 A20~A26 → 독). 불·술 카드 3(불티 난타·독주 투척·취한 그림자)과 획이 없는 3(분신 방패·되짚어 걷기·공명 그림자 길)은 그대로. 주의: `traitcards61s5/preview.py` 의 '카드 팔레트 ⊂ 허용' 검사는 새 색을 모름 — 카드를 다시 뽑으면 이 스크립트 `cards` 를 뒤에 돌릴 것.
+
+### see → critique → fix
+1. 칼 1안(무채 획을 그대로 청회로 = '은백' 위주): 1층 호박 바닥에서 여전히 흰 선 — '서리'가 안 읽힘. 2안(G13 = 주 색 `#8fe3ff`, 나머지 짙은 파랑): 몸이 `#48a3d4` 중간 파랑으로 가라앉아 칙칙. **3안**: 날선·머리 `#bff3ff` → 몸 `#8fe3ff` → 꼬리 짙은 파랑 — 머리가 희게 빛나고 몸이 시안, 소멸 점선은 파랗게 식음. 채택.
+2. 칼 각성 궤적이 기본과 같은 시안이면 각성 구별이 사라짐 → 은 램프는 한 단 옅은 서리꽃 은백으로(기본 = 시안, 각성 = 흰 서리).
+3. 단검 각성 fx 는 원래 보라 + 청록 날선이라 청록 → 자홍으로 바꾸니 기본(독 보라)과 가까워짐 — 각성 쪽이 라벤더 + 자홍 날선으로 한 단 밝아 구별은 됨(남은 약점, 무기 각성 오버레이의 보라 날이 함께 보이므로 게임에선 덜함).
+4. 개성 fx: 호박을 통째로 바꾸니 흙먼지(`#653b24`·`#3f271d`)까지 파래짐 → 칼 개성은 밝은 호박(A21~A26)만 서리로. 공명 켜짐 고리는 태그 색 고리를 무기 램프로 통째로.
+5. 카드: 색만 바꾸니 주인공 균열·술 웅덩이가 보라 → 가늘고 긴 덩어리만(1차 긴 변 ≥ 10 → 칼 감기 나선·단검 손 발톱이 안 바뀜 → 칼 6/0.6 · 단검 7/0.55). 단검 X1·A27 크림은 흰 옷 → 제외.
+6. 단검 무기 날선 호박이 판정 칸에서 보라 fx 와 따로 놂 → 판정 칸 사각형만 독(평소 칸 호박은 주인공 균열과 한 식구라 유지).
+
+### 검증
+- `atlas57/verify.py --all`: 형식 오류 = 이번에 바꾼 칼·단검 278시트의 메타 필드(`pathTint`·`trailTint`·`colors`·`glowRule`·`colorBudget`·`tipTrail`) 변경뿐 + 같은 시각 대검 작업 10시트(그쪽 몫). 오류 시트는 전부 작업 트리에서 바뀐 파일(바뀌지 않은 시트 오류 0). 바꾼 시트 461개 전부 원본 대비 **알파 변화 0**(`diffcheck.py` — 그림 모양·트림 불변, 색만).
+- `npx vitest run src/systems/sprites`: 9 파일 78 테스트 통과(실행만).
+- 메모리: 아틀라스 페이지 크기 변화 없음(LUT 는 같은 페이지에 색만, 칼 기본 14 는 다시 그렸지만 판정 칸만 달라 페이지 같음).
+- 미리보기: `color61s6/preview_katana.png`·`preview_dagger.png`(위 = 1층 연회장 바닥 + 호박 램프 빛·어둠 위 몸·무기·fx 같은 시각 장면 전/후 2배, 오른쪽·아래 행; 아래 = 주요 fx 줄 전/후 1배) · `preview_{katana,dagger}_misc.png`(개성 fx · 검기/각성/귀화 오버레이 · looks · 카드 2배 전/후).
+
+### 커밋 뒤 기준 이동 (rebase)
+`python3 parts/art/work/atlas57/verify.py --rebase --only katana_ dagger_ hit_katana hit_dagger shadowstep_ghost`
+(`katana_`·`dagger_` 가 fx·trait·trait_res·weapons v3/v4 를 모두 잡음 — 대검·활 시트는 잡지 않음.)
+
+### 시스템·UI 전달
+- **시스템 수정 없음이 목표** — 시트 이름·틀·프레임·ms·피벗·행·앵커·판정 필드 그대로. 2차 길 색은 v4 a2/a2_glow JSON 의 `pathTint`·`trailTint` 값만 바뀜(데이터에 길 색을 따로 박아 두었다면 위 표 값으로 맞출 것).
+- 백열 X0 코어는 그대로, X1(`#fff4dc`)은 칼·단검 시트에서 무기 색 흰 끝으로 바뀜 — 색으로 백열을 찾는 코드가 있다면 glowFrames 기준으로(빌드 규칙과 같음).
+- UI: `looks/<weapon>.json` 의 `pathTint` 가 새 값 — 길 고르기 버튼·성장도 색을 이 값으로 쓰면 무기 색 계열로 맞음. 카드 그림 파일 이름 그대로(그림 강조 획만 바뀜). 카드 테두리 '무기 빛' 색을 정한다면 칼 `#8fe3ff` · 단검 `#c060ff` 제안.
+- 무기 색 대표값(UI·사운드·시스템 공용 참조용): 칼 서리 주 `#8fe3ff` · 머리 `#bff3ff` · 그늘 `#255a84` / 단검 독 주 `#c060ff` · 머리 `#ec9cff` · 그늘 `#44206c`.
+
+## 61라운드 단계 6 — 무기 색 정체성: 대검 '용암' · 활 '비취' (P14 §2, 계약 art §28) · 작업 폴더 `work/color61s6_gb/`
+근거: `decisions/2026-10-06-P14-tutorial-color-transition.md` §2, 계약 art §28. 도영 님 "무기별 개성 나쁘지는 않은데 색이 너무 단조롭다. 무기마다 개성이 드러나는 색상". 자율 모드 — 아트가 정하고 이유를 적는다. Gemini 미사용. 칼·단검 색(`work/color61s6/`)·입구 그림(`work/paint61s6/`)은 다른 아트 작업 — 이 작업은 이름에 `greatsword`·`bow` 가 든 fx·무기 오버레이·v4·looks·카드만 씀, 임시 폴더 없음(전/후 비교는 git 에서 메모리로 읽음).
+- 빌드(결정적·멱등, 약 2분): `python3 parts/art/work/color61s6_gb/build.py [--dry] [--weapon greatsword bow] [--part fx overlay v4 looks cards] [--only 이름부분…]` → `changed.json`(바뀐 목록) → `preview.py`(전 = `a2def0f`, 후 = 작업 트리). 반복 검수 때 `restore.py` 가 `changed.json` 의 파일만 기준 커밋으로 되돌림. 모듈: `ramps.py`(색표·pathTint) · `build.py`(아틀라스 페이지 색 교체·JSON 색 문자열·looks 다시 굽기·카드 덩어리 규칙).
+- 방법: **램프만 바꿔 다시 굽기**를 아틀라스 페이지에 바로 — 원 색 → 같은 밝기 순서의 무기 램프 1:1(RGB 만, 알파 그대로 → frame 사각형·trim·피벗·프레임·ms 불변). 원 빌드가 열 개 넘게 겹쳐 있고(fx_v3·combo56_fx·awaken60·weapons61·growth61·traits61s5_*·traitcards61s5) 공용 kit 은 다른 무기와 함께 쓰는 파일이라 고치지 않고 후처리로 둠. 표의 새 색은 원 색과 겹치지 않아(`ramps.check_idempotent`) 원 빌드를 다시 돌린 뒤 이 스크립트를 이어 돌리면 같은 결과(두 번째 실행 = 바뀜 0 확인). 시트마다 '새 색이 이미 그림에 있으면 멈춤'(색 합쳐짐 방지 → JSON `colors` 수 그대로).
+
+### 색 설계 (주 색 = 하이라이트·날선·궤적 머리, 어두운 쪽 = 보조색)
+- **대검 '용암'** — 1층 호박 램프(`#d67a11` 색상 38°)와 겹치지 않게 색상 10~20° 의 붉고 뜨거운 쪽으로. 호박 A17→A26 = `#3c1a17 · #66231b · #96301e · #c83e22 · #ff5a2a(주) · #ff6b33 · #ff8448 · #ff9850 · #ffb46c · #ffd496`(어두운 셋 = 검붉은 재·식은 껍질, 밝은 쪽 = 주홍 → 뜨거운 주황). 갈색 재 B0~B3(붓띠 몸통·흙먼지) → **검붉은 재** `#241816 · #33221e · #452c27 · #573a33`(채도 낮게 — 흙먼지가 녹물·피로 안 읽히게). 울분·광전 진홍은 그대로(= 진홍 변주), 가장 밝은 두 칸만 용암 쪽(`#ca3941→#f2463a`, `#d65457→#ff6a4a`). 중압 금빛 징·덧붙임 노랑 → 용암 주황(`#e0bf16…#f6f19e → #f06a24…#ffdcb8`, 어두운 금 `#917126→#8e3a1e`). 백열 X0·X1 그대로.
+- **활 '비취'** — 1층 갈색·호박 바닥의 보색이라 또렷. 호박 어두운 셋 → **바랜 금**(`#2f2a1c · #574c2e · #9a8a50` — 궤적 꼬리·점선 고리의 식는 쪽), 밝은 쪽 → 비취 `#1fa074 · #40e0a0(주) · #4fe6aa · #6eecb8 · #8cf0c8 · #aef5d8 · #d2fae8`, X1 → 비취 흰빛 `#eefff6`. 각성 금빛 날개 불꽃·유성(노랑 6) → 비취 불꽃(`#30c88c … #bcf8de`). 저격 1차 조준 보석 붉은 점 → 비취 보석(`#3cd89a`·`#7ef0c0`). 연궁 2차 금 장식(`#e9d441`)은 바랜 금 `#cdb260`(연궁 1차 = 바랜 금 나무 활 + 비취 보석과 한 식구). 갈색 재(화살대·흙·그을음)는 그대로.
+- 그대로 둔 것: 무기 본체(대검 쇠·손잡이, 활 나무·시위 = `weapons/v3` 기본 시트 픽셀 불변), 회색 재·연기, 공명 켜짐 고리의 금빛 고리·태그 색, 묶음 청회·사슬 적갈. **활 `trait_bow_fireArrow`·`trait_bow_b_starDrunk`**(불화살·술별)은 바닥 술불(`pool_liquor_fire`)로 이어지는 불이라 호박 불 그대로 — 카드 그림도 불·술 덩어리는 그대로.
+
+### 바뀐 것 (틀·프레임 수·ms·피벗·행·앵커·판정 필드 그대로 — 그림 색과 메타 색 문자열만)
+- 아틀라스 368시트: fx/v3 161(대검 `greatsword_*`·`hit_greatsword*`·`trait_greatsword_*`·`trait_res_greatsword_*`(+`_on`) / 활 `bow_*`·`hit_bow*`·`trait_bow_*`·`trait_res_bow_*`(+`_on`), 호박이 없는 몇 장은 변화 0) · weapons/v3 95(대검 `_grudge1~3` 66 · `_awaken` 20 · 활 `_awaken` 9) · weapons/v4 112(a1·a2 의 빛·장식 색 — 파쇄 균열·중압 징·광전 진홍 끝·저격 보석·유성 1차(= `_awaken` 그림)·유성/연궁 2차 장식). JSON 의 `light.color`·`flash.color`·`trail.color`·`secondaryVariants.colorSwap` 도 같은 표로(런타임 색 바꿈이 새 색을 찾게). 바뀐 시트에 새 키 `weaponColor {round, weapon, name, key, secondary, how, source}`.
+- **2차 길 `pathTint`**(v4 a2·a2_glow JSON 243, `looks/<weapon>.json`) — 무기 색 계열 안 두 변주(빛 마스크 그림은 그대로 회백):
+  대검 파쇄 지진 `[255,112,40]` 주홍 / 반향 `[236,54,70]` 진홍 · 중압 거인 `[255,152,72]` 뜨거운 주황 / 울혈 `[196,34,50]` 검붉은 진홍 · 광전 혈풍 `[228,40,46]` 핏빛 / 철산 `[255,198,164]` 달군 쇠 흰빛;
+  활 연궁 연궁 `[70,226,190]` 찬 비취 / 무한통 `[176,234,112]` 새순 비취 · 저격 필중 `[36,200,132]` 짙은 비취 / 천공 `[196,255,228]` 흰 비취 · 유성 성우 `[150,240,226]` 옅은 찬 비취 / 혜성 `[206,226,112]` 바랜 금 비취.
+  **`trailTint` = pathTint 를 흰색 쪽으로 45%**(새 키 `trailTintRule`) — 궤적 fx 가 이미 용암·비취라 pathTint 그대로 곱하면 검게 죽음(예 용암 `#ff5a2a` × 울혈 = 거의 검정) → 색 기울기만.
+- looks 24 PNG + JSON 2: base 그대로, `_a1`·`_a2` 는 아래 층과 다른 픽셀(= 갈래 덧붙임)만 색표로, `_a2_<길>` 은 growth61 굽기 식(`a2 + tint(a2_glow)`)을 새 pathTint 로 다시 구움(옛 색으로 돌려 12장 바이트 동일 확인 후).
+- 카드 그림 32(대검 16 · 활 16): 같은 호박이 주인공 몸 균열에도 쓰여 **효과 덩어리만** 바꿈 — 밝은 호박·금 + 흰 심의 8-이웃 덩어리 중 ① 작고(<40) 둘레 60% 이상이 주인공 검은 몸·재 껍데기 색이면 주인공 금(그대로) ② 활은 주황(불·술)이 옅은 금보다 많은 덩어리 그대로 ③ 활의 옅은 금(`#eecc78` 이상)이 절반 넘는 덩어리 = 화살·화살줄(검은 외곽선이 있어도 바꿈) ④ 바꾼 덩어리에 붙은 어두운 호박 가장자리 2걸음 따라 바꿈. 대검 = 붓획·폭발·불·균열 전부 용암, 활 = 화살줄·소용돌이·폭발 살 비취.
+
+### see → critique → fix
+1. 1차: 갈색 재 B 를 붉은 쪽(`#6c3a2e`)으로 옮기니 연격 붓띠 몸통과 흙먼지 덩이가 연분홍 진흙·녹물처럼 읽힘 → 한 단 어둡게 → 그래도 붉은 흙 → 채도를 낮춘 붉은 재(`#573a33` 꼭대기)로. 붓띠는 검붉은 재 몸 + 용암 날선, 먼지는 재로 읽힘.
+2. 대검 하이라이트 `#ffb684`·`#ffd3b0` 이 술독 터짐·적중 고리에서 연어·분홍빛 → 채도 올린 `#ffb46c`·`#ffd496`(뜨거운 주황 → 백열 직전).
+3. 활 꼬리 바랜 금 `#8a7a46` 가 어두운 바닥에서 사라짐 → `#9a8a50`.
+4. 카드: 1안(호박 전부)은 주인공 머리·가슴 금까지 비취·용암 → 덩어리 규칙. 2안에서 활 '꿰어 박기' 머리 금(둘레가 검은 몸 그늘 `#3e3f42`)이 비취로 → 주인공 색 집합에 그늘 회색·재 껍데기 추가. 3안에서 화살줄이 검은 외곽선 때문에 '주인공 금'으로 잡혀 안 바뀜 → 옅은 금 과반 = 화살 규칙. 불화살 카드 머리 금이 비취로 → 재 껍데기 `#45403b` 를 주인공 둘레 색에.
+5. 1층 호박 등불 빛 아래(미리보기 오른쪽 절반)에서 대검은 붉게 앞에 서고(호박과 분리), 활은 보색으로 가장 또렷 — 통과.
+
+### 검증
+- `atlas57/verify.py --all`(작업 트리, 같은 시각 칼·단검 커밋 `1af8cb2`·기준 `cef15f2` 뒤): 형식 오류 207 · 픽셀 불일치(격자 78 · 아틀라스 기준 234)가 **전부 이 작업이 바꾼 시트**(메타 `light`·`flash`·`trail`·`secondaryVariants`·`pathTint`·`trailTint` 변경 + 색), 바꾸지 않은 시트 오류 0.
+- 바꾼 아틀라스 페이지 423장 전부 HEAD 대비 **크기·알파 동일**(색만), PNG 합 −126KB. 두 번째 실행 `--dry` = 바뀜 0(멱등).
+- `npx vitest run src/systems/sprites`: 9 파일 78 테스트 통과(실행만).
+- 미리보기: `color61s6_gb/preview_greatsword.png`·`preview_bow.png` — 줄마다 시트 전 | 후(1배 = 1080p 렌더 크기, 1층 연회장 바닥 어둠 0.5 + 오른쪽에 1층 호박 등불 빛), 아래 looks(갈래마다 base·a1·a2·a2_길 2, 2배 전/후)·카드 5장(128·64 전/후).
+
+### 커밋 뒤 기준 이동 (rebase)
+`python3 parts/art/work/atlas57/verify.py --rebase --only fx/v3/greatsword_ fx/v3/bow_ fx/v3/hit_greatsword fx/v3/hit_bow fx/v3/trait_greatsword_ fx/v3/trait_bow_ fx/v3/trait_res_greatsword_ fx/v3/trait_res_bow_ weapons/v3/greatsword_ weapons/v3/bow_ weapons/v4/greatsword_ weapons/v4/bow_`
+(칼·단검·`player/v3`·`training_rack_*` 는 잡지 않음. weapons/v3 기본 시트도 잡히지만 내용이 HEAD 와 같아 기준만 옮겨짐.)
+
+### 시스템·UI 전달
+- **시스템 수정 없음이 목표** — 시트 이름·틀·프레임·ms·피벗·행·앵커·판정 필드 그대로. 광원 `light.color` 가 무기 색으로(대검 주홍 `#ff8448`/`#ffb46c` 등, 활 비취 `#aef5d8`/`#eefff6` 등) — 광원 색을 데이터에 따로 박아 두었다면 JSON 값으로 맞출 것. `secondaryVariants.colorSwap` 을 런타임에 쓰면 새 from/to 를 그대로 읽으면 됨.
+- 2차 길 색: v4 JSON `pathTint`·`trailTint` 새 값(위 표). `trailTint` 는 이제 pathTint 와 다름(흰 쪽 45%) — 궤적 fx 에는 `trailTint` 를, a2_glow 에는 `pathTint` 를 쓸 것. `fx/v4/awaken1_crack`·`awaken2_bloom` 의 tint 도 갈래 대표색 → 무기 색 계열 권장(대검 1차 대표 `#ff5a2a`, 활 `#40e0a0`).
+- 활 불화살·술별 fx 는 호박 불 그대로(의도). X1(`#fff4dc`)은 활 시트에서 `#eefff6` 으로 바뀜 — 백열 판정은 glowFrames 기준.
+- UI: `looks/<weapon>.json` `pathTint` 새 값, 카드 그림 파일 이름 그대로(효과 덩어리 색만). 카드 테두리 '무기 빛' 색 제안: 대검 `#ff5a2a` · 활 `#40e0a0`. 무기 색 대표값: 대검 용암 주 `#ff5a2a` · 머리 `#ffb46c` · 그늘(검붉은 재) `#452c27` / 활 비취 주 `#40e0a0` · 머리 `#aef5d8` · 보조(바랜 금) `#9a8a50`.

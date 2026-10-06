@@ -20,13 +20,13 @@
    "pathTint": {
     "quake": [
      255,
-     168,
-     60
+     112,
+     40
     ],
     "echo": [
-     110,
-     232,
-     214
+     236,
+     54,
+     70
     ]
    },
    "pathNames": {
@@ -47,13 +47,13 @@
    "pathTint": {
     "giant": [
      255,
-     210,
-     100
+     152,
+     72
     ],
     "congest": [
-     232,
-     70,
-     84
+     196,
+     34,
+     50
     ]
    },
    "pathNames": {
@@ -73,14 +73,14 @@
    "a2Glow": "greatsword_berserk_a2_glow.png",
    "pathTint": {
     "bloodwind": [
-     255,
-     64,
-     64
+     228,
+     40,
+     46
     ],
     "ironpeak": [
-     170,
-     204,
-     255
+     255,
+     198,
+     164
     ]
    },
    "pathNames": {
@@ -92,5 +92,15 @@
     "ironpeak": "greatsword_berserk_a2_ironpeak.png"
    }
   }
+ },
+ "pathTintRule": "61 단계 6 (P14 §2): 길 강조색 = 무기 색 계열 안 두 변주 — 대검 '용암'(주홍·진홍) · 활 '비취'(비취 녹·바랜 금). a1·a2 의 빛·장식 색도 같은 램프(parts/art/work/color61s6_gb/ramps.py)",
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "greatsword",
+  "name": "용암",
+  "key": "#ff5a2a",
+  "secondary": "검붉은 재",
+  "how": "갈래 덧붙임 층의 빛·장식 색 → 무기 램프, _a2_<길> = 새 pathTint 로 다시 구움 (base 그대로)",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

@@ -64,26 +64,26 @@
  "glowSheet": "weapons/v4/bow_snipe_a2_glow_release",
  "pathTint": {
   "surehit": [
-   255,
-   80,
-   80
+   36,
+   200,
+   132
   ],
   "pierce": [
-   192,
-   230,
-   255
+   196,
+   255,
+   228
   ]
  },
  "trailTint": {
   "surehit": [
-   255,
-   80,
-   80
+   135,
+   225,
+   187
   ],
   "pierce": [
-   192,
-   230,
-   255
+   223,
+   255,
+   240
   ]
  },
  "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
@@ -135,5 +135,6 @@
    "h": 19
   },
   "scale": "1"
- }
+ },
+ "trailTintRule": "61 단계 6: trailTint = pathTint 를 흰색 쪽으로 45% — 궤적 fx 가 이미 무기 색(용암·비취)이라 곱해도 어두워지지 않게 색 기울기만"
 }

@@ -64,26 +64,26 @@
  "glowSheet": "weapons/v4/bow_meteor_a2_glow_release",
  "pathTint": {
   "starfall": [
-   200,
-   222,
-   255
+   150,
+   240,
+   226
   ],
   "comet": [
-   255,
-   150,
-   70
+   206,
+   226,
+   112
   ]
  },
  "trailTint": {
   "starfall": [
-   200,
-   222,
-   255
+   197,
+   247,
+   239
   ],
   "comet": [
-   255,
-   150,
-   70
+   228,
+   239,
+   176
   ]
  },
  "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
@@ -135,5 +135,15 @@
    "h": 313
   },
   "scale": "1"
+ },
+ "trailTintRule": "61 단계 6: trailTint = pathTint 를 흰색 쪽으로 45% — 궤적 fx 가 이미 무기 색(용암·비취)이라 곱해도 어두워지지 않게 색 기울기만",
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "bow",
+  "name": "비취",
+  "key": "#40e0a0",
+  "secondary": "바랜 금",
+  "how": "갈래 외형의 빛·장식 색 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

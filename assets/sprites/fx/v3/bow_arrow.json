@@ -59,7 +59,7 @@
  "design": "재 화살(옛 그림 — 대만 한 단 밝힘 + 혼불 실 한 줄) + 깃 뒤로 약 90 도트 끌리는 불티 꼬리(호박 A25 → A19 → 재) + 꼬리를 따라 깜빡이는 불씨 9점. 어두운 방에서도 화살이 지나간 길이 보이게(점검 61_bow_grid '화살이 가늘고 짧게 살아 있어 비행이 잘 보이지 않음')",
  "axisNote": "옛 bow_arrow(48×24, 피벗 (24,12)) 와 같은 축 — 화살 픽셀은 피벗 기준 같은 자리, 꼬리 쪽(왼쪽)으로 80 도트·위아래 2 도트 넓힘",
  "light": {
-  "color": "#e2a33c",
+  "color": "#6eecb8",
   "radius": 56,
   "intensity": 0.55,
   "flicker": {
@@ -110,5 +110,14 @@
    "h": 10
   },
   "scale": "1"
+ },
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "bow",
+  "name": "비취",
+  "key": "#40e0a0",
+  "secondary": "바랜 금",
+  "how": "이펙트 호박·갈색 재·금빛 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

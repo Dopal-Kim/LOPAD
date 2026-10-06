@@ -45,7 +45,7 @@
  "part": "burst",
  "anchorNote": "pivot = 모인 술 웅덩이 중심(바닥). 반경 2칸(=128 도트) — 그림 불덩이 반경 ≈ 80",
  "light": {
-  "color": "#e2a33c",
+  "color": "#ff8448",
   "radius": 96,
   "intensity": 1.2,
   "ms": 300,
@@ -98,5 +98,14 @@
    "h": 458
   },
   "scale": "1"
+ },
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "greatsword",
+  "name": "용암",
+  "key": "#ff5a2a",
+  "secondary": "검붉은 재",
+  "how": "이펙트 호박·갈색 재·금빛 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

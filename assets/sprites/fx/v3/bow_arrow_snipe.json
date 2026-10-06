@@ -44,15 +44,15 @@
    "label": "필중",
    "colorSwap": [
     {
-     "from": "#e2a33c",
-     "to": "#eecc78",
+     "from": "#6eecb8",
+     "to": "#aef5d8",
      "fromSlot": "hero.A23",
      "toSlot": "hero.A25",
      "role": "꼬리 실 한 단 밝게"
     },
     {
-     "from": "#eecc78",
-     "to": "#fff4dc",
+     "from": "#aef5d8",
+     "to": "#eefff6",
      "fromSlot": "hero.A25",
      "toSlot": "X1",
      "role": "밝은 실 → 백열"
@@ -139,5 +139,14 @@
    "h": 8
   },
   "scale": "1"
+ },
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "bow",
+  "name": "비취",
+  "key": "#40e0a0",
+  "secondary": "바랜 금",
+  "how": "이펙트 호박·갈색 재·금빛 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

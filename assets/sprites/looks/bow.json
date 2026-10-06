@@ -19,14 +19,14 @@
    "a2Glow": "bow_rapid_a2_glow.png",
    "pathTint": {
     "split": [
-     120,
-     236,
-     220
+     70,
+     226,
+     190
     ],
     "endless": [
-     255,
-     212,
-     110
+     176,
+     234,
+     112
     ]
    },
    "pathNames": {
@@ -46,14 +46,14 @@
    "a2Glow": "bow_snipe_a2_glow.png",
    "pathTint": {
     "surehit": [
-     255,
-     80,
-     80
+     36,
+     200,
+     132
     ],
     "pierce": [
-     192,
-     230,
-     255
+     196,
+     255,
+     228
     ]
    },
    "pathNames": {
@@ -73,14 +73,14 @@
    "a2Glow": "bow_meteor_a2_glow.png",
    "pathTint": {
     "starfall": [
-     200,
-     222,
-     255
+     150,
+     240,
+     226
     ],
     "comet": [
-     255,
-     150,
-     70
+     206,
+     226,
+     112
     ]
    },
    "pathNames": {
@@ -92,5 +92,15 @@
     "comet": "bow_meteor_a2_comet.png"
    }
   }
+ },
+ "pathTintRule": "61 단계 6 (P14 §2): 길 강조색 = 무기 색 계열 안 두 변주 — 대검 '용암'(주홍·진홍) · 활 '비취'(비취 녹·바랜 금). a1·a2 의 빛·장식 색도 같은 램프(parts/art/work/color61s6_gb/ramps.py)",
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "bow",
+  "name": "비취",
+  "key": "#40e0a0",
+  "secondary": "바랜 금",
+  "how": "갈래 덧붙임 층의 빛·장식 색 → 무기 램프, _a2_<길> = 새 pathTint 로 다시 구움 (base 그대로)",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

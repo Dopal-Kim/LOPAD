@@ -42,7 +42,7 @@
  "part": "body",
  "anchorNote": "pivot = 밟은 술 웅덩이 중심(주인공 발)",
  "light": {
-  "color": "#e2a33c",
+  "color": "#ff8448",
   "radius": 48,
   "intensity": 0.85,
   "ms": 400,
@@ -89,5 +89,14 @@
    "h": 210
   },
   "scale": "1"
+ },
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "greatsword",
+  "name": "용암",
+  "key": "#ff5a2a",
+  "secondary": "검붉은 재",
+  "how": "이펙트 호박·갈색 재·금빛 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

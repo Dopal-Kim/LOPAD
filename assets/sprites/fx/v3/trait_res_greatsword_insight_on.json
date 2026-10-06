@@ -42,7 +42,7 @@
  "spawn": "resonance_on",
  "spawnNote": "공명이 켜진 뒤 전투로 돌아오면 주인공 둘레 1회(요청 노트 §1 공통). 이름 규칙: 공명 발동 fx trait_<공명 id>(무기 담당) 와 겹치지 않게 부위 _on",
  "light": {
-  "color": "#eecc78",
+  "color": "#ffb46c",
   "radius": 64,
   "intensity": 0.8,
   "ms": 300

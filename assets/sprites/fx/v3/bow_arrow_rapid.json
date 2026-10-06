@@ -58,7 +58,7 @@
    "colorSwap": [
     {
      "from": "#90857a",
-     "to": "#eecc78",
+     "to": "#aef5d8",
      "fromSlot": "hero.ash.S3",
      "toSlot": "hero.A25",
      "role": "대 윗면 → 호박(장전 실체화 색)"
@@ -134,5 +134,14 @@
    "h": 12
   },
   "scale": "1"
+ },
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "bow",
+  "name": "비취",
+  "key": "#40e0a0",
+  "secondary": "바랜 금",
+  "how": "이펙트 호박·갈색 재·금빛 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

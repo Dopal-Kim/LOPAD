@@ -85,14 +85,14 @@
    "label": "철벽",
    "colorSwap": [
     {
-     "from": "#d67a11",
+     "from": "#ff5a2a",
      "to": "#756c62",
      "fromSlot": "hero.A21",
      "toSlot": "hero.ash.S2",
      "role": "띠 혼불 → 쇳빛 재"
     },
     {
-     "from": "#e2a33c",
+     "from": "#ff8448",
      "to": "#90857a",
      "fromSlot": "hero.A23",
      "toSlot": "hero.ash.S3",
@@ -106,15 +106,15 @@
    "label": "거인",
    "colorSwap": [
     {
-     "from": "#d67a11",
-     "to": "#e2a33c",
+     "from": "#ff5a2a",
+     "to": "#ff8448",
      "fromSlot": "hero.A21",
      "toSlot": "hero.A23",
      "role": "홈 혼불 한 단 밝게"
     },
     {
-     "from": "#e2a33c",
-     "to": "#eecc78",
+     "from": "#ff8448",
+     "to": "#ffb46c",
      "fromSlot": "hero.A23",
      "toSlot": "hero.A25",
      "role": "녹은 홈·날선 한 단 밝게"
@@ -231,5 +231,14 @@
    "h": 1950
   },
   "scale": "1"
+ },
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "greatsword",
+  "name": "용암",
+  "key": "#ff5a2a",
+  "secondary": "검붉은 재",
+  "how": "이펙트 호박·갈색 재·금빛 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }
