@@ -40,6 +40,8 @@ import { Events, type BossActionKind } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { MOVE_SFX, moveSfxIds, pickFlurryVariant } from './audioMoves';
 import { P13_SFX } from './audioDrops';
+import { TRAIT_ACTS } from '../../data/growthTypes';
+import { RESONANCE_SFX } from '../growth/traitArt';
 import { ARCHIVED_SFX, BUILD_SFX, GROWTH_SFX, buildSfxIds } from './audioBuild';
 
 /** 61라운드: 이벤트·페이로드에 걸리는 트리거들의 효과음 id (조건·페이로드 함수 풀이) */
@@ -226,6 +228,10 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       P13_SFX.voucherDrop,
       P13_SFX.voucherPickup,
       P13_SFX.itemPickup,
+      // 61 단계 5 개성 발동음(act 갈래) · 공명
+      ...TRAIT_ACTS.map((a) => `sfx/trait_${a}`),
+      ...RESONANCE_SFX,
+      'sfx/resonance_proc',
       GROWTH_SFX.awaken1,
       GROWTH_SFX.awaken2,
       GROWTH_SFX.traitManifest,

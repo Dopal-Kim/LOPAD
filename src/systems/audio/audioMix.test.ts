@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { mixingOf, type AudioManifest } from './audioDefs';
 import {
   allocateVoice,
+  inTraitLayer,
   duckDbAt,
   ducksFor,
   floorSceneOfNode,
@@ -105,5 +106,25 @@ describe('61라운드 계약 sound §9 믹싱', () => {
     expect(pickPlayableUrl(urls, { ogg: true, m4a: true })).toBe('a/x.ogg');
     expect(pickPlayableUrl(urls, { ogg: false, m4a: true })).toBe('a/x.m4a');
     expect(pickPlayableUrl(urls, { ogg: false, m4a: false })).toBeNull();
+  });
+});
+
+describe('61 단계 5 sound §11 개성 발동 특색 층', () => {
+  it('trait_ 층은 전체 동시 상한을 넘으면 그 층 가장 오래된 것을 끊고, trait_manifest 는 층이 아니다', () => {
+    const lim = {
+      maxSfx: 12,
+      maxUi: 2,
+      perGroupMax: 3,
+      perGroupOverrides: {},
+      traitLayer: { ids: new Set<string>(), max: 3 },
+    };
+    const v = (group: string, at: number) => ({ group, priority: 1, ui: false, at });
+    const active = [v('sfx/trait_pull', 1), v('sfx/trait_slam', 2), v('sfx/trait_ignite', 3), v('sfx/hit_enemy', 0)];
+    expect(allocateVoice(active, { group: 'sfx/trait_bind', priority: 1, ui: false }, lim)).toEqual({
+      ok: true,
+      steal: [0],
+    });
+    expect(inTraitLayer('sfx/trait_manifest', lim.traitLayer)).toBe(false);
+    expect(inTraitLayer('sfx/trait_katana_k_edgeLift', lim.traitLayer)).toBe(true);
   });
 });

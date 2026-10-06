@@ -59,6 +59,8 @@ export interface AudioVoiceLimits {
   maxUi?: number;
   perGroupMax?: number;
   perGroupOverrides?: Record<string, number>;
+  /** 61 단계 5 (sound §11): 개성 발동 특색 층 전체 동시 상한 — ids + 접두어 `sfx/trait_`(trait_manifest 제외) */
+  layerMax?: { ids?: string[]; max?: number };
 }
 
 /** §9 덕킹 규칙 (매니페스트 문장형 when/target 을 audioMix.parseDucking 이 해석) */

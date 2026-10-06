@@ -98,6 +98,14 @@ export interface VoiceLimits {
   maxUi: number;
   perGroupMax: number;
   perGroupOverrides: Record<string, number>;
+  /** 개성 발동 특색 층(sound §11 layerMax) — 이 층 전체 동시 상한 */
+  traitLayer?: { ids: ReadonlySet<string>; max: number };
+}
+
+/** 개성 발동 특색 층에 드는 그룹인가 (manifest ids 또는 `sfx/trait_` 접두어 — trait_manifest 는 메뉴 소리라 제외) */
+export function inTraitLayer(group: string, layer: VoiceLimits['traitLayer']): boolean {
+  if (!layer) return false;
+  return layer.ids.has(group) || (group.startsWith('sfx/trait_') && group !== 'sfx/trait_manifest');
 }
 
 export function voiceLimitsOf(mix: AudioMixing): VoiceLimits {
@@ -107,6 +115,7 @@ export function voiceLimitsOf(mix: AudioMixing): VoiceLimits {
     maxUi: v.maxUi ?? 2,
     perGroupMax: v.perGroupMax ?? 3,
     perGroupOverrides: v.perGroupOverrides ?? {},
+    traitLayer: { ids: new Set(v.layerMax?.ids ?? []), max: v.layerMax?.max ?? Infinity },
   };
 }
 
@@ -128,6 +137,13 @@ export function allocateVoice(
   if (same.length >= groupMax) {
     const o = oldest(same);
     if (o) steal.add(o.i);
+  }
+  if (lim.traitLayer && inTraitLayer(incoming.group, lim.traitLayer)) {
+    const layer = alive().filter((x) => inTraitLayer(x.v.group, lim.traitLayer));
+    if (layer.length >= lim.traitLayer.max) {
+      const o = oldest(layer);
+      if (o) steal.add(o.i);
+    }
   }
   if (incoming.ui) {
     const uis = alive().filter((x) => x.v.ui);
