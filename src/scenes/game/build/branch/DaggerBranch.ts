@@ -143,7 +143,14 @@ export class DaggerBranch {
       if (back && !died && mob.active) {
         const pl = this.k.g.player;
         this.k.rt.traits.moves.chainLine(mob, pl, BUILD_FX.COLOR.THROW, 220);
-        this.k.rt.traits.moves.fx('d_galeReturn', { x: mob.x, y: mob.y - 8 }, { fallbacks: ['dagger_brand_hop'] });
+        this.k.rt.traits.moves.fx(
+          'd_galeReturn',
+          { x: mob.x, y: mob.y - 8 },
+          {
+            fallbacks: ['dagger_brand_hop'],
+            flipX: pl.x > mob.x,
+          },
+        );
         this.k.rt.traits.moves.pull(mob, pl, param(back, 'dragTiles', 2), 'd_galeReturn', {
           stopTiles: 0.8,
           endStunMs: 300,
@@ -308,7 +315,7 @@ export class DaggerBranch {
               T(param(fire, 'widthTiles', 0.8)) / 2,
             );
             if (lit + moves.igniteCircle(at, T(1)) > 0) {
-              moves.fx('d_ghostFire', at, { depth: DEPTH.FX_GROUND });
+              moves.fx('d_ghostFire', at, { depth: DEPTH.FX_GROUND, flipX: at.x < from.x });
               k.effect('d_ghostFire', 'ignite');
             } else moves.sparks(from);
           }

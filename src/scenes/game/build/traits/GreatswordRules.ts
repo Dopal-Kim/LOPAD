@@ -255,6 +255,8 @@ export class GreatswordRules {
     const pl = k.g.player;
     const dist = Math.hypot(m.x - pl.x, m.y - pl.y) / TILE + k.p(flip, 'throwTiles', 2);
     k.moves.launch(m, 'g_shoulderFlip', {
+      // 그림 = 오른쪽에서 왼쪽으로 넘김 — 오른쪽으로 넘기면 뒤집는다
+      flipX: -dir.x > 0,
       heightTiles: 1,
       airMs: 300,
       landRadiusTiles: k.p(flip, 'landRadiusTiles', 0.8),
@@ -300,6 +302,7 @@ export class GreatswordRules {
     if (
       !k.moves.fx('g_quakeGuard', from, {
         angle: Math.atan2(u.y, u.x),
+        lengthPx: len,
         fallbacks: ['greatsword_charge_crack_line_t2'],
         depth: DEPTH.FX_GROUND,
       })
@@ -396,7 +399,12 @@ export class GreatswordRules {
             k.p(soak, 'fireTickMs', 400),
             k.p(soak, 'fireMult', 0.2),
           );
-          if (!k.moves.fx('g_boilingSteel', at, { part: 'fire', depth: DEPTH.FX_GROUND })) k.moves.sparks(at);
+          const fire = k.moves.fx('g_boilingSteel', at, {
+            part: 'fire',
+            depth: DEPTH.FX_GROUND,
+            lifeMs: k.p(soak, 'fireMs', 2500),
+          });
+          if (!fire) k.moves.sparks(at);
         });
       }
       k.moves.igniteLine(origin, u, lengthPx, half);

@@ -60,6 +60,8 @@ export interface FxPlayOptions {
   belowLighting?: boolean;
   /** 시트 배율에 곱하는 배율 (45라운드 달리기 먼지: dash_dust 를 작게). 기본 1 */
   scaleMult?: number;
+  /** 61 단계 5: 가로(그림 x 축)만 더 곱하는 배율 — 길이 있는 회전 선을 사거리에 맞출 때 (아트 권장 0.6~1.6). 기본 1 */
+  scaleXMult?: number;
   /** 시작 알파 (기본 1) */
   alpha?: number;
   /** 53라운드 계약 §10: 2단 갈래·가열 변주 (`resolveFxVariant`). 색 교체 텍스처·훅 덮어쓰기 */

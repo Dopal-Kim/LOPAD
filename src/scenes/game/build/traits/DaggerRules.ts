@@ -22,6 +22,9 @@ export class DaggerRules {
   private shieldUntil = -Infinity;
   private veilUntil = -Infinity;
   private chainReadyAt = -Infinity;
+  /** 스치는 낙인 그림 방향 (대쉬 가로 방향) · 휘감는 난타 그림 각도 */
+  private dashDirX = 1;
+  private pullAngle = 0;
   /** 공명(얽힌 급소)이 듣는 '낙인 터짐' */
   onBurst: ((mob: Mob) => void) | null = null;
 
@@ -36,7 +39,10 @@ export class DaggerRules {
       const pl = k.g.player;
       const dir = { x: p.dirX, y: p.dirY };
       const from = { x: pl.x + dir.x * TILE * 0.5, y: pl.y + dir.y * TILE * 0.5 };
-      k.moves.fx('d_dashPierce', from, { angle: Math.atan2(dir.y, dir.x), fallbacks: ['dagger_combo3_double'] });
+      const played = k.moves.fx('d_dashPierce', from, {
+        angle: Math.atan2(dir.y, dir.x),
+        fallbacks: ['dagger_combo3_double'],
+      });
       const hits = k.cloneLine(
         from,
         dir,
@@ -44,12 +50,14 @@ export class DaggerRules {
         T(k.p(r, 'widthTiles', 0.8)) / 2,
         k.p(r, 'damageMult', 0.7),
         BUILD_FX.COLOR.THROW,
+        played?.own !== true,
       );
       k.fire('d_dashPierce', 'pierce', { hits: hits.length });
     });
   }
 
-  onDash(_p: { x: number; y: number; dirX: number; dirY: number }): void {
+  onDash(p: { x: number; y: number; dirX: number; dirY: number }): void {
+    this.dashDirX = p.dirX;
     if (!this.k.rt.rule('dashBrand')) return;
     this.dashUntil = this.k.now + 260;
     this.dashMarked.clear();
@@ -91,7 +99,9 @@ export class DaggerRules {
         const d = { x: from.x - at.x, y: from.y - at.y };
         const len = Math.hypot(d.x, d.y);
         if (len < TILE * 0.5) return;
-        k.moves.fx('d_stepBack', at, { part: 'out', fallbacks: ['shadowstep_ghost'] });
+        // 그림 = 처음 자리가 왼쪽 — 오른쪽이면 뒤집는다 (art §27 flipNote)
+        const flipX = from.x > at.x;
+        const played = k.moves.fx('d_stepBack', at, { part: 'out', fallbacks: ['shadowstep_ghost'], flipX });
         pl.teleportTo(from.x, from.y);
         k.cloneLine(
           at,
@@ -100,8 +110,9 @@ export class DaggerRules {
           T(k.p(back, 'widthTiles', 0.9)) / 2,
           k.p(back, 'damageMult', 0.6),
           BUILD_FX.COLOR.CLONE,
+          played?.own !== true,
         );
-        k.moves.fx('d_stepBack', from, { part: 'in', fallbacks: ['shadowstep_ghost'] });
+        k.moves.fx('d_stepBack', from, { part: 'in', fallbacks: ['shadowstep_ghost'], flipX });
         k.fire('d_stepBack', 'return');
       });
     }
@@ -159,6 +170,7 @@ export class DaggerRules {
       { x: (mob.x + other.x) / 2, y: (mob.y + other.y) / 2 - 8 },
       {
         angle: Math.atan2(other.y - mob.y, other.x - mob.x),
+        lengthPx: Math.hypot(other.x - mob.x, other.y - mob.y),
         fallbacks: ['dagger_brand_hop'],
       },
     );
@@ -198,7 +210,8 @@ export class DaggerRules {
     const pl = k.g.player;
     pl.grantInvulnerable(time + 300);
     k.rt.fx.clone(pl.x + TILE * 0.4, pl.y);
-    k.moves.fx('d_cloneShield', pl, { fallbacks: ['dagger_frenzy_clone_out'] });
+    // 그림 = 오른쪽에서 맞음 — 왼쪽을 보고 있으면(왼쪽에서 맞았다고 보고) 뒤집는다
+    k.moves.fx('d_cloneShield', pl, { fallbacks: ['dagger_frenzy_clone_out'], flipX: pl.facingVec.x < 0 });
     k.fire('d_cloneShield', 'block');
     return true;
   }
@@ -215,7 +228,7 @@ export class DaggerRules {
           if (this.dashMarked.has(m)) continue;
           this.dashMarked.add(m);
           k.g.strikes.brands.onHit(m, m.x - pl.x, m.y - pl.y);
-          k.moves.fx('d_dashBrand', { x: m.x, y: m.y - 8 }, { fallbacks: ['hit_dagger'] });
+          k.moves.fx('d_dashBrand', { x: m.x, y: m.y - 8 }, { fallbacks: ['hit_dagger'], flipX: this.dashDirX < 0 });
           k.fire('d_dashBrand', 'mark');
         }
     }
@@ -232,7 +245,9 @@ export class DaggerRules {
         n += 1;
       }
       if (n > 0) {
-        k.moves.fx('d_flurryPull', pl, { depth: DEPTH.FX_GROUND });
+        // art §27: 250ms 마다 다시 틀며 칸마다 22° 돌려 계속 감기게
+        this.pullAngle += Math.PI / 8.2;
+        k.moves.fx('d_flurryPull', pl, { depth: DEPTH.FX_GROUND, angle: this.pullAngle });
         k.fire('d_flurryPull', 'pull');
       }
     }

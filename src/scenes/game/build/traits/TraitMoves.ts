@@ -11,7 +11,10 @@ import Phaser from 'phaser';
 import { BUILD_FX, DEPTH, TILE, TRAIT_FX } from '../../../../core/Constants';
 import { gameState } from '../../../../core/GameState';
 import type { Mob } from '../../../../objects/Mob';
+import type { FxHandle } from '../../../../systems/fx/fx';
 import { traitFxId } from '../../../../systems/growth/traitArt';
+import { fxDrawScale } from '../../../../systems/sprites/spriteDefs';
+import { sheetLoopRange } from '../BuildArt';
 import { PLAYER_RENDER_SCALE } from '../../../../systems/weapon/playerScale';
 import { T } from '../../shared';
 import type { Pt, RuleKit } from './RuleKit';
@@ -47,6 +50,8 @@ export interface SlamOpts {
 }
 
 export interface LaunchOpts {
+  /** 띄움 시작 그림 좌우 뒤집기 (시트 flipX allowed — 어깨 너머) */
+  flipX?: boolean;
   heightTiles: number;
   airMs: number;
   landRadiusTiles?: number;
@@ -58,6 +63,15 @@ interface Bind {
   until: number;
   anchor: Pt | null;
   gfx: Phaser.GameObjects.Graphics;
+  /** 전용 묶음 수명 그림 (없으면 null — 윤곽 고리) */
+  art: FxHandle | null;
+}
+
+/** 개성 fx 재생 결과 (재생한 시트 id · 핸들 · 전용 그림인지) */
+export interface TraitFxPlay {
+  id: string;
+  handle: FxHandle | null;
+  own: boolean;
 }
 
 const unit = (x: number, y: number): Pt => {
@@ -91,7 +105,9 @@ export class TraitMoves {
   // --- 그림 ---
 
   /**
-   * 개성 fx: `trait_<무기>_<개성>[_part]` → fallbacks(기존 fx id) 중 로드된 첫 시트. 하나도 없으면 false (호출 쪽이 윤곽)
+   * 개성 fx: `trait_<무기>_<개성>[_part]` → fallbacks(기존 fx id) 중 로드된 첫 시트. 하나도 없으면 null (호출 쪽이 윤곽).
+   * 전용 시트(art §27 메타)만: `flipX`(시트 flipX allowed — 그림 기준 방향과 반대일 때) · `lifeMs`(수명 시트 loopRange — 그 시간 반복 뒤
+   * 사라짐 구간) · `lengthPx`(길이 있는 회전 선 `TRAIT_FX.LINE_DOTS` 를 그 길이로 가로 배율, 0.6~1.6)
    */
   fx(
     trait: string,
@@ -103,20 +119,35 @@ export class TraitMoves {
       scale?: number;
       depth?: number;
       tint?: number;
+      flipX?: boolean;
+      lifeMs?: number;
+      lengthPx?: number;
     } = {},
-  ): boolean {
+  ): TraitFxPlay | null {
     const fx = this.g.fx;
     const own = traitFxId(gameState.weapon.id, trait, o.part);
     const id = [own, ...(o.fallbacks ?? [])].find((c) => fx.has(c));
-    if (!id) return false;
-    fx.play(id, at.x, at.y, {
+    if (!id) return null;
+    const mine = id === own;
+    const def = mine ? fx.sheet(id) : null;
+    const range = def && o.lifeMs ? sheetLoopRange(def) : undefined;
+    const lineDots = mine ? TRAIT_FX.LINE_DOTS[trait] : undefined;
+    const sx =
+      def && lineDots && o.lengthPx
+        ? Math.max(TRAIT_FX.LINE_SCALE[0], Math.min(TRAIT_FX.LINE_SCALE[1], o.lengthPx / (lineDots * fxDrawScale(def))))
+        : 1;
+    const handle = fx.play(id, at.x, at.y, {
       ...(o.angle !== undefined ? { angle: o.angle } : {}),
       depth: o.depth ?? DEPTH.HIT_FX,
-      scaleMult: (o.scale ?? 1) * (id === own ? 1 : PLAYER_RENDER_SCALE),
-      ...(o.tint !== undefined && id !== own ? { tint: o.tint } : {}),
+      scaleMult: (o.scale ?? 1) * (mine ? 1 : PLAYER_RENDER_SCALE),
+      ...(sx !== 1 ? { scaleXMult: sx } : {}),
+      ...(mine && o.flipX && (def as { flipX?: unknown } | null)?.flipX === 'allowed' ? { flipX: true } : {}),
+      ...(o.lifeMs ? { durationMs: o.lifeMs } : {}),
+      ...(range ? { loopRange: range } : {}),
+      ...(o.tint !== undefined && !mine ? { tint: o.tint } : {}),
       hooks: false,
     });
-    return true;
+    return { id, handle, own: mine };
   }
 
   /** 불똥·불티 점 (윤곽 — 전용 fx 가 없을 때 함께) */
@@ -137,8 +168,12 @@ export class TraitMoves {
     }
   }
 
-  /** 사슬·묶음 선 (윤곽, 잠깐) */
+  /**
+   * 사슬·묶음 선 (잠깐): art §27 공통 사슬 타일 `trait_common_chain`(행 bind 청회 · drag 적갈, 열 0 기본 · 1 팽팽, 피벗 = 선 시작,
+   * 오른쪽으로 반복) 을 선 방향으로 돌려 이어 깐다 — 마지막 조각은 끝에 맞춰 겹친다. 시트가 없으면 점선 윤곽
+   */
   chainLine(a: Pt, b: Pt, color: number = TRAIT_FX.CHAIN_COLOR, ms = 260): void {
+    if (this.chainTile(a, b, color === TRAIT_FX.BIND.COLOR ? 'bind' : 'drag', ms)) return;
     const gfx = this.g.add.graphics().setDepth(DEPTH.HIT_FX);
     gfx.lineStyle(TRAIT_FX.BIND.LINE_PX, color, TRAIT_FX.BIND.ALPHA);
     // 점선 사슬
@@ -151,6 +186,31 @@ export class TraitMoves {
     this.g.tweens.add({ targets: gfx, alpha: 0, duration: ms, onComplete: () => gfx.destroy() });
   }
 
+  private chainTile(a: Pt, b: Pt, row: 'bind' | 'drag', ms: number): boolean {
+    const fx = this.g.fx;
+    const id = TRAIT_FX.CHAIN_SHEET;
+    const def = fx.has(id) ? fx.sheet(id) : null;
+    if (!def) return false;
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    if (len < 1) return true;
+    const u = unit(b.x - a.x, b.y - a.y);
+    const period = Math.max(1, def.frameWidth * fxDrawScale(def));
+    const angle = Math.atan2(u.y, u.x);
+    const n = Math.max(1, Math.ceil(len / period));
+    for (let i = 0; i < n; i++) {
+      const d = i === n - 1 && n > 1 ? Math.max(0, len - period) : i * period;
+      const h = fx.play(id, a.x + u.x * d, a.y + u.y * d, {
+        dir: row,
+        angle,
+        staticFrame: row === 'drag' ? 1 : 0,
+        depth: DEPTH.HIT_FX,
+        hooks: false,
+      });
+      this.g.time.delayedCall(ms, () => fx.stop(h, 0, true));
+    }
+    return true;
+  }
+
   // --- 상태 ---
 
   isAirborne(mob: Mob): boolean {
@@ -161,13 +221,18 @@ export class TraitMoves {
     return this.binds.some((b) => b.mob === mob && b.until > this.k.now);
   }
 
-  /** 묶음 풀기 (땅에 박기 — 다시 치면 튕겨 나감) */
+  /** 묶음 풀기 (땅에 박기 — 다시 치면 튕겨 나감). 수명 그림은 사라짐 구간으로 */
   unbind(mob: Mob): boolean {
     const i = this.binds.findIndex((b) => b.mob === mob);
     if (i < 0) return false;
-    this.binds[i].gfx.destroy();
+    this.endBind(this.binds[i]);
     this.binds.splice(i, 1);
     return true;
+  }
+
+  private endBind(b: Bind): void {
+    b.gfx.destroy();
+    if (b.art) this.g.fx.finish(b.art);
   }
 
   // --- 띄움 ---
@@ -179,7 +244,7 @@ export class TraitMoves {
     const ms = Math.max(120, o.airMs);
     const h = T(o.heightTiles);
     k.stun(mob, ms + 80);
-    this.fx(trait, { x: mob.x, y: mob.y }, { part: 'launch', fallbacks: ['dash_dust'] });
+    this.fx(trait, { x: mob.x, y: mob.y }, { part: 'launch', fallbacks: ['dash_dust'], flipX: o.flipX });
     if (!mob.visual.animated) k.rt.fx.ring(mob.x, mob.y, TILE * 0.6, BUILD_FX.COLOR.METEOR, ms);
     const tween = this.g.tweens.addCounter({
       from: 0,
@@ -326,8 +391,13 @@ export class TraitMoves {
     k.stun(mob, dur);
     this.unbind(mob);
     const gfx = k.g.add.graphics().setDepth(DEPTH.FX_GROUND + 0.02);
-    this.binds.push({ mob, until: k.now + dur, anchor, gfx });
-    this.fx(trait, { x: mob.x, y: mob.y }, { part: 'bind', fallbacks: [], depth: DEPTH.FX_GROUND });
+    // art §27 묶음 수명 시트 (`_bind` loopRange — 묶인 동안 반복, 풀리면 사라짐) — 있으면 발밑 고리 윤곽 대신
+    const art = this.fx(
+      trait,
+      { x: mob.x, y: mob.y },
+      { part: 'bind', fallbacks: [], depth: DEPTH.FX_GROUND, lifeMs: dur },
+    );
+    this.binds.push({ mob, until: k.now + dur, anchor, gfx, art: art?.handle ?? null });
     this.count('bind');
     for (const l of this.listeners) l.onBind?.(mob, trait);
     return true;
@@ -337,7 +407,7 @@ export class TraitMoves {
     const B = TRAIT_FX.BIND;
     this.binds = this.binds.filter((b) => {
       if (!b.mob.active || now >= b.until) {
-        b.gfx.destroy();
+        this.endBind(b);
         return false;
       }
       const left = (b.until - now) / 1000;
@@ -345,11 +415,15 @@ export class TraitMoves {
       const y = b.mob.y;
       b.gfx.clear();
       b.gfx.lineStyle(B.LINE_PX, B.COLOR, B.ALPHA * Math.min(1, left * 3));
-      b.gfx.strokeEllipse(x, y, B.RING_R * 2, B.RING_R);
-      // 고리 둘레 매듭 점 (돌아감)
-      for (let i = 0; i < 4; i++) {
-        const a = now / 300 + (i * Math.PI) / 2;
-        b.gfx.fillStyle(B.COLOR, B.ALPHA).fillCircle(x + Math.cos(a) * B.RING_R, y + Math.sin(a) * B.RING_R * 0.5, 1.2);
+      if (!b.art) {
+        b.gfx.strokeEllipse(x, y, B.RING_R * 2, B.RING_R);
+        // 고리 둘레 매듭 점 (돌아감)
+        for (let i = 0; i < 4; i++) {
+          const a = now / 300 + (i * Math.PI) / 2;
+          b.gfx
+            .fillStyle(B.COLOR, B.ALPHA)
+            .fillCircle(x + Math.cos(a) * B.RING_R, y + Math.sin(a) * B.RING_R * 0.5, 1.2);
+        }
       }
       if (b.anchor) b.gfx.lineBetween(x, y, b.anchor.x, b.anchor.y);
       return true;
@@ -414,7 +488,7 @@ export class TraitMoves {
       if (mob.active) mob.visual.setLift(0);
     }
     this.airborne.clear();
-    for (const b of this.binds) b.gfx.destroy();
+    for (const b of this.binds) this.endBind(b);
     this.binds = [];
     this.listeners.length = 0;
   }

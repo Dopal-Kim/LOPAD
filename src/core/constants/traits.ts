@@ -26,6 +26,19 @@ export const TRAIT_FX = {
   CHAIN_COLOR: 0xb04848,
   /** 보스 묶음: 길이 배율 · 다시 묶을 수 있는 간격 (보스를 묶어 가두지 못하게) */
   BOSS_BIND: { MULT: 0.3, COOLDOWN_MS: 3000 },
+  /** art §27 공통 사슬 타일 (행 bind·drag) */
+  CHAIN_SHEET: 'trait_common_chain',
+  /** 길이 있는 회전 선 시트의 그림 길이(도트) — 사거리에 맞춰 가로 배율 (아트 전달) · 배율 범위 */
+  LINE_DOTS: {
+    k_shadowThrust: 222,
+    k_moonRelay: 230,
+    k_iaiChain: 172,
+    g_quakeGuard: 236,
+    d_brandChain: 192,
+  } as Readonly<Record<string, number>>,
+  LINE_SCALE: [0.6, 1.6] as const,
+  /** 걸으며 연사 발밑 먼지 간격 ms */
+  STRIDE_DUST_MS: 260,
   /** 불똥·불티 점 */
   SPARK: { COLOR: 0xffb050, N: 6, R: 1.5, MS: 260 },
 } as const;

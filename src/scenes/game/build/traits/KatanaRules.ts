@@ -203,7 +203,7 @@ export class KatanaRules {
         if (!k.g.scene.isActive()) return;
         const at = { x: q.rect.centerX, y: q.rect.centerY };
         const target = k.rt.fx.nearest(at.x, at.y, T(k.p(r, 'rangeTiles', 3)));
-        k.moves.fx('k_moonPools', at, { fallbacks: [BUILD_ART.FULLMOON, 'katana_crescent'] });
+        const played = k.moves.fx('k_moonPools', at, { fallbacks: [BUILD_ART.FULLMOON, 'katana_crescent'] });
         if (!target) return;
         const hits = k.cloneLine(
           at,
@@ -211,6 +211,8 @@ export class KatanaRules {
           Math.hypot(target.x - at.x, target.y - at.y) + TILE * 0.5,
           TILE * 0.5,
           k.p(r, 'damageMult', 0.5),
+          BUILD_FX.COLOR.MOON,
+          played?.own !== true,
         );
         for (const m of hits) this.moonHit.set(m, k.now);
       });
@@ -230,8 +232,8 @@ export class KatanaRules {
       k.g.time.delayedCall(150, () => {
         if (!k.g.scene.isActive()) return;
         const at = { x: pl.x, y: pl.y - HIT_ORIGIN_UP_PX };
-        k.moves.fx('k_issenBack', at, { fallbacks: ['katana_spin'] });
-        k.ring(at, T(k.p(back, 'radiusTiles', 1.5)), k.p(back, 'damageMult', 0.6), BUILD_FX.COLOR.SPIN);
+        const played = k.moves.fx('k_issenBack', at, { fallbacks: ['katana_spin'] });
+        k.ring(at, T(k.p(back, 'radiusTiles', 1.5)), k.p(back, 'damageMult', 0.6), BUILD_FX.COLOR.SPIN, !played);
         k.fire('k_issenBack', 'slash');
       });
     }
@@ -267,7 +269,6 @@ export class KatanaRules {
     if (pin && p.buildMove === 'unblockable') {
       if (k.moves.bind(mob, k.p(pin, 'bindMs', 1500), 'k_groundPin')) {
         this.pinned.add(mob);
-        k.moves.fx('k_groundPin', { x: mob.x, y: mob.y }, { part: 'bind', fallbacks: ['katana_cleave_crack'] });
         k.fire('k_groundPin', 'pin');
       }
       return;
@@ -276,6 +277,12 @@ export class KatanaRules {
       this.pinned.delete(mob);
       if (k.moves.unbind(mob)) {
         const pl = k.g.player;
+        // art §27: 묶음이 풀리면 `_impact` (끊긴 고리 조각 — 오른쪽 = 튕겨 나가는 쪽)
+        k.moves.fx(
+          'k_groundPin',
+          { x: mob.x, y: mob.y },
+          { part: 'impact', angle: Math.atan2(mob.y - pl.y, mob.x - pl.x) },
+        );
         k.moves.slam(mob, { x: mob.x - pl.x, y: mob.y - pl.y }, k.p(pin, 'knockTiles', 3), 'k_groundPin', {
           slamMult: k.p(pin, 'slamMult', 0.6),
           slamStunMs: k.p(pin, 'slamStunMs', 600),
@@ -310,8 +317,9 @@ export class KatanaRules {
     if (echo && k.recentAttack(450, (p) => p.comboIndex !== undefined && p.comboIndex === (p.comboCount ?? 0) - 1)) {
       const next = k.rt.fx.nearest(at.x, at.y, T(k.p(echo, 'rangeTiles', 3)), new Set([mob]));
       if (next) {
-        k.moves.fx('k_shadowThrust', at, {
+        const played = k.moves.fx('k_shadowThrust', at, {
           angle: Math.atan2(next.y - at.y, next.x - at.x),
+          lengthPx: Math.hypot(next.x - at.x, next.y - at.y) + TILE * 0.5,
           fallbacks: ['afterimage'],
         });
         k.cloneLine(
@@ -321,6 +329,7 @@ export class KatanaRules {
           TILE * 0.4,
           k.p(echo, 'damageMult', 0.8),
           BUILD_FX.COLOR.THROW,
+          played?.own !== true,
         );
         k.fire('k_shadowThrust', 'echo');
       }
@@ -337,8 +346,9 @@ export class KatanaRules {
       if (next)
         k.g.time.delayedCall(120, () => {
           if (!k.g.scene.isActive() || !next.active) return;
-          k.moves.fx('k_moonRelay', at, {
+          const played = k.moves.fx('k_moonRelay', at, {
             angle: Math.atan2(next.y - at.y, next.x - at.x),
+            lengthPx: Math.hypot(next.x - at.x, next.y - at.y) + TILE * 0.5,
             fallbacks: [BUILD_ART.FULLMOON],
           });
           const hits = k.cloneLine(
@@ -347,6 +357,8 @@ export class KatanaRules {
             Math.hypot(next.x - at.x, next.y - at.y) + TILE * 0.5,
             TILE * 0.5,
             k.p(relay, 'damageMult', 0.8),
+            BUILD_FX.COLOR.MOON,
+            played?.own !== true,
           );
           for (const m of hits) this.moonHit.set(m, k.now);
           k.fire('k_moonRelay', 'relay');
@@ -368,7 +380,11 @@ export class KatanaRules {
     const u = this.dirOf(next.x - pl.x, next.y - pl.y);
     const ms = k.p(r, 'dashMs', 160);
     k.rt.fx.clone(pl.x, pl.y);
-    k.moves.fx('k_iaiChain', pl, { angle: Math.atan2(u.y, u.x), fallbacks: ['dash_trail', 'afterimage'] });
+    k.moves.fx('k_iaiChain', pl, {
+      angle: Math.atan2(u.y, u.x),
+      lengthPx: dist,
+      fallbacks: ['dash_trail', 'afterimage'],
+    });
     pl.startLunge(u.x, u.y, dist, ms, k.now);
     pl.grantInvulnerable(k.now + ms);
     k.fire('k_iaiChain', 'dash');

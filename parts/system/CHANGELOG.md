@@ -1592,3 +1592,14 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 - `tsc --noEmit` · `eslint .` · `vitest run` 128 파일 968 통과(새 `growth/resonance.test` 7 · `sim/traitBudget.test` 67 — 다른 시스템 작업 B2 의 새 테스트 포함 작업 트리) · 바뀐 파일만 prettier · `vite build` 통과. `nodeSim.test`·`bossSim.test` 통과(개성은 추정에 넣지 않아 값 변화 없음).
 - 헤드리스(vite dev, playwright swiftshader 1920×1080 · 약 9fps, 스크래치 `t61/`): 무기 4 × 1차 갈래 3 = 12 판, 시험장 `t → a`(개성 전부) `e`(움직이는 적) `w`(술 웅덩이) 뒤 16초 동안 연격·우클릭·홀드·대쉬·완벽 성공·가드 막음 섞어 치기 → **콘솔 오류 0**(처음 판에서 찾은 낙인 폭발 쓰러진 적 바디 예외는 고친 뒤 재확인). 발동 확인: 칼 흘려 밀기·칼 감기·그림자 넘기·칼등 띄우기·발도풍·불똥 내려베기·땅에 박기·취월 + 공명 되받는 달·끊이지 않는 칼 / 대검 끌어당기기·되받는 땅울림·포효·술기운 폭주·띄워 올리기 + 공명 무너뜨림 / 단검 뽑아 던지기·낙인 사슬·그림자 매듭·되짚어 걷기·휘감는 난타·불티 난타·그림자 사냥·취한 그림자 + 공명 그림자 길 / 활 되튀는 화살·꿰어 박기·이어지는 비·별 표적·술별·화살 그물·화살 덫 + 공명 말뚝 박기·덫 비. 처박기 벽·적(`slam_wall`·`slam_mob`)·띄움·묶음 수 확인, 스크린샷 `launch_mid`(뜬 적 + 바닥 그림자) · `bind`(발밑 고리 + 사슬) · `k_wall_*`(벽에 박힘) · `gs_leapToss_air` · `bow_trap_*` · `smoke_*`.
 - 헤드리스 9fps 에서는 키 입력(Space 대쉬)·대검 연격 4타가 자주 씹혀, 대쉬·넷째 타 계열(칼바람 길·날려 보내기·들이받기·어깨 너머·물러서며 베기)은 `build.emit`·`build.moves()` 직접 호출로 도구 동작(처박기·띄움)만 확인 — 실제 손맛은 데모에서 확인 항목으로 남김.
+
+### T2. 아트 개성 fx 100장 연결 (아트 eac1890·ff3d539, README '개성 fx' 두 절 — 열람: 그 절과 `fx/v3/trait_*.json` 메타)
+- 이름 규칙 대조: `fx/v3/trait_*` 100장 전부 시스템 로드 규칙(`trait_<무기>_<개성>[_부위]` · 공명 `trait_<공명 id>[_부위]` · `trait_common_chain`)에 맞음(불일치 0). 부위에 `wave`·`spark`·`on` 추가.
+- 공명 켜짐 고리 = `trait_<공명 id>_on`(부위 on). 시스템 notice 자막은 빼고 UI `ui:resonance` 하나로(같은 말 두 번 — UI 보고).
+- 지연 로드(`TraitRules.loadFx`): 얻은 개성 + 그 태그 공명(켜짐 고리 포함) + 공통 사슬 — 시험장 칼 실측 개성 0장 211MB → 2장(+공명·사슬) 217MB(`sheet:trait` 1.1MB).
+- `TraitMoves.fx` 전용 시트 메타: `flipX`(시트 flipX allowed 일 때만 — 되짚어 걷기·스치는 낙인·분신 방패·돌아오는 칼·취한 그림자·튕기는 화살·불화살·걸으며 연사·어깨 너머 launch·되받는 달) · 수명 시트 `lifeMs` → durationMs + JSON loopRange(불똥 내려베기 본체·끓는 쇠 fire·묶음 `_bind` 전부·화살 덫·꿰어 박기) · 길이 있는 회전 선 가로 배율(`TRAIT_FX.LINE_DOTS` 222·230·172·236·192 도트, 0.6~1.6 — FxPool 새 옵션 `scaleXMult`). 반환 = 재생 시트 id·핸들.
+- 묶음: 전용 `_bind` 수명 그림이 있으면 윤곽 고리 대신(풀리면 finish → 사라짐 구간), 땅에 박기는 풀릴 때 `_impact`. 사슬 선 = `trait_common_chain` 타일(행 bind 청회 / drag 적갈·팽팽 칸, 선 방향 회전, 마지막 조각은 끝에 맞춰 겹침) — 없으면 점선 윤곽. 칼바람 길 = `tileLine`(주기 64).
+- 판정 칸: 하늘 화살(낙하 사격·이어지는 비·덫 비)은 그 시트 판정 칸 시작(`FxPool.leadMs` — impactFrame 3 · 120ms)에 피해. 휘감는 난타는 250ms 마다 22° 돌려 다시. 전용 그림이 그렸으면 분신 복사·윤곽 띠·고리를 그리지 않음(`cloneLine`·`ring` outline).
+- 걸으며 연사 발밑 먼지(`b_rapidStride`, 연사하며 걸을 때 260ms 마다) 연결.
+- 그대로 둔 것: `next`(술 웅덩이·불 그림은 웅덩이 시스템이 이미 그림) · `light.atFrame`(광원은 재생 시작부터 — FxPool 공통) · `pierceMarksU`(그림 안 표시).
+- 검사: tsc · eslint · vitest 128 파일 974 · 바뀐 파일 prettier · vite build 통과. 헤드리스(시험장, 스크래치 `t61/`): 무기 4 판 콘솔 오류 0, 공명 켜짐 고리 4무기(`ring_*`), 개성 그림(`smoke_art_*`·`k_parry_art*`·`k_bind_chain`).

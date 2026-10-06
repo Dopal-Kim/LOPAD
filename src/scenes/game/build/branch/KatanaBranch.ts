@@ -310,7 +310,13 @@ export class KatanaBranch {
       });
     }
     const end = { x: from.x + dir.x * len, y: from.y + dir.y * len };
-    if (!moves.fx('k_sparkCleave', end, { fallbacks: ['fire_pool'], depth: DEPTH.FX_GROUND }))
+    if (
+      !moves.fx('k_sparkCleave', end, {
+        fallbacks: ['fire_pool'],
+        depth: DEPTH.FX_GROUND,
+        lifeMs: param(r, 'emberMs', 1200),
+      })
+    )
       rt.fx.ring(end.x, end.y, T(param(r, 'emberTiles', 0.6)), BUILD_FX.COLOR.EMBER, 300);
     rt.fx.firePatch(
       end.x,

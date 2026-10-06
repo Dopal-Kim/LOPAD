@@ -164,7 +164,7 @@ export class FxPool {
       .setPosition(x, y)
       .setRotation(def.rotate ? (opts.angle ?? 0) : 0)
       .setAlpha(opts.alpha ?? 1)
-      .setScale(scale * (opts.scaleMult ?? 1))
+      .setScale(scale * (opts.scaleMult ?? 1) * (opts.scaleXMult ?? 1), scale * (opts.scaleMult ?? 1))
       .setFlipY(Boolean(opts.flipY))
       .setFlipX(Boolean(opts.flipX))
       .setActive(true)

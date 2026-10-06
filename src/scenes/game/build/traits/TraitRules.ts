@@ -52,6 +52,9 @@ export const TRAIT_FX_PARTS: readonly string[] = [
   'fire',
   'burst',
   'mark',
+  'wave',
+  'spark',
+  'on',
 ];
 
 export class TraitRules {
@@ -83,11 +86,12 @@ export class TraitRules {
       [Events.PLAYER_SECONDARY, (p: PlayerSecondaryPayload) => this.onSecondary(p)],
       [Events.PLAYER_GUARD_RELEASED, () => this.greatsword.onGuardReleased()],
       [Events.BRANCH_EFFECT, (p: BranchEffectPayload) => this.onEffect(p)],
-      [Events.TRAIT_GAINED, (p: TraitGainedPayload) => this.loadFx([p.id])],
+      [Events.TRAIT_GAINED, (p: TraitGainedPayload) => this.loadFx([p.id, ...this.resonanceIds(p.tag)])],
     ];
     for (const [ev, fn] of this.subs) EventBus.on(ev, fn, this);
     // 61 단계 5: 얻은 개성·이 무기 공명의 전용 fx (아트가 넣으면 — 매니페스트에 없으면 아무것도 안 함)
-    this.loadFx([...gameState.weapon.traits, ...RESONANCES.filter((r) => r.weapon === this.weapon).map((r) => r.id)]);
+    const w = gameState.weapon;
+    if (w.traits.length > 0) this.loadFx([...w.traits, ...w.traitDefs.flatMap((t) => this.resonanceIds(t.tag))]);
   }
 
   private get weapon(): string {
@@ -121,17 +125,23 @@ export class TraitRules {
     EventBus.emit(Events.TRAIT_PROC, payload);
   }
 
-  /** 개성 전용 fx 를 지연 로드 (fx/v3/trait_<무기>_<개성>[_부위] — 매니페스트에 있는 것만) */
+  /** 이 태그의 이 무기 공명 id (그 태그 개성을 하나라도 얻으면 공명 그림을 미리 — 켜지는 순간 고리가 바로 보이게) */
+  private resonanceIds(tag: string): string[] {
+    return RESONANCES.filter((r) => r.weapon === this.weapon && r.tag === tag).map((r) => r.id);
+  }
+
+  /**
+   * 개성 전용 fx 를 지연 로드 (fx/v3/trait_<무기>_<개성>[_부위] · 공명 `trait_<공명 id>[_on]` · 공통 사슬 타일 — 매니페스트에 있는
+   * 것만, 이미 올라간 것은 건너뜀). 얻은 개성과 그 태그 공명만 — 런 VRAM 은 고른 만큼
+   */
   private loadFx(ids: readonly string[]): void {
     const w = this.weapon;
-    const reqs = ids.flatMap((id) =>
-      TRAIT_FX_PARTS.map((part) => ({
-        category: 'fx' as const,
-        name: traitFxId(w, id, part || undefined),
-        action: FX_ACTION,
-      })),
+    const names = new Set<string>([TRAIT_FX.CHAIN_SHEET]);
+    for (const id of ids) for (const part of TRAIT_FX_PARTS) names.add(traitFxId(w, id, part || undefined));
+    loadSheetsNow(
+      this.g,
+      [...names].map((name) => ({ category: 'fx' as const, name, action: FX_ACTION })),
     );
-    if (reqs.length > 0) loadSheetsNow(this.g, reqs);
   }
 
   // --- 사건 ---

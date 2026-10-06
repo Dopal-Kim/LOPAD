@@ -75,19 +75,30 @@ export class RuleKit {
   }
 
   /** 분신이 선을 벤다 (윤곽 + 분신 표시) — 맞은 적 */
-  cloneLine(from: Pt, dir: Pt, len: number, halfPx: number, mult: number, color: number = BUILD_FX.COLOR.MOON): Mob[] {
+  cloneLine(
+    from: Pt,
+    dir: Pt,
+    len: number,
+    halfPx: number,
+    mult: number,
+    color: number = BUILD_FX.COLOR.MOON,
+    /** 61 단계 5: 개성 전용 fx 가 이미 그렸으면 false (분신 복사·윤곽 띠를 그리지 않는다) */
+    outline = true,
+  ): Mob[] {
     const l = Math.hypot(dir.x, dir.y) || 1;
     const d = { x: dir.x / l, y: dir.y / l };
-    this.rt.fx.clone(from.x, from.y);
-    this.rt.fx.lineFx(from.x, from.y, d.x, d.y, len, halfPx, color);
+    if (outline) {
+      this.rt.fx.clone(from.x, from.y);
+      this.rt.fx.lineFx(from.x, from.y, d.x, d.y, len, halfPx, color);
+    }
     const hits = this.rt.fx.inLine(from.x, from.y, d.x, d.y, len, halfPx);
     for (const m of hits) this.hit(m, mult, d, { heavy: true });
     return hits;
   }
 
   /** 원 피해 (윤곽) — 맞은 적 */
-  ring(at: Pt, r: number, mult: number, color: number = BUILD_FX.COLOR.RING): Mob[] {
-    this.rt.fx.ring(at.x, at.y, r, color);
+  ring(at: Pt, r: number, mult: number, color: number = BUILD_FX.COLOR.RING, outline = true): Mob[] {
+    if (outline) this.rt.fx.ring(at.x, at.y, r, color);
     const hits = this.rt.fx.inCircle(at.x, at.y, r);
     for (const m of hits) this.hit(m, mult, { x: m.x - at.x, y: m.y - at.y });
     return hits;

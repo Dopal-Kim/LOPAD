@@ -13,6 +13,7 @@ import type { Projectile } from '../../../../objects/Projectile';
 import type { ActiveRule } from '../../../../systems/build/buildMods';
 import type { FxHandle } from '../../../../systems/fx/fx';
 import { sheetLoopRange } from '../BuildArt';
+import { traitFxId } from '../../../../systems/growth/traitArt';
 import { T, type Pt, type RuleKit } from './RuleKit';
 
 interface Trap {
@@ -29,6 +30,7 @@ const unit = (x: number, y: number): Pt => {
 
 export class BowRules {
   private traps: Trap[] = [];
+  private strideAt = -Infinity;
   /** 꿰미: 관통 화살 → 꿴 적 차례 */
   private readonly skewers = new WeakMap<Projectile, Mob[]>();
   /** 공명(덫 비)이 듣는 '덫이 적을 묶음' */
@@ -57,14 +59,21 @@ export class BowRules {
     k.fire('b_dropShot', 'rain');
   }
 
-  /** 하늘 화살 한 발 (개성 전용 fx → bow_meteor_arrow — 없으면 고리) */
-  skyArrow(at: Pt, r: number, mult: number, trait: string): Mob[] {
+  /**
+   * 하늘 화살 한 발 (개성 전용 fx → bow_meteor_arrow — 없으면 고리). 피해는 그 시트의 판정 칸 시작에
+   * (art §27 낙하 시트 `impactFrame 3`·`impactAtMs 120` — FxPool.leadMs)
+   */
+  skyArrow(at: Pt, r: number, mult: number, trait: string): void {
     const k = this.k;
-    if (!k.moves.fx(trait, at, { fallbacks: [BUILD_ART.METEOR_ARROW], scale: 0.7 }))
-      k.rt.fx.ring(at.x, at.y, r, BUILD_FX.COLOR.METEOR, 200);
-    const hits = k.rt.fx.inCircle(at.x, at.y, r);
-    for (const m of hits) k.hit(m, mult, { x: 0, y: 1 });
-    return hits;
+    const played = k.moves.fx(trait, at, { fallbacks: [BUILD_ART.METEOR_ARROW], scale: 0.7 });
+    if (!played) k.rt.fx.ring(at.x, at.y, r, BUILD_FX.COLOR.METEOR, 200);
+    const lead = played ? k.g.fx.leadMs(played.id) : 0;
+    const land = () => {
+      if (!k.g.scene.isActive()) return;
+      for (const m of k.rt.fx.inCircle(at.x, at.y, r)) k.hit(m, mult, { x: 0, y: 1 });
+    };
+    if (lead > 0) k.g.time.delayedCall(lead, land);
+    else land();
   }
 
   /** 대쉬: 화살 덫 (떠난 자리) */
@@ -77,15 +86,16 @@ export class BowRules {
     const at = { x: p.x, y: p.y };
     const ms = k.p(r, 'lifeMs', 6000);
     const g = k.g;
-    const range = sheetLoopRange(g.fx.sheet(BUILD_ART.ARROW_STUCK));
-    const own = g.fx.has(`trait_bow_b_arrowTrap`) ? 'trait_bow_b_arrowTrap' : null;
-    const id = own ?? (g.fx.has(BUILD_ART.ARROW_STUCK) ? BUILD_ART.ARROW_STUCK : null);
+    // art §27 덫 수명 시트 (`loopRange [0,3]` — 덫이 남아 있는 동안 반복, 밟히면 끄고 `_snap`) → 없으면 꽂힌 화살
+    const own = traitFxId('bow', 'b_arrowTrap');
+    const id = g.fx.has(own) ? own : g.fx.has(BUILD_ART.ARROW_STUCK) ? BUILD_ART.ARROW_STUCK : null;
+    const range = id ? sheetLoopRange(g.fx.sheet(id)) : undefined;
     const fx = id
       ? g.fx.play(id, at.x, at.y, {
           depth: DEPTH.PICKUP,
           durationMs: ms,
           hooks: false,
-          ...(range && !own ? { loopRange: range } : {}),
+          ...(range ? { loopRange: range } : {}),
         })
       : null;
     let gfx: Phaser.GameObjects.Graphics | null = null;
@@ -169,7 +179,7 @@ export class BowRules {
           speedTiles: 14,
           rangeTiles: k.p(ric, 'rangeTiles', 4) + 1,
         });
-        k.moves.fx('b_ricochet', { x: mob.x, y: mob.y - 6 }, { fallbacks: ['hit_bow'] });
+        k.moves.fx('b_ricochet', { x: mob.x, y: mob.y - 6 }, { fallbacks: ['hit_bow'], flipX: next.x < mob.x });
         k.fire('b_ricochet', 'bounce');
       }
     }
@@ -213,16 +223,18 @@ export class BowRules {
 
   private pinShot(mob: Mob, u: Pt, pin: ActiveRule): void {
     const k = this.k;
+    // art §27 꽂힌 화살 수명 시트 (f0 박힘 → loopRange [1,4] → f5 사라짐, 회전) → 없으면 bow_arrow_stuck
     const stick = (at: Pt, ms: number) => {
-      const range = sheetLoopRange(k.g.fx.sheet(BUILD_ART.ARROW_STUCK));
-      const id = k.g.fx.has('trait_bow_b_perfectPin') ? 'trait_bow_b_perfectPin' : BUILD_ART.ARROW_STUCK;
+      const own = traitFxId('bow', 'b_perfectPin');
+      const id = k.g.fx.has(own) ? own : BUILD_ART.ARROW_STUCK;
+      const range = sheetLoopRange(k.g.fx.sheet(id));
       if (k.g.fx.has(id))
         k.g.fx.play(id, at.x, at.y, {
           angle: Math.atan2(u.y, u.x),
           depth: DEPTH.HIT_FX,
           durationMs: ms,
           hooks: false,
-          ...(range && id === BUILD_ART.ARROW_STUCK ? { loopRange: range } : {}),
+          ...(range ? { loopRange: range } : {}),
         });
     };
     k.moves.slam(
@@ -267,6 +279,7 @@ export class BowRules {
   }
 
   update(now: number): void {
+    this.strideDust(now);
     if (this.traps.length === 0) return;
     const k = this.k;
     const r = k.rt.rule('dashTrap');
@@ -288,6 +301,17 @@ export class BowRules {
       this.clearTrap(t);
       return false;
     });
+  }
+
+  /** 걸으며 연사 (art §27 `b_rapidStride` 발밑 먼지): 연사하며 걷는 동안 짧게 (그림이 없으면 아무것도 안 함) */
+  private strideDust(now: number): void {
+    const k = this.k;
+    const pl = k.g.player;
+    if (!pl || now < this.strideAt || !k.rt.rule('rapidStride') || !pl.branchMoves.volleying) return;
+    const v = pl.body.velocity;
+    if (v.lengthSq() < 1) return;
+    this.strideAt = now + TRAIT_FX.STRIDE_DUST_MS;
+    k.moves.fx('b_rapidStride', pl, { depth: DEPTH.FX_GROUND, flipX: v.x < 0 });
   }
 
   destroy(): void {

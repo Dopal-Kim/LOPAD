@@ -162,7 +162,7 @@ export class BowBranch {
         if (!shot.active) return;
         if (k.g.pools.igniteAt(shot.x, shot.y) && !lit) {
           lit = true;
-          k.rt.traits.moves.fx('fireArrow', shot, { depth: DEPTH.FX_GROUND });
+          k.rt.traits.moves.fx('fireArrow', shot, { depth: DEPTH.FX_GROUND, flipX: shot.body.velocity.x < 0 });
           k.effect('fireArrow', 'ignite');
         }
         k.g.time.delayedCall(40, tick);

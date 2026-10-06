@@ -15,6 +15,8 @@ import { UI_EVENTS, __system } from '../../../../contract/ui';
 import type { Mob } from '../../../../objects/Mob';
 import type { ActiveRule } from '../../../../systems/build/buildMods';
 import { activeResonances } from '../../../../systems/growth/resonance';
+import { traitFxId } from '../../../../systems/growth/traitArt';
+import { PLAYER_RENDER_SCALE } from '../../../../systems/weapon/playerScale';
 import { uiResonance } from '../../../../systems/growth/uiGrowth';
 import type { BowRules } from './BowRules';
 import type { DaggerRules } from './DaggerRules';
@@ -86,13 +88,14 @@ export class ResonanceRules {
         tag: r.tag,
         name: r.name,
       } satisfies ResonanceOnPayload);
+      // 알림은 UI (`ui:resonance`) 하나로 — 시스템 notice 자막은 내지 않는다 (같은 말이 두 번 나오지 않게)
       __system.emit(UI_EVENTS.RESONANCE, uiResonance(r));
-      this.k.g.ui.story('notice', `${r.name} — ${r.line}`);
       this.k.rt.record('resonance', r.id);
       this.k.rt.afterMenu(() => {
         const pl = this.k.g.player;
         if (!pl) return;
-        if (!this.k.moves.fx(r.id, pl, { fallbacks: [BUILD_ART.SET_FLASH] }))
+        // art §27 공명 켜짐 고리 `trait_<공명 id>_on` (발동 fx `trait_<공명 id>` 와 이름이 겹쳐 부위 on)
+        if (!this.k.moves.fx(r.id, pl, { part: 'on', fallbacks: [BUILD_ART.SET_FLASH] }))
           this.k.rt.fx.ring(pl.x, pl.y, TILE * 1.2, TRAIT_FX.RESONANCE_COLOR, 500);
       });
     }
@@ -111,13 +114,18 @@ export class ResonanceRules {
         if (!k.g.scene.isActive() || !mob.active) return;
         const pl = k.g.player;
         const from = { x: mob.x - (mob.x - pl.x) * 0.3, y: mob.y - (mob.y - pl.y) * 0.3 };
-        k.moves.fx('res_katana_insight', from, { fallbacks: [BUILD_ART.FULLMOON] });
+        // art §27: 피벗 = 적 몸 중심(분신이 적 왼쪽에 그려짐) — 적이 주인공 왼쪽이면 뒤집는다
+        const c = { x: mob.x, y: mob.y - 8 };
+        const played = k.moves.fx('res_katana_insight', c, { flipX: mob.x < pl.x });
+        if (!played) k.rt.art.once(BUILD_ART.FULLMOON, from.x, from.y, { scaleMult: PLAYER_RENDER_SCALE });
         k.cloneLine(
           from,
           { x: mob.x - from.x, y: mob.y - from.y },
           Math.hypot(mob.x - from.x, mob.y - from.y) + TILE * 0.6,
           TILE * 0.4,
           k.p(moon, 'damageMult', 0.5),
+          BUILD_FX.COLOR.MOON,
+          !played,
         );
         this.proc('res_katana_insight', 'clone');
       });
@@ -163,7 +171,10 @@ export class ResonanceRules {
     if (len < TILE) return;
     this.trailReadyAt = k.now + k.p(r, 'cooldownMs', 1000);
     const half = T(k.p(r, 'widthTiles', 1)) / 2;
+    // art §27 칼바람 길 = 반복 타일 (`tile: true` 주기 64 도트, 피벗 = 길 시작) — 길을 따라 이어 깐다
+    const tile = traitFxId(gameState.weapon.id, 'res_katana_breach');
     if (
+      !k.rt.fx.tileLine(tile, from.x, from.y, d.x, d.y, len) &&
       !k.moves.fx('res_katana_breach', from, { angle: Math.atan2(d.y, d.x), fallbacks: ['katana_issen_line_t2_solo'] })
     )
       k.rt.fx.lineFx(from.x, from.y, d.x, d.y, len, half, BUILD_FX.COLOR.SPIN, 320);
