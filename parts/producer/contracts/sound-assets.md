@@ -120,3 +120,4 @@ interface SoundEntry {
 ## 12. 61 단계 6 (P14)
 - 전환: `transition_enter`(그림 속으로 파고듦 — 종이·바람·먹 번짐, 1.2~1.8초), `transition_exit`(화면이 그림으로 굳음 — 붓 한 획·액자 닫힘), `transition_floor`(큰 그림 입구 — 더 깊게). 트리거 `TRANSITION_BEGIN{mode}`(시스템 확정 후 갱신).
 - 수련장: 과제 완료 `training_task`(짧은 맑은 종), 방 도장 `training_stamp`(인장 찍힘), 수련장 BGM `bgm/training`(고요한 연습 — 1층 곡과 같은 악기 결, 루프).
+- (61 단계 6 시스템 확정) 트리거: `transition:begin` TRANSITION_BEGIN{id,mode,region,nodeKind?} — mode enterNode·training → `transition_enter`, exitRoom → `transition_exit`, floor → `transition_floor`(없으면 enter); `training:task` → `training_task`; `training:stamp`{room,all} → `training_stamp`; 수련장 BGM 상태 `training`(`bgmByState.training`).
