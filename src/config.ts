@@ -6,6 +6,7 @@ import { GameOver } from './scenes/GameOver';
 import { Preloader } from './scenes/Preloader';
 import { Setup } from './scenes/Setup';
 import { WeaponLab } from './scenes/WeaponLab';
+import { Training } from './scenes/Training';
 import { uiScenes } from './ui';
 import { CANVAS_H, CANVAS_W } from './systems/display';
 
@@ -30,5 +31,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     default: 'arcade',
     arcade: { gravity: { x: 0, y: 0 }, debug: false },
   },
-  scene: [Boot, Preloader, Setup, Game, WeaponLab, GameOver, ...uiScenes],
+  scene: [Boot, Preloader, Setup, Game, WeaponLab, Training, GameOver, ...uiScenes],
 };

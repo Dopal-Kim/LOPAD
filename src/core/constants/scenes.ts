@@ -8,6 +8,8 @@ export const SCENES = {
   GAME_OVER: 'GameOver',
   /** 49라운드 계약 §11.4: 무기 시험장 (host.startWeaponLab 이 이 키로 시작) */
   WEAPON_LAB: 'WeaponLab',
+  /** 61 단계 6 계약 §19: 수련장 (Game 의 시험장 모드 + 수련장 방 — host.startTraining 이 이 키로 시작) */
+  TRAINING: 'Training',
 } as const;
 
 /**
@@ -126,6 +128,8 @@ export const LAB = {
   HEAL_BELOW_RATIO: 0.5,
   /** 시험장 시드 (지도 생성용 고정값) */
   SEED: 'weapon-lab',
+  /** 61 단계 6 수련장 바닥·벽 타일셋 (art §28 `tiles/v2/stage1_training` — gate 와 같은 색인·규칙) */
+  TRAINING_TILESET: 'stage1_training',
 } as const;
 
 /**

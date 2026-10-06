@@ -1603,3 +1603,41 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 - 걸으며 연사 발밑 먼지(`b_rapidStride`, 연사하며 걸을 때 260ms 마다) 연결.
 - 그대로 둔 것: `next`(술 웅덩이·불 그림은 웅덩이 시스템이 이미 그림) · `light.atFrame`(광원은 재생 시작부터 — FxPool 공통) · `pierceMarksU`(그림 안 표시).
 - 검사: tsc · eslint · vitest 128 파일 974 · 바뀐 파일 prettier · vite build 통과. 헤드리스(시험장, 스크래치 `t61/`): 무기 4 판 콘솔 오류 0, 공명 켜짐 고리 4무기(`ring_*`), 개성 그림(`smoke_art_*`·`k_parry_art*`·`k_bind_chain`).
+
+## 61라운드 단계 6 · 시스템: 수련장 · 그림 속 입구 전환 (P14 §1·§3 · 계약 UI §19 · art §28 · sound §12) (2026-10-06)
+
+설계 `parts/producer/decisions/2026-10-06-P14-tutorial-color-transition.md`. 자율 모드 — 아래 선택은 시스템 판단(보고서에 목록).
+
+### 1. 수련장 (씬 `Training` = Game 의 시험장(lab) 모드 + `scenes/game/training/*`)
+- 방 8 (`data/training.json` rooms 순서 = 지도 순서): step 걸음과 숨 · guard 막고 받아치기(칼 고정) · katana/greatsword/dagger/bow 무기 방 · fire 술과 불 · shadow 만취 그림자. 지도 마당(`trainingRoom` 없음) = 수련장 지도 메뉴(`training`, 줄 `room`·`stamped`, '0' = 나가기).
+- 과제 판정 `systems/training/tasks.ts`(순수 — 사건 any·where(값·목록·gte/lte)·count·after·dodge 창·branch n·trait n) — 조건은 데이터. 사건은 기존 EventBus 이벤트(새로 낸 것은 `training:reach`·`training:drill` 둘).
+- 방 준비물 `TrainingRoomKit`: 허수아비(LabDummy)·줍기 물건(전표·물약·화염 술병 — 없어지면 다시)·술 웅덩이·표식·적(죽으면 다시, 엘리트는 `EliteSystem.makeElite`)·약한 만취(보스 노드 전장 그대로 + 체력 ×0.3, 방 상태 머신 없이). 훈련 예고 `TrainingDrills`(원·선·부채를 주인공 자리에 — 기하 `systems/training/drills.ts`).
+- 무기 방: 대표 개성 2장(`traitPicks`)을 켜 두고, 허수아비·적을 칠 때마다 각성 게이지(+3) → 실제 눈금 메뉴(개성 → 1차 각성 갈래 카드) → **L = 다른 갈래 깨우기**(`evolve` awaken1 카드 메뉴 → 경로 비우고 각성 연출). 게이지는 그 과제가 남은 무기 방에서만 오른다(다른 방에서 눈금 메뉴가 끼어들지 않게 — `GrowthFlow.gain`).
+- 소품(art §28) `TrainingProps`: 과제 표지판(active → done 붉은 인장) · 도장 판(blank → stamp → stamped) · 무기 걸이(taken) · 연습 깃발(wave → reached) — 방에 들어갈 때만 지연 로드. 바닥·벽 타일 `tiles/v2/stage1_training`(Preloader 부팅 묶음에 추가, `LAB.TRAINING_TILESET`).
+- 런과 분리: 연습 런(시험장과 같은 `startRun(LAB.SEED)`) · 세이브 없음 · 쓰러지지 않음(`BuildDefense.preventDeath` lab → 가득 회복 + '쓰러졌다' 안내) · 런 첫 경험 대사 없음(StoryBeats lab) · 그림자는 말하지 않음(BossFlow training) · 기록은 메타 `diary.training`{stamped, progress(도장 전 방 진행), offered, visits}.
+- 진입: 타이틀(UI → `uiCommands.startTraining()`), 첫 생 시작 의식 앞 '수련장부터 / 바로 벽 밖으로'(메뉴 `trainingChoice` '1'·'2', 한 번만 — 수련장에서 나오면 시작 의식으로), 일기장(런 중 → **런을 맡긴다**: gameState 얕은 사본 + 감각 + 층 구조물 상태, 런 로그는 `runLogRecorder.hold`). 런 중 거부: 싸우는 중 'combat' · 보스 노드 'boss' · 메뉴·연출·전환 'busy'. 나가기 `uiCommands.leaveTraining()` → 맡긴 런이면 같은 노드로(`mode:'node', resume:true` — 마친 노드면 출구 열린 채, 노드 보상·전투 없이 `RouteFlow.resumeCleared`, 아니면 그 노드를 처음부터) · 첫 생 선택에서 왔으면 시작 의식 · 그 밖 타이틀. 타이틀·새 런·이어하기는 맡긴 런을 버린다.
+- 문장: 스토리 팩 `parts/story/text-pack-61s6-training.json` 의 `text` 를 `data/training.json` text 에 **복사**(키 `training.<room>.<slot>` 그대로 — 스토리가 고치면 통째로 다시 복사). `{trait1}`·`{trait2}` = 대표 개성 이름, `{elite}` = 엘리트 이름표(못 봤으면 eliteFallback).
+
+### 2. 그림 속 입구 전환 (`systems/transition/transitionGate.ts` — 씬 재시작을 넘는 싱글턴)
+- begin → `ui:transition-begin` → UI `ui:transition-covered` → 장면 교체 → 새 씬 create 끝에 `ready()` → `ui:transition-ready` → UI `ui:transition-end` → 입력 재개(Game 입력 잠금 `transitionGate.locked`). 안전장치: COVERED 3초 · 덮인 뒤 READY 5초 · END 3초. UI 렌더러가 없으면 예전 카메라 암전으로 덮고 바로.
+- 쓰는 곳: 노드 고르기 `enterNode`(doorKey · nodeId) · 출구에 들어섬 `exitRoom`(덮이면 노드 고르기 열림 — 예전의 바로 열림 대체, from = 출구 화면 좌표) · 보스 노드 출구 `floor`(다음 층 첫 지역) · 수련장 방 `training`(from = 지도 메타 rooms 순서 자리) · 수련장 방 나가기 `exitRoom`. 예전 `fadeThen` 은 문지기가 거부할 때만.
+- 입구 그림(art §28): `sprites/paint/door_<…>.png` — 정확 → `doors.json` 별칭 → `<지역>_battle` → 없음(`systems/transition/doorNames`). 전환 직전 한 장만 받는다(최대 1.2초 기다림, `scenes/game/PaintArt`). 수련장 방 `door_training_training` / 만취 그림자 `door_training_boss`. 메타 json 은 같은 키로 cache.json.
+
+### 3. 계약 (`src/contract/ui.ts` §19)
+- 이벤트 TRANSITION_BEGIN·COVERED·READY·END · TRAINING_TASK · (시스템 추가) TRAINING_STAMP{room,name,all}. 형식 UiTransitionBegin(+ nodeId) · UiTraining(+ line·mapKey) · 메뉴 id `training`·`trainingChoice` · UiMenuLine.room·stamped · 명령 `startTraining(room?) → 'ok'|'combat'|'busy'|'boss'` · `leaveTraining()`. 수련장 안 스냅샷 lab = false. 만취 그림자 보스 이름 = '만취 그림자'.
+
+### 4. 음향 이벤트 (sound §12 확정 — `systems/audio/audioTraining.ts`)
+- `transition:begin` TRANSITION_BEGIN{id,mode,region,nodeKind?} → enterNode·training `sfx/transition_enter` · exitRoom `sfx/transition_exit` · floor `sfx/transition_floor`(없으면 enter).
+- `training:task` TRAINING_TASK{room,id} → `sfx/training_task` · `training:stamp` TRAINING_STAMP{room,all} → `sfx/training_stamp`. 수련장 BGM = 상태 `training`(manifest `bgmByState.training`).
+
+### 5. 무기 색 (art §28, 아트 커밋 1af8cb2 뒤)
+- `data/growth.json` 길 tint(시트 JSON 이 없을 때의 폴백)를 `looks/<무기>.json` pathTint 로 맞춤 · 2차 궤적 폴백 = pathTint 를 흰색 쪽으로 45%(`towardWhite`) · 각성 연출 fx tint = 무기 색(`WEAPON_COLORS`) · 칼날 번쩍임 식는 색 = 무기 색 · 시트 light 없는 무기 이펙트 광원 = 무기 색.
+
+### 6. 고친 버그 (헤드리스에서 발견)
+- `main.ts installLogicalCameras` 에 Training 씬이 빠져 수련장 화면이 검게 나오던 것.
+- `FxPool.playOutro`: 씬 종료 중 파괴된 스프라이트에 사라짐 구간을 걸어 예외 → 씬 재시작 실패(술 웅덩이 수명 시트 — 수련장 술과 불 방 나가기, 일반 런에서도 웅덩이가 남은 채 노드를 떠날 때 같은 위험).
+- `DropVisual` 줍기 고리: 반경 트윈이 도는 중 고리를 지워 매 프레임 예외(파괴된 Arc radius).
+
+### 검사
+- tsc · eslint · vitest 134 파일 1012(새 `training/tasks.test`·`drills.test`·`record.test`·`transition/transitionGate.test`) · 바뀐 파일 prettier · vite build 통과.
+- 헤드리스(빌드본, playwright swiftshader, 스크래치 `t6/`): 타이틀 → 수련장 지도 → 방(전환 begin·covered·ready·end, doorKey `paint/door_training_training`) · 걸음과 숨 8과제·도장·출구 → 지도 · 막고 받아치기 원·선·부채 예고 피하기 3 · 결사병 돌진 피하기 · 칼의 방 게이지 → 개성 메뉴 → 1차 각성 → L 로 둘째 갈래 · 술과 불 점화·술통 깨짐·행상·짐꾼·엘리트(이름표 '패거리 두목 징집병') · 만취 그림자(체력 330/1100) 쓰러뜨림 → defeat · 실제 런: 탄생지 → 일기장 수련장(런 맡김) → 나가기 → 같은 노드 출구 열린 채(전표·게이지 그대로) → exitRoom → 노드 고르기 → enterNode(doorKey `paint/door_waste_battle`) · 보스 처치 → floor 전환 → 2층. 콘솔 오류 0(위 6 고친 뒤).

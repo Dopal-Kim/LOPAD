@@ -163,6 +163,11 @@ export class RoomDirector {
     return e;
   }
 
+  /** 61 단계 6: 수련장에서 돌아온 마친 노드 — 들어서도 시련을 다시 시작하지 않게 */
+  markCleared(roomId: string): void {
+    if (this.states.has(roomId)) this.states.set(roomId, 'cleared');
+  }
+
   /** 방 진행 상태 */
   stateOf(roomId: string): RoomProgress | undefined {
     return this.states.get(roomId);

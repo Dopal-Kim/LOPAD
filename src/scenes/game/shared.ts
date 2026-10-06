@@ -23,6 +23,10 @@ export type GameInitData = {
   slice?: string;
   /** 54라운드 `?boss`·`?bossPhase`·`?bossPattern`: 새 런으로 이 층 보스 노드에 바로 (보스 확인용) */
   bossJump?: boolean;
+  /** 61 단계 6 수련장 (씬 Training): 들어갈 방 id (없으면 지도 마당) */
+  trainingRoom?: string;
+  /** 61 단계 6: 수련장에서 맡겨 둔 런으로 돌아옴 (mode 'node') — 마친 노드면 출구가 열린 채로 */
+  resume?: boolean;
 };
 
 /** 칸 → 월드 px (60라운드 6-1: 빌드·묶음 모듈이 따로 두던 같은 도우미를 하나로) */

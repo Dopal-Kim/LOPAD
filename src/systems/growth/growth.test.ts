@@ -141,7 +141,8 @@ describe('스냅샷 growth · 각성 외형', () => {
     const look = growthLookOf(w)!;
     expect(look.stage).toBe(2);
     expect(look.path).toBe('onibi');
-    expect(look.tint).toBe((100 << 16) | (240 << 8) | 220);
+    // 61 단계 6: 길 색은 아트 looks/dagger.json pathTint (단검 독 계열) 로 맞춤
+    expect(look.tint).toBe((248 << 16) | (120 << 8) | 255);
     const k = new WeaponState('katana', WEAPONS.katana);
     k.choose('iai');
     expect(growthLookOf(k)?.legacy).toBe(false);

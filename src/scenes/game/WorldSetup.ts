@@ -3,7 +3,7 @@
  * 노드 지도 진입 · 전투장 설계 · 타일 월드 · 외벽 테두리 · 지역 조명 연결.
  * create() 마다 새로 만들어진다 (상태 없음 — 결과는 Game 의 공유 필드에 둔다).
  */
-import { TILE } from '../../core/Constants';
+import { LAB, TILE } from '../../core/Constants';
 import { gameState } from '../../core/GameState';
 import { BOSSES, LIGHTING } from '../../data';
 import type { LightingAmbient } from '../../data/types';
@@ -61,6 +61,17 @@ export class WorldSetup {
             border: (r) => Boolean(borderDefFor(r)),
           })
         : null;
+    // 61 단계 6 수련장 '만취 그림자': 이 층 보스 노드의 전장 (기둥·촛대·술통) — 노드 지도 없이
+    if (g.training?.bossRoom) {
+      const boss = generateRoute(gameState.stageId, gameState.floorSeed).nodes.find((n) => n.kind === 'boss') ?? null;
+      g.nodeArena = boss
+        ? planNodeArena(boss, gameState.stageId, gameState.floorSeed, undefined, {
+            quarterTileset,
+            border: (r) => Boolean(borderDefFor(r)),
+          })
+        : null;
+      if (g.nodeArena) g.nodeKind = 'boss';
+    }
     return nodeSalt;
   }
 
@@ -99,10 +110,10 @@ export class WorldSetup {
   buildWorld(floor: number, nodeSalt: string): StructurePlacement[] {
     const g = this.g;
     const arena = g.nodeArena;
-    const layout = g.labMode
-      ? g.labMode.buildArena()
-      : arena
-        ? arena.layout
+    const layout = arena
+      ? arena.layout
+      : g.labMode
+        ? g.labMode.buildArena()
         : generateFloor(gameState.floorSeed, gameState.stage.layout);
     g.layout = layout;
     g.visitedRooms = new Set(['start']);
@@ -121,7 +132,11 @@ export class WorldSetup {
     g.world = new TileWorld(
       g,
       layout,
-      arena ? skinFor(floor, arena.tileset) : (tileSkins.get(floor) ?? TileSkin.placeholder()),
+      arena
+        ? skinFor(floor, arena.tileset)
+        : g.training
+          ? skinFor(floor, LAB.TRAINING_TILESET)
+          : (tileSkins.get(floor) ?? TileSkin.placeholder()),
       gameState.floorSeed + nodeSalt,
       arena ? new Set([...structureTiles(structurePlan), ...setPieceTiles(arena)]) : structureTiles(structurePlan),
       // 53라운드 v3 바닥 소품 (`tiles/v3/<지역 타일셋>_props`) — 있으면 큰 소품·작은 소품을 그 시트에서

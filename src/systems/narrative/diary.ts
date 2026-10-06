@@ -30,10 +30,54 @@ export interface DiaryRecord {
   pastLives: PastLife[];
   /** 61 G (계약 UI §18 firstTime): 본 처음 안내 카드 — 'trait'·'awaken1'·'awaken2' */
   guides: string[];
+  /** 61 단계 6 (P14 §1, 계약 UI §19): 수련장 기록 — 런과 무관, 일기장에만 */
+  training: TrainingRecord;
+}
+
+/** 61 단계 6 수련장 기록 (메타 `diary.training`) */
+export interface TrainingRecord {
+  /** 도장 찍힌 방 id */
+  stamped: string[];
+  /** 도장 전 방의 마친 과제 (방 id → 과제 id) — 도장이 찍히면 비운다 */
+  progress: Record<string, string[]>;
+  /** 첫 생 '수련장부터 / 바로 벽 밖으로' 를 이미 물었다 */
+  offered: boolean;
+  /** 방에 들어간 수 */
+  visits: number;
+}
+
+export function emptyTrainingRecord(): TrainingRecord {
+  return { stamped: [], progress: {}, offered: false, visits: 0 };
+}
+
+const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((c): c is string => typeof c === 'string') : []);
+
+export function readTrainingRecord(v: unknown): TrainingRecord {
+  if (!v || typeof v !== 'object') return emptyTrainingRecord();
+  const t = v as Partial<TrainingRecord>;
+  const progress: Record<string, string[]> = {};
+  for (const [k, ids] of Object.entries(t.progress ?? {})) {
+    const list = strings(ids);
+    if (list.length > 0) progress[k] = list;
+  }
+  return { stamped: strings(t.stamped), progress, offered: t.offered === true, visits: nonNegNum(t.visits) };
+}
+
+function nonNegNum(v: unknown): number {
+  return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0;
 }
 
 export function emptyDiary(): DiaryRecord {
-  return { lives: 0, deaths: 0, bossKills: {}, clues: [], lastName: '', pastLives: [], guides: [] };
+  return {
+    lives: 0,
+    deaths: 0,
+    bossKills: {},
+    clues: [],
+    lastName: '',
+    pastLives: [],
+    guides: [],
+    training: emptyTrainingRecord(),
+  };
 }
 
 const nonNeg = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
@@ -55,6 +99,7 @@ export function readDiary(meta: Pick<MetaData, 'runs' | 'clears'> & { diary?: Pa
     lastName: typeof d.lastName === 'string' ? d.lastName : '',
     pastLives: Array.isArray(d.pastLives) ? d.pastLives.filter((p) => p && typeof p === 'object') : [],
     guides: Array.isArray(d.guides) ? d.guides.filter((c): c is string => typeof c === 'string') : [],
+    training: readTrainingRecord(d.training),
   };
 }
 

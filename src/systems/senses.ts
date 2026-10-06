@@ -34,4 +34,14 @@ export class SenseTracker {
     this.kindsThisStage.clear();
     this.sense = 0;
   }
+
+  /** 61 단계 6 수련장: 런을 맡겨 둘 때 (감각·이 층 처치 방식) */
+  snapshot(): { sense: number; kinds: KillKind[] } {
+    return { sense: this.sense, kinds: [...this.kindsThisStage] };
+  }
+
+  restore(s: { sense: number; kinds: readonly KillKind[] }): void {
+    this.sense = s.sense;
+    this.kindsThisStage = new Set(s.kinds);
+  }
 }

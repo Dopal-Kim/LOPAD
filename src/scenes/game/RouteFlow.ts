@@ -6,10 +6,18 @@ import { ROUTE_FX, TILE } from '../../core/Constants';
 import { EventBus, Events, type NodeEnteredPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { UI_EVENTS, __system, type UiRouteEntered } from '../../contract/ui';
-import { minBattlesOnAnyPath } from '../../systems/route';
+import { RUN } from '../../data';
+import { minBattlesOnAnyPath, regionIdOf, type RouteNode } from '../../systems/route';
 import { oncePerKeyEvent } from '../../systems/keyEvents';
+import { transitionGate } from '../../systems/transition/transitionGate';
+import type { UiTransitionBegin } from '../../contract/ui';
 import type { Game } from '../Game';
+import { doorFor, loadDoorIndex, withDoor } from './PaintArt';
+import { fadeCover, screenOfWorld } from './TransitionFx';
 import { urlParams, type GameInitData } from './shared';
+
+/** 입구 그림 한 장을 기다리는 최대 시간 (그 뒤엔 그림 없이 — UI 가 키아트·단색으로 대체) */
+const DOOR_WAIT_MS = 1200;
 
 export class RouteFlow {
   /** 출구 열림 · 열림 예약 */
@@ -35,14 +43,23 @@ export class RouteFlow {
     gameState.bossUnlocked = this.g.nodeKind === 'boss' || route.nextOptions().some((n) => n.kind === 'boss');
   }
 
-  /** 노드 진입: 밝아짐 · 입력 잠금 · ROUTE_NODE_ENTERED · 새 런 첫 노드면 탄생 · 진입 갈림이면 바로 선택 */
-  enterNode(): void {
+  /**
+   * 노드 진입: 밝아짐 · 입력 잠금 · ROUTE_NODE_ENTERED · 새 런 첫 노드면 탄생 · 진입 갈림이면 바로 선택.
+   * 61 단계 6: revealedByUi = 그림 속 입구 전환을 UI 가 걷어내는 중(카메라 밝아짐 생략) · resume = 수련장에서 맡긴 런으로 돌아옴 —
+   * 이미 마친 노드면 출구를 연 채로(노드 진입 보상·전투 없이) 돌려주고 true
+   */
+  enterNode(revealedByUi = false, resume = false): boolean {
     const g = this.g;
     const now = g.time.now;
-    g.cameras.main.fadeIn(ROUTE_FX.FADE_IN_MS, ROUTE_FX.FADE_COLOR.R, ROUTE_FX.FADE_COLOR.G, ROUTE_FX.FADE_COLOR.B);
+    if (!revealedByUi)
+      g.cameras.main.fadeIn(ROUTE_FX.FADE_IN_MS, ROUTE_FX.FADE_COLOR.R, ROUTE_FX.FADE_COLOR.G, ROUTE_FX.FADE_COLOR.B);
     this.enterLockUntil = now + ROUTE_FX.ENTER_LOCK_MS;
     this.syncProgress();
     const node = g.node;
+    if (resume && node && gameState.route?.currentCleared) {
+      this.resumeCleared();
+      return true;
+    }
     if (node) {
       __system.emit(UI_EVENTS.ROUTE_NODE_ENTERED, {
         id: node.id,
@@ -61,6 +78,22 @@ export class RouteFlow {
     if (g.nodeKind === 'birth' && gameState.birthPending && !urlParams().has('nobirth')) g.birth.start();
     else if (g.nodeKind === 'birth') gameState.birthPending = false;
     if (!node) g.time.delayedCall(ROUTE_FX.ENTER_LOCK_MS, () => this.openChooser());
+    return false;
+  }
+
+  /** 61 단계 6: 수련장에서 돌아옴 — 마친 노드 (전투·보상·튜토리얼 없이 출구 열림) */
+  private resumeCleared(): void {
+    const g = this.g;
+    const room = g.layout?.rooms[0];
+    if (room) {
+      g.director.markCleared(room.id);
+      g.clearedRooms.add(room.id);
+    }
+    g.tutorial?.skip(true);
+    gameState.birthPending = false;
+    this.exitScheduled = true;
+    // create 중에는 씬이 아직 RUNNING 이 아니다 — 다음 틱에 출구
+    g.time.delayedCall(1, () => this.openNodeExit());
   }
 
   /** 진입 직후 · 선택 중 · 전환 중 입력 잠금 */
@@ -93,10 +126,66 @@ export class RouteFlow {
     }
     if (!this.exitOpen || route.choosing) return;
     const onExit = g.world.isExitAt(g.player.x, g.player.y);
-    if (onExit && this.exitArmed && !g.director.inCombat && !g.menu.isOpen && !g.frozen) {
+    if (onExit && this.exitArmed && !g.director.inCombat && !g.menu.isOpen && !g.frozen && !transitionGate.locked) {
       this.exitArmed = false;
-      this.openChooser();
+      this.exitToMap();
     } else if (!onExit) this.exitArmed = true;
+  }
+
+  /**
+   * 61 단계 6 (P14 §3): 출구로 걸어 들어감 → 방이 그림처럼 굳어 액자 → 지도 ('exitRoom'). 덮이면 노드 고르기를 열고 READY.
+   * UI 가 없으면 바로 고르기 (예전과 같다)
+   */
+  private exitToMap(): void {
+    const g = this.g;
+    const route = gameState.route;
+    if (!route || route.nextOptions().length === 0) return;
+    g.player.haltForWarp();
+    loadDoorIndex(g);
+    const e = g.layout?.arena?.exit;
+    const from = e ? screenOfWorld(g, (e.x + 1) * TILE, (e.y + 1) * TILE) : undefined;
+    const ok = transitionGate.begin(
+      {
+        mode: 'exitRoom',
+        region: g.node ? this.regionOf(g.node) : '',
+        ...(g.nodeKind ? { nodeKind: g.nodeKind } : {}),
+        ...(from ? { from } : {}),
+      },
+      () => {
+        this.openChooser();
+        transitionGate.ready();
+      },
+    );
+    if (!ok) this.openChooser();
+  }
+
+  /** 노드의 지역 id (route.json regions — waste·outer·gate·hall·brewery, 보스 노드는 'boss') */
+  private regionOf(n: RouteNode): string {
+    if (n.kind === 'boss') return 'boss';
+    return regionIdOf(gameState.stageId, n.col) ?? '';
+  }
+
+  /**
+   * 그림 속 입구 전환 시작: 입구 그림(art §28 — 정확 → 별칭 → <지역>_battle)을 한 장 받은 뒤(최대 DOOR_WAIT_MS) begin.
+   * 문지기가 거부하면(다른 전환 중) 예전 암전으로
+   */
+  private beginDoor(
+    mode: UiTransitionBegin['mode'],
+    region: string,
+    nodeKind: string,
+    nodeId: string | undefined,
+    swap: () => void,
+  ): void {
+    const g = this.g;
+    withDoor(g, doorFor(g, region, nodeKind), DOOR_WAIT_MS, (doorKey) => {
+      if (!g.scene.isActive()) return;
+      const ok = transitionGate.begin(
+        { mode, region, nodeKind, ...(nodeId ? { nodeId } : {}), ...(doorKey ? { doorKey } : {}) },
+        swap,
+        (cover) => fadeCover(g, cover),
+      );
+      if (!ok) this.fadeThen(swap);
+    });
   }
 
   /**
@@ -109,8 +198,15 @@ export class RouteFlow {
     if (!floorExit || !gameState.exitOpen || g.transitioning || !g.world.isExitAt(g.player.x, g.player.y)) return false;
     g.transitioning = true;
     const next = () => g.scene.restart({ mode: 'next' } satisfies GameInitData);
-    if (g.routeMode) this.fadeThen(next);
-    else next();
+    if (!g.routeMode) {
+      next();
+      return true;
+    }
+    // 61 단계 6 (P14 §3): 층 = 다음 지역 키아트 큰 그림의 입구로 ('floor')
+    g.player.haltForWarp();
+    const nextStage = RUN.order[gameState.stageIndex + 1];
+    const region = (nextStage && regionIdOf(nextStage, 0)) || 'boss';
+    this.beginDoor('floor', region, 'floor', undefined, next);
     return true;
   }
 
@@ -155,7 +251,11 @@ export class RouteFlow {
     g.transitioning = true;
     gameState.structureCarry = g.structures.exportFloorState();
     route.enter(id);
-    this.fadeThen(() => g.scene.restart({ mode: 'node' } satisfies GameInitData));
+    const restart = () => g.scene.restart({ mode: 'node' } satisfies GameInitData);
+    // 61 단계 6 (P14 §3): 고른 노드에 그려진 입구로 파고든다 ('enterNode') — UI 가 덮으면 새 노드
+    const node = route.current;
+    if (node) this.beginDoor('enterNode', this.regionOf(node), node.kind, node.id, restart);
+    else this.fadeThen(restart);
     return true;
   }
 

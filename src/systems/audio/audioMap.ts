@@ -38,6 +38,7 @@ import { BUNDLE2 } from '../../data/bundle2';
 import { t, type AudioTrigger } from './audioTrigger';
 import { MOVE_AUDIO_TRIGGERS } from './audioMoves';
 import { DROP_AUDIO_TRIGGERS } from './audioDrops';
+import { TRAINING_AUDIO_TRIGGERS } from './audioTraining';
 import { BUILD_AUDIO_TRIGGERS, BUILD_SFX, hasBranch, isRapidVolley, katanaThrustSfx } from './audioBuild';
 export type { AudioTrigger } from './audioTrigger';
 
@@ -351,6 +352,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   ...MOVE_AUDIO_TRIGGERS,
   // --- 61 단계 5 (P13): 기둥 무너짐 · 포물선 술병 · 바닥 줍기 (audioDrops) ---
   ...DROP_AUDIO_TRIGGERS,
+  // --- 61 단계 6 (P14): 그림 속 입구 전환 · 수련장 (audioTraining) ---
+  ...TRAINING_AUDIO_TRIGGERS,
   // --- 주인공 공격·보조 동작 ---
   t<PlayerAttackPayload>({
     event: Events.PLAYER_ATTACKED,

@@ -18,6 +18,7 @@ import {
 import type { BossActionPayload, BossBreakPayload, EnemyIncomingPayload } from '../../core/EventBus';
 import { bossSnapshotExtra, uiBossBreak } from './bossUi';
 import { buildSnapshot } from '../../contract/snapshot';
+import { trainingText } from '../../data/training';
 import { audio } from '../../systems/audio/audio';
 import { settings } from '../../systems/settings';
 import { floorText } from '../../systems/story';
@@ -77,7 +78,9 @@ export class UiRelay {
       // 49라운드 (계약 §11): 무기 자원 · 음소거 · 시험장
       resource: g.player?.resource?.toUi(now) ?? null,
       muted: audio.isMuted,
-      lab: g.lab,
+      // 61 단계 6 §19: 수련장 안에서는 lab = false, training 스냅샷
+      lab: g.lab && !g.training,
+      training: g.training?.toUi() ?? null,
       // 61라운드: F 넣기/뽑기 삭제 — 칼 발도는 좌 홀드 (스냅샷 weaponVerbs)
       carry: null,
       // 56라운드 (계약 §13): 무기 고유 자원 · 그로기
@@ -162,7 +165,8 @@ export class UiRelay {
 
   /** 보스 이름표·체력줄 (61라운드: 층 등장 자막은 BossFlow 가 등장 연출 시간표에 맞춰 낸다) */
   relayBossStarted(p: { boss: string }): void {
-    this.bossName = BOSSES[p.boss]?.name ?? '보스';
+    // 61 단계 6: 수련장 '만취 그림자'는 진짜 보스가 아니다 — 이름도 방 이름으로 (스토리 팩 training.shadow.name)
+    this.bossName = this.g.training?.bossRoom ? trainingText('shadow.name') : (BOSSES[p.boss]?.name ?? '보스');
     __system.emit(UI_EVENTS.BOSS_STARTED, {
       name: this.bossName,
       hp: gameState.bossHp,

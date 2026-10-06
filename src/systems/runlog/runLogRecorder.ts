@@ -37,6 +37,8 @@ type Clock = { getTime(): number };
 
 export class RunLogRecorder {
   private log: RunLog | null = null;
+  /** 61 단계 6: 수련장에 간 동안 맡겨 둔 기록 */
+  private held: RunLog | null = null;
   private last: RunLogSummary | null = null;
   private clock: Clock | null = null;
   private readonly pauseReasons = new Set<string>();
@@ -100,6 +102,23 @@ export class RunLogRecorder {
     const after = this.pauseReasons.size > 0;
     if (!before && after) this.log?.pause(this.now());
     else if (before && !after) this.log?.resume(this.now());
+  }
+
+  /**
+   * 61 단계 6 수련장: 런을 맡겨 둔 동안 기록을 멈춘다 (수련장 처치·피격이 런 로그에 들어가지 않게 — 플레이 시간도 뺀다).
+   * off = 맡긴 런으로 돌아옴
+   */
+  hold(on: boolean): void {
+    if (on) {
+      if (this.held || !this.log || this.log.isEnded) return;
+      this.setPaused('training', true);
+      this.held = this.log;
+      this.log = null;
+    } else if (this.held) {
+      this.log = this.held;
+      this.held = null;
+      this.setPaused('training', false);
+    }
   }
 
   /** 진행 중인 런을 '그만둠'으로 닫는다 (타이틀·새 런·시험장). 노드를 하나라도 밟았으면 저장 */

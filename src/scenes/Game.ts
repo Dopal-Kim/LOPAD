@@ -90,6 +90,10 @@ import { BuildRuntime } from './game/build/BuildRuntime';
 import { BuildMenus } from './game/build/BuildMenus';
 import { BundleRuntime } from './game/bundle/BundleRuntime';
 import { BossFlow } from './game/BossFlow';
+import { TrainingMode } from './game/training/TrainingMode';
+import { transitionGate } from '../systems/transition/transitionGate';
+import { setTrainingLeaver } from '../contract/host';
+import { leaveRunForTraining } from './game/training/runLeave';
 
 export type { GameInitData } from './game/shared';
 
@@ -159,6 +163,8 @@ export class Game extends Phaser.Scene {
   readonly saveSlot = new SaveSlot(browserStorage());
   /** 49라운드 계약 §11.4 무기 시험장 모드 (씬 키 WeaponLab — scenes/WeaponLab.ts) */
   readonly lab: boolean;
+  /** 61 단계 6 수련장 씬 (scenes/Training.ts — lab 위에 수련장 방) */
+  readonly isTraining: boolean;
   // --- 책임별 모듈 (scenes/game/*) ---
   cam: GameCamera;
   combat: GameCombat;
@@ -169,6 +175,8 @@ export class Game extends Phaser.Scene {
   route: RouteFlow;
   birth: BirthFlow;
   labMode: LabMode | null = null;
+  /** 61 단계 6 수련장 방 (Training 씬만) */
+  training: TrainingMode | null = null;
   ui: UiRelay;
   /** 56라운드 무기 피드백 연출 (월드 문구·숨 집중·과열 낙인 폭발) */
   feedback: WeaponFeedback;
@@ -190,10 +198,11 @@ export class Game extends Phaser.Scene {
   private subs: Subscription[] = [];
   private readonly playerVec = new Phaser.Math.Vector2();
 
-  /** key·lab 은 무기 시험장(WeaponLab)이 넘긴다. 일반 게임은 인자 없이 */
-  constructor(key: string = SCENES.GAME, lab = false) {
+  /** key·lab 은 무기 시험장(WeaponLab)·수련장(Training)이 넘긴다. 일반 게임은 인자 없이 */
+  constructor(key: string = SCENES.GAME, lab = false, training = false) {
     super(key);
     this.lab = lab;
+    this.isTraining = training;
   }
 
   init(data?: GameInitData): void {
@@ -213,7 +222,9 @@ export class Game extends Phaser.Scene {
     const look = same ? growthLookOf(gameState.weapon) : null;
     // 61라운드 단계 2 첫 로딩 줄이기: 보스 몸·보스방 시트는 보스 노드에 들어갈 때 (`?boss` 바로 가기 포함).
     // 61 E VRAM: 보스 노드에서는 일반 적 시트를 내리고, 다른 노드에서는 보스 묶음을 내린다 (lazySheets)
-    const toBoss = !this.lab && (Boolean(this.initData.bossJump) || gameState.route?.current?.kind === 'boss');
+    const toBoss =
+      (!this.lab && (Boolean(this.initData.bossJump) || gameState.route?.current?.kind === 'boss')) ||
+      (this.isTraining && TrainingMode.isBossRoom(this.initData.trainingRoom));
     const boss = prepareNodeSheets(this, toBoss, toBoss ? gameState.stage.boss : null);
     const weapon = preloadWeaponSheets(this, weaponId, {
       lab: this.lab,
@@ -243,6 +254,7 @@ export class Game extends Phaser.Scene {
     this.feedback = new WeaponFeedback(this);
     this.bossFlow = new BossFlow(this);
     this.labMode = this.lab ? new LabMode(this, this.initData) : null;
+    this.training = this.isTraining ? new TrainingMode(this, this.initData.trainingRoom) : null;
     this.frozen = false;
     this.hitStopped = false;
     this.time.paused = false;
@@ -252,6 +264,7 @@ export class Game extends Phaser.Scene {
     const floorStart = this.labMode
       ? this.labMode.prepareRun()
       : this.progress.prepareRun(this.initData, this.senseBonus);
+    this.training?.prepare();
     const floor = gameState.stageIndex + 1;
     const worldSetup = new WorldSetup(this);
     const nodeSalt = worldSetup.enterRoute(floor, this.initData.slice);
@@ -312,6 +325,8 @@ export class Game extends Phaser.Scene {
     setWarpHandler({ check: () => this.ui.warpDeny(), run: () => this.ui.warpDeny() });
     setNodeChooser((id) => this.route.chooseNode(id));
     setChooseCanceler(() => this.route.cancelChoose());
+    // 61 단계 6 §19: 일기장 '수련장' — 런을 맡기고 나갈 수 있는지 (시험장·수련장은 아님)
+    setTrainingLeaver(this.lab ? null : () => leaveRunForTraining(this));
     if (this.scene.manager.keys[UI_SCENES.HUD] && !this.scene.isActive(UI_SCENES.HUD)) this.scene.launch(UI_SCENES.HUD);
     // 층 시작만 (같은 층의 다음 노드는 ROUTE_NODE_ENTERED)
     if (floorStart) {
@@ -332,11 +347,14 @@ export class Game extends Phaser.Scene {
     this.cameras.main.setZoom(worldZoom(CAMERA.ZOOM));
     this.cam.update(true);
     this.lighting = worldSetup.createLighting();
+    // 61 단계 6 §19 그림 속 입구: 덮인 채로 이 씬이 시작됐으면 UI 에 준비됨(READY) — UI 가 걷어낸다 (없으면 카메라 밝아짐)
+    const revealedByUi = transitionGate.ready();
     if (this.routeMode) {
-      this.route.enterNode();
-      this.bundle.onEnter(this.route.enterLockUntil);
+      const resumed = this.route.enterNode(revealedByUi, Boolean(this.initData.resume));
+      if (!resumed) this.bundle.onEnter(this.route.enterLockUntil);
     }
     this.labMode?.setup();
+    this.training?.setup();
     this.createDebugText();
     this.anchorDebug = urlParams().has('anchors') ? new AnchorDebug(this) : null;
   }
@@ -585,7 +603,9 @@ export class Game extends Phaser.Scene {
     // 구조물 메뉴 동안 입력 잠금 (47라운드 계약 §9.3) · 48라운드: 노드 진입 직후(밝아지는 동안)·다음 노드 선택 중·전환 중에도 잠금
     // 61라운드: 보스 등장·처치 연출 동안도 잠금
     let input =
-      this.structures.inputLocked || this.route.locked(time) || this.bossFlow?.inputLocked ? neutralInput(raw) : raw;
+      this.structures.inputLocked || this.route.locked(time) || this.bossFlow?.inputLocked || transitionGate.locked
+        ? neutralInput(raw)
+        : raw;
     if (input.potionPressed) this.economy.usePotion();
     this.structures.update(input, time, delta);
     this.bundle.update(input, time);
@@ -601,6 +621,7 @@ export class Game extends Phaser.Scene {
     // 48라운드: 노드 진입 직후에는 전투를 시작하지 않는다 (밝아지는 동안). 49라운드 시험장은 방 상태 머신이 없다
     if (time >= this.route.enterLockUntil && !this.lab) this.director.update();
     this.labMode?.update();
+    this.training?.update(time);
     if (this.tutorial && !this.route.locked(time)) this.tutorial.update(this.player.x, this.player.y);
     if (this.routeMode) this.route.update(time);
     if (this.route.checkFloorExit()) return;
@@ -735,8 +756,11 @@ export class Game extends Phaser.Scene {
     setWarpHandler(null);
     setNodeChooser(null);
     setChooseCanceler(null);
+    setTrainingLeaver(null);
     this.birth.destroy();
     this.labMode?.destroy();
+    this.training?.destroy();
+    this.training = null;
     this.tutorial?.destroy();
     this.tutorial = null;
     this.setPieceView?.destroy();

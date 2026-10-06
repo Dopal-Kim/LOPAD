@@ -26,7 +26,7 @@ import {
 import { spriteLibrary } from '../../../systems/sprites/sprites';
 import { fxDrawScale } from '../../../systems/sprites/spriteDefs';
 import { PLAYER_RENDER_SCALE } from '../../../systems/weapon/playerScale';
-import { DEPTH } from '../../../core/Constants';
+import { DEPTH, TRAIL_TOWARD_WHITE, WEAPON_COLORS, towardWhite } from '../../../core/Constants';
 import type { Game } from '../../Game';
 import type { BuildRuntime } from './BuildRuntime';
 
@@ -73,7 +73,8 @@ export class AwakenFlow {
     if (!g.scene.isActive()) return;
     const w = gameState.weapon;
     const look = growthLookOf(w);
-    let tint = look?.stage === 2 ? look.tint : null;
+    // 61 단계 6 (art §28): 궤적은 trailTint (= pathTint 를 흰색 쪽으로 45%) — 궤적 그림이 이미 무기 색이라 pathTint 를 곱하면 검게 죽는다
+    let tint = look?.stage === 2 && look.tint !== null ? towardWhite(look.tint, TRAIL_TOWARD_WHITE) : null;
     if (look?.stage === 2 && look.path) {
       const def = weaponOverlayActions(w.id, [...w.path])
         .map((a) => spriteLibrary.sheet(w.id, growthOverlayAction(look.branch, 2, a)))
@@ -113,7 +114,8 @@ export class AwakenFlow {
     const fallbackId = awakenInFxId(w.id);
     let fx: string | null = null;
     let swapMs = pauseMs;
-    if (this.playAwakenFx(want, stage === 2 ? (look?.tint ?? null) : null)) {
+    // 61 단계 6 (art §28): 각성 연출은 무기 색으로 (1차·2차 모두 — 길 색은 a2_glow pathTint 가 맡는다)
+    if (this.playAwakenFx(want, WEAPON_COLORS[gameState.weapon.id] ?? null)) {
       fx = want;
       swapMs = this.swapAtMs(want, pauseMs);
     } else if (this.rt.art.onPlayer(fallbackId)) fx = fallbackId;

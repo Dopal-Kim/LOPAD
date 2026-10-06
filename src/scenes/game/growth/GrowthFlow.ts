@@ -58,6 +58,8 @@ export class GrowthFlow {
 
   /** 각성 게이지 적립 (처치·완·획 자국·이벤트·보스·결정타·구조물·저주 이득). 눈금 메뉴는 update 에서 */
   gain(amount: number): void {
+    // 61 단계 6 수련장: 각성 게이지 과제가 남은 무기 방에서만 오른다 (다른 방에서 눈금 메뉴가 끼어들지 않게)
+    if (this.g.training && !this.g.training.allowsGrowth) return;
     const w = gameState.weapon;
     const a = w.gain(Math.round(amount));
     if (a <= 0) return;

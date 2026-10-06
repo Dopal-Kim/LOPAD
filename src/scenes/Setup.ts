@@ -33,7 +33,9 @@ import { CANVAS_H, CANVAS_W, makeLogicalCamera, toLogical, worldZoom } from '../
 import { setMenuSelect } from '../contract/host';
 import { EventBus, Events } from '../core/EventBus';
 import { audio } from '../systems/audio/audio';
-import { UI_EVENTS, __system } from '../contract/ui';
+import { UI_EVENTS, __system, uiCommands } from '../contract/ui';
+import { trainingText } from '../data/training';
+import { recordOffered } from '../systems/training/record';
 import { NARRATIVE, NARRATIVE_STORY, voiceLine } from '../data/narrative';
 import {
   isFirstLife,
@@ -206,7 +208,25 @@ export class Setup extends Phaser.Scene {
     if (resume) {
       this.playerName = resume.playerName;
       this.beginStrokes();
-    } else this.openMetaMenu();
+    } else if (this.firstLife && !this.diary.training.offered) this.openTrainingChoice();
+    else this.openMetaMenu();
+  }
+
+  /**
+   * 61 단계 6 (P14 §1 · 계약 UI §19): 첫 생 시작 — '수련장부터 / 바로 벽 밖으로' (메뉴 'trainingChoice', 한 번만 묻는다).
+   * 수련장을 고르면 수련장으로(나오면 이 시작 의식으로 돌아온다), 아니면 지금처럼 일기장
+   */
+  private openTrainingChoice(): void {
+    const lines = [
+      { key: '1', label: trainingText('choice.training'), detail: trainingText('choice.trainingHint'), enabled: true },
+      { key: '2', label: trainingText('choice.run'), detail: trainingText('choice.runHint'), enabled: true },
+    ];
+    this.menu.open('trainingChoice', trainingText('choice.prompt'), lines, (key) => {
+      this.diary = updateDiary((d) => ({ ...d, training: recordOffered(d.training) }));
+      this.menu.close();
+      if (key === '1' && uiCommands.startTraining() === 'ok') return;
+      this.openMetaMenu();
+    });
   }
 
   /** Esc: 한 단계 앞으로. 메타 메뉴·운명 단계는 그대로 */

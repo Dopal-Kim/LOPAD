@@ -99,6 +99,13 @@ export class BuildDefense implements PlayerBuildHooks {
 
   preventDeath(time: number): boolean {
     const p = this.g.player;
+    // 61 단계 6: 시험장·수련장은 쓰러지지 않는다 (수련장은 '쓰러졌다' 안내 — 이름이 번지지 않는다)
+    if (this.g.lab) {
+      gameState.hp = gameState.maxHp;
+      p.grantInvulnerable(time + 1000);
+      this.g.training?.onFall();
+      return true;
+    }
     const ls = this.rt.rule('lastStand');
     if (ls && gameState.build.takeFloorOnce('lastStand')) {
       gameState.hp = Math.max(1, Math.round(gameState.maxHp * param(ls, 'hpRatio')));

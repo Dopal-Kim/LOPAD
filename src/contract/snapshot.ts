@@ -22,6 +22,7 @@ import type {
   UiSettings,
   UiBossSnapshot,
   UiGrowth,
+  UiTraining,
 } from './ui';
 import { DEFAULT_SETTINGS } from '../systems/settings';
 import { weaponVerbs } from '../systems/weapon/verbs';
@@ -65,6 +66,8 @@ export interface SnapshotContext {
   settings?: UiSettings;
   /** 61 G (계약 §18): 무기 성장. 생략 시 null */
   growth?: UiGrowth | null;
+  /** 61 단계 6 (계약 §19): 수련장. 생략 시 null */
+  training?: UiTraining | null;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -194,6 +197,13 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
           traits: ctx.growth.traits.map((t) => ({ ...t })),
           temper: { ...ctx.growth.temper },
           firstTime: { ...ctx.growth.firstTime },
+        }
+      : null,
+    training: ctx.training
+      ? {
+          ...ctx.training,
+          tasks: ctx.training.tasks.map((t) => ({ ...t })),
+          rooms: ctx.training.rooms.map((r) => ({ ...r })),
         }
       : null,
   };

@@ -325,6 +325,11 @@ export class FxPool {
   private playOutro(sprite: Phaser.GameObjects.Sprite, st: FxState): void {
     const outro = st.outro;
     if (!outro) return;
+    // 61 단계 6: 씬 종료 중(술 웅덩이 수명 시트 정리 — 수련장 방 나가기)에는 스프라이트가 이미 파괴됐다 — 사라짐 구간 없이 반납
+    if (isDestroyedSprite(sprite)) {
+      this.release(sprite);
+      return;
+    }
     st.outro = undefined;
     st.expireAt = Infinity;
     const token = st.token;

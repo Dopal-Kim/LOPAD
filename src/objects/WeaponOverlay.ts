@@ -11,7 +11,7 @@
  * 동안 휴대 시트를 숨긴다 · 달리기 휴대 `carry_run`(없으면 walk). 손·칼 앵커는 `spriteMeta`(디버그 `?anchors`).
  */
 import Phaser from 'phaser';
-import { CARRY, DEPTH, FEEDBACK } from '../core/Constants';
+import { CARRY, DEPTH, FEEDBACK, WEAPON_COLORS } from '../core/Constants';
 import { anchorOffset, bladeAt, gripAt, handAt, overlayPivot, type BladeLocal } from '../systems/sprites/spriteMeta';
 import { gameState } from '../core/GameState';
 import { spriteLibrary } from '../systems/sprites/sprites';
@@ -153,7 +153,8 @@ export class WeaponOverlay {
       onUpdate: (tw) => {
         if (!amber && tw.elapsed >= B.WHITE_MS) {
           amber = true;
-          g?.setTintFill(B.AMBER);
+          // 61 단계 6 (art §28): 식는 색 = 무기 색 (칼 서리·대검 용암·단검 독·활 비취 — 없으면 호박)
+          g?.setTintFill(WEAPON_COLORS[gameState.weapon.id] ?? B.AMBER);
         }
       },
       onComplete: () => g?.setVisible(false),

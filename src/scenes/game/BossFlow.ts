@@ -138,6 +138,12 @@ export class BossFlow {
     this.log.length = 0;
     this.finisher = false;
     this.introMs = 0;
+    // 61 단계 6 수련장 '만취 그림자': 등장 연출·층 자막·대사 없이 바로 (그림자는 말하지 않는다 — 스토리 팩)
+    if (this.g.training) {
+      this.mode = 'fight';
+      EventBus.emit(Events.BOSS_FIGHT, { id: this.id });
+      return;
+    }
     if (!def || !show || !this.boss || this.g.lab || urlParams().has('nobossintro')) {
       // 연출 없음: 기존처럼 층 등장 자막 + 등장 대사, 바로 전투
       this.mode = 'fight';
@@ -194,6 +200,7 @@ export class BossFlow {
 
   /** 보스 대사 한 줄 (계약 STORY kind 'speech' + speaker). once = 그 런 첫 1회 (gameState.narrative) */
   private speak(key: string, once = false): void {
+    if (this.g.training) return;
     const L = this.lines;
     const text = speechText(L, key);
     if (!L || !text) return;

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ASSETS, COLORS, FEEL, SCENES, TEXTURES, TILE } from '../core/Constants';
+import { ASSETS, COLORS, FEEL, LAB, SCENES, TEXTURES, TILE } from '../core/Constants';
 import { TileId } from '../systems/mapgen';
 import { SaveSlot, browserStorage } from '../systems/save';
 import { RUN, WEAPONS } from '../data';
@@ -102,7 +102,8 @@ export class Preloader extends Phaser.Scene {
       this.pendingTiles.push({ floor, jsonKey });
     }
     this.pendingRegionTiles = [];
-    for (const name of regionTilesets()) {
+    // 61 단계 6: 수련장 타일셋도 (노드 지도 지역이 아니라 route.json 에 없다)
+    for (const name of [...regionTilesets(), LAB.TRAINING_TILESET]) {
       const v2 = namedTilesetJsonPathV2(name);
       const rel = listed(v2) ? v2 : namedTilesetJsonPath(name);
       if (!exists(rel)) continue;

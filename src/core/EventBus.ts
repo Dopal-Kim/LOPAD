@@ -210,6 +210,19 @@ export const Events = {
   RUN_STARTED: 'run:started',
   /** 61라운드 P9 런 로그: 노드 지도 노드 진입 (`NodeEnteredPayload`) — UI_EVENTS.ROUTE_NODE_ENTERED 와 같은 시점 */
   NODE_ENTERED: 'node:entered',
+  /**
+   * 61 단계 6 (P14 §3 · 음향 sound §12): 그림 속 입구 전환 시작 (`TransitionBeginPayload` — mode enterNode·exitRoom·floor·training).
+   * 음향 transition_enter(enterNode·training)·transition_exit(exitRoom)·transition_floor(floor). UI 쪽은 uiBus `ui:transition-begin`
+   */
+  TRANSITION_BEGIN: 'transition:begin',
+  /** 61 단계 6 (P14 §1 · 음향 training_task): 수련장 과제 하나 완료 (`TrainingTaskPayload`) */
+  TRAINING_TASK: 'training:task',
+  /** 61 단계 6 (음향 training_stamp): 수련장 방 도장 (`TrainingStampPayload`) */
+  TRAINING_STAMP: 'training:stamp',
+  /** 61 단계 6 수련장 내부: '표시까지 걷기' 표식에 닿음 (과제 조건용) */
+  TRAINING_REACH: 'training:reach',
+  /** 61 단계 6 수련장 내부: 훈련 예고(원·선·부채)가 그려짐 (`TrainingDrillPayload` — 회피 과제 조건) */
+  TRAINING_DRILL: 'training:drill',
 } as const;
 
 export type PlayerAttackPayload = {
@@ -620,3 +633,15 @@ export type EliteSpawnedPayload = { id: string; prefix: string };
 export type ElitePrefixPayload = { prefix: string; phase: 'break' | 'trigger' | 'drink' | 'death'; count?: number };
 export type ConsumablePayload = { id: string };
 export type NodeGradedPayload = { grade: 'perfect' | 'good' | null };
+
+/** 61 단계 6 (P14): 그림 속 입구 전환 (음향 sound §12) */
+export type TransitionBeginPayload = {
+  id: number;
+  mode: 'enterNode' | 'exitRoom' | 'floor' | 'training';
+  region: string;
+  nodeKind?: string;
+};
+/** 61 단계 6: 수련장 과제 완료 · 도장 */
+export type TrainingTaskPayload = { room: string; id: string };
+export type TrainingStampPayload = { room: string; all: boolean };
+export type TrainingDrillPayload = { shape: 'circle' | 'line' | 'cone' };

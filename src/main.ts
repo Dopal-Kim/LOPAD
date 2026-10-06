@@ -11,7 +11,7 @@ import { displayZoom, installLogicalCameras } from './systems/display';
 document.addEventListener('DOMContentLoaded', () => {
   const game = new Phaser.Game(gameConfig);
   // 52라운드: 캔버스 1920×1080, 화면 고정 씬(UI 포함)은 논리 960×540 카메라. 월드 카메라 씬은 스스로 배율을 정한다
-  installLogicalCameras(game, [SCENES.GAME, SCENES.WEAPON_LAB]);
+  installLogicalCameras(game, [SCENES.GAME, SCENES.WEAPON_LAB, SCENES.TRAINING]);
   installContractHost(game);
   audio.attach(game);
   // 61라운드 §15: 저장된 설정(흔들림·섬광·기울기·피해 숫자·음량)을 부팅 때 적용 — UI 는 스냅샷 settings 로 받는다

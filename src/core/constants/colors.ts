@@ -50,3 +50,25 @@ export const COLORS = {
   DEBUG_TEXT: '#9ad',
   GAMEOVER_TEXT: '#eee',
 };
+
+/**
+ * 61 단계 6 (P14 §2 · 계약 art §28) 무기 색 정체성 — 주 색 (빛·이펙트 전용). 칼 '서리' · 대검 '용암' · 단검 '독' · 활 '비취'.
+ * 각성 연출 fx(awaken1_crack·awaken2_bloom) tint 등 시스템이 색을 곱할 때만 쓴다 (그림 색은 시트에 구워져 있다)
+ */
+export const WEAPON_COLORS: Readonly<Record<string, number>> = {
+  katana: 0x8fe3ff,
+  greatsword: 0xff5a2a,
+  dagger: 0xc060ff,
+  bow: 0x40e0a0,
+};
+
+/** 궤적 색 = 길 강조색을 흰색 쪽으로 옮긴 값 (art §28: trailTint = pathTint 를 흰색으로 45%) */
+export const TRAIL_TOWARD_WHITE = 0.45;
+
+export function towardWhite(rgb: number, t: number): number {
+  const ch = (s: number) => {
+    const v = (rgb >> s) & 0xff;
+    return Math.round(v + (255 - v) * t) << s;
+  };
+  return ch(16) | ch(8) | ch(0);
+}

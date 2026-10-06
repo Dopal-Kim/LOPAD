@@ -255,7 +255,7 @@ export class DropVisual {
       ease: 'Quad.easeOut',
       onComplete: finish,
     });
-    this.ring?.destroy();
+    this.killRing();
     const ring = this.scene.add
       .circle(this.x, this.y - 3, 1, 0, 0)
       .setStrokeStyle(1, P.RING_COLOR, 1)
@@ -276,7 +276,14 @@ export class DropVisual {
   private stopPop(): void {
     this.popTween?.stop();
     this.popTween = null;
-    this.ring?.destroy();
+    this.killRing();
+  }
+
+  /** 61 단계 6: 고리 지우기 — 반경 트윈을 먼저 멈춘다 (파괴된 Arc 에 radius 를 쓰던 예외 · 수련장 헤드리스에서 발견) */
+  private killRing(): void {
+    if (!this.ring) return;
+    this.scene.tweens.killTweensOf(this.ring);
+    this.ring.destroy();
     this.ring = null;
   }
 

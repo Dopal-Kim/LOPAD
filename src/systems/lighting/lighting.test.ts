@@ -62,7 +62,9 @@ describe('조명 규칙 (50라운드)', () => {
   it('시트 광원: JSON light → fallback(시트 id) → 무기 이펙트 → 없음', () => {
     expect(lightFor('anything', { light: { radius: 12 } })).toEqual({ radius: 12 });
     expect(lightFor('bonfire', {})).toBe(LIGHTING.fallback.bonfire);
-    expect(lightFor('katana_combo1', { weapon: 'katana' })).toBe(LIGHTING.weaponFx);
+    // 61 단계 6 (art §28): 시트 light 가 없는 무기 이펙트 = weaponFx 세기·반경 + 무기 색 (모르는 무기면 weaponFx 그대로)
+    expect(lightFor('katana_combo1', { weapon: 'katana' })).toEqual({ ...LIGHTING.weaponFx, color: '#8fe3ff' });
+    expect(lightFor('x_combo1', { weapon: 'unknown' })).toBe(LIGHTING.weaponFx);
     expect(lightFor('crate_f1', {})).toBeNull();
   });
 

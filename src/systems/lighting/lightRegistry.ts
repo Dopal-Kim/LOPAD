@@ -4,6 +4,7 @@
  * 계약 art §9: JSON `light` 를 가진 소품·구조물·이펙트는 광원 — 없으면 data/lighting.json fallback(시트 id) 이 임시로 대신한다.
  */
 import { LIGHTING } from '../../data';
+import { WEAPON_COLORS } from '../../core/Constants';
 import type { LightDefData } from '../../data/types';
 import type { LightSpec } from '../sprites/spriteDefs';
 import { hexColor } from './lightMath';
@@ -138,6 +139,10 @@ export function lightFor(
   if (def?.light && def.light.radius > 0) return def.light;
   const fb = LIGHTING.fallback[sheetId];
   if (fb && !sheetId.startsWith('_')) return fb;
-  if (def?.weapon) return LIGHTING.weaponFx;
+  // 61 단계 6 (art §28): 시트 JSON light 가 없는 무기 이펙트는 무기 색 광원
+  if (def?.weapon) {
+    const c = WEAPON_COLORS[def.weapon];
+    return c !== undefined ? { ...LIGHTING.weaponFx, color: `#${c.toString(16).padStart(6, '0')}` } : LIGHTING.weaponFx;
+  }
   return null;
 }

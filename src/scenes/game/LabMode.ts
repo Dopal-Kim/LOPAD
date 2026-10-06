@@ -69,6 +69,8 @@ export class LabMode {
   /** 허수아비 2개 배치 · L(메뉴)·Esc(타이틀) 키 · 재시작 직후 열 메뉴 */
   setup(): void {
     const g = this.g;
+    // 61 단계 6 수련장: 허수아비·L 은 수련장 방(TrainingMode)이 데이터대로 놓는다
+    if (g.training) return;
     const room = g.layout!.rooms[0];
     const c = g.world.roomCenter(room);
     const target = new LabDummy(g, c.x, c.y, 'target');

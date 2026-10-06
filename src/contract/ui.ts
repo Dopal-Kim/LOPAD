@@ -84,7 +84,94 @@ export const UI_EVENTS = {
   TRAIT_GAINED: 'ui:trait-gained',
   /** §18.1 (61 단계 5, P13): 같은 태그 개성 2장으로 공명이 켜졌다 (`UiResonance`) — `ui:trait-gained` 와 같은 알림 형식 */
   RESONANCE: 'ui:resonance',
+  /**
+   * 61 단계 6 (계약 §19, P14): 그림 속 입구 전환 시작 (`UiTransitionBegin`, 시스템 → UI). UI 가 화면을 다 덮으면 `TRANSITION_COVERED`
+   * 를 uiBus 로 보낸다. 시스템은 3초 안에 COVERED 가 없으면 스스로 진행한다(안전장치)
+   */
+  TRANSITION_BEGIN: 'ui:transition-begin',
+  /** §19: UI → 시스템 `{ id }` — 화면이 다 덮였다 (이때 시스템이 방·지도를 바꾼다) */
+  TRANSITION_COVERED: 'ui:transition-covered',
+  /** §19: 시스템 → UI `{ id }` — 새 장면 준비됨 (걷어내기 시작) */
+  TRANSITION_READY: 'ui:transition-ready',
+  /** §19: UI → 시스템 `{ id }` — 전환 끝 (입력 재개). 시스템은 READY 뒤 3초 안에 없으면 스스로 재개한다 */
+  TRANSITION_END: 'ui:transition-end',
+  /** §19: 수련장 과제 하나 완료 (`UiTrainingTask`) */
+  TRAINING_TASK: 'ui:training-task',
+  /** §19 (61 단계 6 시스템 추가): 수련장 방 도장 — 그 방 과제를 모두 마침 (`UiTrainingStamp`) */
+  TRAINING_STAMP: 'ui:training-stamp',
 } as const;
+
+/** §19 그림 속 입구 전환 종류 — enterNode 노드 입구로 · exitRoom 방 → 지도 · floor 층(큰 그림) · training 수련장 방 입구로 */
+export type UiTransitionMode = 'enterNode' | 'exitRoom' | 'floor' | 'training';
+/** §19 `TRANSITION_BEGIN` 페이로드 */
+export interface UiTransitionBegin {
+  /** 이번 전환 번호 (COVERED·READY·END 가 같은 id) */
+  id: number;
+  mode: UiTransitionMode;
+  /** waste|outer|gate|hall|brewery|boss|training */
+  region: string;
+  /** battle|elite|shop|rest|event|boss|training… (route kind — birth·road·post 등도 그대로) */
+  nodeKind?: string;
+  /**
+   * 입구 그림 텍스처 키 `paint/door_<…>` (시스템이 로드한 것만 — 같은 키로 cache.json 에 메타 doorRect·doorCenter·light).
+   * art §28 찾는 순서: 정확 → 별칭 → `<region>_battle` → 없음(생략 — UI 가 키아트·단색). 수련장 방 = door_training_training,
+   * 만취 그림자 방 = door_training_boss (nodeKind 'boss')
+   */
+  doorKey?: string;
+  /** 줌 중심 화면 좌표 (논리 960×540) — 방 출구 · 수련장 지도의 방 자리. enterNode 는 UI 가 nodeId 로 자기 지도 자리를 쓴다 */
+  from?: { x: number; y: number };
+  /** (시스템 추가) enterNode: 고른 노드 id (UiRouteNode.id) · training: 고른 방 id */
+  nodeId?: string;
+  skippable: boolean;
+}
+/** §19 COVERED·READY·END 페이로드 */
+export interface UiTransitionStep {
+  id: number;
+}
+
+/** §19 수련장 과제 한 줄 (label 은 키캡 없는 짧은 명령형 — 키캡은 verb 로 UI 가 붙인다) */
+export interface UiTrainingTaskLine {
+  id: string;
+  label: string;
+  done: boolean;
+  verb?: UiVerbSlot;
+}
+/** §19 수련장 방 (지도 두루마리 한 칸) */
+export interface UiTrainingRoom {
+  id: string;
+  name: string;
+  stamped: boolean;
+}
+/**
+ * §19 `UiSnapshot.training` — 수련장 안에서만 (런·시험장은 null). room = 지금 방 id (지도 마당이면 'hall', tasks 는 [])
+ */
+export interface UiTraining {
+  room: string;
+  roomName: string;
+  tasks: UiTrainingTaskLine[];
+  stamped: boolean;
+  rooms: UiTrainingRoom[];
+  /** (시스템 추가) 지금 방의 짧은 안내 (들어갈 때 notice 와 같은 문장) */
+  line?: string;
+  /**
+   * (시스템 추가) 수련장 지도 그림 텍스처 키 `paint/map_training` (로드됐을 때만 — cache.json 같은 키에 메타 rooms[]).
+   * 메타 rooms 는 index 순서로 `rooms` 와 대응 (메타 id 는 아트 제안 — 1번 'breath' = step)
+   */
+  mapKey?: string;
+}
+/** §19 `TRAINING_TASK` 페이로드 */
+export interface UiTrainingTask {
+  room: string;
+  id: string;
+  label: string;
+}
+/** §19 `TRAINING_STAMP` 페이로드 */
+export interface UiTrainingStamp {
+  room: string;
+  name: string;
+  /** 여덟 방 모두 도장 */
+  all: boolean;
+}
 
 /**
  * 57라운드 계약 §14.1 (승인 #21): 10태그. 이름(name)은 자리표시. 2층부터 층 테마 태그가 이 유니온에 추가된다
@@ -467,6 +554,9 @@ export interface UiMenuLine {
   price?: UiCost;
   /** §14.6: 팔림 (enabled = false) */
   soldOut?: boolean;
+  /** 61 단계 6 §19: 수련장 지도(`training` 메뉴) 줄의 방 id · 도장 */
+  room?: string;
+  stamped?: boolean;
 }
 
 /**
@@ -484,8 +574,22 @@ export type UiLabMenuId = 'lab' | 'labBranch';
  * consumableSwap 소모품 바꾸기(필수)
  */
 export type UiBuildMenuId = 'curse' | 'event' | 'mapInfo' | 'consumableSwap';
+/**
+ * 61 단계 6 (§19): training = 수련장 지도(방 고르기 — 줄 `room` = 방 id, cancelKey '0' = 수련장 나가기) ·
+ * trainingChoice = 첫 생 '수련장부터 / 바로 벽 밖으로' (key 'training' · 'run')
+ */
+export type UiTrainingMenuId = 'training' | 'trainingChoice';
 export type UiMenuId =
-  'reward' | 'passive' | 'shop' | 'meta' | 'evolve' | 'ending' | UiStructureMenuId | UiLabMenuId | UiBuildMenuId;
+  | 'reward'
+  | 'passive'
+  | 'shop'
+  | 'meta'
+  | 'evolve'
+  | 'ending'
+  | UiStructureMenuId
+  | UiLabMenuId
+  | UiBuildMenuId
+  | UiTrainingMenuId;
 
 /**
  * 53라운드 계약 추가 (51라운드 Q4 넣기/뽑기): 칼·대검처럼 넣고 뽑는 무기만 (단검·활은 스냅샷 carry = null).
@@ -799,6 +903,8 @@ export interface UiSnapshot {
   nodeTrial: UiNodeTrial | null;
   /** 61라운드 §15: 설정 (시스템 세이브 메타 영역에 저장된 값 — 타이틀에서도 들어 있다) */
   settings: UiSettings;
+  /** 61 단계 6 §19: 수련장 (수련장 밖이면 null/생략). 수련장 안에서는 lab = false */
+  training?: UiTraining | null;
 }
 
 /**
@@ -972,7 +1078,15 @@ interface SystemImpl {
   /** 61라운드 §15 */
   getSettings: () => UiSettings;
   setSettings: (s: UiSettings) => void;
+  /** 61 단계 6 §19 */
+  startTraining: (room?: string) => UiTrainingStart;
+  leaveTraining: () => void;
 }
+
+/**
+ * §19 `startTraining` 결과: ok · combat(싸우는 중 — 끝난 뒤) · busy(메뉴·연출·전환 중) · boss(보스 노드 — 수련장은 보스 앞에서 열 수 없다)
+ */
+export type UiTrainingStart = 'ok' | 'combat' | 'busy' | 'boss';
 
 let impl: SystemImpl | null = null;
 let rendererRegistered = false;
@@ -1093,6 +1207,17 @@ export const uiCommands = {
    */
   setSettings(s: UiSettings): void {
     impl?.setSettings(s);
+  },
+  /**
+   * 61 단계 6 §19: 수련장 열기 (타이틀 메뉴 '수련장' · 일기장 '수련장'). 런 중이면 런을 그대로 맡겨 두고(세이브·게이지·전표 무관)
+   * 수련장에서 나가면 그 노드로 돌아온다 — 싸우는 중·보스 노드·메뉴/연출 중이면 거부(결과 문자열). room 을 주면 그 방으로 바로
+   */
+  startTraining(room?: string): UiTrainingStart {
+    return impl?.startTraining(room) ?? 'busy';
+  },
+  /** §19: 수련장 나가기 (런에서 왔으면 그 노드로, 첫 생 선택에서 왔으면 시작 의식으로, 아니면 타이틀로) */
+  leaveTraining(): void {
+    impl?.leaveTraining();
   },
 };
 

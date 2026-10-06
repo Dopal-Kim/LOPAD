@@ -1,0 +1,921 @@
+{
+  "_note": "61 단계 6 (P14 §1 수련장, 계약 UI §19). rooms = 방 8 (순서 = 지도 순서). 과제 조건: any[{on 시스템 이벤트, where 페이로드 일부(값 · 목록=하나라도 · {gte}/{lte})}] · count · after{any, withinMs}(그 사건 뒤 창 안) · dodgeMs(사건 뒤 그만큼 맞지 않으면 완료 — 0 이면 훈련 예고 길이) · branch n(1차 갈래 n 깨우기) · trait n(대표 개성 n 발동). 문장 text = 스토리 parts/story/text-pack-61s6-training.json 의 text 복사(키 training.<room>.<slot>) — 스토리가 고치면 text 를 통째로 다시 복사",
+  "tuning": {
+    "gaugePerHit": 3,
+    "respawnMs": 2600,
+    "drillEveryMs": 3400,
+    "drillMs": 1100,
+    "drillHit": 6,
+    "drillRadiusTiles": 1.6,
+    "drillLineTiles": 6,
+    "drillLineHalfTiles": 0.6,
+    "drillConeTiles": 3.2,
+    "drillConeDeg": 70,
+    "bossHpMult": 0.3,
+    "reachTiles": 0.9,
+    "enemyRingTiles": 5
+  },
+  "traitPicks": {
+    "katana": ["k_parryShove", "k_issenBack"],
+    "greatsword": ["g_launch", "g_shoulderFlip"],
+    "dagger": ["d_dashBrand", "d_flurryPull"],
+    "bow": ["b_pointBlank", "b_dropShot"]
+  },
+  "rooms": [
+    {
+      "id": "step",
+      "weapon": null,
+      "setup": {
+        "marker": [-4, 3],
+        "dummies": [
+          {
+            "role": "turret",
+            "at": [-6, -3]
+          }
+        ],
+        "pickups": [
+          {
+            "kind": "gold",
+            "value": 5,
+            "at": [3, 3]
+          },
+          {
+            "kind": "gold",
+            "value": 5,
+            "at": [4, 3]
+          },
+          {
+            "kind": "potion",
+            "value": 1,
+            "at": [-3, 3]
+          },
+          {
+            "kind": "consumable",
+            "id": "fireBottle",
+            "at": [0, -4]
+          }
+        ],
+        "potions": 0
+      },
+      "tasks": [
+        {
+          "id": "move",
+          "on": "training:reach"
+        },
+        {
+          "id": "dash",
+          "verb": "dash",
+          "count": 3,
+          "on": "player:dashed"
+        },
+        {
+          "id": "perfectDodge",
+          "verb": "dash",
+          "on": "build:perfect-success",
+          "where": {
+            "kind": "perfectEvade"
+          }
+        },
+        {
+          "id": "pickGold",
+          "on": "pickup:collected",
+          "where": {
+            "kind": "voucher"
+          }
+        },
+        {
+          "id": "pickDraught",
+          "on": "pickup:collected",
+          "where": {
+            "kind": "potion"
+          }
+        },
+        {
+          "id": "drinkDraught",
+          "on": "potion:used"
+        },
+        {
+          "id": "pickBottle",
+          "on": "pickup:collected",
+          "where": {
+            "kind": "consumable",
+            "id": "fireBottle"
+          }
+        },
+        {
+          "id": "throwBottle",
+          "on": "consumable:used",
+          "where": {
+            "id": "fireBottle"
+          }
+        }
+      ]
+    },
+    {
+      "id": "guard",
+      "weapon": "katana",
+      "setup": {
+        "enemies": [
+          {
+            "id": "dummy",
+            "count": 2
+          },
+          {
+            "id": "archer",
+            "count": 1
+          },
+          {
+            "id": "charger",
+            "count": 1
+          }
+        ],
+        "drills": ["circle", "line", "cone"]
+      },
+      "tasks": [
+        {
+          "id": "block",
+          "verb": "signature",
+          "count": 3,
+          "any": [
+            {
+              "on": "player:damaged",
+              "where": {
+                "guarded": true
+              }
+            },
+            {
+              "on": "player:perfect-guard"
+            }
+          ]
+        },
+        {
+          "id": "parry",
+          "verb": "signature",
+          "any": [
+            {
+              "on": "player:parried"
+            },
+            {
+              "on": "player:perfect-guard"
+            }
+          ]
+        },
+        {
+          "id": "readCircle",
+          "on": "training:drill",
+          "where": {
+            "shape": "circle"
+          },
+          "dodgeMs": 0
+        },
+        {
+          "id": "readLine",
+          "on": "training:drill",
+          "where": {
+            "shape": "line"
+          },
+          "dodgeMs": 0
+        },
+        {
+          "id": "readFan",
+          "on": "training:drill",
+          "where": {
+            "shape": "cone"
+          },
+          "dodgeMs": 0
+        },
+        {
+          "id": "conscript",
+          "verb": "attack",
+          "on": "enemy:died",
+          "where": {
+            "id": "dummy"
+          }
+        },
+        {
+          "id": "archer",
+          "verb": "signature",
+          "any": [
+            {
+              "on": "player:damaged",
+              "where": {
+                "guarded": true
+              }
+            },
+            {
+              "on": "player:perfect-guard"
+            },
+            {
+              "on": "player:parried"
+            }
+          ],
+          "after": {
+            "any": [
+              {
+                "on": "enemy:attack",
+                "where": {
+                  "id": "archer",
+                  "kind": "shot"
+                }
+              }
+            ],
+            "withinMs": 2500
+          }
+        },
+        {
+          "id": "charger",
+          "verb": "dash",
+          "on": "enemy:telegraph",
+          "where": {
+            "id": "charger",
+            "kind": "dash"
+          },
+          "dodgeMs": 1600
+        }
+      ]
+    },
+    {
+      "id": "katana",
+      "weapon": "katana",
+      "setup": {
+        "dummies": [
+          {
+            "role": "target",
+            "at": [0, 0]
+          }
+        ],
+        "enemies": [
+          {
+            "id": "dummy",
+            "count": 2
+          },
+          {
+            "id": "charger",
+            "count": 1
+          }
+        ],
+        "gauge": true
+      },
+      "tasks": [
+        {
+          "id": "combo",
+          "verb": "attack",
+          "on": "player:combo-finish"
+        },
+        {
+          "id": "parry",
+          "verb": "signature",
+          "on": "player:parried"
+        },
+        {
+          "id": "counter",
+          "verb": "signature",
+          "any": [
+            {
+              "on": "player:attacked",
+              "where": {
+                "move": "counter"
+              }
+            },
+            {
+              "on": "player:skill",
+              "where": {
+                "move": "counter"
+              }
+            }
+          ]
+        },
+        {
+          "id": "issen",
+          "verb": "dash",
+          "on": "player:skill",
+          "where": {
+            "move": "issen"
+          }
+        },
+        {
+          "id": "fillKi",
+          "verb": "hold",
+          "on": "weapon:gauge",
+          "where": {
+            "gauge": "kenki",
+            "event": "stage",
+            "stage": {
+              "gte": 3
+            }
+          }
+        },
+        {
+          "id": "kiStrike",
+          "verb": "hold",
+          "on": "player:skill",
+          "where": {
+            "move": "iai",
+            "phase": "release",
+            "kenkiStage": {
+              "gte": 1
+            }
+          }
+        },
+        {
+          "id": "gauge",
+          "on": "weapon:growth-mark",
+          "where": {
+            "kind": "awaken1"
+          }
+        },
+        {
+          "id": "branch1",
+          "branch": 1
+        },
+        {
+          "id": "branch2",
+          "branch": 2
+        },
+        {
+          "id": "branch3",
+          "branch": 3
+        },
+        {
+          "id": "trait1",
+          "trait": 1
+        },
+        {
+          "id": "trait2",
+          "trait": 2
+        }
+      ]
+    },
+    {
+      "id": "greatsword",
+      "weapon": "greatsword",
+      "setup": {
+        "dummies": [
+          {
+            "role": "target",
+            "at": [0, 0]
+          }
+        ],
+        "enemies": [
+          {
+            "id": "dummy",
+            "count": 2
+          },
+          {
+            "id": "archer",
+            "count": 1
+          }
+        ],
+        "gauge": true
+      },
+      "tasks": [
+        {
+          "id": "combo",
+          "verb": "attack",
+          "on": "player:combo-finish"
+        },
+        {
+          "id": "block",
+          "verb": "signature",
+          "count": 3,
+          "any": [
+            {
+              "on": "player:damaged",
+              "where": {
+                "guarded": true
+              }
+            },
+            {
+              "on": "player:perfect-guard"
+            }
+          ]
+        },
+        {
+          "id": "perfectGuard",
+          "verb": "signature",
+          "on": "player:perfect-guard"
+        },
+        {
+          "id": "fillRage",
+          "verb": "signature",
+          "on": "weapon:gauge",
+          "where": {
+            "gauge": "grudge",
+            "event": "full"
+          }
+        },
+        {
+          "id": "charge",
+          "verb": "hold",
+          "on": "player:attacked",
+          "where": {
+            "charge": {
+              "gte": 3
+            }
+          }
+        },
+        {
+          "id": "tackle",
+          "verb": "dash",
+          "any": [
+            {
+              "on": "player:skill",
+              "where": {
+                "move": "tackle"
+              }
+            },
+            {
+              "on": "player:attacked",
+              "where": {
+                "move": "tackle"
+              }
+            }
+          ]
+        },
+        {
+          "id": "gauge",
+          "on": "weapon:growth-mark",
+          "where": {
+            "kind": "awaken1"
+          }
+        },
+        {
+          "id": "branch1",
+          "branch": 1
+        },
+        {
+          "id": "branch2",
+          "branch": 2
+        },
+        {
+          "id": "branch3",
+          "branch": 3
+        },
+        {
+          "id": "trait1",
+          "trait": 1
+        },
+        {
+          "id": "trait2",
+          "trait": 2
+        }
+      ]
+    },
+    {
+      "id": "dagger",
+      "weapon": "dagger",
+      "setup": {
+        "dummies": [
+          {
+            "role": "target",
+            "at": [0, 0]
+          }
+        ],
+        "enemies": [
+          {
+            "id": "dummy",
+            "count": 2
+          }
+        ],
+        "gauge": true
+      },
+      "tasks": [
+        {
+          "id": "combo",
+          "verb": "attack",
+          "on": "player:combo-finish"
+        },
+        {
+          "id": "flurry",
+          "verb": "hold",
+          "on": "player:hold-verb",
+          "where": {
+            "move": "flurry"
+          }
+        },
+        {
+          "id": "mark",
+          "verb": "attack",
+          "on": "weapon:gauge",
+          "where": {
+            "gauge": "brand",
+            "marks": {
+              "gte": 5
+            }
+          }
+        },
+        {
+          "id": "shadowStep",
+          "verb": "signature",
+          "on": "player:shadow-step"
+        },
+        {
+          "id": "backstab",
+          "verb": "signature",
+          "any": [
+            {
+              "on": "player:attacked",
+              "where": {
+                "move": "backstab"
+              }
+            },
+            {
+              "on": "player:skill",
+              "where": {
+                "move": "backstab"
+              }
+            }
+          ]
+        },
+        {
+          "id": "detonate",
+          "verb": "signature",
+          "on": "player:skill",
+          "where": {
+            "move": "brand"
+          }
+        },
+        {
+          "id": "dashAttack",
+          "verb": "dash",
+          "on": "player:attacked",
+          "where": {
+            "kind": "dashAttack"
+          }
+        },
+        {
+          "id": "gauge",
+          "on": "weapon:growth-mark",
+          "where": {
+            "kind": "awaken1"
+          }
+        },
+        {
+          "id": "branch1",
+          "branch": 1
+        },
+        {
+          "id": "branch2",
+          "branch": 2
+        },
+        {
+          "id": "branch3",
+          "branch": 3
+        },
+        {
+          "id": "trait1",
+          "trait": 1
+        },
+        {
+          "id": "trait2",
+          "trait": 2
+        }
+      ]
+    },
+    {
+      "id": "bow",
+      "weapon": "bow",
+      "setup": {
+        "dummies": [
+          {
+            "role": "target",
+            "at": [3, 0]
+          }
+        ],
+        "enemies": [
+          {
+            "id": "dummy",
+            "count": 2
+          }
+        ],
+        "gauge": true
+      },
+      "tasks": [
+        {
+          "id": "tap",
+          "verb": "attack",
+          "on": "player:attacked",
+          "where": {
+            "kind": "attack"
+          }
+        },
+        {
+          "id": "draw",
+          "verb": "signature",
+          "on": "player:attacked",
+          "where": {
+            "kind": "aimed"
+          }
+        },
+        {
+          "id": "perfect",
+          "verb": "signature",
+          "on": "build:perfect-success",
+          "where": {
+            "kind": "perfectRelease"
+          }
+        },
+        {
+          "id": "dashShot",
+          "verb": "dash",
+          "on": "player:attacked",
+          "where": {
+            "kind": "dashAttack"
+          }
+        },
+        {
+          "id": "rain",
+          "verb": "hold",
+          "on": "player:arrow-rain"
+        },
+        {
+          "id": "reload",
+          "on": "weapon:resource",
+          "where": {
+            "kind": "ammo",
+            "event": "reloadDone"
+          }
+        },
+        {
+          "id": "gauge",
+          "on": "weapon:growth-mark",
+          "where": {
+            "kind": "awaken1"
+          }
+        },
+        {
+          "id": "branch1",
+          "branch": 1
+        },
+        {
+          "id": "branch2",
+          "branch": 2
+        },
+        {
+          "id": "branch3",
+          "branch": 3
+        },
+        {
+          "id": "trait1",
+          "trait": 1
+        },
+        {
+          "id": "trait2",
+          "trait": 2
+        }
+      ]
+    },
+    {
+      "id": "fire",
+      "weapon": null,
+      "setup": {
+        "enemies": [
+          {
+            "id": "peddler",
+            "count": 1
+          },
+          {
+            "id": "porter",
+            "count": 1
+          },
+          {
+            "id": "dummy",
+            "count": 1,
+            "elite": true
+          }
+        ],
+        "pools": [
+          [-3, 2],
+          [3, 2],
+          [0, -3]
+        ],
+        "pickups": [
+          {
+            "kind": "consumable",
+            "id": "fireBottle",
+            "at": [-2, 0]
+          }
+        ]
+      },
+      "tasks": [
+        {
+          "id": "ignite",
+          "on": "build:pool-ignited"
+        },
+        {
+          "id": "avoidFire",
+          "verb": "dash",
+          "on": "enemy:telegraph",
+          "where": {
+            "id": "peddler",
+            "kind": "throw"
+          },
+          "dodgeMs": 2200
+        },
+        {
+          "id": "cask",
+          "on": "enemy:attack",
+          "where": {
+            "kind": "roll",
+            "phase": "break"
+          }
+        },
+        {
+          "id": "returnCask",
+          "verb": "attack",
+          "on": "enemy:attack",
+          "where": {
+            "kind": "roll",
+            "phase": "return"
+          }
+        },
+        {
+          "id": "pedlar",
+          "on": "enemy:died",
+          "where": {
+            "id": "peddler"
+          }
+        },
+        {
+          "id": "porter",
+          "on": "enemy:died",
+          "where": {
+            "id": "porter"
+          }
+        },
+        {
+          "id": "elite",
+          "on": "enemy:died",
+          "where": {
+            "elite": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "shadow",
+      "weapon": null,
+      "setup": {
+        "boss": true
+      },
+      "tasks": [
+        {
+          "id": "breakCup",
+          "on": "boss:break",
+          "where": {
+            "kind": "cup"
+          }
+        },
+        {
+          "id": "pillar",
+          "on": "boss:break",
+          "where": {
+            "kind": "pillar"
+          }
+        },
+        {
+          "id": "returnCask",
+          "on": "boss:break",
+          "where": {
+            "kind": "cask"
+          }
+        },
+        {
+          "id": "finisher",
+          "on": "boss:break",
+          "where": {
+            "kind": "finisher"
+          }
+        },
+        {
+          "id": "defeat",
+          "on": "boss:died"
+        }
+      ]
+    }
+  ],
+  "text": {
+    "training.hall.name": "수련장",
+    "training.hall.enter": "이름보다 손이 먼저 기억하는 곳이다. 여기서는 아무것도 번지지 않는다.",
+    "training.hall.exit": "그림이 닫힌다. 손에 익은 것만 남았다.",
+    "training.hall.exitToRun": "그림이 닫힌다. 벽 밖은 그림이 아니다.",
+    "training.choice.prompt": "벽 밖으로 나서기 전에, 손에 먼저 익혀 둘 수 있다.",
+    "training.choice.training": "수련장부터",
+    "training.choice.trainingHint": "방 여덟 개. 아무 방이나, 몇 번이든.",
+    "training.choice.run": "바로 벽 밖으로",
+    "training.choice.runHint": "수련장은 일기장에서 언제든 열 수 있다.",
+    "training.common.stamp": "도장이 찍혔다.",
+    "training.common.allStamped": "여덟 쪽에 모두 도장이 찍혔다. 남은 것은 벽 밖이다.",
+    "training.common.fall": "쓰러졌다. 여기서는 이름이 번지지 않는다.",
+    "training.common.noCarry": "여기서 깨운 모양은 방을 나서면 돌아간다. 일기장에만 남는다.",
+    "training.common.reenter": "이미 도장이 있다. 손은 또 해도 된다.",
+    "training.step.name": "걸음과 숨",
+    "training.step.enter": "걷고, 피하고, 줍고, 마신다. 벽 밖에서 버티는 순서다.",
+    "training.guard.name": "막고 받아치기",
+    "training.guard.enter": "땅에 먼저 그려진다. 원, 선, 부채. 읽고 나서 막는다.",
+    "training.katana.name": "칼의 방",
+    "training.katana.enter": "칼을 쥔 손이 기억하는 것. 베고, 받아치고, 지나간다.",
+    "training.greatsword.name": "대검의 방",
+    "training.greatsword.enter": "대검을 쥔 손이 기억하는 것. 막고, 쌓고, 내려찍는다.",
+    "training.dagger.name": "단검의 방",
+    "training.dagger.enter": "단검을 쥔 손이 기억하는 것. 찍고, 뒤로 돌고, 터뜨린다.",
+    "training.bow.name": "활의 방",
+    "training.bow.enter": "활을 쥔 손이 기억하는 것. 당기고, 세고, 놓는다.",
+    "training.fire.name": "술과 불",
+    "training.fire.enter": "잔(盞)의 바닥은 늘 젖어 있다. 젖은 것은 타고, 통은 구른다.",
+    "training.shadow.name": "만취 그림자",
+    "training.shadow.enter": "손이 기억하는 만취다. 진짜는 지금도 어디선가 마시고 있다.",
+    "training.shadow.defeat": "그림자는 쏟은 술처럼 바닥에 스며 사라졌다. 장부는 남지 않았다.",
+    "training.katana.voice.start": "다시 쥐어라. 머리는 잊어도 손은 안다.",
+    "training.katana.voice.awaken": "칼은 하나다. 베는 법이 셋일 뿐이다.",
+    "training.katana.voice.stamp": "됐다. 연습에는 값이 없다.",
+    "training.greatsword.voice.start": "또 들었냐. 그래, 이 무게다. 어깨가 기억하지?",
+    "training.greatsword.voice.awaken": "모양이 바뀌어도 무게는 그대로야! 셋 다 들어 봐.",
+    "training.greatsword.voice.stamp": "됐다! 여기선 빚도 안 쌓이고 좋네.",
+    "training.dagger.voice.start": "쉿. 여긴 진짜 아니야. 그래도 뒤는 진짜처럼 잡아.",
+    "training.dagger.voice.awaken": "모양 바꿔 봐. 우린 이름도 자주 바꿨어.",
+    "training.dagger.voice.stamp": "잘했어. 도장은 우리가 찍는 쪽이 좋아.",
+    "training.bow.voice.start": "하나부터 세세요. 숨 한 번에 한 발이에요.",
+    "training.bow.voice.awaken": "갈래가 셋이에요. 다 당겨 보세요. 세는 건 제가 할게요.",
+    "training.bow.voice.stamp": "다 셌어요. 여기선 빠진 숫자가 없네요.",
+    "training.step.task.move": "표시까지 걷기",
+    "training.step.task.dash": "대쉬 세 번",
+    "training.step.task.perfectDodge": "아슬아슬하게 피하기",
+    "training.step.task.pickGold": "전표 줍기",
+    "training.step.task.pickDraught": "잔의 독주 줍기",
+    "training.step.task.drinkDraught": "잔의 독주 마시기",
+    "training.step.task.pickBottle": "화염 술병 줍기",
+    "training.step.task.throwBottle": "화염 술병 던지기",
+    "training.guard.task.block": "막기 세 번",
+    "training.guard.task.parry": "맞는 순간 막기",
+    "training.guard.task.readCircle": "원 예고 피하기",
+    "training.guard.task.readLine": "선 예고 피하기",
+    "training.guard.task.readFan": "부채 예고 피하기",
+    "training.guard.task.conscript": "징집병 쓰러뜨리기",
+    "training.guard.task.archer": "사수의 화살 막기",
+    "training.guard.task.charger": "결사병 돌진 피하기",
+    "training.katana.task.combo": "세 번 이어 베기",
+    "training.katana.task.parry": "패링 한 번",
+    "training.katana.task.counter": "패링 뒤 받아치기",
+    "training.katana.task.issen": "대쉬 뒤 일섬",
+    "training.katana.task.fillKi": "검기 세 단 채우기",
+    "training.katana.task.kiStrike": "검기 실어 베기",
+    "training.katana.task.gauge": "각성 게이지 채우기",
+    "training.katana.task.branch1": "선풍 깨우기",
+    "training.katana.task.branch2": "투구가르기 깨우기",
+    "training.katana.task.branch3": "만월 깨우기",
+    "training.katana.task.trait1": "{trait1} 써 보기",
+    "training.katana.task.trait2": "{trait2} 써 보기",
+    "training.greatsword.task.combo": "네 번 이어 베기",
+    "training.greatsword.task.block": "막기 세 번",
+    "training.greatsword.task.perfectGuard": "퍼펙트 가드 한 번",
+    "training.greatsword.task.fillRage": "울분 가득 채우기",
+    "training.greatsword.task.charge": "끝까지 모아 내려찍기",
+    "training.greatsword.task.tackle": "대쉬 뒤 태클",
+    "training.greatsword.task.gauge": "각성 게이지 채우기",
+    "training.greatsword.task.branch1": "파쇄 깨우기",
+    "training.greatsword.task.branch2": "중압 깨우기",
+    "training.greatsword.task.branch3": "광전 깨우기",
+    "training.greatsword.task.trait1": "{trait1} 써 보기",
+    "training.greatsword.task.trait2": "{trait2} 써 보기",
+    "training.dagger.task.combo": "세 번 찌르기",
+    "training.dagger.task.flurry": "몰아 찌르기",
+    "training.dagger.task.mark": "낙인 다섯 새기기",
+    "training.dagger.task.shadowStep": "그림자 걸음",
+    "training.dagger.task.backstab": "걸음 뒤 등 찌르기",
+    "training.dagger.task.detonate": "낙인 터뜨리기",
+    "training.dagger.task.dashAttack": "대쉬 뒤 찌르기",
+    "training.dagger.task.gauge": "각성 게이지 채우기",
+    "training.dagger.task.branch1": "쌍격 깨우기",
+    "training.dagger.task.branch2": "질풍 깨우기",
+    "training.dagger.task.branch3": "백귀 깨우기",
+    "training.dagger.task.trait1": "{trait1} 써 보기",
+    "training.dagger.task.trait2": "{trait2} 써 보기",
+    "training.bow.task.tap": "짧게 쏘기",
+    "training.bow.task.draw": "당겨 쏘기",
+    "training.bow.task.perfect": "완벽하게 놓기",
+    "training.bow.task.dashShot": "대쉬 뒤 쏘기",
+    "training.bow.task.rain": "화살비 부르기",
+    "training.bow.task.reload": "화살 다 쓰고 채우기",
+    "training.bow.task.gauge": "각성 게이지 채우기",
+    "training.bow.task.branch1": "속사 깨우기",
+    "training.bow.task.branch2": "저격 깨우기",
+    "training.bow.task.branch3": "유성 깨우기",
+    "training.bow.task.trait1": "{trait1} 써 보기",
+    "training.bow.task.trait2": "{trait2} 써 보기",
+    "training.fire.task.ignite": "술 웅덩이에 불 붙이기",
+    "training.fire.task.avoidFire": "불 웅덩이 피하기",
+    "training.fire.task.cask": "술통 터뜨리기",
+    "training.fire.task.returnCask": "술통 되치기",
+    "training.fire.task.pedlar": "독주 행상 쓰러뜨리기",
+    "training.fire.task.porter": "술통 짐꾼 쓰러뜨리기",
+    "training.fire.task.elite": "{elite} 쓰러뜨리기",
+    "training.shadow.task.breakCup": "잔 깨기",
+    "training.shadow.task.pillar": "기둥에 박게 하기",
+    "training.shadow.task.returnCask": "술통 되치기",
+    "training.shadow.task.finisher": "결정타 넣기",
+    "training.shadow.task.defeat": "그림자 쓰러뜨리기",
+    "training.fire.task.eliteFallback": "우두머리 쓰러뜨리기",
+    "training.shadow.task.pillarBreak": "기둥 무너뜨리기"
+  }
+}
