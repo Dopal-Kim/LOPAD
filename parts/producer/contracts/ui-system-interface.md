@@ -611,3 +611,8 @@ interface UiGrowth {
 - 이벤트: `UI_EVENTS.GROWTH_GAIN` = `'ui:growth-gain'` `{ amount, gauge }`(HUD 반짝), `UI_EVENTS.AWAKEN` = `'ui:awaken'` `{ stage: 1|2; weapon; branch; path?; name; line; lookKey? }` — 각성 연출 시작(시스템이 게임을 0.8/1.0초 멈춤; UI 는 이름·한 줄 배너). 개성 획득은 기존 notice 대신 `UI_EVENTS.TRAIT_GAINED` = `'ui:trait-gained'` `UiGrowthTrait`.
 - UI: HUD 무기 칸 아래 각성 게이지(숫자·눈금 ◇/◆·다음 눈금까지 남은 수), 선택 화면(갈래 카드 = 모양 그림 + 바뀌는 키캡 강조 + 한 줄 + 2차 길 미리보기), 성장도 나무(Tab 빌드 보기 안), 처음 안내 카드(`firstTime`).
 - 안내 카드를 본 기록은 시스템 메타(`diary.guides`)에 둔다 — UI 는 닫을 때 `UI_COMMANDS`... 대신 메뉴 닫힘으로 시스템이 기록(시스템 판단으로 구현, 필요하면 이 줄 갱신).
+
+### 18.1 (61 단계 5, P13) 개성 그림·공명
+- `UiGrowthTrait.iconKey?: string` — 개성 카드 그림 텍스처 키(시스템이 로드). 카드·알림·성장도 목록에 그림을 함께 그린다(없으면 지금처럼 키캡).
+- `UiGrowth.resonance?: { tag: UiTagId; name: string; line: string; active: boolean }[]` — 같은 태그 개성 2장으로 켜지는 공명(성장도·Tab 에 표시, 켜질 때 `ui:trait-gained` 와 같은 알림 형식으로 `UI_EVENTS.RESONANCE` = `'ui:resonance'` `{ tag, name, line }`).
+- 드랍 아이템은 월드 그림이라 UI 무관.
