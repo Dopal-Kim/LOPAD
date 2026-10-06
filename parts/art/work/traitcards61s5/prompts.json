@@ -1,0 +1,2050 @@
+{
+ "note": "61 단계 5 개성 카드 그림 Gemini 콘셉트 기록 — 키 없음(프록시가 붙임). prompt = STYLE + CAST + WEAPON[무기] + THE MOMENT(scene). 원본은 raw/<id>_<tag>.jpg(512 로 줄여 보관).",
+ "model": "gemini-3.1-flash-image",
+ "style": "Square game-card illustration (1:1) for a dark modern 2D pixel-art roguelike action game. ONE single frozen moment of combat, seen from a high three-quarter top-down camera (quarter view, like the game itself), key light from the upper left. Chunky, bold, high-contrast pixel-art shapes that stay readable when shrunk to a tiny 128x128 pixel icon: only 2-4 large figures, big clear silhouettes, dark outlines, flat cel shading with one shadow and one highlight step, no tiny details, no texture noise, no soft airbrush. The whole scene is a compact vignette centred in the frame, standing on a small irregular patch of dark grey stone flagstone floor; EVERYTHING outside the vignette is a perfectly flat, solid pure magenta (#FF00FF) background - no gradient, no cast shadow and no glow spilling onto the magenta. Never use magenta or pink inside the scene. No text, no letters, no numbers, no UI, no key caps, no card frame, no border, no watermark.",
+ "cast": "CAST (see the reference sheet - match these designs): THE HERO is a gaunt, hunched war-ghost revenant made of a cracked dark charcoal-ash shell, glowing amber soul-fire cracks across chest and head, one small burning amber eye, a dark featureless face, shards of broken armour, bandaged hands, a small leather pouch at the hip; no clothes, no hat, no cape, no hair. ENEMIES are grim Renaissance-era foot soldiers: big shield-bearers in brown leather with a tall flat-topped iron bucket helmet and a war hammer, archers in a pale shirt with a black tricorn hat, a liquor peddler in a wide straw hat with a pack of bottles and a lantern, a porter hauling oak barrels. Setting details: dark stone tavern-fortress floor, spilled amber liquor puddles, oak barrels, grey stone pillars and walls.",
+ "weapon": {
+  "katana": "WEAPON AND COLOUR LANGUAGE OF THIS CARD SET (katana): the hero wields a slender curved katana with a cold polished blue-grey steel blade and one bright silver-white edge line, black lacquered scabbard. Its cuts are razor-thin, precise silver-white light lines and thin arcs (never thick brush strokes, never fire on the blade). Palette: cold ash and blue-grey steel, silver-white light, pale moonlight blue (#c8d8f0) only for moon clones and moon light; amber only as tiny embers, the hero's cracks and spilled liquor.",
+  "greatsword": "WEAPON AND COLOUR LANGUAGE OF THIS CARD SET (greatsword): the hero wields a huge, heavy, notched dark-iron greatsword as tall as himself. Its impacts are brutal and heavy: shattered stone, ground cracks, dust clouds, shock rings. Palette: dark iron and charcoal greys plus HOT amber-orange (#d67a11, #e2a33c, #f4de9b) glowing like molten metal in the blade cracks, ground fissures and impact flashes. No blue, no cold colours.",
+  "dagger": "WEAPON AND COLOUR LANGUAGE OF THIS CARD SET (dagger): the hero wields a short curved karambit claw-dagger in a reverse grip, dark ash-steel blade whose inner edge glows as a thin amber ember line. Its strikes are fast, thin, needle-like curved claw streaks ending in small X-shaped sparks; shadow techniques are ink-black smoky silhouettes and ink pools; brands are glowing dark-red claw-mark sigils (#b04848) burned on the enemy body. Palette: ink black, ash grey, ember amber claws, a little dark red.",
+  "bow": "WEAPON AND COLOUR LANGUAGE OF THIS CARD SET (bow): the hero wields a tall dark weathered-wood longbow and shoots long arrows with bone-white fletching; flying arrows leave long straight thin pale-gold light streaks (#f4de9b). Bindings and nets are pale steel-blue lines (#9ab0d8). Palette: dark wood brown, bone white, ash grey, pale-gold arrow light; amber-orange fire only where liquor burns."
+ },
+ "cards": {
+  "katana_k_iaiWave": {
+   "weapon": "katana",
+   "name": "발도풍",
+   "conceptKo": "칼집에서 뽑힌 칼끝에서 초승달 바람이 날아간다",
+   "scene": "The hero crouches low on the left, drawing the katana from the black scabbard in one stroke; a large pale silver-blue crescent-moon wind blade flies off the blade tip to the right toward a soldier.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "a",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:23:14",
+     "http": 200,
+     "seconds": 8.6,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:24:58",
+     "http": 200,
+     "seconds": 7.6,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_g_launch": {
+   "weapon": "greatsword",
+   "name": "날려 보내기",
+   "conceptKo": "넷째 타에 날아간 병사가 벽에 부딪혀 돌가루가 튄다",
+   "scene": "The hero on the left finishes a huge horizontal greatsword swing; a shield soldier flies away to the right and smashes into a grey stone wall, cracking it with an explosion of stone dust and debris and a hot amber impact flash.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "a",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:23:14",
+     "http": 200,
+     "seconds": 8.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:25:00",
+     "http": 200,
+     "seconds": 9.0,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_d_brandChain": {
+   "weapon": "dagger",
+   "name": "낙인 사슬",
+   "conceptKo": "붉은 낙인 사슬에 묶인 두 적이 서로 부딪친다",
+   "scene": "Two soldiers, each marked with a glowing dark-red claw-mark brand on the chest, are yanked together by a glowing red chain stretched between their brands and collide head-first in the centre with an impact flash; the hero in the foreground, dagger ready.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:25:00",
+     "http": 200,
+     "seconds": 9.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_skewer": {
+   "weapon": "bow",
+   "name": "꿰미",
+   "conceptKo": "한 화살에 꿰인 적들이 꼬챙이처럼 끌려간다",
+   "scene": "One long arrow has skewered three soldiers in a row like a kebab and drags them along together to the right; pale-gold streak behind it; the hero on the left.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:25:01",
+     "http": 200,
+     "seconds": 10.2,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_k_shadowThrust": {
+   "weapon": "katana",
+   "name": "그림자 찌르기",
+   "conceptKo": "쓰러지는 적 뒤로 그림자 칼끝이 다음 적의 가슴을 꿰뚫는다",
+   "scene": "On the left a shield soldier collapses forward, defeated. Out of his falling body's shadow an ink-black shadow copy of the hero lunges to the right and pierces the chest of a second soldier with a long, thin, straight silver-white thrust line ending in a small bright star spark. The real hero stands at the far left after a thrust, katana extended.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:04",
+     "http": 200,
+     "seconds": 8.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_k_edgeLift": {
+   "weapon": "katana",
+   "name": "칼등 띄우기",
+   "conceptKo": "휘청이는 병사를 칼등으로 쳐올려 공중에 띄운 순간",
+   "scene": "The hero, low on the left, swings the katana upward with the BACK of the blade; a staggering shield soldier is knocked high into the air above the right side of the frame, tumbling, his bucket helmet flying off. A thin silver arc trail rises from the floor to the soldier; a little dust puff on the floor below.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:04",
+     "http": 200,
+     "seconds": 8.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_k_parryShove": {
+   "weapon": "katana",
+   "name": "흘려 밀기",
+   "conceptKo": "칼을 비스듬히 대어 흘린 적이 돌기둥에 처박힌다",
+   "scene": "The hero on the left holds the katana slanted in a parry, a thin silver half-moon shock curve around the blade. The deflected shield soldier is shoved backwards and slams into a grey stone pillar on the right, the pillar cracking with stone chips flying.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:03",
+     "http": 200,
+     "seconds": 7.9,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_k_bladeBind": {
+   "weapon": "katana",
+   "name": "칼 감기",
+   "conceptKo": "칼날이 상대 창대를 감아 앞으로 끌어당긴다",
+   "scene": "Side view, two figures only: the hero on the left blocks with his katana held across, and the katana blade is wrapped around the long wooden shaft of a pikeman's pike by a bright, clearly visible silver-white SPIRAL light coil; the hero yanks the pike toward himself and the off-balance pikeman on the right is pulled forward, stumbling, feet off balance.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:05",
+     "http": 200,
+     "seconds": 9.4,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:27",
+     "http": 200,
+     "seconds": 7.9,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "katana_k_shadowVault": {
+   "weapon": "katana",
+   "name": "그림자 넘기",
+   "conceptKo": "내리찍는 칼끝을 스치며 적의 등 뒤로 넘어가는 실루엣",
+   "scene": "A big shield soldier's war hammer smashes down into the floor (crack, dust) exactly where the hero was. The hero, as an ink-black smoky silhouette, vaults in a smooth arc over the soldier's shoulder and lands behind his back, katana drawn for a slash; a thin silver arc traces the vault path.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:11",
+     "http": 200,
+     "seconds": 7.3,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_k_issenBack": {
+   "weapon": "katana",
+   "name": "물러서며 베기",
+   "conceptKo": "일섬 끝에 뒤로 미끄러지며 그리는 둥근 칼 궤적",
+   "scene": "The hero slides backward on one knee in the centre, the katana drawing a perfect thin silver-white circle around him on the floor; two soldiers at the edges of the circle reel back, cut.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:12",
+     "http": 200,
+     "seconds": 7.9,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_k_iaiChain": {
+   "weapon": "katana",
+   "name": "연쇄 발도",
+   "conceptKo": "쓰러지는 적을 지나 다음 적 앞으로 미끄러지는 낮은 자세",
+   "scene": "Low sliding stance: the hero glides to the right close to the floor with the katana held low behind him, leaving a long low streak of grey afterimages; behind him on the left a soldier falls, cut; ahead on the right the next soldier is just about to be reached.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:12",
+     "http": 200,
+     "seconds": 7.9,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_bloodGale": {
+   "weapon": "katana",
+   "name": "피바람",
+   "conceptKo": "회전 베기의 핏빛 고리가 한 바퀴 더 감긴다",
+   "scene": "The hero spins in the centre in a whirlwind slash; a dark blood-red (#b04848) ring of wind wraps around him twice like a spiral gale, red droplets flying, a soldier thrown off the ring.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:13",
+     "http": 200,
+     "seconds": 8.3,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_liquorWhirl": {
+   "weapon": "katana",
+   "name": "술 회오리",
+   "conceptKo": "바닥의 술이 칼을 따라 감겨 불 회오리가 된다",
+   "scene": "The hero spins in the centre with the katana extended; spilled amber liquor from the floor is sucked up into a spiral that wraps around the blade and ignites into a ring-shaped amber-orange fire whirlwind around him.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:18",
+     "http": 200,
+     "seconds": 7.5,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_k_sparkCleave": {
+   "weapon": "katana",
+   "name": "불똥 내려베기",
+   "conceptKo": "내려친 칼이 돌바닥을 긁으며 술 웅덩이에 불똥을 튀긴다",
+   "scene": "The hero brings down a heavy overhead katana chop; the blade tip scrapes a long glowing line in the stone floor, throwing bright amber sparks forward into a liquor puddle on the right, which catches fire, an oak barrel beside it bursting.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:19",
+     "http": 200,
+     "seconds": 7.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_k_groundPin": {
+   "weapon": "katana",
+   "name": "땅에 박기",
+   "conceptKo": "투구가 갈라진 적이 무릎까지 바닥에 박혀 있다",
+   "scene": "In the centre, a shield soldier is sunk into the floor up to his knees: his legs disappear into a round hole of broken flagstones with big radiating cracks, his iron bucket helmet is split in two by a thin silver cut line; he is stuck and cannot move. The hero stands on the left with the katana raised high for the next blow.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:20",
+     "http": 200,
+     "seconds": 7.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:27",
+     "http": 200,
+     "seconds": 8.5,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "katana_k_moonRelay": {
+   "weapon": "katana",
+   "name": "달빛 잇기",
+   "conceptKo": "달 분신이 쓰러진 적에서 다음 적으로 건너가는 청백 선",
+   "scene": "A glowing pale moon-blue (#c8d8f0) ghostly copy of the hero leaps from a fallen soldier lying on the left to the next soldier on the right, leaving a thin moon-blue line connecting them, with a small crescent moon at the start of the line.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:22",
+     "http": 200,
+     "seconds": 8.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "katana_k_moonPools": {
+   "weapon": "katana",
+   "name": "취월",
+   "conceptKo": "술 웅덩이마다 비친 달에서 분신이 솟아 칼을 든다",
+   "scene": "Three round amber liquor puddles on the dark floor each reflect a pale full moon; from each reflection a pale moon-blue (#c8d8f0) ghost copy of the hero rises with katana raised; the real hero stands in the middle after a parry.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:26",
+     "http": 200,
+     "seconds": 7.3,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "res_katana_insight": {
+   "weapon": "katana",
+   "name": "공명 되받는 달",
+   "conceptKo": "흘려 밀기·칼 감기로 밀치거나 끌어온 적에게 달 분신이 따라붙어 벤다",
+   "scene": "Two linked moves in one picture: on the left the hero parries with a slanted katana, shoving one soldier away and pulling another in with a silver spiral around a pike; right beside the displaced soldier a pale moon-blue (#c8d8f0) ghost copy of the hero appears and slashes him with a thin silver line. A small crescent moon links the hero and the clone.",
+   "pair": [
+    "k_parryShove",
+    "k_bladeBind"
+   ],
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:28",
+     "http": 200,
+     "seconds": 8.9,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "res_katana_breach": {
+   "weapon": "katana",
+   "name": "공명 칼바람 길",
+   "conceptKo": "그림자 넘기·물러서며 베기의 대쉬 길에 칼바람이 남아 다시 벤다",
+   "scene": "A long straight diagonal lane across the floor marks the path the hero just dashed along (the hero stands at its far end on the right, katana lowered). Along that whole lane, a row of tall, thin, bright silver-white crescent wind blades rises out of the floor like a wall of slashes, cutting two soldiers who stand on the lane.",
+   "pair": [
+    "k_shadowVault",
+    "k_issenBack"
+   ],
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:29",
+     "http": 200,
+     "seconds": 9.2,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:27",
+     "http": 200,
+     "seconds": 7.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "res_katana_chain": {
+   "weapon": "katana",
+   "name": "공명 끊이지 않는 칼",
+   "conceptKo": "개성 기술로 쓰러뜨린 자리에서 칼바람 고리가 퍼진다",
+   "scene": "Where a soldier has just fallen in the centre, a ring of thin silver wind blades bursts outward around the body, cutting the surrounding soldiers; the hero stands at the left flicking his katana, an ink-black shadow copy and a moon-blue copy fading behind him (the chain of techniques).",
+   "pair": [
+    "k_shadowThrust",
+    "k_iaiChain",
+    "bloodGale",
+    "k_moonRelay"
+   ],
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_katana.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:30",
+     "http": 200,
+     "seconds": 8.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_g_swatBack": {
+   "weapon": "greatsword",
+   "name": "쳐내기",
+   "conceptKo": "대검 면이 날아오는 술병을 쳐서 던진 행상에게 돌려보낸다",
+   "scene": "The hero swings the flat of the greatsword like a bat and hits an incoming liquor bottle in mid-air with a bright amber metallic flash; the bottle flies back to the right toward a liquor peddler in a wide straw hat.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:34",
+     "http": 200,
+     "seconds": 7.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_g_quakeGuard": {
+   "weapon": "greatsword",
+   "name": "되받는 땅울림",
+   "conceptKo": "막아 낸 충격이 땅을 타고 번져 앞줄 적이 떠오른다",
+   "scene": "Uncluttered: the hero on the left braces behind his huge greatsword planted point-down like a shield, a bright amber spark where a hammer blow hit the blade. From the blade a single straight glowing amber crack runs forward to the right through the floor, and at its end two soldiers are thrown up into the air by a burst of rock.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:37",
+     "http": 200,
+     "seconds": 8.5,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:27",
+     "http": 200,
+     "seconds": 8.5,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "greatsword_g_guardPull": {
+   "weapon": "greatsword",
+   "name": "끌어당기기",
+   "conceptKo": "대검을 내리며 둘레 적을 앞으로 끌어당기는 손짓",
+   "scene": "The hero stands in the centre on a flagstone floor patch and sweeps his huge greatsword toward himself; a swirling ring of dust with amber streaks spirals INWARD toward him and drags two shield soldiers, one on each side, toward him, their feet skidding and leaving dust trails.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:55",
+     "http": 200,
+     "seconds": 26.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:35",
+     "http": 200,
+     "seconds": 8.6,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "greatsword_g_shoulderFlip": {
+   "weapon": "greatsword",
+   "name": "어깨 너머",
+   "conceptKo": "태클로 들어 올린 적을 등 뒤 바닥에 메친다",
+   "scene": "Side view, two figures only: the hero (greatsword in one hand) has lifted a shield soldier over his shoulder in a big arc, and the soldier is upside-down in mid-air behind the hero, about to slam head-first onto the floor, where a ring of dust and glowing amber cracks already bursts. A curved motion arc shows the throw over the shoulder.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:39",
+     "http": 200,
+     "seconds": 8.3,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:35",
+     "http": 200,
+     "seconds": 8.3,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "greatsword_g_ramWall": {
+   "weapon": "greatsword",
+   "name": "들이받기",
+   "conceptKo": "어깨로 밀고 나간 적이 기둥에 처박힌다",
+   "scene": "Side view, two figures and one pillar only: the hero charges shoulder-first to the right with speed lines behind him, his greatsword held low behind; he rams a shield soldier backwards into a big grey stone pillar, which cracks with stone chunks flying and a hot amber impact flash between the soldier's back and the pillar.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:42",
+     "http": 200,
+     "seconds": 8.2,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:34",
+     "http": 200,
+     "seconds": 6.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "greatsword_g_boilingSteel": {
+   "weapon": "greatsword",
+   "name": "끓는 쇠",
+   "conceptKo": "모으는 대검에 술이 빨려 들어 칼날이 끓는다",
+   "scene": "The hero holds the greatsword low, charging power; amber liquor from puddles around him spirals and is sucked into the blade, which glows orange-hot with bubbling, boiling cracks and rising steam.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:39",
+     "http": 200,
+     "seconds": 1.6,
+     "finishReason": "NO_IMAGE",
+     "modelVersion": "gemini-3.1-flash-image",
+     "ok": false
+    },
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:28:30",
+     "http": 200,
+     "seconds": 8.3,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_g_crackPull": {
+   "weapon": "greatsword",
+   "name": "빨아들이는 균열",
+   "conceptKo": "균열 양옆의 적이 금 쪽으로 미끄러져 들어간다",
+   "scene": "A long glowing amber crack splits the floor diagonally from the hero's greatsword; soldiers on both sides of it slide and tumble into the crack as the floor tilts toward it, dust streaks showing the pull.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:46",
+     "http": 200,
+     "seconds": 7.9,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_splitRoad": {
+   "weapon": "greatsword",
+   "name": "갈라진 길",
+   "conceptKo": "갈라진 바닥 위를 달리며 날아온 화살을 튕겨 낸다",
+   "scene": "The hero runs fast along a glowing amber floor fissure, greatsword dragged behind; a chunk of stone bursting up from the crack deflects an incoming arrow with a bright flash.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:47",
+     "http": 200,
+     "seconds": 8.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_g_leapToss": {
+   "weapon": "greatsword",
+   "name": "띄워 올리기",
+   "conceptKo": "도약 찍기 착지에 둘레 적이 공중으로 떠오른다",
+   "scene": "The hero lands from a leaping overhead slam in the centre, the greatsword buried in the floor; a shockwave ring of dust and amber cracks erupts and soldiers around him are flung up into the air.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:50",
+     "http": 200,
+     "seconds": 8.0,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_g_crushedBreath": {
+   "weapon": "greatsword",
+   "name": "짓눌린 숨",
+   "conceptKo": "진동 한가운데로 끌려온 적들이 서로 머리를 박는다",
+   "scene": "From the centre of a vibrating amber shock ring, three soldiers are dragged inward and smash their iron helmets together in the middle with a burst of impact stars; the hero behind them with greatsword planted.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:55",
+     "http": 200,
+     "seconds": 8.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_jarCrush": {
+   "weapon": "greatsword",
+   "name": "술독 짓누르기",
+   "conceptKo": "진동이 모은 술 웅덩이에 불이 붙어 크게 터진다",
+   "scene": "The shockwave has gathered the spilled liquor into one big puddle in the centre, which ignites into a large amber-orange fire explosion with an oak barrel blowing apart; the hero on the left shields himself with the greatsword.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:56",
+     "http": 200,
+     "seconds": 8.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_g_rageRoar": {
+   "weapon": "greatsword",
+   "name": "포효",
+   "conceptKo": "폭주하는 전사의 포효에 적들이 벽까지 밀려난다",
+   "scene": "The enraged hero roars in the centre with the greatsword raised, red-amber glow pouring from his cracks; a huge circular shockwave ring pushes two soldiers backwards, slamming them into the walls at the sides.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:26:58",
+     "http": 200,
+     "seconds": 8.6,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "greatsword_g_rageFire": {
+   "weapon": "greatsword",
+   "name": "술기운 폭주",
+   "conceptKo": "불붙은 술 위를 밟으며 붉게 달아오른 대검",
+   "scene": "The rampaging hero stomps through a pool of burning amber liquor, flames licking up his legs; the greatsword held high glows red-hot orange along its whole edge, embers swirling.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:03",
+     "http": 200,
+     "seconds": 7.4,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "res_greatsword_weight": {
+   "weapon": "greatsword",
+   "name": "공명 무너뜨림",
+   "conceptKo": "날려 보내기·들이받기로 처박힌 자리 바닥이 갈라져 둘레가 튀어 오른다",
+   "scene": "Uncluttered: a soldier crashes back-first into the floor in the centre (thrown there by the hero, who stands on the left after a big greatsword swing). The flagstones under the crash break into a large star of glowing amber cracks and the floor slabs around it tilt and pop up into the air, lifting one more soldier off his feet.",
+   "pair": [
+    "g_launch",
+    "g_ramWall"
+   ],
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:03",
+     "http": 200,
+     "seconds": 7.6,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:36",
+     "http": 200,
+     "seconds": 8.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "res_greatsword_insight": {
+   "weapon": "greatsword",
+   "name": "공명 막고 되치는 대검",
+   "conceptKo": "쳐내기·되받는 땅울림으로 막아 낸 순간 둘레 탄을 모두 되쳐 보낸다",
+   "scene": "The hero completes a perfect guard with the greatsword held across his body; a bright amber ring bursts 360 degrees around him and all incoming arrows and liquor bottles bounce back outward in every direction.",
+   "pair": [
+    "g_swatBack",
+    "g_quakeGuard"
+   ],
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_greatsword.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:03",
+     "http": 200,
+     "seconds": 7.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_d_pullThrow": {
+   "weapon": "dagger",
+   "name": "뽑아 던지기",
+   "conceptKo": "쓰러진 적에게서 뽑은 단검이 다음 적에게 날아간다",
+   "scene": "The hero rips a karambit dagger out of a falling soldier on the left and in the same motion throws it; the dagger flies as a thin curved amber needle streak to the chest of a second soldier on the right, X-shaped spark at impact.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:07",
+     "http": 200,
+     "seconds": 8.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_d_shadowKnot": {
+   "weapon": "dagger",
+   "name": "그림자 매듭",
+   "conceptKo": "적의 그림자가 매듭처럼 발목을 묶는다",
+   "scene": "A single shield soldier in the centre: his own ink-black shadow on the floor has risen up as thick black ribbons that are tied into one big clear KNOT (a bow-like knot shape) around both his ankles; he is stuck, struggling; a dark-red claw-mark brand glows on his chest. The hero crouches on the left with the dagger in reverse grip.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:11",
+     "http": 200,
+     "seconds": 8.2,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:41",
+     "http": 200,
+     "seconds": 7.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "dagger_d_stepBack": {
+   "weapon": "dagger",
+   "name": "되짚어 걷기",
+   "conceptKo": "그림자 걸음 뒤 처음 자리로 되돌아오며 그은 검은 선",
+   "scene": "The hero reappears at his starting point on the left; a straight ink-black slash line runs back along the path he travelled, cutting a soldier in the middle; a fading ink silhouette of the hero dissolves at the far right end where he had been.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:12",
+     "http": 200,
+     "seconds": 8.4,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_d_dashBrand": {
+   "weapon": "dagger",
+   "name": "스치는 낙인",
+   "conceptKo": "스쳐 지나간 적의 옆구리에 붉은 낙인이 남는다",
+   "scene": "The hero dashes low and fast past a shield soldier from left to right, a thin streak behind him; on the soldier's side a fresh glowing dark-red claw-mark brand of three parallel curved scratches is left burning.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:10",
+     "http": 200,
+     "seconds": 7.0,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_d_dashPierce": {
+   "weapon": "dagger",
+   "name": "꿰찌르기",
+   "conceptKo": "한 번의 찌르기가 두 적을 한 줄로 꿰뚫는다",
+   "scene": "Side view: the hero lunges low and far to the right in one dash-stab, his arm and karambit dagger fully extended; one long, straight, thin bright amber needle line goes straight THROUGH two soldiers standing one behind the other (both doubled over), and ends behind the second soldier in a bright X-shaped spark.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:24",
+     "http": 200,
+     "seconds": 17.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:43",
+     "http": 200,
+     "seconds": 8.0,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "dagger_d_flurryPull": {
+   "weapon": "dagger",
+   "name": "휘감는 난타",
+   "conceptKo": "난타의 바람에 둘레 적이 빨려 든다",
+   "scene": "The hero in the centre performs a blindingly fast flurry of stabs, many thin curved claw streaks around him forming a whirlpool of wind that sucks two soldiers inward from the sides.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:19",
+     "http": 200,
+     "seconds": 8.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_d_sparkFlurry": {
+   "weapon": "dagger",
+   "name": "불티 난타",
+   "conceptKo": "난타 끝 불티가 술 웅덩이에 떨어져 불이 붙는다",
+   "scene": "At the end of a fast flurry a burst of amber sparks scatters from the hero's dagger and rains down into a liquor puddle on the floor, which catches fire around a soldier's feet.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:19",
+     "http": 200,
+     "seconds": 8.3,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_twinBrand": {
+   "weapon": "dagger",
+   "name": "쌍낙인",
+   "conceptKo": "분신이 교차 베기로 옆 적에게 낙인을 옮긴다",
+   "scene": "Two soldiers stand apart on the left and right. Between them, the hero and an ink-black shadow clone of himself pass each other, their two amber claw-slash streaks forming one big clear X. A glowing dark-red claw-mark brand jumps along a dotted red arc from the left soldier's chest to the right soldier's chest.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:20",
+     "http": 200,
+     "seconds": 8.4,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:43",
+     "http": 200,
+     "seconds": 7.5,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 10
+  },
+  "dagger_d_cloneShield": {
+   "weapon": "dagger",
+   "name": "분신 방패",
+   "conceptKo": "날아든 칼을 분신이 대신 맞고 흩어진다",
+   "scene": "A thrown knife hits an ink-black shadow clone standing in front of the hero, and the clone shatters into black ink smoke and shards while the real hero behind it stays safe, dagger ready.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:27",
+     "http": 200,
+     "seconds": 7.6,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_d_galeReturn": {
+   "weapon": "dagger",
+   "name": "돌아오는 칼",
+   "conceptKo": "되돌아오는 단검이 꿰인 적을 끌고 손으로 온다",
+   "scene": "A thrown claw-dagger returns through the air along a curved amber streak back to the hero's open hand on the left, dragging a hooked soldier along behind it, the soldier's feet skidding on the floor.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:27",
+     "http": 200,
+     "seconds": 8.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_liquorThrow": {
+   "weapon": "dagger",
+   "name": "독주 투척",
+   "conceptKo": "부채꼴 단검 사이에 술병 하나가 깨진다",
+   "scene": "The hero throws a fan of five daggers to the right; among the thin amber streaks, the middle one is a liquor bottle that shatters on the floor, splashing a wide amber liquor puddle among the enemies.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:27",
+     "http": 200,
+     "seconds": 7.4,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_d_ghostBind": {
+   "weapon": "dagger",
+   "name": "그림자 사냥",
+   "conceptKo": "그림자 손이 적의 발목을 붙잡는다",
+   "scene": "Black ink shadow hands rise from a soldier's own shadow on the floor and grab his ankles, holding him in place; he strains to move; a red claw brand glows on him.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:32",
+     "http": 200,
+     "seconds": 7.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "dagger_d_ghostFire": {
+   "weapon": "dagger",
+   "name": "취한 그림자",
+   "conceptKo": "그림자가 지나간 웅덩이에 불이 옮겨 붙는다",
+   "scene": "An ink-black shadow copy of the hero sweeps low across the floor from left to right; behind it, the amber liquor puddles along the path it crossed burst into flame.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:34",
+     "http": 200,
+     "seconds": 7.3,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "res_dagger_vital": {
+   "weapon": "dagger",
+   "name": "공명 얽힌 급소",
+   "conceptKo": "묶이거나 끌려온 적의 낙인이 터져 사슬이 옆 적까지 뻗는다",
+   "scene": "Two linked moves: a soldier bound at the ankles by his own ink shadow has his red claw brand explode in an X burst, and a glowing red chain shoots out from it to the neighbouring soldier, binding both together.",
+   "pair": [
+    "d_brandChain",
+    "d_shadowKnot"
+   ],
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:52",
+     "http": 200,
+     "seconds": 24.2,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "res_dagger_breach": {
+   "weapon": "dagger",
+   "name": "공명 그림자 길",
+   "conceptKo": "대쉬·그림자 걸음이 지나간 길의 그림자가 밟은 적에게 낙인을 붙인다",
+   "scene": "The hero dashes away to the right leaving a long ink-black shadow trail on the floor; a soldier stepping on the trail gets a dark-red claw brand burned onto him from the shadow rising up his legs.",
+   "pair": [
+    "d_dashBrand",
+    "d_stepBack"
+   ],
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_dagger.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:35",
+     "http": 200,
+     "seconds": 7.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_pointBlank": {
+   "weapon": "bow",
+   "name": "코앞 사격",
+   "conceptKo": "코앞 화살에 날아간 병사가 벽에 부딪힌다",
+   "scene": "The hero on the left shoots an arrow at point-blank range into a soldier right in front of him; the soldier is blasted backward to the right into a stone wall with a burst of dust, the arrow stuck in his chest, a pale-gold streak behind.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:40",
+     "http": 200,
+     "seconds": 7.6,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_ricochet": {
+   "weapon": "bow",
+   "name": "튕기는 화살",
+   "conceptKo": "쓰러진 적에서 꺾인 화살이 옆 적에게 튄다",
+   "scene": "An arrow drops a soldier in the centre, then bends and ricochets off him in a sharp pale-gold zigzag streak into a second soldier on the right; the hero with the longbow on the left.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:43",
+     "http": 200,
+     "seconds": 8.6,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_perfectPin": {
+   "weapon": "bow",
+   "name": "꿰어 박기",
+   "conceptKo": "화살째 밀려간 적이 기둥에 꽂혀 있다",
+   "scene": "A soldier is pinned to a grey stone pillar on the right by a single thick arrow through his shoulder, the arrow vibrating, cracks in the stone around it; the hero on the left lowering the longbow after a full draw.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:44",
+     "http": 200,
+     "seconds": 8.4,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_fullBounce": {
+   "weapon": "bow",
+   "name": "되튀는 화살",
+   "conceptKo": "가득 당긴 화살이 벽에 닿아 되튀어 돌아온다",
+   "scene": "A fully drawn arrow flies to the right, strikes a stone wall with a flash and bounces straight back as a pale-gold streak, cutting a soldier on the way back toward the hero on the left.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:48",
+     "http": 200,
+     "seconds": 7.9,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_dropShot": {
+   "weapon": "bow",
+   "name": "낙하 사격",
+   "conceptKo": "구르며 쏜 화살이 하늘로 솟았다 세 발로 떨어진다",
+   "scene": "The hero rolls on the ground on the left while shooting an arrow up into the sky (a curving pale-gold streak upward); on the right three arrows plunge down onto a soldier, with a small target mark on the floor.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:51",
+     "http": 200,
+     "seconds": 7.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_arrowTrap": {
+   "weapon": "bow",
+   "name": "화살 덫",
+   "conceptKo": "떠난 자리에 세워 둔 화살 덫을 적이 밟는다",
+   "scene": "Three arrows stuck upright in the floor form a trap; a soldier steps into it and the arrows snap closed around his legs with pale steel-blue binding lines; the hero is already far away at the left edge.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:52",
+     "http": 200,
+     "seconds": 8.3,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_rainSnare": {
+   "weapon": "bow",
+   "name": "화살 그물",
+   "conceptKo": "화살비가 그물처럼 오므라들어 적을 한데 묶는다",
+   "scene": "Uncluttered: in the centre, a ring of arrows stuck in the floor, and a NET of clearly visible pale steel-blue lines stretched between the arrows is closing like a drawstring bag, pulling three soldiers tightly together back-to-back in the middle, bound. A few more arrows fall from above as pale-gold streaks. The hero stands small at the left edge with the longbow.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:56",
+     "http": 200,
+     "seconds": 8.5,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:43",
+     "http": 200,
+     "seconds": 7.5,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 18
+  },
+  "bow_b_rainEcho": {
+   "weapon": "bow",
+   "name": "이어지는 비",
+   "conceptKo": "쓰러진 자리에 화살 한 다발이 더 떨어진다",
+   "scene": "Where a soldier just fell in the centre, a whole bundle of extra arrows falls from the sky onto the spot, pale-gold streaks from above, arrows sticking in the floor around the fallen body.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:27:58",
+     "http": 200,
+     "seconds": 7.4,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_scatterVolley": {
+   "weapon": "bow",
+   "name": "흩날리는 살",
+   "conceptKo": "연사에 쓰러진 적 자리에서 화살이 꽃처럼 흩어진다",
+   "scene": "From the spot of a falling soldier in the centre, arrows burst outward in all directions like a blooming flower of pale-gold streaks; the hero rapid-firing at the left.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:28:00",
+     "http": 200,
+     "seconds": 8.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_rapidStride": {
+   "weapon": "bow",
+   "name": "걸으며 연사",
+   "conceptKo": "걸음을 멈추지 않고 쏟아붓는 연사",
+   "scene": "The hero walks forward steadily in mid-stride while rapid-firing the longbow to the right, a row of several arrows in flight as pale-gold streaks, small dust puffs at his feet.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:28:00",
+     "http": 200,
+     "seconds": 8.1,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_fireArrow": {
+   "weapon": "bow",
+   "name": "불화살 한 발",
+   "conceptKo": "완벽하게 놓은 화살이 술 웅덩이 줄을 불태운다",
+   "scene": "A perfect arrow flies low from the hero on the left over a row of amber liquor puddles, each puddle bursting into amber-orange flame along its path.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:28:05",
+     "http": 200,
+     "seconds": 8.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_starWell": {
+   "weapon": "bow",
+   "name": "별 표적",
+   "conceptKo": "하늘 화살 자리로 둘레 적이 빨려 든다",
+   "scene": "A sky arrow lands in the floor in the centre, and a swirling pale-gold starlight vortex pulls three surrounding soldiers into the spot.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:28:06",
+     "http": 200,
+     "seconds": 7.8,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "bow_b_starDrunk": {
+   "weapon": "bow",
+   "name": "술별",
+   "conceptKo": "하늘 화살이 술 웅덩이에 떨어져 불꽃이 핀다",
+   "scene": "A glowing sky arrow falls like a shooting star into a liquor puddle, which bursts into a bloom of amber-orange fire; a soldier recoils.",
+   "pair": null,
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:28:09",
+     "http": 200,
+     "seconds": 8.2,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  },
+  "res_bow_weight": {
+   "weapon": "bow",
+   "name": "공명 말뚝 박기",
+   "conceptKo": "밀쳐 내거나 끌어모은 적에게 화살이 따라 꽂혀 묶는다",
+   "scene": "Uncluttered: the hero on the left has just shot (bow still raised); a single shield soldier, knocked backwards, is being pinned to the floor by one huge, thick stake-like arrow plunging down from above through his shoulder into the flagstones; pale steel-blue binding lines run from the stake to the floor; cracks around the stake.",
+   "pair": [
+    "b_pointBlank",
+    "b_rainSnare"
+   ],
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:28:09",
+     "http": 200,
+     "seconds": 8.2,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    },
+    {
+     "tag": "c",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": "Keep the picture SIMPLE and uncluttered so it reads instantly as a tiny icon: no extra debris, no extra enemies, clear empty space around the main action. The background outside the vignette MUST be flat pure magenta #FF00FF.",
+     "time": "2026-10-06T01:30:49",
+     "http": 200,
+     "seconds": 7.7,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "c",
+   "handFix": 0
+  },
+  "res_bow_breach": {
+   "weapon": "bow",
+   "name": "공명 덫 비",
+   "conceptKo": "화살 덫에 묶인 적 위로 하늘 화살이 떨어진다",
+   "scene": "A soldier caught in an arrow trap on the floor, legs bound by upright arrows with pale steel-blue lines, while a glowing sky arrow plunges straight down on top of him from above.",
+   "pair": [
+    "b_arrowTrap",
+    "b_dropShot"
+   ],
+   "generations": [
+    {
+     "tag": "b",
+     "model": "gemini-3.1-flash-image",
+     "ref": "ref/ref_bow.png",
+     "extra": null,
+     "time": "2026-10-06T01:28:13",
+     "http": 200,
+     "seconds": 7.9,
+     "finishReason": "STOP",
+     "modelVersion": "gemini-3.1-flash-image",
+     "rawSize": [
+      1024,
+      1024
+     ],
+     "ok": true
+    }
+   ],
+   "chosen": "b",
+   "handFix": 0
+  }
+ }
+}

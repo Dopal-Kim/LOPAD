@@ -1,0 +1,331 @@
+{
+ "cards": 65,
+ "fail": 0,
+ "report": {
+  "katana_k_shadowThrust": {
+   "colors": 44,
+   "opaquePx": 8350,
+   "errors": []
+  },
+  "katana_k_edgeLift": {
+   "colors": 40,
+   "opaquePx": 6229,
+   "errors": []
+  },
+  "katana_k_parryShove": {
+   "colors": 38,
+   "opaquePx": 9689,
+   "errors": []
+  },
+  "katana_k_bladeBind": {
+   "colors": 44,
+   "opaquePx": 8859,
+   "errors": []
+  },
+  "katana_k_shadowVault": {
+   "colors": 39,
+   "opaquePx": 8481,
+   "errors": []
+  },
+  "katana_k_issenBack": {
+   "colors": 43,
+   "opaquePx": 7420,
+   "errors": []
+  },
+  "katana_k_iaiWave": {
+   "colors": 35,
+   "opaquePx": 8378,
+   "errors": []
+  },
+  "katana_k_iaiChain": {
+   "colors": 48,
+   "opaquePx": 9663,
+   "errors": []
+  },
+  "katana_bloodGale": {
+   "colors": 49,
+   "opaquePx": 9509,
+   "errors": []
+  },
+  "katana_liquorWhirl": {
+   "colors": 45,
+   "opaquePx": 10278,
+   "errors": []
+  },
+  "katana_k_sparkCleave": {
+   "colors": 45,
+   "opaquePx": 8672,
+   "errors": []
+  },
+  "katana_k_groundPin": {
+   "colors": 43,
+   "opaquePx": 8297,
+   "errors": []
+  },
+  "katana_k_moonRelay": {
+   "colors": 42,
+   "opaquePx": 8900,
+   "errors": []
+  },
+  "katana_k_moonPools": {
+   "colors": 37,
+   "opaquePx": 8488,
+   "errors": []
+  },
+  "res_katana_insight": {
+   "colors": 45,
+   "opaquePx": 8563,
+   "errors": []
+  },
+  "res_katana_breach": {
+   "colors": 51,
+   "opaquePx": 9208,
+   "errors": []
+  },
+  "res_katana_chain": {
+   "colors": 41,
+   "opaquePx": 8685,
+   "errors": []
+  },
+  "greatsword_g_launch": {
+   "colors": 41,
+   "opaquePx": 9384,
+   "errors": []
+  },
+  "greatsword_g_swatBack": {
+   "colors": 37,
+   "opaquePx": 8021,
+   "errors": []
+  },
+  "greatsword_g_quakeGuard": {
+   "colors": 40,
+   "opaquePx": 8470,
+   "errors": []
+  },
+  "greatsword_g_guardPull": {
+   "colors": 37,
+   "opaquePx": 10630,
+   "errors": []
+  },
+  "greatsword_g_shoulderFlip": {
+   "colors": 37,
+   "opaquePx": 8642,
+   "errors": []
+  },
+  "greatsword_g_ramWall": {
+   "colors": 37,
+   "opaquePx": 8549,
+   "errors": []
+  },
+  "greatsword_g_boilingSteel": {
+   "colors": 40,
+   "opaquePx": 10305,
+   "errors": []
+  },
+  "greatsword_g_crackPull": {
+   "colors": 40,
+   "opaquePx": 9346,
+   "errors": []
+  },
+  "greatsword_splitRoad": {
+   "colors": 40,
+   "opaquePx": 9213,
+   "errors": []
+  },
+  "greatsword_g_leapToss": {
+   "colors": 37,
+   "opaquePx": 10505,
+   "errors": []
+  },
+  "greatsword_g_crushedBreath": {
+   "colors": 41,
+   "opaquePx": 9701,
+   "errors": []
+  },
+  "greatsword_jarCrush": {
+   "colors": 41,
+   "opaquePx": 9277,
+   "errors": []
+  },
+  "greatsword_g_rageRoar": {
+   "colors": 41,
+   "opaquePx": 10421,
+   "errors": []
+  },
+  "greatsword_g_rageFire": {
+   "colors": 44,
+   "opaquePx": 8857,
+   "errors": []
+  },
+  "res_greatsword_weight": {
+   "colors": 35,
+   "opaquePx": 8853,
+   "errors": []
+  },
+  "res_greatsword_insight": {
+   "colors": 42,
+   "opaquePx": 11037,
+   "errors": []
+  },
+  "dagger_d_pullThrow": {
+   "colors": 39,
+   "opaquePx": 8563,
+   "errors": []
+  },
+  "dagger_d_brandChain": {
+   "colors": 43,
+   "opaquePx": 9050,
+   "errors": []
+  },
+  "dagger_d_shadowKnot": {
+   "colors": 39,
+   "opaquePx": 9690,
+   "errors": []
+  },
+  "dagger_d_stepBack": {
+   "colors": 37,
+   "opaquePx": 8104,
+   "errors": []
+  },
+  "dagger_d_dashBrand": {
+   "colors": 39,
+   "opaquePx": 9547,
+   "errors": []
+  },
+  "dagger_d_dashPierce": {
+   "colors": 38,
+   "opaquePx": 8961,
+   "errors": []
+  },
+  "dagger_d_flurryPull": {
+   "colors": 42,
+   "opaquePx": 8241,
+   "errors": []
+  },
+  "dagger_d_sparkFlurry": {
+   "colors": 42,
+   "opaquePx": 9461,
+   "errors": []
+  },
+  "dagger_twinBrand": {
+   "colors": 42,
+   "opaquePx": 8509,
+   "errors": []
+  },
+  "dagger_d_cloneShield": {
+   "colors": 38,
+   "opaquePx": 9698,
+   "errors": []
+  },
+  "dagger_d_galeReturn": {
+   "colors": 38,
+   "opaquePx": 7884,
+   "errors": []
+  },
+  "dagger_liquorThrow": {
+   "colors": 43,
+   "opaquePx": 8046,
+   "errors": []
+  },
+  "dagger_d_ghostBind": {
+   "colors": 37,
+   "opaquePx": 10026,
+   "errors": []
+  },
+  "dagger_d_ghostFire": {
+   "colors": 31,
+   "opaquePx": 7740,
+   "errors": []
+  },
+  "res_dagger_vital": {
+   "colors": 43,
+   "opaquePx": 9753,
+   "errors": []
+  },
+  "res_dagger_breach": {
+   "colors": 36,
+   "opaquePx": 8341,
+   "errors": []
+  },
+  "bow_b_pointBlank": {
+   "colors": 41,
+   "opaquePx": 8377,
+   "errors": []
+  },
+  "bow_b_ricochet": {
+   "colors": 40,
+   "opaquePx": 7076,
+   "errors": []
+  },
+  "bow_b_perfectPin": {
+   "colors": 38,
+   "opaquePx": 9152,
+   "errors": []
+  },
+  "bow_b_fullBounce": {
+   "colors": 39,
+   "opaquePx": 10494,
+   "errors": []
+  },
+  "bow_b_dropShot": {
+   "colors": 41,
+   "opaquePx": 8664,
+   "errors": []
+  },
+  "bow_b_arrowTrap": {
+   "colors": 34,
+   "opaquePx": 8409,
+   "errors": []
+  },
+  "bow_b_rainSnare": {
+   "colors": 43,
+   "opaquePx": 8164,
+   "errors": []
+  },
+  "bow_b_rainEcho": {
+   "colors": 37,
+   "opaquePx": 9512,
+   "errors": []
+  },
+  "bow_b_scatterVolley": {
+   "colors": 38,
+   "opaquePx": 9585,
+   "errors": []
+  },
+  "bow_b_rapidStride": {
+   "colors": 31,
+   "opaquePx": 6339,
+   "errors": []
+  },
+  "bow_b_skewer": {
+   "colors": 40,
+   "opaquePx": 7329,
+   "errors": []
+  },
+  "bow_fireArrow": {
+   "colors": 42,
+   "opaquePx": 9706,
+   "errors": []
+  },
+  "bow_b_starWell": {
+   "colors": 33,
+   "opaquePx": 9871,
+   "errors": []
+  },
+  "bow_b_starDrunk": {
+   "colors": 40,
+   "opaquePx": 7462,
+   "errors": []
+  },
+  "res_bow_weight": {
+   "colors": 39,
+   "opaquePx": 8030,
+   "errors": []
+  },
+  "res_bow_breach": {
+   "colors": 30,
+   "opaquePx": 6804,
+   "errors": []
+  }
+ }
+}
