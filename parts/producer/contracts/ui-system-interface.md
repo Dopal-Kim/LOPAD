@@ -690,3 +690,9 @@ interface UiRitual {
 - `snapshot.door`(UiDoor{side,phase closed|open|walkOut|inside|walkIn,kind node|floor|training,screen}) — walkOut/inside/walkIn 동안 UI 는 조작 안내·키 막대를 숨김. `UiExitHint.side`.
 - 메뉴 무장: `UiMenu.openedAt/armMs`·`UiRoute.openedAt/armMs`(performance.now ms, armMs 400) — max(openedAt, menuShown)+armMs 전 select·chooseNode 무시(같은 id 다시 그리기는 처음 시각 유지, meta 예외). 명령 `uiCommands.menuShown(id|'route')`(UI 가 메뉴를 그리기 시작한 순간 — 카드 등장 시작. UI 는 armMs+30ms 뒤에 풀어 시스템보다 늦게 받는다). 메뉴·지도가 뜨는 프레임에 입력 버퍼 비움, 열릴 때 누르던 키는 뗀 뒤만. `?menuguard=0` 끄기.
 - 이벤트 `door:opened`·`door:walk{phase out|in|back}`(음향 문 소리 트리거).
+
+## 24. 62 루프 2 시스템 G — 자잘한 요청
+코드 원문: `src/contract/ui.ts` '62 루프 2 시스템 G' 절 · `uiLoop2.ts` `UiHeroScreen`.
+- 새 필드 `UiSnapshot.hero?: UiHeroScreen | null`({head, body, feet, visible} 논리 960×540 — 문 안·알파 0 이면 visible false).
+- 값 채움: 상인 말하기 'shopTalk' 에 `UiMenu.event`(id 'merchant', speaker '종군 상인', portrait npc_merchant 0프레임, greet), 외상 줄 `costs:[{kind:'curse'}]`, `UiShopOffer.screen` = 보이는 물건 그림 윗변, `UiShopPurchased.stallId` = 노점 칸 id(글자 목록·다시 진열은 null), 결과 컷(cutKey)이 있으면 STORY 'event' 자막 생략, 기억 장 그림(소품 4·모양/개성 8)은 부팅 로드라 타이틀·결과에서도 iconKey 채워짐.
+- `data/curses.json` 화면 문구 용어집 정리(장터 값·독주·체력·유품).
