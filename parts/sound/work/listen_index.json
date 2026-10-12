@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedBy": "parts/sound/work/build.py → listen_index.py (manifest 기준)",
-  "note": "들어보기 페이지 입력. 경로는 저장소 루트 기준. gainDb 는 SFX/BGM 버스 기준 권장 상대 음량(manifest 와 같음) — 청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. round \"60\" = 60라운드 새 소리, \"61\" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, \"61-2\" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), \"61-4\" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍, P12 무기 성장 — 각성·개성 발현·게이지), \"61-5\" = 61라운드 단계 5(P13 — 기둥 무너짐·기둥 부딪힘 다시·보스 포물선 술병·바닥 전표 떨어짐/줍기·소모품 줍기, 개성 발동 행동 갈래 15·공명 켜짐/발동 — 주 타격음 위 특색 층), \"61-6\" = 61라운드 단계 6(P14 — 그림 속 입구 전환 enter·exit·floor, 수련장 과제 종·방 도장, 수련장 BGM training), \"62-2\" = 62라운드 루프 2(P16 — 메뉴 공통 ui_*, 적 등장 예고, 마지막 처치·사망 슬로모, 노드 시련 성공/실패, 1층 끝 결산, 기억 해금, 유품, NPC 말 걸기, 설정 토글, 상점 사기·다시 진열 다시 — BGM 은 음량만 바꿈), 설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), status \"archived\" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.",
+  "note": "들어보기 페이지 입력. 경로는 저장소 루트 기준. gainDb 는 SFX/BGM 버스 기준 권장 상대 음량(manifest 와 같음) — 청취 페이지에서는 원본(피크 -6 dBFS) 그대로 또는 gainDb 적용 두 방식 중 고를 수 있게 하면 비교가 쉽다. round \"60\" = 60라운드 새 소리, \"61\" = 61라운드 품질 패스(같은 키 다시 만듦)·변주·1층 BGM, \"61-2\" = 61라운드 단계 2·3(신규 적 2종·보스 만취 패스·발도 검기 단수·가드 — 새로 만들거나 다시 만들거나 보관), \"61-4\" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍, P12 무기 성장 — 각성·개성 발현·게이지), \"61-5\" = 61라운드 단계 5(P13 — 기둥 무너짐·기둥 부딪힘 다시·보스 포물선 술병·바닥 전표 떨어짐/줍기·소모품 줍기, 개성 발동 행동 갈래 15·공명 켜짐/발동 — 주 타격음 위 특색 층), \"61-6\" = 61라운드 단계 6(P14 — 그림 속 입구 전환 enter·exit·floor, 수련장 과제 종·방 도장, 수련장 BGM training), \"62-2\" = 62라운드 루프 2(P16 — 메뉴 공통 ui_*, 적 등장 예고, 마지막 처치·사망 슬로모, 노드 시련 성공/실패, 1층 끝 결산, 기억 해금, 유품, NPC 말 걸기, 설정 토글, 상점 사기·다시 진열 다시 — BGM 은 음량만 바꿈), \"62-3\" = 62라운드 루프 3(P17 — 노드 이동 짧은 먹 번짐 암전 transition_fade), 설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), status \"archived\" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.",
   "mixing": {
     "masterDb": 0.0,
     "sfxBusDb": 0.0,
@@ -59,6 +59,7 @@
         "sfx/transition_enter": 1,
         "sfx/transition_exit": 1,
         "sfx/transition_floor": 1,
+        "sfx/transition_fade": 1,
         "sfx/training_task": 2,
         "sfx/training_stamp": 1,
         "sfx/enemy_incoming": 2,
@@ -332,7 +333,7 @@
     },
     "transition": {
       "skipFadeMs": 150,
-      "note": "61-6 그림 속 입구 전환(TRANSITION_BEGIN): 연출을 건너뛰면(아무 키) 재생 중인 전환음을 skipFadeMs 로 페이드아웃(뚝 끊지 않음). mode floor 는 transition_floor 하나만(없으면 transition_enter) — 둘을 겹치지 않는다. 전환음은 시간 축이 UI 연출에 맞춰져 있다: enter 1.10 s · floor 1.22 s 에 어둠이 덮이고 그 뒤 붓질이 걷힘, exit 0.95 s 에 액자 닫힘 — 연출 시작과 같은 순간에 재생."
+      "note": "61-6 그림 속 입구 전환(TRANSITION_BEGIN): 연출을 건너뛰면(아무 키) 재생 중인 전환음을 skipFadeMs 로 페이드아웃(뚝 끊지 않음). mode floor 는 transition_floor 하나만(없으면 transition_enter) — 둘을 겹치지 않는다. 전환음은 시간 축이 UI 연출에 맞춰져 있다: enter 1.10 s · floor 1.22 s 에 어둠이 덮이고 그 뒤 붓질이 걷힘, exit 0.95 s 에 액자 닫힘 — 연출 시작과 같은 순간에 재생. 62-3: mode fade(노드 이동 짧은 암전)는 transition_fade 하나만(없으면 transition_exit 를 −6 dB·속도 1.2) — 덕킹 규칙(전환음 → 효과음 −8 dB·BGM −4 dB)은 걸지 않는다(노드마다 울리는 0.66 s 라 곡이 출렁이지 않게. 곡이 바뀌면 시스템 BGM 교차 페이드만). 건너뛰기가 있으면 같은 skipFadeMs."
     },
     "cues": {
       "sfx/enemy_incoming": {
@@ -378,6 +379,11 @@
       "sfx/relic_take": {
         "peakMs": 220,
         "note": "62-2: 0.22 s 쇠붙이를 쥐는 '철컥' — 카드가 손으로 들어가는 순간"
+      },
+      "sfx/transition_fade": {
+        "peakMs": 380,
+        "alignTo": "TRANSITION_BEGIN.durationMs",
+        "note": "62-3 시스템 H: 0~0.38 s 먹이 번지는 쉭(덮기), 0.38 s 다 덮임(작은 '툭'), 0.42~0.64 s 걷힐 때 숨. TRANSITION_BEGIN 과 같은 순간 재생. durationMs(UI 0.25~0.6 s 로 자름)가 400 에서 크게 다르면 재생 속도 = clamp(380 / durationMs, 0.85, 1.2) 권장 — 재시작이 길어 걷기가 늦으면 숨이 먼저 지나가도 작아서 어색하지 않음(걷기 시작에 다시 울리지 않는다)"
       },
       "sfx/trial_win": {
         "peakMs": 0,
@@ -561,7 +567,7 @@
     {
       "id": "p16",
       "label": "1층 결 · 메뉴 공통 · 등장 예고 · 슬로모 · 시련 · 결산 · 기억 · 유품 · NPC (62-2 P16)",
-      "count": 17
+      "count": 18
     },
     {
       "id": "pickup",
@@ -584,7 +590,7 @@
       "count": 4
     }
   ],
-  "total": 341,
+  "total": 342,
   "entries": [
     {
       "key": "hit_enemy",
@@ -7141,6 +7147,27 @@
       "round": "62-2",
       "status": "active",
       "priority": 1
+    },
+    {
+      "key": "transition_fade",
+      "id": "sfx/transition_fade",
+      "kind": "sfx",
+      "group": "p16",
+      "subgroup": "노드 이동 · 짧은 먹 번짐 암전 (62-3 시스템 H)",
+      "desc": "62 시스템 H 새 — 노드 이동 짧은 먹 번짐 암전(지도에서 노드를 고른 뒤 · 수련장 방 고르기·방 → 지도 마당 공통 — §25)",
+      "note": "62 시스템 H 새 — 노드 이동 짧은 먹 번짐 암전(지도에서 노드를 고른 뒤 · 수련장 방 고르기·방 → 지도 마당 공통 — §25). 0 s 먹이 종이에 번지는 부드러운 '쉭'(저역통과 노이즈, 260 Hz→1.5 kHz 로 천천히 열림 — 어택 없음) + 젖은 먹 번짐 + 마른 종이 결 몇 알갱이(1.8~4 kHz, 아주 작게) → **0.38 s** 화면이 다 덮임: 쉭이 70 ms 에 닫히며 먹이 자리 잡는 아주 작은 '툭'(140→80 Hz, 500 Hz 위 깎음) → 0.42~0.64 s 걷힐 때 아주 작은 숨 '후'(450→1.1 kHz, 들숨처럼 올랐다 빠짐). 0.68 s. 4.5 kHz 위·딱 소리 없음 — 노드마다 들어도 지치지 않게 작게(권장 -10 dB — 100 ms 최대 RMS ≈ -27 dBFS, door_walk_in -23 보다 4 dB 아래). transition_exit ×0.5·속도 1.2 대체를 대신",
+      "trigger": "TRANSITION_BEGIN{mode:fade}",
+      "durationMs": 680,
+      "samples": 29988,
+      "sampleRate": 44100,
+      "channels": 1,
+      "loop": false,
+      "gainDb": -10,
+      "ogg": "assets/audio/sfx/transition_fade.ogg",
+      "m4a": "assets/audio/sfx/transition_fade.m4a",
+      "round": "62-3",
+      "status": "active",
+      "priority": 3
     },
     {
       "key": "pickup_gold",

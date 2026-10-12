@@ -69,6 +69,7 @@ def settings(variant_groups):
                                **{'sfx/trait_%s' % a: 2 for a in TRAIT_ACTS},
                                'sfx/resonance_proc': 2, 'sfx/resonance_on': 1,
                                'sfx/transition_enter': 1, 'sfx/transition_exit': 1, 'sfx/transition_floor': 1,
+                               'sfx/transition_fade': 1,
                                'sfx/training_task': 2, 'sfx/training_stamp': 1,
                                'sfx/enemy_incoming': 2, 'sfx/last_kill_slow': 1, 'sfx/death_slow': 1,
                                'sfx/trial_win': 1, 'sfx/trial_fail': 1, 'sfx/floor_end_sting': 1,
@@ -158,7 +159,10 @@ def settings(variant_groups):
             note='61-6 그림 속 입구 전환(TRANSITION_BEGIN): 연출을 건너뛰면(아무 키) 재생 중인 전환음을 skipFadeMs 로 '
                  '페이드아웃(뚝 끊지 않음). mode floor 는 transition_floor 하나만(없으면 transition_enter) — 둘을 겹치지 않는다. '
                  '전환음은 시간 축이 UI 연출에 맞춰져 있다: enter 1.10 s · floor 1.22 s 에 어둠이 덮이고 그 뒤 붓질이 걷힘, '
-                 'exit 0.95 s 에 액자 닫힘 — 연출 시작과 같은 순간에 재생.'),
+                 'exit 0.95 s 에 액자 닫힘 — 연출 시작과 같은 순간에 재생. '
+                 '62-3: mode fade(노드 이동 짧은 암전)는 transition_fade 하나만(없으면 transition_exit 를 −6 dB·속도 1.2) — '
+                 '덕킹 규칙(전환음 → 효과음 −8 dB·BGM −4 dB)은 걸지 않는다(노드마다 울리는 0.66 s 라 곡이 출렁이지 않게. '
+                 '곡이 바뀌면 시스템 BGM 교차 페이드만). 건너뛰기가 있으면 같은 skipFadeMs.'),
         cues={
             'sfx/enemy_incoming': dict(peakMs=1000, alignTo='ENEMY_INCOMING.delayMs',
                                        note='62-2: 파일 1.00 s 에 적이 일어서는 \'훅·둥\'. 시작 = max(0, delayMs − 1000) ms 뒤 '
@@ -181,6 +185,11 @@ def settings(variant_groups):
                                           '재생 속도 = clamp(650 / ms, 0.85, 1.15) 권장'),
             'sfx/door_walk_back': dict(peakMs=400, note='62-2 시스템 E: 걸음 0·0.22·0.40 s — 문턱 안 1.8칸으로 물러남'),
             'sfx/relic_take': dict(peakMs=220, note='62-2: 0.22 s 쇠붙이를 쥐는 \'철컥\' — 카드가 손으로 들어가는 순간'),
+            'sfx/transition_fade': dict(peakMs=380, alignTo='TRANSITION_BEGIN.durationMs',
+                                        note='62-3 시스템 H: 0~0.38 s 먹이 번지는 쉭(덮기), 0.38 s 다 덮임(작은 \'툭\'), 0.42~0.64 s 걷힐 때 숨. '
+                                             'TRANSITION_BEGIN 과 같은 순간 재생. durationMs(UI 0.25~0.6 s 로 자름)가 400 에서 크게 다르면 '
+                                             '재생 속도 = clamp(380 / durationMs, 0.85, 1.2) 권장 — 재시작이 길어 걷기가 늦으면 숨이 먼저 지나가도 '
+                                             '작아서 어색하지 않음(걷기 시작에 다시 울리지 않는다)'),
             'sfx/trial_win': dict(peakMs=0, note='62-2: 0 s 完 도장 \'꾹\'. 노드 마지막 처치와 같은 프레임이면(마지막 처치 슬로모 280 ms) '
                                                  '슬로모가 풀린 뒤 재생하면 \'웅\'과 도장·종이 겹치지 않는다(도장 연출이 늦게 뜨면 그 순간에)'),
         },

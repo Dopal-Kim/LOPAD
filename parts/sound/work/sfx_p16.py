@@ -2,6 +2,7 @@
 """
 62라운드 루프 2 (P16) — 1층 결 효과음: 메뉴 공통 · 적 등장 예고 · 슬로모(마지막 처치·사망) · 노드 시련 성공/실패 ·
 1층 끝 결산 · 메타 '기억' 해금 · 상점(사기 다시·다시 진열 다시) · NPC 말 걸기 · 유품 획득 · 설정 토글. round '62-2'.
++ 7절 외벽 문(62-2E) · 8절 노드 이동 짧은 먹 번짐 암전 transition_fade(62 루프 3 시스템 H, round '62-3').
 
 build.py 가 sfx_p14 다음(마지막)에 import 한다. 시드 = 1000 + 등록 순서 — 새 소리는 끝에 붙으므로 기존 312개는 바이트 불변,
 `redo()` 로 다시 만든 shop_buy·shop_reroll 은 원래 자리(시드)를 지킨다. **새 효과음은 이 파일 끝에만.**
@@ -463,3 +464,41 @@ def _door_walk_back(sr, rng):
 
 fallback('exit_open', "노드 지도 층 · 수련장의 출구 열림은 door_open(door:opened)이 대신 — 같은 순간 둘 다 울리지 않음. "
                       "이 소리는 방+복도 층의 옛 발판 출구(STORY exitOpened)용으로 남김")
+
+
+# ===========================================================================
+# 8. 짧은 먹 번짐 암전 (62 시스템 H — 계약 ui-system-interface §25)
+#    노드 이동 = 지도에서 고르기 → TRANSITION_BEGIN{mode:'fade', durationMs≈400} → UI 먹 번짐 덮기(≈0.4 s)
+#    → COVERED → 재시작 → READY → 0.3 s 걷기 → END → 반대편 문 입장(door_walk_in). 노드 이동마다 울리므로 작고 부드럽게.
+# ===========================================================================
+
+def _ink_hush(sr, rng, dur, f0, f1, cover, cut=0.07):
+    """먹이 번지는 '쉭': 저역통과 노이즈의 차단 주파수가 f0 → f1 로 천천히 열리며 cover 초까지 부풀고, cut 초에 걸쳐 닫힘(덮임).
+    어택 없음 — 곡선(지수 1.7)으로 차오른다."""
+    n = sec(sr, dur)
+    s = svf(noise(sr, dur, rng), sr, sweep(sr, n, f0, f1), 0.75, 'low')
+    k = sec(sr, cover)
+    nc = max(1, sec(sr, cut))
+    env = [((i / k) ** 1.7) if i < k else max(0.0, 1.0 - (i - k) / nc) ** 1.4 for i in range(n)]
+    return mul(s, env)
+
+
+@sfx16('transition_fade', 'TRANSITION_BEGIN{mode:fade}', "62 시스템 H 새 — 노드 이동 짧은 먹 번짐 암전(지도에서 노드를 고른 뒤 · 수련장 방 고르기·방 → 지도 마당 공통 — §25). 0 s 먹이 종이에 번지는 부드러운 '쉭'(저역통과 노이즈, 260 Hz→1.5 kHz 로 천천히 열림 — 어택 없음) + 젖은 먹 번짐 + 마른 종이 결 몇 알갱이(1.8~4 kHz, 아주 작게) → **0.38 s** 화면이 다 덮임: 쉭이 70 ms 에 닫히며 먹이 자리 잡는 아주 작은 '툭'(140→80 Hz, 500 Hz 위 깎음) → 0.42~0.64 s 걷힐 때 아주 작은 숨 '후'(450→1.1 kHz, 들숨처럼 올랐다 빠짐). 0.68 s. 4.5 kHz 위·딱 소리 없음 — 노드마다 들어도 지치지 않게 작게(권장 -10 dB — 100 ms 최대 RMS ≈ -27 dBFS, door_walk_in -23 보다 4 dB 아래). transition_exit ×0.5·속도 1.2 대체를 대신", -10, category='world')
+def _transition_fade(sr, rng):
+    dur = 0.66
+    cover = 0.38
+    s = zeros(sec(sr, dur))
+    # 0~0.38 s 먹이 번지는 쉭 + 젖은 먹 번짐(아래 바닥) + 종이 결
+    mix_into(s, _ink_hush(sr, rng, 0.46, 260, 1500, cover), 0, 0.8)
+    mix_into(s, ink_bloom(sr, rng, 0.52, 200, 700), 0, 0.35)
+    mix_into(s, lowpass(paper(sr, rng, 0.34, 18, (1800, 4000), 1.0, bed=0.15), sr, 4500), sec(sr, 0.04), 0.22)
+    # 0.38 s 덮임 — 먹이 자리 잡는 아주 작은 '툭'
+    mix_into(s, lowpass(blot(sr, 140, 80), sr, 500), sec(sr, cover - 0.005), 0.22)
+    # 0.42~0.64 s 걷힐 때 아주 작은 숨
+    n = sec(sr, 0.22)
+    br = svf(noise(sr, 0.22, rng), sr, sweep(sr, n, 450, 1100), 0.9, 'band')
+    mix_into(s, mul(br, env_adsr(sr, 0.22, 0.09, 0.0, 1.0, 0.12, curve=1.3)), sec(sr, 0.42), 0.16)
+    return tail(lowpass(reverb(s, sr, size=0.7, decay=0.4, wet=0.14), sr, 4500), sr, 0.02)
+
+
+SFX['transition_fade']['round'] = '62-3'   # 62라운드 루프 3(P17 묶음 B) — 이 파일 끝에 이어 붙임(시드 순서 유지)

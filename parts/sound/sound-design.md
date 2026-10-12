@@ -764,6 +764,18 @@
 - 음량(100 ms 창 최대 RMS + gainDb): `door_open` -20 dBFS(대신하는 exit_open -13 보다 작게 — 마지막 처치 슬로모·시련 성공 -17 과 겹치는 순간이 잦다), 발소리 -23~-24(npc_talk -22 · transition_exit -24 와 같은 자리 — 이어지는 전환음 아래).
 - 보스 처치 뒤 BGM 정적(`mixing.bgmBossDefeat.silentUntil` = `EXIT_OPENED`)은 그대로 — 2층 이상 층 출구가 외벽 문(`door:opened{kind:floor}`)이면 시스템이 그 순간도 '출구 열림'으로 본다(제안).
 
+### 4-17. 62라운드 루프 3 — 시스템 H 노드 이동 짧은 먹 번짐 암전 (새 1)
+근거: 계약 `ui-system-interface.md` §25 — 문 안('inside')에서 곧바로 지도, 고르면 `TRANSITION_BEGIN{mode:'fade', durationMs≈400}` → UI 먹 번짐 덮기 → COVERED → 재시작 → READY → 0.3 s 걷기 → END → 반대편 문 입장(`door_walk_in`). 수련장 방 고르기·방 → 지도 마당도 'fade'. 코드 `work/sfx_p16.py` 8절.
+
+| id | 길이 | gainDb | 우선순위 | 트리거 | 시간 축 · 재료 |
+|---|---|---|---|---|---|
+| `transition_fade` | 0.68 s | -10 | 3 | `TRANSITION_BEGIN{mode:fade}` (`transition:begin`) | 0~0.38 s 먹이 번지는 '쉭'(저역통과 노이즈 260 Hz→1.5 kHz 로 천천히 열림, 지수 1.7 로 차오름 — 어택 없음) + 젖은 먹 번짐(200~700 Hz) + 마른 종이 결 알갱이(1.8~4 kHz, 초당 18, 아주 작게) → **0.38 s 다 덮임**: 쉭이 70 ms 에 닫힘 + 먹이 자리 잡는 아주 작은 '툭'(140→80 Hz, 500 Hz 위 깎음) → 0.42~0.64 s 걷힐 때 숨 '후'(450→1.1 kHz 대역, 작게). 전체 4.5 kHz 저역통과 |
+
+- 노드마다 듣는 소리라 이웃보다 작게: 100 ms 창 최대 RMS + gainDb ≈ -27 dBFS(`door_walk_out/in` -23, `transition_exit` -24, 대체안 transition_exit ×0.5 ≈ -30). 고역·딱 소리 없음.
+- `mixing.cues.transition_fade` peakMs 380(alignTo `TRANSITION_BEGIN.durationMs`) — durationMs 가 400 에서 크게 다르면 재생 속도 clamp(380/durationMs, 0.85, 1.2). 재시작이 길어 걷기가 늦어도 숨은 작아서 먼저 지나가도 됨(걷기 시작에 다시 울리지 않는다).
+- 덕킹 없음(61-6 전환음 규칙은 enter·exit·floor 만) — 0.68 s 짧은 암전마다 곡이 출렁이지 않게. 곡이 바뀌면 시스템 BGM 교차 페이드만. 동시 1.
+- 지도에서 곳을 가리킬 때 미리보기 카드 바뀜 = 커서 이동 `ui_move` 와 같은 순간 → 별도 소리 없음.
+
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).
 - 같은 효과음이 20 ms 안에 여러 번 요청되면 1회만 재생(산탄·난무·충격파 중복 방지) — `dedupeMs: 20`, 변주는 원본 그룹으로 센다.

@@ -72,7 +72,7 @@ EXPLICIT = {
     'p14': ['transition_enter', 'transition_exit', 'transition_floor', 'training_task', 'training_stamp'],
     'p16': ['ui_move', 'ui_select', 'ui_back', 'ui_toggle', 'enemy_incoming', 'last_kill_slow', 'death_slow',
             'trial_win', 'trial_fail', 'floor_end_sting', 'memory_unlock', 'relic_take', 'npc_talk',
-            'door_walk_out', 'door_walk_in', 'door_walk_back'],
+            'door_walk_out', 'door_walk_in', 'door_walk_back', 'transition_fade'],
     'ui': ['menu_move', 'menu_select', 'menu_cancel', 'fate_decided', 'evolve', 'reinforce', 'player_death'],
 }
 
@@ -157,6 +157,8 @@ SUBGROUP = {
     'memory_unlock': '메타 · 기억 해금', 'relic_take': '유품 · 획득', 'npc_talk': 'NPC · 말 걸기',
     'door_open': '외벽 문 · 열림 (62-2 시스템 E)', 'door_walk_out': '외벽 문 · 걸어 나감',
     'door_walk_in': '외벽 문 · 걸어 들어옴', 'door_walk_back': '외벽 문 · 지도 취소로 물러남',
+    # 62 루프 3 — 시스템 H 짧은 암전
+    'transition_fade': '노드 이동 · 짧은 먹 번짐 암전 (62-3 시스템 H)',
     'exit_open': '폴백 (62-2 외벽 문 대체 — 방+복도 층 발판용)',
     'menu_move': '폴백 (62-2 대체)', 'menu_select': '폴백 (62-2 대체)', 'menu_cancel': '폴백 (62-2 대체)',
     'player_death': '폴백 (62-2 대체)', 'grade_perfect': '폴백 (62-2 대체)',
@@ -219,7 +221,7 @@ def _round(name, kind, sfx_specs):
     if kind == 'bgm':
         return '61' if name.startswith('f1_') else '61-6' if name == 'training' else ''
     spec = sfx_specs[name]
-    for r in ('62-2', '61-6', '61-5', '61-4'):
+    for r in ('62-3', '62-2', '61-6', '61-5', '61-4'):
         if spec.get('redone') == r or spec.get('round') == r:
             return r
     if spec.get('redone') == '61-2' or spec.get('archived') == '61-2' or spec['fn'].__module__ == 'sfx_stage61':
@@ -277,6 +279,7 @@ def write(root, manifest_path, sfx_specs, out_path=None):
              '"61-6" = 61라운드 단계 6(P14 — 그림 속 입구 전환 enter·exit·floor, 수련장 과제 종·방 도장, 수련장 BGM training), '
              '"62-2" = 62라운드 루프 2(P16 — 메뉴 공통 ui_*, 적 등장 예고, 마지막 처치·사망 슬로모, 노드 시련 성공/실패, 1층 끝 결산, '
              '기억 해금, 유품, NPC 말 걸기, 설정 토글, 상점 사기·다시 진열 다시 — BGM 은 음량만 바꿈), '
+             '"62-3" = 62라운드 루프 3(P17 — 노드 이동 짧은 먹 번짐 암전 transition_fade), '
              '설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],
