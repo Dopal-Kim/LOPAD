@@ -667,6 +667,7 @@ interface UiRitual {
 - (요청 — 시스템) 일반 적 HP 막대(피격 시만 잠깐)·피해 숫자 크기·외곽선·치명 강조는 월드 그림이라 시스템이 그린다. `UiElite.screen` 은 머리가 아니라 문장 아이콘 위 끝 좌표다(UI 오프셋 3으로 맞춤).
 
 ## 21. 62 루프 2 시스템 C — 유품·층 끝·죽음 결산·기억 (P16 §1~4)
+(시스템 F: §21~§23 의 독립 형식·상수는 `src/contract/uiLoop2.ts` 로 옮겨졌고 `ui.ts` 가 재수출한다 — import 경로는 그대로. 기존 형식에 더한 필드·이벤트·명령은 `ui.ts` 에 남음.)
 코드 원문: `src/contract/ui.ts` '62 루프 2 시스템 C' 절(`hostLoop2C.ts`). 이름·문장 = 스토리 63 팩, 화면 용어 = `story-glossary.md`.
 - 이벤트: `RELIC_GAINED 'ui:relic-gained'`(UiRelic) · `FLOOR_END 'ui:floor-end'`(UiFloorEnd — 유품·개성 발현 뒤 1.2초, 곧 RUN_ENDED cleared) · `DEATH_STARTED 'ui:death-started'`(UiDeathFx{slowMs,slowScale,inkMs,totalMs} — UI 는 HUD 를 걷음, 먹 번짐은 시스템이 그림) · `MEMORY_CHANGED 'ui:memory-changed'`(UiMemoryBook).
 - 유품: 메뉴 id 'passive' · 줄 kind 'passive' + `line.relic`(UiRelic{id,name,line(무기 문장·수치 없음),detail(상세 D),tag,rarity,level,maxLevel,levelText '{n}단계',owned,flavor,iconKey ui_relics/<id>,source}). 보스 = '군주의 유품' 3택. `snapshot.relics`. `UiChoiceKind` 는 넓히지 않음.
