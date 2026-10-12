@@ -132,3 +132,4 @@ interface SoundEntry {
 - `mixing.cues`(권장 peakMs): enemy_incoming 1000 · last_kill_slow 280 · death_slow 600 · trial_win 0(슬로모와 겹치면 280ms 뒤) · floor_end_sting 1150 · memory_unlock 450 · relic_take 220.
 - BGM 음량: `bgm/training` gainDb +1.8 → −0.5, `f1_boss_p1~p3` 0 → +3.0(`bgmBossDuckDb` 상쇄).
 - UI: `uiSound.ts` 는 manifest gainDb 를 반영하거나 기본 배율 약 0.4.
+- (62 루프 2 시스템 E 음향) 외벽 문: `door_open`(다시, 1.28s, gainDb 0, 트리거 ROOM_CLEARED → `door:opened{side,kind}` — kind 무관) · `door_walk_out` 1.05s ← `door:walk{phase:out}` · `door_walk_in` 0.85s ← `door:walk{phase:in}` · `door_walk_back` 0.65s ← `door:walk{phase:back}`. 우선순위 1, 동시 상한 각 1. 대체 관계: `door_open` ↔ `exit_open`(폴백 — 방+복도 층 옛 발판 출구 STORY exitOpened 용). 방+복도 층의 방 클리어 문 열림은 door:opened 가 없는 층에서만 ROOM_CLEARED → door_open. `mixing.cues`: door_open 520 · door_walk_out 480(alignTo DOOR_WALK.ms, 재생 속도 clamp(700/ms,0.85,1.15) 권장) · door_walk_in 600(clamp(650/ms,…)) · door_walk_back 400.
