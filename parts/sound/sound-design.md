@@ -344,7 +344,7 @@
 |---|---|---|---|---|
 | level_enter | 1.80 s | `STAGE_STARTED` | 멀리서 북, 바람, 55 Hz 드론 부풀기, 큰 리버브 | -2 |
 | door_close | 0.45 s | `ROOM_ENTERED` type:trial (문 잠길 때) | 나무 문 + 쇠 걸쇠, 돌방 울림 | -1 |
-| door_open | 0.70 s | `ROOM_CLEARED` | 걸쇠 풀림 + 나무 삐걱 | -3 |
+| door_open | 0.70 s | ~~`ROOM_CLEARED`~~ → `door:opened`(4-16) | 걸쇠 풀림 + 나무 삐걱 (4-16 에서 다시) | -3 → 0 |
 | trial_clear | 0.80 s | `STORY` notice trialClear | 북 두 번 | -3 |
 | boss_unlock | 1.20 s | `STORY` notice bossUnlocked ('본영 문 열림') | 쇠사슬 3회 + 무거운 울림 | 0 |
 | exit_open | 1.40 s | `STORY` notice exitOpened ('오르는 길 열림') | 돌 미끄러짐 + 낮은 종 | -1 |
@@ -747,6 +747,22 @@
 - **같은 소리 동시**: `enemy_incoming`·`shop_buy` 2, 나머지 새 소리 1.
 - **`mixing.cues`**(새 키, 권장값): 정점 시각 `enemy_incoming` 1000 ms(alignTo `ENEMY_INCOMING.delayMs`) · `last_kill_slow` 280 · `death_slow` 600(alignTo `ui:death-started` — 먹 번짐 시작) · `trial_win` 0(슬로모 뒤 재생 권장) · `floor_end_sting` 1150(결산 항목이 뜨기 시작) · `memory_unlock` 450 · `relic_take` 220.
 - 음량: 100 ms 창 최대 RMS 로 이웃 소리와 맞춤 — UI(`ui_move` -32 · `ui_back` -27 · `ui_select` -24 dBFS, 옛 menu_* 와 ±1.5 dB), 예고(`enemy_incoming` -18, charger_telegraph -20 · elite_appear -13 사이), 시련(`trial_win` -17 ≈ 대신하는 grade_perfect -16, `trial_fail` -21), 결산·해금·유품 -17~-18(trait_manifest -19 · grade_perfect -16 사이), 상점·NPC -22~-23(voucher_pickup -20 아래).
+
+### 4-16. 62라운드 루프 2 — 시스템 E 외벽 문 (새 3, 다시 1, 폴백 표시 1)
+근거: 도영 님 피드백('이상한 발판 그만 밟고 자연스럽게 넘어가자') → 시스템 E(`parts/system/CHANGELOG.md` '62 루프 2 시스템 E' 절, 이벤트 `src/core/eventsLoop2E.ts` 읽기 허용). 노드 출구 2×2 발판이 없어지고, 방을 비우면 진행 방향 외벽의 널문이 바깥으로 밀려 걷히며(0.52 s) 문 빛이 0.7 s 에 차오르고, 문턱에 들어서면 문 안으로 2.5칸 자동으로 걸어 들어간다. 새 노드는 반대편 문 안에서 걸어 나온다(≈0.6~0.7 s). 코드 `work/sfx_p16.py` 7절.
+
+| id | 길이 | gainDb | 우선순위 | 트리거 (시스템 이벤트 이름 확인) | 시간 축 · 재료 |
+|---|---|---|---|---|---|
+| `door_open` (다시) | 1.28 s | -3 → 0 | 1 | `ROOM_CLEARED` → **`door:opened`** `{side,kind:node\|floor\|training}` (kind 무관 같은 소리) | 0 s 나무 빗장 '덜컥' + 쇠 걸쇠 '탁'(울림 없음) → 0.06~0.52 s 널문 밀림 삐걱(낮게) + 판자가 돌 문틀을 긁음 + 바람 → **0.52 s** 판자가 바깥에 내려앉는 '툭·톡'(멀리) → 0.15~0.80 s 문 등불이 잿불처럼 일어남 + 따뜻한 부풂 → 0.68 s 낮은 종 A3(작게) → 불씨 꼬리 |
+| `door_walk_out` | 1.05 s | -6 | 1 | `door:walk{phase:out}` `{side,ms}` | 걸음 0 s 돌바닥 → 0.24 s 나무 문턱 '톡' 섞임 → 0.48 s 문 안(작고 어둡게, 울림 큼) → 0.72 s 거의 안 들리는 마지막 걸음. 문 안 통로 '웅'이 커졌다가 어둠에 잠김. 2.5칸 ≈ 700 ms 기준 |
+| `door_walk_in` | 0.85 s | -6 | 1 | `door:walk{phase:in}` | out 을 거꾸로: 0 s 문 안(어둡게) + 통로 울림 → 0.22 s 문턱 → 0.44 s 돌바닥(또렷, 마름) → **0.60 s 마지막 디딤 + 옷깃 스침**(조작이 풀리는 순간). ≈650 ms 기준 |
+| `door_walk_back` | 0.65 s | -7 | 1 | `door:walk{phase:back}` (지도 고르기 취소 — 문은 열린 채) | in 과 같은 재료로 짧게: 0 s 문 안 → 0.22 s 문턱 → 0.40 s 돌바닥 + 옷깃. 없으면 door_walk_in 으로 대신 |
+
+- **대체 관계(둘 다 울리지 않음)**: `door_open`(`door:opened`) ↔ `exit_open`(`STORY{kind:notice,exitOpened}`) — exit_open 은 **폴백 표시**, 방+복도 층(옛 발판 출구)용으로 남김. 노드 지도 층·수련장에서 문이 열리는 순간 UI '오르는 길 열림' 알림이 함께 오더라도 exit_open 은 울리지 않는다.
+- 옛 `door_open` 트리거 `ROOM_CLEARED` 는 manifest 에서 빠졌다. 방+복도 층(외벽 문 없음)의 방 클리어 문 열림에도 같은 id 를 쓰려면 시스템이 `door:opened` 가 오지 않는 층에서만 `ROOM_CLEARED` → `door_open` 을 잇는다(같은 순간 두 번 금지).
+- 동시 상한: 4종 모두 1. `mixing.cues`: `door_open` 520(판자 걷힘 — 문 그림 걷힘과 같은 순간에 시작) · `door_walk_out` 480(alignTo `DOOR_WALK.ms`, 재생 속도 clamp(700/ms, 0.85, 1.15) 권장) · `door_walk_in` 600(alignTo `DOOR_WALK.ms`, clamp(650/ms, …)) · `door_walk_back` 400.
+- 음량(100 ms 창 최대 RMS + gainDb): `door_open` -20 dBFS(대신하는 exit_open -13 보다 작게 — 마지막 처치 슬로모·시련 성공 -17 과 겹치는 순간이 잦다), 발소리 -23~-24(npc_talk -22 · transition_exit -24 와 같은 자리 — 이어지는 전환음 아래).
+- 보스 처치 뒤 BGM 정적(`mixing.bgmBossDefeat.silentUntil` = `EXIT_OPENED`)은 그대로 — 2층 이상 층 출구가 외벽 문(`door:opened{kind:floor}`)이면 시스템이 그 순간도 '출구 열림'으로 본다(제안).
 
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).

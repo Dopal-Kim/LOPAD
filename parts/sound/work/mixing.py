@@ -73,7 +73,8 @@ def settings(variant_groups):
                                'sfx/enemy_incoming': 2, 'sfx/last_kill_slow': 1, 'sfx/death_slow': 1,
                                'sfx/trial_win': 1, 'sfx/trial_fail': 1, 'sfx/floor_end_sting': 1,
                                'sfx/memory_unlock': 1, 'sfx/relic_take': 1, 'sfx/shop_buy': 2, 'sfx/shop_reroll': 1,
-                               'sfx/npc_talk': 1},
+                               'sfx/npc_talk': 1, 'sfx/door_open': 1, 'sfx/door_walk_out': 1,
+                               'sfx/door_walk_in': 1, 'sfx/door_walk_back': 1},
             layerMax=dict(ids=['sfx/trait_%s' % a for a in TRAIT_ACTS], match='TRAIT_PROC 로 재생된 소리', max=3,
                           note='61-5: 개성 발동 특색 층(TRAIT_PROC 로 고른 trait_<act> 15종 + 개성별 trait_<무기>_<id> 가 생기면 그것도 — '
                                'trait_manifest(TRAIT_GAINED)는 아님) 전체를 '
@@ -170,6 +171,15 @@ def settings(variant_groups):
                                         '같은 순간 재생. slowMs 가 바뀌면 재생 속도가 아니라 이 정점을 옮겨 다시 만든다(음향에 알림)'),
             'sfx/floor_end_sting': dict(peakMs=1150, note='62-2: 0 s 일기장 열림, 1.15 s 화음이 열림(결산 항목이 차례로 뜨기 시작하기 좋은 순간)'),
             'sfx/memory_unlock': dict(peakMs=450, note='62-2: 0~0.3 s 글씨 세 획, 0.45 s 먹 \'툭\' + 종 — 해금 그림이 떠오르는 순간'),
+            'sfx/door_open': dict(peakMs=520, note='62-2 시스템 E: 0 s 빗장, 0.06~0.52 s 널문이 밀림, 0.52 s 판자가 바깥에 내려앉음 — '
+                                                 '문 그림 걷힘(0.52 s)과 같은 순간에 시작. 0.68 s 낮은 종 = 문 빛이 다 찬 무렵(0.7 s)'),
+            'sfx/door_walk_out': dict(peakMs=480, alignTo='DOOR_WALK.ms',
+                                      note='62-2 시스템 E: 걸음 0·0.24·0.48(·0.72 아주 작게) s — 2.5칸 ≈ 700 ms 기준. ms 가 크게 다르면 '
+                                           '재생 속도 = clamp(700 / ms, 0.85, 1.15) 권장(안 맞춰도 어둠에 잠기는 꼬리라 어색하지 않음)'),
+            'sfx/door_walk_in': dict(peakMs=600, alignTo='DOOR_WALK.ms',
+                                     note='62-2 시스템 E: 걸음 0·0.22·0.44·0.60 s — 0.60 s 마지막 디딤 = 조작이 풀리는 순간(≈650 ms 기준). '
+                                          '재생 속도 = clamp(650 / ms, 0.85, 1.15) 권장'),
+            'sfx/door_walk_back': dict(peakMs=400, note='62-2 시스템 E: 걸음 0·0.22·0.40 s — 문턱 안 1.8칸으로 물러남'),
             'sfx/relic_take': dict(peakMs=220, note='62-2: 0.22 s 쇠붙이를 쥐는 \'철컥\' — 카드가 손으로 들어가는 순간'),
             'sfx/trial_win': dict(peakMs=0, note='62-2: 0 s 完 도장 \'꾹\'. 노드 마지막 처치와 같은 프레임이면(마지막 처치 슬로모 280 ms) '
                                                  '슬로모가 풀린 뒤 재생하면 \'웅\'과 도장·종이 겹치지 않는다(도장 연출이 늦게 뜨면 그 순간에)'),

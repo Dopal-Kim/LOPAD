@@ -17,7 +17,7 @@ build.py 가 sfx_p14 다음(마지막)에 import 한다. 시드 = 1000 + 등록 
 from build import *  # noqa: F401,F403
 from build import SFX, crackle, heartbeat  # noqa: F401
 from sfx_core61 import punch, rustle, sub, wood_tok, snap, sparks, variant  # noqa: F401
-from sfx_stage61 import redo
+from sfx_stage61 import redo, creak
 from sfx_p14 import paper, ink_bloom, blot, brush  # noqa: F401
 
 ROUND = '62-2'   # listen_index 의 round 값(62라운드 루프 2 · P16)
@@ -363,3 +363,103 @@ fallback('menu_select', '메뉴 공통 선택은 ui_select 가 대신. ui_select
 fallback('menu_cancel', '메뉴 공통 뒤로는 ui_back 이 대신. 기존 임시 연결(시간 초과 등)은 그대로')
 fallback('player_death', '사망은 death_slow(PLAYER_DIED)가 대신 — 둘 다 울리지 않음. death_slow 가 없을 때만')
 fallback('grade_perfect', "1층 노드 시련 성공(完)은 trial_win 이 대신 — 둘 다 울리지 않음. trial_win 이 없을 때와 2층 이후 '완'")
+
+
+# ===========================================================================
+# 7. 외벽 문 (62 루프 2 시스템 E — 노드 출구 발판이 없어지고 외벽 문으로 걸어 나감)
+#    시스템 이벤트 core/eventsLoop2E: DOOR_OPENED 'door:opened'{side,kind:node|floor|training} ·
+#    DOOR_WALK 'door:walk'{phase:out|in|back,side,ms}. 시각: 널문이 바깥으로 밀려 걷힘 0.52 s, 문 빛 0.7 s 에 차오름,
+#    나가기 = 문 안으로 2.5칸 자동 걸음(끝 2칸에서 몸이 흐려짐) · 들어오기 ≈ 0.6~0.7 s · 지도 취소 = 문턱 안 1.8칸.
+# ===========================================================================
+
+def _boot(sr, rng, g=1.0, sill=False):
+    """주인공 발 한 걸음(장화 · 돌바닥): 둥근 몸통(115→70 Hz, 600 Hz 위 깎음) + 흙 긁힘 + 돌 부스러기 한두 점.
+    sill=True 면 나무 문턱 — 속 빈 나무 '톡'(420 Hz)이 겹친다."""
+    s = zeros(sec(sr, 0.16))
+    mix_into(s, lowpass(punch(sr, 115, 70, 0.1, 0.022, 1.1), sr, 600), 0, 0.9)
+    mix_into(s, lowpass(burst(sr, 0.05, rng, fc=1300, q=0.6, tau=0.012), sr, 3000), 0.0, 0.35)
+    mix_into(s, gravel(sr, rng, 0.1, 2, 0.005, 0.05, 0.12), 0)
+    if sill:
+        mix_into(s, wood_tok(sr, rng, 420, 0.07, 0.014, 0.35), sec(sr, 0.004), 0.5)
+    return scale(s, g)
+
+
+def _passage(sr, rng, dur, f0, f1, g=1.0):
+    """문 안 통로의 울림: 낮은 대역 노이즈(f0→f1)가 통처럼 웅 — 바깥 바람이 문 안에서 맴돎."""
+    n = sec(sr, dur)
+    s = svf(noise(sr, dur, rng), sr, sweep(sr, n, f0, f1), 2.2, 'band')
+    return scale(lowpass(s, sr, 500), g)
+
+
+@redo('door_open', "62-2E 다시(시스템 E — 노드 출구 발판 대신 외벽 문). 방을 비우면 진행 방향 외벽의 닫힌 널문이 바깥으로 밀려 걷히고(0.52 s) 문 빛(호박 등불)이 0.7 s 에 차오름. 0 s 나무 빗장 '덜컥' + 쇠 걸쇠 '탁'(울림 없음) → 0.06~0.52 s 널문이 밀리며 삐걱(낮게) + 판자가 돌 문틀을 긁음 + 열린 틈으로 들어오는 바람 → **0.52 s** 판자가 바깥에 내려앉는 둔탁한 '툭·톡'(멀리) → 0.15~0.80 s 문 등불이 잿불처럼 일어나 따뜻한 낮은 부풂 + 0.68 s 낮은 종 A3(작게, '오르는 길') → 1.25 s 까지 불씨 꼬리. 1.28 s. 노드·층·수련장 방 출구 공통(kind 무관). exit_open(STORY exitOpened '오르는 길 열림')을 대신 — 같은 순간 둘 다 울리지 않음. 방+복도 층(외벽 문 없는 옛 발판 층)의 방 클리어 문 열림(ROOM_CLEARED)도 이 소리를 쓰되 door:opened 와 같은 순간이면 한 번만. 권장 음량 -3 → 0 dB(대신하는 exit_open 자리 — 100 ms 최대 RMS -20 dBFS, 발소리 -23 위)", gain_db=0.0, trigger='door:opened', round_=ROUND)
+def _door_open62e(sr, rng):
+    dur = 1.25
+    s = zeros(sec(sr, dur))
+    # 0 s 빗장
+    mix_into(s, lowpass(punch(sr, 150, 85, 0.1, 0.025, 1.2), sr, 600), 0, 0.7)
+    mix_into(s, wood_tok(sr, rng, 520, 0.06, 0.01, 0.6), 0, 0.55)
+    mix_into(s, iron_tak(sr, rng, 1500), sec(sr, 0.03), 0.45)
+    # 0.06~0.52 s 널문 밀림
+    mix_into(s, creak(sr, rng, 0.46, 72, 100, (380, 900), 15.0, 2.6), sec(sr, 0.06), 0.42)
+    n = sec(sr, 0.44)
+    scr = lowpass(svf(noise(sr, 0.44, rng), sr, sweep(sr, n, 900, 450), 1.1, 'band'), sr, 1600)
+    mix_into(s, mul(scr, env_adsr(sr, 0.44, 0.12, 0.0, 1.0, 0.18)), sec(sr, 0.08), 0.25)
+    mix_into(s, whoosh(sr, 0.5, rng, 240, 620, q=0.7, a=0.45, r=0.45), sec(sr, 0.12), 0.28)
+    # 0.52 s 판자가 바깥에 내려앉음(멀리 — 낮게 깎음)
+    mix_into(s, lowpass(punch(sr, 120, 60, 0.14, 0.035, 1.1), sr, 400), sec(sr, 0.52), 0.5)
+    mix_into(s, lowpass(wood_tok(sr, rng, 380, 0.06, 0.012, 0.4), sr, 1200), sec(sr, 0.60), 0.3)
+    # 0.15~0.80 s 문 빛
+    mix_into(s, ember_flare(sr, rng, 0.6, 450, 2200, 1.0, 8), sec(sr, 0.15), 0.26)
+    warm = mul(lowpass(tone(sr, 0.9, 110, kind='tri'), sr, 300), env_adsr(sr, 0.9, 0.5, 0.0, 1.0, 0.35, curve=1.5))
+    mix_into(s, warm, sec(sr, 0.15), 0.18)
+    mix_into(s, chime(sr, rng, 220.0, 0.55, 0.22, 1.0, 3000), sec(sr, 0.68), 0.22)
+    mix_into(s, ember(sr, rng, 0.45, 5, 1.0, 3600), sec(sr, 0.78), 0.12)
+    return tail(reverb(s, sr, size=0.8, decay=0.5, wet=0.17), sr, 0.03)
+
+
+@sfx16('door_walk_out', 'door:walk{phase:out}', "62-2E 새 — 열린 외벽 문 안으로 걸어 들어감(나가기 — 문턱에 들어서면 조작이 잠기고 2.5칸 자동 걸음, 끝 2칸에서 몸이 흐려짐 → 그림 속 입구 전환). 0 s 돌바닥 발소리 → 0.24 s 나무 문턱 '톡' 섞인 발소리 → 0.48 s 문 안 발소리(작고 어둡게, 울림 큼) — 걸음마다 소리가 멀어지고 낮아지며 문 안 통로 울림(낮은 '웅')이 커졌다가 0.60~1.00 s 어둠에 잠겨 사라짐. 1.05 s. 걸음 간격 0.24 s 는 2.5칸 ≈ 0.7 s 기준(ms 가 크게 다르면 재생 속도 700/ms, 0.85~1.15 로 묶음 권장). 이어지는 transition_exit/enter 앞에 놓임", -6, category='world')
+def _door_walk_out(sr, rng):
+    dur = 1.02
+    near = zeros(sec(sr, dur))
+    far = zeros(sec(sr, dur))
+    mix_into(near, _boot(sr, rng, 1.0), 0, 0.85)
+    mix_into(near, lowpass(_boot(sr, rng, 1.0, sill=True), sr, 2200), sec(sr, 0.24), 0.6)
+    mix_into(far, lowpass(_boot(sr, rng, 1.0), sr, 900), sec(sr, 0.48), 0.45)
+    mix_into(far, lowpass(_boot(sr, rng, 1.0), sr, 500), sec(sr, 0.72), 0.18)   # 어둠 속 마지막 걸음(거의 안 들림)
+    ps = _passage(sr, rng, 0.95, 160, 90)
+    mix_into(far, mul(ps, env_adsr(sr, 0.95, 0.4, 0.0, 1.0, 0.5, curve=1.3)), sec(sr, 0.08), 0.22)
+    mix_into(far, mul(lowpass(tone(sr, 0.8, 62, 52), sr, 150), env_adsr(sr, 0.8, 0.3, 0.0, 1.0, 0.45)), sec(sr, 0.2), 0.18)
+    s = add(reverb(near, sr, size=0.6, decay=0.4, wet=0.12), reverb(far, sr, size=1.2, decay=0.65, wet=0.45, predelay=0.012))
+    return tail(s, sr, 0.03)
+
+
+@sfx16('door_walk_in', 'door:walk{phase:in}', "62-2E 새 — 반대편 외벽 문 안에서 걸어 나와 새 노드에 들어섬(≈0.6~0.7 s, 그동안 조작·전투 잠금 — 들어오면 입구 문이 닫힌다). door_walk_out 을 거꾸로: 0 s 문 안 통로 울림이 이미 맴돌고 문 안 발소리(작고 어둡게) → 0.22 s 나무 문턱 발소리 → 0.44 s 돌바닥 발소리(가깝고 또렷하게, 울림 거의 없음) → 0.60 s 마지막 디딤 + 옷깃 스침(조작이 풀리는 순간). 0.85 s. 걸음 간격 0.22 s(ms 가 크게 다르면 재생 속도 650/ms, 0.85~1.15)", -6, category='world')
+def _door_walk_in(sr, rng):
+    return _walk_in(sr, rng, ((0.0, 'far', 0.4), (0.22, 'sill', 0.6), (0.44, 'near', 0.85), (0.60, 'near', 0.6)), 0.82)
+
+
+def _walk_in(sr, rng, steps, dur):
+    near = zeros(sec(sr, dur))
+    far = zeros(sec(sr, dur))
+    for t, kind, g in steps:
+        if kind == 'far':
+            mix_into(far, lowpass(_boot(sr, rng, 1.0), sr, 900), sec(sr, t), g)
+        elif kind == 'sill':
+            mix_into(near, lowpass(_boot(sr, rng, 1.0, sill=True), sr, 2200), sec(sr, t), g)
+        else:
+            mix_into(near, _boot(sr, rng, 1.0), sec(sr, t), g)
+    ps = _passage(sr, rng, 0.5, 90, 160)
+    mix_into(far, mul(ps, env_adsr(sr, 0.5, 0.06, 0.0, 1.0, 0.4, curve=0.8)), 0, 0.3)
+    t_last = steps[-1][0]
+    mix_into(near, rustle(sr, rng, 0.12, 1300, 40.0), sec(sr, t_last + 0.01), 0.22)
+    s = add(reverb(near, sr, size=0.6, decay=0.4, wet=0.1), reverb(far, sr, size=1.2, decay=0.6, wet=0.4, predelay=0.012))
+    return tail(s, sr, 0.03)
+
+
+@sfx16('door_walk_back', 'door:walk{phase:back}', "62-2E 새 — 지도 고르기 취소: 문 안에서 문턱 안쪽 1.8칸으로 걸어 나옴(문은 열린 채 — 닫히지 않음). door_walk_in 과 같은 재료로 더 짧게 — 0 s 문 안 발소리(어둡게) → 0.22 s 나무 문턱 → 0.40 s 돌바닥 디딤 + 옷깃 스침. 0.65 s. 없으면 door_walk_in 으로 대신해도 된다", -7, category='world')
+def _door_walk_back(sr, rng):
+    return _walk_in(sr, rng, ((0.0, 'far', 0.4), (0.22, 'sill', 0.55), (0.40, 'near', 0.7)), 0.62)
+
+
+fallback('exit_open', "노드 지도 층 · 수련장의 출구 열림은 door_open(door:opened)이 대신 — 같은 순간 둘 다 울리지 않음. "
+                      "이 소리는 방+복도 층의 옛 발판 출구(STORY exitOpened)용으로 남김")

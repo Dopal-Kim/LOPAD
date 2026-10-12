@@ -71,7 +71,8 @@ EXPLICIT = {
     'pickup': ['pickup_gold', 'pickup_potion', 'potion_use', 'shop_buy', 'voucher_drop', 'voucher_pickup', 'item_pickup'],
     'p14': ['transition_enter', 'transition_exit', 'transition_floor', 'training_task', 'training_stamp'],
     'p16': ['ui_move', 'ui_select', 'ui_back', 'ui_toggle', 'enemy_incoming', 'last_kill_slow', 'death_slow',
-            'trial_win', 'trial_fail', 'floor_end_sting', 'memory_unlock', 'relic_take', 'npc_talk'],
+            'trial_win', 'trial_fail', 'floor_end_sting', 'memory_unlock', 'relic_take', 'npc_talk',
+            'door_walk_out', 'door_walk_in', 'door_walk_back'],
     'ui': ['menu_move', 'menu_select', 'menu_cancel', 'fate_decided', 'evolve', 'reinforce', 'player_death'],
 }
 
@@ -154,6 +155,9 @@ SUBGROUP = {
     'last_kill_slow': '전투 흐름 · 마지막 처치 슬로모', 'death_slow': '전투 흐름 · 사망 슬로모 + 먹 번짐',
     'trial_win': '노드 시련 · 성공', 'trial_fail': '노드 시련 · 실패', 'floor_end_sting': '1층 끝 · 결산 열림',
     'memory_unlock': '메타 · 기억 해금', 'relic_take': '유품 · 획득', 'npc_talk': 'NPC · 말 걸기',
+    'door_open': '외벽 문 · 열림 (62-2 시스템 E)', 'door_walk_out': '외벽 문 · 걸어 나감',
+    'door_walk_in': '외벽 문 · 걸어 들어옴', 'door_walk_back': '외벽 문 · 지도 취소로 물러남',
+    'exit_open': '폴백 (62-2 외벽 문 대체 — 방+복도 층 발판용)',
     'menu_move': '폴백 (62-2 대체)', 'menu_select': '폴백 (62-2 대체)', 'menu_cancel': '폴백 (62-2 대체)',
     'player_death': '폴백 (62-2 대체)', 'grade_perfect': '폴백 (62-2 대체)',
     'evolve': '폴백 (61-4 대체)', 'dual_trait': '폴백 (61-4 대체)', 'awaken_katana': '폴백 (61-4 대체)',
