@@ -664,3 +664,15 @@
 - 타일 `stage1_waste`: start 23~26 둥근 재 얼룩, 바닥 변주 13~16(옛 v2 소품 예약 칸 재사용 — v2 소품으로 읽는 코드가 있으면 시스템 확인) `tiles["1"]` 8종, 엄폐 담 43~46 모래주머니, 데칼 `blood_pool`(69)·`ash_ring`(74)·`bone_scatter`(76)·`trampled_mud`(78)·`scorch` 다시. `stage1_training` 밤 결, `tileLights.21` 반경 220·세기 0.8.
 - `ui/plank_label.png` 48×24 3-slice(14) + `textArea`·`hangAnchor`.
 - 타이틀 추가: `title/title_logo_reveal.png`(값 작을수록 먼저 — p 에서 ≤ p·255 만 보임) + `title.json` `logoReveal`(권장 2600ms·timeline·softBand·모션 줄이기), `gate {x:901,y:680,rect,layer:'title_bg_far',parallax:0.15}`.
+
+## 31. 62 루프 2 — 스미어·등장 예고·림·유품·사연·장터·월드 결 (P16)
+1. **칼·대검 스미어** `fx/v3/<동작>_smear` — 동작 katana_rise·katana_fall·katana_thrust / greatsword_sweep_cw·greatsword_cleave·greatsword_sweep_ccw. 틀·피벗·방향 행·프레임 번호·ms 는 같은 이름 `weapons/v3/<동작>` 과 같다(칼 192×192 피벗 (96,186) 4방향, 대검 240×296 피벗 (117,217) drawn8). 무기 오버레이와 같은 프레임 번호로 같은 시각 재생, 무기 바로 아래 depth, NORMAL, lightmap 위. 스미어 칸: rise 2~4(사라짐 5·6), fall 1~3(4·5), thrust 3~5(6), sweep 5~7(8·9), cleave 4~6(7·8), 그 밖 빈 칸. 앵커 `bladeTipAnchors`·`gripAnchors`·`smearHeadAnchors[방향][칸]`·`smearTailAnchors`(null = 없음). 색은 §28 무기 색, 흰 끝은 판정 칸만.
+2. **적 등장 예고** `fx/v3/spawn_ink` 208×176 피벗 (104,132)=적 발, 14프레임 1회 1130ms, depth floor. `spawnFrame 10`(=900ms)에 적을 세운다, 늘리려면 `holdFrame 9` 유지. `phaseFrames`.
+3. **일반 적 림** `enemies/v3/<적>_<동작>_rim` — 적 시트와 같은 틀·피벗·프레임·flip·scale, 실루엣 바깥 1도트(위 #7d98b4/#a8c0d6, 왼 #56708c, 오른 #3a4a5e). 엘리트는 `_elite` 만(같이 켜지 않음). 피격 섬광 중에도 유지.
+4. **유품 카드** `ui_relics/<passiveId>.png` 128×128(pixelScale 0.5), 투명·글자 없음, 1층 풀 15종(passives.json floor 1). **기억의 소품** `ui_relics/keepsake_<id>.png` 64×64(아트 임시 id brokenCup·oldVoucher·knotCord·inkBrush — 시스템 id 확정 시 파일 이름을 맞춘다). `relics.json` 목록.
+5. **처치자 초상** `ui_portraits/<enemyId>.png` 96×96, 보스 `boss1`. `portraits.json`.
+6. **NPC** `structures/v3/npc_{conscript,merchant,brewer}` — 4방향 × idle 6 루프, 피벗 96×144 (48,138) / brewer 160×192 (80,166). `interact{key E, radiusTiles, markAnchor}`, `facing`, merchant `light`.
+7. **사연 결과 컷** `events/cut_<eventId>.png` 320×180(UI 1배), `cuts.json aliases` 로 `cut_<이벤트>_<선택지>` → 이벤트 컷.
+8. **장터** `structures/v3/shop_slot` 112×96 피벗 (56,88) states idle/near/sold, 물건은 `itemAnchor (56,54)`. `items/v3/shop_goods` 80×96 피벗 (40,88) 행 relic_bundle·temper·reroll idle 4 루프. 독주는 `items/v3/potion`, 화염 술병은 `consumable_f1` 재사용.
+9. **월드** 바닥 변주 `tiles/v2/stage1_{gate,hall,brewery}` 13~16, `stage1_outer` 80~83(rows 11) — `tiles["1"]` 에 섞임, `floorVariants62b`. `structures/v3/decal_soot` 128×96 ×6 피벗 (64,50) depth floor flipX 허용. `structures/v3/pillar_stone` 96×208 피벗 (48,196) 행 waste·outer·gate·hall × 열 whole·cracked·broken(프레임 = 행×3+열), solid·blocksProjectiles. `structures/v3/setpiece_broken_cart` 288×200 피벗 (140,176) `solidRects`(outer·gate·waste), `setpiece_spilled_casks` 256×208 피벗 (128,170) `liquorPool`(brewery·hall) — 노드당 1개. `sprites/ui/map_marker_ghost` 40×56 ×6 160ms 루프 피벗 (20,53)(지도 위 플레이어 표식, UI).
+- 제작: Gemini 402 로 전부 Claude 직접(절차 셰이딩 + 손 보정), `parts/art/work/r62b/build.py`.
