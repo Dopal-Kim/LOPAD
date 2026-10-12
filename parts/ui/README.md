@@ -1,5 +1,33 @@
 # 게임 UI 파트 — 작업 기록
 
+## 62라운드 (2026-10-12) · 루프 3 UI G — 지도로 먼저 고르고 키아트는 작은 미리보기 · 짧은 먹 번짐 암전 (도영 님 추가 지시)
+도영 님 원문: "키아트 넘어가는 과정이 조금 불필요하다고 느껴지네 차라리 어느 장소로 가는지 맵으로 먼저 고르고 그 장소 미리보기 효과로 키아트를 작게 띄워주는 방식이 더 좋을 것 같다." 판단: `decisions/2026-10-12-round-62-full-delegation.md` '루프 3 착수 중 추가 지시'. 계약: `src/contract/ui.ts` '62 시스템 H' 절(`UiRouteNode.previewKey`·`previewRegion`, `UiMenuLine.previewKey`·`previewRegion`, `UiTransitionMode` 'fade', `UiTransitionBegin.durationMs`). 계약 필드는 이름으로 읽어(`readPreviewKey`·`readPreviewRegion`) 커밋 순서와 무관하게 동작.
+
+### 지도 미리보기 카드 (새 `RoutePreview.ts`, 순수 `previewView.ts`)
+- 노드 지도(고르기·M 보기)에서 가리킨 곳(방향키·마우스 올림)의 그림을 작은 액자 카드로: 옻칠 테 S1·바랜 금 선 S5·그늘 3 · 그림 아래 먹 띠(위로 4계단 번짐) 안에 [종류 아이콘 16] 이름 · 종류 / 고유 한 줄(공개된 이벤트 내용 이름, 없으면 설명 첫 문장) / 보상·위험 한 줄(강조) / 위험 노드면 `riskText`(강조). 숨은 노드 얼룩은 카드 없음.
+- 그림: ① 시스템 `previewKey` 텍스처가 이미 있으면 그것(`paint/door_*` — 시스템이 고른 키만, 이름 규칙으로 찾지 않음) ② 없으면 `previewRegion`(없으면 지역 표시 이름 낱말) 키아트 ③ 종이 + 종류 아이콘 크게. previewKey 를 받았는데 아직 로드 전이면 키아트로 띄워 두고 `addtexture-<키>` 가 오면 같은 자리에서 그 그림으로 교차 페이드.
+- 크기: 노드 지도 그림 256×144(액자 포함 264×152) — 지도 칸 565×317 어디를 가리켜도 그 곳 아이콘·이름표를 가리지 않는 옆자리가 남는 크기(지시의 '약 300×170' 에서 줄임, 테스트로 전 구간 확인). 수련장 지도는 288×162. 렌더 2배 텍스처(576×324, LINEAR)를 1/2 로 그려 1920 렌더에서 1:1.
+- 자리(`placePreview`): 가리킨 곳 오른쪽·왼쪽(기본)·위·아래 × 맞춤 세 자리 + 칸 위/아래 끝 후보 중 겹친 넓이 × 무게 합이 가장 작은 곳(가리킨 곳·그 이름표 1000, 지금 곳·다른 고를 곳·그 이름표·주인공 표시 40, 그 밖 노드 3, 이름표 1). 같으면 넓은 쪽(가리킨 곳이 왼쪽 절반이면 오른쪽)·가까운 쪽. 카드는 입력을 받지 않아 아래 노드를 가리켜도 마우스 올림이 그대로 닿는다.
+- 가리킨 곳이 바뀌면 0.15초 교차 페이드(들어오던 카드는 지금 밝기에서 사라짐), 그림은 아주 느린 켄번스(1 → 1.03 → 1, 한쪽 9초, 좌우 치우침은 id 마다) — 자르기(setCrop)로 칸 크기는 그대로.
+- 외길이어도 시스템이 지도를 열므로 첫 고를 곳을 가리킨 채 시작 → 카드가 바로 보인다.
+- **확인 창 폐지**: Enter·Space(뗀 뒤)·좌클릭(같은 곳에서 눌렀다 뗀 것) 한 번으로 간다. UI D 무장 게이트(armMs·열기 전 누르던 키) 그대로. `RouteConfirm.ts` 삭제(`hasDepth` → `displayOrder.ts`), HUD Esc 의 확인 창 분기 삭제, 안내 줄 '←→↑↓ 가리키기 · Enter · 클릭 그리로 간다 · Esc 물러나기'.
+
+### 수련장 지도 (`TrainingMap.ts`)
+- 같은 카드: 고름 자리 방(키·마우스)의 `previewKey`(`paint/door_training_training`·`_boss`, 없으면 `doorKey`) → 없으면 지도 그림(`paint/map_training`)에서 방 자리 둘레 16:9 조각(그림 폭 30%) → 종이 + 작은 입구 그림. 이름 · '수련장 방' / 방 한 줄 / 도장 받은 방은 '도장을 받았다 — 다시 들어갈 수 있다'. 방·이름표 모두 고를 곳 무게.
+
+### 짧은 먹 번짐 암전 `mode: 'fade'` (`TransitionScene`·`transitionView`)
+- 캡처·그림·액자·흔들림·섬광 없이 가장자리에서 먹(G00 + 얼룩·섬유 결)이 번져 덮음(기본 0.38초, 시스템 `durationMs` 를 0.25~0.6초로 잘라 씀) → `covered` → READY 뒤 가운데부터 0.3초에 걷힘 → `end`. 번짐 순서 = 사각 가장자리 거리(제곱근) × 0.72 + 먹 얼룩 잡음 × 0.28(`inkEdgeOrder`, 변주 3장 캐시). 지도는 덮일 때까지 그대로 보인다(기존 `RouteControl.leave`).
+- READY 가 덮기 전에 와도(시스템 안전장치) 덮인 즉시 걷힌다. 건너뛰기: 덮는 중 키 → 바로 덮음, 걷히는 중 → 짧게.
+- 로딩 카드: 기존 규칙 그대로(덮인 뒤 READY 가 0.55초 넘게 늦을 때만 — 'fade' 에서 확인). floor·타이틀 파고들기·enterNode·exitRoom·training 모드는 손대지 않음.
+
+### 지역 카드 (`HudBanners.ts`)
+- 지도 미리보기로 그림을 이미 보고 'fade' 로 들어온 노드(5초 안의 마지막 전환이 'fade', `transitionState.recentTransitionMode`)에서 지역이 바뀌면 화면 가득 키아트 카드 대신 위 가운데 알림 줄 띠 하나: 노드 이름(2배) / '지역 · 지역 한 줄'(강조). 바로 뒤 같은 이름의 노드 배너는 삼킨다. 탄생·층 이동·이어하기는 그대로 큰 카드.
+
+### 검증
+- `npx tsc --noEmit` 0 · `npx eslint src/ui` 0 · prettier(바뀐 파일) · `npx vitest run src/ui` 36 파일 312(새 `previewView.test.ts` 12 — 자리·지도 칸 전 구간 무가림·글·그림 고르기·켄번스·교차 페이드·수련장 조각, `fadeTransition.test.ts` 5 — 페이로드·단계·번짐 순서·덮개 알파·마지막 전환).
+- 헤드리스 Playwright 1920×1080(작업 트리 `vite build` 정적 서버, `scratchpad/u62g/` — `run.cjs` 가짜 갈림길·`run2.cjs` 실제 런·`run3.cjs` 실제 수련장): 첫 곳 자동 가리킴 + 카드(위험 노드 경고 줄) → → 다음 곳 교차 페이드 → 늦게 온 previewKey 그림으로 바꿔 끼움 → 마우스 올림 → 클릭 한 번 `chooseNode`(확인 창 없음) → 먹 번짐 암전 중간(지도 위로 가장자리부터) → 덮임 → 걷힘 → 끝, 'fade' 로딩 카드(READY 1.7초 지연), 실제 런 외길 지도 → Enter → 시스템 'fade' → 새 방 + 합친 지역 띠, 실제 수련장 지도(그림 메타 자리) 1·4·8번 방 카드(`door_training_training`·`door_training_boss`) → Enter → 'fade' → 방. 페이지 오류 0(404 1건은 바뀌기 전 빌드에서도 같음).
+- 스크린샷: `g_01_first`·`g_03_second`·`g_04_swapped`·`g_05_hover`·`g_06_fade_mid`·`g_09_fade_loading`·`r_01_real_map`·`r_02_real_fade_mid`·`r_03_real_after`·`t_01_training_map`·`t_03_training_map8`·`t_04_training_fade`.
+
 ## 62라운드 (2026-10-12) · 루프 2 UI E — 시스템 C 계약 2차 패스 (유품 카드 · 결산 일기장 · 기억 장 · 출구 화살표 · 사망 걷기 · 첫 개성 발현 4~5장)
 결정: `decisions/2026-10-12-round-62-full-delegation.md`, 계획 `2026-10-12-P16-loop2.md` §1~4. 계약: `src/contract/ui.ts` '62 루프 2 시스템 C' 절(지금 `uiLoop2.ts` 재수출), 스토리 63 팩(relics·floorEnd·deathSummary·memory), 용어집, 아트 §31(ui_relics·ui_portraits·map_marker_ghost). 입력 규칙은 UI D 공통 헬퍼(`choiceGate`·`choiceArm` — 열린 뒤 무장·열기 전 눌린 키는 뗀 뒤만·클릭은 눌렀다 뗀 것만)를 새 화면 모두에 썼다.
 

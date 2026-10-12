@@ -283,13 +283,15 @@ export function fallbackDoor(
 
 /** 덮개 색 (RGBA, w×h): 'dark' = 입구 안 어둠 + 가운데 빛 번짐, 'paper' = 종이(또는 주어진 바탕 그림을 어둡게) */
 export function coverPixels(
-  kind: 'dark' | 'paper',
+  kind: 'dark' | 'paper' | 'ink',
   w: number,
   h: number,
   light: string,
   seed: number,
   under: Img | null = null,
 ): Uint8ClampedArray {
+  // 62 루프 3 UI G: 'fade' 먹 — G00 바탕에 얼룩·섬유 결 (paperPixels 를 먹 색으로)
+  if (kind === 'ink') return paperPixels(w, h, hexRgb(GRAY[0]), seed);
   const c = makeCanvas(w, h);
   const ctx = ctx2d(c);
   if (kind === 'dark') {

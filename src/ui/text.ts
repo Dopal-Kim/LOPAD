@@ -122,8 +122,8 @@ export function structText(key: StructTextKey): string {
 export const ROUTE_TEXT = {
   /** 지도 제목 (Galmuri14 — 한자 없는 고정 제목) */
   mapTitle: '가는 길',
-  /** 고르기 모드 안내 */
-  chooseHint: '←→↑↓ 고르기 · Enter · 클릭 그리로 간다 · Esc 물러나기',
+  /** 고르기 모드 안내 (62 루프 3 UI G: 가리키면 미리보기 — 확인 창 없이 한 번에 간다) */
+  chooseHint: '←→↑↓ 가리키기 · Enter · 클릭 그리로 간다 · Esc 물러나기',
   /** 보기 모드 안내 */
   viewHint: '←→↑↓ 둘러보기 · M·Tab·Esc 닫기',
   /** 고르기 모드 제목 옆 한 줄 */
@@ -155,11 +155,6 @@ export const ROUTE_TEXT = {
   hereTitle: '지금 있는 곳',
   lookTitle: '살펴보는 곳',
   pickTitle: '고른 곳',
-  /** 49라운드 넘어가기 확인 → 62 루프 2 P2-1: 갈림길에서만, 일기장 어투 */
-  confirmTitle: '이 길로 간다',
-  confirmYes: '간다',
-  confirmNo: '아직',
-  confirmHint: '←→ 고르기 · Enter · 클릭 정하기 · Esc 아직',
 } as const;
 export type RouteTextKey = keyof typeof ROUTE_TEXT;
 

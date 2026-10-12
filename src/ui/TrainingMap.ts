@@ -11,6 +11,9 @@ import { GRAY, LAYOUT, SEPIA, hexToNum } from './theme';
 import { HEALTH_BAR } from './themeR61';
 import { TRAINING_UI } from './themeTransition';
 import { readMapRooms, spotsFor, type MapSpot } from './trainingView';
+import { RoutePreview, type PreviewSource } from './RoutePreview';
+import { pickPreviewArt, readPreviewKey, readPreviewRegion, spotCrop, type Obstacle } from './previewView';
+import { PREVIEW } from './themeTransition';
 import { noteTransitionOrigin } from './transitionState';
 
 /** 한 번 읽어 본 키 (실패해도 다시 읽지 않는다) */
@@ -139,8 +142,10 @@ export function showTrainingMap(scene: Phaser.Scene, m: UiMenu, snap: UiSnapshot
   const artKey = snap.training?.mapKey || 'paint/map_training';
   const mapKey = artTex(scene, artKey);
   let metaSpots: MapSpot[] = [];
+  let mapSize = { w: 0, h: 0 };
   if (mapKey) {
     const src = scene.textures.get(mapKey).getSourceImage() as { width: number; height: number };
+    mapSize = { w: src.width, h: src.height };
     const dk = derivedTexture(scene, mapKey, mw, mh, 'stretch');
     if (dk) scene.add.image(x0, y0, dk).setOrigin(0, 0);
     const meta = artJson(scene, artKey);
@@ -177,8 +182,64 @@ export function showTrainingMap(scene: Phaser.Scene, m: UiMenu, snap: UiSnapshot
   const presses: ((p: Phaser.Input.Pointer) => void)[] = [];
   const releases: ((p: Phaser.Input.Pointer) => void)[] = [];
   const hovers: (() => void)[] = [];
+  // 62 루프 3 UI G: 고름 자리 방의 미리보기 카드 (방 그림 — 시스템 previewKey → 지도 그림 조각 → 종이에 작은 입구)
+  const top = sub.y + sub.displayHeight + 4;
+  const preview = new RoutePreview(scene, {
+    area: { x: x0 + 8, y: top, w: mw - 16, h: y0 + mh - 8 - top },
+    depth: 5,
+    stageIndex: si,
+  });
+  const obstacles: Obstacle[] = [];
+  const labels: GlowText[] = [];
+  const showPreview = (i: number): void => {
+    const l = rooms[i];
+    const p = pos[i];
+    const pick = pickPreviewArt(
+      { previewKey: readPreviewKey(l) ?? l.doorKey ?? null, previewRegion: readPreviewRegion(l) },
+      (k) => artTex(scene, k),
+    );
+    let art: PreviewSource = pick.art;
+    if (art.kind === 'paper' && mapKey && mapSize.w > 0)
+      art = {
+        kind: 'crop',
+        key: mapKey,
+        rect: spotCrop(spots[i].u, spots[i].v, mapSize.w, mapSize.h, PREVIEW.spotFrac),
+      };
+    // 방 자리·이름표를 피한다 (모두 고를 수 있는 곳 — 고른 방과 그 이름표는 아주 크게)
+    const obs: Obstacle[] = obstacles.map((o, k) => (k === i ? { ...o, weight: PREVIEW.weightAnchor } : o));
+    labels.forEach((t, k) =>
+      obs.push({
+        rect: { x: t.x, y: t.y, w: t.displayWidth, h: t.displayHeight },
+        weight: k === i ? PREVIEW.weightAnchor : PREVIEW.weightKey,
+      }),
+    );
+    preview.show({
+      id: ids[i],
+      anchor: { x: p.x, y: p.y },
+      art,
+      pending: pick.pending,
+      text: {
+        name: l.label,
+        kind: trainingText('previewKind'),
+        line: l.detail ?? '',
+        marks: l.stamped ? trainingText('previewStamped') : '',
+        warn: '',
+      },
+      paperDraw: (sc, w, h) => {
+        const g = sc.add.graphics();
+        paintSpot(sc, g, false, true);
+        g.setScale(3).setPosition(Math.round(w / 2), Math.round(h * 0.38));
+        return [g];
+      },
+      obstacles: obs,
+    });
+  };
   rooms.forEach((l, i) => {
     const p = pos[i];
+    obstacles.push({
+      rect: { x: p.x - U.spotR * 1.5, y: p.y - U.spotR * 1.5, w: U.spotR * 3, h: U.spotR * 3 },
+      weight: PREVIEW.weightKey,
+    });
     const g = scene.add.graphics();
     const num = new GlowText(scene, -U.spotR - 6, -U.spotR - 12, String(i + 1), 'page_body', { stageIndex: si });
     const marks = scene.add.graphics();
@@ -201,6 +262,7 @@ export function showTrainingMap(scene: Phaser.Scene, m: UiMenu, snap: UiSnapshot
       stageIndex: si,
     }).setDepth(3);
     label.placeCenter(p.x, p.y + U.spotR + U.labelGap + 4);
+    labels.push(label);
     const detail = l.stamped ? new GlowText(scene, 0, 0, trainingText('mapStamped'), 'page_faint').setDepth(3) : null;
     detail?.placeCenter(p.x, p.y + U.spotR + U.labelGap + 4 + label.displayHeight);
     slots.push({
@@ -214,6 +276,7 @@ export function showTrainingMap(scene: Phaser.Scene, m: UiMenu, snap: UiSnapshot
         label
           .setGlowStyle(!l.enabled ? 'page_faint' : sel ? 'page_selected' : 'page_unsel')
           .setAlpha(l.enabled ? 1 : LAYOUT.disabledAlpha);
+        if (sel) showPreview(i);
       },
     });
   });

@@ -53,3 +53,15 @@ export function takeTransitionOrigin(
   if (id && o.id && id !== o.id) return null;
   return { x: o.x, y: o.y };
 }
+
+/** 62 루프 3 UI G: 마지막으로 시작한 전환 종류·시각 — 'fade'(지도 미리보기로 그림을 이미 본 노드 이동) 뒤 지역 카드는 그림 없이 띠만 */
+let lastBegin: { mode: string; at: number } | null = null;
+
+export function noteTransitionMode(mode: string, now: number): void {
+  lastBegin = { mode, at: now };
+}
+
+/** ttlMs 안에 시작한 전환 종류 (없으면 null) */
+export function recentTransitionMode(now: number, ttlMs = 5000): string | null {
+  return lastBegin && now - lastBegin.at <= ttlMs ? lastBegin.mode : null;
+}

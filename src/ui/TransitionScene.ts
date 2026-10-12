@@ -7,10 +7,10 @@ import { brushOrderFrom, coverPixels, fallbackDoor, makeCanvas, paintedCanvas, r
 import { artJson, artTex, paintUrl, uiCopy } from './paintArt';
 import { regionArtKey } from './regionView';
 import { FLOOR1_RAMP, GRAY, SEPIA, hexToNum } from './theme';
-import { LOADING, TRANSITION } from './themeTransition';
+import { FADE, LOADING, TRANSITION } from './themeTransition';
 import { LoadingCard } from './LoadingCard';
 import { LOAD_PROGRESS_EVENT, estimateProgress, readLoadProgress, shownProgress } from './loadingView';
-import { setTransitionBusy, setTransitionCovered, takeTransitionOrigin } from './transitionState';
+import { noteTransitionMode, setTransitionBusy, setTransitionCovered, takeTransitionOrigin } from './transitionState';
 import {
   clamp01,
   diveFocus,
@@ -19,6 +19,8 @@ import {
   easeInOut,
   easeOut,
   freezeAlpha,
+  inkCoverAlpha,
+  inkEdgeOrder,
   planFor,
   readBegin,
   readDoorMeta,
@@ -80,6 +82,8 @@ interface Run {
   /** 62 루프 2 (P2-6): 덮인 채 READY 가 늦을 때의 로딩 카드 · 띄운 시각 */
   loading?: LoadingCard;
   loadingAt?: number;
+  /** 62 루프 3 UI G 'fade': 먹이 번지는 순서 (가장자리 0 → 가운데 1) */
+  fadeOrder?: Float32Array;
 }
 
 const CAP_KEY = 'ui-tr-cap';
@@ -120,6 +124,8 @@ const PH = TRANSITION.paintH;
  * - 'exitRoom': 방 화면을 캡처해 출구 자리에서부터 붓 그림으로 굳히고(색 줄임·먹 윤곽·종이 결·가장자리 번짐) 액자를 둘러 줌 아웃,
  *   두루마리(지도 바탕·종이)가 덮음 → READY 뒤 지도가 드러남.
  * - 'floor': 다음 지역 키아트 큰 그림이 액자로 떠오르고 그 입구로 파고든다.
+ * - 'fade' (62 루프 3 UI G — 노드 이동은 지도 미리보기로 그림을 먼저 보므로): 캡처·그림 없이 가장자리에서 먹이 번져 덮고
+ *   (0.25~0.6초, 기본 0.38초) → covered → READY 뒤 가운데부터 0.3초에 걷힌다. 섬광·흔들림 없음. 로딩 카드 규칙은 같다.
  * 아무 키·클릭 = 건너뛰기(`skippable`). 설정 흔들림 배율·섬광 끔을 따른다. 셰이더 없음(캔버스 처리 + 선형 필터).
  */
 export class TransitionScene extends Phaser.Scene {
@@ -214,7 +220,8 @@ export class TransitionScene extends Phaser.Scene {
     setTransitionBusy(true);
     const now = this.time.now;
     const settings = uiCommands.getUiSnapshot().settings;
-    const plan = planFor(info.mode);
+    const plan = planFor(info.mode, info.durationMs);
+    noteTransitionMode(info.mode, performance.now());
     const center = { x: UI_SCREEN.WIDTH / 2, y: UI_SCREEN.HEIGHT / 2 };
     const wallNow = performance.now();
     const origin =
@@ -247,6 +254,12 @@ export class TransitionScene extends Phaser.Scene {
     };
     this.run = run;
     debugExpose('transition', { id: info.id, mode: info.mode, phase: 'prep' });
+    if (info.mode === 'fade') {
+      // 62 루프 3 UI G: 짧은 먹 번짐 암전 — 캡처·그림·액자 없이 바로 (지도·방이 그대로 보이는 위로 먹이 번진다)
+      this.buildFade(run);
+      this.setPhase(run, 'intro');
+      return;
+    }
     // 1) 지금 화면 캡처 → 2) 그림 준비 → 3) 시작
     this.capture((cap) => {
       if (this.run !== run) return;
@@ -533,6 +546,37 @@ export class TransitionScene extends Phaser.Scene {
     run.zEnd = TRANSITION.diveCover * Math.max(H / (p.rect.h * s), W / (p.rect.w * s));
   }
 
+  /** 'fade': 먹 덮개(G00 + 얼룩 결)와 번짐 순서만 준비한다. 걷힘은 가운데부터 (1 − 순서) */
+  private buildFade(run: Run): void {
+    const variant = run.info.id % 3;
+    const key = `fade${variant}`;
+    let order = this.orders.get(key);
+    if (!order) {
+      order = inkEdgeOrder(PW, PH, 4099 + variant * 131);
+      this.orders.set(key, order);
+    }
+    run.fadeOrder = order;
+    const rkey = `fadeR${variant}`;
+    let rev = this.orders.get(rkey);
+    if (!rev) {
+      rev = order.map((v) => 1 - v);
+      this.orders.set(rkey, rev);
+    }
+    run.order = rev;
+    run.soft = FADE.soft;
+    run.cover = coverPixels('ink', PW, PH, GRAY[0], 7001 + variant);
+    this.writeVeil(run, () => 0);
+    this.veil?.setAlpha(1).setVisible(true).setDepth(20);
+  }
+
+  /** 'fade' 덮기: 가장자리에서 먹이 번져 들어온다 */
+  private drawFade(run: Run, t: number): void {
+    const order = run.fadeOrder;
+    if (!order) return;
+    const e = easeIn(t) * 0.35 + t * 0.65;
+    this.writeVeil(run, (i) => Math.round(inkCoverAlpha(order[i] ?? 1, e, run.soft) * 255));
+  }
+
   private canvasTexture(key: string, w: number, h: number): Phaser.Textures.CanvasTexture {
     if (this.textures.exists(key)) this.textures.remove(key);
     const t = this.textures.createCanvas(key, w, h) as Phaser.Textures.CanvasTexture;
@@ -649,6 +693,11 @@ export class TransitionScene extends Phaser.Scene {
     switch (run.phase) {
       case 'intro': {
         const t = clamp01(el / Math.max(1, P.introMs));
+        if (run.info.mode === 'fade') {
+          this.drawFade(run, t);
+          if (t >= 1) this.toCovered(run);
+          break;
+        }
         this.drawIntro(run, t);
         if (t >= 1) this.setPhase(run, P.frameMs > 0 ? 'frame' : 'move');
         break;
@@ -763,7 +812,8 @@ export class TransitionScene extends Phaser.Scene {
       run.pic?.setScale(TRANSITION.zoomOutTo);
     }
     this.veil?.setAlpha(1);
-    if (run.info.mode !== 'exitRoom' && run.settings.flash && !run.fast) this.flash(run.light);
+    if (run.info.mode === 'fade') this.writeVeil(run, () => 255);
+    else if (run.info.mode !== 'exitRoom' && run.settings.flash && !run.fast) this.flash(run.light);
     this.setPhase(run, 'covered');
     setTransitionCovered();
     uiBus.emit(UI_EVENTS.TRANSITION_COVERED, { id: run.info.id });

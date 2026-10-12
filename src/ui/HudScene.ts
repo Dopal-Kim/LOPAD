@@ -417,10 +417,6 @@ export class HudScene extends Phaser.Scene {
         takeKey(e);
         this.closeRoute(false);
         this.resumeAfterRelease('Escape');
-      } else if (this.routeMap.confirmOpen) {
-        // '넘어가시겠습니까?' 확인 창은 같은 Esc 를 '아니오'로 받는다 (RouteMap 이 이 처리기 다음에 받는다).
-        // 확인 창이 닫힌 뒤 같은 Esc 가 다시 넘어와 고르기까지 취소하지 않게 여기서 소비한다 (keyGate.ts)
-        takeKey(e);
       } else if (takeKey(e)) this.route.cancelChoose();
       return;
     }

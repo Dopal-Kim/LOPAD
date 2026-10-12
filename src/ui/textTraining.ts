@@ -30,6 +30,9 @@ export const TRAINING_TEXT = {
   mapHint: '←→ 고르기 · Enter · 클릭 들어간다 · 1~8 바로',
   mapStamped: '도장',
   mapAgain: '다시 들어갈 수 있다',
+  /** 62 루프 3 UI G 미리보기 카드: 종류 칸 · 도장 받은 방 줄 */
+  previewKind: '수련장 방',
+  previewStamped: '도장을 받았다 — 다시 들어갈 수 있다',
   // ---- 첫 생 선택
   /** 62 P1-20: 안내 표기를 'Enter · 클릭' 으로 통일 */
   choiceHint: '1 · 2 · ←→ 고르기 · Enter · 클릭 들어간다',

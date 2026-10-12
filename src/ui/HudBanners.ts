@@ -1,16 +1,18 @@
 import Phaser from 'phaser';
 import { uiCommands, type UiRouteNode, type UiSnapshot } from '../contract/ui';
 import { debugExpose } from './debug';
-import { bannerCard, type HudAlerts } from './HudAlerts';
+import { bannerCard, type BannerLine, type HudAlerts } from './HudAlerts';
 import { ensureImage, keyartKey, keyartUrl } from './kit';
 import { RegionCard } from './RegionCard';
 import { regionArtKey, regionChanged } from './regionView';
 import { regionText } from './text';
 import { ALERT_UI } from './themeAlerts';
+import { recentTransitionMode } from './transitionState';
 
 /** 가운데 배너 차례: 글자 배너(층 제목·노드 이름·진화) 또는 50라운드 지역 카드 */
 export type BannerItem =
-  { kind: 'text'; text: string } | { kind: 'region'; region: string; art: string | null; desc: string };
+  | { kind: 'text'; text: string }
+  | { kind: 'region'; region: string; art: string | null; desc: string; light?: boolean; name?: string };
 /** 글자 배너 대기 상한 (지역 카드는 상한과 관계없이 넣는다) */
 const BANNER_QUEUE_MAX = 3;
 
@@ -27,6 +29,8 @@ export class BannerQueue {
   private cardItem?: BannerItem;
   /** 마지막으로 카드를 띄운 지역 */
   private lastRegion: string | null = null;
+  /** 62 루프 3 UI G: 지역 띠에 함께 적은 노드 이름 — 뒤따르는 같은 이름 배너는 삼킨다 */
+  private mergedName: string | null = null;
 
   constructor(
     private scene: Phaser.Scene,
@@ -46,6 +50,11 @@ export class BannerQueue {
 
   /** 층 시작·개성 변화 배너: 화면 가운데 발광 큰 글자 (Galmuri11 2배 — 한자 포함 가능) */
   text(text: string): void {
+    if (this.mergedName !== null && text === this.mergedName) {
+      this.mergedName = null;
+      return;
+    }
+    this.mergedName = null;
     this.enqueue({ kind: 'text', text });
   }
 
@@ -58,8 +67,13 @@ export class BannerQueue {
     const region = (node.region ?? '').trim();
     this.lastRegion = region;
     const art = regionArtKey(region);
-    if (art) ensureImage(this.scene, keyartKey(art), keyartUrl(art));
-    this.enqueue({ kind: 'region', region, art, desc: regionText(art, node.desc) });
+    // 62 루프 3 UI G: 지도 미리보기에서 그림을 이미 보고 짧은 암전('fade')으로 들어왔으면 화면 가득 키아트 카드 대신
+    // 위 가운데 알림 줄에 지역 이름 띠만 (키아트를 두 번 보이지 않는다). 탄생·층 이동·이어하기는 그대로 큰 카드
+    const light = recentTransitionMode(performance.now()) === 'fade';
+    if (art && !light) ensureImage(this.scene, keyartKey(art), keyartUrl(art));
+    // 띠 하나에 노드 이름(크게) + '지역 · 한 줄' — 바로 뒤 노드 이름 배너는 삼킨다 (배너가 세 줄로 쌓이지 않게)
+    this.mergedName = light && node.name ? node.name : null;
+    this.enqueue({ kind: 'region', region, art, desc: regionText(art, node.desc), light, name: this.mergedName ?? '' });
   }
 
   /** 탄생 연출 시작: 같은 프레임에 먼저 온 진입 이벤트로 지역 카드가 떴으면 거두고 맨 앞으로 되돌린다 */
@@ -118,6 +132,29 @@ export class BannerQueue {
     this.busy = true;
     const scene = this.scene;
     const stageIndex = Math.max(0, uiCommands.getUiSnapshot().stageIndex);
+    if (item.kind === 'region' && item.light) {
+      const sub = [item.region, item.desc].filter(Boolean).join(' · ');
+      const lines: BannerLine[] = item.name
+        ? [
+            { text: item.name, style: 'ink_body', scale: 2 },
+            { text: sub, style: 'ink_accent' },
+          ]
+        : [
+            { text: item.region, style: 'ink_body', scale: 2 },
+            ...(item.desc ? [{ text: item.desc, style: 'ink_accent' as const }] : []),
+          ];
+      this.alerts.push({
+        kind: 'room',
+        key: `region:${item.region}`,
+        label: item.region,
+        timing: ALERT_UI.room,
+        build: (sc) => bannerCard(sc, lines, stageIndex),
+        merge: (prev) => prev,
+      });
+      this.busy = false;
+      this.next();
+      return;
+    }
     if (item.kind === 'region') {
       this.cardItem = item;
       const card = new RegionCard(scene, {

@@ -51,6 +51,7 @@ describe('transitionView (61 단계 6 그림 속 입구 전환)', () => {
       from: { x: 10, y: 20 },
       nodeId: 'n4',
       skippable: true,
+      durationMs: null,
     });
     const c = readBegin({ id: 4, mode: 'exitRoom', from: { x: 'a' }, doorKey: '' });
     expect(c?.from).toBeNull();

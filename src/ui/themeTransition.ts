@@ -124,3 +124,59 @@ export const LOADING = {
   estimateTauMs: 1600,
   estimateCap: 0.9,
 } as const;
+
+/**
+ * 62 루프 3 UI G (도영 님 추가 지시) 지도 미리보기 카드 (UI 판단 임시값). 그림 16:9 — 수련장 지도 288×162 논리, 노드 지도 256×144
+ * (노드 지도 칸 565×317 에서 어느 곳을 가리켜도 옆에 그 곳을 가리지 않는 자리가 남는 크기). 렌더 2배 텍스처를 1/2 로 그려 1:1,
+ * 액자 테 4 + 그늘. 가리킨 곳이 바뀌면 0.15초 교차 페이드, 그림은 아주 느린 켄번스(1 → 1.03 → 1, 한쪽 9초).
+ */
+export const PREVIEW = {
+  picW: 288,
+  picH: 162,
+  mapPicW: 256,
+  mapPicH: 144,
+  /** 렌더 배율 (그림 텍스처를 이만큼 크게 만들어 1/배율로 그린다 — 1920 렌더에서 1:1) */
+  res: 2,
+  /** 액자 테 두께 · 그늘 어긋남 */
+  frame: 4,
+  shadow: 3,
+  /** 가리킨 곳 아이콘 가운데에서 카드까지 (아이콘 반 16 + 여백) */
+  gap: 26,
+  /** 그림 아래 먹 띠: 글 안쪽 여백 · 줄 사이 · 위로 번지는 계단 수·한 칸 높이 · 띠 알파 */
+  bandPad: 6,
+  lineGap: 1,
+  bandSteps: 4,
+  bandStepH: 5,
+  bandAlpha: 0.78,
+  /** 종류 아이콘 크기(논리) · 이름과 간격 */
+  iconSize: 16,
+  iconGap: 4,
+  /** 교차 페이드 · 켄번스 */
+  fadeMs: 150,
+  kenZoom: 1.03,
+  kenPeriodMs: 9000,
+  /** 피할 것 무게 (겹친 넓이에 곱함): 가리킨 곳 · 지금 곳·갈 수 있는 다른 곳(+ 그 이름표) · 그 밖 노드 · 그 밖 이름표 */
+  weightAnchor: 1000,
+  weightKey: 40,
+  weightNode: 3,
+  weightLabel: 1,
+  /** 수련장 지도 그림 조각: 그림 폭 대비 자르는 폭 */
+  spotFrac: 0.3,
+  /** 깊이 (노드 지도 100 위 · 커서 101 위) */
+  depth: 102,
+} as const;
+
+/**
+ * 62 루프 3 UI G 짧은 먹 번짐 암전 `mode: 'fade'` (시스템 H — 노드 이동). 가장자리에서 먹이 번져 coverMs 에 덮고(covered),
+ * READY 뒤 가운데부터 revealMs 에 걷힌다. 시스템이 `durationMs` 를 주면 덮는 시간으로 쓴다(min~max 로 자름).
+ */
+export const FADE = {
+  coverMs: 380,
+  minCoverMs: 250,
+  maxCoverMs: 600,
+  revealMs: 300,
+  /** 번지는 앞쪽 부드러움 (0~1) · 먹 얼룩 잡음 섞는 비율 · 얼룩 칸 크기(처리 해상도 px) */
+  soft: 0.2,
+  noise: 0.28,
+  blotCell: 36,
+} as const;

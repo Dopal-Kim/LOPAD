@@ -2,9 +2,10 @@
  * 61 단계 6 (P14 §3, 계약 §19) 그림 속 입구 전환 — 순수 계산 (Phaser·DOM 없음, 테스트한다).
  * 단계 계획 · 파고들기 줌/초점 · 붓질 마스크 · 붓 그림(색 줄임·먹 윤곽·종이 결·가장자리 번짐) · 입구 메타 읽기.
  */
-import { TRANSITION } from './themeTransition';
+import { FADE, TRANSITION } from './themeTransition';
 
-export type TransitionMode = 'enterNode' | 'exitRoom' | 'floor' | 'training';
+/** 62 루프 3 UI G: 'fade' = 짧은 먹 번짐 암전 (시스템 H — 노드 이동·수련장 방 이동, 그림 속 입구 없음) */
+export type TransitionMode = 'enterNode' | 'exitRoom' | 'floor' | 'training' | 'fade';
 
 /** 들어오는 시작 페이로드를 읽은 값 (모르는 값은 기본) */
 export interface BeginInfo {
@@ -17,9 +18,11 @@ export interface BeginInfo {
   /** enterNode: 고른 노드 id · training: 고른 방 id (시스템 추가 필드) */
   nodeId: string | null;
   skippable: boolean;
+  /** 시스템 H(가정 이름): 'fade' 의 덮는 시간 (ms) — 없으면 null (UI 기본값) */
+  durationMs: number | null;
 }
 
-const MODES: readonly TransitionMode[] = ['enterNode', 'exitRoom', 'floor', 'training'];
+const MODES: readonly TransitionMode[] = ['enterNode', 'exitRoom', 'floor', 'training', 'fade'];
 
 /** `ui:transition-begin` 페이로드 읽기. id·mode 가 없으면 null */
 export function readBegin(p: unknown): BeginInfo | null {
@@ -42,6 +45,8 @@ export function readBegin(p: unknown): BeginInfo | null {
     from,
     nodeId: typeof o.nodeId === 'string' && o.nodeId ? o.nodeId : null,
     skippable: o.skippable !== false,
+    durationMs:
+      typeof o.durationMs === 'number' && Number.isFinite(o.durationMs) && o.durationMs > 0 ? o.durationMs : null,
   };
 }
 
@@ -63,12 +68,19 @@ export interface TransitionPlan {
   revealMs: number;
 }
 
-export function planFor(mode: TransitionMode): TransitionPlan {
+export function planFor(mode: TransitionMode, durationMs: number | null = null): TransitionPlan {
   const T = TRANSITION;
+  if (mode === 'fade') return { introMs: fadeCoverMs(durationMs), frameMs: 0, moveMs: 0, revealMs: FADE.revealMs };
   if (mode === 'floor') return { introMs: T.floorShowMs, frameMs: 0, moveMs: T.floorDiveMs, revealMs: T.floorRevealMs };
   if (mode === 'exitRoom')
     return { introMs: T.freezeMs, frameMs: T.frameMs, moveMs: T.zoomOutMs, revealMs: T.exitRevealMs };
   return { introMs: T.bloomMs, frameMs: 0, moveMs: T.diveMs, revealMs: T.revealMs };
+}
+
+/** 'fade' 덮는 시간: 시스템 값(있으면)을 min~max 로 자름 */
+export function fadeCoverMs(durationMs: number | null): number {
+  if (durationMs === null) return FADE.coverMs;
+  return Math.max(FADE.minCoverMs, Math.min(FADE.maxCoverMs, Math.round(durationMs)));
 }
 
 export function planTotal(p: TransitionPlan): number {
@@ -291,6 +303,43 @@ export function brushOrder(
     }
   }
   return out;
+}
+
+/**
+ * 62 루프 3 UI G 'fade' 먹 번짐 순서 (0 = 가장자리 — 먼저 덮임, 1 = 가운데 — 마지막). 사각 가장자리 거리 + 먹 얼룩 잡음.
+ * 덮을 때는 `inkCoverAlpha(order)`, 걷을 때는 `revealAlpha(1 - order)` (가운데부터 걷힘).
+ */
+export function inkEdgeOrder(
+  w: number,
+  h: number,
+  seed: number,
+  noise: number = FADE.noise,
+  cell: number = FADE.blotCell,
+): Float32Array {
+  const rand = rng(seed);
+  const blot = valueNoise(w, h, Math.max(4, cell), rand);
+  const fine = valueNoise(w, h, 5, rand);
+  const out = new Float32Array(w * h);
+  const hw = Math.max(1, (w - 1) / 2);
+  const hh = Math.max(1, (h - 1) / 2);
+  for (let y = 0; y < h; y++) {
+    const dy = Math.min(y, h - 1 - y) / hh;
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      const d = Math.min(Math.min(x, w - 1 - x) / hw, dy);
+      // 가장자리 거리를 살짝 둥글게(제곱근) — 번짐이 가장자리에서 빨리 들어오다 가운데에서 느려진다
+      const base = Math.sqrt(clamp01(d));
+      const n = blot[i] * 0.8 + fine[i] * 0.2;
+      out[i] = clamp01(base * (1 - noise) + n * noise);
+    }
+  }
+  return out;
+}
+
+/** 'fade' 덮개 알파 (0~1): t 0 = 안 덮임, 1 = 다 덮임. 순서가 작은(가장자리) 곳부터 */
+export function inkCoverAlpha(order: number, t: number, soft: number = FADE.soft): number {
+  const front = t * (1 + soft) - soft;
+  return 1 - smooth(front, front + soft, order);
 }
 
 /** 붓질 덮개 알파 (0~1): t 0 = 다 덮임, 1 = 다 걷힘. soft = 앞쪽 번짐 폭 */

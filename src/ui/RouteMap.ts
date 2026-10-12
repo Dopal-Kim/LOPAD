@@ -6,10 +6,15 @@ import { nodeLook } from './bundleView';
 import { debugExpose } from './debug';
 import { GlowText } from './glow';
 import { NODE_ICON_SHEET, accentHex, book, cursor, rule } from './kit';
-import { RouteConfirm, eventStamp, hasDepth } from './RouteConfirm';
 import { gradeMark, rewardBadge, riskBadge, riskRing, smudgeMark } from './routeMarks';
 import { FIGURE_H, FIGURE_W, FIG_UNIT, diamondRing, drawFigure, makeGlyph, pixelDiamond } from './routeGlyph';
-import { insertNextTo } from './displayOrder';
+import { hasDepth, insertNextTo } from './displayOrder';
+import { RoutePreview, nodeEmblem, nodeIcon } from './RoutePreview';
+import { pickPreviewArt, previewText, readPreviewKey, readPreviewRegion, type Obstacle } from './previewView';
+import { artTex } from './paintArt';
+import { nodeTypeName } from './routeGlyph';
+import { r60Text } from './text';
+import { PREVIEW } from './themeTransition';
 import { drawIllustration, drawSheet, illustrationPath, type LateInsert } from './routeSheet';
 import { RouteSide } from './RouteSide';
 import {
@@ -60,7 +65,7 @@ export interface RouteMapOptions {
   stageIndex: number;
   floorTitle: string;
   shopName?: string;
-  /** 노드를 골랐다 ('넘어가시겠습니까?' 에 예 → 뗀 뒤 한 프레임 늦게). 고르기 모드만 */
+  /** 노드를 골랐다 (Enter·Space 를 뗀 뒤 · 클릭을 뗀 뒤 한 프레임 늦게 — 62 루프 3: 확인 창 없음). 고르기 모드만 */
   onChoose: (id: string) => void;
 }
 
@@ -74,9 +79,11 @@ const ICON_HALF = 16;
  *   50라운드: `assets/ui/map_bg_<floor>.png` 가 있는 층(theme `MAP_BG_FLOORS`)은 **일러스트 좌표계 우선**(routeSheet.ts).
  *   60라운드 §14.5: 보상 미리보기 표(아이콘 오른쪽 아래)·위험 노드(붉은 테두리 + 표)·숨은 노드 얼룩·성과 도장(routeMarks.ts).
  * 오른쪽: 지금 있는 곳 / 살펴보는(고른) 곳(+ 보상·위험·접두어·이벤트 내용·도장) / 보상 범례·산 지도 정보 / 범례 (RouteSide.ts).
- * - 'choose': ROUTE_CHOOSE_OPEN. available 노드를 고르면 '넘어가시겠습니까?' 확인(RouteConfirm.ts, 위험 노드면 위험 한 줄)
- *   → 예일 때만 onChoose. Esc(확인 창이 없을 때)는 HUD 가 받아 지도를 닫고 `cancelChoose()` (53라운드 Q47).
- * - 'view': M·Tab 보기 전용. 방향키로 둘러보기만 (숨은 노드 얼룩도 살펴볼 수 있다).
+ * - 'choose': ROUTE_CHOOSE_OPEN. 62 루프 3 UI G (도영 님 추가 지시): 외길이어도 지도가 뜨고 첫 곳을 가리킨 채 시작,
+ *   가리킨 곳의 그림(시스템 `previewKey` → 지역 키아트)을 작은 미리보기 카드로(RoutePreview.ts — 이름·종류·고유 한 줄·보상·위험).
+ *   확인 창 없이 Enter·Space(뗀 뒤)·클릭(눌렀다 뗀 것) 한 번으로 onChoose (UI D 무장 게이트 유지). Esc 는 HUD 가 받아 지도를 닫고
+ *   `cancelChoose()` (53라운드 Q47).
+ * - 'view': M·Tab 보기 전용. 방향키로 둘러보기만 (숨은 노드 얼룩도 살펴볼 수 있다). 미리보기 카드도 같이.
  */
 export class RouteMap {
   private objs: Phaser.GameObjects.GameObject[] = [];
@@ -98,15 +105,9 @@ export class RouteMap {
   private navNodes: NavNode[] = [];
   private messageRight = 0;
   private currentId: string | null = null;
-  private confirm?: RouteConfirm;
-  private mapArea = { x: 0, y: 0, w: 0, h: 0 };
-  /**
-   * 확인 창을 열고 닫게 한 입력 이벤트의 시각 (event.timeStamp). 그 시각 이전(같은 이벤트 포함)의 키 이벤트는 무시한다 —
-   * 프레임이 밀리면 Phaser 가 같은 키 이벤트를 다시 넘겨, 확인 창을 연 Enter 가 곧바로 '예' 로 먹히는 일이 있었다
-   * (49라운드 헤드리스 확인). 처리 시각이 아니라 이벤트 시각을 쓰므로 밀린 동안 새로 누른 키는 살아남는다.
-   */
-  private inputAfter = 0;
-  private bookRect = { x: 0, y: 0, w: 0, h: 0 };
+  /** 62 루프 3 UI G: 가리킨 곳 미리보기 카드 · 카드가 피할 것(노드·이름표 — 가리킨 곳은 그때 더한다) */
+  private preview?: RoutePreview;
+  private figureRect: Rect | null = null;
   /**
    * 62 루프 2 UI D: 고르기 지도의 무장 게이트 (choiceGate.ts) — 그린 뒤 armMs(계약 `UiRoute.armMs`) 동안·열기 전부터 누르던
    * Enter·Space·클릭으로는 길을 고르지 않는다 (이동 중 누르던 키로 길이 골라지지 않게). 둘러보기(방향키·마우스 올림)는 그대로
@@ -130,11 +131,6 @@ export class RouteMap {
     scene.input.keyboard?.on('keyup', this.onKeyUp);
   }
 
-  /** '넘어가시겠습니까?' 확인 창이 떠 있는가 */
-  get confirmOpen(): boolean {
-    return Boolean(this.confirm);
-  }
-
   /** 거부 사유 등 짧은 글 (오른쪽 아래) */
   showMessage(text: string): void {
     if (this.destroyed || !this.message) return;
@@ -150,7 +146,6 @@ export class RouteMap {
   /** 61 단계 6: 고른 뒤 전환이 덮을 때까지 그대로 보이되 입력은 받지 않는다 */
   freeze(): void {
     if (this.destroyed) return;
-    this.closeConfirm();
     this.chosen = true;
     this.scene.input.keyboard?.off('keydown', this.onKeyDown);
     this.scene.input.keyboard?.off('keyup', this.onKeyUp);
@@ -159,8 +154,9 @@ export class RouteMap {
 
   destroy(): void {
     if (this.destroyed) return;
-    this.closeConfirm();
     this.destroyed = true;
+    this.preview?.destroy();
+    this.preview = undefined;
     this.scene.input.keyboard?.off('keydown', this.onKeyDown);
     this.scene.input.keyboard?.off('keyup', this.onKeyUp);
     this.bobTimer?.remove();
@@ -174,17 +170,8 @@ export class RouteMap {
   }
 
   // -------------------------------------------------------------------------------------------
-  private stale(e: KeyboardEvent): boolean {
-    return typeof e.timeStamp === 'number' && e.timeStamp > 0 && e.timeStamp <= this.inputAfter;
-  }
-
   private onKeyDown = (e: KeyboardEvent): void => {
-    if (this.destroyed || this.stale(e)) return;
-    if (this.confirm) {
-      this.confirm.keyDown(e);
-      return;
-    }
-    if (this.chosen) return;
+    if (this.destroyed || this.chosen) return;
     const dir = keyToDir(e.key);
     if (dir) {
       if (this.mode === 'choose') {
@@ -203,19 +190,15 @@ export class RouteMap {
   };
 
   private onKeyUp = (e: KeyboardEvent): void => {
-    if (this.destroyed || this.stale(e)) return;
-    if (this.confirm) {
-      this.confirm.keyUp(e);
-      return;
-    }
-    if (this.chosen) return;
+    if (this.destroyed || this.chosen) return;
     if (e.key === this.armedKey) {
       this.armedKey = null;
-      if (this.sel && this.choices.includes(this.sel)) this.openConfirm(this.sel, e.timeStamp);
+      if (this.sel && this.choices.includes(this.sel)) this.choose(this.sel);
     }
   };
 
   private choose(id: string): void {
+    if (this.chosen || this.mode !== 'choose') return;
     this.chosen = true;
     // 떼는 입력이 끝난 다음 프레임에 넘긴다 (45라운드 워프 지도와 같은 방식)
     this.scene.time.delayedCall(0, () => {
@@ -240,7 +223,6 @@ export class RouteMap {
     // 배경 어둡게 + 클릭 막기 (페이지 밖 클릭이 게임 씬으로 내려가지 않게)
     scene.add.rectangle(0, 0, W, H, hexToNum(GRAY[0]), ROUTE.dimAlpha).setOrigin(0, 0).setInteractive();
     const bk = book(scene, Math.round(W / 2), Math.round(H / 2), pageW, pageH, 1, 'route');
-    this.bookRect = { x: bk.x, y: bk.y, w: bk.w, h: bk.h };
     const pg = bk.pages[0];
     const right = pg.x + pageW - pad;
 
@@ -262,7 +244,6 @@ export class RouteMap {
     const mapW = pageW - pad * 2 - MAP3D.sideW - MAP3D.sideGap;
     const bottom = pg.y + pageH - MAP3D.hintH - 6;
     const area = { x: pg.x + pad, y, w: mapW, h: bottom - y };
-    this.mapArea = area;
     const sideX = area.x + mapW + MAP3D.sideGap;
 
     const nodes = sortNodes(route.nodes);
@@ -296,10 +277,10 @@ export class RouteMap {
     // 주인공 표시 (현재 노드 왼쪽, 발이 땅에)
     const cur =
       this.views.find((v) => v.node.id === route.currentId) ?? this.views.find((v) => v.node.state === 'current');
-    this.layoutLabels(
-      cur ? { x: cur.x - ICON_HALF - 4 - FIGURE_W, y: cur.gy - FIGURE_H + 1, w: FIGURE_W, h: FIGURE_H } : null,
-      area,
-    );
+    this.figureRect = cur
+      ? { x: cur.x - ICON_HALF - 4 - FIGURE_W, y: cur.gy - FIGURE_H + 1, w: FIGURE_W, h: FIGURE_H }
+      : null;
+    this.layoutLabels(this.figureRect, area);
     if (cur) {
       this.figure = scene.add.graphics();
       drawFigure(this.figure, scene, si);
@@ -342,6 +323,14 @@ export class RouteMap {
     }
     if (this.cursorSprite) this.cursorSprite.setDepth(ROUTE.depth + 1);
     if (this.figure) this.figure.setDepth(ROUTE.depth + 1);
+    // 62 루프 3 UI G: 미리보기 카드 (지도 칸 안, 노드·커서 위)
+    this.preview = new RoutePreview(scene, {
+      area,
+      depth: PREVIEW.depth,
+      stageIndex: si,
+      picW: PREVIEW.mapPicW,
+      picH: PREVIEW.mapPicH,
+    });
 
     this.expose();
     this.select(
@@ -502,12 +491,10 @@ export class RouteMap {
         (_a: Phaser.Geom.Rectangle, hx: number, hy: number) => Math.abs(hx - half) + Math.abs(hy - half) <= r + 2,
       );
       if (box.input && this.mode === 'choose') box.input.cursor = 'pointer';
-      box.on('pointerover', () => {
-        if (!this.confirm) this.select(n.id);
-      });
+      box.on('pointerover', () => this.select(n.id));
       if (this.mode !== 'choose') continue;
       box.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-        if (this.confirm || !leftButton(pointer)) return;
+        if (this.chosen || !leftButton(pointer)) return;
         // 62 루프 2 UI D: 무장 전·열기 전부터 누르던 클릭은 고르기 누름으로 치지 않는다 (살펴보기는 그대로)
         this.pressed = !this.gate || this.gate.pressOk(pointerTime(pointer)) ? n.id : null;
         this.select(n.id);
@@ -515,7 +502,7 @@ export class RouteMap {
       box.on('pointerup', (pointer: Phaser.Input.Pointer) => {
         if (!leftButton(pointer)) return;
         const ok = this.gate ? this.gate.releaseOk() : true;
-        if (ok && !this.confirm && this.pressed === n.id && !this.chosen) this.openConfirm(n.id, eventStamp(pointer));
+        if (ok && this.pressed === n.id && !this.chosen) this.choose(n.id);
         this.pressed = null;
       });
     }
@@ -541,6 +528,7 @@ export class RouteMap {
     if (this.destroyed || !id || id === this.sel) return;
     this.sel = id;
     this.redraw();
+    this.expose();
   }
 
   /**
@@ -627,52 +615,62 @@ export class RouteMap {
     } else this.cursorSprite?.setVisible(false);
     // 오른쪽 '살펴보는(고른) 곳': 지금 있는 곳과 같으면 비운다
     this.side?.show(sv?.node ?? null, !sv || sv.node.id === this.currentId);
+    this.showPreview(sv);
   }
 
-  // -------------------------------------------------------------------------------------------
-  // 49라운드 확인 (예일 때만 onChoose) — RouteConfirm.ts. 62 루프 2 P2-1: 갈림길에서만, 문구 '이 길로 간다'
-  private openConfirm(id: string, stamp: number): void {
-    if (this.destroyed || this.confirm || this.mode !== 'choose') return;
-    const v = this.views.find((x) => x.node.id === id);
-    if (!v) return;
-    // 62 루프 2 (P2-1): 확인은 갈림길에서만 — 갈 길이 하나뿐이면 묻지 않고 간다
-    if (this.choices.length <= 1 && this.choices.includes(id)) {
-      this.inputAfter = stamp;
-      this.choose(id);
+  /**
+   * 62 루프 3 UI G: 가리킨 곳 미리보기 카드 — 그림은 시스템 `previewKey`(로드된 것만) → 지역 키아트 → 종이(종류 아이콘 크게).
+   * 카드는 가리킨 곳·지금·갈 수 있는 곳·이름표·주인공 표시를 덜 가리는 쪽에 (얼룩은 걷기)
+   */
+  private showPreview(v: NodeView | undefined): void {
+    const p = this.preview;
+    if (!p) return;
+    if (!v || v.smudge) {
+      p.show(null);
       return;
     }
-    this.armedKey = null;
-    this.pressed = null;
-    this.inputAfter = stamp;
-    this.confirm = new RouteConfirm(this.scene, v.node, {
-      stageIndex: this.stageIndex,
-      bookRect: this.bookRect,
-      mapArea: this.mapArea,
-      onAnswer: (yes, at) => {
-        this.closeConfirm(at);
-        if (yes) this.choose(id);
-      },
+    const n = v.node;
+    const P = PREVIEW;
+    const obstacles: Obstacle[] = [];
+    for (const o of this.views) {
+      if (o.smudge) continue;
+      const key = o.node.state === 'current' || o.node.state === 'available';
+      const weight = o === v ? P.weightAnchor : key ? P.weightKey : P.weightNode;
+      // 아이콘 + 기둥·그림자까지
+      obstacles.push({
+        rect: { x: o.x - ICON_HALF - 4, y: o.y - ICON_HALF - 4, w: ICON_HALF * 2 + 8, h: o.gy - o.y + ICON_HALF + 8 },
+        weight,
+      });
+      if (o.label.visible && o.label.textW > 0)
+        obstacles.push({
+          rect: { x: o.label.x, y: o.label.y, w: o.label.displayWidth, h: o.label.displayHeight },
+          weight: o === v ? P.weightAnchor : key ? P.weightKey : P.weightLabel,
+        });
+    }
+    if (this.figureRect) obstacles.push({ rect: this.figureRect, weight: P.weightKey });
+    const si = this.stageIndex;
+    const pick = pickPreviewArt(
+      { previewKey: readPreviewKey(n), previewRegion: readPreviewRegion(n), region: n.region },
+      (k) => artTex(this.scene, k),
+    );
+    p.show({
+      id: n.id,
+      anchor: { x: v.x, y: v.y },
+      art: pick.art,
+      pending: pick.pending,
+      text: previewText(n, nodeTypeName(n.type, this.opts.shopName), r60Text),
+      icon: (sc) => nodeIcon(sc, n.type, si),
+      paperDraw: (sc, w, h) => nodeEmblem(sc, n.type, si, w, h),
+      obstacles,
     });
-    this.expose();
   }
 
-  private closeConfirm(stamp = 0): void {
-    const c = this.confirm;
-    if (!c) return;
-    this.confirm = undefined;
-    this.inputAfter = Math.max(this.inputAfter, stamp);
-    this.armedKey = null;
-    c.destroy();
-    if (!this.destroyed) this.expose();
-  }
-
-  /** 헤드리스 확인용 (`uidebug=1`): 노드 화면 좌표·확인 창 버튼 */
+  /** 헤드리스 확인용 (`uidebug=1`): 노드 화면 좌표 */
   private expose(): void {
-    const c = this.confirm;
     debugExpose('routeMap', {
       mode: this.mode,
+      sel: this.sel,
       nodes: this.views.map((x) => ({ id: x.node.id, x: x.x, y: x.y, state: x.node.state, smudge: x.smudge })),
-      confirm: c ? { id: c.id, ...c.buttonCenters() } : null,
     });
   }
 }

@@ -14,3 +14,8 @@ export function insertNextTo<T>(list: T[], item: T, anchor: T, where: 'above' | 
   list.splice(where === 'above' ? at + 1 : at, 0, item);
   return true;
 }
+
+/** depth 를 줄 수 있는 표시 객체인가 (노드 지도가 이번에 만든 최상위 객체에 depth 를 줄 때) */
+export function hasDepth<T extends object>(o: T): o is T & { setDepth(d: number): unknown } {
+  return typeof (o as { setDepth?: unknown }).setDepth === 'function';
+}
