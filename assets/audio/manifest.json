@@ -98,7 +98,18 @@
         "sfx/transition_exit": 1,
         "sfx/transition_floor": 1,
         "sfx/training_task": 2,
-        "sfx/training_stamp": 1
+        "sfx/training_stamp": 1,
+        "sfx/enemy_incoming": 2,
+        "sfx/last_kill_slow": 1,
+        "sfx/death_slow": 1,
+        "sfx/trial_win": 1,
+        "sfx/trial_fail": 1,
+        "sfx/floor_end_sting": 1,
+        "sfx/memory_unlock": 1,
+        "sfx/relic_take": 1,
+        "sfx/shop_buy": 2,
+        "sfx/shop_reroll": 1,
+        "sfx/npc_talk": 1
       },
       "layerMax": {
         "ids": [
@@ -130,7 +141,7 @@
         {
           "level": 4,
           "name": "telegraph",
-          "label": "보스 예고·보스 신호·무기 각성(61-4)",
+          "label": "보스 예고·보스 신호·무기 각성(61-4)·주인공 사망 슬로모(62-2)",
           "events": [
             "BOSS_TELEGRAPH",
             "BOSS_STARTED",
@@ -138,13 +149,14 @@
             "BOSS_DIED",
             "boss:intro",
             "BOSS_ACTION{action:introRoar}",
-            "WEAPON_AWAKEN"
+            "WEAPON_AWAKEN",
+            "PLAYER_DIED"
           ]
         },
         {
           "level": 3,
           "name": "hurt",
-          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·그림 속 입구 전환·수련장 도장(61-6)",
+          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·그림 속 입구 전환·수련장 도장(61-6)·적 등장 예고·마지막 처치 슬로모·노드 시련 성공/실패·1층 끝 결산(62-2)",
           "events": [
             "PLAYER_DAMAGED",
             "PARRY_SUCCESS",
@@ -159,16 +171,23 @@
             "BOSS_ACTION{action:pillarCollapse}",
             "BOSS_ACTION{action:lobThrow}",
             "TRANSITION_BEGIN",
-            "TRAINING_STAMP"
+            "TRAINING_STAMP",
+            "ENEMY_INCOMING",
+            "FEEL_SLOWMO",
+            "NODE_TRIAL_BROKEN",
+            "NODE_GRADED{grade:perfect}",
+            "ui:floor-end"
           ]
         },
         {
           "level": 2,
           "name": "hit",
-          "label": "타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)·수련장 과제 완료(61-6)",
+          "label": "타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)·수련장 과제 완료(61-6)·유품 획득·기억 해금(62-2)",
           "events": [
             "RESONANCE_ON",
             "TRAINING_TASK",
+            "ui:relic-gained",
+            "MEMORY_UNLOCKED",
             "(그 밖의 combat·boss 분류)"
           ]
         },
@@ -183,15 +202,18 @@
             "PICKUP_LANDED",
             "PICKUP_COLLECTED",
             "TRAIT_PROC",
-            "(world·pickup·event 분류)"
+            "EVENT_TALK",
+            "SHOP_TALK",
+            "(world·pickup·event 분류 — 상점 사기·다시 진열 포함)"
           ]
         },
         {
           "level": 0,
           "name": "ui",
-          "label": "UI — 별도 버스, 상한·빼앗기 대상 아님",
+          "label": "UI — 별도 버스, 상한·빼앗기 대상 아님(62-2 메뉴 공통 ui_move·ui_select·ui_back·ui_toggle)",
           "events": [
             "UI_MENU_*",
+            "UI_SETTING_TOGGLED",
             "(ui 분류)"
           ]
         }
@@ -227,13 +249,13 @@
         "note": "맞은 순간이 또렷하게"
       },
       {
-        "when": "파훼 소리 재생(boss1_break_*·break_finisher) · 기둥 무너짐(boss1_pillar_collapse, 61-5)",
+        "when": "파훼 소리 재생(boss1_break_*·break_finisher·boss1_pillar_collapse) — 61-5 기둥 무너짐 포함",
         "target": "sfx priority ≤ 2",
         "db": -4.0,
         "attackMs": 5,
         "releaseMs": 300,
         "hold": "300 ms",
-        "note": "61-2: 트리거 ui:boss-break(break_count 는 제외) · 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게. 61-5: 기둥 무너짐(BOSS_ACTION pillarCollapse)도 같은 규칙"
+        "note": "61-2: 트리거 ui:boss-break(break_count 는 제외) · 파훼·결정타의 손맛 — 그 순간 타격·휘두름을 잠깐 눌러 한 방이 앞에 서게. 61-5: 기둥 무너짐(BOSS_ACTION pillarCollapse)도 같은 규칙. 62-2: 시스템 파서는 when 의 첫 괄호 안 이름만 읽으므로 기둥 무너짐을 첫 괄호 안으로 옮김(전에는 빠져 있었음)"
       },
       {
         "when": "sfx priority ≥ 2 재생 시작",
@@ -270,6 +292,51 @@
         "releaseMs": 250,
         "hold": "300 ms",
         "note": "61-6: 도장 순간이 또렷하게(같은 때 울린 마지막 과제 종 training_task 는 priority 2 라 눌리지 않음)"
+      },
+      {
+        "when": "마지막 처치 슬로모 재생(last_kill_slow)",
+        "target": "sfx priority ≤ 2",
+        "db": -5.0,
+        "attackMs": 10,
+        "releaseMs": 250,
+        "hold": "280 ms",
+        "note": "62-2: 슬로모(280 ms) 동안 남은 타격·휘두름을 눌러 시간이 굳는 느낌 — 처치음(enemy_death, priority 2)도 함께 조금 눌려 last_kill_slow 의 깊은 '웅'이 앞에 선다"
+      },
+      {
+        "when": "마지막 처치 슬로모 재생(last_kill_slow) — BGM",
+        "target": "bgm",
+        "db": -4.0,
+        "attackMs": 30,
+        "releaseMs": 350,
+        "hold": "280 ms",
+        "note": "62-2: 곡도 슬로모 동안 살짝 물러났다가 시간이 풀릴 때 돌아온다"
+      },
+      {
+        "when": "사망 슬로모 재생(death_slow)",
+        "target": "sfx priority ≤ 2",
+        "db": -10.0,
+        "attackMs": 20,
+        "releaseMs": 600,
+        "hold": "그 소리 길이 동안",
+        "note": "62-2: 죽는 순간 남은 전투음을 크게 눌러 먹 번짐만 남게(주인공 피격 hit_player 는 priority 3 이라 그대로 들림). priority 4 기본 규칙(−6 dB)과 겹치면 더 깊은 값 하나만(−10 dB)"
+      },
+      {
+        "when": "사망 슬로모 재생(death_slow) — BGM",
+        "target": "bgm",
+        "db": -12.0,
+        "attackMs": 300,
+        "releaseMs": 1500,
+        "hold": "그 소리 길이 동안",
+        "note": "62-2: 0.3 s 에 걸쳐 곡이 거의 사라지고(슬로모와 함께) 결산 화면으로 넘어가며 1.5 s 에 걸쳐 돌아옴. 결산에서 곡을 바꾸거나 끄면 시스템 페이드가 우선"
+      },
+      {
+        "when": "1층 끝 결산 열림 재생(floor_end_sting) — BGM",
+        "target": "bgm",
+        "db": -6.0,
+        "attackMs": 200,
+        "releaseMs": 1200,
+        "hold": "그 소리 길이 동안",
+        "note": "62-2: 결산 일기장이 열리는 손풍금 화음이 곡과 부딪히지 않게(보스 처치 뒤 정적이면 영향 없음)"
       }
     ],
     "variation": {
@@ -301,6 +368,39 @@
       "skipFadeMs": 150,
       "note": "61-6 그림 속 입구 전환(TRANSITION_BEGIN): 연출을 건너뛰면(아무 키) 재생 중인 전환음을 skipFadeMs 로 페이드아웃(뚝 끊지 않음). mode floor 는 transition_floor 하나만(없으면 transition_enter) — 둘을 겹치지 않는다. 전환음은 시간 축이 UI 연출에 맞춰져 있다: enter 1.10 s · floor 1.22 s 에 어둠이 덮이고 그 뒤 붓질이 걷힘, exit 0.95 s 에 액자 닫힘 — 연출 시작과 같은 순간에 재생."
     },
+    "cues": {
+      "sfx/enemy_incoming": {
+        "peakMs": 1000,
+        "alignTo": "ENEMY_INCOMING.delayMs",
+        "note": "62-2: 파일 1.00 s 에 적이 일어서는 '훅·둥'. 시작 = max(0, delayMs − 1000) ms 뒤 (노드 첫 웨이브 1500 ms 면 500 ms 늦춰 시작). delayMs < 1000 이면 바로 재생 — 앞부분이 짧아질 뿐 정점은 등장보다 늦는다(재생 위치를 1000 − delayMs 로 건너뛰어도 됨)"
+      },
+      "sfx/last_kill_slow": {
+        "peakMs": 280,
+        "note": "62-2: 0~280 ms 시간이 굳음, 280 ms 에 풀림 — FEEL.KILL.SLOW.MS 와 같은 순간에 시작"
+      },
+      "sfx/death_slow": {
+        "peakMs": 600,
+        "alignTo": "ui:death-started{slowMs,inkMs}",
+        "note": "62-2: 시스템 data/runEnd.json death(slowMs 600 · inkMs 1100 · holdMs 250)에 맞춤 — 0~600 ms 슬로모, 600 ms 먹 방울 '툭' + 번짐(1100 ms), 1620 ms 먹이 자리 잡음, 2000 ms 끝(결산). 사망 연출 시작(beginDeath)과 같은 순간 재생. slowMs 가 바뀌면 재생 속도가 아니라 이 정점을 옮겨 다시 만든다(음향에 알림)"
+      },
+      "sfx/floor_end_sting": {
+        "peakMs": 1150,
+        "note": "62-2: 0 s 일기장 열림, 1.15 s 화음이 열림(결산 항목이 차례로 뜨기 시작하기 좋은 순간)"
+      },
+      "sfx/memory_unlock": {
+        "peakMs": 450,
+        "note": "62-2: 0~0.3 s 글씨 세 획, 0.45 s 먹 '툭' + 종 — 해금 그림이 떠오르는 순간"
+      },
+      "sfx/relic_take": {
+        "peakMs": 220,
+        "note": "62-2: 0.22 s 쇠붙이를 쥐는 '철컥' — 카드가 손으로 들어가는 순간"
+      },
+      "sfx/trial_win": {
+        "peakMs": 0,
+        "note": "62-2: 0 s 完 도장 '꾹'. 노드 마지막 처치와 같은 프레임이면(마지막 처치 슬로모 280 ms) 슬로모가 풀린 뒤 재생하면 '웅'과 도장·종이 겹치지 않는다(도장 연출이 늦게 뜨면 그 순간에)"
+      }
+    },
+    "cuesNote": "62-2: 시간 축이 연출에 맞춰진 효과음의 정점(peakMs, 파일 0 기준). 시스템·UI 연출 시각을 이 값에 맞추거나, 연출이 늦으면 재생을 그만큼 늦춘다. 계약 필드가 아니라 권장값.",
     "variantGroups": {
       "sfx/hit_enemy": [
         "sfx/hit_enemy",
@@ -386,6 +486,10 @@
         "sfx/training_task",
         "sfx/training_task_v2",
         "sfx/training_task_v3"
+      ],
+      "sfx/ui_move": [
+        "sfx/ui_move",
+        "sfx/ui_move_v2"
       ]
     }
   },
@@ -885,16 +989,16 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 19845,
-      "durationMs": 450,
+      "samples": 22932,
+      "durationMs": 520,
       "loop": false,
-      "gainDb": -4,
+      "gainDb": -2.0,
       "trigger": {
         "event": "SHOP_PURCHASE",
         "when": []
       },
       "priority": 1,
-      "note": "상점 구매. 동전 몇 개 떨어지고 나무 좌판 두드림"
+      "note": "62-2 다시(P16 §5 — 노점 칸에서 E 로 사기). 0 s 전표를 건네는 종이 '착' 두 겹(4.5·2.4 kHz) → 60 ms 나무 좌판 '톡'(620 Hz) + 둥근 몸통(200→110 Hz) → 0.14 s 물건을 집어 드는 천 스침 → 0.22 s 작은 쇠 '탁'(장신구·병마개 — 울림 없음). 0.50 s. 옛 '동전' 대신 1층 화폐 전표(군표) 결. 권장 음량 -4 → -2 dB"
     },
     {
       "id": "sfx/door_close",
@@ -1063,7 +1167,7 @@
         "sfx/menu_move",
         "sfx/menu_move_v2"
       ],
-      "note": "메뉴 이동(61라운드 품질 패스). 마른 나무 '톡'(1150 Hz, 7 ms 감쇠) — 더 둥글게. 변주 v2(1030 Hz)와 번갈아 쓰면 커서가 걷는 느낌"
+      "note": "[폴백 — 62-2: 메뉴 공통 이동은 ui_move 가 대신. 이 소리는 ui_move 가 없을 때와 기존 임시 연결(룰렛 등)용] 메뉴 이동(61라운드 품질 패스). 마른 나무 '톡'(1150 Hz, 7 ms 감쇠) — 더 둥글게. 변주 v2(1030 Hz)와 번갈아 쓰면 커서가 걷는 느낌"
     },
     {
       "id": "sfx/menu_select",
@@ -1085,7 +1189,7 @@
         "when": []
       },
       "priority": 0,
-      "note": "메뉴 선택(61라운드 품질 패스 — 쇠 틱 제거). 도장 '쿵'(220→95 Hz) + 종이 '탁' + 나무 '톡'"
+      "note": "[폴백 — 62-2: 메뉴 공통 선택은 ui_select 가 대신. ui_select 가 없을 때만] 메뉴 선택(61라운드 품질 패스 — 쇠 틱 제거). 도장 '쿵'(220→95 Hz) + 종이 '탁' + 나무 '톡'"
     },
     {
       "id": "sfx/menu_cancel",
@@ -1107,7 +1211,7 @@
         "when": []
       },
       "priority": 0,
-      "note": "메뉴 닫기·뒤로(61라운드 품질 패스). 종이를 넘기는 짧은 '사락'(3k→1.2k) + 아래로 놓는 작은 '톡'"
+      "note": "[폴백 — 62-2: 메뉴 공통 뒤로는 ui_back 이 대신. 기존 임시 연결(시간 초과 등)은 그대로] 메뉴 닫기·뒤로(61라운드 품질 패스). 종이를 넘기는 짧은 '사락'(3k→1.2k) + 아래로 놓는 작은 '톡'"
     },
     {
       "id": "sfx/evolve",
@@ -1363,7 +1467,7 @@
         ]
       },
       "priority": 3,
-      "note": "주인공 사망. 느리게 꺼지는 저음, 멀어지는 심장 박동 두 번, 바람"
+      "note": "[폴백 — 62-2: 사망은 death_slow(PLAYER_DIED)가 대신 — 둘 다 울리지 않음. death_slow 가 없을 때만] 주인공 사망. 느리게 꺼지는 저음, 멀어지는 심장 박동 두 번, 바람"
     },
     {
       "id": "sfx/charger_telegraph",
@@ -4253,8 +4357,8 @@
           "grade:perfect"
         ]
       },
-      "priority": 1,
-      "note": "노드 성과 등급 완(完) = 무피격 + 제한 시간 안(전표 +20 · 개성 +15). 무거운 일기장 도장 '꾹' + 종 D5·A5·D6 차례로 + 동전 둘. 도장 연출 프레임"
+      "priority": 3,
+      "note": "[폴백 — 62-2: 1층 노드 시련 성공(完)은 trial_win 이 대신 — 둘 다 울리지 않음. trial_win 이 없을 때와 2층 이후 '완'] 노드 성과 등급 완(完) = 무피격 + 제한 시간 안(전표 +20 · 개성 +15). 무거운 일기장 도장 '꾹' + 종 D5·A5·D6 차례로 + 동전 둘. 도장 연출 프레임"
     },
     {
       "id": "sfx/grade_good",
@@ -4291,10 +4395,10 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 28224,
-      "durationMs": 640,
+      "samples": 31752,
+      "durationMs": 720,
       "loop": false,
-      "gainDb": -4,
+      "gainDb": -2.0,
       "trigger": {
         "event": "SHOP_PURCHASE",
         "when": [
@@ -4302,7 +4406,7 @@
         ]
       },
       "priority": 1,
-      "note": "상점 진열 리롤(전표 15 → 25 → 35, 진열 3칸 새로). 좌판 천을 걷어 다시 펼치는 휙 + 물건이 뒤섞이는 나무·쇠 딸깍 + 동전 둘. shop_buy 대신"
+      "note": "62-2 다시(P16 §5 — 상인에게 말 걸어 '다시 진열'). 0 s 좌판 천을 걷는 '휙'(500 Hz→2 kHz) + 천 펄럭 → 0.25·0.33·0.43 s 물건을 다시 놓는 나무 '톡' 셋(700·900·800 Hz) → 0.55 s 천이 내려앉는 둥근 '툭'. 0.70 s. 동전 없음(전표 결은 shop_buy). 권장 음량 -4 → -2 dB"
     },
     {
       "id": "sfx/map_info_buy",
@@ -8079,6 +8183,320 @@
       "note": "61-6 새 — 수련장 방 도장(과제를 다 하면 인장을 찍음). 0 s 종이 눌림 바스락(짧게) + 인장이 꾹 찍히는 둔탁한 '쿡'(150→75 Hz, 3 ms 부드러운 어택, 900 Hz 위 깎음 — 딱 소리 없음) + 돌 인장 몸 '톡'(낮게) → 0.05 s 한 번 더 누름(더 낮게) → 0.30 s 떼어낼 때 인주 끈적 '쩍'(젖은 알갱이 14개, 1.5~3.5 kHz 밑) + 작은 흡착 '뽁'(280→520 Hz). 0.60 s"
     },
     {
+      "id": "sfx/ui_move",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/ui_move.ogg",
+      "files": [
+        "assets/audio/sfx/ui_move.ogg",
+        "assets/audio/sfx/ui_move.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 3528,
+      "durationMs": 80,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "UI_MENU_MOVE",
+        "when": []
+      },
+      "priority": 0,
+      "variants": [
+        "sfx/ui_move",
+        "sfx/ui_move_v2"
+      ],
+      "note": "62-2 새 — 메뉴 커서 이동(타이틀·일기장·카드·설정 공통, menu_move 를 대신). 먹 묻은 나무 구슬을 톡 — 낮고 둥근 나무 '톡'(780 Hz, 6 ms 감쇠) + 아래 작은 몸통 + 종이 결 아주 얇게. 0.08 s(소리는 0.04 s 안에 끝). 변주 _v2(700 Hz)와 번갈아 — 커서가 걷는 느낌. 빠르게 넘겨도 귀가 지치지 않게 2 kHz 위가 거의 없다"
+    },
+    {
+      "id": "sfx/ui_move_v2",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/ui_move_v2.ogg",
+      "files": [
+        "assets/audio/sfx/ui_move_v2.ogg",
+        "assets/audio/sfx/ui_move_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 3528,
+      "durationMs": 80,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": null,
+      "priority": 0,
+      "variantOf": "sfx/ui_move",
+      "note": "62-2 변주 — ui_move 700 Hz"
+    },
+    {
+      "id": "sfx/ui_select",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/ui_select.ogg",
+      "files": [
+        "assets/audio/sfx/ui_select.ogg",
+        "assets/audio/sfx/ui_select.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 9702,
+      "durationMs": 220,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": {
+        "event": "UI_MENU_SELECT",
+        "when": []
+      },
+      "priority": 0,
+      "note": "62-2 새 — 메뉴 고름·확정(menu_select 를 대신). 0 s 짧은 붓 '쓱'(1.6→3.2 kHz, 털 결) → 12 ms 먹 도장 '꾹'(190→85 Hz, 700 Hz 위 깎음 — 딱 소리 없음) + 나무 '톡'(620 Hz) → 25~70 ms 불씨 두세 점(4.2 kHz 밑, 아주 작게). 0.22 s"
+    },
+    {
+      "id": "sfx/ui_back",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/ui_back.ogg",
+      "files": [
+        "assets/audio/sfx/ui_back.ogg",
+        "assets/audio/sfx/ui_back.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 7056,
+      "durationMs": 160,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "UI_MENU_CANCEL",
+        "when": []
+      },
+      "priority": 0,
+      "note": "62-2 새 — 뒤로·닫기(menu_cancel 을 대신). 붓을 들어 올리는 '스' (2.4→1.1 kHz, 내려가며 빠짐) → 55 ms 종이를 내려놓는 둥근 '툭'(160→100 Hz, 저역만). ui_select 보다 작고 아래로 떨어진다. 0.16 s"
+    },
+    {
+      "id": "sfx/ui_toggle",
+      "kind": "sfx",
+      "category": "ui",
+      "file": "assets/audio/sfx/ui_toggle.ogg",
+      "files": [
+        "assets/audio/sfx/ui_toggle.ogg",
+        "assets/audio/sfx/ui_toggle.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 5292,
+      "durationMs": 120,
+      "loop": false,
+      "gainDb": -8,
+      "trigger": {
+        "event": "UI_SETTING_TOGGLED",
+        "when": []
+      },
+      "priority": 0,
+      "note": "62-2 새 — 설정 켜고 끄기(전체화면·히트스톱·흔들림·글자 크기 등). 작은 쇠 걸쇠 '탁'(1.7 kHz, τ 12 ms — 울림 없음) + 15 ms 뒤 나무 '톡'(1 kHz). 0.12 s. 켬/끔 구분은 시스템이 재생 속도로(켬 1.0 · 끔 0.9 권장)"
+    },
+    {
+      "id": "sfx/enemy_incoming",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_incoming.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_incoming.ogg",
+        "assets/audio/sfx/enemy_incoming.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 61740,
+      "durationMs": 1400,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "ENEMY_INCOMING",
+        "when": []
+      },
+      "priority": 3,
+      "note": "62-2 새 — 적 등장 예고(웨이브마다 1회 — 바닥 먹 번짐 + 불씨 고리 맥박 1.0 s 와 같은 시간 축). 0 s 먹이 바닥에 '툭' 스밈(작게) → 0~1.0 s 젖은 먹 번짐(220→900 Hz 로 열림) + 낮게 차오르는 부풂(55→95 Hz) + 0·0.33·0.66 s 불씨 고리 맥박(타닥 묶음, 점점 커짐) → **1.00 s** 적이 일어섬: 공기 '훅' + 낮은 '둥'(120→55 Hz) + 불씨 확 → 0.35 s 꼬리. 1.40 s. 시작 = 등장 1.0 s 전(delayMs 가 1000 보다 길면 delayMs − 1000 만큼 늦춰 시작 — mixing.cues)"
+    },
+    {
+      "id": "sfx/last_kill_slow",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/last_kill_slow.ogg",
+      "files": [
+        "assets/audio/sfx/last_kill_slow.ogg",
+        "assets/audio/sfx/last_kill_slow.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 41895,
+      "durationMs": 950,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "FEEL_SLOWMO",
+        "when": [
+          "kind:lastKill"
+        ]
+      },
+      "priority": 3,
+      "note": "62-2 새 — 방 마지막 적 처치 슬로모(0.3배 280 ms, 보스 방 제외 · 히트스톱 끔이면 슬로모도 소리도 없음). 0 s 시간이 굳는 깊은 '웅'(110→42 Hz) + 귀가 먹먹해지는 공기(3.5 kHz→350 Hz 로 닫힘) + 낮은 드론 → **0.28 s** 시간이 풀림: 돌아오는 공기 '후욱'(300→2.2 kHz) + 흩어지는 불씨 + 먹 꼬리. 0.95 s. 처치음(enemy_death) 위에 겹친다"
+    },
+    {
+      "id": "sfx/death_slow",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/death_slow.ogg",
+      "files": [
+        "assets/audio/sfx/death_slow.ogg",
+        "assets/audio/sfx/death_slow.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 88200,
+      "durationMs": 2000,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "PLAYER_DIED",
+        "when": []
+      },
+      "priority": 4,
+      "note": "62-2 새 — 주인공 사망 연출(시스템 data/runEnd.json death: 0.25배 슬로모 600 ms → 먹 번짐 1100 ms → 250 ms 멈춤 → 결산, 합 1.95 s · UI 이벤트 ui:death-started 와 같은 순간). 0 s 몸이 꺾이는 둔탁한 '쿵'(120→40 Hz, 500 Hz 위 깎음) + 귀가 닫힘(6 kHz→250 Hz) + 심장 한 번 → 0~1.2 s 아래로 꺼지는 저음(90→35 Hz) → 0.45 s 더 느리고 작은 심장 → **0.60 s** 먹 방울 '툭'(번짐 시작) + 젖은 먹이 종이에 스며 퍼짐(180~700 Hz, 0.60~1.70 s — 화면 먹 번짐 1100 ms 와 같은 길이) + 종이 젖는 결 → 1.50 s 마지막 불씨 '치익' → 1.62 s 먹이 자리 잡는 낮은 '툭'. 2.00 s(결산 화면이 뜰 때 끝남). player_death(RUN_ENDED)를 대신 — 둘 다 울리지 않음"
+    },
+    {
+      "id": "sfx/trial_win",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/trial_win.ogg",
+      "files": [
+        "assets/audio/sfx/trial_win.ogg",
+        "assets/audio/sfx/trial_win.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 35280,
+      "durationMs": 800,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "NODE_GRADED",
+        "when": [
+          "grade:perfect"
+        ]
+      },
+      "priority": 3,
+      "note": "62-2 새 — 노드 시련 성공(1층은 등급이 '완' 하나 — 제한 시간 안·무피격으로 노드를 끝냄, 일기장 쪽지에 完 도장 + 보상 아이콘 반짝). grade_perfect 를 1층 결로 대신(둘 다 울리지 않음). 0 s 먹 도장 '꾹'(170→80 Hz, 딱 소리 없음) + 붓 끝 '착' + 잿불 반짝 일어남 → 40 ms 작은 종 A5 → 0.14 s E6(맑게, 짧게) + 0.11 s 전표 '착'(전표 +20) + 불씨 몇 점. 0.80 s. 권장 음량 -2 dB(grade_perfect -2 와 같은 자리)"
+    },
+    {
+      "id": "sfx/trial_fail",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/trial_fail.ogg",
+      "files": [
+        "assets/audio/sfx/trial_fail.ogg",
+        "assets/audio/sfx/trial_fail.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 28665,
+      "durationMs": 650,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "NODE_TRIAL_BROKEN",
+        "when": []
+      },
+      "priority": 3,
+      "note": "62-2 새 — 노드 시련이 깨진 순간(NODE_TRIAL_BROKEN{nodeId,reason:hit|time} — 첫 피격 또는 제한 시간 넘김, 보상 아이콘이 꺼짐). 0 s 먹이 '철퍽' 튐(900 Hz 아래 젖은 터짐 + 방울 몇) + 불씨 꺼짐 '치익'(4.2→1.3 kHz) → 80 ms 둔탁한 나무 '툭'(160→80 Hz) → 0.10 s 낮은 두 음 A3·B♭3 짧게 겹침(아쉬움, 0.3 s). 0.65 s. 맞는 순간이면 hit_player 와 함께 울리므로 작고 낮게"
+    },
+    {
+      "id": "sfx/floor_end_sting",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/floor_end_sting.ogg",
+      "files": [
+        "assets/audio/sfx/floor_end_sting.ogg",
+        "assets/audio/sfx/floor_end_sting.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 119070,
+      "durationMs": 2700,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "ui:floor-end",
+        "when": []
+      },
+      "priority": 3,
+      "note": "62-2 새 — 1층 끝 결산 일기장이 열림(UI 이벤트 ui:floor-end — 군주의 유품·개성 발현 뒤 FLOOR_END_DELAY 1.2 s, 곧바로 결과 씬). 0 s 무거운 일기장 '툭'(110→50 Hz) + 쪽 넘김 → 0.12 s 손풍금 A 단조(A2·E3·A3·C4) 바람통처럼 부풂 + 0.15 s 종 E5 → 1.15 s 붓 한 획 + 화음이 F 장7(F2·C3·A3·E4)로 열림 + 1.20 s 종 A5 — 끝나지 않고 열린 채로('다음 장은 아직 그려지지 않았다') → 2.6 s 까지 잦아듦, 내내 잿불 타닥 아주 작게. 2.70 s"
+    },
+    {
+      "id": "sfx/memory_unlock",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/memory_unlock.ogg",
+      "files": [
+        "assets/audio/sfx/memory_unlock.ogg",
+        "assets/audio/sfx/memory_unlock.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 61740,
+      "durationMs": 1400,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "MEMORY_UNLOCKED",
+        "when": []
+      },
+      "priority": 2,
+      "note": "62-2 새 — 일기장 '기억' 장에서 영혼으로 해금(memory.unlock 이 true 일 때 한 번 — 소품을 고르는 것은 ui_select. 소품·무기 양상·개성 풀·상점 품목·능력치 공통). 0·0.14·0.30 s 붓으로 글씨 세 획(점점 높게) → 0.35 s 먹이 번지며 그림이 떠오름(먹 번짐 0.85 s + 0.45 s 먹 '툭') → 0.45·0.58·0.72 s 작은 종 A4·C5·E5(A 단조 화음, 부드럽게) + 따뜻한 잿불이 일어나 잦아듦. 1.40 s"
+    },
+    {
+      "id": "sfx/relic_take",
+      "kind": "sfx",
+      "category": "event",
+      "file": "assets/audio/sfx/relic_take.ogg",
+      "files": [
+        "assets/audio/sfx/relic_take.ogg",
+        "assets/audio/sfx/relic_take.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 48510,
+      "durationMs": 1100,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "ui:relic-gained",
+        "when": []
+      },
+      "priority": 2,
+      "note": "62-2 새 — 유품 카드를 고름·손에 넣음(UI 이벤트 ui:relic-gained — 보스·엘리트 '유품', '군주의 유품' 3택, 지닌 것 단계 올림 공통). 0 s 잿불 속에서 확 일어남(800 Hz→3.5 kHz '화르' + 타닥) → 0.22 s 쇠붙이를 쥐는 '철컥'(울림 없음, 620·1.4 kHz 짧게) + 손에 쥐는 둔탁한 몸통 → 0.30 s 낮은 종 A3·E4(둥글게) + 먹 도장 '꾹' → 1.0 s 까지 잿불 꼬리. 1.10 s. trait_manifest(개성)와 결은 같고 더 무겁다"
+    },
+    {
+      "id": "sfx/npc_talk",
+      "kind": "sfx",
+      "category": "world",
+      "file": "assets/audio/sfx/npc_talk.ogg",
+      "files": [
+        "assets/audio/sfx/npc_talk.ogg",
+        "assets/audio/sfx/npc_talk.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 26460,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "EVENT_TALK",
+        "when": []
+      },
+      "priority": 1,
+      "note": "62-2 새 — NPC 에게 E 로 말 걸기(이벤트 방 인물 EVENT_TALK · 상인 SHOP_TALK 같은 소리, 대화 상자가 열림). 0 s 옷깃 스침(1.4 kHz) + 70 ms 나무 마루 작은 '삐걱'(짧게) → 0.20 s 일기장 쪽 넘김(대화가 열림) + 촛불 불씨 한두 점. 0.60 s. 목소리 없음 — 말은 글로만"
+    },
+    {
       "id": "bgm/title",
       "kind": "bgm",
       "category": "bgm",
@@ -8274,14 +8692,14 @@
       "loop": true,
       "loopStartSample": 0,
       "loopEndSample": 3175200,
-      "gainDb": 0.0,
+      "gainDb": 3.0,
       "floors": [],
       "use": {
         "floor": 1,
         "state": "boss",
         "phase": 1
       },
-      "note": "1층 보스 '만취' 1국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 1국면(기본): 비틀거리는 베이스 오스티나토(e0 근음·e2 옥타브·e3 5음·e5 반음) + 손풍금 찌르기 + 손북·숟가락 + 취한 바이올린 주제 둘 + D 구간 반음씩 내려가며 도는 8분음 + 낮은 뿔나팔 + D1 드론. 권장 음량 0 dB(세 국면 공통) — RMS 1국면 -22.8 · 2국면 -21.1 · 3국면 -20.2 dBFS"
+      "note": "1층 보스 '만취' 1국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 권장 음량 +3.0 dB(62-2 — 보스 상태 BGM 낮춤 bgmBossDuckDb -3 dB 를 되돌려, 보스 곡이 1층 전투 곡보다 갑자기 작아지지 않게. 덕킹 뒤 통합 음량 1국면 -21.9 · 2국면 -20.3 · 3국면 -19.2 LUFS, 전투 f1_jan -19.1). 1국면(기본): 비틀거리는 베이스 오스티나토(e0 근음·e2 옥타브·e3 5음·e5 반음) + 손풍금 찌르기 + 손북·숟가락 + 취한 바이올린 주제 둘 + D 구간 반음씩 내려가며 도는 8분음 + 낮은 뿔나팔 + D1 드론. 권장 음량 0 dB(세 국면 공통) — RMS 1국면 -22.8 · 2국면 -21.1 · 3국면 -20.2 dBFS"
     },
     {
       "id": "bgm/f1_boss_p2",
@@ -8299,14 +8717,14 @@
       "loop": true,
       "loopStartSample": 0,
       "loopEndSample": 3175200,
-      "gainDb": 0.0,
+      "gainDb": 3.0,
       "floors": [],
       "use": {
         "floor": 1,
         "state": "boss",
         "phase": 2
       },
-      "note": "1층 보스 '만취' 2국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 2국면(타악 추가): 1국면 + 큰 북(e0, 홀수 마디 e3) · 술통 '통'(e1·e4, 좌우) · 탬버린 8분음 · 스네어 e3 · 8마디 끝 북·스네어 몰아치기 · 숨 고르기 구간의 심장 박동 북"
+      "note": "1층 보스 '만취' 2국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 권장 음량 +3.0 dB(62-2 — 보스 상태 BGM 낮춤 bgmBossDuckDb -3 dB 를 되돌려, 보스 곡이 1층 전투 곡보다 갑자기 작아지지 않게. 덕킹 뒤 통합 음량 1국면 -21.9 · 2국면 -20.3 · 3국면 -19.2 LUFS, 전투 f1_jan -19.1). 2국면(타악 추가): 1국면 + 큰 북(e0, 홀수 마디 e3) · 술통 '통'(e1·e4, 좌우) · 탬버린 8분음 · 스네어 e3 · 8마디 끝 북·스네어 몰아치기 · 숨 고르기 구간의 심장 박동 북"
     },
     {
       "id": "bgm/f1_boss_p3",
@@ -8324,14 +8742,14 @@
       "loop": true,
       "loopStartSample": 0,
       "loopEndSample": 3175200,
-      "gainDb": 0.0,
+      "gainDb": 3.0,
       "floors": [],
       "use": {
         "floor": 1,
         "state": "boss",
         "phase": 3
       },
-      "note": "1층 보스 '만취' 3국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 3국면(왜곡·불): 2국면 전체를 0.5 Hz 로 울렁이게(±0.6 % 음높이, 좌우 엇갈림 — '세상이 돈다') + 옥타브 위 왜곡 베이스 + 삼전음 뿔나팔(D+G#) + 8마디 끝 상승 소음 + 좌우를 도는 불길·타닥"
+      "note": "1층 보스 '만취' 3국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. 권장 음량 +3.0 dB(62-2 — 보스 상태 BGM 낮춤 bgmBossDuckDb -3 dB 를 되돌려, 보스 곡이 1층 전투 곡보다 갑자기 작아지지 않게. 덕킹 뒤 통합 음량 1국면 -21.9 · 2국면 -20.3 · 3국면 -19.2 LUFS, 전투 f1_jan -19.1). 3국면(왜곡·불): 2국면 전체를 0.5 Hz 로 울렁이게(±0.6 % 음높이, 좌우 엇갈림 — '세상이 돈다') + 옥타브 위 왜곡 베이스 + 삼전음 뿔나팔(D+G#) + 8마디 끝 상승 소음 + 좌우를 도는 불길·타닥"
     },
     {
       "id": "bgm/training",
@@ -8349,9 +8767,9 @@
       "loop": true,
       "loopStartSample": 0,
       "loopEndSample": 3175200,
-      "gainDb": 1.8,
+      "gainDb": -0.5,
       "floors": [],
-      "note": "수련장(61-6 P14, bgmByState.training). 72 s 루프(36마디), 44.1 kHz 스테레오, A 단조 3/4 90 BPM. 1층 잔 거리와 같은 악기 결을 고요하게: 류트 8분음 분산화음 + 콘트라베이스 1박 + 아주 작은 손북 + 손풍금 2박 한 번, 잔 거리 바이올린 주제를 느리고 맑게(미끄러짐 작게·처지는 음 없음), C 구간 손풍금 긴 화음 + 낮은 현 대선율, 끝 4마디는 류트만 남아 처음으로. 바닥에 A1 드론·좌우 바람, 마디 0·24 에 먼 종(A4) 한 번. 삼전음·몰아치기 없음(긴장 낮게). 권장 음량 +1.8 dB = RMS 약 -23 dBFS(벽 밖과 같은 조용한 층, 전투 곡보다 2 dB 작게)"
+      "note": "수련장(61-6 P14, bgmByState.training). 72 s 루프(36마디), 44.1 kHz 스테레오, A 단조 3/4 90 BPM. 1층 잔 거리와 같은 악기 결을 고요하게: 류트 8분음 분산화음 + 콘트라베이스 1박 + 아주 작은 손북 + 손풍금 2박 한 번, 잔 거리 바이올린 주제를 느리고 맑게(미끄러짐 작게·처지는 음 없음), C 구간 손풍금 긴 화음 + 낮은 현 대선율, 끝 4마디는 류트만 남아 처음으로. 바닥에 A1 드론·좌우 바람, 마디 0·24 에 먼 종(A4) 한 번. 삼전음·몰아치기 없음(긴장 낮게). 권장 음량 -0.5 dB(62-2 음량 맞춤 — 이전 +1.8 dB. 통합 음량 LUFS 로 다시 재니 +1.8 dB 에서 -20.2 LUFS 로 벽 밖 f1_outside(-22.6)보다 2.4 LU 크고 전투 f1_jan(-19.1)과 1 LU 차이뿐이었다. 류트·바이올린 고역이 RMS 보다 크게 들림. -0.5 dB = -22.5 LUFS 로 타이틀(-23.2)·벽 밖(-22.6)과 같은 조용한 층, 전투보다 3.4 LU 작게)"
     }
   ]
 }

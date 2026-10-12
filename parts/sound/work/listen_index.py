@@ -27,6 +27,7 @@ GROUPS = [
     ('boss1', "1층 보스 '만취'"),
     ('world', '맵·월드'),
     ('p14', '그림 속 입구 전환 · 수련장 (61-6 P14)'),
+    ('p16', '1층 결 · 메뉴 공통 · 등장 예고 · 슬로모 · 시련 · 결산 · 기억 · 유품 · NPC (62-2 P16)'),
     ('pickup', '획득·상점'),
     ('ui', 'UI·연출'),
     ('bgm', 'BGM'),
@@ -69,6 +70,8 @@ EXPLICIT = {
     'world': ['level_enter', 'door_close', 'door_open', 'boss_unlock', 'exit_open', 'trial_clear', 'save'],
     'pickup': ['pickup_gold', 'pickup_potion', 'potion_use', 'shop_buy', 'voucher_drop', 'voucher_pickup', 'item_pickup'],
     'p14': ['transition_enter', 'transition_exit', 'transition_floor', 'training_task', 'training_stamp'],
+    'p16': ['ui_move', 'ui_select', 'ui_back', 'ui_toggle', 'enemy_incoming', 'last_kill_slow', 'death_slow',
+            'trial_win', 'trial_fail', 'floor_end_sting', 'memory_unlock', 'relic_take', 'npc_talk'],
     'ui': ['menu_move', 'menu_select', 'menu_cancel', 'fate_decided', 'evolve', 'reinforce', 'player_death'],
 }
 
@@ -145,6 +148,14 @@ SUBGROUP = {
     'transition_enter': '그림 속 입구 · 노드·수련장 방', 'transition_exit': '그림 속 입구 · 나가기(액자)',
     'transition_floor': '그림 속 입구 · 층(큰 그림)', 'training_task': '수련장 · 과제 완료',
     'training_stamp': '수련장 · 방 도장',
+    # 62라운드 루프 2 — P16
+    'ui_move': '메뉴 공통 · 이동', 'ui_select': '메뉴 공통 · 고름', 'ui_back': '메뉴 공통 · 뒤로',
+    'ui_toggle': '설정 · 켜고 끄기', 'enemy_incoming': '전투 흐름 · 적 등장 예고',
+    'last_kill_slow': '전투 흐름 · 마지막 처치 슬로모', 'death_slow': '전투 흐름 · 사망 슬로모 + 먹 번짐',
+    'trial_win': '노드 시련 · 성공', 'trial_fail': '노드 시련 · 실패', 'floor_end_sting': '1층 끝 · 결산 열림',
+    'memory_unlock': '메타 · 기억 해금', 'relic_take': '유품 · 획득', 'npc_talk': 'NPC · 말 걸기',
+    'menu_move': '폴백 (62-2 대체)', 'menu_select': '폴백 (62-2 대체)', 'menu_cancel': '폴백 (62-2 대체)',
+    'player_death': '폴백 (62-2 대체)', 'grade_perfect': '폴백 (62-2 대체)',
     'evolve': '폴백 (61-4 대체)', 'dual_trait': '폴백 (61-4 대체)', 'awaken_katana': '폴백 (61-4 대체)',
     'awaken_greatsword': '폴백 (61-4 대체)', 'awaken_dagger': '폴백 (61-4 대체)', 'awaken_bow': '폴백 (61-4 대체)',
 }
@@ -204,7 +215,7 @@ def _round(name, kind, sfx_specs):
     if kind == 'bgm':
         return '61' if name.startswith('f1_') else '61-6' if name == 'training' else ''
     spec = sfx_specs[name]
-    for r in ('61-6', '61-5', '61-4'):
+    for r in ('62-2', '61-6', '61-5', '61-4'):
         if spec.get('redone') == r or spec.get('round') == r:
             return r
     if spec.get('redone') == '61-2' or spec.get('archived') == '61-2' or spec['fn'].__module__ == 'sfx_stage61':
@@ -260,6 +271,8 @@ def write(root, manifest_path, sfx_specs, out_path=None):
              '"61-4" = 61라운드 단계 4(보스 BOSS_ACTION 새 동작 — 포효·잔 맞힘·기둥 균열·촛불 꺼짐, 화살비 타이밍, P12 무기 성장 — 각성·개성 발현·게이지), '
              '"61-5" = 61라운드 단계 5(P13 — 기둥 무너짐·기둥 부딪힘 다시·보스 포물선 술병·바닥 전표 떨어짐/줍기·소모품 줍기, 개성 발동 행동 갈래 15·공명 켜짐/발동 — 주 타격음 위 특색 층), '
              '"61-6" = 61라운드 단계 6(P14 — 그림 속 입구 전환 enter·exit·floor, 수련장 과제 종·방 도장, 수련장 BGM training), '
+             '"62-2" = 62라운드 루프 2(P16 — 메뉴 공통 ui_*, 적 등장 예고, 마지막 처치·사망 슬로모, 노드 시련 성공/실패, 1층 끝 결산, '
+             '기억 해금, 유품, NPC 말 걸기, 설정 토글, 상점 사기·다시 진열 다시 — BGM 은 음량만 바꿈), '
              '설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],

@@ -581,22 +581,24 @@ def _out(bus, gain=None):
 
 
 _BOSS_NOTE = ("1층 보스 '만취' %d국면. 72 s 루프(72마디), 44.1 kHz 스테레오, D 단조 6/8(점4분 120). 세 국면이 같은 길이·박자 격자·같은 바탕이며 "
-              "같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. ")
+              "같은 이득으로 정규화 — 국면이 바뀌면 재생 위치를 이어 교차 페이드. "
+              "권장 음량 +3.0 dB(62-2 — 보스 상태 BGM 낮춤 bgmBossDuckDb -3 dB 를 되돌려, 보스 곡이 1층 전투 곡보다 "
+              "갑자기 작아지지 않게. 덕킹 뒤 통합 음량 1국면 -21.9 · 2국면 -20.3 · 3국면 -19.2 LUFS, 전투 f1_jan -19.1). ")
 
 
-@bgm('f1_boss_p1', _BOSS_NOTE % 1 + "1국면(기본): 비틀거리는 베이스 오스티나토(e0 근음·e2 옥타브·e3 5음·e5 반음) + 손풍금 찌르기 + 손북·숟가락 + 취한 바이올린 주제 둘 + D 구간 반음씩 내려가며 도는 8분음 + 낮은 뿔나팔 + D1 드론. 권장 음량 0 dB(세 국면 공통) — RMS 1국면 -22.8 · 2국면 -21.1 · 3국면 -20.2 dBFS", 0.0, sr=SR2, group='f1_boss', use=dict(floor=1, state='boss', phase=1))
+@bgm('f1_boss_p1', _BOSS_NOTE % 1 + "1국면(기본): 비틀거리는 베이스 오스티나토(e0 근음·e2 옥타브·e3 5음·e5 반음) + 손풍금 찌르기 + 손북·숟가락 + 취한 바이올린 주제 둘 + D 구간 반음씩 내려가며 도는 8분음 + 낮은 뿔나팔 + D1 드론. 권장 음량 0 dB(세 국면 공통) — RMS 1국면 -22.8 · 2국면 -21.1 · 3국면 -20.2 dBFS", 3.0, sr=SR2, group='f1_boss', use=dict(floor=1, state='boss', phase=1))
 def _bgm_f1_boss_p1(sr, rng):
     m = _boss_layers(sr)
     return _out(m['p1'], m['gain'])
 
 
-@bgm('f1_boss_p2', _BOSS_NOTE % 2 + "2국면(타악 추가): 1국면 + 큰 북(e0, 홀수 마디 e3) · 술통 '통'(e1·e4, 좌우) · 탬버린 8분음 · 스네어 e3 · 8마디 끝 북·스네어 몰아치기 · 숨 고르기 구간의 심장 박동 북", 0.0, sr=SR2, group='f1_boss', use=dict(floor=1, state='boss', phase=2))
+@bgm('f1_boss_p2', _BOSS_NOTE % 2 + "2국면(타악 추가): 1국면 + 큰 북(e0, 홀수 마디 e3) · 술통 '통'(e1·e4, 좌우) · 탬버린 8분음 · 스네어 e3 · 8마디 끝 북·스네어 몰아치기 · 숨 고르기 구간의 심장 박동 북", 3.0, sr=SR2, group='f1_boss', use=dict(floor=1, state='boss', phase=2))
 def _bgm_f1_boss_p2(sr, rng):
     m = _boss_layers(sr)
     return _out(m['p2'], m['gain'])
 
 
-@bgm('f1_boss_p3', _BOSS_NOTE % 3 + "3국면(왜곡·불): 2국면 전체를 0.5 Hz 로 울렁이게(±0.6 % 음높이, 좌우 엇갈림 — '세상이 돈다') + 옥타브 위 왜곡 베이스 + 삼전음 뿔나팔(D+G#) + 8마디 끝 상승 소음 + 좌우를 도는 불길·타닥", 0.0, sr=SR2, group='f1_boss', use=dict(floor=1, state='boss', phase=3))
+@bgm('f1_boss_p3', _BOSS_NOTE % 3 + "3국면(왜곡·불): 2국면 전체를 0.5 Hz 로 울렁이게(±0.6 % 음높이, 좌우 엇갈림 — '세상이 돈다') + 옥타브 위 왜곡 베이스 + 삼전음 뿔나팔(D+G#) + 8마디 끝 상승 소음 + 좌우를 도는 불길·타닥", 3.0, sr=SR2, group='f1_boss', use=dict(floor=1, state='boss', phase=3))
 def _bgm_f1_boss_p3(sr, rng):
     m = _boss_layers(sr)
     return _out(m['p3'], m['gain'])

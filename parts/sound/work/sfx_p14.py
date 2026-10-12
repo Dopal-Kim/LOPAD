@@ -3,7 +3,7 @@
 61라운드 단계 6 (P14) — 그림 속 입구 전환 3 · 수련장 과제·도장 2 (+ 과제 종 변주 2). round '61-6'.
 
 build.py 가 sfx_stage61 다음(마지막)에 import 한다. 시드 = 1000 + 등록 순서 — 이 모듈은 끝에 붙으므로 기존 305개는
-바이트 불변이다. sfx_stage61.py 가 1700줄을 넘어 새 단계부터 모듈을 나눴다(CLAUDE.md 6-1). **새 효과음은 이 파일 끝에만.**
+바이트 불변이다. sfx_stage61.py 가 1700줄을 넘어 새 단계부터 모듈을 나눴다(CLAUDE.md 6-1). 62-2 부터 새 효과음은 sfx_p16.py 끝에만.
 
 시스템 확정 트리거(계약 sound §12, 시스템 audioTraining.ts):
   TRANSITION_BEGIN{mode}  enterNode·training → transition_enter · exitRoom → transition_exit · floor → transition_floor(없으면 enter)
