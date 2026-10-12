@@ -642,3 +642,22 @@ interface UiTransitionBegin {
 - 타이틀 메뉴 '수련장' 항목, 첫 생 '수련장부터 / 바로 런' 선택, 일기장 '수련장' 항목(UI 메뉴 → 시스템 명령 `UI_COMMANDS`/기존 메뉴 선택 방식 — 시스템 판단, 이 줄 갱신).
 - 무기 색: UI 의 무기 강조색(카드 테두리·원한의 한마디 줄 등)은 art §28 무기 색표를 따른다.
 - (61 단계 6 시스템 확정) 이벤트 `UI_EVENTS.TRAINING_STAMP`(방 도장), `UiTransitionBegin.nodeId?`, `UiTraining.line?`(방 안내 한 줄)·`mapKey?`(수련장 지도 텍스처), 메뉴 id `training`(줄 `room`·`stamped`, 취소 키 '0')·`trainingChoice`('1' 수련장부터 / '2' 바로 벽 밖으로 — 첫 생 한 번), 명령 `uiCommands.startTraining(room?)` → `'ok'|'combat'|'busy'|'boss'`(싸우는 중·연출/메뉴 중·보스 노드면 거부), `uiCommands.leaveTraining()`(런에서 왔으면 그 노드로, 첫 생 선택이면 시작 의식으로, 그 밖에는 타이틀). 수련장 안에서 `lab` = false. 막고 받아치기 방은 칼 고정. 전환 안전장치: 시스템 덮기 3초·READY 5초·END 3초, UI 는 READY 없으면 2초 '…' 표시·10초 자동 걷음.
+
+## 20. 첫 생 의식 UI (62 루프 1, P15 — UI 가 그리고 시스템은 흐름·판정)
+```ts
+type UiRitualPhase = 'name' | 'strokes' | 'trial' | 'fate' | 'rewrite' | null;
+interface UiRitual {
+  phase: UiRitualPhase;
+  lives: number;                       // 지난 생 수 (0 = 첫 생)
+  name?: { value: string; lastName?: string; maxLen: number };          // name·rewrite
+  strokes?: { done: number; total: 3; lastWeapon?: string };            // 3획 진행 (판정은 시스템)
+  trial?: { tasks: { id: string; label: string; done: boolean }[]; skippable: boolean };
+  fate?: { weapon: string; weaponName: string; line: string; lookKey?: string; why: string }; // why = 왜 이 무기인지 한 줄(수치 금지)
+  hint?: string;                       // 아래 안내 한 줄 (키캡 포함 가능)
+}
+// UiSnapshot.ritual?: UiRitual | null
+// 명령: uiCommands.ritual.submitName(name) · ritual.stroke(points: {x,y,t}[]) (UI 가 획 입력을 모아 보냄 — 시스템이 판정) · ritual.next() · ritual.skip()
+// 이벤트: UI_EVENTS.RITUAL_STROKE_JUDGED = 'ui:ritual-stroke' { index, weaponHint? } (획 하나 판정 — UI 연출용)
+```
+- UI: 일기장 종이 키트·Galmuri. 이름은 일기장 첫 장 '이름 칸'에 붓글씨로 써지는 연출(브라우저 기본 입력칸 금지 — 자체 입력 UI), 3획은 등 그림(아트 `ritual/back_canvas`) 위 먹 붓 획, 운명 공개는 무기 미리보기 그림(`looks/<weapon>_base`)과 '왜' 한 줄. 회피 시험(trial)은 시스템이 탄생 전장에서 실제로 진행하고 UI 는 과제 목록만.
+- 시스템: Setup 씬은 그리기를 UI 에 넘기고 `PLACEHOLDER_UI` 를 쓰지 않는다. 획 판정 수치는 화면에 내보내지 않는다.
