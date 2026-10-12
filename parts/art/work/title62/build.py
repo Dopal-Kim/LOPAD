@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """62라운드 — 타이틀(게임 시작) 화면 전면 교체. 단일 소스, 결정적(난수 씨앗 고정). Pillow 만.
 
-python3 parts/art/work/title62/build.py [--only layers,logo,frame,fx,meta,preview,concepts,verify]
+python3 parts/art/work/title62/build.py [--only layers,logo,reveal,frame,fx,meta,preview,concepts,verify]
 
 방법: Claude 직접 디자인(절차적 도트 그림 + 손 보정). Gemini 는 402(선불 크레디트 소진)로 호출 불가 — 새 Gemini 원본 없음.
       콘셉트 비교의 B·C 안 바탕만 49라운드 Gemini 키아트(이미 저장소에 있는 것)를 다시 썼다.
@@ -23,6 +23,7 @@ import near as NEAR  # noqa: E402
 import logo as LOGO  # noqa: E402
 import frame as FRAME  # noqa: E402
 import fx as FX  # noqa: E402
+import reveal as REVEAL  # noqa: E402  (62a 추가: 로고 붓 획 순서 마스크)
 from sprite import frame as sprite_frame  # noqa: E402
 
 OUT = os.path.join(ROOT, "assets", "sprites", "title")
@@ -83,6 +84,12 @@ def build_logo(state):
     img.save(os.path.join(OUT, "title_logo.png"), optimize=True)
     state["logo"] = meta
     state["logo_size"] = list(img.size)
+
+
+def build_reveal(state):
+    """62a 추가(UI 요청): 로고 붓 획 순서 마스크. 로고 png 를 읽는다(logo 단계 뒤)."""
+    logo = Image.open(os.path.join(OUT, "title_logo.png")).convert("RGBA")
+    REVEAL.draw_reveal(logo).save(os.path.join(OUT, "title_logo_reveal.png"), optimize=True)
 
 
 def build_frame(state):
@@ -155,6 +162,14 @@ def build_meta(state):
             "subtitle": "바깥의 적",
             "intro": "처음 열릴 때: 로고 알파 0→1 1.2s(Sine.out) 뒤 부제 0.6s, 그 뒤 무기 불씨 4개가 칼→대검→단검→활 순서로 0.15s 간격 점등",
             "idle": "로고 빛무리 숨쉬기 없음(글자 흔들림 금지). 불씨 4개만 voices 펄스에 맞춰 밝아짐",
+        },
+        "logoReveal": dict(REVEAL.REVEAL_META, x=lx, y=ly),
+        "gate": {
+            "x": FAR.CITY_CX * K + 1, "y": (FAR.HORIZON - 6) * K + 2,
+            "rect": {"x": (FAR.CITY_CX - 4) * K, "y": (FAR.HORIZON - 12) * K, "w": 9 * K, "h": 13 * K},
+            "layer": "title_bg_far", "parallax": 0.15,
+            "note": ("성문(창살 사이 호박빛 아치) 가운데 — 1920×1080 화면 px, 패럴랙스 오프셋 0 기준. 타이틀 → 첫 생 '파고들기' 줌 중심. "
+                     "far 층이 패럴랙스로 움직이면 x += 0.15 × 현재 오프셋 x(y 도 같음), 층을 scale 1.03 으로 깔았다면 (960,540) 기준으로 1.03 배"),
         },
         "menu": {
             "frame": "title_menu_frame.png", "frameMeta": "title_menu_frame.json",
@@ -456,7 +471,7 @@ def verify(state):
     print("총 용량 %.2f MB" % (tot / 1e6))
 
 
-STEPS = ["layers", "logo", "frame", "fx", "meta", "preview", "concepts", "verify"]
+STEPS = ["layers", "logo", "reveal", "frame", "fx", "meta", "preview", "concepts", "verify"]
 
 
 def main():
@@ -465,7 +480,7 @@ def main():
     a = ap.parse_args()
     steps = a.only.split(",") if a.only else STEPS
     state = {}
-    fns = {"layers": build_layers, "logo": build_logo, "frame": build_frame, "fx": build_fx, "meta": build_meta,
+    fns = {"layers": build_layers, "logo": build_logo, "reveal": build_reveal, "frame": build_frame, "fx": build_fx, "meta": build_meta,
            "preview": build_preview, "concepts": build_concepts, "verify": verify}
     for s in STEPS:
         if s in steps:

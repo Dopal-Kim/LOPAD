@@ -51,7 +51,8 @@ python3 parts/art/work/struct61/build.py        # 61라운드 단계 2: 구조�
 python3 parts/art/work/growth61/build.py       # 61라운드 단계 4(P12): 무기 1차·2차 각성 외형 — looks 정지 그림 · weapons/v4 오버레이 531 · fx/v4 각성 연출 2 (단계: looks sheets fx publish verify memory preview)
 python3 parts/art/work/traitcards61s5/build.py   # 61라운드 단계 5(P13): 개성 카드 그림 65장 128×128 — Gemini 콘셉트 raw → 도트(ui_traits/) · 이어서 preview.py(검사·무기별 모음)
 python3 parts/art/work/paint61s6/build.py         # 61라운드 단계 6(P14): 그림 속 입구 16·먹 붓질 마스크 4·액자·수련장 지도·수련장 소품 7·수련장 타일 (--only doors,map,brush,frame,props,tiles,preview)
-python3 parts/art/work/title62/build.py           # 62라운드: 타이틀 화면 전면 교체 — 패럴랙스 3층·주인공 호흡층·발광·로고·메뉴 틀·불티·안개·title.json·미리보기·검사 (--only layers,logo,frame,fx,meta,preview,concepts,verify, 약 20초, 결정적)
+python3 parts/art/work/title62/build.py           # 62라운드: 타이틀 화면 전면 교체 — 패럴랙스 3층·주인공 호흡층·발광·로고·로고 획 순서 마스크·메뉴 틀·불티·안개·title.json·미리보기·검사 (--only layers,logo,reveal,frame,fx,meta,preview,concepts,verify, 약 20초, 결정적)
+python3 parts/art/work/r62a/build.py              # 62라운드 루프 1: 첫 생 의식 그림(ritual/) · 탄생 전장 소품(birth_*) · 황무지/수련장 타일 보강 · 수련장 팻말 (--only ritual,birth,tiles,plank,preview [--dry], 약 30초, 결정적)
 ```
 **이펙트 재빌드 순서 주의 (43라운드)**: `weapons/build.py`·`combat_fx/build.py`·`evolution_fx/build.py` 는 옛 이펙트를 같은 id 로 `assets/sprites/fx/` 에 쓴다. 이 셋을 다시 돌렸다면 반드시 그 뒤에 `fx_prod/build_a.py` → `fx_prod/build_b.py` 를 돌려 양산본으로 덮는다 (blood·knock_dust·player_hit 는 `combat_fx` 만 만든다). 팔레트 `fx` 블록이나 주인공 시트(실루엣 마스크: player_dash·idle)가 바뀌어도 fx_prod 두 스크립트를 다시 돌린다. `fx_prod/build_a.py` 가 `fx_concept/build.py` 를 import 하므로 콘셉트 생성기는 지우지 않는다.
 팔레트 생성기는 `ui`·`fx` 블록을 상수로 들고 있으므로 재생성해도 두 블록이 사라지지 않는다 (38라운드 UI NOTES 의 요청 반영).
@@ -778,3 +779,46 @@ python3 parts/art/work/title62/build.py           # 62라운드: 타이틀 화�
 - 목소리: `voices[]` 4장을 ADD 로, 9.6s 한 바퀴에 칼→대검→단검→활 2.4s 간격으로 0.25→1.0. 켜진 무기에서 무기 색 불티(`embers` 3~6행) 방출, 로고 불씨 4개(`logo.emberDots`)도 같은 무기 차례로 밝힘 권장.
 - 글자색: 종이 위 메뉴 `#c6a58b`(S5)+1px `#6a5645` 할로, 선택 `#faeec0`+`#d67a11` 할로(0.5)+`#403227` 그늘, 비활성 `#6a5645`, 그림 위 글자 `#d8d9db`+1px 먹 테, 버전 `#8e9195`.
 - 기존 `assets/sprites/ui/title_diary.png`(UI 키트 타이틀 일기장)는 지우지 않았다 — 교체 여부는 UI 판단.
+
+## 62라운드 루프 1 (2026-10-12, 전권 위임) — P0-2 첫 생 의식 그림 · 탄생 전장 무대 · P1-19 바닥·엄폐 정리 · P1-17 밤 수련장 · 작업 폴더 `work/r62a/`
+근거: `decisions/review-2026-10-12-stage1-competitive-audit.md` P0-2·P1-17·P1-19·④ 이음새 표, `decisions/2026-10-12-P15-loop1.md`(그림 묶음), 계약 `ui-system-interface.md` §20. 증거 스크린샷은 점검 `scratchpad/audit62/shots/`(05·08·10·21·72)만 봤다. Gemini 402(크레디트 소진) → **전부 Claude 직접 디자인**(Pillow 절차 + 좌표 손 보정, 새 라이브러리 없음). 타이틀 62 절과 같은 결: 등 그림은 타이틀 붓 그림 도구(`title62/kit.py`·`near.glow_layer`)를 경로로 읽어 씀.
+빌드: `python3 parts/art/work/r62a/build.py [--only ritual,birth,tiles,plank,preview] [--dry]` — 모듈 `back.py`(등 그림) · `brush.py`(붓 스탬프) · `ui1x.py`(일기장·액자·팻말, UI 1배) · `ritual.py`(산출·메타) · `birthprops.py`(birth_* — bundle2 `b2` 도구·아틀라스) · `tiles62.py`(타일, 입력 사본 `r62a/before/`) · `preview.py`.
+
+### 1. 첫 생 의식 그림 `assets/sprites/ritual/` (계약 §20 UI 가 그림)
+| 파일 | 크기 | 내용 · 메타 |
+|---|---|---|
+| `back_canvas.png` + `_glow.png` | 1920×1080 불투명(도트 640×360 ×3) · 빛무리 ADD | 탄생 전장 밤, 막 일어선 망령 상반신 뒷모습(가까이): 금 간 민머리(고개 왼쪽 — 윤곽에 분노한 눈) · 왼어깨 견갑 + 혼불 · 오른어깨 부러진 화살 3 · 붕대 팔뚝 · 지평선 꽂힌 창·깃발·먼 모닥불·연기. **등 가운데는 빈 화폭(상흔 균열 없음 — 세 획이 상흔이 된다)**. `strokeArea`(render 696,384,528,636 / 논리 348,192,264,318 / 도트) · `strokeClip`(몸통 안 다각형) · `scarAnchor` · `inkColors` · `glow{x,y}` · `uiSafe`(위 96·아래 96px 비어 있음) |
+| `ink_brush.png` | 256×156 시트, Phaser JSON Hash 이름 프레임 | 흰 몸 스탬프(tint): `tip_d{2,3,4,5,6,8,10}` · `press_d{6,8,10}` · `dry_d{4,6,8}_r{0..7}` · `flick_r{0..7}` · `splat_{0..3}`. 도트 단위 — 640×360 RT 에 찍고 3배(논리 1.5배) 표시 권장. 사용 규칙 `kinds`·`usage`·`nameBrush` |
+| `diary_first_page.png` | 360×420 (UI 1배) | 그을린 첫 장(종이 결 = UI 키트 1.3절 규칙으로 한 장 그림 — `paper_tile` 64 를 깔면 칸 반복이 보여 버림), 오른쪽 아래 타 들어감 + 꺼져 가는 불씨 점, 찢긴 제본 구멍, 바랜 잔 낙인·괘선, **이름 칸**(꺾쇠 4 + 빛나는 먹 붓 밑줄). `placement (300,44)` · `nameField (112,150,208,52)` · `nameBaselineY` · `nameLabel` · `titleArea` · `bodyLines` · `bodyArea` · `stampArea` · `embers[]` |
+| `fate_frame.png` | 128×128 9-slice 40 | 그을린 옻칠 나무 틀 · 쇠 모서리판(리벳·녹·잔 문양 정) · 안쪽 **불씨 테**(호박, 펄스 제안) · 먹 매트. `inner 36`, 변 조각 무늬 없음(늘려도 그대로). `suggestedSize 264×264`(looks 192 를 1배로) |
+- see → critique → fix: 등 그림 1차 = 회색 마네킹(평평한 법선·주황 얼룩이 녹물처럼) → 부풀림 높이장(가우스 4겹) + 손으로 잡은 명암 덩이(척추 골·견갑 아래·겨드랑이 그늘 / 견갑·승모·광배 빛) + 팔 원통 법선. 2차 = 붕대가 용수철 줄무늬·불꽃이 원뿔·귀가 '뒤통수의 눈' → 감은 띠 호(간격·기울기 흔듦) · 혀 셋 불꽃 · 귀 삭제. 3차 = 왼팔 밝은 주황 띠 → 몸 안쪽 호박은 A4 상한(밝은 주황은 테에만) + 가장자리 비네트. 붓 스탬프: 젖은 가장자리 링이 겹쳐 찍을 때 구슬 꿰듯 보여 삭제(흰 몸만). 일기장: 칸 반복·사각 얼룩 → 한 장 종이 결 + 깊이 탄 귀퉁이.
+
+### 2. 탄생 전장 소품 `structures/v3/birth_*` (트림 아틀라스, 64도트 = 1칸, 기존 소품 메타 형식)
+| 시트 | 틀 · 피벗 · 발자국 | solid | 상태 |
+|---|---|---|---|
+| `birth_corpse_pile` | 288×216 · (144,188) · [2,1] | 예(`blocksProjectiles`) | idle 4 루프 220ms(불씨·연기) — 회피 시험 주 엄폐(회색 원통 대체) |
+| `birth_corpse_mound` | 176×184 · (88,156) · [1,1] | 예 | idle 4 — 원통 자리 1칸 엄폐 |
+| `birth_spear_thicket` | 144×208 · (72,196) · [1,1] | 예 | idle 6(천 조각 펄럭) |
+| `birth_banner_bloody` | 144×240 · (64,228) · [1,1] | 아니오 | idle 4 펄럭 — 바랜 잔 문양·피 손자국·그을린 구멍·끝 불씨 |
+| `birth_fallen_soldier` | 224×128 · (104,96) · [2,1] | 아니오 | idle 1 — 등에 화살 3 |
+| `birth_broken_spears` | 160×80 · (80,72) · [2,1] | 아니오(`depth floor`) | idle 1 |
+- 색 = gray + 1층 램프(피 16~19 · 불씨 23~25) + SL·WD·PL, 새 색 0 · 반투명은 접지 그림자만 · 가장자리 잘림 0. 시체 더미·작은 더미는 선택 광원 `lightByState.idle`(호박 60).
+- 1차: 몸이 작은 파란 인형 + 납작한 흙 접시 → 몸 1.75~1.85배·둔덕 낮게. 깃발 피 줄이 '핀'처럼 → 비스듬히 문지른 손 자국 + 가는 흘림.
+
+### 3. P1-19 · P1-17 타일 (`assets/tiles/v2/`, 인덱스·키·이음 그대로 — JSON `redrawn62a` / `recolored62a`)
+- **황무지 `stage1_waste`**: start 23~26 의 칸 경계 사각 그을음 → 칸 가운데 둥근 재 얼룩(4 크기, 가장자리 8도트는 바닥 0~3 그대로). **바닥 변주 +4 = 13 마른 금 흙 · 14 마른 풀 · 15 재와 뼈 · 16 짓밟힌 진흙**(옛 v2 소품 예약 칸 재사용, `tiles["1"]` 에 섞음 — 이제 8종). **엄폐 담 43~46** = 자갈 블록 → 모래주머니 3면(윗면 45 밝은 삼베 · 앞면 43/46 둥근 자루 네 줄 엇갈림 · 46 터진 자루). **데칼**: `scorch` 둥근 알파 6단으로 다시 + 새 `blood_pool`(69) · `ash_ring`(74) · `bone_scatter`(76) · `trampled_mud`(78) — 그림에 알파 가장자리가 있어 사각으로 잘리지 않음.
+- **수련장 `stage1_training`** (P1-17 밤 결): 베이지 모래 → 다진 흙 모래(PL0 바탕, 같은 갈퀴 결) + 지푸라기, 석벽·문·덮개 두 단 어둡게. 벽 횃불(21) 광원 220·0.8. **팻말** `assets/sprites/ui/plank_label.png` 48×24 3-slice(14) — 디버그 라벨 대신 Galmuri 글자를 얹는 나무 팻말(`textArea`·`hangAnchor`).
+- 1차: 변주가 사각 판 · 모래주머니가 벽돌 → 둥근 무게(잡음 가장자리) · 자루 모서리 둥글게 + 줄마다 다른 엇갈림 + 베개 명암. 수련장 1차 짙은 갈색 골덴 → 중성 PL0.
+
+### 4. 타이틀 추가(UI 요청) — `title62/reveal.py` + `title62/build.py` reveal·meta 단계
+- `title/title_logo_reveal.png` 1200×399 L — 값 ≤ p·255 인 로고 픽셀만 보임. 순서 L→O→P→A→D(글자마다 획 순서) → 부제 붓 줄·바·깥·의·적 → 무기 불씨 4. `title.json logoReveal`(timeline·`durationMs 2600`·softBand·reducedMotion).
+- `title.json gate {x 901, y 680, rect, layer far, parallax 0.15}` — 성문(창살 아치) 가운데, 파고들기 줌 중심(UI 하드코딩 (902,684) 대체). 다른 타이틀 파일 바이트 불변(다시 빌드 후 git 차이 = title.json 만).
+
+### 검증 · 미리보기
+- `atlas57/verify.py --all`: 시트 1441, 형식 오류 0(새 birth_* 6 → 원본 없음, 형식만), 픽셀 불일치 0.
+- 미리보기 `work/r62a/preview_ritual.png`(1920: 등 그림 + 먹 획 1 · 불씨 먹 획 2 + 빛무리 + strokeArea/Clip 선) · `preview_ritual_ui(_x2).png`(일기장 이름 붓글씨 목업·운명 액자 + looks 칼·붓 시트·팻말) · `preview_birth.png`(새 바닥·데칼·birth_* + 주인공, 위 맨 그림 / 아래 어둠+불빛) · `preview_tiles.png`(황무지·수련장 전/후) · `preview_title_reveal.png`(p 0.15/0.45/0.8/1.0).
+
+### UI · 시스템 전달
+- UI: §20 의식 화면 — 이름 = `diary_first_page` + `nameField`(브라우저 입력칸 금지), 3획 = `back_canvas`(+glow ADD) 위 `ink_brush` 스탬프(먹 `#141516`, 판정 뒤 불씨 먹 `#e8b858` + `#d67a11` 흐린 빛무리), 운명 = `fate_frame` 9-slice 안 `looks/<무기>_base`. 수련장 라벨 = `ui/plank_label`. 타이틀 = `logoReveal`·`gate`.
+- 시스템: 회피 시험 무대 = 황무지 타일(start 바닥) + `birth_corpse_pile`/`_mound`/`_spear_thicket`(엄폐, 회색 원통 대체) + `birth_banner_bloody`·`_fallen_soldier`·`_broken_spears`(꾸밈) + 데칼(`blood_pool`·`bone_scatter`·`scorch`). 황무지 `tiles["1"]` 에 13~16 이 들어감(옛 소품 예약 칸 — v2 소품으로 읽는 코드가 있다면 확인). 수련장 `tileLights.21` 값 변경.
+- 커밋 뒤 기준 이동: `python3 parts/art/work/atlas57/verify.py --rebase --only birth_`

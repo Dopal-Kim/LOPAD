@@ -1,0 +1,32 @@
+{
+ "image": "plank_label.png",
+ "id": "plank_label",
+ "version": "r62a",
+ "size": {
+  "w": 48,
+  "h": 24
+ },
+ "pixelScale": 1,
+ "palette": "v2 나무 WD · SL · PL(끈) · 무채(못) — 반투명 없음",
+ "source": "parts/art/work/r62a/ui1x.py (62라운드 P1-17)",
+ "slice": {
+  "left": 14,
+  "right": 14,
+  "top": 0,
+  "bottom": 0
+ },
+ "kind": "3-slice 가로(Phaser NineSlice top/bottom 0)",
+ "textArea": {
+  "x": 6,
+  "y": 8,
+  "h": 13,
+  "note": "글자 띠(팻말 판 안쪽, y 8~20). 폭은 늘린 만큼 — 좌우 여백 6"
+ },
+ "textStyle": "ink_body(G14 #ebeced + 강조 20 할로 0.5 + 먹 그늘) 또는 ink_faint. Galmuri11, 정수 좌표",
+ "hangAnchor": {
+  "x": 0.5,
+  "y": 0.0,
+  "note": "끈 위 끝 = 팻말 원점(위 가운데). 대상(허수아비 headTop) 위 8~12 논리 px 에"
+ },
+ "use": "P1-17 — 수련장·시험장 고정폭 디버그 라벨('사수 허수아비 · 7발' 등) 대신. 수치 표시는 시스템/UI 판단(점검: 수치 노출 금지 권장)"
+}
