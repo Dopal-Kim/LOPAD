@@ -52,3 +52,12 @@
 - 판단(인터뷰 없음, 이유는 팩에 기록): 이벤트는 감사 원안의 E6 대신 E8을 남김(빈 묘 = 돌아온 자 0명). E8의 저주 선택지는 1층 저주 3종 밖이라 '지나간다'로 바꿈.
 - `text-pack.md` D1(1층 휴식 메모)·K 근거 문장, `text-pack-57-build.md` I절에 '(61라운드 개정)' 표시. 옛 문장은 취소선으로 남김. 계약 `story-text.json` 반영은 프로듀서.
 - 읽은 범위: 루트 `CLAUDE.md`, `parts/story/**`, 공개 자료(`decisions/**` 53·54·56·59·60·61라운드·설계안 2차 묶음·1스테이지 감사, `contracts/**`). 다른 파트 산출물·`src/`·`data/`는 열지 않았다.
+
+## 7차 (2026-10-12, 62라운드 루프 2 — 전권 위임, P16)
+- 첫 생 의식 팩(루프 1): `text-pack-62-ritual.{md,json}` → `data/narrative.json` ritual 에 합쳐짐.
+- `text-pack-63-loop2.md` + `text-pack-63-loop2.json`(md 표는 json 에서 생성 — 문장 같음):
+  - 용어집(P1-18) 계약 초안 — 프로듀서가 `contracts/story-glossary.md` 로 옮김. 금지어 배열·정규식·말투 검사 포함.
+  - 유품 카드 15종(P1-5, passives floor 1 → 물건 이름 · 무기별 조건→행동 한 줄 · 상세 줄 · 그림 메모).
+  - 층 끝(P1-6) · 죽음 결산(P1-7) · 기억 장(P1-8: 소품 4 · 모양 4 · 개성 확장 4(새 개성 8장) · 장터 2 · 몸 3) · 사연 5종 말 걸기·선택지 표기·결과 컷(P1-12) · 장터 상인 대사·물건 카드(P1-13) · 노드 고유 한 줄 12(P2-2) · 로딩 팁 18(P2-6) · 기존 문구 고침표.
+- 확정 문장 변경: 의식 팩 `gift` 5줄(감각 → 눈, P16 §1 감각 삭제). 61 팩 문장은 그대로.
+- 읽은 범위: 자율 모드로 `data/`(passives·bundle2·route·story·narrative·economy·meta·curses·enemies·traits·weapons·growth)와 `src/systems/route.ts`·`src/systems/build/strikeKinds.ts`·`src/ui/text.ts` 를 키 구조 확인용으로 열람. 쓰기는 `parts/story/**` 만.
