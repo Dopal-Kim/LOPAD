@@ -94,12 +94,13 @@ export interface UiShopOffer {
   usable: boolean;
   reason: UiInteractBlockReason | null;
   reasonText: string;
-  /** 카드를 띄울 자리 — 물건 윗변 가운데 (논리 960×540 화면 좌표) */
+  /** 카드를 띄울 자리 — 보이는 물건 그림 윗변 가운데 (칸 위 투명 여백 제외 — 62 G, 둥실 흔들림을 따라감. 논리 960×540 화면 좌표) */
   screen: { x: number; y: number };
 }
 
 /** SHOP_PURCHASED 페이로드 */
 export interface UiShopPurchased {
+  /** 산 줄의 노점 칸 id (노점 E · 외상 모두 — 62 G). 노점이 없는 글자 목록 상점·다시 진열이면 null */
   stallId: string | null;
   key: string;
   name: string;
@@ -110,8 +111,10 @@ export interface UiShopPurchased {
 export type UiLoop2DStructureKind = 'eventNpc' | 'shopStall';
 
 /**
- * D 메뉴 id — shopTalk = 종군 상인과 말하기 (줄: 'reroll' 다시 진열(price) · 'credit' 외상(detail = 저주 대가) · '0' 그만 본다).
- * 외상을 고르면 같은 id 로 노점 물건 줄(값 없음) + '0' 이 다시 온다. 말하는 이 = `UiMenu.speaker`, 상인 한마디 = `footer`
+ * D 메뉴 id — shopTalk = 종군 상인과 말하기 (줄: 'reroll' 다시 진열(price) · 'credit' 외상 · '0' 그만 본다).
+ * 외상을 고르면 같은 id 로 노점 물건 줄(값 없음) + '0' 이 다시 온다. 말하는 이 = `UiMenu.speaker`, 상인 한마디 = `footer`.
+ * 62 G: `UiMenu.event`(UiEventScene — id 'merchant' · speaker · portrait npc_merchant 0프레임 · greet = footer 와 같은 한마디 · intro [])
+ * 가 붙어 사연 대화 꼴로 그릴 수 있다. 'credit' 줄 대가 = `costs`[{kind 'curse', label '저주 외상'}] · detail = 아이콘을 안 그릴 때의 대체 글
  */
 export type UiLoop2DMenuId = 'shopTalk';
 
@@ -465,4 +468,18 @@ export interface UiDoor {
   kind: 'node' | 'floor' | 'training';
   /** 문 가운데 (논리 화면 좌표, 화면 밖일 수 있음) */
   screen: { x: number; y: number };
+}
+
+// ═══ 62 루프 2 시스템 G (UI E·F 요청 — 계약 문서 §24) ═══
+
+/**
+ * 주인공 화면 자리 (`UiSnapshot.hero`) — 논리 960×540 화면 좌표. 머리 위 말풍선·외침·자막 꼬리·포커스 원 등 UI 연출이 따라붙을 자리.
+ * head = 머리 꼭대기 · body = 그림 가운데 (발과 머리의 가운데) · feet = 발 (피벗). 도약 찍기 공중 높이를 반영한다
+ */
+export interface UiHeroScreen {
+  head: { x: number; y: number };
+  body: { x: number; y: number };
+  feet: { x: number; y: number };
+  /** 그림이 보이는가 (문 안·탄생 연출·사망 뒤 등 숨었으면 false — UI 는 따라붙는 연출을 숨긴다) */
+  visible: boolean;
 }

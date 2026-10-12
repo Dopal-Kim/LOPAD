@@ -259,8 +259,8 @@ export class EventNode {
         g.menu.close();
         if (!pass) return;
         this.finish();
-        this.emitResult(def, pass);
-        g.ui.story('event', pass.result ?? '');
+        // 62 루프 2 G (UI 요청): 결과 컷이 뜨면 같은 문장 자막은 생략 (컷과 자막이 겹쳐 뜨던 것)
+        if (!this.emitResult(def, pass)) g.ui.story('event', pass.result ?? '');
       },
       footer,
       { cancelKey: PASS, ...(def.talk ? { event: this.scene(def) } : {}) },
@@ -299,8 +299,8 @@ export class EventNode {
     );
   }
 
-  /** 62 D (P1-12) 결과 컷 한 장 (EVENT_RESULT) + 숨은 보상 알림 (HIDDEN_REWARD) */
-  private emitResult(def: EventDef, o: EventOption): void {
+  /** 62 D (P1-12) 결과 컷 한 장 (EVENT_RESULT) + 숨은 보상 알림 (HIDDEN_REWARD). 컷 그림이 있었으면 true (자막 생략) */
+  private emitResult(def: EventDef, o: EventOption): boolean {
     const t = def.talk?.options[o.key];
     const row = this.icons(def, o);
     const cutKey = eventCutKey(this.g, def.id, o.key);
@@ -313,9 +313,11 @@ export class EventNode {
       gains: row.rewards.filter((r) => !r.hidden),
       losses: row.costs,
     } satisfies UiEventResult);
-    if (!t?.notice) return;
+    const shown = Boolean(cutKey);
+    if (!t?.notice) return shown;
     const later = o.effects.find((e) => e.kind === 'laterGold' || e.kind === 'extraWave' || e.kind === 'shopDiscount');
-    if (!later || (later.kind !== 'laterGold' && later.kind !== 'extraWave' && later.kind !== 'shopDiscount')) return;
+    if (!later || (later.kind !== 'laterGold' && later.kind !== 'extraWave' && later.kind !== 'shopDiscount'))
+      return shown;
     const kind = later.kind;
     const icon: UiEventIcon =
       kind === 'laterGold'
@@ -330,6 +332,7 @@ export class EventNode {
       when: kind === 'shopDiscount' ? 'nextShop' : 'nextBattle',
       icon,
     } satisfies UiHiddenReward);
+    return shown;
   }
 
   private finish(state?: string): void {
@@ -399,8 +402,9 @@ export class EventNode {
     const lore = o.effects.some((e) => e.kind === 'diaryRead') ? this.diaryLine(def) : (def.lore ?? '');
     const run = () => {
       if (o.afterState) this.props.setState(EVENT_PROP, o.afterState);
-      if (def.talk) this.emitResult(def, o);
-      g.ui.story('event', o.result ?? '');
+      // 62 루프 2 G: 결과 컷이 있으면 자막 생략 (컷 한 줄 = talk cut ?? result)
+      const cut = def.talk ? this.emitResult(def, o) : false;
+      if (!cut) g.ui.story('event', o.result ?? '');
       chain(effectSteps(g, o.effects, lore));
     };
     if (o.holdMs) g.time.delayedCall(o.holdMs, () => g.scene.isActive() && run());

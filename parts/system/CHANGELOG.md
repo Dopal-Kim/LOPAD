@@ -1875,3 +1875,32 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 ### 검사
 - tsc 0 · eslint 0 · vitest 150파일 1163건 전부 통과 · prettier(src·data 전체) · vite build 통과.
 - 헤드리스(빌드본, 스크래치 `s62f/`): 장터 이중 로드 재현·해소(`relic.cjs`) · 전투 노드 동쪽 문 닫힘 → 열림 시트(`shots/b1~b3`) · 장터 노점 국밥 heal 칸 · 수련장 문틀(`shots/t2_training`). 콘솔·페이지 오류 0.
+
+## 62 루프 2 시스템 G — UI E·F 의 작은 시스템 요청 (2026-10-12)
+전권 위임(인터뷰 없음). 계약 = `src/contract/ui.ts` 맨 아래 '62 루프 2 시스템 G' 절 + `contract/uiLoop2.ts` `UiHeroScreen`(계약 문서 §24 후보 — 메인이 옮김). 노드 지도 위 플레이어 표식은 UI 몫이라 제외.
+
+### 1. 상인 말하기 'shopTalk' 에 `UiMenu.event` (`scenes/game/shopTalkUi` · `ShopKeeper.portrait`)
+- 사연 메뉴와 같은 머리 `UiEventScene{id 'merchant', name·speaker '종군 상인', portrait = structures/v3/npc_merchant 시트 0프레임(그림이 있을 때), greet = 상인 한마디(footer 와 같음), intro [], heads}`. 외상 고르기 화면도 같은 머리(greet = creditOffer).
+
+### 2. '외상을 단다' 대가 아이콘화 · 저주 문구 용어집
+- 줄 `costs: [{kind:'curse', label:'저주 외상'}]` + detail 대체 글 '내준다 저주 외상 — 처치 전표 0 · 장터 값 +20%'. 아이콘 글은 `bundle2.json shop.talk.merchant.creditCost`('저주 {curse}' — 사연 팩 cost 꼴).
+- `data/curses.json` 화면 문구의 금지어(UiCurse 로 그대로 나감): 외상 '상점 가격' → '장터 값' · 깨진 잔 '물약(독주) 사용 불가' → '독주 마시기 불가' · 불붙은 혀·저주 궤짝 'HP' → '체력' · 맨손 맹세 '영웅 패시브 1개 (3지선다)' → '영웅 유품 1개 (3택)' · 저주 궤짝 '희귀 이상 패시브 2택' → '희귀 이상 유품 2택'. 테스트가 저주 문구 전체를 금지어로 검사.
+
+### 3. `shopOffer.screen` = 보이는 물건 그림 윗변 (`systems/sprites/opaqueTop`)
+- 칸(드랍 시트 80×96) 윗변 + 칸 위 투명 줄 수(알파 16 이상 첫 줄, 칸마다 한 번 캔버스로 읽어 기억) × 배율. 헤드리스: 노점 6칸 월드 9.5~13.25px = 논리 19~26.5px 내려옴(국밥 heal 칸 19 · 독주 26.5). 둥실 흔들림은 그대로 따라감.
+
+### 4. `SHOP_PURCHASED.stallId`
+- `Economy.shopPick` 이 `ShopStalls.stallIdOf(key)` 로 채운다 — 노점 E · 외상 모두 그 칸 id, 글자 목록 상점·다시 진열은 null.
+
+### 5. `UiSnapshot.hero` (`scenes/game/loop2GUi.heroScreen` → `contract/snapshot`)
+- `UiHeroScreen{head, body, feet, visible}` 논리 960×540 — head = 발 − 머리 높이(`EntityVisual.headTopPx`, 도약 공중 높이 반영) · body = 발과 머리 가운데 · feet = 발 · visible = 주인공 보임(문 안·알파 0 이면 false). 게임 씬(런·시험장·수련장)만, 없으면 null.
+
+### 6. 사연 결과 컷 · 자막 겹침
+- `EventNode.emitResult` 가 결과 컷 그림(cutKey)을 실었으면 true → 같은 결과 문장 STORY 'event' 자막을 내지 않는다(선택지 · 지나간다 둘 다). 컷 그림이 없으면 자막 그대로.
+
+### 7. 타이틀·결과 화면 기억 장 그림
+- `RunEndArt.queueMemoryArt` — 소품 4(`ui_relics/keepsake_*`) + 모양·떠올릴 개성 8(`ui_traits/*`)을 **Preloader 부팅 로더**에 넣는다(`queueImageOnce` — 씬 사이 이중 로드 없음, 받으면 `markIconLoaded`). 텍스처는 씬과 무관하게 남아 타이틀·의식·결과 어디서 `memory.book()` 을 불러도 iconKey 가 채워진다. `loadRunEndArt` 는 같은 목록 함수를 나눠 쓰게 정리.
+
+### 검사
+- tsc 0 · eslint 0 · vitest 151파일 1169건 전부 통과(새 `systems/loop2d/loop2G.test` 6) · 바뀐 파일 prettier · vite build(스크래치 outDir) 통과.
+- 헤드리스(빌드본, 스크래치 `s62g/`, 페이지 오류 0): 타이틀 `memory.book()` 소품 4·모양 4·개성 4 iconKey 채워짐(장터 것·몸의 기억은 그림 없음 — 정상) · 장터 노점 6칸 카드 자리·stallId · 노점 사기 500→470 · 상인 shopTalk event 머리(초상 sheet_npc_merchant_st 0) · 외상 줄 costs·detail · 외상 화면 greet · hero 좌표(머리 256 · 가운데 293 · 발 330).

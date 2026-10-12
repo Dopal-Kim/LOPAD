@@ -16,6 +16,7 @@ import { cardIdOf, goodsArtOf, stallPositions } from '../../systems/loop2d/stall
 import { ITEM_ACTION } from '../../systems/bundle2/bundleSheets';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { artScale } from '../../systems/sprites/spriteDefs';
+import { frameOpaqueTop } from '../../systems/sprites/opaqueTop';
 import { fill } from '../../systems/story';
 import { StructureView } from '../../world/StructureView';
 import type { Game } from '../Game';
@@ -228,7 +229,7 @@ export class ShopStalls {
           : reason
             ? BUNDLE_FX.NOT_READY_TEXT
             : '';
-    const top = s.item ? (s.item.getTopCenter().y ?? s.slot.topY) : s.slot.topY;
+    const top = this.itemTop(s);
     const sc = worldToLogicalScreen(this.g.cameras.main, s.x, top);
     return {
       stallId: s.id,
@@ -240,6 +241,21 @@ export class ShopStalls {
       reasonText,
       screen: { x: Math.round(sc.x), y: Math.round(sc.y) },
     };
+  }
+
+  /**
+   * 카드 자리 = 보이는 물건 그림 윗변 (62 루프 2 G — UI 요청: 드랍 시트 칸 80×96 윗변이라 그림보다 약 26 논리 px 위였다).
+   * 칸 윗변 + 칸 위쪽 투명 줄 × 배율. 물건 그림이 없으면 노점 칸 윗변
+   */
+  private itemTop(s: Stall): number {
+    if (!s.item || !s.icon) return s.slot.topY;
+    const cell = s.item.getTopCenter().y ?? s.slot.topY;
+    return cell + frameOpaqueTop(this.g.textures, s.icon.key, s.icon.frame) * Math.abs(s.item.scaleY);
+  }
+
+  /** 줄 key → 노점 칸 id (SHOP_PURCHASED.stallId — 노점에 없는 줄이면 null) */
+  stallIdOf(key: string): string | null {
+    return this.stalls.find((s) => s.key === key)?.id ?? null;
   }
 
   /** 63 팩 물건 카드 문장 (유품 칸은 시스템 C 줄 그대로) */

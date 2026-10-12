@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { reportLoading } from './game/loadingReport';
+import { queueMemoryArt } from './game/RunEndArt';
 import { ASSETS, COLORS, FEEL, LAB, SCENES, TEXTURES, TILE } from '../core/Constants';
 import { TileId } from '../systems/mapgen';
 import { SaveSlot, browserStorage } from '../systems/save';
@@ -189,6 +190,8 @@ export class Preloader extends Phaser.Scene {
   private queueImages(): void {
     // 62 D (P2-6): 부팅 그림 로드 진행률 → ui:loading (phase boot)
     reportLoading(this, 'boot');
+    // 62 루프 2 G (UI 요청): 기억 장 그림 — 타이틀·결과 화면에서도 기억 장 칸 그림이 채워지게 부팅에서 한 번 (씬 사이 중복 없음)
+    queueMemoryArt(this);
     const sheets: SheetDef[] = [];
     for (const p of this.pendingSheets) {
       const def = queueSheetImage(this, p);

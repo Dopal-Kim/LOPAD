@@ -24,6 +24,7 @@ import type {
   UiLoop2CMenuId,
   UiDoorSide,
   UiDoor,
+  UiHeroScreen,
 } from './uiLoop2';
 
 /**
@@ -1732,4 +1733,18 @@ function loop2ECommands() {
       impl?.loop2E?.menuShown(id);
     },
   };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+// 62 루프 2 시스템 G (UI E·F 요청 처리). 계약 문서 §24. 같은 모듈 인터페이스 합치기 — 새 필드는 모두 선택(?).
+// - shopTalk 메뉴에 `UiMenu.event`(사연 메뉴와 같은 머리 — speaker 종군 상인 · portrait npc_merchant 0프레임 · greet 상인 한마디)
+// - shopTalk '외상을 단다'(key 'credit') 줄 = `costs`[{kind 'curse', label '저주 외상'}] + detail 대체 글('장터' — 용어집)
+// - `UiShopOffer.screen` = 보이는 물건 그림 윗변 가운데 (칸 위 투명 여백 제외) · `UiShopPurchased.stallId` = 노점에서 사면 그 칸 id
+// - 사연 결과 컷(`EVENT_RESULT.cutKey`)이 있으면 같은 문장의 STORY 'event' 자막은 오지 않는다
+// - 기억 장 그림(소품·모양·떠올릴 개성)은 부팅에서 받는다 — 타이틀·의식·결과 어디서 `memory.book()` 을 불러도 iconKey 가 채워진다
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+export interface UiSnapshot {
+  /** 주인공 화면 자리 (게임 씬 — 런·시험장·수련장. 주인공이 없으면 null/생략) */
+  hero?: UiHeroScreen | null;
 }

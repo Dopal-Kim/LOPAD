@@ -60,6 +60,8 @@ export interface ShopMerchantText {
   creditDone: string;
   creditRefuse: string;
   creditRepaid: string;
+  /** 62 루프 2 G: '외상을 단다' 대가 아이콘 글 ({curse} = 저주 이름 — 사연 팩 cost '저주 {curse}' 꼴) */
+  creditCost?: string;
   bought: string[];
   poor: string;
   leave: string;

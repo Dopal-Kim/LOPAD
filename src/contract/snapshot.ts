@@ -24,6 +24,7 @@ import type {
   UiGrowth,
   UiTraining,
   UiDoor,
+  UiHeroScreen,
   UiExitHint,
 } from './ui';
 import { ownedRelics } from '../systems/relics';
@@ -79,6 +80,8 @@ export interface SnapshotContext {
   exitHint?: UiExitHint | null;
   /** 62 루프 2 E: 출구 문 상태. 생략 시 null */
   door?: UiDoor | null;
+  /** 62 루프 2 G: 주인공 화면 자리. 생략 시 null */
+  hero?: UiHeroScreen | null;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -233,5 +236,13 @@ export function buildSnapshot(ctx: SnapshotContext & Loop2DSnapshotContext): UiS
     meta: metaSummary(),
     exitHint: ctx.exitHint ? { ...ctx.exitHint } : null,
     door: ctx.door ? { ...ctx.door, screen: { ...ctx.door.screen } } : null,
+    hero: ctx.hero
+      ? {
+          head: { ...ctx.hero.head },
+          body: { ...ctx.hero.body },
+          feet: { ...ctx.hero.feet },
+          visible: ctx.hero.visible,
+        }
+      : null,
   });
 }

@@ -64,6 +64,12 @@ export class ShopKeeper {
     lightRegistryOf(g).add(K.LIGHT, { x: this.x, y: this.y, anchor: this.view, dy: K.LIGHT_LIFT_PX });
   }
 
+  /** 62 루프 2 G: 말하기 메뉴 초상 — 종군 상인 시트 0프레임 (그림이 없으면 null) */
+  portrait(): { key: string; frame: string } | null {
+    const tex = spriteLibrary.textureKey(SHOP_KEEPER.NPC_SHEET, STRUCTURE_ACTION);
+    return this.npc && tex && this.g.textures.exists(tex) ? { key: tex, frame: '0' } : null;
+  }
+
   /** 상인 E 반경 안인가 */
   near(): boolean {
     const p = this.g.player;

@@ -12,6 +12,7 @@ import { kindDef } from '../../systems/route';
 import {
   UI_EVENTS,
   __system,
+  type UiEventScene,
   type UiInteractable,
   type UiMenuLine,
   type UiShopOffer,
@@ -23,6 +24,7 @@ import { fill } from '../../systems/story';
 import { ShopStalls } from './ShopStalls';
 import type { Game } from '../Game';
 import { ShopKeeper } from './ShopKeeper';
+import { creditLine, merchantScene } from './shopTalkUi';
 
 /** 53라운드 UI 요청 B1: 상점 메뉴 그만두기 key (UI 가 Esc·닫기를 select('shop', '0') 으로 보낸다) */
 export const SHOP_CANCEL_KEY = '0';
@@ -216,7 +218,8 @@ export class Economy {
     const done = () => {
       if (gameState.gold < before && line)
         __system.emit(UI_EVENTS.SHOP_PURCHASED, {
-          stallId: null,
+          // 62 루프 2 G: 노점 E · 외상 모두 그 줄의 노점 칸 (글자 목록 상점·다시 진열은 null)
+          stallId: this.stalls?.stallIdOf(key) ?? null,
           key,
           name: line.label,
           price: before - gameState.gold,
@@ -279,7 +282,8 @@ export class Economy {
         label: fill(T.menu.reroll, { n: reroll.price?.amount ?? 0 }),
         group: 'reroll',
       });
-    lines.push({ key: 'credit', label: T.menu.credit, enabled: true, detail: this.creditDetail() });
+    // 62 루프 2 G: 외상 대가 = 저주 아이콘 줄 (detail 글은 '장터' — 용어집)
+    lines.push(creditLine(SHOP_CREDIT_CURSE, T.menu.credit));
     lines.push({ key: SHOP_CANCEL_KEY, label: T.menu.leave, enabled: true });
     this.shopOpen = true;
     this.keeperOpened = true;
@@ -297,13 +301,14 @@ export class Economy {
         if (key === 'credit') return this.talkCredit();
       },
       greet,
-      { cancelKey: SHOP_CANCEL_KEY, speaker: T.speaker },
+      { cancelKey: SHOP_CANCEL_KEY, speaker: T.speaker, event: this.talkScene(greet) },
     );
   }
 
-  private creditDetail(): string {
-    const c = curseDef(SHOP_CREDIT_CURSE);
-    return c ? `${c.penalty}` : '';
+  /** 62 루프 2 G (UI 요청): 상인 말하기 머리 — 사연 메뉴와 같은 꼴(말하는 이 · 초상 npc_merchant 0프레임 · 첫 마디) */
+  private talkScene(greet: string): UiEventScene {
+    const T = BUNDLE2.shop.talk!.merchant;
+    return merchantScene(T.speaker, greet, this.keeper?.portrait() ?? null);
   }
 
   private talkReroll(): void {
@@ -345,7 +350,7 @@ export class Economy {
         this.openTalk(fill(T.creditDone, { item: card }));
       },
       T.creditOffer,
-      { cancelKey: SHOP_CANCEL_KEY, speaker: T.speaker },
+      { cancelKey: SHOP_CANCEL_KEY, speaker: T.speaker, event: this.talkScene(T.creditOffer) },
     );
   }
 
