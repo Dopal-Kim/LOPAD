@@ -84,6 +84,8 @@ export class BundleRuntime {
   /** 매 프레임 (입력 잠금 반영된 input) */
   update(input: InputState, now: number): void {
     this.consumables.update(input.consumablePressed, now);
+    // 62 D (P2-3): 완 조건 제한 시간 넘김 순간
+    this.flow.update(now);
     this.props.update(input.interactPressed, this.busy());
   }
 

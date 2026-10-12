@@ -18,6 +18,7 @@ import {
 import type { BossActionPayload, BossBreakPayload, EnemyIncomingPayload } from '../../core/EventBus';
 import { bossSnapshotExtra, uiBossBreak } from './bossUi';
 import { buildSnapshot } from '../../contract/snapshot';
+import { loop2DSnapshot } from './loop2DUi';
 import { trainingText } from '../../data/training';
 import { audio } from '../../systems/audio/audio';
 import { settings } from '../../systems/settings';
@@ -96,6 +97,12 @@ export class UiRelay {
       nodeTrial: g.bundle?.nodeTrialUi() ?? null,
       // 61라운드 (계약 §15): 설정
       settings: settings.current(),
+      // 62 루프 2 C (P1-6): 출구 방향 (UI 가장자리 화살표)
+      exitHint: g.runEnd?.exitHint() ?? null,
+      // 62 루프 2 E: 출구 문 (열림·걸음·문 안)
+      door: g.doors?.toUi() ?? null,
+      // 62 루프 2 시스템 D: 노점 카드 · 팻말 · 자동 저장
+      ...loop2DSnapshot(g),
     });
   }
 

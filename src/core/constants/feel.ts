@@ -275,6 +275,11 @@ export const FEEDBACK = {
    */
   MOB_HURT: { ALPHA: 0.8, MS: 50, ADD: true },
   /**
+   * 62 루프 2 시스템 D (P1-14): 보스 피격 섬광 — 채움색 실루엣이 아니라 **같은 그림을 흰빛으로 더한다**(FILL false — 무늬·윤곽이 남는다).
+   * 보스는 화면을 크게 덮어 채움 섬광이 '주황 덩어리'로 보였다(점검 51_boss_p1). 알파는 더한 밝기
+   */
+  BOSS_HURT: { ALPHA: 0.55, MS: 70, ADD: true, FILL: false },
+  /**
    * Q12·Q50: 적중 순간 무기 그림이 크게 번쩍 — 판정 1프레임(WHITE_MS)만 백열 X1 #fff4dc, 그다음 호박 A25 #eecc78 로 식으며 사라짐
    * (더하기 혼합 사본, 트윈 시계 — 히트스톱 동안에도 진행)
    */
@@ -324,4 +329,12 @@ export const FEEDBACK = {
   ISSEN_LINE_DEPTH: 0.96,
   /** 그림자 걸음 리본 (Q38 돌진류만): 출발 → 도착을 이 시간에 긋는다 */
   SHADOWSTEP_RIBBON_MS: 90,
+} as const;
+
+/**
+ * 62 루프 2 시스템 D (P1-2 · art §31.1) 칼·대검 스미어: 무기 오버레이와 같은 칸으로 그리는 `fx/v3/<동작>_smear` 가 있으면
+ * 판정 원점에 떨어져 그려지던 옛 호 fx 의 알파 (아트 권장 ≤ 0.35 — 판정·불티·히트스톱 정지 칸은 그대로)
+ */
+export const SWING_SMEAR = {
+  OLD_ARC_ALPHA: 0.3,
 } as const;

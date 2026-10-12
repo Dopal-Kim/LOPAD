@@ -11,11 +11,12 @@
  * 동안 휴대 시트를 숨긴다 · 달리기 휴대 `carry_run`(없으면 walk). 손·칼 앵커는 `spriteMeta`(디버그 `?anchors`).
  */
 import Phaser from 'phaser';
-import { CARRY, DEPTH, FEEDBACK, WEAPON_COLORS } from '../core/Constants';
+import { CARRY, DEPTH, FEEDBACK, WEAPON_COLORS, fxLitDepth } from '../core/Constants';
 import { anchorOffset, bladeAt, gripAt, handAt, overlayPivot, type BladeLocal } from '../systems/sprites/spriteMeta';
 import { gameState } from '../core/GameState';
 import { spriteLibrary } from '../systems/sprites/sprites';
-import { overlayArtCandidates } from '../systems/weapon/comboArt';
+import { overlayArtCandidates, smearFxId } from '../systems/weapon/comboArt';
+import { FX_ACTION } from '../systems/sprites/spriteDefs';
 import { GrowthOverlay, type GrowthLook } from './GrowthOverlay';
 import {
   GROGGY_ACTION,
@@ -60,6 +61,9 @@ export class WeaponOverlay {
   /** 56라운드 Q14·Q15: 자원 오버레이 (검기 ki · 울분 grudge 단) · 그 스프라이트 · 디버그 */
   private gauge: { suffix: string; level: number } | null = null;
   private gaugeSprite: Phaser.GameObjects.Sprite | null = null;
+  /** 62 D (P1-2): 스미어 겹침 */
+  private smearSprite: Phaser.GameObjects.Sprite | null = null;
+  private smearOn = false;
   gaugeAction: string | null = null;
   /** 61 G 계약 art §26 각성 외형 오버레이 (1차·2차 — `GrowthOverlay`) — 그리는 순서 무기 → 각성 외형 → 검기·울분 */
   readonly growth: GrowthOverlay;
@@ -89,6 +93,7 @@ export class WeaponOverlay {
       this.glintTween?.stop();
       this.glint?.destroy();
       this.gaugeSprite?.destroy();
+      this.smearSprite?.destroy();
       this.growth.destroy();
       this.sprite.destroy();
     });
@@ -313,11 +318,47 @@ export class WeaponOverlay {
     // 61 G 각성 외형 (같은 프레임 번호·시각·피벗 — 무기 위, 검기·울분 아래)
     if (!place) this.growth.show(gameState.weapon.id, action, dir, column, this.sprite, this.body, this.drawScale);
     else this.growth.hide();
+    // 62 D (P1-2 · art §31.1): 스미어 (같은 프레임 번호·같은 시각·같은 피벗 — 무기 바로 아래, 조명 위)
+    if (!place) this.showSmear(action, dir, column);
+    else this.smearSprite?.setVisible(false);
     // 56라운드 Q14·Q15 자원 오버레이 (같은 프레임 번호·같은 피벗으로 무기 위) — 시트가 없으면 칼날 곱 틴트
     const shownGauge = !place && this.showGauge(action, dir, column);
     if (this.bladeTint !== null && !place && !shownGauge) this.sprite.setTint(this.bladeTint);
     else this.sprite.clearTint();
     if (this.glint?.visible) this.glint.setPosition(this.sprite.x, this.sprite.y);
+  }
+
+  /** 62 D (P1-2): `fx/v3/<무기>_<동작>_smear` 가 올라와 있으면 같은 칸을 무기 바로 아래(조명 위)에 겹친다 */
+  private showSmear(action: string, dir: Dir8, column: number): void {
+    const id = smearFxId(gameState.weapon.id, action);
+    const def = spriteLibrary.sheet(id, FX_ACTION);
+    const tex = spriteLibrary.textureKey(id, FX_ACTION);
+    if (!def || !tex || !this.host.scene.textures.exists(tex)) {
+      if (this.smearSprite?.visible) this.smearSprite.setVisible(false);
+      this.smearOn = false;
+      return;
+    }
+    let o = this.smearSprite;
+    if (!o) {
+      o = this.sprite.scene.add.sprite(0, 0, '__DEFAULT').setVisible(false);
+      this.smearSprite = o;
+    }
+    if (o.texture.key !== tex) o.setTexture(tex, 0);
+    const pv = overlayPivot(def, this.body);
+    o.setOrigin(pv.x / def.frameWidth, pv.y / def.frameHeight)
+      .setFrame(frameAt(def, dir, Math.min(column, def.frames - 1)))
+      .setScale(artScale(def) * this.drawScale)
+      .setPosition(this.sprite.x, this.sprite.y)
+      .setAlpha(this.sprite.alpha)
+      .setBlendMode(Phaser.BlendModes.NORMAL)
+      .setDepth(fxLitDepth(this.sprite.depth - DEPTH.OVERLAY_STEP * 0.25))
+      .setVisible(this.sprite.visible);
+    this.smearOn = true;
+  }
+
+  /** 62 D: 지금 스미어를 그리는 중 (디버그) */
+  get smearing(): boolean {
+    return this.smearOn && Boolean(this.smearSprite?.visible);
   }
 
   /** 자원 오버레이 시트 `<무기 동작>_<접미><단>` 를 겹친다. 보였으면 true */
@@ -353,6 +394,8 @@ export class WeaponOverlay {
   hide(): void {
     if (this.sprite.visible) this.sprite.setVisible(false);
     if (this.gaugeSprite?.visible) this.gaugeSprite.setVisible(false);
+    if (this.smearSprite?.visible) this.smearSprite.setVisible(false);
+    this.smearOn = false;
     this.growth.hide();
     this.frame = -1;
     this.action = null;

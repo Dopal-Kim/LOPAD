@@ -72,7 +72,6 @@
     "goldDesc": "7제국 어디서나 통한다. 전쟁보다 먼저 통일된 것.",
     "souls": "전장의 영혼",
     "soulsDesc": "싸우다 죽은 것들이 네게 온다. 네가 부른 적은 없다.",
-    "sense": "감각",
     "shop": "종군 상인",
     "shopDesc": "어느 쪽이 이기든 판다."
   },
@@ -132,12 +131,12 @@
   "notices": {
     "trialStart": "문이 닫혔다.",
     "trialClear": "문이 열렸다. 아무도 박수치지 않는다.",
-    "bossUnlocked": "본영 문이 열렸다.",
+    "bossUnlocked": "군주의 방이 열렸다.",
     "saved": "일기장에 적었다. ({savesLeft}번 더 적을 수 있다)"
   },
   "reinforce": ["같은 손. 조금 더 깊게 들어간다.", "두 번째다. 손이 외웠다.", "세 번째. 더는 깊어질 곳이 없다."],
   "reinforceBanner": "{evolution} · 단련 {n}/3",
-  "controls": "WASD 이동 · 좌클릭 연격 · 좌클릭 길게 고유 기술 · 우클릭 {secondary} · 스페이스 대쉬 · Q 잔의 독주 · Esc 일시정지",
+  "controls": "WASD 이동 · 좌클릭 연격 · 좌클릭 길게 고유 기술 · 우클릭 {secondary} · Space 대쉬 · Q 독주 · Esc 일시정지",
   "enemies": {
     "dummy": {
       "name": "징집병",
@@ -173,7 +172,7 @@
       "cleared": "한 생을 다 썼다",
       "clearedDestroy": "다음 전장으로",
       "clearedUnderstand": "처음으로 내일을 적었다",
-      "retry": "다시 태어난다 (영혼 → 유산)",
+      "retry": "다시 태어난다",
       "toTitle": "일기장을 덮는다"
     },
     "pause": {
@@ -185,11 +184,10 @@
     },
     "hud": {
       "evolvedBanner": "{name}",
-      "bossUnlocked": "본영 문 열림",
+      "bossUnlocked": "군주의 방 열림",
       "exitOpen": "오르는 길 열림",
       "shopFooter": "떠나면 닫는다. 상인은 따라오지 않는다.",
-      "rewardTitle": "감각이 깨었다 — 능력치 {n}",
-      "passiveTitle": "군주가 남긴 것 — 하나만 가져간다"
+      "passiveTitle": "군주의 유품 — 하나만 가져간다"
     }
   },
   "_note61": "61라운드 P8 서사 실장 (스토리 텍스트 팩 parts/story/text-pack-61-stage1.json 사본): clues 단서 3 · weaponVoice 무기 한마디 4×5 · boss1 만취 대사(보스 담당이 붙인다) · nameSmudge 이름 번짐. 이벤트 5종 문장은 bundle2.json events",

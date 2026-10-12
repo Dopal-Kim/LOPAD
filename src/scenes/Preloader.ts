@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { reportLoading } from './game/loadingReport';
 import { ASSETS, COLORS, FEEL, LAB, SCENES, TEXTURES, TILE } from '../core/Constants';
 import { TileId } from '../systems/mapgen';
 import { SaveSlot, browserStorage } from '../systems/save';
@@ -33,7 +34,15 @@ import {
   type TilesetJson,
 } from '../world/tileskin';
 import { regionIds, regionTilesets } from '../systems/route';
-import { borderDefs, borderJsonRel, parseBorder } from '../world/border';
+import {
+  DOORS_ONLY_REGIONS,
+  borderDefs,
+  borderJsonRel,
+  doorsOnlyDefs,
+  doorsOnlyJsonRel,
+  parseBorder,
+  parseDoorsOnly,
+} from '../world/border';
 import { UI_SCENES } from '../ui';
 import { bossQuery } from '../debug/bossQuery';
 import { urlParams } from './game/shared';
@@ -60,7 +69,7 @@ export class Preloader extends Phaser.Scene {
   private pendingRegionTiles: { name: string; jsonKey: string; dir: string; props?: boolean }[] = [];
   private audioManifestQueued = false;
   /** 53라운드 Q6: 외벽 테두리 border.json 이 있는 지역 (그림은 그 지역 노드에 들어갈 때 지연 로드 — BorderView) */
-  private pendingBorders: { region: string; jsonKey: string }[] = [];
+  private pendingBorders: { region: string; jsonKey: string; doorsOnly?: boolean }[] = [];
 
   constructor() {
     super(SCENES.PRELOADER);
@@ -127,6 +136,14 @@ export class Preloader extends Phaser.Scene {
       this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
       this.pendingBorders.push({ region, jsonKey });
     }
+    // 62 루프 2 F (art §31-10): 테두리 없는 방의 문틀 (수련장)
+    for (const region of DOORS_ONLY_REGIONS) {
+      const rel = doorsOnlyJsonRel(region);
+      if (!listed(rel)) continue;
+      const jsonKey = `json_doors_${region}`;
+      this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);
+      this.pendingBorders.push({ region, jsonKey, doorsOnly: true });
+    }
     this.audioManifestQueued = exists(audioManifestRel());
     if (this.audioManifestQueued) this.load.json(AUDIO_MANIFEST_KEY, `${ASSETS.URL}/${audioManifestRel()}`);
   }
@@ -170,6 +187,8 @@ export class Preloader extends Phaser.Scene {
 
   /** JSON 이 읽힌 것만 PNG 로드 큐에 넣고, 끝나면 애니·타일셋 등록 후 라우팅 */
   private queueImages(): void {
+    // 62 D (P2-6): 부팅 그림 로드 진행률 → ui:loading (phase boot)
+    reportLoading(this, 'boot');
     const sheets: SheetDef[] = [];
     for (const p of this.pendingSheets) {
       const def = queueSheetImage(this, p);
@@ -193,8 +212,15 @@ export class Preloader extends Phaser.Scene {
       if (!this.textures.exists(key)) this.load.image(key, `${ASSETS.URL}/${p.dir}${json.image}`);
     }
     borderDefs.clear();
+    doorsOnlyDefs.clear();
     for (const b of this.pendingBorders) {
-      const def = parseBorder(this.cache.json.get(b.jsonKey), b.region);
+      const raw = this.cache.json.get(b.jsonKey);
+      if (b.doorsOnly) {
+        const d = parseDoorsOnly(raw, b.region);
+        if (d) doorsOnlyDefs.set(b.region, d);
+        continue;
+      }
+      const def = parseBorder(raw, b.region);
       if (def) borderDefs.set(b.region, def);
     }
     const audioQueue = this.queueAudio();

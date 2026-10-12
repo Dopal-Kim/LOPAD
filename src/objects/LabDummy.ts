@@ -4,7 +4,7 @@
  * 움직이지 않고(넉백·밀쳐내기 무시) 접촉 피해도 없다. 개성·골드를 주지 않는다.
  */
 import Phaser from 'phaser';
-import { ENEMY_FX, FEEDBACK, LAB, PLACEHOLDER_UI, COLORS } from '../core/Constants';
+import { ENEMY_FX, FEEDBACK, LAB, COLORS } from '../core/Constants';
 import { EventBus, Events, type EnemyDamagedPayload } from '../core/EventBus';
 import { Mob, type DamageInfo, type MobContext } from './Mob';
 
@@ -13,8 +13,11 @@ export type LabDummyRole = 'target' | 'turret';
 /** 사실상 무한 체력 (표시용 최대치) */
 const LAB_HP = 1_000_000;
 
-/** 이름표 위치 계산용 (매 프레임 할당 방지) */
+/** 팻말 위치 계산용 (매 프레임 할당 방지) */
 const boundsScratch = new Phaser.Geom.Rectangle();
+
+/** 62 D (P1-17) 팻말 이름 (자리표시 — 수련장 문장 팩이 생기면 데이터로) */
+const SIGN_TITLE: Record<LabDummyRole, string> = { target: '허수아비', turret: '사수 허수아비' };
 
 export class LabDummy extends Mob {
   /** 누적 피해 · 맞은 횟수 · 쏜 탄 수 (디버그·표시) */
@@ -22,7 +25,6 @@ export class LabDummy extends Mob {
   hits = 0;
   shots = 0;
   private nextShotAt = 0;
-  private readonly label: Phaser.GameObjects.Text;
 
   constructor(
     scene: Phaser.Scene,
@@ -40,15 +42,22 @@ export class LabDummy extends Mob {
       LAB_HP,
     );
     this.body.setImmovable(true);
-    this.label = scene.add
-      .text(x, y - LAB.DUMMY_SIZE[1], role === 'target' ? '허수아비' : '사수 허수아비', {
-        font: PLACEHOLDER_UI.FONT_BODY,
-        color: COLORS.GAMEOVER_TEXT,
-      })
-      .setOrigin(0.5, 1)
-      .setScale(0.5)
-      .setDepth(this.depth + 1);
-    this.once(Phaser.GameObjects.Events.DESTROY, () => this.label.destroy());
+  }
+
+  /**
+   * 62 D (P1-17): 옛 디버그 이름표 대신 UI 나무 팻말 정보 (계약 `UiWorldSign`) — 머리 위 끝 월드 좌표.
+   * 시트가 있으면 그림 위, 없으면 사각형 위
+   */
+  sign(): { id: string; kind: 'dummy' | 'turret'; title: string; value: string; x: number; y: number } {
+    const top = this.visual.animated ? this.getBounds(boundsScratch).top : this.y - LAB.DUMMY_SIZE[1];
+    return {
+      id: `${this.role}:${Math.round(this.x)},${Math.round(this.y)}`,
+      kind: this.role === 'target' ? 'dummy' : 'turret',
+      title: SIGN_TITLE[this.role],
+      value: this.role === 'target' ? `누적 ${this.totalDamage} · ${this.hits}타` : `${this.shots}발`,
+      x: this.x,
+      y: top,
+    };
   }
 
   /** 움직이지 않는다: AI 는 사수 발사만, 바라보는 방향은 사수면 발사 방향 */
@@ -58,14 +67,6 @@ export class LabDummy extends Mob {
     this.think(ctx);
     const facing = this.role === 'turret' ? (LAB.TURRET_DIR.x < 0 ? 'left' : 'right') : 'down';
     this.visual.loop('idle', facing, ctx.time);
-    // 시트가 있으면 그림 위, 없으면 사각형 위 (그림 높이가 사각형보다 커서 머리를 덮지 않게)
-    const top = this.visual.animated ? this.getBounds(boundsScratch).top : this.y - LAB.DUMMY_SIZE[1];
-    this.label.setPosition(this.x, top).setDepth(this.depth + 1);
-    this.label.setText(
-      this.role === 'target'
-        ? `허수아비 · 누적 ${this.totalDamage} (${this.hits}타)`
-        : `사수 허수아비 · ${this.shots}발`,
-    );
   }
 
   protected think(ctx: MobContext): void {

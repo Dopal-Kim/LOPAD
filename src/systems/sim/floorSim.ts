@@ -117,7 +117,10 @@ export function estimateFloor(weaponId: string, stageId = 'stage1', pathKey = 'n
       markLeft -= mark;
       expected += e.personality + gradeGain * risk * G.GRADE_PERFECT_SHARE + markGain * mark;
     } else {
-      const ms = SIM.NONCOMBAT_MS[st.kind as keyof typeof SIM.NONCOMBAT_MS] ?? SIM.NONCOMBAT_MS.event;
+      const X = SIM.LOOP2_EXTRA_MS;
+      // 62 D (P2-14): 장터 노점·상인 말 걸기 · 사연 NPC 말 걸기·결과 컷
+      const extra = st.kind === 'shop' ? X.shop : st.kind === 'event' ? X.event : 0;
+      const ms = (SIM.NONCOMBAT_MS[st.kind as keyof typeof SIM.NONCOMBAT_MS] ?? SIM.NONCOMBAT_MS.event) + extra;
       nodes.push({ kind: st.kind, ms: ms + SIM.EXIT_WALK_MS + SIM.CHOOSE_MS, kills: 0, damageTaken: 0 });
       if (st.kind === 'shop' || st.kind === 'rest' || st.kind === 'event') menus += 1;
       if (st.kind === 'event') expected += eventGain * G.EVENT_GAUGE_SHARE;
@@ -139,7 +142,10 @@ export function estimateFloor(weaponId: string, stageId = 'stage1', pathKey = 'n
   menus += personalityMenus + (boss ? 1 : 0);
   // 메뉴 고르는 시간 (3지선다·보상)
   const menuMs = menus * SIM.MENU_MS;
-  const totalMs = nodes.reduce((a, n) => a + n.ms, 0) + menuMs;
+  // 62 D (P2-14): 노드마다 로딩·입구 전환 · 단서 읽기 · 보스 등장·처치·층 끝 결산
+  const X = SIM.LOOP2_EXTRA_MS;
+  const showMs = nodes.length * X.perNode + X.clue * X.clues + (boss ? X.bossShow : 0);
+  const totalMs = nodes.reduce((a, n) => a + n.ms, 0) + menuMs + showMs;
   return {
     weapon: weaponId,
     dps: Math.round(weaponDps(player, w).dps * 10) / 10,

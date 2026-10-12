@@ -44,7 +44,10 @@ describe('60라운드 효과음 연결 (audioBuild)', () => {
     expect(ids(Events.ENEMY_DIED, { id: 'dummy', elite: true })).toEqual([[BUILD_SFX.eliteDie, SFX.enemyDeath]]);
     expect(ids(Events.SHOP_BOUGHT, { id: 'reroll', price: 15, group: 'reroll' })).toEqual([BUILD_SFX.shopReroll]);
     expect(ids(Events.SHOP_BOUGHT, { id: 'heal', price: 15 })).toEqual([SFX.shopBuy]);
-    expect(ids(Events.MENU_SELECTED, { id: 'event', key: '1' })).toEqual([[BUILD_SFX.eventChoice, SFX.menuSelect]]);
+    // 62 루프 2: UI 렌더러가 없는 임시 텍스트 메뉴(테스트) — ui_select 다음 옛 menu_select
+    expect(ids(Events.MENU_SELECTED, { id: 'event', key: '1' })).toEqual([
+      [BUILD_SFX.eventChoice, 'sfx/ui_select', SFX.menuSelect],
+    ]);
   });
 
   it('성소 깃발은 door_close·trial_clear 대신 shrine_*', () => {

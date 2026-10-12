@@ -119,11 +119,15 @@ describe('61라운드 P8 서사 데이터 · 런 상태', () => {
 
   it('이벤트 선택지 문구: {…} 를 효과 값으로 채운다', () => {
     const labels = (id: string) => eventDef(id)!.options!.map((o) => optionLabel(o));
-    expect(labels('diary')).toEqual(['떠올린다 — 각성 게이지 +30', '다듬는다 — 감각 +1', '지난 생의 기록을 읽는다']);
-    expect(labels('tasting')[0]).toBe('한 잔 — 최대 체력 −10 · 패시브 2택');
+    expect(labels('diary')).toEqual([
+      '떠올린다 — 각성 게이지 +30',
+      '다듬는다 — 다시 뽑기 +1',
+      '지난 생의 기록을 읽는다',
+    ]);
+    expect(labels('tasting')[0]).toBe('한 잔 — 최대 체력 −10 · 유품 2택');
     expect(labels('offering')[0]).toBe('고개를 숙인다 — 최대 체력 +8');
     expect(labels('droppedLedger')).toEqual([
-      '돌려준다 — 다음 상점 −10%',
+      '돌려준다 — 다음 장터 −10%',
       "한 줄 긋는다 — 저주 '외상'",
       '태운다 — 전표 +15',
     ]);

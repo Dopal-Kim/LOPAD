@@ -16,7 +16,20 @@ import { onFloor } from '../../../data/floorScope';
 import { optionLabel } from '../../../systems/bundle2/eventText';
 import { bossKilledBefore, diaryNow, diaryReadLine, hasPastLife } from '../../../systems/narrative/diary';
 import type { ConsumableId, EventDef, EventOption, MapInfoId } from '../../../data/bundle2Types';
-import { UI_EVENTS, __system, type UiHiddenNodeFound, type UiMenuLine } from '../../../contract/ui';
+import {
+  UI_EVENTS,
+  __system,
+  type UiEventIcon,
+  type UiEventResult,
+  type UiEventScene,
+  type UiHiddenNodeFound,
+  type UiHiddenReward,
+  type UiMenuLine,
+} from '../../../contract/ui';
+import { iconRow } from '../../../systems/bundle2/eventIcons';
+import { STRUCTURE_ACTION } from '../../../systems/sprites/spriteActions';
+import { spriteLibrary } from '../../../systems/sprites/sprites';
+import { eventCutKey, loadEventCut } from './eventArt';
 import { curseDef } from '../../../data/build';
 import { revealHidden } from '../../../systems/bundle2/routeExtras';
 import { goldCost, shopPrice } from '../../../systems/economy';
@@ -28,6 +41,14 @@ import type { ShopMenu } from './ShopMenu';
 import { chain, effectSteps, randomConsumable } from './bundleRewards';
 
 const PASS = '0';
+/** 62 D (P1-12): 아이콘 기본 이름 (63 팩 문장이 없을 때) */
+const ICON_NAMES = {
+  gold: '전표',
+  potion: '독주',
+  maxHp: '최대 체력',
+  growth: '각성 게이지',
+  passive: '유품',
+} as const;
 const EVENT_PROP = 'bundle:event';
 const CLUE_PROP = 'bundle:clue';
 const SELLER_PROP = 'bundle:seller';
@@ -87,21 +108,26 @@ export class EventNode {
       gameState.bundle.useEvent(def.id);
       EventBus.emit(Events.EVENT_NODE_ENTERED, { id: def.id });
     }
-    if (def.prop) {
+    const talk = def.talk;
+    // 62 D (P1-12): 사연은 방에 NPC·소품을 세우고 E 로 말 건다 (들어서자마자 메뉴 금지) — 컷 그림은 지금 받아 둔다
+    if (talk) loadEventCut(g, def.id);
+    const sheet = talk?.npc?.sheet ?? def.prop ?? talk?.propSheet ?? null;
+    if (sheet) {
       const p = this.at(BUNDLE_FX.EVENT_OFFSET);
-      // 60라운드 Q32: 이벤트 소품은 E 로 조사 (UI 계약 §14.10 eventProp)
+      // 60라운드 Q32: 이벤트 소품은 E 로 조사 (UI 계약 §14.10 eventProp) · 62 D: NPC 는 eventNpc (말 걸기)
+      const npc = Boolean(talk?.npc);
       this.props.add({
         id: EVENT_PROP,
-        sheet: def.prop,
+        sheet,
         label: def.name,
         x: p.x,
         y: p.y,
         interact: {
-          kind: 'eventProp',
-          name: def.name,
-          action: BUNDLE_FX.EVENT_ACTION,
-          actionKey: 'eventProp.inspect',
-          usable: () => true,
+          kind: npc ? 'eventNpc' : 'eventProp',
+          name: talk?.npc?.speaker ?? def.name,
+          action: talk ? talk.prompt.replace(/^\[E\]\s*/, '') : BUNDLE_FX.EVENT_ACTION,
+          actionKey: npc ? 'eventNpc.talk' : 'eventProp.inspect',
+          usable: () => !this.done,
           use: () => this.open(),
         },
       });
@@ -205,6 +231,7 @@ export class EventNode {
   private open(): void {
     const def = this.def;
     if (!def || this.done) return;
+    EventBus.emit(Events.EVENT_TALK, { id: def.id, npc: Boolean(def.talk?.npc) });
     if (def.kind === 'merchant') return this.openMerchant(def);
     if (def.kind === 'curse') return this.openCurseEvent(def);
     if (def.kind === 'challenge') return this.openChallenge(def);
@@ -222,20 +249,87 @@ export class EventNode {
     pass?: EventOption,
   ): void {
     const g = this.g;
+    const passLabel = (pass && def.talk?.options[pass.key]?.label) ?? pass?.label ?? BUNDLE2.events.passLabel;
     g.menu.open(
       'event',
       def.name,
-      [...lines, { key: PASS, label: pass?.label ?? BUNDLE2.events.passLabel, enabled: true }],
+      [...lines, { key: PASS, label: passLabel, enabled: true }],
       (key) => {
         if (key !== PASS) return onPick(key);
         g.menu.close();
         if (!pass) return;
         this.finish();
+        this.emitResult(def, pass);
         g.ui.story('event', pass.result ?? '');
       },
       footer,
-      { cancelKey: PASS },
+      { cancelKey: PASS, ...(def.talk ? { event: this.scene(def) } : {}) },
     );
+  }
+
+  /** 62 D (P1-12) 사연 머리 (계약 UiEventScene) — 말하는 이·첫 마디·설명 */
+  private scene(def: EventDef): UiEventScene {
+    const t = def.talk!;
+    const intro = eventIntro(def)
+      .split('\n')
+      .filter((x) => x.length > 0);
+    const sheet = t.npc?.sheet;
+    const tex = sheet ? spriteLibrary.textureKey(sheet, STRUCTURE_ACTION) : undefined;
+    return {
+      id: def.id,
+      name: def.name,
+      ...(t.greet.kind === 'speech' && t.greet.speaker ? { speaker: t.greet.speaker } : {}),
+      ...(tex && this.g.textures.exists(tex) ? { portrait: { key: tex, frame: '0' } } : {}),
+      greet: t.greet.text,
+      intro,
+      ...(BUNDLE2.events.ui ? { heads: { ...BUNDLE2.events.ui } } : {}),
+    };
+  }
+
+  /** 62 D (P1-12) 선택지 아이콘 줄 (대가·보상) */
+  private icons(def: EventDef, o: EventOption): { costs: UiEventIcon[]; rewards: UiEventIcon[] } {
+    const curseId = o.effects.find((e) => e.kind === 'curse');
+    const c = curseId && curseId.kind === 'curse' ? curseDef(curseId.id) : undefined;
+    return iconRow(
+      o.effects,
+      def.talk?.options[o.key],
+      ICON_NAMES,
+      c ? { name: c.name, benefit: c.benefit } : undefined,
+      BUNDLE2.events.ui?.unknown ?? '?',
+    );
+  }
+
+  /** 62 D (P1-12) 결과 컷 한 장 (EVENT_RESULT) + 숨은 보상 알림 (HIDDEN_REWARD) */
+  private emitResult(def: EventDef, o: EventOption): void {
+    const t = def.talk?.options[o.key];
+    const row = this.icons(def, o);
+    const cutKey = eventCutKey(this.g, def.id, o.key);
+    EventBus.emit(Events.EVENT_RESOLVED, { id: def.id, option: o.key });
+    __system.emit(UI_EVENTS.EVENT_RESULT, {
+      eventId: def.id,
+      optionKey: o.pass ? PASS : o.key,
+      ...(cutKey ? { cutKey } : {}),
+      line: t?.cut ?? o.result ?? '',
+      gains: row.rewards.filter((r) => !r.hidden),
+      losses: row.costs,
+    } satisfies UiEventResult);
+    if (!t?.notice) return;
+    const later = o.effects.find((e) => e.kind === 'laterGold' || e.kind === 'extraWave' || e.kind === 'shopDiscount');
+    if (!later || (later.kind !== 'laterGold' && later.kind !== 'extraWave' && later.kind !== 'shopDiscount')) return;
+    const kind = later.kind;
+    const icon: UiEventIcon =
+      kind === 'laterGold'
+        ? { kind: 'gold', label: BUNDLE2.events.ui?.unknown ?? '?', hidden: true }
+        : kind === 'extraWave'
+          ? { kind: 'enemies', amount: later.value, label: `+${later.value}` }
+          : { kind: 'discount', amount: Math.round(later.value * 100), label: `−${Math.round(later.value * 100)}%` };
+    __system.emit(UI_EVENTS.HIDDEN_REWARD, {
+      state: 'later',
+      kind,
+      text: t.notice,
+      when: kind === 'shopDiscount' ? 'nextShop' : 'nextBattle',
+      icon,
+    } satisfies UiHiddenReward);
   }
 
   private finish(state?: string): void {
@@ -251,7 +345,29 @@ export class EventNode {
   }
 
   private optionLine(o: EventOption): UiMenuLine {
-    return { key: o.key, label: optionLabel(o), enabled: this.optionOk(o) };
+    const def = this.def;
+    const t = def?.talk?.options[o.key];
+    if (!def || !t) return { key: o.key, label: optionLabel(o), enabled: this.optionOk(o) };
+    // 62 D (P1-12): 이름만 + 대가·보상 아이콘 줄 (수치는 아이콘에) · 못 고르면 까닭
+    const ok = this.optionOk(o);
+    const row = this.icons(def, o);
+    // detail = 아이콘 줄을 글로 (아이콘을 아직 그리지 않는 UI 를 위한 대체 — 아이콘을 그리면 UI 는 detail 을 숨겨도 된다)
+    const H = BUNDLE2.events.ui;
+    const text = [
+      row.costs.length > 0 ? `${H?.costHead ?? ''} ${row.costs.map((c) => c.label).join(' · ')}`.trim() : '',
+      row.rewards.length > 0 ? `${H?.gainHead ?? ''} ${row.rewards.map((c) => c.label).join(' · ')}`.trim() : '',
+    ]
+      .filter((x) => x.length > 0)
+      .join('  /  ');
+    const blocked = !ok && o.needPotion && gameState.potions <= 0 ? H?.disabledNoPotion : undefined;
+    return {
+      key: o.key,
+      label: t.label,
+      enabled: ok,
+      costs: row.costs,
+      rewards: row.rewards,
+      ...(blocked || text ? { detail: blocked ?? text } : {}),
+    };
   }
 
   /** 선택지형 (61라운드 1층 5종: E3·E4·E5·E8·E9) — 고르면 결과 문장(STORY event) → 효과 */
@@ -283,6 +399,7 @@ export class EventNode {
     const lore = o.effects.some((e) => e.kind === 'diaryRead') ? this.diaryLine(def) : (def.lore ?? '');
     const run = () => {
       if (o.afterState) this.props.setState(EVENT_PROP, o.afterState);
+      if (def.talk) this.emitResult(def, o);
       g.ui.story('event', o.result ?? '');
       chain(effectSteps(g, o.effects, lore));
     };

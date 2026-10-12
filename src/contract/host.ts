@@ -25,6 +25,7 @@ import {
 } from './ui';
 import { UI_SCENES } from '../ui';
 import { metaSummary } from './metaSummary';
+import { suspendRun } from './hostLoop2D';
 
 const saveSlot = new SaveSlot(browserStorage());
 
@@ -223,6 +224,8 @@ export function installContractHost(game: Phaser.Game): void {
       else game.scene.start(SCENES.SETUP);
     },
     toTitle: () => {
+      // 62 루프 2 시스템 D (P2-5): 런 중이면 나가기 전에 이어하기 자동 저장 (횟수 제한 없음)
+      suspendRun();
       dropStash();
       runLogRecorder.abandon();
       stopAllUiAndGame();

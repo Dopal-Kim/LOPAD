@@ -92,6 +92,8 @@ export function generateArena(spec: ArenaSpec): FloorLayout {
     const keep: Rect[] = [
       { x: spawn.x - k, y: spawn.y - k, w: k * 2 + 1, h: k * 2 + 1 },
       { x: exit.x - k, y: exit.y - k, w: k * 2 + 2, h: k * 2 + 2 },
+      // 62 루프 2 E: 문 줄 — 출구(오른쪽 벽)·입구(왼쪽 벽) 문까지 바닥이 곧게 이어지게 (가장자리가 문 앞을 깎지 않는다)
+      ...doorLanes(interior, spawn, exit, !(spec.spawnExactCenter || spec.spawnCenter)),
       ...(spec.keepClear ?? []),
     ];
     carveEdge(tiles, interior, spec.edge, keep, new Rng(hashSeed(`${spec.seed ?? 0}:edge`)));
@@ -128,6 +130,25 @@ export function generateArena(spec: ArenaSpec): FloorLayout {
       camera: { x: ix - 1, y: iy - 1, w: spec.w + 2, h: spec.h + 2 },
     },
   };
+}
+
+/**
+ * 62 루프 2 E 문 줄 (가운데 줄 · 위아래 1칸 = 3칸, `DOORS.OPEN_TILES`): 출구 문 = 오른쪽 벽, 출구 2×2 의 아래 줄이 가운데 ·
+ * 입구 문 = 왼쪽 벽, 시작 줄이 가운데 (시작점이 가운데 근처인 전장 — 탄생지·수련장 — 은 입구 문 없음)
+ */
+export function arenaDoorRows(
+  arena: { spawn: { y: number }; exit: { y: number } },
+  entry: boolean,
+): { exit: number; entry: number | null } {
+  return { exit: arena.exit.y + 1, entry: entry ? arena.spawn.y : null };
+}
+
+/** 문 줄 보호 사각형: 출구 2×2 → 오른쪽 벽 · 왼쪽 벽 → 시작점 (가운데 줄 ± 1) */
+function doorLanes(I: Rect, spawn: { x: number; y: number }, exit: { x: number; y: number }, entry: boolean): Rect[] {
+  const rows = arenaDoorRows({ spawn, exit }, entry);
+  const out: Rect[] = [{ x: exit.x, y: rows.exit - 1, w: I.x + I.w - exit.x, h: 3 }];
+  if (rows.entry !== null) out.push({ x: I.x, y: rows.entry - 1, w: spawn.x - I.x + 1, h: 3 });
+  return out;
 }
 
 /** 깊이 프로필: 길이 n, 값 0..max, run 칸마다 ±1~2 로 바뀌는 계단 */

@@ -76,7 +76,11 @@ import { LabMode } from './game/LabMode';
 import { MotionFx } from './game/MotionFx';
 import { PlayerStrikes } from './game/PlayerStrikes';
 import { Progression } from './game/Progression';
+import { RunEnd } from './game/RunEnd';
 import { RouteFlow } from './game/RouteFlow';
+import { ArenaDoors } from './game/doors/ArenaDoors';
+import type { SideDoorArt } from '../world/SideDoorArt';
+import { setRouteShown } from '../contract/hostLoop2E';
 import { WeaponFeedback } from './game/WeaponFeedback';
 import { UiRelay } from './game/UiRelay';
 import { WorldSetup } from './game/WorldSetup';
@@ -95,6 +99,11 @@ import { BossFlow } from './game/BossFlow';
 import { TrainingMode } from './game/training/TrainingMode';
 import { transitionGate } from '../systems/transition/transitionGate';
 import { setTrainingLeaver } from '../contract/host';
+import { setRunExit } from '../contract/hostLoop2D';
+import { RunExit, suspendAtBoss } from './game/RunExit';
+import { NodePrefetch } from './game/NodePrefetch';
+import { reportLoading } from './game/loadingReport';
+import { continueSave } from './game/runWeapon';
 import { leaveRunForTraining } from './game/training/runLeave';
 
 export type { GameInitData } from './game/shared';
@@ -136,6 +145,8 @@ export class Game extends Phaser.Scene {
   setPieceView: SetPieceView | null = null;
   /** 53라운드 Q6: Gemini 외벽 테두리 (그 지역에 border.json 이 있을 때) */
   border: BorderView | null = null;
+  /** 62 루프 2 F (art §31-10): 테두리 없는 방(수련장)의 문틀 그림 */
+  doorArt: SideDoorArt | null = null;
   tutorial: TutorialDirector | null = null;
   // --- 연출 (35·42라운드) ---
   fx: FxPool;
@@ -180,6 +191,8 @@ export class Game extends Phaser.Scene {
   route: RouteFlow;
   birth: BirthFlow;
   labMode: LabMode | null = null;
+  /** 62 루프 2 시스템 D (P2-5): 나가기 자동 저장 · 런 포기 */
+  runExit: RunExit | null = null;
   /** 61 단계 6 수련장 방 (Training 씬만) */
   training: TrainingMode | null = null;
   ui: UiRelay;
@@ -194,6 +207,10 @@ export class Game extends Phaser.Scene {
   bundle: BundleRuntime;
   /** 61라운드 보스 등장·처치 연출 · 보스 대사 (scenes/game/BossFlow) */
   bossFlow: BossFlow | null = null;
+  /** 62 루프 2 C (P1-6·P1-7): 층 끝 결산 · 사망 연출·결산 · 출구 방향 (scenes/game/RunEnd) */
+  runEnd: RunEnd;
+  /** 62 루프 2 E: 외벽 문 나가기·들어오기 (발판 출구 대체 — scenes/game/doors/ArenaDoors) */
+  doors: ArenaDoors;
 
   initData: GameInitData = {};
   private senseBonus = 0;
@@ -229,6 +246,8 @@ export class Game extends Phaser.Scene {
     // 61 E VRAM: 보스 노드에서는 일반 적 시트를 내리고, 다른 노드에서는 보스 묶음을 내린다 (lazySheets)
     const toBoss =
       (!this.lab && (Boolean(this.initData.bossJump) || gameState.route?.current?.kind === 'boss')) ||
+      // 62 D (P2-5): 보스 노드에서 나갔던 이어하기
+      (!this.lab && suspendAtBoss(continueSave(this.saveSlot), this.initData)) ||
       (this.isTraining && TrainingMode.isBossRoom(this.initData.trainingRoom));
     const boss = prepareNodeSheets(this, toBoss, toBoss ? gameState.stage.boss : null);
     const weapon = preloadWeaponSheets(this, weaponId, {
@@ -237,6 +256,10 @@ export class Game extends Phaser.Scene {
       growth: look ? { branch: look.branch, stage: look.stage, legacy: look.legacy } : null,
     });
     if (!boss && !weapon) return;
+    // 62 D (P2-6): 로딩 진행률 (UI 로딩 화면 막대)
+    reportLoading(this, toBoss ? 'boss' : this.isTraining ? 'training' : 'node');
+    // UI 렌더러가 있으면 UI 로딩 화면이 그린다 (시스템 '불러오는 중…' 글자는 없을 때만)
+    if (__system.rendererRegistered()) return;
     const at = screenFixed(this.cameras.main, GAME.WIDTH / 2, GAME.HEIGHT / 2);
     const label = this.add
       .text(at.x, at.y, WEAPON_LOAD.TEXT, { font: WEAPON_LOAD.FONT, color: WEAPON_LOAD.COLOR })
@@ -253,6 +276,7 @@ export class Game extends Phaser.Scene {
     this.strikes = new PlayerStrikes(this);
     this.motion = new MotionFx(this);
     this.progress = new Progression(this);
+    this.runEnd = new RunEnd(this);
     this.economy = new Economy(this);
     this.birth = new BirthFlow(this);
     this.ui = new UiRelay(this);
@@ -281,6 +305,7 @@ export class Game extends Phaser.Scene {
       ? new Phaser.Math.Vector2((layout.arena.spawn.x + 0.5) * TILE, (layout.arena.spawn.y + 0.5) * TILE)
       : this.world.roomCenter(layout.rooms.find((r) => r.type === 'start')!);
     this.player = new Player(this, start.x, start.y);
+    this.doors = new ArenaDoors(this);
     this.route = new RouteFlow(this);
     // 57라운드 빌드 축 (bindEvents 보다 먼저 — 공격 페이로드의 갈래 한 타 변화를 판정보다 먼저 건다)
     this.buildMenus = new BuildMenus(this);
@@ -328,10 +353,15 @@ export class Game extends Phaser.Scene {
     setSnapshotProvider(() => this.ui.snapshot());
     setMenuSelect((id, key) => this.menu.select(key, id));
     setWarpHandler({ check: () => this.ui.warpDeny(), run: () => this.ui.warpDeny() });
-    setNodeChooser((id) => this.route.chooseNode(id));
+    // 62 루프 2 E: UI 의 노드 고르기는 열린 직후 가드 (chooseFromUi) · 지도를 그렸다는 알림 (menuShown 'route')
+    setNodeChooser((id) => this.route.chooseFromUi(id));
+    setRouteShown(() => this.route.chooserShown());
     setChooseCanceler(() => this.route.cancelChoose());
     // 61 단계 6 §19: 일기장 '수련장' — 런을 맡기고 나갈 수 있는지 (시험장·수련장은 아님)
     setTrainingLeaver(this.lab ? null : () => leaveRunForTraining(this));
+    // 62 D (P2-5): 나갈 때 자동 저장 · 런 포기 (시험장·수련장 아님)
+    this.runExit = this.lab ? null : new RunExit(this);
+    setRunExit(this.runExit);
     if (this.scene.manager.keys[UI_SCENES.HUD] && !this.scene.isActive(UI_SCENES.HUD)) this.scene.launch(UI_SCENES.HUD);
     // 층 시작만 (같은 층의 다음 노드는 ROUTE_NODE_ENTERED)
     if (floorStart) {
@@ -357,6 +387,9 @@ export class Game extends Phaser.Scene {
     if (this.routeMode) {
       const resumed = this.route.enterNode(revealedByUi, Boolean(this.initData.resume));
       if (!resumed) this.bundle.onEnter(this.route.enterLockUntil);
+      this.runExit?.onNodeReady();
+      // 62 D (P2-6): 다음 노드 큰 그림 미리 받기 (HTTP 캐시)
+      new NodePrefetch(this);
     }
     this.labMode?.setup();
     this.training?.setup();
@@ -583,6 +616,8 @@ export class Game extends Phaser.Scene {
     this.bossFlow?.update(time, delta);
     // 61 G: 각성 게이지 눈금 → 다른 메뉴(보스 보상 등)·각성 정지가 끝난 뒤 그 눈금 메뉴 (게임 정지)
     this.growth.maybeOpen();
+    // 62 루프 2 C: 층 끝 결산 흐름 (군주의 유품 → 개성 발현 → 결산)
+    this.runEnd.update(time);
     if (this.frozen) {
       this.inputSystem.read(); // 큐 비우기
       this.motion.stopLoops();
@@ -611,6 +646,8 @@ export class Game extends Phaser.Scene {
       this.structures.inputLocked || this.route.locked(time) || this.bossFlow?.inputLocked || transitionGate.locked
         ? neutralInput(raw)
         : raw;
+    // 62 루프 2 E: 문 자동 걸음 · 문 안 (조작 잠금 — 문 쪽으로 걷는 입력으로 바꾼다)
+    input = this.doors.drive(input);
     if (input.potionPressed) this.economy.usePotion();
     this.structures.update(input, time, delta);
     this.bundle.update(input, time);
@@ -629,6 +666,7 @@ export class Game extends Phaser.Scene {
     this.training?.update(time);
     if (this.tutorial && !this.route.locked(time)) this.tutorial.update(this.player.x, this.player.y);
     if (this.routeMode) this.route.update(time);
+    this.doors.update(time);
     if (this.route.checkFloorExit()) return;
 
     this.updateActors(time, delta);
@@ -698,7 +736,15 @@ export class Game extends Phaser.Scene {
   setFrozen(on: boolean): void {
     if (this.frozen === on) return;
     this.frozen = on;
+    // 62 루프 2 E: 메뉴가 뜨는 프레임 — 정지 사이 쌓인 입력(클릭·대쉬·물약 등)을 비운다
+    if (on) this.inputSystem?.flush();
     this.syncPhysicsPause();
+  }
+
+  /** 62 루프 2 C: 히트스톱을 바로 푼다 (사망 — 씬 시계가 멈춘 채 예약 호출이 오지 않는 일을 막는다) */
+  clearHitStop(): void {
+    if (this.hitStopped) this.setHitStopped(false);
+    this.time.paused = false;
   }
 
   /**
@@ -760,9 +806,12 @@ export class Game extends Phaser.Scene {
     setSnapshotProvider(null);
     setWarpHandler(null);
     setNodeChooser(null);
+    setRouteShown(null);
     setChooseCanceler(null);
     setTrainingLeaver(null);
+    setRunExit(null);
     this.birth.destroy();
+    this.doors.destroy();
     this.labMode?.destroy();
     this.training?.destroy();
     this.training = null;
@@ -772,6 +821,8 @@ export class Game extends Phaser.Scene {
     this.setPieceView = null;
     this.border?.destroy();
     this.border = null;
+    this.doorArt?.destroy();
+    this.doorArt = null;
     this.menu.close();
     this.inputSystem.destroy();
   }

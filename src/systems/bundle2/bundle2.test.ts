@@ -185,7 +185,14 @@ describe('소모품 칸 · 상점 · 등급 · 파훼', () => {
   it('시트 요청: 소품 · 월드 소모품 · 엘리트 외곽선', () => {
     const reqs = bundleSheetRequests();
     // 61라운드: 로드 범위(1층) — 서사 소품 3 · 1층 이벤트 소품, 성소 깃발·숨은 노드 단서·E2 잔은 올리지 않는다
-    for (const name of ['clue_masked_corpse', 'clue_gate_register', 'clue_tab_ledgers', 'event_offering_cup'])
+    // 62 루프 2 F (art §31-11): 일기장 사연(E4) 소품 = event_diary_open (clue_tab_ledgers 는 서사 단서로 남음)
+    for (const name of [
+      'clue_masked_corpse',
+      'clue_gate_register',
+      'clue_tab_ledgers',
+      'event_offering_cup',
+      'event_diary_open',
+    ])
       expect(reqs).toContainEqual({ category: 'structures', name, action: 'st' });
     for (const name of ['challenge_banner', 'clue_drain', 'event_last_cup'])
       expect(reqs).not.toContainEqual({ category: 'structures', name, action: 'st' });

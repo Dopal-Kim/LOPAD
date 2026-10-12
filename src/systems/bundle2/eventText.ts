@@ -12,6 +12,7 @@ export function optionLabel(o: EventOption): string {
     if (e.kind === 'gold') vars.gold = Math.abs(e.value);
     else if (e.kind === 'personality') vars.trait = e.value;
     else if (e.kind === 'sense') vars.sense = e.value;
+    else if (e.kind === 'reroll') vars.reroll = e.value;
     else if (e.kind === 'maxHp') vars.hp = Math.abs(e.value);
     else if (e.kind === 'shopDiscount') vars.discount = Math.round(e.value * 100);
     else if (e.kind === 'curse') vars.curse = `저주 '${curseDef(e.id)?.name ?? e.id}'`;

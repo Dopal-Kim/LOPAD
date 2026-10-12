@@ -10,7 +10,7 @@
 import Phaser from 'phaser';
 import { DEPTH, ENEMY_READABILITY } from '../../core/Constants';
 import type { Mob } from '../../objects/Mob';
-import { eliteAction } from '../../systems/bundle2/bundleSheets';
+import { eliteAction, rimAction } from '../../systems/bundle2/bundleSheets';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { parseAnimKey } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
@@ -66,7 +66,10 @@ export class MobReadability {
   private drawRim(m: Mob, mk: MobMark): boolean {
     const v = m.visual;
     const parsed = v.current ? parseAnimKey(v.current, v.sheetName) : null;
-    const tex = parsed ? spriteLibrary.textureKey(v.sheetName, eliteAction(parsed.action)) : null;
+    // 62 D (art §31.3): 아트 1도트 림 시트 `<적>_<동작>_rim`(같은 틀·프레임 — 색 그대로) → 없으면 엘리트 외곽선 시트를 차가운 채움으로
+    const own = parsed ? spriteLibrary.textureKey(v.sheetName, rimAction(parsed.action)) : null;
+    const sheetRim = Boolean(own && this.g.textures.exists(own));
+    const tex = sheetRim ? own : parsed ? spriteLibrary.textureKey(v.sheetName, eliteAction(parsed.action)) : null;
     if (!tex || !this.g.textures.exists(tex) || !m.visible) {
       mk.rim?.setVisible(false);
       return false;
@@ -74,10 +77,12 @@ export class MobReadability {
     const R = ENEMY_READABILITY.RIM;
     let rim = mk.rim;
     if (!rim) {
-      rim = this.g.add.sprite(m.x, m.y, tex).setTintFill(R.COLOR);
+      rim = this.g.add.sprite(m.x, m.y, tex);
       mk.rim = rim;
     }
     if (rim.texture.key !== tex) rim.setTexture(tex);
+    if (sheetRim) rim.clearTint();
+    else rim.setTintFill(R.COLOR);
     const frame = rim.texture.has(m.frame.name) ? m.frame.name : undefined;
     if (frame === undefined) {
       rim.setVisible(false);
@@ -91,7 +96,7 @@ export class MobReadability {
       .setFlipX(m.flipX)
       .setPosition(m.x, m.y)
       .setDepth(m.depth - DEPTH.OVERLAY_STEP * 0.5)
-      .setAlpha(R.ALPHA * m.alpha)
+      .setAlpha((sheetRim ? 1 : R.ALPHA) * m.alpha)
       .setVisible(true);
     return true;
   }

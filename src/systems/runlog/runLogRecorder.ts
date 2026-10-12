@@ -127,6 +127,12 @@ export class RunLogRecorder {
     this.finish('abandon');
   }
 
+  /** 62 루프 2 C: 지금 런 모습 (결산용 — 진행 중이면 peek, 막 끝났으면 마지막 요약). 없으면 null */
+  peek(): RunLogSummary | null {
+    if (this.log && !this.log.isEnded) return this.log.peek(this.now());
+    return this.last;
+  }
+
   dump(): RunLogDebug {
     const saved = this.meta.read().runLogs ?? [];
     return {

@@ -151,6 +151,8 @@ export const ENEMY_FX_IDS: readonly string[] = [
   'enemy_bullet',
   'boss_fan_shot',
   'muzzle_flash',
+  // 62 루프 2 시스템 D (art §31.2): 적 등장 예고 먹 번짐
+  'spawn_ink',
 ];
 /** 보조 동작·대쉬 연출 시트 (35라운드 3단계, 계약 §3.2). 60라운드: 옛 2차 진화 부속(중시 적중 heavyarrow_hit)은 뺌 (57 Q42) */
 export const SECONDARY_FX_IDS: readonly string[] = [

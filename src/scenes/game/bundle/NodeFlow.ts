@@ -16,7 +16,11 @@ import {
   type UiChallengeStarted,
   type UiNodeGraded,
   type UiNodeTrial,
+  type UiEventIcon,
+  type UiHiddenReward,
+  type UiNodeTrialBroken,
 } from '../../../contract/ui';
+import { fill } from '../../../systems/story';
 import type { Enemy } from '../../../objects/Enemy';
 import { laneStartCol, type NodeExtra } from '../../../systems/bundle2/routeExtras';
 import { gradeOf, gradeReward } from '../../../systems/bundle2/shopStock';
@@ -39,6 +43,8 @@ export class NodeFlow {
   private trialStart = -1;
   private hits = 0;
   private trialDone = false;
+  /** 62 D (P2-3): 완 조건이 깨졌나 */
+  private broken: 'hit' | 'time' | null = null;
   /** 저주 길: 진입 저주를 고를 때까지 시련을 미룬다 */
   private cursePending = false;
   /** 성소: 깃발을 세웠나 · 시련 시작을 기다리는 끝 시각 */
@@ -174,10 +180,36 @@ export class NodeFlow {
   onTrialStarted(now: number): void {
     this.trialStart = now;
     this.hits = 0;
+    this.broken = null;
   }
 
   onPlayerDamaged(): void {
     if (this.trialStart >= 0 && !this.trialDone) this.hits += 1;
+    if (this.hits > BUNDLE2.grade.hitAllowance) this.breakTrial('hit');
+  }
+
+  /** 62 D (P2-3): 완(完) 조건이 깨진 순간 한 번 (첫 피격 · 제한 시간 넘김) — 소리·반짝임 */
+  private breakTrial(reason: 'hit' | 'time'): void {
+    if (!this.graded || this.trialStart < 0 || this.trialDone || this.broken) return;
+    this.broken = reason;
+    const nodeId = this.g.node?.id ?? '';
+    EventBus.emit(Events.NODE_TRIAL_BROKEN, { nodeId, reason });
+    __system.emit(UI_EVENTS.NODE_TRIAL_BROKEN, { nodeId, reason } satisfies UiNodeTrialBroken);
+  }
+
+  /** 62 D (P2-3): 매 프레임 — 제한 시간을 넘긴 순간 */
+  update(now: number): void {
+    if (this.trialStart < 0 || this.trialDone || this.broken) return;
+    if (now - this.trialStart > byStage(BUNDLE2.grade.timeLimitMs, gameState.stageId)) this.breakTrial('time');
+  }
+
+  /** 62 D (P2-3): 완을 지키면 받는 것 (위험 노드 ×2) — UI 아이콘 */
+  private perfectReward(): UiEventIcon[] {
+    const r = gradeReward('perfect', Boolean(this.ex?.risk));
+    const out: UiEventIcon[] = [];
+    if (r.gold > 0) out.push({ kind: 'gold', amount: r.gold, label: `전표 +${r.gold}` });
+    if (r.personality > 0) out.push({ kind: 'growth', amount: r.personality, label: `각성 +${r.personality}` });
+    return out;
   }
 
   /** 시련 클리어: 등급 → E3 예약 전표 → 노드 보상(위험 ×2) → 성소 덤 */
@@ -190,10 +222,22 @@ export class NodeFlow {
     if (graded) this.grade(now);
     const B = gameState.bundle;
     if (B.laterGold > 0) {
-      this.g.economy.addGold(B.laterGold);
+      const paid = B.laterGold;
+      this.g.economy.addGold(paid);
       B.laterGold = 0;
       // 61라운드 E3: 독주를 받은 징집병이 갚으러 온다 (전표와 함께 문장)
-      this.g.ui.story('event', eventDef('conscript')?.laterResult ?? '');
+      const conscript = eventDef('conscript');
+      this.g.ui.story('event', conscript?.laterResult ?? '');
+      // 62 D (P1-12): 숨은 보상을 받았다 (알림 한 줄)
+      const note = conscript?.talk?.laterNotice;
+      if (note)
+        __system.emit(UI_EVENTS.HIDDEN_REWARD, {
+          state: 'paid',
+          kind: 'laterGold',
+          text: fill(note, { n: paid }),
+          when: 'nextBattle',
+          icon: { kind: 'gold', amount: paid, label: `전표 +${paid}` },
+        } satisfies UiHiddenReward);
     }
     if (ex) {
       const mult = ex.risk ? BUNDLE2.risk.rewardMult : 1;
@@ -294,6 +338,8 @@ export class NodeFlow {
       timeLimitMs: byStage(BUNDLE2.grade.timeLimitMs, gameState.stageId),
       elapsedMs: Math.round(now - this.trialStart),
       hitTaken: this.hits > BUNDLE2.grade.hitAllowance,
+      reward: this.perfectReward(),
+      broken: this.broken,
     };
   }
 

@@ -13,6 +13,7 @@ import { PALETTE } from '../../data';
 import { rampFor } from '../palette';
 import { fontFamilyOr } from '../fonts';
 import { feelSettings } from '../feel';
+import { settings } from '../settings';
 import { numberLabel, placeNumber, type PlacedNumber } from './damageNumberLayout';
 
 export type DamageKind = 'hit' | 'heavy' | 'crit' | 'tick' | 'player';
@@ -104,7 +105,8 @@ export class DamageNumberPool {
       .setColor(color)
       .setStroke(D.STROKE_COLOR, S.STROKE)
       .setText(numberLabel(kind, amount))
-      .setScale(S.SCALE);
+      // 62 D (P1-16): 글자 크기 설정 '크게'(1.5) — 월드 숫자는 그 절반만 키운다(×1.25, 화면을 덮지 않게)
+      .setScale(S.SCALE * (1 + ((settings.current().textScale ?? 1) - 1) / 2));
   }
 
   /** 떠오름 + 끝 페이드 (합친 숫자는 처음부터 다시, 짧게 커졌다 돌아온다 · 62: 치명은 크게 떴다 내려앉음) */

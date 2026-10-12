@@ -76,6 +76,8 @@ export interface RouteFloorDef {
   columns?: RouteColumnDef[];
   crossChance: number;
   names: Partial<Record<RouteKind, string[]>>;
+  /** 62 D (P2-2): 노드 이름 → 고유 한 줄 (UiRouteNode.desc — 없으면 지역 설명) */
+  nodeLines?: Record<string, string>;
   /** 49라운드: 단계(col) → 지역 id. 모자라면 마지막 값 */
   regionByCol?: string[];
 }
@@ -364,6 +366,8 @@ export class RouteState {
   readonly path: string[] = [];
   readonly cleared = new Set<string>();
   choosing = false;
+  /** 62 루프 2 E: 고르기를 연 시각·가드 (계약 `UiRoute.openedAt`·`armMs` — RouteFlow 가 채운다) */
+  chooseGuard: { openedAt: number; armMs: number } | null = null;
 
   constructor(
     readonly graph: RouteGraph,
@@ -395,6 +399,7 @@ export class RouteState {
     this.currentId = id;
     this.path.push(id);
     this.choosing = false;
+    this.chooseGuard = null;
     return true;
   }
 
@@ -428,7 +433,12 @@ export class RouteState {
         links: [...n.links],
         state: this.stateOf(n),
         // 49라운드 계약 §11.2: 지역 이름·장소 설명 (지역이 없는 층은 생략)
-        ...(region ? { region: region.name, desc: regionDesc(region, n.kind) } : {}),
+        ...(region
+          ? {
+              region: region.name,
+              desc: ROUTE.floors[this.graph.stageId]?.nodeLines?.[n.name] ?? regionDesc(region, n.kind),
+            }
+          : {}),
         // 60라운드 §14.5 기본값 (2차 묶음 decorate 가 채운다)
         reward: null,
         risk: null,
@@ -445,6 +455,7 @@ export class RouteState {
       currentId: this.currentId,
       choosing: this.choosing,
       intel: { nextTier: false, fullFloor: false, hiddenLocated: false },
+      ...(this.choosing && this.chooseGuard ? { ...this.chooseGuard } : {}),
     };
     return this.decorate ? this.decorate(base, this) : base;
   }

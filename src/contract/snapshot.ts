@@ -23,13 +23,17 @@ import type {
   UiBossSnapshot,
   UiGrowth,
   UiTraining,
+  UiDoor,
+  UiExitHint,
 } from './ui';
+import { ownedRelics } from '../systems/relics';
 import { DEFAULT_SETTINGS } from '../systems/settings';
 import { weaponVerbs } from '../systems/weapon/verbs';
 import { nextMarkOf } from '../systems/growth/growth';
 import { firstSteps } from '../systems/ritual/firstSteps';
 import { RITUAL } from '../core/Constants';
 import { metaSummary } from './metaSummary';
+import { withLoop2D, type Loop2DSnapshotContext } from './snapshotLoop2D';
 
 export interface SnapshotContext {
   layout: FloorLayout | null;
@@ -71,6 +75,10 @@ export interface SnapshotContext {
   growth?: UiGrowth | null;
   /** 61 단계 6 (계약 §19): 수련장. 생략 시 null */
   training?: UiTraining | null;
+  /** 62 루프 2 C (P1-6): 출구 방향. 생략 시 null */
+  exitHint?: UiExitHint | null;
+  /** 62 루프 2 E: 출구 문 상태. 생략 시 null */
+  door?: UiDoor | null;
 }
 
 export function buildUiMap(ctx: SnapshotContext): UiMap {
@@ -94,9 +102,10 @@ export function buildUiMap(ctx: SnapshotContext): UiMap {
   };
 }
 
-export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
+export function buildSnapshot(ctx: SnapshotContext & Loop2DSnapshotContext): UiSnapshot {
   const w = gameState.weapon;
-  return {
+  // 62 루프 2 시스템 D: 노점 카드·팻말·전체화면·묶인 키 (snapshotLoop2D)
+  return withLoop2D(ctx, {
     hp: gameState.hp,
     maxHp: gameState.maxHp,
     gold: gameState.gold,
@@ -135,8 +144,15 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
       crit: gameState.crit,
       sense: gameState.senses.sense,
     },
+    // 62 루프 2 C (P1-5): 유품 — 옛 passives 칸은 호환으로 같은 유품을 옛 꼴(이름 · 한 문장 · 태그 하나)로
+    relics: ownedRelics(gameState.passives, w.id),
     passives: Object.entries(gameState.passives.owned).map(([id, level]) => {
       const d = gameState.passives.def(id);
+      const r = ownedRelics(
+        { owned: { [id]: level }, def: (x) => gameState.passives.def(x), maxLevel: gameState.passives.maxLevel },
+        w.id,
+      )[0];
+      if (r) return { name: r.name, level, description: r.line, tags: r.tag ? [r.tag] : [], maxLevel: r.maxLevel };
       return {
         name: d?.name ?? id,
         level,
@@ -215,5 +231,7 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
       !ctx.training &&
       firstSteps.keyBar(ctx.route?.nodes.find((n) => n.state === 'current')?.col, RITUAL.KEY_BAR_NODES),
     meta: metaSummary(),
-  };
+    exitHint: ctx.exitHint ? { ...ctx.exitHint } : null,
+    door: ctx.door ? { ...ctx.door, screen: { ...ctx.door.screen } } : null,
+  });
 }

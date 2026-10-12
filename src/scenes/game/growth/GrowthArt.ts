@@ -17,6 +17,7 @@ import {
 } from '../../../systems/growth/traitArt';
 import { resonancesOf } from '../../../systems/growth/resonance';
 import { assetListed } from '../../../systems/sprites/sheetLoader';
+import { queueImageOnce } from '../../../systems/sprites/imageOnce';
 
 /** art §26 미리보기 파일: `<무기>_base` · `<무기>_<갈래>_a1` · `<무기>_<갈래>_a2_<길>`(길 색을 구운 완성 그림) */
 function lookFile(weapon: string, branch: string | null, stage: 0 | 1 | 2, path?: string): string {
@@ -34,9 +35,15 @@ export function loadBaseLook(scene: Phaser.Scene, weapon: string, done: (key: st
   const file = lookFile(weapon, null, 0);
   const key = lookTexture(file);
   const rel = `${ASSETS.LOOKS_DIR}/${file}`;
-  const ready = () => done(scene.textures.exists(key) ? key : undefined);
+  let called = false;
+  const ready = () => {
+    if (called) return;
+    called = true;
+    done(scene.textures.exists(key) ? key : undefined);
+  };
   if (scene.textures.exists(key) || !assetListed(rel)) return ready();
-  scene.load.image(key, `${ASSETS.URL}/${rel}`);
+  // 62 루프 2 F: 다른 씬이 받는 중이면 다시 넣지 않고 들어오는 순간을 기다린다 (imageOnce)
+  if (!queueImageOnce(scene, key, `${ASSETS.URL}/${rel}`, ready)) return;
   scene.load.once('complete', ready);
   if (!scene.load.isLoading()) scene.load.start();
 }
@@ -73,14 +80,9 @@ export class GrowthArt {
     const s = this.scene;
     let queued = false;
     for (const w of want) {
-      if (s.textures.exists(w.key)) {
-        markIconLoaded(w.key);
-        continue;
-      }
-      if (!assetListed(w.rel)) continue;
-      s.load.image(w.key, `${ASSETS.URL}/${w.rel}`);
-      s.load.once(`filecomplete-image-${w.key}`, () => markIconLoaded(w.key));
-      queued = true;
+      if (!s.textures.exists(w.key) && !assetListed(w.rel)) continue;
+      // 62 루프 2 F: 씬 사이 한 번만 (imageOnce — 이미 있으면 바로 표시)
+      if (queueImageOnce(s, w.key, `${ASSETS.URL}/${w.rel}`, () => markIconLoaded(w.key))) queued = true;
     }
     if (queued && !s.load.isLoading()) s.load.start();
   }

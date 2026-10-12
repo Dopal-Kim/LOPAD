@@ -55,3 +55,13 @@ export function overlayArtCandidates(def: Pick<ComboDef, 'art'> | undefined, res
   for (const e of Object.values(def?.art ?? {})) if (e.body?.includes(rest)) return [rest, 'attack'];
   return null;
 }
+
+/** 62 D (P1-2 · art §31.1): 칼·대검 스미어 fx id — 무기 오버레이 동작과 같은 이름 `<무기>_<동작>_smear` (같은 프레임·같은 시각) */
+export function smearFxId(weaponId: string, overlayAction: string): string {
+  return `${weaponId}_${overlayAction}_smear`;
+}
+
+/** 62 D: 이 무기 그림 표의 몸 동작마다 스미어 후보 (없는 파일은 매니페스트가 거른다) */
+export function smearFxIds(weaponId: string, def: Pick<ComboDef, 'art'> | undefined): string[] {
+  return comboArtNames(def).body.map((n) => smearFxId(weaponId, n));
+}

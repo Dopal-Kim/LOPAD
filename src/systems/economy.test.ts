@@ -13,10 +13,12 @@ describe('economy', () => {
     }
     expect(rollGold(0, 0.3, rng)).toBe(1);
   });
-  it('상점 가격은 층마다 오른다', () => {
-    const sense = ECONOMY.shop.items.find((i) => i.id === 'sense')!;
-    expect(shopPrice(sense, 0)).toBe(40);
-    expect(shopPrice(sense, 3)).toBe(70);
+  it('상점 가격 = 기준가 + 층 × 층당 상승분', () => {
+    expect(shopPrice({ id: 'heal', name: '', price: 40, pricePerStage: 10 }, 0)).toBe(40);
+    expect(shopPrice({ id: 'heal', name: '', price: 40, pricePerStage: 10 }, 3)).toBe(70);
+  });
+  it('62 루프 2 C: 1층 장터에 능력치·감각 품목이 없다', () => {
+    expect(ECONOMY.shop.items.map((i) => i.id).sort()).toEqual(['heal', 'potion']);
   });
   it('능력치 보상 누적', () => {
     let b = EMPTY_BONUS;

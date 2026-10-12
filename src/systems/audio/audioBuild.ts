@@ -14,7 +14,6 @@ import {
   type ElitePrefixPayload,
   type EndureTriggeredPayload,
   type MarkChangedPayload,
-  type NodeGradedPayload,
   type PassiveProcPayload,
   type PerfectSuccessPayload,
   type PlayerAttackPayload,
@@ -557,11 +556,7 @@ export const BUILD_AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     when: (p) => p.kind === 'warFlag',
     sfx: (p) => (p.outcome === 'fail' || p.outcome === 'timeout' ? BUILD_SFX.shrineFail : BUILD_SFX.shrineClear),
   }),
-  t<NodeGradedPayload>({
-    event: Events.NODE_GRADED,
-    note: '노드 성과 등급 완·양',
-    sfx: (p) => (p.grade === 'perfect' ? BUILD_SFX.gradePerfect : p.grade === 'good' ? BUILD_SFX.gradeGood : null),
-  }),
+  // 노드 성과 등급(완 trial_win ↔ grade_perfect · 양 grade_good)은 62 루프 2 audioLoop2
   t<ConsumablePayload>({
     event: Events.CONSUMABLE_USED,
     note: '소모품 사용',

@@ -2,23 +2,45 @@
   "_note": "57라운드 Q38 2차 묶음 확정안 (설계안 decisions/design-2026-10-04-second-bundle.md 추천안) — 1층 범위. 이름은 전부 임시(_tmpName — 스토리 확정 전), 수치는 초안(데모로 조정). 60라운드 구현: 시스템 src/systems/bundle2 · 씬 src/scenes/game/bundle",
   "rewards": {
     "_note": "(a) 노드 보상 미리보기 — A안 '다음 단만 공개'. 보상은 잔 구간 전투·위험 노드에만(상점·휴식은 기능 아이콘, 이벤트는 '?'). 같은 단 두 노드는 종류가 다르다. 여정 '버려진 길'은 전표 고정",
-    "weights": { "gold": 35, "passive": 25, "personality": 20, "consumable": 15, "statPoint": 5 },
-    "floorCaps": { "passive": 2, "personality": 1, "statPoint": 1 },
+    "weights": {
+      "gold": 35,
+      "passive": 25,
+      "personality": 20,
+      "consumable": 15,
+      "statPoint": 0
+    },
+    "_noteStatPoint": "62 루프 2 C (P1-5): 1층에서 능력치 포인트를 지웠다 — statPoint 무게·상한 0 (옛 보상이 오면 각성 게이지로 흡수)",
+    "floorCaps": {
+      "passive": 2,
+      "personality": 1,
+      "statPoint": 0
+    },
     "preShopGoldMult": 1.5,
     "road": "gold",
-    "gold": { "amount": 30, "jitter": 0.2 },
-    "passive": { "choices": 3 },
-    "personality": { "amount": 40 },
-    "consumable": { "fallbackGold": 15 },
-    "statPoint": { "amount": 1 },
+    "gold": {
+      "amount": 30,
+      "jitter": 0.2
+    },
+    "passive": {
+      "choices": 3
+    },
+    "personality": {
+      "amount": 40
+    },
+    "consumable": {
+      "fallbackGold": 15
+    },
+    "statPoint": {
+      "amount": 1
+    },
     "names": {
       "_tmpName": true,
       "gold": "전표 주머니",
-      "passive": "봉인된 일기장 쪽",
-      "personality": "획 자국",
-      "consumable": "술병",
+      "passive": "유품",
+      "personality": "각성 게이지",
+      "consumable": "화염 술병",
       "statPoint": "별 도장",
-      "curse": "깨진 잔",
+      "curse": "저주",
       "unknown": "?"
     }
   },
@@ -26,7 +48,10 @@
     "_note": "(b) 위험 노드 — A안 층당 1개, 잔 단2·단3 의 전투 1개를 대체(엘리트 길·저주 길 반반). 같은 단 반대편은 일반 전투 또는 비전투. 보상 ×2",
     "perFloor": 1,
     "laneCols": [1, 2],
-    "kinds": { "elite": 0.5, "curse": 0.5 },
+    "kinds": {
+      "elite": 0.5,
+      "curse": 0.5
+    },
     "rewardMult": 2,
     "elitePerWave": 1,
     "eliteRewardRarities": ["rare", "epic", "legendary"],
@@ -40,8 +65,8 @@
     },
     "text": {
       "_tmpName": true,
-      "elite": "엘리트가 웨이브마다 하나씩 섞여 나온다 (보상 ×2)",
-      "curse": "들어서면 저주 둘 중 하나를 반드시 받는다 (영웅 이상 패시브 또는 전표 100)"
+      "elite": "정예가 무리마다 하나씩 섞여 있다. 얻는 것도 두 배다.",
+      "curse": "들어서면 저주 하나를 반드시 받는다. 그 값으로 귀한 유품이 놓여 있다."
     }
   },
   "events": {
@@ -59,7 +84,10 @@
         "prop": "event_peddler_mat",
         "text": "독주와 술병을 늘어놓은 행상이 손짓한다.",
         "discount": 0.2,
-        "stock": { "consumable": 2, "potion": 1 }
+        "stock": {
+          "consumable": 2,
+          "potion": 1
+        }
       },
       {
         "id": "lastCup",
@@ -88,8 +116,14 @@
             "label": "독주를 건넨다",
             "needPotion": true,
             "effects": [
-              { "kind": "potion", "value": -1 },
-              { "kind": "laterGold", "value": 40 }
+              {
+                "kind": "potion",
+                "value": -1
+              },
+              {
+                "kind": "laterGold",
+                "value": 40
+              }
             ],
             "result": "그는 한 모금 마시고 쪽지를 접었다. 다음 싸움 끝에 갚겠다고 했다."
           },
@@ -97,8 +131,14 @@
             "key": "rob",
             "label": "주머니를 턴다",
             "effects": [
-              { "kind": "gold", "value": 30 },
-              { "kind": "extraWave", "value": 1 }
+              {
+                "kind": "gold",
+                "value": 30
+              },
+              {
+                "kind": "extraWave",
+                "value": 1
+              }
             ],
             "result": "주머니에는 전표 몇 장과 외상 쪽지뿐이었다. 쪽지는 두고 왔다. 그의 패거리가 따라온다."
           },
@@ -110,7 +150,42 @@
             "result": "그는 창을 다시 주웠다. 쓰는 법은 아직 모른다. 내일은 온다."
           }
         ],
-        "laterResult": "그가 왔다. 전표를 내밀었다. 목의 쪽지는 그대로다. 출병은 내일이다."
+        "laterResult": "그가 왔다. 전표를 내밀었다. 목의 쪽지는 그대로다. 출병은 내일이다.",
+        "talk": {
+          "prompt": "[E] 말을 건다",
+          "greet": {
+            "kind": "speech",
+            "speaker": "징집병",
+            "text": "오, 오지 마. 난 아직 안 나갔어. 내일이야, 내일!"
+          },
+          "options": {
+            "give": {
+              "label": "독주를 건넨다",
+              "cost": ["독주 −{n}"],
+              "gain": ["?"],
+              "cut": "그는 한 모금 마시고 쪽지를 접었다.",
+              "notice": "징집병이 다음 싸움 끝에 오겠다고 했다."
+            },
+            "rob": {
+              "label": "주머니를 턴다",
+              "cost": ["다음 싸움 무리 +{n}"],
+              "gain": ["전표 +{n}"],
+              "cut": "주머니에는 전표 몇 장과 외상 쪽지뿐이었다.",
+              "notice": "그의 패거리가 따라온다. 다음 싸움에 무리가 하나 더 붙는다."
+            },
+            "pass": {
+              "label": "지나간다",
+              "cost": [],
+              "gain": [],
+              "cut": "그는 창을 다시 주웠다."
+            }
+          },
+          "npc": {
+            "speaker": "징집병",
+            "sheet": "npc_conscript"
+          },
+          "laterNotice": "징집병이 전표 {n}을 갚았다."
+        }
       },
       {
         "id": "diary",
@@ -124,19 +199,34 @@
           {
             "key": "recall",
             "label": "떠올린다 — 각성 게이지 +{trait}",
-            "effects": [{ "kind": "personality", "value": 30 }],
+            "effects": [
+              {
+                "kind": "personality",
+                "value": 30
+              }
+            ],
             "result": "손이 먼저 알았다. 다음 갈래가 희미하게 비친다."
           },
           {
             "key": "refine",
-            "label": "다듬는다 — 감각 +{sense}",
-            "effects": [{ "kind": "sense", "value": 1 }],
+            "label": "다듬는다 — 다시 뽑기 +{reroll}",
+            "effects": [
+              {
+                "kind": "reroll",
+                "value": 1
+              }
+            ],
             "result": "같은 쪽을 오래 봤다. 눈이 조금 밝아졌다."
           },
           {
             "key": "read",
             "label": "지난 생의 기록을 읽는다",
-            "effects": [{ "kind": "diaryRead", "value": 0 }]
+            "effects": [
+              {
+                "kind": "diaryRead",
+                "value": 0
+              }
+            ]
           }
         ],
         "diaryRead": {
@@ -147,6 +237,35 @@
             "'세 번째 비틀걸음 뒤에 넘어진다. 그때까지 맞지 마라.' 마지막 줄은 번져 있다."
           ],
           "empty": "앞 장도 비어 있다. 이 일기장에 처음 적는 생이다."
+        },
+        "talk": {
+          "prompt": "[E] 일기장을 펼친다",
+          "greet": {
+            "kind": "narration",
+            "text": "바람에 쪽이 저절로 넘어가다 빈 쪽에서 멈췄다."
+          },
+          "options": {
+            "recall": {
+              "label": "떠올린다",
+              "cost": [],
+              "gain": ["각성 게이지 +{n}"],
+              "cut": "다음 갈래가 희미하게 비친다."
+            },
+            "refine": {
+              "label": "다듬는다",
+              "cost": [],
+              "gain": ["다시 뽑기 +{n}"],
+              "cut": "눈이 조금 밝아졌다.",
+              "_effect": "시스템 결정(62 D): 개성 다시 뽑기 +1 (GrowthFlow.addRerolls) — 63 팩 제안 그대로"
+            },
+            "read": {
+              "label": "지난 생의 기록을 읽는다",
+              "cost": [],
+              "gain": ["?"],
+              "cut": "앞 장을 넘겼다."
+            }
+          },
+          "propSheet": "event_diary_open"
         }
       },
       {
@@ -162,19 +281,33 @@
         "options": [
           {
             "key": "one",
-            "label": "한 잔 — 최대 체력 −{hp} · 패시브 2택",
+            "label": "한 잔 — 최대 체력 −{hp} · 유품 2택",
             "effects": [
-              { "kind": "maxHp", "value": -10 },
-              { "kind": "passive", "choices": 2, "rarities": ["common"] }
+              {
+                "kind": "maxHp",
+                "value": -10
+              },
+              {
+                "kind": "passive",
+                "choices": 2,
+                "rarities": ["common"]
+              }
             ],
             "result": "맛은 기억나지 않는다. 몸이 기억한다."
           },
           {
             "key": "two",
-            "label": "두 잔 — 최대 체력 −{hp} · 희귀 이상 2택",
+            "label": "두 잔 — 최대 체력 −{hp} · 희귀 이상 유품 2택",
             "effects": [
-              { "kind": "maxHp", "value": -20 },
-              { "kind": "passive", "choices": 2, "rarities": ["rare", "epic", "legendary"] }
+              {
+                "kind": "maxHp",
+                "value": -20
+              },
+              {
+                "kind": "passive",
+                "choices": 2,
+                "rarities": ["rare", "epic", "legendary"]
+              }
             ],
             "result": "두 잔째에 알았다. 벽 밖 시체에서 나던 냄새다."
           },
@@ -185,7 +318,39 @@
             "effects": [],
             "result": "양조장 사람들은 다음 사람을 찾았다. 줄은 길었다. 다들 내일 나가는 얼굴이다."
           }
-        ]
+        ],
+        "talk": {
+          "prompt": "[E] 말을 건다",
+          "greet": {
+            "kind": "speech",
+            "speaker": "양조장 일꾼",
+            "text": "새 술이야. 한 잔도 공짜, 두 잔도 공짜. 값은 딴 데서 받아."
+          },
+          "options": {
+            "one": {
+              "label": "한 잔",
+              "cost": ["최대 체력 −{n}"],
+              "gain": ["유품 {n}택"],
+              "cut": "맛은 기억나지 않는다."
+            },
+            "two": {
+              "label": "두 잔",
+              "cost": ["최대 체력 −{n}"],
+              "gain": ["희귀 이상 유품 {n}택"],
+              "cut": "벽 밖 시체에서 나던 냄새다."
+            },
+            "decline": {
+              "label": "사양한다",
+              "cost": [],
+              "gain": [],
+              "cut": "줄은 길었다."
+            }
+          },
+          "npc": {
+            "speaker": "양조장 일꾼",
+            "sheet": "npc_brewer"
+          }
+        }
       },
       {
         "id": "caskBet",
@@ -195,10 +360,20 @@
         "_tmpName": true,
         "kind": "challenge",
         "text": "20초 안에 독주 술통 여섯을 부숴라. 불붙은 웅덩이를 조심해라.",
-        "challenge": { "casks": 6, "ms": 20000, "radiusTiles": 6 },
+        "challenge": {
+          "casks": 6,
+          "ms": 20000,
+          "radiusTiles": 6
+        },
         "success": [
-          { "kind": "personality", "value": 40 },
-          { "kind": "gold", "value": 20 }
+          {
+            "kind": "personality",
+            "value": 40
+          },
+          {
+            "kind": "gold",
+            "value": 20
+          }
         ]
       },
       {
@@ -211,13 +386,28 @@
         "prop": "event_cache",
         "text": "벽 너머에서 술 냄새가 난다. 부수면 누군가 지키고 있을 것이다.",
         "ambush": [
-          { "enemy": "dummy", "count": 3 },
-          { "enemy": "archer", "count": 1 }
+          {
+            "enemy": "dummy",
+            "count": 3
+          },
+          {
+            "enemy": "archer",
+            "count": 1
+          }
         ],
         "reward": [
-          { "kind": "potion", "value": 2 },
-          { "kind": "consumable", "value": 1 },
-          { "kind": "gold", "value": 30 }
+          {
+            "kind": "potion",
+            "value": 2
+          },
+          {
+            "kind": "consumable",
+            "value": 1
+          },
+          {
+            "kind": "gold",
+            "value": 30
+          }
         ]
       },
       {
@@ -234,7 +424,12 @@
           {
             "key": "bow",
             "label": "고개를 숙인다 — 최대 체력 +{hp}",
-            "effects": [{ "kind": "maxHp", "value": 8 }],
+            "effects": [
+              {
+                "kind": "maxHp",
+                "value": 8
+              }
+            ],
             "propState": "pray",
             "holdMs": 2000,
             "afterState": "used",
@@ -243,7 +438,12 @@
           {
             "key": "share",
             "label": "술을 나눠 받는다 — 독주 가득",
-            "effects": [{ "kind": "potionFill", "value": 0 }],
+            "effects": [
+              {
+                "kind": "potionFill",
+                "value": 0
+              }
+            ],
             "result": "잔을 다 비우지는 않았다. 그가 돌아오면 마실 몫이다."
           },
           {
@@ -253,7 +453,34 @@
             "effects": [],
             "result": "술잔은 계속 기다린다. 이 묘에서 기다리는 것은 술잔뿐이다."
           }
-        ]
+        ],
+        "talk": {
+          "prompt": "[E] 살핀다",
+          "greet": {
+            "kind": "narration",
+            "text": "묘비가 없다. 이름 대신 술잔이 서 있다."
+          },
+          "options": {
+            "bow": {
+              "label": "고개를 숙인다",
+              "cost": [],
+              "gain": ["최대 체력 +{n}"],
+              "cut": "묘는 대답하지 않았다."
+            },
+            "share": {
+              "label": "술을 나눠 받는다",
+              "cost": [],
+              "gain": ["독주 가득"],
+              "cut": "그가 돌아오면 마실 몫이다."
+            },
+            "pass": {
+              "label": "지나간다",
+              "cost": [],
+              "gain": [],
+              "cut": "술잔은 계속 기다린다."
+            }
+          }
+        }
       },
       {
         "id": "droppedLedger",
@@ -268,37 +495,101 @@
         "options": [
           {
             "key": "return",
-            "label": "돌려준다 — 다음 상점 −{discount}%",
-            "effects": [{ "kind": "shopDiscount", "value": 0.1 }],
+            "label": "돌려준다 — 다음 장터 −{discount}%",
+            "effects": [
+              {
+                "kind": "shopDiscount",
+                "value": 0.1
+              }
+            ],
             "propState": "remove",
             "result": "주인은 장부를 털어 품에 넣었다. 고맙다고, 다음 값은 조금 깎아 주겠다고 했다."
           },
           {
             "key": "strike",
             "label": "한 줄 긋는다 — {curse}",
-            "effects": [{ "kind": "curse", "id": "credit" }],
+            "effects": [
+              {
+                "kind": "curse",
+                "id": "credit"
+              }
+            ],
             "propState": "crossed",
             "result": "이름 하나를 그었다. 빚은 사라지지 않았다. 갚을 사람만 바뀌었다."
           },
           {
             "key": "burn",
             "label": "태운다 — 전표 +{gold}",
-            "effects": [{ "kind": "gold", "value": 15 }],
+            "effects": [
+              {
+                "kind": "gold",
+                "value": 15
+              }
+            ],
             "propState": "burnt",
             "result": "불이 잘 붙었다. 사이에 끼어 있던 전표만 남았다. 새 장부는 내일 나온다."
           }
-        ]
+        ],
+        "talk": {
+          "prompt": "[E] 줍는다",
+          "greet": {
+            "kind": "narration",
+            "text": "장부가 바람에 몇 장 넘어간다. 멀리서 누가 장부를 찾는다고 소리친다."
+          },
+          "options": {
+            "return": {
+              "label": "돌려준다",
+              "cost": [],
+              "gain": ["다음 장터 −{n}%"],
+              "cut": "주인은 장부를 털어 품에 넣었다.",
+              "notice": "다음 장터에서 값을 조금 깎아 준다고 했다."
+            },
+            "strike": {
+              "label": "한 줄 긋는다",
+              "cost": ["저주 {curse}"],
+              "gain": ["{curseGain}"],
+              "cut": "갚을 사람만 바뀌었다."
+            },
+            "burn": {
+              "label": "태운다",
+              "cost": [],
+              "gain": ["전표 +{n}"],
+              "cut": "새 장부는 내일 나온다."
+            }
+          }
+        }
       }
     ],
-    "passLabel": "지나간다"
+    "passLabel": "지나간다",
+    "_note63": "62 루프 2 시스템 D (P1-12): 스토리 63 팩 events 를 talk 로 합침(parts/story/text-pack-63-loop2.json — 고치면 통째로 다시 복사). talk.npc.sheet = structures/v3/npc_* (아트 r62b) · talk.propSheet = 소품 그림이 없는 사연의 대체 소품 · options[key].cost/gain = 대가·보상 아이콘 줄 이름({n} = 효과 값) · cut = 결과 컷 한 줄 · notice = 숨은 보상 알림. E4 '다듬는다' 보상은 시스템 결정: 개성 다시 뽑기 +1 (reroll → GrowthFlow.addRerolls — 63 팩 제안 그대로, 감각·능력치 포인트는 1층에서 지움)",
+    "ui": {
+      "costHead": "내준다",
+      "gainHead": "얻는다",
+      "unknown": "?",
+      "pick": "하나를 고른다",
+      "continue": "[E] 계속",
+      "disabledNoPotion": "건넬 독주가 없다"
+    }
   },
   "hidden": {
     "floor": 2,
     "_note61": "61라운드 P5: 숨은 노드는 1층에서 끔 (floor 2)",
     "_note": "(d) 숨은 노드 — A안 단서 조사형: 층당 0~1(1층 50%). 지도엔 얼룩만, 갈라지는 전투 노드 전투장에 단서 소품 1개 → 전투 뒤 E 조사 → 숨은 길(그 노드 다음에 숨은 노드, 노드 +1). 발견 상태는 층 안에서만(S-5 전까지)",
-    "chance": { "stage1": 0.5 },
-    "contents": { "treasure": 50, "peddler": 30, "offering": 20 },
-    "treasure": { "gold": 40, "passive": { "choices": 2, "rarities": ["rare", "epic", "legendary"] } },
+    "chance": {
+      "stage1": 0.5
+    },
+    "contents": {
+      "treasure": 50,
+      "peddler": 30,
+      "offering": 20
+    },
+    "treasure": {
+      "gold": 40,
+      "passive": {
+        "choices": 2,
+        "rarities": ["rare", "epic", "legendary"]
+      }
+    },
     "clues": ["clue_drain", "clue_cracked_cask"],
     "name": "얼룩진 자국",
     "_tmpName": true
@@ -308,9 +599,24 @@
     "_note61": "61라운드 P5: 지도 정보 구매는 1층에서 끔 (floor 2 — 국경 초소 지도 장수 자리에는 서사 소품 성문 출입 장부)",
     "_note": "(d) 지도 정보 구매 — A안 3품목. 국경 초소 '지도 장수' + 잔 상점 노드",
     "items": [
-      { "id": "nextTier", "name": "다음 단 '?'·접두어 공개", "_tmpName": true, "price": 10 },
-      { "id": "fullFloor", "name": "층 전체 보상·위험·접두어 공개", "_tmpName": true, "price": 25 },
-      { "id": "hiddenLocated", "name": "숨은 노드 위치 표시", "_tmpName": true, "price": 20 }
+      {
+        "id": "nextTier",
+        "name": "다음 단 '?'·접두어 공개",
+        "_tmpName": true,
+        "price": 10
+      },
+      {
+        "id": "fullFloor",
+        "name": "층 전체 보상·위험·접두어 공개",
+        "_tmpName": true,
+        "price": 25
+      },
+      {
+        "id": "hiddenLocated",
+        "name": "숨은 노드 위치 표시",
+        "_tmpName": true,
+        "price": 20
+      }
     ],
     "sellerKinds": ["post"],
     "sellerName": "지도 장수",
@@ -318,12 +624,103 @@
   },
   "shop": {
     "_note": "(e) 상점 진열 — A안: 고정 4칸 유지 + 진열 3칸(패시브 2·층 소모품 1) + 리롤(상점 안 전표 리롤만 — 토큰 아님, 57 Q38 충돌 처리) 15→25→35 + 궤짝 덤 1회 35전표 → 패시브 2택",
-    "display": { "passive": 2, "consumable": 1 },
+    "display": {
+      "passive": 2,
+      "consumable": 1
+    },
     "rerollPrices": [15, 25, 35],
-    "passivePrices": { "common": 40, "rare": 70, "epic": 110 },
-    "rarityWeights": { "common": 50, "rare": 35, "epic": 15 },
-    "chest": { "price": 35, "choices": 2 },
-    "labels": { "_tmpName": true, "reroll": "진열 바꾸기", "chest": "종군 상인의 궤짝 (덤)", "soldOut": "팔림" }
+    "passivePrices": {
+      "common": 40,
+      "rare": 70,
+      "epic": 110,
+      "legendary": 150
+    },
+    "rarityWeights": {
+      "common": 50,
+      "rare": 35,
+      "epic": 15
+    },
+    "chest": {
+      "price": 35,
+      "choices": 2
+    },
+    "labels": {
+      "_tmpName": true,
+      "reroll": "다시 진열",
+      "chest": "덤 궤짝",
+      "soldOut": "팔렸다"
+    },
+    "talk": {
+      "_note": "62 D (P1-13): 종군 상인 대사(63 팩 shop.merchant 복사) · 노점 문구(shop.stall)",
+      "merchant": {
+        "speaker": "종군 상인",
+        "prompt": "[E] 말을 건다",
+        "greetFirst": "어디서 왔든 상관없네. 전표만 있으면 손님이지.",
+        "greetAgain": [
+          "또 왔군. 지난번 그 손님 같은데. …아닌가.",
+          "살 거면 사고, 죽을 거면 사고 나서 죽게.",
+          "저쪽 손님도 방금 다녀갔네. 같은 걸 사 가더군."
+        ],
+        "menu": {
+          "reroll": "다시 진열한다 · 전표 {n}",
+          "credit": "외상을 단다",
+          "leave": "그만 본다"
+        },
+        "rerollDone": "마음에 안 드나? 뒤에 더 있네. 늘 더 있지.",
+        "rerollMax": "더는 없네. 이건 정말이야.",
+        "creditOffer": "외상? 되지. 잔(盞)에서 외상 안 되는 데는 없네. 이름만 적게.",
+        "creditName": "…이름이 번져서 안 읽히는군. 뭐, 상관없네.",
+        "creditDone": "{item}, 외상으로 달아 두지. 갚을 때까지 자네 전표는 내 쪽으로 흐르네.",
+        "creditRefuse": "외상이 아직 남았네. 장부는 한 줄씩만 쓰지.",
+        "creditRepaid": "외상을 다 갚았다. 상인 장부의 그 줄이 그어졌다.",
+        "bought": ["좋은 물건이야. 저쪽에도 같은 걸 팔았지만.", "잘 골랐네. 쓰다 죽어도 환불은 없네."],
+        "poor": "전표가 모자라군. 싸우다 오게. 싸울 데는 많아.",
+        "leave": "떠나면 닫네. 따라가지는 않아."
+      },
+      "stall": {
+        "buy": "[E] 산다 · 전표 {n}",
+        "short": "전표가 모자란다 · 전표 {n}",
+        "sold": "팔렸다",
+        "price": "전표 {n}",
+        "discounted": "전표 {n} (깎아 줌)"
+      }
+    },
+    "cards": {
+      "_note": "62 D (P1-13): 물건 카드(63 팩 shop.items 복사) — 상점 줄의 품목 id → 카드 이름·한 줄·수치 줄. 줄 id 대응은 ShopStalls.cardIdOf",
+      "items": {
+        "potion": {
+          "name": "잔의 독주",
+          "line": "마시면 아픔이 잠시 지워진다",
+          "detail": "[Q] 체력 +{heal} · 최대 {maxCarry}병"
+        },
+        "heal": {
+          "name": "뜨끈한 국밥 한 그릇",
+          "line": "그 자리에서 먹으면 체력이 돌아온다",
+          "detail": "체력 {healFraction}% 회복"
+        },
+        "inkBottle": {
+          "name": "먹물 한 병",
+          "line": "다음 개성 발현 때 카드를 한 번 다시 뽑는다",
+          "detail": "다시 뽑기 +{n}"
+        },
+        "bellows": {
+          "name": "풀무질 한 번",
+          "line": "지금 든 무기를 한 번 더 단련한다",
+          "detail": "피해·범위 +{n}% · 단련 {cur} / {max}"
+        },
+        "fireBottle": {
+          "name": "화염 술병",
+          "line": "던지면 떨어진 자리가 불탄다",
+          "detail": "[{key}] 커서 쪽으로 · 불 {fireMs}초"
+        },
+        "chest": {
+          "name": "덤 궤짝",
+          "line": "열면 유품 둘 가운데 하나를 가져간다",
+          "detail": "유품 {choices}택"
+        }
+      }
+    },
+    "_note62d": "62 루프 2 시스템 D (P1-13): 진열 유품 값 = data/runEnd.json shopGoods relic (시스템 C 품목 목록) · 먹물 한 병·풀무질 한 번은 기억을 떠올렸을 때 진열(goods 줄, 노드마다 1회) · 진열은 노점 칸(ShopStalls), 다시 진열·외상은 종군 상인 말 걸기"
   },
   "shrine": {
     "floor": 2,
@@ -340,12 +737,25 @@
   "grade": {
     "_note": "(f) 노드 성과 등급 — A안: 완(完) = 무피격 + 제한 시간 안, 양(良) = 둘 중 하나. 잔 전투·위험 노드(위험 ×2). 난이도 조정은 데이터(57 Q10)",
     "_note61": "61라운드 P5: 성소·등급 → '완(完)' 하나 = 무피격 + 제한 시간 안 (good '양' 은 floor 2). 완 보상을 성소 몫만큼 올림 (전표 20→25·개성 15→20). 제한 시간 50→70초 — 단계 2 1층 노드당 처치 12~16(P3)에 맞춘 임시값, 런 로그로 다듬는다",
-    "timeLimitMs": { "stage1": 70000 },
+    "timeLimitMs": {
+      "stage1": 70000
+    },
     "hitAllowance": 0,
-    "perfect": { "gold": 25, "personality": 20 },
-    "good": { "floor": 2, "gold": 10 },
+    "perfect": {
+      "gold": 25,
+      "personality": 20
+    },
+    "good": {
+      "floor": 2,
+      "gold": 10
+    },
     "riskMult": 2,
-    "text": { "_tmpName": true, "perfect": "완(完)", "good": "양(良)", "none": "" }
+    "text": {
+      "_tmpName": true,
+      "perfect": "완(完)",
+      "good": "양(良)",
+      "none": ""
+    }
   },
   "elite": {
     "_note": "(g) 엘리트 접두어 1층 6종 — 엘리트 = 일반 적 + 접두어 1개, HP ×2.5·크기 ×1.15, 처치 보상 개성·전표 ×3·독주 25%(그중 1/3 은 층 소모품). 등장: 위험 노드(엘리트 길) 웨이브마다 1 + 도전 성소 1, 일반 전투 0. 시각: 호박 외곽선(enemies/v3/<적>_<동작>_elite) + 머리 위 문장(elite_emblem 행 = 접두어) + 이름표(UiSnapshot.elites — UI)",
@@ -354,7 +764,11 @@
     "rewardMult": 3,
     "potionChance": 0.25,
     "consumableShare": 0.3333,
-    "outlinePulse": { "alphaMin": 0.65, "alphaMax": 1, "periodMs": 1200 },
+    "outlinePulse": {
+      "alphaMin": 0.65,
+      "alphaMax": 1,
+      "periodMs": 1200
+    },
     "_note61": "61라운드 P5: 1층 접두어 3 = 고주망태·성난·패거리 두목 (floor 1). 불붙은(불 — 독주 행상과 겹침)·통 갑옷(술통 — 술통 짐꾼과 겹침)·들이켜는(시체 마시기 — 읽기 어려움)은 floor 2",
     "prefixes": [
       {
@@ -364,7 +778,13 @@
         "_tmpName": true,
         "emblemRow": "drunkard",
         "enemies": ["dummy", "archer", "charger", "peddler", "porter"],
-        "params": { "wobbleTiles": 0.6, "wobbleHz": 1.2, "hitStunMult": 0.5, "deathPoolTiles": 1, "deathPoolMs": 6000 }
+        "params": {
+          "wobbleTiles": 0.6,
+          "wobbleHz": 1.2,
+          "hitStunMult": 0.5,
+          "deathPoolTiles": 1,
+          "deathPoolMs": 6000
+        }
       },
       {
         "id": "burning",
@@ -390,7 +810,9 @@
         "_tmpName": true,
         "emblemRow": "barrel_armor",
         "enemies": ["dummy", "archer"],
-        "params": { "damageTaken": -0.3 }
+        "params": {
+          "damageTaken": -0.3
+        }
       },
       {
         "id": "enraged",
@@ -399,7 +821,11 @@
         "_tmpName": true,
         "emblemRow": "enraged",
         "enemies": ["dummy", "archer", "charger", "peddler", "porter"],
-        "params": { "hpRatio": 0.5, "speedMult": 1.4, "attackRateMult": 1.4 }
+        "params": {
+          "hpRatio": 0.5,
+          "speedMult": 1.4,
+          "attackRateMult": 1.4
+        }
       },
       {
         "id": "ringleader",
@@ -408,7 +834,12 @@
         "_tmpName": true,
         "emblemRow": "ringleader",
         "enemies": ["dummy", "charger", "porter"],
-        "params": { "radiusTiles": 4, "allySpeedMult": 1.2, "allyAttackRateMult": 1.25, "deathStunMs": 1000 }
+        "params": {
+          "radiusTiles": 4,
+          "allySpeedMult": 1.2,
+          "allyAttackRateMult": 1.25,
+          "deathStunMs": 1000
+        }
       },
       {
         "id": "guzzler",
@@ -417,7 +848,12 @@
         "_tmpName": true,
         "emblemRow": "guzzler",
         "enemies": ["dummy", "archer", "charger"],
-        "params": { "radiusTiles": 5, "healRatio": 0.15, "growPerDrink": 0.05, "maxDrinks": 3 }
+        "params": {
+          "radiusTiles": 5,
+          "healRatio": 0.15,
+          "growPerDrink": 0.05,
+          "maxDrinks": 3
+        }
       }
     ]
   },
@@ -428,8 +864,14 @@
     "senseValue": 1,
     "passiveAt": 4,
     "passiveRarities": ["rare", "epic", "legendary"],
-    "finisher": { "gold": 50, "personality": 30 },
-    "text": { "_tmpName": true, "finisher": "결정타" }
+    "finisher": {
+      "gold": 50,
+      "personality": 30
+    },
+    "text": {
+      "_tmpName": true,
+      "finisher": "결정타"
+    }
   },
   "consumables": {
     "_note": "(i) 층 테마 소모품 1층 3종 — A안 별도 소모품 칸 1개(같은 종류 최대 2, 다른 종류면 바꿀지 확인), 새 키(KEYS.CONSUMABLE — 인터뷰 대기), 투척은 누르면 커서 방향 즉시. '깨진 잔' 저주는 독주만 막는다(QI-5 추천). 화염 술병의 불도 보스를 강화(QI-7 추천)",
@@ -465,7 +907,11 @@
         "kindRow": "strong_swig",
         "description": "8초 공격 +20% · 받는 피해 +10% · 피격 경직 없음",
         "price": 25,
-        "params": { "ms": 8000, "attackMult": 0.2, "damageTaken": 0.1 }
+        "params": {
+          "ms": 8000,
+          "attackMult": 0.2,
+          "damageTaken": 0.1
+        }
       },
       {
         "id": "coldWater",
@@ -476,7 +922,10 @@
         "kindRow": "cold_water",
         "description": "그로기 해제·기력 50% / 과열 0 / 탄창·숨 가득 · 3초 기울기 무시",
         "price": 20,
-        "params": { "staminaRatio": 0.5, "tiltImmuneMs": 3000 }
+        "params": {
+          "staminaRatio": 0.5,
+          "tiltImmuneMs": 3000
+        }
       }
     ],
     "dropLifeMs": 20000

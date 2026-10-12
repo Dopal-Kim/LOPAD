@@ -1,7 +1,6 @@
 /**
  * `?debug=1` 검증 훅 연결 (게임 로직 아님). Game 의 상태를 debug/index.ts 의 형식으로 읽기 전용으로 넘긴다.
  */
-import { TILE } from '../../core/Constants';
 import { gameState } from '../../core/GameState';
 import type { Mob } from '../../objects/Mob';
 import type { Pickup } from '../../objects/Pickup';
@@ -15,6 +14,7 @@ import type { GameInitData } from './shared';
 import { RES, logicalZoomOf } from '../../systems/display';
 import { activeShots, combatDebug } from './debug/combatDebug';
 import { routeInfo, textureBytes, worldDebug } from './debug/worldDebug';
+import { runEndDebug } from './debug/runEndDebug';
 
 export function exposeGameDebug(g: Game): void {
   exposeDebug({
@@ -198,12 +198,15 @@ export function exposeGameDebug(g: Game): void {
     chooseNode: (id) => g.route.chooseNode(id),
     cancelChoose: () => g.route.cancelChoose(),
     gotoNode: (id) => g.route.gotoNode(id),
+    // 62 루프 2 E: 출구 문 문턱 가운데로 (다음 프레임에 문으로 걸어 들어간다)
     gotoExit: () => {
-      const e = g.layout?.arena?.exit;
-      if (!e || !g.route.exitOpen) return false;
-      g.player.body.reset((e.x + 1) * TILE, (e.y + 1) * TILE);
+      const p = g.doors.sillPoint();
+      if (!p || !g.doors.exitOpen) return false;
+      g.player.body.reset(p.x, p.y);
       return true;
     },
+    doors: () => g.doors.debug(),
+    openExit: () => g.route.debugOpenExit(),
     lab: () => ({
       lab: g.lab,
       dummies: (g.labMode?.dummies ?? []).map((d) => ({
@@ -227,4 +230,7 @@ export function exposeGameDebug(g: Game): void {
     ...combatDebug(g),
     ...worldDebug(g),
   });
+  // 62 루프 2 C: 층 끝·죽음·결산 검증 (`__lopadRunEnd.*` — ?debug 일 때만)
+  if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug'))
+    (window as unknown as { __lopadRunEnd?: unknown }).__lopadRunEnd = runEndDebug(g);
 }

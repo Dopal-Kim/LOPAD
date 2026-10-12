@@ -5,7 +5,7 @@
  * - 무기 방: 대표 개성 2장을 켜 두고, 허수아비·적을 칠 때마다 각성 게이지 → 눈금 메뉴(개성·1차 각성) → L 로 다른 갈래 깨우기.
  * - 런과 분리: 세이브·게이지·전표는 맡겨 둔 런과 무관(session), 기록은 메타 `diary.training` 만.
  */
-import { KEYS, TILE } from '../../../core/Constants';
+import { KEYS, LAB } from '../../../core/Constants';
 import { EventBus, Events, type TrainingStampPayload, type TrainingTaskPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { TRAITS, growthBranches } from '../../../data/growth';
@@ -37,6 +37,7 @@ import { transitionGate } from '../../../systems/transition/transitionGate';
 import type { DrillShape } from '../../../systems/training/drills';
 import type { Game } from '../../Game';
 import type { GameInitData } from '../shared';
+import type { LabDummy } from '../../../objects/LabDummy';
 import { MAP_TRAINING, loadPaint, mapRoomPoint, paintLoaded, withDoor } from '../PaintArt';
 import { trainingDoorName } from '../../../systems/transition/doorNames';
 import { fadeCover, screenOfWorld } from '../TransitionFx';
@@ -61,7 +62,6 @@ export class TrainingMode {
   private props: TrainingProps | null = null;
   private subs: { event: string; fn: (p: unknown) => void }[] = [];
   /** 출구에서 벗어나야 다시 나간다 (들어온 자리) */
-  private exitArmed = false;
   private leaving = false;
   private traitIds: string[] = [];
   private branchIds: string[] = [];
@@ -95,6 +95,11 @@ export class TrainingMode {
     return Boolean(this.room?.setup.gauge) && !this.tracker?.isDone('gauge');
   }
 
+  /** 62 D (P1-17): 이 방 허수아비 (UI 팻말 — loop2DUi) */
+  get dummies(): readonly LabDummy[] {
+    return this.kit?.dummies ?? [];
+  }
+
   get hall(): boolean {
     return this.room === null;
   }
@@ -110,10 +115,21 @@ export class TrainingMode {
     const g = this.g;
     audio.setState(TRAINING_BGM_STATE);
     // 지도 마당: 수련장 지도 그림 + 방 입구 그림 2장 (art §28 — door_training_training · door_training_boss)
-    if (!this.room) loadPaint(g, [MAP_TRAINING, trainingDoorName(false), trainingDoorName(true)]);
     if (!this.room) {
       g.ui.story('notice', trainingText('hall.enter'));
-      this.openMap();
+      // 62 D (P1-17): 지도 그림을 먼저 받고 연다 (갈색 자리표시 지도가 한 프레임 번쩍이지 않게) — 늦으면 MAP_WAIT_MS 뒤 그대로
+      let opened = false;
+      const open = () => {
+        if (opened || !g.scene.isActive()) return;
+        opened = true;
+        this.openMap();
+      };
+      if (paintLoaded(g, MAP_TRAINING)) {
+        loadPaint(g, [trainingDoorName(false), trainingDoorName(true)]);
+        open();
+      } else if (loadPaint(g, [MAP_TRAINING, trainingDoorName(false), trainingDoorName(true)], open))
+        g.time.delayedCall(LAB.TRAINING_MAP_WAIT_MS, open);
+      else open();
       return;
     }
     const room = this.room;
@@ -154,9 +170,14 @@ export class TrainingMode {
     // 마시기 과제: 가득 찬 몸은 마실 수 없다 — 조금 다친 채로 시작
     if (room.tasks.some((t) => t.id === 'drinkDraught')) gameState.hp = Math.ceil(gameState.maxHp * 0.7);
     for (const id of this.traitIds) g.growth.gainTrait(id);
-    // 출구는 늘 열려 있다 (아무 때나 지도로)
-    const e = g.layout?.arena?.exit;
-    if (e) g.world.placeExitAt(e.x, e.y);
+    // 출구 문은 늘 열려 있다 (아무 때나 지도로 — 전투 중이어도). 62 루프 2 E: 외벽 문 · 반대편 문에서 걸어 들어온다
+    g.doors.enter();
+    g.doors.openExit(
+      'training',
+      () => this.exitRoom(),
+      () => !this.leaving && !g.menu.isOpen && !g.frozen && !transitionGate.locked,
+      false,
+    );
     g.input.keyboard?.on(`keydown-${KEYS.LAB_MENU}`, this.onKey);
     const stamped = this.record.stamped.includes(room.id);
     g.ui.story('notice', trainingText(`${room.id}.enter`));
@@ -172,15 +193,11 @@ export class TrainingMode {
   }
 
   update(time: number): void {
-    const g = this.g;
     if (!this.room || !this.tracker) return;
     for (const id of this.tracker.tick(time)) this.complete(id);
     this.kit?.update(time);
     this.drills?.update(time);
-    // 출구: 걸어 들어가면 지도로 (전투 중이어도 — 수련장은 아무 때나 나간다)
-    const onExit = g.world.isExitAt(g.player.x, g.player.y);
-    if (!onExit) this.exitArmed = true;
-    else if (this.exitArmed && !this.leaving && !g.menu.isOpen && !g.frozen && !transitionGate.locked) this.exitRoom();
+    // 출구: 문턱에 들어서면 문 안으로 걸어 들어가 지도로 (ArenaDoors — 전투 중이어도, 수련장은 아무 때나 나간다)
   }
 
   // --- 과제 ---
@@ -375,8 +392,8 @@ export class TrainingMode {
     const g = this.g;
     this.leaving = true;
     g.player.haltForWarp();
-    const e = g.layout?.arena?.exit;
-    const from = e ? screenOfWorld(g, (e.x + 1) * TILE, (e.y + 1) * TILE) : undefined;
+    const m = g.doors.exitPoint();
+    const from = m ? screenOfWorld(g, m.x, m.y) : undefined;
     const go = () => {
       g.transitioning = true;
       g.scene.restart({ labWeapon: trainingSession.weapon ?? undefined } satisfies GameInitData);
@@ -437,15 +454,11 @@ export class TrainingMode {
   debug(): Record<string, unknown> {
     return {
       room: this.room?.id ?? TRAINING_HALL,
-      exit: (() => {
-        const e = this.g.layout?.arena?.exit;
-        return e ? { x: (e.x + 1) * TILE, y: (e.y + 1) * TILE } : null;
-      })(),
+      exit: this.g.doors?.exitPoint() ?? null,
       marker: this.kit?.markerAt ?? null,
       gate: {
         leaving: this.leaving,
-        exitArmed: this.exitArmed,
-        onExit: this.g.world?.isExitAt(this.g.player?.x ?? 0, this.g.player?.y ?? 0) ?? false,
+        door: this.g.doors?.phase ?? null,
         frozen: this.g.frozen,
         menu: this.g.menu?.isOpen ?? false,
         locked: transitionGate.locked,

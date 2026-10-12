@@ -66,6 +66,11 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 - 61라운드 도구: `settings`(계약 §15 설정 적용·저장) · `runlog/*`(런 로그) · `sim/*`(헤드리스 수치 추정 — 61 P13 `pillarSim` 기둥 숨기 전략 시뮬) · `drops/*`(줍기 규칙: 전표 무더기 크기·시트 프레임·자석 걸음) · `vram`(텍스처 VRAM 추정)
 - 기타: `mapgen/*`(방+복도 층 — 노드 지도 이전 층 형식) · `setup/*`(개성 선택 계산) · `rng` · `mathUtil` · `keyEvents` · `InputSystem`
 
+### 62 루프 2 시스템 D (계약 UI `ui.ts` 'D' 절 · CHANGELOG 같은 이름 절)
+- 계약 구현: `contract/hostLoop2D`(전체화면 F11 · 런 포기 · 저장하고 나가기 · pagehide 자동 저장 · 설정 켜기/끄기 소리) · `contract/snapshotLoop2D`(노점 카드·팻말·전체화면·자동 저장·묶인 키 이름) · 내부 이벤트 `core/eventsLoop2D`.
+- 사연 `bundle/EventNode`(NPC·말 걸기·아이콘 줄 `systems/bundle2/eventIcons`·결과 컷 `bundle/eventArt`) · 장터 `ShopStalls`(+ 순수 `systems/loop2d/stallRules`) · `Economy`(상인 말 걸기 shopTalk·외상) · 나가기 `RunExit`(자동 저장·이어하기 `restoreSuspend`·런 포기) · 로딩 `loadingReport`·`NodePrefetch`(HTTP 캐시 미리 받기) · 세트피스·그을음 `world/heroSetpiece`+`heroDressing` · 웨이브 방향 `systems/waveSides` · 로딩 팁 `systems/loadingTips`+`data/loading.json` · 설정 키 `systems/settings`(keys·hitstop·textScale) · 전체화면 `systems/fullscreen`.
+- 디버그: 타이틀에서도 `__lopad.cmd()` = 계약 명령(`hasSave`·`continueRun`·`saveAndQuit`·`abandonRun`·`setFullscreen`).
+
 ### `src/world/`
 - `TileWorld`(타일맵·문·출구) · `QuarterView`(쿼터뷰 벽) · `tileskin`(타일셋 해석) · `border`/`BorderView`(외벽 테두리, 지역 노드 진입 때 지연 로드) · `bigProps*`(큰 소품 배치) · `SetPieceView`·`StructureView` · `floorFeatures` · `quarterScale`(64도트 = 1칸 환산)
 

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { LIGHTING, validateLighting } from '../../data';
 import type { LightingData } from '../../data/types';
-import { flickerFactor, hash01, hexColor, lightFalloff, pickLights } from './lightMath';
+import { flickerFactor, floorAmbient, hash01, hexColor, lightFalloff, pickLights } from './lightMath';
+import { BOSSES } from '../../data';
+import { BOSS_ART } from '../../core/constants/bossArt';
 import { LightRegistry, lightFor } from './lightRegistry';
 
 describe('조명 규칙 (50라운드)', () => {
@@ -75,5 +77,21 @@ describe('조명 규칙 (50라운드)', () => {
     expect(() => validateLighting(bad)).toThrow();
     const bad2 = { ...LIGHTING, player: { radius: 0 } } as unknown as LightingData;
     expect(() => validateLighting(bad2)).toThrow();
+  });
+});
+
+describe('62 루프 2 시스템 D (P1-14) 소등 최저 밝기', () => {
+  it('채널마다 최저 0.25(#40) 로 끌어올리고 밝은 채널은 그대로', () => {
+    expect(floorAmbient('#2a2a36', 0.25)).toBe('#404040');
+    expect(floorAmbient('#6b6b75', 0.25)).toBe('#6b6b75');
+    expect(floorAmbient('#105080', 0.25)).toBe('#405080');
+    expect(floorAmbient('nope', 0.25)).toBe('nope');
+  });
+
+  it('1층 보스 소등 주변광은 최저 밝기 0.25 이상이 된다', () => {
+    const pat = BOSSES.stage1.patterns as unknown as Record<string, { darkAmbient?: string }>;
+    const dark = pat.lightsOut?.darkAmbient ?? '#000000';
+    const v = parseInt(floorAmbient(dark, BOSS_ART.DARK_MIN_BRIGHTNESS).slice(1), 16);
+    for (const sh of [16, 8, 0]) expect((v >> sh) & 0xff).toBeGreaterThanOrEqual(64);
   });
 });

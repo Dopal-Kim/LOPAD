@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import { gameState } from '../core/GameState';
 import { bootDebugApi, type BootDebugApi } from './boot';
+import { withoutMenuGuard } from '../systems/input/menuGuard';
 import { UI_EVENTS, uiBus, uiCommands, type UiMenuId, type UiWarpDenied } from '../contract/ui';
 import type { Mob } from '../objects/Mob';
 import type { RoomDirector } from '../systems/RoomDirector';
@@ -168,8 +169,12 @@ export interface DebugApi {
   cancelChoose: () => boolean;
   /** 48라운드 검증: 링크와 무관하게 이 층의 노드로 바로 (층 상태 유지) */
   gotoNode: (id: string) => boolean;
-  /** 48라운드: 출구 타일 위로 순간이동 (출구가 열려 있을 때) */
+  /** 48라운드: 출구 위로 순간이동 (출구가 열려 있을 때) — 62 루프 2 E: 출구 문 문턱 가운데 (다음 프레임에 문으로 걸어 들어간다) */
   gotoExit: () => boolean;
+  /** 62 루프 2 E: 외벽 문 상태 (출구·입구 자리 · 단계 · 걸음 · 빛 · 주인공 알파 · 기록) */
+  doors: () => unknown;
+  /** 62 루프 2 E: 싸움 없이 이 노드를 마치고 출구 문을 연다 (헤드리스) */
+  openExit: () => boolean;
   /** 48라운드: 3연격 상태(마지막 타·다음 허용 시각) + 마지막 근접 판정(모양·원점·맞은 수) */
   combo: () => unknown;
   /** 55라운드 §17 판정 모양 오버레이 켜기·끄기 (인자 없으면 그대로) — 반환 = 켜짐 여부 */
@@ -444,6 +449,8 @@ export function exposeDebug(api: {
   cancelChoose: () => boolean;
   gotoNode: (id: string) => boolean;
   gotoExit: () => boolean;
+  doors: () => unknown;
+  openExit: () => boolean;
   combo: () => unknown;
   /** 55라운드 §17 판정 모양 오버레이 켜기·끄기 (인자 없으면 그대로) — 반환 = 켜짐 여부 */
   hitShapes: (on?: boolean) => boolean;
@@ -498,7 +505,8 @@ export function exposeDebug(api: {
       scenes: () => api.scenes(),
       continueRun: () => uiCommands.continueRun(),
       hasSave: () => uiCommands.hasSave(),
-      select: (menuId, key) => uiCommands.select(menuId, key),
+      // 62 루프 2 E: 디버그 선택은 메뉴 입력 가드를 건너뛴다 (헤드리스가 열자마자 고른다)
+      select: (menuId, key) => withoutMenuGuard(() => uiCommands.select(menuId, key)),
       startWeaponLab: () => uiCommands.startWeaponLab(),
       setMuted: (muted) => uiCommands.setMuted(muted),
       toTitle: () => uiCommands.toTitle(),
@@ -604,6 +612,8 @@ export function exposeDebug(api: {
     cancelChoose: () => api.cancelChoose(),
     gotoNode: (id) => api.gotoNode(id),
     gotoExit: () => api.gotoExit(),
+    doors: () => api.doors(),
+    openExit: () => api.openExit(),
     combo: () => api.combo(),
     hitShapes: (on) => api.hitShapes(on),
     birth: () => api.birth(),

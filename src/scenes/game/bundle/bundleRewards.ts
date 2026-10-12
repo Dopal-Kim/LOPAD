@@ -150,6 +150,10 @@ export function effectStep(g: Game, e: EventEffect, lore = ''): Step {
       case 'shopDiscount':
         B.shopDiscount = Math.max(B.shopDiscount, e.value);
         return next();
+      case 'reroll':
+        // 62 D (P1-12) E4 '다듬는다': 다음 개성 발현 다시 뽑기 (시스템 C)
+        g.growth.addRerolls(e.value);
+        return next();
       case 'passive':
         return void g.buildMenus.openPassiveMenu('node', { choices: e.choices, rarities: e.rarities }, next);
       case 'curse':

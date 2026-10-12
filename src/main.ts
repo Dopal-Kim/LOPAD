@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { gameConfig } from './config';
 import { SCENES } from './core/Constants';
 import { installContractHost } from './contract/host';
+import { installLoop2C } from './contract/hostLoop2C';
+import { installLoop2DHost } from './contract/hostLoop2D';
+import { installLoop2E } from './contract/hostLoop2E';
 import { audio } from './systems/audio/audio';
 import { settings } from './systems/settings';
 import { runLogRecorder } from './systems/runlog/runLogRecorder';
@@ -13,9 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // 52라운드: 캔버스 1920×1080, 화면 고정 씬(UI 포함)은 논리 960×540 카메라. 월드 카메라 씬은 스스로 배율을 정한다
   installLogicalCameras(game, [SCENES.GAME, SCENES.WEAPON_LAB, SCENES.TRAINING]);
   installContractHost(game);
+  // 62 루프 2 C: 기억 장·결과 선택 명령
+  installLoop2C();
+  // 62 루프 2 시스템 E: 메뉴 입력 가드 — UI 가 메뉴를 그린 순간 (uiCommands.menuShown)
+  installLoop2E();
   audio.attach(game);
   // 61라운드 §15: 저장된 설정(흔들림·섬광·기울기·피해 숫자·음량)을 부팅 때 적용 — UI 는 스냅샷 settings 로 받는다
   settings.load((v) => audio.setVolumes(v));
+  // 62 루프 2 시스템 D: 전체화면(F11) · 런 포기 · 저장하고 나가기 · 창 닫을 때 자동 저장 (설정을 읽은 뒤 — 켜기/끄기 소리 비교 기준)
+  installLoop2DHost(game);
   // 61라운드 P9: 런 로그 (노드별 시간·처치·피격·메뉴·선택·사망 원인 → 메타 세이브 최근 N개)
   runLogRecorder.attach(game);
   // ?debug: 게임 씬 전(타이틀)에도 __lopad.runlog · __lopad.vram · __lopad.settings

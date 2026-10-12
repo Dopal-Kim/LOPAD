@@ -3,6 +3,11 @@
  */
 export interface AudioTrigger<P = unknown> {
   event: string;
+  /**
+   * 62 루프 2: 구독할 버스. 기본 = 시스템 EventBus. 'ui' = UI 계약 버스(`uiBus` — `ui:floor-end`·`ui:relic-gained` 처럼
+   * UI 이벤트를 트리거로 쓰는 예외, 계약 sound §6·§13)
+   */
+  bus?: 'ui';
   /** 설명 (매핑 요약용) */
   note: string;
   /** 재생할 효과음 id (고정 또는 페이로드로 결정). 목록이면 로드된 첫 후보 (55라운드 — 키 이름 대체) */

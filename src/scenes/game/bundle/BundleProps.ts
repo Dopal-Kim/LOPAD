@@ -21,7 +21,8 @@ export interface PropSpec {
   y: number;
   /** E 소품: 계약 UiInteractable (warFlag · clue · eventProp · mapSeller) */
   interact?: {
-    kind: Extract<UiStructureKind, 'warFlag' | 'clue' | 'eventProp' | 'mapSeller'>;
+    /** 62 D (P1-12): eventNpc = 사연 NPC (E 로 말 걸기) */
+    kind: Extract<UiStructureKind, 'warFlag' | 'clue' | 'eventProp' | 'mapSeller' | 'eventNpc'>;
     name: string;
     action: string;
     actionKey: string;
@@ -54,6 +55,12 @@ export class BundleProps {
     });
     if (spec.state) view.setState(spec.state);
     this.list.push({ spec, view, gone: false });
+  }
+
+  /** 62 D (P1-12): 소품 윗변 월드 y (말 걸기 초상·컷 자리) — 없으면 null */
+  topOf(id: string): number | null {
+    const p = this.find(id);
+    return p ? p.view.topY : null;
   }
 
   setState(id: string, state: string): void {

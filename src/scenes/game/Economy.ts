@@ -9,12 +9,25 @@ import type { Mob } from '../../objects/Mob';
 import type { Pickup, PickupMagnet } from '../../objects/Pickup';
 import { goldCost, rollGold, shopPrice } from '../../systems/economy';
 import { kindDef } from '../../systems/route';
-import type { UiInteractable } from '../../contract/ui';
+import {
+  UI_EVENTS,
+  __system,
+  type UiInteractable,
+  type UiMenuLine,
+  type UiShopOffer,
+  type UiShopPurchased,
+} from '../../contract/ui';
+import { BUNDLE2 } from '../../data/bundle2';
+import { curseDef } from '../../data/build';
+import { fill } from '../../systems/story';
+import { ShopStalls } from './ShopStalls';
 import type { Game } from '../Game';
 import { ShopKeeper } from './ShopKeeper';
 
 /** 53라운드 UI 요청 B1: 상점 메뉴 그만두기 key (UI 가 Esc·닫기를 select('shop', '0') 으로 보낸다) */
 export const SHOP_CANCEL_KEY = '0';
+/** 62 D (P1-13): 상인 외상 = 저주 '외상' (data/curses.json credit) */
+const SHOP_CREDIT_CURSE = 'credit';
 
 export class Economy {
   shopOpen = false;
@@ -23,6 +36,8 @@ export class Economy {
   /** 61라운드 단계 2: 상점 노드 상인 (E 로 연다) · 상인 E 로 연 상점인지 (상인 곁을 떠나면 닫는다) */
   private keeper: ShopKeeper | null = null;
   private keeperOpened = false;
+  /** 62 D (P1-13): 장터 노점 칸 */
+  private stalls: ShopStalls | null = null;
 
   constructor(private readonly g: Game) {}
 
@@ -105,23 +120,39 @@ export class Economy {
 
   // --- 상점 ---
 
-  /** 상점 타일 위에 서 있으면 메뉴를 열고, 벗어나면 닫는다 · 61라운드: 상점 노드 상인 곁에서 E 로도 연다 */
+  /**
+   * 상점 타일 위에 서 있으면 메뉴를 열고, 벗어나면 닫는다 · 61라운드: 상점 노드 상인 곁에서 E 로도 연다.
+   * 62 D (P1-13): 상점 노드는 노점 칸(ShopStalls — 다가가면 카드 + E 로 사기)과 종군 상인(E = 말 걸기: 다시 진열·외상)으로 —
+   * 칸을 밟아 여는 글자 목록은 노점이 없는 상점(보스 뒤 등)에만 남는다
+   */
   updateShop(interactPressed = false): void {
     const g = this.g;
     // 48라운드: 상점 노드는 들어서면 바로 (보스 뒤 상점은 출구가 열린 뒤)
     const shopNode = g.nodeKind !== null && Boolean(kindDef(g.nodeKind).shopTiles);
     if (!gameState.exitOpen && !shopNode) return;
-    if (shopNode && !this.keeper && g.layout?.arena) this.keeper = new ShopKeeper(g, g.layout.arena.shop);
+    if (shopNode && !this.keeper && g.layout?.arena) {
+      this.keeper = new ShopKeeper(g, g.layout.arena.shop);
+      this.g.bundle?.shop.onOpen();
+      this.stalls = new ShopStalls(
+        g,
+        { lines: () => this.shopLines(), pick: (k, after) => this.shopPick(k, after), busy: () => this.stallBusy() },
+        g.layout.arena.shop,
+      );
+    }
     if (gameState.route?.choosing) return;
-    const onTile = g.world.isShopAt(g.player.x, g.player.y);
+    this.checkCreditRepaid();
     const nearKeeper = this.keeper?.near() ?? false;
     if (!nearKeeper) this.keeperOpened = false;
     if (interactPressed && nearKeeper && !this.shopOpen && !g.menu.isOpen) {
-      this.keeperOpened = true;
-      this.shopDismissed = false;
-      this.openShop();
+      this.openTalk();
       return;
     }
+    if (this.stalls && this.stalls.count > 0) {
+      this.stalls.update(interactPressed && !nearKeeper && !g.menu.isOpen);
+      if (this.shopOpen && !nearKeeper && !this.keeperOpened) this.closeShop();
+      return;
+    }
+    const onTile = g.world.isShopAt(g.player.x, g.player.y);
     const here = onTile || this.keeperOpened;
     // 53라운드 UI 요청 B1: Esc(cancelKey)로 닫았으면 상점 칸을 벗어났다 다시 들어설 때 연다
     if (!onTile) this.shopDismissed = false;
@@ -129,11 +160,26 @@ export class Economy {
     else if (!here && this.shopOpen) this.closeShop();
   }
 
-  /** 61라운드 단계 2: 상점 상인 E 안내 (상인 반경 밖·상점 노드가 아니면 null) */
+  /** 62 D: 노점에서 지금 살 수 없는가 (메뉴·전환·전투) */
+  private stallBusy(): boolean {
+    const g = this.g;
+    return g.menu.isOpen || g.transitioning || g.director.inCombat || Boolean(gameState.route?.choosing);
+  }
+
+  /** 61라운드 단계 2: 상점 상인 E 안내 · 62 D: 상인 반경 밖이면 노점 칸 안내 (상점 노드가 아니면 null) */
   keeperInteractable(): UiInteractable | null {
     const g = this.g;
     if (!this.keeper) return null;
-    return this.keeper.interactable(g.layout?.rooms[0]?.id ?? '', !this.shopOpen && !g.menu.isOpen);
+    const roomId = g.layout?.rooms[0]?.id ?? '';
+    return (
+      this.keeper.interactable(roomId, !this.shopOpen && !g.menu.isOpen) ?? this.stalls?.interactable(roomId) ?? null
+    );
+  }
+
+  /** 62 D (P1-13): 노점 카드 (계약 `UiSnapshot.shopOffer`) */
+  shopOffer(): UiShopOffer | null {
+    if (this.keeper?.near()) return null;
+    return this.stalls?.offer() ?? null;
   }
 
   /** 고정 4칸 가격 (60라운드: 2차 묶음 상점이 있으면 E9 할인까지 — ShopMenu.fixedPrice) */
@@ -144,37 +190,59 @@ export class Economy {
     );
   }
 
+  /** 상점 줄 전부 (고정 칸 + 2차 묶음 진열·다시 진열·궤짝·지도 정보 — 계약 §14.6). 62 D: 노점·상인 대사·글자 목록 공용 */
+  shopLines(): UiMenuLine[] {
+    const fixed = ECONOMY.shop.items.map((it, i) => {
+      const price = this.price(it);
+      const full = it.id === 'potion' && gameState.potions >= this.potionCarry;
+      const name = it.id === 'potion' ? `${STORY.names.potion} +1` : it.name;
+      return {
+        key: String(i + 1),
+        label: name,
+        enabled: gameState.gold >= price && !full,
+        price: goldCost(price, gameState.gold, STORY.names.gold),
+      };
+    });
+    // 60라운드 (e) 진열 3칸 · 진열 바꾸기 · 궤짝 덤 · 지도 정보 (계약 §14.6 group)
+    const shop = this.g.bundle?.shop;
+    return shop ? shop.lines(fixed) : fixed;
+  }
+
+  /** 상점 줄 하나 고르기 (노점 E · 글자 목록 공용). after = 다시 그리기·닫힌 뒤 */
+  shopPick(key: string, after: () => void): void {
+    const shop = this.g.bundle?.shop;
+    const before = gameState.gold;
+    const line = this.shopLines().find((l) => l.key === key);
+    const done = () => {
+      if (gameState.gold < before && line)
+        __system.emit(UI_EVENTS.SHOP_PURCHASED, {
+          stallId: null,
+          key,
+          name: line.label,
+          price: before - gameState.gold,
+        } satisfies UiShopPurchased);
+      after();
+    };
+    if (shop?.select(key, done, () => (this.shopOpen ? this.closeShop() : done()))) return;
+    const item = ECONOMY.shop.items[Number(key) - 1];
+    if (item) this.buy(item.id, done);
+  }
+
   private openShop(): void {
     this.shopOpen = true;
     EventBus.emit(Events.SHOP_OPENED);
-    const shop = this.g.bundle?.shop;
-    shop?.onOpen();
+    this.g.bundle?.shop.onOpen();
     const render = () => {
-      const fixed = ECONOMY.shop.items.map((it, i) => {
-        const price = this.price(it);
-        const full = it.id === 'potion' && gameState.potions >= this.potionCarry;
-        const name = it.id === 'potion' ? `${STORY.names.potion} +1` : it.name;
-        return {
-          key: String(i + 1),
-          label: name,
-          enabled: gameState.gold >= price && !full,
-          price: goldCost(price, gameState.gold, STORY.names.gold),
-        };
-      });
-      // 60라운드 (e) 진열 3칸 · 진열 바꾸기 · 궤짝 덤 · 지도 정보 (계약 §14.6 group)
-      const lines = shop ? shop.lines(fixed) : fixed;
       this.g.menu.open(
         'shop',
         `${STORY.names.shop}  (${STORY.names.gold} ${gameState.gold}, ${STORY.names.potion} ${gameState.potions})`,
-        lines,
+        this.shopLines(),
         (key) => {
           if (key === SHOP_CANCEL_KEY) {
             this.shopDismissed = true;
             return this.closeShop();
           }
-          if (shop?.select(key, render, () => this.closeShop())) return;
-          const item = ECONOMY.shop.items[Number(key) - 1];
-          if (item) this.buy(item.id, render);
+          this.shopPick(key, () => (this.shopOpen ? render() : undefined));
         },
         STORY.ui.hud.shopFooter,
         { cancelKey: SHOP_CANCEL_KEY },
@@ -183,7 +251,114 @@ export class Economy {
     render();
   }
 
+  // --- 62 D (P1-13) 종군 상인 말 걸기: 다시 진열 · 외상 · 그만 ---
+
+  private talks = 0;
+  /** 상인 외상(저주 '외상')을 단 뒤 아직 갚지 않음 */
+  private creditOpen = false;
+
+  private openTalk(line?: string): void {
+    const g = this.g;
+    const T = BUNDLE2.shop.talk?.merchant;
+    if (!T) return this.openShop();
+    if (line === undefined) {
+      EventBus.emit(Events.SHOP_TALK);
+      this.talks += 1;
+    }
+    const greet =
+      line ??
+      (this.talks <= 1
+        ? T.greetFirst
+        : (T.greetAgain[(this.talks - 2) % Math.max(1, T.greetAgain.length)] ?? T.greetFirst));
+    const reroll = this.shopLines().find((l) => l.key === 'reroll');
+    const lines: UiMenuLine[] = [];
+    if (reroll)
+      lines.push({
+        ...reroll,
+        key: 'reroll',
+        label: fill(T.menu.reroll, { n: reroll.price?.amount ?? 0 }),
+        group: 'reroll',
+      });
+    lines.push({ key: 'credit', label: T.menu.credit, enabled: true, detail: this.creditDetail() });
+    lines.push({ key: SHOP_CANCEL_KEY, label: T.menu.leave, enabled: true });
+    this.shopOpen = true;
+    this.keeperOpened = true;
+    g.menu.open(
+      'shopTalk',
+      T.speaker,
+      lines,
+      (key) => {
+        if (key === SHOP_CANCEL_KEY) {
+          this.closeShop();
+          this.g.ui.speech(T.speaker, T.leave);
+          return;
+        }
+        if (key === 'reroll') return this.talkReroll();
+        if (key === 'credit') return this.talkCredit();
+      },
+      greet,
+      { cancelKey: SHOP_CANCEL_KEY, speaker: T.speaker },
+    );
+  }
+
+  private creditDetail(): string {
+    const c = curseDef(SHOP_CREDIT_CURSE);
+    return c ? `${c.penalty}` : '';
+  }
+
+  private talkReroll(): void {
+    const T = BUNDLE2.shop.talk!.merchant;
+    const before = gameState.gold;
+    const stock = gameState.bundle.shops.find((s) => s.nodeId === (this.g.node?.id ?? ''));
+    const maxed = stock !== undefined && stock.rerolls >= BUNDLE2.shop.rerollPrices.length;
+    if (maxed) return this.openTalk(T.rerollMax);
+    this.shopPick('reroll', () => {});
+    this.stalls?.sync();
+    this.openTalk(gameState.gold < before ? T.rerollDone : T.poor);
+  }
+
+  /** 외상 (62 D 시스템 결정): 노점 물건 하나를 지금 받고, 저주 '외상'(처치 전표 0 · 값 +20%)이 그 노드 수만큼 붙는다 — 저주 하나 동시 규칙 */
+  private talkCredit(): void {
+    const g = this.g;
+    const T = BUNDLE2.shop.talk!.merchant;
+    if (gameState.build.curse || !curseDef(SHOP_CREDIT_CURSE)) return this.openTalk(T.creditRefuse);
+    const lines = (this.stalls?.creditLines() ?? []).map((l) => ({ ...l, price: undefined }));
+    g.menu.open(
+      'shopTalk',
+      T.speaker,
+      [...lines, { key: SHOP_CANCEL_KEY, label: T.menu.leave, enabled: true }],
+      (key) => {
+        if (key === SHOP_CANCEL_KEY) return this.openTalk(T.creditName);
+        const l = this.shopLines().find((x) => x.key === key);
+        if (!l?.price) return;
+        // 값만큼 상인이 빌려주고 바로 산다 → 저주 '외상'(즉시 전표 이득은 이 외상 몫이라 받지 않는다)
+        const price = l.price.amount;
+        const card = lines.find((x) => x.key === key)?.label ?? l.label;
+        this.addGold(price);
+        this.shopPick(key, () => {});
+        this.stalls?.sync();
+        const goldNow = curseDef(SHOP_CREDIT_CURSE)?.benefits.goldNow ?? 0;
+        if (g.build.grantCurse(SHOP_CREDIT_CURSE, { source: 'event' })) {
+          if (goldNow > 0) this.spendGold(goldNow);
+          this.creditOpen = true;
+        }
+        this.openTalk(fill(T.creditDone, { item: card }));
+      },
+      T.creditOffer,
+      { cancelKey: SHOP_CANCEL_KEY, speaker: T.speaker },
+    );
+  }
+
+  /** 외상 저주가 끝났으면 (갚음) 한 줄 */
+  private checkCreditRepaid(): void {
+    if (!this.creditOpen || gameState.build.curse?.id === SHOP_CREDIT_CURSE) return;
+    this.creditOpen = false;
+    const T = BUNDLE2.shop.talk?.merchant;
+    if (T) this.g.ui.story('notice', T.creditRepaid);
+  }
+
   closeShop(): void {
+    if (!this.shopOpen) return;
     this.shopOpen = false;
     this.keeperOpened = false;
     this.g.menu.close();
@@ -207,16 +382,9 @@ export class Economy {
         EventBus.emit(Events.POTION_CHANGED, { potions: gameState.potions });
         rerender();
         break;
-      case 'sense':
-        gameState.senses.sense += 1;
-        gameState.pointsPending += 1;
-        this.closeShop();
-        this.g.progress.openStatChooser(() => {});
-        break;
-      case 'stat':
-        gameState.pointsPending += 1;
-        this.closeShop();
-        this.g.progress.openStatChooser(() => {});
+      // 62 D: 감각·능력치 품목은 1층에서 없앴다 (시스템 C — 데이터에 없음)
+      default:
+        rerender();
         break;
     }
   }

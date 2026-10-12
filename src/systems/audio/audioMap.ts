@@ -21,7 +21,6 @@ import {
   type EnemyAttackPayload,
   type EnemyDamagedPayload,
   type EnemyTelegraphPayload,
-  type MenuEventPayload,
   type PlayerAttackPayload,
   type PlayerChargePayload,
   type PlayerDamagedPayload,
@@ -39,6 +38,7 @@ import { t, type AudioTrigger } from './audioTrigger';
 import { MOVE_AUDIO_TRIGGERS } from './audioMoves';
 import { DROP_AUDIO_TRIGGERS } from './audioDrops';
 import { TRAINING_AUDIO_TRIGGERS } from './audioTraining';
+import { LOOP2_AUDIO_TRIGGERS, routeFloorActive } from './audioLoop2';
 import { BUILD_AUDIO_TRIGGERS, BUILD_SFX, hasBranch, isRapidVolley, katanaThrustSfx } from './audioBuild';
 export type { AudioTrigger } from './audioTrigger';
 
@@ -354,6 +354,8 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   ...DROP_AUDIO_TRIGGERS,
   // --- 61 단계 6 (P14): 그림 속 입구 전환 · 수련장 (audioTraining) ---
   ...TRAINING_AUDIO_TRIGGERS,
+  // --- 62 루프 2 (P16 sound §13): 메뉴·설정 · 적 예고 · 슬로모 · 사망 · 노드 등급 · 층 끝 · 유품 · 기억 · 말 걸기 · 외벽 문 (audioLoop2) ---
+  ...LOOP2_AUDIO_TRIGGERS,
   // --- 주인공 공격·보조 동작 ---
   t<PlayerAttackPayload>({
     event: Events.PLAYER_ATTACKED,
@@ -557,7 +559,6 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
       p?.guarded ? (gameState.weapon?.id === 'greatsword' ? SFX.guardBlockHeavy : SFX.guardBlock) : SFX.hitPlayer,
   }),
   t({ event: Events.PLAYER_COMBO_FINISH, note: '61라운드 §9: 연격 마지막 타 적중 (활 제외)', sfx: SFX.comboFinish }),
-  t({ event: Events.PLAYER_DIED, note: '주인공 사망', sfx: SFX.playerDeath }),
   t<EnemyTelegraphPayload>({
     event: Events.ENEMY_TELEGRAPH,
     note: '적 돌진 예고 → sfx/<적id>_telegraph (결사병 charger_telegraph) · 61 단계 2: 행상 심지 peddler_wick · 짐꾼 porter_windup',
@@ -673,7 +674,12 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
 
   // --- 맵·월드 ---
   t({ event: Events.TRIAL_STARTED, note: '시련 방 문 잠김', sfx: SFX.doorClose }),
-  t({ event: Events.TRIAL_CLEARED, note: '시련 클리어: 문 열림', sfx: SFX.doorOpen }),
+  t({
+    event: Events.TRIAL_CLEARED,
+    note: '시련 클리어: 문 열림 — 방+복도 층만 (노드 지도 층은 외벽 문 DOOR_OPENED 가 audioLoop2 에서)',
+    when: () => !routeFloorActive(),
+    sfx: SFX.doorOpen,
+  }),
   t<TrialClearedPayload>({
     event: Events.TRIAL_CLEARED,
     note: '시련 클리어 북 (마지막 시련은 boss_unlock 이 대신한다)',
@@ -681,7 +687,6 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     sfx: SFX.trialClear,
   }),
   t({ event: Events.BOSS_UNLOCKED, note: '본영 문 열림', sfx: SFX.bossUnlock }),
-  t({ event: Events.EXIT_OPENED, note: '오르는 길(출구) 열림', sfx: SFX.exitOpen }),
   t({ event: Events.STAGE_STARTED, note: '층 진입', sfx: SFX.levelEnter }),
   t({ event: Events.STAGE_SAVED, note: '기록 저장', sfx: SFX.save }),
 
@@ -720,17 +725,7 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
   }),
   // 61 G (sound §10): 1차·2차 각성 · 개성 발현 · 게이지 반짝 · 단련 — audioBuild GROWTH_AUDIO_TRIGGERS
   t({ event: Events.WEAPON_TEMPERED, note: '단련 (옛 강화 소리)', sfx: SFX.reinforce }),
-  t<MenuEventPayload>({
-    event: Events.MENU_OPENED,
-    note: '메뉴 열림 → menu_move (같은 메뉴를 다시 그리는 reopen 은 제외)',
-    when: (p) => !p.reopen,
-    sfx: SFX.menuMove,
-  }),
-  t<MenuEventPayload>({
-    event: Events.MENU_SELECTED,
-    note: '메뉴 선택 (60라운드 이벤트 노드 메뉴 = event_choice)',
-    sfx: (p) => (p?.id === 'event' ? [BUILD_SFX.eventChoice, SFX.menuSelect] : SFX.menuSelect),
-  }),
+  // 메뉴 열림·선택·닫힘 소리는 62 루프 2 audioLoop2 (임시 텍스트 메뉴만 — UI 렌더러 메뉴는 UI uiSound.ts)
 
   // --- 47라운드 상호작용 구조물 (전부 기존 효과음 임시 연결) ---
   t<StructureEventPayload>({
@@ -771,12 +766,6 @@ export const AUDIO_TRIGGERS: readonly AudioTrigger[] = [
     note: '도전 끝: 시간 초과 menu_cancel · 그 외 trial_clear (임시 — 성소 깃발은 audioBuild)',
     when: (p) => p.kind !== 'warFlag',
     sfx: (p) => (p.outcome === 'timeout' ? SFX.menuCancel : SFX.trialClear),
-  }),
-  t<MenuEventPayload>({
-    event: Events.MENU_CLOSED,
-    note: '선택 없이 닫힘(상점 이탈 등) → menu_cancel',
-    when: (p) => !p.selected,
-    sfx: SFX.menuCancel,
   }),
   // --- 60라운드 빌드·갈래·패시브·2차 묶음 (audioBuild) ---
   ...BUILD_AUDIO_TRIGGERS,

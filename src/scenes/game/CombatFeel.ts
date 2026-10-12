@@ -7,7 +7,7 @@
  */
 import Phaser from 'phaser';
 import { FEEL } from '../../core/Constants';
-import { EventBus, Events, type PerfectSuccessPayload } from '../../core/EventBus';
+import { EventBus, Events, type FeelSlowmoPayload, type PerfectSuccessPayload } from '../../core/EventBus';
 import { feelSettings } from '../../systems/feel';
 import type { Game } from '../Game';
 
@@ -37,6 +37,8 @@ export class CombatFeel {
     // 흔들림·히트스톱을 끈 설정(접근성)이면 슬로모도 끈다
     if (feelSettings.hitstop <= 0 || this.g.bossFlow?.current) return;
     this.slow(FEEL.KILL.SLOW.SCALE, FEEL.KILL.SLOW.MS);
+    // 62 D (음향 sound §13 last_kill_slow): 슬로모를 실제로 걸 때만
+    EventBus.emit(Events.FEEL_SLOWMO, { kind: 'lastKill' } satisfies FeelSlowmoPayload);
   }
 
   private slow(scale: number, ms: number): void {

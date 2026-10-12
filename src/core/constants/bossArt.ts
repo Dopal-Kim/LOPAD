@@ -36,6 +36,13 @@ export const BOSS_ART = {
   FINALE_DELAY_MS: 5000,
   /** 림 시트가 없는 동작·로드 전·예산 초과: 보스 그림 사본을 호박 채움색으로 조명 위에 더한다 (ADD) */
   RIM_FALLBACK: { COLOR: 0xe2a33c, ALPHA: 0.3 },
+  /**
+   * 62 루프 2 시스템 D (P1-14): 등불 끄기(소등) 동안 주변광 최저 밝기 (채널마다 0~1 — 0.25 = #404040). 점검 54_kill_grid '거의 검다'.
+   * 하데스 어둠 연출처럼 보스 실루엣·바닥이 읽혀야 한다. 림·최소 광원(arena.darkLights)은 그 위에 더해진다
+   */
+  DARK_MIN_BRIGHTNESS: 0.25,
+  /** 62 D: 소등 동안 보스 림 사본 알파 (채움 대체 — 최저 밝기 0.25 와 함께라 원 값 그대로. 헤드리스에서 0.42 는 몸이 호박 덩어리로 보였다) */
+  DARK_RIM_FALLBACK_ALPHA: 0.3,
   /** 잔 맞음(안 깨짐) struck 행 재생 ms · 파훼 머리 위 고리를 머리 꼭대기에서 위로 (월드 px) */
   CUP_STRUCK_MS: 350,
   DAZE_LIFT_PX: 2,

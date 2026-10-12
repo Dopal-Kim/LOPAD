@@ -41,6 +41,7 @@ import { gameState } from '../../core/GameState';
 import { MOVE_SFX, moveSfxIds, pickFlurryVariant } from './audioMoves';
 import { P13_SFX } from './audioDrops';
 import { P14_SFX } from './audioTraining';
+import { LOOP2_FALLBACK_SFX, loop2SfxIds } from './audioLoop2';
 import { TRAIT_ACTS } from '../../data/growthTypes';
 import { RESONANCE_SFX } from '../growth/traitArt';
 import { ARCHIVED_SFX, BUILD_SFX, GROWTH_SFX, buildSfxIds } from './audioBuild';
@@ -261,6 +262,9 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
       SFX.guardBlockHeavy,
       ...Object.values(ENEMY_OWN_SFX).flatMap((o) => [o.hurt, o.death, o.telegraph].filter((x): x is string => !!x)),
       ...Object.values(ENEMY_PHASE_SFX),
+      // 62 루프 2 (계약 sound §13): 메뉴·설정·예고·슬로모·사망·등급·층 끝·유품·기억·말 걸기·문 (+ 대체 관계의 옛 폴백)
+      ...loop2SfxIds(),
+      ...LOOP2_FALLBACK_SFX,
     ]);
     // 60라운드 Q6 보관 3종은 연결하지 않는다
     for (const id of ARCHIVED_SFX) expect(used.has(id), id).toBe(false);

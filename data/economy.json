@@ -13,10 +13,8 @@
   "rarity": { "common": 50, "rare": 30, "epic": 15, "legendary": 5 },
   "shop": {
     "items": [
-      { "id": "heal", "name": "체력 30% 회복", "price": 30, "pricePerStage": 0 },
-      { "id": "sense", "name": "감각 +1 (능력치 포인트 +1)", "price": 40, "pricePerStage": 10 },
-      { "id": "stat", "name": "능력치 포인트 +1", "price": 60, "pricePerStage": 0 },
-      { "id": "potion", "name": "회복 물약 +1", "price": 25, "pricePerStage": 0 }
+      { "id": "heal", "name": "뜨끈한 국밥 한 그릇", "price": 30, "pricePerStage": 0 },
+      { "id": "potion", "name": "잔의 독주", "price": 25, "pricePerStage": 0 }
     ],
     "healFraction": 0.3
   },

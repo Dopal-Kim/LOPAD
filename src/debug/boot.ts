@@ -32,6 +32,8 @@ export interface BootDebugApi {
   sceneVisible: (key: string, on: boolean) => void;
   /** 디버그: 씬 객체 그대로 (헤드리스 점검용) */
   sceneObj: (key: string) => unknown;
+  /** 62 D: 계약 명령 (uiCommands) */
+  cmd: () => typeof uiCommands;
 }
 
 type TrainingDebug = { debug(): Record<string, unknown>; debugComplete(id: string): boolean };
@@ -69,6 +71,8 @@ export function bootDebugApi(): BootDebugApi {
       })),
     sceneVisible: (key, on) => bootGame?.scene.getScene(key)?.sys.setVisible(on),
     sceneObj: (key) => bootGame?.scene.getScene(key) ?? null,
+    // 62 D: 계약 명령 그대로 (타이틀에서 이어하기·런 포기·저장하고 나가기·전체화면 확인)
+    cmd: () => uiCommands,
   };
 }
 

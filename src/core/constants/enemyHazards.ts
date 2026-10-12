@@ -45,4 +45,23 @@ export const SHOP_KEEPER = {
   PLACEHOLDER_W: 12,
   PLACEHOLDER_H: 22,
   PLACEHOLDER_COLOR: 0xc07a30,
+  /** 62 D (P1-13 · art §31.6): 종군 상인 그림 (structures/v3 npc_merchant — 시트 광원). 없으면 SHEET(적 행상) */
+  NPC_SHEET: 'npc_merchant',
+} as const;
+
+/**
+ * 62 루프 2 시스템 D (P1-13) 장터 노점 칸 (임시값): 상점 칸 아래 줄로 세운다 — 칸 간격·한 줄 칸 수·줄 간격(타일) · E 반경 ·
+ * 물건 그림 둥실(월드 px·ms) · 노점 그림이 없을 때 물건 띄움·배율
+ */
+export const SHOP_STALL = {
+  SLOT_SHEET: 'shop_slot',
+  GAP_TILES: 1.7,
+  PER_ROW: 5,
+  ROW_TILES: 1.5,
+  ROW_GAP_TILES: 1.8,
+  RADIUS_TILES: 1.0,
+  BOB_PX: 1.5,
+  BOB_MS: 900,
+  ITEM_LIFT_PX: 12,
+  ITEM_SCALE: 0.5,
 } as const;

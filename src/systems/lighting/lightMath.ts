@@ -93,3 +93,13 @@ export function rotationCover(w: number, h: number, rad: number): number {
   if (s < 1e-6) return 1;
   return Math.max((w * c + h * s) / w, (w * s + h * c) / h);
 }
+
+/** 62 D (P1-14): '#rrggbb' 주변광의 채널마다 최저 밝기(0~1)로 끌어올린 색 (형식이 틀리면 그대로) */
+export function floorAmbient(hex: string, min: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return hex;
+  const v = parseInt(m[1], 16);
+  const lo = Math.round(Math.min(1, Math.max(0, min)) * 255);
+  const ch = (shift: number) => Math.max(lo, (v >> shift) & 0xff);
+  return '#' + ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0');
+}

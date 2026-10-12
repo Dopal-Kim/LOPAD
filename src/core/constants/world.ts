@@ -188,3 +188,34 @@ export const STRUCTURE_FX = {
   /** 투견 링 시작: 플레이어를 링 중심에서 아래로 이 칸만큼 (링 안) */
   RING_ENTER_TILES: 2,
 } as const;
+
+/**
+ * 62 루프 2 시스템 D (P2-10 · art §31.9) 노드 세트피스 · 그을음 데칼 (임시값). 지역 → 세트피스 시트 후보, 발자국(칸) · 가운데 기준
+ * 자리 후보(칸) · 시작/출구에서 떨어질 거리 · 그을음 지역·장 수·변주 수
+ */
+export const HERO_SETPIECE = {
+  BY_REGION: {
+    waste: ['setpiece_broken_cart'],
+    gate: ['setpiece_broken_cart'],
+    outer: ['setpiece_broken_cart', 'setpiece_spilled_casks'],
+    brewery: ['setpiece_spilled_casks'],
+    hall: ['setpiece_spilled_casks'],
+  } as Readonly<Record<string, readonly string[]>>,
+  FOOTPRINT: {
+    setpiece_broken_cart: [4, 2],
+    setpiece_spilled_casks: [4, 3],
+  } as Readonly<Record<string, readonly [number, number]>>,
+  OFFSETS: [
+    [-7, -4],
+    [7, 4],
+    [-7, 4],
+    [7, -4],
+    [0, -5],
+    [0, 5],
+  ] as readonly (readonly [number, number])[],
+  KEEP_AWAY_TILES: 5,
+  SOOT_REGIONS: ['waste', 'gate', 'outer', 'brewery', 'hall'] as readonly string[],
+  SOOT_COUNT: [3, 5] as readonly [number, number],
+  SOOT_VARIANTS: 6,
+  SOOT_SHEET: 'decal_soot',
+} as const;

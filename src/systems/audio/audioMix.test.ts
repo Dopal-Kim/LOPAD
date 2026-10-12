@@ -90,7 +90,23 @@ describe('61라운드 계약 sound §9 믹싱', () => {
     const rules = parseDucking(mix.ducking);
     // 61라운드 단계 3: 파훼·결정타 → 효과음 우선순위 2 이하 −4dB 300ms (이름 목록 규칙)
     // 61 단계 6: 전환음 → 효과음 −8·BGM −4, 도장 → 효과음(1 이하) −4 (줍기류 대상 규칙은 그룹 대상이라 아직 해석 안 함)
-    expect(rules).toHaveLength(7);
+    // 62 루프 2 (sound §13): 막타 슬로모 → 효과음 −5·BGM −4 280ms · 사망 슬로모 → 효과음 −10·BGM −12 · 층 끝 → BGM −6
+    expect(rules).toHaveLength(12);
+    const lk = ducksFor(rules, { group: 'sfx/last_kill_slow', priority: 3 });
+    expect(lk.map((r) => [r.target.bus, r.db, r.holdMs]).sort()).toEqual([
+      ['bgm', -4, 280],
+      ['sfx', -5, 280],
+    ]);
+    const ds = ducksFor(rules, { group: 'sfx/death_slow', priority: 4 }).filter((r) => r.db <= -10);
+    expect(ds.map((r) => [r.target.bus, r.db]).sort()).toEqual([
+      ['bgm', -12],
+      ['sfx', -10],
+    ]);
+    expect(ducksFor(rules, { group: 'sfx/floor_end_sting', priority: 3 }).map((r) => [r.target.bus, r.db])).toEqual([
+      ['bgm', -6],
+    ]);
+    // 파훼 줄 첫 괄호 안에 기둥 무너짐 (62 루프 2 음향 고침)
+    expect(ducksFor(rules, { group: 'sfx/boss1_pillar_collapse', priority: 3 }).map((r) => r.db)).toEqual([-4]);
     const tr = ducksFor(rules, { group: 'sfx/transition_enter', priority: 3 });
     expect(tr.map((r) => r.target.bus).sort()).toEqual(['bgm', 'sfx']);
     expect(ducksFor(rules, { group: 'sfx/training_stamp', priority: 3 }).map((r) => r.db)).toEqual([-4]);

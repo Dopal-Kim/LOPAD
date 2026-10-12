@@ -352,8 +352,12 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
       this.destroy();
       return true;
     }
-    // 56라운드 Q36: 호박 반투명 80ms (히트스톱에 늘어나지 않음)
-    this.visual.flashOverlay(COLORS.MOB_HURT, FEEDBACK.MOB_HURT.ALPHA, FEEDBACK.MOB_HURT.MS, FEEDBACK.MOB_HURT.ADD);
+    // 56라운드 Q36: 호박 반투명 80ms (히트스톱에 늘어나지 않음) · 62 D (P1-14): 보스는 같은 그림을 흰빛으로 더함(형태 유지)
+    if (this.isBoss) {
+      const B = FEEDBACK.BOSS_HURT;
+      this.visual.flashOverlay(COLORS.MOB_HURT, B.ALPHA, B.MS, B.ADD, B.FILL);
+    } else
+      this.visual.flashOverlay(COLORS.MOB_HURT, FEEDBACK.MOB_HURT.ALPHA, FEEDBACK.MOB_HURT.MS, FEEDBACK.MOB_HURT.ADD);
     // 보스가 국면 프레임을 유지 중이면 피격 애니 대신 번쩍임만
     if (!this.visual.held) this.visual.oneShot('hurt', this.visual.facing, this.scene.time.now);
     return false;
@@ -397,6 +401,11 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   }
 
   protected flash(color: number, ms = PROTOTYPE.HURT_FLASH_MS): void {
+    // 62 D (P1-14): 보스 시트는 채움색으로 덮지 않는다 — 같은 그림에 색을 더해 형태를 남긴다 (출혈 등 상태 색)
+    if (this.isBoss && this.visual.sheetDrawn) {
+      this.visual.flashOverlay(color, FEEDBACK.BOSS_HURT.ALPHA, ms, true, false);
+      return;
+    }
     this.visual.flash(color);
     this.scene.time.delayedCall(ms, () => {
       if (this.active) this.restoreColor();

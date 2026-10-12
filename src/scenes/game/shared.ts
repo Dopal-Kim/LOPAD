@@ -27,6 +27,13 @@ export type GameInitData = {
   trainingRoom?: string;
   /** 61 단계 6: 수련장에서 맡겨 둔 런으로 돌아옴 (mode 'node') — 마친 노드면 출구가 열린 채로 */
   resume?: boolean;
+  /**
+   * 62 루프 2 C (P1-5·P1-8, 새 런만): 지니고 태어날 기억의 소품 id · 손이 기억한 모양(기억 id) · 첫 개성 발현 카드 수(회피 시험 등급 —
+   * 0/없음 = 기본). senseBonus 는 더 쓰지 않는다(1층에서 감각 삭제)
+   */
+  keepsake?: string | null;
+  aspect?: string | null;
+  traitCards?: number;
 };
 
 /** 칸 → 월드 px (60라운드 6-1: 빌드·묶음 모듈이 따로 두던 같은 도우미를 하나로) */

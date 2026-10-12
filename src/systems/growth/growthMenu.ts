@@ -55,6 +55,11 @@ export function growthMenu(
   rnd: () => number,
   look?: LookKeyFn,
   icon?: IconKeyFn,
+  /**
+   * 62 루프 2 C (P1-5·P1-8): locked = 아직 '기억'으로 열지 않은 개성(풀에 없음) · traitCards = 이번 개성 발현 카드 수
+   * (첫 발현 = 회피 시험 등급·먹 묻은 붓 — 없으면 growth.traitChoices). 단련 눈금 메뉴는 그대로 3칸
+   */
+  opts: { locked?: ReadonlySet<string>; traitCards?: number } = {},
 ): GrowthMenu | null {
   const T = GROWTH.text;
   const lines: UiMenuLine[] = [];
@@ -99,7 +104,8 @@ export function growthMenu(
       ? { kind, title: fill(T.awaken2Title, { branch: b.name }), footer: T.awaken2Footer, lines, choices }
       : null;
   }
-  const pool = traitPool(w.id, w.branchId, w.traits);
+  const locked = opts.locked;
+  const pool = traitPool(w.id, w.branchId, w.traits).filter((t) => !locked?.has(t.id));
   // 61 단계 5 (P13): 한 장 모자란 공명 태그의 짝 카드 한 장
   const partners = partnerTags(w.id, w.traitDefs);
   if (kind === 'temper') {
@@ -115,7 +121,7 @@ export function growthMenu(
       ? { kind, title: fill(T.temperTitle, { weapon }), footer: T.temperFooter, lines, choices }
       : null;
   }
-  for (const t of pickTraits(pool, GROWTH.traitChoices, rnd, partners)) {
+  for (const t of pickTraits(pool, Math.max(1, opts.traitCards ?? GROWTH.traitChoices), rnd, partners)) {
     lines.push(traitLine(key(), t, floor, w, icon));
     choices.push({ kind: 'trait', id: t.id });
   }

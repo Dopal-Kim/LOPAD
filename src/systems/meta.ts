@@ -13,6 +13,9 @@ export type UpgradeId = 'maxHp' | 'attack' | 'defense' | 'dashCooldown' | 'potio
 export interface UpgradeDef {
   id: UpgradeId;
   name: string;
+  /** 62 C: 기억 장 '몸의 기억' 한 문장 · 수치 틀 ({n} = 그 단계 합계) */
+  line?: string;
+  detail?: string;
   perLevel: number;
   maxLevel: number;
   baseCost: number;
@@ -51,6 +54,15 @@ export interface MetaData {
   runLogs?: RunLogSummary[];
   /** 61라운드 P7·P8 일기장 이력 (다시 태어난 수·사망·보스 처치·읽은 단서·지난 이름·지난 생) — 읽을 때 `narrative/diary readDiary` */
   diary?: DiaryRecord;
+  /** 62 루프 2 (P1-8): 메타 해금 '기억' — 연 기억 id · 다음 생에 지닐 소품 (`systems/memory/memory`) */
+  memory?: MemoryRecord;
+}
+
+/** 62 P1-8 '기억' 기록 */
+export interface MemoryRecord {
+  unlocked: string[];
+  /** 마지막으로 고른 기억의 소품 (null = 빈손) — 다음 고르기의 기본값 */
+  keepsake?: string | null;
 }
 
 export interface RunSummary {

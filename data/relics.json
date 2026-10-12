@@ -1,0 +1,279 @@
+{
+  "_note": "62 루프 2 시스템 C (P16 §1 · 점검 P1-5): 보스·정예·노드·궤짝·사연 패시브를 '유품' 카드로. 문장 = 스토리 63 팩(parts/story/text-pack-63-loop2.json relics) 그대로. 카드 문법 = 개성 카드와 같다 — 그림(ui_relics/<id>, 없으면 같은 태그 개성 그림) · 조건→행동 한 문장(lines — 들고 있는 무기 문장만, 수치 없음) · 수치는 detail(상세 보기 D — 자리표시 = 같은 id 패시브의 effects·byLevel·rule.params·lowHpThreshold 키를 그 단계 값으로 채운다: '%' 앞 = ×100(critChanceAdd 제외 — 이미 퍼센트), '초' 앞 ms = ÷1000, 음수 = 절댓값, {strongAttack} = ui.strongAttack[무기]) · 태그 1개. 효과는 같은 id 의 data/passives.json 항목이 맡는다. 같은 유품을 또 고르면 한 단계 깊어진다(최대 passives.maxLevel). lines 에 없는 무기에게는 제시하지 않는다('*' = 공통)",
+  "bossChoices": 3,
+  "ui": {
+    "bossTitle": "군주의 유품 — 하나만 가져간다",
+    "bossSub": {
+      "stage1": "만취의 탁자에 남은 것들. 외상으로 달아 둔 것은 아니다."
+    },
+    "bossPrompt": "[E] 탁자를 살핀다",
+    "bossNotice": "만취의 탁자 위에 유품이 남았다.",
+    "eliteTitle": "정예의 유품 — 하나만 가져간다",
+    "eliteSub": "{enemy}의 품에서 나온 것.",
+    "rewardTitle": "유품 — 하나만 가져간다",
+    "rewardSub": "봉인이 풀린 일기장 쪽 사이에 끼어 있었다.",
+    "eventTitle": "한 잔 값 — 하나만 가져간다",
+    "curseTitle": "저주의 값 — 하나만 가져간다",
+    "footer": "고른 유품은 이 생 동안 남는다.",
+    "detailKey": "[{key}] 자세히",
+    "owned": "지닌 유품 — 한 단계 깊어진다",
+    "level": "{n}단계",
+    "maxed": "더 깊어지지 않는다",
+    "emptyPool": "가져갈 유품이 없다. 전표 {n}을 대신 받는다.",
+    "picked": "{name} — 지녔다.",
+    "strongAttack": {
+      "katana": "발도·일섬",
+      "greatsword": "차지 내려찍기·내려찍기",
+      "dagger": "낙인 터뜨리기·대쉬 찌르기",
+      "bow": "가득 당긴 화살·화살비"
+    }
+  },
+  "items": [
+    {
+      "id": "lifesteal",
+      "name": "밑 빠진 술잔",
+      "tag": "chain",
+      "lines": {
+        "katana": "적을 베어 쓰러뜨리면 체력이 한 모금 돌아온다",
+        "greatsword": "적을 내려쳐 쓰러뜨리면 체력이 한 모금 돌아온다",
+        "dagger": "적을 찔러 쓰러뜨리면 체력이 한 모금 돌아온다",
+        "bow": "화살로 적을 쓰러뜨리면 체력이 한 모금 돌아온다"
+      },
+      "detail": {
+        "*": "처치마다 체력 +{healOnKill}"
+      },
+      "flavor": "채워도 차지 않는다. 그래도 한 모금은 남는다.",
+      "_art": "바닥이 뚫린 나무 술잔, 테에 붉은 술 자국"
+    },
+    {
+      "id": "sprint",
+      "name": "징 박은 장화",
+      "tag": "breach",
+      "lines": {
+        "katana": "걸음이 빨라져 사수에게 먼저 닿는다",
+        "greatsword": "대검을 끌고도 걸음이 빨라진다",
+        "dagger": "걸음이 빨라져 적의 등 뒤로 먼저 돈다",
+        "bow": "걸음이 빨라져 다가오는 적과 거리를 먼저 벌린다"
+      },
+      "detail": {
+        "*": "이동 속도 +{moveSpeedMult}%"
+      },
+      "flavor": "징집관이 신던 것이다. 달아나는 자를 쫓으려고.",
+      "_art": "밑창에 쇠징이 박힌 군화 한 짝, 진흙"
+    },
+    {
+      "id": "ferocity",
+      "name": "납 감은 손잡이",
+      "tag": "weight",
+      "lines": {
+        "katana": "모든 베기가 한층 깊게 들어간다",
+        "greatsword": "모든 휘두름이 한층 무겁게 떨어진다",
+        "dagger": "모든 찌르기가 한층 깊게 박힌다",
+        "bow": "모든 화살이 한층 깊게 박힌다"
+      },
+      "detail": {
+        "*": "공격력 +{attackMult}%"
+      },
+      "flavor": "손이 떨려도 날은 떨지 않게.",
+      "_art": "납 띠를 친친 감은 무기 손잡이 토막"
+    },
+    {
+      "id": "lastStand",
+      "name": "출병 쪽지",
+      "tag": "vital",
+      "lines": {
+        "katana": "체력이 바닥에 가까우면 칼이 한층 깊게 벤다",
+        "greatsword": "체력이 바닥에 가까우면 대검이 한층 무겁게 떨어진다",
+        "dagger": "체력이 바닥에 가까우면 단검이 한층 깊게 박힌다",
+        "bow": "체력이 바닥에 가까우면 화살이 한층 깊게 박힌다"
+      },
+      "detail": {
+        "*": "체력 {lowHpThreshold}% 이하일 때 공격력 +{lowHpAttackMult}%"
+      },
+      "flavor": "'외상 — 내일 출병.' 내일은 늘 온다.",
+      "_art": "끈 달린 종이 쪽지, 붉은 '출병' 도장"
+    },
+    {
+      "id": "ironParry",
+      "name": "멎은 모래시계",
+      "tag": "insight",
+      "lines": {
+        "katana": "패링할 틈이 조금 넓어지고, 받아친 칼이 더 깊게 벤다",
+        "greatsword": "퍼펙트 가드 틈이 조금 넓어지고, 되받아치는 힘이 더 세진다",
+        "dagger": "공격을 아슬아슬 피할 틈이 조금 넓어진다",
+        "bow": "완벽 놓기 틈이 조금 넓어진다"
+      },
+      "detail": {
+        "katana": "패링 틈 +{perfectWindowAddMs}초 · 받아치기 피해 +{perfectCounterMult}%",
+        "greatsword": "퍼펙트 가드 틈 +{perfectWindowAddMs}초 · 되받아치기 피해 +{reflectMult}%",
+        "dagger": "완벽 회피 틈 +{perfectWindowAddMs}초",
+        "bow": "완벽 놓기 틈 +{perfectWindowAddMs}초"
+      },
+      "flavor": "모래가 떨어지다 멈췄다. 그 사이에 할 일이 있다.",
+      "_art": "모래가 허리에서 멈춘 모래시계, 금 간 유리"
+    },
+    {
+      "id": "afterimage",
+      "name": "해진 전령 망토",
+      "tag": "breach",
+      "lines": {
+        "katana": "대쉬가 더 빨리 돌아오고, 일섬이 더 깊게 벤다",
+        "greatsword": "대쉬가 더 빨리 돌아오고, 어깨 태클이 더 세게 부딪친다",
+        "dagger": "대쉬가 더 빨리 돌아오고, 대쉬 찌르기가 더 깊게 박힌다",
+        "bow": "대쉬가 더 빨리 돌아오고, 대쉬 사격이 더 세진다"
+      },
+      "detail": {
+        "*": "대쉬 대기 시간 −{dashCooldownMult}% · 대쉬 공격 피해 +{dashAttackMult}%"
+      },
+      "flavor": "전령은 늘 먼저 닿았다. 소식은 늘 늦었다.",
+      "_art": "끝이 너덜너덜한 짧은 망토, 바람에 뜬 모양"
+    },
+    {
+      "id": "whetstone",
+      "name": "숫돌",
+      "tag": "vital",
+      "lines": {
+        "katana": "칼날이 서서 치명이 더 자주 난다",
+        "greatsword": "녹슨 날에도 날이 서서 치명이 더 자주 난다",
+        "dagger": "날끝이 서서 치명이 더 자주 난다",
+        "bow": "화살촉이 서서 치명이 더 자주 난다"
+      },
+      "detail": {
+        "*": "치명 확률 +{critChanceAdd}%"
+      },
+      "flavor": "술값 대신 맡긴 물건이다. 찾으러 온 사람은 없다.",
+      "_art": "가운데가 움푹 닳은 회색 숫돌"
+    },
+    {
+      "id": "callus",
+      "name": "해진 가죽 장갑",
+      "tag": "insight",
+      "lines": {
+        "katana": "가드로 막으면 스며드는 피해가 더 줄어든다",
+        "greatsword": "가드로 버티면 스며드는 피해가 더 줄어든다",
+        "dagger": "대쉬한 직후 잠깐 받는 피해가 줄어든다",
+        "bow": "대쉬로 물러선 직후 잠깐 받는 피해가 줄어든다"
+      },
+      "detail": {
+        "katana": "가드 피해 감소 +{guardReductionAdd}%",
+        "greatsword": "가드 피해 감소 +{guardReductionAdd}%",
+        "dagger": "대쉬 뒤 {dashMs}초 받는 피해 −{dashReduction}%",
+        "bow": "대쉬 뒤 {dashMs}초 받는 피해 −{dashReduction}%"
+      },
+      "flavor": "손바닥 자리만 닳았다. 굳은살이 대신 버텼다.",
+      "_art": "손바닥이 반들반들 닳은 가죽 장갑 한 짝"
+    },
+    {
+      "id": "heavyWrist",
+      "name": "풀린 쇠고랑",
+      "tag": "weight",
+      "lines": {
+        "katana": "발도와 일섬이 더 깊게 벤다",
+        "greatsword": "차지 내려찍기와 내려찍기가 더 무겁게 떨어진다",
+        "dagger": "낙인을 터뜨리는 일격과 대쉬 찌르기가 더 깊게 박힌다",
+        "bow": "가득 당긴 화살과 화살비가 더 세진다"
+      },
+      "detail": {
+        "*": "강한 공격({strongAttack}) 피해 +{heavyDamageMult}%"
+      },
+      "flavor": "징집병 손목에 채우던 것. 풀고 나니 손목이 무겁다.",
+      "_art": "고리 하나가 벌어진 녹슨 쇠고랑"
+    },
+    {
+      "id": "closeCall",
+      "name": "옷깃에 박힌 화살",
+      "tag": "insight",
+      "lines": {
+        "katana": "대쉬로 공격을 아슬아슬 피하면 다음 베기가 더 깊다",
+        "greatsword": "대쉬로 공격을 아슬아슬 피하면 다음 휘두름이 더 무겁다",
+        "dagger": "대쉬로 공격을 아슬아슬 피하면 다음 찌르기가 더 깊다",
+        "bow": "대쉬로 공격을 아슬아슬 피하면 다음 화살이 더 세다"
+      },
+      "detail": {
+        "*": "완벽 회피 뒤 {windowMs}초 안 다음 공격 +{mult}%"
+      },
+      "flavor": "한 뼘만 옆이었으면. 그 한 뼘을 기억한다.",
+      "_art": "찢긴 옷깃 천에 비스듬히 박힌 화살 한 대"
+    },
+    {
+      "id": "domino",
+      "name": "재 담은 주머니",
+      "tag": "chain",
+      "lines": {
+        "katana": "적을 베어 쓰러뜨리면 재 파편이 튀어 가장 가까운 적을 친다",
+        "greatsword": "적을 내려쳐 쓰러뜨리면 재 파편이 튀어 가장 가까운 적을 친다",
+        "dagger": "적을 찔러 쓰러뜨리면 재 파편이 튀어 가장 가까운 적을 친다",
+        "bow": "화살로 적을 쓰러뜨리면 재 파편이 튀어 가장 가까운 적을 친다"
+      },
+      "detail": {
+        "*": "처치마다 재 파편 한 발 (공격 ×{damageMult}, {rangeTiles}칸 안)"
+      },
+      "flavor": "화장터 재가 아니다. 벽 밖에는 화장터가 없다.",
+      "_art": "입을 끈으로 묶은 삼베 주머니, 틈으로 흰 재가 샌다"
+    },
+    {
+      "id": "brokenMirror",
+      "name": "깨진 거울",
+      "tag": "breach",
+      "lines": {
+        "katana": "대쉬 직후 첫 베기를 거울 속 그림자가 한 번 더 벤다",
+        "greatsword": "대쉬 직후 첫 휘두름을 거울 속 그림자가 한 번 더 휘두른다",
+        "dagger": "대쉬 직후 첫 찌르기를 거울 속 그림자가 한 번 더 찌른다",
+        "bow": "대쉬 직후 첫 화살을 거울 속 그림자가 한 번 더 쏜다"
+      },
+      "detail": {
+        "*": "대쉬 뒤 {windowMs}초 안 첫 공격 — 그림자가 {damageMult}% 피해로 한 번 더"
+      },
+      "flavor": "비친 얼굴은 보이지 않는다. 그림자만 따라 한다.",
+      "_art": "손거울, 금이 별 모양으로 간 유리에 검은 그림자"
+    },
+    {
+      "id": "spilledDrink",
+      "name": "새는 술 부대",
+      "tag": "drunk",
+      "lines": {
+        "katana": "적을 베어 쓰러뜨리면 가끔 그 자리에 술이 고인다",
+        "greatsword": "적을 내려쳐 쓰러뜨리면 가끔 그 자리에 술이 고인다",
+        "dagger": "적을 찔러 쓰러뜨리면 가끔 그 자리에 술이 고인다",
+        "bow": "화살로 적을 쓰러뜨리면 가끔 그 자리에 술이 고인다"
+      },
+      "detail": {
+        "*": "처치 때 {chance}% 확률로 술 웅덩이 (반경 {radiusTiles}칸, {ms}초)"
+      },
+      "flavor": "꿰매도 샌다. 새는 쪽은 늘 적 쪽이다.",
+      "_art": "꿰맨 자국 많은 가죽 술 부대, 아래로 술이 똑똑"
+    },
+    {
+      "id": "hipFlask",
+      "name": "허리춤 호리병",
+      "tag": "drunk",
+      "lines": {
+        "katana": "칼집 옆에 독주를 한 병 더 차고, 쓰러진 적이 독주를 더 자주 흘린다",
+        "greatsword": "대검 끈에 독주를 한 병 더 매고, 쓰러진 적이 독주를 더 자주 흘린다",
+        "dagger": "소매 속에 독주를 한 병 더 숨기고, 쓰러진 적이 독주를 더 자주 흘린다",
+        "bow": "화살통 옆에 독주를 한 병 더 꽂고, 쓰러진 적이 독주를 더 자주 흘린다"
+      },
+      "detail": {
+        "*": "독주 최대 +{potionMaxAdd}병 · 독주가 떨어질 확률 +{potionDropAdd}%"
+      },
+      "flavor": "잔(盞)에서는 누구나 하나씩 찬다. 비어 있어도.",
+      "_art": "허리끈에 매단 조롱박 호리병, 마개는 헝겊"
+    },
+    {
+      "id": "drunkFist",
+      "name": "만취의 짝짝이 신",
+      "tag": "drunk",
+      "lines": {
+        "katana": "취기가 도는 동안 대쉬 직후 베면 비틀대며 휘어 들어가 세 번까지 이어 벤다. 끝에는 같이 비틀댄다",
+        "greatsword": "취기가 도는 동안 대쉬 직후 휘두르면 비틀대며 휘어 들어가 세 번까지 이어 친다. 끝에는 같이 비틀댄다",
+        "dagger": "취기가 도는 동안 대쉬 직후 찌르면 비틀대며 휘어 들어가 세 번까지 이어 찌른다. 끝에는 같이 비틀댄다",
+        "bow": "취기가 도는 동안 대쉬 직후 쏘면 비틀대며 휘어 들어가 활 끝으로 세 번까지 후려친다. 끝에는 같이 비틀댄다"
+      },
+      "detail": {
+        "*": "취기 중 대쉬 뒤 {windowMs}초 안 공격 → 휘는 돌진 베기 ×{damageMult}, {chain}번 연속, 끝나면 {staggerMs}초 비틀"
+      },
+      "flavor": "한 짝은 만취 것이 아니다. 누구 것인지는 장부에 있다.",
+      "_art": "크기도 색도 다른 신 두 짝, 한 짝은 군화"
+    }
+  ]
+}

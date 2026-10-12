@@ -13,6 +13,7 @@ import { NarrativeState } from '../systems/narrative/NarrativeState';
 import type { RouteState } from '../systems/route';
 import type { StructureFloorCarry } from '../systems/structures/StructureSystem';
 import { sanitizeScar, type ScarData } from '../systems/setup/scar';
+import { RunMemory } from '../systems/memory/runMemory';
 
 export type EndingChoice = 'destroy' | 'understand';
 
@@ -39,6 +40,8 @@ class GameState {
   bundle = new BundleState();
   /** 61라운드 P8 서사 런 상태 (무기 한마디 장면 1회 · 이번 생에 읽은 단서 · 만취 대사 1회) */
   narrative = new NarrativeState();
+  /** 62 루프 2 C (P1-8): 이번 생에 지닌 기억 (소품·양상·첫 개성 카드 수·잔) — 새 런마다 새로 (Progression.prepareRun 이 채운다) */
+  memory = new RunMemory();
   /** 보상 선택 중 (출구는 끝난 뒤 열림) */
   rewardPending = false;
   /** 런 시작 시 적용된 영구 강화 */
@@ -127,6 +130,7 @@ class GameState {
     this.build = new BuildState();
     this.bundle = new BundleState();
     this.narrative = new NarrativeState();
+    this.memory = new RunMemory();
     this.weapon = new WeaponState(wid, WEAPONS[wid]); // 사망 시 무기 초기화 (기획 3장)
     this.birthPending = true;
     this.scar = this.nextScar;
@@ -213,6 +217,7 @@ class GameState {
       passives: { ...this.passives.owned },
       build: this.build.toSave(),
       bundle: this.bundle.toSave(),
+      memory: this.memory.toSave(),
       playerName: this.playerName,
       ...(this.scar ? { scar: this.scar } : {}),
       savedAt: Date.now(),
@@ -240,6 +245,7 @@ class GameState {
     this.bonus = { ...EMPTY_BONUS, ...d.bonus };
     this.passives.restore(d.passives ?? {});
     this.playerName = d.playerName ?? '';
+    this.memory.restore(d.memory);
     this.scar = sanitizeScar(d.scar);
   }
 }

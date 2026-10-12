@@ -16,6 +16,7 @@ import Phaser from 'phaser';
 import { AUDIO } from '../../core/Constants';
 import { EventBus, Events, type RunEndedPayload } from '../../core/EventBus';
 import { browserStorage } from '../save';
+import { uiBus } from '../../contract/ui';
 import {
   EMPTY_AUDIO_MANIFEST,
   bgmGain,
@@ -45,7 +46,7 @@ import {
 } from './audioMix';
 import { VoiceBank } from './audioVoices';
 import { LazyAudio } from './audioLazy';
-import type { BossPhasePayload, NodeEnteredPayload } from '../../core/EventBus';
+import type { BossPhasePayload, DoorOpenedPayload, NodeEnteredPayload } from '../../core/EventBus';
 
 /** 실제 구현체(WebAudio / HTML5 / NoAudio)는 모두 setVolume 을 가진다 */
 type Snd = Phaser.Sound.BaseSound & { setVolume(value: number): unknown };
@@ -124,7 +125,7 @@ export class AudioSystem {
   private readonly loopBase = new Map<string, number>();
   private readonly storage = browserStorage();
   private onGesture?: () => void;
-  private readonly triggerHandlers: { event: string; fn: (p: unknown) => void }[] = [];
+  private readonly triggerHandlers: { event: string; fn: (p: unknown) => void; bus: Phaser.Events.EventEmitter }[] = [];
 
   /** 게임 생성 직후 1회. EventBus 구독·음소거 복원·크로스페이드 스텝 등록 */
   attach(game: Phaser.Game): void {
@@ -136,8 +137,10 @@ export class AudioSystem {
     game.events.on(Phaser.Core.Events.STEP, this.step, this);
     for (const tr of AUDIO_TRIGGERS) {
       const fn = (p: unknown) => this.onTrigger(tr, p);
-      this.triggerHandlers.push({ event: tr.event, fn });
-      EventBus.on(tr.event, fn);
+      // 62 루프 2: UI 이벤트 트리거(ui:floor-end·ui:relic-gained)는 UI 계약 버스에서 (sound §6·§13 예외)
+      const bus = tr.bus === 'ui' ? uiBus : EventBus;
+      this.triggerHandlers.push({ event: tr.event, fn, bus });
+      bus.on(tr.event, fn);
     }
     EventBus.on(Events.STAGE_STARTED, this.onStageStarted, this);
     EventBus.on(Events.BOSS_STARTED, this.onBossStarted, this);
@@ -145,6 +148,8 @@ export class AudioSystem {
     EventBus.on(Events.NODE_ENTERED, this.onNodeEntered, this);
     EventBus.on(Events.BOSS_DIED, this.onBossDied, this);
     EventBus.on(Events.EXIT_OPENED, this.endOutroSilence, this);
+    // 62 루프 2: 층 출구가 외벽 문이면 그 문이 열리는 순간도 '출구 열림' (manifest bgmBossDefeat.silentUntil)
+    EventBus.on(Events.DOOR_OPENED, this.onDoorOpened, this);
     EventBus.on(Events.PLAYER_DIED, this.onRunEnding, this);
     EventBus.on(Events.ENDING_CHOSEN, this.onRunEnding, this);
     EventBus.on(Events.RUN_ENDED, this.onRunEnded, this);
@@ -540,6 +545,10 @@ export class AudioSystem {
     this.retire(AUDIO.BOSS_DEFEAT_FADE_MS);
   }
 
+  private onDoorOpened(p: DoorOpenedPayload): void {
+    if (p?.kind === 'floor') this.endOutroSilence();
+  }
+
   private endOutroSilence(): void {
     if (!this.outroSilence) return;
     this.outroSilence = false;
@@ -686,7 +695,7 @@ export class AudioSystem {
     const game = this.game;
     if (!game) return;
     game.events.off(Phaser.Core.Events.STEP, this.step, this);
-    for (const h of this.triggerHandlers) EventBus.off(h.event, h.fn);
+    for (const h of this.triggerHandlers) h.bus.off(h.event, h.fn);
     this.triggerHandlers.length = 0;
     EventBus.off(Events.STAGE_STARTED, this.onStageStarted, this);
     EventBus.off(Events.BOSS_STARTED, this.onBossStarted, this);
@@ -694,6 +703,7 @@ export class AudioSystem {
     EventBus.off(Events.NODE_ENTERED, this.onNodeEntered, this);
     EventBus.off(Events.BOSS_DIED, this.onBossDied, this);
     EventBus.off(Events.EXIT_OPENED, this.endOutroSilence, this);
+    EventBus.off(Events.DOOR_OPENED, this.onDoorOpened, this);
     EventBus.off(Events.PLAYER_DIED, this.onRunEnding, this);
     EventBus.off(Events.ENDING_CHOSEN, this.onRunEnding, this);
     EventBus.off(Events.RUN_ENDED, this.onRunEnded, this);

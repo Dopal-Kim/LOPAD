@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { KEYS, RITUAL, SCENES } from '../core/Constants';
-import { PERSONALITY, STORY, WEAPONS } from '../data';
+import { RITUAL, SCENES } from '../core/Constants';
+import { PERSONALITY, WEAPONS } from '../data';
 import { RITUAL_DATA } from '../data/ritual';
 import { fill } from '../systems/story';
 import { chooseWeapon, strokeFeatures, type Stroke } from '../systems/personality';
@@ -11,11 +11,11 @@ import { autoStrokePoints, type AutoPreset } from '../systems/setup/autoStrokes'
 import { spriteLibrary } from '../systems/sprites/sprites';
 import { enemySheetRequests, missingRequests } from '../systems/sprites/lazySheets';
 import { queueRequests } from '../systems/sprites/sheetLoader';
-import { META_CONFIG, buyUpgrade, metaStore, upgradeCost } from '../systems/meta';
+import { META_CONFIG, metaStore } from '../systems/meta';
+import { settings } from '../systems/settings';
 import { TextMenu } from '../systems/TextMenu';
 import { worldZoom } from '../systems/display';
 import { setMenuSelect, setRitualHost } from '../contract/host';
-import { invalidateMetaSummary } from '../contract/metaSummary';
 import { EventBus, Events } from '../core/EventBus';
 import { audio } from '../systems/audio/audio';
 import {
@@ -26,6 +26,7 @@ import {
   type UiRitualCommand,
   type UiRitualPoint,
   type UiRitualStrokeJudged,
+  type UiMenuId,
 } from '../contract/ui';
 import { UI_SCENES } from '../ui';
 import { trainingText } from '../data/training';
@@ -50,6 +51,10 @@ import {
   whyOf,
 } from '../systems/ritual/ritual';
 import { firstSteps } from '../systems/ritual/firstSteps';
+import { MemoryPicks } from './setup/MemoryPicks';
+import { canUnlockAny } from '../systems/memory/memory';
+import { RUN_END } from '../data/runEnd';
+import { loadRunEndArt } from './game/RunEndArt';
 import { BirthTrialRunner } from './setup/BirthTrialRunner';
 import { trialPropRequests } from './setup/trialProps';
 import { doorFor, loadDoorIndex, loadPaint, paintLoaded } from './game/PaintArt';
@@ -62,7 +67,7 @@ import { loadBaseLook } from './game/growth/GrowthArt';
  *   영혼 강화 메뉴는 첫 생에 열지 않는다(P0-3).
  * - 두 번째 생부터: 이름 덧쓰기 한 화면(rewrite) → 운명 공개(손이 기억한 무기 = 지난 생 무기). `ritual.redraw` 면 3획만 다시(회피 시험 없음).
  *   영혼 강화는 이 화면 귀퉁이(`ritual.openMeta` → MENU 'meta').
- * 무기는 **3획만으로** 정한다(49라운드 2절, `personality.chooseWeapon`). 회피 시험은 시작 감각 +0~3 만. 그은 획은 상흔으로 런 상태에.
+ * 무기는 **3획만으로** 정한다(49라운드 2절, `personality.chooseWeapon`). 회피 시험은 첫 개성 발현 카드 수만(62 루프 2 C — S·A 4 / B·C 3). 그은 획은 상흔으로 런 상태에.
  * 화면에 획 판정 수치를 내보내지 않는다 — 운명 공개는 '왜' 한 줄(무기 목소리 말투, `data/narrative.json ritual.why`).
  */
 const NAME_MAX = 12;
@@ -89,7 +94,18 @@ export class Setup extends Phaser.Scene {
   private trialHits: number | null = null;
   private trialSkipped = false;
   private lookKey?: string;
-  private startData?: { mode: 'new'; weapon: string; playerName: string; senseBonus: number };
+  private startData?: {
+    mode: 'new';
+    weapon: string;
+    playerName: string;
+    traitCards: number;
+    keepsake: string | null;
+    aspect: string | null;
+  };
+  /** 62 루프 2 C (P1-8): 기억 장 · 운명 공개 뒤 모양·소품 고르기 */
+  private picks!: MemoryPicks;
+  /** 회피 시험 등급이 정한 첫 개성 발현 카드 수 (0 = 기본) */
+  private trialCards = 0;
   private fateTimer?: Phaser.Time.TimerEvent;
   /** 대쉬 입력 걸쇠 (짧은 탭을 놓치지 않게 — keydown 에서 세우고 다음 프레임에 쓴다) */
   private dashQueued = false;
@@ -140,17 +156,23 @@ export class Setup extends Phaser.Scene {
     // 새 런은 1층: 이전 런이 바꿔 둔 층 변형을 원본으로 (시트·예고 색)
     spriteLibrary.activate(this, 1);
     const kb = this.input.keyboard!;
+    // 62 D (P1-16): 회피 시험 이동·대쉬도 설정 키
+    const bound = settings.current().keys;
     this.keys = {
-      up: kb.addKey(KEYS.UP),
-      down: kb.addKey(KEYS.DOWN),
-      left: kb.addKey(KEYS.LEFT),
-      right: kb.addKey(KEYS.RIGHT),
-      dash: kb.addKey(KEYS.DASH),
+      up: kb.addKey(bound.up),
+      down: kb.addKey(bound.down),
+      left: kb.addKey(bound.left),
+      right: kb.addKey(bound.right),
+      dash: kb.addKey(bound.dash),
     };
     this.dashQueued = false;
     this.keys.dash.on(Phaser.Input.Keyboard.Events.DOWN, this.queueDash, this);
     this.input.mouse?.disableContextMenu();
     this.menu = new TextMenu(this);
+    this.picks = new MemoryPicks(this.menu, () => this.changed());
+    this.trialCards = 0;
+    // 62 루프 2 C: 기억 장 그림 (소품 · 모양·개성 대체 그림)
+    loadRunEndArt(this, { memoryTraits: true });
     setMenuSelect((id, key) => this.menu.select(key, id));
     setRitualHost({ command: (c) => this.command(c), state: () => this.ritual() });
     this.events.once('shutdown', () => this.shutdown());
@@ -368,7 +390,8 @@ export class Setup extends Phaser.Scene {
 
   private next(): boolean {
     if (this.phase === 'trial' && this.runner) return this.runner.skipCard(this.time.now);
-    if (this.phase === 'fate' && this.startData) {
+    // 62 루프 2 C: 모양·소품을 고르는 동안은 넘기지 않는다 (startData 는 고른 뒤에 생긴다)
+    if (this.phase === 'fate' && this.startData && !this.picks.picking) {
       this.fateTimer?.remove();
       this.startGame();
       return true;
@@ -391,48 +414,19 @@ export class Setup extends Phaser.Scene {
     return false;
   }
 
-  /** 두 번째 생부터: 영혼 강화 (P0-3 — 첫 생에는 열지 않는다). 닫기 '0' → 덧쓰기 화면 */
+  /** 두 번째 생부터: 일기장 '기억' 장 (P0-3 — 첫 생에는 열지 않는다 · 62 루프 2 C MemoryPicks). 닫기 '0' → 덧쓰기 화면 */
   private openMeta(): boolean {
     if (this.phase !== 'rewrite' && this.phase !== 'meta') return false;
     this.phase = 'meta';
-    const meta = metaStore.read();
-    const lines = META_CONFIG.upgrades.map((u, i) => {
-      const lv = meta.upgrades[u.id] ?? 0;
-      const maxed = lv >= u.maxLevel;
-      const cost = maxed ? 0 : upgradeCost(u, lv);
-      return {
-        key: String(i + 1),
-        label: `${u.name}  Lv ${lv}/${u.maxLevel}${maxed ? '  MAX' : `  ${cost} ${STORY.names.souls}`}`,
-        enabled: !maxed && meta.souls >= cost,
-      };
+    this.picks.openBook(() => {
+      this.phase = 'rewrite';
+      this.changed();
     });
-    this.menu.open(
-      'meta',
-      `${RITUAL_DATA.meta.label} · ${STORY.names.souls} ${meta.souls}`,
-      lines,
-      (key) => {
-        if (key === '0') {
-          this.menu.close();
-          this.phase = 'rewrite';
-          this.changed();
-          return;
-        }
-        const u = META_CONFIG.upgrades[Number(key) - 1];
-        const bought = u ? buyUpgrade(metaStore.read(), u.id) : null;
-        if (bought) {
-          metaStore.write(bought);
-          invalidateMetaSummary();
-        }
-        this.openMeta();
-      },
-      '',
-      { cancelKey: '0' },
-    );
     this.changed();
     return true;
   }
 
-  /** 운명 공개 → 잠시 뒤(또는 ritual.next) Game (`senseBonus` 0~3 을 시작 데이터로, 49라운드 2절) */
+  /** 운명 공개 → (모양·소품 고르기) → 잠시 뒤(또는 ritual.next) Game (62 루프 2 C: 첫 개성 카드 수·소품·모양을 시작 데이터로) */
   private decideFate(): void {
     if (this.phase === 'fate' || !this.scene.isActive()) return;
     if (!this.weaponId) {
@@ -442,8 +436,14 @@ export class Setup extends Phaser.Scene {
     this.phase = 'fate';
     this.runner?.forceEnd();
     const id = this.weaponId;
-    const senseBonus =
-      this.trialHits !== null && !this.trialSkipped ? gradeHits(this.trialHits, RITUAL_DATA.trial).bonus : 0;
+    // 62 루프 2 C (P1-5): 회피 시험 등급 → 첫 개성 발현 카드 수 (감각 삭제 — S·A 4장 / B·C 3장)
+    const T = RUN_END.trial;
+    this.trialCards =
+      this.trialHits !== null && !this.trialSkipped
+        ? T.firstTraitCards[gradeHits(this.trialHits, RITUAL_DATA.trial).grade]
+        : this.firstLife && !this.redrawing
+          ? T.skipped
+          : 0;
     // 62 P0-1: UI 에 획 특징 수치를 보내지 않는다 (무기 이름·id 만)
     __system.emit(UI_EVENTS.FATE_DECIDED, { weaponName: WEAPONS[id].name, weapon: id });
     EventBus.emit(Events.FATE_DECIDED, { weapon: id });
@@ -451,10 +451,22 @@ export class Setup extends Phaser.Scene {
     const livesBefore = this.diary.lives;
     updateDiary((d) => recordBirth(d, this.playerName));
     firstSteps.begin(livesBefore);
-    this.startData = { mode: 'new', weapon: id, playerName: this.playerName, senseBonus };
     if (!this.lookKey) this.preloadLook();
     this.changed();
-    this.fateTimer = this.time.delayedCall(RITUAL.FATE_MS, () => this.startGame());
+    // 62 루프 2 C (P1-8): 운명 공개 뒤 손이 기억한 모양 → 지닐 소품 (고르는 동안 운명 시계는 멈춘다)
+    this.picks.begin(id, () => {
+      if (this.phase !== 'fate' || !this.scene.isActive()) return;
+      this.startData = {
+        mode: 'new',
+        weapon: id,
+        playerName: this.playerName,
+        traitCards: this.trialCards,
+        keepsake: this.picks.keepsake,
+        aspect: this.picks.aspect,
+      };
+      this.changed();
+      this.fateTimer = this.time.delayedCall(RITUAL.FATE_MS, () => this.startGame());
+    });
   }
 
   private startGame(): void {
@@ -506,7 +518,9 @@ export class Setup extends Phaser.Scene {
         };
       case 'rewrite':
       case 'meta': {
-        const corner = metaCorner(metaStore.read(), META_CONFIG);
+        const meta = metaStore.read();
+        // 62 루프 2 C: 귀퉁이 '기억' — 지금 떠올릴 수 있는 것이 있나 (몸의 기억 포함)
+        const corner = { ...metaCorner(meta, META_CONFIG), canBuy: canUnlockAny(meta, META_CONFIG) };
         return {
           ...base,
           phase: 'rewrite',
@@ -576,6 +590,9 @@ export class Setup extends Phaser.Scene {
             ...(gift ? { gift } : {}),
             ...(this.weaponSource === 'remembered' ? { remembered: true } : {}),
           },
+          // 62 루프 2 C: 회피 시험 결과 = 첫 개성 발현 카드 수 · 운명 공개 뒤 모양·소품 고르기
+          ...(this.trialCards > 0 ? { giftNote: fill(RUN_END.trial.giftNote, { n: this.trialCards }) } : {}),
+          memory: this.picks.state(),
           hint: R.hints.fate,
         };
       }
@@ -607,6 +624,10 @@ export class Setup extends Phaser.Scene {
       {
         /** 계약 스냅샷 (UI 가 보는 것 — ritual · meta) */
         snapshot: () => uiCommands.getUiSnapshot(),
+        /** 62 루프 2 C: 열린 메뉴 (기억 장·모양·소품 고르기) */
+        menu: () => this.menu.menu,
+        /** 계약 명령 그대로 (uiCommands.select) */
+        select: (id: UiMenuId, key: string) => uiCommands.select(id, key),
         /** 계약 명령 그대로 (UI 와 같은 길) */
         command: (c: UiRitualCommand) => this.command(c),
         /** 이름 단계를 건너뛰고 획 단계로 (첫 생 이름 · 두 번째 생은 redraw) */

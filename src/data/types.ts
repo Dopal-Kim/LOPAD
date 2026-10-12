@@ -788,7 +788,6 @@ export interface StoryData {
     goldDesc: string;
     souls: string;
     soulsDesc: string;
-    sense: string;
     shop: string;
     shopDesc: string;
   };

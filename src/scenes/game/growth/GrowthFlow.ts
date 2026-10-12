@@ -5,7 +5,7 @@
  * 계약 UI §18: 스냅샷 `growth` · 이벤트 GROWTH_GAIN·AWAKEN·TRAIT_GAINED · firstTime = 메타 일기장 `diary.guides`.
  * 시스템 이벤트(음향 sound §10·런 로그): GROWTH_GAINED · GROWTH_MARK · TRAIT_GAINED · WEAPON_AWAKEN · WEAPON_TEMPERED.
  */
-import { BUILD_ART } from '../../../core/Constants';
+import { BUILD_ART, MENU_GUARD } from '../../../core/Constants';
 import {
   EventBus,
   Events,
@@ -20,13 +20,16 @@ import { STORY } from '../../../data';
 import { GROWTH, growthBranch, traitDef } from '../../../data/growth';
 import type { GrowthMarkKind } from '../../../data/growthTypes';
 import { UI_EVENTS, __system, type UiAwaken, type UiGrowth, type UiGrowthGain } from '../../../contract/ui';
-import { effectiveKind, pendingMarkOf, type GrowthMark } from '../../../systems/growth/growth';
+import { effectiveKind, nextMarkOf, pendingMarkOf, type GrowthMark } from '../../../systems/growth/growth';
 import { growthMenu, type GrowthChoice, type GrowthMenu } from '../../../systems/growth/growthMenu';
 import { GUIDE_KINDS, uiGrowth, uiTrait, type GuideKind } from '../../../systems/growth/uiGrowth';
 import { diaryNow, recordGuide, updateDiary } from '../../../systems/narrative/diary';
 import { evolutionLine, fill } from '../../../systems/story';
 import type { Game } from '../../Game';
 import { GrowthArt } from './GrowthArt';
+import { lockedTraits } from '../../../systems/memory/memory';
+import { RUN_END } from '../../../data/runEnd';
+import { metaStore } from '../../../systems/meta';
 
 export class GrowthFlow {
   /** 디버그: 마지막 메뉴 · 최근 사건 */
@@ -34,11 +37,22 @@ export class GrowthFlow {
   readonly log: { t: number; ev: string; info?: unknown }[] = [];
   /** 본 처음 안내 (메타 일기장 — 씬마다 한 번 읽는다) */
   private guides: string[];
-  private open: { menu: GrowthMenu; mark: GrowthMark } | null = null;
+  private open: { menu: GrowthMenu; mark: GrowthMark; traitCards?: number } | null = null;
 
   private readonly art: GrowthArt;
 
+  /** 62 루프 2 E: 이 시각(씬 ms)까지 눈금 메뉴를 열지 않는다 (성과 등급 카드 — MENU_GUARD.GRADE_HOLD_MS) */
+  private holdUntil = 0;
+  /** 62 루프 2 E: 각성 연출 시트를 미리 받은 단계 */
+  private readonly prefetched = new Set<1 | 2>();
+  private primed = false;
+
+  private readonly onGraded = (): void => {
+    this.holdUntil = this.g.time.now + MENU_GUARD.GRADE_HOLD_MS;
+  };
+
   constructor(private readonly g: Game) {
+    EventBus.on(Events.NODE_GRADED, this.onGraded);
     this.guides = [...diaryNow().guides];
     // art §26 미리보기 (UI 선택 화면·성장도 나무) · §27 개성 카드 그림 — 이 무기 것만, 작은 정지 그림
     this.art = new GrowthArt(g);
@@ -64,6 +78,7 @@ export class GrowthFlow {
     const a = w.gain(Math.round(amount));
     if (a <= 0) return;
     EventBus.emit(Events.GROWTH_GAINED, { weapon: w.id, amount: a, gauge: w.gauge } satisfies GrowthGainedPayload);
+    this.prefetchAwaken();
     __system.emit(UI_EVENTS.GROWTH_GAIN, { amount: a, gauge: w.gauge } satisfies UiGrowthGain);
   }
 
@@ -76,18 +91,44 @@ export class GrowthFlow {
   /** 매 프레임 (정지 중에도): 눈금 대기 → 다른 메뉴·보스 연출·각성 정지가 끝나면 메뉴 */
   maybeOpen(): void {
     const g = this.g;
+    // 62 루프 2 E: 노드 시작 때 이미 각성 눈금 가까이면 미리 받기 (BuildRuntime 이 생긴 뒤 첫 프레임 한 번)
+    if (this.prefetched.size === 0 && !this.primed && g.build) {
+      this.primed = true;
+      this.prefetchAwaken();
+    }
     // 메뉴가 바깥에서 닫혔으면 (씬 전환 등) 다음에 다시 연다
     if (this.open && !g.menu.isOpen) this.open = null;
     if (this.open || g.menu.isOpen || g.frozen || g.bossFlow?.busy || g.build?.awaken.playing) return;
+    // 62 루프 2 C (P1-6): 층 끝 결산 흐름이 개성 발현을 막는 동안 (군주의 유품 뒤 최대 장 수)
+    if (g.runEnd?.holdsGrowth()) return;
     if (gameState.gameOver || g.transitioning) return;
+    // 62 루프 2 E: 성과 카드·막타 슬로모 동안은 미룬다 (UI 가 카드를 다 보일 때까지 멈춘 화면으로 기다리지 않게)
+    if (g.time.now < this.holdUntil || g.combatFeel?.active) return;
     const mark = this.pending();
     if (mark) this.openMark(mark);
   }
 
-  private openMark(mark: GrowthMark): void {
+  /** 62 루프 2 E: 다음 눈금이 각성이고 게이지가 절반을 넘었으면 각성 연출 시트를 미리 받는다 (한 번) */
+  private prefetchAwaken(): void {
+    const w = gameState.weapon;
+    const next = nextMarkOf(this.floor, w.marksDone);
+    const kind = effectiveKind(next.kind, w.stage);
+    const stage = kind === 'awaken1' ? 1 : kind === 'awaken2' ? 2 : null;
+    if (!stage || this.prefetched.has(stage) || !this.g.build) return;
+    if (w.gauge < next.at * MENU_GUARD.AWAKEN_PREFETCH_AT) return;
+    this.prefetched.add(stage);
+    this.g.build.awaken.prefetch(stage);
+    this.record('prefetch', stage);
+  }
+
+  private openMark(mark: GrowthMark, rerollCards?: number): void {
     const g = this.g;
     const w = gameState.weapon;
     const kind = effectiveKind(mark.kind, w.stage);
+    // 62 루프 2 C: 첫 개성 발현 카드 수(회피 시험 등급·먹 묻은 붓) · '기억'으로 열지 않은 개성은 풀에 없다 (시험장·수련장은 제한 없음)
+    const run = !g.lab;
+    const traitCards =
+      rerollCards ?? (run && kind === 'trait' ? gameState.memory.takeTraitCards(GROWTH.traitChoices) : undefined);
     const menu = growthMenu(
       w,
       kind,
@@ -95,6 +136,7 @@ export class GrowthFlow {
       () => g.rng.next(),
       (wid, b, s, p) => this.lookKey(wid, b, s, p),
       (wid, id) => this.iconKey(wid, id),
+      { locked: run ? lockedTraits(metaStore.read(), w.id) : undefined, traitCards },
     );
     if (!menu) {
       // 고를 것이 없다 (개성·단련을 다 얻음) — 눈금만 지나간다
@@ -102,7 +144,16 @@ export class GrowthFlow {
       this.record('skip', { at: mark.at, kind });
       return;
     }
-    this.open = { menu, mark };
+    // 62 루프 2 C: 다시 뽑기(먹물 한 병·사연)가 남았으면 개성 발현 메뉴에 한 줄 (key 'reroll' — 고르면 카드를 새로 뽑는다)
+    const R = RUN_END.reroll;
+    if (run && kind === 'trait' && gameState.memory.rerolls > 0)
+      menu.lines.push({
+        key: R.key,
+        label: R.label,
+        enabled: true,
+        detail: fill(R.detail, { n: gameState.memory.rerolls }),
+      });
+    this.open = { menu, mark, traitCards };
     this.lastMenu = { kind, at: mark.at, lines: menu.lines.map((l) => l.label) };
     if (kind === 'awaken1' || kind === 'awaken2') g.build.awaken.prefetch(kind === 'awaken1' ? 1 : 2);
     EventBus.emit(Events.GROWTH_MARK, {
@@ -119,6 +170,13 @@ export class GrowthFlow {
   private select(key: string): void {
     const o = this.open;
     if (!o) return;
+    if (key === RUN_END.reroll.key) {
+      if (!gameState.memory.takeReroll()) return;
+      this.open = null;
+      this.record('reroll', { at: o.mark.at });
+      this.openMark(o.mark, o.traitCards ?? GROWTH.traitChoices);
+      return;
+    }
     const i = Number(key) - 1;
     const c = o.menu.choices[i];
     if (!c || !o.menu.lines[i]?.enabled) return;
@@ -164,6 +222,14 @@ export class GrowthFlow {
     return true;
   }
 
+  /** 62 루프 2 C: 다시 뽑기 n 개 (장터 '먹물 한 병' · 사연 '다듬는다') — 다음 개성 발현 메뉴에 한 줄로 */
+  addRerolls(n: number): void {
+    if (n <= 0) return;
+    gameState.memory.rerolls += Math.floor(n);
+    this.record('rerolls', gameState.memory.rerolls);
+  }
+
+  /** 단련 1회 (단련 눈금 · 62 루프 2 C 장터 '풀무질 한 번' — 더 할 수 없으면 false) */
   temper(): boolean {
     const g = this.g;
     const w = gameState.weapon;
@@ -302,5 +368,6 @@ export class GrowthFlow {
 
   destroy(): void {
     this.open = null;
+    EventBus.off(Events.NODE_GRADED, this.onGraded);
   }
 }

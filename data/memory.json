@@ -1,0 +1,205 @@
+{
+  "_note": "62 루프 2 시스템 C (P16 §4 · 점검 P1-8) 메타 '기억' 14종 (1층 범위) — 이름·문장 = 스토리 63 팩 memory. 영혼으로 일기장 '기억' 장에서 떠올린다. kind: keepsake 기억의 소품(태어날 때 하나 지님 — 하나 이상 떠올렸으면 운명 공개 뒤 고른다) · aspect 손이 기억한 모양(그 무기 시작 개성 한 장 — 운명 공개 때 '처음 모양'과 나란히 고름) · pool 떠올릴 개성(그 무기 기본 개성 두 장 — 떠올리기 전에는 풀에 없다) · shop 장터에 놓일 것(진열 후보에 오른다). 가장 싼 것 = firstUnlockCost(첫 사망 직후 떠올릴 수 있게). line = 한 문장(수치 없음), detail = 수치 틀({키} = effect 값). 몸의 기억(능력치 3줄)은 data/meta.json upgrades. 그림 = 소품 sprites/ui_relics/keepsake_<id>.png (아트 §31-4 — id 는 아트 파일 id: brokenCup 그림은 깨진 잔이지만 이름은 스토리 '찌그러진 투구' — 그림 고침 요청) · 모양·개성은 그 개성 그림 · 장터 것은 없음",
+  "title": "기억",
+  "intro": ["쓰러질 때마다 무언가 남았다. 영혼이다.", "영혼을 부으면 잊은 것이 하나씩 떠오른다."],
+  "souls": "지닌 영혼 {n}",
+  "firstUnlockCost": 10,
+  "chapters": [
+    {
+      "kind": "keepsake",
+      "name": "기억의 소품 — 지니고 태어날 것 하나"
+    },
+    {
+      "kind": "aspect",
+      "name": "손이 기억한 모양"
+    },
+    {
+      "kind": "pool",
+      "name": "떠올릴 개성"
+    },
+    {
+      "kind": "shop",
+      "name": "장터에 놓일 것"
+    },
+    {
+      "kind": "stat",
+      "name": "몸의 기억"
+    }
+  ],
+  "states": {
+    "locked": "아직 흐릿하다",
+    "affordable": "떠올린다 · 영혼 {n}",
+    "short": "영혼이 모자란다 · 영혼 {n}",
+    "recalled": "떠올렸다",
+    "equipped": "지니고 태어난다",
+    "equip": "[Enter] 지니고 태어난다",
+    "unequip": "[Enter] 내려놓는다"
+  },
+  "recalledNotice": "떠올렸다 — {name}. 다음 생부터 함께한다.",
+  "firstOpen": "처음으로 무언가 떠오른다. 일기장 뒤쪽, 비어 있던 장이다.",
+  "openKey": "[{key}] 기억",
+  "pick": {
+    "aspectTitle": "손이 기억한 모양",
+    "aspectHint": "[←→] 모양 · [Enter] 일어선다",
+    "aspectBase": "처음 모양",
+    "aspectBaseLine": "아무것도 쥐지 않은 손이다.",
+    "keepsakeTitle": "기억의 소품 — 지니고 태어날 것 하나",
+    "keepsakeNone": "빈손",
+    "keepsakeNoneLine": "아무것도 지니지 않고 태어난다",
+    "_noteNone": "keepsakeNone·keepsakeNoneLine·aspectDetail·poolDetail·shopDetail 은 시스템 임시 문장 (팩에 없음 — 스토리 다음 팩에서 확인)",
+    "aspectDetail": "개성 '{trait}' 한 장을 쥐고 태어난다",
+    "poolDetail": "개성 {traits} — 두 장이 풀에 섞인다",
+    "shopDetail": {
+      "inkBottle": "장터 진열 후보 '먹물 한 병'",
+      "bellows": "장터 진열 후보 '풀무질 한 번'"
+    }
+  },
+  "items": [
+    {
+      "id": "oldVoucher",
+      "kind": "keepsake",
+      "name": "접힌 전표",
+      "line": "전표 몇 장을 쥔 채 태어난다",
+      "flavor": "누가 쥐여 줬는지는 모른다. 시체는 대답하지 않는다.",
+      "detail": "시작 전표 +{startGold}",
+      "cost": 10,
+      "effect": {
+        "startGold": 30
+      },
+      "_art": "네 번 접힌 전표 묶음, 64×64"
+    },
+    {
+      "id": "inkBrush",
+      "kind": "keepsake",
+      "name": "먹 묻은 붓",
+      "line": "첫 개성 발현 때 카드를 한 장 더 본다",
+      "flavor": "일기장 첫 장을 쓴 붓이다. 먹이 마르지 않았다.",
+      "detail": "첫 개성 발현 카드 +{firstTraitCards}",
+      "cost": 25,
+      "effect": {
+        "firstTraitCards": 1
+      },
+      "_art": "끝이 먹에 젖은 가는 붓, 64×64"
+    },
+    {
+      "id": "brokenCup",
+      "kind": "keepsake",
+      "name": "찌그러진 투구",
+      "line": "처음 맞는 한 대는 투구가 대신 맞는다",
+      "flavor": "벽 밖 시체 더미에서 굴러왔다. 주인은 돌아오지 않았다.",
+      "detail": "이 생의 첫 피격 피해 0",
+      "cost": 35,
+      "effect": {
+        "firstHitBlock": 1
+      },
+      "_art": "옆이 찌그러진 쇠 투구, 64×64"
+    },
+    {
+      "id": "knotCord",
+      "kind": "keepsake",
+      "name": "닳은 매듭 끈",
+      "line": "대쉬를 연달아 한 번 더 쓸 수 있다",
+      "flavor": "전령이 손목에 감던 끈. 매듭 하나가 지나온 성문 하나다.",
+      "detail": "대쉬 충전 +{dashCharges}",
+      "cost": 40,
+      "effect": {
+        "dashCharges": 1
+      },
+      "_art": "매듭이 줄줄이 진 가죽 끈, 64×64"
+    },
+    {
+      "id": "aspect_katana",
+      "kind": "aspect",
+      "weapon": "katana",
+      "name": "값 받은 칼",
+      "line": "막고, 밀어라. 우리는 그렇게 값을 받았다.",
+      "cost": 30,
+      "trait": "k_parryShove"
+    },
+    {
+      "id": "aspect_greatsword",
+      "kind": "aspect",
+      "weapon": "greatsword",
+      "name": "앞줄의 대검",
+      "line": "앞줄은 밀어야 산다. 밀고 나가!",
+      "cost": 30,
+      "trait": "g_ramWall"
+    },
+    {
+      "id": "aspect_dagger",
+      "kind": "aspect",
+      "weapon": "dagger",
+      "name": "소매치기의 단검",
+      "line": "스치기만 해. 표시는 우리가 해 둘게.",
+      "cost": 30,
+      "trait": "d_dashBrand"
+    },
+    {
+      "id": "aspect_bow",
+      "kind": "aspect",
+      "weapon": "bow",
+      "name": "벽에 박는 활",
+      "line": "한 발이면 돼요. 벽에 박아 두면 세기 쉬워요.",
+      "cost": 30,
+      "trait": "b_perfectPin"
+    },
+    {
+      "id": "pool_katana",
+      "kind": "pool",
+      "weapon": "katana",
+      "name": "칼잡이의 잊은 수",
+      "line": "칼 개성에 두 장이 더 섞인다",
+      "cost": 20,
+      "traits": ["k_edgeLift", "k_iaiChain"],
+      "_storyCards": "스토리 팩 제안 새 개성 두 장(불똥 일섬, 칼집 쳐내기)은 루프 3 — 이번엔 기존 기본 개성 두 장을 잠갔다가 연다"
+    },
+    {
+      "id": "pool_greatsword",
+      "kind": "pool",
+      "weapon": "greatsword",
+      "name": "노역꾼의 잊은 힘",
+      "line": "대검 개성에 두 장이 더 섞인다",
+      "cost": 20,
+      "traits": ["g_shoulderFlip", "g_crackPull"],
+      "_storyCards": "스토리 팩 제안 새 개성 두 장(술통 받아치기, 버티며 걷기)은 루프 3 — 이번엔 기존 기본 개성 두 장을 잠갔다가 연다"
+    },
+    {
+      "id": "pool_dagger",
+      "kind": "pool",
+      "weapon": "dagger",
+      "name": "뒷골목의 잊은 장난",
+      "line": "단검 개성에 두 장이 더 섞인다",
+      "cost": 20,
+      "traits": ["d_flurryPull", "d_sparkFlurry"],
+      "_storyCards": "스토리 팩 제안 새 개성 두 장(소매치기, 미끄럼 걸음)은 루프 3 — 이번엔 기존 기본 개성 두 장을 잠갔다가 연다"
+    },
+    {
+      "id": "pool_bow",
+      "kind": "pool",
+      "weapon": "bow",
+      "name": "사수의 잊은 셈",
+      "line": "활 개성에 두 장이 더 섞인다",
+      "cost": 20,
+      "traits": ["b_fullBounce", "b_rainEcho"],
+      "_storyCards": "스토리 팩 제안 새 개성 두 장(술병 맞히기, 화살통 털기)은 루프 3 — 이번엔 기존 기본 개성 두 장을 잠갔다가 연다"
+    },
+    {
+      "id": "inkBottle",
+      "kind": "shop",
+      "name": "장터의 먹물",
+      "line": "장터에 먹물 한 병이 놓이기 시작한다 — 개성을 다시 뽑는다",
+      "detail": "",
+      "cost": 15,
+      "good": "inkBottle"
+    },
+    {
+      "id": "bellows",
+      "kind": "shop",
+      "name": "장터의 풀무",
+      "line": "장터에 풀무가 놓이기 시작한다 — 무기를 한 번 더 단련한다",
+      "detail": "",
+      "cost": 25,
+      "good": "bellows"
+    }
+  ]
+}

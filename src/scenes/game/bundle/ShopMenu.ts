@@ -15,6 +15,9 @@ import type { ShopStock } from '../../../systems/bundle2/BundleState';
 import { buyIntel } from '../../../systems/bundle2/routeExtras';
 import { rerollPrice, rollDisplay } from '../../../systems/bundle2/shopStock';
 import { goldCost, shopPrice } from '../../../systems/economy';
+import { shopGoodPrice, shopGoodsFor } from '../../../systems/shopGoods';
+import type { ShopGoodDef } from '../../../data/runEnd';
+import { metaStore } from '../../../systems/meta';
 import type { Game } from '../../Game';
 
 export type ShopBoughtPayload = {
@@ -74,6 +77,11 @@ export class ShopMenu {
     return goldCost(amount, gameState.gold, STORY.names.gold);
   }
 
+  /** 62 D: 시스템 C 장터 품목 중 기억으로 여는 것 (유품·독주·국밥은 진열·고정 칸이 맡는다) */
+  private goods(): ShopGoodDef[] {
+    return shopGoodsFor(metaStore.read()).filter((it) => it.id === 'inkBottle' || it.id === 'bellows');
+  }
+
   /** 상점을 열 때 (Economy.openShop): 다음 상점 할인을 이 상점에 쓴다 */
   onOpen(): void {
     const B = gameState.bundle;
@@ -88,16 +96,16 @@ export class ShopMenu {
     const s = this.stock();
     const out: UiMenuLine[] = fixed.map((l) => ({ ...l, group: 'fixed' as const }));
     s.display.forEach((d, i) => {
-      const name =
-        d.kind === 'passive' ? (gameState.passives.def(d.id)?.name ?? d.id) : (consumableDef(d.id)?.name ?? d.id);
-      const lv = d.kind === 'passive' ? gameState.passives.level(d.id) : 0;
-      const detail =
-        d.kind === 'passive'
-          ? (gameState.passives.def(d.id)?.description ?? '')
-          : (consumableDef(d.id)?.description ?? '');
+      const key = `d${i + 1}`;
+      // 62 D (P1-13): 유품 칸은 유품 카드 줄 그대로 (시스템 C BuildMenus.relicLine — 카드 그림·태그·한 줄)
+      const def = d.kind === 'passive' ? gameState.passives.def(d.id) : undefined;
+      const card = def ? this.g.buildMenus.relicLine(key, def, 'shop') : null;
+      const name = card?.label ?? def?.name ?? consumableDef(d.id)?.name ?? d.id;
+      const detail = card?.detail ?? def?.description ?? consumableDef(d.id)?.description ?? '';
       out.push({
-        key: `d${i + 1}`,
-        label: d.sold ? `${name}  ${label('soldOut')}` : `${name}${lv > 0 ? ` (Lv${lv} → ${lv + 1})` : ''}`,
+        ...(card ?? {}),
+        key,
+        label: name,
         enabled: !d.sold && gameState.gold >= d.price,
         detail,
         group: 'display',
@@ -106,6 +114,20 @@ export class ShopMenu {
         ...(d.kind === 'passive' && d.rarity ? { kind: 'passive' as const, rarity: d.rarity as never } : {}),
       });
     });
+    // 62 D (P1-13): 시스템 C 품목 중 기억으로 여는 것 (먹물 한 병 · 풀무질 한 번) — 장터마다 1회
+    for (const it of this.goods()) {
+      const sold = (s.goodsSold ?? []).includes(it.id);
+      const price = Math.round(shopGoodPrice(it) * this.priceMult());
+      out.push({
+        key: `g:${it.id}`,
+        label: it.name,
+        enabled: !sold && gameState.gold >= price,
+        detail: it.line,
+        group: 'display',
+        price: this.cost(price),
+        soldOut: sold,
+      });
+    }
     const rp = rerollPrice(s.rerolls, this.priceMult());
     out.push({
       key: 'reroll',
@@ -157,14 +179,25 @@ export class ShopMenu {
       if (!d || d.sold || !this.pay(d.price, d.id, 'display')) return true;
       d.sold = true;
       if (d.kind === 'passive') {
-        gameState.passives.add(d.id);
-        EventBus.emit(Events.PASSIVE_GAINED, { id: d.id, level: gameState.passives.level(d.id) });
-        this.g.build?.record('passive', { id: d.id, source: 'shop' });
+        // 62 D: 유품으로 지닌다 (시스템 C — 알림 RELIC_GAINED 포함)
+        this.g.buildMenus.grantRelic(d.id, 'shop');
         rerender();
       } else {
         close();
         this.g.bundle?.consumables.gain(d.id as never);
       }
+      return true;
+    }
+    if (key.startsWith('g:')) {
+      const it = this.goods().find((x) => x.id === key.slice(2));
+      if (!it || (s.goodsSold ?? []).includes(it.id)) return true;
+      // 풀무질: 더 단련할 수 없으면 사지 않는다
+      if (it.id === 'bellows' && !gameState.weapon.canTemper) return true;
+      if (!this.pay(Math.round(shopGoodPrice(it) * this.priceMult()), it.id, 'display')) return true;
+      s.goodsSold = [...(s.goodsSold ?? []), it.id];
+      if (it.id === 'inkBottle') this.g.growth.addRerolls(1);
+      else if (it.id === 'bellows') this.g.growth.temper();
+      rerender();
       return true;
     }
     if (key === 'reroll') {

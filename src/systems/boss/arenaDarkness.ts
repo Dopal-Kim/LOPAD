@@ -4,6 +4,8 @@
  * BossArena 가 만들고 lightsOut·dark·snuff 를 그대로 넘긴다 (BossArenaApi 는 BossArena 쪽).
  */
 import type Phaser from 'phaser';
+import { BOSS_ART } from '../../core/Constants';
+import { floorAmbient } from '../lighting/lightMath';
 import { EventBus, Events, type BossActionPayload, type BossScreenPayload } from '../../core/EventBus';
 import type { BossArenaParams } from '../../data/types';
 import type { Mob } from '../../objects/Mob';
@@ -60,7 +62,8 @@ export class ArenaDarkness {
     const now = H.scene.time.now;
     this.darkUntil = now + p.durationMs;
     const L = H.lighting();
-    L?.setAmbient(p.darkAmbient, p.fadeMs);
+    // 62 D (P1-14): 최저 밝기 0.25 (화면이 거의 검지 않게 — 데이터 darkAmbient 가 더 어두우면 끌어올린다)
+    L?.setAmbient(floorAmbient(p.darkAmbient, BOSS_ART.DARK_MIN_BRIGHTNESS), p.fadeMs);
     if (L) L.telegraphGain = this.A.darkTelegraphLightMult;
     H.candles.list.forEach((c, i) => {
       this.timers.push(

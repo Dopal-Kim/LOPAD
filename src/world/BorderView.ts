@@ -7,7 +7,8 @@
  * 57라운드 Q17·Q38: 그림은 WebP, 4096px 초과 띠는 조각(`BorderImage`) 여러 장 — 배치(`planBorder`)가 조각마다 자른 사각형을 준다.
  */
 import Phaser from 'phaser';
-import { ASSETS, BORDER } from '../core/Constants';
+import { ASSETS, BORDER, DOORS } from '../core/Constants';
+import { DoorLeaf, addDoorSheetFrames } from './DoorLeaf';
 import { lightRegistryOf, type LightSource } from '../systems/lighting/lightRegistry';
 import { hexColor } from '../systems/lighting/lightMath';
 import { ROUTE } from '../systems/route';
@@ -23,6 +24,7 @@ import {
   gapIsBandGate,
   northLookUp,
   planBorder,
+  sideDoorPlacement,
   wispSpots,
   type BandSide,
   type BorderDef,
@@ -80,10 +82,12 @@ export class BorderView {
     private readonly onFail: () => void,
     /** 혼불 자리 시드 (노드 시드) */
     private readonly seed = 0,
+    /** 62 루프 2 E: 서·동 외벽 문 (출구·입구 문 — 문 가운데 월드 y) */
+    private readonly sideDoors: readonly { side: 'west' | 'east'; y: number }[] = [],
   ) {
     this.plan = planBorder(def, floor, gaps);
     releaseBorderTextures(scene, def.region);
-    const sides = [...new Set(gaps.map((g) => g.side))];
+    const sides: BandSide[] = [...new Set([...gaps.map((g) => g.side), ...sideDoors.map((d) => d.side)])];
     const missing = borderFiles(def, sides).filter((f) => !scene.textures.exists(borderTextureKey(def.region, f)));
     if (missing.length === 0) {
       this.build();
@@ -127,6 +131,7 @@ export class BorderView {
     }
     for (const l of this.plan.lights) this.addLight(reg, l.light, l.x, l.y);
     for (const g of this.plan.gaps) this.drawGap(g);
+    for (const d of this.sideDoors) this.drawSideDoor(d.side, d.y);
     // 53라운드 Q22~25 황무지: 둑 위 혼불 (빛 포함)
     const V = ROUTE.view;
     if (V)
@@ -238,10 +243,72 @@ export class BorderView {
     this.doorCuts++;
   }
 
+  /** 62 루프 2 E: 서·동 외벽 문 그림 (문 그림이 없으면 그리지 않는다 — DoorView 가 어둠으로 대신). 그렸으면 true */
+  private drawSideDoor(side: 'west' | 'east', centerY: number): boolean {
+    const door = this.def.doors[side];
+    if (!door || !this.scene.textures.exists(this.key(door.image))) return false;
+    const at = sideDoorPlacement(door, side, this.floor, centerY);
+    this.drawDoorAt(door, at, false);
+    this.sideDoorsDrawn.push(side);
+    this.addLeaf(side, door, at);
+    return true;
+  }
+
+  /** 62 루프 2 F (art §31-10): 서·동 문 널문 (닫힘 덮개·열림 시트) — 문 상태는 DoorView 가 `setDoorOpen` 으로 */
+  private readonly leaves = new Map<'west' | 'east', DoorLeaf>();
+  /** 그림이 오기 전에 정해진 문 상태 (널문을 만들 때 그 칸으로) */
+  private readonly leafOpen = new Map<'west' | 'east', boolean>();
+
+  private addLeaf(side: 'west' | 'east', door: BorderDoor, at: { x: number; y: number }): void {
+    const tex = this.scene.textures;
+    const sheet = door.openSheet && tex.exists(this.key(door.openSheet.file)) ? door.openSheet : null;
+    const closedKey = door.closed && tex.exists(this.key(door.closed)) ? this.key(door.closed) : null;
+    if (!sheet && !closedKey) return;
+    const ps = this.def.pixelScale;
+    const key = sheet ? this.key(sheet.file) : closedKey!;
+    const names = sheet
+      ? addDoorSheetFrames(tex, key, sheet.frames, sheet.frameWidth / ps, sheet.frameHeight / ps)
+      : null;
+    const img = this.scene.add
+      .image(at.x, at.y, key, names?.[0])
+      .setOrigin(0, 0)
+      .setScale(ps * WORLD_PER_LOGICAL)
+      .setDepth(DOORS.DEPTH_BARRIER)
+      .setTint(this.tint);
+    this.objects.push(img);
+    this.albedo.push(img);
+    const frames = names && sheet ? { names, durationsMs: sheet.frameDurationsMs } : null;
+    this.leaves.set(side, new DoorLeaf(this.scene, img, frames, this.leafOpen.get(side) ?? false));
+  }
+
+  /** 이 쪽 문에 널문 그림 정의가 있는가 (있으면 DoorView 는 도형 막힘 판을 그리지 않는다) */
+  hasDoorLeaf(side: 'west' | 'east'): boolean {
+    const d = this.def.doors[side];
+    return Boolean(d && (d.closed || d.openSheet));
+  }
+
+  /** 문 열기·닫기 (그림이 아직 안 왔으면 상태만 — 오면 그 칸으로) */
+  setDoorOpen(side: 'west' | 'east', open: boolean, animate: boolean): void {
+    this.leafOpen.set(side, open);
+    this.leaves.get(side)?.set(open, animate);
+  }
+
+  /** 62 루프 2 E: 그림으로 그린 서·동 문 (디버그·DoorView 대체 판단) */
+  readonly sideDoorsDrawn: ('west' | 'east')[] = [];
+
+  /** 62 루프 2 E: 이 쪽 외벽 문 그림이 있는가 (정의 기준 — 그림 로드 전에도) */
+  hasSideDoorArt(side: 'west' | 'east'): boolean {
+    return Boolean(this.def.doors[side]);
+  }
+
   private drawDoor(door: BorderDoor, g: BorderGap): void {
+    this.drawDoorAt(door, doorPlacement(door, g), g.side === 'south');
+  }
+
+  private drawDoorAt(door: BorderDoor, at: { x: number; y: number }, south: boolean): void {
     const k = WORLD_PER_LOGICAL;
     const scale = this.def.pixelScale * k;
-    const { x, y } = doorPlacement(door, g);
+    const { x, y } = at;
     const p = {
       x,
       y,
@@ -251,11 +318,11 @@ export class BorderView {
       cropH: door.height / this.def.pixelScale,
       scale,
     };
-    const depth = g.side === 'north' ? BORDER.DEPTH_DOOR : BORDER.DEPTH_SOUTH_DOOR;
+    const depth = south ? BORDER.DEPTH_SOUTH_DOOR : BORDER.DEPTH_DOOR;
     const imgs = [this.albedoImage(door.image, p, depth, door.flipX)];
     if (door.emissive && this.scene.textures.exists(this.key(door.emissive)))
       imgs.push(this.image(door.emissive, p, BORDER.DEPTH_EMISSIVE, door.flipX).setBlendMode(Phaser.BlendModes.ADD));
-    if (g.side === 'south') this.south.push({ piece: p, images: imgs, sky: null });
+    if (south) this.south.push({ piece: p, images: imgs, sky: null });
     const reg = lightRegistryOf(this.scene);
     for (const l of door.lights) this.addLight(reg, l, x + l.x * k, y + l.y * k);
     this.doorPieces++;
@@ -316,6 +383,8 @@ export class BorderView {
       lights: this.lights.length,
       gaps: this.plan.gaps.map((g) => `${g.side} ${g.x0}-${g.x1}`),
       doorPieces: this.doorPieces,
+      sideDoors: [...this.sideDoorsDrawn],
+      doorLeaves: [...this.leaves].map(([side, l]) => `${side}:${l.isOpen ? 'open' : 'closed'}`),
       doorCuts: this.doorCuts,
       gateExits: this.gateExits,
       southAlpha: +this.southAlpha.toFixed(2),
@@ -329,6 +398,8 @@ export class BorderView {
     this.destroyed = true;
     for (const t of this.tweens) t.remove();
     this.tweens.length = 0;
+    for (const l of this.leaves.values()) l.destroy();
+    this.leaves.clear();
     for (const o of this.objects) o.destroy();
     this.albedo.length = 0;
     this.objects.length = 0;
@@ -348,7 +419,11 @@ let wantedBorderRegion: string | null = null;
  * 외벽 그림 한 장을 받아 텍스처로 올린다 (이미 있으면 바로 true · 받는 중이면 같은 약속). 실패하면 false — BorderView 가 벽 타일로.
  * 텍스처 키는 `border_<지역>_<파일>` 이라 지역은 키에서 읽는다
  */
-function loadBorderTexture(textures: Phaser.Textures.TextureManager, key: string, url: string): Promise<boolean> {
+export function loadBorderTexture(
+  textures: Phaser.Textures.TextureManager,
+  key: string,
+  url: string,
+): Promise<boolean> {
   if (textures.exists(key)) return Promise.resolve(true);
   const had = pendingBorder.get(key);
   if (had) return had;

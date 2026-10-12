@@ -15,9 +15,13 @@ import { Enemy } from '../objects/Enemy';
 import type { Mob } from '../objects/Mob';
 import type { TileWorld } from '../world/TileWorld';
 import type { Room } from './mapgen';
-import { Rng } from './rng';
+import { Rng, hashSeed } from './rng';
 import { isInCombat, type RoomProgress } from './traversal';
 import { scaleWave } from './structures/rules';
+import { farFace, inSide, waveSideFor, type WaveSide } from './waveSides';
+
+/** 62 D (P2-10): 그 쪽 안 자리를 찾는 시도 수 (모자라면 마지막 점 — 사방) */
+const WAVE_SIDE_TRIES = 10;
 
 type RoomState = RoomProgress;
 
@@ -208,7 +212,7 @@ export class RoomDirector {
     this.host.world.setRoomDoors(room, 'closed');
     const count = spawns.reduce((a, s) => a + s.count, 0);
     const plan = this.planChallenge(room, spawns, at);
-    this.announce(roomId, delayMs, count, plan, () => this.spawnPlanned(plan));
+    this.announce(roomId, delayMs, count, plan, null, () => this.spawnPlanned(plan));
     return true;
   }
 
@@ -221,9 +225,15 @@ export class RoomDirector {
     delayMs: number,
     count: number,
     plan: readonly PlannedSpawn[],
+    side: WaveSide | null,
     spawn: () => void,
   ): void {
-    EventBus.emit(Events.ENEMY_INCOMING, { roomId, delayMs, count } satisfies EnemyIncomingPayload);
+    EventBus.emit(Events.ENEMY_INCOMING, {
+      roomId,
+      delayMs,
+      count,
+      ...(side ? { side } : {}),
+    } satisfies EnemyIncomingPayload);
     this.pendingSpawn?.remove();
     this.pendingSpawn = null;
     if (delayMs <= 0) return spawn();
@@ -364,26 +374,42 @@ export class RoomDirector {
     const scale = { hp: this.host.stage.enemyScale.hp * mods.hpMult, attack: this.host.stage.enemyScale.attack };
     EventBus.emit(Events.TRIAL_WAVE, { roomId: room.id, wave: index + 1, total });
     const count = wave.reduce((a, w) => a + w.count, 0);
-    const plan = this.planWave(room, wave, scale);
+    const side = this.sideOf(room, index, total);
+    const plan = this.planWave(room, wave, scale, side);
     // 62 P0-8: 노드 첫 웨이브는 들어선 뒤 숨 돌릴 틈을 더 준다 (문양 예고가 그만큼 길다)
     const delay = ENEMY_INCOMING.WAVE_DELAY_MS + (index === 0 ? ENEMY_INCOMING.FIRST_WAVE_EXTRA_MS : 0);
-    this.announce(room.id, delay, count, plan, () => {
+    this.announce(room.id, delay, count, plan, side, () => {
       const spawned = this.spawnPlanned(plan);
       this.host.onWaveSpawned?.(room, index, total, spawned);
     });
   }
 
-  /** 웨이브 소환 자리 (62 P0-8: 예고 전에 미리 고른다 — 주인공과 spawnMinDistTiles 이상) */
-  private planWave(room: Room, wave: readonly WaveEntry[], scale: { hp: number; attack: number }): PlannedSpawn[] {
+  /** 62 D (P2-10): 이번 웨이브가 들어오는 쪽 (첫 웨이브 = 주인공 반대 면 · 마지막 = 사방 · 이어서 같은 쪽 없음) */
+  private sideOf(room: Room, index: number, total: number): WaveSide {
+    const c = this.host.world.roomCenter(room);
+    const I = room.interior;
+    const first = farFace(this.host.player, c, (I.w * TILE) / 2, (I.h * TILE) / 2);
+    return waveSideFor(index, total, hashSeed(`${room.id}:${gameState.seed}:${gameState.trialsCleared}`), first);
+  }
+
+  /** 웨이브 소환 자리 (62 P0-8: 예고 전에 미리 고른다 — 주인공과 spawnMinDistTiles 이상 · 62 D P2-10: 그 쪽 안에서 먼저) */
+  private planWave(
+    room: Room,
+    wave: readonly WaveEntry[],
+    scale: { hp: number; attack: number },
+    side: WaveSide = 'around',
+  ): PlannedSpawn[] {
     const out: PlannedSpawn[] = [];
+    const c = this.host.world.roomCenter(room);
+    const I = room.interior;
+    const hw = (I.w * TILE) / 2;
+    const hh = (I.h * TILE) / 2;
+    const min = this.host.stage.trial.spawnMinDistTiles;
     for (const entry of wave) {
       for (let i = 0; i < entry.count; i++) {
-        const p = this.host.world.randomPointInRoom(
-          room,
-          this.host.rng,
-          this.host.player,
-          this.host.stage.trial.spawnMinDistTiles,
-        );
+        let p = this.host.world.randomPointInRoom(room, this.host.rng, this.host.player, min);
+        for (let t = 0; t < WAVE_SIDE_TRIES && !inSide(side, p, c, hw, hh, this.host.player); t++)
+          p = this.host.world.randomPointInRoom(room, this.host.rng, this.host.player, min);
         out.push({ enemy: entry.enemy, x: p.x, y: p.y, scale });
       }
     }

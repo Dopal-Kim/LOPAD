@@ -3,6 +3,28 @@
  * UI 파트 코드는 이 파일과 phaser 만 import 한다. 시스템 파트는 `__system` 으로 구현을 등록한다.
  */
 import Phaser from 'phaser';
+// 62 루프 2 F: C·D·E 의 독립 형식·상수는 uiLoop2.ts (그대로 재수출 — UI import 경로 그대로)
+export * from './uiLoop2';
+import type {
+  UiEventIcon,
+  UiEventScene,
+  UiShopOffer,
+  UiLoop2DStructureKind,
+  UiLoop2DMenuId,
+  UiKeyBindings,
+  UiTextScale,
+  UiWorldSign,
+  UiWaveSide,
+  UiRelic,
+  UiEndChoice,
+  UiFloorEnd,
+  UiRunSummary,
+  UiMemoryEntry,
+  UiMemoryBook,
+  UiLoop2CMenuId,
+  UiDoorSide,
+  UiDoor,
+} from './uiLoop2';
 
 /**
  * 53라운드 계약 추가: 화면 기준. 실제 캔버스 1920×1080 = 논리 960×540 × RESOLUTION. UI 씬은 논리 좌표로 그린다
@@ -106,6 +128,10 @@ export const UI_EVENTS = {
   RITUAL: 'ui:ritual',
   /** §20: 획 하나 판정 (`UiRitualStrokeJudged`) — UI 연출용 (판정 수치는 보내지 않는다) */
   RITUAL_STROKE_JUDGED: 'ui:ritual-stroke',
+  /** 62 루프 2 시스템 D 이벤트 (아래 '62 루프 2 시스템 D' 절) */
+  ...loop2DEvents(),
+  /** 62 루프 2 시스템 C 이벤트 (아래 '62 루프 2 시스템 C' 절) */
+  ...loop2CEvents(),
 } as const;
 
 /** §19 그림 속 입구 전환 종류 — enterNode 노드 입구로 · exitRoom 방 → 지도 · floor 층(큰 그림) · training 수련장 방 입구로 */
@@ -689,7 +715,9 @@ export type UiMenuId =
   | UiStructureMenuId
   | UiLabMenuId
   | UiBuildMenuId
-  | UiTrainingMenuId;
+  | UiTrainingMenuId
+  | UiLoop2DMenuId
+  | UiLoop2CMenuId;
 
 /**
  * 53라운드 계약 추가 (51라운드 Q4 넣기/뽑기): 칼·대검처럼 넣고 뽑는 무기만 (단검·활은 스냅샷 carry = null).
@@ -800,7 +828,9 @@ export type UiStructureKind =
   /** 60라운드 Q32 §14.10: 이벤트 노드 소품 (E 로 이벤트 메뉴) */
   | 'eventProp'
   /** 60라운드 Q32 §14.10: 국경 초소 지도 장수 (E 로 mapInfo 메뉴) */
-  | 'mapSeller';
+  | 'mapSeller'
+  /** 62 루프 2 시스템 D: 이벤트 NPC · 상점 노점 칸 */
+  | UiLoop2DStructureKind;
 
 /** 47라운드: 상호작용 비용 표시 (계약 §9.1) */
 export interface UiCost {
@@ -1056,6 +1086,10 @@ export const UI_DEFAULT_SETTINGS: Readonly<UiSettings> = Object.freeze({
   master: 1,
   bgm: 1,
   sfx: 1,
+  // 62 루프 2 시스템 D (P1-16 — 아래 D 절): 키 재설정 · 히트스톱 · 글자 크기
+  keys: { up: 'W', down: 'S', left: 'A', right: 'D', dash: 'SPACE', interact: 'E', potion: 'Q' },
+  hitstop: true,
+  textScale: 1,
 });
 
 /** 60라운드 §14.8 소모품 칸 */
@@ -1379,6 +1413,12 @@ export const uiCommands = {
       return impl?.ritual({ kind: 'openMeta' }) ?? false;
     },
   },
+  /** 62 루프 2 시스템 D 명령 (아래 '62 루프 2 시스템 D' 절) */
+  ...loop2DCommands(),
+  /** 62 루프 2 시스템 C 명령 (아래 '62 루프 2 시스템 C' 절) */
+  ...loop2CCommands(),
+  /** 62 루프 2 시스템 E 명령 (아래 '62 루프 2 시스템 E' 절) */
+  ...loop2ECommands(),
 };
 
 /** @internal 시스템 파트 전용 */
@@ -1397,3 +1437,299 @@ export const __system = {
     uiBus.emit(event, payload);
   },
 };
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+// 62 루프 2 시스템 D (P16 §5·§6·§7·§8 — 점검 P1-2·12·13·14·16·17, P2-3·5·6·10·14). 계약 문서 §22.
+// 이 절은 같은 모듈 안의 인터페이스 합치기(declaration merging)로 위 형식에 필드를 더한다. 새 필드는 모두 선택(?)이며
+// 시스템이 채우기 전까지 비어 있다. 이름·문장은 시스템이 내려주는 문자열을 그대로 그린다(§9.8 원칙).
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/** D 이벤트 키 (UI_EVENTS 에 펼쳐 넣는다 — 함수 선언이라 위에서 먼저 쓸 수 있다) */
+function loop2DEvents() {
+  return {
+    /** P1-12: 이벤트 선택 결과 (`UiEventResult`) — 결과 컷 한 장(그림 키 + 한 줄). 고른 직후 한 번 */
+    EVENT_RESULT: 'ui:event-result',
+    /** P1-12: 숨은 보상 알림 (`UiHiddenReward`) — '다음 노드 정보' 식 한 줄 (예: 징집병이 다음 싸움 끝에 갚으러 온다) */
+    HIDDEN_REWARD: 'ui:hidden-reward',
+    /** P1-13: 노점에서 샀다 (`UiShopPurchased`) — 반짝임·소리 연출용 */
+    SHOP_PURCHASED: 'ui:shop-purchased',
+    /** P1-16: 전체화면이 바뀌었다 (`{ on: boolean }`) — F11·설정·브라우저 Esc 모두 */
+    FULLSCREEN: 'ui:fullscreen',
+    /** P2-3: 노드 시련(완 조건)이 깨졌다 (`UiNodeTrialBroken`) — 첫 피격 또는 제한 시간 넘김 순간. 성공은 기존 NODE_GRADED(grade 'perfect') */
+    NODE_TRIAL_BROKEN: 'ui:node-trial-broken',
+    /** P2-6: 로딩 진행률 (`UiLoading`) — 부팅·노드 진입·보스·수련장 로드 중 여러 번, 끝나면 done true 로 한 번 */
+    LOADING: 'ui:loading',
+  } as const;
+}
+
+// --- P1-16 설정 확장 (§15) ---
+
+export interface UiSettings {
+  /** P1-16 키 재설정 (기본 `UI_DEFAULT_KEYS`). 스냅샷에는 늘 들어 있다 */
+  keys?: UiKeyBindings;
+  /** P1-16 히트스톱(타격 순간 멈춤) 켜기 (기본 true) */
+  hitstop?: boolean;
+  /** P1-16 글자 크기 (기본 1) */
+  textScale?: UiTextScale;
+}
+
+// --- 기존 형식에 더하는 필드 (같은 모듈 인터페이스 합치기) ---
+
+export interface UiMenu {
+  /** P1-12: 이벤트 장면 머리 (id 'event' 메뉴 — NPC·설명). 없으면 옛 꼴(title·footer) */
+  event?: UiEventScene;
+  /** P1-13: 말하는 이 (shopTalk 메뉴의 상인 이름 등) */
+  speaker?: string;
+}
+
+export interface UiMenuLine {
+  /** P1-12: 이 선택의 대가 아이콘 줄 */
+  costs?: UiEventIcon[];
+  /** P1-12: 이 선택의 보상 아이콘 줄 (숨은 보상은 hidden true — UI 는 '?') */
+  rewards?: UiEventIcon[];
+}
+
+export interface UiBossSnapshot {
+  /**
+   * P1-14: 국면 이름 공개 여부 (phaseNames 와 같은 길이). false 인 국면은 아직 오지 않은 국면 — phaseNames 의 그 칸은 '' 이고
+   * UI 는 '???' 로 그린다. 국면이 바뀌는 순간(BOSS_PHASE) 그 칸이 true 가 된다
+   */
+  phaseRevealed?: boolean[];
+}
+
+export interface UiNodeTrial {
+  /** P2-3: 완(完) 조건을 지키면 받는 보상 아이콘 (예 전표 25 · 각성 20, 위험 노드 ×2 반영) */
+  reward?: UiEventIcon[];
+  /** P2-3: 이미 깨졌으면 그 이유 (아직 지키는 중이면 null) */
+  broken?: 'hit' | 'time' | null;
+}
+
+export interface UiEnemyIncoming {
+  /** P2-10: 이번 웨이브가 들어오는 쪽 (선택) */
+  side?: UiWaveSide;
+}
+
+export interface UiSnapshot {
+  /** P1-13: 가장 가까운 노점 카드 (없으면 null/생략) */
+  shopOffer?: UiShopOffer | null;
+  /** P1-16: 지금 전체화면인가 */
+  fullscreen?: boolean;
+  /** P1-17: 화면 안 월드 팻말 (수련장·시험장 허수아비) */
+  signs?: UiWorldSign[];
+  /** P2-5: 나갈 때 이어하기가 자동 저장된다 (횟수 제한 없음 — savesLeft 는 더 쓰지 않는다) */
+  autoSave?: boolean;
+}
+
+/** D 명령 구현 (시스템이 `__system.patchImpl({ loop2D })` 로 등록) */
+interface Loop2DImpl {
+  setFullscreen: (on: boolean) => boolean;
+  isFullscreen: () => boolean;
+  abandonRun: () => boolean;
+  saveAndQuit: () => boolean;
+}
+
+interface SystemImpl {
+  loop2D?: Loop2DImpl;
+}
+
+/** D 명령 (uiCommands 에 펼쳐 넣는다) */
+function loop2DCommands() {
+  return {
+    /**
+     * P1-16: 전체화면 켜기·끄기 (설정 화면 버튼 — 클릭·키 처리 안에서 불러야 브라우저가 허락한다). 바뀌었으면 true.
+     * F11 은 시스템이 읽는다(브라우저 F11 대신 게임 전체화면). 결과는 `FULLSCREEN` 이벤트·`getUiSnapshot().fullscreen`
+     */
+    setFullscreen(on: boolean): boolean {
+      return impl?.loop2D?.setFullscreen(on) ?? false;
+    },
+    toggleFullscreen(): boolean {
+      const l = impl?.loop2D;
+      return l ? l.setFullscreen(!l.isFullscreen()) : false;
+    },
+    /**
+     * P2-5: 런 포기 — 지금 런을 사망과 같은 결산으로 끝낸다(영혼은 받은 만큼, 이어하기 지움). RUN_ENDED 가 온다.
+     * 런 중이 아니면 false. 확인창은 UI 가 띄운다
+     */
+    abandonRun(): boolean {
+      return impl?.loop2D?.abandonRun() ?? false;
+    },
+    /**
+     * P2-5: 저장하고 나가기 — 이어하기를 자동 저장(횟수 제한 없음)하고 타이틀로. 싸우는 중이면 그 노드에 들어설 때 상태로 저장된다
+     * (이어하면 그 노드를 처음부터). 런 중이 아니면 그냥 타이틀. `toTitle()` 도 이제 같은 저장을 한다
+     */
+    saveAndQuit(): boolean {
+      return impl?.loop2D?.saveAndQuit() ?? false;
+    },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+// 62 루프 2 시스템 C (P16 §1~§4 — 점검 P1-5·6·7·8: 빌드 언어 '유품' · 층 끝 결산 · 죽음 연출·결산 · 메타 해금 '기억').
+// D 절과 같은 방식: 같은 모듈 인터페이스 합치기로 위 형식에 필드를 더한다. 새 필드는 모두 선택(?)이다.
+// 이름·문장 = 스토리 63 팩(시스템 data 에 합침) — UI 는 내려온 문자열을 그대로 그린다. 화면 용어는 계약 story-glossary.
+// 그림 키는 시스템이 로드한 것만 내려온다(없으면 대체 그림 키 · 그것도 없으면 생략 → UI 는 키캡·글자로).
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/** C 이벤트 키 (UI_EVENTS 에 펼쳐 넣는다) */
+function loop2CEvents() {
+  return {
+    /** P1-5: 유품 하나를 얻었다 (`UiRelic`) — 알림 한 줄(개성 획득과 같은 꼴) */
+    RELIC_GAINED: 'ui:relic-gained',
+    /**
+     * P1-6: 1층 끝 결산 (`UiFloorEnd`) — 군주의 유품·(있으면) 개성 발현 한 장이 끝나고 data runEnd.floorEnd.delayMs(1.2초) 뒤 한 번.
+     * 곧바로 RUN_ENDED(`UiResult.cleared` true · `floorEnd` · `summary`)가 뒤따르고 결과 씬이 시작된다
+     */
+    FLOOR_END: 'ui:floor-end',
+    /** P1-7: 사망 연출 시작 (`UiDeathFx`) — 슬로모·먹 번짐(시스템이 월드 위에 그린다) 동안 UI 는 HUD 를 걷는다. 끝나면 RUN_ENDED */
+    DEATH_STARTED: 'ui:death-started',
+    /** P1-8: 기억이 바뀌었다 (`UiMemoryBook`) — 해금 직후 · 소품을 고른 직후 */
+    MEMORY_CHANGED: 'ui:memory-changed',
+  } as const;
+}
+
+// --- P1-5 유품 카드 ---
+
+/*
+ * 유품 메뉴 = 메뉴 id 'passive' 그대로(카드 3장 레이아웃) · 줄 kind 'passive'(호환 — UiChoiceKind 를 넓히지 않는다) + `line.relic` 이
+ * 있으면 유품 카드: label = 이름 · detail = 한 문장(수치 없음) · 수치는 `line.relic.detail`(상세 보기 D). 머리표는 '유품'으로 그린다.
+ * 보스 '군주의 유품'은 title '군주의 유품' · `line.relic.source` 'boss'.
+ */
+
+// --- P1-6·P1-7 층 끝 · 죽음 결산 ---
+
+/** 출구 방향 (`UiSnapshot.exitHint`) — 출구가 열렸고 화면 밖이면 UI 가 가장자리 화살표를 그린다 */
+export interface UiExitHint {
+  /** 출구 가운데 논리 화면 좌표 (화면 밖이면 화면 테두리 안으로 붙인 점) */
+  x: number;
+  y: number;
+  /** 화살표 글 ('오르는 길' — 층 출구 · 노드 출구는 '') */
+  label: string;
+  /** 화면 가운데 → 출구 방향 (rad, 0 = 오른쪽, 아래가 +) */
+  angle: number;
+  /** 출구가 화면 안에 보이는가 (true 면 화살표를 숨겨도 된다) */
+  onScreen: boolean;
+  /** 주인공 → 출구 거리 (칸) */
+  distTiles: number;
+}
+
+// --- 기존 형식에 더하는 필드 ---
+
+export interface UiMenuLine {
+  /** P1-5: 유품 카드 (줄 kind 'passive' + 이 필드) */
+  relic?: UiRelic;
+  /** P1-8: 기억 한 칸 (메뉴 'meta' · 'aspect' · 'keepsake') */
+  memory?: UiMemoryEntry;
+}
+
+export interface UiSnapshot {
+  /** P1-5: 가진 유품 (얻은 순서). `passives` 는 호환용으로 같은 유품을 옛 꼴(이름·한 문장)로 싣는다 */
+  relics?: UiRelic[];
+  /** P1-6: 출구 방향 (출구가 열렸고 노드를 고르는 중이 아닐 때만 — 아니면 null) */
+  exitHint?: UiExitHint | null;
+}
+
+export interface UiResult {
+  /** P1-6·P1-7: 결산 (사망·층 끝) */
+  summary?: UiRunSummary;
+  /** P1-6: 층 끝 결산 (cleared true 이고 층 끝일 때) */
+  floorEnd?: UiFloorEnd;
+}
+
+export interface UiRitual {
+  /**
+   * P1-8: 운명 공개 뒤 고르기 — picking = 지금 여는 고르기 메뉴('aspect' · 'keepsake' · null) · aspect = 고른 양상 · keepsake = 지닐 소품.
+   * 고르는 동안은 운명 공개 시계가 멈춘다(ritual.next 거부)
+   */
+  memory?: { picking: 'aspect' | 'keepsake' | null; aspect: UiMemoryEntry | null; keepsake: UiMemoryEntry | null };
+  /** P1-5: 회피 시험 결과 한 줄 ('첫 개성 발현 때 카드 {n}장에서 고른다.' — fate, 첫 생·결과가 있을 때만) */
+  giftNote?: string;
+}
+
+/** C 명령 구현 (시스템이 `__system.patchImpl({ loop2C })` 로 등록) */
+interface Loop2CImpl {
+  memoryBook: () => UiMemoryBook;
+  unlockMemory: (id: string) => boolean;
+  setKeepsake: (id: string | null) => boolean;
+  endChoice: (c: UiEndChoice) => boolean;
+}
+
+interface SystemImpl {
+  loop2C?: Loop2CImpl;
+}
+
+/** C 명령 (uiCommands 에 펼쳐 넣는다) */
+function loop2CCommands() {
+  return {
+    /** P1-6·P1-7: 결과 화면 선택 — 'reborn' 다시 태어난다(= startNewRun) · 'closeDiary' 일기장 덮기(= toTitle) */
+    endChoice(c: UiEndChoice): boolean {
+      return impl?.loop2C?.endChoice(c) ?? false;
+    },
+    /** P1-8 일기장 '기억' 장 */
+    memory: {
+      /** 지금 기억 장 (메타 세이브 — 어느 화면에서나) */
+      book(): UiMemoryBook | null {
+        return impl?.loop2C?.memoryBook() ?? null;
+      },
+      /** 연다 (영혼 부족·이미 열림·모르는 id 면 false). 연 뒤 MEMORY_CHANGED */
+      unlock(id: string): boolean {
+        return impl?.loop2C?.unlockMemory(id) ?? false;
+      },
+      /** 다음 생에 지닐 소품을 미리 정한다 (null = 빈손 · 안 열린 소품이면 false) */
+      setKeepsake(id: string | null): boolean {
+        return impl?.loop2C?.setKeepsake(id) ?? false;
+      },
+    },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+// 62 루프 2 시스템 E (도영 님 피드백: 발판 출구 → 문 나가기 · 메뉴 뜨기 전 렉 · 렉 중 원치 않는 선택). 계약 문서 §24.
+// 같은 모듈 인터페이스 합치기로 필드를 더한다. 새 필드는 모두 선택(?).
+
+export interface UiSnapshot {
+  /** 출구 문 상태. UI 는 walkOut·inside·walkIn 동안 조작 안내·키 막대를 숨기고, 열림(open) 순간 '오르는 길' 문구를 띄울 수 있다 */
+  door?: UiDoor | null;
+}
+
+export interface UiExitHint {
+  /** 출구가 어느 벽의 문인가 (출구 = 외벽 문 — 바닥 발판 없음) */
+  side?: UiDoorSide;
+}
+
+export interface UiMenu {
+  /**
+   * 시스템이 이 메뉴를 연 시각 (`performance.now()` ms — UI 와 같은 시계). 같은 id 를 다시 그리는 것(상점 갱신 등)은 처음 시각 유지.
+   * 시스템은 `max(openedAt, menuShown 시각) + armMs` 전에 온 선택(`uiCommands.select`)을 무시한다 (렉·정지 사이 쌓인 클릭·숫자 키)
+   */
+  openedAt?: number;
+  /** 열린 뒤 선택을 받지 않는 시간 (ms) */
+  armMs?: number;
+}
+
+export interface UiRoute {
+  /** choosing 이 켜진 시각 (`performance.now()`) — `chooseNode` 도 UiMenu 와 같은 규칙으로 armMs 동안 무시 */
+  openedAt?: number;
+  armMs?: number;
+}
+
+/** E 명령 구현 (시스템이 `__system.patchImpl({ loop2E })`) */
+interface Loop2EImpl {
+  menuShown: (id: UiMenuId | 'route') => void;
+}
+
+interface SystemImpl {
+  loop2E?: Loop2EImpl;
+}
+
+/** E 명령 (uiCommands 에 펼쳐 넣는다) */
+function loop2ECommands() {
+  return {
+    /**
+     * 메뉴(또는 'route' 노드 고르기 지도)를 실제로 화면에 그렸다 — 기다림(성과 카드 등)·등장 애니가 끝난 순간 한 번.
+     * 시스템은 그때부터 armMs 를 다시 센다 (늦은 쪽). 부르지 않아도 openedAt 기준 가드는 그대로
+     */
+    menuShown(id: UiMenuId | 'route'): void {
+      impl?.loop2E?.menuShown(id);
+    },
+  };
+}

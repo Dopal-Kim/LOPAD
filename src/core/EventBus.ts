@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import type { BossPatternName } from '../data/bossPatterns';
 import type { ComboFollowUpDef, HitShapeSpec } from '../data/comboTypes';
+import { LOOP2D_EVENTS } from './eventsLoop2D';
+import { LOOP2E_EVENTS } from './eventsLoop2E';
+export type * from './eventsLoop2D';
+export type * from './eventsLoop2E';
 
 /** 씬·시스템 간 유일한 통신 경로. 직접 참조 금지. */
 export const EventBus = new Phaser.Events.EventEmitter();
@@ -223,7 +227,16 @@ export const Events = {
   TRAINING_REACH: 'training:reach',
   /** 61 단계 6 수련장 내부: 훈련 예고(원·선·부채)가 그려짐 (`TrainingDrillPayload` — 회피 과제 조건) */
   TRAINING_DRILL: 'training:drill',
+  /** 62 루프 2 시스템 D (core/eventsLoop2D.ts) */
+  ...LOOP2D_EVENTS,
+  /** 62 루프 2 시스템 E: 문 나가기 · 메뉴 입력 가드 (core/eventsLoop2E.ts) */
+  ...LOOP2E_EVENTS,
+  /** 62 루프 2 시스템 C: 기억을 떠올렸다 (`MemoryUnlockedPayload` — 음향 memory_unlock, 계약 sound §13) */
+  MEMORY_UNLOCKED: 'memory:unlocked',
 } as const;
+
+/** 62 루프 2 C `MEMORY_UNLOCKED` — kind = keepsake·aspect·pool·shop·stat */
+export type MemoryUnlockedPayload = { id: string; kind: string };
 
 export type PlayerAttackPayload = {
   /** 62라운드 P1-3: 원거리 공격의 커서 월드 좌표 (커서가 적 그림 위면 그 적의 몸통 바닥으로 조준 — BowShots) */
@@ -591,6 +604,8 @@ export interface EnemyIncomingPayload {
   roomId: string;
   delayMs: number;
   count?: number;
+  /** 62 D (P2-10): 이번 웨이브가 들어오는 쪽 */
+  side?: import('./eventsLoop2D').WaveSidePayload;
 }
 
 /**

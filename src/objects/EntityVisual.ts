@@ -280,7 +280,7 @@ export class EntityVisual {
    * 56라운드 Q36: 반투명 색 번쩍임 (적 피격 = 호박 반투명) — 몸 위에 같은 프레임 사본을 채움색·알파로 겹친다.
    * 시간은 트윈으로 재므로 히트스톱(씬 시계 정지)에 늘어나지 않는다. 시트가 없으면 곱 틴트를 같은 시간만
    */
-  flashOverlay(color: number, alpha: number, ms: number, add = false): void {
+  flashOverlay(color: number, alpha: number, ms: number, add = false, fill = true): void {
     const host = this.host;
     const scene = host.scene;
     this.tintTween?.stop();
@@ -307,8 +307,10 @@ export class EntityVisual {
       });
     }
     this.copyHost(copy);
+    // 62 D (P1-14): fill false = 같은 그림을 곱 틴트로 더한다 (형태 유지 — 보스 피격 섬광)
+    if (fill) copy.setTintFill(color);
+    else copy.setTint(color);
     copy
-      .setTintFill(color)
       .setAlpha(alpha)
       .setBlendMode(add ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL)
       .setVisible(host.visible);
@@ -542,6 +544,11 @@ export class EntityVisual {
   flash(color: number): void {
     if (this.animated) this.host.setTintFill(color);
     else this.host.setTint(color);
+  }
+
+  /** 62 D (P1-14): 시트가 그려지는 중인가 (형태 유지 섬광을 쓸 수 있나) */
+  get sheetDrawn(): boolean {
+    return this.animated;
   }
 
   restore(): void {

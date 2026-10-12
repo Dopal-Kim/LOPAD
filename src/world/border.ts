@@ -90,6 +90,19 @@ export interface BorderDoor {
   /** 파일 없이 mirrorOf 만 있으면 그 그림을 좌우 반전 */
   flipX: boolean;
   lights: BorderLight[];
+  /** 62 루프 2 F (art §31-10): 닫힌 널문 덮개 (문 그림과 같은 크기·원점, 알파 — DOORS.DEPTH_BARRIER) */
+  closed: string | null;
+  /** 62 루프 2 F (art §31-10): 열림 시트 — 가로 한 줄, 0 = 닫힘 → 마지막 = 다 열림 (닫힘은 거꾸로) */
+  openSheet: BorderDoorSheet | null;
+}
+
+/** 문 열림 시트 (논리 px — 텍스처 px 는 ÷ pixelScale) */
+export interface BorderDoorSheet {
+  file: string;
+  frames: number;
+  frameWidth: number;
+  frameHeight: number;
+  frameDurationsMs: number[];
 }
 
 export interface BorderDef {
@@ -242,6 +255,25 @@ function doorOf(raw: unknown): BorderDoor | null {
     openingY: num(d.openingY, height / 2),
     flipX: !own && Boolean(str(d.mirrorOf)),
     lights: lightsOf(d.lights),
+    closed: str(d.closed),
+    openSheet: sheetOf(d.openSheet, width, height),
+  };
+}
+
+function sheetOf(raw: unknown, width: number, height: number): BorderDoorSheet | null {
+  const s = raw as Record<string, unknown> | undefined;
+  const file = s ? str(s.file) : null;
+  const frames = s ? Math.floor(num(s.frames, 0)) : 0;
+  if (!s || !file || frames < 2) return null;
+  const ms = Array.isArray(s.frameDurationsMs)
+    ? s.frameDurationsMs.filter((v): v is number => typeof v === 'number')
+    : [];
+  return {
+    file,
+    frames,
+    frameWidth: num(s.frameWidth, width),
+    frameHeight: num(s.frameHeight, height),
+    frameDurationsMs: Array.from({ length: frames }, (_, i) => ms[i] ?? ms[ms.length - 1] ?? 100),
   };
 }
 
@@ -287,6 +319,45 @@ export function parseBorder(raw: unknown, region: string): BorderDef | null {
   };
 }
 
+/**
+ * 62 루프 2 F (art §31-10): 외벽 테두리 없는 방의 문틀만 (`tiles/border/<지역>/doors.json` — border.json `doors` 와 같은 형식).
+ * 지금은 수련장 일반 방(`training`)
+ */
+export interface DoorsOnlyDef {
+  region: string;
+  pixelScale: number;
+  doors: Partial<Record<'west' | 'east', BorderDoor>>;
+}
+
+export const DOORS_ONLY_JSON = 'doors.json';
+/** 문틀만 있는 지역 (테두리 없는 방) */
+export const DOORS_ONLY_REGIONS: readonly string[] = ['training'];
+
+export function doorsOnlyJsonRel(region: string): string {
+  return `${BORDER.DIR}/${region}/${DOORS_ONLY_JSON}`;
+}
+
+export function parseDoorsOnly(raw: unknown, region: string): DoorsOnlyDef | null {
+  const j = raw as Record<string, unknown> | null;
+  if (!j || typeof j !== 'object') return null;
+  const doorsRaw = (j.doors ?? {}) as Record<string, unknown>;
+  const doors: DoorsOnlyDef['doors'] = {};
+  for (const side of ['west', 'east'] as const) {
+    const d = doorOf(doorsRaw[side]);
+    if (d) doors[side] = d;
+  }
+  if (!doors.west && !doors.east) return null;
+  return { region, pixelScale: num(j.pixelScale, 0.5) > 0 ? num(j.pixelScale, 0.5) : 0.5, doors };
+}
+
+/** 문 하나가 쓰는 그림 파일 (문틀·발광·닫힘·열림 시트) */
+export function doorFiles(d: BorderDoor): string[] {
+  return [d.image, d.emissive, d.closed, d.openSheet?.file].filter((f): f is string => Boolean(f));
+}
+
+/** 지역 id → 문틀만 정의 (Preloader 가 채운다) */
+export const doorsOnlyDefs = new Map<string, DoorsOnlyDef>();
+
 // --- 등록 (Preloader 가 채운다) ---
 
 /** 지역 id → 테두리 정의 (border.json 이 있는 지역만) */
@@ -331,9 +402,7 @@ export function borderFiles(def: BorderDef, doorSides?: readonly BandSide[]): st
   for (const p of Object.values(def.bands.north.sides ?? {})) addImages(p.images);
   for (const side of doorSides ?? BAND_SIDES) {
     const d = def.doors[side];
-    if (!d) continue;
-    out.add(d.image);
-    if (d.emissive) out.add(d.emissive);
+    if (d) for (const f of doorFiles(d)) out.add(f);
   }
   return [...out];
 }
@@ -493,6 +562,21 @@ export function planBorder(def: BorderDef, floor: WorldRect, gaps: BorderGap[] =
 export function doorPlacement(door: BorderDoor, gap: BorderGap): { x: number; y: number } {
   const k = WORLD_PER_LOGICAL;
   return { x: (gap.x0 + gap.x1) / 2 - door.openingX * k, y: gap.y - door.baselineY * k };
+}
+
+/**
+ * 62 루프 2 E 외벽 문 (서·동): 골목 입구 조각의 왼쪽 위 (월드) — baselineX 열이 바닥 서·동 끝, openingY 가 문 가운데 y.
+ * 동쪽 조각(서쪽의 좌우 반전)은 baselineX 0 = 바닥 동쪽 끝, 서쪽은 baselineX = 조각 폭 = 바닥 서쪽 끝
+ */
+export function sideDoorPlacement(
+  door: BorderDoor,
+  side: 'west' | 'east',
+  floor: WorldRect,
+  centerY: number,
+): { x: number; y: number } {
+  const k = WORLD_PER_LOGICAL;
+  const edge = side === 'east' ? floor.x1 : floor.x0;
+  return { x: edge - door.baselineX * k, y: centerY - door.openingY * k };
 }
 
 /**

@@ -7,6 +7,8 @@ import { BUILD_ART, BUILD_FX, TILE } from '../../../core/Constants';
 import { EventBus, Events, type EndureTriggeredPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { BUILD } from '../../../data/build';
+import { PLAYER_DATA } from '../../../data';
+import { memoryDef } from '../../../data/memory';
 import { param } from '../../../systems/build/buildMods';
 import type { Game } from '../../Game';
 import type { BuildRuntime } from './BuildRuntime';
@@ -27,6 +29,16 @@ export class BuildDefense implements PlayerBuildHooks {
   }
 
   evadeHit(time: number, source?: { dirX: number; dirY: number }): boolean {
+    // 62 루프 2 C (P1-8): 기억의 소품 '찌그러진 투구' — 이 생의 첫 피격 피해 0 (무적 짧게 — 같은 접촉이 바로 다시 맞지 않게)
+    if (!this.g.lab && gameState.memory.takeHitBlock()) {
+      const p = this.g.player;
+      p.grantInvulnerable(time + PLAYER_DATA.invulnerableMs);
+      const name = memoryDef(gameState.memory.keepsake ?? '')?.name;
+      if (name) this.rt.fx.callout(name);
+      this.rt.record('keepsakeBlock');
+      this.last = 'keepsakeBlock';
+      return true;
+    }
     // 61 G 개성 '분신 방패' (단검 쌍격): 분신이 대신 맞는다
     if (this.rt.traits.evadeHit(time)) return true;
     if (this.rt.stage('drunk') < 4) return false;
@@ -147,7 +159,8 @@ export class BuildDefense implements PlayerBuildHooks {
   }
 
   dashCharges(): number {
-    return 1 + this.rt.stat('dashCharges');
+    // 62 루프 2 C: 기억의 소품 '닳은 매듭 끈' 대쉬 충전 +1
+    return 1 + this.rt.stat('dashCharges') + (this.g.lab ? 0 : gameState.memory.dashCharges);
   }
 
   shadowStepCooldown(baseMs: number): number {

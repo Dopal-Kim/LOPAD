@@ -8,11 +8,11 @@
  * 56라운드: Q6 8행 이펙트 시트는 조준각 8분할 행(없으면 4방향 회전 규칙) · Q37 히트스톱 정지 = 붓획이 다 그어진 다음 칸
  * (띄우는 시각은 그대로 판정 프레임 = 몸 hitAt) · Q38 칼끝 리본은 돌진류(대쉬 공격)에만 · Q5 땅 균열(`playCrack`).
  */
-import { DEPTH, ENEMY_FX, FEEDBACK, fxLitDepth } from '../../core/Constants';
+import { DEPTH, ENEMY_FX, FEEDBACK, SWING_SMEAR, fxLitDepth } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import type { HitShapeSpec } from '../../data/types';
-import { artCandidates, pickArt } from '../../systems/weapon/comboArt';
+import { artCandidates, overlayArtCandidates, pickArt, smearFxId } from '../../systems/weapon/comboArt';
 import { comboFxId, kenkiFxId, slamFxId } from '../../systems/fx/fxIds';
 import { comboRadius, comboShape, resolveHitShape, type HitShape } from '../../systems/weapon/hitShapes';
 import { spriteLibrary } from '../../systems/sprites/sprites';
@@ -25,6 +25,7 @@ import {
   facingOf,
   frameStarts,
   fxHoldFrame,
+  overlayActionsFor,
   fxImpactFrame,
   radiusFitScale,
   rowDirFor,
@@ -53,6 +54,17 @@ export class SwingFx {
   /** 씬 진행 중(정지·사망 아님)인지 — 지연 실행 콜백 공통 확인 */
   private get live(): boolean {
     return this.g.scene.isActive() && !this.g.frozen && !gameState.gameOver;
+  }
+
+  /** 62 D (P1-2): 이 타의 몸 동작에 스미어 시트(`<무기>_<동작>_smear`)가 올라와 있나 */
+  smearFor(p: PlayerAttackPayload): string | null {
+    if (!p.bodyAction) return null;
+    const w = gameState.weapon;
+    for (const a of overlayActionsFor(p.bodyAction, w.id, (r) => overlayArtCandidates(w.def.combo, r))) {
+      const id = smearFxId(w.id, a);
+      if (this.g.fx.has(id)) return id;
+    }
+    return null;
   }
 
   /** 판정 배율 = 갈래·강화 (WeaponState.rangeMult) × 58라운드 주인공 판정 배율 — 휘두름 그림도 이만큼 */
@@ -162,7 +174,18 @@ export class SwingFx {
     const scaleMult = pick.heatScale * hb;
     // 56라운드 Q6: 8행 이펙트 시트(대검 붓획)는 몸과 같은 8분할 행
     const fxDir = rowDirFor(g.fx.sheet(id), p.dirX, p.dirY, g.player.facingDir);
-    const delay = this.playAligned(id, p.swingDelayMs, scaleMult, combo, pick.variant, fxDir, 1 + (p.momentum ?? 0));
+    // 62 D (P1-2 · art §31.1): 스미어가 무기에 붙어 그려지면 떨어진 옛 호 fx 는 알파를 낮춘다 (판정·불티는 그대로)
+    const alpha = combo && this.smearFor(p) ? SWING_SMEAR.OLD_ARC_ALPHA : 1;
+    const delay = this.playAligned(
+      id,
+      p.swingDelayMs,
+      scaleMult,
+      combo,
+      pick.variant,
+      fxDir,
+      1 + (p.momentum ?? 0),
+      alpha,
+    );
     const ribbon = this.startRibbon(p, dir, shape, id, hb);
     this.debugLast = { id, art: p.art, tier: pick.tier, scaleMult, delay, hitAt: p.swingDelayMs, ribbon };
   }
@@ -178,6 +201,7 @@ export class SwingFx {
     variant: FxVariant | null,
     dir: Dir8,
     timeScale = 1,
+    alpha = 1,
   ): number {
     const g = this.g;
     const def = g.fx.sheet(id);
@@ -208,6 +232,7 @@ export class SwingFx {
         hitstopFrame: holdFrame,
         trail: false,
         timeScale,
+        ...(alpha < 1 ? { alpha } : {}),
       });
     };
     if (delay > 0) g.time.delayedCall(delay, play);

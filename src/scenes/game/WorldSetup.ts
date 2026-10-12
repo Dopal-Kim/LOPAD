@@ -17,12 +17,16 @@ import { pickPropScene, planNodeArena, setPieceTiles } from '../../systems/route
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { planStructures, structureTiles, type StructurePlacement } from '../../systems/structures/placement';
 import { BorderView, releaseBorderTextures } from '../../world/BorderView';
-import { borderFor, borderGaps, floorRectOf, type BorderDef } from '../../world/border';
+import { borderFor, borderGaps, doorsOnlyDefs, floorRectOf, type BorderDef } from '../../world/border';
+import { SideDoorArt } from '../../world/SideDoorArt';
 import { SetPieceView } from '../../world/SetPieceView';
+import { planHeroSetpiece, planSoot } from '../../world/heroSetpiece';
+import { drawHeroDressing } from './heroDressing';
 import { pillarSheet } from '../../systems/boss/BossArena';
 import { TileSkin, propSceneTags, propSkinFor, skinFor, tileSkins } from '../../world/tileskin';
 import { TileWorld } from '../../world/TileWorld';
 import type { Game } from '../Game';
+import { doorSpotsFor } from './doors/ArenaDoors';
 import { urlParams } from './shared';
 
 export class WorldSetup {
@@ -129,6 +133,15 @@ export class WorldSetup {
           node: arena ? arena.structureNode : undefined,
         });
     const borderDef = arena ? borderDefFor(arena.regionId) : null;
+    // 62 D (P2-10 · art §31.9): 전투 노드 세트피스 1개 (발자국 칸 막힘) · 그을음 데칼
+    const taken = arena
+      ? new Set([...structureTiles(structurePlan), ...setPieceTiles(arena)])
+      : structureTiles(structurePlan);
+    const heroOn = Boolean(arena && (g.nodeKind === 'battle' || g.nodeKind === 'road'));
+    const hero = heroOn ? planHeroSetpiece(layout, arena!.regionId, gameState.floorSeed + nodeSalt, taken) : null;
+    if (hero)
+      for (let y = hero.ty; y < hero.ty + hero.h; y++)
+        for (let x = hero.tx; x < hero.tx + hero.w; x++) taken.add(`${x},${y}`);
     g.world = new TileWorld(
       g,
       layout,
@@ -138,31 +151,39 @@ export class WorldSetup {
           ? skinFor(floor, LAB.TRAINING_TILESET)
           : (tileSkins.get(floor) ?? TileSkin.placeholder()),
       gameState.floorSeed + nodeSalt,
-      arena ? new Set([...structureTiles(structurePlan), ...setPieceTiles(arena)]) : structureTiles(structurePlan),
+      taken,
       // 53라운드 v3 바닥 소품 (`tiles/v3/<지역 타일셋>_props`) — 있으면 큰 소품·작은 소품을 그 시트에서
       // 54라운드 Q11: 보스방 기둥(고정 단단한 큰 소품) · 무작위로 놓지 않을 큰 소품
       {
         boundaryWalls: !borderDef,
         propSkin: arena ? propSkinFor(arena.tileset) : null,
-        fixedBigProps: (arena?.setPiece.pillars ?? []).map((r) => ({
-          name: pillarPropName(),
-          tx: r.x,
-          ty: r.y,
-          w: r.w,
-          h: r.h,
-        })),
+        fixedBigProps: [
+          ...(arena?.setPiece.pillars ?? []).map((r) => ({
+            name: pillarPropName(),
+            tx: r.x,
+            ty: r.y,
+            w: r.w,
+            h: r.h,
+          })),
+          // 62 D: 세트피스 칸 (소품 시트에 없는 이름 — 칸만 막고 그림은 heroViews)
+          ...(hero ? [{ name: hero.sheet, tx: hero.tx, ty: hero.ty, w: hero.w, h: hero.h }] : []),
+        ],
         excludeBigProps: arena?.setPiece.excludeBigProps ?? [],
         // 61라운드 계약 art §24: 방 변주 장면 (소품 시트 variantTag)
         propScene: arena ? pickPropScene(propSceneTags(propSkinFor(arena.tileset)), g.node, gameState.floorSeed) : null,
       },
     );
     g.border = this.createBorder(borderDef, layout);
+    // 62 루프 2 F (art §31-10): 테두리 없는 수련장 방 = 문틀만 (doors.json)
+    g.doorArt?.destroy();
+    g.doorArt = !g.border && g.training?.room ? this.createDoorArt(layout) : null;
     g.physics.world.setBounds(0, 0, g.world.widthPx, g.world.heightPx);
     // 층 강조색: 캐릭터 시트의 1층 램프를 현재 층 램프로 치환한 변형 텍스처·애니 (1층은 원본)
     spriteLibrary.activate(g, floor);
     // 49라운드 세트 배치 그림 (층 램프 변형 시트를 쓰므로 activate 뒤)
     g.setPieceView?.destroy();
     g.setPieceView = arena ? new SetPieceView(g, arena.setPiece) : null;
+    if (arena) drawHeroDressing(g, hero, planSoot(layout, arena.regionId, gameState.floorSeed + nodeSalt, taken));
     // 저장고가 있으면 카메라 경계에 넣는다 (부수면 그 안으로 들어간다)
     for (const p of structurePlan) if (p.cellar) g.world.extendCamera(p.cellar.inner, 1);
     const kd = g.nodeKind ? kindDef(g.nodeKind) : null;
@@ -183,10 +204,20 @@ export class WorldSetup {
       borderGaps(layout, TILE),
       () => g.world.quarter?.setBoundaryWalls(true),
       hashSeed(`${gameState.floorSeed}:${g.node?.id ?? 'entry'}:border`),
+      sideDoorsOf(layout, g),
     );
     const c = view.plan.camera;
     g.world.setArenaCamera(c.x0, c.y0, c.x1 - c.x0, c.y1 - c.y0);
     return view;
+  }
+
+  /** 문틀만 (수련장 일반 방 — `tiles/border/training/doors.json`) */
+  private createDoorArt(layout: FloorLayout): SideDoorArt | null {
+    const def = doorsOnlyDefs.get('training');
+    const floorRect = def ? floorRectOf(layout, TILE) : null;
+    if (!def || !floorRect) return null;
+    const sides = sideDoorsOf(layout, this.g).filter((d) => def.doors[d.side]);
+    return sides.length > 0 ? new SideDoorArt(this.g, def, floorRect, sides) : null;
   }
 
   /**
@@ -217,6 +248,19 @@ export class WorldSetup {
     const hasBorder = (r: string | null | undefined) => Boolean(borderDefFor(r));
     return lightingAmbientFor(g.nodeArena?.regionId, flag, Boolean(g.nodeArena || g.lab), hasBorder, LIGHTING);
   }
+}
+
+/** 62 루프 2 E: 외벽 테두리에 그릴 서·동 문 (출구·입구 문 가운데 y — ArenaDoors 와 같은 자리) */
+function sideDoorsOf(layout: FloorLayout, g: Game): { side: 'west' | 'east'; y: number }[] {
+  const spots = doorSpotsFor(layout, {
+    routeMode: g.routeMode,
+    trainingRoom: Boolean(g.training?.room),
+    birth: g.nodeKind === 'birth',
+  });
+  const out: { side: 'west' | 'east'; y: number }[] = [];
+  for (const s of [spots.exit, spots.entry])
+    if (s && (s.side === 'west' || s.side === 'east')) out.push({ side: s.side, y: s.mouth.y });
+  return out;
 }
 
 /**

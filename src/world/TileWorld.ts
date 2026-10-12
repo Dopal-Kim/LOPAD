@@ -396,7 +396,7 @@ export class TileWorld {
     for (const t of door.tiles) this.put(id, t.x, t.y);
   }
 
-  /** 보스 방 중앙에 2×2 출구 타일을 놓는다 */
+  /** 보스 방 중앙에 2×2 출구 타일을 놓는다 (방+복도 층만 — 노드 지도 층은 외벽 문) */
   placeExit(room: Room): { x: number; y: number } {
     const I = room.interior;
     const tx = I.x + Math.floor(I.w / 2) - 1;
@@ -414,12 +414,10 @@ export class TileWorld {
     return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
   }
 
-  /** 48라운드: 지정 타일(왼쪽 위)에 2×2 출구 · 상점. 중심 px 반환 */
-  placeExitAt(tx: number, ty: number): { x: number; y: number } {
-    for (let y = ty; y < ty + 2; y++) for (let x = tx; x < tx + 2; x++) this.put(TileId.Exit, x, y);
-    return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
-  }
-
+  /**
+   * 48라운드: 지정 타일(왼쪽 위)에 2×2 상점. 중심 px 반환.
+   * (62 루프 2 E: 노드 전투장 출구 발판 `placeExitAt` 는 지웠다 — 출구는 외벽 문 `scenes/game/doors/ArenaDoors`)
+   */
   placeShopAt(tx: number, ty: number): { x: number; y: number } {
     for (let y = ty; y < ty + 2; y++) for (let x = tx; x < tx + 2; x++) this.put(TileId.Shop, x, y);
     return { x: (tx + 1) * TILE, y: (ty + 1) * TILE };
@@ -429,6 +427,7 @@ export class TileWorld {
     return this.tileIdAtWorld(worldX, worldY) === TileId.Shop;
   }
 
+  /** 방+복도 층(노드 지도 아님)의 출구 발판 위인가 — 노드 전투장은 외벽 문 (ArenaDoors) */
   isExitAt(worldX: number, worldY: number): boolean {
     return this.tileIdAtWorld(worldX, worldY) === TileId.Exit;
   }

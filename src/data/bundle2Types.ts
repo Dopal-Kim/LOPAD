@@ -22,6 +22,8 @@ export type EventEffect =
   /** 61라운드 E4 '지난 생의 기록을 읽는다' — 일기장 이력으로 한 줄 (EventDef.diaryRead) */
   | { kind: 'diaryRead'; value: number }
   | { kind: 'shopDiscount'; value: number }
+  /** 62 D (P1-12) E4 '다듬는다': 다음 개성 발현 다시 뽑기 +value (옛 감각 +1 대신 — 시스템 C GrowthFlow.addRerolls) */
+  | { kind: 'reroll'; value: number }
   | { kind: 'passive'; choices: number; rarities: string[] }
   | { kind: 'curse'; id: string };
 
@@ -44,7 +46,48 @@ export interface EventOption {
   holdMs?: number;
 }
 
+/** 62 D (P1-13) 종군 상인 대사 (스토리 63 팩 shop.merchant) */
+export interface ShopMerchantText {
+  speaker: string;
+  prompt: string;
+  greetFirst: string;
+  greetAgain: string[];
+  menu: { reroll: string; credit: string; leave: string };
+  rerollDone: string;
+  rerollMax: string;
+  creditOffer: string;
+  creditName: string;
+  creditDone: string;
+  creditRefuse: string;
+  creditRepaid: string;
+  bought: string[];
+  poor: string;
+  leave: string;
+}
+
+/** 62 D (P1-12) 사연 말 걸기 (스토리 63 팩 events.<id> 복사) — 선택지 key 마다 대가·보상 이름 · 결과 컷 한 줄 · 숨은 보상 알림 */
+export interface EventTalkOption {
+  label: string;
+  cost: string[];
+  gain: string[];
+  cut: string;
+  notice?: string;
+}
+export interface EventTalk {
+  prompt: string;
+  greet: { kind: 'speech' | 'narration'; speaker?: string; text: string };
+  options: Record<string, EventTalkOption>;
+  /** 말하는 이 (NPC 사연만) — sheet = structures/v3/npc_* */
+  npc?: { speaker: string; sheet: string };
+  /** 소품 그림이 없는 사연(E4)의 대체 소품 */
+  propSheet?: string;
+  /** E3 갚으러 왔을 때 알림 ({n} = 전표) */
+  laterNotice?: string;
+}
+
 export interface EventDef {
+  /** 62 D (P1-12) 말 걸기 문장 (1층 사연 5종) */
+  talk?: EventTalk;
   id: string;
   code: string;
   name: string;
@@ -139,7 +182,13 @@ export interface Bundle2Data {
     };
     text: Record<string, string | boolean>;
   };
-  events: { narrativeMult: number; items: EventDef[]; passLabel: string };
+  events: {
+    narrativeMult: number;
+    items: EventDef[];
+    passLabel: string;
+    /** 62 D (P1-12): 사연 화면 머리말 (63 팩 events.ui — costHead·gainHead·unknown·disabledNoPotion …) */
+    ui?: Record<string, string>;
+  };
   hidden: {
     /** 61라운드 P5: 처음 켜지는 층 (1층 끔) */
     floor?: number;
@@ -163,6 +212,10 @@ export interface Bundle2Data {
     rarityWeights: Record<string, number>;
     chest: { price: number; choices: number };
     labels: Record<string, string | boolean>;
+    /** 62 D (P1-13): 종군 상인 대사·노점 문구 (63 팩 shop.merchant·stall) */
+    talk?: { merchant: ShopMerchantText; stall: Record<string, string> };
+    /** 62 D (P1-13): 물건 카드 (63 팩 shop.items) — 품목 id → 이름·한 줄·수치 줄 */
+    cards?: { items: Record<string, { name: string; line: string; detail?: string }> };
   };
   shrine: {
     /** 61라운드 P5: 처음 켜지는 층 (1층 끔 — 등급 '완'으로 통합) */

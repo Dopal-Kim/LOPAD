@@ -24,6 +24,11 @@ export function uiBossBreak(kind: string): UiBossBreak | null {
   return { kind: k, label: BOSS_FX.BREAK_LABELS[k] };
 }
 
+/** 62 D (P1-14): 국면 공개 여부 — 지금 국면까지(1부터 센 phase) true */
+export function phaseRevealed(count: number, phase: number): boolean[] {
+  return Array.from({ length: count }, (_, i) => i < Math.max(1, phase));
+}
+
 /** 스냅샷 boss 선택 필드 (보스전이 아니면 null) */
 export function bossSnapshotExtra(g: Game): Partial<UiBossSnapshot> | null {
   if (gameState.bossMaxHp <= 0) return null;
@@ -31,9 +36,12 @@ export function bossSnapshotExtra(g: Game): Partial<UiBossSnapshot> | null {
   if (!def) return null;
   const phases = def.phases;
   const names = phases.map((p, i) => p.name ?? `${i + 1}`);
+  // 62 D (P1-14): 앞으로 올 국면 이름은 그 국면이 될 때 공개 (하데스 — 등장 카드엔 '???', UI 가 그린다)
+  const revealed = phaseRevealed(names.length, gameState.bossPhase);
   const out: Partial<UiBossSnapshot> = {
     phaseName: names[Math.max(0, Math.min(names.length - 1, gameState.bossPhase - 1))],
-    phaseNames: names,
+    phaseNames: names.map((n, i) => (revealed[i] ? n : '')),
+    phaseRevealed: revealed,
     phaseMarks: phases.slice(1).map((p) => p.hpFraction),
   };
   const boss = g.bossFlow?.current ?? null;

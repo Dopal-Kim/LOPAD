@@ -40,6 +40,8 @@ export class BossRim {
 
   setOn(on: boolean): void {
     this.on = on;
+    // 62 D (P1-14): 소등 동안 대체 림을 조금 더 밝게 (실루엣이 읽히게) — 끄면 원래 알파
+    this.fill.setAlpha(on ? BOSS_ART.DARK_RIM_FALLBACK_ALPHA : BOSS_ART.RIM_FALLBACK.ALPHA);
     if (!on) this.hide();
   }
 

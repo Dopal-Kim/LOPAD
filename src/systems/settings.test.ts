@@ -1,7 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { DEFAULT_FEEL, feelSettings, setFeel } from './feel';
 import { emptyMeta, type MetaData } from './meta';
-import { DEFAULT_SETTINGS, SettingsService, feelPatchOf, sanitizeSettings, type VolumeSettings } from './settings';
+import {
+  DEFAULT_SETTINGS,
+  SettingsService,
+  feelPatchOf,
+  keyLabel,
+  sanitizeKeys,
+  sanitizeSettings,
+  type VolumeSettings,
+} from './settings';
+import { KEYBIND, SETTINGS } from '../core/constants/settings';
 
 class FakeMeta {
   data: MetaData = emptyMeta();
@@ -29,12 +38,24 @@ describe('설정 (61라운드 계약 §15)', () => {
       master: 1,
       bgm: 1,
       sfx: 1,
+      keys: { up: 'W', down: 'S', left: 'A', right: 'D', dash: 'SPACE', interact: 'E', potion: 'Q' },
+      hitstop: true,
+      textScale: 1,
     });
   });
 
   it('다듬기: 숫자는 0~1 로 자르고 형식이 틀린 칸은 기본값', () => {
     const s = sanitizeSettings({ shake: 3, flash: 'no', tilt: false, master: -1, bgm: Number.NaN, sfx: 0.25 });
-    expect(s).toEqual({ shake: 1, flash: true, tilt: false, damageNumbers: true, master: 0, bgm: 1, sfx: 0.25 });
+    expect(s).toEqual({
+      ...DEFAULT_SETTINGS,
+      shake: 1,
+      flash: true,
+      tilt: false,
+      damageNumbers: true,
+      master: 0,
+      bgm: 1,
+      sfx: 0.25,
+    });
     expect(sanitizeSettings(null)).toEqual({ ...DEFAULT_SETTINGS });
   });
 
@@ -44,12 +65,24 @@ describe('설정 (61라운드 계약 §15)', () => {
       flash: false,
       tilt: 0,
       numbers: false,
+      hitstop: 1,
     });
+    // 62 D (P1-16): 히트스톱 끄기 → 감각 배율 0
+    expect(feelPatchOf({ ...DEFAULT_SETTINGS, hitstop: false }).hitstop).toBe(0);
   });
 
   it('부팅 load: 메타 저장값을 읽어 감각·음량에 바로 적용', () => {
     const meta = new FakeMeta();
-    meta.data.settings = { shake: 0, flash: false, tilt: false, damageNumbers: false, master: 0.5, bgm: 0.2, sfx: 0.8 };
+    meta.data.settings = {
+      shake: 0,
+      flash: false,
+      tilt: false,
+      damageNumbers: false,
+      master: 0.5,
+      bgm: 0.2,
+      sfx: 0.8,
+      hitstop: false,
+    };
     const vols: VolumeSettings[] = [];
     const svc = new SettingsService(meta);
     const cur = svc.load((v) => vols.push(v));
@@ -58,6 +91,7 @@ describe('설정 (61라운드 계약 §15)', () => {
     expect(feelSettings.flash).toBe(false);
     expect(feelSettings.tilt).toBe(0);
     expect(feelSettings.numbers).toBe(false);
+    expect(feelSettings.hitstop).toBe(0);
     expect(vols).toEqual([{ master: 0.5, bgm: 0.2, sfx: 0.8 }]);
     expect(meta.writes).toBe(0);
   });
@@ -85,5 +119,62 @@ describe('설정 (61라운드 계약 §15)', () => {
     const c = svc.current();
     c.shake = 0;
     expect(svc.current().shake).toBe(1);
+  });
+
+  describe('62 루프 2 시스템 D (P1-16) 키 재설정 · 글자 크기', () => {
+    it('옛 저장값(키 없음)은 기본 키 · 히트스톱 켜짐 · 글자 1', () => {
+      const s = sanitizeSettings({ shake: 0.5 });
+      expect(s.keys).toEqual(SETTINGS.DEFAULT.keys);
+      expect(s.hitstop).toBe(true);
+      expect(s.textScale).toBe(1);
+    });
+
+    it('바꿀 수 있는 키만 받고 소문자는 대문자로, 고정 키(Esc·M·Tab·R·C·L·Shift)는 앞 값', () => {
+      const k = sanitizeKeys({
+        dash: 'shift',
+        interact: 'f',
+        potion: 'ESC',
+        up: 'UP',
+        down: 'M',
+        left: 'TAB',
+        right: 'R',
+      });
+      expect(k).toEqual({ up: 'UP', down: 'S', left: 'A', right: 'D', dash: 'SPACE', interact: 'F', potion: 'Q' });
+      for (const fixed of ['ESC', 'M', 'TAB', 'R', 'C', 'L', 'SHIFT', 'F11', 'ENTER'])
+        expect(KEYBIND.BINDABLE.includes(fixed)).toBe(false);
+    });
+
+    it('겹치는 키: 앞 동작이 먼저 갖고 뒤 동작은 base 값 · 결과는 늘 서로 다른 7키', () => {
+      const k = sanitizeKeys({ up: 'E', interact: 'E' });
+      expect(k.up).toBe('E');
+      // interact 가 E 를 원했지만 up 이 가져갔고 base(E)도 겹침 → 기본(E)도 겹침 → 남은 첫 키
+      expect(k.interact).not.toBe('E');
+      expect(new Set(Object.values(k)).size).toBe(7);
+      // 맞바꾸기는 둘을 함께 보낸다
+      const sw = sanitizeKeys({ up: 'E', interact: 'W' });
+      expect(sw.up).toBe('E');
+      expect(sw.interact).toBe('W');
+    });
+
+    it('글자 크기는 2단(1 · 1.5)만 · 표시 이름', () => {
+      expect(sanitizeSettings({ textScale: 1.5 }).textScale).toBe(1.5);
+      expect(sanitizeSettings({ textScale: 1.25 }).textScale).toBe(1);
+      expect(sanitizeSettings({ textScale: 2 }).textScale).toBe(1);
+      expect(keyLabel('SPACE')).toBe('Space');
+      expect(keyLabel('E')).toBe('E');
+    });
+
+    it('set: 키를 바꾸면 구독자가 새 키를 받는다 (InputSystem 다시 묶기)', () => {
+      const svc = new SettingsService(new FakeMeta());
+      svc.load();
+      const got: string[] = [];
+      const off = svc.onChange((s) => got.push(s.keys.dash));
+      svc.set({ keys: { ...DEFAULT_SETTINGS.keys, dash: 'J' } });
+      expect(got).toEqual(['J']);
+      expect(svc.key('dash')).toBe('J');
+      off();
+      svc.set({ shake: 0.2 });
+      expect(got).toEqual(['J']);
+    });
   });
 });

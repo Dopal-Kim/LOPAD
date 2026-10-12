@@ -21,6 +21,8 @@ export interface ShopStock {
   display: { kind: 'passive' | 'consumable'; id: string; rarity?: string; price: number; sold: boolean }[];
   rerolls: number;
   chestUsed: boolean;
+  /** 62 D (P1-13): 이 장터에서 산 C 품목 (먹물 한 병·풀무질 한 번 — 노드마다 1회) */
+  goodsSold?: string[];
 }
 
 export class BundleState {

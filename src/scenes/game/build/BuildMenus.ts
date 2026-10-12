@@ -6,9 +6,11 @@
 import { EventBus, Events, type CurseGainedPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { BUILD, CURSES, curseDef, curseOn, curseSourceOn, tagOn, themeTagOf } from '../../../data/build';
-import { ECONOMY, STORY } from '../../../data';
-import type { UiMenuLine, UiRarity, UiTagId } from '../../../contract/ui';
+import { ECONOMY } from '../../../data';
+import { UI_EVENTS, __system, type UiMenuLine, type UiRarity, type UiRelicSource } from '../../../contract/ui';
 import type { PassiveDef } from '../../../systems/passives';
+import { RELICS } from '../../../data/relics';
+import { rollRelics, uiRelic } from '../../../systems/relics';
 import type { Game } from '../../Game';
 
 /** 패시브 메뉴 출처 (획득 경로 57 Q29): 보스 · 궤짝(2택) · 저주 이득 · 노드 보상(2차 묶음) · 상점 진열(2차 묶음) · 시험장 */
@@ -17,15 +19,17 @@ export type PassiveSource = 'boss' | 'chest' | 'curse' | 'node' | 'shop' | 'lab'
 const RARITIES: readonly UiRarity[] = ['common', 'rare', 'epic', 'legendary'];
 const asRarity = (r: string): UiRarity | undefined =>
   (RARITIES as readonly string[]).includes(r) ? (r as UiRarity) : undefined;
+/** 메뉴 출처 → 계약 유품 출처 */
+const relicSource = (s: PassiveSource): UiRelicSource => s;
 
 export class BuildMenus {
   constructor(private readonly g: Game) {}
 
-  // --- 패시브 3지선다 · 2택 ---
+  // --- 유품 3지선다 · 2택 (62 루프 2 C P1-5: 옛 패시브 → '유품' 카드 — 효과는 같은 id 패시브 1레벨) ---
 
   /**
-   * 패시브 선택 메뉴: 희귀도 가중 패시브 (1층 테마 태그 ×2).
-   * 고를 것이 없으면 바로 onDone
+   * 유품 선택 메뉴: 들고 있는 무기 문장이 있는 유품만 · 이미 가진 것 제외 · 희귀도 가중(1층 테마 태그 ×2).
+   * 메뉴 id 는 'passive' 그대로(카드 3장 레이아웃) — 줄 `relic`(계약 C 절). 보스 = '군주의 유품'. 고를 것이 없으면 바로 onDone
    */
   openPassiveMenu(
     source: PassiveSource,
@@ -43,51 +47,81 @@ export class BuildMenus {
       (source === 'chest'
         ? BUILD.acquisition.chestChoices
         : source === 'boss'
-          ? BUILD.acquisition.bossChoices
+          ? RELICS.bossChoices
           : BUILD.acquisition.nodeChoices);
-    const theme = themeTagOf(gameState.floorReached);
-    const picks = gameState.passives.rollChoices(g.rng, ECONOMY.rarity, count, {
+    const weapon = gameState.weapon.id;
+    const picks = rollRelics(gameState.passives, weapon, g.rng, ECONOMY.rarity, count, {
       rarities: opts.rarities,
       guaranteed: opts.guaranteed,
-      themeTag: theme,
+      themeTag: themeTagOf(gameState.floorReached),
       themeMult: BUILD.pool.themeWeightMult,
       floor: gameState.build.floor,
     });
-    if (picks.length === 0) {
-      onDone();
-      return false;
-    }
     const lines: UiMenuLine[] = [];
     const actions: (() => void)[] = [];
     for (const p of picks) {
-      const lv = gameState.passives.level(p.id);
-      lines.push(this.passiveLine(String(lines.length + 1), p, lv));
-      actions.push(() => {
-        gameState.passives.add(p.id);
-        EventBus.emit(Events.PASSIVE_GAINED, { id: p.id, level: gameState.passives.level(p.id) });
-        g.build.record('passive', { id: p.id, source });
-      });
+      const line = this.relicLine(String(lines.length + 1), p, source);
+      if (!line) continue;
+      lines.push(line);
+      actions.push(() => this.grantRelic(p.id, source));
     }
-    g.menu.open('passive', STORY.ui.hud.passiveTitle, lines, (key) => {
-      const act = actions[Number(key) - 1];
-      if (!act) return;
-      act();
-      g.menu.close();
+    if (lines.length === 0) {
       onDone();
-    });
+      return false;
+    }
+    const T = RELICS.ui;
+    const title = source === 'boss' ? T.bossTitle : source === 'curse' ? T.curseTitle : T.rewardTitle;
+    const footer =
+      source === 'boss' ? (T.bossSub[gameState.stageId] ?? T.footer) : source === 'node' ? T.rewardSub : T.footer;
+    g.menu.open(
+      'passive',
+      title,
+      lines,
+      (key) => {
+        const act = actions[Number(key) - 1];
+        if (!act) return;
+        act();
+        g.menu.close();
+        onDone();
+      },
+      footer,
+    );
     return true;
   }
 
-  private passiveLine(key: string, p: PassiveDef, lv: number): UiMenuLine {
+  /** 유품 하나를 지닌다 (또 고르면 한 단계 깊어진다 — 메뉴·시험장·장터 공용). 효과 = 같은 id 패시브 */
+  grantRelic(id: string, source: PassiveSource): boolean {
+    if (!gameState.passives.add(id)) return false;
+    const level = gameState.passives.level(id);
+    EventBus.emit(Events.PASSIVE_GAINED, { id, level });
+    this.g.build.record('passive', { id, source });
+    const p = gameState.passives.def(id);
+    const relic = p
+      ? uiRelic(p, gameState.weapon.id, level, gameState.passives.maxLevel, { source: relicSource(source) })
+      : null;
+    if (relic) __system.emit(UI_EVENTS.RELIC_GAINED, relic);
+    return true;
+  }
+
+  /** 유품 카드 줄 (보상 메뉴 · 62 D 장터 노점 카드 공용) */
+  relicLine(key: string, p: PassiveDef, source: PassiveSource): UiMenuLine | null {
+    const have = gameState.passives.level(p.id);
+    const relic = uiRelic(p, gameState.weapon.id, have + 1, gameState.passives.maxLevel, {
+      source: relicSource(source),
+      owned: have > 0,
+    });
+    if (!relic) return null;
     const rarity = asRarity(p.rarity);
     return {
       key,
+      // 계약 C 절: 줄 kind 는 호환으로 'passive' — `relic` 이 있으면 유품 카드
       kind: 'passive',
-      label: `${p.name}${lv > 0 ? ` (Lv${lv} → ${lv + 1})` : ''}`,
+      label: relic.name,
       enabled: true,
-      detail: p.description,
-      // 61라운드 P4: 이 층에서 꺼진 태그는 보이지 않는다 (점수도 없다)
-      tags: p.tags.filter((t) => tagOn(t, gameState.build.floor)) as UiTagId[],
+      detail: relic.line,
+      relic,
+      // 태그 1개 (1층에서 켜진 태그)
+      ...(relic.tag && tagOn(relic.tag, gameState.build.floor) ? { tags: [relic.tag] } : {}),
       ...(rarity ? { rarity } : {}),
     };
   }

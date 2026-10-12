@@ -12,7 +12,81 @@ export const SETTINGS = {
     master: 1,
     bgm: 1,
     sfx: 1,
+    // 62 루프 2 시스템 D (P1-16): 키 재설정 · 히트스톱 · 글자 크기
+    keys: { up: 'W', down: 'S', left: 'A', right: 'D', dash: 'SPACE', interact: 'E', potion: 'Q' },
+    hitstop: true,
+    textScale: 1,
   },
+} as const;
+
+/**
+ * 62 루프 2 시스템 D (P1-16) 키 재설정 — contract/ui.ts `UI_BINDABLE_KEYS`·`UI_KEY_LABELS` 와 같은 값(테스트가 같은지 확인).
+ * 고정 키(Esc·M·Tab·F11·F2·Enter·L·R·C·Shift 달리기·마우스)는 빠져 있다. 글자 크기는 2단
+ */
+export const KEYBIND = {
+  BINDABLE: [
+    ...'ABDEFGHIJKNOPQSTUVWXYZ'.split(''),
+    'ONE',
+    'TWO',
+    'THREE',
+    'FOUR',
+    'FIVE',
+    'SIX',
+    'SEVEN',
+    'EIGHT',
+    'NINE',
+    'ZERO',
+    'COMMA',
+    'PERIOD',
+    'FORWARD_SLASH',
+    'SEMICOLON',
+    'QUOTES',
+    'OPEN_BRACKET',
+    'CLOSED_BRACKET',
+    'MINUS',
+    'PLUS',
+    'BACK_SLASH',
+    'SPACE',
+    'CTRL',
+    'ALT',
+    'UP',
+    'DOWN',
+    'LEFT',
+    'RIGHT',
+  ] as readonly string[],
+  LABELS: {
+    SPACE: 'Space',
+    SHIFT: 'Shift',
+    CTRL: 'Ctrl',
+    ALT: 'Alt',
+    UP: '↑',
+    DOWN: '↓',
+    LEFT: '←',
+    RIGHT: '→',
+    ONE: '1',
+    TWO: '2',
+    THREE: '3',
+    FOUR: '4',
+    FIVE: '5',
+    SIX: '6',
+    SEVEN: '7',
+    EIGHT: '8',
+    NINE: '9',
+    ZERO: '0',
+    COMMA: ',',
+    PERIOD: '.',
+    FORWARD_SLASH: '/',
+    SEMICOLON: ';',
+    QUOTES: "'",
+    OPEN_BRACKET: '[',
+    CLOSED_BRACKET: ']',
+    MINUS: '-',
+    PLUS: '=',
+    BACK_SLASH: '\\',
+  } as Readonly<Record<string, string>>,
+  TEXT_SCALES: [1, 1.5] as readonly number[],
+  /** 전체화면 토글 키 (브라우저 F11 대신 게임 전체화면 — 고정) */
+  FULLSCREEN_KEY: 'F11',
 } as const;
 
 /** 런 로그 (61 P9 밸런스 조정용) */
@@ -68,6 +142,11 @@ export const SIM = {
   MENU_MS: 4000,
   /** 비전투 노드 머무는 시간 (ms, 가정) */
   NONCOMBAT_MS: { shop: 25000, rest: 15000, event: 20000, post: 15000, birth: 40000 },
+  /**
+   * 62 루프 2 시스템 D (P2-14): 루프 2 에서 늘어난 비전투 시간 (ms, 가정) — 장터 노점을 걸으며 카드 보기·상인 말 걸기 +15초 ·
+   * 사연 NPC 에게 걸어가 말 걸기·설명·결과 컷 +12초 · 노드마다 로딩·입구 전환 2초 · 단서 읽기(층당 3) 8초씩 · 보스 등장·처치·층 끝 결산 25초
+   */
+  LOOP2_EXTRA_MS: { shop: 15000, event: 12000, perNode: 2000, clue: 8000, clues: 3, bossShow: 25000 },
   /** 보스 국면 전환 연출(무적·들이켜기) 한 번 (ms) */
   BOSS_PHASE_MS: 3000,
   /** 61라운드 P6 보스 '만취' 목표 길이 90~120초의 가운데 (층 추정 '보스 목표 대입' 합계용) */

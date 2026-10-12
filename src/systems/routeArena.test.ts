@@ -23,7 +23,7 @@ describe('49라운드 지역 흐름 (4-2·6, 계약 ui §11.2·art §7.3)', () =
   it('1층 단계 → 황무지·전장 → 성문 → 외곽 거리 → 양조 구역 → 지배자의 연회장 (61: 잔 4단)', () => {
     const ids = [0, 1, 2, 3, 4, 5, 6, 7].map((c) => regionIdOf('stage1', c));
     expect(ids).toEqual(['waste', 'waste', 'gate', 'outer', 'outer', 'brewery', 'brewery', 'hall']);
-    expect(regionOf('stage1', 7)!.name).toBe('지배자의 연회장');
+    expect(regionOf('stage1', 7)!.name).toBe('연회장');
     // 넘치는 단계는 마지막 지역
     expect(regionIdOf('stage1', 99)).toBe('hall');
     // 2층 임시 지역 2개 · 3층은 지역 없음
@@ -42,8 +42,10 @@ describe('49라운드 지역 흐름 (4-2·6, 계약 ui §11.2·art §7.3)', () =
       }
     }
     const ui = new RouteState(generateRoute('stage1', 'x'), 1).toUi();
-    expect(ui.nodes.find((n) => n.col === 0)!.desc).toBe(ROUTE.regions!.waste.desc.birth);
-    expect(ui.nodes.find((n) => n.col === 7)!.region).toBe('지배자의 연회장');
+    // 62 D (P2-2): 노드 고유 한 줄이 있으면 그것 (63 팩 nodeLines), 없으면 지역 설명
+    const birth = ui.nodes.find((n) => n.col === 0)!;
+    expect(birth.desc).toBe(ROUTE.floors.stage1.nodeLines?.[birth.name] ?? ROUTE.regions!.waste.desc.birth);
+    expect(ui.nodes.find((n) => n.col === 7)!.region).toBe('연회장');
   });
 
   it('지역 타일셋: 1층 5지역 tiles/stage1_<region>, 2층은 층 타일셋(지역 타일셋 없음)', () => {

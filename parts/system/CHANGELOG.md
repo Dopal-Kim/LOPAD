@@ -1727,3 +1727,151 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 ### 검사
 - tsc · eslint · vitest 136파일 1036 · 바뀐 파일 prettier · vite build 통과. (feel·hitFeel 테스트 수치 갱신, damageNumberLayout·audio 테스트 추가)
 - 헤드리스(빌드본 전/후, 가짜 시계 프레임 진행, 스크래치 `s62a/shots`): 라이트맵 픽셀(`b_lightmap_x2` 사각 → `a_lightmap_x2` 매끈) · 보스방 · 대검 타격 프레임(`gs_hit_before_top_after_bottom`) · 활 거리표 · 보스 등장 시간표 · 림·HP 막대·문양(`bt_read_before_after`) · 엘리트 이름표(`a_elite_c`).
+
+## 62 루프 2 시스템 C — 빌드 언어 '유품' · 층 끝 결산 · 죽음 연출·결산 · 메타 해금 '기억' (2026-10-12)
+결정: `parts/producer/decisions/2026-10-12-P16-loop2.md` §1~§4 (점검 P1-5·6·7·8). 문장 = 스토리 63 팩(`parts/story/text-pack-63-loop2.json` relics·floorEnd·deathSummary·memory·shop.items·revisions)을 data 에 그대로 합쳤다. 화면 용어 = 계약 `story-glossary.md` (금지어 테스트 `src/data/loop2cGlossary.test.ts`). 그림 = 아트 §31-4·5 (`ui_relics/*` · `ui_relics/keepsake_*` · `ui_portraits/*`).
+
+### P1-5 빌드 언어 하나로
+- **유품** `data/relics.json`(15종 = passives.json 1층 풀) · `src/data/relics.ts` · `src/systems/relics.ts`: 효과는 같은 id 패시브가 그대로 맡고, 카드는 개성 카드 문법 — 이름(물건) · 들고 있는 무기 문장 하나(숫자·×·% 금지, 검증) · 수치는 `relic.detail`(틀 자리표시를 패시브 effects·byLevel·rule.params 로 채움: '%' 앞 ×100 — 치명 제외, '초' 앞 ms÷1000, 음수 절댓값, {strongAttack} 무기별) · 태그 1개 · 그림 `ui_relics/<id>` → 없으면 같은 태그 개성 그림. 문장이 없는 무기에게는 제시하지 않는다.
+- 같은 유품을 또 고르면 한 단계(스토리 팩 '{n}단계' — 패시브 레벨, 최대 3) — 팩이 단계 문구를 이미 갖고 있어 레벨을 살렸다.
+- `BuildMenus.openPassiveMenu` 가 유품 메뉴를 연다(보스·궤짝·저주·노드·사연·시험장 공용): 메뉴 id 'passive' 그대로(카드 3장 레이아웃 호환), 줄 kind 'passive' + `line.relic`, label = 이름, detail = 한 문장. 보스 = '군주의 유품 — 하나만 가져간다'(3택), 그 밖 relics.ui 제목. `grantRelic` → `RELIC_GAINED`. 스냅샷 `relics` 추가, 옛 `passives` 칸은 같은 유품을 이름·한 문장·태그 하나로 싣는다.
+- **감각·능력치 포인트 삭제**: 처치 방식 감각(`SENSE_GAINED`) 안 냄 · 보스 보상 능력치 상자 삭제 · `openStatChooser` 는 쌓인 옛 포인트(보스 파훼 senseAt·사연·구조물)를 각성 게이지로 흡수(한 점 15, '약점 둘을 깨뜨렸다. 각성 게이지 +{n}') · 노드 보상 statPoint 무게·상한 0 · 장터 sense·stat 품목 삭제(economy.json heal '뜨끈한 국밥 한 그릇'·potion '잔의 독주' 만) · story.json rewardTitle·names.sense 삭제.
+- **회피 시험 등급 → 첫 개성 발현 카드 수**: S·A 4장 / B·C 3장 / 건너뜀 3장(`data/runEnd.json trial`). `ritual.fate` 옆 `UiRitual.giftNote`('첫 개성 발현 때 카드 {n}장에서 고른다.'), gift 문장은 팩 고침표('눈'). 먹 묻은 붓 +1, 상한 5(시스템 결정 — 카드 5장이 넘으면 3지선다 의미가 흐려진다).
+- 장터 품목 목록(진열은 시스템 D): `data/runEnd.json shopGoods` · `systems/shopGoods.shopGoodsFor(meta)` — 유품(희귀도별 40/70/110/150) · 잔의 독주 25 · 국밥 30 · 먹물 한 병 45(다시 뽑기 — 기억 inkBottle) · 풀무질 한 번 60(단련 — 기억 bellows). 사기 효과 API: `buildMenus.grantRelic(id,'shop')` · `growth.addRerolls(1)` · `growth.temper()`.
+- 다시 뽑기: `RunMemory.rerolls` > 0 이면 다음 개성 발현 메뉴에 줄 key 'reroll'('다시 뽑기' — 먹물 한 병 — 남은 {n}) → 같은 장 수로 새로 뽑는다.
+
+### P1-6 층 끝
+- `scenes/game/RunEnd` (Game.runEnd): 마지막 층(`runEnd.floorEnd.lastFloor` 1) 군주 처치 → 출구를 놓지 않고(2층 진입 차단) '군주의 유품' 3택 → 각성 게이지 눈금이면 개성 발현 최대 1장(`growthMenus` — 연속 메뉴 최대 둘, GrowthFlow 는 `runEnd.holdsGrowth()` 동안 막힘) → 1.2초 → 정산(clearBonus 50) → `FLOOR_END(UiFloorEnd)` → `RUN_ENDED`(cleared, line = '여기까지 적었다. 다음 장은 아직 그려지지 않았다.', `floorEnd`·`summary`). 결과 화면의 두 선택 = `uiCommands.endChoice('reborn'|'closeDiary')`.
+- `UiFloorEnd`: 시간·처치·받은 피해(런 로그 — 일시정지 제외) · 빌드 아이콘 줄(갈래·길·개성·유품·모양·소품) · 단서 n/max · 일기장 문장(제국·여는 말·단서 한 줄·안 맞았으면 깨끗한 일기장·맺음) · 칸 이름·값 글.
+- 출구 방향 `UiSnapshot.exitHint`(출구가 열렸고 고르는 중이 아닐 때 — 화면 밖이면 테두리 안 점, 각도, 거리, 층 출구면 '오르는 길').
+
+### P1-7 죽음
+- 사망 → 0.6초 0.25배 슬로모(물리·트윈·주인공·적 애니 — 씬 시계는 그대로) → 먹 번짐(`systems/fx/inkSmear` — 주인공 자리 큰 방울 + 가장자리 9방울, 세피아 테두리 + 먹 속, 1.1초, 불투명이라 겹쳐도 고리 없음) → 0.25초 → 결산. 히트스톱 중 사망이면 먼저 푼다(`Game.clearHitStop` — 씬 시계가 멈춘 채 결산이 안 오던 위험). `DEATH_STARTED(UiDeathFx)`.
+- `UiRunSummary`: 처치자(런 로그 사망 원인 → 적·군주, 초상 `ui_portraits/<적>`·`boss1` → 없으면 대기 시트 첫 칸) · 처치자 한 줄(정해진 적 줄 → 군주 줄 → 틀, 시드로 고름) · 쓰러진 곳 · 지나온 곳(노드 지도 칸 자리 · died) · 노드 지도 · 시간·처치·받은 피해 · 빌드 아이콘 · 영혼(+n · 다음 기억까지 영혼 n / 떠올릴 수 있음 / 처음 / 다 떠올림).
+
+### P1-8 메타 해금 '기억' 14종
+- `data/memory.json` · `src/data/memory.ts` · `systems/memory/memory.ts`(떠올리기·기억 장·다음 해금·잠긴 개성·소품 효과) · `systems/memory/runMemory.ts`(이번 생 — 세이브 `memory`): 소품 4(접힌 전표 10 · 먹 묻은 붓 25 · 찌그러진 투구 35 · 닳은 매듭 끈 40 — id 는 아트 파일 id oldVoucher·inkBrush·brokenCup·knotCord) · 손이 기억한 모양 4(각 30 — 칼 흘려 밀기 · 대검 들이받기 · 단검 스치는 낙인 · 활 꿰어 박기) · 떠올릴 개성 4(각 20) · 장터에 놓일 것 2(먹물 15 · 풀무 25). 가장 싼 것 10 = 첫 사망(영혼 ≥ 10) 직후 떠올릴 수 있다.
+- 몸의 기억 = 능력치 강화 3줄(최대 체력 +5×5 40+25 · 공격력 +1×3 80+40 · 대쉬 대기 −5%×3 60+30 — 팩 제안 셋). 옛 방어력·독주 소지 레벨은 무시.
+- 떠올릴 개성: 스토리 팩이 제안한 새 개성 8장(불똥 일섬 등)은 새 효과 구현이 커서 **루프 3** — 이번에는 기존 기본 개성 두 장씩을 잠갔다가 연다(칼 칼등 띄우기·연쇄 발도 / 대검 어깨 너머·빨아들이는 균열 / 단검 휘감는 난타·불티 난타 / 활 되튀는 화살·이어지는 비 — 공명 짝이 둘뿐인 태그는 피했다). 팩 이름·문장('칼 개성에 두 장이 더 섞인다')은 그대로 맞는다.
+- 의식(Setup): F2 = 기억 장(메뉴 'meta', 줄 key 'm:<id>' · `line.memory`) — `scenes/setup/MemoryPicks`. 운명 공개 뒤 모양 고르기(메뉴 'aspect') → 소품 고르기(메뉴 'keepsake', 빈손 포함)를 연 뒤 운명 시계(이 동안 ritual.next 거부). 고른 소품은 다음 생 기본값. 명령 `uiCommands.memory.book/unlock/setKeepsake`(`contract/hostLoop2C`) → `MEMORY_CHANGED` · 시스템 `MEMORY_UNLOCKED{id,kind}`(음향 memory_unlock).
+- 효과: 시작 전표 +30 · 투구 = 이 생 첫 피격 피해 0(짧은 무적, 소품 이름 외침) · 매듭 끈 = 대쉬 충전 +1 · 붓 = 첫 개성 발현 카드 +1 · 모양 = 그 개성을 쥐고 시작 · 잠긴 개성은 그 무기 풀에서 빠진다(시험장·수련장은 제한 없음).
+
+### 검사
+- tsc 0 · eslint 0 · vitest 147파일 1121건 중 2건 실패(음향 매니페스트 audioDefs·audioMix — 음향 루프 2 통합 몫, 메인이 갱신) · 새 테스트 4파일(relics·memory·summary·loop2cGlossary) + meta·economy 갱신 · 바뀐 파일 prettier · vite build 통과.
+- 헤드리스(빌드본 + Playwright 가짜 시계, 스크래치 `s62c/shots`, 콘솔·페이지 오류 0): 사망(`death_1_slow`~`death_4_inkFull` → `death_9_result`, 결산 summary 확인) · 군주 처치 → 유품 3택(아트 그림 키 로드) → 개성 발현 1장 → 결산(흐름 relic,growth,wait,done · `boss_9_floorEnd`) · 기억 장(17칸) → 떠올리기 3개 → 덧쓰기 → 모양 → 소품 → 런 시작(전표 30 · 시작 개성 흘려 밀기, `mem_*`).
+- 검증 훅: `?debug` → `window.__lopadRunEnd.state()/floorEnd()/summary()/exitHint()/result()/killPlayer()` · Setup `__lopadSetup.menu()/select(id,key)`.
+- 헤드리스 메모: 스위프트셰이더에서 사망 뒤 화면이 1~6fps 로 떨어져 실시간 대기로는 결산까지 2분 넘게 걸린다 — `page.clock` 으로 프레임을 직접 돌리면 정상 시간표(사망 → 결산 약 2초). 먹 번짐은 다 번진 뒤 그리기를 멈춘다.
+
+## 62라운드 루프 2 · 시스템 D: 사연·장터·보스·스미어·설정·월드 결 (P16 §5~8 · 점검 P1-2·12·13·14·16·17 · P2-2·3·5·6·10·14 · art §31 · sound §13 · 스토리 63 팩) (2026-10-12)
+
+전권 위임(인터뷰 없음). 계약은 `src/contract/ui.ts` 맨 아래 **'62 루프 2 시스템 D'** 절 하나에 모았다(같은 모듈 인터페이스 합치기 — 공유 형식은 한 줄씩만 건드림: `UI_EVENTS` 펼침 · `UiMenuId`·`UiStructureKind` 유니온 · `uiCommands` 펼침 · `UI_DEFAULT_SETTINGS`). 시스템 내부 이벤트는 `core/eventsLoop2D.ts`(EventBus 에 펼침).
+
+### 1. P1-12 사연: NPC 를 세우고 E 로 말 건다 (`bundle/EventNode` · `systems/bundle2/eventIcons` · `bundle/eventArt`)
+- 1층 사연 5종 모두 방에 세운다 — NPC(`structures/v3/npc_conscript`·`npc_brewer`, interactable kind **`eventNpc`**, 행동 '말을 건다') 또는 소품(eventProp). 들어서자마자 메뉴 금지. 소품 그림이 없는 E4 일기장은 `clue_tab_ledgers` 대체(아트 요청 `event_diary_open`).
+- 메뉴 'event' 에 `UiMenu.event: UiEventScene`(말하는 이·초상 텍스처·첫 마디·설명·머리말) — UI 는 설명(위) → 선택지(아래). 줄은 이름만 + `costs`/`rewards` 아이콘 줄(`UiEventIcon` — 효과에서 종류·수치, 63 팩 cost/gain 문장으로 이름, 숨은 보상은 `hidden`/'?'). 아이콘을 아직 안 그리는 UI 를 위해 `detail` 에 '내준다 … / 얻는다 …' 글.
+- 고르면 `ui:event-result`(`UiEventResult` — 결과 컷 `cutKey`(`sprites/events/cut_<id>` + cuts.json 별칭, 사연 노드 진입 때 한 장 지연 로드)·한 줄·얻고 잃은 것) → 기존 STORY event 결과 문장. 숨은 보상은 `ui:hidden-reward`(`UiHiddenReward` later — 징집병 갚음·패거리 웨이브 +1·다음 장터 할인 / paid — 징집병이 갚을 때 '징집병이 전표 n을 갚았다').
+- 63 팩 `events` 를 `data/bundle2.json events.items[].talk`·`events.ui` 로 복사(고치면 통째로 다시). 고침표: 시음회 '유품 n택' · 장부 '다음 장터'.
+- **시스템 결정 — E4 '다듬는다'** = 개성 다시 뽑기 +1(효과 `reroll` → 시스템 C `GrowthFlow.addRerolls`, 63 팩 제안 그대로). 감각·능력치 포인트는 1층에서 지움.
+
+### 2. P1-13 장터: 노점 칸 위 물건 + 카드 + E 로 사기 · 다시 진열·외상은 종군 상인 (`ShopStalls` · `systems/loop2d/stallRules` · `Economy` · `ShopKeeper` · `bundle/ShopMenu`)
+- 상점 노드: 상점 메뉴 줄(고정 칸·진열 칸·궤짝 — 다시 진열·지도 정보 제외)마다 노점 칸 `shop_slot`(idle·near·sold)을 상점 칸 아래 줄(5칸 넘으면 두 줄)에 세우고 itemAnchor 에 물건 그림(`items/v3/shop_goods` relic_bundle·temper·reroll 행 · `potion` · `fire_bottle`, 둥실). 다가가면 스냅샷 **`shopOffer: UiShopOffer`**(그 줄 그대로 + 그림 + 화면 자리 + 사기 키 + 못 사는 이유) + interactable kind **`shopStall`**, E = 같은 줄 고르기(`Economy.shopPick`). 칸을 밟아 여는 글자 목록은 노점이 없는 상점에만.
+- 종군 상인(`structures/v3/npc_merchant`, 시트 광원) E = 메뉴 **`shopTalk`**(말하는 이 `UiMenu.speaker`, 첫 마디/다시 온 손님 대사는 footer): '다시 진열한다 · 전표 n'(값·끝 대사 rerollDone/rerollMax/poor) · '외상을 단다' · '그만 본다'('0', 떠날 때 한마디).
+- **시스템 결정 — 외상**: 팔리지 않은 노점 물건 하나를 골라 지금 받는다(값만큼 빌려 바로 산 셈 — 전표 그대로) + 저주 '외상'(처치 전표 0 · 장터 값 +20%, 3노드 — 즉시 전표 +100 이득은 이 외상 몫이라 받지 않음). 저주는 동시 하나라 다른 저주·외상이 있으면 '장부는 한 줄씩만'. 저주가 끝나면 '외상을 다 갚았다' 알림.
+- **시스템 결정 — 국밥 유지**: 고정 칸 = 국밥·독주(시스템 C `economy.json`). 진열 = 유품 2(값 = runEnd.json shopGoods relic 40/70/110/150 — `bundle2.shop.passivePrices` 로 맞춤, 산 유품은 `BuildMenus.grantRelic(id,'shop')` · 줄은 `relicLine` 카드 그대로) + 화염 술병 1 + **기억으로 연 먹물 한 병(다시 뽑기 +1)·풀무질 한 번(단련 1회 — 더 못 하면 안 팖)** (`g:<id>`, 장터마다 1회 `ShopStock.goodsSold`).
+- 물건 카드 문장(63 팩 shop.items)·상인 대사·노점 문구는 `bundle2.json shop.cards`·`shop.talk` 로 복사. 사기 → `ui:shop-purchased`. `Economy.buy` 의 감각·능력치 분기 정리.
+
+### 3. P1-14 보스
+- 피격 섬광: 보스는 채움 실루엣 대신 **같은 그림을 흰빛으로 더함**(`FEEDBACK.BOSS_HURT` 0.55 · 70ms, `EntityVisual.flashOverlay(fill=false)`) — 출혈 등 상태 색도 같은 방식.
+- 국면 이름 비공개: 스냅샷 `boss.phaseNames` 의 오지 않은 국면은 '' + `boss.phaseRevealed: boolean[]` (UI 는 '???' — 헤드리스에서 '얼큰 → ??? → ???' 확인).
+- 소등: 주변광 최저 밝기 0.25(`BOSS_ART.DARK_MIN_BRIGHTNESS` — `lightMath.floorAmbient`, 데이터 #2a2a36 → #404040). 림·보스 최소 광원(arena.darkLights)은 그대로(대체 림 알파를 0.42 로 올려 봤다가 호박 덩어리로 보여 0.3 유지).
+
+### 4. P1-2 칼·대검 스미어 (art §31.1 · `WeaponOverlay.showSmear` · `SwingFx.smearFor`)
+- `fx/v3/<무기>_<동작>_smear` 가 올라와 있으면 무기 오버레이와 **같은 프레임 번호·같은 시각·같은 피벗**으로 무기 바로 아래(조명 위, NORMAL) 겹친다 — 궤적 원점이 칼끝 앵커(그림에 그려져 있음). 무기 묶음 로드에 스미어 후보 추가(`sheetSets` · `comboArt.smearFxIds`).
+- 스미어가 있는 타는 판정 원점에 떨어져 그려지던 옛 호 fx 알파 0.3(`SWING_SMEAR.OLD_ARC_ALPHA` — 판정·불티·히트스톱 정지 칸 그대로). 스미어가 없는 무기(단검·활)는 그대로(칼끝 근사 맞춤은 하지 않았다 — 아트 스미어로 대체).
+
+### 5. P1-16 설정·입력 (`systems/settings` · `InputSystem` · `systems/fullscreen` · `contract/hostLoop2D` · `contract/snapshotLoop2D`)
+- `UiSettings` 확장: `keys`(up·down·left·right·dash·interact·potion — Phaser 키 이름, 기본 W S A D SPACE E Q) · `hitstop`(끄면 감각 배율 hitstop 0 — 처치 슬로모도 꺼짐) · `textScale` 1 | **1.5**(UI C 요청 — Galmuri 도트. 시스템 월드 피해 숫자는 그 절반 ×1.25). 메타 세이브에 저장.
+- 키 다듬기: 바꿀 수 있는 키 목록(`UI_BINDABLE_KEYS` = `KEYBIND.BINDABLE`, 고정 Esc·M·Tab·F11·Enter·L·R·C·Shift 제외)만 · 앞 동작과 겹치면 앞 값(맞바꾸기는 두 칸을 함께 보낸다). InputSystem·회피 시험(Setup)이 설정 키로 묶고 바뀌면 다시 묶는다. E 안내·노점 사기 키·4동사 대쉬 키캡은 묶인 키 이름(`UI_KEY_LABELS`). 설정이 바뀌면 스냅샷 한 장을 STATE 로 바로 낸다(일시정지 중 키캡 갱신 — UI C 요청).
+- 전체화면: F11(시스템이 keydown 에서 브라우저 F11 대신 Fullscreen API) · `uiCommands.setFullscreen(on)`/`toggleFullscreen()` · `ui:fullscreen {on}` · 스냅샷 `fullscreen`.
+- 음향 sound §13: 켜기/끄기 칸이 바뀌면 `Events.UI_SETTING_TOGGLED {key,on}`(내부 이름 'settings:toggled').
+
+### 6. P1-17 · P2-3 · P2-5 · P2-6 · P2-10
+- P1-17: 시험장·수련장 허수아비 디버그 글자 삭제 → 스냅샷 `signs: UiWorldSign[]`(이름·값 한 줄·머리 위 화면 자리 — UI 나무 팻말). 수련장 지도는 그림을 먼저 받고 연다(최대 1.5초 `LAB.TRAINING_MAP_WAIT_MS`).
+- P2-3: `UiNodeTrial.reward`(완 보상 아이콘 — 전표·각성 수치, 위험 ×2) · `broken` · 깨진 순간 `ui:node-trial-broken` + 내부 `NODE_TRIAL_BROKEN {nodeId,reason hit|time}`(음향 trial_fail). 성공은 기존 NODE_GRADED perfect.
+- P2-5: **나갈 때 자동 저장(무제한)** — 런 세이브 v6 + `suspend`(노드 지도 진행·층 덧붙임·상점 진열·층 구조물 상태·노드 종류). 싸우는 중이면 그 노드에 들어선 순간 상태(노드를 처음부터 — 피해·줍기 되돌림), 마친 노드면 나갈 때 상태(출구 열린 채). `toTitle()` 도 저장, `saveAndQuit()`, 창 닫기(pagehide)도. 이어하기 = Progression 이어하기 갈래가 `restoreSuspend`(보스 노드면 preload 가 보스 묶음). **`abandonRun()`** = 사망 흐름(시스템 C 결산). 스냅샷 `autoSave`.
+- P2-6: `ui:loading`(`UiLoading` — phase boot·node·boss·training·prefetch · progress · done · region(키아트) · tip(63 팩 로딩 팁 18줄 `data/loading.json`, 같은 생 안 중복 없음·단서 조건)). UI 렌더러가 있으면 시스템 '불러오는 중…' 글자를 띄우지 않는다. **다음 노드 미리 읽기**(`NodePrefetch`): 시련이 끝나거나 출구가 열리면(싸움 없는 노드는 들어선 2.5초 뒤) 고를 수 있는 노드들의 외벽 테두리·입구 그림을 `fetch` 로 HTTP 캐시에만 받는다(GPU 에 올리지 않음 — 한 지역 75MB). RouteFlow 는 건드리지 않았다(출구 연출은 시스템 E).
+- P2-10: 웨이브 진입 방향(`systems/waveSides`) — 첫 웨이브 = 주인공 반대 면 · 가운데 = 면·양옆(flank) 섞음(같은 쪽 연속 없음) · 마지막 = 사방. ENEMY_INCOMING 에 `side`. 헤드리스: 동 → 양옆 → 남 → 동 → 북 → 사방. **노드 세트피스 1개**(`world/heroSetpiece` · `heroDressing`): 전투 노드마다 지역에 맞는 `setpiece_broken_cart`/`setpiece_spilled_casks` 를 가운데에서 비켜 둔 자리(둘레 1칸 비움·시작/출구에서 5칸)에 — 발자국 칸 막힘(엄폐) · 그을음 데칼 `decal_soot` 3~5장(변주·뒤집기).
+- art §31 연결: 적 등장 예고 = `fx/v3/spawn_ink`(시트 900ms 칸이 소환 순간 — 경고가 더 길면 번짐 첫 칸으로 기다림, 시트 없으면 옛 도형) · 일반 적 림 = `enemies/v3/<적>_<동작>_rim`(색 그대로 — 없으면 옛 엘리트 외곽선 차가운 채움) · outer 타일 rows 11(칸 80~83) 은 Phaser 타일셋이 이미지 크기로 읽어 그대로 됨. **pillar_stone 은 못 함**(전투장 엄폐 담이 벽 타일 섬이라 기둥 그림으로 바꾸려면 QuarterView 담 그리기를 고쳐야 — 다음 루프).
+- 음향 sound §13: `FEEL_SLOWMO {kind:'lastKill'}`(CombatFeel 이 마지막 처치 슬로모를 실제로 걸 때) · `EVENT_TALK`·`SHOP_TALK`(npc_talk). 장터 사기는 기존 `SHOP_BOUGHT`(이름 다름 — 음향 표는 그대로 쓰면 됨, 다시 진열은 group 'reroll').
+
+### 7. P2-2 · P2-14 · 63 팩 고침표
+- 노드 고유 한 줄: `route.json floors.stage1.nodeLines`(63 팩) → `UiRouteNode.desc`. 이름 바꿈: 이벤트 '인적 끊긴 뒤뜰' · 보스 '만취의 연회장' · 지역 hall '연회장'(desc '군주') · 튜토리얼 '대쉬로 피하자. (Space)' · 조작 줄 'Space 대쉬'. bundle2 위험 문구·보상 이름(유품·각성 게이지·화염 술병·저주)·장터 라벨(다시 진열·덤 궤짝·팔렸다).
+- P2-14 1층 길이: 단1·단3 웨이브 4 → 6(단1 새 적 없음 유지 — 징집병·사수만). sim 가정에 루프 2 비전투 시간(`SIM.LOOP2_EXTRA_MS` — 장터 +15초·사연 +12초·노드 로딩 2초·단서 읽기 3×8초·보스 연출·층 끝 25초) 추가. 결과(보통 길 / 전투 많은 길): 단검 10.4 / 10.6분 · 칼 9.4 / 9.3 · 대검 9.5 / 9.3 · 활 11.1 / 11.6 (전: 7.0~9.0). 근접 둘은 10분에 조금 모자람 — 실기 런 로그로 다시 본다. 각성 게이지 기대 보스 전 439~514(전 313~388) — 2차 각성 단2~3 그대로.
+
+### 검사
+- tsc 0(D 범위 — 작업 중 다른 에이전트 파일 오류는 그쪽 몫) · eslint 0 · vitest 147파일 1121건 중 실패 2(audioDefs·audioMix — 음향 매니페스트 통합 몫) · 새 테스트 `systems/loop2d/loop2D.test`(17) + settings·lighting·bossUi·route·routeArena·diary 갱신 · 바뀐 파일 prettier · vite build 통과.
+- 헤드리스(빌드본, Playwright swiftshader 960×540, 스크래치 `s62d/`): 사연 '양조장 시음회' NPC(eventNpc 안내 '말을 건다' → E → event 머리·아이콘 줄 → 고름 · `01~03`) · 장터 노점 6칸·카드(국밥 30) → E 로 사기 300→270 · 상인 shopTalk(다시 진열 대사 · 외상 → 저주 외상, 전표 그대로 · `04~06`) · 설정 키 바꿈 → 대쉬 키캡 'J'·hitstop false·textScale 1.5 · 시험장 팻말 2 · 칼·대검 스미어 칸(`21_*` — 칼날에 붙음) · 보스 국면 '얼큰 → ??? → ???' → 3국면 공개 · 소등 주변광 #404040(`14_boss_p3`) · 저장하고 나가기 → hasSave → 이어하기 같은 노드(HP·autoSave) → 런 포기(HP 0 · 세이브 지움 · 사망 흐름) · 전투 노드 세트피스·그을음·웨이브 방향 · spawn_ink 문양. 콘솔 오류: 작업 중간 빌드에서 시스템 C `RunEnd.destroy → setSlow` 가 씬 재시작 때 파괴된 적 묶음을 읽던 예외(C 가 `slowTargets` 가드로 고침 — 마지막 빌드 재현 없음) · `Texture key already in use: ui_relics/*`(장터 첫 진입 — C·UI 유품 그림 이중 로드로 보임, 그쪽 확인 요청). 마지막 실행(저장하고 나가기·이어하기·런 포기) 오류 0.
+
+## 62 루프 2 시스템 E — 문 나가기 · 메뉴 뜨기 전 렉 · 렉 중 원치 않는 선택 (2026-10-12)
+도영 님 피드백(원문): "맵 넘어갈 때 이상한 발판 좀 그만 밟고 좀 자연스럽게 좀 넘어가자 … 인터페이스 뜨기 전에 렉 걸리는 거 좀 고치고 렉 걸려서 뭐 원하지 않은 개성 발현 눌려서 답답하니까 이런 것도 개선해봐". 전권 위임(인터뷰 없음). 계약 = `src/contract/ui.ts` '62 루프 2 시스템 E' 절.
+
+### 1. 발판 출구 → 외벽 문 (`scenes/game/doors/ArenaDoors` · `world/DoorView` · `systems/doors/doorPlan`)
+- 바닥 안 2×2 출구 발판(`TileWorld.placeExitAt`, 노드 전투장 `isExitAt`)을 없앴다. 방을 비우면 **진행 방향(노드 지도 다음 열 = 동쪽) 외벽 문**이 열린다: 닫힌 널문(어둠 + 벽과 나란한 판자 둘)이 바깥으로 밀리며 걷히고(0.52초), 문 빛(호박 등불 반경 64)이 0.7초에 차오르고, 문턱 앞 바닥에 '오르는 길' 갈매기 3개가 맥박친다. 문 그림은 외벽 테두리 `doors.east/west`(art §13) — `BorderView` 가 서·동 문 조각을 문 줄 가운데에 그린다(`sideDoorPlacement`). 문 그림이 없으면(테두리 없음·로드 실패·수련장 일반 방) 문 자리를 어둠으로 판다(그 줄 벽 그림 위 Y 정렬).
+- 문 자리: 출구 문 = 동쪽 벽, 옛 출구 2×2 의 아래 줄이 가운데(3칸 = 그림 통로 96 논리 px) · 입구 문 = 서쪽 벽, 시작 줄이 가운데. 전장 생성기는 두 문 줄 앞 가장자리를 깎지 않는다(`arena.ts doorLanes` — 들쭉날쭉한 가장자리여도 바닥이 문까지 곧게).
+- 나가기: 주인공 발이 문턱(벽 안쪽 1칸 띠 × 3줄)에 들어서면(싸움·메뉴·정지·전환·고르기 중이 아니고 **남은 성장 눈금 메뉴가 없을 때**) 조작을 잠그고 문 안으로 2.5칸 자동으로 걸어 들어가며(바디 타일 충돌 끔, 카메라는 따라감) 바닥 끝에서 2칸 사이 몸이 흐려진다 → 문 안에서 기존 그림 속 입구 전환(`exitRoom` / 외길이면 바로 `enterNode` — 루프 1 P2-1 유지). 열린 순간 이미 문턱에 서 있었으면 한 번 벗어났다 들어와야 한다.
+- 들어오기: 새 노드는 반대편(서쪽) 문 안에서 시작해 걸어 들어와(시작점이 문에서 4.5칸 안이면 시작점까지, 아니면 문에서 2.6칸) 조작 해제 — 약 0.6~0.7초, 그동안 입력·전투 시작 잠금(`enterLockUntil`). 들어오면 입구 문은 다시 닫힌다. 탄생 전장은 입구 문 없음(가운데에서 태어난다). 걸음이 시간 안에 못 닿으면(프레임 끊김) 목표에 놓는다(벽 칸 안에 끼지 않게).
+- 지도 고르기 취소(`cancelChoose`): 문 안에서 문턱 안쪽 1.8칸으로 걸어 나온다(문턱 밖 → 다시 들어서면 다시 나간다).
+- 같은 문법: 수련장 방(늘 열린 출구 문 · 반대편 문에서 입장 → 문 안 → `exitRoom` 지도), 보스 노드 층 출구(`RouteFlow.openFloorExit` — 1층은 C 의 층 끝 결산이 먼저라 쓰이지 않음, 2층 이상 대비), 방+복도 층(노드 지도 아님)만 옛 발판 그대로. 무기 시험장(WeaponLab)은 출구가 없다(Esc).
+- 계약: `UiSnapshot.door: UiDoor | null`(side·phase closed/open/walkOut/inside/walkIn·kind node/floor/training·screen), `UiExitHint.side`. `RunEnd.exitHint` 는 문 가운데를 가리킨다. 이벤트(시스템) `DOOR_OPENED{side,kind}` · `DOOR_WALK{phase,side,ms}`(core/eventsLoop2E). 디버그 `__lopad.doors()` · `openExit()`(싸움 없이 노드를 마치고 문 열기) · `gotoExit()`(문턱 가운데로).
+
+### 2. '인터페이스 뜨기 전 렉' — 측정과 원인
+- 측정(헤드리스, 빌드본 비압축, playwright swiftshader · 프레임별 씬 update·render·텍스처 업로드 계측, 스크래치 `s62e/instr.mjs`·`guard.mjs`):
+  | 경우 | 전 | 후 |
+  |---|---|---|
+  | 방을 비운 순간 성과 등급(완)이 눈금을 넘김 → 게임 정지 후 UI 가 메뉴를 미룬 시간(`menuWait`) | **1200ms**(정지된 채 메뉴 없음) | **107ms** |
+  | 그때 게임 정지 시점 (등급 기준) | 29ms | 2771ms(성과 카드가 거의 끝날 때까지 게임은 그대로) |
+  | 메뉴 여는 프레임 JS (헤드리스 CPU) | 76~116ms, 텍스처 업로드 250(UI 안내 카드 글자 GlowText) | 38ms, 업로드 8 (같은 시점 UI 쪽 화면이 달라 비교는 참고) |
+  | 시스템 몫 (스냅샷 · 메뉴 만들기) | 0.4~0.9ms | 같음 |
+- 원인 ①(시스템이 고칠 몫): 성과 등급 보상(각성 +20)이 눈금을 넘기면 개성 발현 메뉴가 곧장 게임을 멈췄는데, UI 는 성과 카드(2.86초)가 끝날 때까지 최대 1.2초 메뉴를 미뤄 — 그 1.2초가 '렉'으로 보였다. → `GrowthFlow` 가 `NODE_GRADED` 뒤 `MENU_GUARD.GRADE_HOLD_MS`(2700) 동안과 막타 슬로모(`combatFeel.active`) 동안 눈금 메뉴를 미룬다(방은 이미 비었다 — 문은 남은 눈금이 있으면 나가지 않는다).
+- 원인 ②: 각성 눈금 메뉴를 여는 순간 각성 연출 시트를 받기 시작해(`awaken.prefetch`) 메뉴가 뜨는 동안 로드·업로드가 겹쳤다 → 다음 눈금이 각성이고 게이지가 절반을 넘으면 미리 받는다(노드 시작 때 한 번 + 게이지가 오를 때).
+- 원인 ③(UI 몫 — 요청): 메뉴를 그리는 프레임에 글자(Phaser Text) 수백 장을 만들며 매번 캔버스를 다시 올린다(GlowText: 생성·setText·setLineSpacing·setColor 마다 업로드 — 처음 안내 카드 250회).
+
+### 3. 렉 중 원치 않는 선택 방지
+- `systems/input/menuGuard`: 메뉴가 열린 뒤 `MENU_GUARD.ARM_MS`(400) 동안 `TextMenu.select`(= `uiCommands.select`) 무시 — 같은 id 다시 그리기(상점 갱신)는 처음 시각 유지, 'meta' 는 예외(UI 자동 enter). 막으면 `MENU_GUARDED`. UI 가 메뉴를 실제로 그린 순간 `uiCommands.menuShown(id)` 를 보내면 그때부터 다시 400ms(늦은 쪽). 노드 고르기도 같은 규칙(`RouteFlow.chooseFromUi` — 외길 자동 고르기·디버그는 우회, `menuShown('route')`).
+- 메뉴가 뜨는 프레임(`Game.setFrozen(true)`)·노드 고르기를 여는 프레임에 입력 버퍼를 비운다(`InputSystem.flush` — 쌓인 좌·우클릭·대쉬·물약 JustDown).
+- 시스템 임시 텍스트 메뉴(렌더러 없음)의 숫자 키: 자동 반복과 '열릴 때 이미 누르고 있던 키'는 무시(뗐다 다시 눌러야 — `HeldKeyFilter`, 창 단위 `keyTracker`).
+- 계약: `UiMenu.openedAt`·`armMs`(performance.now() ms — UI 와 같은 시계), `UiRoute.openedAt`·`armMs`, 명령 `uiCommands.menuShown(id | 'route')`. `?menuguard=0` 끔. 디버그 `__lopad.ui().select` 는 우회.
+- 확인(헤드리스 `guard3.mjs`): 같은 프레임에 연 개성 메뉴에 17ms 뒤 '1' → 막힘(blocked 1, 메뉴 그대로) · 600ms 뒤 '1' → 개성 획득.
+
+### 검사
+- tsc · eslint 0 · 바뀐 파일 prettier · vite build(스크래치 outDir) 통과. vitest 147파일 1121 중 2 실패 = `audioDefs`·`audioMix`(시스템 C·D 가 넣은 새 효과음 id 가 음향 매니페스트에 아직 없음 — 이 작업과 무관), 새 테스트 `doors/doorPlan.test`(7)·`input/menuGuard.test`(4) 통과.
+- 헤드리스(스크래치 `s62e/shots`, 콘솔 오류 0): `outer_1_walkIn`(서쪽 문 안에서 걸어 들어옴) · `outer_3_open`(동쪽 문 열림 · 빛 · 갈매기 · UI '오르는 길 열림') · 문턱 → walkOut → inside → 외길 enterNode 전환 → 다음 노드(사연) `outer_7_next`(서쪽 문으로 입장, 문 닫힘).
+
+## 62 루프 2 시스템 F — 통합 정리 · 루프 2 효과음 연결 · 그림 이중 로드 · ui.ts 나누기 · 아트 §31-10~11 연결 (2026-10-12)
+전권 위임(인터뷰 없음). 계약 sound §13(문 소리 끝 줄 포함) · art §31-10·11.
+
+### 1. 효과음 연결 (`systems/audio/audioLoop2.ts` → audioMap 에 펼침)
+- 새 표 하나에 모았다: 메뉴 열림·선택·닫힘 → `ui_move`/`ui_select`/`ui_back`(없으면 옛 `menu_*`) — **UI 렌더러가 없는 시스템 임시 텍스트 메뉴일 때만**(렌더러 메뉴는 UI `uiSound.ts` 가 직접 — 같은 순간 두 번 금지). 사연 고르기 `event_choice` 는 늘.
+- `settings:toggled` → `ui_toggle`(끔 = 재생 속도 0.9) · `ENEMY_INCOMING` → `enemy_incoming`(시작 = max(0, delayMs − 1000)) · `FEEL_SLOWMO{lastKill}` → `last_kill_slow` · `PLAYER_DIED` → [`death_slow`, `player_death`](대체 — 로드된 첫 것 하나) · `NODE_GRADED` 완 → [`trial_win`, `grade_perfect`](막타 슬로모 280ms 와 겹치면 풀린 뒤) · 양 → `grade_good` · `NODE_TRIAL_BROKEN` → `trial_fail` · `MEMORY_UNLOCKED` → `memory_unlock` · `EVENT_TALK`·`SHOP_TALK` → `npc_talk`.
+- UI 이벤트 트리거: `AudioTrigger.bus: 'ui'` → audio.ts 가 `uiBus` 에서 구독(떼기 포함). `ui:floor-end` → `floor_end_sting` · `ui:relic-gained` → `relic_take`(장터에서 산 유품은 `shop_buy` 가 대신).
+- 문(시스템 E · 음향 문 소리): `door:opened` → [`door_open`, `exit_open`](수련장 방 문은 처음부터 열려 소리 없음) · 같은 순간(50ms) EXIT_OPENED 의 `exit_open` 은 쉰다(방+복도 층 발판만 남음) · 노드 지도 층에서는 옛 `TRIAL_CLEARED → door_open` 을 끔(방+복도 층만) · `door:walk{out|in|back}` → `door_walk_out`/`_in`/`_back`(back 없으면 in), 재생 속도 clamp(700 또는 650 ÷ 걸음 ms, 0.85~1.15). 보스 처치 정적(`bgmBossDefeat.silentUntil`)은 `door:opened{kind:floor}` 에서도 풀린다.
+- 옮김: PLAYER_DIED·EXIT_OPENED·MENU_* 줄(audioMap)과 NODE_GRADED 줄(audioBuild)을 audioLoop2 로(중복 없음).
+- 테스트: `audioLoop2.test`(7) 새로 · audioDefs used 목록에 루프 2 id·폴백 · audioMix 덕킹 규칙 7 → 12(막타 슬로모 −5/−4 280ms · 사망 −10/−12 · 층 끝 BGM −6 · 기둥 무너짐 파훼 줄 확인) · audioBuild 이벤트 메뉴 기대값.
+
+### 2. 'Texture key already in use' (장터 첫 진입 등)
+- 원인(헤드리스 재현 — 3번 중 2번): 노드를 옮기면 Game 씬이 다시 시작되는데 Phaser 로더는 씬 종료 때 목록만 비우고 이미 받던 파일은 끝까지 받아 텍스처에 넣는다(리스너는 지워짐). 새 씬(RunEndArt 유품·소품·초상 · GrowthArt 개성 카드·미리보기)이 같은 키를 다시 큐에 넣어 둘 다 완료 → 경고(`ui_relics/*`·`ui_traits/*`·`growth_look_*`).
+- `systems/sprites/imageOnce.queueImageOnce`: 키별 마지막 파일이 실제로 받는 중(LOADING·LOADED·PROCESSING)이면 다시 넣지 않고 `addtexture-<key>` 를 기다려 표시(markIconLoaded). 시작 전에 버려진(PENDING) 파일은 다시 받는다. RunEndArt · GrowthArt(load·loadBaseLook) · 사연 컷(eventArt) 이 쓴다. 헤드리스: 고친 뒤 6번(노드 연속 이동 포함) 경고 0.
+
+### 3. 통합 정리 (C·D·E 가 나눠 고친 파일)
+- `contract/ui.ts` 2162줄 → 1714줄: C·D·E 의 **독립 형식·상수**(UiRelic·UiFloorEnd·UiRunSummary·UiMemoryBook·UiEventScene·UiShopOffer·UiLoading·UiDoor·UI_DEFAULT_KEYS·UI_BINDABLE_KEYS·UI_KEY_LABELS 등 37개)를 `contract/uiLoop2.ts` 로 옮기고 `ui.ts` 가 `export *` 로 재수출(UI import 경로 그대로). 기존 형식에 필드를 더하는 인터페이스 합치기(UiSnapshot·UiMenu·UiSettings·UiExitHint …)와 이벤트·명령 함수는 같은 모듈이어야 해서 ui.ts 의 C·D·E 절에 남겼다.
+- `Game.ts`: C 의 `clearHitStop` 이 setHitStopped 의 설명 주석 사이에 끼어 있던 것 바로잡음. `InputSystem`: 설정이 바뀔 때마다(음량 막대 등) 키를 다시 묶던 것 → 키 묶음이 실제로 바뀔 때만.
+- 훑어본 것(중복 없음): `setFrozen`·`openChooser` 의 입력 비우기(flush)는 같은 프레임 두 번이어도 무해(멱등) · TextMenu 의 시간 가드(MenuGuard)와 누른 채 키 걸러내기(HeldKeyFilter)는 서로 다른 경우를 막는다 · main.ts host 셋(C·D·E)은 각자 다른 명령 · UiRelay 스냅샷 필드 겹침 없음.
+
+### 4. 아트 §31-10·11 연결
+- 외벽 문 널문: `border.json doors.<side>.closed`·`openSheet`(가로 4칸, 칸 시간 90/110/130/160ms) 를 `world/DoorLeaf` 로 — 문 그림과 같은 원점·배율, depth `DOORS.DEPTH_BARRIER`, 주변광 보정 틴트. 열림 = 시트 재생, 닫힘 = 거꾸로(시트가 없으면 닫힘 덮개 알파). 그림이 있으면 DoorView 의 도형 막힘 판(어둠 + 판자 둘)을 그리지 않는다(문 빛·갈매기는 그대로). 테두리 그림이 늦게 와도 문 상태를 기억했다가 그 칸으로.
+- 수련장 일반 방 문틀: `tiles/border/training/doors.json`(Preloader 가 읽음 — `border.doorsOnlyDefs`) → `world/SideDoorArt`(문틀 + 발광 가산 + 횃불 빛 + 널문). ArenaDoors 는 테두리·문틀 공용 꼴(`SideDoorHost`)로 쓴다. 헤드리스: 수련장 '걸음과 숨' 방 동 문 열림·서 문 닫힘, 횃불 2.
+- 장터 국밥 노점 물건 = `items/v3/shop_goods` heal 행(프레임 12 — 헤드리스 확인). 일기장 사연(E4) 소품 = `structures/v3/event_diary_open`(data/bundle2.json propSheet, clue_tab_ledgers 는 서사 단서로 남음).
+
+### 검사
+- tsc 0 · eslint 0 · vitest 150파일 1163건 전부 통과 · prettier(src·data 전체) · vite build 통과.
+- 헤드리스(빌드본, 스크래치 `s62f/`): 장터 이중 로드 재현·해소(`relic.cjs`) · 전투 노드 동쪽 문 닫힘 → 열림 시트(`shots/b1~b3`) · 장터 노점 국밥 heal 칸 · 수련장 문틀(`shots/t2_training`). 콘솔·페이지 오류 0.

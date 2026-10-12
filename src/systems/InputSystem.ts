@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { KEYS } from '../core/Constants';
+import { settings, type GameSettings } from './settings';
 
 /** 게임 로직이 입력 소스를 모르게 하는 추상화. 조작키 확정은 UI 파트 개시 인터뷰에서. */
 export interface InputState {
@@ -66,20 +67,20 @@ export class InputSystem {
   private readonly onPointerDown: (p: Phaser.Input.Pointer) => void;
   private readonly onPointerUp: (p: Phaser.Input.Pointer) => void;
 
+  /** 62 D (P1-16): 설정 키가 바뀌면 다시 묶는다 (떼기) */
+  private readonly offSettings: () => void;
+
   constructor(private scene: Phaser.Scene) {
-    const kb = scene.input.keyboard!;
-    this.keys = {
-      up: kb.addKey(KEYS.UP),
-      down: kb.addKey(KEYS.DOWN),
-      left: kb.addKey(KEYS.LEFT),
-      right: kb.addKey(KEYS.RIGHT),
-      dash: kb.addKey(KEYS.DASH),
-      potion: kb.addKey(KEYS.POTION),
-      sprint: kb.addKey(KEYS.SPRINT),
-      interact: kb.addKey(KEYS.INTERACT),
-      reload: kb.addKey(KEYS.RELOAD),
-      consumable: kb.addKey(KEYS.CONSUMABLE),
-    };
+    this.keys = this.bindKeys(settings.current());
+    // 62 F: 키 묶음이 실제로 바뀔 때만 (음량 막대 등 다른 설정 변경마다 다시 묶어 누르던 키가 풀리지 않게)
+    let bound = JSON.stringify(settings.current().keys);
+    this.offSettings = settings.onChange((s) => {
+      const next = JSON.stringify(s.keys);
+      if (next === bound) return;
+      bound = next;
+      for (const k of Object.values(this.keys)) scene.input.keyboard?.removeKey(k, false);
+      this.keys = this.bindKeys(s);
+    });
     scene.input.mouse?.disableContextMenu();
     this.onPointerDown = (p) => {
       // 58라운드: 한 프레임 안에 눌렀다 뗀 아주 짧은 클릭도 — 처리 시점에 버튼 상태가 이미 풀렸어도 누른 버튼(button 0)으로 받는다
@@ -103,6 +104,24 @@ export class InputSystem {
     scene.input.on('pointerup', this.onPointerUp);
     // 55라운드: 캔버스 밖에서 뗀 좌클릭도 홀드 끝 (차지가 붙어 있지 않게)
     scene.input.on('pointerupoutside', this.onPointerUp);
+  }
+
+  /** 62 D (P1-16): 이동·대쉬·상호작용·물약 = 설정 키, 나머지(달리기·장전·소모품)는 고정 */
+  private bindKeys(s: GameSettings): Record<string, Phaser.Input.Keyboard.Key> {
+    const kb = this.scene.input.keyboard!;
+    const k = s.keys;
+    return {
+      up: kb.addKey(k.up),
+      down: kb.addKey(k.down),
+      left: kb.addKey(k.left),
+      right: kb.addKey(k.right),
+      dash: kb.addKey(k.dash),
+      potion: kb.addKey(k.potion),
+      sprint: kb.addKey(KEYS.SPRINT),
+      interact: kb.addKey(k.interact),
+      reload: kb.addKey(KEYS.RELOAD),
+      consumable: kb.addKey(KEYS.CONSUMABLE),
+    };
   }
 
   read(): InputState {
@@ -139,7 +158,19 @@ export class InputSystem {
     return state;
   }
 
+  /**
+   * 62 루프 2 E: 쌓인 입력 비우기 (메뉴가 뜨는 프레임 — 정지 사이 눌린 좌클릭·우클릭·대쉬·물약 등이 메뉴 뒤 게임으로 새지 않게).
+   * 누르고 있는 상태(isDown·attackHeld)는 그대로 — 메뉴가 닫힌 뒤 계속 누르고 있으면 이어진다
+   */
+  flush(): void {
+    this.attackQueued = false;
+    this.secondaryQueued = false;
+    this.secondaryReleaseQueued = false;
+    for (const k of Object.values(this.keys)) Phaser.Input.Keyboard.JustDown(k);
+  }
+
   destroy(): void {
+    this.offSettings();
     this.scene.input.off('pointerdown', this.onPointerDown);
     this.scene.input.off('pointerup', this.onPointerUp);
     this.scene.input.off('pointerupoutside', this.onPointerUp);

@@ -1,10 +1,36 @@
 {
-  "souls": { "perStage": 10, "perKill": 1, "perEvolution": 20, "clearBonus": 100 },
+  "_note62": "62 루프 2 시스템 C (P16 §4 · P1-8): 몸의 기억 = 능력치 강화 3줄(최대 체력·공격력·대쉬 대기 시간 — 스토리 63 팩 memory.body 이름·문장), 가격 상향. 메타 해금 '기억'은 data/memory.json. 옛 방어력·독주 소지 강화는 지웠다 — 옛 메타 세이브 레벨은 무시된다. detail {n} = 다음 단계까지의 합계. clearBonus = 층 끝 결산(1층 끝) 보너스",
+  "souls": { "perStage": 10, "perKill": 1, "perEvolution": 20, "clearBonus": 50 },
   "upgrades": [
-    { "id": "maxHp", "name": "최대 HP +5", "perLevel": 5, "maxLevel": 10, "baseCost": 30, "costStep": 15 },
-    { "id": "attack", "name": "공격력 +1", "perLevel": 1, "maxLevel": 5, "baseCost": 60, "costStep": 30 },
-    { "id": "defense", "name": "방어력 +1", "perLevel": 1, "maxLevel": 5, "baseCost": 60, "costStep": 30 },
-    { "id": "dashCooldown", "name": "대쉬 쿨타임 -5%", "perLevel": 5, "maxLevel": 6, "baseCost": 50, "costStep": 25 },
-    { "id": "potionCarry", "name": "물약 소지 +1", "perLevel": 1, "maxLevel": 2, "baseCost": 80, "costStep": 40 }
+    {
+      "id": "maxHp",
+      "name": "몸의 기억",
+      "line": "태어날 때부터 몸이 조금 더 버틴다",
+      "detail": "최대 체력 +{n}",
+      "perLevel": 5,
+      "maxLevel": 5,
+      "baseCost": 40,
+      "costStep": 25
+    },
+    {
+      "id": "attack",
+      "name": "손의 기억",
+      "line": "태어날 때부터 손이 조금 더 깊게 벤다",
+      "detail": "공격력 +{n}",
+      "perLevel": 1,
+      "maxLevel": 3,
+      "baseCost": 80,
+      "costStep": 40
+    },
+    {
+      "id": "dashCooldown",
+      "name": "발의 기억",
+      "line": "태어날 때부터 대쉬가 조금 더 빨리 돌아온다",
+      "detail": "대쉬 대기 시간 −{n}%",
+      "perLevel": 5,
+      "maxLevel": 3,
+      "baseCost": 60,
+      "costStep": 30
+    }
   ]
 }

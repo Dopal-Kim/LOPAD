@@ -28,9 +28,9 @@ const run: RunSummary = {
 };
 
 describe('meta', () => {
-  it('영혼 = 층×10 + 처치×1 + 진화×20 (+클리어 100)', () => {
+  it('영혼 = 층×10 + 처치×1 + 진화×20 (+층 끝 결산 50 — 62 루프 2 C)', () => {
     expect(soulsForRun(run)).toBe(30 + 25 + 20);
-    expect(soulsForRun({ ...run, cleared: true, floorReached: 7 })).toBe(70 + 25 + 20 + 100);
+    expect(soulsForRun({ ...run, cleared: true, floorReached: 7 })).toBe(70 + 25 + 20 + 50);
   });
   it('도감은 최고 기록을 누적한다', () => {
     let m = emptyMeta();
@@ -41,23 +41,26 @@ describe('meta', () => {
     expect(m.bestFloor).toBe(5);
     expect(m.souls).toBe(75 + 60);
   });
-  it('강화 구매: 비용 상승, 최대 레벨, 영혼 부족', () => {
+  it('강화 구매 (몸의 기억 3줄 — 62 루프 2 C 가격 상향): 비용 상승, 최대 레벨, 영혼 부족', () => {
+    expect(META_CONFIG.upgrades.map((u) => u.id)).toEqual(['maxHp', 'attack', 'dashCooldown']);
     const def = META_CONFIG.upgrades.find((u) => u.id === 'maxHp')!;
-    expect(upgradeCost(def, 0)).toBe(30);
-    expect(upgradeCost(def, 2)).toBe(60);
-    let m = { ...emptyMeta(), souls: 100 };
+    expect(upgradeCost(def, 0)).toBe(40);
+    expect(upgradeCost(def, 2)).toBe(90);
+    let m = { ...emptyMeta(), souls: 120 };
     m = buyUpgrade(m, 'maxHp')!;
-    expect(m.souls).toBe(70);
+    expect(m.souls).toBe(80);
     expect(m.upgrades.maxHp).toBe(1);
-    m = buyUpgrade(m, 'maxHp')!; // 45
-    expect(m.souls).toBe(25);
-    expect(buyUpgrade(m, 'maxHp')).toBeNull(); // 60 필요
-    const maxed = { ...emptyMeta(), souls: 9999, upgrades: { potionCarry: 2 } };
-    expect(buyUpgrade(maxed, 'potionCarry')).toBeNull();
+    m = buyUpgrade(m, 'maxHp')!; // 65
+    expect(m.souls).toBe(15);
+    expect(buyUpgrade(m, 'maxHp')).toBeNull(); // 90 필요
+    const maxed = { ...emptyMeta(), souls: 9999, upgrades: { attack: 3 } };
+    expect(buyUpgrade(maxed, 'attack')).toBeNull();
+    // 지운 줄(독주 소지)은 살 수 없다
+    expect(buyUpgrade({ ...emptyMeta(), souls: 9999 }, 'potionCarry')).toBeNull();
   });
-  it('보너스 환산', () => {
+  it('보너스 환산 (옛 세이브의 지운 줄 레벨은 무시)', () => {
     const b = metaBonus({ ...emptyMeta(), upgrades: { maxHp: 3, attack: 1, dashCooldown: 2, potionCarry: 1 } });
-    expect(b).toEqual({ maxHp: 15, attack: 1, defense: 0, dashCooldownMult: 0.9, potionCarry: 1 });
+    expect(b).toEqual({ maxHp: 15, attack: 1, defense: 0, dashCooldownMult: 0.9, potionCarry: 0 });
   });
   it('저장소 읽기/쓰기와 깨진 데이터', () => {
     const st = memStorage();

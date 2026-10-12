@@ -11,12 +11,17 @@ import { worldToLogicalScreen } from '../../systems/display';
 import { lightRegistryOf } from '../../systems/lighting/lightRegistry';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { artScale } from '../../systems/sprites/spriteDefs';
+import { STRUCTURE_ACTION } from '../../systems/sprites/spriteActions';
+import { BUNDLE2 } from '../../data/bundle2';
+import { StructureView } from '../../world/StructureView';
 import type { Game } from '../Game';
 
 export class ShopKeeper {
   readonly x: number;
   readonly y: number;
   private readonly view: Phaser.GameObjects.Sprite | Phaser.GameObjects.Rectangle;
+  /** 62 D: 종군 상인 NPC 그림 (있으면) */
+  private npc: StructureView | null = null;
 
   /** shop = 상점 칸 왼쪽 위 타일 */
   constructor(
@@ -27,6 +32,19 @@ export class ShopKeeper {
     // 상점 칸 2×2 의 윗변 가운데, 그 위 한 칸에 선다 (발 = 칸 아랫변)
     this.x = (shop.x + 1) * TILE;
     this.y = shop.y * TILE - K.FOOT_GAP_PX;
+    // 62 D (P1-13 · art §31.6): 종군 상인 그림 npc_merchant (시트 광원 포함) — 없으면 옛 적 행상 그림
+    const npcTex = spriteLibrary.textureKey(K.NPC_SHEET, STRUCTURE_ACTION);
+    if (npcTex && g.textures.exists(npcTex)) {
+      this.npc = new StructureView(g, {
+        sheet: K.NPC_SHEET,
+        rect: new Phaser.Geom.Rectangle(this.x - TILE / 2, this.y - TILE, TILE, TILE),
+        color: BUNDLE_FX.PROP_COLOR,
+        label: '',
+        floor: false,
+      });
+      this.view = this.npc.sprite!;
+      return;
+    }
     const anim = spriteLibrary.animKey(K.SHEET, 'idle', 'down');
     const def = spriteLibrary.sheet(K.SHEET, 'idle');
     const tex = spriteLibrary.textureKey(K.SHEET, 'idle');
@@ -59,11 +77,11 @@ export class ShopKeeper {
     return {
       id: 'shopkeeper',
       kind: 'mapSeller',
-      name: STORY.names.shop,
+      name: BUNDLE2.shop.talk?.merchant.speaker ?? STORY.names.shop,
       roomId,
       key: 'E',
       actionKey: 'shop.open',
-      action: SHOP_KEEPER.ACTION_TEXT,
+      action: (BUNDLE2.shop.talk?.merchant.prompt ?? SHOP_KEEPER.ACTION_TEXT).replace(/^\[E\]\s*/, ''),
       cost: null,
       hold: null,
       usable,
@@ -74,6 +92,7 @@ export class ShopKeeper {
   }
 
   destroy(): void {
-    this.view.destroy();
+    if (this.npc) this.npc.destroy();
+    else this.view.destroy();
   }
 }

@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, GAME, PLACEHOLDER_UI, RARITY_LABEL } from '../core/Constants';
+import { COLORS, DEPTH, GAME, MENU_GUARD, PLACEHOLDER_UI, RARITY_LABEL } from '../core/Constants';
 import { screenFixed } from './display';
 import { oncePerKeyEvent } from './keyEvents';
 import { EventBus, Events, type MenuEventPayload } from '../core/EventBus';
 import { UI_EVENTS, __system, type UiMenu, type UiMenuId, type UiMenuLine } from '../contract/ui';
 import { UI_SCENES } from '../ui';
+import { HeldKeyFilter, MenuGuard, keyTracker } from './input/menuGuard';
 
 export type MenuLine = UiMenuLine;
 
@@ -16,8 +17,14 @@ export class TextMenu {
   private text?: Phaser.GameObjects.Text;
   private onKey?: (e: KeyboardEvent) => void;
   private current?: { menu: UiMenu; onSelect: (key: string) => void; selected: boolean };
+  /** 62 루프 2 E: 열린 뒤 MENU_GUARD.ARM_MS 동안 선택 무시 (`UiMenu.openedAt`·`armMs`) — 같은 메뉴 다시 그리기는 처음 시각 유지 */
+  readonly guard = new MenuGuard(MENU_GUARD.ARM_MS, menuGuardEnabled());
+  /** 임시 텍스트 메뉴: 열릴 때 누르고 있던 키는 뗐다 다시 눌러야 선택 (HeldKeyFilter) */
+  private onKeyUp?: (e: KeyboardEvent) => void;
 
-  constructor(private scene: Phaser.Scene) {}
+  constructor(private scene: Phaser.Scene) {
+    keyTracker.install();
+  }
 
   get isOpen(): boolean {
     return Boolean(this.current);
@@ -34,14 +41,26 @@ export class TextMenu {
     onSelect: (key: string) => void,
     footer = '',
     /** 47라운드 구조물 메뉴 (계약 §9.4): 그만두기 key('0') · 연 구조물 id */
-    extra: { cancelKey?: string; structureId?: string } = {},
+    extra: { cancelKey?: string; structureId?: string; event?: UiMenu['event']; speaker?: string } = {},
   ): void {
     // 같은 메뉴를 다시 그리는 것(상점·보상 갱신)은 reopen — 열림 효과음을 내지 않는다
     const reopen = this.current?.menu.id === id;
     this.close(reopen);
-    const menu: UiMenu = { id, title, footer: footer || undefined, lines };
+    if (!reopen) this.guard.arm();
+    TextMenu.active = this;
+    const menu: UiMenu = {
+      id,
+      title,
+      footer: footer || undefined,
+      lines,
+      openedAt: this.guard.openedAt,
+      armMs: this.guard.armMs,
+    };
     if (extra.cancelKey !== undefined) menu.cancelKey = extra.cancelKey;
     if (extra.structureId !== undefined) menu.structureId = extra.structureId;
+    // 62 D (P1-12·13): 사연 머리 · 말하는 이
+    if (extra.event) menu.event = extra.event;
+    if (extra.speaker) menu.speaker = extra.speaker;
     this.current = { menu, onSelect, selected: false };
     EventBus.emit(Events.MENU_OPENED, { id, reopen } satisfies MenuEventPayload);
     if (__system.rendererRegistered()) {
@@ -73,14 +92,34 @@ export class TextMenu {
       .setScrollFactor(0)
       .setDepth(DEPTH.DEBUG);
     // 53라운드: Phaser 3.90 큐 재처리로 같은 keydown 이 두 번 와도 한 번만 고른다 (keyEvents)
-    this.onKey = oncePerKeyEvent((e: KeyboardEvent) => this.select(e.key));
+    // 62 루프 2 E: 자동 반복 · 열릴 때 누르고 있던 키는 무시 (뗐다 다시 누른 것만)
+    const held = new HeldKeyFilter(keyTracker.down);
+    this.onKey = oncePerKeyEvent((e: KeyboardEvent) => {
+      if (held.acceptDown(e.code, e.repeat)) this.select(e.key);
+    });
+    this.onKeyUp = (e: KeyboardEvent) => held.up(e.code);
     this.scene.input.keyboard?.on('keydown', this.onKey);
+    this.scene.input.keyboard?.on('keyup', this.onKeyUp);
+  }
+
+  /** 62 루프 2 E: 마지막으로 메뉴를 연 브로커 (Game·Setup — `uiCommands.menuShown` 이 찾아간다) */
+  private static active: TextMenu | null = null;
+
+  /** 62 루프 2 E: UI 가 이 메뉴를 실제로 화면에 그렸다 (`uiCommands.menuShown`) — 그때부터 다시 armMs */
+  static shown(menuId: UiMenuId): void {
+    const m = TextMenu.active;
+    if (m?.current?.menu.id === menuId) m.guard.shown();
   }
 
   /** 계약 명령 또는 숫자 키에서 호출 */
   select(key: string, menuId?: UiMenuId): void {
     if (!this.current) return;
     if (menuId && this.current.menu.id !== menuId) return;
+    // 62 루프 2 E: 열린 직후(렉·정지 사이 쌓인 입력)는 받지 않는다
+    if (!MENU_GUARD.EXEMPT.includes(this.current.menu.id) && !this.guard.accepts()) {
+      EventBus.emit(Events.MENU_GUARDED, { id: this.current.menu.id, key } satisfies MenuEventPayload);
+      return;
+    }
     const line = this.current.menu.lines.find((l) => l.key === key);
     // 53라운드 UI 요청 B1: 그만두기 key(cancelKey)는 줄이 없어도 받는다 (상점 Esc)
     const cancel = key === this.current.menu.cancelKey;
@@ -94,7 +133,9 @@ export class TextMenu {
   close(silent = false): void {
     const was = this.current;
     if (this.onKey) this.scene.input.keyboard?.off('keydown', this.onKey);
+    if (this.onKeyUp) this.scene.input.keyboard?.off('keyup', this.onKeyUp);
     this.onKey = undefined;
+    this.onKeyUp = undefined;
     this.text?.destroy();
     this.text = undefined;
     this.current = undefined;
@@ -104,4 +145,9 @@ export class TextMenu {
       __system.emit(UI_EVENTS.MENU_CLOSE, { id: was.menu.id });
     }
   }
+}
+
+/** `?menuguard=0` 이면 가드 끔 (검증용) */
+function menuGuardEnabled(): boolean {
+  return typeof location === 'undefined' || new URLSearchParams(location.search).get(MENU_GUARD.PARAM) !== '0';
 }

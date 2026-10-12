@@ -202,6 +202,8 @@ export const LAB = {
   SEED: 'weapon-lab',
   /** 61 단계 6 수련장 바닥·벽 타일셋 (art §28 `tiles/v2/stage1_training` — gate 와 같은 색인·규칙) */
   TRAINING_TILESET: 'stage1_training',
+  /** 62 D (P1-17): 수련장 지도 그림을 기다리는 최대 ms (넘으면 그림 없이 연다) */
+  TRAINING_MAP_WAIT_MS: 1500,
 } as const;
 
 /**
@@ -213,3 +215,8 @@ export const WEAPON_LOAD = {
   FONT: '12px monospace',
   COLOR: '#8a8a96',
 };
+
+/** 62 루프 2 시스템 D (P2-6) 다음 노드 미리 읽기: 싸움 없는 노드(장터·쉼터·사연)에서 들어선 뒤 시작까지 ms */
+export const NODE_PREFETCH = {
+  CALM_DELAY_MS: 2500,
+} as const;
