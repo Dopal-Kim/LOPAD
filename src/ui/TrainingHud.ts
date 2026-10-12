@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, UI_SCREEN, uiCommands, type UiSnapshot, type UiTraining } from '../contract/ui';
 import { debugExpose } from './debug';
+import type { AlertSpec } from './HudAlerts';
 import { GlowText } from './glow';
 import { keyGlyph } from './keyGuide';
 import { fontFamily, inkPanel, type NinePanel } from './kit';
@@ -23,7 +24,7 @@ const SEAL = hexToNum(HEALTH_BAR.fill);
 const SEAL_DARK = hexToNum(HEALTH_BAR.lost);
 
 /** 체크 칸 그리기: 빈 칸(G06 테) / 끝남(G13 채움 + G00 체크) */
-function drawCheck(g: Phaser.GameObjects.Graphics, x: number, y: number, s: number, done: boolean): void {
+export function drawCheck(g: Phaser.GameObjects.Graphics, x: number, y: number, s: number, done: boolean): void {
   g.lineStyle(1, hexToNum(done ? GRAY[13] : GRAY[7]), 1).strokeRect(x + 0.5, y + 0.5, s - 1, s - 1);
   if (!done) return;
   g.fillStyle(hexToNum(GRAY[13]), 1).fillRect(x + 1, y + 1, s - 2, s - 2);
@@ -60,14 +61,14 @@ export class TrainingLayer {
   private rowsY: Map<string, { y: number; h: number }> = new Map();
   private sig = '';
   private box = { x: 0, y: 0, w: 0, h: 0 };
-  private toast?: Phaser.GameObjects.Container;
   private stamp?: Phaser.GameObjects.Container;
   private stampTimer?: Phaser.Time.TimerEvent;
   private visible = true;
 
   constructor(
     private scene: Phaser.Scene,
-    private opts: { top: () => number },
+    /** 62 P0-6: 과제 완료 알림은 위 가운데 알림 줄로 (`alert`) */
+    private opts: { top: () => number; alert?: (spec: AlertSpec) => void },
   ) {}
 
   subscribe(on: (event: string, h: (p: never) => void) => void): void {
@@ -182,30 +183,21 @@ export class TrainingLayer {
         .setDepth(U.depth + 2);
       scene.tweens.add({ targets: flash, alpha: 0, duration: U.flashMs, onComplete: () => flash.destroy() });
     }
-    this.toast?.destroy();
-    const text = new GlowText(scene, 0, 0, fill(trainingText('taskDone'), { label: e.label }), 'ink_body');
-    const w = text.displayWidth + 12 + 18;
-    const hgt = 24;
-    const bx = Math.round(UI_SCREEN.WIDTH / 2 - w / 2);
-    const by = 72;
-    const panel = inkPanel(scene, 0, 0, w, hgt);
-    const g = scene.add.graphics();
-    drawCheck(g, 8, 7, U.box, true);
-    text.setPosition(8 + U.box + 6, 4);
-    const toast = scene.add
-      .container(bx, by, [panel, g, text])
-      .setDepth(U.depth + 3)
-      .setAlpha(0);
-    this.toast = toast;
-    scene.tweens.add({ targets: toast, alpha: 1, y: by - 4, duration: 160 });
-    scene.tweens.add({
-      targets: toast,
-      alpha: 0,
-      delay: U.toastMs,
-      duration: U.toastFadeMs,
-      onComplete: () => {
-        toast.destroy();
-        if (this.toast === toast) this.toast = undefined;
+    const label = fill(trainingText('taskDone'), { label: e.label });
+    this.opts.alert?.({
+      kind: 'info',
+      key: `task:${e.room}:${e.id}`,
+      label,
+      timing: { inMs: 160, holdMs: U.toastMs, outMs: U.toastFadeMs, drop: 4 },
+      build: (sc) => {
+        const text = new GlowText(sc, 0, 0, label, 'ink_body');
+        const w = text.displayWidth + 12 + 18;
+        const hgt = 24;
+        const panel = inkPanel(sc, 0, 0, w, hgt);
+        const g = sc.add.graphics();
+        drawCheck(g, 8, 7, U.box, true);
+        text.setPosition(8 + U.box + 6, 4);
+        return { box: sc.add.container(Math.round(UI_SCREEN.WIDTH / 2 - w / 2), 0, [panel, g, text]), h: hgt };
       },
     });
     debugExpose('trainingTask', e);
@@ -262,7 +254,6 @@ export class TrainingLayer {
 
   destroy(): void {
     this.clear();
-    this.toast?.destroy();
     this.stamp?.destroy();
     this.stampTimer?.remove();
   }

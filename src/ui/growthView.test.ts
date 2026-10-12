@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { UiGrowth, UiGrowthBranch, UiMenu, UiWeaponVerbs } from '../contract/ui';
 import {
   gaugeLayout,
+  tagNeedAfterPick,
   growthCards,
   growthRouteName,
   guideKind,
@@ -344,5 +345,20 @@ describe('growthView §18.1 개성 그림 · 공명', () => {
       icon: 'ui_traits/res_chain',
     });
     expect(readResonance({ tag: 'chain' })).toBeNull();
+  });
+});
+
+describe('tagNeedAfterPick (62 P2-7 공명까지 n장)', () => {
+  const trait = (tag?: string) => ({ id: 't', name: 'n', line: '', verb: 'attack' as const, tag: tag as never });
+  it('같은 태그가 없으면 1장, 하나 있으면 0장(이 카드로 공명), 켜졌으면 0', () => {
+    expect(tagNeedAfterPick('chain', null)).toBe(1);
+    expect(tagNeedAfterPick('chain', { traits: [trait('insight')] } as never)).toBe(1);
+    expect(tagNeedAfterPick('chain', { traits: [trait('chain')] } as never)).toBe(0);
+    expect(
+      tagNeedAfterPick('chain', {
+        traits: [],
+        resonance: [{ tag: 'chain', name: 'r', line: '', active: true }],
+      } as never),
+    ).toBe(0);
   });
 });

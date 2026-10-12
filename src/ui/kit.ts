@@ -31,7 +31,6 @@ export const KIT = {
   cursorLight: K('cursor_light'),
   rule: K('rule'),
   ruleLight: K('rule_light'),
-  titleDiary: K('title_diary'),
   diaryClosed: K('diary_closed'),
   stampDead: K('stamp_dead'),
   stampClear: K('stamp_clear'),
@@ -236,7 +235,6 @@ export function preloadKit(scene: Phaser.Scene): void {
   img(KIT.gaugeFillGray, 'gauge_fill_gray');
   img(KIT.rule, 'rule');
   img(KIT.ruleLight, 'rule_light');
-  img(KIT.titleDiary, 'title_diary');
   img(KIT.diaryClosed, 'diary_closed');
   img(KIT.stampDead, 'stamp_dead');
   img(KIT.stampClear, 'stamp_clear');

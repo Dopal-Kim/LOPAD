@@ -1,11 +1,20 @@
 import Phaser from 'phaser';
 import { UI_SCREEN, type UiElite } from '../contract/ui';
-import { plateMidW, platePos, plateTextCenter, readPlateJson, slice3, type PlateSlices } from './eliteView';
+import {
+  eliteHpAlpha,
+  plateMidW,
+  platePos,
+  plateTextCenter,
+  readPlateJson,
+  slice3,
+  type PlateSlices,
+} from './eliteView';
 import { GlowText } from './glow';
 import { ELITE_PLATE_TEX } from './kit';
 import { hexToNum } from './theme';
 import { ELITE_PLATE } from './themeBuild';
 import { HEALTH_BAR } from './themeR61';
+import { ELITE_HP } from './themeAlerts';
 
 interface Plate {
   name: string;
@@ -18,6 +27,9 @@ interface Plate {
   hpW: number;
   hpY: number;
   lastHp: number;
+  /** 62 P1-4: 피해 직전 비율 (흰 꼬리) · 마지막 피해 시각 */
+  trailFrom: number;
+  hitAt: number;
 }
 
 /** 조각 프레임 이름 (이름표 텍스처에 한 번 더한다) */
@@ -70,10 +82,18 @@ export class ElitePlates {
       );
       p.box.setPosition(pos.x, pos.y);
       const ratio = e.maxHp > 0 ? Math.max(0, Math.min(1, e.hp / e.maxHp)) : 0;
+      const now = this.scene.time.now;
       if (ratio !== p.lastHp) {
+        // 62 P1-4: 체력 선은 맞았을 때만 잠깐 (처음 본 값은 피해로 치지 않는다)
+        if (p.lastHp >= 0 && ratio < p.lastHp) {
+          p.trailFrom = Math.max(p.trailFrom, p.lastHp);
+          p.hitAt = now;
+        }
         p.lastHp = ratio;
-        this.drawHp(p, ratio);
       }
+      const a = eliteHpAlpha(now - p.hitAt, ELITE_HP.showMs, ELITE_HP.fadeMs);
+      p.hp.setAlpha(a);
+      if (a > 0) this.drawHp(p, ratio, now);
     }
     for (const [id, p] of this.plates) {
       if (seen.has(id)) continue;
@@ -154,13 +174,18 @@ export class ElitePlates {
     children.push(text, hp);
     const hpY = bottom + ELITE_PLATE.hpGap;
     const box = scene.add.container(0, 0, children).setDepth(ELITE_PLATE.depth);
-    return { name, box, text, hp, w, h, hpX, hpW, hpY, lastHp: -1 };
+    return { name, box, text, hp, w, h, hpX, hpW, hpY, lastHp: -1, trailFrom: 0, hitAt: -Infinity };
   }
 
-  private drawHp(p: Plate, ratio: number): void {
+  /** 체력 선: 잃은 부분 어두운 적 · 방금 잃은 부분 흰 꼬리(줄어듦) · 남은 체력 적 (61 단계 4 §17.1 늘 붉은색) */
+  private drawHp(p: Plate, ratio: number, now: number): void {
     const g = p.hp.clear();
-    // 61 단계 4 (§17.1): 체력 선도 늘 붉은색 — 잃은 부분 어두운 적, 남은 체력 적
     g.fillStyle(hexToNum(HEALTH_BAR.lost), 1).fillRect(p.hpX, p.hpY, p.hpW, ELITE_PLATE.hpH);
+    const k = Math.min(1, Math.max(0, (now - p.hitAt) / ELITE_HP.trailMs));
+    const trail = p.trailFrom + (ratio - p.trailFrom) * k;
+    if (k >= 1) p.trailFrom = ratio;
+    const tw = Math.round(p.hpW * Math.max(trail, ratio));
+    if (tw > 0) g.fillStyle(0xffffff, 0.85).fillRect(p.hpX, p.hpY, tw, ELITE_PLATE.hpH);
     const fw = Math.round(p.hpW * ratio);
     if (fw > 0) g.fillStyle(hexToNum(HEALTH_BAR.fill), 1).fillRect(p.hpX, p.hpY, fw, ELITE_PLATE.hpH);
   }

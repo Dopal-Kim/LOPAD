@@ -9,8 +9,8 @@ import { GRADE_CARD, TRIAL } from './themeBuild';
 import { gradeCardGone, gradeCardShown } from './uiSequence';
 
 /**
- * 60라운드 계약 §14.10 성과 진행 칩 — 잔 구간 전투·위험 노드 진행 중(`UiSnapshot.nodeTrial`)에만 상단 가운데(도전 판이
- * 떠 있으면 그 아래): '32초'(남은 제한 시간, 올림) · '무피격'/'피격' + 아래 시간 선. 완(完) 조건 두 가지를 읽게 한다.
+ * 60라운드 계약 §14.10 성과 진행 칩 — 잔 구간 전투·위험 노드 진행 중(`UiSnapshot.nodeTrial`)에만. 62 P0-6: 위 가운데 알림과
+ * 겹치지 않게 왼쪽 위(층 제목·상태 칩 아래, `pos`)로 옮겼다: '32초'(남은 제한 시간, 올림) · '무피격'/'피격' + 아래 시간 선.
  * 남은 시간이 적으면 강조색, 피격이면 흐림.
  */
 export class TrialChip {
@@ -24,7 +24,7 @@ export class TrialChip {
 
   constructor(private scene: Phaser.Scene) {}
 
-  render(t: UiNodeTrial | null | undefined, show: boolean, challengeOn: boolean, stageIndex: number): void {
+  render(t: UiNodeTrial | null | undefined, show: boolean, pos: { x: number; y: number }, stageIndex: number): void {
     const v = show ? trialView(t, r60Text) : null;
     if (!v) {
       this.hide();
@@ -56,10 +56,7 @@ export class TrialChip {
           TRIAL.barH,
         );
     }
-    this.box!.setPosition(
-      Math.round(UI_SCREEN.WIDTH / 2 - this.w / 2),
-      challengeOn ? TRIAL.top + TRIAL.belowChallenge : TRIAL.top,
-    ).setVisible(true);
+    this.box!.setPosition(Math.round(pos.x), Math.round(pos.y)).setVisible(true);
   }
 
   private build(si: number): void {

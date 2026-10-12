@@ -146,6 +146,10 @@ export interface GrowthCardData {
   verb: { key: string; name: string } | null;
   /** 이 층에서 켜진 태그 이름 */
   tags: string[];
+  /**
+   * 62 P2-7: 태그마다 이 카드를 고른 뒤 공명까지 남는 같은 태그 장 수 (`tags` 와 같은 순서, 이미 켜졌거나 알 수 없으면 0)
+   */
+  tagNeed: number[];
   /** 무기 모양 그림 텍스처 키 (없으면 null — 글자로 대신) */
   look: string | null;
   /** 그림이 없을 때 대신 쓸 글 (무기 이름) */
@@ -200,6 +204,7 @@ function cardOf(l: UiMenuLine, hotkey: string, o: CardOpts): GrowthCardData {
     enabled: l.enabled && !l.locked && !l.soldOut,
     verb: verbKey(slot, o.verbs),
     tags: liveTags(l.tags, o.floor ?? 1).map((t) => tagName(t, o.build)),
+    tagNeed: liveTags(l.tags, o.floor ?? 1).map((t) => tagNeedAfterPick(t, g)),
     look,
     lookText: g?.weaponName ?? '',
     paths: branch?.paths ? branch.paths.map((p) => ({ name: p.name, line: p.line })) : [],
@@ -208,6 +213,19 @@ function cardOf(l: UiMenuLine, hotkey: string, o: CardOpts): GrowthCardData {
     resonance:
       kind === 'trait' && l.resonance?.name ? { name: l.resonance.name, tag: tagName(l.resonance.tag, o.build) } : null,
   };
+}
+
+/** 공명에 드는 같은 태그 개성 장 수 (계약 §18.1 — 2장) */
+export const RESONANCE_PAIR = 2;
+
+/**
+ * 62 P2-7: 태그 `tag` 개성을 하나 더 고른 뒤 공명까지 남는 장 수. 이미 그 태그 공명이 켜졌으면 0.
+ * 얻은 개성(`growth.traits[].tag`)을 센다.
+ */
+export function tagNeedAfterPick(tag: string, g: UiGrowth | null | undefined): number {
+  if (g?.resonance?.some((r) => r.tag === tag && r.active)) return 0;
+  const owned = (g?.traits ?? []).filter((t) => t.tag === tag).length;
+  return Math.max(0, RESONANCE_PAIR - owned - 1);
 }
 
 /** 성장 메뉴 카드 (그만두기 줄 제외, 메뉴 순서 그대로) */

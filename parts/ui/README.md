@@ -1,5 +1,67 @@
 # 게임 UI 파트 — 작업 기록
 
+## 62라운드 (2026-10-12) · 루프 1 UI B — 알림 큐 하나(P0-6) · HUD 다이어트(P1-15) · 적 가독성 UI 몫(P1-4) · P2-7·P2-8·P1-10·P1-20·P2-9 · 첫 생 의식 UI(P0-2, 계약 §20) · 타이틀 로고 쓰기·성문(art §30)
+
+### 위 가운데 알림 줄 하나 (P0-6 — `alertPlan.ts` 순수 규칙 + `HudAlerts.ts` 그리기, `alertCards.ts`, `themeAlerts.ts`)
+- 동시 2장, 위에서부터 중요도 순(보스 국면·이름 60 > 파훼 50 > 적 소개·주의 40 > 개성 30 > 방 이름 20 > 안내 10). 자리가 없으면 더 중요한 것이 가장 낮은 것을 접고, 아니면 줄을 선다. 줄에서 오래 기다린 낮은 것은 버린다(ttl). 같은 key 는 합친다.
+- 합치기: '주의 · 적이 다가온다'(ENEMY_INCOMING) + '문이 닫혔다'(STORY notice, 계약 story-text `notices.trialStart`) → 한 장. 같은 웨이브의 처음 보는 적 여럿 → 한 장. 같은 개성의 옛 진화 배너(WEAPON_EVOLVED) + 개성 칩(TRAIT_GAINED) → 칩 하나.
+- 보스: 이름 카드(포효)는 자잘한 알림을 걷고, 국면 카드는 같은 자리 카드를 바꾸며 파훼 카드를 접는다(겹침 없음). 처치 카드·각성 배너는 큰 순간이라 따로 — 뜰 때 줄을 비운다.
+- 하데스식 배너: 글 폭에 맞춘 잉크 띠(양 끝 3단 흐림) + 위·아래 1px 강조선. 위 끝은 튜토리얼 단계 카드·도전 판 아래로 비킨다.
+- 성과 진행 칩('59초 무피격')은 줄에서 빼 왼쪽 위(층 제목·상태 칩 아래)로. 수련장 과제 알림·빌드 안내도 같은 줄.
+- P1-11: 전환 시작(TRANSITION_BEGIN) 때 알림·자막·쪽지·토스트를 비운다. 보스 국면이 바뀌면 지난 대사를 거둔다.
+
+### HUD 다이어트 (P1-15 — `HudDiet.ts`)
+- 각성 게이지 줄 → 체력 막대 밑 3px 띠(눈금만, 숫자·'n까지' 문구 없음). 옛 `GrowthGauge`·`GROWTH_HUD` 삭제.
+- 보조 자원(기력) 줄 → 무기 줄 오른쪽 작은 원(부채꼴, 바닥이면 테 깜빡임).
+- 왼쪽 위 태그 칩('갈 1') → Tab 빌드로(띠에는 저주·[Tab] 빌드만).
+
+### 적 가독성 UI 몫 (P1-4)
+- 엘리트 이름표 `aboveHead` 37 → 3 (실기에서 `screen` 이 이미 문장 위 끝이라 몸에서 ~100px 떠 있었다).
+- 엘리트 체력 선은 맞았을 때만 2.6초(+0.4초 사라짐), 방금 잃은 부분 흰 꼬리.
+- 일반 적 체력 막대·피해 숫자는 월드(시스템) 그림이라 이번 UI 범위 밖 — 시스템 요청으로 넘김.
+
+### 그 밖
+- P2-7 개성 카드 태그: 흐린 글 → 잉크 칩(강조 글) + '공명까지 n장'(`growthView.tagNeedAfterPick`).
+- P2-8 처음 개성 안내: 빈 마름모 → 이번 메뉴의 개성 카드 그림 3장 + 각성 띠 눈금 도해.
+- P1-10: 튜토리얼 단계 카드 20초 상한 삭제(다음 단계·노드 이동까지 유지), `UiSnapshot.keyBar` 이면 아래 4동사 키 막대, BIRTH `firstLife: false` 면 '싸우는 법' 패널 안 띄움.
+- P1-20: 첫 생 선택 카드 그림 = `UiMenuLine.doorKey` 입구 그림, 안내 'Enter · 클릭' 통일.
+- P2-9: 결과 화면 시드 → '세부 보기 (D)' 접기.
+
+### 첫 생 의식 UI (P0-2, 계약 §20 — 새 씬 `UiRitual`)
+- `RitualScene` (Setup 이 `UI_SCENES.RITUAL` 로 띄움, 부팅 때 렌더러 등록) · `RitualName`(name·rewrite) · `RitualStrokes`(+`ritualBrush` 먹 화폭) · `RitualFate`(fate·trial) · `ritualArt`(그림 읽기·안내 줄·붓 이름) · `ritualView`(순수) · `themeRitual`·`textRitual`.
+- 이름: art §30 `ritual/diary_first_page` json 자리대로. 숨은 `<input>`(투명, 이름 칸 위 — IME 후보 창 자리)이 한글 조합을 받고, 화면엔 Galmuri 글자 모양을 `ink_brush` tip_d2 스탬프로 찍어 붓글씨로(새 글자는 열 차례로 찍힘). 덧쓰기: 지난 이름 흐리게 + 마른 붓 가로 획 + 그 위 새 이름, [Tab](redraw.key) 획 다시 · [F2](meta.key) 영혼 강화 귀퉁이(단추도 있음).
+- 3획: `ritual/back_canvas`(+glow ADD 숨) 화면 가득, 640×360 도트 RenderTexture 에 press/tip/dry/flick/splat 스탬프(긋는 중 #141516, 판정 난 획 #e8b858 + #d67a11 빛무리), strokeClip 밖은 안 찍음. 점은 논리 좌표로 `ritual.stroke`. 오른쪽 종이 = 획 ↔ 무기 규칙(legend), 그 아래 '세 획' 낙관 칸, 3획 끝 큰 낙관. Esc = back.
+- 회피 시험: 오른쪽 위 과제 목록(체크·지금 과제 강조·키캡), 과제 이름 카드(누르면 next), Enter 건너뛰기 · Esc 3획부터.
+- 운명: `ritual/fate_frame` 9-slice 264 안에 `looks/<무기>_base`(lookKey 없으면 UI 가 읽음), 불씨 테 한 번 밝힘, 아래 무기 이름·첫 한마디·'왜'·시험 결과. Enter = next.
+- 키트 동시 읽기 충돌('Texture key already in use') 방지: 다른 씬이 읽는 중이면 끝나길 기다린다.
+
+### 타이틀 (art §30)
+- `title_logo_reveal` 마스크로 로고를 획 순서대로 써 내려감(2600ms, 붓 머리 빛 띠, 불씨는 0.96 뒤). 모션 줄이기·파고들기면 바로 끝. `TitleLogoReveal.ts`.
+- 파고들기 중심 = title.json `gate`(far 층 기준). 귀퉁이 메타 메모 = `UiSnapshot.meta`.
+
+### 검증
+- tsc · eslint(src/ui) · prettier(바뀐 파일) · vitest(src/ui 28 파일 231) 통과. 헤드리스 1920×1080 스크린샷 `scratchpad/u62b/` (r01~r14 의식, h_* HUD·알림, t0* 타이틀, b01 보스).
+
+## 62라운드 (2026-10-12) · 타이틀 화면 전면 재구성 (전권 위임 · 아트 §29 · 경쟁력 점검 T1~T8)
+결정: `decisions/2026-10-12-round-62-full-delegation.md`, 점검 `decisions/review-2026-10-12-stage1-competitive-audit.md` ③. 그림·수치 기준 = 아트 `assets/sprites/title/title.json`(+ embers·fog·menu_frame JSON — UI 가 직접 읽고, 없으면 `themeTitle.ts` 기본값). 시스템 코드 열람 없음.
+- **층** (`TitleArt.ts`): far → 먼 안개 → 도시 불티 → mid → 들판 안개 → near(주인공 호흡 덧그림·등 발광·무기 목소리 4·불티) → 발목 안개 → 로고. 층마다 Container(가운데 원점, 배율 0.5×1.03) — 패럴랙스 far 0.15·mid 0.4·near 1.0(안개 0.25/0.7/1.0, 도시 불티 0.25), 최대 x28·y10 아트 px, lerp 0.035(프레임 길이 보정), 입력 = 포인터 + 24초 표류(진폭 0.35). 오프셋은 1화면 px 단위.
+- **움직임**: 호흡 4.2초(scaleY 1→1.008, 발 기준) + 빛무리 알파 0.55↔1 같은 위상. 무기 목소리 9.6초 한 바퀴 칼→대검→단검→활 2.4초 간격(켜진 1.7초 사인 종, 꺼져도 0.25). 켜진 무기에서 그 색 불티, 로고 불씨 4개도 같은 세기로. 안개 3겹 TileSprite 흐름(−4·9·16 px/s). 달 정지.
+- **불티** (`TitleEmbers.ts`): JSON 방출기 4(mound·back_crack·voices·city) — Image 풀, 상한 84(도시 12), 사인 흔들림·0.3초 나타남·1.2초 사라짐·10fps 프레임 루프, 한 프레임 방출 시간 상한 100ms.
+- **등장**: 그림·글꼴·붓 마스크를 받는 동안 검은 화면 → 0.15초 뒤 `paint/brush_reveal_2` 먹 붓질 1.4초(480×270 덮개) → 로고 글자 0.85초부터 1.1초 · 부제 1.45초부터 · 무기 불씨 1.9초부터 0.14초 간격 점등 → 1.9초에 (첫 방문) '아무 키나 누른다' / (돌아옴) 메뉴. 아무 키·클릭이면 그 자리에서 끝까지 넘기고 메뉴.
+- **'아무 키나 누른다'** (점검 T3): 첫 입력에서 오디오 컨텍스트 resume·사운드 매니저 unlock 후 메뉴. 같은 페이지에서 타이틀로 돌아오면 다시 묻지 않는다.
+- **메뉴** (`TitleMenu.ts`): 왼쪽 아래 족자 9-slice(아트 `title_menu_frame`, 여백 48, 0.5배 — 틀 아래 끝 = 아트 영역 아래 끝, 높이는 줄 수에 맞춤). 줄 = Container → Graphics(호박 할로 띠) → GlowText, 글자 Galmuri14. 기본 S5(1px S4) · 선택 #faeec0(할로 #d67a11 α0.5 + 그늘 S2, 오른쪽 3px 비켜 섬) · 비활성 S4. 선택 줄 왼쪽 호박 m 불씨 커서(10fps). ↑↓·W/S·Enter·스페이스·숫자 1~n·마우스 올리기/누르기. 틀 아래 한 줄 = 고른 줄 덧말('일기장을 찢는다') 또는 2.6초 알림(수련장 거부 사유).
+- **항목** (점검 T4·T5, 4개 이하): 이어 쓴다(세이브 있을 때만 — 없으면 **숨김**) · 다시 태어난다 · 수련장 · 설정 · 끝내기(Electron·Tauri 에서만). 무기 시험장은 주소 `#lab`·uidebug 일 때만(시스템 `?lab` 주소는 그대로). 괄호 덧말은 안내 줄로.
+- **첫 생으로** (점검 T8): 다시 태어난다·이어 쓴다 → 그림 속 성문(아트 px (902,684), 미리보기에서 잼)으로 0.9초 파고들기(가까운 층일수록 빨리 커짐, 성문이 화면 가운데로) + 가장자리부터 먹(붓 마스크 거꾸로) + 성문 빛 번짐 → 다 덮이면 시스템 명령. 시스템 전환 흐름(`ui:transition-begin`)은 시스템이 시작하는 것이라 타이틀이 같은 문법으로 스스로 그린다. 수련장은 기존대로 시스템 전환.
+- **영혼 메뉴 건너뛰기** (점검 ⑦, `MenuScene` + `titleView.metaAutoEnter`): 메뉴 `meta` 에 시작('enter') 말고 고를 줄이 없으면 그리지 않고 40ms 뒤 `select('meta','enter')` — 앞 메뉴(첫 생 선택) 그림은 지운다(고른 키가 이름 칸에 들어가지 않게 한 박자).
+- **모션 줄이기**: 설정 '화면 흔들림 0' 또는 브라우저 `prefers-reduced-motion` → 패럴랙스·표류·안개 흐름·붓질·파고들기 끔(등장·떠남은 0.6초 페이드), 호흡·불티·목소리 빛만. 설정을 닫는 순간 다시 읽는다.
+- **정리**: 옛 타이틀(일기장 그림·작은 'LOPAD'·조작 줄) 삭제 — `assets/ui/kit/title_diary.{png,json}` 지움, `KIT.titleDiary` 삭제. 조작 줄의 낡은 'Tab 워프'(점검 T6) — `controlsLine` 은 Tab 을 어디서나 'Tab 빌드'로(팩 줄의 'Tab 워프'도 바꿈), `routeMode` 인자 삭제(일시정지만 씀). 버전 'v0.62 데모' 오른쪽 아래(G09). 귀퉁이 메타 메모(T7)는 그릴 준비만(`metaMemo` — 계약에 값이 없어 숨김, 교차 참조 요청).
+- **성능**: 타이틀 그림 13장·JSON 4개는 타이틀이 열릴 때만 읽고(지연 로드), 떠날 때 텍스처를 내려놓는다(돌아오면 다시 읽음). JS 매 프레임 비용은 프로파일상 무시할 수준(5초에 수 ms). 헤드리스 swiftshader WebGL 은 화면 가득 층 때문에 3fps(GPU 대체 한계), Canvas 렌더러 40fps — 실기 FPS 미측정.
+- 글자 스타일 추가(`theme.ts`): `title_item`·`title_selected`·`title_disabled`·`title_scene`·`title_notice`·`title_version`·`title_prompt`(아트 §29 색 = 팔레트 S·G·1층 램프 안).
+- 소유 코드: 신규 `TitleArt.ts`·`TitleEmbers.ts`·`TitleMenu.ts`·`themeTitle.ts`·`titleView.ts`(+테스트 22), 변경 `TitleScene.ts`(전면)·`MenuScene.ts`·`PauseScene.ts`·`text.ts`·`theme.ts`·`kit.ts`.
+- 검증: HEAD + UI 변경분 깨끗한 사본에서 tsc 0 · eslint `src/ui src/contract` 0 · vitest `src/ui` 26 파일 213 · prettier(바뀐 파일). 헤드리스 Playwright 1920×1080(`vite preview`, Canvas 렌더러로 단계 캡처 + WebGL 최종 메뉴 1장, 스크립트·캡처 세션 scratchpad `title62/`): 검은 화면 → 붓질 3단 → 로고 → 불씨 → '아무 키' → 메뉴 → ↓ · 마우스 올리기 · 패럴랙스 양끝 · 설정(흔들림 0 → 모션 줄이기 켜짐 → 되돌림) · prefers-reduced-motion 페이드 · 새로 태어나기 파고들기 → 첫 생 선택(첫 생) / 두 번째 생은 영혼 메뉴 건너뛰고 이름 의식. 페이지 오류 0.
+- 남은 것: 메타 요약 계약(T7), 메뉴 이동·선택 효과음(T8 — 음향 계약 필요), 로고 붓 획 써지기 애니메이션(T2 — 아트 획 순서 마스크 필요), 메뉴 아이콘(T4).
+
+
 ## 61라운드 (2026-10-06) · 단계 6 — 그림 속 입구 전환 · 수련장 UI · 무기 색 (P14, 계약 §19 · 아트 §28)
 결정: `decisions/2026-10-06-P14-tutorial-color-transition.md`(자율 모드). 계약: `contracts/ui-system-interface.md` §19 + `src/contract/ui.ts`(시스템이 넣은 `UiTransitionBegin`(+`nodeId`)·`TRANSITION_*`·`UiTraining`(+`line`·`mapKey`)·`TRAINING_TASK`·`TRAINING_STAMP`·메뉴 `training`/`trainingChoice`·`startTraining`/`leaveTraining`). 그림은 아트 §28 마지막 줄 규격. 시스템 코드 열람 없음.
 

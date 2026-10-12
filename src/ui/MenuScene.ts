@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { UI_EVENTS, UI_SCREEN, uiBus, uiCommands, type UiMenu } from '../contract/ui';
 import { buildOf } from './buildView';
 import { debugExpose, debugSelect, isDebugMenu, withDebug } from './debug';
+import { metaAutoEnter } from './titleView';
 import { GlowText } from './glow';
 import { book, fontsReady, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
@@ -10,7 +11,7 @@ import { menuLines, wideMenu } from './menuView';
 import { choiceLines, isChoiceCardMenu } from './choiceCardView';
 import { menuCloseButton, showFaceDownCards, type CardPage, type CardRow } from './MenuCards';
 import { showChoiceCards } from './MenuChoiceCards';
-import { guideLook, guideShown, markGuideShown, showGrowthCards, showGrowthGuide } from './GrowthCards';
+import { guideLook, guideShown, guideTraitArt, markGuideShown, showGrowthCards, showGrowthGuide } from './GrowthCards';
 import { guideKind, isGrowthMenu } from './growthView';
 import { r53Text, r60Text } from './text';
 import { SelectList } from './widgets';
@@ -18,6 +19,9 @@ import { menuWaitMs } from './uiSequence';
 import { artTex } from './paintArt';
 import { ensureTrainingArt, showTrainingChoice, showTrainingMap } from './TrainingMap';
 import { transitionBusy, transitionOpening } from './transitionState';
+
+/** 62 점검 ⑦: 고를 것이 없는 영혼 메뉴를 건너뛸 때 한 박자 (ms) */
+const META_AUTO_DELAY_MS = 40;
 
 /** 카드 메뉴로 그릴 수 있는 카드 장수 (그 밖이면 일반 목록) */
 const CARD_MIN = 2;
@@ -172,6 +176,25 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private show(m: UiMenu): void {
+    // 62 경쟁력 점검 ⑦: 영혼(메타) 메뉴에 지금 고를 수 있는 것이 없으면 '(불가)'만 가득한 쪽을 그리지 않고 바로 생으로
+    if (metaAutoEnter(m)) {
+      // 같은 메뉴가 다시 와도 한 번만 보낸다. 앞 메뉴(첫 생 선택 등) 그림은 지우고, 보내기는 한 박자 뒤 —
+      // 앞 메뉴를 고른 키의 입력(keypress)이 다음 장면(이름 칸)에 들어가지 않게
+      const again = this.drawn?.id === 'meta';
+      this.menu = m;
+      this.drawn = m;
+      this.children.removeAll(true);
+      this.list?.destroy();
+      this.list = undefined;
+      this.clearCards();
+      if (!again) {
+        debugExpose('metaAutoEnter', { at: Math.round(performance.now()) });
+        this.time.delayedCall(META_AUTO_DELAY_MS, () => {
+          if (this.alive && this.menu === m) this.send(m, 'enter');
+        });
+      }
+      return;
+    }
     const prev = this.drawn;
     const same = Boolean(prev) && prev!.id === m.id && (prev!.structureId ?? '') === (m.structureId ?? '');
     // 61 단계 4: 처음 안내가 떠 있는 동안 같은 메뉴가 다시 오면(시스템이 다시 띄움·MENU_OPEN 재전송) 안내를 지킨다
@@ -203,11 +226,17 @@ export class MenuScene extends Phaser.Scene {
       });
       if (gk && !guideShown(gk)) {
         // 본 것으로 치는 것은 닫았을 때 (씬이 다시 떠도 아직 안 닫았으면 다시 띄운다)
-        this.guideCancel = showGrowthGuide(this, gk, guideLook(gk, snap), () => {
-          markGuideShown(gk);
-          this.guideCancel = undefined;
-          if (this.alive && this.drawn) this.show(this.drawn);
-        });
+        this.guideCancel = showGrowthGuide(
+          this,
+          gk,
+          guideLook(gk, snap),
+          () => {
+            markGuideShown(gk);
+            this.guideCancel = undefined;
+            if (this.alive && this.drawn) this.show(this.drawn);
+          },
+          guideTraitArt(m, snap),
+        );
         return;
       }
       page = showGrowthCards(this, m, snap, ctx, MENU_MAX_PAGE_H);

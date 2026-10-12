@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
-import { UI_SCREEN, uiCommands, type UiRouteNode, type UiSnapshot } from '../contract/ui';
+import { uiCommands, type UiRouteNode, type UiSnapshot } from '../contract/ui';
 import { debugExpose } from './debug';
-import { GlowText } from './glow';
+import { bannerCard, type HudAlerts } from './HudAlerts';
 import { ensureImage, keyartKey, keyartUrl } from './kit';
 import { RegionCard } from './RegionCard';
 import { regionArtKey, regionChanged } from './regionView';
 import { regionText } from './text';
+import { ALERT_UI } from './themeAlerts';
 
 /** 가운데 배너 차례: 글자 배너(층 제목·노드 이름·진화) 또는 50라운드 지역 카드 */
 export type BannerItem =
@@ -16,11 +17,12 @@ const BANNER_QUEUE_MAX = 3;
 /**
  * HUD 가운데 배너 차례 (48·50라운드, HudScene 에서 분리 — 60라운드 정리). 층 제목 → 지역 카드 → 노드 이름 배너가
  * 같은 때 오면 겹치지 않게 차례로. `canRun()` 이 false 면(글꼴 전·탄생 연출 중) 쌓아 두었다가 `next()` 때 띄운다.
+ * 62 P0-6: 글자 배너(층 제목·노드 이름·진화)는 지역 카드 뒤 차례만 여기서 지키고, 그리기는 위 가운데 알림 줄(`HudAlerts`,
+ * 종류 'room')에 넘긴다 — 옛 화면 가운데 2배 글이 '주의'·적 소개와 겹치던 문제.
  */
 export class BannerQueue {
   private queue: BannerItem[] = [];
   private busy = false;
-  private banner?: GlowText;
   private card?: RegionCard;
   private cardItem?: BannerItem;
   /** 마지막으로 카드를 띄운 지역 */
@@ -29,12 +31,12 @@ export class BannerQueue {
   constructor(
     private scene: Phaser.Scene,
     private canRun: () => boolean,
-    private depth: number,
+    private alerts: HudAlerts,
   ) {}
 
-  /** 배너·카드가 없고 쌓인 것도 없다 */
+  /** 배너·카드가 없고 쌓인 것도 없다 (알림 줄의 방 이름 배너 포함) */
   get idle(): boolean {
-    return !this.busy && this.queue.length === 0 && !this.card;
+    return !this.busy && this.queue.length === 0 && !this.card && !this.alerts.busy('room');
   }
 
   /** 지역 카드가 떠 있다 (아무 키로 넘긴다 — Esc 도 이미 받았다) */
@@ -134,25 +136,18 @@ export class BannerQueue {
       this.card = card;
       return;
     }
-    this.banner?.destroy();
-    const b = new GlowText(scene, 0, 0, item.text, 'ink_body', { scale: 2, stageIndex })
-      .setDepth(this.depth)
-      .setAlpha(0);
-    b.placeCenter(UI_SCREEN.WIDTH / 2, Math.round(UI_SCREEN.HEIGHT / 2 - 70));
-    this.banner = b;
-    scene.tweens.add({
-      targets: b,
-      alpha: 1,
-      duration: 200,
-      yoyo: true,
-      hold: 1200,
-      onComplete: () => {
-        b.destroy();
-        if (this.banner === b) this.banner = undefined;
-        this.busy = false;
-        this.next();
-      },
+    // 62 P0-6: 글자 배너는 알림 줄로 (같은 글이 이미 있으면 합친다 — 진입 이벤트가 겹쳐 와도 한 장)
+    const text = item.text;
+    this.alerts.push({
+      kind: 'room',
+      key: `room:${text}`,
+      label: text,
+      timing: ALERT_UI.room,
+      build: (sc) => bannerCard(sc, [{ text, style: 'ink_body', scale: 2 }], stageIndex),
+      merge: (prev) => prev,
     });
+    this.busy = false;
+    this.next();
   }
 
   /** 헤드리스 확인용: 배너 차례 상태 (`uidebug=1` 일 때만) */

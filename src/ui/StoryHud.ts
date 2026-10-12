@@ -20,7 +20,8 @@ import {
 import { swatch } from './StructureHud';
 import { storyText } from './text';
 import { CLUE_UI, ENEMY_INTRO_UI, EVENT_UI, SPEECH_UI, STORY_UI, VOICE_UI } from './themeStory';
-import { TimedCard } from './timedCard';
+import { bandRect, type AlertSpec } from './HudAlerts';
+import { ALERT_UI } from './themeAlerts';
 
 export interface StoryHudOptions {
   /** 자막을 지금 띄워도 되는가 (글꼴 준비 · 탄생 연출 아님) */
@@ -36,6 +37,13 @@ export interface StoryHudOptions {
   stageIndex: () => number;
   /** 한 줄이 떴다 (보스 처치 뒤 메뉴 기다림을 늘이는 데 쓴다) */
   onShown?: (channel: StoryChannel, holdMs: number) => void;
+  /** 62 P0-6: 위 가운데 알림 줄 (신규 적 소개) */
+  alert?: (spec: AlertSpec) => void;
+}
+
+interface IntroItem {
+  name: string;
+  desc: string | null;
 }
 
 interface Showing {
@@ -62,8 +70,6 @@ export class StoryHud {
   private cur?: Showing;
   private note?: { box: Phaser.GameObjects.Container; lines: string[]; title: string; shown: number; at: number };
   private noteTimers: Phaser.Time.TimerEvent[] = [];
-  private intros: { name: string; desc: string | null }[] = [];
-  private intro?: TimedCard;
 
   constructor(
     private scene: Phaser.Scene,
@@ -113,6 +119,12 @@ export class StoryHud {
     if (this.cur && sameStepText(this.cur.view.text, text)) this.finish(false);
   }
 
+  /** 62 P1-11: 보스 국면이 바뀌면 지난 국면의 군주 대사를 거둔다 (떠 있는 것·쌓인 것) */
+  dropSpeech(): void {
+    this.queue = this.queue.filter((q) => q.channel !== 'speech');
+    if (this.cur?.view.channel === 'speech') this.finish(true);
+  }
+
   /** 조사 쪽지를 덮는다 */
   closeNote(): void {
     for (const t of this.noteTimers) t.remove();
@@ -132,9 +144,9 @@ export class StoryHud {
     const name = typeof o.name === 'string' ? o.name.trim() : '';
     if (!name) return;
     const desc = typeof o.desc === 'string' && o.desc.trim() ? o.desc.trim() : null;
-    if (this.intros.length >= ENEMY_INTRO_UI.queueMax) this.intros.shift();
-    this.intros.push({ name, desc });
-    if (!this.intro?.alive) this.nextIntro();
+    // 62 P0-6: 위 가운데 알림 줄 — 같은 웨이브에 여럿이면 한 장에 이름을 잇는다
+    this.opts.alert?.(this.introAlert([{ name, desc }]));
+    debugExpose('enemyIntro', { name, desc });
   }
 
   /** 런 끝·층 전환: 쌓인 것과 떠 있는 것을 모두 치운다 */
@@ -142,9 +154,6 @@ export class StoryHud {
     this.queue = [];
     this.finish(false);
     this.closeNote();
-    this.intros = [];
-    this.intro?.cancel();
-    this.intro = undefined;
   }
 
   destroy(): void {
@@ -425,37 +434,65 @@ export class StoryHud {
 
   // ---- 신규 적 소개
 
-  private nextIntro(): void {
-    const it = this.intros.shift();
-    if (!it) return;
+  /** 신규 적 소개 알림 (이름 양옆 괘선 · 한 줄 설명). 같은 때 여럿이면 합친다 (최대 queueMax) */
+  private introAlert(list: IntroItem[]): AlertSpec & { intros: IntroItem[] } {
+    const I = ENEMY_INTRO_UI;
+    return {
+      kind: 'enemy',
+      key: 'enemyIntro',
+      label: list.map((i) => i.name).join(' · '),
+      timing: { inMs: I.inMs, holdMs: I.holdMs, outMs: I.fadeMs, drop: 4 },
+      build: (sc) => this.buildIntro(sc, list),
+      merge: (prev) => {
+        const old = (prev as AlertSpec & { intros?: IntroItem[] }).intros ?? [];
+        const names = new Set(old.map((i) => i.name));
+        const add = list.filter((i) => !names.has(i.name));
+        return this.introAlert([...old, ...add].slice(-I.queueMax));
+      },
+      intros: list,
+    };
+  }
+
+  private buildIntro(sc: Phaser.Scene, list: IntroItem[]): { box: Phaser.GameObjects.Container; h: number } {
     const I = ENEMY_INTRO_UI;
     const si = this.opts.stageIndex();
-    const name = this.glow(it.name, 'ink_accent');
     const cx = UI_SCREEN.WIDTH / 2;
-    name.placeCenter(cx, 0);
     const objs: Phaser.GameObjects.GameObject[] = [];
+    const band = sc.add.graphics();
+    objs.push(band);
+    let y = 4;
     const tag = this.glow(storyText('enemyIntroTag'), 'ink_faint');
-    tag.placeCenter(cx, 0);
-    name.setY(tag.displayHeight);
-    const g = this.scene.add.graphics();
-    const midY = name.y + Math.round(name.displayHeight / 2);
-    g.fillStyle(swatch(this.scene, si, { gray: 0 }), 1)
-      .fillRect(name.x - I.ruleGap - I.ruleW, midY - 1, I.ruleW, 3)
-      .fillRect(name.x + name.displayWidth + I.ruleGap, midY - 1, I.ruleW, 3);
-    g.fillStyle(swatch(this.scene, si, { slot: I.ruleSlot }), 1)
-      .fillRect(name.x - I.ruleGap - I.ruleW, midY, I.ruleW, 1)
-      .fillRect(name.x + name.displayWidth + I.ruleGap, midY, I.ruleW, 1);
-    objs.push(tag, g, name);
-    if (it.desc) {
-      const d = this.glow(it.desc, 'ink_faint');
-      d.placeCenter(cx, name.y + name.displayHeight);
-      objs.push(d);
+    tag.placeCenter(cx, y);
+    objs.push(tag);
+    y += tag.displayHeight;
+    const g = sc.add.graphics();
+    objs.push(g);
+    let maxW = tag.displayWidth;
+    for (const it of list) {
+      const name = this.glow(it.name, 'ink_accent');
+      name.placeCenter(cx, y);
+      const midY = name.y + Math.round(name.displayHeight / 2);
+      g.fillStyle(swatch(sc, si, { gray: 0 }), 1)
+        .fillRect(name.x - I.ruleGap - I.ruleW, midY - 1, I.ruleW, 3)
+        .fillRect(name.x + name.displayWidth + I.ruleGap, midY - 1, I.ruleW, 3);
+      g.fillStyle(swatch(sc, si, { slot: I.ruleSlot }), 1)
+        .fillRect(name.x - I.ruleGap - I.ruleW, midY, I.ruleW, 1)
+        .fillRect(name.x + name.displayWidth + I.ruleGap, midY, I.ruleW, 1);
+      objs.push(name);
+      maxW = Math.max(maxW, name.displayWidth + (I.ruleGap + I.ruleW) * 2);
+      y += name.displayHeight;
+      if (it.desc) {
+        const d = this.glow(it.desc, 'ink_faint');
+        d.placeCenter(cx, y);
+        objs.push(d);
+        maxW = Math.max(maxW, d.displayWidth);
+        y += d.displayHeight;
+      }
     }
-    const box = this.scene.add.container(0, I.top, objs).setDepth(STORY_UI.depth);
-    this.intro = new TimedCard(this.scene, box, { inMs: I.inMs, holdMs: I.holdMs, outMs: I.fadeMs, drop: 4 }, () =>
-      this.nextIntro(),
-    );
-    debugExpose('enemyIntro', { name: it.name, desc: it.desc });
+    const h = y + 4;
+    const bw = Math.min(ALERT_UI.bandMaxW, Math.max(ALERT_UI.bandMinW, maxW + ALERT_UI.bandFade * 2 + 16));
+    bandRect(sc, band, Math.round(cx - bw / 2), 0, bw, h, si);
+    return { box: sc.add.container(0, 0, objs), h };
   }
 
   // ---- 디버그

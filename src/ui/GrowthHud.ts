@@ -1,133 +1,43 @@
 import Phaser from 'phaser';
-import { UI_EVENTS, UI_SCREEN, type UiGrowth, type UiSnapshot } from '../contract/ui';
+import { UI_EVENTS, UI_SCREEN, type UiSnapshot } from '../contract/ui';
 import { GlowText } from './glow';
 import { buildOf } from './buildView';
-import { diamond, lookImage, pairPips, scaledKey, traitIconCard, traitIconOuter } from './growthArt';
-import { gaugeLayout, iconWeapon, readAwaken, readResonance, readTrait, remainText, verbKey } from './growthView';
+import { lookImage, pairPips, scaledKey, traitIconCard, traitIconOuter } from './growthArt';
+import { iconWeapon, readAwaken, readResonance, readTrait, verbKey } from './growthView';
 import { inkPanel } from './kit';
 import { swatch } from './StructureHud';
 import { fill, growthText } from './text';
 import { GRAY, hexToNum } from './theme';
-import { GROWTH_BANNER as BN, GROWTH_HUD as G, RESONANCE_UI as RS, TRAIT_ICON as TI } from './themeGrowth';
+import { GROWTH_BANNER as BN, RESONANCE_UI as RS, TRAIT_ICON as TI } from './themeGrowth';
 import { TimedCard } from './timedCard';
+import type { AlertSpec } from './HudAlerts';
+import type { AlertKind } from './alertPlan';
 import { WEAPON_HUE } from './themeWeapon';
 import { voiceWeapon } from './storyView';
 
-/**
- * 61 단계 4 P12 HUD 각성 게이지 한 줄 (전투 묶음 무기·자원 줄 아래, 옛 2px 개성 진행선 대체):
- * 아이콘 칸 마름모 · 게이지 숫자 · 막대 + 눈금(작은 ◇ 개성 발현·단련 / 큰 ◆ 1차·2차 각성 — 지난 것 채움, 다음 것 밝은 테) ·
- * '1차 각성까지 40'. `ui:growth-gain` 이면 찬 부분이 하얗게 한 번 반짝이고 숫자가 잠깐 강조색.
- */
-export class GrowthGauge {
-  private icon: Phaser.GameObjects.Graphics;
-  private num: GlowText;
-  private bar: Phaser.GameObjects.Graphics;
-  private flash: Phaser.GameObjects.Graphics;
-  private rem: GlowText;
-  private sig = '';
-  private accentUntil = 0;
-  private lastFill = { x: 0, y: 0, w: 0 };
-
-  constructor(private scene: Phaser.Scene) {
-    this.icon = scene.add.graphics();
-    this.num = new GlowText(scene, 0, 0, '', 'ink_body');
-    this.bar = scene.add.graphics();
-    this.flash = scene.add.graphics().setAlpha(0);
-    this.rem = new GlowText(scene, 0, 0, '', 'ink_faint');
-  }
-
-  /** 줄 왼쪽 위 (x = 아이콘 칸 왼쪽), 아이콘 칸 폭. 오른쪽 끝 x 를 돌려준다 (growth 가 null 이면 숨기고 x) */
-  render(g: UiGrowth | null | undefined, x: number, y: number, iconCol: number, now: number): number {
-    const on = Boolean(g);
-    for (const o of [this.icon, this.num, this.bar, this.rem]) o.setVisible(on);
-    if (!g) {
-      this.flash.setVisible(false);
-      return x;
-    }
-    this.flash.setVisible(true);
-    this.num
-      .setText(String(Math.max(0, Math.floor(g.gauge))))
-      .setGlowStyle(now < this.accentUntil ? 'ink_accent' : 'ink_body')
-      .setPosition(x + iconCol, y);
-    const bx = Math.round(this.num.x + this.num.displayWidth + G.gap);
-    const layout = gaugeLayout(g, G.barW, G.bigTickR);
-    this.rem.setText(remainText(layout.remain, growthText)).setPosition(bx + G.barW + G.gap, y);
-    const sig = `${g.weaponName}|${x}|${y}|${bx}|${layout.fillW}|${layout.ticks.map((t) => `${t.x}${t.state}`).join(',')}`;
-    if (sig !== this.sig) {
-      this.sig = sig;
-      this.draw(layout, x, y, bx, iconCol, hexToNum(WEAPON_HUE[voiceWeapon(g.weaponName)].main));
-    }
-    return this.rem.x + this.rem.displayWidth;
-  }
-
-  /** ui:growth-gain: 짧은 반짝 */
-  gain(now: number): void {
-    this.accentUntil = now + G.numAccentMs;
-    const f = this.lastFill;
-    if (f.w <= 0) return;
-    this.scene.tweens.killTweensOf(this.flash);
-    this.flash
-      .clear()
-      .fillStyle(hexToNum(GRAY[15]), 1)
-      .fillRect(f.x, f.y - 1, f.w, G.barH + 2)
-      .setAlpha(G.flashAlpha);
-    this.scene.tweens.add({ targets: this.flash, alpha: 0, duration: G.flashMs });
-  }
-
-  setDepth(d: number): this {
-    for (const o of [this.icon, this.num, this.bar, this.flash, this.rem]) o.setDepth(d);
-    return this;
-  }
-
-  /** hue = 무기 색 (61 단계 6 P14 §2 — 채움·지난 큰 눈금·아이콘 마름모) */
-  private draw(
-    layout: ReturnType<typeof gaugeLayout>,
-    x: number,
-    y: number,
-    bx: number,
-    iconCol: number,
-    hue: number,
-  ): void {
-    const sc = this.scene;
-    const cy = y + G.barY + Math.floor(G.barH / 2);
-    // 아이콘 칸: 큰 마름모 (채움 = 강조 25, 테 = G00)
-    const ic = this.icon.clear();
-    const icx = x + Math.floor((iconCol - 4) / 2);
-    diamond(ic, icx, cy, 5, hue, true);
-    diamond(ic, icx, cy, 5, hexToNum(GRAY[0]), false);
-    const g = this.bar.clear();
-    g.fillStyle(swatch(sc, 0, { gray: G.trackGray }), 1).fillRect(bx, y + G.barY, G.barW, G.barH);
-    if (layout.fillW > 0) g.fillStyle(hue, 1).fillRect(bx, y + G.barY, layout.fillW, G.barH);
-    this.lastFill = { x: bx, y: y + G.barY, w: layout.fillW };
-    for (const t of layout.ticks) {
-      const r = t.big ? G.bigTickR : G.tickR;
-      const tx = bx + t.x;
-      // 바탕 G00 로 한 겹 깔아 막대 위에서 또렷하게
-      diamond(g, tx, cy, r + 1, hexToNum(GRAY[0]), true);
-      if (t.state === 'done') diamond(g, tx, cy, r, hue, true);
-      else {
-        const edge = t.state === 'next' ? { slot: G.nextSlot } : t.big ? { slot: G.bigTodoSlot } : { gray: G.todoGray };
-        diamond(g, tx, cy, r, swatch(sc, 0, edge), false);
-      }
-    }
-  }
+/** 62 P0-6: 개성 알림 key (같은 개성의 옛 진화 배너 `WEAPON_EVOLVED` 와 한 장으로 합친다) */
+export function traitAlertKey(name: string): string {
+  return `trait:${name.split(' — ')[0].trim()}`;
 }
 
 /**
  * 각성 배너 (`ui:awaken` — 시스템이 게임을 0.8/1.0초 멈추는 동안과 그 뒤): 어둠 띠 + '1차 각성'(흐림) + 무기 모양 그림 +
  * 이름 2배(강조) + 한 줄. 개성 알림 (`ui:trait-gained`): 위 가운데 잉크 칩 — 키 그림 · '개성 발현 · 이름' · 한 문장.
+ * 62 P0-6: 개성·공명 알림은 위 가운데 알림 줄(`HudAlerts`, 종류 'growth')로 — 같은 개성의 진화 배너와 합쳐 한 장만.
+ * 각성 배너는 큰 순간이라 따로 그리고, 뜰 때 알림 줄을 비운다(보스 카드만 남김).
  */
 export class GrowthLayer {
   private banner?: TimedCard;
   private band?: Phaser.GameObjects.Graphics;
-  private toast?: TimedCard;
-  /** 개성 알림 아래 끝 (공명 알림이 그 아래에 붙는다) */
-  private toastBottom = 0;
-  private resToast?: TimedCard;
 
   constructor(
     private scene: Phaser.Scene,
-    private deps: { gain: (now: number) => void; snapshot: () => UiSnapshot },
+    private deps: {
+      gain: (now: number) => void;
+      snapshot: () => UiSnapshot;
+      alert: (spec: AlertSpec) => void;
+      clearAlerts: (keep?: readonly AlertKind[]) => void;
+    },
   ) {}
 
   subscribe(on: <T>(event: string, handler: (p: T) => void) => void): void {
@@ -142,6 +52,7 @@ export class GrowthLayer {
     const a = readAwaken(p);
     if (!a) return;
     this.clearBanner();
+    this.deps.clearAlerts(['boss']);
     const sc = this.scene;
     const W = UI_SCREEN.WIDTH;
     const box = sc.add.container(0, BN.awaken.top).setDepth(BN.depth);
@@ -192,30 +103,52 @@ export class GrowthLayer {
   trait(p: unknown): void {
     const t = readTrait(p);
     if (!t) return;
-    this.toast?.cancel();
     const snap = this.deps.snapshot();
     const vk = verbKey(t.verb, snap.weaponVerbs);
     const head = `${growthText('traitGained')} · ${t.name}`;
     const weapon = iconWeapon(t.icon, snap.weapon?.name, snap.growth?.weaponName);
-    const chip = this.chip(BN.trait.top, t.icon, weapon, head, vk ? { key: vk.key, label: vk.name } : null, t.line);
-    this.toastBottom = BN.trait.top + chip.h;
-    this.toast = new TimedCard(this.scene, chip.box, BN.trait);
+    // 같은 개성의 진화 배너가 먼저 와 있으면 이 칩으로 바꾼다 (merge 없음 = 바꿈)
+    this.deps.alert({
+      kind: 'growth',
+      key: traitAlertKey(t.name),
+      label: head,
+      timing: { ...BN.trait },
+      build: () => this.chip(t.icon, weapon, head, vk ? { key: vk.key, label: vk.name } : null, t.line),
+    });
+  }
+
+  /** 옛 `WEAPON_EVOLVED` 배너 (개성 칩과 같은 key — 칩이 있으면 버리고, 없으면 짧은 칩) */
+  evolved(text: string): void {
+    const name = text.trim();
+    if (!name) return;
+    this.deps.alert({
+      kind: 'growth',
+      key: traitAlertKey(name),
+      label: name,
+      timing: { ...BN.trait },
+      build: () => this.chip(null, 'katana', name, null, ''),
+      merge: (prev) => prev,
+    });
   }
 
   /**
    * §18.1 공명 알림 (`ui:resonance` — 개성 알림과 같은 틀): 그림(`iconKey`, 없으면 짝 마름모 ◆◆) · '공명 · 이름' ·
-   * '연쇄 개성 두 장이 엮였다' · 한 문장. 같은 순간 개성 알림이 떠 있으면 그 아래에 붙는다.
+   * '연쇄 개성 두 장이 엮였다' · 한 문장. 개성 알림과 같은 때 오면 알림 줄이 그 아래에 쌓는다.
    */
   resonance(p: unknown): void {
     const snap = this.deps.snapshot();
     const r = readResonance(p, buildOf(snap));
     if (!r) return;
-    this.resToast?.cancel();
-    const top = this.toast?.alive ? this.toastBottom + RS.stackGap : BN.trait.top;
     const weapon = iconWeapon(r.icon, snap.weapon?.name, snap.growth?.weaponName);
     const sub = r.tag ? fill(growthText('resPair'), { tag: r.tag }) : '';
-    const chip = this.chip(top, r.icon, weapon, `${growthText('resGained')} · ${r.name}`, null, r.line, sub, true);
-    this.resToast = new TimedCard(this.scene, chip.box, BN.trait);
+    const head = `${growthText('resGained')} · ${r.name}`;
+    this.deps.alert({
+      kind: 'growth',
+      key: `res:${r.name}`,
+      label: head,
+      timing: { ...BN.trait },
+      build: () => this.chip(r.icon, weapon, head, null, r.line, sub, true),
+    });
   }
 
   /**
@@ -223,7 +156,6 @@ export class GrowthLayer {
    * 글: 머리(강조) / 둘째 줄(흐림 — 그림 칩의 키 줄 또는 공명 짝) / 한 문장.
    */
   private chip(
-    top: number,
     icon: string | null,
     weapon: Parameters<typeof traitIconCard>[4],
     headText: string,
@@ -303,16 +235,12 @@ export class GrowthLayer {
       line.setPosition(art ? textX : px, y + 1);
       parts.push(line);
     }
-    const box = sc.add.container(Math.round(W / 2 - w / 2), top, parts).setDepth(BN.depth);
+    const box = sc.add.container(Math.round(W / 2 - w / 2), 0, parts);
     return { box, h };
   }
 
   clear(): void {
     this.clearBanner();
-    this.toast?.cancel();
-    this.toast = undefined;
-    this.resToast?.cancel();
-    this.resToast = undefined;
   }
 
   destroy(): void {

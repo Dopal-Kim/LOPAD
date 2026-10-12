@@ -5,31 +5,7 @@ import type { UiTagId } from '../contract/ui';
  * 색은 팔레트 안에서만 — 기본 강조 램프 슬롯(16~27)·무채 G·세피아 S (61 단계 4 §17.1: 층마다 바꾸지 않는다).
  */
 
-/** HUD 각성 게이지 줄 (전투 묶음 무기·자원 줄 아래) */
-export const GROWTH_HUD = {
-  /** 줄 높이 (글 상자 16 과 맞춤) */
-  rowH: 16,
-  /** 막대 두께·세로 자리(줄 위에서) */
-  barH: 3,
-  barY: 7,
-  /** 숫자 → 막대, 막대 → 남은 수 */
-  gap: 6,
-  /** 막대 폭 (숫자·남은 수와 한 줄에 — 묶음 최소 폭 안) */
-  barW: 120,
-  /** 눈금 마름모 반지름: 작은 눈금(◇ 개성 발현·단련) · 큰 눈금(◆ 각성) */
-  tickR: 3,
-  bigTickR: 4,
-  /** 막대 바탕 · 앞 눈금 테 (작은 G09, 큰 = 강조 20). 찬 부분·지난 눈금·아이콘 마름모는 무기 색 (61 단계 6, themeWeapon) */
-  trackGray: 3,
-  todoGray: 9,
-  bigTodoSlot: 20,
-  /** 다음 눈금 (깜빡이지 않고 한 칸 밝게) */
-  nextSlot: 24,
-  /** ui:growth-gain 반짝: 막대 위 흰 덮개 알파 → 0, 숫자 강조 시간 */
-  flashAlpha: 0.85,
-  flashMs: 320,
-  numAccentMs: 420,
-} as const;
+// (62 P1-15: HUD 각성 게이지 줄 GROWTH_HUD 삭제 — 체력 막대 밑 얇은 띠 themeAlerts DIET 로 대체)
 
 /** 선택 카드 (개성 발현 3 · 1차 각성 3 · 2차 각성 2 · 단련 눈금 [단련/개성/개성]) */
 export const GROWTH_CARD = {

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { UI_SCREEN, uiCommands, type UiResult } from '../contract/ui';
 import { GlowText } from './glow';
+import { fill } from './fmt';
 import { DARK_BG, ICON, KIT, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
 import { takeKey } from './keyGate';
 import { UI_SCENE_KEYS } from './keys';
@@ -110,7 +111,17 @@ export class ResultScene extends Phaser.Scene {
     body(`+${r.soulsGained}  (보유 ${r.soulsTotal})`, y, L.x + PAD + 20);
     y += 20;
     body(`무기 ${r.weaponName}`, y);
-    new GlowText(this, L.x + PAD, L.y + PAGE_H - PAD - 16, `시드 ${r.seed}`, 'page_faint');
+    // 62 P2-9: 시드는 세부 접기 안 — '세부 보기' 를 누르면(또는 D) 펼친다 (피드백 대조용)
+    const detail = new GlowText(
+      this,
+      L.x + PAD,
+      L.y + PAGE_H - PAD - 16,
+      RESULT_DETAIL.closed,
+      'page_faint',
+    ).makeInteractive();
+    const open = (): void => void detail.setText(fill(RESULT_DETAIL.open, { seed: r.seed }));
+    detail.on('pointerup', open);
+    this.input.keyboard?.on('keydown-D', open);
 
     // ---- 오른쪽 페이지: 스토리 문장 · 엔딩 부제 · 선택 · 도장
     y = R.y + 22;
@@ -165,6 +176,9 @@ export class ResultScene extends Phaser.Scene {
     }
   }
 }
+
+/** 62 P2-9 결과 세부 접기 */
+const RESULT_DETAIL = { closed: '세부 보기 (D)', open: '세부 · 시드 {seed}' } as const;
 
 /** 61 P7 이름 번짐 (결과 화면): 나타나는 때·시간, 번진 자국 오프셋 (정수 px — 흐림 금지라 겹친 사본으로 번짐) */
 const RESULT_SMUDGE = {

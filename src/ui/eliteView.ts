@@ -169,3 +169,14 @@ export function readPlateJson(j: unknown): {
     pivotY: typeof pivot.y === 'number' ? pivot.y : f.sourceSize.h,
   };
 }
+
+/**
+ * 62 P1-4: 엘리트 체력 선의 알파 — 맞은 뒤 `showMs` 동안 보이고 `fadeMs` 에 걸쳐 사라진다 (안 맞았으면 0).
+ * sinceHit = 마지막 피해에서 지난 ms (한 번도 안 맞았으면 Infinity)
+ */
+export function eliteHpAlpha(sinceHit: number, showMs: number, fadeMs: number): number {
+  if (!Number.isFinite(sinceHit) || sinceHit < 0) return 0;
+  if (sinceHit <= showMs) return 1;
+  if (fadeMs <= 0) return 0;
+  return Math.max(0, 1 - (sinceHit - showMs) / fadeMs);
+}

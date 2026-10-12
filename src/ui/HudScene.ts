@@ -33,6 +33,9 @@ import { keyTaken, takeKey } from './keyGate';
 import { UI_SCENE_KEYS } from './keys';
 import { Minimap } from './Minimap';
 import { BannerQueue } from './HudBanners';
+import { HudAlerts } from './HudAlerts';
+import { infoAlert } from './alertCards';
+import { ALERT_UI } from './themeAlerts';
 import { BirthOverlay } from './HudBirth';
 import { findNode } from './regionView';
 import { RouteControl } from './HudRoute';
@@ -51,8 +54,6 @@ import { TrainingLayer } from './TrainingHud';
 import { ensureTransitionScene } from './TransitionScene';
 import { transitionBusy } from './transitionState';
 
-/** 가운데 배너 깊이 (자막과 같은 층 — StoryHud STORY_UI.depth) */
-const CAPTION_DEPTH = 50;
 /** 메뉴 씬 안전망: MENU_OPEN 뒤 이만큼 기다려도 메뉴 씬이 없으면 UI 가 띄운다 (ms) */
 const MENU_SAFETY_MS = 60;
 
@@ -105,6 +106,8 @@ export class HudScene extends Phaser.Scene {
   private noticeKind = '';
   // 배너 (배너 차례·지역 카드는 HudBanners.ts, 자막은 StoryHud.ts)
   private banners!: BannerQueue;
+  /** 62 P0-6: 위 가운데 알림 줄 하나 (방 이름·주의·적 소개·보스 카드·파훼·개성·안내) */
+  private alerts!: HudAlerts;
   // 워프 지도 (45라운드)
   private warpMap?: WarpMap;
   private warpHint?: GlowText;
@@ -161,12 +164,17 @@ export class HudScene extends Phaser.Scene {
         this.banners.next();
       },
     });
-    this.banners = new BannerQueue(this, () => this.built && !this.birth.active && !transitionBusy(), CAPTION_DEPTH);
+    this.alerts = new HudAlerts(this, {
+      blocked: () => !this.built || this.birth.active || transitionBusy(),
+      top: () => this.alertTop(),
+    });
+    this.banners = new BannerQueue(this, () => this.built && !this.birth.active && !transitionBusy(), this.alerts);
     this.narr = new HudNarrative(this, {
       canRun: () => this.built && !this.birth.active && !transitionBusy(),
       menuOpen: () => this.scene.isActive(UI_SCENE_KEYS.MENU),
       combat: () => this.combat,
       stageIndex: () => Math.max(0, this.stageIndex),
+      alerts: this.alerts,
       takeTutorialNotice: (text) =>
         this.built &&
         Boolean(
@@ -179,8 +187,9 @@ export class HudScene extends Phaser.Scene {
     });
     installUiDebug(this);
     this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(withDebug(s)));
+    // 62 P0-6: 옛 진화 배너는 같은 개성 알림과 한 장 (GrowthHud.evolved)
     this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) =>
-      this.banners.text(fill(uiText('hud', 'evolvedBanner', '{name}'), { name: p.name })),
+      this.growthLayer?.evolved(fill(uiText('hud', 'evolvedBanner', '{name}'), { name: p?.name ?? '' })),
     );
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.banners.text(p.stageName));
     // 61 단계 2·3: STORY 자막 차례·보스 카드·신규 적 소개 (HudNarrative.ts)
@@ -189,10 +198,12 @@ export class HudScene extends Phaser.Scene {
     this.growthLayer = new GrowthLayer(this, {
       gain: (now) => this.combat?.growthGain(now),
       snapshot: () => withDebug(uiCommands.getUiSnapshot()),
+      alert: (spec) => this.alerts.push(spec),
+      clearAlerts: (keep) => this.alerts.clear(keep),
     });
     this.growthLayer.subscribe((e, h) => this.on(e, h));
     // 61 단계 6 P14 수련장: 과제 체크 목록(오른쪽, 미니맵·지도 안내 아래) · 과제 완료 알림 · 방 도장
-    this.training = new TrainingLayer(this, { top: () => TRAINING_UI.top });
+    this.training = new TrainingLayer(this, { top: () => TRAINING_UI.top, alert: (spec) => this.alerts.push(spec) });
     this.training.subscribe((e, h) => this.on(e, h));
     // 53라운드 계약: 튜토리얼 단계 카드 · 적 등장 예고('주의' 경고, Q49·Q60)
     this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
@@ -239,14 +250,24 @@ export class HudScene extends Phaser.Scene {
     });
     // 61 단계 6 (§19): 그림 속 입구 전환 — 덮이면 고른 뒤 남겨 둔 노드 지도를 치우고, 끝나면 미뤄 둔 자막·배너
     this.on(UI_EVENTS.TRANSITION_COVERED, () => this.route.dropLeaving());
+    // 62 P1-11: 노드를 떠날 때 앞 방의 알림·자막·쪽지·토스트를 비운다 (새 방에 남지 않게)
+    this.on(UI_EVENTS.TRANSITION_BEGIN, () => {
+      this.alerts.clear();
+      this.narr?.story.reset();
+      this.toasts?.clear();
+    });
     this.on(UI_EVENTS.TRANSITION_END, () => {
       this.route.dropLeaving();
       if (!this.built || this.birth.active) return;
       this.narr?.story.tick(false);
       this.banners.next();
     });
-    this.on(UI_EVENTS.BIRTH_STARTED, () => this.startBirth());
-    this.on(UI_EVENTS.BIRTH_DONE, () => {
+    this.on(UI_EVENTS.BIRTH_STARTED, (p: unknown) => {
+      this.guide?.birth(p);
+      this.startBirth();
+    });
+    this.on(UI_EVENTS.BIRTH_DONE, (p: unknown) => {
+      this.guide?.birth(p);
       // 탄생 노드의 진입 이벤트가 없었어도 첫 지역 카드는 탄생 연출이 끝난 뒤에
       const s = withDebug(uiCommands.getUiSnapshot());
       this.banners.region(findNode(s.route, s.route?.currentId), s);
@@ -255,6 +276,7 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.RUN_ENDED, () => {
       this.guide?.reset();
       this.banners.endRun();
+      this.alerts.clear();
       this.endBirth();
     });
     // 47라운드: 구조물 결과·도전 (계약 §9.6)
@@ -306,6 +328,7 @@ export class HudScene extends Phaser.Scene {
       this.routeStrip = undefined;
       this.endBirth();
       this.banners.destroy();
+      this.alerts.destroy();
       this.bubble = undefined;
       this.chips = undefined;
       this.toasts = undefined;
@@ -610,6 +633,7 @@ export class HudScene extends Phaser.Scene {
     // 61라운드 플레이 점검 #2: '싸우는 법' 패널이 떠 있는 동안 게임을 멈춘다 (읽는 사이 맞지 않게)
     this.guidePaused = false;
     this.guide = new TutorialGuide(this, {
+      alert: (spec) => this.alerts.push(spec),
       onOpen: () => {
         if (this.guidePaused) return;
         this.guidePaused = true;
@@ -627,10 +651,10 @@ export class HudScene extends Phaser.Scene {
         else resume();
       },
     });
-    // 57·60라운드 §14: 알림은 구조물 결과 토스트·가운데 배너와 같은 자리로
+    // 57·60라운드 §14: 알림은 구조물 결과 토스트·위 가운데 알림 줄(62 P0-6)과 같은 자리로
     this.buildLayer = new BuildLayer(this, {
       toast: (tone, text) => this.toasts?.push({ tone, text }, Math.max(0, this.stageIndex)),
-      banner: (text) => this.banners.text(text),
+      banner: (text) => this.alerts.push(infoAlert(text, Math.max(0, this.stageIndex))),
     });
 
     this.built = true;
@@ -724,7 +748,8 @@ export class HudScene extends Phaser.Scene {
     if (overlay) this.onTabUp();
     // 61라운드 P1: 무기 시험장에서는 아래 가운데에 4동사 키캡 안내 (무기를 바꾸면 따라 바뀐다)
     if (this.labGuide) {
-      const showGuide = quiet && !overlay;
+      // 62 P1-10: 첫 생 첫 노드들(`keyBar`)에도 아래 작은 4동사 키 막대 (막는 패널 대신)
+      const showGuide = (quiet || Boolean(s.keyBar)) && !overlay && !this.birth.active;
       this.labGuide.setVisible(showGuide);
       if (showGuide) {
         this.labGuide.setItems(snapshotVerbItems(s, (k) => r61Text(k)));
@@ -750,6 +775,8 @@ export class HudScene extends Phaser.Scene {
       this.narr?.centerBottom() ?? UI_SCREEN.HEIGHT,
     );
     this.training?.render(s, overlay);
+    // 62 P0-6: 위 가운데 알림 줄 (오래 기다린 것 버림 · 자리 나면 띄움 · 위 끝 바뀌면 옮김)
+    this.alerts.tick();
     this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);
     // 53라운드: 튜토리얼 안내 — 다른 화면·배너·지역 카드·탄생 연출이 없을 때만 새로 띄운다
     const bannersIdle = this.banners.idle;
@@ -777,6 +804,16 @@ export class HudScene extends Phaser.Scene {
         this.noticeText.setX(nx + 8 + 16 + 6);
       }
     }
+  }
+
+  /** 62 P0-6: 위 가운데 알림 줄 위 끝 — 튜토리얼 단계 카드·도전 판이 떠 있으면 그 아래 */
+  private alertTop(): number {
+    let y: number = ALERT_UI.top;
+    const step = this.guide?.stepBottom;
+    if (step !== null && step !== undefined) y = Math.max(y, step + ALERT_UI.belowGap);
+    const ch = this.challenge?.bottom;
+    if (ch !== null && ch !== undefined) y = Math.max(y, ch + ALERT_UI.belowGap);
+    return y;
   }
 
   /**

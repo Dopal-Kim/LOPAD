@@ -20,6 +20,8 @@ import { swatch } from './StructureHud';
 import { fill, storyText } from './text';
 import { BOSS_DARK_PHASE_BY_FLOOR, BOSS_UI as B } from './themeStory';
 import { TimedCard, cardTotalMs } from './timedCard';
+import { bandRect, type AlertSpec } from './HudAlerts';
+import type { AlertKind } from './alertPlan';
 import { sequenceExtend, sequenceGone, sequenceShown } from './uiSequence';
 
 /** 보스 막대 높이 (보스 틀 9-slice) */
@@ -51,9 +53,6 @@ export class BossHud {
   private barX = 0;
   private tickSig = '';
   private candleSig = '';
-  private nameCard?: TimedCard;
-  private phaseCard?: TimedCard;
-  private stamp?: TimedCard;
   private defeat?: TimedCard;
   private band?: Phaser.GameObjects.Graphics;
   /** 처치 시각 (보스 대사·한마디가 이어지면 메뉴 기다림을 늘인다) */
@@ -62,6 +61,8 @@ export class BossHud {
   constructor(
     private scene: Phaser.Scene,
     stageIndex: number,
+    /** 62 P0-6: 이름·국면·파훼 카드는 위 가운데 알림 줄로 (겹치지 않게 쌓고 국면이 파훼를 접는다) */
+    private alerts: { push: (spec: AlertSpec) => void; clear: (keep?: readonly AlertKind[]) => void },
   ) {
     this.si = stageIndex;
     this.gauge = new Gauge(scene, 0, 0, B.barW, 'health').setVisible(false);
@@ -143,23 +144,32 @@ export class BossHud {
     const given = p && typeof p === 'object' && typeof (p as { phase?: unknown }).phase === 'number';
     const phase = given ? e.phase : Math.max(1, Math.round(s.boss?.phase ?? 1));
     const names = phaseNamesFor(this.si, (s.boss as unknown as { phaseNames?: unknown } | null)?.phaseNames);
-    const box = this.scene.add.container(0, B.nameCard.top).setDepth(B.depth);
-    let y = 0;
     const floor = s.floorTitle || s.stageName;
-    if (floor) y = this.addCentered(box, floor, 'ink_faint', y, 1) + 4;
-    y = this.addCentered(box, name, 'ink_accent', y, 2) + 4;
-    const g = this.scene.add.graphics();
-    g.fillStyle(swatch(this.scene, this.si, { slot: 20 }), 1).fillRect(
-      Math.round(UI_SCREEN.WIDTH / 2 - B.nameCard.ruleW / 2),
-      y,
-      B.nameCard.ruleW,
-      1,
-    );
-    box.add(g);
-    y += 6;
-    if (names.length > 1) y = this.addStrip(box, names, phase, y);
-    this.addBand(box, y);
-    this.nameCard = new TimedCard(this.scene, box, B.nameCard);
+    this.alerts.push({
+      kind: 'boss',
+      key: 'bossCard',
+      label: name,
+      timing: B.nameCard,
+      // 보스 등장은 자잘한 알림(방 이름·주의·적 소개·안내)을 걷어낸다
+      supersedes: ['room', 'warn', 'enemy', 'info', 'break'],
+      build: (sc) => {
+        const box = sc.add.container(0, 0);
+        let y: number = B.bandPad;
+        if (floor) y = this.addCentered(box, floor, 'ink_faint', y, 1) + 4;
+        y = this.addCentered(box, name, 'ink_accent', y, 2) + 4;
+        const g = sc.add.graphics();
+        g.fillStyle(swatch(sc, this.si, { slot: 20 }), 1).fillRect(
+          Math.round(UI_SCREEN.WIDTH / 2 - B.nameCard.ruleW / 2),
+          y,
+          B.nameCard.ruleW,
+          1,
+        );
+        box.add(g);
+        y += 6;
+        if (names.length > 1) y = this.addStrip(box, names, phase, y);
+        return { box, h: this.addBand(box, y) };
+      },
+    });
     debugExpose('bossCard', { kind: 'name', name, phase });
   }
 
@@ -169,16 +179,23 @@ export class BossHud {
     if (e.phase <= 1) return;
     const names = phaseNamesFor(this.si, (s.boss as unknown as { phaseNames?: unknown } | null)?.phaseNames);
     const phaseName = e.phaseName ?? phaseNameOf(e.phase, names, storyText('phaseN'));
-    this.nameCard?.cancel();
-    this.phaseCard?.cancel();
-    const box = this.scene.add.container(0, B.phaseCard.top).setDepth(B.depth);
-    let y = this.addCentered(box, fill(storyText('phaseOrdinal'), { n: e.phase }), 'ink_faint', 0, 1) + 2;
-    y = this.addCentered(box, phaseName, 'ink_accent', y, 2) + 6;
-    if (names.length > 1) y = this.addStrip(box, names, e.phase, y) + 6;
     const dark = BOSS_DARK_PHASE_BY_FLOOR[this.si];
-    if (dark !== undefined && e.phase === dark) y = this.addCentered(box, storyText('darkHint'), 'ink_body', y, 1);
-    this.addBand(box, y);
-    this.phaseCard = new TimedCard(this.scene, box, B.phaseCard);
+    this.alerts.push({
+      kind: 'boss',
+      // 같은 key: 떠 있는 이름 카드·앞 국면 카드를 이 카드로 바꾼다
+      key: 'bossCard',
+      label: phaseName,
+      timing: B.phaseCard,
+      supersedes: ['break'],
+      build: (sc) => {
+        const box = sc.add.container(0, 0);
+        let y = this.addCentered(box, fill(storyText('phaseOrdinal'), { n: e.phase }), 'ink_faint', B.bandPad, 1) + 2;
+        y = this.addCentered(box, phaseName, 'ink_accent', y, 2) + 6;
+        if (names.length > 1) y = this.addStrip(box, names, e.phase, y) + 6;
+        if (dark !== undefined && e.phase === dark) y = this.addCentered(box, storyText('darkHint'), 'ink_body', y, 1);
+        return { box, h: this.addBand(box, y) };
+      },
+    });
     debugExpose('bossCard', { kind: 'phase', phase: e.phase, name: phaseName });
   }
 
@@ -186,16 +203,28 @@ export class BossHud {
   broke(p: unknown): void {
     const v = readBossBreak(p);
     if (!v) return;
-    this.stamp?.cancel();
-    const box = this.scene.add.container(0, B.breakStamp.top).setDepth(B.depth + 1);
     const head = v.finisher ? storyText('finisherHead') : storyText('breakHead');
-    let y = this.addCentered(box, head, 'ink_accent', 0, 2) + 2;
     const label = v.finisher ? null : (v.label ?? storyText(breakLabelKey(v.kind)));
     const sub = v.text ?? (v.finisher ? storyText('finisherSub') : storyText('breakSub'));
-    if (label) y = this.addCentered(box, label, 'ink_body', y, 1) + 2;
-    this.addCentered(box, sub, 'ink_faint', y, 1);
-    this.stamp = new TimedCard(this.scene, box, B.breakStamp);
-    // 찍힌 직후 짧게 좌우 흔들림 (정수 px)
+    this.alerts.push({
+      kind: 'break',
+      key: 'bossBreak',
+      label: label ?? head,
+      timing: B.breakStamp,
+      build: (sc) => {
+        const box = sc.add.container(0, 0);
+        let y = this.addCentered(box, head, 'ink_accent', B.bandPad, 2) + 2;
+        if (label) y = this.addCentered(box, label, 'ink_body', y, 1) + 2;
+        y = this.addCentered(box, sub, 'ink_faint', y, 1);
+        return { box, h: this.addBand(box, y) };
+      },
+      onShow: (box) => this.shake(box),
+    });
+    debugExpose('bossCard', { kind: v.finisher ? 'finisher' : 'break', label, sub });
+  }
+
+  /** 찍힌 직후 짧게 좌우 흔들림 (정수 px) */
+  private shake(box: Phaser.GameObjects.Container): void {
     const t0 = this.scene.time.now;
     const shake = this.scene.time.addEvent({
       delay: B.breakStamp.shakeMs,
@@ -210,7 +239,6 @@ export class BossHud {
         if (el >= 0) box.setX(box.x === 0 ? B.breakStamp.shakeAmp : box.x > 0 ? -B.breakStamp.shakeAmp : 0);
       },
     });
-    debugExpose('bossCard', { kind: v.finisher ? 'finisher' : 'break', label, sub });
   }
 
   /** BOSS_DIED: 처치 카드 — 끝날 때까지 보상 메뉴가 기다린다 (uiSequence, 처치에서 최대 menuWaitMaxMs) */
@@ -218,6 +246,8 @@ export class BossHud {
     const e = readBossEvent(p);
     const name = e.name || s.boss?.name || '';
     this.clearCards();
+    // 62 P0-6: 처치 카드는 큰 순간 — 위 가운데 알림 줄을 비운다
+    this.alerts.clear();
     const D = B.defeat;
     const band = this.scene.add.graphics().setDepth(B.depth - 1);
     band.fillStyle(swatch(this.scene, this.si, { gray: 0 }), 0.5).fillRect(0, D.top - 14, UI_SCREEN.WIDTH, D.bandH);
@@ -310,16 +340,22 @@ export class BossHud {
     return y + h;
   }
 
-  /** 카드 뒤 어둠 띠 (월드 글·그림 위에서도 읽히게, G00 α0.5) — 카드와 함께 사라진다 */
-  private addBand(box: Phaser.GameObjects.Container, h: number): void {
+  /**
+   * 카드 뒤 잉크 띠 (월드 글·그림 위에서도 읽히게) — 카드와 함께 사라진다. 62 P0-6: 알림 줄 카드와 같은 하데스식 띠
+   * (양 끝 흐림 + 위·아래 1px). 글 아래 끝 `bottom` 을 받아 카드 높이를 돌려준다 (글은 `bandPad` 부터).
+   */
+  private addBand(box: Phaser.GameObjects.Container, bottom: number): number {
+    const h = bottom + B.bandPad;
+    let w = 0;
+    for (const o of box.list) {
+      const d = o as unknown as { displayWidth?: number };
+      if (typeof d.displayWidth === 'number') w = Math.max(w, d.displayWidth);
+    }
     const g = this.scene.add.graphics();
-    g.fillStyle(swatch(this.scene, this.si, { gray: 0 }), 0.5).fillRect(
-      0,
-      -B.bandPad,
-      UI_SCREEN.WIDTH,
-      h + B.bandPad * 2,
-    );
+    const bw = Math.min(UI_SCREEN.WIDTH - 40, Math.max(320, w + 120));
+    bandRect(this.scene, g, Math.round(UI_SCREEN.WIDTH / 2 - bw / 2), 0, bw, h, this.si);
     box.addAt(g, 0);
+    return h;
   }
 
   /** 국면 눈금: 막대 위로 튀어나온 1px 선 (아직 = 강조 22, 지남 = 무채) */
@@ -390,11 +426,8 @@ export class BossHud {
   }
 
   private clearCards(): void {
-    this.nameCard?.cancel();
-    this.phaseCard?.cancel();
-    this.stamp?.cancel();
     this.defeat?.cancel();
-    this.nameCard = this.phaseCard = this.stamp = this.defeat = undefined;
+    this.defeat = undefined;
     if (this.band) {
       this.scene.tweens.killTweensOf(this.band);
       this.band.destroy();

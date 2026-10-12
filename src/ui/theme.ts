@@ -153,6 +153,30 @@ export const TEXT_STYLES = {
     halo: { color: WEAPON_HUE.bow.main, alpha: 0.5 },
     shade: { color: GRAY[0], alpha: 1 },
   },
+  /** 62 타이틀 메뉴 (아트 §29 글자색): 기본 S5 + 1px S4 */
+  title_item: { body: SEPIA[5], bodyAlpha: 1, shade: { color: SEPIA[4], alpha: 1 } },
+  /** 62 타이틀 선택 줄: #faeec0(램프 27) + 할로 #d67a11(램프 21) α0.5 + 그늘 S2 */
+  title_selected: {
+    body: { accentSlot: 27 },
+    bodyAlpha: 1,
+    halo: { color: { accentSlot: 21 }, alpha: 0.5 },
+    shade: { color: SEPIA[2], alpha: 1 },
+  },
+  /** 62 타이틀 못 고르는 줄: S4 */
+  title_disabled: { body: SEPIA[4], bodyAlpha: 1 },
+  /** 62 타이틀 틀 밖 글(안내 한 줄): G13 + 1px 먹 테 */
+  title_scene: { body: GRAY[13], bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
+  /** 62 타이틀 거부 사유 등 잠깐 알림: 등불 #e8b858(램프 24) + 1px 먹 테 */
+  title_notice: { body: { accentSlot: 24 }, bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
+  /** 62 타이틀 버전·귀퉁이 메모: G09 + 1px 먹 테 */
+  title_version: { body: GRAY[9], bodyAlpha: 1, shade: { color: GRAY[0], alpha: 1 } },
+  /** 62 타이틀 '아무 키나 누른다': 빛 글씨 #faeec0 + 호박 할로 α0.5 + 먹 그늘 */
+  title_prompt: {
+    body: { accentSlot: 27 },
+    bodyAlpha: 1,
+    halo: { color: { accentSlot: 21 }, alpha: 0.5 },
+    shade: { color: GRAY[0], alpha: 1 },
+  },
 } as const satisfies Record<string, GlowStyle>;
 export type TextStyleName = keyof typeof TEXT_STYLES;
 

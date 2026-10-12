@@ -5,6 +5,8 @@ import { GlowText } from './glow';
 import { KEYCAP } from './keycap';
 import { keyGlyph } from './keyGuide';
 import { NinePanel, inkPanel } from './kit';
+import { roomStartAlert } from './alertCards';
+import type { AlertSpec } from './HudAlerts';
 import { fill, r53Text } from './text';
 import {
   incomingWarns,
@@ -28,18 +30,12 @@ const TUT = {
   keyColW: 92,
   minW: 360,
   fadeMs: 250,
-  /** 경고: 화면 가운데에서 위로. 머무는 시간은 이것과 소환까지 남은 시간(delayMs) 중 긴 쪽 */
-  warnDy: -110,
-  warnHoldMs: 1800,
-  warnBlinks: 3,
-  /** 단계 카드: 위쪽 가운데 y, 머무는 시간(다음 공지가 오면 바뀐다) */
+  /** 단계 카드: 위쪽 가운데 y. 62 P1-10: 다음 단계가 오거나 노드를 떠날 때까지 계속 띄워 둔다(옛 20초 상한 삭제) */
   stepTop: 52,
-  stepHoldMs: 20000,
   stepPadX: 16,
   stepPadY: 8,
   /** 단계 카드 진행('2/5') 앞 간격 */
   stepProgressGap: 12,
-  warnBlinkMs: 160,
 } as const;
 
 /** '싸우는 법' 패널을 연 곳(HUD)이 게임을 멈추고 재개하는 고리 */
@@ -47,6 +43,8 @@ export interface TutorialHooks {
   onOpen?: () => void;
   /** by = 닫은 키('Escape'·'Enter') 또는 'pointer' */
   onClose?: (by: string) => void;
+  /** 62 P0-6: '주의' 경고는 위 가운데 알림 줄로 (문 닫힘 공지와 한 장) */
+  alert?: (spec: AlertSpec) => void;
 }
 
 /** 한 번 띄운 튜토리얼 (런 시드 + 노드 id). HUD 씬이 다시 만들어져도 같은 런에서는 다시 띄우지 않는다 */
@@ -67,16 +65,13 @@ const shownTutorials = new Set<string>();
  */
 export class TutorialGuide {
   private panel?: Phaser.GameObjects.Container;
-  private warn?: Phaser.GameObjects.Container;
   private step?: Phaser.GameObjects.Container;
-  private stepTimer?: Phaser.Time.TimerEvent;
   /** 지금 카드: 문구·출처·띄운 곳(시험장 여부 + 노드 id) */
   private stepText = '';
   private stepSource: 'event' | 'notice' = 'notice';
   private stepWhere = '';
   /** TUTORIAL_STEP 을 한 번이라도 받았는가 (받았으면 공지 대체 경로를 쓰지 않는다) */
   private stepEvents = false;
-  private warnRoom: string | null = null;
   private alive = true;
 
   constructor(
@@ -86,9 +81,22 @@ export class TutorialGuide {
     scene.input.on('pointerdown', this.onPointer);
   }
 
+  /** 62 P1-10: 탄생(BIRTH_STARTED/DONE `UiBirthInfo`) — firstLife 가 false 면 이번 생에는 조작 패널을 띄우지 않는다 */
+  birth(p: unknown): void {
+    const f = p && typeof p === 'object' ? (p as { firstLife?: unknown }).firstLife : undefined;
+    if (typeof f === 'boolean') this.noPanel = !f;
+  }
+  private noPanel = false;
+
   get panelOpen(): boolean {
     return Boolean(this.panel);
   }
+
+  /** 62 P0-6: 단계 카드 아래 끝 y (없으면 null) — 위 가운데 알림 줄이 그 아래로 비킨다 */
+  get stepBottom(): number | null {
+    return this.step ? TUT.stepTop + this.stepH : null;
+  }
+  private stepH = 0;
 
   /**
    * 매 스냅샷. `idle` = 다른 화면(메뉴·지도·일시정지)·배너·탄생 연출이 없어 패널을 띄워도 되는가.
@@ -97,7 +105,8 @@ export class TutorialGuide {
     if (!this.alive) return;
     if (this.step && this.stepLeft(s)) this.clearStep();
     const key = tutorialKey(s);
-    if (!key || shownTutorials.has(key) || !idle || s.inCombat || this.panel) return;
+    // 62 P1-10: 두 번째 생부터는 '싸우는 법' 패널을 띄우지 않는다 (BIRTH firstLife false — 전체 표는 일시정지 메뉴에만)
+    if (this.noPanel || !key || shownTutorials.has(key) || !idle || s.inCombat || this.panel) return;
     shownTutorials.add(key);
     this.showPanel(s, stageIndex);
   }
@@ -139,29 +148,21 @@ export class TutorialGuide {
   /** ENEMY_INCOMING: 소환까지 시간이 있으면(delayMs > 0) '주의' 경고 */
   enemyIncoming(p: unknown, stageIndex: number): void {
     if (!this.alive || !incomingWarns(p)) return;
-    // 한 무리를 여러 번에 나눠 예고해도 떠 있는 경고를 다시 시작하지 않는다
-    if (this.warn && this.warnRoom === p.roomId) return;
-    this.warnRoom = p.roomId;
+    // 한 무리를 여러 번에 나눠 예고해도 알림 줄이 같은 key 로 합친다 (62 P0-6)
     this.showWarning(stageIndex, p.delayMs);
   }
 
   /** 런이 끝나면 단계 카드·경고를 거둔다 */
   reset(): void {
     this.clearStep();
-    this.warn?.destroy();
-    this.warn = undefined;
-    this.warnRoom = null;
   }
 
   destroy(): void {
     this.alive = false;
     this.scene.input?.off('pointerdown', this.onPointer);
     this.closePanel(true, null);
-    this.stepTimer?.remove();
     this.step?.destroy();
     this.step = undefined;
-    this.warn?.destroy();
-    this.warn = undefined;
   }
 
   private onPointer = (): void => {
@@ -193,7 +194,6 @@ export class TutorialGuide {
 
   private showStep(card: StepCard, source: 'event' | 'notice', s: UiSnapshot, stageIndex: number): void {
     const sc = this.scene;
-    this.stepTimer?.remove();
     this.step?.destroy();
     // 61라운드: 마우스 키는 마우스 그림('좌클릭 길게' = 왼 단추 + 길게 누르기 막대)
     const caps = card.keys.map((k) => keyGlyph(sc, k, stageIndex).obj.setScale(2));
@@ -235,11 +235,7 @@ export class TutorialGuide {
     this.stepSource = source;
     this.stepWhere = stepWhere(s);
     sc.tweens.add({ targets: box, alpha: 1, duration: TUT.fadeMs });
-    this.stepTimer = sc.time.delayedCall(TUT.stepHoldMs, () => {
-      if (this.step !== box) return;
-      this.step = undefined;
-      sc.tweens.add({ targets: box, alpha: 0, duration: TUT.fadeMs, onComplete: () => box.destroy() });
-    });
+    this.stepH = h;
     debugExpose('tutorialStep', { text: card.text, keys: card.keys, progress: card.progress, source, w, h });
   }
 
@@ -250,52 +246,17 @@ export class TutorialGuide {
 
   /** 단계 카드를 거둔다 */
   private clearStep(): void {
-    this.stepTimer?.remove();
-    this.stepTimer = undefined;
     this.step?.destroy();
     this.step = undefined;
     this.stepText = '';
     debugExpose('tutorialStep', null);
   }
 
-  /** '주의' 경고: 큰 강조 글 + 한 줄, 깜빡이며 나타났다 사라진다. 안내 패널은 닫는다 */
+  /** '주의' 경고 (62 P0-6: 위 가운데 알림 줄 — 문 닫힘 공지와 한 장). 안내 패널은 닫는다 */
   private showWarning(stageIndex: number, delayMs: number): void {
-    const sc = this.scene;
     this.closePanel();
-    this.warn?.destroy();
-    const title = new GlowText(sc, 0, 0, r53Text('warnTitle'), 'ink_accent', { scale: 2, stageIndex });
-    const line = new GlowText(sc, 0, 0, r53Text('warnLine'), 'ink_body', { stageIndex });
-    const w = Math.max(title.displayWidth, line.displayWidth) + 32;
-    const h = title.displayHeight + 4 + line.displayHeight + 16;
-    const bg = inkPanel(sc, 0, 0, w, h);
-    title.placeCenter(w / 2, 8);
-    line.placeCenter(w / 2, 8 + title.displayHeight + 4);
-    const x0 = Math.round(UI_SCREEN.WIDTH / 2 - w / 2);
-    const y0 = Math.round(UI_SCREEN.HEIGHT / 2 + TUT.warnDy - h / 2);
-    const box = sc.add.container(x0, y0, [bg, title, line]).setDepth(TUT.depth + 1);
-    this.warn = box;
-    debugExpose('warning', { at: sc.time.now, delayMs });
-    // 깜빡임(계단 알파 1 ↔ 0.55, 키트 허용 알파) 뒤 머물렀다 사라진다
-    sc.time.addEvent({
-      delay: TUT.warnBlinkMs,
-      repeat: TUT.warnBlinks * 2 - 1,
-      callback: () => title.setAlpha(title.alpha < 1 ? 1 : 0.55),
-    });
-    sc.time.delayedCall(Math.max(TUT.warnHoldMs, delayMs), () => {
-      if (this.warn !== box) return;
-      sc.tweens.add({
-        targets: box,
-        alpha: 0,
-        duration: TUT.fadeMs,
-        onComplete: () => {
-          box.destroy();
-          if (this.warn === box) {
-            this.warn = undefined;
-            this.warnRoom = null;
-          }
-        },
-      });
-    });
+    this.hooks.alert?.(roomStartAlert({ warn: true, lock: null, holdMs: delayMs }, stageIndex));
+    debugExpose('warning', { at: this.scene.time.now, delayMs });
   }
 }
 

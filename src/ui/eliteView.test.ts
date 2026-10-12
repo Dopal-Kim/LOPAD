@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { plateMidW, platePos, plateTextCenter, readPlateJson, slice3 } from './eliteView';
+import { eliteHpAlpha, plateMidW, platePos, plateTextCenter, readPlateJson, slice3 } from './eliteView';
 import { interactWords } from './structView';
 import { STRUCT_KIND_TEXT } from './textBuild';
 
@@ -76,5 +76,16 @@ describe('eliteView (60라운드 §14.9 엘리트 이름표)', () => {
       '지도를 산다',
     );
     expect(interactWords({ kind: 'chest', name: '', action: '' }, STRUCT_KIND_TEXT)).toEqual({ name: '', action: '' });
+  });
+});
+
+describe('eliteHpAlpha (62 P1-4 맞았을 때만 잠깐)', () => {
+  it('안 맞았으면 0, 맞은 뒤 showMs 동안 1, 그 뒤 fadeMs 동안 줄어든다', () => {
+    expect(eliteHpAlpha(Infinity, 2600, 400)).toBe(0);
+    expect(eliteHpAlpha(-Infinity, 2600, 400)).toBe(0);
+    expect(eliteHpAlpha(0, 2600, 400)).toBe(1);
+    expect(eliteHpAlpha(2600, 2600, 400)).toBe(1);
+    expect(eliteHpAlpha(2800, 2600, 400)).toBeCloseTo(0.5);
+    expect(eliteHpAlpha(3100, 2600, 400)).toBe(0);
   });
 });

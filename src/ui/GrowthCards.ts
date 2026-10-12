@@ -12,10 +12,13 @@ import { takeKey } from './keyGate';
 import type { CardPage, CardPageCtx } from './MenuCards';
 import { swatch } from './StructureHud';
 import { fill, growthText, r60Text } from './text';
-import { SEPIA, hexToNum } from './theme';
+import { GRAY, SEPIA, hexToNum } from './theme';
 import { GROWTH_CARD as C, GROWTH_GUIDE as GD, RESONANCE_UI as RS, TRAIT_ICON as TI } from './themeGrowth';
 import type { VoiceWeaponId } from './themeStory';
 import { WEAPON_HUE } from './themeWeapon';
+
+/** 62 P2-7 태그 칩 (높이·안 여백·칩 사이) */
+const TAG_CHIP = { h: 16, padX: 4, gap: 6 } as const;
 
 /** 카드 안 줄 사이 */
 const GAP = { afterTab: 8, afterLook: 6, afterKey: 6, afterName: 6, afterRule: 8, afterLine: 6 } as const;
@@ -163,8 +166,9 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 
   if (d.line)
     add(new GlowText(scene, 0, 0, d.line, 'page_body', { wrap: inner, align: 'center' }), lv === 0 ? GAP.afterLine : 2);
   // (공명 힌트가 있는 카드는 태그를 힌트 둘째 줄 '돌파 짝 카드' 로 보이므로 태그 줄을 따로 두지 않는다)
+  // 62 P2-7: 태그는 흐린 글 대신 잉크 칩(강조 글) + '공명까지 n장'
   if (d.tags.length && lv < 2 && !d.resonance)
-    add(new GlowText(scene, 0, 0, d.tags.join(' · '), 'page_faint', { wrap: inner, align: 'center' }), GAP.afterLine);
+    y = tagChips(scene, parts, d.tags, d.tagNeed, cx, y, inner) + GAP.afterLine;
   // ---- §18.1 공명 힌트: 이 카드가 같은 태그 짝을 맞춘다
   if (d.resonance) y = resonanceHint(scene, g, parts, d.resonance, cx, y, inner, lv);
   // ---- 1차 각성: 2차 길 미리보기
@@ -294,6 +298,52 @@ function keyRow(
 }
 
 /**
+ * 62 P2-7 태그 칩 줄: 태그마다 어두운 잉크 칩 + 강조 글, 그 뒤에 '공명까지 n장'(가장 적게 남은 태그 기준, 0 이면 생략).
+ * 한 줄에 안 들면 '공명까지' 글은 다음 줄. 아래 끝 y 를 돌려준다.
+ */
+function tagChips(
+  scene: Phaser.Scene,
+  parts: Phaser.GameObjects.GameObject[],
+  tags: string[],
+  need: number[],
+  cx: number,
+  y: number,
+  inner: number,
+): number {
+  const T = TAG_CHIP;
+  const g = scene.add.graphics();
+  parts.push(g);
+  const texts = tags.map((t) => new GlowText(scene, 0, 0, t, 'ink_accent'));
+  const left = need.filter((n) => n > 0);
+  const needT = left.length
+    ? new GlowText(scene, 0, 0, fill(growthText('tagNeed'), { n: Math.min(...left) }), 'page_body')
+    : null;
+  const chipsW = texts.reduce((w, t) => w + t.displayWidth + T.padX * 2, 0) + (texts.length - 1) * T.gap;
+  const oneLine = needT ? chipsW + T.gap + needT.displayWidth <= inner : true;
+  const rowW = oneLine && needT ? chipsW + T.gap + needT.displayWidth : chipsW;
+  let x = Math.round(cx - rowW / 2);
+  for (const t of texts) {
+    const w = t.displayWidth + T.padX * 2;
+    g.fillStyle(hexToNum(SEPIA[0]), 1).fillRect(x, y, w, T.h);
+    g.fillStyle(hexToNum(GRAY[1]), 1).fillRect(x + 1, y + 1, w - 2, T.h - 2);
+    g.fillStyle(swatch(scene, 0, { slot: 20 }), 1).fillRect(x + 1, y + T.h - 2, w - 2, 1);
+    t.setPosition(x + T.padX, y + Math.round((T.h - t.displayHeight) / 2));
+    parts.push(t);
+    x += w + T.gap;
+  }
+  let bottom = y + T.h;
+  if (needT) {
+    if (oneLine) needT.setPosition(x, y + Math.round((T.h - needT.displayHeight) / 2));
+    else {
+      needT.placeCenter(cx, bottom + 2);
+      bottom += 2 + needT.displayHeight;
+    }
+    parts.push(needT);
+  }
+  return bottom;
+}
+
+/**
  * 처음 안내 카드 (계약 §18 `growth.firstTime` — 메타 기준 처음 개성 발현·1차·2차 각성 메뉴 앞에 한 장):
  * 종이 한 장 · 제목 · 그림(무기 모양, 없으면 큰 마름모 — ◇ 발현 / ◆ 각성) · 두 줄 · 'Enter · 클릭 — 고르러 간다'.
  * Enter·Space·클릭으로 닫고 `onDone`. 본 기록은 시스템 메타(메뉴가 닫힐 때 시스템이 적는다).
@@ -303,6 +353,8 @@ export function showGrowthGuide(
   kind: GuideKind,
   look: string | null,
   onDone: () => void,
+  /** 62 P2-8: 개성 발현 안내 그림 — 이번에 고를 개성 카드 그림(메뉴 줄 `trait.iconKey`)과 무기 (없으면 옛 마름모) */
+  traitArt?: { icons: string[]; weapon: VoiceWeaponId },
 ): () => void {
   const W = UI_SCREEN.WIDTH;
   const H = UI_SCREEN.HEIGHT;
@@ -312,11 +364,15 @@ export function showGrowthGuide(
   const title = new GlowText(scene, 0, 0, text.title, 'page_title', { scale: 2 });
   const lines = text.lines.map((l) => new GlowText(scene, 0, 0, l, 'page_body', { wrap: inner, align: 'center' }));
   const foot = new GlowText(scene, 0, 0, growthText('guideNext'), 'page_faint');
+  const icons = kind === 'trait' ? (traitArt?.icons ?? []).filter((k) => scene.textures.exists(k)).slice(0, 3) : [];
+  const outer = traitIconOuter(TI.size, TI.frame);
+  // 62 P2-8: 개성 그림이 있으면 그림 칸을 카드 그림 줄 + 게이지 눈금 도해 높이로
+  const artH = icons.length ? outer + GUIDE_ART.gaugeGap + GUIDE_ART.gaugeH : GD.artH;
   const h =
     GD.pad +
     title.displayHeight +
     8 +
-    GD.artH +
+    artH +
     8 +
     lines.reduce((s, l) => s + l.displayHeight + GD.lineGap, 0) +
     6 +
@@ -332,15 +388,18 @@ export function showGrowthGuide(
   title.placeCenter(W / 2, y);
   y += title.displayHeight + 8;
   const art = scene.add.graphics();
-  art.fillStyle(hexToNum(SEPIA[1]), 0.55).fillRect(x + GD.pad, y, inner, GD.artH);
-  const img = lookImage(scene, look, W / 2, y, inner - 16, GD.artH);
-  if (!img) {
-    const r = GD.artR;
-    const cy = y + Math.round(GD.artH / 2);
-    diamond(art, W / 2, cy, r, swatch(scene, 0, { slot: kind === 'trait' ? 22 : 25 }), kind !== 'trait');
-    diamond(art, W / 2, cy, r + 3, swatch(scene, 0, { slot: 20 }), false);
+  art.fillStyle(hexToNum(SEPIA[1]), 0.55).fillRect(x + GD.pad, y, inner, artH);
+  if (icons.length && traitArt) drawGuideTraitArt(scene, art, icons, traitArt.weapon, W / 2, y, outer);
+  else {
+    const img = lookImage(scene, look, W / 2, y, inner - 16, GD.artH);
+    if (!img) {
+      const r = GD.artR;
+      const cy = y + Math.round(GD.artH / 2);
+      diamond(art, W / 2, cy, r, swatch(scene, 0, { slot: kind === 'trait' ? 22 : 25 }), kind !== 'trait');
+      diamond(art, W / 2, cy, r + 3, swatch(scene, 0, { slot: 20 }), false);
+    }
   }
-  y += GD.artH + 8;
+  y += artH + 8;
   for (const l of lines) {
     l.placeCenter(W / 2, y);
     y += l.displayHeight + GD.lineGap;
@@ -382,6 +441,45 @@ export function showGrowthGuide(
   };
 }
 
+/** 62 P2-8 개성 안내 그림 배치 */
+const GUIDE_ART = { gap: 10, gaugeGap: 6, gaugeH: 12, gaugeW: 200, tickR: 3 } as const;
+
+/**
+ * 62 P2-8 개성 발현 안내 그림: 이번에 고를 개성 카드 그림 줄(무기 빛 테두리) + 그 아래 각성 띠 도해
+ * (띠가 첫 작은 눈금 ◇ 에 닿아 강조 — '여기서 고른다'). 빈 마름모 대신.
+ */
+function drawGuideTraitArt(
+  scene: Phaser.Scene,
+  g: Phaser.GameObjects.Graphics,
+  icons: string[],
+  weapon: VoiceWeaponId,
+  cx: number,
+  top: number,
+  outer: number,
+): void {
+  const A = GUIDE_ART;
+  const rowW = icons.length * outer + (icons.length - 1) * A.gap;
+  let x = Math.round(cx - rowW / 2);
+  for (const k of icons) {
+    traitIconCard(scene, k, x + TI.frame + 1, top + TI.frame + 1, weapon);
+    x += outer + A.gap;
+  }
+  const hue = hexToNum(WEAPON_HUE[weapon].main);
+  const by = top + outer + A.gaugeGap + Math.round(A.gaugeH / 2) - 1;
+  const bx = Math.round(cx - A.gaugeW / 2);
+  const ticks = [0.3, 0.6, 1];
+  g.fillStyle(hexToNum(GRAY[0]), 1).fillRect(bx - 1, by - 1, A.gaugeW + 2, 5);
+  g.fillStyle(hexToNum(SEPIA[2]), 1).fillRect(bx, by, A.gaugeW, 3);
+  g.fillStyle(hue, 1).fillRect(bx, by, Math.round(A.gaugeW * ticks[0]), 3);
+  ticks.forEach((t, i) => {
+    const tx = bx + Math.round(A.gaugeW * t);
+    const r = i === ticks.length - 1 ? A.tickR + 1 : A.tickR;
+    diamond(g, tx, by + 1, r + 1, hexToNum(GRAY[0]), true);
+    if (i === 0) diamond(g, tx, by + 1, r, swatch(scene, 0, { slot: 25 }), true);
+    else diamond(g, tx, by + 1, r, hexToNum(SEPIA[4]), false);
+  });
+}
+
 /** 안내 카드 그림: 1차 각성은 무기 기본 모양, 2차 각성은 고른 갈래 모양, 개성은 없음(마름모) */
 export function guideLook(kind: GuideKind, snap: UiSnapshot): string | null {
   const g = snap.growth;
@@ -398,4 +496,12 @@ export function guideShown(kind: GuideKind): boolean {
 }
 export function markGuideShown(kind: GuideKind): void {
   shownGuides.add(kind);
+}
+
+/** 62 P2-8: 개성 발현 안내에 넣을 그림 — 이 메뉴의 개성 카드 그림 키와 무기 */
+export function guideTraitArt(m: UiMenu, snap: UiSnapshot): { icons: string[]; weapon: VoiceWeaponId } {
+  const icons = m.lines
+    .map((l) => (typeof l.trait?.iconKey === 'string' ? l.trait.iconKey : ''))
+    .filter((k) => k.length > 0);
+  return { icons, weapon: iconWeapon(icons[0] ?? null, snap.weapon?.name, snap.growth?.weaponName) };
 }

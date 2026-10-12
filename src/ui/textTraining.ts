@@ -27,11 +27,12 @@ export const TRAINING_TEXT = {
   // ---- 수련장 지도 (두루마리)
   mapTitle: '수련장',
   mapSub: '이름이 번지기 전, 손이 기억하는 곳',
-  mapHint: '←→ 고르기 · Enter·클릭 들어간다 · 1~8 바로',
+  mapHint: '←→ 고르기 · Enter · 클릭 들어간다 · 1~8 바로',
   mapStamped: '도장',
   mapAgain: '다시 들어갈 수 있다',
   // ---- 첫 생 선택
-  choiceHint: '←→ 고르기 · Enter·클릭',
+  /** 62 P1-20: 안내 표기를 'Enter · 클릭' 으로 통일 */
+  choiceHint: '1 · 2 · ←→ 고르기 · Enter · 클릭 들어간다',
   choiceTraining: '손이 기억하는 것부터 확인한다',
   choiceRun: '익숙한 손을 믿고 곧장 나간다',
 } as const;

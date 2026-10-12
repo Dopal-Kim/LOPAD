@@ -460,6 +460,11 @@ export class ChallengePanel {
     return this.current !== null;
   }
 
+  /** 62 P0-6: 판(또는 결과 문구)의 아래 끝 y — 없으면 null (위 가운데 알림 줄이 그 아래로 비킨다) */
+  get bottom(): number | null {
+    return this.box && this.panel ? this.top + this.panel.height : null;
+  }
+
   reset(): void {
     this.hideTimer?.remove();
     this.hideTimer = undefined;

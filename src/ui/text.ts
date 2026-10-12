@@ -33,26 +33,29 @@ const CONTROL_EXTRAS: { token: RegExp; key: string; fallback: string }[] = [
   // 53라운드 F 넣기/뽑기는 61라운드 P1(4동사, 칼 발도 = 좌 홀드)로 지워 덧붙이지 않는다
   { token: /(^|[\s·])E(\s|$)/, key: 'controlInteract', fallback: 'E 상호작용' },
   { token: /Shift/i, key: 'controlSprint', fallback: 'Shift 달리기' },
-  { token: /Tab/i, key: 'warpKeyHint', fallback: 'Tab 워프' },
 ];
 
 /**
- * 조작법 한 줄. `{secondary}` 는 스냅샷의 우클릭 보조 동작 이름으로, 비면 '보조 동작'. 47라운드: E·Shift·Tab 이 없으면 덧붙인다.
- * 49라운드: 'M 지도' 를 덧붙이고(팩의 'M 음소거' 는 바꾼다), 노드 지도 층·무기 시험장(`routeMode`)에서는 'Tab 워프' 를 뺀다.
- * 61라운드: 노드 지도 층·무기 시험장은 대신 'Tab 빌드'(누르고 있는 동안 빌드 보기).
+ * 조작법 한 줄. `{secondary}` 는 스냅샷의 우클릭 보조 동작 이름으로, 비면 '보조 동작'. 47라운드: E·Shift 가 없으면 덧붙인다.
+ * 49라운드: 'M 지도' 를 덧붙이고(팩의 'M 음소거' 는 바꾼다).
+ * 62라운드(경쟁력 점검 — 낡은 'Tab 워프' 정리): Tab 은 어디서나 'Tab 빌드'(누르고 있는 동안 빌드 보기).
+ * 팩 줄에 'Tab 워프' 가 남아 있으면 바꾼다. (일시정지 일기장만 쓴다 — 타이틀은 조작 줄을 그리지 않는다)
  */
-export function controlsLine(secondaryName: string, routeMode = false): string {
+export function controlsLine(secondaryName: string): string {
   const tpl = uiCommands.getUiText().controls || DEFAULT_CONTROLS;
   // 49라운드: M 은 지도 (음소거는 Esc 일기장). 팩에 'M 음소거' 가 남아 있으면 바꾼다
   const mapHint = routeText('mapKeyHintM');
-  const line = replaceMuteHint(fill(tpl, { secondary: secondaryName || '보조 동작' }), mapHint);
-  const extras = CONTROL_EXTRAS.filter((e) => !(e.key === 'warpKeyHint' && routeMode)).map((e) => ({
+  const peek = r61Text('controlPeek');
+  const line = replaceMuteHint(fill(tpl, { secondary: secondaryName || '보조 동작' }), mapHint).replace(
+    /Tab\s*워프/g,
+    peek,
+  );
+  const extras = CONTROL_EXTRAS.map((e) => ({
     token: e.token,
     text: uiText('hud', e.key, e.fallback),
   }));
-  // 노드 지도 층은 'M 지도' + 'Tab 빌드'(61라운드 Tab 빌드 보기), 그 외 층은 'M 지도' + 'Tab 워프'
   extras.push({ token: /(^|[\s·])M(\s|$)/, text: mapHint });
-  if (routeMode) extras.push({ token: /Tab/i, text: r61Text('controlPeek') });
+  extras.push({ token: /Tab/i, text: peek });
   return withControlExtras(line, extras);
 }
 
@@ -118,7 +121,7 @@ export const ROUTE_TEXT = {
   /** 지도 제목 (Galmuri14 — 한자 없는 고정 제목) */
   mapTitle: '가는 길',
   /** 고르기 모드 안내 */
-  chooseHint: '←→↑↓ 고르기 · Enter·클릭 그리로 간다 · Esc 물러나기',
+  chooseHint: '←→↑↓ 고르기 · Enter · 클릭 그리로 간다 · Esc 물러나기',
   /** 보기 모드 안내 */
   viewHint: '←→↑↓ 둘러보기 · M·Tab·Esc 닫기',
   /** 고르기 모드 제목 옆 한 줄 */

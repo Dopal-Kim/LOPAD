@@ -77,9 +77,11 @@ export class BuildLayer {
     const build = liveBuild(buildOf(s), this.floor);
     for (const t of build.tags) if (!this.stages.has(t.id)) this.stages.set(t.id, t.stage);
     const lab = Boolean(s.lab);
-    this.chips.render(build, f.stageIndex, f.chipsBottom + 4, Boolean(f.tabHint) && !f.overlay);
+    // 62 P1-15 HUD 다이어트: 태그 칩(뜻 모를 한 글자 '갈 1')은 Tab 빌드 보기로 — 왼쪽 위 띠에는 저주와 [Tab] 빌드 안내만
+    this.chips.render({ ...build, tags: [] }, f.stageIndex, f.chipsBottom + 4, Boolean(f.tabHint) && !f.overlay);
     this.plates.render(s.elites, !f.overlay, f.stageIndex);
-    this.trial.render(s.nodeTrial, !f.overlay && !lab, f.challengeOn, f.stageIndex);
+    // 62 P0-6: 성과 진행 칩('57초 무피격')은 위 가운데 알림 줄에서 빼 왼쪽 위 띠 아래로 (상태는 늘 같은 자리)
+    this.trial.render(s.nodeTrial, !f.overlay && !lab, { x: LAYOUT.edge, y: this.chips.bottom() }, f.stageIndex);
     if (this.pendingGrade && !f.overlay) {
       const g = this.pendingGrade;
       this.pendingGrade = null;

@@ -1,11 +1,15 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, UI_SCREEN, uiCommands, type UiSnapshot } from '../contract/ui';
 import { BossHud } from './BossHud';
+import { isRoomLockNotice } from './alertPlan';
+import { roomStartAlert } from './alertCards';
+import type { HudAlerts } from './HudAlerts';
 import type { CombatHud } from './CombatHud';
 import { withDebug } from './debug';
 import { R61_EVENTS } from './eventsR61';
 import { StoryHud } from './StoryHud';
 import { LAYOUT } from './theme';
+import { ROOM_LOCK_NOTICES } from './themeAlerts';
 
 export interface HudNarrativeDeps {
   /** 글꼴 준비 · 탄생 연출 아님 */
@@ -16,6 +20,8 @@ export interface HudNarrativeDeps {
   stageIndex: () => number;
   /** 튜토리얼 노드의 공지를 단계 카드가 가져갔으면 true (53라운드) */
   takeTutorialNotice: (text: string) => boolean;
+  /** 62 P0-6: 위 가운데 알림 줄 */
+  alerts: HudAlerts;
 }
 
 type On = <T>(event: string, handler: (p: T) => void) => void;
@@ -48,6 +54,7 @@ export class HudNarrative {
       onShown: (channel, ms) => {
         if (channel === 'speech' || channel === 'voice') this.boss?.storyShown(ms);
       },
+      alert: (spec) => deps.alerts.push(spec),
     });
   }
 
@@ -61,7 +68,11 @@ export class HudNarrative {
     });
     // 61 단계 4 (§17.1): 보스 이름 카드는 포효 순간에
     on(UI_EVENTS.BOSS_ROAR, (p: unknown) => this.boss?.roared(p, snap()));
-    on(UI_EVENTS.BOSS_PHASE, (p: unknown) => this.boss?.phase(p, snap()));
+    on(UI_EVENTS.BOSS_PHASE, (p: unknown) => {
+      // 62 P1-11: 지난 국면 대사가 새 국면 위에 남지 않게
+      this.story.dropSpeech();
+      this.boss?.phase(p, snap());
+    });
     on(R61_EVENTS.BOSS_BREAK, (p: unknown) => {
       if ((p as { kind?: unknown } | null)?.kind === 'finisher') this.finisherSeen = true;
       this.boss?.broke(p);
@@ -76,7 +87,7 @@ export class HudNarrative {
 
   /** HUD build: 보스 막대·카드 */
   build(stageIndex: number): void {
-    this.boss = new BossHud(this.scene, stageIndex);
+    this.boss = new BossHud(this.scene, stageIndex, this.deps.alerts);
   }
 
   setStageIndex(si: number): void {
@@ -107,10 +118,19 @@ export class HudNarrative {
     this.story.destroy();
   }
 
-  /** STORY: 튜토리얼 노드의 공지는 위쪽 가운데 단계 카드로(53라운드), 그 밖은 자막 차례 */
+  /**
+   * STORY: 튜토리얼 노드의 공지는 위쪽 가운데 단계 카드로(53라운드), 방 시작 '문이 닫혔다' 공지는 '주의' 카드와 한 장으로
+   * (62 P0-6 — 위 가운데 알림 줄), 그 밖은 자막 차례
+   */
   private onStory(p: unknown): void {
     const l = p as { kind?: unknown; text?: unknown } | null;
-    if (l && l.kind === 'notice' && typeof l.text === 'string' && this.deps.takeTutorialNotice(l.text)) return;
+    if (l && l.kind === 'notice' && typeof l.text === 'string') {
+      if (this.deps.takeTutorialNotice(l.text)) return;
+      if (isRoomLockNotice(l.text, ROOM_LOCK_NOTICES)) {
+        this.deps.alerts.push(roomStartAlert({ warn: false, lock: l.text, holdMs: 0 }, this.deps.stageIndex()));
+        return;
+      }
+    }
     this.story.push(p);
   }
 }

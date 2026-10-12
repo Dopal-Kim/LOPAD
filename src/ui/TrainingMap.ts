@@ -274,16 +274,25 @@ export function showTrainingChoice(scene: Phaser.Scene, m: UiMenu, ctx: CardPage
   const slots: CardSlot[] = [];
   const picks: (() => void)[] = [];
   const hovers: (() => void)[] = [];
+  const doorImgs: Phaser.GameObjects.Image[] = [];
   lines.forEach((l: UiMenuLine, i) => {
     const x = cx0 + i * (cw + gap);
     const g = scene.add.graphics();
     const art = scene.add.graphics();
     // 계약 §19: '1' 수련장부터 / '2' 바로 벽 밖으로 (옛 키 'training'·'run' 도 읽는다)
     const training = l.key === 'training' || (l.key !== 'run' && i === 0);
-    // 그림 칸: 수련장 = 작은 입구, 런 = 지평선으로 열린 길
+    // 그림 칸: 62 P1-20 — 시스템이 준 입구 그림(`doorKey`, P14 paint/door_*)이 있으면 그것을 칸에 덮어 맞춘다.
+    // 없으면 예전 코드 그림(수련장 = 작은 입구, 런 = 지평선으로 열린 길)
     const ax = cw / 2;
     const ay = 52;
-    if (training) {
+    const door = artTex(scene, l.doorKey);
+    const doorTex = door ? derivedTexture(scene, door, cw - 16, 92, 'cover') : null;
+    if (doorTex) {
+      const img = scene.add.image(8, 8, doorTex).setOrigin(0, 0);
+      art.setVisible(false);
+      art.once(Phaser.GameObjects.Events.DESTROY, () => img.destroy());
+      doorImgs.push(img);
+    } else if (training) {
       art.setPosition(ax, ay);
       paintSpot(scene, art, false, true);
       art.setScale(1.6);
@@ -306,7 +315,10 @@ export function showTrainingChoice(scene: Phaser.Scene, m: UiMenu, ctx: CardPage
       { wrap: cw - 16, align: 'center' },
     );
     sub.setPosition(Math.round(cw / 2 - sub.displayWidth / 2), 108 + label.displayHeight + 2);
-    const box = scene.add.container(x, y, [g, art, key, label, sub]).setSize(cw, ch).setDepth(1);
+    const box = scene.add
+      .container(x, y, [g, art, ...doorImgs.splice(0), key, label, sub])
+      .setSize(cw, ch)
+      .setDepth(1);
     box.setInteractive(new Phaser.Geom.Rectangle(cw / 2, ch / 2, cw, ch), Phaser.Geom.Rectangle.Contains);
     if (box.input) box.input.cursor = 'pointer';
     box.on('pointerover', () => hovers[i]());

@@ -191,17 +191,8 @@ export class PauseScene extends Phaser.Scene {
       snapshotVerbItems(s, (k) => r61Text(k)),
     );
     y += guide.boxH + 10;
-    // 시험장은 워프가 없으므로 'Tab 워프' 를 덧붙이지 않는다 (routeMode 와 같은 처리)
-    new GlowText(
-      this,
-      pg.x + PAD,
-      y,
-      controlsLine(s.weapon.secondaryName, hasRoute(s.route) || this.lab),
-      'page_faint',
-      {
-        wrap: innerW,
-      },
-    );
+    // 62: Tab 은 어디서나 'Tab 빌드' (낡은 'Tab 워프' 정리 — text.controlsLine)
+    new GlowText(this, pg.x + PAD, y, controlsLine(s.weapon.secondaryName), 'page_faint', { wrap: innerW });
   }
 
   /** 61라운드 §15: 설정 쪽 열기 — 닫히면 목록 입력을 다시 켠다 */

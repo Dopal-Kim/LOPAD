@@ -6,15 +6,19 @@ import { carryView } from './carryView';
 import { combatRows, hpLow, pickResources, type CombatRows } from './combatView';
 import { ConsumableChip } from './ConsumableHud';
 import { WeaponGaugeChip, gaugeLabelText } from './GaugeHud';
-import { GrowthGauge } from './GrowthHud';
+import { GrowthBand, ResourceDot } from './HudDiet';
 import { gaugeView, groggyShake, groggyView } from './gaugeView';
 import { GlowText, RING } from './glow';
-import { Gauge, ICON, NinePanel, WEAPON_ICON_IDS, icon, inkPanel, weaponIconKey } from './kit';
+import { Gauge, ICON, NinePanel, SLICE, WEAPON_ICON_IDS, icon, inkPanel, weaponIconKey } from './kit';
 import { KeyCap } from './keycap';
 import { ResourceGauge } from './ResourceHud';
 import { r60Text } from './text';
 import { GROGGY, WGAUGE } from './theme';
 import { COMBAT_HUD as C } from './themeR61';
+import { DIET } from './themeAlerts';
+
+/** 62 P1-15: 각성 띠가 있으면 체력 줄 아래로 이만큼 더 (띠 3 + 틈 2 + 눈금) */
+const BAND_ROW_EXTRA = DIET.growthBandH + DIET.growthBandGap + DIET.bigTickOut;
 
 /** 아이콘 칸 (16) + 간격 */
 const ICON_COL = 16 + C.iconGap;
@@ -27,7 +31,8 @@ const CHIP_ORIGIN = { x: RING, y: WGAUGE.cellTop } as const;
  *  1행 체력: 하트 + 굵은 막대(보스 틀 14px, 200) + 'n / m' (30% 이하면 강조색 깜빡임)
  *  2행 무기: 아이콘 + 고유 자원(라벨 + 눈금 2배) — 고유 자원이 없으면 무기 자원(기력·화살·열기) 막대. 오른쪽 끝 F 넣기/뽑기
  *  (보조 줄: 시스템 개편 중 자원이 둘 다 오면 무기 자원을 작게)
- *  (61 단계 4 P12) 각성 게이지 줄: 숫자 · 눈금(◇ 개성 발현 / ◆ 각성) · 다음 눈금까지 남은 수 — GrowthHud
+ *  (61 단계 4 P12) 각성 게이지 — 62 P1-15: 체력 막대 밑 얇은 띠(HudDiet GrowthBand, 숫자·문구 없음).
+ *  62 P1-15: 고유 자원과 함께 오는 보조 자원(기력)은 보조 줄 대신 무기 줄 오른쪽 작은 원(ResourceDot).
  *  아래 행: 독주 '2/3' [Q] · 소모품 병 [C] · 전표
  * 무기 이름·갈래·'우클릭 …' 은 HUD 에서 뺐다(Tab·일기장·키캡 안내). 무기 아이콘이 없는 무기만 이름을 흐리게.
  * 그로기(계약 §13)는 무기 아이콘·눈금 1px 떨림 + 기력 막대 남은 시간선(ResourceGauge).
@@ -59,7 +64,10 @@ export class CombatHud {
   private consumable: ConsumableChip;
   private goldIcon: Phaser.GameObjects.Image;
   private goldText: GlowText;
-  private growth: GrowthGauge;
+  /** 62 P1-15: 체력 막대 밑 얇은 각성 띠 (옛 각성 게이지 줄 — 숫자·문구 지움) */
+  private growth: GrowthBand;
+  /** 62 P1-15: 보조 자원(기력)은 무기 줄 오른쪽 작은 원 (옛 보조 줄) */
+  private resDot: ResourceDot;
   /** 이번 그로기의 전체 시간 (시작 때 본 가장 큰 leftMs, 끝나면 0) */
   private groggyTotal = 0;
 
@@ -85,7 +93,8 @@ export class CombatHud {
     this.consumable = new ConsumableChip(scene, 0, 0, stageIndex);
     this.goldIcon = icon(scene, 0, 0, ICON.gold);
     this.goldText = this.glow('', 'ink_body');
-    this.growth = new GrowthGauge(scene);
+    this.growth = new GrowthBand(scene);
+    this.resDot = new ResourceDot(scene);
     this.relayout({ big: false, sub: false, growth: false });
   }
 
@@ -122,15 +131,15 @@ export class CombatHud {
   }
 
   /** ui:growth-gain: 각성 게이지 반짝 */
-  growthGain(now: number): void {
-    this.growth.gain(now);
+  growthGain(_now: number): void {
+    this.growth.gain();
   }
 
   render(s: UiSnapshot, now: number): void {
     const si = this.si;
     const pick = pickResources(s.gauge, s.resource);
     const gv = pick.main === 'gauge' ? gaugeView(s.gauge) : null;
-    this.relayout({ big: Boolean(gv), sub: pick.sub, growth: Boolean(s.growth) });
+    this.relayout({ big: Boolean(gv), sub: false, growth: Boolean(s.growth) });
     const x = C.left + C.padX;
     const t = this.top;
     const r = this.rows;
@@ -168,21 +177,22 @@ export class CombatHud {
       this.gaugeChip.setPosition(cx - CHIP_ORIGIN.x * C.gaugeScale + shake, wy - CHIP_ORIGIN.y * C.gaugeScale);
       weaponEnd = cx + this.gaugeChip.boxW * C.gaugeScale - CHIP_ORIGIN.x * C.gaugeScale;
     } else this.gaugeLabel.setVisible(false);
-    // 무기 자원: 주인공 자원이면 2행, 고유 자원과 함께 오면 보조 줄
+    // 무기 자원: 주인공 자원이면 2행 막대, 고유 자원과 함께 오면(62 P1-15) 무기 줄 오른쪽 작은 원
     const res = s.resource && s.resource.kind ? s.resource : null;
-    const resRow = pick.main === 'resource' ? r.weapon : r.sub;
-    if (res && resRow !== null) {
-      this.resource.moveToY(t + resRow + 3);
+    if (res && pick.main === 'resource') {
+      this.resource.moveToY(t + r.weapon + 3);
       this.resource.render(res, si, now, grog);
-      if (pick.main === 'resource') weaponEnd = this.resource.right;
-      else right = Math.max(right, this.resource.right);
-    } else this.resource.render(null, si, now);
-    // 각성 게이지 (61 단계 4 P12): 무기·자원 줄 아래
-    const gr =
-      r.growth !== null
-        ? this.growth.render(s.growth, x, t + r.growth, ICON_COL, now)
-        : this.growth.render(null, x, 0, ICON_COL, now);
-    right = Math.max(right, gr);
+      weaponEnd = this.resource.right;
+      this.resDot.render(null, 0, 0, now);
+    } else {
+      this.resource.render(null, si, now);
+      const sub = res && pick.sub ? res : null;
+      const R = DIET.ringR;
+      const end = this.resDot.render(sub, weaponEnd + DIET.ringGap + R, wy + 8, now);
+      if (sub) weaponEnd = end;
+    }
+    // 각성 띠 (62 P1-15): 체력 막대 바로 밑
+    this.growth.render(s.growth, x + ICON_COL, t + r.hp + 1 + SLICE.gaugeBoss.h + DIET.growthBandGap, C.hpW);
     // F 넣기/뽑기: 무기 줄 오른쪽 끝
     const cv = carryView(s.carry);
     this.carry.render(cv);
@@ -217,7 +227,16 @@ export class CombatHud {
     const sig = `${opts.big}|${opts.sub}|${opts.growth}`;
     if (sig === this.layoutSig) return;
     this.layoutSig = sig;
-    this.rows = combatRows(C, opts);
+    const rows = combatRows(C, { ...opts, growth: false });
+    // 62 P1-15: 각성 띠는 체력 줄 밑에 붙으므로 아래 줄들을 조금 내린다 (옛 각성 줄 16 대신 ~7)
+    const extra = opts.growth ? BAND_ROW_EXTRA : 0;
+    this.rows = {
+      ...rows,
+      weapon: rows.weapon + extra,
+      sub: rows.sub === null ? null : rows.sub + extra,
+      slots: rows.slots + extra,
+      h: rows.h + extra,
+    };
     this.h = this.rows.h;
     this.top = UI_SCREEN.HEIGHT - C.bottom - this.h;
     const x = C.left + C.padX;
