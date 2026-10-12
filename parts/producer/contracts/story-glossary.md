@@ -3,7 +3,6 @@
 출처: `parts/story/text-pack-63-loop2.md` §1 · 데이터 `parts/story/text-pack-63-loop2.json` `glossary`(금지어 테스트는 이 배열을 그대로 쓴다). 화면 문자열만 검사하고 `_` 키·id·경로는 뺀다. 프로듀서가 스토리 초안을 그대로 계약으로 옮겼다.
 
 
-> **프로듀서가 이 절을 `parts/producer/contracts/story-glossary.md`로 옮긴다.** 스토리는 계약 폴더에 쓰지 않는다. JSON `glossary` 블록이 같은 내용이며 테스트에 그대로 쓸 수 있다.
 
 ### 1.1 개념 → 화면 용어 하나
 
