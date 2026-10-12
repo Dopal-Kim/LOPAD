@@ -696,3 +696,11 @@ interface UiRitual {
 - 새 필드 `UiSnapshot.hero?: UiHeroScreen | null`({head, body, feet, visible} 논리 960×540 — 문 안·알파 0 이면 visible false).
 - 값 채움: 상인 말하기 'shopTalk' 에 `UiMenu.event`(id 'merchant', speaker '종군 상인', portrait npc_merchant 0프레임, greet), 외상 줄 `costs:[{kind:'curse'}]`, `UiShopOffer.screen` = 보이는 물건 그림 윗변, `UiShopPurchased.stallId` = 노점 칸 id(글자 목록·다시 진열은 null), 결과 컷(cutKey)이 있으면 STORY 'event' 자막 생략, 기억 장 그림(소품 4·모양/개성 8)은 부팅 로드라 타이틀·결과에서도 iconKey 채워짐.
 - `data/curses.json` 화면 문구 용어집 정리(장터 값·독주·체력·유품).
+
+## 25. 62 시스템 H — 지도에서 고르기 + 미리보기 + 짧은 암전 (도영 님 지시, §19 일부 대체)
+코드 원문: `src/contract/ui.ts` '62 시스템 H' 절.
+- 노드 이동: 외벽 문 안(`UiDoor.phase` 'inside') → 그림 속 입구 전환('exitRoom') 없이 곧바로 `ROUTE_CHOOSE_OPEN`(외길이어도 — 옛 P2-1 외길 자동 진행 폐지, 확인창 없음, 무장 400ms). 고르면 `TRANSITION_BEGIN{mode:'fade', durationMs≈400(덮는 시간, UI 0.25~0.6초로 자름), region, nodeKind, nodeId}` → UI 먹 번짐 덮기 → COVERED → 재시작 → READY → 0.3초 걷기 → END → 반대편 문 입장. fade 안전장치 덮기 1.2초·끝 1.5초. UI 렌더러 없으면 카메라 암전.
+- 수련장: 방 고르기·방 → 지도 마당 모두 'fade'. 층 이동 'floor'·타이틀 → 첫 생·탄생은 그대로. 시스템은 노드 이동·수련장에서 'enterNode'·'exitRoom'·'training' 을 더 보내지 않음(타입은 호환용으로 남김).
+- 미리보기: `UiRouteNode.previewKey`(paint/door_<지역>_<종류>, 보스 door_hall_boss — 텍스처가 아직 없을 수 있음, UI 는 textures.exists 확인 후 `previewRegion` 키아트 대체, `addtexture-<key>` 에 교체)·`previewRegion`. 수련장 지도 줄 `UiMenuLine.previewKey`·`previewRegion:'training'`. 시스템은 노드 진입 900ms 뒤·지도 열 때 고를 수 있는 노드 + 그다음 열 그림을 미리 받음.
+- UI: 미리보기 카드 256×144(지도 칸 565×317에서 가리킨 곳·이름표를 가리지 않는 크기), 수련장 288×162. 'fade' 로 들어온 노드의 새 지역 표시는 큰 키아트 카드 대신 위 가운데 띠.
+- 전환 소리 'fade' → `sfx/transition_fade`(제작 대기 — 없으면 transition_exit ×0.5·속도 1.2).
