@@ -1917,7 +1917,7 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 
 ### 2. 지도 미리보기 데이터 (`scenes/game/RoutePreview` · `systems/route`)
 - `UiRouteNode.previewKey` = 그 노드 입구 그림 텍스처 키 `paint/door_<지역>_<종류>`(art §28 doorFor 규칙 재사용 — 정확 → 별칭 → `<지역>_battle`, 보스 = 지역 'boss' → door_hall_boss). 매니페스트에 있으면 늘 채운다(텍스처는 아직 없을 수 있음) · `previewRegion` = 대체 키아트 지역 id(그 열의 지역 — 보스 노드는 'hall'). `RouteState.previewOf` 훅(RoutePreview 가 단다, `<지역>_<종류>` 별 기억은 별칭 표를 받은 뒤만). 고유 한 줄은 기존 `desc`(route.json nodeLines) 그대로.
-- 미리 받기: 노드에 들어선 뒤 `ROUTE_FX.PREVIEW_DELAY_MS`(900, 입구 걸음 뒤) + 지도를 열 때 — `RouteState.previewTargets()`(고를 수 있는 노드 + 그다음 열) 의 그림을 `loadPaint` 로(지도 열기를 막지 않음, 늦으면 UI 가 키아트 대체).
+- 미리 받기: 노드에 들어선 뒤 `ROUTE_FX.PREVIEW_DELAY_MS`(900, 입구 걸음 뒤) + **방을 비운 순간**(`RouteFlow.update` markCleared) + **문이 열리는 순간**(`openNodeExit` — 수련장 복귀·디버그 경로) + 지도를 열 때 (메인 요청: 실제 런에서 문 → 지도 순간 키아트가 먼저 떴다 바뀌던 것) — `RouteState.previewTargets()`(고를 수 있는 노드 + 그다음 열) 의 그림을 `loadPaint` 로(지도 열기를 막지 않음, 늦으면 UI 가 키아트 대체).
 - `PaintArt.loadPaint` 를 `queueImageOnce` 위로 옮김(씬 사이 같은 그림 이중 로드 없음 — 다른 씬이 받는 중이면 들어오기를 기다림, 메타 json 도 키별 한 번). 수련장 지도 방 자리 `mapRoomPoint`(입구 그림 줌 중심 — 이제 안 씀) 삭제.
 
 ### 3. 수련장 (`scenes/game/training/TrainingMode`)
@@ -1930,4 +1930,4 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 
 ### 검사
 - tsc 0 · eslint 0 · vitest 155파일 1195건 전부 통과(새 `transition/fadeFlow.test`(7 — 흐름 문 → 지도 → 고르기 → fade begin → covered → 재시작 → ready → end · fade 안전장치 · UI 없음 대체 · 미리보기 targets·toUi) · `audio/audioTraining.test`(2)) · 바뀐 파일 prettier · vite build(스크래치 outDir) 통과.
-- 헤드리스(빌드본, 스크래치 `s62h/` — swiftshader 라 게임 시계가 실제보다 매우 느림): ① `?slice=outer` 외길 노드: 문 열림 → 문턱 → 'inside' → `route.choosing` true(available 1 — 외길에도 지도), 지도 중 전환 없음, 미리보기 `door_outer_battle`·`door_brewery_battle` 지도 열 때 받아짐(텍스처 true, Texture key 경고 0) → Enter(UI 지도) → `fade` begin{region outer, nodeKind battle, nodeId c4r0, durationMs 400} → covered → ready → end(안전장치 시간 넘김 없음) → 새 노드 서쪽 문 입장 → 문 닫힘. 효과음 `transition_exit` rate 1.2(fade 대체). ② 같은 곳 Esc → 문에서 걸어 나옴(choosing false) → 다시 문턱 → 지도 다시. ③ 수련장(타이틀에서 시작): 지도 줄 8개 previewKey(마지막 door_training_boss) → '걸음과 숨' fade(nodeId step) → 방 → 출구 문 → fade(nodeId 없음) → 지도 마당에서 지도 다시 열림(위 버그 고친 뒤). 콘솔·페이지 오류 0.
+- 헤드리스(빌드본, 스크래치 `s62h/` — swiftshader 라 게임 시계가 실제보다 매우 느림): ① `?slice=outer` 외길 노드: 문 열림(이때 이미 다음 노드 c4r0 `door_outer_battle`·그다음 열 `door_brewery_battle` 텍스처 있음 — 갈 수 없는 c4r1 은 받지 않음) → 문턱 → 'inside' → `route.choosing` true(available 1 — 외길에도 지도), 지도 중 전환 없음, 미리보기 `door_outer_battle`·`door_brewery_battle` 지도 열 때 받아짐(텍스처 true, Texture key 경고 0) → Enter(UI 지도) → `fade` begin{region outer, nodeKind battle, nodeId c4r0, durationMs 400} → covered → ready → end(안전장치 시간 넘김 없음) → 새 노드 서쪽 문 입장 → 문 닫힘. 효과음 `transition_exit` rate 1.2(fade 대체). ② 같은 곳 Esc → 문에서 걸어 나옴(choosing false) → 다시 문턱 → 지도 다시. ③ 수련장(타이틀에서 시작): 지도 줄 8개 previewKey(마지막 door_training_boss) → '걸음과 숨' fade(nodeId step) → 방 → 출구 문 → fade(nodeId 없음) → 지도 마당에서 지도 다시 열림(위 버그 고친 뒤). 콘솔·페이지 오류 0.
