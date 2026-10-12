@@ -122,3 +122,13 @@ interface SoundEntry {
 - 수련장: 과제 완료 `training_task`(짧은 맑은 종), 방 도장 `training_stamp`(인장 찍힘), 수련장 BGM `bgm/training`(고요한 연습 — 1층 곡과 같은 악기 결, 루프).
 - (61 단계 6 시스템 확정) 트리거: `transition:begin` TRANSITION_BEGIN{id,mode,region,nodeKind?} — mode enterNode·training → `transition_enter`, exitRoom → `transition_exit`, floor → `transition_floor`(없으면 enter); `training:task` → `training_task`; `training:stamp`{room,all} → `training_stamp`; 수련장 BGM 상태 `training`(`bgmByState.training`).
 - (61 단계 6 음향 완료) `transition_enter` 1.45초(1.10초에 덮임)·`transition_exit` 1.30초(0.95초 액자 '톡')·`transition_floor` 1.60초(1.22초 덮임) — 우선순위 3, 각 동시 1, `mixing.transition.skipFadeMs` 150(건너뛰면 페이드), floor 는 후보 순서 [floor, enter] 중 하나만. `training_task`(+`_v2`·`_v3`, 0.40초, 우선순위 2)·`training_stamp` 0.60초(3). BGM `bgm/training` 72초 루프 44.1kHz 스테레오, `bgmByState.training`. 덕킹: 전환음 → 효과음(≤2) −8dB·BGM −4dB, 도장 → 효과음(≤1) −4dB 300ms. (줍기류 대상 덕킹 '우선순위 2 이상 → 줍기류 −4dB' 는 파서가 그룹 대상을 아직 해석하지 않음 — 다음 정리 때.)
+
+## 13. 62 루프 2 (P16)
+- 새 효과음(manifest 트리거): `ui_move`(+`_v2`)·`ui_select`·`ui_back` ← `UI_MENU_MOVE/SELECT/CANCEL`(UI `uiSound.ts` 가 직접 재생 — 같은 순간 두 번 금지), `ui_toggle` ← `UI_SETTING_TOGGLED{key,on}`(끔 = 재생 속도 0.9), `enemy_incoming` ← `ENEMY_INCOMING{roomId,delayMs,count}`(정점 1000ms — 시작 = max(0, delayMs−1000)), `last_kill_slow` ← `FEEL_SLOWMO{kind:'lastKill'}`(슬로모를 실제로 걸 때만), `death_slow` ← `PLAYER_DIED`(사망 연출 시작, runEnd death 600·1100·250ms), `trial_win` ← `NODE_GRADED{grade:'perfect'}`, `trial_fail` ← `NODE_TRIAL_BROKEN{nodeId,reason}`, `floor_end_sting` ← `ui:floor-end`, `relic_take` ← `ui:relic-gained`, `memory_unlock` ← `MEMORY_UNLOCKED{id,kind}`, `npc_talk` ← `EVENT_TALK`·`SHOP_TALK`. `shop_buy`·`shop_reroll` 같은 트리거로 다시.
+- UI 이벤트 트리거 예외 추가: `ui:floor-end`·`ui:relic-gained`(§6 `ui:boss-break` 와 같은 꼴).
+- 대체 관계(둘 다 울리지 않음): `ui_*`↔`menu_*`, `death_slow`↔`player_death`, `trial_win`↔`grade_perfect`(1층).
+- 우선순위: 4 PLAYER_DIED · 3 ENEMY_INCOMING·FEEL_SLOWMO·NODE_TRIAL_BROKEN·NODE_GRADED{perfect}·ui:floor-end · 2 ui:relic-gained·MEMORY_UNLOCKED · 1 EVENT_TALK·SHOP_TALK·상점 · 0 UI. 동시 상한 enemy_incoming·shop_buy 2, 나머지 1.
+- 덕킹 새 5줄(파서 형식): last_kill_slow → 효과음(≤2) −5·BGM −4dB 280ms, death_slow → 효과음(≤2) −10·BGM −12dB, floor_end_sting → BGM −6dB. 파훼 줄에 `boss1_pillar_collapse` 를 첫 괄호 안으로.
+- `mixing.cues`(권장 peakMs): enemy_incoming 1000 · last_kill_slow 280 · death_slow 600 · trial_win 0(슬로모와 겹치면 280ms 뒤) · floor_end_sting 1150 · memory_unlock 450 · relic_take 220.
+- BGM 음량: `bgm/training` gainDb +1.8 → −0.5, `f1_boss_p1~p3` 0 → +3.0(`bgmBossDuckDb` 상쇄).
+- UI: `uiSound.ts` 는 manifest gainDb 를 반영하거나 기본 배율 약 0.4.
