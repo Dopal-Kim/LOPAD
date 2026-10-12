@@ -78,7 +78,7 @@ describe('growthView 각성 게이지', () => {
     expect(l.ticks.map((t) => t.big)).toEqual([false, true, false, true, false]);
     expect(l.fillW).toBe(100);
     expect(l.remain).toEqual({ n: 50, kind: 'trait' });
-    expect(remainText(l.remain)).toBe('개성 발현까지 50');
+    expect(remainText(l.remain)).toBe('다음 눈금까지 50');
   });
 
   it('양끝 들임 · 넘치면 가득 · 다음 눈금 없음', () => {
@@ -93,7 +93,7 @@ describe('growthView 각성 게이지', () => {
 
   it('1차 각성까지 남은 수', () => {
     const l = gaugeLayout(growth({ gauge: 50, next: { at: 90, kind: 'awaken1', done: false } }), 290);
-    expect(remainText(l.remain)).toBe('1차 각성까지 40');
+    expect(remainText(l.remain)).toBe('다음 눈금까지 40');
   });
 });
 

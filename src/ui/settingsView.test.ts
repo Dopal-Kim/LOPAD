@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
-  SETTING_ROWS,
+  SETTINGS_TABS,
+  TAB_ROWS,
   changeSetting,
+  cycleTab,
+  maxRowCount,
   moveCursor,
   normalizeSettings,
+  rowsFor,
+  setKeys,
+  withDefaults,
   percentText,
   sameSettings,
   setSlider,
@@ -14,7 +20,9 @@ import {
 } from './settingsView';
 
 /** 계약 `UI_DEFAULT_SETTINGS` 와 같은 값 (계약 코드는 Phaser 를 불러 테스트에서 직접 쓰지 않는다) */
-const DEFAULT_SETTINGS = { shake: 1, flash: true, tilt: true, damageNumbers: true, master: 1, bgm: 1, sfx: 1 };
+const CONTRACT_DEFAULTS = { shake: 1, flash: true, tilt: true, damageNumbers: true, master: 1, bgm: 1, sfx: 1 };
+/** + 62 루프 2 새 필드 기본값 (히트스톱 켬 · 기본 키) */
+const DEFAULT_SETTINGS = withDefaults(CONTRACT_DEFAULTS);
 
 describe('settingsView', () => {
   it('막대: 10% 칸 단위로 움직이고 끝에서 멈춘다', () => {
@@ -56,25 +64,50 @@ describe('settingsView', () => {
   });
 
   it('스냅샷 값 정리: 객체가 아니면 null, 빠진 칸은 기본값, 범위 밖은 자름', () => {
-    expect(normalizeSettings(undefined, DEFAULT_SETTINGS)).toBeNull();
-    expect(normalizeSettings('x', DEFAULT_SETTINGS)).toBeNull();
-    const n = normalizeSettings({ shake: 1.5, flash: 'no', tilt: false, master: -1, bgm: 0.3 }, DEFAULT_SETTINGS);
+    expect(normalizeSettings(undefined, CONTRACT_DEFAULTS)).toBeNull();
+    expect(normalizeSettings('x', CONTRACT_DEFAULTS)).toBeNull();
+    const n = normalizeSettings({ shake: 1.5, flash: 'no', tilt: false, master: -1, bgm: 0.3 }, CONTRACT_DEFAULTS);
     expect(n).toEqual({ ...DEFAULT_SETTINGS, shake: 1, tilt: false, master: 0, bgm: 0.3 });
+    // 62 루프 2: hitstop·keys (틀린 키·막힌 키는 기본 키)
+    const k = normalizeSettings({ hitstop: false, keys: { dash: 'SHIFT', interact: 'F', up: 7 } }, CONTRACT_DEFAULTS)!;
+    expect(k.hitstop).toBe(false);
+    expect(k.keys).toEqual({ ...DEFAULT_SETTINGS.keys, interact: 'F' });
   });
 
-  it('줄 순서: 화면 4 → 소리 3 → 되돌리기·덮기, 커서는 돌아간다', () => {
-    expect(SETTING_ROWS.map((r) => r.id)).toEqual([
-      'shake',
-      'flash',
-      'tilt',
-      'damageNumbers',
-      'master',
-      'bgm',
-      'sfx',
-      'reset',
-      'close',
+  it('62 루프 2 탭: 화면 · 소리 · 조작 · 접근성, 탭마다 끝줄(되돌리기·덮기), 커서는 돌아간다', () => {
+    expect(SETTINGS_TABS).toEqual(['screen', 'sound', 'controls', 'access']);
+    expect(TAB_ROWS.screen.map((r) => r.id)).toEqual(['fullscreen', 'damageNumbers']);
+    expect(TAB_ROWS.sound.map((r) => r.id)).toEqual(['master', 'bgm', 'sfx', 'muted']);
+    expect(TAB_ROWS.controls.map((r) => r.id)).toEqual([
+      'up',
+      'down',
+      'left',
+      'right',
+      'dash',
+      'interact',
+      'potion',
+      'resetKeys',
     ]);
-    expect(moveCursor(0, -1)).toBe(SETTING_ROWS.length - 1);
-    expect(moveCursor(SETTING_ROWS.length - 1, 1)).toBe(0);
+    expect(TAB_ROWS.access.map((r) => r.id)).toEqual(['textSize', 'shake', 'flash', 'tilt', 'hitstop']);
+    for (const t of SETTINGS_TABS)
+      expect(
+        rowsFor(t)
+          .slice(-2)
+          .map((r) => r.id),
+      ).toEqual(['reset', 'close']);
+    expect(maxRowCount()).toBe(10);
+    expect(cycleTab('screen', -1)).toBe('access');
+    expect(cycleTab('access', 1)).toBe('screen');
+    expect(moveCursor(0, -1, 5)).toBe(4);
+    expect(moveCursor(4, 1, 5)).toBe(0);
+  });
+
+  it('히트스톱 켜고 끄기 · 키 묶음 바꾸기 (같으면 같은 객체)', () => {
+    const off = changeSetting(DEFAULT_SETTINGS, 'hitstop', 1);
+    expect(off.hitstop).toBe(false);
+    expect(setKeys(off, { ...off.keys })).toBe(off);
+    const k = setKeys(off, { ...off.keys, dash: 'F' });
+    expect(k.keys.dash).toBe('F');
+    expect(sameSettings(k, off)).toBe(false);
   });
 });

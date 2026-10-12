@@ -62,9 +62,9 @@ export class HudNarrative {
   subscribe(on: On): void {
     const snap = (): UiSnapshot => withDebug(uiCommands.getUiSnapshot());
     on(UI_EVENTS.STORY, (p: unknown) => this.onStory(p));
-    on(UI_EVENTS.BOSS_STARTED, () => {
+    on(UI_EVENTS.BOSS_STARTED, (p: unknown) => {
       this.finisherSeen = false;
-      this.boss?.started();
+      this.boss?.started(p);
     });
     // 61 단계 4 (§17.1): 보스 이름 카드는 포효 순간에
     on(UI_EVENTS.BOSS_ROAR, (p: unknown) => this.boss?.roared(p, snap()));

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { UI_SCREEN, type UiNodeGraded, type UiNodeTrial } from '../contract/ui';
 import { gradedView, trialView } from './buildView';
 import { GlowText } from './glow';
-import { KIT, NinePanel, SLICE, accentHex, inkPanel } from './kit';
+import { ICON, KIT, NinePanel, SLICE, accentHex, icon, inkPanel } from './kit';
 import { r60Text } from './text';
 import { GRAY, LAYOUT, STRUCT, hexToNum } from './theme';
 import { GRADE_CARD, TRIAL } from './themeBuild';
@@ -11,7 +11,8 @@ import { gradeCardGone, gradeCardShown } from './uiSequence';
 /**
  * 60라운드 계약 §14.10 성과 진행 칩 — 잔 구간 전투·위험 노드 진행 중(`UiSnapshot.nodeTrial`)에만. 62 P0-6: 위 가운데 알림과
  * 겹치지 않게 왼쪽 위(층 제목·상태 칩 아래, `pos`)로 옮겼다: '32초'(남은 제한 시간, 올림) · '무피격'/'피격' + 아래 시간 선.
- * 남은 시간이 적으면 강조색, 피격이면 흐림.
+ * 남은 시간이 적으면 강조색, 피격이면 흐림. 62 루프 2 (P2-3): 끝에 걸린 보상 '→ [전표 아이콘] +20'(수치는 시스템 필드가 올 때) —
+ * 맞거나 시간이 지나면 보상 쪽이 흐려진다.
  */
 export class TrialChip {
   private box?: Phaser.GameObjects.Container;
@@ -19,6 +20,9 @@ export class TrialChip {
   private timeT?: GlowText;
   private hitT?: GlowText;
   private bar?: Phaser.GameObjects.Graphics;
+  private arrow?: Phaser.GameObjects.Graphics;
+  private coin?: Phaser.GameObjects.Image;
+  private rewardT?: GlowText;
   private sig = '';
   private w = 0;
 
@@ -31,7 +35,7 @@ export class TrialChip {
       return;
     }
     if (!this.box) this.build(stageIndex);
-    const sig = `${v.text}|${v.hitText}|${Math.round(v.ratio * 100)}|${stageIndex}`;
+    const sig = `${v.text}|${v.hitText}|${Math.round(v.ratio * 100)}|${stageIndex}|${v.rewardText}|${v.rewardLost}|${v.rewardCoin}`;
     if (sig !== this.sig) {
       this.sig = sig;
       const low = v.over || v.ratio <= TRIAL.lowRatio;
@@ -39,7 +43,19 @@ export class TrialChip {
       this.hitT!.setText(v.hitText)
         .setGlowStyle(v.hit ? 'ink_faint' : 'ink_body')
         .setX(this.timeT!.x + this.timeT!.textW + 8);
-      const w = this.hitT!.x + this.hitT!.textW + 2 + 8;
+      // 보상 자리: 픽셀 화살(Galmuri 에 '→' 가 없다) · 전표 아이콘 · 수치
+      const ax = this.hitT!.x + this.hitT!.textW + 2 + TRIAL.rewardGap;
+      this.drawArrow(ax, Math.round(STRUCT.chipH / 2) - 2, v.rewardLost);
+      const cx = ax + TRIAL.arrowW + 3;
+      this.coin!.setPosition(cx, 2)
+        .setAlpha(v.rewardLost ? TRIAL.lostAlpha : 1)
+        .setVisible(v.rewardCoin);
+      const tx = v.rewardCoin ? cx + 16 + 1 : cx;
+      this.rewardT!.setText(v.rewardText)
+        .setGlowStyle(v.rewardLost ? 'ink_faint' : 'ink_accent')
+        .setX(tx);
+      const end = v.rewardText ? this.rewardT!.x + this.rewardT!.textW + 2 : tx;
+      const w = end + 8;
       if (w !== this.w) {
         this.w = w;
         this.panel!.resize(w, STRUCT.chipH);
@@ -65,7 +81,12 @@ export class TrialChip {
     this.timeT = new GlowText(scene, 6, 3, '', 'ink_body', { stageIndex: si });
     this.hitT = new GlowText(scene, 6, 3, '', 'ink_body', { stageIndex: si });
     this.bar = scene.add.graphics();
-    this.box = scene.add.container(0, 0, [this.panel, this.timeT, this.hitT, this.bar]).setDepth(STRUCT.hudDepth);
+    this.arrow = scene.add.graphics();
+    this.coin = icon(scene, 0, 0, ICON.gold);
+    this.rewardT = new GlowText(scene, 0, 3, '', 'ink_accent', { stageIndex: si });
+    this.box = scene.add
+      .container(0, 0, [this.panel, this.timeT, this.hitT, this.bar, this.arrow, this.coin, this.rewardT])
+      .setDepth(STRUCT.hudDepth);
     this.sig = '';
     this.w = 0;
   }
@@ -78,6 +99,23 @@ export class TrialChip {
     this.timeT = undefined;
     this.hitT = undefined;
     this.bar = undefined;
+    this.arrow = undefined;
+    this.coin = undefined;
+    this.rewardT = undefined;
+  }
+
+  /** 오른쪽 화살 (가로 줄 + 머리 3단, 그늘 1px) — 보상을 잃으면 흐림 */
+  private drawArrow(x: number, midY: number, lost: boolean): void {
+    const g = this.arrow!.clear();
+    const A = TRIAL.arrowW;
+    g.fillStyle(hexToNum(GRAY[0]), 1)
+      .fillRect(x - 1, midY - 1, A - 1, 3)
+      .fillRect(x + A - 4, midY - 3, 3, 7);
+    g.fillStyle(hexToNum(GRAY[lost ? 6 : 11]), 1)
+      .fillRect(x, midY, A - 2, 1)
+      .fillRect(x + A - 4, midY - 2, 1, 5)
+      .fillRect(x + A - 3, midY - 1, 1, 3)
+      .fillRect(x + A - 2, midY, 1, 1);
   }
 
   destroy(): void {

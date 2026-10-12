@@ -3,6 +3,7 @@ import { UI_SCREEN, type UiSnapshot } from '../contract/ui';
 import {
   breakLabelKey,
   candleGuides,
+  nameCardTiming,
   phaseNameOf,
   phaseNamesFor,
   phaseStrip,
@@ -35,7 +36,8 @@ type Glow = Parameters<GlowText['setGlowStyle']>[0];
  * 61라운드 단계 3 보스 UI (P6·P10, 플레이 점검 #5·#6) — CombatHud 에서 보스 막대를 옮겨 와 한 곳에 모았다.
  *  - 보스 막대 (아래 가운데, 전투 묶음과 겹치면 비킴): 이름 · 국면 이름, **국면 눈금**(1층 65%·30%), 무너진 동안 '무너짐' 깜빡임.
  *  - 이름 카드 (BOSS_ROAR — 61 단계 4, 등장 연출의 포효 순간. BOSS_STARTED 때는 띄우지 않는다): 층 제목(흐림) · 보스 이름 2배 · 괘선 ·
- *    국면 띠 '얼큰 → 만취 → 인사불성'.
+ *    국면 띠 '얼큰 → ??? → ???'(62 루프 2 P1-14 — 다음 국면 이름은 그 국면이 될 때). 싸움이 시작될 무렵(BOSS_STARTED + introMs)
+ *    다 걷히도록 머묾을 줄이고, 그 전에 보스가 맞으면 바로 접는다.
  *  - 국면 카드 (BOSS_PHASE): 'n국면' · 국면 이름 2배 · 국면 띠 (어둠 국면이면 촛대 안내 한 줄).
  *  - 파훼·결정타 문구 (BOSS_BREAK, 계약 추가 예정): '파훼' 2배 + 파훼 이름 · '무너진 동안 더 아프다' / '결정타'.
  *  - 촛대 안내 (어둠 국면, 스냅샷 `boss.candles` 가 있을 때): 화면 안 꺼진 촛대 위 까딱이는 표지, 화면 밖은 가장자리 화살.
@@ -57,12 +59,19 @@ export class BossHud {
   private band?: Phaser.GameObjects.Graphics;
   /** 처치 시각 (보스 대사·한마디가 이어지면 메뉴 기다림을 늘인다) */
   private defeatAt = -1;
+  /** 62 루프 2: 싸움 시작 예정 시각 (BOSS_STARTED + introMs, 모르면 -1) · 이름 카드가 떠 있는가 */
+  private fightAt = -1;
+  private nameCardOn = false;
 
   constructor(
     private scene: Phaser.Scene,
     stageIndex: number,
     /** 62 P0-6: 이름·국면·파훼 카드는 위 가운데 알림 줄로 (겹치지 않게 쌓고 국면이 파훼를 접는다) */
-    private alerts: { push: (spec: AlertSpec) => void; clear: (keep?: readonly AlertKind[]) => void },
+    private alerts: {
+      push: (spec: AlertSpec) => void;
+      clear: (keep?: readonly AlertKind[]) => void;
+      fold: (kind: AlertKind) => void;
+    },
   ) {
     this.si = stageIndex;
     this.gauge = new Gauge(scene, 0, 0, B.barW, 'health').setVisible(false);
@@ -113,6 +122,11 @@ export class BossHud {
       this.gauge.setPositionX(bx);
     }
     this.gauge.setPositionY(by).set(look.ratio);
+    // 62 루프 2 (시스템 A 요청): 싸움이 시작돼 보스가 맞으면 이름 카드를 바로 접는다 (가운데 위를 비운다)
+    if (this.nameCardOn && look.ratio < 1) {
+      this.nameCardOn = false;
+      this.alerts.fold('boss');
+    }
     this.bossIcon.setPosition(bx - 22, by - 1);
     const label = look.name ? fill(storyText('barName'), { name: look.name, phase: look.phaseName }) : look.phaseName;
     this.nameText.setText(label).placeCenter(bx + B.barW / 2, by - 18);
@@ -129,9 +143,12 @@ export class BossHud {
     this.drawCandles(look, now, !overlay);
   }
 
-  /** BOSS_STARTED: 지난 보스전 카드만 치운다 — 이름 카드는 포효(BOSS_ROAR) 때 (61 단계 4 §17.1) */
-  started(): void {
+  /** BOSS_STARTED: 지난 보스전 카드만 치운다 — 이름 카드는 포효(BOSS_ROAR) 때 (61 단계 4 §17.1). introMs 로 싸움 시작 시각을 잰다 */
+  started(p?: unknown): void {
     this.clearCards();
+    const intro = p && typeof p === 'object' ? (p as { introMs?: unknown }).introMs : undefined;
+    this.fightAt = typeof intro === 'number' && Number.isFinite(intro) ? this.scene.time.now + Math.max(0, intro) : -1;
+    this.nameCardOn = false;
     debugExpose('bossCard', null);
   }
 
@@ -145,11 +162,13 @@ export class BossHud {
     const phase = given ? e.phase : Math.max(1, Math.round(s.boss?.phase ?? 1));
     const names = phaseNamesFor(this.si, (s.boss as unknown as { phaseNames?: unknown } | null)?.phaseNames);
     const floor = s.floorTitle || s.stageName;
+    const timing = nameCardTiming(B.nameCard, this.fightAt < 0 ? null : this.fightAt - this.scene.time.now);
+    this.nameCardOn = true;
     this.alerts.push({
       kind: 'boss',
       key: 'bossCard',
       label: name,
-      timing: B.nameCard,
+      timing,
       // 보스 등장은 자잘한 알림(방 이름·주의·적 소개·안내)을 걷어낸다
       supersedes: ['room', 'warn', 'enemy', 'info', 'break'],
       build: (sc) => {
@@ -170,13 +189,14 @@ export class BossHud {
         return { box, h: this.addBand(box, y) };
       },
     });
-    debugExpose('bossCard', { kind: 'name', name, phase });
+    debugExpose('bossCard', { kind: 'name', name, phase, holdMs: timing.holdMs });
   }
 
   /** BOSS_PHASE: 국면 카드 (1국면은 이름 카드가 대신한다) */
   phase(p: unknown, s: UiSnapshot): void {
     const e = readBossEvent(p);
     if (e.phase <= 1) return;
+    this.nameCardOn = false;
     const names = phaseNamesFor(this.si, (s.boss as unknown as { phaseNames?: unknown } | null)?.phaseNames);
     const phaseName = e.phaseName ?? phaseNameOf(e.phase, names, storyText('phaseN'));
     const dark = BOSS_DARK_PHASE_BY_FLOOR[this.si];
@@ -304,7 +324,7 @@ export class BossHud {
 
   /** 국면 띠 '얼큰 → 만취 → 인사불성' (지금 = 강조, 지난 = 흐림, 다음 = 본문) — 아래 끝 y */
   private addStrip(box: Phaser.GameObjects.Container, names: string[], phase: number, y: number): number {
-    const items = phaseStrip(names, phase);
+    const items = phaseStrip(names, phase, storyText('phaseHidden'));
     const words = items.map((it) => {
       const style: Glow = it.state === 'now' ? 'ink_accent' : it.state === 'past' ? 'ink_faint' : 'ink_body';
       return new GlowText(this.scene, 0, y, it.text, style, { stageIndex: this.si });

@@ -356,7 +356,7 @@ export function introState(tMs: number, reduced: boolean): IntroState {
 // ---------------------------------------------------------------------------------------------
 // 메뉴
 
-export type TitleItemId = 'continue' | 'newRun' | 'training' | 'lab' | 'settings' | 'quit';
+export type TitleItemId = 'continue' | 'newRun' | 'training' | 'memory' | 'lab' | 'settings' | 'quit';
 
 export interface TitleItem {
   id: TitleItemId;
@@ -371,6 +371,9 @@ export interface TitleLabels {
   newRun: string;
   newRunDeleteSave: string;
   training: string;
+  /** 62 루프 2 UI E: 일기장 '기억' 장 (지난 생이 있을 때만) */
+  memory?: string;
+  memoryHint?: string;
   lab: string;
   settings: string;
   quit: string;
@@ -387,7 +390,14 @@ export function splitNote(label: string): { main: string; note: string } {
  * 데스크톱 껍데기면 끝내기(웹에서는 숨김). 무기 시험장은 개발용이라 `dev`(주소 `#lab`·uidebug)일 때만 설정 앞에.
  * 이름에 붙은 괄호 덧말('다시 태어난다 (일기장을 찢는다)')은 고른 줄 안내로 옮긴다(틀 폭에 맞게).
  */
-export function titleItems(o: { hasSave: boolean; desktop: boolean; dev: boolean; labels: TitleLabels }): TitleItem[] {
+export function titleItems(o: {
+  hasSave: boolean;
+  desktop: boolean;
+  dev: boolean;
+  labels: TitleLabels;
+  /** 62 루프 2 UI E: 기억 장을 열 수 있다 (계약 C `memory.book()` · 지난 생이 있다) */
+  memory?: boolean;
+}): TitleItem[] {
   const L = o.labels;
   const fresh = splitNote(o.hasSave ? L.newRunDeleteSave : L.newRun);
   const items: TitleItem[] = [];
@@ -397,6 +407,7 @@ export function titleItems(o: { hasSave: boolean; desktop: boolean; dev: boolean
   }
   items.push({ id: 'newRun', label: fresh.main, enabled: true, hint: fresh.note });
   items.push({ id: 'training', label: L.training, enabled: true, hint: '' });
+  if (o.memory && L.memory) items.push({ id: 'memory', label: L.memory, enabled: true, hint: L.memoryHint ?? '' });
   if (o.dev) items.push({ id: 'lab', label: L.lab, enabled: true, hint: '' });
   items.push({ id: 'settings', label: L.settings, enabled: true, hint: '' });
   if (o.desktop) items.push({ id: 'quit', label: L.quit, enabled: true, hint: '' });
@@ -502,6 +513,11 @@ export function isWakeKey(key: string): boolean {
  * 62 점검 ⑦: 영혼(메타) 메뉴를 건너뛸까 — 시작 줄('enter')말고 고를 수 있는 줄이 하나도 없으면 true
  * (새 플레이어의 첫 화면이 '(불가)'만 가득한 메뉴로 보이지 않게 — MenuScene 이 그리지 않고 바로 'enter').
  */
-export function metaAutoEnter(m: { id: string; lines: { key: string; enabled: boolean }[] }): boolean {
-  return m.id === 'meta' && m.lines.every((l) => !l.enabled || l.key === 'enter');
+export function metaAutoEnter(m: {
+  id: string;
+  lines: { key: string; enabled: boolean; memory?: unknown }[];
+}): boolean {
+  // 62 루프 2 UI E: 계약 C 기억 장('meta' 줄마다 `line.memory`)은 고를 것이 없어도 보여 준다 (지금 무엇이 흐릿한지 보는 장)
+  if (m.id !== 'meta' || m.lines.some((l) => Boolean(l.memory))) return false;
+  return m.lines.every((l) => !l.enabled || l.key === 'enter');
 }

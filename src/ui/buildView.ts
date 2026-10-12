@@ -132,19 +132,50 @@ export function gradeName(g: UiNodeGrade | null | undefined, tx: Tx = defaultTx)
 }
 
 /** 성과 진행 칩: 남은 초(소수 없이 올림) · 비율 · 피격 여부 */
+/**
+ * 성과 진행 칩. 62 루프 2 (P2-3): 걸린 보상 '→ [전표] +25 · 각성 20' 자리 — 계약 D `UiNodeTrial.reward: UiEventIcon[]`
+ * (전표는 아이콘 + 수치, 나머지는 시스템 label 그대로). 없으면 수치 없이 전표 아이콘만(`rewardText` '').
+ * 맞았거나 시간이 지났으면(또는 `broken`) `rewardLost`(흐리게)
+ */
 export function trialView(
   t: UiNodeTrial | null | undefined,
   tx: Tx = defaultTx,
-): { text: string; ratio: number; over: boolean; hit: boolean; hitText: string } | null {
+): {
+  text: string;
+  ratio: number;
+  over: boolean;
+  hit: boolean;
+  hitText: string;
+  rewardText: string;
+  rewardLost: boolean;
+  /** 전표 아이콘을 그리는가 (전표 보상이 있거나 보상 정보가 아직 없을 때) */
+  rewardCoin: boolean;
+} | null {
   if (!t || !(t.timeLimitMs > 0)) return null;
   const left = Math.max(0, t.timeLimitMs - Math.max(0, t.elapsedMs));
   const over = left <= 0;
+  const ext = t as { reward?: unknown; broken?: unknown };
+  const icons = Array.isArray(ext.reward)
+    ? (ext.reward as unknown[]).filter((x): x is { kind?: unknown; amount?: unknown; label?: unknown } =>
+        Boolean(x && typeof x === 'object'),
+      )
+    : [];
+  const goldIcon = icons.find((i) => i.kind === 'gold');
+  const gold =
+    goldIcon && typeof goldIcon.amount === 'number' && Number.isFinite(goldIcon.amount) ? goldIcon.amount : 0;
+  const others = icons
+    .filter((i) => i !== goldIcon && typeof i.label === 'string' && i.label.trim())
+    .map((i) => String(i.label).trim());
+  const parts = [gold > 0 ? fill(tx('trialReward'), { n: Math.round(gold) }) : '', ...others].filter(Boolean);
   return {
     text: over ? tx('trialOver') : fill(tx('trialLeft'), { sec: Math.ceil(left / 1000) }),
     ratio: Math.max(0, Math.min(1, left / t.timeLimitMs)),
     over,
     hit: Boolean(t.hitTaken),
     hitText: t.hitTaken ? tx('trialHit') : tx('trialNoHit'),
+    rewardText: parts.join(' · '),
+    rewardCoin: gold > 0 || icons.length === 0,
+    rewardLost: over || Boolean(t.hitTaken) || ext.broken === 'hit' || ext.broken === 'time',
   };
 }
 
@@ -193,7 +224,7 @@ export interface DiaryLine {
   gap: number;
 }
 
-type DiarySnap = Pick<UiSnapshot, 'passives' | 'consumable'> & {
+type DiarySnap = Pick<UiSnapshot, 'passives' | 'consumable' | 'relics'> & {
   build?: UiBuildState | null;
   route?: { floor: number } | null;
 };
@@ -229,8 +260,16 @@ export function diaryLines(s: DiarySnap, compact: 0 | 1 | 2, tx: Tx = defaultTx)
     }
   }
   head('buildPassives');
-  const passives = s.passives ?? [];
-  if (!passives.length) none();
+  // 62 루프 2 UI E (계약 C P1-5): 유품이 오면 그것 — 이름 · '{n}단계' · 태그 하나 (수치 없음). `passives` 는 호환용 옛 꼴
+  if (s.relics) {
+    if (!s.relics.length) none();
+    for (const r of s.relics) {
+      const tag = r.tag ? tagName(r.tag, b) : '';
+      out.push({ text: [r.name, r.levelText, tag].filter(Boolean).join('  '), style: 'body', gap: 0 });
+    }
+  }
+  const passives = s.relics ? [] : (s.passives ?? []);
+  if (!s.relics && !passives.length) none();
   for (const p of passives) {
     const lv = fill(tx('passiveLevel'), { level: p.level, max: p.maxLevel || p.level });
     const tags = liveTagIds(p.tags, floor)

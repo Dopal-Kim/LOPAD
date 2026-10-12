@@ -1,37 +1,62 @@
 import Phaser from 'phaser';
 import { UI_EVENTS, UI_SCREEN, uiBus, uiCommands } from '../contract/ui';
-import { debugExpose, setMutedCmd, withDebug } from './debug';
+import { debugExpose, uiDebugEnabled, withDebug } from './debug';
 import { GlowText } from './glow';
 import { keyTaken, takeKey } from './keyGate';
-import { ICON, book, fontsReady, icon, preloadKit, rule, setupKit } from './kit';
+import { book, fontsReady, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { hasRoute } from './routeView';
 import { diaryGrowthLines, growthRouteName } from './growthView';
-import { controlsLine, fill, growthText, r49Text, r53Text, r61Text, trainingText, uiText } from './text';
+import {
+  boundControlsLine,
+  controlsLine,
+  fill,
+  growthText,
+  r49Text,
+  r53Text,
+  r61Text,
+  r62Text,
+  trainingText,
+  uiText,
+} from './text';
+import { isDefaultBinds } from './keyBindView';
+import { currentSettings } from './settingsStore';
+import { playUiSound } from './uiSound';
 import { GRAY, LAYOUT, ROUTE, hexToNum } from './theme';
 import { buildPage } from './PauseBuild';
 import { SettingsPanel } from './SettingsPanel';
 import { KeyGuide } from './keyGuide';
 import { snapshotVerbItems } from './keyGuideView';
 import { buildHowToPanel } from './TutorialHud';
-import { SelectList } from './widgets';
+import { SelectList, type SelectLine } from './widgets';
 
 const PAGE_W = 440;
 /** 53라운드 Q50: '싸우는 법' 항목 한 줄만큼, 61라운드: 설정 한 줄 + 4동사 키캡 안내(2줄)만큼, 61 단계 6: '수련장' 한 줄만큼 높였다 */
-const PAGE_H = 282 + LAYOUT.row * 3 + 44;
+const PAGE_H = 282 + LAYOUT.row * 3 + 44 + LAYOUT.detail;
 const PAD = 24;
 /** 60라운드: 두 쪽 펼침 쪽 높이 상한 (화면 540 - 책 틀 32 - 여백) */
 const MAX_PAGE_H = UI_SCREEN.HEIGHT - 32 - 16;
 /** '싸우는 법' 패널 깊이 (일기장 위) */
 const HOWTO_DEPTH = 50;
 
-/** 일기장 항목 key (53라운드 Q50: 3 = 싸우는 법, 61라운드 §15: 4 = 설정, 61 단계 6 §19: 5 = 수련장(안에서는 나가기), 덮기·나가기는 6) */
-const PAUSE_KEY = { resume: '1', sound: '2', howTo: '3', settings: '4', training: '5', leave: '6' } as const;
+/**
+ * 일기장 항목 key — 62 루프 2 (P2-5): 1 이어서 하기 · 2 싸우는 법 · 3 설정 · 4 수련장(안에서는 나가기) · 5 일기장 덮기(저장하고 타이틀) ·
+ * 6 이번 생을 포기한다(확인). 빠른 소리 끄기는 설정 '소리' 탭으로 옮겼다.
+ */
+const PAUSE_KEY = { resume: '1', howTo: '2', settings: '3', training: '4', leave: '5', abandon: '6' } as const;
+
+/** 62 루프 2 (P2-5): 런 포기 명령 — 계약 D `uiCommands.abandonRun()`(사망과 같은 결산, RUN_ENDED). 없으면 null */
+function abandonCommand(): (() => void) | null {
+  const c = uiCommands as unknown as { abandonRun?: () => void };
+  return typeof c.abandonRun === 'function' ? () => c.abandonRun?.() : null;
+}
 
 /**
- * 일시정지 = 일기장 한 페이지 (31라운드 채택 문구): 제목 '일기장', 이름·층·시련·세이브, 능력치, 무기, 패시브, 조작법,
- * '더 쓴다 (Esc)' / '소리 끄기·켜기' / '일기장을 덮는다' → 확인 '적지 않은 것은 남지 않는다. 그래도 덮는다 — 예' / '더 쓴다'
- * 49라운드(계약 §11.3·§11.4): 소리 항목 → `setMuted`, 상태는 `snapshot.muted`. 무기 시험장(`lab`)이면 제목 '무기 시험장',
+ * 일시정지 = 일기장 한 페이지 (31라운드 채택 문구): 제목 '일기장', 이름·층·노드, 능력치, 무기, 패시브, 조작법.
+ * 62 루프 2 (P2-5): 저장 횟수 제한이 없어져(시스템 D 무제한 자동 저장) '세이브 남음' 을 지우고, 항목을
+ * '이어서 하기 (Esc)' / '싸우는 법' / '설정' / '수련장' / '일기장 덮기'(저장하고 타이틀 — 확인 없음) / '이번 생을 포기한다'(확인)로 나눴다.
+ * 조작 목록은 밝은 글(page_unsel)로 대비를 올렸다.
+ * 49라운드(계약 §11.3·§11.4): 소리 항목 → `setMuted`(62 루프 2: 설정 '소리' 탭으로 옮김). 무기 시험장(`lab`)이면 제목 '무기 시험장',
  * '계속한다 (Esc)' / 소리 / '시험장을 나간다'(확인 없이 toTitle).
  * 60라운드(계약 §14): 두 쪽 펼침 — 오른쪽 쪽 '빌드'(PauseBuild.ts: 태그·세트·저주·패시브 Lv/최대·태그·소모품).
  *   패시브 줄은 왼쪽 쪽에서 오른쪽으로 옮겼다.
@@ -44,7 +69,6 @@ export class PauseScene extends Phaser.Scene {
   private list?: SelectList;
   private confirm = false;
   private alive = false;
-  private muted = false;
   private lab = false;
   /** 61 단계 6: 수련장 안 (일기장 '수련장' 항목이 '수련장을 나간다' 로) */
   private inTraining = false;
@@ -104,7 +128,8 @@ export class PauseScene extends Phaser.Scene {
       return;
     }
     if (this.settings) {
-      this.settings.close();
+      // 62 루프 2: 키 기다리는 중이면 그만두기만 (SettingsPanel.back)
+      this.settings.back();
       return;
     }
     if (this.confirm) {
@@ -112,6 +137,7 @@ export class PauseScene extends Phaser.Scene {
       this.setList();
       return;
     }
+    playUiSound(this, 'back');
     uiCommands.resume();
   };
 
@@ -119,7 +145,6 @@ export class PauseScene extends Phaser.Scene {
     const s = withDebug(uiCommands.getUiSnapshot());
     const stageIndex = Math.max(0, s.stageIndex);
     this.stageIndex = stageIndex;
-    this.muted = Boolean(s.muted);
     this.lab = Boolean(s.lab);
     this.inTraining = Boolean(s.training);
     const W = UI_SCREEN.WIDTH;
@@ -154,7 +179,7 @@ export class PauseScene extends Phaser.Scene {
                 ? [cur?.region, cur?.name].filter(Boolean).join(' · ')
                 : `시련 ${s.trialsCleared}/${s.trialsTotal}`
             }`,
-      `공격 ${s.stats.attack}   방어 ${s.stats.defense}   치명타 ${s.stats.crit}%   감각 ${s.stats.sense}`,
+      // 62 루프 2 (P16 §1·용어집): 1층에서 능력치·감각을 지웠다 — 능력치 줄 없음
       // 61 단계 4 P12: 옛 '(개성 n/max)' 대신 갈래·길과 각성 게이지
       s.growth
         ? fill(growthText('diaryWeapon'), {
@@ -172,27 +197,37 @@ export class PauseScene extends Phaser.Scene {
       const g = new GlowText(this, pg.x + PAD, y, t, 'page_body', { wrap: innerW, stageIndex });
       y += g.displayHeight + 2;
     }
-    // 세이브 남음 (닫힌 일기장 아이콘) + 시드 (흐림). 시험장에서는 기록이 남지 않으므로 생략
-    if (!this.lab && !this.inTraining) {
-      icon(this, pg.x + PAD, y - 1, ICON.save);
-      new GlowText(this, pg.x + PAD + 20, y, `세이브 남음 ${s.savesLeft}`, 'page_body', { stageIndex });
+    // 62 루프 2 (P2-5): '세이브 남음 n' 삭제(무제한 자동 저장) — 시드만 흐리게 오른쪽에. 시험장·수련장은 기록이 없으므로 생략
+    if (!this.lab && !this.inTraining && s.seed) {
       new GlowText(this, 0, y, `시드 ${s.seed}`, 'page_faint').placeRight(pg.x + PAGE_W - PAD, y);
       y += 16;
     }
     y += 6;
     rule(this, pg.x + PAD, y, innerW);
     y += 4 + 10;
-    this.list = new SelectList(this, pg.x + PAD, y, (key) => this.choose(key), { stageIndex, detailWrap: innerW - 40 });
+    this.list = new SelectList(this, pg.x + PAD, y, (key) => this.choose(key), {
+      stageIndex,
+      detailWrap: innerW - 40,
+      sounds: true,
+    });
     this.setList();
     y += this.list.height() + 10;
     this.notice = new GlowText(this, pg.x + PAD, y - 10, '', 'page_faint', { wrap: innerW });
     // 61라운드 P1·P10: 무기 4동사 키캡 안내 (시스템 weaponVerbs, 없으면 지금 조작) — 2단
-    const guide = new KeyGuide(this, pg.x + PAD, y, 'column', { surface: 'page', stageIndex, cols: 2 }).setItems(
-      snapshotVerbItems(s, (k) => r61Text(k)),
-    );
+    const guide = new KeyGuide(this, pg.x + PAD, y, 'column', {
+      surface: 'page',
+      stageIndex,
+      cols: 2,
+      bright: true,
+    }).setItems(snapshotVerbItems(s, (k) => r61Text(k)));
     y += guide.boxH + 10;
-    // 62: Tab 은 어디서나 'Tab 빌드' (낡은 'Tab 워프' 정리 — text.controlsLine)
-    new GlowText(this, pg.x + PAD, y, controlsLine(s.weapon.secondaryName), 'page_faint', { wrap: innerW });
+    // 62: Tab 은 어디서나 'Tab 빌드' (낡은 'Tab 워프' 정리 — text.controlsLine). 62 루프 2: 대비를 올리고(흐림 → 본문),
+    // 키를 바꿨으면 바뀐 키로 적는다
+    const keys = currentSettings().keys;
+    const ctl = isDefaultBinds(keys)
+      ? controlsLine(s.weapon.secondaryName)
+      : boundControlsLine(keys, s.names?.potion ?? '');
+    new GlowText(this, pg.x + PAD, y, ctl, 'page_body', { wrap: innerW });
   }
 
   /** 61라운드 §15: 설정 쪽 열기 — 닫히면 목록 입력을 다시 켠다 */
@@ -244,48 +279,46 @@ export class PauseScene extends Phaser.Scene {
     debugExpose('pauseHowTo', { open: false });
   }
 
-  private soundLabel(): string {
-    return this.muted ? r49Text('soundOn') : r49Text('soundOff');
+  /** 런 포기 줄을 보이는가 (시스템 명령이 있을 때 — 헤드리스 확인용 uidebug 에서는 늘) */
+  private canAbandon(): boolean {
+    return !this.lab && !this.inTraining && (abandonCommand() !== null || uiDebugEnabled());
   }
 
   private setList(): void {
     const keep = this.list?.cursorIndex() ?? 0;
-    if (this.lab && !this.confirm) {
+    if (this.confirm) {
       this.list?.setLines([
-        { key: PAUSE_KEY.resume, label: `${r49Text('labContinue')} (Esc)`, enabled: true },
-        { key: PAUSE_KEY.sound, label: this.soundLabel(), enabled: true },
-        { key: PAUSE_KEY.howTo, label: r53Text('pauseHowTo'), enabled: true },
-        { key: PAUSE_KEY.settings, label: r61Text('settingsItem'), enabled: true },
-        { key: PAUSE_KEY.training, label: trainingText('pauseItem'), enabled: true },
-        { key: PAUSE_KEY.leave, label: r49Text('labLeave'), enabled: true },
+        { key: '1', label: r62Text('abandonConfirm'), enabled: true, detail: r62Text('abandonNote') },
+        { key: '2', label: r62Text('abandonCancel'), enabled: true },
       ]);
-      this.list?.setCursorIndex(keep);
+      this.list?.setCursorIndex(1);
       return;
     }
-    this.list?.setLines(
-      this.confirm
-        ? [
-            {
-              key: '1',
-              label: uiText('pause', 'confirmQuit', '적지 않은 것은 남지 않는다. 그래도 덮는다 — 예'),
-              enabled: true,
-            },
-            { key: '2', label: uiText('pause', 'cancelQuit', '더 쓴다'), enabled: true },
-          ]
-        : [
-            { key: PAUSE_KEY.resume, label: `${uiText('pause', 'cancelQuit', '더 쓴다')} (Esc)`, enabled: true },
-            { key: PAUSE_KEY.sound, label: this.soundLabel(), enabled: true },
-            { key: PAUSE_KEY.howTo, label: r53Text('pauseHowTo'), enabled: true },
-            { key: PAUSE_KEY.settings, label: r61Text('settingsItem'), enabled: true },
-            {
-              key: PAUSE_KEY.training,
-              label: trainingText(this.inTraining ? 'pauseLeave' : 'pauseItem'),
-              enabled: true,
-            },
-            { key: PAUSE_KEY.leave, label: uiText('pause', 'toTitle', '일기장을 덮는다'), enabled: true },
-          ],
-    );
-    if (!this.confirm) this.list?.setCursorIndex(keep);
+    const lines: SelectLine[] = [
+      {
+        key: PAUSE_KEY.resume,
+        label: `${this.lab ? r49Text('labContinue') : r62Text('pauseResume')} (Esc)`,
+        enabled: true,
+      },
+      { key: PAUSE_KEY.howTo, label: r53Text('pauseHowTo'), enabled: true },
+      { key: PAUSE_KEY.settings, label: r61Text('settingsItem'), enabled: true },
+      {
+        key: PAUSE_KEY.training,
+        label: trainingText(this.inTraining ? 'pauseLeave' : 'pauseItem'),
+        enabled: true,
+      },
+      this.lab
+        ? { key: PAUSE_KEY.leave, label: r49Text('labLeave'), enabled: true }
+        : {
+            key: PAUSE_KEY.leave,
+            label: r62Text('pauseClose'),
+            enabled: true,
+            ...(this.inTraining ? {} : { detail: r62Text('pauseCloseNote') }),
+          },
+    ];
+    if (this.canAbandon()) lines.push({ key: PAUSE_KEY.abandon, label: r62Text('pauseAbandon'), enabled: true });
+    this.list?.setLines(lines);
+    this.list?.setCursorIndex(keep);
   }
 
   /**
@@ -304,26 +337,35 @@ export class PauseScene extends Phaser.Scene {
     this.notice?.setText(trainingText(why));
   }
 
-  /** 소리 끄기·켜기 (계약 §11.3). 일시정지 중 스냅샷이 늦게 바뀔 수 있어 화면 상태는 여기서 뒤집는다 */
-  private toggleSound(): void {
-    this.muted = !this.muted;
-    setMutedCmd(this.muted);
-    this.setList();
-  }
-
   private choose(key: string): void {
-    if (!this.confirm) {
-      if (key === PAUSE_KEY.resume) uiCommands.resume();
-      else if (key === PAUSE_KEY.sound) this.toggleSound();
-      else if (key === PAUSE_KEY.howTo) this.showHowTo();
-      else if (key === PAUSE_KEY.settings) this.openSettings();
-      else if (key === PAUSE_KEY.training) this.training();
-      else if (this.lab) uiCommands.toTitle();
+    if (this.confirm) {
+      if (key === '1') this.abandon();
       else {
-        this.confirm = true;
+        this.confirm = false;
         this.setList();
       }
-    } else if (key === '1') uiCommands.toTitle();
+      return;
+    }
+    if (key === PAUSE_KEY.resume) uiCommands.resume();
+    else if (key === PAUSE_KEY.howTo) this.showHowTo();
+    else if (key === PAUSE_KEY.settings) this.openSettings();
+    else if (key === PAUSE_KEY.training) this.training();
+    // 일기장 덮기: 시스템이 끝낼 때 자동 저장(무제한)하므로 확인 없이 타이틀로 — 시험장은 기록 없이 나감
+    else if (key === PAUSE_KEY.leave) {
+      // 계약 D `saveAndQuit`(이어하기 자동 저장 → 타이틀)이 있으면 그것, 아니면 toTitle (D: toTitle 도 같은 저장)
+      const c = uiCommands as unknown as { saveAndQuit?: () => boolean };
+      if (this.lab || typeof c.saveAndQuit !== 'function' || !c.saveAndQuit()) uiCommands.toTitle();
+    } else if (key === PAUSE_KEY.abandon && this.canAbandon()) {
+      this.confirm = true;
+      this.setList();
+    }
+  }
+
+  /** 런 포기 (확인 뒤): 시스템 명령 — 없으면(uidebug 확인) 기록만 */
+  private abandon(): void {
+    const cmd = abandonCommand();
+    debugExpose('pauseAbandon', { sent: Boolean(cmd), at: Math.round(performance.now()) });
+    if (cmd) cmd();
     else {
       this.confirm = false;
       this.setList();

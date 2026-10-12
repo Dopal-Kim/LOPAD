@@ -51,6 +51,8 @@ interface Showing {
   box: Phaser.GameObjects.Container;
   timers: Phaser.Time.TimerEvent[];
   holdMs: number;
+  /** 차례에 들어온 시각 (scene.time.now — 노드 진입 때 앞 방 것만 거두는 데) */
+  at: number;
 }
 
 /**
@@ -70,6 +72,8 @@ export class StoryHud {
   private cur?: Showing;
   private note?: { box: Phaser.GameObjects.Container; lines: string[]; title: string; shown: number; at: number };
   private noteTimers: Phaser.Time.TimerEvent[] = [];
+  /** 차례에 들어온 시각 (줄마다) */
+  private pushedAt = new WeakMap<StoryLineView, number>();
 
   constructor(
     private scene: Phaser.Scene,
@@ -94,11 +98,28 @@ export class StoryHud {
       this.addClue(v);
       return;
     }
+    this.pushedAt.set(v, this.scene.time.now);
     if (v.channel === 'notice') {
       this.showNotice(v);
       return;
     }
+    // 62 루프 2 (시스템 A 요청): 새 군주 대사는 앞 대사를 바꾼다 (떠 있는 것·쌓인 것) — 머묾은 새 줄의 holdMs
+    if (v.channel === 'speech') {
+      this.queue = this.queue.filter((q) => q.channel !== 'speech');
+      if (this.cur?.view.channel === 'speech') this.finish(false);
+    }
     this.queue = enqueueStory(this.queue, v);
+    this.pump();
+  }
+
+  /**
+   * 62 루프 2 (P1-11, 시스템 A 요청): 노드 진입(ROUTE_NODE_ENTERED) — 이 시각 앞에 들어온 줄·쪽지만 거둔다.
+   * 같은 프레임에 먼저 온 새 방의 줄(층 진입 자막 등)은 남는다.
+   */
+  clearBefore(t: number): void {
+    this.queue = this.queue.filter((q) => (this.pushedAt.get(q) ?? -1) >= t);
+    if (this.cur && this.cur.at < t) this.finish(false);
+    if (this.note && this.note.at < t) this.closeNote();
     this.pump();
   }
 
@@ -202,7 +223,7 @@ export class StoryHud {
         box = this.buildCaption(v);
     }
     box.setDepth(STORY_UI.depth);
-    const s: Showing = { view: v, box, timers, holdMs };
+    const s: Showing = { view: v, box, timers, holdMs, at: this.pushedAt.get(v) ?? this.scene.time.now };
     this.cur = s;
     timers.push(
       this.scene.time.delayedCall(holdMs, () => {
@@ -239,21 +260,21 @@ export class StoryHud {
   private glow(
     text: string,
     style: Parameters<GlowText['setGlowStyle']>[0],
-    opts: { wrap?: number; align?: 'left' | 'center' } = {},
+    opts: { wrap?: number; align?: 'left' | 'center'; readable?: boolean } = {},
   ): GlowText {
     return new GlowText(this.scene, 0, 0, text, style, { ...opts, stageIndex: this.opts.stageIndex() });
   }
 
   /** 기존 자막·공지: 하단 가운데 ink_body (패널 없음) */
   private buildCaption(v: StoryLineView): Phaser.GameObjects.Container {
-    const t = this.glow(v.text, 'ink_body', { wrap: STORY_UI.captionWrap, align: 'center' });
+    const t = this.glow(v.text, 'ink_body', { wrap: STORY_UI.captionWrap, align: 'center', readable: true });
     t.placeCenter(UI_SCREEN.WIDTH / 2, this.opts.centerBottom() - t.displayHeight);
     return this.scene.add.container(0, 0, [t]);
   }
 
   /** 군주 대사: 하단 가운데 대사 + 왼쪽 위 화자 이름표 */
   private buildSpeech(v: StoryLineView): Phaser.GameObjects.Container {
-    const t = this.glow(v.text, 'ink_body', { wrap: STORY_UI.captionWrap, align: 'center' });
+    const t = this.glow(v.text, 'ink_body', { wrap: STORY_UI.captionWrap, align: 'center', readable: true });
     t.placeCenter(UI_SCREEN.WIDTH / 2, this.opts.centerBottom() - t.displayHeight);
     const objs: Phaser.GameObjects.GameObject[] = [];
     if (v.speaker) {
@@ -273,7 +294,7 @@ export class StoryHud {
   /** 이벤트 문장: 하단 가운데 종이 띠 (지문체) */
   private buildEvent(v: StoryLineView): Phaser.GameObjects.Container {
     const E = EVENT_UI;
-    const t = this.glow(v.lines.join('\n'), 'page_body', { wrap: E.wrap, align: 'center' });
+    const t = this.glow(v.lines.join('\n'), 'page_body', { wrap: E.wrap, align: 'center', readable: true });
     const min = SLICE.panelPaper.l + SLICE.panelPaper.r;
     const w = Math.max(min, t.displayWidth + E.padX * 2);
     const h = Math.max(min, t.displayHeight + E.padY * 2);
@@ -294,10 +315,10 @@ export class StoryHud {
     const look = voiceLook(id);
     const full = quoteVoice(v.lines.join(' '));
     const steps = revealSteps(full, look.enter);
-    const t = this.glow(steps[0], look.style, { wrap: 420 });
+    const t = this.glow(steps[0], look.style, { wrap: 420, readable: true });
     const a = this.opts.voiceAnchor();
     // 글 상자 높이는 다 보인 글로 잡는다 (한 글자씩 나와도 줄이 흔들리지 않게)
-    const probe = this.glow(full, look.style, { wrap: 420 });
+    const probe = this.glow(full, look.style, { wrap: 420, readable: true });
     const h = probe.displayHeight;
     probe.destroy();
     const x0 = a.x;
@@ -410,7 +431,7 @@ export class StoryHud {
     const r = rule(this.scene, C.pad, y, inner);
     y += 4 + C.titleGap;
     const lines = n.lines.map((l, i) => {
-      const t = this.glow(l, 'page_body', { wrap: inner }).setPosition(C.pad, y);
+      const t = this.glow(l, 'page_body', { wrap: inner, readable: true }).setPosition(C.pad, y);
       t.setName(`line${i}`).setAlpha(i < n.shown ? 1 : 0);
       y += t.displayHeight + C.lineGap;
       return t;

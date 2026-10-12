@@ -4,10 +4,12 @@ import { replaceMuteHint } from './resourceView';
 import { withControlExtras } from './structView';
 import { R60_TEXT, type R60TextKey } from './textBuild';
 import { R61_TEXT, type R61TextKey } from './textR61';
+import { R62_TEXT, type R62TextKey } from './textR62';
 import { GROWTH_TEXT, type GrowthTextKey } from './textGrowth';
 import { STORY_TEXT, type StoryTextKey } from './textStory';
 import { TRAINING_TEXT, type TrainingTextKey } from './textTraining';
 import { fill } from './fmt';
+import { keyLabel, moveKeysLabel, type KeyBinds } from './keyBindView';
 
 /**
  * 세계관 문구 조회 (계약 §4 getUiText, 29라운드). 키가 없거나 비면 기본 문구를 쓴다.
@@ -23,7 +25,7 @@ export function uiText(section: Section, key: string, fallback: string): string 
 /** `{name}` 꼴 치환자 (fmt.ts — 순수 계산 모듈도 쓴다) */
 export { fill } from './fmt';
 
-const DEFAULT_CONTROLS = 'WASD 이동 · 좌클릭 공격 · 우클릭 {secondary} · 스페이스 대쉬 · Q 물약 · Esc 일시정지';
+const DEFAULT_CONTROLS = 'WASD 이동 · 좌클릭 공격 · 우클릭 {secondary} · Space 대쉬 · Q 독주 · Esc 일시정지';
 
 /**
  * 47라운드: 조작법 줄에 빠져 있으면 덧붙이는 키 (임시 문구, 텍스트 팩 `hud.<키>` 가 있으면 그 문구).
@@ -62,7 +64,7 @@ export function controlsLine(secondaryName: string): string {
 /** 45라운드 워프 문구 (임시값, 도영 님 검수 대상). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
 export const WARP_TEXT = {
   warpTitle: '지나온 길',
-  warpHint: 'WASD·방향키 고르기 · Enter·Space·클릭 건너가기 · Tab·Esc 닫기',
+  warpHint: 'WASD·방향키 고르기 · Enter · 클릭 건너가기 · Tab·Esc 닫기',
   warpEmpty: '아직 건너갈 곳이 없다. 마친 방만 다시 찾아갈 수 있다',
   warpPick: '건너갈 곳을 고른다',
   warpHere: '지금 여기',
@@ -78,7 +80,7 @@ export const WARP_TEXT = {
   roomStart: '시작한 곳',
   roomTrial: '시련',
   roomRest: '쉼터',
-  roomBoss: '본영',
+  roomBoss: '군주의 방',
 } as const;
 export type WarpTextKey = keyof typeof WARP_TEXT;
 
@@ -101,7 +103,7 @@ export const STRUCT_TEXT = {
   /** 패 탁자 카드 뒷면 */
   cardBack: '?',
   /** 패 탁자 조작 안내 */
-  cardHint: '1·2·3 또는 ←→ 고르기 · Enter 뒤집기 · 0·Esc 그만두기',
+  cardHint: '1·2·3 또는 ←→ 고르기 · Enter · 클릭 뒤집기 · 0·Esc 그만두기',
   /** 워프 지도 범례: 구조물 점 */
   legendStructure: '쓸 것이 남은 곳',
   /** 도전 남은 시간 ({sec} = 초, 소수 1자리) */
@@ -137,10 +139,10 @@ export const ROUTE_TEXT = {
   /** 노드 종류 이름 (상점은 스냅샷 names.shop 우선) */
   typeJourney: '여정',
   typeBattle: '전투',
-  typeShop: '상점',
+  typeShop: '장터',
   typeRest: '쉼터',
-  typeEvent: '이벤트',
-  typeBoss: '본영',
+  typeEvent: '사연',
+  typeBoss: '군주의 방',
   /** HUD */
   mapKeyHint: 'Tab 지도',
   /** 49라운드: M = 지도 (HUD 우상단·조작법 줄) */
@@ -153,11 +155,11 @@ export const ROUTE_TEXT = {
   hereTitle: '지금 있는 곳',
   lookTitle: '살펴보는 곳',
   pickTitle: '고른 곳',
-  /** 49라운드 넘어가기 확인 (원문 결정 문구) */
-  confirmTitle: '넘어가시겠습니까?',
-  confirmYes: '예',
-  confirmNo: '아니오',
-  confirmHint: '←→ 고르기 · Enter 정하기 · Esc 아니오',
+  /** 49라운드 넘어가기 확인 → 62 루프 2 P2-1: 갈림길에서만, 일기장 어투 */
+  confirmTitle: '이 길로 간다',
+  confirmYes: '간다',
+  confirmNo: '아직',
+  confirmHint: '←→ 고르기 · Enter · 클릭 정하기 · Esc 아직',
 } as const;
 export type RouteTextKey = keyof typeof ROUTE_TEXT;
 
@@ -201,7 +203,7 @@ export const REGION_TEXT: Record<string, string> = {
   gate: "술독 제국 '잔'으로 드는 문",
   outer: '술 냄새가 골목마다 밴 성 밖 거리',
   brewery: '증류탑이 밤낮없이 끓는 곳',
-  hall: '취한 지배자가 잔치를 벌이는 곳',
+  hall: '취한 군주가 잔치를 벌이는 곳',
 };
 
 export function regionText(key: string | null, fallbackDesc?: string): string {
@@ -229,8 +231,8 @@ export const R53_TEXT = {
   tutDash: '대쉬 — 대쉬 중엔 맞지 않는다',
   tutCarry: '넣기·뽑기 — 넣은 채 첫 타는 {name}',
   tutCarryPlain: '넣기·뽑기 — 넣은 채 첫 타가 세다',
-  tutMore: 'Q 물약 · Shift 달리기 · E 상호작용 · M 지도 · Tab 빌드 · Esc 뒤로·일시정지',
-  tutClose: 'Enter·Esc·클릭 닫기',
+  tutMore: 'Q 독주 · Shift 달리기 · E 상호작용 · M 지도 · Tab 빌드 · Esc 뒤로·일시정지',
+  tutClose: 'Enter · 클릭 · Esc 닫기',
   /** 튜토리얼 단계 카드 진행 (TUTORIAL_STEP index+1 / total) */
   tutStep: '{n}/{total}',
   /** 일시정지 일기장 항목 — '싸우는 법' 패널 다시 보기 (53라운드 Q50) */
@@ -278,6 +280,22 @@ export function r60Text(key: R60TextKey): string {
 /** 61라운드 P10 문구 (textR61.ts R61_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
 export function r61Text(key: R61TextKey): string {
   return uiText('hud', key, R61_TEXT[key]);
+}
+
+/** 62 루프 2 (P1-16): 키를 바꿨을 때 조작 줄 — 바뀐 키로 적는다 (기본 키면 `controlsLine`) */
+export function boundControlsLine(b: KeyBinds, potionName: string): string {
+  return fill(r62Text('controlsBound'), {
+    move: moveKeysLabel(b),
+    dash: keyLabel(b.dash),
+    interact: keyLabel(b.interact),
+    potion: keyLabel(b.potion),
+    potionName: potionName || '독주',
+  });
+}
+
+/** 62 루프 2 설정·일시정지·로딩 문구 (textR62.ts, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */
+export function r62Text(key: R62TextKey): string {
+  return uiText('hud', key, R62_TEXT[key]);
 }
 
 /** 61라운드 단계 2·3 서사 표시·보스 UI 틀 문구 (textStory.ts STORY_TEXT, 임시값). 텍스트 팩 `hud.<키>` 가 있으면 그 문구를 쓴다 */

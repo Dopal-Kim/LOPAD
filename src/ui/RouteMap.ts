@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
-import { UI_SCREEN, type UiRoute, type UiRouteNode } from '../contract/ui';
+import { UI_SCREEN, uiCommands, type UiRoute, type UiRouteNode } from '../contract/ui';
+import type { ChoiceGate } from './choiceGate';
+import { keyTime, leftButton, openGate, pointerTime } from './choiceArm';
 import { nodeLook } from './bundleView';
 import { debugExpose } from './debug';
 import { GlowText } from './glow';
@@ -105,6 +107,11 @@ export class RouteMap {
    */
   private inputAfter = 0;
   private bookRect = { x: 0, y: 0, w: 0, h: 0 };
+  /**
+   * 62 루프 2 UI D: 고르기 지도의 무장 게이트 (choiceGate.ts) — 그린 뒤 armMs(계약 `UiRoute.armMs`) 동안·열기 전부터 누르던
+   * Enter·Space·클릭으로는 길을 고르지 않는다 (이동 중 누르던 키로 길이 골라지지 않게). 둘러보기(방향키·마우스 올림)는 그대로
+   */
+  private gate?: ChoiceGate;
 
   constructor(
     private scene: Phaser.Scene,
@@ -114,6 +121,11 @@ export class RouteMap {
   ) {
     this.stageIndex = Math.max(0, opts.stageIndex);
     this.build(route);
+    if (mode === 'choose') {
+      this.gate = openGate(route.armMs);
+      uiCommands.menuShown('route');
+      debugExpose('routeGate', { shownAt: Math.round(this.gate.shownAt), armMs: this.gate.armMs });
+    }
     scene.input.keyboard?.on('keydown', this.onKeyDown);
     scene.input.keyboard?.on('keyup', this.onKeyUp);
   }
@@ -185,7 +197,9 @@ export class RouteMap {
       }
       return;
     }
-    if (this.mode === 'choose' && (e.key === 'Enter' || e.key === ' ') && !e.repeat) this.armedKey = e.key;
+    if (this.mode === 'choose' && (e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+      if (!this.gate || this.gate.keyOk(e.code, keyTime(e), e.repeat)) this.armedKey = e.key;
+    }
   };
 
   private onKeyUp = (e: KeyboardEvent): void => {
@@ -492,13 +506,16 @@ export class RouteMap {
         if (!this.confirm) this.select(n.id);
       });
       if (this.mode !== 'choose') continue;
-      box.on('pointerdown', () => {
-        if (this.confirm) return;
-        this.pressed = n.id;
+      box.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        if (this.confirm || !leftButton(pointer)) return;
+        // 62 루프 2 UI D: 무장 전·열기 전부터 누르던 클릭은 고르기 누름으로 치지 않는다 (살펴보기는 그대로)
+        this.pressed = !this.gate || this.gate.pressOk(pointerTime(pointer)) ? n.id : null;
         this.select(n.id);
       });
       box.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-        if (!this.confirm && this.pressed === n.id && !this.chosen) this.openConfirm(n.id, eventStamp(pointer));
+        if (!leftButton(pointer)) return;
+        const ok = this.gate ? this.gate.releaseOk() : true;
+        if (ok && !this.confirm && this.pressed === n.id && !this.chosen) this.openConfirm(n.id, eventStamp(pointer));
         this.pressed = null;
       });
     }
@@ -613,11 +630,17 @@ export class RouteMap {
   }
 
   // -------------------------------------------------------------------------------------------
-  // 49라운드: '넘어가시겠습니까?' 확인 (예일 때만 onChoose) — RouteConfirm.ts
+  // 49라운드 확인 (예일 때만 onChoose) — RouteConfirm.ts. 62 루프 2 P2-1: 갈림길에서만, 문구 '이 길로 간다'
   private openConfirm(id: string, stamp: number): void {
     if (this.destroyed || this.confirm || this.mode !== 'choose') return;
     const v = this.views.find((x) => x.node.id === id);
     if (!v) return;
+    // 62 루프 2 (P2-1): 확인은 갈림길에서만 — 갈 길이 하나뿐이면 묻지 않고 간다
+    if (this.choices.length <= 1 && this.choices.includes(id)) {
+      this.inputAfter = stamp;
+      this.choose(id);
+      return;
+    }
     this.armedKey = null;
     this.pressed = null;
     this.inputAfter = stamp;

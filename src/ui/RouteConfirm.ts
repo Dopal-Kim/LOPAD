@@ -29,7 +29,7 @@ export interface RouteConfirmContext {
 }
 
 /**
- * 49라운드 '넘어가시겠습니까?' 확인 창 (RouteMap 에서 분리, 60라운드). `panel_paper` 창 — 제목 / '지역 · 이름' /
+ * 노드 확인 창 (49라운드, RouteMap 에서 분리 60라운드 — 62 루프 2 P2-1: 갈림길에서만, 문구 '이 길로 간다 · 간다 · 아직'). `panel_paper` 창 — 제목 / '지역 · 이름' /
  * (60라운드 §14.5 위험 노드면 `riskText` 한 줄, 층 강조) / [예] [아니오] (Container → Graphics → 글자) / 안내.
  * ←→·A·D 전환, Enter·Space·Y(뗀 뒤) 정하기, Esc·N 아니오. 키 이벤트를 걸러내는 일(`inputAfter`)은 RouteMap 이 한다.
  */

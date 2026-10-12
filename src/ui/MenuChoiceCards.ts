@@ -10,6 +10,7 @@ import { swatch } from './StructureHud';
 import { r60Text } from './text';
 import { SEPIA, hexToNum } from './theme';
 import { CHOICE_CARD } from './themeBuild';
+import { CARD_ZOOM, cardIcon, cardIconH, cardZoom, type CardZoom } from './cardZoom';
 
 /** 줄 사이 */
 const GAP = { afterTab: 10, afterName: 6, afterPips: 4, afterMeta: 8, afterRule: 10, beforeBottom: 8 } as const;
@@ -72,15 +73,23 @@ export function showChoiceCards(
   const detailH = max((f) => (f.detail ? f.detail.displayHeight : 0));
   const bottomH = max((f) => (f.bottom ? f.bottom.displayHeight : 0));
   // 이름·괘선·설명 줄을 세 장이 같은 높이에 두도록 칸마다 가장 큰 값으로
-  const ruleY = C.tabTop + C.tabH + GAP.afterTab + nameH + GAP.afterName + pipsH + metaH + GAP.afterMeta;
+  // 62 루프 2 UI E: 유품 카드 그림 칸 (한 장이라도 그림이 있으면 세 장 모두 같은 높이로 비워 둔다)
+  const iconH = data.some((d) => d.icon && scene.textures.exists(d.icon)) ? cardIconH() : 0;
+  const ruleY = C.tabTop + C.tabH + GAP.afterTab + iconH + nameH + GAP.afterName + pipsH + metaH + GAP.afterMeta;
   const detailY = ruleY + 4 + GAP.afterRule;
   const ch = Math.max(C.minH, detailY + detailH + (bottomH ? GAP.beforeBottom + bottomH : 0) + C.pad);
 
-  const matH = ch + C.matPad * 2;
+  // 62 루프 2 UI E: 유품 카드는 깔개 안 카드 아래에 고름 자리의 수치·흐린 한 줄 칸 (상세 보기)
+  const zoomed = data.some((d) => d.zoom && (d.zoom.detail || d.zoom.flavor));
+  const zoomH = zoomed ? CARD_ZOOM.gap + CARD_ZOOM.h : 0;
+  const matH = ch + C.matPad * 2 + zoomH;
   const page = cardPage(scene, m, ctx, { w: matW, h: matH, pad: C.matPad }, choiceHint(m, r60Text), maxPageH);
   if (!page) return null;
+  const zoom = zoomed
+    ? cardZoom(scene, page.left + rowW / 2, page.top + ch + CARD_ZOOM.gap, rowW - C.pad * 2)
+    : undefined;
   const slots: ShellSlot[] = faces.map((f, i) =>
-    buildCard(scene, f, page.left + i * (cw + C.gap), page.top, ch, { ruleY, detailY, nameH, pipsH }),
+    buildCard(scene, f, page.left + i * (cw + C.gap), page.top, ch, { ruleY, detailY, nameH, pipsH, iconH }, zoom),
   );
   return page.done(slots);
 }
@@ -95,13 +104,16 @@ function buildCard(
   x: number,
   y: number,
   ch: number,
-  rows: { ruleY: number; detailY: number; nameH: number; pipsH: number },
+  rows: { ruleY: number; detailY: number; nameH: number; pipsH: number; iconH: number },
+  zoom?: CardZoom,
 ): ShellSlot {
   const C = CHOICE_CARD;
   const cw = C.w;
   const d = f.data;
   const marks = scene.add.graphics();
   let ny = C.tabTop + C.tabH + GAP.afterTab;
+  const icon = rows.iconH ? cardIcon(scene, d.icon, cw / 2, ny) : null;
+  ny += rows.iconH;
   f.name.placeCenter(cw / 2, ny + Math.round((rows.nameH - f.name.displayHeight) / 2));
   ny += rows.nameH + GAP.afterName;
   // 희귀도 마름모 (찬 칸 = 희귀도, 전설은 밝은 슬롯)
@@ -118,7 +130,7 @@ function buildCard(
   f.meta?.placeCenter(cw / 2, ny);
   const ruleLine = scene.add.tileSprite(C.pad, rows.ruleY, cw - C.pad * 2, 4, KIT.rule).setOrigin(0, 0);
   f.detail?.placeCenter(cw / 2, rows.detailY);
-  const parts: Phaser.GameObjects.GameObject[] = [marks, f.name, ruleLine];
+  const parts: Phaser.GameObjects.GameObject[] = [marks, ...(icon ?? []), f.name, ruleLine];
   if (f.meta) parts.push(f.meta);
   if (f.detail) parts.push(f.detail);
   const slot = cardShell(
@@ -134,7 +146,10 @@ function buildCard(
       enabled: d.enabled,
       head: d.head,
       headSlot: d.headSlot,
-      onPaint: (sel) => f.name.setGlowStyle(!d.enabled ? 'page_faint' : sel ? 'page_selected' : 'page_unsel'),
+      onPaint: (sel) => {
+        f.name.setGlowStyle(!d.enabled ? 'page_faint' : sel ? 'page_selected' : 'page_unsel');
+        if (sel) zoom?.show(d.zoom);
+      },
     },
     parts,
   );
@@ -145,7 +160,9 @@ function buildCard(
     const lockW = d.locked ? 12 : 0;
     f.bottom.setDepth(3).placeCenter(x + cw / 2 + lockW / 2, by);
     if (d.locked) drawPadlock(lock, f.bottom.x - lockW, by + 3, hexToNum(SEPIA[5]));
+    slot.follow([f.bottom]);
   }
+  slot.follow([lock]);
   return slot;
 }
 

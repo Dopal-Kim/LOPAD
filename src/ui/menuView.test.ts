@@ -63,7 +63,7 @@ describe('menuView (메뉴 줄 · 60라운드 §14.4·§14.6)', () => {
         { key: '2', label: '선풍 쌍격', enabled: true, kind: 'dual' },
       ],
     };
-    expect(menuLines(m).map((l) => l.label)).toEqual(['〔패시브〕 칼날 바람', '〔이중 개성〕 선풍 쌍격']);
+    expect(menuLines(m).map((l) => l.label)).toEqual(['〔유품〕 칼날 바람', '〔이중 개성〕 선풍 쌍격']);
   });
 
   it('상점: 묶음 머리글은 묶음이 바뀌는 줄에만, 가격 덧붙임, 팔림', () => {

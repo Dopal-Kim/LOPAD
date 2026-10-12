@@ -2,19 +2,28 @@ import Phaser from 'phaser';
 import { UI_EVENTS, UI_SCREEN, uiBus, uiCommands, type UiMenu } from '../contract/ui';
 import { buildOf } from './buildView';
 import { debugExpose, debugSelect, isDebugMenu, withDebug } from './debug';
+import { profileDraw } from './drawProfile';
+import type { ChoiceGate } from './choiceGate';
+import { armBar, keyTime, openGate } from './choiceArm';
 import { metaAutoEnter } from './titleView';
 import { GlowText } from './glow';
-import { book, fontsReady, preloadKit, rule, setupKit } from './kit';
+import { accentHex, book, fontsReady, preloadKit, rule, setupKit } from './kit';
 import { UI_SCENE_KEYS } from './keys';
 import { resolveMenuEsc } from './escNav';
 import { menuLines, wideMenu } from './menuView';
 import { choiceLines, isChoiceCardMenu } from './choiceCardView';
 import { menuCloseButton, showFaceDownCards, type CardPage, type CardRow } from './MenuCards';
 import { showChoiceCards } from './MenuChoiceCards';
+import { showEventPage } from './MenuEvent';
+import { isEventPageMenu } from './eventView';
+import { MemoryBookView } from './MemoryBook';
+import { showMemoryPicks } from './MemoryPickCards';
+import { bookFromMenu, isMemoryBookMenu, isMemoryPickMenu } from './memoryView';
 import { guideLook, guideShown, guideTraitArt, markGuideShown, showGrowthCards, showGrowthGuide } from './GrowthCards';
 import { guideKind, isGrowthMenu } from './growthView';
 import { r53Text, r60Text } from './text';
 import { SelectList } from './widgets';
+import { hexToNum } from './theme';
 import { menuWaitMs } from './uiSequence';
 import { artTex } from './paintArt';
 import { ensureTrainingArt, showTrainingChoice, showTrainingMap } from './TrainingMap';
@@ -58,25 +67,66 @@ export class MenuScene extends Phaser.Scene {
   private alive = false;
   /** 카드 화면 (패 탁자·3지선다 카드)의 고르기 */
   private cardRow?: CardRow;
+  /** 62 루프 2 UI E (계약 C P1-8): 메뉴 'meta' = 일기장 '기억' 장 (MemoryBook.ts) */
+  private memoryView?: MemoryBookView;
   /** 61 단계 4 P12: 무기 성장 처음 안내 카드를 치우는 함수 (떠 있을 때만) */
   private guideCancel?: () => void;
+  /**
+   * 62 루프 2 UI D: 지금 그린 메뉴의 무장 게이트 (choiceGate.ts — 그린 뒤 armMs 동안·열기 전부터 눌려 있던 키로는 고르지 않는다).
+   * 같은 메뉴를 다시 그리면(상점 갱신 등) 그대로 두고, 다른 메뉴·처음 안내 → 카드로 넘어갈 때 새로 연다
+   */
+  private gate?: ChoiceGate;
   private onOpen = (m: UiMenu) => {
+    const chained = this.pendingClose;
     this.pendingClose = false;
+    // 62 루프 2 UI F: 앞 메뉴를 닫은 같은 순간 다음 메뉴가 열리면(사연 고름 → 유품 고르기) 가운데 연출(사연 결과 컷 등 uiSequence)이
+    // 보이도록 앞 쪽을 걷고 잠깐(연출마다 상한) 기다린다. 성장 메뉴는 기다리지 않는다 (create 와 같은 규칙)
+    const wait = chained && !isGrowthMenu(m) ? menuWaitMs() : 0;
+    if (wait > 0) {
+      this.menu = m;
+      this.drawn = undefined;
+      this.chainWait = true;
+      this.children.removeAll(true);
+      this.list?.destroy();
+      this.list = undefined;
+      this.clearCards();
+      debugExpose('menuWait', { id: m.id, wait, chained: true });
+      this.time.delayedCall(wait, () => {
+        if (this.menu !== m) return;
+        this.chainWait = false;
+        if (this.alive && !this.pendingClose) this.show(m);
+      });
+      return;
+    }
+    this.chainWait = false;
     this.show(m);
   };
+  /** 62 루프 2 UI F: 이어 열린 메뉴가 가운데 연출을 기다리는 중 (아직 그리지 않았다 — Esc 로 고르지 않는다) */
+  private chainWait = false;
   private onClose = (p: { id: string }) => {
     // 같은 프레임에 다음 메뉴가 열릴 수 있으므로 다음 update 에서 닫는다
-    if (this.menu?.id === p.id) this.pendingClose = true;
+    if (this.menu?.id === p.id) {
+      this.pendingClose = true;
+      // 62 루프 2 UI D: 닫힌 뒤 같은 id 가 다시 열리면(개성 발현 두 번 연속 등) 새 메뉴 — 무장도 새로
+      this.reopened = true;
+    }
   };
+  /** 62 루프 2 UI D: 지금 그린 메뉴가 닫혔다 (같은 id 가 다시 와도 새로 연 것) */
+  private reopened = false;
+  /** 62 루프 2 UI D: 지금 게이트를 연 메뉴의 시스템 openedAt (다르면 새로 연 메뉴) */
+  private gateOpenedAt: number | undefined;
   /**
    * 51라운드 §6: Esc = 한 단계 뒤로 (`resolveMenuEsc`). 앞 단계가 없는 메뉴는 머무르고 안내 한 줄.
    * cancelKey 는 지금 열린 메뉴(`this.menu` = 마지막 MENU_OPEN)의 값. 같은 Esc 이벤트가 다시 넘어오면 무시한다
    * (53라운드: 갈래 '9' 로 lab 이 다시 열린 뒤 같은 Esc 가 lab 의 '0' 으로 처리돼 메뉴 전체가 닫혔다 — keyGate.ts)
    */
   private onEsc = (e?: KeyboardEvent) => {
+    if (this.chainWait) return;
     const m = this.menu;
     const a = resolveMenuEsc(m, e, this.pendingClose);
     if (!m || !a) return;
+    // 62 루프 2 UI D: 무장 전·열기 전부터 누르던 Esc 로는 닫지 않는다 (머무름 안내는 그대로)
+    if (a.kind !== 'stay' && e && this.gate && !this.gate.keyOk(e.code, keyTime(e), e.repeat)) return;
     if (a.kind === 'select') this.send(m, a.key);
     else if (a.kind === 'title') uiCommands.toTitle();
     else this.flashStayHint();
@@ -124,6 +174,10 @@ export class MenuScene extends Phaser.Scene {
     this.alive = true;
     this.menu = undefined;
     this.drawn = undefined;
+    this.gate = undefined;
+    this.gateOpenedAt = undefined;
+    this.reopened = false;
+    this.chainWait = false;
     setupKit(this);
     uiBus.on(UI_EVENTS.MENU_OPEN, this.onOpen);
     uiBus.on(UI_EVENTS.MENU_CLOSE, this.onClose);
@@ -140,7 +194,8 @@ export class MenuScene extends Phaser.Scene {
     const first = data;
     // 61라운드 플레이 점검 #11: 성과 도장 카드가 떠 있으면 그것이 끝난 뒤에 (uiSequence.ts — 최대 1.2초)
     // 61 단계 3: 보스 처치 카드도 (처치에서 최대 4.5초, 보스 대사가 이어지면 늘임)
-    const wait = menuWaitMs();
+    // 62 루프 2 UI D (시스템 E 요청): 성장 메뉴는 성과 카드를 기다리지 않는다 (시스템이 이미 미뤄 두고 연다)
+    const wait = first && isGrowthMenu(first) ? 0 : menuWaitMs();
     debugExpose('menuWait', { id: first?.id, wait });
     fontsReady().then(() => {
       const go = (): void => {
@@ -165,8 +220,21 @@ export class MenuScene extends Phaser.Scene {
     return transitionOpening() && since < TRAINING_HOLD_MAX_MS;
   }
 
+  /** 62 루프 2 UI D: 이 메뉴를 그린 지금 무장 게이트를 열고 시스템에 '그렸다'고 알린다 (시스템 가드도 지금부터 armMs) */
+  private openGate(m: UiMenu): ChoiceGate {
+    const g = openGate(m.armMs);
+    if (!isDebugMenu(m)) uiCommands.menuShown(m.id);
+    debugExpose('menuGate', { id: m.id, shownAt: Math.round(g.shownAt), armMs: g.armMs });
+    return g;
+  }
+
   /** 선택 전달 (UI 디버그 가짜 메뉴는 시스템으로 보내지 않는다) */
   private send(m: UiMenu, key: string): void {
+    // 62 루프 2 UI D: 마지막 안전망 — 무장 전에는 어떤 길(닫기 버튼 등)로도 보내지 않는다
+    if (this.gate && !this.gate.armed(performance.now())) {
+      debugExpose('menuGateDrop', { id: m.id, key, at: Math.round(performance.now()) });
+      return;
+    }
     if (m.id === 'training' && key !== m.cancelKey) {
       if (this.trainingSentAt && this.time.now - this.trainingSentAt < TRAINING_HOLD_MAX_MS) return;
       this.trainingSentAt = this.time.now;
@@ -175,7 +243,12 @@ export class MenuScene extends Phaser.Scene {
     else uiCommands.select(m.id, key);
   }
 
+  /** 62 루프 2 UI D: 여는 비용을 잰다 (uidebug 일 때만 — drawProfile.ts) */
   private show(m: UiMenu): void {
+    profileDraw(this, `menu:${m.id}`, () => this.draw(m));
+  }
+
+  private draw(m: UiMenu): void {
     // 62 경쟁력 점검 ⑦: 영혼(메타) 메뉴에 지금 고를 수 있는 것이 없으면 '(불가)'만 가득한 쪽을 그리지 않고 바로 생으로
     if (metaAutoEnter(m)) {
       // 같은 메뉴가 다시 와도 한 번만 보낸다. 앞 메뉴(첫 생 선택 등) 그림은 지우고, 보내기는 한 박자 뒤 —
@@ -183,6 +256,7 @@ export class MenuScene extends Phaser.Scene {
       const again = this.drawn?.id === 'meta';
       this.menu = m;
       this.drawn = m;
+      this.gate = undefined;
       this.children.removeAll(true);
       this.list?.destroy();
       this.list = undefined;
@@ -203,9 +277,18 @@ export class MenuScene extends Phaser.Scene {
       this.drawn = m;
       return;
     }
-    const keepCursor = same ? (this.list?.cursorIndex() ?? this.cardRow?.focusIndex() ?? 0) : 0;
+    const keepCursor = same
+      ? (this.list?.cursorIndex() ?? this.cardRow?.focusIndex() ?? this.memoryView?.focusIndex() ?? 0)
+      : 0;
     this.menu = m;
     this.drawn = m;
+    // 62 루프 2 UI D: 다른 메뉴 · 닫혔다 다시 연 같은 id · 시스템이 새로 연 메뉴(openedAt 이 다름)면 무장을 새로
+    const fresh = !same || this.reopened || (typeof m.openedAt === 'number' && m.openedAt !== this.gateOpenedAt);
+    this.reopened = false;
+    if (fresh || !this.gate) {
+      this.gate = this.openGate(m);
+      this.gateOpenedAt = m.openedAt;
+    }
     this.trainingSentAt = 0;
     this.stayHint = undefined;
     this.children.removeAll(true);
@@ -214,7 +297,12 @@ export class MenuScene extends Phaser.Scene {
     this.clearCards();
     const cardLines = choiceLines(m);
     const snap = withDebug(uiCommands.getUiSnapshot());
-    const ctx = { stageIndex: Math.max(0, snap.stageIndex), keepCursor, send: (key: string) => this.send(m, key) };
+    const ctx = {
+      stageIndex: Math.max(0, snap.stageIndex),
+      keepCursor,
+      send: (key: string) => this.send(m, key),
+      gate: this.gate,
+    };
     let page: CardPage | null = null;
     if (isGrowthMenu(m)) {
       // 61 단계 4 P12: 무기 성장 카드 — 메타 기준 처음이면 안내 카드 한 장 뒤에
@@ -233,9 +321,12 @@ export class MenuScene extends Phaser.Scene {
           () => {
             markGuideShown(gk);
             this.guideCancel = undefined;
+            // 안내를 닫은 손으로 카드를 고르지 않게 카드는 새 게이트로 (닫은 키·클릭은 '눌려 있던 것')
+            this.gate = undefined;
             if (this.alive && this.drawn) this.show(this.drawn);
           },
           guideTraitArt(m, snap),
+          this.gate,
         );
         return;
       }
@@ -263,6 +354,31 @@ export class MenuScene extends Phaser.Scene {
       if (!page) this.children.removeAll(true);
     } else if (m.id === 'cards' && cardLines.length >= CARD_MIN && cardLines.length <= CARD_MAX) {
       page = showFaceDownCards(this, m, cardLines, ctx);
+    } else if (isMemoryBookMenu(m)) {
+      // 62 루프 2 UI E: 일기장 '기억' 장 (의식 덧쓰기 F2) — 떠올리기 = 'm:<id>', 덮기 = 닫기 키 (Esc 는 위 onEsc)
+      this.memoryView = new MemoryBookView(this, {
+        stageIndex: ctx.stageIndex,
+        gate: this.gate,
+        keepFocus: keepCursor,
+        book: () => (isDebugMenu(m) ? null : uiCommands.memory.book()) ?? bookFromMenu(m),
+        recall: (id) => {
+          this.send(m, `m:${id}`);
+          return undefined;
+        },
+        setKeepsake: (id) => uiCommands.memory.setKeepsake(id),
+        close: () => this.send(m, m.cancelKey ?? '0'),
+        handleEsc: false,
+        live: false,
+      });
+      return;
+    } else if (isMemoryPickMenu(m)) {
+      // 62 루프 2 UI E: 운명 공개 뒤 '손이 기억한 모양'·'지니고 태어날 소품' 카드
+      page = showMemoryPicks(this, m, ctx, MENU_MAX_PAGE_H, snap.ritual?.fate?.weapon);
+      if (!page) this.children.removeAll(true);
+    } else if (isEventPageMenu(m)) {
+      // 62 루프 2 UI F: 사연(말하는 이 · 설명 · 대가/보상 아이콘 표) · 종군 상인과 말하기 — 같은 틀 (MenuEvent.ts)
+      page = showEventPage(this, m, ctx, MENU_MAX_PAGE_H);
+      if (!page) this.children.removeAll(true);
     } else if (isChoiceCardMenu(m)) {
       page = showChoiceCards(this, m, buildOf(snap), ctx, MENU_MAX_PAGE_H);
       // 카드가 화면에 들지 않으면 목록으로 (그리다 만 것은 지운다)
@@ -291,6 +407,7 @@ export class MenuScene extends Phaser.Scene {
     this.list = new SelectList(this, 0, 0, (key) => this.send(m, key), {
       stageIndex,
       detailWrap: maxW - padX * 2 - 40,
+      gate: this.gate,
     });
     this.list.setLines(lines);
     this.list.setCursorIndex(keepCursor);
@@ -324,6 +441,9 @@ export class MenuScene extends Phaser.Scene {
     close?.setPosition(pg.x + pageW - 12 - close.width, pg.y + 12);
     y += titleH + 8;
     rule(this, pg.x + padX, y, pageW - padX * 2).setDepth(1);
+    // 62 루프 2 UI D: 무장 진행 — 괘선 위로 왼쪽 → 오른쪽 차오르는 선
+    if (this.gate && !this.gate.armed(performance.now()))
+      armBar(this, this.gate, pg.x + padX, y + 1, pageW - padX * 2, hexToNum(accentHex(this, 0, 20)), 2);
     y += 4 + 14;
     this.list.setPosition(pg.x + padX, y).setDepth(1);
     y += listH + 10;
@@ -335,7 +455,18 @@ export class MenuScene extends Phaser.Scene {
     }
     footer?.placeCenter(pg.x + pageW / 2, y);
     this.pageBottom = { x: pg.x + pageW / 2, y: pg.y + pageH };
-    if (m.id === 'meta') this.input.keyboard?.once('keydown-ENTER', () => uiCommands.select('meta', 'enter'));
+    if (m.id === 'meta') {
+      // 62 루프 2 UI D: 무장 전·열기 전부터 누르던 Enter 는 넘긴다 (다음 Enter 를 기다린다)
+      const onEnter = (e: KeyboardEvent): void => {
+        if (this.drawn !== m) return;
+        if (this.gate && !this.gate.keyOk(e.code, keyTime(e), e.repeat)) {
+          this.input.keyboard?.once('keydown-ENTER', onEnter);
+          return;
+        }
+        uiCommands.select('meta', 'enter');
+      };
+      this.input.keyboard?.once('keydown-ENTER', onEnter);
+    }
   }
 
   private clearCards(): void {
@@ -343,5 +474,7 @@ export class MenuScene extends Phaser.Scene {
     this.guideCancel = undefined;
     this.cardRow?.destroy();
     this.cardRow = undefined;
+    this.memoryView?.destroy();
+    this.memoryView = undefined;
   }
 }

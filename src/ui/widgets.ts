@@ -1,9 +1,12 @@
 import Phaser from 'phaser';
 import { GlowText } from './glow';
 import { takeKey } from './keyGate';
+import type { ChoiceGate } from './choiceGate';
+import { keyTime, leftButton, pointerTime } from './choiceArm';
 import { accentHex, cursor as makeCursor } from './kit';
 import { diamondRing, pixelDiamond } from './routeGlyph';
 import { LAYOUT, SEPIA, type TextStyleName, hexToNum } from './theme';
+import { playUiSound } from './uiSound';
 
 export interface SelectLine {
   key: string;
@@ -32,6 +35,16 @@ export interface SelectListOptions {
   stageIndex?: number;
   /** detail 줄바꿈 폭 (1배 px) */
   detailWrap?: number;
+  /**
+   * 62 루프 2: 커서 이동·고르기 소리(uiSound — 음향 ui_move·ui_select, 없으면 조용히). UI 만 아는 목록(일기장)에서만 켠다 —
+   * 시스템 메뉴는 시스템 오디오가 고르기 소리를 낸다
+   */
+  sounds?: boolean;
+  /**
+   * 62 루프 2 UI D: 무장 게이트 (choiceGate.ts) — 열린 뒤 무장 시간 동안·열기 전부터 눌려 있던 키로는 고르지 않는다.
+   * 없으면 무장 없이 받는다 (좌클릭은 늘 같은 줄 위에서 눌렀다 뗀 경우만)
+   */
+  gate?: ChoiceGate;
 }
 
 /**
@@ -52,8 +65,16 @@ export class SelectList {
   private surface: 'page' | 'ink';
   private stageIndex: number;
   private detailWrap?: number;
+  private sounds: boolean;
   /** false 면 키·마우스 입력을 받지 않는다 (위에 다른 패널이 떠 있을 때, 53라운드 '싸우는 법' 다시 보기) */
   private enabled = true;
+  private gate?: ChoiceGate;
+  /** 62 루프 2 UI D: 좌클릭을 누른 줄 (같은 줄 위에서 떼야 고른다, -1 = 없음) */
+  private pressIdx = -1;
+  private onUp = (): void => {
+    this.pressIdx = -1;
+    this.gate?.pointerUp();
+  };
 
   constructor(
     private scene: Phaser.Scene,
@@ -65,6 +86,9 @@ export class SelectList {
     this.surface = opts.surface ?? 'page';
     this.stageIndex = opts.stageIndex ?? 0;
     this.detailWrap = opts.detailWrap;
+    this.sounds = Boolean(opts.sounds);
+    this.gate = opts.gate;
+    scene.input.on(Phaser.Input.Events.POINTER_UP, this.onUp);
     this.cursorSprite = makeCursor(scene, this.surface === 'ink').setVisible(false);
     // 동작할 때만 takeKey — 고른 결과로 다음 메뉴가 열려도 같은 키 이벤트가 다시 넘어와 또 고르지 않게 (keyGate.ts)
     this.onKeyDown = (e: KeyboardEvent) => {
@@ -74,10 +98,10 @@ export class SelectList {
       } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
         if (takeKey(e)) this.move(1);
       } else if (e.key === 'Enter' || e.key === ' ') {
-        if (takeKey(e)) this.choose(this.cursorIdx);
+        if (takeKey(e) && this.keyOk(e)) this.choose(this.cursorIdx);
       } else {
         const idx = this.lines.findIndex((l) => (l.hotkey ?? l.key) === e.key);
-        if (idx >= 0 && takeKey(e)) this.choose(idx);
+        if (idx >= 0 && takeKey(e) && this.keyOk(e)) this.choose(idx);
       }
     };
     scene.input.keyboard?.on('keydown', this.onKeyDown);
@@ -125,7 +149,8 @@ export class SelectList {
         stageIndex: this.stageIndex,
       }).makeInteractive();
       t.on('pointerover', () => this.enabled && this.setCursor(i));
-      t.on('pointerdown', () => this.choose(i));
+      t.on('pointerdown', (p: Phaser.Input.Pointer) => this.press(i, p));
+      t.on('pointerup', (p: Phaser.Input.Pointer) => this.release(i, p));
       this.items.push(t);
       this.marks.push(l.rarity ? this.rarityMarks(t, l.rarity) : null);
       y += SELECT_ROW.line;
@@ -135,7 +160,8 @@ export class SelectList {
           wrap: this.detailWrap,
         }).makeInteractive();
         d.on('pointerover', () => this.enabled && this.setCursor(i));
-        d.on('pointerdown', () => this.choose(i));
+        d.on('pointerdown', (p: Phaser.Input.Pointer) => this.press(i, p));
+        d.on('pointerup', (p: Phaser.Input.Pointer) => this.release(i, p));
         this.details.push(d);
         y += d.textH + 4 + SELECT_ROW.gap;
       } else this.details.push(null);
@@ -232,6 +258,7 @@ export class SelectList {
   private move(d: number): void {
     if (!this.lines.length) return;
     this.setCursor((this.cursorIdx + d + this.lines.length) % this.lines.length);
+    if (this.sounds) playUiSound(this.scene, 'move');
   }
 
   private setCursor(i: number): void {
@@ -241,10 +268,36 @@ export class SelectList {
     if (moved) this.onCursor?.(i);
   }
 
+  /** 62 루프 2 UI D: 무장 게이트를 바꾼다 (같은 목록을 다른 화면 단계에서 다시 쓸 때) */
+  setGate(gate: ChoiceGate | undefined): this {
+    this.gate = gate;
+    return this;
+  }
+
+  /** 고르는 키를 받아도 되나 (게이트가 없으면 늘) */
+  private keyOk(e: KeyboardEvent): boolean {
+    return !this.gate || this.gate.keyOk(e.code, keyTime(e), e.repeat);
+  }
+
+  private press(i: number, p?: Phaser.Input.Pointer): void {
+    if (!leftButton(p)) return;
+    this.pressIdx = !this.gate || this.gate.pressOk(pointerTime(p)) ? i : -1;
+  }
+
+  private release(i: number, p?: Phaser.Input.Pointer): void {
+    if (!leftButton(p)) return;
+    const ok = this.gate ? this.gate.releaseOk() : true;
+    const same = this.pressIdx === i;
+    this.pressIdx = -1;
+    if (ok && same) this.choose(i);
+  }
+
   private choose(i: number): void {
     if (!this.enabled) return;
     const l = this.lines[i];
-    if (l && l.enabled) this.onSelect(l.key);
+    if (!l || !l.enabled) return;
+    if (this.sounds) playUiSound(this.scene, 'select');
+    this.onSelect(l.key);
   }
 
   private render(): void {
@@ -264,6 +317,7 @@ export class SelectList {
 
   destroy(): void {
     if (this.onKeyDown) this.scene.input.keyboard?.off('keydown', this.onKeyDown);
+    this.scene.input?.off(Phaser.Input.Events.POINTER_UP, this.onUp);
     for (const t of this.items) t.destroy();
     for (const d of this.details) d?.destroy();
     for (const d of this.headers) d?.destroy();

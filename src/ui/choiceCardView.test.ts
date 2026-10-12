@@ -71,7 +71,7 @@ describe('choiceCardView (60라운드 Q38 3지선다 카드 3장)', () => {
       ],
     };
     const cs = choiceCards(m);
-    expect(cs.map((c) => c.head)).toEqual(['패시브', '패시브', '패시브']);
+    expect(cs.map((c) => c.head)).toEqual(['유품', '유품', '유품']);
     expect(cs.map((c) => c.rarityRank)).toEqual([2, 4, 0]);
     expect(cs[0].meta).toBe('희귀 · 간파·돌파');
     expect(cs[2]).toMatchObject({ enabled: false, note: '(불가)' });
@@ -87,17 +87,17 @@ describe('choiceCardView (60라운드 Q38 3지선다 카드 3장)', () => {
         { key: '3', label: '강철 피부', enabled: true, kind: 'passive' },
       ],
     };
-    expect(choiceCards(m).map((c) => c.head)).toEqual(['패시브', '이중 개성', '패시브']);
+    expect(choiceCards(m).map((c) => c.head)).toEqual(['유품', '이중 개성', '유품']);
   });
 
   it('조작 안내: 카드 키 · 그만두기 키', () => {
-    expect(choiceHint(evolve)).toBe('1·2·3 또는 ←→ 고르기 · Enter 고른다');
+    expect(choiceHint(evolve)).toBe('1·2·3 또는 ←→ 고르기 · Enter · 클릭 고른다');
     const m: UiMenu = {
       ...evolve,
       id: 'reward',
       cancelKey: '0',
       lines: [...evolve.lines, { key: '0', label: '건너뛴다', enabled: true }],
     };
-    expect(choiceHint(m)).toBe('1·2·3 또는 ←→ 고르기 · Enter 고른다 · 0·Esc 그만두기');
+    expect(choiceHint(m)).toBe('1·2·3 또는 ←→ 고르기 · Enter · 클릭 고른다 · 0·Esc 그만두기');
   });
 });

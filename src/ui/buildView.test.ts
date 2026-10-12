@@ -65,7 +65,7 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
 
   it('저주 남은 기간: 처치 수 기준이 먼저', () => {
     expect(curseLeft(null)).toBe('');
-    expect(curseLeft({ nodesLeft: 3, killsLeft: null })).toBe('3노드 남음');
+    expect(curseLeft({ nodesLeft: 3, killsLeft: null })).toBe('3곳 남음');
     expect(curseLeft({ nodesLeft: null, killsLeft: 12 })).toBe('12처치 남음');
     expect(curseLeft({ nodesLeft: null, killsLeft: null })).toBe('');
   });
@@ -109,6 +109,23 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
       ratio: 0,
     });
     expect(trialView(null)).toBeNull();
+    // 62 루프 2 P2-3: 보상 자리 — 필드가 없으면 수치 없이, 있으면 '+20', 맞거나 시간이 지나면 흐림
+    expect(v.rewardText).toBe('');
+    expect(v.rewardLost).toBe(false);
+    const r = trialView({
+      timeLimitMs: 50000,
+      elapsedMs: 0,
+      hitTaken: true,
+      reward: [
+        { kind: 'gold', amount: 20, label: '전표 20' },
+        { kind: 'growth', amount: 15, label: '각성 15' },
+      ],
+    } as never)!;
+    expect(r.rewardText).toBe('+20 · 각성 15');
+    expect(r.rewardLost).toBe(true);
+    expect(trialView({ timeLimitMs: 50000, elapsedMs: 0, hitTaken: false, broken: 'time' } as never)!.rewardLost).toBe(
+      true,
+    );
     const g = gradedView(
       { nodeId: 'n', grade: 'perfect', noHit: true, inTime: false, deltas: { gold: 20, personality: 15 }, text: '' },
       '전표',
@@ -146,9 +163,9 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
     const full = diaryLines(s, 0).map((l) => l.text);
     expect(full).toContain('간파  3 · 2단  (다음 4)');
     expect(full).toContain('  2 하나');
-    expect(full).toContain('만취 서약  2노드 남음');
+    expect(full).toContain('만취 서약  2곳 남음');
     expect(full).toContain('  − 받는 피해 +15%');
-    expect(full).toContain('칼날 바람  Lv2/3  간파');
+    expect(full).toContain('칼날 바람  2단계/3  간파');
     expect(full).toContain('빈 칸  (C)');
     const mid = diaryLines(s, 1).map((l) => l.text);
     expect(mid).toContain('  2 하나');
@@ -161,7 +178,7 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
     expect(diaryLines({ passives: [], consumable: null }, 0).map((l) => l.text)).toEqual([
       '태그·세트',
       '―',
-      '패시브',
+      '유품',
       '―',
     ]);
   });
@@ -184,6 +201,6 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
     };
     const lines = diaryLines(s, 0).map((l) => l.text);
     expect(lines.some((t) => t.includes('원격'))).toBe(false);
-    expect(lines).toContain('긴 팔  Lv1/3  연쇄');
+    expect(lines).toContain('긴 팔  1단계/3  연쇄');
   });
 });

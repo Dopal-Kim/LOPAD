@@ -174,7 +174,8 @@ export function showTrainingMap(scene: Phaser.Scene, m: UiMenu, snap: UiSnapshot
   close?.setPosition(x0 + mw - 12 - close.width, y0 + 10);
 
   const slots: CardSlot[] = [];
-  const picks: (() => void)[] = [];
+  const presses: ((p: Phaser.Input.Pointer) => void)[] = [];
+  const releases: ((p: Phaser.Input.Pointer) => void)[] = [];
   const hovers: (() => void)[] = [];
   rooms.forEach((l, i) => {
     const p = pos[i];
@@ -192,7 +193,8 @@ export function showTrainingMap(scene: Phaser.Scene, m: UiMenu, snap: UiSnapshot
     );
     if (box.input) box.input.cursor = l.enabled ? 'pointer' : 'default';
     box.on('pointerover', () => hovers[i]());
-    box.on('pointerdown', () => picks[i]());
+    box.on('pointerdown', (p: Phaser.Input.Pointer) => presses[i](p));
+    box.on('pointerup', (p: Phaser.Input.Pointer) => releases[i](p));
     const label = new GlowText(scene, 0, 0, l.label, 'page_unsel', {
       wrap: 132,
       align: 'center',
@@ -226,10 +228,11 @@ export function showTrainingMap(scene: Phaser.Scene, m: UiMenu, snap: UiSnapshot
     if (i >= 0) noteTransitionOrigin('training', ids[i], pos[i].x, pos[i].y, performance.now());
     ctx.send(key);
   };
-  const row = new CardRow(scene, slots, cancel, send, ctx.keepCursor);
+  const row = new CardRow(scene, slots, cancel, send, ctx.keepCursor, ctx.gate);
   slots.forEach((_, i) => {
     hovers[i] = () => row.hover(i);
-    picks[i] = () => row.choose(i);
+    presses[i] = (p) => row.press(i, p);
+    releases[i] = (p) => row.release(i, p);
   });
   debugExpose('trainingMap', { spots: ids.map((id, i) => ({ id, ...pos[i] })), meta: metaSpots.length > 0 });
   return { row, bottom: { x: W / 2, y: y0 + mh } };
@@ -272,7 +275,8 @@ export function showTrainingChoice(scene: Phaser.Scene, m: UiMenu, ctx: CardPage
   }
   const cx0 = Math.round(pg.x + pageW / 2 - rowW / 2);
   const slots: CardSlot[] = [];
-  const picks: (() => void)[] = [];
+  const presses: ((p: Phaser.Input.Pointer) => void)[] = [];
+  const releases: ((p: Phaser.Input.Pointer) => void)[] = [];
   const hovers: (() => void)[] = [];
   const doorImgs: Phaser.GameObjects.Image[] = [];
   lines.forEach((l: UiMenuLine, i) => {
@@ -322,7 +326,8 @@ export function showTrainingChoice(scene: Phaser.Scene, m: UiMenu, ctx: CardPage
     box.setInteractive(new Phaser.Geom.Rectangle(cw / 2, ch / 2, cw, ch), Phaser.Geom.Rectangle.Contains);
     if (box.input) box.input.cursor = 'pointer';
     box.on('pointerover', () => hovers[i]());
-    box.on('pointerdown', () => picks[i]());
+    box.on('pointerdown', (p: Phaser.Input.Pointer) => presses[i](p));
+    box.on('pointerup', (p: Phaser.Input.Pointer) => releases[i](p));
     const baseY = y;
     slots.push({
       key: l.key,
@@ -342,10 +347,11 @@ export function showTrainingChoice(scene: Phaser.Scene, m: UiMenu, ctx: CardPage
   });
   y += ch + 12;
   hint.placeCenter(pg.x + pageW / 2, y);
-  const row = new CardRow(scene, slots, null, ctx.send, ctx.keepCursor);
+  const row = new CardRow(scene, slots, null, ctx.send, ctx.keepCursor, ctx.gate);
   slots.forEach((_, i) => {
     hovers[i] = () => row.hover(i);
-    picks[i] = () => row.choose(i);
+    presses[i] = (p) => row.press(i, p);
+    releases[i] = (p) => row.release(i, p);
   });
   return { row, bottom: { x: pg.x + pageW / 2, y: pg.y + pageH } };
 }

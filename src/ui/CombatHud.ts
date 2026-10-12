@@ -108,6 +108,11 @@ export class CombatHud {
     return C.left + this.w;
   }
 
+  /** 62 루프 2 UI F: 전표 숫자 바로 오른쪽 (산 뒤 '−n' 이 떠오르는 자리) */
+  get goldAt(): { x: number; y: number } {
+    return { x: Math.round(this.goldText.x + this.goldText.displayWidth + 4), y: Math.round(this.goldText.y) };
+  }
+
   /**
    * 가운데 아래 글(자막·완벽 성공 문구)을 놓을 아래 끝: 왼쪽 묶음 위 (가운데 글이 넓으면 왼쪽 묶음과 가로로 겹칠 수 있어
    * 묶음 위 끝보다 위에 둔다). 보스 막대가 있으면 HudScene 이 `BossHud.top` 과 더 작은 쪽을 쓴다

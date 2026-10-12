@@ -45,7 +45,11 @@ function strs(v: unknown): string[] | null {
 
 /** 국면 이름 목록: 스냅샷 → 층 기본 → 빈 목록 */
 export function phaseNamesFor(stageIndex: number, given?: unknown): string[] {
-  return strs(given) ?? [...(BOSS_PHASE_NAMES_BY_FLOOR[stageIndex] ?? [])];
+  const base = [...(BOSS_PHASE_NAMES_BY_FLOOR[stageIndex] ?? [])];
+  if (!strs(given) || !Array.isArray(given)) return base;
+  // 62 루프 2 (계약 D `phaseRevealed`): 아직 오지 않은 국면은 '' 로 온다 — 자리(길이)는 지키고 층 기본 이름으로 메운다
+  // (그 칸은 국면 띠에서 '???' 로 가려진다)
+  return given.map((x, i) => (typeof x === 'string' && x.trim() ? x.trim() : (base[i] ?? '')));
 }
 
 /** 국면 이름 (목록에 없으면 'n국면') */
@@ -113,9 +117,19 @@ export function readBoss(boss: unknown, stageIndex: number, nTemplate: string): 
   };
 }
 
-/** 국면 띠 '얼큰 → 만취 → 인사불성': 지난 국면 · 지금 · 다음 */
-export function phaseStrip(names: string[], phase: number): { text: string; state: 'past' | 'now' | 'next' }[] {
-  return names.map((text, i) => ({ text, state: i + 1 < phase ? 'past' : i + 1 === phase ? 'now' : 'next' }));
+/**
+ * 국면 띠 '얼큰 → 만취 → 인사불성': 지난 국면 · 지금 · 다음. 62 루프 2 (P1-14): `hidden` 을 주면 아직 오지 않은 국면 이름은 그 글('???')로
+ * 가린다 — 국면 이름은 그 국면이 될 때 처음 보인다
+ */
+export function phaseStrip(
+  names: string[],
+  phase: number,
+  hidden: string | null = null,
+): { text: string; state: 'past' | 'now' | 'next' }[] {
+  return names.map((text, i) => {
+    const state = i + 1 < phase ? 'past' : i + 1 === phase ? 'now' : 'next';
+    return { text: state === 'next' && hidden ? hidden : text, state };
+  });
 }
 
 /** 국면 눈금 x (막대 안쪽 왼쪽·폭, 정수). 체력이 이미 지나간 눈금은 passed */
@@ -229,4 +243,17 @@ export function readBossEvent(p: unknown): {
     phaseName: typeof o.phaseName === 'string' && o.phaseName.trim() ? o.phaseName.trim() : null,
     finisher: o.finisher === true,
   };
+}
+
+/**
+ * 62 루프 2 (시스템 A 요청): 이름 카드 머묾 — 싸움 시작(BOSS_STARTED + introMs)까지 남은 시간 안에 나타남·머묾·사라짐이 끝나게 줄인다
+ * (최소 900ms 머묾, 기본 머묾보다 길게는 안 함). 남은 시간을 모르면 기본값
+ */
+export function nameCardTiming<T extends { inMs: number; holdMs: number; outMs: number }>(
+  base: T,
+  untilFightMs: number | null,
+): T {
+  if (untilFightMs === null || !Number.isFinite(untilFightMs)) return base;
+  const hold = Math.round(untilFightMs - base.inMs - base.outMs);
+  return { ...base, holdMs: Math.max(900, Math.min(base.holdMs, hold)) };
 }

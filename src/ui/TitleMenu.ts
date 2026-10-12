@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GlowText, RING } from './glow';
 import { takeKey } from './keyGate';
+import { playUiSound } from './uiSound';
 import { NinePanel } from './kit';
 import { FLOOR1_RAMP, SEPIA, hexToNum } from './theme';
 import { ART_TO_LOGIC, TITLE_EMBERS, TITLE_UI, titleKey, type TitleSpec } from './themeTitle';
@@ -208,6 +209,8 @@ export class TitleMenu {
   private select(i: number): void {
     if (i === this.idx) return;
     this.idx = i;
+    // 62 루프 2: 커서 이동 소리 (음향 ui_move — 없으면 조용히)
+    playUiSound(this.scene, 'move');
     this.paint(false);
   }
 
@@ -224,6 +227,7 @@ export class TitleMenu {
     }
     this.select(i);
     this.locked = true;
+    playUiSound(this.scene, 'select');
     // 누른 느낌: 띠가 한 번 밝아지고 불씨가 부푼다
     r.band.setAlpha(1);
     this.scene.tweens.add({ targets: r.band, alpha: 0.55, duration: TITLE_UI.menu.chooseMs, yoyo: true });

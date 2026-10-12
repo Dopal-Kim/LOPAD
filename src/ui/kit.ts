@@ -313,6 +313,11 @@ export function fontsReady(): Promise<void> {
   return fontPromise;
 }
 
+/** 62 루프 2 UI D: 이 글꼴 읽기가 끝났는가 (성공·실패 모두 — glowRaster 가 글꼴 높이 측정을 저장해도 되는지) */
+export function fontSettled(kind: keyof typeof FONT): boolean {
+  return fontOk.has(FONT[kind].family);
+}
+
 /** 로드된 글꼴이면 그 이름, 아니면 폴백 monospace */
 export function fontFamily(kind: keyof typeof FONT): string {
   const f = FONT[kind];

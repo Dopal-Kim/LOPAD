@@ -360,7 +360,7 @@ export const REGION_ART: readonly { key: string; match: readonly string[] }[] = 
   { key: 'gate', match: ['성문', 'gate'] },
   { key: 'outer', match: ['외곽', 'outer'] },
   { key: 'brewery', match: ['양조', 'brewery'] },
-  { key: 'hall', match: ['연회', '본영', 'hall'] },
+  { key: 'hall', match: ['연회', '군주', 'hall'] },
   { key: 'waste', match: ['황무지', '전장', '여정', 'waste'] },
 ];
 

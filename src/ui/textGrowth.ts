@@ -6,8 +6,8 @@
 export const GROWTH_TEXT = {
   // ---- HUD 각성 게이지
   gaugeLabel: '각성',
-  /** 다음 눈금까지 남은 수 — {what} = 눈금 이름, {n} = 남은 수 */
-  remain: '{what}까지 {n}',
+  /** 다음 눈금까지 남은 수 — {n} = 남은 수 ({what} = 눈금 이름도 쓸 수 있다). 62 루프 2 용어집: '다음 눈금까지 {n}' */
+  remain: '다음 눈금까지 {n}',
   remainDone: '모든 눈금',
   markTrait: '개성 발현',
   markAwaken1: '1차 각성',

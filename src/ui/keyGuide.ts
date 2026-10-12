@@ -78,6 +78,8 @@ export interface KeyHintOptions {
   /** 잉크(HUD·어두운 바탕) / 종이(일기장) — 동작 이름 글자 스타일이 다르다 */
   surface?: 'ink' | 'page';
   stageIndex?: number;
+  /** 62 루프 2 (P2-5): 종이 위 동작 이름을 밝게 (일기장 조작 목록 대비) */
+  bright?: boolean;
 }
 
 /**
@@ -126,7 +128,15 @@ export class KeyHint extends Phaser.GameObjects.Container {
     this.glyphs.forEach((gl, i) => gl.setPosition(xs[i], 0));
     this.keysW = w;
     const style: TextStyleName =
-      opts.surface === 'page' ? (dim ? 'page_faint' : 'page_body') : dim ? 'ink_faint' : 'ink_body';
+      opts.surface === 'page'
+        ? dim
+          ? 'page_faint'
+          : opts.bright
+            ? 'page_unsel'
+            : 'page_body'
+        : dim
+          ? 'ink_faint'
+          : 'ink_body';
     this.label = new GlowText(scene, 0, 0, item.label, style, { stageIndex: si });
     this.add([...this.glyphs, this.label]);
     this.setLabelX(w + (w > 0 ? KEY_GUIDE.labelGap : 0));

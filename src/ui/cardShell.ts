@@ -32,7 +32,13 @@ export interface ShellOpts {
   onPaint?: (sel: boolean) => void;
 }
 
-export type ShellSlot = CardSlot & { box: Phaser.GameObjects.Container };
+export type ShellSlot = CardSlot & {
+  box: Phaser.GameObjects.Container;
+  /** 62 루프 2 UI D: 카드 밖에 따로 놓은 것(잠김 글·자물쇠 등)도 들어오기 연출을 같이 따른다 */
+  follow(objs: Phaser.GameObjects.GameObject[]): void;
+};
+
+type Movable = Phaser.GameObjects.GameObject & { y: number; setY(y: number): unknown; setAlpha(a: number): unknown };
 
 /**
  * 선택 카드 한 장의 껍데기 (60 Q38 3지선다 카드에서 떼어 냄 — 61 단계 4 P12 성장 카드와 같이 쓴다).
@@ -71,15 +77,40 @@ export function cardShell(
   box.setInteractive(new Phaser.Geom.Rectangle(cw / 2, ch / 2, cw, ch), Phaser.Geom.Rectangle.Contains);
   if (box.input) box.input.cursor = o.enabled ? 'pointer' : 'default';
   let shakeTween: Phaser.Tweens.Tween | null = null;
-  return {
+  // 62 루프 2 UI D: 들어오기 연출 (아래로 dy · 투명 fade) — 고름 자리 들림과 겹쳐 그린다
+  let dy = 0;
+  let fade = 1;
+  let lastSel = false;
+  const extras: { o: Movable; y: number }[] = [];
+  const topOf = (sel: boolean): number => (sel && o.enabled ? y - C.lift : y) + dy;
+  const slot: ShellSlot = {
     key: o.key,
     hotkey: o.hotkey,
     enabled: o.enabled,
     box,
+    rect: () => ({ x, y: topOf(lastSel), w: cw, h: ch }),
+    enter: (d, a) => {
+      dy = d;
+      fade = a;
+      slot.paint(lastSel);
+      for (const e of extras) {
+        e.o.setY(e.y + d);
+        e.o.setAlpha(a);
+      }
+    },
+    follow: (objs) => {
+      for (const ob of objs) {
+        const m = ob as Movable;
+        if (typeof m.setY === 'function') extras.push({ o: m, y: m.y });
+      }
+    },
     paint: (sel) => {
+      lastSel = sel;
       const lifted = sel && o.enabled;
-      const top = lifted ? y - C.lift : y;
-      box.setY(top).setAlpha(o.enabled ? 1 : LAYOUT.disabledAlpha);
+      const top = topOf(sel);
+      box.setY(top).setAlpha((o.enabled ? 1 : LAYOUT.disabledAlpha) * fade);
+      shadow.setAlpha(fade);
+      frame.setAlpha(fade);
       const off = lifted ? C.shadowLift : C.shadow;
       shadow
         .clear()
@@ -104,6 +135,7 @@ export function cardShell(
       });
     },
   };
+  return slot;
 }
 
 /**
@@ -160,8 +192,14 @@ export function cardPage(
         yy += cancelH;
       }
       hint.placeCenter(pg.x + pageW / 2, yy);
-      const row = new CardRow(scene, slots, cancel, ctx.send, ctx.keepCursor);
-      slots.forEach((s, i) => s.box.on('pointerover', () => row.hover(i)).on('pointerdown', () => row.choose(i)));
+      const row = new CardRow(scene, slots, cancel, ctx.send, ctx.keepCursor, ctx.gate);
+      // 62 루프 2 UI D: 좌클릭은 같은 카드 위에서 눌렀다 뗀 경우만
+      slots.forEach((s, i) =>
+        s.box
+          .on('pointerover', () => row.hover(i))
+          .on('pointerdown', (p: Phaser.Input.Pointer) => row.press(i, p))
+          .on('pointerup', (p: Phaser.Input.Pointer) => row.release(i, p)),
+      );
       return { row, bottom: { x: pg.x + pageW / 2, y: pg.y + pageH } };
     },
   };

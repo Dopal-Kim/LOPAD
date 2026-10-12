@@ -70,6 +70,10 @@ export const TRIAL = {
   barH: 2,
   /** 남은 시간 비율이 이 아래면 강조색 */
   lowRatio: 0.25,
+  /** 62 루프 2 P2-3: 보상 자리 — '무피격' 뒤 간격 · 화살 폭 · 잃었을 때 아이콘 알파 */
+  rewardGap: 7,
+  arrowW: 9,
+  lostAlpha: 0.45,
 } as const;
 
 export const GRADE_CARD = {

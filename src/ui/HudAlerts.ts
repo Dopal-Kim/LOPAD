@@ -48,6 +48,8 @@ interface Item {
   timer?: Phaser.Time.TimerEvent;
   /** 사라지는 중 (자리 계산에서 뺀다) */
   leaving: boolean;
+  /** 들어온 시각 (scene.time.now) */
+  pushedAt: number;
 }
 
 /**
@@ -104,7 +106,7 @@ export class HudAlerts {
       key: spec.key ?? null,
       ttlMs: spec.ttlMs,
     });
-    this.items.set(r.id, { id: r.id, spec, h: 0, targetY: 0, leaving: false });
+    this.items.set(r.id, { id: r.id, spec, h: 0, targetY: 0, leaving: false, pushedAt: now });
     this.apply(r.actions);
   }
 
@@ -118,6 +120,17 @@ export class HudAlerts {
   /** 종류별로 접는다 (없으면 전부). keep 은 남긴다 */
   clear(keep: readonly AlertKind[] = []): void {
     this.apply(this.plan.clear(keep));
+  }
+
+  /**
+   * 62 루프 2 (P1-11, 시스템 A 요청): 이 시각 앞에 들어온 알림만 접는다 (노드 진입 — 같은 프레임에 먼저 온 새 방 알림은 남는다).
+   * keep 종류는 남긴다
+   */
+  clearBefore(t: number, keep: readonly AlertKind[] = []): void {
+    const actions: AlertAction[] = [];
+    for (const it of this.items.values())
+      if (it.pushedAt < t && !keep.includes(it.spec.kind)) actions.push(...this.plan.remove(it.id));
+    this.apply(actions);
   }
 
   /** 그 종류만 접는다 */

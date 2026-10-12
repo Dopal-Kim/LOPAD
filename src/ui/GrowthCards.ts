@@ -6,9 +6,20 @@ import { cardPage, cardShell, type ShellSlot } from './cardShell';
 import { choiceHint } from './choiceCardView';
 import { GlowText } from './glow';
 import { diamond, lookImage, lookText, pairPips, scaledKey, traitIconCard, traitIconOuter } from './growthArt';
-import { growthCardW, growthCards, guideText, iconWeapon, type GrowthCardData, type GuideKind } from './growthView';
+import {
+  growthCardGap,
+  growthCardW,
+  growthCards,
+  growthNameScale,
+  guideText,
+  iconWeapon,
+  type GrowthCardData,
+  type GuideKind,
+} from './growthView';
 import { KIT, paperPage } from './kit';
 import { takeKey } from './keyGate';
+import type { ChoiceGate } from './choiceGate';
+import { keyTime, leftButton, pointerTime } from './choiceArm';
 import type { CardPage, CardPageCtx } from './MenuCards';
 import { swatch } from './StructureHud';
 import { fill, growthText, r60Text } from './text';
@@ -49,13 +60,14 @@ export function showGrowthCards(
   if (data.length < 2) return null;
   const n = data.length;
   const cw = growthCardW(n);
-  const matW = n * cw + (n - 1) * C.gap + C.matPad * 2;
+  const gap = growthCardGap(n);
+  const matW = n * cw + (n - 1) * gap + C.matPad * 2;
   // 화면에 들 때까지 조인다: 0 = 그대로 → 1 = 그림 칸 낮게·괘선·'2차 각성 길' 머리글 뺌 → 2 = 길 한 줄·태그도 뺌 (그래도 넘치면 목록)
   const tried: number[] = [];
   for (const lv of [0, 1, 2] as const) {
     const before = new Set(scene.children.list);
     const faces = data.map((d) =>
-      cardFace(scene, d, cw, lv, iconWeapon(d.icon, snap.weapon?.name, snap.growth?.weaponName)),
+      cardFace(scene, d, cw, lv, iconWeapon(d.icon, snap.weapon?.name, snap.growth?.weaponName), growthNameScale(n)),
     );
     const ch = Math.max(C.minH, ...faces.map((f) => f.h));
     const page = cardPage(
@@ -69,7 +81,7 @@ export function showGrowthCards(
     tried.push(ch);
     if (page) {
       debugExpose('growthCardFit', { level: lv, tried });
-      return finishCards(scene, page, faces, cw, ch);
+      return finishCards(scene, page, faces, cw, ch, gap);
     }
     for (const o of scene.children.list.filter((x) => !before.has(x))) o.destroy();
     for (const f of faces) for (const o of f.parts) o.destroy();
@@ -84,12 +96,13 @@ function finishCards(
   faces: Face[],
   cw: number,
   ch: number,
+  gap: number,
 ): CardPage {
   const slots: ShellSlot[] = faces.map((f, i) =>
     cardShell(
       scene,
       C,
-      page.left + i * (cw + C.gap),
+      page.left + i * (cw + gap),
       page.top,
       cw,
       ch,
@@ -116,7 +129,14 @@ interface Face {
 }
 
 /** 카드 내용 (카드 왼쪽 위 기준 지역 좌표) */
-function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 | 2, weapon: VoiceWeaponId): Face {
+function cardFace(
+  scene: Phaser.Scene,
+  d: GrowthCardData,
+  cw: number,
+  lv: 0 | 1 | 2,
+  weapon: VoiceWeaponId,
+  nameScale: 1 | 2 = 2,
+): Face {
   const lookH = lv === 0 ? C.lookH : C.lookHCompact;
   const inner = cw - C.pad * 2;
   // 61 단계 6 (P14 §2): 키 밑줄·길 점·단련 눈금은 무기 색
@@ -144,18 +164,18 @@ function cardFace(scene: Phaser.Scene, d: GrowthCardData, cw: number, lv: 0 | 1 
     if (icon) {
       parts.push(...icon);
       y += outer + TI.gapBelow;
-      if (d.verb) y = keyRow(scene, g, parts, d.verb, cx, y, hue);
+      if (d.verb) y = keyRow(scene, g, parts, d.verb, cx, y, hue, inner);
     } else if (d.verb) y = bigKey(scene, g, parts, d.verb, cx, y, hue);
   }
   // ---- 이름
   const name = new GlowText(scene, 0, 0, d.name, 'page_unsel', {
-    scale: 2,
-    wrap: Math.floor(inner / 2),
+    scale: nameScale,
+    wrap: Math.floor(inner / nameScale),
     align: 'center',
   });
   add(name, GAP.afterName);
   // 각성 카드: 바뀌는 키 한 줄 ([키] '… 바뀜')
-  if ((d.kind === 'awaken1' || d.kind === 'awaken2') && d.verb) y = keyRow(scene, g, parts, d.verb, cx, y, hue);
+  if ((d.kind === 'awaken1' || d.kind === 'awaken2') && d.verb) y = keyRow(scene, g, parts, d.verb, cx, y, hue, inner);
   // ---- 괘선 · 한 줄
   // (조인 단계에서는 괘선을 빼고 한 줄 아래 틈을 줄인다)
   if (lv === 0) {
@@ -281,11 +301,24 @@ function keyRow(
   cx: number,
   y: number,
   hue: number,
+  maxW = Infinity,
 ): number {
   const k = scaledKey(scene, verb.key, 1);
   const label = verb.name ? fill(growthText('changes'), { verb: verb.name }) : '';
-  const t = label ? new GlowText(scene, 0, 0, label, 'page_body') : null;
+  let t = label ? new GlowText(scene, 0, 0, label, 'page_body') : null;
   const w = k.width + (t ? 5 + t.displayWidth : 0);
+  // 62 루프 2 UI E: 좁은 카드(4·5장)에서 한 줄에 안 들면 키 아래 줄에 가운데로 (넘침 방지)
+  if (t && w > maxW) {
+    t.destroy();
+    t = new GlowText(scene, 0, 0, label, 'page_body', { wrap: maxW, align: 'center' });
+    const x0 = Math.round(cx - k.width / 2);
+    k.obj.setPosition(x0, y);
+    parts.push(k.obj);
+    g.fillStyle(hue, 1).fillRect(x0, y + k.height + 1, k.width, 2);
+    t.placeCenter(cx, y + k.height + 4);
+    parts.push(t);
+    return y + k.height + 4 + t.displayHeight + GAP.afterKey;
+  }
   const x0 = Math.round(cx - w / 2);
   k.obj.setPosition(x0, y);
   parts.push(k.obj);
@@ -355,6 +388,8 @@ export function showGrowthGuide(
   onDone: () => void,
   /** 62 P2-8: 개성 발현 안내 그림 — 이번에 고를 개성 카드 그림(메뉴 줄 `trait.iconKey`)과 무기 (없으면 옛 마름모) */
   traitArt?: { icons: string[]; weapon: VoiceWeaponId },
+  /** 62 루프 2 UI D: 무장 게이트 — 있으면 무장 전·열기 전부터 누르던 키·클릭으로는 닫지 않는다 (없으면 예전처럼 0.2초 뒤부터) */
+  gate?: ChoiceGate,
 ): () => void {
   const W = UI_SCREEN.WIDTH;
   const H = UI_SCREEN.HEIGHT;
@@ -412,31 +447,49 @@ export function showGrowthGuide(
   box.setAlpha(0);
   scene.tweens.add({ targets: box, alpha: 1, duration: 160 });
   let closed = false;
+  const unhook = (): void => {
+    scene.input.keyboard?.off('keydown', onKey);
+    scene.input.off('pointerdown', onDown);
+    scene.input.off('pointerup', onUp);
+  };
   const close = (): void => {
     if (closed) return;
     closed = true;
-    scene.input.keyboard?.off('keydown', onKey);
-    scene.input.off('pointerdown', onClick);
+    unhook();
     box.destroy();
     onDone();
   };
   const onKey = (e: KeyboardEvent): void => {
     if (e.repeat) return;
-    if ((e.key === 'Enter' || e.key === ' ') && takeKey(e)) close();
+    if ((e.key === 'Enter' || e.key === ' ') && takeKey(e) && (!gate || gate.keyOk(e.code, keyTime(e), e.repeat)))
+      close();
   };
-  const onClick = (): void => close();
-  // 메뉴를 연 클릭·키가 그대로 넘어오지 않게 한 박자 뒤부터 받는다
-  scene.time.delayedCall(200, () => {
+  // 62 루프 2 UI D: 눌렀다 뗀 클릭만 (누름이 무장 뒤 새로 누른 것이어야)
+  let pressed = false;
+  const onDown = (p: Phaser.Input.Pointer): void => {
+    pressed = leftButton(p) && (!gate || gate.pressOk(pointerTime(p)));
+  };
+  const onUp = (p: Phaser.Input.Pointer): void => {
+    if (!leftButton(p)) return;
+    const ok = pressed && (!gate || gate.releaseOk());
+    pressed = false;
+    gate?.pointerUp();
+    if (ok) close();
+  };
+  const hook = (): void => {
     if (closed) return;
     scene.input.keyboard?.on('keydown', onKey);
-    scene.input.on('pointerdown', onClick);
-  });
+    scene.input.on('pointerdown', onDown);
+    scene.input.on('pointerup', onUp);
+  };
+  // 메뉴를 연 클릭·키가 그대로 넘어오지 않게: 게이트가 있으면 게이트가, 없으면 한 박자 뒤부터 받는다
+  if (gate) hook();
+  else scene.time.delayedCall(200, hook);
   // 바깥에서 치울 때 (메뉴가 바뀌거나 닫힘) — onDone 없이
   return () => {
     if (closed) return;
     closed = true;
-    scene.input.keyboard?.off('keydown', onKey);
-    scene.input.off('pointerdown', onClick);
+    unhook();
     box.destroy();
   };
 }

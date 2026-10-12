@@ -27,6 +27,8 @@ import { KeyGuide } from './keyGuide';
 import { snapshotVerbItems } from './keyGuideView';
 import { CombatHud } from './CombatHud';
 import { debugExpose, installUiDebug, withDebug } from './debug';
+import { warmUi } from './uiWarm';
+import { doorWalking } from './choiceGate';
 import { GlowText } from './glow';
 import { ICON, NinePanel, fontsReady, icon, inkPanel, preloadKit, setupKit } from './kit';
 import { keyTaken, takeKey } from './keyGate';
@@ -51,8 +53,10 @@ import { TutorialGuide } from './TutorialHud';
 import { DENY_KEY, WarpMap, roomName } from './WarpMap';
 import { HudNarrative } from './HudNarrative';
 import { TrainingLayer } from './TrainingHud';
+import { HudLoop2F } from './HudLoop2F';
 import { ensureTransitionScene } from './TransitionScene';
 import { transitionBusy } from './transitionState';
+import { DeathVeil, ExitArrow } from './HudLoop2E';
 
 /** 메뉴 씬 안전망: MENU_OPEN 뒤 이만큼 기다려도 메뉴 씬이 없으면 UI 가 띄운다 (ms) */
 const MENU_SAFETY_MS = 60;
@@ -85,6 +89,8 @@ export class HudScene extends Phaser.Scene {
   private growthLayer?: GrowthLayer;
   /** 61 단계 6 P14: 수련장 과제 목록·과제 알림·방 도장 */
   private training?: TrainingLayer;
+  /** 62 루프 2 UI F: 장터 노점 카드 · 사연 결과 컷 · 숨은 보상 · 허수아비 팻말 · 무리 방향 화살촉 (HudLoop2F.ts) */
+  private loop2F?: HudLoop2F;
   /** 61라운드 P10: Tab 빌드 보기 (누르고 있는 동안) */
   private peek?: BuildPeek;
   /** 61라운드 P1: 무기 시험장 아래 가운데 4동사 키캡 안내 */
@@ -128,6 +134,9 @@ export class HudScene extends Phaser.Scene {
   private mapHint?: GlowText;
   // 탄생 연출 (48라운드): HUD 를 숨기고 건너뛰기 안내만
   private birth!: BirthOverlay;
+  /** 62 루프 2 UI E (계약 C): 사망 연출 동안 HUD 걷기 · 출구 방향 화살표 (HudLoop2E.ts) */
+  private deathVeil?: DeathVeil;
+  private exitArrow?: ExitArrow;
 
   constructor() {
     super(UI_SCENE_KEYS.HUD);
@@ -186,6 +195,19 @@ export class HudScene extends Phaser.Scene {
         ),
     });
     installUiDebug(this);
+    // 62 루프 2 UI E: 사망 연출(DEATH_STARTED) — 알림·자막·쪽지·토스트를 거두고 HUD 를 걷는다. 다음 생에 되돌린다
+    this.cameras.main.setAlpha(1);
+    this.deathVeil = new DeathVeil(this, () => {
+      this.alerts.clear();
+      this.narr?.story.reset();
+      this.toasts?.clear();
+      this.peek?.hide();
+      this.closeWarp(false);
+      this.closeRoute(false);
+    });
+    this.on(UI_EVENTS.DEATH_STARTED, (p: unknown) => this.deathVeil?.start(p as object));
+    for (const e of [UI_EVENTS.STAGE_STARTED, UI_EVENTS.BIRTH_STARTED, UI_EVENTS.ROUTE_NODE_ENTERED])
+      this.on(e, () => this.deathVeil?.reset());
     this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(withDebug(s)));
     // 62 P0-6: 옛 진화 배너는 같은 개성 알림과 한 장 (GrowthHud.evolved)
     this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) =>
@@ -204,6 +226,13 @@ export class HudScene extends Phaser.Scene {
     this.growthLayer.subscribe((e, h) => this.on(e, h));
     // 61 단계 6 P14 수련장: 과제 체크 목록(오른쪽, 미니맵·지도 안내 아래) · 과제 완료 알림 · 방 도장
     this.training = new TrainingLayer(this, { top: () => TRAINING_UI.top, alert: (spec) => this.alerts.push(spec) });
+    this.loop2F = new HudLoop2F(this, {
+      alert: (spec) => this.alerts.push(spec),
+      stageIndex: () => Math.max(0, this.stageIndex),
+      goldAt: () => this.combat?.goldAt ?? null,
+      snapshot: () => withDebug(uiCommands.getUiSnapshot()),
+    });
+    this.loop2F.subscribe((e, h) => this.on(e, h));
     this.training.subscribe((e, h) => this.on(e, h));
     // 53라운드 계약: 튜토리얼 단계 카드 · 적 등장 예고('주의' 경고, Q49·Q60)
     this.on(UI_EVENTS.TUTORIAL_STEP, (p: unknown) => this.onTutorialStep(p));
@@ -243,6 +272,12 @@ export class HudScene extends Phaser.Scene {
     // 48라운드: 노드 지도·노드 진입·탄생 연출 (계약 §10)
     this.on(UI_EVENTS.ROUTE_CHOOSE_OPEN, (r: UiRoute) => this.openRouteChoose(r));
     this.on(UI_EVENTS.ROUTE_NODE_ENTERED, (p: UiRouteEntered) => {
+      // 62 루프 2 (P1-11, 시스템 A 요청): 전환 없이 노드가 바뀌어도(디버그 이동·이어하기) 앞 방의 알림·자막·쪽지·토스트를 거둔다.
+      // 이 프레임 앞에 들어온 것만 — 같은 프레임에 먼저 온 새 방의 층 자막은 남는다
+      const now = this.time.now;
+      this.alerts.clearBefore(now);
+      this.narr?.story.clearBefore(now);
+      this.toasts?.clear();
       // 50라운드: 지역이 바뀌었으면 지역 카드 먼저, 그 뒤 노드 이름 배너
       const s = withDebug(uiCommands.getUiSnapshot());
       this.banners.region(findNode(s.route, p?.id), s);
@@ -314,6 +349,8 @@ export class HudScene extends Phaser.Scene {
       this.growthLayer?.destroy();
       this.growthLayer = undefined;
       this.training?.destroy();
+      this.loop2F?.destroy();
+      this.loop2F = undefined;
       this.training = undefined;
       this.labGuide = undefined;
       this.peek?.destroy();
@@ -327,6 +364,10 @@ export class HudScene extends Phaser.Scene {
       this.route.destroy();
       this.routeStrip = undefined;
       this.endBirth();
+      this.exitArrow?.destroy();
+      this.exitArrow = undefined;
+      this.deathVeil?.reset();
+      this.deathVeil = undefined;
       this.banners.destroy();
       this.alerts.destroy();
       this.bubble = undefined;
@@ -342,6 +383,8 @@ export class HudScene extends Phaser.Scene {
       if (!this.alive) return;
       this.build();
       this.render(withDebug(this.pending ?? uiCommands.getUiSnapshot()));
+      // 62 루프 2 UI D: 선택 메뉴에 늘 나오는 글을 미리 구워 둔다 (메뉴가 처음 열리는 순간의 렉 줄이기 — uiWarm.ts)
+      warmUi(this);
     });
   }
 
@@ -657,6 +700,8 @@ export class HudScene extends Phaser.Scene {
       banner: (text) => this.alerts.push(infoAlert(text, Math.max(0, this.stageIndex))),
     });
 
+    // 62 루프 2 UI E: 출구 방향 화살표 (계약 C `exitHint`)
+    this.exitArrow = new ExitArrow(this);
     this.built = true;
     // 글꼴을 기다리는 동안 시작된 탄생 연출·미뤄 둔 배너
     if (this.birth.active) this.startBirth();
@@ -747,9 +792,11 @@ export class HudScene extends Phaser.Scene {
     // 61라운드: 다른 화면이 뜨면 Tab 빌드 보기를 거둔다
     if (overlay) this.onTabUp();
     // 61라운드 P1: 무기 시험장에서는 아래 가운데에 4동사 키캡 안내 (무기를 바꾸면 따라 바뀐다)
+    // 62 루프 2 UI D (시스템 E §door): 문으로 걸어 나가고·문 안·걸어 들어오는 동안엔 조작 안내·키 막대를 숨긴다 (입력 잠금)
+    const doorBusy = doorWalking(s.door?.phase);
     if (this.labGuide) {
       // 62 P1-10: 첫 생 첫 노드들(`keyBar`)에도 아래 작은 4동사 키 막대 (막는 패널 대신)
-      const showGuide = (quiet || Boolean(s.keyBar)) && !overlay && !this.birth.active;
+      const showGuide = (quiet || Boolean(s.keyBar)) && !overlay && !this.birth.active && !doorBusy;
       this.labGuide.setVisible(showGuide);
       if (showGuide) {
         this.labGuide.setItems(snapshotVerbItems(s, (k) => r61Text(k)));
@@ -760,7 +807,10 @@ export class HudScene extends Phaser.Scene {
         this.labGuide.setPosition(left, UI_SCREEN.HEIGHT - 12 - 16);
       }
     }
-    this.bubble?.update(s.interactable ?? null, !overlay, si);
+    // 62 루프 2 UI F: 노점 카드가 떠 있으면 그 노점의 E 말풍선은 숨긴다 (카드에 '[E] 산다')
+    this.loop2F?.render(s, overlay, doorBusy);
+    const stallCard = Boolean(this.loop2F?.cardOpen) && s.interactable?.kind === 'shopStall';
+    this.bubble?.update(s.interactable ?? null, !overlay && !doorBusy && !stallCard, si);
     this.chips?.render(s.statuses ?? [], si);
     // 57·60라운드 §14: 빌드 칩(상태 칩 아래)·엘리트 이름표·성과 칩
     this.buildLayer?.render(
@@ -775,12 +825,13 @@ export class HudScene extends Phaser.Scene {
       this.narr?.centerBottom() ?? UI_SCREEN.HEIGHT,
     );
     this.training?.render(s, overlay);
+    this.exitArrow?.render(s, overlay || this.birth.active || Boolean(this.deathVeil?.down), si, this.time.now);
     // 62 P0-6: 위 가운데 알림 줄 (오래 기다린 것 버림 · 자리 나면 띄움 · 위 끝 바뀌면 옮김)
     this.alerts.tick();
     this.challenge?.tick(s.statuses?.find((st) => st.id === 'ring') ?? null, si);
     // 53라운드: 튜토리얼 안내 — 다른 화면·배너·지역 카드·탄생 연출이 없을 때만 새로 띄운다
     const bannersIdle = this.banners.idle;
-    this.guide?.update(s, !overlay && !this.birth.active && bannersIdle, si);
+    this.guide?.update(s, !overlay && !this.birth.active && bannersIdle && !doorBusy, si);
     // 48라운드 안전망: 고를 차례인데 지도가 없으면 연다 (이벤트를 놓쳤거나 메뉴가 닫힌 뒤)
     if (route?.choosing && !overlay && !this.birth.active && !this.route.suppressed() && !transitionBusy())
       this.openRouteChoose(route);
@@ -794,7 +845,9 @@ export class HudScene extends Phaser.Scene {
       this.noticeText.setVisible(show);
       if (show) {
         const text =
-          kind === 'exit' ? uiText('hud', 'exitOpen', '오르는 길 열림') : uiText('hud', 'bossUnlocked', '본영 문 열림');
+          kind === 'exit'
+            ? uiText('hud', 'exitOpen', '오르는 길 열림')
+            : uiText('hud', 'bossUnlocked', '군주의 방 열림');
         this.noticeText.setText(text);
         this.noticeIcon.setFrame(kind === 'exit' ? ICON.exit : ICON.boss);
         const w = 8 + 16 + 6 + this.noticeText.textW + 4 + 10;

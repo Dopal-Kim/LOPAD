@@ -1,0 +1,78 @@
+{
+ "image": "event_icons.png",
+ "cellWidth": 16,
+ "cellHeight": 16,
+ "columns": 8,
+ "rows": 1,
+ "frames": {
+  "maxHp": {
+   "index": 0,
+   "x": 0,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "growth": {
+   "index": 1,
+   "x": 16,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "passive": {
+   "index": 2,
+   "x": 32,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "curse": {
+   "index": 3,
+   "x": 48,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "discount": {
+   "index": 4,
+   "x": 64,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "enemies": {
+   "index": 5,
+   "x": 80,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "diary": {
+   "index": 6,
+   "x": 96,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  },
+  "unknown": {
+   "index": 7,
+   "x": 112,
+   "y": 0,
+   "w": 16,
+   "h": 16
+  }
+ },
+ "anchor": "ui",
+ "source": "parts/ui/tools/event_icons.py (62 루프 2 UI F — UI 손도트, 키트 icons.png 결)",
+ "notes": {
+  "maxHp": "최대 체력 — 심장",
+  "growth": "각성 게이지 — 불꽃",
+  "passive": "유품 — 끈 달린 패",
+  "curse": "저주 — 먹 봉인",
+  "discount": "다음 장터 값 깎기 — 꼬리표",
+  "enemies": "다음 싸움 무리 — 창날 둘",
+  "diary": "일기장",
+  "unknown": "숨은 보상 '?'"
+ },
+ "palette": "parts/art/palette/lopad.json (G00~G15 + 1층 강조 램프 + UI 세피아)"
+}

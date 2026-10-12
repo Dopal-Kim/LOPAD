@@ -6,7 +6,7 @@
 export const STORY_TEXT = {
   // ---- 조사 기록 쪽지
   clueTitle: '조사 기록',
-  clueClose: 'Enter · Esc 덮는다',
+  clueClose: 'Enter · 클릭 · Esc 덮는다',
   clueMore: '…',
   // ---- 신규 적 소개 (설명이 없을 때 이름만)
   enemyIntroTag: '처음 보는 적',
@@ -15,6 +15,8 @@ export const STORY_TEXT = {
   phaseN: '{n}국면',
   /** 국면 카드 위 작은 줄 '2국면' */
   phaseOrdinal: '{n}국면',
+  /** 62 루프 2 (P1-14): 아직 오지 않은 국면 이름 — 그 국면이 될 때 공개 (하데스식) */
+  phaseHidden: '???',
   /** 보스 막대 이름 줄 '만취 · 얼큰' */
   barName: '{name} · {phase}',
   /** 3국면(어둠) 국면 카드 아래 안내 — E 는 시스템이 읽는 상호작용 키 */

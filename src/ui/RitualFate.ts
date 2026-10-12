@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import { UI_SCREEN, uiCommands, type UiRitual } from '../contract/ui';
 import { debugExpose } from './debug';
 import { GlowText } from './glow';
-import { lookImage, lookText } from './growthArt';
+import { lookImage, lookText, traitIconBox } from './growthArt';
+import { fill } from './fmt';
+import { l2eText } from './textLoop2E';
 import { verbKey } from './growthView';
 import { bannerCard } from './HudAlerts';
 import { keyGlyph } from './keyGuide';
@@ -23,6 +25,11 @@ import type { RitualPage } from './RitualScene';
  */
 export class RitualFatePage implements RitualPage {
   private root: Phaser.GameObjects.Container;
+  /** 62 루프 2 UI E (계약 C `ritual.memory`): 고른 모양·소품 줄 (고를 때마다 다시) · 그 줄 위 y */
+  private memRow?: Phaser.GameObjects.Container;
+  private memSig = '';
+  private memY = 0;
+  private picking = false;
 
   constructor(
     private scene: Phaser.Scene,
@@ -32,9 +39,14 @@ export class RitualFatePage implements RitualPage {
     this.build(r);
   }
 
-  update(): void {}
+  update(r: UiRitual): void {
+    this.picking = Boolean(r.memory?.picking);
+    this.drawMemory(r);
+  }
 
   key(e: KeyboardEvent): boolean {
+    // 모양·소품을 고르는 동안은 운명 공개 시계가 멈춘다 (계약 C — ritual.next 거부) · 고르기 카드가 키를 받는다
+    if (this.picking) return false;
     if (e.key === 'Enter' || e.key === ' ') {
       uiCommands.ritual.next();
       return true;
@@ -45,6 +57,49 @@ export class RitualFatePage implements RitualPage {
   destroy(): void {
     this.scene.tweens.killTweensOf(this.root.list);
     this.root.destroy();
+  }
+
+  /** 고른 손이 기억한 모양 · 지니고 태어날 소품 (운명 공개 아래, 고를 때마다 다시) */
+  private drawMemory(r: UiRitual): void {
+    const m = r.memory;
+    const sig = m ? `${m.aspect?.id ?? ''}|${m.keepsake?.id ?? ''}` : '';
+    if (sig === this.memSig) return;
+    this.memSig = sig;
+    this.memRow?.destroy();
+    this.memRow = undefined;
+    if (!m || (!m.aspect && !m.keepsake)) return;
+    const sc = this.scene;
+    const weapon = (r.fate?.weapon && r.fate.weapon in WEAPON_HUE ? r.fate.weapon : 'katana') as WeaponHueId;
+    const chips = [];
+    if (m.aspect)
+      chips.push(
+        memoryChip(
+          sc,
+          m.aspect.iconKey,
+          fill(l2eText('fateAspect'), { name: m.aspect.name }),
+          hexToNum(WEAPON_HUE[weapon].main),
+        ),
+      );
+    if (m.keepsake)
+      chips.push(
+        memoryChip(sc, m.keepsake.iconKey, fill(l2eText('fateKeepsake'), { name: m.keepsake.name }), hexToNum(GRAY[9])),
+      );
+    const gap = 24;
+    const total = chips.reduce((a, c) => a + c.w, 0) + gap * (chips.length - 1);
+    let x = Math.round(UI_SCREEN.WIDTH / 2 - total / 2);
+    for (const c of chips) {
+      c.place(x, this.memY);
+      x += c.w + gap;
+    }
+    this.memRow = sc.add
+      .container(
+        0,
+        0,
+        chips.flatMap((c) => c.objs),
+      )
+      .setAlpha(0);
+    sc.tweens.add({ targets: this.memRow, alpha: 1, duration: 240 });
+    this.root.add(this.memRow);
   }
 
   private build(r: UiRitual): void {
@@ -122,12 +177,18 @@ export class RitualFatePage implements RitualPage {
     why.placeCenter(W / 2, y);
     parts.push(why);
     y += why.displayHeight + 4;
-    if (f.gift) {
-      const gift = new GlowText(sc, 0, 0, f.gift, 'ink_faint', { wrap: 560, align: 'center' });
+    // 62 루프 2 UI E (계약 C P1-5): 회피 시험 결과는 '첫 개성 발현 때 카드 {n}장' 한 줄 (옛 gift 는 없을 때만)
+    const giftText = r.giftNote || f.gift;
+    if (giftText) {
+      const gift = new GlowText(sc, 0, 0, giftText, 'ink_faint', { wrap: 560, align: 'center' });
       gift.placeCenter(W / 2, y);
       parts.push(gift);
+      y += gift.displayHeight + 4;
     }
     this.root.add(parts);
+    this.memY = y + 4;
+    this.picking = Boolean(r.memory?.picking);
+    this.drawMemory(r);
     this.root.add(hintRow(sc, r.hint, W / 2, UI_SCREEN.HEIGHT - R.hintBottom));
     // 액자가 먼저 내려앉고 불씨 테가 한 번 밝아진 뒤, 아래 글이 차례로
     frame.setAlpha(0).setY(-8);
@@ -152,6 +213,31 @@ export class RitualFatePage implements RitualPage {
       look: lookKey,
     });
   }
+}
+
+/** 계약 C `ritual.memory` 한 줄 그림 (그림 32 · 글) */
+function memoryChip(
+  sc: Phaser.Scene,
+  iconKey: string | undefined,
+  text: string,
+  color: number,
+): { objs: Phaser.GameObjects.GameObject[]; w: number; place(x: number, y: number): void } {
+  const S = 32;
+  const art = traitIconBox(sc, iconKey, 0, 0, S, color, 1, hexToNum(GRAY[1]));
+  const t = new GlowText(sc, 0, 0, text, 'ink_body');
+  const aw = art ? S + 8 : 0;
+  return {
+    objs: [...(art ?? []), t],
+    w: aw + t.displayWidth,
+    place(x, y) {
+      if (art) {
+        const [g, img] = art as [Phaser.GameObjects.Graphics, Phaser.GameObjects.Image];
+        g.setPosition(x + 2, y);
+        img.setPosition(img.x + x + 2, img.y + y);
+      }
+      t.setPosition(x + aw, y + Math.round((S - t.displayHeight) / 2));
+    },
+  };
 }
 
 /** 읽혀 있는 무기 미리보기 키 (시스템 `looks/<무기>_base` → UI 사본) — 없으면 null */

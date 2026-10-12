@@ -4,6 +4,8 @@ import {
   candleGuides,
   normMarks,
   phaseNameOf,
+  nameCardTiming,
+  phaseNamesFor,
   phaseStrip,
   readBoss,
   readBossBreak,
@@ -66,6 +68,9 @@ describe('readBoss', () => {
 describe('국면 띠·눈금', () => {
   it('지난·지금·다음', () => {
     expect(phaseStrip(['얼큰', '만취', '인사불성'], 2).map((x) => x.state)).toEqual(['past', 'now', 'next']);
+    // 62 루프 2 P1-14: 아직 오지 않은 국면은 '???'
+    expect(phaseStrip(['얼큰', '만취', '인사불성'], 1, '???').map((x) => x.text)).toEqual(['얼큰', '???', '???']);
+    expect(phaseStrip(['얼큰', '만취', '인사불성'], 3, '???').map((x) => x.text)).toEqual(['얼큰', '만취', '인사불성']);
     expect(phaseNameOf(4, ['a'], '{n}국면')).toBe('4국면');
   });
   it('눈금 x 는 정수, 체력이 지나간 눈금은 passed', () => {
@@ -117,5 +122,24 @@ describe('파훼·보스 이벤트', () => {
       finisher: true,
     });
     expect(readBossEvent(undefined)).toEqual({ name: '', phase: 1, phaseName: null, finisher: false });
+  });
+});
+
+describe('nameCardTiming (62 루프 2 — 싸움 시작 무렵 이름 카드 걷기)', () => {
+  const base = { inMs: 260, holdMs: 1900, outMs: 400 };
+  it('남은 시간을 모르면 기본값', () => {
+    expect(nameCardTiming(base, null)).toBe(base);
+  });
+  it('남은 시간 안에 끝나게 머묾을 줄이고, 최소 900 · 기본보다 길게는 안 한다', () => {
+    expect(nameCardTiming(base, 2000).holdMs).toBe(1340);
+    expect(nameCardTiming(base, 500).holdMs).toBe(900);
+    expect(nameCardTiming(base, 9000).holdMs).toBe(1900);
+  });
+});
+
+describe('phaseNamesFor (62 루프 2 — 가린 국면은 빈 칸으로 온다)', () => {
+  it('빈 칸도 자리를 지킨다', () => {
+    expect(phaseNamesFor(0, ['얼큰', '', '']).length).toBe(3);
+    expect(phaseNamesFor(0, ['얼큰', '', ''])[0]).toBe('얼큰');
   });
 });

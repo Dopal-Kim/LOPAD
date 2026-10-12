@@ -25,7 +25,7 @@ export const R61_TEXT = {
   stripTab: '빌드',
   /** 저주 칩 짧은 꼴 — {n} = 남은 노드/처치 수, {unit} = 노드·처치 */
   curseShort: '저주 {n}{unit}',
-  curseUnitNode: '노드',
+  curseUnitNode: '곳',
   curseUnitKill: '처치',
   // ---- Tab 빌드 보기 (누르고 있는 동안)
   peekWeapon: '{name}',

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { uiCommands, type UiRoute, type UiRouteNode, type UiSnapshot } from '../contract/ui';
 import { cancelChooseCmd, chooseNodeCmd, debugExpose, withDebug } from './debug';
+import { profileDraw } from './drawProfile';
 import { ensureImage, keyartKey, keyartUrl, mapBgKey, mapBgUrl } from './kit';
 import { regionArtKey } from './regionView';
 import { RouteMap } from './RouteMap';
@@ -66,12 +67,12 @@ export class RouteControl {
     if (this.map) this.close(this.map.mode === 'view');
     this.hooks.closeWarp(true);
     this.dropLeaving();
-    this.map = new RouteMap(this.scene, route, 'choose', this.opts(s));
+    this.map = profileDraw(this.scene, 'route:choose', () => new RouteMap(this.scene, route, 'choose', this.opts(s)));
   }
 
   /** M·Tab 보기 (게임을 멈춘다) */
   openView(s: UiSnapshot, route: UiRoute): void {
-    this.map = new RouteMap(this.scene, route, 'view', this.opts(s));
+    this.map = profileDraw(this.scene, 'route:view', () => new RouteMap(this.scene, route, 'view', this.opts(s)));
     uiCommands.pause();
   }
 

@@ -20,7 +20,7 @@ export const R60_TEXT = {
   setOff: '{name} 세트가 꺼졌다',
   // ---- §14.3 저주
   curseHead: '저주',
-  curseNodes: '{n}노드 남음',
+  curseNodes: '{n}곳 남음',
   curseKills: '{n}처치 남음',
   curseGained: '저주를 받았다 — {name}',
   curseEnded: '저주가 풀렸다 — {name}',
@@ -37,7 +37,7 @@ export const R60_TEXT = {
   groupMapInfo: '지도 정보',
   // ---- 60 Q38 3지선다 카드 (개성·보상·패시브 3택)
   /** 카드 조작 안내 — {keys} = '1·2·3' */
-  choiceHint: '{keys} 또는 ←→ 고르기 · Enter 고른다',
+  choiceHint: '{keys} 또는 ←→ 고르기 · Enter · 클릭 고른다',
   /** 그만두기 줄이 있을 때 덧붙임 — {key} = 그만두기 키 */
   choiceHintCancel: ' · {key}·Esc 그만두기',
   // ---- §14.11 완벽 성공 (HUD 연출)
@@ -48,7 +48,7 @@ export const R60_TEXT = {
   // ---- §14.5 노드 지도
   rewardHead: '보상 {name}',
   riskHead: '위험 {name}',
-  riskElite: '엘리트 길',
+  riskElite: '정예 길',
   riskCurse: '저주 길',
   prefixHead: '접두어 {list}',
   eventHead: '내용 {name}',
@@ -72,6 +72,8 @@ export const R60_TEXT = {
   trialOver: '시간 지남',
   trialNoHit: '무피격',
   trialHit: '피격',
+  /** 62 루프 2 P2-3: 칩 끝 보상 '→ [전표] +20' (전표는 아이콘) */
+  trialReward: '+{n}',
   gradeNoHit: '무피격',
   gradeInTime: '제한 시간',
   gradeOk: '○',
@@ -87,10 +89,10 @@ export const R60_TEXT = {
   buildTitle: '빌드',
   buildTags: '태그·세트',
   buildCurse: '저주',
-  buildPassives: '패시브',
+  buildPassives: '유품',
   buildConsumable: '소모품',
   buildNone: '―',
-  passiveLevel: 'Lv{level}/{max}',
+  passiveLevel: '{level}단계/{max}',
 } as const;
 export type R60TextKey = keyof typeof R60_TEXT;
 
@@ -115,7 +117,7 @@ export const CHOICE_KIND_NAME: Record<UiChoiceKind, string> = {
   awaken1: '1차 각성',
   awaken2: '2차 각성',
   temper: '단련',
-  passive: '패시브',
+  passive: '유품',
   curse: '저주',
   // 아래 여섯은 61 G 로 폐지(더 오지 않는다) — 계약 유니온에 남아 있는 동안만 둔다
   branchA: '갈래 A',
@@ -130,7 +132,7 @@ export const CHOICE_KIND_NAME: Record<UiChoiceKind, string> = {
 export const CHOICE_MENU_HEAD: Readonly<Record<string, string>> = {
   evolve: '개성 발현',
   reward: '보상',
-  passive: '패시브',
+  passive: '유품',
 };
 
 /** 패시브 희귀도 이름 (§14.4) */
@@ -144,11 +146,11 @@ export const RARITY_NAME: Record<UiRarity, string> = {
 /** 노드 보상 이름 (§14.5) */
 export const REWARD_NAME: Record<UiNodeRewardKind, string> = {
   gold: '전표 주머니',
-  passive: '패시브',
+  passive: '유품',
   // 61 G: 노드 보상 'personality' = 각성 게이지 (옛 '개성' 수치)
   personality: '각성 게이지',
   consumable: '소모품',
-  statPoint: '능력치 포인트',
+  statPoint: '각성 게이지',
   curse: '저주',
   unknown: '알 수 없음',
 };

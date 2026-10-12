@@ -129,7 +129,8 @@ export const liveTags = (tags: readonly UiTagId[] | null | undefined, floor: num
 export function isGrowthMenu(m: Pick<UiMenu, 'id' | 'lines' | 'cancelKey'>): boolean {
   if (m.id !== 'evolve') return false;
   const lines = choiceLines(m as UiMenu);
-  return lines.length >= 2 && lines.length <= 3 && lines.every((l) => isGrowthKind(l.kind));
+  // 62 루프 2 UI E: 첫 개성 발현은 회피 시험 결과·먹 묻은 붓으로 4~5장 (계약 C `ritual.giftNote`)
+  return lines.length >= 2 && lines.length <= GROWTH_CARD.maxCards && lines.every((l) => isGrowthKind(l.kind));
 }
 
 export interface GrowthCardData {
@@ -238,7 +239,21 @@ export function growthCards(m: UiMenu, o: CardOpts = {}): GrowthCardData[] {
 
 /** 카드 폭 (3장 · 2장) */
 export function growthCardW(n: number): number {
+  if (n >= 5) return GROWTH_CARD.w5;
+  if (n === 4) return GROWTH_CARD.w4;
   return n <= 2 ? GROWTH_CARD.w2 : GROWTH_CARD.w3;
+}
+
+/** 62 루프 2 UI E: 카드 사이 (4·5장은 좁힌다) */
+export function growthCardGap(n: number): number {
+  if (n >= 5) return GROWTH_CARD.gap5;
+  if (n === 4) return GROWTH_CARD.gap4;
+  return GROWTH_CARD.gap;
+}
+
+/** 62 루프 2 UI E: 카드 이름 배율 (5장은 1배 — 폭 150 에 2배 이름은 두세 줄로 꺾인다) */
+export function growthNameScale(n: number): 1 | 2 {
+  return n >= 5 ? 1 : 2;
 }
 
 // ---------------------------------------------------------------------------------------------

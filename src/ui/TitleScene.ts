@@ -8,6 +8,9 @@ import { UI_SCENE_KEYS } from './keys';
 import { artTex, paintUrl, uiCopy } from './paintArt';
 import { brushOrderFrom, type Img } from './paintFx';
 import { SettingsPanel } from './SettingsPanel';
+import { MemoryBookView } from './MemoryBook';
+import { openGate } from './choiceArm';
+import { l2eText } from './textLoop2E';
 import { currentSettings } from './settingsStore';
 import { r49Text, r61Text, trainingText, uiText } from './text';
 import { hexToNum } from './theme';
@@ -62,6 +65,8 @@ export class TitleScene extends Phaser.Scene {
   private art?: TitleArt;
   private menu?: TitleMenu;
   private settings?: SettingsPanel;
+  /** 62 루프 2 UI E: 일기장 '기억' 장 (계약 C `memory.book()` — MemoryBook) */
+  private memoryView?: MemoryBookView;
   private items: TitleItem[] = [];
   private fallbackLogo?: GlowText;
   private prompt?: GlowText;
@@ -99,6 +104,7 @@ export class TitleScene extends Phaser.Scene {
     this.alive = true;
     this.phase = 'load';
     this.settings = undefined;
+    this.memoryView = undefined;
     this.menu = undefined;
     this.art = undefined;
     this.introT = 0;
@@ -132,6 +138,8 @@ export class TitleScene extends Phaser.Scene {
     this.input.off('pointermove', this.onPointerMove);
     this.settings?.destroy();
     this.settings = undefined;
+    this.memoryView?.destroy();
+    this.memoryView = undefined;
     this.menu?.destroy();
     this.menu = undefined;
     this.art?.destroy();
@@ -192,7 +200,9 @@ export class TitleScene extends Phaser.Scene {
     }
     // 메뉴
     const hasSave = uiCommands.hasSave();
+    const meta = titleMeta();
     this.items = titleItems({
+      memory: Boolean(uiCommands.memory.book()) && Boolean(meta && (meta.lives > 0 || meta.souls > 0)),
       hasSave,
       desktop: isDesktopShell(),
       dev: devMenu(),
@@ -201,6 +211,8 @@ export class TitleScene extends Phaser.Scene {
         newRun: uiText('title', 'newRun', '다시 태어난다'),
         newRunDeleteSave: uiText('title', 'newRunDeleteSave', '다시 태어난다 (일기장을 찢는다)'),
         training: trainingText('titleItem'),
+        memory: l2eText('titleItem'),
+        memoryHint: l2eText('titleItemHint'),
         lab: r49Text('titleLab'),
         settings: r61Text('settingsItem'),
         quit: uiText('title', 'quit', '끝내기'),
@@ -223,7 +235,7 @@ export class TitleScene extends Phaser.Scene {
     const H = UI_SCREEN.HEIGHT;
     this.version = new GlowText(this, 0, 0, TITLE_UI.version, 'title_version').setDepth(TITLE_UI.depth.menu);
     this.version.placeRight(W - 8, H - this.version.displayHeight - 4).setAlpha(0);
-    const memo = metaMemo(titleMeta(), uiCommands.getUiSnapshot().names?.souls ?? '영혼');
+    const memo = metaMemo(meta, uiCommands.getUiSnapshot().names?.souls ?? '영혼');
     if (memo) {
       this.memo = new GlowText(this, 0, 0, memo, 'title_version').setDepth(TITLE_UI.depth.menu);
       this.memo.placeRight(W - 10, 8).setAlpha(0);
@@ -349,7 +361,7 @@ export class TitleScene extends Phaser.Scene {
   // 입력
 
   private onKey = (e: KeyboardEvent): void => {
-    if (this.settings) return; // 설정 쪽이 받는다 (Esc 는 아래)
+    if (this.settings || this.memoryView) return; // 설정·기억 장이 받는다 (Esc 는 아래)
     if (this.phase === 'load' || this.phase === 'dive' || this.phase === 'gone') return;
     if (this.phase === 'intro' || this.phase === 'prompt') {
       if (!isWakeKey(e.key) || e.repeat || keyTaken(e)) return;
@@ -362,7 +374,7 @@ export class TitleScene extends Phaser.Scene {
 
   private onPointerDown = (p: Phaser.Input.Pointer): void => {
     this.trackPointer(p);
-    if (this.settings) return;
+    if (this.settings || this.memoryView) return;
     if (this.phase === 'intro' || this.phase === 'prompt') this.wake();
   };
 
@@ -415,6 +427,9 @@ export class TitleScene extends Phaser.Scene {
       case 'settings':
         this.openSettings();
         break;
+      case 'memory':
+        this.openMemory();
+        break;
       case 'quit':
         window.close();
         this.menu?.unlock();
@@ -429,6 +444,32 @@ export class TitleScene extends Phaser.Scene {
     const why = r === 'combat' ? 'denyCombat' : r === 'boss' ? 'denyBoss' : 'denyBusy';
     this.menu?.notice(trainingText(why));
     this.menu?.unlock();
+  }
+
+  /** 62 루프 2 UI E: 일기장 '기억' 장 (덮으면 메뉴로) */
+  private openMemory(): void {
+    if (this.memoryView || this.settings) return;
+    this.menu?.setInput(false);
+    this.memoryView = new MemoryBookView(this, {
+      stageIndex: 0,
+      gate: openGate(),
+      depth: TITLE_UI.depth.veil - 2,
+      book: () => uiCommands.memory.book(),
+      recall: (id) => uiCommands.memory.unlock(id),
+      setKeepsake: (id) => uiCommands.memory.setKeepsake(id),
+      close: () => {
+        this.memoryView?.destroy();
+        this.memoryView = undefined;
+        this.time.delayedCall(0, () => {
+          this.menu?.unlock();
+          this.menu?.setInput(true);
+        });
+      },
+      handleEsc: true,
+      live: true,
+      backdrop: true,
+    });
+    this.expose();
   }
 
   private openSettings(): void {
@@ -457,7 +498,8 @@ export class TitleScene extends Phaser.Scene {
       return;
     }
     takeKey(e);
-    this.settings.close();
+    // 62 루프 2: 키 기다리는 중이면 그만두기만 (쪽은 그대로 — 다음 Esc 를 다시 기다린다)
+    if (!this.settings.back()) this.input.keyboard?.once('keydown-ESC', this.onEsc);
   };
 
   /**

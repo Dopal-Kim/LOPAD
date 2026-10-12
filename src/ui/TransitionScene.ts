@@ -7,7 +7,9 @@ import { brushOrderFrom, coverPixels, fallbackDoor, makeCanvas, paintedCanvas, r
 import { artJson, artTex, paintUrl, uiCopy } from './paintArt';
 import { regionArtKey } from './regionView';
 import { FLOOR1_RAMP, GRAY, SEPIA, hexToNum } from './theme';
-import { TRANSITION } from './themeTransition';
+import { LOADING, TRANSITION } from './themeTransition';
+import { LoadingCard } from './LoadingCard';
+import { LOAD_PROGRESS_EVENT, estimateProgress, readLoadProgress, shownProgress } from './loadingView';
 import { setTransitionBusy, setTransitionCovered, takeTransitionOrigin } from './transitionState';
 import {
   clamp01,
@@ -75,6 +77,9 @@ interface Run {
   painting?: Painting;
   /** 입구 그림을 직접 읽어 봤다 (한 번만) */
   doorTried?: boolean;
+  /** 62 루프 2 (P2-6): 덮인 채 READY 가 늦을 때의 로딩 카드 · 띄운 시각 */
+  loading?: LoadingCard;
+  loadingAt?: number;
 }
 
 const CAP_KEY = 'ui-tr-cap';
@@ -128,6 +133,13 @@ export class TransitionScene extends Phaser.Scene {
   private seq = 0;
   /** 붓질 순서 캐시 (마스크 그림 키 또는 코드 붓질 번호) */
   private orders = new Map<string, Float32Array>();
+  /** 62 루프 2 (P2-6): 시스템 로드 진행 (이번 전환 동안 받은 마지막 값, 없으면 null) */
+  private loadReal: number | null = null;
+  /** 전환 밖에서 로드 진행이 올 때 혼자 띄우는 로딩 카드 · 마지막 진행을 받은 시각 */
+  private standalone?: LoadingCard;
+  private standaloneAt = 0;
+  /** 마지막으로 본 지역 키아트 키 (로드 진행에 지역이 없을 때) */
+  private lastRegion: string | null = null;
 
   constructor() {
     super(UI_SCENE_KEYS.TRANSITION);
@@ -167,6 +179,7 @@ export class TransitionScene extends Phaser.Scene {
       .setVisible(false);
     this.on(UI_EVENTS.TRANSITION_BEGIN, (p: UiTransitionBegin) => this.begin(p));
     this.on(UI_EVENTS.TRANSITION_READY, (p: unknown) => this.onReady(p));
+    this.on(LOAD_PROGRESS_EVENT, (p: unknown) => this.onLoadProgress(p));
     this.input.keyboard?.on('keydown', this.onKey);
     this.input.on('pointerdown', this.onPointer);
     this.events.once('shutdown', () => {
@@ -175,6 +188,8 @@ export class TransitionScene extends Phaser.Scene {
       for (const [e, h] of this.handlers) uiBus.off(e, h);
       this.handlers = [];
       if (this.run) this.clearRun();
+      this.standalone?.destroy();
+      this.standalone = undefined;
       setTransitionBusy(false);
     });
   }
@@ -191,6 +206,11 @@ export class TransitionScene extends Phaser.Scene {
     // 앞 전환이 아직이면 바로 끝낸다 (덮임·끝 알림은 빠짐없이)
     if (this.run) this.finish(true);
     this.scene.bringToTop();
+    // 62 루프 2: 전환이 로딩 표시를 맡는다 (혼자 떠 있던 카드는 걷는다)
+    this.loadReal = null;
+    this.lastRegion = regionKeyart(info.region) ?? this.lastRegion;
+    this.standalone?.destroy();
+    this.standalone = undefined;
     setTransitionBusy(true);
     const now = this.time.now;
     const settings = uiCommands.getUiSnapshot().settings;
@@ -617,6 +637,10 @@ export class TransitionScene extends Phaser.Scene {
   }
 
   update(time: number): void {
+    if (this.standalone && time - this.standaloneAt > TRANSITION.failsafeMs) {
+      this.standalone.finish();
+      this.standalone = undefined;
+    }
     const run = this.run;
     if (!run || run.phase === 'prep') return;
     const P = run.plan;
@@ -643,10 +667,25 @@ export class TransitionScene extends Phaser.Scene {
       }
       case 'covered': {
         if (run.ready) {
+          run.loading?.finish();
+          run.loading = undefined;
           this.startReveal(run);
           break;
         }
-        if (!run.waitShown && el >= TRANSITION.waitHintMs) {
+        // 62 루프 2 (P2-6): READY 가 늦으면 로딩 카드 (키아트 · 단서 팁 · 진행 막대)
+        if (!run.loading && el >= LOADING.showAfterMs) {
+          run.loading = new LoadingCard(this, regionKeyart(run.info.region), LOADING.depth, false);
+          run.loadingAt = time;
+        }
+        if (run.loading) {
+          const est = estimateProgress(
+            time - (run.loadingAt ?? time) + LOADING.showAfterMs,
+            LOADING.estimateTauMs,
+            LOADING.estimateCap,
+          );
+          run.loading.set(shownProgress(this.loadReal, est, run.loading.value));
+        }
+        if (!run.loading && !run.waitShown && el >= TRANSITION.waitHintMs) {
           run.waitShown = true;
           this.waitDots?.setVisible(true);
         }
@@ -771,6 +810,32 @@ export class TransitionScene extends Phaser.Scene {
   }
 
   // ---------------------------------------------------------------------------------------------
+  /**
+   * 62 루프 2 (P2-6): 시스템 로드 진행 (계약 D `ui:loading`, 미리 읽기 제외). 전환 중이면 그 로딩 카드 막대에, 전환 밖이면 화면을 덮는 카드를
+   * 혼자 띄운다(끝·10초 소식 없음이면 걷는다)
+   */
+  private onLoadProgress(p: unknown): void {
+    const v = readLoadProgress(p);
+    if (!v) return;
+    if (v.region) this.lastRegion = regionKeyart(v.region) ?? this.lastRegion;
+    if (this.run) {
+      this.loadReal = v.progress;
+      return;
+    }
+    if (v.done) {
+      this.standalone?.finish();
+      this.standalone = undefined;
+      return;
+    }
+    if (!this.standalone) {
+      this.scene.bringToTop();
+      this.standalone = new LoadingCard(this, this.lastRegion ?? 'waste', LOADING.depth, true);
+    }
+    this.standaloneAt = this.time.now;
+    this.standalone.set(v.progress);
+    debugExpose('loading', { standalone: true, progress: v.progress });
+  }
+
   private onReady(p: unknown): void {
     const id = readId(p);
     const run = this.run;
@@ -821,6 +886,8 @@ export class TransitionScene extends Phaser.Scene {
     const run = this.run;
     this.run = null;
     if (!run) return;
+    run.loading?.destroy();
+    run.loading = undefined;
     for (const o of run.objs) o.destroy();
     run.objs = [];
     this.veil?.setVisible(false).setAlpha(0);

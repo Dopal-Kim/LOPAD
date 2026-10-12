@@ -9,7 +9,7 @@ export const TRAINING_TEXT = {
   pauseLeave: '수련장을 나간다',
   /** 일기장 '수련장' 거부 사유 (`startTraining` 결과) */
   denyCombat: '싸움이 끝난 뒤에 갈 수 있다',
-  denyBoss: '본영 앞에서는 수련장에 갈 수 없다',
+  denyBoss: '군주의 방 앞에서는 수련장에 갈 수 없다',
   denyBusy: '지금은 수련장에 갈 수 없다',
   // ---- 과제 목록
   /** 왼쪽 위 (층 제목 자리) */

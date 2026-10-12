@@ -97,3 +97,30 @@ export const TRAINING_UI = {
   depth: 44,
   mapDepth: 100,
 } as const;
+
+/**
+ * 62 루프 2 (P2-6) 로딩 카드 (UI 판단 임시값). 키아트 960×540 을 0.5배(실제 화면 1:1)로 — 480×270.
+ * 덮인 뒤 READY 가 `showAfterMs` 넘게 늦으면 띄운다(빠른 전환에는 안 보임).
+ */
+export const LOADING = {
+  showAfterMs: 550,
+  artW: 480,
+  artH: 270,
+  artTop: 104,
+  tipGap: 14,
+  tipWrap: 560,
+  barGap: 12,
+  barW: 320,
+  barH: 4,
+  /** 막대 색: 1층 강조 램프 슬롯 */
+  barSlot: 22,
+  inMs: 220,
+  /** 다 찬 막대를 잠깐 보인 뒤 사라짐 */
+  fullHoldMs: 120,
+  outMs: 220,
+  /** 깊이 (전환 덮개 위 · 섬광 아래) */
+  depth: 20,
+  /** 시간 어림: 남은 것의 63% 가 차는 시간 · 어림 상한 */
+  estimateTauMs: 1600,
+  estimateCap: 0.9,
+} as const;

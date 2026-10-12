@@ -22,13 +22,7 @@ describe('bundleView (60라운드 §14.5 노드 지도)', () => {
       prefixes: ['불붙은'],
       grade: 'good',
     });
-    expect(nodeInfoLines(n)).toEqual([
-      '보상 패시브',
-      '위험 엘리트 길',
-      '엘리트 둘이 기다린다',
-      '접두어 불붙은',
-      '도장 양',
-    ]);
+    expect(nodeInfoLines(n)).toEqual(['보상 유품', '위험 정예 길', '엘리트 둘이 기다린다', '접두어 불붙은', '도장 양']);
     expect(nodeInfoLines(routeNode({ id: 'v', type: 'event', reward: 'unknown', eventName: '마지막 잔' }))).toEqual([
       '보상 알 수 없음',
       '내용 마지막 잔',

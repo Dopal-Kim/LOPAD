@@ -3,6 +3,9 @@ import { UI_SCREEN, type UiMenu, type UiMenuLine } from '../contract/ui';
 import { GlowText } from './glow';
 import { accentHex, book, cursor as makeCursor, rule } from './kit';
 import { takeKey } from './keyGate';
+import { debugExpose } from './debug';
+import type { ChoiceGate } from './choiceGate';
+import { ARM_FX, armTrace, keyTime, leftButton, pointerTime, type Rect } from './choiceArm';
 import { cardFocusMove } from './structView';
 import { structText } from './text';
 import { LAYOUT, SEPIA, STRUCT, hexToNum } from './theme';
@@ -26,6 +29,10 @@ export interface CardSlot {
   paint(sel: boolean): void;
   /** 못 고르는 카드를 골랐을 때 (선택) */
   reject?(): void;
+  /** 62 루프 2 UI D: 지금 카드 자리 (무장 진행 선 — 없으면 선을 그리지 않는다) */
+  rect?(): Rect;
+  /** 62 루프 2 UI D: 들어오기 연출 — 아래로 dy 만큼 내려 alpha 로 (없으면 연출 없음) */
+  enter?(dy: number, alpha: number): void;
 }
 
 /** 그만두기 칸 (카드 아래 한 줄) */
@@ -47,12 +54,23 @@ export interface CardPageCtx {
   /** 같은 메뉴를 다시 그릴 때 지킬 고름 자리 */
   keepCursor: number;
   send(key: string): void;
+  /** 62 루프 2 UI D: 무장 게이트 (choiceGate.ts) — 없으면 무장 없이 바로 받는다 */
+  gate?: ChoiceGate;
 }
 
 export class CardRow {
   private focus = 0;
   private cursor?: Phaser.GameObjects.Sprite;
   private onKey: (e: KeyboardEvent) => void;
+  /** 62 루프 2 UI D: 좌클릭을 누른 카드 (같은 카드 위에서 떼야 고른다, -1 = 없음) */
+  private pressIdx = -1;
+  private onUp = (): void => {
+    // 어디서든 떼면 누름은 끝 (카드 위에서 뗀 것은 카드 pointerup 이 먼저 받았다)
+    this.pressIdx = -1;
+    this.gate?.pointerUp();
+  };
+  private stopFx?: () => void;
+  private stopEnter?: () => void;
 
   constructor(
     private scene: Phaser.Scene,
@@ -60,39 +78,101 @@ export class CardRow {
     private cancel: CardCancel | null,
     private send: (key: string) => void,
     keepCursor: number,
+    private gate?: ChoiceGate,
+    /** 62 루프 2 UI F: 고름 자리 옮기기 (기본 = 카드 가로 줄 — 세로 표는 `listFocusMove`) */
+    private nav: (idx: number, n: number, key: string) => number = cardFocusMove,
   ) {
     const n = slots.length;
     if (cancel) {
       cancel.text
         .makeInteractive()
         .on('pointerover', () => this.hover(n))
-        .on('pointerdown', () => this.choose(n));
+        .on('pointerdown', (p: Phaser.Input.Pointer) => this.press(n, p))
+        .on('pointerup', (p: Phaser.Input.Pointer) => this.release(n, p));
       this.cursor = makeCursor(scene).setDepth(4).setVisible(false);
     }
     this.onKey = (e: KeyboardEvent) => {
       if (e.repeat) return;
       // 같은 키 이벤트가 다시 넘어와 다음 메뉴에서 또 고르지 않게 (keyGate.ts)
+      // 62 루프 2 UI D: 무장 전·열기 전부터 눌려 있던 키는 고르지 않는다 (그 키는 여기서 끝낸다)
       if (e.key === 'Enter' || e.key === ' ') {
-        if (takeKey(e)) this.choose(this.focus);
+        if (takeKey(e) && this.keyOk(e)) this.choose(this.focus);
         return;
       }
       if (this.cancel && e.key === this.cancel.line.key) {
-        if (takeKey(e)) this.choose(n);
+        if (takeKey(e) && this.keyOk(e)) this.choose(n);
         return;
       }
       const idx = this.slots.findIndex((c) => (c.hotkey ?? c.key) === e.key);
       if (idx >= 0) {
-        if (takeKey(e)) this.choose(idx);
+        if (takeKey(e) && this.keyOk(e)) this.choose(idx);
         return;
       }
       // 그만두기 칸이 없으면 ↓ 로 n 에 가지 않는다
-      const next = cardFocusMove(this.focus, n, e.key);
+      const next = this.nav(this.focus, n, e.key);
       const to = !this.cancel && next >= n ? this.focus : next;
       if (to !== this.focus && takeKey(e)) this.hover(to);
     };
     scene.input.keyboard?.on('keydown', this.onKey);
+    scene.input.on(Phaser.Input.Events.POINTER_UP, this.onUp);
     this.focus = Math.max(0, Math.min(this.cancel ? n : n - 1, keepCursor));
     this.render();
+    this.armFx(scene);
+  }
+
+  /** 고르는 키를 받아도 되나 (게이트가 없으면 늘) */
+  private keyOk(e: KeyboardEvent): boolean {
+    return !this.gate || this.gate.keyOk(e.code, keyTime(e), e.repeat);
+  }
+
+  /** 카드(i < n)·그만두기(i = n) 위에서 좌클릭을 눌렀다 */
+  press(i: number, p?: Phaser.Input.Pointer): void {
+    if (!leftButton(p)) return;
+    this.pressIdx = !this.gate || this.gate.pressOk(pointerTime(p)) ? i : -1;
+    debugExpose('cardPress', { i, ok: this.pressIdx === i, t: Math.round(pointerTime(p)) });
+  }
+
+  /** 같은 자리에서 뗐으면 고른다 */
+  release(i: number, p?: Phaser.Input.Pointer): void {
+    if (!leftButton(p)) return;
+    const ok = this.gate ? this.gate.releaseOk() : true;
+    const same = this.pressIdx === i;
+    this.pressIdx = -1;
+    debugExpose('cardRelease', { i, ok, same });
+    if (ok && same) this.choose(i);
+  }
+
+  /**
+   * 62 루프 2 UI D: 무장 중이면 카드가 천천히 들어오고 테두리를 따라 선이 차오른다.
+   * 들어오기는 게임 시간(트윈)이 아니라 실제 시각으로 — 렉으로 프레임이 밀려도 무장이 끝날 때쯤 다 들어와 있다
+   */
+  private armFx(scene: Phaser.Scene): void {
+    const gate = this.gate;
+    if (!gate || gate.armed(performance.now())) return;
+    const entering = this.slots.filter((s) => s.enter);
+    if (entering.length) {
+      const ease = Phaser.Math.Easing.Cubic.Out;
+      const tick = (): void => {
+        const t = performance.now() - gate.shownAt;
+        let done = true;
+        entering.forEach((s, i) => {
+          const v = Phaser.Math.Clamp((t - i * ARM_FX.enterStagger) / ARM_FX.enterMs, 0, 1);
+          if (v < 1) done = false;
+          const e = ease(v);
+          s.enter!(Math.round(ARM_FX.enterDy * (1 - e)), e);
+        });
+        if (done) this.stopEnter?.();
+      };
+      scene.events.on(Phaser.Scenes.Events.UPDATE, tick);
+      this.stopEnter = () => {
+        scene.events.off(Phaser.Scenes.Events.UPDATE, tick);
+        this.stopEnter = undefined;
+      };
+      tick();
+    }
+    const live = this.slots.filter((s) => s.enabled && s.rect);
+    if (!live.length) return;
+    this.stopFx = armTrace(scene, gate, () => live.map((s) => s.rect!()), hexToNum(accentHex(scene, 0, 20)), 5);
   }
 
   /** 지금 고름 자리 (0..n-1 = 카드, n = 그만두기) */
@@ -123,6 +203,9 @@ export class CardRow {
 
   destroy(): void {
     this.scene.input.keyboard?.off('keydown', this.onKey);
+    this.scene.input?.off(Phaser.Input.Events.POINTER_UP, this.onUp);
+    this.stopEnter?.();
+    this.stopFx?.();
   }
 
   private render(): void {
@@ -162,8 +245,17 @@ export function menuCloseButton(
   box.setInteractive(new Phaser.Geom.Rectangle(bw / 2, bh / 2, bw, bh), Phaser.Geom.Rectangle.Contains);
   if (box.input) box.input.cursor = 'pointer';
   box.on('pointerover', () => draw(true));
-  box.on('pointerout', () => draw(false));
-  box.on('pointerdown', onPress);
+  // 62 루프 2 UI D: 눌렀다 같은 버튼 위에서 뗀 경우만 (전투 연타·끌기 오인 방지)
+  let pressed = false;
+  box.on('pointerout', () => {
+    draw(false);
+    pressed = false;
+  });
+  box.on('pointerdown', (p: Phaser.Input.Pointer) => (pressed = leftButton(p)));
+  box.on('pointerup', (p: Phaser.Input.Pointer) => {
+    if (pressed && leftButton(p)) onPress();
+    pressed = false;
+  });
   return box;
 }
 
@@ -227,7 +319,8 @@ export function showFaceDownCards(scene: Phaser.Scene, m: UiMenu, cardLines: UiM
   const x0 = Math.round(pg.x + pageW / 2 - rowW / 2);
   const slots: CardSlot[] = [];
   const hovers: (() => void)[] = [];
-  const picks: (() => void)[] = [];
+  const presses: ((p: Phaser.Input.Pointer) => void)[] = [];
+  const releases: ((p: Phaser.Input.Pointer) => void)[] = [];
   cardLines.forEach((l, i) => {
     const cx = x0 + i * (cw + gap);
     const g = scene.add.graphics();
@@ -239,7 +332,8 @@ export function showFaceDownCards(scene: Phaser.Scene, m: UiMenu, cardLines: UiM
     box.setInteractive(new Phaser.Geom.Rectangle(cw / 2, ch / 2, cw, ch), Phaser.Geom.Rectangle.Contains);
     if (box.input) box.input.cursor = l.enabled ? 'pointer' : 'default';
     box.on('pointerover', () => hovers[i]());
-    box.on('pointerdown', () => picks[i]());
+    box.on('pointerdown', (p: Phaser.Input.Pointer) => presses[i](p));
+    box.on('pointerup', (p: Phaser.Input.Pointer) => releases[i](p));
     const label = labels[i];
     label.placeCenter(cx + cw / 2, y + ch + 8);
     const detail = details[i];
@@ -247,7 +341,8 @@ export function showFaceDownCards(scene: Phaser.Scene, m: UiMenu, cardLines: UiM
     label
       .makeInteractive()
       .on('pointerover', () => hovers[i]())
-      .on('pointerdown', () => picks[i]());
+      .on('pointerdown', (p: Phaser.Input.Pointer) => presses[i](p))
+      .on('pointerup', (p: Phaser.Input.Pointer) => releases[i](p));
     const baseY = y;
     slots.push({
       key: l.key,
@@ -260,6 +355,7 @@ export function showFaceDownCards(scene: Phaser.Scene, m: UiMenu, cardLines: UiM
           .setAlpha(l.enabled ? 1 : LAYOUT.disabledAlpha);
         detail?.setAlpha(l.enabled ? (sel ? 1 : 0.8) : LAYOUT.disabledAlpha);
       },
+      rect: () => ({ x: cx, y: box.y, w: cw, h: ch }),
     });
   });
   y += ch + 8 + labelH + 10;
@@ -268,10 +364,11 @@ export function showFaceDownCards(scene: Phaser.Scene, m: UiMenu, cardLines: UiM
     y += cancelH;
   }
   hint.placeCenter(pg.x + pageW / 2, y);
-  const row = new CardRow(scene, slots, cancel, ctx.send, ctx.keepCursor);
+  const row = new CardRow(scene, slots, cancel, ctx.send, ctx.keepCursor, ctx.gate);
   slots.forEach((_, i) => {
     hovers[i] = () => row.hover(i);
-    picks[i] = () => row.choose(i);
+    presses[i] = (p) => row.press(i, p);
+    releases[i] = (p) => row.release(i, p);
   });
   return { row, bottom: { x: pg.x + pageW / 2, y: pg.y + pageH } };
 }
