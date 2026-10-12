@@ -687,5 +687,5 @@ interface UiRitual {
 코드 원문: `src/contract/ui.ts` '62 루프 2 시스템 E' 절(`hostLoop2E.ts`, 이벤트 `core/eventsLoop2E.ts`).
 - 노드 출구 2×2 발판 폐지 → 방을 비우면 동쪽 외벽 문이 열림(널문 걷힘·문 빛·바닥 '오르는 길' 갈매기) → 문턱(벽 안 1칸 띠)에서 조작 잠금, 문 안으로 2.5칸 자동 걸음 → 그림 속 입구 전환. 새 노드는 서쪽 문에서 0.6~0.7초 걸어 들어온 뒤 문 닫힘(탄생 전장 제외). 지도 취소 시 문에서 걸어 나옴. 수련장 방·보스 노드 층 출구도 같은 문법(1층 군주 처치는 §21 층 끝이 먼저).
 - `snapshot.door`(UiDoor{side,phase closed|open|walkOut|inside|walkIn,kind node|floor|training,screen}) — walkOut/inside/walkIn 동안 UI 는 조작 안내·키 막대를 숨김. `UiExitHint.side`.
-- 메뉴 무장: `UiMenu.openedAt/armMs`·`UiRoute.openedAt/armMs`(performance.now ms, armMs 400) — max(openedAt, menuShown)+armMs 전 select·chooseNode 무시(같은 id 다시 그리기는 처음 시각 유지, meta 예외). 명령 `uiCommands.menuShown(id|'route')`(UI 가 실제로 그린 순간). 메뉴·지도가 뜨는 프레임에 입력 버퍼 비움, 열릴 때 누르던 키는 뗀 뒤만. `?menuguard=0` 끄기.
+- 메뉴 무장: `UiMenu.openedAt/armMs`·`UiRoute.openedAt/armMs`(performance.now ms, armMs 400) — max(openedAt, menuShown)+armMs 전 select·chooseNode 무시(같은 id 다시 그리기는 처음 시각 유지, meta 예외). 명령 `uiCommands.menuShown(id|'route')`(UI 가 메뉴를 그리기 시작한 순간 — 카드 등장 시작. UI 는 armMs+30ms 뒤에 풀어 시스템보다 늦게 받는다). 메뉴·지도가 뜨는 프레임에 입력 버퍼 비움, 열릴 때 누르던 키는 뗀 뒤만. `?menuguard=0` 끄기.
 - 이벤트 `door:opened`·`door:walk{phase out|in|back}`(음향 문 소리 트리거).
