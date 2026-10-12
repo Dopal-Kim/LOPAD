@@ -2,7 +2,7 @@
 
 - 유품 카드: data/passives.json 의 1층 풀(floor 1) 15종, 파일 = `ui_relics/<passiveId>.png`. 개성 카드(ui_traits)와 같은 결 —
   쿼터뷰 돌판 위 '그 물건 한 점' + 효과 한 순간, 투명 배경, 키캡·숫자·글자 없음, 테두리는 UI 가 그림. 128×128 도트(pixelScale 0.5, 화면 64px).
-- 기억의 소품: `ui_relics/keepsake_<id>.png` 64×64 (깨진 잔·낡은 전표·매듭 끈·먹 묻은 붓).
+- 기억의 소품: `ui_relics/keepsake_<id>.png` 64×64 (찌그러진 투구·접힌 전표·닳은 매듭 끈·먹 묻은 붓 — keepsakes.py).
 - 처치자 초상: `ui_portraits/<enemyId>.png` 96×96 — 적 시트 idle down 0 프레임의 상반신을 1배로(밀도 그대로) + 먹 원 배경.
 Gemini 402(크레디트 소진) → Claude 직접 도트(절차 셰이딩 + 좌표 손 보정).
 """
@@ -411,98 +411,9 @@ RELICS = {
 }
 
 
-# ---------------------------------------------------------------- 기억의 소품 4 (64×64)
-def k_brokenCup():
-    c = Canvas(64, 64)
-    contact(c, 30, 54, 22, 6)
-    cyl(c, 28, 22, 50, 16, R_WOODG, bulge=-0.1, ry=7)
-    c.ellipse((13, 18, 43, 27), SL[1])
-    c.ellipse((16, 19, 40, 25), SL[0])
-    # 깨진 이(오른쪽 위 조각이 떨어져 나감)
-    for y in range(14, 40):
-        for x in range(32, 48):
-            if c.get(x, y)[3] and (y - 14) < 22 - (x - 32) * 1.1 and (y - 14) < (x - 30) * 1.6:
-                c.px(x, y, (0, 0, 0, 0))
-    for (x, y) in ((33, 22), (35, 26), (37, 29), (39, 33), (41, 36)):
-        c.px(x, y, PL[3])
-    pol(c, [(44, 46), (56, 43), (58, 50), (47, 53)], R_WOODG, base=0.5, soft=1)
-    pol(c, [(48, 34), (56, 32), (54, 39)], R_WOODG, base=0.55, soft=1)
-    for dx in range(-4, 5):
-        c.px(24 + dx, 38, A[19])
-    for (dx, dy) in ((-3, 1), (3, 1), (-2, 2), (2, 2), (-1, 3), (1, 3), (0, 4), (0, 5)):
-        c.px(24 + dx, 38 + dy, A[18])
-    c.px(16, 22, A[22]); c.px(17, 22, A[21])
-    im = c.im; selout(im)
-    return im
-
-
-def k_oldVoucher():
-    c = Canvas(64, 64)
-    contact(c, 32, 54, 26, 5)
-    pol(c, [(4, 18), (48, 6), (58, 40), (12, 52)], R_PAPER, base=0.58, gain=0.5, soft=2)
-    pol(c, [(8, 26), (54, 20), (60, 52), (14, 58)], R_PAPER, base=0.68, gain=0.5, soft=2)
-    for y in (32, 37, 42):
-        line(c, (16, y + 2), (46, y - 2), PL[1])
-    line(c, (16, 27), (34, 25), WD[2])
-    ell(c, (38, 40, 52, 52), [A[16], A[17], A[18], A[19]], base=0.55, soft=1, rim=False)
-    c.px(44, 44, A[20]); c.px(45, 45, A[20])
-    for (x, y) in ((56, 50), (58, 49), (59, 51), (57, 53), (55, 54), (54, 52)):
-        c.px(x, y, G[1])
-    c.px(57, 47, A[25]); c.px(60, 50, A[24]); c.px(56, 51, A[23])
-    im = c.im; selout(im)
-    return im
-
-
-def k_knotCord():
-    c = Canvas(64, 64)
-    contact(c, 32, 56, 22, 4)
-    R_CORD = [SL[0], A[16], A[17], A[18], A[19], A[20]]
-    for t in range(0, 360, 3):
-        a = math.radians(t)
-        for (cx, cy) in ((18, 24), (46, 24)):
-            x, y = cx + 13 * math.cos(a), cy + 10 * math.sin(a)
-            cap(c, [(x, y)], 2.2, R_CORD, base=0.55, gain=0.6, soft=0, rim=False)
-    ell(c, (25, 18, 39, 32), R_CORD, base=0.6, gain=0.8, soft=1)
-    for pts in (((28, 31), (20, 44), (14, 56)), ((36, 31), (44, 44), (48, 58))):
-        for a, b in zip(pts, pts[1:]):
-            cap(c, [a, b], 2.2, R_CORD, base=0.5, soft=0)
-    for (x, y) in ((13, 57), (12, 59), (15, 59), (48, 59), (49, 61), (47, 61)):
-        c.px(x, y, A[19])
-    c.px(30, 21, A[22]); c.px(31, 21, A[21])
-    im = c.im; selout(im)
-    return im
-
-
-def k_inkBrush():
-    c = Canvas(64, 64)
-    contact(c, 30, 54, 26, 4)
-    for y in range(42, 58):
-        for x in range(4, 40):
-            d = math.hypot((x - 20) / 17, (y - 50) / 6)
-            if d < 1 and ((x * 7 + y * 3) % 11) > 1:
-                c.px(x, y, G[1] if d < 0.7 else G[2])
-    for k in range(46):
-        x, y = 16 + k, 46 - int(k * 0.85)
-        for w in range(3):
-            c.px(x + w - 1, y, R_WOOD[4] if w == 0 else R_WOOD[3] if w == 1 else R_WOOD[1])
-        if k % 9 == 0:
-            c.px(x, y, R_WOOD[2]); c.px(x + 1, y, R_WOOD[1])
-    pol(c, [(4, 56), (10, 46), (18, 42), (22, 46), (14, 54)], R_INKB, base=0.45, gain=0.6, soft=1)
-    c.rect(16, 43, 20, 46, R_IRON[3])
-    c.px(10, 50, G[5]); c.px(13, 46, G[4])
-    c.px(60, 7, A[18]); c.px(61, 6, A[18]); c.px(62, 8, A[17])
-    for (x, y) in ((36, 30), (40, 26), (38, 28)):
-        c.px(x, y, A[23])
-    im = c.im; selout(im)
-    return im
-
-
-KEEPSAKES = {
-    "brokenCup": (k_brokenCup, "깨진 잔 — 첫 피격 피해 무효(예)"),
-    "oldVoucher": (k_oldVoucher, "낡은 전표 — 시작 전표(예)"),
-    "knotCord": (k_knotCord, "매듭 끈 — 대쉬 1회 추가 충전(예)"),
-    "inkBrush": (k_inkBrush, "먹 묻은 붓 — 첫 개성 발현 카드 +1(예)"),
-}
+# ---------------------------------------------------------------- 기억의 소품 4 (64×64) — keepsakes.py
+# 62 루프 2: 스토리 팩(text-pack-63-loop2 memory.keepsakes) 이름·art 메모에 맞춰 다시 그림. 파일 id 는 시스템 것 그대로.
+from keepsakes import KEEPSAKES  # noqa: E402
 
 
 # ---------------------------------------------------------------- 처치자 초상 96×96
@@ -574,13 +485,14 @@ def build(preview_path=None):
             save_png(im, os.path.join(SPR, "ui_relics", rid + ".png"))
         meta["relics"][rid] = {"file": f"ui_relics/{rid}.png", "passiveId": rid, "scene": note, "colors": len(colors_of(im))}
         items.append(im)
-    for kid, (fn, note) in KEEPSAKES.items():
+    for kid, (fn, skey, name, note) in KEEPSAKES.items():
         im = fn()
         assert im.size == (64, 64)
         if not common.DRY:
             save_png(im, os.path.join(SPR, "ui_relics", "keepsake_" + kid + ".png"))
-        meta["keepsakes"][kid] = {"file": f"ui_relics/keepsake_{kid}.png", "size": [64, 64], "note": note,
-                                  "idNote": "아트 임시 id — 시스템·스토리 확정 id 가 다르면 파일 이름만 바꿔 다시 냄"}
+        meta["keepsakes"][kid] = {"file": f"ui_relics/keepsake_{kid}.png", "size": [64, 64], "name": name, "storyKey": skey,
+                                  "note": note, "colors": len(colors_of(im)),
+                                  "idNote": "파일 id = 시스템 id(그대로 둠). 이름·그림은 스토리 팩 63-loop2 memory.keepsakes[storyKey]"}
         items.append(im)
     pmeta = {"size": [96, 96], "pixelScale": 0.5, "rule": "적 idle down 0 프레임 상반신 1배(월드와 같은 밀도) + 먹 원 배경 + 차가운 림. 결산 '처치자' 칸",
              "source": SRC + " · cards.py", "portraits": {}}

@@ -468,7 +468,24 @@
    "openingH": 96.0,
    "lights": [],
    "file": "door_west.webp",
-   "emissive": "door_west_emissive.webp"
+   "emissive": "door_west_emissive.webp",
+   "closed": "door_west_closed.webp",
+   "openSheet": {
+    "file": "door_west_open.webp",
+    "frames": 4,
+    "frameWidth": 256.0,
+    "frameHeight": 291.0,
+    "layout": "가로 한 줄, 프레임 i 의 원점 = (i × frameWidth, 0) 논리 px",
+    "frameDurationsMs": [
+     90,
+     110,
+     130,
+     160
+    ],
+    "loop": false,
+    "first": "0 = 닫힘(closed 와 같은 그림) → 3 = 다 열림. 닫힐 때는 거꾸로 재생"
+   },
+   "closedNote": "62 루프 2: 문 그림과 같은 크기·좌표의 알파 오버레이(널문 두 짝 + 뒤 통로 어둠). 문 그림 위·막힘 판 자리(DOORS.DEPTH_BARRIER)에 그린다. 발광 없음(조명을 받는 albedo)"
   },
   "east": {
    "w": 256.0,
@@ -479,7 +496,24 @@
    "lights": [],
    "file": "door_east.webp",
    "emissive": "door_east_emissive.webp",
-   "mirrorOf": "door_west.webp"
+   "mirrorOf": "door_west.webp",
+   "closed": "door_east_closed.webp",
+   "openSheet": {
+    "file": "door_east_open.webp",
+    "frames": 4,
+    "frameWidth": 256.0,
+    "frameHeight": 291.0,
+    "layout": "가로 한 줄, 프레임 i 의 원점 = (i × frameWidth, 0) 논리 px",
+    "frameDurationsMs": [
+     90,
+     110,
+     130,
+     160
+    ],
+    "loop": false,
+    "first": "0 = 닫힘(closed 와 같은 그림) → 3 = 다 열림. 닫힐 때는 거꾸로 재생"
+   },
+   "closedNote": "62 루프 2: 문 그림과 같은 크기·좌표의 알파 오버레이(널문 두 짝 + 뒤 통로 어둠). 문 그림 위·막힘 판 자리(DOORS.DEPTH_BARRIER)에 그린다. 발광 없음(조명을 받는 albedo)"
   },
   "doc": "골목 입구 조각(53라운드 Q13, 키 이름은 시스템과 확정 대상). 문·출구 칸 위에 띠 다음에 덧그린다(같은 depth·조명·발광 규칙). north: baselineY 줄 = 바닥 북쪽 끝, openingX(조각 국소 x) = 문 칸들의 가운데 x 에 맞춤, openingW = 그림 속 통로 폭(참고). south: baselineY 줄 = 바닥 남쪽 끝, openingX 를 문 칸 가운데에. 남 띠와 같은 전경(foreground)·가림 규칙. west: 오른쪽 끝(baselineX) = 바닥 서쪽 끝, openingY(조각 국소 y) = 문 칸들의 가운데 y, openingH = 그림 속 골목 폭. east: west 의 좌우 반전(baselineX 0 = 바닥 동쪽 끝). lights[] = 조각 국소 좌표, 띠 광원 중 조각에 가려지는 것은 빼지 않아도 된다(약함)."
  },

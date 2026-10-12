@@ -12,6 +12,7 @@ import os
 from PIL import Image, ImageDraw
 
 import common
+from diary import soup, build_diary
 from common import SPR, SRC, dump, save_png, load_grid, cell, board, hexc, bayer, b2, PAL, hx
 from kit2 import (Canvas, Rand, G, A, SL, WD, PL, R_WOOD, R_IRON, R_CLOTH, R_LEATHER, R_SKIN, R_HELM, R_PAPER, R_LIQ,
                   contact, cyl, shade_mask, ell_mask, poly_mask, ell, pol, cap, line, selout, spear_shaft, splash, flame,
@@ -394,10 +395,13 @@ def build_shop(items):
     b2.write_sheet("structures", "shop_slot", frames, 112, 96, meta, rows=1, durations=[1000, 1000, 1000])
     items.append(board(frames, bg=(70, 58, 46), k=2))
     # 상점 물건(드랍 그림이 없는 품목) — items/v3/shop_goods 80×96 피벗 (40,88), 행 = 품목, 열 = idle 4
-    kinds = ["relic_bundle", "temper", "reroll"]
+    kinds = ["relic_bundle", "temper", "reroll", "heal"]
     fr = []
     for kind in kinds:
         for k in range(4):
+            if kind == "heal":           # 62 루프 2: 국밥 노점 — diary.soup (4째 행 추가, 앞 행 프레임 번호 불변)
+                fr.append(soup(k))
+                continue
             c = Canvas(80, 96)
             contact(c, 40, 88, 16, 5)
             if kind == "relic_bundle":   # 끈으로 묶은 보자기 꾸러미 + 매단 표찰
@@ -430,11 +434,13 @@ def build_shop(items):
     meta = {
         "directions": kinds, "rowsAre": "kinds", "pivot": {"x": 40, "y": 88}, "anchor": "ground", "shadow": True,
         "states": {"idle": [0, 1, 2, 3]}, "stateLoop": {"idle": True},
-        "kinds": {"relic_bundle": "유품 카드 품목(보자기 꾸러미 + 표찰)", "temper": "단련 1회(모루 + 망치)", "reroll": "개성 다시 뽑기(점괘 통·산가지)"},
-        "reuse": "회복약 = items/v3/potion(idle), 화염 술병 = items/v3/consumable_f1 fire_bottle 행 — 새로 그리지 않음",
+        "kinds": {"relic_bundle": "유품 카드 품목(보자기 꾸러미 + 표찰)", "temper": "단련 1회(모루 + 망치)", "reroll": "개성 다시 뽑기(점괘 통·산가지)",
+                  "heal": "국밥 한 그릇(검은 뚝배기 + 숟가락, 김 4프레임) — 62 루프 2 장터 국밥 노점(heal 품목)"},
+        "reuse": "화염 술병 = items/v3/consumable_f1 fire_bottle 행 — 새로 그리지 않음. heal 은 62 루프 2 부터 이 시트 heal 행(옛 회복약 potion 재사용 대신)",
+        "rowsAdded62b2": "heal 행(3) 추가 — 0~2 행 프레임 번호(0..11)는 그대로, heal = 12..15",
         "pixelScale": 0.5, "paletteSwap": False, "version": "v3-r62b", "source": SRC + " · event.py",
     }
-    b2.write_sheet("items", "shop_goods", fr, 80, 96, meta, rows=3, durations=[220, 140, 140, 400], loop=True)
+    b2.write_sheet("items", "shop_goods", fr, 80, 96, meta, rows=4, durations=[220, 140, 140, 400], loop=True)
     items.append(board(fr, bg=(70, 58, 46), k=2))
 
 
@@ -442,6 +448,7 @@ def build(preview_path=None):
     items = []
     build_npcs(items)
     build_shop(items)
+    build_diary(items)
     cmeta = {"size": [320, 180], "dotPx": 2, "uiScale": "UI 1배(논리 px) — 이벤트 결과 패널 그림 자리", "background": "붓 가장자리 종이(바깥 투명)",
              "palette": "UI 세피아 S0~S5(먹·종이) + 1층 램프 22~24 호박 한 점 — UI 그림", "method": "Claude 직접(Gemini 402) — r62b/event.py",
              "cuts": {}, "aliases": {}, "source": SRC + " · event.py"}

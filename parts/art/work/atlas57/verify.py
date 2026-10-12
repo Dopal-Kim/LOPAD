@@ -406,7 +406,34 @@ def psnr_alpha(a: Image.Image, b: Image.Image):
 
 
 def verify_border(args, orig):
-    regions = sorted(d for d in glob(os.path.join(BORDER, "*")) if os.path.isdir(d))
+    regions = sorted(d for d in glob(os.path.join(BORDER, "*")) if os.path.isdir(d) and os.path.exists(os.path.join(d, "border.json")))
+    # 62 루프 2: 외벽 없는 문 전용 폴더(doors.json — 수련장)는 참조 webp 존재·크기만 본다
+    for dd in sorted(d for d in glob(os.path.join(BORDER, "*")) if os.path.isdir(d) and not os.path.exists(os.path.join(d, "border.json"))):
+        dj_path = os.path.join(dd, "doors.json")
+        e2 = []
+        refs2 = set()
+        if not os.path.exists(dj_path):
+            e2.append("border.json·doors.json 없음")
+        else:
+            def walk2(o):
+                if isinstance(o, dict):
+                    for v in o.values():
+                        walk2(v)
+                elif isinstance(o, list):
+                    for v in o:
+                        walk2(v)
+                elif isinstance(o, str) and o.endswith(".webp"):
+                    refs2.add(o)
+                    pth = os.path.join(dd, o)
+                    if not os.path.exists(pth):
+                        e2.append(f"파일 없음: {o}")
+                    elif max(Image.open(pth).size) > args.max:
+                        e2.append(f"텍스처 초과 {o}")
+            walk2(json.load(open(dj_path, encoding="utf-8")).get("doors", {}))
+            unused2 = sorted({os.path.basename(q) for q in glob(os.path.join(dd, "*.webp"))} - refs2)
+            if unused2:
+                e2.append(f"참조 없는 webp {unused2[:3]}")
+        print(f"문 {os.path.basename(dd)}: 그림 {len(refs2)}개 " + ("OK" if not e2 else f"오류 {e2[:6]}"))
     fmt, bad, n_img, psnr_min = 0, 0, 0, 99.0
     for rd in regions:
         region = os.path.basename(rd)
@@ -505,6 +532,13 @@ def verify_border(args, orig):
         else:
             walk(bj.get("bands", {}), old.get("bands", {}))
             walk(bj.get("doors", {}), old.get("doors", {}))
+        # 62 루프 2: 원본에 없던 새 참조(doors.<side>.closed · openSheet.file — 닫힌 널문 오버레이)는 존재·크기만 본다
+        for side, dn in bj.get("doors", {}).items():
+            if isinstance(dn, dict):
+                if isinstance(dn.get("closed"), str):
+                    tex(dn["closed"])
+                if isinstance(dn.get("openSheet"), dict) and isinstance(dn["openSheet"].get("file"), str):
+                    tex(dn["openSheet"]["file"])
         unused = sorted({os.path.basename(p) for p in glob(os.path.join(rd, "*.webp"))} - refs)
         if unused:
             errs.append(f"참조 없는 webp {unused[:3]}")

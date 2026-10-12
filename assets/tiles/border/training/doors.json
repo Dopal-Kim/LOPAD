@@ -1,0 +1,98 @@
+{
+ "region": "training",
+ "kind": "doors-only",
+ "version": "62 루프 2 (시스템 E 문 연출 — 수련장 일반 방 문틀)",
+ "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · doors.py",
+ "pixelScale": 0.5,
+ "units": "border.json 과 같음 — 길이·좌표 = 논리 px, 이미지 px = 논리 px × 2",
+ "place": "외벽 테두리 없는 수련장 방의 서·동 문 자리. 외벽 문(border.json doors.<side>)과 같은 배치 규칙: west 는 그림 오른쪽 끝(baselineX) = 바닥 서쪽 끝, east 는 왼쪽 끝 = 바닥 동쪽 끝, 통로 세로 가운데 = openingY. 그림 바깥쪽(벽 밖)은 알파로 사라진다 — 벽 칸 위에 덮어 그린다(충돌은 격자 그대로)",
+ "drawOrder": "벽 타일 위 · 막힘 판(closed/open) 아래. 발광은 조명 뒤 가산",
+ "lightsRule": "lights[] = 그림 왼쪽 위 기준 논리 px (border.json 과 같음)",
+ "doors": {
+  "west": {
+   "w": 128.0,
+   "h": 160.0,
+   "baselineX": 128.0,
+   "openingY": 80.0,
+   "openingH": 96.0,
+   "file": "door_west.webp",
+   "emissive": "door_west_emissive.webp",
+   "lights": [
+    {
+     "x": 114.0,
+     "y": 17.0,
+     "color": "#eeb46a",
+     "radius": 80,
+     "intensity": 0.7,
+     "flicker": {
+      "amp": 0.12,
+      "hz": 5
+     },
+     "kind": "torch"
+    }
+   ],
+   "closed": "door_west_closed.webp",
+   "openSheet": {
+    "file": "door_west_open.webp",
+    "frames": 4,
+    "frameWidth": 128.0,
+    "frameHeight": 160.0,
+    "layout": "가로 한 줄, 프레임 i 의 원점 = (i × frameWidth, 0) 논리 px",
+    "frameDurationsMs": [
+     90,
+     110,
+     130,
+     160
+    ],
+    "loop": false,
+    "first": "0 = 닫힘 → 3 = 다 열림"
+   }
+  },
+  "east": {
+   "w": 128.0,
+   "h": 160.0,
+   "baselineX": 0,
+   "openingY": 80.0,
+   "openingH": 96.0,
+   "file": "door_east.webp",
+   "emissive": "door_east_emissive.webp",
+   "lights": [
+    {
+     "x": 14.0,
+     "y": 17.0,
+     "color": "#eeb46a",
+     "radius": 80,
+     "intensity": 0.7,
+     "flicker": {
+      "amp": 0.12,
+      "hz": 5
+     },
+     "kind": "torch"
+    }
+   ],
+   "closed": "door_east_closed.webp",
+   "openSheet": {
+    "file": "door_east_open.webp",
+    "frames": 4,
+    "frameWidth": 128.0,
+    "frameHeight": 160.0,
+    "layout": "가로 한 줄, 프레임 i 의 원점 = (i × frameWidth, 0) 논리 px",
+    "frameDurationsMs": [
+     90,
+     110,
+     130,
+     160
+    ],
+    "loop": false,
+    "first": "0 = 닫힘 → 3 = 다 열림"
+   },
+   "mirrorOf": "door_west.webp"
+  }
+ },
+ "imageFormat": {
+  "format": "webp",
+  "albedo": "lossy q90, alpha lossless",
+  "emissive": "lossless"
+ },
+ "palette": "lopad gray + 1층 램프 + v2 재질 SL·WD·PL — 새 색 없음 (수련장 밤 석벽 = gray 1~6, 다진 모래 = WD·PL)"
+}

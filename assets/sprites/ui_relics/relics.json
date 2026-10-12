@@ -111,8 +111,11 @@
     64,
     64
    ],
-   "note": "깨진 잔 — 첫 피격 피해 무효(예)",
-   "idNote": "아트 임시 id — 시스템·스토리 확정 id 가 다르면 파일 이름만 바꿔 다시 냄"
+   "name": "찌그러진 투구",
+   "storyKey": "dentedHelm",
+   "note": "옆이 찌그러진 쇠 투구 — 생마다 첫 피격 피해 0(한 번)",
+   "colors": 13,
+   "idNote": "파일 id = 시스템 id(그대로 둠). 이름·그림은 스토리 팩 63-loop2 memory.keepsakes[storyKey]"
   },
   "oldVoucher": {
    "file": "ui_relics/keepsake_oldVoucher.png",
@@ -120,8 +123,11 @@
     64,
     64
    ],
-   "note": "낡은 전표 — 시작 전표(예)",
-   "idNote": "아트 임시 id — 시스템·스토리 확정 id 가 다르면 파일 이름만 바꿔 다시 냄"
+   "name": "접힌 전표",
+   "storyKey": "foldedVoucher",
+   "note": "네 번 접힌 전표 묶음(노끈·잔 도장) — 시작 전표 +n",
+   "colors": 15,
+   "idNote": "파일 id = 시스템 id(그대로 둠). 이름·그림은 스토리 팩 63-loop2 memory.keepsakes[storyKey]"
   },
   "knotCord": {
    "file": "ui_relics/keepsake_knotCord.png",
@@ -129,8 +135,11 @@
     64,
     64
    ],
-   "note": "매듭 끈 — 대쉬 1회 추가 충전(예)",
-   "idNote": "아트 임시 id — 시스템·스토리 확정 id 가 다르면 파일 이름만 바꿔 다시 냄"
+   "name": "닳은 매듭 끈",
+   "storyKey": "knotCord",
+   "note": "매듭 다섯이 줄줄이 진 가죽 끈 — 대쉬 충전 +1",
+   "colors": 12,
+   "idNote": "파일 id = 시스템 id(그대로 둠). 이름·그림은 스토리 팩 63-loop2 memory.keepsakes[storyKey]"
   },
   "inkBrush": {
    "file": "ui_relics/keepsake_inkBrush.png",
@@ -138,8 +147,11 @@
     64,
     64
    ],
-   "note": "먹 묻은 붓 — 첫 개성 발현 카드 +1(예)",
-   "idNote": "아트 임시 id — 시스템·스토리 확정 id 가 다르면 파일 이름만 바꿔 다시 냄"
+   "name": "먹 묻은 붓",
+   "storyKey": "inkBrush",
+   "note": "끝이 먹에 젖은 가는 붓 — 첫 개성 발현 카드 +1",
+   "colors": 19,
+   "idNote": "파일 id = 시스템 id(그대로 둠). 이름·그림은 스토리 팩 63-loop2 memory.keepsakes[storyKey]"
   }
  },
  "portraits": {}
