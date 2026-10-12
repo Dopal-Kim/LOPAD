@@ -1,0 +1,72 @@
+{
+  "_meta": {
+    "pack": "62-ritual",
+    "doc": "parts/story/text-pack-62-ritual.md",
+    "basis": "contracts/ui-system-interface.md §20 · decisions/2026-10-12-P15-loop1.md · round-59 · text-pack-61-stage1 B0·E · text-pack-61s6-training",
+    "merge": "data/narrative.json 의 ritual 블록에 깊게 덮어쓴다(객체는 키 단위). 수치·키 값(redraw.key, meta.key, trial 의 시간·사격 값, grade, bonus, props 등)은 이 팩에 없으니 시스템 값 그대로 둔다. trial.tasks 는 배열이므로 id 로 맞춰 label 만 바꾼다. lines 는 새 블록(선택) — 쓰지 않으면 무시해도 된다.",
+    "rule": "아라비아 숫자 없음. 수 표현은 한글 수사(하나·둘·셋·두)만. 키캡은 [키] 형식, {redrawKey} 는 시스템 치환."
+  },
+  "ritual": {
+    "hints": {
+      "name": "[Enter] 이름을 적는다",
+      "rewrite": "[Enter] 덧쓴다 · [{redrawKey}] 획을 다시 긋는다",
+      "strokes": "마우스를 누른 채 긋고, 떼면 한 획 · [Esc] 앞 장으로",
+      "trial": "[WASD] 걷는다 · [Space] 대쉬 · [Esc] 획부터 다시",
+      "trialSkip": "[Enter] 건너뛴다",
+      "fate": "[Enter] 일어선다"
+    },
+    "redraw": {
+      "label": "획을 다시 긋는다 — 다른 무기를 부른다"
+    },
+    "meta": {
+      "label": "영혼 강화"
+    },
+    "legend": {
+      "katana": "곧게, 단숨에",
+      "greatsword": "길게, 천천히",
+      "dagger": "짧게, 꺾어서",
+      "bow": "길게, 고르게"
+    },
+    "why": {
+      "katana": {
+        "strokes": "곧게, 단숨에. 망설이지 않는 손은 칼을 쥔다.",
+        "remembered": "손이 먼저 찾았다. 지난 생에도 칼이었다."
+      },
+      "greatsword": {
+        "strokes": "길게, 질질 끌었지? 그 손이면 이 쇳덩이 든다.",
+        "remembered": "어깨가 기억하지? 지난번에도 이 무게였다!"
+      },
+      "dagger": {
+        "strokes": "짧게 긋고 휙 꺾었지? 쉿, 그건 도망치던 손이야.",
+        "remembered": "또 왔네. 손이 기억해. 지난번에도 우리였어."
+      },
+      "bow": {
+        "strokes": "하나, 둘, 셋. 획마다 고르네요. 시위를 당길 손이에요.",
+        "remembered": "손이 먼저 세고 있네요. 지난 생에도 활이었어요."
+      }
+    },
+    "gift": {
+      "S": "화살이 하나도 닿지 않았다. 감각이 먼저 깨어 있었다.",
+      "A": "화살이 옷깃만 스쳤다. 감각이 깨어난다.",
+      "B": "화살 몇 대가 박혔다. 뽑고 나니 감각이 조금 깨었다.",
+      "C": "이 몸은 고슴도치가 되었다. 감각은 아직 잠들어 있다.",
+      "skipped": "시험을 건너뛰었다. 감각은 싸우면서 깨어난다."
+    },
+    "trial": {
+      "tasks": [
+        { "id": "step", "label": "걸어서 화살을 피한다" },
+        { "id": "dash", "label": "대쉬로 부채꼴 화살을 뚫는다" },
+        { "id": "cross", "label": "두 사수의 엇갈린 화살을 버틴다" }
+      ]
+    },
+    "lines": {
+      "name": "누군가 쓰려다 만 일기장이다. 첫 장에 이름 칸만 있다. 글씨체가 낯익다.",
+      "strokes": "가장 강한 것을 떠올려라. 손이 먼저 기억한다.",
+      "trialIntro": "시체 더미 위에서 일어섰다. 죽은 것이 일어나도 화살은 가리지 않는다.",
+      "trialEnd": "사수들이 활을 내렸다. 화살이 떨어졌거나, 겁이 났거나.",
+      "fate": "{weaponName}.",
+      "rewrite": "첫 장의 이름이 번져 있다. 지난 생에 적은 글씨다.",
+      "rewritePrompt": "번진 자리 위에 덧쓴다."
+    }
+  }
+}
