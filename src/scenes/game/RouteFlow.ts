@@ -3,19 +3,22 @@
  * 그리고 층 출구(방+복도 층·보스 노드 → 다음 층).
  * 62 루프 2 E: 출구 = 외벽 문 (ArenaDoors — 바닥 발판 없음). 문턱에 들어서면 문 안으로 걸어 들어가 전환 · 새 노드는 반대편 문에서
  * 걸어 들어온다 · 노드 고르기(UI)는 열린 직후 MENU_GUARD.ARM_MS 동안 고르기 명령을 받지 않는다.
+ * 62 H: 문 안에 들어서면 그림 속 입구 전환 없이 곧바로 노드 지도 (외길이어도) → 고르면 짧은 암전('fade') → 반대편 문으로 입장.
+ * 지도 미리보기 그림(UiRouteNode.previewKey)은 RoutePreview. 층 이동('floor')만 입구 그림 전환.
  */
-import { MENU_GUARD, ROUTE_FX, TILE } from '../../core/Constants';
+import { MENU_GUARD, ROUTE_FX } from '../../core/Constants';
 import { EventBus, Events, type NodeEnteredPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { UI_EVENTS, __system, type UiRouteEntered } from '../../contract/ui';
 import { RUN } from '../../data';
-import { minBattlesOnAnyPath, regionIdOf, type RouteNode } from '../../systems/route';
+import { minBattlesOnAnyPath, regionIdOf } from '../../systems/route';
 import { oncePerKeyEvent } from '../../systems/keyEvents';
+import { nodeFadeInfo } from '../../systems/transition/fadeFlow';
 import { transitionGate } from '../../systems/transition/transitionGate';
-import type { UiTransitionBegin } from '../../contract/ui';
 import type { Game } from '../Game';
-import { doorFor, loadDoorIndex, withDoor } from './PaintArt';
-import { fadeCover, screenOfWorld } from './TransitionFx';
+import { doorFor, withDoor } from './PaintArt';
+import { RoutePreview } from './RoutePreview';
+import { fadeCover } from './TransitionFx';
 import { urlParams, type GameInitData } from './shared';
 import { MenuGuard } from '../../systems/input/menuGuard';
 
@@ -30,12 +33,15 @@ export class RouteFlow {
   enterLockUntil = 0;
   /** 62 루프 2 E: 노드 고르기 열린 직후 UI 의 고르기 명령 무시 (`UiRoute.openedAt`·`armMs`) */
   private readonly chooseGuard = new MenuGuard(MENU_GUARD.ARM_MS, urlParams().get(MENU_GUARD.PARAM) !== '0');
+  /** 62 H: 지도 미리보기 그림 (UiRouteNode.previewKey · 미리 받기) */
+  readonly preview: RoutePreview | null;
 
   constructor(private readonly g: Game) {
     if (g.routeMode) {
       gameState.exitOpen = false;
       gameState.rewardPending = false;
     }
+    this.preview = g.routeMode && gameState.route ? new RoutePreview(g) : null;
   }
 
   /** HUD 진행 표시 재해석 (임시): 시련 총수 = 어느 길로 가도 거치는 최소 전투 수, 보스 해금 = 다음이 보스 */
@@ -83,6 +89,8 @@ export class RouteFlow {
     if (g.nodeKind === 'birth' && gameState.birthPending && !urlParams().has('nobirth')) g.birth.start();
     else if (g.nodeKind === 'birth') gameState.birthPending = false;
     if (!node) g.time.delayedCall(ROUTE_FX.ENTER_LOCK_MS, () => this.openChooser());
+    // 62 H: 지도에 보일 노드의 미리보기 그림 (입구 걸음 뒤 — 막지 않는다)
+    this.preview?.schedule();
     return false;
   }
 
@@ -139,6 +147,8 @@ export class RouteFlow {
       route.markCleared();
       g.clearedRooms.add(room.id);
       this.syncProgress();
+      // 62 H: 방을 비운 순간 다음 열 미리보기 그림을 받아 둔다 (문 → 지도 순간 키아트가 먼저 떴다 바뀌지 않게 — 막지 않는다)
+      this.preview?.preload();
       if (!this.exitScheduled) {
         this.exitScheduled = true;
         g.time.delayedCall(ROUTE_FX.EXIT_DELAY_MS, () => this.openNodeExit());
@@ -147,69 +157,28 @@ export class RouteFlow {
   }
 
   /**
-   * 61 단계 6 (P14 §3): 출구로 걸어 들어감 → 방이 그림처럼 굳어 액자 → 지도 ('exitRoom'). 덮이면 노드 고르기를 열고 READY.
-   * UI 가 없으면 바로 고르기 (예전과 같다). 62 루프 2 E: 문 안까지 걸어 들어간 뒤 (ArenaDoors onThrough)
+   * 62 H: 문 안까지 걸어 들어간 뒤 (ArenaDoors onThrough) 곧바로 노드 지도 — 그림 속 입구 전환('exitRoom') 없이, 갈 길이 하나여도
+   * (옛 62 P2-1 '외길 자동 진행' 대체 — 지도에서 Enter/클릭 한 번). 못 열면(있을 수 없지만) 문에서 걸어 나온다
    */
   private exitToMap(): void {
     const g = this.g;
     const route = gameState.route;
-    const options = route?.nextOptions() ?? [];
-    if (!route || options.length === 0) return;
+    if (!route || route.nextOptions().length === 0) return;
     g.player.haltForWarp();
-    loadDoorIndex(g);
-    // 62라운드 P2-1: 갈 길이 하나뿐이면 지도·확인 없이 그 노드 입구로 (하데스 문처럼 출구에 들어서면 간다 — 지도는 M 으로 언제든)
-    if (options.length === 1 && __system.rendererRegistered()) {
-      route.choosing = true;
-      if (this.chooseNode(options[0].id)) return;
-      route.choosing = false;
-    }
-    const from = this.exitScreen();
-    const ok = transitionGate.begin(
-      {
-        mode: 'exitRoom',
-        region: g.node ? this.regionOf(g.node) : '',
-        ...(g.nodeKind ? { nodeKind: g.nodeKind } : {}),
-        ...(from ? { from } : {}),
-      },
-      () => {
-        this.openChooser();
-        transitionGate.ready();
-      },
-    );
-    if (!ok) this.openChooser();
-  }
-
-  /** 출구 문 가운데 화면 좌표 (줌 중심) — 문이 없으면 옛 출구 자리 */
-  private exitScreen(): { x: number; y: number } | undefined {
-    const g = this.g;
-    const m = g.doors.exitPoint();
-    if (m) return screenOfWorld(g, m.x, m.y);
-    const e = g.layout?.arena?.exit;
-    return e ? screenOfWorld(g, (e.x + 1) * TILE, (e.y + 1) * TILE) : undefined;
-  }
-
-  /** 노드의 지역 id (route.json regions — waste·outer·gate·hall·brewery, 보스 노드는 'boss') */
-  private regionOf(n: RouteNode): string {
-    if (n.kind === 'boss') return 'boss';
-    return regionIdOf(gameState.stageId, n.col) ?? '';
+    if (!this.openChooser() && !route.choosing) g.doors.stepBack();
   }
 
   /**
-   * 그림 속 입구 전환 시작: 입구 그림(art §28 — 정확 → 별칭 → <지역>_battle)을 한 장 받은 뒤(최대 DOOR_WAIT_MS) begin.
-   * 문지기가 거부하면(다른 전환 중) 예전 암전으로
+   * 층 이동 그림 속 입구 전환 ('floor' — 62 H 뒤에도 유지): 입구 그림(art §28 — 정확 → 별칭 → <지역>_battle)을 한 장 받은 뒤
+   * (최대 DOOR_WAIT_MS) begin. 문지기가 거부하면(다른 전환 중) 예전 암전으로
    */
-  private beginDoor(
-    mode: UiTransitionBegin['mode'],
-    region: string,
-    nodeKind: string,
-    nodeId: string | undefined,
-    swap: () => void,
-  ): void {
+  private beginFloorDoor(region: string, swap: () => void): void {
     const g = this.g;
+    const nodeKind = 'floor';
     withDoor(g, doorFor(g, region, nodeKind), DOOR_WAIT_MS, (doorKey) => {
       if (!g.scene.isActive()) return;
       const ok = transitionGate.begin(
-        { mode, region, nodeKind, ...(nodeId ? { nodeId } : {}), ...(doorKey ? { doorKey } : {}) },
+        { mode: 'floor', region, nodeKind, ...(doorKey ? { doorKey } : {}) },
         swap,
         (cover) => fadeCover(g, cover),
       );
@@ -246,7 +215,7 @@ export class RouteFlow {
         const next = () => g.scene.restart({ mode: 'next' } satisfies GameInitData);
         const nextStage = RUN.order[gameState.stageIndex + 1];
         const region = (nextStage && regionIdOf(nextStage, 0)) || 'boss';
-        this.beginDoor('floor', region, 'floor', undefined, next);
+        this.beginFloorDoor(region, next);
       },
       () => this.canLeave(),
     );
@@ -261,6 +230,8 @@ export class RouteFlow {
   private openNodeExit(): void {
     const g = this.g;
     if (!g.scene.isActive() || this.exitOpen || !g.layout?.arena) return;
+    // 62 H: 문이 열리는 순간에도 (수련장에서 돌아옴·디버그처럼 '비운 순간'을 거치지 않는 경로) — 이미 있거나 받는 중이면 건너뜀
+    this.preview?.preload();
     // 문이 없는 전장(있을 수 없지만)이면 문 없이 바로 고르기로
     if (
       !g.doors.openExit(
@@ -285,6 +256,9 @@ export class RouteFlow {
     route.choosing = true;
     // 62 루프 2 E: 열린 직후 고르기 명령 무시 (UiRoute.openedAt·armMs) · 쌓인 입력 비우기
     route.chooseGuard = { openedAt: this.chooseGuard.arm(), armMs: this.chooseGuard.armMs };
+    // 62 H: 미리보기 그림 (이미 받았으면 건너뜀 — 늦은 것은 UI 가 키아트로 대체)
+    this.preview?.attach(route);
+    this.preview?.preload();
     g.inputSystem?.flush();
     g.player.haltForWarp();
     g.motion.stopLoops();
@@ -316,7 +290,7 @@ export class RouteFlow {
     gameState.route.chooseGuard = { openedAt: this.chooseGuard.openedAt, armMs: this.chooseGuard.armMs };
   }
 
-  /** 노드 고르기 (계약 §10.2 — 디버그·갈 길이 하나일 때 바로 가기는 이것을 직접): available 노드만. 층 상태를 들고 암전 뒤 그 노드 전투장을 연다 */
+  /** 노드 고르기 (계약 §10.2 — 디버그는 이것을 직접): available 노드만. 층 상태를 들고 짧은 암전('fade') 뒤 그 노드 전투장을 연다 */
   chooseNode(id: string): boolean {
     const g = this.g;
     const route = gameState.route;
@@ -325,10 +299,14 @@ export class RouteFlow {
     gameState.structureCarry = g.structures.exportFloorState();
     route.enter(id);
     const restart = () => g.scene.restart({ mode: 'node' } satisfies GameInitData);
-    // 61 단계 6 (P14 §3): 고른 노드에 그려진 입구로 파고든다 ('enterNode') — UI 가 덮으면 새 노드
+    // 62 H: 입구 그림으로 파고드는 전환('enterNode') 대신 짧은 먹 번짐 암전 — UI 가 덮으면 새 노드 (UI 없으면 카메라 암전)
     const node = route.current;
-    if (node) this.beginDoor('enterNode', this.regionOf(node), node.kind, node.id, restart);
-    else this.fadeThen(restart);
+    const ok =
+      node &&
+      transitionGate.begin(nodeFadeInfo(gameState.stageId, node, ROUTE_FX.MAP_FADE_MS), restart, (cover) =>
+        fadeCover(g, cover),
+      );
+    if (!ok) this.fadeThen(restart);
     return true;
   }
 

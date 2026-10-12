@@ -4,10 +4,12 @@
  * `sprites/paint/doors.json` (별칭 aliases) · `sprites/paint/map_training.png` (+ .json 메타 rooms[]{index,x,y,r}).
  * 입구 찾는 순서 (art §28): 정확한 이름 → 별칭 → `door_<region>_battle` → 없음(UI 대체).
  * 한 장 약 0.9MB 라 전환에 쓰는 1~2장만 그때 받는다. 텍스처 키 = `paint/<이름>` (cache.json 같은 키에 메타).
+ * 62 H: 입구 그림은 노드 지도·수련장 지도의 **작은 미리보기**로도 쓴다 (RoutePreview 가 고를 수 있는 노드 + 그다음 열만 미리 받는다).
  */
 import type Phaser from 'phaser';
 import { ASSETS } from '../../core/Constants';
 import { assetListed } from '../../systems/sprites/sheetLoader';
+import { queueImageOnce } from '../../systems/sprites/imageOnce';
 import { resolveDoorName } from '../../systems/transition/doorNames';
 
 const DIR = 'sprites/paint';
@@ -36,31 +38,46 @@ export function doorFor(scene: Phaser.Scene, region: string, kind: string): stri
   return resolveDoorName(region, kind, index?.aliases ?? null, (name) => assetListed(`${DIR}/${name}.png`));
 }
 
-/** 받는 중인 그림 (텍스처 키 → 받는 씬) — 같은 키를 두 번 넣지 않게 (그 씬이 끝났으면 다시 받는다) */
-const inflight = new Map<string, Phaser.Scene>();
+/** 별칭 표(doors.json)를 이미 받았나 — 62 H 미리보기 키 기억은 받은 뒤에만 */
+export function doorIndexReady(scene: Phaser.Scene): boolean {
+  return scene.cache.json.exists(DOOR_INDEX) || !assetListed(`${DIR}/doors.json`);
+}
 
-/** 그림(+메타)을 받아 둔다 — 이미 있거나 받는 중이거나 매니페스트에 없으면 아무것도 안 한다. 받기 시작했으면 true */
+/** 메타 json 을 이미 큐에 넣은 키 (씬 사이 같은 json 을 두 번 넣지 않게 — 받히면 지운다) */
+const jsonQueued = new Set<string>();
+
+/**
+ * 그림(+메타)을 받아 둔다 — 이미 있거나 매니페스트에 없으면 아무것도 안 한다. 62 H: 그림은 `queueImageOnce`(씬 사이 이중 로드 없음 —
+ * 다른 씬이 받는 중이면 들어오기를 기다린다). 기다릴 것이 있으면 true, onDone = 그림이 다 들어오고 이 로더가 끝난 뒤(메타 포함)
+ */
 export function loadPaint(scene: Phaser.Scene, names: readonly string[], onDone?: () => void): boolean {
-  let queued = false;
+  let pending = 0;
+  let started = false;
+  let queuedHere = false;
+  const arrive = () => {
+    pending -= 1;
+    if (started && pending === 0) onDone?.();
+  };
   for (const name of names) {
     const key = paintKey(name);
     if (scene.textures.exists(key) || !assetListed(`${DIR}/${name}.png`)) continue;
-    const owner = inflight.get(key);
-    if (owner && owner.sys.isActive()) {
-      // 이 씬이 이미 받는 중 — 끝나기를 같이 기다린다
-      if (owner === scene) queued = true;
-      continue;
-    }
-    inflight.set(key, scene);
-    scene.load.once(`filecomplete-image-${key}`, () => inflight.delete(key));
-    scene.load.image(key, `${ASSETS.URL}/${DIR}/${name}.png`);
-    if (assetListed(`${DIR}/${name}.json`) && !scene.cache.json.exists(key))
+    pending += 1;
+    if (queueImageOnce(scene, key, `${ASSETS.URL}/${DIR}/${name}.png`, arrive)) queuedHere = true;
+    if (assetListed(`${DIR}/${name}.json`) && !scene.cache.json.exists(key) && !jsonQueued.has(key)) {
+      jsonQueued.add(key);
+      scene.load.once(`filecomplete-json-${key}`, () => jsonQueued.delete(key));
       scene.load.json(key, `${ASSETS.URL}/${DIR}/${name}.json`);
-    queued = true;
+      queuedHere = true;
+    }
   }
-  if (!queued) return false;
-  if (onDone) scene.load.once('complete', onDone);
-  if (!scene.load.isLoading()) scene.load.start();
+  if (pending === 0 && !queuedHere) return false;
+  if (queuedHere) {
+    pending += 1;
+    scene.load.once('complete', arrive);
+    if (!scene.load.isLoading()) scene.load.start();
+  }
+  started = true;
+  if (pending === 0) onDone?.();
   return true;
 }
 
@@ -85,22 +102,4 @@ export function withDoor(
   };
   if (!loadPaint(scene, [name], finish)) return finish();
   scene.time.delayedCall(waitMs, finish);
-}
-
-/** 수련장 지도 메타의 방 자리 (순서 index — 데이터 방 순서와 같은 차례) → 논리 화면 좌표 */
-export function mapRoomPoint(
-  scene: Phaser.Scene,
-  order: number,
-  screen: { w: number; h: number },
-): { x: number; y: number } | undefined {
-  const key = paintKey(MAP_TRAINING);
-  if (!scene.cache.json.exists(key)) return undefined;
-  const meta = scene.cache.json.get(key) as
-    { width?: number; height?: number; rooms?: { index?: number; x: number; y: number }[] } | undefined;
-  const rooms = [...(meta?.rooms ?? [])].sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
-  const r = rooms[order];
-  const w = meta?.width ?? screen.w;
-  const h = meta?.height ?? screen.h;
-  if (!r || !(w > 0) || !(h > 0)) return undefined;
-  return { x: Math.round((r.x / w) * screen.w), y: Math.round((r.y / h) * screen.h) };
 }

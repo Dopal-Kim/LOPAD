@@ -1904,3 +1904,30 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 ### 검사
 - tsc 0 · eslint 0 · vitest 151파일 1169건 전부 통과(새 `systems/loop2d/loop2G.test` 6) · 바뀐 파일 prettier · vite build(스크래치 outDir) 통과.
 - 헤드리스(빌드본, 스크래치 `s62g/`, 페이지 오류 0): 타이틀 `memory.book()` 소품 4·모양 4·개성 4 iconKey 채워짐(장터 것·몸의 기억은 그림 없음 — 정상) · 장터 노점 6칸 카드 자리·stallId · 노점 사기 500→470 · 상인 shopTalk event 머리(초상 sheet_npc_merchant_st 0) · 외상 줄 costs·detail · 외상 화면 greet · hero 좌표(머리 256 · 가운데 293 · 발 330).
+
+## 62 시스템 H — 노드 이동: 키아트 전환 → 지도에서 고르기 + 작은 미리보기 · 짧은 암전 (2026-10-12)
+도영 님 추가 지시(원문): "키아트 넘어가는 과정이 조금 불필요하다고 느껴지네 차라리 어느 장소로 가는지 맵으로 먼저 고르고 그 장소 미리보기 효과로 키아트를 작게 띄워주는 방식이 더 좋을 것 같다." 전권 위임(인터뷰 없음). 판단 = `decisions/2026-10-12-round-62-full-delegation.md` '루프 3 착수 중 추가 지시'. 계약 = `src/contract/ui.ts` 맨 아래 '62 시스템 H' 절.
+
+### 1. 노드 이동 흐름 (`scenes/game/RouteFlow`)
+- 외벽 문 안('inside')에 들어서면 그림 속 입구 전환('exitRoom' — 방이 그림으로 굳어 액자 → 지도) 없이 **곧바로 노드 지도**(`ROUTE_CHOOSE_OPEN`). 갈 길이 하나여도 지도를 연다 — 62 루프 1 P2-1 '외길 자동 진행'(`exitToMap` 의 options 1 → chooseNode) 폐지. 메뉴 무장 400ms·입력 비우기·menuShown('route') 그대로. 못 열면(있을 수 없지만) 문에서 걸어 나온다.
+- 고르면(`chooseNode`) 입구 그림 확대('enterNode' · doorKey 로드 · 최대 1.2초 기다림) 대신 **짧은 암전** `ui:transition-begin{mode:'fade', region, nodeKind, nodeId, durationMs: 400}` → UI 먹 번짐 덮기 → COVERED → 씬 재시작 → READY → END. UI 렌더러가 없으면 카메라 암전(`fadeCover`, 280ms). 그다음 반대편 문 입장(시스템 E 그대로). 전환 정보는 순수 함수 `systems/transition/fadeFlow`(`nodeFadeInfo`·`trainingFadeInfo`).
+- 문지기(`transitionGate`): 'fade' 는 안전장치도 짧게 — COVERED 없으면 1.2초(`FADE_COVER_TIMEOUT_MS`), READY 뒤 END 없으면 1.5초(`FADE_END_TIMEOUT_MS`). 나머지 mode 는 3초 그대로.
+- 그대로인 것: 층 이동 'floor'(보스 노드 출구 → 다음 지역 큰 그림 — `beginFloorDoor` 로 줄임), 타이틀 → 첫 생·탄생, 지도 취소(Esc) → 문에서 걸어 나옴(E), 진입 갈림(현재 노드 없음)의 지도.
+- 정리: 쓰지 않게 된 `exitScreen`·`beginDoor` 의 enterNode 경로·`regionOf`(→ `systems/route.nodeRegionId` 로 옮겨 공유) 제거. `UiTransitionMode` 의 'enterNode'·'exitRoom'·'training' 은 계약 호환으로 남김(시스템은 보내지 않음).
+
+### 2. 지도 미리보기 데이터 (`scenes/game/RoutePreview` · `systems/route`)
+- `UiRouteNode.previewKey` = 그 노드 입구 그림 텍스처 키 `paint/door_<지역>_<종류>`(art §28 doorFor 규칙 재사용 — 정확 → 별칭 → `<지역>_battle`, 보스 = 지역 'boss' → door_hall_boss). 매니페스트에 있으면 늘 채운다(텍스처는 아직 없을 수 있음) · `previewRegion` = 대체 키아트 지역 id(그 열의 지역 — 보스 노드는 'hall'). `RouteState.previewOf` 훅(RoutePreview 가 단다, `<지역>_<종류>` 별 기억은 별칭 표를 받은 뒤만). 고유 한 줄은 기존 `desc`(route.json nodeLines) 그대로.
+- 미리 받기: 노드에 들어선 뒤 `ROUTE_FX.PREVIEW_DELAY_MS`(900, 입구 걸음 뒤) + 지도를 열 때 — `RouteState.previewTargets()`(고를 수 있는 노드 + 그다음 열) 의 그림을 `loadPaint` 로(지도 열기를 막지 않음, 늦으면 UI 가 키아트 대체).
+- `PaintArt.loadPaint` 를 `queueImageOnce` 위로 옮김(씬 사이 같은 그림 이중 로드 없음 — 다른 씬이 받는 중이면 들어오기를 기다림, 메타 json 도 키별 한 번). 수련장 지도 방 자리 `mapRoomPoint`(입구 그림 줌 중심 — 이제 안 씀) 삭제.
+
+### 3. 수련장 (`scenes/game/training/TrainingMode`)
+- 지도에서 방 고름 → 'fade'(region training, nodeKind training|boss, nodeId 방 id) — 입구 그림 확대('training') 제거. 방 출구 문 안 → 'fade'(nodeId 없음) → 지도 마당 — 방이 그림으로 굳는 'exitRoom' 제거.
+- 지도 메뉴 줄 `UiMenuLine.previewKey` = `paint/door_training_training`(만취 그림자 방 `paint/door_training_boss`) · `previewRegion` 'training'. 지도 마당이 지도 그림과 함께 받는다(기존).
+- 고친 버그(헤드리스에서 발견): 방에서 지도 마당으로 돌아오면 지도가 다시 열리지 않았다 — 지도 그림이 이미 있으면 create 중에 `open()` 을 불렀는데 씬이 아직 RUNNING 이 아니라 `isActive` 에서 걸렸다. 다음 틱에 연다(62 D 의 '지도 그림 먼저 받고 열기' 이후 두 번째 방문부터 생기던 것).
+
+### 4. 전환 소리 (`systems/audio/audioTraining` · `audioTrigger` · `audio`)
+- `TRANSITION_BEGIN{mode:'fade'}` → [`sfx/transition_fade`(음향 요청 — 짧은 먹 번짐 0.4~0.6초), `sfx/transition_exit`] — fade 가 없으면 exit 를 음량 ×0.5 · 재생 속도 1.2(`FADE_FALLBACK`). 이를 위해 트리거에 `gain(p, id)` 추가, `rate(p, id)` 에 고른 효과음 id 를 넘긴다(기존 rate 는 그대로), `audio.playSfx({gain})`.
+
+### 검사
+- tsc 0 · eslint 0 · vitest 155파일 1195건 전부 통과(새 `transition/fadeFlow.test`(7 — 흐름 문 → 지도 → 고르기 → fade begin → covered → 재시작 → ready → end · fade 안전장치 · UI 없음 대체 · 미리보기 targets·toUi) · `audio/audioTraining.test`(2)) · 바뀐 파일 prettier · vite build(스크래치 outDir) 통과.
+- 헤드리스(빌드본, 스크래치 `s62h/` — swiftshader 라 게임 시계가 실제보다 매우 느림): ① `?slice=outer` 외길 노드: 문 열림 → 문턱 → 'inside' → `route.choosing` true(available 1 — 외길에도 지도), 지도 중 전환 없음, 미리보기 `door_outer_battle`·`door_brewery_battle` 지도 열 때 받아짐(텍스처 true, Texture key 경고 0) → Enter(UI 지도) → `fade` begin{region outer, nodeKind battle, nodeId c4r0, durationMs 400} → covered → ready → end(안전장치 시간 넘김 없음) → 새 노드 서쪽 문 입장 → 문 닫힘. 효과음 `transition_exit` rate 1.2(fade 대체). ② 같은 곳 Esc → 문에서 걸어 나옴(choosing false) → 다시 문턱 → 지도 다시. ③ 수련장(타이틀에서 시작): 지도 줄 8개 previewKey(마지막 door_training_boss) → '걸음과 숨' fade(nodeId step) → 방 → 출구 문 → fade(nodeId 없음) → 지도 마당에서 지도 다시 열림(위 버그 고친 뒤). 콘솔·페이지 오류 0.

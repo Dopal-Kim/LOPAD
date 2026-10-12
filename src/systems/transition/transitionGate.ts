@@ -4,6 +4,7 @@
  * 순서: begin → `ui:transition-begin` (UI 가 덮기 시작) → UI `ui:transition-covered {id}` → onCovered(장면 교체 — 씬 재시작·지도 열기)
  * → 새 장면이 준비되면 ready() → `ui:transition-ready {id}` (UI 가 걷어냄) → UI `ui:transition-end {id}` → 입력 재개.
  * 안전장치: COVERED 가 COVER_TIMEOUT 안에 없으면 스스로 덮인 것으로 · READY 뒤 END 가 END_TIMEOUT 안에 없으면 스스로 끝.
+ * 62 H: mode 'fade' (지도에서 고른 뒤 짧은 암전) 는 안전장치도 짧다 (FADE_*).
  * UI 렌더러가 없으면(헤드리스·UI 미등록) 대체 덮기(fallback — 카메라 암전 등)를 쓰거나 바로 진행한다.
  * 진행 중에는 locked = true (Game 이 입력을 잠근다).
  */
@@ -16,7 +17,17 @@ export const TRANSITION_TIMING = {
   END_TIMEOUT_MS: 3000,
   /** 덮인 뒤 새 장면이 ready() 를 부르지 못했을 때(씬 오류 등) 스스로 READY — 검은 화면에 멈추지 않게 */
   READY_TIMEOUT_MS: 5000,
+  /** 62 H 'fade' (짧은 암전 약 0.4초): 덮기·걷기 안전장치도 짧게 — UI 가 응답하지 않으면 이만큼 뒤 스스로 */
+  FADE_COVER_TIMEOUT_MS: 1200,
+  FADE_END_TIMEOUT_MS: 1500,
 } as const;
+
+/** mode 별 안전장치 시간 */
+function timeouts(mode: UiTransitionMode): { cover: number; end: number } {
+  return mode === 'fade'
+    ? { cover: TRANSITION_TIMING.FADE_COVER_TIMEOUT_MS, end: TRANSITION_TIMING.FADE_END_TIMEOUT_MS }
+    : { cover: TRANSITION_TIMING.COVER_TIMEOUT_MS, end: TRANSITION_TIMING.END_TIMEOUT_MS };
+}
 
 export type TransitionPhase = 'covering' | 'covered' | 'revealing';
 
@@ -93,6 +104,7 @@ export class TransitionGate {
       doorKey: info.doorKey,
       from: info.from,
       nodeId: info.nodeId,
+      durationMs: info.durationMs,
     });
     d.emitInternal({
       id,
@@ -106,7 +118,7 @@ export class TransitionGate {
       else this.cover(id);
       return true;
     }
-    cur.timer = d.setTimer(TRANSITION_TIMING.COVER_TIMEOUT_MS, () => {
+    cur.timer = d.setTimer(timeouts(info.mode).cover, () => {
       cur.timedOut.push('covered');
       this.cover(id);
     });
@@ -136,7 +148,7 @@ export class TransitionGate {
     c.phase = 'revealing';
     this.note(c.id, c.mode, 'ready');
     d.emitUi(TRANSITION_UI.READY, { id: c.id });
-    c.timer = d.setTimer(TRANSITION_TIMING.END_TIMEOUT_MS, () => {
+    c.timer = d.setTimer(timeouts(c.mode).end, () => {
       c.timedOut.push('end');
       this.finish(c.id);
     });

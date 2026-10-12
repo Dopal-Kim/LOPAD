@@ -66,7 +66,10 @@ export const UI_EVENTS = {
   CHALLENGE_STARTED: 'ui:challenge-started',
   /** 47라운드: 구조물 도전 전투 종료 (`UiChallengeCleared`) */
   CHALLENGE_CLEARED: 'ui:challenge-cleared',
-  /** 48라운드: 다음 노드를 고를 차례 (`UiRoute`, 계약 §10.2) */
+  /**
+   * 48라운드: 다음 노드를 고를 차례 (`UiRoute`, 계약 §10.2). 62 H: 외벽 문 안에 들어선 순간 곧바로 (전환 없이 · 외길이어도) —
+   * 고르면 `TRANSITION_BEGIN{mode:'fade'}`
+   */
   ROUTE_CHOOSE_OPEN: 'ui:route-choose-open',
   /** 48라운드: 노드 진입 (`UiRouteEntered`) */
   ROUTE_NODE_ENTERED: 'ui:route-node-entered',
@@ -135,8 +138,12 @@ export const UI_EVENTS = {
   ...loop2CEvents(),
 } as const;
 
-/** §19 그림 속 입구 전환 종류 — enterNode 노드 입구로 · exitRoom 방 → 지도 · floor 층(큰 그림) · training 수련장 방 입구로 */
-export type UiTransitionMode = 'enterNode' | 'exitRoom' | 'floor' | 'training';
+/**
+ * §19 그림 속 입구 전환 종류 — enterNode 노드 입구로 · exitRoom 방 → 지도 · floor 층(큰 그림) · training 수련장 방 입구로 ·
+ * (62 시스템 H) fade 짧은 먹 번짐 암전 — 노드 지도·수련장 지도에서 고른 뒤 / 수련장 방 → 지도 마당. 62 H 부터 시스템은 노드 이동·
+ * 수련장에서 enterNode·exitRoom·training 을 보내지 않는다 (floor 는 그대로)
+ */
+export type UiTransitionMode = 'enterNode' | 'exitRoom' | 'floor' | 'training' | 'fade';
 /** §19 `TRANSITION_BEGIN` 페이로드 */
 export interface UiTransitionBegin {
   /** 이번 전환 번호 (COVERED·READY·END 가 같은 id) */
@@ -154,8 +161,10 @@ export interface UiTransitionBegin {
   doorKey?: string;
   /** 줌 중심 화면 좌표 (논리 960×540) — 방 출구 · 수련장 지도의 방 자리. enterNode 는 UI 가 nodeId 로 자기 지도 자리를 쓴다 */
   from?: { x: number; y: number };
-  /** (시스템 추가) enterNode: 고른 노드 id (UiRouteNode.id) · training: 고른 방 id */
+  /** (시스템 추가) enterNode·fade: 고른 노드 id (UiRouteNode.id) · training·fade(수련장): 고른 방 id */
   nodeId?: string;
+  /** (62 시스템 H) fade: 덮기 시간 힌트 ms (약 400 — UI 는 이 안에 다 덮고 COVERED). 다른 mode 는 생략 */
+  durationMs?: number;
   skippable: boolean;
 }
 /** §19 COVERED·READY·END 페이로드 */
@@ -1343,7 +1352,7 @@ export const uiCommands = {
     }
     return impl.warpTo(roomId);
   },
-  /** 48라운드: 다음 노드 선택 (계약 §10.2). available 노드만 true */
+  /** 48라운드: 다음 노드 선택 (계약 §10.2). available 노드만 true. 62 H: 뒤이어 짧은 암전('fade') → 새 노드 */
   chooseNode(id: string): boolean {
     return impl?.chooseNode(id) ?? false;
   },
@@ -1747,4 +1756,34 @@ function loop2ECommands() {
 export interface UiSnapshot {
   /** 주인공 화면 자리 (게임 씬 — 런·시험장·수련장. 주인공이 없으면 null/생략) */
   hero?: UiHeroScreen | null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+// 62 시스템 H (도영 님 추가 지시: 키아트 넘어가는 과정 → 지도로 먼저 고르고 키아트는 작은 미리보기). 같은 모듈 인터페이스 합치기 —
+// 새 필드는 모두 선택(?).
+// - 노드 이동: 외벽 문 안(`UiDoor.phase` 'inside')에 들어서면 그림 속 입구 전환('exitRoom') 없이 곧바로 `ROUTE_CHOOSE_OPEN`.
+//   갈 길이 하나여도 지도를 연다(옛 P2-1 '외길 자동 진행' 폐지). 고르면 `TRANSITION_BEGIN{mode:'fade', durationMs, nodeId}` → UI 가
+//   짧게 덮고 COVERED → 씬 재시작 → READY → END (입구 그림 확대 'enterNode' 대신). 그다음 반대편 문으로 입장(§23). 취소(Esc)는 §23 그대로.
+// - 수련장: 지도에서 방 고름 → 'fade' (nodeId = 방 id, nodeKind training|boss) · 방 출구 문 안 → 'fade' → 지도 마당(지도 메뉴).
+// - 층 이동 'floor' · 타이틀 → 첫 생 · 탄생은 그대로.
+// - 미리보기: `UiRouteNode.previewKey`·`previewRegion`, 수련장 지도 메뉴 줄 `UiMenuLine.previewKey`·`previewRegion`.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+export interface UiRouteNode {
+  /**
+   * 지도 미리보기 그림 텍스처 키 `paint/door_<지역>_<종류>` (art §28 입구 그림 — 정확 → 별칭 → `<지역>_battle`; 보스 = door_hall_boss).
+   * 매니페스트에 그림이 있으면 늘 채운다 — **텍스처가 아직 없을 수 있다**(시스템이 노드 진입 뒤 고를 수 있는 노드 + 그다음 열을 미리
+   * 받는다, 지도 열기를 막지 않음). UI 는 `textures.exists(previewKey)` 로 보고, 없으면 `previewRegion` 키아트로 대체
+   * (받히는 순간 Phaser `addtexture-<key>`). 그림이 없는 층·지역이면 생략
+   */
+  previewKey?: string;
+  /** 미리보기 대체 키아트 지역 id (waste·gate·outer·brewery·hall … — 보스 노드도 그 열의 지역 'hall'). 지역 없는 층이면 생략 */
+  previewRegion?: string;
+}
+
+export interface UiMenuLine {
+  /** (62 H) 수련장 지도(`training` 메뉴) 줄 미리보기 그림 — `paint/door_training_training` · 만취 그림자 방 `paint/door_training_boss` (매니페스트에 있으면 — 지도 마당이 지도와 함께 받는다. UiRouteNode.previewKey 와 같이 `textures.exists` 로 확인) */
+  previewKey?: string;
+  /** (62 H) 수련장 지도 줄 대체 지역 id = 'training' */
+  previewRegion?: string;
 }

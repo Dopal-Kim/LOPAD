@@ -27,8 +27,10 @@ export interface AudioTrigger<P = unknown> {
   stopFadeMs?: number | ((p: P) => number);
   /** 55라운드: 루프 시작 페이드 인 ms (차지 루프 150ms — 음향 권장) */
   loopFadeInMs?: number;
-  /** 54라운드: 재생 속도 (3연 취권 1·2·3타 1.0/1.06/1.12 — 음향 파트 권장) */
-  rate?: (p: P) => number;
+  /** 54라운드: 재생 속도 (3연 취권 1·2·3타 1.0/1.06/1.12 — 음향 파트 권장). 62 H: id = 후보 중 실제로 고른 효과음 */
+  rate?: (p: P, id?: string) => number;
+  /** 62 H: 음량 배율 (1 = 매니페스트 그대로 — 대체 효과음을 작게 쓸 때). id = 고른 효과음 */
+  gain?: (p: P, id?: string) => number;
   /** 56라운드: 돌고 있는 루프의 재생 속도를 바꾼다 (차지 유지음 단계 1.0/1.03/1.06) */
   loopRate?: (p: P) => { id: string; rate: number } | null;
 }

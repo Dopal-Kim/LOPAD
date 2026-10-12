@@ -142,6 +142,13 @@ export const ROUTE_FX = {
   EXIT_REARM_PX: 24,
   /** 암전 색 */
   FADE_COLOR: { R: 0, G: 0, B: 0 },
+  /**
+   * 62 H: 지도에서 노드를 고른 뒤 짧은 먹 번짐 암전 (`ui:transition-begin{mode:'fade', durationMs}` — UI 덮기 시간 힌트, 결정 0.35~0.5초).
+   * UI 렌더러가 없으면 FADE_OUT_MS 카메라 암전
+   */
+  MAP_FADE_MS: 400,
+  /** 62 H: 노드 진입 뒤 지도 미리보기 그림을 받기 시작하기까지 (입구 걸음·밝아짐 뒤) */
+  PREVIEW_DELAY_MS: 900,
 };
 
 export const DEBUG = {

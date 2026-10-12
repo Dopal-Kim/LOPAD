@@ -215,7 +215,7 @@ export const Events = {
   /** 61라운드 P9 런 로그: 노드 지도 노드 진입 (`NodeEnteredPayload`) — UI_EVENTS.ROUTE_NODE_ENTERED 와 같은 시점 */
   NODE_ENTERED: 'node:entered',
   /**
-   * 61 단계 6 (P14 §3 · 음향 sound §12): 그림 속 입구 전환 시작 (`TransitionBeginPayload` — mode enterNode·exitRoom·floor·training).
+   * 61 단계 6 (P14 §3 · 음향 sound §12): 그림 속 입구 전환 시작 (`TransitionBeginPayload` — mode enterNode·exitRoom·floor·training · 62 H fade 짧은 암전).
    * 음향 transition_enter(enterNode·training)·transition_exit(exitRoom)·transition_floor(floor). UI 쪽은 uiBus `ui:transition-begin`
    */
   TRANSITION_BEGIN: 'transition:begin',
@@ -655,7 +655,7 @@ export type NodeGradedPayload = { grade: 'perfect' | 'good' | null };
 /** 61 단계 6 (P14): 그림 속 입구 전환 (음향 sound §12) */
 export type TransitionBeginPayload = {
   id: number;
-  mode: 'enterNode' | 'exitRoom' | 'floor' | 'training';
+  mode: 'enterNode' | 'exitRoom' | 'floor' | 'training' | 'fade';
   region: string;
   nodeKind?: string;
 };

@@ -439,6 +439,8 @@ export class RouteState {
               desc: ROUTE.floors[this.graph.stageId]?.nodeLines?.[n.name] ?? regionDesc(region, n.kind),
             }
           : {}),
+        // 62 H: 지도 미리보기 그림 (입구 그림 키 — RouteFlow 가 previewOf 를 단다) · 대체 키아트 지역
+        ...this.previewFields(n),
         // 60라운드 §14.5 기본값 (2차 묶음 decorate 가 채운다)
         reward: null,
         risk: null,
@@ -462,6 +464,37 @@ export class RouteState {
 
   /** 60라운드 2차 묶음: 계약 §14.5 필드를 얹는 함수 (systems/bundle2 — 층 노드 정보). 없으면 기본값 그대로 */
   decorate: ((base: UiRoute, st: RouteState) => UiRoute) | null = null;
+
+  /**
+   * 62 H: 노드 → 미리보기 그림 텍스처 키 (입구 그림 `paint/door_…` — 매니페스트·별칭을 아는 씬 쪽 RoutePreview 가 단다).
+   * 지역 id 는 nodeRegionId (보스 = 'boss'). 없으면 previewKey 생략
+   */
+  previewOf: ((n: RouteNode, regionId: string) => string | null) | null = null;
+
+  private previewFields(n: RouteNode): { previewKey?: string; previewRegion?: string } {
+    const regionId = regionIdOf(this.graph.stageId, n.col);
+    const key = this.previewOf?.(n, nodeRegionId(this.graph.stageId, n)) ?? null;
+    return { ...(key ? { previewKey: key } : {}), ...(regionId ? { previewRegion: regionId } : {}) };
+  }
+
+  /** 62 H: 지도를 열면 보일 수 있는 노드 — 지금 고를 수 있는 노드 + 그다음 열 (미리보기 그림 미리 받기) */
+  previewTargets(): RouteNode[] {
+    const out = new Map<string, RouteNode>();
+    for (const n of this.nextOptions()) {
+      out.set(n.id, n);
+      for (const id of n.links) {
+        const next = this.node(id);
+        if (next) out.set(next.id, next);
+      }
+    }
+    return [...out.values()];
+  }
+}
+
+/** 노드의 전환·입구 그림 지역 id (route.json regions — waste·outer·gate·hall·brewery, 보스 노드는 'boss', 지역 없는 층은 '') */
+export function nodeRegionId(stageId: string, n: Pick<RouteNode, 'kind' | 'col'>, file: RouteFile = ROUTE): string {
+  if (n.kind === 'boss') return 'boss';
+  return regionIdOf(stageId, n.col, file) ?? '';
 }
 
 /** 노드 세부 종류의 정의 */

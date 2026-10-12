@@ -299,10 +299,10 @@ export class AudioSystem {
   }
 
   /** 효과음 1회. 매니페스트에 없거나 로드되지 않았으면 무시(missing 기록) */
-  playSfx(id: string, opts: { delayMs?: number; rate?: number } = {}): boolean {
+  playSfx(id: string, opts: { delayMs?: number; rate?: number; gain?: number } = {}): boolean {
     const sched = this.delayScheduler;
     if (sched && (opts.delayMs ?? 0) > 0) {
-      sched(opts.delayMs!, () => this.playSfx(id, { rate: opts.rate }));
+      sched(opts.delayMs!, () => this.playSfx(id, { rate: opts.rate, gain: opts.gain }));
       return true;
     }
     const sm = this.game?.sound;
@@ -329,7 +329,7 @@ export class AudioSystem {
     const jitter = jitterApplies({ ...entry, priority }) ? jitterRate(Math.random(), rateJitterOf(this.mix)) : 1;
     const rate = jitter * (opts.rate ?? 1);
     const delayMs = Math.max(0, opts.delayMs ?? 0);
-    const base = sfxGain(this.mix, entry);
+    const base = sfxGain(this.mix, entry) * Math.max(0, opts.gain ?? 1);
     const snd = sm.add(pick, {
       volume: base * this.bank.gainFor(priority, now),
       rate,
@@ -496,7 +496,12 @@ export class AudioSystem {
     const lr = tr.loopRate?.(payload);
     if (lr) this.setLoopRate(lr.id, lr.rate);
     const id = this.pickLoaded(typeof tr.sfx === 'function' ? tr.sfx(payload) : tr.sfx);
-    if (id) this.playSfx(id, { delayMs: tr.delayMs ? tr.delayMs(payload) : 0, rate: tr.rate ? tr.rate(payload) : 1 });
+    if (id)
+      this.playSfx(id, {
+        delayMs: tr.delayMs ? tr.delayMs(payload) : 0,
+        rate: tr.rate ? tr.rate(payload, id) : 1,
+        gain: tr.gain ? tr.gain(payload, id) : 1,
+      });
   }
 
   /** 55라운드: 효과음 후보 목록이면 로드된 첫 id (없으면 첫 후보 — playSfx 가 missing 으로 기록하고 무음) */

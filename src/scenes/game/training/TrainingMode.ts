@@ -1,18 +1,17 @@
 /**
  * 61 단계 6 (P14 §1 · 계약 UI §19) 수련장 — Game 의 시험장 모드(lab) 위에서 도는 방 하나 (씬 키 Training).
- * - 지도 마당(방 없음): 수련장 지도 메뉴('training' — 줄 room = 방 id)를 열고, 고르면 그림 속 입구 전환('training')으로 그 방.
- * - 방: 준비물(TrainingRoomKit) · 훈련 예고(TrainingDrills) · 과제 판정(systems/training/tasks) · 출구로 나가면 전환('exitRoom') → 지도 마당.
+ * - 지도 마당(방 없음): 수련장 지도 메뉴('training' — 줄 room = 방 id · 62 H previewKey 방 그림)를 열고, 고르면 짧은 암전('fade')으로 그 방.
+ * - 방: 준비물(TrainingRoomKit) · 훈련 예고(TrainingDrills) · 과제 판정(systems/training/tasks) · 출구 문 안 → 짧은 암전('fade') → 지도 마당.
  * - 무기 방: 대표 개성 2장을 켜 두고, 허수아비·적을 칠 때마다 각성 게이지 → 눈금 메뉴(개성·1차 각성) → L 로 다른 갈래 깨우기.
  * - 런과 분리: 세이브·게이지·전표는 맡겨 둔 런과 무관(session), 기록은 메타 `diary.training` 만.
  */
-import { KEYS, LAB } from '../../../core/Constants';
+import { KEYS, LAB, ROUTE_FX } from '../../../core/Constants';
 import { EventBus, Events, type TrainingStampPayload, type TrainingTaskPayload } from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import { TRAITS, growthBranches } from '../../../data/growth';
 import { TRAINING, trainingRoom, trainingText, type TrainingRoomDef } from '../../../data/training';
 import {
   UI_EVENTS,
-  UI_SCREEN,
   __system,
   uiCommands,
   type UiMenuLine,
@@ -33,14 +32,16 @@ import {
   startProgress,
 } from '../../../systems/training/record';
 import { TaskTracker } from '../../../systems/training/tasks';
+import { trainingFadeInfo } from '../../../systems/transition/fadeFlow';
 import { transitionGate } from '../../../systems/transition/transitionGate';
 import type { DrillShape } from '../../../systems/training/drills';
 import type { Game } from '../../Game';
 import type { GameInitData } from '../shared';
 import type { LabDummy } from '../../../objects/LabDummy';
-import { MAP_TRAINING, loadPaint, mapRoomPoint, paintLoaded, withDoor } from '../PaintArt';
+import { MAP_TRAINING, loadPaint, paintKey, paintLoaded } from '../PaintArt';
 import { trainingDoorName } from '../../../systems/transition/doorNames';
-import { fadeCover, screenOfWorld } from '../TransitionFx';
+import { assetListed } from '../../../systems/sprites/sheetLoader';
+import { fadeCover } from '../TransitionFx';
 import { trainingSession } from './session';
 import { TrainingDrills } from './TrainingDrills';
 import { TrainingRoomKit } from './TrainingRoomKit';
@@ -124,12 +125,14 @@ export class TrainingMode {
         opened = true;
         this.openMap();
       };
+      // 62 H: 이미 받은 그림이면 다음 틱에 연다 — create 중에는 씬이 아직 RUNNING 이 아니라 open 이 isActive 에서 걸려
+      // 방에서 지도 마당으로 돌아오면 지도가 다시 열리지 않던 것 (헤드리스에서 발견)
       if (paintLoaded(g, MAP_TRAINING)) {
         loadPaint(g, [trainingDoorName(false), trainingDoorName(true)]);
-        open();
+        g.time.delayedCall(1, open);
       } else if (loadPaint(g, [MAP_TRAINING, trainingDoorName(false), trainingDoorName(true)], open))
         g.time.delayedCall(LAB.TRAINING_MAP_WAIT_MS, open);
-      else open();
+      else g.time.delayedCall(1, open);
       return;
     }
     const room = this.room;
@@ -324,14 +327,20 @@ export class TrainingMode {
   openMap(): void {
     const g = this.g;
     if (!this.hall) return;
-    const lines: UiMenuLine[] = TRAINING.rooms.map((r, i) => ({
-      key: String(i + 1),
-      label: trainingText(`${r.id}.name`),
-      detail: trainingText(`${r.id}.enter`),
-      enabled: true,
-      room: r.id,
-      stamped: this.record.stamped.includes(r.id),
-    }));
+    const lines: UiMenuLine[] = TRAINING.rooms.map((r, i) => {
+      // 62 H: 미리보기 = 그 방 입구 그림 (만취 그림자 = door_training_boss) — 지도 마당이 지도와 함께 받는다
+      const door = trainingDoorName(Boolean(r.setup.boss));
+      return {
+        key: String(i + 1),
+        label: trainingText(`${r.id}.name`),
+        detail: trainingText(`${r.id}.enter`),
+        enabled: true,
+        room: r.id,
+        stamped: this.record.stamped.includes(r.id),
+        ...(assetListed(`sprites/paint/${door}.png`) ? { previewKey: paintKey(door) } : {}),
+        previewRegion: 'training',
+      };
+    });
     g.setFrozen(true);
     g.player.haltForWarp();
     g.menu.open(
@@ -352,14 +361,12 @@ export class TrainingMode {
     );
   }
 
-  /** 지도에서 방 고름 → 그림 속 입구('training') → 덮이면 그 방으로 씬 재시작 */
+  /** 지도에서 방 고름 → 짧은 암전('fade' — 62 H, 입구 그림 확대 대신) → 덮이면 그 방으로 씬 재시작 */
   enterRoom(id: string): boolean {
     const g = this.g;
     const room = trainingRoom(id);
     if (!room || this.leaving) return false;
     this.leaving = true;
-    const order = TRAINING.rooms.findIndex((r) => r.id === id);
-    const from = mapRoomPoint(g, order, { w: UI_SCREEN.WIDTH, h: UI_SCREEN.HEIGHT });
     const go = () => {
       g.menu.close();
       g.transitioning = true;
@@ -368,41 +375,26 @@ export class TrainingMode {
         labWeapon: room.weapon ?? trainingSession.weapon ?? undefined,
       } satisfies GameInitData);
     };
-    const boss = Boolean(room.setup.boss);
-    withDoor(g, trainingDoorName(boss), 1200, (doorKey) => {
-      const ok = transitionGate.begin(
-        {
-          mode: 'training',
-          region: 'training',
-          nodeKind: boss ? 'boss' : 'training',
-          nodeId: id,
-          ...(doorKey ? { doorKey } : {}),
-          ...(from ? { from } : {}),
-        },
-        go,
-        (cover) => fadeCover(g, cover),
-      );
-      if (!ok) go();
-    });
+    this.fadeTo({ id, boss: Boolean(room.setup.boss) }, go);
     return true;
   }
 
-  /** 방 출구 → 그림처럼 굳어 지도로 ('exitRoom') */
+  /** 방 출구 문 안 → 짧은 암전('fade') → 지도 마당 (62 H — 방이 그림으로 굳는 'exitRoom' 대신) */
   private exitRoom(): void {
     const g = this.g;
     this.leaving = true;
     g.player.haltForWarp();
-    const m = g.doors.exitPoint();
-    const from = m ? screenOfWorld(g, m.x, m.y) : undefined;
     const go = () => {
       g.transitioning = true;
       g.scene.restart({ labWeapon: trainingSession.weapon ?? undefined } satisfies GameInitData);
     };
-    const ok = transitionGate.begin(
-      { mode: 'exitRoom', region: 'training', nodeKind: 'training', ...(from ? { from } : {}) },
-      go,
-      (cover) => fadeCover(g, cover),
-    );
+    this.fadeTo(null, go);
+  }
+
+  /** 62 H 수련장 짧은 암전 (UI 렌더러가 없으면 카메라 암전 · 문지기가 거부하면 바로) */
+  private fadeTo(room: { id: string; boss: boolean } | null, go: () => void): void {
+    const g = this.g;
+    const ok = transitionGate.begin(trainingFadeInfo(room, ROUTE_FX.MAP_FADE_MS), go, (cover) => fadeCover(g, cover));
     if (!ok) go();
   }
 
