@@ -1,0 +1,27 @@
+{
+ "image": "title_menu_frame.png",
+ "size": [
+  144,
+  144
+ ],
+ "slice": {
+  "left": 48,
+  "right": 48,
+  "top": 48,
+  "bottom": 48
+ },
+ "contentInset": {
+  "left": 36,
+  "right": 36,
+  "top": 39,
+  "bottom": 39
+ },
+ "pixelUnit": 3,
+ "paperAlpha": 238,
+ "minSize": [
+  144,
+  144
+ ],
+ "note": "족자형 9-slice. Phaser: scene.add.nineslice(x, y, 'title_menu_frame', undefined, w, h, 48, 48, 48, 48). 위·아래 = 낡은 나무 막대 15px(윗줄 등불 빛, 끝 쇠마개), 옆 = 그을린 종이 가장자리, 가운데 = 바랜 종이(UI 세피아 S3, 알파 238). 변 조각은 변 방향 결만이라 어떤 크기로 늘려도 된다. 글자는 contentInset 안쪽.",
+ "source": "parts/art/work/title62/build.py (62라운드 — 타이틀 화면 전면 교체, Claude 직접 디자인)"
+}

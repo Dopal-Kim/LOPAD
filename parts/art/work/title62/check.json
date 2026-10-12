@@ -1,0 +1,162 @@
+{
+ "title_bg_far.png": {
+  "size": [
+   1920,
+   1080
+  ],
+  "mode": "RGB",
+  "bytes": 31246,
+  "gridBreaks": 0,
+  "colors": 24
+ },
+ "title_bg_mid.png": {
+  "size": [
+   1920,
+   1080
+  ],
+  "mode": "RGBA",
+  "bytes": 18453,
+  "alphaMinMax": [
+   0,
+   255
+  ],
+  "gridBreaks": 0,
+  "colors": 15
+ },
+ "title_bg_near.png": {
+  "size": [
+   1920,
+   1080
+  ],
+  "mode": "RGBA",
+  "bytes": 27204,
+  "alphaMinMax": [
+   0,
+   255
+  ],
+  "gridBreaks": 0,
+  "colors": 36
+ },
+ "title_hero.png": {
+  "size": [
+   237,
+   567
+  ],
+  "mode": "RGBA",
+  "bytes": 7071,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_logo.png": {
+  "size": [
+   1200,
+   399
+  ],
+  "mode": "RGBA",
+  "bytes": 120344,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_menu_frame.png": {
+  "size": [
+   144,
+   144
+  ],
+  "mode": "RGBA",
+  "bytes": 840,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_fx_embers.png": {
+  "size": [
+   192,
+   168
+  ],
+  "mode": "RGBA",
+  "bytes": 1558,
+  "alphaMinMax": [
+   0,
+   255
+  ]
+ },
+ "title_fx_fog.png": {
+  "size": [
+   1920,
+   321
+  ],
+  "mode": "RGBA",
+  "bytes": 6120,
+  "alphaMinMax": [
+   0,
+   92
+  ],
+  "seamMeanAlphaDiff": 0.0
+ },
+ "title_fx_glow_hero.png": {
+  "size": [
+   229,
+   303
+  ],
+  "mode": "RGBA",
+  "bytes": 48142,
+  "alphaMinMax": [
+   0,
+   180
+  ]
+ },
+ "title_fx_voice_katana.png": {
+  "size": [
+   157,
+   393
+  ],
+  "mode": "RGBA",
+  "bytes": 19455,
+  "alphaMinMax": [
+   0,
+   76
+  ]
+ },
+ "title_fx_voice_greatsword.png": {
+  "size": [
+   132,
+   424
+  ],
+  "mode": "RGBA",
+  "bytes": 16248,
+  "alphaMinMax": [
+   0,
+   78
+  ]
+ },
+ "title_fx_voice_dagger.png": {
+  "size": [
+   124,
+   250
+  ],
+  "mode": "RGBA",
+  "bytes": 12828,
+  "alphaMinMax": [
+   0,
+   73
+  ]
+ },
+ "title_fx_voice_bow.png": {
+  "size": [
+   152,
+   414
+  ],
+  "mode": "RGBA",
+  "bytes": 17690,
+  "alphaMinMax": [
+   0,
+   76
+  ]
+ },
+ "errors": []
+}

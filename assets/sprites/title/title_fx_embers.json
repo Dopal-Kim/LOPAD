@@ -1,0 +1,156 @@
+{
+ "image": "title_fx_embers.png",
+ "frameWidth": 24,
+ "frameHeight": 24,
+ "framesPerRow": 8,
+ "rows": [
+  "amber_s",
+  "amber_m",
+  "amber_l",
+  "katana",
+  "greatsword",
+  "dagger",
+  "bow"
+ ],
+ "frameIndex": "row * 8 + column",
+ "pivot": {
+  "x": 10,
+  "y": 13
+ },
+ "fps": 10,
+ "loop": true,
+ "blendMode": "ADD (빛무리 알파가 낮아 NORMAL 도 가능)",
+ "emitters": [
+  {
+   "name": "mound",
+   "rows": [
+    "amber_s",
+    "amber_m",
+    "amber_l"
+   ],
+   "weights": [
+    5,
+    3,
+    1
+   ],
+   "area": {
+    "x": 1080,
+    "y": 900,
+    "w": 720,
+    "h": 140
+   },
+   "rate": "초당 6~9",
+   "lifespanMs": [
+    4500,
+    8000
+   ],
+   "velocity": {
+    "x": [
+     8,
+     30
+    ],
+    "y": [
+     -46,
+     -22
+    ]
+   },
+   "drift": "사인 흔들림 진폭 6~14px, 주기 1.6~2.6s",
+   "alpha": "0 → 1 (0.3s) → 0 (마지막 1.2s)",
+   "scale": [
+    1,
+    1
+   ],
+   "note": "주인공 발밑 시체 더미에서 오른쪽 위로(바람 = 왼 → 오른)"
+  },
+  {
+   "name": "back_crack",
+   "rows": [
+    "amber_s",
+    "amber_m"
+   ],
+   "weights": [
+    3,
+    1
+   ],
+   "area": {
+    "x": 1440,
+    "y": 600,
+    "w": 60,
+    "h": 150
+   },
+   "rate": "초당 1~2",
+   "lifespanMs": [
+    2500,
+    4500
+   ],
+   "velocity": {
+    "x": [
+     10,
+     26
+    ],
+    "y": [
+     -40,
+     -18
+    ]
+   },
+   "note": "등 상흔 균열·어깨 혼불에서 새는 불티"
+  },
+  {
+   "name": "voices",
+   "rows": [
+    "katana",
+    "greatsword",
+    "dagger",
+    "bow"
+   ],
+   "origins": "title.json voices[].emberOrigin",
+   "rate": "목소리가 켜진 무기에서만 초당 2~3",
+   "lifespanMs": [
+    1800,
+    3200
+   ],
+   "velocity": {
+    "x": [
+     -6,
+     10
+    ],
+    "y": [
+     -34,
+     -16
+    ]
+   },
+   "note": "목소리(무기 빛) 펄스와 함께"
+  },
+  {
+   "name": "city",
+   "rows": [
+    "amber_s"
+   ],
+   "area": {
+    "x": 560,
+    "y": 520,
+    "w": 520,
+    "h": 120
+   },
+   "rate": "초당 1",
+   "lifespanMs": [
+    3000,
+    5000
+   ],
+   "velocity": {
+    "x": [
+     2,
+     8
+    ],
+    "y": [
+     -10,
+     -4
+    ]
+   },
+   "alpha": "최대 0.5",
+   "depth": "far 와 mid 사이",
+   "note": "먼 도시 굴뚝 불티(아주 작게, 느리게)"
+  }
+ ],
+ "source": "parts/art/work/title62/build.py (62라운드 — 타이틀 화면 전면 교체, Claude 직접 디자인)"
+}

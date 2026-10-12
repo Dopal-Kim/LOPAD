@@ -1,0 +1,41 @@
+{
+ "image": "title_fx_fog.png",
+ "size": [
+  1920,
+  321
+ ],
+ "tileX": true,
+ "note": "가로 반복 이음 없음. TileSprite 로 흘린다. 색은 달빛 회색(필요하면 setTint 0xE8C890 로 도시 쪽을 데움). 알파 계단 5단(26·48·70·92/255).",
+ "instances": [
+  {
+   "name": "fog_far",
+   "depth": "far 와 mid 사이",
+   "y": 600,
+   "height": 240,
+   "scaleY": 0.75,
+   "alpha": 0.55,
+   "speedPxPerSec": -4,
+   "note": "지평선·성벽 발치에 깔리는 안개(왼쪽으로 아주 느리게)"
+  },
+  {
+   "name": "fog_mid",
+   "depth": "mid 와 near 사이",
+   "y": 760,
+   "height": 321,
+   "alpha": 0.7,
+   "speedPxPerSec": 9,
+   "note": "들판 위를 흐르는 안개(바람 = 왼 → 오른)"
+  },
+  {
+   "name": "fog_near",
+   "depth": "near 위(로고·메뉴 아래)",
+   "y": 930,
+   "height": 200,
+   "scaleY": 0.62,
+   "alpha": 0.35,
+   "speedPxPerSec": 16,
+   "note": "발목 높이 안개 — 메뉴 글자를 가리지 않게 낮은 알파"
+  }
+ ],
+ "source": "parts/art/work/title62/build.py (62라운드 — 타이틀 화면 전면 교체, Claude 직접 디자인)"
+}

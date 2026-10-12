@@ -1,0 +1,322 @@
+{
+ "version": "title62-1",
+ "source": "parts/art/work/title62/build.py (62라운드 — 타이틀 화면 전면 교체, Claude 직접 디자인)",
+ "method": "Claude 직접 디자인 — 절차적 도트 그림(Pillow) + 손 보정. Gemini 402(크레디트 소진)로 새 생성 없음.",
+ "canvas": [
+  1920,
+  1080
+ ],
+ "pixelUnit": 3,
+ "note": "모든 좌표는 1920×1080 화면 px. 레이어는 아래 순서로 깐다. pixelArt(최근접) 필터 유지.",
+ "layers": [
+  {
+   "key": "title_bg_far",
+   "image": "title_bg_far.png",
+   "depth": 0,
+   "opaque": true,
+   "parallax": 0.15,
+   "note": "하늘·구름·달·먼 성벽 도시 '잔'·먼 들판"
+  },
+  {
+   "key": "title_fx_fog#far",
+   "image": "title_fx_fog.png",
+   "depth": 1,
+   "ref": "title_fx_fog.json instances[0]"
+  },
+  {
+   "key": "embers#city",
+   "image": "title_fx_embers.png",
+   "depth": 2,
+   "ref": "title_fx_embers.json emitters city"
+  },
+  {
+   "key": "title_bg_mid",
+   "image": "title_bg_mid.png",
+   "depth": 3,
+   "parallax": 0.4,
+   "note": "언덕 3겹·성문에서 왼쪽으로 나가는 길·횃불 든 출병 행렬·꽂힌 창·깃발·수레·마른 나무"
+  },
+  {
+   "key": "title_fx_fog#mid",
+   "image": "title_fx_fog.png",
+   "depth": 4,
+   "ref": "title_fx_fog.json instances[1]"
+  },
+  {
+   "key": "title_bg_near",
+   "image": "title_bg_near.png",
+   "depth": 5,
+   "parallax": 1.0,
+   "note": "시체 더미(탄생지)·주인공·꽂힌 무기 4종·왼쪽 아래 풀"
+  },
+  {
+   "key": "title_hero",
+   "image": "title_hero.png",
+   "depth": 6,
+   "parallax": 1.0,
+   "x": 1359,
+   "y": 450,
+   "note": "주인공만(near 에 이미 그려져 있음). 호흡용 덧그림 — scaleY 1.000↔1.008, 원점 = 발(아래 가운데). 1 미만으로 줄이지 말 것(아래 그림이 비친다)"
+  },
+  {
+   "key": "title_fx_glow_hero",
+   "image": "title_fx_glow_hero.png",
+   "depth": 7,
+   "parallax": 1.0,
+   "blendMode": "ADD",
+   "x": 1323,
+   "y": 408,
+   "note": "등 상흔·두개골 실금·눈·어깨 혼불 빛무리 — 호흡과 같은 주기로 알파 0.55↔1.0"
+  },
+  {
+   "key": "title_fx_voice_*",
+   "depth": 8,
+   "parallax": 1.0,
+   "blendMode": "ADD",
+   "ref": "voices[]"
+  },
+  {
+   "key": "embers#near",
+   "image": "title_fx_embers.png",
+   "depth": 9,
+   "ref": "title_fx_embers.json emitters mound·back_crack·voices"
+  },
+  {
+   "key": "title_fx_fog#near",
+   "image": "title_fx_fog.png",
+   "depth": 10,
+   "ref": "title_fx_fog.json instances[2]"
+  },
+  {
+   "key": "title_logo",
+   "image": "title_logo.png",
+   "depth": 11,
+   "parallax": 0.0
+  },
+  {
+   "key": "title_menu_frame",
+   "image": "title_menu_frame.png",
+   "depth": 12,
+   "parallax": 0.0
+  }
+ ],
+ "parallax": {
+  "input": "포인터 위치(화면 가운데 기준 -1..1) + 느린 표류(사인, 주기 24s, 진폭 0.35)",
+  "maxOffsetPx": {
+   "x": 28,
+   "y": 10
+  },
+  "offset": "레이어 오프셋 = parallax × maxOffset × 입력. 따라가기 lerp 0.035/frame(아주 느리게)",
+  "edgeCover": "레이어를 scale 1.03 으로 깔면(가운데 기준) 최대 오프셋에서도 가장자리가 비지 않는다",
+  "reducedMotion": "모션 줄이기 설정 시 패럴랙스·표류 끄고 호흡·불티만"
+ },
+ "hero": {
+  "x": 1359,
+  "y": 450,
+  "w": 237,
+  "h": 567,
+  "feetY": 1014,
+  "breath": {
+   "periodMs": 4200,
+   "scaleY": [
+    1.0,
+    1.008
+   ],
+   "origin": "feet (x 가운데, y = feetY)",
+   "ease": "Sine.easeInOut, yoyo"
+  }
+ },
+ "voices": [
+  {
+   "image": "title_fx_voice_katana.png",
+   "x": 1643,
+   "y": 670,
+   "w": 157,
+   "h": 393,
+   "emberOrigin": [
+    1737,
+    690
+   ],
+   "weapon": "katana",
+   "color": "#8fe3ff",
+   "pulse": {
+    "periodMs": 9600,
+    "offsetMs": 0,
+    "onMs": 1700,
+    "alpha": [
+     0.25,
+     1.0
+    ],
+    "note": "네 목소리가 2.4초 간격으로 한 번씩 밝아진다(원한이 차례로 말을 건다). 꺼진 동안도 0.25 유지"
+   }
+  },
+  {
+   "image": "title_fx_voice_greatsword.png",
+   "x": 1164,
+   "y": 656,
+   "w": 132,
+   "h": 424,
+   "emberOrigin": [
+    1224,
+    675
+   ],
+   "weapon": "greatsword",
+   "color": "#ff5a2a",
+   "pulse": {
+    "periodMs": 9600,
+    "offsetMs": 2400,
+    "onMs": 1700,
+    "alpha": [
+     0.25,
+     1.0
+    ],
+    "note": "네 목소리가 2.4초 간격으로 한 번씩 밝아진다(원한이 차례로 말을 건다). 꺼진 동안도 0.25 유지"
+   }
+  },
+  {
+   "image": "title_fx_voice_dagger.png",
+   "x": 1302,
+   "y": 820,
+   "w": 124,
+   "h": 250,
+   "emberOrigin": [
+    1370,
+    840
+   ],
+   "weapon": "dagger",
+   "color": "#c060ff",
+   "pulse": {
+    "periodMs": 9600,
+    "offsetMs": 4800,
+    "onMs": 1700,
+    "alpha": [
+     0.25,
+     1.0
+    ],
+    "note": "네 목소리가 2.4초 간격으로 한 번씩 밝아진다(원한이 차례로 말을 건다). 꺼진 동안도 0.25 유지"
+   }
+  },
+  {
+   "image": "title_fx_voice_bow.png",
+   "x": 1735,
+   "y": 662,
+   "w": 152,
+   "h": 414,
+   "emberOrigin": [
+    1820,
+    681
+   ],
+   "weapon": "bow",
+   "color": "#40e0a0",
+   "pulse": {
+    "periodMs": 9600,
+    "offsetMs": 7200,
+    "onMs": 1700,
+    "alpha": [
+     0.25,
+     1.0
+    ],
+    "note": "네 목소리가 2.4초 간격으로 한 번씩 밝아진다(원한이 차례로 말을 건다). 꺼진 동안도 0.25 유지"
+   }
+  }
+ ],
+ "logo": {
+  "image": "title_logo.png",
+  "size": [
+   1200,
+   399
+  ],
+  "x": 40,
+  "y": 20,
+  "scale": 1.0,
+  "lettersBox": [
+   202,
+   44,
+   1078,
+   284
+  ],
+  "subtitleBox": [
+   319,
+   305,
+   943,
+   383
+  ],
+  "emberDots": {
+   "katana": [
+    553,
+    407
+   ],
+   "greatsword": [
+    607,
+    407
+   ],
+   "dagger": [
+    661,
+    407
+   ],
+   "bow": [
+    715,
+    407
+   ]
+  },
+  "subtitle": "바깥의 적",
+  "intro": "처음 열릴 때: 로고 알파 0→1 1.2s(Sine.out) 뒤 부제 0.6s, 그 뒤 무기 불씨 4개가 칼→대검→단검→활 순서로 0.15s 간격 점등",
+  "idle": "로고 빛무리 숨쉬기 없음(글자 흔들림 금지). 불씨 4개만 voices 펄스에 맞춰 밝아짐"
+ },
+ "menu": {
+  "frame": "title_menu_frame.png",
+  "frameMeta": "title_menu_frame.json",
+  "area": {
+   "x": 110,
+   "y": 650,
+   "w": 400,
+   "h": 350
+  },
+  "side": "left-bottom — 주인공(오른쪽 x 1180~1800)과 성문·도시 가운데(x 760~1200)를 가리지 않는 쪽",
+  "items": "세로 목록, 줄 간격 48px, 왼쪽 맞춤(안쪽 여백 36px), 선택 줄 왼쪽에 작은 불씨(title_fx_embers amber_m 프레임 루프)",
+  "fontNote": "Galmuri(39라운드) — 정수 배율 유지"
+ },
+ "colors": {
+  "base": {
+   "ink": "#141516",
+   "ash": "#2f3033",
+   "moon": "#d8d9db"
+  },
+  "accent": {
+   "amber": "#d67a11",
+   "lantern": "#e8b858",
+   "glowInk": "#faeec0"
+  },
+  "weapons": {
+   "katana": "#8fe3ff",
+   "greatsword": "#ff5a2a",
+   "dagger": "#c060ff",
+   "bow": "#40e0a0"
+  },
+  "uiText": {
+   "item": "#c6a58b",
+   "itemHalo": "#6a5645",
+   "itemNote": "종이(S3) 위 기본 메뉴 글자 = UI S5, 1px 할로 S4",
+   "selected": "#faeec0",
+   "selectedHalo": "#d67a11",
+   "selectedHaloAlpha": 0.5,
+   "selectedShade": "#403227",
+   "disabled": "#6a5645",
+   "onScene": "#d8d9db",
+   "onSceneHalo": "#000000",
+   "onSceneNote": "틀 밖(버전 표기·안내 문구) = G13 + 1px 먹 테",
+   "version": "#8e9195"
+  }
+ },
+ "animation": {
+  "breathPeriodMs": 4200,
+  "breath": "주인공 scaleY 1.000↔1.008 + 빛무리(glow_hero) 알파 0.55↔1.0, 같은 위상(들이쉴 때 밝게)",
+  "voices": "voices[].pulse — 9.6s 한 바퀴에 네 무기가 차례로",
+  "embers": "title_fx_embers.json emitters — 바람 왼→오른, 위로",
+  "fog": "title_fx_fog.json instances — 세 겹, 서로 다른 속도",
+  "windDirection": "left→right",
+  "moon": "정지(달은 움직이지 않는다 — 수평 기준점)",
+  "intro": "검은 화면 → 먹 붓질 걷힘(paint/brush_reveal_2, 1.4s) 또는 페이드 → 로고 → 메뉴. 첫 3초 안에 로고까지"
+ },
+ "palette": "LOPAD lopad.json: 무채 G00~G15 + 1층 호박 A0~A11 + 무기 주 색 4(계약 art §28) + (메뉴 틀만) UI 세피아 S0~S4"
+}
