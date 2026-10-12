@@ -1,0 +1,52 @@
+{
+ "size": [
+  320,
+  180
+ ],
+ "dotPx": 2,
+ "uiScale": "UI 1배(논리 px) — 이벤트 결과 패널 그림 자리",
+ "background": "붓 가장자리 종이(바깥 투명)",
+ "palette": "UI 세피아 S0~S5(먹·종이) + 1층 램프 22~24 호박 한 점 — UI 그림",
+ "method": "Claude 직접(Gemini 402) — r62b/event.py",
+ "cuts": {
+  "conscript": {
+   "file": "events/cut_conscript.png",
+   "scene": "길가에 주저앉은 징집병, 내민 잔 하나"
+  },
+  "diary": {
+   "file": "events/cut_diary.png",
+   "scene": "펼친 일기장의 빈 쪽 위로 붓을 든 잿빛 손"
+  },
+  "tasting": {
+   "file": "events/cut_tasting.png",
+   "scene": "양조장 술통 쟁반의 잔들, 줄 선 사람들"
+  },
+  "offering": {
+   "file": "events/cut_offering.png",
+   "scene": "꽂힌 검 앞 묘 위의 술잔 하나"
+  },
+  "droppedLedger": {
+   "file": "events/cut_droppedLedger.png",
+   "scene": "진창에 떨어진 외상 장부와 흩날린 쪽"
+  }
+ },
+ "aliases": {
+  "cut_conscript_give": "cut_conscript",
+  "cut_conscript_rob": "cut_conscript",
+  "cut_conscript_pass": "cut_conscript",
+  "cut_diary_recall": "cut_diary",
+  "cut_diary_refine": "cut_diary",
+  "cut_diary_read": "cut_diary",
+  "cut_tasting_one": "cut_tasting",
+  "cut_tasting_two": "cut_tasting",
+  "cut_tasting_decline": "cut_tasting",
+  "cut_offering_bow": "cut_offering",
+  "cut_offering_share": "cut_offering",
+  "cut_offering_pass": "cut_offering",
+  "cut_droppedLedger_return": "cut_droppedLedger",
+  "cut_droppedLedger_strike": "cut_droppedLedger",
+  "cut_droppedLedger_burn": "cut_droppedLedger"
+ },
+ "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · event.py",
+ "aliasNote": "계약 UiEventResult.cutKey 는 `events/cut_<이벤트>_<선택지>` — 이번엔 이벤트당 한 장이라 선택지 키는 모두 이벤트 컷으로 별칭"
+}

@@ -1,0 +1,47 @@
+{
+ "size": [
+  96,
+  96
+ ],
+ "pixelScale": 0.5,
+ "rule": "적 idle down 0 프레임 상반신 1배(월드와 같은 밀도) + 먹 원 배경 + 차가운 림. 결산 '처치자' 칸",
+ "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · cards.py",
+ "portraits": {
+  "dummy": {
+   "file": "ui_portraits/dummy.png",
+   "enemyId": "dummy",
+   "from": "enemies/v3/dummy_idle",
+   "name": "징집병"
+  },
+  "archer": {
+   "file": "ui_portraits/archer.png",
+   "enemyId": "archer",
+   "from": "enemies/v3/archer_idle",
+   "name": "사수"
+  },
+  "charger": {
+   "file": "ui_portraits/charger.png",
+   "enemyId": "charger",
+   "from": "enemies/v3/charger_idle",
+   "name": "결사병"
+  },
+  "peddler": {
+   "file": "ui_portraits/peddler.png",
+   "enemyId": "peddler",
+   "from": "enemies/v3/peddler_idle",
+   "name": "독주 행상"
+  },
+  "porter": {
+   "file": "ui_portraits/porter.png",
+   "enemyId": "porter",
+   "from": "enemies/v3/porter_idle",
+   "name": "술통 짐꾼"
+  },
+  "boss1": {
+   "file": "ui_portraits/boss1.png",
+   "enemyId": "boss1",
+   "from": "bosses/v3/stage1_idle",
+   "name": "만취"
+  }
+ }
+}

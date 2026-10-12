@@ -822,3 +822,43 @@ python3 parts/art/work/r62a/build.py              # 62라운드 루프 1: 첫 �
 - UI: §20 의식 화면 — 이름 = `diary_first_page` + `nameField`(브라우저 입력칸 금지), 3획 = `back_canvas`(+glow ADD) 위 `ink_brush` 스탬프(먹 `#141516`, 판정 뒤 불씨 먹 `#e8b858` + `#d67a11` 흐린 빛무리), 운명 = `fate_frame` 9-slice 안 `looks/<무기>_base`. 수련장 라벨 = `ui/plank_label`. 타이틀 = `logoReveal`·`gate`.
 - 시스템: 회피 시험 무대 = 황무지 타일(start 바닥) + `birth_corpse_pile`/`_mound`/`_spear_thicket`(엄폐, 회색 원통 대체) + `birth_banner_bloody`·`_fallen_soldier`·`_broken_spears`(꾸밈) + 데칼(`blood_pool`·`bone_scatter`·`scorch`). 황무지 `tiles["1"]` 에 13~16 이 들어감(옛 소품 예약 칸 — v2 소품으로 읽는 코드가 있다면 확인). 수련장 `tileLights.21` 값 변경.
 - 커밋 뒤 기준 이동: `python3 parts/art/work/atlas57/verify.py --rebase --only birth_`
+
+## 62라운드 루프 2 (2026-10-12, 전권 위임) — P1-2 스미어 · 적 등장 먹 번짐 · 일반 적 차가운 림 · 유품 카드 · 이벤트 NPC·컷 · 상점 칸 · 월드 결 · 작업 폴더 `work/r62b/`
+근거: `decisions/2026-10-12-P16-loop2.md`(§1·§3·§4·§5·§8), 점검 `review-2026-10-12-stage1-competitive-audit.md` P1-2·12·13·17·19, P2-4·10, 루프 1 요청(시스템 A → 아트). 자율 모드라 `data/weapons.json`(실제 1~3타 동작 이름)·`data/passives.json`(1층 패시브 풀)·`data/bundle2.json`(1층 이벤트·선택지)·`src/contract/ui.ts`(이벤트 컷 키 규칙)를 **읽기만** 했다.
+**방법 — Claude 직접 디자인**: Gemini 는 402(크레디트 소진) 상태라 호출하지 않았다(메인 지시). 전부 Pillow 절차 셰이딩(props_v3 `pk` · r62a 몸 도구) + 좌표 손 보정, 새 라이브러리 없음.
+빌드: `python3 parts/art/work/r62b/build.py [--only smear,spawn,rim,cards,event,world] [--dry]` — 모듈 `common.py`(경로·램프·b2 시트 쓰기) · `kit2.py`(그림 도구) · `smear.py` · `spawn.py` · `rim.py` · `cards.py` · `event.py` · `world.py`. 미리보기 `preview_{smear,spawn,rim,cards,event,world}.png`. 타일 원본 사본 `r62b/before/`(재실행 멱등).
+
+### 1. P1-2 칼·대검 연격 스미어 `fx/v3/<동작>_smear` (6시트)
+- 대상 = 실제 1~3타(`data/weapons.json`): 칼 `katana_rise`·`katana_fall`·`katana_thrust`, 대검 `greatsword_sweep_cw`·`greatsword_cleave`·`greatsword_sweep_ccw`(옛 `katana_combo*`·`greatsword_combo*` 는 대체 후보 목록의 뒷순위라 실제로 안 쓰임).
+- **무기 오버레이와 같은 틀·피벗·프레임 번호**(칼 192×192 (96,186) 4방향, 대검 240×296 (117,217) 8방향 drawn8) — 같은 프레임을 같은 시각에 겹치면 스미어가 칼날에 붙는다. 칼끝 궤적 = `bladeTipAnchors` 를 Catmull-Rom 으로 이은 곡선(바깥 테), 손잡이(`gripAnchors`) 쪽으로 폭 w(s) 만큼 메움 — 머리(지금 칼날) 굵고 밝게, 꼬리 가늘고 식어 2×2 조각으로 부서짐. 사라짐 칸은 칼에서 떨어져 제자리에서 식는다. 찌르기는 칼끝 뒤 꼬리 + 칼끝 앞 뾰족한 찌름 끝.
+- 색 = §28 무기 색 램프(칼 서리 / 대검 용암), 흰 끝·X0 는 `glowFrames` 칸에만(검사 통과). 먹빛 안쪽 테 1도트.
+- JSON: `overlayOf`·`sameFrameAs`·`smearFrames`·`sweepFrames`·`decayFrames`·`bladeTipAnchors`·`gripAnchors`·**`smearHeadAnchors`·`smearTailAnchors`**(칸별, null = 그 칸 스미어 없음)·`depthRule`(무기 바로 아래)·`systemHint`.
+- see → critique → fix: 1차 = 칼 스미어가 하늘색 단색 덩어리·사라짐 칸이 망점 회색 → 몸 밝기 낮추고 흰 끝은 바깥 테만, 사라짐 = 2×2 조각 잡음 + 밝기 하한. 2차 = 찌르기 줄기가 칼날에 가려 안 보임 → 폭 ×1.6 + 칼끝 앞 찌름 끝. 3차 = 칼 폭 0.55 → 0.46(날 길이 비).
+
+### 2. 루프 1 요청 — `fx/v3/spawn_ink` · `enemies/v3/<적>_<동작>_rim` (25시트)
+- `spawn_ink` 208×176 피벗 (104,132)(적 발), 14프레임 1회 1130ms: 방울 → 번짐(1~9) → 먹 기운 일어섬(5~9) → **`spawnFrame 10` = 900ms 에 적 등장** → 마름(11~13). 경고를 늘리려면 `holdFrame 9` 유지. 먹 + 젖은 먹 윤(차가운 청회, 림과 같은 색).
+- 림: 적 5종 × 동작 5 = 25시트, 적 시트와 같은 틀·피벗·프레임 번호. **실루엣 바깥 1도트** — 위 테 #7d98b4/#a8c0d6(달빛) · 몸 왼쪽 #56708c · 오른쪽 #3a4a5e · 아래·발밑 없음. 몸을 가리지 않아 위/아래 어디 그려도 같다. 엘리트는 기존 `_elite` 만(둘 다 켜지 않음).
+- 1차: 먹 번짐이 틀 밖으로 잘림·별 모양 가시·두꺼운 청색 테·풀 같은 가는 기운 → 반경 88 → 68, 줄기 부드럽게, 테 2도트, 기운 굵고 길게.
+
+### 3. 유품·소품·처치자 초상 (`assets/sprites/ui_relics/`, `ui_portraits/`)
+- 유품 카드 15장 `ui_relics/<passiveId>.png` 128×128(1층 풀 = `passives.json` floor 1): lifesteal·sprint·ferocity·lastStand·ironParry·afterimage·whetstone·callus·heavyWrist·closeCall·domino·brokenMirror·spilledDrink·hipFlask·drunkFist. 개성 카드와 같은 결(쿼터뷰 돌판 + 물건 한 점·효과 한 순간), 투명 배경, 글자·테두리 없음. `relics.json`(장면 메모).
+- 기억의 소품 4장 `ui_relics/keepsake_{brokenCup,oldVoucher,knotCord,inkBrush}.png` 64×64 (id 는 아트 임시).
+- 처치자 초상 6장 `ui_portraits/{dummy,archer,charger,peddler,porter,boss1}.png` 96×96 — 적 idle down 0 프레임 상반신 1배(월드 밀도 그대로) + 먹 원 배경 + 차가운 림. `portraits.json`.
+- 1차: 돌판이 너무 커 물건이 떠 보임·호박 망점 빛무리 시끄러움·도끼가 깃발·주먹 안 보임 → 돌판 축소·빛무리 약하게·초승달 도끼날·주먹 새로·잔상은 주인공 대쉬 프레임을 ½ 로(원 프레임 색으로 되돌림) + 청회 잔상 2.
+
+### 4. P1-12·13 이벤트·상점
+- NPC `structures/v3/npc_{conscript,merchant,brewer}` (적 시트 규격 4방향 × idle 6 루프): 징집병 몸을 주저앉힌 낙오병(무릎·창·이마 붕대) / 독주 행상 몸 + 청회 외투 + 허리 호박 등(종군 상인, `light`) / 술통 짐꾼 몸 + 바랜 앞치마 + 시음 잔(양조장 시음 담당). `interact.markAnchor`.
+- 결과 컷 `events/cut_{conscript,diary,tasting,offering,droppedLedger}.png` 320×180(2px 도트, 세피아 먹 + 호박 한 점, 붓 가장자리 종이) + `events/cuts.json` `aliases`(계약 키 `cut_<이벤트>_<선택지>` → 이벤트 컷).
+- 상점: `structures/v3/shop_slot` 112×96(states idle / near(표지 램프) / sold, `itemAnchor (56,54)`) · `items/v3/shop_goods` 80×96(행 relic_bundle·temper·reroll × idle 4). 회복약·화염 술병은 기존 `items/v3/potion`·`consumable_f1` 재사용(새로 안 그림).
+
+### 5. 월드 결
+- 바닥 변주 4 × 지역: gate·hall·brewery 빈 칸 13~16, outer 는 **새 행 80~83**(옛 소품 칸 불변) — 금·돌부스러기·때·지역 물건(지푸라기 / 진창 웅덩이 / 술 얼룩·잔 조각 / 보리 낟알·통 테 자국). 가장자리 8도트는 원 바닥 그대로. `tiles["1"]` = 원 목록 ×2 + 변주 4, JSON `floorVariants62b`.
+- `structures/v3/decal_soot` 128×96 × 6(알파 가장자리 그을음, depth floor) · `structures/v3/pillar_stone` 96×208 피벗 (48,196), 행 = waste·outer·gate·hall, 열 = whole·cracked·broken(3면 명암·돌 단 줄눈·받침돌).
+- P2-4 `sprites/ui/map_marker_ghost.png`+json 40×56 × 6(먹 붓 망령, 호박 눈, 둥실 160ms).
+- P2-10 `structures/v3/setpiece_broken_cart`(288×200, 4×2) · `setpiece_spilled_casks`(256×208, 4×3, `liquorPool`).
+- P1-17 밤 수련장 타일·팻말은 루프 1(r62a)에서 끝 — 이번엔 손대지 않음. P1-14 보스 재도트는 루프 3.
+
+### 검증
+- `atlas57/verify.py --all`: 시트 1482(+41), 형식 오류 0(원본 없음 84 = 새 시트 형식만), 픽셀 불일치 0. 스미어 glow 규칙 검사(흰 끝·X0 는 glowFrames 만) 통과, `framesPerDirection == atlas.grid.columns`.
+- `npx vitest run src/systems/sprites src/systems/fx` 18파일 125건 통과. (전체 실행의 실패 10건은 meta·ui·audio 진행 중 작업 — 아트 산출물과 무관)
+- 커밋 뒤 기준 이동은 메인이 `verify.py --rebase`.

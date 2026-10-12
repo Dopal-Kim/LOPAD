@@ -1,0 +1,146 @@
+{
+ "size": [
+  128,
+  128
+ ],
+ "pixelScale": 0.5,
+ "screenSize": [
+  64,
+  64
+ ],
+ "background": "투명",
+ "rule": "개성 카드(ui_traits, 계약 §27)와 같은 결 — 쿼터뷰 돌판 위 물건 한 점·효과 한 순간. 키캡·숫자·글자·테두리 없음(UI 가 그림)",
+ "method": "Claude 직접 도트(Gemini 402) — r62b/cards.py",
+ "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · cards.py",
+ "relics": {
+  "lifesteal": {
+   "file": "ui_relics/lifesteal.png",
+   "passiveId": "lifesteal",
+   "scene": "피 고인 쇠잔 — 쓰러진 자의 혼이 잔으로 흘러든다",
+   "colors": 16
+  },
+  "sprint": {
+   "file": "ui_relics/sprint.png",
+   "passiveId": "sprint",
+   "scene": "닳은 장화 한 켤레 — 한 짝은 이미 앞으로",
+   "colors": 21
+  },
+  "ferocity": {
+   "file": "ui_relics/ferocity.png",
+   "passiveId": "ferocity",
+   "scene": "이 빠진 전투 도끼가 돌판에 박혔다",
+   "colors": 17
+  },
+  "lastStand": {
+   "file": "ui_relics/lastStand.png",
+   "passiveId": "lastStand",
+   "scene": "붕대 감긴 부러진 검 — 부러진 자리에서 불씨",
+   "colors": 23
+  },
+  "ironParry": {
+   "file": "ui_relics/ironParry.png",
+   "passiveId": "ironParry",
+   "scene": "움푹 팬 쇠방패와 받아친 순간의 찬 섬광",
+   "colors": 13
+  },
+  "afterimage": {
+   "file": "ui_relics/afterimage.png",
+   "passiveId": "afterimage",
+   "scene": "찢긴 목도리가 잔상 둘을 끌고 날린다",
+   "colors": 26
+  },
+  "whetstone": {
+   "file": "ui_relics/whetstone.png",
+   "passiveId": "whetstone",
+   "scene": "숫돌 위를 미끄러지는 날, 불티",
+   "colors": 25
+  },
+  "callus": {
+   "file": "ui_relics/callus.png",
+   "passiveId": "callus",
+   "scene": "손 싸개 두루마리와 굳은 가죽 장갑",
+   "colors": 21
+  },
+  "heavyWrist": {
+   "file": "ui_relics/heavyWrist.png",
+   "passiveId": "heavyWrist",
+   "scene": "끊어진 사슬이 달린 쇠 팔찌",
+   "colors": 14
+  },
+  "closeCall": {
+   "file": "ui_relics/closeCall.png",
+   "passiveId": "closeCall",
+   "scene": "투구 챙을 스쳐 꿰뚫은 화살",
+   "colors": 20
+  },
+  "domino": {
+   "file": "ui_relics/domino.png",
+   "passiveId": "domino",
+   "scene": "차례로 쓰러지는 뼈 패, 마지막 패에서 튀는 재 파편",
+   "colors": 19
+  },
+  "brokenMirror": {
+   "file": "ui_relics/brokenMirror.png",
+   "passiveId": "brokenMirror",
+   "scene": "금 간 손거울 속 망령 하나",
+   "colors": 21
+  },
+  "spilledDrink": {
+   "file": "ui_relics/spilledDrink.png",
+   "passiveId": "spilledDrink",
+   "scene": "쓰러진 술병과 번지는 술 웅덩이",
+   "colors": 16
+  },
+  "hipFlask": {
+   "file": "ui_relics/hipFlask.png",
+   "passiveId": "hipFlask",
+   "scene": "잔 낙인이 찍힌 허리춤 호리병",
+   "colors": 12
+  },
+  "drunkFist": {
+   "file": "ui_relics/drunkFist.png",
+   "passiveId": "drunkFist",
+   "scene": "쓰러진 잔과 휘청이는 주먹의 소용돌이",
+   "colors": 22
+  }
+ },
+ "keepsakes": {
+  "brokenCup": {
+   "file": "ui_relics/keepsake_brokenCup.png",
+   "size": [
+    64,
+    64
+   ],
+   "note": "깨진 잔 — 첫 피격 피해 무효(예)",
+   "idNote": "아트 임시 id — 시스템·스토리 확정 id 가 다르면 파일 이름만 바꿔 다시 냄"
+  },
+  "oldVoucher": {
+   "file": "ui_relics/keepsake_oldVoucher.png",
+   "size": [
+    64,
+    64
+   ],
+   "note": "낡은 전표 — 시작 전표(예)",
+   "idNote": "아트 임시 id — 시스템·스토리 확정 id 가 다르면 파일 이름만 바꿔 다시 냄"
+  },
+  "knotCord": {
+   "file": "ui_relics/keepsake_knotCord.png",
+   "size": [
+    64,
+    64
+   ],
+   "note": "매듭 끈 — 대쉬 1회 추가 충전(예)",
+   "idNote": "아트 임시 id — 시스템·스토리 확정 id 가 다르면 파일 이름만 바꿔 다시 냄"
+  },
+  "inkBrush": {
+   "file": "ui_relics/keepsake_inkBrush.png",
+   "size": [
+    64,
+    64
+   ],
+   "note": "먹 묻은 붓 — 첫 개성 발현 카드 +1(예)",
+   "idNote": "아트 임시 id — 시스템·스토리 확정 id 가 다르면 파일 이름만 바꿔 다시 냄"
+  }
+ },
+ "portraits": {}
+}

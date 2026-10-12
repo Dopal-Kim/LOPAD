@@ -1,0 +1,105 @@
+{
+ "image": "dummy_idle_rim.png",
+ "action": "dummy_idle_rim",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  220,
+  220,
+  220,
+  180,
+  220,
+  220
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "role": "rim_cold",
+ "baseSheet": "enemies/v3/dummy_idle",
+ "enemy": "dummy",
+ "overlayOf": "enemies/v3/dummy_idle",
+ "sameFrameAs": "enemies/v3/dummy_idle",
+ "draw": "적 스프라이트 바로 위(같은 컨테이너, 같은 프레임 번호·피벗·flip·scale). 그림은 실루엣 바깥 1도트라 몸을 가리지 않는다. 엘리트는 이 시트 대신 `_elite` 외곽선을 쓴다(둘 다 켜지 않음).",
+ "rimColors": [
+  "#3a4a5e",
+  "#56708c",
+  "#7d98b4",
+  "#a8c0d6"
+ ],
+ "rimNote": "위를 향한 테 #7d98b4/#a8c0d6(달빛) · 몸 왼쪽 #56708c · 오른쪽 #3a4a5e · 아래·발밑 없음. 비발광(조명 아래) — 어둠 속 가독성이 모자라면 시스템이 알파 0.6~0.8 가산 레이어로 올려도 된다(제안).",
+ "drawOver": "lightmap 아래(비발광) 기본 — 시스템 판단",
+ "flashRule": "피격 흰빛(가산) 때도 테는 그대로 둔다(몸 형태 유지)",
+ "paletteSwap": "none",
+ "palette": "차가운 달빛 청회색 4단(#3a4a5e·#56708c·#7d98b4·#a8c0d6) — 적 가독성 전용(층 램프 밖, 고정)",
+ "regenerate": "적 시트를 다시 그리면 parts/art/work/r62b/build.py --only rim",
+ "version": "v3-r62b",
+ "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · rim.py",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dummy_idle_rim.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":228,"y":249,"w":57,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":24,"w":57,"h":119},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":103,"y":370,"w":57,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":25,"w":57,"h":118},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":249,"w":58,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":23,"w":58,"h":120},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":0,"y":0,"w":62,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":18,"w":62,"h":125},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":0,"y":127,"w":62,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":23,"w":62,"h":120},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":287,"y":249,"w":59,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":25,"w":59,"h":118},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":237,"y":125,"w":57,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":20,"w":57,"h":122},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":149,"y":126,"w":57,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":21,"w":57,"h":121},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":287,"y":369,"w":58,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":24,"w":58,"h":118},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":64,"y":127,"w":62,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":22,"w":62,"h":120},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":103,"y":249,"w":62,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":23,"w":62,"h":119},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":167,"y":249,"w":59,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":23,"w":59,"h":119},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":60,"y":249,"w":41,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":24,"w":41,"h":120},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":194,"y":0,"w":41,"h":124},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":20,"w":41,"h":124},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":149,"y":0,"w":43,"h":124},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":20,"w":43,"h":124},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":237,"y":0,"w":47,"h":123},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":21,"w":47,"h":123},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":43,"y":371,"w":40,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":27,"w":40,"h":117},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":207,"y":370,"w":41,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":30,"w":41,"h":114},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":286,"y":0,"w":41,"h":123},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":21,"w":41,"h":123},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":0,"y":371,"w":41,"h":118},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":26,"w":41,"h":118},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":162,"y":370,"w":43,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":28,"w":43,"h":116},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":296,"y":125,"w":47,"h":122},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":22,"w":47,"h":122},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":107,"y":0,"w":40,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":19,"w":40,"h":125},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":64,"y":0,"w":41,"h":125},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":32,"y":19,"w":41,"h":125},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "dummy_idle_rim.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 346,
+   "h": 489
+  },
+  "scale": "1"
+ }
+}

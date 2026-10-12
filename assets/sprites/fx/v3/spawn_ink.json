@@ -1,0 +1,140 @@
+{
+ "image": "spawn_ink.png",
+ "action": "spawn_ink",
+ "frameWidth": 208,
+ "frameHeight": 176,
+ "framesPerDirection": 14,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction/kind (directions·rowsAre 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  90,
+  90,
+  90,
+  90,
+  90,
+  90,
+  90,
+  90,
+  90,
+  90,
+  60,
+  90,
+  90,
+  100
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "pivot": {
+  "x": 104,
+  "y": 132
+ },
+ "anchor": "spawn_point",
+ "anchorNote": "피벗 = 적이 나타날 발 위치(바닥). 적 피벗과 같은 점에 놓는다",
+ "depth": "floor",
+ "drawOver": "lightmap",
+ "drawOverNote": "예고는 어둠 속에서도 읽혀야 해서 조명 위(제안). 너무 밝으면 조명 아래 + 젖은 윤만 가산.",
+ "spawnFrame": 10,
+ "spawnAtMs": 900,
+ "durationMs": 1240,
+ "phaseFrames": {
+  "drop": [
+   0
+  ],
+  "spread": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9
+  ],
+  "rise": [
+   5,
+   6,
+   7,
+   8,
+   9
+  ],
+  "burst": [
+   10
+  ],
+  "dry": [
+   11,
+   12,
+   13
+  ]
+ },
+ "timingNote": "spawnAtMs(900) 에 적을 세운다(적 등장 연출 시작). 경고 시간을 늘리려면 spread 끝 칸(9)을 stateHold 로 유지 — 그림은 맞는다",
+ "holdFrame": 9,
+ "radiusDots": {
+  "max": 68,
+  "squash": 0.5,
+  "note": "바닥 타원 가로 반경(도트). 약 1칸(지름 2칸)"
+ },
+ "colors": [
+  "#0d0d10",
+  "#141516",
+  "#1a1b1e",
+  "#212224",
+  "#3a4a5e",
+  "#56708c",
+  "#7d98b4"
+ ],
+ "palette": "먹(gray 1~3 + #0d0d10) + 젖은 먹 윤 차가운 청회색(적 림과 같은 색) + 접지 그림자 반투명 (10,11,16). paletteSwap none",
+ "paletteSwap": "none",
+ "version": "v3-r62b",
+ "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · spawn.py",
+ "design": "그림 세계(먹 붓) 결 — 바닥에 먹이 번지고 붓 자국 같은 먹 기운이 일어서며 적이 그려져 나온다. 소리 쪽 '적 등장 예고'와 같은 시각(spawnAtMs)에 맞춘다.",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 spawn_ink.png)",
+  "grid": {
+   "columns": 14,
+   "rows": 1,
+   "frameWidth": 208,
+   "frameHeight": 176,
+   "frameCount": 14
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":333,"y":262,"w":20,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":95,"y":127,"w":20,"h":11},"sourceSize":{"w":208,"h":176}},
+  "1":{"frame":{"x":243,"y":456,"w":77,"h":31},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":64,"y":115,"w":77,"h":31},"sourceSize":{"w":208,"h":176}},
+  "2":{"frame":{"x":243,"y":411,"w":100,"h":43},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":53,"y":109,"w":100,"h":43},"sourceSize":{"w":208,"h":176}},
+  "3":{"frame":{"x":122,"y":411,"w":119,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":104,"w":119,"h":52},"sourceSize":{"w":208,"h":176}},
+  "4":{"frame":{"x":210,"y":0,"w":135,"h":60},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":35,"y":100,"w":135,"h":60},"sourceSize":{"w":208,"h":176}},
+  "5":{"frame":{"x":159,"y":343,"w":147,"h":66},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":97,"w":147,"h":66},"sourceSize":{"w":208,"h":176}},
+  "6":{"frame":{"x":0,"y":332,"w":157,"h":71},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":95,"w":157,"h":71},"sourceSize":{"w":208,"h":176}},
+  "7":{"frame":{"x":168,"y":262,"w":163,"h":79},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":88,"w":163,"h":79},"sourceSize":{"w":208,"h":176}},
+  "8":{"frame":{"x":0,"y":234,"w":166,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":72,"w":166,"h":96},"sourceSize":{"w":208,"h":176}},
+  "9":{"frame":{"x":185,"y":150,"w":167,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":58,"w":167,"h":110},"sourceSize":{"w":208,"h":176}},
+  "10":{"frame":{"x":0,"y":0,"w":208,"h":148},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":24,"w":208,"h":148},"sourceSize":{"w":208,"h":176}},
+  "11":{"frame":{"x":0,"y":150,"w":183,"h":82},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":89,"w":183,"h":82},"sourceSize":{"w":208,"h":176}},
+  "12":{"frame":{"x":210,"y":62,"w":128,"h":63},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":101,"w":128,"h":63},"sourceSize":{"w":208,"h":176}},
+  "13":{"frame":{"x":0,"y":405,"w":120,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":47,"y":103,"w":120,"h":59},"sourceSize":{"w":208,"h":176}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "spawn_ink.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 353,
+   "h": 487
+  },
+  "scale": "1"
+ }
+}

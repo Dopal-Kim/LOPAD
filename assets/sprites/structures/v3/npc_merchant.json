@@ -1,0 +1,137 @@
+{
+ "image": "npc_merchant.png",
+ "action": "npc_merchant",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  220,
+  220,
+  220,
+  220,
+  220,
+  220
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "kind": "npc",
+ "states": {
+  "idle": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ]
+ },
+ "stateLoop": {
+  "idle": true
+ },
+ "interact": {
+  "key": "E",
+  "radiusTiles": 1.5,
+  "markAnchor": {
+   "x": 48,
+   "y": 10
+  },
+  "note": "말 걸기 표지(UI 'E' 키 표시) 자리 — 머리 위 약 10도트"
+ },
+ "facing": "주인공 쪽 행을 고른다(down·up·left·right). 고정 배치면 down",
+ "solid": true,
+ "footprint": [
+  1,
+  1
+ ],
+ "depth": "y",
+ "paletteSwap": false,
+ "palette": "적 시트 색 재사용 + 재질 SL·PL·WD — 새 색 없음",
+ "version": "v3-r62b",
+ "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · event.py",
+ "method": "Claude 직접 — 적 시트 몸을 바탕으로 자세·옷 색만 바꿈(같은 세계 사람으로 읽히게)",
+ "role": "shop",
+ "name": "종군 상인",
+ "base": "enemies/v3/peddler_idle(외투 갈색 → 청회로 바꿔 적 행상과 구별)",
+ "pose": "선 채 대기 — 허리에 작은 호박 등(친화 NPC 표지)",
+ "light": {
+  "color": "#e8b858",
+  "radius": 70,
+  "intensity": 0.45,
+  "offset": {
+   "x": 62,
+   "y": 96
+  },
+  "flicker": {
+   "amp": 0.15,
+   "hz": 2
+  }
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 npc_merchant.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":2264,"w":45,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":32,"w":45,"h":111},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":0,"y":2150,"w":46,"h":112},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":31,"w":46,"h":112},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":2377,"w":45,"h":111},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":32,"w":45,"h":111},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":0,"y":2490,"w":45,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":33,"w":45,"h":110},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":0,"y":2714,"w":44,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":33,"w":44,"h":110},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":0,"y":2602,"w":45,"h":110},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":33,"w":45,"h":110},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":0,"y":0,"w":45,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":20,"w":45,"h":121},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":0,"y":246,"w":46,"h":120},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":21,"w":46,"h":120},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":0,"y":368,"w":45,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":22,"w":45,"h":119},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":0,"y":489,"w":45,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":22,"w":45,"h":119},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":0,"y":610,"w":44,"h":119},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":22,"w":44,"h":119},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":0,"y":123,"w":45,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":20,"w":45,"h":121},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":0,"y":850,"w":50,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":26,"w":50,"h":117},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":0,"y":1088,"w":49,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":26,"w":49,"h":117},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":0,"y":1680,"w":49,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":27,"w":49,"h":116},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":0,"y":1562,"w":50,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":27,"w":50,"h":116},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":0,"y":1326,"w":51,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":13,"y":27,"w":51,"h":116},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":0,"y":1444,"w":51,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":12,"y":27,"w":51,"h":116},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":0,"y":969,"w":50,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":26,"w":50,"h":117},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":0,"y":1207,"w":49,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":26,"w":49,"h":117},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":0,"y":1798,"w":49,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":27,"w":49,"h":116},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":0,"y":2033,"w":50,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":28,"w":50,"h":115},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":0,"y":1916,"w":51,"h":115},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":28,"w":51,"h":115},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":0,"y":731,"w":51,"h":117},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":26,"w":51,"h":117},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "npc_merchant.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 51,
+   "h": 2824
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,25 @@
+{
+ "image": "map_marker_ghost.png",
+ "frameWidth": 40,
+ "frameHeight": 56,
+ "frames": 6,
+ "frameDurationsMs": [
+  160,
+  160,
+  160,
+  160,
+  160,
+  160
+ ],
+ "loop": true,
+ "pivot": {
+  "x": 20,
+  "y": 53
+ },
+ "uiScale": "UI 1배(지도 그림 위 논리 px)",
+ "kind": "map_marker",
+ "design": "먹 붓으로 그은 망령 — 둥근 머리 + 갈라지는 붓 꼬리, 호박 눈 하나. 세피아 지도와 같은 먹·종이 색(흰 도트 인형 대체, P2-4)",
+ "moveHint": "노드 이동 중엔 표식을 길 위로 보간 이동 + 꼬리 쪽을 이동 반대 방향으로 flipX(제안)",
+ "palette": "먹 #141516 + UI 세피아 S1·S4 + 호박 A23·A24",
+ "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · world.py"
+}

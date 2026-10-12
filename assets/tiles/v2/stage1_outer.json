@@ -7,7 +7,7 @@
  "tileWidth": 64,
  "tileHeight": 64,
  "columns": 8,
- "rows": 10,
+ "rows": 11,
  "indexFormula": "row * columns + column",
  "pixelScale": 0.5,
  "wallHeightTiles": 2,
@@ -23,7 +23,15 @@
    0,
    1,
    2,
-   3
+   3,
+   0,
+   1,
+   2,
+   3,
+   80,
+   81,
+   82,
+   83
   ],
   "2": [
    5,
@@ -612,5 +620,23 @@
   78,
   79
  ],
- "supersededNote": "외곽 13~20(옛 인덱스 소품)·64~79(옛 bigProps rect)는 v3 소품 시트 tiles/v3/stage1_outer_props 가 대신한다(계약 §14 — v3 가 있으면 v3). 그림은 60라운드 2배 임시 그대로 둔다(로드 경로 호환용)"
+ "supersededNote": "외곽 13~20(옛 인덱스 소품)·64~79(옛 bigProps rect)는 v3 소품 시트 tiles/v3/stage1_outer_props 가 대신한다(계약 §14 — v3 가 있으면 v3). 그림은 60라운드 2배 임시 그대로 둔다(로드 경로 호환용)",
+ "floorVariants62b": {
+  "indices": [
+   80,
+   81,
+   82,
+   83
+  ],
+  "kinds": [
+   "crack",
+   "rubble",
+   "grime",
+   "region"
+  ],
+  "regionKind": "straw_leaves",
+  "note": "62 루프 2 P1-19 — 원 바닥 0~3 의 가장자리 8도트 그대로(이음 불변), 가운데만 변주. tiles['1'] = 원 바닥 목록 ×2 + 변주 4(변주 비중 약 22~33%)",
+  "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · world.py",
+  "rowAdded": "행 10(칸 80~83) 새로 — 옛 소품 칸(13~20·64~79)은 건드리지 않음"
+ }
 }
