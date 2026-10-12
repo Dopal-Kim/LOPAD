@@ -48,6 +48,11 @@ type Mode = 'idle' | 'intro' | 'fight' | 'defeat' | 'done';
 /** 연출 동안 매 프레임 주인공 무적을 이만큼 앞으로 (ms) */
 const INVULN_PAD_MS = 200;
 
+/** 62 P0-4: 다음 단계까지 남은 시간에서 여유를 뺀 표시 시간 힌트 (최소 600ms) */
+function lineHold(gapMs: number): number {
+  return Math.max(600, Math.round(gapMs - BOSS_FX.INTRO_LINE_MARGIN_MS));
+}
+
 export class BossFlow {
   private mode: Mode = 'idle';
   private id = '';
@@ -140,16 +145,14 @@ export class BossFlow {
     this.introMs = 0;
     // 61 단계 6 수련장 '만취 그림자': 등장 연출·층 자막·대사 없이 바로 (그림자는 말하지 않는다 — 스토리 팩)
     if (this.g.training) {
-      this.mode = 'fight';
-      EventBus.emit(Events.BOSS_FIGHT, { id: this.id });
+      this.startFight(this.g.time.now);
       return;
     }
     if (!def || !show || !this.boss || this.g.lab || urlParams().has('nobossintro')) {
-      // 연출 없음: 기존처럼 층 등장 자막 + 등장 대사, 바로 전투
-      this.mode = 'fight';
+      // 연출 없음: 기존처럼 층 등장 자막 + 등장 대사, 바로 전투 (62 P0-4: 숨 고르기는 같이)
       this.g.ui.story('boss', floorText(gameState.stageId)?.bossIntro ?? '');
       this.speak('intro');
-      EventBus.emit(Events.BOSS_FIGHT, { id: this.id });
+      this.startFight(this.g.time.now);
       return;
     }
     this.mode = 'intro';
@@ -178,35 +181,53 @@ export class BossFlow {
         }
         break;
       case 'floorLine':
-        this.g.ui.story('boss', floorText(gameState.stageId)?.bossIntro ?? '');
+        // 62 P0-4: 층 자막은 대사 전에, 대사는 전투 시작 전에 걷히도록 표시 시간 힌트
+        this.g.ui.story('boss', floorText(gameState.stageId)?.bossIntro ?? '', {
+          holdMs: lineHold(I.speechAtMs - I.floorLineAtMs),
+        });
         break;
       case 'speech':
-        this.speak('intro');
+        this.speak('intro', false, lineHold(I.fightAtMs - I.speechAtMs));
         break;
       case 'return':
         this.g.cam.setFocus(null, I.returnMs);
+        // 62 P0-4: 포효 그림이 없어도 이름 카드는 전투 시작 전에 (카메라가 돌아오는 동안)
+        this.g.ui.relayBossFight();
         break;
       case 'fight':
-        this.mode = 'fight';
         this.introArt?.finish();
         this.introArt = null;
-        this.boss?.wake(now);
-        EventBus.emit(Events.BOSS_FIGHT, { id: this.id });
+        this.startFight(now);
         break;
     }
   }
 
+  /**
+   * 전투 시작 신호 (BOSS_FIGHT) — 보스를 깨우고 62 P0-4 숨 고르기(BOSS_FX.FIGHT_GRACE_MS): 그동안 보스는 패턴·접촉 공격이 없고
+   * 주인공은 무적. 이름 카드·대사가 걷힌 뒤 한 박자 쉬고 싸움이 시작된다
+   */
+  private startFight(now: number): void {
+    this.mode = 'fight';
+    const grace = BOSS_FX.FIGHT_GRACE_MS;
+    this.boss?.wake(now, grace);
+    this.g.player.grantInvulnerable(now + grace);
+    EventBus.emit(Events.BOSS_FIGHT, { id: this.id });
+  }
+
   // --- 대사 ---
 
-  /** 보스 대사 한 줄 (계약 STORY kind 'speech' + speaker). once = 그 런 첫 1회 (gameState.narrative) */
-  private speak(key: string, once = false): void {
+  /**
+   * 보스 대사 한 줄 (계약 STORY kind 'speech' + speaker). once = 그 런 첫 1회 (gameState.narrative).
+   * holdMs = 표시 시간 힌트 (없으면 전투 중 대사 BOSS_FX.SPEECH_HOLD_MS — 62 P1-11: 국면이 바뀌면 앞 대사가 남지 않게)
+   */
+  private speak(key: string, once = false, holdMs: number = BOSS_FX.SPEECH_HOLD_MS): void {
     if (this.g.training) return;
     const L = this.lines;
     const text = speechText(L, key);
     if (!L || !text) return;
     if (once && !gameState.narrative.once(`${this.def?.linesKey ?? this.id}.${key}`)) return;
     this.said.add(key);
-    this.g.ui.speech(L.speaker, text);
+    this.g.ui.speech(L.speaker, text, holdMs);
     EventBus.emit(Events.BOSS_SPEECH, { id: this.id, key, speaker: L.speaker, text } satisfies BossSpeechPayload);
   }
 

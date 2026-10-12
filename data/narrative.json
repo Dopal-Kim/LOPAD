@@ -38,10 +38,163 @@
     "pastLivesMax": 12
   },
   "ritual": {
-    "_note": "P7 시작 의식 (두 번째 생부터): 번진 이름 덧쓰기(Enter = 지난 이름 그대로) + 3획 · 회피 시험은 선택(trialKey), 건너뛰면 시작 감각 +0 · 튜토리얼 생략. 문구는 시스템 자리표시(스토리 문장은 story.json nameSmudge)",
-    "trialKey": "T",
-    "trialPrompt": "회피 시험 — [{key}] 치른다 (시작 감각 +0~3) · [Enter] 건너뛴다",
-    "trialSkipped": "회피 시험을 건너뛰었다 · 시작 감각 +0",
-    "namePrompt": "[Enter] 덧쓴다 · 글자를 고치면 고쳐 쓴다"
+    "_note": "62 루프 1 (P15 · 계약 UI §20) 시작 의식: 첫 생 = 이름 → 3획 → 회피 시험(탄생 전장·실제 사수) → 운명 공개, 두 번째 생부터 = 이름 덧쓰기 한 화면 → 운명 공개(손이 기억한 무기 — redraw 를 고르면 3획만 다시). 문구는 시스템 자리표시(스토리 팩 문장은 story.json diary·nameSmudge·weaponVoice 그대로) — 화면에 판정 수치를 내보내지 않는다. 61 P7 의 trialKey·trialPrompt·trialSkipped 는 폐지(두 번째 생 회피 시험 없음)",
+    "hints": {
+      "name": "[Enter] 이름을 적는다",
+      "rewrite": "[Enter] 덧쓴다 · [{redrawKey}] 획을 다시 긋는다",
+      "strokes": "마우스를 누른 채 긋고, 떼면 한 획 · [Esc] 앞 장으로",
+      "trial": "[WASD] 걷는다 · [Space] 대쉬 · [Esc] 획부터 다시",
+      "trialSkip": "[Enter] 건너뛴다",
+      "fate": "[Enter] 일어선다"
+    },
+    "redraw": {
+      "key": "Tab",
+      "label": "획을 다시 긋는다 — 다른 무기를 부른다"
+    },
+    "meta": {
+      "key": "F2",
+      "label": "영혼 강화"
+    },
+    "legend": {
+      "katana": "곧게, 단숨에",
+      "greatsword": "길게, 천천히",
+      "dagger": "짧게, 꺾어서",
+      "bow": "길게, 고르게"
+    },
+    "why": {
+      "katana": {
+        "strokes": "곧게, 단숨에. 망설이지 않는 손은 칼을 쥔다.",
+        "remembered": "손이 먼저 찾았다. 지난 생에도 칼이었다."
+      },
+      "greatsword": {
+        "strokes": "길게, 질질 끌었지? 그 손이면 이 쇳덩이 든다.",
+        "remembered": "어깨가 기억하지? 지난번에도 이 무게였다!"
+      },
+      "dagger": {
+        "strokes": "짧게 긋고 휙 꺾었지? 쉿, 그건 도망치던 손이야.",
+        "remembered": "또 왔네. 손이 기억해. 지난번에도 우리였어."
+      },
+      "bow": {
+        "strokes": "하나, 둘, 셋. 획마다 고르네요. 시위를 당길 손이에요.",
+        "remembered": "손이 먼저 세고 있네요. 지난 생에도 활이었어요."
+      }
+    },
+    "gift": {
+      "S": "화살이 하나도 닿지 않았다. 감각이 먼저 깨어 있었다.",
+      "A": "화살이 옷깃만 스쳤다. 감각이 깨어난다.",
+      "B": "화살 몇 대가 박혔다. 뽑고 나니 감각이 조금 깨었다.",
+      "C": "이 몸은 고슴도치가 되었다. 감각은 아직 잠들어 있다.",
+      "skipped": "시험을 건너뛰었다. 감각은 싸우면서 깨어난다."
+    },
+    "trial": {
+      "_note": "회피 시험 (첫 생만): 탄생 전장 타일(tileset) 위에서 사수(enemies.json archer 그림)가 실제로 쏜다 — 과제 3개를 차례로, 과제마다 이름 카드 → 사격(volleys 번, intervalMs 간격, 쏘기 전 telegraphMs 동안 겨눔 선) → 끝. 맞은 수 합계로 등급(grade = 등급별 최대 피격) → 시작 감각 +bonus. 시스템 임시값",
+      "tileset": "stage1_waste",
+      "arenaTiles": [20, 11],
+      "zoom": 2,
+      "cardMs": 1300,
+      "firstCardMs": 2200,
+      "clearMs": 700,
+      "shotSpeedTiles": 7,
+      "telegraphMs": 480,
+      "bulletLifeMs": 3600,
+      "grade": {
+        "S": 0,
+        "A": 2,
+        "B": 5
+      },
+      "bonus": {
+        "S": 3,
+        "A": 2,
+        "B": 1,
+        "C": 0
+      },
+      "tasks": [
+        {
+          "id": "step",
+          "label": "걸어서 화살을 피한다",
+          "shooters": 1,
+          "pattern": "aimed",
+          "volleys": 6,
+          "intervalMs": 1050
+        },
+        {
+          "id": "dash",
+          "label": "대쉬로 부채꼴 화살을 뚫는다",
+          "verb": "dash",
+          "shooters": 1,
+          "pattern": "fan",
+          "fanCount": 5,
+          "fanDeg": 70,
+          "volleys": 4,
+          "intervalMs": 1500
+        },
+        {
+          "id": "cross",
+          "label": "두 사수의 엇갈린 화살을 버틴다",
+          "shooters": 2,
+          "pattern": "aimed",
+          "volleys": 8,
+          "intervalMs": 720
+        }
+      ],
+      "spots": [
+        [0.4, -0.05],
+        [-0.4, -0.3],
+        [0.3, 0.38]
+      ],
+      "start": [-0.15, 0.1],
+      "_noteProps": "62 art §30 탄생 전장 소품 (structures/v3/birth_*): at = 전투장 가운데 기준 반 폭·반 높이 비율, w·h 칸. solid = 걷기·화살 막음(엄폐 — art 제안 blocksProjectiles), floor = 바닥에 깔림. 시트가 매니페스트에 없으면 놓지 않는다",
+      "props": [
+        {
+          "sheet": "birth_corpse_pile",
+          "at": [0.08, -0.42],
+          "w": 2,
+          "h": 1,
+          "solid": true
+        },
+        {
+          "sheet": "birth_corpse_mound",
+          "at": [0.1, 0.45],
+          "w": 1,
+          "h": 1,
+          "solid": true
+        },
+        {
+          "sheet": "birth_spear_thicket",
+          "at": [-0.2, -0.55],
+          "w": 1,
+          "h": 1,
+          "solid": true
+        },
+        {
+          "sheet": "birth_banner_bloody",
+          "at": [-0.82, -0.7],
+          "w": 1,
+          "h": 1
+        },
+        {
+          "sheet": "birth_fallen_soldier",
+          "at": [-0.4, 0.62],
+          "w": 1,
+          "h": 1
+        },
+        {
+          "sheet": "birth_broken_spears",
+          "at": [0.66, 0.66],
+          "w": 1,
+          "h": 1,
+          "floor": true
+        }
+      ]
+    },
+    "lines": {
+      "name": "누군가 쓰려다 만 일기장이다. 첫 장에 이름 칸만 있다. 글씨체가 낯익다.",
+      "strokes": "가장 강한 것을 떠올려라. 손이 먼저 기억한다.",
+      "trialIntro": "시체 더미 위에서 일어섰다. 죽은 것이 일어나도 화살은 가리지 않는다.",
+      "trialEnd": "사수들이 활을 내렸다. 화살이 떨어졌거나, 겁이 났거나.",
+      "fate": "{weaponName}.",
+      "rewrite": "첫 장의 이름이 번져 있다. 지난 생에 적은 글씨다.",
+      "rewritePrompt": "번진 자리 위에 덧쓴다."
+    }
   }
 }

@@ -37,6 +37,13 @@ describe('61라운드 계약 sound §9 믹싱', () => {
     expect(resolveBgmFor(manifest, 2, 'boss', 'combat', 2)).toBe('bgm/boss');
   });
 
+  it('62라운드 P0-5: 수련장(training) 등 보스가 아닌 상태는 1층에서도 보스 국면 곡이 아니라 자기 상태 곡', () => {
+    expect(resolveBgmFor(manifest, 1, 'training', 'journey', 1)).toBe('bgm/training');
+    expect(resolveBgmFor(manifest, 1, 'training', 'combat', 3)).toBe('bgm/training');
+    expect(resolveBgmFor(manifest, null, 'training', 'journey', 1)).toBe('bgm/training');
+    expect(resolveBgmFor(manifest, 1, 'emperor', 'combat', 1)).toBe('bgm/f1_boss_p1');
+  });
+
   it('지연 로드 대상 = 층 전용 곡(use.floor), 1층 5곡', () => {
     const lazy = manifest.entries
       .filter(isLazyBgm)

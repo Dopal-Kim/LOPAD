@@ -96,7 +96,7 @@ export class LabDummy extends Mob {
       tick: Boolean(info.tick),
     } satisfies EnemyDamagedPayload);
     // 56라운드 Q36: 호박 반투명 80ms (히트스톱에 늘어나지 않음)
-    this.visual.flashOverlay(COLORS.MOB_HURT, FEEDBACK.MOB_HURT.ALPHA, FEEDBACK.MOB_HURT.MS);
+    this.visual.flashOverlay(COLORS.MOB_HURT, FEEDBACK.MOB_HURT.ALPHA, FEEDBACK.MOB_HURT.MS, FEEDBACK.MOB_HURT.ADD);
     return false;
   }
 

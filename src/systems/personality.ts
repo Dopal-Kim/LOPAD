@@ -40,7 +40,7 @@ export function strokeFeatures(strokes: Stroke[], P: PersonalityData): StrokeFea
 /**
  * 운명 무기 결정 (49라운드 2절): **3획 특징만으로** — 획 3축(길이·속도·직선성)과 무기 affinity 의 같은 3축 사이
  * 가중 유클리드 거리(가중치 `personality.json weights` 의 획 3축)가 가장 가까운 무기.
- * 회피 시험(움직임)은 무기 결정에서 완전히 빠졌다 — 시험은 등급 → 시작 감각 가산만 준다 (`dodgeTrial.gradeTrial`).
+ * 회피 시험(움직임)은 무기 결정에서 완전히 빠졌다 — 시험은 등급 → 시작 감각 가산만 준다 (62: `systems/ritual/ritual.gradeHits`).
  */
 export function chooseWeapon(
   features: StrokeFeatures,

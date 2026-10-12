@@ -76,6 +76,15 @@ export const BOSS_FX = {
   },
   /** 61라운드 처치 연출: 시체(죽음 그림)를 보상 메뉴까지 남겨 두는 여유 ms (show.defeat.rewardAtMs 에 더한다) */
   CORPSE_EXTRA_HOLD_MS: 1500,
+  /**
+   * 62라운드 P0-4 전투 시작 숨 고르기: 전투 신호(BOSS_FIGHT) 뒤 이 ms 동안 보스는 제자리에서 패턴·접촉 공격을 하지 않고
+   * (맞을 수는 있다) 주인공은 무적. 하데스·데드셀처럼 이름 카드가 걷힌 뒤 한 박자 쉬고 시작한다
+   */
+  FIGHT_GRACE_MS: 800,
+  /** 62라운드 P0-4: 등장 대사·층 자막 표시 힌트가 전투 시작 전에 끝나도록 남기는 여유 ms */
+  INTRO_LINE_MARGIN_MS: 150,
+  /** 62라운드 P1-11: 전투 중 보스 대사(국면·파훼·쓰러짐) 표시 시간 힌트 ms — 국면이 바뀌면 앞 대사가 남지 않게 (계약 holdMs) */
+  SPEECH_HOLD_MS: 3200,
   /** 61라운드 계약 §17: 파훼·결정타 짧은 이름 (UI_EVENTS.BOSS_BREAK label) */
   BREAK_LABELS: { cup: '잔 깨기', pillar: '기둥 충돌', cask: '술통 되치기', stumble: '넘어뜨림', finisher: '결정타' },
   /** 61라운드 처치 연출 섬광 색 */

@@ -12,17 +12,17 @@ import {
 } from './hitFeel';
 
 describe('hitFeel: 55라운드 Q6 히트스톱 · Q10 막타', () => {
-  it('무기별 히트스톱 (61라운드 플레이 점검: 단검 35·칼 45·대검 85·활 25), 막타·치명타 ×1.8', () => {
-    expect(weaponHitstopMs(WEAPONS.dagger.feel, false)).toBe(35);
-    expect(weaponHitstopMs(WEAPONS.katana.feel, false)).toBe(45);
-    expect(weaponHitstopMs(WEAPONS.greatsword.feel, false)).toBe(85);
-    expect(weaponHitstopMs(WEAPONS.bow.feel, false)).toBe(25);
-    expect(weaponHitstopMs(WEAPONS.greatsword.feel, true)).toBe(153);
+  it('무기별 히트스톱 (62라운드 P1-1: 단검 38·칼 55·대검 95·활 30), 막타·치명타 ×1.8', () => {
+    expect(weaponHitstopMs(WEAPONS.dagger.feel, false)).toBe(38);
+    expect(weaponHitstopMs(WEAPONS.katana.feel, false)).toBe(55);
+    expect(weaponHitstopMs(WEAPONS.greatsword.feel, false)).toBe(95);
+    expect(weaponHitstopMs(WEAPONS.bow.feel, false)).toBe(30);
+    expect(weaponHitstopMs(WEAPONS.greatsword.feel, true)).toBe(171);
     // 넉백 무게: 대검 > 칼 > 활 > 단검
     const k = (id: string) => WEAPONS[id].feel?.knockbackMult ?? 1;
     expect(k('greatsword')).toBeGreaterThan(k('katana'));
     expect(k('katana')).toBeGreaterThan(k('dagger'));
-    expect(weaponHitstopMs(WEAPONS.katana.feel, true)).toBe(81);
+    expect(weaponHitstopMs(WEAPONS.katana.feel, true)).toBe(99);
     expect(weaponHitstopMs(undefined, false)).toBe(FEEL.HITSTOP.WEAPON_FALLBACK_MS);
   });
 

@@ -1050,11 +1050,12 @@
       "structures": ["crate", "cask"],
       "budget": [0, 0],
       "setPiece": "battle",
+      "_waves62": "62라운드 P0-8: 첫 전투 노드 첫 웨이브 3 → 2 (징집병 무리 돌진 minCount 3 아래 — 첫 방은 '이기는 방', 들어서자마자 둘러싸이지 않게). 둘째·셋째 웨이브는 그대로",
       "waves": [
         [
           {
             "enemy": "dummy",
-            "count": 3
+            "count": 2
           }
         ],
         [

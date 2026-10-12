@@ -44,6 +44,8 @@ export class Boss extends Mob implements BossHost, BossBody {
   private invulnerableUntil = 0;
   /** 61라운드 등장 연출 동안: 패턴·이동·접촉 공격 없음, 피해 무시 (BossFlow 가 깨운다) */
   private dormant = false;
+  /** 62라운드 P0-4: 깨어난 뒤 이 시각까지 숨 고르기 — 제자리·패턴(급한 패턴 포함)·접촉 공격 없음, 피해는 받는다 */
+  private graceUntil = 0;
   /** 61라운드 P6: 파훼로 무너진 동안 (이 시각까지 받는 피해 × breakDamageMult) */
   private brokenUntil = 0;
   /** 지금 파훼 창이 시작된 시각 (UI 게이지 전체 길이) */
@@ -115,6 +117,7 @@ export class Boss extends Mob implements BossHost, BossBody {
       empowerPending: this.brain.empowered,
       runEmpowered: this.brain.runEmpowered,
       dormant: this.dormant,
+      graceUntil: this.graceUntil,
       brokenLeftMs: this.brokenLeftMs,
       forced: this.brain.forcedList,
       nextPatternAt: this.brain.nextPatternAt,
@@ -176,16 +179,35 @@ export class Boss extends Mob implements BossHost, BossBody {
     return this.dormant;
   }
 
-  /** 61라운드: 전투 시작 — 첫 패턴은 지금 + 국면 간격. 디버그로 2국면 이상에서 시작했으면 국면 곡·카드를 맞춘다 */
-  wake(now: number): void {
-    if (!this.dormant) return;
+  /**
+   * 61라운드: 전투 시작 — 첫 패턴은 지금 + 국면 간격. 디버그로 2국면 이상에서 시작했으면 국면 곡·카드를 맞춘다.
+   * 62라운드 P0-4: graceMs 동안 숨 고르기 (첫 패턴은 숨 고르기 뒤 + 간격 중 늦은 쪽)
+   */
+  wake(now: number, graceMs = 0): void {
+    if (!this.dormant) {
+      this.beginGrace(now, graceMs);
+      return;
+    }
     this.dormant = false;
     this.brain.scheduleNext(now);
+    this.beginGrace(now, graceMs);
     if (this.brain.phaseIndex > 0) this.emitPhase(this.brain.phaseIndex);
   }
 
+  /** 62라운드 P0-4: 숨 고르기 시작 (연출 없이 바로 싸우는 보스도 BossFlow 가 부른다) */
+  beginGrace(now: number, graceMs: number): void {
+    if (graceMs <= 0) return;
+    this.graceUntil = Math.max(this.graceUntil, now + graceMs);
+    this.brain.nextPatternAt = Math.max(this.brain.nextPatternAt, this.graceUntil);
+  }
+
+  /** 숨 고르기 중 */
+  inGrace(now: number): boolean {
+    return now < this.graceUntil;
+  }
+
   protected think(ctx: MobContext): void {
-    if (this.dormant) {
+    if (this.dormant || ctx.time < this.graceUntil) {
       this.body.setVelocity(0, 0);
       return;
     }
@@ -222,7 +244,7 @@ export class Boss extends Mob implements BossHost, BossBody {
 
   /** 넘어져 있는 동안(접촉 공격력 0)·등장 연출 동안은 접촉 공격 자체를 하지 않는다 */
   override tryContactAttack(time: number): number {
-    if (this.dormant || this.brain.contactAttack() <= 0) return 0;
+    if (this.dormant || time < this.graceUntil || this.brain.contactAttack() <= 0) return 0;
     return super.tryContactAttack(time);
   }
 

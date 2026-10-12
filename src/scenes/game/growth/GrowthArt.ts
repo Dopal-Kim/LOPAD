@@ -26,6 +26,21 @@ function lookFile(weapon: string, branch: string | null, stage: 0 | 1 | 2, path?
 
 const lookTexture = (file: string) => `growth_look_${file.replace('.png', '')}`;
 
+/**
+ * 62 계약 UI §20 운명 공개: 무기 기본 미리보기(`looks/<무기>_base`)를 받아 둔다 — 이미 있거나 매니페스트에 없으면 바로 done.
+ * done(key) = 로드된 텍스처 키 (없으면 undefined)
+ */
+export function loadBaseLook(scene: Phaser.Scene, weapon: string, done: (key: string | undefined) => void): void {
+  const file = lookFile(weapon, null, 0);
+  const key = lookTexture(file);
+  const rel = `${ASSETS.LOOKS_DIR}/${file}`;
+  const ready = () => done(scene.textures.exists(key) ? key : undefined);
+  if (scene.textures.exists(key) || !assetListed(rel)) return ready();
+  scene.load.image(key, `${ASSETS.URL}/${rel}`);
+  scene.load.once('complete', ready);
+  if (!scene.load.isLoading()) scene.load.start();
+}
+
 export class GrowthArt {
   constructor(private readonly scene: Phaser.Scene) {}
 

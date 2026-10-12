@@ -16,12 +16,15 @@ import {
   __system,
   uiBus,
   type UiMenuId,
+  type UiRitual,
+  type UiRitualCommand,
   type UiSnapshot,
   type UiTrainingStart,
   type UiWarpDenied,
   type UiWarpDenyReason,
 } from './ui';
 import { UI_SCENES } from '../ui';
+import { metaSummary } from './metaSummary';
 
 const saveSlot = new SaveSlot(browserStorage());
 
@@ -39,6 +42,13 @@ let warpHandler: WarpHandler | null = null;
 let nodeChooser: ((id: string) => boolean) | null = null;
 let chooseCanceler: (() => boolean) | null = null;
 
+/** 62 §20: 첫 생 의식 — Setup 이 등록 (명령 처리 · 지금 상태) */
+export interface RitualHost {
+  command: (cmd: UiRitualCommand) => boolean;
+  state: () => UiRitual | null;
+}
+let ritualHost: RitualHost | null = null;
+
 /** 61 단계 6 §19: 런 중 수련장 — Game 이 등록 (맡길 수 있으면 RunStash, 아니면 거부 이유) */
 let trainingLeaver: (() => Exclude<UiTrainingStart, 'ok'> | RunStash) | null = null;
 
@@ -54,6 +64,7 @@ export function installContractHost(game: Phaser.Game): void {
       SCENES.WEAPON_LAB,
       SCENES.TRAINING,
       SCENES.SETUP,
+      SCENES.RITUAL_VIEW,
       SCENES.GAME_OVER,
       UI_SCENES.HUD,
       UI_SCENES.PAUSE,
@@ -168,6 +179,10 @@ export function installContractHost(game: Phaser.Game): void {
       game.scene.start(SCENES.WEAPON_LAB);
     },
     getText: () => ({ ...STORY.ui, controls: STORY.controls }),
+    // 62 §20 첫 생 의식 (Setup 씬 안에서만)
+    ritual: (cmd) => ritualHost?.command(cmd) ?? false,
+    getRitual: () => ritualHost?.state() ?? null,
+    getMeta: () => metaSummary(),
     // 61 단계 6 §19 수련장: 타이틀 · 첫 생 선택(Setup) · 런 중 일기장
     startTraining: (room) => {
       if (!game.scene.keys[SCENES.TRAINING]) return 'busy';
@@ -238,6 +253,11 @@ export function setNodeChooser(fn: ((id: string) => boolean) | null): void {
 
 export function setChooseCanceler(fn: (() => boolean) | null): void {
   chooseCanceler = fn;
+}
+
+/** 62 §20: Setup 이 등록 (shutdown 에서 null) */
+export function setRitualHost(h: RitualHost | null): void {
+  ritualHost = h;
 }
 
 /** 61 단계 6 §19: Game 이 등록 (시험장·수련장은 null) */

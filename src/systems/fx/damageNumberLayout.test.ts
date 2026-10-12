@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { numberLabel, placeNumber, type PlacedNumber } from './damageNumberLayout';
+import { numberLabel, placeNumber, strongerKind, type PlacedNumber } from './damageNumberLayout';
 
 const cfg = { RADIUS_PX: 14, MERGE_MS: 260, STEP_PX: 9, SPREAD_X: 7, MAX_STEPS: 4 };
 const n = (
@@ -47,6 +47,15 @@ describe('61라운드 피해 숫자 겹침 정리', () => {
       dx: 0,
       dy: 0,
     });
+  });
+
+  it('62 P1-1: 막타(heavy)는 일반·치명과 같은 무리 — 합치면 치명 > 막타 > 일반', () => {
+    const r = placeNumber([n(1, 100, 100, 0)], { x: 100, y: 100, kind: 'heavy', amount: 9, now: 100 }, cfg, 600);
+    expect(r).toMatchObject({ merge: true, amount: 14, kind: 'heavy' });
+    expect(strongerKind('heavy', 'crit')).toBe('crit');
+    expect(strongerKind('hit', 'heavy')).toBe('heavy');
+    expect(strongerKind('hit', 'hit')).toBe('hit');
+    expect(numberLabel('heavy', 30)).toBe('30');
   });
 
   it('문자열', () => {

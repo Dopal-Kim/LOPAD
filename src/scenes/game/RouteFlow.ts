@@ -139,9 +139,16 @@ export class RouteFlow {
   private exitToMap(): void {
     const g = this.g;
     const route = gameState.route;
-    if (!route || route.nextOptions().length === 0) return;
+    const options = route?.nextOptions() ?? [];
+    if (!route || options.length === 0) return;
     g.player.haltForWarp();
     loadDoorIndex(g);
+    // 62라운드 P2-1: 갈 길이 하나뿐이면 지도·확인 없이 그 노드 입구로 (하데스 문처럼 출구에 들어서면 간다 — 지도는 M 으로 언제든)
+    if (options.length === 1 && __system.rendererRegistered()) {
+      route.choosing = true;
+      if (this.chooseNode(options[0].id)) return;
+      route.choosing = false;
+    }
     const e = g.layout?.arena?.exit;
     const from = e ? screenOfWorld(g, (e.x + 1) * TILE, (e.y + 1) * TILE) : undefined;
     const ok = transitionGate.begin(

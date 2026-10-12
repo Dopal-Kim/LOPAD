@@ -249,6 +249,7 @@ export class EliteArt {
         o.setFrame(m.frame.name)
           .setOrigin(m.originX, m.originY)
           .setScale(m.scaleX, m.scaleY)
+          .setRotation(m.rotation)
           .setFlipX(m.flipX)
           .setPosition(m.x, m.y)
           .setDepth(m.depth - BUNDLE_FX.ELITE_OUTLINE_DEPTH)
@@ -273,7 +274,7 @@ export class EliteArt {
     const head = this.headTop(BUILD_ART.ELITE_EMBLEM, m) * (m.visual.drawScale || 1);
     e.setFrame(String(row * def.frames + Math.min(def.frames - 1, r.emblemCol)))
       .setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight)
-      .setScale(k)
+      .setScale(k * BUNDLE_FX.ELITE_EMBLEM_SCALE)
       .setPosition(m.x, m.y - (head + BUNDLE_FX.ELITE_EMBLEM_GAP_DOTS) * k)
       .setDepth(DEPTH.HIT_FX - 0.1)
       .setVisible(m.visible);

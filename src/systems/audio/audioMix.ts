@@ -5,7 +5,7 @@
  */
 import { AUDIO } from '../../core/Constants';
 import type { AudioDuckRule, AudioEntry, AudioManifest, AudioMixing } from './audioDefs';
-import { resolveBgm } from './audioDefs';
+import { isBossState, resolveBgm } from './audioDefs';
 
 /** 층 안의 장면: 여정(벽 밖·탄생지·버려진 길·국경 초소·휴식) · 전투(잔 거리 — 전투·상점·이벤트) */
 export type FloorScene = 'journey' | 'combat';
@@ -16,8 +16,9 @@ export function floorSceneOfNode(kind: string): FloorScene {
 }
 
 /**
- * 61라운드 BGM 고르기: 보스 상태이고 층에 국면 곡이 있으면 국면 곡(1부터) → 상태 곡(title·boss·emperor) → 층 장면 곡 → 층 곡(bgmByFloor).
- * 층 장면 곡이 없으면 기존 resolveBgm 과 같다
+ * 61라운드 BGM 고르기: 보스 상태이고 층에 국면 곡이 있으면 국면 곡(1부터) → 상태 곡(title·boss·emperor·training) → 층 장면 곡 →
+ * 층 곡(bgmByFloor). 층 장면 곡이 없으면 기존 resolveBgm 과 같다.
+ * 62라운드 P0-5: 국면 곡은 보스 상태(`isBossState`)일 때만 — 전에는 title 이 아닌 모든 상태(수련장 포함)가 보스 곡을 골랐다
  */
 export function resolveBgmFor(
   m: AudioManifest,
@@ -27,7 +28,7 @@ export function resolveBgmFor(
   bossPhase: number,
 ): string | null {
   const fs = floor !== null ? m.bgmByFloorState?.[String(floor)] : undefined;
-  if (fs && state !== null && state !== 'title') {
+  if (fs && isBossState(state)) {
     const phases = fs.bossPhases ?? [];
     const id = phases.length > 0 ? phases[Math.min(phases.length, Math.max(1, bossPhase)) - 1] : fs.boss;
     if (id) return id;

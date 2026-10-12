@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, FEEDBACK, PROTOTYPE } from '../core/Constants';
+import { COLORS, FEEDBACK, FEEL, PROTOTYPE } from '../core/Constants';
 import { EventBus, Events, type EnemyAttackPayload, type EnemyDamagedPayload } from '../core/EventBus';
 import { facingOf, type Facing } from '../systems/sprites/spriteDefs';
 import { knockFactor, knockSpeed } from '../systems/feel';
@@ -51,6 +51,10 @@ export interface ProjectileSpec {
 export interface DamageInfo {
   crit?: boolean;
   tick?: boolean;
+  /** 62라운드 P1-1: 공격 진행 방향 (처치 때 시체가 이쪽으로 튕긴다) · 막타(더 멀리) */
+  dirX?: number;
+  dirY?: number;
+  heavy?: boolean;
 }
 
 /** 전투 개체 공통부. 시트(`<id>_*`)가 있으면 애니메이션 스프라이트, 없으면 단색 사각형. */
@@ -75,6 +79,8 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   /** 60라운드 정적(간파 6) 감속: 이 시각까지 이동 속도 × statusSlowMult (웅덩이 speedMult 와 따로 — 둘 다 곱한다) */
   statusSlowUntil = -Infinity;
   statusSlowMult = 1;
+  /** 62라운드 P0-8: 이 시각까지 막 나와 일어서는 중 (움직임·공격 없음, 맞을 수는 있다) */
+  private arriveUntil = 0;
   /** 마지막으로 본 플레이어 위치 (대기 방향용) */
   private targetX = 0;
   private targetY = 0;
@@ -137,7 +143,9 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     this.targetX = ctx.player.x;
     this.targetY = ctx.player.y;
     const sh = this.shoveState;
-    if (sh && !sh.additive) {
+    if (ctx.time < this.arriveUntil && !sh) {
+      this.body.setVelocity(0, 0);
+    } else if (sh && !sh.additive) {
       // 비틀거림: AI 대신 감쇠 속도
       const f = this.stepShove(ctx.delta);
       if (f > 0) this.body.setVelocity(sh.vx * f, sh.vy * f);
@@ -184,6 +192,21 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
 
   isStunned(time: number): boolean {
     return time < this.stunnedUntil;
+  }
+
+  /**
+   * 62라운드 P0-8: 방금 나왔다 — ms 동안 일어서는 중(예고 문양에서 떠오르듯 투명 → 불투명). 그동안 움직이지도 때리지도 않는다
+   */
+  arrive(now: number, ms: number): void {
+    if (ms <= 0) return;
+    this.arriveUntil = now + ms;
+    this.setAlpha(0.15);
+    this.scene.tweens.add({ targets: this, alpha: 1, duration: ms, ease: 'Quad.easeOut' });
+  }
+
+  /** 일어서는 중 */
+  isArriving(time: number): boolean {
+    return time < this.arriveUntil;
   }
 
   /** 54라운드: 피해를 받지 않는 중 (보스 페이즈 전환 들이켜기). 피격 경로(GameCombat.hitMob)가 숫자·넉백 대신 불꽃만 */
@@ -301,7 +324,7 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
 
   /** 플레이어와 접촉 중일 때 호출. 공격 가능하면 공격력, 아니면 0 */
   tryContactAttack(time: number): number {
-    if (this.isStunned(time)) return 0;
+    if (this.isStunned(time) || time < this.arriveUntil) return 0;
     if (time < this.nextContactAt) return 0;
     this.nextContactAt = time + this.contactIntervalMs() / Math.max(0.1, this.attackRateMult);
     // 프레임 유지 중(보스 돌진·예고)에는 접촉 공격 애니로 덮지 않는다
@@ -325,18 +348,32 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     EventBus.emit(Events.ENEMY_DAMAGED, payload);
     if (died) {
       this.onDeath();
-      this.visual.spawnCorpse();
+      this.visual.spawnCorpse(this.corpsePop(info));
       this.destroy();
       return true;
     }
     // 56라운드 Q36: 호박 반투명 80ms (히트스톱에 늘어나지 않음)
-    this.visual.flashOverlay(COLORS.MOB_HURT, FEEDBACK.MOB_HURT.ALPHA, FEEDBACK.MOB_HURT.MS);
+    this.visual.flashOverlay(COLORS.MOB_HURT, FEEDBACK.MOB_HURT.ALPHA, FEEDBACK.MOB_HURT.MS, FEEDBACK.MOB_HURT.ADD);
     // 보스가 국면 프레임을 유지 중이면 피격 애니 대신 번쩍임만
     if (!this.visual.held) this.visual.oneShot('hurt', this.visual.facing, this.scene.time.now);
     return false;
   }
 
   protected onDeath(): void {}
+
+  /** 62라운드 P1-1 처치 튕김 (방향이 있고 보스가 아닐 때) */
+  private corpsePop(info: DamageInfo): { dirX: number; dirY: number; px: number } | undefined {
+    if (this.isBoss || info.tick || info.dirX === undefined || info.dirY === undefined) return undefined;
+    const P = FEEL.KILL.POP;
+    return { dirX: info.dirX, dirY: info.dirY, px: P.PX * (info.heavy || info.crit ? P.HEAVY_MULT : 1) };
+  }
+
+  /** 62라운드 P1-1 피격 반응 (보스 제외 — 보스는 패턴 자세를 덮지 않는다). holdMs = 지금 히트스톱 남은 시간 */
+  flinch(dirX: number, holdMs: number, heavy: boolean): void {
+    if (this.isBoss) return;
+    const F = FEEL.FLINCH;
+    this.visual.flinch(dirX, holdMs, F.DECAY_MS, heavy ? F.HEAVY_MULT : 1);
+  }
 
   /** 지금 받는 피해 배율 (엘리트 접두어 damageTakenMult · 61라운드 보스는 파훼 경직 동안 더 곱한다 — Boss) */
   damageTakenMultAt(_now: number): number {

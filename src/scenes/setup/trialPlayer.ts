@@ -1,19 +1,18 @@
 /**
- * 회피 시험 주인공 (화면 쪽): WASD 이동 · 스페이스 대쉬(무적, data/player.json dash) · 피격 밀려남 · 떨어짐(가라앉기) ·
- * 기둥에 막힘. 바닥 판정은 러너가 넘기는 `TrialGround` 로만 본다(과제마다 경기장이 바뀐다).
- * 48라운드 Q7 "맞으면 피격되서 밀려나고" 유지 · 51라운드: 떨어지면 그 과제만 실패하고 다음 과제에서 중앙으로 돌아온다.
+ * 회피 시험 주인공 (화면 쪽): WASD 이동 · 스페이스 대쉬(무적, data/player.json dash) · 피격 밀려남 · 벽·소품에 막힘.
+ * 바닥 판정은 러너가 넘기는 `TrialGround` 로만 본다. 48라운드 Q7 "맞으면 피격되서 밀려나고" 유지.
+ * 62 루프 1: 탄생 전장 회피 시험으로 옮김(옛 `dodgeTrial/dodgeTrialPlayer` — 허공 무대·떨어짐 폐지).
  * 좌표 pos = 판정 원 중심(월드 px), 발 = pos.y + FOOT_OFFSET.
  */
 import Phaser from 'phaser';
-import { DEPTH, FEEL, TILE, entityDepth } from '../../core/Constants';
+import { DEPTH, FEEL, RITUAL_TRIAL_FEEL, TILE, entityDepth } from '../../core/Constants';
 import { PLAYER_DATA } from '../../data';
-import { audio } from '../audio/audio';
-import { cameraShake } from '../feel';
-import { SFX } from '../audio/audioMap';
-import { DODGE_TRIAL } from './dodgeTrial';
-import type { FxPool } from '../fx/fx';
-import { artScale, facingOf, type Facing } from '../sprites/spriteDefs';
-import { spriteLibrary } from '../sprites/sprites';
+import { audio } from '../../systems/audio/audio';
+import { cameraShake } from '../../systems/feel';
+import { SFX } from '../../systems/audio/audioMap';
+import type { FxPool } from '../../systems/fx/fx';
+import { artScale, facingOf, type Facing } from '../../systems/sprites/spriteDefs';
+import { spriteLibrary } from '../../systems/sprites/sprites';
 
 export interface TrialInput {
   mx: number;
@@ -21,11 +20,11 @@ export interface TrialInput {
   dash: boolean;
 }
 
-/** 지금 경기장의 바닥·기둥 (러너가 과제·경과 시간에 맞춰 넘긴다) */
+/** 전투장 바닥 (러너가 넘긴다) */
 export interface TrialGround {
-  /** 발 자리 점수: 발 중심이 바닥이 아니면 -1, 아니면 둘레 4점 중 바닥 수 */
+  /** 발 자리 점수: 발 둘레 4점 중 걸을 수 있는 칸 수 (0~4) */
   standScore(x: number, y: number): number;
-  /** 발이 기둥과 겹치면 밀어낸 자리, 아니면 그대로 */
+  /** 밀려날 때: 걸을 수 있으면 그 자리, 아니면 지금 자리 */
   pushOut(x: number, y: number): { x: number; y: number };
 }
 
@@ -50,7 +49,6 @@ export class TrialPlayer {
   private flashUntil = 0;
   private knock: { vx: number; vy: number; startAt: number; until: number } | null = null;
   private movingInput = false;
-  private sunk = false;
   /** 지금 시트의 도트 배율 (artScale) */
   private baseScale = 1;
 
@@ -73,7 +71,7 @@ export class TrialPlayer {
     this.sprite = scene.add.sprite(0, 0, this.animated ? tex! : TEX_PLAYER_PH);
     if (this.animated) this.fit('idle');
     else this.sprite.setOrigin(0.5, 1);
-    const SH = DODGE_TRIAL.PLAYER.SHADOW;
+    const SH = RITUAL_TRIAL_FEEL.PLAYER.SHADOW;
     this.shadow = scene.add.ellipse(0, 0, SH.W, SH.H, 0x000000, SH.ALPHA).setDepth(DEPTH.SHADOW);
   }
 
@@ -93,10 +91,6 @@ export class TrialPlayer {
     return this.knock !== null;
   }
 
-  get fallen(): boolean {
-    return this.sunk;
-  }
-
   dashing(time: number): boolean {
     return time < this.dashUntil;
   }
@@ -107,7 +101,7 @@ export class TrialPlayer {
 
   /** 맞을 수 있는 상태 (무적·밀려나는 중·떨어짐이 아님) */
   vulnerable(time: number): boolean {
-    return !this.sunk && !this.knock && !this.invulnerable(time);
+    return !this.knock && !this.invulnerable(time);
   }
 
   /** 과제 시작: 중앙에 다시 선다 (떨어졌으면 되살림) */
@@ -122,21 +116,14 @@ export class TrialPlayer {
     this.dashes = 0;
     this.facing = 'down';
     this.lastDir.set(0, 1);
-    if (this.sunk) {
-      this.scene.tweens.killTweensOf(this.sprite);
-      this.sprite.setScale(this.baseScale).setAlpha(1);
-      this.shadow.setVisible(true);
-      this.sunk = false;
-    }
     this.sync(time, false);
   }
 
   /**
-   * 한 프레임 이동. canAct = 입력을 받는다(제목 카드 동안 false). 밀려나다 바닥 밖으로 나가면 'fell' 을 돌려준다.
+   * 한 프레임 이동. canAct = 입력을 받는다.
    * 걸어서·대쉬로는 바닥 밖으로 못 나간다.
    */
-  update(time: number, dt: number, input: TrialInput, ground: TrialGround, canAct: boolean): 'fell' | null {
-    if (this.sunk) return null;
+  update(time: number, dt: number, input: TrialInput, ground: TrialGround, canAct: boolean): void {
     this.movingInput = canAct && (input.mx !== 0 || input.my !== 0);
     const D = PLAYER_DATA.dash;
     const dir = new Phaser.Math.Vector2(canAct ? input.mx : 0, canAct ? input.my : 0);
@@ -149,15 +136,10 @@ export class TrialPlayer {
       const k = this.knock;
       const p = Math.min(1, (time - k.startAt) / Math.max(1, k.until - k.startAt));
       const f = 1 - p; // 감속
-      const before = this.pos.clone();
       const q = ground.pushOut(this.pos.x + k.vx * f * dt, this.pos.y + k.vy * f * dt);
       this.pos.set(q.x, q.y);
       if (time >= k.until) this.knock = null;
-      if (ground.standScore(this.pos.x, this.pos.y) < 0) {
-        if (!this.god) return 'fell';
-        this.pos.copy(before);
-      }
-      return null;
+      return;
     }
     if (canAct && input.dash && time >= this.dashReadyAt) {
       this.dashDir.copy(dir.lengthSq() > 0 ? dir : this.lastDir);
@@ -179,8 +161,8 @@ export class TrialPlayer {
       vx = dir.x * v * dt;
       vy = dir.y * v * dt;
     }
-    if (vx === 0 && vy === 0) return null;
-    // 가장자리 여유(둘레 4점)가 지금보다 나빠지지 않는 쪽으로만 (축별로 미끄러짐) + 기둥은 밀어냄
+    if (vx === 0 && vy === 0) return;
+    // 가장자리 여유(둘레 4점)가 지금보다 나빠지지 않는 쪽으로만 (축별로 미끄러짐 — 벽·단단한 소품에 막힌다)
     const cur = Math.max(0, ground.standScore(this.pos.x, this.pos.y));
     const ok = (x: number, y: number) => {
       const s = ground.standScore(x, y);
@@ -193,15 +175,14 @@ export class TrialPlayer {
       this.pos.set(q.x, q.y);
       return true;
     };
-    if (tryAt(x + vx, y + vy)) return null;
-    if (vx !== 0 && tryAt(x + vx, y)) return null;
+    if (tryAt(x + vx, y + vy)) return;
+    if (vx !== 0 && tryAt(x + vx, y)) return;
     if (vy !== 0) tryAt(x, y + vy);
-    return null;
   }
 
   /** 피격: 방향(dx, dy) 으로 밀려남 + 무적 + 흰 칠 + 흔들림 */
   hit(time: number, dx: number, dy: number): void {
-    const P = DODGE_TRIAL.PLAYER;
+    const P = RITUAL_TRIAL_FEEL.PLAYER;
     const len = Math.hypot(dx, dy) || 1;
     const dist = P.KNOCK_TILES * TILE;
     // 감속 이동 거리 = v0 × T / 2 → v0 = 2D / T
@@ -224,29 +205,9 @@ export class TrialPlayer {
     audio.playSfx(SFX.hitPlayer);
   }
 
-  /** 떨어짐: 바닥 아래 어둠으로 가라앉는다 (바닥 뒤로 그려 가장자리 너머로 떨어지는 느낌) */
-  sink(): void {
-    if (this.sunk) return;
-    const P = DODGE_TRIAL.PLAYER;
-    this.sunk = true;
-    this.knock = null;
-    this.sprite.setDepth(DEPTH.TILES + 0.07);
-    this.shadow.setVisible(false);
-    this.scene.tweens.add({
-      targets: this.sprite,
-      alpha: 0,
-      scaleX: this.baseScale * 0.5,
-      scaleY: this.baseScale * 0.5,
-      y: `+=${P.FALL_DROP_PX}`,
-      duration: P.FALL_MS,
-      ease: 'Quad.easeIn',
-    });
-  }
-
   /** 그림 맞추기: 위치·깊이·깜빡임(무적)·흰 칠(피격)·동작 */
   sync(time: number, moving: boolean): void {
-    if (this.sunk) return;
-    const P = DODGE_TRIAL.PLAYER;
+    const P = RITUAL_TRIAL_FEEL.PLAYER;
     const footY = this.pos.y + P.FOOT_OFFSET_PX;
     this.sprite.setPosition(Math.round(this.pos.x), Math.round(footY)).setDepth(entityDepth(footY));
     this.shadow.setPosition(Math.round(this.pos.x), Math.round(footY));
@@ -274,7 +235,7 @@ export class TrialPlayer {
     if (!def) return;
     this.baseScale = artScale(def);
     this.sprite.setOrigin(def.pivot.x / def.frameWidth, def.pivot.y / def.frameHeight);
-    if (!this.sunk) this.sprite.setScale(this.baseScale);
+    this.sprite.setScale(this.baseScale);
   }
 
   get facingDir(): Facing {
@@ -288,7 +249,7 @@ export class TrialPlayer {
   }
 
   private spawnGhosts(): void {
-    const P = DODGE_TRIAL.PLAYER;
+    const P = RITUAL_TRIAL_FEEL.PLAYER;
     const D = PLAYER_DATA.dash;
     for (let i = 1; i <= P.GHOSTS; i++) {
       const t = i / (P.GHOSTS + 1);

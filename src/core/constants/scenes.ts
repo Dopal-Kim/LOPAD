@@ -10,6 +10,88 @@ export const SCENES = {
   WEAPON_LAB: 'WeaponLab',
   /** 61 단계 6 계약 §19: 수련장 (Game 의 시험장 모드 + 수련장 방 — host.startTraining 이 이 키로 시작) */
   TRAINING: 'Training',
+  /**
+   * 62 §20 시작 의식 대체 화면 (시스템): UI 의식 씬(`UI_SCENES.RITUAL`)이 없을 때 Setup 위에 띄우는 최소 화면 —
+   * UI 와 같은 계약(스냅샷 ritual · uiCommands.ritual)만 쓴다
+   */
+  RITUAL_VIEW: 'RitualView',
+} as const;
+
+/**
+ * 62 루프 1 (계약 §20, P15) 시작 의식 흐름 시간·대체 화면 (엔진·연출 값 — 문구·과제 수치는 data/narrative.json ritual).
+ * 대체 화면 글꼴은 Galmuri11 (34라운드 글꼴 규칙 — 고정폭 글꼴 금지, 로드 전이면 sans-serif)
+ */
+export const RITUAL = {
+  /** 3획째를 뗀 뒤 다음 단계까지 (UI 낙관·스며듦 연출 시간) */
+  SEAL_MS: 1400,
+  /** 운명 공개를 보여 주는 시간 (ritual.next 로 바로 넘길 수 있다) */
+  FATE_MS: 4200,
+  /** 회피 시험 끝 → 운명 공개까지 (마지막 과제 결과를 보여 줌) */
+  TRIAL_RESULT_MS: 1400,
+  /** 62 P1-10: 첫 생에 화면 아래 4동사 키 막대를 보여 주는 노드 단 수 (탄생지·길·초소) */
+  KEY_BAR_NODES: 3,
+  /** 대체 화면: 글꼴 · 크기(논리 px) · 색 · 종이 바탕 */
+  VIEW: {
+    FONT_FAMILY: 'Galmuri11',
+    FONT_FALLBACK: 'sans-serif',
+    BODY_PX: 11,
+    TITLE_PX: 22,
+    INK: '#2a2018',
+    INK_SOFT: '#5a4a38',
+    PAPER: 0xd8c8a4,
+    PAPER_ALPHA: 0.94,
+    PAPER_EDGE: 0x8a7656,
+    /** 일기장 종이 (논리 px — 가운데 기준 폭·높이) */
+    PAGE_W: 420,
+    PAGE_H: 300,
+    /** 시험 중 과제 목록 (오른쪽 위) */
+    TASK_X: 948,
+    TASK_Y: 14,
+    HINT_Y: 516,
+    LIGHT: '#e8dcc0',
+    DIM: '#9a8a70',
+  },
+} as const;
+
+/** 62 회피 시험(탄생 전장) 손맛·그림 값 (옛 dodgeTrial PLAYER 블록을 옮김 — 과제 수치는 data/narrative.json ritual.trial) */
+export const RITUAL_TRIAL_FEEL = {
+  PLAYER: {
+    /** 판정 원 반지름 (월드 px) · 발 피벗과 판정 중심 사이 */
+    HIT_RADIUS_PX: 5,
+    FOOT_OFFSET_PX: 7,
+    /** 바닥 판정: 발 둘레 4점 거리 (px) */
+    FOOT_RADIUS_PX: 4,
+    /** 피격 뒤 무적·깜빡임 */
+    INVULN_MS: 650,
+    BLINK_MS: 70,
+    /** 밀려남: 맞은 방향으로 거리·시간 (감속) */
+    KNOCK_TILES: 1.6,
+    KNOCK_MS: 170,
+    FLASH_MS: 80,
+    /** 대쉬 잔상 수·지속·알파 */
+    GHOSTS: 3,
+    GHOST_MS: 220,
+    GHOST_ALPHA: 0.45,
+    SHADOW: { W: 12, H: 5, ALPHA: 0.35 },
+    SHAKE_MS: 110,
+    SHAKE_INTENSITY: 0.006,
+  },
+  /** 화살 판정 반지름 · 그림이 없을 때 원 지름·색 · 동시 최대 수 */
+  BULLET_RADIUS_PX: 2.5,
+  BULLET_PLACEHOLDER_PX: 5,
+  BULLET_PLACEHOLDER_COLOR: 0xe8c070,
+  BULLET_POOL: 48,
+  /** 사수 몸 (월드 px — enemies.json archer size 와 같게) · 그림 시트 이름 */
+  SHOOTER_SHEET: 'archer',
+  SHOOTER_BODY: [14, 14] as [number, number],
+  SHOOTER_PLACEHOLDER: 0xc08a30,
+  /** 겨눔 선: 굵기 · 색 · 알파 (끝으로 갈수록 옅게) · 길이(타일) */
+  AIM_LINE_PX: 1,
+  AIM_COLOR: 0xffc860,
+  AIM_ALPHA: 0.7,
+  AIM_TILES: 6,
+  /** 화살이 나오는 자리: 사수 발에서 위로 (px) */
+  MUZZLE_UP_PX: 8,
 } as const;
 
 /**
@@ -67,11 +149,11 @@ export const DEBUG = {
   SHOW_TEXT: true,
   FONT: '12px monospace',
   /**
-   * 55라운드 §17 판정 모양 오버레이 (`?debug` 에서 켜짐, `&hitshapes=0` 끔): 판정이 살아 있는 동안 윤곽, 그 뒤 FADE_MS 동안 흐려짐.
+   * 55라운드 §17 판정 모양 오버레이 (62라운드 P2-12: `?debug&hitshapes=1` 일 때만 켜짐 — 기본 꺼짐): 판정이 살아 있는 동안 윤곽, 그 뒤 FADE_MS 동안 흐려짐.
    * 색 = 모양별 (호·쐐기·찌르기·고리), 후속 판정(잔상 베기·충격파)은 FOLLOW
    */
   HIT_SHAPES: {
-    PARAM_OFF: 'hitshapes',
+    PARAM: 'hitshapes',
     LINE_PX: 1,
     LINE_ALPHA: 0.95,
     FILL_ALPHA: 0.18,
@@ -83,22 +165,12 @@ export const DEBUG = {
   },
 };
 
-/** 시스템 임시 화면(개성 선택·결과·임시 메뉴)의 글꼴. 960×540 기준 (32라운드). UI 파트 산출물로 교체 대상 */
+/**
+ * 시스템 임시 메뉴(UI 렌더러가 없을 때의 TextMenu)·시험장 허수아비 이름표 글꼴. 960×540 기준 (32라운드).
+ * 62: 시작 의식·결과 화면은 쓰지 않는다 (RITUAL.VIEW — Galmuri11)
+ */
 export const PLACEHOLDER_UI = {
-  FONT_TITLE: '32px monospace',
   FONT_BODY: '14px monospace',
-  FONT_SMALL: '12px monospace',
-  FONT_CAPTION: '11px monospace',
-  /** 개성 선택 라벨 상단 여백 */
-  LABEL_Y: 36,
-  /** 획 예시 패널 (strokes 단계): 상단 y, 높이, 예시 사이 간격, 반복 전 멈춤 */
-  EXAMPLE_PANEL: { y: 392, h: 126, gap: 18, pauseMs: 700 },
-  /** 결과 화면 제목·부제·영혼 줄 간격 */
-  RESULT_TITLE_DY: -18,
-  RESULT_SUB_DY: 24,
-  RESULT_SOULS_DY: 56,
-  /** 이름 입력 DOM input 폭(px, 캔버스 좌표계) */
-  NAME_INPUT_WIDTH: 240,
 };
 
 /**

@@ -3,7 +3,8 @@
  * - 합치기: 같은 무리(일반·치명 / 틱 / 주인공 피격)가 같은 자리(반경)에 짧은 간격으로 오면 앞 숫자에 더한다(치명이 섞이면 치명 표시).
  * - 비켜 띄우기: 합칠 수 없으면 근처에 떠 있는 숫자 수 n 만큼 위로 n × STEP, 좌우로 번갈아 SPREAD 씩.
  */
-export type NumberKind = 'hit' | 'crit' | 'tick' | 'player';
+/** 62라운드 P1-1: heavy = 막타(연격 마지막 타·대쉬 공격·데이터 heavy) — 일반·치명과 같은 무리로 합쳐진다 */
+export type NumberKind = 'hit' | 'heavy' | 'crit' | 'tick' | 'player';
 
 export interface PlacedNumber {
   id: number;
@@ -25,7 +26,7 @@ export interface StackConfig {
 }
 
 export function groupOfKind(k: NumberKind): 'strike' | 'tick' | 'player' {
-  return k === 'hit' || k === 'crit' ? 'strike' : k;
+  return k === 'hit' || k === 'heavy' || k === 'crit' ? 'strike' : k;
 }
 
 export type Placement =
@@ -45,13 +46,20 @@ export function placeNumber(
     .filter((a) => groupOfKind(a.kind) === g && incoming.now - a.at <= cfg.MERGE_MS)
     .sort((a, b) => b.at - a.at)[0];
   if (mergeable) {
-    const kind: NumberKind = incoming.kind === 'crit' || mergeable.kind === 'crit' ? 'crit' : incoming.kind;
+    const kind: NumberKind = strongerKind(incoming.kind, mergeable.kind);
     return { merge: true, id: mergeable.id, amount: mergeable.amount + incoming.amount, kind };
   }
   const n = Math.min(cfg.MAX_STEPS, near.filter((a) => incoming.now - a.at < liveMs).length);
   if (n === 0) return { merge: false, dx: 0, dy: 0 };
   const side = n % 2 === 1 ? 1 : -1;
   return { merge: false, dx: side * cfg.SPREAD_X * Math.ceil(n / 2), dy: -n * cfg.STEP_PX };
+}
+
+/** 합친 숫자의 등급: 치명 > 막타 > 그 밖 (들어온 것) */
+export function strongerKind(a: NumberKind, b: NumberKind): NumberKind {
+  if (a === 'crit' || b === 'crit') return 'crit';
+  if (a === 'heavy' || b === 'heavy') return 'heavy';
+  return a;
 }
 
 /** 숫자 문자열 (주인공 피격 '-n', 치명 'n!') */

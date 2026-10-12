@@ -4,7 +4,49 @@
  * 53라운드 Q49 적 소환 예고 (UI 는 튜토리얼에서만 '주의' 경고): 예고 뒤 소환까지 ms. 임시값.
  * 61라운드 단계 2: 일반 시련 웨이브도 같은 숨(0 → 900) — 1층 노드가 웨이브 3개라 웨이브 사이 박자를 둔다
  */
-export const ENEMY_INCOMING = { TUTORIAL_DELAY_MS: 900, WAVE_DELAY_MS: 900 };
+/**
+ * 53라운드 Q49 소환 예고 → 62라운드 P0-8 입장 유예: 예고(바닥 문양) 길이 · 노드 첫 웨이브에 더하는 숨 돌릴 틈 ·
+ * 나온 직후 일어서는 시간(움직임·공격 없음, 맞을 수는 있다). 데드셀·하데스의 등장 연출 0.8~1.5초 기준
+ */
+export const ENEMY_INCOMING = {
+  TUTORIAL_DELAY_MS: 1000,
+  WAVE_DELAY_MS: 1000,
+  FIRST_WAVE_EXTRA_MS: 500,
+  ARRIVE_MS: 350,
+  /** 바닥 문양 (SpawnMarks): 먹 번짐 반경(월드 px)·불씨 고리 색·광원 */
+  MARK: {
+    INK: 0x0c0a09,
+    INK_ALPHA: 0.72,
+    EMBER: 0xd0582c,
+    R_FROM: 3,
+    R_TO: 10,
+    RING_PX: 1,
+    FADE_MS: 220,
+    LIGHT: { color: '#d0582c', radius: 22, intensity: 0.55, flicker: 0.2 },
+  },
+};
+
+/**
+ * 62라운드 P1-4 적 가독성 (MobReadability — 엔터 더 건전·Dungeon Survivors 의 차가운 림 + 피해 입은 적만 작은 HP 막대):
+ * - RIM: 일반 적 둘레 외곽선 시트를 차가운 채움색으로 적 바로 아래 (주인공 빛은 따뜻하다 — 반대 색). 알파는 적 알파와 곱
+ * - HP_BAR: 머리 위 GAP 월드 px, 폭 W·높이 H (월드 px — 화면 ×4), 바탕 PAD. 방금 깎인 몫(TRAIL)은 초당 TRAIL_PER_S 비율로 줄어든다
+ */
+export const ENEMY_READABILITY = {
+  RIM: { ON: true, COLOR: 0x9db8e8, ALPHA: 0.6 },
+  HP_BAR: {
+    ON: true,
+    W: 14,
+    H: 1,
+    PAD: 0.5,
+    GAP: 3,
+    MIN_FILL: 0.5,
+    BACK: 0x120c0a,
+    BACK_ALPHA: 0.8,
+    FILL: 0xd8443a,
+    TRAIL: 0xf2dcc0,
+    TRAIL_PER_S: 0.9,
+  },
+};
 
 /**
  * 61라운드 플레이 점검 '공격 토큰': 일반 적의 접촉 공격은 무리 전체에서 이 간격에 한 번만 (무리에 둘러싸여도 한꺼번에 맞지 않는다 —

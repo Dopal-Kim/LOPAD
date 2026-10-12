@@ -5,6 +5,7 @@ import { Game } from './scenes/Game';
 import { GameOver } from './scenes/GameOver';
 import { Preloader } from './scenes/Preloader';
 import { Setup } from './scenes/Setup';
+import { RitualView } from './scenes/setup/RitualView';
 import { WeaponLab } from './scenes/WeaponLab';
 import { Training } from './scenes/Training';
 import { uiScenes } from './ui';
@@ -31,5 +32,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     default: 'arcade',
     arcade: { gravity: { x: 0, y: 0 }, debug: false },
   },
-  scene: [Boot, Preloader, Setup, Game, WeaponLab, Training, GameOver, ...uiScenes],
+  scene: [Boot, Preloader, Setup, Game, WeaponLab, Training, GameOver, RitualView, ...uiScenes],
 };

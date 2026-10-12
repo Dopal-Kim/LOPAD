@@ -19,6 +19,11 @@ export interface ProjectileVisual {
   anim?: string | null;
   /** 53라운드 이펙트 v3: 그리는 배율 (`fxDrawScale`, 구 시트 1). 판정 크기는 배율과 무관하게 spec.size */
   scale?: number;
+  /**
+   * 62라운드 P1-3 바닥 기준 판정: 그림을 바닥 궤적보다 이만큼(월드 px) 위에 그린다 — launch 의 x·y 는 바닥 자리,
+   * 물리 바디(적·벽 판정)는 바닥에 남고 그림만 높이 난다 (쿼터뷰 화살: 활 높이로 날지만 적 발밑 몸통에 맞는다). 없으면 0
+   */
+  liftPx?: number;
 }
 
 /** 투사체. 벽에 닿거나 수명이 끝나면 비활성화되어 풀로 돌아간다. */
@@ -49,9 +54,11 @@ export class Projectile extends Phaser.GameObjects.Sprite {
   buildTag: string | null = null;
   /** 57라운드 천공 3스택: 벽을 지나간다 (수명으로만 끝) */
   wallPierce = false;
-  /** 쏜 자리 (원격 세트 사거리·흩어진 촉) */
+  /** 쏜 자리 (원격 세트 사거리·흩어진 촉) — 바닥 기준 */
   originX = 0;
   originY = 0;
+  /** 62라운드 P1-3: 그림이 바닥 궤적보다 위에 있는 높이 (월드 px, 0 = 바닥 그대로) */
+  liftPx = 0;
   /** 57라운드: 수명·벽으로 끝날 때 한 번 (흩어진 촉) — launch 가 비운다 */
   onEnd: ((shot: Projectile, reason: 'expire' | 'wall') => void) | null = null;
   /** 아트 텍스처 사용 중 (틴트 대신 원색, 속도 방향으로 회전) */
@@ -95,6 +102,8 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     this.onEnd = null;
     this.originX = x;
     this.originY = y;
+    const lift = Math.max(0, visual.liftPx ?? 0);
+    this.liftPx = lift;
     this.hitSet.clear();
     this.expireAt = time + spec.lifeMs;
     const texture = visual.texture && this.scene.textures.exists(visual.texture) ? visual.texture : null;
@@ -115,12 +124,23 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     this.setScale(k);
     this.body.updateBounds();
     this.body.setSize(spec.size / k, spec.size / k, true);
-    this.setPosition(x, y);
+    // 62 P1-3: 그림은 lift 만큼 위, 바디는 오프셋으로 바닥에 (Arcade 바디는 회전을 무시하므로 오프셋 = 월드 아래쪽)
+    if (lift > 0) this.body.setOffset(this.body.offset.x, this.body.offset.y + lift / k);
+    this.setPosition(x, y - lift);
     this.setActive(true).setVisible(true);
     this.body.enable = true;
-    this.body.reset(x, y);
+    this.body.reset(x, y - lift);
     this.body.setVelocity(dirX * spec.speedPx, dirY * spec.speedPx);
     this.setRotation(this.rotateToVelocity ? Math.atan2(dirY, dirX) : 0);
+  }
+
+  /** 62 P1-3: 바닥 자리 (바닥 물건 — 술통·구조물·쓰러진 촛대 — 판정용). 그림 높이가 없으면 x·y 그대로 */
+  get groundX(): number {
+    return this.x;
+  }
+
+  get groundY(): number {
+    return this.y + this.liftPx;
   }
 
   /** 적에게 맞았을 때 호출. 이미 맞힌 적이면 false. 관통이 남으면 계속 날아간다 */
@@ -138,7 +158,7 @@ export class Projectile extends Phaser.GameObjects.Sprite {
     const v = this.body.velocity;
     const speed = v.length();
     if (speed <= 0) return;
-    const want = Math.atan2(y - this.y, x - this.x);
+    const want = Math.atan2(y - this.groundY, x - this.groundX);
     const cur = Math.atan2(v.y, v.x);
     const next = Phaser.Math.Angle.RotateTo(cur, want, this.homingTurn * (deltaMs / 1000));
     this.body.setVelocity(Math.cos(next) * speed, Math.sin(next) * speed);

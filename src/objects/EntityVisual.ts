@@ -7,7 +7,7 @@
  *   동작을 바꿀 때 그 시트의 배율·피벗으로 스프라이트 배율·원점을 맞추고, 물리 바디는 월드 크기가 그대로이도록 다시 맞춘다
  */
 import Phaser from 'phaser';
-import { DEPTH, SPRITES, TEXTURES, entityDepth } from '../core/Constants';
+import { DEPTH, FEEL, SPRITES, TEXTURES, entityDepth } from '../core/Constants';
 import { spriteLibrary } from '../systems/sprites/sprites';
 import {
   animDurationMs,
@@ -30,6 +30,7 @@ import {
 } from '../systems/sprites/spriteDefs';
 
 type Body = Phaser.Physics.Arcade.Body;
+const FLINCH = FEEL.FLINCH;
 type Host = Phaser.GameObjects.Sprite & { body: Body };
 
 /** 플레이스홀더 사각형 텍스처 (크기별 1장, 흰색 — 틴트로 색을 입힌다) */
@@ -92,6 +93,10 @@ export class EntityVisual {
   /** 56라운드 2단계: 지금 맞춘 시트 전체 틀 · 공중 높이(월드 px, 위 +) — 그림만 올리고 바디·그림자·깊이는 바닥 */
   private fitFrame: Pick<SheetJson, 'frameWidth' | 'frameHeight' | 'pivot' | 'pixelScale'> | null = null;
   private lift = 0;
+  /** 62라운드 P1-1: 지금 시트 배율 (피격 반응이 이 값 기준으로 납작·기울기를 얹는다) */
+  private baseScale = 1;
+  /** 62라운드 P1-1 피격 반응 (뒤로 젖힘 + 납작): 시작·최대 유지(히트스톱)·풀림 ms · 방향(±1) · 세기 */
+  private flinchState: { at: number; hold: number; decay: number; dir: number; k: number } | null = null;
 
   constructor(
     private readonly host: Host,
@@ -137,6 +142,7 @@ export class EntityVisual {
     this.fitKey = key;
     this.fitDef = def;
     this.fitFrame = def;
+    this.baseScale = s;
     const host = this.host;
     host.setScale(s);
     // 바디의 배율 캐시(_sx)를 지금 배율로 맞춘 뒤 크기를 넣는다 (다음 물리 단계를 기다리지 않고 바로 맞는 크기)
@@ -189,6 +195,16 @@ export class EntityVisual {
     return this.fitDef ? v3HitLift(this.fitDef, this.bodyH, this.drawScale) : 0;
   }
 
+  /**
+   * 62라운드 P1-4: 발에서 머리 꼭대기까지 (월드 px) — 지금 시트 피벗 높이 × 그림 배율 × FEEL.HEAD_TOP_OF_PIVOT
+   * (v3 적 시트 머리 = 피벗 위 약 0.86 — 엘리트 문장 headTopByEnemy 실측). 시트가 없으면 바디 높이
+   */
+  get headTopPx(): number {
+    const d = this.fitFrame;
+    if (!d) return this.bodyH;
+    return d.pivot.y * artScale(d) * this.drawScale * FEEL.HEAD_TOP_OF_PIVOT;
+  }
+
   /** 디버그: 발밑 그림자 자리·크기 (없으면 null) */
   get shadowInfo(): { x: number; y: number; w: number; h: number } | null {
     const s = this.shadow;
@@ -216,18 +232,55 @@ export class EntityVisual {
     return spriteLibrary.sheet(this.name, action);
   }
 
-  /** 매 프레임: 깊이·그림자 위치 (56라운드: 반투명 번쩍임 사본도 몸 프레임을 따라간다) */
+  /** 매 프레임: 깊이·그림자 위치 (56라운드: 반투명 번쩍임 사본도 몸 프레임을 따라간다 · 62: 피격 반응) */
   sync(): void {
     this.host.setDepth(entityDepth(this.host.y));
     if (this.shadow) this.shadow.setPosition(this.host.x, this.host.y);
+    if (this.flinchState) this.stepFlinch();
     if (this.tintCopy?.visible) this.copyHost(this.tintCopy);
+  }
+
+  /**
+   * 62라운드 P1-1 피격 반응 (데드셀식 경직 자세): 맞은 방향으로 뒤로 젖히고(발 피벗 기준 기울기) 가로로 퍼지며 납작해진다.
+   * holdMs(히트스톱 남은 시간) 동안 최대 자세를 유지하고 decayMs 동안 풀린다. 시트가 없으면 무시. 실시간(씬 시계) 기준
+   */
+  flinch(dirX: number, holdMs: number, decayMs: number, k = 1): void {
+    if (!this.animated || this.dead) return;
+    this.flinchState = {
+      at: this.hostTime(),
+      hold: Math.max(0, holdMs),
+      decay: Math.max(1, decayMs),
+      dir: dirX < 0 ? -1 : 1,
+      k,
+    };
+  }
+
+  /** 디버그: 피격 반응 중 */
+  get flinching(): boolean {
+    return this.flinchState !== null;
+  }
+
+  private stepFlinch(): void {
+    const f = this.flinchState!;
+    const t = this.hostTime() - f.at;
+    const host = this.host;
+    if (t >= f.hold + f.decay || !host.active) {
+      this.flinchState = null;
+      host.setScale(this.baseScale).setRotation(0);
+      return;
+    }
+    const u = t <= f.hold ? 0 : (t - f.hold) / f.decay;
+    const a = (1 - u) * (1 - u) * f.k;
+    const F = FLINCH;
+    host.setScale(this.baseScale * (1 + F.SQUASH_X * a), this.baseScale * (1 - F.SQUASH_Y * a));
+    host.setRotation(f.dir * F.LEAN_RAD * a);
   }
 
   /**
    * 56라운드 Q36: 반투명 색 번쩍임 (적 피격 = 호박 반투명) — 몸 위에 같은 프레임 사본을 채움색·알파로 겹친다.
    * 시간은 트윈으로 재므로 히트스톱(씬 시계 정지)에 늘어나지 않는다. 시트가 없으면 곱 틴트를 같은 시간만
    */
-  flashOverlay(color: number, alpha: number, ms: number): void {
+  flashOverlay(color: number, alpha: number, ms: number, add = false): void {
     const host = this.host;
     const scene = host.scene;
     this.tintTween?.stop();
@@ -254,7 +307,11 @@ export class EntityVisual {
       });
     }
     this.copyHost(copy);
-    copy.setTintFill(color).setAlpha(alpha).setVisible(host.visible);
+    copy
+      .setTintFill(color)
+      .setAlpha(alpha)
+      .setBlendMode(add ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL)
+      .setVisible(host.visible);
     this.tintTween = scene.tweens.addCounter({
       from: 0,
       to: 1,
@@ -275,6 +332,7 @@ export class EntityVisual {
       .setOrigin(h.originX, h.originY)
       .setPosition(h.x, h.y)
       .setScale(h.scaleX, h.scaleY)
+      .setRotation(h.rotation)
       .setFlip(h.flipX, h.flipY)
       .setDepth(h.depth + DEPTH.OVERLAY_STEP * 0.5);
   }
@@ -495,7 +553,7 @@ export class EntityVisual {
    * 사망 시체: 호스트는 바로 파괴되므로 별도 스프라이트가 death 를 재생하고 유지 후 사라진다.
    * 시트가 없으면 아무것도 남기지 않는다
    */
-  spawnCorpse(): void {
+  spawnCorpse(pop?: { dirX: number; dirY: number; px: number }): void {
     if (!this.animated) return;
     const scene = this.host.scene;
     const def = spriteLibrary.sheet(this.name, 'death');
@@ -514,6 +572,7 @@ export class EntityVisual {
     });
     const shadow = this.shadow;
     this.shadow = null; // 시체와 함께 사라진다
+    if (pop) this.popCorpse(corpse, shadow, pop);
     const targets = shadow ? [corpse, shadow] : [corpse];
     scene.tweens.add({
       targets,
@@ -523,6 +582,37 @@ export class EntityVisual {
       onComplete: () => {
         corpse.destroy();
         shadow?.destroy();
+      },
+    });
+  }
+
+  /**
+   * 62라운드 P1-1 처치 튕김: 시체가 맞은 방향으로 미끄러지며 살짝 떴다 떨어진다 (그림자는 바닥을 따라 미끄러지기만).
+   * 씬 트윈 시계라 처치 슬로모(CombatFeel)에 함께 느려진다
+   */
+  private popCorpse(
+    corpse: Phaser.GameObjects.Sprite,
+    shadow: Phaser.GameObjects.Image | null,
+    pop: { dirX: number; dirY: number; px: number },
+  ): void {
+    const len = Math.hypot(pop.dirX, pop.dirY);
+    if (len <= 0 || pop.px <= 0) return;
+    const P = FEEL.KILL.POP;
+    const dx = (pop.dirX / len) * pop.px;
+    const dy = (pop.dirY / len) * pop.px * P.Y_RATIO;
+    const x0 = corpse.x;
+    const y0 = corpse.y;
+    const hop = pop.px * P.HOP_RATIO;
+    corpse.scene.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: P.MS,
+      onUpdate: (tw) => {
+        if (!corpse.active) return;
+        const t = tw.getValue() ?? 1;
+        const e = 1 - (1 - t) * (1 - t);
+        corpse.setPosition(x0 + dx * e, y0 + dy * e - hop * Math.sin(Math.PI * t));
+        shadow?.setPosition(x0 + dx * e, y0 + dy * e);
       },
     });
   }

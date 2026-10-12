@@ -376,16 +376,17 @@ export class BossArena implements BossArenaApi {
       const cup = this.cup.hitRect();
       if (cup) {
         const p = s.body.prev;
-        const seg = new Phaser.Geom.Line(p.x + s.body.halfWidth, p.y + s.body.halfHeight, s.x, s.y);
+        // 잔은 손에 든 높이 — 그림 자리(바닥 + 높이)로 잰다 (62 P1-3 화살 높이)
+        const seg = new Phaser.Geom.Line(p.x + s.body.halfWidth, p.y + s.body.halfHeight - s.liftPx, s.x, s.y);
         if (Phaser.Geom.Intersects.LineToRectangle(seg, cup) && s.registerHit(this.cup.hitToken)) this.cup.hit();
       }
-      const c = this.casks.at(s.x, s.y, 2);
+      const c = this.casks.at(s.groundX, s.groundY, 2);
       if (c && s.registerHit(c)) {
         const v = s.body.velocity;
         if (this.casks.redirect(c, v.x, v.y, this.now)) this.onRedirect();
       }
       for (const k of this.candles.list)
-        if (k.state === 'fallen' && k.rect.contains(s.x, s.y) && s.registerHit(k)) this.relight(k);
+        if (k.state === 'fallen' && k.rect.contains(s.groundX, s.groundY) && s.registerHit(k)) this.relight(k);
     }
   }
 

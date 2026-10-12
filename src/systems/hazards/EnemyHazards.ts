@@ -502,7 +502,7 @@ export class EnemyHazards implements EnemyHazardApi {
       for (const b of this.barrels) {
         if (b.dead || b.owner !== 'enemy') continue;
         const c = this.center(b);
-        if (Math.hypot(s.x - c.x, s.y - c.y) > b.radiusPx + 2 || !s.registerHit(b)) continue;
+        if (Math.hypot(s.groundX - c.x, s.groundY - c.y) > b.radiusPx + 2 || !s.registerHit(b)) continue;
         const v = s.body.velocity;
         this.deflect(b, { x: v.x, y: v.y });
       }

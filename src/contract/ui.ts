@@ -47,7 +47,7 @@ export const UI_EVENTS = {
   ROUTE_CHOOSE_OPEN: 'ui:route-choose-open',
   /** 48라운드: 노드 진입 (`UiRouteEntered`) */
   ROUTE_NODE_ENTERED: 'ui:route-node-entered',
-  /** 48라운드: 탄생 연출 시작·끝 (계약 §10.3) */
+  /** 48라운드: 탄생 연출 시작·끝 (계약 §10.3) — 62 P1-10: 페이로드 `UiBirthInfo` */
   BIRTH_STARTED: 'ui:birth-started',
   BIRTH_DONE: 'ui:birth-done',
   /** 53라운드 Q49: 적 소환 예고 (`UiEnemyIncoming`) — 소환 delayMs 전에 모든 전투에서. UI 경고는 튜토리얼만 */
@@ -99,6 +99,13 @@ export const UI_EVENTS = {
   TRAINING_TASK: 'ui:training-task',
   /** §19 (61 단계 6 시스템 추가): 수련장 방 도장 — 그 방 과제를 모두 마침 (`UiTrainingStamp`) */
   TRAINING_STAMP: 'ui:training-stamp',
+  /**
+   * 62 루프 1 (계약 §20, P15 — 시스템 추가): 첫 생 의식 상태가 바뀌었다 (`UiRitual`). 단계·과제·운명이 바뀔 때마다 (매 프레임 아님).
+   * 같은 값은 `getUiSnapshot().ritual` 로도 읽는다
+   */
+  RITUAL: 'ui:ritual',
+  /** §20: 획 하나 판정 (`UiRitualStrokeJudged`) — UI 연출용 (판정 수치는 보내지 않는다) */
+  RITUAL_STROKE_JUDGED: 'ui:ritual-stroke',
 } as const;
 
 /** §19 그림 속 입구 전환 종류 — enterNode 노드 입구로 · exitRoom 방 → 지도 · floor 층(큰 그림) · training 수련장 방 입구로 */
@@ -172,6 +179,97 @@ export interface UiTrainingStamp {
   /** 여덟 방 모두 도장 */
   all: boolean;
 }
+
+/**
+ * §20 첫 생 의식 단계 (62 루프 1, P15). null = 의식 밖(Setup 이 아님).
+ * name 첫 생 이름 → strokes 3획 → trial 회피 시험(탄생 전장, 첫 생만) → fate 운명 공개 /
+ * 두 번째 생부터 rewrite 이름 덧쓰기 한 화면 → fate (3획은 `ritual.redraw` 를 고를 때만, 회피 시험 없음)
+ */
+export type UiRitualPhase = 'name' | 'strokes' | 'trial' | 'fate' | 'rewrite' | null;
+/** §20 획 입력 점: 논리 화면 좌표(960×540) · t = ms (아무 시계 — 점 사이 차이만 쓴다) */
+export interface UiRitualPoint {
+  x: number;
+  y: number;
+  t: number;
+}
+/** §20 (시스템 추가) 획 ↔ 무기 규칙 한 줄 — 무기 선택 규칙이 보이게 (수치 없음, 예 '곧고 빠르게 → 칼') */
+export interface UiRitualLegend {
+  weapon: string;
+  weaponName: string;
+  line: string;
+}
+/** §20 회피 시험 과제 한 줄 (label = 짧은 명령형, 키캡은 verb 로 UI 가 붙인다) */
+export interface UiRitualTask {
+  id: string;
+  label: string;
+  done: boolean;
+  /** (시스템 추가) 이 과제에 쓰는 키 칸 (대쉬 과제 = 'dash') */
+  verb?: UiVerbSlot;
+  /** (시스템 추가) 끝난 과제를 한 대도 안 맞고 마쳤다 (done 일 때만) */
+  clean?: boolean;
+}
+/** §20 의식 상태 — `UiSnapshot.ritual` · `RITUAL` 이벤트 */
+export interface UiRitual {
+  phase: UiRitualPhase;
+  /** 지난 생 수 (0 = 첫 생) */
+  lives: number;
+  /** (시스템 추가) 일기장에 적힌 문장 — 첫 장 안내·번진 이름·덧쓰기 결과 (UI 가 종이 위에 쓴다, 위 → 아래) */
+  lines?: string[];
+  /** name·rewrite: value = 입력칸에 미리 채울 값(두 번째 생 = 지난 이름) · lastName = 번진 이름 */
+  name?: { value: string; lastName?: string; maxLen: number };
+  /** strokes: 진행 (판정은 시스템) · lastWeapon = 3획째가 정한 무기 id · legend = 획 ↔ 무기 규칙 (시스템 추가) */
+  strokes?: { done: number; total: 3; lastWeapon?: string; legend?: UiRitualLegend[] };
+  /**
+   * trial: 과제 목록 · skippable = `ritual.skip()` 으로 건너뛸 수 있다.
+   * (시스템 추가) current = 지금 과제 id · state = card(과제 이름 보여 줌) | run(사격 중) | clear(과제 끝) | done(전부 끝)
+   */
+  trial?: {
+    tasks: UiRitualTask[];
+    skippable: boolean;
+    current?: string;
+    state?: 'card' | 'run' | 'clear' | 'done';
+  };
+  /**
+   * fate: line = 무기의 첫 한마디(원한의 목소리) · why = 왜 이 무기인지 한 줄(수치 금지) · lookKey = 무기 미리보기 텍스처(로드됐을 때만).
+   * (시스템 추가) gift = 회피 시험 결과 한 줄(수치 없음, 없으면 생략) · remembered = 두 번째 생 '손이 기억한 무기'
+   */
+  fate?: {
+    weapon: string;
+    weaponName: string;
+    line: string;
+    lookKey?: string;
+    why: string;
+    gift?: string;
+    remembered?: boolean;
+  };
+  /** (시스템 추가) rewrite: 획을 다시 그어 새 무기를 부를 수 있다 — `ritual.redraw(name)` (key = 안내 키캡) */
+  redraw?: { key: string; label: string };
+  /** (시스템 추가) rewrite: 영혼 강화 귀퉁이 — canBuy = 지금 살 수 있는 강화가 있다 · `ritual.openMeta()` (key = 안내 키캡) */
+  meta?: { souls: number; canBuy: boolean; label: string; key: string };
+  /** 아래 안내 한 줄 (키캡 포함 가능 — '[Enter] 적는다' 형식) */
+  hint?: string;
+}
+/**
+ * 62 P1-10 (시스템 추가): BIRTH_STARTED·BIRTH_DONE 페이로드. firstLife = 첫 생 — false 면 '싸우는 법' 조작 패널을 띄우지 않는다
+ * (조작 전체 표는 일시정지 메뉴에만 · 첫 생 첫 노드들은 `UiSnapshot.keyBar` 작은 키 막대)
+ */
+export interface UiBirthInfo {
+  firstLife: boolean;
+}
+/** §20 `RITUAL_STROKE_JUDGED` — index = 방금 판정한 획 (0부터) · weaponHint = 지금까지의 획이 기우는 무기 id */
+export interface UiRitualStrokeJudged {
+  index: number;
+  weaponHint?: string;
+}
+/** §20 명령 종류 (uiCommands.ritual.* 이 시스템에 넘기는 형식 — UI 는 uiCommands.ritual 을 쓴다) */
+export type UiRitualCommand =
+  | { kind: 'submitName'; name: string }
+  | { kind: 'redraw'; name: string }
+  | { kind: 'stroke'; points: UiRitualPoint[] }
+  | { kind: 'next' }
+  | { kind: 'skip' }
+  | { kind: 'back' }
+  | { kind: 'openMeta' };
 
 /**
  * 57라운드 계약 §14.1 (승인 #21): 10태그. 이름(name)은 자리표시. 2층부터 층 테마 태그가 이 유니온에 추가된다
@@ -557,6 +655,8 @@ export interface UiMenuLine {
   /** 61 단계 6 §19: 수련장 지도(`training` 메뉴) 줄의 방 id · 도장 */
   room?: string;
   stamped?: boolean;
+  /** 62 P1-20 (시스템 추가): `trainingChoice` 카드 그림 — 입구 그림 텍스처 `paint/door_*` (로드됐을 때만) */
+  doorKey?: string;
 }
 
 /**
@@ -905,6 +1005,25 @@ export interface UiSnapshot {
   settings: UiSettings;
   /** 61 단계 6 §19: 수련장 (수련장 밖이면 null/생략). 수련장 안에서는 lab = false */
   training?: UiTraining | null;
+  /** 62 §20: 첫 생 의식 (Setup 씬 안에서만 — 그 밖은 null/생략) */
+  ritual?: UiRitual | null;
+  /**
+   * 62 P1-10 (시스템 추가): 첫 생 첫 노드들 동안 화면 아래 작은 4동사 키 막대를 보여 준다 (막는 패널 금지 — weaponVerbs 로 그린다).
+   * 두 번째 생부터·시험장·수련장은 false/생략
+   */
+  keyBar?: boolean;
+  /**
+   * 62 (시스템 추가, 타이틀 UI 요청): 메타 요약 — 타이틀·일기장 귀퉁이 표시용. 게임 씬이 없을 때(타이틀·의식)도 메타 세이브에서 채운다.
+   * lives = 끝난 생 수(첫 생이면 0) · souls = 보유 영혼 · bestFloor = 가장 깊이 간 층(없으면 0)
+   */
+  meta?: UiMetaSummary;
+}
+
+/** 62 `UiSnapshot.meta` */
+export interface UiMetaSummary {
+  lives: number;
+  souls: number;
+  bestFloor: number;
 }
 
 /**
@@ -1081,6 +1200,11 @@ interface SystemImpl {
   /** 61 단계 6 §19 */
   startTraining: (room?: string) => UiTrainingStart;
   leaveTraining: () => void;
+  /** 62 §20: 의식 명령 (의식 밖이면 false) · 지금 의식 상태 (의식 밖이면 null) */
+  ritual: (cmd: UiRitualCommand) => boolean;
+  getRitual: () => UiRitual | null;
+  /** 62: 메타 요약 (메타 세이브) */
+  getMeta: () => UiMetaSummary;
 }
 
 /**
@@ -1164,8 +1288,10 @@ export const uiCommands = {
   getUiSnapshot(): UiSnapshot {
     const snap = impl?.getSnapshot();
     if (snap) return snap;
-    // 61라운드 §15: 게임 씬이 없을 때(타이틀)도 저장된 설정을 알려 준다
-    return impl ? { ...EMPTY_SNAPSHOT, settings: impl.getSettings() } : EMPTY_SNAPSHOT;
+    // 61라운드 §15: 게임 씬이 없을 때(타이틀)도 저장된 설정을 알려 준다 · 62 §20: 의식 중이면 의식 상태
+    return impl
+      ? { ...EMPTY_SNAPSHOT, settings: impl.getSettings(), ritual: impl.getRitual(), meta: impl.getMeta() }
+      : EMPTY_SNAPSHOT;
   },
   /** 세계관 문구. 시스템 미등록 시 빈 객체 */
   getUiText(): UiText {
@@ -1218,6 +1344,40 @@ export const uiCommands = {
   /** §19: 수련장 나가기 (런에서 왔으면 그 노드로, 첫 생 선택에서 왔으면 시작 의식으로, 아니면 타이틀로) */
   leaveTraining(): void {
     impl?.leaveTraining();
+  },
+  /**
+   * 62 §20 첫 생 의식 명령 (UI 가 그리고 시스템이 흐름·판정). 받아들였으면 true — 단계가 맞지 않으면 false (아무 일도 없다).
+   * 새 상태는 `RITUAL` 이벤트·`getUiSnapshot().ritual` 로 온다
+   */
+  ritual: {
+    /** name: 이름을 적었다 → 3획 · rewrite: 덧썼다 → 손이 기억한 무기로 운명 공개 (빈 이름은 '―' 로 적힌다) */
+    submitName(name: string): boolean {
+      return impl?.ritual({ kind: 'submitName', name }) ?? false;
+    },
+    /** (시스템 추가) rewrite: 이름을 적고 3획을 다시 그어 새 무기를 부른다 (회피 시험 없음) */
+    redraw(name: string): boolean {
+      return impl?.ritual({ kind: 'redraw', name }) ?? false;
+    },
+    /** strokes: 한 획 (UI 가 누름 → 뗌까지 모은 점). 점이 너무 적으면 false(획으로 치지 않음) · 판정 결과는 RITUAL_STROKE_JUDGED */
+    stroke(points: UiRitualPoint[]): boolean {
+      return impl?.ritual({ kind: 'stroke', points: points.map((p) => ({ x: p.x, y: p.y, t: p.t })) }) ?? false;
+    },
+    /** trial: 과제 이름 카드를 넘긴다 · fate: 기다리지 않고 바로 벽 밖으로 */
+    next(): boolean {
+      return impl?.ritual({ kind: 'next' }) ?? false;
+    },
+    /** trial: 회피 시험을 건너뛴다 (skippable 일 때 — 시험 보상 없음) */
+    skip(): boolean {
+      return impl?.ritual({ kind: 'skip' }) ?? false;
+    },
+    /** (시스템 추가) Esc — 한 단계 앞으로: strokes → name(그은 획 버림) · trial → strokes 처음부터 */
+    back(): boolean {
+      return impl?.ritual({ kind: 'back' }) ?? false;
+    },
+    /** (시스템 추가) rewrite: 영혼 강화 메뉴 (`MENU_OPEN` id 'meta', 닫기 cancelKey '0' → 다시 rewrite) */
+    openMeta(): boolean {
+      return impl?.ritual({ kind: 'openMeta' }) ?? false;
+    },
   },
 };
 

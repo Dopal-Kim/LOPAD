@@ -53,8 +53,8 @@ export class UiRelay {
   readonly recentStory: UiStoryLine[] = [];
 
   /** 61라운드 P8: 군주의 말 (계약 STORY kind 'speech') — 예 `speech(STORY_NARRATIVE.boss1.speaker, …intro)` */
-  speech(speaker: string, text: string): void {
-    this.story('speech', text, { speaker });
+  speech(speaker: string, text: string, holdMs?: number): void {
+    this.story('speech', text, holdMs !== undefined ? { speaker, holdMs } : { speaker });
   }
 
   snapshot() {

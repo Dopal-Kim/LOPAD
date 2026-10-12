@@ -1,7 +1,8 @@
 /**
  * 데미지 숫자 (35라운드 1단계). 시스템 씬이 월드 좌표에 직접 그린다(HUD 가 아님).
  * - 적중점 위에서 떠올라(RISE_PX) 사라진다(DURATION_MS, 끝 FADE_MS 페이드). Text 풀(POOL)로 재사용.
- * - 일반 = G13 흰색, 치명타 = 층 강조 램프 light1 + '!' + 2배(39라운드, 정수 배율), 플레이어 피격 = G11 + '-', 지속 피해 틱 = 0.8배.
+ * - 62라운드 P1-1 등급(FEEL.DAMAGE_TEXT.STYLE): 일반 = 따뜻한 흰색 · 막타 = 금색 1.5배 · 치명 = 층 강조 램프 light1 + '!' + 2배(되튐) ·
+ *   주인공 피격 = 붉은 '-' 1.25배 · 지속 피해 틱 = 0.8배. 모두 어두운 외곽선(굵기 등급별).
  * - 글꼴 Galmuri11 (34라운드 규칙, 11px). 로드 전·실패면 monospace.
  * - 61라운드 플레이 점검: 같은 자리 짧은 간격 피해는 합쳐 다시 띄우고, 아니면 비켜 띄운다(`damageNumberLayout`, FEEL.DAMAGE_TEXT.STACK).
  *   설정 §15 `damageNumbers`(= feelSettings.numbers)가 꺼지면 새 숫자를 띄우지 않고 떠 있는 것도 지운다.
@@ -14,7 +15,7 @@ import { fontFamilyOr } from '../fonts';
 import { feelSettings } from '../feel';
 import { numberLabel, placeNumber, type PlacedNumber } from './damageNumberLayout';
 
-export type DamageKind = 'hit' | 'crit' | 'tick' | 'player';
+export type DamageKind = 'hit' | 'heavy' | 'crit' | 'tick' | 'player';
 
 export interface DamageNumberSummary {
   text: string;
@@ -96,23 +97,31 @@ export class DamageNumberPool {
 
   private style(t: Phaser.GameObjects.Text, kind: DamageKind, amount: number): void {
     const D = FEEL.DAMAGE_TEXT;
-    const color = kind === 'crit' ? this.critColor : kind === 'player' ? COLORS.DAMAGE_TEXT_PLAYER : COLORS.DAMAGE_TEXT;
-    const scale = kind === 'crit' ? D.CRIT_SCALE : kind === 'tick' ? D.TICK_SCALE : 1;
+    const S = D.STYLE[kind] ?? D.STYLE.hit;
+    const color = S.COLOR ?? this.critColor;
     t.setFontFamily(this.fontFamily)
       .setFontSize(D.FONT_PX)
       .setColor(color)
+      .setStroke(D.STROKE_COLOR, S.STROKE)
       .setText(numberLabel(kind, amount))
-      .setScale(scale);
+      .setScale(S.SCALE);
   }
 
-  /** 떠오름 + 끝 페이드 (합친 숫자는 처음부터 다시, 짧게 커졌다 돌아온다) */
+  /** 떠오름 + 끝 페이드 (합친 숫자는 처음부터 다시, 짧게 커졌다 돌아온다 · 62: 치명은 크게 떴다 내려앉음) */
   private animate(t: Phaser.GameObjects.Text, startY: number, pop: boolean): void {
     const D = FEEL.DAMAGE_TEXT;
     this.scene.tweens.killTweensOf(t);
-    if (pop) {
+    const crit = this.placed.get(t)?.kind === 'crit';
+    if (pop || crit) {
       const s = t.scaleX;
-      t.setScale(s * D.STACK.POP_SCALE);
-      this.scene.tweens.add({ targets: t, scaleX: s, scaleY: s, duration: D.STACK.POP_MS });
+      t.setScale(s * (crit ? D.CRIT_POP.FROM : D.STACK.POP_SCALE));
+      this.scene.tweens.add({
+        targets: t,
+        scaleX: s,
+        scaleY: s,
+        duration: crit ? D.CRIT_POP.MS : D.STACK.POP_MS,
+        ease: crit ? Phaser.Math.Easing.Back.Out : Phaser.Math.Easing.Linear,
+      });
     }
     this.scene.tweens.add({
       targets: t,

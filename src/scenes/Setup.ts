@@ -1,42 +1,37 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, GAME, KEYS, PLACEHOLDER_UI, PROTOTYPE, SCENES } from '../core/Constants';
+import { KEYS, RITUAL, SCENES } from '../core/Constants';
 import { PERSONALITY, STORY, WEAPONS } from '../data';
+import { RITUAL_DATA } from '../data/ritual';
 import { fill } from '../systems/story';
-import { chooseWeapon, strokeFeatures, type Stroke, type StrokeFeatures } from '../systems/personality';
-import {
-  ARENA_SHAPES,
-  DODGE_TRIAL,
-  TASK_IDS,
-  emptyTaskResult,
-  gradeTrial,
-  presetResults,
-  type ArenaShape,
-  type TaskId,
-  type TaskResult,
-  type TrialGrade,
-  type TrialResult,
-} from '../systems/dodgeTrial/dodgeTrial';
-import { DodgeTrialRunner } from '../systems/dodgeTrial/dodgeTrialRunner';
-import { StrokeFx } from '../systems/strokeFx/strokeFx';
-import { BACK } from '../systems/strokeFx/strokeFxBack';
+import { chooseWeapon, strokeFeatures, type Stroke } from '../systems/personality';
 import { encodeScar, type ScarData } from '../systems/setup/scar';
+import { BACK } from '../systems/strokeFx/strokeFxBack';
 import { gameState } from '../core/GameState';
-import { STROKE_FX } from '../systems/strokeFx/strokeFxMath';
-import { oncePerKeyEvent } from '../systems/keyEvents';
-import { StrokeExamples } from '../systems/setup/strokeExamples';
-import { scheduleAutoStrokes, type AutoPreset } from '../systems/setup/autoStrokes';
-import { TrialHud } from '../systems/setup/trialHud';
+import { autoStrokePoints, type AutoPreset } from '../systems/setup/autoStrokes';
 import { spriteLibrary } from '../systems/sprites/sprites';
+import { enemySheetRequests, missingRequests } from '../systems/sprites/lazySheets';
+import { queueRequests } from '../systems/sprites/sheetLoader';
 import { META_CONFIG, buyUpgrade, metaStore, upgradeCost } from '../systems/meta';
 import { TextMenu } from '../systems/TextMenu';
-import { CANVAS_H, CANVAS_W, makeLogicalCamera, toLogical, worldZoom } from '../systems/display';
-import { setMenuSelect } from '../contract/host';
+import { worldZoom } from '../systems/display';
+import { setMenuSelect, setRitualHost } from '../contract/host';
+import { invalidateMetaSummary } from '../contract/metaSummary';
 import { EventBus, Events } from '../core/EventBus';
 import { audio } from '../systems/audio/audio';
-import { UI_EVENTS, __system, uiCommands } from '../contract/ui';
+import {
+  UI_EVENTS,
+  __system,
+  uiCommands,
+  type UiRitual,
+  type UiRitualCommand,
+  type UiRitualPoint,
+  type UiRitualStrokeJudged,
+} from '../contract/ui';
+import { UI_SCENES } from '../ui';
 import { trainingText } from '../data/training';
 import { recordOffered } from '../systems/training/record';
-import { NARRATIVE, NARRATIVE_STORY, voiceLine } from '../data/narrative';
+import { trainingDoorName } from '../systems/transition/doorNames';
+import { NARRATIVE_STORY, voiceLine } from '../data/narrative';
 import {
   isFirstLife,
   koreanCount,
@@ -45,117 +40,105 @@ import {
   updateDiary,
   type DiaryRecord,
 } from '../systems/narrative/diary';
-
-type Phase = 'meta' | 'name' | 'strokes' | 'sear' | 'trial' | 'fate';
+import {
+  cleanName,
+  gradeHits,
+  leaningWeapon,
+  legendOf,
+  metaCorner,
+  rememberedWeapon,
+  whyOf,
+} from '../systems/ritual/ritual';
+import { firstSteps } from '../systems/ritual/firstSteps';
+import { BirthTrialRunner } from './setup/BirthTrialRunner';
+import { trialPropRequests } from './setup/trialProps';
+import { doorFor, loadDoorIndex, loadPaint, paintLoaded } from './game/PaintArt';
+import { loadBaseLook } from './game/growth/GrowthArt';
 
 /**
- * 개성 선택 (기획 1장): "가장 강한 것"을 3획으로 그린다(48라운드 Q8 `StrokeFx`, 51라운드 1절: 가늘고 매끄러운 곡선 획,
- * 53라운드 Q3: 화면 가득 찬 주인공의 등에 긋고, 3획 뒤 상흔이 호박빛으로 타오르다 살에 스며든다).
- * 그은 획은 상흔으로 런 상태에 저장한다(53라운드 Q4 준비, `setup/scar.ts`).
- * **무기는 3획만으로** 정한다(49라운드 2절). 이어서 회피 시험(51라운드 2절: 짧은 과제 5개, `DodgeTrialRunner`)의
- * 과제별 피격·떨어짐으로 등급 → 시작 감각 +0~3 (`senseBonus`, Game 씬 시작 데이터로 넘긴다).
- * 화면·연출은 시스템 파트 플레이스홀더이며 UI·아트 파트 산출물로 교체 대상.
+ * 시작 의식 (62 루프 1 — 계약 UI §20 · P0-1·P0-2·P0-3·P1-9): **흐름·판정만** 시스템, 그리기는 UI 의식 씬(`UI_SCENES.RITUAL`, 없으면
+ * 시스템 대체 화면 `RitualView` — 같은 계약만 쓴다). 상태 = `UiSnapshot.ritual`(+ `RITUAL` 이벤트), 명령 = `uiCommands.ritual.*`.
+ * - 첫 생: ('수련장부터 / 바로 벽 밖으로' 한 번) → 이름 → 3획 → 회피 시험(탄생 전장 타일 위 실제 사수, `BirthTrialRunner`) → 운명 공개.
+ *   영혼 강화 메뉴는 첫 생에 열지 않는다(P0-3).
+ * - 두 번째 생부터: 이름 덧쓰기 한 화면(rewrite) → 운명 공개(손이 기억한 무기 = 지난 생 무기). `ritual.redraw` 면 3획만 다시(회피 시험 없음).
+ *   영혼 강화는 이 화면 귀퉁이(`ritual.openMeta` → MENU 'meta').
+ * 무기는 **3획만으로** 정한다(49라운드 2절, `personality.chooseWeapon`). 회피 시험은 시작 감각 +0~3 만. 그은 획은 상흔으로 런 상태에.
+ * 화면에 획 판정 수치를 내보내지 않는다 — 운명 공개는 '왜' 한 줄(무기 목소리 말투, `data/narrative.json ritual.why`).
  */
 const NAME_MAX = 12;
 
-/** 디버그 강제 결과: 등급(S·A·B·C) · 'fell'(한 과제 떨어짐) · 과제 결과 일부 목록 */
-type TrialForce = TrialGrade | 'fell' | Partial<TaskResult>[];
+type Phase = 'choice' | 'name' | 'rewrite' | 'meta' | 'strokes' | 'seal' | 'trial' | 'fate';
 
 export class Setup extends Phaser.Scene {
-  private phase: Phase = 'strokes';
+  private phase: Phase = 'choice';
   private strokes: Stroke[] = [];
-  private current: Stroke | null = null;
-  private label: Phaser.GameObjects.Text;
   private keys: Record<string, Phaser.Input.Keyboard.Key>;
-  private features?: StrokeFeatures;
   private menu: TextMenu;
-  private onEnter?: (e: KeyboardEvent) => void;
-  /** 일기장 이름 입력 (26라운드): DOM input, 최대 12자 */
-  private nameInput?: Phaser.GameObjects.DOMElement;
-  /** 획 예시 패널 (strokes 단계에서만) */
-  private examples?: StrokeExamples;
-  private playerName = '';
-  /** 획 찢기 연출 (strokes 단계에서만) */
-  private strokeFx?: StrokeFx;
-  /** 회피 시험 (trial 단계) · 화면 고정 글자용 카메라 (메인 카메라는 경기장 2배 확대) */
-  private runner?: DodgeTrialRunner;
-  private hud?: TrialHud;
-  private uiCam?: Phaser.Cameras.Scene2D.Camera;
-  /** UI 카메라에만 보이는 글자 (라벨 + 시험 카드) */
-  private uiOnly: Phaser.GameObjects.GameObject[] = [];
-  private trialResult?: TrialResult;
-  private weaponId?: string;
-  /** 등에 그은 상흔 (Game 시작 직전에 런 상태로 넘긴다) */
-  private scar?: ScarData;
-  /** Game 씬 시작 데이터 (디버그 표시용) */
-  private startData?: { mode: 'new'; weapon: string; playerName: string; senseBonus: number };
-  /** 디버그: 다음 회피 시험 경기장 모양 고정 */
-  private forcedShape?: ArenaShape;
-  /**
-   * 대쉬 입력 걸쇠: 키 DOWN 이벤트에서 세우고 다음 프레임에 쓴다. JustDown 은 한 프레임 안에 눌렀다 뗀 짧은 탭을
-   * 놓친다(Phaser Key.onUp 이 _justDown 을 지움) — 회피 시험은 대쉬 박자가 핵심이라 탭을 잃지 않게.
-   */
-  private dashQueued = false;
-  private readonly onEscKey = oncePerKeyEvent<KeyboardEvent>(() => this.onEsc());
-
-  /**
-   * 61라운드 P7 시작 의식 단축: 첫 생만 전체(이름 → 3획 → 회피 시험 → 튜토리얼). 두 번째 생부터 번진 이름 덧쓰기(Enter = 지난 이름) +
-   * 3획, 회피 시험은 선택(T — Enter 는 건너뜀, 시작 감각 +0), 튜토리얼은 Game 이 생략. 판정 = 메타 일기장 이력 (`?ritual=full` 은 전체 강제)
-   */
   private diary: DiaryRecord = readDiary({ runs: 0, clears: 0 });
   private firstLife = true;
-  /** 덧쓰기 결과 한 줄 (3획 안내 위에) */
+  private playerName = '';
+  /** 덧쓰기 결과 한 줄 (두 번째 생) */
   private smudgeResult = '';
-  /** 회피 시험 선택 (두 번째 생부터): null = 아직 */
-  private trialChoice: 'trial' | 'skip' | null = null;
-  /** 타오름이 검게 덮였는데 선택을 기다리는 중 */
-  private searPeaked = false;
-
-  /** 53라운드 UI 요청 B4: 회피 시험에서 Esc → 3획부터 다시 (씬을 다시 열어 시험 카메라·경기장을 깨끗이) */
-  private resumeAt: { back: 'strokes'; playerName: string } | null = null;
+  /** 두 번째 생: 3획을 다시 긋는 중 (회피 시험 없음) */
+  private redrawing = false;
+  private weaponId?: string;
+  private weaponSource: 'strokes' | 'remembered' = 'strokes';
+  private scar?: ScarData;
+  private runner?: BirthTrialRunner;
+  /** 회피 시험 맞은 수 (끝났을 때) · 건너뜀 */
+  private trialHits: number | null = null;
+  private trialSkipped = false;
+  private lookKey?: string;
+  private startData?: { mode: 'new'; weapon: string; playerName: string; senseBonus: number };
+  private fateTimer?: Phaser.Time.TimerEvent;
+  /** 대쉬 입력 걸쇠 (짧은 탭을 놓치지 않게 — keydown 에서 세우고 다음 프레임에 쓴다) */
+  private dashQueued = false;
+  /** Setup 위에 띄운 의식 화면 씬 키 (UI 또는 시스템 대체) */
+  private overlayKey: string = SCENES.RITUAL_VIEW;
+  /** 회피 시험 Esc: 씬을 다시 열어 3획부터 */
+  private resumeAt: { playerName: string; redrawing: boolean } | null = null;
 
   constructor() {
     super(SCENES.SETUP);
   }
 
-  init(data?: { back?: 'strokes'; playerName?: string }): void {
-    this.resumeAt = data?.back === 'strokes' ? { back: 'strokes', playerName: data.playerName ?? '' } : null;
+  init(data?: { back?: 'strokes'; playerName?: string; redrawing?: boolean }): void {
+    this.resumeAt =
+      data?.back === 'strokes' ? { playerName: data.playerName ?? '', redrawing: Boolean(data.redrawing) } : null;
+  }
+
+  preload(): void {
+    // 회피 시험 사수 그림 (지난 런이 보스방에서 끝났으면 내려 가 있다)
+    // + 62 art §30 탄생 전장 소품
+    queueRequests(
+      this,
+      missingRequests(this, [...enemySheetRequests(), ...trialPropRequests(RITUAL_DATA.trial.props)]),
+      () => {},
+    );
+    loadDoorIndex(this);
   }
 
   create(): void {
     audio.setState('title');
-    this.phase = 'meta';
     this.strokes = [];
-    this.current = null;
     this.playerName = '';
-    this.strokeFx = undefined;
-    this.runner = undefined;
-    this.hud = undefined;
-    this.uiCam = undefined;
-    this.uiOnly = [];
-    this.trialResult = undefined;
-    this.forcedShape = undefined;
-    this.startData = undefined;
-    this.features = undefined;
+    this.smudgeResult = '';
+    this.redrawing = false;
     this.weaponId = undefined;
+    this.weaponSource = 'strokes';
     this.scar = undefined;
+    this.runner = undefined;
+    this.trialHits = null;
+    this.trialSkipped = false;
+    this.lookKey = undefined;
+    this.startData = undefined;
+    this.fateTimer = undefined;
     this.diary = readDiary(metaStore.read());
     this.firstLife =
       isFirstLife(this.diary) ||
       (typeof location !== 'undefined' && new URLSearchParams(location.search).get('ritual') === 'full');
-    this.smudgeResult = '';
-    this.trialChoice = null;
-    this.searPeaked = false;
     // 새 런은 1층: 이전 런이 바꿔 둔 층 변형을 원본으로 (시트·예고 색)
     spriteLibrary.activate(this, 1);
-    this.label = this.add
-      .text(GAME.WIDTH / 2, PLACEHOLDER_UI.LABEL_Y, '', {
-        font: PLACEHOLDER_UI.FONT_BODY,
-        color: COLORS.GAMEOVER_TEXT,
-        align: 'center',
-      })
-      .setOrigin(0.5, 0)
-      .setDepth(DEPTH.DEBUG);
     const kb = this.input.keyboard!;
     this.keys = {
       up: kb.addKey(KEYS.UP),
@@ -167,111 +150,251 @@ export class Setup extends Phaser.Scene {
     this.dashQueued = false;
     this.keys.dash.on(Phaser.Input.Keyboard.Events.DOWN, this.queueDash, this);
     this.input.mouse?.disableContextMenu();
-
-    this.input.on('pointerdown', this.onPointerDown, this);
-    this.input.on('pointermove', this.onPointerMove, this);
-    this.input.on('pointerup', this.onPointerUp, this);
-    this.events.once('shutdown', () => {
-      this.input.off('pointerdown', this.onPointerDown, this);
-      this.input.off('pointermove', this.onPointerMove, this);
-      this.input.off('pointerup', this.onPointerUp, this);
-      this.keys.dash.off(Phaser.Input.Keyboard.Events.DOWN, this.queueDash, this);
-      this.nameInput?.destroy();
-      this.nameInput = undefined;
-      this.input.keyboard?.enableGlobalCapture();
-      this.hideExamples();
-      this.strokeFx?.destroy();
-      this.strokeFx = undefined;
-      this.runner?.destroy();
-      this.runner = undefined;
-      this.hud?.destroy();
-      this.hud = undefined;
-      this.events.off(Phaser.Scenes.Events.ADDED_TO_SCENE, this.hideFromUiCam, this);
-      delete (window as unknown as { __lopadSetup?: unknown }).__lopadSetup;
-    });
-    this.exposeDebug();
     this.menu = new TextMenu(this);
-    setMenuSelect((id, key) => {
-      if (id === 'meta' && key === 'enter') this.beginName();
-      else this.menu.select(key, id);
-    });
-    this.events.once('shutdown', () => setMenuSelect(null));
-    // 53라운드 UI 요청 B4: Esc = 한 단계 앞으로 (회피 시험 → 3획 → 이름 → 메타 메뉴)
-    // 53라운드: 같은 keydown 객체 재전달(Phaser 3.90 큐 재처리)로 두 단계 물러나지 않게 (keyEvents)
-    kb.on('keydown-ESC', this.onEscKey);
-    this.events.once('shutdown', () => this.input.keyboard?.off('keydown-ESC', this.onEscKey));
-    // 61라운드 P7: 두 번째 생부터 회피 시험 선택 키 (타오름 중)
-    kb.on('keydown', this.onRitualKey);
-    this.events.once('shutdown', () => this.input.keyboard?.off('keydown', this.onRitualKey));
+    setMenuSelect((id, key) => this.menu.select(key, id));
+    setRitualHost({ command: (c) => this.command(c), state: () => this.ritual() });
+    this.events.once('shutdown', () => this.shutdown());
+    this.exposeDebug();
+    this.launchOverlay();
+
     const resume = this.resumeAt;
     this.resumeAt = null;
     if (resume) {
       this.playerName = resume.playerName;
+      this.redrawing = resume.redrawing;
       this.beginStrokes();
     } else if (this.firstLife && !this.diary.training.offered) this.openTrainingChoice();
-    else this.openMetaMenu();
+    else this.beginName();
+  }
+
+  private shutdown(): void {
+    this.keys.dash.off(Phaser.Input.Keyboard.Events.DOWN, this.queueDash, this);
+    this.menu.close();
+    setMenuSelect(null);
+    setRitualHost(null);
+    this.runner?.destroy();
+    this.runner = undefined;
+    if (this.scene.isActive(this.overlayKey) || this.scene.isPaused(this.overlayKey)) this.scene.stop(this.overlayKey);
+    __system.emit(UI_EVENTS.RITUAL, { phase: null, lives: this.diary.lives } satisfies UiRitual);
+    delete (window as unknown as { __lopadSetup?: unknown }).__lopadSetup;
+  }
+
+  /** UI 의식 씬이 있으면 그것을, 없으면 시스템 대체 화면을 Setup 위에 띄운다 (계약 §20 — 같은 스냅샷·명령) */
+  private launchOverlay(): void {
+    const uiKey = (UI_SCENES as Readonly<Record<string, string | undefined>>).RITUAL;
+    const forceSys =
+      typeof location !== 'undefined' && new URLSearchParams(location.search).get('ritualview') === 'sys';
+    const useUi = !forceSys && Boolean(uiKey && __system.rendererRegistered() && this.scene.manager.keys[uiKey]);
+    this.overlayKey = useUi ? uiKey! : SCENES.RITUAL_VIEW;
+    if (!this.scene.isActive(this.overlayKey)) this.scene.launch(this.overlayKey);
+    this.scene.bringToTop(this.overlayKey);
+  }
+
+  // ─── 흐름 ───
+
+  /** 상태가 바뀜 → UI 에 알린다 */
+  private changed(): void {
+    __system.emit(UI_EVENTS.RITUAL, this.ritual());
   }
 
   /**
    * 61 단계 6 (P14 §1 · 계약 UI §19): 첫 생 시작 — '수련장부터 / 바로 벽 밖으로' (메뉴 'trainingChoice', 한 번만 묻는다).
-   * 수련장을 고르면 수련장으로(나오면 이 시작 의식으로 돌아온다), 아니면 지금처럼 일기장
+   * 62 P1-20: 카드 그림 = 입구 그림(`doorKey`, 받으면 같은 메뉴를 다시 그린다)
    */
   private openTrainingChoice(): void {
-    const lines = [
-      { key: '1', label: trainingText('choice.training'), detail: trainingText('choice.trainingHint'), enabled: true },
-      { key: '2', label: trainingText('choice.run'), detail: trainingText('choice.runHint'), enabled: true },
-    ];
-    this.menu.open('trainingChoice', trainingText('choice.prompt'), lines, (key) => {
-      this.diary = updateDiary((d) => ({ ...d, training: recordOffered(d.training) }));
-      this.menu.close();
-      if (key === '1' && uiCommands.startTraining() === 'ok') return;
-      this.openMetaMenu();
-    });
+    this.phase = 'choice';
+    const runDoor = doorFor(this, 'waste', 'birth');
+    const doors = [trainingDoorName(false), runDoor].filter((n): n is string => Boolean(n));
+    const open = () => {
+      if (this.phase !== 'choice' || !this.scene.isActive()) return;
+      const lines = [
+        {
+          key: '1',
+          label: trainingText('choice.training'),
+          detail: trainingText('choice.trainingHint'),
+          enabled: true,
+          doorKey: paintLoaded(this, trainingDoorName(false)),
+        },
+        {
+          key: '2',
+          label: trainingText('choice.run'),
+          detail: trainingText('choice.runHint'),
+          enabled: true,
+          doorKey: runDoor ? paintLoaded(this, runDoor) : undefined,
+        },
+      ];
+      this.menu.open('trainingChoice', trainingText('choice.prompt'), lines, (key) => {
+        this.diary = updateDiary((d) => ({ ...d, training: recordOffered(d.training) }));
+        this.menu.close();
+        if (key === '1' && uiCommands.startTraining() === 'ok') return;
+        this.beginName();
+      });
+    };
+    open();
+    loadPaint(this, doors, open);
+    this.changed();
   }
 
-  /** Esc: 한 단계 앞으로. 메타 메뉴·운명 단계는 그대로 */
-  private onEsc(): void {
-    switch (this.phase) {
-      case 'name':
-        return this.backToMeta();
-      case 'strokes':
-        return this.backToName();
-      case 'sear':
-      case 'trial':
-        this.scene.restart({ back: 'strokes', playerName: this.playerName });
-        return;
-      default:
-        return;
+  /** 첫 생 = 이름 칸 · 두 번째 생부터 = 이름 덧쓰기 한 화면 */
+  private beginName(): void {
+    this.menu.close();
+    this.phase = this.firstLife ? 'name' : 'rewrite';
+    this.changed();
+  }
+
+  /** 명령 (계약 §20 uiCommands.ritual.*) — 단계가 맞지 않으면 false */
+  private command(c: UiRitualCommand): boolean {
+    switch (c.kind) {
+      case 'submitName':
+        return this.submitName(c.name, false);
+      case 'redraw':
+        return this.submitName(c.name, true);
+      case 'stroke':
+        return this.stroke(c.points);
+      case 'next':
+        return this.next();
+      case 'skip':
+        return this.skipTrial();
+      case 'back':
+        return this.back();
+      case 'openMeta':
+        return this.openMeta();
     }
   }
 
-  /** 이름 → 메타 메뉴 */
-  private backToMeta(): void {
-    if (this.phase !== 'name') return;
-    this.nameInput?.destroy();
-    this.nameInput = undefined;
-    this.input.keyboard?.enableGlobalCapture();
-    this.label.setText('');
-    this.phase = 'meta';
-    this.openMetaMenu();
+  private submitName(raw: string, redraw: boolean): boolean {
+    if (this.phase === 'name' && !redraw) {
+      this.playerName = cleanName(raw, NAME_MAX);
+      this.beginStrokes();
+      return true;
+    }
+    if (this.phase !== 'rewrite') return false;
+    this.playerName = cleanName(raw, NAME_MAX);
+    const N = NARRATIVE_STORY.nameSmudge;
+    this.smudgeResult = this.playerName === this.diary.lastName.trim() ? N.resultSame : N.resultChanged;
+    const remembered = redraw ? null : rememberedWeapon(this.diary, WEAPONS);
+    if (remembered) {
+      this.weaponId = remembered;
+      this.weaponSource = 'remembered';
+      this.scar = undefined;
+      this.decideFate();
+      return true;
+    }
+    // 덧쓰고 획을 다시 긋는다 (지난 생 기록이 없으면 획으로)
+    this.redrawing = true;
+    this.beginStrokes();
+    return true;
   }
 
-  /** 3획 → 이름 (그은 획은 버린다, 적어 둔 이름은 입력란에 남긴다) */
-  private backToName(): void {
-    if (this.phase !== 'strokes') return;
-    this.hideExamples();
-    this.strokeFx?.destroy();
-    this.strokeFx = undefined;
+  private beginStrokes(): void {
+    this.menu.close();
+    this.phase = 'strokes';
     this.strokes = [];
-    this.current = null;
-    this.phase = 'meta';
-    this.beginName();
-    const node = this.nameInput?.node as HTMLInputElement | undefined;
-    if (node) node.value = this.playerName;
+    this.changed();
   }
 
-  /** 런 시작 전: 영혼으로 영구 강화 구매, 도감 요약. Enter 로 개성 선택 시작 (임시 텍스트) */
-  private openMetaMenu(): void {
+  /** 한 획 판정 (UI 가 모은 점 — 논리 px). 3획째면 무기를 정하고 낙관 시간 뒤 회피 시험(첫 생) 또는 운명 */
+  private stroke(points: readonly UiRitualPoint[]): boolean {
+    if (this.phase !== 'strokes') return false;
+    const s: Stroke = points
+      .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.t))
+      .map((p) => ({ x: p.x, y: p.y, t: p.t }));
+    if (s.length < PERSONALITY.strokes.minPoints) return false;
+    this.strokes.push(s);
+    const index = this.strokes.length - 1;
+    const judged: UiRitualStrokeJudged = { index, weaponHint: leaningWeapon(this.strokes, WEAPONS, PERSONALITY) };
+    __system.emit(UI_EVENTS.RITUAL_STROKE_JUDGED, judged);
+    if (this.strokes.length >= PERSONALITY.strokes.count) this.seal();
+    else this.changed();
+    return true;
+  }
+
+  /** 3획 끝: 무기는 지금 3획만으로 (49라운드 2절) → 낙관 연출 시간 → 다음 단계 */
+  private seal(): void {
+    this.phase = 'seal';
+    const f = strokeFeatures(this.strokes, PERSONALITY);
+    this.weaponId = chooseWeapon(f, WEAPONS, PERSONALITY).id;
+    this.weaponSource = 'strokes';
+    this.scar = encodeScar(this.strokes, BACK.SCAR_RECT);
+    this.preloadLook();
+    this.changed();
+    this.time.delayedCall(RITUAL.SEAL_MS, () => {
+      if (this.phase !== 'seal') return;
+      if (this.firstLife && !this.redrawing) this.beginTrial();
+      else this.decideFate();
+    });
+  }
+
+  private preloadLook(): void {
+    const id = this.weaponId;
+    if (!id) return;
+    loadBaseLook(this, id, (key) => {
+      if (this.weaponId !== id) return;
+      this.lookKey = key;
+      if (this.phase === 'fate') this.changed();
+    });
+  }
+
+  /** 회피 시험 (첫 생): 탄생 전장을 세우고 카메라를 맞춘다 */
+  private beginTrial(): void {
+    if (this.runner || !this.scene.isActive()) return;
+    this.phase = 'trial';
+    const T = RITUAL_DATA.trial;
+    this.runner = new BirthTrialRunner(
+      this,
+      T,
+      () => this.changed(),
+      (hits) => this.onTrialDone(hits),
+    );
+    const c = this.runner.center;
+    this.cameras.main.setOrigin(0.5).setZoom(worldZoom(T.zoom)).centerOn(c.x, c.y);
+    this.runner.start(this.time.now);
+    this.changed();
+  }
+
+  private onTrialDone(hits: number): void {
+    if (this.trialHits !== null) return;
+    this.trialHits = hits;
+    this.changed();
+    this.time.delayedCall(RITUAL.TRIAL_RESULT_MS, () => this.decideFate());
+  }
+
+  private skipTrial(): boolean {
+    if (this.phase !== 'trial' || this.trialHits !== null) return false;
+    this.trialSkipped = true;
+    this.decideFate();
+    return true;
+  }
+
+  private next(): boolean {
+    if (this.phase === 'trial' && this.runner) return this.runner.skipCard(this.time.now);
+    if (this.phase === 'fate' && this.startData) {
+      this.fateTimer?.remove();
+      this.startGame();
+      return true;
+    }
+    return false;
+  }
+
+  /** Esc — 한 단계 앞으로: 3획 → 이름(덧쓰기) · 회피 시험 → 씬을 다시 열어 3획부터 */
+  private back(): boolean {
+    if (this.phase === 'strokes') {
+      this.strokes = [];
+      this.redrawing = false;
+      this.beginName();
+      return true;
+    }
+    if (this.phase === 'trial' && this.trialHits === null) {
+      this.scene.restart({ back: 'strokes', playerName: this.playerName, redrawing: this.redrawing });
+      return true;
+    }
+    return false;
+  }
+
+  /** 두 번째 생부터: 영혼 강화 (P0-3 — 첫 생에는 열지 않는다). 닫기 '0' → 덧쓰기 화면 */
+  private openMeta(): boolean {
+    if (this.phase !== 'rewrite' && this.phase !== 'meta') return false;
+    this.phase = 'meta';
     const meta = metaStore.read();
     const lines = META_CONFIG.upgrades.map((u, i) => {
       const lv = meta.upgrades[u.id] ?? 0;
@@ -279,427 +402,248 @@ export class Setup extends Phaser.Scene {
       const cost = maxed ? 0 : upgradeCost(u, lv);
       return {
         key: String(i + 1),
-        label: `${u.name}  Lv ${lv}/${u.maxLevel}${maxed ? '  MAX' : `  ${cost} 영혼`}`,
+        label: `${u.name}  Lv ${lv}/${u.maxLevel}${maxed ? '  MAX' : `  ${cost} ${STORY.names.souls}`}`,
         enabled: !maxed && meta.souls >= cost,
       };
     });
-    const codex = Object.entries(WEAPONS)
-      .map(([id, w]) => {
-        const c = meta.codex[id];
-        return c ? `${w.name} ★${c.maxStage} 처치 ${c.kills} 최고 ${c.bestFloor}층` : `${w.name} -`;
-      })
-      .join('  ·  ');
     this.menu.open(
       'meta',
-      `영혼 ${meta.souls}   (런 ${meta.runs}회, 클리어 ${meta.clears}회, 최고 ${meta.bestFloor}층)`,
+      `${RITUAL_DATA.meta.label} · ${STORY.names.souls} ${meta.souls}`,
       lines,
       (key) => {
-        const u = META_CONFIG.upgrades[Number(key) - 1];
-        const next = buyUpgrade(metaStore.read(), u.id);
-        if (next) {
-          metaStore.write(next);
-          this.openMetaMenu();
+        if (key === '0') {
+          this.menu.close();
+          this.phase = 'rewrite';
+          this.changed();
+          return;
         }
+        const u = META_CONFIG.upgrades[Number(key) - 1];
+        const bought = u ? buyUpgrade(metaStore.read(), u.id) : null;
+        if (bought) {
+          metaStore.write(bought);
+          invalidateMetaSummary();
+        }
+        this.openMeta();
       },
-      `도감: ${codex}\n\n[Enter] 일기장을 펼친다`,
+      '',
+      { cancelKey: '0' },
     );
-    if (!this.onEnter) {
-      this.onEnter = oncePerKeyEvent((e: KeyboardEvent) => {
-        if (e.key === 'Enter' && this.phase === 'meta') this.beginName();
-      });
-      this.input.keyboard?.on('keydown', this.onEnter);
-      this.events.once('shutdown', () => {
-        if (this.onEnter) this.input.keyboard?.off('keydown', this.onEnter);
-        this.onEnter = undefined;
-        this.menu.close();
-      });
+    this.changed();
+    return true;
+  }
+
+  /** 운명 공개 → 잠시 뒤(또는 ritual.next) Game (`senseBonus` 0~3 을 시작 데이터로, 49라운드 2절) */
+  private decideFate(): void {
+    if (this.phase === 'fate' || !this.scene.isActive()) return;
+    if (!this.weaponId) {
+      const f = strokeFeatures(this.strokes, PERSONALITY);
+      this.weaponId = chooseWeapon(f, WEAPONS, PERSONALITY).id;
     }
+    this.phase = 'fate';
+    this.runner?.forceEnd();
+    const id = this.weaponId;
+    const senseBonus =
+      this.trialHits !== null && !this.trialSkipped ? gradeHits(this.trialHits, RITUAL_DATA.trial).bonus : 0;
+    // 62 P0-1: UI 에 획 특징 수치를 보내지 않는다 (무기 이름·id 만)
+    __system.emit(UI_EVENTS.FATE_DECIDED, { weaponName: WEAPONS[id].name, weapon: id });
+    EventBus.emit(Events.FATE_DECIDED, { weapon: id });
+    // 61라운드 P7·P8: 일기장에 이 생을 적는다 (다시 태어난 수·이름)
+    const livesBefore = this.diary.lives;
+    updateDiary((d) => recordBirth(d, this.playerName));
+    firstSteps.begin(livesBefore);
+    this.startData = { mode: 'new', weapon: id, playerName: this.playerName, senseBonus };
+    if (!this.lookKey) this.preloadLook();
+    this.changed();
+    this.fateTimer = this.time.delayedCall(RITUAL.FATE_MS, () => this.startGame());
   }
 
-  /** 일기장 첫 장: 이름을 적는다. 비우면 '―' 로 기록된다 (26라운드) */
-  private beginName(): void {
-    if (this.phase !== 'meta') return; // 메뉴 선택과 keydown 이 둘 다 Enter 를 전달하므로 한 번만
-    this.menu.close();
-    this.phase = 'name';
-    this.label.setText(this.firstLife ? `${STORY.diary.first}\n\n이름을 적고 Enter` : this.smudgeIntro());
-    const kb = this.input.keyboard!;
-    kb.disableGlobalCapture();
-    this.nameInput = this.add
-      .dom(
-        GAME.WIDTH / 2,
-        GAME.HEIGHT / 2,
-        'input',
-        `width:${PLACEHOLDER_UI.NAME_INPUT_WIDTH}px;font:${PLACEHOLDER_UI.FONT_BODY};background:#101018;color:#e8e8f0;border:1px solid #777;padding:4px;text-align:center;outline:none`,
-      )
-      .setDepth(DEPTH.DEBUG);
-    const node = this.nameInput.node as HTMLInputElement;
-    node.maxLength = NAME_MAX;
-    node.placeholder = '이름';
-    node.id = 'lopad-name';
-    // 61라운드 P7: 두 번째 생부터 지난 이름을 미리 채운다 (Enter = 덧쓴다)
-    if (!this.firstLife && this.diary.lastName) node.value = this.diary.lastName;
-    node.addEventListener('keydown', (e) => {
-      e.stopPropagation();
-      if (e.key === 'Enter') this.finishName(node.value);
-      else if (e.key === 'Escape') this.backToMeta();
-    });
-    node.focus();
-    if (node.value) node.select();
-  }
-
-  /** 61라운드 P7: 두 번째 생 일기장 첫 장 (번진 이름 · 처음 돌아왔을 때 한 번 · 세 번째 생부터 겹 수 · 덧쓰기 안내) */
-  private smudgeIntro(): string {
-    const N = NARRATIVE_STORY.nameSmudge;
-    const lines: string[] = [];
-    if (this.diary.lives === 1) lines.push(N.returnFirst);
-    lines.push(N.diaryOpen);
-    if (this.diary.deaths >= 2) lines.push(fill(N.layers, { lives: koreanCount(this.diary.deaths) }));
-    return `${lines.join('\n')}\n\n${N.prompt}\n${NARRATIVE.ritual.namePrompt}`;
-  }
-
-  private finishName(raw: string): void {
-    if (this.phase !== 'name') return;
-    this.playerName = raw.trim().slice(0, NAME_MAX);
-    if (!this.firstLife) {
-      const N = NARRATIVE_STORY.nameSmudge;
-      this.smudgeResult = this.playerName === this.diary.lastName.trim() ? N.resultSame : N.resultChanged;
-    }
-    this.nameInput?.destroy();
-    this.nameInput = undefined;
-    this.input.keyboard?.enableGlobalCapture();
-    this.beginStrokes();
-  }
-
-  private beginStrokes(): void {
-    this.menu.close();
-    this.phase = 'strokes';
-    this.strokeFx = new StrokeFx(this);
-    this.updateLabel();
-    this.showExamples();
-  }
-
-  private showExamples(): void {
-    this.examples = new StrokeExamples(this);
-    this.examples.show();
-  }
-
-  private hideExamples(): void {
-    this.examples?.hide();
-    this.examples = undefined;
+  private startGame(): void {
+    const data = this.startData;
+    if (!data || !this.scene.isActive()) return;
+    gameState.queueScar(this.scar ?? null); // 다음 startRun(새 런)이 가져간다
+    this.scene.start(SCENES.GAME, data);
   }
 
   update(time: number, delta: number): void {
-    if (this.phase === 'strokes') {
-      this.examples?.draw(time);
-      this.strokeFx?.update(time);
-      return;
-    }
-    this.strokeFx?.update(time); // 마지막 획 섬광 → 타오름·스며듦 → 어둠이 걷힘 (시험 시작 뒤에도 잠깐)
     if (this.phase !== 'trial' || !this.runner) return;
     const mx = (this.keys.right.isDown ? 1 : 0) - (this.keys.left.isDown ? 1 : 0);
     const my = (this.keys.down.isDown ? 1 : 0) - (this.keys.up.isDown ? 1 : 0);
     const dash = this.dashQueued;
     this.dashQueued = false;
     this.runner.update(time, delta, { mx, my, dash });
-    if (!this.trialResult) this.hud?.update(this.runner.status());
   }
 
   private queueDash(): void {
     if (this.phase === 'trial') this.dashQueued = true;
   }
 
-  /** 52라운드: 포인터는 실제 캔버스 px(1920×1080) → 획 판정·연출은 논리 px(960×540) */
-  private onPointerDown(p: Phaser.Input.Pointer): void {
-    if (this.phase !== 'strokes') return;
-    const x = toLogical(p.x);
-    const y = toLogical(p.y);
-    this.current = [{ x, y, t: p.downTime }];
-    this.strokeFx?.begin(x, y, p.downTime);
+  // ─── 계약 상태 (§20 UiRitual) ───
+
+  /** 두 번째 생 첫 장 문장 (번진 이름 · 처음 돌아왔을 때 한 번 · 세 번째 생부터 겹 수 · 덧쓰기 안내) */
+  private smudgeLines(): string[] {
+    const N = NARRATIVE_STORY.nameSmudge;
+    const lines: string[] = [];
+    if (this.diary.lives === 1) lines.push(N.returnFirst);
+    lines.push(N.diaryOpen);
+    if (this.diary.deaths >= 2) lines.push(fill(N.layers, { lives: koreanCount(this.diary.deaths) }));
+    lines.push(N.prompt);
+    return lines;
   }
 
-  private onPointerMove(p: Phaser.Input.Pointer): void {
-    if (this.phase !== 'strokes' || !this.current || !p.isDown) return;
-    // 51라운드: 브라우저가 한 프레임에 묶은 중간 포인터 점도 연출에 넣는다 (빠른 곡선이 매끄럽게). 판정 점은 그대로
-    const ev = p.event as PointerEvent | undefined;
-    const merged = typeof ev?.getCoalescedEvents === 'function' ? ev.getCoalescedEvents() : [];
-    for (let k = 0; k < merged.length - 1; k++)
-      this.strokeFx?.move(
-        toLogical(this.scale.transformX(merged[k].pageX)),
-        toLogical(this.scale.transformY(merged[k].pageY)),
-        merged[k].timeStamp,
-      );
-    const x = toLogical(p.x);
-    const y = toLogical(p.y);
-    const last = this.current[this.current.length - 1];
-    if (Math.hypot(x - last.x, y - last.y) < 2) {
-      this.strokeFx?.move(x, y, p.moveTime);
-      return;
-    }
-    this.current.push({ x, y, t: p.moveTime });
-    this.strokeFx?.move(x, y, p.moveTime);
-  }
-
-  private onPointerUp(p: Phaser.Input.Pointer): void {
-    if (this.phase !== 'strokes' || !this.current) return;
-    const x = toLogical(p.x);
-    const y = toLogical(p.y);
-    this.current.push({ x, y, t: p.upTime });
-    this.strokeFx?.end(x, y, p.upTime);
-    if (this.current.length >= PERSONALITY.strokes.minPoints) this.strokes.push(this.current);
-    this.current = null;
-    this.updateLabel();
-    if (this.strokes.length >= PERSONALITY.strokes.count) this.beginSear();
-  }
-
-  /**
-   * 3획 완료: 무기는 이 순간 3획만으로 정해 둔다(49라운드 1절). 마지막 획의 섬광을 잠깐 보여 준 뒤 (53라운드 Q3)
-   * 획이 호박빛으로 타오름 → 살에 스며들어 균열 + 잔불 심 → 불티 → 검게 덮인 순간 회피 시험 시작 → 어둠이 걷힌다.
-   */
-  private beginSear(): void {
-    if (this.phase !== 'strokes') return;
-    this.hideExamples();
-    this.phase = 'sear';
-    this.decideWeapon();
-    this.time.delayedCall(STROKE_FX.HOLD_AFTER_LAST_MS, () => {
-      if (this.phase !== 'sear') return;
-      // 61라운드 P7: 두 번째 생부터 회피 시험은 선택 — 타오르는 동안 고른다
-      this.label.setText(
-        this.firstLife ? '' : fill(NARRATIVE.ritual.trialPrompt, { key: NARRATIVE.ritual.trialKey.toUpperCase() }),
-      );
-      const fx = this.strokeFx;
-      if (!fx) return this.afterSear();
-      fx.sear(
-        () => this.afterSear(),
-        () => {
-          if (this.strokeFx === fx) this.strokeFx = undefined;
-        },
-      );
-    });
-  }
-
-  /** 타오름이 검게 덮인 순간: 첫 생이거나 시험을 골랐으면 시험, 건너뛰면 운명, 아직이면 기다린다 */
-  private afterSear(): void {
-    if (this.phase !== 'sear') return;
-    if (this.firstLife || this.trialChoice === 'trial') return this.beginTrial();
-    if (this.trialChoice === 'skip') return this.decideFate();
-    this.searPeaked = true;
-  }
-
-  /** 61라운드 P7: 회피 시험 선택 키 (두 번째 생부터, 타오름 중) — T 치른다 · Enter 건너뛴다 */
-  private readonly onRitualKey = (e: KeyboardEvent): void => {
-    if (this.firstLife || this.phase !== 'sear' || this.trialChoice) return;
-    if (e.key === 'Enter') this.chooseTrial(false);
-    else if (e.key.toLowerCase() === NARRATIVE.ritual.trialKey.toLowerCase()) this.chooseTrial(true);
-  };
-
-  private chooseTrial(take: boolean): void {
-    if (this.trialChoice || this.phase !== 'sear') return;
-    this.trialChoice = take ? 'trial' : 'skip';
-    this.label.setText('');
-    if (this.searPeaked) this.afterSear();
-  }
-
-  /** 3획 특징 → 운명 무기 (회피 시험과 무관) + 상흔 저장 형식 (53라운드 Q4 준비) */
-  private decideWeapon(): void {
-    const f = strokeFeatures(this.strokes, PERSONALITY);
-    this.features = f;
-    this.weaponId = chooseWeapon(f, WEAPONS, PERSONALITY).id;
-    this.scar = encodeScar(this.strokes, BACK.SCAR_RECT);
-  }
-
-  private updateLabel(): void {
-    if (this.phase === 'strokes') {
-      const head = this.smudgeResult && this.strokes.length === 0 ? `${this.smudgeResult}\n\n` : '';
-      this.label.setText(
-        `${head}${STORY.diary.beforeFate}  (${this.strokes.length}/${PERSONALITY.strokes.count})\n마우스를 누른 채 긋고 떼면 한 획`,
-      );
+  private ritual(): UiRitual {
+    const R = RITUAL_DATA;
+    const base: UiRitual = { phase: null, lives: this.diary.lives };
+    switch (this.phase) {
+      case 'choice':
+        return base;
+      case 'name':
+        return {
+          ...base,
+          phase: 'name',
+          lines: [R.lines.name],
+          name: { value: this.playerName, maxLen: NAME_MAX },
+          hint: R.hints.name,
+        };
+      case 'rewrite':
+      case 'meta': {
+        const corner = metaCorner(metaStore.read(), META_CONFIG);
+        return {
+          ...base,
+          phase: 'rewrite',
+          lines: this.smudgeLines(),
+          name: { value: this.playerName || this.diary.lastName, lastName: this.diary.lastName, maxLen: NAME_MAX },
+          redraw: { ...R.redraw },
+          meta: { ...corner, label: R.meta.label, key: R.meta.key },
+          hint: fill(R.hints.rewrite, { redrawKey: R.redraw.key }),
+        };
+      }
+      case 'strokes':
+      case 'seal':
+        return {
+          ...base,
+          phase: 'strokes',
+          lines: [...(this.smudgeResult ? [this.smudgeResult] : []), R.lines.strokes],
+          strokes: {
+            done: this.strokes.length,
+            total: 3,
+            lastWeapon: this.phase === 'seal' ? this.weaponId : undefined,
+            legend: legendOf(R, WEAPONS),
+          },
+          hint: R.hints.strokes,
+        };
+      case 'trial': {
+        const st = this.runner?.status();
+        return {
+          ...base,
+          phase: 'trial',
+          lines: [st?.state === 'clear' || st?.state === 'done' ? R.lines.trialEnd : R.lines.trialIntro],
+          trial: {
+            tasks: R.trial.tasks.map((t, i) => {
+              const r = st?.tasks[i];
+              return {
+                id: t.id,
+                label: t.label,
+                done: Boolean(r?.done),
+                ...(t.verb ? { verb: t.verb } : {}),
+                ...(r?.done ? { clean: r.hits === 0 } : {}),
+              };
+            }),
+            skippable: true,
+            current: st ? R.trial.tasks[Math.min(st.index, R.trial.tasks.length - 1)].id : undefined,
+            state: st?.state ?? 'card',
+          },
+          hint: `${R.hints.trial} · ${R.hints.trialSkip}`,
+        };
+      }
+      case 'fate': {
+        const id = this.weaponId!;
+        const gift =
+          this.trialHits !== null && !this.trialSkipped
+            ? R.gift[gradeHits(this.trialHits, R.trial).grade]
+            : this.firstLife && !this.redrawing
+              ? R.gift.skipped
+              : undefined;
+        return {
+          ...base,
+          phase: 'fate',
+          lines: [this.playerName || '―'],
+          fate: {
+            weapon: id,
+            weaponName: WEAPONS[id].name,
+            line: voiceLine(id, 'pickup'),
+            ...(this.lookKey ? { lookKey: this.lookKey } : {}),
+            why: whyOf(R, id, this.weaponSource),
+            ...(gift ? { gift } : {}),
+            ...(this.weaponSource === 'remembered' ? { remembered: true } : {}),
+          },
+          hint: R.hints.fate,
+        };
+      }
     }
   }
 
-  /**
-   * 회피 시험 시작: 메인 카메라 = 경기장 중심 2배 확대(게임 카메라와 같은 배율), 글자(라벨·카드)는 확대 없는 UI 카메라에만.
-   * 이후 씬에 추가되는 오브젝트(투사체·예고·이펙트)는 UI 카메라에서 숨긴다.
-   */
-  private beginTrial(): void {
-    if (this.runner || !this.scene.isActive() || (this.phase !== 'sear' && this.phase !== 'trial')) return;
-    this.phase = 'trial';
-    const main = this.cameras.main;
-    this.hud = new TrialHud(this, this.label);
-    this.uiOnly = [this.label, ...this.hud.objects];
-    // 52라운드: UI 카메라 = 논리 카메라(캔버스 전체, 960×540 좌표), 시험 카메라 = 월드 카메라(원점 가운데·논리 배율 × RESOLUTION)
-    this.uiCam = makeLogicalCamera(this.cameras.add(0, 0, CANVAS_W, CANVAS_H).setName('setup-ui'));
-    this.uiCam.ignore(this.children.list.filter((c) => !this.uiOnly.includes(c)));
-    main.ignore(this.uiOnly);
-    this.events.on(Phaser.Scenes.Events.ADDED_TO_SCENE, this.hideFromUiCam, this);
-    main.setOrigin(0.5).setZoom(worldZoom(DODGE_TRIAL.ZOOM));
-    main.centerOn(GAME.WIDTH / 2, GAME.HEIGHT / 2 - DODGE_TRIAL.ARENA.OFFSET_Y_PX);
-    this.startRunner();
-  }
+  // ─── 디버그 ───
 
-  private startRunner(): void {
-    this.runner = new DodgeTrialRunner(this, (r) => this.onTrialDone(r), { shape: this.forcedShape });
-    this.runner.start(this.time.now);
-    this.hud?.update(this.runner.status());
-  }
-
-  private hideFromUiCam(go: Phaser.GameObjects.GameObject): void {
-    if (!this.uiOnly.includes(go)) this.uiCam?.ignore(go);
-  }
-
-  /** 시험 끝: 과제별 결과 한 줄씩 + 등급·시작 감각 보상(자리표시 문구) → 잠시 뒤 운명 */
-  private onTrialDone(results: TaskResult[]): void {
-    if (this.trialResult) return;
-    const r = gradeTrial(results);
-    this.trialResult = r;
-    this.hud?.showResult(r);
-    this.time.delayedCall(DODGE_TRIAL.RESULT_MS, () => this.decideFate());
-  }
-
-  /** 디버그 강제 결과 → 과제 결과 목록 */
-  private forcedResults(arg: TrialForce): TaskResult[] {
-    if (typeof arg === 'string') return presetResults(arg);
-    return TASK_IDS.map((id, i) => ({ ...emptyTaskResult(id), ...(arg[i] ?? {}), id }));
-  }
-
-  /** 검증 훅 (?debug=1): 단계·획 연출·회피 시험 상태 + 자동 입력. 게임 로직이 아니다 */
+  /** 검증 훅 (?debug=1): 단계·의식 상태·회피 시험 + 자동 입력. 게임 로직이 아니다 */
   private exposeDebug(): void {
     if (typeof location === 'undefined' || !new URLSearchParams(location.search).has('debug')) return;
     const api = Object.assign(
       () => ({
         phase: this.phase,
+        overlay: this.overlayKey,
+        ritual: this.ritual(),
         strokes: this.strokes.length,
-        strokeFx: this.strokeFx?.summary() ?? null,
         trial: this.runner?.snapshot() ?? null,
-        camera: { zoom: this.cameras.main.zoom, uiCam: Boolean(this.uiCam) },
-        result: this.trialResult ?? null,
-        senseBonus: this.trialResult?.bonus ?? null,
-        forcedShape: this.forcedShape ?? null,
+        trialHits: this.trialHits,
+        trialSkipped: this.trialSkipped,
+        camera: { zoom: this.cameras.main.zoom },
         startData: this.startData ?? null,
-        features: this.features ?? null,
         weapon: this.weaponId ?? null,
+        weaponSource: this.weaponSource,
         scar: this.scar ?? null,
-        ritual: {
-          firstLife: this.firstLife,
-          trialChoice: this.trialChoice,
-          smudgeResult: this.smudgeResult,
-          diary: this.diary,
-        },
+        firstLife: this.firstLife,
+        diary: this.diary,
       }),
       {
-        /** 61라운드 P7: 회피 시험 고르기 (두 번째 생부터, 타오름 중) — true 치른다 · false 건너뛴다 */
-        chooseTrial: (take = false) => {
-          this.chooseTrial(take);
-          return this.trialChoice;
-        },
-        /** 메타·이름 단계를 건너뛰고 획 단계로 */
+        /** 계약 스냅샷 (UI 가 보는 것 — ritual · meta) */
+        snapshot: () => uiCommands.getUiSnapshot(),
+        /** 계약 명령 그대로 (UI 와 같은 길) */
+        command: (c: UiRitualCommand) => this.command(c),
+        /** 이름 단계를 건너뛰고 획 단계로 (첫 생 이름 · 두 번째 생은 redraw) */
         skipToStrokes: (name = 'debug') => {
-          if (this.phase === 'meta') this.beginName();
-          if (this.phase === 'name') this.finishName(name);
+          if (this.phase === 'choice') this.beginName();
+          if (this.phase === 'name') this.submitName(name, false);
+          else if (this.phase === 'rewrite') this.submitName(name, true);
           return this.phase;
         },
-        /** 3획 자동 입력 (같은 포인터 처리 경로, 프레임 간격으로 그린다). preset: fast · slow · round */
+        /** 3획 자동 입력 (계약 ritual.stroke 와 같은 길). preset: fast · slow · round */
         autoStrokes: (preset: AutoPreset = 'fast') => {
           if (this.phase !== 'strokes') return false;
-          scheduleAutoStrokes(this, preset, {
-            down: (p) => this.onPointerDown(p),
-            move: (p) => this.onPointerMove(p),
-            up: (p) => this.onPointerUp(p),
-          });
+          for (const s of autoStrokePoints(preset)) this.stroke(s);
           return true;
         },
-        /**
-         * 회피 시험 즉시 종료 + 강제 등급: 'S'|'A'|'B'|'C'(감각 +3/+2/+1/+0) · 'fell'(한 과제 떨어짐) 또는 과제 결과 일부 목록.
-         * 타오름·스며듦 중이면 기다리지 않고 바로 시험을 열어 끝낸다. (`trialForceGrade` 와 같다)
-         */
-        skipTrial: (arg: TrialForce = 'S') => this.debugForce(arg),
-        trialForceGrade: (arg: TrialForce = 'S') => this.debugForce(arg),
-        /** 지금 과제를 바로 끝낸다 (결과 덮어쓰기: { hits, fell }) → 결과 한 줄 → 다음 과제 */
-        trialSkipTask: (over: Partial<TaskResult> = {}) => this.ensureRunner()?.skipTask(over) ?? false,
-        /** 특정 과제부터 (1~5 또는 'lines'|'ring'|'homing'|'wall'|'mix'). 앞 과제는 건너뜀(무피격으로 침) */
-        trialStartTask: (n: number | TaskId = 1) => {
-          const idx = typeof n === 'number' ? n - 1 : TASK_IDS.indexOf(n);
-          return this.ensureRunner()?.startTask(idx) ?? false;
-        },
-        /** 경기장 모양 고정 ('circle'|'ellipse'|'polygon'|'islands', 없으면 과제별 무작위). 시험 중이면 첫 과제부터 다시 */
-        trialShape: (shape?: ArenaShape) => {
-          if (shape && !ARENA_SHAPES.includes(shape)) return false;
-          this.forcedShape = shape;
-          if (this.runner && !this.trialResult) {
-            this.runner.destroy();
-            this.startRunner();
-          }
+        /** 회피 시험을 바로 끝낸다 — 과제마다 hitsEach 대 맞은 것으로 (기본 0 = S) */
+        skipTrial: (hitsEach = 0) => {
+          if (this.phase === 'seal') this.beginTrial();
+          if (!this.runner || this.trialHits !== null) return false;
+          this.runner.forceEnd(hitsEach);
           return true;
         },
-        /** 타오름·스며듦 시계를 ms 에 멈춤 (null = 풀기). 3획 전에 걸어 둘 수 있다 (스크린샷용) */
-        holdSear: (ms: number | null = null) => {
-          if (!this.strokeFx) return false;
-          this.strokeFx.holdSear(ms);
-          return true;
-        },
-        /** 카드·정비면 바로 과제 시작, 과제 중이면 과제 시계를 ms 앞당김 (갉아먹힘·예약) */
-        trialWarp: (ms = 2000) => {
-          if (!this.runner) return false;
-          this.runner.warp(ms);
-          return true;
-        },
-        /** 무적 (맞지 않고 떨어지지 않음, 스크린샷용) */
+        /** 지금 과제를 바로 끝낸다 (hits 를 주면 그 수로) */
+        trialSkipTask: (hits?: number) => this.runner?.skipTask(this.time.now, hits) ?? false,
+        /** 무적 (스크린샷용) */
         trialGod: (on = true) => {
           if (!this.runner) return false;
           this.runner.god = on;
           return true;
         },
+        /** 운명 공개 시계 멈춤 (스크린샷용) */
+        holdFate: () => {
+          this.fateTimer?.remove();
+          return this.phase === 'fate';
+        },
       },
     );
     (window as unknown as { __lopadSetup: unknown }).__lopadSetup = api;
-  }
-
-  /** 시험 단계가 아직 안 열렸으면(타오름·스며듦 중) 바로 연다 */
-  private ensureRunner(): DodgeTrialRunner | undefined {
-    if (this.phase !== 'trial' && this.phase !== 'sear') return undefined;
-    if (!this.runner) this.beginTrial();
-    return this.runner;
-  }
-
-  private debugForce(arg: TrialForce): boolean {
-    const runner = this.ensureRunner();
-    if (!runner || this.trialResult) return false;
-    runner.forceEnd(this.forcedResults(arg));
-    return true;
-  }
-
-  /** 운명 문구 + 시작 감각 보상 → Game (`senseBonus` 0~3 을 시작 데이터로, 49라운드 2절) */
-  private decideFate(): void {
-    if (this.phase === 'fate') return;
-    this.phase = 'fate';
-    this.runner?.dim();
-    this.hud?.hideCard();
-    if (!this.weaponId || !this.features) this.decideWeapon();
-    const f = this.features!;
-    const id = this.weaponId!;
-    const skipped = this.trialChoice === 'skip' && !this.trialResult;
-    const r = this.trialResult ?? gradeTrial([]);
-    const senseBonus = skipped ? 0 : r.bonus;
-    const w = WEAPONS[id];
-    __system.emit(UI_EVENTS.FATE_DECIDED, { weaponName: w.name, features: f });
-    EventBus.emit(Events.FATE_DECIDED, { weapon: id });
-    // 61라운드 P7·P8: 일기장에 이 생을 적는다 (다시 태어난 수·이름) → 무기 한마디 '첫 집어 듦' (운명 자막 바로 뒤)
-    updateDiary((d) => recordBirth(d, this.playerName));
-    const voice = voiceLine(id, 'pickup');
-    if (voice) __system.emit(UI_EVENTS.STORY, { kind: 'voice', text: voice, weapon: id });
-    const trialLine = skipped ? NARRATIVE.ritual.trialSkipped : `시작 감각 +${senseBonus}  (시험 등급 ${r.grade})`;
-    this.label.setText(
-      `${this.playerName || '―'}\n\n${fill(STORY.diary.fate, { weapon: w.name })}${voice ? `\n“${voice}”` : ''}\n${trialLine}\n\n(획 길이 ${f.strokeLength.toFixed(2)} 속도 ${f.strokeSpeed.toFixed(2)} 직선 ${f.straightness.toFixed(2)})`,
-    );
-    const data = { mode: 'new' as const, weapon: id, playerName: this.playerName, senseBonus };
-    this.startData = data;
-    this.time.delayedCall(PROTOTYPE.FATE_BANNER_MS, () => {
-      gameState.queueScar(this.scar ?? null); // 다음 startRun(새 런)이 가져간다
-      this.scene.start(SCENES.GAME, data);
-    });
-  }
-
-  /** 디버그/테스트용 */
-  get debugFeatures(): StrokeFeatures | undefined {
-    return this.features;
   }
 }

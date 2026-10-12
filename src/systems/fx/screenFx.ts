@@ -24,6 +24,31 @@ export interface ScreenFxSummary {
   desaturation: number;
   mode: 'postfx' | 'blend';
   hitStopped: boolean;
+  /** 62 P2-13 가장자리 섬광 횟수 · 지금 알파 */
+  edgeCount: number;
+  edge: number;
+}
+
+const EDGE_TEX = 'screen_edge_glow';
+const EDGE_W = 480;
+const EDGE_H = 270;
+
+/** 가운데 투명 → 가장자리 흰빛 타원 그라데이션 (FEEL.SCREEN.EDGE.INNER 부터 차오름) */
+function ensureEdgeTexture(scene: Phaser.Scene): void {
+  if (scene.textures.exists(EDGE_TEX)) return;
+  const tex = scene.textures.createCanvas(EDGE_TEX, EDGE_W, EDGE_H)!;
+  const ctx = tex.context;
+  const cx = EDGE_W / 2;
+  const cy = EDGE_H / 2;
+  const r = Math.hypot(cx, cy);
+  const g = ctx.createRadialGradient(cx, cy, r * FEEL.SCREEN.EDGE.INNER, cx, cy, r);
+  g.addColorStop(0, 'rgba(255,255,255,0)');
+  g.addColorStop(0.6, 'rgba(255,255,255,0.45)');
+  g.addColorStop(1, 'rgba(255,255,255,1)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, EDGE_W, EDGE_H);
+  tex.refresh();
+  tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
 }
 
 export class ScreenFx {
@@ -41,6 +66,10 @@ export class ScreenFx {
   private deathRect: Phaser.GameObjects.Rectangle | null = null;
   private flashCount = 0;
   private lastFlash: { color: number; alpha: number; ms: number } | null = null;
+  /** 62라운드 P2-13 가장자리 섬광 (완벽 회피·패링 — 화면 가운데는 비우고 테두리만 빛남) */
+  private edgeImg: Phaser.GameObjects.Image | null = null;
+  private edgeState: { alpha0: number; start: number; ms: number } | null = null;
+  private edgeCount = 0;
 
   constructor(private readonly scene: Phaser.Scene) {
     this.webgl = scene.sys.game.renderer.type === Phaser.WEBGL;
@@ -63,6 +92,34 @@ export class ScreenFx {
     this.flashRect.setFillStyle(color, 1).setAlpha(alpha).setVisible(true);
     this.flashCount += 1;
     this.lastFlash = { color, alpha, ms };
+  }
+
+  /**
+   * 62라운드 P2-13: 가장자리 섬광 — 가운데가 빈 테두리 빛(더하기 혼합)을 alpha 에서 0 으로 ms 동안. 플레이를 가리지 않는 '무피격' 보상
+   * (하데스 완벽 회피·데드셀 패링의 화면 테두리 번쩍임). 카메라 배율을 되돌려 화면을 정확히 덮는다
+   */
+  edge(color: number, ms: number, alpha: number): void {
+    if (!feelSettings.flash || ms <= 0 || alpha <= 0) return;
+    const cam = this.scene.cameras.main;
+    let img = this.edgeImg;
+    if (!img) {
+      ensureEdgeTexture(this.scene);
+      img = this.scene.add
+        .image(cam.width / 2, cam.height / 2, EDGE_TEX)
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(DEPTH.SCREEN_FX - 1)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      this.edgeImg = img;
+    }
+    const z = cam.zoom || 1;
+    img
+      .setScale(cam.width / (EDGE_W * z), cam.height / (EDGE_H * z))
+      .setTint(color)
+      .setAlpha(alpha)
+      .setVisible(true);
+    this.edgeState = { alpha0: alpha, start: this.scene.time.now, ms };
+    this.edgeCount += 1;
   }
 
   crit(): void {
@@ -102,6 +159,14 @@ export class ScreenFx {
 
   /** 매 프레임: 섬광 감쇠 · 채도 감소 합산 적용 */
   update(time: number): void {
+    const e = this.edgeState;
+    if (e && this.edgeImg) {
+      const a = flashAlphaAt(e.alpha0, e.ms, time - e.start);
+      if (a <= 0) {
+        this.edgeState = null;
+        this.edgeImg.setVisible(false);
+      } else this.edgeImg.setAlpha(a);
+    }
     const f = this.flashState;
     if (f) {
       const a = flashAlphaAt(f.alpha0, f.ms, time - f.start);
@@ -131,11 +196,16 @@ export class ScreenFx {
       desaturation: this.applied,
       mode: this.webgl ? 'postfx' : 'blend',
       hitStopped: this.hitStopped,
+      edgeCount: this.edgeCount,
+      edge: this.edgeState && this.edgeImg ? +this.edgeImg.alpha.toFixed(3) : 0,
     };
   }
 
   destroy(): void {
     this.flashRect.destroy();
+    this.edgeImg?.destroy();
+    this.edgeImg = null;
+    this.edgeState = null;
     this.deathRect?.destroy();
     this.deathRect = null;
     this.grayRect?.destroy();

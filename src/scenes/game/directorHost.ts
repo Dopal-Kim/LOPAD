@@ -10,10 +10,13 @@ import { UI_EVENTS, __system, type UiEnemyIntro } from '../../contract/ui';
 import { enemyIntro } from '../../systems/enemyIntro';
 import type { Enemy } from '../../objects/Enemy';
 import type { Game } from '../Game';
+import { SpawnMarks } from './SpawnMarks';
 
 export function createDirector(g: Game): RoomDirector {
   // 61라운드 P3: 잔 구간 전투는 그 단의 웨이브 (버려진 길은 노드 종류 웨이브)
   const waves = g.node ? nodeWaves(gameState.stageId, g.node) : undefined;
+  // 62 P0-8: 적 등장 예고 문양 (씬 종료 때 스스로 정리)
+  const marks = new SpawnMarks(g);
   return new RoomDirector({
     world: g.world,
     stage: gameState.stage,
@@ -34,6 +37,7 @@ export function createDirector(g: Game): RoomDirector {
     waves,
     holdTrial: (room) => g.bundle?.holdTrial(room) ?? false,
     extraWaves: () => g.bundle?.extraWaves() ?? 0,
+    spawnMarks: (points, ms) => marks.show(points, ms),
     onWaveSpawned: (room, index, total, enemies) => {
       g.bundle?.onWaveSpawned(room, index, total, enemies);
       introduceNewcomers(enemies);

@@ -200,12 +200,13 @@ export class GameCombat {
       if (mob.damageTakenMult < 1 && !opts.tick) g.bundle?.elites.onArmorBlock(mob);
     }
     if (mob.elite && opts.heavy && !opts.tick) g.bundle?.elites.onHeavyHit(mob);
-    const died = mob.takeDamage(dmg, { crit: opts.crit, tick: opts.tick });
+    const died = mob.takeDamage(dmg, { crit: opts.crit, tick: opts.tick, dirX: nx, dirY: ny, heavy: opts.heavy });
     if (opts.tick) {
       g.numbers.show(hitX, hitY, dmg, 'tick');
       return died;
     }
-    g.numbers.show(hitX, hitY, dmg, opts.crit ? 'crit' : 'hit');
+    // 62 P1-1: 숫자 등급 — 치명 > 막타 > 일반
+    g.numbers.show(hitX, hitY, dmg, opts.crit ? 'crit' : opts.heavy ? 'heavy' : 'hit');
     const weapon = gameState.weapon;
     const feel = weapon.def.feel;
     const heavy = Boolean(opts.heavy) || opts.crit;
@@ -232,7 +233,10 @@ export class GameCombat {
         );
     g.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
     if (opts.crit && !opts.noImpactFx) g.screenFx.crit();
-    g.hitStop.request(now, weaponHitstopMs(feel, heavy));
+    // 62 P1-1: 처치 타는 히트스톱을 더 길게 (일반 적 — 보스 처치는 BossFlow 연출)
+    const stopMs = weaponHitstopMs(feel, heavy) * (died && !isBoss ? FEEL.KILL.HITSTOP_MULT : 1);
+    g.hitStop.request(now, stopMs, died && !isBoss);
+    if (!died) mob.flinch(nx, g.hitStop.remaining(now), heavy);
     if (shakesOnHit(feel, heavy)) {
       const sh = hitShake(sheet ? g.fx.sheet(sheet) : null);
       g.shake.add(now, sh.px, sh.ms, { x: sx, y: sy });

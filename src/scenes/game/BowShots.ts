@@ -8,9 +8,10 @@
  * 적중형 겹침(필중 crit_burst)은 기존 치명 연출이 맡는다.
  */
 import Phaser from 'phaser';
-import { DEPTH, TILE } from '../../core/Constants';
+import { BOW_AIM, DEPTH, TILE } from '../../core/Constants';
 import type { PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
+import type { Mob } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
 import {
   aimLineFxId,
@@ -54,6 +55,8 @@ export class BowShots {
   /** 디버그: 마지막 발사 (시트·갈래·변형·저격) · 마지막 적중 배율 */
   debugLastShot: unknown = null;
   debugLastHit: unknown = null;
+  /** 디버그: 62 P1-3 근접 명중 보장으로 맞힌 수 */
+  pointBlankHits = 0;
   private lastShotAt = -Infinity;
   private rapidCount = 0;
   private readonly snipes = new Map<Projectile, SnipeShot>();
@@ -174,6 +177,11 @@ export class BowShots {
     const so = this.spawnOffset(p.dirX, p.dirY);
     const ax = p.x + (so ? so.x : p.dirX * reach);
     const ay = p.y + (so ? so.y : p.dirY * reach);
+    // 62 P1-3 바닥 기준 판정: 활 높이(anchor 의 발 위 높이)만큼 그림을 띄우고, 판정 궤적은 바닥(gy)에서 출발한다
+    const lift = so ? Math.max(0, -so.y) : 0;
+    const gy = ay + lift;
+    const range = speed * ((R.projectileLifeMs * bb.lifeMult) / 1000);
+    const aimAngle = this.cursorTarget(p, ax, gy) ?? this.assistAngle(base, ax, gy, range);
     // 속사: 발사 섬광 (화살이 생기는 점 = arrow_spawn, 1회 재생 — 간격이 짧으면 처음부터 다시)
     // 56라운드 Q9: 완벽 놓기 섬광 (화살이 생기는 점, 발사 각도)
     const perfectFx = perfectReleaseFxId(weapon.id);
@@ -186,16 +194,17 @@ export class BowShots {
     const muzzle = this.first ? muzzleFxId(weapon.id, this.first) : null;
     if (muzzle && g.fx.has(muzzle)) g.fx.play(muzzle, ax, ay, { angle: base, depth: DEPTH.PROJECTILE + 0.01 });
     const n = Math.max(1, spread.count);
+    const launched: Projectile[] = [];
     for (let i = 0; i < n; i++) {
       const t = n === 1 ? 0 : i / (n - 1) - 0.5;
-      const a = base + Phaser.Math.DegToRad(spread.spreadDeg) * t;
+      const a = aimAngle + Phaser.Math.DegToRad(spread.spreadDeg) * t;
       const dx = Math.cos(a);
       const dy = Math.sin(a);
       const shot = g.playerShots.get() as Projectile | null;
       if (!shot) return;
       this.dropSnipe(shot);
       const sx = so ? ax : p.x + dx * reach;
-      const sy = so ? ay : p.y + dy * reach;
+      const sy = so ? gy : p.y + dy * reach;
       shot.launch(
         sx,
         sy,
@@ -205,10 +214,11 @@ export class BowShots {
         now,
         'player',
         pierce,
-        { texture: texture ?? undefined, rotate: true, anim, ...origin },
+        { texture: texture ?? undefined, rotate: true, anim, ...origin, liftPx: lift },
       );
       shot.crit = crit;
       shot.heavy = isHeavyStrike(p);
+      launched.push(shot);
       g.build.onArrowSpawn(shot, p);
       if (weak && !weakSheet && D) shot.setTint(D.weakArrowTint);
       this.attachLight(shot, def);
@@ -244,8 +254,12 @@ export class BowShots {
         this.updateTail(shot, entry);
       }
     }
+    // 62 P1-3: 활과 화살이 생기는 점 사이(바로 앞)에 붙어 선 적은 쏘는 순간 맞는다
+    this.pointBlank(launched, p.x, p.y, ax, gy, size);
     this.debugLastShot = {
       time: now,
+      lift,
+      assistDeg: +Phaser.Math.RadToDeg(aimAngle - base).toFixed(1),
       aimed,
       sheet: arrow.id,
       power: p.bowPower ?? null,
@@ -273,9 +287,81 @@ export class BowShots {
     this.lights.set(shot, reg.add(def.light, { x: shot.x, y: shot.y, anchor: shot, dx: 0, dy: 0 }));
   }
 
+  /**
+   * 62라운드 P1-3 '커서 아래 바닥 + 대상 몸통 높이': 커서가 적 그림(발 ~ 머리, 몸 폭 + 여유) 위에 있으면 그 적의 몸통 바닥 중심으로
+   * 바로 조준한다 (머리를 가리키든 발을 가리키든 맞는다). 없으면 null
+   */
+  private cursorTarget(p: PlayerAttackPayload, x: number, y: number): number | null {
+    if (p.aimX === undefined || p.aimY === undefined) return null;
+    const pad = BOW_AIM.CURSOR_PAD_PX;
+    let best: Mob | null = null;
+    let bestD = Infinity;
+    for (const child of this.g.mobs.getChildren()) {
+      const m = child as Mob;
+      if (!m.active || m.isImmune(this.g.time.now)) continue;
+      const b = m.body;
+      const top = m.y - m.visual.headTopPx - pad;
+      if (p.aimX < b.x - pad || p.aimX > b.right + pad || p.aimY < top || p.aimY > b.bottom + pad) continue;
+      const d = Math.abs(p.aimX - b.center.x) + Math.abs(p.aimY - (m.y - m.visual.headTopPx / 2));
+      if (d < bestD) {
+        bestD = d;
+        best = m;
+      }
+    }
+    if (!best) return null;
+    const c = best.body.center;
+    return Math.atan2(c.y - y, c.x - x);
+  }
+
+  /**
+   * 62라운드 P1-3 약한 조준 보정 (엔터 더 건전·세피리아식): 바닥 출발점에서 사거리 안, 조준 방향 BOW_AIM.ASSIST_DEG 안에 있는 적 중
+   * 각도가 가장 가까운 적의 몸통 바닥 중심으로 방향을 돌린다. 없으면 그대로
+   */
+  private assistAngle(base: number, x: number, y: number, range: number): number {
+    const max = Phaser.Math.DegToRad(BOW_AIM.ASSIST_DEG);
+    let best = base;
+    let bestDiff = max;
+    for (const child of this.g.mobs.getChildren()) {
+      const m = child as Mob;
+      if (!m.active || m.isImmune(this.g.time.now)) continue;
+      const c = m.body.center;
+      const d = Math.hypot(c.x - x, c.y - y);
+      if (d < 1 || d > range) continue;
+      const a = Math.atan2(c.y - y, c.x - x);
+      const diff = Math.abs(Phaser.Math.Angle.Wrap(a - base));
+      if (diff <= bestDiff) {
+        bestDiff = diff;
+        best = a;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * 62라운드 P1-3 근접 명중 보장: 주인공 발(px,py) → 화살 바닥 출발점(sx,sy) 선분에 몸이 걸친 적은 쏘는 순간 화살들이 맞힌다
+   * (화살이 적 몸 안쪽에서 생겨 겹침을 놓치던 것). 관통이 없으면 첫 적에서 멈춘다
+   */
+  private pointBlank(shots: readonly Projectile[], px: number, py: number, sx: number, sy: number, size: number): void {
+    const g = this.g;
+    const seg = new Phaser.Geom.Line(px, py, sx, sy);
+    const pad = size / 2 + BOW_AIM.POINT_BLANK_PAD_PX;
+    const near: Mob[] = [];
+    for (const child of g.mobs.getChildren()) {
+      const m = child as Mob;
+      if (!m.active) continue;
+      const b = m.body;
+      const r = new Phaser.Geom.Rectangle(b.x - pad, b.y - pad, b.width + pad * 2, b.height + pad * 2);
+      if (Phaser.Geom.Intersects.LineToRectangle(seg, r) || r.contains(sx, sy)) near.push(m);
+    }
+    if (near.length === 0) return;
+    near.sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py));
+    for (const shot of shots) for (const m of near) if (shot.active && m.active) g.combat.onPlayerShotHit(shot, m);
+    this.pointBlankHits += near.length;
+  }
+
   /** 저격 꼬리: 단계가 바뀌면 시트만 교체 (같은 피벗, 화살 아래 깊이) */
   private updateTail(shot: Projectile, e: SnipeShot): void {
-    const lv = snipeLevel(Math.hypot(shot.x - e.ox, shot.y - e.oy), e.rangePx, e.bounds);
+    const lv = snipeLevel(Math.hypot(shot.groundX - e.ox, shot.groundY - e.oy), e.rangePx, e.bounds);
     if (lv === e.level) return;
     e.level = lv;
     const fx = this.g.fx;
@@ -303,7 +389,7 @@ export class BowShots {
   hitMods(shot: Projectile): { attack: number; crit: boolean } {
     const e = this.snipes.get(shot);
     if (!e) return { attack: shot.attack, crit: shot.crit };
-    const lv = snipeLevel(Math.hypot(shot.x - e.ox, shot.y - e.oy), e.rangePx, e.bounds);
+    const lv = snipeLevel(Math.hypot(shot.groundX - e.ox, shot.groundY - e.oy), e.rangePx, e.bounds);
     const forced = e.critFromLevel !== undefined && lv >= e.critFromLevel && !shot.crit;
     const crit = shot.crit || forced;
     const attack = Math.max(1, Math.round((forced ? e.critAttack : shot.attack) * levelMult(e.mults, lv)));
@@ -317,8 +403,8 @@ export class BowShots {
     for (const child of g.playerShots.getChildren()) {
       const shot = child as Projectile;
       if (!shot.active || shot.homingTurn <= 0) continue;
-      const target = g.combat.nearestMob(shot.x, shot.y, Infinity);
-      if (target) shot.steerToward(target.x, target.y, delta);
+      const target = g.combat.nearestMob(shot.groundX, shot.groundY, Infinity);
+      if (target) shot.steerToward(target.body.center.x, target.body.center.y, delta);
     }
     for (const [shot, e] of this.snipes) {
       if (!shot.active) {

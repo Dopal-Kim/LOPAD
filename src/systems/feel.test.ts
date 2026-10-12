@@ -63,12 +63,12 @@ describe('feel: 흔들림', () => {
 describe('feel: 넉백 수식', () => {
   it('선형 감쇠 초속 v0 = 2d/T → 적분하면 거리 d', () => {
     const T = FEEL.KNOCKBACK.MS;
-    const v0 = knockSpeed(6, T);
-    expect(v0).toBe(120); // 6px / 0.1s × 2
+    const v0 = knockSpeed(10, T);
+    expect(v0).toBeCloseTo((2 * 10) / (T / 1000)); // 62라운드: 10px / 0.14s × 2
     // 1ms 간격 수치 적분
     let dist = 0;
     for (let t = 0; t < T; t++) dist += (v0 * knockFactor(t + 0.5, T)) / 1000;
-    expect(dist).toBeCloseTo(6, 1);
+    expect(dist).toBeCloseTo(10, 1);
     expect(knockFactor(T, T)).toBe(0);
     expect(knockFactor(T * 2, T)).toBe(0);
   });

@@ -57,6 +57,16 @@ export interface RoomDirectorHost {
   onWaveSpawned?(room: Room, index: number, total: number, enemies: Enemy[]): void;
   /** 48라운드 노드 전투장: 이 노드 전용 웨이브 (버려진 길 = 쉬운 전투). 없으면 층 trial.waves */
   waves?: WaveEntry[][];
+  /** 62라운드 P0-8: 적이 나올 자리 예고 (소환 ms 전, 나올 자리마다 바닥 문양 — 씬이 그린다) */
+  spawnMarks?(points: readonly { x: number; y: number }[], ms: number): void;
+}
+
+/** 62라운드 P0-8: 미리 고른 소환 자리 하나 (예고 문양 자리 = 나오는 자리) */
+interface PlannedSpawn {
+  enemy: string;
+  x: number;
+  y: number;
+  scale: { hp: number; attack: number };
 }
 
 /**
@@ -197,28 +207,41 @@ export class RoomDirector {
     this.currentRoom = room;
     this.host.world.setRoomDoors(room, 'closed');
     const count = spawns.reduce((a, s) => a + s.count, 0);
-    this.announce(roomId, delayMs, count, () => this.spawnChallenge(room, spawns, at));
+    const plan = this.planChallenge(room, spawns, at);
+    this.announce(roomId, delayMs, count, plan, () => this.spawnPlanned(plan));
     return true;
   }
 
-  /** 53라운드 Q49: 소환 예고 이벤트 → delayMs 뒤 소환 (0 이면 바로) */
-  private announce(roomId: string, delayMs: number, count: number, spawn: () => void): void {
+  /**
+   * 53라운드 Q49: 소환 예고 이벤트 → delayMs 뒤 소환 (0 이면 바로). 62라운드 P0-8: 미리 고른 자리마다 바닥 문양 예고
+   * (`spawnMarks`) — 하데스·데드셀처럼 적은 예고된 자리에서만 나온다
+   */
+  private announce(
+    roomId: string,
+    delayMs: number,
+    count: number,
+    plan: readonly PlannedSpawn[],
+    spawn: () => void,
+  ): void {
     EventBus.emit(Events.ENEMY_INCOMING, { roomId, delayMs, count } satisfies EnemyIncomingPayload);
     this.pendingSpawn?.remove();
     this.pendingSpawn = null;
     if (delayMs <= 0) return spawn();
+    this.host.spawnMarks?.(plan, delayMs);
     this.pendingSpawn = this.host.mobs.scene.time.delayedCall(delayMs, () => {
       this.pendingSpawn = null;
       spawn();
     });
   }
 
-  private spawnChallenge(
+  /** 47라운드 도전 소환 자리 (62 P0-8: 예고 전에 미리 고른다 — 고르는 순서·난수는 전과 같다) */
+  private planChallenge(
     room: Room,
     spawns: readonly ChallengeSpawn[],
     at?: { x: number; y: number; radiusTiles: number },
-  ): void {
+  ): PlannedSpawn[] {
     const S = this.host.stage.enemyScale;
+    const out: PlannedSpawn[] = [];
     for (const sp of spawns) {
       for (let i = 0; i < sp.count; i++) {
         let p = this.host.world.randomPointInRoom(room, this.host.rng, this.host.player, 4);
@@ -233,14 +256,29 @@ export class RoomDirector {
             }
           }
         }
-        const e = new Enemy(this.host.mobs.scene, p.x, p.y, sp.enemy, {
-          hp: S.hp * sp.hpMult,
-          attack: S.attack * sp.attackMult,
+        out.push({
+          enemy: sp.enemy,
+          x: p.x,
+          y: p.y,
+          scale: { hp: S.hp * sp.hpMult, attack: S.attack * sp.attackMult },
         });
-        this.host.mobs.add(e);
-        this.alive.add(e);
       }
     }
+    return out;
+  }
+
+  /** 미리 고른 자리에 적을 낸다 (62 P0-8: 나온 직후 ENEMY_INCOMING.ARRIVE_MS 동안 일어서는 중 — 움직이지도 때리지도 않는다) */
+  private spawnPlanned(plan: readonly PlannedSpawn[]): Enemy[] {
+    const out: Enemy[] = [];
+    const scene = this.host.mobs.scene;
+    for (const sp of plan) {
+      const e = new Enemy(scene, sp.x, sp.y, sp.enemy, sp.scale);
+      this.host.mobs.add(e);
+      this.alive.add(e);
+      e.arrive(scene.time.now, ENEMY_INCOMING.ARRIVE_MS);
+      out.push(e);
+    }
+    return out;
   }
 
   /** 47라운드: 도전 강제 종료 (투견 링 시간 초과) — 남은 적은 사라지고 방은 다시 클리어. onDone 은 부르지 않는다 */
@@ -326,14 +364,18 @@ export class RoomDirector {
     const scale = { hp: this.host.stage.enemyScale.hp * mods.hpMult, attack: this.host.stage.enemyScale.attack };
     EventBus.emit(Events.TRIAL_WAVE, { roomId: room.id, wave: index + 1, total });
     const count = wave.reduce((a, w) => a + w.count, 0);
-    this.announce(room.id, ENEMY_INCOMING.WAVE_DELAY_MS, count, () => {
-      const spawned = this.spawnEntries(room, wave, scale);
+    const plan = this.planWave(room, wave, scale);
+    // 62 P0-8: 노드 첫 웨이브는 들어선 뒤 숨 돌릴 틈을 더 준다 (문양 예고가 그만큼 길다)
+    const delay = ENEMY_INCOMING.WAVE_DELAY_MS + (index === 0 ? ENEMY_INCOMING.FIRST_WAVE_EXTRA_MS : 0);
+    this.announce(room.id, delay, count, plan, () => {
+      const spawned = this.spawnPlanned(plan);
       this.host.onWaveSpawned?.(room, index, total, spawned);
     });
   }
 
-  private spawnEntries(room: Room, wave: readonly WaveEntry[], scale: { hp: number; attack: number }): Enemy[] {
-    const out: Enemy[] = [];
+  /** 웨이브 소환 자리 (62 P0-8: 예고 전에 미리 고른다 — 주인공과 spawnMinDistTiles 이상) */
+  private planWave(room: Room, wave: readonly WaveEntry[], scale: { hp: number; attack: number }): PlannedSpawn[] {
+    const out: PlannedSpawn[] = [];
     for (const entry of wave) {
       for (let i = 0; i < entry.count; i++) {
         const p = this.host.world.randomPointInRoom(
@@ -342,10 +384,7 @@ export class RoomDirector {
           this.host.player,
           this.host.stage.trial.spawnMinDistTiles,
         );
-        const e = new Enemy(this.host.mobs.scene, p.x, p.y, entry.enemy, scale);
-        this.host.mobs.add(e);
-        this.alive.add(e);
-        out.push(e);
+        out.push({ enemy: entry.enemy, x: p.x, y: p.y, scale });
       }
     }
     return out;

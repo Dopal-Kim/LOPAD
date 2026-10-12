@@ -1,12 +1,14 @@
 import Phaser from 'phaser';
-import { COLORS, GAME, KEYS, PLACEHOLDER_UI, SCENES } from '../core/Constants';
+import { COLORS, GAME, KEYS, RITUAL, SCENES } from '../core/Constants';
 import { EventBus, Events } from '../core/EventBus';
 import { gameState } from '../core/GameState';
+import { STORY } from '../data';
 import { metaStore } from '../systems/meta';
+import { ensureFont, fontFamilyOr } from '../systems/fonts';
 
 /**
- * 결과 화면 플레이스홀더. 정식 결과 화면은 UI 파트 소유이며,
- * 이 씬은 1단계 "사망/재시작" 검증용 최소 구현이다.
+ * 결과 화면 대체 (시스템): UI 결과 씬(`UI_SCENES.RESULT`)이 없을 때만 뜬다 — 정식 결산(사망 연출·일기장)은 UI 파트 몫(루프 2).
+ * 62 P2-9: 시드를 보이지 않는다 · 고정폭 글꼴 대신 Galmuri11(로드 전 sans-serif) · 문구는 스토리 팩(`story.json ui.result`).
  */
 export class GameOver extends Phaser.Scene {
   private cleared = false;
@@ -20,27 +22,24 @@ export class GameOver extends Phaser.Scene {
   }
 
   create(): void {
-    const title = this.cleared ? 'RUN CLEAR' : 'DEAD';
-    const souls = `영혼 +${gameState.lastSoulGain}  (보유 ${metaStore.read().souls})`;
-    const sub = `${gameState.stage.name}  kills ${gameState.kills}  gold ${gameState.gold}  sense ${gameState.senses.sense}  ${gameState.weapon.displayName}  seed ${gameState.seed}   -   click or [${KEYS.RESTART}] to restart`;
-    this.add
-      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + PLACEHOLDER_UI.RESULT_TITLE_DY, title, {
-        font: PLACEHOLDER_UI.FONT_TITLE,
-        color: COLORS.GAMEOVER_TEXT,
-      })
-      .setOrigin(0.5);
-    this.add
-      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + PLACEHOLDER_UI.RESULT_SOULS_DY, souls, {
-        font: PLACEHOLDER_UI.FONT_SMALL,
-        color: COLORS.GAMEOVER_TEXT,
-      })
-      .setOrigin(0.5);
-    this.add
-      .text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + PLACEHOLDER_UI.RESULT_SUB_DY, sub, {
-        font: PLACEHOLDER_UI.FONT_SMALL,
-        color: COLORS.GAMEOVER_TEXT,
-      })
-      .setOrigin(0.5);
+    const V = RITUAL.VIEW;
+    const family = () => `${fontFamilyOr(V.FONT_FAMILY, V.FONT_FALLBACK)}, ${V.FONT_FALLBACK}`;
+    const R = STORY.ui.result ?? {};
+    const title = (this.cleared ? R.cleared : R.died) ?? '';
+    const names = STORY.names;
+    const souls = `${names.souls} +${gameState.lastSoulGain}  ·  ${metaStore.read().souls}`;
+    const sub = `${gameState.stage.name}  ·  ${gameState.kills}  ·  ${gameState.weapon.displayName}`;
+    const retry = `[${KEYS.RESTART}] ${R.retry ?? ''}`;
+    const texts = [
+      this.add.text(GAME.WIDTH / 2, GAME.HEIGHT / 2 - 40, title, { fontSize: `${V.TITLE_PX}px` }),
+      this.add.text(GAME.WIDTH / 2, GAME.HEIGHT / 2, sub, { fontSize: `${V.BODY_PX}px` }),
+      this.add.text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + 22, souls, { fontSize: `${V.BODY_PX}px` }),
+      this.add.text(GAME.WIDTH / 2, GAME.HEIGHT / 2 + 60, retry, { fontSize: `${V.BODY_PX}px` }),
+    ];
+    for (const t of texts) t.setOrigin(0.5).setColor(COLORS.GAMEOVER_TEXT).setFontFamily(family());
+    void ensureFont(V.FONT_FAMILY, V.BODY_PX).then((ok) => {
+      if (ok && this.sys.isActive()) for (const t of texts) t.setFontFamily(family());
+    });
 
     const restart = () => {
       EventBus.emit(Events.GAME_RESTART);

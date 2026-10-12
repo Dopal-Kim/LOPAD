@@ -31,8 +31,8 @@ export const COLORS = {
   SHOCKWAVE: 0xffd080,
   STROKE: 0xe0e0ff,
   ATTACK: 0xf5f5c0,
-  /** 56라운드 Q36: 적 피격 번쩍임 = 호박 반투명 (흰 채움 → 흰 막대 주원인이었다). 알파·시간은 FEEDBACK.MOB_HURT */
-  MOB_HURT: 0xe2a33c,
+  /** 56라운드 Q36: 적 피격 번쩍임 (62 P1-1: 호박 반투명 → 따뜻한 흰빛 더하기 혼합 — 흰 '채움'은 쓰지 않는다). 알파·시간은 FEEDBACK.MOB_HURT */
+  MOB_HURT: 0xfff1d6,
   TELEGRAPH: 0xfff0a0,
   STUN: 0x707090,
   /** 54라운드 보스 마시는 중 (호박색 곱 틴트) */

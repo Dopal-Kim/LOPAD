@@ -15,12 +15,13 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 | `npm run build` | 배포 빌드 (`dist/`, `assets/**` → `dist/assets-game/`, `data/buildExclude.json` 패턴은 제외) |
 | `npm run typecheck` · `npm run lint` · `npm test` · `npm run format:check` | 검사 4종 (모두 통과가 커밋 조건) |
 
-자주 쓰는 주소 옵션(`scenes/game/shared.ts urlParams`): `?debug=1` 디버그 훅 · `?new=1&seed=<s>&weapon=<id>` 새 런 바로 · `?lab&weapon=<id>[&branch=<1차 노드>,<2차 노드>]` 무기 시험장 · `?boss`·`?bossPhase=n`·`?bossPattern=a,b` 1층 보스 · `?nobossintro` 보스 등장 연출 생략 · `?slice=<지역>` 지역 전투 노드 · `?nobirth` 탄생 연출 생략 · `?resetmeta` 메타 초기화. 주소에 옵션이 없으면 해시 한 단어(`#lab` 등)를 옵션으로 읽는다. 층 이동은 디버그 `__lopad.gotoFloor(n)`.
+자주 쓰는 주소 옵션(`scenes/game/shared.ts urlParams`): `?debug=1` 디버그 훅 · `?new=1&seed=<s>&weapon=<id>` 새 런 바로 · `?lab&weapon=<id>[&branch=<1차 노드>,<2차 노드>]` 무기 시험장 · `?boss`·`?bossPhase=n`·`?bossPattern=a,b` 1층 보스 · `?nobossintro` 보스 등장 연출 생략 · `?slice=<지역>` 지역 전투 노드 · `?nobirth` 탄생 연출 생략 · `?ritual=full` 첫 생 의식 강제 · `?ritualview=sys` 시스템 대체 의식 화면 · `?resetmeta` 메타 초기화 · `?debug&hitshapes=1` 판정 모양 오버레이(62: 기본 꺼짐). 주소에 옵션이 없으면 해시 한 단어(`#lab` 등)를 옵션으로 읽는다. 층 이동은 디버그 `__lopad.gotoFloor(n)`.
 
 ## 2. 부팅 흐름
 
 `main.ts` → Phaser.Game(`config.ts`) → `installContractHost`(계약 명령 구현) → `audio.attach` → `settings.load`(계약 §15 설정 적용) → `runLogRecorder.attach`(런 로그) → `installBootDebug`(`?debug`).
-씬: `Boot` → `Preloader`(매니페스트 → 시트·타일셋·외벽·음향 JSON → 그림·소리, 부팅 묶음만 — 무기 묶음은 Game preload, 61 단계 2: 보스 묶음은 보스 노드 Game preload, 61 E: 노드 종류별 묶음 올리고 내리기 `sprites/lazySheets.prepareNodeSheets`) → UI 타이틀 / `Setup`(시작 의식 — 무기 고르기, 첫 생이면 '수련장부터 / 바로 벽 밖으로') / `Game`(런) / `WeaponLab`(Game 의 시험장 모드) / `Training`(61 단계 6 수련장 — 시험장 모드 + 수련장 방) / `GameOver`(UI 결과 화면이 없을 때의 임시 화면).
+씬: `Boot` → `Preloader`(매니페스트 → 시트·타일셋·외벽·음향 JSON → 그림·소리, 부팅 묶음만 — 무기 묶음은 Game preload, 61 단계 2: 보스 묶음은 보스 노드 Game preload, 61 E: 노드 종류별 묶음 올리고 내리기 `sprites/lazySheets.prepareNodeSheets`) → UI 타이틀 / `Setup`(시작 의식 흐름·판정 — 62: 그림은 UI 의식 씬 `UI_SCENES.RITUAL`, 없으면 시스템 대체 화면 `RitualView`) / `Game`(런) / `WeaponLab`(Game 의 시험장 모드) / `Training`(61 단계 6 수련장 — 시험장 모드 + 수련장 방) / `GameOver`(UI 결과 화면이 없을 때의 임시 화면 — 시드 숨김).
+62 시작 의식(계약 UI §20): 첫 생 = ('수련장부터 / 바로 벽 밖으로' 한 번) → 이름 → 3획 → 회피 시험(탄생 전장·실제 사수) → 운명 공개 · 두 번째 생부터 = 이름 덧쓰기 한 화면 → 운명 공개(손이 기억한 무기, Tab = 3획 다시) · 영혼 강화는 두 번째 생부터(덧쓰기 화면 귀퉁이 F2).
 
 ## 3. 폴더별 책임
 
@@ -31,7 +32,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 
 ### `src/contract/` (UI 경계)
 - `ui.ts` — 계약 본문(이벤트·스냅샷·메뉴·명령). UI 가 import 하는 유일한 시스템 파일.
-- `host.ts` — 명령 구현(일시정지·새 런·이어하기·타이틀·노드 선택·음소거·시험장·설정). `snapshot.ts` — 스냅샷 조립.
+- `host.ts` — 명령 구현(일시정지·새 런·이어하기·타이틀·노드 선택·음소거·시험장·설정·62 의식 `setRitualHost`). `snapshot.ts` — 스냅샷 조립(62: `keyBar` 첫 생 키 막대 · `meta` 요약). `metaSummary.ts` — 62 메타 요약(1초 기억).
 
 ### `src/data/` (데이터 로드·검증 — 수치는 `data/*.json`)
 - `index.ts` — JSON 로드 + 검증(`validate*`) → `PLAYER_DATA`·`ENEMIES`·`BOSSES`·`STAGES`·`RUN`·`WEAPONS`·`ECONOMY`·`STORY`·`PALETTE`·`LIGHTING` …
@@ -43,12 +44,12 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 - `Game.ts` — 런 씬 생애주기만(모듈 생성 → 런 준비 → 노드 진입 → 월드 → 플레이어 → 풀·연출 → 물리 배선 → 방 상태 머신 → 구조물 → 계약 연결 → 디버그 → 이벤트 표). 실제 일은 `scenes/game/*` 모듈:
   - 진행: `Progression`(런 시작 모드·세이브·처치 → 각성 게이지·스테이지 보상·엔딩·사망·정산·결과) · `growth/GrowthFlow`(61 G P12 무기 성장 — 게이지 적립·눈금 메뉴(개성 발현·1차/2차 각성·단련)·처음 안내 기록·시험장 조작·스냅샷 `growth`) · `BossFlow`(61: 보스 등장·처치 연출 시간표 · 보스 대사 · 보상 미루기 — 데이터 `bosses.json show`·`linesKey`; 61 E: 등장 동작 `BossIntroArt` · 결정타·쓰러짐 파편·불 끄기 `BossFinale`) · `RouteFlow`(노드 진입·클리어 → 출구 → 노드 선택·전환) · `BirthFlow`(탄생 연출) · `LabMode`(무기 시험장) · `Economy`(드랍·상점, 61: 상점 상인 `ShopKeeper` E) · `directorHost`(방 상태 머신 생성)
   - 전투: `GameCombat`(피해 계산 `rollDamage`·적 피격 공통 경로 `hitMob`·접촉·투사체) · `PlayerStrikes`·`MoveStrikes`·`IssenStrikes`·`CrackLineStrikes`·`BowShots`·`ArrowRain`·`BrandMarks`·`StrikeSchedule`·`StrikeDots`
-  - 연출: `SwingFx`·`MotionFx`·`WeaponFeedback`·`FxWiring`·`GameCamera`·`swingShake`·`bladeTip`·`HitShapeOverlay`·`AnchorDebug`
+  - 연출: `SwingFx`·`MotionFx`·`WeaponFeedback`·`FxWiring`·`GameCamera`·`swingShake`·`bladeTip`·`HitShapeOverlay`·`AnchorDebug` · 62: `CombatFeel`(방 마지막 처치 슬로모·완벽 성공 가장자리 섬광) · `MobReadability`(일반 적 차가운 림·HP 막대) · `SpawnMarks`(적 등장 예고 바닥 문양)
   - 빌드 축 `build/*`(BuildRuntime·BuildCombat(+`combat/*`)·BuildMenus(패시브·저주)·BuildEffects·BuildDefense·BuildPerfect·AwakenFlow(각성 연출·외형·지연 로드)·BuildArt, 무기별 갈래 `branch/*`, 개성 카드·셋째 갈래 규칙 `traits/*`(TraitRules 창구 + RuleKit + 무기별 Katana/Greatsword/Dagger/BowRules)) · 2차 묶음 `bundle/*`(BundleRuntime·NodeFlow·EventNode·BossBreaks·EliteSystem(+EliteArt)·Consumables·ShopMenu·BundleProps·bundleRewards)
   - 수련장 `training/*`(61 단계 6 P14 — TrainingMode 방·지도·과제 · TrainingRoomKit 준비물 · TrainingDrills 훈련 예고 · TrainingProps 소품 · session 맡긴 런 · runLeave) · 그림 속 입구 `PaintArt`(입구·지도 그림 지연 로드)·`TransitionFx`
   - 서사: `story/StoryBeats`(61 P8 서사 소품·무기 한마디·일기장 — BundleRuntime 이 만든다)
   - 계약·디버그: `UiRelay`(스냅샷·자막·UI 중계) · `DebugHooks`(+`debug/combatDebug`·`worldDebug`)
-- `Setup.ts` — 시작 의식(이름 → 3획 → 회피 시험 → 운명). `Preloader.ts` — 부팅 로드. `WeaponLab.ts` — 시험장 씬 키.
+- `Setup.ts` — 시작 의식 흐름·판정(계약 §20 상태 `ritual()`·명령 `command()`). `setup/*` — 62 회피 시험 `BirthTrialRunner`(탄생 전장 TileWorld + 사수 `EntityVisual('archer')` + 화살 `trialArrows` + 주인공 `trialPlayer` + art §30 소품 `trialProps`) · 대체 화면 `RitualView`(UI 와 같은 계약만 — Galmuri11, 숨긴 입력칸, StrokeFx 등 그림). `Preloader.ts` — 부팅 로드. `WeaponLab.ts` — 시험장 씬 키.
 
 ### `src/objects/`
 - `Player.ts` — 상태 머신(이동·달리기·대쉬·연격 입력·피격) + `player/*`(MeleeDriver 연격 · SecondaryDriver 우클릭 · BasicMoves/BranchMoves·무기별 moves 기본기 · PlayerDefense 피격·가드·패링 · PlayerGauges 고유 자원 · PlayerGear 무기 자원·휴대 · PlayerPoses 자세 · ScarOverlay 등 상흔).
@@ -60,7 +61,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 - 근접 판정(61 단계 4): 방향 = 판정 원점(발 위 가슴)에서 커서로 · 맞음 = 바디에서 그림 몸통 중심까지(`weapon/hitShapes.shapeHitBody`) · 단검 가속 그림만큼 찌르기 길이(`reachMult`)
 - 전투 감각: `feel`(히트스톱·흔들림·넉백·`feelSettings` 배율) · `hitFeel` · `Combat`·`defense` · `packCharge` · `weapon/*`(연격·판정 모양 `hitShapes`·자원·고유 자원·활 당김·4동사 `verbs` 등) · `telegraph/*` · `hazards/*`(술 웅덩이 `LiquorPools` · 61 신규 적 위험물 `EnemyHazards` — 화염 술병·술통 굴림·되치기, 계산 `hazardMath`) · `boss/*`(보스 전장 `BossArena` — 61 단계 4: 소등(등불 끄기·처치 때 불 끄기·림)은 `arenaDarkness`·불타기·'세상이 돈다' `drunkScreen` · 61 E: 약점 잔 `cupWeakPoint`·기둥 균열·무너짐 `pillars`(61 단계 5 P13: 3단 다음 충돌 → 잔해, 칸 열기)·기둥 가려짐·보스 우회 조향 `pillarCover`(순수 기하 `pillarGeom`)·술 웅덩이 칸 `bossLiquor`·파훼 고리 `breakDaze`·소등 림 `bossRim`(원 림 / 가벼운 림 `_rim_lite` / tintFill — `bossVram.rimKind`)·보스방 VRAM 지연 로드 `bossVram`·로드 묶음 `bossSheets`·등장 시간표 `introArt`·순수 규칙 `bossArtRules`)
 - 무기 성장 `growth/*`(61 G P12 — 눈금 `growth`·메뉴 `growthMenu`·스냅샷 `uiGrowth`) · 빌드 축 `build/*` · 2차 묶음 `bundle2/*` · 구조물 `structures/*`(StructureSystem 창구 + core·kinds·interact·placement·setpiece)
-- 그림·소리: `sprites/*`(시트 경로·로드 묶음 `sheetSets`·애니 등록 · 61 E 노드별 묶음·씬 도중 로드/해제 `lazySheets`) · `fx/*`(FxPool·섬광 `screenFx`·피해 숫자·리본·잔상 · 씬 종료 중 반납 검사 `fxRelease` · 피해 숫자 합치기/비켜 띄우기 `damageNumberLayout`) · `lighting/*` · `strokeFx/*`(3획 연출) · `dodgeTrial/*`(회피 시험) · `audio/*`(오디오 매니저 `audio` · 이벤트 → 효과음 표 `audioMap`·`audioBuild` · 61 믹싱 규칙 `audioMix`·목소리 상한/덕킹 `audioVoices`·층 BGM 지연 로드 `audioLazy` · 61 P13 기둥 무너짐·포물선 술병·줍기 `audioDrops`) · `palette` · `display`(1920×1080 캔버스·논리 960×540) · `fonts`
+- 그림·소리: `sprites/*`(시트 경로·로드 묶음 `sheetSets`·애니 등록 · 61 E 노드별 묶음·씬 도중 로드/해제 `lazySheets`) · `fx/*`(FxPool·섬광 `screenFx`·피해 숫자·리본·잔상 · 씬 종료 중 반납 검사 `fxRelease` · 피해 숫자 합치기/비켜 띄우기 `damageNumberLayout`) · `lighting/*` · `strokeFx/*`(3획 연출 — 62: 대체 화면만) · `ritual/*`(62 의식 규칙 — 획 ↔ 무기 규칙 줄·왜·기억한 무기·등급 · `firstSteps` 첫 생 키 막대) · `audio/*`(오디오 매니저 `audio` · 이벤트 → 효과음 표 `audioMap`·`audioBuild` · 61 믹싱 규칙 `audioMix`·목소리 상한/덕킹 `audioVoices`·층 BGM 지연 로드 `audioLazy` · 61 P13 기둥 무너짐·포물선 술병·줍기 `audioDrops`) · `palette` · `display`(1920×1080 캔버스·논리 960×540) · `fonts`
 - 61 단계 6: `training/*`(수련장 과제 판정 `tasks`·예고 기하 `drills`·기록·스냅샷 `record`) · `transition/*`(그림 속 입구 전환 문지기 `transitionGate` — 씬 재시작을 넘는 싱글턴, 입구 그림 이름 `doorNames`)
 - 61라운드 도구: `settings`(계약 §15 설정 적용·저장) · `runlog/*`(런 로그) · `sim/*`(헤드리스 수치 추정 — 61 P13 `pillarSim` 기둥 숨기 전략 시뮬) · `drops/*`(줍기 규칙: 전표 무더기 크기·시트 프레임·자석 걸음) · `vram`(텍스처 VRAM 추정)
 - 기타: `mapgen/*`(방+복도 층 — 노드 지도 이전 층 형식) · `setup/*`(개성 선택 계산) · `rng` · `mathUtil` · `keyEvents` · `InputSystem`
@@ -89,7 +90,7 @@ LOPAD 게임 코드(Phaser 3 + TypeScript + Vite)의 **현재 구조**: 폴더�
 | `build.json` · `passives.json` · `curses.json` | 빌드 축(태그·세트·패시브·저주 — 61 G: 이중 개성·최종 각성 파일 폐지) |
 | `bundle2.json` | 2차 묶음(노드 보상·위험·이벤트·숨은 노드·상점·성소·등급·엘리트·파훼·소모품) |
 | `story.json` | 문구(스토리 파트 텍스트 팩 — 61: 단서·무기 한마디·만취 대사·이름 번짐) |
-| `narrative.json` | 61 서사 연결 수치·서사 소품 배치·시작 의식 문구 |
+| `narrative.json` | 61 서사 연결 수치·서사 소품 배치 · 62 시작 의식 `ritual`(안내·획 규칙·왜·결과 한 줄·회피 시험 과제·탄생 전장 소품 — 검증 `src/data/ritual.ts`, 의식 문구 숫자 금지) |
 | `palette.json` · `lighting.json` | 층 램프 · 동적 조명 |
 | `training.json` | 61 단계 6 수련장: 방 8(무기·준비물·과제 조건) · 대표 개성 · 수치 · 문장(스토리 팩 text 복사) |
 | `buildExclude.json` | 배포 빌드에서 뺄 에셋 경로 패턴(원본 보관) |

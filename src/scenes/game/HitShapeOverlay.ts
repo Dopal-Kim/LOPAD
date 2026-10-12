@@ -1,5 +1,6 @@
 /**
- * 55라운드 §17 판정 모양 디버그 오버레이 (`?debug`, `&hitshapes=0` 이면 끔 · `__lopad.hitShapes(on)`) + 시트가 없을 때의 윤곽 플레이스홀더
+ * 55라운드 §17 판정 모양 디버그 오버레이 (`?debug&hitshapes=1` 일 때만 — 62라운드 P2-12: 데모·피드백 주소에 debug 가 섞여도 기본 꺼짐 ·
+ * `__lopad.hitShapes(on)`) + 시트가 없을 때의 윤곽 플레이스홀더
  * (PlayerStrikes.drawShapeOutline 을 옮김). 판정이 살아 있는 동안 윤곽을 유지하고, 그 뒤 FADE_MS 동안 흐려진다.
  * 색 = 모양별 (호·쐐기·찌르기·고리), 후속 판정(잔상 베기·충격파 링)은 FOLLOW.
  */
@@ -17,7 +18,7 @@ export class HitShapeOverlay {
 
   constructor(private readonly g: Game) {
     const q = urlParams();
-    this.enabled = q.has('debug') && q.get(DEBUG.HIT_SHAPES.PARAM_OFF) !== '0';
+    this.enabled = q.has('debug') && q.get(DEBUG.HIT_SHAPES.PARAM) === '1';
   }
 
   /** 디버그 윤곽 (켜져 있을 때만). activeMs 동안 유지 후 흐려짐 */

@@ -67,7 +67,8 @@ export interface NarrativeData {
   voice: { crisisHpRatio: number; crisisHoldMs: number; bossKillDelayMs: number };
   props: NarrativePropDef[];
   diary: { pastLivesMax: number };
-  ritual: { trialKey: string; trialPrompt: string; trialSkipped: string; namePrompt: string };
+  /** 62 시작 의식 — 형식·검증은 `data/ritual.ts` */
+  ritual: unknown;
 }
 
 function fail(msg: string): never {
@@ -119,8 +120,6 @@ export function validateNarrative(d: NarrativeData, clues: Record<string, ClueTe
     if (!Array.isArray(p.offset) || p.offset.length !== 2) fail(`narrative.props.${p.clue}.offset 는 [x, y]`);
   }
   if (!(d.diary.pastLivesMax >= 1)) fail('narrative.diary.pastLivesMax 는 1 이상');
-  for (const k of ['trialKey', 'trialPrompt', 'trialSkipped', 'namePrompt'] as const)
-    str(d.ritual[k], `narrative.ritual.${k}`);
   return d;
 }
 

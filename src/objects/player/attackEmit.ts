@@ -6,6 +6,7 @@
  * 타별 판정 모양이 있는 새 연격은 다음 타 허용을 데이터(cancelFromMs)로만 정한다(대체 시트의 cancelFromFrame 은 옛 연격용).
  */
 import Phaser from 'phaser';
+import { BOW_AIM } from '../../core/Constants';
 import { EventBus, Events, type PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { artCandidates, hitArtKey, pickArt } from '../../systems/weapon/comboArt';
@@ -57,8 +58,11 @@ export function emitPlayerAttack(
 ): PlayerAttackPayload {
   const visual = p.visual;
   // 61 단계 4: 근접은 판정 원점(발 위 가슴 높이)에서 커서로 — 발에서 잰 방향이면 찌르기 축이 커서보다 원점 높이만큼 위로 지나갔다
-  const fromY = gameState.weapon.def.kind === 'melee' ? p.y - PLAYER_HIT_ORIGIN_UP_PX : p.y;
-  const aim = new Phaser.Math.Vector2(input.aimX - p.x, input.aimY - fromY);
+  const melee = gameState.weapon.def.kind === 'melee';
+  const fromY = melee ? p.y - PLAYER_HIT_ORIGIN_UP_PX : p.y;
+  // 62 P1-3: 원거리는 바닥 평면 조준 — 커서(적 몸통) 아래 바닥점으로 (발에서 잰 방향 · 화살 판정은 바닥 궤적)
+  const aimY = melee ? input.aimY : input.aimY + BOW_AIM.GROUND_DROP_PX;
+  const aim = new Phaser.Math.Vector2(input.aimX - p.x, aimY - fromY);
   if (aim.lengthSq() > 0) aim.normalize();
   else aim.copy(p.facingVec);
   // 공격 애니는 조준 방향으로. 연격이면 그 타의 시트(없으면 attack)를 그 타 길이에, 아니면 다음 공격 가능 시점(쿨다운)에 맞춰
@@ -85,6 +89,7 @@ export function emitPlayerAttack(
     y: p.y,
     dirX: aim.x,
     dirY: aim.y,
+    ...(melee ? {} : { aimX: input.aimX, aimY: input.aimY }),
     ...a,
     swingDelayMs: hf !== undefined ? visual.frameStartMs(hf) : visual.lastImpactMs,
     // 56라운드 Q39 버그 수정: 조준 사격은 놓는 순간 화살 (놓기 시트 f0 시작) — 직전 동작의 프레임 시각을 쓰지 않는다

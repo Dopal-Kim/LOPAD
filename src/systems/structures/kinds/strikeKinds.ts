@@ -74,7 +74,7 @@ export class StrikeKinds {
     const fireOn = this.c.fireActive;
     for (const shot of shots) {
       if (!shot.active || shot.owner !== 'player') continue;
-      const pt = { x: shot.x, y: shot.y };
+      const pt = { x: shot.groundX, y: shot.groundY };
       if (
         !shot.fire &&
         (fireOn || this.c.list.some((s) => s.kind === 'still' && this.flameRect(s).contains(pt.x, pt.y)))

@@ -15,6 +15,8 @@ import { ScreenFx } from '../../systems/fx/screenFx';
 import { TelegraphFx } from '../../systems/telegraph';
 import { RibbonRenderer } from '../../systems/fx/ribbon';
 import type { Game } from '../Game';
+import { CombatFeel } from './CombatFeel';
+import { MobReadability } from './MobReadability';
 
 export function createFx(g: Game, floor: number): void {
   g.fx = new FxPool(g);
@@ -29,6 +31,9 @@ export function createFx(g: Game, floor: number): void {
   g.screenFx = new ScreenFx(g);
   g.screenFx.setFloor(floor);
   g.aimLine = new AimLine(g);
+  // 62라운드 P1-1 처치 슬로모·P2-13 가장자리 섬광 · P1-4 적 림·HP 막대 (씬 종료 때 스스로 정리)
+  g.combatFeel = new CombatFeel(g);
+  g.readability = new MobReadability(g);
   // 색은 '#hex' 와 팔레트 경로 둘 다 (resolveFxColor)
   const SF = FEEL.SCREEN.DEFAULT_FLASH;
   g.fx.hooks = {

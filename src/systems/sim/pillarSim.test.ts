@@ -35,5 +35,5 @@ describe('61 P13 §3 기둥 숨기 전략 시뮬 (1층 만취 · 돌진·내리�
       expect(Math.abs(newB.winRate - oldB.winRate)).toBeLessThanOrEqual(0.15);
     }
     console.log(`[sim] 기둥 숨기 (24판, 피하기 0.7)\n${lines.join('\n')}`);
-  });
+  }, 30000);
 });

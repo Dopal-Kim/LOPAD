@@ -262,7 +262,8 @@ export class EliteSystem {
     for (const r of this.list) {
       const m = r.mob;
       if (!m.active || !m.elite) continue;
-      const top = r.emblem?.visible ? r.emblem.getTopCenter().y : m.getTopCenter().y;
+      // 62 P1-4: 문장이 없으면 그림 틀 꼭대기(머리 위 빈 칸 포함)가 아니라 머리 꼭대기
+      const top = r.emblem?.visible ? r.emblem.getTopCenter().y : m.y - m.visual.headTopPx;
       const s = worldToLogicalScreen(cam, m.x, top ?? m.y);
       if (!cam.worldView.contains(m.x, m.y)) continue;
       out.push({

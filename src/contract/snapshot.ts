@@ -27,6 +27,9 @@ import type {
 import { DEFAULT_SETTINGS } from '../systems/settings';
 import { weaponVerbs } from '../systems/weapon/verbs';
 import { nextMarkOf } from '../systems/growth/growth';
+import { firstSteps } from '../systems/ritual/firstSteps';
+import { RITUAL } from '../core/Constants';
+import { metaSummary } from './metaSummary';
 
 export interface SnapshotContext {
   layout: FloorLayout | null;
@@ -206,5 +209,11 @@ export function buildSnapshot(ctx: SnapshotContext): UiSnapshot {
           rooms: ctx.training.rooms.map((r) => ({ ...r })),
         }
       : null,
+    // 62 P1-10: 첫 생 첫 노드들만 작은 키 막대 (시험장·수련장 제외)
+    keyBar:
+      !ctx.lab &&
+      !ctx.training &&
+      firstSteps.keyBar(ctx.route?.nodes.find((n) => n.state === 'current')?.col, RITUAL.KEY_BAR_NODES),
+    meta: metaSummary(),
   };
 }

@@ -175,14 +175,20 @@ export function resolveBgm(m: AudioManifest, floor: number | null, state: string
   return null;
 }
 
+/**
+ * 62라운드 P0-5: 보스전 상태 곡 이름 (이 밖의 상태 — title·training 등 — 는 보스 국면 곡·보스 덕킹을 쓰지 않는다).
+ * `bossBgmState` 는 이 목록 안에서만 고른다
+ */
+export const BOSS_BGM_STATES: readonly string[] = ['boss', 'emperor'];
+
 /** 보스 id 에 해당하는 상태 곡이 매니페스트에 있으면 그 상태(예: emperor), 아니면 'boss' */
 export function bossBgmState(m: AudioManifest, bossId: string): string {
-  return m.bgmByState?.[bossId] ? bossId : 'boss';
+  return BOSS_BGM_STATES.includes(bossId) && m.bgmByState?.[bossId] ? bossId : 'boss';
 }
 
-/** 상태 BGM 중 보스전 덕킹 대상인지 (title 제외) */
+/** 보스전 상태인지 (국면 곡·보스전 덕킹 대상). 62라운드 P0-5: title 만 빼던 것을 보스 상태 목록으로 — 수련장(training)은 아님 */
 export function isBossState(state: string | null): boolean {
-  return state !== null && state !== 'title';
+  return state !== null && BOSS_BGM_STATES.includes(state);
 }
 
 /** swing·hit 류: 재생마다 ±PITCH_VARIANCE 랜덤 피치 */

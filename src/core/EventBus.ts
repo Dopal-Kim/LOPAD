@@ -226,6 +226,9 @@ export const Events = {
 } as const;
 
 export type PlayerAttackPayload = {
+  /** 62라운드 P1-3: 원거리 공격의 커서 월드 좌표 (커서가 적 그림 위면 그 적의 몸통 바닥으로 조준 — BowShots) */
+  aimX?: number;
+  aimY?: number;
   x: number;
   y: number;
   dirX: number;

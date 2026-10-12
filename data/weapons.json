@@ -25,7 +25,7 @@
       "damageMult": 1.25,
       "critBonus": 5,
       "attackSlowMult": 0.7,
-      "feel": { "hitstopMs": 45, "ribbon": "ribbon_ash_thin", "shakeEveryHit": false, "knockbackMult": 1.0 },
+      "feel": { "hitstopMs": 55, "ribbon": "ribbon_ash_thin", "shakeEveryHit": false, "knockbackMult": 1.0 },
       "combo": {
         "shape": "arc",
         "arcDeg": 140,
@@ -409,7 +409,7 @@
       "damageMult": 1.9,
       "critBonus": 0,
       "attackSlowMult": 0.25,
-      "feel": { "hitstopMs": 85, "ribbon": "ribbon_ash", "shakeEveryHit": true, "knockbackMult": 2.0 },
+      "feel": { "hitstopMs": 95, "ribbon": "ribbon_ash", "shakeEveryHit": true, "knockbackMult": 2.2 },
       "combo": {
         "shape": "arc",
         "arcDeg": 190,
@@ -861,7 +861,7 @@
       "damageMult": 0.66,
       "critBonus": 20,
       "attackSlowMult": 1.0,
-      "feel": { "hitstopMs": 35, "ribbon": "ribbon_ash_thin", "shakeEveryHit": false, "knockbackMult": 0.6 },
+      "feel": { "hitstopMs": 38, "ribbon": "ribbon_ash_thin", "shakeEveryHit": false, "knockbackMult": 0.6 },
       "combo": {
         "shape": "thrust",
         "radiusPx": 36,
@@ -1117,7 +1117,7 @@
       "damageMult": 1.5,
       "critBonus": 10,
       "attackSlowMult": 0.6,
-      "feel": { "hitstopMs": 25, "shakeEveryHit": false, "knockbackMult": 0.8 },
+      "feel": { "hitstopMs": 30, "shakeEveryHit": false, "knockbackMult": 0.8 },
       "ranged": {
         "projectileSpeedTiles": 12,
         "projectileLifeMs": 1500,

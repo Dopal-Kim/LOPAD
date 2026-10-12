@@ -165,7 +165,9 @@ export class Lighting {
         tint: l.color,
         alpha: Math.min(1, l.intensity),
         blendMode: Phaser.BlendModes.ADD,
-        skipBatch: true,
+        // 62라운드 P0-7: skipBatch 로 하나씩 그리면 ADD 가 적용되지 않아(일반 혼합) 뒤 광원의 사각 쿼드가 앞 광원을 지웠다 —
+        // 타일 크기 사각형 계단의 원인. beginDraw~endDraw 묶음 안에서 같이 그린다 (헤드리스 라이트맵 픽셀로 확인 — CHANGELOG 62)
+        skipBatch: false,
       });
     }
     // 비네팅: 라이트맵 가장자리를 어둡게 (검정 그라데이션을 덮는다 = 곱하기 (1 - a))
@@ -175,7 +177,7 @@ export class Lighting {
         scaleX: rt.width / VIGNETTE_W,
         scaleY: rt.height / VIGNETTE_H,
         alpha: V.alpha,
-        skipBatch: true,
+        skipBatch: false,
       });
     rt.endDraw();
     this.drawGlows(lights, picked);

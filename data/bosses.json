@@ -33,9 +33,10 @@
         }
       },
       "slam": {
+        "_attack62": "62라운드 P2-11: 16 → 12 (방어 적용 후 약 13 → 9~10, HP 100 의 10% 안팎 — 하데스·데드셀 1막 보스 큰 기술 10~15% 기준. 넓은 범위·0.8초 예고라 맞기 쉬운 기술은 낮게, 돌진 16 은 그대로)",
         "telegraphMs": 800,
         "radiusTiles": 2.5,
-        "attack": 16,
+        "attack": 12,
         "cooldownMs": 4000,
         "empowered": {
           "radiusTiles": 3.5

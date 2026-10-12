@@ -115,3 +115,12 @@ export const WEAPON_FX = {
   /** 61라운드 E 칼 발도 검기 단 이펙트 (아트 2 `fx/v3/katana_iai_ki1~3` — 소모한 검기 단, 3 이상은 3): 대상 그림 이름 · 단 수 */
   KENKI_FX: { ART: 'iai', LEVELS: 3 },
 } as const;
+
+/**
+ * 62라운드 P1-3 활 조준 (점검 '활이 근접 거리에서 빗나간다' — 화살이 활 높이(발 위 약 37)로 날아 적 발밑 몸통 위로 지나갔다):
+ * - GROUND_DROP_PX: 커서 = 적 몸통(발 위 약 반 키)을 가리킨다고 보고 바닥 조준점을 이만큼 아래로 (발에서 잰 방향)
+ * - ASSIST_DEG: 바닥 출발점에서 이 각도 안의 가장 가까운 각의 적으로 방향 보정 (약한 원뿔)
+ * - POINT_BLANK_PAD_PX: 발 → 화살 출발점 선분에 이만큼 여유를 두고 걸친 적은 쏘는 순간 맞는다
+ * - CURSOR_PAD_PX: 커서가 적 그림(발 ~ 머리 · 몸 폭) 위 + 이 여유 안이면 그 적의 몸통 바닥으로 바로 조준
+ */
+export const BOW_AIM = { GROUND_DROP_PX: 12, ASSIST_DEG: 8, POINT_BLANK_PAD_PX: 2, CURSOR_PAD_PX: 3 };

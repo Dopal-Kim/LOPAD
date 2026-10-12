@@ -163,6 +163,10 @@ describe('audio defs (계약 초안 assets/audio/manifest.json)', () => {
     expect(isBossState('boss')).toBe(true);
     expect(isBossState('title')).toBe(false);
     expect(isBossState(null)).toBe(false);
+    // 62라운드 P0-5: 수련장 상태는 보스전이 아니다 (보스 덕킹·국면 곡 없음)
+    expect(isBossState('training')).toBe(false);
+    expect(isBossState('emperor')).toBe(true);
+    expect(bossBgmState(small, 'title')).toBe('boss');
   });
 
   it('20ms 중복 묶기와 ±4% 피치 변주 대상', () => {

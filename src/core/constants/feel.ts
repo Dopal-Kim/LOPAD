@@ -65,31 +65,66 @@ export const FEEL = {
     /** 55라운드 Q8: 막타·대검·치명타 적중 흔들림 — 적중 시트 JSON `shakeHint` 가 없을 때 (임시) */
     HEAVY_HIT: { PX: 3, MS: 90 },
   },
+  /** 62라운드 P1-4: 적 머리 꼭대기 = 시트 피벗 높이 × 이 비 (엘리트 문장 시트 headTopByEnemy 119/138 실측) */
+  HEAD_TOP_OF_PIVOT: 0.86,
   /** 61라운드 플레이 점검: 튜토리얼 허수아비 맞음 거리 = 무기 판정 반경 × 이만큼 (대검 쐐기 끝 ×1.3 여유) */
   TUTORIAL_REACH_MULT: 1.3,
   /** 55라운드 Q8 방향성 흔들림: 타격 방향으로 밀렸다가 반대로 튕기는 진동 횟수 (임시) */
   SHAKE_DIR: { CYCLES: 1.5 },
-  /** 넉백: 공격 방향으로 거리 px, 선형 감쇠 ms (벽은 Arcade 충돌이 막는다) */
+  /**
+   * 넉백: 공격 방향으로 거리 px, 선형 감쇠 ms (벽은 Arcade 충돌이 막는다).
+   * 62라운드 P1-1: 6/10px·100ms → 10/16px·140ms — × 무기 knockbackMult(단검 0.6·칼 1.0·대검 2.2·활 0.8) = 단검 6·칼 10·대검 22px
+   * (데드셀 무거운 일격 0.5~1칸 밀림 기준, 1칸 = 16). 밀리는 동안은 적 AI 가 멈춘다(경직)
+   */
   KNOCKBACK: {
-    HIT_PX: 6,
-    CRIT_PX: 10,
-    MS: 100,
+    HIT_PX: 10,
+    CRIT_PX: 16,
+    MS: 140,
     /** 보스는 1/4 거리, AI 를 멈추지 않고 속도에 더한다 */
     BOSS_MULT: 0.25,
     PLAYER_PX: 8,
     PLAYER_MS: 100,
   },
+  /**
+   * 62라운드 P1-1 피격 반응 (데드셀식 경직 자세 — 일반 적만, 보스 제외): 맞은 방향으로 뒤로 젖힘(라디안) + 가로로 퍼지고 납작.
+   * 히트스톱 남은 시간 동안 최대 자세 유지 → DECAY_MS 동안 풀림. 막타·치명은 × HEAVY_MULT
+   */
+  FLINCH: { LEAN_RAD: 0.14, SQUASH_X: 0.12, SQUASH_Y: 0.1, DECAY_MS: 130, HEAVY_MULT: 1.5 },
+  /**
+   * 62라운드 P1-1 처치 손맛 (하데스 마지막 일격·데드셀 처치 튕김):
+   * - HITSTOP_MULT: 처치 타의 무기 히트스톱 배율
+   * - POP: 시체가 맞은 방향으로 PX 만큼 미끄러지며(세로는 Y_RATIO — 쿼터뷰) 살짝 떴다(HOP_RATIO × PX) 떨어진다, MS 동안. 막타·치명은 × HEAVY_MULT
+   * - SLOW: 전투 방의 마지막 적을 쓰러뜨리면(시련 끝) SCALE 배속으로 MS(실시간) — 물리·트윈만 (보스는 BossFlow 처치 연출이 따로)
+   */
+  KILL: {
+    HITSTOP_MULT: 1.4,
+    POP: { PX: 10, Y_RATIO: 0.6, HOP_RATIO: 0.45, MS: 200, HEAVY_MULT: 1.6 },
+    SLOW: { SCALE: 0.3, MS: 280 },
+  },
   /** 데미지 숫자 */
   DAMAGE_TEXT: {
     POOL: 24,
-    DURATION_MS: 600,
-    RISE_PX: 14,
+    DURATION_MS: 650,
+    RISE_PX: 18,
     FADE_MS: 200,
-    /** 적중점 위 시작 오프셋 · 겹침 방지 가로 흔들림 */
-    OFFSET_Y: -10,
+    /** 적중점 위 시작 오프셋 · 겹침 방지 가로 흔들림 (62: 몸·라벨과 덜 겹치게 조금 더 위) */
+    OFFSET_Y: -14,
     JITTER_X: 4,
     CRIT_SCALE: 2,
     TICK_SCALE: 0.8,
+    /**
+     * 62라운드 P1-1 등급별 모양 (데드셀식 — 굵은 외곽선, 색으로 등급): 색(null = 치명은 층 램프 light1) · 배율 · 외곽선 굵기.
+     * 치명은 POP_FROM 배에서 POP_MS 동안 CRIT 배율로 내려앉는다(되튐). 외곽선 색은 STROKE_COLOR
+     */
+    STYLE: {
+      hit: { COLOR: '#f6efe2', SCALE: 1, STROKE: 2 },
+      heavy: { COLOR: '#ffcf66', SCALE: 1.5, STROKE: 2 },
+      crit: { COLOR: null, SCALE: 2, STROKE: 3 },
+      tick: { COLOR: '#c8b8a6', SCALE: 0.8, STROKE: 1 },
+      player: { COLOR: '#ff6a52', SCALE: 1.25, STROKE: 2 },
+    } as Record<'hit' | 'heavy' | 'crit' | 'tick' | 'player', { COLOR: string | null; SCALE: number; STROKE: number }>,
+    STROKE_COLOR: '#1a110c',
+    CRIT_POP: { FROM: 1.5, MS: 140 },
     FONT_PX: 11,
     FONT_FAMILY: 'Galmuri11',
     FONT_FALLBACK: 'monospace',
@@ -197,6 +232,15 @@ export const FEEL = {
     DEATH: { COLOR: 0x000000, ALPHA: 0.75, MIN_MS: 600 },
     /** 캔버스 폴백 채도 감소 색 (SATURATION 블렌드) */
     DESAT_FALLBACK_COLOR: 0x808080,
+    /**
+     * 62라운드 P2-13 무피격 보상 — 가장자리 섬광(가운데 INNER 비율까지 투명): 패링·퍼펙트 가드·완벽 놓기 = 따뜻한 금빛,
+     * 완벽 회피 = 차가운 빛. 효과음은 기존 표(audioMap·audioBuild)
+     */
+    EDGE: {
+      INNER: 0.55,
+      WARM: { COLOR: 0xffd27a, MS: 260, ALPHA: 0.55 },
+      COOL: { COLOR: 0x9fd0ff, MS: 300, ALPHA: 0.5 },
+    },
   },
   /** 보조 동작·대쉬 연출 (35라운드 3단계 임시값) */
   SECONDARY: {
@@ -225,8 +269,11 @@ export const FEEL = {
  * 56라운드 무기 피드백 (결정 2026-10-04-round-56) 연출 상수. 수치·게임 규칙은 data/weapons.json·player.json (임시값 표는 보고서)
  */
 export const FEEDBACK = {
-  /** Q36: 적 피격 번쩍임 — 호박 반투명, 80ms, 히트스톱으로 늘어나지 않음(트윈 시계) */
-  MOB_HURT: { ALPHA: 0.55, MS: 80 },
+  /**
+   * Q36: 적 피격 번쩍임 — 히트스톱으로 늘어나지 않음(트윈 시계). 62라운드 P1-1: 호박 반투명 80ms → 더하기 혼합 따뜻한 흰빛 2프레임(약 50ms)
+   * (데드셀·하데스 피격 섬광 — 전신 단색 채우기가 아니라 그림 위에 빛을 더해 형태가 남는다)
+   */
+  MOB_HURT: { ALPHA: 0.8, MS: 50, ADD: true },
   /**
    * Q12·Q50: 적중 순간 무기 그림이 크게 번쩍 — 판정 1프레임(WHITE_MS)만 백열 X1 #fff4dc, 그다음 호박 A25 #eecc78 로 식으며 사라짐
    * (더하기 혼합 사본, 트윈 시계 — 히트스톱 동안에도 진행)

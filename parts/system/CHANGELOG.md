@@ -1641,3 +1641,89 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 ### 검사
 - tsc · eslint · vitest 134 파일 1012(새 `training/tasks.test`·`drills.test`·`record.test`·`transition/transitionGate.test`) · 바뀐 파일 prettier · vite build 통과.
 - 헤드리스(빌드본, playwright swiftshader, 스크래치 `t6/`): 타이틀 → 수련장 지도 → 방(전환 begin·covered·ready·end, doorKey `paint/door_training_training`) · 걸음과 숨 8과제·도장·출구 → 지도 · 막고 받아치기 원·선·부채 예고 피하기 3 · 결사병 돌진 피하기 · 칼의 방 게이지 → 개성 메뉴 → 1차 각성 → L 로 둘째 갈래 · 술과 불 점화·술통 깨짐·행상·짐꾼·엘리트(이름표 '패거리 두목 징집병') · 만취 그림자(체력 330/1100) 쓰러뜨림 → defeat · 실제 런: 탄생지 → 일기장 수련장(런 맡김) → 나가기 → 같은 노드 출구 열린 채(전표·게이지 그대로) → exitRoom → 노드 고르기 → enterNode(doorKey `paint/door_waste_battle`) · 보스 처치 → floor 전환 → 2층. 콘솔 오류 0(위 6 고친 뒤).
+
+## 62라운드 루프 1 · 시스템 B: 첫 10분 재제작 — 시작 의식 흐름·판정 (P15 · 계약 UI §20 · 점검 P0-1·P0-2·P0-3·P1-9·P1-10·P1-20·P2-9 · art §30) (2026-10-12)
+
+전권 위임(인터뷰 없음). 결정과 이유는 아래 각 줄. 스토리 틀(59)·61 텍스트 팩 문장은 그대로 쓰고, 새 문장(왜·결과 한 줄·안내)은 시스템 자리표시(`data/narrative.json ritual`).
+
+### 1. 계약 §20 구현 (`src/contract/ui.ts` — §20 부분만)
+- `UiRitualPhase` · `UiRitual` · `UiSnapshot.ritual` · `uiCommands.ritual.{submitName, stroke, next, skip}` · `UI_EVENTS.RITUAL_STROKE_JUDGED = 'ui:ritual-stroke'`.
+- **늘린 것(시스템 추가)**: 이벤트 `UI_EVENTS.RITUAL = 'ui:ritual'`(상태가 바뀔 때 `UiRitual`) · `UiRitual.lines`(일기장 문장) · `strokes.legend`(획 ↔ 무기 규칙 `UiRitualLegend`) · `trial.current`·`trial.state` · `UiRitualTask.verb`·`clean` · `fate.gift`·`fate.remembered` · `redraw{key,label}` · `meta{souls,canBuy,label,key}` · 명령 `ritual.redraw(name)`·`ritual.back()`·`ritual.openMeta()` · 형식 `UiRitualPoint`·`UiRitualStrokeJudged`·`UiRitualCommand`.
+- 그 밖 추가: `UiSnapshot.keyBar`(P1-10) · `UiBirthInfo{firstLife}` = BIRTH_STARTED·BIRTH_DONE 페이로드(P1-10) · `UiMenuLine.doorKey`(P1-20 `trainingChoice` 카드 그림) · `UiSnapshot.meta: UiMetaSummary{lives,souls,bestFloor}`(타이틀 UI 요청 — 게임 씬이 없어도 메타 세이브에서, `contract/metaSummary.ts` 1초 기억).
+- `FATE_DECIDED` 페이로드에서 획 특징 수치(features)를 뺐다 → `{ weaponName, weapon }` (P0-1).
+- 의식 씬: Setup 이 `UI_SCENES.RITUAL`(UI 가 등록하면, 렌더러 등록 상태일 때)을 위에 띄우고, 없으면 시스템 대체 화면 `RitualView`(`?ritualview=sys` 로 강제).
+
+### 2. Setup = 흐름·판정만 (`scenes/Setup.ts` 다시 씀, 705 → 약 560줄 · 그림은 UI)
+- 첫 생: ('수련장부터 / 바로 벽 밖으로' 한 번) → name → strokes → (낙관 1.4초) → trial → fate(4.2초, `ritual.next` 로 바로). **영혼 강화 메뉴를 첫 생에 열지 않는다**(P0-3 — 옛 첫 화면 '영혼 0 … (불가)' 제거).
+- 두 번째 생부터(P1-9): rewrite 한 화면(번진 이름 문장 + 지난 이름 미리 채움) → Enter = **손이 기억한 무기**(지난 생 무기, 일기장 pastLives) 로 바로 운명 공개 · Tab(`ritual.redraw`) = 3획만 다시(회피 시험 없음, 시작 감각 +0) · 지난 생 기록이 없으면 3획으로. 영혼 강화 = 이 화면 귀퉁이(F2, `ritual.openMeta` → MENU 'meta', 닫기 '0').
+- 무기 선택 규칙이 보이게: 3획 화면 `strokes.legend`('곧고 빠르게 — 칼' 등 4줄) · 운명 공개 `fate.why`(무기 목소리 말투 한 줄, 획/기억 두 갈래 — 숫자가 있으면 부팅 예외 `data/ritual.ts noDigits`).
+- P0-1: 무기 공개 화면의 `(획 길이 … 속도 … 직선 …)` 디버그 줄 삭제. 운명 공개 = 이름 · 무기 이름 · 미리보기(`looks/<무기>_base` → 키 `growth_look_<무기>_base`, `GrowthArt.loadBaseLook`) · 첫 한마디 · 왜 · 시험 결과 한 줄(수치 없음).
+- `PLACEHOLDER_UI` 를 Setup·GameOver 에서 걷어냄(남은 곳: UI 렌더러가 없을 때의 TextMenu · 시험장 허수아비 이름표). 브라우저 기본 입력칸 없음.
+
+### 3. 회피 시험 = 탄생 전장·실제 사수 (`scenes/setup/BirthTrialRunner.ts` · `trialArrows` · `trialPlayer` · `trialProps`)
+- 바닥·벽 = 탄생 노드와 같은 `stage1_waste` 타일셋(TileWorld + generateArena 20×11, start 바닥) · art §30 소품 6(엄폐 3 solid — 걷기·화살 막음, 장식 3) · 사수 = 적 그림 `archer`(EntityVisual) · 화살 = `enemy_bullet`, 벽·엄폐에 부서짐.
+- 과제 3(`data/narrative.json ritual.trial.tasks`): 걸어서 피하기(사수 1, 겨눈 한 발 ×6) · 부채꼴을 대쉬로 뚫기(5발 70° ×4, verb dash) · 두 사수 엇갈린 사격(×8). 과제마다 이름 카드(움직일 수 있음) → 사격(쏘기 전 겨눔 선 0.48초 — 방향은 겨눔 시작에 고정) → 화살이 다 사라지면 끝. 맞은 수 합계 → 등급 S(0)/A(≤2)/B(≤5)/C → 시작 감각 +3/+2/+1/+0. `ritual.skip` = 건너뜀(+0).
+- 옛 51라운드 허공 무대·갉아먹힘·떨어짐·기둥(회색 원통)·5과제 러너 삭제: `systems/dodgeTrial/*`(러너·경기장·탄·위험물·뷰·과제·테스트) · `setup/trialHud`·`trialText(+test)`·`strokeExamples`. 주인공 모듈만 `scenes/setup/trialPlayer.ts` 로 옮기고 떨어짐을 걷어냄(수치 `RITUAL_TRIAL_FEEL`).
+- art §30 확인: `stage1_waste` 13~16(옛 v2 소품 예약 칸 → 바닥 변주)을 소품으로 읽는 코드 없음 — 소품은 타일셋 JSON `props` 표에서만 읽고, 쿼터뷰 바닥은 v3 소품 시트(propSkin)를 쓴다. 헤드리스: 바닥 타일셋 소품 표의 13~16 = 0개, 바닥에 13~16 칸 55개(변주로 깔림), propsLayer 없음.
+
+### 4. P1-10 · P2-9 · P1-20
+- P1-10: 두 번째 생부터 튜토리얼 표식 생략(61 P7 그대로) + BIRTH 페이로드 `firstLife` 로 UI 가 '싸우는 법' 패널을 띄우지 않게 · 첫 생 첫 3단(`RITUAL.KEY_BAR_NODES`) 동안 `keyBar` true(화면 아래 작은 4동사 막대). `systems/ritual/firstSteps`(운명 때 지난 생 수, 이어하기면 일기장).
+- P2-9: 시스템 대체 결과 화면(GameOver)에서 시드 삭제 · Galmuri11 · 스토리 팩 결과 문구. UI 결과 화면용 `UiResult.seed` 는 그대로(세부 접기 안은 UI 몫).
+- P1-20: `trainingChoice` 줄에 `doorKey`(수련장 = `door_training_training`, 바로 = 탄생 노드 입구 `door_waste_…`) — 받으면 같은 메뉴를 다시 연다. 문구(스토리 팩 사본)는 고치지 않음.
+
+### 검사
+- tsc(내 변경 + HEAD 의 격리 작업 트리 — 본 작업 트리는 병행 작업 중인 시스템 A 파일 `KillFeel` 미완 등으로 실패) · eslint(바뀐 파일) · vitest(새 `systems/ritual/ritual.test` 12, 전체에서 실패 3·시간 초과 1 은 병행 작업의 feel·hitFeel 수치와 부하 — 내 변경과 무관) · prettier(바뀐 파일) · vite build(격리 트리) 통과.
+- 헤드리스(빌드본, playwright swiftshader 960×540, 스크래치 `r62/`): 첫 생 — 선택 카드 '2' → 이름 '도영'(앞 키가 이름에 새지 않음) → 실제 마우스 3획 → 대검 → 탄생 전장 회피 시험(소품 6·사수·겨눔 선·화살 피격) → 운명 공개(lookKey·why·gift, senseBonus 1) → Game · 두 번째 생 — rewrite(지난 이름·번진 문장·영혼 60 canBuy) → F2 영혼 강화 → '0' 돌아옴 → Enter → 단검(remembered) → Game, senseBonus 0 · Tab → 3획 → 회피 시험 없이 운명 · Game 스냅샷 keyBar 첫 생 true / 두 번째 생 false, meta {lives, souls, bestFloor}. 콘솔 오류 0.
+
+## 62라운드 루프 1 · 시스템 A: 손맛·버그·화면 정리 (P15 · 점검 P0-4·P0-5·P0-7·P0-8·P1-1·P1-3·P1-4·P1-11·P2-1·P2-11·P2-12·P2-13) (2026-10-12)
+
+전권 위임(인터뷰 없음). 기준 = 데드셀·하데스 손맛(점검 `review-2026-10-12-stage1-competitive-audit.md`). 수치는 모두 임시값 — 실기 데모 뒤 다시 맞춘다.
+
+### P0-7 조명 사각형 계단 — 원인은 해상도가 아니라 혼합 버그
+- 증거(헤드리스 라이트맵 픽셀): `rt.stamp(..., { blendMode: ADD, skipBatch: true })` 는 ADD 가 걸리지 않고 일반 혼합으로 그려져, 뒤에 찍힌 광원의 **사각 쿼드 전체가 앞 광원 빛을 지웠다**(두 광원 시험: 겹친 곳 파랑 195 → 131, 쿼드 모서리까지 주변광으로 되돌아감). 이것이 '타일 크기 사각형'의 정체.
+- 고침: 라이트맵 스탬프를 `skipBatch: false`(beginDraw~endDraw 묶음)로 — 가산이 제대로 쌓인다. 해상도(480×270)·선형 보간·광원 수는 그대로라 비용이 늘지 않는다(묶음이라 오히려 줄어듦).
+- 주의: 겹친 광원이 이제 제대로 더해져 혼불 6개·불 웅덩이 칸 등 밀집 광원은 전보다 밝다(그전엔 서로 지워 어두웠다). 밝기 재조정은 데모 확인 뒤 `data/lighting.json`.
+
+### P0-5 수련장 BGM
+- `isBossState` 가 'title' 만 빼던 것을 보스 상태 목록 `BOSS_BGM_STATES = ['boss','emperor']` 로 — `resolveBgmFor` 국면 곡·보스 덕킹은 이때만. 수련장(training)은 `bgm/training`. 테스트 추가(audioMix·audioDefs).
+
+### P0-4 보스 등장 카드·대사 동안 공격 금지
+- 등장 연출 동안은 원래 잠재움·무적이었다. 문제는 **연출 뒤까지 남는 글**과 **곧바른 첫 공격**: 등장 대사 표시 힌트 `holdMs` = 전투 시작까지 남은 시간 − 150ms, 층 자막 = 대사 전까지. 포효 그림이 없어도 이름 카드는 'return' 단계(전투 0.5초 전)에.
+- 전투 시작 숨 고르기 `BOSS_FX.FIGHT_GRACE_MS 800`: 보스 제자리·패턴(급한 술병 포함)·접촉 공격 없음(맞을 수는 있음), 주인공 무적. 첫 패턴 = max(숨 고르기 끝, 국면 간격 2.3초). 연출 없는 경로(`?nobossintro`·수련장)도 같다.
+- 확인(가짜 시계 프레임 진행): 등장 5.2초 HP 100 유지 → 전투 신호 → 0.8초 숨 고르기 → 첫 패턴은 신호 뒤 2.3초.
+
+### P0-8 첫 전투 노드 입장 유예
+- 모든 웨이브: 나올 자리를 미리 골라 그 자리에 **바닥 문양**(먹 번짐 + 불씨 고리 맥박 + 작은 붉은 광원, `scenes/game/SpawnMarks`) 1.0초(`ENEMY_INCOMING.WAVE_DELAY_MS` 900 → 1000), 노드 첫 웨이브는 +0.5초. 나온 적은 0.35초 '일어서는 중'(투명 → 불투명, 움직임·공격 없음 — `Mob.arrive`). 데드셀·하데스 등장 예고 0.8~1.5초 범위.
+- 버려진 길 첫 웨이브 징집병 3 → 2(무리 돌진 minCount 3 아래). 둘째·셋째 웨이브 그대로.
+
+### P1-1 타격 무게감
+| 항목 | 전 | 후 | 근거 |
+|---|---|---|---|
+| 히트스톱 (단검·칼·대검·활) | 35·45·85·25ms | 38·55·95·30ms (막타·치명 ×1.8) | 데드셀 가벼운 무기 3프레임·무거운 무기 6프레임 |
+| 넉백 기본 · 치명 · 시간 | 6 · 10px · 100ms | 10 · 16px · 140ms | × knockbackMult(단검 0.6·칼 1.0·대검 2.0→2.2·활 0.8) = 6/10/22/8px — 점검 제안 6/10/24 |
+| 피격 섬광 | 호박 반투명 채움 80ms | 따뜻한 흰빛 더하기 혼합 50ms | 형태가 남는 빛 (단색 채우기 아님) |
+| 경직 자세 | 없음 | 뒤로 젖힘 0.14rad + 가로 +12%·세로 −10%, 히트스톱 동안 유지 후 130ms 풀림(막타 ×1.5) | 데드셀 피격 프레임 |
+| 처치 | — | 처치 타 히트스톱 ×1.4 · 시체가 맞은 방향으로 10px(막타 16) 미끄러지며 살짝 튕김 · 방 마지막 적 처치 = 0.3배속 280ms | 하데스 마지막 일격 |
+| 피해 숫자 | 회색 11px | 등급별: 일반 흰 · 막타 금 1.5배 · 치명 층 강조색 2배(1.5배에서 내려앉음) · 주인공 피격 붉은 1.25배 · 모두 어두운 외곽선 · 조금 더 위에서 떠오름 | 시스템이 월드에 그리는 숫자 (UI 아님) |
+- 코드: `GameCombat.hitMob`(등급·처치 히트스톱·경직) · `EntityVisual.flinch`/`popCorpse` · `scenes/game/CombatFeel`(처치 슬로모) · `FEEL.FLINCH`·`FEEL.KILL`·`FEEL.DAMAGE_TEXT.STYLE`.
+
+### P1-3 활 근접 빗맞음 — 바닥 기준 판정
+- 원인: 화살이 활 높이(발 위 약 37)에서 수평으로 날아 적의 발밑 몸통(바디) 위를 지나갔다(시험장 거리 14~96px 전부 0/3).
+- 고침: 화살 그림은 활 높이로 띄우고 물리 바디는 바닥 궤적에(`Projectile` `liftPx` — 바디 오프셋, `groundX/groundY`), 바닥 물건(술통·구조물·쓰러진 촛대·짐꾼 술통)은 바닥 자리로, 손에 든 잔은 그림 자리로 잰다. 조준 = 커서가 적 그림(발~머리) 위면 그 적 몸통 바닥으로, 아니면 커서 + 12px 바닥점 · 8° 약한 보정 원뿔 · 발 → 화살 출발점 사이에 선 적은 쏘는 순간 맞음(`BOW_AIM`).
+- 확인(가짜 시계): 거리 14·26·48·96 × 조준 발·몸통·머리 = 3/3 거의 전부(2/3 은 화살 8발 소진).
+
+### P1-4 적 가독성 (시스템 몫)
+- 차가운 림: 일반 적 둘레에 아트 외곽선 시트(엘리트용 `<적>_<동작>_elite`, 부팅 묶음에 이미 있음)를 차가운 채움(#9db8e8, 알파 0.6)으로 적 바로 아래 — 새 텍스처·셰이더 없이 적당 스프라이트 1장(`MobReadability`). 엘리트는 호박 외곽선 그대로.
+- HP 막대: 피해 입은 일반 적 머리 위 14×1 월드 px(화면 56×4) · 깎인 몫이 천천히 줄어듦 · 라이트맵 위. 엘리트·보스 HP 는 UI.
+- 엘리트 이름표: 문장 배율 0.6 + 여백 6도트 → 이름표 기준점이 머리 위 약 10 월드 px(전 약 50). 문장이 없으면 머리 꼭대기(`EntityVisual.headTopPx`, 피벗 × 0.86).
+
+### P1-11 · P2-1 · P2-11 · P2-12 · P2-13
+- P1-11(시스템 몫): 전투 중 보스 대사 `holdMs 3200`(국면이 바뀌면 앞 대사가 남지 않게). 노드를 떠날 때 레인 비우기는 UI(아래 요청).
+- P2-1: 갈 길이 하나면 출구에서 지도·확인 없이 그 노드 입구로(`RouteFlow.exitToMap`, UI 렌더러가 있을 때). 지도는 M.
+- P2-11: 보스 내려찍기 16 → 12 (방어 후 약 9~10 = HP 10% 안팎, 넓은 범위·0.8초 예고 기술). 돌진 16 그대로. pillarSim 통과.
+- P2-12: 판정 모양 오버레이는 `?debug&hitshapes=1` 일 때만.
+- P2-13: 완벽 성공(`PERFECT_SUCCESS` 패링·퍼펙트 가드·완벽 놓기·완벽 회피) → 화면 가장자리 섬광(가운데 55% 투명, 더하기 혼합 · 금빛 260ms / 회피 차가운 빛 300ms, `ScreenFx.edge`). 소리는 기존 표.
+
+### 검사
+- tsc · eslint · vitest 136파일 1036 · 바뀐 파일 prettier · vite build 통과. (feel·hitFeel 테스트 수치 갱신, damageNumberLayout·audio 테스트 추가)
+- 헤드리스(빌드본 전/후, 가짜 시계 프레임 진행, 스크래치 `s62a/shots`): 라이트맵 픽셀(`b_lightmap_x2` 사각 → `a_lightmap_x2` 매끈) · 보스방 · 대검 타격 프레임(`gs_hit_before_top_after_bottom`) · 활 거리표 · 보스 등장 시간표 · 림·HP 막대·문양(`bt_read_before_after`) · 엘리트 이름표(`a_elite_c`).

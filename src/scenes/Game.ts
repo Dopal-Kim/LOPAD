@@ -51,6 +51,8 @@ import { HitStop, PauseClock, Shake } from '../systems/feel';
 import type { RibbonRenderer } from '../systems/fx/ribbon';
 import type { AshParticles } from '../systems/fx/ashParticles';
 import type { ScreenFx } from '../systems/fx/screenFx';
+import type { CombatFeel } from './game/CombatFeel';
+import type { MobReadability } from './game/MobReadability';
 import type { AimLine } from '../systems/fx/aimFx';
 import type { DamageNumberPool } from '../systems/fx/damageNumbers';
 import type { HitFx } from '../systems/fx/hitFx';
@@ -145,6 +147,9 @@ export class Game extends Phaser.Scene {
   ash: AshParticles;
   screenFx: ScreenFx;
   aimLine: AimLine;
+  /** 62라운드 P1-1 처치 슬로모·P2-13 가장자리 섬광 · P1-4 적 가독성(림·HP 막대) — 둘 다 씬 종료 때 스스로 정리 */
+  combatFeel: CombatFeel;
+  readability: MobReadability;
   /** 50라운드 동적 조명 + 어둠 (지역 조명이 없으면 꺼진 채) */
   lighting: Lighting;
   readonly hitStop = new HitStop();

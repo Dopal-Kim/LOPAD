@@ -24,8 +24,13 @@ export const BUNDLE_FX = {
   CASK_SHEET: 'cask',
   /** 엘리트: 외곽선 깊이 (적 바로 아래) · 문장 위 여백 도트(10) · 문장 머리 위 기본 높이(도트, headTopByEnemy 가 없을 때) */
   ELITE_OUTLINE_DEPTH: 2.5e-6,
-  ELITE_EMBLEM_GAP_DOTS: 10,
+  ELITE_EMBLEM_GAP_DOTS: 6,
   ELITE_HEAD_TOP_DOTS: 120,
+  /**
+   * 62라운드 P1-4: 문장 그림 배율 — 1 이면 문장(54도트)과 UI 이름표가 머리 위로 쌓여 이름표가 몸에서 약 200px 떠 있었다.
+   * 0.6 + 여백 6도트 → 머리 꼭대기에서 문장 위까지 약 10 월드 px (화면 약 40px)
+   */
+  ELITE_EMBLEM_SCALE: 0.6,
   /** 떨어진 소모품 줍기 반경(칸) */
   ITEM_PICK_TILES: 0.7,
   /** 결정타·등급 월드 문구 */

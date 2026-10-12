@@ -11,6 +11,11 @@ import { BirthSequence } from '../../systems/birth';
 import { oncePerKeyEvent } from '../../systems/keyEvents';
 import { UI_SCENES } from '../../ui';
 import type { Game } from '../Game';
+import type { UiBirthInfo } from '../../contract/ui';
+import { firstSteps } from '../../systems/ritual/firstSteps';
+
+/** 62 P1-10: 첫 생인가 — 두 번째 생부터 UI 는 '싸우는 법' 패널을 띄우지 않는다 (조작 표는 일시정지 메뉴에만) */
+const birthInfo = (): UiBirthInfo => ({ firstLife: firstSteps.firstLife() });
 
 export class BirthFlow {
   seq: BirthSequence | null = null;
@@ -49,10 +54,10 @@ export class BirthFlow {
     const hud = g.scene.manager.keys[UI_SCENES.HUD] ? g.scene.get(UI_SCENES.HUD) : null;
     if (hud && !hud.sys.isActive()) {
       hud.sys.events.once(Phaser.Scenes.Events.CREATE, () => {
-        if (this.seq?.active) __system.emit(UI_EVENTS.BIRTH_STARTED);
+        if (this.seq?.active) __system.emit(UI_EVENTS.BIRTH_STARTED, birthInfo());
       });
     } else {
-      __system.emit(UI_EVENTS.BIRTH_STARTED);
+      __system.emit(UI_EVENTS.BIRTH_STARTED, birthInfo());
     }
     g.input.keyboard?.on('keydown', this.onKeyDown);
     g.input.on('pointerdown', this.onKey);
@@ -88,7 +93,7 @@ export class BirthFlow {
     // 조작 해제: 건너뛴 키가 바로 공격·대쉬로 새지 않게 아주 짧게 잠근다
     g.route.enterLockUntil = Math.max(g.route.enterLockUntil, g.time.now + (skipped ? BIRTH.SKIP_GRACE_MS : 0));
     g.inputSystem.read();
-    __system.emit(UI_EVENTS.BIRTH_DONE);
+    __system.emit(UI_EVENTS.BIRTH_DONE, birthInfo());
   }
 
   private unbind(): void {
