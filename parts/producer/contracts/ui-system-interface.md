@@ -665,3 +665,27 @@ interface UiRitual {
 - (같이) `UiSnapshot.keyBar`(첫 생 첫 3단만 true — 아래쪽 키 막대), `UiBirthInfo{firstLife}`(BIRTH_STARTED·BIRTH_DONE), `UiMenuLine.doorKey`(trainingChoice 카드 입구 그림), `UiSnapshot.meta{lives,souls,bestFloor}`(타이틀·일기장 귀퉁이 — 게임 씬 없을 때도 메타 세이브에서).
 - (62 루프 1 UI B 확정) 의식 그림(`ritual/*`·`looks/<weapon>_base`·액자 9-slice)은 **UI 가 직접 로드**한다(시스템 로드 불필요). `UI_SCENES.RITUAL` 렌더러는 씬 시작 전에 등록된다(`?new` 직행 시에도 대체 화면이 뜨지 않음). 알림은 위 가운데 **한 줄 큐**(최대 2장·중요도 보스>파훼>적 소개·주의>개성>방 이름>안내), 성과 칩은 왼쪽 위. 전환 시작(`ui:transition-begin`) 때 알림·자막·쪽지·토스트를 비운다. 각성 게이지는 체력 밑 3px 띠(숫자 없음), 태그 칩은 Tab 빌드에서만.
 - (요청 — 시스템) 일반 적 HP 막대(피격 시만 잠깐)·피해 숫자 크기·외곽선·치명 강조는 월드 그림이라 시스템이 그린다. `UiElite.screen` 은 머리가 아니라 문장 아이콘 위 끝 좌표다(UI 오프셋 3으로 맞춤).
+
+## 21. 62 루프 2 시스템 C — 유품·층 끝·죽음 결산·기억 (P16 §1~4)
+코드 원문: `src/contract/ui.ts` '62 루프 2 시스템 C' 절(`hostLoop2C.ts`). 이름·문장 = 스토리 63 팩, 화면 용어 = `story-glossary.md`.
+- 이벤트: `RELIC_GAINED 'ui:relic-gained'`(UiRelic) · `FLOOR_END 'ui:floor-end'`(UiFloorEnd — 유품·개성 발현 뒤 1.2초, 곧 RUN_ENDED cleared) · `DEATH_STARTED 'ui:death-started'`(UiDeathFx{slowMs,slowScale,inkMs,totalMs} — UI 는 HUD 를 걷음, 먹 번짐은 시스템이 그림) · `MEMORY_CHANGED 'ui:memory-changed'`(UiMemoryBook).
+- 유품: 메뉴 id 'passive' · 줄 kind 'passive' + `line.relic`(UiRelic{id,name,line(무기 문장·수치 없음),detail(상세 D),tag,rarity,level,maxLevel,levelText '{n}단계',owned,flavor,iconKey ui_relics/<id>,source}). 보스 = '군주의 유품' 3택. `snapshot.relics`. `UiChoiceKind` 는 넓히지 않음.
+- 결산: `UiResult.summary`(UiRunSummary — killer{kind,id,name,portrait ui_portraits/<id>|boss1}, killerLine, where, path[UiPathNode], route, build[UiBuildIcon], souls{gained,total,next UiNextUnlock{id,name,cost,left}}, soulsText, soulsLine, labels, time) · `UiResult.floorEnd`(UiFloorEnd — floor, title '1층 끝', 통계, build, clues{found,total}, lines, labels, values, footer, choices[{key 'reborn'|'closeDiary', label}]). 명령 `uiCommands.endChoice(c)`.
+- `snapshot.exitHint`(UiExitHint{x,y,label '오르는 길',angle,onScreen,distTiles, side(E)}).
+- 기억: `uiCommands.memory.book()`·`unlock(id)`·`setKeepsake(id|null)`, UiMemoryBook{title,intro,soulsText,souls,chapters[{kind keepsake|aspect|pool|shop|stat, name, entries UiMemoryEntry}],next,keepsake}. 메뉴 'aspect'(key 'base'·'a:<id>')·'keepsake'(key 'k:<id>'·'none') 필수 선택, 기억 장은 메뉴 'meta'(key 'm:<id>', 닫기 '0'). `UiRitual.memory{picking,aspect,keepsake}`·`giftNote`.
+- 첫 개성 발현 카드 수: 회피 시험 S·A 4장 / B·C 3장, 먹 묻은 붓 +1(상한 5), 'reroll' 줄 가능.
+
+## 22. 62 루프 2 시스템 D — 사연·장터·보스·설정·로딩·월드 (P16 §5~8)
+코드 원문: `src/contract/ui.ts` '62 루프 2 시스템 D' 절(`hostLoop2D.ts`·`snapshotLoop2D.ts`).
+- 이벤트: `ui:event-result`(UiEventResult{eventId,optionKey,cutKey,line,gains,losses}) · `ui:hidden-reward`(UiHiddenReward{state,kind,text,when,icon}) · `ui:shop-purchased` · `ui:fullscreen` · `ui:node-trial-broken` · `ui:loading`(UiLoading{phase,progress,done,region,tip} — phase prefetch 는 막는 화면 금지).
+- 사연: NPC/소품에 E 로 말 걸기 → `UiMenu.event`(UiEventScene{id,name,speaker,portrait,greet,intro,heads})·`speaker`, 줄 `costs`/`rewards`(UiEventIcon, hidden '?'). 장터: `snapshot.shopOffer`(UiShopOffer{stallId,line,icon,buyKey,usable,reason,reasonText,screen}) + E 사기, 상인 말 걸기 메뉴 'shopTalk'(다시 진열·외상·그만). 구조물 종류 'eventNpc'·'shopStall'.
+- 보스 `UiBossSnapshot.phaseRevealed`(오지 않은 국면 이름 '' → UI '???'). 시련 `UiNodeTrial.reward`·`broken`. 웨이브 `UiEnemyIncoming.side`. 팻말 `snapshot.signs`(UiWorldSign). `snapshot.fullscreen`·`autoSave`.
+- 설정 `UiSettings.keys`(UiKeyBindings, 기본 W S A D SPACE E Q · UI_BINDABLE_KEYS·UI_KEY_LABELS)·`hitstop`·`textScale`(1|1.5). 명령 `setFullscreen(on)`·`toggleFullscreen()`(F11 은 시스템)·`abandonRun()`(사망 흐름 → 결산)·`saveAndQuit()`·`toTitle()`(자동 저장, 무제한).
+- 결정(시스템 D): E4 '다듬는다' = 다시 뽑기 +1, 외상 = 물건 지금 받고 저주 '외상'(처치 전표 0·값 +20%·3곳), 국밥 고정 칸 유지.
+
+## 23. 62 루프 2 시스템 E — 외벽 문 출구·메뉴 무장 (도영 님 추가 지시)
+코드 원문: `src/contract/ui.ts` '62 루프 2 시스템 E' 절(`hostLoop2E.ts`, 이벤트 `core/eventsLoop2E.ts`).
+- 노드 출구 2×2 발판 폐지 → 방을 비우면 동쪽 외벽 문이 열림(널문 걷힘·문 빛·바닥 '오르는 길' 갈매기) → 문턱(벽 안 1칸 띠)에서 조작 잠금, 문 안으로 2.5칸 자동 걸음 → 그림 속 입구 전환. 새 노드는 서쪽 문에서 0.6~0.7초 걸어 들어온 뒤 문 닫힘(탄생 전장 제외). 지도 취소 시 문에서 걸어 나옴. 수련장 방·보스 노드 층 출구도 같은 문법(1층 군주 처치는 §21 층 끝이 먼저).
+- `snapshot.door`(UiDoor{side,phase closed|open|walkOut|inside|walkIn,kind node|floor|training,screen}) — walkOut/inside/walkIn 동안 UI 는 조작 안내·키 막대를 숨김. `UiExitHint.side`.
+- 메뉴 무장: `UiMenu.openedAt/armMs`·`UiRoute.openedAt/armMs`(performance.now ms, armMs 400) — max(openedAt, menuShown)+armMs 전 select·chooseNode 무시(같은 id 다시 그리기는 처음 시각 유지, meta 예외). 명령 `uiCommands.menuShown(id|'route')`(UI 가 실제로 그린 순간). 메뉴·지도가 뜨는 프레임에 입력 버퍼 비움, 열릴 때 누르던 키는 뗀 뒤만. `?menuguard=0` 끄기.
+- 이벤트 `door:opened`·`door:walk{phase out|in|back}`(음향 문 소리 트리거).
