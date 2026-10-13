@@ -11657,8 +11657,8 @@
    "name": "stage1_attack",
    "src": "assets/sprites/bosses/v3/stage1_attack.png",
    "srcSize": [
-    2496,
-    960
+    3744,
+    1440
    ],
    "frames": 52,
    "empty": 0,
@@ -11666,24 +11666,24 @@
    "pages": [
     [
      "stage1_attack.png",
-     682,
-     2193
+     838,
+     3866
     ]
    ],
-   "gpuBefore": 9584640,
-   "gpuAfter": 5982504,
-   "fileBefore": 322726,
-   "fileAfter": 146645,
-   "jsonBefore": 3919,
-   "jsonAfter": 13319,
+   "gpuBefore": 21565440,
+   "gpuAfter": 12958832,
+   "fileBefore": 754647,
+   "fileAfter": 337409,
+   "jsonBefore": 5443,
+   "jsonAfter": 14870,
    "cat": "bosses"
   },
   {
    "name": "stage1_death",
    "src": "assets/sprites/bosses/v3/stage1_death.png",
    "srcSize": [
-    2688,
-    960
+    4032,
+    1440
    ],
    "frames": 56,
    "empty": 0,
@@ -11691,24 +11691,24 @@
    "pages": [
     [
      "stage1_death.png",
-     450,
-     2097
+     1344,
+     1591
     ]
    ],
-   "gpuBefore": 10321920,
-   "gpuAfter": 3774600,
-   "fileBefore": 331467,
-   "fileAfter": 102309,
-   "jsonBefore": 1961,
-   "jsonAfter": 12028,
+   "gpuBefore": 23224320,
+   "gpuAfter": 8553216,
+   "fileBefore": 752308,
+   "fileAfter": 212943,
+   "jsonBefore": 3449,
+   "jsonAfter": 13558,
    "cat": "bosses"
   },
   {
    "name": "stage1_drink",
    "src": "assets/sprites/bosses/v3/stage1_drink.png",
    "srcSize": [
-    2880,
-    960
+    4320,
+    1440
    ],
    "frames": 60,
    "empty": 0,
@@ -11716,24 +11716,24 @@
    "pages": [
     [
      "stage1_drink.png",
-     911,
-     1660
+     1360,
+     2493
     ]
    ],
-   "gpuBefore": 11059200,
-   "gpuAfter": 6049040,
-   "fileBefore": 294884,
-   "fileAfter": 143441,
-   "jsonBefore": 8904,
-   "jsonAfter": 19595,
+   "gpuBefore": 24883200,
+   "gpuAfter": 13561920,
+   "fileBefore": 758412,
+   "fileAfter": 337742,
+   "jsonBefore": 10482,
+   "jsonAfter": 21224,
    "cat": "bosses"
   },
   {
    "name": "stage1_drink_break",
    "src": "assets/sprites/bosses/v3/stage1_drink_break.png",
    "srcSize": [
-    2880,
-    960
+    4320,
+    1440
    ],
    "frames": 60,
    "empty": 0,
@@ -11741,24 +11741,24 @@
    "pages": [
     [
      "stage1_drink_break.png",
-     1948,
-     832
+     2900,
+     1251
     ]
    ],
-   "gpuBefore": 11059200,
-   "gpuAfter": 6482944,
-   "fileBefore": 337122,
-   "fileAfter": 157208,
-   "jsonBefore": 3954,
-   "jsonAfter": 14667,
+   "gpuBefore": 24883200,
+   "gpuAfter": 14511600,
+   "fileBefore": 812742,
+   "fileAfter": 363610,
+   "jsonBefore": 5457,
+   "jsonAfter": 16206,
    "cat": "bosses"
   },
   {
    "name": "stage1_fall",
    "src": "assets/sprites/bosses/v3/stage1_fall.png",
    "srcSize": [
-    3264,
-    960
+    4896,
+    1440
    ],
    "frames": 68,
    "empty": 0,
@@ -11766,24 +11766,24 @@
    "pages": [
     [
      "stage1_fall.png",
-     468,
-     2177
+     929,
+     2462
     ]
    ],
-   "gpuBefore": 12533760,
-   "gpuAfter": 4075344,
-   "fileBefore": 471985,
-   "fileAfter": 106332,
-   "jsonBefore": 2180,
-   "jsonAfter": 14210,
+   "gpuBefore": 28200960,
+   "gpuAfter": 9148792,
+   "fileBefore": 1120688,
+   "fileAfter": 241025,
+   "jsonBefore": 3667,
+   "jsonAfter": 15762,
    "cat": "bosses"
   },
   {
    "name": "stage1_hurt",
    "src": "assets/sprites/bosses/v3/stage1_hurt.png",
    "srcSize": [
-    576,
-    960
+    864,
+    1440
    ],
    "frames": 12,
    "empty": 0,
@@ -11791,24 +11791,24 @@
    "pages": [
     [
      "stage1_hurt.png",
-     235,
-     1273
+     351,
+     1903
     ]
    ],
-   "gpuBefore": 2211840,
-   "gpuAfter": 1196620,
-   "fileBefore": 67648,
-   "fileAfter": 29002,
-   "jsonBefore": 1619,
-   "jsonAfter": 4411,
+   "gpuBefore": 4976640,
+   "gpuAfter": 2671812,
+   "fileBefore": 174453,
+   "fileAfter": 72909,
+   "jsonBefore": 3106,
+   "jsonAfter": 5912,
    "cat": "bosses"
   },
   {
    "name": "stage1_idle",
    "src": "assets/sprites/bosses/v3/stage1_idle.png",
    "srcSize": [
-    1536,
-    960
+    2304,
+    1440
    ],
    "frames": 32,
    "empty": 0,
@@ -11816,24 +11816,24 @@
    "pages": [
     [
      "stage1_idle.png",
-     506,
-     1664
+     971,
+     1873
     ]
    ],
-   "gpuBefore": 5898240,
-   "gpuAfter": 3367936,
-   "fileBefore": 160021,
-   "fileAfter": 83676,
-   "jsonBefore": 1693,
-   "jsonAfter": 7768,
+   "gpuBefore": 13271040,
+   "gpuAfter": 7274732,
+   "fileBefore": 398134,
+   "fileAfter": 185947,
+   "jsonBefore": 3180,
+   "jsonAfter": 9281,
    "cat": "bosses"
   },
   {
    "name": "stage1_kick",
    "src": "assets/sprites/bosses/v3/stage1_kick.png",
    "srcSize": [
-    1920,
-    960
+    2880,
+    1440
    ],
    "frames": 40,
    "empty": 0,
@@ -11841,24 +11841,24 @@
    "pages": [
     [
      "stage1_kick.png",
-     603,
-     1877
+     1485,
+     1846
     ]
    ],
-   "gpuBefore": 7372800,
-   "gpuAfter": 4527324,
-   "fileBefore": 216906,
-   "fileAfter": 105652,
-   "jsonBefore": 3461,
-   "jsonAfter": 10860,
+   "gpuBefore": 16588800,
+   "gpuAfter": 10965240,
+   "fileBefore": 535577,
+   "fileAfter": 251417,
+   "jsonBefore": 4965,
+   "jsonAfter": 12401,
    "cat": "bosses"
   },
   {
    "name": "stage1_phase_drink",
    "src": "assets/sprites/bosses/v3/stage1_phase_drink.png",
    "srcSize": [
-    3072,
-    960
+    4608,
+    1440
    ],
    "frames": 64,
    "empty": 0,
@@ -11866,24 +11866,24 @@
    "pages": [
     [
      "stage1_phase_drink.png",
-     854,
-     2073
+     910,
+     4093
     ]
    ],
-   "gpuBefore": 11796480,
-   "gpuAfter": 7081368,
-   "fileBefore": 338689,
-   "fileAfter": 158330,
-   "jsonBefore": 9291,
-   "jsonAfter": 20636,
+   "gpuBefore": 26542080,
+   "gpuAfter": 14898520,
+   "fileBefore": 869553,
+   "fileAfter": 390995,
+   "jsonBefore": 10889,
+   "jsonAfter": 22317,
    "cat": "bosses"
   },
   {
    "name": "stage1_slam",
    "src": "assets/sprites/bosses/v3/stage1_slam.png",
    "srcSize": [
-    2304,
-    960
+    3456,
+    1440
    ],
    "frames": 48,
    "empty": 0,
@@ -11891,24 +11891,24 @@
    "pages": [
     [
      "stage1_slam.png",
-     1360,
-     979
+     1119,
+     2640
     ]
    ],
-   "gpuBefore": 8847360,
-   "gpuAfter": 5325760,
-   "fileBefore": 309516,
-   "fileAfter": 127656,
-   "jsonBefore": 3784,
-   "jsonAfter": 12491,
+   "gpuBefore": 19906560,
+   "gpuAfter": 11816640,
+   "fileBefore": 715970,
+   "fileAfter": 300855,
+   "jsonBefore": 5294,
+   "jsonAfter": 14057,
    "cat": "bosses"
   },
   {
    "name": "stage1_stagger_dash",
    "src": "assets/sprites/bosses/v3/stage1_stagger_dash.png",
    "srcSize": [
-    2688,
-    960
+    4032,
+    1440
    ],
    "frames": 56,
    "empty": 0,
@@ -11916,24 +11916,24 @@
    "pages": [
     [
      "stage1_stagger_dash.png",
-     566,
-     2608
+     1013,
+     3235
     ]
    ],
-   "gpuBefore": 10321920,
-   "gpuAfter": 5904512,
-   "fileBefore": 331153,
-   "fileAfter": 153520,
-   "jsonBefore": 4111,
-   "jsonAfter": 14175,
+   "gpuBefore": 23224320,
+   "gpuAfter": 13108220,
+   "fileBefore": 779039,
+   "fileAfter": 329792,
+   "jsonBefore": 5638,
+   "jsonAfter": 15737,
    "cat": "bosses"
   },
   {
    "name": "stage1_throw",
    "src": "assets/sprites/bosses/v3/stage1_throw.png",
    "srcSize": [
-    1920,
-    960
+    2880,
+    1440
    ],
    "frames": 40,
    "empty": 0,
@@ -11941,24 +11941,24 @@
    "pages": [
     [
      "stage1_throw.png",
-     587,
-     1845
+     867,
+     2797
     ]
    ],
-   "gpuBefore": 7372800,
-   "gpuAfter": 4332060,
-   "fileBefore": 244633,
-   "fileAfter": 112282,
-   "jsonBefore": 4894,
-   "jsonAfter": 12294,
+   "gpuBefore": 16588800,
+   "gpuAfter": 9699996,
+   "fileBefore": 591168,
+   "fileAfter": 257405,
+   "jsonBefore": 6406,
+   "jsonAfter": 13845,
    "cat": "bosses"
   },
   {
    "name": "stage1_throw_torch",
    "src": "assets/sprites/bosses/v3/stage1_throw_torch.png",
    "srcSize": [
-    2112,
-    960
+    3168,
+    1440
    ],
    "frames": 44,
    "empty": 0,
@@ -11966,24 +11966,24 @@
    "pages": [
     [
      "stage1_throw_torch.png",
-     729,
-     1673
+     770,
+     3704
     ]
    ],
-   "gpuBefore": 8110080,
-   "gpuAfter": 4878468,
-   "fileBefore": 258680,
-   "fileAfter": 124563,
-   "jsonBefore": 4628,
-   "jsonAfter": 12695,
+   "gpuBefore": 18247680,
+   "gpuAfter": 11408320,
+   "fileBefore": 624739,
+   "fileAfter": 289931,
+   "jsonBefore": 6157,
+   "jsonAfter": 14272,
    "cat": "bosses"
   },
   {
    "name": "stage1_walk",
    "src": "assets/sprites/bosses/v3/stage1_walk.png",
    "srcSize": [
-    1536,
-    960
+    2304,
+    1440
    ],
    "frames": 32,
    "empty": 0,
@@ -11991,16 +11991,16 @@
    "pages": [
     [
      "stage1_walk.png",
-     685,
-     1240
+     1020,
+     1852
     ]
    ],
-   "gpuBefore": 5898240,
-   "gpuAfter": 3397600,
-   "fileBefore": 175540,
-   "fileAfter": 86872,
-   "jsonBefore": 1737,
-   "jsonAfter": 7798,
+   "gpuBefore": 13271040,
+   "gpuAfter": 7556160,
+   "fileBefore": 424476,
+   "fileAfter": 199347,
+   "jsonBefore": 3224,
+   "jsonAfter": 9329,
    "cat": "bosses"
   },
   {
@@ -12627,6 +12627,31 @@
    "jsonBefore": 3188,
    "jsonAfter": 7916,
    "cat": "fx"
+  },
+  {
+   "name": "stage1_intro",
+   "src": "assets/sprites/bosses/v3/stage1_intro.png",
+   "srcSize": [
+    4608,
+    1440
+   ],
+   "frames": 64,
+   "empty": 0,
+   "deduped": 0,
+   "pages": [
+    [
+     "stage1_intro.png",
+     2040,
+     1877
+    ]
+   ],
+   "gpuBefore": 26542080,
+   "gpuAfter": 15316320,
+   "fileBefore": 907356,
+   "fileAfter": 398116,
+   "jsonBefore": 4061,
+   "jsonAfter": 15467,
+   "cat": "bosses"
   }
  ]
 }

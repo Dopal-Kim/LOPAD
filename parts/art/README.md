@@ -862,3 +862,40 @@ python3 parts/art/work/r62a/build.py              # 62라운드 루프 1: 첫 �
 - `atlas57/verify.py --all`: 시트 1482(+41), 형식 오류 0(원본 없음 84 = 새 시트 형식만), 픽셀 불일치 0. 스미어 glow 규칙 검사(흰 끝·X0 는 glowFrames 만) 통과, `framesPerDirection == atlas.grid.columns`.
 - `npx vitest run src/systems/sprites src/systems/fx` 18파일 125건 통과. (전체 실행의 실패 10건은 meta·ui·audio 진행 중 작업 — 아트 산출물과 무관)
 - 커밋 뒤 기준 이동은 메인이 `verify.py --rebase`.
+
+## 62라운드 루프 3 (2026-10-13, 전권 위임) — 미리보기 입구 그림 · 기억 장 아이콘 · favicon · 보스 재도트 · 단검·활 궤적 · 작업 폴더 `work/r62c/`
+근거: `decisions/2026-10-12-P17-loop3.md` 묶음 B·C·D(아트 몫), 점검 `review-2026-10-12-stage1-loop3-audit.md` P1-N5·N6·N9·P1-14·P2-N1, UI 계약 §25(미리보기 카드 256×144 · res 2). 자율 모드라 `data/route.json`·`data/memory.json`·`data/meta.json`·`data/bundle2.json`·`src/systems/route.ts`·`src/scenes/game/{RoutePreview,PaintArt}.ts`·`src/systems/transition/doorNames.ts`·`src/ui/RoutePreview.ts`·`themeTransition.ts`(PREVIEW) 를 **읽기만** 했다.
+**방법 — Claude 직접**: Gemini 는 402(호출 확인). Pillow 만, 새 라이브러리 없음.
+빌드: `python3 parts/art/work/r62c/build.py [--only doors,memory,favicon,boss,trails,preview]` — `c62.py`(경로·램프) · `doors.py`(+`doors_curse.py`·`doors_small.py`·`figures.py`) · `memory.py` · `favicon.py` · `boss.py`(+`boss_redot.py`·`boss_preview.py`) · `trails.py`(+`bow.py`, 단검은 r62b `smear.py` 를 그대로 부름). 멱등(보스는 git `b2d9dee` 원본에서 다시 계산).
+
+### 1. 노드 지도 미리보기 그림 (`assets/sprites/paint/`)
+- 1층 실제 조합 점검(route.json): 여정 birth·road → `waste_battle`(별칭), post → `gate_rest`(별칭) / 단1 outer 전투 / 단2 outer 전투·사연 / 단3 brewery 전투 / 단4 brewery 장터·쉼터 / 보스 → `hall_boss`. **노드 종류 조합은 61 단계 6 에서 이미 전부 있었다.** 빠진 것은 위험 노드(bundle2 risk — 단2·단3 전투 하나가 elite 또는 curse): elite 그림은 있으나 미리보기 키가 노드 kind(battle)로만 고르기 때문에 쓰이지 않고, curse 그림은 없었다.
+- 새 그림 `door_{outer,brewery}_curse.png`(640×360, §28 형식 json): 같은 지역 전투 입구를 바탕으로 호박을 눌러 차갑게 + 입구 안 귀불(‘귀’ 램프 floors[4] — 엘리트 '적' 과 같은 둘째 강조 축 규칙) + 처진 줄의 부적·기둥 긴 부적·끊어진 쇠사슬·귀불 셋 + 입구 안 유품 받침(금 한 점 — '그 값으로 귀한 유품').
+- 카드판 `door_<…>_small.png` 20장(512×288 = 카드 256×144 × res 2): 원본을 입구 둘레로 **1:1 자름**(재표본 없음, 입구 가운데 = 가로 가운데·세로 42% — 카드 아래 먹 띠를 피함) + 명도 곡선(어둠 들어 올림) + 입구 빛 번짐(옅은 호박은 진한 호박으로 — 올리브 뜸 방지) + 가장자리 어둡게 + 작은 unsharp. 사연 카드 2장은 **인물 덧그림**(두건 쓴 사람이 등을 들고 앉음, 2px 도트, 등 빛 번짐). 수련장 2장은 보정 30%만(원래 밝음).
+- `doors.json`: 새 키 curse 2 · 각 항목 `small`/`smallJson` · `risk {elite, curse}`(찾는 규칙 메모) · `small{suffix,size,note}` · `usedFloor1_r62c`.
+- see → critique → fix: 1차 = 카드판이 원본 축소라 어둡고 문이 먹 띠 아래 → 1:1 자르기·세로 42%. 2차 = 입구 빛이 올리브·동심원 띠 → 진한 호박 + 흐림 0.3. 3차 = 사연 인물(NPC 시트 실루엣)이 덩어리·창이 점선 → 손으로 그린 두건 인물 + 등, 어두운 오른쪽 → 촛불 쪽 왼쪽으로. 저주 1차 = 부적이 축제 깃발처럼 작고 하얗다 → 크고 바랜 종이·실로 매단 길이 차·봉인 도장·귀불 크게.
+
+### 2. 기억 장 아이콘 `ui_relics/memory_{ink,bellows,hp,attack,dash,empty}.png` (64×64, pixelScale 0.5)
+- 기억의 소품과 같은 결(좌상단 빛·1층 램프 + v2 재질·바깥 먹 테·접지 그림자·글자 없음). 먹물 한 병(검은 유약 단지·코르크·종이표·흘린 먹) / 풀무(나무 판·가죽 주름·쇠 주둥이 불티) / 몸 = 붕대 감긴 불씨 심장 / 손 = 마디에 붕대 감은 주먹 + 불티 / 발 = 내딛는 장화 + 재 빛 잔상 줄 / 빈손 = 위로 펼친 빈 손바닥(빛 없음).
+- `relics.json memory{}`(파일 id → data id: inkBottle·bellows·maxHp·attack·dashCooldown·keepsakeNone) + `memoryNote`. '처음 모양'은 `looks/<weapon>_base` 재사용 권장.
+- 1차 = 주먹이 상자·붕대가 평평한 띠·소매가 검은 ㄱ자 → 둥근 덩어리 + 손가락 덩이 + 곡면 따라 감긴 붕대 + 중간 재빛 소매. 빈손 손가락이 손바닥보다 회색 → 같은 밝기.
+
+### 3. favicon `parts/art/work/favicon/favicon_{16,32,48}.png` + `favicon.ico`
+- 양피지 둥근 판(UI 세피아 S5, 테 S2) 위 먹 붓 망령(지도 표식과 같은 인물 — 둥근 머리·어깨·한쪽으로 휘는 붓 꼬리·마른 붓 결) + 호박 눈. 밝은·어두운 탭 둘 다에서 보임. 크기마다 손 좌표(축소 아님). 1차 = 꼬리 갈래가 새 다리처럼 보임 → 한 줄기로 휘는 꼬리. 시스템이 `public/` 로 옮긴다.
+
+### 4. 보스 '만취' 재도트 `bosses/v3/stage1_*` 15시트 (P1-14)
+- **틀·피벗·프레임 수·ms·이름·앵커·실루엣 알파·아틀라스 배치 전부 그대로**(JSON 은 `redot62c` 블록만 추가 — 15시트 모두 meta·frames 동일 확인) → 코드 무변경, `_rim`·`_rim_lite`·불타는 오버레이도 그대로 맞음.
+- 방법(`boss_redot.py`): 시트에 이미 있던 색만으로 재질 램프 5(갈색 망토·살 / 1층 램프 / 바랜 셔츠 / 차가운 바지·쇠 / 무채 털·왕관) → 높이장 = 실루엣(흐림 9·26) + 재질 덩어리(선 색 제외, 흐림 9) + 명도(1.6·7) → 좌상단 빛 법선 명암 + 가장자리 어둡힘 → 램프 칸 경계만 바이어 디더(sharp 4) → 실루엣 안쪽 먹 테(아래·오른 3칸·위·왼 2칸 어둡게) + 재질 경계 그늘 선. 발광 색·떨어진 점(먼지·불티)은 그대로.
+- 결과: 넓은 평면 색이 덩어리 부피(배·팔·털 깃·바지)와 바깥 먹 테를 가져 월드 소품·적과 같은 결. 한계: 새 그림이 아니라 같은 그림의 재명암이다(실루엣·옷 디자인은 61 그대로).
+- 1차 = 색상 방향 자동 묶음이 망토·살·셔츠·호박을 한 램프로 → 손으로 고정한 재질 램프. 2차 = 배가 평평(몸 실루엣만으로는 안쪽 덩어리가 안 생김) → 재질 덩어리 높이장. 3차 = 디더가 매끈한 그라데이션처럼 보임·위·왼 테가 밝음 → sharp 4·위왼 테 2칸. 4차 = 내려찍기 먼지 점이 먹 테 규칙으로 까맣게 → 떨어진 점 제외.
+- 미리보기 `work/r62c/preview_boss.png`(위 = 전, 아래 = 후, 연회장 바닥 위 1:1).
+
+### 5. 단검·활 궤적 (P1-N9)
+- 단검 `fx/v3/dagger_combo{1,2,3}_smear` — §31-1 칼·대검 스미어와 **같은 형식·같은 코드**(r62b smear.py): 틀·피벗·방향 행·프레임·ms = `weapons/v3/dagger_combo<n>`(192×192 · (96,186) · playerFrameOffset (48,48)), 1·2타 짧은 베기(휘두름 1·2, 사라짐 3·4), 3타 찌르기(찌름 줄기 2·3·4 + 칼끝 앞 찌름 섬광, 사라짐 5). 색 '독' 램프, 흰 끝은 판정 칸만 — 무기 시트에 glowFrames 가 없어 impactFrame(2) 을 판정 칸으로.
+- 활 `fx/v3/bow_shot_flash` 128×96 · 피벗 (40,48) = 화살 생성점(arrowSpawnAnchors), projectile·rotate·drawnFacing right, 4프레임 30/40/50/60ms 1회, glowFrames [0]: 앞 쐐기 섬광 + 시위 잔상(튕김 → 떨림 둘 → 식음) + 불티, 비취 램프. 화살 꼬리는 bow_arrow(61, 약 90도트 불티 꼬리) 그대로.
+- 미리보기 `work/r62c/preview_smear_dagger.png`.
+
+### 시스템·UI 전달
+- 미리보기: (시스템) 위험 노드면 `door_<region>_<risk>`(elite·curse) 를 먼저 찾기 — 지금 `RoutePreview.previewOf` 는 kind 만 본다. (시스템/UI) 카드에는 `paint/door_<…>_small` 이 매니페스트에 있으면 그것(512×288, 'cover' 맞춤이면 재표본 없음). 미리 받기도 small 로(텍스처 0.59MB vs 0.92MB).
+- 기억 장: `ui_relics/memory_<id>` 키(위 표). favicon: `parts/art/work/favicon/` → `public/` + `index.html` link(16·32·48 png 또는 ico).
+- 보스: 코드 무변경. 단검 스미어: 칼·대검과 같은 재생 규칙(무기 오버레이와 같은 프레임·시각, 무기 바로 아래). 활: 놓기·짧게 쏘기·대쉬 사격 순간 `bow_shot_flash` 를 화살 생성점에 발사 각도로(완벽 놓기·속사는 기존 fx).

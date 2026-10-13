@@ -1,0 +1,37 @@
+{
+ "image": "door_brewery_event_small.png",
+ "width": 512,
+ "height": 288,
+ "pixelScale": 1.0,
+ "smallOf": "door_brewery_event",
+ "region": "brewery",
+ "nodeKind": "event",
+ "nameKo": "낡은 사당 문(이벤트)",
+ "use": "UI 계약 §25 지도 미리보기 카드(256×144 논리, res 2 → 512×288 텍스처를 1/2 로) — 원본을 1:1 로 자른 판이라 'cover' 맞춤이면 재표본 없음",
+ "crop": {
+  "x": 64,
+  "y": 60,
+  "w": 512,
+  "h": 288,
+  "scale": 1.0,
+  "note": "원본 640×360 좌표에서 잘라낸 사각형"
+ },
+ "doorRect": {
+  "x": 210,
+  "y": 49,
+  "w": 92,
+  "h": 145
+ },
+ "doorCenter": {
+  "x": 256,
+  "y": 122
+ },
+ "light": {
+  "color": "#eecc78",
+  "intensity": 0.4,
+  "note": "입구 안 빛 색(아트 제안) — 파고드는 동안 어둠 가운데 번지는 빛·먹 붓질 직전 바탕색 섞기에 쓴다"
+ },
+ "cue": "사당 문·초·제물 — 인물·소품",
+ "grade": "명도 곡선(어둠 들어 올림) + 입구 빛 번짐 0.22 + 가장자리 어둡게 0.22 + unsharp 1.0/40",
+ "source": "parts/art/work/r62c/build.py (62 루프 3 · P17) · doors_small.py (원본 door_brewery_event.png)"
+}

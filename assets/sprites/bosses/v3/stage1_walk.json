@@ -60,6 +60,29 @@
    "y": 220
   }
  },
+ "redot62c": {
+  "note": "62 루프 3 재도트(P17 묶음 D) — 틀·피벗·프레임·ms·앵커·실루엣 알파 그대로, 색만: 재질 램프(시트에 있던 색만) 위 덩어리 부피 명암 (좌상단 빛) + 칸 경계 바이어 디더 + 실루엣 안쪽 먹 테(아래·오른 3칸·위·왼 2칸 어둡게) + 재질 경계 그늘 선. 발광 색 그대로",
+  "base": "git b2d9dee assets/sprites/bosses/v3/stage1_walk",
+  "params": {
+   "big_blur": 9,
+   "huge_blur": 26,
+   "small_blur": 1.6,
+   "w_big": 0.8,
+   "w_huge": 1.4,
+   "w_small": 0.6,
+   "med_blur": 7,
+   "w_med": 0.6,
+   "reg_blur": 9,
+   "w_reg": 2.2,
+   "gain": 3.4,
+   "ao": 1.2,
+   "sharp": 4.0,
+   "edge_br": 3,
+   "edge_tl": 2,
+   "mat_line": 1
+  },
+  "source": "parts/art/work/r62c/build.py (62 루프 3 · P17) · boss.py / boss_redot.py"
+ },
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",

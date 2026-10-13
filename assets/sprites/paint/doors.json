@@ -9,7 +9,9 @@
     "w": 74,
     "h": 94
    },
-   "light": "#8b4d22"
+   "light": "#8b4d22",
+   "small": "door_waste_battle_small.png",
+   "smallJson": "door_waste_battle_small.json"
   },
   "gate_rest": {
    "image": "door_gate_rest.png",
@@ -20,7 +22,9 @@
     "w": 109,
     "h": 97
    },
-   "light": "#e8b858"
+   "light": "#e8b858",
+   "small": "door_gate_rest_small.png",
+   "smallJson": "door_gate_rest_small.json"
   },
   "gate_battle": {
    "image": "door_gate_battle.png",
@@ -31,7 +35,9 @@
     "w": 97,
     "h": 111
    },
-   "light": "#d67a11"
+   "light": "#d67a11",
+   "small": "door_gate_battle_small.png",
+   "smallJson": "door_gate_battle_small.json"
   },
   "outer_battle": {
    "image": "door_outer_battle.png",
@@ -42,7 +48,9 @@
     "w": 90,
     "h": 136
    },
-   "light": "#b0611a"
+   "light": "#b0611a",
+   "small": "door_outer_battle_small.png",
+   "smallJson": "door_outer_battle_small.json"
   },
   "outer_elite": {
    "image": "door_outer_elite.png",
@@ -53,7 +61,9 @@
     "w": 119,
     "h": 144
    },
-   "light": "#d65457"
+   "light": "#d65457",
+   "small": "door_outer_elite_small.png",
+   "smallJson": "door_outer_elite_small.json"
   },
   "outer_event": {
    "image": "door_outer_event.png",
@@ -64,7 +74,9 @@
     "w": 71,
     "h": 124
    },
-   "light": "#eecc78"
+   "light": "#eecc78",
+   "small": "door_outer_event_small.png",
+   "smallJson": "door_outer_event_small.json"
   },
   "outer_shop": {
    "image": "door_outer_shop.png",
@@ -75,7 +87,9 @@
     "w": 95,
     "h": 165
    },
-   "light": "#e8b858"
+   "light": "#e8b858",
+   "small": "door_outer_shop_small.png",
+   "smallJson": "door_outer_shop_small.json"
   },
   "outer_rest": {
    "image": "door_outer_rest.png",
@@ -86,7 +100,9 @@
     "w": 156,
     "h": 180
    },
-   "light": "#e8b858"
+   "light": "#e8b858",
+   "small": "door_outer_rest_small.png",
+   "smallJson": "door_outer_rest_small.json"
   },
   "brewery_battle": {
    "image": "door_brewery_battle.png",
@@ -97,7 +113,9 @@
     "w": 146,
     "h": 152
    },
-   "light": "#d67a11"
+   "light": "#d67a11",
+   "small": "door_brewery_battle_small.png",
+   "smallJson": "door_brewery_battle_small.json"
   },
   "brewery_elite": {
    "image": "door_brewery_elite.png",
@@ -108,7 +126,9 @@
     "w": 101,
     "h": 135
    },
-   "light": "#d65457"
+   "light": "#d65457",
+   "small": "door_brewery_elite_small.png",
+   "smallJson": "door_brewery_elite_small.json"
   },
   "brewery_event": {
    "image": "door_brewery_event.png",
@@ -119,7 +139,9 @@
     "w": 92,
     "h": 145
    },
-   "light": "#eecc78"
+   "light": "#eecc78",
+   "small": "door_brewery_event_small.png",
+   "smallJson": "door_brewery_event_small.json"
   },
   "brewery_shop": {
    "image": "door_brewery_shop.png",
@@ -130,7 +152,9 @@
     "w": 95,
     "h": 192
    },
-   "light": "#e8b858"
+   "light": "#e8b858",
+   "small": "door_brewery_shop_small.png",
+   "smallJson": "door_brewery_shop_small.json"
   },
   "brewery_rest": {
    "image": "door_brewery_rest.png",
@@ -141,7 +165,9 @@
     "w": 183,
     "h": 188
    },
-   "light": "#e8b858"
+   "light": "#e8b858",
+   "small": "door_brewery_rest_small.png",
+   "smallJson": "door_brewery_rest_small.json"
   },
   "hall_boss": {
    "image": "door_hall_boss.png",
@@ -152,7 +178,9 @@
     "w": 54,
     "h": 153
    },
-   "light": "#d67a11"
+   "light": "#d67a11",
+   "small": "door_hall_boss_small.png",
+   "smallJson": "door_hall_boss_small.json"
   },
   "training_training": {
    "image": "door_training_training.png",
@@ -163,7 +191,9 @@
     "w": 71,
     "h": 110
    },
-   "light": "#f4de9b"
+   "light": "#f4de9b",
+   "small": "door_training_training_small.png",
+   "smallJson": "door_training_training_small.json"
   },
   "training_boss": {
    "image": "door_training_boss.png",
@@ -174,7 +204,35 @@
     "w": 102,
     "h": 143
    },
-   "light": "#eecc78"
+   "light": "#eecc78",
+   "small": "door_training_boss_small.png",
+   "smallJson": "door_training_boss_small.json"
+  },
+  "brewery_curse": {
+   "image": "door_brewery_curse.png",
+   "json": "door_brewery_curse.json",
+   "doorRect": {
+    "x": 248,
+    "y": 144,
+    "w": 146,
+    "h": 152
+   },
+   "light": "#9c58c0",
+   "small": "door_brewery_curse_small.png",
+   "smallJson": "door_brewery_curse_small.json"
+  },
+  "outer_curse": {
+   "image": "door_outer_curse.png",
+   "json": "door_outer_curse.json",
+   "doorRect": {
+    "x": 277,
+    "y": 129,
+    "w": 90,
+    "h": 136
+   },
+   "light": "#9c58c0",
+   "small": "door_outer_curse_small.png",
+   "smallJson": "door_outer_curse_small.json"
   }
  },
  "aliases": {
@@ -193,5 +251,20 @@
  "pixelScale": 1.0,
  "usedFloor1": "data/route.json(읽기만, 61 단계 6): regionByCol waste·waste·gate·outer·outer·brewery·brewery·hall — outer 전투·이벤트, brewery 전투·상점·쉼터, hall 보스. 엘리트(도전 성소 위험 노드)는 outer·brewery 전투 자리. outer_shop·outer_rest·brewery_event·gate_battle 은 배치가 바뀔 때를 위한 예비",
  "training": "수련장 방 입구 = door_training_training(방 1~7), 만취 그림자 방 = door_training_boss",
- "source": "parts/art/work/paint61s6/build.py (61 단계 6 · P14 §3)"
+ "source": "parts/art/work/paint61s6/build.py (61 단계 6 · P14 §3)",
+ "risk": {
+  "elite": "<region>_elite",
+  "curse": "<region>_curse",
+  "note": "62 루프 3: 위험 노드(bundle2 risk elite·curse)는 노드 종류가 battle 이라 kind 로는 못 찾는다 — 미리보기·전환에서 risk 가 있으면 door_<region>_<risk> 를 먼저 찾고(없으면 기존 순서). 1층: outer·brewery 둘 다 elite·curse 있음"
+ },
+ "small": {
+  "suffix": "_small",
+  "size": [
+   512,
+   288
+  ],
+  "note": "62 루프 3 지도 미리보기 카드(UI §25 256×144 논리 × res 2) 전용 판 — 원본을 입구 둘레로 1:1 자른 것 + 밝기·대비 한 단 + 입구 빛. 카드에서는 paint/door_<…>_small 이 매니페스트에 있으면 그것, 없으면 원본(같은 'cover' 맞춤). 사연 카드는 인물(등 든 두건 쓴 사람) 덧그림"
+ },
+ "usedFloor1_r62c": "route.json 62: 여정 birth·road → waste_battle(별칭), post → gate_rest(별칭) / 단1 outer 전투 / 단2 outer 전투·사연 / 단3 brewery 전투 / 단4 brewery 장터·쉼터 / 보스 hall_boss. 위험(단2·단3 전투 하나) elite·curse → outer_·brewery_{elite,curse}. 전 조합 그림 있음",
+ "source_r62c": "parts/art/work/r62c/build.py (62 루프 3 · P17)"
 }

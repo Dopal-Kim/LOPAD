@@ -1,0 +1,37 @@
+{
+ "image": "door_brewery_curse_small.png",
+ "width": 512,
+ "height": 288,
+ "pixelScale": 1.0,
+ "smallOf": "door_brewery_curse",
+ "region": "brewery",
+ "nodeKind": "curse",
+ "nameKo": "부적으로 봉한 문(저주 길)",
+ "use": "UI 계약 §25 지도 미리보기 카드(256×144 논리, res 2 → 512×288 텍스처를 1/2 로) — 원본을 1:1 로 자른 판이라 'cover' 맞춤이면 재표본 없음",
+ "crop": {
+  "x": 65,
+  "y": 72,
+  "w": 512,
+  "h": 288,
+  "scale": 1.0,
+  "note": "원본 640×360 좌표에서 잘라낸 사각형"
+ },
+ "doorRect": {
+  "x": 183,
+  "y": 72,
+  "w": 146,
+  "h": 152
+ },
+ "doorCenter": {
+  "x": 256,
+  "y": 148
+ },
+ "light": {
+  "color": "#9c58c0",
+  "intensity": 0.5,
+  "note": "입구 안 빛 색(아트 제안) — 귀불(‘귀’ 램프 floors[4]). 저주 길은 호박을 눌러 차갑게"
+ },
+ "cue": "부적·쇠사슬로 봉한 문, 귀불 — 저주 표식",
+ "grade": "명도 곡선(어둠 들어 올림) + 입구 빛 번짐 0.26 + 가장자리 어둡게 0.22 + unsharp 1.0/40",
+ "source": "parts/art/work/r62c/build.py (62 루프 3 · P17) · doors_small.py (원본 door_brewery_curse.png)"
+}

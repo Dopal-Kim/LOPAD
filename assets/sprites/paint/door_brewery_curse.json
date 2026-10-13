@@ -1,0 +1,29 @@
+{
+ "image": "door_brewery_curse.png",
+ "width": 640,
+ "height": 360,
+ "pixelScale": 1.0,
+ "region": "brewery",
+ "nodeKind": "curse",
+ "risk": "curse",
+ "nameKo": "부적으로 봉한 문(저주 길)",
+ "doorRect": {
+  "x": 248,
+  "y": 144,
+  "w": 146,
+  "h": 152
+ },
+ "doorCenter": {
+  "x": 321,
+  "y": 220
+ },
+ "doorRectNote": "입구(문·성문·동굴 입구) 안쪽 어둠의 사각형, 그림 좌표(px, 왼쪽 위 원점). 카메라 줌 목표 = doorCenter, 화면(960×540, 그림 640×360 을 1.5배로 깔았다면 그 배율 포함)을 doorRect 가 다 덮을 때까지 = max(960/w, 540/h) 배로 확대하면 입구 안 어둠이 화면을 채운다",
+ "light": {
+  "color": "#9c58c0",
+  "intensity": 0.5,
+  "note": "입구 안 빛 색(아트 제안) — 귀불(‘귀’ 램프 floors[4]). 저주 길은 호박을 눌러 차갑게"
+ },
+ "palette": "바탕 = door_brewery_battle (무채 + 1층 램프, 호박 채도 0.22 로 눌림) + '귀' 램프(floors[4]) 귀불·봉인 도장 — 둘째 강조 축(엘리트 '적' 과 같은 규칙)",
+ "source": "parts/art/work/r62c/build.py (62 루프 3 · P17) · doors_curse.py (Claude 직접 — Gemini 402; 바탕 door_brewery_battle.png)",
+ "design": "부적 줄(입구 위 테) · 기둥 양옆 긴 부적 · 끊어진 쇠사슬 · 귀불 셋 · 입구 안 유품 받침(금 한 점 — '그 값으로 귀한 유품')"
+}

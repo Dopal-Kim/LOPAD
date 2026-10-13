@@ -154,5 +154,80 @@
    "idNote": "파일 id = 시스템 id(그대로 둠). 이름·그림은 스토리 팩 63-loop2 memory.keepsakes[storyKey]"
   }
  },
- "portraits": {}
+ "portraits": {},
+ "memory": {
+  "ink": {
+   "file": "ui_relics/memory_ink.png",
+   "size": [
+    64,
+    64
+   ],
+   "id": "inkBottle",
+   "name": "장터의 먹물",
+   "chapter": "shop",
+   "note": "먹물 한 병 — 검은 유약 단지·코르크·노끈 맨 종이표·흘러내린 먹",
+   "colors": 18
+  },
+  "bellows": {
+   "file": "ui_relics/memory_bellows.png",
+   "size": [
+    64,
+    64
+   ],
+   "id": "bellows",
+   "name": "장터의 풀무",
+   "chapter": "shop",
+   "note": "손풀무 — 나무 판·가죽 주름·쇠 주둥이 끝 불티",
+   "colors": 20
+  },
+  "hp": {
+   "file": "ui_relics/memory_hp.png",
+   "size": [
+    64,
+    64
+   ],
+   "id": "maxHp",
+   "name": "몸의 기억",
+   "chapter": "stat",
+   "note": "붕대 감긴 불씨 심장 — 최대 체력",
+   "colors": 17
+  },
+  "attack": {
+   "file": "ui_relics/memory_attack.png",
+   "size": [
+    64,
+    64
+   ],
+   "id": "attack",
+   "name": "손의 기억",
+   "chapter": "stat",
+   "note": "마디에 붕대 감은 주먹 · 불티 — 공격력",
+   "colors": 21
+  },
+  "dash": {
+   "file": "ui_relics/memory_dash.png",
+   "size": [
+    64,
+    64
+   ],
+   "id": "dashCooldown",
+   "name": "발의 기억",
+   "chapter": "stat",
+   "note": "내딛는 낡은 장화 · 재 빛 잔상 줄 — 대쉬 대기",
+   "colors": 16
+  },
+  "empty": {
+   "file": "ui_relics/memory_empty.png",
+   "size": [
+    64,
+    64
+   ],
+   "id": "keepsakeNone",
+   "name": "빈손",
+   "chapter": "keepsake",
+   "note": "위로 펼친 빈 손바닥(빛 없음) — 소품 고르기 '빈손'",
+   "colors": 13
+  }
+ },
+ "memoryNote": "62 루프 3 (P17 묶음 C) 기억 장 아이콘 — 64×64·pixelScale 0.5(화면 32px), 기억의 소품과 같은 결. 키 = ui_relics/memory_<파일 id>. id = data/memory.json items[].id(장터 inkBottle·bellows) · data/meta.json upgrades[].id(maxHp·attack·dashCooldown) · memory.json pick.keepsakeNone(빈손). '처음 모양'은 무기 기본 그림(looks/<weapon>_base) 재사용 권장. parts/art/work/r62c/build.py (62 루프 3 · P17) · memory.py"
 }
