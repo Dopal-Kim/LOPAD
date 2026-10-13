@@ -704,3 +704,9 @@ interface UiRitual {
 - 미리보기: `UiRouteNode.previewKey`(paint/door_<지역>_<종류>, 보스 door_hall_boss — 텍스처가 아직 없을 수 있음, UI 는 textures.exists 확인 후 `previewRegion` 키아트 대체, `addtexture-<key>` 에 교체)·`previewRegion`. 수련장 지도 줄 `UiMenuLine.previewKey`·`previewRegion:'training'`. 시스템은 노드 진입 900ms 뒤·지도 열 때 고를 수 있는 노드 + 그다음 열 그림을 미리 받음.
 - UI: 미리보기 카드 256×144(지도 칸 565×317에서 가리킨 곳·이름표를 가리지 않는 크기), 수련장 288×162. 'fade' 로 들어온 노드의 새 지역 표시는 큰 키아트 카드 대신 위 가운데 띠.
 - 전환 소리 'fade' → `sfx/transition_fade`(제작 대기 — 없으면 transition_exit ×0.5·속도 1.2).
+
+## 26. 62 루프 3 시스템 I · UI H
+- `UiTagSetChanged.line?`('{태그} 세트 — {문장}', 수치 없음 — data/build.json 세트 단계 line), `UiTagState.effects[].line?`(문장만). 렌더러가 있으면 시스템은 개성 획득·세트 단계의 같은 문장 STORY notice 를 보내지 않음(UI noticeEcho 는 안전장치로 유지).
+- 상호작용 규칙: 반경 안 후보(상인·노점·소품·구조물) 중 가장 가까운 하나만 프롬프트에 보이고 E 를 받음(동률은 상인 → 노점 → 소품 → 구조물). 장터 '외상 장부' 구조물 없음(외상은 상인 대사).
+- 미리보기: 위험 노드는 `paint/door_<지역>_<risk>` 우선, 카드·미리 받기는 `_small` 카드판(art §32). 기억 장 장터·몸 칸 iconKey = `ui_relics/memory_*`(부팅 로드). '빈손' 줄은 아이콘 필드 없음 — UI 가 `ui_relics/memory_empty` 텍스처를 직접 씀(시스템이 부팅 로드).
+- UI: 파훼(BOSS_BREAK)는 보스 막대가 보이는 동안 막대 위 칩, 위 가운데 레인은 국면 카드 전용, 같은 레인 교차 페이드 금지. TRANSITION_BEGIN·ROUTE_NODE_ENTERED 때 노드 지도 닫음.
