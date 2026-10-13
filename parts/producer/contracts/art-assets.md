@@ -679,3 +679,11 @@
 10. (추가) **외벽 문 닫힘·열림** — 지역 5곳 `tiles/border/<지역>/door_<west|east>_closed.webp`(512×582, 문 그림과 같은 크기·원점, 알파, 조명 받음, depth = `DOORS.DEPTH_BARRIER`) · `door_<side>_open.webp`(2048×582, 512×582 ×4 가로, 0=closed → 86° 열림, 90/110/130/160ms, loop false, 닫힘은 역재생). `border.json doors.<side>` 에 `closed`·`openSheet{file,frames 4,frameWidth 256,frameHeight 291(논리),frameDurationsMs,loop:false}`. 통로 openingY 198·openingH 96 논리px. 동쪽 = 서쪽 좌우 반전. **수련장 문틀** `tiles/border/training/doors.json`(border.json doors 형식) + `door_<side>.webp` 256×320(논리 128×160, west baselineX 128 / east 0, openingY 80·openingH 96) · `_emissive`(횃불, lights[] torch 반경 80·0.7) · `_closed` · `_open`(1024×320 ×4).
 11. (추가) **국밥** `items/v3/shop_goods` heal 행(프레임 12~15, 같은 규격). **일기장 사연 소품** `structures/v3/event_diary_open` 128×112 피벗 (64,100) idle 6 루프, interact{E, radiusTiles 1.4, markAnchor (64,40)}, solid footprint [2,1].
 12. (수정) 기억의 소품 4장 그림을 스토리 이름에 맞춤(파일 id 그대로): brokenCup=찌그러진 투구, oldVoucher=접힌 전표, knotCord=닳은 매듭 끈, inkBrush=먹 묻은 붓. `relics.json keepsakes[].name·storyKey`.
+
+## 32. 62 루프 3 — 미리보기 그림·기억 장·favicon·보스 재명암·단검/활 궤적 (P17)
+1. **위험 노드 입구** `paint/door_<region>_<risk>`(risk = elite·curse, 1층 outer·brewery). `doors.json risk`. 찾는 순서: 위험이 있으면 `door_<region>_<risk>` → 기존(kind → 별칭 → `<region>_battle`).
+2. **카드판** `paint/door_<…>_small.png` 512×288(UI §25 카드 256×144 × res 2) + json(`smallOf`, `crop` 원본 좌표, `doorRect`·`doorCenter`, `light`, `cue`). 미리보기 카드·미리 받기는 `_small` 우선, 없으면 원본. 층 'floor' 전환은 원본.
+3. **기억 장 아이콘** `ui_relics/memory_{ink,bellows,hp,attack,dash,empty}` 64×64 pixelScale 0.5 — `relics.json memory{}` 가 data id(inkBottle·bellows·maxHp·attack·dashCooldown·keepsakeNone) 대응. '처음 모양' 칸은 `looks/<weapon>_base`.
+4. **favicon** `parts/art/work/favicon/favicon_{16,32,48}.png`·`favicon.ico` → 시스템이 public/ 로.
+5. **보스 재명암** `bosses/v3/stage1_*` 15시트 픽셀만(규격·앵커·알파 불변, `redot62c`) — 실루엣·옷은 61 그대로(완전 새 도트는 루프 4+).
+6. **단검 스미어** `fx/v3/dagger_combo{1,2,3}_smear` §31-1 규칙(판정 칸 = impactFrame). **활 발사 섬광** `fx/v3/bow_shot_flash` 128×96 피벗 (40,48)=화살 생성점, 투사체 각도로 회전, 4프레임 30/40/50/60ms 1회 — 일반 놓기·짧게 쏘기·대쉬 사격(완벽 놓기·속사는 기존).
