@@ -1,6 +1,7 @@
 /**
  * 49라운드 7·3: 세트 배치 그림 — 소품(structures/set_<region>_<name>·battlefield_*), 엄폐 담 위 술통 더미,
- * 튜토리얼 표식·허수아비, 혼불(fx/soul_wisp). 시트가 로드돼 있으면 시트(StructureView 재사용), 없으면 옅은 플레이스홀더 도형.
+ * 튜토리얼 표식·허수아비, 혼불(fx/soul_wisp). 시트가 로드돼 있으면 시트(StructureView 재사용), 없으면 표식·허수아비만 옅은 대체 도형
+ * (62 I: 일반 소품 대체 사각형은 그리지 않는다).
  * 충돌은 없다(엄폐는 이미 벽 타일). 씬 shutdown 에서 `destroy()`.
  */
 import Phaser from 'phaser';
@@ -47,10 +48,13 @@ export class SetPieceView {
     private readonly scene: Phaser.Scene,
     readonly plan: SetPiecePlan,
     view: SetPieceViewDef | undefined = ROUTE.view,
+    /** 62 I: 엄폐 칸을 돌기둥으로 그렸으면 엄폐 소품(cover 역할)을 그리지 않는다 */
+    opts: { skipCover?: boolean } = {},
   ) {
     if (!view) throw new Error('[setpiece] data/route.json view 없음');
     this.V = view;
     for (const d of plan.decor) {
+      if (opts.skipCover && d.role === 'cover') continue;
       const item = this.makeDecor(d);
       this.items.push(item);
       if (d.role === 'sign') this.signs.push(item);
@@ -78,9 +82,11 @@ export class SetPieceView {
       if (view.hasState('active')) view.setState('active');
       return { d, view, shape: null, sheet };
     }
+    // 62 I (P1-N1): 그림 없는 일반 소품·엄폐 위 소품은 그리지 않는다 — 옅은 칸 사각형이 돌바닥 위에서 바둑판 빛 판처럼 보였다.
+    // 자리(예약 칸)는 그대로. 표식·허수아비는 조작 대상이라 대체 도형을 남긴다
+    if (d.role === 'decor' || d.role === 'cover') return { d, view: null, shape: null, sheet: null };
     const V = this.V;
-    const alpha =
-      d.role === 'sign' ? V.signAlpha : d.floor ? V.floorDecorAlpha : d.role === 'cover' ? V.coverAlpha : V.decorAlpha;
+    const alpha = d.role === 'sign' ? V.signAlpha : V.decorAlpha;
     // 허수아비: 발판보다 키가 큰 기둥 / 표식: 작은 마름모 / 그 외: 발판 사각형
     let shape: Phaser.GameObjects.Rectangle;
     if (d.role === 'dummy') {

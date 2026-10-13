@@ -1931,3 +1931,41 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 ### 검사
 - tsc 0 · eslint 0 · vitest 155파일 1195건 전부 통과(새 `transition/fadeFlow.test`(7 — 흐름 문 → 지도 → 고르기 → fade begin → covered → 재시작 → ready → end · fade 안전장치 · UI 없음 대체 · 미리보기 targets·toUi) · `audio/audioTraining.test`(2)) · 바뀐 파일 prettier · vite build(스크래치 outDir) 통과.
 - 헤드리스(빌드본, 스크래치 `s62h/` — swiftshader 라 게임 시계가 실제보다 매우 느림): ① `?slice=outer` 외길 노드: 문 열림(이때 이미 다음 노드 c4r0 `door_outer_battle`·그다음 열 `door_brewery_battle` 텍스처 있음 — 갈 수 없는 c4r1 은 받지 않음) → 문턱 → 'inside' → `route.choosing` true(available 1 — 외길에도 지도), 지도 중 전환 없음, 미리보기 `door_outer_battle`·`door_brewery_battle` 지도 열 때 받아짐(텍스처 true, Texture key 경고 0) → Enter(UI 지도) → `fade` begin{region outer, nodeKind battle, nodeId c4r0, durationMs 400} → covered → ready → end(안전장치 시간 넘김 없음) → 새 노드 서쪽 문 입장 → 문 닫힘. 효과음 `transition_exit` rate 1.2(fade 대체). ② 같은 곳 Esc → 문에서 걸어 나옴(choosing false) → 다시 문턱 → 지도 다시. ③ 수련장(타이틀에서 시작): 지도 줄 8개 previewKey(마지막 door_training_boss) → '걸음과 숨' fade(nodeId step) → 방 → 출구 문 → fade(nodeId 없음) → 지도 마당에서 지도 다시 열림(위 버그 고친 뒤). 콘솔·페이지 오류 0.
+
+## 62 루프 3 시스템 I — 장터 E·사연 NPC 둘레·favicon·알림 하나로·빛 판·돌기둥 엄폐·회피 시험 조명 · 아트 §32 연결 (2026-10-13)
+전권 위임(인터뷰 없음). 계획 `decisions/2026-10-12-P17-loop3.md` 묶음 A·C 시스템 몫 · 근거 `review-2026-10-12-stage1-loop3-audit.md`(P0-N2·P1-N1·N2·N3·N7·N8·P2-N1) · 메인 알림(UI H 완료 뒤 시스템 요청 · 아트 §32 연결).
+
+### 1. E 대상 하나 = 프롬프트와 같은 판정 (P0-N2 · P1-N3)
+- 원인: E 대상이 네 곳(구조물 `Interaction` · 종군 상인 · 노점 칸 · 사연/단서 소품 `BundleProps`)에서 각자 '가장 가까운 것'을 골라 E 를 받고, 프롬프트(스냅샷 interactable)는 구조물 → 상인 → 소품 순서로 골랐다. 노점 앞에서 프롬프트는 노점, E 는 옆 장부대가 받았다.
+- `systems/interactFocus.pickFocus` (순수, 테스트 5) + `scenes/game/InteractFocus` — 매 프레임 입력보다 먼저, 네 곳의 반경 안 후보 중 **대상 중심까지 가장 가까운 한 곳**만 `focused`(같은 거리 = 상인 → 노점 → 소품 → 구조물). 나머지는 안내·E·길게 누르기·노점 near 표지·`shopOffer` 를 쉰다. 반경 규칙은 각자 그대로(구조물 = 발판 가장자리 1.5칸 등).
+- 장터의 옛 '외상 장부대'(ledger) 구조물 제거 — `route.json` 상점 슬롯·종류에서 뺌, `structures.json ledger.chance 0`(정의·코드는 2층 이후 판단까지 남김, 1층에는 놓이지 않음). 외상은 상인 대사(shopTalk)만. 상점 구조물 슬롯 x ±5 → ±7(노점 줄 끝에서 3.6칸). 1층 장터 구조물 = 궤짝 1.
+- 헤드리스: 국밥 노점 앞 프롬프트 '노점: 뜨끈한 국밥 한 그릇' + 카드 → E → 전표 500 → 470(구매) · 독주 470 → 445.
+
+### 2. 사연 NPC 둘레 비우기 (P1-N3)
+- 원인: NPC 는 중앙 기준 고정 오프셋 (0,−2), 궤짝 슬롯 (0,2)·잔해 (0,−1)은 세트 템플릿 — 템플릿만 뒤집혀(61 방 변주) 상하 뒤집힌 방에서 궤짝이 NPC 자리에, 잔해가 NPC 를 덮었다.
+- `setPieces.event.npc {at [0,−2], clear 2}` — 템플릿과 같이 뒤집히고(`setpieceMirror`), `planSetPiece` 가 NPC 칸 ±2 를 먼저 차지해 슬롯·세운 소품·엄폐가 못 들어오고 무작위 구조물 금지 구역(reserve)에도 넣는다. `SetPiecePlan.npc` → `EventNode.eventSpot()` 이 NPC·매복 중심으로 쓴다. 궤짝 (0,2) → (4,2), 잔해 (0,−1) → (0,2).
+- 테스트: 40 시드(뒤집힘 포함) NPC 둘레 2칸에 궤짝·세운 소품·무작위 구조물 0 · 잔해·궤짝 중앙 근처 유지.
+- 헤드리스(시드 a63 c4r0 — 상하 뒤집힘): NPC 앞 = '징집병 [E] 말을 건다', 궤짝 앞 = '종군 상인의 궤짝', NPC 몸 보임.
+
+### 3. favicon (P2-N1)
+- 아트 §32-4 `parts/art/work/favicon/favicon_{16,32,48}.png`·`favicon.ico` → `public/` 복사, `index.html` link 4줄. 헤드리스 콘솔·페이지 오류 0(404 없음).
+
+### 4. 알림 하나로 · 세트 문장 (P1-N2 · 메인 알림 1·2)
+- 시스템이 두 번 보내던 것 확인: 개성 획득 = `TRAIT_GAINED`(UI 카드 토스트) + STORY notice '{이름} — {문장}' · 세트 단계 = `TAG_SET_CHANGED`(UI 칩) + STORY notice '중량 2 — 강공 피해 +20%'. → 둘 다 **UI 렌더러가 있으면 STORY notice 를 보내지 않는다**(없을 때 대체 화면만, 세트는 수치 없는 문장).
+- `build.json sets[*][*].line` 30줄 — 카드 문장(숫자·×·% 없음, 용어집 금지어 없음 — 테스트 `data/setLines.test`). `description`(수치)은 Tab 보기용 그대로. `UiTagState.effects[].line?` · `UiTagSetChanged.line?` = '{태그} 세트 — {문장}'(예 '중량 세트 — 강공이 더 무겁다'. '공명'은 개성 공명 §18.1 과 겹쳐 쓰지 않음).
+
+### 5. 묶음 C 결
+- **칸 모양 빛 판 (P1-N1)**: 라이트맵은 매끈함(헤드리스 RT 스냅샷 확인 — 62 P0-7 수정 유지). 남은 사각 판의 원인 = ① 그림 없는 세트 소품의 대체 사각형(쉼터 'stones'·'bench', 사연 'scene'·'wreck'·'debris', 장터 'street' 등 — 옅은 칸 사각형이 빛을 받아 판처럼 보임) ② 보스 술 웅덩이·불의 칸 사각형. → `SetPieceView` 는 그림 없는 일반·엄폐 소품을 그리지 않는다(표식·허수아비만 대체 도형, 자리는 그대로) · `LiquorPools` 대체 그림 = 가장자리 흐린 둥근 데칼 `world/softDecal`(칸 × 1.45, 이웃 칸과 이어짐).
+- **돌기둥 엄폐 (P1-N7 · art §31-9)**: 엄폐 담 칸 = `structures/v3/pillar_stone` 한 장씩(행 = 지역 waste·outer·gate·hall, brewery → outer · 열 = 온전·금·부서짐 6:3:1 칸 좌표 해시 — `world/coverFrame`). 칸은 벽 그대로(걷기·투사체 막기), `QuarterView` 가 그 칸의 돌담 타일 대신 기둥(피벗 칸 아래 가운데, Y 정렬, 가려짐 비침 대상), 기둥 밑 바닥 = 이웃 바닥, 기둥 옆 담 그늘 판 없음. 엄폐 위 술통 더미 소품은 기둥이면 생략. 시트가 없으면 예전 돌담. 보스 기둥(boss1_pillar)과 별개. 부팅 묶음에 시트 추가. 헤드리스 c3r0 battle_lane: 엄폐 11칸 = 기둥 11.
+- **회피 시험 무대 (P1-N8)**: `BirthTrialRunner` 에 조명(`narrative.json ritual.trial.region 'waste'` — 탄생 전장과 같은 주변광·주인공 빛·비네팅, 소품 불·벽 횃불 광원) · 카메라 = 그려진 무대(북쪽 벽 앞면 높이 포함) 가운데. 가로는 원래 가운데였다 — 오른쪽 위 과제 패널이 전장을 덮는 것은 UI 자리.
+
+### 6. 아트 §32 연결 (메인 알림)
+- 미리보기 그림: 위험 노드(`NodeExtra.risk` elite·curse)면 `door_<지역>_<위험>` 먼저(`resolveDoorName` risk 인자) · 지도 미리보기 키·미리 받기는 `_small`(512×288)이 매니페스트에 있으면 그것(`PaintArt.previewDoorFor`). 층 'floor' 전환은 원본. 헤드리스: 12노드 모두 `_small`, c4r1(저주) = `door_outer_curse_small`.
+- 기억 장 아이콘: `data/memory.json icons`(inkBottle·bellows·stat:maxHp·stat:attack·stat:dashCooldown·none → `ui_relics/memory_*`) — 장터의 것·몸의 기억 칸 `UiMemoryEntry.iconKey`(받은 것만), 부팅 로더(queueMemoryArt)가 6장 모두 받음. '빈손'(keepsake 'none' 줄)은 줄에 아이콘 필드가 없어 텍스처 키 `ui_relics/memory_empty` 만 받아 둔다(UI 가 직접 씀).
+- 단검 1~3타 스미어 `fx/v3/dagger_combo{1,2,3}_smear`: 스미어 후보에 기본 연격 `combo<n>` 추가(`smearFxIds`) — 칼·대검과 같은 오버레이 경로(같은 프레임·시각). 헤드리스 단검 공격 중 smearing true.
+- 활 발사 섬광 `fx/v3/bow_shot_flash`: 화살 생성점·발사 각도(왼쪽이면 flipY) 1회 — 완벽 놓기 섬광·속사 섬광이 나가는 발사에는 겹치지 않음(`fxIds.shotFlashFxId`, 무기 키트 로드 목록).
+- 전환 소리 'fade' `sfx/transition_fade`: 매니페스트에 생겨 자동으로 첫 후보로 쓰인다(덕킹 규칙 대상 아님 — 음향 메모와 같음). 음향 메모대로 덮는 시간이 400ms 에서 ±80 넘게 다르면 재생 속도 clamp(380/ms, 0.85, 1.2) — 이를 위해 내부 `TRANSITION_BEGIN` 페이로드에 `durationMs?` 를 실음.
+
+### 검사
+- tsc 0 · eslint 0 · vitest 161파일 1223건 전부 통과(새 `interactFocus.test` · `data/setLines.test` · `world/coverFrame.test` · `transition/doorNames.test` · routeArena 사연 NPC 둘레 · memory 아이콘 · audioTraining fade 속도) · 바뀐 파일 prettier · vite build(스크래치 outDir) 통과.
+- 헤드리스(빌드본, 스크래치 `s62i/` 드라이버 run·ev·rest·first·wpn, 시드 a63): 위 각 항목 + 쉼터 라이트맵 RT 스냅샷(사각 없음) · 회피 시험 조명·가운데(`A14_trial_mid`) · 콘솔·페이지 오류 0.

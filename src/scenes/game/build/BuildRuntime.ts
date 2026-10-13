@@ -446,6 +446,7 @@ export class BuildRuntime {
         name: tagName(t),
         stage: st[t] as 0 | 2 | 4 | 6,
         effectName: eff?.name ?? '',
+        line: eff ? `${tagName(t)} 세트 — ${eff.line}` : '',
       };
       __system.emit(UI_EVENTS.TAG_SET_CHANGED, payload);
       EventBus.emit(Events.TAG_SET_CHANGED, {
@@ -459,7 +460,9 @@ export class BuildRuntime {
         const row = String(st[t]);
         this.afterMenu(() => this.art.onPlayer(BUILD_ART.SET_FLASH, { dir: row }));
       }
-      if (up && eff) this.g.ui.story('notice', `${eff.name} — ${eff.description}`);
+      // 62 I (P1-N2): 세트 단계는 UI 칩(TAG_SET_CHANGED — line 문장) 하나만. 수치(description)는 Tab 보기(UiTagState.effects).
+      // UI 렌더러가 없을 때만 STORY notice 로 (문장, 수치 없음)
+      if (up && eff && !__system.rendererRegistered()) this.g.ui.story('notice', `${tagName(t)} — ${eff.line}`);
       this.record('set', { tag: t, stage: st[t] });
     }
   }

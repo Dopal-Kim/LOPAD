@@ -10,7 +10,7 @@ import type Phaser from 'phaser';
 import { ASSETS } from '../../core/Constants';
 import { assetListed } from '../../systems/sprites/sheetLoader';
 import { queueImageOnce } from '../../systems/sprites/imageOnce';
-import { resolveDoorName } from '../../systems/transition/doorNames';
+import { resolveDoorName, smallDoorName } from '../../systems/transition/doorNames';
 
 const DIR = 'sprites/paint';
 /** 별칭 표 (doors.json) cache.json 키 */
@@ -32,10 +32,17 @@ export function loadDoorIndex(scene: Phaser.Scene): void {
   if (!scene.load.isLoading()) scene.load.start();
 }
 
-/** 지역·노드 종류 → 쓸 입구 그림 이름 (`door_…`, 없으면 null) */
-export function doorFor(scene: Phaser.Scene, region: string, kind: string): string | null {
+const paintListed = (name: string): boolean => assetListed(`${DIR}/${name}.png`);
+
+/** 지역·노드 종류(·62 I 위험) → 쓸 입구 그림 이름 (`door_…`, 없으면 null) */
+export function doorFor(scene: Phaser.Scene, region: string, kind: string, risk?: string | null): string | null {
   const index = scene.cache.json.get(DOOR_INDEX) as { aliases?: Record<string, string> } | undefined;
-  return resolveDoorName(region, kind, index?.aliases ?? null, (name) => assetListed(`${DIR}/${name}.png`));
+  return resolveDoorName(region, kind, index?.aliases ?? null, paintListed, risk);
+}
+
+/** 62 I (art §32-2): 지도 미리보기 카드 그림 이름 — `_small` 카드판이 있으면 그것 (층 전환 등 큰 그림은 doorFor 그대로) */
+export function previewDoorFor(scene: Phaser.Scene, region: string, kind: string, risk?: string | null): string | null {
+  return smallDoorName(doorFor(scene, region, kind, risk), paintListed);
 }
 
 /** 별칭 표(doors.json)를 이미 받았나 — 62 H 미리보기 키 기억은 받은 뒤에만 */

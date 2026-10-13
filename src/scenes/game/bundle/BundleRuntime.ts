@@ -135,6 +135,16 @@ export class BundleRuntime {
   // --- UI 스냅샷 ---
 
   /** 상호작용 안내: 소품(성소 깃발)이 가까우면 그것 */
+  /** 62 I (P0-N2): E 대상 고르기 후보 — 사연·단서·초소 소품 */
+  focusDist(): number | null {
+    return this.props.focusDist();
+  }
+
+  /** 62 I: 이번 프레임 E 대상이 소품인가 */
+  setFocused(on: boolean): void {
+    this.props.focused = on;
+  }
+
   interactable(): UiInteractable | null {
     return this.props.interactable(this.g.layout?.rooms[0]?.id ?? '');
   }

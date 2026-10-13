@@ -51,5 +51,7 @@ export function mirrorSetPiece(t: SetPieceDef, m: Mirror): SetPieceDef {
         }
       : {}),
     ...(t.candles ? { candles: t.candles.map((c) => flipVec(c, m)) } : {}),
+    // 62 I (P1-N3): 사연 NPC 자리도 같이 뒤집는다 (예전엔 궤짝 슬롯만 뒤집혀 NPC 자리에 궤짝이 왔다)
+    ...(t.npc ? { npc: { ...t.npc, at: flipVec(t.npc.at, m) } } : {}),
   };
 }

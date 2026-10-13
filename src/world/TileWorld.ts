@@ -3,6 +3,7 @@ import { DEPTH, TILE } from '../core/Constants';
 import { Rng } from '../systems/rng';
 import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } from '../systems/mapgen';
 import { CELL_H, CELL_W, type Rect } from '../systems/mapgen/types';
+import type { CoverArt } from './coverPillars';
 import { QuarterView } from './QuarterView';
 import { planBigProps, type BigPropPlacement } from './bigProps';
 import { planCanal, planDecals, type CanalPlan, type DecalPlacement } from './floorFeatures';
@@ -62,6 +63,8 @@ export class TileWorld {
       excludeBigProps?: readonly string[];
       /** 61라운드 계약 art §24 방 변주 장면 (`variantTag`) — 그 장면 소품만 더한다. null·없음 = 장면 소품 없음 */
       propScene?: string | null;
+      /** 62 I (P1-N7): 엄폐 칸 돌기둥 그림 (칸은 벽 그대로) */
+      cover?: CoverArt | null;
     } = {},
   ) {
     const isOpen = (x: number, y: number) => isOpenId(layout.tiles[y]?.[x]);
@@ -168,7 +171,7 @@ export class TileWorld {
         placedProps,
         opts.boundaryWalls ?? true,
         propSkin,
-        { canal: this.canal, decals: this.decals },
+        { canal: this.canal, decals: this.decals, cover: opts.cover ?? null },
       );
       this.quarter.addBigProps(this.bigProps);
     }

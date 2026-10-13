@@ -3,7 +3,7 @@
  * 월드 소모품(`items/v3/consumable_f1`) · 엘리트 외곽선(`enemies/v3/<적>_<동작>_elite` — 접두어가 붙을 수 있는 적만).
  * 이펙트(엘리트 문장·이름표·§22.1 접두어 fx·화염 술병)는 fxIds BUILD_STATUS_FX_IDS. 없는 파일은 매니페스트가 거른다. Phaser 의존 없음.
  */
-import { DROP_ART, HERO_SETPIECE } from '../../core/Constants';
+import { COVER_PILLAR, DROP_ART, HERO_SETPIECE } from '../../core/Constants';
 import { BUNDLE2, eventsOn } from '../../data/bundle2';
 import { ENEMIES } from '../../data';
 import { floorItems, onFloor, type FloorScope } from '../../data/floorScope';
@@ -53,6 +53,8 @@ export function bundlePropSheets(floor: FloorScope = loadFloorCount()): string[]
   // 62 D (P2-10): 노드 세트피스 · 그을음 데칼
   for (const list of Object.values(HERO_SETPIECE.BY_REGION)) for (const s of list) out.add(s);
   out.add(HERO_SETPIECE.SOOT_SHEET);
+  // 62 I (P1-N7): 엄폐 담 칸 돌기둥
+  out.add(COVER_PILLAR.SHEET);
   return [...out].sort();
 }
 

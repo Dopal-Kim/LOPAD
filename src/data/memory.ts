@@ -47,6 +47,8 @@ export interface MemoryDef {
 
 export interface MemoryData {
   title: string;
+  /** 62 I: 기억 칸 그림 파일 이름 (`ui_relics/<이름>`) — 키 = 기억 id · `stat:<강화 id>` · 'none'(빈손) */
+  icons?: Record<string, string>;
   /** 기억 장 머리 문장 (위 → 아래) */
   intro: string[];
   /** '지닌 영혼 {n}' */

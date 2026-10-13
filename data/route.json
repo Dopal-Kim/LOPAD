@@ -459,20 +459,20 @@
       },
       "slots": [
         {
-          "kinds": ["ledger", "pawn"],
-          "at": [-5, -3]
+          "kinds": ["pawn"],
+          "at": [-7, -3]
         },
         {
           "kinds": ["exchange", "chest"],
-          "at": [5, -3]
+          "at": [7, -3]
         },
         {
           "kinds": ["chest", "cardTable"],
-          "at": [-5, 3]
+          "at": [-7, 3]
         },
         {
-          "kinds": ["cardTable", "exchange", "ledger"],
-          "at": [5, 3]
+          "kinds": ["cardTable", "exchange"],
+          "at": [7, 3]
         }
       ],
       "decor": [
@@ -543,10 +543,14 @@
     },
     "event": {
       "clearRadius": 3,
+      "npc": {
+        "at": [0, -2],
+        "clear": 2
+      },
       "slots": [
         {
           "kinds": ["chest"],
-          "at": [0, 2],
+          "at": [4, 2],
           "function": true
         }
       ],
@@ -560,7 +564,7 @@
         },
         {
           "name": "wreck",
-          "at": [0, -1],
+          "at": [0, 2],
           "size": [3, 2],
           "color": "#5c4a36"
         },
@@ -1166,7 +1170,7 @@
       "type": "shop",
       "room": "start",
       "floor": "rest",
-      "structures": ["ledger", "pawn", "exchange", "chest", "cardTable"],
+      "structures": ["pawn", "exchange", "chest", "cardTable"],
       "budget": [2, 3],
       "shopTiles": true,
       "setPiece": "shop"

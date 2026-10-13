@@ -35,7 +35,13 @@ export interface TransitionDeps {
   /** UI 로 (uiBus) */
   emitUi(event: string, payload: unknown): void;
   /** 시스템 내부 (EventBus — 음향 TRANSITION_BEGIN{mode}) */
-  emitInternal(payload: { id: number; mode: UiTransitionMode; region: string; nodeKind?: string }): void;
+  emitInternal(payload: {
+    id: number;
+    mode: UiTransitionMode;
+    region: string;
+    nodeKind?: string;
+    durationMs?: number;
+  }): void;
   rendererRegistered(): boolean;
   setTimer(ms: number, fn: () => void): unknown;
   clearTimer(handle: unknown): void;
@@ -111,6 +117,8 @@ export class TransitionGate {
       mode: info.mode,
       region: info.region,
       ...(info.nodeKind ? { nodeKind: info.nodeKind } : {}),
+      // 62 I: 'fade' 소리 재생 속도 (덮는 시간)
+      ...(info.durationMs !== undefined ? { durationMs: info.durationMs } : {}),
     });
     d.emitUi(TRANSITION_UI.BEGIN, payload);
     if (noUi) {

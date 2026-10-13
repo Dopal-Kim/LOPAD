@@ -658,6 +658,8 @@ export type TransitionBeginPayload = {
   mode: 'enterNode' | 'exitRoom' | 'floor' | 'training' | 'fade';
   region: string;
   nodeKind?: string;
+  /** 62 I: 덮는 시간 (fade — 소리 재생 속도 맞춤) */
+  durationMs?: number;
 };
 /** 61 단계 6: 수련장 과제 완료 · 도장 */
 export type TrainingTaskPayload = { room: string; id: string };

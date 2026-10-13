@@ -49,7 +49,7 @@ export function validateBuild(b: BuildData): BuildData {
     stages.forEach((st, i) => {
       const at = `build.sets.${tag}[${i}]`;
       if (st.threshold !== THRESHOLDS[i]) fail(`${at}.threshold 는 ${THRESHOLDS[i]}`);
-      if (!st.name || !st.description) fail(`${at}.name·description 없음`);
+      if (!st.name || !st.description || !st.line) fail(`${at}.name·description·line 없음`);
       if (!st.effect || typeof st.effect.kind !== 'string') fail(`${at}.effect.kind 없음`);
       if (st.effect.kind === 'stat') {
         const stats = st.effect.stats ?? {};

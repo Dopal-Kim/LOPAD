@@ -73,6 +73,11 @@ export interface SetPieceDef {
   candles?: Vec[];
   /** 이 방에서 무작위 큰 소품으로 놓지 않을 그림 이름 */
   excludeBigProps?: string[];
+  /**
+   * 62 I (P1-N3): 사연 NPC·소품 자리 [dx, dy] + 둘레 비움 칸(clear, 기본 2) — 템플릿과 같이 뒤집히고,
+   * 그 둘레에는 구조물 슬롯·세운 소품·무작위 구조물을 두지 않는다
+   */
+  npc?: { at: Vec; clear?: number };
 }
 
 /** 튜토리얼 배치 입력 (data/route.json tutorial 의 좌표 부분) */
@@ -132,6 +137,8 @@ export interface SetPiecePlan {
   pillars: Rect[];
   candles: { x: number; y: number }[];
   excludeBigProps: string[];
+  /** 62 I: 사연 NPC 자리 (타일, 템플릿에 npc 가 없으면 null) */
+  npc: { x: number; y: number } | null;
 }
 
 export interface SetPieceInput {
@@ -152,6 +159,8 @@ const DEFAULT_DECOR_COLOR = '#4a443e';
 const SLOT_SEARCH_RADIUS = 2;
 /** 엄폐 섬이 가장자리 벽에서 떨어져야 하는 칸 */
 const COVER_EDGE_GAP = 1;
+/** 사연 NPC 둘레 비움 기본 칸 (62 I) */
+const NPC_CLEAR = 2;
 /** scatter 시도 배수 */
 const SCATTER_TRIES = 30;
 
@@ -202,6 +211,7 @@ export function planSetPiece(layout: FloorLayout, input: SetPieceInput): SetPiec
     pillars: [],
     candles: [],
     excludeBigProps: [...(input.template?.excludeBigProps ?? [])],
+    npc: null,
   };
   const rng = new Rng(hashSeed(`${String(input.seed)}:setpiece`));
   const tiles = layout.tiles;
@@ -269,6 +279,14 @@ export function planSetPiece(layout: FloorLayout, input: SetPieceInput): SetPiec
       occupy(p.x, p.y, 1, 1, 1);
       plan.decor.push(decor(`dummy-${i}`, 'dummy', 'dummy', [...tut.dummySprite], p.x, p.y, 1, 1, false, '#9a7a4a'));
     });
+  }
+  // 1-1) 62 I (P1-N3): 사연 NPC 자리 — 둘레 clear 칸은 슬롯·세운 소품·엄폐가 못 들어오게 먼저 차지
+  if (T?.npc) {
+    const p = nearestFloor(center.x + T.npc.at[0], center.y + T.npc.at[1]);
+    plan.npc = p;
+    const npcZone = squareAround(p, Math.max(0, T.npc.clear ?? NPC_CLEAR));
+    occupy(npcZone.x, npcZone.y, npcZone.w, npcZone.h, 0);
+    tutZones.push(npcZone);
   }
   const blockedForCover = (x: number, y: number) =>
     inRects(baseReserve, x, y) || inRects(tutZones, x, y) || (centerClear !== null && inRects([centerClear], x, y));

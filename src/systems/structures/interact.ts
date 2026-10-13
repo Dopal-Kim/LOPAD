@@ -38,7 +38,14 @@ export class Interaction {
     return this.reason;
   }
 
-  update(input: InputState, delta: number): void {
+  /**
+   * 62 I (P0-N2): 이번 프레임 E 대상이 구조물인가 — Game 의 InteractFocus 가 정한다(프롬프트와 E 같은 판정).
+   * false 면 안내·E·길게 누르기 모두 쉰다.
+   */
+  focused = true;
+
+  /** 반경 안 가장 가까운 E 구조물 + 판정 영역 중심까지 거리 (부수 효과 없음 — 대상 고르기용) */
+  candidate(): { inst: Inst; dist: number } | null {
     const pc = this.c.host.player.body.center;
     const range = STRUCTURE_RULES.interactRangePx;
     let best: Inst | null = null;
@@ -54,6 +61,13 @@ export class Interaction {
         best = s;
       }
     }
+    if (!best) return null;
+    const r = this.rectOf(best);
+    return { inst: best, dist: Math.hypot(pc.x - r.centerX, pc.y - r.centerY) };
+  }
+
+  update(input: InputState, delta: number): void {
+    const best = this.focused ? (this.candidate()?.inst ?? null) : null;
     if (best !== this.nearest) this.holdMs = 0;
     this.nearest = best;
     this.reason = best ? this.reasonFor(best) : null;

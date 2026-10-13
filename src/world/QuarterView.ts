@@ -20,6 +20,7 @@ import { lightRegistryOf } from '../systems/lighting/lightRegistry';
 import { isOpenId, pickVariant, wallKind, type LightOffset, type PropPlacement, type TileSkin } from './tileskin';
 import type { LightSpec } from '../systems/sprites/spriteDefs';
 import type { LightSource } from '../systems/lighting/lightRegistry';
+import type { CoverArt } from './coverPillars';
 
 interface WallImage {
   img: Phaser.GameObjects.Image;
@@ -70,10 +71,11 @@ export class QuarterView {
     boundaryWalls = true,
     /** 53라운드 v3 바닥 소품 시트 (없으면 바닥 타일셋 — 기존) */
     private readonly propSkin: TileSkin = skin,
-    /** 53라운드 4지역 바닥: 양조 수로 · 데칼 */
-    features: { canal?: CanalPlan | null; decals?: readonly DecalPlacement[] } = {},
+    /** 53라운드 4지역 바닥: 양조 수로 · 데칼 · 62 I 엄폐 칸 돌기둥 */
+    features: { canal?: CanalPlan | null; decals?: readonly DecalPlacement[]; cover?: CoverArt | null } = {},
   ) {
     this.boundaryWalls = boundaryWalls;
+    this.cover = features.cover ?? null;
     this.canal = features.canal ?? null;
     for (const t of this.canal?.tiles ?? []) this.canalAt.set(`${t.x},${t.y}`, t.kind);
     const px = skin.tilePx;
@@ -99,6 +101,50 @@ export class QuarterView {
     this.rebuildWalls();
     this.addDecals(features.decals ?? []);
     this.startCanal();
+  }
+
+  /** 62 I (P1-N7): 엄폐 칸 = 돌기둥 그림 (칸은 벽 그대로) — null 이면 예전 돌담 */
+  private readonly cover: CoverArt | null;
+
+  private isCover(x: number, y: number): boolean {
+    return this.cover !== null && this.cover.cells.has(`${x},${y}`);
+  }
+
+  /** 기둥 칸 바닥 = 이웃 바닥 칸의 바닥 (벽 칸은 원경 인덱스라 기둥 밑이 검게 뚫린다) */
+  private coverGround(x: number, y: number): number {
+    for (const [ox, oy] of [
+      [0, 1],
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+    ] as const)
+      if (this.isOpen(x + ox, y + oy)) return this.src.groundIndex(x + ox, y + oy);
+    return this.skin.voidIndex;
+  }
+
+  /** 기둥 한 장 (피벗 = 칸 아래 가운데, Y 정렬, 가림 비침 대상) */
+  private placePillar(x: number, y: number): void {
+    const C = this.cover!;
+    const fx = x * TILE + TILE / 2;
+    const fy = (y + 1) * TILE - 1;
+    const img = this.scene.add
+      .image(fx, fy, C.texture, C.frameOf(x, y))
+      .setOrigin(C.pivot.x / C.frameWidth, C.pivot.y / C.frameHeight)
+      .setScale(C.scale)
+      .setDepth(entityDepth(fy));
+    const w: WallImage = {
+      img,
+      left: fx - C.pivot.x * C.scale,
+      right: fx + (C.frameWidth - C.pivot.x) * C.scale,
+      top: fy - C.pivot.y * C.scale,
+      bottom: fy,
+    };
+    this.walls.push(w);
+    for (let cx = Math.floor(w.left / TILE); cx <= Math.floor((w.right - 1) / TILE); cx++) {
+      const col = this.byColumn.get(cx);
+      if (col) col.push(w);
+      else this.byColumn.set(cx, [w]);
+    }
   }
 
   /** 53라운드 수로 칸 → 그 칸 종류 */
@@ -164,6 +210,7 @@ export class QuarterView {
     const canal = this.canalAt.get(`${x},${y}`);
     if (canal) return this.canalIndex(canal);
     const id = this.src.idAt(x, y);
+    if (id === TileId.Wall && this.isCover(x, y)) return this.coverGround(x, y);
     if (id === TileId.Wall) return this.skin.voidIndex;
     if (id === TileId.Void && this.isAlley(x, y)) return this.skin.alleyIndex ?? this.skin.voidIndex;
     return this.src.groundIndex(x, y);
@@ -212,6 +259,11 @@ export class QuarterView {
         if (!this.isWall(x, y)) continue;
         // 바닥 칸도 다시 (벽이 생기거나 사라진 칸)
         this.refreshGround(x, y);
+        // 62 I: 엄폐 칸은 돌기둥 한 장 (벽 타일 대신)
+        if (this.isCover(x, y)) {
+          this.placePillar(x, y);
+          continue;
+        }
         const depth = entityDepth((y + 1) * TILE);
         const island = islands.has(`${x},${y}`);
         if (!this.boundaryWalls && !island) continue;
@@ -290,9 +342,11 @@ export class QuarterView {
       for (let x = 0; x < W; x++) {
         layer.removeTileAt(x, y);
         if (!this.isOpen(x, y)) continue;
-        const n = this.isWall(x, y - 1) || (this.src.idAt(x, y - 1) === TileId.Void && this.isAlley(x, y - 1));
-        const w = this.isWall(x - 1, y);
-        const e = this.isWall(x + 1, y);
+        // 62 I: 기둥 칸 옆에는 담 그늘(칸 모양 판)을 깔지 않는다
+        const wallAt = (wx: number, wy: number) => this.isWall(wx, wy) && !this.isCover(wx, wy);
+        const n = wallAt(x, y - 1) || (this.src.idAt(x, y - 1) === TileId.Void && this.isAlley(x, y - 1));
+        const w = wallAt(x - 1, y);
+        const e = wallAt(x + 1, y);
         const idx = n && w ? (S.nw ?? S.n) : n && e ? (S.ne ?? S.n) : n ? S.n : w ? S.w : e ? S.e : undefined;
         if (idx !== undefined) layer.putTileAt(idx, x, y);
       }

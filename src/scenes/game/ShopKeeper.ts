@@ -70,10 +70,15 @@ export class ShopKeeper {
     return this.npc && tex && this.g.textures.exists(tex) ? { key: tex, frame: '0' } : null;
   }
 
+  /** 플레이어까지 거리 (월드 px) */
+  dist(): number {
+    const p = this.g.player;
+    return Math.hypot(p.x - this.x, p.y - this.y);
+  }
+
   /** 상인 E 반경 안인가 */
   near(): boolean {
-    const p = this.g.player;
-    return Math.hypot(p.x - this.x, p.y - this.y) <= BUNDLE_FX.INTERACT_TILES * TILE;
+    return this.dist() <= BUNDLE_FX.INTERACT_TILES * TILE;
   }
 
   /** 계약 §9.1 E 안내 (반경 밖이면 null) */

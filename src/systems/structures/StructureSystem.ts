@@ -270,6 +270,16 @@ export class StructureSystem {
     return this.interact.interactable();
   }
 
+  /** 62 I (P0-N2): E 대상 고르기 후보 (반경 안 가장 가까운 E 구조물 중심까지 거리) */
+  focusDist(): number | null {
+    return this.interact.candidate()?.dist ?? null;
+  }
+
+  /** 62 I: 이번 프레임 E 대상이 구조물이 아니면 false — 안내·E 를 쉰다 */
+  setFocused(on: boolean): void {
+    this.interact.focused = on;
+  }
+
   statuses(): UiStatus[] {
     return structureStatuses(this.c);
   }

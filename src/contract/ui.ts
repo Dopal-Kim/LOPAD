@@ -326,7 +326,15 @@ export interface UiTagState {
   /** 다음 임계 (6 달성이면 null) */
   next: number | null;
   /** 세트 효과 3칸 */
-  effects: { threshold: 2 | 4 | 6; name: string; description: string; active: boolean }[];
+  effects: {
+    threshold: 2 | 4 | 6;
+    name: string;
+    /** 상세 수치 (Tab 보기) */
+    description: string;
+    /** 62 I (P1-N2): 카드 문장 — 숫자·×·% 없음 (세트 칩) */
+    line?: string;
+    active: boolean;
+  }[];
 }
 
 /** §14.2 이중 개성 */
@@ -374,6 +382,12 @@ export interface UiTagSetChanged {
   stage: 0 | 2 | 4 | 6;
   /** 새로 켜진(또는 꺼진 뒤 남은) 단계 효과 이름. 0 단계면 '' */
   effectName: string;
+  /**
+   * 62 I (P1-N2): 토스트 한 줄 '{태그} 세트 — {단계 문장}'(숫자·×·% 없음, 예 '중량 세트 — 강공이 더 무겁다'). 0 단계면 ''.
+   * ('공명'은 개성 공명(§18.1)과 겹쳐 쓰지 않는다.) 문장만은 `UiTagState.effects[].line`.
+   * 시스템은 세트 단계 STORY notice 를 더 보내지 않는다(렌더러가 있을 때) — 이 칩 하나가 알림.
+   */
+  line?: string;
 }
 
 /** §14.11 `CURSE_ENDED` 페이로드 */

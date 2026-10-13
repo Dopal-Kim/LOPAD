@@ -29,7 +29,7 @@ import { isHeavyStrike } from '../../systems/hitFeel';
 import { runtimeFxVariant, type FxVariant } from '../../systems/fx/fxVariants';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { FX_ACTION, artScale, facingOf, fxDrawScale } from '../../systems/sprites/spriteDefs';
-import { arrowFxId, perfectReleaseFxId } from '../../systems/fx/fxIds';
+import { arrowFxId, perfectReleaseFxId, shotFlashFxId } from '../../systems/fx/fxIds';
 import type { Game } from '../Game';
 import { HIT_ORIGIN_UP_PX } from './shared';
 import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
@@ -193,6 +193,15 @@ export class BowShots {
       });
     const muzzle = this.first ? muzzleFxId(weapon.id, this.first) : null;
     if (muzzle && g.fx.has(muzzle)) g.fx.play(muzzle, ax, ay, { angle: base, depth: DEPTH.PROJECTILE + 0.01 });
+    // 62 I (art §32-6): 일반 놓기·짧게 쏘기·대쉬 사격 발사 섬광 — 완벽 놓기·속사 섬광이 이미 나가면 겹치지 않는다
+    const flash = shotFlashFxId(weapon.id);
+    const special = (p.bowPower === 'perfect' && g.fx.has(perfectFx)) || (muzzle !== null && g.fx.has(muzzle));
+    if (!special && g.fx.has(flash))
+      g.fx.play(flash, ax, so ? ay : ay - HIT_ORIGIN_UP_PX, {
+        angle: base,
+        flipY: p.dirX < 0,
+        depth: DEPTH.PROJECTILE + 0.01,
+      });
     const n = Math.max(1, spread.count);
     const launched: Projectile[] = [];
     for (let i = 0; i < n; i++) {

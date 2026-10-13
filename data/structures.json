@@ -205,7 +205,7 @@
       "group": "theme",
       "floors": ["stage1"],
       "roomTypes": { "start": 1, "rest": 1 },
-      "chance": 1,
+      "chance": 0,
       "perFloor": [1, 1],
       "maxPerRoom": 1,
       "size": [1, 1],

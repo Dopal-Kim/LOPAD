@@ -23,6 +23,9 @@ import { TrialArrows } from './trialArrows';
 import { TrialPlayer, type TrialGround, type TrialInput } from './trialPlayer';
 import { placeTrialProps, propTiles } from './trialProps';
 import type { StructureView } from '../../world/StructureView';
+import { Lighting } from '../../systems/lighting/Lighting';
+import { lightingAmbientFor } from '../../systems/lighting/lightMath';
+import { LIGHTING } from '../../data';
 
 export type { TrialInput } from './trialPlayer';
 export type BirthTrialState = 'card' | 'run' | 'clear' | 'done';
@@ -77,6 +80,9 @@ export class BirthTrialRunner {
   private fired = 0;
   private nextVolleyAt = 0;
   private pending: Volley[] = [];
+  /** 62 I (P1-N8): 탄생 전장과 같은 어둠·주인공 빛·비네팅 (평평하게 밝던 무대) */
+  private readonly lighting: Lighting;
+  private readonly lightTarget = { x: 0, y: 0, visible: true };
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -144,11 +150,18 @@ export class BirthTrialRunner {
     this.arrows = new TrialArrows(scene, this.fx, open);
     this.aimLine = scene.add.graphics().setDepth(DEPTH.PROJECTILE - DEPTH.OVERLAY_STEP);
     data.spots.forEach((r) => this.shooters.push(this.makeShooter(spotAt(r, this.area))));
+    // 소품 불(StructureView 광원)·벽 횃불(타일 광원)은 장면 광원 목록에 이미 있다 — 조명이 그것을 그린다
+    const ambient = data.region ? lightingAmbientFor(data.region, null, true, () => true, LIGHTING) : null;
+    this.lighting = new Lighting(scene, { ambient, player: this.lightTarget });
   }
 
   /** 전투장 가운데 (카메라) */
   get center(): { x: number; y: number } {
-    return { x: this.area.x + this.area.w / 2, y: this.area.y + this.area.h / 2 };
+    // 62 I (P1-N8): 그려진 무대(바닥 + 둘레 벽 + 북쪽 벽 앞면 높이) 가운데 — 위·아래 여백이 같게
+    const up = (this.world.skin.quarter?.heightTiles ?? 0) * TILE;
+    const top = this.area.y - TILE - up;
+    const bottom = this.area.y + this.area.h + TILE;
+    return { x: this.area.x + this.area.w / 2, y: (top + bottom) / 2 };
   }
 
   get task(): TrialTaskDef {
@@ -243,9 +256,13 @@ export class BirthTrialRunner {
     this.updateShooters(time);
     this.fx.update(time);
     P.sync(time, true);
+    this.lightTarget.x = P.pos.x;
+    this.lightTarget.y = P.pos.y;
+    this.lighting.update(time);
   }
 
   destroy(): void {
+    this.lighting.destroy();
     this.arrows.destroy();
     this.player.destroy();
     this.aimLine.destroy();

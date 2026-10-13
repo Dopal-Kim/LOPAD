@@ -105,7 +105,10 @@ export interface SetStageDef {
   floor?: number;
   name: string;
   _tmpName?: boolean;
+  /** 상세(Tab 보기) — 수치 */
   description: string;
+  /** 62 I (P1-N2): 카드 문장 — 숫자·×·% 없이 (세트 칩·알림) */
+  line: string;
   /** kind 'stat' 이면 stats 합산, 그 밖은 규칙 실행기 */
   effect: RuleDef & { stats?: BuildStats };
 }

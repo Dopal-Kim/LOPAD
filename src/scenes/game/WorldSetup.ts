@@ -22,6 +22,7 @@ import { SideDoorArt } from '../../world/SideDoorArt';
 import { SetPieceView } from '../../world/SetPieceView';
 import { planHeroSetpiece, planSoot } from '../../world/heroSetpiece';
 import { drawHeroDressing } from './heroDressing';
+import { coverArtFor } from '../../world/coverPillars';
 import { pillarSheet } from '../../systems/boss/BossArena';
 import { TileSkin, propSceneTags, propSkinFor, skinFor, tileSkins } from '../../world/tileskin';
 import { TileWorld } from '../../world/TileWorld';
@@ -142,6 +143,8 @@ export class WorldSetup {
     if (hero)
       for (let y = hero.ty; y < hero.ty + hero.h; y++)
         for (let x = hero.tx; x < hero.tx + hero.w; x++) taken.add(`${x},${y}`);
+    // 62 I (P1-N7): 엄폐 담 칸 = 돌기둥 그림 (시트가 없으면 예전 돌담)
+    const cover = arena ? coverArtFor(g, arena.regionId, arena.setPiece.cover, hashSeed(nodeSalt)) : null;
     g.world = new TileWorld(
       g,
       layout,
@@ -171,6 +174,7 @@ export class WorldSetup {
         excludeBigProps: arena?.setPiece.excludeBigProps ?? [],
         // 61라운드 계약 art §24: 방 변주 장면 (소품 시트 variantTag)
         propScene: arena ? pickPropScene(propSceneTags(propSkinFor(arena.tileset)), g.node, gameState.floorSeed) : null,
+        cover,
       },
     );
     g.border = this.createBorder(borderDef, layout);
@@ -182,7 +186,8 @@ export class WorldSetup {
     spriteLibrary.activate(g, floor);
     // 49라운드 세트 배치 그림 (층 램프 변형 시트를 쓰므로 activate 뒤)
     g.setPieceView?.destroy();
-    g.setPieceView = arena ? new SetPieceView(g, arena.setPiece) : null;
+    // 62 I: 기둥으로 그린 엄폐 칸 위에는 엄폐 소품(술통 더미)을 얹지 않는다
+    g.setPieceView = arena ? new SetPieceView(g, arena.setPiece, undefined, { skipCover: cover !== null }) : null;
     if (arena) drawHeroDressing(g, hero, planSoot(layout, arena.regionId, gameState.floorSeed + nodeSalt, taken));
     // 저장고가 있으면 카메라 경계에 넣는다 (부수면 그 안으로 들어간다)
     for (const p of structurePlan) if (p.cellar) g.world.extendCamera(p.cellar.inner, 1);

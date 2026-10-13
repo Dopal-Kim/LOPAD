@@ -9,6 +9,7 @@ import type { Mob } from '../../objects/Mob';
 import type { Pickup, PickupMagnet } from '../../objects/Pickup';
 import { goldCost, rollGold, shopPrice } from '../../systems/economy';
 import { kindDef } from '../../systems/route';
+import type { FocusSource } from '../../systems/interactFocus';
 import {
   UI_EVENTS,
   __system,
@@ -38,6 +39,8 @@ export class Economy {
   /** 61라운드 단계 2: 상점 노드 상인 (E 로 연다) · 상인 E 로 연 상점인지 (상인 곁을 떠나면 닫는다) */
   private keeper: ShopKeeper | null = null;
   private keeperOpened = false;
+  /** 62 I (P0-N2): 이번 프레임 E 대상이 상인인가 (Game.interactFocus) */
+  private keeperFocused = true;
   /** 62 D (P1-13): 장터 노점 칸 */
   private stalls: ShopStalls | null = null;
 
@@ -145,12 +148,13 @@ export class Economy {
     this.checkCreditRepaid();
     const nearKeeper = this.keeper?.near() ?? false;
     if (!nearKeeper) this.keeperOpened = false;
-    if (interactPressed && nearKeeper && !this.shopOpen && !g.menu.isOpen) {
+    if (interactPressed && nearKeeper && this.keeperFocused && !this.shopOpen && !g.menu.isOpen) {
       this.openTalk();
       return;
     }
     if (this.stalls && this.stalls.count > 0) {
-      this.stalls.update(interactPressed && !nearKeeper && !g.menu.isOpen);
+      // 62 I: 노점이 E 대상이 아니면 stalls 가 스스로 쉰다 (상인·구조물·소품이 더 가까움)
+      this.stalls.update(interactPressed && !g.menu.isOpen);
       if (this.shopOpen && !nearKeeper && !this.keeperOpened) this.closeShop();
       return;
     }
@@ -173,14 +177,29 @@ export class Economy {
     const g = this.g;
     if (!this.keeper) return null;
     const roomId = g.layout?.rooms[0]?.id ?? '';
-    return (
-      this.keeper.interactable(roomId, !this.shopOpen && !g.menu.isOpen) ?? this.stalls?.interactable(roomId) ?? null
-    );
+    const keeper = this.keeperFocused ? this.keeper.interactable(roomId, !this.shopOpen && !g.menu.isOpen) : null;
+    return keeper ?? this.stalls?.interactable(roomId) ?? null;
+  }
+
+  /** 62 I (P0-N2): E 대상 고르기 후보 — 상인 (반경 안이면 거리) */
+  keeperFocusDist(): number | null {
+    return this.keeper?.near() ? this.keeper.dist() : null;
+  }
+
+  /** 62 I: E 대상 고르기 후보 — 노점 칸 */
+  stallFocusDist(): number | null {
+    return this.stalls?.focusDist() ?? null;
+  }
+
+  /** 62 I: 이번 프레임 E 대상 (상인·노점만 받는다) */
+  setFocus(src: FocusSource | null): void {
+    this.keeperFocused = src === 'keeper';
+    if (this.stalls) this.stalls.focused = src === 'stall';
   }
 
   /** 62 D (P1-13): 노점 카드 (계약 `UiSnapshot.shopOffer`) */
   shopOffer(): UiShopOffer | null {
-    if (this.keeper?.near()) return null;
+    // 62 I: 노점이 E 대상일 때만 (상인이 더 가까우면 stalls.focused = false)
     return this.stalls?.offer() ?? null;
   }
 

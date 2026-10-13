@@ -76,6 +76,22 @@ describe('62 루프 2 C 기억 (P1-8)', () => {
     expect(shopGoodsFor(s).map((g) => g.id)).toContain('inkBottle');
   });
 
+  it('62 I: 장터의 것·몸의 기억 칸 그림 = 아트 ui_relics/memory_* (받은 것만)', () => {
+    const none = memoryBook(meta(10), META_CONFIG);
+    expect(none.chapters[3].entries.every((e) => e.iconKey === undefined)).toBe(true);
+    const book = memoryBook(meta(10), META_CONFIG, (k) => k.startsWith('ui_relics/memory_'));
+    expect(book.chapters[3].entries.map((e) => e.iconKey)).toEqual([
+      'ui_relics/memory_ink',
+      'ui_relics/memory_bellows',
+    ]);
+    expect(book.chapters[4].entries.map((e) => e.iconKey)).toEqual([
+      'ui_relics/memory_hp',
+      'ui_relics/memory_attack',
+      'ui_relics/memory_dash',
+    ]);
+    expect(MEMORY.icons?.none).toBe('memory_empty');
+  });
+
   it('기억 장: 다섯 칸 · 상태 한 줄 · 귀퉁이 canBuy', () => {
     const book = memoryBook(meta(10), META_CONFIG);
     expect(book.chapters.map((c) => c.kind)).toEqual(['keepsake', 'aspect', 'pool', 'shop', 'stat']);

@@ -142,6 +142,7 @@ export function uiTags(mods: BuildMods, floor: FloorScope = null): UiTagState[] 
             threshold: st.threshold,
             name: st.name,
             description: st.description,
+            line: st.line,
             active: mods.stages[t] >= st.threshold,
           })),
       };

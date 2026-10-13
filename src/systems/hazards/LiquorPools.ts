@@ -16,6 +16,7 @@ import type { Mob } from '../../objects/Mob';
 import type { FxPool } from '../fx/fx';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
 import { linked } from './liquorNet';
+import { softDecal } from '../../world/softDecal';
 
 export interface PoolSpec {
   owner: 'structure' | 'boss';
@@ -59,8 +60,9 @@ export interface Pool {
   /** 번져서 불붙을 예정 시각 (0 = 없음) · 출발 칸 */
   igniteAt: number;
   igniteFrom: { x: number; y: number; at: number } | null;
-  gfx: Phaser.GameObjects.Rectangle;
-  fireGfx: Phaser.GameObjects.Rectangle | null;
+  /** 62 I (P1-N1): 대체 그림 = 가장자리 흐린 얼룩 (칸 사각형이 빛 판처럼 보이던 것) */
+  gfx: Phaser.GameObjects.Image;
+  fireGfx: Phaser.GameObjects.Image | null;
   fireFx: ReturnType<FxPool['play']>[];
   /** 60라운드: 웅덩이 그림 (sheets.pool) */
   poolFx: ReturnType<FxPool['play']>;
@@ -103,9 +105,15 @@ export class LiquorPools {
 
   /** 웅덩이 추가 (rect 는 월드 사각형) */
   add(rect: Phaser.Geom.Rectangle, spec: PoolSpec, time = this.now): Pool {
-    const gfx = this.host.scene.add
-      .rectangle(rect.centerX, rect.centerY, rect.width, rect.height, spec.color, spec.alpha)
-      .setDepth(STRUCTURE_FX.FLOOR_DEPTH);
+    const gfx = softDecal(
+      this.host.scene,
+      rect.centerX,
+      rect.centerY,
+      rect.width,
+      rect.height,
+      spec.color,
+      spec.alpha,
+    ).setDepth(STRUCTURE_FX.FLOOR_DEPTH);
     const p: Pool = {
       rect,
       spec,
@@ -249,16 +257,15 @@ export class LiquorPools {
       } else p.fireFx.push(at(p.rect.centerY, s.fireMs, CELL_FIRE_SCALE));
       return;
     }
-    p.fireGfx = this.host.scene.add
-      .rectangle(
-        p.rect.centerX,
-        p.rect.centerY,
-        p.rect.width,
-        p.rect.height,
-        STRUCTURE_FX.FIRE_COLOR,
-        STRUCTURE_FX.FIRE_ALPHA,
-      )
-      .setDepth(STRUCTURE_FX.FLOOR_DEPTH + 0.01);
+    p.fireGfx = softDecal(
+      this.host.scene,
+      p.rect.centerX,
+      p.rect.centerY,
+      p.rect.width,
+      p.rect.height,
+      STRUCTURE_FX.FIRE_COLOR,
+      STRUCTURE_FX.FIRE_ALPHA,
+    ).setDepth(STRUCTURE_FX.FLOOR_DEPTH + 0.01);
     // 시트가 없으면 광원도 직접 (보스 웅덩이 — 어둠 속 광원, Q8)
     if (s.owner === 'boss')
       p.light = lightRegistryOf(this.host.scene).add(BOSS_FX.FIRE_LIGHT, {

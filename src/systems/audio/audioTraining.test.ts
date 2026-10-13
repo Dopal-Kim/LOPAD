@@ -5,7 +5,7 @@ import { EventEmitter } from 'node:events';
 vi.mock('phaser', () => ({ default: { Events: { EventEmitter } } }));
 
 import { Events, type TransitionBeginPayload } from '../../core/EventBus';
-import { FADE_FALLBACK, P14_SFX, TRAINING_AUDIO_TRIGGERS } from './audioTraining';
+import { FADE_FALLBACK, P14_SFX, TRAINING_AUDIO_TRIGGERS, fadeRate } from './audioTraining';
 
 const tr = TRAINING_AUDIO_TRIGGERS.find((t) => t.event === Events.TRANSITION_BEGIN)!;
 const p = (mode: TransitionBeginPayload['mode']): TransitionBeginPayload => ({ id: 1, mode, region: 'waste' });
@@ -24,5 +24,17 @@ describe('62 H 전환 소리 — fade', () => {
     expect(sfx('floor')).toEqual([P14_SFX.floor, P14_SFX.enter]);
     expect(tr.gain?.(p('exitRoom'), P14_SFX.exit)).toBe(1);
     expect(tr.rate?.(p('exitRoom'), P14_SFX.exit)).toBe(1);
+  });
+});
+
+describe('62 I transition_fade 재생 속도 (음향 manifest 메모)', () => {
+  it('덮는 시간 400 근처면 1, 크게 다르면 clamp(380 / ms, 0.85, 1.2)', () => {
+    expect(fadeRate(undefined)).toBe(1);
+    expect(fadeRate(400)).toBe(1);
+    expect(fadeRate(460)).toBe(1);
+    expect(fadeRate(250)).toBe(1.2);
+    expect(fadeRate(600)).toBeCloseTo(0.85);
+    expect(fadeRate(500)).toBeCloseTo(0.85);
+    expect(tr.rate?.({ ...p('fade'), durationMs: 300 }, P14_SFX.fade)).toBeCloseTo(1.2);
   });
 });

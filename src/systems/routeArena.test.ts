@@ -105,7 +105,7 @@ describe('49라운드 세트 배치 (7) · 특수 노드 기능은 중앙 (6)', 
         const A = p.layout.arena!;
         const c = p.setPiece.center;
         expect(A.shop).toEqual({ x: c.x - 1, y: c.y - 1 });
-        expect(p.setPiece.fixed.length).toBeGreaterThanOrEqual(2);
+        expect(p.setPiece.fixed.length).toBeGreaterThanOrEqual(stage === 'stage1' ? 1 : 2);
         for (const f of p.setPiece.fixed) expect(Math.abs(f.ty - c.y)).toBeGreaterThanOrEqual(2);
         const placed = planStructures(p.layout, stage, `s${i}`, { node: p.structureNode });
         for (const s of placed) {
@@ -113,19 +113,44 @@ describe('49라운드 세트 배치 (7) · 특수 노드 기능은 중앙 (6)', 
             s.ty <= c.y + 1 && s.ty + s.h - 1 >= c.y - 1 && s.tx + s.w - 1 >= c.x - 14 && s.tx <= c.x + 14;
           expect(onStreet).toBe(false);
         }
-        // 1층은 장부대·궤짝, 2층은 전당포·환전대·궤짝·패 탁자
+        // 1층은 궤짝(62 I: 외상 장부대 제거 — 외상은 상인 대사만), 2층은 전당포·환전대·궤짝·패 탁자
         const kinds = new Set(p.setPiece.fixed.map((f) => f.kind));
-        if (stage === 'stage1') expect([...kinds].sort()).toEqual(['chest', 'ledger']);
+        if (stage === 'stage1') expect([...kinds].sort()).toEqual(['chest']);
         else expect(kinds.has('pawn') && kinds.has('exchange')).toBe(true);
       }
   });
 
   it('이벤트 = 중앙 사건 장소 (잔해 + 궤짝)', () => {
-    const p = planNodeArena(node('event', 5), 'stage1', 'e');
-    const c = p.setPiece.center;
-    const chest = p.setPiece.fixed.find((f) => f.kind === 'chest')!;
-    expect(dist({ x: chest.tx, y: chest.ty }, c)).toBeLessThanOrEqual(4);
-    expect(p.setPiece.decor.some((d) => d.name === 'wreck' && dist({ x: d.tx, y: d.ty }, c) <= 3)).toBe(true);
+    // 62 I: 궤짝은 NPC 둘레(2칸) 밖 옆자리 — 칸 가운데 기준 (뒤집혀도 잔해·궤짝 둘 다 선다)
+    const mid = (x: number, y: number, w: number, h: number) => ({ x: x + (w - 1) / 2, y: y + (h - 1) / 2 });
+    for (const seed of ['e', 'e1', 'e2', 'e3', 'e4', 'e5']) {
+      const q = planNodeArena(node('event', 5), 'stage1', seed);
+      const qc = q.setPiece.center;
+      const ch = q.setPiece.fixed.find((f) => f.kind === 'chest')!;
+      const [w, h] = STRUCTURE_DEFS.get('chest')!.size;
+      expect(dist(mid(ch.tx, ch.ty, w, h), qc)).toBeLessThanOrEqual(5);
+      expect(q.setPiece.decor.some((d) => d.name === 'wreck' && dist(mid(d.tx, d.ty, d.w, d.h), qc) <= 3)).toBe(true);
+    }
+  });
+
+  it('62 I (P1-N3): 사연 NPC 자리 둘레 2칸에는 궤짝·구조물·세운 소품이 없다 (뒤집혀도)', () => {
+    let mirrored = 0;
+    for (let i = 0; i < 40; i++) {
+      const p = planNodeArena(node('event', 5), 'stage1', `ev${i}`);
+      const n = p.setPiece.npc!;
+      expect(n).toBeTruthy();
+      if (p.variety.mirror.x || p.variety.mirror.y) mirrored++;
+      const near = (tx: number, ty: number, w: number, h: number) =>
+        tx <= n.x + 2 && tx + w - 1 >= n.x - 2 && ty <= n.y + 2 && ty + h - 1 >= n.y - 2;
+      for (const f of p.setPiece.fixed) {
+        const [w, h] = STRUCTURE_DEFS.get(f.kind)!.size;
+        expect(near(f.tx, f.ty, w, h)).toBe(false);
+      }
+      for (const d of p.setPiece.decor) if (!d.floor) expect(near(d.tx, d.ty, d.w, d.h)).toBe(false);
+      const placed = planStructures(p.layout, 'stage1', `ev${i}`, { node: p.structureNode });
+      for (const s of placed) expect(near(s.tx, s.ty, s.w, s.h)).toBe(false);
+    }
+    expect(mirrored).toBeGreaterThan(0);
   });
 
   it('전투 = 엄폐 담(벽 섬) 둘레에 짐·술통, 바닥 연결 유지, 시작점·출구 비움', () => {

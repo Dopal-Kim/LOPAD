@@ -45,6 +45,8 @@ export interface StallHost {
 export class ShopStalls {
   private stalls: Stall[] = [];
   private focus: string | null = null;
+  /** 62 I (P0-N2): 이번 프레임 E 대상이 노점인가 (Game.interactFocus) — 아니면 표지·카드·E 를 쉰다 */
+  focused = true;
 
   constructor(
     private readonly g: Game,
@@ -168,7 +170,17 @@ export class ShopStalls {
     s.item?.setVisible(!sold);
   }
 
+  /** 62 I: E 대상 고르기 후보 — 반경 안 가장 가까운 칸까지 거리 */
+  focusDist(): number | null {
+    const s = this.closest();
+    return s ? Math.hypot(this.g.player.x - s.x, this.g.player.y - s.y) : null;
+  }
+
   private nearest(): Stall | null {
+    return this.focused ? this.closest() : null;
+  }
+
+  private closest(): Stall | null {
     const pl = this.g.player;
     let best: Stall | null = null;
     let bd = SHOP_STALL.RADIUS_TILES * TILE;

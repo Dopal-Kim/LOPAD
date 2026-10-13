@@ -61,7 +61,12 @@ export function smearFxId(weaponId: string, overlayAction: string): string {
   return `${weaponId}_${overlayAction}_smear`;
 }
 
-/** 62 D: 이 무기 그림 표의 몸 동작마다 스미어 후보 (없는 파일은 매니페스트가 거른다) */
-export function smearFxIds(weaponId: string, def: Pick<ComboDef, 'art'> | undefined): string[] {
-  return comboArtNames(def).body.map((n) => smearFxId(weaponId, n));
+/**
+ * 62 D: 이 무기 그림 표의 몸 동작마다 스미어 후보 (없는 파일은 매니페스트가 거른다).
+ * 62 I (art §32-6): 그림 표에 따로 없는 기본 연격 동작 `combo<n>`(단검 1~3타 — `dagger_combo<n>_smear`)도 후보
+ */
+export function smearFxIds(weaponId: string, def: Pick<ComboDef, 'art' | 'hits'> | undefined): string[] {
+  const names = new Set(comboArtNames(def).body);
+  for (let i = 1; i <= (def?.hits?.length ?? 0); i++) names.add(`combo${i}`);
+  return [...names].map((n) => smearFxId(weaponId, n));
 }

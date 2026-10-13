@@ -11,7 +11,7 @@ import { ENEMIES } from '../../data';
 import { assetListed } from '../../systems/sprites/sheetLoader';
 import { queueImageOnce } from '../../systems/sprites/imageOnce';
 import { RELIC_ICON_DIR, relicIconFile, relicIconKey } from '../../systems/relics';
-import { keepsakeIconKey } from '../../systems/memory/memory';
+import { keepsakeIconKey, memoryArtKey } from '../../systems/memory/memory';
 import { TRAIT_ICON_DIR, markIconLoaded, traitIconFile, traitIconKey } from '../../systems/growth/traitArt';
 
 const PORTRAIT_DIR = `${ASSETS.SPRITES_DIR}/ui_portraits`;
@@ -32,6 +32,9 @@ function memoryWanted(memoryTraits: boolean): { key: string; rel: string }[] {
           out.push({ key: traitIconKey(m.weapon, t), rel: `${TRAIT_ICON_DIR}/${traitIconFile(m.weapon, t)}` });
   for (const m of MEMORY.items)
     if (m.kind === 'keepsake') out.push({ key: keepsakeIconKey(m.id), rel: `${RELIC_ICON_DIR}/keepsake_${m.id}.png` });
+  // 62 I: 아트 기억 칸 그림 (장터의 것·몸의 기억·빈손 — data/memory.json icons)
+  for (const [id, file] of Object.entries(MEMORY.icons ?? {}))
+    out.push({ key: memoryArtKey(id)!, rel: `${RELIC_ICON_DIR}/${file}.png` });
   return out;
 }
 

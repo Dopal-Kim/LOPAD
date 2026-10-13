@@ -100,8 +100,16 @@ export function keepsakeIconKey(id: string): string {
   return `ui_relics/keepsake_${id}`;
 }
 
-/** 그림 키: 소품 = `ui_relics/keepsake_<id>` · 모양 = 그 개성 그림 · 풀 = 첫 개성 그림 — 로드된 것만 */
+/** 62 I: 아트 기억 칸 그림 키 (`data/memory.json icons` — 장터의 것·몸의 기억·빈손). 표에 없으면 null */
+export function memoryArtKey(id: string): string | null {
+  const f = MEMORY.icons?.[id];
+  return f ? `ui_relics/${f}` : null;
+}
+
+/** 그림 키: 아트 기억 칸 그림(icons) · 소품 = `ui_relics/keepsake_<id>` · 모양 = 그 개성 그림 · 풀 = 첫 개성 그림 — 로드된 것만 */
 export function memoryIconKey(m: MemoryDef, loaded: (key: string) => boolean): string | undefined {
+  const art = memoryArtKey(m.id);
+  if (art && loaded(art)) return art;
   if (m.kind === 'keepsake') {
     const own = keepsakeIconKey(m.id);
     return loaded(own) ? own : undefined;
@@ -141,8 +149,9 @@ function withState(e: Omit<UiMemoryEntry, 'state'>): UiMemoryEntry {
   return { ...e, state: memoryState(e) };
 }
 
-function statEntries(meta: MetaData, cfg: MetaConfig): UiMemoryEntry[] {
+function statEntries(meta: MetaData, cfg: MetaConfig, loaded: (key: string) => boolean = () => false): UiMemoryEntry[] {
   return cfg.upgrades.map((u) => {
+    const art = memoryArtKey(`${STAT_PREFIX}${u.id}`);
     const lv = meta.upgrades[u.id] ?? 0;
     const maxed = lv >= u.maxLevel;
     const cost = maxed ? 0 : upgradeCost(u, lv);
@@ -158,6 +167,7 @@ function statEntries(meta: MetaData, cfg: MetaConfig): UiMemoryEntry[] {
       unlocked: maxed,
       affordable: !maxed && meta.souls >= cost,
       level: { n: lv, max: u.maxLevel },
+      ...(art && loaded(art) ? { iconKey: art } : {}),
     });
   });
 }
@@ -193,7 +203,7 @@ export function memoryBook(
     name: c.name,
     entries:
       c.kind === 'stat'
-        ? statEntries(meta, cfg)
+        ? statEntries(meta, cfg, loaded)
         : MEMORY.items.filter((m) => m.kind === c.kind).map((m) => memoryEntry(m, meta, loaded)),
   }));
   return {

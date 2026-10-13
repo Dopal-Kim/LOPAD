@@ -54,6 +54,15 @@
       "bellows": "장터 진열 후보 '풀무질 한 번'"
     }
   },
+  "_icons": "62 I: 기억 칸 그림 (아트 ui_relics/memory_* — relics.json memory 표). 키 = 기억 id(몸의 기억은 stat:<강화 id>, 소품 빈손 = none) → 파일 이름(확장자 없음)",
+  "icons": {
+    "inkBottle": "memory_ink",
+    "bellows": "memory_bellows",
+    "stat:maxHp": "memory_hp",
+    "stat:attack": "memory_attack",
+    "stat:dashCooldown": "memory_dash",
+    "none": "memory_empty"
+  },
   "items": [
     {
       "id": "oldVoucher",

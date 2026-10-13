@@ -89,6 +89,15 @@ export class EventNode {
     return { x: c.x + off.x * TILE, y: c.y + off.y * TILE };
   }
 
+  /**
+   * 사연 NPC·소품 자리 (월드 px) — 62 I (P1-N3): 세트 배치의 npc 칸(템플릿과 같이 뒤집히고 둘레가 비어 있음),
+   * 없으면 예전 중앙 오프셋
+   */
+  private eventSpot(): { x: number; y: number } {
+    const n = this.g.nodeArena?.setPiece.npc;
+    return n ? { x: (n.x + 0.5) * TILE, y: (n.y + 0.5) * TILE } : this.at(BUNDLE_FX.EVENT_OFFSET);
+  }
+
   /** 노드 진입 직후 */
   onEnter(enterLockUntil: number): void {
     const g = this.g;
@@ -113,7 +122,7 @@ export class EventNode {
     if (talk) loadEventCut(g, def.id);
     const sheet = talk?.npc?.sheet ?? def.prop ?? talk?.propSheet ?? null;
     if (sheet) {
-      const p = this.at(BUNDLE_FX.EVENT_OFFSET);
+      const p = this.eventSpot();
       // 60라운드 Q32: 이벤트 소품은 E 로 조사 (UI 계약 §14.10 eventProp) · 62 D: NPC 는 eventNpc (말 걸기)
       const npc = Boolean(talk?.npc);
       this.props.add({
@@ -522,7 +531,7 @@ export class EventNode {
       const room = g.layout?.rooms[0];
       if (!room) return;
       const spawns = (def.ambush ?? []).map((a) => ({ enemy: a.enemy, count: a.count, hpMult: 1, attackMult: 1 }));
-      const p = this.at(BUNDLE_FX.EVENT_OFFSET);
+      const p = this.eventSpot();
       const ok = g.director.startChallenge(
         room.id,
         spawns,

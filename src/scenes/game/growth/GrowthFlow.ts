@@ -215,7 +215,10 @@ export class GrowthFlow {
       tag: t.tag,
       ...(t.branch ? { branch: t.branch } : {}),
     } satisfies TraitGainedPayload);
-    g.ui.story('notice', fill(GROWTH.text.traitNotice, { name: t.name, line: t.line }));
+    // 62 I (P1-N2): 개성 획득은 UI 카드 토스트(TRAIT_GAINED) 하나만 — 같은 문장을 STORY notice 로 또 보내지 않는다.
+    // UI 렌더러가 없을 때(시스템 대체 화면)만 notice 로
+    if (!__system.rendererRegistered())
+      g.ui.story('notice', fill(GROWTH.text.traitNotice, { name: t.name, line: t.line }));
     // 개성 획득 표시 (옛 이중 개성 dual_trait_get 그림 재사용) — 메뉴를 닫고 전투로 돌아온 뒤
     g.build.afterMenu(() => g.build.art.onPlayer(BUILD_ART.DUAL_GET));
     this.record('trait', id);

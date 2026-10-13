@@ -219,3 +219,16 @@ export const HERO_SETPIECE = {
   SOOT_VARIANTS: 6,
   SOOT_SHEET: 'decal_soot',
 } as const;
+
+/**
+ * 62 루프 3 시스템 I (P1-N7 · art §31-9): 전투장 엄폐 담(벽 섬) 칸 = 돌기둥 `structures/v3/pillar_stone`(3면 명암).
+ * 칸은 그대로 벽(충돌·투사체 막기) — 그림만 기둥. 시트 행 = 지역(REGION_ROWS 순서, 없는 지역은 REGION_ALIAS), 열 = 상태.
+ * 상태는 칸 좌표 해시로 STATE_WEIGHTS 비율 (온전·금·부서짐). 보스방 기둥(boss1_pillar)과 다른 시트.
+ */
+export const COVER_PILLAR = {
+  SHEET: 'pillar_stone',
+  REGION_ROWS: ['waste', 'outer', 'gate', 'hall'] as readonly string[],
+  REGION_ALIAS: { brewery: 'outer', training: 'gate' } as Readonly<Record<string, string>>,
+  /** 열 0 whole · 1 cracked · 2 broken */
+  STATE_WEIGHTS: [6, 3, 1] as readonly number[],
+} as const;

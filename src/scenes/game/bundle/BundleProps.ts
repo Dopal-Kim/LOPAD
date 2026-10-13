@@ -87,8 +87,21 @@ export class BundleProps {
     return Math.hypot(pl.x - p.spec.x, pl.y - p.spec.y);
   }
 
-  /** 가장 가까운 E 소품 (반경 안) */
+  /** 62 I (P0-N2): 이번 프레임 E 대상이 소품인가 (Game.interactFocus) — 아니면 안내·E 를 쉰다 */
+  focused = true;
+
+  /** 62 I: E 대상 고르기 후보 — 반경 안 가장 가까운 E 소품까지 거리 */
+  focusDist(): number | null {
+    const p = this.closestInteract();
+    return p ? this.dist(p) : null;
+  }
+
+  /** 가장 가까운 E 소품 (반경 안 · E 대상일 때만) */
   private nearestInteract(): Prop | null {
+    return this.focused ? this.closestInteract() : null;
+  }
+
+  private closestInteract(): Prop | null {
     let best: Prop | null = null;
     let bd = BUNDLE_FX.INTERACT_TILES * TILE;
     for (const p of this.list) {

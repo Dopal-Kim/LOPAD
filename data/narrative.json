@@ -89,6 +89,8 @@
     "trial": {
       "_note": "회피 시험 (첫 생만): 탄생 전장 타일(tileset) 위에서 사수(enemies.json archer 그림)가 실제로 쏜다 — 과제 3개를 차례로, 과제마다 이름 카드 → 사격(volleys 번, intervalMs 간격, 쏘기 전 telegraphMs 동안 겨눔 선) → 끝. 맞은 수 합계로 등급(grade = 등급별 최대 피격) → 62 루프 2 C: 첫 개성 발현 카드 수(data/runEnd.json trial — S·A 4장 / B·C 3장, bonus 는 더 쓰지 않는다). 시스템 임시값 (gift 문장 = 스토리 63 팩 revisions)",
       "tileset": "stage1_waste",
+      "_region": "62 I (P1-N8): 조명 지역 — 탄생 전장과 같은 주변광·비네팅(data/lighting.json regions)",
+      "region": "waste",
       "arenaTiles": [20, 11],
       "zoom": 2,
       "cardMs": 1300,

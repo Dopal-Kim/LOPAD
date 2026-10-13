@@ -61,11 +61,16 @@ export function perfectReleaseFxId(weaponId: string): string {
   return `${weaponId}_perfect_release`;
 }
 
-/** 56라운드 이펙트: 일섬 선 t1~t4(+분신 없는 _solo) · 활 약한 화살·완벽 놓기 섬광 · 2단계 새 기본기 보조 fx */
+/** 62 I (art §32-6) 활 일반 발사 섬광 `fx/<무기>_shot_flash` (일반 놓기·짧게 쏘기·대쉬 사격 — 완벽 놓기·속사는 따로) */
+export function shotFlashFxId(weaponId: string): string {
+  return `${weaponId}_shot_flash`;
+}
+
+/** 56라운드 이펙트: 일섬 선 t1~t4(+분신 없는 _solo) · 활 약한 화살·완벽 놓기 섬광(62 I 일반 발사 섬광) · 2단계 새 기본기 보조 fx */
 export function weaponKitFxIds(id: string, w: FxWeaponShape): string[] {
   const out: string[] = [];
   if (w.issen) for (const s of w.issen.lineSheets) out.push(s, `${s}${w.issen.soloSuffix}`);
-  if (w.draw) out.push(w.draw.weakArrowSheet, perfectReleaseFxId(id));
+  if (w.draw) out.push(w.draw.weakArrowSheet, perfectReleaseFxId(id), shotFlashFxId(id));
   for (const n of moveFxNames(w.moves)) out.push(`${id}_${n}`);
   out.push(...gaugeFxIds(w), ...kenkiFxIds(id, w));
   return out;

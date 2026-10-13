@@ -42,6 +42,8 @@ export interface TrialPropDef {
 export interface RitualTrialData {
   /** 탄생 전장 타일셋 (route.json 황폐한 전장 지역 타일셋) */
   tileset: string;
+  /** 62 I (P1-N8): 조명 지역 id (data/lighting.json — 탄생 전장과 같은 어둠·비네팅). 없으면 조명 끔 */
+  region?: string;
   /** 전투장 내부 크기 [가로, 세로] 타일 */
   arenaTiles: [number, number];
   /** 카메라 배율 (게임 카메라와 같은 2배) */

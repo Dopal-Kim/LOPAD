@@ -105,6 +105,7 @@ import { NodePrefetch } from './game/NodePrefetch';
 import { reportLoading } from './game/loadingReport';
 import { continueSave } from './game/runWeapon';
 import { leaveRunForTraining } from './game/training/runLeave';
+import { InteractFocus } from './game/InteractFocus';
 
 export type { GameInitData } from './game/shared';
 
@@ -211,6 +212,8 @@ export class Game extends Phaser.Scene {
   runEnd: RunEnd;
   /** 62 루프 2 E: 외벽 문 나가기·들어오기 (발판 출구 대체 — scenes/game/doors/ArenaDoors) */
   doors: ArenaDoors;
+  /** 62 루프 3 I (P0-N2): E 대상 하나 — 프롬프트와 E 가 같은 판정 (scenes/game/InteractFocus) */
+  readonly interactFocus = new InteractFocus(this);
 
   initData: GameInitData = {};
   private senseBonus = 0;
@@ -649,6 +652,7 @@ export class Game extends Phaser.Scene {
     // 62 루프 2 E: 문 자동 걸음 · 문 안 (조작 잠금 — 문 쪽으로 걷는 입력으로 바꾼다)
     input = this.doors.drive(input);
     if (input.potionPressed) this.economy.usePotion();
+    this.interactFocus.update();
     this.structures.update(input, time, delta);
     this.bundle.update(input, time);
     this.pools.update(time);
