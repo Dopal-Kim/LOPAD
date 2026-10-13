@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AlertPlan, alertNorm, isRoomLockNotice } from './alertPlan';
+import { AlertPlan, alertNorm, isRoomLockNotice, laneDelay } from './alertPlan';
 
 const ids = (a: { type: string; id: number }[], type: string): number[] =>
   a.filter((x) => x.type === type).map((x) => x.id);
@@ -89,5 +89,24 @@ describe('문 닫힘 공지 합치기', () => {
     expect(isRoomLockNotice('문이 닫혔다', ['문이 닫혔다.'])).toBe(true);
     expect(isRoomLockNotice('문이 열렸다. 아무도 박수치지 않는다.', ['문이 닫혔다.'])).toBe(false);
     expect(isRoomLockNotice('', ['문이 닫혔다.'])).toBe(false);
+  });
+});
+
+describe('laneDelay (62 루프 3 UI H · P0-N3 같은 레인 교차 페이드 금지)', () => {
+  it('같은 자리에서 사라지는 카드가 있으면 다 사라진 뒤에 들어온다', () => {
+    expect(laneDelay(40, 60, [{ y: 40, h: 50, endsAt: 1160 }], 1000)).toBe(160);
+  });
+  it('겹치지 않는 자리·이미 사라진 카드는 기다리지 않는다', () => {
+    expect(laneDelay(100, 40, [{ y: 40, h: 50, endsAt: 1160 }], 1000)).toBe(0);
+    expect(laneDelay(40, 60, [{ y: 40, h: 50, endsAt: 900 }], 1000)).toBe(0);
+  });
+  it('국면 카드가 파훼를 접는 같은 프레임 — 레인에 보이는 카드는 한 장', () => {
+    const p = new AlertPlan(2);
+    const brk = p.push('break', 0, false);
+    const phase = p.push('boss', 0, false, { supersedes: ['break'] });
+    expect(ids(phase.actions, 'fold')).toEqual([brk.id]);
+    expect(p.visible.map((e) => e.kind)).toEqual(['boss']);
+    // 접히는 파훼(160ms)가 같은 자리면 국면 카드는 그 뒤에 들어온다
+    expect(laneDelay(40, 70, [{ y: 40, h: 56, endsAt: 160 }], 0)).toBe(160);
   });
 });

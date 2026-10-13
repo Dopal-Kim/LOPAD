@@ -57,6 +57,8 @@ import { HudLoop2F } from './HudLoop2F';
 import { ensureTransitionScene } from './TransitionScene';
 import { transitionBusy } from './transitionState';
 import { DeathVeil, ExitArrow } from './HudLoop2E';
+import { setEchoHeads, traitEchoHeads } from './noticeEcho';
+import { preloadMapGhost } from './mapGhost';
 
 /** 메뉴 씬 안전망: MENU_OPEN 뒤 이만큼 기다려도 메뉴 씬이 없으면 UI 가 띄운다 (ms) */
 const MENU_SAFETY_MS = 60;
@@ -144,6 +146,8 @@ export class HudScene extends Phaser.Scene {
 
   preload(): void {
     preloadKit(this);
+    // 62 루프 3 UI H: 노드 지도 주인공 표식 (먹 붓 망령 — 결산 미니맵과 같은 로드)
+    preloadMapGhost(this);
   }
 
   create(): void {
@@ -193,6 +197,7 @@ export class HudScene extends Phaser.Scene {
             Math.max(0, this.stageIndex),
           ),
         ),
+      dropTutorialNotice: (pred) => this.guide?.dropNoticeStep(pred),
     });
     installUiDebug(this);
     // 62 루프 2 UI E: 사망 연출(DEATH_STARTED) — 알림·자막·쪽지·토스트를 거두고 HUD 를 걷는다. 다음 생에 되돌린다
@@ -210,9 +215,15 @@ export class HudScene extends Phaser.Scene {
       this.on(e, () => this.deathVeil?.reset());
     this.on(UI_EVENTS.STATE, (s: UiSnapshot) => this.render(withDebug(s)));
     // 62 P0-6: 옛 진화 배너는 같은 개성 알림과 한 장 (GrowthHud.evolved)
-    this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) =>
-      this.growthLayer?.evolved(fill(uiText('hud', 'evolvedBanner', '{name}'), { name: p?.name ?? '' })),
+    this.on(UI_EVENTS.WEAPON_EVOLVED, (p: { name: string }) => {
+      this.narr?.rememberEcho(traitEchoHeads(p?.name ?? ''));
+      this.growthLayer?.evolved(fill(uiText('hud', 'evolvedBanner', '{name}'), { name: p?.name ?? '' }));
+    });
+    // 62 루프 3 UI H (P1-N2): 개성 발현·세트 단계는 칩·토스트 하나만 — 같은 말의 시스템 공지는 삼킨다
+    this.on(UI_EVENTS.TRAIT_GAINED, (p: { name?: string } | null) =>
+      this.narr?.rememberEcho(traitEchoHeads(typeof p?.name === 'string' ? p.name : '')),
     );
+    this.on(UI_EVENTS.TAG_SET_CHANGED, (p: UiTagSetChanged) => this.narr?.rememberEcho(setEchoHeads(p)));
     this.on(UI_EVENTS.STAGE_STARTED, (p: { stageName: string }) => this.banners.text(p.stageName));
     // 61 단계 2·3: STORY 자막 차례·보스 카드·신규 적 소개 (HudNarrative.ts)
     this.narr.subscribe((e, h) => this.on(e, h));
@@ -272,6 +283,8 @@ export class HudScene extends Phaser.Scene {
     // 48라운드: 노드 지도·노드 진입·탄생 연출 (계약 §10)
     this.on(UI_EVENTS.ROUTE_CHOOSE_OPEN, (r: UiRoute) => this.openRouteChoose(r));
     this.on(UI_EVENTS.ROUTE_NODE_ENTERED, (p: UiRouteEntered) => {
+      // 62 루프 3 UI H: 지도에서 고르지 않고 노드가 바뀌어도(디버그) 지도가 남지 않게
+      this.route.nodeEntered();
       // 62 루프 2 (P1-11, 시스템 A 요청): 전환 없이 노드가 바뀌어도(디버그 이동·이어하기) 앞 방의 알림·자막·쪽지·토스트를 거둔다.
       // 이 프레임 앞에 들어온 것만 — 같은 프레임에 먼저 온 새 방의 층 자막은 남는다
       const now = this.time.now;
@@ -287,6 +300,7 @@ export class HudScene extends Phaser.Scene {
     this.on(UI_EVENTS.TRANSITION_COVERED, () => this.route.dropLeaving());
     // 62 P1-11: 노드를 떠날 때 앞 방의 알림·자막·쪽지·토스트를 비운다 (새 방에 남지 않게)
     this.on(UI_EVENTS.TRANSITION_BEGIN, () => {
+      this.route.transitionBegan();
       this.alerts.clear();
       this.narr?.story.reset();
       this.toasts?.clear();

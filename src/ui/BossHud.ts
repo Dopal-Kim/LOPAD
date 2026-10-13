@@ -39,7 +39,8 @@ type Glow = Parameters<GlowText['setGlowStyle']>[0];
  *    국면 띠 '얼큰 → ??? → ???'(62 루프 2 P1-14 — 다음 국면 이름은 그 국면이 될 때). 싸움이 시작될 무렵(BOSS_STARTED + introMs)
  *    다 걷히도록 머묾을 줄이고, 그 전에 보스가 맞으면 바로 접는다.
  *  - 국면 카드 (BOSS_PHASE): 'n국면' · 국면 이름 2배 · 국면 띠 (어둠 국면이면 촛대 안내 한 줄).
- *  - 파훼·결정타 문구 (BOSS_BREAK, 계약 추가 예정): '파훼' 2배 + 파훼 이름 · '무너진 동안 더 아프다' / '결정타'.
+ *  - 파훼·결정타 문구 (BOSS_BREAK): 62 루프 3 UI H (점검 P0-N3) — 보스 막대가 보이면 **막대 위 작은 칩**
+ *    '파훼 · 넘어뜨림' / '무너진 동안 더 아프다' (위 가운데 레인은 국면 카드 몫). 막대가 없을 때만 옛 가운데 카드.
  *  - 촛대 안내 (어둠 국면, 스냅샷 `boss.candles` 가 있을 때): 화면 안 꺼진 촛대 위 까딱이는 표지, 화면 밖은 가장자리 화살.
  *  - 처치 카드 (BOSS_DIED): 어둠 띠 + 이름 + '쓰러졌다'. 카드가 끝날 때까지 보상 메뉴가 기다린다(uiSequence, 처치에서 최대 4.5초).
  * 새 값은 `bossView.ts` 가 있으면 쓰고 없으면 기본값으로 읽는다(시스템 D 가 계약에 넣기 전에도 동작).
@@ -62,6 +63,9 @@ export class BossHud {
   /** 62 루프 2: 싸움 시작 예정 시각 (BOSS_STARTED + introMs, 모르면 -1) · 이름 카드가 떠 있는가 */
   private fightAt = -1;
   private nameCardOn = false;
+  /** 62 루프 3 UI H: 파훼 칩 (막대 위) · 그 높이 */
+  private chip?: TimedCard;
+  private chipH = 0;
 
   constructor(
     private scene: Phaser.Scene,
@@ -87,9 +91,9 @@ export class BossHud {
     return this.nameText.visible;
   }
 
-  /** 막대 위 이름 줄 위 끝 (자막을 그 위에) */
+  /** 막대 위 이름 줄 위 끝 (자막을 그 위에) — 파훼 칩이 떠 있으면 그 위 */
   get top(): number {
-    return this.nameText.y - 4;
+    return this.nameText.y - 4 - (this.chip?.alive ? this.chipH + B.breakChip.gap : 0);
   }
 
   /** 막대가 아직 안 그려졌지만 곧 그려질 때(BOSS_STARTED 프레임) 자막이 비킬 높이 */
@@ -130,6 +134,7 @@ export class BossHud {
     this.bossIcon.setPosition(bx - 22, by - 1);
     const label = look.name ? fill(storyText('barName'), { name: look.name, phase: look.phaseName }) : look.phaseName;
     this.nameText.setText(label).placeCenter(bx + B.barW / 2, by - 18);
+    if (this.chip?.alive) this.chip.box.setX(bx + B.barW / 2);
     // 무너진 동안: 이름 줄 오른쪽에 '무너짐' 깜빡임 (받는 피해 증가 — P6)
     const broken = Boolean(look.broken);
     this.brokenText.setVisible(broken);
@@ -226,6 +231,13 @@ export class BossHud {
     const head = v.finisher ? storyText('finisherHead') : storyText('breakHead');
     const label = v.finisher ? null : (v.label ?? storyText(breakLabelKey(v.kind)));
     const sub = v.text ?? (v.finisher ? storyText('finisherSub') : storyText('breakSub'));
+    // 62 루프 3 UI H (P0-N3): 싸우는 중(막대가 보임)이면 막대 위 칩 — 가운데 레인은 국면 카드가 독점한다
+    if (this.on) {
+      this.showChip(label ? `${head} · ${label}` : head, sub);
+      debugExpose('bossCard', { kind: v.finisher ? 'finisher' : 'break', label, sub, at: 'chip' });
+      debugExpose('bossChip', { text: label ? `${head} · ${label}` : head, sub });
+      return;
+    }
     this.alerts.push({
       kind: 'break',
       key: 'bossBreak',
@@ -241,6 +253,38 @@ export class BossHud {
       onShow: (box) => this.shake(box),
     });
     debugExpose('bossCard', { kind: v.finisher ? 'finisher' : 'break', label, sub });
+  }
+
+  /**
+   * 파훼 칩: 보스 이름 줄 바로 위, 막대 가운데 — 잉크 띠(양 끝 흐림) 안에 '파훼 · 이름'(강조) / 한 줄(흐림).
+   * 바깥 상자는 TimedCard(나타남·머묾·사라짐), 안쪽 상자만 흔든다.
+   */
+  private showChip(headLine: string, sub: string): void {
+    const C = B.breakChip;
+    const sc = this.scene;
+    this.chip?.cancel();
+    const inner = sc.add.container(0, 0);
+    const t1 = new GlowText(sc, 0, 0, headLine, 'ink_accent', { stageIndex: this.si });
+    const t2 = new GlowText(sc, 0, 0, sub, 'ink_faint', { stageIndex: this.si });
+    t1.placeCenter(0, C.pad);
+    t2.placeCenter(0, C.pad + t1.displayHeight + C.lineGap);
+    const h = C.pad * 2 + t1.displayHeight + C.lineGap + t2.displayHeight;
+    const w = Math.max(t1.displayWidth, t2.displayWidth) + C.padX * 2;
+    const g = sc.add.graphics();
+    bandRect(sc, g, -Math.round(w / 2), 0, w, h, this.si);
+    inner.add([g, t1, t2]);
+    this.chipH = h;
+    const bx = this.barX + B.barW / 2;
+    const box = sc.add.container(bx, Math.round(this.nameText.y - 4 - C.gap - h), [inner]).setDepth(B.depth);
+    const chip = new TimedCard(sc, box, C, () => {
+      if (this.chip === chip) {
+        this.chip = undefined;
+        this.chipH = 0;
+        debugExpose('bossChip', null);
+      }
+    });
+    this.chip = chip;
+    this.shake(inner);
   }
 
   /** 찍힌 직후 짧게 좌우 흔들림 (정수 px) */
@@ -446,6 +490,9 @@ export class BossHud {
   }
 
   private clearCards(): void {
+    this.chip?.cancel();
+    this.chip = undefined;
+    this.chipH = 0;
     this.defeat?.cancel();
     this.defeat = undefined;
     if (this.band) {

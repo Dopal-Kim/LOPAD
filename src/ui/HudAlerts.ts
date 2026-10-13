@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { UI_SCREEN } from '../contract/ui';
-import { AlertPlan, type AlertAction, type AlertKind } from './alertPlan';
+import { AlertPlan, laneDelay, type AlertAction, type AlertKind, type LeavingSlot } from './alertPlan';
 import { debugExpose } from './debug';
 import { GlowText } from './glow';
 import { swatch } from './StructureHud';
@@ -50,6 +50,8 @@ interface Item {
   leaving: boolean;
   /** 들어온 시각 (scene.time.now) */
   pushedAt: number;
+  /** 사라지는 중이면 다 사라지는 시각 (같은 레인 교차 페이드 금지 — 62 루프 3 UI H) */
+  leaveEndsAt?: number;
 }
 
 /**
@@ -170,18 +172,28 @@ export class HudAlerts {
     const sc = this.scene;
     const holder = sc.add.container(0, 0).setDepth(A.depth);
     it.holder = holder;
-    this.fill(it);
     // 처음 자리는 지금 차례로 바로 (미끄러지지 않게)
     it.targetY = this.slotY(it.id);
     holder.setY(it.targetY);
     const t = it.spec.timing;
     holder.setAlpha(0);
-    sc.tweens.add({ targets: holder, alpha: 1, duration: t.inMs });
-    this.arm(it, t.inMs + t.holdMs);
+    // 62 루프 3 UI H (P0-N3): 같은 자리에서 앞 카드가 사라지는 중이면 다 사라진 뒤에 들어온다 (교차 페이드 금지)
+    const wait = this.fill(it, (h) => this.laneWait(it, it.targetY, h));
+    sc.tweens.add({ targets: holder, alpha: 1, duration: t.inMs, delay: wait });
+    this.arm(it, wait + t.inMs + t.holdMs);
   }
 
-  /** 카드 그림을 (다시) 넣는다 */
-  private fill(it: Item): void {
+  /** 사라지는 중인 다른 카드와 [y, y+h] 가 겹치면 그 카드가 다 사라질 때까지 기다릴 ms */
+  private laneWait(self: Item, y: number, h: number): number {
+    const leaving: LeavingSlot[] = [];
+    for (const o of this.items.values())
+      if (o !== self && o.leaving && o.holder && o.leaveEndsAt !== undefined)
+        leaving.push({ y: o.holder.y, h: o.h, endsAt: o.leaveEndsAt });
+    return laneDelay(y, h, leaving, this.scene.time.now);
+  }
+
+  /** 카드 그림을 (다시) 넣는다 (`delayOf(h)` = 들어오기를 기다리는 ms — 돌려준다) */
+  private fill(it: Item, delayOf: (h: number) => number = () => 0): number {
     const sc = this.scene;
     const holder = it.holder!;
     if (it.box) {
@@ -192,12 +204,18 @@ export class HudAlerts {
     it.box = b.box;
     it.h = b.h;
     holder.add(b.box);
+    const delay = delayOf(b.h);
     const drop = it.spec.timing.drop ?? 0;
     if (drop) {
       b.box.setY(-drop);
-      sc.tweens.add({ targets: b.box, y: 0, duration: it.spec.timing.inMs, ease: 'Quad.easeIn' });
+      sc.tweens.add({ targets: b.box, y: 0, duration: it.spec.timing.inMs, ease: 'Quad.easeIn', delay });
     }
-    it.spec.onShow?.(b.box);
+    if (delay > 0)
+      sc.time.delayedCall(delay, () => {
+        if (b.box.active) it.spec.onShow?.(b.box);
+      });
+    else it.spec.onShow?.(b.box);
+    return delay;
   }
 
   /** 합쳐진 알림: 그림을 바꾸고 머무는 시간을 넉넉히 */
@@ -220,6 +238,7 @@ export class HudAlerts {
     it.timer?.remove();
     it.timer = undefined;
     it.leaving = true;
+    it.leaveEndsAt = this.scene.time.now + ms;
     if (!holder) {
       this.finish(it, notify);
       return;
@@ -275,7 +294,10 @@ export class HudAlerts {
       const y = this.slotY(e.id);
       if (y === it.targetY) continue;
       it.targetY = y;
-      this.scene.tweens.add({ targets: it.holder, y, duration: A.slideMs, ease: 'Quad.easeOut' });
+      // 사라지는 카드 자리로 올라갈 때도 다 사라진 뒤에 (겹쳐 지나가지 않게)
+      const lo = Math.min(y, it.holder.y);
+      const wait = this.laneWait(it, lo, Math.abs(y - it.holder.y) + it.h);
+      this.scene.tweens.add({ targets: it.holder, y, duration: A.slideMs, ease: 'Quad.easeOut', delay: wait });
     }
   }
 

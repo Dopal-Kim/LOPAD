@@ -114,6 +114,35 @@ export class RouteControl {
     this.leaving = undefined;
   }
 
+  /**
+   * 62 루프 3 UI H: 지도에서 고르지 않았는데 노드 이동이 시작됐다(`TRANSITION_BEGIN` — 디버그 이동·시스템 강제) — 열린 지도를
+   * 남기지 않는다. 고르기 지도는 고른 것과 같이 입력 없이 덮일 때까지 두고(먹 번짐 뒤로 사라짐), 보기 지도는 닫고 재개한다.
+   */
+  transitionBegan(): void {
+    const m = this.map;
+    if (!m) return;
+    this.map = undefined;
+    this.suppressUntil = this.scene.time.now + ROUTE_CANCEL_SUPPRESS_MS;
+    if (m.mode === 'choose') this.leave(m);
+    else {
+      m.destroy();
+      uiCommands.resume();
+    }
+    debugExpose('routeAutoClose', { why: 'transition', mode: m.mode, at: Math.round(performance.now()) });
+  }
+
+  /** 62 루프 3 UI H: 새 노드에 들어왔다(`ROUTE_NODE_ENTERED`) — 남은 지도(열린 것·전환 없이 남은 것)를 모두 치운다 */
+  nodeEntered(): void {
+    const m = this.map;
+    if (m) {
+      this.map = undefined;
+      m.destroy();
+      if (m.mode === 'view') uiCommands.resume();
+      debugExpose('routeAutoClose', { why: 'entered', mode: m.mode, at: Math.round(performance.now()) });
+    }
+    if (!transitionBusy()) this.dropLeaving();
+  }
+
   /** 지도를 닫는다. resume=true 면 게임을 재개한다 (보기 모드를 Tab·Esc 로 닫을 때) */
   close(resume: boolean): void {
     if (!this.map) return;

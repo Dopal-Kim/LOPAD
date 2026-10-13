@@ -123,6 +123,19 @@ export const LOADING = {
   /** 시간 어림: 남은 것의 63% 가 차는 시간 · 어림 상한 */
   estimateTauMs: 1600,
   estimateCap: 0.9,
+  /**
+   * 62 루프 3 UI H (P1-N4): 그림이 오기 전 액자 속 지역 색 종이 (바탕 · 아래 절반 번짐, 세피아·무채 램프에서) · 그림이 오면
+   * 겹쳐 나타나는 시간 · 타이틀에서 키아트 5장을 미리 읽기 시작하는 지연 (타이틀 그림과 다투지 않게)
+   */
+  paper: {
+    waste: ['#403227', '#30261e'],
+    gate: ['#3e3f42', '#2f3033'],
+    outer: ['#503f32', '#403227'],
+    brewery: ['#6a5645', '#503f32'],
+    hall: ['#30261e', '#1f1813'],
+  } as Record<string, readonly [string, string]>,
+  artInMs: 200,
+  prefetchDelayMs: 2500,
 } as const;
 
 /**

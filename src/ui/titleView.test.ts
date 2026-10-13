@@ -9,6 +9,8 @@ import {
   hotkeyIndex,
   introState,
   isWakeKey,
+  logoDoneMs,
+  logoProgress,
   layerOffset,
   lerpStep,
   menuFrameSize,
@@ -171,6 +173,26 @@ describe('등장', () => {
   it('모션 줄이기는 짧은 페이드', () => {
     expect(introState(TITLE_UI.intro.blackMs + TITLE_UI.intro.fadeMs, true).reveal).toBe(1);
     expect(introState(TITLE_UI.intro.blackMs + TITLE_UI.intro.fadeMs, false).reveal).toBeLessThan(1);
+  });
+});
+
+describe('로고 쓰기 진행 (62 루프 3 UI H · P0-N1)', () => {
+  const MS = 2600;
+  it('메뉴가 열리는 시각(1.9초)에 멈추지 않고 끝까지 간다', () => {
+    const atMenu = logoProgress(TITLE_UI.intro.menuAt, { complete: false, revealMs: MS });
+    expect(atMenu.revealP).toBeLessThan(1);
+    const done = logoProgress(logoDoneMs(MS), { complete: false, revealMs: MS });
+    expect(done.revealP).toBe(1);
+    expect(done.sub).toBe(1);
+    expect(done.dots).toEqual([1, 1, 1, 1]);
+  });
+  it('넘김·돌아옴(complete)은 처음부터 완성', () => {
+    const p = logoProgress(0, { complete: true, revealMs: MS });
+    expect(p).toEqual({ revealP: 1, logo: 1, sub: 1, dots: [1, 1, 1, 1] });
+  });
+  it('넘김 키가 미는 시각은 쓰기 끝(850+2600) 이후', () => {
+    expect(logoDoneMs(MS)).toBeGreaterThanOrEqual(TITLE_UI.intro.logoAt + MS);
+    expect(logoDoneMs()).toBe(TITLE_UI.intro.endMs);
   });
 });
 

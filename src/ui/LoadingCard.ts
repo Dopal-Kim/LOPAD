@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 import { UI_SCREEN } from '../contract/ui';
 import { GlowText } from './glow';
 import { accentHex, ensureImage, keyartKey, keyartUrl } from './kit';
-import { parseTips, pickTip } from './loadingView';
-import { r62Text } from './text';
+import { LOADING_ART_KEYS, loadingArtKey, loadingPaper, parseTips, pickTip } from './loadingView';
+import { r62Text, regionName } from './text';
 import { GRAY, SEPIA, hexToNum } from './theme';
 import { LOADING } from './themeTransition';
 
@@ -40,6 +40,23 @@ export class LoadingCard {
     frame.fillStyle(hexToNum(SEPIA[3]), 1).fillRect(artX - 3, artY - 3, L.artW + 6, L.artH + 6);
     frame.fillStyle(hexToNum(SEPIA[0]), 1).fillRect(artX - 1, artY - 1, L.artW + 2, L.artH + 2);
     objs.push(frame);
+    // 62 루프 3 UI H (P1-N4): 그림이 오기 전(또는 끝내 없을 때) 액자가 비지 않게 — 지역 색 종이 + 지역 이름
+    const art = loadingArtKey(region);
+    const [paperHex, washHex] = loadingPaper(art, L.paper);
+    const paper = scene.add.graphics();
+    paper.fillStyle(hexToNum(paperHex), 1).fillRect(artX, artY, L.artW, L.artH);
+    // 아래로 4계단 짙어지는 번짐 (종이 결)
+    for (let k = 0; k < 4; k++) {
+      const y0 = artY + Math.round((L.artH * (k + 4)) / 8);
+      paper.fillStyle(hexToNum(washHex), 0.25 * (k + 1)).fillRect(artX, y0, L.artW, Math.ceil(L.artH / 8));
+    }
+    objs.push(paper);
+    const name = regionName(art);
+    if (name) {
+      const nameT = new GlowText(scene, 0, 0, name, 'ink_body', { scale: 2 });
+      nameT.placeCenter(W / 2, Math.round(artY + L.artH / 2 - nameT.displayHeight / 2));
+      objs.push(nameT);
+    }
     const title = new GlowText(scene, 0, artY - 22, r62Text('loadingTitle'), 'ink_faint');
     title.placeCenter(W / 2, artY - 22);
     objs.push(title);
@@ -57,16 +74,30 @@ export class LoadingCard {
     objs.push(this.bar);
     this.box = scene.add.container(0, 0, objs).setDepth(depth).setAlpha(0);
     scene.tweens.add({ targets: this.box, alpha: 1, duration: L.inMs });
-    const key = region;
-    if (key) {
-      const tex = keyartKey(key);
-      ensureImage(scene, tex, keyartUrl(key), (ok) => {
-        if (!ok || this.gone) return;
-        const img = scene.add.image(artX, artY, tex).setOrigin(0).setDisplaySize(L.artW, L.artH);
-        this.box.addAt(img, objs.indexOf(frame) + 1);
-      });
-    }
+    const tex = keyartKey(art);
+    const already = scene.textures.exists(tex);
+    ensureImage(scene, tex, keyartUrl(art), (ok) => {
+      if (!ok || this.gone || !this.box.active) return;
+      // 종이·이름 위에 그림 (늦게 오면 살짝 나타남)
+      const img = scene.add.image(artX, artY, tex).setOrigin(0).setDisplaySize(L.artW, L.artH);
+      this.box.addAt(img, this.box.list.indexOf(paper) + (name ? 2 : 1));
+      if (!already) {
+        img.setAlpha(0);
+        scene.tweens.add({ targets: img, alpha: 1, duration: L.artInMs });
+      }
+    });
     this.draw();
+  }
+
+  /** 로딩 카드 그림 5장을 미리 읽는다 (타이틀 단계 — 첫 로딩에도 액자가 비지 않게). 하나씩 차례로 */
+  static prefetch(scene: Phaser.Scene): void {
+    const keys = [...LOADING_ART_KEYS];
+    const next = (): void => {
+      const k = keys.shift();
+      if (!k || !scene.sys.isActive()) return;
+      ensureImage(scene, keyartKey(k), keyartUrl(k), () => next());
+    };
+    next();
   }
 
   /** 진행 0~1 (뒤로 가지 않는다) */

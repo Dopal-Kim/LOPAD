@@ -145,6 +145,11 @@ export class TutorialGuide {
     return card.text;
   }
 
+  /** 62 루프 3 UI H (P1-N2): 공지에서 온 단계 카드가 조건에 맞으면 거둔다 (개성·세트 알림의 메아리) */
+  dropNoticeStep(pred: (text: string) => boolean): void {
+    if (this.step && this.stepSource === 'notice' && pred(this.stepText)) this.clearStep();
+  }
+
   /** ENEMY_INCOMING: 소환까지 시간이 있으면(delayMs > 0) '주의' 경고 */
   enemyIncoming(p: unknown, stageIndex: number): void {
     if (!this.alive || !incomingWarns(p)) return;

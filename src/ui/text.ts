@@ -201,6 +201,19 @@ export const REGION_TEXT: Record<string, string> = {
   hall: '취한 군주가 잔치를 벌이는 곳',
 };
 
+/** 62 루프 3 UI H: 지역 이름 (로딩 카드 종이 폴백 — 텍스트 팩 `hud.regionName_<키>` 가 있으면 그것) */
+export const REGION_NAME: Record<string, string> = {
+  waste: '황무지',
+  gate: '성문',
+  outer: '외곽 거리',
+  brewery: '양조장',
+  hall: '연회장',
+};
+
+export function regionName(key: string): string {
+  return REGION_NAME[key] ? uiText('hud', `regionName_${key}`, REGION_NAME[key]) : '';
+}
+
 export function regionText(key: string | null, fallbackDesc?: string): string {
   if (key && REGION_TEXT[key]) return uiText('hud', `region_${key}`, REGION_TEXT[key]);
   return firstSentence(fallbackDesc);

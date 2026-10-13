@@ -140,6 +140,12 @@ export class StoryHud {
     if (this.cur && sameStepText(this.cur.view.text, text)) this.finish(false);
   }
 
+  /** 62 루프 3 UI H (P1-N2): 조건에 맞는 공지를 거둔다 (떠 있는 것·쌓인 것 — 개성·세트 알림의 메아리) */
+  dropNoticeWhere(pred: (text: string) => boolean): void {
+    this.queue = this.queue.filter((q) => !(q.channel === 'notice' && pred(q.text)));
+    if (this.cur && this.cur.view.channel === 'notice' && pred(this.cur.view.text)) this.finish(false);
+  }
+
   /** 62 P1-11: 보스 국면이 바뀌면 지난 국면의 군주 대사를 거둔다 (떠 있는 것·쌓인 것) */
   dropSpeech(): void {
     this.queue = this.queue.filter((q) => q.channel !== 'speech');

@@ -8,6 +8,7 @@ import { GlowText } from './glow';
 import { NODE_ICON_SHEET, accentHex, book, cursor, rule } from './kit';
 import { gradeMark, rewardBadge, riskBadge, riskRing, smudgeMark } from './routeMarks';
 import { FIGURE_H, FIGURE_W, FIG_UNIT, diamondRing, drawFigure, makeGlyph, pixelDiamond } from './routeGlyph';
+import { GHOST_BODY, addMapGhost } from './mapGhost';
 import { hasDepth, insertNextTo } from './displayOrder';
 import { RoutePreview, nodeEmblem, nodeIcon } from './RoutePreview';
 import { pickPreviewArt, previewText, readPreviewKey, readPreviewRegion, type Obstacle } from './previewView';
@@ -30,7 +31,7 @@ import {
   type PerspectiveLayout,
 } from './routeView';
 import { routeText } from './text';
-import { GRAY, MAP3D, MAP_ILLUST, ROUTE, SEPIA, type TextStyleName, hexToNum } from './theme';
+import { GRAY, MAP3D, MAP_ILLUST, ROUTE, ROUTE_READ, SEPIA, type TextStyleName, hexToNum } from './theme';
 import { keyToDir, pickNeighbor, type NavNode } from './warpNav';
 import { placeLabels, type Rect } from './routeLabels';
 import { MARKS } from './themeBuild';
@@ -91,7 +92,9 @@ export class RouteMap {
   private sel: string | null = null;
   private stageIndex: number;
   private cursorSprite?: Phaser.GameObjects.Sprite;
+  /** 주인공 표식: 먹 붓 망령(아트 §31-9) — 텍스처가 없으면 옛 도트 인형 */
   private figure?: Phaser.GameObjects.Graphics;
+  private ghost: Phaser.GameObjects.GameObject[] = [];
   private figureY = 0;
   private bobTimer?: Phaser.Time.TimerEvent;
   private tweens: Phaser.Tweens.Tween[] = [];
@@ -274,14 +277,24 @@ export class RouteMap {
       this.choices = nodes.filter((n) => ok.has(n.id)).map((n) => n.id);
     }
 
-    // 주인공 표시 (현재 노드 왼쪽, 발이 땅에)
+    // 주인공 표시 (현재 노드 왼쪽, 발이 땅에). 62 루프 3 UI H (P2-4): 먹 붓 망령 — 없으면 옛 도트 인형
     const cur =
       this.views.find((v) => v.node.id === route.currentId) ?? this.views.find((v) => v.node.state === 'current');
-    this.figureRect = cur
-      ? { x: cur.x - ICON_HALF - 4 - FIGURE_W, y: cur.gy - FIGURE_H + 1, w: FIGURE_W, h: FIGURE_H }
-      : null;
+    const ghostX = cur ? cur.x - ICON_HALF - MAP3D.ghostGap - GHOST_BODY.right : 0;
+    this.ghost = cur ? (addMapGhost(scene, ghostX, cur.gy) ?? []) : [];
+    if (cur && this.ghost.length)
+      this.figureRect = {
+        x: ghostX + GHOST_BODY.left,
+        y: cur.gy + GHOST_BODY.top,
+        w: GHOST_BODY.right - GHOST_BODY.left,
+        h: GHOST_BODY.bottom - GHOST_BODY.top,
+      };
+    else
+      this.figureRect = cur
+        ? { x: cur.x - ICON_HALF - 4 - FIGURE_W, y: cur.gy - FIGURE_H + 1, w: FIGURE_W, h: FIGURE_H }
+        : null;
     this.layoutLabels(this.figureRect, area);
-    if (cur) {
+    if (cur && !this.ghost.length) {
       this.figure = scene.add.graphics();
       drawFigure(this.figure, scene, si);
       this.figureY = cur.gy - FIGURE_H + 1;
@@ -323,6 +336,7 @@ export class RouteMap {
     }
     if (this.cursorSprite) this.cursorSprite.setDepth(ROUTE.depth + 1);
     if (this.figure) this.figure.setDepth(ROUTE.depth + 1);
+    for (const o of this.ghost) if (hasDepth(o)) o.setDepth(ROUTE.depth + 1);
     // 62 루프 3 UI G: 미리보기 카드 (지도 칸 안, 노드·커서 위)
     this.preview = new RoutePreview(scene, {
       area,
@@ -347,7 +361,7 @@ export class RouteMap {
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const lg = scene.add.graphics();
     const dotColor: Record<LinkKind, number> = {
-      walked: hexToNum(SEPIA[0]),
+      walked: hexToNum(SEPIA[ROUTE_READ.walkedSlot]),
       option: hexToNum(accentHex(scene, si, 22)),
       faint: hexToNum(SEPIA[2]),
     };
@@ -361,20 +375,29 @@ export class RouteMap {
         const kind = linkKind(a.state, b.state);
         const depth = (pa.depth + pb.depth) / 2;
         const scale = (pa.scale + pb.scale) / 2;
-        const dot = depth < MAP3D.nearDotDepth ? 3 : 2;
+        const near = depth < MAP3D.nearDotDepth;
+        // 62 루프 3 UI H (P1-N5): 고를 길은 굵게, 지나온 길은 흐리게
+        const dot =
+          kind === 'option'
+            ? near
+              ? ROUTE_READ.optionDotNear
+              : ROUTE_READ.optionDot
+            : near && kind !== 'walked'
+              ? 3
+              : 2;
+        const alpha = kind === 'walked' ? ROUTE_READ.walkedAlpha : 1;
         const step = Math.round((kind === 'faint' ? ROUTE.dotStepFaint : ROUTE.dotStep + 1) * (0.6 + 0.4 * scale));
-        lg.fillStyle(dotColor[kind], 1);
         const trimA = this.shadowAt(pa.scale).rx + 2;
         const trimB = this.shadowAt(pb.scale).rx + 2;
         const pts = dottedPoints(pa.x, pa.y, pb.x, pb.y, trimA, trimB, Math.max(4, step));
         if (illust) {
-          // 어두운 그림 위: 점마다 S0 테두리 1px 를 먼저 깔고, 지나온 길은 S5(밝게)로
+          // 어두운 그림 위: 점마다 S0 테두리 1px 를 먼저 깔고 (지나온 길은 테두리째 흐리게)
           const rim = MAP_ILLUST.dotRim;
-          lg.fillStyle(hexToNum(SEPIA[0]), 1);
+          lg.fillStyle(hexToNum(SEPIA[0]), alpha);
           for (const p of pts)
             lg.fillRect(p.x - Math.floor(dot / 2) - rim, p.y - Math.floor(dot / 2) - rim, dot + rim * 2, dot + rim * 2);
-          lg.fillStyle(kind === 'walked' ? hexToNum(SEPIA[5]) : dotColor[kind], 1);
-        }
+          lg.fillStyle(dotColor[kind], alpha);
+        } else lg.fillStyle(dotColor[kind], alpha);
         for (const p of pts) lg.fillRect(p.x - Math.floor(dot / 2), p.y - Math.floor(dot / 2), dot, dot);
       }
     }
@@ -418,13 +441,16 @@ export class RouteMap {
       }
       let pulse: Phaser.GameObjects.Graphics | undefined;
       if (n.state === 'available' && !smudge) {
+        // 62 루프 3 UI H (P1-N5): 갈 수 있는 곳 = 굵은 맥박 고리 (느리게) — 작은 마름모·점선보다 먼저 읽히게
+        const RR = ROUTE_READ;
         pulse = scene.add.graphics({ x: ix, y: iy });
-        diamondRing(pulse, ROUTE.pulseR, 1, hexToNum(accentHex(scene, si, 20)), 1);
+        diamondRing(pulse, RR.pulseR + 1, RR.pulseT + 2, hexToNum(SEPIA[0]), 0.6);
+        diamondRing(pulse, RR.pulseR, RR.pulseT, hexToNum(accentHex(scene, si, 20)), 1);
         this.tweens.push(
           scene.tweens.add({
             targets: pulse,
-            alpha: { from: 1, to: 0.2 },
-            duration: ROUTE.pulseMs,
+            alpha: { from: RR.pulseAlpha[0], to: RR.pulseAlpha[1] },
+            duration: RR.pulseMs,
             yoyo: true,
             repeat: -1,
             ease: 'Sine.easeInOut',
@@ -588,8 +614,11 @@ export class RouteMap {
         if (st === 'available') diamondRing(g, r, 1, hexToNum(SEPIA[5]));
         else if (st === 'cleared' || st === 'locked') diamondRing(g, r, 1, hexToNum(SEPIA[4]));
       }
+      // 62 루프 3 UI H (P1-N5): 갈 수 있는 곳은 늘 굵은 테, 고른 곳은 한 겹 더
+      const RR = ROUTE_READ;
       if (st === 'current') diamondRing(g, r + 2, 2, accentCur);
-      else if (selected) diamondRing(g, r + 2, 2, accentSel);
+      else if (selected) diamondRing(g, r + RR.ringGap, RR.selT, accentSel);
+      else if (st === 'available') diamondRing(g, r + RR.ringGap, RR.ringT, accentSel);
       // 60라운드 §14.5: 위험 노드 붉은 테두리 (지나온·지나친 뒤에는 끈다)
       if (v.risk && st !== 'cleared' && st !== 'passed') riskRing(g, scene, r, si);
       const gl = v.glyph as Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Alpha;
@@ -600,7 +629,8 @@ export class RouteMap {
       if (v.sheet) gl.setAlpha(1);
       else
         gl.setAlpha(st === 'current' || st === 'available' ? 1 : st === 'cleared' ? ROUTE.dimAlpha : ROUTE.faintAlpha);
-      v.box.setAlpha(st === 'passed' ? ROUTE.dimAlpha : 1);
+      // 지난 곳은 흐리게, 지나친 곳은 먹으로 지운 듯 (62 루프 3 UI H)
+      v.box.setAlpha(st === 'passed' ? ROUTE_READ.passedAlpha : st === 'cleared' ? ROUTE_READ.clearedAlpha : 1);
       // 이름표: 지금·갈 수 있는 곳·고른 곳만 (멀리 있는 곳은 아이콘과 오른쪽 칸으로 읽는다)
       const showLabel = selected || st === 'current' || st === 'available';
       let style: TextStyleName = 'page_body';

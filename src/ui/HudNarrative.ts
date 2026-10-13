@@ -9,6 +9,7 @@ import { withDebug } from './debug';
 import { R61_EVENTS } from './eventsR61';
 import { StoryHud } from './StoryHud';
 import { LAYOUT } from './theme';
+import { NoticeEcho } from './noticeEcho';
 import { ROOM_LOCK_NOTICES } from './themeAlerts';
 
 export interface HudNarrativeDeps {
@@ -20,6 +21,8 @@ export interface HudNarrativeDeps {
   stageIndex: () => number;
   /** 튜토리얼 노드의 공지를 단계 카드가 가져갔으면 true (53라운드) */
   takeTutorialNotice: (text: string) => boolean;
+  /** 62 루프 3 UI H: 공지에서 온 튜토리얼 단계 카드를 조건에 맞으면 거둔다 */
+  dropTutorialNotice?: (pred: (text: string) => boolean) => void;
   /** 62 P0-6: 위 가운데 알림 줄 */
   alerts: HudAlerts;
 }
@@ -35,6 +38,8 @@ export class HudNarrative {
   private boss?: BossHud;
   /** BOSS_BREAK 결정타를 이번 보스전에 보았다 (처치 카드 문구) */
   private finisherSeen = false;
+  /** 62 루프 3 UI H (P1-N2): 개성·세트 알림과 같은 말을 하는 공지 */
+  private echo = new NoticeEcho();
 
   constructor(
     private scene: Phaser.Scene,
@@ -122,9 +127,22 @@ export class HudNarrative {
    * STORY: 튜토리얼 노드의 공지는 위쪽 가운데 단계 카드로(53라운드), 방 시작 '문이 닫혔다' 공지는 '주의' 카드와 한 장으로
    * (62 P0-6 — 위 가운데 알림 줄), 그 밖은 자막 차례
    */
+  /**
+   * 62 루프 3 UI H (P1-N2): 개성·세트 알림이 떴다 — 같은 머리말의 공지는 삼키고, 먼저 와 떠 있던 공지(자막·튜토리얼 단계 카드)는 거둔다.
+   * 알림은 하나만 말한다 (개성 = 위 가운데 칩, 세트 = 토스트).
+   */
+  rememberEcho(heads: readonly string[]): void {
+    const now = this.scene.time.now;
+    this.echo.remember(heads, now);
+    const pred = (text: string): boolean => this.echo.echoes(text, now);
+    this.story.dropNoticeWhere(pred);
+    this.deps.dropTutorialNotice?.(pred);
+  }
+
   private onStory(p: unknown): void {
     const l = p as { kind?: unknown; text?: unknown } | null;
     if (l && l.kind === 'notice' && typeof l.text === 'string') {
+      if (this.echo.echoes(l.text, this.scene.time.now)) return;
       if (this.deps.takeTutorialNotice(l.text)) return;
       if (isRoomLockNotice(l.text, ROOM_LOCK_NOTICES)) {
         this.deps.alerts.push(roomStartAlert({ warn: false, lock: l.text, holdMs: 0 }, this.deps.stageIndex()));

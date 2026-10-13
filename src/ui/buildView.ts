@@ -98,13 +98,22 @@ export function setChangeToast(
   const name = p.name || tagName(p.tag ?? '');
   const up = prevStage === undefined || p.stage >= prevStage;
   if (up && p.stage > 0) {
-    const text = p.effectName
-      ? fill(tx('setUp'), { name, stage: p.stage, effect: p.effectName })
+    // 62 루프 3 UI H (P1-N2): 효과 이름이 '중량 2' 처럼 세트 이름 + 숫자뿐이면 덧붙이지 않는다 ('중량 세트 2단 — 중량 2' 이중 표기)
+    const effect = p.effectName && !redundantEffect(p.effectName, name) ? p.effectName : '';
+    const text = effect
+      ? fill(tx('setUp'), { name, stage: p.stage, effect })
       : fill(tx('setUpPlain'), { name, stage: p.stage });
     return { tone: 'gain', text };
   }
   if (p.stage <= 0) return { tone: 'loss', text: fill(tx('setOff'), { name }) };
   return { tone: 'loss', text: fill(tx('setDown'), { name, stage: p.stage }) };
+}
+
+/** 효과 이름이 세트 이름(+ 숫자·공백)뿐인가 */
+export function redundantEffect(effect: string, name: string): boolean {
+  const e = effect.replace(/[\s\d단·—-]/g, '');
+  const n = name.replace(/\s/g, '');
+  return e.length === 0 || e === n;
 }
 
 /** 완벽 성공 HUD 문구 */

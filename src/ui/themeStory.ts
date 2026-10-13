@@ -192,6 +192,8 @@ export const BOSS_UI = {
   bandPad: 8,
   /** 파훼·결정타 문구 */
   breakStamp: { top: 84, inMs: 120, holdMs: 1100, outMs: 260, drop: 8, shakeAmp: 2, shakeMs: 40, shakeForMs: 240 },
+  /** 62 루프 3 UI H (P0-N3): 파훼 칩 — 보스 이름 줄 위 (안쪽 여백·줄 사이·이름 줄과 사이) */
+  breakChip: { inMs: 120, holdMs: 1700, outMs: 300, drop: 4, pad: 4, padX: 54, lineGap: 1, gap: 3 },
   /** 처치 카드 + 어둠 띠 */
   defeat: { top: 196, bandH: 84, inMs: 300, holdMs: 2200, outMs: 450, ruleW: 220 },
   /** 처치 카드가 끝나기 전 메뉴는 기다린다 (보스 대사·한마디가 이어지면 늘이되 처치 시점에서 이만큼까지) */

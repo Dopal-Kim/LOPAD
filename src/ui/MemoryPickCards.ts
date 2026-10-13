@@ -11,6 +11,7 @@ import { menuHotkeys, splitLabel } from './menuView';
 import { r60Text } from './text';
 import { l2eText } from './textLoop2E';
 import { GRAY, SEPIA, hexToNum } from './theme';
+import { EMPTY_HAND_ICON_KEY, drawEmptyHand, memoryIconKey } from './memoryArt';
 import { CHOICE_CARD } from './themeBuild';
 import type { VoiceWeaponId } from './themeStory';
 
@@ -141,16 +142,24 @@ function pickArt(
   const mem = l.memory;
   const w = (mem?.weapon ?? weapon ?? '') as VoiceWeaponId;
   const color = WEAPONS.includes(w) ? weaponFrameColor(scene, w) : hexToNum(SEPIA[5]);
-  const art = cardIcon(scene, mem?.iconKey, cx, y, mem?.kind === 'keepsake' ? hexToNum(SEPIA[5]) : color);
+  const has = (k: string): boolean => scene.textures.exists(k);
+  const empty = menuId === 'keepsake' && !mem;
+  // 62 루프 3 UI H (P1-N6): 기억 그림 (시스템 iconKey → UI 표) · 빈손 그림 (아트가 만들면)
+  const artKey = empty
+    ? EMPTY_HAND_ICON_KEY && has(EMPTY_HAND_ICON_KEY)
+      ? EMPTY_HAND_ICON_KEY
+      : null
+    : memoryIconKey(mem, has);
+  const art = cardIcon(scene, artKey, cx, y, mem?.kind === 'keepsake' || empty ? hexToNum(SEPIA[5]) : color);
   if (art) return art;
   const g = scene.add.graphics();
   const s = CARD_ZOOM.icon;
   const o = CARD_ZOOM.iconFrame + 1;
   const x0 = Math.round(cx - s / 2);
   const y0 = y + o;
-  g.fillStyle(hexToNum(GRAY[1]), 1).fillRect(x0, y0, s, s);
-  if (menuId === 'keepsake' && !mem) {
-    // 빈손: 점선 테
+  if (empty) {
+    // 빈손: 검은 네모 대신 흐린 종이 위 빈 손바닥 선 그림 + 점선 테
+    drawEmptyHand(g, x0, y0, s, hexToNum(SEPIA[2]), hexToNum(SEPIA[5]));
     g.fillStyle(hexToNum(SEPIA[4]), 1);
     for (let k = 0; k < s; k += 6) {
       g.fillRect(x0 + k, y0 - 2, 3, 1).fillRect(x0 + k, y0 + s + 1, 3, 1);
@@ -158,6 +167,7 @@ function pickArt(
     }
     return [g];
   }
+  g.fillStyle(hexToNum(GRAY[1]), 1).fillRect(x0, y0, s, s);
   g.lineStyle(2, color, 1).strokeRect(x0 - 1, y0 - 1, s + 2, s + 2);
   const key = WEAPONS.includes(w) ? weaponIconKey(w) : '';
   if (key && scene.textures.exists(key)) {

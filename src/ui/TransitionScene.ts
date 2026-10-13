@@ -177,6 +177,8 @@ export class TransitionScene extends Phaser.Scene {
       ensureImage(this, uiCopy('paint/frame'), `${paintUrl('paint/frame')}.png`, (ok) => {
         if (ok) this.textures.get(uiCopy('paint/frame')).setFilter(Phaser.Textures.FilterMode.LINEAR);
       });
+    // 62 루프 3 UI H (P1-N4): 로딩 카드 그림 5장을 미리 (타이틀 그림이 먼저 — 잠깐 뒤 하나씩)
+    this.time.delayedCall(LOADING.prefetchDelayMs, () => LoadingCard.prefetch(this));
     this.waitDots = this.add.graphics().setDepth(30).setVisible(false);
     this.flashRect = this.add
       .rectangle(0, 0, UI_SCREEN.WIDTH, UI_SCREEN.HEIGHT, 0xffffff, 1)

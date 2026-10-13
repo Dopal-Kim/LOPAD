@@ -60,3 +60,20 @@ export function pickTip(tips: readonly string[], n: number): string {
   const i = ((Math.floor(n) % tips.length) + tips.length) % tips.length;
   return tips[i];
 }
+
+/**
+ * 62 루프 3 UI H (점검 P1-N4): 로딩 카드 그림 — 지역 키아트 키가 없으면 탄생지(`waste`). 액자는 그림이 오기 전에도 비지 않게
+ * 지역 색 종이 + 지역 이름을 먼저 깐다(`loadingPaper`).
+ */
+export const LOADING_ART_KEYS = ['waste', 'gate', 'outer', 'brewery', 'hall'] as const;
+export const LOADING_ART_FALLBACK = 'waste';
+
+export function loadingArtKey(art: string | null | undefined): string {
+  const a = (art ?? '').trim();
+  return a || LOADING_ART_FALLBACK;
+}
+
+/** 종이 색 (바탕 · 아래 번짐) — 키별, 모르면 탄생지 */
+export function loadingPaper<T>(art: string, papers: Readonly<Record<string, T>>): T {
+  return papers[art] ?? papers[LOADING_ART_FALLBACK];
+}

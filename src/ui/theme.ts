@@ -239,9 +239,7 @@ export const ROUTE = {
   /** 마름모 반대각선 (Graphics 폴백). 노드 아이콘 시트(32×32)가 있으면 iconR */
   nodeR: 18,
   iconR: 18,
-  /** available 맥동 고리 반대각선·주기 */
-  pulseR: 24,
-  pulseMs: 640,
+  /** available 맥동 고리 → `ROUTE_READ` (62 루프 3 UI H) */
   /** 이름표: 노드 아래 간격, 줄바꿈 폭 = 단계 간격 - wrapPad */
   labelGap: 6,
   wrapPad: 12,
@@ -308,6 +306,31 @@ export const MAP3D = {
   buttonMinW: 64,
   buttonGap: 16,
   confirmDim: 0.5,
+  /** 62 루프 3 UI H: 망령 표식과 지금 곳 아이콘 사이 */
+  ghostGap: 2,
+} as const;
+
+/**
+ * 62 루프 3 UI H (점검 P1-N5 · 묶음 B): 노드 지도 가독성 — 갈 수 있는 곳 굵은 테 + 느린 맥박, 지나온 길·지난 곳은 흐리게.
+ */
+export const ROUTE_READ = {
+  /** 갈 수 있는 곳: 늘 보이는 테 (r + gap, 두께) · 맥박 고리 (반대각선 · 두께 · 한쪽 ms · 알파 범위) */
+  ringGap: 2,
+  ringT: 2,
+  pulseR: 27,
+  pulseT: 2,
+  pulseMs: 1400,
+  pulseAlpha: [0.9, 0.15] as const,
+  /** 고른 곳 테 두께 (갈 수 있는 곳보다 한 겹 더) */
+  selT: 3,
+  /** 지난 곳(지나온 곳) · 지나친 곳 알파 (먹으로 지운 듯) */
+  clearedAlpha: 0.6,
+  passedAlpha: 0.32,
+  /** 지나온 길 점: 세피아 S3 · 알파 / 고를 길 점 크기 (가까움 4 · 그 외 3) */
+  walkedSlot: 3,
+  walkedAlpha: 0.5,
+  optionDotNear: 4,
+  optionDot: 3,
 } as const;
 
 /**

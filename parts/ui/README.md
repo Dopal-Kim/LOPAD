@@ -1,5 +1,42 @@
 # 게임 UI 파트 — 작업 기록
 
+## 62라운드 (2026-10-12~13) · 루프 3 UI H — P0 2건·알림 한 번만·지도 가독성·로딩 액자·빈손 그림 (전권 위임, 계획 P17 묶음 A·B UI 몫)
+근거: `decisions/review-2026-10-12-stage1-loop3-audit.md`(P0-N1·P0-N3·P1-N2·P1-N4·P1-N5·P1-N6·P2-4), 계획 `2026-10-12-P17-loop3.md`. 계약 §17.1·§21~§25, 용어집. 계약 형식은 바꾸지 않았다.
+
+### 타이틀 로고 (P0-N1 — `TitleScene`, 순수 `titleView.logoProgress`·`logoDoneMs`)
+- 등장 시계 `introT` 가 메뉴 단계에서도 계속 간다 — 로고 쓰기(art §30)·부제 '— 바깥의 적 —'·무기 불씨 4개가 메뉴가 열려도 끝까지.
+- 키·클릭으로 넘기면 로고 완성 상태(`logoComplete`) + `introT` 를 쓰기 끝(850 + 2600ms) 뒤로. 같은 세션에서 돌아온 타이틀(`woken`)은 처음부터 완성 상태로 붓질 덮개만 걷힌다. 디버그 `title.logoComplete`·`logoP`.
+
+### 보스 국면 카드 × 파훼 (P0-N3 — `BossHud`·`HudAlerts`·`alertPlan.laneDelay`)
+- 파훼·결정타(BOSS_BREAK)는 보스 막대가 보이면 **막대 위 작은 칩**('파훼 · 이름' / '무너진 동안 더 아프다', 잉크 띠, 짧은 흔들림, `BOSS_UI.breakChip`) — 위 가운데 레인은 국면 카드가 독점. 막대가 없을 때만 옛 가운데 카드. 자막은 칩 위로 비킨다(`BossHud.top`).
+- 알림 줄 공통: 같은 자리에서 앞 카드가 접히는 중이면 새 카드(또는 그 자리로 올라오는 카드)는 다 사라진 뒤에 들어온다 — 교차 페이드 금지.
+
+### 알림 한 번만 (P1-N2 — 새 `noticeEcho.ts`, `HudNarrative.rememberEcho`)
+- 원인: 시스템이 개성 발현·세트 단계 때 같은 말을 STORY notice 로도 보내고, 튜토리얼 노드에서는 그 공지가 위 큰 단계 카드가 됐다('발도풍 — …' · '중량 2 — 강공 피해 +20%').
+- TRAIT_GAINED·WEAPON_EVOLVED·TAG_SET_CHANGED 를 받으면 4초 동안 같은 머리말(' — ' 앞)의 공지를 삼키고, 먼저 와 떠 있던 공지(자막·공지에서 온 튜토리얼 단계 카드)는 거둔다. 개성 = 위 가운데 칩, 세트 = 토스트 하나.
+- 세트 토스트: 효과 이름이 '중량 2' 처럼 세트 이름 + 숫자뿐이면 덧붙이지 않는다('중량 세트 2단'). 단계 문장('중량 공명 — 강공이 더 무겁다')은 데이터가 없어 시스템·스토리 요청.
+
+### 노드 지도 가독성 (P1-N5·P2-4 — `RouteMap`, 새 `mapGhost.ts`, `ROUTE_READ`·`MARKS`)
+- 주인공 표식 = 먹 붓 망령 `ui/map_marker_ghost`(40×56 ×6, 160ms, 피벗 (20,53), UI 1배 + 종이빛 번짐) — 결산 미니맵(UI E)과 같은 로드·애니(`mapGhost.ts` 로 옮겨 둘이 함께 씀). HUD preload 에서 읽는다. 텍스처가 없으면 옛 도트 인형.
+- 갈 수 있는 곳: 늘 보이는 2px 테 + 반대각선 27 의 2px 맥박 고리(먹 그늘, 1.4초 느린 맥박), 고른 곳은 3px. 고를 길 점 3~4px.
+- 지나온 길 점은 S3 알파 0.5, 지난 곳 0.6, 지나친 곳 0.32(먹으로 지운 듯).
+- 한 글자 표(보상·위험·도장)는 표의 가장 가까운 모서리가 마름모·맥박 고리 밖(|dx|+|dy| > 27)에 오게 옮김. 이름표는 그대로 표·망령을 피한다. M 보기도 같은 지도라 같다.
+
+### 지도 자동 닫기 (`HudRoute.transitionBegan`·`nodeEntered`)
+- 지도에서 고르지 않았는데 `TRANSITION_BEGIN` 이 오면(디버그 이동 등): 고르기 지도는 입력 없이 덮일 때까지 두고(고른 것과 같은 길), 보기 지도는 닫고 재개. `ROUTE_NODE_ENTERED` 면 열린 지도를 모두 닫는다(보기면 재개), 전환 중이 아니면 남은 지도도 치움. 디버그 `routeAutoClose`.
+
+### 로딩 카드 액자 (P1-N4 — `LoadingCard`·`loadingView`)
+- 지역 키아트 키가 없으면 탄생지(`waste`). 그림이 오기 전(또는 끝내 없으면) 액자 안에 지역 색 종이(세피아·무채 램프, 아래 번짐 4계단) + 지역 이름 2배 — 그림이 오면 0.2초에 덮는다.
+- 전환 씬(타이틀부터 떠 있음)이 2.5초 뒤 키아트 5장을 하나씩 미리 읽는다 — 첫 로딩(의식 → 탄생)부터 그림이 있다.
+
+### 기억 그림 자리 (P1-N6 — 새 `memoryArt.ts`)
+- '빈손' 카드: 검은 네모 대신 흐린 종이 위 빈 손바닥 선 그림(UI 도형) + 점선 테. 아트가 빈손 그림을 만들면 `EMPTY_HAND_ICON_KEY` 에 키만 적는다.
+- 기억 장 칸·고름 자리: 시스템 `iconKey` → UI 표 `MEMORY_ICON_KEYS`(기억 id → 키, 아트 `ui_relics/memory_*` 이름 확정 뒤 채움) → 글자 한 자. 고름 자리 글자 칸 바탕은 흐린 종이. 시스템이 준 키가 아직 안 읽혔으면 `addtexture-<키>` 에 다시 그린다.
+
+### 검증
+- `npx tsc --noEmit` 0 · `npx eslint src/ui` 0 · prettier(src/ui) · `npx vitest run src/ui` 38 파일 324(새 `noticeEcho.test.ts` 4·`memoryArt.test.ts` 2, `titleView` +3, `alertPlan` +3, `buildView` +1).
+- 헤드리스 Playwright 1920×1080(작업 트리 `vite build`, `scratchpad/u62h/` `run.cjs title|boss|map`·`mem.cjs`): 타이틀 0.5초에 넘김 → 메뉴에서 logoP 1(`t02`·`t03`), 새 생 → toTitle 돌아옴 logoP 1 부제·불씨(`t04`) · `?boss` 국면 3 + 파훼 같은 프레임 → 레인 카드 한 장 + 막대 위 칩(`b01`~`b03`) · 공지 + TRAIT_GAINED → 칩 하나(`e01`) · M 보기 망령·강조(`m00`) → ROUTE_NODE_ENTERED 닫힘 · 고르기 지도 망령·맥박(`m01`·`m02`) → fade begin 닫힘 + 지역 없는 로딩 카드 키아트(`m03`) · 빈손 손바닥(`k01`). 페이지 오류 0.
+
 ## 62라운드 (2026-10-12) · 루프 3 UI G — 지도로 먼저 고르고 키아트는 작은 미리보기 · 짧은 먹 번짐 암전 (도영 님 추가 지시)
 도영 님 원문: "키아트 넘어가는 과정이 조금 불필요하다고 느껴지네 차라리 어느 장소로 가는지 맵으로 먼저 고르고 그 장소 미리보기 효과로 키아트를 작게 띄워주는 방식이 더 좋을 것 같다." 판단: `decisions/2026-10-12-round-62-full-delegation.md` '루프 3 착수 중 추가 지시'. 계약: `src/contract/ui.ts` '62 시스템 H' 절(`UiRouteNode.previewKey`·`previewRegion`, `UiMenuLine.previewKey`·`previewRegion`, `UiTransitionMode` 'fade', `UiTransitionBegin.durationMs`). 계약 필드는 이름으로 읽어(`readPreviewKey`·`readPreviewRegion`) 커밋 순서와 무관하게 동작.
 

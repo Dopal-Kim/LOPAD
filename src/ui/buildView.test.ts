@@ -86,6 +86,10 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
       text: '연쇄 세트가 꺼졌다',
     });
     expect(setChangeToast(null, 0)).toBeNull();
+    // 62 루프 3 UI H: 효과 이름이 세트 이름 + 숫자뿐이면 덧붙이지 않는다
+    expect(setChangeToast({ tag: 'weight', name: '중량', stage: 2, effectName: '중량 2' }, 0)?.text).toBe(
+      '중량 세트 2단',
+    );
   });
 
   it('완벽 성공 문구', () => {

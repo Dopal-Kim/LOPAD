@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { memoryIconKey } from './memoryArt';
 import { UI_EVENTS, UI_SCREEN, uiBus, type UiMemoryBook, type UiMemoryEntry } from '../contract/ui';
 import type { ChoiceGate } from './choiceGate';
 import { armBar, keyTime, leftButton, pointerTime } from './choiceArm';
@@ -213,6 +214,17 @@ export class MemoryBookView {
   // ---------------------------------------------------------------------------------------------
   // 그리기
 
+  /** 시스템이 준 그림 키가 아직 안 읽혔으면, 읽히는 대로 다시 그린다 (한 키에 한 번) */
+  private waiting = new Set<string>();
+  private waitIcon(key: string): void {
+    if (this.waiting.has(key)) return;
+    this.waiting.add(key);
+    this.scene.textures.once(`addtexture-${key}`, () => {
+      this.waiting.delete(key);
+      if (this.alive) this.rebuild(this.data);
+    });
+  }
+
   private rebuild(b: UiMemoryBook | null): void {
     const keep = this.focusIndex();
     this.version++;
@@ -307,8 +319,10 @@ export class MemoryBookView {
     g.fillStyle(hexToNum(lit ? GRAY[1] : SEPIA[1]), 1).fillRect(0, 0, s, s);
     const parts: Phaser.GameObjects.GameObject[] = [g];
     const pad = Math.round((s - M.icon) / 2);
-    const key = e.iconKey;
-    const img = key && sc.textures.exists(key) ? sc.add.image(pad, pad, key).setOrigin(0, 0) : null;
+    // 62 루프 3 UI H (P1-N6): 시스템 iconKey → UI 표의 기억 아이콘 키 (아트 `ui_relics/memory_*` 확정 뒤) → 글자 한 자
+    const key = memoryIconKey(e, (k) => sc.textures.exists(k));
+    const img = key ? sc.add.image(pad, pad, key).setOrigin(0, 0) : null;
+    if (!key && e.iconKey) this.waitIcon(e.iconKey);
     if (img) {
       img.setScale(M.icon / Math.max(1, img.width, img.height));
       img.setAlpha(lit ? 1 : e.affordable ? 0.85 : 0.38);
@@ -401,11 +415,13 @@ export class MemoryBookView {
       e.weapon && ['katana', 'greatsword', 'dagger', 'bow'].includes(e.weapon) ? e.weapon : null
     ) as VoiceWeaponId | null;
     const frameColor = weapon ? weaponFrameColor(sc, weapon) : hexToNum(SEPIA[5]);
-    const art = traitIconBox(sc, e.iconKey, A.x + 3, A.y + 3, size, frameColor, 2, hexToNum(GRAY[1]));
+    const iconKey = memoryIconKey(e, (k) => sc.textures.exists(k));
+    const art = traitIconBox(sc, iconKey, A.x + 3, A.y + 3, size, frameColor, 2, hexToNum(GRAY[1]));
     if (art) objs.push(...art);
     else {
+      // 그림이 오기 전: 검은 네모 대신 흐린 종이 + 글자 한 자 (62 루프 3 UI H)
       const g = sc.add.graphics();
-      g.fillStyle(hexToNum(GRAY[1]), 1).fillRect(A.x + 3, A.y + 3, size, size);
+      g.fillStyle(hexToNum(SEPIA[2]), 1).fillRect(A.x + 3, A.y + 3, size, size);
       g.lineStyle(2, frameColor, 1).strokeRect(A.x + 2, A.y + 2, size + 2, size + 2);
       const t = new GlowText(sc, 0, 0, memoryGlyph(e), 'ink_accent', { scale: 2, stageIndex: si });
       t.setPosition(

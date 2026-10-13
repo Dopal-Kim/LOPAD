@@ -5,6 +5,7 @@ import { mapLayout, type MapDot } from './resultView';
 import { pixelDiamond } from './routeGlyph';
 import { GRAY, SEPIA, hexToNum } from './theme';
 import { RESULT_UI as R } from './themeLoop2E';
+import { addMapGhost, preloadMapGhost } from './mapGhost';
 
 /**
  * 62 루프 2 UI E (계약 C `UiRunSummary.route`·`path`): 결산 '지나온 길' 미니맵 — 종이 위 먹 선.
@@ -12,22 +13,9 @@ import { RESULT_UI as R } from './themeLoop2E';
  * 쓰러진 곳에는 지도 표식 '먹 붓 망령'(아트 §31-9 `map_marker_ghost`, 6칸 160ms 반복 — 없으면 먹 ×).
  * 층 끝이면 마지막 곳에 같은 망령이 서 있다(쓰러지지 않음 = ×없음).
  */
+/** 결과 화면 preload (망령 표식 — mapGhost.ts 공용) */
 export function preloadResultMap(scene: Phaser.Scene): void {
-  const G = R.ghost;
-  if (!scene.textures.exists(G.key)) scene.load.spritesheet(G.key, G.url, { frameWidth: G.w, frameHeight: G.h });
-}
-
-function ensureGhostAnim(scene: Phaser.Scene): boolean {
-  const G = R.ghost;
-  if (!scene.textures.exists(G.key)) return false;
-  if (!scene.anims.exists(G.key))
-    scene.anims.create({
-      key: G.key,
-      frames: scene.anims.generateFrameNumbers(G.key, { start: 0, end: G.frames - 1 }),
-      frameRate: 1000 / G.ms,
-      repeat: -1,
-    });
-  return true;
+  preloadMapGhost(scene);
 }
 
 export function drawResultMap(
@@ -69,17 +57,8 @@ export function drawResultMap(
       xg.lineBetween(at.x + 5, at.y - 5, at.x - 5, at.y + 5);
       out.push(xg);
     }
-    if (ensureGhostAnim(scene)) {
-      const G = R.ghost;
-      // 먹 망령은 어두운 종이 위에서 묻힌다 — 발밑부터 몸까지 옅은 종이빛 번짐을 깐다
-      const halo = scene.add.graphics();
-      halo.fillStyle(hexToNum(SEPIA[5]), 0.18).fillEllipse(at.x, at.y - 22, 34, 50);
-      halo.fillStyle(hexToNum(SEPIA[5]), 0.22).fillEllipse(at.x, at.y - 20, 22, 36);
-      out.push(halo);
-      const s = scene.add.sprite(at.x, at.y + 2, G.key, 0).setOrigin(G.pivotX / G.w, G.pivotY / G.h);
-      s.play(G.key);
-      out.push(s);
-    }
+    const ghost = addMapGhost(scene, at.x, at.y + 2);
+    if (ghost) out.push(...ghost);
   }
   return out;
 }

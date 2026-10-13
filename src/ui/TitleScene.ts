@@ -31,6 +31,8 @@ import {
   defaultIndex,
   introState,
   isWakeKey,
+  logoDoneMs,
+  logoProgress,
   metaMemo,
   readTitleSpec,
   reducedMotion,
@@ -81,6 +83,8 @@ export class TitleScene extends Phaser.Scene {
   private t0 = 0;
   /** 등장 경과 (ms, 디버그 느림 배율 적용) */
   private introT = 0;
+  /** 62 루프 3 UI H: 로고·부제·불씨를 완성 상태로 (넘김 · 같은 세션에서 돌아옴) */
+  private logoComplete = false;
   private menuT = 0;
   private diveT = 0;
   private diveAction?: () => void;
@@ -108,6 +112,8 @@ export class TitleScene extends Phaser.Scene {
     this.menu = undefined;
     this.art = undefined;
     this.introT = 0;
+    // 같은 세션에서 돌아온 타이틀은 로고를 다시 쓰지 않는다 (점검 P0-N1)
+    this.logoComplete = woken;
     this.menuT = 0;
     this.diveT = 0;
     this.slow = this.debugSlow();
@@ -294,18 +300,21 @@ export class TitleScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (!this.art || this.phase === 'load' || this.phase === 'gone') return;
     const now = this.time.now - this.t0;
-    if (this.phase === 'intro' || this.phase === 'prompt') this.introT += delta / this.slow;
+    // 62 루프 3 UI H (P0-N1): 등장 시계는 메뉴가 열려도 계속 간다 — 로고 쓰기·부제·불씨가 메뉴 단계에서 멈추지 않게
+    this.introT += delta / this.slow;
     const it = introState(this.introT, this.reduced);
     // 덮개 (붓질 또는 모션 줄이기면 페이드)
     if (this.phase !== 'dive') this.updateRevealVeil(it.reveal);
-    this.art.intro.logo = this.phase === 'dive' ? this.art.intro.logo : it.logo;
-    this.art.intro.sub = this.phase === 'dive' ? this.art.intro.sub : it.sub;
-    this.art.intro.dots = it.dots;
-    // art §30 로고 쓰기 (logoAt 부터 logoReveal.ms 동안, 모션 줄이기·파고들기면 바로 끝)
-    const lr = this.spec?.logoReveal;
-    this.art.revealP =
-      this.reduced || !lr || this.phase === 'dive' ? 1 : clamp01((this.introT - TITLE_UI.intro.logoAt) / lr.ms);
-    this.fallbackLogo?.setAlpha(it.logo);
+    // art §30 로고 쓰기 (logoAt 부터 logoReveal.ms 동안, 모션 줄이기·파고들기·넘김·돌아옴이면 완성)
+    const lp = logoProgress(this.introT, {
+      complete: this.logoComplete || this.reduced || this.phase === 'dive',
+      revealMs: this.spec?.logoReveal?.ms,
+    });
+    this.art.intro.logo = this.phase === 'dive' ? this.art.intro.logo : lp.logo;
+    this.art.intro.sub = this.phase === 'dive' ? this.art.intro.sub : lp.sub;
+    this.art.intro.dots = lp.dots;
+    this.art.revealP = lp.revealP;
+    if (this.phase !== 'dive') this.fallbackLogo?.setAlpha(lp.logo);
     // 등장 끝 → '아무 키' 또는 메뉴
     if (this.phase === 'intro' && this.introT >= TITLE_UI.intro.menuAt) {
       if (woken) this.showMenu();
@@ -393,7 +402,8 @@ export class TitleScene extends Phaser.Scene {
   private wake(): void {
     woken = true;
     wakeAudio(this);
-    this.introT = Math.max(this.introT, TITLE_UI.intro.endMs);
+    this.logoComplete = true;
+    this.introT = Math.max(this.introT, logoDoneMs(this.spec?.logoReveal?.ms));
     this.updateRevealVeil(1);
     this.showMenu();
   }
@@ -588,6 +598,8 @@ export class TitleScene extends Phaser.Scene {
       reduced: this.reduced,
       woken,
       introT: Math.round(this.introT),
+      logoComplete: this.logoComplete,
+      logoP: this.art?.revealP ?? 0,
       items: this.items.map((i) => ({ id: i.id, label: i.label, enabled: i.enabled })),
       selected: this.menu?.selected().id ?? null,
       rows: this.menu?.rowCenters() ?? [],

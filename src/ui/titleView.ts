@@ -353,6 +353,37 @@ export function introState(tMs: number, reduced: boolean): IntroState {
   };
 }
 
+/**
+ * 62 루프 3 UI H (점검 P0-N1): 로고 쓰기(art §30)·부제·무기 불씨의 진행. 메뉴 단계와 무관하게 `introT` 로 끝까지 가고,
+ * `complete`(키·클릭으로 넘김 · 같은 세션에서 돌아온 타이틀 · 모션 줄이기)면 처음부터 완성 상태.
+ * `revealMs` 는 art §30 `logoReveal.ms`(없으면 쓰기 없이 바로 완성).
+ */
+export interface LogoProgress {
+  /** 마스크 로고 쓰기 0~1 */
+  revealP: number;
+  logo: number;
+  sub: number;
+  dots: number[];
+}
+
+export function logoProgress(tMs: number, opts: { complete: boolean; revealMs?: number }): LogoProgress {
+  if (opts.complete || !opts.revealMs) return { revealP: 1, logo: 1, sub: 1, dots: TITLE_WEAPONS.map(() => 1) };
+  const it = introState(tMs, false);
+  return {
+    revealP: clamp01((tMs - TITLE_UI.intro.logoAt) / opts.revealMs),
+    logo: it.logo,
+    sub: it.sub,
+    dots: it.dots,
+  };
+}
+
+/** 로고·부제·불씨가 모두 다 그려지는 시각 (ms) — 넘김 키가 `introT` 를 여기까지 민다 */
+export function logoDoneMs(revealMs?: number): number {
+  const I = TITLE_UI.intro;
+  const dots = I.dotsAt + (TITLE_WEAPONS.length - 1) * I.dotGapMs + I.dotMs;
+  return Math.max(I.endMs, dots, revealMs ? I.logoAt + revealMs : 0);
+}
+
 // ---------------------------------------------------------------------------------------------
 // 메뉴
 

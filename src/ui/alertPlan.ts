@@ -218,3 +218,23 @@ export function isRoomLockNotice(text: string, lockTexts: readonly string[]): bo
   const n = alertNorm(text);
   return n.length > 0 && lockTexts.some((t) => alertNorm(t) === n);
 }
+
+/** 사라지는 중인 카드의 자리 (위 끝 y · 높이 · 다 사라지는 시각) */
+export interface LeavingSlot {
+  y: number;
+  h: number;
+  endsAt: number;
+}
+
+/**
+ * 62 루프 3 UI H (점검 P0-N3): 같은 레인 교차 페이드 금지 — 새 카드(또는 자리 옮김)가 들어갈 [y, y+h] 와 겹치는
+ * 사라지는 중인 카드가 있으면, 그 카드가 다 사라진 뒤에 들어온다. 기다릴 ms (0 = 바로).
+ */
+export function laneDelay(y: number, h: number, leaving: readonly LeavingSlot[], now: number): number {
+  let until = now;
+  for (const l of leaving) {
+    if (l.endsAt <= now) continue;
+    if (y < l.y + l.h && l.y < y + h) until = Math.max(until, l.endsAt);
+  }
+  return Math.max(0, Math.ceil(until - now));
+}
