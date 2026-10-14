@@ -1,723 +1,489 @@
 {
- "image": "katana_thrust_smear.png",
- "action": "katana_thrust_smear",
- "frameWidth": 192,
- "frameHeight": 192,
- "framesPerDirection": 10,
- "directions": [
-  "down",
-  "up",
-  "left",
-  "right"
- ],
- "layout": "rows = directions (down, up, left, right), columns = frames",
- "frameIndex": "row * columns + column (§19 아틀라스 키)",
- "frameDurationsMs": [
-  60,
-  90,
-  70,
-  30,
-  40,
-  40,
-  150,
-  80,
-  90,
-  60
- ],
- "loop": false,
- "pixelScale": 0.5,
- "pivot": {
-  "x": 96,
-  "y": 186
- },
- "playerFrameOffset": {
-  "x": 48,
-  "y": 48
- },
- "anchor": "player_pivot",
- "overlayOf": "weapons/v3/katana_thrust",
- "sameFrameAs": "weapons/v3/katana_thrust",
- "overlay": "player_katana_thrust · weapons/v3/katana_thrust 와 **같은 프레임 번호를 같은 시각에** 겹친다(같은 틀 192×192·피벗·playerFrameOffset·방향 행). 휘두름 궤적의 원점이 칼날에 붙어 있도록 칼끝 좌표에서 그렸다.",
- "depth": {
-  "down": "above",
-  "up": "above",
-  "left": "above",
-  "right": "above"
- },
- "depthRule": "무기 오버레이 바로 아래(같은 depth 규칙의 무기 직전). 무기가 몸 뒤로 가는 방향 행이면 스미어도 몸 뒤.",
- "blendMode": "NORMAL",
- "drawOver": "lightmap",
- "dirTransform": "drawn4",
- "smearFrames": [
-  3,
-  4,
-  5,
-  6
- ],
- "sweepFrames": [
-  3,
-  4,
-  5
- ],
- "decayFrames": [
-  6
- ],
- "glowFrames": [
-  4,
-  5
- ],
- "impactFrame": 4,
- "hitFrames": [
-  4,
-  5
- ],
- "timingMs": {
-  "total": 710,
-  "hitAt": 250,
-  "activeEndAt": 330,
-  "cancelAt": 560
- },
- "bladeTipAnchors": {
-  "down": [
-   [
-    71.7,
-    138.5
-   ],
-   [
-    83.8,
-    133.0
-   ],
-   [
-    85.2,
-    134.5
-   ],
-   [
-    92.9,
-    157.4
-   ],
-   [
-    101.1,
-    167.5
-   ],
-   [
-    101.1,
-    167.7
-   ],
-   [
-    101.1,
-    167.5
-   ],
-   [
-    99.1,
-    169.1
-   ],
-   [
-    35.0,
-    169.2
-   ],
-   [
-    27.8,
-    166.1
-   ]
-  ],
-  "up": [
-   [
-    120.3,
-    100.3
-   ],
-   [
-    108.2,
-    98.7
-   ],
-   [
-    106.8,
-    100.8
-   ],
-   [
-    110.3,
-    88.1
-   ],
-   [
-    109.2,
-    82.7
-   ],
-   [
-    109.3,
-    82.4
-   ],
-   [
-    109.2,
-    82.7
-   ],
-   [
-    111.3,
-    85.1
-   ],
-   [
-    157.0,
-    138.8
-   ],
-   [
-    164.2,
-    166.2
-   ]
-  ],
-  "left": [
-   [
-    41.5,
-    110.6
-   ],
-   [
-    47.0,
-    111.2
-   ],
-   [
-    47.9,
-    113.5
-   ],
-   [
-    17.7,
-    118.7
-   ],
-   [
-    8.4,
-    122.5
-   ],
-   [
-    7.6,
-    122.5
-   ],
-   [
-    8.4,
-    122.5
-   ],
-   [
-    9.4,
-    123.9
-   ],
-   [
-    52.5,
-    132.4
-   ],
-   [
-    96.1,
-    142.0
-   ]
-  ],
-  "right": [
-   [
-    150.5,
-    127.6
-   ],
-   [
-    145.0,
-    119.8
-   ],
-   [
-    144.1,
-    121.1
-   ],
-   [
-    174.3,
-    124.9
-   ],
-   [
-    183.6,
-    125.3
-   ],
-   [
-    184.4,
-    125.3
-   ],
-   [
-    183.6,
-    125.3
-   ],
-   [
-    182.6,
-    128.1
-   ],
-   [
-    139.5,
-    175.0
-   ],
-   [
-    95.9,
-    189.7
-   ]
-  ]
- },
- "gripAnchors": {
-  "down": [
-   [
-    86.1,
-    122.3
-   ],
-   [
-    90.0,
-    118.5
-   ],
-   [
-    90.4,
-    118.8
-   ],
-   [
-    89.3,
-    128.5
-   ],
-   [
-    94.1,
-    131.8
-   ],
-   [
-    94.0,
-    132.1
-   ],
-   [
-    94.1,
-    131.8
-   ],
-   [
-    94.1,
-    131.5
-   ],
-   [
-    82.5,
-    135.2
-   ],
-   [
-    76.8,
-    135.6
-   ]
-  ],
-  "up": [
-   [
-    105.9,
-    124.9
-   ],
-   [
-    102.0,
-    125.7
-   ],
-   [
-    101.6,
-    126.9
-   ],
-   [
-    102.7,
-    115.7
-   ],
-   [
-    97.9,
-    112.4
-   ],
-   [
-    98.0,
-    112.1
-   ],
-   [
-    97.9,
-    112.4
-   ],
-   [
-    97.9,
-    112.7
-   ],
-   [
-    109.5,
-    124.0
-   ],
-   [
-    115.2,
-    129.6
-   ]
-  ],
-  "left": [
-   [
-    99.6,
-    119.8
-   ],
-   [
-    106.4,
-    119.7
-   ],
-   [
-    107.5,
-    120.6
-   ],
-   [
-    77.7,
-    119.5
-   ],
-   [
-    68.3,
-    121.1
-   ],
-   [
-    67.6,
-    121.1
-   ],
-   [
-    68.3,
-    121.1
-   ],
-   [
-    69.1,
-    121.1
-   ],
-   [
-    79.9,
-    124.6
-   ],
-   [
-    87.5,
-    125.6
-   ]
-  ],
-  "right": [
-   [
-    92.4,
-    126.8
-   ],
-   [
-    85.6,
-    123.9
-   ],
-   [
-    84.5,
-    124.5
-   ],
-   [
-    114.3,
-    124.1
-   ],
-   [
-    123.7,
-    122.5
-   ],
-   [
-    124.4,
-    122.5
-   ],
-   [
-    123.7,
-    122.5
-   ],
-   [
-    122.9,
-    122.5
-   ],
-   [
-    112.1,
-    134.0
-   ],
-   [
-    104.5,
-    139.0
-   ]
-  ]
- },
- "smearHeadAnchors": {
-  "down": [
-   null,
-   null,
-   null,
-   [
-    92.9,
-    157.4
-   ],
-   [
-    101.1,
-    167.5
-   ],
-   [
-    101.1,
-    167.7
-   ],
-   [
-    101.1,
-    167.5
-   ],
-   null,
-   null,
-   null
-  ],
-  "up": [
-   null,
-   null,
-   null,
-   [
-    110.3,
-    88.1
-   ],
-   [
-    109.2,
-    82.7
-   ],
-   [
-    109.3,
-    82.4
-   ],
-   [
-    109.2,
-    82.7
-   ],
-   null,
-   null,
-   null
-  ],
-  "left": [
-   null,
-   null,
-   null,
-   [
-    17.7,
-    118.7
-   ],
-   [
-    8.4,
-    122.5
-   ],
-   [
-    7.6,
-    122.5
-   ],
-   [
-    8.4,
-    122.5
-   ],
-   null,
-   null,
-   null
-  ],
-  "right": [
-   null,
-   null,
-   null,
-   [
-    174.3,
-    124.9
-   ],
-   [
-    183.6,
-    125.3
-   ],
-   [
-    184.4,
-    125.3
-   ],
-   [
-    183.6,
-    125.3
-   ],
-   null,
-   null,
-   null
-  ]
- },
- "smearTailAnchors": {
-  "down": [
-   null,
-   null,
-   null,
-   [
-    87.1,
-    111.0
-   ],
-   [
-    85.9,
-    90.1
-   ],
-   [
-    88.0,
-    101.8
-   ],
-   [
-    91.5,
-    118.8
-   ],
-   null,
-   null,
-   null
-  ],
-  "up": [
-   null,
-   null,
-   null,
-   [
-    97.3,
-    135.3
-   ],
-   [
-    79.8,
-    159.9
-   ],
-   [
-    84.3,
-    148.1
-   ],
-   [
-    90.7,
-    131.3
-   ],
-   null,
-   null,
-   null
-  ],
-  "left": [
-   null,
-   null,
-   null,
-   [
-    65.7,
-    119.3
-   ],
-   [
-    89.4,
-    120.6
-   ],
-   [
-    76.6,
-    120.9
-   ],
-   [
-    59.4,
-    121.3
-   ],
-   null,
-   null,
-   null
-  ],
-  "right": [
-   null,
-   null,
-   null,
-   [
-    126.3,
-    124.3
-   ],
-   [
-    102.6,
-    121.5
-   ],
-   [
-    115.4,
-    122.1
-   ],
-   [
-    132.6,
-    122.9
-   ],
-   null,
-   null,
-   null
-  ]
- },
- "anchorNote": "좌표는 모두 이 시트(= 무기 시트) 원 프레임 도트. 주인공 피벗 기준 = (x − pivot.x, y − pivot.y) × pixelScale 0.5 → 논리 px. bladeTipAnchors = 칼끝(무기 시트 값 그대로). smearHeadAnchors = 그 칸 스미어 머리(휘두름 칸 = 칼끝, 사라짐 칸 = 칼에서 떨어진 머리), smearTailAnchors = 그 칸 스미어 꼬리 끝(가장 오래된 칼끝). null = 그 칸에 스미어 없음.",
- "systemHint": "P1-2 시스템: 칼끝 리본(feel.ribbon)·궤적 원점을 bladeTipAnchors 로 옮기고, 기존 떨어진 호 fx(katana_thrust) 는 끄거나 알파 0.35 이하로 낮춰 스미어와 겹침을 줄이길 권장(판정·히트 불티는 그대로).",
- "weapon": "katana",
- "comboHit": 3,
- "weaponColor": "서리 #8fe3ff(흰 끝 #e6fcff 는 판정 칸만)",
- "palette": "무기 색 램프(계약 §28, color61s6 ramps) + 판정 칸 X0 날선 — 새 색 없음. paletteSwap none",
- "paletteSwap": "none",
- "version": "v3-r62b",
- "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · smear.py",
- "design": "칼끝에서 시작하는 굵은 스미어 — 머리(지금 칼날)가 가장 굵고 밝으며 꼬리로 갈수록 가늘고 식어 부서진다. 찌르기는 칼끝 뒤로 끄는 찌름 줄기.",
- "atlas": {
-  "version": "atlas57-1",
-  "format": "phaser-json-hash",
-  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_thrust_smear.png)",
-  "grid": {
-   "columns": 10,
-   "rows": 4,
-   "frameWidth": 192,
-   "frameHeight": 192,
-   "frameCount": 40
-  },
-  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
-  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
-  "padding": 2,
-  "noTrim": false,
-  "emptyFrames": [
-   0,
-   1,
-   2,
-   7,
-   8,
-   9,
-   10,
-   11,
-   12,
-   17,
-   18,
-   19,
-   20,
-   21,
-   22,
-   27,
-   28,
-   29,
-   30,
-   31,
-   32,
-   37,
-   38,
-   39
-  ],
-  "dedupedFrames": 0,
-  "pages": 1
- },
- "frames": {
-  "0":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "1":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "2":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "3":{"frame":{"x":139,"y":0,"w":11,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":114,"w":11,"h":51},"sourceSize":{"w":192,"h":192}},
-  "4":{"frame":{"x":41,"y":0,"w":23,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":86,"y":94,"w":23,"h":96},"sourceSize":{"w":192,"h":192}},
-  "5":{"frame":{"x":99,"y":0,"w":19,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":104,"w":19,"h":77},"sourceSize":{"w":192,"h":192}},
-  "6":{"frame":{"x":120,"y":54,"w":14,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":120,"w":14,"h":49},"sourceSize":{"w":192,"h":192}},
-  "7":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "8":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "9":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "10":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "11":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "12":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "13":{"frame":{"x":120,"y":0,"w":17,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":81,"w":17,"h":52},"sourceSize":{"w":192,"h":192}},
-  "14":{"frame":{"x":0,"y":0,"w":39,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":61,"w":39,"h":100},"sourceSize":{"w":192,"h":192}},
-  "15":{"frame":{"x":66,"y":0,"w":31,"h":77},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":70,"w":31,"h":77},"sourceSize":{"w":192,"h":192}},
-  "16":{"frame":{"x":139,"y":53,"w":20,"h":50},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":81,"w":20,"h":50},"sourceSize":{"w":192,"h":192}},
-  "17":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "18":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "19":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "20":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "21":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "22":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "23":{"frame":{"x":91,"y":105,"w":56,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":115,"w":56,"h":9},"sourceSize":{"w":192,"h":192}},
-  "24":{"frame":{"x":0,"y":102,"w":89,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":115,"w":89,"h":16},"sourceSize":{"w":192,"h":192}},
-  "25":{"frame":{"x":0,"y":137,"w":76,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":117,"w":76,"h":12},"sourceSize":{"w":192,"h":192}},
-  "26":{"frame":{"x":66,"y":79,"w":48,"h":8},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":119,"w":48,"h":8},"sourceSize":{"w":192,"h":192}},
-  "27":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "28":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "29":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "30":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "31":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "32":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "33":{"frame":{"x":88,"y":134,"w":54,"h":9},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":129,"y":121,"w":54,"h":9},"sourceSize":{"w":192,"h":192}},
-  "34":{"frame":{"x":0,"y":120,"w":86,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":118,"w":86,"h":15},"sourceSize":{"w":192,"h":192}},
-  "35":{"frame":{"x":88,"y":120,"w":75,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":117,"y":120,"w":75,"h":12},"sourceSize":{"w":192,"h":192}},
-  "36":{"frame":{"x":66,"y":89,"w":48,"h":8},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":122,"w":48,"h":8},"sourceSize":{"w":192,"h":192}},
-  "37":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "38":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "39":{"frame":{"x":136,"y":54,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}}
- },
- "meta": {
-  "app": "LOPAD atlas57 (Pillow)",
-  "version": "atlas57-1",
   "image": "katana_thrust_smear.png",
-  "format": "RGBA8888",
-  "size": {
-   "w": 163,
-   "h": 149
+  "action": "katana_thrust_smear",
+  "frameWidth": 196,
+  "frameHeight": 192,
+  "framesPerDirection": 10,
+  "directions": ["down", "up", "left", "right"],
+  "layout": "rows = directions (down, up, left, right), columns = frames",
+  "frameIndex": "row * columns + column (§19 아틀라스 키)",
+  "frameDurationsMs": [60, 90, 70, 30, 40, 40, 150, 80, 90, 60],
+  "loop": false,
+  "pixelScale": 0.5,
+  "pivot": {
+    "x": 96,
+    "y": 186
   },
-  "scale": "1"
- }
+  "playerFrameOffset": {
+    "x": 48,
+    "y": 48
+  },
+  "anchor": "player_pivot",
+  "overlayOf": "weapons/v3/katana_thrust",
+  "sameFrameAs": "weapons/v3/katana_thrust",
+  "overlay": "player_katana_thrust · weapons/v3/katana_thrust 와 **같은 프레임 번호를 같은 시각에** 겹친다(같은 틀 192×192·피벗·playerFrameOffset·방향 행). 휘두름 궤적의 원점이 칼날에 붙어 있도록 칼끝 좌표에서 그렸다.",
+  "depth": {
+    "down": "above",
+    "up": "above",
+    "left": "above",
+    "right": "above"
+  },
+  "depthRule": "무기 오버레이 바로 아래(같은 depth 규칙의 무기 직전). 무기가 몸 뒤로 가는 방향 행이면 스미어도 몸 뒤.",
+  "blendMode": "NORMAL",
+  "drawOver": "lightmap",
+  "dirTransform": "drawn4",
+  "smearFrames": [3, 4, 5, 6],
+  "sweepFrames": [3, 4, 5],
+  "decayFrames": [6],
+  "glowFrames": [4, 5],
+  "impactFrame": 4,
+  "hitFrames": [4, 5],
+  "timingMs": {
+    "total": 710,
+    "hitAt": 250,
+    "activeEndAt": 330,
+    "cancelAt": 560
+  },
+  "bladeTipAnchors": {
+    "down": [
+      [71.7, 136.5],
+      [84.8, 129.0],
+      [86.2, 129.5],
+      [92.9, 153.4],
+      [100.1, 165.5],
+      [100.1, 165.7],
+      [100.1, 166.5],
+      [97.1, 168.1],
+      [35.0, 168.2],
+      [28.8, 168.1]
+    ],
+    "up": [
+      [121.3, 98.3],
+      [108.2, 94.7],
+      [106.8, 95.8],
+      [110.3, 84.1],
+      [110.2, 78.7],
+      [111.3, 78.4],
+      [111.2, 79.7],
+      [113.3, 82.1],
+      [157.0, 137.8],
+      [164.2, 168.2]
+    ],
+    "left": [
+      [46.5, 109.6],
+      [52.0, 107.2],
+      [52.9, 108.5],
+      [20.7, 114.7],
+      [4.4, 119.5],
+      [3.6, 119.5],
+      [4.4, 120.5],
+      [5.4, 120.9],
+      [53.5, 131.4],
+      [97.1, 144.0]
+    ],
+    "right": [
+      [147.5, 126.6],
+      [142.0, 115.8],
+      [141.1, 116.1],
+      [172.3, 120.9],
+      [187.6, 122.3],
+      [188.4, 122.3],
+      [188.6, 123.3],
+      [187.6, 125.1],
+      [139.5, 174.0],
+      [98.9, 190.7]
+    ]
+  },
+  "gripAnchors": {
+    "down": [
+      [86.1, 120.3],
+      [91.0, 114.5],
+      [91.4, 113.8],
+      [89.3, 124.5],
+      [93.1, 129.8],
+      [93.0, 130.1],
+      [93.1, 130.8],
+      [92.1, 130.5],
+      [82.5, 134.2],
+      [77.8, 137.6]
+    ],
+    "up": [
+      [106.9, 122.9],
+      [102.0, 121.7],
+      [101.6, 121.9],
+      [102.7, 111.7],
+      [98.9, 108.4],
+      [100.0, 108.1],
+      [99.9, 109.4],
+      [99.9, 109.7],
+      [109.5, 123.0],
+      [115.2, 131.6]
+    ],
+    "left": [
+      [104.6, 118.8],
+      [111.4, 115.7],
+      [112.5, 115.6],
+      [80.7, 115.5],
+      [64.3, 118.1],
+      [63.6, 118.1],
+      [64.3, 119.1],
+      [65.1, 118.1],
+      [80.9, 123.6],
+      [88.5, 127.6]
+    ],
+    "right": [
+      [89.4, 125.8],
+      [82.6, 119.9],
+      [81.5, 119.5],
+      [112.3, 120.1],
+      [127.7, 119.5],
+      [128.4, 119.5],
+      [128.7, 120.5],
+      [127.9, 119.5],
+      [112.1, 133.0],
+      [107.5, 140.0]
+    ]
+  },
+  "smearHeadAnchors": {
+    "down": [null, null, null, [92.9, 153.4], [100.1, 165.5], [100.1, 165.7], [100.1, 166.5], null, null, null],
+    "up": [null, null, null, [110.3, 84.1], [110.2, 78.7], [111.3, 78.4], [111.2, 79.7], null, null, null],
+    "left": [null, null, null, [20.7, 114.7], [4.4, 119.5], [3.6, 119.5], [4.4, 120.5], null, null, null],
+    "right": [null, null, null, [172.3, 120.9], [187.6, 122.3], [188.4, 122.3], [188.6, 123.3], null, null, null]
+  },
+  "smearTailAnchors": {
+    "down": [null, null, null, [87.1, 107.0], [84.9, 88.1], [87.0, 99.8], [90.5, 117.8], null, null, null],
+    "up": [null, null, null, [97.3, 131.3], [80.8, 155.9], [86.3, 144.1], [92.7, 128.3], null, null, null],
+    "left": [null, null, null, [68.7, 115.3], [85.4, 117.6], [72.6, 117.9], [55.4, 119.3], null, null, null],
+    "right": [null, null, null, [124.3, 120.3], [106.6, 118.5], [119.4, 119.1], [137.6, 120.9], null, null, null]
+  },
+  "anchorNote": "좌표는 모두 이 시트(= 무기 시트) 원 프레임 도트. 주인공 피벗 기준 = (x − pivot.x, y − pivot.y) × pixelScale 0.5 → 논리 px. bladeTipAnchors = 칼끝(무기 시트 값 그대로). smearHeadAnchors = 그 칸 스미어 머리(휘두름 칸 = 칼끝, 사라짐 칸 = 칼에서 떨어진 머리), smearTailAnchors = 그 칸 스미어 꼬리 끝(가장 오래된 칼끝). null = 그 칸에 스미어 없음.",
+  "systemHint": "P1-2 시스템: 칼끝 리본(feel.ribbon)·궤적 원점을 bladeTipAnchors 로 옮기고, 기존 떨어진 호 fx(katana_thrust) 는 끄거나 알파 0.35 이하로 낮춰 스미어와 겹침을 줄이길 권장(판정·히트 불티는 그대로).",
+  "weapon": "katana",
+  "comboHit": 3,
+  "weaponColor": "서리 #8fe3ff(흰 끝 #e6fcff 는 판정 칸만)",
+  "palette": "무기 색 램프(계약 §28, color61s6 ramps) + 판정 칸 X0 날선 — 새 색 없음. paletteSwap none",
+  "paletteSwap": "none",
+  "version": "v3-r62b",
+  "source": "parts/art/work/r62b/build.py (62 루프 2 · P16) · smear.py",
+  "design": "칼끝에서 시작하는 굵은 스미어 — 머리(지금 칼날)가 가장 굵고 밝으며 꼬리로 갈수록 가늘고 식어 부서진다. 찌르기는 칼끝 뒤로 끄는 찌름 줄기.",
+  "p19FrameGrow": {
+    "from": [192, 192],
+    "addRight": 4,
+    "addBottom": 0,
+    "note": "P19: 몸이 낮아져 옮긴 무기 끝이 틀 아래·오른쪽을 넘어 틀만 키움(피벗·playerFrameOffset 불변)"
+  },
+  "fps": 14.08,
+  "p19": "P19: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots 만큼 옮김(그림 그대로)",
+  "atlas": {
+    "version": "atlas57-1",
+    "format": "phaser-json-hash",
+    "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_thrust_smear.png)",
+    "grid": {
+      "columns": 10,
+      "rows": 4,
+      "frameWidth": 196,
+      "frameHeight": 192,
+      "frameCount": 40
+    },
+    "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+    "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+    "padding": 2,
+    "noTrim": false,
+    "emptyFrames": [0, 1, 2, 7, 8, 9, 10, 11, 12, 17, 18, 19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 37, 38, 39],
+    "dedupedFrames": 0,
+    "pages": 1
+  },
+  "frames": {
+    "0": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "1": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "2": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "3": {
+      "frame": { "x": 139, "y": 0, "w": 11, "h": 51 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 87, "y": 110, "w": 11, "h": 51 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "4": {
+      "frame": { "x": 41, "y": 0, "w": 23, "h": 96 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 85, "y": 92, "w": 23, "h": 96 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "5": {
+      "frame": { "x": 99, "y": 0, "w": 19, "h": 77 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 88, "y": 102, "w": 19, "h": 77 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "6": {
+      "frame": { "x": 174, "y": 0, "w": 14, "h": 49 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 91, "y": 119, "w": 14, "h": 49 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "7": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "8": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "9": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "10": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "11": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "12": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "13": {
+      "frame": { "x": 120, "y": 0, "w": 17, "h": 52 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 98, "y": 77, "w": 17, "h": 52 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "14": {
+      "frame": { "x": 0, "y": 0, "w": 39, "h": 100 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 81, "y": 57, "w": 39, "h": 100 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "15": {
+      "frame": { "x": 66, "y": 0, "w": 31, "h": 77 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 87, "y": 66, "w": 31, "h": 77 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "16": {
+      "frame": { "x": 152, "y": 0, "w": 20, "h": 50 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 94, "y": 78, "w": 20, "h": 50 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "17": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "18": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "19": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "20": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "21": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "22": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "23": {
+      "frame": { "x": 143, "y": 89, "w": 56, "h": 9 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 13, "y": 111, "w": 56, "h": 9 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "24": {
+      "frame": { "x": 120, "y": 54, "w": 85, "h": 16 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 112, "w": 85, "h": 16 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "25": {
+      "frame": { "x": 0, "y": 103, "w": 72, "h": 12 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 114, "w": 72, "h": 12 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "26": {
+      "frame": { "x": 66, "y": 79, "w": 48, "h": 8 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 4, "y": 117, "w": 48, "h": 8 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "27": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "28": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "29": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "30": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "31": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "32": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "33": {
+      "frame": { "x": 143, "y": 100, "w": 54, "h": 9 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 127, "y": 117, "w": 54, "h": 9 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "34": {
+      "frame": { "x": 120, "y": 72, "w": 86, "h": 15 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 110, "y": 115, "w": 86, "h": 15 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "35": {
+      "frame": { "x": 66, "y": 89, "w": 75, "h": 12 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 121, "y": 117, "w": 75, "h": 12 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "36": {
+      "frame": { "x": 74, "y": 103, "w": 48, "h": 8 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 142, "y": 120, "w": 48, "h": 8 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "37": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "38": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    },
+    "39": {
+      "frame": { "x": 174, "y": 51, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 196, "h": 192 }
+    }
+  },
+  "meta": {
+    "app": "LOPAD atlas57 (Pillow)",
+    "version": "atlas57-1",
+    "image": "katana_thrust_smear.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 206,
+      "h": 115
+    },
+    "scale": "1"
+  }
 }

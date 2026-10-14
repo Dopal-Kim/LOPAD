@@ -63,6 +63,16 @@
  "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'bow_carry_dash' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → bow_snipe_a1_carry_dash(1차) → bow_snipe_a2_carry_dash(2차 덧붙임) → bow_snipe_a2_glow_carry_dash(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
  "glowRule": "glowFrames(무기 시트 판정 순간)에 가장 밝음",
  "glowFrames": [],
+ "weaponColor": {
+  "round": "61s6-P14-weapon-color",
+  "weapon": "bow",
+  "name": "비취",
+  "key": "#40e0a0",
+  "secondary": "바랜 금",
+  "how": "갈래 외형의 빛·장식 색 → 무기 램프",
+  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
+ },
+ "p19": "P19 주인공 역동성: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots(왼허리 이동) 만큼 옮김(그림은 그대로)",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -83,26 +93,26 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":28,"y":72,"w":20,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":153,"w":20,"h":59},"sourceSize":{"w":256,"h":256}},
-  "1":{"frame":{"x":0,"y":86,"w":26,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":130,"w":26,"h":83},"sourceSize":{"w":256,"h":256}},
-  "2":{"frame":{"x":0,"y":171,"w":24,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":130,"w":24,"h":83},"sourceSize":{"w":256,"h":256}},
-  "3":{"frame":{"x":0,"y":0,"w":25,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":130,"w":25,"h":84},"sourceSize":{"w":256,"h":256}},
-  "4":{"frame":{"x":27,"y":0,"w":21,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":146,"w":21,"h":70},"sourceSize":{"w":256,"h":256}},
-  "5":{"frame":{"x":26,"y":187,"w":18,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":144,"w":18,"h":51},"sourceSize":{"w":256,"h":256}},
-  "6":{"frame":{"x":19,"y":883,"w":16,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":143,"w":16,"h":51},"sourceSize":{"w":256,"h":256}},
-  "7":{"frame":{"x":0,"y":936,"w":16,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":143,"w":16,"h":51},"sourceSize":{"w":256,"h":256}},
-  "8":{"frame":{"x":28,"y":133,"w":17,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":143,"w":17,"h":52},"sourceSize":{"w":256,"h":256}},
-  "9":{"frame":{"x":0,"y":883,"w":17,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":149,"w":17,"h":51},"sourceSize":{"w":256,"h":256}},
-  "10":{"frame":{"x":0,"y":472,"w":47,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":132,"w":47,"h":70},"sourceSize":{"w":256,"h":256}},
-  "11":{"frame":{"x":0,"y":256,"w":48,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":130,"w":48,"h":70},"sourceSize":{"w":256,"h":256}},
-  "12":{"frame":{"x":0,"y":328,"w":48,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":84,"y":126,"w":48,"h":70},"sourceSize":{"w":256,"h":256}},
-  "13":{"frame":{"x":0,"y":544,"w":48,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":125,"w":48,"h":69},"sourceSize":{"w":256,"h":256}},
-  "14":{"frame":{"x":0,"y":400,"w":48,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":126,"w":48,"h":70},"sourceSize":{"w":256,"h":256}},
-  "15":{"frame":{"x":0,"y":749,"w":47,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":127,"y":131,"w":47,"h":65},"sourceSize":{"w":256,"h":256}},
-  "16":{"frame":{"x":0,"y":816,"w":47,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":129,"w":47,"h":65},"sourceSize":{"w":256,"h":256}},
-  "17":{"frame":{"x":0,"y":615,"w":48,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":126,"w":48,"h":65},"sourceSize":{"w":256,"h":256}},
-  "18":{"frame":{"x":0,"y":682,"w":48,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":125,"y":128,"w":48,"h":65},"sourceSize":{"w":256,"h":256}},
-  "19":{"frame":{"x":0,"y":989,"w":34,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":147,"w":34,"h":42},"sourceSize":{"w":256,"h":256}}
+  "0":{"frame":{"x":28,"y":72,"w":20,"h":59},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":156,"w":20,"h":59},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":0,"y":86,"w":26,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":135,"w":26,"h":83},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":0,"y":171,"w":24,"h":83},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":135,"w":24,"h":83},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":0,"y":0,"w":25,"h":84},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":143,"y":134,"w":25,"h":84},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":27,"y":0,"w":21,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":149,"w":21,"h":70},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":26,"y":187,"w":18,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":147,"w":18,"h":51},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":19,"y":883,"w":16,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":148,"w":16,"h":51},"sourceSize":{"w":256,"h":256}},
+  "7":{"frame":{"x":0,"y":936,"w":16,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":148,"w":16,"h":51},"sourceSize":{"w":256,"h":256}},
+  "8":{"frame":{"x":28,"y":133,"w":17,"h":52},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":147,"w":17,"h":52},"sourceSize":{"w":256,"h":256}},
+  "9":{"frame":{"x":0,"y":883,"w":17,"h":51},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":96,"y":152,"w":17,"h":51},"sourceSize":{"w":256,"h":256}},
+  "10":{"frame":{"x":0,"y":472,"w":47,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":88,"y":136,"w":47,"h":70},"sourceSize":{"w":256,"h":256}},
+  "11":{"frame":{"x":0,"y":256,"w":48,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":135,"w":48,"h":70},"sourceSize":{"w":256,"h":256}},
+  "12":{"frame":{"x":0,"y":328,"w":48,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":132,"w":48,"h":70},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":0,"y":544,"w":48,"h":69},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":97,"y":130,"w":48,"h":69},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":0,"y":400,"w":48,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":72,"y":130,"w":48,"h":70},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":0,"y":749,"w":47,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":135,"w":47,"h":65},"sourceSize":{"w":256,"h":256}},
+  "16":{"frame":{"x":0,"y":816,"w":47,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":134,"w":47,"h":65},"sourceSize":{"w":256,"h":256}},
+  "17":{"frame":{"x":0,"y":615,"w":48,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":111,"y":132,"w":48,"h":65},"sourceSize":{"w":256,"h":256}},
+  "18":{"frame":{"x":0,"y":682,"w":48,"h":65},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":133,"w":48,"h":65},"sourceSize":{"w":256,"h":256}},
+  "19":{"frame":{"x":0,"y":989,"w":34,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":151,"w":34,"h":42},"sourceSize":{"w":256,"h":256}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -114,14 +124,5 @@
    "h": 1031
   },
   "scale": "1"
- },
- "weaponColor": {
-  "round": "61s6-P14-weapon-color",
-  "weapon": "bow",
-  "name": "비취",
-  "key": "#40e0a0",
-  "secondary": "바랜 금",
-  "how": "갈래 외형의 빛·장식 색 → 무기 램프",
-  "source": "parts/art/work/color61s6_gb/build.py (ramps.py 색표)"
  }
 }

@@ -1,0 +1,130 @@
+{
+ "image": "katana_kabuto_a2_glow_carry_drawn_turn_skid.png",
+ "action": "katana_kabuto_a2_glow_carry_drawn_turn_skid",
+ "version": "v4-r61s5-katana",
+ "frameWidth": 264,
+ "frameHeight": 264,
+ "framesPerDirection": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 22.22,
+ "frameDurationsMs": [
+  40,
+  50,
+  50,
+  40
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx·표시 오버레이는 지역 바닥 팔레트 교체 제외",
+ "palette": "61 단계 4(P12): 각성 외형은 60라운드 Q19 규칙 그대로 — LOPAD 팔레트 무채 16 + 층 램프(고정색, 지역 교체 없음) + 흉갑 SL·붕대 PL·흙 WD + 백열 X0/X1. 시트당 색 상한 24. _a2_glow 는 회백(무채 + X0)만 — 시스템 tint 대상",
+ "colors": 1,
+ "semiTransparent": false,
+ "source": "parts/art/work/katana61s5/build.py (61 단계 5 P13 §2 — 칼 재디자인 '은선', 무기+이펙트 함께)",
+ "pivot": {
+  "x": 132,
+  "y": 218
+ },
+ "playerFrameOffset": {
+  "x": 84,
+  "y": 80
+ },
+ "anchor": "player_pivot",
+ "bodySheet": "player_turn_skid",
+ "weaponSheetPivot": {
+  "x": 96,
+  "y": 186
+ },
+ "pivotDelta": {
+  "x": 36,
+  "y": 32
+ },
+ "weapon": "katana",
+ "branch": "kabuto",
+ "branchName": "투구가르기",
+ "branchLine": "한 놈을 쪼개는 칼",
+ "sameFrameAs": "weapons/v3/katana_carry_drawn_turn_skid_awaken",
+ "loopFrames": 8,
+ "loopMs": 80,
+ "loopRule": "순환 위상 = (그 프레임 시작 ms ÷ 80ms) mod loopFrames — 시트마다 같은 속도",
+ "p12": "61 단계 4 P12 — 계약 art §26, 설계 decisions/2026-10-05-P12-weapon-growth.md",
+ "overlayOf": "weapons/v4/katana_kabuto_a2_carry_drawn_turn_skid",
+ "depth": "above_a2",
+ "awakenStage": 2,
+ "design": "투구가르기 2차 빛 — 쪼개는 점선 · 뿔 끝(회백, pathTint 곱)",
+ "drawRule": "주인공 피벗에 이 시트 pivot 을 맞춰(원 무기 pivot + pivotDelta) 무기 시트 'katana_carry_drawn_turn_skid' 와 같은 프레임 번호(row*atlas.grid.columns+col)·같은 시각으로 겹친다. 순서: 무기 → katana_kabuto_a1_carry_drawn_turn_skid(1차) → katana_kabuto_a2_carry_drawn_turn_skid(2차 덧붙임) → katana_kabuto_a2_glow_carry_drawn_turn_skid(2차 빛, pathTint 곱) → _ki/_grudge. 기존 _awaken 대신 쓴다(1차 각성 런에서만)",
+ "tintable": true,
+ "pathTint": {
+  "ittou": [
+   80,
+   196,
+   255
+  ],
+  "meikyo": [
+   214,
+   248,
+   255
+  ]
+ },
+ "tintRule": "회백 마스크(X0·무채 G11~G13). 고른 2차 길의 pathTint 를 setTint(곱)로 입혀 a2 위에 그린다. 블렌드 보통(NORMAL) 권장 — ADD 는 어둠 속에서 과함",
+ "glowFrames": [],
+ "r61s5": "61 단계 5 P13 §2 칼 재디자인(무기+이펙트 함께) — 틀·피벗·프레임·ms·행·앵커 그대로, 그림만 교체",
+ "pathTintNote": "61 단계 6 P14 §2 칼 '서리' — 2차 두 길 = 서리 계열 안 짙은 쪽 / 옅은 쪽",
+ "p19": "P19 주인공 역동성: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots(왼허리 이동) 만큼 옮김(그림은 그대로)",
+ "derivedFrom": "weapons/v4/katana_kabuto_a2_glow_carry_drawn_dash",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 katana_kabuto_a2_glow_carry_drawn_turn_skid.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 264,
+   "frameHeight": 264,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 8,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":39,"y":59,"w":2,"h":2},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":102,"y":184,"w":2,"h":2},"sourceSize":{"w":264,"h":264}},
+  "1":{"frame":{"x":39,"y":59,"w":2,"h":2},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":185,"w":2,"h":2},"sourceSize":{"w":264,"h":264}},
+  "2":{"frame":{"x":32,"y":59,"w":5,"h":8},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":176,"w":5,"h":8},"sourceSize":{"w":264,"h":264}},
+  "3":{"frame":{"x":32,"y":59,"w":5,"h":8},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":172,"w":5,"h":8},"sourceSize":{"w":264,"h":264}},
+  "4":{"frame":{"x":51,"y":31,"w":13,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":149,"y":187,"w":13,"h":29},"sourceSize":{"w":264,"h":264}},
+  "5":{"frame":{"x":51,"y":31,"w":13,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":191,"w":13,"h":29},"sourceSize":{"w":264,"h":264}},
+  "6":{"frame":{"x":51,"y":0,"w":14,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":185,"w":14,"h":29},"sourceSize":{"w":264,"h":264}},
+  "7":{"frame":{"x":51,"y":0,"w":14,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":151,"y":183,"w":14,"h":29},"sourceSize":{"w":264,"h":264}},
+  "8":{"frame":{"x":0,"y":50,"w":49,"h":7},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":173,"w":49,"h":7},"sourceSize":{"w":264,"h":264}},
+  "9":{"frame":{"x":0,"y":50,"w":49,"h":7},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":175,"w":49,"h":7},"sourceSize":{"w":264,"h":264}},
+  "10":{"frame":{"x":0,"y":59,"w":30,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":179,"w":30,"h":10},"sourceSize":{"w":264,"h":264}},
+  "11":{"frame":{"x":0,"y":59,"w":30,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":176,"w":30,"h":10},"sourceSize":{"w":264,"h":264}},
+  "12":{"frame":{"x":0,"y":0,"w":49,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":166,"w":49,"h":23},"sourceSize":{"w":264,"h":264}},
+  "13":{"frame":{"x":0,"y":0,"w":49,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":168,"w":49,"h":23},"sourceSize":{"w":264,"h":264}},
+  "14":{"frame":{"x":0,"y":25,"w":49,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":174,"w":49,"h":23},"sourceSize":{"w":264,"h":264}},
+  "15":{"frame":{"x":0,"y":25,"w":49,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":171,"w":49,"h":23},"sourceSize":{"w":264,"h":264}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "katana_kabuto_a2_glow_carry_drawn_turn_skid.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 65,
+   "h": 69
+  },
+  "scale": "1"
+ }
+}

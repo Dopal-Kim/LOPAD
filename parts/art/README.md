@@ -899,3 +899,9 @@ python3 parts/art/work/r62a/build.py              # 62라운드 루프 1: 첫 �
 - 미리보기: (시스템) 위험 노드면 `door_<region>_<risk>`(elite·curse) 를 먼저 찾기 — 지금 `RoutePreview.previewOf` 는 kind 만 본다. (시스템/UI) 카드에는 `paint/door_<…>_small` 이 매니페스트에 있으면 그것(512×288, 'cover' 맞춤이면 재표본 없음). 미리 받기도 small 로(텍스처 0.59MB vs 0.92MB).
 - 기억 장: `ui_relics/memory_<id>` 키(위 표). favicon: `parts/art/work/favicon/` → `public/` + `index.html` link(16·32·48 png 또는 ico).
 - 보스: 코드 무변경. 단검 스미어: 칼·대검과 같은 재생 규칙(무기 오버레이와 같은 프레임·시각, 무기 바로 아래). 활: 놓기·짧게 쏘기·대쉬 사격 순간 `bow_shot_flash` 를 화살 생성점에 발사 각도로(완벽 놓기·속사는 기존 fx).
+
+## P19 주인공 역동성 (2026-10-14, 전권 위임) — 키아트 기반 재자세 · 무기 오버레이 프레임 오프셋 동기 · 위협감 fx · 작업 폴더 `work/hero19/`
+- 지시: "역동성도 잘 살리고 캐릭터가 바보같지 않고 민첩하고 좀 무서운 느낌" + 대검 "느려지는 순간만큼 별도의 모션이 없어 무겁지 않다". 기준 키아트 `gemini/concept_char/hero3_b.jpg`(OVERHEAD SLASH · LOW LUNGING DASH). 상세·비평·약점은 `work/hero19/NOTES.md`.
+- 방식 b+: 무기 그림(10여 세대 스크립트의 최신 디자인)은 다시 그리지 않고, 몸만 hero_v3 리그(확장 키 tilt·kneeIK·stanceW·eyeHot·gdx·reachFrac — 기본값이면 이전과 픽셀 동일)로 다시 렌더. 프레임마다 정수 도트 오프셋으로 그 몸 시트의 오버레이 전부(v3·v4·각성·검기·울분·a1·a2·a2_glow·스미어)를 옮기고 손을 옛 손 기준점 + 오프셋에 IK 고정.
+- 바뀐 몸: idle·walk·run(+_free)·dash·hurt·death, 칼 rise·fall·thrust, 대검 sweep_cw·cleave·sweep_ccw(무게 칸 추가 11→15·12→18·11→15), 단검 combo1~3. 새 몸: `player_turn_skid`(+ `*_carry_turn_skid` 78장). 새 fx: `hero_eye_trail`·`hero_ember_breath`·`hero_dash_afterimage`·`hero_skid_dust`, `dash_trail` 새 실루엣.
+- 재현 `python3 parts/art/work/hero19/build.py` · 점검 `python3 parts/art/work/hero19/check19.py`(out/grid ↔ assets 전 프레임 대조, 541시트 불일치 0). 원본은 git `811fa42` 에서 되살림(결정적).

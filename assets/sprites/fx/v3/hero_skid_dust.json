@@ -1,0 +1,109 @@
+{
+ "version": "v3-p19",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
+ "palette": "주인공 v3 30색 안(재 G · 먹 SL0 · 호박 A19~A26)",
+ "semiTransparent": false,
+ "source": "parts/art/work/hero19/fx19.py (P19 주인공 위협감 fx)",
+ "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
+ "action": "hero_skid_dust",
+ "frameWidth": 160,
+ "frameHeight": 72,
+ "pivot": {
+  "x": 80,
+  "y": 56
+ },
+ "frameDurationsMs": [
+  40,
+  50,
+  50,
+  60,
+  70,
+  80
+ ],
+ "loop": false,
+ "anchor": "player_pivot",
+ "followsPlayer": false,
+ "depth": "below",
+ "rowRule": "행 = 새로 향하는 방향(먼지·불티는 그 반대쪽 = 옛 진행 쪽으로 흩날림)",
+ "uses": [
+  "player_turn_skid 0 프레임(새 방향 행)",
+  "player_dash 4 프레임 제동(대쉬 방향 행)",
+  "달리기 중 입력을 놓아 멈출 때(진행 방향 행) — 급정지",
+  "높은 곳에서 착지(선택, 아래 행)"
+ ],
+ "note": "P19 급정지·착지 먼지: 발 밑 긁힘 줄 2 → 재 먼지 덩이가 옛 진행 쪽으로 퍼지며 떠오름 → 체크로 성겨져 사라짐. 불티 6개가 튀어 식음.",
+ "glowFrames": [
+  0
+ ],
+ "glowRule": "A26 은 0 프레임 불티 머리만",
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 17.14,
+ "colors": 12,
+ "image": "hero_skid_dust.png",
+ "framesPerDirection": 6,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 hero_skid_dust.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 160,
+   "frameHeight": 72,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":92,"y":164,"w":24,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":67,"y":42,"w":24,"h":15},"sourceSize":{"w":160,"h":72}},
+  "1":{"frame":{"x":98,"y":101,"w":31,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":63,"y":37,"w":31,"h":20},"sourceSize":{"w":160,"h":72}},
+  "2":{"frame":{"x":0,"y":104,"w":40,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":58,"y":33,"w":40,"h":24},"sourceSize":{"w":160,"h":72}},
+  "3":{"frame":{"x":50,"y":0,"w":47,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":28,"w":47,"h":25},"sourceSize":{"w":160,"h":72}},
+  "4":{"frame":{"x":0,"y":0,"w":48,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":25,"w":48,"h":26},"sourceSize":{"w":160,"h":72}},
+  "5":{"frame":{"x":51,"y":53,"w":47,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":56,"y":24,"w":47,"h":23},"sourceSize":{"w":160,"h":72}},
+  "6":{"frame":{"x":100,"y":57,"w":24,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":67,"y":51,"w":24,"h":18},"sourceSize":{"w":160,"h":72}},
+  "7":{"frame":{"x":100,"y":0,"w":32,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":51,"w":32,"h":17},"sourceSize":{"w":160,"h":72}},
+  "8":{"frame":{"x":94,"y":78,"w":38,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":59,"y":50,"w":38,"h":21},"sourceSize":{"w":160,"h":72}},
+  "9":{"frame":{"x":0,"y":78,"w":45,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":48,"w":45,"h":24},"sourceSize":{"w":160,"h":72}},
+  "10":{"frame":{"x":50,"y":27,"w":47,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":54,"y":48,"w":47,"h":24},"sourceSize":{"w":160,"h":72}},
+  "11":{"frame":{"x":47,"y":78,"w":45,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":49,"w":45,"h":23},"sourceSize":{"w":160,"h":72}},
+  "12":{"frame":{"x":92,"y":148,"w":27,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":49,"w":27,"h":14},"sourceSize":{"w":160,"h":72}},
+  "13":{"frame":{"x":100,"y":19,"w":31,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":46,"w":31,"h":17},"sourceSize":{"w":160,"h":72}},
+  "14":{"frame":{"x":92,"y":125,"w":41,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":78,"y":43,"w":41,"h":21},"sourceSize":{"w":160,"h":72}},
+  "15":{"frame":{"x":0,"y":53,"w":49,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":78,"y":41,"w":49,"h":23},"sourceSize":{"w":160,"h":72}},
+  "16":{"frame":{"x":47,"y":103,"w":49,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":81,"y":41,"w":49,"h":20},"sourceSize":{"w":160,"h":72}},
+  "17":{"frame":{"x":0,"y":147,"w":49,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":43,"w":49,"h":16},"sourceSize":{"w":160,"h":72}},
+  "18":{"frame":{"x":0,"y":130,"w":27,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":55,"y":47,"w":27,"h":15},"sourceSize":{"w":160,"h":72}},
+  "19":{"frame":{"x":100,"y":38,"w":30,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":51,"y":45,"w":30,"h":17},"sourceSize":{"w":160,"h":72}},
+  "20":{"frame":{"x":51,"y":147,"w":39,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":43,"w":39,"h":20},"sourceSize":{"w":160,"h":72}},
+  "21":{"frame":{"x":0,"y":28,"w":48,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":40,"w":48,"h":23},"sourceSize":{"w":160,"h":72}},
+  "22":{"frame":{"x":42,"y":125,"w":48,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":41,"w":48,"h":20},"sourceSize":{"w":160,"h":72}},
+  "23":{"frame":{"x":0,"y":165,"w":47,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":42,"w":47,"h":14},"sourceSize":{"w":160,"h":72}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "hero_skid_dust.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 133,
+   "h": 179
+  },
+  "scale": "1"
+ }
+}

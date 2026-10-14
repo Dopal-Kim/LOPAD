@@ -1,522 +1,340 @@
 {
- "image": "dagger_combo2_smear.png",
- "action": "dagger_combo2_smear",
- "frameWidth": 192,
- "frameHeight": 192,
- "framesPerDirection": 6,
- "directions": [
-  "down",
-  "up",
-  "left",
-  "right"
- ],
- "layout": "rows = directions (down, up, left, right), columns = frames",
- "frameIndex": "row * columns + column (§19 아틀라스 키)",
- "frameDurationsMs": [
-  20,
-  20,
-  20,
-  20,
-  35,
-  35
- ],
- "loop": false,
- "pixelScale": 0.5,
- "pivot": {
-  "x": 96,
-  "y": 186
- },
- "playerFrameOffset": {
-  "x": 48,
-  "y": 48
- },
- "anchor": "player_pivot",
- "overlayOf": "weapons/v3/dagger_combo2",
- "sameFrameAs": "weapons/v3/dagger_combo2",
- "overlay": "player_dagger_combo2 · weapons/v3/dagger_combo2 와 **같은 프레임 번호를 같은 시각에** 겹친다(같은 틀 192×192·피벗·playerFrameOffset·방향 행). 휘두름 궤적의 원점이 칼날에 붙어 있도록 칼끝 좌표에서 그렸다.",
- "depth": {
-  "down": "above",
-  "up": "above",
-  "left": "above",
-  "right": "above"
- },
- "depthRule": "무기 오버레이 바로 아래(같은 depth 규칙의 무기 직전). 무기가 몸 뒤로 가는 방향 행이면 스미어도 몸 뒤.",
- "blendMode": "NORMAL",
- "drawOver": "lightmap",
- "dirTransform": "drawn4",
- "smearFrames": [
-  1,
-  2,
-  3,
-  4
- ],
- "sweepFrames": [
-  1,
-  2
- ],
- "decayFrames": [
-  3,
-  4
- ],
- "glowFrames": [
-  2
- ],
- "impactFrame": 2,
- "hitFrames": [
-  2,
-  3
- ],
- "timingMs": {
-  "hitAt": 40,
-  "cancelAt": 80,
-  "total": 150,
-  "activeEndAt": 80
- },
- "bladeTipAnchors": {
-  "down": [
-   [
-    120.2,
-    107.6
-   ],
-   [
-    123.4,
-    143.5
-   ],
-   [
-    86.7,
-    166.5
-   ],
-   [
-    74.0,
-    159.2
-   ],
-   [
-    62.9,
-    149.1
-   ],
-   [
-    62.4,
-    139.8
-   ]
-  ],
-  "up": [
-   [
-    71.8,
-    121.2
-   ],
-   [
-    68.6,
-    121.6
-   ],
-   [
-    105.3,
-    129.5
-   ],
-   [
-    118.0,
-    129.8
-   ],
-   [
-    129.1,
-    132.1
-   ],
-   [
-    129.6,
-    136.8
-   ]
-  ],
-  "left": [
-   [
-    115.3,
-    122.6
-   ],
-   [
-    64.8,
-    141.9
-   ],
-   [
-    43.1,
-    144.4
-   ],
-   [
-    53.9,
-    136.5
-   ],
-   [
-    71.6,
-    128.7
-   ],
-   [
-    91.7,
-    126.2
-   ]
-  ],
-  "right": [
-   [
-    76.7,
-    105.6
-   ],
-   [
-    127.2,
-    122.7
-   ],
-   [
-    148.9,
-    151.0
-   ],
-   [
-    138.1,
-    151.9
-   ],
-   [
-    120.4,
-    151.9
-   ],
-   [
-    100.3,
-    149.8
-   ]
-  ]
- },
- "gripAnchors": {
-  "down": [
-   [
-    103.7,
-    111.8
-   ],
-   [
-    96.9,
-    122.2
-   ],
-   [
-    90.0,
-    132.5
-   ],
-   [
-    88.5,
-    128.5
-   ],
-   [
-    87.0,
-    124.6
-   ],
-   [
-    88.1,
-    123.9
-   ]
-  ],
-  "up": [
-   [
-    88.3,
-    105.4
-   ],
-   [
-    95.1,
-    107.0
-   ],
-   [
-    102.0,
-    108.7
-   ],
-   [
-    103.5,
-    111.2
-   ],
-   [
-    105.0,
-    113.6
-   ],
-   [
-    103.9,
-    114.3
-   ]
-  ],
-  "left": [
-   [
-    86.8,
-    111.0
-   ],
-   [
-    74.4,
-    114.6
-   ],
-   [
-    62.0,
-    118.2
-   ],
-   [
-    71.2,
-    116.9
-   ],
-   [
-    80.4,
-    115.7
-   ],
-   [
-    82.4,
-    116.0
-   ]
-  ],
-  "right": [
-   [
-    105.2,
-    105.6
-   ],
-   [
-    117.6,
-    114.0
-   ],
-   [
-    130.0,
-    122.4
-   ],
-   [
-    120.8,
-    122.2
-   ],
-   [
-    111.6,
-    122.0
-   ],
-   [
-    109.6,
-    121.6
-   ]
-  ]
- },
- "smearHeadAnchors": {
-  "down": [
-   null,
-   [
-    123.4,
-    143.5
-   ],
-   [
-    86.7,
-    166.5
-   ],
-   [
-    93.1,
-    164.0
-   ],
-   [
-    101.6,
-    160.1
-   ],
-   null
-  ],
-  "up": [
-   null,
-   null,
-   [
-    105.3,
-    129.5
-   ],
-   [
-    98.9,
-    128.3
-   ],
-   [
-    90.4,
-    126.5
-   ],
-   null
-  ],
-  "left": [
-   null,
-   [
-    64.8,
-    141.9
-   ],
-   [
-    43.1,
-    144.4
-   ],
-   [
-    44.9,
-    144.8
-   ],
-   [
-    48.1,
-    145.0
-   ],
-   null
-  ],
-  "right": [
-   null,
-   [
-    127.2,
-    122.7
-   ],
-   [
-    148.9,
-    151.0
-   ],
-   [
-    147.1,
-    146.9
-   ],
-   [
-    143.9,
-    141.1
-   ],
-   null
-  ]
- },
- "smearTailAnchors": {
-  "down": [
-   null,
-   [
-    120.2,
-    107.6
-   ],
-   [
-    120.2,
-    107.6
-   ],
-   [
-    120.2,
-    107.6
-   ],
-   [
-    120.2,
-    107.6
-   ],
-   null
-  ],
-  "up": [
-   null,
-   null,
-   [
-    68.6,
-    121.6
-   ],
-   [
-    68.6,
-    121.6
-   ],
-   [
-    68.6,
-    121.6
-   ],
-   null
-  ],
-  "left": [
-   null,
-   [
-    115.3,
-    122.6
-   ],
-   [
-    115.3,
-    122.6
-   ],
-   [
-    115.3,
-    122.6
-   ],
-   [
-    115.3,
-    122.6
-   ],
-   null
-  ],
-  "right": [
-   null,
-   [
-    76.7,
-    105.6
-   ],
-   [
-    76.7,
-    105.6
-   ],
-   [
-    76.7,
-    105.6
-   ],
-   [
-    76.7,
-    105.6
-   ],
-   null
-  ]
- },
- "anchorNote": "좌표는 모두 이 시트(= 무기 시트) 원 프레임 도트. 주인공 피벗 기준 = (x − pivot.x, y − pivot.y) × pixelScale 0.5 → 논리 px. bladeTipAnchors = 칼끝(무기 시트 값 그대로). smearHeadAnchors = 그 칸 스미어 머리(휘두름 칸 = 칼끝, 사라짐 칸 = 칼에서 떨어진 머리), smearTailAnchors = 그 칸 스미어 꼬리 끝(가장 오래된 칼끝). null = 그 칸에 스미어 없음.",
- "systemHint": "P1-N9 시스템: 단검 1~3타 오버레이(weapons/v3/dagger_combo<n>)와 같은 프레임·시각에 무기 바로 아래로. 가속 시트(fx dagger_combo<n>_accel2·3)는 그대로 — 스미어는 무기 시트 프레임을 따른다(공속 배율로 무기가 빨라지면 같이)",
- "weapon": "dagger",
- "comboHit": 2,
- "weaponColor": "독 #c060ff(흰 끝 #fbe0ff 는 판정 칸만 — 무기 impactFrame 2)",
- "palette": "무기 색 램프(계약 §28, color61s6 ramps) + 판정 칸 X0 날선 — 새 색 없음. paletteSwap none",
- "paletteSwap": "none",
- "version": "v3-r62c",
- "source": "parts/art/work/r62c/build.py (62 루프 3 · P17) · smear.py → r62b smear.py 같은 코드",
- "design": "단검: 1·2타 짧은 베기 스미어(칼보다 짧고 굵게 — 칼날이 짧다), 3타 찌르기 = 칼끝 뒤 찌름 줄기 + 칼끝 앞 짧은 찌름 섬광. 사라짐 칸은 제자리에서 식는다",
- "glowFramesNote": "무기 시트 weapons/v3/dagger_combo<n> 에 glowFrames 가 없어 impactFrame(2) 을 판정 칸으로 씀",
- "atlas": {
-  "version": "atlas57-1",
-  "format": "phaser-json-hash",
-  "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo2_smear.png)",
-  "grid": {
-   "columns": 6,
-   "rows": 4,
-   "frameWidth": 192,
-   "frameHeight": 192,
-   "frameCount": 24
-  },
-  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
-  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
-  "padding": 2,
-  "noTrim": false,
-  "emptyFrames": [
-   0,
-   5,
-   6,
-   7,
-   11,
-   12,
-   17,
-   18,
-   23
-  ],
-  "dedupedFrames": 0,
-  "pages": 1
- },
- "frames": {
-  "0":{"frame":{"x":65,"y":70,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "1":{"frame":{"x":37,"y":94,"w":26,"h":37},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":108,"w":26,"h":37},"sourceSize":{"w":192,"h":192}},
-  "2":{"frame":{"x":65,"y":73,"w":40,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":87,"y":110,"w":40,"h":58},"sourceSize":{"w":192,"h":192}},
-  "3":{"frame":{"x":0,"y":94,"w":35,"h":58},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":92,"y":108,"w":35,"h":58},"sourceSize":{"w":192,"h":192}},
-  "4":{"frame":{"x":146,"y":0,"w":29,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":114,"w":29,"h":42},"sourceSize":{"w":192,"h":192}},
-  "5":{"frame":{"x":65,"y":70,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "6":{"frame":{"x":65,"y":70,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "7":{"frame":{"x":65,"y":70,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "8":{"frame":{"x":37,"y":133,"w":37,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":110,"w":37,"h":21},"sourceSize":{"w":192,"h":192}},
-  "9":{"frame":{"x":141,"y":49,"w":31,"h":20},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":71,"y":110,"w":31,"h":20},"sourceSize":{"w":192,"h":192}},
-  "10":{"frame":{"x":76,"y":133,"w":27,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":70,"y":116,"w":27,"h":11},"sourceSize":{"w":192,"h":192}},
-  "11":{"frame":{"x":65,"y":70,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "12":{"frame":{"x":65,"y":70,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "13":{"frame":{"x":107,"y":128,"w":49,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":65,"y":118,"w":49,"h":25},"sourceSize":{"w":192,"h":192}},
-  "14":{"frame":{"x":0,"y":0,"w":72,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":122,"w":72,"h":24},"sourceSize":{"w":192,"h":192}},
-  "15":{"frame":{"x":71,"y":49,"w":68,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":46,"y":124,"w":68,"h":22},"sourceSize":{"w":192,"h":192}},
-  "16":{"frame":{"x":0,"y":70,"w":63,"h":22},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":48,"y":124,"w":63,"h":22},"sourceSize":{"w":192,"h":192}},
-  "17":{"frame":{"x":65,"y":70,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "18":{"frame":{"x":65,"y":70,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}},
-  "19":{"frame":{"x":107,"y":108,"w":52,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":77,"y":106,"w":52,"h":18},"sourceSize":{"w":192,"h":192}},
-  "20":{"frame":{"x":74,"y":0,"w":70,"h":47},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":80,"y":106,"w":70,"h":47},"sourceSize":{"w":192,"h":192}},
-  "21":{"frame":{"x":0,"y":26,"w":69,"h":42},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":79,"y":106,"w":69,"h":42},"sourceSize":{"w":192,"h":192}},
-  "22":{"frame":{"x":107,"y":73,"w":52,"h":33},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":93,"y":109,"w":52,"h":33},"sourceSize":{"w":192,"h":192}},
-  "23":{"frame":{"x":65,"y":70,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":192,"h":192}}
- },
- "meta": {
-  "app": "LOPAD atlas57 (Pillow)",
-  "version": "atlas57-1",
   "image": "dagger_combo2_smear.png",
-  "format": "RGBA8888",
-  "size": {
-   "w": 175,
-   "h": 154
+  "action": "dagger_combo2_smear",
+  "frameWidth": 192,
+  "frameHeight": 192,
+  "framesPerDirection": 6,
+  "directions": ["down", "up", "left", "right"],
+  "layout": "rows = directions (down, up, left, right), columns = frames",
+  "frameIndex": "row * columns + column (§19 아틀라스 키)",
+  "frameDurationsMs": [20, 20, 20, 20, 35, 35],
+  "loop": false,
+  "pixelScale": 0.5,
+  "pivot": {
+    "x": 96,
+    "y": 186
   },
-  "scale": "1"
- }
+  "playerFrameOffset": {
+    "x": 48,
+    "y": 48
+  },
+  "anchor": "player_pivot",
+  "overlayOf": "weapons/v3/dagger_combo2",
+  "sameFrameAs": "weapons/v3/dagger_combo2",
+  "overlay": "player_dagger_combo2 · weapons/v3/dagger_combo2 와 **같은 프레임 번호를 같은 시각에** 겹친다(같은 틀 192×192·피벗·playerFrameOffset·방향 행). 휘두름 궤적의 원점이 칼날에 붙어 있도록 칼끝 좌표에서 그렸다.",
+  "depth": {
+    "down": "above",
+    "up": "above",
+    "left": "above",
+    "right": "above"
+  },
+  "depthRule": "무기 오버레이 바로 아래(같은 depth 규칙의 무기 직전). 무기가 몸 뒤로 가는 방향 행이면 스미어도 몸 뒤.",
+  "blendMode": "NORMAL",
+  "drawOver": "lightmap",
+  "dirTransform": "drawn4",
+  "smearFrames": [1, 2, 3, 4],
+  "sweepFrames": [1, 2],
+  "decayFrames": [3, 4],
+  "glowFrames": [2],
+  "impactFrame": 2,
+  "hitFrames": [2, 3],
+  "timingMs": {
+    "hitAt": 40,
+    "cancelAt": 80,
+    "total": 150,
+    "activeEndAt": 80
+  },
+  "bladeTipAnchors": {
+    "down": [
+      [121.2, 113.6],
+      [125.4, 149.5],
+      [86.7, 173.5],
+      [74.0, 167.2],
+      [62.9, 159.1],
+      [62.4, 145.8]
+    ],
+    "up": [
+      [71.8, 127.2],
+      [67.6, 127.6],
+      [106.3, 134.5],
+      [118.0, 135.8],
+      [130.1, 140.1],
+      [130.6, 142.8]
+    ],
+    "left": [
+      [119.3, 127.6],
+      [65.8, 147.9],
+      [40.1, 148.4],
+      [49.9, 143.5],
+      [68.6, 135.7],
+      [92.7, 131.2]
+    ],
+    "right": [
+      [73.7, 110.6],
+      [126.2, 128.7],
+      [153.9, 157.0],
+      [143.1, 158.9],
+      [123.4, 158.9],
+      [100.3, 154.8]
+    ]
+  },
+  "gripAnchors": {
+    "down": [
+      [104.7, 117.8],
+      [98.9, 128.2],
+      [90.0, 139.5],
+      [88.5, 136.5],
+      [87.0, 134.6],
+      [88.1, 129.9]
+    ],
+    "up": [
+      [88.3, 111.4],
+      [94.1, 113.0],
+      [103.0, 113.7],
+      [103.5, 117.2],
+      [106.0, 121.6],
+      [104.9, 120.3]
+    ],
+    "left": [
+      [90.8, 116.0],
+      [75.4, 120.6],
+      [59.0, 122.2],
+      [67.2, 123.9],
+      [77.4, 122.7],
+      [83.4, 121.0]
+    ],
+    "right": [
+      [102.2, 110.6],
+      [116.6, 120.0],
+      [135.0, 128.4],
+      [125.8, 129.2],
+      [114.6, 129.0],
+      [109.6, 126.6]
+    ]
+  },
+  "smearHeadAnchors": {
+    "down": [null, [125.4, 149.5], [86.7, 173.5], [93.1, 172.0], [101.6, 170.1], null],
+    "up": [null, null, [106.3, 134.5], [98.9, 134.3], [91.4, 134.5], null],
+    "left": [null, [65.8, 147.9], [40.1, 148.4], [40.9, 151.8], [45.1, 152.0], null],
+    "right": [null, [126.2, 128.7], [153.9, 157.0], [152.1, 153.9], [146.9, 148.1], null]
+  },
+  "smearTailAnchors": {
+    "down": [null, [122.2, 113.6], [120.2, 114.6], [120.2, 115.6], [120.2, 117.6], null],
+    "up": [null, null, [69.6, 126.6], [68.6, 127.6], [69.6, 129.6], null],
+    "left": [null, [116.3, 128.6], [112.3, 126.6], [111.3, 129.6], [112.3, 129.6], null],
+    "right": [null, [75.7, 111.6], [81.7, 111.6], [81.7, 112.6], [79.7, 112.6], null]
+  },
+  "anchorNote": "좌표는 모두 이 시트(= 무기 시트) 원 프레임 도트. 주인공 피벗 기준 = (x − pivot.x, y − pivot.y) × pixelScale 0.5 → 논리 px. bladeTipAnchors = 칼끝(무기 시트 값 그대로). smearHeadAnchors = 그 칸 스미어 머리(휘두름 칸 = 칼끝, 사라짐 칸 = 칼에서 떨어진 머리), smearTailAnchors = 그 칸 스미어 꼬리 끝(가장 오래된 칼끝). null = 그 칸에 스미어 없음.",
+  "systemHint": "P1-N9 시스템: 단검 1~3타 오버레이(weapons/v3/dagger_combo<n>)와 같은 프레임·시각에 무기 바로 아래로. 가속 시트(fx dagger_combo<n>_accel2·3)는 그대로 — 스미어는 무기 시트 프레임을 따른다(공속 배율로 무기가 빨라지면 같이)",
+  "weapon": "dagger",
+  "comboHit": 2,
+  "weaponColor": "독 #c060ff(흰 끝 #fbe0ff 는 판정 칸만 — 무기 impactFrame 2)",
+  "palette": "무기 색 램프(계약 §28, color61s6 ramps) + 판정 칸 X0 날선 — 새 색 없음. paletteSwap none",
+  "paletteSwap": "none",
+  "version": "v3-r62c",
+  "source": "parts/art/work/r62c/build.py (62 루프 3 · P17) · smear.py → r62b smear.py 같은 코드",
+  "design": "단검: 1·2타 짧은 베기 스미어(칼보다 짧고 굵게 — 칼날이 짧다), 3타 찌르기 = 칼끝 뒤 찌름 줄기 + 칼끝 앞 짧은 찌름 섬광. 사라짐 칸은 제자리에서 식는다",
+  "glowFramesNote": "무기 시트 weapons/v3/dagger_combo<n> 에 glowFrames 가 없어 impactFrame(2) 을 판정 칸으로 씀",
+  "fps": 40.0,
+  "p19": "P19: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots 만큼 옮김(그림 그대로)",
+  "atlas": {
+    "version": "atlas57-1",
+    "format": "phaser-json-hash",
+    "source": "parts/art/work/atlas57/build.py (원 격자 시트 dagger_combo2_smear.png)",
+    "grid": {
+      "columns": 6,
+      "rows": 4,
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "frameCount": 24
+    },
+    "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+    "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+    "padding": 2,
+    "noTrim": false,
+    "emptyFrames": [0, 5, 6, 7, 11, 12, 17, 18, 23],
+    "dedupedFrames": 0,
+    "pages": 1
+  },
+  "frames": {
+    "0": {
+      "frame": { "x": 65, "y": 70, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "1": {
+      "frame": { "x": 37, "y": 94, "w": 26, "h": 37 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 103, "y": 114, "w": 26, "h": 37 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "2": {
+      "frame": { "x": 65, "y": 73, "w": 40, "h": 58 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 87, "y": 117, "w": 40, "h": 58 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "3": {
+      "frame": { "x": 0, "y": 94, "w": 35, "h": 58 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 92, "y": 116, "w": 35, "h": 58 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "4": {
+      "frame": { "x": 146, "y": 0, "w": 29, "h": 42 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 98, "y": 124, "w": 29, "h": 42 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "5": {
+      "frame": { "x": 65, "y": 70, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "6": {
+      "frame": { "x": 65, "y": 70, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "7": {
+      "frame": { "x": 65, "y": 70, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "8": {
+      "frame": { "x": 37, "y": 133, "w": 37, "h": 21 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 71, "y": 115, "w": 37, "h": 21 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "9": {
+      "frame": { "x": 141, "y": 49, "w": 31, "h": 20 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 71, "y": 116, "w": 31, "h": 20 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "10": {
+      "frame": { "x": 76, "y": 133, "w": 27, "h": 11 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 71, "y": 124, "w": 27, "h": 11 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "11": {
+      "frame": { "x": 65, "y": 70, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "12": {
+      "frame": { "x": 65, "y": 70, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "13": {
+      "frame": { "x": 107, "y": 128, "w": 49, "h": 25 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 66, "y": 124, "w": 49, "h": 25 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "14": {
+      "frame": { "x": 0, "y": 0, "w": 72, "h": 24 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 40, "y": 126, "w": 72, "h": 24 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "15": {
+      "frame": { "x": 71, "y": 49, "w": 68, "h": 22 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 42, "y": 131, "w": 68, "h": 22 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "16": {
+      "frame": { "x": 0, "y": 70, "w": 63, "h": 22 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 45, "y": 131, "w": 63, "h": 22 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "17": {
+      "frame": { "x": 65, "y": 70, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "18": {
+      "frame": { "x": 65, "y": 70, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "19": {
+      "frame": { "x": 107, "y": 108, "w": 52, "h": 18 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 76, "y": 112, "w": 52, "h": 18 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "20": {
+      "frame": { "x": 74, "y": 0, "w": 70, "h": 47 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 85, "y": 112, "w": 70, "h": 47 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "21": {
+      "frame": { "x": 0, "y": 26, "w": 69, "h": 42 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 84, "y": 113, "w": 69, "h": 42 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "22": {
+      "frame": { "x": 107, "y": 73, "w": 52, "h": 33 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 96, "y": 116, "w": 52, "h": 33 },
+      "sourceSize": { "w": 192, "h": 192 }
+    },
+    "23": {
+      "frame": { "x": 65, "y": 70, "w": 1, "h": 1 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "sourceSize": { "w": 192, "h": 192 }
+    }
+  },
+  "meta": {
+    "app": "LOPAD atlas57 (Pillow)",
+    "version": "atlas57-1",
+    "image": "dagger_combo2_smear.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 175,
+      "h": 154
+    },
+    "scale": "1"
+  }
 }

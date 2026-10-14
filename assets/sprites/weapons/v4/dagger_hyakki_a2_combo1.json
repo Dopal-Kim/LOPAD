@@ -98,6 +98,8 @@
  "glowFrames": [],
  "designPrevious": "코등이 양쪽에서 뒤로 휘어 솟는 뼈빛 도깨비 뿔 2",
  "r61s5": "61 단계 5 P13 §2 — 단검 재디자인(무기+이펙트 한 디자인 언어). 계약 art §27",
+ "pathTintNote": "61 단계 6 P14 §2 단검 '독' — 2차 두 길 = 독 계열 안 두 변주(보라 / 자홍)",
+ "p19": "P19: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots 만큼 옮김(그림 그대로)",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -126,30 +128,30 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":139,"y":0,"w":10,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":118,"y":140,"w":10,"h":23},"sourceSize":{"w":256,"h":256}},
-  "1":{"frame":{"x":0,"y":0,"w":17,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":122,"y":143,"w":17,"h":19},"sourceSize":{"w":256,"h":256}},
-  "2":{"frame":{"x":115,"y":28,"w":23,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":152,"w":23,"h":10},"sourceSize":{"w":256,"h":256}},
-  "3":{"frame":{"x":76,"y":16,"w":20,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":120,"y":148,"w":20,"h":13},"sourceSize":{"w":256,"h":256}},
-  "4":{"frame":{"x":98,"y":20,"w":15,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":143,"w":15,"h":17},"sourceSize":{"w":256,"h":256}},
-  "5":{"frame":{"x":0,"y":21,"w":15,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":144,"w":15,"h":18},"sourceSize":{"w":256,"h":256}},
-  "6":{"frame":{"x":115,"y":0,"w":22,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":138,"w":22,"h":12},"sourceSize":{"w":256,"h":256}},
+  "0":{"frame":{"x":139,"y":0,"w":10,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":146,"w":10,"h":23},"sourceSize":{"w":256,"h":256}},
+  "1":{"frame":{"x":0,"y":0,"w":17,"h":19},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":150,"w":17,"h":19},"sourceSize":{"w":256,"h":256}},
+  "2":{"frame":{"x":115,"y":28,"w":23,"h":10},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":121,"y":160,"w":23,"h":10},"sourceSize":{"w":256,"h":256}},
+  "3":{"frame":{"x":76,"y":16,"w":20,"h":13},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":120,"y":157,"w":20,"h":13},"sourceSize":{"w":256,"h":256}},
+  "4":{"frame":{"x":98,"y":20,"w":15,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":153,"w":15,"h":17},"sourceSize":{"w":256,"h":256}},
+  "5":{"frame":{"x":0,"y":21,"w":15,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":119,"y":150,"w":15,"h":18},"sourceSize":{"w":256,"h":256}},
+  "6":{"frame":{"x":115,"y":0,"w":22,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":125,"y":144,"w":22,"h":12},"sourceSize":{"w":256,"h":256}},
   "7":{"frame":{"x":139,"y":25,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
   "8":{"frame":{"x":139,"y":25,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
   "9":{"frame":{"x":139,"y":25,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
   "10":{"frame":{"x":139,"y":25,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
   "11":{"frame":{"x":139,"y":25,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
   "12":{"frame":{"x":139,"y":25,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
-  "13":{"frame":{"x":39,"y":0,"w":19,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":136,"w":19,"h":16},"sourceSize":{"w":256,"h":256}},
-  "14":{"frame":{"x":58,"y":23,"w":16,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":89,"y":138,"w":16,"h":16},"sourceSize":{"w":256,"h":256}},
-  "15":{"frame":{"x":98,"y":0,"w":15,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":135,"w":15,"h":18},"sourceSize":{"w":256,"h":256}},
-  "16":{"frame":{"x":39,"y":18,"w":17,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":106,"y":135,"w":17,"h":17},"sourceSize":{"w":256,"h":256}},
+  "13":{"frame":{"x":39,"y":0,"w":19,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":142,"w":19,"h":16},"sourceSize":{"w":256,"h":256}},
+  "14":{"frame":{"x":58,"y":23,"w":16,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":85,"y":145,"w":16,"h":16},"sourceSize":{"w":256,"h":256}},
+  "15":{"frame":{"x":98,"y":0,"w":15,"h":18},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":94,"y":142,"w":15,"h":18},"sourceSize":{"w":256,"h":256}},
+  "16":{"frame":{"x":39,"y":18,"w":17,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":103,"y":142,"w":17,"h":17},"sourceSize":{"w":256,"h":256}},
   "17":{"frame":{"x":139,"y":25,"w":1,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":1,"h":1},"sourceSize":{"w":256,"h":256}},
-  "18":{"frame":{"x":60,"y":0,"w":14,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":131,"y":139,"w":14,"h":21},"sourceSize":{"w":256,"h":256}},
-  "19":{"frame":{"x":76,"y":31,"w":20,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":138,"y":141,"w":20,"h":11},"sourceSize":{"w":256,"h":256}},
-  "20":{"frame":{"x":19,"y":19,"w":17,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":150,"y":133,"w":17,"h":17},"sourceSize":{"w":256,"h":256}},
-  "21":{"frame":{"x":19,"y":0,"w":18,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":141,"y":136,"w":18,"h":17},"sourceSize":{"w":256,"h":256}},
-  "22":{"frame":{"x":76,"y":0,"w":20,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":134,"y":140,"w":20,"h":14},"sourceSize":{"w":256,"h":256}},
-  "23":{"frame":{"x":115,"y":14,"w":22,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":134,"y":143,"w":22,"h":12},"sourceSize":{"w":256,"h":256}}
+  "18":{"frame":{"x":60,"y":0,"w":14,"h":21},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":128,"y":144,"w":14,"h":21},"sourceSize":{"w":256,"h":256}},
+  "19":{"frame":{"x":76,"y":31,"w":20,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":147,"w":20,"h":11},"sourceSize":{"w":256,"h":256}},
+  "20":{"frame":{"x":19,"y":19,"w":17,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":155,"y":140,"w":17,"h":17},"sourceSize":{"w":256,"h":256}},
+  "21":{"frame":{"x":19,"y":0,"w":18,"h":17},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":146,"y":143,"w":18,"h":17},"sourceSize":{"w":256,"h":256}},
+  "22":{"frame":{"x":76,"y":0,"w":20,"h":14},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":137,"y":147,"w":20,"h":14},"sourceSize":{"w":256,"h":256}},
+  "23":{"frame":{"x":115,"y":14,"w":22,"h":12},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":134,"y":148,"w":22,"h":12},"sourceSize":{"w":256,"h":256}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -161,6 +163,5 @@
    "h": 42
   },
   "scale": "1"
- },
- "pathTintNote": "61 단계 6 P14 §2 단검 '독' — 2차 두 길 = 독 계열 안 두 변주(보라 / 자홍)"
+ }
 }

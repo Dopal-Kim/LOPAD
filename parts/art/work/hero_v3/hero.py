@@ -104,6 +104,12 @@ def pose(**kw):
              glow=0,                    # 균열 혼불 2 = 백열(피격·사망 직전)
              eyeOff=False, flameOff=False, flameRows=None,
              arrowOut=False,            # 3차(활 장전): 오른어깨에 꽂힌 화살을 뽑아 든 동안 몸의 그 화살을 그리지 않음(기본 False = 이전과 픽셀 동일)
+             tilt=0.0,                  # P19: 상체 회전(도) — 측면 = 앞으로 숙임(+), 정면/뒷면 = 화면 기울기(+ = 위가 화면 오른쪽). 엉덩이 축(0 = 이전과 픽셀 동일)
+             kneeIK=False,              # P19: 정면/뒷면 다리를 실제 다리 길이로 굽힘(웅크리면 무릎이 바깥·앞으로 나옴)
+             stanceW=0.0,               # P19: 정면/뒷면 발 벌림 추가(설계, 양쪽)
+             reachFrac=0.97,            # P19: 손 고정(IK) 때 팔을 뻗는 한계(팔 길이 비율) — 옛 비IK 손 자리에 닿게 1.06 까지
+             gdx=0.0,                   # P19: 측면 몸 전체 앞뒤 이동(설계, + = 앞) — 낮게 숙인 자세가 틀(96) 밖으로 나가지 않게 피벗 기준 뒤로
+             eyeHot=0,                  # P19: 분노한 눈빛을 한 칸 더 길고 밝게(위협)
              tension=0.0)               # 2차(활): 어깨·등 긴장 0~1 — 견갑골이 등뼈 쪽으로 모이고 등 근육 능선 빛(0 이면 1차와 픽셀 동일)
     p.update(kw)
     if p["handAt"] is None:
@@ -246,11 +252,26 @@ def draw_front(p, back=False):
     sq = p["squash"]
 
     # 상체 좌표: 위로 갈수록 shift·twist 가 더 걸림 (허리 0 → 가슴 1) — 비틀림
+    tl = math.radians(p["tilt"])
+    pcx, pcy = X(0), HIP_Y + b + cr
+
+    def _rot(x, y):
+        if not tl:
+            return x, y
+        ox, oy = x - pcx, y - pcy
+        return pcx + ox * math.cos(tl) - oy * math.sin(tl), pcy + ox * math.sin(tl) + oy * math.cos(tl)
+
     def ux(dx, y):
+        return _rot(_ux0(dx, y), _uy0(dx, y))[0]
+
+    def uy(dx, y):
+        return _rot(_ux0(dx, y), _uy0(dx, y))[1]
+
+    def _ux0(dx, y):
         k = max(0.0, min(1.0, (HIP_Y - y) / 24.0))
         return X(dx + sh_ * (0.4 + 0.6 * k) + tw * k)
 
-    def uy(dx, y):
+    def _uy0(dx, y):
         t = 0.0
         if y < 47:
             t = (st if dx > 0 else -st) * min(1.0, abs(dx) / 16.0) - br * (47 - y) / 15.0
@@ -273,8 +294,12 @@ def draw_front(p, back=False):
         hip = (X(s * 5.4 + sh_ * 0.4), HIP_Y + b + cr - s * pt)
         lift = p["lift"][li]
         fy = FOOT_Y + p["step"][li] - lift
-        foot = (X(s * 8.0) + p["footdx"][li], fy)
+        foot = (X(s * (8.0 + p["stanceW"])) + p["footdx"][li], fy)
         knee = ((hip[0] + foot[0]) / 2 + m * s * (1.4 + 0.4 * lift), (hip[1] + foot[1]) / 2 - 0.4 * lift)
+        if p["kneeIK"]:                                  # P19: 다리 길이 보존 — 웅크릴수록 무릎이 바깥(화면 x)·아래로
+            dd = math.hypot(foot[0] - hip[0], foot[1] - hip[1])
+            bend = math.sqrt(max(0.0, ((THIGH + SHIN) * 0.5) ** 2 - (dd * 0.5) ** 2))
+            knee = ((hip[0] + foot[0]) / 2 + m * s * (1.2 + 0.34 * bend + 0.4 * lift), (hip[1] + foot[1]) / 2 + 0.5 * bend - 0.4 * lift)
         R.capsule(P("leg" + side, ASH, 2, group="leg" + side, soft=2.0, vgrad=0.82, bands=LIMB_BANDS), [hip, knee, foot], [4.4, 3.3, 2.5])
         R.ellipse(P("foot" + side, ASH, 2, group="foot" + side, soft=1.2), foot[0] + m * s * 0.6, fy + 1.6 + max(0, p["step"][li]) * 0.2, 4.3, 2.3 + max(0, p["step"][li]) * 0.2)
         if side == "R":
@@ -297,7 +322,7 @@ def draw_front(p, back=False):
             el = (ux(s * 18.4 + s * 0.3 * hdy, 50), 49.5 + b + cr + hdy * 0.4 - br * 0.5)
             end = (hand[0], hand[1] - 2.0)
         else:
-            hand = reach(shj, tgt)
+            hand = reach(shj, tgt, p["reachFrac"])
             bend = (p["elbow"] or {}).get(side, m * s)
             el = ik2(shj, hand, UPPER, FORE, bend)
             end = arm_end(el, hand)
@@ -338,8 +363,9 @@ def draw_front(p, back=False):
         if side not in p["armBack"]:
             front_arm(side)
     # --- 머리: 숙여서 어깨 사이로 내려온 금 간 두개골 ------------------------------------
-    hx = ux(0, 30) + p["hdx"]
+    hx = _ux0(0, 30) + p["hdx"]
     hy = (22.5 if not sq else HIP_Y - (HIP_Y - 22.5) * (1.0 - sq)) + b + cr + hd - br * 0.6
+    hx, hy = _rot(hx, hy)
     R.anchors.update(head=(hx, hy), chest=U(0, 45), hipL=U(10.5, 58.5), hipR=U(-10.5, 58.5))
     R.scar = scar_rect(U, SCAR_BACK, back)
     if not back:
@@ -405,6 +431,10 @@ def draw_front(p, back=False):
             fline(R, HFs([(3.0, 2.6), (4.6, 1.9)]), [EYE[0], EYE[1], EYE[2]])
             q = R.T(HF(5.0, 1.0))
             R.px(q[0], q[1] - 1, EYE[1])                                            # 위로 새는 눈빛 1px
+            if p["eyeHot"]:                                                          # P19 위협: 바깥 끝이 한 칸 더 치켜 올라가고 속이 백열
+                fline(R, HFs([(6.2, 0.2), (7.2, -0.7)]), [EYE[2], EYE[1]])
+                q = R.T(HF(4.4, 1.5))
+                R.px(q[0], q[1], EYE[3])
         # 가슴 균열 · 갈비 · 쇄골 · 껍데기 금
         crack(R, [(-3, 37.5), (-1, 40.5), (-4.5, 43.5), (-1.5, 46.5), (-3.5, 50), (-1, 53)], U, pulse=p["pulse"], thick=(m, 0), glow=p["glow"])
         crack(R, [(-1, 40.5), (2.5, 41.5)], U, thick=(0, 1), spill=False, glow=p["glow"])
@@ -504,16 +534,31 @@ def draw_side(p, facing):
     R = new_rig()
     f = facing
     details = []
-    X = lambda dx: 32 + f * dx                   # noqa: E731
+    X = (lambda dx: 32 + f * (dx + p["gdx"])) if p["gdx"] else (lambda dx: 32 + f * dx)   # noqa: E731
     near = "R" if f == 1 else "L"
     b, br, hd, lb, cr = p["bob"], p["breath"], p["head"], p["lean_body"], p["crouch"]
 
-    def ux(dx, y):                               # 숙임: 위로 갈수록 앞으로 (lean_body 가 클수록 더)
+    tl = math.radians(p["tilt"]) * f
+    pcx, pcy = X(-1.0), HIP_Y + b + cr
+
+    def _rot(x, y):
+        if not tl:
+            return x, y
+        ox, oy = x - pcx, y - pcy
+        return pcx + ox * math.cos(tl) - oy * math.sin(tl), pcy + ox * math.sin(tl) + oy * math.cos(tl)
+
+    def _ux0(dx, y):                             # 숙임: 위로 갈수록 앞으로 (lean_body 가 클수록 더)
         k = max(0.0, (HIP_Y - y)) / 26.0
         return X(dx + lb * k * 3.0 + (br * 0.35 if dx > 0 and y < 48 else 0))
 
-    def uy(dx, y):
+    def _uy0(dx, y):
         return y + b + cr - (br * (48 - y) / 15.0 if y < 48 else 0)
+
+    def ux(dx, y):
+        return _rot(_ux0(dx, y), _uy0(dx, y))[0]
+
+    def uy(dx, y):
+        return _rot(_ux0(dx, y), _uy0(dx, y))[1]
 
     U = lambda dx, y: (ux(dx, y), uy(dx, y))     # noqa: E731
 
@@ -546,7 +591,7 @@ def draw_side(p, facing):
             el = ik2(shj, hand, UPPER, FORE, (p["elbow"] or {}).get(side, -f))
             end = (hand[0] - f * 1.2, hand[1] - 1.6)
         else:
-            hand = reach(shj, tgt)
+            hand = reach(shj, tgt, p["reachFrac"])
             el = ik2(shj, hand, UPPER, FORE, (p["elbow"] or {}).get(side, -f))
             end = arm_end(el, hand)
         name = "arm_" + which
@@ -572,15 +617,17 @@ def draw_side(p, facing):
     R.poly(P("torso", ASH, 2, group="body", soft=4.0, vgrad=0.80), [U(dx, y) for dx, y in torso])
     hy = 24.0 + b + cr + hd - br * 0.5
     hx = 7.0 + lb * 2.2 + p["hdx"]
-    R.anchors.update(head=(X(hx), hy), chest=U(2, 45), hipL=(X(0.5), 58.5 + b + cr), hipR=(X(0.5), 58.5 + b + cr))
+    hxs, hy = _rot(X(hx), hy)
+    XH = (lambda d: hxs + f * d) if tl else (lambda d: X(hx + d))   # noqa: E731  (P19: 회전한 머리 중심 기준 앞(+) 거리 — 0 이면 이전 식 그대로)
+    R.anchors.update(head=(XH(0), hy), chest=U(2, 45), hipL=(X(0.5), 58.5 + b + cr), hipR=(X(0.5), 58.5 + b + cr))
     R.scar = scar_rect(U, SCAR_SIDE, True)
-    R.capsule(P("neck", ASH, 2, group="body", soft=1.5), [U(3.5, 35), (X(hx - 2.5), hy + 5.5)], [3.4, 3.0])
+    R.capsule(P("neck", ASH, 2, group="body", soft=1.5), [U(3.5, 35), (XH(-2.5), hy + 5.5)], [3.4, 3.0])
     # --- 머리: 앞으로 빠진 금 간 두개(옆얼굴) ---------------------------------------------
-    R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(X(hx + dx), hy + dy) for dx, dy in SKULL_SIDE])
-    R.poly(P("face", FACE, 3, group="head", soft=1.4, rim=False, cast=False, warm=True, vgrad=0.8), [(X(hx + dx), hy + dy) for dx, dy in FACE_SIDE])
-    bite(R, X(hx + 2.2), hy - 10.2, 1.7)
-    bite(R, X(hx - 7.2), hy - 3.2, 2.0)
-    bite(R, X(hx + 6.0), hy + 9.0, 1.1)
+    R.poly(P("head", ASH, 4, group="head", soft=2.6, vgrad=0.80), [(XH(dx), hy + dy) for dx, dy in SKULL_SIDE])
+    R.poly(P("face", FACE, 3, group="head", soft=1.4, rim=False, cast=False, warm=True, vgrad=0.8), [(XH(dx), hy + dy) for dx, dy in FACE_SIDE])
+    bite(R, XH(2.2), hy - 10.2, 1.7)
+    bite(R, XH(-7.2), hy - 3.2, 2.0)
+    bite(R, XH(6.0), hy + 9.0, 1.1)
     # --- 가까운 다리 · 허리천 · 일기장 ---------------------------------------------
     leg("near", 0)
     sw = p["sway"]
@@ -604,9 +651,9 @@ def draw_side(p, facing):
         details.append(("pauldron", None, None))
 
     # ======================= 덧칠 (1.5배 해상도 세부) =======================
-    HF = lambda dx, dy: (X(hx + dx), hy + dy)    # noqa: E731
+    HF = lambda dx, dy: (XH(dx), hy + dy)    # noqa: E731
     HFs = lambda pts: [HF(dx, dy) for dx, dy in pts]   # noqa: E731
-    X0 = X(hx)
+    X0 = XH(0)
     fpoly(R, [(X0 - 4.6, hy - 6.4), (X0 - 3.6, hy - 8.4), (X0 - 1.6, hy - 9.6), (X0 - 0.2, hy - 9.4), (X0 - 1.8, hy - 8.0), (X0 - 3.4, hy - 6.6)], G[8], "head")
     crown = HFs([(-1, -9.6), (0, -8.2), (0.2, -7.0), (1.2, -6.0), (2.0, -4.8), (2.8, -3.8), (3.2, -2.6), (3.0, -1.4)])
     fline(R, [(q[0] + f * 0.7, q[1]) for q in crown[:6]], A[18], "head")
@@ -628,6 +675,10 @@ def draw_side(p, facing):
         fline(R, HFs([(3.0, 2.4), (4.2, 1.6), (5.2, 0.9), (6.2, 0.1)]),
               [EYE[0], EYE[1], EYE[2], EYE[3] if p["pulse"] else EYE[2], EYE[2], EYE[1]])
         fline(R, HFs([(3.6, 2.6), (4.8, 1.8)]), [EYE[0], EYE[1]])
+        if p["eyeHot"]:                                                          # P19 위협: 치켜 올라간 끝 + 백열 속
+            fline(R, HFs([(6.2, 0.1), (7.3, -0.8)]), [EYE[2], EYE[1]])
+            q = R.T(HF(4.8, 1.3))
+            R.px(q[0], q[1], EYE[3])
     else:
         fline(R, HFs([(4.0, 1.6), (5.4, 1.2)]), G[1])                               # 꺼진 눈: 어둠 속 결
     crack(R, [(7.2, 39), (8.6, 42), (7.0, 45), (7.6, 47)], U, pulse=p["pulse"], thick=(0, 0), spill=False, glow=p["glow"])

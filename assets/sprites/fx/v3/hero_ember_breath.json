@@ -1,0 +1,90 @@
+{
+ "version": "v3-p19",
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "paletteSwapNote": "53라운드 Q62·Q68 — fx 는 지역·층 바닥 팔레트 교체에서 제외(그린 색 그대로).",
+ "palette": "주인공 v3 30색 안(재 G · 먹 SL0 · 호박 A19~A26)",
+ "semiTransparent": false,
+ "source": "parts/art/work/hero19/fx19.py (P19 주인공 위협감 fx)",
+ "unitNote": "길이 필드(pivot·px 값)는 이 시트 도트 단위. 논리 px = 도트 × pixelScale(0.5).",
+ "action": "hero_ember_breath",
+ "frameWidth": 48,
+ "frameHeight": 80,
+ "pivot": {
+  "x": 24,
+  "y": 72
+ },
+ "frameDurationsMs": [
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80,
+  80
+ ],
+ "loop": true,
+ "anchor": "chest_anchor",
+ "followsPlayer": true,
+ "depth": "above_player",
+ "playWhen": "player_idle / player_idle_free 재생 중(전투 대기). 다른 동작으로 바뀌면 끔",
+ "note": "P19 대기 위협감: 가슴 균열에서 불티가 숨결처럼 피어올라 흔들리며 식는다(7점, 서로 다른 위상). 몸 시트의 균열 맥동(2·3 프레임 pulse)과 함께.",
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction (directions order), column = frame index",
+ "frameIndex": "row * frames + column",
+ "fps": 12.5,
+ "colors": 4,
+ "image": "hero_ember_breath.png",
+ "framesPerDirection": 12,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 hero_ember_breath.png)",
+  "grid": {
+   "columns": 12,
+   "rows": 1,
+   "frameWidth": 48,
+   "frameHeight": 80,
+   "frameCount": 12
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":21,"y":46,"w":18,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":32,"w":18,"h":44},"sourceSize":{"w":48,"h":80}},
+  "1":{"frame":{"x":21,"y":0,"w":21,"h":44},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":28,"w":21,"h":44},"sourceSize":{"w":48,"h":80}},
+  "2":{"frame":{"x":0,"y":51,"w":16,"h":47},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":26,"w":16,"h":47},"sourceSize":{"w":48,"h":80}},
+  "3":{"frame":{"x":0,"y":0,"w":19,"h":49},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":21,"w":19,"h":49},"sourceSize":{"w":48,"h":80}},
+  "4":{"frame":{"x":41,"y":47,"w":22,"h":34},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":37,"w":22,"h":34},"sourceSize":{"w":48,"h":80}},
+  "5":{"frame":{"x":41,"y":83,"w":23,"h":25},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":42,"w":23,"h":25},"sourceSize":{"w":48,"h":80}},
+  "6":{"frame":{"x":66,"y":31,"w":20,"h":26},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":38,"w":20,"h":26},"sourceSize":{"w":48,"h":80}},
+  "7":{"frame":{"x":65,"y":0,"w":21,"h":29},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":33,"w":21,"h":29},"sourceSize":{"w":48,"h":80}},
+  "8":{"frame":{"x":44,"y":0,"w":19,"h":45},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":29,"w":19,"h":45},"sourceSize":{"w":48,"h":80}},
+  "9":{"frame":{"x":66,"y":59,"w":18,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":45,"w":18,"h":24},"sourceSize":{"w":48,"h":80}},
+  "10":{"frame":{"x":66,"y":85,"w":18,"h":24},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":41,"w":18,"h":24},"sourceSize":{"w":48,"h":80}},
+  "11":{"frame":{"x":18,"y":92,"w":16,"h":23},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":37,"w":16,"h":23},"sourceSize":{"w":48,"h":80}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "hero_ember_breath.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 86,
+   "h": 115
+  },
+  "scale": "1"
+ }
+}

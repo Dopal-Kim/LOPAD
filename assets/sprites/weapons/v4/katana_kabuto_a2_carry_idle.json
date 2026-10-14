@@ -90,6 +90,8 @@
  "trailRule": "2차 각성 뒤 이 무기의 휘두름 궤적 fx 를 trailTint[길] 로 물들인다(새 시트 없음, 계약 §26)",
  "glowFrames": [],
  "r61s5": "61 단계 5 P13 §2 칼 재디자인(무기+이펙트 함께) — 틀·피벗·프레임·ms·행·앵커 그대로, 그림만 교체",
+ "pathTintNote": "61 단계 6 P14 §2 칼 '서리' — 2차 두 길 = 서리 계열 안 짙은 쪽 / 옅은 쪽",
+ "p19": "P19 주인공 역동성: 몸 새 자세에 맞춰 프레임마다 weaponOffsetDots(왼허리 이동) 만큼 옮김(그림은 그대로)",
  "atlas": {
   "version": "atlas57-1",
   "format": "phaser-json-hash",
@@ -110,30 +112,30 @@
   "pages": 1
  },
  "frames": {
-  "0":{"frame":{"x":60,"y":17,"w":17,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":165,"w":17,"h":16},"sourceSize":{"w":264,"h":264}},
-  "1":{"frame":{"x":0,"y":17,"w":18,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":165,"w":18,"h":16},"sourceSize":{"w":264,"h":264}},
-  "2":{"frame":{"x":88,"y":0,"w":19,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":165,"w":19,"h":16},"sourceSize":{"w":264,"h":264}},
-  "3":{"frame":{"x":109,"y":0,"w":19,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":165,"w":19,"h":16},"sourceSize":{"w":264,"h":264}},
-  "4":{"frame":{"x":20,"y":17,"w":18,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":148,"y":165,"w":18,"h":16},"sourceSize":{"w":264,"h":264}},
-  "5":{"frame":{"x":40,"y":17,"w":18,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":165,"w":18,"h":16},"sourceSize":{"w":264,"h":264}},
-  "6":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":180,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
-  "7":{"frame":{"x":109,"y":23,"w":17,"h":3},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":178,"w":17,"h":3},"sourceSize":{"w":264,"h":264}},
-  "8":{"frame":{"x":109,"y":18,"w":18,"h":3},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":178,"w":18,"h":3},"sourceSize":{"w":264,"h":264}},
-  "9":{"frame":{"x":109,"y":18,"w":18,"h":3},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":98,"y":178,"w":18,"h":3},"sourceSize":{"w":264,"h":264}},
-  "10":{"frame":{"x":98,"y":18,"w":9,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":170,"w":9,"h":11},"sourceSize":{"w":264,"h":264}},
-  "11":{"frame":{"x":79,"y":18,"w":17,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":170,"w":17,"h":11},"sourceSize":{"w":264,"h":264}},
-  "12":{"frame":{"x":0,"y":0,"w":28,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":166,"w":28,"h":15},"sourceSize":{"w":264,"h":264}},
-  "13":{"frame":{"x":30,"y":0,"w":27,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":166,"w":27,"h":15},"sourceSize":{"w":264,"h":264}},
-  "14":{"frame":{"x":59,"y":0,"w":27,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":166,"w":27,"h":15},"sourceSize":{"w":264,"h":264}},
-  "15":{"frame":{"x":59,"y":0,"w":27,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":166,"w":27,"h":15},"sourceSize":{"w":264,"h":264}},
-  "16":{"frame":{"x":30,"y":0,"w":27,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":166,"w":27,"h":15},"sourceSize":{"w":264,"h":264}},
-  "17":{"frame":{"x":0,"y":0,"w":28,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":166,"w":28,"h":15},"sourceSize":{"w":264,"h":264}},
-  "18":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":169,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
-  "19":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":169,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
-  "20":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":169,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
-  "21":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":169,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
-  "22":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":169,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
-  "23":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":169,"w":3,"h":1},"sourceSize":{"w":264,"h":264}}
+  "0":{"frame":{"x":60,"y":17,"w":17,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":171,"w":17,"h":16},"sourceSize":{"w":264,"h":264}},
+  "1":{"frame":{"x":0,"y":17,"w":18,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":171,"w":18,"h":16},"sourceSize":{"w":264,"h":264}},
+  "2":{"frame":{"x":88,"y":0,"w":19,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":171,"w":19,"h":16},"sourceSize":{"w":264,"h":264}},
+  "3":{"frame":{"x":109,"y":0,"w":19,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":171,"w":19,"h":16},"sourceSize":{"w":264,"h":264}},
+  "4":{"frame":{"x":20,"y":17,"w":18,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":147,"y":171,"w":18,"h":16},"sourceSize":{"w":264,"h":264}},
+  "5":{"frame":{"x":40,"y":17,"w":18,"h":16},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":146,"y":171,"w":18,"h":16},"sourceSize":{"w":264,"h":264}},
+  "6":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":186,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
+  "7":{"frame":{"x":109,"y":23,"w":17,"h":3},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":184,"w":17,"h":3},"sourceSize":{"w":264,"h":264}},
+  "8":{"frame":{"x":109,"y":18,"w":18,"h":3},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":183,"w":18,"h":3},"sourceSize":{"w":264,"h":264}},
+  "9":{"frame":{"x":109,"y":18,"w":18,"h":3},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":99,"y":184,"w":18,"h":3},"sourceSize":{"w":264,"h":264}},
+  "10":{"frame":{"x":98,"y":18,"w":9,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":100,"y":176,"w":9,"h":11},"sourceSize":{"w":264,"h":264}},
+  "11":{"frame":{"x":79,"y":18,"w":17,"h":11},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":101,"y":176,"w":17,"h":11},"sourceSize":{"w":264,"h":264}},
+  "12":{"frame":{"x":0,"y":0,"w":28,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":171,"w":28,"h":15},"sourceSize":{"w":264,"h":264}},
+  "13":{"frame":{"x":30,"y":0,"w":27,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":171,"w":27,"h":15},"sourceSize":{"w":264,"h":264}},
+  "14":{"frame":{"x":59,"y":0,"w":27,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":171,"w":27,"h":15},"sourceSize":{"w":264,"h":264}},
+  "15":{"frame":{"x":59,"y":0,"w":27,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":171,"w":27,"h":15},"sourceSize":{"w":264,"h":264}},
+  "16":{"frame":{"x":30,"y":0,"w":27,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":171,"w":27,"h":15},"sourceSize":{"w":264,"h":264}},
+  "17":{"frame":{"x":0,"y":0,"w":28,"h":15},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":124,"y":171,"w":28,"h":15},"sourceSize":{"w":264,"h":264}},
+  "18":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":174,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
+  "19":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":174,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
+  "20":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":174,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
+  "21":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":174,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
+  "22":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":114,"y":174,"w":3,"h":1},"sourceSize":{"w":264,"h":264}},
+  "23":{"frame":{"x":109,"y":28,"w":3,"h":1},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":113,"y":174,"w":3,"h":1},"sourceSize":{"w":264,"h":264}}
  },
  "meta": {
   "app": "LOPAD atlas57 (Pillow)",
@@ -145,6 +147,5 @@
    "h": 33
   },
   "scale": "1"
- },
- "pathTintNote": "61 단계 6 P14 §2 칼 '서리' — 2차 두 길 = 서리 계열 안 짙은 쪽 / 옅은 쪽"
+ }
 }

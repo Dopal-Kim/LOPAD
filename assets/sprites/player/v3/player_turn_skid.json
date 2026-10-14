@@ -1,0 +1,695 @@
+{
+ "image": "player_turn_skid.png",
+ "action": "turn_skid",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 4,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 22.22,
+ "frameDurationsMs": [
+  40,
+  50,
+  50,
+  40
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27, 런타임 스왑) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색)",
+ "source": "parts/art/work/hero19/build.py (P19 주인공 역동성 — hero_v3 리그 재자세 · 무기 오버레이 프레임 오프셋 동기)",
+ "emissiveColors": [
+  "#e2a33c",
+  "#eecc78",
+  "#f4de9b"
+ ],
+ "handAnchors": {
+  "down": [
+   {
+    "handR": [
+     28.1,
+     101.6
+    ],
+    "handL": [
+     71.2,
+     100.9
+    ]
+   },
+   {
+    "handR": [
+     25.1,
+     102.6
+    ],
+    "handL": [
+     68.2,
+     101.9
+    ]
+   },
+   {
+    "handR": [
+     25.6,
+     99.3
+    ],
+    "handL": [
+     72.4,
+     99.3
+    ]
+   },
+   {
+    "handR": [
+     24.6,
+     95.3
+    ],
+    "handL": [
+     71.4,
+     95.3
+    ]
+   }
+  ],
+  "up": [
+   {
+    "handR": [
+     68.9,
+     99.6
+    ],
+    "handL": [
+     25.8,
+     98.9
+    ]
+   },
+   {
+    "handR": [
+     70.9,
+     103.6
+    ],
+    "handL": [
+     27.8,
+     102.9
+    ]
+   },
+   {
+    "handR": [
+     70.4,
+     97.3
+    ],
+    "handL": [
+     23.6,
+     97.3
+    ]
+   },
+   {
+    "handR": [
+     71.4,
+     95.3
+    ],
+    "handL": [
+     24.6,
+     95.3
+    ]
+   }
+  ],
+  "left": [
+   {
+    "handR": [
+     20.0,
+     85.2
+    ],
+    "handL": [
+     23.0,
+     88.6
+    ]
+   },
+   {
+    "handR": [
+     20.0,
+     87.2
+    ],
+    "handL": [
+     23.0,
+     90.6
+    ]
+   },
+   {
+    "handR": [
+     35.5,
+     93.9
+    ],
+    "handL": [
+     37.0,
+     96.7
+    ]
+   },
+   {
+    "handR": [
+     35.5,
+     90.9
+    ],
+    "handL": [
+     37.0,
+     93.7
+    ]
+   }
+  ],
+  "right": [
+   {
+    "handR": [
+     73.1,
+     88.6
+    ],
+    "handL": [
+     76.1,
+     85.2
+    ]
+   },
+   {
+    "handR": [
+     73.1,
+     90.6
+    ],
+    "handL": [
+     76.1,
+     87.2
+    ]
+   },
+   {
+    "handR": [
+     58.9,
+     96.7
+    ],
+    "handL": [
+     60.4,
+     93.9
+    ]
+   },
+   {
+    "handR": [
+     58.9,
+     93.7
+    ],
+    "handL": [
+     60.4,
+     90.9
+    ]
+   }
+  ]
+ },
+ "anchorNote": "handAnchors = 프레임별 손 중심(몸 시트 도트 좌표, 해부 기준 R = 오른손 · L = 왼손). 무기 시트 좌표 = 몸 좌표 + playerFrameOffset(48,48). 칼은 오른손(R)이 쥔다. 대기·걷기·달리기에서 왼손(L)은 칼집 입구를 쥔다(53라운드).",
+ "scarAnchor": {
+  "down": [
+   {
+    "x": 54.0,
+    "y": 74.8,
+    "w": 25.5,
+    "h": 20.0,
+    "rot": 10.5,
+    "visible": false
+   },
+   {
+    "x": 43.8,
+    "y": 79.6,
+    "w": 25.5,
+    "h": 18.0,
+    "rot": -8.2,
+    "visible": false
+   },
+   {
+    "x": 51.8,
+    "y": 80.2,
+    "w": 25.5,
+    "h": 16.4,
+    "rot": 7.2,
+    "visible": false
+   },
+   {
+    "x": 49.2,
+    "y": 77.1,
+    "w": 25.5,
+    "h": 16.4,
+    "rot": 2.2,
+    "visible": false
+   }
+  ],
+  "up": [
+   {
+    "x": 45.8,
+    "y": 74.2,
+    "w": 25.5,
+    "h": 20.0,
+    "rot": -2.5,
+    "visible": true
+   },
+   {
+    "x": 49.6,
+    "y": 79.3,
+    "w": 25.5,
+    "h": 18.0,
+    "rot": 2.2,
+    "visible": true
+   },
+   {
+    "x": 45.8,
+    "y": 80.0,
+    "w": 25.5,
+    "h": 16.4,
+    "rot": -3.2,
+    "visible": true
+   },
+   {
+    "x": 46.8,
+    "y": 77.1,
+    "w": 25.5,
+    "h": 16.4,
+    "rot": -2.2,
+    "visible": true
+   }
+  ],
+  "left": [
+   {
+    "x": 58.9,
+    "y": 78.1,
+    "w": 7.2,
+    "h": 11.2,
+    "rot": 10.0,
+    "visible": true
+   },
+   {
+    "x": 51.4,
+    "y": 78.9,
+    "w": 7.2,
+    "h": 11.3,
+    "rot": -7.3,
+    "visible": true
+   },
+   {
+    "x": 41.6,
+    "y": 78.9,
+    "w": 7.2,
+    "h": 11.4,
+    "rot": -29.8,
+    "visible": true
+   },
+   {
+    "x": 39.8,
+    "y": 76.5,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": -34.0,
+    "visible": true
+   }
+  ],
+  "right": [
+   {
+    "x": 37.1,
+    "y": 78.1,
+    "w": 7.2,
+    "h": 11.2,
+    "rot": -10.0,
+    "visible": true
+   },
+   {
+    "x": 44.6,
+    "y": 78.9,
+    "w": 7.2,
+    "h": 11.3,
+    "rot": 7.3,
+    "visible": true
+   },
+   {
+    "x": 54.4,
+    "y": 78.9,
+    "w": 7.2,
+    "h": 11.4,
+    "rot": 29.8,
+    "visible": true
+   },
+   {
+    "x": 56.2,
+    "y": 76.5,
+    "w": 7.2,
+    "h": 11.5,
+    "rot": 34.0,
+    "visible": true
+   }
+  ]
+ },
+ "scarAnchorNote": "53라운드 Q4 · 계약 §13: 프레임별 등 상흔 사각형(몸 시트 도트 좌표). x·y = 사각형 중심, w·h = 회전 전 크기, rot = 도(위쪽 변이 오른쪽으로 기울면 +, 시계 방향), visible = 이 프레임에 상흔을 그림. up = 등 가운데(visible), left·right = 굽은 등 위 어깨 쪽 작은 사각형(visible), down = 가슴 쪽 자리(visible:false). 사망 4프레임부터(재 무덤으로 가라앉음)는 false.",
+ "carryOverlay": "weapons/v3/katana_carry_turn_skid",
+ "carryDrawnOverlay": "weapons/v3/katana_carry_drawn_turn_skid",
+ "note": "P19 새 동작 — 방향 전환 미끄럼. 행 = 새로 향하는 방향. 0 앞발을 박고 몸이 뒤로 받침 → 1 미끄러지며 상체가 새 방향으로 → 2 뒷발로 박참 → 3 달리기 0 쪽. 모든 무기 공용 몸(대쉬처럼) — 오버레이 <무기>_carry_turn_skid · <무기>_carry_drawn_turn_skid(대쉬 휴대 그림을 프레임 오프셋으로 옮긴 것).",
+ "turnSkid": {
+  "trigger": "이동 중(달리기 속도의 60% 이상) 입력 방향이 135° 이상 꺾인 순간 1회. 이동·공격 입력을 막지 않는 장식 동작 — 공격·대쉬가 나가면 즉시 끊음",
+  "row": "새 방향(입력 방향) 4방향 행",
+  "then": "player_run 0 (입력 유지) / player_idle 0 (입력 없음)",
+  "fx": "fx/v3/hero_skid_dust 를 0 프레임에 발 피벗(옛 진행 방향 쪽으로 흩날림)",
+  "srcDashFrames": [
+   4,
+   4,
+   0,
+   0
+  ]
+ },
+ "weaponOffsetDots": {
+  "down": [
+   [
+    2,
+    2
+   ],
+   [
+    -1,
+    3
+   ],
+   [
+    1,
+    5
+   ],
+   [
+    0,
+    1
+   ]
+  ],
+  "up": [
+   [
+    -1,
+    0
+   ],
+   [
+    1,
+    4
+   ],
+   [
+    -1,
+    3
+   ],
+   [
+    0,
+    1
+   ]
+  ],
+  "left": [
+   [
+    0,
+    2
+   ],
+   [
+    0,
+    4
+   ],
+   [
+    0,
+    4
+   ],
+   [
+    0,
+    1
+   ]
+  ],
+  "right": [
+   [
+    0,
+    2
+   ],
+   [
+    0,
+    4
+   ],
+   [
+    0,
+    4
+   ],
+   [
+    0,
+    1
+   ]
+  ]
+ },
+ "weaponOffsetBackDots": {
+  "down": [
+   [
+    5,
+    -2
+   ],
+   [
+    -4,
+    3
+   ],
+   [
+    4,
+    6
+   ],
+   [
+    1,
+    3
+   ]
+  ],
+  "up": [
+   [
+    -2,
+    -2
+   ],
+   [
+    2,
+    3
+   ],
+   [
+    -2,
+    6
+   ],
+   [
+    -1,
+    3
+   ]
+  ],
+  "left": [
+   [
+    11,
+    2
+   ],
+   [
+    4,
+    5
+   ],
+   [
+    -5,
+    8
+   ],
+   [
+    -7,
+    6
+   ]
+  ],
+  "right": [
+   [
+    -11,
+    2
+   ],
+   [
+    -4,
+    5
+   ],
+   [
+    5,
+    8
+   ],
+   [
+    7,
+    6
+   ]
+  ]
+ },
+ "eyeAnchors": {
+  "down": [
+   [
+    63.6,
+    46.0
+   ],
+   [
+    47.9,
+    55.3
+   ],
+   [
+    59.6,
+    59.8
+   ],
+   [
+    55.8,
+    56.6
+   ]
+  ],
+  "up": [
+   null,
+   null,
+   null,
+   null
+  ],
+  "left": [
+   [
+    41.6,
+    49.1
+   ],
+   [
+    23.8,
+    55.0
+   ],
+   [
+    4.5,
+    62.9
+   ],
+   [
+    1.7,
+    59.7
+   ]
+  ],
+  "right": [
+   [
+    54.4,
+    49.1
+   ],
+   [
+    72.2,
+    55.0
+   ],
+   [
+    91.5,
+    62.9
+   ],
+   [
+    94.3,
+    59.7
+   ]
+  ]
+ },
+ "chestAnchors": {
+  "down": [
+   [
+    53.5,
+    77.8
+   ],
+   [
+    44.1,
+    82.3
+   ],
+   [
+    51.5,
+    82.7
+   ],
+   [
+    49.1,
+    79.6
+   ]
+  ],
+  "up": [
+   [
+    45.9,
+    77.3
+   ],
+   [
+    49.5,
+    82.1
+   ],
+   [
+    45.9,
+    82.5
+   ],
+   [
+    46.9,
+    79.6
+   ]
+  ],
+  "left": [
+   [
+    49.2,
+    77.6
+   ],
+   [
+    42.0,
+    80.7
+   ],
+   [
+    33.2,
+    83.2
+   ],
+   [
+    31.5,
+    80.9
+   ]
+  ],
+  "right": [
+   [
+    46.8,
+    77.6
+   ],
+   [
+    54.0,
+    80.7
+   ],
+   [
+    62.8,
+    83.2
+   ],
+   [
+    64.5,
+    80.9
+   ]
+  ]
+ },
+ "fxAnchorNote": "P19 fx 기준점(몸 도트): eyeAnchors = 분노한 눈 중심(fx/v3/hero_eye_trail 자리, null = 안 보임 — 뒷모습·눈 깜빡), chestAnchors = 가슴 균열(fx/v3/hero_ember_breath 자리). 몸 피벗 기준 = (x − 48, y − 138)",
+ "p19": "P19 주인공 역동성(2026-10-14): 키아트 hero3_b 의 낮게 웅크린 포식자 결로 몸만 다시 렌더. 프레임 수·ms·피벗·판정 시점 그대로. 무기 오버레이는 다시 그리지 않고 프레임마다 weaponOffsetDots 만큼 통째로 옮겼다(handAnchors 도 같은 만큼) — 손·무기 동기 유지.",
+ "previousSource": "parts/art/work/hero_v3/build.py (53라운드 Q1·Q4 — 96×144 1.5배 재출력)",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 player_turn_skid.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 16
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":160,"y":0,"w":74,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":29,"w":74,"h":107},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":79,"y":109,"w":80,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":5,"y":38,"w":80,"h":99},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":301,"y":213,"w":62,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":42,"w":62,"h":102},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":236,"y":108,"w":63,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":39,"w":63,"h":105},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":0,"y":0,"w":77,"h":116},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":9,"y":28,"w":77,"h":116},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":79,"y":0,"w":79,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":10,"y":37,"w":79,"h":107},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":361,"y":108,"w":58,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":17,"y":42,"w":58,"h":102},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":301,"y":108,"w":58,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":18,"y":39,"w":58,"h":103},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":304,"y":0,"w":65,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":33,"w":65,"h":106},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":365,"y":212,"w":47,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":39,"w":47,"h":100},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":161,"y":109,"w":72,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":41,"w":72,"h":98},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":0,"y":118,"w":66,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":40,"w":66,"h":96},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":236,"y":0,"w":66,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":15,"y":33,"w":66,"h":106},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":371,"y":0,"w":48,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":39,"w":48,"h":100},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":161,"y":209,"w":71,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":41,"w":71,"h":98},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":234,"y":215,"w":65,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":39,"w":65,"h":97},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "player_turn_skid.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 419,
+   "h": 315
+  },
+  "scale": "1"
+ }
+}
