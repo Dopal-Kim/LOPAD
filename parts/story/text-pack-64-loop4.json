@@ -1,0 +1,278 @@
+{
+  "_note": "62 루프 4 스토리 팩 64 (P18 §1·§5). 전권 위임 — 인터뷰 없음. 설명·판단 이유는 parts/story/text-pack-64-loop4.md. traits.items = data/traits.json items 문법 그대로(id·weapon·verb·tag·name·line·act·env·effect) + detail·flavor(유품 카드처럼 상세 보기 줄·흐린 한 줄; 자리표시 = effect 의 키, 단위 규칙은 63 팩과 같음: '초' 앞 ms ÷1000, '%' 앞 비율 ×100, '×{…}' 배율 그대로, '칸' 타일). effect 수치는 초안 — 시스템이 데모로 조정. '_' 키(_effect 구현 요약·_why·_art 128×128 카드 그림·_fx 발동 이펙트)는 화면에 안 나간다. memoryPools = data/memory.json pool_<weapon>.traits 교체값. sets = data/build.json sets.<tag>[threshold].line 교체값('{태그} 세트 — {문장}'의 문장 부분)",
+  "traits": {
+    "items": [
+      {
+        "id": "k_mem_fireLine",
+        "weapon": "katana",
+        "verb": "dash",
+        "tag": "drunk",
+        "name": "불줄 긋기",
+        "line": "일섬이 술 웅덩이를 가르면 칼에 묻은 술이 지나온 길에 불줄을 긋는다",
+        "detail": "일섬 길 전체 불줄 {fireMs}초 · {fireTickMs}초마다 공격 ×{fireMult}",
+        "flavor": "술 거리 칼잡이들은 칼을 닦지 않았다. 닦으면 불이 안 붙는다.",
+        "act": "ignite",
+        "env": true,
+        "effect": {
+          "kind": "issenFireLine",
+          "widthTiles": 0.8,
+          "fireMs": 2500,
+          "fireTickMs": 500,
+          "fireMult": 0.3
+        },
+        "_effect": "일섬(대쉬 직후 좌클릭) 판정 줄이 술 웅덩이에 하나라도 걸리면, 일섬 시작점부터 끝점까지 전체가 술불 띠(폭 widthTiles)가 된다. 걸친 웅덩이도 술불로 점화. 불줄은 적에게만 틱 피해(drunk.liquorPool 술불 규칙과 같음). 웅덩이 없으면 아무 일 없음",
+        "_why": "칼의 1층 기본 풀에 취기 카드가 없다(취기는 선풍·만월 갈래에만). 웅덩이 한 점을 '선'으로 바꿔 일섬으로 불벽을 긋고 그 뒤로 빠지는 싸움이 생긴다. 63 안 '불똥 일섬'은 이름이 '불똥 내려베기'(k_sparkCleave)와 겹치고 효과가 웅덩이 점화뿐이라 바꿨다",
+        "_art": "어둠 속 가로로 그어진 일섬 한 줄 — 서리 청백(#8fe3ff) 칼빛 선이 주인공. 선 아래 바닥 술 웅덩이에서 선을 따라 주황 불줄이 막 일어서는 순간. 칼끝 한 점과 손목 실루엣만, 인물 전신 없음",
+        "_fx": "trait_katana_k_mem_fireLine — 일섬 길을 따라 늘어나는 불줄 띠(루프, 길이는 시스템이 늘림) + 시작 불꽃 한 번. 불은 술불 색, 가장자리에 서리 청백 잔광"
+      },
+      {
+        "id": "k_mem_sheathBlock",
+        "weapon": "katana",
+        "verb": "hold",
+        "tag": "insight",
+        "name": "칼집 막기",
+        "line": "발도를 쥔 채 날아드는 화살·술병을 칼집으로 쳐 떨어뜨리면 검기가 한 단 찬다",
+        "detail": "발도를 쥐는 동안 앞쪽 탄 쳐내기 · 한 번에 검기 +{kenkiStage}단",
+        "flavor": "칼집에도 쇠를 덧댔다. 값 받은 칼잡이는 남는 걸 버리지 않는다.",
+        "act": "deflect",
+        "effect": {
+          "kind": "iaiSwat",
+          "arcDeg": 120,
+          "reachTiles": 1.5,
+          "kenkiStage": 1,
+          "cooldownMs": 250
+        },
+        "_effect": "발도 홀드(칼집에 손) 중 앞 arcDeg·reachTiles 안에 들어온 적 탄(사수 화살·독주 행상 술병)을 지운다(되치기 없음, 술병은 깨지지 않고 사라짐). 지울 때마다 검기 kenkiStage 단(상한 3단). 굴러오는 술통은 대상 아님. 간파 '완벽 성공' 사건으로는 세지 않는 것을 제안(세트 남용 방지 — 시스템 판단)",
+        "_why": "칼은 발도를 모으는 동안 원거리 압박에 답이 없다. 이 카드는 사수의 화살을 검기 연료로 바꿔 '화살 속에 서서 모으는' 싸움을 만든다. 대검 '쳐내기'(되치기)·'갈라진 길'과 달리 되돌려 보내지 않고, 대가로 발도가 빨리 찬다. 63 안 이름 '칼집 쳐내기'는 대검 '쳐내기'와 겹쳐 바꿨다",
+        "_art": "칼집째 비스듬히 세운 칼, 칼집 끝에 화살 한 대가 부러져 튕겨 나가는 순간. 칼자루 둘레에 서리 청백(#8fe3ff) 검기 고리 하나가 막 켜진다. 보조 은백",
+        "_fx": "trait_katana_k_mem_sheathBlock — 칼집 앞 짧은 쇳불꽃 + 부러진 탄 조각 한 번(원샷), 검기 한 단 차는 고리 번쩍임"
+      },
+      {
+        "id": "g_mem_caskRoll",
+        "weapon": "greatsword",
+        "verb": "attack",
+        "tag": "drunk",
+        "name": "술통 굴리기",
+        "line": "넷째 타로 술통을 치면 술통이 술을 흘리며 굴러가고, 불에 닿으면 터진다",
+        "detail": "굴러가는 술통 {rollTiles}칸 · 부딪치면 공격 ×{hitMult} · 술 자국 {trailMs}초 · 불에 닿으면 공격 ×{burstMult} (반경 {burstRadiusTiles}칸)",
+        "flavor": "노역꾼은 술통을 날랐다. 들 수 없으면 굴렸다. 오늘은 사람 쪽으로.",
+        "act": "throw",
+        "env": true,
+        "effect": {
+          "kind": "caskRoll",
+          "comboIndex": 3,
+          "rollTiles": 8,
+          "speedTiles": 6,
+          "hitMult": 1.0,
+          "hitStunMs": 500,
+          "trailWidthTiles": 0.8,
+          "trailMs": 5000,
+          "burstMult": 1.5,
+          "burstRadiusTiles": 1.8
+        },
+        "_effect": "4타 순환의 넷째 타(comboIndex 3)가 술통 구조물(structures 'cask') 또는 술통 짐꾼이 굴린 술통에 닿으면, 깨지는 대신 휘두른 방향으로 굴러가는 탄이 된다. 적을 꿰뚫고 지나가며 부딪친 적 hitMult·경직, 지나간 자리에 술 자국(웅덩이 띠). 술불·불줄·화염 술병 불에 닿으면 그 자리에서 폭발, 벽에 닿으면 보통처럼 깨져 웅덩이",
+        "_why": "대검은 느려서 멀리 있는 적에게 손이 없다. 방 안 술통이 대검의 '포탄'이 되고, 굴린 길이 술 자국이라 취기 빌드(술 위 처치)와 불 카드가 이어진다. 넷째 타 '날려 보내기'(적 대상)와 함께 붙어도 대상이 달라 부딪치지 않는다",
+        "_art": "대검 끝에 막 맞아 튕겨 굴러가는 술통 하나, 통 이음새에서 술이 새어 바닥에 젖은 줄이 길게 그어짐. 대검 날에 용암 주홍(#ff5a2a) 빛, 젖은 줄 끝에 작은 불씨 하나",
+        "_fx": "trait_greatsword_g_mem_caskRoll — 맞는 순간 나무 파편·술 튐(원샷) + 구르는 술통 뒤 술 자국은 기존 술 웅덩이 그림 재사용, 폭발은 기존 술통 폭발 재사용 가능"
+      },
+      {
+        "id": "g_mem_blockCharge",
+        "weapon": "greatsword",
+        "verb": "signature",
+        "tag": "breach",
+        "name": "받고 뛰어들기",
+        "line": "가드로 공격을 막은 직후 대쉬하면 그 공격을 한 적에게 곧장 어깨로 뛰어든다",
+        "detail": "막은 뒤 {windowMs}초 안 대쉬 · {rangeTiles}칸 안 공격한 적에게 어깨 태클 · 퍼펙트 가드였으면 태클 피해 +{perfectBonus}%",
+        "flavor": "앞줄은 물러설 데가 없다. 그러니 앞으로 간다.",
+        "act": "slam",
+        "effect": {
+          "kind": "guardLunge",
+          "windowMs": 500,
+          "rangeTiles": 6,
+          "stopTiles": 1,
+          "perfectBonus": 0.3
+        },
+        "_effect": "가드로 공격을 막으면(보통·퍼펙트, 탄 포함) 그 공격의 주인을 기억. windowMs 안에 대쉬를 누르면 일반 대쉬 대신 그 적을 향한 어깨 태클(대쉬 공격과 같은 판정·기력)로 바로 이어진다 — 주인이 rangeTiles 밖이거나 죽었으면 일반 대쉬. 태클 개성(어깨 너머·들이받기)이 그대로 얹힌다",
+        "_why": "63 안 '버티며 걷기'는 대검 가드가 이미 느리게 걸을 수 있어(moveMult 0.35) 새것이 아니었다. 대신 '막는다 → 친다'를 거리 상관없이 잇는다. 사수 화살을 막고 그 사수에게 뛰어드는 길이 생겨 대검의 원거리 약점을 메운다",
+        "_art": "대검을 방패처럼 세운 채 어깨를 앞으로 내밀며 튀어나가는 순간, 대검 면에 막힌 화살 자국 하나, 발밑 흙먼지가 앞으로 쏠림. 날 가장자리 용암 주홍(#ff5a2a) 빛",
+        "_fx": "trait_greatsword_g_mem_blockCharge — 막은 자리에서 대상 적까지 짧은 주홍 화살표 잔광(0.2초) + 태클 시작 흙먼지 원샷"
+      },
+      {
+        "id": "d_mem_pickpocket",
+        "weapon": "dagger",
+        "verb": "attack",
+        "tag": "insight",
+        "name": "소매치기",
+        "line": "공격하려고 팔을 든 적을 찌르면 무기를 슬쩍해, 그 적은 잠시 맨손으로 허둥댄다",
+        "detail": "적이 공격을 준비할 때 찌르기 → 그 공격 끊기 · 맨손 {disarmMs}초 · 같은 적은 {cooldownMs}초에 한 번",
+        "flavor": "뒷골목 아이들은 칼보다 손목을 먼저 봤다. 칼은 손목을 따라온다.",
+        "act": "bind",
+        "effect": {
+          "kind": "windupDisarm",
+          "disarmMs": 2500,
+          "cooldownMs": 6000,
+          "eliteDisarmMs": 1200,
+          "bossDisarmMs": 0
+        },
+        "_effect": "3찌르기 중 한 타가 공격 준비(예고·조준선·던지기·굴리기 직전) 중인 적에게 맞으면 그 공격을 취소하고 '맨손' 상태: disarmMs 동안 공격·사격·투척 못 함, 물러서거나 허둥댐. 정예 eliteDisarmMs, 군주는 공격 취소 없이 무시(0). 간파 '완벽 성공' 사건으로 센다(제안 — 시스템 판단)",
+        "_why": "단검 기본 풀에는 '읽고 끊는' 카드가 없다(간파는 쌍둥이 갈래 '분신 방패'뿐). 적의 예고 동작이 노림수가 되어 먼저 파고드는 싸움이 생긴다. 63 안의 '전표 슬쩍'은 전투를 바꾸지 않고 유품 '현상금 쪽지'와 겹쳐 버렸다. 이름과 원한 얼굴(소매치기 아이)은 남겼다",
+        "_art": "적의 들린 손목 아래로 파고든 단검 끝, 적 손에서 빠져나간 창 한 자루가 공중에 뜬 순간. 단검 날에 독 자주(#c060ff) 빛, 보조 먹빛 그림자 손",
+        "_fx": "trait_dagger_d_mem_pickpocket — 맞는 순간 자주 손목 섬광 원샷 + 맨손 적 머리 위 작은 '빈손' 표시(루프, disarmMs 동안, 글자 없음)"
+      },
+      {
+        "id": "d_mem_slipDash",
+        "weapon": "dagger",
+        "verb": "dash",
+        "tag": "drunk",
+        "name": "미끄럼 걸음",
+        "line": "술 웅덩이를 밟고 대쉬하면 술을 끌며 멀리 미끄러지고, 길 위의 적이 넘어진다",
+        "detail": "대쉬 거리 +{distanceMult}% · 술 자국 {trailMs}초 · 넘어짐 {tripMs}초",
+        "flavor": "술 거리에서 넘어지지 않는 법은 하나다. 먼저 미끄러진다.",
+        "act": "move",
+        "env": true,
+        "effect": {
+          "kind": "poolSlide",
+          "distanceMult": 0.6,
+          "trailWidthTiles": 0.7,
+          "trailMs": 4000,
+          "tripMs": 700,
+          "tripWidthTiles": 0.9
+        },
+        "_effect": "대쉬 시작점이나 경로가 술 웅덩이에 걸리면 대쉬 거리 +distanceMult, 지나간 길이 술 자국(웅덩이 띠, 이웃 웅덩이와 이어짐)이 되고 길 위 적은 tripMs 넘어짐(피해 없음). 출발 웅덩이가 술불이면 자국도 술불",
+        "_why": "단검 대쉬는 낙인·꿰찌르기뿐이라 판을 바꾸는 이동이 없다. 웅덩이를 끌고 다니며 길을 술로 잇고 적을 넘어뜨려, 취기 빌드와 불 카드(불티 난타)가 이어진다",
+        "_art": "젖은 바닥 위를 낮게 미끄러지는 발 하나와 뒤로 길게 끌린 술 자국, 자국 끝에서 발이 걸려 뒤로 넘어가는 적의 다리 실루엣. 튄 술방울에 독 자주(#c060ff) 반사광",
+        "_fx": "trait_dagger_d_mem_slipDash — 발밑 술 물보라(대쉬 동안 루프) + 넘어지는 적 발치 물 튐 원샷"
+      },
+      {
+        "id": "b_mem_bottleShot",
+        "weapon": "bow",
+        "verb": "attack",
+        "tag": "drunk",
+        "name": "술병 맞히기",
+        "line": "날아오는 술병이나 굴러오는 술통을 쏘아 맞히면 그 자리에서 터져 둘레에 술을 쏟는다",
+        "detail": "터진 자리 공격 ×{burstMult} (반경 {burstRadiusTiles}칸) · 술 웅덩이 {poolMs}초 · 불붙은 술병이면 술불",
+        "flavor": "사수는 날아오는 것부터 셌다. 술병은 세기 쉬웠다. 느리니까.",
+        "act": "ignite",
+        "env": true,
+        "effect": {
+          "kind": "shootLiquor",
+          "hitRadiusTiles": 0.5,
+          "burstMult": 0.6,
+          "burstRadiusTiles": 1.5,
+          "poolRadiusTiles": 1.5,
+          "poolMs": 5000
+        },
+        "_effect": "플레이어 화살이 독주 행상의 날아가는 술병, 술통 짐꾼의 굴러오는 술통과 부딪친다(판정 hitRadiusTiles). 부딪친 자리에서 터져 둘레 적 burstMult 피해, 그 자리에 술 웅덩이. 독주 행상 술병은 불붙은 것이라 웅덩이가 바로 술불. 화살은 거기서 멈춤",
+        "_why": "활은 독주 행상·술통 짐꾼에게 피하는 것 말고 답이 없다. 적이 던진 것을 적 쪽에서 터뜨려 위협을 무기로 바꾼다. 불화살 한 발(완벽 놓기가 지나간 웅덩이 점화)·술별과 달리 '날아오는 것'을 노린다",
+        "_art": "공중에서 화살에 꿰여 터지는 술병 하나, 사방으로 흩어지는 술방울과 불꽃, 화살 깃에 비취 녹(#40e0a0) 빛, 아래쪽 어둠에 고개 든 적 그림자",
+        "_fx": "trait_bow_b_mem_bottleShot — 공중 터짐 원샷(술방울·불꽃), 떨어지는 웅덩이는 기존 술 웅덩이·술불 재사용"
+      },
+      {
+        "id": "b_mem_quiverShake",
+        "weapon": "bow",
+        "verb": "dash",
+        "tag": "breach",
+        "name": "화살통 털기",
+        "line": "장전하는 동안 대쉬하면 화살통을 털어 장전을 끝내고, 털린 화살이 앞으로 흩어져 날아간다",
+        "detail": "장전 중 대쉬 → 대쉬 끝에 장전 끝 · 화살 {arrows}발 부채꼴 (공격 ×{damageMult}, {rangeTiles}칸)",
+        "flavor": "빈 화살통도 털면 몇 대는 나온다. 사수는 그것까지 셈에 넣는다.",
+        "act": "burst",
+        "effect": {
+          "kind": "reloadDashFan",
+          "arrows": 4,
+          "spreadDeg": 50,
+          "rangeTiles": 5,
+          "speedTiles": 14,
+          "damageMult": 0.5
+        },
+        "_effect": "장전(R 또는 빈 화살통 자동) 중에 대쉬하면 대쉬가 끝나는 순간 장전 완료, 동시에 커서 쪽으로 arrows발 부채꼴(spreadDeg) 발사 — 화살을 쓰지 않음. 대기 시간 없음(장전 자체가 제한). 장전 중이 아니면 아무 일 없음",
+        "_why": "활의 장전은 그냥 서서 버티는 빈 시간이다. 이 카드는 장전을 '빠지면서 흩뿌리는' 공세로 바꾼다. 63 안의 '대쉬 = 즉시 장전'은 편의 수치에 가까워, 장전 중일 때만 + 흩뿌리기로 바꿨다. 대쉬 사격 개성(낙하 사격)과 조건이 달라 함께 붙는다",
+        "_art": "몸을 비틀어 옆으로 빠지며 등 뒤 화살통을 뒤집어 터는 순간, 쏟아진 화살 몇 대가 부채꼴로 앞을 향함. 화살 깃 비취 녹(#40e0a0) 빛, 바랜 금 화살통 테",
+        "_fx": "trait_bow_b_mem_quiverShake — 화살통에서 터져 나오는 깃털·화살 원샷 + 부채꼴 화살은 기존 화살 그림 재사용"
+      }
+    ]
+  },
+  "memoryPools": {
+    "_note": "data/memory.json items kind pool 의 traits 를 이 둘로 바꾼다. 지금 잠가 두었던 기존 기본 개성(k_edgeLift·k_iaiChain·g_shoulderFlip·g_crackPull·d_flurryPull·d_sparkFlurry·b_fullBounce·b_rainEcho)은 기본 풀로 되돌린다. 새 8장은 떠올리기 전에는 풀에 없다",
+    "pool_katana": [
+      "k_mem_fireLine",
+      "k_mem_sheathBlock"
+    ],
+    "pool_greatsword": [
+      "g_mem_caskRoll",
+      "g_mem_blockCharge"
+    ],
+    "pool_dagger": [
+      "d_mem_pickpocket",
+      "d_mem_slipDash"
+    ],
+    "pool_bow": [
+      "b_mem_bottleShot",
+      "b_mem_quiverShake"
+    ]
+  },
+  "memoryText": {
+    "_note": "data/memory.json pick 의 시스템 임시 문장(_noteNone) 검수. 키 그대로. keepsakeNone·keepsakeNoneLine·aspectDetail 은 그대로 둔다(아래에 같은 값)",
+    "keepsakeNone": "빈손",
+    "keepsakeNoneLine": "아무것도 지니지 않고 태어난다",
+    "aspectDetail": "개성 '{trait}' 한 장을 쥐고 태어난다",
+    "poolDetail": "개성 {traits} — 개성 발현 때 함께 나온다",
+    "shopDetail": {
+      "inkBottle": "장터에 '먹물 한 병'이 놓이기 시작한다",
+      "bellows": "장터에 '풀무질 한 번'이 놓이기 시작한다"
+    }
+  },
+  "sets": {
+    "_note": "키 = data/build.json sets 의 태그 id → threshold. 값 = line. scar·ranged·mark·endure 는 floor 2 태그(1층에 안 나옴)지만 30줄 모두 맞췄다",
+    "insight": {
+      "2": "완벽한 한 수 뒤 첫 공격은 치명으로 들어간다",
+      "4": "완벽한 한 수마다 받은 힘을 앞쪽에 되갚는다",
+      "6": "완벽한 한 수를 거듭하면 둘레의 적과 탄이 잠깐 느려진다"
+    },
+    "breach": {
+      "2": "대쉬와 그림자 걸음이 더 빨리 돌아온다",
+      "4": "대쉬와 그림자 걸음이 지나간 길이 한 번 베인다",
+      "6": "대쉬를 두 번 이어 쓸 수 있다"
+    },
+    "vital": {
+      "2": "치명이 더 자주 들어간다",
+      "4": "치명이 더 깊게 박힌다",
+      "6": "치명을 맞은 적은 금이 가서 다음 한 대도 치명으로 맞는다"
+    },
+    "scar": {
+      "2": "출혈과 화상이 더 오래 남는다",
+      "4": "출혈과 화상이 겹친 적은 남은 상처가 한꺼번에 끓어 터진다",
+      "6": "상처로 쓰러진 적의 상처가 곁의 적에게 옮는다"
+    },
+    "chain": {
+      "2": "쓰러뜨리고 나면 잠깐 손이 빨라진다",
+      "4": "쓰러뜨릴 때마다 무기의 밑천이 조금 돌아온다",
+      "6": "몰아서 쓰러뜨리면 살기가 올라 더 아프게 치고, 각성 게이지가 빨리 찬다"
+    },
+    "ranged": {
+      "2": "멀리 날리는 공격이 더 멀리, 더 빨리 날아간다",
+      "4": "멀리 날리는 공격이 적 하나를 더 꿰뚫는다",
+      "6": "멀리 날린 공격이 맞으면 가끔 갈라져 퍼진다"
+    },
+    "weight": {
+      "2": "강한 공격이 더 무겁게 떨어진다",
+      "4": "강한 공격에 맞은 적이 휘청이며 밀려난다",
+      "6": "강한 공격을 휘두르는 동안은 끊기지 않고 덜 다친다"
+    },
+    "mark": {
+      "2": "같은 적을 거듭 치면 표식이 쌓여 더 아프게 맞는다",
+      "4": "표식이 쌓인 적이 쓰러지면 표식이 곁의 적에게 넘어간다",
+      "6": "표식이 쌓인 적을 강한 공격으로 치면 터진다"
+    },
+    "endure": {
+      "2": "한 대 맞고 나면 잠깐 이를 악물어 덜 다친다",
+      "4": "무너져도 더 빨리 일어서고, 위태로울 때 한 번 몸을 지킨다",
+      "6": "층마다 한 번, 쓰러질 자리에서 버틴다"
+    },
+    "drunk": {
+      "2": "마시면 잠깐 맞아도 밀리지 않는다",
+      "4": "취기 중 처음 맞는 공격은 휘청이며 흘리고, 곧바로 되받아친다",
+      "6": "취기 중 쓰러뜨린 자리에 술이 고이고, 대쉬가 지나가면 불이 붙는다"
+    }
+  }
+}
