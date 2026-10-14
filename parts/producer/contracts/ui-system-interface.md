@@ -710,3 +710,8 @@ interface UiRitual {
 - 상호작용 규칙: 반경 안 후보(상인·노점·소품·구조물) 중 가장 가까운 하나만 프롬프트에 보이고 E 를 받음(동률은 상인 → 노점 → 소품 → 구조물). 장터 '외상 장부' 구조물 없음(외상은 상인 대사).
 - 미리보기: 위험 노드는 `paint/door_<지역>_<risk>` 우선, 카드·미리 받기는 `_small` 카드판(art §32). 기억 장 장터·몸 칸 iconKey = `ui_relics/memory_*`(부팅 로드). '빈손' 줄은 아이콘 필드 없음 — UI 가 `ui_relics/memory_empty` 텍스처를 직접 씀(시스템이 부팅 로드).
 - UI: 파훼(BOSS_BREAK)는 보스 막대가 보이는 동안 막대 위 칩, 위 가운데 레인은 국면 카드 전용, 같은 레인 교차 페이드 금지. TRANSITION_BEGIN·ROUTE_NODE_ENTERED 때 노드 지도 닫음.
+
+## 27. 62 루프 4 시스템 J
+- `UiGrowthTrait.detail?`·`flavor?`(선택) — 기억 개성 8장에만(detail = 수치 채운 상세 문장, 상세 보기용). 개성 그림 대체 순서 `traitIconCandidates`: 같은 태그 기본 개성 → 같은 태그 갈래 개성 → 같은 동사 칸.
+- 외상 장부대 제거: 계약 `'ledger'`·`'debt'` 값은 더 보내지 않음(타입은 UI 정리 뒤 삭제 가능). 저주 '외상'은 사연으로만.
+- 캔버스 렌더러(WebGL 없음)에서는 조명을 끈다(밝은 화면).
