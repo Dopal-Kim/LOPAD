@@ -419,14 +419,14 @@ export class KatanaRules {
       if (k.g.world.isWalkableAt(q.x, q.y))
         k.rt.fx.firePatch(q.x, q.y, half, ms, k.p(r, 'fireTickMs', 500), k.p(r, 'fireMult', 0.3));
     }
-    const mid = on(travel / 2);
-    k.moves.fx('k_mem_fireLine', mid, {
-      angle: Math.atan2(dir.y, dir.x),
-      lengthPx: travel,
-      lifeMs: ms,
+    // art §33-3: issen_line = 시작점부터 128 도트 마디를 길 방향으로 이어 깖(마디마다 광원) · issen_start = 시작점 불씨
+    const angle = Math.atan2(dir.y, dir.x);
+    k.rt.fx.tileLine(traitFxId('katana', 'k_mem_fireLine'), start.x, start.y, dir.x, dir.y, travel, {
       depth: DEPTH.FX_GROUND,
-      fallbacks: [],
+      durationMs: ms,
+      fitEnd: true,
     });
+    k.moves.fx('k_mem_fireLine', start, { part: 'start', angle });
     k.fire('k_mem_fireLine', 'ignite', { cells: n + 1 });
   }
 
@@ -455,6 +455,7 @@ export class KatanaRules {
     hits.push(...k.g.hazards.takeBottles((at) => inFront(at.x, at.y)));
     if (hits.length === 0) return;
     this.swatReadyAt = now + k.p(r, 'cooldownMs', 250);
+    k.moves.fx('k_mem_sheathBlock', { x: pl.x, y: pl.y }, { part: 'ring' });
     for (const at of hits)
       k.moves.fx('k_mem_sheathBlock', at, {
         angle: Math.atan2(at.y - pl.y, at.x - pl.x),

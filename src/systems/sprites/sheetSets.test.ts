@@ -97,6 +97,15 @@ describe('57라운드 A2 로드 묶음 (부팅 + 고른 무기)', () => {
     );
   });
 
+  it('62 K 갈래 스미어 (art §33-2): 갈래 몸 동작 스미어·교체 스미어는 그 갈래를 고를 때만', () => {
+    const base = weaponSheetRequests('katana', []).map(requestKey);
+    expect(base).not.toContain('fx/katana_spin_smear_fx');
+    const iai = branchSheetRequests('katana', ['iai']).map(requestKey);
+    expect(iai).toContain('fx/katana_spin_smear_fx');
+    expect(iai).toContain('fx/katana_fall_wide_smear_fx');
+    expect(branchSheetRequests('katana', ['batto']).map(requestKey)).toContain('fx/katana_guardbreak_smear_fx');
+  });
+
   it('61 G 각성 외형 요청: 1차 a1 · 2차 a2·a2_glow 오버레이 + 연출 fx (고른 갈래만)', () => {
     const one = growthSheetRequests('katana', 'senpu', 1, []).map(requestKey);
     expect(one.some((k) => k.startsWith('weapons/katana_senpu_a1_'))).toBe(true);

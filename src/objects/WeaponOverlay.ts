@@ -64,6 +64,8 @@ export class WeaponOverlay {
   /** 62 D (P1-2): 스미어 겹침 */
   private smearSprite: Phaser.GameObjects.Sprite | null = null;
   private smearOn = false;
+  /** 62 K (art §33-2): fx 교체 표 (갈래 런 `katana_fall_smear` → `katana_fall_wide_smear`) — Game 이 FxPool.resolve 를 넣는다 */
+  resolveFx: (id: string) => string = (id) => id;
   gaugeAction: string | null = null;
   /** 61 G 계약 art §26 각성 외형 오버레이 (1차·2차 — `GrowthOverlay`) — 그리는 순서 무기 → 각성 외형 → 검기·울분 */
   readonly growth: GrowthOverlay;
@@ -330,7 +332,7 @@ export class WeaponOverlay {
 
   /** 62 D (P1-2): `fx/v3/<무기>_<동작>_smear` 가 올라와 있으면 같은 칸을 무기 바로 아래(조명 위)에 겹친다 */
   private showSmear(action: string, dir: Dir8, column: number): void {
-    const id = smearFxId(gameState.weapon.id, action);
+    const id = this.resolveFx(smearFxId(gameState.weapon.id, action));
     const def = spriteLibrary.sheet(id, FX_ACTION);
     const tex = spriteLibrary.textureKey(id, FX_ACTION);
     if (!def || !tex || !this.host.scene.textures.exists(tex)) {

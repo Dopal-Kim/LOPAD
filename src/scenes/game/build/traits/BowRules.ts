@@ -360,7 +360,8 @@ export class BowRules {
       const spread = (k.p(r, 'spreadDeg', 50) * Math.PI) / 180;
       const a0 = Math.atan2(base.y, base.x);
       const from = { x: pl.x, y: pl.y - 10 };
-      k.moves.fx('b_mem_quiverShake', from, { angle: a0, fallbacks: [] });
+      // art §33-3 player_back: 화살통 입구(발 위 40 도트), 오른쪽 = 커서
+      k.moves.fx('b_mem_quiverShake', { x: pl.x, y: pl.y - TRAIT_FX.PLAYER_BACK_UP_PX }, { angle: a0, fallbacks: [] });
       for (let i = 0; i < n; i++) {
         const a = a0 + (n === 1 ? 0 : -spread / 2 + (spread * i) / (n - 1));
         k.shot(from, { x: Math.cos(a), y: Math.sin(a) }, k.p(r, 'damageMult', 0.5), {

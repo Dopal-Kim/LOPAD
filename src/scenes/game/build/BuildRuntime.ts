@@ -403,7 +403,12 @@ export class BuildRuntime {
    */
   private aliasSig: string | null = null;
 
+  /** 62 K: 무기 오버레이 스미어도 같은 교체 표를 거친다 (주인공이 새로 만들어져도 매 프레임 확인) */
+  private readonly resolveFx = (id: string): string => this.g.fx.resolve(id);
+
   private syncFxAliases(): void {
+    const ov = this.g.player?.overlay;
+    if (ov && ov.resolveFx !== this.resolveFx) ov.resolveFx = this.resolveFx;
     const w = gameState.weapon;
     const sig = `${w.id}:${w.path.join('/')}`;
     if (sig === this.aliasSig) return;

@@ -472,7 +472,15 @@ export class GreatswordRules {
         },
         burst: (x, y) => {
           const rad = T(k.p(r, 'burstRadiusTiles', 1.8));
-          const played = k.moves.fx('g_mem_caskRoll', { x, y }, { part: 'burst', fallbacks: [BUILD_ART.BOTTLE_BURST] });
+          const played = k.moves.fx(
+            'g_mem_caskRoll',
+            { x, y },
+            {
+              part: 'burst',
+              // art §33-3 reuse.burst: 보스 술통 깨짐 그림 (로드돼 있을 때)
+              fallbacks: ['boss1_barrel_break', BUILD_ART.BOTTLE_BURST],
+            },
+          );
           k.ring({ x, y }, rad, k.p(r, 'burstMult', 1.5), BUILD_FX.COLOR.BURN, !played);
           // 터진 자리 술불 (이어진 술 자국으로 번진다)
           k.g.pools.ignite(k.rt.fx.liquorPool(x, y, rad * 0.6, k.p(r, 'trailMs', 5000)));
@@ -506,15 +514,12 @@ export class GreatswordRules {
     const dist = Math.hypot(t.x - from.x, t.y - from.y);
     if (dist > T(k.p(r, 'rangeTiles', 6))) return null;
     if (L.perfect) k.rt.combat.empowerNext(k.p(r, 'perfectBonus', 0.3), 800);
+    // art §33-3: guard_block = 막은 자리(몸 높이)에서 태클 대상까지 가로만 늘림 · _dust = 발밑 태클 방향 먼지
     const a = { x: from.x, y: from.y - 8 };
-    if (
-      !k.moves.fx('g_mem_blockCharge', a, {
-        angle: Math.atan2(t.y - from.y, t.x - from.x),
-        lengthPx: dist,
-        fallbacks: [],
-      })
-    )
+    const angle = Math.atan2(t.y - from.y, t.x - from.x);
+    if (!k.moves.fx('g_mem_blockCharge', a, { angle, lengthPx: dist, fallbacks: [] }))
       k.moves.chainLine(a, { x: t.x, y: t.y - 8 }, BUILD_FX.COLOR.RAGE, 200);
+    k.moves.fx('g_mem_blockCharge', from, { part: 'dust', angle, depth: DEPTH.FX_GROUND });
     k.fire('g_mem_blockCharge', 'lunge', { perfect: L.perfect });
     return { x: t.x, y: t.y };
   }

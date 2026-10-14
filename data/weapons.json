@@ -128,8 +128,8 @@
             },
             "art": {
               "body": ["spin"],
-              "fx": ["katana_spin", "katana_spin_ready", "katana_fall_wide"],
-              "replaceFx": { "katana_fall": "katana_fall_wide" }
+              "fx": ["katana_spin", "katana_spin_ready", "katana_fall_wide", "katana_fall_wide_smear"],
+              "replaceFx": { "katana_fall": "katana_fall_wide", "katana_fall_smear": "katana_fall_wide_smear" }
             },
             "comboChange": [{ "index": 1, "arcDeg": 180, "sizeMult": 1.2 }],
             "next": [

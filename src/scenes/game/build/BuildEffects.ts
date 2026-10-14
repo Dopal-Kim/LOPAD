@@ -11,6 +11,7 @@ import { spriteLibrary } from '../../../systems/sprites/sprites';
 import { FX_ACTION, artScale, fxDrawScale } from '../../../systems/sprites/spriteDefs';
 import { sheetLoopRange } from './BuildArt';
 import type { Pool } from '../../../systems/hazards/LiquorPools';
+import type { FxPlayOptions } from '../../../systems/fx/fx';
 import type { Game } from '../../Game';
 import type { DamageKind } from '../GameCombat';
 
@@ -289,9 +290,18 @@ export class BuildEffects {
 
   /**
    * 반복 타일 선 (계약 art §21 `tile: true` — bow_skypierce_line 주기 64 도트, 트림 안 함): 선 시작부터 주기마다 같은 시트를
-   * 이어 깔고 진행 각도로 회전. 시트가 없으면 false
+   * 이어 깔고 진행 각도로 회전. 시트가 없으면 false.
+   * `fitEnd`(art §33-3 issen_line '마지막 마디는 잘라 씀'): 마지막 마디를 남은 길이만큼 가로로 줄여 끝점에서 멈춘다 · 그 밖 옵션은 마디마다
    */
-  tileLine(id: string, x: number, y: number, dirX: number, dirY: number, len: number): boolean {
+  tileLine(
+    id: string,
+    x: number,
+    y: number,
+    dirX: number,
+    dirY: number,
+    len: number,
+    o: FxPlayOptions & { fitEnd?: boolean } = {},
+  ): boolean {
     const fx = this.g.fx;
     const def = fx.sheet(id);
     if (!def || !fx.has(id)) return false;
@@ -301,8 +311,18 @@ export class BuildEffects {
     const period = Math.max(1, def.frameWidth * fxDrawScale(def));
     const angle = Math.atan2(uy, ux);
     const n = Math.max(1, Math.ceil(len / period));
-    for (let i = 0; i < n; i++)
-      fx.play(id, x + ux * period * i, y + uy * period * i, { angle, depth: DEPTH.HIT_FX, hooks: i === 0 });
+    const { fitEnd, ...play } = o;
+    for (let i = 0; i < n; i++) {
+      // shortcut: 자르는 대신 가로 배율 — 마지막 마디 불꽃이 조금 눌린다 (crop 은 풀 스프라이트 초기화가 필요해 미룸)
+      const rest = fitEnd && i === n - 1 ? (len - period * i) / period : 1;
+      fx.play(id, x + ux * period * i, y + uy * period * i, {
+        angle,
+        depth: DEPTH.HIT_FX,
+        hooks: i === 0,
+        ...play,
+        ...(rest < 1 ? { scaleXMult: Math.max(0.05, rest) } : {}),
+      });
+    }
     return true;
   }
 

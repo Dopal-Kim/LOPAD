@@ -5,7 +5,7 @@
  * 휘감는 난타 · 불티 난타(난타 끝 → 술 웅덩이 점화·화상) · 분신 방패 / 백귀 길: 야행 · 귀화.
  * 백귀 1차(그림자)·그림자 사냥(묶음)·취한 그림자(점화)·돌아오는 칼(끌고 옴)·독주 투척은 DaggerBranch·BuildDefense 가 실행한다.
  */
-import { BUILD_ART, BUILD_FX, DEPTH, TILE } from '../../../../core/Constants';
+import { BUILD_ART, BUILD_FX, DEPTH, TILE, TRAIT_FX } from '../../../../core/Constants';
 import type { PlayerAttackPayload, PlayerSkillPayload } from '../../../../core/EventBus';
 import { gameState } from '../../../../core/GameState';
 import { PLAYER_DATA } from '../../../../data';
@@ -285,8 +285,15 @@ export class DaggerRules {
     this.disarmReady.set(mob, k.now + k.p(r, 'cooldownMs', 6000));
     mob.disarm(k.now, ms);
     k.rt.art.stagger(mob, ms);
-    k.moves.fx('d_mem_pickpocket', { x: mob.x, y: mob.y - 10 }, { fallbacks: ['hit_dagger'] });
-    k.moves.fx('d_mem_pickpocket', { x: mob.x, y: mob.y - mob.visual.headTopPx }, { part: 'mark', lifeMs: ms });
+    // art §33-3: 손 자리 대신 hitbox_center(몸 중심) · enemy_head 표식은 맨손 동안 적을 따라 루프
+    const c = mob.body.center;
+    k.moves.fx('d_mem_pickpocket', { x: c.x, y: c.y }, { fallbacks: ['hit_dagger'] });
+    const head = { x: 0, y: -mob.visual.headTopPx - TRAIT_FX.ENEMY_HEAD_GAP_PX };
+    k.moves.fx(
+      'd_mem_pickpocket',
+      { x: mob.x, y: mob.y + head.y },
+      { part: 'mark', lifeMs: ms, follow: mob, followOffset: head },
+    );
     k.fire('d_mem_pickpocket', 'disarm', { ms });
     k.rt.perfect.onPerfect('parry', 0, mob.x - k.g.player.x, mob.y - k.g.player.y);
   }
@@ -315,7 +322,15 @@ export class DaggerRules {
       last: { x: from.x, y: from.y },
       tripped: new Set(),
     };
-    k.moves.fx('d_mem_slipDash', from, { angle: Math.atan2(dir.y, dir.x), fallbacks: [] });
+    // art §33-3: 발밑 물보라 — 주인공을 따라 미끄러지는 동안 루프 (followPlayer)
+    const pl = k.g.player;
+    k.moves.fx('d_mem_slipDash', from, {
+      angle: Math.atan2(dir.y, dir.x),
+      depth: DEPTH.FX_GROUND,
+      lifeMs: this.slide.until - k.now,
+      ...(pl ? { follow: pl } : {}),
+      fallbacks: [],
+    });
     k.fire('d_mem_slipDash', 'slide');
     return mult;
   }
@@ -337,7 +352,7 @@ export class DaggerRules {
       if (S.tripped.has(m) || m.isBoss) continue;
       S.tripped.add(m);
       k.stun(m, k.p(r, 'tripMs', 700));
-      k.moves.fx('d_mem_slipDash', { x: m.x, y: m.y }, { part: 'impact', fallbacks: [] });
+      k.moves.fx('d_mem_slipDash', { x: m.x, y: m.y }, { part: 'trip', depth: DEPTH.FX_GROUND, fallbacks: [] });
     }
     if (now >= S.until) this.slide = null;
   }

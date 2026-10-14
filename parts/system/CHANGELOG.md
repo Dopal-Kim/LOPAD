@@ -2005,3 +2005,27 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 ### 검사
 - tsc 0 · eslint 0 · prettier · vitest 163파일 1234건 전부 통과(새 `hazards/traitRoll.test` · `growth/memoryTraits.test` · weaponResource 화살통 털기 · 갱신 structures 15종·memory·growth·resonance·build·weapons·traitBudget) · vite build 통과.
 - 헤드리스(빌드본, 스크래치 `s62j/` traits·light, 시드 a63 c3r0 — swiftshader 라 게임 시계가 느려 상황을 만든 뒤 갱신을 직접 돌림): 불줄(웅덩이 1 → 불 띠 11칸 모두 불) · 칼집 막기(탄 2 지움 → 검기 0 → 2단) · 술통 굴리기(짐꾼 술통 → 적 HP 30→20·자국 10 · 구조물 술통 굴러가 깨짐) · 받고 뛰어들기(막음 → 대쉬 = 태클, 방향 = 적 쪽 0.98 — 커서는 반대) · 소매치기(예고 중 결사병 → 맨손 2.5초·접촉 0·같은 적 쉼·간파 parry) · 미끄럼 걸음(대쉬 속도 267 → 427·자국) · 술병 맞히기(화살 멈춤·술불 웅덩이) · 화살통 털기(장전 끝·부채꼴 4발) — 8장 모두 TRAIT_PROC · 라이트맵 첫 create 직후 배율 맞음 · 콘솔·페이지 오류 0.
+
+## 62 루프 4 시스템 K — 떠올릴 개성 fx 13시트 앵커 연결 · 칼 갈래 스미어 · 캔버스 HP 막대 원인 (2026-10-14)
+전권 위임(인터뷰 없음). 계약 art §33-2·3 (아트 루프 4).
+
+### 1. 떠올릴 개성 발동 fx (art §33-3 — 시스템 J 의 '있으면 쓰고' 자리를 실제 앵커로)
+- 부위 로드 목록 `TRAIT_FX_PARTS` 에 `start`·`ring`·`dust`·`trip` 추가(지연 로드 대상).
+- 칼 불줄 `issen_line`: 띠 한 장을 가운데에 늘리던 것 → 시작점부터 128 도트(2칸) 마디를 길 방향으로 이어 깖(`BuildEffects.tileLine` 새 옵션 — 깊이·수명·`fitEnd`, 마디마다 JSON 광원), 수명 = fireMs 루프. 마지막 마디는 남은 길이만큼 가로 배율(자르기 대신 — 코드 shortcut 주석). `issen_start` = `_start` 시작점, 길 방향.
+- 칼 칼집 막기: `contact` 몸 시트(기존) + `_ring` 주인공 발(한 번 막을 때 1장).
+- 대검 술통 굴리기: `contact` 몸 시트(기존) · 터짐은 JSON reuse.burst `boss1_barrel_break`(로드돼 있을 때) → 기존 술병 폭발.
+- 대검 받고 뛰어들기 `guard_block`: `TRAIT_FX.LINE_DOTS` 184 도트 기준 거리만큼 가로만 늘림(JSON `scale: x_only` 는 0.6~1.6 범위 없이) · `_dust` 주인공 발, 태클 방향, 바닥 깊이.
+- 단검 소매치기: 몸 시트를 `hitbox_center`(몸 판정 중심)로 · `enemy_head` `_mark` 는 머리 꼭대기 + 6 도트에서 **적을 따라가며** 맨손 동안 루프(`TraitMoves.fx` 에 follow 옵션).
+- 단검 미끄럼 걸음: 몸 시트(물보라)가 주인공을 따라 미끄러지는 동안 루프(바닥 깊이 — 전에는 출발점에 고정된 채 끝나지 않는 루프였다) · 넘어짐 `_trip` `enemy_feet`(전에는 없는 부위 `_impact` 를 불렀다).
+- 활 술병 맞히기 `projectile_hit`(기존) · 화살통 털기 `player_back` = 발 위 40 도트(`TRAIT_FX.PLAYER_BACK_UP_PX` 10), 커서 방향.
+
+### 2. 칼 갈래 스미어 (art §33-2)
+- 갈래 수단 몸 동작(`spin`·`guardbreak`)의 스미어 `katana_spin_smear`·`katana_guardbreak_smear` 를 그 갈래를 고를 때 지연 로드(`sheetSets.fxIdsFor` — 기존은 기본 연격 몸 동작만). 무기 오버레이가 같은 칸으로 겹친다.
+- 선풍(iai) 노드 `art.replaceFx` 에 `katana_fall_smear → katana_fall_wide_smear`(+ 로드 목록). 무기 오버레이 스미어도 FxPool 교체 표를 거친다(`WeaponOverlay.resolveFx`, BuildRuntime 이 연결).
+
+### 3. 캔버스 렌더러 HP 막대 흰색 (UI J 메모)
+- 시스템 쪽 원인 없음: 렌더러는 `Phaser.AUTO`, 계약은 HP 막대 색을 보내지 않는다(계약 'UI 색: 체력 막대는 항상 붉은색' — UI 고정). Phaser 캔버스 렌더러는 이미지·스프라이트의 `setTint` 를 그리지 않으므로, 흰 텍스처에 틴트로 색을 입히는 UI 코드라면 캔버스에서 흰색이 된다 — UI 파트 몫(채움색 도형이나 색이 든 텍스처, 또는 `renderer.type === Phaser.CANVAS` 분기). UI 코드는 열지 않았다.
+
+### 검사
+- tsc 0 · eslint 0 · prettier · vitest 163파일 1235건 전부 통과(sheetSets 갈래 스미어 1건 추가) · vite build 통과.
+- 헤드리스(빌드본, 스크래치 `s62k/traits.cjs`, 시드 a63 c3r0): 불줄 = 마디 4장(32px 간격, 마지막 가로 배율) + 시작 불씨 · 칼집 막기 몸 2 + 고리 1 · 술통 굴리기 몸 · 받고 뛰어들기 띠(가로만 0.30)+먼지 · 소매치기 몸 + 머리 표식(적 따라 이동) · 미끄럼 걸음 물보라 · 술병 맞히기 · 화살통 털기(회전 = 커서) · 선풍 각성 후 `katana_fall_smear → katana_fall_wide_smear`(FxPool·오버레이 둘 다), `katana_spin_smear` 로드 — 오류 0.

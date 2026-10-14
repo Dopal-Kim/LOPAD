@@ -25,7 +25,7 @@ import { branchFxSheetIds } from '../fx/branchFx';
 import { allFxSheetIds } from '../fx/fxIds';
 import { allStructureSprites } from '../structures/data';
 import { bundleSheetRequests } from '../bundle2/bundleSheets';
-import { comboArtNames, smearFxIds } from '../weapon/comboArt';
+import { comboArtNames, smearFxId, smearFxIds } from '../weapon/comboArt';
 import { gaugeOverlaySuffix } from './spriteActions';
 import { sheetId, wantedSheets, type SheetRequest } from './sheetPaths';
 import { FX_ACTION } from './spriteActions';
@@ -47,6 +47,8 @@ function fxIdsFor(weapons: WeaponTable, scope: BranchScope = 'all'): string[] {
     ...Object.values(weapons).flatMap((w) => branchMoveArt(w, scope).fx),
     // 62 D (P1-2): 칼·대검 스미어 (무기 오버레이와 같은 프레임)
     ...Object.entries(weapons).flatMap(([id, w]) => smearFxIds(id, w.combo)),
+    // 62 K (art §33-2): 갈래 수단 몸 동작 스미어 (`katana_spin_smear`·`katana_guardbreak_smear` — 그 갈래 노드 범위)
+    ...Object.entries(weapons).flatMap(([id, w]) => branchMoveArt(w, scope).body.map((b) => smearFxId(id, b))),
   ];
 }
 

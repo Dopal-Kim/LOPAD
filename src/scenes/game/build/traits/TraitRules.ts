@@ -55,6 +55,11 @@ export const TRAIT_FX_PARTS: readonly string[] = [
   'wave',
   'spark',
   'on',
+  // 62 루프 4 (art §33-3) 기억 개성
+  'start',
+  'ring',
+  'dust',
+  'trip',
 ];
 
 export class TraitRules {

@@ -35,8 +35,13 @@ export const TRAIT_FX = {
     k_iaiChain: 172,
     g_quakeGuard: 236,
     d_brandChain: 192,
+    /** art §33-3 guard_block 기본 길이 (scale x_only — 범위 없이 거리 그대로) */
+    g_mem_blockCharge: 184,
   } as Readonly<Record<string, number>>,
   LINE_SCALE: [0.6, 1.6] as const,
+  /** art §33-3 앵커: player_back = 발 위 40 도트(화살통 입구) · enemy_head = 머리 꼭대기 위 6 도트 (월드 px = 도트 × 0.25 — 1칸 16px = 64도트) */
+  PLAYER_BACK_UP_PX: 10,
+  ENEMY_HEAD_GAP_PX: 1.5,
   /** 걸으며 연사 발밑 먼지 간격 ms */
   STRIDE_DUST_MS: 260,
   /** 불똥·불티 점 */

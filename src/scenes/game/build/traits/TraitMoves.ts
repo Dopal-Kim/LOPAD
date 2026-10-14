@@ -11,7 +11,7 @@ import Phaser from 'phaser';
 import { BUILD_FX, DEPTH, TILE, TRAIT_FX } from '../../../../core/Constants';
 import { gameState } from '../../../../core/GameState';
 import type { Mob } from '../../../../objects/Mob';
-import type { FxHandle } from '../../../../systems/fx/fx';
+import type { FxFollowTarget, FxHandle } from '../../../../systems/fx/fx';
 import { traitFxId } from '../../../../systems/growth/traitArt';
 import { fxDrawScale } from '../../../../systems/sprites/spriteDefs';
 import { sheetLoopRange } from '../BuildArt';
@@ -107,7 +107,8 @@ export class TraitMoves {
   /**
    * 개성 fx: `trait_<무기>_<개성>[_part]` → fallbacks(기존 fx id) 중 로드된 첫 시트. 하나도 없으면 null (호출 쪽이 윤곽).
    * 전용 시트(art §27 메타)만: `flipX`(시트 flipX allowed — 그림 기준 방향과 반대일 때) · `lifeMs`(수명 시트 loopRange — 그 시간 반복 뒤
-   * 사라짐 구간) · `lengthPx`(길이 있는 회전 선 `TRAIT_FX.LINE_DOTS` 를 그 길이로 가로 배율, 0.6~1.6)
+   * 사라짐 구간) · `lengthPx`(길이 있는 회전 선 `TRAIT_FX.LINE_DOTS` 를 그 길이로 가로 배율, 0.6~1.6 — JSON `scale: x_only` 면 범위 없음)
+   * · `follow`(적 머리 위 표식처럼 대상을 따라감 — followOffset)
    */
   fx(
     trait: string,
@@ -122,6 +123,8 @@ export class TraitMoves {
       flipX?: boolean;
       lifeMs?: number;
       lengthPx?: number;
+      follow?: FxFollowTarget;
+      followOffset?: Pt;
     } = {},
   ): TraitFxPlay | null {
     const fx = this.g.fx;
@@ -132,10 +135,10 @@ export class TraitMoves {
     const def = mine ? fx.sheet(id) : null;
     const range = def && o.lifeMs ? sheetLoopRange(def) : undefined;
     const lineDots = mine ? TRAIT_FX.LINE_DOTS[trait] : undefined;
-    const sx =
-      def && lineDots && o.lengthPx
-        ? Math.max(TRAIT_FX.LINE_SCALE[0], Math.min(TRAIT_FX.LINE_SCALE[1], o.lengthPx / (lineDots * fxDrawScale(def))))
-        : 1;
+    const raw = def && lineDots && o.lengthPx ? o.lengthPx / (lineDots * fxDrawScale(def)) : 1;
+    // art §33-3 guard_block: `scale: x_only` 시트는 거리 그대로 가로만 늘인다 (범위 없음)
+    const free = (def as { scale?: unknown } | null)?.scale === 'x_only';
+    const sx = free ? raw : Math.max(TRAIT_FX.LINE_SCALE[0], Math.min(TRAIT_FX.LINE_SCALE[1], raw));
     const handle = fx.play(id, at.x, at.y, {
       ...(o.angle !== undefined ? { angle: o.angle } : {}),
       depth: o.depth ?? DEPTH.HIT_FX,
@@ -143,6 +146,7 @@ export class TraitMoves {
       ...(sx !== 1 ? { scaleXMult: sx } : {}),
       ...(mine && o.flipX && (def as { flipX?: unknown } | null)?.flipX === 'allowed' ? { flipX: true } : {}),
       ...(o.lifeMs ? { durationMs: o.lifeMs } : {}),
+      ...(o.follow ? { follow: o.follow, followOffset: o.followOffset ?? { x: 0, y: 0 } } : {}),
       ...(range ? { loopRange: range } : {}),
       ...(o.tint !== undefined && !mine ? { tint: o.tint } : {}),
       hooks: false,
