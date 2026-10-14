@@ -1,0 +1,130 @@
+{
+ "image": "react_explode_m.png",
+ "action": "react_explode_m",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "framesPerDirection": 9,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction/kind (directions·rowsAre 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  40,
+  50,
+  60,
+  60,
+  70,
+  80,
+  90,
+  100,
+  120
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "paletteSwap": "none",
+ "drawOver": "lightmap",
+ "source": "parts/art/work/p19/fx19.py (P19 1-A 반응 fx·예고 색)",
+ "version": "v3-p19",
+ "pivot": {
+  "x": 96,
+  "y": 96
+ },
+ "anchor": "hazard_center",
+ "event": "HAZARD_EXPLODED",
+ "lightByFrame": [
+  {
+   "color": "#fff4dc",
+   "radius": 320,
+   "intensity": 1.3
+  },
+  {
+   "color": "#eebb6d",
+   "radius": 284,
+   "intensity": 0.89
+  },
+  {
+   "color": "#eebb6d",
+   "radius": 248,
+   "intensity": 0.78
+  },
+  {
+   "color": "#eebb6d",
+   "radius": 213,
+   "intensity": 0.6699999999999999
+  },
+  {
+   "color": "#eebb6d",
+   "radius": 177,
+   "intensity": 0.56
+  },
+  {
+   "color": "#eebb6d",
+   "radius": 142,
+   "intensity": 0.44999999999999996
+  },
+  {
+   "color": "#eebb6d",
+   "radius": 106,
+   "intensity": 0.33999999999999997
+  },
+  {
+   "color": "#eebb6d",
+   "radius": 71,
+   "intensity": 0.22999999999999998
+  },
+  {
+   "color": "#eebb6d",
+   "radius": 35,
+   "intensity": 0.12
+  }
+ ],
+ "shake": {
+  "px": 4,
+  "ms": 160
+ },
+ "radiusTiles": 2.0,
+ "note": "chain 0 = 첫 폭발, 1+ = 연쇄(0.3초 간격) — 작(술병·자폭병 작은 독)·중(술통 줄·증류기·자폭병)·대(술통 더미). 그을음은 위험물 wreck 상태/데칼",
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 react_explode_m.png)",
+  "grid": {
+   "columns": 9,
+   "rows": 1,
+   "frameWidth": 192,
+   "frameHeight": 192,
+   "frameCount": 9
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":428,"w":131,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":43,"w":131,"h":105},"sourceSize":{"w":192,"h":192}},
+  "1":{"frame":{"x":133,"y":431,"w":120,"h":114},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":34,"w":120,"h":114},"sourceSize":{"w":192,"h":192}},
+  "2":{"frame":{"x":255,"y":431,"w":108,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":43,"y":40,"w":108,"h":102},"sourceSize":{"w":192,"h":192}},
+  "3":{"frame":{"x":0,"y":313,"w":139,"h":113},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":35,"w":139,"h":113},"sourceSize":{"w":192,"h":192}},
+  "4":{"frame":{"x":158,"y":308,"w":148,"h":121},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":28,"w":148,"h":121},"sourceSize":{"w":192,"h":192}},
+  "5":{"frame":{"x":0,"y":172,"w":156,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":22,"w":156,"h":139},"sourceSize":{"w":192,"h":192}},
+  "6":{"frame":{"x":175,"y":150,"w":164,"h":156},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":16,"w":164,"h":156},"sourceSize":{"w":192,"h":192}},
+  "7":{"frame":{"x":0,"y":0,"w":173,"h":170},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":11,"y":9,"w":173,"h":170},"sourceSize":{"w":192,"h":192}},
+  "8":{"frame":{"x":175,"y":0,"w":181,"h":148},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":8,"y":3,"w":181,"h":148},"sourceSize":{"w":192,"h":192}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "react_explode_m.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 363,
+   "h": 545
+  },
+  "scale": "1"
+ }
+}

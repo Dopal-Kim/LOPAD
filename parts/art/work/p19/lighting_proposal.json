@@ -1,0 +1,430 @@
+{
+ "doc": "P19 1-A 아트 제안 — 전투장 주변광·광원 배치 기준값(시스템 lighting.json 에 옮길 값). 목업 측정: parts/art/work/p19/scene19.py · luminance.json. 모델: 빛 = ambient + Σ 광원 색·세기·(1−d²)², 결과 = 바탕 × min(빛, 1.6), 발광 색은 조명 무시(계약 §9). 반경은 도트(pixelScale 0.5 → 논리 ÷2).",
+ "target": {
+  "meanLuminance": ">= 55",
+  "nearBlackRatio(L<25)": "<= 15%",
+  "source": "P19 ⑤ 3번 / F 밝기"
+ },
+ "ambient": {
+  "outer": {
+   "rgb": [
+    0.74,
+    0.72,
+    0.78
+   ],
+   "note": "전투 기본. 지금(0.34 안팎)의 약 2~2.4배 — 바닥 바탕색(v4 albedo 80~107)과 함께 휘도 ≥ 55 를 만든다"
+  },
+  "gate": {
+   "rgb": [
+    0.8,
+    0.82,
+    0.88
+   ],
+   "note": "전투 기본. 지금(0.34 안팎)의 약 2~2.4배 — 바닥 바탕색(v4 albedo 80~107)과 함께 휘도 ≥ 55 를 만든다"
+  },
+  "brewery": {
+   "rgb": [
+    0.82,
+    0.78,
+    0.76
+   ],
+   "note": "전투 기본. 지금(0.34 안팎)의 약 2~2.4배 — 바닥 바탕색(v4 albedo 80~107)과 함께 휘도 ≥ 55 를 만든다"
+  },
+  "hall": {
+   "rgb": [
+    0.7,
+    0.66,
+    0.66
+   ],
+   "note": "전투 기본. 지금(0.34 안팎)의 약 2~2.4배 — 바닥 바탕색(v4 albedo 80~107)과 함께 휘도 ≥ 55 를 만든다"
+  },
+  "waste": {
+   "rgb": [
+    0.76,
+    0.72,
+    0.7
+   ],
+   "note": "전투 기본. 지금(0.34 안팎)의 약 2~2.4배 — 바닥 바탕색(v4 albedo 80~107)과 함께 휘도 ≥ 55 를 만든다"
+  }
+ },
+ "ambientDarkSections": {
+  "boss_blackout": [
+   0.3,
+   0.3,
+   0.36
+  ],
+  "hidden_cellar": [
+   0.36,
+   0.34,
+   0.34
+  ],
+  "note": "어둠은 연출 구간에만(P19 F) — 보스 소등 국면·숨은 벽 저장고"
+ },
+ "lightKinds": {
+  "lamp_post": {
+   "color": "#e8b858",
+   "radius": 360,
+   "intensity": 0.55,
+   "flicker": {
+    "amp": 0.06,
+    "hz": 4
+   }
+  },
+  "brazier": {
+   "color": "#eebb6d",
+   "radius": 420,
+   "intensity": 0.6,
+   "flicker": {
+    "amp": 0.16,
+    "hz": 6
+   }
+  },
+  "fountain": {
+   "color": "#eecc78",
+   "radius": 480,
+   "intensity": 0.45,
+   "flicker": {
+    "amp": 0.05,
+    "hz": 2
+   }
+  },
+  "still_fire": {
+   "color": "#eecc78",
+   "radius": 420,
+   "intensity": 0.6,
+   "flicker": {
+    "amp": 0.18,
+    "hz": 7
+   }
+  },
+  "window": {
+   "color": "#e2a33c",
+   "radius": 200,
+   "intensity": 0.35
+  },
+  "candelabra": {
+   "color": "#f4de9b",
+   "radius": 380,
+   "intensity": 0.55,
+   "flicker": {
+    "amp": 0.1,
+    "hz": 6
+   }
+  },
+  "moon_fill": {
+   "color": "#a8c0d6",
+   "radius": 900,
+   "intensity": 0.18
+  },
+  "hazard_glow": {
+   "color": "#e2a33c",
+   "radius": 140,
+   "intensity": 0.4,
+   "flicker": {
+    "amp": 0.1,
+    "hz": 3
+   }
+  },
+  "player": {
+   "color": "#e8b858",
+   "radius": 260,
+   "intensity": 0.35
+  }
+ },
+ "placement": {
+  "rule": "빛은 길을 따라: 문 ↔ 무대 중심 경로 양옆 6~8칸 간격, 무대 중심 1개(큰 반경), 위험물(술통 줄)에 작은 호박 빛(hazard_glow) — 위험물이 어둠에서 먼저 읽히게",
+  "density": "화면(34×19칸)당 광원 4~7개. 화면 가장자리 3칸 안에도 1개 이상(적이 어둠에서 걸어 나오지 않게)",
+  "perShape": {
+   "plaza": "분수(fountain) 1 + 둘레 등불 기둥 4(반경 9·7칸 지점) + 골목 입구 화로",
+   "dock": "부두 가장자리 화로 3(수로 둑 따라) + 크레인 아래 술통 줄 hazard_glow",
+   "cross": "이정표 등(lamp_post) 1 + 골목 끝 화로 4(네 갈래 끝) + 광장 모서리 등 2",
+   "terrace": "위 단 화로 3(난간 따라) + 아래 단 1 + 계단 옆 등 2",
+   "cellar": "매달린 등 6(기둥 줄 사이, brazier 값) + 술통 더미 hazard_glow",
+   "rampart": "망루 봉화(brazier) 2 + 회랑 양끝 화로 2 + 낭떠러지 쪽 달빛 채움(moon_fill) 1",
+   "still": "증류기 불(still_fire) 1 + 마당 화로 3",
+   "boss": "촛대 5(기존 boss1_candelabra) — 소등 국면만 ambientDarkSections.boss_blackout",
+   "waste": "모닥불 1 + 화로 1 + 달빛 채움 1"
+  }
+ },
+ "measured": {
+  "plaza": {
+   "z175": {
+    "mean": 70.3,
+    "dark": 0.2,
+    "viewTiles": [
+     34.3,
+     19.3
+    ]
+   },
+   "z160": {
+    "mean": 68.0,
+    "dark": 0.3,
+    "viewTiles": [
+     37.5,
+     21.1
+    ]
+   },
+   "albedoMean": 79.8,
+   "region": "outer",
+   "name": "원형 광장(술샘 분수)",
+   "size": [
+    48,
+    32
+   ],
+   "ambient": [
+    0.74,
+    0.72,
+    0.78
+   ],
+   "lights": 7
+  },
+  "dock": {
+   "z175": {
+    "mean": 60.7,
+    "dark": 0.7,
+    "viewTiles": [
+     34.3,
+     19.3
+    ]
+   },
+   "z160": {
+    "mean": 59.8,
+    "dark": 0.6,
+    "viewTiles": [
+     37.5,
+     21.1
+    ]
+   },
+   "albedoMean": 73.1,
+   "region": "brewery",
+   "name": "부두 하역장",
+   "size": [
+    56,
+    28
+   ],
+   "ambient": [
+    0.82,
+    0.78,
+    0.76
+   ],
+   "lights": 6
+  },
+  "cross": {
+   "z175": {
+    "mean": 63.6,
+    "dark": 0.5,
+    "viewTiles": [
+     34.3,
+     19.3
+    ]
+   },
+   "z160": {
+    "mean": 63.1,
+    "dark": 0.4,
+    "viewTiles": [
+     37.5,
+     21.1
+    ]
+   },
+   "albedoMean": 77.4,
+   "region": "outer",
+   "name": "십자로",
+   "size": [
+    48,
+    32
+   ],
+   "ambient": [
+    0.74,
+    0.72,
+    0.78
+   ],
+   "lights": 9
+  },
+  "terrace": {
+   "z175": {
+    "mean": 67.1,
+    "dark": 0.1,
+    "viewTiles": [
+     34.3,
+     19.3
+    ]
+   },
+   "z160": {
+    "mean": 67.1,
+    "dark": 0.1,
+    "viewTiles": [
+     37.5,
+     21.1
+    ]
+   },
+   "albedoMean": 75.7,
+   "region": "gate",
+   "name": "두 단 테라스",
+   "size": [
+    48,
+    32
+   ],
+   "ambient": [
+    0.8,
+    0.82,
+    0.88
+   ],
+   "lights": 8
+  },
+  "cellar": {
+   "z175": {
+    "mean": 65.6,
+    "dark": 0.3,
+    "viewTiles": [
+     34.3,
+     19.3
+    ]
+   },
+   "z160": {
+    "mean": 67.2,
+    "dark": 0.2,
+    "viewTiles": [
+     37.5,
+     21.1
+    ]
+   },
+   "albedoMean": 76.7,
+   "region": "brewery",
+   "name": "술창고",
+   "size": [
+    48,
+    30
+   ],
+   "ambient": [
+    0.82,
+    0.78,
+    0.76
+   ],
+   "lights": 12
+  },
+  "rampart": {
+   "z175": {
+    "mean": 59.6,
+    "dark": 0.1,
+    "viewTiles": [
+     34.3,
+     19.3
+    ]
+   },
+   "z160": {
+    "mean": 57.2,
+    "dark": 0.1,
+    "viewTiles": [
+     37.5,
+     21.1
+    ]
+   },
+   "albedoMean": 63.3,
+   "region": "gate",
+   "name": "성벽 위 회랑",
+   "size": [
+    60,
+    26
+   ],
+   "ambient": [
+    0.8,
+    0.82,
+    0.88
+   ],
+   "lights": 6
+  },
+  "still": {
+   "z175": {
+    "mean": 62.4,
+    "dark": 0.6,
+    "viewTiles": [
+     34.3,
+     19.3
+    ]
+   },
+   "z160": {
+    "mean": 61.8,
+    "dark": 0.5,
+    "viewTiles": [
+     37.5,
+     21.1
+    ]
+   },
+   "albedoMean": 71.6,
+   "region": "brewery",
+   "name": "증류소 마당",
+   "size": [
+    50,
+    32
+   ],
+   "ambient": [
+    0.82,
+    0.78,
+    0.76
+   ],
+   "lights": 6
+  },
+  "boss": {
+   "z175": {
+    "mean": 72.8,
+    "dark": 0.9,
+    "viewTiles": [
+     34.3,
+     19.3
+    ]
+   },
+   "z160": {
+    "mean": 73.6,
+    "dark": 0.7,
+    "viewTiles": [
+     37.5,
+     21.1
+    ]
+   },
+   "albedoMean": 98.4,
+   "region": "hall",
+   "name": "만취의 연회장(보스)",
+   "size": [
+    56,
+    34
+   ],
+   "ambient": [
+    0.7,
+    0.66,
+    0.66
+   ],
+   "lights": 8
+  },
+  "waste": {
+   "z175": {
+    "mean": 62.7,
+    "dark": 0.7,
+    "viewTiles": [
+     34.3,
+     19.3
+    ]
+   },
+   "z160": {
+    "mean": 61.1,
+    "dark": 0.7,
+    "viewTiles": [
+     37.5,
+     21.1
+    ]
+   },
+   "albedoMean": 75.0,
+   "region": "waste",
+   "name": "버려진 길(황무지)",
+   "size": [
+    48,
+    30
+   ],
+   "ambient": [
+    0.76,
+    0.72,
+    0.7
+   ],
+   "lights": 5
+  }
+ }
+}

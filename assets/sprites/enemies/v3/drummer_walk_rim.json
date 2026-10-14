@@ -1,0 +1,111 @@
+{
+ "image": "drummer_walk_rim.png",
+ "action": "drummer_walk_rim",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 8,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  110,
+  110,
+  110,
+  110,
+  110,
+  110,
+  110,
+  110
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "role": "rim_cold",
+ "baseSheet": "enemies/v3/drummer_walk",
+ "enemy": "drummer",
+ "overlayOf": "enemies/v3/drummer_walk",
+ "sameFrameAs": "enemies/v3/drummer_walk",
+ "draw": "적 스프라이트 바로 위(같은 프레임 번호·피벗·flip·scale). 실루엣 바깥 1도트. 엘리트는 `_elite` 만(계약 §31.3)",
+ "rimColors": [
+  "#3a4a5e",
+  "#56708c",
+  "#7d98b4",
+  "#a8c0d6"
+ ],
+ "paletteSwap": "none",
+ "version": "v3-p19",
+ "source": "parts/art/work/p19/enemy19.py (P19 1-A 새 적, 리그 enemies_v3 공용) · r62b/rim.py rim_frame",
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 drummer_walk_rim.png)",
+  "grid": {
+   "columns": 8,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 32
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":55,"h":144},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":0,"w":55,"h":144},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":0,"y":567,"w":55,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":6,"w":55,"h":135},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":428,"w":55,"h":137},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":5,"w":55,"h":137},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":114,"y":0,"w":55,"h":143},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":1,"w":55,"h":143},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":171,"y":0,"w":55,"h":141},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":3,"w":55,"h":141},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":165,"y":841,"w":55,"h":133},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":8,"w":55,"h":133},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":57,"y":428,"w":55,"h":137},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":5,"w":55,"h":137},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":57,"y":0,"w":55,"h":144},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":0,"w":55,"h":144},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":58,"y":287,"w":55,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":5,"w":55,"h":139},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":114,"y":566,"w":55,"h":137},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":6,"w":55,"h":137},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":53,"y":704,"w":55,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":6,"w":55,"h":134},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":110,"y":705,"w":55,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":5,"w":55,"h":134},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":114,"y":145,"w":55,"h":140},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":4,"w":55,"h":140},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":0,"y":288,"w":55,"h":138},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":5,"w":55,"h":138},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":53,"y":840,"w":55,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":6,"w":55,"h":134},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":165,"y":976,"w":55,"h":133},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":6,"w":55,"h":133},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":171,"y":143,"w":56,"h":140},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":3,"w":56,"h":140},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":110,"y":841,"w":53,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":5,"w":53,"h":134},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":0,"y":841,"w":51,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":3,"w":51,"h":134},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":115,"y":287,"w":51,"h":138},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":1,"w":51,"h":138},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":58,"y":146,"w":50,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":4,"w":50,"h":139},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":53,"y":976,"w":48,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":9,"w":48,"h":134},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":115,"y":427,"w":51,"h":136},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":7,"w":51,"h":136},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":0,"y":146,"w":56,"h":140},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":3,"w":56,"h":140},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":171,"y":285,"w":56,"h":139},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":4,"w":56,"h":139},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":171,"y":566,"w":53,"h":136},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":7,"w":53,"h":136},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":57,"y":567,"w":51,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":8,"w":51,"h":135},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":0,"y":704,"w":51,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":8,"w":51,"h":135},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":168,"y":426,"w":50,"h":138},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":31,"y":5,"w":50,"h":138},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":0,"y":977,"w":48,"h":134},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":33,"y":5,"w":48,"h":134},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":103,"y":977,"w":51,"h":133},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":4,"w":51,"h":133},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":171,"y":704,"w":56,"h":135},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":4,"w":56,"h":135},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "drummer_walk_rim.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 227,
+   "h": 1111
+  },
+  "scale": "1"
+ }
+}

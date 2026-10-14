@@ -1,0 +1,107 @@
+{
+ "image": "stage_rampart_beacon.png",
+ "action": "stage_rampart_beacon",
+ "frameWidth": 128,
+ "frameHeight": 240,
+ "framesPerDirection": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction/kind (directions·rowsAre 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  120,
+  120,
+  120,
+  120
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "id": "stage_rampart_beacon",
+ "role": "stage_center",
+ "shape": "rampart",
+ "pivot": {
+  "x": 64,
+  "y": 226
+ },
+ "footprint": [
+  1,
+  1
+ ],
+ "solid": true,
+ "depth": "y",
+ "occludeAbove": 50,
+ "states": {
+  "idle": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "stateLoop": {
+  "idle": true
+ },
+ "light": {
+  "color": "#eebb6d",
+  "radius": 420,
+  "intensity": 0.6,
+  "flicker": {
+   "amp": 0.16,
+   "hz": 6
+  },
+  "offset": {
+   "x": 64,
+   "y": 100
+  }
+ },
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "note": "성벽 위 회랑 무대 중심 — 망루 돌출부의 봉화(불 4×120ms) + 짧은 깃발",
+ "source": "parts/art/work/p19/props19.py (P19 1-A 무대 중심·위험물)",
+ "version": "v3-p19",
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 stage_rampart_beacon.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 240,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":414,"w":98,"h":204},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":36,"w":98,"h":204},"sourceSize":{"w":128,"h":240}},
+  "1":{"frame":{"x":0,"y":0,"w":98,"h":205},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":35,"w":98,"h":205},"sourceSize":{"w":128,"h":240}},
+  "2":{"frame":{"x":0,"y":620,"w":98,"h":204},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":36,"w":98,"h":204},"sourceSize":{"w":128,"h":240}},
+  "3":{"frame":{"x":0,"y":207,"w":98,"h":205},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":35,"w":98,"h":205},"sourceSize":{"w":128,"h":240}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "stage_rampart_beacon.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 98,
+   "h": 824
+  },
+  "scale": "1"
+ }
+}

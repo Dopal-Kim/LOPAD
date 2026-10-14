@@ -1,0 +1,122 @@
+{
+ "image": "stage_cask_pile.png",
+ "action": "stage_cask_pile",
+ "frameWidth": 256,
+ "frameHeight": 224,
+ "framesPerDirection": 4,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction/kind (directions·rowsAre 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  200,
+  90,
+  90,
+  200
+ ],
+ "loop": false,
+ "pixelScale": 0.5,
+ "id": "stage_cask_pile",
+ "role": "stage_center+hazard",
+ "shape": "cellar",
+ "pivot": {
+  "x": 128,
+  "y": 210
+ },
+ "footprint": [
+  3,
+  2
+ ],
+ "solid": true,
+ "depth": "y",
+ "occludeAbove": 60,
+ "states": {
+  "idle": [
+   0
+  ],
+  "lit": [
+   1,
+   2
+  ],
+  "wreck": [
+   3
+  ]
+ },
+ "stateLoop": {
+  "idle": false,
+  "lit": true,
+  "wreck": false
+ },
+ "lightByState": {
+  "lit": {
+   "color": "#e2a33c",
+   "radius": 200,
+   "intensity": 0.6,
+   "flicker": {
+    "amp": 0.3,
+    "hz": 9
+   },
+   "offset": {
+    "x": 128,
+    "y": 100
+   }
+  }
+ },
+ "hazard": {
+  "kind": "cask",
+  "explode": "react_explode_l",
+  "chainRadiusTiles": 2.5,
+  "litMs": 500,
+  "note": "술창고 무대 중심 겸 큰 위험물 — 타격 2회 또는 불 → lit(0.5초) → 큰 폭발(react_explode_l) → wreck. 반경 2.5칸 안 술통 줄·웅덩이로 연쇄(0.3초 간격)"
+ },
+ "amberBand": "마구리 테 안쪽 호박 띠 = 위험물 표지",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff",
+  "#fff4dc"
+ ],
+ "source": "parts/art/work/p19/props19.py (P19 1-A 무대 중심·위험물)",
+ "version": "v3-p19",
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 stage_cask_pile.png)",
+  "grid": {
+   "columns": 4,
+   "rows": 1,
+   "frameWidth": 256,
+   "frameHeight": 224,
+   "frameCount": 4
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":434,"w":235,"h":197},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":27,"w":235,"h":197},"sourceSize":{"w":256,"h":224}},
+  "1":{"frame":{"x":0,"y":218,"w":235,"h":214},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":10,"w":235,"h":214},"sourceSize":{"w":256,"h":224}},
+  "2":{"frame":{"x":0,"y":0,"w":235,"h":216},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":14,"y":8,"w":235,"h":216},"sourceSize":{"w":256,"h":224}},
+  "3":{"frame":{"x":0,"y":633,"w":233,"h":70},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":16,"y":154,"w":233,"h":70},"sourceSize":{"w":256,"h":224}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "stage_cask_pile.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 235,
+   "h": 703
+  },
+  "scale": "1"
+ }
+}

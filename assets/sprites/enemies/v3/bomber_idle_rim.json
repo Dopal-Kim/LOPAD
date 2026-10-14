@@ -1,0 +1,101 @@
+{
+ "image": "bomber_idle_rim.png",
+ "action": "bomber_idle_rim",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 6,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  160,
+  160,
+  160,
+  160,
+  160,
+  160
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "role": "rim_cold",
+ "baseSheet": "enemies/v3/bomber_idle",
+ "enemy": "bomber",
+ "overlayOf": "enemies/v3/bomber_idle",
+ "sameFrameAs": "enemies/v3/bomber_idle",
+ "draw": "적 스프라이트 바로 위(같은 프레임 번호·피벗·flip·scale). 실루엣 바깥 1도트. 엘리트는 `_elite` 만(계약 §31.3)",
+ "rimColors": [
+  "#3a4a5e",
+  "#56708c",
+  "#7d98b4",
+  "#a8c0d6"
+ ],
+ "paletteSwap": "none",
+ "version": "v3-p19",
+ "source": "parts/art/work/p19/enemy19.py (P19 1-A 새 적, 리그 enemies_v3 공용) · r62b/rim.py rim_frame",
+ "palette": "parts/art/palette/lopad.json (gray + 1층 램프 16~27) + v2 재질 블록 SL·WD·PL (parts/art/work/v2_outer/palette_v2_proposal.json, 임시·고정색) — 새 색 없음",
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bomber_idle_rim.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 24
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":49,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":35,"w":49,"h":108},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":0,"y":878,"w":50,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":36,"w":50,"h":107},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":660,"w":51,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":36,"w":51,"h":107},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":0,"y":110,"w":49,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":35,"w":49,"h":108},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":0,"y":987,"w":50,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":36,"w":50,"h":107},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":0,"y":769,"w":51,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":36,"w":51,"h":107},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":0,"y":1964,"w":49,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":38,"w":49,"h":103},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":0,"y":2174,"w":50,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":39,"w":50,"h":102},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":0,"y":2382,"w":51,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":40,"w":51,"h":101},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":0,"y":2069,"w":49,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":38,"w":49,"h":103},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":0,"y":2278,"w":50,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":39,"w":50,"h":102},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":0,"y":2485,"w":51,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":40,"w":51,"h":101},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":0,"y":220,"w":44,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":36,"w":44,"h":108},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":0,"y":1423,"w":42,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":37,"w":42,"h":107},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":0,"y":1314,"w":43,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":37,"w":43,"h":107},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":0,"y":330,"w":44,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":36,"w":44,"h":108},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":0,"y":1532,"w":45,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":38,"w":45,"h":106},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":0,"y":1640,"w":45,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":38,"w":45,"h":106},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":0,"y":440,"w":44,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":36,"w":44,"h":108},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":0,"y":1856,"w":42,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":38,"w":42,"h":106},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":0,"y":1748,"w":43,"h":106},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":38,"w":43,"h":106},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":0,"y":550,"w":44,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":36,"w":44,"h":108},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":0,"y":1096,"w":45,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":37,"w":45,"h":107},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":0,"y":1205,"w":45,"h":107},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":37,"w":45,"h":107},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bomber_idle_rim.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 51,
+   "h": 2586
+  },
+  "scale": "1"
+ }
+}

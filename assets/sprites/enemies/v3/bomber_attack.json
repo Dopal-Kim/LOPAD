@@ -1,0 +1,502 @@
+{
+ "image": "bomber_attack.png",
+ "action": "attack",
+ "frameWidth": 96,
+ "frameHeight": 144,
+ "framesPerDirection": 10,
+ "directions": [
+  "down",
+  "up",
+  "left",
+  "right"
+ ],
+ "layout": "rows = directions (down, up, left, right), columns = frames",
+ "frameIndex": "row * frames + column",
+ "fps": 10.0,
+ "frameDurationsMs": [
+  100,
+  100,
+  100,
+  100,
+  100,
+  100,
+  100,
+  100,
+  100,
+  100
+ ],
+ "loop": false,
+ "pivot": {
+  "x": 48,
+  "y": 138
+ },
+ "pixelScale": 0.5,
+ "palette": "parts/art/palette/lopad.json (gray G00~15 + 1층 램프 16~27 — 북통·깃발·술독 띠·발광) + v2 재질 블록 SL·WD·PL. 새 색 없음",
+ "source": "parts/art/work/p19/enemy19.py (P19 1-A 새 적, 리그 enemies_v3 공용)",
+ "note": "v3 술배 자폭병(P19 C 새 적) · 96×144 · 배 앞 갈색 술독 + 굵은 호박 띠(위험물 표지) + 도화선 불티(발광) · 붉은 두건 · 웃는 입. 달려와 1초 예고(attack) 뒤 폭발(explode). 쳐서 날리면 swell 루프 → 날아간 자리에서 폭발",
+ "emissiveColors": [
+  "#e2a33c",
+  "#e8b858",
+  "#eecc78",
+  "#f4de9b",
+  "#faeec0",
+  "#ffffff"
+ ],
+ "version": "v3-p19",
+ "phaseFrames": {
+  "brace": [
+   0,
+   1
+  ],
+  "swell": [
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "flash": [
+   8,
+   9
+  ]
+ },
+ "phaseStartMs": {
+  "brace": 0,
+  "swell": 200,
+  "flash": 800
+ },
+ "actionName": "self_destruct_telegraph",
+ "detonateFrame": 9,
+ "detonateAtMs": 1000,
+ "detonateNote": "attack 마지막 프레임이 끝나는 순간 = 폭발(1초 예고). 그때 explode 시트 + fx/v3/react_explode_m 을 피벗에 재생",
+ "fuseAnchors": {
+  "down": [
+   [
+    45.0,
+    68.1
+   ],
+   [
+    45.5,
+    73.1
+   ],
+   [
+    46.2,
+    75.6
+   ],
+   [
+    45.7,
+    76.6
+   ],
+   [
+    47.9,
+    77.6
+   ],
+   [
+    46.0,
+    78.6
+   ],
+   [
+    47.5,
+    79.7
+   ],
+   [
+    48.1,
+    80.8
+   ],
+   [
+    48.1,
+    80.8
+   ],
+   [
+    48.1,
+    80.8
+   ]
+  ],
+  "up": [
+   [
+    51.0,
+    60.9
+   ],
+   [
+    50.5,
+    63.7
+   ],
+   [
+    49.8,
+    64.8
+   ],
+   [
+    50.3,
+    65.1
+   ],
+   [
+    48.1,
+    65.5
+   ],
+   [
+    50.0,
+    65.8
+   ],
+   [
+    48.5,
+    66.2
+   ],
+   [
+    47.9,
+    66.7
+   ],
+   [
+    47.9,
+    66.7
+   ],
+   [
+    47.9,
+    66.7
+   ]
+  ],
+  "left": [
+   [
+    38.1,
+    63.4
+   ],
+   [
+    34.9,
+    67.5
+   ],
+   [
+    33.0,
+    69.5
+   ],
+   [
+    32.1,
+    70.0
+   ],
+   [
+    31.2,
+    71.5
+   ],
+   [
+    30.2,
+    71.5
+   ],
+   [
+    29.3,
+    72.8
+   ],
+   [
+    28.4,
+    73.8
+   ],
+   [
+    28.4,
+    73.8
+   ],
+   [
+    28.4,
+    73.8
+   ]
+  ],
+  "right": [
+   [
+    57.9,
+    65.6
+   ],
+   [
+    61.1,
+    69.3
+   ],
+   [
+    63.0,
+    70.8
+   ],
+   [
+    63.9,
+    71.7
+   ],
+   [
+    64.8,
+    71.5
+   ],
+   [
+    65.8,
+    72.9
+   ],
+   [
+    66.7,
+    73.2
+   ],
+   [
+    67.6,
+    73.7
+   ],
+   [
+    67.6,
+    73.7
+   ],
+   [
+    67.6,
+    73.7
+   ]
+  ]
+ },
+ "jarAnchors": {
+  "down": [
+   [
+    48.0,
+    87.8
+   ],
+   [
+    48.0,
+    91.2
+   ],
+   [
+    48.0,
+    92.7
+   ],
+   [
+    47.2,
+    93.7
+   ],
+   [
+    49.2,
+    94.7
+   ],
+   [
+    47.0,
+    95.7
+   ],
+   [
+    48.2,
+    96.7
+   ],
+   [
+    48.6,
+    97.7
+   ],
+   [
+    48.6,
+    97.7
+   ],
+   [
+    48.6,
+    97.7
+   ]
+  ],
+  "up": [
+   [
+    48.0,
+    81.6
+   ],
+   [
+    48.0,
+    84.2
+   ],
+   [
+    48.0,
+    85.0
+   ],
+   [
+    48.8,
+    85.6
+   ],
+   [
+    46.8,
+    86.1
+   ],
+   [
+    49.0,
+    86.7
+   ],
+   [
+    47.8,
+    87.3
+   ],
+   [
+    47.4,
+    88.0
+   ],
+   [
+    47.4,
+    88.0
+   ],
+   [
+    47.4,
+    88.0
+   ]
+  ],
+  "left": [
+   [
+    39.4,
+    84.7
+   ],
+   [
+    38.3,
+    87.7
+   ],
+   [
+    37.3,
+    88.9
+   ],
+   [
+    36.7,
+    89.3
+   ],
+   [
+    36.2,
+    90.8
+   ],
+   [
+    35.6,
+    90.9
+   ],
+   [
+    35.0,
+    92.1
+   ],
+   [
+    34.5,
+    93.1
+   ],
+   [
+    34.5,
+    93.1
+   ],
+   [
+    34.5,
+    93.1
+   ]
+  ],
+  "right": [
+   [
+    56.6,
+    84.7
+   ],
+   [
+    57.7,
+    87.7
+   ],
+   [
+    58.7,
+    88.9
+   ],
+   [
+    59.3,
+    89.9
+   ],
+   [
+    59.8,
+    90.0
+   ],
+   [
+    60.4,
+    91.5
+   ],
+   [
+    61.0,
+    91.9
+   ],
+   [
+    61.5,
+    92.6
+   ],
+   [
+    61.5,
+    92.6
+   ],
+   [
+    61.5,
+    92.6
+   ]
+  ]
+ },
+ "telegraph": {
+  "fromFrame": 0,
+  "toFrame": 9,
+  "ms": 1000,
+  "color": "danger #ff4a3a",
+  "floor": "fx/v3/tele_danger_circle (반경 = 폭발 반경, 1000ms 진행도 구동)",
+  "note": "계약 free-combat §2 '위험'(막을 수 없음, ≥500ms) — 바닥 붉은 원 + 몸 금빛"
+ },
+ "hitSuggestion": {
+  "hp": 18,
+  "explodeRadiusTiles": 2.0,
+  "explodeDamage": 18,
+  "triggerRangeTiles": 1.6,
+  "speedTiles": 4.2,
+  "knockedFlight": "중·강 넉백으로 날아가면 swell 루프, 착지·벽·적과 부딪힌 자리에서 폭발(아군 피해 100%)",
+  "note": "수치 제안(기준은 시스템 data)"
+ },
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 bomber_attack.png)",
+  "grid": {
+   "columns": 10,
+   "rows": 4,
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "frameCount": 40
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": false,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":41,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":38,"w":41,"h":105},"sourceSize":{"w":96,"h":144}},
+  "1":{"frame":{"x":165,"y":209,"w":47,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":41,"w":47,"h":102},"sourceSize":{"w":96,"h":144}},
+  "2":{"frame":{"x":0,"y":313,"w":49,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":42,"w":49,"h":101},"sourceSize":{"w":96,"h":144}},
+  "3":{"frame":{"x":0,"y":518,"w":51,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":43,"w":51,"h":100},"sourceSize":{"w":96,"h":144}},
+  "4":{"frame":{"x":0,"y":620,"w":52,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":44,"w":52,"h":99},"sourceSize":{"w":96,"h":144}},
+  "5":{"frame":{"x":180,"y":620,"w":53,"h":98},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":45,"w":53,"h":98},"sourceSize":{"w":96,"h":144}},
+  "6":{"frame":{"x":180,"y":720,"w":53,"h":97},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":46,"w":53,"h":97},"sourceSize":{"w":96,"h":144}},
+  "7":{"frame":{"x":0,"y":721,"w":55,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":47,"w":55,"h":96},"sourceSize":{"w":96,"h":144}},
+  "8":{"frame":{"x":57,"y":721,"w":55,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":47,"w":55,"h":96},"sourceSize":{"w":96,"h":144}},
+  "9":{"frame":{"x":114,"y":721,"w":55,"h":96},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":47,"w":55,"h":96},"sourceSize":{"w":96,"h":144}},
+  "10":{"frame":{"x":100,"y":313,"w":41,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":28,"y":40,"w":41,"h":101},"sourceSize":{"w":96,"h":144}},
+  "11":{"frame":{"x":51,"y":313,"w":47,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":40,"w":47,"h":101},"sourceSize":{"w":96,"h":144}},
+  "12":{"frame":{"x":165,"y":105,"w":49,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":40,"w":49,"h":102},"sourceSize":{"w":96,"h":144}},
+  "13":{"frame":{"x":92,"y":210,"w":51,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":23,"y":41,"w":51,"h":101},"sourceSize":{"w":96,"h":144}},
+  "14":{"frame":{"x":38,"y":210,"w":52,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":41,"w":52,"h":101},"sourceSize":{"w":96,"h":144}},
+  "15":{"frame":{"x":38,"y":107,"w":53,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":41,"w":53,"h":101},"sourceSize":{"w":96,"h":144}},
+  "16":{"frame":{"x":171,"y":416,"w":53,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":42,"w":53,"h":100},"sourceSize":{"w":96,"h":144}},
+  "17":{"frame":{"x":0,"y":416,"w":55,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":42,"w":55,"h":100},"sourceSize":{"w":96,"h":144}},
+  "18":{"frame":{"x":57,"y":416,"w":55,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":42,"w":55,"h":100},"sourceSize":{"w":96,"h":144}},
+  "19":{"frame":{"x":114,"y":416,"w":55,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":42,"w":55,"h":100},"sourceSize":{"w":96,"h":144}},
+  "20":{"frame":{"x":43,"y":0,"w":40,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":27,"y":39,"w":40,"h":105},"sourceSize":{"w":96,"h":144}},
+  "21":{"frame":{"x":127,"y":0,"w":37,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":26,"y":41,"w":37,"h":103},"sourceSize":{"w":96,"h":144}},
+  "22":{"frame":{"x":205,"y":0,"w":36,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":25,"y":41,"w":36,"h":103},"sourceSize":{"w":96,"h":144}},
+  "23":{"frame":{"x":214,"y":209,"w":36,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":42,"w":36,"h":102},"sourceSize":{"w":96,"h":144}},
+  "24":{"frame":{"x":223,"y":313,"w":37,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":22,"y":43,"w":37,"h":101},"sourceSize":{"w":96,"h":144}},
+  "25":{"frame":{"x":143,"y":313,"w":38,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":21,"y":43,"w":38,"h":101},"sourceSize":{"w":96,"h":144}},
+  "26":{"frame":{"x":179,"y":518,"w":39,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":20,"y":44,"w":39,"h":100},"sourceSize":{"w":96,"h":144}},
+  "27":{"frame":{"x":54,"y":620,"w":40,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":45,"w":40,"h":99},"sourceSize":{"w":96,"h":144}},
+  "28":{"frame":{"x":96,"y":620,"w":40,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":45,"w":40,"h":99},"sourceSize":{"w":96,"h":144}},
+  "29":{"frame":{"x":138,"y":620,"w":40,"h":99},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":19,"y":45,"w":40,"h":99},"sourceSize":{"w":96,"h":144}},
+  "30":{"frame":{"x":85,"y":0,"w":40,"h":105},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":30,"y":39,"w":40,"h":105},"sourceSize":{"w":96,"h":144}},
+  "31":{"frame":{"x":166,"y":0,"w":37,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":34,"y":41,"w":37,"h":103},"sourceSize":{"w":96,"h":144}},
+  "32":{"frame":{"x":127,"y":105,"w":36,"h":103},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":36,"y":41,"w":36,"h":103},"sourceSize":{"w":96,"h":144}},
+  "33":{"frame":{"x":0,"y":107,"w":36,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":37,"y":42,"w":36,"h":102},"sourceSize":{"w":96,"h":144}},
+  "34":{"frame":{"x":216,"y":105,"w":37,"h":102},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":42,"w":37,"h":102},"sourceSize":{"w":96,"h":144}},
+  "35":{"frame":{"x":183,"y":313,"w":38,"h":101},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":43,"w":38,"h":101},"sourceSize":{"w":96,"h":144}},
+  "36":{"frame":{"x":220,"y":518,"w":39,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":44,"w":39,"h":100},"sourceSize":{"w":96,"h":144}},
+  "37":{"frame":{"x":53,"y":518,"w":40,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":44,"w":40,"h":100},"sourceSize":{"w":96,"h":144}},
+  "38":{"frame":{"x":95,"y":518,"w":40,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":44,"w":40,"h":100},"sourceSize":{"w":96,"h":144}},
+  "39":{"frame":{"x":137,"y":518,"w":40,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":38,"y":44,"w":40,"h":100},"sourceSize":{"w":96,"h":144}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "bomber_attack.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 260,
+   "h": 817
+  },
+  "scale": "1"
+ }
+}
