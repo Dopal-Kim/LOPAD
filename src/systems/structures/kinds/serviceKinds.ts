@@ -1,5 +1,5 @@
 /**
- * E형 구조물 — 공통·1층: 궤짝(C2) · 무명 전사의 묘(C3, 길게 누르기) · 모닥불(C5, 불씨) · 외상 장부대(1-3, 빚) ·
+ * E형 구조물 — 공통·1층: 궤짝(C2) · 무명 전사의 묘(C3, 길게 누르기) · 모닥불(C5, 불씨) ·
  * 숙성 통(1-4) · 선술집 카운터(1-5, 취기).
  */
 import { EventBus, Events } from '../../../core/EventBus';
@@ -140,58 +140,6 @@ export class ServiceKinds {
           c.host.gainGrowth(pers);
           c.result(s, 'gain', txt(d, 'accepted', { personality: pers }), { personality: pers });
           c.used(s, 'grave.accept');
-        }
-      },
-    );
-  }
-
-  // --- 1-3 외상 장부대 ---
-
-  openLedger(s: Inst): void {
-    const c = this.c;
-    const d = s.def;
-    const loan = num(d, 'loan');
-    const debtAdd = num(d, 'debt');
-    const repay = Math.min(gameState.gold, c.debt);
-    c.openMenu(
-      'ledger',
-      s,
-      txt(d, 'menuTitle', { debt: c.debt }),
-      [
-        {
-          key: '1',
-          label: txt(d, 'borrow', { loan, debt: debtAdd }),
-          enabled: s.loans < num(d, 'loansPerFloor'),
-          detail: txt(d, 'borrowDetail', { pct: Math.round(num(d, 'repayRatio') * 100), hp: num(d, 'maxHpPer10Debt') }),
-        },
-        {
-          key: '2',
-          label: txt(d, 'repay', { amount: repay }),
-          enabled: c.debt > 0 && repay > 0,
-          detail: txt(d, 'repayDetail'),
-        },
-        ...curseLines(c, 'ledger', '3'),
-      ],
-      (key) => {
-        c.host.menu.close();
-        if (key === '3') {
-          if (c.host.build?.grantCurse('ledger')) c.used(s, 'ledger.curse');
-          return;
-        }
-        if (key === '1') {
-          s.loans += 1;
-          c.debt += debtAdd;
-          c.host.addGold(loan);
-          c.setVisual(s, 'used');
-          c.result(s, 'mixed', txt(d, 'borrowed', { loan, debt: c.debt }), { gold: loan });
-          c.used(s, 'ledger.borrow');
-        } else {
-          const pay = Math.min(gameState.gold, c.debt);
-          if (pay <= 0) return;
-          c.host.spendGold(pay);
-          c.debt -= pay;
-          c.result(s, 'info', txt(d, 'repaid', { amount: pay, debt: c.debt }), { gold: -pay });
-          c.used(s, 'ledger.repay');
         }
       },
     );

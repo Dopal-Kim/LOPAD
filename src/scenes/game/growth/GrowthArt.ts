@@ -13,6 +13,7 @@ import {
   resonanceIconFile,
   resonanceIconKey,
   traitIconFile,
+  traitIconCandidates,
   traitIconKey,
 } from '../../../systems/growth/traitArt';
 import { resonancesOf } from '../../../systems/growth/resonance';
@@ -57,10 +58,9 @@ export class GrowthArt {
     return this.scene.textures.exists(key) ? key : undefined;
   }
 
-  /** 로드된 개성 카드 그림 키 (없으면 undefined) */
+  /** 로드된 개성 카드 그림 키 (없으면 같은 태그 개성 그림 — 62 루프 4, 그것도 없으면 undefined) */
   iconKey(weapon: string, traitId: string): string | undefined {
-    const key = traitIconKey(weapon, traitId);
-    return this.scene.textures.exists(key) ? key : undefined;
+    return traitIconCandidates(weapon, traitId).find((key) => this.scene.textures.exists(key));
   }
 
   /** 씬 시작 — 이 무기의 미리보기(기본·갈래 3·길 6)와 개성 카드 그림 14장을 (매니페스트에 있으면) 받아 둔다 */

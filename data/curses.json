@@ -26,7 +26,7 @@
       "benefit": "전표 +100 즉시",
       "penalty": "처치 전표 0 · 장터 값 +20%",
       "nodes": 3,
-      "sources": ["ledger", "event"],
+      "sources": ["event"],
       "benefits": { "goldNow": 100 },
       "penalties": { "killGoldMult": 0, "shopPriceMult": 0.2 }
     },

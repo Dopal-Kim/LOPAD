@@ -21,10 +21,10 @@ const weaponAt = (id: string, path: string[], traits: string[] = []) => {
 };
 
 describe('57라운드 빌드 축 데이터', () => {
-  it('10태그 · 세트 2/4/6 × 10 · 개성 56 (61 G) · 저주 7', () => {
+  it('10태그 · 세트 2/4/6 × 10 · 개성 64 (61 G 56 + 62 루프 4 기억 8) · 저주 7', () => {
     expect(BUILD.tags.map((t) => t.id)).toEqual([...TAG_IDS]);
     for (const t of TAG_IDS) expect(BUILD.sets[t].map((s) => s.threshold)).toEqual([2, 4, 6]);
-    expect(TRAITS).toHaveLength(56);
+    expect(TRAITS).toHaveLength(64);
     expect(CURSES.items.map((c) => c.id)).toEqual([
       'drunkOath',
       'credit',

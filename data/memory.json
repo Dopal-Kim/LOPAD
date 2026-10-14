@@ -1,5 +1,5 @@
 {
-  "_note": "62 루프 2 시스템 C (P16 §4 · 점검 P1-8) 메타 '기억' 14종 (1층 범위) — 이름·문장 = 스토리 63 팩 memory. 영혼으로 일기장 '기억' 장에서 떠올린다. kind: keepsake 기억의 소품(태어날 때 하나 지님 — 하나 이상 떠올렸으면 운명 공개 뒤 고른다) · aspect 손이 기억한 모양(그 무기 시작 개성 한 장 — 운명 공개 때 '처음 모양'과 나란히 고름) · pool 떠올릴 개성(그 무기 기본 개성 두 장 — 떠올리기 전에는 풀에 없다) · shop 장터에 놓일 것(진열 후보에 오른다). 가장 싼 것 = firstUnlockCost(첫 사망 직후 떠올릴 수 있게). line = 한 문장(수치 없음), detail = 수치 틀({키} = effect 값). 몸의 기억(능력치 3줄)은 data/meta.json upgrades. 그림 = 소품 sprites/ui_relics/keepsake_<id>.png (아트 §31-4 — id 는 아트 파일 id: brokenCup 그림은 깨진 잔이지만 이름은 스토리 '찌그러진 투구' — 그림 고침 요청) · 모양·개성은 그 개성 그림 · 장터 것은 없음",
+  "_note": "62 루프 2 시스템 C (P16 §4 · 점검 P1-8) 메타 '기억' 14종 (1층 범위) — 이름·문장 = 스토리 63 팩 memory. 영혼으로 일기장 '기억' 장에서 떠올린다. kind: keepsake 기억의 소품(태어날 때 하나 지님 — 하나 이상 떠올렸으면 운명 공개 뒤 고른다) · aspect 손이 기억한 모양(그 무기 시작 개성 한 장 — 운명 공개 때 '처음 모양'과 나란히 고름) · pool 떠올릴 개성(그 무기 기억 개성 두 장 — traits.json memory, 떠올리기 전에는 풀에 없다 · 62 루프 4 스토리 64 팩) · shop 장터에 놓일 것(진열 후보에 오른다). 가장 싼 것 = firstUnlockCost(첫 사망 직후 떠올릴 수 있게). line = 한 문장(수치 없음), detail = 수치 틀({키} = effect 값). 몸의 기억(능력치 3줄)은 data/meta.json upgrades. 그림 = 소품 sprites/ui_relics/keepsake_<id>.png (아트 §31-4 — id 는 아트 파일 id: brokenCup 그림은 깨진 잔이지만 이름은 스토리 '찌그러진 투구' — 그림 고침 요청) · 모양·개성은 그 개성 그림 · 장터 것은 없음",
   "title": "기억",
   "intro": ["쓰러질 때마다 무언가 남았다. 영혼이다.", "영혼을 부으면 잊은 것이 하나씩 떠오른다."],
   "souls": "지닌 영혼 {n}",
@@ -46,12 +46,11 @@
     "keepsakeTitle": "기억의 소품 — 지니고 태어날 것 하나",
     "keepsakeNone": "빈손",
     "keepsakeNoneLine": "아무것도 지니지 않고 태어난다",
-    "_noteNone": "keepsakeNone·keepsakeNoneLine·aspectDetail·poolDetail·shopDetail 은 시스템 임시 문장 (팩에 없음 — 스토리 다음 팩에서 확인)",
     "aspectDetail": "개성 '{trait}' 한 장을 쥐고 태어난다",
-    "poolDetail": "개성 {traits} — 두 장이 풀에 섞인다",
+    "poolDetail": "개성 {traits} — 개성 발현 때 함께 나온다",
     "shopDetail": {
-      "inkBottle": "장터 진열 후보 '먹물 한 병'",
-      "bellows": "장터 진열 후보 '풀무질 한 번'"
+      "inkBottle": "장터에 '먹물 한 병'이 놓이기 시작한다",
+      "bellows": "장터에 '풀무질 한 번'이 놓이기 시작한다"
     }
   },
   "_icons": "62 I: 기억 칸 그림 (아트 ui_relics/memory_* — relics.json memory 표). 키 = 기억 id(몸의 기억은 stat:<강화 id>, 소품 빈손 = none) → 파일 이름(확장자 없음)",
@@ -159,8 +158,7 @@
       "name": "칼잡이의 잊은 수",
       "line": "칼 개성에 두 장이 더 섞인다",
       "cost": 20,
-      "traits": ["k_edgeLift", "k_iaiChain"],
-      "_storyCards": "스토리 팩 제안 새 개성 두 장(불똥 일섬, 칼집 쳐내기)은 루프 3 — 이번엔 기존 기본 개성 두 장을 잠갔다가 연다"
+      "traits": ["k_mem_fireLine", "k_mem_sheathBlock"]
     },
     {
       "id": "pool_greatsword",
@@ -169,8 +167,7 @@
       "name": "노역꾼의 잊은 힘",
       "line": "대검 개성에 두 장이 더 섞인다",
       "cost": 20,
-      "traits": ["g_shoulderFlip", "g_crackPull"],
-      "_storyCards": "스토리 팩 제안 새 개성 두 장(술통 받아치기, 버티며 걷기)은 루프 3 — 이번엔 기존 기본 개성 두 장을 잠갔다가 연다"
+      "traits": ["g_mem_caskRoll", "g_mem_blockCharge"]
     },
     {
       "id": "pool_dagger",
@@ -179,8 +176,7 @@
       "name": "뒷골목의 잊은 장난",
       "line": "단검 개성에 두 장이 더 섞인다",
       "cost": 20,
-      "traits": ["d_flurryPull", "d_sparkFlurry"],
-      "_storyCards": "스토리 팩 제안 새 개성 두 장(소매치기, 미끄럼 걸음)은 루프 3 — 이번엔 기존 기본 개성 두 장을 잠갔다가 연다"
+      "traits": ["d_mem_pickpocket", "d_mem_slipDash"]
     },
     {
       "id": "pool_bow",
@@ -189,8 +185,7 @@
       "name": "사수의 잊은 셈",
       "line": "활 개성에 두 장이 더 섞인다",
       "cost": 20,
-      "traits": ["b_fullBounce", "b_rainEcho"],
-      "_storyCards": "스토리 팩 제안 새 개성 두 장(술병 맞히기, 화살통 털기)은 루프 3 — 이번엔 기존 기본 개성 두 장을 잠갔다가 연다"
+      "traits": ["b_mem_bottleShot", "b_mem_quiverShake"]
     },
     {
       "id": "inkBottle",

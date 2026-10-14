@@ -111,6 +111,12 @@ export class Enemy extends Mob {
     return this.packActive ? 'pack' : 'chase';
   }
 
+  /** 62 루프 4 소매치기: 돌진 예고 · 조준선 · 술병·술통 들어 올림 */
+  override get windingUp(): boolean {
+    if (this.brain) return this.brain.state === 'windup';
+    return this.chargeState === 'telegraph' || this.rangedState === 'aim';
+  }
+
   get shotsSinceReload(): number {
     return this.shotsFired;
   }
@@ -122,6 +128,14 @@ export class Enemy extends Mob {
       return;
     }
     this.hazards = ctx.hazards ?? null;
+    // 62 루프 4 맨손: 공격 없이 주인공에게서 물러선다
+    if (this.isDisarmed(ctx.time)) {
+      const v = new Phaser.Math.Vector2(this.x - ctx.player.x, this.y - ctx.player.y)
+        .normalize()
+        .scale(this.def.speedTiles * TILE);
+      this.body.setVelocity(v.x, v.y);
+      return;
+    }
     if (this.brain) {
       this.brain.think(ctx);
       return;

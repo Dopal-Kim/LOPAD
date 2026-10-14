@@ -21,6 +21,8 @@ export class WeaponResource {
   private lastUseAt = -Infinity;
   /** 탄창: 장전 시작 시각 (-1 = 장전 중 아님) */
   private reloadStart = -1;
+  /** 62 루프 4: 다음 갱신에서 장전을 끝낸다 (completeReload) */
+  private reloadNow = false;
   /** 56라운드: 그로기가 풀리는 시각 (그로기 규칙이 아니거나 그로기가 아니면 -Infinity) */
   private groggyUntil = -Infinity;
 
@@ -48,6 +50,7 @@ export class WeaponResource {
       this.lastUseAt = -Infinity;
     } else if (d.kind === 'ammo') {
       this.reloadStart = -1;
+      this.reloadNow = false;
       this.value = d.max;
     } else {
       this.value = 0;
@@ -72,8 +75,9 @@ export class WeaponResource {
         this.value = Math.min(d.max, this.value + (d.regenPerSec * dt) / 1000);
       if (this.exhausted && this.value >= d.max * d.recoverRatio) this.exhausted = false;
     } else if (d.kind === 'ammo') {
-      if (this.reloadStart >= 0 && now - this.reloadStart >= d.reloadMs) {
+      if (this.reloadStart >= 0 && (this.reloadNow || now - this.reloadStart >= d.reloadMs)) {
         this.reloadStart = -1;
+        this.reloadNow = false;
         this.value = d.max;
       }
     } else if (now - this.lastUseAt >= d.decayDelayMs && this.value > 0) {
@@ -149,6 +153,13 @@ export class WeaponResource {
   startReload(now: number): boolean {
     if (this.def.kind !== 'ammo' || this.reloading || this.value >= this.def.max) return false;
     this.reloadStart = now;
+    return true;
+  }
+
+  /** 62 루프 4 개성 '화살통 털기': 장전 중이면 다음 갱신에서 끝난다 (장전 완료음·탄창 가득은 평소 길) */
+  completeReload(): boolean {
+    if (!this.reloading) return false;
+    this.reloadNow = true;
     return true;
   }
 

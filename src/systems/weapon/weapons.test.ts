@@ -84,11 +84,11 @@ describe('WeaponState (61 G P12 — 각성 게이지 · 갈래 3 · 길 2 · 개
     }
   });
 
-  it('개성 풀: 무기당 14장 (기본 8 = 4동사 × 2 · 갈래마다 2)', () => {
+  it('개성 풀: 무기당 16장 (기본 8 = 4동사 × 2 · 갈래마다 2 · 62 루프 4 기억 2)', () => {
     for (const id of Object.keys(WEAPONS)) {
       const mine = TRAITS.filter((t) => t.weapon === id);
-      expect(mine).toHaveLength(14);
-      expect(mine.filter((t) => !t.branch)).toHaveLength(8);
+      expect(mine).toHaveLength(16);
+      expect(mine.filter((t) => !t.branch && !t.memory)).toHaveLength(8);
     }
   });
 });

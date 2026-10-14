@@ -3,6 +3,7 @@
  * 해금 · 다음 해금 · 일기장 기억 장(계약 `UiMemoryBook`) · 런에 쓰는 효과 모음(잠긴 개성 · 양상 · 소품 · 상점 품목).
  * 능력치 강화(몸의 기억)는 기존 `meta.upgrades`(3줄) — 해금 id 'stat:<강화 id>' 로 같은 장에 싣는다.
  */
+import { traitIconCandidates } from '../growth/traitArt';
 import { MEMORY, memoryDef, type KeepsakeEffect, type MemoryDef, type ShopGood } from '../../data/memory';
 import { traitDef } from '../../data/growth';
 import { WEAPONS } from '../../data';
@@ -115,11 +116,8 @@ export function memoryIconKey(m: MemoryDef, loaded: (key: string) => boolean): s
     return loaded(own) ? own : undefined;
   }
   const t = m.kind === 'aspect' ? m.trait : m.kind === 'pool' ? m.traits?.[0] : undefined;
-  if (t && m.weapon) {
-    const fb = `ui_traits/${m.weapon}_${t}`;
-    if (loaded(fb)) return fb;
-  }
-  return undefined;
+  // 62 루프 4: 그 개성 그림 → 없으면 같은 태그 개성 그림
+  return t && m.weapon ? traitIconCandidates(m.weapon, t).find(loaded) : undefined;
 }
 
 export function memoryEntry(

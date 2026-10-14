@@ -1969,3 +1969,39 @@ tsc · eslint · vitest 74파일 562 · vite build 통과. 헤드리스 시험�
 ### 검사
 - tsc 0 · eslint 0 · vitest 161파일 1223건 전부 통과(새 `interactFocus.test` · `data/setLines.test` · `world/coverFrame.test` · `transition/doorNames.test` · routeArena 사연 NPC 둘레 · memory 아이콘 · audioTraining fade 속도) · 바뀐 파일 prettier · vite build(스크래치 outDir) 통과.
 - 헤드리스(빌드본, 스크래치 `s62i/` 드라이버 run·ev·rest·first·wpn, 시드 a63): 위 각 항목 + 쉼터 라이트맵 RT 스냅샷(사각 없음) · 회피 시험 조명·가운데(`A14_trial_mid`) · 콘솔·페이지 오류 0.
+
+## 62 루프 4 시스템 J — 정리(옛 장부대·노드 입구 미리 받기·죽은 전환 코드) · 떠올릴 개성 8장 · 세트 문장 검수본 · 첫 방 라이트맵 (2026-10-14)
+전권 위임(인터뷰 없음). 계획 `decisions/2026-10-14-P18-loop4.md` §1·§5·§6 · 스토리 `parts/story/text-pack-64-loop4.{json,md}`(메인 지시로 열람) · 메인 추가 알림(UI I — 첫 방 패널 중 어두운 네모).
+
+### 1. 정리 (CLAUDE.md 6-1)
+- **외상 장부대(1-3) 제거**: `structures.json ledger` 정의(chance 0 이후 쓰이지 않음) · 빚(`StructureCore.debt`·`Inst.loans`·`StructureFloorCarry.debt`) · 주운 전표 자동 상환(`onGoldPickup` — Economy 는 주운 값 그대로) · 보스 처치 빚 정산 · HUD 상태 줄 '빚' · 장부 메뉴(`openLedger`)·안내 제외 규칙 · `rules.repaySplit·debtPenalty` · 효과음 연결 · 저주 '외상' 획득 경로 `sources` 의 ledger(사연 E9 로만). 구조물 15종. 옛 세이브의 `structureCarry.debt` 는 읽지 않고 버린다. 계약 `UiStructureKind 'ledger'`·`UiStructureMenuId 'ledger'`·`UiStatusId 'debt'` 은 UI 가 쓸 수 있어 형식은 남기고 주석만('더 보내지 않음').
+- `route.json view.floorDecorAlpha·coverAlpha`(쓰는 곳 없음) · `SetPieceViewDef` 두 필드 제거.
+- **NodePrefetch**: 노드 이동은 짧은 암전('fade' — 62 H)이라 큰 입구 그림은 **층 이동('floor')용 한 장만** — 보스 노드에서 다음 층 첫 지역 `door_<지역>_floor`(RouteFlow 와 같은 `nextFloorRegion()`). 다음 노드 외벽 테두리 그림 미리 받기는 그대로. 지도 카드 그림은 RoutePreview.
+- 죽은 코드: `TransitionFx.screenOfWorld`(옛 입구 확대 전환 원점) · `NodePrefetch.prefetchedCount` · `ROUTE_FX.CANCEL_STEP_TILES·EXIT_REARM_PX`(옛 출구 발판) · `RouteFlow.fadeThen`(= `fadeCover` 중복). 층 'floor' 전환은 유지.
+
+### 2. 떠올릴 개성 8장 (스토리 64 팩 — 기억 '떠올릴 개성')
+- `traits.json` 새 8장 `memory: true`(+ `detail`·`flavor`) · `memory.json pool_<무기>.traits` = 새 2장씩 · 잠가 두었던 기존 8장(k_edgeLift·k_iaiChain·g_shoulderFlip·g_crackPull·d_flurryPull·d_sparkFlurry·b_fullBounce·b_rainEcho)은 기본 풀로 복귀. 검증: 기억 개성은 4동사×2 기본 칸에 세지 않음 · 갈래 불가 · 모두 어느 풀 칸에 있어야 함 · 풀 칸 개성은 기억 개성이어야 함 · 양상(시작 개성)은 기억 개성 불가. 무기당 16장(기본 8·갈래 6·기억 2). `memory.json pick` 문장 검수본(poolDetail·shopDetail).
+- 효과 (수치는 팩 초안 그대로, 칸 = TILE 16):
+  - 칼 `k_mem_fireLine` issenFireLine: 일섬 길이 술 웅덩이에 걸리면 걸친 웅덩이 점화 + 시작~끝 불 띠(`firePatch` 0.8칸 간격, 적만 틱) · fx `trait_katana_k_mem_fireLine`(길이 늘림·수명 = fireMs).
+  - 칼 `k_mem_sheathBlock` iaiSwat: 발도를 쥐는 동안(PLAYER_SKILL iai hold~release) 앞 120°·1.5칸의 적 탄·적 술병(`EnemyHazards.takeBottles` — 터뜨리지 않고 지움)을 지우고 하나당 검기 1단(상한 그대로) · 쉼 250ms · 간파 사건 아님.
+  - 대검 `g_mem_caskRoll` caskRoll: 넷째 타(본 타만 — `PlayerStrikes` → `caskRollFor`)에 맞은 술통(구조물 cask 굴림 · 술통 짐꾼 술통 되치기)이 휘두른 방향으로 6칸/초·8칸 굴러가며 닿은 적마다 한 번 ×1.0·경직 0.5초(꿰뚫음), 지나간 자리 술 자국(이웃과 이어짐), 불(불붙은 웅덩이)에 닿으면 ×1.5·반경 1.8칸 폭발 + 술불(자국으로 번짐), 벽·다 구르면 보통처럼 깨져 웅덩이. 공통 판정 `systems/hazards/traitRoll`(순수, 테스트).
+  - 대검 `g_mem_blockCharge` guardLunge: 가드로 막으면(PLAYER_SECONDARY block 에 `perfect`·공격자 방향 추가) 그 방향 70° 안 가장 가까운 적을 0.5초 기억 → 대쉬를 누르면 일반 대쉬 대신 그 적 쪽으로 대쉬 공격(태클·도약 찍기 — 개성 어깨 너머·들이받기 그대로 얹힘), 6칸 밖·죽었으면 일반 대쉬 · 퍼펙트면 다음 공격 +30%(`empowerNext`). 새 Player 훅 `PlayerBuildHooks.dashOverride`.
+  - 단검 `d_mem_pickpocket` windupDisarm: 연격 한 타가 공격 준비 중(`Mob.windingUp` — 결사병 예고·사수 조준·행상/짐꾼 들어 올림)인 적에 맞으면 준비를 끊고 맨손(`Mob.disarm` — 접촉 공격 0·사격·투척 없이 물러섬) 2.5초 · 정예 1.2초 · 군주 무시 · 같은 적 6초에 한 번 · 간파 사건('parry' 로 셈 — 계약 kind 그대로).
+  - 단검 `d_mem_slipDash` poolSlide: 대쉬 출발점·길이 술 웅덩이에 걸리면 대쉬 거리 ×1.6(`dashOverride.distanceMult`), 미끄러지는 동안 지나간 자리 술 자국(출발 웅덩이가 불이면 불 자국) · 닿은 적 0.7초 넘어짐(피해 없음, 군주 제외).
+  - 활 `b_mem_bottleShot` shootLiquor: 화살이 날아가는 적 술병(땅 자리 0.5칸)·굴러오는 적 술통에 닿으면 그 자리에서 터짐(×0.6·반경 1.5칸) + 술 웅덩이 5초(술병이면 바로 술불), 화살은 멈춤 — `EnemyHazards.arrowBurst`(개성이 있을 때만 켬).
+  - 활 `b_mem_quiverShake` reloadDashFan: 장전 중 대쉬 → 대쉬가 끝나는 순간 장전 끝(`WeaponResource.completeReload` — 다음 갱신, 장전 완료음 그대로) + 커서 쪽 화살 4발 부채꼴 50°(×0.5·5칸, 화살통에서 빠지지 않음).
+- 모두 `k.fire(<개성 id>)` → TRAIT_PROC(act = 데이터 값 — 새 act 없음) · 개성 fx `trait_<무기>_<id>[_burst·_mark·_impact]` 있으면 사용(없으면 기존 fx·윤곽).
+- 카드 그림: `ui_traits/<무기>_<id>` 가 아직 없으면 `traitIconCandidates` — 같은 태그 기본 → 같은 태그 갈래(칼 취기) → 같은 동사 기본 그림(개성 카드·기억 장·런 끝 그림 로드 모두).
+- 계약(추가): `UiGrowthTrait.detail?`·`flavor?` — 상세 줄(effect 수치 채움, 유품 상세 줄과 같은 단위 규칙)·흐린 한 줄(있는 카드만 = 기억 개성 8장).
+- 밸런스 가드 모델 5종 추가(피해 없는 iaiSwat·windupDisarm·poolSlide 는 목록) — 모두 기준선 +25% 이하.
+
+### 3. 세트 단계 문장 검수본
+- `build.json sets.<태그>[2·4·6].line` 30줄 = 스토리 64 팩 문장('완벽한 한 수'·'쓰러뜨리다'·'강한 공격'·'무기의 밑천'·'멀리 날리는 공격'). `setLines.test` 통과.
+
+### 4. 첫 방 라이트맵 (메인 알림 — UI I 보고)
+- 원인: 라이트맵 RenderTexture 는 첫 `update` 에서 배율(1/(k·zoom))·주변광을 얻는데, 첫 방 '싸우는 법' 패널이 첫 update 전에 Game 을 멈추면 배율 1 그대로(화면 가운데 480×270 네모) 그려졌다. → `Game.create` 끝에서 `lighting.update` 한 번(광원·배율·주변광이 첫 렌더 전에 맞음).
+- 같이 찾은 것: WebGL 이 없는 **캔버스 렌더러**(헤드리스 기본·WebGL 꺼진 브라우저)에서는 곱하기 라이트맵이 화면 전체를 회색 판으로 덮었다(빛 둥근 자국만) → 캔버스 렌더러면 라이트맵을 만들지 않는다(조명 없이 밝은 화면). 헤드리스 첫 진입(UI `pw/first.cjs` — 캔버스·WebGL 둘 다, 스크래치 `s62j/first·firstgl`): 첫 방 패널 중 화면 정상, 오류 0. (캔버스에서는 HUD 체력 막대 색이 흰색 — UI 틴트, UI 파트 몫)
+
+### 검사
+- tsc 0 · eslint 0 · prettier · vitest 163파일 1234건 전부 통과(새 `hazards/traitRoll.test` · `growth/memoryTraits.test` · weaponResource 화살통 털기 · 갱신 structures 15종·memory·growth·resonance·build·weapons·traitBudget) · vite build 통과.
+- 헤드리스(빌드본, 스크래치 `s62j/` traits·light, 시드 a63 c3r0 — swiftshader 라 게임 시계가 느려 상황을 만든 뒤 갱신을 직접 돌림): 불줄(웅덩이 1 → 불 띠 11칸 모두 불) · 칼집 막기(탄 2 지움 → 검기 0 → 2단) · 술통 굴리기(짐꾼 술통 → 적 HP 30→20·자국 10 · 구조물 술통 굴러가 깨짐) · 받고 뛰어들기(막음 → 대쉬 = 태클, 방향 = 적 쪽 0.98 — 커서는 반대) · 소매치기(예고 중 결사병 → 맨손 2.5초·접촉 0·같은 적 쉼·간파 parry) · 미끄럼 걸음(대쉬 속도 267 → 427·자국) · 술병 맞히기(화살 멈춤·술불 웅덩이) · 화살통 털기(장전 끝·부채꼴 4발) — 8장 모두 TRAIT_PROC · 라이트맵 첫 create 직후 배율 맞음 · 콘솔·페이지 오류 0.

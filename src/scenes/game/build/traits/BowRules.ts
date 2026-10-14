@@ -12,6 +12,7 @@ import type { Mob } from '../../../../objects/Mob';
 import type { Projectile } from '../../../../objects/Projectile';
 import type { ActiveRule } from '../../../../systems/build/buildMods';
 import type { FxHandle } from '../../../../systems/fx/fx';
+import { PLAYER_DATA } from '../../../../data';
 import { sheetLoopRange } from '../BuildArt';
 import { traitFxId } from '../../../../systems/growth/traitArt';
 import { T, type Pt, type RuleKit } from './RuleKit';
@@ -78,6 +79,7 @@ export class BowRules {
 
   /** 대쉬: 화살 덫 (떠난 자리) */
   onDash(p: { x: number; y: number }): void {
+    this.quiverShake();
     const k = this.k;
     const r = k.rt.rule('dashTrap');
     if (!r) return;
@@ -280,6 +282,7 @@ export class BowRules {
 
   update(now: number): void {
     this.strideDust(now);
+    this.armBottleShot();
     if (this.traps.length === 0) return;
     const k = this.k;
     const r = k.rt.rule('dashTrap');
@@ -314,7 +317,66 @@ export class BowRules {
     k.moves.fx('b_rapidStride', pl, { depth: DEPTH.FX_GROUND, flipX: v.x < 0 });
   }
 
+  // --- 62 루프 4 기억 개성 ---
+
+  /** 술병 맞히기: 개성이 있으면 화살이 날아가는 술병·굴러오는 술통을 터뜨린다 (EnemyHazards.arrowBurst — 매 프레임 켜고 끔) */
+  private armBottleShot(): void {
+    const k = this.k;
+    const r = k.rt.rule('shootLiquor');
+    const h = k.g.hazards;
+    if (!r) {
+      if (h.arrowBurst) h.arrowBurst = null;
+      return;
+    }
+    if (h.arrowBurst) return;
+    h.arrowBurst = {
+      hitRadiusPx: T(k.p(r, 'hitRadiusTiles', 0.5)),
+      burst: (at, fire) => {
+        const rad = T(k.p(r, 'burstRadiusTiles', 1.5));
+        const played = k.moves.fx('b_mem_bottleShot', at, { fallbacks: [BUILD_ART.BOTTLE_BURST] });
+        k.ring(at, rad, k.p(r, 'burstMult', 0.6), BUILD_FX.COLOR.BURN, !played);
+        const pool = k.rt.fx.liquorPool(at.x, at.y, T(k.p(r, 'poolRadiusTiles', 1.5)), k.p(r, 'poolMs', 5000));
+        if (fire) k.g.pools.ignite(pool);
+        k.fire('b_mem_bottleShot', 'burst', { fire });
+      },
+    };
+  }
+
+  /** 화살통 털기: 장전 중 대쉬 → 대쉬가 끝나는 순간 장전 끝 + 커서 쪽 부채꼴 (화살통에서 빠지지 않음) */
+  private quiverShake(): void {
+    const k = this.k;
+    const r = k.rt.rule('reloadDashFan');
+    const res = k.g.player?.resource;
+    if (!r || res?.kind !== 'ammo' || !res.reloading) return;
+    k.g.time.delayedCall(PLAYER_DATA.dash.durationMs, () => {
+      const pl = k.g.player;
+      if (!k.g.scene.isActive() || !pl?.active) return;
+      res.completeReload();
+      const cam = k.g.cameras.main;
+      const ptr = k.g.input.activePointer;
+      const aim = cam.getWorldPoint(ptr.x, ptr.y);
+      const base = Math.hypot(aim.x - pl.x, aim.y - pl.y) > 4 ? unit(aim.x - pl.x, aim.y - pl.y) : pl.facingVec;
+      const n = Math.max(1, Math.round(k.p(r, 'arrows', 4)));
+      const spread = (k.p(r, 'spreadDeg', 50) * Math.PI) / 180;
+      const a0 = Math.atan2(base.y, base.x);
+      const from = { x: pl.x, y: pl.y - 10 };
+      k.moves.fx('b_mem_quiverShake', from, { angle: a0, fallbacks: [] });
+      for (let i = 0; i < n; i++) {
+        const a = a0 + (n === 1 ? 0 : -spread / 2 + (spread * i) / (n - 1));
+        k.shot(from, { x: Math.cos(a), y: Math.sin(a) }, k.p(r, 'damageMult', 0.5), {
+          tag: 'b_mem_quiverShake',
+          speedTiles: k.p(r, 'speedTiles', 14),
+          rangeTiles: k.p(r, 'rangeTiles', 5),
+          tint: BUILD_FX.COLOR.THROW,
+          sprite: BUILD_ART.SPLIT_ARROW,
+        });
+      }
+      k.fire('b_mem_quiverShake', 'burst', { arrows: n });
+    });
+  }
+
   destroy(): void {
+    if (this.k.g.hazards?.arrowBurst) this.k.g.hazards.arrowBurst = null;
     for (const t of this.traps) this.clearTrap(t);
     this.traps = [];
     this.onTrap = null;

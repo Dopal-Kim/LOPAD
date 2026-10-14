@@ -50,8 +50,8 @@ describe('62 루프 2 C 기억 (P1-8)', () => {
     expect(m.souls).toBe(60);
   });
 
-  it('떠올릴 개성: 떠올리기 전에는 그 무기 개성 두 장이 풀에 없다', () => {
-    expect([...lockedTraits(meta(0), 'katana')].sort()).toEqual(['k_edgeLift', 'k_iaiChain']);
+  it('떠올릴 개성: 떠올리기 전에는 그 무기 기억 개성 두 장이 풀에 없다 (62 루프 4 — 스토리 64 팩 새 개성)', () => {
+    expect([...lockedTraits(meta(0), 'katana')].sort()).toEqual(['k_mem_fireLine', 'k_mem_sheathBlock']);
     const m = unlockMemory(meta(50), 'pool_katana')!;
     expect(lockedTraits(m, 'katana').size).toBe(0);
     const w = new WeaponState('katana', WEAPONS.katana);
@@ -60,7 +60,7 @@ describe('62 루프 2 C 기억 (P1-8)', () => {
       const menu = growthMenu(w, 'trait', 1, () => (i * 0.37) % 1, undefined, undefined, {
         locked: lockedTraits(meta(0), 'katana'),
       })!;
-      for (const l of menu.lines) expect(['k_edgeLift', 'k_iaiChain']).not.toContain(l.trait?.id);
+      for (const l of menu.lines) expect(['k_mem_fireLine', 'k_mem_sheathBlock']).not.toContain(l.trait?.id);
     }
     expect(growthMenu(w, 'trait', 1, rnd, undefined, undefined, { traitCards: 4 })!.lines).toHaveLength(4);
   });

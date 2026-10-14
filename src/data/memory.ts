@@ -100,13 +100,14 @@ export function validateMemory(d: MemoryData): MemoryData {
     }
     if (m.kind === 'aspect') {
       const t = TRAITS.find((x) => x.id === m.trait);
-      if (!t || t.weapon !== m.weapon || t.branch) fail(`${m.id}.trait: 그 무기의 기본 개성이어야 한다`);
+      if (!t || t.weapon !== m.weapon || t.branch || t.memory) fail(`${m.id}.trait: 그 무기의 기본 개성이어야 한다`);
     }
     if (m.kind === 'pool') {
       if (!m.traits?.length) fail(`${m.id}.traits 비어 있음`);
       for (const id of m.traits ?? []) {
         const t = TRAITS.find((x) => x.id === id);
-        if (!t || t.weapon !== m.weapon || t.branch) fail(`${m.id}.traits.${id}: 그 무기의 기본 개성이어야 한다`);
+        if (!t || t.weapon !== m.weapon || !t.memory)
+          fail(`${m.id}.traits.${id}: 그 무기의 기억 개성(memory)이어야 한다`);
         if (pooled.has(id)) fail(`${m.id}.traits.${id}: 두 기억이 같은 개성을 잠근다`);
         pooled.add(id);
       }
@@ -114,6 +115,8 @@ export function validateMemory(d: MemoryData): MemoryData {
     if (m.kind === 'keepsake' && (!m.effect || Object.keys(m.effect).length === 0)) fail(`${m.id}.effect 없음`);
     if (m.kind === 'shop' && m.good !== 'inkBottle' && m.good !== 'bellows') fail(`${m.id}.good 알 수 없음`);
   }
+  // 62 루프 4: 기억 개성은 모두 어느 풀 칸에 들어 있어야 한다 (아니면 영영 못 얻는다)
+  for (const t of TRAITS) if (t.memory && !pooled.has(t.id)) fail(`traits.${t.id}: 기억 개성인데 떠올릴 칸이 없다`);
   // 양상 개성이 풀 확장에 잠겨 있으면 안 된다 (시작에 쥐는 카드)
   for (const m of d.items)
     if (m.kind === 'aspect' && m.trait && pooled.has(m.trait)) fail(`${m.id}.trait 이 풀 확장에 잠겨 있다`);

@@ -185,12 +185,14 @@ export class PlayerStrikes {
     // 후속 판정은 충격파 갈래·진화 베기를 다시 부르지 않는다
     const finisher = isFinisher(p) && !follow;
     const activeMs = p.activeMs ?? MOVE_FX.FALLBACK_ACTIVE_MS;
+    // 62 루프 4 개성 '술통 굴리기' (대검 넷째 타 — 본 타만): 맞은 술통이 꿰뚫으며 굴러간다
+    const roll = follow ? null : g.build.traits.greatsword.caskRollFor(p);
     // 47라운드: 타격형 구조물·화로 점화·불붙은 무기의 웅덩이 점화
-    g.structures.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
+    g.structures.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY, roll);
     // 54라운드: 보스방 — 약점 잔 · 술통 방향 바꾸기 · 쓰러진 촛대 다시 켜기
     g.bossArena?.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
     // 61라운드 단계 2: 술통 짐꾼 술통 되치기
-    g.hazards?.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY);
+    g.hazards?.onMeleeSwing(cx, cy, w, h, p.dirX, p.dirY, roll);
     // 베기 시트가 있으면 판정 사각형은 보이지 않게(판정만), 없으면 기존 플레이스홀더 표시
     // 그림이 있는가: 베기 시트, 내리찍기 충격 시트, 이 공격의 휘두름 이펙트(SwingFx 가 고른 것). 옛 진화 시트는 57 Q42 로 끔
     const hasSwingArt =

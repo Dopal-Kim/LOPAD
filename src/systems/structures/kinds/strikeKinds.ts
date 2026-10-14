@@ -13,6 +13,7 @@ import type { Pool, PoolSpec } from '../../hazards/LiquorPools';
 import { STRUCTURE_RULES, num, structureDef, txt, type StructureDef } from '../data';
 import { stakeMods } from '../rules';
 import type { Inst, StructureCore } from '../core';
+import type { TraitRoll, TraitRollFactory } from '../../hazards/traitRoll';
 
 interface Burn {
   ticks: number;
@@ -37,10 +38,18 @@ export class StrikeKinds {
 
   // --- 전투 훅 ---
 
-  /** 근접 판정 사각형 (베기·대쉬 공격·충격파): 타격형 구조물 + 화로 점화 + 불붙은 무기로 웅덩이 점화 */
-  onMeleeSwing(x: number, y: number, w: number, h: number, dirX: number, dirY: number): void {
+  /** 근접 판정 사각형 (베기·대쉬 공격·충격파): 타격형 구조물 + 화로 점화 + 불붙은 무기로 웅덩이 점화. roll = 62 루프 4 '술통 굴리기' */
+  onMeleeSwing(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    dirX: number,
+    dirY: number,
+    roll: TraitRollFactory | null = null,
+  ): void {
     const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
-    this.hitRect(r, dirX, dirY);
+    this.hitRect(r, dirX, dirY, roll);
     if (this.touchesFlame(r)) this.igniteWeapon('weapon');
     if (this.c.fireActive) this.c.host.pools.igniteIn(r);
   }
@@ -112,15 +121,15 @@ export class StrikeKinds {
     return s.kind === 'crate' || (s.kind === 'cask' && !s.rolling) || s.kind === 'hiddenWall' || s.kind === 'stakeBell';
   }
 
-  private hitRect(r: Phaser.Geom.Rectangle, dirX: number, dirY: number): void {
+  private hitRect(r: Phaser.Geom.Rectangle, dirX: number, dirY: number, roll: TraitRollFactory | null): void {
     for (const s of [...this.c.list]) {
       if (!this.isHittable(s)) continue;
       if (!Phaser.Geom.Intersects.RectangleToRectangle(r, s.rect)) continue;
-      this.onHit(s, dirX, dirY);
+      this.onHit(s, dirX, dirY, roll);
     }
   }
 
-  onHit(s: Inst, dirX: number, dirY: number): void {
+  onHit(s: Inst, dirX: number, dirY: number, roll: TraitRollFactory | null = null): void {
     const now = this.c.now;
     if (now < s.lastHitAt + STRUCTURE_RULES.hitCooldownMs) return;
     s.lastHitAt = now;
@@ -131,7 +140,7 @@ export class StrikeKinds {
         break;
       case 'cask':
         this.c.setVisual(s, 'hit');
-        this.startRoll(s, dirX, dirY);
+        this.startRoll(s, dirX, dirY, roll?.({ x: s.rect.centerX, y: s.rect.centerY }));
         break;
       case 'hiddenWall':
         this.hitWall(s);
@@ -160,10 +169,10 @@ export class StrikeKinds {
 
   // --- 1-1 독주 술통 ---
 
-  private startRoll(s: Inst, dx: number, dy: number): void {
+  private startRoll(s: Inst, dx: number, dy: number, trait?: TraitRoll): void {
     const len = Math.hypot(dx, dy);
     if (len === 0 || s.rolling) return;
-    s.rolling = { dx: dx / len, dy: dy / len, traveled: 0 };
+    s.rolling = { dx: dx / len, dy: dy / len, traveled: 0, ...(trait ? { trait } : {}) };
     this.c.removeBodies(s);
     this.c.setVisual(s, 'active');
     const v = s.views[0];
@@ -176,7 +185,7 @@ export class StrikeKinds {
       const r = s.rolling;
       if (!r || s.state === 'broken') continue;
       const d = s.def;
-      const speed = num(d, 'rollTilesPerSec') * TILE;
+      const speed = r.trait ? r.trait.spec.speedPx : num(d, 'rollTilesPerSec') * TILE;
       const step = (speed * delta) / 1000;
       const cx = s.rect.centerX + r.dx * step;
       const cy = s.rect.centerY + r.dy * step;
@@ -208,6 +217,10 @@ export class StrikeKinds {
       s.rect.setPosition(next.x, next.y);
       s.views[0].moveTo(next.centerX, next.bottom);
       r.traveled += step;
+      if (r.trait) {
+        this.stepTrait(s, r.trait, step, time);
+        continue;
+      }
       if (victim) {
         const dmg = Math.round(gameState.attack * num(d, 'impactAttackMult'));
         if (c.host.hitMob(victim, dmg, { crit: false, dirX: r.dx, dirY: r.dy })) c.host.onKill(victim, 'environment');
@@ -216,6 +229,31 @@ export class StrikeKinds {
         continue;
       }
       if (r.traveled >= num(d, 'rollMaxTiles') * TILE) this.stopRoll(s);
+    }
+  }
+
+  /** 62 루프 4 '술통 굴리기': 닿은 적 모두(한 번씩) · 술 자국 · 불이면 터짐(웅덩이 없이 — 폭발은 개성) · 다 구르면 깨짐 */
+  private stepTrait(s: Inst, t: TraitRoll, moved: number, time: number): void {
+    const c = this.c;
+    const rect = s.rect;
+    const touching = c.host.mobs.getChildren().filter((ch) => {
+      const m = ch as Mob;
+      const b = m.body;
+      return (
+        m.active &&
+        Phaser.Geom.Intersects.RectangleToRectangle(rect, new Phaser.Geom.Rectangle(b.x, b.y, b.width, b.height))
+      );
+    });
+    const pools = c.host.pools;
+    const onFire = pools.pools.some((q) => q.rect.contains(rect.centerX, rect.centerY) && pools.burning(q));
+    const res = t.step(rect.centerX, rect.centerY, moved, { x: s.rolling!.dx, y: s.rolling!.dy }, touching, onFire);
+    if (res === 'end') this.shatterCask(s, time);
+    else if (res === 'burst') {
+      s.rolling = null;
+      s.state = 'broken';
+      s.views[0].setRotation(0);
+      c.setVisual(s, 'broken');
+      c.emitBroken(s);
     }
   }
 

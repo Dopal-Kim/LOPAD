@@ -170,6 +170,15 @@ export class BuildDefense implements PlayerBuildHooks {
     return baseMs * Math.max(0.1, 1 + this.rt.stat('shadowStepCooldownMult') + this.rt.stat('dashCooldownMult') * 0);
   }
 
+  dashOverride(
+    from: { x: number; y: number },
+    dir: { x: number; y: number },
+    distPx: number,
+    time: number,
+  ): { distanceMult?: number; tackleAt?: { x: number; y: number } } | null {
+    return this.rt.traits.dashOverride(from, dir, distPx, time);
+  }
+
   /** 피격 뒤 (PLAYER_DAMAGED): 버팀 2 창 · 버팀 4 위기(단검·활) · 저주 궤짝 */
   onDamaged(): void {
     const now = this.now;

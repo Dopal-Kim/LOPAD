@@ -8,12 +8,10 @@ import {
   cardStake,
   chestPrice,
   dealCards,
-  debtPenalty,
   drunkMods,
   emberHeal,
   pawnValue,
   redeemCost,
-  repaySplit,
   ringPayout,
   scaleWave,
   stakeMods,
@@ -30,8 +28,8 @@ const drunkP = {
 };
 
 describe('structures 데이터 (47라운드)', () => {
-  it('16종 전부 정의, 계약 kind ↔ 아트 시트 id 대응표', () => {
-    expect(STRUCTURES_FILE.structures).toHaveLength(16);
+  it('15종 전부 정의 (62 루프 4: 외상 장부대 제거), 계약 kind ↔ 아트 시트 id 대응표', () => {
+    expect(STRUCTURES_FILE.structures).toHaveLength(15);
     expect(spriteFor(structureDef('crate'), 'stage1')).toBe('crate_f1');
     expect(spriteFor(structureDef('crate'), 'stage2')).toBe('crate_f2');
     expect(spriteFor(structureDef('crate'), 'stage7')).toBe('crate_f1');
@@ -41,7 +39,6 @@ describe('structures 데이터 (47라운드)', () => {
       campfire: 'bonfire',
       cask: 'barrel',
       still: 'still',
-      ledger: 'ledger',
       agingBarrel: 'cask',
       counter: 'counter',
       hiddenWall: 'cellar_wall',
@@ -54,8 +51,8 @@ describe('structures 데이터 (47라운드)', () => {
     };
     for (const [kind, sheet] of Object.entries(map))
       expect(spriteFor(structureDef(kind as Parameters<typeof structureDef>[0]), 'stage1')).toBe(sheet);
-    expect(allStructureSprites(STRUCTURES_FILE.structures, [])).toHaveLength(17);
-    expect(allStructureSprites().length).toBeGreaterThan(17);
+    expect(allStructureSprites(STRUCTURES_FILE.structures, [])).toHaveLength(16);
+    expect(allStructureSprites().length).toBeGreaterThan(16);
   });
 
   it('잘못된 정의는 거부한다', () => {
@@ -68,9 +65,9 @@ describe('structures 데이터 (47라운드)', () => {
   });
 
   it('텍스트 치환과 숫자 파라미터', () => {
-    const d = structureDef('ledger');
-    expect(txt(d, 'borrowed', { loan: 60, debt: 90 })).toContain('60');
-    expect(num(d, 'loan')).toBe(60);
+    const d = structureDef('chest');
+    expect(txt(d, 'fallback', { potion: '물약', gold: 7 })).toContain('7전표');
+    expect(num(d, 'basePrice')).toBe(35);
     expect(() => num(d, 'nope')).toThrow();
   });
 });
@@ -82,16 +79,6 @@ describe('구조물 규칙 순수 함수', () => {
     expect(chestPrice(p, 1, 0)).toBe(60);
     expect(chestPrice(p, 0, 1)).toBe(45);
     expect(chestPrice(p, 0, 0, 0.5)).toBe(18);
-  });
-
-  it('1-3 빚: 주운 골드 50% 자동 상환(올림), 빚·획득량 상한, 보스 정산 10G당 -2', () => {
-    expect(repaySplit(10, 90, 0.5)).toEqual({ kept: 5, repaid: 5 });
-    expect(repaySplit(3, 90, 0.5)).toEqual({ kept: 1, repaid: 2 });
-    expect(repaySplit(10, 2, 0.5)).toEqual({ kept: 8, repaid: 2 });
-    expect(repaySplit(10, 0, 0.5)).toEqual({ kept: 10, repaid: 0 });
-    expect(debtPenalty(90, 2)).toBe(18);
-    expect(debtPenalty(1, 2)).toBe(2);
-    expect(debtPenalty(0, 2)).toBe(0);
   });
 
   it('1-5 취기: 단당 공격 +10%·방어 -1·흔들림 3°, 3단 대쉬 공격 +20%', () => {

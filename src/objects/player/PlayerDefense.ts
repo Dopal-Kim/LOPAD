@@ -94,7 +94,12 @@ export class PlayerDefense {
       p.flashColor(COLORS.PLAYER_PARRY);
       const payload: PerfectGuardPayload = { x: p.x, y: p.y, attack, ...toward(source) };
       EventBus.emit(Events.PLAYER_PERFECT_GUARD, payload);
-      EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'guard', phase: 'block' } satisfies PlayerSecondaryPayload);
+      EventBus.emit(Events.PLAYER_SECONDARY, {
+        kind: 'guard',
+        phase: 'block',
+        perfect: true,
+        ...toward(source),
+      } satisfies PlayerSecondaryPayload);
       return 'ignored';
     }
     // 57라운드 취기 4 취보: 취기 중 처음 받는 공격 1회 = 휘청 (피해 0)
@@ -107,7 +112,11 @@ export class PlayerDefense {
       p.moves.blockedAt = time;
       // 61라운드 SY-2: 가드로 막으면 기력 소모 (퍼펙트·패링은 0 — 그로기 중이면 이미 바닥)
       if (res?.def.kind === 'stamina') res.spend(res.def.cost.guardBlock, time);
-      EventBus.emit(Events.PLAYER_SECONDARY, { kind: 'guard', phase: 'block' } satisfies PlayerSecondaryPayload);
+      EventBus.emit(Events.PLAYER_SECONDARY, {
+        kind: 'guard',
+        phase: 'block',
+        ...toward(source),
+      } satisfies PlayerSecondaryPayload);
     }
     if (mods.superArmorReduction && p.inAttackSlow(time)) amount = Math.round(amount * (1 - mods.superArmorReduction));
     gameState.hp = Math.max(0, gameState.hp - amount);

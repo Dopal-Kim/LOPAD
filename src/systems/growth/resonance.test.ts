@@ -12,10 +12,11 @@ import { uiGrowth } from './uiGrowth';
 const defs = (...ids: string[]) => ids.map((id) => traitDef(id)!) as TraitDef[];
 
 describe('61 단계 5 (P13) 개성 데이터', () => {
-  it('무기마다 14장 · 환경 개성 2장 이상 · act 는 정해진 갈래 · 문구에 숫자 없음', () => {
+  it('무기마다 16장(기본 8 · 갈래 6 · 기억 2) · 환경 개성 2장 이상 · act 는 정해진 갈래 · 문구에 숫자 없음', () => {
     for (const w of ['katana', 'greatsword', 'dagger', 'bow']) {
       const mine = TRAITS.filter((t) => t.weapon === w);
-      expect(mine).toHaveLength(14);
+      expect(mine).toHaveLength(16);
+      expect(mine.filter((t) => t.memory)).toHaveLength(2);
       expect(mine.filter((t) => t.env).length).toBeGreaterThanOrEqual(2);
       for (const t of mine) {
         expect(TRAIT_ACTS).toContain(t.act);

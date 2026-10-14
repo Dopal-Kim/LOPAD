@@ -1086,8 +1086,6 @@
   "view": {
     "_note": "49라운드 세트 배치 그림 (src/world/SetPieceView.ts). 아트 시트가 없을 때의 플레이스홀더 도형·혼불·표식 강조 — 임시값",
     "decorAlpha": 0.55,
-    "floorDecorAlpha": 0.22,
-    "coverAlpha": 0.35,
     "signColor": "#c8a050",
     "signAlpha": 0.45,
     "signActiveAlpha": 1,

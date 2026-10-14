@@ -170,6 +170,21 @@ export class TraitRules {
 
   private onSecondary(p: PlayerSecondaryPayload): void {
     if (this.weapon === 'katana' && p.phase === 'block') this.katana.onGuardBlock();
+    else if (this.weapon === 'greatsword' && p.kind === 'guard' && p.phase === 'block') this.greatsword.onGuardBlock(p);
+  }
+
+  /** 62 루프 4 대쉬를 누른 순간 (BuildDefense.dashOverride): 받고 뛰어들기(대검) · 미끄럼 걸음(단검) */
+  dashOverride(from: Pt, dir: Pt, distPx: number, _time: number): { distanceMult?: number; tackleAt?: Pt } | null {
+    const w = this.weapon;
+    if (w === 'greatsword') {
+      const at = this.greatsword.lungeTarget(from);
+      return at ? { tackleAt: at } : null;
+    }
+    if (w === 'dagger') {
+      const m = this.dagger.slideMult(from, dir, distPx);
+      return m ? { distanceMult: m } : null;
+    }
+    return null;
   }
 
   /** 완벽 성공 (BuildPerfect) */
@@ -259,7 +274,8 @@ export class TraitRules {
 
   update(now: number): void {
     const w = this.weapon;
-    if (w === 'greatsword') this.greatsword.update(now);
+    if (w === 'katana') this.katana.update(now);
+    else if (w === 'greatsword') this.greatsword.update(now);
     else if (w === 'dagger') this.dagger.update(now);
     else if (w === 'bow') this.bow.update(now);
     this.kit.moves.update(now);

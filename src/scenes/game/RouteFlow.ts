@@ -22,6 +22,12 @@ import { fadeCover } from './TransitionFx';
 import { urlParams, type GameInitData } from './shared';
 import { MenuGuard } from '../../systems/input/menuGuard';
 
+/** 층 이동 입구 그림의 지역 (다음 층 첫 열 — 없으면 보스 홀). NodePrefetch 도 같은 그림을 미리 받는다 */
+export function nextFloorRegion(): string {
+  const nextStage = RUN.order[gameState.stageIndex + 1];
+  return (nextStage && regionIdOf(nextStage, 0)) || 'boss';
+}
+
 /** 입구 그림 한 장을 기다리는 최대 시간 (그 뒤엔 그림 없이 — UI 가 키아트·단색으로 대체) */
 const DOOR_WAIT_MS = 1200;
 
@@ -182,7 +188,7 @@ export class RouteFlow {
         swap,
         (cover) => fadeCover(g, cover),
       );
-      if (!ok) this.fadeThen(swap);
+      if (!ok) fadeCover(g, swap);
     });
   }
 
@@ -213,9 +219,7 @@ export class RouteFlow {
         if (g.transitioning) return;
         g.transitioning = true;
         const next = () => g.scene.restart({ mode: 'next' } satisfies GameInitData);
-        const nextStage = RUN.order[gameState.stageIndex + 1];
-        const region = (nextStage && regionIdOf(nextStage, 0)) || 'boss';
-        this.beginFloorDoor(region, next);
+        this.beginFloorDoor(nextFloorRegion(), next);
       },
       () => this.canLeave(),
     );
@@ -306,7 +310,7 @@ export class RouteFlow {
       transitionGate.begin(nodeFadeInfo(gameState.stageId, node, ROUTE_FX.MAP_FADE_MS), restart, (cover) =>
         fadeCover(g, cover),
       );
-    if (!ok) this.fadeThen(restart);
+    if (!ok) fadeCover(g, restart);
     return true;
   }
 
@@ -349,15 +353,5 @@ export class RouteFlow {
     route.choosing = false;
     g.scene.restart({ mode: 'node' } satisfies GameInitData);
     return true;
-  }
-
-  /** 짧은 암전 뒤 실행 */
-  private fadeThen(fn: () => void): void {
-    const g = this.g;
-    const C = ROUTE_FX.FADE_COLOR;
-    g.cameras.main.fadeOut(ROUTE_FX.FADE_OUT_MS, C.R, C.G, C.B);
-    g.time.delayedCall(ROUTE_FX.FADE_OUT_MS, () => {
-      if (g.scene.isActive()) fn();
-    });
   }
 }

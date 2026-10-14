@@ -23,6 +23,7 @@ import { caskCircumferenceWorld } from '../boss/caskMath';
 import type { LiquorPools, PoolSpec } from './LiquorPools';
 import type { BottleParams, EnemyHazardApi, HazardPt } from './enemyHazardTypes';
 import { advanceBarrel, bottleArcAt, circleHitsRect, deflectDir, rollFrame, unit } from './hazardMath';
+import type { TraitRoll, TraitRollFactory } from './traitRoll';
 
 export interface EnemyHazardHost {
   scene: Phaser.Scene;
@@ -72,6 +73,8 @@ interface Barrel {
   redirectAt: number;
   playerHitAt: number;
   dead: boolean;
+  /** 62 루프 4 개성 '술통 굴리기': 넷째 타로 되친 술통 — 적을 꿰뚫고 술 자국, 불에 닿으면 터짐 */
+  trait?: TraitRoll;
 }
 
 interface Breaking {
@@ -99,6 +102,11 @@ export class EnemyHazards implements EnemyHazardApi {
     returnedBottles: 0,
   };
   private clock = 0;
+  /**
+   * 62 루프 4 개성 '술병 맞히기'(활): 있으면 주인공 화살이 날아가는 적 술병·굴러오는 적 술통에 닿을 때 그 자리에서 터뜨린다
+   * (at = 땅 자리 · fire = 불붙은 술병). 화살은 거기서 멈춘다. hitRadiusPx = 판정 반경
+   */
+  arrowBurst: { hitRadiusPx: number; burst: (at: HazardPt, fire: boolean) => void } | null = null;
 
   constructor(private readonly host: EnemyHazardHost) {}
 
@@ -145,6 +153,21 @@ export class EnemyHazards implements EnemyHazardApi {
       n += 1;
     }
     return n;
+  }
+
+  /** 62 루프 4 개성 '칼집 막기': 땅 자리가 test 를 만족하는 적 술병을 터뜨리지 않고 지운다 (지운 자리 목록) */
+  takeBottles(test: (at: HazardPt) => boolean): HazardPt[] {
+    const out: HazardPt[] = [];
+    for (let i = this.bottles.length - 1; i >= 0; i--) {
+      const b = this.bottles[i];
+      if (b.owner === 'player') continue;
+      const at = bottleArcAt(b.elapsed / Math.max(1, b.p.flightMs), b.from, b.to, b.apexPx, b.handPx);
+      if (!test({ x: at.x, y: at.groundY })) continue;
+      this.bottles.splice(i, 1);
+      this.clearBottle(b);
+      out.push({ x: at.x, y: at.y });
+    }
+    return out;
   }
 
   private stepBottles(delta: number): void {
@@ -334,16 +357,34 @@ export class EnemyHazards implements EnemyHazardApi {
       b.y = step.y;
       b.traveled += step.moved;
       this.spin(b, step.moved);
-      if (step.hit || b.traveled >= b.p.maxTiles * TILE) {
+      if (step.hit || (!b.trait && b.traveled >= b.p.maxTiles * TILE)) {
         this.shatter(b);
         continue;
       }
-      if (b.owner === 'enemy') this.touchPlayer(b);
+      if (b.trait) this.stepTrait(b, b.trait, step.moved);
+      else if (b.owner === 'enemy') this.touchPlayer(b);
       else this.touchMobs(b);
     }
     for (let i = this.barrels.length - 1; i >= 0; i--) if (this.barrels[i].dead) this.barrels.splice(i, 1);
     // 굴러가는 술통이 하나도 없으면 굴림 루프 끝
     if (this.barrels.length === 0) sound('porter', 'roll', 'rollEnd');
+  }
+
+  /** 62 루프 4 '술통 굴리기': 꿰뚫음·자국·불 폭발 (TraitRoll) */
+  private stepTrait(b: Barrel, t: TraitRoll, moved: number): void {
+    const H = this.host;
+    const c = this.center(b);
+    const touching = H.mobs
+      .getChildren()
+      .filter((ch) => (ch as Mob).active && circleHitsRect(c, b.radiusPx, this.bodyRect((ch as Mob).body)));
+    const onFire = H.pools.pools.some((q) => q.rect.contains(b.x, b.y) && H.pools.burning(q));
+    const r = t.step(b.x, b.y, moved, b.dir, touching, onFire);
+    if (r === 'end') this.shatter(b);
+    else if (r === 'burst') {
+      b.dead = true;
+      b.view.destroy();
+      this.stats.broken++;
+    }
   }
 
   private bodyRect(body: Phaser.Physics.Arcade.Body) {
@@ -486,16 +527,32 @@ export class EnemyHazards implements EnemyHazardApi {
 
   // --- 주인공 공격 훅 ---
 
-  /** 근접 판정 사각형(중심 x, y · 폭 w · 높이 h)에 닿은 적 술통을 공격 방향으로 되친다 */
-  onMeleeSwing(x: number, y: number, w: number, h: number, dirX: number, dirY: number): void {
+  /**
+   * 근접 판정 사각형(중심 x, y · 폭 w · 높이 h)에 닿은 적 술통을 공격 방향으로 되친다.
+   * 62 루프 4: roll(개성 '술통 굴리기' 넷째 타)이면 휘두른 방향으로 꿰뚫으며 굴러간다
+   */
+  onMeleeSwing(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    dirX: number,
+    dirY: number,
+    roll: TraitRollFactory | null = null,
+  ): void {
     const rect = { x: x - w / 2, y: y - h / 2, w, h };
     for (const b of this.barrels)
-      if (!b.dead && b.owner === 'enemy' && circleHitsRect(this.center(b), b.radiusPx, rect))
-        this.deflect(b, { x: dirX, y: dirY });
+      if (!b.dead && b.owner === 'enemy' && circleHitsRect(this.center(b), b.radiusPx, rect)) {
+        if (!this.deflect(b, { x: dirX, y: dirY }) || !roll) continue;
+        b.trait = roll(this.center(b));
+        b.dir = unit(dirX, dirY);
+        b.speedPx = b.trait.spec.speedPx;
+      }
   }
 
-  /** 주인공 화살: 술통에 닿으면 화살 방향으로 되친다 (화살은 그대로 날아간다) */
+  /** 주인공 화살: 술통에 닿으면 화살 방향으로 되친다 (화살은 그대로 날아간다). 62 루프 4 '술병 맞히기'면 술병·술통을 터뜨린다 */
   tickShots(shots: readonly Projectile[]): void {
+    if (this.arrowBurst) this.shootLiquor(shots, this.arrowBurst);
     if (this.barrels.length === 0) return;
     for (const s of shots) {
       if (!s.active || s.owner !== 'player') continue;
@@ -506,6 +563,30 @@ export class EnemyHazards implements EnemyHazardApi {
         const v = s.body.velocity;
         this.deflect(b, { x: v.x, y: v.y });
       }
+    }
+  }
+
+  /** 62 루프 4 '술병 맞히기': 화살 땅 자리가 적 술병(땅 자리)·적 술통 반경 안이면 그 자리에서 터뜨리고 화살은 멈춘다 */
+  private shootLiquor(shots: readonly Projectile[], a: NonNullable<EnemyHazards['arrowBurst']>): void {
+    if (this.bottles.length === 0 && this.barrels.length === 0) return;
+    for (const s of shots) {
+      if (!s.active || s.owner !== 'player') continue;
+      const near = (at: HazardPt, r: number) => Math.hypot(s.groundX - at.x, s.groundY - at.y) <= r;
+      const hit = this.takeBottles((at) => near(at, a.hitRadiusPx))[0];
+      if (hit) {
+        s.deactivate();
+        a.burst({ x: hit.x, y: s.groundY }, true);
+        continue;
+      }
+      const b = this.barrels.find(
+        (x) => !x.dead && x.owner === 'enemy' && near(this.center(x), x.radiusPx + a.hitRadiusPx),
+      );
+      if (!b) continue;
+      b.dead = true;
+      b.view.destroy();
+      this.stats.broken++;
+      s.deactivate();
+      a.burst({ x: b.x, y: b.y - b.radiusPx }, false);
     }
   }
 
@@ -528,6 +609,7 @@ export class EnemyHazards implements EnemyHazardApi {
   }
 
   destroy(): void {
+    this.arrowBurst = null;
     for (const b of this.bottles) this.clearBottle(b);
     this.bottles.length = 0;
     for (const b of this.barrels) b.view.destroy();

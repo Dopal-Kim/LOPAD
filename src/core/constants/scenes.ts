@@ -129,8 +129,6 @@ export const BIRTH = {
 
 /** 48라운드 노드 지도 전환 연출 (임시값) */
 export const ROUTE_FX = {
-  /** 53라운드 Q47: 노드 고르기 취소(Esc) 때 출구에서 물러나는 거리 (타일, 임시) */
-  CANCEL_STEP_TILES: 1.5,
   /** 노드를 고른 뒤 암전 · 새 노드에서 밝아짐 */
   FADE_OUT_MS: 280,
   FADE_IN_MS: 320,
@@ -138,8 +136,6 @@ export const ROUTE_FX = {
   ENTER_LOCK_MS: 450,
   /** 노드를 마친 뒤 출구가 열리기까지 */
   EXIT_DELAY_MS: 500,
-  /** 출구에서 이만큼 떨어져야(px) 다시 선택을 연다 (UI 없이 메뉴로 고를 때 재진입 방지) */
-  EXIT_REARM_PX: 24,
   /** 암전 색 */
   FADE_COLOR: { R: 0, G: 0, B: 0 },
   /**

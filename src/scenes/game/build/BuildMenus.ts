@@ -126,7 +126,7 @@ export class BuildMenus {
     };
   }
 
-  // --- 구조물 저주 줄 (57 Q37 획득 경로: 카운터·장부대·묘 — curses.json sources) ---
+  // --- 구조물 저주 줄 (57 Q37 획득 경로: 카운터·묘 — curses.json sources) ---
 
   private structureCurse(kind: string) {
     // 61라운드 P4: 1층은 구조물에서 저주를 주지 않는다 (위험 노드·E9 만)

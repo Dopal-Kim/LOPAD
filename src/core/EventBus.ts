@@ -486,6 +486,10 @@ export type PlayerSecondaryPayload = {
    */
   phase: 'start' | 'ready' | 'cancel' | 'block' | 'release' | 'strain';
   power?: 'weak' | 'perfect' | 'full' | 'strained';
+  /** 62 루프 4 (block): 퍼펙트 가드였는가 · 주인공 → 공격자 방향 (개성 '받고 뛰어들기') */
+  perfect?: boolean;
+  dirX?: number;
+  dirY?: number;
 };
 /** 60라운드: elite = 엘리트였음 (음향 elite_die) */
 export type EnemyDiedPayload = { id: string; elite?: boolean };

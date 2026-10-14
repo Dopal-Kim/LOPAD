@@ -444,6 +444,9 @@ export interface UiGrowthTrait {
   tag?: UiTagId;
   /** §18.1 (P13): 개성 카드 그림 텍스처 키 (`ui_traits/<무기>_<개성 id>` — 시스템이 로드한 것만, 없으면 생략 → 키캡) */
   iconKey?: string;
+  /** 62 루프 4 (스토리 64 팩 — 기억 '떠올릴 개성'): 상세 보기 줄 (수치 채움) · 흐린 한 줄. 있는 카드만 */
+  detail?: string;
+  flavor?: string;
 }
 /** §18.1 (P13) 공명: 같은 무기·같은 태그 개성 2장으로 켜지는 엮임 효과 */
 export interface UiResonance {
@@ -712,7 +715,7 @@ export interface UiMenuLine {
 /**
  * 47라운드: 구조물 메뉴 id (계약 §9.4).
  * cards = 2-1 패 탁자 3장 중 1장 · exchange = 2-2 목숨 칩 환전대 · pawn = 2-6 전당포 창구 ·
- * grave = C3 무명 전사의 묘(영혼↔개성) · ledger = 1-3 외상 장부대(빌리기·갚기) · counter = 1-5 선술집 카운터(잔 고르기)
+ * grave = C3 무명 전사의 묘(영혼↔개성) · ledger = 1-3 외상 장부대 (62 루프 4: 시스템이 더 보내지 않음 — 구조물 제거) · counter = 1-5 선술집 카운터(잔 고르기)
  */
 export type UiStructureMenuId = 'cards' | 'exchange' | 'pawn' | 'grave' | 'ledger' | 'counter';
 
@@ -825,7 +828,7 @@ export interface UiMenu {
 
 /**
  * 47라운드: 구조물 종류 (계약 §9.1). 초안 `structures-draft.md` id 대응:
- * crate C1 · chest C2 · grave C3 · campfire C5 · cask 1-1 · still 1-2 · ledger 1-3 · agingBarrel 1-4 ·
+ * crate C1 · chest C2 · grave C3 · campfire C5 · cask 1-1 · still 1-2 · ledger 1-3(62 루프 4 제거 — 배치·정의 없음) · agingBarrel 1-4 ·
  * counter 1-5 · hiddenWall 1-6 · cardTable 2-1 · exchange 2-2 · dogRing 2-3 · stakeBell 2-4 · roulette 2-5 · pawn 2-6
  */
 export type UiStructureKind =
@@ -905,7 +908,7 @@ export interface UiInteractable {
 
 /**
  * 47라운드: HUD 상태 id (계약 §9.2).
- * debt 1-3 빚 · drunk 1-5 취기 · stakes 2-4 층 배율 · embers C5 불씨 · fireWeapon 1-2 불붙은 무기 ·
+ * debt 1-3 빚(62 루프 4: 장부대 제거로 더 보내지 않음) · drunk 1-5 취기 · stakes 2-4 층 배율 · embers C5 불씨 · fireWeapon 1-2 불붙은 무기 ·
  * ring 2-3 투견 링 · roulette 2-5 판 규칙 · aging 1-4 숙성 · pawn 2-6 맡긴 물건
  */
 export type UiStatusId = 'debt' | 'drunk' | 'stakes' | 'embers' | 'fireWeapon' | 'ring' | 'roulette' | 'aging' | 'pawn';

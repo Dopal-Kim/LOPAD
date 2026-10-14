@@ -398,6 +398,9 @@ export class Game extends Phaser.Scene {
     this.training?.setup();
     this.createDebugText();
     this.anchorDebug = urlParams().has('anchors') ? new AnchorDebug(this) : null;
+    // 62 루프 4 J: 첫 update 전에 씬이 멈춰도(첫 방 '싸우는 법' 패널) 라이트맵이 화면 크기·위치·주변광·광원으로 한 번 그려져 있게
+    // (그리기 전 라이트맵은 배율 1 — 화면 가운데 480×270 어두운 네모로 보였다)
+    this.lighting?.update(this.time.now);
   }
 
   // --- create 단계 ---

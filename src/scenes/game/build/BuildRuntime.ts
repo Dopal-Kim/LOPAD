@@ -511,8 +511,7 @@ export class BuildRuntime {
       durationMs: t.durationMs,
       detail: `${set2.name} — ${set2.description}`,
     };
-    const at = base.findIndex((st) => st.id !== 'debt');
-    return at < 0 ? [...base, line] : [...base.slice(0, at), line, ...base.slice(at)];
+    return [line, ...base];
   }
 
   /** HUD 상태 '취기' (QC-0: 카운터 취기와 하나 — 카운터가 없을 때 세트 취기 상태 타이머만) */

@@ -18,6 +18,7 @@ import type { WeaponState } from '../weapon/weapons';
 import { effectiveKind, growthMarks } from './growth';
 import { activeResonances, resonancesOf } from './resonance';
 import { iconLoaded, resonanceIconKey } from './traitArt';
+import { relicDetailText } from '../relics';
 
 /** 미리보기 키 조회 (stage 0 = 기본 · 1 = 1차 모양 · 2 = 2차 모양 — path 가 있으면 그 길 색 완성 그림). 로드돼 있지 않으면 undefined */
 export type LookKeyFn = (weapon: string, branch: string | null, stage: 0 | 1 | 2, path?: string) => string | undefined;
@@ -30,7 +31,23 @@ export type IconKeyFn = (weapon: string, traitId: string) => string | undefined;
 
 export function uiTrait(t: TraitDef, icon?: IconKeyFn): UiGrowthTrait {
   const iconKey = icon?.(t.weapon, t.id);
-  return { id: t.id, name: t.name, line: t.line, verb: t.verb, tag: t.tag as UiTagId, ...(iconKey ? { iconKey } : {}) };
+  return {
+    id: t.id,
+    name: t.name,
+    line: t.line,
+    verb: t.verb,
+    tag: t.tag as UiTagId,
+    ...(iconKey ? { iconKey } : {}),
+    ...(t.detail ? { detail: traitDetail(t) } : {}),
+    ...(t.flavor ? { flavor: t.flavor } : {}),
+  };
+}
+
+/** 62 루프 4: 상세 보기 줄 — `{effect 키}` 를 채운다 (스토리 63·64 팩 단위 규칙 = 유품 상세 줄과 같음) */
+export function traitDetail(t: TraitDef): string {
+  const values: Record<string, number> = {};
+  for (const [k, v] of Object.entries(t.effect)) if (typeof v === 'number') values[k] = v;
+  return relicDetailText(t.detail ?? '', values, t.weapon);
 }
 
 /** §18.1 공명 한 줄 (알림·카드) */

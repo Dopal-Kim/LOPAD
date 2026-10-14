@@ -121,8 +121,6 @@ export interface RouteFile {
 /** 49라운드 세트 배치 그림 수치 (src/world/SetPieceView.ts) */
 export interface SetPieceViewDef {
   decorAlpha: number;
-  floorDecorAlpha: number;
-  coverAlpha: number;
   signColor: string;
   signAlpha: number;
   signActiveAlpha: number;

@@ -67,10 +67,11 @@ describe('61 G P12 각성 게이지 눈금', () => {
 });
 
 describe('개성 풀·제시', () => {
-  it('풀 = 기본 8 + 고른 갈래 2 (가진 것 제외)', () => {
-    expect(traitPool('katana', null, [])).toHaveLength(8);
-    expect(traitPool('katana', 'mangetsu', [])).toHaveLength(10);
-    expect(traitPool('katana', 'mangetsu', ['k_moonRelay', 'k_iaiWave'])).toHaveLength(8);
+  it('풀 = 기본 8 + 기억 2 + 고른 갈래 2 (가진 것 제외 — 기억 2장은 떠올리기 전 GrowthFlow 가 잠근다)', () => {
+    expect(traitPool('katana', null, [])).toHaveLength(10);
+    expect(traitPool('katana', null, []).filter((t) => !t.memory)).toHaveLength(8);
+    expect(traitPool('katana', 'mangetsu', [])).toHaveLength(12);
+    expect(traitPool('katana', 'mangetsu', ['k_moonRelay', 'k_iaiWave'])).toHaveLength(10);
   });
 
   it('3장 제시: 갈래 개성 우선 1장 · 나머지는 같은 칸이 겹치지 않게', () => {

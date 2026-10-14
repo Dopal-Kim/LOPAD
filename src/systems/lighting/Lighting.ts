@@ -92,6 +92,8 @@ export class Lighting {
   private createLightmap(): void {
     if (this.rt) return;
     const scene = this.scene;
+    // 62 루프 4 J: WebGL 이 없는 캔버스 렌더러는 곱하기 라이트맵이 화면을 회색 판으로 덮는다 — 조명 없이 (밝은 화면)
+    if (scene.sys.game.renderer.type === Phaser.CANVAS) return;
     ensureTextures(scene);
     const cam = scene.cameras.main;
     const k = lightmapK();

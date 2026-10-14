@@ -73,6 +73,11 @@ export interface TraitDef {
   act: TraitAct;
   /** 61 단계 5: 1층 환경(술 웅덩이·불·술통·벽·기둥)과 엮이는 개성 */
   env?: boolean;
+  /** 62 루프 4: 기억 '떠올릴 개성' (memory.json pool 을 떠올려야 풀에 든다 — 기본 4동사 × 2 칸에 세지 않는다) */
+  memory?: boolean;
+  /** 62 루프 4 (스토리 64 팩): 상세 보기 줄 (`{effect 키}` — '초' 앞 ms ÷1000 · '%' 앞 ×100) · 흐린 한 줄 */
+  detail?: string;
+  flavor?: string;
 }
 
 /** 61 단계 5 (P13) 개성 발동 행동 갈래 (보이는 새 행동의 종류) */

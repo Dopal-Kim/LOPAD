@@ -5,8 +5,15 @@
  * 빨아들이는 균열 · 띄워 올리기(도약 착지 → 둘레 띄움) / 광전(울분 가득 → 저절로 폭주) · 혈풍 · 철산 · 포효(밀려나 부딪힘) ·
  * 술기운 폭주(폭주 중 웅덩이 점화, 불 위에서 폭주 유지). 짓눌린 숨·술독 짓누르기·갈라진 길은 GreatswordBranch(진동·균열 안).
  */
-import { BUILD_FX, DEPTH, TILE } from '../../../../core/Constants';
-import { EventBus, Events, type PlayerAttackPayload, type PlayerSkillPayload } from '../../../../core/EventBus';
+import { BUILD_ART, BUILD_FX, DEPTH, TILE } from '../../../../core/Constants';
+import {
+  EventBus,
+  Events,
+  type PlayerAttackPayload,
+  type PlayerSecondaryPayload,
+  type PlayerSkillPayload,
+} from '../../../../core/EventBus';
+import { TraitRoll, type TraitRollFactory } from '../../../../systems/hazards/traitRoll';
 import type { Mob } from '../../../../objects/Mob';
 import type { Projectile } from '../../../../objects/Projectile';
 import type { ActiveRule } from '../../../../systems/build/buildMods';
@@ -27,6 +34,8 @@ export class GreatswordRules {
   private soaked = 0;
   /** 공명(막고 되치는 대검)이 듣는 '되쳐 냄' */
   onDeflect: (() => void) | null = null;
+  /** 62 루프 4 받고 뛰어들기: 막은 공격의 주인 · 창 끝 · 퍼펙트였는가 */
+  private lunge: { target: Mob; until: number; perfect: boolean } | null = null;
 
   constructor(private readonly k: RuleKit) {
     EventBus.on(Events.PLAYER_DAMAGED, this.onHurt, this);
@@ -439,9 +448,81 @@ export class GreatswordRules {
     return { rage: this.rage ? Math.round(this.rage.until - this.k.now) : 0, soaked: this.soaked };
   }
 
+  // --- 62 루프 4 기억 개성 ---
+
+  /** 술통 굴리기: 넷째 타(본 타)면 맞은 술통이 꿰뚫으며 굴러간다 (PlayerStrikes → 구조물·적 술통) */
+  caskRollFor(p: PlayerAttackPayload): TraitRollFactory | null {
+    const k = this.k;
+    const r = k.rt.rule('caskRoll');
+    if (!r || p.kind !== 'attack' || p.comboIndex !== k.p(r, 'comboIndex', 3)) return null;
+    const trailR = T(k.p(r, 'trailWidthTiles', 0.8)) / 2;
+    return (at) => {
+      k.moves.fx('g_mem_caskRoll', at, { angle: Math.atan2(p.dirY, p.dirX), fallbacks: ['hit_spark'] });
+      k.fire('g_mem_caskRoll', 'roll');
+      return new TraitRoll({
+        speedPx: T(k.p(r, 'speedTiles', 6)),
+        maxPx: T(k.p(r, 'rollTiles', 8)),
+        trailEveryPx: trailR * 1.8,
+        hit: (m, dir) => {
+          const mob = m as Mob;
+          if (!k.hit(mob, k.p(r, 'hitMult', 1), dir, { heavy: true })) k.stun(mob, k.p(r, 'hitStunMs', 500));
+        },
+        trail: (x, y) => {
+          if (k.g.world.isWalkableAt(x, y)) k.rt.fx.liquorPool(x, y, trailR, k.p(r, 'trailMs', 5000));
+        },
+        burst: (x, y) => {
+          const rad = T(k.p(r, 'burstRadiusTiles', 1.8));
+          const played = k.moves.fx('g_mem_caskRoll', { x, y }, { part: 'burst', fallbacks: [BUILD_ART.BOTTLE_BURST] });
+          k.ring({ x, y }, rad, k.p(r, 'burstMult', 1.5), BUILD_FX.COLOR.BURN, !played);
+          // 터진 자리 술불 (이어진 술 자국으로 번진다)
+          k.g.pools.ignite(k.rt.fx.liquorPool(x, y, rad * 0.6, k.p(r, 'trailMs', 5000)));
+          k.fire('g_mem_caskRoll', 'burst');
+        },
+      });
+    };
+  }
+
+  /** 받고 뛰어들기: 가드로 막음 → 막은 쪽(주인공 → 공격자) 부채꼴 안 가장 가까운 적을 기억 */
+  onGuardBlock(p: PlayerSecondaryPayload): void {
+    const k = this.k;
+    const r = k.rt.rule('guardLunge');
+    if (!r) return;
+    const pl = k.g.player;
+    const d = p.dirX !== undefined && p.dirY !== undefined ? unit(p.dirX, p.dirY) : pl.facingVec;
+    const target = k.rt.fx
+      .inCone(pl.x, pl.y, d.x, d.y, T(k.p(r, 'rangeTiles', 6)), 70)
+      .sort((a, b) => Math.hypot(a.x - pl.x, a.y - pl.y) - Math.hypot(b.x - pl.x, b.y - pl.y))[0];
+    this.lunge = target ? { target, until: k.now + k.p(r, 'windowMs', 500), perfect: Boolean(p.perfect) } : null;
+  }
+
+  /** 대쉬를 누른 순간 (BuildDefense.dashOverride): 창 안이고 그 적이 살아 가까우면 그 자리로 대쉬 공격 */
+  lungeTarget(from: Pt): Pt | null {
+    const k = this.k;
+    const L = this.lunge;
+    this.lunge = null;
+    const r = k.rt.rule('guardLunge');
+    if (!r || !L || k.now > L.until || !L.target.active) return null;
+    const t = L.target;
+    const dist = Math.hypot(t.x - from.x, t.y - from.y);
+    if (dist > T(k.p(r, 'rangeTiles', 6))) return null;
+    if (L.perfect) k.rt.combat.empowerNext(k.p(r, 'perfectBonus', 0.3), 800);
+    const a = { x: from.x, y: from.y - 8 };
+    if (
+      !k.moves.fx('g_mem_blockCharge', a, {
+        angle: Math.atan2(t.y - from.y, t.x - from.x),
+        lengthPx: dist,
+        fallbacks: [],
+      })
+    )
+      k.moves.chainLine(a, { x: t.x, y: t.y - 8 }, BUILD_FX.COLOR.RAGE, 200);
+    k.fire('g_mem_blockCharge', 'lunge', { perfect: L.perfect });
+    return { x: t.x, y: t.y };
+  }
+
   destroy(): void {
     EventBus.off(Events.PLAYER_DAMAGED, this.onHurt, this);
     this.rage = null;
     this.onDeflect = null;
+    this.lunge = null;
   }
 }

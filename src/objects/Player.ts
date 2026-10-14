@@ -475,14 +475,20 @@ export class Player extends Phaser.GameObjects.Sprite {
     // 대쉬
     if (input.dashPressed && canStrike && time >= this.dashReadyAt && this.dashReady(time)) {
       const d = dir.lengthSq() > 0 ? dir : this.facing;
-      const speed = (D.distanceTiles * TILE) / (D.durationMs / 1000);
-      this.dashVel.set(d.x * speed, d.y * speed);
       // 57라운드: 패시브·돌파 2 쿨 배율은 빌드 합산 (훅이 없으면 패시브만) · 돌파 6 충전
       const cd =
         D.cooldownMs *
         gameState.meta.dashCooldownMult *
         (this.buildHooks?.dashCooldownMult() ?? 1 + gameState.passives.total('dashCooldownMult')) *
         (mods.dashCooldownMult ?? 1);
+      // 62 루프 4 기억 개성: 받고 뛰어들기(대쉬 대신 막은 공격의 주인에게 대쉬 공격) · 미끄럼 걸음(거리 배율)
+      const ov = this.buildHooks?.dashOverride({ x: this.x, y: this.y }, d, D.distanceTiles * TILE, time) ?? null;
+      if (ov?.tackleAt && this.moves.tryDashAttack({ ...input, aimX: ov.tackleAt.x, aimY: ov.tackleAt.y }, time)) {
+        this.dashStock.use(time, cd);
+        return;
+      }
+      const speed = (D.distanceTiles * TILE * (ov?.distanceMult ?? 1)) / (D.durationMs / 1000);
+      this.dashVel.set(d.x * speed, d.y * speed);
       this.dashStock.use(time, cd);
       if (D.invulnerable) {
         this.invulnerableUntil = Math.max(this.invulnerableUntil, time + D.durationMs + (mods.dashInvulnExtraMs ?? 0));

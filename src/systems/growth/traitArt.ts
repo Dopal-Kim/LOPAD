@@ -6,6 +6,7 @@
  */
 import { ASSETS } from '../../core/Constants';
 import type { TraitAct } from '../../data/growthTypes';
+import { TRAITS } from '../../data/growth';
 
 /** 카드 그림 폴더 (assets 상대) */
 export const TRAIT_ICON_DIR = `${ASSETS.SPRITES_DIR}/ui_traits`;
@@ -18,6 +19,22 @@ export function traitIconFile(weapon: string, traitId: string): string {
 /** 카드 그림 텍스처 키 (아트 그림 키 규칙 — 계약 UI §18.1) */
 export function traitIconKey(weapon: string, traitId: string): string {
   return `ui_traits/${weapon}_${traitId}`;
+}
+
+/**
+ * 62 루프 4: 그림이 아직 없을 때 대신 쓸 카드 그림 후보 — 자기 그림 → 같은 무기·같은 태그 개성 그림(기본 먼저, 칼 취기처럼 기본에
+ * 없으면 갈래) → 같은 동사 칸 기본 개성 그림. 앞에서부터 로드된 것 (새 기억 개성 8장 그림이 들어오기 전 — 아트 작업 중)
+ */
+export function traitIconCandidates(weapon: string, traitId: string): string[] {
+  const t = TRAITS.find((x) => x.id === traitId);
+  const out = [traitIconKey(weapon, traitId)];
+  if (!t) return out;
+  const others = TRAITS.filter((o) => o.weapon === weapon && o.id !== t.id && !o.memory);
+  const pick = (list: typeof others) => list.forEach((o) => out.push(traitIconKey(weapon, o.id)));
+  pick(others.filter((o) => o.tag === t.tag && !o.branch));
+  pick(others.filter((o) => o.tag === t.tag && o.branch));
+  pick(others.filter((o) => o.verb === t.verb && o.tag !== t.tag && !o.branch));
+  return out;
 }
 
 /** 공명 카드 그림 (`sprites/ui_traits/<공명 id>.png` → 키 `ui_traits/<공명 id>` — 계약 UI §18.1) */

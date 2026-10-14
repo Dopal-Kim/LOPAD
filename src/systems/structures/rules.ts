@@ -16,18 +16,6 @@ export function chestPrice(
   );
 }
 
-/** 1-3 빚: 주운 골드 amount 중 자동 상환분 (올림, 빚·획득량을 넘지 않음) */
-export function repaySplit(amount: number, debt: number, ratio: number): { kept: number; repaid: number } {
-  if (debt <= 0 || amount <= 0) return { kept: amount, repaid: 0 };
-  const repaid = Math.min(debt, amount, Math.ceil(amount * ratio));
-  return { kept: amount - repaid, repaid };
-}
-
-/** 1-3 보스 처치 정산: 남은 빚 10G 당(올림) 최대 HP -n */
-export function debtPenalty(debt: number, maxHpPer10: number): number {
-  return debt > 0 ? Math.ceil(debt / 10) * maxHpPer10 : 0;
-}
-
 export interface DrunkParams {
   maxLevel: number;
   attackPerLevel: number;

@@ -1,5 +1,5 @@
 /**
- * 구조물 층 상태 → HUD 상태 줄 (계약 §9.2): 빚 · 취기 · 판돈 · 불씨 · 불붙은 무기 · 투견 링 · 룰렛 규칙 · 숙성 · 전당.
+ * 구조물 층 상태 → HUD 상태 줄 (계약 §9.2): 취기 · 판돈 · 불씨 · 불붙은 무기 · 투견 링 · 룰렛 규칙 · 숙성 · 전당.
  */
 import { gameState } from '../../core/GameState';
 import type { UiStatus } from '../../contract/ui';
@@ -8,7 +8,6 @@ import { agingProgress, drunkMods } from './rules';
 import type { StructureCore } from './core';
 
 const ORDER: readonly UiStatus['id'][] = [
-  'debt',
   'drunk',
   'stakes',
   'embers',
@@ -37,16 +36,6 @@ function agingStatus(at: number, def: ReturnType<typeof structureDef>): UiStatus
 export function structureStatuses(c: StructureCore): UiStatus[] {
   const out: UiStatus[] = [];
   const now = c.now;
-  const ledger = structureDef('ledger');
-  if (c.debt > 0)
-    out.push({
-      id: 'debt',
-      kind: 'debuff',
-      label: txt(ledger, 'statusLabel'),
-      value: `${c.debt}G`,
-      amount: c.debt,
-      detail: txt(ledger, 'statusDetail', { pct: Math.round(num(ledger, 'repayRatio') * 100) }),
-    });
   if (c.drunk > 0) {
     const counter = structureDef('counter');
     const P = c.drunkParams;

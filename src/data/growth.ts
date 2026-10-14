@@ -92,12 +92,14 @@ export function validateTraits(items: TraitDef[], g: GrowthData, weapons: Weapon
     if (!t.name || !plainLine(t.line)) fail(`${at}: 이름·한 줄(숫자 없이) 필요`);
     if (!t.effect || typeof t.effect.kind !== 'string') fail(`${at}.effect.kind 없음`);
     if (!(TRAIT_ACTS as readonly string[]).includes(t.act)) fail(`${at}.act 알 수 없음`);
+    if (t.memory && t.branch) fail(`${at}: 기억 개성은 갈래 개성일 수 없다`);
   }
   // P12: 무기당 기본 8 (4동사 × 2) + 1차 갈래마다 2
   for (const wid of Object.keys(weapons)) {
     const mine = items.filter((t) => t.weapon === wid);
     for (const v of VERBS)
-      if (mine.filter((t) => !t.branch && t.verb === v).length !== 2) fail(`traits: ${wid} 기본 ${v} 칸은 2장`);
+      if (mine.filter((t) => !t.branch && !t.memory && t.verb === v).length !== 2)
+        fail(`traits: ${wid} 기본 ${v} 칸은 2장`);
     for (const b of g.weapons[wid].branches)
       if (mine.filter((t) => t.branch === b.id).length !== 2) fail(`traits: ${wid}.${b.id} 갈래 개성은 2장`);
   }

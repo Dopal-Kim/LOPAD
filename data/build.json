@@ -42,7 +42,7 @@
         "name": "간파 2",
         "_tmpName": true,
         "description": "완벽 성공 후 1초 안 다음 공격 1회 치명 확정",
-        "line": "완벽하게 받아낸 뒤 첫 공격이 치명으로 들어간다",
+        "line": "완벽한 한 수 뒤 첫 공격은 치명으로 들어간다",
         "effect": { "kind": "perfectNextCrit", "windowMs": 1000 }
       },
       {
@@ -51,7 +51,7 @@
         "name": "간파 4 · 반향",
         "_tmpName": true,
         "description": "완벽 성공 시 앞 120°·2.5칸에 막은 피해 ×2 (최소 공격 ×1.0)",
-        "line": "완벽하게 받아내면 막은 힘이 앞으로 되돌아간다",
+        "line": "완벽한 한 수마다 받은 힘을 앞쪽에 되갚는다",
         "effect": { "kind": "perfectEcho", "arcDeg": 120, "rangeTiles": 2.5, "blockedMult": 2, "minAttackMult": 1 }
       },
       {
@@ -60,7 +60,7 @@
         "name": "간파 6 · 정적",
         "_tmpName": true,
         "description": "완벽 성공 3회마다 1초 정적 — 적·탄 40% 감속",
-        "line": "완벽하게 거듭 받아내면 잠깐 세상이 느려진다",
+        "line": "완벽한 한 수를 거듭하면 둘레의 적과 탄이 잠깐 느려진다",
         "effect": { "kind": "perfectStillness", "every": 3, "ms": 1000, "slow": 0.4, "radiusTiles": 5.6 },
         "_note60": "60 Q3 아트 제안 채택: 정적 파동 반경 약 5.6칸(set_stasis_wave) — 반경 안 적·적 탄만 감속, 데모로 조정"
       }
@@ -72,7 +72,7 @@
         "name": "돌파 2",
         "_tmpName": true,
         "description": "대쉬·그림자 걸음 쿨 −20%",
-        "line": "대쉬가 더 빨리 돌아온다",
+        "line": "대쉬와 그림자 걸음이 더 빨리 돌아온다",
         "effect": { "kind": "stat", "stats": { "dashCooldownMult": -0.2, "shadowStepCooldownMult": -0.2 } }
       },
       {
@@ -81,7 +81,7 @@
         "name": "돌파 4",
         "_tmpName": true,
         "description": "대쉬·돌진·그림자 걸음 경로에 베기 판정 1회 (공격 ×0.8)",
-        "line": "대쉬로 지나간 길이 베인다",
+        "line": "대쉬와 그림자 걸음이 지나간 길이 한 번 베인다",
         "effect": { "kind": "moveTrail", "damageMult": 0.8, "widthTiles": 1 }
       },
       {
@@ -90,7 +90,7 @@
         "name": "돌파 6",
         "_tmpName": true,
         "description": "대쉬 2회 충전",
-        "line": "대쉬를 두 번 이어 쓴다",
+        "line": "대쉬를 두 번 이어 쓸 수 있다",
         "effect": { "kind": "stat", "stats": { "dashCharges": 1 } }
       }
     ],
@@ -119,7 +119,7 @@
         "name": "급소 6 · 금",
         "_tmpName": true,
         "description": "치명타를 맞은 적에 '금' 1초 — 그 적 다음 타격 치명 확정",
-        "line": "치명을 맞은 적은 다음 한 대도 치명으로 맞는다",
+        "line": "치명을 맞은 적은 금이 가서 다음 한 대도 치명으로 맞는다",
         "effect": { "kind": "critCrack", "ms": 1000 }
       }
     ],
@@ -130,7 +130,7 @@
         "name": "상흔 2",
         "_tmpName": true,
         "description": "출혈·화상 지속시간 +50%",
-        "line": "출혈과 화상이 더 오래 간다",
+        "line": "출혈과 화상이 더 오래 남는다",
         "effect": { "kind": "stat", "stats": { "dotDurationMult": 0.5 } }
       },
       {
@@ -139,7 +139,7 @@
         "name": "상흔 4 · 끓음",
         "_tmpName": true,
         "description": "출혈과 화상이 함께 걸린 적은 남은 지속 피해가 즉시 폭발 (반경 1.5칸)",
-        "line": "출혈과 화상이 겹친 적은 남은 상처가 한꺼번에 터진다",
+        "line": "출혈과 화상이 겹친 적은 남은 상처가 한꺼번에 끓어 터진다",
         "effect": { "kind": "dotBoil", "radiusTiles": 1.5 }
       },
       {
@@ -148,7 +148,7 @@
         "name": "상흔 6",
         "_tmpName": true,
         "description": "지속 피해로 죽은 적의 지속 피해가 반경 3칸 적 2명에게 옮겨붙음",
-        "line": "상처로 죽은 적의 상처가 곁의 적에게 옮겨붙는다",
+        "line": "상처로 쓰러진 적의 상처가 곁의 적에게 옮는다",
         "effect": { "kind": "dotSpread", "radiusTiles": 3, "count": 2 }
       }
     ],
@@ -159,7 +159,7 @@
         "name": "연쇄 2",
         "_tmpName": true,
         "description": "처치 후 2초 공격 속도 +15%",
-        "line": "처치하고 나면 잠깐 손이 빨라진다",
+        "line": "쓰러뜨리고 나면 잠깐 손이 빨라진다",
         "effect": { "kind": "killHaste", "ms": 2000, "attackSpeed": 0.15 }
       },
       {
@@ -168,7 +168,7 @@
         "name": "연쇄 4",
         "_tmpName": true,
         "description": "처치 시 무기 자원 회복: 칼 검기 1/3단 · 대검 울분 +10% · 단검 과열 −20% · 활 화살 +1·숨 +1/3",
-        "line": "처치할 때마다 무기 자원이 조금 돌아온다",
+        "line": "쓰러뜨릴 때마다 무기의 밑천이 조금 돌아온다",
         "effect": {
           "kind": "killResource",
           "kenkiStage": 0.3333,
@@ -184,7 +184,7 @@
         "name": "연쇄 6 · 살기",
         "_tmpName": true,
         "description": "3초 안 3처치 → 살기 5초: 피해 +25%, 각성 게이지 획득 ×2",
-        "line": "몰아서 처치하면 살기가 올라 더 아프게 벤다",
+        "line": "몰아서 쓰러뜨리면 살기가 올라 더 아프게 치고, 각성 게이지가 빨리 찬다",
         "effect": {
           "kind": "bloodlust",
           "kills": 3,
@@ -202,7 +202,7 @@
         "name": "원격 2",
         "_tmpName": true,
         "description": "투사체·충격파 사거리·속도 +20%",
-        "line": "투사체와 충격파가 더 멀리, 더 빨리 날아간다",
+        "line": "멀리 날리는 공격이 더 멀리, 더 빨리 날아간다",
         "effect": { "kind": "stat", "stats": { "projectileRangeMult": 0.2, "projectileSpeedMult": 0.2 } }
       },
       {
@@ -211,7 +211,7 @@
         "name": "원격 4",
         "_tmpName": true,
         "description": "투사체·충격파 관통 +1 (이미 무한 관통이면 피해 +15%)",
-        "line": "투사체와 충격파가 적 하나를 더 꿰뚫는다",
+        "line": "멀리 날리는 공격이 적 하나를 더 꿰뚫는다",
         "effect": { "kind": "stat", "stats": { "pierceAdd": 1, "pierceDamageAdd": 0.15 } }
       },
       {
@@ -220,7 +220,7 @@
         "name": "원격 6",
         "_tmpName": true,
         "description": "투사체 적중 시 25% 확률로 2발 분열 (각 ×0.4)",
-        "line": "투사체가 맞으면 가끔 갈라져 퍼진다",
+        "line": "멀리 날린 공격이 맞으면 가끔 갈라져 퍼진다",
         "effect": { "kind": "projectileSplit", "chance": 0.25, "count": 2, "damageMult": 0.4, "spreadDeg": 30 }
       }
     ],
@@ -231,7 +231,7 @@
         "name": "중량 2",
         "_tmpName": true,
         "description": "강공 피해 +20%",
-        "line": "강공이 더 무겁다",
+        "line": "강한 공격이 더 무겁게 떨어진다",
         "effect": { "kind": "stat", "stats": { "heavyDamageMult": 0.2 } }
       },
       {
@@ -240,7 +240,7 @@
         "name": "중량 4",
         "_tmpName": true,
         "description": "강공 적중 경직 +0.3초 · 밀쳐냄 1칸",
-        "line": "강공에 맞은 적이 휘청이며 밀려난다",
+        "line": "강한 공격에 맞은 적이 휘청이며 밀려난다",
         "effect": { "kind": "heavyImpact", "stunMs": 300, "knockTiles": 1 }
       },
       {
@@ -249,7 +249,7 @@
         "name": "중량 6",
         "_tmpName": true,
         "description": "강공 동작 중 받는 피해 50% 감소 · 끊기지 않음",
-        "line": "강공을 휘두르는 동안 끊기지 않고 덜 다친다",
+        "line": "강한 공격을 휘두르는 동안은 끊기지 않고 덜 다친다",
         "effect": { "kind": "stat", "stats": { "heavyDamageTaken": -0.5, "heavyUninterruptible": 1 } }
       }
     ],
@@ -269,7 +269,7 @@
         "name": "표식 4",
         "_tmpName": true,
         "description": "표식 3 이상 적이 죽으면 표식이 가까운 적에게 옮겨감",
-        "line": "표식이 쌓인 적이 죽으면 표식이 곁의 적에게 옮겨간다",
+        "line": "표식이 쌓인 적이 쓰러지면 표식이 곁의 적에게 넘어간다",
         "effect": { "kind": "markTransfer", "min": 3, "rangeTiles": 6 }
       },
       {
@@ -278,7 +278,7 @@
         "name": "표식 6 · 기폭",
         "_tmpName": true,
         "description": "표식 3 이상 적에게 강공 적중 시 기폭 (공격 ×2.0, 반경 2칸). 단검은 낙인 기폭 피해 +40%",
-        "line": "표식이 쌓인 적을 강공으로 치면 터진다",
+        "line": "표식이 쌓인 적을 강한 공격으로 치면 터진다",
         "effect": { "kind": "markDetonate", "min": 3, "attackMult": 2, "radiusTiles": 2, "brandBurstMult": 0.4 }
       }
     ],
@@ -289,7 +289,7 @@
         "name": "버팀 2",
         "_tmpName": true,
         "description": "피격 직후 1초 받는 피해 −30%",
-        "line": "맞은 직후 잠깐 덜 다친다",
+        "line": "한 대 맞고 나면 잠깐 이를 악물어 덜 다친다",
         "effect": { "kind": "hurtGuard", "ms": 1000, "reduction": 0.3 }
       },
       {
@@ -327,7 +327,7 @@
         "name": "취보",
         "_tmpName": true,
         "description": "취기 중 처음 받는 공격 1회 = 휘청: 피해 0·0.4초 무적·반 칸 미끄러짐, 0.6초 안 첫 공격 +50%",
-        "line": "취기 중 처음 맞는 공격을 휘청이며 흘린다",
+        "line": "취기 중 처음 맞는 공격은 휘청이며 흘리고, 곧바로 되받아친다",
         "effect": { "kind": "drunkStagger", "invulnMs": 400, "slideTiles": 0.5, "counterMs": 600, "counterMult": 0.5 }
       },
       {
@@ -336,7 +336,7 @@
         "name": "술바다",
         "_tmpName": true,
         "description": "취기 중 처치한 자리에 술 웅덩이(반경 1.2칸, 6초). 취기 중 대쉬가 지나간 웅덩이는 술불, 이웃으로 번짐. 취기 상한 10초",
-        "line": "취기 중 처치한 자리에 술이 고이고, 대쉬가 불을 붙인다",
+        "line": "취기 중 쓰러뜨린 자리에 술이 고이고, 대쉬가 지나가면 불이 붙는다",
         "effect": { "kind": "drunkSea", "poolRadiusTiles": 1.2, "poolMs": 6000, "maxMs": 10000 }
       }
     ]

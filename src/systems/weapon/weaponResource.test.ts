@@ -97,6 +97,17 @@ describe('화살 탄창 (ammo)', () => {
     expect(r.startReload(5)).toBe(true);
     expect(r.startReload(6)).toBe(false); // 이미 장전 중
   });
+
+  it('62 루프 4 화살통 털기: 장전 중이면 다음 갱신에서 바로 가득 (장전 중이 아니면 아무것도)', () => {
+    const r = new WeaponResource(AMMO);
+    expect(r.completeReload()).toBe(false);
+    r.fire(0);
+    r.startReload(100);
+    expect(r.completeReload()).toBe(true);
+    r.tick(166, 16);
+    expect(r.reloading).toBe(false);
+    expect(r.value).toBe(3);
+  });
 });
 
 describe('가속 (heat — 61라운드 옛 과열)', () => {

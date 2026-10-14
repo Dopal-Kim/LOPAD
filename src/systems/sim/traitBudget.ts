@@ -91,6 +91,13 @@ export const TRAIT_DAMAGE_MODELS: Readonly<Record<string, Model>> = {
   rainKillEcho: (p, c) => R.hold * Math.min(1, c.killRate) * n(p, 'damageMult') * R.areaTargets,
   volleyBurst: (p, c) => c.killRate * 0.5 * n(p, 'arrows', 6) * n(p, 'damageMult') * 0.25,
   skewerDrag: (p) => R.pierceShot * n(p, 'slamMult') * 2,
+  // 62 루프 4 기억 개성 (환경 불 띠·술통·태클·술병·털기)
+  issenFireLine: (p) =>
+    R.dashAttack * R.poolChance * n(p, 'fireMult') * (n(p, 'fireMs') / Math.max(1, n(p, 'fireTickMs', 500))),
+  caskRoll: (p, c) => (1 / c.cycleSec) * R.poolChance * (n(p, 'hitMult') + R.impactChance * n(p, 'burstMult')),
+  guardLunge: (p) => R.guardBlock * 0.5 * (1 + 0.5 * n(p, 'perfectBonus')),
+  shootLiquor: (p) => R.hitChance * R.poolChance * n(p, 'burstMult') * R.areaTargets,
+  reloadDashFan: (p) => R.dash * 0.3 * n(p, 'arrows', 4) * n(p, 'damageMult') * R.hitChance,
   // 공명
   resDisplaceClone: (p) => (R.parry + R.guardBlock) * n(p, 'damageMult') * 1.2,
   resDashTrail: (p) =>

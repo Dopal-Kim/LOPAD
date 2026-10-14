@@ -1,6 +1,7 @@
 /**
  * 62 루프 2 시스템 D (P2-6 · 계약 UI §22 LOADING) 다음 노드 미리 읽기: 노드 고르기가 열리면(출구에 섬) 고를 수 있는 노드들의
- * 외벽 테두리 그림(한 지역 GPU 약 75MB — 텍스처로 올리지 않고 **HTTP 캐시만 데운다**)·입구 그림을 `fetch` 로 미리 받는다.
+ * 외벽 테두리 그림(한 지역 GPU 약 75MB — 텍스처로 올리지 않고 **HTTP 캐시만 데운다**)을 `fetch` 로 미리 받는다.
+ * 62 루프 4 J: 노드 이동은 짧은 암전('fade')이라 큰 입구 그림은 층 이동('floor' — 보스 노드)용 한 장만 (지도 카드 그림은 RoutePreview).
  * 노드에 들어설 때 같은 주소를 다시 받으면 캐시에서 바로 온다(첫 노드 약 5초 → 점검 P2-6). 진행률은 `ui:loading` phase prefetch
  * (배경 — UI 는 막는 화면을 띄우지 않는다). 같은 주소는 게임 수명 동안 한 번만.
  */
@@ -14,6 +15,7 @@ import { assetListed } from '../../systems/sprites/sheetLoader';
 import { borderFileRel, borderFiles, borderFor } from '../../world/border';
 import type { Game } from '../Game';
 import { doorFor } from './PaintArt';
+import { nextFloorRegion } from './RouteFlow';
 
 const fetched = new Set<string>();
 
@@ -55,7 +57,7 @@ export class NodePrefetch {
     if (!route || typeof fetch !== 'function') return;
     const opts = route.nextOptions();
     const regions = opts.map((n) => regionIdOf(route.graph.stageId, n.col));
-    const doors = opts.map((n) => doorFor(this.g, regionIdOf(route.graph.stageId, n.col) ?? '', n.kind));
+    const doors = this.g.nodeKind === 'boss' ? [doorFor(this.g, nextFloorRegion(), 'floor')] : [];
     const files = prefetchFiles(regions, doors).filter((f) => !fetched.has(f));
     if (files.length === 0) return;
     let done = 0;
@@ -78,9 +80,4 @@ export class NodePrefetch {
         .finally(step);
     }
   }
-}
-
-/** 디버그: 받은 주소 수 */
-export function prefetchedCount(): number {
-  return fetched.size;
 }

@@ -331,7 +331,6 @@ const BOSS_LOOP_FADE_MS = 120;
 export function structureUseSfx(kind: string): string | null {
   switch (kind) {
     case 'chest':
-    case 'ledger':
     case 'exchange':
     case 'pawn':
       return SFX.shopBuy;

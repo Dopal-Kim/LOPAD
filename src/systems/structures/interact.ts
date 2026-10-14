@@ -109,8 +109,6 @@ export class Interaction {
     if (s.state === 'used' || s.state === 'broken') return true;
     const d = s.def;
     switch (s.kind) {
-      case 'ledger':
-        return s.loans >= num(d, 'loansPerFloor') && this.c.debt <= 0;
       case 'counter':
         return s.cups >= num(d, 'cups');
       case 'cardTable':
@@ -205,8 +203,6 @@ export class Interaction {
         return sv.useCampfire(s);
       case 'agingBarrel':
         return sv.useAging(s);
-      case 'ledger':
-        return sv.openLedger(s);
       case 'counter':
         return sv.openCounter(s);
       case 'dogRing':

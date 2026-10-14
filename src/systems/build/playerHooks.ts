@@ -26,4 +26,14 @@ export interface PlayerBuildHooks {
   dashCharges(): number;
   /** 그림자 걸음 쿨다운 배율 (각성 백귀는 고정 ms) */
   shadowStepCooldown(baseMs: number): number;
+  /**
+   * 62 루프 4 기억 개성 — 대쉬를 누른 순간(from = 발 · dir = 대쉬 방향 · distPx = 기본 거리): distanceMult = 거리 배율(미끄럼 걸음) ·
+   * tackleAt = 대쉬 대신 이 자리로 대쉬 공격(받고 뛰어들기). 없으면 null
+   */
+  dashOverride(
+    from: { x: number; y: number },
+    dir: { x: number; y: number },
+    distPx: number,
+    time: number,
+  ): { distanceMult?: number; tackleAt?: { x: number; y: number } } | null;
 }

@@ -194,6 +194,25 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     return time < this.stunnedUntil;
   }
 
+  /** 62 루프 4 개성 '소매치기'(단검): 맨손 — 공격·사격·투척 못 함 (물러선다) */
+  protected disarmedUntil = 0;
+
+  isDisarmed(time: number): boolean {
+    return time < this.disarmedUntil;
+  }
+
+  /** 공격 준비 중 (예고·조준선·던지기·굴리기 직전) — 소매치기 대상 */
+  get windingUp(): boolean {
+    return false;
+  }
+
+  /** 맨손 ms (준비 중이던 공격은 끊긴다) */
+  disarm(time: number, ms: number): void {
+    if (ms <= 0) return;
+    this.disarmedUntil = Math.max(this.disarmedUntil, time + ms);
+    this.onStunned();
+  }
+
   /**
    * 62라운드 P0-8: 방금 나왔다 — ms 동안 일어서는 중(예고 문양에서 떠오르듯 투명 → 불투명). 그동안 움직이지도 때리지도 않는다
    */
@@ -324,7 +343,7 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
 
   /** 플레이어와 접촉 중일 때 호출. 공격 가능하면 공격력, 아니면 0 */
   tryContactAttack(time: number): number {
-    if (this.isStunned(time) || time < this.arriveUntil) return 0;
+    if (this.isStunned(time) || this.isDisarmed(time) || time < this.arriveUntil) return 0;
     if (time < this.nextContactAt) return 0;
     this.nextContactAt = time + this.contactIntervalMs() / Math.max(0.1, this.attackRateMult);
     // 프레임 유지 중(보스 돌진·예고)에는 접촉 공격 애니로 덮지 않는다

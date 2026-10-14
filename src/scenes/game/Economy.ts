@@ -73,9 +73,7 @@ export class Economy {
     if (!pk.active) return;
     if (pk.kind === 'gold') {
       pk.collect(this.g.time.now);
-      // 47라운드 1-3: 빚이 있으면 일부 자동 상환
-      const kept = this.g.structures.onGoldPickup(pk.value);
-      if (kept > 0) this.addGold(kept, 'pickup');
+      if (pk.value > 0) this.addGold(pk.value, 'pickup');
     } else if (gameState.potions < this.potionCarry) {
       pk.collect(this.g.time.now);
       gameState.potions += 1;

@@ -1,5 +1,5 @@
 /**
- * 구조물 런타임 공통부 (50라운드 1단계 분리): 인스턴스 목록·물리 바디·층 상태(빚·취기·판돈·불씨·불붙은 무기·전당·숙성)와
+ * 구조물 런타임 공통부 (50라운드 1단계 분리): 인스턴스 목록·물리 바디·층 상태(취기·판돈·불씨·불붙은 무기·전당·숙성)와
  * 그림 상태·결과 알림·메뉴·도전 이벤트 같은 공통 동작. 종류별 동작은 kinds/*.ts, 상호작용(E)은 interact.ts.
  */
 import Phaser from 'phaser';
@@ -34,6 +34,7 @@ import type { StructurePlacement } from './placement';
 import { drunkMods, stakeMods, type CardOutcome, type DrunkParams } from './rules';
 
 /** Game 이 넘겨주는 것 (씬 직접 참조 대신 필요한 것만) */
+import type { TraitRoll } from '../hazards/traitRoll';
 export interface StructureHost {
   scene: Phaser.Scene;
   world: TileWorld;
@@ -61,7 +62,7 @@ export interface StructureHost {
   openStatChooser(): void;
   story(kind: StoryKind, text: string): void;
   /**
-   * 57라운드 빌드 축 (선택): 구조물 저주 줄(카운터 만취 서약·장부대 외상·묘 맨손 맹세 — curses.json sources) ·
+   * 57라운드 빌드 축 (선택): 구조물 저주 줄(카운터 만취 서약·묘 맨손 맹세 — curses.json sources) ·
    * 궤짝 패시브 2택 메뉴. 없으면 47라운드 동작 그대로
    */
   build?: {
@@ -82,7 +83,6 @@ export interface StructureHost {
 /** 48라운드: 노드 사이에 들고 다니는 층 상태 (Q13 '층 안에서 완결' 을 노드 진행에 맞게) */
 export interface StructureFloorCarry {
   chestsOpened: number;
-  debt: number;
   drunk: number;
   stakeRings: number;
   embers: number;
@@ -114,9 +114,9 @@ export interface Inst {
   round: number;
   bloodUses: number;
   lifeUses: number;
-  loans: number;
   agingAt: number | null;
-  rolling: { dx: number; dy: number; traveled: number } | null;
+  /** 62 루프 4: trait = 개성 '술통 굴리기'(꿰뚫음·자국·불 폭발 — TraitRoll) */
+  rolling: { dx: number; dy: number; traveled: number; trait?: TraitRoll } | null;
   rings: number;
   warned: boolean;
   deck: CardOutcome[] | null;
@@ -140,7 +140,6 @@ export class StructureCore {
   serial = 0;
   // --- 층 상태 (Q13: 층 안에서 완결, 48라운드: 노드 사이 이어받기) ---
   chestsOpened = 0;
-  debt = 0;
   drunk = 0;
   stakeRings = 0;
   embers = 0;
@@ -189,7 +188,6 @@ export class StructureCore {
       round: 0,
       bloodUses: 0,
       lifeUses: 0,
-      loans: 0,
       agingAt: null,
       rolling: null,
       rings: 0,

@@ -12,7 +12,7 @@ import { assetListed } from '../../systems/sprites/sheetLoader';
 import { queueImageOnce } from '../../systems/sprites/imageOnce';
 import { RELIC_ICON_DIR, relicIconFile, relicIconKey } from '../../systems/relics';
 import { keepsakeIconKey, memoryArtKey } from '../../systems/memory/memory';
-import { TRAIT_ICON_DIR, markIconLoaded, traitIconFile, traitIconKey } from '../../systems/growth/traitArt';
+import { TRAIT_ICON_DIR, markIconLoaded, traitIconCandidates } from '../../systems/growth/traitArt';
 
 const PORTRAIT_DIR = `${ASSETS.SPRITES_DIR}/ui_portraits`;
 /** 군주 초상 파일 id (층 → 파일) */
@@ -29,7 +29,9 @@ function memoryWanted(memoryTraits: boolean): { key: string; rel: string }[] {
     for (const m of MEMORY.items)
       for (const t of m.kind === 'aspect' ? [m.trait] : m.kind === 'pool' ? (m.traits ?? []).slice(0, 1) : [])
         if (t && m.weapon)
-          out.push({ key: traitIconKey(m.weapon, t), rel: `${TRAIT_ICON_DIR}/${traitIconFile(m.weapon, t)}` });
+          // 62 루프 4: 그 개성 그림이 아직 없으면 같은 태그 개성 그림 (traitIconCandidates)
+          for (const key of traitIconCandidates(m.weapon, t))
+            out.push({ key, rel: `${TRAIT_ICON_DIR}/${key.slice(key.indexOf('/') + 1)}.png` });
   for (const m of MEMORY.items)
     if (m.kind === 'keepsake') out.push({ key: keepsakeIconKey(m.id), rel: `${RELIC_ICON_DIR}/keepsake_${m.id}.png` });
   // 62 I: 아트 기억 칸 그림 (장터의 것·몸의 기억·빈손 — data/memory.json icons)

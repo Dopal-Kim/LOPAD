@@ -50,6 +50,10 @@ describe('61 단계 5 개성 밸런스 가드 (P2 기준선 +25% 이하)', () =>
       'resDeflectAll',
       'resBindSpread',
       'resShadowPath',
+      // 62 루프 4 기억 개성: 탄 지우기·맨손·미끄럼(넘어짐) — 피해 없음
+      'iaiSwat',
+      'windupDisarm',
+      'poolSlide',
     ]);
     const kinds = [...TRAITS.map((t) => t.effect.kind), ...RESONANCES.map((r) => r.effect.kind)];
     const missing = kinds.filter((k) => !TRAIT_DAMAGE_MODELS[k] && !noDamage.has(k));

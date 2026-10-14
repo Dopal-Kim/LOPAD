@@ -6,9 +6,10 @@
  * 만월(패링 → 달 분신 베기 + 검기) · 삭월 · 보름 · 달빛 잇기 · 취월(패링 → 술 웅덩이마다 달 분신).
  * 불똥 내려베기·피바람·술 회오리는 KatanaBranch(갈래 수단 안). 그림: 만월 `katana_fullmoon`(분신 자리, 없으면 윤곽).
  */
-import { BUILD_ART, BUILD_FX, TILE } from '../../../../core/Constants';
+import { BUILD_ART, BUILD_FX, DEPTH, TILE } from '../../../../core/Constants';
 import type { PlayerAttackPayload, PlayerSkillPayload } from '../../../../core/EventBus';
 import type { Mob } from '../../../../objects/Mob';
+import type { Projectile } from '../../../../objects/Projectile';
 import type { ActiveRule } from '../../../../systems/build/buildMods';
 import { PLAYER_RENDER_SCALE } from '../../../../systems/weapon/playerScale';
 import { traitFxId } from '../../../../systems/growth/traitArt';
@@ -26,6 +27,9 @@ export class KatanaRules {
   /** 땅에 박기: 박힌 적 */
   private readonly pinned = new Set<Mob>();
   private bindReadyAt = -Infinity;
+  /** 62 루프 4 칼집 막기: 발도를 쥐는 중 · 다음 쳐낼 수 있는 시각 */
+  private iaiHolding = false;
+  private swatReadyAt = -Infinity;
 
   constructor(private readonly k: RuleKit) {}
 
@@ -37,6 +41,7 @@ export class KatanaRules {
   // --- 좌 홀드 (발도) ---
 
   onSkill(p: PlayerSkillPayload): void {
+    if (p.move === 'iai') this.iaiHolding = p.phase === 'hold' || p.phase === 'ready';
     if (p.move !== 'iai' || p.phase !== 'release') return;
     const k = this.k;
     const pl = k.g.player;
@@ -225,6 +230,7 @@ export class KatanaRules {
   onIssenEnd(start: Pt, dir: Pt, travel: number): void {
     const k = this.k;
     const pl = k.g.player;
+    this.fireLine(start, dir, travel);
     // 물러서며 베기: 뒤로 반 걸음 + 둘레 한 번 더
     const back = k.rt.rule('issenBackstep');
     if (back) {
@@ -390,7 +396,76 @@ export class KatanaRules {
     k.fire('k_iaiChain', 'dash');
   }
 
+  // --- 62 루프 4 기억 개성 ---
+
+  /** 불줄 긋기: 일섬 길이 술 웅덩이에 걸리면 걸친 웅덩이 점화 + 시작점부터 끝점까지 불 띠 (적만 태움) */
+  private fireLine(start: Pt, dir: Pt, travel: number): void {
+    const k = this.k;
+    const r = k.rt.rule('issenFireLine');
+    if (!r || travel <= 0) return;
+    const half = T(k.p(r, 'widthTiles', 0.8)) / 2;
+    const on = (d: number) => ({ x: start.x + dir.x * d, y: start.y + dir.y * d });
+    let wet = false;
+    for (let d = 0; d <= travel && !wet; d += TILE / 4) {
+      const q = on(d);
+      wet = k.g.pools.of('structure').some((p) => p.rect.contains(q.x, q.y));
+    }
+    if (!wet) return;
+    k.moves.igniteLine(start, dir, travel, half);
+    const ms = k.p(r, 'fireMs', 2500);
+    const n = Math.max(1, Math.round(travel / (half * 1.8)));
+    for (let i = 0; i <= n; i++) {
+      const q = on((travel * i) / n);
+      if (k.g.world.isWalkableAt(q.x, q.y))
+        k.rt.fx.firePatch(q.x, q.y, half, ms, k.p(r, 'fireTickMs', 500), k.p(r, 'fireMult', 0.3));
+    }
+    const mid = on(travel / 2);
+    k.moves.fx('k_mem_fireLine', mid, {
+      angle: Math.atan2(dir.y, dir.x),
+      lengthPx: travel,
+      lifeMs: ms,
+      depth: DEPTH.FX_GROUND,
+      fallbacks: [],
+    });
+    k.fire('k_mem_fireLine', 'ignite', { cells: n + 1 });
+  }
+
+  /** 칼집 막기: 발도를 쥐는 동안 앞쪽 적 탄·술병을 지우고, 지울 때마다 검기 (간파 사건으로 세지 않는다) */
+  update(now: number): void {
+    const k = this.k;
+    const r = k.rt.rule('iaiSwat');
+    const pl = k.g.player;
+    if (!r || !this.iaiHolding || !pl || pl.action !== 'skill' || now < this.swatReadyAt) return;
+    const reach = T(k.p(r, 'reachTiles', 1.5));
+    const half = (k.p(r, 'arcDeg', 120) * Math.PI) / 360;
+    const f = pl.facingVec;
+    const inFront = (x: number, y: number) => {
+      const dx = x - pl.x;
+      const dy = y - pl.y;
+      const d = Math.hypot(dx, dy);
+      return d <= reach && (d < 4 || Math.acos(Math.max(-1, Math.min(1, (dx * f.x + dy * f.y) / d))) <= half);
+    };
+    const hits: Pt[] = [];
+    for (const child of k.g.projectiles.getChildren()) {
+      const pr = child as Projectile;
+      if (!pr.active || pr.reflected || pr.owner !== 'enemy' || !inFront(pr.x, pr.y)) continue;
+      hits.push({ x: pr.x, y: pr.y });
+      pr.deactivate();
+    }
+    hits.push(...k.g.hazards.takeBottles((at) => inFront(at.x, at.y)));
+    if (hits.length === 0) return;
+    this.swatReadyAt = now + k.p(r, 'cooldownMs', 250);
+    for (const at of hits)
+      k.moves.fx('k_mem_sheathBlock', at, {
+        angle: Math.atan2(at.y - pl.y, at.x - pl.x),
+        fallbacks: ['katana_counter', 'hit_spark'],
+      });
+    k.rt.combat.restoreResource({ kenkiStage: k.p(r, 'kenkiStage', 1) * hits.length });
+    k.fire('k_mem_sheathBlock', 'deflect', { n: hits.length });
+  }
+
   destroy(): void {
+    this.iaiHolding = false;
     this.pinned.clear();
     this.moonHit.clear();
   }

@@ -21,8 +21,9 @@ import type { WaveMods } from '../RoomDirector';
 import { TILE } from '../../core/Constants';
 import { INTERACT_KINDS, num, structureDef, txt } from './data';
 import type { StructurePlacement } from './placement';
-import { agingProgress, debtPenalty, drunkMods, repaySplit, stakeMods, swayAngle } from './rules';
+import { agingProgress, drunkMods, stakeMods, swayAngle } from './rules';
 import { StructureCore, type StructureFloorCarry, type StructureHost } from './core';
+import type { TraitRollFactory } from '../hazards/traitRoll';
 import { Interaction } from './interact';
 import { GambleKinds } from './kinds/gambleKinds';
 import { ServiceKinds } from './kinds/serviceKinds';
@@ -164,20 +165,16 @@ export class StructureSystem {
     return out;
   }
 
-  /** 주운 골드: 빚이 있으면 일부 자동 상환. 돌려준 값이 실제로 얻는 골드 */
-  onGoldPickup(amount: number): number {
-    const c = this.c;
-    if (c.debt <= 0) return amount;
-    const ledger = c.find('ledger');
-    const ld = ledger?.def ?? structureDef('ledger');
-    const { kept, repaid } = repaySplit(amount, c.debt, num(ld, 'repayRatio'));
-    c.debt -= repaid;
-    if (c.debt <= 0 && repaid > 0) c.resultOf('ledger', ledger?.id ?? 'ledger', 'gain', txt(ld, 'autoRepaid'), {});
-    return kept;
-  }
-
-  onMeleeSwing(x: number, y: number, w: number, h: number, dirX: number, dirY: number): void {
-    this.strike.onMeleeSwing(x, y, w, h, dirX, dirY);
+  onMeleeSwing(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    dirX: number,
+    dirY: number,
+    roll: TraitRollFactory | null = null,
+  ): void {
+    this.strike.onMeleeSwing(x, y, w, h, dirX, dirY, roll);
   }
 
   onDash(x: number, y: number, dirX: number, dirY: number, lenPx: number): void {
@@ -237,19 +234,8 @@ export class StructureSystem {
     this.gamble.onTrialCleared(p.roomId);
   }
 
-  /** 보스 처치: 1-3 빚 정산(최대 HP), 취기 해제 */
+  /** 보스 처치: 취기 해제 */
   private onBossDied(): void {
-    const c = this.c;
-    const ledger = c.find('ledger');
-    // 48라운드 노드 지도: 장부대는 상점 노드에 있고 보스는 다른 노드 — 정의로 정산한다
-    const ld = ledger?.def ?? (this.host.nodeMode ? structureDef('ledger') : null);
-    if (c.debt > 0 && ld) {
-      const hp = debtPenalty(c.debt, num(ld, 'maxHpPer10Debt'));
-      const debt = c.debt;
-      c.debt = 0;
-      c.loseMaxHp(hp);
-      c.resultOf('ledger', ledger?.id ?? 'ledger', 'loss', txt(ld, 'penalty', { debt, hp }), { maxHp: -hp });
-    }
     this.service.sober();
   }
 
@@ -350,7 +336,6 @@ export class StructureSystem {
     const c = this.c;
     return {
       chestsOpened: c.chestsOpened,
-      debt: c.debt,
       drunk: c.drunk,
       stakeRings: c.stakeRings,
       embers: c.embers,
@@ -397,7 +382,6 @@ export class StructureSystem {
       if (s.kind === 'agingBarrel' && s.agingAt !== null && s.state === 'active') aging.push(s.agingAt);
     return {
       chestsOpened: c.chestsOpened,
-      debt: c.debt,
       drunk: c.drunk,
       stakeRings: c.stakeRings,
       embers: c.embers,
@@ -412,7 +396,6 @@ export class StructureSystem {
     if (!carry) return;
     const c = this.c;
     c.chestsOpened = carry.chestsOpened;
-    c.debt = carry.debt;
     c.stakeRings = carry.stakeRings;
     c.embers = carry.embers;
     c.fireWeaponUntil = carry.fireWeaponMs > 0 ? c.now + carry.fireWeaponMs : 0;

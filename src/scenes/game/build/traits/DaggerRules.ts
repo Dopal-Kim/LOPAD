@@ -8,6 +8,7 @@
 import { BUILD_ART, BUILD_FX, DEPTH, TILE } from '../../../../core/Constants';
 import type { PlayerAttackPayload, PlayerSkillPayload } from '../../../../core/EventBus';
 import { gameState } from '../../../../core/GameState';
+import { PLAYER_DATA } from '../../../../data';
 import type { Mob } from '../../../../objects/Mob';
 import { T, type Pt, type RuleKit } from './RuleKit';
 
@@ -27,6 +28,10 @@ export class DaggerRules {
   private pullAngle = 0;
   /** 공명(얽힌 급소)이 듣는 '낙인 터짐' */
   onBurst: ((mob: Mob) => void) | null = null;
+  /** 62 루프 4 소매치기: 적 → 다시 걸 수 있는 시각 */
+  private readonly disarmReady = new WeakMap<Mob, number>();
+  /** 62 루프 4 미끄럼 걸음: 미끄러지는 동안 (끝 · 불 자국 · 마지막 자국 자리 · 넘어뜨린 적) */
+  private slide: { until: number; fire: boolean; last: Pt; tripped: Set<Mob> } | null = null;
 
   constructor(private readonly k: RuleKit) {}
 
@@ -157,6 +162,7 @@ export class DaggerRules {
 
   /** 낙인 사슬: 낙인 셋 이상 적을 찌르면 가장 가까운 적을 사슬로 끌어와 부딪친다 */
   afterStrike(mob: Mob, _p: PlayerAttackPayload, died: boolean): void {
+    if (!died) this.pickpocket(mob, _p);
     const k = this.k;
     const r = k.rt.rule('brandChain');
     if (!r || died || !mob.active || k.now < this.chainReadyAt) return;
@@ -220,6 +226,7 @@ export class DaggerRules {
     const k = this.k;
     const pl = k.g.player;
     if (!pl) return;
+    if (this.slide) this.stepSlide(now);
     // 스치는 낙인: 대쉬 중 몸에 스친 적
     if (now < this.dashUntil) {
       const r = k.rt.rule('dashBrand');
@@ -262,7 +269,81 @@ export class DaggerRules {
     return { shield: this.k.now < this.shieldUntil, flurryPull: this.flurryOn, weapon: gameState.weapon.id };
   }
 
+  // --- 62 루프 4 기억 개성 ---
+
+  /** 소매치기: 3찌르기가 공격 준비 중인 적에게 → 그 공격을 끊고 맨손 (군주 제외 · 같은 적은 쉼) — 간파 사건으로 센다 */
+  private pickpocket(mob: Mob, p: PlayerAttackPayload): void {
+    const k = this.k;
+    const r = k.rt.rule('windupDisarm');
+    if (!r || p.kind !== 'attack' || p.comboIndex === undefined || !mob.active || !mob.windingUp) return;
+    const ms = mob.isBoss
+      ? k.p(r, 'bossDisarmMs', 0)
+      : mob.elite
+        ? k.p(r, 'eliteDisarmMs', 1200)
+        : k.p(r, 'disarmMs', 2500);
+    if (ms <= 0 || k.now < (this.disarmReady.get(mob) ?? 0)) return;
+    this.disarmReady.set(mob, k.now + k.p(r, 'cooldownMs', 6000));
+    mob.disarm(k.now, ms);
+    k.rt.art.stagger(mob, ms);
+    k.moves.fx('d_mem_pickpocket', { x: mob.x, y: mob.y - 10 }, { fallbacks: ['hit_dagger'] });
+    k.moves.fx('d_mem_pickpocket', { x: mob.x, y: mob.y - mob.visual.headTopPx }, { part: 'mark', lifeMs: ms });
+    k.fire('d_mem_pickpocket', 'disarm', { ms });
+    k.rt.perfect.onPerfect('parry', 0, mob.x - k.g.player.x, mob.y - k.g.player.y);
+  }
+
+  /** 미끄럼 걸음 (대쉬를 누른 순간 — BuildDefense.dashOverride): 출발점·대쉬 길이 술 웅덩이에 걸리면 거리 배율 */
+  slideMult(from: Pt, dir: Pt, distPx: number): number | null {
+    const k = this.k;
+    const r = k.rt.rule('poolSlide');
+    if (!r) return null;
+    let start: ReturnType<typeof k.rt.fx.poolsNear>[number] | undefined;
+    let hit = false;
+    for (let d = 0; d <= distPx; d += TILE / 4) {
+      const x = from.x + dir.x * d;
+      const y = from.y + dir.y * d;
+      const q = k.g.pools.of('structure').find((p) => p.rect.contains(x, y));
+      if (!q) continue;
+      hit = true;
+      if (d === 0) start = q;
+      break;
+    }
+    if (!hit) return null;
+    const mult = 1 + k.p(r, 'distanceMult', 0.6);
+    this.slide = {
+      until: k.now + PLAYER_DATA.dash.durationMs + 40,
+      fire: Boolean(start && k.g.pools.burning(start)),
+      last: { x: from.x, y: from.y },
+      tripped: new Set(),
+    };
+    k.moves.fx('d_mem_slipDash', from, { angle: Math.atan2(dir.y, dir.x), fallbacks: [] });
+    k.fire('d_mem_slipDash', 'slide');
+    return mult;
+  }
+
+  /** 미끄러지는 동안: 지나간 자리에 술 자국 · 길 위 적 넘어짐 (피해 없음) */
+  private stepSlide(now: number): void {
+    const S = this.slide;
+    const k = this.k;
+    const r = k.rt.rule('poolSlide');
+    if (!S || !r) return;
+    const pl = k.g.player;
+    const half = T(k.p(r, 'trailWidthTiles', 0.7)) / 2;
+    if (Math.hypot(pl.x - S.last.x, pl.y - S.last.y) >= half * 1.6 || now >= S.until) {
+      S.last = { x: pl.x, y: pl.y };
+      const pool = k.rt.fx.liquorPool(pl.x, pl.y, half, k.p(r, 'trailMs', 4000));
+      if (S.fire) k.g.pools.ignite(pool);
+    }
+    for (const m of k.rt.fx.inCircle(pl.x, pl.y, T(k.p(r, 'tripWidthTiles', 0.9)) / 2 + TILE * 0.3)) {
+      if (S.tripped.has(m) || m.isBoss) continue;
+      S.tripped.add(m);
+      k.stun(m, k.p(r, 'tripMs', 700));
+      k.moves.fx('d_mem_slipDash', { x: m.x, y: m.y }, { part: 'impact', fallbacks: [] });
+    }
+    if (now >= S.until) this.slide = null;
+  }
+
   destroy(): void {
+    this.slide = null;
     this.dashMarked.clear();
     this.onBurst = null;
     if (this.veilUntil > -Infinity) this.k.g.player?.setAlpha(1);
