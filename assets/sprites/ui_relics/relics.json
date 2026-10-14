@@ -100,8 +100,9 @@
   "drunkFist": {
    "file": "ui_relics/drunkFist.png",
    "passiveId": "drunkFist",
-   "scene": "쓰러진 잔과 휘청이는 주먹의 소용돌이",
-   "colors": 22
+   "scene": "크기도 색도 다른 신 두 짝 — 검은 군화(한 짝은 만취 것이 아니다)와 방울 달린 헌 슬리퍼, 술 자국과 비틀댄 흔들림",
+   "colors": 18,
+   "redraw62d": "62 루프 4 — 스토리 63 팩 그림 메모(짝짝이 신)에 맞춰 다시 그림 · 보스 새 도트의 신과 같은 두 짝"
   }
  },
  "keepsakes": {

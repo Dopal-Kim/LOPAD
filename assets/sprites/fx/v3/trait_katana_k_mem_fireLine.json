@@ -1,0 +1,113 @@
+{
+ "image": "trait_katana_k_mem_fireLine.png",
+ "action": "trait_katana_k_mem_fireLine",
+ "frameWidth": 128,
+ "frameHeight": 80,
+ "framesPerDirection": 6,
+ "directions": [
+  "any"
+ ],
+ "layout": "row = direction/kind (directions·rowsAre 순서), column = frame index",
+ "frameIndex": "row * columns + column (§19 아틀라스 키)",
+ "frameDurationsMs": [
+  80,
+  80,
+  80,
+  80,
+  80,
+  80
+ ],
+ "loop": true,
+ "pixelScale": 0.5,
+ "pivot": {
+  "x": 0,
+  "y": 58
+ },
+ "anchor": "issen_line",
+ "depth": "floor",
+ "scale": "none",
+ "scaleNote": "전용 fx 는 시트 배율 그대로(계약 §27 — 시스템이 더 키우지 않음)",
+ "weapon": "katana",
+ "trait": "k_mem_fireLine",
+ "part": "body",
+ "spawn": "trait_proc",
+ "glowFrames": [],
+ "glowRule": "백열 X0/X1·A26·무기 램프 흰 끝은 glowFrames(발동 순간)만. 그 밖 칸은 한 단 아래 — 빌드 검사",
+ "frameRoles": [
+  "루프",
+  "루프",
+  "루프",
+  "루프",
+  "루프",
+  "루프"
+ ],
+ "design": "일섬 길을 따라 타는 불줄 띠 한 마디: 바닥 술불 띠(호박) + 출렁이는 불혀 5 + 불티, 위·아래 가장자리에 일섬이 그은 서리 청백 잔광 점선",
+ "weaponColor": "서리 #8fe3ff",
+ "palette": "무기 색 램프(계약 §28) + 1층 호박(불·술 — 보조색) + 무채 G · v2 WD/PL(나무·재) + 백열 X0/X1(glowFrames 만). 새 색 없음. paletteSwap none",
+ "paletteSwap": "none",
+ "semiTransparent": false,
+ "request": "parts/story/text-pack-64-loop4.json traits.items[]._fx (md §1.3)",
+ "version": "v3-r62d-trait",
+ "source": "parts/art/work/r62d/build.py --only traits (62 루프 4 · P18 §1) · traits_fx.py",
+ "tileRule": "가로 이음 — 128 도트(2칸)마다 반복해 일섬 시작점 → 끝점 길이만큼 이어 붙인다(마지막 마디는 잘라 씀). pivot (0, 58) = 띠 시작의 바닥 중심선, 오른쪽 = 일섬 진행 방향(시스템이 각도로 회전). 띠 폭(위·아래 11도트 + 혀)은 늘리지 않는다 — widthTiles 0.8 은 판정",
+ "rotate": true,
+ "drawnFacing": "right",
+ "loopRange": [
+  0,
+  5
+ ],
+ "lifeRule": "불줄 fireMs 동안 루프 → 끝은 pool_liquor_fire 꺼짐 칸(6~8) 재사용 권장",
+ "light": {
+  "color": "#e2a33c",
+  "radius": 56,
+  "intensity": 0.75,
+  "flicker": {
+   "amp": 0.25,
+   "hz": 8
+  },
+  "perSegment": true
+ },
+ "reuse": {
+  "ignitedPool": "fx/v3/pool_liquor_fire (걸친 웅덩이 점화)"
+ },
+ "tile": true,
+ "colors": 9,
+ "atlas": {
+  "version": "atlas57-1",
+  "format": "phaser-json-hash",
+  "source": "parts/art/work/atlas57/build.py (원 격자 시트 trait_katana_k_mem_fireLine.png)",
+  "grid": {
+   "columns": 6,
+   "rows": 1,
+   "frameWidth": 128,
+   "frameHeight": 80,
+   "frameCount": 6
+  },
+  "frameName": "row * columns + column (정수 문자열) — 기존 격자 프레임 번호와 같다",
+  "trim": "알파>0 경계 상자. spriteSourceSize = 원 프레임 안 위치, sourceSize = 원 프레임 크기. pivot·앵커는 원 프레임 좌표 그대로",
+  "padding": 2,
+  "noTrim": true,
+  "emptyFrames": [],
+  "dedupedFrames": 0,
+  "pages": 1
+ },
+ "frames": {
+  "0":{"frame":{"x":0,"y":0,"w":128,"h":80},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":128,"h":80},"sourceSize":{"w":128,"h":80}},
+  "1":{"frame":{"x":130,"y":0,"w":128,"h":80},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":128,"h":80},"sourceSize":{"w":128,"h":80}},
+  "2":{"frame":{"x":260,"y":0,"w":128,"h":80},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":128,"h":80},"sourceSize":{"w":128,"h":80}},
+  "3":{"frame":{"x":390,"y":0,"w":128,"h":80},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":128,"h":80},"sourceSize":{"w":128,"h":80}},
+  "4":{"frame":{"x":520,"y":0,"w":128,"h":80},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":128,"h":80},"sourceSize":{"w":128,"h":80}},
+  "5":{"frame":{"x":650,"y":0,"w":128,"h":80},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":128,"h":80},"sourceSize":{"w":128,"h":80}}
+ },
+ "meta": {
+  "app": "LOPAD atlas57 (Pillow)",
+  "version": "atlas57-1",
+  "image": "trait_katana_k_mem_fireLine.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 778,
+   "h": 80
+  },
+  "scale": "1"
+ }
+}
