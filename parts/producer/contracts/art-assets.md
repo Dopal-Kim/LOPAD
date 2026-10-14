@@ -687,3 +687,9 @@
 4. **favicon** `parts/art/work/favicon/favicon_{16,32,48}.png`·`favicon.ico` → 시스템이 public/ 로.
 5. **보스 재명암** `bosses/v3/stage1_*` 15시트 픽셀만(규격·앵커·알파 불변, `redot62c`) — 실루엣·옷은 61 그대로(완전 새 도트는 루프 4+).
 6. **단검 스미어** `fx/v3/dagger_combo{1,2,3}_smear` §31-1 규칙(판정 칸 = impactFrame). **활 발사 섬광** `fx/v3/bow_shot_flash` 128×96 피벗 (40,48)=화살 생성점, 투사체 각도로 회전, 4프레임 30/40/50/60ms 1회 — 일반 놓기·짧게 쏘기·대쉬 사격(완벽 놓기·속사는 기존).
+
+## 33. 62 루프 4 — 보스 만취 새 도트 · 칼 갈래 스미어 · 떠올릴 개성 8장 (P18)
+1. 보스 새 도트 `bosses/v3/stage1_*` 15 + `_rim` 5 + `_rim_lite` 5, `fx/v3/boss1_onfire`·`_down` — 틀·피벗·프레임·ms·phaseFrames·이벤트·앵커 키·앵커 값 그대로(코드 무변경). JSON `redraw62d`. `boss1_onfire_down.frameOffsets` 새 값. `ui_portraits/boss1` 새 얼굴.
+2. 칼 갈래 스미어(§31-1): `fx/v3/katana_spin_smear`(15칸, 7~13, glow 7~10), `katana_guardbreak_smear`(15칸, 9~13, glow 10·11), `katana_fall_wide_smear`(katana_fall 틀, `replaces: fx/v3/katana_fall_smear` — 갈래 런에서 1:1 교체).
+3. 떠올릴 개성 카드 `ui_traits/<weapon>_<id>.png` 8 + 발동 fx `fx/v3/trait_<weapon>_<id>[_부위]` 13. 새 anchor 키: `issen_line`(가로 이음 tile 128도트, pivot (0,58)=띠 시작, rotate), `issen_start`, `guard_block`(scale x_only, 기본 184도트), `enemy_head`, `enemy_feet`, `player_back` (+ 기존 contact·player_pivot·hitbox_center·projectile_hit). 각 JSON 에 pivot·rotate·drawnFacing·glowFrames·loopRange·light·reuse.
+4. 유품 `ui_relics/drunkFist.png` = 만취의 짝짝이 신.
