@@ -28,6 +28,7 @@ GROUPS = [
     ('world', '맵·월드'),
     ('p14', '그림 속 입구 전환 · 수련장 (61-6 P14)'),
     ('p16', '1층 결 · 메뉴 공통 · 등장 예고 · 슬로모 · 시련 · 결산 · 기억 · 유품 · NPC (62-2 P16)'),
+    ('p19', '자유 전투 — 무기별 타격 · 움찔·버팀 · 넉백 · 벽꽝 · 볼링 · 띄움 · 낙하 · 폭발·연쇄·점화 · 연속 처치 · 깃발 고수 · 술배 자폭병 (P19)'),
     ('pickup', '획득·상점'),
     ('ui', 'UI·연출'),
     ('bgm', 'BGM'),
@@ -73,6 +74,12 @@ EXPLICIT = {
     'p16': ['ui_move', 'ui_select', 'ui_back', 'ui_toggle', 'enemy_incoming', 'last_kill_slow', 'death_slow',
             'trial_win', 'trial_fail', 'floor_end_sting', 'memory_unlock', 'relic_take', 'npc_talk',
             'door_walk_out', 'door_walk_in', 'door_walk_back', 'transition_fade'],
+    'p19': ['hit_katana', 'hit_greatsword', 'hit_dagger', 'hit_bow', 'enemy_flinch', 'enemy_stagger_break',
+            'knock_wind2', 'knock_wind3', 'knock_wind4', 'wall_slam_wall', 'wall_slam_prop', 'wall_slam_pillar',
+            'enemy_bowl', 'enemy_launch', 'enemy_land', 'enemy_land_slam', 'fall_water', 'fall_drop', 'fall_fire',
+            'explode_small', 'explode_mid', 'explode_large', 'explode_chain1', 'explode_chain2', 'explode_chain3',
+            'hazard_ignite', 'streak_2', 'streak_4', 'streak_6', 'drummer_beat', 'drummer_rally', 'drummer_death',
+            'bomber_fuse', 'bomber_swell', 'bomber_blast'],
     'ui': ['menu_move', 'menu_select', 'menu_cancel', 'fate_decided', 'evolve', 'reinforce', 'player_death'],
 }
 
@@ -159,6 +166,18 @@ SUBGROUP = {
     'door_walk_in': '외벽 문 · 걸어 들어옴', 'door_walk_back': '외벽 문 · 지도 취소로 물러남',
     # 62 루프 3 — 시스템 H 짧은 암전
     'transition_fade': '노드 이동 · 짧은 먹 번짐 암전 (62-3 시스템 H)',
+    # P19 자유 전투
+    'hit_katana': '타격 · 칼(맑게)', 'hit_greatsword': '타격 · 대검(무겁게)', 'hit_dagger': '타격 · 단검(짧고 날카롭게)',
+    'hit_bow': '타격 · 활(꽂힘)', 'enemy_flinch': '반응 · 움찔', 'enemy_stagger_break': '반응 · 버팀 깨짐',
+    'knock_wind2': '넉백 바람 · 2단', 'knock_wind3': '넉백 바람 · 3단', 'knock_wind4': '넉백 바람 · 4단',
+    'wall_slam_wall': '벽꽝 · 벽', 'wall_slam_prop': '벽꽝 · 소품', 'wall_slam_pillar': '벽꽝 · 기둥',
+    'enemy_bowl': '볼링', 'enemy_launch': '띄움', 'enemy_land': '착지', 'enemy_land_slam': '착지 · 내리찍힘',
+    'fall_water': '낙하 · 물', 'fall_drop': '낙하 · 낭떠러지', 'fall_fire': '낙하 · 불',
+    'explode_small': '위험물 폭발 · 작(술병)', 'explode_mid': '위험물 폭발 · 중(술통)', 'explode_large': '위험물 폭발 · 대(증류기)',
+    'explode_chain1': '연쇄 상승음 1', 'explode_chain2': '연쇄 상승음 2', 'explode_chain3': '연쇄 상승음 3+',
+    'hazard_ignite': '위험물 점화', 'streak_2': '연속 처치 · 2', 'streak_4': '연속 처치 · 4', 'streak_6': '연속 처치 · 6+',
+    'drummer_beat': '새 적 · 깃발 고수', 'drummer_rally': '새 적 · 깃발 고수', 'drummer_death': '새 적 · 깃발 고수',
+    'bomber_fuse': '새 적 · 술배 자폭병', 'bomber_swell': '새 적 · 술배 자폭병', 'bomber_blast': '새 적 · 술배 자폭병',
     'exit_open': '폴백 (62-2 외벽 문 대체 — 방+복도 층 발판용)',
     'menu_move': '폴백 (62-2 대체)', 'menu_select': '폴백 (62-2 대체)', 'menu_cancel': '폴백 (62-2 대체)',
     'player_death': '폴백 (62-2 대체)', 'grade_perfect': '폴백 (62-2 대체)',
@@ -207,7 +226,7 @@ def _bgm_where(e, by_state=None):
     """BGM 이 쓰이는 곳 한 줄: 61라운드 층 전용 곡은 use(floor·state·phase), 기존 곡은 floors 또는 bgmByState[상태]."""
     u = e.get('use')
     if u:
-        return '%d층 %s' % (u['floor'], {'journey': '여정(벽 밖)', 'combat': '전투', 'boss': '보스'}.get(u['state'], u['state'])) + \
+        return '%d층 %s' % (u['floor'], {'journey': '여정(벽 밖)', 'combat': '전투', 'boss': '보스', 'combatLayer': '전투 강도 겹(f1_jan 위)'}.get(u['state'], u['state'])) + \
             (' %d국면' % u['phase'] if 'phase' in u else '')
     if e.get('floors'):
         return '층 ' + ','.join(str(x) for x in e['floors'])
@@ -219,9 +238,9 @@ def _round(name, kind, sfx_specs):
     """새로 만들거나 다시 만든 라운드: '61-2' = 61라운드 단계 2·3(신규 적·보스 패스·발도·가드),
     '61' = 61라운드 품질 패스·변주·1층 BGM, '60' = 60라운드 모듈."""
     if kind == 'bgm':
-        return '61' if name.startswith('f1_') else '61-6' if name == 'training' else ''
+        return 'P19' if name == 'f1_jan_perc' else '61' if name.startswith('f1_') else '61-6' if name == 'training' else ''
     spec = sfx_specs[name]
-    for r in ('62-3', '62-2', '61-6', '61-5', '61-4'):
+    for r in ('P19', '62-3', '62-2', '61-6', '61-5', '61-4'):
         if spec.get('redone') == r or spec.get('round') == r:
             return r
     if spec.get('redone') == '61-2' or spec.get('archived') == '61-2' or spec['fn'].__module__ == 'sfx_stage61':
@@ -280,6 +299,8 @@ def write(root, manifest_path, sfx_specs, out_path=None):
              '"62-2" = 62라운드 루프 2(P16 — 메뉴 공통 ui_*, 적 등장 예고, 마지막 처치·사망 슬로모, 노드 시련 성공/실패, 1층 끝 결산, '
              '기억 해금, 유품, NPC 말 걸기, 설정 토글, 상점 사기·다시 진열 다시 — BGM 은 음량만 바꿈), '
              '"62-3" = 62라운드 루프 3(P17 — 노드 이동 짧은 먹 번짐 암전 transition_fade), '
+             '"P19" = 자유 전투 1-Snd(무기별 타격 3층·움찔·버팀 깨짐·넉백 바람·벽꽝·볼링·띄움/착지·낙하·위험물 폭발/연쇄/점화·연속 처치·'
+             '새 적 깃발 고수/술배 자폭병, 대검 휘두름 다시, 전투 강도 겹 BGM f1_jan_perc), '
              '설명 앞 [폴백 …] = 새 소리로 대체되어 시스템이 새 id 가 없을 때만 쓰는 옛 소리(파일 유지), '
              'status "archived" = 보관(시스템 연결 끊음). variantOf 항목은 원본 트리거에서 번갈아 쓰는 변주.',
         mixing=man['mixing'],

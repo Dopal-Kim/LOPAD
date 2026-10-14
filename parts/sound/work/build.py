@@ -3098,6 +3098,7 @@ def _bgm_emperor(sr, rng):
 
 import bgm_floor1  # noqa: E402,F401  61라운드 P11 1층 전용 3곡(벽 밖 · 잔 거리 · 만취 3국면) — 44.1 kHz 스테레오
 import bgm_training  # noqa: E402,F401  61라운드 단계 6(P14) 수련장 곡(bgmByState.training) — 44.1 kHz 스테레오
+import bgm_p19  # noqa: E402,F401  P19 전투 강도 겹 f1_jan_perc(f1_jan 위 타악 층, mixing.bgmIntensity) — 44.1 kHz 스테레오
 
 
 # ---------------------------------------------------------------------------

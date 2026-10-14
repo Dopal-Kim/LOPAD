@@ -91,6 +91,16 @@
 - **1층 보스 3국면 +3.0 dB**: 시스템은 보스 상태에서 BGM 을 -3 dB(`bgmBossDuckDb`) 더 낮춘다. 61 P11 에서 보스 국면 음량을 전투 곡에 맞춰 놓았는데 이 덕킹이 겹쳐, 보스 방에 들어서면 곡이 전투보다 **6 LU 작아지는** 상태였다(1국면 -24.9 vs 전투 -19.1). +3.0 으로 덕킹을 되돌려 1국면 -21.9 → 3국면 -19.2 로 쌓여 올라 전투 곡과 만난다. 세 파일 '같은 이득' 원칙(국면 교차에서 바탕 음량 유지)은 지켰다(셋 다 +3.0). 우선순위 4(보스 예고) 덕킹 −3 dB 는 그대로라 예고음 순간에는 곡이 비켜선다. 피크: p3 -6 dBFS + 3 − 3(덕킹) − 8(버스) = −14 dBFS — 리미터 여유 충분.
 - 2층 이후 곡은 1스테이지 범위 밖이라 그대로(기록만).
 
+### 3-4. 전투 강도 겹 (P19 1-Snd, 44.1 kHz 스테레오)
+근거: `parts/producer/decisions/2026-10-14-P19-free-combat.md` ④H('웨이브 겹침에 맞춰 전투 BGM 강도 2단 — 적 ≥ 6 이면 타악 층 추가'). 코드 `work/bgm_p19.py`(수련장 곡 뒤에 등록 → 기존 12곡 바이트 불변).
+
+| 곡 | 길이 · 박자 | 쓰는 곳 | 설계 | gainDb |
+|---|---|---|---|---|
+| `f1_jan_perc` 타악 겹 | 96 s = 80마디, 3/4 150 BPM — **`f1_jan` 과 같은 길이·박자 격자** | `bgmByFloorState["1"].combatLayer`, 규칙 `mixing.bgmIntensity` | 큰 북 1박 + 술통 '통' 2박 뒤(좌우 번갈아) + B·B' 술통 3박·탬버린 8분음 + C(긴장) 군북 2·3박·스네어 유령음 + 4마디마다 군북 몰아치기 + D 앞 8마디 비움 → 끝 8마디 군북 8분음 쌓기(f1_jan 손북 쌓기·스네어 롤과 같은 자리). 화음 악기 없음 — 곡과 부딪히지 않음 | **-2.0** (파일 -21.1 LUFS → -23.1, f1_jan -19.1 보다 4 LU 아래. 겹치면 -17.7 LUFS = +1.4 LU) |
+
+- **방식 = 같은 위치 동시 재생 + 음량만 오르내림**(보스 국면처럼 완성 믹스 교체가 아님): 평시 곡이 바뀌지 않아 웨이브가 들쭉날쭉해도 음악이 끊기지 않는다. 겹은 전투 곡과 함께 음량 0으로 시작해 두고, 살아 있는 적 ≥ 6 이면 1.5 s 에 걸쳐 올리고, ≤ 3 이 2 s 이어지면(또는 방 클리어·보스 방) 3 s 에 걸쳐 내린다. 켠 뒤 6 s 안에는 끄지 않음(웨이브 겹침 사이 깜빡임 방지).
+- 군북은 새 적 '깃발 고수' 북(`drummer_beat`)과 같은 재료 — 깃발 고수 박 간격 0.4 s = 이 곡의 한 박이라, 고수가 있으면 곡 안의 북과 박이 맞는다.
+
 ## 4. 효과음 표
 
 > **61라운드 품질 패스(4-8)로 다시 만든 18종**은 아래 표의 '질감' 설명이 옛판이다 — `swing_katana`·`swing_greatsword`·`swing_dagger`·`bow_shot`·`parry`·`dash`·`hit_enemy`·`hit_enemy_crit`·`hit_player`·`enemy_death`·`perfect_guard`·`parry_perfect`·`pickup_gold`·`pickup_potion`·`door_open`·`menu_move`·`menu_select`·`menu_cancel`. 현재 설명은 4-8 과 manifest `note`.
@@ -776,6 +786,51 @@
 - 덕킹 없음(61-6 전환음 규칙은 enter·exit·floor 만) — 0.68 s 짧은 암전마다 곡이 출렁이지 않게. 곡이 바뀌면 시스템 BGM 교차 페이드만. 동시 1.
 - 지도에서 곳을 가리킬 때 미리보기 카드 바뀜 = 커서 이동 `ui_move` 와 같은 순간 → 별도 소리 없음.
 
+### 4-18. P19 자유 전투 1-Snd — 무기별 타격 3층 · 반응 · 위험물 · 새 적 2종 (새 35 + 변주 5, 다시 3)
+근거: `parts/producer/decisions/2026-10-14-P19-free-combat.md` ④B(타격 반응)·C(새 적)·H(음향)·⑦ 1-Snd, 계약 `parts/producer/contracts/free-combat.md` §1(이벤트 문자열 그대로 트리거). 코드 `work/sfx_p16.py` 9절(파일 끝 — 시드 순서 유지, round `P19`). 음량 = 100 ms 창 최대 RMS + gainDb(dBFS) 로 이웃과 맞춤(`hit_enemy` -13.7 · `enemy_death` -11.6 기준).
+
+**타격 3층 = 몸통 '퍽'(무게) + 재질(쇠·먹) + 잔향 꼬리**, 무기마다 결을 달리한다. 무게 약·중·강은 파일을 늘리지 않고 **타격음 + 넉백 바람(tier 2~4) + 벽꽝·볼링** 겹으로 만든다(1 밀림 = 타격음만).
+
+| id | 길이 | gainDb | ≈RMS | 우선 | 트리거 | 설계 |
+|---|---|---|---|---|---|---|
+| `hit_katana` (+`_v2`) | 0.26 s | -1 | -14 | 2 | `ENEMY_DAMAGED{weapon:katana}` | 맑게: 몸통 250→100 Hz · 쇠 '칭' 3.1 kHz τ 9 ms + 날 '샥' + 먹 튐 작게 · 짧은 공기 울림 |
+| `hit_greatsword` (+`_v2`) | 0.60 s | -1 | -10.7 | 2 | `ENEMY_DAMAGED{weapon:greatsword}` | **무겁게**: '쿵' 두 겹(150→46 Hz, 28 ms 뒤 질량이 따라 들어감) + 아래 무게 62→34 Hz + 뼈 으스러짐 · 두꺼운 쇠 '텅'(380 Hz, 1.8 kHz 아래) + 먹 크게 + 흙 · 낮은 방 울림 |
+| `hit_dagger` (+`_v2`) | 0.11 s | 0 | -17.3 | 2 | `ENEMY_DAMAGED{weapon:dagger}` | 짧고 날카롭게: 작은 몸통 340→150 Hz 50 ms · '틱' + 찌름 '쉭' 9k→4.2k + 쇠 4.2 kHz τ 5 ms · 꼬리 없음 |
+| `hit_bow` (+`_v2`) | 0.33 s | 0 | -14.9 | 2 | `ENEMY_DAMAGED{weapon:bow}` | 꽂힘: 박히는 '퍽' 280→120 Hz · 촉 '툭' 2.2 kHz + 먹 · 꽂힌 화살대 떨림 330 Hz(38 Hz 흔들림) + 깃 |
+| `enemy_flinch` | 0.14 s | -4 | -26.8 | 1 | `enemy:staggered{kind:flinch}` | 장비 덜그럭 + 옷깃 — 타격 뒤 아주 작은 꼬리 |
+| `enemy_stagger_break` | 0.45 s | -2 | -14 | 3 | `enemy:staggered{kind:stagger}` | 갑옷 꺾이는 '딱' 두 겹 + 휘청 '쿵' + 30 ms 금빛 종 E6 — '기회' 금색 반짝과 같은 순간 |
+| `knock_wind2/3/4` | 0.27 / 0.47 / 0.81 s | -4 / -3 / 0 | -22 / -20.5 / -18 | 1 | `enemy:knocked{tier:2\|3\|4}` | 몸이 공기를 밀고 가는 바람(1.4k→450 · 1.1k→280 + 옷 펄럭 · 1.3k→200 멀어지며 어두워짐). tier 1 무음 |
+| `wall_slam_wall` | 0.79 s | -1 | -11 | 3 | `enemy:wall-slam{surface:wall}` | '쿵' 130→42 Hz + 돌 금 '딱' 두 겹 → 부스러기 흘러내림 + 먼지 |
+| `wall_slam_prop` | 0.70 s | -1 | -10.5 | 3 | `enemy:wall-slam{surface:prop}` | '쿵' + 판자 '빠직' 셋 + 속 빈 통 → 나뭇조각 흩어짐 + 쇠테 |
+| `wall_slam_pillar` | 0.89 s | -1 | -10.8 | 3 | `enemy:wall-slam{surface:pillar}` | '쿵' 115→38 Hz + 돌기둥 '둥'(170 Hz 0.15 s) + 금 → 위에서 먼지·잔돌 |
+| `enemy_bowl` | 0.48 s | -1 | -11.6 | 3 | `enemy:bowled` | 몸끼리 '퍽'-'퍽'(25 ms) + 가죽 '철썩' + 숨 터짐(목소리 아님) + 장비 덜그럭. 연쇄 둘째는 속도 1.06 |
+| `enemy_launch` | 0.40 s | -2 | -18.3 | 2 | `enemy:launched` | 올려 받침 '헙' + 오르는 바람 350→1.5k + 옷 |
+| `enemy_land` | 0.40 s | -5 | -17.2 | 2 | `enemy:landed{slam:false}` | 몸 '쿵' 110→40 + 흙 |
+| `enemy_land_slam` | 0.59 s | -3 | -13 | 2 | `enemy:landed{slam:true}` | '쾅' 130→36 + 아래 무게 + 흙 + 덜그럭 + 바닥 울림 |
+| `fall_water` | 1.35 s | -1 | -14.7 | 3 | `enemy:fell{zone:water}` | 멀어지는 외침(말 없음 — 톱니 + '아' 포먼트, 330→190 Hz, 어두워짐) → **0.55 s** '첨벙' + 물방울 + 출렁 |
+| `fall_drop` | 1.45 s | -1 | -16.5 | 3 | `enemy:fell{zone:drop}` | 아래로 꺼지는 외침 320→150 Hz + 떨어지는 바람 → **1.05 s** 아주 먼 '쿵' |
+| `fall_fire` | 1.00 s | -1 | -16.3 | 3 | `enemy:fell{zone:fire}` | 끊기는 외침 → 0.2 s 불 '화르륵' + 지글 + 타닥 |
+| `explode_small` | 0.74 s | -3 | -14.1 | 3 | `hazard:exploded{kind:bottle}` | 유리 깨짐 + '퍽' 170→60 + 술불 '화륵' |
+| `explode_mid` | 1.15 s | -2 | -11.8 | 3 | `hazard:exploded{kind:cask}` | 통판 '빠직' + '쾅' 120→36 + 술 '촤악' + 불 + 나뭇조각 |
+| `explode_large` | 1.66 s | 0 | -10.7 | 3 | `hazard:exploded{kind:still}` | '쿠웅' 95→28 Hz(길게) + 구리 솥 찢김(울림 짧게) + 김 + 큰 불 + 파편 |
+| `explode_chain1/2/3` | 0.38 s | -3 / -2.5 / -1 | -18.5 / -17.3 / -17.2 | 3 | `hazard:exploded{chain:1\|2\|3+}` | 폭발 위 얇은 연쇄 상승음: 오르는 '후웅' + 손풍금 결 불 숨 **A3 → C4 → E4**(1층 A 단조). chain ≥ 3 은 속도 2^((chain−3)×2/12), 최대 1.26 |
+| `hazard_ignite` | 0.96 s | -4 | -15.8 | 2 | `hazard:ignited` | 공기를 빨아들이는 '훕' → 불 번짐 500→3k + 타닥. radiusTiles ≥ 3 은 속도 0.9 |
+| `streak_2` | 0.45 s | -4 | -16.4 | 3 | `combo:streak{count:2}` | 북 '둥' + 종 A4 |
+| `streak_4` | 0.60 s | -2 | -15.2 | 3 | `combo:streak{count:4}` | 북 '둥-둥' + 종 C5·E5 + 불씨 |
+| `streak_6` | 0.85 s | 0 | -13.8 | 3 | `combo:streak{count:6+}` | 북 '둥-둥-두둥' + 종 A5 + 잿불. 6·8·10… 짝수마다, 8 이상 속도 1.03·1.06 |
+| `drummer_beat` (+`_v2`) | 0.38 s | -7 | -18~-20 | 2 | `ENEMY_ATTACK{enemy:drummer,phase:beat}` | 깃발 고수 군북 '둥'(115→62 Hz) / 변주 테 '덕'. 박 간격 0.4 s(= f1_jan 한 박) 권장, 위치 감쇠 |
+| `drummer_rally` | 0.95 s | -3 | -14.9 | 2 | `ENEMY_ATTACK{enemy:drummer,phase:rally}` | 깃발 펄럭 → 북 '두두두-둥' + 낮은 뿔나팔 A2 — 사기 고양(오라 켜짐) |
+| `drummer_death` | 0.85 s | -2 | -11.5 | 2 | `ENEMY_DIED{enemy:drummer}` | 타격 → 북이 떨어져 속 빈 '부웅' + 깃대 '탁·탁' → 쓰러짐. enemy_death 대신 |
+| `bomber_fuse` (루프) | 0.80 s | -5 | -23.5 | 2 | `ENEMY_ATTACK{enemy:bomber,phase:run}` | 심지 '치이이'(3.4 kHz 대역) + 불똥 + 술독 출렁. 터지거나 죽으면 80 ms 페이드 |
+| `bomber_swell` | 1.00 s | 0 | -17.2 | 3 | `ENEMY_TELEGRAPH{enemy:bomber}` | 술독 끓어오름(점점 빠르게) + 통판 삐걱 + 심지 커짐 → **1.0 s 뚝** = 터짐 |
+| `bomber_blast` | 1.25 s | -1 | -11.3 | 2 | `ENEMY_ATTACK{enemy:bomber,phase:blast}` | 질그릇 술독 '와장' + '쾅' 115→34 + 술 '촤악' + 불. enemy_death 대신 |
+
+**다시 3 (도영 님 피드백 '대검 공격 과정 전체가 무거워야')**: `swing_greatsword`·`_v2`·`_v3` — 손잡이 가죽이 조여지는 삐걱 → 느리게 차오르는 바람(180→700→160 Hz, 0.47~0.54 s, 이전 250→900→220 · 0.38~0.42 s) + 칼 질량 울림을 더 낮게(58→36 Hz, 이전 75→48) + 아래 무게 → 0.34~0.39 s 무거운 디딤(105→38 Hz) + 흙. 트리거·음량(-1)·시드 그대로.
+
+- **트리거 메모**: 무기 타격은 `ENEMY_DAMAGED` 에 무기 조건(`weapon:<무기>` — 주인공 현재 무기)을 붙여 고른다. 무기 아닌 피해(폭발·벽꽝·볼링·불 웅덩이·낙하)는 그 이벤트 소리가 맡으므로 그 `ENEMY_DAMAGED` 에는 타격음을 내지 않는다(겹치면 두 번 '쿵'). 급소는 `hit_enemy_crit` 을 무기 타격 **위에 겹침**. 새 적 트리거의 `enemy:drummer`·`enemy:bomber` 는 임시 값 — 시스템 S3 의 실제 id 로 manifest 를 맞춘다.
+- **같은 프레임 순서**(계약 §1 — KNOCKED → WALL_SLAM): 타격 → 넉백 바람 → 벽꽝이 차례로 겹쳐 '퍽-휙-쿵'.
+- **피로 방지**: 재질 쇠는 모두 τ ≤ 10 ms·5 kHz 아래(단검만 6 kHz), 타격 꼬리는 칼 짧게·단검 없음·대검만 낮은 울림(6 kHz 아래). 무기마다 변주 1 + `variation.rateJitter` ±3 %. 타격음 층 상한 `voices.hitLayer`(아래 5장).
+
 ## 5. 믹싱 기준 (매니페스트 `mixing`)
 - 마스터 0 dB, SFX 버스 0 dB, BGM 버스 **-8 dB**. 보스전 중 BGM 추가 -3 dB(`bgmBossDuckDb`).
 - 같은 효과음이 20 ms 안에 여러 번 요청되면 1회만 재생(산탄·난무·충격파 중복 방지) — `dedupeMs: 20`, 변주는 원본 그룹으로 센다.
@@ -788,6 +843,9 @@
 | `voices.steal` | `lowest-priority-oldest` (30 ms 페이드). loop 항목은 빼앗지 않음(같은 id 1개) | 새 소리보다 낮거나 같은 우선순위 중 가장 오래된 것부터 |
 | `priority` (항목별 필드) | **4 보스 예고·신호·무기 각성**(`BOSS_TELEGRAPH/STARTED/PHASE/DIED`·`boss:intro`·(61-4) `BOSS_ACTION{action:introRoar}`·`WEAPON_AWAKEN`) > **3 피격·방어 판정**(`PLAYER_DAMAGED`·`PARRY_SUCCESS`·`PERFECT_GUARD`·`PERFECT_SUCCESS`·`ENEMY_TELEGRAPH`·`RUN_ENDED`·(61-2) `BOSS_BREAK`·`ui:boss-break`·(61-4) `BOSS_ACTION{action:cupStruck\|pillarCrack}`·(61-5) `BOSS_ACTION{action:pillarCollapse\|lobThrow}`·(61-6) `TRANSITION_BEGIN`·`TRAINING_STAMP`) > **2 타격·공격**(그 밖의 combat·boss — 54라운드 `BOSS_ACTION` 패턴 소리 포함) > **1 환경**(world·pickup·event·`PASSIVE_PROC`·`STATUS_CHANGED`·(61-4) `BOSS_ACTION{action:flameSnuff}`·(61-5) `PICKUP_LANDED`·`PICKUP_COLLECTED`·`TRAIT_PROC`), 0 UI. (61-5) `RESONANCE_ON` 은 2. (61-6) `TRAINING_TASK` 는 2. ****(62-2) 4 = `PLAYER_DIED`(death_slow), 3 = `ENEMY_INCOMING`·`FEEL_SLOWMO`·`NODE_TRIAL_BROKEN`·`NODE_GRADED{grade:perfect}`(grade_perfect 도 1 → 3)·`ui:floor-end`, 2 = `ui:relic-gained`·`MEMORY_UNLOCKED`, 1 = `EVENT_TALK`·`SHOP_TALK`, 0 = `UI_SETTING_TOGGLED`.** 61-4 부터 같은 이벤트 안에서 조건 하나로 등급이 갈리면 `EVENT{키:값}` 꼴로 표에 적는다(`mixing.priority(spec, event, when)`) | 지시 '보스 예고음 > 피격 > 타격 > 환경'. 적 예고는 피하기 정보라 피격과 같은 3 |
 | `ducking` | priority 4 시작 → SFX(≤2) -6 dB · BGM -3 dB(그 소리 길이 동안), `hit_player` → SFX(≤2) -3 dB 150 ms, **(61-2) 파훼 소리(`ui:boss-break`·`BOSS_BREAK`) → SFX(≤2) -4 dB 300 ms**(61-5 기둥 무너짐도), **(61-5) 우선순위 ≥ 2 재생 → 줍기류(`voucher_drop`·`voucher_pickup`·`item_pickup`) -4 dB 150 ms**, **(61-6) 전환음 → SFX(≤2) -8 dB · BGM -4 dB(그 소리 길이 동안), 도장 → SFX(≤1) -4 dB 300 ms** · **(62-2) 마지막 처치 슬로모 → SFX(≤2) -5 dB · BGM -4 dB 280 ms, 사망 슬로모 → SFX(≤2) -10 dB · BGM -12 dB(그 소리 길이), 결산 열림 → BGM -6 dB** | 예고음과 맞은 순간이 묻히지 않게, 파훼 한 방이 앞에 서게 |
+| `voices.hitLayer` (P19) | 타격음(`hit_katana`·`hit_greatsword`·`hit_dagger`·`hit_bow`·`hit_enemy`·`hit_enemy_crit`) 합쳐 동시 **4**, 40 ms 안에 몰리면 둘째부터 −3 dB 씩(최저 −9), 같은 id 30 ms 안 재생 금지 | 한 휘두름이 무리를 맞혀도 한 덩어리로 묵직하게, 단검 연타에도 귀가 따갑지 않게. `layerMax` 와 같은 꼴(ids·match·max) |
+| `bgmIntensity` (P19) | `{bgm/f1_jan: bgm/f1_jan_perc}`, 켬 = 살아 있는 적 ≥ 6, 끔 = ≤ 3 이 2 s, 페이드 1.5 s / 3 s, 최소 6 s, 위치 동기 | 3-4. 웨이브가 겹칠 때 타악 겹만 올림(+1.4 LU) |
+| (P19) 우선순위 · 덕킹 · 같은 소리 상한 | 3 = 버팀 깨짐·벽꽝·볼링·낙하·위험물 폭발·연속 처치, 1 = 움찔·넉백 바람. 덕킹 새 3줄: 벽꽝·볼링 → SFX(≤2) −3 dB 120 ms(얕게 — 자주 일어남), 큰 폭발(`explode_large`·`bomber_blast`) → SFX(≤2) −4 dB 200 ms · BGM −3 dB 300 ms. 상한: 대검 타격 2 · 다른 타격 3 · 연쇄음·streak·큰 폭발·넉백 4단·고수 사기·죽음 1 · 나머지 2 | 보상 순간(벽꽝·연쇄)이 앞에 서되, 잦은 일이라 펌핑이 들리지 않게 얕고 짧게 |
 | `variation` | 변주 목록에서 직전과 다른 것 + 재생 속도 1 ± 0.03 (loop·UI·BGM 제외) | 반복 피로. 변주가 생겨 ±4 % → ±3 % |
 | `masterLimiter` | 문턱 -3 dB, knee 6, ratio 12, attack 3 ms, release 120 ms (DynamicsCompressorNode) | 새 타격음이 같은 피크에서 짧은 구간 음량이 커져 몰릴 때 찌그러짐 방지 |
 | `bgmPhaseCrossfadeMs` · `bgmPhaseSyncPosition` | 800 · true | 보스 국면 곡을 재생 위치 그대로 이어 교차(3-1) |

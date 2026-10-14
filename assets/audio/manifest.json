@@ -114,7 +114,42 @@
         "sfx/door_open": 1,
         "sfx/door_walk_out": 1,
         "sfx/door_walk_in": 1,
-        "sfx/door_walk_back": 1
+        "sfx/door_walk_back": 1,
+        "sfx/hit_katana": 3,
+        "sfx/hit_greatsword": 2,
+        "sfx/hit_dagger": 3,
+        "sfx/hit_bow": 3,
+        "sfx/enemy_flinch": 2,
+        "sfx/enemy_stagger_break": 2,
+        "sfx/knock_wind2": 2,
+        "sfx/knock_wind3": 2,
+        "sfx/knock_wind4": 1,
+        "sfx/wall_slam_wall": 2,
+        "sfx/wall_slam_prop": 2,
+        "sfx/wall_slam_pillar": 2,
+        "sfx/enemy_bowl": 2,
+        "sfx/enemy_launch": 2,
+        "sfx/enemy_land": 2,
+        "sfx/enemy_land_slam": 2,
+        "sfx/fall_water": 2,
+        "sfx/fall_drop": 2,
+        "sfx/fall_fire": 2,
+        "sfx/explode_small": 2,
+        "sfx/explode_mid": 2,
+        "sfx/explode_large": 1,
+        "sfx/explode_chain1": 1,
+        "sfx/explode_chain2": 1,
+        "sfx/explode_chain3": 1,
+        "sfx/hazard_ignite": 2,
+        "sfx/streak_2": 1,
+        "sfx/streak_4": 1,
+        "sfx/streak_6": 1,
+        "sfx/drummer_beat": 2,
+        "sfx/drummer_rally": 1,
+        "sfx/drummer_death": 1,
+        "sfx/bomber_fuse": 2,
+        "sfx/bomber_swell": 2,
+        "sfx/bomber_blast": 2
       },
       "layerMax": {
         "ids": [
@@ -137,6 +172,22 @@
         "match": "TRAIT_PROC 로 재생된 소리",
         "max": 3,
         "note": "61-5: 개성 발동 특색 층(TRAIT_PROC 로 고른 trait_<act> 15종 + 개성별 trait_<무기>_<id> 가 생기면 그것도 — trait_manifest(TRAIT_GAINED)는 아님) 전체를 합쳐 동시 3까지. 넘치면 같은 층에서 가장 오래된 것을 30 ms 페이드로 끊는다(우선순위 1 이라 maxSfx 에서도 빼앗기 1순위). resonance_proc 은 이 층에 세지 않는다"
+      },
+      "hitLayer": {
+        "ids": [
+          "sfx/hit_katana",
+          "sfx/hit_greatsword",
+          "sfx/hit_dagger",
+          "sfx/hit_bow",
+          "sfx/hit_enemy",
+          "sfx/hit_enemy_crit"
+        ],
+        "match": "ENEMY_DAMAGED 로 재생된 타격음(무기별 hit_<무기> + hit_enemy·hit_enemy_crit, 변주 포함)",
+        "max": 4,
+        "windowMs": 40,
+        "stackDb": -3.0,
+        "minGapMs": 30,
+        "note": "P19: 타격음 전체를 합쳐 동시 4까지(layerMax 와 같은 꼴 — ids·match·max). 넘치면 가장 오래된 타격음을 30 ms 페이드로 끊는다. 한 휘두름이 여러 적을 맞혀 windowMs(40 ms) 안에 타격음이 몰리면 첫 소리만 제 음량, 둘째부터 stackDb(−3 dB)씩 더 낮춰(최저 −9 dB) 쌓는다 — 무리를 베어도 한 덩어리로 묵직하게, 귀가 따갑지 않게. 같은 타격음 id 는 minGapMs(30 ms) 안에 다시 울리지 않는다(dedupeMs 20 보다 넓게 — 단검 연타 대비). 움찔(enemy_flinch)·넉백 바람(knock_wind*)은 이 층에 세지 않지만 priority 1 이라 maxSfx 에서 먼저 빠진다"
       },
       "steal": "lowest-priority-oldest",
       "note": "동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). loop 항목은 빼앗지 않는다(상태가 끝날 때 시스템이 멈춤) — 대신 같은 id 는 1개만. UI 는 별도 상한 maxUi."
@@ -161,7 +212,7 @@
         {
           "level": 3,
           "name": "hurt",
-          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·그림 속 입구 전환·수련장 도장(61-6)·적 등장 예고·마지막 처치 슬로모·노드 시련 성공/실패·1층 끝 결산(62-2)",
+          "label": "주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·그림 속 입구 전환·수련장 도장(61-6)·적 등장 예고·마지막 처치 슬로모·노드 시련 성공/실패·1층 끝 결산(62-2)·버팀 깨짐·벽꽝·볼링·낙하·위험물 폭발·연속 처치(P19 — 판단·보상 순간)",
           "events": [
             "PLAYER_DAMAGED",
             "PARRY_SUCCESS",
@@ -181,7 +232,13 @@
             "FEEL_SLOWMO",
             "NODE_TRIAL_BROKEN",
             "NODE_GRADED{grade:perfect}",
-            "ui:floor-end"
+            "ui:floor-end",
+            "enemy:staggered{kind:stagger}",
+            "enemy:wall-slam",
+            "enemy:bowled",
+            "enemy:fell",
+            "hazard:exploded",
+            "combo:streak"
           ]
         },
         {
@@ -199,7 +256,7 @@
         {
           "level": 1,
           "name": "ambient",
-          "label": "환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)",
+          "label": "환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)·움찔·넉백 바람(P19 — 타격음 위 꼬리 층, 빼앗기 1순위)",
           "events": [
             "PASSIVE_PROC",
             "STATUS_CHANGED",
@@ -209,6 +266,8 @@
             "TRAIT_PROC",
             "EVENT_TALK",
             "SHOP_TALK",
+            "enemy:staggered{kind:flinch}",
+            "enemy:knocked",
             "(world·pickup·event 분류 — 상점 사기·다시 진열 포함)"
           ]
         },
@@ -335,6 +394,33 @@
         "note": "62-2: 0.3 s 에 걸쳐 곡이 거의 사라지고(슬로모와 함께) 결산 화면으로 넘어가며 1.5 s 에 걸쳐 돌아옴. 결산에서 곡을 바꾸거나 끄면 시스템 페이드가 우선"
       },
       {
+        "when": "벽꽝·볼링 재생(wall_slam_wall·wall_slam_prop·wall_slam_pillar·enemy_bowl)",
+        "target": "sfx priority ≤ 2",
+        "db": -3.0,
+        "attackMs": 5,
+        "releaseMs": 200,
+        "hold": "120 ms",
+        "note": "P19: 벽꽝·볼링의 '쿵'이 그 순간 타격·휘두름 위에 서게 살짝(−3 dB) 짧게 — 자주 일어나므로 곡·전투음이 출렁이지 않게 얕게. 벽꽝 자신은 priority 3 이라 눌리지 않는다"
+      },
+      {
+        "when": "큰 폭발 재생(explode_large·bomber_blast)",
+        "target": "sfx priority ≤ 2",
+        "db": -4.0,
+        "attackMs": 5,
+        "releaseMs": 300,
+        "hold": "200 ms",
+        "note": "P19: 증류기·자폭병 폭발 순간 남은 타격·휘두름을 눌러 한 방이 앞에 서게. 자폭병 폭발(ENEMY_ATTACK)은 priority 2 라 자기 자신은 이 규칙에서 빼고 적용(시스템: 덕킹을 일으킨 소리는 대상에서 제외)"
+      },
+      {
+        "when": "큰 폭발 재생(explode_large·bomber_blast) — BGM",
+        "target": "bgm",
+        "db": -3.0,
+        "attackMs": 20,
+        "releaseMs": 500,
+        "hold": "300 ms",
+        "note": "P19: 큰 폭발 때 곡이 잠깐 물러남(연쇄로 0.3초마다 이어지면 hold 가 이어져 한 번 눌린 채 유지)"
+      },
+      {
         "when": "1층 끝 결산 열림 재생(floor_end_sting) — BGM",
         "target": "bgm",
         "db": -6.0,
@@ -357,6 +443,18 @@
       "attackMs": 3,
       "releaseMs": 120,
       "note": "Web Audio DynamicsCompressorNode 를 마스터 끝에 하나. 61라운드 타격음이 같은 피크에서 짧은 구간 음량이 커져(약 +4~7 dB) 몰릴 때 찌그러짐을 막는다."
+    },
+    "bgmIntensity": {
+      "layers": {
+        "bgm/f1_jan": "bgm/f1_jan_perc"
+      },
+      "onWhen": "살아 있는 적 ≥ 6",
+      "offWhen": "살아 있는 적 ≤ 3 이 2000 ms 이어짐(또는 방 클리어·보스 방)",
+      "fadeInMs": 1500,
+      "fadeOutMs": 3000,
+      "minOnMs": 6000,
+      "syncPosition": true,
+      "note": "P19 전투 강도 2단: 평시 = 곡(f1_jan)만, 전투 겹 = 같은 재생 위치에서 타악 층(f1_jan_perc, 길이·박자 격자 같음)을 함께 돌리며 음량만 올림. 층은 전투 곡이 시작될 때 음량 0(무음)으로 같이 시작해 두고 onWhen 에서 fadeInMs 로 자기 gainDb 까지, offWhen 에서 fadeOutMs 로 0 — 켜진 뒤 minOnMs 안에는 끄지 않는다(웨이브 겹침 사이 깜빡임 방지). 층 음량은 덕킹·BGM 버스를 곡과 같이 받는다. 겹을 켜면 통합 음량 약 +1.4 LU(−19.1 → −17.7 LUFS). 찾는 법: bgmByFloorState[층].combatLayer(= 이 표의 값) — 없으면 겹 없음"
     },
     "bgmPhaseCrossfadeMs": 800,
     "bgmPhaseSyncPosition": true,
@@ -426,6 +524,27 @@
       "sfx/trial_win": {
         "peakMs": 0,
         "note": "62-2: 0 s 完 도장 '꾹'. 노드 마지막 처치와 같은 프레임이면(마지막 처치 슬로모 280 ms) 슬로모가 풀린 뒤 재생하면 '웅'과 도장·종이 겹치지 않는다(도장 연출이 늦게 뜨면 그 순간에)"
+      },
+      "sfx/bomber_swell": {
+        "peakMs": 1000,
+        "alignTo": "ENEMY_TELEGRAPH{enemy:bomber}.ms",
+        "note": "P19: 1.0 s 에 뚝 끊김 = 터지는 순간. 예고가 1000 ms 가 아니면 재생 속도 = clamp(1000/ms, 0.85, 1.2)"
+      },
+      "sfx/drummer_beat": {
+        "peakMs": 0,
+        "note": "P19: 박 간격 400 ms 권장(f1_jan 150 BPM 한 박) — 곡 재생 위치의 박에 맞추면 더 좋다"
+      },
+      "sfx/explode_chain3": {
+        "peakMs": 0,
+        "note": "P19: chain ≥ 3 은 재생 속도 2^((chain−3)×2/12), 최대 1.26"
+      },
+      "sfx/fall_water": {
+        "peakMs": 550,
+        "note": "P19: 0.55 s 첨벙 — 낙하 연출(떨어져 사라짐)이 0.55 s 가 아니면 재생 위치가 아니라 시작을 늦춘다"
+      },
+      "sfx/fall_drop": {
+        "peakMs": 1050,
+        "note": "P19: 1.05 s 먼 바닥 '쿵'(화면 밖)"
       }
     },
     "cuesNote": "62-2: 시간 축이 연출에 맞춰진 효과음의 정점(peakMs, 파일 0 기준). 시스템·UI 연출 시각을 이 값에 맞추거나, 연출이 늦으면 재생을 그만큼 늦춘다. 계약 필드가 아니라 권장값.",
@@ -518,6 +637,26 @@
       "sfx/ui_move": [
         "sfx/ui_move",
         "sfx/ui_move_v2"
+      ],
+      "sfx/hit_katana": [
+        "sfx/hit_katana",
+        "sfx/hit_katana_v2"
+      ],
+      "sfx/hit_greatsword": [
+        "sfx/hit_greatsword",
+        "sfx/hit_greatsword_v2"
+      ],
+      "sfx/hit_dagger": [
+        "sfx/hit_dagger",
+        "sfx/hit_dagger_v2"
+      ],
+      "sfx/hit_bow": [
+        "sfx/hit_bow",
+        "sfx/hit_bow_v2"
+      ],
+      "sfx/drummer_beat": [
+        "sfx/drummer_beat",
+        "sfx/drummer_beat_v2"
       ]
     }
   },
@@ -546,6 +685,7 @@
         "bgm/f1_boss_p2",
         "bgm/f1_boss_p3"
       ],
+      "combatLayer": "bgm/f1_jan_perc",
       "boss": "bgm/f1_boss_p1"
     }
   },
@@ -591,8 +731,8 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 20286,
-      "durationMs": 460,
+      "samples": 27342,
+      "durationMs": 620,
       "loop": false,
       "gainDb": -1,
       "trigger": {
@@ -607,7 +747,7 @@
         "sfx/swing_greatsword_v2",
         "sfx/swing_greatsword_v3"
       ],
-      "note": "대검 휘두름(61라운드 품질 패스). 올랐다 내려가는 무거운 바람(250→900→220 Hz) + 칼 질량의 낮은 울림(75→48 Hz) + 가죽 손잡이 + 끝에 디딤. 변주 v2·v3"
+      "note": "대검 휘두름(P19 다시 — '대검 공격 과정 전체가 무거워야'). 손잡이 가죽이 조여지는 삐걱 → 느리게 차오르는 무거운 바람(180→700→160 Hz, 0.5 s) + 칼 질량의 아주 낮은 울림(58→36 Hz) + 아래 무게 → 0.36 s 무거운 디딤(105→38 Hz) + 흙. 변주 v2·v3"
     },
     {
       "id": "sfx/swing_dagger",
@@ -6150,14 +6290,14 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 21168,
-      "durationMs": 480,
+      "samples": 29106,
+      "durationMs": 660,
       "loop": false,
       "gainDb": -1,
       "trigger": null,
       "priority": 2,
       "variantOf": "sfx/swing_greatsword",
-      "note": "대검 휘두름 변주 2 — 바람 220→800→200, 0.42 s"
+      "note": "대검 휘두름 변주 2(P19 다시) — 바람 160→640→150, 0.54 s, 디딤 0.39 s"
     },
     {
       "id": "sfx/swing_greatsword_v3",
@@ -6170,14 +6310,14 @@
       ],
       "sampleRate": 44100,
       "channels": 1,
-      "samples": 19404,
-      "durationMs": 440,
+      "samples": 26019,
+      "durationMs": 590,
       "loop": false,
       "gainDb": -1,
       "trigger": null,
       "priority": 2,
       "variantOf": "sfx/swing_greatsword",
-      "note": "대검 휘두름 변주 3 — 바람 280→1000→240, 0.38 s"
+      "note": "대검 휘두름 변주 3(P19 다시) — 바람 200→780→170, 0.47 s, 디딤 0.34 s"
     },
     {
       "id": "sfx/swing_dagger_v2",
@@ -8621,6 +8761,966 @@
       "note": "62 시스템 H 새 — 노드 이동 짧은 먹 번짐 암전(지도에서 노드를 고른 뒤 · 수련장 방 고르기·방 → 지도 마당 공통 — §25). 0 s 먹이 종이에 번지는 부드러운 '쉭'(저역통과 노이즈, 260 Hz→1.5 kHz 로 천천히 열림 — 어택 없음) + 젖은 먹 번짐 + 마른 종이 결 몇 알갱이(1.8~4 kHz, 아주 작게) → **0.38 s** 화면이 다 덮임: 쉭이 70 ms 에 닫히며 먹이 자리 잡는 아주 작은 '툭'(140→80 Hz, 500 Hz 위 깎음) → 0.42~0.64 s 걷힐 때 아주 작은 숨 '후'(450→1.1 kHz, 들숨처럼 올랐다 빠짐). 0.68 s. 4.5 kHz 위·딱 소리 없음 — 노드마다 들어도 지치지 않게 작게(권장 -10 dB — 100 ms 최대 RMS ≈ -27 dBFS, door_walk_in -23 보다 4 dB 아래). transition_exit ×0.5·속도 1.2 대체를 대신"
     },
     {
+      "id": "sfx/hit_katana",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_katana.ogg",
+      "files": [
+        "assets/audio/sfx/hit_katana.ogg",
+        "assets/audio/sfx/hit_katana.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 11466,
+      "durationMs": 260,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "ENEMY_DAMAGED",
+        "when": [
+          "weapon:katana"
+        ]
+      },
+      "priority": 2,
+      "variants": [
+        "sfx/hit_katana",
+        "sfx/hit_katana_v2"
+      ],
+      "note": "P19 새 — 칼 타격(무기 적중, hit_enemy 를 대신 — 무기 아닌 피해는 hit_enemy). 3층: 몸통 가볍고 단단한 '퍽'(250→100 Hz) · 재질 맑은 쇠 '칭'(3.1 kHz, τ 9 ms — 울림 없음) + 날 '샥' + 먹 튐 작게 · 꼬리 짧은 공기 울림. 0.26 s. 변주 _v2"
+    },
+    {
+      "id": "sfx/hit_katana_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_katana_v2.ogg",
+      "files": [
+        "assets/audio/sfx/hit_katana_v2.ogg",
+        "assets/audio/sfx/hit_katana_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 11466,
+      "durationMs": 260,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/hit_katana",
+      "note": "칼 타격 변주 2 — 몸통 230→92 Hz, 쇠 2.8 kHz, 날 6.6k→2.5k"
+    },
+    {
+      "id": "sfx/hit_greatsword",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_greatsword.ogg",
+      "files": [
+        "assets/audio/sfx/hit_greatsword.ogg",
+        "assets/audio/sfx/hit_greatsword.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 26460,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "ENEMY_DAMAGED",
+        "when": [
+          "weapon:greatsword"
+        ]
+      },
+      "priority": 2,
+      "variants": [
+        "sfx/hit_greatsword",
+        "sfx/hit_greatsword_v2"
+      ],
+      "note": "P19 새 — 대검 타격(무겁게 — 도영 님 '대검 공격 과정 전체가 무거워야'). 3층: 몸통 '쿵' 두 겹(150→46 Hz, 28 ms 뒤 질량이 따라 들어감) + 아래 무게(62→34 Hz) + 뼈 으스러짐 · 재질 두꺼운 쇠가 '텅' 박힘(380 Hz, 1.8 kHz 아래) + 먹 크게 튐 + 흙 · 꼬리 낮은 방 울림. 0.60 s. 히트스톱 30 ms 와 함께 들려도 무게가 남게 몸통이 0.3 s 이어진다. 변주 _v2"
+    },
+    {
+      "id": "sfx/hit_greatsword_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_greatsword_v2.ogg",
+      "files": [
+        "assets/audio/sfx/hit_greatsword_v2.ogg",
+        "assets/audio/sfx/hit_greatsword_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 26460,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/hit_greatsword",
+      "note": "대검 타격 변주 2 — 몸통 135→42 Hz, 겹 간격 34 ms"
+    },
+    {
+      "id": "sfx/hit_dagger",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_dagger.ogg",
+      "files": [
+        "assets/audio/sfx/hit_dagger.ogg",
+        "assets/audio/sfx/hit_dagger.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 4851,
+      "durationMs": 110,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "ENEMY_DAMAGED",
+        "when": [
+          "weapon:dagger"
+        ]
+      },
+      "priority": 2,
+      "variants": [
+        "sfx/hit_dagger",
+        "sfx/hit_dagger_v2"
+      ],
+      "note": "P19 새 — 단검 타격(짧고 날카롭게 — 매 타 움찔, 히트스톱 0). 3층: 몸통 작은 '톡'(340→150 Hz, 50 ms) · 재질 날카로운 '틱' + 찌름 '쉭'(9k→4.2k) + 쇠 4.2 kHz(τ 5 ms) + 먹 점 · 꼬리 거의 없음. 0.11 s — 빠른 연타에서 겹쳐도 뭉개지지 않게. 변주 _v2"
+    },
+    {
+      "id": "sfx/hit_dagger_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_dagger_v2.ogg",
+      "files": [
+        "assets/audio/sfx/hit_dagger_v2.ogg",
+        "assets/audio/sfx/hit_dagger_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 4851,
+      "durationMs": 110,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/hit_dagger",
+      "note": "단검 타격 변주 2 — 몸통 380→165 Hz, 날 8k→3.8k, 쇠 3.8 kHz"
+    },
+    {
+      "id": "sfx/hit_bow",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_bow.ogg",
+      "files": [
+        "assets/audio/sfx/hit_bow.ogg",
+        "assets/audio/sfx/hit_bow.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14553,
+      "durationMs": 330,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "ENEMY_DAMAGED",
+        "when": [
+          "weapon:bow"
+        ]
+      },
+      "priority": 2,
+      "variants": [
+        "sfx/hit_bow",
+        "sfx/hit_bow_v2"
+      ],
+      "note": "P19 새 — 활 타격(꽂힘). 3층: 몸통 박히는 '퍽'(280→120 Hz) · 재질 촉이 꽂히는 '툭'(2.2 kHz) + 쇠촉 짧게 + 먹 튐 · 꼬리 꽂힌 화살대 떨림(330 Hz, 38 Hz 흔들림) + 깃 스침. 0.33 s. 완벽 놓기·꿰어 박기는 넉백 바람·벽꽝이 겹쳐 무게가 붙는다. 변주 _v2"
+    },
+    {
+      "id": "sfx/hit_bow_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hit_bow_v2.ogg",
+      "files": [
+        "assets/audio/sfx/hit_bow_v2.ogg",
+        "assets/audio/sfx/hit_bow_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 14553,
+      "durationMs": 330,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/hit_bow",
+      "note": "활 타격 변주 2 — 몸통 255→110 Hz, 화살대 300 Hz"
+    },
+    {
+      "id": "sfx/enemy_flinch",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_flinch.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_flinch.ogg",
+        "assets/audio/sfx/enemy_flinch.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 6174,
+      "durationMs": 140,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "enemy:staggered",
+        "when": [
+          "kind:flinch"
+        ]
+      },
+      "priority": 1,
+      "note": "P19 새 — 움찔(200 ms, 타격과 같은 순간). 아주 작게: 장비 덜그럭(나무 자루·가죽 '톡' 둘) + 옷깃이 젖혀지는 짧은 스침. 0.14 s. 타격음 뒤에 붙는 꼬리일 뿐 — 단검 연타에서 매 타 울려도 묻히게 작게(권장 -4 dB — 100 ms 최대 RMS ≈ -27 dBFS)"
+    },
+    {
+      "id": "sfx/enemy_stagger_break",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_stagger_break.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_stagger_break.ogg",
+        "assets/audio/sfx/enemy_stagger_break.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 19845,
+      "durationMs": 450,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "enemy:staggered",
+        "when": [
+          "kind:stagger"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 버팀이 깨짐(추가타 기회 — 예고 색 '기회' 금 #ffe08a 반짝과 같은 순간). 0 s 가죽·나무 갑옷이 꺾이는 '딱'(두 겹) + 몸이 휘청이는 낮은 '쿵'(160→60 Hz) → 30 ms 짧은 금빛 종 E6(둥글게, 0.25 s) + 불씨 몇 점. 0.45 s. 기회를 귀로도 알린다"
+    },
+    {
+      "id": "sfx/knock_wind2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/knock_wind2.ogg",
+      "files": [
+        "assets/audio/sfx/knock_wind2.ogg",
+        "assets/audio/sfx/knock_wind2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 11907,
+      "durationMs": 270,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "enemy:knocked",
+        "when": [
+          "tier:2"
+        ]
+      },
+      "priority": 1,
+      "note": "P19 새 — 넉백 2단(날림 1.5칸) 바람. 몸이 공기를 밀고 가는 '훅'(1.4k→450 Hz) + 옷 스침. 0.27 s. 타격음 위 겹 — 무게 '중'"
+    },
+    {
+      "id": "sfx/knock_wind3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/knock_wind3.ogg",
+      "files": [
+        "assets/audio/sfx/knock_wind3.ogg",
+        "assets/audio/sfx/knock_wind3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 20727,
+      "durationMs": 470,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "enemy:knocked",
+        "when": [
+          "tier:3"
+        ]
+      },
+      "priority": 1,
+      "note": "P19 새 — 넉백 3단(크게 날림 3칸) 바람. 낮게 찢기는 '휘익'(1.1k→280 Hz) + 옷 펄럭(55 Hz 떨림). 0.47 s. 무게 '강' — 벽꽝·볼링이 뒤따르기 쉬움"
+    },
+    {
+      "id": "sfx/knock_wind4",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/knock_wind4.ogg",
+      "files": [
+        "assets/audio/sfx/knock_wind4.ogg",
+        "assets/audio/sfx/knock_wind4.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 35721,
+      "durationMs": 810,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "enemy:knocked",
+        "when": [
+          "tier:4"
+        ]
+      },
+      "priority": 1,
+      "note": "P19 새 — 넉백 4단(화면 가로지름) 바람. 길게 찢기며 멀어지는 '휘이익'(1.3k→200 Hz) + 옷 펄럭 + 뒤로 갈수록 어두워짐. 0.81 s"
+    },
+    {
+      "id": "sfx/wall_slam_wall",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/wall_slam_wall.ogg",
+      "files": [
+        "assets/audio/sfx/wall_slam_wall.ogg",
+        "assets/audio/sfx/wall_slam_wall.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 34839,
+      "durationMs": 790,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "enemy:wall-slam",
+        "when": [
+          "surface:wall"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 벽꽝(돌벽). 0 s 몸이 처박히는 '쿵'(130→42 Hz) + 돌이 금 가는 '딱'(두 겹) → 0.04~0.5 s 돌 부스러기가 흘러내림 + 먼지. 0.79 s. 피해 60% + 0.8초 쓰러짐의 손맛 — 벽 금 데칼과 같은 순간"
+    },
+    {
+      "id": "sfx/wall_slam_prop",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/wall_slam_prop.ogg",
+      "files": [
+        "assets/audio/sfx/wall_slam_prop.ogg",
+        "assets/audio/sfx/wall_slam_prop.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 30870,
+      "durationMs": 700,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "enemy:wall-slam",
+        "when": [
+          "surface:prop"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 벽꽝(상자·술통 등 소품 — 그 물건도 부서짐). 0 s 몸 '쿵' + 판자가 쪼개지는 '빠직'(나무 '딱' 셋) + 속 빈 통 울림 → 0.08~0.45 s 나뭇조각이 바닥에 흩어지는 '톡톡' + 쇠테 덜컥. 0.70 s. 술통이면 이어서 hazard:exploded 가 올 수 있음(겹쳐도 됨)"
+    },
+    {
+      "id": "sfx/wall_slam_pillar",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/wall_slam_pillar.ogg",
+      "files": [
+        "assets/audio/sfx/wall_slam_pillar.ogg",
+        "assets/audio/sfx/wall_slam_pillar.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 39249,
+      "durationMs": 890,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "enemy:wall-slam",
+        "when": [
+          "surface:pillar"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 벽꽝(돌기둥·엄폐). 0 s 몸 '쿵' + 돌기둥이 통째로 울리는 낮은 '둥'(170 Hz 돌 울림, 0.15 s 감쇠) + 금 '딱' → 위에서 먼지·잔돌이 떨어짐(0.15~0.7 s). 0.89 s. 벽보다 깊고 짧게 울린다"
+    },
+    {
+      "id": "sfx/enemy_bowl",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_bowl.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_bowl.ogg",
+        "assets/audio/sfx/enemy_bowl.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 21168,
+      "durationMs": 480,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "enemy:bowled",
+        "when": []
+      },
+      "priority": 3,
+      "note": "P19 새 — 볼링(날아간 적이 다른 적과 부딪침). 몸끼리 둔탁하게: 0 s '퍽'(170→60 Hz) → 25 ms 둘째 몸 '퍽'(140→50 Hz) + 가죽끼리 '철썩' + 숨이 터지는 노이즈 + 장비 덜그럭 셋. 0.48 s. 연쇄 2번까지 — 연쇄마다 재생 속도 1.0·1.06 권장(같은 소리 동시 2)"
+    },
+    {
+      "id": "sfx/enemy_launch",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_launch.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_launch.ogg",
+        "assets/audio/sfx/enemy_launch.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 17640,
+      "durationMs": 400,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "enemy:launched",
+        "when": []
+      },
+      "priority": 2,
+      "note": "P19 새 — 띄움(제자리 0.5초 공중). 0 s 작은 몸통 '헙'(올려 받침) → 오르는 바람 '휘웅'(350→1.5 kHz) + 옷 펄럭. 0.40 s. 공중 추가타로 체공이 늘어도 다시 울리지 않음(첫 띄움만)"
+    },
+    {
+      "id": "sfx/enemy_land",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_land.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_land.ogg",
+        "assets/audio/sfx/enemy_land.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 17640,
+      "durationMs": 400,
+      "loop": false,
+      "gainDb": -5,
+      "trigger": {
+        "event": "enemy:landed",
+        "when": [
+          "slam:false"
+        ]
+      },
+      "priority": 2,
+      "note": "P19 새 — 띄운 적이 떨어짐(착지 200 ms 움찔). 몸이 땅에 '쿵'(110→40 Hz) + 흙·먼지 작게. 0.40 s"
+    },
+    {
+      "id": "sfx/enemy_land_slam",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/enemy_land_slam.ogg",
+      "files": [
+        "assets/audio/sfx/enemy_land_slam.ogg",
+        "assets/audio/sfx/enemy_land_slam.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 26019,
+      "durationMs": 590,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "enemy:landed",
+        "when": [
+          "slam:true"
+        ]
+      },
+      "priority": 2,
+      "note": "P19 새 — 공중에서 내리찍혀 떨어짐(slam). 몸 '쾅'(130→36 Hz) + 아래 무게 + 흙 튐 + 장비 덜그럭 + 짧은 바닥 울림. 0.59 s"
+    },
+    {
+      "id": "sfx/fall_water",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/fall_water.ogg",
+      "files": [
+        "assets/audio/sfx/fall_water.ogg",
+        "assets/audio/sfx/fall_water.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 59535,
+      "durationMs": 1350,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "enemy:fell",
+        "when": [
+          "zone:water"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 수로에 밀려 떨어짐(일반 적 즉사). 0~0.55 s 멀어지는 외침(말 없음, 330→190 Hz, 소리가 어두워지며 멀어짐) + 옷 펄럭 → 0.55 s 물에 '첨벙'(넓은 물 터짐 + 낮은 '풍덩' + 물방울) → 출렁이며 잦아듦. 1.35 s"
+    },
+    {
+      "id": "sfx/fall_drop",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/fall_drop.ogg",
+      "files": [
+        "assets/audio/sfx/fall_drop.ogg",
+        "assets/audio/sfx/fall_drop.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 63945,
+      "durationMs": 1450,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "enemy:fell",
+        "when": [
+          "zone:drop"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 난간 너머·지붕 끝 낭떠러지로 떨어짐(일반 적 즉사). 0~0.9 s 멀어지며 아래로 꺼지는 외침(320→150 Hz, 빠르게 어두워짐) + 떨어지는 바람 → 1.05 s 아주 멀리서 작은 '쿵'(먼 바닥). 1.45 s"
+    },
+    {
+      "id": "sfx/fall_fire",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/fall_fire.ogg",
+      "files": [
+        "assets/audio/sfx/fall_fire.ogg",
+        "assets/audio/sfx/fall_fire.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 44100,
+      "durationMs": 1000,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "enemy:fell",
+        "when": [
+          "zone:fire"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 불붙은 술 웅덩이·화로로 밀려 떨어짐(즉사). 0~0.35 s 짧게 끊기는 외침 → 0.2 s 불이 '화르륵' 확 일어남 + 지글거림 + 타닥 → 잦아드는 잿불. 1.00 s"
+    },
+    {
+      "id": "sfx/explode_small",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/explode_small.ogg",
+      "files": [
+        "assets/audio/sfx/explode_small.ogg",
+        "assets/audio/sfx/explode_small.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 32634,
+      "durationMs": 740,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "hazard:exploded",
+        "when": [
+          "kind:bottle"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 작은 폭발(술병). 0 s 유리 깨짐 + '퍽'(170→60 Hz) + 술불 '화륵' → 타닥. 0.74 s. 연쇄면 explode_chain* 이 위에 겹침"
+    },
+    {
+      "id": "sfx/explode_mid",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/explode_mid.ogg",
+      "files": [
+        "assets/audio/sfx/explode_mid.ogg",
+        "assets/audio/sfx/explode_mid.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 50715,
+      "durationMs": 1150,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "hazard:exploded",
+        "when": [
+          "kind:cask"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 중간 폭발(술통 — 반경 2칸, 불붙은 웅덩이를 남김). 0 s 통판이 터지는 '빠직' + 깊은 '쾅'(120→36 Hz) + 술이 쏟아지는 '촤악' + 불 '화르르' → 나뭇조각 흩어짐 + 타닥. 1.15 s"
+    },
+    {
+      "id": "sfx/explode_large",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/explode_large.ogg",
+      "files": [
+        "assets/audio/sfx/explode_large.ogg",
+        "assets/audio/sfx/explode_large.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 73206,
+      "durationMs": 1660,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "hazard:exploded",
+        "when": [
+          "kind:still"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 큰 폭발(증류기). 0 s 아주 깊은 '쿠웅'(95→28 Hz, 길게) + 구리 솥이 찢기는 둔탁한 쇳소리(울림 짧게) + 김 '쉬익' → 불길 '화르르' 크게 + 파편·돌 떨어짐 → 1.6 s 까지 잦아드는 불. 1.66 s"
+    },
+    {
+      "id": "sfx/explode_chain1",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/explode_chain1.ogg",
+      "files": [
+        "assets/audio/sfx/explode_chain1.ogg",
+        "assets/audio/sfx/explode_chain1.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 16758,
+      "durationMs": 380,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "hazard:exploded",
+        "when": [
+          "chain:1"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 연쇄 폭발 첫 연쇄 위에 겹치는 상승음(A3 — 오르는 '후웅' + 불 숨 음). 0.38 s. 폭발 크기 소리와 함께 재생. 0.3초 간격 층층이 연쇄될 때 chain 1·2·3+ 가 A3·C4·E4 로 올라간다"
+    },
+    {
+      "id": "sfx/explode_chain2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/explode_chain2.ogg",
+      "files": [
+        "assets/audio/sfx/explode_chain2.ogg",
+        "assets/audio/sfx/explode_chain2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 16758,
+      "durationMs": 380,
+      "loop": false,
+      "gainDb": -2.5,
+      "trigger": {
+        "event": "hazard:exploded",
+        "when": [
+          "chain:2"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 연쇄 두 번째 상승음(C4). 0.38 s"
+    },
+    {
+      "id": "sfx/explode_chain3",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/explode_chain3.ogg",
+      "files": [
+        "assets/audio/sfx/explode_chain3.ogg",
+        "assets/audio/sfx/explode_chain3.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 16758,
+      "durationMs": 380,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "hazard:exploded",
+        "when": [
+          "chain:3+"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 연쇄 세 번째 이상 상승음(E4). chain ≥ 3 이면 이것을 재생 속도 2^((chain−3)×2/12) 로 한 음씩 더 올림(최대 1.26). 0.38 s"
+    },
+    {
+      "id": "sfx/hazard_ignite",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/hazard_ignite.ogg",
+      "files": [
+        "assets/audio/sfx/hazard_ignite.ogg",
+        "assets/audio/sfx/hazard_ignite.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 42336,
+      "durationMs": 960,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "hazard:ignited",
+        "when": []
+      },
+      "priority": 2,
+      "note": "P19 새 — 위험물 점화(술 웅덩이·술통·증류기에 불이 붙음). 0 s 낮은 '훕'(공기를 빨아들임) → 불이 '화르륵' 번짐(500 Hz→3 kHz) + 타닥. 0.96 s. radiusTiles 가 크면 재생 속도 0.9(≥ 3칸) 권장. drunk_ignite(POOL_IGNITED) 와 같은 순간이면 이것만"
+    },
+    {
+      "id": "sfx/streak_2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/streak_2.ogg",
+      "files": [
+        "assets/audio/sfx/streak_2.ogg",
+        "assets/audio/sfx/streak_2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 19845,
+      "durationMs": 450,
+      "loop": false,
+      "gainDb": -4,
+      "trigger": {
+        "event": "combo:streak",
+        "when": [
+          "count:2"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 연속 처치 2. 북 '둥' 한 번 + 작은 종 A4. 0.45 s. 처치음 위 얇은 칭찬 — 작게"
+    },
+    {
+      "id": "sfx/streak_4",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/streak_4.ogg",
+      "files": [
+        "assets/audio/sfx/streak_4.ogg",
+        "assets/audio/sfx/streak_4.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 26460,
+      "durationMs": 600,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "combo:streak",
+        "when": [
+          "count:4"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 연속 처치 4. 북 '둥-둥'(0·0.11 s) + 종 C5·E5 + 불씨. 0.60 s"
+    },
+    {
+      "id": "sfx/streak_6",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/streak_6.ogg",
+      "files": [
+        "assets/audio/sfx/streak_6.ogg",
+        "assets/audio/sfx/streak_6.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 37485,
+      "durationMs": 850,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "combo:streak",
+        "when": [
+          "count:6+"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 연속 처치 6 이상(6·8·10… 짝수마다 — 매 처치는 아님). 북 '둥-둥-두둥'(0·0.1·0.2·0.25 s) + 종 A5 + 잿불이 확 일어남. 0.85 s. 8 이상은 재생 속도 1.03·1.06 으로 조금씩 올림(최대 1.06)"
+    },
+    {
+      "id": "sfx/drummer_beat",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/drummer_beat.ogg",
+      "files": [
+        "assets/audio/sfx/drummer_beat.ogg",
+        "assets/audio/sfx/drummer_beat.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 16758,
+      "durationMs": 380,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:drummer",
+          "phase:beat"
+        ]
+      },
+      "priority": 2,
+      "variants": [
+        "sfx/drummer_beat",
+        "sfx/drummer_beat_v2"
+      ],
+      "note": "P19 새 — 깃발 고수 북 한 박(오라가 켜져 있는 동안 박마다). 군북 '둥'(115→62 Hz) + 가죽 때림. 0.40 s. 박 간격 0.4 s 권장 = 1층 전투 곡 f1_jan 150 BPM 한 박(곡과 박이 맞으면 북이 음악처럼 들려 덜 거슬림). 변주 _v2(테 '딱' 섞인 '덕')와 번갈아. 위치 감쇠 권장(멀면 작게) — '저놈부터 잡아라' 신호"
+    },
+    {
+      "id": "sfx/drummer_beat_v2",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/drummer_beat_v2.ogg",
+      "files": [
+        "assets/audio/sfx/drummer_beat_v2.ogg",
+        "assets/audio/sfx/drummer_beat_v2.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 16758,
+      "durationMs": 380,
+      "loop": false,
+      "gainDb": -7,
+      "trigger": null,
+      "priority": 2,
+      "variantOf": "sfx/drummer_beat",
+      "note": "깃발 고수 북 변주 2 — 북 테를 함께 치는 '덕'(135→70 Hz + 나무 테 '딱')"
+    },
+    {
+      "id": "sfx/drummer_rally",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/drummer_rally.ogg",
+      "files": [
+        "assets/audio/sfx/drummer_rally.ogg",
+        "assets/audio/sfx/drummer_rally.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 41895,
+      "durationMs": 950,
+      "loop": false,
+      "gainDb": -3,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:drummer",
+          "phase:rally"
+        ]
+      },
+      "priority": 2,
+      "note": "P19 새 — 깃발 고수 사기 고양(오라 켜짐 — 주변 적 공속 +25%). 0 s 깃발이 휘날리는 '펄럭' → 북 몰아치기 '두두두-둥'(0.08·0.16·0.24 s, 0.36 s 강세) + 낮은 뿔나팔 한 음(A2, 0.3~0.9 s, 거칠게) — 적 진영이 달아오름. 0.95 s"
+    },
+    {
+      "id": "sfx/drummer_death",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/drummer_death.ogg",
+      "files": [
+        "assets/audio/sfx/drummer_death.ogg",
+        "assets/audio/sfx/drummer_death.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 37485,
+      "durationMs": 850,
+      "loop": false,
+      "gainDb": -2,
+      "trigger": {
+        "event": "ENEMY_DIED",
+        "when": [
+          "enemy:drummer"
+        ]
+      },
+      "priority": 2,
+      "note": "P19 새 — 깃발 고수 처치(오라 꺼짐). 0 s 몸통 타격 → 0.1 s 북이 바닥에 떨어져 속 빈 '부웅'(가죽이 마지막으로 울림) + 깃대 나무 '탁·탁' → 0.35 s 몸이 쓰러짐. 0.85 s. enemy_death 를 대신(둘 다 울리지 않음)"
+    },
+    {
+      "id": "sfx/bomber_fuse",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bomber_fuse.ogg",
+      "files": [
+        "assets/audio/sfx/bomber_fuse.ogg",
+        "assets/audio/sfx/bomber_fuse.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 35280,
+      "durationMs": 800,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 35280,
+      "gainDb": -5,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:bomber",
+          "phase:run"
+        ]
+      },
+      "priority": 2,
+      "note": "P19 새 — 술배 자폭병 도화선 루프(달려오는 동안 — 터지거나 죽으면 80 ms 페이드). 지글거리는 심지 '치이이'(3.4 kHz 대역 — 오래 들려도 쏘지 않게) + 불똥 타닥 + 배에 찬 술독 출렁. 0.80 s 루프. 같은 id 동시 2(가까운 것), 위치 감쇠 권장"
+    },
+    {
+      "id": "sfx/bomber_swell",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bomber_swell.ogg",
+      "files": [
+        "assets/audio/sfx/bomber_swell.ogg",
+        "assets/audio/sfx/bomber_swell.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 44100,
+      "durationMs": 1000,
+      "loop": false,
+      "gainDb": 0,
+      "trigger": {
+        "event": "ENEMY_TELEGRAPH",
+        "when": [
+          "enemy:bomber"
+        ]
+      },
+      "priority": 3,
+      "note": "P19 새 — 술배 자폭병 1초 예고(멈춰 서서 배가 부풂 — 위험 예고 적색). 0~1.0 s 술독이 끓어오르는 출렁·거품(점점 빠르게) + 통판이 버티는 삐걱(올라감) + 심지 지글거림이 커짐 → **1.0 s** 에 뚝 끊김(= 터지는 순간, 이어서 bomber_blast). 1.00 s"
+    },
+    {
+      "id": "sfx/bomber_blast",
+      "kind": "sfx",
+      "category": "combat",
+      "file": "assets/audio/sfx/bomber_blast.ogg",
+      "files": [
+        "assets/audio/sfx/bomber_blast.ogg",
+        "assets/audio/sfx/bomber_blast.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 1,
+      "samples": 55125,
+      "durationMs": 1250,
+      "loop": false,
+      "gainDb": -1,
+      "trigger": {
+        "event": "ENEMY_ATTACK",
+        "when": [
+          "enemy:bomber",
+          "phase:blast"
+        ]
+      },
+      "priority": 2,
+      "note": "P19 새 — 술배 자폭병 폭발(제자리에서 또는 쳐서 날아간 자리에서). 0 s 흙 술독이 깨지는 '와장'(질그릇 조각 — 둔탁한 '딱' 여럿) + 깊은 '쾅'(115→34 Hz) + 술이 흩뿌려지는 '촤악' + 불 '화르르' → 타닥. 1.25 s. enemy_death 를 대신(터져 죽음). 볼링·연쇄로 위험물을 터뜨리면 hazard:exploded{chain} 이 이어진다"
+    },
+    {
       "id": "bgm/title",
       "kind": "bgm",
       "category": "bgm",
@@ -8894,6 +9994,30 @@
       "gainDb": -0.5,
       "floors": [],
       "note": "수련장(61-6 P14, bgmByState.training). 72 s 루프(36마디), 44.1 kHz 스테레오, A 단조 3/4 90 BPM. 1층 잔 거리와 같은 악기 결을 고요하게: 류트 8분음 분산화음 + 콘트라베이스 1박 + 아주 작은 손북 + 손풍금 2박 한 번, 잔 거리 바이올린 주제를 느리고 맑게(미끄러짐 작게·처지는 음 없음), C 구간 손풍금 긴 화음 + 낮은 현 대선율, 끝 4마디는 류트만 남아 처음으로. 바닥에 A1 드론·좌우 바람, 마디 0·24 에 먼 종(A4) 한 번. 삼전음·몰아치기 없음(긴장 낮게). 권장 음량 -0.5 dB(62-2 음량 맞춤 — 이전 +1.8 dB. 통합 음량 LUFS 로 다시 재니 +1.8 dB 에서 -20.2 LUFS 로 벽 밖 f1_outside(-22.6)보다 2.4 LU 크고 전투 f1_jan(-19.1)과 1 LU 차이뿐이었다. 류트·바이올린 고역이 RMS 보다 크게 들림. -0.5 dB = -22.5 LUFS 로 타이틀(-23.2)·벽 밖(-22.6)과 같은 조용한 층, 전투보다 3.4 LU 작게)"
+    },
+    {
+      "id": "bgm/f1_jan_perc",
+      "kind": "bgm",
+      "category": "bgm",
+      "file": "assets/audio/bgm/f1_jan_perc.ogg",
+      "files": [
+        "assets/audio/bgm/f1_jan_perc.ogg",
+        "assets/audio/bgm/f1_jan_perc.m4a"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "samples": 4233600,
+      "durationMs": 96000,
+      "loop": true,
+      "loopStartSample": 0,
+      "loopEndSample": 4233600,
+      "gainDb": -2.0,
+      "floors": [],
+      "use": {
+        "floor": 1,
+        "state": "combatLayer"
+      },
+      "note": "P19 전투 강도 겹 — 1층 전투 곡 f1_jan 위에 겹치는 타악만의 층(96 s 루프, 80마디, 44.1 kHz 스테레오, 3/4 150 BPM — f1_jan 과 같은 길이·박자 격자). 큰 북 1박 + 술통 '통' 2박 뒤(좌우 번갈아) + 군북 4마디마다 몰아치기 + B·B' 탬버린 8분음 + C(긴장) 군북 2·3박 · 스네어 유령음 + D 앞 8마디 비움 → 끝 8마디 군북 8분음 쌓기. 화음 악기 없음. 혼자 재생하지 않는다 — f1_jan 재생 위치에 맞춰 함께 돌리고 mixing.bgmIntensity 규칙으로 음량만 올림/내림(살아 있는 적 ≥ 6 → 켬)"
     }
   ]
 }

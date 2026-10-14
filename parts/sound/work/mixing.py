@@ -12,18 +12,21 @@ TIERS = [
                  'BOSS_ACTION{action:introRoar}', 'WEAPON_AWAKEN', 'PLAYER_DIED']),
     dict(level=3, name='hurt', label='주인공 피격·방어 판정·적 공격 예고·보스 파훼(61-2)·기둥 무너짐·포물선 술병(61-5)·'
                                    '그림 속 입구 전환·수련장 도장(61-6)·적 등장 예고·마지막 처치 슬로모·노드 시련 성공/실패·'
-                                   '1층 끝 결산(62-2)',
+                                   '1층 끝 결산(62-2)·버팀 깨짐·벽꽝·볼링·낙하·위험물 폭발·연속 처치(P19 — 판단·보상 순간)',
          events=['PLAYER_DAMAGED', 'PARRY_SUCCESS', 'PERFECT_GUARD', 'PERFECT_SUCCESS', 'ENEMY_TELEGRAPH', 'RUN_ENDED',
                  'BOSS_BREAK', 'ui:boss-break', 'BOSS_ACTION{action:cupStruck}', 'BOSS_ACTION{action:pillarCrack}',
                  'BOSS_ACTION{action:pillarCollapse}', 'BOSS_ACTION{action:lobThrow}',
                  'TRANSITION_BEGIN', 'TRAINING_STAMP',
-                 'ENEMY_INCOMING', 'FEEL_SLOWMO', 'NODE_TRIAL_BROKEN', 'NODE_GRADED{grade:perfect}', 'ui:floor-end']),
+                 'ENEMY_INCOMING', 'FEEL_SLOWMO', 'NODE_TRIAL_BROKEN', 'NODE_GRADED{grade:perfect}', 'ui:floor-end',
+                 'enemy:staggered{kind:stagger}', 'enemy:wall-slam', 'enemy:bowled', 'enemy:fell', 'hazard:exploded',
+                 'combo:streak']),
     dict(level=2, name='hit', label='타격·처치·공격 동작(주인공·적·보스)·공명 켜짐(61-5)·수련장 과제 완료(61-6)·'
                                  '유품 획득·기억 해금(62-2)',
          events=['RESONANCE_ON', 'TRAINING_TASK', 'ui:relic-gained', 'MEMORY_UNLOCKED', '(그 밖의 combat·boss 분류)']),
-    dict(level=1, name='ambient', label='환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)',
+    dict(level=1, name='ambient', label='환경·획득(바닥 줍기 61-5 포함)·이벤트·패시브·상태 부가음·개성 발동 특색 층(61-5)·'
+                                     '움찔·넉백 바람(P19 — 타격음 위 꼬리 층, 빼앗기 1순위)',
          events=['PASSIVE_PROC', 'STATUS_CHANGED', 'BOSS_ACTION{action:flameSnuff}', 'PICKUP_LANDED', 'PICKUP_COLLECTED',
-                 'TRAIT_PROC', 'EVENT_TALK', 'SHOP_TALK',
+                 'TRAIT_PROC', 'EVENT_TALK', 'SHOP_TALK', 'enemy:staggered{kind:flinch}', 'enemy:knocked',
                  '(world·pickup·event 분류 — 상점 사기·다시 진열 포함)']),
     dict(level=0, name='ui', label='UI — 별도 버스, 상한·빼앗기 대상 아님(62-2 메뉴 공통 ui_move·ui_select·ui_back·ui_toggle)',
          events=['UI_MENU_*', 'UI_SETTING_TOGGLED', '(ui 분류)']),
@@ -34,6 +37,30 @@ TRAIT_ACTS = ('launch', 'slam', 'pull', 'bind', 'clone', 'blink', 'wave', 'throw
 _EV = {ev: t['level'] for t in TIERS for ev in t['events'] if not ev.startswith('(')}
 # 61-4: 같은 이벤트 안에서 조건 하나로 등급이 갈리는 것(BOSS_ACTION 의 action) — 'EVENT{키:값}' 꼴로 위 표에 적는다.
 _AMBIENT_EVENTS = {'PASSIVE_PROC', 'STATUS_CHANGED', 'TRAIT_PROC'}
+
+# P19 자유 전투(1-Snd) — 타격음 층 · 같은 소리 상한 · 시간 정점
+HIT_IDS = ['sfx/hit_katana', 'sfx/hit_greatsword', 'sfx/hit_dagger', 'sfx/hit_bow', 'sfx/hit_enemy', 'sfx/hit_enemy_crit']
+P19_GROUP_MAX = {
+    'sfx/hit_katana': 3, 'sfx/hit_greatsword': 2, 'sfx/hit_dagger': 3, 'sfx/hit_bow': 3,
+    'sfx/enemy_flinch': 2, 'sfx/enemy_stagger_break': 2,
+    'sfx/knock_wind2': 2, 'sfx/knock_wind3': 2, 'sfx/knock_wind4': 1,
+    'sfx/wall_slam_wall': 2, 'sfx/wall_slam_prop': 2, 'sfx/wall_slam_pillar': 2, 'sfx/enemy_bowl': 2,
+    'sfx/enemy_launch': 2, 'sfx/enemy_land': 2, 'sfx/enemy_land_slam': 2,
+    'sfx/fall_water': 2, 'sfx/fall_drop': 2, 'sfx/fall_fire': 2,
+    'sfx/explode_small': 2, 'sfx/explode_mid': 2, 'sfx/explode_large': 1,
+    'sfx/explode_chain1': 1, 'sfx/explode_chain2': 1, 'sfx/explode_chain3': 1, 'sfx/hazard_ignite': 2,
+    'sfx/streak_2': 1, 'sfx/streak_4': 1, 'sfx/streak_6': 1,
+    'sfx/drummer_beat': 2, 'sfx/drummer_rally': 1, 'sfx/drummer_death': 1,
+    'sfx/bomber_fuse': 2, 'sfx/bomber_swell': 2, 'sfx/bomber_blast': 2,
+}
+P19_CUES = {
+    'sfx/bomber_swell': dict(peakMs=1000, alignTo='ENEMY_TELEGRAPH{enemy:bomber}.ms',
+                             note='P19: 1.0 s 에 뚝 끊김 = 터지는 순간. 예고가 1000 ms 가 아니면 재생 속도 = clamp(1000/ms, 0.85, 1.2)'),
+    'sfx/drummer_beat': dict(peakMs=0, note='P19: 박 간격 400 ms 권장(f1_jan 150 BPM 한 박) — 곡 재생 위치의 박에 맞추면 더 좋다'),
+    'sfx/explode_chain3': dict(peakMs=0, note='P19: chain ≥ 3 은 재생 속도 2^((chain−3)×2/12), 최대 1.26'),
+    'sfx/fall_water': dict(peakMs=550, note='P19: 0.55 s 첨벙 — 낙하 연출(떨어져 사라짐)이 0.55 s 가 아니면 재생 위치가 아니라 시작을 늦춘다'),
+    'sfx/fall_drop': dict(peakMs=1050, note='P19: 1.05 s 먼 바닥 \'쿵\'(화면 밖)'),
+}
 
 
 def priority(spec, event, when=()):
@@ -75,12 +102,20 @@ def settings(variant_groups):
                                'sfx/trial_win': 1, 'sfx/trial_fail': 1, 'sfx/floor_end_sting': 1,
                                'sfx/memory_unlock': 1, 'sfx/relic_take': 1, 'sfx/shop_buy': 2, 'sfx/shop_reroll': 1,
                                'sfx/npc_talk': 1, 'sfx/door_open': 1, 'sfx/door_walk_out': 1,
-                               'sfx/door_walk_in': 1, 'sfx/door_walk_back': 1},
+                               'sfx/door_walk_in': 1, 'sfx/door_walk_back': 1,
+                               **P19_GROUP_MAX},
             layerMax=dict(ids=['sfx/trait_%s' % a for a in TRAIT_ACTS], match='TRAIT_PROC 로 재생된 소리', max=3,
                           note='61-5: 개성 발동 특색 층(TRAIT_PROC 로 고른 trait_<act> 15종 + 개성별 trait_<무기>_<id> 가 생기면 그것도 — '
                                'trait_manifest(TRAIT_GAINED)는 아님) 전체를 '
                                '합쳐 동시 3까지. 넘치면 같은 층에서 가장 오래된 것을 30 ms 페이드로 끊는다(우선순위 1 이라 '
                                'maxSfx 에서도 빼앗기 1순위). resonance_proc 은 이 층에 세지 않는다'),
+            hitLayer=dict(ids=HIT_IDS, match='ENEMY_DAMAGED 로 재생된 타격음(무기별 hit_<무기> + hit_enemy·hit_enemy_crit, 변주 포함)',
+                          max=4, windowMs=40, stackDb=-3.0, minGapMs=30,
+                          note='P19: 타격음 전체를 합쳐 동시 4까지(layerMax 와 같은 꼴 — ids·match·max). 넘치면 가장 오래된 타격음을 '
+                               '30 ms 페이드로 끊는다. 한 휘두름이 여러 적을 맞혀 windowMs(40 ms) 안에 타격음이 몰리면 첫 소리만 제 음량, '
+                               '둘째부터 stackDb(−3 dB)씩 더 낮춰(최저 −9 dB) 쌓는다 — 무리를 베어도 한 덩어리로 묵직하게, 귀가 따갑지 않게. '
+                               '같은 타격음 id 는 minGapMs(30 ms) 안에 다시 울리지 않는다(dedupeMs 20 보다 넓게 — 단검 연타 대비). '
+                               '움찔(enemy_flinch)·넉백 바람(knock_wind*)은 이 층에 세지 않지만 priority 1 이라 maxSfx 에서 먼저 빠진다'),
             steal='lowest-priority-oldest',
             note='동시 재생 상한. maxSfx 를 넘으면 새 소리보다 우선순위가 낮거나 같은 목소리 중 가장 오래된 것을 '
                  '30 ms 페이드로 끊는다. 모두 더 높으면 새 소리를 버린다. 그룹 = 원본 id(변주 포함, variants). '
@@ -128,6 +163,16 @@ def settings(variant_groups):
                  hold='그 소리 길이 동안',
                  note='62-2: 0.3 s 에 걸쳐 곡이 거의 사라지고(슬로모와 함께) 결산 화면으로 넘어가며 1.5 s 에 걸쳐 돌아옴. '
                       '결산에서 곡을 바꾸거나 끄면 시스템 페이드가 우선'),
+            dict(when='벽꽝·볼링 재생(wall_slam_wall·wall_slam_prop·wall_slam_pillar·enemy_bowl)', target='sfx priority ≤ 2',
+                 db=-3.0, attackMs=5, releaseMs=200, hold='120 ms',
+                 note='P19: 벽꽝·볼링의 \'쿵\'이 그 순간 타격·휘두름 위에 서게 살짝(−3 dB) 짧게 — 자주 일어나므로 곡·전투음이 출렁이지 않게 얕게. '
+                      '벽꽝 자신은 priority 3 이라 눌리지 않는다'),
+            dict(when='큰 폭발 재생(explode_large·bomber_blast)', target='sfx priority ≤ 2', db=-4.0, attackMs=5,
+                 releaseMs=300, hold='200 ms',
+                 note='P19: 증류기·자폭병 폭발 순간 남은 타격·휘두름을 눌러 한 방이 앞에 서게. 자폭병 폭발(ENEMY_ATTACK)은 priority 2 라 '
+                      '자기 자신은 이 규칙에서 빼고 적용(시스템: 덕킹을 일으킨 소리는 대상에서 제외)'),
+            dict(when='큰 폭발 재생(explode_large·bomber_blast) — BGM', target='bgm', db=-3.0, attackMs=20, releaseMs=500,
+                 hold='300 ms', note='P19: 큰 폭발 때 곡이 잠깐 물러남(연쇄로 0.3초마다 이어지면 hold 가 이어져 한 번 눌린 채 유지)'),
             dict(when='1층 끝 결산 열림 재생(floor_end_sting) — BGM', target='bgm', db=-6.0, attackMs=200, releaseMs=1200,
                  hold='그 소리 길이 동안',
                  note='62-2: 결산 일기장이 열리는 손풍금 화음이 곡과 부딪히지 않게(보스 처치 뒤 정적이면 영향 없음)'),
@@ -142,6 +187,15 @@ def settings(variant_groups):
         masterLimiter=dict(thresholdDb=-3.0, kneeDb=6.0, ratio=12.0, attackMs=3, releaseMs=120,
                            note='Web Audio DynamicsCompressorNode 를 마스터 끝에 하나. 61라운드 타격음이 같은 피크에서 '
                                 '짧은 구간 음량이 커져(약 +4~7 dB) 몰릴 때 찌그러짐을 막는다.'),
+        bgmIntensity=dict(
+            layers={'bgm/f1_jan': 'bgm/f1_jan_perc'},
+            onWhen='살아 있는 적 ≥ 6', offWhen='살아 있는 적 ≤ 3 이 2000 ms 이어짐(또는 방 클리어·보스 방)',
+            fadeInMs=1500, fadeOutMs=3000, minOnMs=6000, syncPosition=True,
+            note='P19 전투 강도 2단: 평시 = 곡(f1_jan)만, 전투 겹 = 같은 재생 위치에서 타악 층(f1_jan_perc, 길이·박자 격자 같음)을 '
+                 '함께 돌리며 음량만 올림. 층은 전투 곡이 시작될 때 음량 0(무음)으로 같이 시작해 두고 onWhen 에서 fadeInMs 로 '
+                 '자기 gainDb 까지, offWhen 에서 fadeOutMs 로 0 — 켜진 뒤 minOnMs 안에는 끄지 않는다(웨이브 겹침 사이 깜빡임 방지). '
+                 '층 음량은 덕킹·BGM 버스를 곡과 같이 받는다. 겹을 켜면 통합 음량 약 +1.4 LU(−19.1 → −17.7 LUFS). '
+                 '찾는 법: bgmByFloorState[층].combatLayer(= 이 표의 값) — 없으면 겹 없음'),
         bgmPhaseCrossfadeMs=800,
         bgmPhaseSyncPosition=True,
         bgmPhaseNote='bgmByFloorState[층].bossPhases 의 곡들은 길이·박자 격자가 같다. BOSS_PHASE 에서 다음 곡을 '
@@ -192,6 +246,7 @@ def settings(variant_groups):
                                              '작아서 어색하지 않음(걷기 시작에 다시 울리지 않는다)'),
             'sfx/trial_win': dict(peakMs=0, note='62-2: 0 s 完 도장 \'꾹\'. 노드 마지막 처치와 같은 프레임이면(마지막 처치 슬로모 280 ms) '
                                                  '슬로모가 풀린 뒤 재생하면 \'웅\'과 도장·종이 겹치지 않는다(도장 연출이 늦게 뜨면 그 순간에)'),
+            **P19_CUES,
         },
         cuesNote='62-2: 시간 축이 연출에 맞춰진 효과음의 정점(peakMs, 파일 0 기준). 시스템·UI 연출 시각을 이 값에 맞추거나, '
                  '연출이 늦으면 재생을 그만큼 늦춘다. 계약 필드가 아니라 권장값.',
