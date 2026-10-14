@@ -4,7 +4,6 @@ import {
   doneCount,
   fallbackSpots,
   isTrainingHall,
-  newlyDone,
   readMapRooms,
   readStampEvent,
   readTaskEvent,
@@ -44,17 +43,6 @@ describe('trainingView (61 단계 6 수련장 UI)', () => {
     expect(rows.map((r) => r.key)).toEqual([null, 'Space', '좌클릭 길게']);
     expect(rows[0].done).toBe(true);
     expect(doneCount(room())).toEqual({ done: 1, total: 3 });
-  });
-
-  it('새로 끝난 과제: 같은 방에서만', () => {
-    const t = room({
-      tasks: [
-        { id: 'move', label: '', done: true },
-        { id: 'dash', label: '', done: true },
-      ],
-    });
-    expect(newlyDone('steps', new Set(['move']), t)).toEqual(['dash']);
-    expect(newlyDone('guard', new Set(), t)).toEqual([]);
   });
 
   it('이벤트 읽기', () => {

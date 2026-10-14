@@ -7,7 +7,6 @@ export const STORY_TEXT = {
   // ---- 조사 기록 쪽지
   clueTitle: '조사 기록',
   clueClose: 'Enter · 클릭 · Esc 덮는다',
-  clueMore: '…',
   // ---- 신규 적 소개 (설명이 없을 때 이름만)
   enemyIntroTag: '처음 보는 적',
   // ---- 보스 이름 카드·국면
@@ -21,8 +20,6 @@ export const STORY_TEXT = {
   barName: '{name} · {phase}',
   /** 3국면(어둠) 국면 카드 아래 안내 — E 는 시스템이 읽는 상호작용 키 */
   darkHint: '어둠 — 쓰러진 촛대를 [E] 로 다시 켠다',
-  /** 화면 밖 촛대 화살 옆 */
-  candleMark: '촛대',
   // ---- 파훼·결정타
   breakHead: '파훼',
   breakCup: '잔 깨기',

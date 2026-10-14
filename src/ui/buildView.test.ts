@@ -11,7 +11,6 @@ import {
   liveBuild,
   liveTagIds,
   perfectText,
-  scorePips,
   setChangeToast,
   tagChipValue,
   tagFloor,
@@ -49,10 +48,6 @@ describe('buildView (57·60라운드 §14 빌드 축)', () => {
     expect(tagName('insight')).toBe('간파');
     expect(tagName('drunk')).toBe('취기');
     expect(tagName('unknownTag')).toBe('unknownTag');
-  });
-
-  it('세트 임계 2·4·6 칸', () => {
-    expect(scorePips(3)).toEqual([1, 0.5, 0]);
   });
 
   it('HUD 태그 칩: score > 0, 시스템 정렬 그대로, 최대 개수', () => {

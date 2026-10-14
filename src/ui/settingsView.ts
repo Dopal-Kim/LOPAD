@@ -69,11 +69,6 @@ export function rowsFor(tab: SettingsTab): SettingRow[] {
   return [...TAB_ROWS[tab], ...END_ROWS];
 }
 
-/** 가장 긴 탭의 줄 수 (쪽 높이를 탭마다 바꾸지 않게) */
-export function maxRowCount(): number {
-  return Math.max(...SETTINGS_TABS.map((t) => rowsFor(t).length));
-}
-
 /** 탭 옮기기 (끝에서 돌아간다) */
 export function cycleTab(tab: SettingsTab, dir: -1 | 1): SettingsTab {
   const i = SETTINGS_TABS.indexOf(tab);
@@ -143,10 +138,6 @@ export function normalizeSettings(raw: unknown, fallback: Readonly<UiSettings>):
 
 export function isSlider(id: string): id is SliderId {
   return (SLIDERS as readonly string[]).includes(id);
-}
-
-export function isToggle(id: string): id is ToggleId {
-  return (TOGGLES as readonly string[]).includes(id);
 }
 
 /**

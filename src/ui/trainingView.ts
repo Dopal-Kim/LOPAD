@@ -48,12 +48,6 @@ export function taskRows(t: UiTraining, verbs: UiWeaponVerbs | null | undefined)
     });
 }
 
-/** 지난 스냅샷 대비 새로 끝난 과제 id (같은 방일 때만 — 방이 바뀌면 빈 목록) */
-export function newlyDone(prevRoom: string | null, prevDone: ReadonlySet<string>, t: UiTraining): string[] {
-  if (prevRoom !== t.room) return [];
-  return (t.tasks ?? []).filter((x) => x.done && !prevDone.has(x.id)).map((x) => x.id);
-}
-
 /** 끝난 과제 수 */
 export function doneCount(t: UiTraining): { done: number; total: number } {
   const list = t.tasks ?? [];

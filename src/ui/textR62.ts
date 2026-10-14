@@ -31,7 +31,6 @@ export const R62_TEXT = {
   keyReserved: '{key} 는 다른 일에 쓴다',
   keyUnknown: '그 키는 쓸 수 없다',
   keySwapped: '「{other}」 와 키를 맞바꿨다',
-  keyMouseNote: '마우스(공격·시그니처)와 Esc·Tab·M·Shift 는 바꾸지 않는다',
   settingsHintTabs: '←→ 탭 · ↑↓ 고르기 · ←→ 바꾸기 · Enter · 클릭 정하기 · Esc 덮기',
   // ---- 일시정지 일기장 (P2-5)
   pauseResume: '이어서 하기',

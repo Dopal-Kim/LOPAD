@@ -38,8 +38,6 @@ export const BUILD_HUD = {
   /** 칩 높이·간격 (STRUCT.chipH 24 와 같은 문체) */
   chipH: 24,
   chipGap: 2,
-  /** 칩 위 여백 (상태 칩 아래) */
-  topGap: 4,
   /** 태그 글리프 상자 한 변 */
   glyph: 14,
   /** 세트 단계 마름모 반지름·간격 */
@@ -67,9 +65,6 @@ export const PERFECT = {
 
 /** §14.10 성과 진행 칩·도장 카드 */
 export const TRIAL = {
-  /** 상단 가운데 y (도전 판이 떠 있으면 그 아래) */
-  top: 34,
-  belowChallenge: 52,
   barH: 2,
   /** 남은 시간 비율이 이 아래면 강조색 */
   lowRatio: 0.25,
@@ -125,8 +120,6 @@ export const ELITE_PLATE = {
   /** 화면 가장자리 여백 */
   margin: 4,
   depth: 30,
-  /** 글자 층 강조 슬롯 (권장 #eecc78) */
-  textSlot: 25,
 } as const;
 
 /**

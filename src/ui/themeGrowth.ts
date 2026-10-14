@@ -75,8 +75,6 @@ export const RESONANCE_UI = {
   hintPad: 3,
   /** Tab 성장도 공명 줄 높이 · 한 줄 설명은 켜진 것만 */
   rowH: 16,
-  /** 알림이 개성 알림 아래에 붙을 때 간격 */
-  stackGap: 6,
 } as const;
 
 /** 처음 안내 카드 (그림 + 두 줄) */

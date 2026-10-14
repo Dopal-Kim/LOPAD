@@ -18,7 +18,6 @@ export const TRAINING_TEXT = {
   /** 일기장 첫 줄 (런 정보 대신) */
   pauseWhere: '{name}   수련장 · {room}',
   hudCount: '{done}/{total}',
-  hudStamped: '도장',
   taskDone: '과제 · {label}',
   // ---- 도장
   stampMark: '수련',
@@ -29,7 +28,6 @@ export const TRAINING_TEXT = {
   mapSub: '이름이 번지기 전, 손이 기억하는 곳',
   mapHint: '←→ 고르기 · Enter · 클릭 들어간다 · 1~8 바로',
   mapStamped: '도장',
-  mapAgain: '다시 들어갈 수 있다',
   /** 62 루프 3 UI G 미리보기 카드: 종류 칸 · 도장 받은 방 줄 */
   previewKind: '수련장 방',
   previewStamped: '도장을 받았다 — 다시 들어갈 수 있다',

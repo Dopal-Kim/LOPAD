@@ -159,15 +159,6 @@ export function endButtons(
   return out;
 }
 
-/** 처치자 초상 키 (로드된 것만 — 없으면 null) */
-export function portraitOf(
-  s: Pick<UiRunSummary, 'killer'> | null | undefined,
-  has: (k: string) => boolean,
-): string | null {
-  const p = s?.killer?.portrait;
-  return p && has(p.key) ? p.key : null;
-}
-
 /** 칸 이름 대체 (계약 labels 에 없을 때) */
 export function labelOf(labels: Record<string, string> | undefined, key: string): string {
   const L = LOOP2E_TEXT;

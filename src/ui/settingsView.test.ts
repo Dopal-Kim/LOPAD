@@ -4,7 +4,6 @@ import {
   TAB_ROWS,
   changeSetting,
   cycleTab,
-  maxRowCount,
   moveCursor,
   normalizeSettings,
   rowsFor,
@@ -95,7 +94,6 @@ describe('settingsView', () => {
           .slice(-2)
           .map((r) => r.id),
       ).toEqual(['reset', 'close']);
-    expect(maxRowCount()).toBe(10);
     expect(cycleTab('screen', -1)).toBe('access');
     expect(cycleTab('access', 1)).toBe('screen');
     expect(moveCursor(0, -1, 5)).toBe(4);

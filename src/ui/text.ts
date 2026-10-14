@@ -144,7 +144,6 @@ export const ROUTE_TEXT = {
   typeEvent: '사연',
   typeBoss: '군주의 방',
   /** HUD */
-  mapKeyHint: 'Tab 지도',
   /** 49라운드: M = 지도 (HUD 우상단·조작법 줄) */
   mapKeyHintM: 'M 지도',
   stripRemain: '남은 길 {n}',
@@ -175,9 +174,6 @@ export const R49_TEXT = {
   labPauseTitle: '무기 시험장',
   labContinue: '계속한다',
   labLeave: '시험장을 나간다',
-  /** Esc 일기장 설정: 소리 */
-  soundOff: '소리 끄기',
-  soundOn: '소리 켜기',
   /** 무기 자원 상태 (값 옆 짧은 글). low 는 색만 바꾼다 */
   resExhausted: '지침',
   resReloading: '장전',

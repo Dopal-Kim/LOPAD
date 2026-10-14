@@ -181,15 +181,3 @@ export class GlowText extends Phaser.GameObjects.Container {
     this.img.setTexture(g.tex as unknown as string);
   }
 }
-
-/** 공용 헬퍼: 발광 글자 한 줄. (x,y) 는 글자 상자(링 포함) 왼쪽 위 */
-export function glowText(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  text: string,
-  style: TextStyleName,
-  opts?: GlowOptions,
-): GlowText {
-  return new GlowText(scene, x, y, text, style, opts);
-}

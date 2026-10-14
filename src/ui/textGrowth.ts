@@ -22,8 +22,6 @@ export const GROWTH_TEXT = {
   pathsHead: '2차 각성 길',
   /** 바뀌는 칸 앞말 — {verb} = 그 칸의 지금 동작 이름 */
   changes: '{verb} 바뀜',
-  /** 단련 눈금 */
-  temperPips: '단련',
   // ---- 각성 배너 · 개성 알림
   bannerAwaken1: '1차 각성',
   bannerAwaken2: '2차 각성',

@@ -61,12 +61,6 @@ export function tagName(id: UiTagId | string, build?: UiBuildState | null): stri
   return (TAG_NAME as Record<string, string>)[id] ?? String(id);
 }
 
-/** 세트 임계 2·4·6 중 점수로 닿은 칸 (stage 와 같아야 하지만 score 로 다음 칸 차오름을 보인다) */
-export function scorePips(score: number): [number, number, number] {
-  // 칸마다 0..1 채움 (0~2 / 2~4 / 4~6)
-  return [0, 1, 2].map((i) => Math.max(0, Math.min(1, (score - i * 2) / 2))) as [number, number, number];
-}
-
 /** HUD 태그 칩에 그릴 태그 (시스템 정렬 그대로, score > 0, 최대 max 개) */
 export function hudTags(build: UiBuildState, max: number): UiTagState[] {
   return build.tags.filter((t) => t.score > 0).slice(0, Math.max(0, max));

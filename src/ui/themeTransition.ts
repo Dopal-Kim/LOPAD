@@ -95,7 +95,6 @@ export const TRAINING_UI = {
   labelGap: 6,
   /** HUD 깊이 (자막 50 아래, 지도 100) */
   depth: 44,
-  mapDepth: 100,
 } as const;
 
 /**

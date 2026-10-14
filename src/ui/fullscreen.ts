@@ -68,10 +68,6 @@ export function setFullscreen(on: boolean): Promise<boolean> {
   }
 }
 
-export function toggleFullscreen(): Promise<boolean> {
-  return setFullscreen(!isFullscreen());
-}
-
 /**
  * 설정 화면 '전체화면' — 시스템 명령(계약 D `uiCommands.setFullscreen` — F11 도 시스템이 읽는다)이 있으면 그것, 없거나 거절되면
  * 브라우저 API 로 직접. 상태는 `isFullscreen()`(문서 기준 — 어느 쪽으로 켜도 같다)

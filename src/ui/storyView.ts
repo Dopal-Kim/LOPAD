@@ -21,9 +21,6 @@ import {
  *  - 머묾: `holdMs`(시스템 힌트 — 위기 한마디 1500 등). 있으면 그것, 없으면 UI 기본(`storyHoldMs`).
  * (시스템 작업 트리 계약: `UiStoryLine.speaker`·`weapon`(id)·`lines`·`holdMs` — 2026-10-05 확인)
  */
-export type StoryKindR61 =
-  'floor' | 'boss' | 'rest' | 'notice' | 'evolution' | 'death' | 'voice' | 'speech' | 'clue' | 'event';
-
 /** 그리는 자리: caption 하단 가운데 · notice 하단 가운데(바로, 앞지름) · voice 전투 묶음 위 · speech 하단 이름표 + 대사 ·
  * event 하단 종이 띠 · clue 가운데 쪽지 */
 export type StoryChannel = 'caption' | 'notice' | 'voice' | 'speech' | 'event' | 'clue';

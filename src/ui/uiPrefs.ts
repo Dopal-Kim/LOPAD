@@ -9,8 +9,6 @@
 
 export type TextSize = 'normal' | 'large';
 
-export const TEXT_SIZES: readonly TextSize[] = ['normal', 'large'];
-
 /** 크게일 때 배율 (실제 화면 3px = Galmuri 도트 1개) */
 export const LARGE_TEXT_SCALE = 1.5;
 
@@ -23,7 +21,6 @@ interface Prefs {
 let cache: Prefs | null = null;
 /** 브라우저 저장소에 UI 가 적은 값이 있었는가 (없으면 시스템 설정 `textScale` 을 따른다) */
 let stored = false;
-const listeners = new Set<() => void>();
 
 function storage(): Storage | null {
   try {
@@ -84,7 +81,6 @@ export function setTextSize(s: TextSize): void {
   } catch {
     /* 저장소가 막혀 있으면 이번 실행 동안만 */
   }
-  for (const f of listeners) f();
 }
 
 /** 읽는 글 배율 (보통 1 · 크게 1.5) */
@@ -94,16 +90,4 @@ export function textScale(): number {
 
 export function textScaleOf(s: TextSize): number {
   return s === 'large' ? LARGE_TEXT_SCALE : 1;
-}
-
-/** 크기가 바뀌면 (설정 화면 미리보기 등) — 돌려준 함수로 끊는다 */
-export function onTextSizeChange(f: () => void): () => void {
-  listeners.add(f);
-  return () => listeners.delete(f);
-}
-
-/** 테스트용: 읽어 둔 값 버리기 */
-export function resetPrefsCache(): void {
-  cache = null;
-  stored = false;
 }

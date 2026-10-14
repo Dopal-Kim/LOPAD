@@ -20,8 +20,6 @@ export const LOOP2F_TEXT = {
   // ---- 장터 노점 카드 (shop.stall)
   stallBuy: '[{key}] 산다',
   stallSold: '팔렸다',
-  stallPrice: '전표 {n}',
-  stallFree: '값 없음',
   // ---- 산 뒤 전표 줄어듦
   goldSpent: '−{n}',
 } as const;

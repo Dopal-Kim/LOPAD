@@ -27,7 +27,6 @@ export const TITLE_IMAGES = [
 export type TitleImage = (typeof TITLE_IMAGES)[number];
 export const TITLE_EMBERS = 'title_fx_embers';
 export const TITLE_JSONS = ['title', 'title_fx_embers', 'title_fx_fog', 'title_menu_frame'] as const;
-export type TitleJson = (typeof TITLE_JSONS)[number];
 /** UI 가 읽는 텍스처·JSON 키 (시스템 키와 겹치지 않게 접두어) */
 export const titleKey = (name: string): string => `ui-title-${name}`;
 export const titleJsonKey = (name: string): string => `ui-title-json-${name}`;
@@ -55,8 +54,6 @@ export const TITLE_UI = {
     dotMs: 240,
     menuAt: 1900,
     menuMs: 400,
-    /** 메뉴 줄 하나씩 늦게 */
-    menuStaggerMs: 40,
     endMs: 2600,
   },
   /** 붓질 덮개 해상도 (논리 960×540 의 절반) */

@@ -34,11 +34,6 @@ export function parseHint(hint: string | null | undefined): HintPart[] {
     .filter((p) => p.keys.length || p.label);
 }
 
-/** 글자 수 (서로게이트 짝을 한 글자로) */
-export function charCount(s: string): number {
-  return Array.from(s).length;
-}
-
 /** 이름 칸 값: 줄바꿈·앞 공백 제거, 최대 글자 수까지 */
 export function clampName(value: string, maxLen: number): string {
   const flat = value.replace(/[\r\n\t]/g, ' ').replace(/^\s+/, '');

@@ -259,7 +259,7 @@ export function loadLook(scene: Phaser.Scene, weapon: string, done: () => void):
 
 /**
  * 62 루프 1 P0-2 회피 시험 장 (계약 §20 phase 'trial'): 탄생 전장과 사수는 시스템이 그린다 — UI 는 투명하게 두고
- * 오른쪽 위 과제 목록(체크 · 지금 과제 강조 · 키캡)과, 과제 이름 카드(state 'card' — 누르면 `ritual.next`), 아래 안내 줄만.
+ * 맨 위 한 줄 과제 띠(체크 · 지금 과제 강조 · 키캡)와, 과제 이름 카드(state 'card' — 누르면 `ritual.next`), 아래 안내 줄만.
  * [Enter] 건너뛴다 → `ritual.skip` · [Esc] 3획부터 다시 → `ritual.back`.
  */
 export class RitualTrialPage implements RitualPage {
@@ -309,45 +309,38 @@ export class RitualTrialPage implements RitualPage {
     this.root.destroy();
   }
 
+  /** 62 루프 4: 과제 목록은 화면 맨 위 가운데 한 줄 띠 — 무대(가운데 정렬) 위 빈 여백에 둬 전장을 가리지 않는다 */
   private drawList(r: UiRitual): void {
     this.list?.destroy();
     const tasks = r.trial?.tasks ?? [];
     if (!tasks.length) return;
     const sc = this.scene;
     const T = R.tasks;
-    const head = new GlowText(sc, 0, 0, ritualText('tasksHead'), 'ink_accent');
+    const y = T.top + Math.round((T.h - T.rowH) / 2);
     const g = sc.add.graphics();
-    const rows: { objs: Phaser.GameObjects.Container[]; w: number }[] = tasks.map((task) => {
+    const objs: Phaser.GameObjects.GameObject[] = [g];
+    const head = new GlowText(sc, T.pad, y, ritualText('tasksHead'), 'ink_accent');
+    objs.push(head);
+    let x = T.pad + head.displayWidth + T.gap;
+    const boxes: { x: number; done: boolean }[] = [];
+    for (const task of tasks) {
       const now = task.id === r.trial?.current && !task.done;
-      const objs: Phaser.GameObjects.Container[] = [];
-      let tx = T.box + 6;
+      boxes.push({ x, done: task.done });
+      x += T.box + 6;
       const vk = task.verb ? verbKey(task.verb, null) : null;
       if (vk) {
         const gl = keyGlyph(sc, vk.key, 0, task.done);
-        gl.obj.setX(tx);
+        gl.obj.setPosition(x, y);
         objs.push(gl.obj);
-        tx += gl.width + 4;
+        x += gl.width + 4;
       }
-      const label = new GlowText(sc, tx, 0, task.label, task.done ? 'ink_faint' : now ? 'ink_accent' : 'ink_body');
+      const label = new GlowText(sc, x, y, task.label, task.done ? 'ink_faint' : now ? 'ink_accent' : 'ink_body');
       objs.push(label);
-      return { objs, w: tx + label.displayWidth };
-    });
-    // 폭은 가장 긴 줄에 맞춘다 (줄바꿈 없이 — 겹침 방지)
-    const w = Math.max(T.w, head.displayWidth + T.pad * 2, ...rows.map((rw) => rw.w + T.pad * 2));
-    const h = T.pad * 2 + head.displayHeight + 4 + tasks.length * T.rowH;
-    const x = T.right - w;
-    const objs: Phaser.GameObjects.GameObject[] = [inkPanel(sc, x, T.top, w, h), head, g];
-    head.setPosition(x + T.pad, T.top + T.pad - 2);
-    let y = T.top + T.pad + head.displayHeight + 4;
-    tasks.forEach((task, i) => {
-      drawCheck(g, x + T.pad, y + 3, T.box, task.done);
-      for (const o of rows[i].objs) {
-        o.setPosition(o.x + x + T.pad, y);
-        objs.push(o);
-      }
-      y += T.rowH;
-    });
-    this.list = sc.add.container(0, 0, objs);
+      x += label.displayWidth + T.gap;
+    }
+    const w = x - T.gap + T.pad;
+    for (const b of boxes) drawCheck(g, b.x, y + 3, T.box, b.done);
+    this.list = sc.add.container(Math.round(UI_SCREEN.WIDTH / 2 - w / 2), 0, [inkPanel(sc, 0, T.top, w, T.h), ...objs]);
     this.root.add(this.list);
   }
 

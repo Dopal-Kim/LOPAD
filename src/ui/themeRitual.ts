@@ -51,8 +51,8 @@ export const RITUAL_UI = {
   legend: { x: 748, y: 120, w: 196, rowH: 22, pad: 10 },
   /** 3획 낙관 칸 (위 가운데 — 아트 uiSafe 위 띠 안) */
   seals: { top: 28, size: 16, gap: 10 },
-  /** 회피 시험 과제 목록 (오른쪽 위) */
-  tasks: { right: 944, top: 16, w: 210, rowH: 20, pad: 10, box: 9 },
+  /** 회피 시험 과제 띠 (맨 위 가운데 한 줄 — 무대 위 여백 30 안, 62 루프 4) */
+  tasks: { top: 3, h: 24, rowH: 18, pad: 8, gap: 14, box: 9 },
   /** 과제 이름 카드 (위 가운데) */
   taskCard: { top: 96 },
   /** 운명 공개 액자 (art §30 fate_frame 9-slice 40 · inner 36 · 264 — 화면 (348,96), 아래 글 372~) */

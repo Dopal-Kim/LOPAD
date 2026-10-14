@@ -6,8 +6,6 @@ export const R61_TEXT = {
   // ---- 설정 화면 (계약 §15)
   settingsTitle: '설정',
   settingsItem: '설정',
-  groupScreen: '화면',
-  groupSound: '소리',
   shake: '화면 흔들림',
   flash: '섬광',
   tilt: '화면 기울기',
@@ -19,7 +17,6 @@ export const R61_TEXT = {
   off: '끔',
   reset: '처음 값으로 되돌린다',
   close: '덮는다',
-  settingsHint: '↑↓ 고르기 · ←→ 바꾸기 · Enter 켜고 끄기 · 마우스로 끌기 · Esc 덮기',
   // ---- 전투 HUD (다이어트)
   /** 빌드 띠 끝 Tab 안내 (노드 지도 층·시험장) */
   stripTab: '빌드',
@@ -36,8 +33,6 @@ export const R61_TEXT = {
   // ---- 키캡 안내 기본 동작 이름 (시스템 4동사 필드가 오기 전 — 지금 조작)
   verbAttack: '공격',
   verbDash: '대쉬',
-  verbPotion: '독주',
-  verbConsumable: '소모품',
   verbCarry: '넣기·뽑기',
 } as const;
 export type R61TextKey = keyof typeof R61_TEXT;

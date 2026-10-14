@@ -19,7 +19,6 @@ import { UI_SCENE_KEYS } from './keys';
  *   cancels: number[]           // 53라운드 Q47: 가짜 고르기 중 보낸 cancelChoose 시각 (fakeChoose 가 켜져 있으면 시스템으로 보내지 않는다)
  *   muted: boolean[]            // 49라운드: Esc 일기장에서 보낸 setMuted 기록
  *   settings: object[]          // 61라운드 §15: 설정 화면에서 보낸 setSettings 기록
- *   view.routeMap.confirm       // 49라운드: '넘어가시겠습니까?' 예·아니오 버튼 화면 좌표
  *   snap()                      // 53라운드: 지금 스냅샷 (덮어쓰기 적용)
  *   scenes()                    // 53라운드: 실행 중인 씬 키 (Esc 단계 확인용)
  *   events: [name, payload][]   // 53라운드: 받은 UI 이벤트 기록 (STATE 제외, 최근 200개)

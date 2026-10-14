@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   bodyFrame,
-  charCount,
   dirIndex,
   inPolygon,
   clampName,
@@ -34,7 +33,6 @@ describe('이름 칸', () => {
   it('최대 글자 수까지 자르고 앞 공백·줄바꿈을 지운다', () => {
     expect(clampName('  도영\n', 8)).toBe('도영 ');
     expect(clampName('가나다라마바사아자차', 8)).toBe('가나다라마바사아');
-    expect(charCount('😀가')).toBe(2);
   });
   it('새로 적힌 글자 (조합 중인 마지막 글자 포함)', () => {
     expect(newCharIndexes('', '도')).toEqual([0]);

@@ -1,5 +1,29 @@
 # 게임 UI 파트 — 작업 기록
 
+## 62라운드 (2026-10-14) · 루프 4 UI I — 회피 시험 과제 띠 · 안 쓰는 코드 정리 · 첫 진입 점검 (전권 위임, 계획 P18 4·6·7)
+근거: `decisions/2026-10-14-P18-loop4.md` 범위 4·6·7. 계약 형식은 바꾸지 않았다.
+
+### 회피 시험 과제 띠 (범위 4 — `RitualFate.RitualTrialPage.drawList`, `RITUAL_UI.tasks`)
+- 오른쪽 위 3줄 패널(전장 오른쪽 위 벽·바닥을 덮음) → **화면 맨 위 가운데 한 줄 띠**(y 3~27, 높이 24): '회피 시험' · [□ 과제] · [□ [Space] 과제] · [□ 과제]. 체크·지금 과제 강조·끝난 과제 흐림·키캡은 그대로.
+- 근거: 시스템 I 이 무대를 가운데 정렬 — 헤드리스 캡처에서 전장은 논리 (128~832, 30~510), 위 여백 30·좌우 128. 3과제 한 줄 폭 ≈ 635.
+
+### 정리 (범위 6 — CLAUDE.md 6-1, grep 으로 확인)
+- 아무도 부르지 않는 내보내기 삭제: `toggleFullscreen`, `glowText`, `portraitOf`, `isToggle`, `StoryKindR61`, `TitleJson`, `uiPrefs` 의 `TEXT_SIZES`·`onTextSizeChange`(+ 리스너 집합)·`resetPrefsCache`.
+- 테스트만 부르던 옛 함수 삭제(+ 테스트 줄): `scorePips`(옛 세트 칸), `charCount`, `maxRowCount`, `newlyDone`(옛 수련장 과제 알림).
+- 옛 확인 창(RouteConfirm, 루프 3 UI G 폐지) 잔재: `MAP3D.confirmW·confirmH·buttonH·buttonMinW·buttonGap·confirmDim`, debug 문서의 `view.routeMap.confirm`.
+- 안 쓰는 테마 값: `ROUTE.labelLift·wrapPad·dotTrim`, `RES.bundleH`, `WGAUGE.gapName·gapAfter·minGapSecondary`, `BUILD_HUD.topGap`, `TRIAL.top·belowChallenge`, `ELITE_PLATE.textSlot`, `RESONANCE_UI.stackGap`, `TITLE_UI.intro.menuStaggerMs`, `TRAINING_UI.mapDepth`.
+- 안 쓰는 글 키: `mapKeyHint`·`soundOff`·`soundOn`(text), `temperPips`, `stallPrice`·`stallFree`, `groupScreen`·`groupSound`·`settingsHint`·`verbPotion`·`verbConsumable`(R61), `keyMouseNote`(R62), `lastNameLabel`·`fateHead`·`metaCanBuy`(의식), `clueMore`·`candleMark`(이야기), `hudStamped`·`mapAgain`(수련장).
+- 남김: 시스템 id 로 찾는 사전(`TAG_NAME`·`CHOICE_KIND_NAME`·`RARITY_NAME`·`REWARD_NAME`·`STRUCT_KIND_TEXT`·`CHOICE_CARD.kindSlot`)의 아직 안 나온 키, 테스트 시계(`setSequenceClock`·`sequenceActive`)·`planTotal`·`coverAt`(전환 계획 테스트용), 같은 파일 안에서만 쓰는 내보내기(동작 무관).
+
+### 첫 진입 점검 (범위 7)
+- 헤드리스 Playwright 1920×1080, 새 브라우저 문맥(저장소 빈 상태) 3회 — 타이틀 첫 입력을 키(Space)·클릭·로드 직후 0.3초 Enter+클릭으로 바꿔 가며: 타이틀 → 메뉴 → 첫 생 고르기(바로 벽 밖으로) → 이름 → 3획 → 회피 시험(띠·과제 카드) → Enter 건너뜀 → 운명 → 첫 로딩 카드(키아트) → 탄생 장면 → 첫 방 HUD·튜토리얼 단계 카드·'싸우는 법'. 페이지 오류·콘솔 오류·실패 요청 0, 세 번 모두 같은 흐름.
+- 오디오: `--autoplay-policy=document-user-activation-required` 에서 타이틀 BGM 은 첫 입력 전 잠김(locked) → 첫 키에 풀림. UI 쪽 고칠 곳 없음.
+- WebGL(swiftshader) 1회 더: 실제 전장 위 띠 확인. 첫 방 '싸우는 법' 패널이 떠 Game 씬이 멈춘 동안 화면 가운데 480×270 어두운 네모(Game 씬 RenderTexture 480×270·scrollFactor 0·깊이 2 — 시스템 조명층으로 보임)가 보였다 → 시스템 확인 요청.
+
+### 검증
+- `npx tsc --noEmit` 0 · `npx eslint src/ui` 0 · prettier(src/ui) · `npx vitest run src/ui` 322 통과(옛 함수 테스트 4개 줄임).
+- 스크린샷 `scratchpad/u62i/` — `a_*`·`b_*`·`c_*`(Canvas 렌더러, 키·클릭·이른 입력), `g_*`(WebGL: `g_08_trial` 전장 위 띠).
+
 ## 62라운드 (2026-10-12~13) · 루프 3 UI H — P0 2건·알림 한 번만·지도 가독성·로딩 액자·빈손 그림 (전권 위임, 계획 P17 묶음 A·B UI 몫)
 근거: `decisions/review-2026-10-12-stage1-loop3-audit.md`(P0-N1·P0-N3·P1-N2·P1-N4·P1-N5·P1-N6·P2-4), 계획 `2026-10-12-P17-loop3.md`. 계약 §17.1·§21~§25, 용어집. 계약 형식은 바꾸지 않았다.
 
