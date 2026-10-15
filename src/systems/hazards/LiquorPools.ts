@@ -10,8 +10,8 @@
  * 캐릭터 뒤 불은 가려지고 앞 불은 위에 그린다(구조물·보스방 같은 규칙). 어둠 속 밝기는 시트 광원(라이트맵 광원)이 낸다.
  */
 import Phaser from 'phaser';
-import { BOSS_FX, DEPTH, STRUCTURE_FX, entityDepth } from '../../core/Constants';
-import { EventBus, Events, type PoolIgnitedPayload } from '../../core/EventBus';
+import { BOSS_FX, DEPTH, STRUCTURE_FX, TILE, entityDepth } from '../../core/Constants';
+import { EventBus, Events, type HazardIgnitedPayload, type PoolIgnitedPayload } from '../../core/EventBus';
 import type { Mob } from '../../objects/Mob';
 import type { FxPool } from '../fx/fx';
 import { lightRegistryOf, type LightSource } from '../lighting/lightRegistry';
@@ -162,6 +162,13 @@ export class LiquorPools {
     p.until = Math.max(p.until, p.fireUntil);
     p.nextTick = now + s.fireTickMs;
     this.drawFire(p);
+    // P19 계약 free-combat §1: 위험물 점화
+    EventBus.emit(Events.HAZARD_IGNITED, {
+      x: p.rect.centerX,
+      y: p.rect.centerY,
+      kind: 'pool',
+      radiusTiles: Math.round((p.rect.width / 2 / TILE) * 100) / 100,
+    } satisfies HazardIgnitedPayload);
     s.onIgnite?.(p, viaSpread);
     if (s.sheets)
       EventBus.emit(Events.POOL_IGNITED, { x: p.rect.centerX, y: p.rect.centerY } satisfies PoolIgnitedPayload);

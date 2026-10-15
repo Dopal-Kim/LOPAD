@@ -1,10 +1,10 @@
 {
   "dummy": {
     "name": "징집병",
-    "hp": 30,
+    "hp": 14,
     "attack": 7,
-    "speedTiles": 3,
-    "attackIntervalMs": 1200,
+    "speedTiles": 3.6,
+    "attackIntervalMs": 200,
     "behavior": "chase",
     "size": [16, 16],
     "color": "#d04040",
@@ -17,14 +17,23 @@
       "durationMs": 2000,
       "cooldownMs": 4000
     },
-    "intro": "떼로 몰려와 몸으로 부딪친다. 둘러싸이기 전에 쳐라."
+    "intro": "떼로 몰려와 둘러싼다. 몸이 번쩍이면 곧 벤다 — 먼저 치거나 빠져라.",
+    "swing": {
+      "triggerTiles": 2.6,
+      "telegraphMs": 450,
+      "rangeTiles": 1.4,
+      "arcDeg": 100,
+      "attack": 7,
+      "strikeMs": 200,
+      "lungeTiles": 1.2
+    }
   },
   "archer": {
     "name": "사수",
-    "hp": 21,
+    "hp": 16,
     "attack": 6,
-    "speedTiles": 2.5,
-    "attackIntervalMs": 1500,
+    "speedTiles": 2.7,
+    "attackIntervalMs": 1200,
     "behavior": "ranged",
     "size": [14, 14],
     "color": "#c08a30",
@@ -34,7 +43,7 @@
       "projectileSpeedTiles": 8,
       "projectileSize": 4,
       "projectileLifeMs": 3000,
-      "telegraphMs": 300,
+      "telegraphMs": 500,
       "telegraphTiles": 3,
       "sprite": "enemy_bullet",
       "muzzle": "muzzle_flash",
@@ -46,13 +55,22 @@
     },
     "personalityValue": 10,
     "gold": 5,
-    "intro": "거리를 두고 쏜다. 붉은 조준선을 피해 파고들어라."
+    "intro": "거리를 두고 쏜다. 붉은 조준선을 피해 파고들어라.",
+    "swing": {
+      "triggerTiles": 1.5,
+      "telegraphMs": 350,
+      "rangeTiles": 1.5,
+      "arcDeg": 90,
+      "attack": 4,
+      "strikeMs": 150,
+      "backstepTiles": 1.5
+    }
   },
   "charger": {
     "name": "결사병",
     "hp": 45,
     "attack": 12,
-    "speedTiles": 2,
+    "speedTiles": 2.2,
     "attackIntervalMs": 1000,
     "behavior": "charge",
     "size": [18, 18],
@@ -64,8 +82,9 @@
       "dashMs": 400,
       "cooldownMs": 1200,
       "dashAttack": 12,
-      "idleAttack": 5
+      "wallStunMs": 1200
     },
+    "poise": 1,
     "personalityValue": 12,
     "gold": 7,
     "shield": {
@@ -79,7 +98,7 @@
     "intro": "불붙은 술병을 던진다. 떨어질 자리를 벗어나 거리를 좁혀라.",
     "hp": 32,
     "attack": 4,
-    "speedTiles": 2.4,
+    "speedTiles": 2.6,
     "attackIntervalMs": 1400,
     "behavior": "throw",
     "size": [14, 16],
@@ -120,7 +139,7 @@
     "intro": "술통을 굴린다. 굴러오는 술통을 쳐서 되돌려 보내라.",
     "hp": 60,
     "attack": 8,
-    "speedTiles": 1.8,
+    "speedTiles": 1.95,
     "attackIntervalMs": 1300,
     "behavior": "roll",
     "size": [18, 18],
@@ -152,7 +171,51 @@
       "firePlayerAttack": 3,
       "fireMobAttack": 6
     },
+    "poise": 2,
     "personalityValue": 14,
     "gold": 8
+  },
+  "drummer": {
+    "name": "권주 고수",
+    "intro": "북이 울리는 동안 둘레의 적이 빨라진다. 도망치는 북부터 멈춰라.",
+    "hp": 24,
+    "attack": 0,
+    "speedTiles": 2.6,
+    "attackIntervalMs": 1200,
+    "behavior": "drum",
+    "size": [14, 16],
+    "color": "#b0a040",
+    "drum": {
+      "radiusTiles": 4,
+      "rateMult": 1.25,
+      "beatMs": 1200,
+      "keepMinTiles": 5,
+      "keepMaxTiles": 8,
+      "fleeTiles": 3
+    },
+    "poise": 0,
+    "personalityValue": 12,
+    "gold": 6
+  },
+  "bomber": {
+    "name": "술독병",
+    "intro": "배에 찬 술독에 도화선이 탄다. 쳐서 날리면 날아간 자리에서 터진다.",
+    "hp": 18,
+    "attack": 14,
+    "speedTiles": 4,
+    "attackIntervalMs": 1000,
+    "behavior": "bomb",
+    "size": [16, 16],
+    "color": "#e06020",
+    "bomb": {
+      "triggerTiles": 1.6,
+      "fuseMs": 1000,
+      "deathFuseMs": 400,
+      "radiusTiles": 2,
+      "mobDamage": 24
+    },
+    "poise": 0,
+    "personalityValue": 10,
+    "gold": 5
   }
 }

@@ -42,7 +42,7 @@ describe('DPS 계산식', () => {
     expect(expectedHit(5, 0.9, 0.66, 0.2, 1.5)).toBeCloseTo(0.8 * 3 + 0.2 * 4);
   });
 
-  it('연격 한 바퀴: 마지막 타 = 길이 + 회복 (순환이면 다음 타 허용만), 공속으로 나눈다', () => {
+  it('연격 한 바퀴: 마지막 타 = 길이 + 회복 (P19: 다음 타 허용이 더 짧으면 그것 · 순환이면 다음 타 허용만), 공속으로 나눈다', () => {
     const c = {
       shape: 'arc' as const,
       bufferMs: 0,
@@ -53,9 +53,12 @@ describe('DPS 계산식', () => {
         { damageMult: 1, sizeMult: 1, durationMs: 400, cancelFromMs: 300, activeMs: 10 },
       ],
     };
-    expect(comboCycleMs(c)).toBe(200 + 400 + 100);
+    // P19: 마무리 타 cancelFromMs < 길이 → 그것 (ComboTracker 와 같은 규칙)
+    expect(comboCycleMs(c)).toBe(200 + 300);
+    const slow = { ...c, hits: [c.hits[0], { ...c.hits[1], cancelFromMs: 400 }] };
+    expect(comboCycleMs(slow)).toBe(200 + 400 + 100);
     expect(comboCycleMs({ ...c, loop: true })).toBe(200 + 300);
-    expect(comboCycleMs(c, 2)).toBe(350);
+    expect(comboCycleMs(slow, 2)).toBe(350);
   });
 
   it('지속 공속: 단검 = 가속 최대 단 · 대검 = 관성 최대 · 칼 = 1', () => {

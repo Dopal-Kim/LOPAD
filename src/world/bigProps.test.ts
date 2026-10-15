@@ -15,8 +15,9 @@ const shapes = [
 ];
 
 const arena = (seed: string) => {
-  const n = { id: 'c3r0', kind: 'battle', type: 'battle', name: '', col: 3, row: 0, links: [] } as unknown as RouteNode;
-  return planNodeArena(n, 'stage1', seed, ROUTE, { quarterTileset: () => true }).layout;
+  // 큰 소품 규칙 단위 시험은 사각 전투장으로 (P19 S2: 전투 노드는 형태 틀 — 형태 틀 위 배치는 bigPropsRegions)
+  const n = { id: 'c3r0', kind: 'rest', type: 'rest', name: '', col: 3, row: 0, links: [] } as unknown as RouteNode;
+  return planNodeArena(n, 'stage1', seed, ROUTE).layout;
 };
 
 describe('52라운드 Q11 큰 소품 배치', () => {

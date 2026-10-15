@@ -153,19 +153,16 @@ describe('49라운드 세트 배치 (7) · 특수 노드 기능은 중앙 (6)', 
     expect(mirrored).toBeGreaterThan(0);
   });
 
-  it('전투 = 엄폐 담(벽 섬) 둘레에 짐·술통, 바닥 연결 유지, 시작점·출구 비움', () => {
+  it('P19 S2 전투 = 형태 틀: 엄폐 칸(돌기둥)은 벽, 바닥 연결 유지, 시작점 바닥, 위험물은 세트 자리로 먼저', () => {
     for (let i = 0; i < 30; i++) {
       const p = planNodeArena(node('battle', 3), 'stage1', `b${i}`);
       const L = p.layout;
-      expect(p.setPiece.cover.length).toBeGreaterThan(0);
+      expect(p.shape).not.toBeNull();
       for (const c of p.setPiece.cover) expect(L.tiles[c.y][c.x]).toBe(TileId.Wall);
       expect(floorConnected(L.tiles)).toBe(true);
       const A = L.arena!;
       expect(L.tiles[A.spawn.y][A.spawn.x]).toBe(TileId.Floor);
-      const placed = planStructures(L, 'stage1', `b${i}`, { node: p.structureNode });
-      const fillers = placed.filter((s) => s.kind === 'crate' || s.kind === 'cask');
-      const near = fillers.filter((s) => p.setPiece.anchors.some((a) => dist({ x: s.tx, y: s.ty }, a) <= 4.5));
-      expect(near.length).toBeGreaterThan(0);
+      expect(p.setPiece.fixed.length).toBeGreaterThan(0);
     }
   });
 
@@ -186,7 +183,7 @@ describe('49라운드 세트 배치 (7) · 특수 노드 기능은 중앙 (6)', 
               if (!d.floor) expect(structTiles.has(`${x},${y}`)).toBe(false);
             }
         }
-        expect(setPieceTiles(p).size).toBeGreaterThan(0);
+        if (k !== 'battle') expect(setPieceTiles(p).size).toBeGreaterThan(0);
       }
   });
 
@@ -224,38 +221,5 @@ describe('49라운드 세트 배치 (7) · 특수 노드 기능은 중앙 (6)', 
     expect(p.setPiece.template).toBeNull();
     expect(p.setPiece.fixed).toEqual([]);
     expect(p.layout.rooms[0].type).toBe('start');
-  });
-});
-
-describe('52라운드 Q9: 쿼터뷰 타일셋 전투장 가장자리', () => {
-  it('쿼터뷰면 가장자리 깊이 0~1칸 (북쪽 경계가 거의 한 줄), 아니면 지역 값 그대로', () => {
-    const topFloorRows = (quarter: boolean) => {
-      const n = {
-        id: 'c3r0',
-        kind: 'battle',
-        type: 'battle',
-        name: '',
-        col: 3,
-        row: 0,
-        next: [],
-      } as unknown as RouteNode;
-      const plan = planNodeArena(n, 'stage1', 'edge-q9', ROUTE, { quarterTileset: () => quarter });
-      const L = plan.layout;
-      const I = L.rooms[0].interior;
-      const rows: number[] = [];
-      // 서·동 가장자리 깊이(최대 1칸)가 겹치는 모서리 두 칸은 뺀다
-      for (let x = I.x + 2; x < I.x + I.w - 2; x++) {
-        for (let y = I.y - 2; y < I.y + I.h; y++)
-          if (L.tiles[y][x] === TileId.Floor) {
-            rows.push(y - I.y);
-            break;
-          }
-      }
-      return rows;
-    };
-    const q = topFloorRows(true);
-    expect(Math.max(...q) - Math.min(...q)).toBeLessThanOrEqual(1);
-    const flat = topFloorRows(false);
-    expect(Math.max(...flat)).toBeGreaterThan(1);
   });
 });

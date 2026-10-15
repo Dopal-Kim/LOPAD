@@ -1,15 +1,15 @@
 /**
- * 49라운드 Q4 대검 큰 동작: 내리찍기(도약 → 착지 → 충격파 → 회복) · 대쉬 공격(달려들며 크게 한 번 → 멈춤).
+ * 49라운드 Q4 대검 큰 동작: 내리찍기(도약 → 착지 → 충격파 → 회복). (옛 대쉬 공격 '달려들며 크게 한 번 → 멈춤'은 P19 에 삭제 — 태클)
  * 판정·충격파는 Game(PlayerStrikes)이 PLAYER_ATTACKED 의 swingDelayMs(착지·휘두름 순간)에.
  */
 import Phaser from 'phaser';
 import { EventBus, Events, type PlayerAttackPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
-import { PLAYER_DATA } from '../../data';
-import type { ComboFollowUpDef, ComboHitDef, WeaponDef, WeaponSlamDef } from '../../data/types';
+import type { ComboFollowUpDef, ComboHitDef, WeaponSlamDef } from '../../data/types';
 import type { InputState } from '../../systems/InputSystem';
 import { comboAction, facingOf, motionAction } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
+import { markJudge } from './attackEmit';
 
 /** 연격 한 타 (속도 배율 반영 길이 포함) */
 export type ComboStrike = {
@@ -107,65 +107,6 @@ export function startSlam(p: Player, input: InputState, time: number, strike: Co
     bodyFrameStartsMs: [...visual.lastFrameStarts],
     slam: { radiusPx: S.radiusPx, offsetX: impactAt.x, offsetY: impactAt.y },
   };
-  EventBus.emit(Events.PLAYER_ATTACKED, payload);
-}
-
-/**
- * 대검 대쉬 공격: 달려들며 크게 한 번 휘두르고 잠깐 멈춤. 시트 `player_greatsword_dashslash`
- * (recoverFrames = 멈춤)가 있으면 그 시간, 없으면 데이터 swingMs·recoverMs 로 3타 시트(없으면 attack)를 재생
- */
-export function startDashSlash(p: Player, input: InputState, time: number, W: WeaponDef): void {
-  const visual = p.visual;
-  const DS = W.dashSlash!;
-  const D = PLAYER_DATA.dash;
-  const res = p.resource;
-  const combo = p.combo!;
-  const id = gameState.weapon.id;
-  const aim = aimVector(p, input);
-  const dir = facingOf(aim.x, aim.y, visual.facing);
-  const act = motionAction(id, 'dashslash');
-  const sheet = visual.hasAction(act) ? visual.sheet(act) : undefined;
-  let total: number;
-  let bodyAction: string;
-  if (sheet) {
-    total = visual.oneShot(act, dir, time);
-    bodyAction = act;
-  } else {
-    const c3 = comboAction(id, combo.hits.length);
-    bodyAction = visual.hasAction(c3) ? c3 : 'attack';
-    visual.oneShot(bodyAction, dir, time, DS.swingMs);
-    total = DS.swingMs + DS.recoverMs;
-  }
-  const sheetUsed = sheet ?? visual.sheet(bodyAction);
-  const hf = sheetUsed?.hitFrames?.[0];
-  const impact = hf !== undefined ? visual.frameStartMs(hf) : visual.lastImpactMs;
-  if (res?.def.kind === 'stamina') res.spend(res.def.cost.dashAttack, time);
-  p.gear.markDrawn(time);
-  combo.reset();
-  p.setAction('dashslash', time + total);
-  p.slowUntil(time + total);
-  p.startLunge(aim.x, aim.y, DS.stepPx, DS.stepMs, time);
-  const m = p.strikeMods(time, true);
-  const last = combo.hits[combo.hits.length - 1];
-  const payload: PlayerAttackPayload = {
-    x: p.x,
-    y: p.y,
-    dirX: aim.x,
-    dirY: aim.y,
-    damageMult: last.damageMult * m.mult,
-    sizeMult: D.attackSizeMult,
-    kind: 'dashAttack',
-    forceCrit: m.forceCrit,
-    primed: m.primed,
-    swingDelayMs: impact,
-    releaseDelayMs: 0,
-    comboIndex: combo.hits.length - 1,
-    comboCount: combo.hits.length,
-    activeMs: last.activeMs,
-    durationMs: total,
-    bodyAction,
-    bodyFrameStartsMs: [...visual.lastFrameStarts],
-    dashSlash: { arcDeg: DS.arcDeg },
-  };
+  markJudge(p, time, payload);
   EventBus.emit(Events.PLAYER_ATTACKED, payload);
 }

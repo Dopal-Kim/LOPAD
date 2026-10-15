@@ -163,7 +163,11 @@
         "fireTickMs": 500,
         "fireAttackMult": 0.4,
         "firePlayerAttack": 6,
-        "fireFx": "fire_pool"
+        "fireFx": "fire_pool",
+        "blastRadiusTiles": 2,
+        "blastAttackMult": 2.5,
+        "blastPlayerMult": 0.5,
+        "chainDelayMs": 300
       },
       "text": { "ignite": "독주에 불이 붙었다" }
     },

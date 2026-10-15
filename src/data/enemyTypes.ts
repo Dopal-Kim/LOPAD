@@ -65,6 +65,45 @@ export interface LiquorPoolParams {
   fireMobAttack: number;
 }
 
+/**
+ * P19 근접 휘두르기 (징집병 베기 · 사수 근접 밀치기): 주인공이 triggerTiles 안이면 telegraphMs 예고(호박 부채꼴) 뒤
+ * 반경 rangeTiles · 전체 각 arcDeg 부채꼴을 attack 으로 벤다. backstepTiles 가 있으면 예고 동안 그만큼 뒤로 물러난다(사수)
+ */
+export interface SwingParams {
+  triggerTiles: number;
+  telegraphMs: number;
+  rangeTiles: number;
+  arcDeg: number;
+  attack: number;
+  /** 베는 동작(판정 뒤 멈춤) ms */
+  strikeMs: number;
+  backstepTiles?: number;
+  /** 베는 동안 앞으로 내딛는 거리 (칸) — 주인공 손 밖에서 예고하고 들어와 벤다 (징집병) */
+  lungeTiles?: number;
+}
+
+/** P19 깃발 고수: 거리를 두고 beatMs 마다 북 — 반경 radiusTiles 안 적의 공격 속도 × rateMult. fleeTiles 안이면 도망 */
+export interface DrumParams {
+  radiusTiles: number;
+  rateMult: number;
+  beatMs: number;
+  keepMinTiles: number;
+  keepMaxTiles: number;
+  fleeTiles: number;
+}
+
+/**
+ * P19 술배 자폭병: 달려와 triggerTiles 안이면 fuseMs 예고(적색 원 — 따라다닌다) 뒤 반경 radiusTiles 폭발.
+ * 맞으면 바로 불이 붙는다(날아간 자리에서 터진다). 쓰러지면 deathFuseMs 뒤 그 자리에서 터진다. mobDamage = 다른 적 피해
+ */
+export interface BombParams {
+  triggerTiles: number;
+  fuseMs: number;
+  deathFuseMs: number;
+  radiusTiles: number;
+  mobDamage: number;
+}
+
 const num = (v: unknown, path: string) => assertNum(v, path);
 
 export function validateThrow(t: ThrowParams, path: string): void {
@@ -106,6 +145,13 @@ export function validateRoll(r: RollParams, path: string): void {
     num(r[k], `${path}.${k}`);
 }
 
+export function validateSwing(w: SwingParams, path: string): void {
+  for (const k of ['triggerTiles', 'telegraphMs', 'rangeTiles', 'arcDeg', 'attack', 'strikeMs'] as const)
+    num(w[k], `${path}.${k}`);
+  if (w.backstepTiles !== undefined) num(w.backstepTiles, `${path}.backstepTiles`);
+  if (w.lungeTiles !== undefined) num(w.lungeTiles, `${path}.lungeTiles`);
+}
+
 export function validateLiquorPool(p: LiquorPoolParams, path: string): void {
   for (const k of [
     'playerSlow',
@@ -129,8 +175,22 @@ export function validateEnemyExtras(
     deathPool?: DeathPoolParams;
     liquor?: LiquorPoolParams;
     intro?: string;
+    swing?: SwingParams;
+    drum?: DrumParams;
+    bomb?: BombParams;
   },
 ): void {
+  if (e.swing) validateSwing(e.swing, `enemies.${id}.swing`);
+  if (e.behavior === 'chase' && !e.swing)
+    throw new Error(`[data] enemies.${id}: chase 는 swing 파라미터가 필요합니다 (P19 접촉 피해 폐지)`);
+  if (e.behavior === 'drum') {
+    if (!e.drum) throw new Error(`[data] enemies.${id}: drum 파라미터 없음`);
+    for (const [k, v] of Object.entries(e.drum)) num(v, `enemies.${id}.drum.${k}`);
+  }
+  if (e.behavior === 'bomb') {
+    if (!e.bomb) throw new Error(`[data] enemies.${id}: bomb 파라미터 없음`);
+    for (const [k, v] of Object.entries(e.bomb)) num(v, `enemies.${id}.bomb.${k}`);
+  }
   if (e.liquor) validateLiquorPool(e.liquor, `enemies.${id}.liquor`);
   if ((e.deathPool || e.behavior === 'roll') && !e.liquor)
     throw new Error(`[data] enemies.${id}: 술 웅덩이를 남기는 적은 liquor 파라미터가 필요합니다`);

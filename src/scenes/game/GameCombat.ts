@@ -3,15 +3,24 @@
  * 플레이어 공격의 모양·연출은 PlayerStrikes, 처치 보상은 Progression.
  */
 import Phaser from 'phaser';
-import { DEPTH, ENEMY_CONTACT_TOKEN, ENEMY_FX, FEEDBACK, FEEL, PROTOTYPE, COLORS } from '../../core/Constants';
-import type { BossWallHitPayload, PlayerDamagedPayload } from '../../core/EventBus';
+import { DEPTH, ENEMY_FX, FEEDBACK, FEEL, PROTOTYPE, COLORS } from '../../core/Constants';
+import {
+  EventBus,
+  Events,
+  type BossWallHitPayload,
+  type HazardExplodedPayload,
+  type PlayerDamagedPayload,
+} from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { ECONOMY, PLAYER_DATA } from '../../data';
 import { UI_EVENTS, __system } from '../../contract/ui';
 import type { Mob, MobContext, ProjectileSpec } from '../../objects/Mob';
 import type { Projectile } from '../../objects/Projectile';
 import { rollCrit } from '../../systems/economy';
-import { hitShake, shakesOnHit, weaponHitstopMs } from '../../systems/hitFeel';
+import { hitShake, killHitstopMs, shakesOnHit, weaponHitstopMs } from '../../systems/hitFeel';
+import { defaultReaction, strikeReaction, type StrikeReaction } from '../../systems/reactions';
+import { HitReactions } from './HitReactions';
+import { ReactionFx } from './ReactionFx';
 import { spriteLibrary } from '../../systems/sprites/sprites';
 import { FX_ACTION, fxDrawScale, radiusFitScale } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
@@ -40,15 +49,24 @@ export interface HitOptions {
   noImpactFx?: boolean;
   /** 57라운드 투구가르기: 가드 불가 (결사병 방패 무시) */
   ignoreGuard?: boolean;
+  /** P19 이 타의 반응 (넉백 단계·띄움·버팀 힘 — systems/reactions). 없으면 막타 2단계 · 그 밖 1단계 */
+  reaction?: StrikeReaction;
+  /** P19 환경 피해 (벽꽝·볼링·낙하 — HitReactions): 반응·히트스톱 없이 피해·숫자·섬광만 */
+  env?: boolean;
 }
 
 export class GameCombat {
   /** 디버그: 최근 보스 내리찍기 */
   debugLastSlam: unknown = null;
-  /** 61라운드 공격 토큰: 다음 일반 적 접촉 공격이 허용되는 시각 */
-  private contactTokenAt = -Infinity;
+  /** P19 타격 반응 (움찔·넉백 단계·벽꽝·볼링·띄움·낙하·연속 처치) */
+  readonly reactions: HitReactions;
+  /** P19 반응 fx (art §34 react_*) */
+  readonly reactionFx: ReactionFx;
 
-  constructor(private readonly g: Game) {}
+  constructor(private readonly g: Game) {
+    this.reactions = new HitReactions(g);
+    this.reactionFx = new ReactionFx(g);
+  }
 
   // --- 적이 요청하는 공격 (MobContext) ---
 
@@ -123,6 +141,53 @@ export class GameCombat {
   /** 보스 소환 → 방 상태 머신이 적을 추가하고 처치 대기 목록에 넣는다 */
   readonly summon = (enemyId: string, x: number, y: number): boolean =>
     Boolean(this.g.director.spawnExtra(enemyId, x, y));
+
+  /**
+   * P19 적 근접 휘두르기 판정 (징집병 베기 · 사수 밀치기): (x, y) 에서 angle 방향 반경 radiusPx · 반각 half 부채꼴 안에 주인공
+   * 몸 중심이 있으면 attack. 패링이면 그 적이 경직된다. 맞혔으면(막혔어도) true
+   */
+  readonly meleeHit = (
+    mob: Mob,
+    x: number,
+    y: number,
+    angle: number,
+    half: number,
+    radiusPx: number,
+    attack: number,
+  ): boolean => {
+    const p = this.g.player;
+    const c = p.body.center;
+    const dx = c.x - x;
+    const dy = c.y - y;
+    const d = Math.hypot(dx, dy);
+    if (d > radiusPx + p.body.halfWidth) return false;
+    if (d > p.body.halfWidth && Math.abs(Phaser.Math.Angle.Wrap(Math.atan2(dy, dx) - angle)) > half) return false;
+    const now = this.g.time.now;
+    if (p.takeHit(attack, now, { dirX: dx, dirY: dy }) === 'parried') {
+      mob.stun(now, PLAYER_DATA.parry.stunMs);
+      this.onParried((c.x + x) / 2, (c.y + y) / 2);
+    }
+    return true;
+  };
+
+  /**
+   * P19 술배 자폭병 폭발: 주인공 attack (areaHit — 충격파·흔들림) + 반경 안 다른 적 mobDamage (환경 처치) · HAZARD_EXPLODED.
+   * 다른 자폭병이 맞으면 그쪽도 불이 붙는다 (연쇄)
+   */
+  readonly blast = (x: number, y: number, radiusPx: number, attack: number, mobDamage: number, source: Mob): void => {
+    this.areaHit(x, y, radiusPx, attack);
+    for (const child of [...this.g.mobs.getChildren()]) {
+      const m = child as Mob;
+      if (!m.active || m === source) continue;
+      const c = m.body.center;
+      if (Phaser.Math.Distance.Between(x, y, c.x, c.y) > radiusPx + m.body.halfWidth) continue;
+      if (this.hitMob(m, mobDamage, { crit: false, dirX: c.x - x, dirY: c.y - y, heavy: true }))
+        this.g.progress.onKill(m, 'environment');
+    }
+    // 스스로 터진 자폭병은 함께 쓰러진다 (쓰러진 뒤 터진 것이면 이미 없다)
+    if (source.active && source.takeDamage(Math.max(1, source.hp))) this.g.progress.onKill(source, 'environment');
+    EventBus.emit(Events.HAZARD_EXPLODED, { x, y, kind: 'cask', chain: 0 } satisfies HazardExplodedPayload);
+  };
 
   // --- 피해 계산 · 적 피격 ---
 
@@ -233,31 +298,48 @@ export class GameCombat {
         );
     g.hitFx.blood(c.x, c.y, backX, backY, nx, ny);
     if (opts.crit && !opts.noImpactFx) g.screenFx.crit();
-    // 62 P1-1: 처치 타는 히트스톱을 더 길게 (일반 적 — 보스 처치는 BossFlow 연출)
-    const stopMs = weaponHitstopMs(feel, heavy) * (died && !isBoss ? FEEL.KILL.HITSTOP_MULT : 1);
-    g.hitStop.request(now, stopMs, died && !isBoss);
+    // 62 P1-1: 처치 타는 히트스톱을 더 길게 (일반 적 — 보스 처치는 BossFlow 연출). P19 다이어트: 환경 피해는 부른 쪽이 정한다
+    if (died && !isBoss) g.hitStop.request(now, killHitstopMs(feel, heavy), true);
+    else if (!opts.env) g.hitStop.request(now, weaponHitstopMs(feel, heavy));
     if (!died) mob.flinch(nx, g.hitStop.remaining(now), heavy);
     if (shakesOnHit(feel, heavy)) {
       const sh = hitShake(sheet ? g.fx.sheet(sheet) : null);
       g.shake.add(now, sh.px, sh.ms, { x: sx, y: sy });
     }
-    if (!died && opts.knock !== false) {
-      const K = FEEL.KNOCKBACK;
-      // 61라운드 플레이 점검: 무기 무게만큼 (feel.knockbackMult — 대검 크게, 단검 작게)
-      const dist =
-        (opts.crit ? K.CRIT_PX : K.HIT_PX) *
-        (isBoss ? K.BOSS_MULT : 1) *
-        (opts.knockMult ?? 1) *
-        (feel?.knockbackMult ?? 1);
-      mob.shove(nx, ny, dist, K.MS, isBoss, isBoss ? undefined : (m, dx, dy) => this.onShoveEnd(m, dx, dy));
-    }
+    // P19 타격 반응: 띄움 · 움찔(버팀) · 넉백 단계 (벽꽝·볼링은 HitReactions.update)
+    if (!died && !opts.env)
+      this.reactions.apply(mob, opts.reaction ?? defaultReaction(heavy), {
+        dmg,
+        nx,
+        ny,
+        knock: opts.knock !== false,
+        knockMult: opts.knockMult,
+      });
     return died;
   }
 
-  /** 넉백 끝: 발밑 먼지 */
-  private onShoveEnd(mob: Mob, dirX: number, dirY: number): void {
-    if (!this.g.scene.isActive() || !mob.active) return;
-    this.g.hitFx.knockDust(mob.x, mob.body.bottom, dirX, dirY);
+  /** P19 연격 적 자석: (x, y) 에서 dir 쪽 coneDeg 원뿔 · maxDist 안의 가장 가까운 적 (바디 중심·반지름) */
+  nearestInCone(
+    x: number,
+    y: number,
+    dirX: number,
+    dirY: number,
+    maxDist: number,
+    coneDeg: number,
+  ): { x: number; y: number; r: number } | null {
+    const cos = Math.cos(((coneDeg / 2) * Math.PI) / 180);
+    let best: { x: number; y: number; r: number } | null = null;
+    let bestD = maxDist;
+    for (const child of this.g.mobs.getChildren()) {
+      const m = child as Mob;
+      if (!m.active || m.isImmune(this.g.time.now)) continue;
+      const c = m.body.center;
+      const d = Math.hypot(c.x - x, c.y - y);
+      if (d >= bestD || d === 0 || ((c.x - x) * dirX + (c.y - y) * dirY) / d < cos) continue;
+      bestD = d;
+      best = { x: c.x, y: c.y, r: Math.min(m.body.halfWidth, m.body.halfHeight) };
+    }
+    return best;
   }
 
   nearestMob(x: number, y: number, maxDist: number): Mob | null {
@@ -297,11 +379,18 @@ export class GameCombat {
     const m = g.strikes.bow.hitMods(shot);
     // 57라운드 빌드 축: 대상 배율(표식·살기)·확정 치명(금·견장·장교 사냥) — 치명이 새로 붙으면 치명 피해 배율
     const b = g.build.shotHit(shot, mob, m.crit);
+    // P19 활 '꽂는다': 완벽 놓기 = 2단계 넉백 (벽에 닿으면 벽꽝)
+    const reaction = strikeReaction(gameState.weapon.def.feel?.reaction, {
+      kind: 'attack',
+      heavy: shot.heavy,
+      ...(g.build.isPerfectShot(shot) ? { bowPower: 'perfect' } : {}),
+    });
     const died = this.hitMob(mob, Math.max(1, Math.round(m.attack * b.mult)), {
       crit: b.crit,
       dirX,
       dirY,
       heavy: shot.heavy,
+      reaction,
     });
     g.build.afterShotHit(shot, mob, b.crit, died);
     if (died) {
@@ -320,32 +409,21 @@ export class GameCombat {
     if (this.hitMob(mob, pr.attack, { crit: false, dirX, dirY })) this.g.progress.onKill(mob, 'parry');
   }
 
+  /** 몸이 닿음: P19 접촉 피해 없음 — 몸이 곧 공격인 동안(결사병 돌진·보스)만 tryContactAttack 이 공격력을 준다. 패링이면 그 적 경직 */
   onMobTouch(mob: Mob): void {
     const player = this.g.player;
     const now = this.g.time.now;
-    // 넉백 방향: 가해자 → 플레이어
-    const source = { dirX: player.x - mob.x, dirY: player.y - mob.y };
-    // 패링 창이면 접촉 공격 주기와 무관하게 막는다 (돌진 포함)
-    if (player.isParrying && !mob.isStunned(now)) {
-      const attack = mob.tryContactAttack(now);
-      if (attack > 0 || mob.body.velocity.lengthSq() > 0) {
-        if (player.takeHit(attack || 1, now, source) === 'parried') {
-          mob.stun(now, PLAYER_DATA.parry.stunMs);
-          // 접점 ≈ 플레이어 몸 중심과 적 바디 중심의 중간
-          const pc = player.getCenter();
-          const mc = mob.body.center;
-          this.onParried((pc.x + mc.x) / 2, (pc.y + mc.y) / 2);
-        }
-      }
-      return;
-    }
-    // 61라운드 공격 토큰: 일반 적 접촉 공격은 무리 전체에서 GAP_MS 에 한 번 (토큰이 없으면 공격 주기도 쓰지 않고 기다린다)
-    const boss = mob.isBoss;
-    if (!boss && now < this.contactTokenAt) return;
     const attack = mob.tryContactAttack(now);
     if (attack <= 0) return;
-    if (!boss) this.contactTokenAt = now + ENEMY_CONTACT_TOKEN.GAP_MS;
-    player.takeHit(attack, now, source);
+    // 넉백 방향: 가해자 → 플레이어
+    const source = { dirX: player.x - mob.x, dirY: player.y - mob.y };
+    if (player.takeHit(attack, now, source) === 'parried' && !mob.isStunned(now)) {
+      mob.stun(now, PLAYER_DATA.parry.stunMs);
+      // 접점 ≈ 플레이어 몸 중심과 적 바디 중심의 중간
+      const pc = player.getCenter();
+      const mc = mob.body.center;
+      this.onParried((pc.x + mc.x) / 2, (pc.y + mc.y) / 2);
+    }
   }
 
   onProjectileHit(pr: Projectile): void {

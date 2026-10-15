@@ -194,6 +194,11 @@ export class StructureSystem {
     return this.strike.burstCasksIn(x, y, radiusPx);
   }
 
+  /** P19 S2: 형태 틀 술 웅덩이 자리 (타일) — 노드 시작 때 한 번 */
+  seedPuddles(tiles: readonly { x: number; y: number }[]): void {
+    for (const t of tiles) this.strike.seedPuddle((t.x + 0.5) * TILE, (t.y + 0.5) * TILE, this.c.now);
+  }
+
   tickShots(shots: readonly Projectile[]): void {
     this.strike.tickShots(shots);
   }

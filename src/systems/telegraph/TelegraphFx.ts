@@ -14,7 +14,7 @@
  * 57라운드 B8 분리: 꺾은선 예고 `pathTelegraph.ts` · 화살촉·오라·플레이스홀더 도형 `shapes.ts` · 공용 타입 `types.ts`.
  */
 import Phaser from 'phaser';
-import { DEPTH, ENEMY_FX } from '../../core/Constants';
+import { DEPTH, ENEMY_FX, TELEGRAPH_TIER } from '../../core/Constants';
 import { PALETTE } from '../../data';
 import { hexToInt, rampFor } from '../palette';
 import { spriteLibrary } from '../sprites/sprites';
@@ -78,6 +78,8 @@ interface Marker {
   auraDetached?: boolean;
   /** 마감 직전(가속) 구간 */
   final: boolean;
+  /** P19 예고 색 (opts.tier) — 시트는 곱 틴트, 플레이스홀더는 선 색 */
+  color?: number;
 }
 
 export class TelegraphFx {
@@ -143,11 +145,12 @@ export class TelegraphFx {
     } else {
       const g = this.scene.add.graphics().setDepth(DEPTH.FX_GROUND).setPosition(x, y).setRotation(angle);
       m = this.make('line', g, durationMs, ENEMY_FX.PLACEHOLDER.BLINK_MS);
-      m.draw = (gg) => drawDashedLine(gg, m.lengthPx);
+      m.draw = (gg) => drawDashedLine(gg, m.lengthPx, m.color);
     }
     m.lengthPx = lengthPx;
     m.angle = angle;
-    m.tip = makeTip(this.scene, this.style);
+    this.paintTier(m, opts);
+    m.tip = makeTip(this.scene, this.styleOf(opts));
     this.redraw(m);
     this.placeTip(m, x, y);
     this.attachAura(m, x, y, opts);
@@ -157,13 +160,14 @@ export class TelegraphFx {
   /** 원: 중심 (x, y), 반지름 radiusPx */
   circle(x: number, y: number, radiusPx: number, durationMs: number, opts: TelegraphOptions = {}): TelegraphHandle {
     const m = this.roundMarker('circle', x, y, radiusPx, durationMs, 0, 'down');
+    this.paintTier(m, opts);
     if (!m.progress) {
       // 플레이스홀더 닫히는 원: 남은 시간 비율로 반지름이 줄어드는 안쪽 원 (시트는 그림에 들어 있다)
       m.closing = this.scene.add
         .graphics()
         .setDepth(DEPTH.FX_GROUND + 0.001)
         .setPosition(x, y);
-      drawClosing(m.closing, m.radiusPx, 1);
+      drawClosing(m.closing, m.radiusPx, 1, m.color);
     }
     this.attachAura(m, x, y, opts);
     return this.handle(m);
@@ -187,6 +191,7 @@ export class TelegraphFx {
     const dir = facingOf(Math.cos(angle), Math.sin(angle), 'down');
     const m = this.roundMarker('cone', x, y, radiusPx, durationMs, halfAngleRad, dir);
     m.angle = angle;
+    this.paintTier(m, opts);
     if (m.obj instanceof Phaser.GameObjects.Graphics) m.obj.setRotation(angle);
     this.attachAura(m, x, y, opts);
     return this.handle(m);
@@ -261,7 +266,7 @@ export class TelegraphFx {
         m.phase = m.phase === 0 ? 1 : 0;
         this.applyBlink(m);
       }
-      if (m.closing) drawClosing(m.closing, m.radiusPx, total > 0 ? remaining / total : 0);
+      if (m.closing) drawClosing(m.closing, m.radiusPx, total > 0 ? remaining / total : 0, m.color);
     }
   }
 
@@ -336,6 +341,20 @@ export class TelegraphFx {
 
   // --- 내부 ---
 
+  /** P19 예고 색: 화살촉·오라 색 (단계가 없으면 층 램프) */
+  private styleOf(opts: TelegraphOptions): TelegraphStyle {
+    const c = opts.tier ? TELEGRAPH_TIER[opts.tier] : undefined;
+    return c === undefined ? this.style : { tipColor: c, tipEdge: c };
+  }
+
+  /** P19 예고 색 칠하기: 시트는 곱 틴트, 플레이스홀더는 다시 그린다 */
+  private paintTier(m: Marker, opts: TelegraphOptions): void {
+    if (!opts.tier) return;
+    m.color = TELEGRAPH_TIER[opts.tier];
+    if (m.obj instanceof Phaser.GameObjects.Graphics) this.redraw(m);
+    else m.obj.setTint(m.color);
+  }
+
   private idOf(kind: TelegraphKind): string {
     const T = ENEMY_FX.TELEGRAPH_IDS;
     return kind === 'line' ? T.LINE : kind === 'circle' ? T.CIRCLE : T.CONE;
@@ -396,7 +415,10 @@ export class TelegraphFx {
     } else {
       const g = this.scene.add.graphics().setDepth(DEPTH.FX_GROUND).setPosition(x, y);
       m = this.make(kind, g, durationMs, ENEMY_FX.PLACEHOLDER.BLINK_MS);
-      m.draw = kind === 'circle' ? (gg) => drawCircle(gg, m.radiusPx) : (gg) => drawCone(gg, m.radiusPx, m.halfAngle);
+      m.draw =
+        kind === 'circle'
+          ? (gg) => drawCircle(gg, m.radiusPx, m.color)
+          : (gg) => drawCone(gg, m.radiusPx, m.halfAngle, m.color);
     }
     m.radiusPx = radiusPx;
     m.halfAngle = halfAngle;
@@ -408,7 +430,8 @@ export class TelegraphFx {
   private attachAura(m: Marker, x: number, y: number, opts: TelegraphOptions): void {
     if (!opts.aura) return;
     const at = opts.auraAt;
-    m.aura = makeAura(this.scene, at?.x ?? x, at?.y ?? y, this.style);
+    m.aura = makeAura(this.scene, at?.x ?? x, at?.y ?? y, this.styleOf(opts));
+    if (m.color !== undefined && m.aura instanceof Phaser.GameObjects.Sprite) m.aura.setTint(m.color);
     m.auraDetached = Boolean(at);
   }
 

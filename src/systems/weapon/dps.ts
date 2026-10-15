@@ -49,7 +49,9 @@ export function comboCycleMs(c: ComboDef, speed = 1): number {
   const n = c.hits.length;
   let ms = 0;
   c.hits.forEach((h, i) => {
-    ms += !c.loop && i === n - 1 ? h.durationMs + c.finisherRecoverMs : h.cancelFromMs;
+    // P19: 마무리 타도 cancelFromMs < durationMs 면 그것 (ComboTracker.readyAt 과 같은 규칙)
+    const closing = !c.loop && i === n - 1 && h.cancelFromMs >= h.durationMs;
+    ms += closing ? h.durationMs + c.finisherRecoverMs : h.cancelFromMs;
   });
   return ms / Math.max(0.01, speed);
 }

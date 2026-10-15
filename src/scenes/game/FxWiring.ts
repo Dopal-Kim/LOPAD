@@ -47,6 +47,7 @@ export function createFx(g: Game, floor: number): void {
     bodyCenterUpPx: FEEL.SECONDARY.BODY_CENTER_UP_PX,
   };
   g.pack.reset();
+  g.squad.clear();
   g.hitStop.reset();
   g.shake.reset();
 }

@@ -3,8 +3,10 @@ import type { BossPatternName } from '../data/bossPatterns';
 import type { ComboFollowUpDef, HitShapeSpec } from '../data/comboTypes';
 import { LOOP2D_EVENTS } from './eventsLoop2D';
 import { LOOP2E_EVENTS } from './eventsLoop2E';
+import { P19_EVENTS } from './eventsP19';
 export type * from './eventsLoop2D';
 export type * from './eventsLoop2E';
+export type * from './eventsP19';
 
 /** 씬·시스템 간 유일한 통신 경로. 직접 참조 금지. */
 export const EventBus = new Phaser.Events.EventEmitter();
@@ -231,6 +233,8 @@ export const Events = {
   ...LOOP2D_EVENTS,
   /** 62 루프 2 시스템 E: 문 나가기 · 메뉴 입력 가드 (core/eventsLoop2E.ts) */
   ...LOOP2E_EVENTS,
+  /** P19 자유 전투 반응 (core/eventsP19.ts — 계약 free-combat §1) */
+  ...P19_EVENTS,
   /** 62 루프 2 시스템 C: 기억을 떠올렸다 (`MemoryUnlockedPayload` — 음향 memory_unlock, 계약 sound §13) */
   MEMORY_UNLOCKED: 'memory:unlocked',
 } as const;
@@ -268,8 +272,6 @@ export type PlayerAttackPayload = {
   bodyFrameStartsMs?: number[];
   /** 49라운드: 대검 내리찍기 (착지 순간 = swingDelayMs, 원형 판정 반경 px, 착지점 = 그때 발 피벗 + offset) */
   slam?: { radiusPx: number; offsetX: number; offsetY: number };
-  /** 49라운드: 대검 대쉬 공격 (달려들며 크게 한 번, 판정 부채꼴 각도) */
-  dashSlash?: { arcDeg: number };
   /** 49라운드: 단검 가열 단계 0..3 (이펙트 강화) */
   heatStage?: number;
   /** 61 E: 단검 가속 그림 단계 (0 = 기본 · 2·3 = `<연격 fx>_accel<k>` — 타를 낼 때 공속 배율 ≥ 1.08 / ≥ 1.18) */
@@ -501,13 +503,16 @@ export type EnemyDamagedPayload = { id: string; amount: number; crit: boolean; d
 export type EnemyAttackPhase = 'throw' | 'burst' | 'push' | 'return' | 'break' | 'spill' | 'rollEnd';
 export type EnemyAttackPayload = {
   id: string;
-  kind: 'contact' | 'dash' | 'shot' | 'throw' | 'roll';
+  /** P19: swing = 징집병 베기·사수 밀치기 · explode = 술배 자폭병 폭발 */
+  kind: 'contact' | 'dash' | 'shot' | 'throw' | 'roll' | 'swing' | 'explode';
   phase?: EnemyAttackPhase;
 };
 /** 61라운드 단계 2: throw = 행상 심지 불붙임(놓기 전까지) · roll = 짐꾼 밀기 준비 */
-export type EnemyTelegraphPayload = { id: string; kind: 'dash' | 'shot' | 'throw' | 'roll' };
+/** P19: swing = 휘두르기 예고(350ms) · fuse = 자폭병 심지(1초) */
+export type EnemyTelegraphPayload = { id: string; kind: 'dash' | 'shot' | 'throw' | 'roll' | 'swing' | 'fuse' };
 /** 35라운드 2단계: reload = 사수 재장전 시작, block = 결사병 방패로 막음, pack = 징집병 집단 돌격 시작 */
-export type EnemyBehaviorPayload = { id: string; kind: 'reload' | 'block' | 'pack' };
+/** P19: drum = 깃발 고수 북 (반경 안 적 공격 속도 ↑) */
+export type EnemyBehaviorPayload = { id: string; kind: 'reload' | 'block' | 'pack' | 'drum' };
 /** 보스 패턴 이름 (54라운드: 단일 출처 data/bossPatterns.ts) */
 export type BossPattern = BossPatternName;
 export type BossAttackPayload = { id: string; attack: BossPattern };

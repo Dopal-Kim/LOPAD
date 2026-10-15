@@ -278,7 +278,7 @@ describe('56라운드 Q2 일섬 기하', () => {
     expect(issenHit({ x: 0, y: 0 }, { x: 1, y: 0 }, 64, geom, { x: 30, y: 20, r: 4 })).toBe(false);
     expect(shadowAt({ x: 0, y: 0 }, { x: 64, y: 0 }, 75, 150)).toEqual({ x: 32, y: 0 });
   });
-  it('58라운드 Q1 칼 3타 = 찌르기, 반경 38, 템포 약 1.65초 (아트 시간)', () => {
+  it('58라운드 Q1 칼 3타 = 찌르기, 반경 38 · P19 약공 한 바퀴 약 1.1초 (다음 타 허용 280·260 + 찌르기 후딜 560)', () => {
     const c = WEAPONS.katana.combo!;
     expect(c.radiusPx).toBe(38);
     expect(c.hits.map((h) => [h.durationMs, h.hitAtMs])).toEqual([
@@ -287,9 +287,9 @@ describe('56라운드 Q2 일섬 기하', () => {
       [710, 250],
     ]);
     expect(c.hits[2].move).toBe('thrust');
-    const total = c.hits[0].cancelFromMs + c.hits[1].cancelFromMs + c.hits[2].durationMs;
-    expect(total).toBeGreaterThan(1400);
-    expect(total).toBeLessThan(1700);
+    const total = c.hits[0].cancelFromMs + c.hits[1].cancelFromMs + c.hits[2].cancelFromMs;
+    expect(total).toBeGreaterThanOrEqual(1050);
+    expect(total).toBeLessThanOrEqual(1150);
   });
 });
 

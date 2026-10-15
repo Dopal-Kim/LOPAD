@@ -104,7 +104,24 @@ export interface ArenaInfo {
   center?: { x: number; y: number };
   /** 카메라 경계 (방 내부 + 벽 1칸) */
   camera: Rect;
+  /** P19 S2 형태 틀 id (없으면 사각 전투장) — 아래 칸 목록은 형태 틀일 때만 */
+  shape?: string;
+  /** 낙하 구역 칸 (타일은 빈 칸 = 걷기 막힘). water = 수로·바다 · drop = 낭떠러지 · ledge = 두 단 테라스 단 끝(아래 단 착지) */
+  drops?: { x: number; y: number; kind: DropKind }[];
+  /** 다리 칸 (바닥 — 그림은 수로 다리) */
+  bridges?: { x: number; y: number }[];
+  /** 높은 단·계단 칸 (바닥) */
+  high?: { x: number; y: number }[];
+  /** 계단 칸 (high 에도 든다 — 그림용) */
+  stairs?: { x: number; y: number }[];
+  /** 엄폐 칸 (벽 — 그림은 돌기둥) */
+  cover?: { x: number; y: number }[];
+  /** 적 등장 자리 (마스크 S) */
+  enemySpawns?: { x: number; y: number }[];
 }
+
+/** P19 S2 낙하 구역 종류 (계약 free-combat §1 ENEMY_FELL zone 의 water·drop + 테라스 단 끝 ledge) */
+export type DropKind = 'water' | 'drop' | 'ledge';
 
 export function cellKey(c: Cell): string {
   return `${c.cx},${c.cy}`;

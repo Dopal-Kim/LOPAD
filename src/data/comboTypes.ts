@@ -220,4 +220,14 @@ export interface ComboDef {
    * 타별 hitShape 판정·칼끝 리본 폴백에 적용 (확인 전 임시)
    */
   leftTransform?: 'mirror' | 'rotate';
+  /**
+   * P19 타마다 커서 쪽으로 파고듦 (방향키와 무관 — 없으면 player.json motion.attackAdvance). atSwing = 휘두르는 순간부터(대검 '칼 무게에
+   * 끌려감'), 아니면 판정 프레임 시작에 끝나게(파고들어 벤다)
+   */
+  advance?: { px: number; ms: number; atSwing?: boolean };
+  /**
+   * P19 예비 동작을 그림 시간대로 (대검 '지연이 아니라 무게'): 판정 프레임 앞 열들을 몸 시트 JSON 의 frame ms 그대로 재생하고 판정도
+   * 그 시각에 — 데이터 hitAtMs 로 늘이지 않는다(늘이면 한 장이 멈춰 보인다). 시트에 열별 ms 가 없으면 hitAtMs
+   */
+  artTiming?: boolean;
 }

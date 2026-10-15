@@ -88,6 +88,8 @@ export class WeaponOverlay {
     private readonly carryInfo: () => CarryInfo | null = () => null,
     /** 58라운드 Q2: 몸과 같은 그림 배율 (원점 = 몸 피벗이라 발 기준으로 커진다) */
     private readonly drawScale = 1,
+    /** P19 몸 자세 배율 (압축·늘임 — EntityVisual.poseScale). 기울기는 host.rotation 을 그대로 따른다 */
+    private readonly poseScale: () => { x: number; y: number } = () => ({ x: 1, y: 1 }),
   ) {
     this.sprite = host.scene.add.sprite(host.x, host.y, '__DEFAULT').setVisible(false);
     this.growth = new GrowthOverlay(host.scene, (id, action) => this.sheetOf(id, action));
@@ -306,11 +308,20 @@ export class WeaponOverlay {
     this.sprite.setFrame(this.frame);
     // 50라운드: 새 2배 도트 무기 시트(pixelScale 1)는 0.5 배 — 몸 시트와 같은 화면 크기
     const k = artScale(def) * this.drawScale;
+    // P19 몸 기울기·압축 늘임을 따라간다 (휴대 자리는 몸 피벗 둘레로 돌린다)
+    const rot = this.host.rotation;
+    const ps = this.poseScale();
     if (place) {
-      this.sprite.setScale(place.scale * k).setAngle(place.angle);
-      this.sprite.setPosition(this.host.x + place.x * this.drawScale, this.host.y + place.y * this.drawScale);
+      const ox = place.x * this.drawScale;
+      const oy = place.y * this.drawScale;
+      const c = Math.cos(rot);
+      const s = Math.sin(rot);
+      this.sprite
+        .setScale(place.scale * k * ps.x, place.scale * k * ps.y)
+        .setAngle(place.angle + (rot * 180) / Math.PI);
+      this.sprite.setPosition(this.host.x + ox * c - oy * s, this.host.y + ox * s + oy * c);
     } else {
-      this.sprite.setScale(k).setAngle(0);
+      this.sprite.setScale(k * ps.x, k * ps.y).setRotation(rot);
       this.sprite.setPosition(this.host.x, this.host.y - this.lift);
     }
     this.sprite

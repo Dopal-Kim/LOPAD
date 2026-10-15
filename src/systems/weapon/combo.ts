@@ -2,7 +2,8 @@
  * 48라운드 Q2: 근접 연격 상태 머신. Phaser 의존 없음. (판정 모양 기하는 55라운드에 `hitShapes.ts` 로 분리)
  *
  * 흐름: 좌클릭 → `press(now)` 로 입력 버퍼에 넣는다 → 매 프레임 `poll(now, canAct)` 가 다음 타를 시작할 수 있으면
- * 타 번호(0부터)를 돌려준다. 다음 타는 직전 타 시작 + `cancelFromMs` 부터 허용(마지막 타는 + durationMs + finisherRecoverMs).
+ * 타 번호(0부터)를 돌려준다. 다음 타는 직전 타 시작 + `cancelFromMs` 부터 허용(마지막 타는 cancelFromMs < durationMs 면 그것,
+ * 아니면 + durationMs + finisherRecoverMs).
  * 직전 타가 끝나고(durationMs) `resetMs` 가 지나도록 다음 타가 없으면 1타로 돌아간다. 버퍼는 `bufferMs` 동안만 유효.
  * 55라운드 Q18 순환(`loop`): 마지막 타 다음도 회복 없이 1타로 이어진다(대검 H1→V→H2→V→H1…).
  * 막타(`heavy`, 없으면 순환이 아닌 연격의 마지막 타)는 기력이 바닥나면 1타로 바뀐다.
@@ -86,7 +87,12 @@ export class ComboTracker {
     if (this.index < 0) return -Infinity;
     const h = this.def.hits[this.index];
     const k = this.hitSpeed;
-    if (this.isClosing(this.index)) return this.startedAt + h.durationMs / k + this.def.finisherRecoverMs / k;
+    // P19 약공 템포: 마무리 타도 데이터 cancelFromMs 가 타 길이보다 짧으면 그때부터 (칼 찌르기 후딜 880 → 560 — 마무리는 대쉬로 끊긴다)
+    if (this.isClosing(this.index))
+      return (
+        this.startedAt +
+        (h.cancelFromMs < h.durationMs ? h.cancelFromMs : h.durationMs + this.def.finisherRecoverMs) / k
+      );
     return this.startedAt + (this.cancelOverride ?? h.cancelFromMs / k);
   }
 

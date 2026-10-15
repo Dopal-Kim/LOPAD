@@ -58,6 +58,7 @@ import type { DamageNumberPool } from '../systems/fx/damageNumbers';
 import type { HitFx } from '../systems/fx/hitFx';
 import type { TelegraphFx } from '../systems/telegraph';
 import { PackCharge } from '../systems/packCharge';
+import { MobSquad } from '../systems/squad';
 import { audio } from '../systems/audio/audio';
 import { StructureSystem } from '../systems/structures/StructureSystem';
 import { LiquorPools } from '../systems/hazards/LiquorPools';
@@ -170,6 +171,8 @@ export class Game extends Phaser.Scene {
   readonly shake = new Shake();
   /** 적 집단 돌격 공유 상태 */
   readonly pack = new PackCharge();
+  /** P19 공격 토큰·북 오라 (씬 재시작 때 FxWiring 이 비운다) */
+  readonly squad = new MobSquad();
   // --- 진행 상태 ---
   /** 개성 3지선다·엔딩 선택·시험장 메뉴 중: 게임 진행(이동·적·물리) 정지 */
   frozen = false;
@@ -308,6 +311,8 @@ export class Game extends Phaser.Scene {
       ? new Phaser.Math.Vector2((layout.arena.spawn.x + 0.5) * TILE, (layout.arena.spawn.y + 0.5) * TILE)
       : this.world.roomCenter(layout.rooms.find((r) => r.type === 'start')!);
     this.player = new Player(this, start.x, start.y);
+    // P19 연격 적 자석 (조준 원뿔 안 가장 가까운 적)
+    this.player.aimAssist = (x, y, dx, dy, r, cone) => this.combat.nearestInCone(x, y, dx, dy, r, cone);
     this.doors = new ArenaDoors(this);
     this.route = new RouteFlow(this);
     // 57라운드 빌드 축 (bindEvents 보다 먼저 — 공격 페이로드의 갈래 한 타 변화를 판정보다 먼저 건다)
@@ -518,6 +523,8 @@ export class Game extends Phaser.Scene {
     );
     // 48라운드: 앞 노드의 층 상태(빚·취기·판돈·불씨 등)를 이어받는다
     if (this.routeMode) this.structures.importFloorState(gameState.structureCarry);
+    // P19 S2: 형태 틀 술 웅덩이 자리
+    this.structures.seedPuddles(this.nodeArena?.shape?.pools ?? []);
   }
 
   /** 54라운드: 보스 노드 + 보스 정의에 arena 가 있으면 보스방 환경 (기둥·촛대·술통·술·화면 효과) */
@@ -570,6 +577,7 @@ export class Game extends Phaser.Scene {
       [Events.PLAYER_GUARD_RELEASED, m.onGuardReleased, m],
       [Events.PLAYER_SHADOW_STEP, m.onShadowStep, m],
       [Events.PLAYER_DASHED, m.onPlayerDashed, m],
+      [Events.PLAYER_MOTION, m.onPlayerMotion, m],
       [Events.ENEMY_INCOMING, ui.relayEnemyIncoming, ui],
       [Events.PLAYER_PERFECT_GUARD, f.onPerfectGuard, f],
       [Events.PLAYER_PARRIED, f.onParried, f],
@@ -579,6 +587,16 @@ export class Game extends Phaser.Scene {
       [Events.PLAYER_ARROW_RAIN, s.rain.start, s.rain],
       [Events.PLAYER_SKILL, s.moves.onSkill, s.moves],
       [Events.PLAYER_DAMAGED, s.moves.onPlayerDamaged, s.moves],
+      // P19 S1: 연속 처치 · 반응 이벤트 → UI 중계
+      [Events.ENEMY_DIED, c.reactions.onEnemyDied, c.reactions],
+      [Events.ENEMY_WALL_SLAM, c.reactionFx.onWallSlam, c.reactionFx],
+      [Events.ENEMY_BOWLED, c.reactionFx.onBowled, c.reactionFx],
+      [Events.ENEMY_LAUNCHED, c.reactionFx.onLaunched, c.reactionFx],
+      [Events.ENEMY_LANDED, c.reactionFx.onLanded, c.reactionFx],
+      [Events.ENEMY_FELL, c.reactionFx.onFell, c.reactionFx],
+      [Events.HAZARD_EXPLODED, c.reactionFx.onExploded, c.reactionFx],
+      [Events.ENEMY_STAGGERED, c.reactionFx.onStaggered, c.reactionFx],
+      ...ui.p19Relays(),
     ];
     for (const [event, fn, ctx] of this.subs) EventBus.on(event, fn, ctx);
   }
@@ -697,10 +715,15 @@ export class Game extends Phaser.Scene {
       areaHit: c.areaHit,
       summon: c.summon,
       pack: this.pack,
+      squad: this.squad,
+      meleeHit: c.meleeHit,
+      blast: c.blast,
       arena: this.bossArena,
       hazards: this.hazards,
     };
     for (const child of [...this.mobs.getChildren()]) (child as Mob).update(ctx);
+    // P19: 날아가는 적의 낙하·벽꽝·볼링
+    c.reactions.update();
     this.bundle.lateUpdate(time);
     this.telegraph.update(time);
     for (const child of this.projectiles.getChildren()) (child as Projectile).tick(time);

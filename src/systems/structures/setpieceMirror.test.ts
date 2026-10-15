@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ROUTE, entries } from '../route';
-import { arenaVariety, pickPropScene, pickSetPiece } from '../routeArena';
+import { ROUTE, entries, generateRoute } from '../route';
+import { arenaVariety, pickPropScene, planNodeArena } from '../routeArena';
 import { inPropScene } from '../../world/tileskin';
 import { mirrorSetPiece } from './setpieceMirror';
 import type { SetPieceDef } from './setpiece';
@@ -48,26 +48,17 @@ describe('61라운드 단계 2 방 다양화', () => {
     expect(m.pillars![0].at).toEqual([-7, 4]);
   });
 
-  it('전투 노드 세트: 같은 길의 이웃 단은 다른 후보, 크기·뒤집기도 노드마다 바뀐다', () => {
-    const list = ROUTE.kinds.battle.setPieceVariants!;
-    expect(list.length).toBeGreaterThanOrEqual(4);
-    for (const id of list) expect(entries(ROUTE.setPieces)[id], id).toBeDefined();
+  it('P19 S2 전투 노드 = 형태 틀 변형: 노드마다 형태·크기·뒤집기가 바뀌고, 형태 소품 세트는 setPieces 에 있다', () => {
     for (const seed of ['a', 'b', 'c']) {
-      for (const r1 of [0, 1])
-        for (const r2 of [0, 1]) {
-          const a = pickSetPiece({ kind: 'battle', col: 3, row: r1 }, null, seed);
-          const b = pickSetPiece({ kind: 'battle', col: 4, row: r2 }, null, seed);
-          expect(a).not.toBe(b);
-        }
+      const nodes = generateRoute('stage1', seed).nodes.filter((n) => n.kind === 'battle');
       const looks = new Set(
-        [3, 4, 5].flatMap((col) =>
-          [0, 1].map((row) => {
-            const v = arenaVariety({ id: `c${col}r${row}`, kind: 'battle', col, row }, seed);
-            return `${pickSetPiece({ kind: 'battle', col, row }, null, seed)}|${v.size}|${v.mirror.x}${v.mirror.y}`;
-          }),
-        ),
+        nodes.map((n) => {
+          const p = planNodeArena(n, 'stage1', seed);
+          for (const id of [p.setPiece.template].filter(Boolean)) expect(entries(ROUTE.setPieces)[id!]).toBeDefined();
+          return `${p.shape!.id}|${p.variety.size}|${p.variety.mirror.x}${p.variety.mirror.y}`;
+        }),
       );
-      expect(looks.size).toBe(6);
+      expect(looks.size).toBe(nodes.length);
     }
   });
 

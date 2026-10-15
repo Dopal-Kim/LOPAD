@@ -7,6 +7,7 @@ export * from './colors';
 export * from './assets';
 export * from './world';
 export * from './feel';
+export { REACTION } from './reactions';
 export * from './enemy';
 export { ENEMY_HAZARD, SHOP_KEEPER, SHOP_STALL } from './enemyHazards';
 export * from './player';

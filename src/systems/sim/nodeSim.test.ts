@@ -15,7 +15,7 @@ describe('헤드리스 수치 추정 (61라운드 P9)', () => {
         finisherRecoverMs: 100,
         hits: [
           { damageMult: 1, durationMs: 400, cancelFromMs: 300 },
-          { damageMult: 2, durationMs: 500, cancelFromMs: 450 },
+          { damageMult: 2, durationMs: 500, cancelFromMs: 500 },
         ],
       },
     } as unknown as SimWeapon;
@@ -24,7 +24,7 @@ describe('헤드리스 수치 추정 (61라운드 P9)', () => {
       { dmg: 10, ms: 600 },
     ]);
     expect(weaponDps(player, w).dps).toBeCloseTo((15 / 900) * 1000);
-    expect(meleeSequence(player, { ...w, combo: { ...w.combo!, loop: true } } as SimWeapon)[1].ms).toBe(450);
+    expect(meleeSequence(player, { ...w, combo: { ...w.combo!, loop: true } } as SimWeapon)[1].ms).toBe(500);
     // HP 12: 5 → 10(죽음) = 300 + 600/2
     expect(timeToKill(player, w, 12)).toBe(600);
   });

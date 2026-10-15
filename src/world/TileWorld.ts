@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
-import { DEPTH, TILE } from '../core/Constants';
+import { DEPTH, QUARTER, TILE } from '../core/Constants';
 import { Rng } from '../systems/rng';
-import { TileId, cellKey, type Cell, type Door, type FloorLayout, type Room } from '../systems/mapgen';
+import { TileId, cellKey, type Cell, type Door, type DropKind, type FloorLayout, type Room } from '../systems/mapgen';
 import { CELL_H, CELL_W, type Rect } from '../systems/mapgen/types';
 import type { CoverArt } from './coverPillars';
 import { QuarterView } from './QuarterView';
 import { planBigProps, type BigPropPlacement } from './bigProps';
-import { planCanal, planDecals, type CanalPlan, type DecalPlacement } from './floorFeatures';
+import { canalFromArena, planDecals, type CanalPlan, type DecalPlacement } from './floorFeatures';
+import { terrainV4Of } from './terrainV4';
 import { TileSkin, edgeVoidTiles, inPropScene, isOpenId, planProps, roomTypeMap } from './tileskin';
 
 export type DoorState = 'open' | 'closed' | 'locked';
@@ -35,8 +36,11 @@ export class TileWorld {
   readonly bigProps: BigPropPlacement[] = [];
   /** 54라운드: 지역 소품 시트에 그림이 있는 큰 소품 이름 (쿼터뷰일 때만) */
   private readonly bigPropArt: Set<string>;
-  /** 53라운드 양조 수로 · 바닥 데칼 (쿼터뷰 4지역 바닥) */
+  /** 53라운드 양조 수로 · 바닥 데칼 (쿼터뷰 4지역 바닥). P19 S2: 수로 = 형태 틀 물 칸·다리 칸 */
   readonly canal: CanalPlan | null = null;
+  /** P19 S2 낙하 구역 칸 → 종류 · 높은 단 칸 (형태 틀 전투장만) */
+  private readonly drops = new Map<string, DropKind>();
+  private readonly high = new Set<string>();
   readonly decals: DecalPlacement[] = [];
   /** 여러 칸을 한꺼번에 바꾸는 중 (벽 그림은 끝에 한 번) */
   private batching = false;
@@ -98,12 +102,16 @@ export class TileWorld {
       this.setBlocked(x, y, true);
       this.layer.getTileAt(x, y)?.setCollision(true, true, true, true, false);
     };
-    // 53라운드 양조 수로: 수로 칸은 걷기 막힘(투사체는 통과 — 타일 충돌 없음), 다리 칸은 걷기 가능·소품 없음
-    this.canal = skin.quarter && skin.def.canal ? planCanal(layout, skin.def.canal, structureTiles) : null;
-    const bridges = new Set<string>();
-    for (const t of this.canal?.tiles ?? [])
-      if (t.kind === 'bridgeL' || t.kind === 'bridgeR') bridges.add(`${t.x},${t.y}`);
-      else blockTile(t.x, t.y);
+    // P19 S2 낙하 구역: 빈 칸이라 걷기 막힘(바닥에 닿는 빈 칸 충돌 — 투사체는 통과), 다리 칸은 걷기 가능·소품 없음.
+    // 물 칸은 수로 그림(양조 타일셋), 그 밖(낭떠러지·단 끝·수로 그림 없는 지역)은 자리표시 그림
+    for (const d of layout.arena?.drops ?? []) this.drops.set(`${d.x},${d.y}`, d.kind);
+    for (const p of layout.arena?.high ?? []) this.high.add(`${p.x},${p.y}`);
+    // P19 1-A: v4 타일셋이면 낙하·다리 그림은 QuarterView(terrainV4) 가 — 예전 수로 그림·자리표시 없음
+    const v4 = Boolean(skin.quarter && terrainV4Of(skin.def));
+    this.canal = skin.quarter && skin.def.canal && !v4 ? canalFromArena(layout, skin.def.canal) : null;
+    const bridges = new Set((layout.arena?.bridges ?? []).map((b) => `${b.x},${b.y}`));
+    const painted = new Set((this.canal?.tiles ?? []).map((t) => `${t.x},${t.y}`));
+    if (!v4) drawDropPlaceholders(scene, layout, painted);
     // 54라운드 Q11: 고정 큰 소품(보스방 기둥) 칸을 먼저 막는다
     const fixed = (opts.fixedBigProps ?? []).map((f) => ({ ...f, solid: true }));
     for (const f of fixed)
@@ -175,6 +183,51 @@ export class TileWorld {
       );
       this.quarter.addBigProps(this.bigProps);
     }
+  }
+
+  /** P19 S2 (S1 낙하 판정용): 타일 칸의 낙하 구역 종류 (없으면 null) */
+  dropAt(tx: number, ty: number): DropKind | null {
+    return this.drops.get(`${tx},${ty}`) ?? null;
+  }
+
+  /** 월드 좌표의 낙하 구역 종류 (없으면 null) */
+  dropAtWorld(worldX: number, worldY: number): DropKind | null {
+    return this.dropAt(Math.floor(worldX / TILE), Math.floor(worldY / TILE));
+  }
+
+  /**
+   * 계약 free-combat §1 ENEMY_FELL.zone (S1 HitReactions 가 쓴다): 월드 좌표가 즉사 낙하 칸이면 water·drop, 아니면 null.
+   * 두 단 테라스 단 끝(ledge)은 아래 단 착지라 null (`dropAtWorld` 로 따로 본다)
+   */
+  fallZoneAt(worldX: number, worldY: number): 'water' | 'drop' | 'fire' | null {
+    const k = this.dropAtWorld(worldX, worldY);
+    return k === 'water' || k === 'drop' ? k : null;
+  }
+
+  /**
+   * P19 S2: 낙하한 정예가 다시 들어올 자리 (월드, 칸 가운데) — 떨어진 자리에서 먼 쪽 문(입구 시작점·출구 2×2) 앞,
+   * 걸을 수 있는 가장 가까운 칸. 전투장 정보가 없으면 null
+   */
+  reentryPoint(fromX: number, fromY: number): { x: number; y: number } | null {
+    const A = this.layout.arena;
+    if (!A) return null;
+    const doors = [A.spawn, { x: A.exit.x + 1, y: A.exit.y + 1 }];
+    const d2 = (p: { x: number; y: number }) => ((p.x + 0.5) * TILE - fromX) ** 2 + ((p.y + 0.5) * TILE - fromY) ** 2;
+    const far = d2(doors[0]) >= d2(doors[1]) ? doors[0] : doors[1];
+    for (let r = 0; r <= 6; r++)
+      for (let dy = -r; dy <= r; dy++)
+        for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const x = (far.x + dx + 0.5) * TILE;
+          const y = (far.y + dy + 0.5) * TILE;
+          if (this.isWalkableAt(x, y)) return { x, y };
+        }
+    return null;
+  }
+
+  /** P19 S2: 두 단 테라스 위 단(계단 포함) 칸인가 — 단 끝에서 밀려 떨어지면 아래 단 착지 */
+  isHighAt(worldX: number, worldY: number): boolean {
+    return this.high.has(`${Math.floor(worldX / TILE)},${Math.floor(worldY / TILE)}`);
   }
 
   /** 54라운드: 이 큰 소품을 지역 시트로 그렸는지 (아니면 호출 쪽 임시 그림) */
@@ -438,4 +491,21 @@ export class TileWorld {
   setRoomDoors(room: Room, state: DoorState): void {
     for (const d of room.doors) this.setDoor(d, state);
   }
+}
+
+/**
+ * P19 S2 낙하 구역 자리표시 그림 (아트 타일셋 v4 전까지): 수로 그림이 덮지 않은 낙하 칸을 종류 색으로 채우고, 바닥과 맞닿은 위쪽 변에
+ * 가장자리 띠(난간·돌 끝)를 긋는다. 검은 빈 칸으로 보이지 않게
+ */
+function drawDropPlaceholders(scene: Phaser.Scene, layout: FloorLayout, painted: ReadonlySet<string>): void {
+  const list = (layout.arena?.drops ?? []).filter((d) => !painted.has(`${d.x},${d.y}`));
+  if (list.length === 0) return;
+  const D = QUARTER.DROP;
+  const g = scene.add.graphics().setDepth(D.DEPTH);
+  for (const d of list) {
+    g.fillStyle(D.COLOR[d.kind] ?? D.COLOR.drop, D.ALPHA);
+    g.fillRect(d.x * TILE, d.y * TILE, TILE, TILE);
+  }
+  g.fillStyle(D.LIP_COLOR, 1);
+  for (const d of list) if (isOpenId(layout.tiles[d.y - 1]?.[d.x])) g.fillRect(d.x * TILE, d.y * TILE, TILE, D.LIP_PX);
 }

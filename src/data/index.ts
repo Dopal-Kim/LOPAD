@@ -59,6 +59,10 @@ export function validatePlayer(p: PlayerData): PlayerData {
   if (!p.sprint) throw new Error('[data] player.sprint 없음');
   for (const [k, val] of Object.entries(p.sprint)) assertNumber(val, `player.sprint.${k}`);
   if (p.sprint.speedMult < 1) throw new Error('[data] player.sprint.speedMult 는 1 이상');
+  // P19 움직임 감각
+  if (!p.motion) throw new Error('[data] player.motion 없음');
+  for (const k of ['accelMs', 'skidMs', 'skidDot', 'skidMinSpeedRatio', 'leanDeg', 'stopMinSpeedRatio'] as const)
+    assertNumber(p.motion[k], `player.motion.${k}`);
   if (typeof p.startWeapon !== 'string') throw new Error('[data] player.startWeapon 없음');
   assertNumber(p.attackSlowMinMs, 'player.attackSlowMinMs');
   if (p.perfectGuard) assertNumber(p.perfectGuard.windowMs, 'player.perfectGuard.windowMs');
@@ -81,7 +85,7 @@ export function validateEnemies(t: EnemyTable): EnemyTable {
     assertNumber(e.gold, `enemies.${id}.gold`);
     if (e.behavior === 'ranged' && !e.ranged) throw new Error(`[data] enemies.${id}: ranged 파라미터 없음`);
     if (e.behavior === 'charge' && !e.charge) throw new Error(`[data] enemies.${id}: charge 파라미터 없음`);
-    if (!['chase', 'ranged', 'charge', 'throw', 'roll'].includes(e.behavior)) {
+    if (!['chase', 'ranged', 'charge', 'throw', 'roll', 'drum', 'bomb'].includes(e.behavior)) {
       throw new Error(`[data] enemies.${id}.behavior 알 수 없음: ${e.behavior}`);
     }
     // 35라운드 2단계 보조 행동
@@ -357,7 +361,6 @@ export function validateWeaponExtras(w: WeaponDef, path: string): void {
   const blocks: [string, object | undefined, string[]][] = [
     ['weight', w.weight, ['stepPx', 'stepMs', 'postSlowMs', 'finisherStopMs']],
     ['slam', w.slam, ['leapMs', 'recoverMs', 'leapMinPx', 'leapMaxPx', 'radiusPx', 'damageMult']],
-    ['dashSlash', w.dashSlash, ['stepPx', 'stepMs', 'swingMs', 'recoverMs', 'arcDeg', 'fxCombo', 'fxSpawnAtMs']],
   ];
   for (const [name, b, keys] of blocks)
     if (b) for (const k of keys) assertNumber((b as Record<string, unknown>)[k], `${path}.${name}.${k}`);

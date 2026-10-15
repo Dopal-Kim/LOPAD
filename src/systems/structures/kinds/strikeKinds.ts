@@ -4,7 +4,13 @@
  */
 import Phaser from 'phaser';
 import { STRUCTURE_FX, TILE } from '../../../core/Constants';
-import { EventBus, Events, type StructureBellPayload, type StructureFirePayload } from '../../../core/EventBus';
+import {
+  EventBus,
+  Events,
+  type HazardExplodedPayload,
+  type StructureBellPayload,
+  type StructureFirePayload,
+} from '../../../core/EventBus';
 import { gameState } from '../../../core/GameState';
 import type { UiStructureResult } from '../../../contract/ui';
 import type { Mob } from '../../../objects/Mob';
@@ -290,13 +296,67 @@ export class StrikeKinds {
     return n;
   }
 
-  private shatterCask(s: Inst, time: number): void {
+  /**
+   * 술통 깨짐 → 술 웅덩이. P19 연쇄 폭발 (방향 ④B-7): 불붙은 웅덩이 위에서 깨지거나(불) 폭발에 휘말리면(chain) 터진다 —
+   * 반경 blastRadiusTiles 피해(주인공 ×blastPlayerMult) · 웅덩이 점화 · 반경 안 다른 술통이 chainDelayMs 뒤 연쇄
+   */
+  private shatterCask(s: Inst, time: number, chain: number | null = null): void {
+    if (s.state === 'broken') return;
+    if (!s.rolling) this.c.removeBodies(s);
     s.rolling = null;
     s.state = 'broken';
     s.views[0].setRotation(0);
     this.c.setVisual(s, 'broken');
     this.c.emitBroken(s);
-    this.spawnPuddle(s.def, s.rect.centerX, s.rect.centerY, time);
+    const x = s.rect.centerX;
+    const y = s.rect.centerY;
+    const pools = this.c.host.pools;
+    const onFire = pools.pools.some((q) => q.rect.contains(x, y) && pools.burning(q));
+    this.blasting = chain !== null || onFire;
+    const pool = this.spawnPuddle(s.def, x, y, time);
+    if (this.blasting) this.blastCask(s, x, y, chain ?? 0, pool);
+    this.blasting = false;
+  }
+
+  /** P19: 폭발 중 (웅덩이 점화가 같은 술통을 다시 부르지 않게) */
+  private blasting = false;
+
+  private blastCask(s: Inst, x: number, y: number, chain: number, pool: Pool): void {
+    const c = this.c;
+    const d = s.def;
+    const r = num(d, 'blastRadiusTiles') * TILE;
+    EventBus.emit(Events.HAZARD_EXPLODED, { x, y, kind: 'cask', chain } satisfies HazardExplodedPayload);
+    c.host.pools.ignite(pool);
+    const dmg = Math.max(1, Math.round(gameState.attack * num(d, 'blastAttackMult')));
+    for (const child of [...c.host.mobs.getChildren()]) {
+      const m = child as Mob;
+      if (!m.active || Math.hypot(m.x - x, m.y - y) > r) continue;
+      if (c.host.hitMob(m, dmg, { crit: false, dirX: m.x - x, dirY: m.y - y, heavy: true }))
+        c.host.onKill(m, 'environment');
+    }
+    const pl = c.host.player;
+    if (Math.hypot(pl.x - x, pl.y - y) <= r)
+      pl.takeHit(Math.max(1, Math.round(dmg * num(d, 'blastPlayerMult'))), c.now, { dirX: pl.x - x, dirY: pl.y - y });
+    const next = c.list.filter(
+      (o) =>
+        o !== s &&
+        o.kind === 'cask' &&
+        o.state !== 'broken' &&
+        Math.hypot(o.rect.centerX - x, o.rect.centerY - y) <= r + o.rect.width / 2,
+    );
+    if (next.length === 0) return;
+    pl.scene.time.delayedCall(num(d, 'chainDelayMs'), () => {
+      if (!pl.scene.scene.isActive()) return;
+      for (const o of next) this.shatterCask(o, c.now, chain + 1);
+    });
+  }
+
+  /** P19: 웅덩이에 불이 붙으면 그 위에 서 있는 술통이 터진다 (폭발이 붙인 불은 blastCask 가 연쇄를 맡는다) */
+  private igniteCasksOn(p: Pool): void {
+    if (this.blasting) return;
+    for (const o of this.c.list)
+      if (o.kind === 'cask' && o.state !== 'broken' && !o.rolling && p.rect.contains(o.rect.centerX, o.rect.centerY))
+        this.shatterCask(o, this.c.now, 0);
   }
 
   /** 47라운드 술통 웅덩이 수치 (structures.json cask) → 공용 웅덩이 형식 */
@@ -316,15 +376,16 @@ export class StrikeKinds {
       linkGapPx: 0,
       color: STRUCTURE_FX.PUDDLE_COLOR,
       alpha: STRUCTURE_FX.PUDDLE_ALPHA,
-      onIgnite: () => {
+      onIgnite: (p) => {
         EventBus.emit(Events.STRUCTURE_FIRE, { target: 'pool' } satisfies StructureFirePayload);
+        this.igniteCasksOn(p);
         const cask = this.c.find('cask');
         if (cask) this.c.result(cask, 'info', txt(cask.def, 'ignite'), {});
       },
     };
   }
 
-  private spawnPuddle(d: StructureDef, x: number, y: number, time: number): void {
+  private spawnPuddle(d: StructureDef, x: number, y: number, time: number): Pool {
     const size = num(d, 'puddleTiles') * TILE;
     const rect = new Phaser.Geom.Rectangle(x - size / 2, y - size / 2, size, size);
     // 불 수치는 늘 cask 정의 (47라운드 ignitePuddle 과 같게)
@@ -336,6 +397,12 @@ export class StrikeKinds {
       )
     )
       this.c.host.pools.ignite(p);
+    return p;
+  }
+
+  /** P19 S2 형태 틀 위험물 자리 'pool': 처음부터 깔린 술 웅덩이 (마르지 않음 — 불붙이면 불바다) */
+  seedPuddle(x: number, y: number, time: number): void {
+    this.spawnPuddle(structureDef('cask'), x, y, time).until = Infinity;
   }
 
   // --- 1-2 증류 화로 · 화상 ---

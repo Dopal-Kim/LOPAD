@@ -1,4 +1,12 @@
-import type { DeathPoolParams, LiquorPoolParams, RollParams, ThrowParams } from './enemyTypes';
+import type {
+  BombParams,
+  DeathPoolParams,
+  DrumParams,
+  LiquorPoolParams,
+  RollParams,
+  SwingParams,
+  ThrowParams,
+} from './enemyTypes';
 import type { BossPatternName, PatternParams } from './bossPatterns';
 import type { BossDarkLights, BossShowDef } from './bossShowTypes';
 export type { BossPatternName, PatternParams } from './bossPatterns';
@@ -50,6 +58,33 @@ export interface DashParams {
   attackWindowMs: number;
   attackDamageMult: number;
   attackSizeMult: number;
+  /** P19 기본 충전 수 (충전마다 cooldownMs 회복 — 연속 2회 뒤 짧은 공백) */
+  charges: number;
+  /** P19 대쉬 도중 공격 → 그 자리에서 대쉬를 끊고 대쉬 공격 · 대쉬 → 대쉬 (최소 대쉬 ms) */
+  minMs: number;
+  /** P19 대쉬 누름 버퍼 ms (아직 끊을 수 없을 때 누른 대쉬를 이만큼 기억) */
+  bufferMs: number;
+}
+
+/** P19 주인공 움직임 감각 (도영 님 '바보같지 않고 민첩하고 좀 무서운 느낌') — player.json `motion` */
+export interface PlayerMotionParams {
+  /** 0 → 최고 속도 (그리고 멈춤) ms */
+  accelMs: number;
+  /** 반대 방향 입력 미끄럼 ms · 판정(진행 방향과 입력의 cos 가 이보다 작으면) · 이 속도비 이상일 때만 */
+  skidMs: number;
+  skidDot: number;
+  skidMinSpeedRatio: number;
+  /** 이동 기울기 최대 (도) */
+  leanDeg: number;
+  /** 급정지 사건: 이 속도비 이상으로 달리다 손을 뗌 */
+  stopMinSpeedRatio: number;
+  /** 대쉬 시작 늘임 · 끝 압축 (가로 배, 세로 배, ms — 진행 방향 기준: 가로 대쉬면 x 가 진행 축) */
+  dashSquash: { along: number; across: number; ms: number };
+  dashEndSquash: { along: number; across: number; ms: number };
+  /** 연격 타마다 커서 쪽 기본 파고듦 (무기 combo.advance 가 있으면 그것) */
+  attackAdvance: { px: number; ms: number };
+  /** 적 자석: 조준 원뿔(coneDeg) 안 rangeTiles 안의 가장 가까운 적 쪽으로 판정 거리 앞까지 더 파고듦 (최대 maxPx) */
+  magnet: { rangeTiles: number; coneDeg: number; maxPx: number };
 }
 
 export interface ParryParams {
@@ -87,6 +122,8 @@ export interface PlayerData {
   startWeapon: string;
   /** 61라운드 플레이 점검: 런 시작 물약 수 (없으면 0) — 1층 첫 전투의 회복 여유 */
   startPotions?: number;
+  /** P19 움직임 감각 */
+  motion: PlayerMotionParams;
   /** 공격 후 감속이 적용되는 최소 시간 */
   attackSlowMinMs: number;
   /**
@@ -97,7 +134,8 @@ export interface PlayerData {
 }
 
 /** 61라운드 단계 2: throw = 독주 행상(화염 술병) · roll = 술통 짐꾼(술통 굴림) — 수치 형식은 `enemyTypes.ts` */
-export type EnemyBehavior = 'chase' | 'ranged' | 'charge' | 'throw' | 'roll';
+/** P19: drum = 깃발 고수(북 오라) · bomb = 술배 자폭병 */
+export type EnemyBehavior = 'chase' | 'ranged' | 'charge' | 'throw' | 'roll' | 'drum' | 'bomb';
 
 export interface RangedParams {
   keepMinTiles: number;
@@ -123,7 +161,8 @@ export interface ChargeParams {
   dashMs: number;
   cooldownMs: number;
   dashAttack: number;
-  idleAttack: number;
+  /** P19: 돌진이 벽·엄폐에 박히면 스스로 기절하는 ms (없으면 기절 없음) */
+  wallStunMs?: number;
 }
 
 /** 35라운드 2단계: 방패 막기 — 정면 frontDeg(전체 각) 안에서 오는 플레이어 공격·화살 피해를 reduction 만큼 줄인다 */
@@ -162,8 +201,14 @@ export interface EnemyDef {
   deathPool?: DeathPoolParams;
   /** 이 적이 남기는 술 웅덩이(깨진 술통·사망) 성질 — 없으면 술 웅덩이 없음 */
   liquor?: LiquorPoolParams;
+  /** P19 근접 휘두르기 (징집병 베기 · 사수 근접 밀치기 — 예고 뒤 부채꼴) · 깃발 고수 북 · 술배 자폭병 */
+  swing?: SwingParams;
+  drum?: DrumParams;
+  bomb?: BombParams;
   /** 61라운드 단계 2: 이번 런에 처음 나올 때 띄우는 짧은 소개 (STORY notice) */
   intro?: string;
+  /** P19 버팀 (없으면 0 — 모든 타에 움찔). 힘(넉백 단계 + 버팀 무시)이 이보다 커야 움찔. 정예 ×3 */
+  poise?: number;
   /** 처치 시 얻는 개성 수치 (임시, 11라운드) */
   personalityValue: number;
   /** 처치 시 떨어지는 골드 기준값 (13라운드) */
@@ -634,6 +679,12 @@ export interface WeaponWeightDef {
   postSlowMs: number;
   /** 마지막 타 타격 순간부터 완전히 멈추는 시간 */
   finisherStopMs: number;
+  /** P19 휘두른 뒤 몸 쏠림: 정지 구간 첫 leanMs 동안 이동 × leanMoveMult (그 뒤는 공격 감속) · 마무리 타 정지 구간 이동 배율 */
+  leanMs?: number;
+  leanMoveMult?: number;
+  finisherMoveMult?: number;
+  /** P19 판정 순간 카메라 무게 (아래 방향 짧은 흔들림 px · ms) */
+  impactShake?: { px: number; ms: number };
 }
 
 /** 49라운드 Q4: 대검 내리찍기 (충격파 계열 개성 발현 후 마지막 타). 시트 메모가 있으면 시간은 시트 */
@@ -649,20 +700,6 @@ export interface WeaponSlamDef {
   damageMult: number;
 }
 
-/** 49라운드 Q4: 대검 대쉬 공격 — 달려들며 크게 한 번 휘두르고 잠깐 멈춤 */
-export interface WeaponDashSlashDef {
-  stepPx: number;
-  stepMs: number;
-  /** 시트가 없을 때 휘두름 시간 · 멈춤 시간 */
-  swingMs: number;
-  recoverMs: number;
-  /** 판정 부채꼴 각도 */
-  arcDeg: number;
-  /** 시트 fxReuse 가 없을 때 재사용할 연격 이펙트 번호 · 재생 시각 ms */
-  fxCombo: number;
-  fxSpawnAtMs: number;
-}
-
 /** 55라운드 무기별 타격감: 히트스톱(막타·치명타는 FEEL.HITSTOP.HEAVY_MULT 배) · 칼끝 리본 텍스처 · 모든 적중에 흔들림(대검) */
 export interface WeaponFeelDef {
   hitstopMs: number;
@@ -670,8 +707,31 @@ export interface WeaponFeelDef {
   ribbon?: string;
   /** Q8: 흔들림은 막타·치명타만, 이 무기는 모든 적중에 (대검) */
   shakeEveryHit?: boolean;
-  /** 61라운드 플레이 점검: 적중 넉백 거리 배율 (무기 무게 — 대검 크게, 단검 작게. 없으면 1) */
+  /** 61라운드 플레이 점검: 적중 넉백 거리 배율 (무기 무게 — 대검 크게, 단검 작게. 없으면 1). P19: 넉백 1단계에만 */
   knockbackMult?: number;
+  /** P19 무기별 타격 반응 모양 (systems/reactions `strikeReaction`) */
+  reaction?: WeaponReactionDef;
+}
+
+/** P19 무기 '반응 모양' (방향 문서 ④B 표 — 칼 띄움 · 대검 날림 · 단검 흔들기 · 활 꽂기) */
+export interface WeaponReactionDef {
+  /** 연격 타별 넉백 단계 (없으면 1) */
+  comboTiers?: number[];
+  /** 막타·대쉬 공격 단계 (기본 2) */
+  heavyTier?: number;
+  /** 강한 동작(차지·strongMoves) 단계 (기본 3) */
+  strongTier?: number;
+  /** 강한 동작으로 치는 공격 수단 id (홀드 해제·태클·도약 등) */
+  strongMoves?: string[];
+  /** 활 완벽 놓기 단계 */
+  perfectTier?: number;
+  /** 띄우는 연격 타 번호 · 띄우는 동작 id */
+  launchCombo?: number[];
+  launchMoves?: string[];
+  /** 띄울 수 있는 버팀 상한 (기본 0 = 징집병·사수만) */
+  launchMaxPoise?: number;
+  /** 버팀 무시 (단검 1 — 매 타 움찔) */
+  poisePierce?: number;
 }
 
 export interface WeaponDef {
@@ -684,7 +744,6 @@ export interface WeaponDef {
   /** 49라운드: 대검 무게감 · 내리찍기 · 대쉬 공격 */
   weight?: WeaponWeightDef;
   slam?: WeaponSlamDef;
-  dashSlash?: WeaponDashSlashDef;
   damageMult: number;
   /** 치명타 확률 보너스 (%p). 예리함 축 */
   critBonus: number;

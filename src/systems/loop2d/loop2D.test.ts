@@ -139,10 +139,10 @@ describe('62 D 데이터 합침 (스토리 63 팩)', () => {
     expect(BUNDLE2.shop.labels.reroll).toBe('다시 진열');
   });
 
-  it('1층 단1·단3 웨이브 6 (P2-14)', () => {
+  it('1층 단1·단3 웨이브 3 (P2-14 웨이브 6 → P19 ④D 겹치는 웨이브 2~3)', () => {
     const cols = ROUTE.floors.stage1.columns!;
-    expect(cols[0].waves?.length).toBe(6);
-    expect(cols[2].waves?.length).toBe(6);
+    expect(cols[0].waves?.length).toBe(3);
+    expect(cols[2].waves?.length).toBe(3);
   });
 });
 

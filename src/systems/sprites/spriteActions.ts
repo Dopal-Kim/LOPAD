@@ -3,8 +3,11 @@
 /** 60라운드: items = 월드 아이템 (계약 art §22 `items/v3/consumable_f1` — 구조물 시트 형식, 경로 `sprites/items/<이름>.json`) */
 export type SpriteCategory = 'player' | 'enemies' | 'bosses' | 'weapons' | 'fx' | 'structures' | 'items';
 
-/** 계약 §1 동작 목록 (+ 52라운드 Q13 달리기 `run` — 없으면 walk) */
-export const PLAYER_ACTIONS = ['idle', 'walk', 'run', 'attack', 'dash', 'hurt', 'death'] as const;
+/** P19 art §35: 달리다 반대로 꺾을 때 미끄럼 몸 `player_turn_skid` (+ 휴대 `<무기>_carry[_drawn]_turn_skid`) */
+export const TURN_SKID_ACTION = 'turn_skid';
+
+/** 계약 §1 동작 목록 (+ 52라운드 Q13 달리기 `run` — 없으면 walk · P19 turn_skid) */
+export const PLAYER_ACTIONS = ['idle', 'walk', 'run', 'attack', 'dash', 'hurt', 'death', TURN_SKID_ACTION] as const;
 
 export const MOB_ACTIONS = ['idle', 'walk', 'attack', 'hurt', 'death'] as const;
 
@@ -77,9 +80,9 @@ export function motionAction(weaponId: string, motion: WeaponMotion): string {
 }
 
 /** 49라운드 §7.1 휴대 오버레이 동작 `weapons/<무기>_carry_<idle|walk|dash>` (+ 52라운드 Q13 `run`) */
-export type CarryAction = 'idle' | 'walk' | 'run' | 'dash';
+export type CarryAction = 'idle' | 'walk' | 'run' | 'dash' | 'turn_skid';
 
-export const CARRY_ACTIONS: readonly CarryAction[] = ['idle', 'walk', 'run', 'dash'];
+export const CARRY_ACTIONS: readonly CarryAction[] = ['idle', 'walk', 'run', 'dash', 'turn_skid'];
 
 export function carryAction(a: CarryAction): string {
   return `carry_${a}`;
@@ -117,7 +120,13 @@ export function bodyBaseAction(action: string): string {
 /** 몸 동작 → 휴대 오버레이 동작 (idle·walk·run·dash 그대로 — 무기별 자세 변형 포함, 피격·뽑기·넣기는 idle). 사망·탄생은 null(숨김) */
 export function carryActionFor(bodyAction: string): CarryAction | null {
   const playerAction = bodyBaseAction(bodyAction);
-  if (playerAction === 'walk' || playerAction === 'run' || playerAction === 'dash' || playerAction === 'idle')
+  if (
+    playerAction === 'walk' ||
+    playerAction === 'run' ||
+    playerAction === 'dash' ||
+    playerAction === 'idle' ||
+    playerAction === TURN_SKID_ACTION
+  )
     return playerAction;
   if (playerAction === 'death' || playerAction === BIRTH_ACTION) return null;
   return 'idle';

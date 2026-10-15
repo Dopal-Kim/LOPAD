@@ -1,18 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { ARENA_SHAPES } from '../../data/arenas';
 import { generateArena } from '../mapgen/arena';
+import { buildShape } from '../mapgen/shape';
 import { TileId } from '../mapgen/types';
 import { alongDoor, arenaDoors, entryWalk, inThreshold, pastMouth, planDoor } from './doorPlan';
 
 const T = 16;
-const edge = {
-  maxInset: 3,
-  run: [2, 5] as [number, number],
-  gaps: [1, 2] as [number, number],
-  gapWidth: [2, 4] as [number, number],
-  cornerMarginTiles: 3,
-  keepClearTiles: 2,
-};
-const arena = (seed: number, o: { shift?: number; edge?: boolean; center?: boolean } = {}) =>
+const arena = (seed: number, o: { shift?: number; center?: boolean } = {}) =>
   generateArena({
     roomId: 'n',
     type: 'trial',
@@ -24,7 +18,6 @@ const arena = (seed: number, o: { shift?: number; edge?: boolean; center?: boole
     exitInset: 3,
     spawnShiftY: o.shift ?? 0,
     spawnExactCenter: o.center,
-    edge: o.edge === false ? undefined : edge,
     seed,
   });
 
@@ -44,10 +37,24 @@ describe('62 루프 2 E 문 나가기 — 문 자리', () => {
     expect(d.entry!.mouth).toEqual({ x: I.x * T, y: (A.spawn.y + 0.5) * T });
   });
 
-  it('들쭉날쭉한 가장자리여도 문 줄 앞은 깎이지 않는다 (여러 시드 · 줄 이동)', () => {
-    for (let seed = 1; seed <= 40; seed++)
-      for (const shift of [-3, 0, 3]) {
-        const L = arena(seed, { shift });
+  it('P19 형태 틀 전장(모든 형태 · 뒤집기 · 배율)도 문 칸 = 벽, 문 줄 바닥이 벽까지 곧게', () => {
+    for (const def of ARENA_SHAPES.values())
+      for (const [flipX, flipY, scale] of [
+        [false, false, 1],
+        [true, true, def.variants.scale[0]],
+        [true, false, def.variants.scale[1]],
+      ] as const) {
+        const L = generateArena({
+          roomId: 'n',
+          type: 'trial',
+          floor: 'trial',
+          w: 0,
+          h: 0,
+          margin: 8,
+          spawnInset: 3,
+          exitInset: 3,
+          shape: buildShape(def, { flipX, flipY, scale }),
+        });
         const I = L.rooms[0].interior;
         const d = arenaDoors(L, T, 3, true);
         expect(d.exit).not.toBeNull();
@@ -70,7 +77,7 @@ describe('62 루프 2 E 문 나가기 — 문 자리', () => {
   });
 
   it('문턱 판정: 벽 안쪽 1칸 띠만 (그 앞 칸·문 칸은 아님)', () => {
-    const L = arena(11, { edge: false });
+    const L = arena(11);
     const spot = arenaDoors(L, T, 3, true).exit!;
     const t = spot.threshold;
     expect(inThreshold(spot, (t.x + 0.5) * T, (t.y + 1.5) * T, T)).toBe(true);
@@ -80,7 +87,7 @@ describe('62 루프 2 E 문 나가기 — 문 자리', () => {
   });
 
   it('문 따라 거리 · 바닥 끝에서 나간 거리', () => {
-    const L = arena(5, { edge: false });
+    const L = arena(5);
     const spot = arenaDoors(L, T, 3, true).exit!;
     const p = alongDoor(spot, 40);
     expect(p).toEqual({ x: spot.mouth.x + 40, y: spot.mouth.y });
@@ -89,7 +96,7 @@ describe('62 루프 2 E 문 나가기 — 문 자리', () => {
   });
 
   it('들어오는 걸음: 시작점은 늘 문 안(바닥 끝 바깥), 목표는 가까운 시작점 · 먼 시작점이면 문 앞', () => {
-    const L = arena(9, { edge: false });
+    const L = arena(9);
     const A = L.arena!;
     const spot = arenaDoors(L, T, 3, true).entry!;
     const spawn = { x: (A.spawn.x + 0.5) * T, y: (A.spawn.y + 0.5) * T };
@@ -107,7 +114,7 @@ describe('62 루프 2 E 문 나가기 — 문 자리', () => {
   });
 
   it('북·남 문도 같은 규칙 (방향만 바뀜)', () => {
-    const L = arena(2, { edge: false });
+    const L = arena(2);
     const I = L.rooms[0].interior;
     const n = planDoor(L, 'north', I.x + 10, 3, T)!;
     expect(n.threshold).toEqual({ x: I.x + 9, y: I.y, w: 3, h: 1 });

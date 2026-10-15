@@ -58,9 +58,13 @@ export function speedUpAura(aura: AuraObject | undefined): void {
 // --- 플레이스홀더 (시트가 없을 때) ---
 
 /** 점선: 원점에서 +x 로 lengthPx */
-export function drawDashedLine(g: Phaser.GameObjects.Graphics, lengthPx: number): void {
+export function drawDashedLine(
+  g: Phaser.GameObjects.Graphics,
+  lengthPx: number,
+  color: number = ENEMY_FX.PLACEHOLDER.COLOR,
+): void {
   const P = ENEMY_FX.PLACEHOLDER;
-  g.lineStyle(ENEMY_FX.BOLD.PLACEHOLDER_LINE_WIDTH, P.COLOR, 1);
+  g.lineStyle(ENEMY_FX.BOLD.PLACEHOLDER_LINE_WIDTH, color, 1);
   for (let x = 0; x < lengthPx; x += P.DASH_PX + P.GAP_PX) {
     g.beginPath();
     g.moveTo(x, 0);
@@ -98,16 +102,23 @@ export function drawDashedPolyline(g: Phaser.GameObjects.Graphics, points: reado
   g.setAlpha(P.ALPHA);
 }
 
-export function drawCircle(g: Phaser.GameObjects.Graphics, r: number): void {
-  const P = ENEMY_FX.PLACEHOLDER;
-  g.lineStyle(ENEMY_FX.BOLD.PLACEHOLDER_LINE_WIDTH, P.COLOR, 1);
+export function drawCircle(
+  g: Phaser.GameObjects.Graphics,
+  r: number,
+  color: number = ENEMY_FX.PLACEHOLDER.COLOR,
+): void {
+  g.lineStyle(ENEMY_FX.BOLD.PLACEHOLDER_LINE_WIDTH, color, 1);
   g.strokeCircle(0, 0, r);
 }
 
 /** 부채꼴: +x 기준 ±half (통째로 회전해 쓴다) */
-export function drawCone(g: Phaser.GameObjects.Graphics, r: number, half: number): void {
-  const P = ENEMY_FX.PLACEHOLDER;
-  g.lineStyle(ENEMY_FX.BOLD.PLACEHOLDER_LINE_WIDTH, P.COLOR, 1);
+export function drawCone(
+  g: Phaser.GameObjects.Graphics,
+  r: number,
+  half: number,
+  color: number = ENEMY_FX.PLACEHOLDER.COLOR,
+): void {
+  g.lineStyle(ENEMY_FX.BOLD.PLACEHOLDER_LINE_WIDTH, color, 1);
   g.beginPath();
   g.moveTo(0, 0);
   g.lineTo(Math.cos(-half) * r, Math.sin(-half) * r);
@@ -117,13 +128,18 @@ export function drawCone(g: Phaser.GameObjects.Graphics, r: number, half: number
 }
 
 /** 닫히는 원: 남은 시간 비율(ratio)로 반지름이 줄어드는 안쪽 원 */
-export function drawClosing(g: Phaser.GameObjects.Graphics, radiusPx: number, ratio: number): void {
+export function drawClosing(
+  g: Phaser.GameObjects.Graphics,
+  radiusPx: number,
+  ratio: number,
+  color: number = ENEMY_FX.PLACEHOLDER.COLOR,
+): void {
   const B = ENEMY_FX.BOLD;
   const r = Math.max(1, Math.round(radiusPx * Math.max(B.CLOSING_MIN_RATIO, ratio)));
   g.clear();
-  g.fillStyle(ENEMY_FX.PLACEHOLDER.COLOR, B.CLOSING_FILL_ALPHA);
+  g.fillStyle(color, B.CLOSING_FILL_ALPHA);
   g.fillCircle(0, 0, r);
-  g.lineStyle(B.CLOSING_LINE_WIDTH, ENEMY_FX.PLACEHOLDER.COLOR, B.CLOSING_LINE_ALPHA);
+  g.lineStyle(B.CLOSING_LINE_WIDTH, color, B.CLOSING_LINE_ALPHA);
   g.strokeCircle(0, 0, r);
 }
 

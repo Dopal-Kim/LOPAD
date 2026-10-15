@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH, ENEMY_FX, TILE, entityDepth } from '../core/Constants';
+import { COLORS, DEPTH, ENEMY_FX, ENEMY_SQUAD, TILE, entityDepth, type TelegraphTier } from '../core/Constants';
 import {
   EventBus,
   type EnemyDiedPayload,
   Events,
   type EnemyAttackPayload,
   type EnemyBehaviorPayload,
+  type EnemyStaggeredPayload,
   type EnemyTelegraphPayload,
 } from '../core/EventBus';
 import { ENEMIES } from '../data';
@@ -15,6 +16,8 @@ import { anchorOffset } from '../systems/sprites/spriteMeta';
 import type { Facing } from '../systems/sprites/spriteDefs';
 import { Mob, type MobContext } from './Mob';
 import { PeddlerBrain, PorterBrain, type BrainBody } from './enemy/hazardBrains';
+import { BombBrain, DrumBrain, MeleeSwing, SwarmBrain } from './enemy/squadBrains';
+import type { MobSquad } from '../systems/squad';
 import type { EnemyHazardApi } from '../systems/hazards/enemyHazardTypes';
 
 type ChargeState = 'approach' | 'telegraph' | 'dash' | 'cooldown';
@@ -23,6 +26,8 @@ type RangedState = 'move' | 'aim' | 'reload';
 /**
  * 일반 적. 행동은 data/enemies.json 의 behavior 로 결정.
  * 35라운드 2단계: 결사병 돌진 예고선·방패 막기, 사수 조준선·총구 화염·재장전, 징집병 집단 돌격.
+ * P19 (계약 free-combat §2): 접촉 피해 없음 — 예고·공격은 공격 토큰(MobContext.squad)을 받아야 시작한다.
+ * 징집병 포위·휘두르기(SwarmBrain) · 사수 근접 밀치기 · 결사병 벽에 박히면 스스로 기절 · 깃발 고수 · 술배 자폭병.
  */
 export class Enemy extends Mob {
   readonly def: EnemyDef;
@@ -35,6 +40,8 @@ export class Enemy extends Mob {
   private rangedState: RangedState = 'move';
   private rangedUntil = 0;
   private shotsFired = 0;
+  /** P19 사수: 토큰이 없을 때 옆으로 흘러가는 쪽 (막히면 뒤집는다) */
+  private strafe: 1 | -1;
   /** 활성 예고 마커 (돌진 경로·조준선) */
   private marker: TelegraphHandle | null = null;
   /** 집단 돌격: 마지막으로 이벤트를 낸 발동 시각 */
@@ -42,8 +49,13 @@ export class Enemy extends Mob {
   private packActive = false;
 
   private readonly stageScale: EnemyScale;
-  /** 61라운드 단계 2: 독주 행상·술통 짐꾼 행동 (그 밖의 적은 null) */
-  private readonly brain: PeddlerBrain | PorterBrain | null;
+  /** 61라운드 단계 2: 독주 행상·술통 짐꾼 행동 · P19 깃발 고수·술배 자폭병 (그 밖의 적은 null) */
+  private readonly brain: PeddlerBrain | PorterBrain | DrumBrain | BombBrain | null;
+  /** P19 징집병 포위·휘두르기 · 사수 근접 밀치기 */
+  private readonly swarm: SwarmBrain | null;
+  private readonly closeSwing: MeleeSwing | null;
+  /** P19 마지막으로 받은 무리 조율 (토큰 반납·북 배율) */
+  private squad: MobSquad | null = null;
   /** 마지막으로 받은 위험물 창구 (쓰러질 때 술 웅덩이) */
   private hazards: EnemyHazardApi | null = null;
 
@@ -54,15 +66,27 @@ export class Enemy extends Mob {
     this.def = def;
     this.id = id;
     this.stageScale = scale;
+    // P19 버팀 (정예 배율은 reactions.effectivePoise)
+    this.poise = def.poise ?? 0;
+    const body = this.brainBody();
     this.brain =
       def.behavior === 'throw'
-        ? new PeddlerBrain(this.brainBody())
+        ? new PeddlerBrain(body)
         : def.behavior === 'roll'
-          ? new PorterBrain(this.brainBody())
-          : null;
+          ? new PorterBrain(body)
+          : def.behavior === 'drum' && def.drum
+            ? new DrumBrain(body, def.drum, scene)
+            : def.behavior === 'bomb' && def.bomb
+              ? new BombBrain(body, def.bomb)
+              : null;
+    this.swarm = def.behavior === 'chase' && def.swing ? new SwarmBrain(body, def.swing) : null;
+    this.closeSwing = def.behavior === 'ranged' && def.swing ? new MeleeSwing(body, def.swing) : null;
+    this.strafe = Math.floor(x) % 2 === 0 ? 1 : -1;
     this.once(Phaser.GameObjects.Events.DESTROY, () => {
       this.clearMarker();
       this.brain?.interrupt(0);
+      this.squad?.release(this);
+      if (this.brain instanceof DrumBrain) this.brain.destroy();
     });
   }
 
@@ -92,29 +116,59 @@ export class Enemy extends Mob {
         return self.def;
       },
       get attackRateMult() {
-        return self.attackRateMult;
+        return self.rate;
       },
       get active() {
         return self.active;
       },
+      get elite() {
+        return self.elite !== null;
+      },
+      self,
+      id: self.id,
       attackScale: () => self.stageScale.attack,
       moveTo: (x, y, speed) => self.moveToward(x, y, speed),
-      attackAnim: (time) => self.playAttack(time),
+      attackAnim: (time, fitMs) => self.playAttack(time, fitMs),
+      paint: (color) => self.paint(color),
+      restore: () => self.restoreColor(),
     };
+  }
+
+  /** P19 공격 속도 배율 = 엘리트 접두어 × 깃발 고수 북 */
+  private get rate(): number {
+    return this.attackRateMult * (this.squad?.drumMult(this.x, this.y, this.scene.time.now) ?? 1);
+  }
+
+  /** P19 공격 토큰 (squad 가 없으면 늘 받음) */
+  private takeToken(ctx: MobContext): boolean {
+    return ctx.squad ? ctx.squad.take(this, this.id, this.elite !== null) : true;
   }
 
   /** 디버그: 행동 상태 */
   get behaviorState(): string {
     if (this.brain) return this.brain.state;
     if (this.def.behavior === 'charge') return this.chargeState;
-    if (this.def.behavior === 'ranged') return this.rangedState;
+    if (this.def.behavior === 'ranged') return this.closeSwing?.busy ? this.closeSwing.phase : this.rangedState;
+    if (this.swarm) return this.swarm.state;
     return this.packActive ? 'pack' : 'chase';
+  }
+
+  /** P19 예고·공격 중인 위협 단계 (계약 free-combat §2·§4) */
+  override get threat(): TelegraphTier | null {
+    if (this.brain) return this.brain.threat;
+    if (this.swarm) return this.swarm.threat;
+    if (this.closeSwing?.busy) return 'warn';
+    if (this.def.behavior === 'charge')
+      return this.chargeState === 'telegraph' || this.chargeState === 'dash' ? 'warn' : null;
+    if (this.def.behavior === 'ranged') return this.rangedState === 'aim' ? 'ranged' : null;
+    return null;
   }
 
   /** 62 루프 4 소매치기: 돌진 예고 · 조준선 · 술병·술통 들어 올림 */
   override get windingUp(): boolean {
-    if (this.brain) return this.brain.state === 'windup';
-    return this.chargeState === 'telegraph' || this.rangedState === 'aim';
+    if (this.brain) return this.brain.state === 'windup' || this.brain.state === 'fuse';
+    if (this.swarm) return this.swarm.state === 'windup';
+    return this.chargeState === 'telegraph' || this.rangedState === 'aim' || this.closeSwing?.phase === 'windup';
   }
 
   get shotsSinceReload(): number {
@@ -128,6 +182,7 @@ export class Enemy extends Mob {
       return;
     }
     this.hazards = ctx.hazards ?? null;
+    this.squad = ctx.squad ?? null;
     // 62 루프 4 맨손: 공격 없이 주인공에게서 물러선다
     if (this.isDisarmed(ctx.time)) {
       const v = new Phaser.Math.Vector2(this.x - ctx.player.x, this.y - ctx.player.y)
@@ -165,11 +220,9 @@ export class Enemy extends Mob {
     return this.def.gold;
   }
 
+  /** P19 접촉 피해 없음: 결사병 돌진 중만 몸이 공격이다 */
   protected currentContactAttack(): number {
-    if (this.def.behavior === 'charge' && this.def.charge) {
-      return this.atk(this.chargeState === 'dash' ? this.def.charge.dashAttack : this.def.charge.idleAttack);
-    }
-    return this.atk(this.def.attack);
+    return this.def.charge && this.chargeState === 'dash' ? this.atk(this.def.charge.dashAttack) : 0;
   }
 
   protected contactIntervalMs(): number {
@@ -179,6 +232,8 @@ export class Enemy extends Mob {
   protected onDeath(): void {
     this.clearMarker();
     this.brain?.interrupt(this.scene.time.now);
+    // P19 술배 자폭병: 쓰러진 자리에서 잠시 뒤 터진다 (스스로 터졌으면 없음)
+    if (this.brain instanceof BombBrain) this.brain.onDeath(this.scene);
     // 61라운드 단계 2: 독주 행상·술통 짐꾼은 쓰러진 자리에 술 웅덩이 (불이 닿으면 술불)
     const P = this.def.deathPool;
     if (P && this.def.liquor && this.hazards)
@@ -186,9 +241,28 @@ export class Enemy extends Mob {
     EventBus.emit(Events.ENEMY_DIED, { id: this.id, elite: this.elite !== null } satisfies EnemyDiedPayload);
   }
 
+  /** P19: 결사병 돌진 중에는 움찔하지 않는다 (돌진은 벽에 박혀야 멈춘다) */
+  override canStagger(time: number): boolean {
+    return super.canStagger(time) && !(this.def.behavior === 'charge' && this.chargeState === 'dash');
+  }
+
+  /** P19 술배 자폭병: 맞으면 불이 붙는다 (날아간 자리에서 터진다) */
+  override takeDamage(amount: number, info: Parameters<Mob['takeDamage']>[1] = {}): boolean {
+    const died = super.takeDamage(amount, info);
+    if (!died && !info.tick && this.brain instanceof BombBrain) this.brain.onHit();
+    return died;
+  }
+
   protected onStunned(): void {
     this.clearMarker();
-    this.brain?.interrupt(this.scene.time.now);
+    const now = this.scene.time.now;
+    this.brain?.interrupt(now);
+    // P19: 징집병은 짧은 움찔이면 토큰을 쥔 채 다시 붙는다 (경직·맨손·띄움이면 내려놓는다)
+    const flinchOnly = !this.isStunned(now) && !this.isDisarmed(now) && !this.airborne;
+    const keep = this.swarm?.interrupt(now, flinchOnly) ?? false;
+    this.closeSwing?.interrupt();
+    // P19: 끊긴 공격의 토큰을 반납 (자폭병의 불붙은 심지는 꺼지지 않는다 — 토큰도 그대로)
+    if (!keep && !(this.brain instanceof BombBrain && this.brain.phase === 'fuse')) this.squad?.release(this);
     if (this.def.behavior === 'charge') this.chargeState = 'approach';
     if (this.def.behavior === 'ranged' && this.rangedState === 'aim') this.rangedState = 'move';
   }
@@ -229,7 +303,8 @@ export class Enemy extends Mob {
       }
       this.packActive = active;
     }
-    this.moveToward(ctx.player.x, ctx.player.y, speed);
+    if (this.swarm) this.swarm.think(ctx, speed);
+    else this.moveToward(ctx.player.x, ctx.player.y, speed);
   }
 
   // --- 사수: 거리 유지 → 조준선 → 발사(총구 화염·탄) → n발 뒤 재장전(후퇴) ---
@@ -240,6 +315,14 @@ export class Enemy extends Mob {
     const speed = this.def.speedTiles * TILE;
     const away = () => new Phaser.Math.Vector2(this.x - ctx.player.x, this.y - ctx.player.y).normalize().scale(speed);
 
+    // P19 근접 밀치기: 붙은 주인공을 뒷걸음치며 밀친다 (토큰)
+    const S = this.closeSwing;
+    if (S && !S.busy && this.rangedState === 'move' && S.inReach(ctx) && this.takeToken(ctx)) S.start(ctx);
+    if (S?.busy) {
+      if (S.update(ctx)) this.squad?.release(this);
+      return;
+    }
+
     if (this.rangedState === 'reload') {
       // 재장전: 사격 없이 뒤로 물러난다 (애니는 걷기/대기 그대로)
       const v = away().scale(R.reload?.retreatSpeedMult ?? 1);
@@ -247,7 +330,7 @@ export class Enemy extends Mob {
       if (ctx.time >= this.rangedUntil) {
         this.rangedState = 'move';
         this.shotsFired = 0;
-        this.nextShotAt = ctx.time + (this.def.attackIntervalMs * 0.5) / Math.max(0.1, this.attackRateMult);
+        this.nextShotAt = ctx.time + (this.def.attackIntervalMs * 0.5) / Math.max(0.1, this.rate);
       }
       return;
     }
@@ -261,6 +344,7 @@ export class Enemy extends Mob {
         this.clearMarker();
         this.rangedState = 'move';
         this.shoot(ctx);
+        this.squad?.release(this);
       }
       return;
     }
@@ -271,10 +355,18 @@ export class Enemy extends Mob {
     } else if (dist > R.keepMaxTiles * TILE) {
       this.moveToward(ctx.player.x, ctx.player.y, speed);
     } else {
-      this.body.setVelocity(0, 0);
+      // P19: 거리 안에서는 옆으로 흘러간다 (서서 기다리지 않는다)
+      if (!this.body.blocked.none) this.strafe = this.strafe === 1 ? -1 : 1;
+      const v = away().normalize();
+      const k = speed * 0.5 * this.strafe;
+      this.body.setVelocity(-v.y * k, v.x * k);
     }
     if (ctx.time >= this.nextShotAt && dist <= R.keepMaxTiles * TILE * 1.5) {
-      this.nextShotAt = ctx.time + this.def.attackIntervalMs / Math.max(0.1, this.attackRateMult);
+      if (!this.takeToken(ctx)) {
+        this.nextShotAt = ctx.time + ENEMY_SQUAD.RETRY_MS;
+        return;
+      }
+      this.nextShotAt = ctx.time + this.def.attackIntervalMs / Math.max(0.1, this.rate);
       const tele = R.telegraphMs ?? 0;
       if (tele > 0) {
         this.rangedState = 'aim';
@@ -282,9 +374,12 @@ export class Enemy extends Mob {
         this.body.setVelocity(0, 0);
         const a = Math.atan2(ctx.player.y - this.y, ctx.player.x - this.x);
         const c = this.body.center;
-        this.marker = ctx.telegraph.line(c.x, c.y, a, (R.telegraphTiles ?? 3) * TILE, tele);
+        this.marker = ctx.telegraph.line(c.x, c.y, a, (R.telegraphTiles ?? 3) * TILE, tele, { tier: 'ranged' });
         EventBus.emit(Events.ENEMY_TELEGRAPH, { id: this.id, kind: 'shot' } satisfies EnemyTelegraphPayload);
-      } else this.shoot(ctx);
+      } else {
+        this.shoot(ctx);
+        this.squad?.release(this);
+      }
     }
   }
 
@@ -347,6 +442,11 @@ export class Enemy extends Mob {
       case 'approach':
         this.moveToward(ctx.player.x, ctx.player.y, this.def.speedTiles * TILE);
         if (dist <= C.triggerTiles * TILE) {
+          // P19 공격 토큰: 못 받으면 돌진 거리에서 버티고 선다
+          if (!this.takeToken(ctx)) {
+            this.body.setVelocity(0, 0);
+            break;
+          }
           this.chargeState = 'telegraph';
           this.chargeUntil = ctx.time + C.telegraphMs;
           this.body.setVelocity(0, 0);
@@ -355,7 +455,10 @@ export class Enemy extends Mob {
           // 돌진 경로 예고선: 길이 = 돌진 거리, 방향은 예고 끝까지 플레이어를 따라간다
           const c = this.body.center;
           const a = Math.atan2(ctx.player.y - this.y, ctx.player.x - this.x);
-          this.marker = ctx.telegraph.line(c.x, c.y, a, this.dashDistancePx(), C.telegraphMs, { aura: true });
+          this.marker = ctx.telegraph.line(c.x, c.y, a, this.dashDistancePx(), C.telegraphMs, {
+            aura: true,
+            tier: 'warn',
+          });
           EventBus.emit(Events.ENEMY_TELEGRAPH, { id: this.id, kind: 'dash' } satisfies EnemyTelegraphPayload);
         }
         break;
@@ -374,14 +477,28 @@ export class Enemy extends Mob {
           EventBus.emit(Events.ENEMY_ATTACK, { id: this.id, kind: 'dash' } satisfies EnemyAttackPayload);
         }
         break;
-      case 'dash':
+      case 'dash': {
         this.body.setVelocity(this.dashDir.x * C.dashSpeedTiles * TILE, this.dashDir.y * C.dashSpeedTiles * TILE);
-        if (ctx.time >= this.chargeUntil || this.body.blocked.none === false) {
+        const wall = this.body.blocked.none === false;
+        if (ctx.time >= this.chargeUntil || wall) {
+          this.squad?.release(this);
           this.chargeState = 'cooldown';
           this.chargeUntil = ctx.time + C.cooldownMs;
           this.body.setVelocity(0, 0);
+          // P19: 벽·엄폐에 박히면 스스로 기절 (벽꽝 교재)
+          if (wall && C.wallStunMs) {
+            this.stun(ctx.time, C.wallStunMs, 'hit');
+            EventBus.emit(Events.ENEMY_STAGGERED, {
+              id: this.id,
+              x: this.x,
+              y: this.y,
+              kind: 'stagger',
+              ms: C.wallStunMs,
+            } satisfies EnemyStaggeredPayload);
+          }
         }
         break;
+      }
       case 'cooldown':
         this.body.setVelocity(0, 0);
         if (ctx.time >= this.chargeUntil) this.chargeState = 'approach';

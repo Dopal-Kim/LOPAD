@@ -160,7 +160,8 @@ export class BuildDefense implements PlayerBuildHooks {
 
   dashCharges(): number {
     // 62 루프 2 C: 기억의 소품 '닳은 매듭 끈' 대쉬 충전 +1
-    return 1 + this.rt.stat('dashCharges') + (this.g.lab ? 0 : gameState.memory.dashCharges);
+    // P19: 기본 충전은 player.json dash.charges (2)
+    return PLAYER_DATA.dash.charges + this.rt.stat('dashCharges') + (this.g.lab ? 0 : gameState.memory.dashCharges);
   }
 
   shadowStepCooldown(baseMs: number): number {

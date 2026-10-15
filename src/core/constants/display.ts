@@ -97,9 +97,13 @@ export const CAMERA = {
   /** 보간이 이 거리(px) 안이면 목표에 붙인다 (미세 진동 방지) */
   SNAP_PX: 0.25,
   /**
-   * 48라운드 Q1: 게임 월드 카메라 확대 (논리 960×540 → 한 화면 약 30×17타일). UI 씬은 별도 카메라라 무관.
+   * 48라운드 Q1: 게임 월드 카메라 확대. UI 씬은 별도 카메라라 무관.
    * 데드존·흔들림 px 는 논리 화면 px 기준이라 월드 px 로는 ÷ZOOM 해서 쓴다 (흔들림 체감 유지, 임시).
-   * 52라운드: 이 값은 **논리** 배율 — 실제 카메라 zoom = ZOOM × RENDER.RESOLUTION (`display.worldZoom`)
+   * 52라운드: 이 값은 **논리** 배율 — 실제 카메라 zoom = ZOOM × RENDER.RESOLUTION (`display.worldZoom`).
+   * P19 E (계약 free-combat §4): 탐색 2 → 1.75 (한 화면 34×19칸) · 전투 중(살아 있는 적 ≥ 1) 1.6 · 보스 1.5, 바뀔 때 EASE_MS 에 걸쳐
    */
-  ZOOM: RENDER.WORLD_TO_SCREEN,
+  ZOOM: 1.75,
+  ZOOM_COMBAT: 1.6,
+  ZOOM_BOSS: 1.5,
+  ZOOM_EASE_MS: 600,
 };

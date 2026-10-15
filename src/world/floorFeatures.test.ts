@@ -3,11 +3,19 @@ import { ROUTE, type RouteNode } from '../systems/route';
 import { planNodeArena } from '../systems/routeArena';
 import { TileId, type FloorLayout } from '../systems/mapgen';
 import { planBigProps } from './bigProps';
-import { planCanal, planDecals, type CanalJson } from './floorFeatures';
+import { canalFromArena, planDecals, type CanalJson } from './floorFeatures';
 
-const arena = (seed: string) => {
-  const n = { id: 'c3r0', kind: 'battle', type: 'battle', name: '', col: 3, row: 0, links: [] } as unknown as RouteNode;
-  return planNodeArena(n, 'stage1', seed, ROUTE, { quarterTileset: () => true, border: () => true }).layout;
+const arena = (seed: string, col = 3) => {
+  const n = {
+    id: `c${col}r0`,
+    kind: 'battle',
+    type: 'battle',
+    name: '',
+    col,
+    row: 0,
+    links: [],
+  } as unknown as RouteNode;
+  return planNodeArena(n, 'stage1', seed, ROUTE, { border: () => true }).layout;
 };
 
 const canal: CanalJson = {
@@ -45,31 +53,26 @@ function connected(L: FloorLayout, blocked: Set<string>): boolean {
 }
 
 describe('53라운드 4지역 바닥 특징 (데칼 · 양조 수로)', () => {
-  it('수로: 가로 한 줄, 다리 2칸만 걷기 가능, 다리 좌우는 밝은 판, 시작점·출구 줄 피함, 바닥 연결 유지', () => {
+  it('P19 S2 수로 = 형태 틀 물 칸(빈 칸 — 걷기 막힘)·다리 칸(바닥), 다리 같은 줄 가까운 물은 밝은 판, 바닥 연결 유지', () => {
     for (const seed of ['a', 'b', 'c', 'd']) {
-      const L = arena(seed);
-      const plan = planCanal(L, canal, new Set())!;
+      const L = arena(seed, 5); // 양조 구역 전투 노드 — 부두·술창고·증류소 마당
+      const plan = canalFromArena(L, canal)!;
       expect(plan).not.toBeNull();
-      expect(new Set(plan.tiles.map((t) => t.y)).size).toBe(1);
-      expect(plan.tiles.filter((t) => t.kind === 'bridgeL')).toHaveLength(1);
-      expect(plan.tiles.filter((t) => t.kind === 'bridgeR')).toHaveLength(1);
-      expect(plan.tiles.filter((t) => t.kind === 'lit').length).toBeGreaterThan(0);
       const A = L.arena!;
-      expect(plan.row).not.toBe(A.spawn.y);
-      expect([A.exit.y, A.exit.y + 1]).not.toContain(plan.row);
-      const water = new Set(plan.tiles.filter((t) => !t.kind.startsWith('bridge')).map((t) => `${t.x},${t.y}`));
-      expect(connected(L, water)).toBe(true);
-      // 가운데가 막혀 있어도 다리는 걸을 수 있는 칸에
-      const c = L.arena!.center!;
-      const blocked = new Set([`${c.x - 1},${plan.row}`, `${c.x},${plan.row}`]);
-      const moved = planCanal(L, canal, blocked)!;
-      const b2 = moved.tiles.find((t) => t.kind === 'bridgeL')!;
-      expect(blocked.has(`${b2.x},${b2.y}`) || blocked.has(`${b2.x + 1},${b2.y}`)).toBe(false);
-      // 큰 소품은 수로·다리에 놓이지 않는다
-      const bridges = new Set(plan.tiles.filter((t) => t.kind.startsWith('bridge')).map((t) => `${t.x},${t.y}`));
-      const big = planBigProps(L, [{ name: 'crate_stack', footprint: [1, 1] }], water, seed, bridges);
-      for (const b of big) expect(water.has(`${b.tx},${b.ty}`) || bridges.has(`${b.tx},${b.ty}`)).toBe(false);
+      const water = (A.drops ?? []).filter((d) => d.kind === 'water');
+      expect(plan.tiles.filter((t) => t.kind === 'water' || t.kind === 'lit')).toHaveLength(water.length);
+      for (const w of water) expect(L.tiles[w.y][w.x]).toBe(TileId.Void);
+      for (const b of A.bridges ?? []) expect(L.tiles[b.y][b.x]).toBe(TileId.Floor);
+      expect(plan.tiles.filter((t) => t.kind.startsWith('bridge'))).toHaveLength((A.bridges ?? []).length);
+      expect(connected(L, new Set())).toBe(true);
+      // 큰 소품은 다리에 놓이지 않는다
+      const bridges = new Set((A.bridges ?? []).map((t) => `${t.x},${t.y}`));
+      const big = planBigProps(L, [{ name: 'crate_stack', footprint: [1, 1] }], new Set(), seed, bridges);
+      for (const b of big) expect(bridges.has(`${b.tx},${b.ty}`)).toBe(false);
     }
+    // 물 칸이 없는 전투장(사각)은 수로 없음
+    const n = { id: 'c6r0', kind: 'rest', type: 'rest', name: '', col: 6, row: 0, links: [] } as unknown as RouteNode;
+    expect(canalFromArena(planNodeArena(n, 'stage1', 'x').layout, canal)).toBeNull();
   });
 
   it('데칼: 가운데 이름은 전투장 가운데 한 장, 나머지는 바닥 위·막힌 칸 밖·겹치지 않음·결정적', () => {

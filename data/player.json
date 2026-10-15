@@ -2,7 +2,7 @@
   "stats": {
     "hp": 100,
     "attack": 5,
-    "speedTiles": 6,
+    "speedTiles": 6.5,
     "crit": 0,
     "defense": 3,
     "personality": 0,
@@ -17,13 +17,16 @@
     "hit": 1.25
   },
   "dash": {
-    "distanceTiles": 3,
+    "distanceTiles": 3.5,
     "durationMs": 180,
-    "cooldownMs": 600,
+    "cooldownMs": 900,
     "invulnerable": true,
-    "attackWindowMs": 300,
+    "attackWindowMs": 250,
     "attackDamageMult": 1.5,
-    "attackSizeMult": 1.5
+    "attackSizeMult": 1.5,
+    "charges": 2,
+    "minMs": 90,
+    "bufferMs": 150
   },
   "parry": {
     "windowMs": 200,
@@ -39,5 +42,18 @@
   "startWeapon": "katana",
   "startPotions": 1,
   "attackSlowMinMs": 120,
+  "motion": {
+    "_note": "P19 주인공 움직임 감각 (도영 님 '바보같지 않고 민첩하고 좀 무서운 느낌'): 가속 80ms · 반대 입력 미끄럼 · 이동 기울기 · 대쉬 늘임/압축 · 연격 파고듦 · 적 자석",
+    "accelMs": 80,
+    "skidMs": 70,
+    "skidDot": -0.7071,
+    "skidMinSpeedRatio": 0.6,
+    "leanDeg": 3,
+    "stopMinSpeedRatio": 0.8,
+    "dashSquash": { "along": 1.16, "across": 0.88, "ms": 110 },
+    "dashEndSquash": { "along": 0.9, "across": 1.1, "ms": 120 },
+    "attackAdvance": { "px": 5, "ms": 70 },
+    "magnet": { "rangeTiles": 2.5, "coneDeg": 70, "maxPx": 14 }
+  },
   "perfectGuard": { "windowMs": 150 }
 }

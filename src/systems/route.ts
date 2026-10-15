@@ -12,7 +12,6 @@ import type { WaveEntry } from '../data/types';
 import type { RoomType } from './mapgen/types';
 import { Rng, hashSeed } from './rng';
 import type { UiStructureKind } from '../contract/ui';
-import type { ArenaEdge } from './mapgen/arena';
 import type { SetPieceDef } from './structures/setpiece';
 import type { TutorialDef } from './tutorial';
 
@@ -35,13 +34,8 @@ export interface RouteKindDef {
   waves?: WaveEntry[][];
   /** 기존 상점 타일(2×2)을 놓는다 */
   shopTiles?: boolean;
-  /** 49라운드 7: 세트 배치 템플릿 id (data/route.json setPieces) */
+  /** 49라운드 7: 세트 배치 템플릿 id (data/route.json setPieces). P19 S2: 형태 틀 노드는 형태의 소품 세트가 우선 */
   setPiece?: string;
-  /**
-   * 61라운드 단계 2 방 다양화: 세트 배치 후보 (있으면 setPiece 대신 — 노드 자리로 골라 이웃 단과 겹치지 않게, `pickSetPiece`).
-   * 지역 setPieces 덮어쓰기가 있으면 그것이 우선
-   */
-  setPieceVariants?: string[];
   /** 49라운드 3: 조작 안내 노드 (탄생 전장) */
   tutorial?: boolean;
 }
@@ -52,8 +46,6 @@ export interface RegionDef {
   name: string;
   /** 타일셋 이름 (`tiles/<tileset>.json`). 없거나 아트가 없으면 층 타일셋 */
   tileset?: string;
-  /** 가장자리 모양 덮어쓰기 (arena.edge 위에) */
-  edge?: Partial<ArenaEdge>;
   /** 장소 설명 (자리표시): 노드 종류별, 없으면 default — UiRouteNode.desc */
   desc: { default: string } & Partial<Record<RouteKind, string>>;
   /** 54라운드 Q11: 이 지역에서 노드 종류별 세트 배치 템플릿 덮어쓰기 (연회장 보스방 = boss_hall) */
@@ -91,8 +83,8 @@ export interface RouteArenaDef {
   spawnInsetTiles: number;
   exitInsetTiles: number;
   clearTiles: number;
-  /** 49라운드: 들쭉날쭉한 가장자리 기본값 (없으면 48라운드 사각 벽) */
-  edge?: ArenaEdge;
+  /** P19 S2: 형태 틀(data/arenas)을 쓰는 노드 종류 — 그 밖은 사각 전투장 */
+  shapeKinds?: RouteKind[];
   /** 61라운드 단계 2 방 다양화: 노드마다 크기·시작 줄·세트 뒤집기 (`routeArena.arenaVariety`) */
   variety?: ArenaVarietyDef;
 }
@@ -208,8 +200,6 @@ export function validateRoute(f: RouteFile): RouteFile {
   for (const k of KINDS) {
     const sp = f.kinds[k].setPiece;
     if (sp !== undefined && !pieces[sp]) fail(`kinds.${k}.setPiece 알 수 없음: ${sp}`);
-    for (const v of f.kinds[k].setPieceVariants ?? [])
-      if (!pieces[v]) fail(`kinds.${k}.setPieceVariants 알 수 없음: ${v}`);
   }
   for (const [k, list] of Object.entries(A.variety?.sizes ?? {}))
     for (const sz of list ?? [])
@@ -548,14 +538,6 @@ export function regionOf(stageId: string, col: number, file: RouteFile = ROUTE):
 /** 노드 종류별 장소 설명 (없으면 지역 기본) */
 export function regionDesc(region: RegionDef, kind: RouteKind): string {
   return region.desc[kind] ?? region.desc.default;
-}
-
-/** 지역 가장자리 = arena.edge 위에 지역 edge 덮어쓰기. arena.edge 가 없으면 null (사각 벽) */
-export function regionEdge(regionId: string | null, file: RouteFile = ROUTE): ArenaEdge | null {
-  const base = file.arena.edge;
-  if (!base) return null;
-  const r = regionId ? entries(file.regions)[regionId] : undefined;
-  return { ...base, ...(r?.edge ?? {}) };
 }
 
 /** 모든 지역 타일셋 이름 (Preloader 로드 대상, 중복 제거·정렬) */

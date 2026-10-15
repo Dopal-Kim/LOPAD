@@ -97,6 +97,10 @@ export class EntityVisual {
   private baseScale = 1;
   /** 62라운드 P1-1 피격 반응 (뒤로 젖힘 + 납작): 시작·최대 유지(히트스톱)·풀림 ms · 방향(±1) · 세기 */
   private flinchState: { at: number; hold: number; decay: number; dir: number; k: number } | null = null;
+  /** P19 주인공 몸 자세: 압축·늘임(감쇠) · 이동 기울기(rad) — 피격 반응이 없을 때 sync 가 건다 */
+  private pose: { sx: number; sy: number; at: number; ms: number } | null = null;
+  private leanRad = 0;
+  private posed = false;
 
   constructor(
     private readonly host: Host,
@@ -237,6 +241,7 @@ export class EntityVisual {
     this.host.setDepth(entityDepth(this.host.y));
     if (this.shadow) this.shadow.setPosition(this.host.x, this.host.y);
     if (this.flinchState) this.stepFlinch();
+    else this.stepPose();
     if (this.tintCopy?.visible) this.copyHost(this.tintCopy);
   }
 
@@ -253,6 +258,42 @@ export class EntityVisual {
       dir: dirX < 0 ? -1 : 1,
       k,
     };
+  }
+
+  /** P19 몸 압축·늘임: (sx, sy) 배에서 ms 동안 원래로 (시트가 없으면 무시) */
+  squash(sx: number, sy: number, ms: number): void {
+    if (!this.animated || this.dead) return;
+    this.pose = { sx, sy, at: this.hostTime(), ms: Math.max(1, ms) };
+  }
+
+  /** P19 이동 기울기 (발 피벗 기준 rad, 0 = 똑바로) */
+  setLean(rad: number): void {
+    this.leanRad = this.animated && !this.dead ? rad : 0;
+  }
+
+  /** 지금 자세 배율 (기본 배율 대비 — 무기 오버레이가 같이 늘고 준다) */
+  get poseScale(): { x: number; y: number } {
+    const b = this.baseScale || 1;
+    return { x: this.host.scaleX / b, y: this.host.scaleY / b };
+  }
+
+  private stepPose(): void {
+    let sx = 1;
+    let sy = 1;
+    const p = this.pose;
+    if (p) {
+      const u = (this.hostTime() - p.at) / p.ms;
+      if (u >= 1) this.pose = null;
+      else {
+        const a = (1 - u) * (1 - u);
+        sx = 1 + (p.sx - 1) * a;
+        sy = 1 + (p.sy - 1) * a;
+      }
+    }
+    const active = this.pose !== null || this.leanRad !== 0;
+    if (!active && !this.posed) return;
+    this.posed = active;
+    this.host.setScale(this.baseScale * sx, this.baseScale * sy).setRotation(this.leanRad);
   }
 
   /** 디버그: 피격 반응 중 */

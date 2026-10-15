@@ -1,9 +1,10 @@
 /**
  * 53라운드 4지역 쿼터뷰 바닥(art floors_v2)의 바닥 특징 배치 — Phaser 의존 없음 · 시드 결정적. 그림·충돌은 TileWorld / QuarterView.
  * - `decals[]`: 바닥 위·소품 아래 데칼(통과). 시트 rect 를 발자국 칸에 그대로 깐다
- * - `canal`(양조): 가로 한 줄 수로 — 수로 칸은 걷기 막힘, 다리 2칸만 걷기 가능, 다리 좌우 litNearBridge 칸은 밝은 판.
- *   투사체는 통과(투사체는 타일 충돌이 없다 — 52라운드 Q4 투사체 여부는 인터뷰 중, 임시)
- * 배치 수치는 QUARTER.DECALS·QUARTER.CANAL (임시값)
+ * - `canal`(양조 수로 그림): P19 S2 — 형태 틀의 물 낙하 칸(`arena.drops` water)·다리 칸(`arena.bridges`)에 그대로 그린다
+ *   (53라운드 가로 한 줄 수로 배치는 형태 틀로 교체해 지웠다). 물 칸은 빈 칸이라 걷기 막힘, 다리는 바닥. 다리와 같은 줄
+ *   litNearBridge 칸 안 물은 밝은 판. 투사체는 통과(타일 충돌 없음)
+ * 배치 수치는 QUARTER.DECALS (임시값)
  */
 import { QUARTER } from '../core/Constants';
 import { TileId, type FloorLayout } from '../systems/mapgen';
@@ -34,72 +35,33 @@ export interface DecalPlacement {
 export type CanalTileKind = 'water' | 'lit' | 'bridgeL' | 'bridgeR';
 
 export interface CanalPlan {
-  row: number;
   tiles: { x: number; y: number; kind: CanalTileKind }[];
 }
 
 const key = (x: number, y: number) => `${x},${y}`;
 
-/** 출구·상점(2×2)·시작점 둘레 칸 (수로·데칼이 덮지 않게) */
-function anchorRows(layout: FloorLayout): Set<number> {
-  const A = layout.arena!;
-  const rows = new Set<number>();
-  const pad = QUARTER.CANAL.ANCHOR_CLEAR_ROWS;
-  for (const [y, h] of [
-    [A.spawn.y, 1],
-    [A.exit.y, 2],
-    [A.shop.y, 2],
-  ] as const)
-    for (let r = y - pad; r < y + h + pad; r++) rows.add(r);
-  return rows;
-}
-
 /**
- * 수로 한 줄: 북쪽 끝에서 ROW_FROM_NORTH 칸 아래부터 시작점·출구·상점 줄을 피해 내려가며 고른다. 다리 = 가운데에 가장 가까운
- * 걸을 수 있는 2칸.
- * 바닥 칸만(벽 섬·막힌 칸은 건너뜀). 놓을 줄이 없으면 null
+ * P19 S2: 형태 틀 물 칸·다리 칸 → 수로 그림 칸. 다리는 줄마다 이어진 다리 칸 묶음의 왼쪽 끝부터 좌·우 번갈아.
+ * 물 낙하 칸이 없으면 null
  */
-export function planCanal(layout: FloorLayout, canal: CanalJson, blocked: ReadonlySet<string>): CanalPlan | null {
-  const room = layout.rooms[0];
-  if (!room || !layout.arena) return null;
-  const I = room.interior;
-  const C = QUARTER.CANAL;
-  const avoid = anchorRows(layout);
-  // 후보 줄 중 막힌 칸(구조물·세트)이 가장 적은 줄 — 막힌 칸은 수로가 끊겨 걸어서 건널 틈이 되므로 (같으면 북쪽 먼저)
-  let row = -1;
-  let best = Infinity;
-  for (let y = I.y + C.ROW_FROM_NORTH; y < I.y + I.h - C.SOUTH_KEEP_ROWS; y++) {
-    if (avoid.has(y)) continue;
-    let n = 0;
-    for (let x = I.x; x < I.x + I.w; x++) if (blocked.has(key(x, y))) n++;
-    if (n < best) {
-      best = n;
-      row = y;
-    }
-  }
-  if (row < 0) return null;
-  const cx = layout.arena.center?.x ?? I.x + Math.floor(I.w / 2);
-  // 다리 = 가운데에 가장 가까운, 두 칸 모두 바닥이고 막히지 않은 자리 (세트·구조물이 가운데를 차지할 수 있다)
-  const open = (x: number) => layout.tiles[row]?.[x] === TileId.Floor && !blocked.has(key(x, row));
-  let bl = -1;
-  for (let x = I.x; x < I.x + I.w - 1; x++)
-    if (open(x) && open(x + 1) && (bl < 0 || Math.abs(x - (cx - 1)) < Math.abs(bl - (cx - 1)))) bl = x;
-  if (bl < 0) return null;
-  const lit = canal.litNearBridge ?? 0;
+export function canalFromArena(layout: FloorLayout, canal: Pick<CanalJson, 'litNearBridge'>): CanalPlan | null {
+  const A = layout.arena;
+  const water = (A?.drops ?? []).filter((d) => d.kind === 'water');
+  if (!A || water.length === 0) return null;
+  const bridge = new Set((A.bridges ?? []).map((b) => key(b.x, b.y)));
   const tiles: CanalPlan['tiles'] = [];
-  for (let x = I.x; x < I.x + I.w; x++) {
-    if (layout.tiles[row]?.[x] !== TileId.Floor || blocked.has(key(x, row))) continue;
-    const kind: CanalTileKind =
-      x === bl
-        ? 'bridgeL'
-        : x === bl + 1
-          ? 'bridgeR'
-          : Math.min(Math.abs(x - bl), Math.abs(x - bl - 1)) <= lit
-            ? 'lit'
-            : 'water';
-    tiles.push({ x, y: row, kind });
+  for (const b of A.bridges ?? []) {
+    let run = 0;
+    while (bridge.has(key(b.x - run - 1, b.y))) run++;
+    tiles.push({ x: b.x, y: b.y, kind: run % 2 === 0 ? 'bridgeL' : 'bridgeR' });
   }
-  return { row, tiles };
+  const lit = canal.litNearBridge ?? 0;
+  const nearBridge = (x: number, y: number) => {
+    for (let d = 1; d <= lit; d++) if (bridge.has(key(x - d, y)) || bridge.has(key(x + d, y))) return true;
+    return false;
+  };
+  for (const w of water) tiles.push({ x: w.x, y: w.y, kind: nearBridge(w.x, w.y) ? 'lit' : 'water' });
+  return { tiles };
 }
 
 /**

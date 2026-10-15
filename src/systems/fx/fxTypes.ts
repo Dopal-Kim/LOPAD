@@ -32,6 +32,8 @@ export interface FxPlayOptions {
   followRotation?: boolean;
   /** 루프 시트의 재생 시간. 없으면 follow 대상이 사라질 때까지 */
   durationMs?: number;
+  /** P19: 이 열 구간 [a, b] 만 한 번 재생 (시트 JSON `variants`) */
+  columns?: readonly [number, number];
   /** 시트의 마지막 `tailFrames` 프레임만 루프 (잔월: 거합 4~6프레임 반복) */
   tailFrames?: number;
   /**

@@ -21,6 +21,16 @@ import { isOpenId, pickVariant, wallKind, type LightOffset, type PropPlacement, 
 import type { LightSpec } from '../systems/sprites/spriteDefs';
 import type { LightSource } from '../systems/lighting/lightRegistry';
 import type { CoverArt } from './coverPillars';
+import {
+  floorMacroIndex,
+  wallEdgeBits,
+  groundV4,
+  planTerrainOverlay,
+  terrainCellsOf,
+  terrainV4Of,
+  type TerrainCells,
+  type TerrainV4,
+} from './terrainV4';
 
 interface WallImage {
   img: Phaser.GameObjects.Image;
@@ -75,9 +85,13 @@ export class QuarterView {
     features: { canal?: CanalPlan | null; decals?: readonly DecalPlacement[]; cover?: CoverArt | null } = {},
   ) {
     this.boundaryWalls = boundaryWalls;
+    this.dropCells = new Set((layout.arena?.drops ?? []).map((d) => `${d.x},${d.y}`));
     this.cover = features.cover ?? null;
     this.canal = features.canal ?? null;
     for (const t of this.canal?.tiles ?? []) this.canalAt.set(`${t.x},${t.y}`, t.kind);
+    // P19 1-A 타일셋 v4: 바닥 매크로 · 낙하 채움 · 덧그림 (art §34)
+    this.v4 = terrainV4Of(skin.def);
+    this.terrain = this.v4 ? terrainCellsOf(layout) : null;
     const px = skin.tilePx;
     this.scale = tileDotScale(px);
     ensureTileFrames(scene, skin.textureKey, px);
@@ -91,6 +105,12 @@ export class QuarterView {
       shade.setScale(this.scale).setDepth(DEPTH.TILES + DEPTH.LIGHT_LAYER_STEP);
       this.shadeLayer = shade;
     }
+    if (this.v4 && this.terrain) {
+      const over = this.map.createBlankLayer('qv_v4', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
+      over.setScale(this.scale).setDepth(DEPTH.TILES + QUARTER.V4_OVERLAY_DEPTH);
+      for (const o of planTerrainOverlay(this.v4, this.terrain, layout)) over.putTileAt(o.index, o.x, o.y);
+      this.v4Layer = over;
+    }
     if (props.length > 0 && propSkin === skin) {
       const layer = this.map.createBlankLayer('qv_props', tileset, 0, 0, layout.widthTiles, layout.heightTiles)!;
       layer.setScale(this.scale).setDepth(DEPTH.PROPS);
@@ -101,6 +121,40 @@ export class QuarterView {
     this.rebuildWalls();
     this.addDecals(features.decals ?? []);
     this.startCanal();
+    this.startV4Water();
+  }
+
+  /** P19 1-A v4 지형 (없으면 null — 예전 바닥) */
+  private readonly v4: TerrainV4 | null;
+  private readonly terrain: TerrainCells | null;
+  private v4Layer: Phaser.Tilemaps.TilemapLayer | null = null;
+  private v4Frame = 0;
+  private v4Timer: Phaser.Time.TimerEvent | null = null;
+
+  /** v4 물 낙하 칸·다리 밑 물결 (fillRule frames · frameMs) */
+  private startV4Water(): void {
+    const R = this.v4?.drop.fillRule;
+    const T = this.terrain;
+    if (!R || !T || R.kind !== 'water' || (R.frames ?? 1) < 2) return;
+    const cells = [...T.drop, ...T.bridge].map((key) => key.split(',').map(Number));
+    if (cells.length === 0) return;
+    this.v4Timer = this.scene.time.addEvent({
+      delay: R.frameMs && R.frameMs > 0 ? R.frameMs : 170,
+      loop: true,
+      callback: () => {
+        this.v4Frame += 1;
+        for (const [x, y] of cells) this.ground.putTileAt(this.groundOf(x, y), x, y);
+      },
+    });
+  }
+
+  /** P19 S2 낙하 구역 칸 (빈 칸이지만 골목 입구로 그리지 않는다 — 수로·자리표시 그림) */
+  private readonly dropCells: ReadonlySet<string>;
+
+  /** P19 S2: 형태 틀 전투장 내부 사각형 안 벽 = 전투장 안 지형 (테두리 지역에서도 그린다) */
+  private insideShape(x: number, y: number): boolean {
+    const I = this.layout.arena?.shape ? this.layout.rooms[0]?.interior : undefined;
+    return Boolean(I && x >= I.x && x < I.x + I.w && y >= I.y && y < I.y + I.h);
   }
 
   /** 62 I (P1-N7): 엄폐 칸 = 돌기둥 그림 (칸은 벽 그대로) — null 이면 예전 돌담 */
@@ -118,7 +172,8 @@ export class QuarterView {
       [1, 0],
       [0, -1],
     ] as const)
-      if (this.isOpen(x + ox, y + oy)) return this.src.groundIndex(x + ox, y + oy);
+      if (this.isOpen(x + ox, y + oy))
+        return this.v4 ? floorMacroIndex(this.v4, x, y) : this.src.groundIndex(x + ox, y + oy);
     return this.skin.voidIndex;
   }
 
@@ -212,7 +267,12 @@ export class QuarterView {
     const id = this.src.idAt(x, y);
     if (id === TileId.Wall && this.isCover(x, y)) return this.coverGround(x, y);
     if (id === TileId.Wall) return this.skin.voidIndex;
-    if (id === TileId.Void && this.isAlley(x, y)) return this.skin.alleyIndex ?? this.skin.voidIndex;
+    if (this.v4 && this.terrain) {
+      const g = groundV4(this.v4, this.terrain, id, x, y, this.v4Frame);
+      if (g !== null) return g;
+    }
+    if (id === TileId.Void && !this.dropCells.has(`${x},${y}`) && this.isAlley(x, y))
+      return this.skin.alleyIndex ?? this.skin.voidIndex;
     return this.src.groundIndex(x, y);
   }
 
@@ -265,9 +325,11 @@ export class QuarterView {
           continue;
         }
         const depth = entityDepth((y + 1) * TILE);
-        const island = islands.has(`${x},${y}`);
+        const island = islands.has(`${x},${y}`) || this.insideShape(x, y);
         if (!this.boundaryWalls && !island) continue;
-        const stone = Q.stone && island ? Q.stone : null;
+        // P19 1-A: v4 벽 세트가 있으면 그것 (돌담 세트·v2 가장자리 대신)
+        const W4 = this.v4?.wall ?? null;
+        const stone = Q.stone && island && !W4 ? Q.stone : null;
         if (stone) {
           // 엄폐 담(경계에 닿지 않는 벽 섬) = 돌담 세트: 앞면 아랫단 → 윗단 → 윗면, 앞면 없는 칸은 윗면
           if (this.isOpen(x, y + 1)) {
@@ -277,15 +339,20 @@ export class QuarterView {
           } else this.place(x, y, stone.top, depth);
         } else if (this.isOpen(x, y + 1)) {
           // 앞면이 보이는 벽: 아랫단(제자리) → 윗단 → 처마
-          const lower = pick(Q.frontLower, x, y);
+          const lower = pick(W4?.lower ?? Q.frontLower, x, y);
           this.place(x, y, lower, depth);
           this.addTileLight(lower, x, y);
-          for (let k = 1; k < H; k++) this.place(x, y - k, pick(Q.frontUpper, x, y - k), depth);
-          this.place(x, y - H, Q.topAboveFront, depth);
+          for (let k = 1; k < H; k++) this.place(x, y - k, pick(W4?.upper ?? Q.frontUpper, x, y - k), depth);
+          this.place(x, y - H, W4?.topAboveFront ?? Q.topAboveFront, depth);
         } else {
           // 앞면 없는 벽: 제자리 윗면 (경계 가장자리)
           const kind = wallKind(this.isOpen, x, y);
-          this.place(x, y, (kind && Q.edges[kind]) ?? Q.top, depth);
+          this.place(
+            x,
+            y,
+            W4 ? W4.topEdges[wallEdgeBits((nx, ny) => !this.isWall(nx, ny), x, y)] : ((kind && Q.edges[kind]) ?? Q.top),
+            depth,
+          );
         }
       }
     this.rebuildShade();
@@ -552,6 +619,10 @@ export class QuarterView {
   destroy(): void {
     this.canalTimer?.remove();
     this.canalTimer = null;
+    this.v4Timer?.remove();
+    this.v4Timer = null;
+    this.v4Layer?.destroy();
+    this.v4Layer = null;
     for (const w of this.walls) w.img.destroy();
     this.walls = [];
     this.byColumn.clear();

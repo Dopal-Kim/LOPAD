@@ -136,6 +136,8 @@ export const UI_EVENTS = {
   ...loop2DEvents(),
   /** 62 루프 2 시스템 C 이벤트 (아래 '62 루프 2 시스템 C' 절) */
   ...loop2CEvents(),
+  /** P19 S1 자유 전투 반응 이벤트 (아래 'P19 S1' 절) */
+  ...p19S1Events(),
 } as const;
 
 /**
@@ -1803,4 +1805,168 @@ export interface UiMenuLine {
   previewKey?: string;
   /** (62 H) 수련장 지도 줄 대체 지역 id = 'training' */
   previewRegion?: string;
+}
+
+// ═════════════════════════════════════════════════════════════════
+// P19 S1 (자유 전투 — 계약 free-combat.md §1). 시스템 내부 반응 이벤트를 같은 이름의 `ui:` 접두로 중계한다.
+// 같은 프레임 같은 적의 ENEMY_KNOCKED → ENEMY_WALL_SLAM 순서 보장. x·y 는 월드 px, `screen` 은 그 순간의 논리 화면 좌표
+// (960×540 — 카메라 줌·스크롤 반영, §9.1 screen 과 같은 규칙). COMBO_STREAK 만 좌표 없음.
+// ═════════════════════════════════════════════════════════════════
+
+/** P19 S1 이벤트 키 (UI_EVENTS 에 펼쳐 넣는다) */
+function p19S1Events() {
+  return {
+    /** 움찔·버팀 깨짐 (`UiEnemyStaggered`) */
+    ENEMY_STAGGERED: 'ui:enemy-staggered',
+    /** 넉백 단계 (`UiEnemyKnocked`) */
+    ENEMY_KNOCKED: 'ui:enemy-knocked',
+    /** 벽꽝 (`UiEnemyWallSlam`) — 반응 팝 */
+    ENEMY_WALL_SLAM: 'ui:enemy-wall-slam',
+    /** 볼링 — 날아간 적이 다른 적과 부딪침 (`UiEnemyBowled`) — 반응 팝 */
+    ENEMY_BOWLED: 'ui:enemy-bowled',
+    /** 띄움 · 착지 (`UiEnemyLaunched` · `UiEnemyLanded`) */
+    ENEMY_LAUNCHED: 'ui:enemy-launched',
+    ENEMY_LANDED: 'ui:enemy-landed',
+    /** 낙하 구역으로 떨어짐 (`UiEnemyFell`) — 반응 팝 */
+    ENEMY_FELL: 'ui:enemy-fell',
+    /** 위험물 폭발 (`UiHazardExploded`) — 반응 팝 */
+    HAZARD_EXPLODED: 'ui:hazard-exploded',
+    /** 위험물 점화 (`UiHazardIgnited`) */
+    HAZARD_IGNITED: 'ui:hazard-ignited',
+    /** 연속 처치 (`UiComboStreak`) — 처치 사이 ≤ 1.5초, 2 이상일 때마다 */
+    COMBO_STREAK: 'ui:combo-streak',
+  } as const;
+}
+
+export interface UiEnemyStaggered {
+  /** 논리 화면 좌표 (960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  id: string;
+  x: number;
+  y: number;
+  /** flinch = 움찔(버팀 0) · stagger = 버팀이 깨짐 */
+  kind: 'flinch' | 'stagger';
+  ms: number;
+}
+
+export interface UiEnemyKnocked {
+  /** 논리 화면 좌표 (960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  id: string;
+  x: number;
+  y: number;
+  /** 1 밀림 · 2 날림 · 3 크게 날림 · 4 화면 가로지름 */
+  tier: 1 | 2 | 3 | 4;
+  dirX: number;
+  dirY: number;
+  distTiles: number;
+}
+
+export interface UiEnemyWallSlam {
+  /** 논리 화면 좌표 (960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  id: string;
+  x: number;
+  y: number;
+  speed: number;
+  bonusDamage: number;
+  surface: 'wall' | 'prop' | 'pillar';
+}
+
+export interface UiEnemyBowled {
+  /** 논리 화면 좌표 (960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  hitter: string;
+  target: string;
+  x: number;
+  y: number;
+  damage: number;
+}
+
+export interface UiEnemyLaunched {
+  /** 논리 화면 좌표 (960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  id: string;
+  x: number;
+  y: number;
+  airMs: number;
+}
+
+export interface UiEnemyLanded {
+  /** 논리 화면 좌표 (960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  id: string;
+  x: number;
+  y: number;
+  slam: boolean;
+}
+
+export interface UiEnemyFell {
+  /** 논리 화면 좌표 (960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  id: string;
+  x: number;
+  y: number;
+  zone: 'water' | 'drop' | 'fire';
+}
+
+export interface UiHazardExploded {
+  /** 논리 화면 좌표 (960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  x: number;
+  y: number;
+  kind: 'cask' | 'still' | 'bottle';
+  chain: number;
+}
+
+export interface UiHazardIgnited {
+  /** 논리 화면 좌표 (960×540, 카메라 반영) */
+  screen: { x: number; y: number };
+  x: number;
+  y: number;
+  kind: 'pool' | 'cask' | 'still';
+  radiusTiles: number;
+}
+
+export interface UiComboStreak {
+  count: number;
+  windowMs: number;
+}
+
+// ═════════════════════════════════════════════════════════════════
+// P19 S2 카메라 신호 (계약 free-combat.md §4)
+// ═════════════════════════════════════════════════════════════════
+
+export interface UiCamera {
+  /** 논리 배율 (탐색 1.75 · 전투 중 1.6 · 보스 1.5 — 바뀔 때 0.6초에 걸쳐 옮겨 가는 중간값) */
+  zoom: number;
+  /** 살아 있는 적 ≥ 1 */
+  combat: boolean;
+  /** 보이는 월드 사각형 (월드 px — Phaser worldView, 흔들림 포함). 월드 → 논리 화면 = (wx − x) × 960 / w */
+  view: { x: number; y: number; w: number; h: number };
+}
+
+export interface UiSnapshot {
+  /** P19 §4: 게임 월드 카메라 (게임 씬 밖이면 생략) */
+  camera?: UiCamera;
+}
+
+// ═════════════════════════════════════════════════════════════════
+// P19 S3 화면 밖 적 (계약 free-combat.md §4) — UI 가 화면 가장자리 표식
+// ═════════════════════════════════════════════════════════════════
+
+export interface UiOffscreenEnemy {
+  /** 이 씬 안에서 같은 적이면 같은 번호 (표식 이어 그리기) */
+  id: number;
+  /** 화면(카메라 worldView) 가운데 → 적 방향 (rad — +x 오른쪽, +y 아래) */
+  angle: number;
+  /** 주인공과의 거리 (칸) */
+  distTiles: number;
+  /** 예고·공격 중이면 그 위협 색 단계 (계약 §2: warn 호박 · danger 적 · ranged 청백), 아니면 null */
+  threat: 'warn' | 'danger' | 'ranged' | null;
+}
+
+export interface UiSnapshot {
+  /** P19 S3: 카메라 화면(worldView) 밖에 있는 살아 있는 적. 없으면 [] (게임 씬 밖이면 생략) */
+  offscreen?: UiOffscreenEnemy[];
 }

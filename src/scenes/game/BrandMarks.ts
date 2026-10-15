@@ -16,6 +16,7 @@ import type { BrandGaugeDef } from '../../data/types';
 import type { UiWeaponGauge } from '../../contract/ui';
 import type { Mob } from '../../objects/Mob';
 import { BrandBook, isBackHit } from '../../systems/weapon/weaponGauge';
+import { strikeReaction } from '../../systems/reactions';
 import type { Game } from '../Game';
 
 /** 4방향 → 단위벡터 (적이 바라보는 쪽) */
@@ -184,7 +185,14 @@ export class BrandMarks {
     const sh = crackShake((g.fx.sheet(B.BURST_SHEET) as { shakeHint?: ShakeHint } | null)?.shakeHint, row);
     if (fx && sh) g.shake.add(g.time.now, sh.px, sh.ms);
     this.lastBurst = { marks, dmg, time: g.time.now, cause, fx };
-    const died = g.combat.hitMob(mob, dmg, { crit, dirX: dx / len, dirY: dy / len, heavy: true, knock: false });
+    // P19 단검 '흔든다': 낙인 기폭은 약 넉백(1단계)을 바깥으로
+    const died = g.combat.hitMob(mob, dmg, {
+      crit,
+      dirX: dx / len,
+      dirY: dy / len,
+      heavy: true,
+      reaction: strikeReaction(gameState.weapon.def.feel?.reaction, { kind: 'attack', comboIndex: 0 }),
+    });
     br.onBrandBurst(mob, marks, dmg, died);
     if (died) g.progress.onKill(mob, 'attack');
   }

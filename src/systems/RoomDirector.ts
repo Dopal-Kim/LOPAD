@@ -81,6 +81,8 @@ export class RoomDirector {
   private states = new Map<string, RoomState>();
   private currentRoom?: Room;
   private waveIndex = 0;
+  /** P19: 마지막으로 예고한 웨이브의 적 수 (겹치는 웨이브 기준) */
+  private waveSize = 0;
   private alive = new Set<Mob>();
   /** 47라운드: 진행 중인 구조물 도전 (클리어한 방을 다시 active 로 — 45라운드 비전투 판정과 일관) */
   private challenge: { roomId: string; onDone: () => void } | null = null;
@@ -337,15 +339,12 @@ export class RoomDirector {
       }
       this.alive.clear();
     }
-    if (this.alive.size > 0) return;
     if (room.type === 'trial') {
-      this.waveIndex += 1;
-      if (this.waveIndex < this.waves.length) {
-        this.spawnWave(room, this.waveIndex);
-      } else {
-        this.clearTrial(room);
-      }
-    } else if (room.type === 'boss') {
+      this.advanceTrial(room);
+      return;
+    }
+    if (this.alive.size > 0) return;
+    if (room.type === 'boss') {
       this.states.set(room.id, 'cleared');
       this.host.world.setRoomDoors(room, 'open');
       if (this.host.isLastStage()) {
@@ -367,13 +366,27 @@ export class RoomDirector {
     this.spawnWave(room, 0);
   }
 
+  /**
+   * P19 ④D 겹치는 웨이브: 남은 적이 이번 웨이브 수 × WAVE_OVERLAP 이하면 다음 웨이브를 예고한다 (전멸 대기 폐지).
+   * 다음 웨이브가 오는 중이면 기다리고, 마지막 웨이브만 전멸이 클리어
+   */
+  private advanceTrial(room: Room): void {
+    if (this.pendingSpawn) return;
+    const next = this.waveIndex + 1;
+    if (next < this.waves.length) {
+      if (this.alive.size <= Math.floor(this.waveSize * ENEMY_INCOMING.WAVE_OVERLAP)) this.spawnWave(room, next);
+    } else if (this.alive.size === 0) this.clearTrial(room);
+  }
+
   private spawnWave(room: Room, index: number): void {
+    this.waveIndex = index;
     const total = this.waves.length;
     const mods = this.host.waveMods?.(room, index, total) ?? { hpMult: 1, countMult: 1, extra: 0 };
     const wave = scaleWave(this.waves[index], mods.countMult, mods.extra);
     const scale = { hp: this.host.stage.enemyScale.hp * mods.hpMult, attack: this.host.stage.enemyScale.attack };
     EventBus.emit(Events.TRIAL_WAVE, { roomId: room.id, wave: index + 1, total });
     const count = wave.reduce((a, w) => a + w.count, 0);
+    this.waveSize = count;
     const side = this.sideOf(room, index, total);
     const plan = this.planWave(room, wave, scale, side);
     // 62 P0-8: 노드 첫 웨이브는 들어선 뒤 숨 돌릴 틈을 더 준다 (문양 예고가 그만큼 길다)

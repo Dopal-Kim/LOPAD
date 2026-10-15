@@ -7,7 +7,7 @@
  * fx 가 아직 없으면(로드 전) 그 그림만 빠진다.
  */
 import Phaser from 'phaser';
-import { BOSS_ART, CAMERA, DEPTH } from '../../core/Constants';
+import { BOSS_ART, DEPTH } from '../../core/Constants';
 import type { Boss } from '../../objects/Boss';
 import type { Candle } from '../../systems/boss/candles';
 import { feelSettings } from '../../systems/feel';
@@ -101,7 +101,7 @@ export class BossFinale {
     const k = Math.min(1, feelSettings.shake);
     if (k <= 0 || ms <= 0) return;
     const cam = this.g.cameras.main;
-    const base = worldZoom(CAMERA.ZOOM);
+    const base = worldZoom(this.g.cam.logicalZoom);
     this.zoomTween?.stop();
     cam.setZoom(base * (1 + (to - 1) * k));
     this.zoomTween = this.g.tweens.add({

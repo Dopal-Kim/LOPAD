@@ -53,7 +53,11 @@ export interface StructureHost {
   gainGrowth(amount: number): void;
   heal(amount: number): void;
   /** 적 피격 공통 경로 (Game.hitMob). 사망이면 true */
-  hitMob(mob: Mob, dmg: number, opts: { crit: boolean; dirX: number; dirY: number; tick?: boolean }): boolean;
+  hitMob(
+    mob: Mob,
+    dmg: number,
+    opts: { crit: boolean; dirX: number; dirY: number; tick?: boolean; heavy?: boolean },
+  ): boolean;
   /** 처치 처리 (Game.onKill) */
   onKill(mob: Mob, kind: KillKind): void;
   potionCarry(): number;

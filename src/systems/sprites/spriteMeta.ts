@@ -137,6 +137,24 @@ function isPoint(v: unknown): v is AnchorPoint {
   return Array.isArray(v) && v.length >= 2 && typeof v[0] === 'number' && typeof v[1] === 'number';
 }
 
+/**
+ * P19 art §35 주인공 fx 기준점 (몸 시트 `eyeAnchors`·`chestAnchors` — handAnchors 와 같은 방향 → 열 목록 [x, y] 도트, null = 안 보임).
+ * 없으면 null
+ */
+export function bodyAnchorAt(
+  def: object,
+  field: 'eyeAnchors' | 'chestAnchors',
+  dir: Dir8,
+  column: number,
+): AnchorPoint | null {
+  const e = pick(
+    (def as Record<string, Partial<Record<Dir8, (AnchorPoint | null)[]>> | undefined>)[field],
+    dir,
+    column,
+  );
+  return isPoint(e) ? e : null;
+}
+
 /** 프레임의 양손 앵커 (시트 도트 좌표). 없으면 null */
 export function handAt(def: Pick<SheetJson, 'handAnchors'>, dir: Dir8, column: number): HandAnchor | null {
   const h = pick(def.handAnchors, dir, column);

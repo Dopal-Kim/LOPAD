@@ -62,6 +62,7 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'dash',
       'hurt',
       'death',
+      'turn_skid', // P19 art §35 반대 방향 미끄럼
       'birth',
       'groggy', // 56라운드 Q7 그로기 몸
       'katana_combo1',
@@ -99,10 +100,12 @@ describe('sprite defs (계약 art-assets.md §1)', () => {
       'carry_walk',
       'carry_run',
       'carry_dash',
+      'carry_turn_skid',
       'carry_drawn_idle',
       'carry_drawn_walk',
       'carry_drawn_run',
       'carry_drawn_dash',
+      'carry_drawn_turn_skid',
       'draw',
       'sheathe',
       'slam',

@@ -16,6 +16,10 @@ import {
   type UiWarpState,
 } from '../../contract/ui';
 import type { BossActionPayload, BossBreakPayload, EnemyIncomingPayload } from '../../core/EventBus';
+import { P19_EVENTS } from '../../core/eventsP19';
+import { worldToLogicalScreen } from '../../systems/display';
+import { offscreenEnemies } from '../../systems/offscreen';
+import type { Mob } from '../../objects/Mob';
 import { bossSnapshotExtra, uiBossBreak } from './bossUi';
 import { buildSnapshot } from '../../contract/snapshot';
 import { loop2DSnapshot } from './loop2DUi';
@@ -60,6 +64,15 @@ export class UiRelay {
   }
 
   snapshot() {
+    const snap = this.baseSnapshot();
+    // P19 S2 (계약 free-combat §4): 카메라 배율·전투 중
+    snap.camera = this.g.cam.toUi();
+    // P19 S3 (계약 free-combat §4): 화면 밖 적 (UI 가장자리 표식)
+    snap.offscreen = offscreenEnemies(this.g.cameras.main.worldView, this.g.player, this.g.mobs.getChildren() as Mob[]);
+    return snap;
+  }
+
+  private baseSnapshot() {
     const g = this.g;
     const now = g.time.now;
     return buildSnapshot({
@@ -144,6 +157,27 @@ export class UiRelay {
   }
 
   // --- 내부 이벤트 → UI 중계 ---
+
+  /**
+   * P19 S1 (계약 free-combat §1): 반응 이벤트를 같은 이름의 `ui:` 접두 이벤트로 중계 (페이로드 + 화면 좌표 `screen`) — Game.bindEvents 가 구독
+   */
+  p19Relays(): [event: string, fn: (p: never) => void, ctx: object][] {
+    const keys = (Object.keys(P19_EVENTS) as (keyof typeof P19_EVENTS)[]).filter(
+      (k): k is Exclude<keyof typeof P19_EVENTS, 'PLAYER_MOTION'> => k !== 'PLAYER_MOTION',
+    );
+    return keys.map((k) => [
+      P19_EVENTS[k],
+      (p: { x?: number; y?: number }) =>
+        __system.emit(
+          UI_EVENTS[k],
+          // UI 반응 팝: 월드 x·y 가 있으면 논리 화면 좌표(960×540, 카메라 줌·스크롤 반영)를 붙인다
+          typeof p.x === 'number' && typeof p.y === 'number'
+            ? { ...p, screen: worldToLogicalScreen(this.g.cameras.main, p.x, p.y) }
+            : p,
+        ),
+      this,
+    ]);
+  }
 
   onRoomEntered(p: { roomId: string; type: string }): void {
     const g = this.g;

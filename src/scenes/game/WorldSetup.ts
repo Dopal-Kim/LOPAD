@@ -10,6 +10,7 @@ import type { LightingAmbient } from '../../data/types';
 import { generateFloor, type FloorLayout } from '../../systems/mapgen';
 import { RouteState, generateRoute, kindDef, maxBattleWaves, regionIdOf, routeEnabled } from '../../systems/route';
 import { Lighting } from '../../systems/lighting/Lighting';
+import { lightRegistryOf } from '../../systems/lighting/lightRegistry';
 import { lightingAmbientFor } from '../../systems/lighting/lightMath';
 import { Rng, hashSeed } from '../../systems/rng';
 import { decorateRoute, generateExtras } from '../../systems/bundle2/routeExtras';
@@ -57,13 +58,12 @@ export class WorldSetup {
     g.nodeKind = g.node?.kind ?? null;
     const nodeSalt = g.node ? `:${g.node.id}` : route ? ':entry' : '';
     g.rng = new Rng(hashSeed(gameState.floorSeed + ':runtime' + nodeSalt));
-    // 52라운드 Q9: 쿼터뷰 지역 타일셋이면 가장자리 깊이 0~1칸 (북쪽 집 앞면이 거의 한 줄)
-    const quarterTileset = (t: string | null) => Boolean(skinFor(floor, t).quarter);
     g.nodeArena =
       !g.lab && route
         ? planNodeArena(g.node, gameState.stageId, gameState.floorSeed, undefined, {
-            quarterTileset,
             border: (r) => Boolean(borderDefFor(r)),
+            // P19 S2 디버그: ?shape=<형태 id> = 이 노드를 그 형태 틀로 (전투·여정 전투·보스 노드만)
+            shape: urlParams().get('shape'),
           })
         : null;
     // 61 단계 6 수련장 '만취 그림자': 이 층 보스 노드의 전장 (기둥·촛대·술통) — 노드 지도 없이
@@ -71,7 +71,6 @@ export class WorldSetup {
       const boss = generateRoute(gameState.stageId, gameState.floorSeed).nodes.find((n) => n.kind === 'boss') ?? null;
       g.nodeArena = boss
         ? planNodeArena(boss, gameState.stageId, gameState.floorSeed, undefined, {
-            quarterTileset,
             border: (r) => Boolean(borderDefFor(r)),
           })
         : null;
@@ -135,8 +134,13 @@ export class WorldSetup {
         });
     const borderDef = arena ? borderDefFor(arena.regionId) : null;
     // 62 D (P2-10 · art §31.9): 전투 노드 세트피스 1개 (발자국 칸 막힘) · 그을음 데칼
+    // P19 S2: 다리 칸도 (세트피스가 다리를 막지 않게)
     const taken = arena
-      ? new Set([...structureTiles(structurePlan), ...setPieceTiles(arena)])
+      ? new Set([
+          ...structureTiles(structurePlan),
+          ...setPieceTiles(arena),
+          ...(layout.arena?.bridges ?? []).map((b) => `${b.x},${b.y}`),
+        ])
       : structureTiles(structurePlan);
     const heroOn = Boolean(arena && (g.nodeKind === 'battle' || g.nodeKind === 'road'));
     const hero = heroOn ? planHeroSetpiece(layout, arena!.regionId, gameState.floorSeed + nodeSalt, taken) : null;
@@ -240,6 +244,12 @@ export class WorldSetup {
     g.player.scar.aboveLight = lighting.enabled;
     // 53라운드 Q22~25: 바닥을 밝혀도 테두리 명도는 그대로 (주변광 보정 틴트)
     g.border?.matchAmbient(lighting.enabled ? lighting.ambientHex : null);
+    // P19 S2: 형태 틀 고정 광원 (길을 따라 놓인 등불·화로 — data/lighting.json fallback 키)
+    const reg = lightRegistryOf(g);
+    for (const l of g.nodeArena?.shape?.lights ?? []) {
+      const def = LIGHTING.fallback[l.kind];
+      if (def) reg.add(def, { x: l.x * TILE, y: l.y * TILE });
+    }
     return lighting;
   }
 
@@ -251,7 +261,10 @@ export class WorldSetup {
     const g = this.g;
     const flag = urlParams().get('light');
     const hasBorder = (r: string | null | undefined) => Boolean(borderDefFor(r));
-    return lightingAmbientFor(g.nodeArena?.regionId, flag, Boolean(g.nodeArena || g.lab), hasBorder, LIGHTING);
+    const base = lightingAmbientFor(g.nodeArena?.regionId, flag, Boolean(g.nodeArena || g.lab), hasBorder, LIGHTING);
+    // P19 S2 (P19 F 휘도 ≥ 55): 형태 틀 주변광 덮어쓰기 (조명이 켜진 지역에서만)
+    const own = g.nodeArena?.shape?.ambient;
+    return base && own ? { ...base, ambient: own } : base;
   }
 }
 

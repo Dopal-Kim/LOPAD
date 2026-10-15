@@ -16,12 +16,13 @@ import {
   entityDepth,
   fxLitDepth,
 } from '../../core/Constants';
-import type { GuardReleasedPayload, ShadowStepPayload } from '../../core/EventBus';
+import type { GuardReleasedPayload, PlayerMotionPayload, ShadowStepPayload } from '../../core/EventBus';
 import { gameState } from '../../core/GameState';
 import { PALETTE, PLAYER_DATA } from '../../data';
 import type { Mob } from '../../objects/Mob';
 import type { FxHandle } from '../../systems/fx/fx';
 import { fxWeaponColor, hexToInt } from '../../systems/palette';
+import { HERO_FX } from '../../systems/fx/fxIds';
 import { facingOf, progressFrame } from '../../systems/sprites/spriteDefs';
 import type { Game } from '../Game';
 import { PLAYER_RENDER_SCALE } from '../../systems/weapon/playerScale';
@@ -41,6 +42,125 @@ export class MotionFx {
     this.updateSprintDust(time);
     this.updateAimFx(time);
     this.updateDashTrail(time);
+    this.updateEyeTrail(time);
+    this.updateEmberBreath();
+  }
+
+  /** P19 주인공 움직임 fx 훅 (아트 `fx/v3/hero_*` — 로드돼 있으면, 없으면 기존 dash_dust 를 작게). 대쉬 시작은 기존 dash_dust */
+  private static readonly MOTION_FX: Record<
+    PlayerMotionPayload['kind'],
+    { id: string; fallback: string | null } | null
+  > = {
+    skid: { id: HERO_FX.SKID, fallback: 'dash_dust' },
+    stop: { id: HERO_FX.SKID, fallback: 'dash_dust' },
+    dashStart: null,
+    dashEnd: null,
+  };
+
+  /** 디버그: 마지막 움직임 fx */
+  lastMotionFx: { kind: string; id: string | null } | null = null;
+
+  onPlayerMotion(p: PlayerMotionPayload): void {
+    const g = this.g;
+    if (p.kind === 'dashStart') this.scheduleDashFx(p);
+    const f = MotionFx.MOTION_FX[p.kind];
+    if (!f) return;
+    const id = g.fx.has(f.id) ? f.id : f.fallback && g.fx.has(f.fallback) ? f.fallback : null;
+    this.lastMotionFx = { kind: p.kind, id };
+    if (!id) return;
+    const own = id === f.id;
+    g.fx.play(id, p.x, p.y, {
+      dir: facingOf(p.dirX, p.dirY, g.player.facingDir),
+      depth: DEPTH.FX_GROUND,
+      ...(own ? {} : { scaleMult: TRAVERSAL.SPRINT_DUST.SCALE_MULT, alpha: TRAVERSAL.SPRINT_DUST.ALPHA, hooks: false }),
+    });
+  }
+
+  /**
+   * art §35 대쉬 잔상: 대쉬 몸 1·2·3열 시작에 그 자리 `hero_dash_afterimage` variant dash1·2·3 (몸 아래), 4열 시작에 `hero_skid_dust`.
+   * 열 시각은 방금 재생한 대쉬 몸 시트(JSON ms) — 대쉬가 먼저 끝나면(대쉬 공격·캔슬) 남은 것은 찍지 않는다
+   */
+  private scheduleDashFx(p: PlayerMotionPayload): void {
+    const g = this.g;
+    if (!g.fx.has(HERO_FX.DASH_AFTERIMAGE)) return;
+    const player = g.player;
+    const starts = [...player.visual.lastFrameStarts];
+    const variants = (g.fx.sheet(HERO_FX.DASH_AFTERIMAGE) as { variants?: Record<string, [number, number]> } | null)
+      ?.variants;
+    const dir = facingOf(p.dirX, p.dirY, player.facingDir);
+    const at = (frame: number, fn: () => void) => {
+      const ms = starts[frame];
+      if (ms === undefined) return;
+      g.time.delayedCall(ms, () => {
+        if (g.scene.isActive() && player.active && player.action === 'dash') fn();
+      });
+    };
+    HERO_FX.DASH_AFTERIMAGE_FRAMES.forEach((frame, i) => {
+      const cols = variants?.[`dash${i + 1}`];
+      at(frame, () =>
+        g.fx.play(HERO_FX.DASH_AFTERIMAGE, player.x, player.y, {
+          dir,
+          depth: entityDepth(player.y) - DEPTH.OVERLAY_STEP,
+          scaleMult: PLAYER_RENDER_SCALE,
+          ...(cols ? { columns: cols } : {}),
+          hooks: false,
+        }),
+      );
+    });
+    at(HERO_FX.DASH_DUST_FRAME, () => {
+      if (g.fx.has(HERO_FX.SKID))
+        g.fx.play(HERO_FX.SKID, player.x, player.y, { dir, depth: DEPTH.FX_GROUND, hooks: false });
+    });
+  }
+
+  private eyeTrailNextAt = 0;
+
+  /**
+   * art §35 눈빛 꼬리: 대쉬 중 EYE_DASH_MS · 달리기 속도 EYE_RUN_SPEED 이상 EYE_RUN_MS 마다 몸 시트 eyeAnchors 자리에 `hero_eye_trail`
+   * (이동 방향 회전 — 8방향 스냅). 미끄럼·급정지 중·눈이 안 보이는 칸(null)은 찍지 않는다
+   */
+  private updateEyeTrail(time: number): void {
+    const g = this.g;
+    const p = g.player;
+    if (time < this.eyeTrailNextAt || !g.fx.has(HERO_FX.EYE_TRAIL)) return;
+    if (p.heroMotion.skidding(time) || p.heroMotion.stopping(time)) return;
+    const v = p.action === 'dash' ? p.dashDir : p.body.velocity;
+    const dashing = p.action === 'dash';
+    if (!dashing && Math.hypot(v.x, v.y) < p.speedPx * HERO_FX.EYE_RUN_SPEED) return;
+    const eye = p.heroMotion.eyePoint();
+    if (!eye) return;
+    this.eyeTrailNextAt = time + (dashing ? HERO_FX.EYE_DASH_MS : HERO_FX.EYE_RUN_MS);
+    const step = Math.PI / 4;
+    g.fx.play(HERO_FX.EYE_TRAIL, eye.x, eye.y, {
+      angle: Math.round(Math.atan2(v.y, v.x) / step) * step,
+      depth: entityDepth(p.y) + DEPTH.OVERLAY_STEP * 2,
+      scaleMult: PLAYER_RENDER_SCALE,
+      hooks: false,
+    });
+  }
+
+  private ember: FxHandle | null = null;
+
+  /** art §35 가슴 불씨 숨: 서 있는(idle 그림) 동안 chestAnchors 를 따라 `hero_ember_breath` 루프, 아니면 끝 */
+  private updateEmberBreath(): void {
+    const g = this.g;
+    const p = g.player;
+    const idle = Boolean(p.visual.current?.includes('_idle')) && p.action === 'normal';
+    const chest = idle && g.fx.has(HERO_FX.EMBER_BREATH) ? p.heroMotion.chestPoint() : null;
+    const live = this.ember && g.fx.isActive(this.ember) ? this.ember : null;
+    if (!chest) {
+      if (live) g.fx.finish(live);
+      this.ember = null;
+      return;
+    }
+    const depth = entityDepth(p.y) + DEPTH.OVERLAY_STEP * 2;
+    if (!live)
+      this.ember = g.fx.play(HERO_FX.EMBER_BREATH, chest.x, chest.y, {
+        depth,
+        scaleMult: PLAYER_RENDER_SCALE,
+        hooks: false,
+      });
+    else live.sprite.setPosition(chest.x, chest.y);
   }
 
   /** 정지·선택·전환 중: 유지형 연출을 끈다 */
@@ -259,15 +379,18 @@ export class MotionFx {
   private updateDashTrail(time: number): void {
     const g = this.g;
     const player = g.player;
-    if (player.action !== 'dash' || time < this.dashTrailNextAt || !g.fx.has('dash_trail')) return;
+    // P19 art §35: hero_dash_afterimage 가 있으면 대쉬 열마다 그것 (scheduleDashFx) — 옛 주기 dash_trail 은 없을 때만
+    const trail = 'dash_trail';
+    if (g.fx.has(HERO_FX.DASH_AFTERIMAGE)) return;
+    if (player.action !== 'dash' || time < this.dashTrailNextAt || !g.fx.has(trail)) return;
     const S = FEEL.SECONDARY;
     this.dashTrailNextAt = time + S.DASH_TRAIL_INTERVAL_MS;
     const d = player.dashDir;
     // 55라운드 Q13: v3 대쉬 잔상은 따뜻한 재 그대로 (DASH_TRAIL_TINT false 면 노드 틴트 없음)
     const tinted = S.DASH_TRAIL_TINT && S.DASH_TRAIL_TINT_NODES.some((id) => gameState.weapon.path.includes(id));
     const hex = tinted ? fxWeaponColor(PALETTE, gameState.weapon.id, S.DASH_TRAIL_RAMP_INDEX) : null;
-    const method = g.fx.sheet('dash_trail')?.tint?.method ?? '';
-    g.fx.play('dash_trail', player.x, player.y, {
+    const method = g.fx.sheet(trail)?.tint?.method ?? '';
+    g.fx.play(trail, player.x, player.y, {
       dir: facingOf(d.x, d.y, player.facingDir),
       depth: entityDepth(player.y) - DEPTH.OVERLAY_STEP,
       tint: hex ? hexToInt(hex) : undefined,

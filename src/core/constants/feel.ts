@@ -52,6 +52,12 @@ export const FEEL = {
      * 막타(연격 마지막 타·대쉬 공격)·치명타 배율. 동시 다수 적중은 한 번만 (MIN_GAP_MS)
      */
     HEAVY_MULT: 1.8,
+    /**
+     * P19 히트스톱 다이어트 (방향 ④B-8 — 전투 시간의 ≤ 8%): 일반 적중은 무기 값 그대로(단검 0·칼·활 15·대검 30),
+     * 막타·치명·처치·벽꽝만 HEAVY_MIN_MS ~ MAX_MS
+     */
+    HEAVY_MIN_MS: 50,
+    MAX_MS: 90,
     /** 무기 데이터에 feel.hitstopMs 가 없을 때 */
     WEAPON_FALLBACK_MS: 40,
   },

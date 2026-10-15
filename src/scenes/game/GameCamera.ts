@@ -4,7 +4,7 @@
  */
 import Phaser from 'phaser';
 import { BORDER, CAMERA } from '../../core/Constants';
-import { logicalZoomOf } from '../../systems/display';
+import { logicalZoomOf, worldZoom } from '../../systems/display';
 import type { Game } from '../Game';
 
 export class GameCamera {
@@ -19,6 +19,10 @@ export class GameCamera {
   private focus: { x: number; y: number; rateMs: number } | null = null;
   private returnUntil = 0;
   private returnMs = 0;
+  /** P19 E (계약 free-combat §4): 지금 논리 배율 (목표로 옮겨 가는 중) · 마지막으로 카메라에 넣은 값 · 전투 중(살아 있는 적 ≥ 1) */
+  private zoom: number = CAMERA.ZOOM;
+  private appliedZoom = 0;
+  private combat = false;
 
   constructor(private readonly g: Game) {}
 
@@ -37,8 +41,71 @@ export class GameCamera {
     return this.focus !== null;
   }
 
+  /** P19 E: 탐색 1.75 · 전투 중 1.6 · 보스 1.5 */
+  private zoomTarget(): number {
+    if (this.g.nodeKind === 'boss') return CAMERA.ZOOM_BOSS;
+    return this.combat ? CAMERA.ZOOM_COMBAT : CAMERA.ZOOM;
+  }
+
+  /**
+   * P19 E: 배율을 목표로 (탐색 ↔ 전투 폭을 ZOOM_EASE_MS 에 걸쳐 같은 빠르기로). force(진입·연출) 는 값만 맞추고 카메라는 그대로 —
+   * 탄생 연출이 자기 배율을 넣는 중이라서. 바뀔 때만 넣는다 (보스 처치 확대 tween 을 덮지 않게)
+   */
+  private updateZoom(force: boolean, deltaMs: number): void {
+    this.combat = this.g.mobs.countActive(true) > 0;
+    const want = this.zoomTarget();
+    if (force) {
+      this.zoom = want;
+      return;
+    }
+    const step = (Math.abs(CAMERA.ZOOM - CAMERA.ZOOM_COMBAT) * deltaMs) / CAMERA.ZOOM_EASE_MS;
+    this.zoom += Math.sign(want - this.zoom) * Math.min(Math.abs(want - this.zoom), step);
+    const left = Math.max(0, this.punchUntil - this.g.time.now) / this.punchMs;
+    const z = this.zoom * (1 + this.punchAmt * left);
+    if (Math.abs(z - this.appliedZoom) < 1e-4) return;
+    this.g.cameras.main.setZoom(worldZoom(z));
+    this.appliedZoom = z;
+  }
+
+  /**
+   * P19: 짧은 줌 펀치 (대검 판정 순간 등 — S1 이 부른다). amount = 배율 가산 비율(0.04 = 4% 확대), ms 동안 선형으로 0 으로.
+   * 신호(`toUi().zoom`)는 기본 배율 그대로 (화면 좌표는 cam.zoom 을 쓰는 worldToLogicalScreen 이라 펀치도 반영된다)
+   */
+  punch(amount: number, ms: number): void {
+    this.punchAmt = amount;
+    this.punchMs = Math.max(1, ms);
+    this.punchUntil = this.g.time.now + this.punchMs;
+  }
+
+  private punchAmt = 0;
+  private punchMs = 1;
+  private punchUntil = 0;
+
+  /** 지금 논리 배율 (연출 확대의 기준) */
+  get logicalZoom(): number {
+    return this.zoom;
+  }
+
+  /**
+   * 계약 free-combat §4 `UiSnapshot.camera` — zoom = 논리 배율, view = 보이는 월드 사각형 (worldView 와 같은 값을 스크롤·배율에서
+   * 바로 계산 — Phaser worldView 는 그리기 전에야 갱신돼 한 프레임 늦다)
+   */
+  toUi(): { zoom: number; combat: boolean; view: { x: number; y: number; w: number; h: number } } {
+    const cam = this.g.cameras.main;
+    const z = cam.zoom || 1;
+    const w = cam.width / z;
+    const h = cam.height / z;
+    const r = (v: number) => Math.round(v * 10) / 10;
+    return {
+      zoom: +this.zoom.toFixed(3),
+      combat: this.combat,
+      view: { x: r(cam.scrollX + (cam.width - w) / 2), y: r(cam.scrollY + (cam.height - h) / 2), w: r(w), h: r(h) },
+    };
+  }
+
   update(force: boolean, deltaMs = 0): void {
     const g = this.g;
+    this.updateZoom(force, deltaMs);
     const cam = g.cameras.main;
     // 48라운드 Q1: 확대 배율만큼 보이는 월드가 작다 → 클램프는 보이는 반폭, 스크롤은 (중심 - 캔버스 반폭)
     // 52라운드: zoom = 실제 배율(캔버스 px), lz = 논리 배율 (데드존·스냅·흔들림 px 는 논리 화면 px)

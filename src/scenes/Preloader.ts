@@ -24,6 +24,7 @@ import {
   TileSkin,
   namedTilesetJsonPath,
   namedTilesetJsonPathV2,
+  namedTilesetJsonPathV4,
   namedTilesetTextureKey,
   propSheetJsonPath,
   propSheetName,
@@ -114,8 +115,10 @@ export class Preloader extends Phaser.Scene {
     this.pendingRegionTiles = [];
     // 61 단계 6: 수련장 타일셋도 (노드 지도 지역이 아니라 route.json 에 없다)
     for (const name of [...regionTilesets(), LAB.TRAINING_TILESET]) {
+      // P19 1-A: v4 → v2 → 기존
+      const v4 = namedTilesetJsonPathV4(name);
       const v2 = namedTilesetJsonPathV2(name);
-      const rel = listed(v2) ? v2 : namedTilesetJsonPath(name);
+      const rel = listed(v4) ? v4 : listed(v2) ? v2 : namedTilesetJsonPath(name);
       if (!exists(rel)) continue;
       const jsonKey = `json_${namedTilesetTextureKey(name)}`;
       this.load.json(jsonKey, `${ASSETS.URL}/${rel}`);

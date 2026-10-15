@@ -4,7 +4,8 @@
  *
  * 모델
  * - 무기 DPS·타 피해 = 무기 쪽 기준선 `systems/weapon/dps.ts`(baselineDps·expectedHit·sustainedSpeed·bowTapDps) 그대로
- * - 근접: 적마다 연격 1타부터, 타 간격 = cancelFromMs (마지막 타는 durationMs + finisherRecoverMs, 순환 연격은 계속 cancelFromMs) ÷ 지속 공속.
+ * - 근접: 적마다 연격 1타부터, 타 간격 = cancelFromMs (마지막 타는 cancelFromMs < durationMs 가 아니면 durationMs + finisherRecoverMs,
+ *   순환 연격은 계속 cancelFromMs) ÷ 지속 공속.
  *   한 휘두름이 맞히는 적 수 = 1 + 호/360 × CROWD_DENSITY (웨이브 평균 생존 수 상한). 방패 적은 정면 비율만큼 감소.
  * - 활: 짧게 쏘기 한 발 = 탄창 한 통 + 장전 사이클의 평균.
  * - 실제 전투 시간 = 처치 시간 합 / 공격 비율(UPTIME) + 자리 잡기·추격 + 첫 접근.
@@ -77,7 +78,11 @@ export function meleeSequence(p: SimPlayer, w: SimWeapon): { dmg: number; ms: nu
   const chance = (p.crit + w.critBonus) / 100;
   return c.hits.map((h, i) => ({
     dmg: expectedHit(p.attack, h.damageMult, w.damageMult, chance, p.critDamageMult),
-    ms: (i < c.hits.length - 1 || c.loop ? h.cancelFromMs : h.durationMs + c.finisherRecoverMs) / speed,
+    // P19: 마무리 타도 cancelFromMs < durationMs 면 그것 (ComboTracker.readyAt 과 같은 규칙)
+    ms:
+      (i < c.hits.length - 1 || c.loop || h.cancelFromMs < h.durationMs
+        ? h.cancelFromMs
+        : h.durationMs + c.finisherRecoverMs) / speed,
   }));
 }
 

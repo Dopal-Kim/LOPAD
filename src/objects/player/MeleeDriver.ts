@@ -6,7 +6,7 @@
  * 대검 휘두른 뒤 끌림(몸 시트 dragFrames·dragStepPx — 방향키와 무관), 8행 시트 차지 자세(조준각 8분할), 균열 행.
  * Player 는 행동 가능 여부·이동·대쉬·보조 동작을 정하고 공격 구간을 여기에 맡긴다.
  */
-import { COLORS } from '../../core/Constants';
+import { COLORS, TILE } from '../../core/Constants';
 import {
   EventBus,
   Events,
@@ -27,8 +27,9 @@ import { frameDurations, rowDirFor } from '../../systems/sprites/spriteDefs';
 import { pickMove } from '../../systems/weapon/moves';
 import type { Player } from '../Player';
 import { releaseCharge } from './chargeRelease';
-import { startDashSlash, startSlam, type ComboStrike } from './heavyMoves';
+import { startSlam, type ComboStrike } from './heavyMoves';
 import { thrustLunge } from './thrustMove';
+import { weaponRangeScale } from '../../systems/weapon/playerScale';
 
 /** 56라운드 Q46: 대검 끌림음은 3타(연격 번호 2 — H2)에만 */
 const DRAG_SFX_HIT = 2;
@@ -45,6 +46,9 @@ export class MeleeDriver {
   private stopFrom = 0;
   private stopUntil = 0;
   private stopBlocks = false;
+  /** P19 대검 몸 쏠림: 판정 순간부터 weight.leanMs */
+  private leanFrom = 0;
+  private leanUntil = 0;
   /** 디버그: 마지막 차지 국면 */
   private lastCharge: PlayerChargePayload | null = null;
   /** 차지 자세: 들기 열을 이미 재생했는가 · 루프 자세를 걸어 두었는가(끝나면 풀어 준다) */
@@ -81,7 +85,7 @@ export class MeleeDriver {
 
   /** 대쉬 공격 자리가 있는 무기 (대검 대쉬 베기·태클 · 칼 대쉬 일섬) */
   private get hasDashAttack(): boolean {
-    return Boolean(gameState.weapon.def.dashSlash) || this.p.moves.hasDashAttack;
+    return this.p.moves.hasDashAttack;
   }
 
   /** 대검 정지 구간 중 */
@@ -92,6 +96,18 @@ export class MeleeDriver {
   /** 정지 구간이 공격·대쉬도 막는가 */
   get stopBlocksAct(): boolean {
     return this.stopBlocks;
+  }
+
+  /**
+   * P19 공격 중 이동 ≥ 0.6 (방향 ④A) · 대검 '무게': 판정 순간부터 leanMs 동안 몸 쏠림 leanMoveMult(0.3) · 정지 구간은 멈춤 대신
+   * 마무리 타 finisherMoveMult(0.3), 그 밖은 공격 감속. 무게가 없는 무기·그 밖 시각은 1
+   */
+  weightMoveMult(time: number): number {
+    const w = gameState.weapon.def.weight;
+    if (!w) return 1;
+    if (time >= this.leanFrom && time < this.leanUntil) return w.leanMoveMult ?? 1;
+    if (!this.isStopped(time)) return 1;
+    return this.stopBlocks ? (w.finisherMoveMult ?? 0) : gameState.weapon.attackSlowMult;
   }
 
   /** 차지 중 이동 배율 (차지가 아니면 1) */
@@ -229,10 +245,6 @@ export class MeleeDriver {
     if (dashWindow && time >= combo.readyAt()) {
       // 56라운드 2단계 Q41 대검 어깨 태클 · 58라운드 Q1 칼 대쉬 일섬 (공격 수단 표 dashAttack live 일 때)
       if (p.moves.tryDashAttack(input, time)) return;
-      if (W.dashSlash) {
-        startDashSlash(p, input, time, W);
-        return;
-      }
     }
     // 49라운드 과열 단계 공속 × 55라운드 Q23 관성 공속
     // 57라운드 빌드 축 공속 (연쇄 2·열풍) — Player.buildAttackSpeed
@@ -302,7 +314,10 @@ export class MeleeDriver {
       p.startLunge(payload.dirX, payload.dirY, step.px, win ? win.ms : step.ms, time, from);
     }
     this.dragAfter(payload, body, time);
+    this.advance(payload, time, moving);
     if (!weight) return;
+    this.leanFrom = time + payload.swingDelayMs;
+    this.leanUntil = this.leanFrom + (weight.leanMs ?? 0);
     // 49라운드: 이동 정지 = 몸 시트 recoverFrames 구간(마지막 타는 공격·대쉬도), 메모가 없으면 마지막 타만 finisherStopMs
     this.stopUntil = 0;
     this.stopBlocks = closing;
@@ -314,6 +329,29 @@ export class MeleeDriver {
       this.stopFrom = time + payload.swingDelayMs;
       this.stopUntil = this.stopFrom + weight.finisherStopMs;
     }
+  }
+
+  /**
+   * P19 연격 파고듦 (주인공 '민첩하고 무서운'): 커서 쪽 advance px — 조준 원뿔 안 적이 있으면 판정 거리 앞까지(advance + magnet.maxPx 상한,
+   * 이미 닿으면 더 나가지 않음). 대검(atSwing)은 휘두르는 순간 칼 무게에 끌려가고, 나머지는 판정 프레임 시작에 끝나게 파고든다
+   */
+  private advance(payload: PlayerAttackPayload, time: number, moving: boolean): void {
+    const p = this.p;
+    const w = gameState.weapon;
+    const a = w.def.combo?.advance ?? PLAYER_DATA.motion.attackAdvance;
+    const M = PLAYER_DATA.motion.magnet;
+    const atSwing = 'atSwing' in a && Boolean(a.atSwing);
+    // 걷는 중의 기본 파고듦은 걷기보다 느려 오히려 발을 붙잡는다 — 걷는 중엔 적 자석·칼 무게(atSwing)만
+    let px = moving && !atSwing ? 0 : a.px;
+    const t = p.aimAssist?.(p.x, p.y, payload.dirX, payload.dirY, M.rangeTiles * TILE, M.coneDeg) ?? null;
+    if (t) {
+      const reach = (w.def.combo?.radiusPx ?? 0) * weaponRangeScale(w);
+      const gap = Math.hypot(t.x - p.x, t.y - p.y) - t.r - reach * 0.8;
+      px = Math.max(0, Math.min(gap, a.px + M.maxPx));
+    }
+    if (px <= 0 || a.ms <= 0) return;
+    const from = atSwing ? payload.swingDelayMs : Math.max(0, payload.swingDelayMs - a.ms);
+    p.startLunge(payload.dirX, payload.dirY, px, a.ms, time, from, true);
   }
 
   /**

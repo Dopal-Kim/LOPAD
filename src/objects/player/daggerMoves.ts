@@ -13,6 +13,7 @@ import { artCandidates, pickArt } from '../../systems/weapon/comboArt';
 import { facingOf, frameDurations, type Facing } from '../../systems/sprites/spriteDefs';
 import type { Player } from '../Player';
 import { aimDir, emitSkill, fireMoveStrike } from './moveStrike';
+import { markJudge } from './attackEmit';
 import { heatLevelOf, stabsCrossed } from '../../systems/weapon/flurryMath';
 
 /** 시트가 없을 때 찌르기 간격 (초당 약 11타) */
@@ -189,6 +190,7 @@ export class FlurryHold {
       ...(hit.hitShape ? { hitShape: hit.hitShape } : {}),
       ...(res?.kind === 'heat' ? { heatStage: res.stage } : {}),
     };
+    markJudge(this.p, time, payload);
     EventBus.emit(Events.PLAYER_ATTACKED, payload);
     emitSkill('flurry', 'stab');
   }

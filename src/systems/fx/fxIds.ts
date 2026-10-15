@@ -160,6 +160,51 @@ export const ENEMY_FX_IDS: readonly string[] = [
   'spawn_ink',
 ];
 /** 보조 동작·대쉬 연출 시트 (35라운드 3단계, 계약 §3.2). 60라운드: 옛 2차 진화 부속(중시 적중 heavyarrow_hit)은 뺌 (57 Q42) */
+/** P19 반응 fx (계약 art §34 — 반응 이벤트 → 시트, 씬 ReactionFx) */
+export const REACTION_FX = {
+  WALL_CRACK: 'react_wallslam_crack',
+  /** 벽 금이 벽면에 남는 시간 (재생 뒤 마지막 칸 유지) */
+  WALL_CRACK_MS: 1600,
+  WALL_DUST: 'react_wallslam_dust',
+  BOWL: 'react_bowl',
+  LAUNCH: 'react_launch_dust',
+  LAND: 'react_land_dust',
+  FALL_SPLASH: 'react_fall_splash',
+  FALL_SPLASH_LIQUOR: 'react_fall_splash_liquor',
+  FALL_CHASM: 'react_fall_chasm',
+  EXPLODE: { bottle: 'react_explode_s', cask: 'react_explode_m', still: 'react_explode_l' },
+  FLINCH: 'react_flinch_flash',
+  CHANCE_GLINT: 'tele_chance_glint',
+} as const;
+
+/** P19 주인공 움직임 fx (계약 art §35 — 씬 MotionFx) */
+export const HERO_FX = {
+  /** 반대 방향 미끄럼(turn_skid 0열) · 대쉬 4열 · 급정지 먼지 (행 = 새 방향) */
+  SKID: 'hero_skid_dust',
+  /** 대쉬 1·2·3열 시작에 그 자리 잔상 (JSON variants dash1·2·3) · 몸 아래 */
+  DASH_AFTERIMAGE: 'hero_dash_afterimage',
+  /** 대쉬 몸 열 → 잔상 variant · 먼지 열 */
+  DASH_AFTERIMAGE_FRAMES: [1, 2, 3],
+  DASH_DUST_FRAME: 4,
+  /** 눈빛 꼬리 (eyeAnchors, 이동 방향 회전 8방향 스냅): 대쉬 중 DASH_MS · 달리기 속도 RUN_SPEED 이상 RUN_MS 마다 */
+  EYE_TRAIL: 'hero_eye_trail',
+  EYE_DASH_MS: 16,
+  EYE_RUN_MS: 30,
+  EYE_RUN_SPEED: 0.6,
+  /** 서 있는 동안 가슴 불씨 숨 (chestAnchors 따라감, 루프) */
+  EMBER_BREATH: 'hero_ember_breath',
+} as const;
+
+const P19_FX_IDS: readonly string[] = [
+  ...Object.values(REACTION_FX).flatMap((v) =>
+    typeof v === 'string' ? [v] : typeof v === 'object' ? Object.values(v) : [],
+  ),
+  HERO_FX.SKID,
+  HERO_FX.DASH_AFTERIMAGE,
+  HERO_FX.EYE_TRAIL,
+  HERO_FX.EMBER_BREATH,
+];
+
 export const SECONDARY_FX_IDS: readonly string[] = [
   'parry_flash',
   'guard_wave',
@@ -220,6 +265,7 @@ export function allFxSheetIds(weapons: Record<string, FxWeaponShape>): string[] 
       ...SECONDARY_FX_IDS,
       ...STRUCTURE_FX_IDS,
       ...BUILD_STATUS_FX_IDS,
+      ...P19_FX_IDS,
     ]),
   ];
 }

@@ -25,6 +25,7 @@ import { PlayerGauges } from './player/PlayerGauges';
 import { SecondaryDriver } from './player/SecondaryDriver';
 import { BasicMoves } from './player/BasicMoves';
 import { BranchMoves } from './player/BranchMoves';
+import { HeroMotion } from './player/HeroMotion';
 import { DashCharges } from '../systems/build/dashCharges';
 import type { PlayerBuildHooks } from '../systems/build/playerHooks';
 import { PLAYER_RENDER_SCALE } from '../systems/weapon/playerScale';
@@ -36,8 +37,7 @@ type Body = Phaser.Physics.Arcade.Body;
  * 49라운드: draw = 대검을 등에서 끌어냄 · slam = 대검 내리찍기(도약 → 착지 → 회복) · dashslash = 대검 대쉬 공격(달려들며 휘두름 → 멈춤)
  * 56라운드: skill = 무기 전용 동작(칼 일섬·대검 꽂아내리기 — 입력 잠금, 이동은 내딛기만)
  */
-export type PlayerAction =
-  'normal' | 'dash' | 'parry' | 'recover' | 'guard' | 'aim' | 'draw' | 'slam' | 'dashslash' | 'skill';
+export type PlayerAction = 'normal' | 'dash' | 'parry' | 'recover' | 'guard' | 'aim' | 'draw' | 'slam' | 'skill';
 
 /** 내딛기·도약 한 구간 (from ~ until 동안 이 속도) */
 interface Lunge {
@@ -101,6 +101,12 @@ export class Player extends Phaser.GameObjects.Sprite {
   private attackReadyAt = 0;
   private dashReadyAt = 0;
   private dashEndedAt = -Infinity;
+  /** P19 캔슬 표: 지금 대쉬 시작 시각 · 대쉬 도중 누른 공격(최소 대쉬 뒤 대쉬를 끊고 대쉬 공격) · 마지막 공격 판정이 끝나는 시각 */
+  private dashStartedAt = -Infinity;
+  private dashAttackQueued = false;
+  /** P19: 대쉬 누름 버퍼 (판정 끝·최소 대쉬 직전에 누른 대쉬도 dash.bufferMs 안이면 나간다) */
+  private dashBufferedAt = -Infinity;
+  private judgeEndAt = -Infinity;
   /** 공격 판정 중(둔중한 무기일수록 길다) 이동 감속 */
   private attackSlowUntil = 0;
   /** 그림자 걸음 직후: 이 시간까지의 다음 공격 1회가 확정 치명(+암살 배율) */
@@ -135,6 +141,23 @@ export class Player extends Phaser.GameObjects.Sprite {
   buildAttackSpeed = 1;
   buildNoFlinch = false;
   branchMoveMult = 1;
+  /** P19 움직임 감각 (가속·미끄럼·기울기·대쉬 늘임/압축·눈빛 기준점) */
+  readonly heroMotion = new HeroMotion(this);
+  /** P19 연격 적 자석 (씬이 넣는다 — 조준 원뿔 안 가장 가까운 적의 바디 중심·반지름, 없으면 null) */
+  aimAssist:
+    | ((
+        x: number,
+        y: number,
+        dirX: number,
+        dirY: number,
+        rangePx: number,
+        coneDeg: number,
+      ) => {
+        x: number;
+        y: number;
+        r: number;
+      } | null)
+    | null = null;
   /** 돌파 6 대쉬 충전 */
   private readonly dashStock = new DashCharges();
   /**
@@ -171,6 +194,7 @@ export class Player extends Phaser.GameObjects.Sprite {
       () => this.visual.current,
       () => ({ mode: this.gear.carryMode, drawn: this.gear.drawn }),
       PLAYER_RENDER_SCALE,
+      () => this.visual.poseScale,
     );
     this.scar = new ScarOverlay(this, () => this.visual.current, PLAYER_RENDER_SCALE);
     this.body.setCollideWorldBounds(true);
@@ -320,7 +344,45 @@ export class Player extends Phaser.GameObjects.Sprite {
   /** 57라운드: 대쉬 가능 (맨손 맹세 금지 · 돌파 6 충전) */
   private dashReady(time: number): boolean {
     if (this.buildHooks && !this.buildHooks.dashAllowed()) return false;
-    return this.dashStock.ready(time, this.buildHooks?.dashCharges() ?? 1);
+    return this.dashStock.ready(time, this.buildHooks?.dashCharges() ?? PLAYER_DATA.dash.charges);
+  }
+
+  /**
+   * P19 캔슬 표 (방향 ④A): 대쉬로 끊을 수 있는가. 기본 상태 · 대쉬 중 minMs 뒤 · 특수 동작(skill·dashslash·slam — 대쉬 공격·홀드 해제·
+   * 시그니처 반격·차지)은 판정이 끝난 다음 프레임부터 · 그로기는 불가
+   */
+  dashCancelable(time: number, canStrike: boolean): boolean {
+    if (this.groggy) return false;
+    if (canStrike) return true;
+    switch (this.action) {
+      case 'normal':
+        return true;
+      case 'dash':
+        return time - this.dashStartedAt >= PLAYER_DATA.dash.minMs;
+      case 'skill':
+      case 'slam':
+      case 'draw':
+        return time >= this.judgeEndAt;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * P19 캔슬 표: 판정이 이 시각까지 이어진다 — 공격 알림마다(`attackEmit.markJudge`) · 화살비는 마지막 발사. 특수 동작은 이 뒤부터 대쉬로 끊긴다
+   */
+  holdJudgeUntil(until: number): void {
+    this.judgeEndAt = Math.max(this.judgeEndAt, until);
+  }
+
+  /** 대쉬로 끊긴 동작 정리: 홀드(발도·난타)·갈래 수단·연격 정지·차지·내딛기·마무리 자세 */
+  private cancelForDash(): void {
+    this.moves.onHurt();
+    this.branchMoves.cancel();
+    this.branchMoveMult = 1;
+    this.melee.reset();
+    this.lunges = [];
+    this.softPose = null;
   }
 
   /** 61 G 개성 '이어 걷기': 대쉬 충전·쿨다운을 바로 돌려놓는다 */
@@ -368,12 +430,34 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.gauges.tick(time);
     this.paintGroggy();
 
+    // P19 캔슬 표 '대쉬 → 공격': 대쉬 도중 누르면 최소 대쉬(minMs) 뒤 그 자리에서 대쉬를 끊고 대쉬 공격
+    if (this.action === 'dash' && input.attackPressed) this.dashAttackQueued = true;
+    let forceAttack = false;
+    if (
+      this.action === 'dash' &&
+      this.dashAttackQueued &&
+      time - this.dashStartedAt >= D.minMs &&
+      time < this.actionUntil
+    ) {
+      this.actionUntil = time;
+      forceAttack = true;
+    }
+    if (forceAttack || (this.action === 'normal' && this.dashAttackQueued)) {
+      this.dashAttackQueued = false;
+      input = { ...input, attackPressed: true };
+    }
     // 진행 중인 동작 종료 처리
     if (this.action !== 'normal' && this.actionUntil > 0 && time >= this.actionUntil) {
       if (this.action === 'dash') {
         this.dashEndedAt = time;
+        this.heroMotion.dashEnd(this.dashDir);
         this.body.setVelocity(0, 0);
         this.setAction('normal', 0);
+        // 대쉬가 제 길이로 끝날 때 쌓인 누름도 대쉬 공격으로
+        if (this.dashAttackQueued) {
+          this.dashAttackQueued = false;
+          input = { ...input, attackPressed: true };
+        }
       } else if (this.action === 'parry') {
         // 창이 닫혔는데 아무것도 못 막음 → 후딜
         EventBus.emit(Events.PLAYER_PARRY_FAILED);
@@ -427,16 +511,13 @@ export class Player extends Phaser.GameObjects.Sprite {
       this.body.setVelocity(sh.vx * f, sh.vy * f);
     } else if (lunge) {
       this.body.setVelocity(lunge.x, lunge.y);
-    } else if (
-      this.action === 'slam' ||
-      this.action === 'dashslash' ||
-      (this.action === 'skill' && this.skillMoveMult <= 0) ||
-      stopped
-    ) {
-      // 대검: 내리찍기 착지·대쉬 공격 뒤 멈춤 · 3타 뒤 정지 · 56라운드 전용 동작(일섬 자세·꽂아내리기)
+    } else if (this.action === 'slam' || (this.action === 'skill' && this.skillMoveMult <= 0)) {
+      // 대검: 내리찍기 착지·대쉬 공격 뒤 멈춤 · 56라운드 전용 동작(일섬 자세·꽂아내리기)
       this.body.setVelocity(0, 0);
     } else {
       let slow = time < this.attackSlowUntil ? gameState.weapon.attackSlowMult : 1;
+      // P19 공격 중 이동 ≥ 0.6: 대검 판정 뒤 몸 쏠림(무게 leanMoveMult) · 정지 구간은 멈춤 대신 감속
+      slow = Math.min(slow, this.melee.weightMoveMult(time));
       const S = this.secondary;
       if (this.action === 'guard' && S.kind === 'guard') slow = Math.min(slow, S.moveMult);
       if (this.action === 'aim' && S.kind === 'aimedshot') slow = Math.min(slow, S.moveMult);
@@ -454,11 +535,22 @@ export class Player extends Phaser.GameObjects.Sprite {
         const vx = this.body.velocity.x / c;
         const vy = this.body.velocity.y / c;
         this.body.setVelocity(vx + (dir.x * speed - vx) * k, vy + (dir.y * speed - vy) * k);
-      } else this.body.setVelocity(dir.x * speed, dir.y * speed);
+      } else {
+        // P19: 빠른 가속(accelMs) · 반대 입력 미끄럼
+        const c = this.timeComp > 0 ? this.timeComp : 1;
+        const cur = { x: this.body.velocity.x / c, y: this.body.velocity.y / c };
+        const v = this.heroMotion.steer(cur, dir, speed, delta, time);
+        this.body.setVelocity(v.x, v.y);
+      }
     }
     // 56라운드 Q57: 숨 집중으로 물리를 늦춘 동안에도 주인공(이동·대쉬·내딛기·넉백)은 제 속도
     if (this.timeComp !== 1 && this.timeComp > 0) this.body.velocity.scale(this.timeComp);
     this.moving = this.poses.locomotion(input, dir, time);
+    // P19 급정지 사건 · 이동 기울기 (걷기·달리기 그림일 때만)
+    this.heroMotion.after(
+      dir.lengthSq() > 0,
+      this.action === 'normal' && time >= this.attackSlowUntil && !this.visual.isBusy(time) && !this.isShoved,
+    );
     this.poses.holdSecondary(input, time);
     this.melee.holdPose(input, time);
     this.gear.updateCarry(time);
@@ -467,13 +559,17 @@ export class Player extends Phaser.GameObjects.Sprite {
     // 56라운드 Q7: 그로기 중엔 공격·대쉬·넣기 불가 (보조 동작 = 가드·패링만)
     const canStrike = canAct && !this.groggy;
 
-    // 57라운드 갈래 1단 수단 (단검 대쉬 투척 · 활 속사 연사) — 처리했으면 이번 프레임 끝
-    if (this.branchMoves.update(input, time, canStrike)) return;
-    // 56라운드 2단계 새 기본기 (간파 반격·대치 일격·버티기·도약 찍기·등 뒤 찌르기·고속 난타) — 처리했으면 이번 프레임 끝
-    if (this.moves.update(input, time, canStrike, dir.lengthSq() > 0)) return;
-
-    // 대쉬
-    if (input.dashPressed && canStrike && time >= this.dashReadyAt && this.dashReady(time)) {
+    // 대쉬 — P19 캔슬 표: 기본 상태 · 대쉬 중(최소 대쉬 뒤 = 대쉬 → 대쉬) · 특수 동작(판정이 끝난 뒤) · 홀드(발도·난타 — 판정 전이면 헛동작,
+    // 자원 반환 없음)를 모두 끊는다. 그로기만 막는다
+    if (input.dashPressed) this.dashBufferedAt = time;
+    if (
+      time - this.dashBufferedAt <= D.bufferMs &&
+      this.dashCancelable(time, canStrike) &&
+      time >= this.dashReadyAt &&
+      this.dashReady(time)
+    ) {
+      this.dashBufferedAt = -Infinity;
+      this.cancelForDash();
       const d = dir.lengthSq() > 0 ? dir : this.facing;
       // 57라운드: 패시브·돌파 2 쿨 배율은 빌드 합산 (훅이 없으면 패시브만) · 돌파 6 충전
       const cd =
@@ -496,13 +592,21 @@ export class Player extends Phaser.GameObjects.Sprite {
       // 49라운드 기력: 대쉬 소모 (바닥나도 대쉬는 된다 — 회피 수단은 남긴다). 61라운드: 기력은 대쉬·가드·강공만
       if (res?.def.kind === 'stamina') res.spend(res.def.cost.dash, time);
       this.lunges = [];
+      this.dashStartedAt = time;
+      this.dashAttackQueued = false;
       this.setAction('dash', time + D.durationMs);
       this.combo?.reset();
       this.melee.cancelCharge();
       this.visual.oneShot(this.poses.bodyAction('dash'), facingOf(d.x, d.y, this.visual.facing), time, D.durationMs);
       EventBus.emit(Events.PLAYER_DASHED, { dirX: d.x, dirY: d.y, x: this.x, y: this.y });
+      this.heroMotion.dashStart(d);
       return;
     }
+
+    // 57라운드 갈래 1단 수단 (단검 대쉬 투척 · 활 속사 연사) — 처리했으면 이번 프레임 끝
+    if (this.branchMoves.update(input, time, canStrike)) return;
+    // 56라운드 2단계 새 기본기 (간파 반격·대치 일격·버티기·도약 찍기·등 뒤 찌르기·고속 난타) — 처리했으면 이번 프레임 끝
+    if (this.moves.update(input, time, canStrike, dir.lengthSq() > 0)) return;
 
     // 보조 동작 (우클릭): 무기별 — 56라운드 `SecondaryDriver`. 그로기 중에도 가드·패링은 된다
     if (input.secondaryPressed && canAct && this.secondaryDriver.press(input, time)) return;
@@ -652,6 +756,8 @@ export class Player extends Phaser.GameObjects.Sprite {
       melee: this.melee.debug(time),
       stopped: this.isStopped(time),
       sinceDashMs: Number.isFinite(this.dashEndedAt) ? time - this.dashEndedAt : null,
+      judgeLeftMs: Math.max(0, this.judgeEndAt - time),
+      dashCharges: this.dashStock.left(time, this.buildHooks?.dashCharges() ?? PLAYER_DATA.dash.charges),
       lastEvent: this.gear.lastEvent,
       vx: this.body.velocity.x,
       vy: this.body.velocity.y,
@@ -680,6 +786,8 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.branchMoves.reset();
     if (this.action !== 'normal') this.setAction('normal', 0);
     this.lunges = [];
+    this.dashAttackQueued = false;
+    this.dashBufferedAt = -Infinity;
     this.defense.clearWindows();
     this.melee.reset();
     this.visual.release();

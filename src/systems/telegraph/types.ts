@@ -1,5 +1,6 @@
 /** 공격 예고 공용 타입 (57라운드 B8: telegraph.ts 에서 분리). 설명은 `TelegraphFx.ts` 머리말 */
 import type Phaser from 'phaser';
+import type { TelegraphTier } from '../../core/Constants';
 
 export type TelegraphKind = 'line' | 'circle' | 'cone';
 
@@ -8,6 +9,8 @@ export interface TelegraphOptions {
   aura?: boolean;
   /** 오라를 마커와 다른 곳(공격자)에 둔다 (내리찍기: 원 = 착지점, 오라 = 보스). `aim()` 은 이 오라를 옮기지 않는다 */
   auraAt?: { x: number; y: number };
+  /** P19 예고 색 언어 (계약 free-combat §2): 경고 호박 · 위험 적 · 원거리 청백. 없으면 층 램프·회색(보스) */
+  tier?: TelegraphTier;
 }
 
 export interface TelegraphHandle {

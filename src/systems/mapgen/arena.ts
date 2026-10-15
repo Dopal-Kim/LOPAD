@@ -1,30 +1,25 @@
 /**
  * 48라운드 Q3·Q10: 노드 전투장 (방 하나, 복도 없음). 같은 spec(시드 포함)이면 같은 결과.
- * 셀 하나(CELL_W×CELL_H) 안에 [빈 공간 여백 → 벽 1칸 → 내부 w×h] 를 놓는다. 여백은 숨은 벽 저장고 자리
- * (47라운드 hiddenWall `minMarginTiles`)라 비워 둔다. 시작점은 왼쪽, 출구는 오른쪽 가운데.
+ * [빈 공간 여백 → 벽 1칸 → 내부 w×h] 를 놓는다. 여백은 숨은 벽 저장고 자리(47라운드 hiddenWall `minMarginTiles`)라 비워 둔다.
+ * 시작점은 왼쪽, 출구는 오른쪽.
  *
- * 49라운드 4-2(실내 느낌 제거): `edge` 가 있으면 사각 벽 대신 가장자리가 안쪽으로 들쭉날쭉 파고드는 담·잔해
- * (깊이 0..maxInset, run 칸마다 바뀜)가 되고, 위·아래 벽 일부는 열린 틈(원경 void)으로 남는다.
- * 시작점·출구·keepClear 사각형은 깎지 않는다. 방 내부 사각형(`interior`)은 그대로라 방 판정·카메라는 변하지 않는다.
+ * P19 S2 (계약 free-combat §3): `shape` 가 있으면 사각 대신 형태 틀(`mapgen/shape`) 격자로 내부를 채운다 — 벽 · 엄폐(벽) ·
+ * 낙하 구역(빈 칸 = 걷기 막힘, `arena.drops`) · 다리 · 높은 단 · 계단. 시작 줄 = 서쪽 입구 문 줄, 출구 줄 = 동쪽 출구 문 줄.
+ * (49라운드 들쭉날쭉한 가장자리 · 열린 틈은 형태 틀로 교체해 지웠다)
  */
-import { Rng, hashSeed } from '../rng';
-import { CELL_H, CELL_W, TileId, cellKey, type FloorLayout, type Rect, type Room, type RoomType } from './types';
-
-/** 49라운드: 가장자리 모양 (data/route.json arena.edge + 지역 edge) */
-export interface ArenaEdge {
-  /** 안쪽으로 파고드는 최대 깊이 (타일) */
-  maxInset: number;
-  /** 같은 깊이가 이어지는 길이 [min, max] (타일) */
-  run: [number, number];
-  /** 위·아래 벽의 열린 틈 개수 [min, max] */
-  gaps: [number, number];
-  /** 틈 폭 [min, max] (타일) */
-  gapWidth: [number, number];
-  /** 틈을 모서리에서 떨어뜨리는 칸 */
-  cornerMarginTiles: number;
-  /** 시작점·출구 둘레 보호 반경 (타일) */
-  keepClearTiles: number;
-}
+import {
+  CELL_H,
+  CELL_W,
+  TileId,
+  cellKey,
+  type Cell,
+  type DropKind,
+  type FloorLayout,
+  type Rect,
+  type Room,
+  type RoomType,
+} from './types';
+import { DROPS, WALKABLE, type ShapeGrid } from './shape';
 
 export interface ArenaSpec {
   roomId: string;
@@ -48,10 +43,8 @@ export interface ArenaSpec {
   shopCenter?: boolean;
   /** 61라운드 단계 2 방 다양화: 시작점·출구 줄을 가운데에서 위(−)·아래(+)로 옮기는 칸 (안쪽 3칸 여유를 넘지 않게 자른다) */
   spawnShiftY?: number;
-  /** 49라운드: 들쭉날쭉한 가장자리 (없으면 48라운드 사각 벽) */
-  edge?: ArenaEdge;
-  /** 가장자리가 깎지 않을 사각형 (타일, 시작점·출구는 자동) */
-  keepClear?: readonly Rect[];
+  /** P19 S2: 형태 틀 격자 (있으면 w·h·시작/출구 줄은 격자에서) */
+  shape?: ShapeGrid;
   seed?: number;
 }
 
@@ -66,51 +59,59 @@ export function arenaCenter(interior: Rect): { x: number; y: number } {
 }
 
 export function generateArena(spec: ArenaSpec): FloorLayout {
-  const widthTiles = spec.w + 2 + spec.margin * 2;
-  const heightTiles = spec.h + 2 + spec.margin * 2;
-  if (widthTiles > CELL_W || heightTiles > CELL_H)
-    throw new Error(`[arena] 전투장(${widthTiles}×${heightTiles})이 셀(${CELL_W}×${CELL_H})보다 큼`);
+  const S = spec.shape;
+  const w = S ? S.w : spec.w;
+  const h = S ? S.h : spec.h;
+  const widthTiles = w + 2 + spec.margin * 2;
+  const heightTiles = h + 2 + spec.margin * 2;
   const tiles: TileId[][] = Array.from({ length: heightTiles }, () => new Array<TileId>(widthTiles).fill(TileId.Void));
   const ix = spec.margin + 1;
   const iy = spec.margin + 1;
-  const interior: Rect = { x: ix, y: iy, w: spec.w, h: spec.h };
+  const interior: Rect = { x: ix, y: iy, w, h };
   const center = arenaCenter(interior);
-  const midY = iy + Math.floor(spec.h / 2);
-  const maxShift = Math.max(0, Math.floor(spec.h / 2) - SHIFT_MARGIN);
-  const shift = Math.max(-maxShift, Math.min(maxShift, Math.round(spec.spawnShiftY ?? 0)));
+  const midY = iy + Math.floor(h / 2);
+  const maxShift = Math.max(0, Math.floor(h / 2) - SHIFT_MARGIN);
+  const shift = S ? 0 : Math.max(-maxShift, Math.min(maxShift, Math.round(spec.spawnShiftY ?? 0)));
+  const spawnY = S ? iy + S.entryRow : spec.spawnExactCenter || spec.spawnCenter ? midY : midY + shift;
   const spawn = {
     x: spec.spawnExactCenter ? center.x : spec.spawnCenter ? center.x - SPAWN_CENTER_OFFSET : ix + spec.spawnInset,
-    y: spec.spawnExactCenter || spec.spawnCenter ? midY : midY + shift,
+    y: spawnY,
   };
-  // 출구는 시작 줄과 반대쪽으로 (가로지르는 동선)
-  const exit = { x: ix + spec.w - spec.exitInset - 2, y: midY - 1 - (spec.spawnExactCenter ? 0 : shift) };
+  // 출구는 시작 줄과 반대쪽으로 (가로지르는 동선) — 형태 틀은 출구 문 줄이 출구 2×2 의 아래 줄
+  const exit = {
+    x: ix + w - spec.exitInset - 2,
+    y: S ? iy + S.exitRow - 1 : midY - 1 - (spec.spawnExactCenter ? 0 : shift),
+  };
   const shop = spec.shopCenter ? { x: center.x - 1, y: center.y - 1 } : { x: center.x - 1, y: iy + 2 };
+  // 사각 벽(바깥 1칸) + 내부
+  for (let y = iy - 1; y <= iy + h; y++) for (let x = ix - 1; x <= ix + w; x++) tiles[y][x] = TileId.Wall;
+  const drops: { x: number; y: number; kind: DropKind }[] = [];
+  const bridges: { x: number; y: number }[] = [];
+  const high: { x: number; y: number }[] = [];
+  const stairs: { x: number; y: number }[] = [];
+  const cover: { x: number; y: number }[] = [];
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const t = S ? S.cells[y][x] : 'floor';
+      const p = { x: ix + x, y: iy + y };
+      if (WALKABLE.has(t)) tiles[p.y][p.x] = TileId.Floor;
+      else if (DROPS.has(t)) {
+        tiles[p.y][p.x] = TileId.Void;
+        drops.push({ ...p, kind: t as DropKind });
+      }
+      if (t === 'bridge') bridges.push(p);
+      else if (t === 'high' || t === 'stairs') high.push(p);
+      if (t === 'stairs') stairs.push(p);
+      else if (t === 'cover') cover.push(p);
+    }
+  // 시작점이 바닥이 아니면(형태 틀 문 줄이 얕을 때) 문 쪽으로 당긴다
+  while (S && spawn.x > ix && tiles[spawn.y][spawn.x] !== TileId.Floor) spawn.x--;
 
-  for (let y = iy; y < iy + spec.h; y++) for (let x = ix; x < ix + spec.w; x++) tiles[y][x] = TileId.Floor;
-  if (spec.edge) {
-    const k = spec.edge.keepClearTiles;
-    const keep: Rect[] = [
-      { x: spawn.x - k, y: spawn.y - k, w: k * 2 + 1, h: k * 2 + 1 },
-      { x: exit.x - k, y: exit.y - k, w: k * 2 + 2, h: k * 2 + 2 },
-      // 62 루프 2 E: 문 줄 — 출구(오른쪽 벽)·입구(왼쪽 벽) 문까지 바닥이 곧게 이어지게 (가장자리가 문 앞을 깎지 않는다)
-      ...doorLanes(interior, spawn, exit, !(spec.spawnExactCenter || spec.spawnCenter)),
-      ...(spec.keepClear ?? []),
-    ];
-    carveEdge(tiles, interior, spec.edge, keep, new Rng(hashSeed(`${spec.seed ?? 0}:edge`)));
-  } else {
-    // 48라운드 사각 벽
-    for (let y = iy - 1; y <= iy + spec.h; y++)
-      for (let x = ix - 1; x <= ix + spec.w; x++) if (tiles[y][x] === TileId.Void) tiles[y][x] = TileId.Wall;
-  }
-
-  const room: Room = {
-    id: spec.roomId,
-    type: spec.type,
-    floor: spec.floor,
-    cells: [{ cx: 0, cy: 0 }],
-    interior,
-    doors: [],
-  };
+  // 셀 하나보다 큰 전투장도 방 판정(cellRoom)이 닿게 덮는 셀 전부
+  const cells: Cell[] = [];
+  for (let cy = 0; cy * CELL_H < heightTiles; cy++)
+    for (let cx = 0; cx * CELL_W < widthTiles; cx++) cells.push({ cx, cy });
+  const room: Room = { id: spec.roomId, type: spec.type, floor: spec.floor, cells, interior, doors: [] };
   return {
     seed: spec.seed ?? 0,
     gridW: 1,
@@ -121,13 +122,24 @@ export function generateArena(spec: ArenaSpec): FloorLayout {
     tiles,
     widthTiles,
     heightTiles,
-    cellRoom: new Map([[cellKey({ cx: 0, cy: 0 }), room.id]]),
+    cellRoom: new Map(cells.map((c) => [cellKey(c), room.id])),
     arena: {
       spawn,
       exit,
       shop,
       center,
-      camera: { x: ix - 1, y: iy - 1, w: spec.w + 2, h: spec.h + 2 },
+      camera: { x: ix - 1, y: iy - 1, w: w + 2, h: h + 2 },
+      ...(S
+        ? {
+            shape: S.id,
+            drops,
+            bridges,
+            high,
+            stairs,
+            cover,
+            enemySpawns: S.spawns.map((p) => ({ x: ix + p.x, y: iy + p.y })),
+          }
+        : {}),
     },
   };
 }
@@ -141,98 +153,6 @@ export function arenaDoorRows(
   entry: boolean,
 ): { exit: number; entry: number | null } {
   return { exit: arena.exit.y + 1, entry: entry ? arena.spawn.y : null };
-}
-
-/** 문 줄 보호 사각형: 출구 2×2 → 오른쪽 벽 · 왼쪽 벽 → 시작점 (가운데 줄 ± 1) */
-function doorLanes(I: Rect, spawn: { x: number; y: number }, exit: { x: number; y: number }, entry: boolean): Rect[] {
-  const rows = arenaDoorRows({ spawn, exit }, entry);
-  const out: Rect[] = [{ x: exit.x, y: rows.exit - 1, w: I.x + I.w - exit.x, h: 3 }];
-  if (rows.entry !== null) out.push({ x: I.x, y: rows.entry - 1, w: spawn.x - I.x + 1, h: 3 });
-  return out;
-}
-
-/** 깊이 프로필: 길이 n, 값 0..max, run 칸마다 ±1~2 로 바뀌는 계단 */
-export function insetProfile(rng: Rng, n: number, max: number, run: [number, number]): number[] {
-  const out: number[] = [];
-  let d = rng.int(0, max);
-  while (out.length < n) {
-    const len = rng.int(run[0], run[1]);
-    for (let i = 0; i < len && out.length < n; i++) out.push(d);
-    const step = rng.int(1, 2) * (rng.chance(0.5) ? 1 : -1);
-    d = Math.max(0, Math.min(max, d + step));
-  }
-  return out;
-}
-
-/**
- * 가장자리 깎기: 네 변마다 깊이 프로필만큼 내부 바닥을 비우고(keep 안은 보존), 바닥에 8방향으로 닿는 빈 칸을 벽으로.
- * 그다음 위·아래 변의 벽 일부를 열린 틈(void)으로 되돌린다. 틈은 바닥 경계 바로 바깥 한 줄이며 런타임에 충돌한다.
- */
-function carveEdge(tiles: TileId[][], I: Rect, E: ArenaEdge, keep: readonly Rect[], rng: Rng): void {
-  const inKeep = (x: number, y: number) => keep.some((r) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h);
-  const top = insetProfile(rng, I.w, E.maxInset, E.run);
-  const bottom = insetProfile(rng, I.w, E.maxInset, E.run);
-  const left = insetProfile(rng, I.h, E.maxInset, E.run);
-  const right = insetProfile(rng, I.h, E.maxInset, E.run);
-  for (let y = I.y; y < I.y + I.h; y++)
-    for (let x = I.x; x < I.x + I.w; x++) {
-      const i = x - I.x;
-      const j = y - I.y;
-      const cut = j < top[i] || I.h - 1 - j < bottom[i] || i < left[j] || I.w - 1 - i < right[j];
-      if (cut && !inKeep(x, y)) tiles[y][x] = TileId.Void;
-    }
-  // 모서리에서 두 변의 깊이가 엇갈려 떨어져 나간 바닥 조각은 비운다 (중앙에서 4방향으로 닿는 바닥만 남김)
-  pruneUnreachable(tiles, arenaCenter(I));
-  // 바닥에 8방향으로 닿는 빈 칸 = 벽 (담·잔해·건물 앞면)
-  const H = tiles.length;
-  const W = tiles[0].length;
-  const touchesFloor = (x: number, y: number) => {
-    for (let oy = -1; oy <= 1; oy++)
-      for (let ox = -1; ox <= 1; ox++) if (tiles[y + oy]?.[x + ox] === TileId.Floor) return true;
-    return false;
-  };
-  for (let y = 0; y < H; y++)
-    for (let x = 0; x < W; x++) if (tiles[y][x] === TileId.Void && touchesFloor(x, y)) tiles[y][x] = TileId.Wall;
-  // 열린 틈: 위·아래 변, 모서리·keep 열을 피해서
-  const nGaps = rng.int(E.gaps[0], E.gaps[1]);
-  const used: { side: number; x0: number; x1: number }[] = [];
-  for (let g = 0; g < nGaps; g++) {
-    for (let t = 0; t < 20; t++) {
-      const side = rng.int(0, 1); // 0 위 · 1 아래
-      const gw = rng.int(E.gapWidth[0], E.gapWidth[1]);
-      const lo = I.x + E.cornerMarginTiles;
-      const hi = I.x + I.w - E.cornerMarginTiles - gw;
-      if (hi < lo) break;
-      const x0 = rng.int(lo, hi);
-      const x1 = x0 + gw - 1;
-      if (used.some((u) => u.side === side && x0 <= u.x1 + 2 && x1 >= u.x0 - 2)) continue;
-      let ok = true;
-      const cells: { x: number; y: number }[] = [];
-      for (let x = x0; x <= x1 && ok; x++) {
-        // 그 열에서 바닥 경계 바로 바깥 벽 칸 (위 = 첫 바닥 위, 아래 = 마지막 바닥 아래)
-        let fy = -1;
-        if (side === 0) {
-          for (let y = I.y; y < I.y + I.h; y++)
-            if (tiles[y][x] === TileId.Floor) {
-              fy = y - 1;
-              break;
-            }
-        } else {
-          for (let y = I.y + I.h - 1; y >= I.y; y--)
-            if (tiles[y][x] === TileId.Floor) {
-              fy = y + 1;
-              break;
-            }
-        }
-        if (fy < 0 || tiles[fy][x] !== TileId.Wall || inKeep(x, fy)) ok = false;
-        else cells.push({ x, y: fy });
-      }
-      if (!ok || cells.length === 0) continue;
-      for (const c of cells) tiles[c.y][c.x] = TileId.Void;
-      used.push({ side, x0, x1 });
-      break;
-    }
-  }
 }
 
 const DIR4: readonly [number, number][] = [
@@ -260,13 +180,6 @@ function reachableFloor(tiles: readonly (readonly TileId[])[], from: { x: number
     }
   }
   return seen;
-}
-
-function pruneUnreachable(tiles: TileId[][], from: { x: number; y: number }): void {
-  const ok = reachableFloor(tiles, from);
-  for (let y = 0; y < tiles.length; y++)
-    for (let x = 0; x < tiles[y].length; x++)
-      if (tiles[y][x] === TileId.Floor && !ok.has(`${x},${y}`)) tiles[y][x] = TileId.Void;
 }
 
 /** 바닥 칸이 모두 4방향으로 이어져 있는지 (검증·테스트용) */

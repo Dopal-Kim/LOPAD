@@ -18,14 +18,26 @@
         "lowRatio": 0.3,
         "recoverRatio": 0.35,
         "exhaustedMoveMult": 0.65,
-        "cost": { "dash": 14, "dashAttack": 14, "hold": 20, "guardBlock": 10 },
+        "cost": { "dash": 0, "dashAttack": 14, "hold": 20, "guardBlock": 10 },
         "groggyMs": 1500
       },
       "carry": { "mode": "sheath", "drawMs": 0, "sheatheAfterMs": 0 },
       "damageMult": 1.25,
       "critBonus": 5,
       "attackSlowMult": 0.7,
-      "feel": { "hitstopMs": 55, "ribbon": "ribbon_ash_thin", "shakeEveryHit": false, "knockbackMult": 1.0 },
+      "feel": {
+        "hitstopMs": 15,
+        "ribbon": "ribbon_ash_thin",
+        "shakeEveryHit": false,
+        "knockbackMult": 1.0,
+        "reaction": {
+          "comboTiers": [1, 1, 2],
+          "heavyTier": 2,
+          "strongMoves": ["iai_draw"],
+          "launchCombo": [0],
+          "launchMaxPoise": 0
+        }
+      },
       "combo": {
         "shape": "arc",
         "arcDeg": 140,
@@ -33,6 +45,7 @@
         "bufferMs": 220,
         "resetMs": 380,
         "finisherRecoverMs": 160,
+        "advance": { "px": 6, "ms": 70 },
         "leftTransform": "rotate",
         "art": {
           "rise": { "body": ["rise", "combo1"], "fx": ["rise", "combo1"] },
@@ -45,29 +58,29 @@
         },
         "hits": [
           {
-            "damageMult": 1.8,
+            "damageMult": 1.25,
             "sizeMult": 1.0,
             "durationMs": 470,
             "hitAtMs": 150,
-            "cancelFromMs": 410,
+            "cancelFromMs": 280,
             "activeMs": 40,
             "art": "rise",
             "hitShape": { "kind": "arc", "fromDeg": 70, "toDeg": -40 },
             "step": { "px": 5, "ms": 80 }
           },
           {
-            "damageMult": 1.3,
+            "damageMult": 1.0,
             "sizeMult": 1.0,
             "durationMs": 440,
             "hitAtMs": 120,
-            "cancelFromMs": 380,
+            "cancelFromMs": 260,
             "activeMs": 40,
             "art": "fall",
             "hitShape": { "kind": "arc", "fromDeg": -70, "toDeg": 40 },
             "step": { "px": 5, "ms": 70 }
           },
           {
-            "damageMult": 2.0,
+            "damageMult": 1.35,
             "sizeMult": 1.0,
             "durationMs": 710,
             "hitAtMs": 250,
@@ -388,7 +401,16 @@
         "groggyMs": 1500
       },
       "carry": { "mode": "back", "drawMs": 0, "sheatheAfterMs": 0 },
-      "weight": { "stepPx": 8, "stepMs": 110, "postSlowMs": 220, "finisherStopMs": 300 },
+      "weight": {
+        "stepPx": 8,
+        "stepMs": 110,
+        "postSlowMs": 220,
+        "finisherStopMs": 300,
+        "leanMs": 120,
+        "leanMoveMult": 0.3,
+        "finisherMoveMult": 0.3,
+        "impactShake": { "px": 2, "ms": 90 }
+      },
       "slam": {
         "leapMs": 260,
         "recoverMs": 320,
@@ -397,19 +419,22 @@
         "radiusPx": 40,
         "damageMult": 1.3
       },
-      "dashSlash": {
-        "stepPx": 24,
-        "stepMs": 140,
-        "swingMs": 420,
-        "recoverMs": 350,
-        "arcDeg": 210,
-        "fxCombo": 2,
-        "fxSpawnAtMs": 120
-      },
       "damageMult": 1.9,
       "critBonus": 0,
-      "attackSlowMult": 0.25,
-      "feel": { "hitstopMs": 95, "ribbon": "ribbon_ash", "shakeEveryHit": true, "knockbackMult": 2.2 },
+      "attackSlowMult": 0.6,
+      "feel": {
+        "hitstopMs": 30,
+        "ribbon": "ribbon_ash",
+        "shakeEveryHit": true,
+        "knockbackMult": 2.2,
+        "reaction": {
+          "comboTiers": [1, 2, 1, 2],
+          "heavyTier": 3,
+          "strongMoves": ["tackle", "leap_slam", "brace_upswing"],
+          "launchMoves": ["brace_upswing"],
+          "launchMaxPoise": 1
+        }
+      },
       "combo": {
         "shape": "arc",
         "arcDeg": 190,
@@ -417,6 +442,8 @@
         "bufferMs": 300,
         "resetMs": 450,
         "finisherRecoverMs": 260,
+        "advance": { "px": 8, "ms": 90, "atSwing": true },
+        "artTiming": true,
         "loop": true,
         "leftTransform": "rotate",
         "art": {
@@ -463,22 +490,22 @@
         },
         "hits": [
           {
-            "damageMult": 1.0,
+            "damageMult": 0.75,
             "sizeMult": 1.0,
             "durationMs": 820,
             "hitAtMs": 380,
-            "cancelFromMs": 630,
+            "cancelFromMs": 480,
             "activeMs": 90,
             "art": "h1",
             "hitShape": { "kind": "arc", "fromDeg": -75, "toDeg": 75, "innerRatio": 0.35 },
             "step": { "px": 5, "ms": 100 }
           },
           {
-            "damageMult": 1.5,
+            "damageMult": 1.1,
             "sizeMult": 1.0,
             "durationMs": 920,
             "hitAtMs": 440,
-            "cancelFromMs": 740,
+            "cancelFromMs": 540,
             "activeMs": 90,
             "art": "v",
             "hitShape": {
@@ -491,22 +518,22 @@
             "heavy": false
           },
           {
-            "damageMult": 1.0,
+            "damageMult": 0.75,
             "sizeMult": 1.0,
             "durationMs": 820,
             "hitAtMs": 380,
-            "cancelFromMs": 630,
+            "cancelFromMs": 480,
             "activeMs": 90,
             "art": "h2",
             "hitShape": { "kind": "arc", "fromDeg": 75, "toDeg": -75, "innerRatio": 0.35 },
             "step": { "px": 5, "ms": 100 }
           },
           {
-            "damageMult": 1.5,
+            "damageMult": 1.1,
             "sizeMult": 1.0,
             "durationMs": 920,
             "hitAtMs": 440,
-            "cancelFromMs": 740,
+            "cancelFromMs": 540,
             "activeMs": 90,
             "art": "v",
             "hitShape": {
@@ -861,7 +888,19 @@
       "damageMult": 0.66,
       "critBonus": 20,
       "attackSlowMult": 1.0,
-      "feel": { "hitstopMs": 38, "ribbon": "ribbon_ash_thin", "shakeEveryHit": false, "knockbackMult": 0.6 },
+      "feel": {
+        "hitstopMs": 0,
+        "ribbon": "ribbon_ash_thin",
+        "shakeEveryHit": false,
+        "knockbackMult": 0.6,
+        "reaction": {
+          "comboTiers": [1, 1, 1],
+          "heavyTier": 2,
+          "poisePierce": 1,
+          "launchMoves": ["backstab"],
+          "launchMaxPoise": 1
+        }
+      },
       "combo": {
         "shape": "thrust",
         "radiusPx": 36,
@@ -869,6 +908,7 @@
         "bufferMs": 200,
         "resetMs": 300,
         "finisherRecoverMs": 120,
+        "advance": { "px": 4, "ms": 50 },
         "art": {
           "backstab": { "body": ["backstab"], "fx": ["backstab"] },
           "flurry": { "body": ["flurry"], "fx": [] }
@@ -1117,7 +1157,12 @@
       "damageMult": 1.5,
       "critBonus": 10,
       "attackSlowMult": 0.6,
-      "feel": { "hitstopMs": 30, "shakeEveryHit": false, "knockbackMult": 0.8 },
+      "feel": {
+        "hitstopMs": 15,
+        "shakeEveryHit": false,
+        "knockbackMult": 0.8,
+        "reaction": { "perfectTier": 2, "heavyTier": 2 }
+      },
       "ranged": {
         "projectileSpeedTiles": 12,
         "projectileLifeMs": 1500,

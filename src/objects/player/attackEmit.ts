@@ -46,6 +46,15 @@ export function strikeBodyAction(p: Player, combo: ComboStrike): string {
   return name ? `${id}_${name}` : 'attack';
 }
 
+/** P19 캔슬 표: 이 공격의 판정이 끝나는 시각 (휘두름 + 판정 유지 · 돌진형은 돌진 끝)을 주인공에 알린다 — 공격 알림 직전에 부른다 */
+export function markJudge(
+  p: Player,
+  time: number,
+  payload: Pick<PlayerAttackPayload, 'swingDelayMs' | 'activeMs' | 'rush'>,
+): void {
+  p.holdJudgeUntil(time + Math.max(payload.swingDelayMs + (payload.activeMs ?? 0), payload.rush?.dashToMs ?? 0));
+}
+
 export function emitPlayerAttack(
   p: Player,
   input: InputState,
@@ -119,6 +128,7 @@ export function emitPlayerAttack(
   }
   // 60라운드 음향 칼 검기 단: 61라운드부터 검기를 소모한 동작(좌 홀드 발도)만 extra.kenkiStage 로 싣는다 — 찌르기는 늘 0
   if (extra) Object.assign(payload, extra);
+  markJudge(p, time, payload);
   EventBus.emit(Events.PLAYER_ATTACKED, payload);
   return payload;
 }

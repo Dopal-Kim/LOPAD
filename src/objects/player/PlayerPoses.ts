@@ -133,7 +133,10 @@ export class PlayerPoses {
    */
   keyFrame(
     action: string,
-    combo: { hit: { hitAtMs?: number; durationMs: number }; durationMs: number } | null,
+    combo: {
+      hit: { hitAtMs?: number; durationMs: number; cancelFromMs?: number; activeMs?: number };
+      durationMs: number;
+    } | null,
     shot: { drawMs: number; releaseFrame: number } | null,
   ): { frame: number; atMs: number } | null {
     const def = this.p.visual.sheet(action);
@@ -143,7 +146,17 @@ export class PlayerPoses {
       // 55라운드: 판정 프레임 = hitFrames[0], 없으면 impactFrame (내리찍기 몸을 대검 V·차지 내려찍기 대체 그림으로)
       const hf = def.hitFrames?.[0] ?? (typeof def.impactFrame === 'number' ? def.impactFrame : undefined);
       if (!at || hf === undefined || combo.durationMs <= 0) return null;
-      return { frame: hf, atMs: (at * combo.durationMs) / combo.hit.durationMs };
+      const k = combo.durationMs / combo.hit.durationMs;
+      // P19 대검 '지연이 아니라 무게': 예비 동작 열은 시트 JSON 의 ms 그대로 (데이터 hitAtMs 로 늘이면 한 장이 멈춰 보인다).
+      // 다음 타 허용 전에 판정이 끝나도록 [hitAtMs × 0.5, cancelFromMs − activeMs] 로 자른다
+      if (gameState.weapon.def.combo?.artTiming && hf > 0) {
+        const pre = frameDurations(def)
+          .slice(0, hf)
+          .reduce((a, b) => a + b, 0);
+        const hi = (combo.hit.cancelFromMs ?? combo.hit.durationMs) - (combo.hit.activeMs ?? 0);
+        if (pre > 0) return { frame: hf, atMs: Math.max(at * 0.5, Math.min(pre, hi)) * k };
+      }
+      return { frame: hf, atMs: at * k };
     }
     if (shot && shot.drawMs > 0 && shot.releaseFrame < def.frames)
       return { frame: shot.releaseFrame, atMs: shot.drawMs };

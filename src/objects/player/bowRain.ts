@@ -41,6 +41,8 @@ export function startArrowRain(p: Player, input: InputState, time: number): bool
     Math.max(lastRelease, typeof cf === 'number' ? visual.frameStartMs(cf) : (def.cancelFromMs ?? total)),
   );
   p.setAction('skill', time + cancelAt);
+  // P19 캔슬 표: 마지막 발사까지가 판정 — 그 뒤 대쉬로 끊긴다
+  p.holdJudgeUntil(time + lastRelease);
   p.slowUntil(time + cancelAt);
   p.softPose = cancelAt < total ? { until: time + total, anim: visual.current } : null;
   p.gear.lastAttackAt = time;

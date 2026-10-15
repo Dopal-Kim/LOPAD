@@ -5,6 +5,7 @@ import {
   hitShake,
   isBackswing,
   isHeavyStrike,
+  killHitstopMs,
   shakesOnHit,
   sparkOrientation,
   weaponHitSheet,
@@ -12,17 +13,22 @@ import {
 } from './hitFeel';
 
 describe('hitFeel: 55라운드 Q6 히트스톱 · Q10 막타', () => {
-  it('무기별 히트스톱 (62라운드 P1-1: 단검 38·칼 55·대검 95·활 30), 막타·치명타 ×1.8', () => {
-    expect(weaponHitstopMs(WEAPONS.dagger.feel, false)).toBe(38);
-    expect(weaponHitstopMs(WEAPONS.katana.feel, false)).toBe(55);
-    expect(weaponHitstopMs(WEAPONS.greatsword.feel, false)).toBe(95);
-    expect(weaponHitstopMs(WEAPONS.bow.feel, false)).toBe(30);
-    expect(weaponHitstopMs(WEAPONS.greatsword.feel, true)).toBe(171);
+  it('P19 히트스톱 다이어트: 일반 단검 0·칼 15·대검 30·활 15, 막타·치명·처치 50~90', () => {
+    expect(weaponHitstopMs(WEAPONS.dagger.feel, false)).toBe(0);
+    expect(weaponHitstopMs(WEAPONS.katana.feel, false)).toBe(15);
+    expect(weaponHitstopMs(WEAPONS.greatsword.feel, false)).toBe(30);
+    expect(weaponHitstopMs(WEAPONS.bow.feel, false)).toBe(15);
+    expect(weaponHitstopMs(WEAPONS.greatsword.feel, true)).toBe(54);
+    expect(weaponHitstopMs(WEAPONS.dagger.feel, true)).toBe(FEEL.HITSTOP.HEAVY_MIN_MS);
+    for (const id of ['dagger', 'katana', 'greatsword', 'bow']) {
+      const k = killHitstopMs(WEAPONS[id].feel, false);
+      expect(k).toBeGreaterThanOrEqual(FEEL.HITSTOP.HEAVY_MIN_MS);
+      expect(k).toBeLessThanOrEqual(FEEL.HITSTOP.MAX_MS);
+    }
     // 넉백 무게: 대검 > 칼 > 활 > 단검
     const k = (id: string) => WEAPONS[id].feel?.knockbackMult ?? 1;
     expect(k('greatsword')).toBeGreaterThan(k('katana'));
     expect(k('katana')).toBeGreaterThan(k('dagger'));
-    expect(weaponHitstopMs(WEAPONS.katana.feel, true)).toBe(99);
     expect(weaponHitstopMs(undefined, false)).toBe(FEEL.HITSTOP.WEAPON_FALLBACK_MS);
   });
 

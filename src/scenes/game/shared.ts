@@ -46,11 +46,10 @@ export const SENSE_BONUS_MAX = 3;
 export const HIT_ORIGIN_UP_PX = PLAYER_HIT_ORIGIN_UP_PX;
 
 /**
- * 연격의 마무리 타(충격파·진화 베기 시점). 연격이 아니면 true, 대검 대쉬 공격은 false (49라운드: 충격파 없음).
+ * 연격의 마무리 타(충격파·진화 베기 시점). 연격이 아니면 true.
  * 55라운드: 타별 데이터 `heavy` 가 있으면 그것 (칼 = 3타·잔상 베기, 대검 = 차지 내려찍기만 — Q30 연격 V 는 일반 타격)
  */
 export function isFinisher(p: PlayerAttackPayload): boolean {
-  if (p.dashSlash) return false;
   if (p.heavy !== undefined) return p.heavy;
   return p.comboIndex === undefined || p.comboIndex === (p.comboCount ?? 1) - 1;
 }
@@ -77,7 +76,7 @@ export function isMeleeStrike(p: PlayerAttackPayload): boolean {
  * 61라운드 계약 sound §9 `PLAYER_COMBO_FINISH`: 연격의 마지막 타인가 (대쉬 공격·차지·기본기 제외 — 연격 번호가 있고 마지막 번호)
  */
 export function isComboFinish(p: PlayerAttackPayload): boolean {
-  if (p.dashSlash || p.comboIndex === undefined || p.move) return false;
+  if (p.comboIndex === undefined || p.move) return false;
   return p.comboIndex === (p.comboCount ?? 1) - 1 && (p.comboCount ?? 1) > 1;
 }
 

@@ -23,10 +23,21 @@ export function isHeavyStrike(p: StrikeShape): boolean {
   return p.comboIndex !== undefined && p.comboCount !== undefined && p.comboIndex === p.comboCount - 1;
 }
 
-/** Q6: 무기 히트스톱 ms (막타·치명타 ×HEAVY_MULT) */
+/** Q6: 무기 히트스톱 ms. P19 다이어트: 일반 = 무기 값(0 이면 멈추지 않음) · 막타·치명 = ×HEAVY_MULT 를 HEAVY_MIN_MS ~ MAX_MS 로 */
 export function weaponHitstopMs(feel: Pick<WeaponFeelDef, 'hitstopMs'> | undefined, heavy: boolean): number {
-  const base = feel && feel.hitstopMs > 0 ? feel.hitstopMs : FEEL.HITSTOP.WEAPON_FALLBACK_MS;
-  return Math.round(base * (heavy ? FEEL.HITSTOP.HEAVY_MULT : 1));
+  const H = FEEL.HITSTOP;
+  const base = feel && feel.hitstopMs >= 0 ? feel.hitstopMs : H.WEAPON_FALLBACK_MS;
+  if (!heavy) return base;
+  return Math.min(H.MAX_MS, Math.max(H.HEAVY_MIN_MS, Math.round(base * H.HEAVY_MULT)));
+}
+
+/** P19: 처치 타 히트스톱 (일반 적) — 막타 값 × KILL.HITSTOP_MULT 를 HEAVY_MIN_MS ~ MAX_MS 로 */
+export function killHitstopMs(feel: Pick<WeaponFeelDef, 'hitstopMs'> | undefined, heavy: boolean): number {
+  const H = FEEL.HITSTOP;
+  return Math.min(
+    H.MAX_MS,
+    Math.max(H.HEAVY_MIN_MS, Math.round(weaponHitstopMs(feel, heavy) * FEEL.KILL.HITSTOP_MULT)),
+  );
 }
 
 /** 적중 스파크 시트: 막타면 `hit_<무기>_heavy` → `hit_<무기>`, 아니면 `hit_<무기>`. 로드된 것이 없으면 null (호출 쪽 hit_burst) */

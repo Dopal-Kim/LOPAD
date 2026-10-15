@@ -10,7 +10,10 @@
  */
 export const ENEMY_INCOMING = {
   TUTORIAL_DELAY_MS: 1000,
-  WAVE_DELAY_MS: 1000,
+  /** P19 ④D: 등장 연출 0.6초 (1000 → 600 — 웨이브 사이 '적 0' 공백 ≤ 1.5초) */
+  WAVE_DELAY_MS: 600,
+  /** P19 ④D 겹치는 웨이브: 살아 있는 적이 이번 웨이브 수의 이 비율 이하가 되면 다음 웨이브를 바로 예고 (마지막만 전멸 = 클리어) */
+  WAVE_OVERLAP: 0.3,
   FIRST_WAVE_EXTRA_MS: 500,
   ARRIVE_MS: 350,
   /** 바닥 문양 (SpawnMarks): 먹 번짐 반경(월드 px)·불씨 고리 색·광원 */
@@ -49,10 +52,37 @@ export const ENEMY_READABILITY = {
 };
 
 /**
- * 61라운드 플레이 점검 '공격 토큰': 일반 적의 접촉 공격은 무리 전체에서 이 간격에 한 번만 (무리에 둘러싸여도 한꺼번에 맞지 않는다 —
- * 첫 전투가 '배우는 전투'가 되게). 보스·패링 창은 예외. 돌진·탄은 따로 (예고가 있다)
+ * P19 적 무리 (방향 문서 ④C · 계약 free-combat §2): 접촉 피해 폐지 — 모든 일반 적은 '예고 → 공격'으로만 때린다.
+ * - TOKENS: 동시에 예고·공격 중인 일반 적 최대 수 (정예는 ELITE_TOKENS 따로) · KIND_MAX: 종류별 상한 (징집병은 2마리만 동시에 휘두른다)
+ * - RING_TILES: 토큰이 없는 근접 적이 도는 '포위 자리' 반경 [최소, 최대] · ORBIT_RAD_PER_S: 도는 각속도
+ * - RETREAT_MS: 공격한 적이 물러나는 시간 [최소, 최대] · COMMIT_MS: 토큰을 받고 붙으러 가는 최대 시간 (못 붙으면 반납)
+ * - ENGAGE_TILES: 이 거리 안이어야 토큰을 청한다 · RETRY_MS: 토큰을 못 받았을 때 다시 청하는 간격
  */
-export const ENEMY_CONTACT_TOKEN = { GAP_MS: 900 };
+export const ENEMY_SQUAD = {
+  TOKENS: 3,
+  ELITE_TOKENS: 1,
+  KIND_MAX: { dummy: 2 } as Record<string, number>,
+  RING_TILES: [2, 3.5] as [number, number],
+  ORBIT_RAD_PER_S: 0.6,
+  RETREAT_MS: [300, 500] as [number, number],
+  COMMIT_MS: 1600,
+  ENGAGE_TILES: 6,
+  RETRY_MS: 250,
+};
+
+/**
+ * P19 예고 색 언어 (계약 free-combat §2 — 시스템이 그리고 UI·아트가 같은 색): 경고(막기·회피 가능) 호박 · 위험(막을 수 없음) 적 ·
+ * 원거리(조준·투척 궤적) 청백 · 기회(버팀 깨짐·띄움) 금. 최소 예고 ms: 일반 350 · 위험 500
+ */
+export const TELEGRAPH_TIER = {
+  warn: 0xffb347,
+  danger: 0xff4a3a,
+  ranged: 0x9fd8ff,
+  chance: 0xffe08a,
+  MIN_MS: 350,
+  DANGER_MIN_MS: 500,
+} as const;
+export type TelegraphTier = 'warn' | 'danger' | 'ranged';
 
 /**
  * 적·보스 공격 양상 (35라운드 2단계 임시값, 결정 로그 round-35 "시스템 반영 기록 2단계").

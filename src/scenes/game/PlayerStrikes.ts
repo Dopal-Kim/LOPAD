@@ -22,6 +22,7 @@ import { hitShapeBounds, shapeCenterPoint, shapeHitBody, type Pt } from '../../s
 import { facingOf, radiusFitScale } from '../../systems/sprites/spriteDefs';
 import { slamFxId, slashFxId } from '../../systems/fx/fxIds';
 import { isBackswing, isHeavyStrike } from '../../systems/hitFeel';
+import { strikeReaction } from '../../systems/reactions';
 import type { Game } from '../Game';
 import { BowShots } from './BowShots';
 import { HitShapeOverlay } from './HitShapeOverlay';
@@ -122,6 +123,9 @@ export class PlayerStrikes {
           ? { ...p, x: g.player.x, y: g.player.y }
           : p;
       const main = this.meleeSwing(at);
+      // P19 대검 무게: 판정 순간 카메라가 아래로 짧게 (weight.impactShake)
+      const ws = weapon.def.weight?.impactShake;
+      if (ws && combo) g.shake.add(g.time.now, ws.px, ws.ms, { x: 0, y: 1 });
       // 58라운드 Q3 대검 차지: 내리찍은 자리에서 커서까지 균열
       if (p.crackLine) this.crackLine.start(at, main.impact);
       // 후속 판정 · 쌍격·난무 추가 타 · 지진 2단 (씬 시계 — 히트스톱 동안 멈춤)
@@ -353,6 +357,8 @@ export class PlayerStrikes {
       from,
       // 56라운드 2단계 등 뒤 찌르기: 전용 섬광만 (공용 적중·치명 fx 없음)
       ...(p.noImpactFx ? { noImpactFx: true } : {}),
+      // P19 무기 반응 모양 (칼 띄움 · 대검 날림 · 단검 흔들기)
+      reaction: strikeReaction(gameState.weapon.def.feel?.reaction, { ...p, heavy }),
     };
     const died = g.combat.hitMob(mob, dmg, style);
     g.build.combat.afterStrike(mob, p, crit, died);

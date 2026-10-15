@@ -209,7 +209,11 @@ export class FxPool {
       });
     }
     if (opts.staticFrame === undefined) {
-      const anim = opts.tailFrames ? this.tailAnim(id, key, texture, opts.tailFrames, opts.dir ?? 'down') : key;
+      const anim = opts.columns
+        ? this.columnAnim(id, key, texture, opts.columns, opts.dir ?? 'down')
+        : opts.tailFrames
+          ? this.tailAnim(id, key, texture, opts.tailFrames, opts.dir ?? 'down')
+          : key;
       sprite.anims.timeScale = state.timeScale;
       sprite.play(anim, true);
       // 56라운드: 한 번 재생 뒤 loopFrom 열부터 반복 (Phaser 애니 체인)
@@ -548,6 +552,25 @@ export class FxPool {
   }
 
   /** 마지막 n 프레임만 반복하는 애니 (키 `<애니>#tail<n>`, 텍스처 변형별로 1회 생성) */
+  /** P19: 열 구간 [a, b] 만 한 번 (시트 JSON `variants` — hero_dash_afterimage dash1·2·3). 열별 ms 는 JSON 그대로 */
+  private columnAnim(id: string, key: string, texture: string, cols: readonly [number, number], dir: string): string {
+    const k = `${key}#c${cols[0]}-${cols[1]}`;
+    if (!this.scene.anims.exists(k)) {
+      const def = spriteLibrary.sheet(id, FX_ACTION)!;
+      const all = frameIndices(def, dir);
+      const durations = frameDurations(def);
+      const a = Math.max(0, Math.min(all.length - 1, cols[0]));
+      const b = Math.max(a, Math.min(all.length - 1, cols[1]));
+      this.scene.anims.create({
+        key: k,
+        frames: all.slice(a, b + 1).map((frame, i) => ({ key: texture, frame, duration: durations[a + i] })),
+        frameRate: def.fps,
+        repeat: 0,
+      });
+    }
+    return k;
+  }
+
   private tailAnim(id: string, key: string, texture: string, n: number, dir: string): string {
     const tailKey = `${key}#tail${n}`;
     if (!this.scene.anims.exists(tailKey)) {

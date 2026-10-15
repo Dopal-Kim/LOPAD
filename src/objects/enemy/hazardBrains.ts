@@ -7,7 +7,7 @@
  * 경직되면 준비를 끊는다. 실제 투사체·웅덩이는 씬의 EnemyHazards(MobContext.hazards).
  */
 import Phaser from 'phaser';
-import { TILE } from '../../core/Constants';
+import { ENEMY_SQUAD, TILE, type TelegraphTier } from '../../core/Constants';
 import { EventBus, Events, type EnemyAttackPayload, type EnemyTelegraphPayload } from '../../core/EventBus';
 import type { EnemyDef } from '../../data/types';
 import { clampThrowTarget, peddlerIntent, unit } from '../../systems/hazards/hazardMath';
@@ -15,7 +15,7 @@ import type { HazardPt } from '../../systems/hazards/enemyHazardTypes';
 import { anchorOffset } from '../../systems/sprites/spriteMeta';
 import type { TelegraphHandle } from '../../systems/telegraph';
 import type { EntityVisual } from '../EntityVisual';
-import type { MobContext } from '../Mob';
+import type { Mob, MobContext } from '../Mob';
 
 /** 행동이 몸에 요구하는 것 (Enemy 가 구현) */
 export interface BrainBody {
@@ -29,8 +29,20 @@ export interface BrainBody {
   /** 층 적 공격 배율 */
   attackScale(): number;
   moveTo(x: number, y: number, speedPx: number): void;
-  /** 공격 동작(시트) — 대상 쪽을 보고 재생 */
-  attackAnim(time: number): void;
+  /** 공격 동작(시트) — 대상 쪽을 보고 재생 (fitMs 면 그 시간에 맞춘다) */
+  attackAnim(time: number, fitMs?: number): void;
+  /** P19: 적 자신 (공격 토큰 열쇠 · 근접 판정 패링 경직) · 적 id · 정예인가 */
+  readonly self: Mob;
+  readonly id: string;
+  readonly elite: boolean;
+  /** P19 예고 몸 번쩍임 · 원래 색 */
+  paint(color: number): void;
+  restore(): void;
+}
+
+/** P19 공격 토큰 받기 (squad 가 없으면 늘 받음) */
+export function takeToken(b: BrainBody, ctx: MobContext): boolean {
+  return ctx.squad ? ctx.squad.take(b.self, b.id, b.elite) : true;
 }
 
 /** 놓음 프레임 시각 ms (시트 fireFrame, 없으면 fallback) */
@@ -81,6 +93,11 @@ export class PeddlerBrain {
     return this.phase;
   }
 
+  /** P19 위협 단계 (화면 밖 표식): 심지 = 위험 */
+  get threat(): TelegraphTier | null {
+    return this.phase === 'windup' ? 'danger' : null;
+  }
+
   think(ctx: MobContext): void {
     const b = this.b;
     const T = b.def.throw!;
@@ -105,7 +122,11 @@ export class PeddlerBrain {
     else if (intent === 'close') b.moveTo(ctx.player.x, ctx.player.y, speed);
     else b.body.setVelocity(0, 0);
     const [lo, hi] = T.rangeTiles;
-    if (intent !== 'flee' && ctx.hazards && ctx.time >= this.nextAt && dist >= lo && dist <= hi) this.windup(ctx);
+    if (intent !== 'flee' && ctx.hazards && ctx.time >= this.nextAt && dist >= lo && dist <= hi) {
+      // P19 공격 토큰: 못 받으면 잠시 뒤 다시
+      if (takeToken(b, ctx)) this.windup(ctx);
+      else this.nextAt = ctx.time + ENEMY_SQUAD.RETRY_MS;
+    }
   }
 
   /** 심지 불붙임: 떨어질 자리를 정하고(지금 주인공 자리, 사거리로 자름) 원 예고 — 놓음 + 비행 시간 동안 */
@@ -117,7 +138,10 @@ export class PeddlerBrain {
     this.until = ctx.time + rel;
     b.body.setVelocity(0, 0);
     this.target = clampThrowTarget({ x: b.x, y: b.y }, ctx.player, T.rangeTiles[0] * TILE, T.rangeTiles[1] * TILE);
-    this.marker = ctx.telegraph.circle(this.target.x, this.target.y, T.burstRadiusTiles * TILE, rel + T.flightMs);
+    // P19 예고 색: 폭발은 막을 수 없다 (위험)
+    this.marker = ctx.telegraph.circle(this.target.x, this.target.y, T.burstRadiusTiles * TILE, rel + T.flightMs, {
+      tier: 'danger',
+    });
     b.attackAnim(ctx.time);
     EventBus.emit(Events.ENEMY_TELEGRAPH, { id: 'peddler', kind: 'throw' } satisfies EnemyTelegraphPayload);
   }
@@ -131,6 +155,7 @@ export class PeddlerBrain {
     // 예고 원은 착지까지 남는다 (marker 수명 = 놓음 + 비행)
     this.marker = null;
     ctx.hazards?.throwBottle(from, handPx, this.target, T, b.attackScale());
+    ctx.squad?.release(b.self);
     EventBus.emit(Events.ENEMY_ATTACK, { id: 'peddler', kind: 'throw', phase: 'throw' } satisfies EnemyAttackPayload);
     this.phase = 'recover';
     this.until = ctx.time + recoverMs(b, releaseMs(b, RELEASE_FALLBACK.throw));
@@ -162,6 +187,11 @@ export class PorterBrain {
     return this.phase;
   }
 
+  /** P19 위협 단계: 굴릴 준비 = 경고 */
+  get threat(): TelegraphTier | null {
+    return this.phase === 'windup' ? 'warn' : null;
+  }
+
   private center(): HazardPt {
     return { x: this.b.body.center.x, y: this.b.body.center.y };
   }
@@ -184,9 +214,12 @@ export class PorterBrain {
       return;
     }
     const dist = Phaser.Math.Distance.Between(b.x, b.y, ctx.player.x, ctx.player.y) / TILE;
-    // 멀면 다가가고, 사거리 안에서는 굴릴 때를 기다리며 천천히 (아주 가까우면 몸으로 민다 = 접촉 공격)
+    // 멀면 다가가고, 사거리 안에서는 굴릴 때를 기다리며 천천히 (P19: 몸으로 밀어도 피해 없음)
     b.moveTo(ctx.player.x, ctx.player.y, b.def.speedTiles * TILE);
-    if (ctx.hazards && ctx.time >= this.nextAt && dist <= R.triggerTiles && dist >= R.minTiles) this.windup(ctx);
+    if (ctx.hazards && ctx.time >= this.nextAt && dist <= R.triggerTiles && dist >= R.minTiles) {
+      if (takeToken(b, ctx)) this.windup(ctx);
+      else this.nextAt = ctx.time + ENEMY_SQUAD.RETRY_MS;
+    }
   }
 
   private windup(ctx: MobContext): void {
@@ -198,7 +231,9 @@ export class PorterBrain {
     b.body.setVelocity(0, 0);
     this.aim = unit(ctx.player.x - b.x, ctx.player.y - b.y);
     const c = this.center();
-    this.marker = ctx.telegraph.line(c.x, c.y, Math.atan2(this.aim.y, this.aim.x), R.maxTiles * TILE, rel);
+    this.marker = ctx.telegraph.line(c.x, c.y, Math.atan2(this.aim.y, this.aim.x), R.maxTiles * TILE, rel, {
+      tier: 'warn',
+    });
     b.attackAnim(ctx.time);
     EventBus.emit(Events.ENEMY_TELEGRAPH, { id: 'porter', kind: 'roll' } satisfies EnemyTelegraphPayload);
   }
@@ -213,6 +248,7 @@ export class PorterBrain {
       y: b.y + this.aim.y * TILE * 0.6,
     };
     if (b.def.liquor) ctx.hazards?.rollBarrel(at, this.aim.x, this.aim.y, R, b.def.liquor, b.attackScale());
+    ctx.squad?.release(b.self);
     this.phase = 'recover';
     this.until = ctx.time + recoverMs(b, releaseMs(b, RELEASE_FALLBACK.roll));
     this.nextAt = ctx.time + R.cooldownMs / Math.max(0.1, b.attackRateMult);

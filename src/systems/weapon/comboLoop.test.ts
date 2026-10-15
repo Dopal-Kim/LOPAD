@@ -50,13 +50,22 @@ describe('55라운드 Q18 대검 G-C 순환', () => {
     expect(c.poll(late, true)).toBe(0);
   });
 
-  it('회귀: 칼은 3타 뒤 회복 후 1타 (순환 아님), 막타 = 3타', () => {
+  it('회귀: 칼은 3타 뒤 1타 (순환 아님), 막타 = 3타 · P19 찌르기 후딜 = cancelFromMs (타 길이보다 짧음)', () => {
     const k = WEAPONS.katana.combo!;
     const c = new ComboTracker(k);
     expect(chain(c, 3)).toEqual([0, 1, 2]);
     const h = k.hits[2];
-    expect(c.readyAt() - c.lastStartedAt).toBe(h.durationMs + k.finisherRecoverMs);
+    expect(h.cancelFromMs).toBeLessThan(h.durationMs);
+    expect(c.readyAt() - c.lastStartedAt).toBe(h.cancelFromMs);
     expect([0, 1, 2].map((i) => c.isHeavy(i))).toEqual([false, false, true]);
+  });
+
+  it('P19: cancelFromMs ≥ 타 길이인 마무리 타는 옛 규칙 (길이 + 회복) — 단검', () => {
+    const k = WEAPONS.dagger.combo!;
+    const c = new ComboTracker(k);
+    chain(c, 3);
+    const h = k.hits[2];
+    expect(c.readyAt() - c.lastStartedAt).toBe(h.durationMs + k.finisherRecoverMs);
   });
 
   it('회귀: 단검은 데이터 heavy 없이 마지막 타가 막타 (48·55라운드 규칙 그대로)', () => {

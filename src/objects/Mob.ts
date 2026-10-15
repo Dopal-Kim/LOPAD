@@ -1,9 +1,17 @@
 import Phaser from 'phaser';
-import { COLORS, FEEDBACK, FEEL, PROTOTYPE } from '../core/Constants';
-import { EventBus, Events, type EnemyAttackPayload, type EnemyDamagedPayload } from '../core/EventBus';
+import { COLORS, FEEDBACK, FEEL, PROTOTYPE, REACTION } from '../core/Constants';
+import {
+  EventBus,
+  Events,
+  type EnemyAttackPayload,
+  type EnemyDamagedPayload,
+  type EnemyLandedPayload,
+} from '../core/EventBus';
 import { facingOf, type Facing } from '../systems/sprites/spriteDefs';
 import { knockFactor, knockSpeed } from '../systems/feel';
 import type { PackCharge } from '../systems/packCharge';
+import type { MobSquad } from '../systems/squad';
+import type { TelegraphTier } from '../core/Constants';
 import type { TelegraphFx } from '../systems/telegraph';
 import type { BossArenaApi } from './boss/types';
 import type { EnemyHazardApi } from '../systems/hazards/enemyHazardTypes';
@@ -36,6 +44,12 @@ export interface MobContext {
   arena?: BossArenaApi | null;
   /** 61라운드 단계 2: 일반 적 위험물 (독주 행상 화염 술병 · 술통 짐꾼 술통 · 술 웅덩이). 없으면 그 행동을 하지 않는다 */
   hazards?: EnemyHazardApi | null;
+  /** P19 공격 토큰·북 오라 (없으면 제한 없음 — 시험장 등) */
+  squad?: MobSquad;
+  /** P19 근접 휘두르기 판정 (GameCombat.meleeHit). 없으면 휘두르지 않는다 */
+  meleeHit?: (mob: Mob, x: number, y: number, angle: number, half: number, radiusPx: number, attack: number) => boolean;
+  /** P19 자폭 폭발 (GameCombat.blast) */
+  blast?: (x: number, y: number, radiusPx: number, attack: number, mobDamage: number, source: Mob) => void;
 }
 
 export interface ProjectileSpec {
@@ -81,6 +95,24 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   statusSlowMult = 1;
   /** 62라운드 P0-8: 이 시각까지 막 나와 일어서는 중 (움직임·공격 없음, 맞을 수는 있다) */
   private arriveUntil = 0;
+  /**
+   * P19 버팀 (계약 free-combat): 힘(넉백 단계 + 무기 버팀 무시)이 이보다 커야 움찔. Enemy 가 데이터 `poise` 로 채운다 (정예 ×3 은
+   * reactions.effectivePoise). 결사병 정면은 방패가 막는다(무한)
+   */
+  poise = 0;
+  /**
+   * P19 적 자신의 시계 (update delta 합 — 히트스톱 동안 멈춤). 움찔·체공은 이 시계로 잰다
+   */
+  private clock = 0;
+  /** P19 움찔: 이 시각(자기 시계)까지 AI 정지 (넉백 이동은 그대로) */
+  private staggerUntil = -Infinity;
+  /** P19 띄움: 착지 시각(자기 시계) · 늘린 횟수 · 뜬 시각 */
+  private air: { from: number; until: number; extends: number } | null = null;
+  /**
+   * P19 넉백 단계 비행 (HitReactions 가 벽꽝·볼링 판정에 쓴다): 단계 · 그 타 피해 · 시작 속도(px/s) · 볼링 연쇄 번호 ·
+   * 이미 부딪친 적 (같은 비행에서 한 번)
+   */
+  flight: { tier: number; damage: number; speed0: number; chain: number; hit: Set<Mob> } | null = null;
   /** 마지막으로 본 플레이어 위치 (대기 방향용) */
   private targetX = 0;
   private targetY = 0;
@@ -139,11 +171,20 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
 
   /** 행동(think) 뒤 속도·플레이어 위치로 idle/walk 와 방향을 정한다 */
   update(ctx: MobContext): void {
-    if (!this.active) return;
+    // 같은 프레임에 먼저 쓰러졌을 수 있다 (destroy 는 active 를 끄지 않고 body 만 지운다)
+    if (!this.active || !this.body) return;
     this.targetX = ctx.player.x;
     this.targetY = ctx.player.y;
+    this.clock += ctx.delta;
+    if (this.air && this.clock >= this.air.until) this.land();
     const sh = this.shoveState;
-    if (ctx.time < this.arriveUntil && !sh) {
+    if (!sh && this.flight) this.flight = null;
+    if (this.air || (this.clock < this.staggerUntil && (!sh || sh.additive))) {
+      // P19 띄움(공중 — 끌려가는 넉백은 그대로) · 움찔: AI 정지
+      const f = sh && !sh.additive ? this.stepShove(ctx.delta) : 0;
+      this.body.setVelocity(sh && f > 0 ? sh.vx * f : 0, sh && f > 0 ? sh.vy * f : 0);
+      if (this.air) this.visual.setLift(this.airLift());
+    } else if (ctx.time < this.arriveUntil && !sh) {
       this.body.setVelocity(0, 0);
     } else if (sh && !sh.additive) {
       // 비틀거림: AI 대신 감쇠 속도
@@ -151,6 +192,8 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
       if (f > 0) this.body.setVelocity(sh.vx * f, sh.vy * f);
     } else {
       this.think(ctx);
+      // P19: 행동 중에 쓰러질 수 있다 (자폭병 폭발)
+      if (!this.body) return;
       if (this.speedMult !== 1 && !this.isBoss) this.body.velocity.scale(this.speedMult);
       if (ctx.time < this.statusSlowUntil) this.body.velocity.scale(this.statusSlowMult);
       if (this.eliteSpeedMult !== 1) this.body.velocity.scale(this.eliteSpeedMult);
@@ -206,6 +249,16 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
     return false;
   }
 
+  /** P19 지금 예고·공격 중이면 그 위협 색 단계 (계약 free-combat §2·§4 — 화면 밖 표식), 아니면 null */
+  get threat(): TelegraphTier | null {
+    return null;
+  }
+
+  /** P19 예고·공격 중 (봇 지표 '동시 공격') */
+  get attacking(): boolean {
+    return this.threat !== null;
+  }
+
   /** 맨손 ms (준비 중이던 공격은 끊긴다) */
   disarm(time: number, ms: number): void {
     if (ms <= 0) return;
@@ -245,6 +298,106 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
   /** 피격 넉백 중인지 (디버그) */
   get isShoved(): boolean {
     return this.shoveState !== null;
+  }
+
+  // --- P19 타격 반응 (버팀·움찔·띄움 — 판정·이벤트는 씬 HitReactions) ---
+
+  /** 이 방향 공격에 대한 버팀 (기본 = poise. 결사병 정면은 방패가 피해 경로에서 먼저 막는다) */
+  poiseAgainst(_dirX: number, _dirY: number): number {
+    return this.poise;
+  }
+
+  /** 움찔할 수 있는가 (보스 패턴·결사병 돌진은 끊지 않는다 — Enemy 가 덮어쓴다) */
+  canStagger(_time: number): boolean {
+    return !this.isBoss;
+  }
+
+  /** 움찔: ms 동안 AI 정지 + 준비 중이던 예고를 끊는다 (넉백 이동은 계속) */
+  stagger(ms: number): void {
+    if (ms <= 0) return;
+    this.staggerUntil = Math.max(this.staggerUntil, this.clock + ms);
+    this.onStunned();
+  }
+
+  /** 움찔 중 (디버그·봇) */
+  get staggered(): boolean {
+    return this.clock < this.staggerUntil;
+  }
+
+  /** 띄울 수 있는가 (보스·경직 면역·이미 공중 제외) */
+  canLaunch(): boolean {
+    return !this.isBoss && !this.stunImmune && this.active;
+  }
+
+  /** 띄움: ms 동안 제자리 공중 (공격 못 함 · 받는 피해 ×LAUNCH.TAKEN_MULT). 이미 떠 있으면 false */
+  launch(ms: number): boolean {
+    if (!this.canLaunch() || this.air) return false;
+    this.air = { from: this.clock, until: this.clock + ms, extends: 0 };
+    this.onStunned();
+    return true;
+  }
+
+  /** 공중에서 맞음 → 체공 연장 (최대 횟수까지). 늘렸으면 true */
+  extendAir(next: { until: number; extends: number }): boolean {
+    if (!this.air || next.extends === this.air.extends) return false;
+    this.air = { ...this.air, until: next.until, extends: next.extends };
+    return true;
+  }
+
+  /** 떠 있는가 · 지금 체공 상태 (자기 시계) */
+  get airborne(): boolean {
+    return this.air !== null;
+  }
+
+  get airState(): { until: number; extends: number } | null {
+    return this.air ? { until: this.air.until, extends: this.air.extends } : null;
+  }
+
+  /** 체공 남은 ms */
+  get airLeftMs(): number {
+    return this.air ? Math.max(0, this.air.until - this.clock) : 0;
+  }
+
+  private airLift(): number {
+    const a = this.air;
+    if (!a) return 0;
+    const t = Math.min(1, (this.clock - a.from) / Math.max(1, a.until - a.from));
+    return REACTION.LAUNCH.HEIGHT_PX * Math.sin(Math.PI * t);
+  }
+
+  /** 착지: 그림 높이 0 · 착지 움찔 · ENEMY_LANDED (날아가는 중 착지면 slam) */
+  private land(): void {
+    this.air = null;
+    this.visual.setLift(0);
+    this.staggerUntil = Math.max(this.staggerUntil, this.clock + REACTION.LAUNCH.LAND_FLINCH_MS);
+    const payload: EnemyLandedPayload = {
+      id: this.spriteId,
+      x: this.x,
+      y: this.y,
+      slam: this.shoveState !== null && !this.shoveState.additive,
+    };
+    EventBus.emit(Events.ENEMY_LANDED, payload);
+  }
+
+  /** 지금 넉백 속도 비율 (시작 1 → 끝 0, 넉백이 없으면 0) — 벽꽝 속도 */
+  get shoveSpeedRatio(): number {
+    const sh = this.shoveState;
+    return sh ? knockFactor(sh.elapsed, sh.ms) : 0;
+  }
+
+  /** 넉백 방향 단위벡터 (없으면 null) */
+  get shoveDir(): { x: number; y: number } | null {
+    const sh = this.shoveState;
+    if (!sh) return null;
+    const len = Math.hypot(sh.vx, sh.vy) || 1;
+    return { x: sh.vx / len, y: sh.vy / len };
+  }
+
+  /** 넉백을 그 자리에서 멈춘다 (벽꽝·볼링 — 끝 콜백 없이) */
+  stopShove(): void {
+    if (this.shoveState && !this.shoveState.additive) this.body.setVelocity(0, 0);
+    this.shoveState = null;
+    this.flight = null;
   }
 
   /** 바라보는 쪽(마지막으로 본 플레이어) 방향 단위벡터. 0 벡터면 (1, 0) */
@@ -343,13 +496,17 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
 
   /** 플레이어와 접촉 중일 때 호출. 공격 가능하면 공격력, 아니면 0 */
   tryContactAttack(time: number): number {
-    if (this.isStunned(time) || this.isDisarmed(time) || time < this.arriveUntil) return 0;
+    if (this.isStunned(time) || this.isDisarmed(time) || time < this.arriveUntil || this.air || this.staggered)
+      return 0;
     if (time < this.nextContactAt) return 0;
+    // P19 접촉 피해 없음: 몸이 공격인 동안(결사병 돌진·보스)만 공격력이 있다
+    const attack = this.currentContactAttack();
+    if (attack <= 0) return 0;
     this.nextContactAt = time + this.contactIntervalMs() / Math.max(0.1, this.attackRateMult);
     // 프레임 유지 중(보스 돌진·예고)에는 접촉 공격 애니로 덮지 않는다
     if (!this.visual.held) this.playAttack(time);
     EventBus.emit(Events.ENEMY_ATTACK, { id: this.spriteId, kind: 'contact' } satisfies EnemyAttackPayload);
-    return this.currentContactAttack();
+    return attack;
   }
 
   /** 데미지를 받는다. 사망하면 true. `info` 는 효과음 분기(치명·틱) */
@@ -400,7 +557,8 @@ export abstract class Mob extends Phaser.GameObjects.Sprite {
 
   /** 지금 받는 피해 배율 (엘리트 접두어 damageTakenMult · 61라운드 보스는 파훼 경직 동안 더 곱한다 — Boss) */
   damageTakenMultAt(_now: number): number {
-    return this.damageTakenMult;
+    // P19: 공중의 적은 더 아프다
+    return this.damageTakenMult * (this.air ? REACTION.LAUNCH.TAKEN_MULT : 1);
   }
 
   /** 60라운드 엘리트: 최대 HP 를 배율로 늘리고 가득 채운다 */

@@ -16,8 +16,6 @@ export const QUARTER = {
   /** 53라운드 v3 소품 시트 (아트 anchorRule): 작은 소품 피벗 = 놓일 칸의 논리 (16, 30) · 큰 소품 피벗 = 발자국 아래 바닥 위 2 논리 px */
   V3_PROP_ANCHOR_LOGICAL: { x: 16, y: 30 },
   V3_PIVOT_LIFT_LOGICAL: 2,
-  /** 52라운드 Q9: 쿼터뷰 타일셋 노드 전투장의 가장자리 깊이 상한 (0~1칸 — 북쪽 집 앞면이 거의 한 줄로) */
-  EDGE_MAX_INSET: 1,
   /**
    * 52라운드 Q11 큰 소품(bigProps) 배치 (임시값): 가로등 = 북쪽 벽 앞 간격 6칸·최대 4 · 화로 1~2 = 중앙 둘레 고리 4~7칸(가로 1.6배) ·
    * 우물·좌판 = 구석(안쪽 2칸, 위쪽 구석은 북쪽 3칸 비움) · 상자 더미 = 서·동 벽가 최대 2 · 시작점·출구·상점 둘레 3칸 비움
@@ -75,8 +73,19 @@ export const QUARTER = {
     TRIES: 40,
     NORTH_KEEP_TILES: 2,
   },
-  /** 53라운드 양조 수로 (art floors_v2 canal, 임시): 북쪽 끝에서 몇 칸 아래 줄부터 · 남쪽 남길 줄 · 시작점·출구·상점 둘레 피할 줄 */
-  CANAL: { ROW_FROM_NORTH: 8, SOUTH_KEEP_ROWS: 3, ANCHOR_CLEAR_ROWS: 1 },
+  /**
+   * P19 S2 낙하 구역 자리표시 그림 (수로 그림이 없는 낙하 칸 — 낭떠러지·테라스 단 끝, 아트 타일셋 v4 전까지): 깊이(바닥·그늘 위,
+   * 데칼 아래) · 색 · 가장자리 띠 색·두께(월드 px)
+   */
+  DROP: {
+    DEPTH: 0.015,
+    COLOR: { water: 0x2a4a5e, drop: 0x262a3a, ledge: 0x4a4038 } as Record<string, number>,
+    ALPHA: 1,
+    LIP_COLOR: 0x8a7a64,
+    LIP_PX: 2,
+  },
+  /** P19 1-A v4 지형 덧그림(둑·다리·단 테·앞면·계단) 깊이 — 바닥 그늘(+0.01) 위, 데칼(0.02) 아래 */
+  V4_OVERLAY_DEPTH: 0.012,
   /** 바닥 데칼 깊이 (바닥·그늘 위, 테두리·소품 아래) */
   DECAL_DEPTH: 0.02,
 } as const;

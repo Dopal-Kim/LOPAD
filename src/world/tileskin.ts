@@ -102,6 +102,8 @@ export interface TilesetJson {
   propsSheet?: string;
   decals?: DecalJson[];
   canal?: CanalJson;
+  /** P19 1-A (계약 art §34): v4 지형 인덱스 표 — 읽는 것은 `world/terrainV4` */
+  v4?: unknown;
   /** 52라운드 계약 §12: 바탕 판석에 방 종류 바닥(roomFloors.*)을 섞는 비율 0~1 (없으면 QUARTER.ROOM_FLOOR_MIX) */
   roomFloorMix?: number;
   props?: PropDef[];
@@ -505,6 +507,11 @@ export function namedTilesetJsonPath(name: string): string {
 /** 50라운드 새 2배 도트 지역 타일셋 경로 (`tiles/v2/stage1_outer.json`) — 있으면 기존보다 먼저 */
 export function namedTilesetJsonPathV2(name: string): string {
   return `${ASSETS.TILES_DIR}/${ASSETS.V2_DIR}/${name}.json`;
+}
+
+/** P19 1-A (계약 art §34): 타일셋 v4 경로 (`tiles/v4/stage1_outer.json`, 칸 0~95 = v2 호환) — 있으면 v2 보다 먼저 */
+export function namedTilesetJsonPathV4(name: string): string {
+  return `${ASSETS.TILES_DIR}/${ASSETS.V4_DIR}/${name}.json`;
 }
 
 /**

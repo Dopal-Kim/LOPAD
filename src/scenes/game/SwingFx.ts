@@ -91,15 +91,6 @@ export class SwingFx {
       const r = p.slam.radiusPx * hbScale * p.sizeMult;
       return { kind: 'arc', radius: r, arcDeg: 360, centerDeg: 0, fromDeg: -180, toDeg: 180 };
     }
-    // 49라운드 대검 대쉬 공격: 몸 시트 메모(hitRadiusPx·arcDeg·arcFrom/To — 그린 대로)가 있으면 그것, 없으면 3타 모양 × 대쉬 배율 + 데이터 각도
-    if (p.dashSlash) {
-      const dm = p.bodyAction ? spriteLibrary.sheet('player', p.bodyAction) : undefined;
-      const drawnDs = Boolean(dm && typeof dm.hitRadiusPx === 'number');
-      const ds = comboShape(c, hbScale * (drawnDs ? 1 : p.sizeMult), drawnDs ? dm : null);
-      if (ds.kind !== 'arc' || (drawnDs && typeof dm!.arcDeg === 'number')) return ds;
-      const half = p.dashSlash.arcDeg / 2;
-      return { ...ds, arcDeg: p.dashSlash.arcDeg, centerDeg: 0, fromDeg: -half, toDeg: half };
-    }
     // 55라운드 §17: 타별 데이터 모양 (칼 K-A·대검 G-C·차지 내려찍기)
     if (p.hitShape) return this.resolveSpec(p, p.hitShape);
     if (p.comboIndex === undefined) return null;
@@ -138,14 +129,12 @@ export class SwingFx {
     this.lastFxLoaded = false;
     if (p.slam) return;
     const combo = isMeleeStrike(p);
-    const DS = weapon.def.dashSlash;
-    const body = p.bodyAction ? spriteLibrary.sheet('player', p.bodyAction) : undefined;
     const dir = facingOf(p.dirX, p.dirY, g.player.facingDir);
     const shape = this.shape(p);
     // Q15: 갈래·강화 판정 배율만큼 그림도 (가열 배율과 곱). 판정 원점(발 위)이 그대로 있게 내려 붙인다
     const hb = this.hbScale;
     // 55라운드 §17: 그림 이름 표의 휘두름 이펙트 (빈 목록 = 휘두름 이펙트 없음 — 내려찍기는 끝점 바닥 충격만)
-    const art = p.dashSlash ? { id: null, listed: false } : this.artFxId(p.art, 'fx');
+    const art = this.artFxId(p.art, 'fx');
     if (art.listed && art.id === null) {
       const ribbon = this.startRibbon(p, dir, shape, null, hb);
       this.debugLast = { id: null, art: p.art, tier: 'none', delay: 0, hitAt: p.swingDelayMs, ribbon };
@@ -160,7 +149,7 @@ export class SwingFx {
         // 60라운드 (57 Q42): 옛 진화 이펙트(갈래 연격 시트·2단 변주·진화 베기)는 끔 — 갈래 1단 연격 변화는 fx 교체 규칙(FxPool.setAliases)
         path: [],
         heat: p.accelStage ?? 0,
-        reuseId: p.dashSlash && DS ? (body?.fxReuse?.id ?? comboFxId(weapon.id, DS.fxCombo)) : null,
+        reuseId: null,
         evoId: null,
       },
       { has: (id) => g.fx.has(id), sheet: (id) => g.fx.sheet(id) },

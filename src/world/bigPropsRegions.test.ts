@@ -10,7 +10,7 @@ import { planStructures, structureTiles } from '../systems/structures/placement'
 import { TileId, type FloorLayout } from '../systems/mapgen';
 import { mirrorX, planBigProps, type BigPropPlacement, type BigPropShape } from './bigProps';
 import { doorMouths } from './bigPropGrid';
-import { planCanal, type CanalJson } from './floorFeatures';
+import { canalFromArena, type CanalJson } from './floorFeatures';
 
 const fp = (w: number, h: number) => [w, h] as [number, number];
 
@@ -109,19 +109,14 @@ const SEEDS = ['s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7'];
 function build(region: string, seed: string) {
   const r = REGIONS[region];
   const node = { id: `c${r.col}r0`, kind: r.kind, type: r.kind, name: '', col: r.col, row: 0, links: [] };
-  const plan = planNodeArena(node as unknown as RouteNode, 'stage1', seed, ROUTE, {
-    quarterTileset: () => true,
-    border: () => true,
-  });
+  const plan = planNodeArena(node as unknown as RouteNode, 'stage1', seed, ROUTE, { border: () => true });
   const L = plan.layout;
   const propSeed = `${seed}:${node.id}`;
   const structures = planStructures(L, 'stage1', propSeed, { node: plan.structureNode });
   const blocked = new Set([...structureTiles(structures), ...setPieceTiles(plan)]);
-  const bridges = new Set<string>();
-  if (r.canal)
-    for (const t of planCanal(L, CANAL, blocked)?.tiles ?? [])
-      if (t.kind === 'bridgeL' || t.kind === 'bridgeR') bridges.add(`${t.x},${t.y}`);
-      else blocked.add(`${t.x},${t.y}`);
+  // P19 S2: 수로 = 형태 틀 물 칸(빈 칸 — 이미 걷기 막힘) · 다리 칸 (TileWorld 와 같게)
+  const bridges = new Set((L.arena?.bridges ?? []).map((b) => `${b.x},${b.y}`));
+  if (r.canal) expect(canalFromArena(L, CANAL)!.tiles.some((t) => t.kind === 'water' || t.kind === 'lit')).toBe(true);
   const props = planBigProps(L, r.shapes, blocked, propSeed, bridges);
   return { L, blocked, bridges, props, propSeed, shapes: r.shapes };
 }

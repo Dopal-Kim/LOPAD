@@ -1,17 +1,20 @@
 /**
- * 49라운드 4-2·6·7·3: 노드 전투장 한 판의 설계도 — 지역(타일셋·가장자리) + 들쭉날쭉한 전투장 + 세트 배치 + 튜토리얼 자리.
+ * 49라운드 4-2·6·7·3: 노드 전투장 한 판의 설계도 — 지역(타일셋) + 전투장 + 세트 배치 + 튜토리얼 자리.
  * Phaser 의존 없음 · 시드 결정적. Game 은 `planNodeArena` 결과로 TileWorld·구조물·소품 그림·튜토리얼을 만든다.
+ * P19 S2: 전투·여정 전투·보스 노드(`arena.shapeKinds`)는 형태 틀(data/arenas) — 노드 → 형태 배정은 `shapeAssignments`.
  */
-import { QUARTER } from '../core/Constants';
-import { hashSeed } from './rng';
+import { CAMERA, GAME, TILE } from '../core/Constants';
+import { ARENA_SHAPES } from '../data/arenas';
+import { Rng, hashSeed } from './rng';
 import { generateArena } from './mapgen/arena';
+import { buildShape, type ArenaShapeDef, type ShapeGrid } from './mapgen/shape';
 import type { FloorLayout, Rect } from './mapgen/types';
 import {
   ROUTE,
   arenaSize,
   entries,
+  generateRoute,
   kindDef,
-  regionEdge,
   regionIdOf,
   type RegionDef,
   type RouteFile,
@@ -19,6 +22,7 @@ import {
   type RouteNode,
 } from './route';
 import { STRUCTURE_DEFS, availableOn } from './structures/data';
+import type { UiStructureKind } from '../contract/ui';
 import type { PlanOptions } from './structures/placement';
 import { planSetPiece, type SetPieceDef, type SetPiecePlan } from './structures/setpiece';
 import { mirrorSetPiece, type Mirror } from './structures/setpieceMirror';
@@ -38,8 +42,16 @@ export interface NodeArenaPlan {
   structureNode: NonNullable<PlanOptions['node']>;
   /** 조작 안내 노드면 그 정의 */
   tutorial: TutorialDef | null;
-  /** 61라운드 단계 2 방 다양화: 고른 크기·시작 줄 이동·세트 뒤집기 (디버그) */
+  /** 61라운드 단계 2 방 다양화: 고른 크기·시작 줄 이동·세트 뒤집기 (디버그). 형태 틀이면 변형된 크기·뒤집기 */
   variety: { size: [number, number]; shift: number; mirror: Mirror };
+  /** P19 S2 형태 틀 (사각 전투장이면 null): id · 배율 · 주변광 덮어쓰기 · 고정 광원(타일, 소수) · 미리 깔린 술 웅덩이(타일) */
+  shape: {
+    id: string;
+    scale: number;
+    ambient: string | null;
+    lights: { x: number; y: number; kind: string }[];
+    pools: { x: number; y: number }[];
+  } | null;
 }
 
 /** 노드 자리 순번 (단 × 2 + 줄) — 같은 길의 이웃 단은 다른 후보를 고르게 */
@@ -85,23 +97,86 @@ export function pickPropScene(
   return options[(hashSeed(`${String(floorSeed)}:propscene`) + slotOf(node)) % options.length];
 }
 
-/**
- * 61라운드 단계 2: 노드의 세트 배치 템플릿 id — 지역 덮어쓰기 → 종류 후보(`setPieceVariants`, 층 시드 기준 자리 순번으로 돌려
- * 같은 길의 이웃 단과 겹치지 않게) → 종류 기본 `setPiece`
- */
+/** 노드의 세트 배치 템플릿 id — 지역 덮어쓰기 → 종류 기본 `setPiece` */
 export function pickSetPiece(
-  node: Pick<RouteNode, 'kind' | 'col' | 'row'>,
+  node: Pick<RouteNode, 'kind'>,
   region: RegionDef | null,
-  floorSeed: number | string,
   file: RouteFile = ROUTE,
 ): string | null {
-  const d = kindDef(node.kind, file);
-  const over = region?.setPieces?.[node.kind];
-  if (over) return over;
-  const list = d.setPieceVariants ?? [];
-  if (list.length > 0) return list[(hashSeed(`${String(floorSeed)}:setpiece`) + slotOf(node)) % list.length];
-  return d.setPiece ?? null;
+  return region?.setPieces?.[node.kind] ?? kindDef(node.kind, file).setPiece ?? null;
 }
+
+/** 이 층 그래프(시드 결정적)의 형태 틀 노드 → 형태 id 캐시 */
+const shapeCache = new Map<string, Map<string, string>>();
+
+/**
+ * P19 S2 노드 → 형태 배정 (같은 층 시드면 같은 결과). 단 순서로 돌며, 형태 regions 에 노드 지역이 든 후보 중
+ * (이 층에서 쓴 횟수 → 같은 단에서 쓴 횟수 → 시드 해시) 가 가장 작은 것. 지역에 맞는 후보가 없으면 같은 stage 전부
+ * (보스는 사각 그대로). 1층 한 판(전투 5~6노드)에서 형태 5종 이상 · 같은 단 두 갈래는 서로 다르게
+ */
+export function shapeAssignments(
+  stageId: string,
+  floorSeed: number | string,
+  file: RouteFile = ROUTE,
+  shapes: ReadonlyMap<string, ArenaShapeDef> = ARENA_SHAPES,
+): Map<string, string> {
+  const key = `${stageId}|${String(floorSeed)}`;
+  const hit = file === ROUTE && shapes === ARENA_SHAPES ? shapeCache.get(key) : undefined;
+  if (hit) return hit;
+  const kinds = new Set(file.arena.shapeKinds ?? []);
+  const out = new Map<string, string>();
+  const used = new Map<string, number>();
+  const usedInCol = new Map<string, number>();
+  const nodes = generateRoute(stageId, floorSeed, file)
+    .nodes.filter((n) => kinds.has(n.kind))
+    .sort((a, b) => a.col - b.col || a.row - b.row);
+  for (const n of nodes) {
+    const stage = n.kind === 'boss' ? 'boss' : 'battle';
+    const all = [...shapes.values()].filter((d) => d.stage === stage);
+    const region = regionIdOf(stageId, n.col, file);
+    const fit = all.filter((d) => region !== null && d.regions.includes(region));
+    const cands = fit.length > 0 ? fit : stage === 'boss' ? [] : all;
+    if (cands.length === 0) continue;
+    const score = (d: ArenaShapeDef) =>
+      [used.get(d.id) ?? 0, usedInCol.get(`${n.col}:${d.id}`) ?? 0, hashSeed(`${key}:${n.id}:${d.id}`)] as const;
+    const best = cands.reduce((a, b) => {
+      const [x, y] = [score(a), score(b)];
+      return y[0] < x[0] || (y[0] === x[0] && (y[1] < x[1] || (y[1] === x[1] && y[2] < x[2]))) ? b : a;
+    });
+    out.set(n.id, best.id);
+    used.set(best.id, (used.get(best.id) ?? 0) + 1);
+    usedInCol.set(`${n.col}:${best.id}`, (usedInCol.get(`${n.col}:${best.id}`) ?? 0) + 1);
+  }
+  if (file === ROUTE && shapes === ARENA_SHAPES) shapeCache.set(key, out);
+  return out;
+}
+
+/** 화면 하나에 보이는 칸 (탐색 배율 기준 — CAMERA.ZOOM 1.75 → 34.3 × 19.3) */
+export const SCREEN_TILES = { w: GAME.WIDTH / CAMERA.ZOOM / TILE, h: GAME.HEIGHT / CAMERA.ZOOM / TILE } as const;
+/** 형태 틀 전투장 넓이 ÷ 화면 목표 (P19 ⑤-1) */
+export const SHAPE_AREA_SCREENS: readonly [number, number] = [1.8, 3.0];
+
+/**
+ * 형태 변형 고르기: 배율은 variants.scale 안에서, 넓이 ÷ 화면이 SHAPE_AREA_SCREENS 안에 들도록 좁힌 범위에서 시드로.
+ * 뒤집기는 허용된 축마다 시드 비트
+ */
+export function shapeVariant(def: ArenaShapeDef, seed: string): { scale: number; flipX: boolean; flipY: boolean } {
+  const rng = new Rng(hashSeed(`${seed}:shape`));
+  const area = def.mask.length * def.mask[0].length;
+  const screen = SCREEN_TILES.w * SCREEN_TILES.h;
+  const lo = Math.max(def.variants.scale[0], Math.sqrt((SHAPE_AREA_SCREENS[0] * screen) / area) + 0.01);
+  const hi = Math.min(def.variants.scale[1], Math.sqrt((SHAPE_AREA_SCREENS[1] * screen) / area) - 0.01);
+  const scale = hi > lo ? lo + (hi - lo) * rng.next() : Math.min(Math.max(1, lo), Math.max(lo, hi));
+  return { scale, flipX: def.variants.flipX && rng.chance(0.5), flipY: def.variants.flipY && rng.chance(0.5) };
+}
+
+/** 위험물 자리 → 구조물 종류 (pool 은 구조물이 아니라 미리 깔린 웅덩이 · parapet 은 부서지는 짐 상자로 임시) */
+const HAZARD_STRUCTURE: Readonly<Record<string, UiStructureKind | null>> = {
+  cask: 'cask',
+  still: 'still',
+  parapet: 'crate',
+  pool: null,
+};
 
 /**
  * 노드 전투장 설계. node 가 null 이면(2층 진입 갈림 선택 대기) 비전투 빈 전투장 (세트 배치 없음, 지역 = 0단계).
@@ -113,24 +188,30 @@ export function planNodeArena(
   floorSeed: number | string,
   file: RouteFile = ROUTE,
   /**
-   * 52라운드 Q9: 지역 타일셋이 쿼터뷰인지 (그러면 가장자리 깊이를 QUARTER.EDGE_MAX_INSET 칸까지만).
-   * 53라운드 Q6: 지역에 Gemini 외벽 테두리가 있는지 — 있으면 가장자리 일직선(깊이 0, 테두리 기준선과 맞춤)·숨은 저장고 없음
+   * 53라운드 Q6: 지역에 Gemini 외벽 테두리가 있는지 — 있으면 숨은 저장고 없음
    * (저장고는 벽 바깥 여백을 파는데 그 자리를 테두리 그림이 덮는다)
    */
-  opts: { quarterTileset?: (tileset: string | null) => boolean; border?: (regionId: string | null) => boolean } = {},
+  /** shape = 형태 틀 강제 (디버그 `?shape=<id>` — 형태 틀 노드 종류일 때만) */
+  opts: { border?: (regionId: string | null) => boolean; shape?: string | null } = {},
 ): NodeArenaPlan {
   const kind: RouteKind = node?.kind ?? 'birth';
   const d = kindDef(kind, file);
-  const variety = arenaVariety(node, floorSeed, file);
-  const [w, h] = variety.size;
   const A = file.arena;
   const regionId = regionIdOf(stageId, node?.col ?? 0, file);
   const region = regionId ? (entries(file.regions)[regionId] ?? null) : null;
-  const seed = hashSeed(`${String(floorSeed)}:${node?.id ?? 'entry'}:arena`);
-  const baseEdge = regionEdge(regionId, file);
+  const nodeSeed = `${String(floorSeed)}:${node?.id ?? 'entry'}`;
+  const seed = hashSeed(`${nodeSeed}:arena`);
   const border = Boolean(opts.border?.(regionId));
-  const maxInset = border ? 0 : opts.quarterTileset?.(region?.tileset ?? null) ? QUARTER.EDGE_MAX_INSET : Infinity;
-  const edge = baseEdge ? { ...baseEdge, maxInset: Math.min(baseEdge.maxInset, maxInset) } : baseEdge;
+  const shapeId =
+    node && file.arena.shapeKinds?.includes(node.kind)
+      ? (opts.shape ?? shapeAssignments(stageId, floorSeed, file).get(node.id))
+      : undefined;
+  const shapeDef = shapeId ? (ARENA_SHAPES.get(shapeId) ?? null) : null;
+  const grid: ShapeGrid | null = shapeDef ? buildShape(shapeDef, shapeVariant(shapeDef, nodeSeed)) : null;
+  const variety = grid
+    ? { size: [grid.w, grid.h] as [number, number], shift: 0, mirror: { x: grid.flipX, y: grid.flipY } }
+    : arenaVariety(node, floorSeed, file);
+  const [w, h] = variety.size;
   const layout = generateArena({
     roomId: node?.id ?? 'entry',
     type: node ? d.room : 'start',
@@ -143,7 +224,7 @@ export function planNodeArena(
     spawnExactCenter: kind === 'birth' && node !== null,
     shopCenter: Boolean(node && d.shopTiles),
     spawnShiftY: variety.shift,
-    edge: edge ?? undefined,
+    shape: grid ?? undefined,
     seed,
   });
   const arena = layout.arena!;
@@ -153,9 +234,17 @@ export function planNodeArena(
     { x: arena.exit.x - c, y: arena.exit.y - c, w: c * 2 + 2, h: c * 2 + 2 },
   ];
   if (node && d.shopTiles) reserve.push({ x: arena.shop.x - c, y: arena.shop.y - c, w: c * 2 + 2, h: c * 2 + 2 });
+  // P19 S2: 다리 칸은 무작위 구조물·소품·세트피스가 막지 않게
+  for (const b of arena.bridges ?? []) reserve.push({ x: b.x, y: b.y, w: 1, h: 1 });
 
-  // 54라운드 Q11: 지역이 노드 종류별 템플릿을 덮어쓸 수 있다 (연회장 보스방 = boss_hall)
-  const templateId = node ? pickSetPiece(node, region, floorSeed, file) : null;
+  // 54라운드 Q11: 지역이 노드 종류별 템플릿을 덮어쓸 수 있다 (연회장 보스방 = boss_hall). P19 S2: 형태 틀 소품 세트가 먼저
+  const props = shapeDef?.props ?? [];
+  const templateId =
+    props.length > 0
+      ? props[hashSeed(`${nodeSeed}:props`) % props.length]
+      : node
+        ? pickSetPiece(node, region, file)
+        : null;
   const raw: SetPieceDef | null = templateId ? (entries(file.setPieces)[templateId] ?? null) : null;
   const template = raw ? mirrorSetPiece(raw, variety.mirror) : null;
   const tutorial = node && d.tutorial && file.tutorial ? file.tutorial : null;
@@ -178,6 +267,19 @@ export function planNodeArena(
         }
       : null,
   });
+  // P19 S2: 형태 틀 엄폐 칸(돌기둥 그림) · 위험물 자리 (구조물은 세트 자리처럼 먼저, 웅덩이는 따로)
+  const pools: { x: number; y: number }[] = [];
+  if (grid) {
+    setPiece.cover.unshift(...(arena.cover ?? []));
+    const I = layout.rooms[0].interior;
+    for (const hz of grid.hazards) {
+      const at = { x: I.x + hz.x, y: I.y + hz.y };
+      const sk = HAZARD_STRUCTURE[hz.kind];
+      if (sk === null) pools.push(at);
+      else if (sk && availableOn(STRUCTURE_DEFS.get(sk) ?? { floors: [] }, stageId))
+        setPiece.fixed.push({ kind: sk, tx: at.x, ty: at.y, function: false });
+    }
+  }
   const all = [...reserve, ...setPiece.reserve];
   return {
     layout,
@@ -196,6 +298,19 @@ export function planNodeArena(
     },
     tutorial,
     variety,
+    shape: grid
+      ? {
+          id: grid.id,
+          scale: grid.scale,
+          ambient: shapeDef!.lighting.ambient,
+          lights: grid.lights.map((l) => ({
+            x: layout.rooms[0].interior.x + l.x,
+            y: layout.rooms[0].interior.y + l.y,
+            kind: l.kind,
+          })),
+          pools,
+        }
+      : null,
   };
 }
 

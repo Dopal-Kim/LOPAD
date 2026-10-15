@@ -229,13 +229,16 @@ describe('53라운드 Q6 외벽 테두리 (border.json → 배치)', () => {
     expect(at.y + 377 * WORLD_PER_LOGICAL).toBeCloseTo(144);
   });
 
-  it('전투장: 테두리 지역은 가장자리 일직선 · 숨은 저장고 없음 · 문 칸 = 바닥 바로 바깥 빈 칸', () => {
+  it('전투장: 테두리 지역은 바깥 벽 일직선 · 숨은 저장고 없음 · 안쪽 빈 칸은 낙하 구역뿐', () => {
     for (let s = 0; s < 12; s++) {
       const plan = planNodeArena(battle(3), 'stage1', `border${s}`, ROUTE, { border: () => true });
       const L = plan.layout;
       const I = L.rooms[0].interior;
+      const drops = new Set((L.arena!.drops ?? []).map((d) => `${d.x},${d.y}`));
       for (let y = I.y; y < I.y + I.h; y++)
-        for (let x = I.x; x < I.x + I.w; x++) expect(L.tiles[y][x]).not.toBe(TileId.Void);
+        for (let x = I.x; x < I.x + I.w; x++)
+          if (L.tiles[y][x] === TileId.Void) expect(drops.has(`${x},${y}`)).toBe(true);
+      for (let x = I.x - 1; x <= I.x + I.w; x++) expect(L.tiles[I.y - 1][x]).toBe(TileId.Wall);
       const fr = floorRectOf(L, TILE)!;
       expect(fr).toEqual({ x0: I.x * TILE, y0: I.y * TILE, x1: (I.x + I.w) * TILE, y1: (I.y + I.h) * TILE });
       for (const g of borderGaps(L, TILE)) {
@@ -251,11 +254,11 @@ describe('53라운드 Q6 외벽 테두리 (border.json → 배치)', () => {
     expect(ev2.structureNode.kinds.some((k) => STRUCTURE_DEFS.get(k)?.place === 'cellar')).toBe(true);
   });
 
-  it('Q7 노드 전투장 기본 크기 32×20 (보스는 따로) · 61라운드 단계 2: 전투 노드는 크기 후보 중 하나', () => {
+  it('Q7 사각 노드 전투장 기본 크기 32×20 (보스는 따로) · P19 S2: 전투 노드는 형태 틀 크기', () => {
     expect(ROUTE.arena.default).toEqual([32, 20]);
     const plan = planNodeArena(battle(3), 'stage1', 'size', ROUTE);
     const I = plan.layout.rooms[0].interior;
-    expect(ROUTE.arena.variety!.sizes!.battle).toContainEqual([I.w, I.h]);
+    expect(plan.shape).not.toBeNull();
     expect(plan.variety.size).toEqual([I.w, I.h]);
   });
 });
