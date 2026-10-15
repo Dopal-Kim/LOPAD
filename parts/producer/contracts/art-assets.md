@@ -711,3 +711,12 @@
 5. **새 fx** `fx/v3/hero_*`: `hero_eye_trail`(48×8 피벗 (44,4) 6프레임, 이동 방향 회전 — 달리기 속도 60%↑ 30ms마다·대쉬 16ms마다 eyeAnchors 에, 미끄럼·급정지 중 안 찍음) · `hero_ember_breath`(48×80 피벗 (24,72) 12×80ms 루프, chestAnchors, idle 동안) · `hero_dash_afterimage`(96×144 피벗 (48,138), variants dash1/2/3 각 4프레임 — 대쉬 1·2·3 프레임 시작에 그 자리, depth below) · `hero_skid_dust`(160×72 피벗 (80,56) 6프레임, 행 = 새 방향 — turn_skid 0·대쉬 4·급정지).
 - 연결 규칙: turn_skid = 달리기 속도 ≥ 60% 에서 입력 방향 135°↑ 꺾인 순간 1회(입력 막지 않음, 공격·대쉬가 끊음, 끝나면 run 0 또는 idle 0).
 - 미재작업(다음 후보): 칼 iai·counter·spin·guardbreak·issen(_dash)·crescent·draw·sheathe·special, 대검 charge*·slam·tackle·leap_slam·brace_upswing·draw·sheathe·special·dashslash, 단검 backstab·flurry·fan_throw·special, 활 전부, birth·groggy. 무기 궤적(칼끝이 땅을 긁는 등)은 무기 재렌더가 필요.
+
+## 36. P20 주인공 새 몸 (디자인 재점검 — 키아트 hero3_b 비율)
+1. **규격 그대로**: 몸 62시트 틀 96×144·피벗 (48,138)·프레임 수·ms·판정·타이밍·`p19FrameMap` 불변, 그림만 바뀜. 다시 잰 값: `handAnchors`·`scarAnchor`·`weaponOffsetDots`(참고)·`eyeAnchors`·`chestAnchors`(gen 42시트에도 새로 — null = 안 보임). 새 키 `p20`·`bodyRig`·`p20Roles`. 새 리그 `parts/art/work/hero20/rig20.py`(약 6.8등신).
+2. **무기 오버레이** 871장 프레임마다 옮겨 구움(시스템 오프셋 적용 불필요). 틀 크기 변경 79장, pivot·playerFrameOffset 이동 45장(대검 27, **칼 18** — katana_fall/counter+ki, iai/issen/issen_dash/rise/thrust ki3·ki2, 스미어 4). 각성·v4 `weaponSheetPivot`·`pivotDelta` 새 값. **시스템은 칼 오버레이·스미어도 JSON frameWidth/Height·pivot·playerFrameOffset 을 읽어야 한다**(§7, P19 까지 칼은 192·(96,186) 고정이었음).
+3. 대검 공중제비 `greatsword_leap_slam` f3~f5 몸은 오버레이 6장 안에 합성(`p20Flip`).
+4. 탄생 34프레임 그대로, 마지막 = 새 idle down 0.
+5. 타이틀 `title_fx_glow_hero` y 408→434(`title.json`).
+6. 권장: 무기 끝에서 생기는 fx(타격·잔광, 스미어 제외)에 현재 몸 프레임 `weaponOffsetDots` 를 더할 것(무기가 평균 6~12도트 올라감).
+- 남은 것(프로듀서 판정): 정면 앞 허리천이 1배에서 네모 덩어리로 읽힘(찢긴 삼각 천 자락으로), 내려베기 정점 팔이 곧게 뻗음, 무기 궤적 재렌더 없음, 공중제비 덩어리.
